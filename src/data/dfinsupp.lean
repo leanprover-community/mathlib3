@@ -454,16 +454,10 @@ end
   left_inv := λ x, coe_fn_injective rfl,
   right_inv := λ x, rfl }
 
-@[simp] lemma equiv_fun_on_fintype_symm_coe [fintype ι] [Π i, decidable_eq (β i)] (f : Π₀ i, β i) :
+@[simp] lemma equiv_fun_on_fintype_symm_coe
+  [fintype ι] [Π i (x : β i), decidable (x ≠ 0)] (f : Π₀ i, β i) :
   equiv_fun_on_fintype.symm f = f :=
-begin
-  ext a,
-  simp only [mk_apply, equiv_fun_on_fintype,mk_apply, equiv.coe_fn_symm_mk],
-  split_ifs,
-  { refl },
-  { symmetry,
-    simpa using h },
-end
+equiv.symm_apply_apply _ _
 
 /-- The function `single i b : Π₀ i, β i` sends `i` to `b`
 and all other points to `0`. -/
@@ -481,7 +475,7 @@ begin
     simp only [mk_apply, dif_neg h, dif_neg h1] }
 end
 
-lemma single_eq_pi_single [Π i, decidable_eq (β i)] {i b} :
+lemma single_eq_pi_single [Π i (x : β i), decidable (x ≠ 0)] {i b} :
   ⇑(single i b : Π₀ i, β i) = pi.single i b :=
 begin
   ext i',
@@ -559,12 +553,13 @@ lemma single_eq_of_sigma_eq
   dfinsupp.single i xi = dfinsupp.single j xj :=
 by { cases h, refl }
 
-@[simp] lemma equiv_fun_on_fintype_single [fintype ι] [Π i, decidable_eq (β i)] (i : ι) (m : β i) :
+@[simp] lemma equiv_fun_on_fintype_single
+  [fintype ι] [Π i (x : β i), decidable (x ≠ 0)] (i : ι) (m : β i) :
   (@dfinsupp.equiv_fun_on_fintype ι β _ _ _ _) (dfinsupp.single i m) = pi.single i m :=
 by { ext, simp [dfinsupp.single_eq_pi_single, dfinsupp.equiv_fun_on_fintype], }
 
 @[simp] lemma equiv_fun_on_fintype_symm_single
-  [fintype ι] [Π i, decidable_eq (β i)] (i : ι) (m : β i) :
+  [fintype ι] [Π i (x : β i), decidable (x ≠ 0)] (i : ι) (m : β i) :
   (@dfinsupp.equiv_fun_on_fintype ι β _ _ _ _).symm (pi.single i m) = dfinsupp.single i m :=
 by { ext i', simp only [← single_eq_pi_single, equiv_fun_on_fintype_symm_coe] }
 

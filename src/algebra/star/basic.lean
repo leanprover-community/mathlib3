@@ -112,11 +112,17 @@ op_injective $
 
 @[simp] lemma star_inv [group R] [star_monoid R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
-  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv _)
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_inv' [group_with_zero R] [star_monoid R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
-op_injective $
-  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv' x).trans (op_inv _)
+section
+open_locale big_operators
+
+@[simp] lemma star_prod [comm_monoid R] [star_monoid R] {α : Type*}
+  (s : finset α) (f : α → R):
+  star (∏ x in s, f x) = ∏ x in s, star (f x) :=
+(star_mul_aut : R ≃* R).map_prod _ _
+
+end
 
 variables {R}
 
@@ -167,6 +173,30 @@ variables (R)
 @[simp] lemma star_zero [add_monoid R] [star_add_monoid R] : star (0 : R) = 0 :=
 (star_add_equiv : R ≃+ R).map_zero
 
+@[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
+(star_add_equiv : R ≃+ R).map_neg _
+
+@[simp] lemma star_sub [add_group R] [star_add_monoid R] (r s : R) : star (r - s) = star r - star s :=
+(star_add_equiv : R ≃+ R).map_sub _ _
+
+@[simp] lemma star_nsmul [add_comm_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
+  star (n • x) = n • star x :=
+(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
+
+@[simp] lemma star_gsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+  star (n • x) = n • star x :=
+(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_gsmul _ _
+
+section
+open_locale big_operators
+
+@[simp] lemma star_sum [add_comm_monoid R] [star_add_monoid R] {α : Type*}
+  (s : finset α) (f : α → R):
+  star (∑ x in s, f x) = ∑ x in s, star (f x) :=
+(star_add_equiv : R ≃+ R).map_sum _ _
+
+end
+
 variables {R}
 
 /--
@@ -198,21 +228,13 @@ def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
   ..star_add_equiv,
   ..star_mul_aut }
 
-section
-open_locale big_operators
+@[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+op_injective $
+  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_sum [semiring R] [star_ring R] {α : Type*}
-  (s : finset α) (f : α → R):
-  star (∑ x in s, f x) = ∑ x in s, star (f x) :=
-(star_add_equiv : R ≃+ R).map_sum _ _
-
-end
-
-@[simp] lemma star_neg [ring R] [star_ring R] (r : R) : star (-r) = - star r :=
-(star_add_equiv : R ≃+ R).map_neg _
-
-@[simp] lemma star_sub [ring R] [star_ring R] (r s : R) : star (r - s) = star r - star s :=
-(star_add_equiv : R ≃+ R).map_sub _ _
+/-- When multiplication is commutative, `star` preserves division. -/
+@[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
+(star_ring_aut : R ≃+* R).to_ring_hom.map_div _ _
 
 @[simp] lemma star_bit0 [ring R] [star_ring R] (r : R) : star (bit0 r) = bit0 (star r) :=
 by simp [bit0]

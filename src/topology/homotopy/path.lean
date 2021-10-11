@@ -21,7 +21,7 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 * `path.homotopy.trans F G`, where `F : path.homotopy p₀ p₁`, `G : path.homotopy p₁ p₂` is the
   `path.homotopy p₀ p₂` defined by putting the first homotopy on `[0, 1/2]` and the second on
   `[1/2, 1]`
-* `path.homotopy.trans' F G`, where `F : path.homotopy p₀ q₀` and `G : path.homotopy p₁ q₁` is
+* `path.homotopy.hcomp F G`, where `F : path.homotopy p₀ q₀` and `G : path.homotopy p₁ q₁` is
   a `path.homotopy (p₀.trans p₁) (q₀.trans q₁)`
 * `path.homotopic p₀ p₁` is the relation saying that there is a homotopy between `p₀` and `p₁`
 * `path.homotopic.setoid x₀ x₁` is the setoid on `path`s from `path.homotopic`
@@ -152,7 +152,7 @@ Suppose `p₀` and `q₀` are paths from `x₀` to `x₁`, `p₁` and `q₁` are
 Furthermore, suppose `F : homotopy p₀ q₀` and `G : homotopy p₁ q₁`. Then we can define a homotopy
 from `p₀.trans p₁` to `q₀.trans q₁`.
 -/
-def trans' (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
+def hcomp (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
   homotopy (p₀.trans p₁) (q₀.trans q₁) :=
 { to_fun := λ x,
   if (x.2 : ℝ) ≤ 1/2 then
@@ -178,16 +178,16 @@ def trans' (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
       norm_num }
   end }
 
-lemma trans'_apply (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (x : I × I) :
-  F.trans' G x =
+lemma hcomp_apply (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (x : I × I) :
+  F.hcomp G x =
   if h : (x.2 : ℝ) ≤ 1/2 then
     F.eval x.1 ⟨2 * x.2, (unit_interval.mul_pos_mem_iff zero_lt_two).2 ⟨x.2.2.1, h⟩⟩
   else
     G.eval x.1 ⟨2 * x.2 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.2.2.2⟩⟩ :=
 show ite _ _ _ = _, by split_ifs; exact path.extend_extends _ _
 
-lemma trans'_half (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (t : I) :
-  F.trans' G (t, ⟨1/2, by norm_num, by norm_num⟩) = x₁ :=
+lemma hcomp_half (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (t : I) :
+  F.hcomp G (t, ⟨1/2, by norm_num, by norm_num⟩) = x₁ :=
 show ite _ _ _ = _, by norm_num
 
 end

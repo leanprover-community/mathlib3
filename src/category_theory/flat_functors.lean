@@ -307,7 +307,7 @@ begin
 
   /-
   Now, since everything now falls in the image of `u`,
-  the result follows from the compatibleness of `x` in the image of `u`.
+  the result follows from the compatibility of `x` in the image of `u`.
   -/
   injection c'.π.naturality walking_cospan.hom.inl with _ e₁,
   injection c'.π.naturality walking_cospan.hom.inr with _ e₂,

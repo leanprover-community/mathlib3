@@ -188,6 +188,7 @@ begin
   rw [← category_theory.category.assoc, explicit_cokernel_π_desc]
 end
 
+@[simp]
 lemma explicit_cokernel_desc_zero {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} :
   explicit_cokernel_desc (show f ≫ (0 : Y ⟶ Z) = 0, from category_theory.limits.comp_zero) = 0 :=
 eq.symm $ explicit_cokernel_desc_unique _ _ category_theory.limits.comp_zero

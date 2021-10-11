@@ -9,7 +9,7 @@ def foo [has_scalar R M] : Type* := ℕ
 variables [has_scalar R M] [has_scalar S R] [has_scalar S M]
 
 /-- This instance is incompatible with `has_scalar.comp.is_scalar_tower`.
-However, it should -/
+However, all its parameters are (instance) implicits or irreducible defs, so it should not be dangerous. -/
 @[nolint unused_arguments]
 instance foo.has_scalar [is_scalar_tower S R M] : has_scalar S (foo R M) := sorry
 

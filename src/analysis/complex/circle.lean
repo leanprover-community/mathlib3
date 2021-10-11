@@ -61,7 +61,7 @@ instance : group circle :=
     ← mul_self_abs] },
   .. circle.to_monoid }
 
-lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = (conj : ring_aut ℂ) z := rfl
+lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
 
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin

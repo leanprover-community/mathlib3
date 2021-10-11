@@ -225,7 +225,7 @@ begin
 end
 
 /--
-A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
+A rewrite lemma for `padic_val_rat p (q^k)` with condition `q ≠ 0`.
 -/
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=

@@ -223,7 +223,7 @@ begin
   { intros c z,
     rw [smul_add, ← map_smul, ← map_smul],
     apply fg_eq,
-    simp only [coe_smul, coe_mk, ← smul_add, hxy] },
+    simp only [coe_smul, coe_mk, ← smul_add, hxy, ring_hom.id_apply] },
 end
 
 /-- Given two partial linear maps that agree on the intersection of their domains,
@@ -335,7 +335,7 @@ begin
     rw [f_eq ⟨p, hpc⟩ x x' rfl, f_eq ⟨p, hpc⟩ y y' rfl, f_eq ⟨p, hpc⟩ (x + y) (x' + y') rfl,
       map_add] },
   { intros c x,
-    rw [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul] },
+    simp [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul] },
   { intros p hpc,
     refine ⟨le_Sup $ mem_image_of_mem domain hpc, λ x y hxy, eq.symm _⟩,
     exact f_eq ⟨p, hpc⟩ _ _ hxy.symm }

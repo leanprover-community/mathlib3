@@ -29,7 +29,7 @@ variables {R : Type*} [semiring R] (r : R) (f : polynomial R)
 def taylor (r : R) : polynomial R →ₗ[R] polynomial R :=
 { to_fun := λ f, f.comp (X + C r),
   map_add' := λ f g, add_comp,
-  map_smul' := λ c f, by simp only [smul_eq_C_mul, C_mul_comp] }
+  map_smul' := λ c f, by simp only [smul_eq_C_mul, C_mul_comp, ring_hom.id_apply] }
 
 lemma taylor_apply : taylor r f = f.comp (X + C r) := rfl
 

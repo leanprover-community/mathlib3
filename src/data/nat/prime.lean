@@ -2,14 +2,13 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
-
 -/
-import data.nat.sqrt
-import data.nat.gcd
-import data.list.sort
 import algebra.group_power
-import tactic.wlog
+import data.list.sort
+import data.nat.gcd
+import data.nat.sqrt
 import tactic.norm_num
+import tactic.wlog
 
 /-!
 # Prime numbers
@@ -145,7 +144,7 @@ section min_fac
 
 private lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :
   sqrt n - k < sqrt n + 2 - k :=
-(nat.sub_lt_sub_right_iff $ le_sqrt.2 $ le_of_not_gt h).2 $
+(sub_lt_sub_iff_right' $ le_sqrt.2 $ le_of_not_gt h).2 $
 nat.lt_add_of_pos_right dec_trivial
 
 /-- If `n < k * k`, then `min_fac_aux n k = n`, if `k | n`, then `min_fac_aux n k = k`.

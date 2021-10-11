@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
 import combinatorics.simple_graph.adj_matrix
-import linear_algebra.charpoly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import data.int.modeq
 import data.zmod.basic
 import tactic.interval_cases

@@ -44,7 +44,7 @@ begin
   refine finset.sum_congr (refl _) _,
   intros k hk,
   have h_le : k ≤ n := finset.mem_range_succ_iff.mp hk,
-  rw [nat.asc_factorial_eq_div, nat.add_sub_cancel' h_le],
+  rw [nat.asc_factorial_eq_div, add_sub_cancel_of_le h_le],
   push_cast [nat.factorial_dvd_factorial h_le],
   field_simp [nat.factorial_ne_zero],
   ring,

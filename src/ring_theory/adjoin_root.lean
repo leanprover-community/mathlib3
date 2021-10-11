@@ -213,7 +213,7 @@ lemma mod_by_monic_eq_of_dvd_sub [nontrivial R] (hg : g.monic) {f₁ f₂ : poly
 begin
   obtain ⟨k, sub_eq⟩ := h,
   refine (div_mod_by_monic_unique (f₂ /ₘ g + k) _ hg
-    ⟨_, degree_mod_by_monic_lt _ hg hg.ne_zero⟩).2,
+    ⟨_, degree_mod_by_monic_lt _ hg⟩).2,
   rw [sub_eq_iff_eq_add.mp sub_eq, mul_add, ← add_assoc, mod_by_monic_add_div _ hg, add_comm]
 end
 
@@ -222,14 +222,14 @@ lemma add_mod_by_monic [nontrivial R] (hg : g.monic)
 (div_mod_by_monic_unique (f₁ /ₘ g + f₂ /ₘ g) _ hg
   ⟨by rw [mul_add, add_left_comm, add_assoc, mod_by_monic_add_div _ hg, ← add_assoc,
           add_comm (g * _), mod_by_monic_add_div _ hg],
-    (degree_add_le _ _).trans_lt (max_lt (degree_mod_by_monic_lt _ hg hg.ne_zero)
-      (degree_mod_by_monic_lt _ hg hg.ne_zero))⟩).2
+    (degree_add_le _ _).trans_lt (max_lt (degree_mod_by_monic_lt _ hg)
+      (degree_mod_by_monic_lt _ hg))⟩).2
 
 lemma smul_mod_by_monic [nontrivial R] (hg : g.monic)
   (c : R) (f : polynomial R) : (c • f) %ₘ g = c • (f %ₘ g) :=
 (div_mod_by_monic_unique (c • (f /ₘ g)) (c • (f %ₘ g)) hg
   ⟨by rw [mul_smul_comm, ← smul_add, mod_by_monic_add_div f hg],
-   (degree_smul_le _ _).trans_lt (degree_mod_by_monic_lt _ hg hg.ne_zero)⟩).2
+   (degree_smul_le _ _).trans_lt (degree_mod_by_monic_lt _ hg)⟩).2
 
 @[simps]
 def polynomial.mod_by_monic_hom [nontrivial R] (hg : g.monic) :
@@ -316,7 +316,7 @@ lemma sum_mod_by_monic_coeff [nontrivial R] (hg : g.monic) (f : polynomial R)
   {n : ℕ} (hn : g.degree ≤ n) :
   ∑ (i : fin n), monomial i ((f %ₘ g).coeff i) = f %ₘ g :=
 (sum_fin _ (λ i c, monomial i c) (by simp)
-  ((degree_mod_by_monic_lt _ hg hg.ne_zero).trans_le hn)).trans
+  ((degree_mod_by_monic_lt _ hg).trans_le hn)).trans
   (sum_monomial_eq _)
 
 /-- The elements `1, root g, ..., root g ^ (d - 1)` form a basis for `adjoin_root g`,
@@ -336,7 +336,7 @@ basis.of_equiv_fun
          exact dvd_mul_right _ _ }),
   right_inv := λ x, funext $ λ i, begin
     simp only [mod_by_monic_hom_mk],
-    rw [(mod_by_monic_eq_self_iff hg hg.ne_zero).mpr, finset_sum_coeff, finset.sum_eq_single i];
+    rw [(mod_by_monic_eq_self_iff hg).mpr, finset_sum_coeff, finset.sum_eq_single i];
       try { simp only [coeff_monomial, eq_self_iff_true, if_true] },
     { intros j _ hj, exact if_neg (fin.coe_injective.ne hj) },
     { intros, have := finset.mem_univ i, contradiction },
@@ -363,24 +363,6 @@ where `g` is a monic polynomial of degree `d`. -/
       convert congr_arg _ (function.update_noteq hj _ _) }, -- Fix `decidable_eq` mismatch
     { intros, have := finset.mem_univ i, contradiction },
   end}
-
-/-- If `S` is an extension of `R` with power basis `pb` and `g` is a monic polynomial over `R`
-such that `pb.gen` has a minimal polynomial `g`, then `S` is isomorphic to `adjoin_root g`.
-
-Compare `power_basis.equiv'`, which would require `h₂ : aeval pb.gen (minpoly R (root g)) = 0`;
-that minimal polynomial is not guaranteed to be identical to `g`. -/
-def equiv' {R S : Type*} [integral_domain R] [integral_domain S] [algebra R S]
-  (g : polynomial R) (pb : power_basis R S)
-  (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g = 0):
-  adjoin_root g ≃ₐ[R] S :=
-{ to_fun := adjoin_root.lift_hom g pb.gen h₂,
-  inv_fun := pb.lift (root g) h₁,
-  left_inv := λ x, induction_on g x $ λ f, by rw [lift_hom_mk, pb.lift_aeval, aeval_eq],
-  right_inv := λ x, begin
-    obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,
-    rw [pb.lift_aeval, aeval_eq, lift_hom_mk]
-  end,
-  .. adjoin_root.lift_hom g pb.gen h₂ }
 
 variables [field K] {f : polynomial K}
 

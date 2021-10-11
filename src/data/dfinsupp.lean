@@ -469,9 +469,8 @@ end
     simpa using h
   end⟩
 
-
-@[simp] lemma equiv_fun_on_fintype_symm_coe [fintype ι] [Π i, decidable_eq (β i)] (f : Π₀ i, β i) :
-  equiv_fun_on_fintype.symm f = f :=
+@[simp] lemma equiv_fun_on_fintype_symm_coe [fintype ι] [Π i, decidable_eq (β i)] (f : Π i, β i) :
+  ⇑(equiv_fun_on_fintype.symm f) = f :=
 begin
   ext a,
   simp only [mk_apply, equiv_fun_on_fintype,mk_apply, equiv.coe_fn_symm_mk],
@@ -495,6 +494,16 @@ begin
     simp only [mk_apply, dif_pos h, dif_pos h1], refl },
   { have h1 : i' ∉ ({i} : finset ι) := finset.not_mem_singleton.2 (ne.symm h),
     simp only [mk_apply, dif_neg h, dif_neg h1] }
+end
+
+lemma single_eq_pi_single [Π i, decidable_eq (β i)] {i b} :
+  ⇑(single i b : Π₀ i, β i) = pi.single i b :=
+begin
+  ext i',
+  simp only [pi.single, function.update],
+  split_ifs,
+  { simp [h] },
+  { simp [ne.symm h] }
 end
 
 @[simp] lemma single_zero (i) : (single i 0 : Π₀ i, β i) = 0 :=
@@ -564,6 +573,15 @@ lemma single_eq_of_sigma_eq
   {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : sigma β) = ⟨j, xj⟩) :
   dfinsupp.single i xi = dfinsupp.single j xj :=
 by { cases h, refl }
+
+@[simp] lemma equiv_fun_on_fintype_single [fintype ι] [Π i, decidable_eq (β i)] (i : ι) (m : β i) :
+  (@dfinsupp.equiv_fun_on_fintype ι β _ _ _ _) (dfinsupp.single i m) = pi.single i m :=
+by { ext, simp [dfinsupp.single_eq_pi_single, dfinsupp.equiv_fun_on_fintype], }
+
+@[simp] lemma equiv_fun_on_fintype_symm_single
+  [fintype ι] [Π i, decidable_eq (β i)] (i : ι) (m : β i) :
+  (@dfinsupp.equiv_fun_on_fintype ι β _ _ _ _).symm (pi.single i m) = dfinsupp.single i m :=
+by { ext i', rw [dfinsupp.equiv_fun_on_fintype_symm_coe, dfinsupp.single_eq_pi_single] }
 
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) : (Π₀ i, β i) → Π₀ i, β i :=

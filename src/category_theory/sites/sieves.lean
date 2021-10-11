@@ -545,7 +545,7 @@ lemma functor_pullback_monotone (X : C) :
   monotone (sieve.functor_pullback F : sieve (F.obj X) → sieve X) :=
 (functor_galois_connection F X).monotone_u
 
-lemma functor_pushforward_montone (X : C) :
+lemma functor_pushforward_monotone (X : C) :
   monotone (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) :=
 (functor_galois_connection F X).monotone_l
 

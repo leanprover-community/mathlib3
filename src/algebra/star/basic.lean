@@ -82,6 +82,11 @@ class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
 export star_monoid (star_mul)
 attribute [simp] star_mul
 
+/-- In a commutative ring, make `simp` prefer leaving the order unchanged. -/
+@[simp] lemma star_mul' [comm_monoid R] [star_monoid R] (x y : R) :
+  star (x * y) = star x * star y :=
+(star_mul x y).trans (mul_comm _ _)
+
 /-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]
 def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
@@ -93,16 +98,25 @@ def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
 @[simps apply]
 def star_mul_aut [comm_monoid R] [star_monoid R] : mul_aut R :=
 { to_fun := star,
-  map_mul' := λ x y, (star_mul x y).trans (mul_comm _ _),
+  map_mul' := star_mul',
   ..(has_involutive_star.star_involutive.to_equiv star) }
 
 variables (R)
 
 @[simp] lemma star_one [monoid R] [star_monoid R] : star (1 : R) = 1 :=
-begin
-  have := congr_arg opposite.unop (star_mul_equiv : R ≃* Rᵒᵖ).map_one,
-  rwa [star_mul_equiv_apply, opposite.unop_op, opposite.unop_one] at this,
-end
+op_injective $ (star_mul_equiv : R ≃* Rᵒᵖ).map_one.trans (op_one _).symm
+
+@[simp] lemma star_pow [monoid R] [star_monoid R] (x : R) (n : ℕ) : star (x ^ n) = star x ^ n :=
+op_injective $
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_pow x n).trans (op_pow (star x) n).symm
+
+@[simp] lemma star_inv [group R] [star_monoid R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+op_injective $
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv _)
+
+@[simp] lemma star_inv' [group_with_zero R] [star_monoid R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+op_injective $
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv' x).trans (op_inv _)
 
 variables {R}
 

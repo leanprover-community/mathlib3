@@ -507,7 +507,7 @@ end
 { arrows := R.arrows.functor_pushforward F,
   downward_closed' := λ Y Z f h g, by
   { obtain ⟨X, α, β, hα, rfl⟩ := h,
-    refine ⟨X, α, g ≫ β, hα, by simp⟩ } }
+    exact ⟨X, α, g ≫ β, hα, by simp⟩ } }
 
 @[simp] lemma functor_pushforward_id (R : sieve X) :
   R.functor_pushforward (𝟭 _) = R :=

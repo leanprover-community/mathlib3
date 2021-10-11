@@ -63,6 +63,7 @@ namespace complex_measure
 include m
 
 /-- The real part of a complex measure is a signed measure. -/
+@[simps]
 def re_part (c : complex_measure α) : signed_measure α :=
 { measure_of' := λ i, (c i).re,
   empty' := by simp only [c.empty, complex.zero_re],
@@ -74,6 +75,7 @@ lemma re_part_add (c d : complex_measure α) :
 rfl
 
 /-- The imaginary part of a complex measure is a signed measure. -/
+@[simps]
 def im_part (c : complex_measure α) : signed_measure α :=
 { measure_of' := λ i, (c i).im,
   empty' := by simp only [c.empty, complex.zero_im],
@@ -85,6 +87,7 @@ lemma im_part_add (c d : complex_measure α) :
 rfl
 
 /-- Given `s` and `t` signed measures, `s + it` is a complex measure-/
+@[simps]
 def _root_.measure_theory.signed_measure.to_complex_measure (s t : signed_measure α) :
   complex_measure α :=
 { measure_of' := λ i, ⟨s i, t i⟩,
@@ -92,6 +95,10 @@ def _root_.measure_theory.signed_measure.to_complex_measure (s t : signed_measur
   not_measurable' := λ i hi, by rw [s.not_measurable hi, t.not_measurable hi]; refl,
   m_Union' := λ f hf hfdisj,
     (complex.has_sum_iff _ _).2 ⟨s.m_Union hf hfdisj, t.m_Union hf hfdisj⟩ }
+
+@[simp]
+lemma _root_.measure_theory.signed_measure.to_complex_measure_apply
+  {s t : signed_measure α} {i : set α} : s.to_complex_measure t i = ⟨s i, t i⟩ := rfl
 
 lemma to_complex_measure_to_signed_measure (c : complex_measure α) :
   c.re_part.to_complex_measure c.im_part = c :=
@@ -106,6 +113,7 @@ lemma _root_.measure_theory.signed_measure.im_part_to_complex_measure
 by { ext i hi, refl }
 
 /-- The complex measures form an equivalence to the type of pairs of signed measures. -/
+@[simps]
 def equiv_signed_measure : complex_measure α ≃ signed_measure α × signed_measure α :=
 { to_fun := λ c, ⟨c.re_part, c.im_part⟩,
   inv_fun := λ ⟨s, t⟩, s.to_complex_measure t,
@@ -118,6 +126,8 @@ section
 variables {R : Type*} [semiring R] [module R ℝ]
 variables [topological_space R] [has_continuous_smul R ℝ] [has_continuous_smul R ℂ]
 
+/-- The complex measures form an linear isomorphism to the type of pairs of signed measures. -/
+@[simps]
 def equiv_signed_measureₗ : complex_measure α ≃ₗ[R] signed_measure α × signed_measure α :=
 { map_add' := λ c d, by { ext i hi; refl },
   map_smul' :=

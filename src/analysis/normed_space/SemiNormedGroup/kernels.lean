@@ -179,7 +179,7 @@ begin
   { exact he }
 end
 
-lemma explicit_cokernel_desc_comp_eq_lift {X Y Z W : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
+lemma explicit_cokernel_desc_comp_eq_desc {X Y Z W : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
   {h : Z ⟶ W} {cond : f ≫ g = 0} :
   explicit_cokernel_desc cond ≫ h = explicit_cokernel_desc (show f ≫ (g ≫ h) = 0,
   by rw [← category_theory.category.assoc, cond, limits.zero_comp]) :=

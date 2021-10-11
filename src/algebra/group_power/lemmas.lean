@@ -923,8 +923,8 @@ namespace opposite
 @[simp] lemma op_pow [monoid M] (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n := rfl
 @[simp] lemma unop_pow [monoid M] (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n := rfl
 
-/-- Moving to the opposite group commutes with taking powers. -/
-@[simp] lemma op_gpow [group M] (x : M) (z : ℤ) : op (x ^ z) = (op x) ^ z := rfl
-@[simp] lemma unop_gpow [group M] (x : Mᵒᵖ) (z : ℤ) : unop (x ^ z) = (unop x) ^ z := rfl
+/-- Moving to the opposite group or group_with_zero commutes with taking powers. -/
+@[simp] lemma op_gpow [div_inv_monoid M] (x : M) (z : ℤ) : op (x ^ z) = (op x) ^ z := rfl
+@[simp] lemma unop_gpow [div_inv_monoid M] (x : Mᵒᵖ) (z : ℤ) : unop (x ^ z) = (unop x) ^ z := rfl
 
 end opposite

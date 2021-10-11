@@ -1763,8 +1763,8 @@ by rw [quot_quot_equiv_quot_sup, ring_equiv.of_hom_inv_symm_apply,
 
 /-- The obvious isomorphism `(R/I)/J' → (R/J)/I' `   -/
 def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quotient.mk).quotient :=
-  ring_equiv.trans (ring_equiv.trans (quot_quot_equiv_quot_sup I J) (quot_equiv_of_eq sup_comm))
-  (quot_quot_equiv_quot_sup J I).symm
+  ((quot_quot_equiv_quot_sup I J).trans (quot_equiv_of_eq sup_comm)).trans
+    (quot_quot_equiv_quot_sup J I).symm
 
 @[simp]
 lemma quot_quot_equiv_comm_quot_quot_mk : ring_hom.comp ↑(quot_quot_equiv_comm I J)

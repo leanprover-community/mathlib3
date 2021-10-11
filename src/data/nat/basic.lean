@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.order.ring
-import algebra.order.sub
 
 /-!
 # Basic operations on the natural numbers
@@ -483,29 +482,16 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 /-! ### `sub`
 
-Todo: clean up the remaining lemmas that are proven in general for `has_ordered_sub`. -/
+Most lemmas come from the `has_ordered_sub` instance on `ℕ`. -/
 
-protected theorem sub_le_iff_right : m - n ≤ k ↔ m ≤ k + n :=
+instance : has_ordered_sub ℕ :=
 begin
+  constructor,
+  intros m n k,
   induction n with n ih generalizing k,
   { simp },
   { simp only [sub_succ, add_succ, succ_add, ih, pred_le_iff] }
 end
-
-instance : has_ordered_sub ℕ :=
-⟨λ n m k, nat.sub_le_iff_right⟩
-
-protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
-sub_eq_of_eq_add'' $ by rw [add_comm, h]
-
-theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
-sub_le_iff_left
-
-theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
-sub_le_iff_right
-
-protected lemma sub_le_self (n m : ℕ) : n - m ≤ n :=
-sub_le_self'
 
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 show n < m - 1 ↔ n + 1 < m, from lt_sub_iff_right
@@ -522,9 +508,6 @@ begin
     rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
     exact nat.le_of_pred_lt h', },
 end
-
-@[simp] lemma add_sub_sub_cancel {a c : ℕ} (h : c ≤ a) (b : ℕ) : a + b - (a - c) = b + c :=
-by rw [add_comm, nat.add_sub_assoc sub_le_self', nat.sub_sub_self h]
 
 /-! ### `mul` -/
 
@@ -1003,7 +986,7 @@ by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat
 @[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
-⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
+⟨k / n, sub_eq_of_eq_add_rev (nat.mod_add_div k n).symm⟩
 
 @[simp] theorem mod_add_mod (m n k : ℕ) : (m % n + k) % n = (m + k) % n :=
 by have := (add_mul_mod_self_left (m % n + k) n (m / n)).symm;

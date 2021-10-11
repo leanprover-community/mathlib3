@@ -176,7 +176,8 @@ variables (R)
 @[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
 (star_add_equiv : R ≃+ R).map_neg _
 
-@[simp] lemma star_sub [add_group R] [star_add_monoid R] (r s : R) : star (r - s) = star r - star s :=
+@[simp] lemma star_sub [add_group R] [star_add_monoid R] (r s : R) :
+  star (r - s) = star r - star s :=
 (star_add_equiv : R ≃+ R).map_sub _ _
 
 @[simp] lemma star_nsmul [add_comm_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :

@@ -83,6 +83,25 @@ end haar_circle
 
 section fourier
 
+open opposite
+
+-- TODO: this should be rfl!
+lemma op_gpow {R : Type*} [group R] (x : R) (z : ℤ) : op (x ^ z) = op x ^ z :=
+sorry
+
+lemma op_fpow {R : Type*} [group_with_zero R] (x : R) (z : ℤ) : op (x ^ z) = op x ^ z :=
+sorry
+
+@[simp] lemma star_gpow {R : Type*} [group R] [star_monoid R] (x : R) (z : ℤ) :
+  star (x ^ z) = star x ^ z :=
+opposite.op_injective $
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_gpow x z).trans (op_gpow (star x) z).symm
+
+@[simp] lemma star_fpow {R : Type*} [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+  star (x ^ z) = star x ^ z :=
+opposite.op_injective $
+  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_fpow x z).trans (op_fpow (star x) z).symm
+
 /-- The family of monomials `λ z, z ^ n`, parametrized by `n : ℤ` and considered as bundled
 continuous maps from `circle` to `ℂ`. -/
 @[simps] def fourier (n : ℤ) : C(circle, ℂ) :=

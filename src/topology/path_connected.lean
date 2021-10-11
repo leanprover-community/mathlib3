@@ -100,6 +100,8 @@ def simps.apply : I → X := γ
 
 initialize_simps_projections path (to_continuous_map_to_fun → simps.apply, -to_continuous_map)
 
+@[simp] lemma coe_to_continuous_map : ⇑γ.to_continuous_map = γ := rfl
+
 /-- Any function `φ : Π (a : α), path (x a) (y a)` can be seen as a function `α × I → X`. -/
 instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} :
   has_uncurry (Π (a : α), path (x a) (y a)) (α × I) X :=

@@ -209,6 +209,8 @@ begin
         : by ring,
 end
 
+/-- Lemma A: if A' ⊆ A, B' ⊆ B each take up all but a δ-proportion, then the difference in edge
+densities is `≤ 2 δ`. -/
 lemma LemmaA {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ : 0 ≤ δ)
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
   abs (pairs_density r A' B' - pairs_density r A B) ≤ 2 * δ :=
@@ -228,7 +230,7 @@ namespace simple_graph
 variables (G : simple_graph α)
 open_locale classical
 
-/- Extracts a witness of the non-uniformity of `(U, W)`. Witnesses for `(U, W)` and `(W, U)` don't
+/-- Extracts a witness of the non-uniformity of `(U, W)`. Witnesses for `(U, W)` and `(W, U)` don't
 necessarily match. Hence the motivation to define `witness`. -/
 noncomputable def witness_aux (ε : ℝ) (U W : finset α) : finset α × finset α :=
 dite (U = W ∨ G.is_uniform ε U W) (λ _, (U, W)) (λ h, begin
@@ -237,7 +239,7 @@ dite (U = W ∨ G.is_uniform ε U W) (λ _, (U, W)) (λ h, begin
     exact (classical.some h.2, classical.some (classical.some_spec h.2).2),
   end)
 
-/- Extracts a witness of the non-uniformity of `(U, W)`. It uses an arbitrary ordering of
+/-- Extracts a witness of the non-uniformity of `(U, W)`. It uses an arbitrary ordering of
 `finset α` (`well_ordering_rel`) to ensure that the witnesses of `(U, W)` and `(W, U)` are related
 (the existentials don't ensure we would take the same from `¬G.is_uniform ε U W` and
 `¬G.is_uniform ε W U`). -/
@@ -653,7 +655,8 @@ end
 section atomise
 variables [decidable_eq α] {s : finset α}
 
-/-- Cuts `s` along the finsets in `Q`: Two elements of `s` will be in the same -/
+/-- Cuts `s` along the finsets in `Q`: Two elements of `s` will be in the same part if they are
+in the same finsets of `Q`. -/
 def atomise (s : finset α) (Q : finset (finset α)) :
   finpartition_on s :=
 { parts := Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x)) \ {∅},
@@ -1187,7 +1190,8 @@ lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size
   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hW).parts,
     G.edge_density ab.1 ab.2^2)/16^P.size :=
 begin
-  have hε : 0 < ε^5 := sorry,
+  have hε : 0 < ε^5 := pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε)
+    (pow_nonneg (by norm_num) _),
   have hε₀ : 0 < ε := sorry,
   obtain hGε | hGε := le_total (G.edge_density U W) (ε^5/50),
   { calc
@@ -1206,9 +1210,6 @@ begin
               G.edge_density ab.1 ab.2^2)/16^P.size
           : div_nonneg (sum_nonneg $ λ i _, sq_nonneg _) (pow_nonneg (by norm_num) _) },
   rw ←sub_nonneg at hGε,
-  have hε : 0 < ε^5 := sorry,
-  -- have hε : 0 < ε^5 := pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε)
-  --   (pow_nonneg (by norm_num) _),
   calc
     G.edge_density U W^2 - ε^5/25
         ≤ G.edge_density U W^2 - ε^5/25 * G.edge_density U W
@@ -1259,8 +1260,6 @@ begin
         : sorry
 end
 
-#exit
-
 end chunk_increment
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
@@ -1300,7 +1299,7 @@ end
 protected lemma is_equipartition (hP : P.is_equipartition) (G : simple_graph α) (ε : ℝ) :
   (hP.increment G ε).is_equipartition :=
 begin
-  rw [is_equipartition, equitable_on_iff_exists_eq_eq_add_one],
+  rw [is_equipartition, set.equitable_on_iff_exists_eq_eq_add_one],
   refine ⟨m, λ A hA, _⟩,
   rw [mem_coe, increment, mem_bind_parts] at hA,
   obtain ⟨U, hU, hA⟩ := hA,

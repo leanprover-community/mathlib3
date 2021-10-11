@@ -269,7 +269,7 @@ instance _root_.is_scalar_tower.opposite_mid {M N} [monoid N] [has_scalar M N]
 instance _root_.smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
   [is_scalar_tower M N N] :
   smul_comm_class M Nᵒᵖ N :=
-⟨λ x y z, by { induction y using opposite.op_induction, simp [smul_mul_assoc] }⟩
+⟨λ x y z, by { induction y using opposite.rec, simp [smul_mul_assoc] }⟩
 
 -- The above instance does not create an unwanted diamond, the two paths to
 -- `mul_action (opposite α) (opposite α)` are defeq.

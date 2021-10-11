@@ -299,6 +299,7 @@ end simple_graph
 
 /-! ## finpartition -/
 
+-- Maybe replace `finset (finset α)` with `finset β` where `set_like β`?
 /-- A finpartition of a finite set `S` is a collection of disjoint subsets of `S` which cover it. -/
 @[ext] structure finpartition_on {α : Type u} (s : finset α) :=
 (parts : finset (finset α))

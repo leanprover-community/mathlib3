@@ -242,7 +242,7 @@ comma.pre_left F G _
   costructured_arrow F S ⥤ costructured_arrow (F ⋙ G) (G.obj S) :=
 { obj := λ X, { left := X.left, hom := G.map X.hom },
   map := λ X Y f, { left := f.left, w' :=
-    by { simp[functor.comp_map, ←G.map_comp, ← f.w] } } }
+    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
 
 end costructured_arrow
 

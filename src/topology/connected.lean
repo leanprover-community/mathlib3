@@ -125,7 +125,7 @@ end
 /-- Theorem of bark and tree :
 if a set is within a (pre)connected set and its closure,
 then it is (pre)connected as well. -/
-theorem is_preconnected.inclosure {s : set α} {t : set α}
+theorem is_preconnected.subset_closure {s : set α} {t : set α}
   (H : is_preconnected s) (Kst : s ⊆ t) (Ktcs : t ⊆ closure s) :
   is_preconnected t :=
 λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩,
@@ -134,21 +134,21 @@ let ⟨p, hpu, hps⟩ := mem_closure_iff.1 (Ktcs hyt) u hu hyu,
     ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans Kst htuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
   ⟨r, Kst hrs, hruv⟩
 
-theorem is_connected.inclosure {s : set α}  {t : set α}
+theorem is_connected.subset_closure {s : set α}  {t : set α}
   (H : is_connected s) (Kst : s ⊆ t) (Ktcs : t ⊆ closure s): is_connected (t) :=
 let hsne := H.left,
     ht := Kst,
     htne := nonempty.mono ht hsne in
-    ⟨nonempty.mono Kst H.left, is_preconnected.inclosure H.right Kst Ktcs ⟩
+    ⟨nonempty.mono Kst H.left, is_preconnected.subset_closure H.right Kst Ktcs ⟩
 
 /-- The closure of a (pre)connected set is (pre)connected as well. -/
 theorem is_preconnected.closure {s : set α} (H : is_preconnected s) :
   is_preconnected (closure s) :=
-is_preconnected.inclosure H (subset_closure) (subset.refl (closure s))
+is_preconnected.subset_closure H (subset_closure) (subset.refl (closure s))
 
 theorem is_connected.closure {s : set α} (H : is_connected s) :
   is_connected (closure s) :=
-is_connected.inclosure H subset_closure (subset.refl (closure s))
+is_connected.subset_closure H subset_closure (subset.refl (closure s))
 
 /-- The image of a (pre)connected set is (pre)connected as well. -/
 theorem is_preconnected.image [topological_space β] {s : set α} (H : is_preconnected s)

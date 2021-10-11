@@ -8,6 +8,7 @@ import linear_algebra.tensor_product
 import linear_algebra.prod
 import linear_algebra.pi
 import data.set.intervals.unordered_interval
+import tactic.abel
 
 /-!
 # Affine maps

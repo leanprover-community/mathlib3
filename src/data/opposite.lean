@@ -96,3 +96,36 @@ protected def rec {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F
 λ X, h (unop X)
 
 end opposite
+
+namespace tactic
+
+open opposite
+
+namespace op_induction
+
+/-- Test if `e : expr` is of type `opposite α` for some `α`. -/
+meta def is_opposite (e : expr) : tactic bool :=
+do t ← infer_type e,
+   `(opposite _) ← whnf t | return ff,
+   return tt
+
+/-- Find the first hypothesis of type `opposite _`. Fail if no such hypothesis exist in the local
+context. -/
+meta def find_opposite_hyp : tactic name :=
+do lc ← local_context,
+   h :: _ ← lc.mfilter $ is_opposite | fail "No hypotheses of the form Xᵒᵖ",
+   return h.local_pp_name
+
+end op_induction
+
+open op_induction
+
+/-- A version of `induction x using opposite.rec` which finds the appropriate hypothesis
+automatically, for use with `local attribute [tidy] op_induction'`. This is necessary because
+`induction x` is not able to deduce that `opposite.rec` should be used. -/
+meta def op_induction' : tactic unit :=
+do h ← find_opposite_hyp,
+   h' ← tactic.get_local h,
+   tactic.induction' h' [] `opposite.rec
+
+end tactic

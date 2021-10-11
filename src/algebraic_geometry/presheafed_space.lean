@@ -105,7 +105,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   begin
     ext1, swap,
     { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
-    { ext U, op_induction, cases U,
+    { ext U, induction U using opposite.rec, cases U,
       dsimp,
       simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
@@ -115,7 +115,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   begin
     ext1, swap,
     { dsimp, simp only [comp_id] },
-    { ext U, op_induction, cases U,
+    { ext U, induction U using opposite.rec, cases U,
       dsimp,
       simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
@@ -125,7 +125,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   begin
      ext1, swap,
      refl,
-     { ext U, op_induction, cases U,
+     { ext U, induction U using opposite.rec, cases U,
        dsimp,
        simp only [assoc, presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
        dsimp,

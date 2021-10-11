@@ -580,8 +580,10 @@ lemma image_mem_functor_pushforward (R : sieve X) {V} {f : V ⟶ X} (h : R f) :
   R.functor_pushforward F (F.map f) := ⟨V, f, 𝟙 _, h, by simp⟩
 
 /-- When `F` is essentially surjective and full, the galois connection is a galois insertion. -/
-def ess_surj_full_functor_galois_insertion [ess_surj F] [full F] (X : C) : galois_insertion
-  (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
+def ess_surj_full_functor_galois_insertion [ess_surj F] [full F] (X : C) : 
+  galois_insertion 
+    (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) 
+    (sieve.functor_pullback F) :=
 begin
   apply (functor_galois_connection F X).to_galois_insertion,
   intros S Y f hf,

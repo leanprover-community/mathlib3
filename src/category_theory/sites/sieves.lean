@@ -573,7 +573,7 @@ lemma functor_pushforward_bot (F : C ⥤ D) (X : C) :
 lemma functor_pullback_bot (F : C ⥤ D) (X : C) :
   (⊥ : sieve (F.obj X)).functor_pullback F = ⊥ := rfl
 
-lemma functor_pullback_top (F : C ⥤ D) (X : C) :
+@[simp] lemma functor_pullback_top (F : C ⥤ D) (X : C) :
   (⊤ : sieve (F.obj X)).functor_pullback F = ⊤ := rfl
 
 lemma image_mem_functor_pushforward (R : sieve X) {V} {f : V ⟶ X} (h : R f) :

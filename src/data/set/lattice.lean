@@ -512,14 +512,6 @@ theorem bInter_subset_bInter_left {s s' : set α} {t : α → set β}
   (h : s' ⊆ s) : (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s', t x) :=
 subset_bInter (λ x xs, bInter_subset_of_mem (h xs))
 
-theorem bUnion_subset_bUnion_right {s : set α} {t1 t2 : α → set β}
-  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋃ x ∈ s, t1 x) ⊆ (⋃ x ∈ s, t2 x) :=
-bUnion_subset (λ x xs, subset.trans (h x xs) (subset_bUnion_of_mem xs))
-
-theorem bInter_subset_bInter_right {s : set α} {t1 t2 : α → set β}
-  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋂ x ∈ s, t1 x) ⊆ (⋂ x ∈ s, t2 x) :=
-subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
-
 theorem bUnion_subset_bUnion {γ : Type*} {s : set α} {t : α → set β} {s' : set γ} {t' : γ → set β}
   (h : ∀ x ∈ s, ∃ y ∈ s', t x ⊆ t' y) :
   (⋃ x ∈ s, t x) ⊆ (⋃ y ∈ s', t' y) :=
@@ -542,9 +534,17 @@ theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x �
   (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
 bInter_mono' (subset.refl s) h
 
+lemma bInter_congr {s : set α} {t1 t2 : α → set β} (h : ∀ x ∈ s, t1 x = t2 x) :
+  (⋂ (x ∈ s), t1 x) = (⋂ (x ∈ s), t2 x) :=
+subset.antisymm (bInter_mono (λ x hx, by rw h x hx)) (bInter_mono (λ x hx, by rw h x hx))
+
 theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
 bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
+
+lemma bUnion_congr {s : set α} {t1 t2 : α → set β} (h : ∀ x ∈ s, t1 x = t2 x) :
+  (⋃ (x ∈ s), t1 x) = (⋃ (x ∈ s), t2 x) :=
+subset.antisymm (bUnion_mono (λ x hx, by rw h x hx)) (bUnion_mono (λ x hx, by rw h x hx))
 
 theorem bUnion_eq_Union (s : set α) (t : Π x ∈ s, set β) :
   (⋃ x ∈ s, t x ‹_›) = (⋃ x : s, t x x.2) :=

@@ -802,7 +802,7 @@ points of `s`.
 This version requires that the underlying measure is sigma-finite, and that the space has the
 Besicovitch covering property (which is satisfied for instance by normed real vector spaces).
 -/
-theorem exists_disjoint_closed_ball_covering
+theorem exists_disjoint_closed_ball_covering_ae
   [second_countable_topology α] [hb : has_besicovitch_covering α]
   [measurable_space α] [opens_measurable_space α] (μ : measure α) [sigma_finite μ]
   (f : α → set ℝ) (s : set α)
@@ -912,8 +912,8 @@ protected def vitali_family [second_countable_topology α] [has_besicovitch_cove
       ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ g x)
       ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
       ∧ t.pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
-    exists_disjoint_closed_ball_covering μ g s A B C,
-    exact ⟨t, λ x, closed_ball x (r x), tdisj, λ x xt, (tg x xt).2, μt⟩,
+    exists_disjoint_closed_ball_covering_ae μ g s A B C,
+    exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).2, μt⟩,
   end }
 
 end besicovitch

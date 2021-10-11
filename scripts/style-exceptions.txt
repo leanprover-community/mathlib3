@@ -31,7 +31,6 @@ src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or to
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/pfunctor/multivariate/M.lean : line 43 : ERR_LIN : Line has more than 100 characters
 src/data/pfunctor/multivariate/W.lean : line 42 : ERR_LIN : Line has more than 100 characters
-src/data/pnat/intervals.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/multivariate/constructions/cofix.lean : line 38 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/multivariate/constructions/fix.lean : line 47 : ERR_LIN : Line has more than 100 characters
@@ -88,7 +87,7 @@ src/tactic/omega/nat/preterm.lean : line 7 : ERR_MOD : Module docstring missing,
 src/tactic/omega/nat/sub_elim.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/tactic/omega/prove_unsats.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/tactic/omega/term.lean : line 7 : ERR_MOD : Module docstring missing, or too late
-src/tactic/push_neg.lean : line 12 : ERR_MOD : Module docstring missing, or too late
+src/tactic/push_neg.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/restate_axiom.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite_all/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late

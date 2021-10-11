@@ -148,7 +148,7 @@ begin
     rw [mul_add, mul_one] at hc,
     apply nat.le_of_lt_succ,
     calc m < p ^ m : nat.lt_pow_self hp.1.one_lt m
-       ... ≤ j + 1 : by { rw ← nat.sub_eq_of_eq_add hc, apply nat.sub_le } }
+       ... ≤ j + 1 : by { rw ← sub_eq_of_eq_add_rev hc, apply nat.sub_le } }
 end
 
 lemma map_frobenius_poly (n : ℕ) :

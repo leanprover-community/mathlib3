@@ -105,11 +105,11 @@ section has_scalar
 
 variables {S : Type*} [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] (P : submodule R M)
 
-instance : has_scalar S (quotient P) :=
+instance has_scalar' : has_scalar S (quotient P) :=
 ⟨λ a, quotient.map' ((•) a) $ λ x y h, by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
 
 /-- Shortcut to help the elaborator in the common case. -/
-instance has_scalar': has_scalar R (quotient P) :=
+instance has_scalar : has_scalar R (quotient P) :=
 quotient.has_scalar P
 
 @[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
@@ -124,27 +124,28 @@ section module
 
 variables {S : Type*}
 
-instance [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+instance mul_action' [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
   (P : submodule R M) : mul_action S (quotient P) :=
 function.surjective.mul_action mk (surjective_quot_mk _) P^.quotient.mk_smul
 
-instance mul_action' (P : submodule R M) : mul_action R (quotient P) :=
+instance mul_action (P : submodule R M) : mul_action R (quotient P) :=
 quotient.mul_action P
 
-instance [monoid S] [has_scalar S R] [distrib_mul_action S M] [is_scalar_tower S R M]
+instance distrib_mul_action' [monoid S] [has_scalar S R] [distrib_mul_action S M]
+  [is_scalar_tower S R M]
   (P : submodule R M) : distrib_mul_action S (quotient P) :=
 function.surjective.distrib_mul_action
   ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
 
-instance distrib_mul_action' (P : submodule R M) : distrib_mul_action R (quotient P) :=
+instance distrib_mul_action (P : submodule R M) : distrib_mul_action R (quotient P) :=
 quotient.distrib_mul_action P
 
-instance [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
+instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
   (P : submodule R M) : module S (quotient P) :=
 function.surjective.module _
   ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
 
-instance module' (P : submodule R M) : module R (quotient P) :=
+instance module (P : submodule R M) : module R (quotient P) :=
 quotient.module P
 
 variables (S)

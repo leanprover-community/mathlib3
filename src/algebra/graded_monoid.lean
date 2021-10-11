@@ -115,12 +115,16 @@ def gnpow_rec : Π (n : ℕ) {i}, A i → A (n • i)
 @[simp] lemma gnpow_rec_zero (a : graded_monoid A) : graded_monoid.mk _ (gnpow_rec 0 a.snd) = 1 :=
 sigma.ext (zero_nsmul _) (heq_of_cast_eq _ rfl).symm
 
+/-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_zero'` when the default
+`graded_monoid.gmonoid.gnpow_rec` is used. -/
 meta def apply_gnpow_rec_zero_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_zero]
 
 @[simp] lemma gnpow_rec_succ (n : ℕ) (a : graded_monoid A) :
   (graded_monoid.mk _ $ gnpow_rec n.succ a.snd) = a * ⟨_, gnpow_rec n a.snd⟩ :=
 sigma.ext (succ_nsmul _ _) (heq_of_cast_eq _ rfl).symm
 
+/-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_succ'` when the default
+`graded_monoid.gmonoid.gnpow_rec` is used. -/
 meta def apply_gnpow_rec_succ_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_succ]
 
 end gmonoid
@@ -280,7 +284,7 @@ def ghas_mul.of_subobjects {S : Type*} [set_like S R] [has_mul R] [has_add ι]
 /-- Build a `gmonoid` instance for a collection of subobjects.
 
 See note [reducible non-instances]. -/
-@[reducible, simps gnpow]
+@[reducible]
 def gmonoid.of_subobjects {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   (carriers : ι → S)
   (one_mem : (1 : R) ∈ carriers 0)

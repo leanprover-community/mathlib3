@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
+import data.finset.option
 import data.sym.basic
 import data.ulift
 import group_theory.perm.basic
@@ -764,26 +765,12 @@ by classical; exact fintype.of_injective units.val units.ext
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
-/-- Given a finset on `α`, lift it to being a finset on `option α`
-using `option.some` and then insert `option.none`. -/
-def finset.insert_none (s : finset α) : finset (option α) :=
-⟨none ::ₘ s.1.map some, multiset.nodup_cons.2
-  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩
-
-@[simp] theorem finset.mem_insert_none {s : finset α} : ∀ {o : option α},
-  o ∈ s.insert_none ↔ ∀ a ∈ o, a ∈ s
-| none     := iff_of_true (multiset.mem_cons_self _ _) (λ a h, by cases h)
-| (some a) := multiset.mem_cons.trans $ by simp; refl
-
-theorem finset.some_mem_insert_none {s : finset α} {a : α} :
-  some a ∈ s.insert_none ↔ a ∈ s := by simp
-
 instance {α : Type*} [fintype α] : fintype (option α) :=
 ⟨univ.insert_none, λ a, by simp⟩
 
 @[simp] theorem fintype.card_option {α : Type*} [fintype α] :
   fintype.card (option α) = fintype.card α + 1 :=
-(multiset.card_cons _ _).trans (by rw multiset.card_map; refl)
+(finset.card_cons _).trans $ congr_arg2 _ (card_map _) rfl
 
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=

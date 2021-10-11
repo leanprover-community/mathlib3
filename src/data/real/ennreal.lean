@@ -9,7 +9,7 @@ import data.set.intervals
 /-!
 # Extended non-negative reals
 
-We define `ennreal = ℝ≥0∞ := with_no ℝ≥0` to be the type of extended nonnegative real numbers,
+We define `ennreal = ℝ≥0∞ := with_top ℝ≥0` to be the type of extended nonnegative real numbers,
 i.e., the interval `[0, +∞]`. This type is used as the codomain of a `measure_theory.measure`,
 and of the extended distance `edist` in a `emetric_space`.
 In this file we define some algebraic operations and a linear order on `ℝ≥0∞`
@@ -790,16 +790,14 @@ mt sub_eq_top_iff.mp $ mt and.left ha
 lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
 sub_le_sub_add_sub
 
+lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b := lt_sub_iff_right
+
+lemma lt_sub_comm : a < b - c ↔ c < b - a := lt_sub_comm
+
 /-! The following lemmas cannot be directly replaced by the general lemmas. -/
 
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 ((cancel_of_lt' $ hac.trans_lt h).sub_lt_iff_right hac).mpr h
-
-lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b :=
-by { cases c, { simp }, exact cancel_coe.lt_sub_iff_right }
-
-lemma lt_sub_comm : a < b - c ↔ c < b - a :=
-by rw [lt_sub_iff_add_lt, lt_sub_iff_add_lt, add_comm]
 
 @[simp] lemma add_sub_self (hb : b ≠ ∞) : (a + b) - b = a :=
 (cancel_of_ne hb).add_sub_cancel_right
@@ -839,32 +837,14 @@ lemma sub_right_inj {a b c : ℝ≥0∞} (ha : a ≠ ∞) (hb : b ≤ a) (hc : c
 
 lemma sub_mul (h : 0 < b → b < a → c ≠ ∞) : (a - b) * c = a * c - b * c :=
 begin
-  cases le_or_lt a b with hab hab,
-  { simp [hab, mul_right_mono hab] },
-  symmetry,
-  cases eq_or_lt_of_le (zero_le b) with hb hb,
-  { subst b, simp },
-  apply sub_eq_of_add_eq,
-  { exact mul_ne_top (ne_top_of_lt hab) (h hb hab) },
-  rw [← add_mul, sub_add_cancel_of_le (le_of_lt hab)]
+  cases le_or_lt a b with hab hab, { simp [hab, mul_right_mono hab] },
+  rcases eq_or_lt_of_le (zero_le b) with rfl|hb, { simp },
+  exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).sub_mul
 end
 
 lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) :
   a * (b - c) = a * b - a * c :=
 by { simp only [mul_comm a], exact sub_mul h }
-
-lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
-begin
-  -- with `0 < b → b < a → c ≠ ∞` Lean names the first variable `a`
-  by_cases h : ∀ (hb : 0 < b), b < a → c ≠ ∞,
-  { rw [sub_mul h],
-    exact le_refl _ },
-  { push_neg at h,
-    rcases h with ⟨hb, hba, hc⟩,
-    subst c,
-    simp only [mul_top, if_neg (ne_of_gt hb), if_neg (ne_of_gt $ lt_trans hb hba), sub_self,
-      zero_le] }
-end
 
 end sub
 

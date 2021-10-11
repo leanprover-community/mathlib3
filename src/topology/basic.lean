@@ -316,6 +316,9 @@ is_closed_sInter $ assume t ⟨h₁, h₂⟩, h₁
 lemma subset_closure {s : set α} : s ⊆ closure s :=
 subset_sInter $ assume t ⟨h₁, h₂⟩, h₂
 
+lemma not_mem_of_not_mem_closure {s : set α} {P : α} (hP : P ∉ closure s) : P ∉ s :=
+λ h, hP (subset_closure h)
+
 lemma closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : is_closed t) : closure s ⊆ t :=
 sInter_subset_of_mem ⟨h₂, h₁⟩
 
@@ -1433,6 +1436,15 @@ lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_ope
   (hs : s.nonempty) :
   ∃ a, f a ∈ s :=
 exists_range_iff.1 $ hf.exists_mem_open ho hs
+
+lemma dense_range.mem_nhds {f : κ → β} (h : dense_range f) {b : β} {U : set β}
+  (U_in : U ∈ nhds b) : ∃ a, f a ∈ U :=
+begin
+  rcases (mem_closure_iff_nhds.mp
+    ((dense_range_iff_closure_range.mp h).symm ▸ mem_univ b : b ∈ closure (range f)) U U_in)
+    with ⟨_, h, a, rfl⟩,
+  exact ⟨a, h⟩
+end
 
 end dense_range
 

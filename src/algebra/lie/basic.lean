@@ -176,7 +176,6 @@ instance : lie_module R L (M →ₗ[R] N) :=
 
 end basic_properties
 
-set_option old_structure_cmd true
 /-- A morphism of Lie algebras is a linear map respecting the bracket operations. -/
 structure lie_hom (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
@@ -190,15 +189,21 @@ notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := lie_hom R L L'
 namespace lie_hom
 
 variables {R : Type u} {L₁ : Type v} {L₂ : Type w} {L₃ : Type w₁}
-variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_ring L₃]
-variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
+variables [comm_ring R]
+variables [lie_ring L₁] [lie_algebra R L₁]
+variables [lie_ring L₂] [lie_algebra R L₂]
+variables [lie_ring L₃] [lie_algebra R L₃]
 
 instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨lie_hom.to_linear_map⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, lie_hom.to_fun⟩
+instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, λ f, f.to_linear_map.to_fun⟩
 
-initialize_simps_projections lie_hom (to_fun → apply)
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂ := h
+
+initialize_simps_projections lie_hom (to_linear_map_to_fun → apply)
 
 @[simp, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
 rfl
@@ -247,7 +252,7 @@ lemma one_apply (x : L₁) : (1 : (L₁ →ₗ⁅R⁆ L₁)) x = x := rfl
 instance : inhabited (L₁ →ₗ⁅R⁆ L₂) := ⟨0⟩
 
 lemma coe_injective : @function.injective (L₁ →ₗ⁅R⁆ L₂) (L₁ → L₂) coe_fn :=
-by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
+by rintro ⟨⟨f, _⟩⟩ ⟨⟨g, _⟩⟩ ⟨h⟩; congr
 
 @[ext] lemma ext {f g : L₁ →ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g :=
 coe_injective $ funext h
@@ -258,15 +263,11 @@ lemma ext_iff {f g : L₁ →ₗ⁅R⁆ L₂} : f = g ↔ ∀ x, f x = g x :=
 lemma congr_fun {f g : L₁ →ₗ⁅R⁆ L₂} (h : f = g) (x : L₁) : f x = g x := h ▸ rfl
 
 @[simp] lemma mk_coe (f : L₁ →ₗ⁅R⁆ L₂) (h₁ h₂ h₃) :
-  (⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) = f :=
+  (⟨⟨f, h₁, h₂⟩, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) = f :=
 by { ext, refl, }
 
 @[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
-
-@[norm_cast, simp] lemma coe_linear_mk (f : L₁ →ₗ[R] L₂) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ[R] L₂) = ⟨f, h₁, h₂⟩ :=
-by { ext, refl, }
+  ((⟨⟨f, h₁, h₂⟩, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
 
 /-- The composition of morphisms is a morphism. -/
 def comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ⁅R⁆ L₃ :=
@@ -308,10 +309,12 @@ instead define an equivalence to be a morphism which is also a (plain) equivalen
 more convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/
 structure lie_equiv (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
-  extends L →ₗ⁅R⁆ L', L ≃ₗ[R] L'
+  extends L →ₗ⁅R⁆ L' :=
+(inv_fun   : L' → L)
+(left_inv  : function.left_inverse inv_fun to_lie_hom.to_fun)
+(right_inv : function.right_inverse inv_fun to_lie_hom.to_fun)
 
 attribute [nolint doc_blame] lie_equiv.to_lie_hom
-attribute [nolint doc_blame] lie_equiv.to_linear_equiv
 
 notation L ` ≃ₗ⁅`:50 R `⁆ ` L' := lie_equiv R L L'
 
@@ -321,11 +324,14 @@ variables {R : Type u} {L₁ : Type v} {L₂ : Type w} {L₃ : Type w₁}
 variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_ring L₃]
 variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
 
+/-- Consider an equivalence of Lie algebras as a linear equivalence. -/
+def to_linear_equiv (f : L₁ ≃ₗ⁅R⁆ L₂) : L₁ ≃ₗ[R] L₂ := { ..f.to_lie_hom, ..f }
+
 instance has_coe_to_lie_hom : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ →ₗ⁅R⁆ L₂) := ⟨to_lie_hom⟩
 instance has_coe_to_linear_equiv : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ ≃ₗ[R] L₂) := ⟨to_linear_equiv⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) := ⟨_, λ e, e.to_lie_hom.to_fun⟩
 
 @[simp, norm_cast] lemma coe_to_lie_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
   rfl
@@ -355,7 +361,7 @@ def symm (e : L₁ ≃ₗ⁅R⁆ L₂) : L₂ ≃ₗ⁅R⁆ L₁ :=
   ..e.to_linear_equiv.symm }
 
 @[simp] lemma symm_symm (e : L₁ ≃ₗ⁅R⁆ L₂) : e.symm.symm = e :=
-by { cases e, refl, }
+by { rcases e with ⟨⟨⟨⟩⟩⟩, refl, }
 
 @[simp] lemma apply_symm_apply (e : L₁ ≃ₗ⁅R⁆ L₂) : ∀ x, e (e.symm x) = x :=
   e.to_linear_equiv.apply_symm_apply

@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis
 -/
 import algebra.group_with_zero.power
 import tactic.linarith
+import data.equiv.ring
 
 /-!
 # Integer power operation on fields and division rings
@@ -18,6 +19,10 @@ universe u
 @[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L) :
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
 f.to_monoid_with_zero_hom.map_fpow
+
+@[simp] lemma ring_equiv.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K ≃+* L) :
+  ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
+f.to_ring_hom.map_fpow
 
 @[simp] lemma fpow_bit0_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit0 n) = x ^ bit0 n :=

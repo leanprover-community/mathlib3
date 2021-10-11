@@ -63,7 +63,7 @@ about the `localization_map.mk'` induced by any localization map.
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,
 commutative monoid
 -/
-set_option old_structure_cmd true
+
 namespace add_submonoid
 variables {M : Type*} [add_comm_monoid M] (S : add_submonoid M) (N : Type*) [add_comm_monoid N]
 
@@ -353,7 +353,7 @@ abbreviation to_map (f : localization_map S N) := f.to_monoid_hom
 
 @[to_additive, ext] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
   f = g :=
-by cases f; cases g; simp only; exact funext h
+by { rcases f with ⟨⟨⟩⟩, rcases g with ⟨⟨⟩⟩, simp only, exact funext h, }
 
 attribute [ext] add_submonoid.localization_map.ext
 
@@ -366,13 +366,13 @@ attribute [ext] add_submonoid.localization_map.ext
 λ _ _ h, ext $ monoid_hom.ext_iff.1 h
 
 @[to_additive] lemma map_units (f : localization_map S N) (y : S) :
-  is_unit (f.to_map y) := f.4 y
+  is_unit (f.to_map y) := f.2 y
 
 @[to_additive] lemma surj (f : localization_map S N) (z : N) :
-  ∃ x : M × S, z * f.to_map x.2 = f.to_map x.1 := f.5 z
+  ∃ x : M × S, z * f.to_map x.2 = f.to_map x.1 := f.3 z
 
 @[to_additive] lemma eq_iff_exists (f : localization_map S N) {x y} :
-  f.to_map x = f.to_map y ↔ ∃ c : S, x * c = y * c := f.6 x y
+  f.to_map x = f.to_map y ↔ ∃ c : S, x * c = y * c := f.4 x y
 
 /-- Given a localization map `f : M →* N`, a section function sending `z : N` to some
 `(x, y) : M × S` such that `f x * (f y)⁻¹ = z`. -/

@@ -548,6 +548,9 @@ lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
   (g.comp f).norm_noninc :=
 λ v, (hg (f v)).trans (hf v)
 
+lemma neg {f : normed_group_hom V₁ V₂} (hf : f.norm_noninc) : (-f).norm_noninc :=
+λ x, (norm_neg (f x)).le.trans (hf x)
+
 end norm_noninc
 
 section isometry

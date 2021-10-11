@@ -143,7 +143,7 @@ begin
   convert _root_.congr_fun (dfinsupp.equiv_fun_on_fintype_single i m) a,
 end
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_lof
+@[simp] lemma linear_equiv_fun_on_fintype_symm_single
   [fintype ι] [decidable_eq ι] [Π i, decidable_eq (M i)] (i : ι) (m : M i) :
   (linear_equiv_fun_on_fintype R ι M).symm (pi.single i m) = lof R ι M i m :=
 begin

@@ -58,6 +58,22 @@ begin
   assumption
 end
 
+lemma chebyshev' (s : finset α) (f : α → ℝ) :
+  (∑ (i : α) in s, f i) ^ 2 ≤ (∑ (i : α) in s, f i ^ 2) * s.card :=
+by simpa using sum_mul_sq_le_sq_mul_sq s f (λ _, 1)
+
+lemma chebyshev (s : finset α) (f : α → ℝ) :
+  ((∑ i in s, f i) / s.card)^2 ≤ (∑ i in s, (f i)^2) / s.card :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | hs,
+  { simp },
+  rw div_pow,
+  have hs' : 0 < (s.card : ℝ),
+  { rwa [nat.cast_pos, card_pos] },
+  rw [div_le_div_iff (sq_pos_of_ne_zero _ hs'.ne') hs', sq (s.card : ℝ), ←mul_assoc],
+  apply mul_le_mul_of_nonneg_right (chebyshev' _ _) hs'.le,
+end
+
 namespace nat
 
 lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=

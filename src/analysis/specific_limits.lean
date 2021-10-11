@@ -579,15 +579,20 @@ section le_geometric
 variables [pseudo_metric_space α] {r C : ℝ} (hr : r < 1) {f : ℕ → α}
   (hu : ∀n, dist (f n) (f (n+1)) ≤ C * r^n)
 
+lemma aux_has_sum_of_eventually_nonneg_geometric (hr : r < 1)
+  (hf : ∀ᶠ n : ℕ in at_top, 0 ≤ C * r ^ n) :
+  has_sum (λ n : ℕ, C * r^n) (C / (1 - r)) :=
+begin
+  obtain (rfl|hr₀) : C = 0 ∨ 0 ≤ r,
+    from (sign_cases_of_mul_pow_eventually_nonneg hf).imp id (λ h, h.elim ge_of_eq (λ h, h.2.le)),
+  { simp [has_sum_zero] },
+  { exact has_sum.mul_left C (has_sum_geometric_of_lt_1 hr₀ hr) }
+end
+
 include hr hu
 
 lemma aux_has_sum_of_le_geometric : has_sum (λ n : ℕ, C * r^n) (C / (1 - r)) :=
-begin
-  rcases sign_cases_of_C_mul_pow_nonneg (λ n, dist_nonneg.trans (hu n)) with rfl | ⟨C₀, r₀⟩,
-  { simp [has_sum_zero] },
-  { refine has_sum.mul_left C _,
-    simpa using has_sum_geometric_of_lt_1 r₀ hr }
-end
+aux_has_sum_of_eventually_nonneg_geometric hr $ eventually_of_forall $ λ n, dist_nonneg.trans (hu n)
 
 variables (r C)
 
@@ -659,12 +664,22 @@ begin
   exact hf n,
 end
 
-/-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a
-Cauchy sequence. This lemma does not assume `0 ≤ r` or `0 ≤ C`. -/
-lemma cauchy_seq_finset_of_geometric_bound (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n) :
-  cauchy_seq (λ s : finset (ℕ), ∑ x in s, f x) :=
-cauchy_seq_finset_of_norm_bounded _
-  (aux_has_sum_of_le_geometric hr (dist_partial_sum_le_of_le_geometric hf)).summable hf
+/-- If `∥f n∥ ≤ C * r ^ n` for sufficiently large `n : ℕ` and some `r < 1`, then the partial sums of
+`f` over finite sets of natural numbers form a Cauchy sequence. This lemma does not assume `0 ≤ r`
+or `0 ≤ C`.  -/
+lemma cauchy_seq_finset_of_geometric_bound {C : ℝ} {f : ℕ → α} {r : ℝ} (hr : r < 1)
+  (h : ∀ᶠ n in at_top, ∥f n∥ ≤ C * r ^ n) :
+  cauchy_seq (λ s : finset ℕ, ∑ n in s, f n) :=
+have H : summable (λ n : ℕ, C * r ^ n),
+  from ⟨_, aux_has_sum_of_eventually_nonneg_geometric hr (h.mono (λ n, (norm_nonneg _).trans))⟩,
+cauchy_seq_finset_of_norm_bounded_eventually H (nat.cofinite_eq_at_top.symm ▸ h)
+
+/-- If `∥f n∥ ≤ C * r ^ n` for sufficiently large `n : ℕ` and some `r < 1`, then `f` is
+summable. This lemma does not assume `0 ≤ r` or `0 ≤ C`.  -/
+lemma summable_of_geometric_bound [complete_space α] {C : ℝ} {f : ℕ → α} {r : ℝ} (hr : r < 1)
+  (h : ∀ᶠ n in at_top, ∥f n∥ ≤ C * r ^ n) :
+  summable f :=
+summable_iff_cauchy_seq_finset.2 $ cauchy_seq_finset_of_geometric_bound hr h
 
 /-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` are within
 distance `C * r ^ n / (1 - r)` of the sum of the series. This lemma does not assume `0 ≤ r` or
@@ -685,55 +700,6 @@ by simp [dist_eq_norm, sum_range_succ]
 @[simp] lemma dist_partial_sum' (u : ℕ → α) (n : ℕ) :
  dist (∑ k in range n, u k) (∑ k in range (n+1), u k) = ∥u n∥ :=
 by simp [dist_eq_norm', sum_range_succ]
-
-lemma cauchy_series_of_le_geometric {C : ℝ} {u : ℕ → α}
-  {r : ℝ} (hr : r < 1) (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range n, u k) :=
-cauchy_seq_of_le_geometric r C hr (by simp [h])
-
-lemma normed_group.cauchy_series_of_le_geometric' {C : ℝ} {u : ℕ → α} {r : ℝ} (hr : r < 1)
-  (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
-begin
-  by_cases hC : C = 0,
-  { subst hC,
-    simp at h,
-    exact cauchy_seq_of_le_geometric 0 0 zero_lt_one (by simp [h]) },
-  have : 0 ≤ C,
-  { simpa using (norm_nonneg _).trans (h 0) },
-  replace hC : 0 < C,
-    from (ne.symm hC).le_iff_lt.mp this,
-  have : 0 ≤ r,
-  { have := (norm_nonneg _).trans (h 1),
-    rw pow_one at this,
-    exact (zero_le_mul_left hC).mp this },
-  simp_rw finset.sum_range_succ_comm,
-  have : cauchy_seq u,
-  { apply tendsto.cauchy_seq,
-    apply squeeze_zero_norm h,
-    rw show 0 = C*0, by simp,
-    exact tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 this hr) },
-  exact this.add (cauchy_series_of_le_geometric hr h),
-end
-
-lemma normed_group.cauchy_series_of_le_geometric'' {C : ℝ} {u : ℕ → α} {N : ℕ} {r : ℝ}
-  (hr₀ : 0 < r) (hr₁ : r < 1)
-  (h : ∀ n ≥ N, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
-begin
-  set v : ℕ → α := λ n, if n < N then 0 else u n,
-  have hC : 0 ≤ C,
-    from (zero_le_mul_right $ pow_pos hr₀ N).mp ((norm_nonneg _).trans $ h N $ le_refl N),
-  have : ∀ n ≥ N, u n = v n,
-  { intros n hn,
-    simp [v, hn, if_neg (not_lt.mpr hn)] },
-  refine cauchy_seq_sum_of_eventually_eq this (normed_group.cauchy_series_of_le_geometric' hr₁ _),
-  { exact C },
-  intro n,
-  dsimp [v],
-  split_ifs with H H,
-  { rw norm_zero,
-    exact mul_nonneg hC (pow_nonneg hr₀.le _) },
-  { push_neg at H,
-    exact h _ H }
-end
 
 end summable_le_geometric
 

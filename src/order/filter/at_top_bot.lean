@@ -640,9 +640,30 @@ tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (b * c)).mono $ λ x hx, le_of_mul
 
 end linear_ordered_semiring
 
-lemma nonneg_of_eventually_pow_nonneg [linear_ordered_ring α] {a : α}
+section linear_ordered_ring
+
+variables {R : Type*} [linear_ordered_ring R]
+
+lemma sign_cases_of_mul_pow_eventually_nonneg {C r : R}
+  (h : ∀ᶠ n : ℕ in at_top, 0 ≤ C * r ^ n) :
+  C = 0 ∨ r = 0 ∨ 0 < C ∧ 0 < r :=
+begin
+  by_contra H, push_neg at H,
+  rcases H with ⟨HC, Hr, HCr⟩, rcases HC.lt_or_lt with (HC|HC),
+  { rcases (tendsto_bit0_at_top.eventually h).exists with ⟨k, hk⟩,
+    exact hk.not_lt (mul_neg_of_neg_of_pos HC (pow_bit0_pos Hr _)) },
+  { replace Hr : r < 0 := (HCr HC).lt_of_ne Hr,
+    rcases (tendsto_bit1_at_top.eventually h).exists with ⟨l, hl⟩,
+    refine hl.not_lt (mul_neg_of_pos_of_neg HC _),
+    rw [bit1, pow_succ],
+    exact mul_neg_of_neg_of_pos Hr (pow_bit0_pos Hr.ne _) }
+end
+
+lemma nonneg_of_eventually_pow_nonneg {a : R}
   (h : ∀ᶠ n in at_top, 0 ≤ a ^ (n : ℕ)) : 0 ≤ a :=
 let ⟨n, hn⟩ := (tendsto_bit1_at_top.eventually h).exists in pow_bit1_nonneg_iff.1 hn
+
+end linear_ordered_ring
 
 section linear_ordered_field
 

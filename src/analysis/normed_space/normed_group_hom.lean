@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import analysis.normed_space.basic
+import analysis.normed.group.controlled_sum
 import analysis.specific_limits
 import topology.sequences
 
@@ -688,10 +689,8 @@ lemma controlled_closure_of_complete  {f : normed_group_hom G H} {K : add_subgro
 begin
   rintros (h : H) (h_in : h ∈ K.topological_closure),
   /- We first get rid of the easy case where `h = 0`.-/
-  by_cases hyp_h : h = 0,
-  { rw hyp_h,
-    use 0,
-    simp },
+  rcases eq_or_ne h 0 with (rfl|hyp_h),
+  { use 0, simp },
   /- The desired preimage will be constructed as the sum of a series. Convergence of
   the series will be guaranteed by completeness of `G`. We first write `h` as the sum
   of a sequence `v` of elements of `K` which starts close to `h` and then quickly goes to zero.
@@ -702,59 +701,46 @@ begin
     field_simp [b, hC],
     exact div_pos (mul_pos hε (norm_pos_iff.mpr hyp_h))
                   (mul_pos (by norm_num : (0 : ℝ) < 2^i*2) hC) },
-  obtain ⟨v : ℕ → H, lim_v : tendsto (λ (n : ℕ), ∑ k in range (n + 1), v k) at_top (𝓝 h),
-    v_in : ∀ n, v n ∈ K, hv₀ : ∥v 0 - h∥ < b 0, hv : ∀ n > 0, ∥v n∥ < b n⟩ :=
+  obtain ⟨v : ℕ → H, sum_v : summable (λ n, ∥v n∥), lim_v : has_sum v h, v_in : ∀ n, v n ∈ K,
+    hv₀ : ∥v 0 - h∥ < b 0, hv : ∀ n > 0, ∥v n∥ < b n⟩ :=
     controlled_sum_of_mem_closure h_in b_pos,
   /- The controlled surjectivity assumption on `f` allows to build preimages `u n` for all
   elements `v n` of the `v` sequence.-/
   have : ∀ n, ∃ m' : G, f m' = v n ∧ ∥m'∥ ≤ C * ∥v n∥ := λ (n : ℕ), hyp (v n) (v_in n),
   choose u hu hnorm_u using this,
-  /- The desired series `s` is then obtained by summing `u`. We then check our choice of
-  `b` ensures `s` is Cauchy. -/
-  set s : ℕ → G := λ n, ∑ k in range (n+1), u k,
-  have : cauchy_seq s,
-  { apply normed_group.cauchy_series_of_le_geometric'' (by norm_num) one_half_lt_one,
-    rintro n (hn : n ≥ 1),
-    calc ∥u n∥ ≤ C*∥v n∥ : hnorm_u n
-    ... ≤ C * b n : mul_le_mul_of_nonneg_left (hv _ $ nat.succ_le_iff.mp hn).le hC.le
-    ... = (1/2)^n * (ε * ∥h∥/2) : by simp [b, mul_div_cancel' _ hC.ne.symm]
-    ... = (ε * ∥h∥/2) * (1/2)^n : mul_comm _ _ },
+  obtain rfl : f ∘ u = v, from funext hu,
+  /- The series `∑ n, u n` is summable because of the estimates on `∥u n∥`. -/
+  obtain ⟨g : G, hg : has_sum u g⟩ : summable u,
+    from summable_of_norm_bounded _ (sum_v.mul_left C) hnorm_u,
   /- We now show that the limit `g` of `s` is the desired preimage. -/
-  obtain ⟨g : G, hg⟩ := cauchy_seq_tendsto_of_complete this,
   refine ⟨g, _, _⟩,
-  { /- We indeed get a preimage. First note: -/
-    have : f ∘ s = λ n, ∑ k in range (n + 1), v k,
-    { ext n,
-      simp [f.map_sum, hu] },
-    /- In the above equality, the left-hand-side converges to `f g` by continuity of `f` and
-       definition of `g` while the right-hand-side converges to `h` by construction of `v` so
-       `g` is indeed a preimage of `h`. -/
-    rw ← this at lim_v,
-    exact tendsto_nhds_unique ((f.continuous.tendsto g).comp hg) lim_v },
+  { /- We indeed get a preimage, because `∑' n, f (u n)` converges both to `f g` and `h`.  -/
+    exact (hg.map f.to_add_monoid_hom f.continuous).unique lim_v },
   { /- Then we need to estimate the norm of `g`, using our careful choice of `b`. -/
-    suffices : ∀ n, ∥s n∥ ≤ (C + ε) * ∥h∥,
-      from le_of_tendsto' (continuous_norm.continuous_at.tendsto.comp hg) this,
-    intros n,
-    have hnorm₀ : ∥u 0∥ ≤ C*b 0 + C*∥h∥,
-    { have := calc
-      ∥v 0∥ ≤ ∥h∥ + ∥v 0 - h∥ : norm_le_insert' _ _
-      ... ≤ ∥h∥ + b 0 : by apply add_le_add_left hv₀.le,
-      calc ∥u 0∥ ≤ C*∥v 0∥ : hnorm_u 0
-      ... ≤ C*(∥h∥ + b 0) : mul_le_mul_of_nonneg_left this hC.le
-      ... = C * b 0 + C * ∥h∥ : by rw [add_comm, mul_add] },
-    have : ∑ k in range (n + 1), C * b k ≤ ε * ∥h∥ := calc
-      ∑ k in range (n + 1), C * b k = (∑ k in range (n + 1), (1 / 2) ^ k) * (ε * ∥h∥ / 2) :
-                     by simp only [b, mul_div_cancel' _ hC.ne.symm, ← sum_mul]
-      ... ≤  2 * (ε * ∥h∥ / 2) : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
-                                                            (by nlinarith [hε, norm_nonneg h])
-      ... = ε * ∥h∥ : mul_div_cancel' _ two_ne_zero,
-    calc ∥s n∥ ≤ ∑ k in range (n+1), ∥u k∥ : norm_sum_le _ _
-    ... = ∑ k in range n, ∥u (k + 1)∥ + ∥u 0∥ : sum_range_succ' _ _
-    ... ≤ ∑ k in range n, C*∥v (k + 1)∥ + ∥u 0∥ : add_le_add_right (sum_le_sum (λ _ _, hnorm_u _)) _
-    ... ≤ ∑ k in range n, C*b (k+1) + (C*b 0 + C*∥h∥) :
-      add_le_add (sum_le_sum (λ k _, mul_le_mul_of_nonneg_left (hv _ k.succ_pos).le hC.le)) hnorm₀
-    ... = ∑ k in range (n+1), C*b k + C*∥h∥ : by rw [← add_assoc, sum_range_succ']
-    ... ≤ (C+ε)*∥h∥ : by { rw [add_comm, add_mul], apply add_le_add_left this } }
+    /- We have different estimates on `∥u 0∥` and `∥u (n + 1)∥`, so we get `u 0` out of the sum. -/
+    rw [← has_sum_nat_add_iff' 1, finset.sum_range_one] at hg; [skip, apply_instance],
+    replace hv₀ : ∥f (u 0)∥ ≤ ∥h∥ + b 0,
+    { calc ∥f (u 0)∥ ≤ ∥h∥ + ∥f (u 0) - h∥ : norm_le_insert' _ _
+      ... ≤ ∥h∥ + b 0 : add_le_add_left hv₀.le _ },
+    have hu₀ : ∥u 0∥ ≤ C * ∥h∥ + (ε * ∥h∥ / 2),
+    { calc ∥u 0∥ ≤ C * ∥f (u 0)∥ : hnorm_u 0
+      ... ≤ C * (∥h∥ + b 0) : mul_le_mul_of_nonneg_left hv₀ hC.le
+      ... = C * ∥h∥ + (ε * ∥h∥ / 2) : by simp [b, mul_add, mul_div_cancel' _ hC.ne'] },
+    suffices : ∥g - u 0∥ ≤ ε * ∥h∥ / 2,
+    { calc ∥g∥ ≤ ∥u 0∥ + ∥g - u 0∥ : norm_le_insert' _ _
+      ... ≤ C * ∥h∥ + ε * ∥h∥ / 2 + ε * ∥h∥ / 2 : add_le_add hu₀ this
+      ... = (C + ε) * ∥h∥ : by rw [add_assoc, add_halves, add_mul] },
+    /- Now we estimate the sum by a geometric progression. -/
+    replace hnorm_u : ∀ n, ∥u (n + 1)∥ ≤ (1 / 2 / 2 ^ n) * (ε * ∥h∥ / 2),
+    { intro n,
+      calc ∥u (n + 1)∥ ≤ C * ∥f (u (n + 1))∥ : hnorm_u _
+      ... ≤ C * b (n + 1) : mul_le_mul_of_nonneg_left (hv _ n.succ_pos).le hC.le
+      ... = (1 / 2 / 2 ^ n) * (ε * ∥h∥ / 2) :
+        by rw [mul_div_cancel' _ hC.ne', div_pow, one_pow, pow_succ, div_div_eq_div_mul] },
+    have : has_sum (λ n, (1 / 2 / 2 ^ n) * (ε * ∥h∥ / 2)) (1 * (ε * ∥h∥ / 2)),
+      from (has_sum_geometric_two' 1).mul_right _,
+    rw one_mul at this,
+    exact hg.norm_le_of_bounded this hnorm_u }
 end
 
 /-- Given `f : normed_group_hom G H` for some complete `G`, if every element `x` of the image of

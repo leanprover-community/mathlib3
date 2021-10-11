@@ -1025,6 +1025,14 @@ begin
   convert h.mul ihn; simp [pow_succ]
 end
 
+lemma is_O_pow_pow_of_le {f : α → 𝕜} (hf : ∀ᶠ x in l, 1 ≤ ∥f x∥)
+  {n m : ℕ} (hnm : n ≤ m) : is_O (λ x, (f x) ^ n) (λ x, (f x) ^ m) l :=
+begin
+  refine is_O.of_bound 1 (eventually_of_mem hf (λ x hx, _)),
+  simp_rw [one_mul, normed_field.norm_pow],
+  exact pow_le_pow hx hnm,
+end
+
 /-! ### Scalar multiplication -/
 
 section smul_const

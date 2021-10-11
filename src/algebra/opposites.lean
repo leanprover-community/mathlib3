@@ -173,10 +173,6 @@ instance [monoid α] : monoid (opposite α) :=
   end,
   .. opposite.semigroup α, .. opposite.mul_one_class α }
 
--- TODO, when the imports allow it
--- @[simp] lemma op_pow [monoid α] (x : α) (n : ℕ) : op (x ^ n) = op x ^ n:= rfl
--- @[simp] lemma unop_pow [monoid α] (x : αᵒᵖ) (n : ℕ) : unop (x ^ n) = unop x ^ n := rfl
-
 instance [right_cancel_monoid α] : left_cancel_monoid (opposite α) :=
 { .. opposite.left_cancel_semigroup α, ..opposite.monoid α }
 
@@ -204,10 +200,6 @@ instance [group α] : group (opposite α) :=
   end,
   gpow_neg' := λ z x, unop_injective $ group.gpow_neg' z x.unop,
   .. opposite.monoid α, .. opposite.has_inv α }
-
--- TODO, when the imports allow it
--- @[simp] lemma op_gpow [group α] (x : α) (n : ℕ) : op (x ^ n) = op x ^ n:= rfl
--- @[simp] lemma unop_gpow [group α] (x : αᵒᵖ) (n : ℕ) : unop (x ^ n) = unop x ^ n := rfl
 
 instance [comm_group α] : comm_group (opposite α) :=
 { .. opposite.group α, .. opposite.comm_monoid α }

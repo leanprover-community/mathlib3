@@ -42,7 +42,7 @@ section is_R_or_C
 variables (𝕜 : Type*)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local postfix `†`:90 := star_ring_aut
+local postfix `†`:90 := star
 
 /--
 Given some `x` in an inner product space, we can define its dual as the continuous linear map

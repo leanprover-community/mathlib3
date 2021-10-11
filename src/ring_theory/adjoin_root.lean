@@ -220,8 +220,9 @@ def mod_by_monic_hom [nontrivial R] (hg : g.monic) :
   adjoin_root g →ₗ[R] polynomial R :=
 (submodule.liftq _ (polynomial.mod_by_monic_hom hg)
   (λ f (hf : f ∈ (ideal.span {g}).restrict_scalars R),
-    (mem_ker_mod_by_monic hg).mpr (ideal.mem_span_singleton.mp hf))).comp
-(quotient_restrict_scalars R (ideal.span {g} : ideal (polynomial R))).symm.to_linear_map
+    (mem_ker_mod_by_monic hg).mpr (ideal.mem_span_singleton.mp hf))).comp $
+(submodule.quotient.restrict_scalars_equiv R (ideal.span {g} : ideal (polynomial R)))
+  .symm.to_linear_map
 
 @[simp] lemma mod_by_monic_hom_mk [nontrivial R] (hg : g.monic) (f : polynomial R) :
   mod_by_monic_hom hg (mk g f) = f %ₘ g := rfl

@@ -188,18 +188,21 @@ instance [comm_monoid α] : comm_monoid (opposite α) :=
 instance [cancel_comm_monoid α] : cancel_comm_monoid (opposite α) :=
 { .. opposite.cancel_monoid α, ..opposite.comm_monoid α }
 
-instance [group α] : group (opposite α) :=
-{ mul_left_inv := λ x, unop_injective $ mul_inv_self $ unop x,
-  gpow := λ n x, op $ group.gpow n x.unop,
-  gpow_zero' := λ x, unop_injective $ group.gpow_zero' x.unop,
-  gpow_succ' := λ n x, unop_injective $ (group.gpow_succ' n x.unop).trans begin
+instance [div_inv_monoid α] : div_inv_monoid (opposite α) :=
+{ gpow := λ n x, op $ div_inv_monoid.gpow n x.unop,
+  gpow_zero' := λ x, unop_injective $ div_inv_monoid.gpow_zero' x.unop,
+  gpow_succ' := λ n x, unop_injective $ (div_inv_monoid.gpow_succ' n x.unop).trans begin
     dsimp,
     induction n with n ih,
-    { rw [int.of_nat_zero, group.gpow_zero', one_mul, mul_one] },
-    { rw [group.gpow_succ' n x.unop, mul_assoc, ih], },
+    { rw [int.of_nat_zero, div_inv_monoid.gpow_zero', one_mul, mul_one] },
+    { rw [div_inv_monoid.gpow_succ' n x.unop, mul_assoc, ih], },
   end,
-  gpow_neg' := λ z x, unop_injective $ group.gpow_neg' z x.unop,
+  gpow_neg' := λ z x, unop_injective $ div_inv_monoid.gpow_neg' z x.unop,
   .. opposite.monoid α, .. opposite.has_inv α }
+
+instance [group α] : group (opposite α) :=
+{ mul_left_inv := λ x, unop_injective $ mul_inv_self $ unop x,
+  .. opposite.div_inv_monoid α, }
 
 instance [comm_group α] : comm_group (opposite α) :=
 { .. opposite.group α, .. opposite.comm_monoid α }
@@ -257,7 +260,7 @@ instance [integral_domain α] : integral_domain (opposite α) :=
 instance [group_with_zero α] : group_with_zero (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
   inv_zero := unop_injective inv_zero,
-  .. opposite.monoid_with_zero α, .. opposite.nontrivial α, .. opposite.has_inv α }
+  .. opposite.monoid_with_zero α, .. opposite.div_inv_monoid α, .. opposite.nontrivial α }
 
 instance [division_ring α] : division_ring (opposite α) :=
 { .. opposite.group_with_zero α, .. opposite.ring α }

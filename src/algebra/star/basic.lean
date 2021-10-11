@@ -177,6 +177,8 @@ variables (R)
 @[simp] lemma star_zero [add_monoid R] [star_add_monoid R] : star (0 : R) = 0 :=
 (star_add_equiv : R ≃+ R).map_zero
 
+variables {R}
+
 @[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
 (star_add_equiv : R ≃+ R).map_neg _
 
@@ -201,8 +203,6 @@ open_locale big_operators
 (star_add_equiv : R ≃+ R).map_sum _ _
 
 end
-
-variables {R}
 
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive

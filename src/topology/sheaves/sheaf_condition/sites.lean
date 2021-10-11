@@ -444,16 +444,21 @@ iff.intro (is_sheaf_spaces_of_is_sheaf_sites F) (is_sheaf_sites_of_is_sheaf_spac
 
 variables (C X)
 
+/-- Turn a sheaf on the site `opens X` into a sheaf on the space `X`. -/
 @[simps]
 def Sheaf_sites_to_sheaf_spaces : Sheaf (opens.grothendieck_topology X) C ⥤ sheaf C X :=
 { obj := λ F, ⟨F.1, is_sheaf_spaces_of_is_sheaf_sites F.1 F.2⟩,
   map := λ F G f, f }
 
+/-- Turn a sheaf on the space `X` into a sheaf on the site `opens X`. -/
 @[simps]
 def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topology X) C :=
 { obj := λ F, ⟨F.1, is_sheaf_sites_of_is_sheaf_spaces F.1 F.2⟩,
   map := λ F G f, f }
 
+/--
+The equivalence of categories between sheaves on the site `opens X` and sheaves on the space `X`.
+-/
 @[simps]
 def Sheaf_spaces_equivelence_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
 begin

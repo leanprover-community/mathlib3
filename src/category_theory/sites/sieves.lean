@@ -537,8 +537,7 @@ begin
     apply hle,
     refine ⟨X, f, 𝟙 _, hf, _⟩,
     rw category.id_comp, },
-  { intros hle Y f hf,
-    obtain ⟨X, g, h, hg, rfl⟩ := hf,
+  { rintros hle Y f ⟨X, g, h, hg, rfl⟩,
     apply sieve.downward_closed S,
     exact hle g hg, }
 end
@@ -582,16 +581,14 @@ lemma image_mem_functor_pushforward (R : sieve X) {V} {f : V ⟶ X} (h : R f) :
   R.functor_pushforward F (F.map f) := ⟨V, f, 𝟙 _, h, by simp⟩
 
 /-- When `F` is essentially surjective and full, the galois connection is a galois insertion. -/
-def ess_surj_full_functor_galois_insertion [ess_surj F] [full F] (X : C) : 
-  galois_insertion 
-    (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) 
+def ess_surj_full_functor_galois_insertion [ess_surj F] [full F] (X : C) :
+  galois_insertion
+    (sieve.functor_pushforward F : sieve X → sieve (F.obj X))
     (sieve.functor_pullback F) :=
 begin
   apply (functor_galois_connection F X).to_galois_insertion,
   intros S Y f hf,
-  use F.obj_preimage Y,
-  use F.preimage ((F.obj_obj_preimage_iso Y).hom ≫ f),
-  use (F.obj_obj_preimage_iso Y).inv,
+  refine ⟨_, F.preimage ((F.obj_obj_preimage_iso Y).hom ≫ f), (F.obj_obj_preimage_iso Y).inv, _⟩,
   simpa using S.downward_closed hf _,
 end
 

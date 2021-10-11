@@ -556,7 +556,7 @@ by { cases h, refl }
 @[simp] lemma equiv_fun_on_fintype_single
   [fintype ι] [Π i (x : β i), decidable (x ≠ 0)] (i : ι) (m : β i) :
   (@dfinsupp.equiv_fun_on_fintype ι β _ _ _ _) (dfinsupp.single i m) = pi.single i m :=
-by { ext, simp [dfinsupp.single_eq_pi_single, dfinsupp.equiv_fun_on_fintype], }
+by { ext, simp [dfinsupp.single_eq_pi_single], }
 
 @[simp] lemma equiv_fun_on_fintype_symm_single
   [fintype ι] [Π i (x : β i), decidable (x ≠ 0)] (i : ι) (m : β i) :

@@ -548,8 +548,8 @@ lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
   (g.comp f).norm_noninc :=
 λ v, (hg (f v)).trans (hf v)
 
-lemma neg {f : normed_group_hom V₁ V₂} (hf : f.norm_noninc) : (-f).norm_noninc :=
-λ x, (norm_neg (f x)).le.trans (hf x)
+@[simp] lemma neg_iff {f : normed_group_hom V₁ V₂} : (-f).norm_noninc ↔ f.norm_noninc :=
+⟨λ h x, by { simpa using h x }, λ h x, (norm_neg (f x)).le.trans (h x)⟩
 
 end norm_noninc
 

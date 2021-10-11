@@ -231,13 +231,21 @@ instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
   smul_one := λ r, unop_injective $ smul_one r,
   ..opposite.mul_action α R }
 
+instance {M N} [has_scalar M N] [has_scalar M α] [has_scalar N α] [is_scalar_tower M N α] :
+  is_scalar_tower M N αᵒᵖ :=
+⟨λ x y z, unop_injective $ smul_assoc _ _ _⟩
+
+instance {M N} [has_scalar M α] [has_scalar N α] [smul_comm_class M N α] :
+  smul_comm_class M N αᵒᵖ :=
+⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
+
 /-- Like `has_mul.to_has_scalar`, but multiplies on the right.
 
 See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/
 instance _root_.has_mul.to_has_opposite_scalar [has_mul α] : has_scalar (opposite α) α :=
 { smul := λ c x, x * c.unop }
 
-lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+@[simp] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
 
 instance _root_.semigroup.opposite_smul_comm_class [semigroup α] :
   smul_comm_class (opposite α) α α :=
@@ -252,6 +260,16 @@ instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action (opposite
 { smul := (•),
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
+
+instance _root_.is_scalar_tower.opposite_mid {M N} [monoid N] [has_scalar M N]
+  [smul_comm_class M N N] :
+  is_scalar_tower M Nᵒᵖ N :=
+⟨λ x y z, mul_smul_comm _ _ _⟩
+
+instance _root_.smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
+  [is_scalar_tower M N N] :
+  smul_comm_class M Nᵒᵖ N :=
+⟨λ x y z, by { induction y using opposite.op_induction, simp [smul_mul_assoc] }⟩
 
 -- The above instance does not create an unwanted diamond, the two paths to
 -- `mul_action (opposite α) (opposite α)` are defeq.

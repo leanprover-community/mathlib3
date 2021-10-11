@@ -195,9 +195,6 @@ search (and was here first). -/
   (r • x) * y = r • (x * y) :=
 smul_mul_assoc r x y
 
-instance _root_.is_scalar_tower.opposite_right : is_scalar_tower R Aᵒᵖ A :=
-⟨λ x y z, algebra.mul_smul_comm _ _ _⟩
-
 section
 variables {r : R} {a : A}
 

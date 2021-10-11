@@ -9,7 +9,7 @@ import category_theory.flat_functors
 /-!
 # Cover-preserving functors between sites.
 
-We define cover-preserving functors between sites as functors that pushes covering sieves to
+We define cover-preserving functors between sites as functors that push covering sieves to
 covering sieves. A cover-preserving and flat functor `u : F ⥤ D` then pulls sheaves on `D`
 back to sheaves on `C` via `u.op ⋙ -`. This functor has a left adjoint `Lan u.op` that
 preserves finite limits (`category_theory.Lan_preserves_finite_limit_of_flat`).
@@ -55,7 +55,7 @@ variables {L : grothendieck_topology E}
 
 /--
 A functor `u : (C, J) ⥤ (D, K)` between sites is called to have the cover-preserving property
-if for all covering sieves `R` in `D`, `R.pushforward_functor u` is a covering sieve in `C`.
+if for all covering sieves `R` in `C`, `R.pushforward_functor u` is a covering sieve in `D`.
 -/
 @[nolint has_inhabited_instance]
 structure cover_preserving (u : C ⥤ D) :=
@@ -66,7 +66,7 @@ def id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by simp
 
 variables (J) (K)
 
-/-- The composition of two cover-preserving functors are cover-preserving -/
+/-- The composition of two cover-preserving functors is cover-preserving. -/
 def comp_cover_preserving {u} (hu : cover_preserving J K u) {v} (hv : cover_preserving K L v) :
   cover_preserving J L (u ⋙ v) := ⟨λ U S hS,
 begin

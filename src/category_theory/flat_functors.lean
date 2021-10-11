@@ -16,7 +16,7 @@ import category_theory.sites.sheaf_of_types
 /-!
 # Representably flat functors
 
-We define representably flat functors as functors such that the catetory of structured arrows
+We define representably flat functors as functors such that the category of structured arrows
 over `X` is cofiltered for each `X`. This concept is also knows as flat functors as in [Elephant]
 Remark C2.3.7, and this name is suggested by Mike Shulman in
 https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to differentiate
@@ -29,7 +29,7 @@ This definition is equivalent to left exact functors (functors that preserves fi
 
 * `flat_of_preserves_finite_limit`: If `F : C ⥤ D` preserves finite limits and `C` has all finite
 limits, then `F` is flat.
-* `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat, then it preserves all finite limits.
+* `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is flat, then it preserves all finite limits.
 * `Lan_preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,
 then the functor `Lan F.op` between presheaves of sets preserves all finite limits.
 * `preserves_limit_of_Lan_preserves_limit`: If the functor `Lan F.op` between presheaves of sets
@@ -101,7 +101,7 @@ section representably_flat
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /--
-A functor `F : C ⥤ D` is representably-flat functor if the comma category `(X/F)`
+A functor `F : C ⥤ D` is representably flat if the comma category `(X/F)`
 is cofiltered for each `X : C`.
 -/
 class representably_flat (F : C ⥤ D) : Prop :=
@@ -192,7 +192,7 @@ end
 
 end preserves_finite_limit_of_flat
 
-/-- Representably flat functors preserves finite limits. -/
+/-- Representably flat functors preserve finite limits. -/
 noncomputable
 def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
 (J : Type v₁) [small_category J] [fin_category J]
@@ -211,7 +211,7 @@ variables {C D : Type u₁} [small_category C] [small_category D]
 
 /--
 (Implementation)
-The evaluation of `Lan F` at `X` is the colimit over the costrucuted arrows over `X`.
+The evaluation of `Lan F` at `X` is the colimit over the costructured arrows over `X`.
 -/
 lemma Lan_evaluation_eq_colim (E : Type u₂) [category.{u₁} E] (F : C ⥤ D) (X : D)
   [∀ (X : D), has_colimits_of_shape (costructured_arrow F X) E] :

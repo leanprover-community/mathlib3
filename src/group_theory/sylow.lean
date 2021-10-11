@@ -98,6 +98,9 @@ instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_act
   one_smul := λ P, sylow.ext (one_smul α P),
   mul_smul := λ g h P, sylow.ext (mul_smul g h P) }
 
+lemma sylow.smul_def {α : Type*} [group α] [mul_distrib_mul_action α G]
+  {g : α} {P : sylow p G} : ↑(g • P) = g • (P : subgroup G) := rfl
+
 instance sylow.mul_action : mul_action G (sylow p G) :=
 comp_hom _ mul_aut.conj
 
@@ -199,26 +202,28 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
+lemma conj_normal_coe {G : Type*} [group G] {N : subgroup G} [N.normal] {g : N} :
+  mul_aut.conj_normal ↑g = mul_aut.conj g :=
+mul_equiv.ext (λ x, rfl)
+
 /-- Frattini's Argument -/
 lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]
   [fintype (sylow p N)] (P : sylow p N) : (P.1.map N.subtype).normalizer ⊔ N = ⊤ :=
 begin
-  let ψ : G →* mul_aut N := mul_aut.conj_normal,
-  letI : mul_action G (sylow p N) := comp_hom (sylow p N) ψ,
   refine top_le_iff.mp (λ g hg, _),
-  obtain ⟨n, hn⟩ := exists_smul_eq N (g • P) P,
-  replace hn := (mul_smul _ _ P).trans hn,
-  rw [show mul_aut.conj n = ψ n, by ext; refl, ←ψ.map_mul] at hn,
+  obtain ⟨n, hn⟩ := exists_smul_eq N ((mul_aut.conj_normal g : mul_aut N) • P) P,
   suffices : ↑n * g ∈ (P.1.map N.subtype).normalizer,
   { rw ← inv_mul_cancel_left ↑n g,
     exact mul_mem _ (inv_mem _ (mem_sup_right n.2)) (mem_sup_left this) },
-  refine λ x, iff.trans _ (set_like.ext_iff.mp (congr_arg _ (sylow.ext_iff.mp hn)) _),
-  change _ ↔ _ ∈ (P.1.map _).map _,
-  rw map_map,
-  change _ ↔ _ ∈ P.1.map ((mul_aut.conj (↑n * g)).to_monoid_hom.comp N.subtype),
-  rw ←map_map,
-  refine (mem_map_iff_mem _).symm,
-  exact (mul_aut.conj (↑n * g)).injective,
+  rw [sylow.smul_def, ←mul_smul, ←conj_normal_coe, ←mul_aut.conj_normal.map_mul] at hn,
+  intro x,
+  suffices : (mul_aut.conj_normal (↑n * g) • P).1.map N.subtype =
+    (P.1.map N.subtype).map (mul_aut.conj (↑n * g)).to_monoid_hom,
+  { conv_rhs { rw ← hn },
+    rw this,
+    refine (mem_map_iff_mem _).symm,
+    exact (mul_aut.conj (↑n * g)).injective, },
+  exact (P.1.map_map _ _).trans ((P.1.map_map _ _).trans (by refl)).symm,
 end
 
 end infinite_sylow

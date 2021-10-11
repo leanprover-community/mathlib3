@@ -1754,7 +1754,7 @@ def quot_sup_to_quot_sup_comm : (I ⊔ J).quotient ≃+* (J ⊔ I).quotient := q
 
 /-- The obvious isomorphism `(R/I)/J' → (R/J)/I' `   -/
 def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quotient.mk).quotient :=
-  ring_equiv.trans (ring_equiv.trans (quot_quot_equiv_quot_sup I J) (quot_sup_to_quot_sup_comm I J))
+(quot_quot_equiv_quot_sup I J).trans $ (quot_sup_to_quot_sup_comm I J).trans $
   (quot_quot_equiv_quot_sup J I).symm
 
 end double_quot

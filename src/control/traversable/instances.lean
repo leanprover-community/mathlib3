@@ -107,14 +107,9 @@ variables [is_lawful_applicative F]
 lemma mem_traverse {f : α' → set β'} :
   ∀(l : list α') (n : list β'), n ∈ traverse f l ↔ forall₂ (λb a, b ∈ f a) n l
 | []      []      := by simp
-| (a::as) []      := by simp; exact assume h, match h with end
+| (a::as) []      := by simp
 | []      (b::bs) := by simp
-| (a::as) (b::bs) :=
-  suffices (b :: bs : list β') ∈ traverse f (a :: as) ↔ b ∈ f a ∧ bs ∈ traverse f as,
-    by simp [mem_traverse as bs],
-  iff.intro
-    (assume ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩, ⟨hb, hl⟩)
-    (assume ⟨hb, hl⟩, ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩)
+| (a::as) (b::bs) := by simp [mem_traverse as bs]
 
 end traverse
 

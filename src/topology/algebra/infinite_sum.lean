@@ -1267,7 +1267,7 @@ end cauchy_seq
 
 /-! ## Multipliying two infinite sums
 
-In this section, we prove various results about `(∑' x : β, f x) * (∑' y : γ, g y)`. Not that we
+In this section, we prove various results about `(∑' x : β, f x) * (∑' y : γ, g y)`. Note that we
 always assume that the family `λ x : β × γ, f x.1 * g x.2` is summable, since there is no way to
 deduce this from the summmabilities of `f` and `g` in general, but if you are working in a normed
 space, you may want to use the analogous lemmas in `analysis/normed_space/basic`

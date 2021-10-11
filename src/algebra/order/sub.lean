@@ -195,6 +195,9 @@ le_antisymm (sub_le_iff_right.mpr h.le) $
 protected lemma eq_sub_of_add_eq (hc : add_le_cancellable c) (h : a + c = b) : a = b - c :=
 (hc.sub_eq_of_eq_add h.symm).symm
 
+protected theorem sub_eq_of_eq_add_rev (hb : add_le_cancellable b) (h : a = b + c) : a - b = c :=
+hb.sub_eq_of_eq_add $ by rw [add_comm, h]
+
 @[simp]
 protected lemma add_sub_cancel_right (hb : add_le_cancellable b) : a + b - b = a :=
 hb.sub_eq_of_eq_add $ by rw [add_comm]
@@ -243,6 +246,9 @@ contravariant.add_le_cancellable.sub_eq_of_eq_add h
 
 lemma eq_sub_of_add_eq'' (h : a + c = b) : a = b - c :=
 contravariant.add_le_cancellable.eq_sub_of_add_eq h
+
+lemma sub_eq_of_eq_add_rev (h : a = b + c) : a - b = c :=
+contravariant.add_le_cancellable.sub_eq_of_eq_add_rev h
 
 @[simp]
 lemma add_sub_cancel_right (a b : α) : a + b - b = a :=

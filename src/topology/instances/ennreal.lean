@@ -690,7 +690,6 @@ begin
   exact nnreal.summable_comp_injective (tsum_coe_ne_top_iff_summable.1 hf) subtype.coe_injective
 end
 
-
 protected lemma tsum_apply {ι α : Type*} {f : ι → α → ℝ≥0∞} {x : α} :
   (∑' i, f i) x = ∑' i, f i x :=
 tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable

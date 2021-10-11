@@ -25,6 +25,9 @@ lemma pow_le_of_le_one {R : Type*} [ordered_semiring R] {a : R} (h₀ : 0 ≤ a)
 lemma sq_le {R : Type*} [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a :=
 pow_le_of_le_one h₀ h₁ zero_lt_two
 
+lemma singleton_injective : injective (singleton : α → finset α) :=
+λ i j, singleton_inj.1
+
 namespace real
 
 lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) :
@@ -325,10 +328,36 @@ end simple_graph
 (not_empty_mem : ∅ ∉ parts)
 
 /-- A `finpartition α` is a partition of the entire finite type `α` -/
-abbreviation finpartition (α : Type u) [fintype α] := finpartition_on (univ : finset α)
+@[inline] def finpartition (α : Type u) [fintype α] := finpartition_on (univ : finset α)
 
 namespace finpartition_on
 variables {s : finset α} (P : finpartition_on s)
+
+@[simps]
+def empty : finpartition_on (∅ : finset α) :=
+{ parts := ∅,
+  disjoint := by simp,
+  cover := by simp,
+  subset := by simp,
+  not_empty_mem := by simp }
+
+lemma eq_empty (P : finpartition_on (∅ : finset α)) : P = empty :=
+begin
+  ext a,
+  simp only [empty_parts, iff_false, not_mem_empty],
+  intro ha,
+  have ha' := P.subset ha,
+  rw finset.subset_empty at ha',
+  apply P.not_empty_mem,
+  rwa ha' at ha,
+end
+
+instance : inhabited (finpartition_on (∅ : finset α)) :=
+⟨finpartition_on.empty⟩
+
+instance : unique (finpartition_on (∅ : finset α)) :=
+{ uniq := eq_empty,
+  ..(infer_instance : inhabited _) }
 
 /-- The size of a finpartition is its number of parts. -/
 protected def size : ℕ := P.parts.card
@@ -374,6 +403,23 @@ begin
   rw ←card_bUnion P.disjoint',
   exact congr_arg finset.card P.bUnion_parts_eq,
 end
+
+instance {B : finset α} : decidable B.nonempty :=
+decidable_of_iff' _ finset.nonempty_iff_ne_empty
+
+-- def carve (P : finpartition_on s) {t : finset α} (h : t ⊆ s) : finpartition_on t :=
+-- { parts := (P.parts.image (∩ t)).filter finset.nonempty,
+--   disjoint := λ x₁ x₂,
+--   begin
+--     simp only [and_imp, exists_imp_distrib, mem_image, exists_prop, mem_filter],
+--     rintro x₁ hx₁ rfl hx₁t x₂ hx₂ rfl hx₂t i,
+--   end,
+--   cover :=
+--   begin
+
+--   end
+
+-- }
 
 /-- Given a finpartition `P` of `s` and finpartitions of each part of `P`, this yields the
 finpartition that's obtained by -/

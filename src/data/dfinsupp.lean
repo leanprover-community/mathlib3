@@ -447,27 +447,12 @@ end
 
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/
-@[simps] def equiv_fun_on_fintype [fintype ι] [Π i (x : β i), decidable (x ≠ 0)] :
+@[simps apply] def equiv_fun_on_fintype [fintype ι] [Π i (x : β i), decidable (x ≠ 0)] :
   (Π₀ i, β i) ≃ (Π i, β i) :=
-⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) (λ i, f i),
-  begin
-    intro f,
-    ext a,
-    simp only [mk_apply],
-    split_ifs,
-    { refl },
-    { symmetry,
-      simpa using h },
-  end,
-  begin
-    intro f,
-    ext a,
-    simp only [mk_apply],
-    split_ifs,
-    { refl },
-    symmetry,
-    simpa using h
-  end⟩
+{ to_fun := coe_fn,
+  inv_fun := λ f, ⟦⟨f, finset.univ.1, λ i, or.inl $ finset.mem_univ_val _⟩⟧,
+  left_inv := λ x, coe_fn_injective rfl,
+  right_inv := λ x, rfl }
 
 @[simp] lemma equiv_fun_on_fintype_symm_coe [fintype ι] [Π i, decidable_eq (β i)] (f : Π₀ i, β i) :
   equiv_fun_on_fintype.symm f = f :=

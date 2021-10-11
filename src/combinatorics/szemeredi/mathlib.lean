@@ -7,6 +7,7 @@ import analysis.special_functions.exp_log
 import analysis.special_functions.pow
 import combinatorics.simple_graph.basic
 import ring_theory.polynomial.pochhammer
+import data.set.equitable
 
 /-! # Things that belong to mathlib -/
 
@@ -482,13 +483,13 @@ variables {s : finset α} (P : finpartition_on s)
 
 /-- An equipartition is a partition whose parts are all the same size, up to a difference of `1`. -/
 def is_equipartition : Prop :=
-equitable_on (P.parts : set (finset α)) card
+set.equitable_on (P.parts : set (finset α)) card
 
 lemma is_equipartition_iff_card_parts_eq_average [decidable_eq α] :
   P.is_equipartition ↔
   ∀ a : finset α, a ∈ P.parts → a.card = s.card/P.size ∨ a.card = s.card/P.size + 1 :=
 begin
-  simp_rw [is_equipartition, equitable_on_finset_iff_eq_average, ←card_bUnion P.disjoint',
+  simp_rw [is_equipartition, finset.equitable_on_iff, ←card_bUnion P.disjoint',
     ←P.bUnion_parts_eq],
   refl,
 end
@@ -540,7 +541,7 @@ namespace discrete_finpartition_on
 variables [decidable_eq α] (s : finset α) (G : simple_graph α)
 
 lemma is_equipartition : (discrete_finpartition_on s).is_equipartition :=
-equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
+set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
 
 protected lemma size : (discrete_finpartition_on s).size = s.card :=
 begin

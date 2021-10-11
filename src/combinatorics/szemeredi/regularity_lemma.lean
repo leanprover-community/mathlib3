@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import .mathlib
 import combinatorics.choose.bounds
 import order.iterate
+import data.sym.card
 
 /-!
 # Szemerédi's Regularity Lemma
@@ -37,33 +38,38 @@ lemma mem_distinct_pairs (a b : α) :
   (a, b) ∈ s.distinct_pairs ↔ a ∈ s ∧ b ∈ s ∧ well_ordering_rel a b :=
 by rw [distinct_pairs, mem_filter, mem_product, and_assoc]
 
+lemma distinct_pairs_subset_off_diag [decidable_eq α] : s.distinct_pairs ⊆ s.off_diag :=
+begin
+  rintro ⟨x₁, x₂⟩,
+  simp only [mem_distinct_pairs, and_imp, mem_off_diag],
+  rintro h₁ h₂ h,
+  exact ⟨h₁, h₂, ne_of_irrefl h⟩,
+end
+
 lemma distinct_pairs_card [decidable_eq α] :
   s.distinct_pairs.card = s.card.choose 2 :=
 begin
-  rw ←prod_quotient_sym2_not_diag,
-  refine card_congr (λ a ha, ⟦a⟧) _ _ _,
+  rw ←sym2.card_image_off_diag,
+  refine card_congr (λ a _, ⟦a⟧) _ _ _,
   { rintro ⟨a₁, a₂⟩ ha,
-    rw [mem_distinct_pairs] at ha,
-    simp only [mem_filter, sym2.is_diag_iff_proj_eq],
-    refine ⟨mem_image_of_mem _ (by simp [ha.1, ha.2]), _⟩,
-    apply ne_of_irrefl ha.2.2 },
+    apply mem_image_of_mem _ (distinct_pairs_subset_off_diag ha) },
   { rintro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
-    simp only [mem_distinct_pairs, and_imp, prod.mk.inj_iff, sym2.eq_iff],
-    rintro - - ha₁₂ hb₁ hb₂ hb₁₂ (i | ⟨rfl, rfl⟩),
+    simp only [prod.mk.inj_iff, mem_distinct_pairs, and_imp, sym2.eq_iff],
+    rintro _ _ h₁ _ _ h₂ (i | ⟨rfl, rfl⟩),
     { exact i },
-    { apply (asymm ha₁₂ hb₁₂).elim } },
+    cases asymm h₁ h₂ },
   { refine quotient.ind _,
-    simp only [prod.forall, mem_filter, sym2.is_diag_iff_proj_eq, exists_prop, and_imp,
-      prod.exists, mem_distinct_pairs, and_assoc],
-    intros a b h dif,
-    obtain ⟨_, _⟩ : a ∈ s ∧ b ∈ s,
-    { simp only [sym2.eq_iff, mem_image, exists_prop, mem_product, prod.exists, and_assoc] at h,
-      rcases h with ⟨a, b, ha, hb, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩;
+    simp only [mem_image, forall_exists_index, sym2.eq_iff, prod.forall, exists_prop, mem_off_diag,
+      mem_distinct_pairs, prod.exists, and_assoc, and_imp],
+    rintro a b x y _ _ dif h,
+    obtain ⟨ha, hb⟩ : a ∈ s ∧ b ∈ s,
+    { rcases h with (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩);
       exact ⟨‹_›, ‹_›⟩ },
     rcases trichotomous_of well_ordering_rel a b with lt | rfl | gt,
-    { exact ⟨_, _, ‹a ∈ s›, ‹b ∈ s›, lt, rfl⟩ },
-    { exact (dif rfl).elim },
-    { exact ⟨_, _, ‹b ∈ s›, ‹a ∈ s›, gt, sym2.eq_swap⟩, } }
+    { exact ⟨_, _, ‹a ∈ s›, ‹b ∈ s›, lt, by simp⟩ },
+    { simp only [or_self] at h,
+      cases dif (h.1.trans h.2.symm) },
+    { exact ⟨_, _, ‹b ∈ s›, ‹a ∈ s›, gt, by simp⟩ } },
 end
 
 end finset
@@ -573,7 +579,7 @@ lemma mk_equitable.is_equipartition (Q : finpartition_on s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
   (Q.mk_equitable h).is_equipartition :=
 begin
-  rw [is_equipartition, equitable_on_iff_exists_eq_eq_add_one],
+  rw [finpartition_on.is_equipartition, set.equitable_on_iff_exists_eq_eq_add_one],
   exact ⟨m, λ u hu, card_eq_of_mem_parts_mk_equitable h hu⟩,
 end
 

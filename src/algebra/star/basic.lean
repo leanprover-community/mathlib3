@@ -114,6 +114,10 @@ op_injective $
 op_injective $
   ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
 
+/-- When multiplication is commutative, `star` preserves division. -/
+@[simp] lemma star_div [comm_group R] [star_monoid R] (x y : R) : star (x / y) = star x / star y :=
+(star_mul_aut : R ≃* R).to_monoid_hom.map_div _ _
+
 section
 open_locale big_operators
 

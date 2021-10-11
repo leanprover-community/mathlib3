@@ -153,7 +153,7 @@ begin
   -- Otherwise, if 100 ≤ n < 107, then it suffices to consider explicit
   -- construction of a triplet {a, b, c}, which is constructed by setting l=9
   -- in the argument at the start of the file.
-  { refine ⟨126, 163, 198, _, _, _, _,⟨17, _⟩, ⟨18, _⟩, 19, _⟩; linarith },
+  { refine ⟨126, 163, 198, _, _, _, _, ⟨17, _⟩, ⟨18, _⟩, 19, _⟩; linarith },
 end
 
 -- Since it will be more convenient to work with sets later on, we will translate the above claim

@@ -84,6 +84,9 @@ variables {f}
 
 instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 
+@[simp] lemma mk_eq_mk {g h : polynomial R} : mk f g = mk f h ↔ f ∣ g - h :=
+ideal.quotient.eq.trans ideal.mem_span_singleton
+
 @[simp] lemma mk_self : mk f f = 0 :=
 quotient.sound' (mem_span_singleton.2 $ by simp)
 
@@ -199,6 +202,186 @@ end irreducible
 
 section power_basis
 
+variables [comm_ring R] {g : polynomial R}
+
+lemma is_integral_root' (hg : g.monic) : is_integral R (root g) :=
+⟨g, hg, eval₂_root g⟩
+
+lemma mod_by_monic_eq_of_dvd_sub [nontrivial R] (hg : g.monic) {f₁ f₂ : polynomial R}
+  (h : g ∣ (f₁ - f₂)) :
+  f₁ %ₘ g = f₂ %ₘ g :=
+begin
+  obtain ⟨k, sub_eq⟩ := h,
+  refine (div_mod_by_monic_unique (f₂ /ₘ g + k) _ hg
+    ⟨_, degree_mod_by_monic_lt _ hg hg.ne_zero⟩).2,
+  rw [sub_eq_iff_eq_add.mp sub_eq, mul_add, ← add_assoc, mod_by_monic_add_div _ hg, add_comm]
+end
+
+lemma add_mod_by_monic [nontrivial R] (hg : g.monic)
+  (f₁ f₂ : polynomial R) : (f₁ + f₂) %ₘ g = f₁ %ₘ g + f₂ %ₘ g :=
+(div_mod_by_monic_unique (f₁ /ₘ g + f₂ /ₘ g) _ hg
+  ⟨by rw [mul_add, add_left_comm, add_assoc, mod_by_monic_add_div _ hg, ← add_assoc,
+          add_comm (g * _), mod_by_monic_add_div _ hg],
+    (degree_add_le _ _).trans_lt (max_lt (degree_mod_by_monic_lt _ hg hg.ne_zero)
+      (degree_mod_by_monic_lt _ hg hg.ne_zero))⟩).2
+
+lemma smul_mod_by_monic [nontrivial R] (hg : g.monic)
+  (c : R) (f : polynomial R) : (c • f) %ₘ g = c • (f %ₘ g) :=
+(div_mod_by_monic_unique (c • (f /ₘ g)) (c • (f %ₘ g)) hg
+  ⟨by rw [mul_smul_comm, ← smul_add, mod_by_monic_add_div f hg],
+   (degree_smul_le _ _).trans_lt (degree_mod_by_monic_lt _ hg hg.ne_zero)⟩).2
+
+@[simps]
+def polynomial.mod_by_monic_hom [nontrivial R] (hg : g.monic) :
+  polynomial R →ₗ[R] polynomial R :=
+{ to_fun := λ f, f %ₘ g,
+  map_add' := add_mod_by_monic hg,
+  map_smul' := smul_mod_by_monic hg }
+
+@[simp] lemma mem_ker_mod_by_monic [nontrivial R] (hg : g.monic) {f : polynomial R} :
+  f ∈ (polynomial.mod_by_monic_hom hg).ker ↔ g ∣ f :=
+linear_map.mem_ker.trans (dvd_iff_mod_by_monic_eq_zero hg)
+
+@[simp] lemma ker_mod_by_monic_hom [nontrivial R] (hg : g.monic) :
+  (polynomial.mod_by_monic_hom hg).ker = (ideal.span {g}).restrict_scalars R :=
+submodule.ext (λ f, (mem_ker_mod_by_monic hg).trans ideal.mem_span_singleton.symm)
+
+-- TODO: make this the main `submodule.quotient.module` instance
+instance submodule.quotient.module' (R : Type*) {A M : Type*} [comm_ring R] [ring A] [algebra R A]
+  [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M]
+  (P : submodule A M) : module R P.quotient :=
+module.of_core
+{ smul := λ c x, algebra_map R A c • x,
+  smul_add := λ c x y, smul_add _ _ _,
+  add_smul := λ c c' x, by simp only [ring_hom.map_add, add_smul],
+  mul_smul := λ c c' x, by simp only [ring_hom.map_mul, mul_action.mul_smul],
+  one_smul := λ x, by simp only [ring_hom.map_one, one_smul] }
+
+@[simp] lemma smul_mk {R A M : Type*} [comm_ring R] [ring A] [algebra R A]
+  [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M]
+  (P : submodule A M) (c : R) (x : M) :
+(c • submodule.quotient.mk x : P.quotient) = submodule.quotient.mk (c • x) :=
+show submodule.quotient.mk (algebra_map R A c • x) = submodule.quotient.mk (c • x),
+by rw algebra_map_smul
+
+instance {R A M : Type*} [comm_ring R] [ring A] [algebra R A]
+  [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M]
+  (P : submodule A M) : is_scalar_tower R A P.quotient :=
+{ smul_assoc := λ x y z, show (x • y) • z = algebra_map R A x • y • z,
+    by rw [← smul_assoc, algebra_map_smul] }
+
+/-- The quotient of `S` as an `R`-submodule is the same as the quotient of `S` as an `A`-submodule.
+
+-/
+def quotient_restrict_scalars (R : Type*) {A M : Type*} [comm_ring R] [ring A] [algebra R A]
+  [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M]
+  (S : submodule A M) [module R S.quotient] [is_scalar_tower R A S.quotient] :
+  (S.restrict_scalars R).quotient ≃ₗ[R] S.quotient :=
+{ to_fun := quot.map id (λ x y, id),
+  inv_fun := quot.map id (λ x y, id),
+  left_inv := λ x, quot.induction_on x (λ x', rfl),
+  right_inv := λ x, quot.induction_on x (λ x', rfl),
+  map_add' := λ x y, quot.induction_on₂ x y (λ x' y', rfl),
+  map_smul' := λ c x, quot.induction_on x (λ x',
+    by { rw [submodule.quotient.quot_mk_eq_mk, smul_mk, ring_hom.id_apply,
+             ← algebra_map_smul A c x', ← algebra_map_smul A c],
+         exact submodule.quotient.mk_smul _,
+         { apply_instance } }) }
+
+def mod_by_monic_hom [nontrivial R] (hg : g.monic) :
+  adjoin_root g →ₗ[R] polynomial R :=
+(submodule.liftq _ (polynomial.mod_by_monic_hom hg) (λ f (hf : f ∈ (ideal.span {g}).restrict_scalars R),
+  (mem_ker_mod_by_monic hg).mpr (ideal.mem_span_singleton.mp hf))).comp
+(quotient_restrict_scalars R (ideal.span {g} : ideal (polynomial R))).symm.to_linear_map
+
+@[simp] lemma mod_by_monic_hom_mk [nontrivial R] (hg : g.monic) (f : polynomial R) :
+  mod_by_monic_hom hg (mk g f) = f %ₘ g := rfl
+
+lemma sum_fin [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0)
+  {n : ℕ} (hn : p.degree < n) :
+  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
+  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
+  calc  ∑ (i : fin n), f i (p.coeff i)
+      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
+  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
+    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
+    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
+  ... = p.sum f : p.sum_def _
+end
+
+lemma sum_mod_by_monic_coeff [nontrivial R] (hg : g.monic) (f : polynomial R)
+  {n : ℕ} (hn : g.degree ≤ n) :
+  ∑ (i : fin n), monomial i ((f %ₘ g).coeff i) = f %ₘ g :=
+(sum_fin _ (λ i c, monomial i c) (by simp)
+  ((degree_mod_by_monic_lt _ hg hg.ne_zero).trans_le hn)).trans
+  (sum_monomial_eq _)
+
+/-- The elements `1, root g, ..., root g ^ (d - 1)` form a basis for `adjoin_root g`,
+where `g` is a monic polynomial of degree `d`. -/
+def power_basis_aux' [nontrivial R] (hg : g.monic) :
+  basis (fin g.nat_degree) R (adjoin_root g) :=
+basis.of_equiv_fun
+{ to_fun := λ f i, (mod_by_monic_hom hg f).coeff i,
+  inv_fun := λ c, mk g $ ∑ (i : fin g.nat_degree), monomial i (c i),
+  map_add' := λ f₁ f₂, funext $ λ i,
+    by simp only [(mod_by_monic_hom hg).map_add, coeff_add, pi.add_apply],
+  map_smul' := λ f₁ f₂, funext $ λ i,
+    by simp only [(mod_by_monic_hom hg).map_smul, coeff_smul, pi.smul_apply, ring_hom.id_apply],
+  left_inv := λ f, induction_on g f (λ f, eq.symm $ mk_eq_mk.mpr $
+    by { simp only [mod_by_monic_hom_mk, sum_mod_by_monic_coeff hg f degree_le_nat_degree],
+         rw [mod_by_monic_eq_sub_mul_div _ hg, sub_sub_cancel],
+         exact dvd_mul_right _ _ }),
+  right_inv := λ x, funext $ λ i, begin
+    simp only [mod_by_monic_hom_mk],
+    rw [(mod_by_monic_eq_self_iff hg hg.ne_zero).mpr, finset_sum_coeff, finset.sum_eq_single i];
+      try { simp only [coeff_monomial, eq_self_iff_true, if_true] },
+    { intros j _ hj, exact if_neg (fin.coe_injective.ne hj) },
+    { intros, have := finset.mem_univ i, contradiction },
+    { refine (degree_sum_le _ _).trans_lt ((finset.sup_lt_iff _).mpr (λ j _, _)),
+      { exact bot_lt_iff_ne_bot.mpr (mt degree_eq_bot.mp hg.ne_zero) },
+      { refine (degree_monomial_le _ _).trans_lt _,
+        rw [degree_eq_nat_degree hg.ne_zero, with_bot.coe_lt_coe],
+        exact j.2 } },
+  end}
+
+/-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
+where `g` is a monic polynomial of degree `d`. -/
+@[simps] def power_basis' [nontrivial R] (hg : g.monic) :
+  power_basis R (adjoin_root g) :=
+{ gen := root g,
+  dim := g.nat_degree,
+  basis := power_basis_aux' hg,
+  basis_eq_pow := λ i, begin
+    simp only [power_basis_aux', basis.coe_of_equiv_fun, linear_equiv.coe_symm_mk],
+    rw finset.sum_eq_single i,
+    { rw [function.update_same, monomial_one_right_eq_X_pow, (mk g).map_pow, mk_X] },
+    { intros j _ hj,
+      rw ← monomial_zero_right _,
+      convert congr_arg _ (function.update_noteq hj _ _) }, -- Fix `decidable_eq` mismatch
+    { intros, have := finset.mem_univ i, contradiction },
+  end}
+
+/-- If `S` is an extension of `R` with power basis `pb` and `g` is a monic polynomial over `R`
+such that `pb.gen` has a minimal polynomial `g`, then `S` is isomorphic to `adjoin_root g`.
+
+Compare `power_basis.equiv'`, which would require `h₂ : aeval pb.gen (minpoly R (root g)) = 0`;
+that minimal polynomial is not guaranteed to be identical to `g`. -/
+def equiv' {R S : Type*} [integral_domain R] [integral_domain S] [algebra R S]
+  (g : polynomial R) (pb : power_basis R S)
+  (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g = 0):
+  adjoin_root g ≃ₐ[R] S :=
+{ to_fun := adjoin_root.lift_hom g pb.gen h₂,
+  inv_fun := pb.lift (root g) h₁,
+  left_inv := λ x, induction_on g x $ λ f, by rw [lift_hom_mk, pb.lift_aeval, aeval_eq],
+  right_inv := λ x, begin
+    obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,
+    rw [pb.lift_aeval, aeval_eq, lift_hom_mk]
+  end,
+  .. adjoin_root.lift_hom g pb.gen h₂ }
+
 variables [field K] {f : polynomial K}
 
 lemma is_integral_root (hf : f ≠ 0) : is_integral K (root f) :=
@@ -232,6 +415,7 @@ begin
   { rw [nat_degree_mul hf, nat_degree_C, add_zero],
     { rwa [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] } },
   have minpoly_eq : minpoly K (root f) = f' := minpoly_root hf,
+  let b' := power_basis_aux' (monic_mul_leading_coeff_inv hf),
   apply @basis.mk _ _ _ (λ (i : fin f.nat_degree), (root f ^ i.val)),
   { rw [← deg_f', ← minpoly_eq],
     exact (is_integral_root hf).linear_independent_pow },

@@ -282,8 +282,8 @@ begin
         mul_le_mul_of_nonneg_left (min_le_right _ _) (by norm_num)
       ... = R : by ring } },
   choose r hr using this,
-  -- we restrict to a subfamily `t'` of `t`, made of elements small enough to ensure that they only see
-  -- a finite part of the measure.
+  -- we restrict to a subfamily `t'` of `t`, made of elements small enough to ensure that
+  -- they only see a finite part of the measure.
   let t' := {a ∈ t | ∃ x, a ⊆ closed_ball x (r x)},
   -- extract a disjoint subfamily `u` of `t'` to the abstract Vitali covering theorem.
   obtain ⟨u, ut', u_disj, hu⟩ : ∃ u ⊆ t', u.pairwise_on (disjoint on id) ∧
@@ -456,7 +456,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
     { refine ⟨∅, λ _, ∅, by simp, by simp⟩ },
     haveI : inhabited α, { choose x hx using H, exact ⟨x⟩ },
     let t := ⋃ (x ∈ s), f x,
-    have A₁ : ∀ x ∈ s, ∀ (ε : ℝ), ε > 0 → (∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε),
+    have A₁ : ∀ x ∈ s, ∀ (ε : ℝ), 0 < ε → (∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε),
     { assume x xs ε εpos,
       rcases ffine x xs ε εpos with ⟨a, xa, hax⟩,
       exact ⟨a, mem_bUnion xs xa, (fsubset x xs xa).1, hax⟩ },
@@ -486,12 +486,11 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       contrapose A,
       have : disjoint a b := u_disj a ha b hb A,
       simpa only [← not_disjoint_iff_nonempty_inter] },
-    set s' := x '' u with hs',
-    refine ⟨s', function.inv_fun_on x u, _, _, _, _⟩,
+    refine ⟨x '' u, function.inv_fun_on x u, _, _, _, _⟩,
     { assume y hy,
       rcases (mem_image _ _ _).1 hy with ⟨a, au, rfl⟩,
       exact (hx a au).1 },
-    { rw [hs', inj_on_x.pairwise_on_image],
+    { rw [inj_on_x.pairwise_on_image],
       assume a ha b hb hab,
       simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb],
       exact u_disj a ha b hb hab },
@@ -499,7 +498,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       rcases (mem_image _ _ _).1 hy with ⟨a, ha, rfl⟩,
       rw function.inv_fun_on_eq' inj_on_x ha,
       exact (hx a ha).2 },
-    { rw [hs', bUnion_image],
+    { rw [bUnion_image],
       convert μu using 3,
       exact bUnion_congr (λ a ha, function.inv_fun_on_eq' inj_on_x ha) }
   end }

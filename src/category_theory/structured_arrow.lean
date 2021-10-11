@@ -133,7 +133,7 @@ comma.pre_right _ F G
   structured_arrow S F ⥤ structured_arrow (G.obj S) (F ⋙ G) :=
 { obj := λ X, { right := X.right, hom := G.map X.hom },
   map := λ X Y f, { right := f.right, w' :=
-    by { simp[functor.comp_map, ←G.map_comp, ← f.w] } } }
+    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
 
 end structured_arrow
 

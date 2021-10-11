@@ -583,23 +583,23 @@ lemma image_mem_functor_pushforward (R : sieve X) {V} {f : V ⟶ X} (h : R f) :
 def ess_surj_full_functor_galois_insertion [ess_surj F] [full F] (X : C) : galois_insertion
   (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
 begin
-apply (functor_galois_connection F X).to_galois_insertion,
-intros S Y f hf,
-use F.obj_preimage Y,
-use F.preimage ((F.obj_obj_preimage_iso Y).hom ≫ f),
-use (F.obj_obj_preimage_iso Y).inv,
-simpa using S.downward_closed hf _,
+  apply (functor_galois_connection F X).to_galois_insertion,
+  intros S Y f hf,
+  use F.obj_preimage Y,
+  use F.preimage ((F.obj_obj_preimage_iso Y).hom ≫ f),
+  use (F.obj_obj_preimage_iso Y).inv,
+  simpa using S.downward_closed hf _,
 end
 
 /-- When `F` is fully faithful, the galois connection is a galois coinsertion. -/
 def fully_faithful_functor_galois_coinsertion [full F] [faithful F] (X : C) : galois_coinsertion
   (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
 begin
-apply (functor_galois_connection F X).to_galois_coinsertion,
-rintros S Y f ⟨Z, g, h, h₁, h₂⟩,
-rw [←F.image_preimage h, ←F.map_comp] at h₂,
-rw F.map_injective h₂,
-exact S.downward_closed h₁ _,
+  apply (functor_galois_connection F X).to_galois_coinsertion,
+  rintros S Y f ⟨Z, g, h, h₁, h₂⟩,
+  rw [←F.image_preimage h, ←F.map_comp] at h₂,
+  rw F.map_injective h₂,
+  exact S.downward_closed h₁ _,
 end
 
 end functor

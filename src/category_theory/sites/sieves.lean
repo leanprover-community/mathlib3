@@ -526,8 +526,10 @@ lemma functor_pushforward_comp (R : sieve X) :
 by { ext, simpa [R.arrows.functor_pushforward_comp F G] }
 
 
-lemma functor_galois_connection (X : C) : _root_.galois_connection
-  (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
+lemma functor_galois_connection (X : C) :
+  _root_.galois_connection
+    (sieve.functor_pushforward F : sieve X → sieve (F.obj X))
+    (sieve.functor_pullback F) :=
 begin
   intros R S,
   split,
@@ -594,8 +596,10 @@ begin
 end
 
 /-- When `F` is fully faithful, the galois connection is a galois coinsertion. -/
-def fully_faithful_functor_galois_coinsertion [full F] [faithful F] (X : C) : galois_coinsertion
-  (sieve.functor_pushforward F : sieve X → sieve (F.obj X)) (sieve.functor_pullback F) :=
+def fully_faithful_functor_galois_coinsertion [full F] [faithful F] (X : C) :
+  galois_coinsertion
+    (sieve.functor_pushforward F : sieve X → sieve (F.obj X))
+    (sieve.functor_pullback F) :=
 begin
   apply (functor_galois_connection F X).to_galois_coinsertion,
   rintros S Y f ⟨Z, g, h, h₁, h₂⟩,

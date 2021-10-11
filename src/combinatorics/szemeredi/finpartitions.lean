@@ -265,6 +265,55 @@ begin
   exact (mem_sdiff.1 (hP'₅ _ t hi)).2 hi,
 end.
 
+lemma equitabilise_aux1' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition_on s)
+  (h : s = ∅) :
+  ∃ (P : finpartition_on s),
+    (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m + 1) ∧
+    (∀ x, x ∈ A.parts → (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
+    ((P.parts.filter (λ i, finset.card i = m+1)).card = b) :=
+begin
+  subst h,
+  rw finpartition_on.eq_empty A,
+  refine ⟨finpartition_on.empty, by simp, by simp, _⟩,
+  simp only [finset.card_empty, nat.mul_eq_zero, nat.succ_ne_zero, or_false,
+    add_eq_zero_iff, and_false] at hs,
+  simp [hs.2.symm],
+end
+
+lemma equitabilise_aux2' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset (finset α))
+  (subs : ∀ i ∈ A, i ⊆ s) (h : m = 0) :
+  ∃ (P : finpartition_on s),
+    (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m+1) ∧
+    (∀ x, x ∈ A → (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
+    ((P.parts.filter (λ i, finset.card i = m+1)).card = b) :=
+begin
+  subst h,
+  simp only [mul_one, zero_add, mul_zero] at hs,
+  simp only [exists_prop, finset.card_eq_zero, zero_add, le_zero_iff, sdiff_eq_empty_iff_subset],
+  refine ⟨discrete_finpartition_on _, by simp, _, _⟩,
+  { intros x hx i hi,
+    simp only [mem_bUnion, exists_prop, mem_filter, id.def, and_assoc],
+    exact ⟨{i}, mem_image_of_mem _ (subs x hx hi), by simpa, by simp⟩ },
+  { simp only [mem_image, and_imp, forall_exists_index, filter_true_of_mem, implies_true_iff,
+      eq_self_iff_true, discrete_finpartition_on_parts, forall_apply_eq_imp_iff₂, card_singleton],
+    rw [card_image_of_injective, hs],
+    apply singleton_injective },
+end
+
+-- lemma equitabilise_aux' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition_on s) :
+--   ∃ (P : finpartition_on s),
+--     (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m + 1) ∧
+--     (∀ x, x ∈ A.parts → (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
+--     ((P.parts.filter (λ i, finset.card i = m+1)).card = b) :=
+-- begin
+--   induction s using finset.strong_induction with s ih generalizing A a b,
+--   cases s.eq_empty_or_nonempty with h hs_ne,
+--   { apply equitabilise_aux1' hs _ h },
+--   cases m.eq_zero_or_pos with h m_pos,
+--   { apply equitabilise_aux2' hs _ A.subset h },
+
+-- end
+
 /-! ### Equitabilise -/
 
 namespace finpartition_on
@@ -487,9 +536,6 @@ begin
   simp only [mem_filter, union_of_atoms_aux hA hs],
   exact and_iff_right_iff_imp.2 (@hs i),
 end
-
-instance {B : finset α} : decidable B.nonempty :=
-decidable_of_iff' _ finset.nonempty_iff_ne_empty
 
 lemma union_of_atoms' {s : finset α} {Q : finset (finset α)} (A : finset α)
   (hx : A ∈ Q) (hs : A ⊆ s) :

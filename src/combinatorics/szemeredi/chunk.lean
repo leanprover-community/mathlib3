@@ -23,11 +23,18 @@ local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 /-- The part of `increment` that partitions `U`. -/
 noncomputable def finpartition_on.is_equipartition.chunk_increment :
   finpartition_on U :=
-dite (U.card = m * 4^P.size + a)
-    (λ hUcard, (atomise U ((P.parts.filter $ λ V, ¬G.is_uniform ε U V).image $
-      λ V, (G.witness ε U V).1)).equitabilise $ card_aux₂ hUcard)
-    (λ hUcard, (atomise U ((P.parts.filter $ λ V, ¬G.is_uniform ε U V).image $
-      λ V, (G.witness ε U V).1)).equitabilise $ card_aux₃ hP hU hUcard)
+let R := (atomise U ((P.parts.filter $ λ V, ¬G.is_uniform ε U V).image $ λ V, (G.witness ε U V).1))
+in dite (U.card = m * 4^P.size + a)
+    (λ hUcard, R.equitabilise $ card_aux₂ hUcard)
+    (λ hUcard, R.equitabilise $ card_aux₃ hP hU hUcard)
+  -- hP and hU are used to get that U has size m * 4^P.size + a or (+1)
+
+noncomputable def finpartition_on.is_equipartition.star (V : finset α) :
+  finset (finset α) :=
+let R := (atomise U ((P.parts.filter $ λ V, ¬G.is_uniform ε U V).image $ λ V, (G.witness ε U V).1))
+in dite (U.card = m * 4^P.size + a)
+  (λ hUcard, (R.equitabilise (card_aux₂ hUcard)).parts.filter (λ x, x ⊆ (G.witness ε U V).1))
+  (λ hUcard, (R.equitabilise (card_aux₃ hP hU hUcard)).parts.filter (λ x, x ⊆ (G.witness ε U V).1))
 
 variables {hP G ε U hU}
 
@@ -341,6 +348,7 @@ begin
         end
 end
 
+-- double dagger inequality
 lemma sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform [nonempty α]
   (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV : ¬ G.is_uniform ε U V) :

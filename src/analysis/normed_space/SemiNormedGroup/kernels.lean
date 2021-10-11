@@ -243,8 +243,8 @@ begin
 end
 
 lemma explicit_cokernel_desc_comp_eq_zero {X Y Z W : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
-  {h : Z ⟶ W} (cond : f ≫ g = 0)
-  (cond2 : g ≫ h = 0) : explicit_cokernel_desc cond ≫ h = 0 :=
+  {h : Z ⟶ W} (cond : f ≫ g = 0) (cond2 : g ≫ h = 0) :
+  explicit_cokernel_desc cond ≫ h = 0 :=
 begin
   rw [← cancel_epi (explicit_cokernel_π f), ← category.assoc, explicit_cokernel_π_desc],
   simp [cond2]

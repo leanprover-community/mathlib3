@@ -154,4 +154,10 @@ meta def op_induction (h : parse ident?) : tactic unit :=
 tactic.op_induction h
 end interactive
 
+add_tactic_doc
+{ name       := "op_induction",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.op_induction],
+  tags       := ["induction"] }
+
 end tactic

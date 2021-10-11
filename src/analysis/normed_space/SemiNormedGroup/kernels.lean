@@ -233,8 +233,7 @@ lemma explicit_cokernel_desc_norm_le_of_norm_le {X Y Z : SemiNormedGroup.{u}}
 normed_group_hom.lift_norm_le _ _ _ h
 
 lemma explicit_cokernel_desc_norm_noninc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
-  {cond : f ≫ g = 0}
-  (hg : g.norm_noninc) :
+  {cond : f ≫ g = 0} (hg : g.norm_noninc) :
   (explicit_cokernel_desc cond).norm_noninc :=
 begin
   refine normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 _,

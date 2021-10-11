@@ -18,6 +18,13 @@ open finset fintype function
 
 variable {α : Type u}
 
+lemma pow_le_of_le_one {R : Type*} [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {i : ℕ}
+  (hi : 0 < i) : a ^ i ≤ a :=
+(pow_one a).subst ( pow_le_pow_of_le_one h₀ h₁ hi)
+
+lemma sq_le {R : Type*} [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a :=
+pow_le_of_le_one h₀ h₁ zero_lt_two
+
 namespace real
 
 lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) :

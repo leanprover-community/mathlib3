@@ -15,7 +15,7 @@ open finpartition_on finset fintype relation
 open_locale big_operators classical
 
 variables {α : Type*} [fintype α] {P : finpartition α} (hP : P.is_equipartition)
-  (G : simple_graph α) (ε : ℝ) {U : finset α} (hU : U ∈ P.parts)
+  (G : simple_graph α) (ε : ℝ) {U : finset α} (hU : U ∈ P.parts) (V : finset α)
 
 local notation `m` := (card α/exp_bound P.size : ℕ)
 local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
@@ -36,7 +36,20 @@ in dite (U.card = m * 4^P.size + a)
   (λ hUcard, (R.equitabilise (card_aux₂ hUcard)).parts.filter (λ x, x ⊆ (G.witness ε U V).1))
   (λ hUcard, (R.equitabilise (card_aux₃ hP hU hUcard)).parts.filter (λ x, x ⊆ (G.witness ε U V).1))
 
-variables {hP G ε U hU}
+variables {hP G ε U hU V}
+
+/-- Each thing in star is a subset of the witness -/
+lemma mem_star_subset_witness :
+  ∀ A ∈ hP.star G ε hU V, A ⊆ (G.witness ε U V).1 :=
+sorry
+
+lemma witness_sdiff_bUnion_star_small :
+  ((G.witness ε U V).1 \ finset.bUnion (hP.star G ε hU V) id).card ≤ 2^(P.size - 1) * m :=
+sorry
+
+lemma pairwise_disjoint :
+  ∀ i (x y ∈ hP.star G ε hU V), i ∈ x → i ∈ y → x = y :=
+sorry
 
 lemma chunk_increment.size (m_pos : 0 < m) : (hP.chunk_increment G ε hU).size = 4^P.size :=
 begin

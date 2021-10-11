@@ -570,7 +570,7 @@ lemma functor_pullback_inter (S R : sieve (F.obj X)) :
 lemma functor_pushforward_bot (F : C ⥤ D) (X : C) :
   (⊥ : sieve X).functor_pushforward F = ⊥ := (functor_galois_connection F X).l_bot
 
-lemma functor_pullback_bot (F : C ⥤ D) (X : C) :
+@[simp] lemma functor_pullback_bot (F : C ⥤ D) (X : C) :
   (⊥ : sieve (F.obj X)).functor_pullback F = ⊥ := rfl
 
 @[simp] lemma functor_pullback_top (F : C ⥤ D) (X : C) :

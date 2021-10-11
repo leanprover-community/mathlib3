@@ -242,7 +242,8 @@ instance [non_assoc_semiring α] : non_assoc_semiring (opposite α) :=
 { .. opposite.mul_zero_one_class α, .. opposite.non_unital_non_assoc_semiring α }
 
 instance [semiring α] : semiring (opposite α) :=
-{ .. opposite.non_unital_semiring α, .. opposite.non_assoc_semiring α }
+{ .. opposite.non_unital_semiring α, .. opposite.non_assoc_semiring α,
+  .. opposite.monoid_with_zero α }
 
 instance [comm_semiring α] : comm_semiring (opposite α) :=
 { .. opposite.semiring α, .. opposite.comm_semigroup α }

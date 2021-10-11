@@ -678,7 +678,7 @@ begin
   exact set.empty_ne_univ contra,
 end
 
-protected lemma nontrivial : nontrivial (affine_subspace k P) := ⟨⟨⊥, ⊤, bot_ne_top k V P⟩⟩
+instance : nontrivial (affine_subspace k P) := ⟨⟨⊥, ⊤, bot_ne_top k V P⟩⟩
 
 lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
 begin
@@ -711,9 +711,7 @@ lemma affine_span_eq_top_iff_vector_span_eq_top_of_nontrivial {s : set P} [nontr
   affine_span k s = ⊤ ↔ vector_span k s = ⊤ :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
-  { simpa [hs, subsingleton_iff_bot_eq_top, add_torsor.subsingleton_iff V P,
-      affine_subspace.nontrivial k V P, ← @not_nontrivial_iff_subsingleton (affine_subspace k P),
-      ← @not_nontrivial_iff_subsingleton P], },
+  { simp [hs, subsingleton_iff_bot_eq_top, add_torsor.subsingleton_iff V P, not_subsingleton], },
   { rw affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V P hs, },
 end
 

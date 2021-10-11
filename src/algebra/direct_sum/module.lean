@@ -123,9 +123,9 @@ to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 omit dec_ι
 
 variables (ι M)
-/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
-`⨁ i, M i` and `Π i, M i`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_fintype
+/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence
+between `⨁ i, M i` and `Π i, M i`. -/
+@[simps apply] def linear_equiv_fun_on_fintype
   [fintype ι] [decidable_eq ι] [Π i, decidable_eq (M i)]:
   (⨁ i, M i) ≃ₗ[R] (Π i, M i) :=
 { to_fun := coe_fn,
@@ -140,7 +140,7 @@ variables {ι M}
 begin
   ext a,
   change (dfinsupp.equiv_fun_on_fintype (lof R ι M i m)) a = _,
-  convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
+  convert _root_.congr_fun (dfinsupp.equiv_fun_on_fintype_single i m) a,
 end
 
 @[simp] lemma linear_equiv_fun_on_fintype_symm_lof
@@ -149,7 +149,8 @@ end
 begin
   ext a,
   change (dfinsupp.equiv_fun_on_fintype.symm (pi.single i m)) a = _,
-  convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
+  rw (dfinsupp.equiv_fun_on_fintype_symm_single i m),
+  refl
 end
 
 @[simp] lemma linear_equiv_fun_on_fintype_symm_coe

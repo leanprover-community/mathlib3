@@ -469,8 +469,8 @@ end
     simpa using h
   end⟩
 
-@[simp] lemma equiv_fun_on_fintype_symm_coe [fintype ι] [Π i, decidable_eq (β i)] (f : Π i, β i) :
-  ⇑(equiv_fun_on_fintype.symm f) = f :=
+@[simp] lemma equiv_fun_on_fintype_symm_coe [fintype ι] [Π i, decidable_eq (β i)] (f : Π₀ i, β i) :
+  equiv_fun_on_fintype.symm f = f :=
 begin
   ext a,
   simp only [mk_apply, equiv_fun_on_fintype,mk_apply, equiv.coe_fn_symm_mk],
@@ -581,7 +581,7 @@ by { ext, simp [dfinsupp.single_eq_pi_single, dfinsupp.equiv_fun_on_fintype], }
 @[simp] lemma equiv_fun_on_fintype_symm_single
   [fintype ι] [Π i, decidable_eq (β i)] (i : ι) (m : β i) :
   (@dfinsupp.equiv_fun_on_fintype ι β _ _ _ _).symm (pi.single i m) = dfinsupp.single i m :=
-by { ext i', rw [dfinsupp.equiv_fun_on_fintype_symm_coe, dfinsupp.single_eq_pi_single] }
+by { ext i', simp only [← single_eq_pi_single, equiv_fun_on_fintype_symm_coe] }
 
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) : (Π₀ i, β i) → Π₀ i, β i :=

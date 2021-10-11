@@ -92,6 +92,7 @@ equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply
 instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
 
 /-- A recursor for `opposite`. Use as `induction x using opposite.rec`. -/
+@[simp]
 protected def rec {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)
 

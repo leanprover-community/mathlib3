@@ -518,7 +518,7 @@ begin
     obtain ⟨X, g, h, hg, rfl⟩ := hf,
     exact R.downward_closed hg h, },
   { intro hf,
-    refine ⟨X, f, 𝟙 _, hf, by simp⟩ }
+    exact ⟨X, f, 𝟙 _, hf, by simp⟩ }
 end
 
 lemma functor_pushforward_comp (R : sieve X) :

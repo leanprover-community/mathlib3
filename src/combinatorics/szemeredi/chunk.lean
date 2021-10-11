@@ -43,7 +43,7 @@ end
 
 lemma card_eq_of_mem_parts_chunk_increment {A : finset α}
   (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
-  A.card = card α / exp_bound P.size ∨ A.card = card α / exp_bound P.size + 1 :=
+  A.card = m ∨ A.card = m + 1 :=
 begin
   simp [finpartition_on.is_equipartition.chunk_increment] at hA,
   by_cases hUcard : U.card = m * 4^P.size + a,
@@ -348,6 +348,7 @@ lemma sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform [nonempty α]
   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
     G.edge_density ab.1 ab.2^2)/16^P.size :=
 begin
+  have := P.equitabilise ,
   calc
     G.edge_density U V^2 - ε^5/25 + ε^4/3
         ≤  G.edge_density U V^2 - ε^5/25 + 0/16^P.size * (9/16) * ε^4

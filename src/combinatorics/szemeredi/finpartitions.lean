@@ -351,7 +351,7 @@ end
 
 lemma almost_in_atoms_of_mem_parts_equitabilise {Q : finpartition_on s} {m a b : ℕ}
   (h : a * m + b * (m + 1) = s.card) {u : finset α} (hu : u ∈ Q.parts) :
-  (u \ finset.bUnion ((Q.equitabilise h).parts.filter (λ x, x ⊆ u)) id).card ≤ m :=
+  (u \ ((Q.equitabilise h).parts.filter $ λ x, x ⊆ u).bUnion id).card ≤ m :=
 begin
   have := (classical.some_spec (equitabilise_aux h Q.parts Q.cover Q.disjoint
     Q.subset)).2.1,

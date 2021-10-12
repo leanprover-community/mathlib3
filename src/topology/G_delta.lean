@@ -49,6 +49,8 @@ def is_Gδ (s : set α) : Prop :=
 lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
 ⟨{s}, by simp [h], countable_singleton _, (set.sInter_singleton _).symm⟩
 
+lemma is_Gδ_empty : is_Gδ (∅ : set α) := is_open_empty.is_Gδ
+
 lemma is_Gδ_univ : is_Gδ (univ : set α) := is_open_univ.is_Gδ
 
 lemma is_Gδ_bInter_of_open {I : set ι} (hI : countable I) {f : ι → set α}
@@ -94,6 +96,25 @@ begin
   rintros ⟨a, b⟩ hab,
   exact is_open.union (Sopen a hab.1) (Topen b hab.2)
 end
+
+section first_countable
+
+open topological_space
+
+variables [t1_space α] [first_countable_topology α]
+
+lemma is_Gδ_singleton (a : α) : is_Gδ ({a} : set α) :=
+begin
+  rcases (is_countably_generated_nhds a).exists_antitone_subbasis (nhds_basis_opens _)
+    with ⟨U, hU, h_basis⟩,
+  rw [← bInter_basis_nhds h_basis.to_has_basis],
+  exact is_Gδ_bInter (countable_encodable _) (λ n hn, (hU n).2.is_Gδ),
+end
+
+lemma set.finite.is_Gδ {s : set α} (hs : finite s) : is_Gδ s :=
+finite.induction_on hs is_Gδ_empty $ λ a s _ _ hs, (is_Gδ_singleton a).union hs
+
+end first_countable
 
 end is_Gδ
 

@@ -23,7 +23,7 @@ local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 /-- The part of `increment` that partitions `U`. -/
 noncomputable def finpartition_on.is_equipartition.chunk_increment :
   finpartition_on U :=
-let R := (atomise U ((P.parts.filter $ λ V, ¬G.is_uniform ε U V).image $ λ V, (G.witness ε U V).1))
+let R := atomise U ((P.parts.filter $ λ V, ¬G.is_uniform ε U V).image $ λ V, (G.witness ε U V).1)
 in dite (U.card = m * 4^P.size + a)
     (λ hUcard, R.equitabilise $ card_aux₂ hUcard)
     (λ hUcard, R.equitabilise $ card_aux₃ hP hU hUcard)
@@ -31,21 +31,35 @@ in dite (U.card = m * 4^P.size + a)
 
 noncomputable def finpartition_on.is_equipartition.star (V : finset α) :
   finset (finset α) :=
-let R := (atomise U ((P.parts.filter $ λ V, ¬G.is_uniform ε U V).image $ λ V, (G.witness ε U V).1))
-in dite (U.card = m * 4^P.size + a)
-  (λ hUcard, (R.equitabilise (card_aux₂ hUcard)).parts.filter (λ x, x ⊆ (G.witness ε U V).1))
-  (λ hUcard, (R.equitabilise (card_aux₃ hP hU hUcard)).parts.filter (λ x, x ⊆ (G.witness ε U V).1))
+(hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ (G.witness ε U V).1)
 
 variables {hP G ε U hU V}
 
 /-- Each thing in star is a subset of the witness -/
 lemma mem_star_subset_witness :
   ∀ A ∈ hP.star G ε hU V, A ⊆ (G.witness ε U V).1 :=
-sorry
+begin
+  intros A hA,
+  simp only [finpartition_on.is_equipartition.star, mem_filter] at hA,
+  apply hA.2
+end
 
-lemma witness_sdiff_bUnion_star_small :
+lemma witness_sdiff_bUnion_star_small (hV : V ∈ P.parts) (h : ¬G.is_uniform ε U V) :
   ((G.witness ε U V).1 \ finset.bUnion (hP.star G ε hU V) id).card ≤ 2^(P.size - 1) * m :=
-sorry
+begin
+  rw [finpartition_on.is_equipartition.star, finpartition_on.is_equipartition.chunk_increment],
+  set X := ((P.parts.filter (λ V, ¬G.is_uniform ε U V)).image (λ V, (G.witness ε U V).1)),
+  set R := atomise U X,
+  have hX : (G.witness ε U V).1 ∈ X := mem_image_of_mem _ (by simp [hV, h]),
+  have := partial_atomise (G.witness ε U V).1 hX G.left_witness_subs,
+  sorry
+  -- split_ifs with h₁,
+  -- { have := λ B (hB : B ∈ R.parts), almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ h₁) hB,
+  --   have := card_bUnion_le,
+  -- },
+
+  -- },
+end
 
 lemma pairwise_disjoint :
   ∀ i (x y ∈ hP.star G ε hU V), i ∈ x → i ∈ y → x = y :=

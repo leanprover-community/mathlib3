@@ -311,6 +311,19 @@ end
 --   { apply equitabilise_aux1' hs _ h },
 --   cases m.eq_zero_or_pos with h m_pos,
 --   { apply equitabilise_aux2' hs _ A.subset h },
+--   have : 0 < a ∨ 0 < b,
+--   { by_contra,
+--     push_neg at h,
+--     simp only [le_zero_iff] at h,
+--     rw [h.1, h.2] at hs,
+--     simp only [add_zero, zero_mul, eq_comm, finset.card_eq_zero] at hs,
+--     exact hs_ne.ne_empty hs },
+--   set p'_size := if 0 < a then m else m+1 with h',
+--   have : 0 < p'_size,
+--   { rw h',
+--     split_ifs,
+--     { apply m_pos },
+--     exact nat.succ_pos' },
 
 -- end
 
@@ -506,7 +519,7 @@ begin
 end
 
 lemma card_atomise_le {s : finset α} {Q : finset (finset α)} :
-  ((atomise s Q).parts).card ≤ 2^Q.card :=
+  (atomise s Q).parts.card ≤ 2^Q.card :=
 begin
   apply (card_le_of_subset (sdiff_subset _ _)).trans,
   apply finset.card_image_le.trans,

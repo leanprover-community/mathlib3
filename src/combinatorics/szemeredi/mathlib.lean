@@ -405,19 +405,34 @@ end
 instance {B : finset α} : decidable B.nonempty :=
 decidable_of_iff' _ finset.nonempty_iff_ne_empty
 
--- def carve (P : finpartition_on s) {t : finset α} (h : t ⊆ s) : finpartition_on t :=
--- { parts := (P.parts.image (∩ t)).filter finset.nonempty,
---   disjoint := λ x₁ x₂,
---   begin
---     simp only [and_imp, exists_imp_distrib, mem_image, exists_prop, mem_filter],
---     rintro x₁ hx₁ rfl hx₁t x₂ hx₂ rfl hx₂t i,
---   end,
---   cover :=
---   begin
-
---   end
-
--- }
+/-- Restrict a finpartition to avoid a given subset -/
+def avoid (P : finpartition_on s) (t : finset α) : finpartition_on (s \ t) :=
+{ parts := (P.parts.image (\ t)).filter finset.nonempty,
+  disjoint := λ x₁ x₂,
+  begin
+    simp only [and_imp, exists_imp_distrib, mem_image, exists_prop, mem_filter],
+    rintro x₁ hx₁ rfl - x₂ hx₂ rfl - i hi₁ hi₂,
+    rw P.disjoint _ _ hx₁ hx₂ i (sdiff_subset _ _ hi₁) (sdiff_subset _ _ hi₂),
+  end,
+  cover := λ i hi,
+  begin
+    simp only [mem_sdiff] at hi,
+    obtain ⟨y, hy₁, hy₂⟩ := P.cover hi.1,
+    have hi' : i ∈ y \ t := by simp [hy₂, hi.2],
+    refine ⟨y \ t, _, hi'⟩,
+    { rw [mem_filter],
+      exact ⟨mem_image_of_mem _ hy₁, i, hi'⟩ },
+  end,
+  subset :=
+  begin
+    simp only [mem_image, and_imp, mem_filter, forall_exists_index, forall_apply_eq_imp_iff₂],
+    intros x hx _,
+    exact sdiff_subset_sdiff (P.subset hx) (by refl),
+  end,
+  not_empty_mem :=
+  begin
+    simp
+  end }
 
 /-- Given a finpartition `P` of `s` and finpartitions of each part of `P`, this yields the
 finpartition that's obtained by -/

@@ -236,6 +236,11 @@ calc ∥v∥ = ∥u - (u - v)∥ : by abel
 lemma norm_le_insert' (u v : E) : ∥u∥ ≤ ∥v∥ + ∥u - v∥ :=
 by { rw norm_sub_rev, exact norm_le_insert v u }
 
+lemma norm_le_add_norm_add (u v : E) :
+  ∥u∥ ≤ ∥u + v∥ + ∥v∥ :=
+calc ∥u∥ = ∥u + v - v∥ : by rw add_sub_cancel
+... ≤ ∥u + v∥ + ∥v∥ : norm_sub_le _ _
+
 lemma ball_zero_eq (ε : ℝ) : ball (0 : E) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 

@@ -32,7 +32,7 @@ dite (U = V ∨ G.is_uniform ε U V) (λ _, (U, V)) (λ h, begin
 noncomputable def witness (ε : ℝ) (U V : finset α) : finset α × finset α :=
 ite (well_ordering_rel U V) (G.witness_aux ε U V) (G.witness_aux ε V U).swap
 
-variables {G} {ε : ℝ} {U V : finset α}
+variables (G) {ε : ℝ} {U V : finset α}
 
 lemma left_witness_aux_subset : (G.witness_aux ε U V).1 ⊆ U :=
 begin
@@ -97,8 +97,8 @@ lemma left_witness_card (h₁ : U ≠ V) (h₂ : ¬ G.is_uniform ε U V) :
 begin
   dsimp [witness],
   split_ifs,
-  { apply left_witness_aux_card h₁ h₂ },
-  { apply right_witness_aux_card h₁.symm (λ i, h₂ i.symm), },
+  { apply G.left_witness_aux_card h₁ h₂ },
+  { apply G.right_witness_aux_card h₁.symm (λ i, h₂ i.symm), },
 end
 
 lemma witness_comm (ε : ℝ) (U V : finset α) :
@@ -122,7 +122,7 @@ lemma right_witness_card (h₁ : U ≠ V) (h₂ : ¬ G.is_uniform ε U V) :
   ε * V.card ≤ (G.witness ε U V).2.card :=
 begin
   rw witness_comm,
-  apply left_witness_card h₁.symm (λ i, h₂ i.symm),
+  apply G.left_witness_card h₁.symm (λ i, h₂ i.symm),
 end
 
 lemma witness_pair_spec (h₁ : U ≠ V) (h₂ : ¬ G.is_uniform ε U V) :
@@ -130,9 +130,9 @@ lemma witness_pair_spec (h₁ : U ≠ V) (h₂ : ¬ G.is_uniform ε U V) :
 begin
   rw [witness],
   split_ifs,
-  { apply witness_aux_pair_spec h₁ h₂ },
+  { apply G.witness_aux_pair_spec h₁ h₂ },
   { rw [edge_density_comm, edge_density_comm _ U],
-    apply witness_aux_pair_spec h₁.symm (λ i, h₂ i.symm) },
+    apply G.witness_aux_pair_spec h₁.symm (λ i, h₂ i.symm) },
 end
 
 end simple_graph

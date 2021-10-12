@@ -205,6 +205,7 @@ instance : has_zero cardinal.{u} := ⟨#pempty⟩
 instance : inhabited cardinal.{u} := ⟨0⟩
 
 @[simp] lemma mk_eq_zero (α : Type u) [is_empty α] : #α = 0 :=
+(equiv.equiv_pempty α).cardinal_eq
 
 @[simp] theorem lift_zero : lift 0 = 0 :=
 quotient.sound ⟨equiv.equiv_pempty _⟩

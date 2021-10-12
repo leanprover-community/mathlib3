@@ -82,6 +82,11 @@ class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
 export star_monoid (star_mul)
 attribute [simp] star_mul
 
+/-- In a commutative ring, make `simp` prefer leaving the order unchanged. -/
+@[simp] lemma star_mul' [comm_monoid R] [star_monoid R] (x y : R) :
+  star (x * y) = star x * star y :=
+(star_mul x y).trans (mul_comm _ _)
+
 /-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
 @[simps apply]
 def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
@@ -93,18 +98,37 @@ def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
 @[simps apply]
 def star_mul_aut [comm_monoid R] [star_monoid R] : mul_aut R :=
 { to_fun := star,
-  map_mul' := λ x y, (star_mul x y).trans (mul_comm _ _),
+  map_mul' := star_mul',
   ..(has_involutive_star.star_involutive.to_equiv star) }
 
 variables (R)
 
 @[simp] lemma star_one [monoid R] [star_monoid R] : star (1 : R) = 1 :=
-begin
-  have := congr_arg opposite.unop (star_mul_equiv : R ≃* Rᵒᵖ).map_one,
-  rwa [star_mul_equiv_apply, opposite.unop_op, opposite.unop_one] at this,
-end
+op_injective $ (star_mul_equiv : R ≃* Rᵒᵖ).map_one.trans (op_one _).symm
 
 variables {R}
+
+@[simp] lemma star_pow [monoid R] [star_monoid R] (x : R) (n : ℕ) : star (x ^ n) = star x ^ n :=
+op_injective $
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_pow x n).trans (op_pow (star x) n).symm
+
+@[simp] lemma star_inv [group R] [star_monoid R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+op_injective $
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
+
+/-- When multiplication is commutative, `star` preserves division. -/
+@[simp] lemma star_div [comm_group R] [star_monoid R] (x y : R) : star (x / y) = star x / star y :=
+(star_mul_aut : R ≃* R).to_monoid_hom.map_div _ _
+
+section
+open_locale big_operators
+
+@[simp] lemma star_prod [comm_monoid R] [star_monoid R] {α : Type*}
+  (s : finset α) (f : α → R):
+  star (∏ x in s, f x) = ∏ x in s, star (f x) :=
+(star_mul_aut : R ≃* R).map_prod _ _
+
+end
 
 instance [monoid R] [star_monoid R] : star_monoid (Rᵒᵖ) :=
 { star_mul := λ x y, unop_injective (star_mul y.unop x.unop) }
@@ -155,6 +179,31 @@ variables (R)
 
 variables {R}
 
+@[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
+(star_add_equiv : R ≃+ R).map_neg _
+
+@[simp] lemma star_sub [add_group R] [star_add_monoid R] (r s : R) :
+  star (r - s) = star r - star s :=
+(star_add_equiv : R ≃+ R).map_sub _ _
+
+@[simp] lemma star_nsmul [add_comm_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
+  star (n • x) = n • star x :=
+(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
+
+@[simp] lemma star_gsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+  star (n • x) = n • star x :=
+(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_gsmul _ _
+
+section
+open_locale big_operators
+
+@[simp] lemma star_sum [add_comm_monoid R] [star_add_monoid R] {α : Type*}
+  (s : finset α) (f : α → R):
+  star (∑ x in s, f x) = ∑ x in s, star (f x) :=
+(star_add_equiv : R ≃+ R).map_sum _ _
+
+end
+
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
 which makes `R` with its multiplicative structure into a `*`-monoid
@@ -184,21 +233,13 @@ def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
   ..star_add_equiv,
   ..star_mul_aut }
 
-section
-open_locale big_operators
+@[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+op_injective $
+  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_sum [semiring R] [star_ring R] {α : Type*}
-  (s : finset α) (f : α → R):
-  star (∑ x in s, f x) = ∑ x in s, star (f x) :=
-(star_add_equiv : R ≃+ R).map_sum _ _
-
-end
-
-@[simp] lemma star_neg [ring R] [star_ring R] (r : R) : star (-r) = - star r :=
-(star_add_equiv : R ≃+ R).map_neg _
-
-@[simp] lemma star_sub [ring R] [star_ring R] (r s : R) : star (r - s) = star r - star s :=
-(star_add_equiv : R ≃+ R).map_sub _ _
+/-- When multiplication is commutative, `star` preserves division. -/
+@[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
+(star_ring_aut : R ≃+* R).to_ring_hom.map_div _ _
 
 @[simp] lemma star_bit0 [ring R] [star_ring R] (r : R) : star (bit0 r) = bit0 (star r) :=
 by simp [bit0]

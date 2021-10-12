@@ -384,7 +384,7 @@ instance : algebra R Aᵒᵖ :=
 { to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
   smul_def' := λ c x, unop_injective $
     by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
-  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
+  commutes' := λ r, opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
   ..opposite.has_scalar A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵒᵖ c = op (algebra_map R A c) := rfl

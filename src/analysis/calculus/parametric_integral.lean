@@ -12,7 +12,7 @@ import analysis.calculus.mean_value
 A parametric integral is a function with shape `f = λ x : H, ∫ a : α, F x a ∂μ` for some
 `F : H → α → E`, where `H` and `E` are normed spaces and `α` is a measured space with measure `μ`.
 
-We already know from `continuous_of_dominated` in `measure_theory.bochner_integral` how to
+We already know from `continuous_of_dominated` in `measure_theory.integral.bochner` how to
 guarantee that `f` is continuous using the dominated convergence theorem. In this file,
 we want to express the derivative of `f` as the integral of the derivative of `F` with respect
 to `x`.

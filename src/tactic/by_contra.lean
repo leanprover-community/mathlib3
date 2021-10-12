@@ -10,8 +10,7 @@ import tactic.push_neg
 # by_contra'
 
 `by_contra'` is a tactic for proving propositions by contradiction.
-It is more flexible then `by_contra` and `by_contradiction`
-because it uses `push_neg` to normalize negations.
+It is similar to `by_contra` except that it also uses `push_neg` to normalize negations.
 -/
 
 namespace tactic

@@ -1765,11 +1765,18 @@ def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quoti
     (quot_quot_equiv_quot_sup J I).symm
 
 @[simp]
+lemma quot_quot_equiv_comm_quot_quot_mk (x : R) :
+  quot_quot_equiv_comm I J (quot_quot_mk I J x) = quot_quot_mk J I x :=
+rfl
+
+@[simp]
 lemma quot_quot_equiv_comm_comp_quot_quot_mk :
   ring_hom.comp ↑(quot_quot_equiv_comm I J) (quot_quot_mk I J) = quot_quot_mk J I :=
 ring_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
-by ext x ; simp only [ring_hom.comp_apply, quot_quot_equiv_comm, ring_equiv.trans_apply,
-  quot_quot_equiv_quot_sup_quot_quot_mk, quot_equiv_of_eq_mk,
-  quot_quot_equiv_quot_sup_symm_quot_quot_mk, ring_equiv.coe_to_ring_hom]
+
+@[simp]
+lemma quot_quot_equiv_comm_symm :
+  (quot_quot_equiv_comm I J).symm = quot_quot_equiv_comm J I :=
+rfl
 
 end double_quot

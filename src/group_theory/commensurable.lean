@@ -21,20 +21,12 @@ def commensurable (H K : subgroup G) : Prop :=
 
 namespace commensurable
 
-lemma inf_self_eq_self (H :subgroup G)  : (H ⊓ H).comap H.subtype = ⊤ :=
-begin
-simp only [inf_idem],
-ext,
-simp only [set_like.coe_mem, subgroup.coe_subtype, subgroup.mem_top, iff_self, subgroup.mem_comap],
-end
+
+lemma comap_self_subtype (H : subgroup G) : H.comap H.subtype = ⊤ :=
+eq_top_iff.2 $ λ x _, x.prop
 
 lemma subgroup_of_top (H : subgroup G) : subgroup.subgroup_of H H = ⊤ :=
-begin
-rw subgroup.subgroup_of,
-have:= inf_self_eq_self H,
-simp at *,
-exact this,
-end
+comap_self_subtype H
 
 lemma index_of_top  : ( ⊤ : subgroup G).index = 1 :=
 begin
@@ -45,15 +37,16 @@ have h3: (cardinal.mk  (quotient_group.quotient (⊤ : subgroup G))) = 1 ,
 simp [h3],
 end
 
+
 lemma reflex (H : subgroup G) : commensurable H H :=
 begin
-rw commensurable,
-simp,
-have:= subgroup_of_top H,
-rw this,
-have h2:= index_of_top,
-rw h2,
-simp,
+  rw commensurable,
+  simp only [ne.def, and_self],
+  have:= subgroup_of_top H,
+  rw this,
+  have h2:= index_of_top,
+  rw h2,
+  simp only [nat.one_ne_zero, not_false_iff],
 end
 
 

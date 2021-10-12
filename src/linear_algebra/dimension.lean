@@ -632,6 +632,29 @@ begin
   exact le_top,
 end
 
+/-- A linearly-independent family of vectors in a module over a ring satisfying the strong rank
+condition must be finite if the module is Noetherian. -/
+noncomputable def fintype_of_is_noetherian_linear_independent [is_noetherian R M]
+  {v : ι → M} (hi : linear_independent R v) : fintype ι :=
+begin
+  have hfg : (⊤ : submodule R M).fg,
+  { exact is_noetherian_def.mp (by apply_instance : is_noetherian R M) ⊤, },
+  rw submodule.fg_def at hfg,
+  choose s hs hs' using hfg,
+  haveI : fintype s, { exact hs.fintype, },
+  apply linear_independent_fintype_of_le_span_fintype v hi s,
+  simp only [hs', set.subset_univ, submodule.top_coe, set.le_eq_subset],
+end
+
+/-- A linearly-independent subset of a module over a ring satisfying the strong rank condition
+must be finite if the module is Noetherian. -/
+lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
+  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
+begin
+  suffices : fintype s, { exact ⟨this⟩, },
+  exact fintype_of_is_noetherian_linear_independent hi,
+end
+
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
 we handle the case where the basis `b` is infinite.

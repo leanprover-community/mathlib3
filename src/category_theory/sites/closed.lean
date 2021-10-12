@@ -44,13 +44,13 @@ closed sieve, closure, Grothendieck topology
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 -/
 
-universes v u
+universes w v u
 
 namespace category_theory
 
 variables {C : Type u} [small_category C]
 
-variables {P : Cᵒᵖ ⥤ Type u}
+variables {P : Cᵒᵖ ⥤ Type w}
 variables (J₁ J₂ : grothendieck_topology C)
 
 namespace grothendieck_topology
@@ -269,7 +269,7 @@ end
 
 /-- If being a sheaf for `J₁` is equivalent to being a sheaf for `J₂`, then `J₁ = J₂`. -/
 lemma topology_eq_iff_same_sheaves {J₁ J₂ : grothendieck_topology C} :
-  J₁ = J₂ ↔ (∀ P, presieve.is_sheaf J₁ P ↔ presieve.is_sheaf J₂ P) :=
+  J₁ = J₂ ↔ (∀ (P : Cᵒᵖ ⥤ Type u), presieve.is_sheaf J₁ P ↔ presieve.is_sheaf J₂ P) :=
 begin
   split,
   { rintro rfl,

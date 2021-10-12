@@ -1757,8 +1757,7 @@ rfl
 @[simp]
 lemma quot_quot_equiv_quot_sup_symm_quot_quot_mk (x : R) :
   (quot_quot_equiv_quot_sup I J).symm (ideal.quotient.mk (I ⊔ J) x) = quot_quot_mk I J x :=
-by rw [quot_quot_equiv_quot_sup, ring_equiv.of_hom_inv_symm_apply,
-  lift_sup_quot_quot_mk,ideal.quotient.lift_mk]
+rfl
 
 /-- The obvious isomorphism `(R/I)/J' → (R/J)/I' `   -/
 def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quotient.mk).quotient :=

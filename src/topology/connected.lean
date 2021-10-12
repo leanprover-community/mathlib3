@@ -144,7 +144,7 @@ let hsne := H.left,
 /-- The closure of a (pre)connected set is (pre)connected as well. -/
 theorem is_preconnected.closure {s : set α} (H : is_preconnected s) :
   is_preconnected (closure s) :=
-is_preconnected.subset_closure H (subset_closure) (subset.refl (closure s))
+is_preconnected.subset_closure H subset_closure $ subset.refl $ closure s
 
 theorem is_connected.closure {s : set α} (H : is_connected s) :
   is_connected (closure s) :=

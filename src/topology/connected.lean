@@ -148,7 +148,7 @@ is_preconnected.subset_closure H subset_closure $ subset.refl $ closure s
 
 theorem is_connected.closure {s : set α} (H : is_connected s) :
   is_connected (closure s) :=
-is_connected.subset_closure H subset_closure (subset.refl (closure s))
+is_connected.subset_closure H subset_closure $ subset.refl $ closure s
 
 /-- The image of a (pre)connected set is (pre)connected as well. -/
 theorem is_preconnected.image [topological_space β] {s : set α} (H : is_preconnected s)

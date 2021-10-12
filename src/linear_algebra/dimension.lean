@@ -650,10 +650,7 @@ end
 must be finite if the module is Noetherian. -/
 lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
   {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-begin
-  suffices : fintype s, { exact ⟨this⟩, },
-  exact fintype_of_is_noetherian_linear_independent hi,
-end
+⟨fintype_of_is_noetherian_linear_independent hi⟩
 
 /--
 An auxiliary lemma for `linear_independent_le_basis`:

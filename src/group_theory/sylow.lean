@@ -47,15 +47,23 @@ structure sylow extends subgroup G :=
 
 variables {p} {G}
 
+namespace sylow
+
 instance : has_coe (sylow p G) (subgroup G) := ⟨sylow.to_subgroup⟩
 
-@[simp] lemma sylow.to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
+@[simp] lemma to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
 
-@[ext] lemma sylow.ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
+@[ext] lemma ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
 by cases P; cases Q; congr'
 
-lemma sylow.ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
-⟨congr_arg coe, sylow.ext⟩
+lemma ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
+⟨congr_arg coe, ext⟩
+
+instance : set_like (sylow p G) G :=
+{ coe := coe,
+  coe_injective' := λ P Q h, ext (set_like.coe_injective h) }
+
+end sylow
 
 /-- A generalization of **Sylow's first theorem**.
   Every `p`-subgroup is contained in a Sylow `p`-subgroup. -/
@@ -101,7 +109,7 @@ lemma sylow.coe_smul {g : G} {P : sylow p G} :
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ P.1.normalizer :=
 begin
-  rw [eq_comm, sylow.ext_iff, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
+  rw [eq_comm, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
   exact forall_congr (λ h, iff_congr iff.rfl ⟨λ ⟨a, b, c⟩, (congr_arg _ c).mp
     ((congr_arg (∈ P.1) (mul_aut.inv_apply_self G (mul_aut.conj g) a)).mpr b),
     λ hh, ⟨(mul_aut.conj g)⁻¹ h, hh, mul_aut.apply_inv_self G (mul_aut.conj g) h⟩⟩),

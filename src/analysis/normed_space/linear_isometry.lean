@@ -161,6 +161,11 @@ instance : monoid (E →ₗᵢ[R] E) :=
 
 end linear_isometry
 
+/-- Construct a `linear_isometry` from a `linear_map` satisfying `isometry`. -/
+def linear_map.to_linear_isometry (f : E →ₛₗ[σ₁₂] E₂) (hf : isometry f) : E →ₛₗᵢ[σ₁₂] E₂ :=
+{ norm_map' := by { simp_rw [←dist_zero_right, ←f.map_zero], exact λ x, hf.dist_eq x _ },
+  .. f }
+
 namespace submodule
 
 variables {R' : Type*} [ring R'] [module R' E] (p : submodule R' E)

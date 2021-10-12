@@ -54,7 +54,7 @@ class floor_ring (α) [linear_ordered_ring α] :=
 instance : floor_ring ℤ := { floor := id, le_floor := λ _ _, by rw int.cast_id; refl }
 
 namespace int
-variables [linear_ordered_ring α] [floor_ring α]
+variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 
 /-- `int.floor a` is the greatest integer `z` such that `z ≤ a`. It is denoted with `⌊a⌋`. -/
 def floor : α → ℤ := floor_ring.floor
@@ -102,6 +102,10 @@ by rw [← int.cast_one, floor_coe]
 
 @[mono] lemma floor_mono {a b : α} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ :=
 le_floor.2 (le_trans (floor_le _) h)
+
+lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a :=
+⟨λ h, le_trans (by rwa [←int.cast_one, int.cast_le, ←zero_add (1 : ℤ), int.add_one_le_iff])
+  (floor_le _), λ h, zero_lt_one.trans_le (le_floor.2 $ by rwa int.cast_one)⟩
 
 @[simp] lemma floor_add_int (a : α) (z : ℤ) : ⌊a + z⌋ = ⌊a⌋ + z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,
@@ -328,12 +332,6 @@ begin
   exact_mod_cast (int.floor_le a).trans ha,
 end
 
-lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
-begin
-  refine (le_or_lt a 0).resolve_left (λ ha, lt_irrefl 0 _),
-  rwa floor_of_nonpos ha at h,
-end
-
 lemma floor_le (ha : 0 ≤ a) : ↑⌊a⌋₊ ≤ a :=
 begin
   refine le_trans _ (int.floor_le _),
@@ -348,11 +346,20 @@ begin
   exact hn.trans (int.to_nat_le_to_nat (int.le_floor.2 h)),
 end
 
-lemma floor_pos (ha : 1 ≤ a) : 0 < ⌊a⌋₊ :=
-zero_lt_one.trans_le (le_floor_of_le $ by rwa cast_one)
-
 lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ ↑n ≤ a :=
 ⟨λ h, (nat.cast_le.2 h).trans (floor_le ha), le_floor_of_le⟩
+
+lemma floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=
+begin
+  cases le_total a 0,
+  { rw floor_of_nonpos h,
+    exact iff_of_false (lt_irrefl 0) (λ ha, zero_lt_one.not_le $ ha.trans h) },
+  { rw ←nat.cast_one,
+    exact le_floor_iff h }
+end
+
+lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
+(le_or_lt a 0).resolve_left (λ ha, lt_irrefl 0 $ by rwa floor_of_nonpos ha at h)
 
 lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le (floor_le (pos_of_floor_pos ((nat.zero_le n).trans_lt h)).le)

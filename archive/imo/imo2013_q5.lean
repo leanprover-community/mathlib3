@@ -11,14 +11,14 @@ import data.real.basic
 /-!
 # IMO 2013 Q5
 
-Let ℚ>₀ be the set of positive rational numbers. Let f: ℚ>₀ → ℝ be a function satisfying
+Let `ℚ>₀` be the positive rational numbers. Let `f : ℚ>₀ → ℝ` be a function satisfying
 the conditions
 
-  (1) f(x) * f(y) ≥ f(x * y)
-  (2) f(x + y)    ≥ f(x) + f(y)
+1. `f(x) * f(y) ≥ f(x * y)`
+2. `f(x + y) ≥ f(x) + f(y)`
 
-for all x,y ∈ ℚ>₀. Given that f(a) = a for some rational a > 1, prove that f(x) = x for
-all x ∈ ℚ>₀.
+for all `x, y ∈ ℚ>₀`. Given that `f(a) = a` for some rational `a > 1`, prove that `f(x) = x` for
+all `x ∈ ℚ>₀`.
 
 # Solution
 
@@ -98,26 +98,19 @@ lemma f_pos_of_pos {f : ℚ → ℝ} {q : ℚ} (hq : 0 < q)
   (H4 : ∀ n : ℕ, 0 < n → (n : ℝ) ≤ f n) :
   0 < f q :=
 begin
-  have hfqn := calc f q.num = f (q * q.denom) : by rw ←rat.mul_denom_eq_num
-                        ... ≤ f q * f q.denom : H1 q q.denom hq (nat.cast_pos.mpr q.pos),
-
-  -- Now we just need to show that `f q.num` and `f q.denom` are positive.
-  -- Then nlinarith will be able to close the goal.
-
   have num_pos : 0 < q.num := rat.num_pos_iff_pos.mpr hq,
-  have hqna : (q.num.nat_abs : ℤ) = q.num := int.nat_abs_of_nonneg num_pos.le,
-  have hqfn' :=
-    calc (q.num : ℝ)
-            = ((q.num.nat_abs : ℤ) : ℝ) : congr_arg coe (eq.symm hqna)
-        ... ≤ f q.num.nat_abs           : H4 q.num.nat_abs
-                                            (int.nat_abs_pos_of_ne_zero (ne_of_gt num_pos))
-        ... = f q.num                   : by exact_mod_cast congr_arg f (congr_arg coe hqna),
-
-  have f_num_pos := calc (0 : ℝ) < q.num   : int.cast_pos.mpr num_pos
-                             ... ≤ f q.num : hqfn',
-  have f_denom_pos := calc (0 : ℝ) < q.denom   : nat.cast_pos.mpr q.pos
-                               ... ≤ f q.denom : H4 q.denom q.pos,
-  nlinarith
+  have hmul_pos :=
+    calc (0 : ℝ) < q.num   : int.cast_pos.mpr num_pos
+      ... = ((q.num.nat_abs : ℤ) : ℝ) : congr_arg coe (int.nat_abs_of_nonneg num_pos.le).symm
+      ... ≤ f q.num.nat_abs           : H4 q.num.nat_abs
+                                          (int.nat_abs_pos_of_ne_zero num_pos.ne')
+      ... = f q.num : by { rw ←int.nat_abs_of_nonneg num_pos.le, norm_cast }
+      ... = f (q * q.denom) : by rw ←rat.mul_denom_eq_num
+      ... ≤ f q * f q.denom : H1 q q.denom hq (nat.cast_pos.mpr q.pos),
+  have h_f_denom_pos :=
+    calc (0 : ℝ) < q.denom : nat.cast_pos.mpr q.pos
+      ... ≤ f q.denom : H4 q.denom q.pos,
+  exact pos_of_mul_pos_right hmul_pos h_f_denom_pos.le,
 end
 
 lemma fx_gt_xm1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 ≤ x)
@@ -127,16 +120,16 @@ lemma fx_gt_xm1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 ≤ x)
   (x - 1 : ℝ) < f x :=
 begin
   have hx0 :=
-  calc (x - 1 : ℝ)
-        < ⌊x⌋₊   : by exact_mod_cast nat.sub_one_lt_floor x
-    ... ≤ f ⌊x⌋₊ : H4 _ (nat.floor_pos hx),
+    calc (x - 1 : ℝ)
+          < ⌊x⌋₊   : by exact_mod_cast sub_one_lt_nat_floor x
+      ... ≤ f ⌊x⌋₊ : H4 _ (nat_floor_pos.2 hx),
 
-  obtain h_eq | h_lt := (nat.floor_le $ zero_le_one.trans hx).eq_or_lt,
+  obtain h_eq | h_lt := (nat_floor_le $ zero_le_one.trans hx).eq_or_lt,
   { rwa h_eq at hx0 },
 
   calc (x - 1 : ℝ) < f ⌊x⌋₊ : hx0
     ... < f (x - ⌊x⌋₊) + f ⌊x⌋₊ : lt_add_of_pos_left _ (f_pos_of_pos (sub_pos.mpr h_lt) H1 H4)
-    ... ≤ f (x - ⌊x⌋₊ + ⌊x⌋₊)   : H2 _ _ (sub_pos.mpr h_lt) (nat.cast_pos.2 (nat.floor_pos hx))
+    ... ≤ f (x - ⌊x⌋₊ + ⌊x⌋₊)   : H2 _ _ (sub_pos.mpr h_lt) (nat.cast_pos.2 (nat_floor_pos.2 hx))
     ... = f x                   : by rw sub_add_cancel
 end
 
@@ -215,7 +208,7 @@ begin
   have H3 : ∀ x : ℚ, 0 < x → ∀ n : ℕ, 0 < n → ↑n * f x ≤ f (n * x),
   { intros x hx n hn,
     cases n,
-    { exfalso, exact nat.lt_asymm hn hn },
+    { exact (lt_irrefl 0 hn).elim },
     induction n with pn hpn,
     { simp only [one_mul, nat.cast_one] },
     calc (↑pn + 1 + 1) * f x
@@ -239,7 +232,7 @@ begin
               ... = ↑a * f 1  : by rw hae },
 
     calc (n : ℝ) = (n : ℝ) * 1   : (mul_one _).symm
-             ... ≤ (n : ℝ) * f 1 : (mul_le_mul_left (nat.cast_pos.mpr hn)).mpr hf1
+             ... ≤ (n : ℝ) * f 1 : mul_le_mul_of_nonneg_left hf1 (nat.cast_nonneg _)
              ... ≤ f (n * 1)     : H3 1 zero_lt_one n hn
              ... = f n           : by rw mul_one },
 

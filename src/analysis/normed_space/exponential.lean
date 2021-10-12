@@ -522,13 +522,12 @@ section scalar_tower
 
 variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
   [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝕂'] [normed_algebra 𝕂' 𝔸]
-  [is_scalar_tower 𝕂 𝕂' 𝔸] (p : ℕ) [char_p 𝕂 p]
-
-include p
+  [is_scalar_tower 𝕂 𝕂' 𝔸]
 
 lemma exp_series_eq_exp_series_of_field_extension (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
 begin
+  let p := ring_char 𝕂,
   haveI : char_p 𝕂' p := char_p_of_injective_algebra_map (algebra_map 𝕂 𝕂').injective p,
   rw [exp_series, exp_series,
       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
@@ -556,7 +555,7 @@ begin
   ext,
   rw [exp, exp],
   refine tsum_congr (λ n, _),
-  rw exp_series_eq_exp_series_of_field_extension 𝕂 𝕂' 𝔸 p n x
+  rw exp_series_eq_exp_series_of_field_extension 𝕂 𝕂' 𝔸 n x
 end
 
 end scalar_tower
@@ -572,7 +571,7 @@ begin
 end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
-exp_eq_exp_of_field_extension ℝ ℂ ℂ 0
+exp_eq_exp_of_field_extension ℝ ℂ ℂ
 
 end complex
 

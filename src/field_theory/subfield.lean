@@ -429,6 +429,9 @@ lemma subring_closure_le (s : set K) : subring.closure s ≤ (closure s).to_subr
 @[simp] lemma subset_closure {s : set K} : s ⊆ closure s :=
 set.subset.trans subring.subset_closure (subring_closure_le s)
 
+lemma not_mem_of_not_mem_closure {s : set K} {P : K} (hP : P ∉ closure s) : P ∉ s :=
+λ h, hP (subset_closure h)
+
 lemma mem_closure {x : K} {s : set K} : x ∈ closure s ↔ ∀ S : subfield K, s ⊆ S → x ∈ S :=
 ⟨λ ⟨y, hy, z, hz, x_eq⟩ t le, x_eq ▸
   t.div_mem

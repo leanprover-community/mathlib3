@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.dfinsupp
+import data.equiv.module
 import data.finsupp.basic
-import algebra.module.linear_map
 
 /-!
 # Conversion between `finsupp` and homogenous `dfinsupp`

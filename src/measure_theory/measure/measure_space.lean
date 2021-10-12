@@ -176,11 +176,28 @@ begin
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
-lemma meas_eq_meas_of_null_diff {s t : set α}
+lemma le_measure_diff : μ s₁ - μ s₂ ≤ μ (s₁ \ s₂) :=
+ennreal.sub_le_iff_le_add'.2 $
+calc μ s₁ ≤ μ (s₂ ∪ s₁)        : measure_mono (subset_union_right _ _)
+      ... = μ (s₂ ∪ s₁ \ s₂)   : congr_arg μ union_diff_self.symm
+      ... ≤ μ s₂ + μ (s₁ \ s₂) : measure_union_le _ _
+
+lemma measure_diff_lt_of_lt_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
+  (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} (h : μ t < μ s + ε) : μ (t \ s) < ε :=
+begin
+  rw [measure_diff hst ht hs hs'], rw add_comm at h,
+  exact ennreal.sub_lt_of_lt_add (measure_mono hst) h
+end
+
+lemma measure_diff_le_iff_le_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
+  (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} : μ (t \ s) ≤ ε ↔ μ t ≤ μ s + ε :=
+by rwa [measure_diff hst ht hs hs', ennreal.sub_le_iff_le_add']
+
+lemma measure_eq_measure_of_null_diff {s t : set α}
   (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
 by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }
 
-lemma meas_eq_meas_of_between_null_diff {s₁ s₂ s₃ : set α}
+lemma measure_eq_measure_of_between_null_diff {s₁ s₂ s₃ : set α}
   (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃ \ s₁) = 0) :
   (μ s₁ = μ s₂) ∧ (μ s₂ = μ s₃) :=
 begin
@@ -193,13 +210,13 @@ begin
   exact ⟨le12.antisymm (le23.trans key), le23.antisymm (key.trans le12)⟩,
 end
 
-lemma meas_eq_meas_smaller_of_between_null_diff {s₁ s₂ s₃ : set α}
+lemma measure_eq_measure_smaller_of_between_null_diff {s₁ s₂ s₃ : set α}
   (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₁ = μ s₂ :=
-(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).1
+(measure_eq_measure_of_between_null_diff h12 h23 h_nulldiff).1
 
-lemma meas_eq_meas_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
+lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
   (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₂ = μ s₃ :=
-(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).2
+(measure_eq_measure_of_between_null_diff h12 h23 h_nulldiff).2
 
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
@@ -215,6 +232,40 @@ lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, measurable_s
 begin
   rw [ennreal.tsum_eq_supr_sum],
   exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
+end
+
+lemma measure_Union_of_null_inter [encodable ι] {f : ι → set α} (h : ∀ i, measurable_set (f i))
+  (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) : μ (⋃ i, f i) = ∑' i, μ (f i) :=
+begin
+  have h_null : μ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
+  { rw measure_Union_null_iff,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { suffices : μ (f i ∩ f j) = 0,
+      { simpa [hij], },
+      apply hn i j hij, }, },
+  have h_pair : pairwise (disjoint on
+    (λ i, f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
+  { intros i j hij x hx,
+    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
+      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
+    simp only [mem_empty_eq, bot_eq_empty],
+    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
+    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
+  have h_meas :
+    ∀ i, measurable_set (f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
+  { intro w,
+    apply (h w).diff,
+    apply measurable_set.Union,
+    rintro ⟨i, j⟩,
+    by_cases hij : i = j,
+    { simp [hij], },
+    { simp [hij, measurable_set.inter (h i) (h j)], }, },
+  have : μ _ = _ := measure_Union h_pair h_meas,
+  rw ← Union_diff at this,
+  simp_rw measure_diff_null h_null at this,
+  exact this,
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
@@ -275,8 +326,7 @@ end
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the infimum of the measures. -/
 lemma measure_Inter_eq_infi [encodable ι] {s : ι → set α}
-  (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s)
-  (hfin : ∃ i, μ (s i) ≠ ∞) :
+  (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s) (hfin : ∃ i, μ (s i) ≠ ∞) :
   μ (⋂ i, s i) = (⨅ i, μ (s i)) :=
 begin
   rcases hfin with ⟨k, hk⟩,
@@ -310,7 +360,8 @@ by { rw [measure_eq_inter_diff (hs.union ht) ht, set.union_inter_cancel_right,
 
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
 is the limit of the measures. -/
-lemma tendsto_measure_Union {s : ℕ → set α} (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
+lemma tendsto_measure_Union [semilattice_sup ι] [encodable ι] {s : ι → set α}
+  (hs : ∀ n, measurable_set (s n)) (hm : monotone s) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr hs (directed_of_sup hm),
@@ -319,8 +370,8 @@ end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
-lemma tendsto_measure_Inter {s : ℕ → set α}
-  (hs : ∀ n, measurable_set (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) ≠ ∞) :
+lemma tendsto_measure_Inter [encodable ι] [semilattice_sup ι] {s : ι → set α}
+  (hs : ∀ n, measurable_set (s n)) (hm : antitone s) (hf : ∃ i, μ (s i) ≠ ∞) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
   rw measure_Inter_eq_infi hs (directed_of_sup hm) hf,
@@ -393,6 +444,10 @@ m.le_trim s
 @[simp] lemma to_outer_measure_to_measure {μ : measure α} :
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
 measure.ext $ λ s, μ.to_outer_measure.trim_eq
+
+@[simp] lemma bounded_by_measure (μ : measure α) :
+  outer_measure.bounded_by μ = μ.to_outer_measure :=
+μ.to_outer_measure.bounded_by_eq_self
 
 end outer_measure
 
@@ -1189,7 +1244,7 @@ end count
 def absolutely_continuous {m0 : measurable_space α} (μ ν : measure α) : Prop :=
 ∀ ⦃s : set α⦄, ν s = 0 → μ s = 0
 
-infix ` ≪ `:50 := absolutely_continuous
+localized "infix ` ≪ `:50 := measure_theory.measure.absolutely_continuous" in measure_theory
 
 lemma absolutely_continuous_of_le (h : μ ≤ ν) : μ ≪ ν :=
 λ s hs, nonpos_iff_eq_zero.1 $ hs ▸ le_iff'.1 h s
@@ -1361,6 +1416,7 @@ end mutually_singular
 end measure
 
 open measure
+open_locale measure_theory
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
@@ -1564,6 +1620,24 @@ lemma measure_lt_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ 
 
 lemma measure_ne_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
+
+lemma measure_compl_le_add_of_le_add [is_finite_measure μ] (hs : measurable_set s)
+  (ht : measurable_set t) {ε : ℝ≥0∞} (h : μ s ≤ μ t + ε) :
+  μ tᶜ ≤ μ sᶜ + ε :=
+begin
+  rw [measure_compl ht (measure_ne_top μ _), measure_compl hs (measure_ne_top μ _),
+    ennreal.sub_le_iff_le_add],
+  calc μ univ = μ univ - μ s + μ s :
+    (ennreal.sub_add_cancel_of_le $ measure_mono s.subset_univ).symm
+  ... ≤ μ univ - μ s + (μ t + ε) : add_le_add_left h _
+  ... = _ : by rw [add_right_comm, add_assoc]
+end
+
+lemma measure_compl_le_add_iff [is_finite_measure μ] (hs : measurable_set s)
+  (ht : measurable_set t) {ε : ℝ≥0∞} :
+  μ sᶜ ≤ μ tᶜ + ε ↔ μ t ≤ μ s + ε :=
+⟨λ h, compl_compl s ▸ compl_compl t ▸ measure_compl_le_add_of_le_add hs.compl ht.compl h,
+  measure_compl_le_add_of_le_add ht hs⟩
 
 /-- The measure of the whole space with respect to a finite measure, considered as `ℝ≥0`. -/
 def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
@@ -1886,9 +1960,15 @@ namespace finite_spanning_sets_in
 
 variables {C D : set (set α)}
 
+/-- If `μ` has finite spanning sets in `C` and `C ∩ {s | μ s < ∞} ⊆ D` then `μ` has finite spanning
+sets in `D`. -/
+protected def mono' (h : μ.finite_spanning_sets_in C) (hC : C ∩ {s | μ s < ∞} ⊆ D) :
+  μ.finite_spanning_sets_in D :=
+⟨h.set, λ i, hC ⟨h.set_mem i, h.finite i⟩, h.finite, h.spanning⟩
+
 /-- If `μ` has finite spanning sets in `C` and `C ⊆ D` then `μ` has finite spanning sets in `D`. -/
 protected def mono (h : μ.finite_spanning_sets_in C) (hC : C ⊆ D) : μ.finite_spanning_sets_in D :=
-⟨h.set, λ i, hC (h.set_mem i), h.finite, h.spanning⟩
+h.mono' (λ s hs, hC hs.1)
 
 /-- If `μ` has finite spanning sets in the collection of measurable sets `C`, then `μ` is σ-finite.
 -/
@@ -1903,7 +1983,7 @@ protected lemma ext {ν : measure α} {C : set (set α)} (hA : ‹_› = generat
 ext_of_generate_from_of_Union C _ hA hC h.spanning h.set_mem (λ i, (h.finite i).ne) h_eq
 
 protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_countably_spanning C :=
-⟨_, h.set_mem, h.spanning⟩
+⟨h.set, h.set_mem, h.spanning⟩
 
 end finite_spanning_sets_in
 
@@ -2284,8 +2364,7 @@ begin
   rw [measure_eq_infi' μ],
   refine le_infi _, rintro ⟨t, hst, ht⟩,
   rw [subtype.coe_mk],
-  have := f.symm.to_equiv.image_eq_preimage,
-  simp only [←coe_eq, symm_symm, symm_to_equiv] at this,
+  have : f.symm '' s = f ⁻¹' s := f.symm.to_equiv.image_eq_preimage s,
   rw [← this, image_subset_iff] at hst,
   convert measure_mono hst,
   rw [map_apply, preimage_preimage],
@@ -2305,6 +2384,8 @@ by { intros μ₁ μ₂ hμ, apply_fun map e.symm at hμ, simpa [map_symm_map e]
 lemma map_apply_eq_iff_map_symm_apply_eq (e : α ≃ᵐ β) : map e μ = ν ↔ map e.symm ν = μ :=
 by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
 
+lemma restrict_map (e : α ≃ᵐ β) (s : set β) : (map e μ).restrict s = map e (μ.restrict $ e ⁻¹' s) :=
+measure.ext $ λ t ht, by simp [e.map_apply, ht, e.measurable ht]
 
 end measurable_equiv
 
@@ -2610,6 +2691,8 @@ end trim
 
 end measure_theory
 
+open_locale measure_theory
+
 /-!
 # Almost everywhere measurable functions
 
@@ -2757,19 +2840,53 @@ begin
   exact hs.subtype_image (hf ht)
 end
 
+lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
+  ae_measurable f (map e μ) ↔ ae_measurable (f ∘ e) μ :=
+begin
+  refine ⟨λ h, h.comp_measurable e.measurable, λ h, _⟩,
+  rw [← (e.map_symm_map : _ = μ)] at h,
+  convert h.comp_measurable e.symm.measurable,
+  simp [(∘)]
+end
+
 end
 
 namespace is_compact
 
 variables [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
 
-lemma is_finite_measure_of_nhds_within (hs : is_compact s) :
-  (∀ a ∈ s, μ.finite_at_filter (𝓝[s] a)) → μ s < ∞ :=
-by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
-  using hs.compl_mem_sets_of_nhds_within
+/-- If `s` is a compact set and `μ` is finite at `𝓝 x` for every `x ∈ s`, then `s` admits an open
+superset of finite measure. -/
+lemma exists_open_superset_measure_lt_top' (h : is_compact s)
+  (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝 x)) :
+  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
+begin
+  refine is_compact.induction_on h _ _ _ _,
+  { use ∅, simp [superset] },
+  { rintro s t hst ⟨U, htU, hUo, hU⟩, exact ⟨U, hst.trans htU, hUo, hU⟩ },
+  { rintro s t ⟨U, hsU, hUo, hU⟩ ⟨V, htV, hVo, hV⟩,
+    refine ⟨U ∪ V, union_subset_union hsU htV, hUo.union hVo,
+      (measure_union_le _ _).trans_lt $ ennreal.add_lt_top.2 ⟨hU, hV⟩⟩ },
+  { intros x hx,
+    rcases (hμ x hx).exists_mem_basis (nhds_basis_opens _) with ⟨U, ⟨hx, hUo⟩, hU⟩,
+    exact ⟨U, nhds_within_le_nhds (hUo.mem_nhds hx), U, subset.rfl, hUo, hU⟩ }
+end
 
-lemma is_finite_measure [is_locally_finite_measure μ] (hs : is_compact s) : μ s < ∞ :=
-hs.is_finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
+/-- If `s` is a compact set and `μ` is a locally finite measure, then `s` admits an open superset of
+finite measure. -/
+lemma exists_open_superset_measure_lt_top (h : is_compact s)
+  (μ : measure α) [is_locally_finite_measure μ] :
+  ∃ U ⊇ s, is_open U ∧ μ U < ∞ :=
+h.exists_open_superset_measure_lt_top' $ λ x hx, μ.finite_at_nhds x
+
+lemma measure_lt_top_of_nhds_within (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
+  μ s < ∞ :=
+is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
+  (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
+
+lemma measure_lt_top (h : is_compact s) {μ : measure α} [is_locally_finite_measure μ] :
+  μ s < ∞ :=
+h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, ∃ t ∈ 𝓝[s] a, μ t = 0) → μ s = 0 :=
@@ -2777,13 +2894,54 @@ by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 
 end is_compact
 
-lemma metric.bounded.is_finite_measure [metric_space α] [proper_space α]
+/-- Compact covering of a `σ`-compact topological space as
+`measure_theory.measure.finite_spanning_sets_in`. -/
+def measure_theory.measure.finite_spanning_sets_in_compact [topological_space α]
+  [sigma_compact_space α] {m : measurable_space α} (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_compact K} :=
+{ set := compact_covering α,
+  set_mem := is_compact_compact_covering α,
+  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
+  spanning := Union_compact_covering α }
+
+/-- A locally finite measure on a `σ`-compact topological space admits a finite spanning sequence
+of open sets. -/
+def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
+  [sigma_compact_space α] {m : measurable_space α} (μ : measure α) [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_open K} :=
+{ set := λ n, ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some,
+  set_mem := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
+  finite := λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
+  spanning := eq_univ_of_subset (Union_subset_Union $ λ n,
+    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
+    (Union_compact_covering α) }
+
+section measure_Ixx
+
+variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
+  {m : measurable_space α} {μ : measure α} [is_locally_finite_measure μ] {a b : α}
+
+lemma measure_Icc_lt_top : μ (Icc a b) < ∞ := is_compact_Icc.measure_lt_top
+
+lemma measure_Ico_lt_top : μ (Ico a b) < ∞ :=
+(measure_mono Ico_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+lemma measure_Ioc_lt_top : μ (Ioc a b) < ∞ :=
+(measure_mono Ioc_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+lemma measure_Ioo_lt_top : μ (Ioo a b) < ∞ :=
+(measure_mono Ioo_subset_Icc_self).trans_lt measure_Icc_lt_top
+
+end measure_Ixx
+
+lemma metric.bounded.measure_lt_top [metric_space α] [proper_space α]
   [measurable_space α] {μ : measure α} [is_locally_finite_measure μ] {s : set α}
   (hs : metric.bounded s) :
   μ s < ∞ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
-  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).is_finite_measure
-
+  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).measure_lt_top
 
 section piecewise
 

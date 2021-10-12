@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import algebra.char_p.algebra
 import analysis.calculus.deriv
+import analysis.calculus.fderiv_analytic
 import analysis.specific_limits
 import data.complex.exponential
 import analysis.complex.basic
@@ -348,8 +349,8 @@ begin
         = (∥x∥^n * ∥x∥) * (∥(n! : ℝ)∥⁻¹ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * ((∥x∥^n)⁻¹ * ∥(n! : ℝ)∥) :
           by rw [ normed_field.norm_div, normed_field.norm_div,
                   normed_field.norm_pow, normed_field.norm_pow, pow_add, pow_one,
-                  div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv', inv_inv',
-                  nat.factorial_succ, nat.cast_mul, normed_field.norm_mul, mul_inv_rev' ]
+                  div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv₀, inv_inv₀,
+                  nat.factorial_succ, nat.cast_mul, normed_field.norm_mul, mul_inv_rev₀ ]
     ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * (∥x∥^n * (∥x∥^n)⁻¹) * (∥(n! : ℝ)∥ * ∥(n! : ℝ)∥⁻¹) :
           by linarith --faster than ac_refl !
     ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * 1 * 1 :
@@ -521,13 +522,12 @@ section scalar_tower
 
 variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
   [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝕂'] [normed_algebra 𝕂' 𝔸]
-  [is_scalar_tower 𝕂 𝕂' 𝔸] (p : ℕ) [char_p 𝕂 p]
-
-include p
+  [is_scalar_tower 𝕂 𝕂' 𝔸]
 
 lemma exp_series_eq_exp_series_of_field_extension (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
 begin
+  let p := ring_char 𝕂,
   haveI : char_p 𝕂' p := char_p_of_injective_algebra_map (algebra_map 𝕂 𝕂').injective p,
   rw [exp_series, exp_series,
       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
@@ -543,7 +543,7 @@ begin
   { have h' : (n! : 𝕂') ≠ 0 := λ hyp, h (key.mpr hyp),
     suffices : (n! : 𝕂) • (n!⁻¹ : 𝕂') = (n! : 𝕂) • ((n!⁻¹ : 𝕂) • 1),
     { apply_fun (λ (x : 𝕂'), (n!⁻¹ : 𝕂) • x) at this,
-      rwa [inv_smul_smul' h, inv_smul_smul' h] at this },
+      rwa [inv_smul_smul₀ h, inv_smul_smul₀ h] at this },
     rw [← smul_assoc, ← nsmul_eq_smul_cast, nsmul_eq_smul_cast 𝕂' _ (_ : 𝕂')],
     field_simp [h, h'] }
 end
@@ -555,7 +555,7 @@ begin
   ext,
   rw [exp, exp],
   refine tsum_congr (λ n, _),
-  rw exp_series_eq_exp_series_of_field_extension 𝕂 𝕂' 𝔸 p n x
+  rw exp_series_eq_exp_series_of_field_extension 𝕂 𝕂' 𝔸 n x
 end
 
 end scalar_tower
@@ -571,7 +571,7 @@ begin
 end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
-exp_eq_exp_of_field_extension ℝ ℂ ℂ 0
+exp_eq_exp_of_field_extension ℝ ℂ ℂ
 
 end complex
 

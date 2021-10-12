@@ -121,24 +121,24 @@ variables {k M : Type*} [linear_ordered_field k]
   {a b : M} {c : k}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
-⟨λ h, inv_smul_smul' hc.ne' a ▸ inv_smul_smul' hc.ne' b ▸
+⟨λ h, inv_smul_smul₀ hc.ne' a ▸ inv_smul_smul₀ hc.ne' b ▸
   smul_le_smul_of_nonneg h (inv_nonneg.2 hc.le),
   λ h, smul_le_smul_of_nonneg h hc.le⟩
 
 lemma smul_lt_iff_of_pos (hc : 0 < c) : c • a < b ↔ a < c⁻¹ • b :=
-calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
+calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul₀ hc.ne']
 ... ↔ a < c⁻¹ • b : smul_lt_smul_iff_of_pos hc
 
 lemma lt_smul_iff_of_pos (hc : 0 < c) : a < c • b ↔ c⁻¹ • a < b :=
-calc a < c • b ↔ c • c⁻¹ • a < c • b : by rw [smul_inv_smul' hc.ne']
+calc a < c • b ↔ c • c⁻¹ • a < c • b : by rw [smul_inv_smul₀ hc.ne']
 ... ↔ c⁻¹ • a < b : smul_lt_smul_iff_of_pos hc
 
 lemma smul_le_iff_of_pos (hc : 0 < c) : c • a ≤ b ↔ a ≤ c⁻¹ • b :=
-calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
+calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul₀ hc.ne']
 ... ↔ a ≤ c⁻¹ • b : smul_le_smul_iff_of_pos hc
 
 lemma le_smul_iff_of_pos (hc : 0 < c) : a ≤ c • b ↔ c⁻¹ • a ≤ b :=
-calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul' hc.ne']
+calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul₀ hc.ne']
 ... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
 
 end field

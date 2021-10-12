@@ -351,6 +351,10 @@ begin
   exact h
 end
 
+@[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
+  (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
+⟨ext, by tidy⟩
+
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/
 lemma ext_of_direction_eq {s1 s2 : affine_subspace k P} (hd : s1.direction = s2.direction)
@@ -667,6 +671,21 @@ end
 @[simp] lemma bot_coe : ((⊥ : affine_subspace k P) : set P) = ∅ :=
 rfl
 
+lemma bot_ne_top : (⊥ : affine_subspace k P) ≠ ⊤ :=
+begin
+  intros contra,
+  rw [← ext_iff, bot_coe, top_coe] at contra,
+  exact set.empty_ne_univ contra,
+end
+
+lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
+begin
+  rw ← set.ne_empty_iff_nonempty,
+  rintros rfl,
+  rw affine_subspace.span_empty at h,
+  exact bot_ne_top k V P h,
+end
+
 variables {P}
 
 /-- No points are in `⊥`. -/
@@ -680,6 +699,25 @@ variables (P)
 by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_empty, submodule.span_empty]
 
 variables {k V P}
+
+lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
+  (h₂ : affine_span k s = ⊤) : subsingleton P :=
+begin
+  obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  rw [this, ← affine_subspace.ext_iff, affine_subspace.coe_affine_span_singleton,
+    affine_subspace.top_coe, eq_comm, ← subsingleton_iff_singleton (mem_univ _)] at h₂,
+  exact subsingleton_of_univ_subsingleton h₂,
+end
+
+lemma eq_univ_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
+  (h₂ : affine_span k s = ⊤) : s = (univ : set P) :=
+begin
+  obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  rw [this, eq_comm, ← subsingleton_iff_singleton (mem_univ p), subsingleton_univ_iff],
+  exact subsingleton_of_subsingleton_span_eq_top h₁ h₂,
+end
 
 /-- A nonempty affine subspace is `⊤` if and only if its direction is
 `⊤`. -/

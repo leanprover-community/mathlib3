@@ -62,9 +62,9 @@ begin
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
     ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }
-    ...    ≤ 2 * dist a (x n) + abs (dist b (x n) - dist a (x n)) :
+    ...    ≤ 2 * dist a (x n) + |dist b (x n) - dist a (x n)| :
       by apply_rules [add_le_add_left, le_abs_self]
-    ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
+    ...    ≤ 2 * (e/2) + |embedding_of_subset x b n - embedding_of_subset x a n| :
       begin rw C, apply_rules [add_le_add, mul_le_mul_of_nonneg_left, hn.le, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
       by simp [← real.dist_eq, dist_coe_le_dist]

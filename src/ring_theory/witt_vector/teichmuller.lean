@@ -44,7 +44,7 @@ def teichmuller_fun (r : R) : 𝕎 R :=
 
 On ghost components, it is clear that `teichmuller_fun` is a monoid homomorphism.
 But in general the ghost map is not injective.
-We follow the same strategy as for proving that the the ring operations on `𝕎 R`
+We follow the same strategy as for proving that the ring operations on `𝕎 R`
 satisfy the ring axioms.
 
 1. We first prove it for rings `R` where `p` is invertible,

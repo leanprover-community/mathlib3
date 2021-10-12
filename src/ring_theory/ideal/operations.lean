@@ -1756,8 +1756,8 @@ by rw [quot_quot_equiv_quot_sup, quot_quot_mk, ring_equiv.of_hom_inv_apply, quot
     ring_hom.comp_apply, ideal.quotient.lift_mk, quot_left_to_quot_sup, ideal.quotient.factor_mk]
 
 @[simp]
-lemma quot_quot_equiv_quot_sup_symm_quot_quot_mk (x : R) : (quot_quot_equiv_quot_sup I J).symm
-  (ideal.quotient.mk (I ⊔ J) x) = quot_quot_mk I J x :=
+lemma quot_quot_equiv_quot_sup_symm_quot_quot_mk (x : R) :
+  (quot_quot_equiv_quot_sup I J).symm (ideal.quotient.mk (I ⊔ J) x) = quot_quot_mk I J x :=
 by rw [quot_quot_equiv_quot_sup, ring_equiv.of_hom_inv_symm_apply,
   lift_sup_quot_quot_mk,ideal.quotient.lift_mk]
 

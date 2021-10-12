@@ -323,7 +323,7 @@ instance _root_.is_scalar_tower.opposite_mid {M N} [monoid N] [has_scalar M N]
 instance _root_.smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
   [is_scalar_tower M N N] :
   smul_comm_class M Nᵒᵖ N :=
-⟨λ x y z, by { induction y using opposite.op_induction, simp [smul_mul_assoc] }⟩
+⟨λ x y z, by { induction y using opposite.rec, simp [smul_mul_assoc] }⟩
 
 -- The above instance does not create an unwanted diamond, the two paths to
 -- `mul_action (opposite α) (opposite α)` are defeq.
@@ -442,7 +442,7 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
 /-- The units of the opposites are equivalent to the opposites of the units. -/
 def units.op_equiv {R} [monoid R] : units Rᵒᵖ ≃* (units R)ᵒᵖ :=
 { to_fun := λ u, op ⟨unop u, unop ↑(u⁻¹), op_injective u.4, op_injective u.3⟩,
-  inv_fun := op_induction $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
+  inv_fun := opposite.rec $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
   map_mul' := λ x y, unop_injective $ units.ext $ rfl,
   left_inv := λ x, units.ext $ rfl,
   right_inv := λ x, unop_injective $ units.ext $ rfl }

@@ -108,6 +108,8 @@ variables (R)
 @[simp] lemma star_one [monoid R] [star_monoid R] : star (1 : R) = 1 :=
 op_injective $ (star_mul_equiv : R ≃* Rᵒᵖ).map_one.trans (op_one _).symm
 
+variables {R}
+
 @[simp] lemma star_pow [monoid R] [star_monoid R] (x : R) (n : ℕ) : star (x ^ n) = star x ^ n :=
 op_injective $
   ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_pow x n).trans (op_pow (star x) n).symm
@@ -133,8 +135,6 @@ open_locale big_operators
 (star_mul_aut : R ≃* R).map_prod _ _
 
 end
-
-variables {R}
 
 instance [monoid R] [star_monoid R] : star_monoid (Rᵒᵖ) :=
 { star_mul := λ x y, unop_injective (star_mul y.unop x.unop) }
@@ -183,6 +183,8 @@ variables (R)
 @[simp] lemma star_zero [add_monoid R] [star_add_monoid R] : star (0 : R) = 0 :=
 (star_add_equiv : R ≃+ R).map_zero
 
+variables {R}
+
 @[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
 (star_add_equiv : R ≃+ R).map_neg _
 
@@ -207,8 +209,6 @@ open_locale big_operators
 (star_add_equiv : R ≃+ R).map_sum _ _
 
 end
-
-variables {R}
 
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive

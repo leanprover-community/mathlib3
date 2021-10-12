@@ -436,6 +436,9 @@ See the discussion before Equation (3) of [MM92], Chapter III, Section 4. See al
 def yoneda_sheaf_condition (P : Cᵒᵖ ⥤ Type v₁) (S : sieve X) : Prop :=
 ∀ (f : S.functor ⟶ P), ∃! g, S.functor_inclusion ≫ g = f
 
+-- TODO: We can generalize the universe parameter v₁ above by composing with
+-- appropriate `ulift_functor`s.
+
 /--
 (Implementation). This is a (primarily internal) equivalence between natural transformations
 and compatible families.
@@ -776,7 +779,8 @@ end presieve
 
 namespace equalizer
 
-variables {C : Type v₁} [small_category C] (P : Cᵒᵖ ⥤ Type v₁) {X : C} (R : presieve X) (S : sieve X)
+variables {C : Type u₁} [category.{v₁} C] (P : Cᵒᵖ ⥤ Type (max v₁ u₁))
+  {X : C} (R : presieve X) (S : sieve X)
 
 noncomputable theory
 
@@ -784,7 +788,7 @@ noncomputable theory
 The middle object of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
 of https://stacks.math.columbia.edu/tag/00VM.
 -/
-def first_obj : Type v₁ :=
+def first_obj : Type (max v₁ u₁) :=
 ∏ (λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (op f.1))
 
 /-- Show that `first_obj` is isomorphic to `family_of_elements`. -/
@@ -823,7 +827,7 @@ namespace sieve
 The rightmost object of the fork diagram of Equation (3) [MM92], which contains the data used
 to check a family is compatible.
 -/
-def second_obj : Type v₁ :=
+def second_obj : Type (max v₁ u₁) :=
 ∏ (λ (f : Σ Y Z (g : Z ⟶ Y), {f' : Y ⟶ X // S f'}), P.obj (op f.2.1))
 
 /-- The map `p` of Equations (3,4) [MM92]. -/
@@ -897,7 +901,7 @@ variables [has_pullbacks C]
 The rightmost object of the fork diagram of https://stacks.math.columbia.edu/tag/00VM, which
 contains the data used to check a family of elements for a presieve is compatible.
 -/
-def second_obj : Type v₁ :=
+def second_obj : Type (max v₁ u₁) :=
 ∏ (λ (fg : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g})),
   P.obj (op (pullback fg.1.2.1 fg.2.2.1)))
 

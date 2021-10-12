@@ -106,16 +106,6 @@ def conj [group G] : G →* mul_aut G :=
 @[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
 @[simp] lemma conj_inv_apply [group G] (g h : G) : (conj g)⁻¹ h = g⁻¹ * h * g := rfl
 
-lemma conj_mul [group G] (g h k : G): conj (g*h) k = conj g (conj h k):=
-begin
-simp only [mul_apply, monoid_hom.map_mul],
-end
-
-lemma conj_mul' [group G] (g h : G) : ⇑ (conj (g*h)) = conj g ∘ conj h :=
-begin
-simp [conj_mul],
-end
-
 end mul_aut
 
 namespace add_aut

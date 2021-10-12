@@ -8,8 +8,6 @@ import group_theory.quotient_group
 import tactic.linarith
 import group_theory.subgroup.pointwise
 
-
-
 open_locale pointwise
 
 variables {G G' : Type*} [group G][group G']
@@ -30,7 +28,7 @@ comap_self_subtype H
 lemma index_of_top  : ( ⊤ : subgroup G).index = 1 :=
 begin
   rw subgroup.index,
-  have h3: (cardinal.mk  (quotient_group.quotient (⊤ : subgroup G))) = 1 ,
+  have h3 : (cardinal.mk  (quotient_group.quotient (⊤ : subgroup G))) = 1 ,
     by {rw cardinal.eq_one_iff_unique, split, apply quotient_group.subsingleton_quotient_top,
       simp only [nonempty_of_inhabited],},
   simp only [h3, cardinal.one_to_nat],
@@ -40,9 +38,9 @@ lemma reflex (H : subgroup G) : commensurable H H :=
 begin
   rw commensurable,
   simp only [ne.def, and_self],
-  have:= subgroup_of_top H,
+  have := subgroup_of_top H,
   rw this,
-  have h2:= index_of_top,
+  have h2 := index_of_top,
   rw h2,
   simp only [nat.one_ne_zero, not_false_iff],
 end
@@ -76,7 +74,9 @@ end
 
 lemma subgroup_of_le (H K L : subgroup G) (h : H ≤ K) : H.subgroup_of L ≤ K.subgroup_of L :=
 begin
-intros x h, cases x, solve_by_elim,
+  intros x h,
+  cases x,
+  solve_by_elim,
 end
 
 lemma mem_subgroup_of' {H K : subgroup G} {h : K} :
@@ -89,18 +89,16 @@ end
 def subgroup_of_to_inf (H K : subgroup G) : (H.subgroup_of K) →  H ⊓ K :=
 λ x, ⟨K.subtype x, by { simp, cases x, solve_by_elim, }⟩
 
-
-noncomputable def mapto (H K L : subgroup G) :
+noncomputable def quot_subgroup_of_to_inf (H K L : subgroup G) :
   quotient_group.quotient (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)) →
   quotient_group.quotient (H.subgroup_of (K ⊓ L)) :=
   λ x, quotient_group.mk (subgroup_of_to_inf K L (x.out'))
 
-lemma maptoinj (H K L : subgroup G) : function.injective (mapto H K L) :=
-
+lemma maptoinj (H K L : subgroup G) : function.injective (quot_subgroup_of_to_inf H K L) :=
 begin
   rw function.injective,
   intros a b,
-  rw mapto,
+  rw quot_subgroup_of_to_inf,
   simp_rw subgroup_of_to_inf,
   rw quotient_group.eq',
   simp only [subgroup.coe_subtype],
@@ -118,13 +116,13 @@ end
 
 
 lemma subgroup_of_index_zero_index_zero (H K L : subgroup G) :
-  (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)).index =0  →
-  (H.subgroup_of (K ⊓ L)).index =0 :=
+  (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)).index = 0  →
+  (H.subgroup_of (K ⊓ L)).index = 0 :=
 begin
-simp_rw subgroup.index,
-intro h,
-have H1:=cardinal.to_nat_zero_of_injective' (maptoinj H K L),
-apply H1 h,
+  simp_rw subgroup.index,
+  intro h,
+  have H1 := cardinal.to_nat_zero_of_injective' (maptoinj H K L),
+  apply H1 h,
 end
 
 
@@ -158,21 +156,22 @@ lemma inf_ind_prod (H K L : subgroup G) :
 
 
 noncomputable def  inf_quot_map (H K L : subgroup G) :
-  quotient_group.quotient (H.subgroup_of (L ⊓ K)) →
-  quotient_group.quotient ((H.subgroup_of K)) :=
-λ x, quotient_group.mk (⟨x.out', by
-  {let y := x.out', have:=y.property,
-    simp only [subgroup.mem_inf, subtype.val_eq_coe] at this, simp_rw ← y, exact this.2, }⟩ : K)
+  quotient_group.quotient (H.subgroup_of (L ⊓ K)) → quotient_group.quotient ((H.subgroup_of K)) :=
+  λ x, quotient_group.mk (⟨x.out', by
+    {let y := x.out',
+    have:=y.property,
+    simp only [subgroup.mem_inf, subtype.val_eq_coe] at this,
+    simp_rw ← y,
+    exact this.2, }⟩ : K)
 
 lemma inf_quot_map_injective (H K L : subgroup G) : function.injective (inf_quot_map H K L) :=
-
 begin
   rw function.injective ,
   rw inf_quot_map,
   intros a b,
   intro hab,
-  have ha:=  quotient.out_eq' a,
-  have hb:=  quotient.out_eq' b,
+  have ha :=  quotient.out_eq' a,
+  have hb :=  quotient.out_eq' b,
   rw ← ha,
   rw ← hb,
   simp only [quotient.eq'] at *,
@@ -233,13 +232,13 @@ end
 
 lemma equivalence : equivalence (@commensurable G _)   :=
 begin
-rw equivalence,
-split,
-apply reflex,
-split,
-rw symmetric,
-simp only [symm, imp_self, forall_const],
-apply trans,
+  rw equivalence,
+  split,
+  apply reflex,
+  split,
+  rw symmetric,
+  simp only [symm, imp_self, forall_const],
+  apply trans,
 end
 
 noncomputable def conj_map (H K : subgroup G) (g : G) :  quotient_group.quotient (H.subgroup_of K) →
@@ -272,8 +271,7 @@ begin
   simp only [conj_mem'],
   split,
   intro h,
-  use g⁻¹*x*g,
-  apply h,
+  use ⟨ g⁻¹*x*g, h⟩ ,
   simp only [subgroup.coe_mk],
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_right_inv, mul_inv_cancel_right],
@@ -287,8 +285,8 @@ end
 noncomputable def conj_map_inv (H K : subgroup G) (g : G) :
   quotient_group.quotient (  (conj_subgroup g H).subgroup_of (conj_subgroup g K)) →
   quotient_group.quotient (H.subgroup_of K) :=
-   λ x , quotient_group.mk (⟨(mul_aut.conj g)⁻¹ x.out', by
-   {simp,
+  λ x , quotient_group.mk (⟨(mul_aut.conj g)⁻¹ x.out',
+  by {simp,
     rw conj_mem'' _ _ _,
     exact set_like.coe_mem (quotient.out' x),} ⟩ :  K)
 
@@ -310,8 +308,7 @@ begin
    subgroup.coe_inv,  subgroup.coe_mul, inv_inv, subgroup.coe_mk] at *,
   simp_rw ← mul_assoc at hab,
   simp only [mul_inv_cancel_right] at hab,
-  use  g⁻¹ * (↑(quotient.out' a))⁻¹ * ↑(quotient.out' b) * g,
-  apply hab,
+  use  ⟨ g⁻¹ * (↑(quotient.out' a))⁻¹ * ↑(quotient.out' b) * g, hab⟩,
   simp only [subgroup.coe_mk],
   simp_rw ← mul_assoc ,
   simp only [one_mul, mul_right_inv, mul_inv_cancel_right],
@@ -321,14 +318,14 @@ noncomputable def  quot_conj_equiv (H K : subgroup G) (g : G) :
    quotient_group.quotient (H.subgroup_of K) ≃
    quotient_group.quotient (  (conj_subgroup g H).subgroup_of (conj_subgroup g K)) :=
 begin
-have:= function.embedding.schroeder_bernstein  (conj_map_inj H K g) (conj_map_inv_inj H K g),
-apply equiv.of_bijective this.some,
-apply this.some_spec,
+  have := function.embedding.schroeder_bernstein  (conj_map_inj H K g) (conj_map_inv_inj H K g),
+  apply equiv.of_bijective this.some,
+  apply this.some_spec,
 end
 
 
 
-lemma comm_conj {H K : subgroup G} (g : G):
+lemma comm_conj {H K : subgroup G} (g : G) :
   commensurable H K  ↔ commensurable (conj_subgroup g H) (conj_subgroup g K) :=
 begin
   simp_rw commensurable,
@@ -337,8 +334,7 @@ begin
   have h11:= cardinal.mk_congr h1,
   have h2:= quot_conj_equiv K H g,
   have h22:= cardinal.mk_congr h2,
-  rw h11,
-  rw h22,
+  rw [h11, h22],
 end
 
 lemma comm_inv (H : subgroup G) (g : G) :
@@ -349,6 +345,9 @@ begin
   simp only [mul_left_inv, cong_subgroup_id_eq_self],
 end
 
+/--For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
+such that `commensurable (conj_subgroup g H) H`   -/
+
 def commensurator (H : subgroup G) : subgroup G :={
   carrier := {g : G | commensurable (conj_subgroup g H) H },
   one_mem' := by {simp, apply reflex, },
@@ -356,7 +355,6 @@ def commensurator (H : subgroup G) : subgroup G :={
       simp only [set.mem_set_of_eq] at *,
       rw conj_subgroup_mul,
       have h1: commensurable (conj_subgroup a (conj_subgroup b H)) (conj_subgroup a H), by {
-      have hb':= ((symm _ _).1 hb),
       have hab:= trans ha ((symm _ _).1 hb),
       rw (comm_conj a⁻¹) at hab,
       rw ← conj_subgroup_mul at hab,
@@ -374,7 +372,7 @@ def commensurator (H : subgroup G) : subgroup G :={
 
 @[simp]
 lemma commensurator_mem_iff (H : subgroup G) (g : G) :
-  g ∈ (commensurator H) ↔ commensurable (conj_subgroup g H) H :=iff.rfl
+  g ∈ (commensurator H) ↔ commensurable (conj_subgroup g H) H := iff.rfl
 
 lemma commensurable_subgroups_have_eq_commensurator (H K : subgroup G) :
   commensurable H K → commensurator H = commensurator K :=
@@ -385,7 +383,7 @@ begin
   have h1:= (comm_conj x).1 hk,
   split,
   intro h,
-  have h2:= trans h hk,
+  have h2 := trans h hk,
   apply trans ((symm _ _).1 h1) h2,
   intro h,
   apply trans (trans h1 h) ((symm _ _).1 hk),

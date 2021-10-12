@@ -5,7 +5,6 @@ Authors: Shing Tak Lam
 -/
 import topology.homotopy.path
 import category_theory.groupoid
-import analysis.convex.basic
 
 /-!
 # Fundamental groupoid of a space

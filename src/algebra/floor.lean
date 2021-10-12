@@ -134,14 +134,6 @@ lemma floor_eq_iff {r : α} {z : ℤ} :
 by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,
 int.lt_add_one_iff, le_antisymm_iff, and.comm]
 
-lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
-  @floor _ _ inst1 = @floor _ _ inst2 :=
-begin
-  ext v,
-  suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [floor_eq_iff],
-  exact ⟨floor_le v, lt_floor_add_one v⟩
-end
-
 lemma floor_eq_on_Ico (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), ⌊x⌋ = n :=
 λ x ⟨h₀, h₁⟩, floor_eq_iff.mpr ⟨h₀, h₁⟩
 
@@ -276,6 +268,14 @@ lemma floor_lt_ceil_of_lt {x y : α} (h : x < y) : ⌊x⌋ < ⌈y⌉ :=
 by { rw floor_lt, exact h.trans_le (le_ceil _) }
 
 end int
+
+lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
+  @floor _ _ inst1 = @floor _ _ inst2 :=
+begin
+  ext v,
+  suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [floor_eq_iff],
+  exact ⟨floor_le v, lt_floor_add_one v⟩
+end
 
 /-! ### `nat.floor` and `nat.ceil` -/
 

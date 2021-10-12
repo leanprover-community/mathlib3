@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Johan Commelin. All rights reserved.
+Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
@@ -34,7 +34,7 @@ It is a variant on the tactic `by_contra` (`tactic.interactive.by_contra`).
 meta def by_contra' (h : parse ident?) (t : parse (tk ":" *> texpr)?) : tactic unit := do
   let h := h.get_or_else `this,
   tgt ← target,
-  mk_mapp `classical.by_contradiction [some tgt] >>= tactic.eapply >> skip,
+  mk_mapp `classical.by_contradiction [some tgt] >>= tactic.eapply,
   h₁ ← tactic.intro h,
   t' ← infer_type h₁,
   -- negation-normalize `t'` to the expression `e'` and get a proof `pr'` of `t' = e'`

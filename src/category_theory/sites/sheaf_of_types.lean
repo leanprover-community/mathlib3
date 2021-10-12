@@ -664,7 +664,7 @@ begin
   intros h x hx,
   let x' := x.comp_presheaf_map i.inv,
   have : x'.compatible := family_of_elements.compatible.comp_presheaf_map i.inv hx,
-  obtain ⟨t,ht1,ht2⟩ := h x' this,
+  obtain ⟨t, ht1, ht2⟩ := h x' this,
   use i.hom.app _ t,
   fsplit,
   { convert family_of_elements.is_amalgamation.comp_presheaf_map i.hom ht1,

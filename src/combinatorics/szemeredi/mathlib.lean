@@ -16,12 +16,82 @@ open finset fintype function
 
 variable {α : Type u}
 
-lemma pow_le_of_le_one {R : Type*} [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {i : ℕ}
-  (hi : 0 < i) : a ^ i ≤ a :=
-(pow_one a).subst ( pow_le_pow_of_le_one h₀ h₁ hi)
+section group_power
+variables {R : Type*}
 
-lemma sq_le {R : Type*} [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a :=
-pow_le_of_le_one h₀ h₁ zero_lt_two
+lemma pow_right_comm [ordered_semiring R] {a : R} {b c : ℕ} : (a^b)^c = (a^c)^b :=
+by rw [←pow_mul, mul_comm, pow_mul]
+
+lemma new_one_lt_pow {K} [ordered_semiring K] [nontrivial K] {p : K} (hp : 1 < p) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
+| 1 h := by simp; assumption
+| (k+2) h :=
+  begin
+    rw [←one_mul (1 : K), pow_succ],
+    refine mul_lt_mul hp _ zero_lt_one (zero_lt_one.trans hp).le,
+    apply le_of_lt,
+    simpa using new_one_lt_pow (nat.le_add_left 1 k),
+  end
+
+lemma pow_le_of_le_one [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) :
+  a ^ n ≤ a :=
+(pow_one a).subst (pow_le_pow_of_le_one h₀ h₁ (nat.pos_of_ne_zero hn))
+
+lemma sq_le [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a :=
+pow_le_of_le_one h₀ h₁ two_ne_zero
+
+lemma pow_lt_one [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) :
+  a^n < 1 :=
+(one_pow n).subst (pow_lt_pow_of_lt_left h₁ h₀ (nat.pos_of_ne_zero hn))
+
+lemma pow_le_one_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
+  (hn : n ≠ 0) :
+  a^n ≤ 1 ↔ a ≤ 1 :=
+begin
+  refine ⟨_, pow_le_one n ha⟩,
+  rw [←not_lt, ←not_lt],
+  exact mt (λ h, one_lt_pow h (nat.pos_of_ne_zero hn)),
+end
+
+lemma one_le_pow_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
+  (hn : n ≠ 0) :
+  1 ≤ a^n ↔ 1 ≤ a :=
+begin
+  refine ⟨_, λ h, one_le_pow_of_one_le h n⟩,
+  rw [←not_lt, ←not_lt],
+  exact mt (λ h, pow_lt_one ha h hn),
+end
+
+lemma one_lt_pow_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
+  (hn : n ≠ 0) :
+  1 < a^n ↔ 1 < a :=
+begin
+  refine ⟨_, λ h, one_lt_pow h (nat.pos_of_ne_zero hn)⟩,
+  rw [←not_le, ←not_le],
+  exact mt (pow_le_one n ha),
+end
+
+lemma pow_lt_one_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
+  (hn : n ≠ 0) :
+  a^n < 1 ↔ a < 1 :=
+begin
+  refine ⟨_, λ h, pow_lt_one ha h hn⟩,
+  rw [←not_le, ←not_le],
+  exact mt (λ h, one_le_pow_of_one_le h n),
+end
+
+lemma sq_le_one_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : a^2 ≤ 1 ↔ a ≤ 1 :=
+pow_le_one_iff_of_nonneg ha two_ne_zero
+
+lemma sq_lt_one_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : a^2 < 1 ↔ a < 1 :=
+pow_lt_one_iff_of_nonneg ha two_ne_zero
+
+lemma one_le_sq_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : 1 ≤ a^2 ↔ 1 ≤ a :=
+one_le_pow_iff_of_nonneg ha two_ne_zero
+
+lemma one_lt_sq_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : 1 < a^2 ↔ 1 < a :=
+one_lt_pow_iff_of_nonneg ha two_ne_zero
+
+end group_power
 
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ i j, singleton_inj.1
@@ -311,6 +381,11 @@ end
 
 lemma is_uniform_comm (ε : ℝ) {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
 ⟨λ h, G.is_uniform_symmetric ε h, λ h, G.is_uniform_symmetric ε h⟩
+
+variables {G}
+
+lemma is_uniform.symm {ε : ℝ} {U V : finset α} (h : is_uniform G ε U V) : is_uniform G ε V U :=
+G.is_uniform_symmetric ε h
 
 end simple_graph
 

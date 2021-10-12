@@ -34,20 +34,23 @@ noncomputable def finpartition_on.is_equipartition.star (V : finset α) :
   finset (finset α) :=
 (hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ (G.witness ε U V).1)
 
-variables {hP G ε U hU V}
-
 /-! # star -/
 
 /-- Each thing in star is a subset of the witness -/
 lemma subset_witness_of_mem_star : ∀ A ∈ hP.star G ε hU V, A ⊆ (G.witness ε U V).1 :=
 λ A hA, (mem_filter.1 hA).2
 
+lemma bUnion_star_subset_witness : (hP.star G ε hU V).bUnion id ⊆ (G.witness ε U V).1 :=
+bUnion_subset_iff_forall_subset.2 (subset_witness_of_mem_star hP G ε hU V)
+
 lemma star_subset_chunk_increment : hP.star G ε hU V ⊆ (hP.chunk_increment G ε hU).parts :=
 filter_subset _ _
 
 lemma star_pairwise_disjoint : ∀ (x y ∈ hP.star G ε hU V), ∀ i ∈ x, i ∈ y → x = y :=
 λ x y hx hy,
-  finpartition_on.disjoint _ _ _ (star_subset_chunk_increment hx) (star_subset_chunk_increment hy)
+  finpartition_on.disjoint _ _ _ (star_subset_chunk_increment hP G ε hU V hx) (star_subset_chunk_increment hP G ε hU V hy)
+
+variables {V}
 
 lemma witness_sdiff_bUnion_star_small (hV : V ∈ P.parts) (h : ¬G.is_uniform ε U V) :
   ((G.witness ε U V).1 \ finset.bUnion (hP.star G ε hU V) id).card ≤ 2^(P.size - 1) * m :=
@@ -64,7 +67,51 @@ begin
   -- },
 
   -- },
+end.
+
+lemma one_sub_eps_mul_card_witness_le_card_star (hV : V ∈ P.parts) (h : ¬G.is_uniform ε U V)
+  (hPε : 100 ≤ 4^P.size * ε^5) (hε₁ : ε ≤ 1) :
+  (1 - ε/10) * (G.witness ε U V).1.card ≤ ((hP.star G ε hU V).bUnion id).card :=
+begin
+  have hε' : 0 < ε := sorry,
+  have : (2^P.size : ℝ) * m/(U.card * ε) ≤ ε/10,
+  { rw [←div_div_eq_div_mul, div_le_iff' hε'],
+    refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two P.size),
+    calc
+      2^P.size * ((2^P.size * m : ℝ)/U.card)
+      = (2 * 2)^P.size/U.card : sorry
+      ... = 4^P.size/U.card : by norm_num
+      ... ≤ 1 : sorry
+      ... ≤ 2^P.size * ε^2 / 10 : begin
+        refine (one_le_sq_iff (div_nonneg (mul_nonneg (pow_nonneg (@zero_le_two ℝ _) _) $ sq_nonneg _) $ by norm_num)).1 _,
+        rw [div_pow, mul_pow, pow_right_comm, ←pow_mul ε,
+          one_le_div (sq_pos_of_ne_zero (10 : ℝ) $ by norm_num)],
+        calc
+          (10 ^ 2 : ℝ)
+          = 100 : by norm_num
+          ... ≤ 4^P.size * ε^5 : hPε
+          ... ≤ 4^P.size * ε^4
+              : mul_le_mul_of_nonneg_left (pow_le_pow_of_le_one hε'.le hε₁ (nat.le_succ _))
+                  (pow_nonneg zero_lt_four.le _)
+          ... = (2^2)^P.size * ε ^ (2 * 2) : by norm_num,
+      end
+      ... = 2^P.size * (ε * (ε / 10)) : by rw [mul_div_assoc, sq, mul_div_assoc] },
+  calc
+    (1 - ε/10) * (G.witness ε U V).1.card
+        ≤ (1 - 2^P.size * m/(U.card * ε)) * (G.witness ε U V).1.card
+        : mul_le_mul_of_nonneg_right (sub_le_sub_left this _) (nat.cast_nonneg _)
+    ... = (1 - 2^P.size * m/(U.card * ε)) * (G.witness ε U V).1.card: sorry
+    ... ≤ (G.witness ε U V).1.card - 2^(P.size - 1) * m : sorry
+    ... ≤ ((hP.star G ε hU V).bUnion id).card
+        : begin
+          norm_cast,
+          rw [sub_le, ←nat.cast_sub (finset.card_le_of_subset $ bUnion_star_subset_witness
+            hP G ε hU V), ←card_sdiff (bUnion_star_subset_witness hP G ε hU V), nat.cast_le],
+          exact witness_sdiff_bUnion_star_small hP G ε hU hV h,
+        end
 end
+
+variables {hP G ε U hU V}
 
 /-! # chunk_increment -/
 
@@ -375,13 +422,21 @@ begin
         end
 end
 
-lemma abs_density_star_star_sub_density_lt_eps [nonempty α]
+lemma abs_density_star_sub_density_le_eps [nonempty α]
   (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV : ¬ G.is_uniform ε U V) :
   |G.edge_density ((hP.star G ε hU V).bUnion id) ((hP.star G ε hV U).bUnion id) -
-    G.edge_density U V| < ε/5 :=
+    G.edge_density (G.witness ε U V).fst (G.witness ε V U).fst| ≤ ε/5 :=
 begin
-  have := lemma_A G.adj,
+  have hε' : 0 < ε := sorry,
+  convert lemma_A G.adj
+    (bUnion_star_subset_witness hP G ε hU V)
+    (bUnion_star_subset_witness hP G ε hV U)
+    (div_nonneg hε'.le $ by norm_num)
+    (one_sub_eps_mul_card_witness_le_card_star hP G ε hU hV hUV hPε hε₁)
+    (one_sub_eps_mul_card_witness_le_card_star hP G ε hV hU (λ hVU, hUV hVU.symm) hPε hε₁),
+  rw [mul_div_comm, div_eq_mul_one_div],
+  norm_num,
 end
 
 lemma stuff [nonempty α]

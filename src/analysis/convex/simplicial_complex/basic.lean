@@ -37,15 +37,16 @@ variables (𝕜 E)
 /-- A simplicial complex in a `𝕜`-module. -/
 @[ext] structure simplicial_complex :=
 (faces : set (finset E))
+(empty_mem : ∅ ∈ faces)
 (indep : ∀ {s}, s ∈ faces → affine_independent 𝕜 (λ p, p : (s : set E) → E))
 (down_closed : ∀ {s t}, s ∈ faces → t ⊆ s → t ∈ faces)
 (disjoint : ∀ {s t}, s ∈ faces → t ∈ faces →
   convex_hull 𝕜 ↑s ∩ convex_hull 𝕜 ↑t ⊆ convex_hull 𝕜 (s ∩ t : set E))
 
 /-- The empty simplicial complex is made up of only the empty simplex. -/
-def simplicial_complex.empty :
-  simplicial_complex 𝕜 E :=
+def simplicial_complex.empty : simplicial_complex 𝕜 E :=
 { faces := {∅},
+  empty_mem := mem_singleton ∅,
   indep :=
     begin
       rintro _ (rfl : _ = ∅),
@@ -60,7 +61,7 @@ def simplicial_complex.empty :
       simp_rw [finset.coe_empty, empty_inter, convex_hull_empty, empty_inter],
     end }
 
-instance : has_empty (simplicial_complex 𝕜 E) := ⟨simplicial_complex.empty⟩
+instance : has_emptyc (simplicial_complex 𝕜 E) := ⟨simplicial_complex.empty 𝕜 E⟩
 
 variables {𝕜 E} {S S₁ S₂ : simplicial_complex 𝕜 E} {s t : finset E} {x y : E}
   {m n : ℕ}
@@ -74,21 +75,28 @@ instance : has_coe (simplicial_complex 𝕜 E) (set E) := ⟨simplicial_complex.
 lemma mem_iff : x ∈ (S : set E) ↔ ∃ s ∈ S.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_bUnion_iff
 
 /-- A constructor for simplicial complexes by giving a bigger simplicial complex. -/
-@[simps] def simplicial_complex.subset (S : simplicial_complex 𝕜 E) (faces : set (finset E))
-  (subset : faces ⊆ S.faces) (down_closed : ∀ {s t}, s ∈ faces → t ⊆ s → t ∈ faces) :
+@[simps] def simplicial_complex.subset (S : simplicial_complex 𝕜 E)
+  (faces : set (finset E))
+  (nonempty : faces.nonempty)
+  (subset : faces ⊆ S.faces)
+  (down_closed : ∀ {s t}, s ∈ faces → t ⊆ s → t ∈ faces) :
   simplicial_complex 𝕜 E :=
 { faces := faces,
+  empty_mem := let ⟨x, hx⟩ := nonempty in down_closed hx x.empty_subset,
   indep := λ s hs, S.indep (subset hs),
   down_closed := λ s t hs hts, down_closed hs hts,
   disjoint := λ s t hs ht, S.disjoint (subset hs) (subset ht) }
 
 /-- A constructor for simplicial complexes by specifying a set of faces to close downward. -/
-@[simps] def simplicial_complex.of_faces (faces : set (finset E))
+@[simps] def simplicial_complex.of_faces
+  (faces : set (finset E))
+  (nonempty : faces.nonempty)
   (indep : ∀ {s}, s ∈ faces → affine_independent 𝕜 (λ p, p : (s : set E) → E))
   (disjoint : ∀ {s t}, s ∈ faces → t ∈ faces →
     convex_hull 𝕜 ↑s ∩ convex_hull 𝕜 ↑t ⊆ convex_hull 𝕜 (s ∩ t : set E)) :
   simplicial_complex 𝕜 E :=
 { faces := {s | ∃ t, t ∈ faces ∧ s ⊆ t},
+  empty_mem := let ⟨x, hx⟩ := nonempty in ⟨x, hx, x.empty_subset⟩,
   indep := λ s ⟨t, ht, hst⟩, (indep ht).mono hst,
   down_closed := λ s t ⟨u, hu, hsu⟩ hts, ⟨u, hu, hts.trans hsu⟩,
   disjoint := -- This is actually pretty tricky. The idea is to work in `u`, then in `v`, then
@@ -118,17 +126,18 @@ lemma mem_iff : x ∈ (S : set E) ↔ ∃ s ∈ S.faces, x ∈ convex_hull 𝕜 
     end}
 
 /-- A constructor for simplicial complexes by specifying a face to close downward. -/
-@[simps] def simplicial_complex.of_face (s : set E)
+@[simps] def simplicial_complex.of_face (s : finset E)
   (indep : affine_independent 𝕜 (λ p, p : (s : set E) → E)) :
   simplicial_complex 𝕜 E :=
 simplicial_complex.of_faces {s}
+  (singleton_nonempty s)
   begin rintro t (ht : t = s), rw ht, exact indep end
   begin rintro t u (ht : t = s) (hu : u = s), rw [ht, hu, inter_self _, inter_self _],
     exact subset.rfl end
 
-lemma simplicial_complex.of_facemem_simplex_complex_iff
+lemma simplicial_complex.of_face_mem_simplex_complex_iff
   {hs : affine_independent 𝕜 (λ p, p : (s : set E) → E)} :
-  t ∈ (simplicial_complex.of_face hs).faces ↔ t ⊆ s :=
+  t ∈ (simplicial_complex.of_face _ hs).faces ↔ t ⊆ s :=
 begin
   split,
   { rintro ⟨u, (hu : u = s), hts⟩,

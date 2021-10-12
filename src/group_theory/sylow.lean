@@ -212,7 +212,7 @@ begin
   obtain ⟨n, hn⟩ := exists_smul_eq N ((mul_aut.conj_normal g : mul_aut N) • P) P,
   rw ← inv_mul_cancel_left ↑n g,
   refine mul_mem _ (inv_mem _ (mem_sup_right n.2)) (mem_sup_left _),
-  rw [sylow.smul_def, ←mul_smul, ←conj_normal_coe, ←mul_aut.conj_normal.map_mul,
+  rw [sylow.smul_def, ←mul_smul, ←mul_aut.conj_normal_coe, ←mul_aut.conj_normal.map_mul,
       sylow.ext_iff, sylow.pointwise_smul_def, pointwise_smul_def] at hn,
   refine λ x, (mem_map_iff_mem (show function.injective (mul_aut.conj (↑n * g)).to_monoid_hom,
     from (mul_aut.conj (↑n * g)).injective)).symm.trans _,

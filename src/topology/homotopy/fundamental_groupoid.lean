@@ -29,6 +29,8 @@ namespace path
 
 namespace homotopy
 
+section
+
 private def refl_trans_symm_aux (x : I × I) : ℝ :=
 if (x.2 : ℝ) ≤ 1/2 then
   x.1 * 2 * x.2
@@ -102,11 +104,16 @@ def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.
       norm_num [refl_trans_symm_aux] }
   end }
 
+def refl_symm_trans (p : path x₀ x₁) : homotopy (path.refl x₁) (p.symm.trans p) :=
+(refl_trans_symm p.symm).cast rfl $ congr_arg _ path.symm_symm
+
+end
+
 private def reparam_aux (x y t : I) : I :=
 ⟨σ t * x + t * y, show (σ t : ℝ) • (x : ℝ) + (t : ℝ) • (y : ℝ) ∈ I, from convex_Icc _ _ x.2 y.2
   (by unit_interval) (by unit_interval) (by simp)⟩
 
-def reparam {p  : path x₀ x₁} (f : I → I) (hf : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
+def reparam (p  : path x₀ x₁) (f : I → I) (hf : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
   homotopy p (p.reparam f hf hf₀ hf₁) :=
 { to_fun := λ x, p (reparam_aux x.2 (f x.2) x.1),
   continuous_to_fun := by continuity!,
@@ -134,53 +141,132 @@ def symm₂ {p q : path x₀ x₁} (h : p.homotopy q) : p.symm.homotopy q.symm :
       simp }
   end }
 
+section trans_refl
+
+def trans_refl_reparam_aux (t : I) : ℝ :=
+if (t : ℝ) ≤ 1/2 then
+  2 * t
+else
+  1
+
+@[continuity]
+lemma continuous_trans_refl_reparam_aux : continuous trans_refl_reparam_aux :=
+begin
+  refine continuous_if_le _ _ (continuous.continuous_on _) (continuous.continuous_on _) _;
+  [continuity, continuity, continuity, continuity, skip],
+  intros x hx,
+  norm_num [hx]
+end
+
+lemma trans_refl_reparam_aux_mem_I (t : I) : trans_refl_reparam_aux t ∈ I :=
+begin
+  unfold trans_refl_reparam_aux,
+  split_ifs; split; linarith [unit_interval.le_one t, unit_interval.nonneg t]
+end
+
+lemma trans_refl_reparam_aux_zero : trans_refl_reparam_aux 0 = 0 :=
+by norm_num [trans_refl_reparam_aux]
+
+lemma trans_refl_reparam_aux_one : trans_refl_reparam_aux 1 = 1 :=
+by norm_num [trans_refl_reparam_aux]
+
+lemma trans_refl_reparam (p : path x₀ x₁) : p.trans (path.refl x₁) =
+  p.reparam (λ t, ⟨trans_refl_reparam_aux t, trans_refl_reparam_aux_mem_I t⟩) (by continuity)
+  (subtype.ext trans_refl_reparam_aux_zero) (subtype.ext trans_refl_reparam_aux_one) :=
+begin
+  ext,
+  unfold trans_refl_reparam_aux,
+  simp only [path.trans_apply, not_le, coe_to_fun, function.comp_app],
+  split_ifs,
+  { refl },
+  { simp }
+end
+
+def trans_refl (p : path x₀ x₁) : homotopy (p.trans (path.refl x₁)) p :=
+((homotopy.reparam p (λ t, ⟨trans_refl_reparam_aux t, trans_refl_reparam_aux_mem_I t⟩)
+  (by continuity) (subtype.ext trans_refl_reparam_aux_zero)
+  (subtype.ext trans_refl_reparam_aux_one)).cast rfl (trans_refl_reparam p).symm).symm
+
+def refl_trans (p : path x₀ x₁) : homotopy ((path.refl x₀).trans p) p :=
+(trans_refl p.symm).symm₂.cast (by simp) (by simp)
+
+end trans_refl
+
+section assoc
+
+def trans_assoc_reparam_aux (t : I) : ℝ :=
+  if (t : ℝ) ≤ 1/4 then
+    2 * t
+  else if (t : ℝ) ≤ 1/2 then
+    t + 1/4
+  else
+    1/2 * (t + 1)
+
+@[continuity]
+lemma continuous_trans_assoc_reparam_aux : continuous trans_assoc_reparam_aux :=
+begin
+  refine continuous_if_le _ _ (continuous.continuous_on _)
+    (continuous_if_le _ _ (continuous.continuous_on _)
+    (continuous.continuous_on _) _).continuous_on _;
+    [continuity, continuity, continuity, continuity, continuity, continuity, continuity,
+     skip, skip];
+    { intros x hx,
+      norm_num [hx], }
+end
+
+lemma trans_assoc_reparam_aux_mem_I (t : I) : trans_assoc_reparam_aux t ∈ I :=
+begin
+  unfold trans_assoc_reparam_aux,
+  split_ifs; split; linarith [unit_interval.le_one t, unit_interval.nonneg t]
+end
+
+lemma trans_assoc_reparam_aux_zero : trans_assoc_reparam_aux 0 = 0 :=
+by norm_num [trans_assoc_reparam_aux]
+
+lemma trans_assoc_reparam_aux_one : trans_assoc_reparam_aux 1 = 1 :=
+by norm_num [trans_assoc_reparam_aux]
+
+lemma trans_assoc_reparam {x₀ x₁ x₂ x₃ : X} (p : path x₀ x₁) (q : path x₁ x₂) (r : path x₂ x₃) :
+  (p.trans q).trans r = (p.trans (q.trans r)).reparam
+    (λ t, ⟨trans_assoc_reparam_aux t, trans_assoc_reparam_aux_mem_I t⟩)
+    (by continuity) (subtype.ext trans_assoc_reparam_aux_zero)
+    (subtype.ext trans_assoc_reparam_aux_one) :=
+begin
+  ext,
+  simp only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le, function.comp_app,
+             ne.def, not_false_iff, bit0_eq_zero, one_ne_zero, mul_ite, subtype.coe_mk,
+             path.coe_to_fun],
+  split_ifs with h₁ h₂ h₃ h₄ h₅,
+  { simp only [one_div, subtype.coe_mk] at h₂,
+    simp [h₂, h₃] },
+  { exfalso,
+    simp only [subtype.coe_mk] at h₂,
+    linarith },
+  { exfalso,
+    simp only [subtype.coe_mk] at h₂,
+    linarith },
+  { have h : ¬ (x : ℝ) + 1/4 ≤ 1/2, by linarith,
+    have h' : 2 * ((x : ℝ) + 1/4) - 1 ≤ 1/2, by linarith,
+    have h'' : 2 * (2 * (x : ℝ)) - 1 = 2 * (2 * (↑x + 1/4) - 1), by linarith,
+    simp only [one_div, subtype.coe_mk] at h h' h'' h₂,
+    simp [h₁, h₂, h₄, h, h', h''] },
+  { exfalso,
+    linarith },
+  { have h : ¬ (1 / 2 : ℝ) * (x + 1) ≤ 1/2, by linarith,
+    simp only [one_div] at h h₁,
+    simp [h₁, h₅, h] }
+end
+
+def trans_assoc {x₀ x₁ x₂ x₃ : X} (p : path x₀ x₁) (q : path x₁ x₂) (r : path x₂ x₃) :
+  homotopy ((p.trans q).trans r) (p.trans (q.trans r)) :=
+((homotopy.reparam (p.trans (q.trans r))
+  (λ t, ⟨trans_assoc_reparam_aux t, trans_assoc_reparam_aux_mem_I t⟩)
+  (by continuity) (subtype.ext trans_assoc_reparam_aux_zero)
+  (subtype.ext trans_assoc_reparam_aux_one)).cast rfl (trans_assoc_reparam p q r).symm).symm
+
+end assoc
+
 end homotopy
-
--- def g_aux (t : I) : ℝ :=
---   if (t : ℝ) ≤ 1/4 then
---     2 * t
---   else if (t : ℝ) ≤ 1/2 then
---     t + 1/4
---   else
---     1/2 * (t + 1)
-
--- lemma g_aux_le_half_iff (t : I) : g_aux t ≤ 1/2 ↔ (t : ℝ) ≤ 1/2 :=
--- begin
---   sorry
--- end
-
--- @[continuity]
--- lemma continuous_g_aux : continuous g_aux :=
--- begin
---   refine continuous_if_le _ _ (continuous.continuous_on _) (continuous_if_le _ _ (continuous.continuous_on _) (continuous.continuous_on _) _).continuous_on _;
---     [continuity, continuity, continuity, continuity, continuity, continuity, continuity,
---      skip, skip];
---     { intros x hx,
---       norm_num [hx], }
--- end
-
--- lemma g_aux_mem_I (t : I) : g_aux t ∈ I :=
--- begin
---   unfold g_aux,
---   split_ifs; split; linarith [unit_interval.le_one t, unit_interval.nonneg t]
--- end
-
--- lemma g_aux_zero : g_aux 0 = 0 :=
--- by norm_num [g_aux]
-
--- lemma g_aux_one : g_aux 1 = 1 :=
--- by norm_num [g_aux]
-
--- example {x₀ x₁ x₂ x₃ : X} (p : path x₀ x₁) (q : path x₁ x₂) (r : path x₂ x₃) :
---   p.trans (q.trans r) = ((p.trans q).trans r).reparam (λ t, ⟨g_aux t, g_aux_mem_I t⟩)
---     (by continuity) (subtype.ext g_aux_zero) (subtype.ext g_aux_one) :=
--- begin
---   ext,
---   simp only [coe_to_fun, function.comp_app, path.reparam_apply, path.trans],
---   change ite _ _ (ite _ _ _) = ite (g_aux _ ≤ _) _ _,
---   simp_rw g_aux_le_half_iff,
---   split_ifs,
--- end
 
 end path
 
@@ -197,15 +283,23 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
     rw quotient.eq,
     exact ⟨h₁.hcomp h₂⟩,
   end p q,
-  id_comp' := sorry,
-  comp_id' := sorry,
-  assoc' := sorry,
+  id_comp' := λ x y f, quotient.induction_on f
+    (λ a, show ⟦(path.refl x).trans a⟧ = ⟦a⟧,
+          from quotient.sound ⟨path.homotopy.refl_trans a⟩ ),
+  comp_id' := λ x y f, quotient.induction_on f
+    (λ a, show ⟦a.trans (path.refl y)⟧ = ⟦a⟧,
+          from quotient.sound ⟨path.homotopy.trans_refl a⟩),
+  assoc' := λ w x y z f g h, quotient.induction_on₃ f g h
+    (λ p q r, show ⟦(p.trans q).trans r⟧ = ⟦p.trans (q.trans r)⟧,
+              from quotient.sound ⟨path.homotopy.trans_assoc p q r⟩),
   inv := λ x y p, quotient.lift (λ l : path x y, ⟦l.symm⟧) begin
     rintros a b ⟨h⟩,
     rw quotient.eq,
     exact ⟨h.symm₂⟩,
   end p,
-  inv_comp' := _,
+  inv_comp' := λ x y f, quotient.induction_on f
+    (λ a, show ⟦a.symm.trans a⟧ = ⟦path.refl y⟧,
+          from quotient.sound ⟨(path.homotopy.refl_symm_trans a).symm⟩),
   comp_inv' := λ x y f, quotient.induction_on f
     (λ a, show ⟦a.trans a.symm⟧ = ⟦path.refl x⟧,
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }

@@ -127,6 +127,14 @@ variables (q : ℚ) {x y : ℝ}
 
 open_locale classical
 
+theorem ne_cast_rat (h : irrational x) (q : ℚ) : x ≠ q := λ hq, h ⟨q, hq.symm⟩
+
+theorem ne_cast_int (h : irrational x) (m : ℤ) : x ≠ m :=
+by { rw ← rat.cast_coe_int, exact h.ne_cast_rat _ }
+
+theorem ne_cast_nat (h : irrational x) (m : ℕ) : x ≠ m :=
+by { rw ← rat.cast_coe_nat, exact h.ne_cast_rat _ }
+
 theorem add_cases : irrational (x + y) → irrational x ∨ irrational y :=
 begin
   delta irrational,

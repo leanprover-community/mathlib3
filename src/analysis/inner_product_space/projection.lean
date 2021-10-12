@@ -853,6 +853,16 @@ submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, 
 
 end orthogonal
 
+section orthogonal_family
+variables {ι : Type*}
+
+lemma orthogonal_family.submodule_is_internal_iff [finite_dimensional 𝕜 E]
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) :
+  direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥:=
+by simp only [direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top, hV.independent,
+  true_and, submodule.orthogonal_eq_bot_iff (supr V).complete_of_finite_dimensional]
+
+end orthogonal_family
 
 section orthonormal_basis
 

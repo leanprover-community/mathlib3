@@ -343,7 +343,7 @@ lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
   begin
     rw [← option.some_inj, ← list.nth_le_nth],
     conv {to_lhs, rw ← h ((list.length (a :: l)) - n)},
-    rw [nth_rotate hn, nat.add_sub_cancel' (le_of_lt hn),
+    rw [nth_rotate hn, add_sub_cancel_of_le (le_of_lt hn),
       nat.mod_self, nth_le_repeat], refl
   end⟩,
   λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simp)

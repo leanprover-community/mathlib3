@@ -1354,6 +1354,22 @@ lemma eventually_le.le_iff_eq [partial_order β] {l : filter α} {f g : α → �
   g ≤ᶠ[l] f ↔ g =ᶠ[l] f :=
 ⟨λ h', h'.antisymm h, eventually_eq.le⟩
 
+lemma eventually.ne_of_lt [preorder β] {l : filter α} {f g : α → β}
+  (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ g x :=
+h.mono (λ x hx, hx.ne)
+
+lemma eventually.ne_top_of_lt [order_top β] {l : filter α} {f g : α → β}
+  (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ ⊤ :=
+h.mono (λ x hx, hx.ne_top)
+
+lemma eventually.lt_top_of_ne [order_top β] {l : filter α} {f : α → β}
+  (h : ∀ᶠ x in l, f x ≠ ⊤) : ∀ᶠ x in l, f x < ⊤ :=
+h.mono (λ x hx, hx.lt_top)
+
+lemma eventually.lt_top_iff_ne_top [order_top β] {l : filter α} {f : α → β} :
+  (∀ᶠ x in l, f x < ⊤) ↔ ∀ᶠ x in l, f x ≠ ⊤ :=
+⟨eventually.ne_of_lt, eventually.lt_top_of_ne⟩
+
 @[mono] lemma eventually_le.inter {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
   (h' : s' ≤ᶠ[l] t') :
   (s ∩ s' : set α) ≤ᶠ[l] (t ∩ t' : set α) :=
@@ -2258,6 +2274,15 @@ lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ
   (h : range i ∈ f) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
 by { rw [tendsto, ← map_compose], simp only [(∘), map_comap_of_mem h, tendsto] }
 
+lemma tendsto.of_tendsto_comp {f : α → β} {g : β → γ} {a : filter α} {b : filter β} {c : filter γ}
+  (hfg : tendsto (g ∘ f) a c) (hg : comap g c ≤ b) :
+  tendsto f a b :=
+begin
+  rw tendsto_iff_comap at hfg ⊢,
+  calc a ≤ comap (g ∘ f) c : hfg
+  ... ≤ comap f b : by simpa [comap_comap] using comap_mono hg
+end
+
 lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
@@ -2580,7 +2605,7 @@ end prod
 /-! ### Coproducts of filters -/
 
 section coprod
-variables {s : set α} {t : set β} {f : filter α} {g : filter β}
+variables {f : filter α} {g : filter β}
 
 /-- Coproduct of filters. -/
 protected def coprod (f : filter α) (g : filter β) : filter (α × β) :=

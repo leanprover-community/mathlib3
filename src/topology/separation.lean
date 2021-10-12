@@ -222,6 +222,34 @@ is_closed_singleton.is_open_compl
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
 
+lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
+  𝓝[{y}ᶜ] x = 𝓝 x :=
+is_open_ne.nhds_within_eq h
+
+lemma continuous_within_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {s : set α} {x y : α} {z : β} (hne : y ≠ x) :
+  continuous_within_at (function.update f x z) s y ↔ continuous_within_at f s y :=
+eventually_eq.congr_continuous_within_at
+  (mem_nhds_within_of_mem_nhds $ mem_of_superset (is_open_ne.mem_nhds hne) $
+    λ y' hy', function.update_noteq hy' _ _)
+  (function.update_noteq hne _ _)
+
+lemma continuous_on_update_iff [t1_space α] [decidable_eq α] [topological_space β]
+  {f : α → β} {s : set α} {x : α} {y : β} :
+  continuous_on (function.update f x y) s ↔
+    continuous_on f (s \ {x}) ∧ (x ∈ s → tendsto f (𝓝[s \ {x}] x) (𝓝 y)) :=
+begin
+  rw [continuous_on, ← and_forall_ne x, and_comm],
+  refine and_congr ⟨λ H z hz, _, λ H z hzx hzs, _⟩ (forall_congr $ λ hxs, _),
+  { specialize H z hz.2 hz.1,
+    rw continuous_within_at_update_of_ne hz.2 at H,
+    exact H.mono (diff_subset _ _) },
+  { rw continuous_within_at_update_of_ne hzx,
+    refine (H z ⟨hzs, hzx⟩).mono_of_mem (inter_mem_nhds_within _ _),
+    exact is_open_ne.mem_nhds hzx },
+  { exact continuous_within_at_update_same }
+end
+
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
 ⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
@@ -281,6 +309,16 @@ lemma finite.is_closed {α} [topological_space α] [t1_space α] {s : set α} (h
 begin
   rw ← bUnion_of_singleton s,
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
+lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
+  (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
+begin
+  simp only [eq_singleton_iff_unique_mem, mem_Inter],
+  refine ⟨λ i hi, mem_of_mem_nhds $ h.mem_of_mem hi, λ y hy, _⟩,
+  contrapose! hy,
+  rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
+  exact ⟨i, hi, λ h, hsub h rfl⟩
 end
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is

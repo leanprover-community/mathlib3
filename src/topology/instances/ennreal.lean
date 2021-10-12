@@ -120,6 +120,16 @@ begin
   exact tendsto_id
 end
 
+lemma eventually_eq_of_to_real_eventually_eq {l : filter α} {f g : α → ℝ≥0∞}
+  (hfi : ∀ᶠ x in l, f x ≠ ∞) (hgi : ∀ᶠ x in l, g x ≠ ∞)
+  (hfg : (λ x, (f x).to_real) =ᶠ[l] (λ x, (g x).to_real)) :
+  f =ᶠ[l] g :=
+begin
+  filter_upwards [hfi, hgi, hfg],
+  intros x hfx hgx hfgx,
+  rwa ← ennreal.to_real_eq_to_real hfx hgx,
+end
+
 lemma continuous_on_to_nnreal : continuous_on ennreal.to_nnreal {a | a ≠ ∞}  :=
 λ a ha, continuous_at.continuous_within_at (tendsto_to_nnreal ha)
 
@@ -471,8 +481,8 @@ supr_mul
 
 protected lemma tendsto_coe_sub : ∀{b:ℝ≥0∞}, tendsto (λb:ℝ≥0∞, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
 begin
-  refine (forall_ennreal.2 $ and.intro (assume a, _) _),
-  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
+  refine forall_ennreal.2 ⟨λ a, _, _⟩,
+  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, ← with_top.coe_sub],
     exact tendsto_const_nhds.sub tendsto_id },
   simp,
   exact (tendsto.congr' (mem_of_superset (lt_mem_nhds $ @coe_lt_top r) $
@@ -1048,16 +1058,16 @@ begin
     { rintros y hy,
       by_cases htop : f y = ⊤,
       { simp [htop, lt_top_iff_ne_top, ne_top_of_lt he] },
-      { simp at hy,
+      { rw [emetric.mem_ball] at hy,
         have : e + ε < f y + ε := calc
           e + ε ≤ e + (f x - e) : add_le_add_left (min_le_left _ _) _
-          ... = f x : by simp [le_of_lt he]
+          ... = f x : ennreal.add_sub_cancel_of_le he.le
           ... ≤ f y + C * edist x y : h x y
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
             add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-          ... < f y + ε : (ennreal.add_lt_add_iff_left htop).2 I,
-        show e < f y, from (ennreal.add_lt_add_iff_right ‹ε ≠ ⊤›).1 this }},
+          ... < f y + ε : ennreal.add_lt_add_left htop I,
+        show e < f y, from lt_of_add_lt_add_right this } },
     apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
   show ∀e, f x < e → ∀ᶠ y in 𝓝 x, f y < e,
   { assume e he,
@@ -1078,7 +1088,7 @@ begin
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
             add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-        ... < f x + ε : (ennreal.add_lt_add_iff_left htop).2 I
+        ... < f x + ε : ennreal.add_lt_add_left htop I
         ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },
     apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },

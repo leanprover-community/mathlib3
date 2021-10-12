@@ -2,11 +2,13 @@
 Copyright (c) 2021 Mario Carneiro All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Tests for norm_num extensions
 -/
-import data.nat.prime
 import data.int.gcd
+import data.nat.prime
+
+/-!
+# Tests for `norm_num` extensions
+-/
 
 -- coverage tests
 example : nat.coprime 1 2 := by norm_num

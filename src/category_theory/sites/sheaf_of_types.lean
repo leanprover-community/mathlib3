@@ -70,7 +70,7 @@ We also provide equivalent conditions to satisfy alternate definitions given in 
 
 ## Implementation
 
-The sheaf condition is given as a proposition, rather than a subsingleton in `Type (max u v)`.
+The sheaf condition is given as a proposition, rather than a subsingleton in `Type (max u₁ v)`.
 This doesn't seem to make a big difference, other than making a couple of definitions noncomputable,
 but it means that equivalent conditions can be given as `↔` statements rather than `≃` statements,
 which can be convenient.
@@ -85,16 +85,16 @@ which can be convenient.
 
 -/
 
-universes v u
+universes v u₁ u₂
 namespace category_theory
 
 open opposite category_theory category limits sieve classical
 
 namespace presieve
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v} C]
 
-variables {P : Cᵒᵖ ⥤ Type v}
+variables {P Q : Cᵒᵖ ⥤ Type v}
 variables {X Y : C} {S : sieve X} {R : presieve X}
 variables (J J₂ : grothendieck_topology C)
 
@@ -267,6 +267,63 @@ begin
   rw restrict_extend,
   exact t.restrict (le_generate R),
 end
+
+section functor_pullback
+variables {D : Type u₂} [category.{v} D] (F : D ⥤ C) {Z : D}
+variables {T : presieve (F.obj Z)} {x : family_of_elements P T}
+
+/--
+Given a family of elements of a sieve `S` on `F(X)`, we can realize it as a family of elements of
+`S.functor_pullback F`.
+-/
+def family_of_elements.functor_pullback (x : family_of_elements P T) :
+  family_of_elements (F.op ⋙ P) (T.functor_pullback F) := λ Y f hf, x (F.map f) hf
+
+lemma family_of_elements.compatible.functor_pullback (h : x.compatible) :
+  (x.functor_pullback F).compatible :=
+begin
+  intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
+  exact h (F.map g₁) (F.map g₂) h₁ h₂ (by simp only [← F.map_comp, eq])
+end
+
+end functor_pullback
+
+section pullback
+
+/--
+Given a family of elements of a sieve `S` on `X`, and a map `Y ⟶ X`, we can obtain a
+family of elements of `S.pullback f` by taking the same elements.
+-/
+def family_of_elements.pullback (f : Y ⟶ X)  (x : family_of_elements P S) :
+  family_of_elements P (S.pullback f) := λ _ g hg, x (g ≫ f) hg
+
+lemma family_of_elements.compatible.pullback (f : Y ⟶ X) {x : family_of_elements P S}
+  (h : x.compatible) : (x.pullback f).compatible :=
+begin
+  simp only [compatible_iff_sieve_compatible] at h ⊢,
+  intros W Z f₁ f₂ hf,
+  unfold family_of_elements.pullback,
+  rw ← (h (f₁ ≫ f) f₂ hf),
+  simp only [category.assoc],
+end
+
+end pullback
+
+/--
+Given a morphism of presheaves `f : P ⟶ Q`, we can take a family of elements valued in `P` to a
+family of elements valued in `Q` by composing with `f`.
+-/
+def family_of_elements.comp_presheaf_map (f : P ⟶ Q) (x : family_of_elements P R) :
+  family_of_elements Q R := λ Y g hg, f.app (op Y) (x g hg)
+
+lemma family_of_elements.compatible.comp_presheaf_map (f : P ⟶ Q) {x : family_of_elements P R}
+  (h : x.compatible) : (x.comp_presheaf_map f).compatible :=
+begin
+  intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
+  unfold family_of_elements.comp_presheaf_map,
+  rwa [← functor_to_types.naturality, ← functor_to_types.naturality, h],
+end
+
 
 /--
 The given element `t` of `P.obj (op X)` is an *amalgamation* for the family of elements `x` if every
@@ -886,12 +943,12 @@ end
 end presieve
 end equalizer
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v} C]
 variables (J : grothendieck_topology C)
 
 /-- The category of sheaves on a grothendieck topology. -/
 @[derive category]
-def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
+def SheafOfTypes (J : grothendieck_topology C) : Type (max u₁ (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
 /-- The inclusion functor from sheaves to presheaves. -/

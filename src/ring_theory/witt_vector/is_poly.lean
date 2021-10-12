@@ -40,7 +40,7 @@ and `witt_vector.verschiebung` is equal to multiplication by `p`.
   is polynomial in the coefficients of the input values.
 * `witt_vector.is_poly.ext`, `witt_vector.is_poly₂.ext`:
   two polynomial functions are equal if their families of polynomials are equal
-  after evaluating the Witt polynmials on them.
+  after evaluating the Witt polynomials on them.
 * `witt_vector.is_poly.comp` (+ many variants) show that unary/binary compositions
   of polynomial functions are polynomial.
 * `witt_vector.id_is_poly`, `witt_vector.neg_is_poly`,

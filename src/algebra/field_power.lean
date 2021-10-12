@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis
 -/
 import algebra.group_with_zero.power
 import tactic.linarith
+import data.equiv.ring
 
 /-!
 # Integer power operation on fields and division rings
@@ -18,6 +19,10 @@ universe u
 @[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L) :
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
 f.to_monoid_with_zero_hom.map_fpow
+
+@[simp] lemma ring_equiv.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K ≃+* L) :
+  ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
+f.to_ring_hom.map_fpow
 
 @[simp] lemma fpow_bit0_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit0 n) = x ^ bit0 n :=
@@ -156,25 +161,25 @@ theorem fpow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_neg_iff.mpr ha
 
 lemma fpow_even_abs (a : K) {p : ℤ} (hp : even p) :
-  abs a ^ p = a ^ p :=
+  |a| ^ p = a ^ p :=
 begin
   cases abs_choice a with h h;
   simp only [h, fpow_even_neg _ hp],
 end
 
 @[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) :
-  (abs a) ^ bit0 p = a ^ bit0 p :=
+  (|a|) ^ bit0 p = a ^ bit0 p :=
 fpow_even_abs _ (even_bit0 _)
 
 lemma abs_fpow_even (a : K) {p : ℤ} (hp : even p) :
-  abs (a ^ p) = a ^ p :=
+  |a ^ p| = a ^ p :=
 begin
   rw [abs_eq_self],
   exact fpow_even_nonneg _ hp
 end
 
 @[simp] lemma abs_fpow_bit0 (a : K) (p : ℤ) :
-  abs (a ^ bit0 p) = a ^ bit0 p :=
+  |a ^ bit0 p| = a ^ bit0 p :=
 abs_fpow_even _ (even_bit0 _)
 
 end ordered_field_power

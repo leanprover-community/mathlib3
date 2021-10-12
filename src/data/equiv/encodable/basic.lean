@@ -210,6 +210,9 @@ begin
   simp [decode_sum]; cases bodd n; simp [decode_sum]; rw e; refl
 end
 
+noncomputable instance «Prop» : encodable Prop :=
+of_equiv bool equiv.Prop_equiv_bool
+
 section sigma
 variables {γ : α → Type*} [encodable α] [∀ a, encodable (γ a)]
 

@@ -125,10 +125,8 @@ lemma to_complex_div_im (x y : ℤ[i]) : ((x / y : ℤ[i]) : ℂ).im = round ((x
 by rw [div_def, ← @rat.cast_round ℝ _ _, ← @rat.cast_round ℝ _ _];
   simp [-rat.cast_round, mul_assoc, div_eq_mul_inv, mul_add, add_mul]
 
-local notation `abs'` := _root_.abs
-
-lemma norm_sq_le_norm_sq_of_re_le_of_im_le {x y : ℂ} (hre : abs' x.re ≤ abs' y.re)
-  (him : abs' x.im ≤ abs' y.im) : x.norm_sq ≤ y.norm_sq :=
+lemma norm_sq_le_norm_sq_of_re_le_of_im_le {x y : ℂ} (hre : |x.re| ≤ |y.re|)
+  (him : |x.im| ≤ |y.im|) : x.norm_sq ≤ y.norm_sq :=
 by rw [norm_sq_apply, norm_sq_apply, ← _root_.abs_mul_self, _root_.abs_mul,
   ← _root_.abs_mul_self y.re, _root_.abs_mul y.re,
   ← _root_.abs_mul_self x.im, _root_.abs_mul x.im,
@@ -143,7 +141,7 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
     ((x / y : ℂ).im - ((x / y : ℤ[i]) : ℂ).im) * I : ℂ).norm_sq :
       congr_arg _ $ by apply complex.ext; simp
   ... ≤ (1 / 2 + 1 / 2 * I).norm_sq :
-  have abs' (2⁻¹ : ℝ) = 2⁻¹, from _root_.abs_of_nonneg (by norm_num),
+  have |(2⁻¹ : ℝ)| = 2⁻¹, from _root_.abs_of_nonneg (by norm_num),
   norm_sq_le_norm_sq_of_re_le_of_im_le
     (by rw [to_complex_div_re]; simp [norm_sq, this];
       simpa using abs_sub_round (x / y : ℂ).re)

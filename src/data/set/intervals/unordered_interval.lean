@@ -173,7 +173,7 @@ variables {a b c x y}
 
 /-- If `[x, y]` is a subinterval of `[a, b]`, then the distance between `x` and `y`
 is less than or equal to that of `a` and `b` -/
-lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : abs (y - x) ≤ abs (b - a) :=
+lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : |y - x| ≤ |b - a| :=
 begin
   rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
   rw [interval_subset_interval_iff_le] at h,
@@ -182,12 +182,12 @@ end
 
 /-- If `x ∈ [a, b]`, then the distance between `a` and `x` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : abs (x - a) ≤ abs (b - a) :=
+lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : |x - a| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_left h)
 
 /-- If `x ∈ [a, b]`, then the distance between `x` and `b` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : abs (b - x) ≤ abs (b - a) :=
+lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : |b - x| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
 end ordered_add_comm_group
@@ -208,7 +208,7 @@ by simp only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv']
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv₀]
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else

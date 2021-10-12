@@ -11,7 +11,7 @@ import group_theory.subgroup.pointwise
 
 
 open_locale pointwise
-universe u
+
 variables {G G' : Type*} [group G][group G']
 
 /--Two subgroups `H K` of `G` are commensurable if `H ⊓ K` has finite index in both `H` and `K` -/
@@ -21,7 +21,6 @@ def commensurable (H K : subgroup G) : Prop :=
 
 namespace commensurable
 
-
 lemma comap_self_subtype (H : subgroup G) : H.comap H.subtype = ⊤ :=
 eq_top_iff.2 $ λ x _, x.prop
 
@@ -30,13 +29,12 @@ comap_self_subtype H
 
 lemma index_of_top  : ( ⊤ : subgroup G).index = 1 :=
 begin
-rw subgroup.index,
-have h3: (cardinal.mk  (quotient_group.quotient (⊤ : subgroup G))) = 1 ,
-  by {rw cardinal.eq_one_iff_unique, split, apply quotient_group.subsingleton_quotient_top,
-    simp only [nonempty_of_inhabited],},
-simp [h3],
+  rw subgroup.index,
+  have h3: (cardinal.mk  (quotient_group.quotient (⊤ : subgroup G))) = 1 ,
+    by {rw cardinal.eq_one_iff_unique, split, apply quotient_group.subsingleton_quotient_top,
+      simp only [nonempty_of_inhabited],},
+  simp only [h3, cardinal.one_to_nat],
 end
-
 
 lemma reflex (H : subgroup G) : commensurable H H :=
 begin
@@ -49,8 +47,7 @@ begin
   simp only [nat.one_ne_zero, not_false_iff],
 end
 
-
-lemma symm {H K : subgroup G} : commensurable H K ↔ commensurable K H :=
+lemma symm (H K : subgroup G) : commensurable H K ↔ commensurable K H :=
 begin
 simp_rw commensurable,
 rw and_comm,
@@ -58,10 +55,6 @@ end
 
 def conj_subgroup (g : G) (Γ : subgroup G) : subgroup G := mul_aut.conj g •  Γ
 
-
-lemma conj_mem  (g : G) (Γ : subgroup G) (h : G) :
-  (h ∈ conj_subgroup g Γ) ↔ ∃ x : G, x ∈ Γ ∧ g * x * g⁻¹ = h  :=
-iff.rfl
 @[simp] lemma conj_mem'  (g : G)  (Γ : subgroup G) (h : G) :
   (h ∈ conj_subgroup g Γ) ↔ ∃ x : Γ, g * x * g⁻¹ = h  :=
 subgroup.mem_map.trans subtype.exists'
@@ -69,20 +62,16 @@ subgroup.mem_map.trans subtype.exists'
 lemma conj_subgroup_mul (g h : G) (Γ : subgroup G) :
   conj_subgroup (g*h) Γ = conj_subgroup g (conj_subgroup h Γ) :=
 begin
-simp_rw conj_subgroup,
-simp only [monoid_hom.map_mul] at *,
-exact mul_smul (mul_aut.conj g) (mul_aut.conj h) Γ,
+  simp_rw conj_subgroup,
+  simp only [monoid_hom.map_mul] at *,
+  exact mul_smul (mul_aut.conj g) (mul_aut.conj h) Γ,
 end
 
 @[simp]
 lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=
 begin
-  ext1, simp at *,
-  fsplit,
-  work_on_goal 0 { intros h, cases h, rw ← h_h, simp, },
-  intros h,
-  fsplit,
-  work_on_goal 0 { fsplit, work_on_goal 1 { assumption } }, refl,
+  rw conj_subgroup,
+  simp only [one_smul, monoid_hom.map_one],
 end
 
 lemma subgroup_of_le (H K L : subgroup G) (h : H ≤ K) : H.subgroup_of L ≤ K.subgroup_of L :=
@@ -90,12 +79,11 @@ begin
 intros x h, cases x, solve_by_elim,
 end
 
-
 lemma mem_subgroup_of' {H K : subgroup G} {h : K} :
   h ∈ H.subgroup_of K ↔ (h : G) ∈ H ⊓ K :=
 begin
-rw subgroup.mem_subgroup_of,
-simp,
+  rw subgroup.mem_subgroup_of,
+  simp only [set_like.coe_mem, and_true, subgroup.mem_inf],
 end
 
 def subgroup_of_to_inf (H K : subgroup G) : (H.subgroup_of K) →  H ⊓ K :=
@@ -115,7 +103,7 @@ begin
   rw mapto,
   simp_rw subgroup_of_to_inf,
   rw quotient_group.eq',
-  simp,
+  simp only [subgroup.coe_subtype],
   simp_rw ← coe_coe,
   have ha :=  quotient.out_eq' a,
   have hb :=  quotient.out_eq' b,
@@ -158,15 +146,13 @@ lemma inf_ind_prod (H K L : subgroup G) :
   have h2 := subgroup.index_eq_mul_of_le h1,
   intro h,
   rw h at h2,
-  simp at h2,
+  simp only [nat.zero_eq_mul] at h2,
   cases h2,
   simp only [h2, true_or, eq_self_iff_true],
   have := (subgroup_of_index_zero_index_zero K H L),
-  have r1 : K ⊓ H = H ⊓ K, by {exact inf_comm,},
-  rw r1 at this,
+  rw inf_comm at this,
   have ht:= this h2,
-  have r2 : H ⊓ L = L ⊓ H, by {exact inf_comm,},
-  rw r2 at ht,
+  rw inf_comm at ht,
   simp only [ht, eq_self_iff_true, or_true],
  end
 
@@ -214,12 +200,10 @@ begin
   by_contradiction,
   simp only [not_not, ne.def] at *,
   have s1 : (H ⊓ K).subgroup_of L ≤ H.subgroup_of L , by {apply subgroup_of_le, simp,},
-  have H1 := index_subgroup_le s1,
-  have H2 := H1 h,
+  have H2 := (index_subgroup_le s1) h,
   have H3 := inf_ind_prod K H L,
   have H4 := inf_index_zero_subgroup_of_index_zero H K L,
-  have r1 : H ⊓ K = K ⊓ H, by {apply inf_comm},
-  rw r1 at H2,
+  rw inf_comm at H2,
   have H5:= H3 H2,
   cases H5,
   rw H5 at hkl,
@@ -232,12 +216,10 @@ begin
   by_contradiction,
   simp only [not_not, ne.def] at *,
   have s1 : (L ⊓ K).subgroup_of H ≤ L.subgroup_of H , by {apply subgroup_of_le, simp,},
-  have H1 := index_subgroup_le s1,
-  have H2 := H1 h,
-  have H3 := inf_ind_prod K L H,
+  have H2 := (index_subgroup_le s1) h,
+  have H3 := (inf_ind_prod K L H),
   have H4 := inf_index_zero_subgroup_of_index_zero L K H,
-  have r1 : L ⊓ K = K ⊓ L, by {apply inf_comm},
-  rw r1 at H2,
+  rw inf_comm at H2,
   have H5:= H3 H2,
   cases H5,
   rw H5 at hhk,
@@ -374,15 +356,15 @@ def commensurator (H : subgroup G) : subgroup G :={
       simp only [set.mem_set_of_eq] at *,
       rw conj_subgroup_mul,
       have h1: commensurable (conj_subgroup a (conj_subgroup b H)) (conj_subgroup a H), by {
-      have hb':= (symm.1 hb),
-      have hab:= trans ha (symm.1 hb),
+      have hb':= ((symm _ _).1 hb),
+      have hab:= trans ha ((symm _ _).1 hb),
       rw (comm_conj a⁻¹) at hab,
       rw ← conj_subgroup_mul at hab,
       simp only [mul_left_inv, cong_subgroup_id_eq_self] at hab,
       have r1 := comm_inv (conj_subgroup b H) a,
       have hab2 := trans hb hab,
       have r2 := r1.2 hab2,
-      apply trans r2 (trans hb (symm.1 ha)),},
+      apply trans r2 (trans hb ((symm _ _).1 ha)),},
       exact trans h1 ha,},
   inv_mem' := by {simp only [set.mem_set_of_eq],
       intros x hx,
@@ -404,9 +386,9 @@ begin
   split,
   intro h,
   have h2:= trans h hk,
-  apply trans (symm.1 h1) h2,
+  apply trans ((symm _ _).1 h1) h2,
   intro h,
-  apply trans (trans h1 h) (symm.1 hk),
+  apply trans (trans h1 h) ((symm _ _).1 hk),
   end
 
 end commensurable

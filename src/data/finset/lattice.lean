@@ -1082,6 +1082,10 @@ lemma set_bInter_option_to_finset (o : option α) (f : α → set β) :
   (⋂ x ∈ o.to_finset, f x) = ⋂ x ∈ o, f x :=
 infi_option_to_finset o f
 
+lemma subset_set_bUnion_of_mem {s : finset α} {f : α → set β} {x : α} (h : x ∈ s) :
+  f x ⊆ ⋃ (y ∈ s), f y :=
+show f x ≤ (⨆ y ∈ s, f y), from le_supr_of_le x $ le_supr _ h
+
 variables [decidable_eq α]
 
 lemma set_bUnion_union (s t : finset α) (u : α → set β) :

@@ -21,6 +21,8 @@ setup_tactic_parser
 If the target of the main goal is a proposition `p`,
 `by_contra'` reduces the goal to proving `false` using the additional hypothesis `h : ¬ p`.
 `by_contra' h` can be used to name the hypothesis `h : ¬ p`.
+The hypothesis `¬ p` will be negation normalized using `push_neg`.
+For instance, `¬ a < b` will be changed to `b ≤ a`.
 `by_contra' h : q` will normalize negations in `¬ p`, normalize negations in `q`,
 and then check that the two normalized forms are equal.
 The resulting hypothesis is the pre-normalized form, `q`.

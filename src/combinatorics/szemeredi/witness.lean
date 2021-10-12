@@ -54,7 +54,7 @@ begin
   tauto
 end
 
-lemma right_witness_aux_subs : (G.witness_aux ε U V).2 ⊆ V :=
+lemma right_witness_aux_subset : (G.witness_aux ε U V).2 ⊆ V :=
 begin
   rw [witness_aux],
   split_ifs,
@@ -84,7 +84,7 @@ begin
   tauto
 end
 
-lemma left_witness_subs : (G.witness ε U V).1 ⊆ U :=
+lemma left_witness_subset : (G.witness ε U V).1 ⊆ U :=
 begin
   dsimp [witness],
   split_ifs,

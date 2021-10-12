@@ -200,13 +200,9 @@ quotient.induction_on₃ a b c $ assume α β γ, quotient.sound ⟨equiv.prod_s
 protected theorem eq_zero_or_eq_zero_of_mul_eq_zero  {a b : cardinal.{u}} :
   a * b = 0 → a = 0 ∨ b = 0 :=
 begin
-  refine quotient.induction_on b _,
-  refine quotient.induction_on a _,
-  intros a b h,
-  contrapose h,
-  simp_rw [not_or_distrib, ← ne.def] at h,
-  have := @prod.nonempty a b (ne_zero_iff_nonempty.mp h.1) (ne_zero_iff_nonempty.mp h.2),
-  exact ne_zero_iff_nonempty.mpr this
+  lift a to Type u using trivial, lift b to Type u using trivial,
+  simp only [mul_def, mk_eq_zero_iff, is_empty_prod],
+  exact id
 end
 
 instance : comm_semiring cardinal.{u} :=
@@ -256,14 +252,12 @@ quotient.induction_on a $ assume α, quotient.sound
 quot.sound ⟨equiv.ulift.trans $ equiv.Prop_equiv_bool.trans equiv.bool_equiv_punit_sum_punit⟩
 
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
-quotient.induction_on a $ assume α heq,
-(ne_zero_iff_nonempty.1 heq).elim $ assume a,
-by { haveI : nonempty α := ⟨a⟩, exact quotient.sound ⟨equiv.equiv_pempty _⟩ }
+quotient.induction_on a $ assume α heq, mk_eq_zero_iff.2 $ is_empty_pi.2 $
+let ⟨a⟩ := mk_ne_zero_iff.1 heq in ⟨a, pempty.is_empty⟩
 
 theorem power_ne_zero {a : cardinal} (b) : a ≠ 0 → a ^ b ≠ 0 :=
 quotient.induction_on₂ a b $ λ α β h,
-let ⟨a⟩ := ne_zero_iff_nonempty.1 h in
-ne_zero_iff_nonempty.2 ⟨λ _, a⟩
+let ⟨a⟩ := mk_ne_zero_iff.1 h in mk_ne_zero_iff.2 ⟨λ _, a⟩
 
 theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ,
@@ -326,7 +320,7 @@ by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
 theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
-  let ⟨a⟩ := ne_zero_iff_nonempty.1 hα in
+  let ⟨a⟩ := mk_ne_zero_iff.1 hα in
   ⟨@embedding.arrow_congr_right _ _ _ ⟨a⟩ e⟩
 
 theorem power_le_max_power_one {a b c : cardinal} (h : b ≤ c) : a ^ b ≤ max (a ^ c) 1 :=
@@ -477,15 +471,11 @@ theorem prod_le_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : pro
 ⟨embedding.Pi_congr_right $ λ i, classical.choice $
   by have := H i; rwa [← mk_out (f i), ← mk_out (g i)] at this⟩
 
-theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
-begin
-  suffices : nonempty (Π i, (f i).out) ↔ ∀ i, nonempty (f i).out,
-  { simpa [← ne_zero_iff_nonempty, prod] },
-  exact classical.nonempty_pi
-end
+theorem prod_eq_zero {ι} (f : ι → cardinal.{u}) : prod f = 0 ↔ ∃ i, f i = 0 :=
+by { lift f to ι → Type u using λ _, trivial, simp [mk_eq_zero_iff] }
 
-theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
-not_iff_not.1 $ by simpa using prod_ne_zero f
+theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
+by simp [prod_eq_zero]
 
 /-- The universe lift operation on cardinals. You can specify the universes explicitly with
   `lift.{u v} : cardinal.{v} → cardinal.{max v u}` -/
@@ -699,8 +689,7 @@ localized "notation `ω` := cardinal.omega" in cardinal
 
 lemma mk_nat : #ℕ = ω := (lift_id _).symm
 
-theorem omega_ne_zero : ω ≠ 0 :=
-ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩
+theorem omega_ne_zero : ω ≠ 0 := mk_ne_zero _
 
 theorem omega_pos : 0 < ω :=
 pos_iff_ne_zero.2 omega_ne_zero
@@ -891,7 +880,7 @@ calc #α = 1 ↔ #α ≤ 1 ∧ ¬#α < 1 : eq_iff_le_not_lt
 begin
   apply and_congr le_one_iff_subsingleton,
   push_neg,
-  rw [one_le_iff_ne_zero, ne_zero_iff_nonempty]
+  rw [one_le_iff_ne_zero, mk_ne_zero_iff]
 end
 
 theorem infinite_iff {α : Type u} : infinite α ↔ ω ≤ #α :=
@@ -1066,10 +1055,10 @@ end
 /-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
-  have : inhabited (Π (i : ι), (g i).out),
-  { refine ⟨λ i, classical.choice $ ne_zero_iff_nonempty.1 _⟩,
+  haveI : inhabited (Π (i : ι), (g i).out),
+  { refine ⟨λ i, classical.choice $ mk_ne_zero_iff.1 _⟩,
     rw mk_out,
-    exact ne_of_gt (lt_of_le_of_lt (zero_le _) (H i)) }, resetI,
+    exact (H i).ne_bot },
   let G := inv_fun F,
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,

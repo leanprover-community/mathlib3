@@ -142,6 +142,9 @@ lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
   (F.trans G).symm = G.symm.trans F.symm :=
 continuous_map.homotopy_rel.symm_trans _ _
 
+/--
+Casting a `homotopy p₀ p₁` to a `homotopy q₀ q₁` where `p₀ = q₀` and `p₁ = q₁`.
+-/
 @[simps]
 def cast {p₀ p₁ q₀ q₁ : path x₀ x₁} (F : homotopy p₀ p₁) (h₀ : p₀ = q₀) (h₁ : p₁ = q₁) :
   homotopy q₀ q₁ :=

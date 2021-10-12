@@ -165,7 +165,6 @@ def trans_refl (p : path x₀ x₁) : homotopy (p.trans (path.refl x₁)) p :=
 
 /--
 For any path `p` from `x₀` to `x₁`, we have a homotopy from `(path.refl x₀).trans p` to `p`.
-
 -/
 def refl_trans (p : path x₀ x₁) : homotopy ((path.refl x₀).trans p) p :=
 (trans_refl p.symm).symm₂.cast (by simp) (by simp)

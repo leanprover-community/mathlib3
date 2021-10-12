@@ -427,3 +427,10 @@ lemma injective_point_reflection_left_of_injective_bit0 {G P : Type*} [add_comm_
     h.eq_iff, vsub_eq_zero_iff_eq] at hy
 
 end equiv
+
+lemma add_torsor.subsingleton_iff (G P : Type*) [add_group G] [add_torsor G P] :
+  subsingleton G ↔ subsingleton P :=
+begin
+  inhabit P,
+  exact (equiv.vadd_const (default P)).subsingleton_congr,
+end

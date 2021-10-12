@@ -208,10 +208,8 @@ lemma module_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q :
   P = Q :=
 begin
   unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
-  congr,
-  funext r m,
-  exact w r m,
-  all_goals { apply proof_irrel_heq },
+  obtain rfl : P = Q, by { funext r m, exact w r m },
+  congr
 end
 
 section module

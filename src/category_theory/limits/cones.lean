@@ -692,7 +692,8 @@ def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
       w' := λ j, by { apply quiver.hom.op_inj, dsimp, simp, }, } },
   unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ c,
-    by { op_induction c, dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
+    by { induction c using opposite.rec,
+         dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
     begin
       intros,
       have hX : X = op (unop X) := rfl,

@@ -209,6 +209,11 @@ lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f)
 set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
+lemma mem_map_iff_mem {f : M →* N} (hf : function.injective f) {S : submonoid M} {x : M} :
+  f x ∈ S.map f ↔ x ∈ S :=
+hf.mem_set_image
+
+@[to_additive]
 lemma map_le_iff_le_comap {f : M →* N} {S : submonoid M} {T : submonoid N} :
   S.map f ≤ T ↔ S ≤ T.comap f :=
 image_subset_iff

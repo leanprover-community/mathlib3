@@ -143,6 +143,12 @@ instance ulift_functor_faithful : faithful ulift_functor :=
 { map_injective' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
+/--
+The functor embedding `Type u` into `Type u` via `ulift` is isomorphic to the identity functor.
+ -/
+def ulift_functor_trivial : ulift_functor.{u u} ≅ 𝟭 _ :=
+nat_iso.of_components ulift_trivial (by tidy)
+
 /-- Any term `x` of a type `X` corresponds to a morphism `punit ⟶ X`. -/
 -- TODO We should connect this to a general story about concrete categories
 -- whose forgetful functor is representable.

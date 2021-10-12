@@ -54,9 +54,8 @@ An alternative formulation of the sheaf condition
 A presheaf is a sheaf if `F` sends the cone `(pairwise.cocone U).op` to a limit cone.
 (Recall `pairwise.cocone U` has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
 -/
-@[derive subsingleton, nolint has_inhabited_instance]
-def sheaf_condition_pairwise_intersections (F : presheaf C X) : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (pairwise.cocone U).op)
+def is_sheaf_pairwise_intersections (F : presheaf C X) : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (pairwise.cocone U).op))
 
 /--
 An alternative formulation of the sheaf condition
@@ -67,10 +66,8 @@ A presheaf is a sheaf if `F` preserves the limit of `pairwise.diagram U`.
 (Recall `pairwise.diagram U` is the diagram consisting of the pairwise intersections
 `U i ⊓ U j` mapping into the open sets `U i`. This diagram has limit `supr U`.)
 -/
-@[derive subsingleton, nolint has_inhabited_instance]
-def sheaf_condition_preserves_limit_pairwise_intersections
-  (F : presheaf C X) : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), preserves_limit (pairwise.diagram U).op F
+def is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (preserves_limit (pairwise.diagram U).op F)
 
 /-!
 The remainder of this file shows that these conditions are equivalent
@@ -153,26 +150,21 @@ def cone_equiv_inverse_obj (F : presheaf C X)
   { app :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with (⟨i⟩|⟨i,j⟩),
       { exact c.π.app (walking_parallel_pair.zero) ≫ pi.π _ i, },
       { exact c.π.app (walking_parallel_pair.one) ≫ pi.π _ (i, j), }
     end,
     naturality' :=
     begin
-      -- Unfortunately `op_induction` isn't up to the task here, and we need to use `generalize`.
       intros x y f,
-      have ex : x = op (unop x) := rfl,
-      have ey : y = op (unop y) := rfl,
-      revert ex ey,
-      generalize : unop x = x',
-      generalize : unop y = y',
-      rintro rfl rfl,
+      induction x using opposite.rec,
+      induction y using opposite.rec,
       have ef : f = f.unop.op := rfl,
       revert ef,
       generalize : f.unop = f',
       rintro rfl,
-      rcases x' with ⟨i⟩|⟨⟩; rcases y' with ⟨⟩|⟨j,j⟩; rcases f' with ⟨⟩,
+      rcases x with ⟨i⟩|⟨⟩; rcases y with ⟨⟩|⟨j,j⟩; rcases f' with ⟨⟩,
       { dsimp, erw [F.map_id], simp, },
       { dsimp, simp only [category.id_comp, category.assoc],
         have h := c.π.naturality (walking_parallel_pair_hom.left),
@@ -205,7 +197,7 @@ def cone_equiv_inverse (F : presheaf C X)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with (⟨i⟩|⟨i,j⟩),
       { dsimp,
         rw [←(f.w walking_parallel_pair.zero), category.assoc], },
@@ -222,12 +214,13 @@ def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → ope
 { hom :=
   { hom := 𝟙 _,
     w' := λ j, begin
-      op_induction j, rcases j;
+      induction j using opposite.rec, rcases j;
       { dsimp, simp only [limits.fan.mk_π_app, category.id_comp, limits.limit.lift_π], }
     end, },
   inv :=
   { hom := 𝟙 _,
-    w' := λ j, begin op_induction j, rcases j;
+    w' := λ j, begin
+      induction j using opposite.rec, rcases j;
       { dsimp, simp only [limits.fan.mk_π_app, category.id_comp, limits.limit.lift_π], }
     end },
   hom_inv_id' := begin
@@ -301,7 +294,7 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp,
@@ -315,7 +308,7 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp,
@@ -372,26 +365,26 @@ open sheaf_condition_pairwise_intersections
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
-def sheaf_condition_equiv_sheaf_condition_pairwise_intersections (F : presheaf C X) :
-  F.sheaf_condition ≃ F.sheaf_condition_pairwise_intersections :=
-equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
-  equiv_of_subsingleton_of_subsingleton
-    (is_limit_map_cone_of_is_limit_sheaf_condition_fork F U)
-    (is_limit_sheaf_condition_fork_of_is_limit_map_cone F U)))
+lemma is_sheaf_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
+  F.is_sheaf ↔ F.is_sheaf_pairwise_intersections :=
+iff.intro (λ h ι U, ⟨is_limit_map_cone_of_is_limit_sheaf_condition_fork F U (h U).some⟩)
+  (λ h ι U, ⟨is_limit_sheaf_condition_fork_of_is_limit_map_cone F U (h U).some⟩)
 
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of the presheaf preserving the limit of the diagram
 consisting of the `U i` and `U i ⊓ U j`.
 -/
-def sheaf_condition_equiv_sheaf_condition_preserves_limit_pairwise_intersections
-(F : presheaf C X) :
-  F.sheaf_condition ≃ F.sheaf_condition_preserves_limit_pairwise_intersections :=
-equiv.trans
-  (sheaf_condition_equiv_sheaf_condition_pairwise_intersections F)
-  (equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
-     equiv_of_subsingleton_of_subsingleton
-       (λ P, preserves_limit_of_preserves_limit_cone (pairwise.cocone_is_colimit U).op P)
-       (by { introI, exact preserves_limit.preserves (pairwise.cocone_is_colimit U).op }))))
+lemma is_sheaf_iff_is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) :
+  F.is_sheaf ↔ F.is_sheaf_preserves_limit_pairwise_intersections :=
+begin
+  rw is_sheaf_iff_is_sheaf_pairwise_intersections,
+  split,
+  { intros h ι U,
+    exact ⟨preserves_limit_of_preserves_limit_cone (pairwise.cocone_is_colimit U).op (h U).some⟩ },
+  { intros h ι U,
+    haveI := (h U).some,
+    exact ⟨preserves_limit.preserves (pairwise.cocone_is_colimit U).op⟩ }
+end
 
 end Top.presheaf

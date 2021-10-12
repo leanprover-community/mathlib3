@@ -303,6 +303,20 @@ begin
   exact subtype.mem (coeff p n : T)
 end
 
+section mod_by_monic
+
+variables {q : polynomial R}
+
+lemma mem_ker_mod_by_monic [nontrivial R] (hq : q.monic) {p : polynomial R} :
+  p ∈ (mod_by_monic_hom hq).ker ↔ q ∣ p :=
+linear_map.mem_ker.trans (dvd_iff_mod_by_monic_eq_zero hq)
+
+@[simp] lemma ker_mod_by_monic_hom [nontrivial R] (hq : q.monic) :
+  (polynomial.mod_by_monic_hom hq).ker = (ideal.span {q}).restrict_scalars R :=
+submodule.ext (λ f, (mem_ker_mod_by_monic hq).trans ideal.mem_span_singleton.symm)
+
+end mod_by_monic
+
 end polynomial
 
 variables {R : Type u} {σ : Type v} {M : Type w} [comm_ring R] [add_comm_group M] [module R M]
@@ -403,6 +417,21 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
         ring_hom.map_mul, eval₂_X] },
   end,
 }
+
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_symm_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial.symm (quotient.mk _ f) = f.map (quotient.mk I) :=
+by rw [polynomial_quotient_equiv_quotient_polynomial, ring_equiv.symm_mk, ring_equiv.coe_mk,
+  ideal.quotient.lift_mk, coe_eval₂_ring_hom, eval₂_eq_eval_map, ←polynomial.map_map,
+  ←eval₂_eq_eval_map, polynomial.eval₂_C_X]
+
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_map_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial (f.map I^.quotient.mk) = quotient.mk _ f :=
+begin
+  apply (polynomial_quotient_equiv_quotient_polynomial I).symm.injective,
+  rw [ring_equiv.symm_apply_apply, polynomial_quotient_equiv_quotient_polynomial_symm_mk],
+end
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
 lemma is_integral_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
@@ -511,7 +540,7 @@ begin
       rw [leading_coeff, nat_degree, hpdeg], refl } },
   { rintro ⟨p, hpI, hpdeg, rfl⟩,
     have : nat_degree p + (n - nat_degree p) = n,
-    { exact nat.add_sub_cancel' (nat_degree_le_of_degree_le hpdeg) },
+    { exact add_sub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
     refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right _ hpI⟩, _⟩,
     { apply le_trans (degree_mul_le _ _) _,
       apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
@@ -537,7 +566,7 @@ begin
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
   refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
-  rw [← with_bot.coe_add, nat.add_sub_cancel' H],
+  rw [← with_bot.coe_add, add_sub_cancel_of_le H],
   exact le_refl _
 end
 
@@ -642,7 +671,7 @@ begin
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
     { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
-      rw [← with_bot.coe_add, nat.add_sub_cancel', hn],
+      rw [← with_bot.coe_add, add_sub_cancel_of_le, hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },
       rw [polynomial.leading_coeff_X_pow, mul_one],
       exact mt polynomial.leading_coeff_eq_zero.1 hq0 },
@@ -974,7 +1003,7 @@ variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
 begin
   haveI := arbitrary (normalization_monoid D),
-  haveI := to_gcd_monoid D,
+  haveI := to_normalized_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
 

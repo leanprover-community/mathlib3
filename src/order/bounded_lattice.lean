@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import data.option.basic
 import logic.nontrivial
 import order.lattice
+import order.order_dual
 import tactic.pi_instances
 
 /-!
@@ -1162,7 +1163,9 @@ lemma inf_eq_bot (h : is_compl x y) : x ⊓ y = ⊥ := h.disjoint.eq_bot
 
 lemma sup_eq_top (h : is_compl x y) : x ⊔ y = ⊤ := top_unique h.top_le_sup
 
-lemma to_order_dual (h : is_compl x y) : @is_compl (order_dual α) _ x y := ⟨h.2, h.1⟩
+open order_dual (to_dual)
+
+lemma to_order_dual (h : is_compl x y) : is_compl (to_dual x) (to_dual y) := ⟨h.2, h.1⟩
 
 end bounded_lattice
 

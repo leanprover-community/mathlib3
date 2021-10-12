@@ -26,7 +26,7 @@ suffices (λ c : ℝ, f (c • x)) = λ c : ℝ, c • f x, from _root_.congr_fu
 dense_embedding_of_rat.dense.equalizer
   (hf.comp $ continuous_id.smul continuous_const)
   (continuous_id.smul continuous_const)
-  (funext $ λ r, f.map_rat_cast_smul r x)
+  (funext $ λ r, f.map_rat_cast_smul ℝ ℝ r x)
 
 /-- Reinterpret a continuous additive homomorphism between two real vector spaces
 as a continuous real-linear map. -/

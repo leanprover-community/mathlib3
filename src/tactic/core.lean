@@ -2339,7 +2339,7 @@ ns.mfirst (λ nm, do
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
 /-- A tactic to set either a basic attribute or a user attribute.
-  If the the user attribute has a parameter, the default value will be used.
+  If the user attribute has a parameter, the default value will be used.
   This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do

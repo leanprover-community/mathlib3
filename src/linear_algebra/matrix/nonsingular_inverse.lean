@@ -298,7 +298,7 @@ begin
     simp [h, adjugate_eq_one_of_card_eq_one h] },
   have one_lt_card : 1 < fintype.card n := by linarith,
   have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
-    (nat.sub_lt_sub_right_iff (refl 1)).mpr one_lt_card,
+    (sub_lt_sub_iff_right' (refl 1)).mpr one_lt_card,
 
   apply det_adjugate_of_cancel,
   intros b hb,

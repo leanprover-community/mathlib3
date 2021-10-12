@@ -157,15 +157,22 @@ lemma affine_independent.vector_span_eq_top_of_card_eq_finrank_add_one [finite_d
   vector_span k (set.range p) = ⊤ :=
 eq_top_of_finrank_eq $ hi.finrank_vector_span hc
 
-/-- The `affine_span` of a finite affinely independent family whose
-cardinality is one more than that of the finite-dimensional space is
-`⊤`. -/
-lemma affine_independent.affine_span_eq_top_of_card_eq_finrank_add_one [finite_dimensional k V]
-  [fintype ι] {p : ι → P} (hi : affine_independent k p) (hc : fintype.card ι = finrank k V + 1) :
-  affine_span k (set.range p) = ⊤ :=
+/-- The `affine_span` of a finite affinely independent family is `⊤` iff the
+family's cardinality is one more than that of the finite-dimensional space. -/
+lemma affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one [finite_dimensional k V]
+  [fintype ι] {p : ι → P} (hi : affine_independent k p) :
+  affine_span k (set.range p) = ⊤ ↔ fintype.card ι = finrank k V + 1 :=
 begin
-  rw [←finrank_top, ←direction_top k V P] at hc,
-  exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc
+  split,
+  { intros h_tot,
+    let n := fintype.card ι - 1,
+    have hn : fintype.card ι = n + 1,
+    { exact (nat.succ_pred_eq_of_pos (card_pos_of_affine_span_eq_top k V P h_tot)).symm, },
+    rw [hn, ← finrank_top, ← (vector_span_eq_top_of_affine_span_eq_top k V P) h_tot,
+      ← hi.finrank_vector_span hn], },
+  { intros hc,
+    rw [← finrank_top, ← direction_top k V P] at hc,
+    exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc, },
 end
 
 variables (k)

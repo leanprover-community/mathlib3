@@ -89,7 +89,9 @@ instance apply_has_faithful_scalar {M} [monoid M] : has_faithful_scalar (mul_aut
 ⟨λ _ _, mul_equiv.ext⟩
 
 /-- Group conjugation, `mul_aut.conj g h = g * h * g⁻¹`, as a monoid homomorphism
-mapping multiplication in `G` into multiplication in the automorphism group `mul_aut G`. -/
+mapping multiplication in `G` into multiplication in the automorphism group `mul_aut G`.
+See also the type `conj_act G` for any group `G`, which has a `mul_action (conj_act G) G` instance
+where `conj G` acts on `G` by conjugation. -/
 def conj [group G] : G →* mul_aut G :=
 { to_fun := λ g,
   { to_fun := λ h, g * h * g⁻¹,

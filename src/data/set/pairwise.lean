@@ -65,10 +65,11 @@ theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set 
 theorem pairwise_disjoint_fiber (f : α → β) : pairwise (disjoint on (λ y : β, f ⁻¹' {y})) :=
 set.pairwise_on_univ.1 $ pairwise_on_disjoint_fiber f univ
 
+namespace set
+section semilattice_inf_bot
 variables [semilattice_inf_bot α]
 
-/-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
-are disjoint. -/
+/-- Elements of a set is `pairwise_disjoint`, if any distinct two are disjoint. -/
 def pairwise_disjoint (s : set α) : Prop :=
 pairwise_on s disjoint
 
@@ -95,7 +96,11 @@ lemma pairwise_disjoint.elim' {s : set α} (hs : pairwise_disjoint s) {x y : α}
   x = y :=
 hs.elim hx hy $ λ hxy, h hxy.eq_bot
 
+end semilattice_inf_bot
+
 -- classical
-lemma pairwise_disjoint.elim_set {s : set (set β)} (hs : pairwise_disjoint s) {x y : set β}
-  (hx : x ∈ s) (hy : y ∈ s) (z : β) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
+lemma pairwise_disjoint.elim_set {s : set (set α)} (hs : pairwise_disjoint s) {x y : set α}
+  (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
 hs.elim hx hy (not_disjoint_iff.2 ⟨z, hzx, hzy⟩)
+
+end set

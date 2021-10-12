@@ -145,22 +145,20 @@ instance : has_zero cardinal.{u} := ⟨#pempty⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
-@[simp]
-lemma eq_zero_of_is_empty {α : Type u} [is_empty α] : #α = 0 :=
+@[simp] lemma mk_eq_zero (α : Type u) [is_empty α] : #α = 0 :=
 (equiv.equiv_pempty α).cardinal_eq
 
-lemma eq_zero_iff_is_empty {α : Type u} : #α = 0 ↔ is_empty α :=
-⟨λ e, let ⟨h⟩ := quotient.exact e in
-  equiv.equiv_empty_equiv α $ h.trans equiv.empty_equiv_pempty.symm,
-  @eq_zero_of_is_empty _⟩
+lemma mk_eq_zero_iff {α : Type u} : #α = 0 ↔ is_empty α :=
+⟨λ e, let ⟨h⟩ := quotient.exact e in h.is_empty, @mk_eq_zero α⟩
 
-theorem ne_zero_iff_nonempty {α : Type u} : #α ≠ 0 ↔ nonempty α :=
-(not_iff_not.2 eq_zero_iff_is_empty).trans not_is_empty_iff
+theorem mk_ne_zero_iff {α : Type u} : #α ≠ 0 ↔ nonempty α :=
+(not_iff_not.2 mk_eq_zero_iff).trans not_is_empty_iff
+
+@[simp] lemma mk_ne_zero (α : Type u) [nonempty α] : #α ≠ 0 := mk_ne_zero_iff.2 ‹_›
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : nontrivial cardinal.{u} :=
-⟨⟨1, 0, ne_zero_iff_nonempty.2 ⟨punit.star⟩⟩⟩
+instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,

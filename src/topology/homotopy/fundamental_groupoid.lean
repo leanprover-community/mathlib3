@@ -31,13 +31,15 @@ namespace homotopy
 
 section
 
-private def refl_trans_symm_aux (x : I × I) : ℝ :=
+/-- Auxilliary function for `refl_trans_symm` -/
+def refl_trans_symm_aux (x : I × I) : ℝ :=
 if (x.2 : ℝ) ≤ 1/2 then
   x.1 * 2 * x.2
 else
   x.1 * (2 - 2 * x.2)
 
-private lemma continuous_refl_trans_symm_aux : continuous refl_trans_symm_aux :=
+@[continuity]
+lemma continuous_refl_trans_symm_aux : continuous refl_trans_symm_aux :=
 begin
   refine continuous_if_le _ _ (continuous.continuous_on _) (continuous.continuous_on _) _,
   { continuity },
@@ -48,9 +50,7 @@ begin
   norm_num [hx, mul_assoc],
 end
 
-local attribute [continuity] continuous_refl_trans_symm_aux
-
-private lemma refl_trans_symm_aux_mem_I (x : I × I) : refl_trans_symm_aux x ∈ I :=
+lemma refl_trans_symm_aux_mem_I (x : I × I) : refl_trans_symm_aux x ∈ I :=
 begin
   dsimp only [refl_trans_symm_aux],
   split_ifs,
@@ -77,6 +77,8 @@ begin
       { linarith [unit_interval.nonneg x.2, unit_interval.le_one x.2] } } }
 end
 
+/-- For any path `p` from `x₀` to `x₁`, we have a homotopy from the constant path based at `x₀` to
+  `p.trans p.symm`. -/
 def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.symm) :=
 { to_fun := λ x, p ⟨refl_trans_symm_aux x, refl_trans_symm_aux_mem_I x⟩,
   continuous_to_fun := by continuity,
@@ -104,45 +106,16 @@ def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.
       norm_num [refl_trans_symm_aux] }
   end }
 
+/-- For any path `p` from `x₀` to `x₁`, we have a homotopy from the constant path based at `x₁` to
+  `p.symm.trans p`. -/
 def refl_symm_trans (p : path x₀ x₁) : homotopy (path.refl x₁) (p.symm.trans p) :=
 (refl_trans_symm p.symm).cast rfl $ congr_arg _ path.symm_symm
 
 end
 
-private def reparam_aux (x y t : I) : I :=
-⟨σ t * x + t * y, show (σ t : ℝ) • (x : ℝ) + (t : ℝ) • (y : ℝ) ∈ I, from convex_Icc _ _ x.2 y.2
-  (by unit_interval) (by unit_interval) (by simp)⟩
-
-def reparam (p  : path x₀ x₁) (f : I → I) (hf : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
-  homotopy p (p.reparam f hf hf₀ hf₁) :=
-{ to_fun := λ x, p (reparam_aux x.2 (f x.2) x.1),
-  continuous_to_fun := by continuity!,
-  to_fun_zero := λ x, by norm_num [reparam_aux],
-  to_fun_one := λ x, by norm_num [reparam_aux],
-  prop' := λ t x hx,
-  begin
-    cases hx,
-    { rw hx, norm_num [reparam_aux, hf₀] },
-    { rw set.mem_singleton_iff at hx,
-      rw hx,
-      norm_num [reparam_aux, hf₁] }
-  end }
-
-def symm₂ {p q : path x₀ x₁} (h : p.homotopy q) : p.symm.homotopy q.symm :=
-{ to_fun := λ x, h ⟨x.1, σ x.2⟩,
-  continuous_to_fun := by continuity,
-  to_fun_zero := by simp [path.symm],
-  to_fun_one := by simp [path.symm],
-  prop' := λ t x hx, begin
-    cases hx,
-    { rw hx, simp },
-    { rw set.mem_singleton_iff at hx,
-      rw hx,
-      simp }
-  end }
-
 section trans_refl
 
+/-- Auxilliary function for `trans_refl_reparam` -/
 def trans_refl_reparam_aux (t : I) : ℝ :=
 if (t : ℝ) ≤ 1/2 then
   2 * t
@@ -182,11 +155,18 @@ begin
   { simp }
 end
 
+/--
+For any path `p` from `x₀` to `x₁`, we have a homotopy from `p.trans (path.refl x₁)` to `p`.
+-/
 def trans_refl (p : path x₀ x₁) : homotopy (p.trans (path.refl x₁)) p :=
 ((homotopy.reparam p (λ t, ⟨trans_refl_reparam_aux t, trans_refl_reparam_aux_mem_I t⟩)
   (by continuity) (subtype.ext trans_refl_reparam_aux_zero)
   (subtype.ext trans_refl_reparam_aux_one)).cast rfl (trans_refl_reparam p).symm).symm
 
+/--
+For any path `p` from `x₀` to `x₁`, we have a homotopy from `(path.refl x₀).trans p` to `p`.
+
+-/
 def refl_trans (p : path x₀ x₁) : homotopy ((path.refl x₀).trans p) p :=
 (trans_refl p.symm).symm₂.cast (by simp) (by simp)
 
@@ -194,6 +174,7 @@ end trans_refl
 
 section assoc
 
+/-- Auxilliary function for `trans_assoc_reparam`. -/
 def trans_assoc_reparam_aux (t : I) : ℝ :=
   if (t : ℝ) ≤ 1/4 then
     2 * t
@@ -233,9 +214,9 @@ lemma trans_assoc_reparam {x₀ x₁ x₂ x₃ : X} (p : path x₀ x₁) (q : pa
     (subtype.ext trans_assoc_reparam_aux_one) :=
 begin
   ext,
-  simp only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le, function.comp_app,
-             ne.def, not_false_iff, bit0_eq_zero, one_ne_zero, mul_ite, subtype.coe_mk,
-             path.coe_to_fun],
+  simp only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le,
+             function.comp_app, ne.def, not_false_iff, bit0_eq_zero, one_ne_zero, mul_ite,
+             subtype.coe_mk, path.coe_to_fun],
   split_ifs with h₁ h₂ h₃ h₄ h₅,
   { simp only [one_div, subtype.coe_mk] at h₂,
     simp [h₂, h₃] },
@@ -257,6 +238,9 @@ begin
     simp [h₁, h₅, h] }
 end
 
+/--
+For paths `p q r`, we have a homotopy from `(p.trans q).trans r` to `p.trans (q.trans r)`.
+-/
 def trans_assoc {x₀ x₁ x₂ x₃ : X} (p : path x₀ x₁) (q : path x₁ x₂) (r : path x₂ x₃) :
   homotopy ((p.trans q).trans r) (p.trans (q.trans r)) :=
 ((homotopy.reparam (p.trans (q.trans r))
@@ -270,7 +254,11 @@ end homotopy
 
 end path
 
-def fundamental_groupoid (X : Type u) [topological_space X] := X
+/--
+The fundamental groupoid of a space `X` is define to be a type synonym for `X`, where we put a
+`category_theory.groupoid` structure on it.
+-/
+def fundamental_groupoid (X : Type u) := X
 
 local attribute [reducible] fundamental_groupoid
 local attribute [instance] path.homotopic.setoid

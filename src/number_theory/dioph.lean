@@ -3,11 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import number_theory.pell
+import data.fin.fin2
 import data.pfun
-import data.fin2
 import data.vector3
+import number_theory.pell
 
 /-!
 # Diophantine functions and Matiyasevic's theorem

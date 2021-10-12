@@ -277,6 +277,10 @@ by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq]
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
+protected lemma _root_.filter_basis.has_basis {α : Type*} (B : filter_basis α) :
+  has_basis (B.filter) (λ s : set α, s ∈ B) id :=
+⟨λ t, B.mem_filter_iff⟩
+
 lemma has_basis.to_has_basis' (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
   (h' : ∀ i', p' i' → s' i' ∈ l) : l.has_basis p' s' :=
 begin
@@ -827,7 +831,7 @@ lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Pro
 
 lemma is_countably_generated_seq (x : ℕ → set α) : is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
-  rcases antitone_seq_of_seq x with ⟨y, am, h⟩,
+  obtain ⟨y, am, h⟩ := antitone_seq_of_seq x,
   rw h,
   use [range y, countable_range _],
   rw (has_basis_infi_principal _).eq_generate,

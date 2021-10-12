@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
+import data.finset.option
 import data.sym.basic
 import data.ulift
 import group_theory.perm.basic
@@ -764,26 +765,12 @@ by classical; exact fintype.of_injective units.val units.ext
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
-/-- Given a finset on `α`, lift it to being a finset on `option α`
-using `option.some` and then insert `option.none`. -/
-def finset.insert_none (s : finset α) : finset (option α) :=
-⟨none ::ₘ s.1.map some, multiset.nodup_cons.2
-  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩
-
-@[simp] theorem finset.mem_insert_none {s : finset α} : ∀ {o : option α},
-  o ∈ s.insert_none ↔ ∀ a ∈ o, a ∈ s
-| none     := iff_of_true (multiset.mem_cons_self _ _) (λ a h, by cases h)
-| (some a) := multiset.mem_cons.trans $ by simp; refl
-
-theorem finset.some_mem_insert_none {s : finset α} {a : α} :
-  some a ∈ s.insert_none ↔ a ∈ s := by simp
-
 instance {α : Type*} [fintype α] : fintype (option α) :=
 ⟨univ.insert_none, λ a, by simp⟩
 
 @[simp] theorem fintype.card_option {α : Type*} [fintype α] :
   fintype.card (option α) = fintype.card α + 1 :=
-(multiset.card_cons _ _).trans (by rw multiset.card_map; refl)
+(finset.card_cons _).trans $ congr_arg2 _ (card_map _) rfl
 
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=
@@ -992,11 +979,14 @@ have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from injective_iff_
 λ hsurj, by simpa [function.comp] using
   e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
 
+lemma card_of_bijective {f : α → β} (hf : bijective f) : card α = card β :=
+card_congr (equiv.of_bijective f hf)
+
 lemma bijective_iff_injective_and_card (f : α → β) :
   bijective f ↔ injective f ∧ card α = card β :=
 begin
   split,
-  { intro h, exact ⟨h.1, card_congr (equiv.of_bijective f h)⟩ },
+  { intro h, exact ⟨h.1, card_of_bijective h⟩ },
   { rintro ⟨hf, h⟩,
     refine ⟨hf, _⟩,
     rwa ←injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
@@ -1006,7 +996,7 @@ lemma bijective_iff_surjective_and_card (f : α → β) :
   bijective f ↔ surjective f ∧ card α = card β :=
 begin
   split,
-  { intro h, exact ⟨h.2, card_congr (equiv.of_bijective f h)⟩, },
+  { intro h, exact ⟨h.2, card_of_bijective h⟩ },
   { rintro ⟨hf, h⟩,
     refine ⟨_, hf⟩,
     rwa injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
@@ -1288,6 +1278,9 @@ instance set.fintype [fintype α] : fintype (set α) :=
   classical, refine mem_map.2 ⟨finset.univ.filter s, mem_powerset.2 (subset_univ _), _⟩,
   apply (coe_filter _ _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩
+
+@[simp] lemma fintype.card_set [fintype α] : fintype.card (set α) = 2 ^ fintype.card α :=
+(finset.card_map _).trans (finset.card_powerset _)
 
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, fintype (α hp)] : fintype (Π hp : p, α hp) :=

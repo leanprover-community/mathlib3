@@ -54,8 +54,16 @@ iff.rfl
 
 variables {p q : submodule R M}
 
-@[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :
+@[simp]
+lemma mem_mk {S : set M} {x : M} (h₁ h₂ h₃) : x ∈ (⟨S, h₁, h₂, h₃⟩ : submodule R M) ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma coe_set_mk (S : set M) (h₁ h₂ h₃) :
   ((⟨S, h₁, h₂, h₃⟩ : submodule R M) : set M) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set M} (h₁ h₂ h₃ h₁' h₂' h₃') :
+  (⟨S, h₁, h₂, h₃⟩ : submodule R M) ≤ (⟨S', h₁', h₂', h₃'⟩ : submodule R M) ↔ S ⊆ S' := iff.rfl
 
 @[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 

@@ -19,8 +19,6 @@ This file defines a bundled type of absolute values `absolute_value R S`.
  * `is_absolute_value`: a type class stating that `f : β → α` satisfies the axioms of an abs val
 -/
 
-set_option old_structure_cmd true
-
 /-- `absolute_value R S` is the type of absolute values on `R` mapping to `S`:
 the maps that preserve `*`, are nonnegative, positive definite and satisfy the triangle equality. -/
 structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S]
@@ -33,7 +31,7 @@ namespace absolute_value
 
 attribute [nolint doc_blame] absolute_value.to_mul_hom
 
-initialize_simps_projections absolute_value (to_fun → apply)
+initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
 
 section ordered_semiring
 
@@ -150,7 +148,7 @@ section field
 variables {R S : Type*} [field R] [linear_ordered_field S] (abv : absolute_value R S)
 
 @[simp] protected theorem map_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-abv.to_monoid_with_zero_hom.map_inv' a
+abv.to_monoid_with_zero_hom.map_inv a
 
 @[simp] protected theorem map_div (a b : R) : abv (a / b) = abv a / abv b :=
 abv.to_monoid_with_zero_hom.map_div a b
@@ -267,7 +265,7 @@ section field
 variables {R : Type*} [field R] (abv : R → S) [is_absolute_value abv]
 
 theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
-(abv_hom abv).map_inv' a
+(abv_hom abv).map_inv a
 
 theorem abv_div (a b : R) : abv (a / b) = abv a / abv b :=
 (abv_hom abv).map_div a b

@@ -562,7 +562,7 @@ instance : division_ring ℍ[R] :=
   .. quaternion.domain }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
-monoid_with_zero_hom.map_inv' norm_sq _
+monoid_with_zero_hom.map_inv norm_sq _
 
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
 monoid_with_zero_hom.map_div norm_sq a b

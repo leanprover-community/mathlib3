@@ -289,10 +289,10 @@ begin
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
     { rwa ball_zero_eq at hx } },
-  { rw [← inv_inv' c, normed_field.norm_inv,
+  { rw [← inv_inv₀ c, normed_field.norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
-    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv'] }
+    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv₀] }
 end
 
 lemma op_norm_eq_of_bounds {φ : E →L[𝕜] F} {M : ℝ} (M_nonneg : 0 ≤ M)
@@ -400,7 +400,9 @@ begin
   simp [subsingleton.elim x 0]
 end
 
-/-- A continuous linear map is an isometry if and only if it preserves the norm. -/
+/-- A continuous linear map is an isometry if and only if it preserves the norm.
+(Note: Do you really want to use this lemma?  Try using the bundled structure `linear_isometry`
+instead.) -/
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 

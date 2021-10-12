@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
+import data.set.basic
 import data.sigma.basic
 
 /-!
@@ -144,7 +145,7 @@ theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidabl
 by simp [set_value]
 
 /-- Embedding into `option` -/
-protected def some {α} : α ↪ option α :=
+@[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
 
 /-- Embedding of a `subtype`. -/

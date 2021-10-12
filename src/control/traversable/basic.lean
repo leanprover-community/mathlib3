@@ -61,7 +61,7 @@ section applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
-/-- A transformation between applicative functors.  It a natural
+/-- A transformation between applicative functors.  It is a natural
 transformation such that `app` preserves the `has_pure.pure` and
 `functor.map` (`<*>`) operations. See
 `applicative_transformation.preserves_map` for naturality. -/

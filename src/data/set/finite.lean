@@ -215,6 +215,12 @@ fintype.card_of_subsingleton _
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
 h.induction_on finite_empty finite_singleton
 
+lemma finite_is_top (α : Type*) [partial_order α] : finite {x : α | is_top x} :=
+(subsingleton_is_top α).finite
+
+lemma finite_is_bot (α : Type*) [partial_order α] : finite {x : α | is_bot x} :=
+(subsingleton_is_bot α).finite
+
 instance fintype_pure : ∀ a : α, fintype (pure a : set α) :=
 set.fintype_singleton
 

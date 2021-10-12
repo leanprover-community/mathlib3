@@ -1390,7 +1390,7 @@ section fixed_points
 lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
   (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
-  rw [nat.lt_sub_left_iff_add_lt, ← nat.lt_sub_right_iff_add_lt, ← finset.card_compl,
+  rw [lt_sub_iff_left, ← lt_sub_iff_right, ← finset.card_compl,
     finset.compl_filter],
   exact one_lt_card_support_of_ne_one h
 end

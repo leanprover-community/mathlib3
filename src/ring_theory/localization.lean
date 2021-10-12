@@ -688,6 +688,14 @@ instance : has_add (localization M) := ⟨localization.add⟩
 lemma add_mk (a b c d) : (mk a b : localization M) + mk c d = mk (b * c + d * a) (b * d) :=
 by { unfold has_add.add localization.add, apply lift_on₂_mk }
 
+lemma add_mk_self (a b c) : (mk a b : localization M) + mk c b = mk (a + c) b :=
+begin
+  rw [add_mk, mk_eq_mk_iff, r_eq_r'],
+  refine (r' M).symm ⟨1, _⟩,
+  simp only [submonoid.coe_one, submonoid.coe_mul],
+  ring
+end
+
 /-- Negation in a ring localization is defined as `-⟨a, b⟩ = ⟨-a, b⟩`. -/
 @[irreducible] protected def neg (z : localization M) : localization M :=
 localization.lift_on z (λ a b, mk (-a) b) $
@@ -717,6 +725,24 @@ lemma mk_zero (b) : (mk 0 b : localization M) = 0 :=
 calc mk 0 b = mk 0 1 : mk_eq_mk_iff.mpr (r_of_eq (by simp))
 ... = 0 : by  unfold has_zero.zero localization.zero
 
+/-- Scalar multiplication in a ring localization is defined as `c • ⟨a, b⟩ = ⟨c • a, c • b⟩`. -/
+@[irreducible] protected def smul {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
+  (c : S) (z : localization M) : localization M :=
+localization.lift_on z (λ a b, mk (c • a) b) $
+  λ a a' b b' h, mk_eq_mk_iff.2
+begin
+  cases b with b hb,
+  cases b' with b' hb',
+  rw r_eq_r' at h ⊢,
+  cases h with t ht,
+  use t,
+  simp only [smul_mul_assoc, ht]
+end
+
+lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
+  (c : S) (a b) : localization.smul c (mk a b : localization M) = mk (c • a) b :=
+by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
+
 private meta def tac := `[{
   intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
@@ -730,6 +756,18 @@ instance : comm_ring (localization M) :=
   add  := (+),
   mul  := (*),
   npow := localization.npow _,
+  nsmul := localization.smul,
+  nsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
+  nsmul_succ' := λ n x, localization.induction_on x
+    (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
+  gsmul := localization.smul,
+  gsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_gsmul, mk_zero]),
+  gsmul_succ' := λ n x, localization.induction_on x
+    (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
+  gsmul_neg' := λ n x, localization.induction_on x
+    (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
   add_zero       := λ y, localization.induction_on y (by tac),
@@ -1045,7 +1083,7 @@ begin
       ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.eq_zero_iff_mem, ring_hom.map_sub,
       sub_eq_zero, mk'_eq_mul_mk'_one],
     simp only [mul_eq_mul_left_iff, ring_hom.map_mul],
-    exact or.inl (mul_left_cancel' (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
+    exact or.inl (mul_left_cancel₀ (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
       (ideal.mem_comap.2 (ideal.quotient.eq_zero_iff_mem.1 hn)))) (trans hn
       (by rw [← ring_hom.map_mul, ← mk'_eq_mul_mk'_one, mk'_self, ring_hom.map_one]))) }
 end
@@ -1729,7 +1767,7 @@ begin
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
-  refine mul_left_cancel'
+  refine mul_left_cancel₀
     (is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors b_nonzero) _,
   simp only [subtype.coe_mk, ring_hom.map_mul, algebra.smul_def] at *,
   erw [←hab, mul_assoc, mk'_spec' _ a' ⟨b', b'_nonzero⟩],
@@ -1778,7 +1816,7 @@ begin
   use ↑d⁻¹ * num A x,
   refine trans _ (mk'_num_denom A x),
   rw [ring_hom.map_mul, ring_hom.map_units_inv, hd],
-  apply mul_left_cancel' d_ne_zero,
+  apply mul_left_cancel₀ d_ne_zero,
   rw [←mul_assoc, mul_inv_cancel d_ne_zero, one_mul, mk'_spec']
 end
 
@@ -1917,7 +1955,7 @@ lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
           (by rw [is_scalar_tower.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
      by rw [set_like.coe_mk, algebra_map_mk', ← is_scalar_tower.algebra_map_apply A C L, hxy]⟩,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by simpa using algebra_map_injective C A L h⟩, λ ⟨c, hc⟩,
-    congr_arg (algebra_map _ L) (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
+    congr_arg (algebra_map _ L) (mul_right_cancel₀ (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
 
 variables (K L)
 
@@ -1958,10 +1996,14 @@ end integral_closure
 
 end algebra
 
-variables (A)
+variables (R A)
 
-/-- The fraction field of an integral domain as a quotient type. -/
-@[reducible] def fraction_ring := localization (non_zero_divisors A)
+/-- The fraction ring of a commutative ring `R` as a quotient type.
+
+We instantiate this definition as generally as possible, and assume that the
+commutative ring `R` is an integral domain only when this is needed for proving.
+-/
+@[reducible] def fraction_ring := localization (non_zero_divisors R)
 
 namespace fraction_ring
 
@@ -1974,8 +2016,10 @@ noncomputable instance : field (fraction_ring A) :=
   sub := has_sub.sub,
   one := 1,
   zero := 0,
+  nsmul := nsmul,
   gsmul := gsmul,
   npow := localization.npow _,
+  .. localization.comm_ring,
   .. is_fraction_ring.to_field A }
 
 @[simp] lemma mk_eq_div {r s} : (localization.mk r s : fraction_ring A) =

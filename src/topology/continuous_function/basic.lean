@@ -112,9 +112,12 @@ variables [linear_ordered_add_comm_group β] [order_topology β]
 
 /-- The pointwise absolute value of a continuous function as a continuous function. -/
 def abs (f : C(α, β)) : C(α, β) :=
-{ to_fun := λ x, abs (f x), }
+{ to_fun := λ x, |f x|, }
 
-@[simp] lemma abs_apply (f : C(α, β)) (x : α) : f.abs x = _root_.abs (f x) :=
+@[priority 100] -- see Note [lower instance priority]
+instance : has_abs C(α, β) := ⟨λf, abs f⟩
+
+@[simp] lemma abs_apply (f : C(α, β)) (x : α) : |f| x = |f x| :=
 rfl
 
 end

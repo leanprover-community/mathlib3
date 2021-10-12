@@ -18,10 +18,6 @@ semigroups.
 
 open_locale manifold
 
-section
-
-set_option old_structure_cmd true
-
 /--
 1. All smooth algebraic structures on `G` are `Prop`-valued classes that extend
 `smooth_manifold_with_corners I G`. This way we save users from adding both
@@ -64,8 +60,6 @@ class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   (G : Type*) [has_mul G] [topological_space G] [charted_space H G]
   extends smooth_manifold_with_corners I G : Prop :=
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
-
-end
 
 section has_smooth_mul
 

@@ -487,7 +487,7 @@ theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : �
     cases hb with γδ δγ,
     exact
     let c : type (A a) := c, ⟨d, hd⟩ := γδ (by rwa ea at c) in
-    have equiv ((A a).func c) ((B b).func (eq.rec d (eq.symm eb))), from
+    have pSet.equiv ((A a).func c) ((B b).func (eq.rec d (eq.symm eb))), from
     match A a, B b, ea, eb, c, d, hd with ._, ._, rfl, rfl, x, y, hd := hd end,
     ⟨⟨b, eq.rec d (eq.symm eb)⟩, this⟩
   end
@@ -496,7 +496,7 @@ theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : �
 def Union : Set → Set :=
 resp.eval 1 ⟨pSet.Union, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨Union_lem A B αβ, λ a, exists.elim (Union_lem B A (λ b,
-    exists.elim (βα b) (λ c hc, ⟨c, equiv.symm hc⟩)) a) (λ b hb, ⟨b, equiv.symm hb⟩)⟩⟩
+    exists.elim (βα b) (λ c hc, ⟨c, pSet.equiv.symm hc⟩)) a) (λ b hb, ⟨b, pSet.equiv.symm hb⟩)⟩⟩
 
 notation `⋃` := Union
 

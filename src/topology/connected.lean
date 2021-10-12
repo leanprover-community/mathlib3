@@ -135,7 +135,7 @@ let ⟨p, hpu, hps⟩ := mem_closure_iff.1 (Ktcs hyt) u hu hyu,
   ⟨r, Kst hrs, hruv⟩
 
 theorem is_connected.subset_closure {s : set α}  {t : set α}
-  (H : is_connected s) (Kst : s ⊆ t) (Ktcs : t ⊆ closure s): is_connected (t) :=
+  (H : is_connected s) (Kst : s ⊆ t) (Ktcs : t ⊆ closure s): is_connected t :=
 let hsne := H.left,
     ht := Kst,
     htne := nonempty.mono ht hsne in

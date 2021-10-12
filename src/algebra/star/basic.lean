@@ -321,9 +321,9 @@ instance [add_monoid R] [star_add_monoid R] : star_add_monoid (Rᵒᵖ) :=
 instance [semiring R] [star_ring R] : star_ring (Rᵒᵖ) :=
 { .. opposite.star_add_monoid }
 
+end opposite
+
 /-- A commutative star monoid is a star module over its opposite via
 `monoid.to_opposite_mul_action`. -/
-instance star_monoid.to_star_module [comm_monoid R] [star_monoid R] : star_module Rᵒᵖ R :=
+instance star_monoid.to_opposite_star_module [comm_monoid R] [star_monoid R] : star_module Rᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩
-
-end opposite

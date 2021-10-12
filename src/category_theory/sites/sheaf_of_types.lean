@@ -524,8 +524,8 @@ to `P` can be (uniquely) extended to all of `yoneda.obj X`.
    yX
 
 -/
-noncomputable def is_sheaf_for.extend {P : Cᵒᵖ ⥤ Type v₁} (h : is_sheaf_for P S) (f : S.functor ⟶ P) :
-  yoneda.obj X ⟶ P :=
+noncomputable def is_sheaf_for.extend {P : Cᵒᵖ ⥤ Type v₁} (h : is_sheaf_for P S)
+  (f : S.functor ⟶ P) : yoneda.obj X ⟶ P :=
 classical.some (is_sheaf_for_iff_yoneda_sheaf_condition.1 h f).exists
 
 /--

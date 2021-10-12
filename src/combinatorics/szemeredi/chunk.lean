@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .bounds
 import .finpartitions
+import .prereqs
 import .witness
 
 /-!
@@ -35,14 +36,18 @@ noncomputable def finpartition_on.is_equipartition.star (V : finset α) :
 
 variables {hP G ε U hU V}
 
+/-! # star -/
+
 /-- Each thing in star is a subset of the witness -/
-lemma mem_star_subset_witness :
-  ∀ A ∈ hP.star G ε hU V, A ⊆ (G.witness ε U V).1 :=
-begin
-  intros A hA,
-  simp only [finpartition_on.is_equipartition.star, mem_filter] at hA,
-  apply hA.2
-end
+lemma subset_witness_of_mem_star : ∀ A ∈ hP.star G ε hU V, A ⊆ (G.witness ε U V).1 :=
+λ A hA, (mem_filter.1 hA).2
+
+lemma star_subset_chunk_increment : hP.star G ε hU V ⊆ (hP.chunk_increment G ε hU).parts :=
+filter_subset _ _
+
+lemma star_pairwise_disjoint : ∀ (x y ∈ hP.star G ε hU V), ∀ i ∈ x, i ∈ y → x = y :=
+λ x y hx hy,
+  finpartition_on.disjoint _ _ _ (star_subset_chunk_increment hx) (star_subset_chunk_increment hy)
 
 lemma witness_sdiff_bUnion_star_small (hV : V ∈ P.parts) (h : ¬G.is_uniform ε U V) :
   ((G.witness ε U V).1 \ finset.bUnion (hP.star G ε hU V) id).card ≤ 2^(P.size - 1) * m :=
@@ -51,7 +56,7 @@ begin
   set X := ((P.parts.filter (λ V, ¬G.is_uniform ε U V)).image (λ V, (G.witness ε U V).1)),
   set R := atomise U X,
   have hX : (G.witness ε U V).1 ∈ X := mem_image_of_mem _ (by simp [hV, h]),
-  have := partial_atomise (G.witness ε U V).1 hX G.left_witness_subs,
+  have := partial_atomise (G.witness ε U V).1 hX G.left_witness_subset,
   sorry
   -- split_ifs with h₁,
   -- { have := λ B (hB : B ∈ R.parts), almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ h₁) hB,
@@ -61,16 +66,14 @@ begin
   -- },
 end
 
-lemma pairwise_disjoint :
-  ∀ i (x y ∈ hP.star G ε hU V), i ∈ x → i ∈ y → x = y :=
-sorry
+/-! # chunk_increment -/
 
 lemma chunk_increment.size (m_pos : 0 < m) : (hP.chunk_increment G ε hU).size = 4^P.size :=
 begin
   rw finpartition_on.is_equipartition.chunk_increment,
   split_ifs,
   { rw [finpartition_on.equitabilise.size m_pos, nat.sub_add_cancel],
-    exact le_of_lt a_add_one_le_four_pow_size  },
+    exact le_of_lt a_add_one_le_four_pow_size },
   { rw [finpartition_on.equitabilise.size m_pos, nat.sub_add_cancel],
     exact a_add_one_le_four_pow_size }
 end
@@ -362,17 +365,35 @@ begin
     ... ≤ (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
             G.edge_density ab.1 ab.2^2)/((hP.chunk_increment G ε hU).size
             * (hP.chunk_increment G ε hV).size)
-        : begin
-          sorry
-          -- exact (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)),
-
-        end
+        : by convert chebyshev _ _;
+            rw [card_product, nat.cast_mul, finpartition_on.size, finpartition_on.size]
     ... = (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
             G.edge_density ab.1 ab.2^2)/16^P.size
         : begin
           rw [chunk_increment.size m_pos, chunk_increment.size m_pos, ←nat.cast_mul, ←mul_pow],
           norm_cast,
         end
+end
+
+lemma abs_density_star_star_sub_density_lt_eps [nonempty α]
+  (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
+  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV : ¬ G.is_uniform ε U V) :
+  |G.edge_density ((hP.star G ε hU V).bUnion id) ((hP.star G ε hV U).bUnion id) -
+    G.edge_density U V| < ε/5 :=
+begin
+  have := lemma_A G.adj,
+end
+
+lemma stuff [nonempty α]
+  (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
+  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV : ¬ G.is_uniform ε U V) :
+  3/4 * ε ≤
+    ((∑ ab in (hP.star G ε hU V).product (hP.star G ε hV U), G.edge_density ab.1 ab.2)
+      / ((hP.star G ε hU V).card * (hP.star G ε hV U).card) -
+        (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
+          G.edge_density ab.1 ab.2^2)/16^P.size) :=
+begin
+  sorry
 end
 
 -- double dagger inequality
@@ -383,10 +404,9 @@ lemma sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform [nonempty α]
   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
     G.edge_density ab.1 ab.2^2)/16^P.size :=
 begin
-  have := P.equitabilise ,
   calc
     G.edge_density U V^2 - ε^5/25 + ε^4/3
-        ≤  G.edge_density U V^2 - ε^5/25 + 0/16^P.size * (9/16) * ε^4
+        ≤  G.edge_density U V^2 - ε^5/25 + (hP.star G ε hU V).card * (hP.star G ε hV U).card/16^P.size * (9/16) * ε^4
         : sorry
     ... ≤ (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
             G.edge_density ab.1 ab.2^2)/16^P.size

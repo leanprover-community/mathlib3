@@ -34,7 +34,7 @@ ite (well_ordering_rel U V) (G.witness_aux ε U V) (G.witness_aux ε V U).swap
 
 variables {ε : ℝ} {U V : finset α}
 
-lemma left_witness_aux_subs : (G.witness_aux ε U V).1 ⊆ U :=
+lemma left_witness_aux_subset : (G.witness_aux ε U V).1 ⊆ U :=
 begin
   rw [witness_aux],
   split_ifs,
@@ -44,7 +44,7 @@ begin
   apply h.2.some_spec.1,
 end
 
-lemma right_witness_aux_subs : (G.witness_aux ε U V).2 ⊆ V :=
+lemma right_witness_aux_subset : (G.witness_aux ε U V).2 ⊆ V :=
 begin
   rw [witness_aux],
   split_ifs,
@@ -54,12 +54,12 @@ begin
   apply h.2.some_spec.2.some_spec.1,
 end
 
-lemma left_witness_subs : (G.witness ε U V).1 ⊆ U :=
+lemma left_witness_subset : (G.witness ε U V).1 ⊆ U :=
 begin
   dsimp [witness],
   split_ifs,
-  { apply left_witness_aux_subs },
-  { apply right_witness_aux_subs },
+  { apply left_witness_aux_subset },
+  { apply right_witness_aux_subset },
 end
 
 lemma witness_comm (ε : ℝ) (U V : finset α) :
@@ -73,10 +73,10 @@ begin
   rw [if_pos h, if_neg (asymm h)],
 end
 
-lemma right_witness_subs : (G.witness ε U V).2 ⊆ V :=
+lemma right_witness_subset : (G.witness ε U V).2 ⊆ V :=
 begin
   rw witness_comm,
-  apply left_witness_subs
+  apply left_witness_subset
 end
 
 end simple_graph

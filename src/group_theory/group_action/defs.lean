@@ -173,7 +173,9 @@ def comp (g : N → M) : has_scalar N α :=
 
 variables {α}
 
-/-- If an action forms a scalar tower then so does the action formed by `has_scalar.comp`.
+/-- Given a tower of scalar actions `M → α → β`, if we use `has_scalar.comp`
+to pull back both of `M`'s actions by a map `g : N → M`, then we obtain a new
+tower of scalar actions `N → α → β`. -/
 
 This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
 are still metavariables.

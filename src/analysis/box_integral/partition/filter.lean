@@ -16,7 +16,7 @@ actually used somewhere in the library (`⊥`, `Riemann`, `Henstock`, and `McSha
 The structure `box_integral.integration_filter` has 3 boolean fields with the following meaning:
 
 * `bRiemann`: the value `tt` means that the filter corresponds to a Riemann-style integral, i.e. in
-  the definition of integrability we require a uniform estimate `r` on the size of boxes of a tagged
+  the definition of integrability we require a constant upper estimate `r` on the size of boxes of a tagged
   partition; the value `ff` means that the estimate may depend on the position of the tag.
 
 * `bHenstock`: the value `tt` means that we require that each tag belongs to its own closed box; the
@@ -46,14 +46,14 @@ open tagged_prepartition
 used in the definition of a box-integrable function.
 
 * `bRiemann`: the value `tt` means that the filter corresponds to a Riemann-style integral, i.e. in
-  the definition of integrability we require a uniform estimate `r` on the size of boxes of a tagged
+  the definition of integrability we require a constant upper estimate `r` on the size of boxes of a tagged
   partition; the value `ff` means that the estimate may depend on the position of the tag.
 
 * `bHenstock`: the value `tt` means that we require that each tag belongs to its own closed box; the
   value `ff` means that we only require that tags belong to the ambient box.
 
 * `bDistortion`: the value `tt` means that `r` can depend on the maximal ratio of sides of the same
-  box of a partition. Presence of this case make quite a few proofs harder but we can prove the
+  box of a partition. Presence of this case makes quite a few proofs harder but we can prove the
   divergence theorem only for the filter `⊥ = {bRiemann := ff, bHenstock := tt, bDistortion := tt}`.
 -/
 @[ext] structure integration_filter : Type :=
@@ -99,7 +99,7 @@ to compare two prepartitions covering the same part of the box. -/
 def r_cond {ι : Type*} (l : integration_filter) (r : (ι → ℝ) → Ioi (0 : ℝ)) : Prop :=
 l.bRiemann → ∀ x, r x = r 0
 
-/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion I c` if exists a
+/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion I c` if there exists a
 function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s` contains each
 prepartition `π` such that `l.mem_base_set I c r π`. -/
 def to_filter_distortion (l : integration_filter) (I : box ι) (c : ℝ≥0) :
@@ -113,7 +113,7 @@ def to_filter (l : integration_filter) (I : box ι) :
   filter (tagged_prepartition I) :=
 ⨆ c : ℝ≥0, l.to_filter_distortion I c
 
-/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion I c π₀` if exists a
+/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion_Union I c π₀` if there exists a
 function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s` contains each
 prepartition `π` such that `l.mem_base_set I c r π` and `π.Union = π₀.Union`. -/
 def to_filter_distortion_Union (l : integration_filter) (I : box ι) (c : ℝ≥0)

@@ -17,7 +17,7 @@ box. Suppose that the following two properties hold true.
   `2 ^ n` boxes. If `p` holds true on each of these boxes, then it is true on `J`.
 * For each `z` in the closed box `I.Icc` there exists a neighborhood `U` of `z` within `I.Icc` such
   that for every box `J ≤ I` such that `z ∈ J.Icc ⊆ U`, if `J` is homothetic to `I` with a
-  coefficient of the form `1 / 2 ^ n`, then `p` is true on `J`.
+  coefficient of the form `1 / 2 ^ m`, then `p` is true on `J`.
 
 Then `p I` is true.
 
@@ -98,7 +98,7 @@ hold true.
 
 * `H_nhds` : For each `z` in the closed box `I.Icc` there exists a neighborhood `U` of `z` within
   `I.Icc` such that for every box `J ≤ I` such that `z ∈ J.Icc ⊆ U`, if `J` is homothetic to `I`
-  with a coefficient of the form `1 / 2 ^ n`, then `p` is true on `J`.
+  with a coefficient of the form `1 / 2 ^ m`, then `p` is true on `J`.
 
 Then `p I` is true. See also `box_integral.box.subbox_induction_on` for a version using
 `box_integral.prepartition.split_center` instead of `box_integral.box.split_center_box`.

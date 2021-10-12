@@ -167,7 +167,7 @@ lemma coe_subset_Icc : ↑I ⊆ I.Icc := λ x hx, ⟨λ i, (hx i).1.le, λ i, (h
 ### Supremum of two boxes
 -/
 
-/-- `I ⊔ J` is the least box that includes bot `I` and `J`. Since `↑I ∪ ↑J` is usually not a box,
+/-- `I ⊔ J` is the least box that includes both `I` and `J`. Since `↑I ∪ ↑J` is usually not a box,
 `↑(I ⊔ J)` is larger than `↑I ∪ ↑J`. -/
 instance : has_sup (box ι) :=
 ⟨λ I J, ⟨I.lower ⊓ J.lower, I.upper ⊔ J.upper,
@@ -198,7 +198,7 @@ lemma is_some_iff : ∀ {I : with_bot (box ι)}, I.is_some ↔ (I : set (ι → 
 | (I : box ι) := by { erw option.is_some, simp [I.nonempty_coe] }
 
 lemma bUnion_coe_eq_coe (I : with_bot (box ι)) :
-  (⋃ (J : box ι) (hJ : ↑J =  I), (J : set (ι → ℝ))) = I :=
+  (⋃ (J : box ι) (hJ : ↑J = I), (J : set (ι → ℝ))) = I :=
 by induction I using with_bot.rec_bot_coe; simp [with_bot.coe_eq_coe]
 
 @[simp, norm_cast] lemma with_bot_coe_subset_iff {I J : with_bot (box ι)} :
@@ -288,7 +288,7 @@ by rw [disjoint_coe, set.not_disjoint_iff_nonempty_inter]
 -/
 
 /-- Face of a box in `ℝⁿ⁺¹ = fin (n + 1) → ℝ`: the box in `ℝⁿ = fin n → ℝ` with corners at
-`I.lower ∘ fin.insert_nth i` and `I.upper ∘ fin.insert_nth i`. -/
+`I.lower ∘ fin.succ_above i` and `I.upper ∘ fin.succ_above i`. -/
 @[simps] def face {n} (I : box (fin (n + 1))) (i : fin (n + 1)) : box (fin n) :=
 ⟨I.lower ∘ fin.succ_above i, I.upper ∘ fin.succ_above i, λ j, I.lower_lt_upper _⟩
 

@@ -130,42 +130,6 @@ begin
   { refine (disjoint_split_lower_split_upper I i x).ne _,
     rwa [ne.def, split_lower_eq_bot, not_le] }
 end
-/-
-@[simp] lemma face_split_lower_get_same (I : box (fin (n + 1))) (i x hx) :
-  face ((split_lower I i x).get hx) i = face I i :=
-begin
-  simp only [face, split_lower_get_lower, split_lower_get_upper, funext_iff, (∘)],
-  exact ⟨λ _, rfl, λ j, update_noteq (fin.succ_above_ne _ _) _ _⟩
-end
-
-@[simp] lemma face_split_upper_get_same (I : box (fin (n + 1))) (i x hx) :
-  face ((split_upper I i x).get hx) i = face I i :=
-begin
-  simp only [face, split_upper_get_lower, split_upper_get_upper, funext_iff, (∘)],
-  exact ⟨λ j, update_noteq (fin.succ_above_ne _ _) _ _, λ _, rfl⟩
-end
-
-@[simp] lemma face_split_lower_succ_above_get (I : box (fin (n + 1))) (i : fin (n + 1))
-  (j : fin n) (x : ℝ) (hx : I.lower (i.succ_above j) < x) :
-  face ((split_lower I (i.succ_above j) x).get hx) i =
-    (split_lower (face I i) j x).get hx :=
-begin
-  simp only [face, split_lower, eq_self_iff_true, true_and, eq_update_iff, (∘), update_same],
-  intros k hk,
-  convert update_noteq (i.succ_above.injective.ne hk) _ _
-end
-
-@[simp] lemma face_split_upper_succ_above_get (I : box (fin (n + 1))) (i : fin (n + 1))
-  (j : fin n) (x : ℝ) (hx : x < I.upper (i.succ_above j)) :
-  face ((split_upper I (i.succ_above j) x).get hx) i =
-    (split_upper (face I i) j x).get hx :=
-begin
-  simp only [face, split_upper, eq_self_iff_true, true_and, and_true, eq_update_iff,
-    (∘), update_same],
-  intros k hk,
-  convert update_noteq (i.succ_above.injective.ne hk) _ _
-end
--/
 end box
 
 namespace prepartition

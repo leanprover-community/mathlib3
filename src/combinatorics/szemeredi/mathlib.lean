@@ -372,15 +372,20 @@ begin
   exact mul_le_mul_of_nonneg_right h (nat.cast_nonneg _),
 end
 
-lemma is_uniform_symmetric (ε : ℝ) : symmetric (is_uniform G ε) :=
+lemma is_uniform.symm {G : simple_graph α} [decidable_rel G.adj] {ε : ℝ} {U V : finset α}
+  (h : G.is_uniform ε U V) :
+  G.is_uniform ε V U :=
 begin
-  intros U V h V' hV' U' hU' hV hU,
+  intros V' hV' U' hU' hV hU,
   rw [edge_density_comm _ V', edge_density_comm _ V],
   apply h _ hU' _ hV' hU hV,
 end
 
+lemma is_uniform_symmetric (ε : ℝ) : symmetric (is_uniform G ε) :=
+λ U V h, h.symm
+
 lemma is_uniform_comm (ε : ℝ) {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
-⟨λ h, G.is_uniform_symmetric ε h, λ h, G.is_uniform_symmetric ε h⟩
+⟨λ h, h.symm, λ h, h.symm⟩
 
 variables {G}
 

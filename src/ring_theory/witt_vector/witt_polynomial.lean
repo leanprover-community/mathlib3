@@ -134,7 +134,7 @@ by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_i
 
 /--
 Over the ring `zmod (p^(n+1))`, we produce the `n+1`st Witt polynomial
-by expanding the `n`th witt polynomial by `p`.
+by expanding the `n`th Witt polynomial by `p`.
 -/
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
   W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=

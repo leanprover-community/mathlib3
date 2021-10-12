@@ -127,13 +127,13 @@ Another useful example is the forgetful functor `TopCommRing ⥤ Top`.
 See https://stacks.math.columbia.edu/tag/0073.
 In fact we prove a stronger version with arbitrary complete target category.
 -/
-def sheaf_condition_equiv_sheaf_condition_comp :
-  sheaf_condition F ≃ sheaf_condition (F ⋙ G) :=
+lemma is_sheaf_iff_is_sheaf_comp :
+  presheaf.is_sheaf F ↔ presheaf.is_sheaf (F ⋙ G) :=
 begin
-  apply equiv_of_subsingleton_of_subsingleton,
+  split,
   { intros S ι U,
     -- We have that the sheaf condition fork for `F` is a limit fork,
-    have t₁ := S U,
+    obtain ⟨t₁⟩ := S U,
     -- and since `G` preserves limits, the image under `G` of this fork is a limit fork too.
     have t₂ := @preserves_limit.preserves _ _ _ _ _ _ _ G _ _ t₁,
     -- As we established above, that image is just the sheaf condition fork
@@ -142,8 +142,9 @@ begin
     -- and as postcomposing by a natural isomorphism preserves limit cones,
     have t₄ := is_limit.postcompose_inv_equiv _ _ t₃,
     -- we have our desired conclusion.
-    exact t₄, },
+    exact ⟨t₄⟩, },
   { intros S ι U,
+    refine ⟨_⟩,
     -- Let `f` be the universal morphism from `F.obj U` to the equalizer
     -- of the sheaf condition fork, whatever it is.
     -- Our goal is to show that this is an isomorphism.
@@ -164,7 +165,7 @@ begin
       -- from the sheaf condition cone for `F ⋙ G` to the
       -- image under `G` of the equalizer cone for the sheaf condition diagram.
       let c := fork (F ⋙ G) U,
-      have hc : is_limit c := S U,
+      obtain ⟨hc⟩ := S U,
       let d := G.map_cone (equalizer.fork (left_res F U) (right_res F U)),
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- Since both of these are limit cones

@@ -918,20 +918,13 @@ lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(
 end units
 
 namespace opposite
-variables [monoid M]
-/-- Moving to the opposite monoid commutes with taking powers. -/
-@[simp] lemma op_pow (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
-begin
-  induction n with n h,
-  { simp },
-  { rw [pow_succ', op_mul, h, pow_succ] }
-end
 
-@[simp] lemma unop_pow (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n :=
-begin
-  induction n with n h,
-  { simp },
-  { rw [pow_succ', unop_mul, h, pow_succ] }
-end
+/-- Moving to the opposite monoid commutes with taking powers. -/
+@[simp] lemma op_pow [monoid M] (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n := rfl
+@[simp] lemma unop_pow [monoid M] (x : Mᵒᵖ) (n : ℕ) : unop (x ^ n) = (unop x) ^ n := rfl
+
+/-- Moving to the opposite group or group_with_zero commutes with taking powers. -/
+@[simp] lemma op_gpow [div_inv_monoid M] (x : M) (z : ℤ) : op (x ^ z) = (op x) ^ z := rfl
+@[simp] lemma unop_gpow [div_inv_monoid M] (x : Mᵒᵖ) (z : ℤ) : unop (x ^ z) = (unop x) ^ z := rfl
 
 end opposite

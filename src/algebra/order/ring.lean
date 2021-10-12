@@ -1434,20 +1434,45 @@ lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_o
 @[simp] lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
 by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
-variables [has_sub α] [has_ordered_sub α] [contravariant_class α α (+) (≤)] [is_total α (≤)]
 
-lemma _root_.mul_sub' (a b c : α) : a * (b - c) = a * b - a * c :=
+end canonically_ordered_comm_semiring
+
+section sub
+
+variables [canonically_ordered_comm_semiring α] {a b c : α}
+variables [has_sub α] [has_ordered_sub α]
+
+lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
+by { rw [sub_le_iff_right, ← add_mul], exact mul_le_mul_right' le_sub_add c }
+
+lemma mul_sub_ge : a * b - a * c ≤ a * (b - c) :=
+by simp only [mul_comm a, sub_mul_ge]
+
+variables [is_total α (≤)]
+
+namespace add_le_cancellable
+protected lemma mul_sub (h : add_le_cancellable (a * c)) :
+  a * (b - c) = a * b - a * c :=
 begin
   cases total_of (≤) b c with hbc hcb,
   { rw [sub_eq_zero_iff_le.2 hbc, mul_zero, sub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
-  { apply eq_sub_of_add_eq'',
-    rw [← mul_add, sub_add_cancel_of_le hcb] }
+  { apply h.eq_sub_of_add_eq, rw [← mul_add, sub_add_cancel_of_le hcb] }
 end
 
-lemma _root_.sub_mul' (a b c : α) : (a - b) * c = a * c - b * c :=
-by simp only [← mul_comm c, mul_sub']
+protected lemma sub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=
+by { simp only [mul_comm _ c] at *, exact h.mul_sub }
 
-end canonically_ordered_comm_semiring
+end add_le_cancellable
+
+variables [contravariant_class α α (+) (≤)]
+
+lemma mul_sub' (a b c : α) : a * (b - c) = a * b - a * c :=
+contravariant.add_le_cancellable.mul_sub
+
+lemma sub_mul' (a b c : α) : (a - b) * c = a * c - b * c :=
+contravariant.add_le_cancellable.sub_mul
+
+end sub
 
 /-! ### Structures involving `*` and `0` on `with_top` and `with_bot`
 

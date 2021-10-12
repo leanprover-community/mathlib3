@@ -195,6 +195,9 @@ le_antisymm (sub_le_iff_right.mpr h.le) $
 protected lemma eq_sub_of_add_eq (hc : add_le_cancellable c) (h : a + c = b) : a = b - c :=
 (hc.sub_eq_of_eq_add h.symm).symm
 
+protected theorem sub_eq_of_eq_add_rev (hb : add_le_cancellable b) (h : a = b + c) : a - b = c :=
+hb.sub_eq_of_eq_add $ by rw [add_comm, h]
+
 @[simp]
 protected lemma add_sub_cancel_right (hb : add_le_cancellable b) : a + b - b = a :=
 hb.sub_eq_of_eq_add $ by rw [add_comm]
@@ -243,6 +246,9 @@ contravariant.add_le_cancellable.sub_eq_of_eq_add h
 
 lemma eq_sub_of_add_eq'' (h : a + c = b) : a = b - c :=
 contravariant.add_le_cancellable.eq_sub_of_add_eq h
+
+lemma sub_eq_of_eq_add_rev (h : a = b + c) : a - b = c :=
+contravariant.add_le_cancellable.sub_eq_of_eq_add_rev h
 
 @[simp]
 lemma add_sub_cancel_right (a b : α) : a + b - b = a :=
@@ -293,6 +299,17 @@ variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [ha
 /-- See `lt_of_sub_lt_sub_right_of_le` for a weaker statement in a partial order. -/
 lemma lt_of_sub_lt_sub_right (h : a - c < b - c) : a < b :=
 lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right' h c) h
+
+/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_right
+
+/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order. -/
+lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
+lt_iff_lt_of_le_iff_le sub_le_iff_left
+
+lemma lt_sub_comm : a < b - c ↔ c < b - a :=
+lt_sub_iff_left.trans lt_sub_iff_right.symm
 
 section cov
 variable [covariant_class α α (+) (≤)]
@@ -659,16 +676,6 @@ end add_le_cancellable
 
 section contra
 variable [contravariant_class α α (+) (≤)]
-
-/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
-contravariant.add_le_cancellable.lt_sub_iff_right
-
-/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order.
-This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
-contravariant.add_le_cancellable.lt_sub_iff_left
 
 /-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma sub_lt_sub_iff_right' (h : c ≤ a) : a - c < b - c ↔ a < b :=

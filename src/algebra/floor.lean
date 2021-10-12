@@ -270,11 +270,11 @@ by { rw floor_lt, exact h.trans_le (le_ceil _) }
 end int
 
 lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
-  @floor _ _ inst1 = @floor _ _ inst2 :=
+  @int.floor _ _ inst1 = @int.floor _ _ inst2 :=
 begin
   ext v,
-  suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [floor_eq_iff],
-  exact ⟨floor_le v, lt_floor_add_one v⟩
+  suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [int.floor_eq_iff],
+  exact ⟨int.floor_le v, int.lt_floor_add_one v⟩
 end
 
 /-! ### `nat.floor` and `nat.ceil` -/

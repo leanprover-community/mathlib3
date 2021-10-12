@@ -183,7 +183,7 @@ begin
   refl,
 end
 
-end stalk_pushforward
+end concrete
 
 section concrete
 

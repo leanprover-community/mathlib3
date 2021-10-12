@@ -203,6 +203,14 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
   source' := by norm_num,
   target' := by norm_num }
 
+lemma trans_apply (γ : path x y) (γ' : path y z) (t : I) : (γ.trans γ') t =
+  if h : (t : ℝ) ≤ 1/2 then
+    γ ⟨2 * t, (mul_pos_mem_iff zero_lt_two).2 ⟨t.2.1, h⟩⟩
+  else
+    γ' ⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩ :=
+show ite _ _ _ = _,
+by split_ifs; rw extend_extends
+
 @[simp] lemma refl_trans_refl {X : Type*} [topological_space X] {a : X} :
   (path.refl a).trans (path.refl a) = path.refl a :=
 begin
@@ -418,6 +426,7 @@ end
 Given a path `γ` and a function `f : I → I` where `f 0 = 0` and `f 1 = 1`, `γ.reparam f` is the
 path defined by `γ ∘ f`.
 -/
+@[simps]
 def reparam (γ : path x y) (f : I → I) (hfcont : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
   path x y :=
 { to_fun := γ ∘ f,

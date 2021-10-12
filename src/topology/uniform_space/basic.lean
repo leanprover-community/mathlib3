@@ -293,6 +293,10 @@ lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
   (x, x) ∈ s :=
 refl_le_uniformity h rfl
 
+lemma mem_uniformity_of_eq {x y : α} {s : set (α × α)} (h : s ∈ 𝓤 α) (hx : x = y) :
+  (x, y) ∈ s :=
+hx ▸ refl_mem_uniformity h
+
 lemma symm_le_uniformity : map (@prod.swap α α) (𝓤 _) ≤ (𝓤 _) :=
 (@uniform_space.to_core α _).symm
 

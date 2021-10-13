@@ -18,7 +18,7 @@ equal to the sum of integrals of `f` over the faces of `I` taken with appropriat
 
 To make the proof work, we had to ban tagged partitions with “long and thin” boxes. More precisely,
 we use the following generalization of one-dimensional Henstock-Kurzweil integral to functions
-defined on a box in `ℝⁿ` (it corresponds to the value `⊥` of `box_integral.integration_filter` in
+defined on a box in `ℝⁿ` (it corresponds to the value `⊥` of `box_integral.integration_params` in
 the definition of `box_integral.has_integral`).
 
 We say that `f : ℝⁿ → E` has integral `y : E` over a box `I ⊆ ℝⁿ` if for an arbitrarily small

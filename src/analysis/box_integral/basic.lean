@@ -24,7 +24,7 @@ with respect to the volume `vol` is the sum of `vol J (f (π.tag J))` over all b
 
 The integral is defined as the limit of integral sums along a filter. Different filters correspond
 to different integration theories. In order to avoid code duplication, all our definitions and
-theorems take an argument `l : box_integral.integration_filter`. This is a type that holds three
+theorems take an argument `l : box_integral.integration_params`. This is a type that holds three
 boolean values, and encodes eight filters including those corresponding to Riemann,
 Henstock-Kurzweil, and McShane integrals.
 
@@ -49,7 +49,7 @@ integral
 -/
 
 open_locale big_operators classical topological_space nnreal filter uniformity box_integral
-open set finset function filter metric box_integral.integration_filter
+open set finset function filter metric box_integral.integration_params
 
 noncomputable theory
 
@@ -150,22 +150,22 @@ variables [fintype ι]
 
 /-- Predicate `has_integral I l f vol y` says that `y` is the integral of `f` over `I` along `l`
 w.r.t. volume `vol`. This means that integral sums of `f` tend to `𝓝 y` along
-`box_integral.integration_filter.to_filter_Union I ⊤`. -/
-def has_integral (I : box ι) (l : integration_filter) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+`box_integral.integration_params.to_filter_Union I ⊤`. -/
+def has_integral (I : box ι) (l : integration_params) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
   (y : F) : Prop :=
 tendsto (integral_sum f vol) (l.to_filter_Union I ⊤) (𝓝 y)
 
 /-- A function is integrable if there exists a vector that satisfies the `has_integral`
 predicate. -/
-def integrable (I : box ι) (l : integration_filter) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) :=
+def integrable (I : box ι) (l : integration_params) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) :=
 ∃ y, has_integral I l f vol y
 
 /-- The integral of a function `f` over a box `I` along a filter `l` w.r.t. a volume `vol`.  Returns
 zero on non-integrable functions. -/
-def integral (I : box ι) (l : integration_filter) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) :=
+def integral (I : box ι) (l : integration_params) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) :=
 if h : integrable I l f vol then h.some else 0
 
-variables {l : integration_filter} {f g : ℝⁿ → E} {vol : ι →ᵇᵃ (E →L[ℝ] F)} {y y' : F}
+variables {l : integration_params} {f g : ℝⁿ → E} {vol : ι →ᵇᵃ (E →L[ℝ] F)} {y y' : F}
 
 /-- Reinterpret `box_integral.has_integral` as `filter.tendsto`, e.g., dot-notation theorems
 that are shadowed in the `box_integral.has_integral` namespace. -/
@@ -212,9 +212,9 @@ begin
     λ H π₁ π₂ c₁ h₁ hU₁ c₂ h₂ hU₂, H c₁ c₂ π₁ π₂ h₁ hU₁ h₂ hU₂⟩
 end
 
-lemma has_integral.mono {l₁ l₂ : integration_filter} (h : has_integral I l₁ f vol y)
+lemma has_integral.mono {l₁ l₂ : integration_params} (h : has_integral I l₁ f vol y)
   (hl : l₂ ≤ l₁) : has_integral I l₂ f vol y :=
-h.mono_left $ integration_filter.to_filter_Union_mono _ hl _
+h.mono_left $ integration_params.to_filter_Union_mono _ hl _
 
 protected lemma integrable.has_integral (h : integrable I l f vol) :
   has_integral I l f vol (integral I l f vol) :=
@@ -367,7 +367,7 @@ integrable on a box `I`; let `r : ℝⁿ → (0, ∞)` be a function such that f
 any tagged prepartition (i.e. a finite collections of pairwise disjoint subboxes of `I` with tagged
 points) `π`, the integral sum over `π` differs from the integral of `f` over the part of `I` covered
 by `π` by at most `ε`. The actual statement in the library is a bit more complicated to make it work
-for any `box_integral.integration_filter`. We formalize several versions of this inequality in
+for any `box_integral.integration_params`. We formalize several versions of this inequality in
 `box_integral.integrable.dist_integral_sum_le_of_mem_base_set`,
 `box_integral.integrable.dist_integral_sum_sum_integral_le_of_mem_base_set_of_Union_eq`, and
 `box_integral.integrable.dist_integral_sum_sum_integral_le_of_mem_base_set`.
@@ -390,10 +390,10 @@ namespace integrable
 
 /-- If `ε > 0`, then `box_integral.integrable.convergence_r` is a function `r : ℝ≥0 → ℝⁿ → (0, ∞)`
 such that for every `c : ℝ≥0`, for every tagged partition `π` subordinate to `r` (and satisfying
-additional distortion estimates if `box_integral.integration_filter.bDistortion l = tt`), the
+additional distortion estimates if `box_integral.integration_params.bDistortion l = tt`), the
 corresponding integral sum is `ε`-close to the integral.
 
-If `box.integral.integration_filter.bRiemann = tt`, then `r c x` does not depend on `x`. If `ε ≤ 0`,
+If `box.integral.integration_params.bRiemann = tt`, then `r c x` does not depend on `x`. If `ε ≤ 0`,
 then we use `r c x = 1`.  -/
 def convergence_r (h : integrable I l f vol) (ε : ℝ) : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ) :=
 if hε : 0 < ε then (has_integral_iff.1 h.has_integral ε hε).some
@@ -425,7 +425,7 @@ prepartitions differ from each other by at most `ε₁ + ε₂`.
 The actual statement
 
 - uses `box_integral.integrable.convergence_r` instead of a predicate assumption on `r`;
-- uses `box_integral.integration_filter.mem_base_set` instead of “subordinate to `r`” to
+- uses `box_integral.integration_params.mem_base_set` instead of “subordinate to `r`” to
   account for additional requirements like being a Henstock partition or having a bounded
   distortion.
 
@@ -507,7 +507,7 @@ covered by `π` by at most `ε`.
 The actual statement
 
 - uses `box_integral.integrable.convergence_r` instead of a predicate assumption on `r`;
-- uses `box_integral.integration_filter.mem_base_set` instead of “subordinate to `r`” to
+- uses `box_integral.integration_params.mem_base_set` instead of “subordinate to `r`” to
   account for additional requirements like being a Henstock partition or having a bounded
   distortion;
 - takes an extra argument `π₀ : prepartition I` and an assumption `π.Union = π₀.Union` instead of
@@ -563,7 +563,7 @@ covered by `π` by at most `ε`.
 The actual statement
 
 - uses `box_integral.integrable.convergence_r` instead of a predicate assumption on `r`;
-- uses `box_integral.integration_filter.mem_base_set` instead of “subordinate to `r`” to
+- uses `box_integral.integration_params.mem_base_set` instead of “subordinate to `r`” to
   account for additional requirements like being a Henstock partition or having a bounded
   distortion;
 -/
@@ -716,7 +716,7 @@ begin
     exact hεI.le }
 end
 
-/-- Let `l` be either `box_integral.integration_filter.Henstock` or `⊥`. Let `g` a box-additive
+/-- Let `l` be either `box_integral.integration_params.Henstock` or `⊥`. Let `g` a box-additive
 function on subboxes of `I`. Suppose that there exists a nonnegative box-additive function `B` and a
 countable set `s` with the following property.
 

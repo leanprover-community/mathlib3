@@ -9,11 +9,11 @@ import analysis.box_integral.partition.additive
 /-!
 # Filters used in box-based integrals
 
-In this file we define a structure `box_integral.integration_filter`. This structure holds three
+In this file we define a structure `box_integral.integration_params`. This structure holds three
 boolean values (see below), and encodes eight different filter. Only four of these filters are
 actually used somewhere in the library (`⊥`, `Riemann`, `Henstock`, and `McShane`).
 
-The structure `box_integral.integration_filter` has 3 boolean fields with the following meaning:
+The structure `box_integral.integration_params` has 3 boolean fields with the following meaning:
 
 * `bRiemann`: the value `tt` means that the filter corresponds to a Riemann-style integral, i.e. in
   the definition of integrability we require a constant upper estimate `r` on the size of boxes of a tagged
@@ -42,7 +42,7 @@ variables {ι : Type*} [fintype ι] {I J : box ι} {c c₁ c₂ : ℝ≥0} {r r�
 
 open tagged_prepartition
 
-/-- An `integration_filter` is a structure holding 3 boolean values used to define a filter to be
+/-- An `integration_params` is a structure holding 3 boolean values used to define a filter to be
 used in the definition of a box-integrable function.
 
 * `bRiemann`: the value `tt` means that the filter corresponds to a Riemann-style integral, i.e. in
@@ -56,39 +56,39 @@ used in the definition of a box-integrable function.
   box of a partition. Presence of this case makes quite a few proofs harder but we can prove the
   divergence theorem only for the filter `⊥ = {bRiemann := ff, bHenstock := tt, bDistortion := tt}`.
 -/
-@[ext] structure integration_filter : Type :=
+@[ext] structure integration_params : Type :=
 (bRiemann bHenstock bDistortion : bool)
 
-variables {l l₁ l₂ : integration_filter}
+variables {l l₁ l₂ : integration_params}
 
-namespace integration_filter
+namespace integration_params
 
 /-- Auxiliary equivalence with a product type used to lift an order. -/
-def equiv_prod : integration_filter ≃ bool × order_dual bool × order_dual bool :=
+def equiv_prod : integration_params ≃ bool × order_dual bool × order_dual bool :=
 { to_fun := λ l, ⟨l.1, order_dual.to_dual l.2, order_dual.to_dual l.3⟩,
   inv_fun := λ l, ⟨l.1, order_dual.of_dual l.2.1, order_dual.of_dual l.2.2⟩,
   left_inv := λ ⟨a, b, c⟩, rfl,
   right_inv := λ ⟨a, b, c⟩, rfl }
 
-instance : partial_order integration_filter :=
+instance : partial_order integration_params :=
 partial_order.lift equiv_prod equiv_prod.injective
 
 /-- Auxiliary `order_iso` with a product type used to lift a `bounded_lattice` structure. -/
-def iso_prod : integration_filter ≃o bool × order_dual bool × order_dual bool :=
+def iso_prod : integration_params ≃o bool × order_dual bool × order_dual bool :=
 ⟨equiv_prod, λ ⟨x, y, z⟩, iff.rfl⟩
 
-instance : bounded_lattice integration_filter :=
+instance : bounded_lattice integration_params :=
 iso_prod.symm.to_galois_insertion.lift_bounded_lattice
 
-instance : inhabited integration_filter := ⟨⊥⟩
+instance : inhabited integration_params := ⟨⊥⟩
 
 /-- The predicate corresponding to a base set of the filter defined by an
-`integration_filter`. Besides requirements `is_subordinate`, `is_Henstock` and `distortion_le`
+`integration_params`. Besides requirements `is_subordinate`, `is_Henstock` and `distortion_le`
 explained in the module docstring, we require that in the case `l.bDistortion = tt`, a prepartition
 admits a prepartition of the complement with the same estimate on the distortion. This condition is
 automatically verified for partitions, and is used in the proof of the Sacks-Henstock inequality
 to compare two prepartitions covering the same part of the box. -/
-@[protect_proj] structure mem_base_set (l : integration_filter) (I : box ι) (c : ℝ≥0)
+@[protect_proj] structure mem_base_set (l : integration_params) (I : box ι) (c : ℝ≥0)
   (r : (ι → ℝ) → Ioi (0 : ℝ)) (π : tagged_prepartition I) : Prop :=
 (is_subordinate : π.is_subordinate r)
 (is_Henstock : l.bHenstock → π.is_Henstock)
@@ -96,42 +96,42 @@ to compare two prepartitions covering the same part of the box. -/
 (exists_compl : l.bDistortion → ∃ π' : prepartition I, π'.Union = I \ π.Union ∧ π'.distortion ≤ c)
 
 /-- A predicate saying that in case `l.bRiemann = tt`, the function `r` is a constant. -/
-def r_cond {ι : Type*} (l : integration_filter) (r : (ι → ℝ) → Ioi (0 : ℝ)) : Prop :=
+def r_cond {ι : Type*} (l : integration_params) (r : (ι → ℝ) → Ioi (0 : ℝ)) : Prop :=
 l.bRiemann → ∀ x, r x = r 0
 
 /-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion I c` if there exists a
 function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s` contains each
 prepartition `π` such that `l.mem_base_set I c r π`. -/
-def to_filter_distortion (l : integration_filter) (I : box ι) (c : ℝ≥0) :
+def to_filter_distortion (l : integration_params) (I : box ι) (c : ℝ≥0) :
   filter (tagged_prepartition I) :=
 ⨅ (r : (ι → ℝ) → Ioi (0 : ℝ)) (hr : l.r_cond r), 𝓟 {π | l.mem_base_set I c r π}
 
 /-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter I` if for any `c : ℝ≥0` there
 exists a function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that
 `s` contains each prepartition `π` such that `l.mem_base_set I c r π`. -/
-def to_filter (l : integration_filter) (I : box ι) :
+def to_filter (l : integration_params) (I : box ι) :
   filter (tagged_prepartition I) :=
 ⨆ c : ℝ≥0, l.to_filter_distortion I c
 
 /-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion_Union I c π₀` if there exists a
 function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s` contains each
 prepartition `π` such that `l.mem_base_set I c r π` and `π.Union = π₀.Union`. -/
-def to_filter_distortion_Union (l : integration_filter) (I : box ι) (c : ℝ≥0)
+def to_filter_distortion_Union (l : integration_params) (I : box ι) (c : ℝ≥0)
   (π₀ : prepartition I) :=
 l.to_filter_distortion I c ⊓ 𝓟 {π | π.Union = π₀.Union}
 
 /-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_Union I π₀` if for any `c : ℝ≥0`
 there exists a function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s`
 contains each prepartition `π` such that `l.mem_base_set I c r π` and `π.Union = π₀.Union`. -/
-def to_filter_Union (l : integration_filter) (I : box ι) (π₀ : prepartition I) :=
+def to_filter_Union (l : integration_params) (I : box ι) (π₀ : prepartition I) :=
 ⨆ c : ℝ≥0, l.to_filter_distortion_Union I c π₀
 
-lemma r_cond_of_bRiemann_eq_ff {ι} (l : integration_filter) (hl : l.bRiemann = ff)
+lemma r_cond_of_bRiemann_eq_ff {ι} (l : integration_params) (hl : l.bRiemann = ff)
   {r : (ι → ℝ) → Ioi (0 : ℝ)} :
   l.r_cond r :=
 by simp [r_cond, hl]
 
-lemma to_filter_inf_Union_eq (l : integration_filter) (I : box ι) (π₀ : prepartition I) :
+lemma to_filter_inf_Union_eq (l : integration_params) (I : box ι) (π₀ : prepartition I) :
   l.to_filter I ⊓ 𝓟 {π | π.Union = π₀.Union} = l.to_filter_Union I π₀ :=
 (supr_inf_principal _ _).symm
 
@@ -219,20 +219,20 @@ lemma r_cond.min {ι : Type*} {r₁ r₂ : (ι → ℝ) → Ioi (0 : ℝ)} (h₁
 infi_le_infi $ λ r, infi_le_infi2 $ λ hr,
   ⟨hr.mono h, principal_mono.2 $ λ _, mem_base_set.mono I h hc (λ _ _, le_rfl)⟩
 
-@[mono] lemma to_filter_mono (I : box ι) {l₁ l₂ : integration_filter} (h : l₁ ≤ l₂) :
+@[mono] lemma to_filter_mono (I : box ι) {l₁ l₂ : integration_params} (h : l₁ ≤ l₂) :
   l₁.to_filter I ≤ l₂.to_filter I :=
 supr_le_supr $ λ c, to_filter_distortion_mono I h le_rfl
 
-@[mono] lemma to_filter_Union_mono (I : box ι) {l₁ l₂ : integration_filter} (h : l₁ ≤ l₂)
+@[mono] lemma to_filter_Union_mono (I : box ι) {l₁ l₂ : integration_params} (h : l₁ ≤ l₂)
   (π₀ : prepartition I) :
   l₁.to_filter_Union I π₀ ≤ l₂.to_filter_Union I π₀ :=
 supr_le_supr $ λ c, inf_le_inf_right _ $ to_filter_distortion_mono _ h le_rfl
 
-lemma to_filter_Union_congr (I : box ι) (l : integration_filter) {π₁ π₂ : prepartition I}
+lemma to_filter_Union_congr (I : box ι) (l : integration_params) {π₁ π₂ : prepartition I}
   (h : π₁.Union = π₂.Union) : l.to_filter_Union I π₁ = l.to_filter_Union I π₂ :=
 by simp only [to_filter_Union, to_filter_distortion_Union, h]
 
-lemma has_basis_to_filter_distortion (l : integration_filter) (I : box ι) (c : ℝ≥0) :
+lemma has_basis_to_filter_distortion (l : integration_params) (I : box ι) (c : ℝ≥0) :
   (l.to_filter_distortion I c).has_basis l.r_cond (λ r, {π | l.mem_base_set I c r π}) :=
 has_basis_binfi_principal'
   (λ r₁ hr₁ r₂ hr₂, ⟨_, hr₁.min hr₂,
@@ -240,30 +240,30 @@ has_basis_binfi_principal'
     λ _, mem_base_set.mono _ le_rfl le_rfl (λ x hx, min_le_right _ _)⟩)
   ⟨λ _, ⟨1, @zero_lt_one ℝ _ _⟩, λ _ _, rfl⟩
 
-lemma has_basis_to_filter_distortion_Union (l : integration_filter) (I : box ι) (c : ℝ≥0)
+lemma has_basis_to_filter_distortion_Union (l : integration_params) (I : box ι) (c : ℝ≥0)
   (π₀ : prepartition I) :
   (l.to_filter_distortion_Union I c π₀).has_basis l.r_cond
     (λ r, {π | l.mem_base_set I c r π ∧ π.Union = π₀.Union}) :=
 (l.has_basis_to_filter_distortion I c).inf_principal _
 
-lemma has_basis_to_filter_Union (l : integration_filter) (I : box ι) (π₀ : prepartition I) :
+lemma has_basis_to_filter_Union (l : integration_params) (I : box ι) (π₀ : prepartition I) :
   (l.to_filter_Union I π₀).has_basis (λ r : ℝ≥0 → (ι → ℝ) → Ioi (0 : ℝ), ∀ c, l.r_cond (r c))
     (λ r, {π | ∃ c, l.mem_base_set I c (r c) π ∧ π.Union = π₀.Union}) :=
 have _ := λ c, l.has_basis_to_filter_distortion_Union I c π₀,
 by simpa only [set_of_and, set_of_exists] using has_basis_supr this
 
-lemma has_basis_to_filter_Union_top (l : integration_filter) (I : box ι) :
+lemma has_basis_to_filter_Union_top (l : integration_params) (I : box ι) :
   (l.to_filter_Union I ⊤).has_basis (λ r : ℝ≥0 → (ι → ℝ) → Ioi (0 : ℝ), ∀ c, l.r_cond (r c))
     (λ r, {π | ∃ c, l.mem_base_set I c (r c) π ∧ π.is_partition}) :=
 by simpa only [tagged_prepartition.is_partition_iff_Union_eq, prepartition.Union_top]
   using l.has_basis_to_filter_Union I ⊤
 
-lemma has_basis_to_filter (l : integration_filter) (I : box ι) :
+lemma has_basis_to_filter (l : integration_params) (I : box ι) :
   (l.to_filter I).has_basis (λ r : ℝ≥0 → (ι → ℝ) → Ioi (0 : ℝ), ∀ c, l.r_cond (r c))
     (λ r, {π | ∃ c, l.mem_base_set I c (r c) π}) :=
 by simpa only [set_of_exists] using has_basis_supr (l.has_basis_to_filter_distortion I)
 
-lemma tendsto_embed_box_to_filter_Union_top (l : integration_filter) (h : I ≤ J) :
+lemma tendsto_embed_box_to_filter_Union_top (l : integration_params) (h : I ≤ J) :
   tendsto (tagged_prepartition.embed_box I J h) (l.to_filter_Union I ⊤)
     (l.to_filter_Union J (prepartition.single J I h)) :=
 begin
@@ -280,7 +280,7 @@ begin
   { exact hπ.2.trans (prepartition.Union_single _).symm }
 end
 
-lemma exists_mem_base_set_le_Union_eq (l : integration_filter) (π₀ : prepartition I)
+lemma exists_mem_base_set_le_Union_eq (l : integration_params) (π₀ : prepartition I)
   (hc₁ : π₀.distortion ≤ c) (hc₂ : π₀.compl.distortion ≤ c) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
   ∃ π, l.mem_base_set I c r π ∧ π.to_prepartition ≤ π₀ ∧ π.Union = π₀.Union :=
 begin
@@ -290,7 +290,7 @@ begin
   exact prepartition.compl_congr hU ▸ π.to_prepartition.Union_compl
 end
 
-lemma exists_mem_base_set_is_partition (l : integration_filter) (I : box ι)
+lemma exists_mem_base_set_is_partition (l : integration_params) (I : box ι)
   (hc : I.distortion ≤ c) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
   ∃ π, l.mem_base_set I c r π ∧ π.is_partition :=
 begin
@@ -299,52 +299,52 @@ begin
   simpa [is_partition_iff_Union_eq] using l.exists_mem_base_set_le_Union_eq ⊤ hc hc' r
 end
 
-lemma to_filter_distortion_Union_ne_bot (l : integration_filter) (I : box ι)
+lemma to_filter_distortion_Union_ne_bot (l : integration_params) (I : box ι)
   (π₀ : prepartition I) (hc₁ : π₀.distortion ≤ c) (hc₂ : π₀.compl.distortion ≤ c) :
   (l.to_filter_distortion_Union I c π₀).ne_bot :=
 ((l.has_basis_to_filter_distortion I _).inf_principal _).ne_bot_iff.2 $ λ r hr,
   (l.exists_mem_base_set_le_Union_eq π₀ hc₁ hc₂ r).imp $ λ π hπ, ⟨hπ.1, hπ.2.2⟩
 
-instance to_filter_distortion_Union_ne_bot' (l : integration_filter) (I : box ι)
+instance to_filter_distortion_Union_ne_bot' (l : integration_params) (I : box ι)
   (π₀ : prepartition I) :
   (l.to_filter_distortion_Union I (max π₀.distortion π₀.compl.distortion) π₀).ne_bot :=
 l.to_filter_distortion_Union_ne_bot I π₀ (le_max_left _ _) (le_max_right _ _)
 
-instance to_filter_distortion_ne_bot (l : integration_filter) (I : box ι) :
+instance to_filter_distortion_ne_bot (l : integration_params) (I : box ι) :
   (l.to_filter_distortion I I.distortion).ne_bot :=
 by simpa using (l.to_filter_distortion_Union_ne_bot' I ⊤).mono inf_le_left
 
-instance to_filter_ne_bot (l : integration_filter) (I : box ι) : (l.to_filter I).ne_bot :=
+instance to_filter_ne_bot (l : integration_params) (I : box ι) : (l.to_filter I).ne_bot :=
 (l.to_filter_distortion_ne_bot I).mono $ le_supr _ _
 
-instance to_filter_Union_ne_bot (l : integration_filter) (I : box ι) (π₀ : prepartition I) :
+instance to_filter_Union_ne_bot (l : integration_params) (I : box ι) (π₀ : prepartition I) :
   (l.to_filter_Union I π₀).ne_bot :=
 (l.to_filter_distortion_Union_ne_bot' I π₀).mono $
   le_supr (λ c, l.to_filter_distortion_Union I c π₀) _
 
-instance : decidable_rel ((≤) : integration_filter → integration_filter → Prop) :=
+instance : decidable_rel ((≤) : integration_params → integration_params → Prop) :=
 λ _ _, and.decidable
 
-instance : decidable_eq integration_filter := λ x y, decidable_of_iff _ (ext_iff x y).symm
+instance : decidable_eq integration_params := λ x y, decidable_of_iff _ (ext_iff x y).symm
 
-lemma eventually_is_partition (l : integration_filter) (I : box ι) :
+lemma eventually_is_partition (l : integration_params) (I : box ι) :
   ∀ᶠ π in l.to_filter_Union I ⊤, tagged_prepartition.is_partition π :=
 eventually_supr.2 $ λ c, eventually_inf_principal.2 $ eventually_of_forall $
   λ π h, π.is_partition_iff_Union_eq.2 (h.trans prepartition.Union_top)
 
-/-- The `box_integral.integration_filter` corresponding to the Riemann integral. -/
-def Riemann : integration_filter := ⟨tt, tt, ff⟩
+/-- The `box_integral.integration_params` corresponding to the Riemann integral. -/
+def Riemann : integration_params := ⟨tt, tt, ff⟩
 
-/-- The `box_integral.integration_filter` corresponding to the McShane integral. -/
-def McShane : integration_filter := ⟨ff, ff, ff⟩
+/-- The `box_integral.integration_params` corresponding to the McShane integral. -/
+def McShane : integration_params := ⟨ff, ff, ff⟩
 
-/-- The `box_integral.integration_filter` corresponding to the Henstock-Kurzweil integral. -/
-def Henstock : integration_filter := ⟨ff, tt, ff⟩
+/-- The `box_integral.integration_params` corresponding to the Henstock-Kurzweil integral. -/
+def Henstock : integration_params := ⟨ff, tt, ff⟩
 
 lemma Henstock_le_Riemann : Henstock ≤ Riemann := dec_trivial
 
 lemma Henstock_le_McShane : Henstock ≤ McShane := dec_trivial
 
-end integration_filter
+end integration_params
 
 end box_integral

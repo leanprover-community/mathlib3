@@ -27,7 +27,7 @@ namespace box_integral
 
 /-- The indicator function of a measurable set is McShane integrable with respect to any
 locally-finite measure. -/
-lemma has_integral_indicator_const (l : integration_filter) (hl : l.bRiemann = ff)
+lemma has_integral_indicator_const (l : integration_params) (hl : l.bRiemann = ff)
   {s : set (ι → ℝ)} (hs : measurable_set s) (I : box ι) (y : E)
   (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] :
   @has_integral ι E E _ _ _ _ _ I l (s.indicator (λ _, y)) μ.to_box_additive.to_smul
@@ -84,7 +84,7 @@ end
 
 /-- If `f` is a.e. equal to zero on a rectangular box, then it has McShane integral zero on this
 box. -/
-lemma has_integral_zero_of_ae_eq_zero {l : integration_filter} {I : box ι} {f : (ι → ℝ) → E}
+lemma has_integral_zero_of_ae_eq_zero {l : integration_params} {I : box ι} {f : (ι → ℝ) → E}
   {μ : measure (ι → ℝ)} [is_locally_finite_measure μ] (hf : f =ᵐ[μ.restrict I] 0)
   (hl : l.bRiemann = ff) :
   @has_integral ι E E _ _ _ _ _ I l f μ.to_box_additive.to_smul 0 :=
@@ -138,7 +138,7 @@ end
 
 /-- If `f` has integral `y` on a box `I` with respect to a locally finite measure `μ` and `g` is
 a.e. equal to `f` on `I`, then `g` has the same integral on `I`.  -/
-lemma has_integral.congr_ae {l : integration_filter} {I : box ι} {y : E} {f g : (ι → ℝ) → E}
+lemma has_integral.congr_ae {l : integration_params} {I : box ι} {y : E} {f g : (ι → ℝ) → E}
   {μ : measure (ι → ℝ)} [is_locally_finite_measure μ]
   (hf : @has_integral ι E E _ _ _ _ _ I l f μ.to_box_additive.to_smul y)
   (hfg : f =ᵐ[μ.restrict I] g) (hl : l.bRiemann = ff) :
@@ -156,7 +156,7 @@ namespace simple_func
 
 /-- A simple function is McShane integrable w.r.t. any locally finite measure. -/
 lemma has_box_integral (f : simple_func (ι → ℝ) E) (μ : measure (ι → ℝ))
-  [is_locally_finite_measure μ] (I : box ι) (l : integration_filter) (hl : l.bRiemann = ff) :
+  [is_locally_finite_measure μ] (I : box ι) (l : integration_params) (hl : l.bRiemann = ff) :
   @has_integral ι E E _ _ _ _ _ I l f μ.to_box_additive.to_smul (f.integral (μ.restrict I)) :=
 begin
   induction f using measure_theory.simple_func.induction with y s hs f g hd hfi hgi,
@@ -171,7 +171,7 @@ end
 /-- For a simple function, its McShane (or Henstock, or `⊥`) box integral is equal to its
 integral in the sense of `measure_theory.simple_func.integral`. -/
 lemma box_integral_eq_integral (f : simple_func (ι → ℝ) E) (μ : measure (ι → ℝ))
-  [is_locally_finite_measure μ] (I : box ι) (l : integration_filter) (hl : l.bRiemann = ff) :
+  [is_locally_finite_measure μ] (I : box ι) (l : integration_params) (hl : l.bRiemann = ff) :
   @box_integral.integral ι E E _ _ _ _ _ I l f μ.to_box_additive.to_smul =
     f.integral (μ.restrict I) :=
 (f.has_box_integral μ I l hl).integral_eq
@@ -184,7 +184,7 @@ open topological_space
 `I`, then it is McShane integrable on `I` with the same integral.  -/
 lemma integrable_on.has_box_integral [second_countable_topology E] [measurable_space E]
   [borel_space E] [complete_space E] {f : (ι → ℝ) → E} {μ : measure (ι → ℝ)}
-  [is_locally_finite_measure μ] {I : box ι} (hf : integrable_on f I μ) (l : integration_filter)
+  [is_locally_finite_measure μ] {I : box ι} (hf : integrable_on f I μ) (l : integration_params)
   (hl : l.bRiemann = ff) :
   @has_integral ι E E _ _ _ _ _ I l f μ.to_box_additive.to_smul (∫ x in I, f x ∂ μ) :=
 begin

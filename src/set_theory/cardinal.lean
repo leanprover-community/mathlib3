@@ -584,7 +584,7 @@ not_iff_not.1 $ by simpa using prod_ne_zero f
   lift.{w} (prod c) = prod (λ i, lift.{w} (c i)) :=
 begin
   lift c to ι → Type v using λ _, trivial,
-  simp only [prod_mk, lift_mk],
+  simp only [prod_mk, ←mk_ulift],
   exact cardinal.mk_congr (equiv.ulift.trans $ equiv.Pi_congr_right $ λ i, equiv.ulift.symm)
 end
 
@@ -1108,9 +1108,6 @@ quotient.sound ⟨equiv.set.singleton x⟩
 @[simp] theorem mk_plift_of_true {p : Prop} (h : p) : #(plift p) = 1 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_punit h⟩
 
-@[simp] theorem mk_plift_of_false {P : Prop} (h : ¬P) : #(plift P) = 0 :=
-quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_pempty h⟩
-
 @[simp] theorem mk_bool : #bool = 2 :=
 quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 
@@ -1134,7 +1131,7 @@ calc  #(list α)
 ... = #(Σ n : ℕ, ulift.{u} (fin n) → α) : quotient.sound ⟨equiv.sigma_congr_right $ λ n,
   equiv.arrow_congr equiv.ulift.symm (equiv.refl α)⟩
 ... = sum (λ n : ℕ, (#α)^(n:cardinal.{u})) :
-  by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
+  by simp only [(lift_mk_fin _).symm, ←mk_ulift, power_def, sum_mk]
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : #(quot r) ≤ #α :=
 mk_le_of_surjective quot.exists_rep

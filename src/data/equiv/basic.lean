@@ -907,27 +907,49 @@ end
 
 section
 /-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
-@[simps apply symm_apply] def psigma_equiv_sigma {α} (β : α → Sort*) : (Σ' i, β i) ≃ Σ i, β i :=
+@[simps apply symm_apply] def psigma_equiv_sigma {α} (β : α → Type*) : (Σ' i, β i) ≃ Σ i, β i :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+/-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ' a, β₁ a` and
+`Σ' a, β₂ a`. -/
+@[simps apply]
+def psigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) : (Σ' a, β₁ a) ≃ Σ' a, β₂ a :=
+⟨λ a, ⟨a.1, F a.1 a.2⟩, λ a, ⟨a.1, (F a.1).symm a.2⟩,
+ λ ⟨a, b⟩, congr_arg (psigma.mk a) $ symm_apply_apply (F a) b,
+ λ ⟨a, b⟩, congr_arg (psigma.mk a) $ apply_symm_apply (F a) b⟩
+
+@[simp] lemma psigma_congr_right_trans {α} {β₁ β₂ β₃ : α → Sort*}
+  (F : Π a, β₁ a ≃ β₂ a) (G : Π a, β₂ a ≃ β₃ a) :
+  (psigma_congr_right F).trans (psigma_congr_right G) =
+    psigma_congr_right (λ a, (F a).trans (G a)) :=
+by { ext1 x, cases x, refl }
+
+@[simp] lemma psigma_congr_right_symm {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) :
+  (psigma_congr_right F).symm = psigma_congr_right (λ a, (F a).symm) :=
+by { ext1 x, cases x, refl }
+
+@[simp] lemma psigma_congr_right_refl {α} {β : α → Sort*} :
+  (psigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ' a, β a) :=
+by { ext1 x, cases x, refl }
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ a, β₁ a` and
 `Σ a, β₂ a`. -/
 @[simps apply]
-def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) : (Σ a, β₁ a) ≃ Σ a, β₂ a :=
+def sigma_congr_right {α} {β₁ β₂ : α → Type*} (F : Π a, β₁ a ≃ β₂ a) : (Σ a, β₁ a) ≃ Σ a, β₂ a :=
 ⟨λ a, ⟨a.1, F a.1 a.2⟩, λ a, ⟨a.1, (F a.1).symm a.2⟩,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ symm_apply_apply (F a) b,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_symm_apply (F a) b⟩
 
-@[simp] lemma sigma_congr_right_trans {α} {β₁ β₂ β₃ : α → Sort*}
+@[simp] lemma sigma_congr_right_trans {α} {β₁ β₂ β₃ : α → Type*}
   (F : Π a, β₁ a ≃ β₂ a) (G : Π a, β₂ a ≃ β₃ a) :
   (sigma_congr_right F).trans (sigma_congr_right G) = sigma_congr_right (λ a, (F a).trans (G a)) :=
 by { ext1 x, cases x, refl }
 
-@[simp] lemma sigma_congr_right_symm {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) :
+@[simp] lemma sigma_congr_right_symm {α} {β₁ β₂ : α → Type*} (F : Π a, β₁ a ≃ β₂ a) :
   (sigma_congr_right F).symm = sigma_congr_right (λ a, (F a).symm) :=
 by { ext1 x, cases x, refl }
 
-@[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*} :
+@[simp] lemma sigma_congr_right_refl {α} {β : α → Type*} :
   (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
 by { ext1 x, cases x, refl }
 

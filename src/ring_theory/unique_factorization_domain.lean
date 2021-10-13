@@ -529,6 +529,10 @@ begin
     apply multiset.prod_dvd_prod }
 end
 
+theorem normalized_factors_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
 λ h, prime.ne_zero (prime_of_normalized_factor _ h) rfl
 
@@ -984,6 +988,7 @@ begin
     by rwa [prod_factors, prod_factors] at this)
   prod_mono
 end
+
 
 include dec dec'
 

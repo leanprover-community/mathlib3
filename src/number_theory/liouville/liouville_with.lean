@@ -1,5 +1,6 @@
 import analysis.special_functions.pow
 import number_theory.liouville.basic
+import topology.instances.irrational
 
 /-!
 -/
@@ -12,7 +13,7 @@ def liouville_with (p x : ℝ) : Prop :=
 
 namespace liouville_with
 
-variables {p q x y : ℝ}
+variables {p q x y : ℝ} {r : ℚ} {m : ℤ} {n : ℕ}
 
 lemma exists_pos (h : liouville_with p x) :
   ∃ (C : ℝ) (h₀ : 0 < C),
@@ -51,8 +52,7 @@ begin
   rwa [mul_comm, ← rpow_add hn, ← sub_eq_add_neg]
 end
 
-lemma mul_rat (h : liouville_with p x) {r : ℚ} (hr : r ≠ 0) :
-  liouville_with p (x * r) :=
+lemma mul_rat (h : liouville_with p x) (hr : r ≠ 0) : liouville_with p (x * r) :=
 begin
   rcases h.exists_pos with ⟨C, hC₀, hC⟩,
   refine ⟨r.denom ^ p * (|r| * C), (tendsto_id.nsmul_at_top r.pos).frequently (hC.mono _)⟩,
@@ -68,50 +68,125 @@ begin
     exacts [(rpow_pos_of_pos (nat.cast_pos.2 r.pos) _).ne', nat.cast_nonneg _, nat.cast_nonneg _] }
 end
 
-lemma mul_rat_iff {r : ℚ} (hr : r ≠ 0) :
-  liouville_with p (x * r) ↔ liouville_with p x :=
+lemma mul_rat_iff (hr : r ≠ 0) : liouville_with p (x * r) ↔ liouville_with p x :=
 ⟨λ h, by simpa only [mul_assoc, ← rat.cast_mul, mul_inv_cancel hr, rat.cast_one, mul_one]
   using h.mul_rat (inv_ne_zero hr), λ h, h.mul_rat hr⟩
 
-lemma rat_mul_iff {r : ℚ} (hr : r ≠ 0) :
-  liouville_with p (r * x) ↔ liouville_with p x :=
+lemma rat_mul_iff (hr : r ≠ 0) : liouville_with p (r * x) ↔ liouville_with p x :=
 by rw [mul_comm, mul_rat_iff hr]
 
-lemma rat_mul (h : liouville_with p x) {r : ℚ} (hr : r ≠ 0) :
-  liouville_with p (r * x) :=
+lemma rat_mul (h : liouville_with p x) (hr : r ≠ 0) : liouville_with p (r * x) :=
 (rat_mul_iff hr).2 h
 
-lemma mul_int_iff {n : ℤ} (hn : n ≠ 0) :
-  liouville_with p (x * n) ↔ liouville_with p x :=
-by rw [← rat.cast_coe_int, mul_rat_iff (int.cast_ne_zero.2 hn)]
+lemma mul_int_iff (hm : m ≠ 0) : liouville_with p (x * m) ↔ liouville_with p x :=
+by rw [← rat.cast_coe_int, mul_rat_iff (int.cast_ne_zero.2 hm)]
 
-lemma mul_int (h : liouville_with p x) {n : ℤ} (hn : n ≠ 0) :
-  liouville_with p (x * n) :=
-(mul_int_iff hn).2 h
+lemma mul_int (h : liouville_with p x) (hm : m ≠ 0) : liouville_with p (x * m) :=
+(mul_int_iff hm).2 h
 
-lemma int_mul_iff {n : ℤ} (hn : n ≠ 0) :
-  liouville_with p (n * x) ↔ liouville_with p x :=
-by rw [mul_comm, mul_int_iff hn]
+lemma int_mul_iff (hm : m ≠ 0) : liouville_with p (m * x) ↔ liouville_with p x :=
+by rw [mul_comm, mul_int_iff hm]
 
-lemma int_mul (h : liouville_with p x) {n : ℤ} (hn : n ≠ 0) :
-  liouville_with p (n * x) :=
-by { rw mul_comm, exact h.mul_int hn }
+lemma int_mul (h : liouville_with p x) (hm : m ≠ 0) : liouville_with p (m * x) :=
+(int_mul_iff hm).2 h
 
-lemma mul_nat_iff {n : ℕ} (hn : n ≠ 0) :
-  liouville_with p (x * n) ↔ liouville_with p x :=
+lemma mul_nat_iff (hn : n ≠ 0) : liouville_with p (x * n) ↔ liouville_with p x :=
 by rw [← rat.cast_coe_nat, mul_rat_iff (nat.cast_ne_zero.2 hn)]
 
-lemma mul_nat (h : liouville_with p x) {n : ℕ} (hn : n ≠ 0) :
-  liouville_with p (x * n) :=
+lemma mul_nat (h : liouville_with p x) (hn : n ≠ 0) : liouville_with p (x * n) :=
 (mul_nat_iff hn).2 h
 
-lemma nat_mul_iff {n : ℕ} (hn : n ≠ 0) :
-  liouville_with p (n * x) ↔  liouville_with p x:=
+lemma nat_mul_iff (hn : n ≠ 0) : liouville_with p (n * x) ↔  liouville_with p x:=
 by rw [mul_comm, mul_nat_iff hn]
 
-lemma nat_mul (h : liouville_with p x) {n : ℕ} (hn : n ≠ 0) :
-  liouville_with p (n * x) :=
+lemma nat_mul (h : liouville_with p x) (hn : n ≠ 0) : liouville_with p (n * x) :=
 by { rw mul_comm, exact h.mul_nat hn }
+
+lemma add_rat (h : liouville_with p x) (r : ℚ) : liouville_with p (x + r) :=
+begin
+  rcases h.exists_pos with ⟨C, hC₀, hC⟩,
+  refine ⟨r.denom ^ p * C, (tendsto_id.nsmul_at_top r.pos).frequently (hC.mono _)⟩,
+  rintro n ⟨hn, m, hne, hlt⟩,
+  have hr : (0 : ℝ) < r.denom, from nat.cast_pos.2 r.pos,
+  have hn' : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 (zero_lt_one.trans_le hn).ne',
+  have : (↑(r.denom * m + r.num * n : ℤ) / ↑(r.denom • id n) : ℝ) = m / n + r,
+    by simp [add_div, hr.ne', mul_div_mul_left, mul_div_mul_right, hn', ← rat.cast_def],
+  refine ⟨r.denom * m + r.num * n, _⟩, rw [this, add_sub_add_right_eq_sub],
+  refine ⟨by simpa, hlt.trans_le (le_of_eq _)⟩,
+  have : (r.denom ^ p : ℝ) ≠ 0, from (rpow_pos_of_pos hr _).ne',
+  simp [mul_rpow, nat.cast_nonneg, mul_div_mul_left, this]
+end
+
+@[simp] lemma add_rat_iff : liouville_with p (x + r) ↔ liouville_with p x :=
+⟨λ h, by simpa using h.add_rat (-r), λ h, h.add_rat r⟩
+
+@[simp] lemma rat_add_iff : liouville_with p (r + x) ↔ liouville_with p x :=
+by rw [add_comm, add_rat_iff]
+
+lemma rat_add (h : liouville_with p x) (r : ℚ) : liouville_with p (r + x) :=
+add_comm x r ▸ h.add_rat r
+
+@[simp] lemma add_int_iff : liouville_with p (x + m) ↔ liouville_with p x :=
+by rw [← rat.cast_coe_int m, add_rat_iff]
+
+@[simp] lemma int_add_iff : liouville_with p (m + x) ↔ liouville_with p x :=
+by rw [add_comm, add_int_iff]
+
+@[simp] lemma add_nat_iff : liouville_with p (x + n) ↔ liouville_with p x :=
+by rw [← rat.cast_coe_nat n, add_rat_iff]
+
+@[simp] lemma nat_add_iff : liouville_with p (n + x) ↔ liouville_with p x :=
+by rw [add_comm, add_nat_iff]
+
+lemma add_int (h : liouville_with p x) (m : ℤ) : liouville_with p (x + m) := add_int_iff.2 h
+
+lemma int_add (h : liouville_with p x) (m : ℤ) : liouville_with p (m + x) := int_add_iff.2 h
+
+lemma add_nat (h : liouville_with p x) (n : ℕ) : liouville_with p (x + n) := h.add_int n
+
+lemma nat_add (h : liouville_with p x) (n : ℕ) : liouville_with p (n + x) := h.int_add n
+
+protected lemma neg (h : liouville_with p x) : liouville_with p (-x) :=
+begin
+  rcases h with ⟨C, hC⟩,
+  refine ⟨C, hC.mono _⟩,
+  rintro n ⟨m, hne, hlt⟩,
+  use (-m), simp [neg_div, abs_sub_comm _ x, *]
+end
+
+@[simp] lemma neg_iff : liouville_with p (-x) ↔ liouville_with p x :=
+⟨λ h, neg_neg x ▸ h.neg, liouville_with.neg⟩
+
+@[simp] lemma sub_rat_iff : liouville_with p (x - r) ↔ liouville_with p x :=
+by rw [sub_eq_add_neg, ← rat.cast_neg, add_rat_iff]
+
+lemma sub_rat (h : liouville_with p x) (r : ℚ) : liouville_with p (x - r) :=
+sub_rat_iff.2 h
+
+@[simp] lemma sub_int_iff : liouville_with p (x - m) ↔ liouville_with p x :=
+by rw [← rat.cast_coe_int, sub_rat_iff]
+
+lemma sub_int (h : liouville_with p x) (m : ℤ) : liouville_with p (x - m) := sub_int_iff.2 h
+
+@[simp] lemma sub_nat_iff : liouville_with p (x - n) ↔ liouville_with p x :=
+by rw [← rat.cast_coe_nat, sub_rat_iff]
+
+lemma sub_nat (h : liouville_with p x) (n : ℕ) : liouville_with p (x - n) := sub_nat_iff.2 h
+
+@[simp] lemma rat_sub_iff : liouville_with p (r - x) ↔ liouville_with p x :=
+by simp [sub_eq_add_neg]
+
+lemma rat_sub (h : liouville_with p x) (r : ℚ) : liouville_with p (r - x) := rat_sub_iff.2 h
+
+@[simp] lemma int_sub_iff : liouville_with p (m - x) ↔ liouville_with p x :=
+by simp [sub_eq_add_neg]
+
+lemma int_sub (h : liouville_with p x) (m : ℤ) : liouville_with p (m - x) := int_sub_iff.2 h
+
+@[simp] lemma nat_sub_iff : liouville_with p (n - x) ↔ liouville_with p x :=
+by simp [sub_eq_add_neg]
+
+lemma nat_sub (h : liouville_with p x) (n : ℕ) : liouville_with p (n - x) := nat_sub_iff.2 h
 
 end liouville_with
 
@@ -131,17 +206,11 @@ begin
     have hb0' : (b : ℚ) ≠ 0 := (zero_lt_one.trans (nat.one_lt_cast.2 hb)).ne',
     replace hb : (1 : ℝ) < b := nat.one_lt_cast.2 hb,
     have hb0 : (0 : ℝ) < b := zero_lt_one.trans hb,
-    have hd : 0 < inf_dist (x * b) (range (coe : ℤ → ℝ)),
-    { rw ← int.closed_embedding_coe_real.closed_range.not_mem_iff_inf_dist_pos (range_nonempty _),
-      rintro ⟨m, hm⟩, rw ← rat.cast_coe_nat at hm,
-      exact ((hx.irrational.mul_rat hb0').ne_cast_int m).symm hm },
     have H : tendsto (λ m, 1 / b ^ m : ℕ → ℝ) at_top (𝓝 0),
     { simp only [one_div],
       exact tendsto_inv_at_top_zero.comp (tendsto_pow_at_top_at_top_of_one_lt hb) },
-    refine (H.eventually (ge_mem_nhds $ div_pos hd hb0)).mono (λ m hm a, hm.trans _),
-    rw [div_le_iff hb0],
-    convert inf_dist_le_dist_of_mem (mem_range.2 ⟨a, rfl⟩),
-    rw [real.dist_eq, sub_div' _ _ _ hb0.ne', abs_div, abs_of_pos hb0, div_mul_cancel _ hb0.ne'] },
+    refine (H.eventually (hx.irrational.eventually_forall_le_dist_cast_div b)).mono _,
+    exact λ m hm a, hm a },
   have : ∀ᶠ m : ℕ in at_top, ∀ b < N, 1 < b → ∀ a : ℤ, (1 / b ^ m : ℝ) ≤ |x - a / b|,
     from (finite_lt_nat N).eventually_all.2 (λ b hb, eventually_imp_distrib_left.2 (this b)),
   rcases (this.and (eventually_ge_at_top n)).exists with ⟨m, hm, hnm⟩,

@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import number_theory.liouville.basic
 import topology.metric_space.baire
+import topology.instances.irrational
 
 /-!
 # Density of Liouville numbers
@@ -32,24 +33,6 @@ begin
   refine is_open_Union (λ a, is_open_Union $ λ b, is_open_Union $ λ hb, _),
   exact is_open_ball.inter is_closed_singleton.is_open_compl
 end
-
-lemma is_Gδ_irrational : is_Gδ {x | irrational x} :=
-begin
-  simp only [irrational, ← compl_set_of, set_of_mem_eq],
-  rw [← bUnion_of_singleton (range _), compl_bUnion, bInter_range],
-  exact is_Gδ_Inter (λ r, is_open_compl_singleton.is_Gδ)
-end
-
-lemma dense_irrational : dense {x : ℝ | irrational x} :=
-begin
-  refine real.is_topological_basis_Ioo_rat.dense_iff.2 _,
-  simp only [mem_Union, mem_singleton_iff],
-  rintro _ ⟨a, b, hlt, rfl⟩ hne, rw inter_comm,
-  exact exists_irrational_btwn (rat.cast_lt.2 hlt)
-end
-
-lemma eventually_residual_irrational : ∀ᶠ x in residual ℝ, irrational x :=
-eventually_residual.2 ⟨_, is_Gδ_irrational, dense_irrational, λ _, id⟩
 
 lemma set_of_liouville_eq_irrational_inter_Inter_Union :
   {x | liouville x} =

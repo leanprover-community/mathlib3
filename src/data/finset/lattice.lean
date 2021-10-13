@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.finset.fold
+import data.finset.option
 import data.multiset.lattice
 import order.order_dual
 import order.complete_lattice
@@ -1080,6 +1081,10 @@ supr_option_to_finset o f
 lemma set_bInter_option_to_finset (o : option α) (f : α → set β) :
   (⋂ x ∈ o.to_finset, f x) = ⋂ x ∈ o, f x :=
 infi_option_to_finset o f
+
+lemma subset_set_bUnion_of_mem {s : finset α} {f : α → set β} {x : α} (h : x ∈ s) :
+  f x ⊆ ⋃ (y ∈ s), f y :=
+show f x ≤ (⨆ y ∈ s, f y), from le_supr_of_le x $ le_supr _ h
 
 variables [decidable_eq α]
 

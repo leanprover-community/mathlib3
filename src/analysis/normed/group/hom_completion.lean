@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 
-import analysis.normed_space.normed_group_hom
+import analysis.normed.group.hom
 /-!
 # Completion of normed group homs
 

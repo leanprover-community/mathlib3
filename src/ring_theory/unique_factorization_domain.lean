@@ -138,7 +138,8 @@ class unique_factorization_monoid (α : Type*) [comm_cancel_monoid_with_zero α]
   extends wf_dvd_monoid α : Prop :=
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
-instance ufm_of_gcd_of_wf_dvd_monoid [comm_cancel_monoid_with_zero α]
+/-- Can't be an instance because it would cause a loop `ufm → wf_dvd_monoid → ufm → ...`. -/
+lemma ufm_of_gcd_of_wf_dvd_monoid [comm_cancel_monoid_with_zero α]
   [wf_dvd_monoid α] [gcd_monoid α] : unique_factorization_monoid α :=
 { irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
   .. ‹wf_dvd_monoid α› }

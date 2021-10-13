@@ -16,22 +16,30 @@ sets `S`, `ℙ(X ∈ S) = ∫ x in S, f x dx`. Probability density functions are
 the distribution of a random variable, and are useful for calculating probabilities and
 finding moments (although the latter is better achieved with moment generating functions).
 
+This file also defines the continuous uniform distribution and proves some properties about
+random variables with this distribution.
+
 ## Main definitions
 
-* `measure_theory.measure.has_pdf` : A random variable `X : α → E` is said to `has_pdf` with
+* `measure_theory.has_pdf` : A random variable `X : α → E` is said to `has_pdf` with
   respect to the measure `ℙ` on `α` and `μ` on `E` if there exists a measurable function `f`
   such that the push-forward measure of `ℙ` along `X` equals `μ.with_density f`.
-* `measure_theory.measure.pdf` : If `X` is a random variable that `has_pdf X ℙ μ`, then `pdf X`
+* `measure_theory.pdf` : If `X` is a random variable that `has_pdf X ℙ μ`, then `pdf X`
   is the measurable function `f` such that the push-forward measure of `ℙ` along `X` equals
   `μ.with_density f`.
+* `measure_theory.pdf.uniform` : A random variable `X` is said to follow the uniform
+  distribution if it has a constant probability density function with a compact, non-null support.
 
 ## Main results
 
-* `measure_theory.measure.pdf.integral_mul_eq_integral'` : Law of the unconscious statistician,
+* `measure_theory.pdf.integral_fun_mul_eq_integral` : Law of the unconscious statistician,
   i.e. if a random variable `X : α → E` has pdf `f`, then `𝔼(g(X)) = ∫ x, g x * f x dx` for
   all measurable `g : E → ℝ`.
-* `measure_theory.measure.pdf.integral_mul_eq_integral` : A real-valued random variable `X` with
+* `measure_theory.pdf.integral_mul_eq_integral` : A real-valued random variable `X` with
   pdf `f` has expectation `∫ x, x * f x dx`.
+* `measure_theory.pdf.uniform.integral_eq` : If `X` follows the uniform distribution with
+  its pdf having support `s`, then `X` has expectation `(λ s)⁻¹ * ∫ x in s, x dx` where `λ`
+  is the Lebesgue measure.
 
 ## TODOs
 
@@ -72,6 +80,14 @@ lemma pdf_undef {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X
   (h : ¬ has_pdf X ℙ μ) :
   pdf X ℙ μ = 0 :=
 by simp only [pdf, dif_neg h]
+
+lemma has_pdf_of_pdf_ne_zero {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X : α → E}
+  (h : pdf X ℙ μ ≠ 0) : has_pdf X ℙ μ :=
+begin
+  by_contra hpdf,
+  rw [pdf, dif_neg hpdf] at h,
+  exact hpdf (false.rec (has_pdf X ℙ μ) (h rfl))
+end
 
 lemma pdf_eq_zero_of_not_measurable {m : measurable_space α}
   {ℙ : measure α} {μ : measure E} {X : α → E} (hX : ¬ measurable X) :
@@ -309,6 +325,94 @@ begin
 end
 
 end real
+
+section
+
+/-! **Uniform Distribution** -/
+
+/-- A random variable `X` has uniform distribution if it has a probability density function `f`
+with support `s` such that `f = (μ s)⁻¹ 1ₛ` a.e. where `1ₛ` is the indicator function for `s`. -/
+def is_uniform {m : measurable_space α} (X : α → E) (support : set E)
+  (ℙ : measure α) (μ : measure E . volume_tac) :=
+pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
+
+namespace is_uniform
+
+lemma has_pdf {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
+  {support : set E} (hns : μ support ≠ 0) (hnt : μ support ≠ ⊤) (hu : is_uniform X support ℙ μ) :
+  has_pdf X ℙ μ :=
+has_pdf_of_pdf_ne_zero
+begin
+  intro hpdf,
+  rw [is_uniform, hpdf] at hu,
+  suffices : μ (support ∩ function.support ((μ support)⁻¹ • 1)) = 0,
+  { have heq : function.support ((μ support)⁻¹ • (1 : E → ℝ≥0∞)) = set.univ,
+    { ext x,
+      rw [function.mem_support],
+      simp [hnt] },
+    rw [heq, set.inter_univ] at this,
+    exact hns this },
+  exact set.indicator_ae_eq_zero hu.symm,
+end
+
+lemma pdf_to_real_ae_eq {m : measurable_space α}
+  {X : α → E} {ℙ : measure α} {μ : measure E} {s : set E} (hX : is_uniform X s ℙ μ) :
+  (λ x, (pdf X ℙ μ x).to_real) =ᵐ[μ]
+  (λ x, (s.indicator ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
+filter.eventually_eq.fun_comp hX ennreal.to_real
+
+variables [is_finite_measure ℙ] {X : α → ℝ}
+variables {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
+
+include hms hns
+
+lemma mul_pdf_integrable (hcs : is_compact s) (huX : is_uniform X s ℙ) :
+  integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) :=
+begin
+  by_cases hsupp : volume s = ∞,
+  { have : pdf X ℙ =ᵐ[volume] 0,
+    { refine ae_eq_trans huX _,
+      simp [hsupp] },
+    refine integrable.congr (integrable_zero _ _ _) _,
+    rw [(by simp : (λ x, 0 : ℝ → ℝ) = (λ x, x * (0 : ℝ≥0∞).to_real))],
+    refine filter.eventually_eq.mul (ae_eq_refl _)
+      (filter.eventually_eq.fun_comp this.symm ennreal.to_real) },
+  refine ⟨ae_measurable_id'.mul (measurable_pdf X ℙ).ae_measurable.ennreal_to_real, _⟩,
+  refine has_finite_integral_mul huX _,
+  set ind := (volume s)⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
+  have : ∀ x, ↑∥x∥₊ * s.indicator ind x = s.indicator (λ x, ∥x∥₊ * ind x) x :=
+      λ x, (s.indicator_mul_right (λ x, ↑∥x∥₊) ind).symm,
+  simp only [this, lintegral_indicator _ hms, hind, mul_one,
+             algebra.id.smul_eq_mul, pi.one_apply, pi.smul_apply],
+  rw lintegral_mul_const _ measurable_nnnorm.coe_nnreal_ennreal,
+  { refine (ennreal.mul_lt_top (set_lintegral_lt_top_of_is_compact
+      hsupp hcs continuous_nnnorm).ne (ennreal.inv_lt_top.2 (pos_iff_ne_zero.mpr hns)).ne).ne },
+  { apply_instance }
+end
+
+/-- A real uniform random variable `X` with support `s` has expectation
+`(λ s)⁻¹ * ∫ x in s, x ∂λ` where `λ` is the Lebesgue measure. -/
+lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X s ℙ) :
+  ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
+begin
+  haveI := has_pdf hns hnt huX,
+  rw ← integral_mul_eq_integral,
+  all_goals { try { apply_instance } },
+  rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq huX)),
+  have : ∀ x, x * (s.indicator ((volume s)⁻¹ • (1 : ℝ → ℝ≥0∞)) x).to_real =
+    x * (s.indicator ((volume s)⁻¹.to_real • (1 : ℝ → ℝ)) x),
+  { refine λ x, congr_arg ((*) x) _,
+    by_cases hx : x ∈ s,
+    { simp [set.indicator_of_mem hx] },
+    { simp [set.indicator_of_not_mem hx] }},
+  simp_rw [this, ← s.indicator_mul_right (λ x, x),  integral_indicator hms],
+  change ∫ x in s, x * ((volume s)⁻¹.to_real • 1) ∂(volume) = _,
+  rw [integral_mul_right, mul_comm, algebra.id.smul_eq_mul, mul_one],
+end .
+
+end is_uniform
+
+end
 
 end pdf
 

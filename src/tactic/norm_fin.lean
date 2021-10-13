@@ -219,7 +219,7 @@ meta def match_fin : expr → option match_fin_result
 | `(@_root_.bit1 ._ (@fin.has_one %%n) ._ %%a) := some (bit1 n a)
 | `(@fin.succ %%n %%a) := some (succ n a)
 | `(@fin.cast_lt %%n %%m %%a %%h) := some (cast_lt n m a h)
-| (expr.app `(@coe_fn ._ ._ %%f) a) := match_fin_coe_fn a f
+| (expr.app `(@coe_fn ._ ._ ._ %%f) a) := match_fin_coe_fn a f
 | _ := none
 end
 

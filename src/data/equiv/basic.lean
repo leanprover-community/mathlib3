@@ -952,6 +952,29 @@ by { ext1 x, cases x, refl }
   (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
 by { ext1 x, cases x, refl }
 
+/-- A subtype is equivalent to the corresponding `psigma` type. -/
+def subtype_equiv_psigma {α : Type v} (P : α → Prop) :
+  subtype P ≃ Σ' i, P i :=
+{ to_fun := λ x, ⟨x.1, x.2⟩,
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ x, by { cases x, refl, },
+  right_inv := λ x, by { cases x, refl, }, }
+
+/-- A subtype `{ x // P x }` is equivalent to `Σ i, plift (P i)`. -/
+def subtype_equiv_sigma_plift {α : Type v} (P : α → Prop) :
+  subtype P ≃ Σ i, plift (P i) :=
+(subtype_equiv_psigma P).trans
+  ((psigma_congr_right (λ a, equiv.plift.symm)).trans (psigma_equiv_sigma _))
+
+/--
+A subtype `{ x // P x }` is equivalent to `Σ i, ulift (plift (P i))`.
+Variant of `subtype_equiv_sigma_plift`.
+-/
+def subtype_equiv_sigma_ulift_plift {α : Type v} (P : α → Prop) :
+  subtype P ≃ Σ i, ulift (plift (P i)) :=
+(subtype_equiv_sigma_plift P).trans
+  (sigma_congr_right (λ a, equiv.ulift.symm))
+
 namespace perm
 
 /-- A family of permutations `Π a, perm (β a)` generates a permuation `perm (Σ a, β₁ a)`. -/

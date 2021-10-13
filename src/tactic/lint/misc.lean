@@ -285,7 +285,7 @@ open native
   We use `list name` instead of `name_set`, since `name_set` does not have an order.
   It will ignore `nm₀._proof_i` declarations.
 -/
-meta def expr.univ_params_grouped (e : expr) (nm₀  : name) : rb_set (list name) :=
+meta def expr.univ_params_grouped (e : expr) (nm₀ : name) : rb_set (list name) :=
 e.fold mk_rb_set $ λ e n l,
   match e with
   | e@(sort u) := l.insert u.params.to_list

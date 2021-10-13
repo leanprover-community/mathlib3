@@ -152,4 +152,17 @@ begin
     simpa [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
 end
 
+variable (A)
+
+/--
+The induced functor from `Sheaf K A ⥤ Sheaf J A` given by `G.op ⋙ _`
+if `G` is cover-preserving and compatible-preserving.
+-/
+@[simps] def sites.pullback {G : C ⥤ D} (hG₁ : compatible_preserving K G)
+  (hG₂ : cover_preserving J K G) : Sheaf K A ⥤ Sheaf J A :=
+{ obj := λ ℱ, ⟨G.op ⋙ ℱ.val, pullback_is_sheaf_of_cover_preserving hG₁ hG₂ ℱ⟩,
+  map := λ _ _ f, (((whiskering_left _ _ _).obj G.op)).map f,
+  map_id' := λ ℱ, (((whiskering_left _ _ _).obj G.op)).map_id ℱ.val,
+  map_comp' := λ _ _ _ f g, (((whiskering_left _ _ _).obj G.op)).map_comp f g }
+
 end category_theory

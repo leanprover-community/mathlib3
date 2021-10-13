@@ -481,8 +481,8 @@ supr_mul
 
 protected lemma tendsto_coe_sub : ∀{b:ℝ≥0∞}, tendsto (λb:ℝ≥0∞, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
 begin
-  refine (forall_ennreal.2 $ and.intro (assume a, _) _),
-  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
+  refine forall_ennreal.2 ⟨λ a, _, _⟩,
+  { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, ← with_top.coe_sub],
     exact tendsto_const_nhds.sub tendsto_id },
   simp,
   exact (tendsto.congr' (mem_of_superset (lt_mem_nhds $ @coe_lt_top r) $
@@ -677,6 +677,18 @@ end
 lemma tendsto_at_top_zero_of_tsum_ne_top {f : ℕ → ℝ≥0∞} (hf : ∑' x, f x ≠ ∞) :
   tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_tsum_ne_top hf }
+
+/-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
+space. This does not need a summability assumption, as otherwise all sums are zero. -/
+lemma tendsto_tsum_compl_at_top_zero {α : Type*} {f : α → ℝ≥0∞} (hf : ∑' x, f x ≠ ∞) :
+  tendsto (λ (s : finset α), ∑' b : {x // x ∉ s}, f b) at_top (𝓝 0) :=
+begin
+  lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hf,
+  convert ennreal.tendsto_coe.2 (nnreal.tendsto_tsum_compl_at_top_zero f),
+  ext1 s,
+  rw ennreal.coe_tsum,
+  exact nnreal.summable_comp_injective (tsum_coe_ne_top_iff_summable.1 hf) subtype.coe_injective
+end
 
 protected lemma tsum_apply {ι α : Type*} {f : ι → α → ℝ≥0∞} {x : α} :
   (∑' i, f i) x = ∑' i, f i x :=

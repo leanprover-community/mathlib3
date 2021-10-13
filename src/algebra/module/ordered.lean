@@ -153,6 +153,14 @@ begin
   exact lt_smul_iff_of_pos (neg_pos_of_neg hc),
 end
 
+/-- Left scalar multiplication as an order isomorphism. -/
+@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o order_dual M :=
+{ to_fun := λ b, c • b,
+  inv_fun := λ b, c⁻¹ • b,
+  left_inv := inv_smul_smul₀ hc.ne,
+  right_inv := smul_inv_smul₀ hc.ne,
+  map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_neg hc }
+
 variables [ordered_add_comm_group N] [module k N] [ordered_smul k N]
 
 -- TODO: solve `prod.has_lt` and `prod.has_le` misalignment issue

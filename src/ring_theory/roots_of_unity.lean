@@ -274,7 +274,7 @@ begin
   wlog hij : i ≤ j,
   apply le_antisymm hij,
   rw ← nat.sub_eq_zero_iff_le,
-  apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt (nat.sub_le_self _ _) hj),
+  apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt sub_le_self' hj),
   apply h.dvd_of_pow_eq_one,
   rw [← ((h.is_unit (lt_of_le_of_lt (nat.zero_le _) hi)).pow i).mul_left_inj,
       ← pow_add, nat.sub_add_cancel hij, H, one_mul]

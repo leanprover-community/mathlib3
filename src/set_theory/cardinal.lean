@@ -100,6 +100,10 @@ protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 
 @[simp] theorem mk_out (c : cardinal) : #(c.out) = c := quotient.out_eq _
 
+/-- The representative of the cardinal of a type is equivalent ot the original type. -/
+noncomputable def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
+nonempty.some $ cardinal.eq.mp (by simp)
+
 protected lemma mk_congr (e : α ≃ β) : # α = # β :=
 quot.sound ⟨e⟩
 
@@ -111,7 +115,7 @@ def lift (c : cardinal.{v}) : cardinal.{max v u} :=
 quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
 quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
 
-theorem lift_mk (α) : lift.{v} (#α) = #(ulift.{v u} α) := rfl
+@[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl
 
 theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, quot.induction_on a $ λ α,
@@ -1103,6 +1107,9 @@ quotient.sound ⟨equiv.set.singleton x⟩
 
 @[simp] theorem mk_plift_of_true {p : Prop} (h : p) : #(plift p) = 1 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_punit h⟩
+
+@[simp] theorem mk_plift_of_false {P : Prop} (h : ¬P) : #(plift P) = 0 :=
+quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_pempty h⟩
 
 @[simp] theorem mk_bool : #bool = 2 :=
 quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩

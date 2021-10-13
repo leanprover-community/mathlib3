@@ -1183,24 +1183,54 @@ variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
 variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
 include V₁ V₂
 
-namespace affine_map
+variables (f : P₁ →ᵃ[k] P₂)
 
-lemma vector_span_image_eq_submodule_map {s : set P₁} (f : P₁ →ᵃ[k] P₂) :
-  vector_span k (f '' s) = submodule.map f.linear (vector_span k s) :=
+@[simp] lemma affine_map.vector_span_image_eq_submodule_map {s : set P₁} :
+  submodule.map f.linear (vector_span k s) = vector_span k (f '' s) :=
 by simp [vector_span_def]
 
-lemma span_eq_top_of_surjective {s : set P₁} (f : P₁ →ᵃ[k] P₂)
+namespace affine_subspace
+
+/-- The image of an affine subspace under an affine map as an affine subspace. -/
+def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
+{ carrier := f '' s,
+  smul_vsub_vadd_mem :=
+    begin
+      rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
+      use t • (p₁ -ᵥ p₂) +ᵥ p₃,
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
+    end }
+
+@[simp] lemma map_coe (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+
+@[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
+by { rw ← ext_iff, exact image_empty f, }
+
+@[simp] lemma map_direction (s : affine_subspace k P₁) :
+  (s.map f).direction = s.direction.map f.linear :=
+by simp [direction_eq_vector_span]
+
+lemma map_span (s : set P₁) :
+  (affine_span k s).map f = affine_span k (f '' s) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩, { simp, },
+  apply ext_of_direction_eq,
+  { simp [direction_affine_span], },
+  { exact ⟨f p, mem_image_of_mem f (subset_affine_span k _ hp),
+                subset_affine_span k _ (mem_image_of_mem f hp)⟩, },
+end
+
+end affine_subspace
+
+namespace affine_map
+
+lemma span_eq_top_of_surjective {s : set P₁}
   (hf : function.surjective f) (h : affine_span k s = ⊤) :
   affine_span k (f '' s) = ⊤ :=
 begin
-  cases s.eq_empty_or_nonempty with hs hs,
-  { exfalso,
-    rw [hs, affine_subspace.span_empty] at h,
-    exact bot_ne_top h, },
-  { rw [← f.surjective_iff_linear_surjective, ← linear_map.range_eq_top] at hf,
-    rw affine_subspace.affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V₁ P₁ hs at h,
-    rw [affine_subspace.affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V₂ P₂ (hs.image f),
-      f.vector_span_image_eq_submodule_map, h, submodule.map_top, hf], },
+  rw [← affine_subspace.map_span, h, ← affine_subspace.ext_iff],
+  exact image_univ_of_surjective hf,
 end
 
 end affine_map

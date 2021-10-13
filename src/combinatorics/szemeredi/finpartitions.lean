@@ -17,7 +17,7 @@ def has_subset.subset.finpartition_on [decidable_eq α] {s : finset α}
   {P : finpartition_on s} {A : finset (finset α)} (h : A ⊆ P.parts) :
   finpartition_on (A.bUnion id) :=
 { parts := A,
-  disjoint := λ a b ha hb, P.disjoint a b (h ha) (h hb),
+  disjoint := P.disjoint.subset h,
   cover := λ x hx, mem_bUnion.1 hx,
   subset := λ a, subset_bUnion_of_mem _,
   not_empty_mem := λ hA, P.not_empty_mem (h hA) }
@@ -37,7 +37,7 @@ lemma equitabilise_aux1 {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset 
     (∀ (x : finset α), x ∈ P → x.card = m ∨ x.card = m+1) ∧
     (∀ x, x ∈ A → (x \ finset.bUnion (P.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
     (∀ x ∈ s, ∃ y ∈ P, x ∈ y) ∧
-    (∀ (x₁ x₂ ∈ P) i, i ∈ x₁ → i ∈ x₂ → x₁ = x₂) ∧
+    (P : set (finset α)).pairwise_disjoint ∧
     (∀ x ∈ P, x ⊆ s) ∧
     ((P.filter (λ i, finset.card i = m+1)).card = b) :=
 begin
@@ -45,7 +45,9 @@ begin
   simp only [finset.subset_empty] at subs,
   simp only [finset.card_empty, nat.mul_eq_zero, nat.succ_ne_zero, or_false,
     add_eq_zero_iff, and_false] at hs,
-  refine ⟨∅, by simp, λ i hi, by simp [subs i hi], by simp [hs.2]⟩,
+  refine ⟨∅, by simp, λ i hi, by simp [subs i hi], by simp, _, by simp [hs.2]⟩,
+  rw coe_empty,
+  exact set.pairwise_disjoint_empty,
 end
 
 lemma equitabilise_aux2 {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset (finset α))
@@ -54,7 +56,7 @@ lemma equitabilise_aux2 {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset 
     (∀ (x : finset α), x ∈ P → x.card = m ∨ x.card = m+1) ∧
     (∀ x, x ∈ A → (x \ finset.bUnion (P.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
     (∀ x ∈ s, ∃ y ∈ P, x ∈ y) ∧
-    (∀ (x₁ x₂ ∈ P) i, i ∈ x₁ → i ∈ x₂ → x₁ = x₂) ∧
+    (P : set (finset α)).pairwise_disjoint ∧
     (∀ x ∈ P, x ⊆ s) ∧
     ((P.filter (λ i, finset.card i = m+1)).card = b) :=
 begin
@@ -65,9 +67,8 @@ begin
   { intros x hx i hi,
     simp only [mem_bUnion, mem_image, exists_prop, mem_filter, id.def],
     refine ⟨{i}, ⟨⟨i, subs x hx hi, rfl⟩, by simpa⟩, by simp⟩ },
-  { simp only [mem_image, and_imp, exists_prop, exists_imp_distrib],
-    rintro _ _ x _ rfl y _ rfl,
-    simp [singleton_inj] },
+  { rw coe_image,
+    exact finset.singleton_pairwise_disjoint.subset (set.image_subset_range _ _) },
   { simp only [mem_image, and_imp, filter_true_of_mem, implies_true_iff, eq_self_iff_true,
       forall_apply_eq_imp_iff₂, exists_imp_distrib, card_singleton],
     rw [card_image_of_injective, hs],
@@ -77,13 +78,13 @@ end
 
 lemma equitabilise_aux {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset (finset α))
   (all : ∀ x ∈ s, ∃ y ∈ A, x ∈ y)
-  (disj : ∀ (x₁ x₂ ∈ A) i, i ∈ x₁ → i ∈ x₂ → x₁ = x₂)
+  (disj : (A : set (finset α)).pairwise_disjoint)
   (subs : ∀ i ∈ A, i ⊆ s) :
   ∃ (P : finset (finset α)),
     (∀ (x : finset α), x ∈ P → x.card = m ∨ x.card = m + 1) ∧
     (∀ x, x ∈ A → (x \ finset.bUnion (P.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
     (∀ x ∈ s, ∃ y ∈ P, x ∈ y) ∧
-    (∀ (x₁ x₂ ∈ P) i, i ∈ x₁ → i ∈ x₂ → x₁ = x₂) ∧
+    (P : set (finset α)).pairwise_disjoint ∧
     (∀ x ∈ P, x ⊆ s) ∧
     ((P.filter (λ i, finset.card i = m+1)).card = b) :=
 begin
@@ -127,7 +128,7 @@ begin
     { rw [card_sdiff (finset.subset.trans hp'₁ (subs _ hp₁)), ←hs, hp'₂, h'],
       split_ifs,
       { rw [nat.mul_sub_right_distrib, one_mul,
-          nat.sub_add_eq_add_sub (nat.le_mul_of_pos_left h)] },
+          sub_add_eq_add_sub' (nat.le_mul_of_pos_left h)] },
       { rw [nat.mul_sub_right_distrib, one_mul, ←nat.add_sub_assoc],
         apply nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left h) } },
     { simp only [and_imp, exists_prop, mem_insert, mem_sdiff, mem_erase, ne.def],
@@ -139,18 +140,15 @@ begin
       apply h,
       rw ←t,
       exact hy₂ },
-    { simp only [mem_insert, mem_erase, ne.def],
-      rintro x₁ x₂ (rfl | hx₁) (rfl | hx₂) i hi₁ hi₂,
-      { refl },
-      { apply (hx₂.1 (disj _ _ hx₂.2 hp₁ i hi₂ (sdiff_subset _ _ hi₁))).elim },
-      { apply (hx₁.1 (disj _ _ hx₁.2 hp₁ i hi₁ (sdiff_subset _ _ hi₂))).elim },
-      exact disj _ _ hx₁.2 hx₂.2 _ hi₁ hi₂ },
+    { rw coe_insert,
+      exact (disj.subset $ erase_subset _ _).insert (λ q hq _, (disj _ hp₁ _ (mem_of_mem_erase hq)
+        (ne_of_mem_erase hq).symm).mono_left $ sdiff_subset _ _) },
     { simp only [and_imp, mem_insert, forall_eq_or_imp, mem_erase, ne.def],
       split,
       { apply sdiff_subset_sdiff (subs _ hp₁) (refl _) },
       intros i hi₁ hi₂ x hx,
       simp only [mem_sdiff, subs i hi₂ hx, true_and],
-      exact λ q, hi₁ (disj _ _ hi₂ hp₁ _ hx (hp'₁ q)) },
+      exact λ hxp, hi₁ (disj.elim_finset hi₂ hp₁ _ hx (hp'₁ hxp)) },
     refine ⟨insert p' P', _, _, _, _, _, _⟩,
     { simp only [mem_insert, forall_eq_or_imp, and_iff_left hP'₁, hp'₂, h'],
       split_ifs,
@@ -215,7 +213,7 @@ begin
   { rw [card_sdiff ‹s' ⊆ s›, hs'₂, h', ←hs],
     split_ifs,
     { rw [nat.mul_sub_right_distrib, one_mul,
-        nat.sub_add_eq_add_sub (nat.le_mul_of_pos_left ‹0 < a›)] },
+        sub_add_eq_add_sub' (nat.le_mul_of_pos_left ‹0 < a›)] },
     rw [nat.mul_sub_right_distrib, one_mul, ←nat.add_sub_assoc],
     exact nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left ‹¬0 < a›) },
   { intros x hx,

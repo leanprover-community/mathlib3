@@ -88,6 +88,73 @@ lemma finset.singleton_injective : injective (singleton : α → finset α) :=
 
 alias finset.card_pos ↔ _ finset.nonempty.card_pos
 
+lemma finset.not_disjoint_iff [decidable_eq α] {s t : finset α} :
+  ¬disjoint s t ↔ ∃ a, a ∈ s ∧ a ∈ t :=
+not_forall.trans $ exists_congr $ λ a, begin
+  rw [finset.inf_eq_inter, finset.mem_inter],
+  exact not_not,
+end
+
+lemma finset.singleton_pairwise_disjoint [decidable_eq α] :
+  (set.range (singleton : α → finset α)).pairwise_disjoint :=
+begin
+  rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
+  rw [disjoint_singleton, not_mem_singleton],
+  exact ne_of_apply_ne _ h.symm,
+end
+
+lemma set.pairwise_disjoint.elim_finset [decidable_eq α] {s : set (finset α)}
+  (hs : s.pairwise_disjoint) {x y : finset α} (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x)
+  (hzy : z ∈ y) : x = y :=
+hs.elim hx hy (finset.not_disjoint_iff.2 ⟨z, hzx, hzy⟩)
+
+lemma set.pairwise_disjoint_empty [semilattice_inf_bot α] :
+  (∅ : set α).pairwise_disjoint :=
+set.pairwise_on_empty _
+
+lemma set.pairwise_disjoint.image_set [semilattice_inf_bot α] {s : set α}
+  (hs : s.pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
+  (f '' s).pairwise_disjoint :=
+begin
+  rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ h,
+  exact (hs a ha b hb $ ne_of_apply_ne _ h).mono (hf a) (hf b),
+end
+
+lemma set.pairwise_disjoint.image_finset [decidable_eq α] [semilattice_inf_bot α]
+  {s : finset α} (hs : (s : set α).pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
+  set.pairwise_disjoint (s.image f :set α) :=
+begin
+  rw coe_image,
+  exact hs.image_set hf,
+end
+
+lemma set.pairwise_disjoint_singleton [semilattice_inf_bot α] (a : α) :
+  ({a} : set α ).pairwise_disjoint :=
+set.pairwise_on_singleton a _
+
+lemma set.pairwise_disjoint_insert [semilattice_inf_bot α] {s : set α} {a : α} :
+  (insert a s).pairwise_disjoint ↔ s.pairwise_disjoint ∧ ∀ b ∈ s, a ≠ b → disjoint a b :=
+set.pairwise_on_insert_of_symmetric symmetric_disjoint
+
+lemma set.pairwise_disjoint.insert [semilattice_inf_bot α] {s : set α} (hs : s.pairwise_disjoint)
+  {a : α} (hx : ∀ b ∈ s, a ≠ b → disjoint a b) :
+  (insert a s).pairwise_disjoint :=
+set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
+
+lemma set.pairwise_disjoint_insert_finset [semilattice_inf_bot α] {s : finset α} {a : α} :
+  (insert a s : set α).pairwise_disjoint ↔ (s : set α).pairwise_disjoint ∧
+    ∀ b ∈ s, a ≠ b → disjoint a b :=
+set.pairwise_on_insert_of_symmetric symmetric_disjoint
+
+lemma set.pairwise_disjoint.insert_finset [semilattice_inf_bot α] {s : finset α}
+  (hs : (s : set α).pairwise_disjoint) {a : α} (hx : ∀ b ∈ s, a ≠ b → disjoint a b) :
+  (insert a s : set α).pairwise_disjoint :=
+set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
+
+-- lemma set.pairwise_disjoint_coe_iff [decidable_eq α] {s : set (finset α)} :
+--   s.pairwise_disjoint ↔ ((coe : finset α → set α) '' s).pairwise_disjoint :=
+-- sorry
+
 namespace real
 
 lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) :
@@ -385,23 +452,23 @@ end simple_graph
 
 -- Maybe replace `finset (finset α)` with `finset β` where `set_like β`?
 /-- A finpartition of a finite set `S` is a collection of disjoint subsets of `S` which cover it. -/
-@[ext] structure finpartition_on {α : Type u} (s : finset α) :=
+@[ext] structure finpartition_on {α : Type u} [decidable_eq α] (s : finset α) :=
 (parts : finset (finset α))
-(disjoint : ∀ (a₁ a₂ ∈ parts) x, x ∈ a₁ → x ∈ a₂ → a₁ = a₂)
+(disjoint : set.pairwise_disjoint (parts : set (finset α)))
 (cover : ∀ ⦃x⦄, x ∈ s → ∃ (a ∈ parts), x ∈ a)
 (subset : ∀ ⦃a⦄, a ∈ parts → a ⊆ s)
 (not_empty_mem : ∅ ∉ parts)
 
 /-- A `finpartition α` is a partition of the entire finite type `α` -/
-@[inline] def finpartition (α : Type u) [fintype α] := finpartition_on (univ : finset α)
+@[inline] def finpartition (α : Type u) [decidable_eq α] [fintype α] := finpartition_on (univ : finset α)
 
 namespace finpartition_on
-variables {s : finset α} (P : finpartition_on s)
+variables [decidable_eq α] {s : finset α} (P : finpartition_on s)
 
 @[simps]
 def empty : finpartition_on (∅ : finset α) :=
 { parts := ∅,
-  disjoint := by simp,
+  disjoint := set.pairwise_disjoint_empty,
   cover := by simp,
   subset := by simp,
   not_empty_mem := by simp }
@@ -429,16 +496,6 @@ protected def size : ℕ := P.parts.card
 
 lemma size_eq_card_parts : P.size = P.parts.card := rfl
 
-lemma disjoint' [decidable_eq α] (a₁ : finset α) (ha₁ : a₁ ∈ P.parts) (a₂ : finset α)
-  (ha₂ : a₂ ∈ P.parts)
-  (h : a₁ ≠ a₂) :
-  _root_.disjoint a₁ a₂ :=
-begin
-  rintro x hx,
-  rw [inf_eq_inter, mem_inter] at hx,
-  exact h (P.disjoint a₁ a₂ ha₁ ha₂ x hx.1 hx.2),
-end
-
 lemma nonempty_of_mem_parts {a : finset α} (ha : a ∈ P.parts) : a.nonempty :=
 begin
   rw nonempty_iff_ne_empty,
@@ -457,15 +514,13 @@ end
 lemma empty_parts_iff : P.parts = ∅ ↔ s = ∅ :=
 by rw [←not_iff_not, ←ne.def, ←nonempty_iff_ne_empty, nonempty_parts_iff, nonempty_iff_ne_empty]
 
-variable [decidable_eq α]
-
 lemma bUnion_parts_eq : P.parts.bUnion id = s :=
 (bUnion_subset_iff_forall_subset.2 (λ a ha, P.subset ha)).antisymm (λ x hx, mem_bUnion.2
   (P.cover hx))
 
 lemma sum_card_parts : ∑ i in P.parts, i.card = s.card :=
 begin
-  rw ←card_bUnion P.disjoint',
+  rw ←card_bUnion P.disjoint,
   exact congr_arg finset.card P.bUnion_parts_eq,
 end
 
@@ -475,12 +530,7 @@ decidable_of_iff' _ finset.nonempty_iff_ne_empty
 /-- Restrict a finpartition to avoid a given subset -/
 def avoid (P : finpartition_on s) (t : finset α) : finpartition_on (s \ t) :=
 { parts := (P.parts.image (\ t)).filter finset.nonempty,
-  disjoint := λ x₁ x₂,
-  begin
-    simp only [and_imp, exists_imp_distrib, mem_image, exists_prop, mem_filter],
-    rintro x₁ hx₁ rfl - x₂ hx₂ rfl - i hi₁ hi₂,
-    rw P.disjoint _ _ hx₁ hx₂ i (sdiff_subset _ _ hi₁) (sdiff_subset _ _ hi₂),
-  end,
+  disjoint := (P.disjoint.image_finset (λ a, a.sdiff_subset t)).subset (filter_subset _ _),
   cover := λ i hi,
   begin
     simp only [mem_sdiff] at hi,
@@ -505,12 +555,14 @@ def avoid (P : finpartition_on s) (t : finset α) : finpartition_on (s \ t) :=
 finpartition that's obtained by -/
 def bind (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
-  disjoint := λ a b ha hb x hxa hxb, begin
-    rw finset.mem_bUnion at ha hb,
+  disjoint := λ a ha b hb h x hx, begin
+    rw [finset.mem_coe, finset.mem_bUnion] at ha hb,
     obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
     obtain ⟨⟨B, hB⟩, -, hb⟩ := hb,
-    refine (Q A hA).disjoint a b ha _ x hxa hxb,
-    have := P.disjoint A B hA hB x ((Q A hA).subset ha hxa) ((Q B hB).subset hb hxb),
+    refine (Q A hA).disjoint a ha b _ h hx,
+    rw mem_coe,
+    rw [inf_eq_inter, mem_inter] at hx,
+    have := P.disjoint.elim_finset hA hB x ((Q A hA).subset ha hx.1) ((Q B hB).subset hb hx.2),
     subst this,
     exact hb,
   end,
@@ -555,14 +607,14 @@ begin
   apply hAB,
   rw subtype.mk_eq_mk,
   obtain ⟨x, hx⟩ := nonempty_of_mem_parts _ hcA,
-  exact P.disjoint _ _ hA hB x (finpartition_on.subset _ hcA hx)
+  exact P.disjoint.elim_finset hA hB x (finpartition_on.subset _ hcA hx)
     (finpartition_on.subset _ hcB hx),
 end
 
 end finpartition_on
 
 namespace finpartition
-variables [fintype α] (P : finpartition α)
+variables [decidable_eq α] [fintype α] (P : finpartition α)
 
 lemma parts_nonempty [nonempty α] : P.parts.nonempty :=
 P.nonempty_parts_iff.2 univ_nonempty
@@ -580,7 +632,7 @@ begin
   unfold pairs_count,
   simp_rw [←P.bUnion_parts_eq, pairs_finset_bUnion_left, id],
   rw card_bUnion,
-  exact λ x hx y hy h, pairs_finset_disjoint_left r (P.disjoint' x hx y hy h) _,
+  exact λ x hx y hy h, pairs_finset_disjoint_left r (P.disjoint x hx y hy h) _,
 end
 
 lemma pairs_count_finpartition_right (U : finset α) {V : finset α} (P : finpartition_on V) :
@@ -589,7 +641,7 @@ begin
   unfold pairs_count,
   simp_rw [←P.bUnion_parts_eq, pairs_finset_bUnion_right, id],
   rw card_bUnion,
-  exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint' x hx y hy h),
+  exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint x hx y hy h),
 end
 
 lemma pairs_count_finpartition {U V : finset α} (P : finpartition_on U) (Q : finpartition_on V) :
@@ -602,18 +654,16 @@ end relation
 /-! ## is_equipartition -/
 
 namespace finpartition_on
-variables {s : finset α} (P : finpartition_on s)
+variables [decidable_eq α] {s : finset α} (P : finpartition_on s)
 
 /-- An equipartition is a partition whose parts are all the same size, up to a difference of `1`. -/
-def is_equipartition : Prop :=
-set.equitable_on (P.parts : set (finset α)) card
+def is_equipartition : Prop := (P.parts : set (finset α)).equitable_on card
 
-lemma is_equipartition_iff_card_parts_eq_average [decidable_eq α] :
+lemma is_equipartition_iff_card_parts_eq_average :
   P.is_equipartition ↔
   ∀ a : finset α, a ∈ P.parts → a.card = s.card/P.size ∨ a.card = s.card/P.size + 1 :=
 begin
-  simp_rw [is_equipartition, finset.equitable_on_iff, ←card_bUnion P.disjoint',
-    ←P.bUnion_parts_eq],
+  simp_rw [is_equipartition, finset.equitable_on_iff, ←card_bUnion P.disjoint, ←P.bUnion_parts_eq],
   refl,
 end
 
@@ -629,36 +679,28 @@ by rw [P.is_equipartition_iff_card_parts_eq_average, card_univ]
 
 /-- The discrete equipartition of a fintype is the partition in singletons. -/
 @[simps]
-def discrete_finpartition_on (s : finset α) : finpartition_on s :=
+def discrete_finpartition_on [decidable_eq α] (s : finset α) : finpartition_on s :=
 { parts := s.map ⟨singleton, singleton_injective⟩,
   disjoint :=
   begin
-    simp only [mem_map, exists_true_left, exists_imp_distrib, embedding.coe_fn_mk],
-    rintro a₁ a₂ i hi rfl j hj rfl k,
-    simp only [mem_singleton],
-    rintro rfl rfl,
-    refl
+    rw finset.coe_map,
+    exact finset.singleton_pairwise_disjoint.subset (set.image_subset_range _ _),
   end,
   cover := λ v hv, ⟨{v}, mem_map_of_mem _ hv, mem_singleton_self v⟩,
   subset := by simp,
   not_empty_mem := by simp }
 
 @[simps]
-def indiscrete_finpartition_on {s : finset α} (hs : s.nonempty) :
+def indiscrete_finpartition_on [decidable_eq α] {s : finset α} (hs : s.nonempty) :
   finpartition_on s :=
 { parts := {s},
-  disjoint :=
-  begin
-    simp only [mem_singleton],
-    rintro _ _ rfl rfl _ _ _,
-    refl
-  end,
+  disjoint := (coe_singleton s).symm.subst (set.pairwise_disjoint_singleton _),
   cover := λ u hu, ⟨s, mem_singleton_self _, hu⟩,
   subset := by simp only [forall_eq, subset.refl, mem_singleton],
   not_empty_mem := λ h, hs.ne_empty (mem_singleton.1 h).symm }
 
 namespace discrete_finpartition_on
-variables (s : finset α) (G : simple_graph α)
+variables [decidable_eq α] (s : finset α) (G : simple_graph α)
 
 lemma is_equipartition : (discrete_finpartition_on s).is_equipartition :=
 set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩

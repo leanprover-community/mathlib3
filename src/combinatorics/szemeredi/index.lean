@@ -80,7 +80,7 @@ end finset
 
 /-! ## finpartition_on.is_uniform -/
 
-variables {s : finset α} (P : finpartition_on s) (G : simple_graph α)
+variables [decidable_eq α] {s : finset α} (P : finpartition_on s) (G : simple_graph α)
 
 namespace finpartition_on
 open_locale classical
@@ -149,7 +149,7 @@ begin
   simp only [finpartition_on.mem_non_uniform_pairs, discrete_finpartition_on_parts, mem_map,
     and_imp, exists_prop, not_and, not_not, ne.def, exists_imp_distrib, embedding.coe_fn_mk],
   rintro x hx rfl y hy rfl h U' hU' V' hV' hU hV,
-  rw [card_singleton, nat.cast_one, mul_one] at hU hV,
+  rw [card_singleton, nat.cast_one, one_mul] at hU hV,
   obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
   { rw [finset.card_empty] at hU,
     exact (hε.not_le hU).elim },

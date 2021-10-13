@@ -96,7 +96,7 @@ begin
     begin
       conv_rhs { rw index },
       rw finpartition_on.is_uniform at hPG,
-
+      sorry
     end
 end.
 

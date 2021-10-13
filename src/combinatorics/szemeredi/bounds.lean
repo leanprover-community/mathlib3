@@ -31,7 +31,7 @@ begin
   exact zero_lt_mul_right (pow_pos (by norm_num) _),
 end
 
-variables [fintype α] {G : simple_graph α} {P : finpartition α} {ε : ℝ}
+variables [decidable_eq α] [fintype α] {G : simple_graph α} {P : finpartition α} {ε : ℝ}
 
 local notation `m` := (card α/exp_bound P.size : ℕ)
 local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
@@ -67,9 +67,8 @@ lemma a_add_one_le_four_pow_size :
   a + 1 ≤ 4^P.size :=
 begin
   have h : 1 ≤ 4^P.size := one_le_pow_of_one_le (by norm_num) _,
-  rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h],
-  apply nat.sub_le_left_of_le_add,
-  rw ←nat.add_sub_assoc h,
+  rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, sub_le_iff_left,
+    ←nat.add_sub_assoc h],
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end
 
@@ -83,19 +82,19 @@ lemma card_aux₂ {U : finset α} (hUcard : U.card = m * 4^P.size + a) :
 by rw [hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
   ((nat.le_succ _).trans a_add_one_le_four_pow_size), mul_comm]
 
-lemma card_aux₃ [decidable_eq α] (hP : P.is_equipartition) {U : finset α} (hU : U ∈ P.parts)
+lemma card_aux₃ (hP : P.is_equipartition) {U : finset α} (hU : U ∈ P.parts)
   (hUcard : ¬U.card = m * 4^P.size + a) :
   (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card :=
 begin
   have aux :
     m * 4^finpartition_on.size P + a = card α/P.size,
-  { apply nat.add_sub_cancel',
+  { apply add_sub_cancel_of_le,
     rw [exp_bound, ←nat.div_div_eq_div_mul],
     exact nat.div_mul_le_self _ _ },
   rw aux at hUcard,
   rw finpartition.is_equipartition_iff_card_parts_eq_average at hP,
-  rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul,
-    nat.sub_add_cancel a_add_one_le_four_pow_size, ←add_assoc, mul_comm, nat.add_sub_cancel', ←aux],
+  rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
+    a_add_one_le_four_pow_size, ←add_assoc, mul_comm, add_sub_cancel_of_le, ←aux],
   rw ←aux,
   exact nat.le_add_right _ _,
 end

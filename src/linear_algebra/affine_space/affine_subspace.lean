@@ -678,12 +678,49 @@ begin
   exact set.empty_ne_univ contra,
 end
 
+instance : nontrivial (affine_subspace k P) := ⟨⟨⊥, ⊤, bot_ne_top k V P⟩⟩
+
 lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
 begin
   rw ← set.ne_empty_iff_nonempty,
   rintros rfl,
   rw affine_subspace.span_empty at h,
   exact bot_ne_top k V P h,
+end
+
+/-- If the affine span of a set is `⊤`, then the vector span of the same set is the `⊤`. -/
+lemma vector_span_eq_top_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) :
+  vector_span k s = ⊤ :=
+by rw [← direction_affine_span, h, direction_top]
+
+/-- For a nonempty set, the affine span is `⊤` iff its vector span is `⊤`. -/
+lemma affine_span_eq_top_iff_vector_span_eq_top_of_nonempty {s : set P} (hs : s.nonempty) :
+  affine_span k s = ⊤ ↔ vector_span k s = ⊤ :=
+begin
+  refine ⟨vector_span_eq_top_of_affine_span_eq_top k V P, _⟩,
+  intros h,
+  suffices : nonempty (affine_span k s),
+  { obtain ⟨p, hp : p ∈ affine_span k s⟩ := this,
+    rw [eq_iff_direction_eq_of_mem hp (mem_top k V p), direction_affine_span, h, direction_top] },
+  obtain ⟨x, hx⟩ := hs,
+  exact ⟨⟨x, mem_affine_span k hx⟩⟩,
+end
+
+/-- For a non-trivial space, the affine span of a set is `⊤` iff its vector span is `⊤`. -/
+lemma affine_span_eq_top_iff_vector_span_eq_top_of_nontrivial {s : set P} [nontrivial P] :
+  affine_span k s = ⊤ ↔ vector_span k s = ⊤ :=
+begin
+  cases s.eq_empty_or_nonempty with hs hs,
+  { simp [hs, subsingleton_iff_bot_eq_top, add_torsor.subsingleton_iff V P, not_subsingleton], },
+  { rw affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V P hs, },
+end
+
+lemma card_pos_of_affine_span_eq_top {ι : Type*} [fintype ι] {p : ι → P}
+  (h : affine_span k (range p) = ⊤) :
+  0 < fintype.card ι :=
+begin
+  obtain ⟨-, ⟨i, -⟩⟩ := nonempty_of_affine_span_eq_top k V P h,
+  exact fintype.card_pos_iff.mpr ⟨i⟩,
 end
 
 variables {P}

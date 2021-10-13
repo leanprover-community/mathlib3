@@ -27,7 +27,7 @@ The measurable Besicovitch theorem ensures that, in the same class of metric spa
 point one considers a class of balls of arbitrarily small radii, called admissible balls, then
 one can cover almost all the space by a family of disjoint admissible balls.
 It is deduced from the topological Besicovitch theorem, and proved
-in `besicovitch.exists_disjoint_closed_ball_covering`
+in `besicovitch.exists_disjoint_closed_ball_covering_ae`.
 
 ## Main definitions and results
 
@@ -42,7 +42,7 @@ in `besicovitch.exists_disjoint_closed_ball_covering`
   disjoint balls covering almost all the space. While the value of `N` is relevant for the precise
   statement of the topological Besicovitch theorem, it becomes irrelevant for the measurable one.
   Therefore, this statement is expressed using the `Prop`-valued
-  typeclass `has_besicovitch_covering`
+  typeclass `has_besicovitch_covering`.
 
 ## Implementation
 
@@ -82,7 +82,7 @@ noncomputable theory
 universe u
 
 open metric set filter fin measure_theory topological_space
-open_locale topological_space classical big_operators ennreal measure_theory
+open_locale topological_space classical big_operators ennreal measure_theory nnreal
 
 
 /-!
@@ -481,13 +481,16 @@ end
 ### The measurable Besicovitch covering theorem
 -/
 
+open_locale nnreal
+
 /-- Consider, for each `x` in a set `s`, a radius `r x ∈ (0, 1]`. Then one can find finitely
 many disjoint balls of the form `closed_ball x (r x)` covering a proportion `1/(N+1)` of `s`, if
-there are no satellite configurations with `N+1` points. -/
+there are no satellite configurations with `N+1` points.
+-/
 lemma exist_finset_disjoint_balls_large_measure
   [second_countable_topology α] [measurable_space α] [opens_measurable_space α]
   (μ : measure α) [is_finite_measure μ] {N : ℕ} {τ : ℝ}
-  (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α) (smeas : measurable_set s)
+  (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α)
   (r : α → ℝ) (rpos : ∀ x ∈ s, 0 < r x) (rle : ∀ x ∈ s, r x ≤ 1) :
   ∃ (t : finset α), (↑t ⊆ s) ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) ≤ N/(N+1) * μ s
     ∧ (t : set α).pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
@@ -505,6 +508,9 @@ begin
   { unfreezingI { rintros rfl },
     inhabit α,
     exact (not_is_empty_of_nonempty _) hN },
+  -- introduce a measurable superset `o` with the same measure, for measure computations
+  obtain ⟨o, so, omeas, μo⟩ : ∃ (o : set α), s ⊆ o ∧ measurable_set o ∧ μ o = μ s :=
+    exists_measurable_superset μ s,
   /- We will apply the topological Besicovitch theorem, giving `N` disjoint subfamilies of balls
   covering `s`. Among these, one of them covers a proportion at least `1/N` of `s`. A large
   enough finite subfamily will then cover a proportion at least `1/(N+1)`. -/
@@ -550,44 +556,56 @@ begin
     rw ennreal.inv_lt_inv,
     conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
     exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
-  have B : μ (s ∩ v i) = ∑' (x : u i), μ (s ∩ closed_ball x (r x)),
-  { have : s ∩ v i = ⋃ (x : s) (hx : x ∈ u i), s ∩ closed_ball x (r x), by simp only [inter_Union],
+  have B : μ (o ∩ v i) = ∑' (x : u i), μ (o ∩ closed_ball x (r x)),
+  { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
     { refl },
     { exact pairwise_on_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
-    { exact λ b hb, smeas.inter measurable_set_closed_ball } },
+    { exact λ b hb, omeas.inter measurable_set_closed_ball } },
   -- A large enough finite subfamily of `u i` will also cover a proportion `> 1/(N+1)` of `s`.
+  -- Since `s` might not be measurable, we express this in terms of the measurable superset `o`.
   obtain ⟨w, hw⟩ : ∃ (w : finset (u i)),
-    μ s / (N + 1) < ∑ (x : u i) in w, μ (s ∩ closed_ball (x : α) (r (x : α))),
-  { have C : has_sum (λ (x : u i), μ (s ∩ closed_ball x (r x))) (μ (s ∩ (v i))),
+    μ s / (N + 1) < ∑ (x : u i) in w, μ (o ∩ closed_ball (x : α) (r (x : α))),
+  { have C : has_sum (λ (x : u i), μ (o ∩ closed_ball x (r x))) (μ (o ∩ v i)),
       by { rw B, exact ennreal.summable.has_sum },
-    exact ((tendsto_order.1 C).1 _ hi).exists },
+    have : μ s / (N+1) < μ (o ∩ v i) :=
+      hi.trans_le (measure_mono (inter_subset_inter_left _ so)),
+    exact ((tendsto_order.1 C).1 _ this).exists },
   -- Bring back the finset `w i` of `↑(u i)` to a finset of `α`, and check that it works by design.
   refine ⟨finset.image (λ (x : u i), x) w, _, _, _⟩,
+  -- show that the finset is included in `s`.
   { simp only [image_subset_iff, coe_coe, finset.coe_image],
     assume y hy,
     simp only [subtype.coe_prop, mem_preimage] },
-  { rw [finset.set_bUnion_finset_image, ← diff_inter_self_eq_diff,
-      measure_diff_le_iff_le_add _ smeas (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
-    { apply measurable_set.inter _ smeas,
+  -- show that it covers a large enough proportion of `s`. For measure computations, we do not
+  -- use `s` (which might not be measurable), but its measurable superset `o`. Since their measures
+  -- are the same, this does not spoil the estimates
+  { suffices H : μ (o \ ⋃ x ∈ w, closed_ball ↑x (r ↑x)) ≤ N/(N+1) * μ s,
+      { rw [finset.set_bUnion_finset_image],
+        exact le_trans (measure_mono (diff_subset_diff so (subset.refl _))) H },
+    rw [← diff_inter_self_eq_diff,
+      measure_diff_le_iff_le_add _ omeas (inter_subset_right _ _) ((measure_lt_top μ _).ne)], swap,
+    { apply measurable_set.inter _ omeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union
         (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
-    calc μ s = 1/(N+1) * μ s + N/(N+1) * μ s :
-      by { rw [← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }
-    ... ≤ μ ((⋃ (x ∈ w), closed_ball ↑x (r ↑x)) ∩ s) + N/(N+1) * μ s : begin
+    calc
+    μ o = 1/(N+1) * μ s + N/(N+1) * μ s :
+      by { rw [μo, ← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }
+    ... ≤ μ ((⋃ (x ∈ w), closed_ball ↑x (r ↑x)) ∩ o) + N/(N+1) * μ s : begin
       refine add_le_add _ le_rfl,
       rw [div_eq_mul_inv, one_mul, mul_comm, ← div_eq_mul_inv],
       apply hw.le.trans (le_of_eq _),
-      rw [← finset.set_bUnion_coe, inter_comm _ s, inter_bUnion, finset.set_bUnion_coe,
+      rw [← finset.set_bUnion_coe, inter_comm _ o, inter_bUnion, finset.set_bUnion_coe,
           measure_bUnion_finset],
       { have : (w : set (u i)).pairwise_on
             (disjoint on (λ (b : u i), closed_ball (b : α) (r (b : α)))),
           by { assume k hk l hl hkl, exact hu i k k.2 l l.2 (subtype.coe_injective.ne hkl) },
         exact pairwise_on_disjoint_on_mono this (λ k hk, inter_subset_right _ _) },
       { assume b hb,
-        apply smeas.inter measurable_set_closed_ball }
+        apply omeas.inter measurable_set_closed_ball }
     end },
+  -- show that the balls are disjoint
   { assume k hk l hl hkl,
     obtain ⟨k', k'w, rfl⟩ : ∃ (k' : u i), k' ∈ w ∧ ↑↑k' = k,
       by simpa only [mem_image, finset.mem_coe, coe_coe, finset.coe_image] using hk,
@@ -598,19 +616,22 @@ begin
     exact hu i k' k'.2 l' l'.2 k'nel' }
 end
 
-/-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a measurable set `s`,
+/-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a set `s`,
 one is given a set of admissible closed balls centered at `x`, with arbitrarily small radii.
 Then there exists a disjoint covering of almost all `s` by admissible closed balls centered at some
 points of `s`.
 This version requires that the underlying measure is finite, and that the space has the Besicovitch
-covering property (which is satisfied for instance by normed real vector spaces). For a version
-assuming that the measure is sigma-finite, see `exists_disjoint_closed_ball_covering`.
+covering property (which is satisfied for instance by normed real vector spaces). It expresses the
+conclusion in a slightly awkward form (with a subset of `α × ℝ`) coming from the proof technique.
+For a version assuming that the measure is sigma-finite,
+see `exists_disjoint_closed_ball_covering_ae_aux`.
+For a version giving the conclusion in a nicer form, see `exists_disjoint_closed_ball_covering_ae`.
 -/
-theorem exists_disjoint_closed_ball_covering_of_finite_measure
+theorem exists_disjoint_closed_ball_covering_ae_of_finite_measure_aux
   [second_countable_topology α] [hb : has_besicovitch_covering α]
   [measurable_space α] [opens_measurable_space α] (μ : measure α) [is_finite_measure μ]
-  (f : α → set ℝ) (s : set α) (smeas : measurable_set s)
-  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) = 0) :
+  (f : α → set ℝ) (s : set α)
+  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) ≤ 0) :
   ∃ (t : set (α × ℝ)), (countable t)
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
@@ -634,20 +655,17 @@ begin
     have B_closed : is_closed B :=
       is_closed_bUnion (finset.finite_to_set _) (λ i hi, is_closed_ball),
     set s' := s \ B with hs',
-    have s'meas : measurable_set s' := smeas.diff B_closed.measurable_set,
     have : ∀ x ∈ s', ∃ r ∈ f x, r ≤ 1 ∧ disjoint B (closed_ball x r),
     { assume x hx,
       have xs : x ∈ s := ((mem_diff x).1 hx).1,
       rcases eq_empty_or_nonempty B with hB|hB,
       { have : (0 : ℝ) < 1 := zero_lt_one,
-        rw ← hf'' x xs at this,
-        rcases exists_lt_of_cInf_lt (hf x xs) this with ⟨r, hr, h'r⟩,
+        rcases exists_lt_of_cInf_lt (hf x xs) ((hf'' x xs).trans_lt zero_lt_one) with ⟨r, hr, h'r⟩,
         exact ⟨r, hr, h'r.le, by simp only [hB, empty_disjoint]⟩ },
       { let R := inf_dist x B,
         have : 0 < min R 1 :=
           lt_min ((B_closed.not_mem_iff_inf_dist_pos hB).1 ((mem_diff x).1 hx).2) zero_lt_one,
-        rw ← hf'' x xs at this,
-        rcases exists_lt_of_cInf_lt (hf x xs) this with ⟨r, hr, h'r⟩,
+        rcases exists_lt_of_cInf_lt (hf x xs) ((hf'' x xs).trans_lt this) with ⟨r, hr, h'r⟩,
         refine ⟨r, hr, h'r.le.trans (min_le_right _ _), _⟩,
         rw disjoint.comm,
         exact disjoint_closed_ball_of_lt_inf_dist (h'r.trans_le (min_le_left _ _)) } },
@@ -657,7 +675,7 @@ begin
       ∧ (v : set α).pairwise_on (disjoint on λ (x : α), closed_ball x (r x)),
     { have rpos : ∀ x ∈ s', 0 < r x := λ x hx, hf' x ((mem_diff x).1 hx).1 (hr x hx).1,
       have rle : ∀ x ∈ s', r x ≤ 1 := λ x hx, (hr x hx).2.1,
-      exact exist_finset_disjoint_balls_large_measure μ hτ hN s' s'meas r rpos rle },
+      exact exist_finset_disjoint_balls_large_measure μ hτ hN s' r rpos rle },
     refine ⟨t ∪ (finset.image (λ x, (x, r x)) v), finset.subset_union_left _ _, ⟨_, _, _⟩, _⟩,
     { simp only [finset.coe_union, pairwise_on_union, ht.1, true_and, finset.coe_image],
       split,
@@ -743,18 +761,21 @@ begin
     exact (hF (u n) (Pu n)).1 }
 end
 
-/-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a measurable set `s`,
+/-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a set `s`,
 one is given a set of admissible closed balls centered at `x`, with arbitrarily small radii.
 Then there exists a disjoint covering of almost all `s` by admissible closed balls centered at some
 points of `s`.
 This version requires that the underlying measure is sigma-finite, and that the space has the
 Besicovitch covering property (which is satisfied for instance by normed real vector spaces).
+It expresses the conclusion in a slightly awkward form (with a subset of `α × ℝ`) coming from the
+proof technique.
+For a version giving the conclusion in a nicer form, see `exists_disjoint_closed_ball_covering_ae`.
 -/
-theorem exists_disjoint_closed_ball_covering
+theorem exists_disjoint_closed_ball_covering_ae_aux
   [second_countable_topology α] [has_besicovitch_covering α]
   [measurable_space α] [opens_measurable_space α] (μ : measure α) [sigma_finite μ]
-  (f : α → set ℝ) (s : set α) (smeas : measurable_set s)
-  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) = 0) :
+  (f : α → set ℝ) (s : set α)
+  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) ≤ 0) :
   ∃ (t : set (α × ℝ)), (countable t)
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
@@ -763,9 +784,71 @@ begin
   /- This is deduced from the finite measure case, by using a finite measure with respect to which
   the initial sigma-finite measure is absolutely continuous. -/
   unfreezingI { rcases exists_absolutely_continuous_is_finite_measure μ with ⟨ν, hν, hμν⟩ },
-  rcases exists_disjoint_closed_ball_covering_of_finite_measure ν f s smeas hf hf' hf''
+  rcases exists_disjoint_closed_ball_covering_ae_of_finite_measure_aux ν f s hf hf' hf''
     with ⟨t, t_count, ts, tr, tν, tdisj⟩,
   exact ⟨t, t_count, ts, tr, hμν tν, tdisj⟩,
+end
+
+/-- The measurable Besicovitch covering theorem. Assume that, for any `x` in a set `s`,
+one is given a set of admissible closed balls centered at `x`, with arbitrarily small radii.
+Then there exists a disjoint covering of almost all `s` by admissible closed balls centered at some
+points of `s`.
+This version requires that the underlying measure is sigma-finite, and that the space has the
+Besicovitch covering property (which is satisfied for instance by normed real vector spaces).
+-/
+theorem exists_disjoint_closed_ball_covering_ae
+  [second_countable_topology α] [hb : has_besicovitch_covering α]
+  [measurable_space α] [opens_measurable_space α] (μ : measure α) [sigma_finite μ]
+  (f : α → set ℝ) (s : set α)
+  (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) ≤ 0) :
+  ∃ (t : set α) (r : α → ℝ), countable t ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
+    ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
+    ∧ t.pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
+begin
+  rcases exists_disjoint_closed_ball_covering_ae_aux μ f s hf hf' hf''
+    with ⟨v, v_count, vs, vf, μv, v_disj⟩,
+  let t := prod.fst '' v,
+  have : ∀ x ∈ t, ∃ (r : ℝ), (x, r) ∈ v,
+  { assume x hx,
+    rcases (mem_image _ _ _).1 hx with ⟨⟨p, q⟩, hp, rfl⟩,
+    exact ⟨q, hp⟩ },
+  choose! r hr using this,
+  have im_t : (λ x, (x, r x)) '' t = v,
+  { have I : ∀ (p : α × ℝ), p ∈ v → 0 ≤ p.2 :=
+      λ p hp, le_of_lt (hf' _ (vs _ hp) (vf _ hp)),
+    apply subset.antisymm,
+    { simp only [image_subset_iff],
+      rintros ⟨x, p⟩ hxp,
+      simp only [mem_preimage],
+      exact hr _ (mem_image_of_mem _ hxp) },
+    { rintros ⟨x, p⟩ hxp,
+      have hxrx : (x, r x) ∈ v := hr _ (mem_image_of_mem _ hxp),
+      have : p = r x,
+      { by_contra,
+        have A : (x, p) ≠ (x, r x),
+          by simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true, ne.def] using h,
+        have H := v_disj (x, p) hxp (x, r x) hxrx A,
+        contrapose H,
+        rw not_disjoint_iff_nonempty_inter,
+        refine ⟨x, by simp [I _ hxp, I _ hxrx]⟩ },
+      rw this,
+      apply mem_image_of_mem,
+      exact mem_image_of_mem _ hxp } },
+  refine ⟨t, r, v_count.image _, _, _, _, _⟩,
+  { assume x hx,
+    rcases (mem_image _ _ _).1 hx with ⟨⟨p, q⟩, hp, rfl⟩,
+    exact vs _ hp },
+  { assume x hx,
+    rcases (mem_image _ _ _).1 hx with ⟨⟨p, q⟩, hp, rfl⟩,
+    exact vf _ (hr _ hx) },
+  { have : (⋃ (x : α) (H : x ∈ t), closed_ball x (r x)) =
+      (⋃ (p : α × ℝ) (H : p ∈ (λ x, (x, r x)) '' t), closed_ball p.1 p.2),
+        by conv_rhs { rw bUnion_image },
+    rw [this, im_t],
+    exact μv },
+  { have A : inj_on (λ x : α, (x, r x)) t,
+      by simp only [inj_on, prod.mk.inj_iff, implies_true_iff, eq_self_iff_true] {contextual := tt},
+    rwa [← im_t, A.pairwise_on_image] at v_disj }
 end
 
 end besicovitch

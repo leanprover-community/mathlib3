@@ -278,6 +278,21 @@ Some definitions in the statement are marked `@[irreducible]`, which means that 
 -/
 
 open native
+/--
+  `univ_params_grouped e` computes for each `level` `u` of `e` the parameters that occur in `u`,
+  and returns the corresponding set of lists of parameters.
+  In pseudo-mathematical form, this returns `{ { p : parameter | p ∈ u } | (u : level) ∈ e }`
+  We use `list name` instead of `name_set`, since `name_set` does not have an order.
+  It will ignore `nm₀._proof_i` declarations.
+-/
+meta def univ_params_grouped (e : expr) (nm₀  : name) : rb_set (list name) :=
+e.fold mk_rb_set $ λ e n l,
+  match e with
+  | e@(sort u) := l.insert u.params.to_list
+  | e@(const nm us) := if nm₀.is_prefix_of nm && _ then l else
+      l.union $ rb_set.of_list $ us.map $ λ u : level, u.params.to_list
+  | _ := l
+  end
 
 /--
   The good parameters are the parameters that occur somewhere in the `rb_set` as a singleton or
@@ -301,7 +316,7 @@ occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alo
 a higher universe level than `α`.
 -/
 meta def check_univs (d : declaration) : tactic (option string) := do
-  let l := d.type.univ_params_grouped.union d.value.univ_params_grouped,
+  let l := d.type.univ_params_grouped d.name,
   let bad := bad_params l,
   if bad.empty then return none else return $ some $ "universes " ++ to_string bad ++
   " only occur together."

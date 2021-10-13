@@ -127,12 +127,6 @@ quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
 quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
-lemma lift_universes (a : cardinal) : lift.{u v} a = lift.{(max v u) v} a :=
-begin
-  rw [← cardinal.mk_out a],
-  exact cardinal.eq.mpr ⟨equiv.ulift.trans equiv.ulift.symm⟩,
-end
-
 /-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
   there exists an embedding (injective function) from α to β. -/
 instance : has_le cardinal.{u} :=
@@ -243,7 +237,7 @@ instance : has_add cardinal.{u} :=
 
 @[simp] theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
-@[simp] lemma add (α : Type u) (β : Type v) :
+lemma add (α : Type u) (β : Type v) :
   #(α ⊕ β) = lift.{(max u v) u} (#α) + lift.{(max u v) v} (#β) :=
 begin
   rw [cardinal.lift_mk, cardinal.lift_mk, add_def],
@@ -256,7 +250,7 @@ instance : has_mul cardinal.{u} :=
 
 @[simp] theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
 
-@[simp] lemma mul (α : Type u) (β : Type v) :
+lemma mul (α : Type u) (β : Type v) :
   #(α × β) = lift.{(max u v) u} (#α) * lift.{(max u v) v} (#β) :=
 begin
   rw [cardinal.lift_mk, cardinal.lift_mk, mul_def],
@@ -540,8 +534,8 @@ quot.sound ⟨equiv.sigma_congr_right $ λ i,
   classical.choice $ quotient.exact $ quot.out_eq $ #(f i)⟩
 
 theorem sum_const (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a :=
-quotient.induction_on a $ λ α, by simp only [mul_def, sum_mk, mk_def]; exact
-  quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
+quotient.induction_on a $ λ α, by { simp only [mul_def, sum_mk, mk_def], exact
+  quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩ }
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $

@@ -123,7 +123,6 @@ end
 
 lemma disjoint_doset  (H K : subgroup G) (a b : G) : ¬ disjoint (doset H.1 K a  ) (doset H K b)
   →  (doset H.1 K a  ) = (doset H K b) :=
-
 begin
   intro h,
   have hb :  b ∈ (doset H.1 K a), by {apply disjoint_sub _ _ _ _ h, },
@@ -293,14 +292,3 @@ end
 
 
 end double_coset
-
-variable (H : subgroup G)
-
-namespace commensurable
-
-
-def commensurable (H K : subgroup G) : Prop :=sorry
---finite_quotient ((H ⊓ K).comap H.subtype) ∧ finite_quotient ((H ⊓ K).comap K.subtype)
-
-
-end commensurable

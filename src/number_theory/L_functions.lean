@@ -421,6 +421,8 @@ structure  distribution {R : Type*} [add_monoid R] :=
   (∀ (S T : clopen_sets X), S ⊓ T = ⊥ →
   phi(S ⊔ T) = phi S + phi T))
 
+-- A distribution is an A-linear map φ : locally_constant X A →[A] A
+-- Here X is profinite and A is a normed ring 
 structure distribution' :=
 (phi : linear_map A (locally_constant X A) A)
 

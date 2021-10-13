@@ -9,6 +9,7 @@ import ring_theory.witt_vector.compare
 import data.nat.modeq
 import topology.discrete_quotient
 import algebra.pointwise
+import data.real.basic
 
 /-!
 # Weight spaces
@@ -487,13 +488,18 @@ variables {c : ℤ}
 
 --def clopen_nat_equiv : clopen_basis' p d ≃ (ℕ → )
 
-def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a : ℤ) / (d*p^(n + 1)))
-    - c * fract ((a : ℤ) / (c * (d*p^(n + 1)))) + (c - 1)/2
+noncomputable def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a.val : ℝ) / (d*p^n))
+    - c * fract ( (zmod.inv _ (c : zmod (d * p^(2 * n))) : ℤ) * (a : ℤ) / (d * p^n)) + (c - 1)/2
 
 --instance {α : Type*} [topological_space α] : semimodule A (locally_constant α A) := sorry
 
 example (x : ℕ) : ((x : ℤ_[p]) : ℚ_[p]) = (x : ℚ_[p]) :=
 coe_coe x
+
+example (m : ℕ) : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m) :=
+begin
+  rw ←add_div, refl,
+end
 
 instance [fact (0 < d)] : compact_space (zmod d) := fintype.compact_space
 --instance : totally_bounded (set.univ ℤ_[p]) :=
@@ -515,11 +521,20 @@ begin
     rw preimage_to_zmod_pow_eq_ball at h, rw metric.mem_ball at h,
     rw has_coe_t_eq_coe at h,
     refine gt_of_gt_of_ge _ (dist_triangle x (appr y m.succ) y),
-    have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m), sorry,
+    have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m), {  rw ←add_div, refl, },
     rw f, rw dist_comm _ ↑y,
     have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m), sorry, rw f' at h,
     rw add_comm (dist _ _) _,
-    have f'' : ↑p ^ -(m.succ : ℤ) < (1 : ℝ) / (p^m), sorry,
+    have f'' : ↑p ^ -(m.succ : ℤ) < (1 : ℝ) / (p^m),
+    { rw div_eq_inv_mul, rw mul_one, rw fpow_neg, rw inv_lt_inv,
+      { simp, rw fpow_add, simp, rw ←mul_one ((p : ℝ)^m), rw mul_comm, rw mul_comm _ (p : ℝ), apply mul_lt_mul,
+          { norm_cast, apply nat.prime.one_lt, rw fact_iff at *, assumption, },
+          { rw one_mul, },
+          { norm_cast, apply pow_pos, apply nat.prime.pos, rw fact_iff at *, assumption, },
+          { norm_cast, exact zero_le p, },
+        { exact nonzero_of_invertible ↑p, }, },
+      { norm_cast, apply pow_pos, apply nat.prime.pos, rw fact_iff at *, assumption, },
+      { norm_cast, apply pow_pos, apply nat.prime.pos, rw fact_iff at *, assumption, }, },
     have := add_lt_add (gt_of_gt_of_ge f'' (ge_iff_le.2 (dist_appr_spec p y (m.succ)))) h,
     rw [subtype.dist_eq y _, subtype.dist_eq x _, padic_int.coe_coe] at this,
     exact this, },
@@ -567,7 +582,7 @@ end
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
-def bernoulli_measure (hc : gcd c p = 1) :=
+def bernoulli_measure (hc : gcd c p = 1) [has_coe ℝ R] :=
 {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
   ∀ (n : ℕ) (a : zmod (d * (p^n))), x (char_fn (zmod d × ℤ_[p]) ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
     is_clopen_prod (is_clopen_singleton (a : zmod d))
@@ -646,6 +661,7 @@ lemma sequence_limit_eq {α : Type*} (a : @eventually_constant_seq α) (m : ℕ)
 
 def equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) :=
  {b : zmod (d * p^m) | (b : zmod (d * p^n)) = a}
+-- change def to a + k*dp^m
 
 lemma mem_equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) (b : zmod (d * p^m)) :
   b ∈ equi_class p d n m h a ↔ (b : zmod (d * p^n)) = a :=
@@ -685,7 +701,13 @@ lemma factor_F (f : locally_constant (zmod d × ℤ_[p]) R) :
 
 example {α : Type*} [h : fintype α] : fintype (@set.univ α) := by refine set_fintype set.univ
 
-lemma mul_prime_pow_pos (m : ℕ) : 0 < d * p^m := sorry
+lemma mul_prime_pow_pos (m : ℕ) : 0 < d * p^m :=
+begin
+  rw fact_iff at *,
+  refine mul_pos _ _,
+  { assumption, },
+  { apply pow_pos (nat.prime.pos _), assumption, },
+end
 
 def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
   @finset.univ _ (@zmod.fintype n (fact_iff.2 h))
@@ -703,13 +725,81 @@ lemma equi_class_eq (f : locally_constant (zmod d × ℤ_[p]) R) (x : zmod (d * 
   (hy : y ∈ ((λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x)) :
   f y = f x := sorry
 
-lemma E_c_sum_equi_class (x : zmod (d * p^m)) (hc : gcd c p = 1) :
-∑ (x : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x,
-  ((E_c p d hc m.succ x) : R) = (E_c p d hc m x) :=
+lemma fract_eq_self {a : ℝ} (h : 0 ≤ a) (ha : a < 1) : fract a = a :=
 begin
-  rw E_c, simp, rw finset.sum_add_distrib, rw finset.sum_const,
-  sorry
+  have : floor a = 0, sorry,
+   rw fract_eq_iff,
+   refine ⟨h, ha, ⟨0, _⟩⟩, simp,
 end
+
+example (x : zmod 1) : x = 0 :=
+fin.eq_zero x
+
+--example (m n : ℕ) (x : zmod (p^m)) (y : zmod (p^n)) (h : (y : zmod (p^m)) = x) :
+
+--example (m : ℕ) (x : zmod m) : zmod (m^2) := begin hint, end
+
+--example (a n : ℕ) :
+
+lemma equi_class_some (n : ℕ) (x : zmod (d * p^n)) (y : equi_class p d n n.succ (lt_add_one n) x) :
+  ∃ k : ℕ, k < p ∧ (y : zmod (d * p^n.succ)).val = x.val + k * d * p^n :=
+begin
+  have := (mem_equi_class p d n n.succ (lt_add_one n) x y).1 (y.prop),
+  conv { congr, funext, conv { congr, skip, to_rhs, rw ←((mem_equi_class p d n n.succ (lt_add_one n) x y).1 (y.prop)), }, },
+  rw ←@zmod.nat_cast_comp_val _ _ _ _,
+  show ∃ (k : ℕ), k < p ∧ (y : zmod (d * p^n.succ)).val = ((y : zmod (d * p^n.succ)).val : zmod (d * p^n)).val + k * d * p ^ n,
+  rw zmod.val_nat_cast,
+  use (y : zmod (d * p^n.succ)).val / (d * p^n), split,
+  { apply nat.div_lt_of_lt_mul, rw nat.mul_assoc,
+    rw ←pow_succ',
+    apply @zmod.val_lt _ (fact_iff.2 _) (y : zmod (d * p^n.succ)),
+    apply mul_pos, rw fact_iff at *, assumption,
+    apply pow_pos, apply nat.prime.pos, rw fact_iff at *, assumption, },
+  { rw mul_assoc,
+    rw nat.mod_add_div' (y : zmod (d * p^n.succ)).val (d * p^n), },
+  { rw fact_iff at *,
+    apply mul_pos, rw fact_iff at *, assumption,
+    apply pow_pos, apply nat.prime.pos, assumption, },
+end
+
+lemma coe_addd (m : ℕ) (b c : zmod (d * p^m.succ)) : (b + c : zmod (d * p^m)) = (b : zmod (d * p^m)) + (c : zmod (d * p^m)) :=
+begin
+  simp only [eq_self_iff_true],
+end
+
+lemma equi_iso_fin (m : ℕ) (a : zmod (d * p^m)) : equi_class p d m m.succ (lt_add_one m) a ≃ fin p :=
+begin
+  constructor,
+  swap 3,
+  { rintros y,
+--    have k := classical.some (equi_class_some p d m a y _),
+--    have hk := classical.some_spec (equi_class_some p m a y _),
+--    cases hk with hk h,
+    refine ⟨classical.some (equi_class_some p d m a y), (classical.some_spec (equi_class_some p d m a y)).1⟩, },
+  swap 3,
+  { rintros k, refine ⟨a.val + k * d * p^m, _⟩, rw mem_equi_class,
+    rw coe_addd p d m _ _,
+    rw @zmod.cast_add _ (zmod (d * p^m)) (d * p^m),
+--     show ↑((a.val) : zmod (d * p^(m.succ))) + ↑((k: zmod (d * p^(m.succ))) * ↑d * ↑p ^ m) = a,
+     sorry, },
+sorry
+end
+
+lemma E_c_sum_equi_class [has_coe ℝ R] (x : zmod (d * p^m)) (hc : gcd c p = 1) :
+∑ (y : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x,
+  ((E_c p d hc m.succ y) : R) = (E_c p d hc m x) :=
+begin
+  rw E_c, simp,
+  have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x.val : ℝ) / (d * p^n) ∧ (x.val : ℝ) / (d * p^n) < 1,
+  { rintros n x, split, sorry, sorry, },
+  conv_lhs { congr, skip, funext, rw [fract_eq_self ((this m.succ x).1) ((this m.succ x).2)], },
+  rw [fract_eq_self ((this m x).1) ((this m x).2)],
+
+  --conv_lhs { congr, skip, funext, rw fract_eq_self, skip,
+  --{ apply_congr (this _ _).1, }, },
+  sorry,
+end
+-- why does has_div exist for ℤ and ℕ!?
 #exit
 
 lemma inter_nonempty_of_not_disjoint {α : Type*} {s t : set α} (h : ¬disjoint s t) :
@@ -784,6 +874,11 @@ example (a b : R) (h : a + b = a) : b = 0 := add_right_eq_self.mp (congr_fun (co
 --example (U : clopen_sets (zmod d × ℤ_[p])) (hU : U ∈ clopen_basis' p d) : clopen_basis' p d := ⟨U, hU⟩
 
 instance : semilattice_sup ℕ := infer_instance
+
+example (m : ℕ) : m = 1 :=
+begin
+
+end
 
 -- set_option pp.proofs true
 

@@ -113,8 +113,6 @@ begin
   simp [subgroup.mem_subgroup_of, hab],
 end
 
-
-
 lemma subgroup_of_index_zero_index_zero (H K L : subgroup G) :
   (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)).index = 0  →
   (H.subgroup_of (K ⊓ L)).index = 0 :=
@@ -286,7 +284,7 @@ noncomputable def conj_map_inv (H K : subgroup G) (g : G) :
   quotient_group.quotient (  (conj_subgroup g H).subgroup_of (conj_subgroup g K)) →
   quotient_group.quotient (H.subgroup_of K) :=
   λ x , quotient_group.mk (⟨(mul_aut.conj g)⁻¹ x.out',
-  by {simp,
+  by {simp only [mul_aut.conj_inv_apply],
     rw conj_mem'' _ _ _,
     exact set_like.coe_mem (quotient.out' x),} ⟩ :  K)
 

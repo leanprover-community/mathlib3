@@ -22,7 +22,7 @@ In this file we provide lemmas about `ordered_smul` that hold once a module stru
 
 ## TODO
 
-`lower_bounds_smul_of_neg` and similar aren't proved as seamlessly a their positive counterparts.
+`lower_bounds_smul_of_neg` and similar aren't proved as seamlessly as their positive counterparts.
 Maybe that shows the lemmas aren't general enough?
 
 ## Tags

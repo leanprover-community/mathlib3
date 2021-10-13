@@ -127,6 +127,12 @@ quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
 quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
+lemma lift_universes (a : cardinal) : lift.{u v} a = lift.{(max v u) v} a :=
+begin
+  rw [← cardinal.mk_out a],
+  exact cardinal.eq.mpr ⟨equiv.ulift.trans equiv.ulift.symm⟩,
+end
+
 /-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
   there exists an embedding (injective function) from α to β. -/
 instance : has_le cardinal.{u} :=
@@ -237,11 +243,25 @@ instance : has_add cardinal.{u} :=
 
 @[simp] theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
+@[simp] lemma add (α : Type u) (β : Type v) :
+  #(α ⊕ β) = lift.{(max u v) u} (#α) + lift.{(max u v) v} (#β) :=
+begin
+  rw [cardinal.lift_mk, cardinal.lift_mk, add_def],
+  exact cardinal.eq.2 ⟨equiv.sum_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
+end
+
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, #(α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.prod_congr e₁ e₂⟩⟩
 
 @[simp] theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
+
+@[simp] lemma mul (α : Type u) (β : Type v) :
+  #(α × β) = lift.{(max u v) u} (#α) * lift.{(max u v) v} (#β) :=
+begin
+  rw [cardinal.lift_mk, cardinal.lift_mk, mul_def],
+  exact cardinal.eq.2 ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
+end
 
 private theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.sum_comm α β⟩

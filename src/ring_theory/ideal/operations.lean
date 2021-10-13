@@ -1241,7 +1241,7 @@ show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
 
 variable {f}
 
-/-- The first isomorphism theorem for commutative rings, computable version. -/
+/-- The **first isomorphism theorem** for commutative rings, computable version. -/
 def quotient_ker_equiv_of_right_inverse
   {g : S → R} (hf : function.right_inverse g f) :
   f.ker.quotient ≃+* S :=
@@ -1263,7 +1263,7 @@ lemma quotient_ker_equiv_of_right_inverse.apply {g : S → R} (hf : function.rig
 lemma quotient_ker_equiv_of_right_inverse.symm.apply {g : S → R} (hf : function.right_inverse g f)
   (x : S) : (quotient_ker_equiv_of_right_inverse hf).symm x = ideal.quotient.mk f.ker (g x) := rfl
 
-/-- The first isomorphism theorem for commutative rings. -/
+/-- The **first isomorphism theorem** for commutative rings. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : function.surjective f) :
   f.ker.quotient ≃+* S :=
 quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
@@ -1474,7 +1474,7 @@ lemma ker_lift_alg_to_ring_hom (f : A →ₐ[R] B) :
 lemma ker_lift_alg_injective (f : A →ₐ[R] B) : function.injective (ker_lift_alg f) :=
 ring_hom.ker_lift_injective f
 
-/-- The first isomorphism theorem for agebras, computable version. -/
+/-- The **first isomorphism** theorem for algebras, computable version. -/
 def quotient_ker_alg_equiv_of_right_inverse
   {f : A →ₐ[R] B} {g : B → A} (hf : function.right_inverse g f) :
   f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
@@ -1492,7 +1492,7 @@ lemma quotient_ker_alg_equiv_of_right_inverse_symm.apply {f : A →ₐ[R] B} {g 
   (quotient_ker_alg_equiv_of_right_inverse hf).symm x = quotient.mkₐ R f.to_ring_hom.ker (g x) :=
   rfl
 
-/-- The first isomorphism theorem for algebras. -/
+/-- The **first isomorphism theorem** for algebras. -/
 noncomputable def quotient_ker_alg_equiv_of_surjective
   {f : A →ₐ[R] B} (hf : function.surjective f) : f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
 quotient_ker_alg_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)

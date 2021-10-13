@@ -25,6 +25,7 @@ universes v u
 namespace category_theory
 
 /-- Category of categories. -/
+@[nolint check_univs] -- false positive
 def Cat := bundled category.{v u}
 
 namespace Cat

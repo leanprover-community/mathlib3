@@ -26,6 +26,7 @@ universes v u
 namespace category_theory
 
 /-- Category of groupoids -/
+@[nolint check_univs] -- false positive
 def Groupoid := bundled groupoid.{v u}
 
 namespace Groupoid

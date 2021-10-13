@@ -285,11 +285,11 @@ open native
   We use `list name` instead of `name_set`, since `name_set` does not have an order.
   It will ignore `nm₀._proof_i` declarations.
 -/
-meta def univ_params_grouped (e : expr) (nm₀  : name) : rb_set (list name) :=
+meta def expr.univ_params_grouped (e : expr) (nm₀  : name) : rb_set (list name) :=
 e.fold mk_rb_set $ λ e n l,
   match e with
   | e@(sort u) := l.insert u.params.to_list
-  | e@(const nm us) := if nm₀.is_prefix_of nm && _ then l else
+  | e@(const nm us) := if nm.get_prefix = nm₀ ∧ nm.last.starts_with "_proof_" then l else
       l.union $ rb_set.of_list $ us.map $ λ u : level, u.params.to_list
   | _ := l
   end
@@ -307,7 +307,7 @@ l.fold [] list.union
 else bad_params $ rb_set.of_list $ l.to_list.map $ λ us, us.filter $ λ nm, !good_levels.contains nm
 
 /--
-Checks whether all universe levels `u` in `d` are "good".
+Checks whether all universe levels `u` in the type of `d` are "good".
 This means that `u` either occurs in a `level` of `d` by itself, or (recursively)
 with only other good levels.
 When this fails, usually this means that there is a level `max u v`, where neither `u` nor `v`
@@ -316,7 +316,7 @@ occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alo
 a higher universe level than `α`.
 -/
 meta def check_univs (d : declaration) : tactic (option string) := do
-  let l := d.type.univ_params_grouped d.name,
+  let l := d.type.univ_params_grouped d.to_name,
   let bad := bad_params l,
   if bad.empty then return none else
     return $ some $ "universes " ++ to_string bad ++ " only occur together."
@@ -325,17 +325,18 @@ meta def check_univs (d : declaration) : tactic (option string) := do
 @[linter]
 meta def linter.check_univs : linter :=
 { test := check_univs,
-  auto_decls := tt,
+  auto_decls := ff,
   no_errors_found :=
     "All declarations have good universe levels.",
   errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. " ++
-"This usually means that there is a `max u v` in the declaration where neither `u` nor `v` " ++
+"This usually means that there is a `max u v` in the type where neither `u` nor `v` " ++
 "occur by themselves. Solution: Find the type (or type bundled with data) that has this " ++
 "universe argument and provide the universe level explicitly. If this happens in an implicit " ++
 "argument of the declaration, a better solution is to move this argument to a `variables` " ++
-"command (where the universe level can be kept implicit).
-Note: if the linter flags an automatically generated declaration `xyz._proof_i`, it means that
-the universe problem is with `xyz` itself (even if the linter doesn't flag `xyz`)",
+"command (then it's not necessary to provide the universe level).
+It is possible that this linter gives a false positive on definitions where the value of the " ++
+"definition has the universes occur separately, and the definition will usually be used with " ++
+"explicit universe arguments. In this case, feel free to add `@[nolint check_univs]`.",
   is_fast := tt }
 
 /-!

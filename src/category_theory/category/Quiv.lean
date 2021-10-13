@@ -18,6 +18,7 @@ universes v u
 namespace category_theory
 
 /-- Category of quivers. -/
+@[nolint check_univs] -- false positive
 def Quiv := bundled quiver.{(v+1) u}
 
 namespace Quiv

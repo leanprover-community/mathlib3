@@ -1187,7 +1187,7 @@ variables (f : P₁ →ᵃ[k] P₂)
 
 @[simp] lemma affine_map.vector_span_image_eq_submodule_map {s : set P₁} :
   submodule.map f.linear (vector_span k s) = vector_span k (f '' s) :=
-by simp [vector_span_def]
+by simp [f.image_vsub_image, vector_span_def]
 
 namespace affine_subspace
 

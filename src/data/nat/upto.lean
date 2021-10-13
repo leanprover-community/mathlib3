@@ -48,7 +48,7 @@ protected lemma wf : (∃ x, p x) → well_founded (upto.gt p)
   { rw this, apply measure_wf },
   ext ⟨a, ha⟩ ⟨b, _⟩,
   dsimp [measure, inv_image, upto.gt],
-  rw nat.sub_lt_sub_left_iff,
+  rw sub_lt_sub_iff_left_of_le,
   exact le_of_not_lt (λ h', ha _ h' h),
 end
 

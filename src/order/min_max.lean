@@ -3,7 +3,6 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order.basic
 import order.lattice
 
 /-!
@@ -22,7 +21,7 @@ variables {α : Type u} {β : Type v}
 attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
 section
-variables [linear_order α] [linear_order β] {f : α → β} {a b c d : α}
+variables [linear_order α] [linear_order β] {f : α → β} {s : set α} {a b c d : α}
 
 -- translate from lattices to linear orders (sup → max, inf → min)
 @[simp] lemma le_min_iff : c ≤ min a b ↔ c ≤ a ∧ c ≤ b := le_inf_iff
@@ -47,6 +46,24 @@ lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_lef
 @[simp] lemma min_eq_right_iff : min a b = b ↔ b ≤ a := inf_eq_right
 @[simp] lemma max_eq_left_iff : max a b = a ↔ b ≤ a := sup_eq_left
 @[simp] lemma max_eq_right_iff : max a b = b ↔ a ≤ b := sup_eq_right
+
+/-- For elements `a` and `b` of a linear order, either `min a b = a` and `a ≤ b`,
+    or `min a b = b` and `b < a`.
+    Use cases on this lemma to automate linarith in inequalities -/
+lemma min_cases (a b : α) : min a b = a ∧ a ≤ b ∨ min a b = b ∧ b < a :=
+begin
+  by_cases a ≤ b,
+  { left,
+    exact ⟨min_eq_left h, h⟩ },
+  { right,
+    exact ⟨min_eq_right (le_of_lt (not_le.mp h)), (not_le.mp h)⟩ }
+end
+
+/-- For elements `a` and `b` of a linear order, either `max a b = a` and `b ≤ a`,
+    or `max a b = b` and `a < b`.
+    Use cases on this lemma to automate linarith in inequalities -/
+lemma max_cases (a b : α) : max a b = a ∧ b ≤ a ∨ max a b = b ∧ a < b :=
+@min_cases (order_dual α) _ a b
 
 lemma min_eq_iff : min a b = c ↔ a = c ∧ a ≤ b ∨ b = c ∧ b ≤ a :=
 begin
@@ -100,6 +117,22 @@ left_comm max max_comm max_assoc a b c
 theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
 right_comm max max_comm max_assoc a b c
 
+lemma monotone_on.map_max (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (max a b) = max (f a) (f b) :=
+by cases le_total a b; simp only [max_eq_right, max_eq_left, hf ha hb, hf hb ha, h]
+
+lemma monotone_on.map_min (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (min a b) = min (f a) (f b) :=
+hf.dual.map_max ha hb
+
+lemma antitone_on.map_max (hf : antitone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (max a b) = min (f a) (f b) :=
+hf.dual_right.map_max ha hb
+
+lemma antitone_on.map_min (hf : antitone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
+  f (min a b) = max (f a) (f b) :=
+hf.dual.map_max ha hb
+
 lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
@@ -111,6 +144,19 @@ by cases le_total a b; simp [h, hf h]
 
 lemma antitone.map_min (hf : antitone f) : f (min a b) = max (f a) (f b) :=
 hf.dual.map_max
+
+lemma min_rec {p : α → Prop} {x y : α} (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
+(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
+  (λ h, (min_eq_right h).symm.subst (hy h))
+
+lemma max_rec {p : α → Prop} {x y : α} (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) :=
+@min_rec (order_dual α) _ _ _ _ hx hy
+
+lemma min_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (min x y) :=
+min_rec (λ _, hx) (λ _, hy)
+
+lemma max_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (max x y) :=
+max_rec (λ _, hx) (λ _, hy)
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
 by cases le_total a b; simp *

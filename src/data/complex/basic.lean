@@ -228,8 +228,6 @@ lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
 
-@[simp] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
-
 /-! ### Norm squared -/
 
 /-- The norm squared function. -/

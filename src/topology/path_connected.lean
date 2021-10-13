@@ -446,7 +446,6 @@ end
 Given a path `γ` and a function `f : I → I` where `f 0 = 0` and `f 1 = 1`, `γ.reparam f` is the
 path defined by `γ ∘ f`.
 -/
-@[simps]
 def reparam (γ : path x y) (f : I → I) (hfcont : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
   path x y :=
 { to_fun := γ ∘ f,

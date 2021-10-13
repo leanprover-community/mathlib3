@@ -220,7 +220,7 @@ section
 open limits
 open opposite
 open presieve
-variables {C D : Type u} [category.{u} C] [category.{u} D] {G : C ⥤ D} [faithful G]
+variables {C D : Type u} [category.{u} C] [category.{u} D] {G : C ⥤ D}
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 variables {A : Type v} [category.{u} A]
 variables (H : cover_dense J K G) (H' : cover_preserving J K G)
@@ -247,6 +247,8 @@ def pushforward_family {X}
   (x : ℱ.val.obj (op X)) : family_of_elements ℱ'.val (H.obj' X) := λ Y f hf,
   ℱ'.val.map (H.obj_fac' _ hf).lift.op $ α.app (op (H.obj_fac' X hf).obj) $
     ℱ.val.map (H.obj_fac' _ hf).map.op x
+
+variable [faithful G]
 
 lemma pushforward_family_compatible {X} (x : ℱ.val.obj (op X)) :
   (pushforward_family H H' α x).compatible :=
@@ -355,6 +357,8 @@ begin
 end
 end types
 open types
+
+variable [faithful G]
 
 @[simp, reassoc]
 lemma app_hom_is_valid_glue (ℱ ℱ' : Sheaf K A) (eq : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) (X) {Y U}
@@ -472,4 +476,3 @@ end
 end subsite_comparison
 end
 end category_theory
-#lint

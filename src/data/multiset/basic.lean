@@ -1514,7 +1514,7 @@ show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
 by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
 
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
-(nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel_of_le h]).symm
+(sub_eq_of_eq_add_rev $ by rw [add_comm, ← card_add, sub_add_cancel_of_le h]).symm
 
 /-! ### Union -/
 

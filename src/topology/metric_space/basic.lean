@@ -606,8 +606,8 @@ theorem totally_bounded_iff {s : set α} :
                ⟨t, ft, h⟩ := H ε ε0 in
   ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
 
-/-- A pseudometric space space is totally bounded if one can reconstruct up to any ε>0 any element
-of the space from finitely many data. -/
+/-- A pseudometric space is totally bounded if one can reconstruct up to any ε>0 any element of the
+space from finitely many data. -/
 lemma totally_bounded_of_finite_discretization {s : set α}
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) (_ : fintype β) (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
@@ -934,7 +934,7 @@ m.replace_uniformity $ by { rw [uniformity_pseudoedist, metric.uniformity_edist]
 /-- One gets a pseudometric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
 uniformity are defeq in the pseudometric space and the emetric space. -/
-def pseudo_emetric_space.to_pseudo_metric_space {α : Type u} [e : emetric_space α]
+def pseudo_emetric_space.to_pseudo_metric_space {α : Type u} [e : pseudo_emetric_space α]
   (h : ∀x y: α, edist x y ≠ ⊤) : pseudo_metric_space α :=
 pseudo_emetric_space.to_pseudo_metric_space_of_dist
   (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
@@ -1638,7 +1638,7 @@ lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
   (λ ⟨x, hx⟩, H x hx)⟩
 
 /-- Subsets of a bounded set are also bounded -/
-lemma bounded.subset (incl : s ⊆ t) : bounded t → bounded s :=
+lemma bounded.mono (incl : s ⊆ t) : bounded t → bounded s :=
 Exists.imp $ λ C hC x y hx hy, hC x y (incl hx) (incl hy)
 
 /-- Closed balls are bounded -/
@@ -1651,7 +1651,7 @@ end⟩
 
 /-- Open balls are bounded -/
 lemma bounded_ball : bounded (ball x r) :=
-bounded_closed_ball.subset ball_subset_closed_ball
+bounded_closed_ball.mono ball_subset_closed_ball
 
 /-- Given a point, a bounded subset is included in some ball around this point -/
 lemma bounded_iff_subset_ball (c : α) : bounded s ↔ ∃r, s ⊆ closed_ball c r :=
@@ -1663,7 +1663,7 @@ begin
       exact ⟨C + dist x c, λ y hy, calc
         dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
             ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _⟩ } },
-  { exact bounded_closed_ball.subset hC }
+  { exact bounded_closed_ball.mono hC }
 end
 
 lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r :=
@@ -1676,12 +1676,12 @@ let ⟨C, h⟩ := h in
 alias bounded_closure_of_bounded ← metric.bounded.closure
 
 @[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
-⟨λ h, h.subset subset_closure, λ h, h.closure⟩
+⟨λ h, h.mono subset_closure, λ h, h.closure⟩
 
 /-- The union of two bounded sets is bounded iff each of the sets is bounded -/
 @[simp] lemma bounded_union :
   bounded (s ∪ t) ↔ bounded s ∧ bounded t :=
-⟨λh, ⟨h.subset (by simp), h.subset (by simp)⟩,
+⟨λh, ⟨h.mono (by simp), h.mono (by simp)⟩,
 begin
   rintro ⟨hs, ht⟩,
   refine bounded_iff_mem_bounded.2 (λ x _, _),
@@ -1703,7 +1703,7 @@ lemma _root_.totally_bounded.bounded {s : set α} (h : totally_bounded s) : boun
 -- We cover the totally bounded set by finitely many balls of radius 1,
 -- and then argue that a finite union of bounded sets is bounded
 let ⟨t, fint, subs⟩ := (totally_bounded_iff.mp h) 1 zero_lt_one in
-bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
+bounded.mono subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
 
 /-- A compact set is bounded -/
 lemma _root_.is_compact.bounded {s : set α} (h : is_compact s) : bounded s :=
@@ -1728,7 +1728,7 @@ exists_congr $ λ C, ⟨
 
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
-compact_univ.bounded.subset (subset_univ _)
+compact_univ.bounded.mono (subset_univ _)
 
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=
@@ -1769,7 +1769,7 @@ lemma bounded_Ioo (a b : α) : bounded (Ioo a b) :=
 lemma bounded_of_bdd_above_of_bdd_below {s : set α} (h₁ : bdd_above s) (h₂ : bdd_below s) :
   bounded s :=
 let ⟨u, hu⟩ := h₁, ⟨l, hl⟩ := h₂ in
-bounded.subset (λ x hx, mem_Icc.mpr ⟨hl hx, hu hx⟩) (bounded_Icc l u)
+bounded.mono (λ x hx, mem_Icc.mpr ⟨hl hx, hu hx⟩) (bounded_Icc l u)
 
 end conditionally_complete_linear_order
 
@@ -1864,7 +1864,7 @@ by rw [diam, ediam_of_unbounded h, ennreal.top_to_real]
 lemma diam_mono {s t : set α} (h : s ⊆ t) (ht : bounded t) : diam s ≤ diam t :=
 begin
   unfold diam,
-  rw ennreal.to_real_le_to_real (bounded.subset h ht).ediam_ne_top ht.ediam_ne_top,
+  rw ennreal.to_real_le_to_real (bounded.mono h ht).ediam_ne_top ht.ediam_ne_top,
   exact emetric.diam_mono h
 end
 
@@ -1875,8 +1875,8 @@ lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) :
   diam (s ∪ t) ≤ diam s + dist x y + diam t :=
 begin
   by_cases H : bounded (s ∪ t),
-  { have hs : bounded s, from H.subset (subset_union_left _ _),
-    have ht : bounded t, from H.subset (subset_union_right _ _),
+  { have hs : bounded s, from H.mono (subset_union_left _ _),
+    have ht : bounded t, from H.mono (subset_union_right _ _),
     rw [bounded_iff_ediam_ne_top] at H hs ht,
     rw [dist_edist, diam, diam, diam, ← ennreal.to_real_add, ← ennreal.to_real_add,
       ennreal.to_real_le_to_real];
@@ -2163,8 +2163,8 @@ namespace metric
 section second_countable
 open topological_space
 
-/-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
-the space from countably many data. -/
+/-- A metric space is second countable if one can reconstruct up to any `ε>0` any element of the
+space from countably many data. -/
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
   (H : ∀ε > (0 : ℝ), ∃ (β : Type*) (_ : encodable β) (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=

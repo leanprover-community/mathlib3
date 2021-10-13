@@ -43,6 +43,40 @@ lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
   aeval x (p %ₘ q) = aeval x p :=
 eval₂_mod_by_monic_eq_self_of_root hq hx
 
+lemma mod_by_monic_eq_of_dvd_sub [nontrivial R] (hq : q.monic) {p₁ p₂ : polynomial R}
+  (h : q ∣ (p₁ - p₂)) :
+  p₁ %ₘ q = p₂ %ₘ q :=
+begin
+  obtain ⟨f, sub_eq⟩ := h,
+  refine (div_mod_by_monic_unique (p₂ /ₘ q + f) _ hq
+    ⟨_, degree_mod_by_monic_lt _ hq⟩).2,
+  rw [sub_eq_iff_eq_add.mp sub_eq, mul_add, ← add_assoc, mod_by_monic_add_div _ hq, add_comm]
+end
+
+lemma add_mod_by_monic [nontrivial R] (hq : q.monic)
+  (p₁ p₂ : polynomial R) : (p₁ + p₂) %ₘ q = p₁ %ₘ q + p₂ %ₘ q :=
+(div_mod_by_monic_unique (p₁ /ₘ q + p₂ /ₘ q) _ hq
+  ⟨by rw [mul_add, add_left_comm, add_assoc, mod_by_monic_add_div _ hq, ← add_assoc,
+          add_comm (q * _), mod_by_monic_add_div _ hq],
+    (degree_add_le _ _).trans_lt (max_lt (degree_mod_by_monic_lt _ hq)
+      (degree_mod_by_monic_lt _ hq))⟩).2
+
+lemma smul_mod_by_monic [nontrivial R] (hq : q.monic)
+  (c : R) (p : polynomial R) : (c • p) %ₘ q = c • (p %ₘ q) :=
+(div_mod_by_monic_unique (c • (p /ₘ q)) (c • (p %ₘ q)) hq
+  ⟨by rw [mul_smul_comm, ← smul_add, mod_by_monic_add_div p hq],
+   (degree_smul_le _ _).trans_lt (degree_mod_by_monic_lt _ hq)⟩).2
+
+/--
+`polynomial.mod_by_monic_hom (hq : monic (q : polynomial R))` is `_ %ₘ q` as a `R`-linear map.
+-/
+@[simps]
+def mod_by_monic_hom [nontrivial R] (hq : q.monic) :
+  polynomial R →ₗ[R] polynomial R :=
+{ to_fun := λ p, p %ₘ q,
+  map_add' := add_mod_by_monic hq,
+  map_smul' := smul_mod_by_monic hq }
+
 end comm_ring
 
 section no_zero_divisors
@@ -101,7 +135,7 @@ instance : integral_domain (polynomial R) :=
 lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
   (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
 begin
-  simp only [←nat.sub_eq_of_eq_add (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
+  simp only [←sub_eq_of_eq_add_rev (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
   rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
     (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, ←nat.sub_sub, nat.add_comm,
     nat.add_sub_assoc (nat.sub_le _ _), add_comm, nat.add_sub_assoc (nat.sub_le _ _)],

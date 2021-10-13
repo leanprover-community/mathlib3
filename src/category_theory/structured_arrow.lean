@@ -133,16 +133,7 @@ comma.pre_right _ F G
   structured_arrow S F ⥤ structured_arrow (G.obj S) (F ⋙ G) :=
 { obj := λ X, { right := X.right, hom := G.map X.hom },
   map := λ X Y f, { right := f.right, w' :=
-    by { simp[functor.comp_map, ←G.map_comp, ← f.w] } } }
-
-@[simp] lemma pre_pre (S : D) (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) :
-  pre S F (G ⋙ H) ⋙ pre S G H = pre S (F ⋙ G) H := rfl
-
-@[simp] lemma pre_post (S : C) (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) :
-  pre S F G ⋙ post S G H = post S (F ⋙ G) H ⋙ pre (H.obj S) F (G ⋙ H) := rfl
-
-@[simp] lemma post_post (S : B) (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) :
-  post S F G ⋙ post (G.obj S) (F ⋙ G) H = post S F (G ⋙ H) := rfl
+    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
 
 end structured_arrow
 
@@ -251,17 +242,7 @@ comma.pre_left F G _
   costructured_arrow F S ⥤ costructured_arrow (F ⋙ G) (G.obj S) :=
 { obj := λ X, { left := X.left, hom := G.map X.hom },
   map := λ X Y f, { left := f.left, w' :=
-    by { simp[functor.comp_map, ←G.map_comp, ← f.w] } } }
-
-@[simp] lemma pre_pre (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (S : D) :
-  pre F (G ⋙ H) S ⋙ pre G H S = pre (F ⋙ G) H S := rfl
-
-@[simp] lemma pre_post (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (S : C) :
-  pre F G S ⋙ post G H S = post (F ⋙ G) H S ⋙ pre F (G ⋙ H) (H.obj S) := rfl
-
-@[simp] lemma post_post (S : B) (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) :
-  post F G S ⋙ post (F ⋙ G) H (G.obj S) = post F (G ⋙ H) S := rfl
-
+    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
 
 end costructured_arrow
 

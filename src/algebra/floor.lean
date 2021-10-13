@@ -55,7 +55,7 @@ class floor_ring (α) [linear_ordered_ring α] :=
 
 instance : floor_ring ℤ := { floor := id, le_floor := λ _ _, by rw int.cast_id; refl }
 
-variables [linear_ordered_ring α] [floor_ring α]
+variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 
 /-- `floor x` is the greatest integer `z` such that `z ≤ x`. It is denoted with `⌊x⌋`. -/
 def floor : α → ℤ := floor_ring.floor
@@ -93,6 +93,10 @@ by rw [← int.cast_one, floor_coe]
 
 @[mono] theorem floor_mono {a b : α} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ :=
 le_floor.2 (le_trans (floor_le _) h)
+
+lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a :=
+⟨λ h, le_trans (by rwa [←int.cast_one, int.cast_le, ←zero_add (1 : ℤ), int.add_one_le_iff])
+  (floor_le _), λ h, zero_lt_one.trans_le (le_floor.2 $ by rwa int.cast_one)⟩
 
 @[simp] theorem floor_add_int (x : α) (z : ℤ) : ⌊x + z⌋ = ⌊x⌋ + z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,
@@ -273,7 +277,7 @@ by { rw floor_lt, exact h.trans_le (le_ceil _) }
 /-! ### `nat_floor` and `nat_ceil` -/
 
 section nat
-variables {a : α} {n : ℕ}
+variables {n : ℕ}
 
 /-- `nat_floor x` is the greatest natural `n` that is less than `x`.
 It is equal to `⌊x⌋` when `x ≥ 0`, and is `0` otherwise. It is denoted with `⌊x⌋₊`.-/
@@ -285,12 +289,6 @@ lemma nat_floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
 begin
   apply int.to_nat_of_nonpos,
   exact_mod_cast (floor_le a).trans ha,
-end
-
-lemma pos_of_nat_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
-begin
-  refine (le_or_lt a 0).resolve_left (λ ha, lt_irrefl 0 _),
-  rwa nat_floor_of_nonpos ha at h,
 end
 
 lemma nat_floor_le (ha : 0 ≤ a) : ↑⌊a⌋₊ ≤ a :=
@@ -309,6 +307,21 @@ end
 
 theorem le_nat_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ ↑n ≤ a :=
 ⟨λ h, (nat.cast_le.2 h).trans (nat_floor_le ha), le_nat_floor_of_le⟩
+
+lemma nat_floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=
+begin
+  cases le_total a 0,
+  { rw nat_floor_of_nonpos h,
+    exact iff_of_false (lt_irrefl 0) (λ ha, zero_lt_one.not_le $ ha.trans h) },
+  { rw [←nat.cast_one, ←le_nat_floor_iff h],
+    refl }
+end
+
+lemma pos_of_nat_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
+begin
+  refine (le_or_lt a 0).resolve_left (λ ha, lt_irrefl 0 _),
+  rwa nat_floor_of_nonpos ha at h,
+end
 
 lemma lt_of_lt_nat_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le (nat_floor_le (pos_of_nat_floor_pos ((nat.zero_le n).trans_lt h)).le)
@@ -345,6 +358,9 @@ begin
   norm_cast,
   exact int.le_to_nat _,
 end
+
+lemma sub_one_lt_nat_floor (a : α) : a - 1 < ⌊a⌋₊ :=
+sub_lt_iff_lt_add.2 (lt_nat_floor_add_one a)
 
 lemma nat_floor_eq_zero_iff : ⌊a⌋₊ = 0 ↔ a < 1 :=
 begin

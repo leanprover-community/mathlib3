@@ -93,7 +93,7 @@ lemma choose_mul_factorial_mul_factorial : ∀ {n k}, k ≤ n → choose n k * k
 | (n + 1) (succ k) hk :=
 begin
   cases lt_or_eq_of_le hk with hk₁ hk₁,
-  { have h : choose n k * k.succ! * (n-k)! = k.succ * n! :=
+  { have h : choose n k * k.succ! * (n-k)! = (k + 1) * n! :=
       by rw ← choose_mul_factorial_mul_factorial (le_of_succ_le_succ hk);
       simp [factorial_succ, mul_comm, mul_left_comm],
     have h₁ : (n - k)! = (n - k) * (n - k.succ)! :=
@@ -102,7 +102,7 @@ begin
       by rw ← choose_mul_factorial_mul_factorial (le_of_lt_succ hk₁);
       simp [factorial_succ, mul_comm, mul_left_comm, mul_assoc],
     have h₃ : k * n! ≤ n * n! := nat.mul_le_mul_right _ (le_of_succ_le_succ hk),
-  rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, ← add_one, add_mul,
+    rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, add_mul,
       nat.mul_sub_right_distrib, factorial_succ, ← nat.add_sub_assoc h₃, add_assoc, ← add_mul,
       nat.add_sub_cancel_left, add_comm] },
   { simp [hk₁, mul_comm, choose, nat.sub_self] }
@@ -171,7 +171,7 @@ lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
     rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
-  rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, add_sub_add_right_eq_sub']
+  rw [← sub_eq_of_eq_add_rev e, mul_comm, ← nat.mul_sub_left_distrib, add_sub_add_right_eq_sub']
 end
 
 @[simp] lemma choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1

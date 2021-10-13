@@ -540,7 +540,7 @@ quot.sound ⟨equiv.sigma_congr_right $ λ i,
   classical.choice $ quotient.exact $ quot.out_eq $ #(f i)⟩
 
 theorem sum_const (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a :=
-quotient.induction_on a $ λ α, by simp; exact
+quotient.induction_on a $ λ α, by simp only [mul_def, sum_mk, mk_def]; exact
   quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=

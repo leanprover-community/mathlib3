@@ -734,8 +734,10 @@ by {haveI := nontrivial_of_invariant_basis_number R,
 
 theorem basis.mk_eq_dim (v : basis ι R M) :
   cardinal.lift.{v} (#ι) = cardinal.lift.{w} (module.rank R M) :=
-by { haveI := nontrivial_of_invariant_basis_number R,
-  rw [←v.mk_range_eq_dim, cardinal.mk_range_eq_of_injective v.injective] }
+begin
+  haveI := nontrivial_of_invariant_basis_number R,
+  rw [←v.mk_range_eq_dim, cardinal.mk_range_eq_of_injective v.injective]
+end
 
 theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
   cardinal.lift.{(max v m)} (#ι) = cardinal.lift.{(max w m)} (module.rank R M) :=
@@ -764,9 +766,11 @@ finite_def.2 (b.nonempty_fintype_index_of_dim_lt_omega h)
 
 lemma dim_span {v : ι → M} (hv : linear_independent R v) :
   module.rank R ↥(span R (range v)) = #(range v) :=
-by { haveI := nontrivial_of_invariant_basis_number R,
+begin
+  haveI := nontrivial_of_invariant_basis_number R,
   rw [←cardinal.lift_inj, ← (basis.span hv).mk_eq_dim,
-  cardinal.mk_range_eq_of_injective (@linear_independent.injective ι R M v _ _ _ _ hv)] }
+    cardinal.mk_range_eq_of_injective (@linear_independent.injective ι R M v _ _ _ _ hv)]
+end
 
 lemma dim_span_set {s : set M} (hs : linear_independent R (λ x, x : s → M)) :
   module.rank R ↥(span R s) = #s :=

@@ -318,8 +318,8 @@ a higher universe level than `α`.
 meta def check_univs (d : declaration) : tactic (option string) := do
   let l := d.type.univ_params_grouped d.name,
   let bad := bad_params l,
-  if bad.empty then return none else return $ some $ "universes " ++ to_string bad ++
-  " only occur together."
+  if bad.empty then return none else
+    return $ some $ "universes " ++ to_string bad ++ " only occur together."
 
 /-- A linter for checking that there are no bad `max u v` universe levels. -/
 @[linter]

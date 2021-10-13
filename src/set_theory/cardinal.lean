@@ -1093,9 +1093,6 @@ fintype_card empty
 @[simp] theorem mk_pempty : #pempty = 0 :=
 fintype_card pempty
 
-@[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : #(plift p) = 0 :=
-by { haveI : is_empty p := ⟨h⟩, exact quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty _⟩ }
-
 theorem mk_unit : #unit = 1 :=
 (fintype_card unit).trans nat.cast_one
 
@@ -1107,6 +1104,9 @@ quotient.sound ⟨equiv.set.singleton x⟩
 
 @[simp] theorem mk_plift_of_true {p : Prop} (h : p) : #(plift p) = 1 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_punit h⟩
+
+@[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : #(plift p) = 0 :=
+quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_pempty h⟩
 
 @[simp] theorem mk_bool : #bool = 2 :=
 quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩

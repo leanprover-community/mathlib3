@@ -40,9 +40,10 @@ For each of the above, we have
 
 noncomputable theory
 
-universes u v
+universes u v w
 
-variables {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
+variables {X : Type u} {Y : Type v} {Z : Type w}
+variables [topological_space X] [topological_space Y] [topological_space Z]
 
 open_locale unit_interval
 
@@ -212,7 +213,45 @@ begin
     exfalso, linarith }
 end
 
+@[simps]
+def hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (F : f₀.homotopy f₁) (G : g₀.homotopy g₁) :
+  continuous_map.homotopy (g₀.comp f₀) (g₁.comp f₁) :=
+{ to_fun := λ x, G (x.1, F x),
+  continuous_to_fun := by continuity,
+  to_fun_zero := by simp,
+  to_fun_one := by simp }
+
 end homotopy
+
+def homotopic (f₀ f₁ : C(X, Y)) : Prop :=
+nonempty (homotopy f₀ f₁)
+
+namespace homotopic
+
+@[refl]
+lemma refl (f : C(X, Y)) : homotopic f f := ⟨homotopy.refl f⟩
+
+@[symm]
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic f g) : homotopic g f := ⟨h.some.symm⟩
+
+@[trans]
+lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic f g) (h₁ : homotopic g h) : homotopic f h :=
+⟨h₀.some.trans h₁.some⟩
+
+lemma hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (h₀ : homotopic f₀ f₁) (h₁ : homotopic g₀ g₁) :
+  homotopic (g₀.comp f₀) (g₁.comp f₁) :=
+⟨h₀.some.hcomp h₁.some⟩
+
+lemma equivalence : equivalence (@homotopic X Y _ _) :=
+⟨refl, symm, trans⟩
+
+protected def setoid (X : Type u) (Y : Type v) [topological_space X] [topological_space Y] :
+  setoid (C(X, Y)) := ⟨homotopic, equivalence⟩
+
+protected def quotient (X : Type u) (Y : Type v) [topological_space X] [topological_space Y] :=
+quotient (continuous_map.homotopic.setoid X Y)
+
+end homotopic
 
 /--
 The type of homotopies between `f₀ f₁ : C(X, Y)`, where the intermediate maps satisfy the predicate
@@ -338,6 +377,27 @@ ext $ homotopy.congr_fun $ homotopy.symm_trans _ _
 
 end homotopy_with
 
+def homotopic_with (f₀ f₁ : C(X, Y)) (P : C(X, Y) → Prop) : Prop :=
+nonempty (homotopy_with f₀ f₁ P)
+
+namespace homotopic_with
+
+variable ⦃P : C(X, Y) → Prop⦄
+
+@[refl]
+lemma refl (f : C(X, Y)) (hf : P f) : homotopic_with f f P :=
+⟨homotopy_with.refl f hf⟩
+
+@[symm]
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_with f g P) : homotopic_with g f P := ⟨h.some.symm⟩
+
+@[trans]
+lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_with f g P) (h₁ : homotopic_with g h P) :
+  homotopic_with f h P :=
+⟨h₀.some.trans h₁.some⟩
+
+end homotopic_with
+
 /--
 A `homotopy_rel f₀ f₁ S` is a homotopy between `f₀` and `f₁` which is fixed on the points in `S`.
 -/
@@ -412,5 +472,36 @@ lemma symm_trans (F : homotopy_rel f₀ f₁ S) (G : homotopy_rel f₁ f₂ S) :
 homotopy_with.ext $ homotopy.congr_fun $ homotopy.symm_trans _ _
 
 end homotopy_rel
+
+def homotopic_rel (f₀ f₁ : C(X, Y)) (S : set X) : Prop :=
+nonempty (homotopy_rel f₀ f₁ S)
+
+namespace homotopic_rel
+
+variable {S : set X}
+
+@[refl]
+lemma refl (f : C(X, Y)) : homotopic_rel f f S := ⟨homotopy_rel.refl f S⟩
+
+@[symm]
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S := ⟨h.some.symm⟩
+
+@[trans]
+lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_rel f g S) (h₁ : homotopic_rel g h S) :
+  homotopic_rel f h S :=
+⟨h₀.some.trans h₁.some⟩
+
+lemma equivalence : equivalence (λ f g : C(X, Y), homotopic_rel f g S) :=
+⟨refl, symm, trans⟩
+
+protected def setoid (X : Type u) (Y : Type v) [topological_space X] [topological_space Y]
+  (S : set X) :
+setoid (C(X, Y)) := ⟨λ f g : C(X, Y), homotopic_rel f g S, equivalence⟩
+
+protected def quotient (X : Type u) (Y : Type v) [topological_space X] [topological_space Y]
+  (S : set X) :=
+quotient (continuous_map.homotopic.setoid X Y)
+
+end homotopic_rel
 
 end continuous_map

@@ -94,6 +94,9 @@ localized "notation `#` := cardinal.mk" in cardinal
 instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
 ⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
 
+protected lemma induction_on {p : cardinal → Prop} (c : cardinal) (h : ∀ α, p (#α)) : p c :=
+quotient.induction_on c h
+
 protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (#α) := rfl
@@ -262,7 +265,8 @@ quotient.induction_on₃ a b c $ assume α β γ, quotient.sound ⟨equiv.prod_s
 protected theorem eq_zero_or_eq_zero_of_mul_eq_zero  {a b : cardinal.{u}} :
   a * b = 0 → a = 0 ∨ b = 0 :=
 begin
-  lift a to Type u using trivial, lift b to Type u using trivial,
+  induction a using cardinal.induction_on with α,
+  induction b using cardinal.induction_on with β,
   simp only [mul_def, mk_eq_zero_iff, is_empty_prod],
   exact id
 end

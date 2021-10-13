@@ -969,7 +969,7 @@ end
 lemma map_at_bot_eq_of_gc [semilattice_inf α] [semilattice_inf β] {f : α → β} (g : β → α) (b' : β)
   (hf : monotone f) (gc : ∀a, ∀b≤b', b ≤ f a ↔ g b ≤ a) (hgi : ∀b≤b', f (g b) ≤ b) :
   map f at_bot = at_bot :=
-@map_at_top_eq_of_gc (order_dual α) (order_dual β) _ _ _ _ _ hf.order_dual gc hgi
+@map_at_top_eq_of_gc (order_dual α) (order_dual β) _ _ _ _ _ hf.dual gc hgi
 
 lemma map_coe_at_top_of_Ici_subset [semilattice_sup α] {a : α} {s : set α} (h : Ici a ⊆ s) :
   map (coe : s → α) at_top = at_top :=
@@ -1087,13 +1087,13 @@ by rw [← map_coe_Iic_at_bot a, tendsto_map'_iff]
 lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k
   (assume a b h, add_le_add_right h k)
-  (assume a b h, (nat.le_sub_right_iff_add_le h).symm)
+  (assume a b h, (le_sub_iff_right h).symm)
   (assume a h, by rw [nat.sub_add_cancel h])
 
 lemma map_sub_at_top_eq_nat (k : ℕ) : map (λa, a - k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a + k) 0
   (assume a b h, nat.sub_le_sub_right h _)
-  (assume a b _, nat.sub_le_right_iff_le_add)
+  (assume a b _, sub_le_iff_right)
   (assume b _, by rw [nat.add_sub_cancel])
 
 lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
@@ -1141,7 +1141,7 @@ below, then `tendsto u at_bot at_bot`. -/
 lemma tendsto_at_bot_at_bot_of_monotone' [preorder ι] [linear_order α]
   {u : ι → α} (h : monotone u) (H : ¬bdd_below (range u)) :
   tendsto u at_bot at_bot :=
-@tendsto_at_top_at_top_of_monotone' (order_dual ι) (order_dual α) _ _ _ h.order_dual H
+@tendsto_at_top_at_top_of_monotone' (order_dual ι) (order_dual α) _ _ _ h.dual H
 
 lemma unbounded_of_tendsto_at_top [nonempty α] [semilattice_sup α] [preorder β] [no_top_order β]
   {f : α → β} (h : tendsto f at_top at_top) :
@@ -1182,7 +1182,7 @@ it tends to `at_bot` along `at_bot`. -/
 lemma tendsto_at_bot_of_monotone_of_filter [preorder ι] [preorder α] {l : filter ι}
   {u : ι → α} (h : monotone u) [ne_bot l] (hu : tendsto u l at_bot) :
   tendsto u at_bot at_bot :=
-@tendsto_at_top_of_monotone_of_filter (order_dual ι) (order_dual α) _ _ _ _ h.order_dual _ hu
+@tendsto_at_top_of_monotone_of_filter (order_dual ι) (order_dual α) _ _ _ _ h.dual _ hu
 
 lemma tendsto_at_top_of_monotone_of_subseq [preorder ι] [preorder α] {u : ι → α}
   {φ : ι' → ι} (h : monotone u) {l : filter ι'} [ne_bot l]

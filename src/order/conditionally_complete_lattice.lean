@@ -487,6 +487,18 @@ by haveI := unique_prop hp; exact supr_unique
 @[simp] lemma cinfi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
 @csupr_pos (order_dual α) _ _ _ hp
 
+lemma csupr_set {s : set β} {f : β → α} : (⨆ x : s, f x) = Sup (f '' s) :=
+begin
+  rw supr,
+  congr,
+  ext,
+  rw [mem_image, mem_range, set_coe.exists],
+  simp_rw [subtype.coe_mk, exists_prop],
+end
+
+lemma cinfi_set {s : set β} {f : β → α} : (⨅ x : s, f x) = Inf (f '' s) :=
+@csupr_set (order_dual α) _ _ _ _
+
 /--Introduction rule to prove that `b` is the supremum of `f`: it suffices to check that `b`
 is larger than `f i` for all `i`, and that this is not the case of any `w<b`.
 See `supr_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
@@ -505,7 +517,7 @@ theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → �
 /-- Nested intervals lemma: if `f` is a monotone sequence, `g` is an antitone sequence, and
 `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
 lemma monotone.csupr_mem_Inter_Icc_of_antitone [nonempty β] [semilattice_sup β]
-  {f g : β → α} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m) (h : ∀ n, f n ≤ g n) :
+  {f g : β → α} (hf : monotone f) (hg : antitone g) (h : f ≤ g) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 begin
   inhabit β,
@@ -516,7 +528,7 @@ end
 /-- Nested intervals lemma: if `[f n, g n]` is an antitone sequence of nonempty
 closed intervals, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
 lemma csupr_mem_Inter_Icc_of_antitone_Icc [nonempty β] [semilattice_sup β]
-  {f g : β → α} (h : ∀ ⦃m n⦄, m ≤ n → Icc (f n) (g n) ⊆ Icc (f m) (g m)) (h' : ∀ n, f n ≤ g n) :
+  {f g : β → α} (h : antitone (λ n, Icc (f n) (g n))) (h' : ∀ n, f n ≤ g n) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 monotone.csupr_mem_Inter_Icc_of_antitone (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).1)
   (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).2) h'
@@ -826,6 +838,10 @@ lemma l_cSup (gc : galois_connection l u) {s : set α} (hne : s.nonempty)
   l (Sup s) = ⨆ x : s, l x :=
 eq.symm $ is_lub.csupr_set_eq (gc.is_lub_l_image $ is_lub_cSup hne hbdd) hne
 
+lemma l_cSup' (gc : galois_connection l u) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
+  l (Sup s) = Sup (l '' s) :=
+by rw [gc.l_cSup hne hbdd, csupr_set]
+
 lemma l_csupr (gc : galois_connection l u) {f : ι → α}
   (hf : bdd_above (range f)) :
   l (⨆ i, f i) = ⨆ i, l (f i) :=
@@ -840,6 +856,10 @@ lemma u_cInf (gc : galois_connection l u) {s : set β} (hne : s.nonempty)
   (hbdd : bdd_below s) :
   u (Inf s) = ⨅ x : s, u x :=
 gc.dual.l_cSup hne hbdd
+
+lemma u_cInf' (gc : galois_connection l u) {s : set β} (hne : s.nonempty) (hbdd : bdd_below s) :
+  u (Inf s) = Inf (u '' s) :=
+gc.dual.l_cSup' hne hbdd
 
 lemma u_cinfi (gc : galois_connection l u) {f : ι → β}
   (hf : bdd_below (range f)) :
@@ -862,6 +882,10 @@ lemma map_cSup (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_abov
   e (Sup s) = ⨆ x : s, e x :=
 e.to_galois_connection.l_cSup hne hbdd
 
+lemma map_cSup' (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
+  e (Sup s) = Sup (e '' s) :=
+e.to_galois_connection.l_cSup' hne hbdd
+
 lemma map_csupr (e : α ≃o β) {f : ι → α} (hf : bdd_above (range f)) :
   e (⨆ i, f i) = ⨆ i, e (f i) :=
 e.to_galois_connection.l_csupr hf
@@ -874,6 +898,10 @@ e.to_galois_connection.l_csupr_set hf hne
 lemma map_cInf (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_below s) :
   e (Inf s) = ⨅ x : s, e x :=
 e.dual.map_cSup hne hbdd
+
+lemma map_cInf' (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_below s) :
+  e (Inf s) = Inf (e '' s) :=
+e.dual.map_cSup' hne hbdd
 
 lemma map_cinfi (e : α ≃o β) {f : ι → α} (hf : bdd_below (range f)) :
   e (⨅ i, f i) = ⨅ i, e (f i) :=

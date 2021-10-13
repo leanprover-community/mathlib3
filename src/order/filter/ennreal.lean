@@ -37,7 +37,7 @@ begin
     exact (ne_of_lt hr_pos).symm, },
   cases (exists_inv_nat_lt hr_ne_zero) with i hi,
   rw inv_eq_one_div at hi,
-  exact le_trans (le_of_lt (hy i)) (add_le_add_left hi.le (f.limsup u)),
+  exact (hy i).le.trans (add_le_add_left hi.le (f.limsup u)),
 end
 
 lemma limsup_eq_zero_iff [countable_Inter_filter f] {u : α → ℝ≥0∞} :

@@ -50,8 +50,8 @@ form a sheaf.
 In fact, the proof is identical when we do this for dependent functions to a type family `T`,
 so we do the more general case.
 -/
-def to_Types (T : X → Type u) : sheaf_condition (presheaf_to_Types X T) :=
-sheaf_condition_of_exists_unique_gluing _ $ λ ι U sf hsf,
+lemma to_Types_is_sheaf (T : X → Type u) : (presheaf_to_Types X T).is_sheaf :=
+is_sheaf_of_is_sheaf_unique_gluing_types _ $ λ ι U sf hsf,
 -- We use the sheaf condition in terms of unique gluing
 -- U is a family of open sets, indexed by `ι` and `sf` is a compatible family of sections.
 -- In the informal comments below, I'll just write `U` to represent the union.
@@ -59,10 +59,7 @@ begin
   -- Our first goal is to define a function "lifted" to all of `U`.
   -- We do this one point at a time. Using the axiom of choice, we can pick for each
   -- `x : supr U` an index `i : ι` such that `x` lies in `U i`
-  let index : supr U → ι := λ ⟨x,mem⟩, classical.some (opens.mem_supr.mp mem),
-  have index_spec : ∀ x : supr U, x.1 ∈ U (index x) := by {
-      rintro ⟨x,mem⟩,
-      exact classical.some_spec (opens.mem_supr.mp mem), },
+  choose index index_spec using λ x : supr U, opens.mem_supr.mp x.2,
   -- Using this data, we can glue our functions together to a single section
   let s : Π x : supr U, T x := λ x, sf (index x) ⟨x.1, index_spec x⟩,
   refine ⟨s,_,_⟩,
@@ -70,7 +67,7 @@ begin
     ext x,
     -- Now we need to verify that this lifted function restricts correctly to each set `U i`.
     -- Of course, the difficulty is that at any given point `x ∈ U i`,
-    -- we may have used the axiom of choice to pick a differnt `j` with `x ∈ U j`
+    -- we may have used the axiom of choice to pick a different `j` with `x ∈ U j`
     -- when defining the function.
     -- Thus we'll need to use the fact that the restrictions are compatible.
     convert congr_fun (hsf (index ⟨x,_⟩) i) ⟨x,⟨index_spec ⟨x.1,_⟩,x.2⟩⟩,
@@ -92,8 +89,8 @@ end
 The presheaf of not-necessarily-continuous functions to
 a target type `T` satsifies the sheaf condition.
 -/
-def to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
-to_Types X (λ _, T)
+lemma to_Type_is_sheaf (T : Type u) : (presheaf_to_Type X T).is_sheaf :=
+to_Types_is_sheaf X (λ _, T)
 
 end Top.presheaf
 
@@ -104,14 +101,12 @@ The sheaf of not-necessarily-continuous functions on `X` with values in type fam
 `T : X → Type u`.
 -/
 def sheaf_to_Types (T : X → Type u) : sheaf (Type u) X :=
-{ presheaf := presheaf_to_Types X T,
-  sheaf_condition := presheaf.to_Types _ _, }
+⟨presheaf_to_Types X T, presheaf.to_Types_is_sheaf _ _⟩
 
 /--
 The sheaf of not-necessarily-continuous functions on `X` with values in a type `T`.
 -/
 def sheaf_to_Type (T : Type u) : sheaf (Type u) X :=
-{ presheaf := presheaf_to_Type X T,
-  sheaf_condition := presheaf.to_Type _ _, }
+⟨presheaf_to_Type X T, presheaf.to_Type_is_sheaf _ _⟩
 
 end Top

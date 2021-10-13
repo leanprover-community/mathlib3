@@ -193,6 +193,16 @@ lemma pow_lt_pow_iff {a : R} {n m : ℕ} (h : 1 < a) : a ^ n < a ^ m ↔ n < m :
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
 
+lemma one_lt_pow [nontrivial R] {p : R} (hp : 1 < p) :
+  ∀ {n : ℕ}, n ≠ 0 → 1 < p ^ n
+| 0       h := (h rfl).elim
+| 1       h := (pow_one p).symm.subst hp
+| (n + 2) h :=
+  begin
+    rw [←one_mul (1 : R), pow_succ],
+    exact mul_lt_mul hp (one_lt_pow (nat.succ_ne_zero _)).le zero_lt_one (zero_lt_one.trans hp).le,
+  end
+
 end ordered_semiring
 
 section linear_ordered_semiring
@@ -217,10 +227,10 @@ section linear_ordered_ring
 
 variable [linear_ordered_ring R]
 
-lemma pow_abs (a : R) (n : ℕ) : (abs a) ^ n = abs (a ^ n) :=
+lemma pow_abs (a : R) (n : ℕ) : |a| ^ n = |a ^ n| :=
 ((abs_hom.to_monoid_hom : R →* R).map_pow a n).symm
 
-lemma abs_neg_one_pow (n : ℕ) : abs ((-1 : R) ^ n) = 1 :=
+lemma abs_neg_one_pow (n : ℕ) : |(-1 : R) ^ n| = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 theorem pow_bit0_nonneg (a : R) (n : ℕ) : 0 ≤ a ^ bit0 n :=
@@ -241,28 +251,28 @@ alias sq_pos_of_ne_zero ← pow_two_pos_of_ne_zero
 
 variables {x y : R}
 
-theorem sq_abs (x : R) : abs x ^ 2 = x ^ 2 :=
+theorem sq_abs (x : R) : |x| ^ 2 = x ^ 2 :=
 by simpa only [sq] using abs_mul_abs_self x
 
-theorem abs_sq (x : R) : abs (x ^ 2) = x ^ 2 :=
+theorem abs_sq (x : R) : |x ^ 2| = x ^ 2 :=
 by simpa only [sq] using abs_mul_self x
 
-theorem sq_lt_sq (h : abs x < y) : x ^ 2 < y ^ 2 :=
+theorem sq_lt_sq (h : |x| < y) : x ^ 2 < y ^ 2 :=
 by simpa only [sq_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
 
 theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
 sq_lt_sq (abs_lt.mpr ⟨h1, h2⟩)
 
-theorem sq_le_sq (h : abs x ≤ abs y) : x ^ 2 ≤ y ^ 2 :=
+theorem sq_le_sq (h : |x| ≤ |y|) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sq_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
 theorem sq_le_sq' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
 sq_le_sq (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
 
-theorem abs_lt_abs_of_sq_lt_sq (h : x^2 < y^2) : abs x < abs y :=
+theorem abs_lt_abs_of_sq_lt_sq (h : x^2 < y^2) : |x| < |y| :=
 lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sq_abs x, ← sq_abs y] at h
 
-theorem abs_lt_of_sq_lt_sq (h : x^2 < y^2) (hy : 0 ≤ y) : abs x < y :=
+theorem abs_lt_of_sq_lt_sq (h : x^2 < y^2) (hy : 0 ≤ y) : |x| < y :=
 begin
   rw [← abs_of_nonneg hy],
   exact abs_lt_abs_of_sq_lt_sq h,
@@ -271,10 +281,10 @@ end
 theorem abs_lt_of_sq_lt_sq' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
 abs_lt.mp $ abs_lt_of_sq_lt_sq h hy
 
-theorem abs_le_abs_of_sq_le_sq (h : x^2 ≤ y^2) : abs x ≤ abs y :=
+theorem abs_le_abs_of_sq_le_sq (h : x^2 ≤ y^2) : |x| ≤ |y| :=
 le_of_pow_le_pow 2 (abs_nonneg y) (1:ℕ).succ_pos $ by rwa [← sq_abs x, ← sq_abs y] at h
 
-theorem abs_le_of_sq_le_sq (h : x^2 ≤ y^2) (hy : 0 ≤ y) : abs x ≤ y :=
+theorem abs_le_of_sq_le_sq (h : x^2 ≤ y^2) (hy : 0 ≤ y) : |x| ≤ y :=
 begin
   rw [← abs_of_nonneg hy],
   exact abs_le_abs_of_sq_le_sq h,

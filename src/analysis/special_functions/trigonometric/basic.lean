@@ -74,9 +74,8 @@ differentiable_sin x
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
 
-@[continuity]
-lemma continuous_sin : continuous sin :=
-differentiable_sin.continuous
+@[continuity] lemma continuous_sin : continuous sin :=
+by { change continuous (λ z, ((exp (-z * I) - exp (z * I)) * I) / 2), continuity, }
 
 lemma continuous_on_sin {s : set ℂ} : continuous_on sin s := continuous_sin.continuous_on
 
@@ -111,9 +110,8 @@ lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
 @[simp] lemma deriv_cos' : deriv cos = (λ x, -sin x) :=
 funext $ λ x, deriv_cos
 
-@[continuity]
-lemma continuous_cos : continuous cos :=
-differentiable_cos.continuous
+@[continuity] lemma continuous_cos : continuous cos :=
+by { change continuous (λ z, (exp (z * I) + exp (-z * I)) / 2), continuity, }
 
 lemma continuous_on_cos {s : set ℂ} : continuous_on cos s := continuous_cos.continuous_on
 
@@ -143,9 +141,8 @@ differentiable_sinh x
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
 
-@[continuity]
-lemma continuous_sinh : continuous sinh :=
-differentiable_sinh.continuous
+@[continuity] lemma continuous_sinh : continuous sinh :=
+by { change continuous (λ z, (exp z - exp (-z)) / 2), continuity, }
 
 /-- The complex hyperbolic cosine function is everywhere strictly differentiable, with the
 derivative `sinh x`. -/
@@ -173,9 +170,8 @@ differentiable_cosh x
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
 
-@[continuity]
-lemma continuous_cosh : continuous cosh :=
-differentiable_cosh.continuous
+@[continuity] lemma continuous_cosh : continuous cosh :=
+by { change continuous (λ z, (exp z + exp (-z)) / 2), continuity, }
 
 end complex
 
@@ -528,9 +524,8 @@ differentiable_sin x
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
 
-@[continuity]
-lemma continuous_sin : continuous sin :=
-differentiable_sin.continuous
+@[continuity] lemma continuous_sin : continuous sin :=
+complex.continuous_re.comp (complex.continuous_sin.comp complex.continuous_of_real)
 
 lemma continuous_on_sin {s} : continuous_on sin s :=
 continuous_sin.continuous_on
@@ -556,9 +551,8 @@ lemma deriv_cos : deriv cos x = - sin x :=
 @[simp] lemma deriv_cos' : deriv cos = (λ x, - sin x) :=
 funext $ λ _, deriv_cos
 
-@[continuity]
-lemma continuous_cos : continuous cos :=
-differentiable_cos.continuous
+@[continuity] lemma continuous_cos : continuous cos :=
+complex.continuous_re.comp (complex.continuous_cos.comp complex.continuous_of_real)
 
 lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_on
 
@@ -580,9 +574,8 @@ differentiable_sinh x
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
 
-@[continuity]
-lemma continuous_sinh : continuous sinh :=
-differentiable_sinh.continuous
+@[continuity] lemma continuous_sinh : continuous sinh :=
+complex.continuous_re.comp (complex.continuous_sinh.comp complex.continuous_of_real)
 
 lemma has_strict_deriv_at_cosh (x : ℝ) : has_strict_deriv_at cosh (sinh x) x :=
 (complex.has_strict_deriv_at_cosh x).real_of_complex
@@ -602,9 +595,8 @@ differentiable_cosh x
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
 
-@[continuity]
-lemma continuous_cosh : continuous cosh :=
-differentiable_cosh.continuous
+@[continuity] lemma continuous_cosh : continuous cosh :=
+complex.continuous_re.comp (complex.continuous_cosh.comp complex.continuous_of_real)
 
 /-- `sinh` is strictly monotone. -/
 lemma sinh_strict_mono : strict_mono sinh :=
@@ -1342,8 +1334,8 @@ by { rw real.range_sin, exact Icc.infinite (by norm_num) }
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
   cases le_or_gt x 1 with h' h',
-  { have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-    have : abs x ≤ 1, rwa [hx],
+  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+    have : |x| ≤ 1, rwa [hx],
     have := sin_bound this, rw [abs_le] at this,
     have := this.2, rw [sub_le_iff_le_add', hx] at this,
     apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
@@ -1358,8 +1350,8 @@ end
    note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
 lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
-  have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-  have : abs x ≤ 1, rwa [hx],
+  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+  have : |x| ≤ 1, rwa [hx],
   have := sin_bound this, rw [abs_le] at this,
   have := this.1, rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,

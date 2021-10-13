@@ -54,8 +54,16 @@ iff.rfl
 
 variables {p q : submodule R M}
 
-@[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :
+@[simp]
+lemma mem_mk {S : set M} {x : M} (h₁ h₂ h₃) : x ∈ (⟨S, h₁, h₂, h₃⟩ : submodule R M) ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma coe_set_mk (S : set M) (h₁ h₂ h₃) :
   ((⟨S, h₁, h₂, h₃⟩ : submodule R M) : set M) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set M} (h₁ h₂ h₃ h₁' h₂' h₃') :
+  (⟨S, h₁, h₂, h₃⟩ : submodule R M) ≤ (⟨S', h₁', h₂', h₃'⟩ : submodule R M) ↔ S ⊆ S' := iff.rfl
 
 @[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
@@ -66,6 +74,12 @@ protected def copy (p : submodule R M) (s : set M) (hs : s = ↑p) : submodule R
   zero_mem' := hs.symm ▸ p.zero_mem',
   add_mem' := hs.symm ▸ p.add_mem',
   smul_mem' := hs.symm ▸ p.smul_mem' }
+
+@[simp] lemma coe_copy (S : submodule R M) (s : set M) (hs : s = ↑S) :
+  (S.copy s hs : set M) = s := rfl
+
+lemma copy_eq (S : submodule R M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
 
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=

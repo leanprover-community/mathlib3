@@ -440,37 +440,33 @@ variables
 
 include hs
 
-lemma monotone_on.integrable_on_compact (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+lemma monotone_on.integrable_on_compact (hmono : monotone_on f s) :
   integrable_on f s μ :=
 begin
-  by_cases h : s.nonempty,
-  { have hbelow : bdd_below (f '' s) :=
-      ⟨f (Inf s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono (hs.Inf_mem h) hy (cInf_le hs.bdd_below hy)⟩,
-    have habove : bdd_above (f '' s) :=
-      ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
-    have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
-    rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
-    exact integrable.mono' (continuous_const.integrable_on_compact hs)
-      (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono)
-      ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
-        λ y hy, hC (f y) (mem_image_of_mem f hy)) },
-  { rw set.not_nonempty_iff_eq_empty at h,
-    rw h,
-    exact integrable_on_empty }
+  obtain rfl | h := s.eq_empty_or_nonempty,
+  { exact integrable_on_empty },
+  have hbelow : bdd_below (f '' s) :=
+    ⟨f (Inf s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono (hs.Inf_mem h) hy (cInf_le hs.bdd_below hy)⟩,
+  have habove : bdd_above (f '' s) :=
+    ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
+  have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
+  rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
+  exact integrable.mono' (continuous_const.integrable_on_compact hs)
+    (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono)
+    ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
+      λ y hy, hC (f y) (mem_image_of_mem f hy)),
 end
 
-lemma antitone_on.integrable_on_compact (hanti : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+lemma antitone_on.integrable_on_compact (hanti : antitone_on f s) :
   integrable_on f s μ :=
-@monotone_on.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hanti
+@monotone_on.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _ hanti
 
 lemma monotone.integrable_on_compact (hmono : monotone f) :
   integrable_on f s μ :=
 monotone_on.integrable_on_compact hs (λ x y _ _ hxy, hmono hxy)
 
-lemma antitone.integrable_on_compact (hanti : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+lemma antitone.integrable_on_compact (hanti : antitone f) :
   integrable_on f s μ :=
-@monotone.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hanti
+@monotone.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _ hanti
 
 end monotone

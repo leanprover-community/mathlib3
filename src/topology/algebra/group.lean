@@ -104,6 +104,11 @@ begin
   simp only [mul_one, set.preimage_mul_left_singleton, eq_self_iff_true,
     inv_inv, set.singleton_eq_singleton_iff],
 end
+
+@[to_additive]
+lemma discrete_topology_iff_open_singleton_one : discrete_topology G ↔ is_open ({1} : set G) :=
+⟨λ h, forall_open_iff_discrete.mpr h {1}, discrete_topology_of_open_singleton_one⟩
+
 end continuous_mul_group
 
 section topological_group
@@ -490,9 +495,11 @@ end
 
 variables (G)
 
+@[to_additive]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
 
+@[to_additive]
 lemma topological_group.regular_space [t1_space G] : regular_space G :=
 ⟨assume s a hs ha,
  let f := λ p : G × G, p.1 * (p.2)⁻¹ in
@@ -513,6 +520,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
 
 local attribute [instance] topological_group.regular_space
 
+@[to_additive]
 lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
 
 end
@@ -560,7 +568,7 @@ begin
     refine λ g hg, mem_Union.2 ⟨g₀ * g⁻¹, _⟩,
     refine preimage_interior_subset_interior_preimage (continuous_const.mul continuous_id) _,
     rwa [mem_preimage, inv_mul_cancel_right] },
-  exact ⟨t, subset.trans ht $ bUnion_subset_bUnion_right $ λ g hg, interior_subset⟩
+  exact ⟨t, subset.trans ht $ bUnion_mono $ λ g hg, interior_subset⟩
 end
 
 /-- Every locally compact separable topological group is σ-compact.

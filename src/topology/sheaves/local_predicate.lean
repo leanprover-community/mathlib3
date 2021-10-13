@@ -166,10 +166,9 @@ open Top.presheaf
 /--
 The functions satisfying a local predicate satisfy the sheaf condition.
 -/
-def sheaf_condition
-  (P : local_predicate T) :
-  sheaf_condition (subpresheaf_to_Types P.to_prelocal_predicate) :=
-sheaf_condition_of_exists_unique_gluing _ $ λ ι U sf sf_comp, begin
+lemma is_sheaf (P : local_predicate T) :
+  (subpresheaf_to_Types P.to_prelocal_predicate).is_sheaf :=
+presheaf.is_sheaf_of_is_sheaf_unique_gluing_types _ $ λ ι U sf sf_comp, begin
   -- We show the sheaf condition in terms of unique gluing.
   -- First we obtain a family of sections for the underlying sheaf of functions,
   -- by forgetting that the prediacte holds
@@ -209,14 +208,13 @@ The subsheaf of the sheaf of all dependently typed functions satisfying the loca
 -/
 @[simps]
 def subsheaf_to_Types (P : local_predicate T) : sheaf (Type v) X :=
-{ presheaf := subpresheaf_to_Types P.to_prelocal_predicate,
-  sheaf_condition := subpresheaf_to_Types.sheaf_condition P }.
+⟨subpresheaf_to_Types P.to_prelocal_predicate, subpresheaf_to_Types.is_sheaf P⟩
 
 /--
 There is a canonical map from the stalk to the original fiber, given by evaluating sections.
 -/
 def stalk_to_fiber (P : local_predicate T) (x : X) :
-  (subsheaf_to_Types P).presheaf.stalk x ⟶ T x :=
+  (subsheaf_to_Types P).1.stalk x ⟶ T x :=
 begin
   refine colimit.desc _
     { X := T x, ι := { app := λ U f, _, naturality' := _ } },
@@ -225,7 +223,7 @@ begin
 end
 
 @[simp] lemma stalk_to_fiber_germ (P : local_predicate T) (U : opens X) (x : U) (f) :
-  stalk_to_fiber P x ((subsheaf_to_Types P).presheaf.germ x f) = f.1 x :=
+  stalk_to_fiber P x ((subsheaf_to_Types P).1.germ x f) = f.1 x :=
 begin
   dsimp [presheaf.germ, stalk_to_fiber],
   cases x,
@@ -244,7 +242,7 @@ lemma stalk_to_fiber_surjective (P : local_predicate T) (x : X)
 begin
   rcases w t with ⟨U, f, h, rfl⟩,
   fsplit,
-  { exact (subsheaf_to_Types P).presheaf.germ ⟨x, U.2⟩ ⟨f, h⟩, },
+  { exact (subsheaf_to_Types P).1.germ ⟨x, U.2⟩ ⟨f, h⟩, },
   { exact stalk_to_fiber_germ _ U.1 ⟨x, U.2⟩ ⟨f, h⟩, }
 end
 
@@ -262,8 +260,8 @@ begin
   -- We promise to provide all the ingredients of the proof later:
   let Q :
     ∃ (W : (open_nhds x)ᵒᵖ) (s : Π w : (unop W).1, T w) (hW : P.pred s),
-      tU = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ ∧
-      tV = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ := _,
+      tU = (subsheaf_to_Types P).1.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ ∧
+      tV = (subsheaf_to_Types P).1.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ := _,
   { choose W s hW e using Q,
     exact e.1.trans e.2.symm, },
   -- Then use induction to pick particular representatives of `tU tV : stalk x`
@@ -300,9 +298,8 @@ nat_iso.of_components
 The sheaf of continuous functions on `X` with values in a space `T`.
 -/
 def sheaf_to_Top (T : Top.{v}) : sheaf (Type v) X :=
-{ presheaf := presheaf_to_Top X T,
-  sheaf_condition :=
-    presheaf.sheaf_condition_equiv_of_iso (subpresheaf_continuous_prelocal_iso_presheaf_to_Top T)
-      (subpresheaf_to_Types.sheaf_condition (continuous_local X T)), }
+⟨presheaf_to_Top X T,
+  presheaf.is_sheaf_of_iso (subpresheaf_continuous_prelocal_iso_presheaf_to_Top T)
+    (subpresheaf_to_Types.is_sheaf (continuous_local X T))⟩
 
 end Top

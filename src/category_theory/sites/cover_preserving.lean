@@ -72,7 +72,7 @@ end⟩
 
 end cover_preserving
 
-variables {C D : Type u₁} [category.{v₁} C] [category.{v₁} D]
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D]
 variables {A : Type u₂} [category.{v₁} A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_equiv
 import linear_algebra.tensor_product
 import data.set.intervals.unordered_interval
 
@@ -1175,3 +1175,44 @@ begin
 end
 
 end affine_subspace
+
+section maps
+
+variables {k V₁ P₁ V₂ P₂ : Type*} [ring k]
+variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+include V₁ V₂
+
+namespace affine_map
+
+lemma vector_span_image_eq_submodule_map {s : set P₁} (f : P₁ →ᵃ[k] P₂) :
+  vector_span k (f '' s) = submodule.map f.linear (vector_span k s) :=
+by simp [vector_span_def]
+
+lemma span_eq_top_of_surjective {s : set P₁} (f : P₁ →ᵃ[k] P₂)
+  (hf : function.surjective f) (h : affine_span k s = ⊤) :
+  affine_span k (f '' s) = ⊤ :=
+begin
+  cases s.eq_empty_or_nonempty with hs hs,
+  { exfalso,
+    rw [hs, affine_subspace.span_empty] at h,
+    exact bot_ne_top h, },
+  { rw [← f.surjective_iff_linear_surjective, ← linear_map.range_eq_top] at hf,
+    rw affine_subspace.affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V₁ P₁ hs at h,
+    rw [affine_subspace.affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V₂ P₂ (hs.image f),
+      f.vector_span_image_eq_submodule_map, h, submodule.map_top, hf], },
+end
+
+end affine_map
+
+lemma affine_equiv.span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
+  affine_span k s = ⊤ ↔ affine_span k (e '' s) = ⊤ :=
+begin
+  refine ⟨(e : P₁ →ᵃ[k] P₂).span_eq_top_of_surjective e.surjective, _⟩,
+  intros h,
+  have : s = e.symm '' (e '' s), { simp [← image_comp], },
+  rw this,
+  exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
+end
+
+end maps

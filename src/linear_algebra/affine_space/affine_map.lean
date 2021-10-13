@@ -308,6 +308,20 @@ begin
   rw [h, equiv.comp_surjective, equiv.surjective_comp],
 end
 
+@[simp] lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
+  (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
+begin
+  ext v,
+  suffices : (∃ x, x ∈ s ∧ ∃ y, y ∈ t ∧ f.linear (x -ᵥ y) = v) ↔
+             ∃ w, (∃ x, x ∈ s ∧ ∃ y, y ∈ t ∧ x -ᵥ y = w) ∧ f.linear w = v,
+  { simp [this, -linear_map_vsub, ← f.linear_map_vsub], },
+  split,
+  { rintros ⟨x, hx, y, hy, hv⟩,
+    exact ⟨x -ᵥ y, ⟨x, hx, y, hy, rfl⟩, hv⟩, },
+  { rintros ⟨-, ⟨x, hx, y, hy, rfl⟩, rfl⟩,
+    exact ⟨x, hx, y, hy, rfl⟩, },
+end
+
 omit V2
 
 /-! ### Definition of `affine_map.line_map` and lemmas about it -/

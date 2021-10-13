@@ -71,11 +71,9 @@ noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
   {p : ι → P} (hi : affine_independent k p) : fintype ι :=
 if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
 begin
-  rw not_is_empty_iff at hι,
-  let q := hι.some,
+  let q := (not_is_empty_iff.mp hι).some,
   rw affine_independent_iff_linear_independent_vsub k p q at hi,
-  suffices : fintype {x : ι // x ≠ q}, { exact fintype_of_fintype_ne _ this, },
-  exact fintype_of_is_noetherian_linear_independent hi,
+  exact fintype_of_fintype_ne _ (fintype_of_is_noetherian_linear_independent hi)
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/

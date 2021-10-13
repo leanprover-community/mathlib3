@@ -638,10 +638,10 @@ noncomputable def fintype_of_is_noetherian_linear_independent [is_noetherian R M
   {v : ι → M} (hi : linear_independent R v) : fintype ι :=
 begin
   have hfg : (⊤ : submodule R M).fg,
-  { exact is_noetherian_def.mp (by apply_instance : is_noetherian R M) ⊤, },
+  { exact is_noetherian_def.mp infer_instance ⊤, },
   rw submodule.fg_def at hfg,
   choose s hs hs' using hfg,
-  haveI : fintype s, { exact hs.fintype, },
+  haveI : fintype s := hs.fintype,
   apply linear_independent_fintype_of_le_span_fintype v hi s,
   simp only [hs', set.subset_univ, submodule.top_coe, set.le_eq_subset],
 end

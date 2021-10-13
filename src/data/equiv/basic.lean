@@ -920,7 +920,8 @@ def psigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ 
 
 @[simp] lemma psigma_congr_right_trans {α} {β₁ β₂ β₃ : α → Sort*}
   (F : Π a, β₁ a ≃ β₂ a) (G : Π a, β₂ a ≃ β₃ a) :
-  (psigma_congr_right F).trans (psigma_congr_right G) = psigma_congr_right (λ a, (F a).trans (G a)) :=
+  (psigma_congr_right F).trans (psigma_congr_right G) =
+    psigma_congr_right (λ a, (F a).trans (G a)) :=
 by { ext1 x, cases x, refl }
 
 @[simp] lemma psigma_congr_right_symm {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) :

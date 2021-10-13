@@ -38,8 +38,8 @@ variables {R} [decidable_eq ι] [add_monoid ι] [comm_semiring R]
 
 open_locale direct_sum
 
-instance grade.gmonoid : direct_sum.gmonoid (λ i : ι, grade R i) :=
-direct_sum.gmonoid.of_submodules (grade R) ⟨1, rfl⟩ $ λ i j, begin
+instance grade.gsemiring : direct_sum.gsemiring (λ i : ι, grade R i) :=
+direct_sum.gsemiring.of_submodules (grade R) ⟨1, rfl⟩ $ λ i j, begin
   rintros ⟨-, a, rfl⟩ ⟨-, b, rfl⟩,
   exact ⟨_, single_mul_single.symm⟩,
 end

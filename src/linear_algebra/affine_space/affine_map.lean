@@ -293,13 +293,19 @@ include V2
 @[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
   function.injective f.linear ↔ function.injective f :=
 begin
-  split; intros hf x y hxy,
-  { rw [← @vsub_eq_zero_iff_eq V1, ← @submodule.mem_bot k V1, ← linear_map.ker_eq_bot.mpr hf,
-      linear_map.mem_ker, affine_map.linear_map_vsub, hxy, vsub_self], },
-  { obtain ⟨p⟩ := (by apply_instance : nonempty P1),
-    have hxy' : (f.linear x) +ᵥ f p = (f.linear y) +ᵥ f p, { rw hxy, },
-    rw [← f.map_vadd, ← f.map_vadd] at hxy',
-    exact (vadd_right_cancel_iff _).mp (hf hxy'), },
+  obtain ⟨p⟩ := (infer_instance : nonempty P1),
+  have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, equiv.comp_injective, equiv.injective_comp],
+end
+
+@[simp] lemma surjective_iff_linear_surjective (f : P1 →ᵃ[k] P2) :
+  function.surjective f.linear ↔ function.surjective f :=
+begin
+  obtain ⟨p⟩ := (infer_instance : nonempty P1),
+  have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, equiv.comp_surjective, equiv.surjective_comp],
 end
 
 omit V2

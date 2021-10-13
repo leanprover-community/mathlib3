@@ -311,6 +311,16 @@ begin
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
+lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
+  (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
+begin
+  simp only [eq_singleton_iff_unique_mem, mem_Inter],
+  refine ⟨λ i hi, mem_of_mem_nhds $ h.mem_of_mem hi, λ y hy, _⟩,
+  contrapose! hy,
+  rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
+  exact ⟨i, hi, λ h, hsub h rfl⟩
+end
+
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
 lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[{x}ᶜ] x)]

@@ -48,6 +48,12 @@ protected def copy (p : my_subobject X) (s : set X) (hs : s = ↑p) : my_subobje
 { carrier := s,
   op_mem' := hs.symm ▸ p.op_mem' }
 
+@[simp] lemma coe_copy (p : my_subobject X) (s : set X) (hs : s = ↑p) :
+  (p.copy s hs : set X) = s := rfl
+
+lemma copy_eq (p : my_subobject X) (s : set X) (hs : s = ↑p) : p.copy s hs = p :=
+set_like.coe_injective hs
+
 end my_subobject
 ```
 

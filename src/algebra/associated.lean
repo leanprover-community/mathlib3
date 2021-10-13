@@ -255,6 +255,25 @@ theorem associated_one_of_associated_mul_one [comm_monoid α] {a b : α} :
   a * b ~ᵤ 1 → a ~ᵤ 1
 | ⟨u, h⟩ := associated_one_of_mul_eq_one (b * u) $ by simpa [mul_assoc] using h
 
+lemma associated_mul_unit_left {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
+  associated (a * u) a :=
+let ⟨u', hu⟩ := hu in ⟨u'⁻¹, hu ▸ units.mul_inv_cancel_right _ _⟩
+
+lemma associated_unit_mul_left {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
+  associated (u * a) a :=
+begin
+  rw mul_comm,
+  exact associated_mul_unit_left _ _ hu
+end
+
+lemma associated_mul_unit_right {β : Type*} [monoid β] (a u : β) (hu : is_unit u) :
+  associated a (a * u) :=
+(associated_mul_unit_left a u hu).symm
+
+lemma associated_unit_mul_right {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
+  associated a (u * a) :=
+(associated_unit_mul_left a u hu).symm
+
 lemma associated.mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
 | ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ := ⟨c₁ * c₂, by simp [h₁.symm, h₂.symm, mul_assoc, mul_comm, mul_left_comm]⟩
@@ -381,10 +400,12 @@ by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
 section unique_units
 variables [monoid α] [unique (units α)]
 
+lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
+
 theorem associated_iff_eq {x y : α} : x ~ᵤ y ↔ x = y :=
 begin
   split,
-  { rintro ⟨c, rfl⟩, simp [subsingleton.elim c 1] },
+  { rintro ⟨c, rfl⟩, rw [units_eq_one c, units.coe_one, mul_one] },
   { rintro rfl, refl },
 end
 
@@ -533,7 +554,7 @@ theorem prod_le_prod {p q : multiset (associates α)} (h : p ≤ q) : p.prod ≤
 begin
   haveI := classical.dec_eq (associates α),
   haveI := classical.dec_eq α,
-  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [multiset.add_sub_of_le h] at this },
+  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [add_sub_cancel_of_le h] at this },
   suffices : p.prod * 1 ≤ p.prod * (q - p).prod, { simpa },
   exact mul_mono (le_refl p.prod) one_le
 end

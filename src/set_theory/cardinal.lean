@@ -113,7 +113,7 @@ quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
 
 theorem lift_mk (α) : lift.{v} (#α) = #(ulift.{v u} α) := rfl
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans equiv.ulift.symm⟩
 
@@ -238,7 +238,7 @@ instance : has_add cardinal.{u} :=
 @[simp] theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
 lemma add (α : Type u) (β : Type v) :
-  #(α ⊕ β) = lift.{(max u v) u} (#α) + lift.{(max u v) v} (#β) :=
+  #(α ⊕ β) = lift.{v u} (#α) + lift.{u v} (#β) :=
 begin
   rw [cardinal.lift_mk, cardinal.lift_mk, add_def],
   exact cardinal.eq.2 ⟨equiv.sum_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
@@ -251,7 +251,7 @@ instance : has_mul cardinal.{u} :=
 @[simp] theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
 
 lemma mul (α : Type u) (β : Type v) :
-  #(α × β) = lift.{(max u v) u} (#α) * lift.{(max u v) v} (#β) :=
+  #(α × β) = lift.{v u} (#α) * lift.{u v} (#β) :=
 begin
   rw [cardinal.lift_mk, cardinal.lift_mk, mul_def],
   exact cardinal.eq.2 ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩,

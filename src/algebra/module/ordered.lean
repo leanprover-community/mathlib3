@@ -26,6 +26,14 @@ ordered module, ordered scalar, ordered smul, ordered action, ordered vector spa
 
 variables {k M N : Type*}
 
+namespace order_dual
+
+instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
+{ add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
+  zero_smul := λ m, order_dual.rec (zero_smul _) m }
+
+end order_dual
+
 section semiring
 variables [ordered_semiring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
   {a b : M} {c : k}
@@ -95,6 +103,24 @@ begin
   exact smul_neg_iff_of_pos (neg_pos_of_neg hc),
 end
 
+lemma smul_nonpos_of_nonpos_of_nonneg (hc : c ≤ 0) (ha : 0 ≤ a) : c • a ≤ 0 :=
+calc
+  c • a ≤ c • 0 : smul_le_smul_of_nonpos ha hc
+  ... = 0 : smul_zero' M c
+
+lemma smul_nonneg_of_nonpos_of_nonpos (hc : c ≤ 0) (ha : a ≤ 0) : 0 ≤ c • a :=
+@smul_nonpos_of_nonpos_of_nonneg k (order_dual M) _ _ _ _ _ _ hc ha
+
+alias smul_pos_iff_of_neg ↔ _ smul_pos_of_neg_of_neg
+alias smul_neg_iff_of_pos ↔ _ smul_neg_of_pos_of_neg
+alias smul_neg_iff_of_neg ↔ _ smul_neg_of_neg_of_pos
+
+lemma antitone_smul_left (hc : c ≤ 0) : antitone (has_scalar.smul c : M → M) :=
+λ a b h, smul_le_smul_of_nonpos h hc
+
+lemma strict_anti_smul_left (hc : c < 0) : strict_anti (has_scalar.smul c : M → M) :=
+λ a b h, smul_lt_smul_of_neg h hc
+
 end ring
 
 section field
@@ -118,6 +144,14 @@ begin
   rw [←neg_neg c, ←neg_neg b, neg_smul_neg, inv_neg, neg_smul _ a, neg_lt_neg_iff],
   exact lt_smul_iff_of_pos (neg_pos_of_neg hc),
 end
+
+/-- Left scalar multiplication as an order isomorphism. -/
+@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o order_dual M :=
+{ to_fun := λ b, c • b,
+  inv_fun := λ b, c⁻¹ • b,
+  left_inv := inv_smul_smul₀ hc.ne,
+  right_inv := smul_inv_smul₀ hc.ne,
+  map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_neg hc }
 
 variables [ordered_add_comm_group N] [module k N] [ordered_smul k N]
 
@@ -143,11 +177,3 @@ instance pi.ordered_smul' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
 pi.ordered_smul
 
 end field
-
-namespace order_dual
-
-instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
-{ add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
-  zero_smul := λ m, order_dual.rec (zero_smul _) m }
-
-end order_dual

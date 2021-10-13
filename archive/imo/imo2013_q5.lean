@@ -158,7 +158,7 @@ lemma fixed_point_of_pos_nat_pow {f : ℚ → ℝ} {n : ℕ} (hn : 0 < n)
   f (a^n) = a^n :=
 begin
   have hh0 : (a : ℝ) ^ n ≤ f (a ^ n),
-  { exact_mod_cast H5 (a ^ n) (one_lt_pow ha1 (nat.succ_le_iff.mpr hn)) },
+  { exact_mod_cast H5 (a ^ n) (one_lt_pow ha1 hn.ne') },
 
   have hh1 := calc f (a^n) ≤ (f a)^n   : pow_f_le_f_pow hn ha1 H1 H4
                        ... = (a : ℝ)^n : by rw ← hae,

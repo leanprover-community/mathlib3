@@ -113,7 +113,7 @@ quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
 
 theorem lift_mk (α) : lift.{v} (#α) = #(ulift.{v u} α) := rfl
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans equiv.ulift.symm⟩
 
@@ -237,11 +237,25 @@ instance : has_add cardinal.{u} :=
 
 @[simp] theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
+lemma add (α : Type u) (β : Type v) :
+  #(α ⊕ β) = lift.{v u} (#α) + lift.{u v} (#β) :=
+begin
+  rw [cardinal.lift_mk, cardinal.lift_mk, add_def],
+  exact cardinal.eq.2 ⟨equiv.sum_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
+end
+
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, #(α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.prod_congr e₁ e₂⟩⟩
 
 @[simp] theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
+
+lemma mul (α : Type u) (β : Type v) :
+  #(α × β) = lift.{v u} (#α) * lift.{u v} (#β) :=
+begin
+  rw [cardinal.lift_mk, cardinal.lift_mk, mul_def],
+  exact cardinal.eq.2 ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
+end
 
 private theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.sum_comm α β⟩
@@ -520,8 +534,8 @@ quot.sound ⟨equiv.sigma_congr_right $ λ i,
   classical.choice $ quotient.exact $ quot.out_eq $ #(f i)⟩
 
 theorem sum_const (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a :=
-quotient.induction_on a $ λ α, by simp; exact
-  quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
+quotient.induction_on a $ λ α, by { simp only [mul_def, sum_mk, mk_def], exact
+  quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩ }
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $

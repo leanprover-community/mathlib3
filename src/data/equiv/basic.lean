@@ -391,6 +391,10 @@ equiv_pempty _
 def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 ⟨λ x, (), λ x, h, λ _, rfl, λ ⟨⟩, rfl⟩
 
+/-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
+def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
+⟨λ x, absurd x h, λ x, by { cases x }, λ x, absurd x h, λ x, by { cases x }⟩
+
 /-- `true` is equivalent to `punit`. -/
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
 

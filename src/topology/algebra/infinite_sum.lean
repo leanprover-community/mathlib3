@@ -1007,6 +1007,36 @@ begin
     exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
+local attribute [instance] topological_add_group.regular_space
+
+/-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
+space. This does not need a summability assumption, as otherwise all sums are zero. -/
+lemma tendsto_tsum_compl_at_top_zero [t1_space α] (f : β → α) :
+  tendsto (λ (s : finset β), ∑' b : {x // x ∉ s}, f b) at_top (𝓝 0) :=
+begin
+  by_cases H : summable f,
+  { assume e he,
+    rcases nhds_is_closed he with ⟨o, ho, oe, o_closed⟩,
+    simp only [le_eq_subset, set.mem_preimage, mem_at_top_sets, filter.mem_map, ge_iff_le],
+    obtain ⟨s, hs⟩ : ∃ (s : finset β), ∀ (t : finset β), disjoint t s → ∑ (b : β) in t, f b ∈ o :=
+      cauchy_seq_finset_iff_vanishing.1 (tendsto.cauchy_seq H.has_sum) o ho,
+    refine ⟨s, λ a sa, oe _⟩,
+    have A : summable (λ b : {x // x ∉ a}, f b) := a.summable_compl_iff.2 H,
+    apply is_closed.mem_of_tendsto o_closed A.has_sum (eventually_of_forall (λ b, _)),
+    have : disjoint (finset.image (λ (i : {x // x ∉ a}), (i : β)) b) s,
+    { apply disjoint_left.2 (λ i hi his, _),
+      rcases mem_image.1 hi with ⟨i', hi', rfl⟩,
+      exact i'.2 (sa his), },
+    convert hs _ this using 1,
+    rw sum_image,
+    assume i hi j hj hij,
+    exact subtype.ext hij },
+  { convert tendsto_const_nhds,
+    ext s,
+    apply tsum_eq_zero_of_not_summable,
+    rwa finset.summable_compl_iff }
+end
+
 variable [complete_space α]
 
 lemma summable_iff_vanishing :
@@ -1055,7 +1085,7 @@ lemma summable.sigma_factor {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) (b : β) : summable (λc, f ⟨b, c⟩) :=
 ha.comp_injective sigma_mk_injective
 
-lemma summable.sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
+lemma summable.sigma [t1_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) : summable (λb, ∑'c, f ⟨b, c⟩) :=
 ha.sigma' (λ b, ha.sigma_factor b)
 
@@ -1063,15 +1093,15 @@ lemma summable.prod_factor {f : β × γ → α} (h : summable f) (b : β) :
   summable (λ c, f (b, c)) :=
 h.comp_injective $ λ c₁ c₂ h, (prod.ext_iff.1 h).2
 
-lemma tsum_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
+lemma tsum_sigma [t1_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) : ∑'p, f p = ∑'b c, f ⟨b, c⟩ :=
 tsum_sigma' (λ b, ha.sigma_factor b) ha
 
-lemma tsum_prod [regular_space α] {f : β × γ → α} (h : summable f) :
+lemma tsum_prod [t1_space α] {f : β × γ → α} (h : summable f) :
   ∑'p, f p = ∑'b c, f ⟨b, c⟩ :=
 tsum_prod' h h.prod_factor
 
-lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
+lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 

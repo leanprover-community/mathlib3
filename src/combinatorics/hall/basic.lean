@@ -9,7 +9,7 @@ import topology.category.Top.limits
 /-!
 # Hall's Marriage Theorem
 
-Given a list of finite subsets $X_1,X_2,\dots,X_n$ of some given set
+Given a list of finite subsets $X_1, X_2, \dots, X_n$ of some given set
 $S$, P. Hall in [Hall1935] gave a necessary and sufficient condition for
 there to be a list of distinct elements $x_1,x_2,\dots,x_n$ with
 $x_i\in X_i$ for each $i$: it is when for each $k$, the union of every

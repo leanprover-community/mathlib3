@@ -243,7 +243,7 @@ instance : has_add cardinal.{u} :=
 
 @[simp] theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
-@[simp] lemma add (α : Type u) (β : Type v) :
+lemma add (α : Type u) (β : Type v) :
   #(α ⊕ β) = lift.{(max u v) u} (#α) + lift.{(max u v) v} (#β) :=
 begin
   rw [cardinal.lift_mk, cardinal.lift_mk, add_def],

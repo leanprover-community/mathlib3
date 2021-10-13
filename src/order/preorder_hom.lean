@@ -255,8 +255,8 @@ subsingleton.elim _ _
 
 /-- Reinterpret a bundled monotone function as a monotone function between dual orders. -/
 @[simps] protected def dual : (α →ₘ β) ≃ (order_dual α →ₘ order_dual β) :=
-{ to_fun := λ f, ⟨order_dual.to_dual ∘ f ∘ order_dual.of_dual, f.mono.order_dual⟩,
-  inv_fun := λ f, ⟨order_dual.of_dual ∘ f ∘ order_dual.to_dual, f.mono.order_dual⟩,
+{ to_fun := λ f, ⟨order_dual.to_dual ∘ f ∘ order_dual.of_dual, f.mono.dual⟩,
+  inv_fun := λ f, ⟨order_dual.of_dual ∘ f ∘ order_dual.to_dual, f.mono.dual⟩,
   left_inv := λ f, ext _ _ rfl,
   right_inv := λ f, ext _ _ rfl }
 
@@ -386,8 +386,8 @@ namespace rel_hom
 
 variables (f : ((<) : α → α → Prop) →r ((<) : β → β → Prop))
 
-/-- A bundled expression of the fact that a map between partial orders that is strictly monotonic
-is weakly monotonic. -/
+/-- A bundled expression of the fact that a map between partial orders that is strictly monotone
+is weakly monotone. -/
 @[simps {fully_applied := ff}]
 def to_preorder_hom : α →ₘ β :=
 { to_fun    := f,

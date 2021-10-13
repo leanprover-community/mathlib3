@@ -404,7 +404,7 @@ instance : metric_space GH_space :=
     have : range Φ = range Ψ,
     { have hΦ : is_compact (range Φ) := is_compact_range Φisom.continuous,
       have hΨ : is_compact (range Ψ) := is_compact_range Ψisom.continuous,
-      apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
+      apply (is_closed.Hausdorff_dist_zero_iff_eq _ _ _).1 (DΦΨ.symm),
       { exact hΦ.is_closed },
       { exact hΨ.is_closed },
       { exact Hausdorff_edist_ne_top_of_nonempty_of_bounded (range_nonempty _)
@@ -526,7 +526,7 @@ isometric up to `ε₂`, then the Gromov-Hausdorff distance between the spaces i
 `ε₁ + ε₂/2 + ε₃`. -/
 theorem GH_dist_le_of_approx_subsets {s : set X} (Φ : s → Y) {ε₁ ε₂ ε₃ : ℝ}
   (hs : ∀ x : X, ∃ y ∈ s, dist x y ≤ ε₁) (hs' : ∀ x : Y, ∃ y : s, dist x (Φ y) ≤ ε₃)
-  (H : ∀ x y : s, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε₂) :
+  (H : ∀ x y : s, |dist x y - dist (Φ x) (Φ y)| ≤ ε₂) :
   GH_dist X Y ≤ ε₁ + ε₂ / 2 + ε₃ :=
 begin
   refine le_of_forall_pos_le_add (λ δ δ0, _),
@@ -535,8 +535,8 @@ begin
   have sne : s.nonempty := ⟨xs, hxs⟩,
   letI : nonempty s := sne.to_subtype,
   have : 0 ≤ ε₂ := le_trans (abs_nonneg _) (H ⟨xs, hxs⟩ ⟨xs, hxs⟩),
-  have : ∀ p q : s, abs (dist p q - dist (Φ p) (Φ q)) ≤ 2 * (ε₂/2 + δ) := λ p q, calc
-    abs (dist p q - dist (Φ p) (Φ q)) ≤ ε₂ : H p q
+  have : ∀ p q : s, |dist p q - dist (Φ p) (Φ q)| ≤ 2 * (ε₂/2 + δ) := λ p q, calc
+    |dist p q - dist (Φ p) (Φ q)| ≤ ε₂ : H p q
     ... ≤ 2 * (ε₂/2 + δ) : by linarith,
   -- glue `X` and `Y` along the almost matching subsets
   letI : metric_space (X ⊕ Y) :=
@@ -560,13 +560,13 @@ begin
                                               + Hausdorff_dist (Fl '' s) (range Fr),
   { have B : bounded (range Fl) := (is_compact_range Il.continuous).bounded,
     exact Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_nonempty_of_bounded
-      (range_nonempty _) (sne.image _) B (B.subset (image_subset_range _ _))) },
+      (range_nonempty _) (sne.image _) B (B.mono (image_subset_range _ _))) },
   have : Hausdorff_dist (Fl '' s) (range Fr) ≤ Hausdorff_dist (Fl '' s) (Fr '' (range Φ))
                                              + Hausdorff_dist (Fr '' (range Φ)) (range Fr),
   { have B : bounded (range Fr) := (is_compact_range Ir.continuous).bounded,
     exact Hausdorff_dist_triangle' (Hausdorff_edist_ne_top_of_nonempty_of_bounded
       ((range_nonempty _).image _) (range_nonempty _)
-      (bounded.subset (image_subset_range _ _) B) B) },
+      (bounded.mono (image_subset_range _ _) B) B) },
   have : Hausdorff_dist (range Fl) (Fl '' s) ≤ ε₁,
   { rw [← image_univ, Hausdorff_dist_image Il],
     have : 0 ≤ ε₁ := le_trans dist_nonneg Dxs,
@@ -663,7 +663,7 @@ begin
         by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
       exact le_of_lt hy },
-    show ∀ x y : s p, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε,
+    show ∀ x y : s p, |dist x y - dist (Φ x) (Φ y)| ≤ ε,
     { /- the distance between `x` and `y` is encoded in `F p`, and the distance between
       `Φ x` and `Φ y` (two points of `s q`) is encoded in `F q`, all this up to `ε`.
       As `F p = F q`, the distances are almost equal. -/
@@ -706,14 +706,14 @@ begin
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
       have I := calc
-        abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) =
-          abs (ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))) : (abs_mul _ _).symm
-        ... = abs ((ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))) : by { congr, ring }
+        |ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)| =
+          |ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))| : (abs_mul _ _).symm
+        ... = |(ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))| : by { congr, ring }
         ... ≤ 1 : le_of_lt (abs_sub_lt_one_of_floor_eq_floor this),
       calc
-        abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
+        |dist x y - dist (Ψ x) (Ψ y)| = (ε * ε⁻¹) * |dist x y - dist (Ψ x) (Ψ y)| :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
-        ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
+        ... = ε * (|ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)|) :
           by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },
@@ -806,7 +806,7 @@ begin
         by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
       exact le_trans (le_of_lt hy) u_le_ε },
-    show ∀ x y : s p, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε,
+    show ∀ x y : s p, |dist x y - dist (Φ x) (Φ y)| ≤ ε,
     { /- the distance between `x` and `y` is encoded in `F p`, and the distance between
       `Φ x` and `Φ y` (two points of `s q`) is encoded in `F q`, all this up to `ε`.
       As `F p = F q`, the distances are almost equal. -/
@@ -873,14 +873,14 @@ begin
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
       have I := calc
-        abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) =
-          abs (ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))) : (abs_mul _ _).symm
-        ... = abs ((ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))) : by { congr, ring }
+        |ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)| =
+          |ε⁻¹ * (dist x y - dist (Ψ x) (Ψ y))| : (abs_mul _ _).symm
+        ... = |(ε⁻¹ * dist x y) - (ε⁻¹ * dist (Ψ x) (Ψ y))| : by { congr, ring }
         ... ≤ 1 : le_of_lt (abs_sub_lt_one_of_floor_eq_floor this),
       calc
-        abs (dist x y - dist (Ψ x) (Ψ y)) = (ε * ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y)) :
+        |dist x y - dist (Ψ x) (Ψ y)| = (ε * ε⁻¹) * |dist x y - dist (Ψ x) (Ψ y)| :
           by rw [mul_inv_cancel (ne_of_gt εpos), one_mul]
-        ... = ε * (abs (ε⁻¹) * abs (dist x y - dist (Ψ x) (Ψ y))) :
+        ... = ε * (|ε⁻¹| * |dist x y - dist (Ψ x) (Ψ y)|) :
           by rw [abs_of_nonneg (le_of_lt (inv_pos.2 εpos)), mul_assoc]
         ... ≤ ε * 1 : mul_le_mul_of_nonneg_left I (le_of_lt εpos)
         ... = ε : mul_one _ } },

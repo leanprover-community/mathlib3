@@ -239,32 +239,6 @@ apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
 
--- data/mllist.lean
-apply_nolint tactic.mllist.append unused_arguments
-apply_nolint tactic.mllist.enum_from unused_arguments
-apply_nolint tactic.mllist.filter unused_arguments
-apply_nolint tactic.mllist.filter_map unused_arguments
-apply_nolint tactic.mllist.force unused_arguments
-apply_nolint tactic.mllist.head unused_arguments
-apply_nolint tactic.mllist.join unused_arguments
-apply_nolint tactic.mllist.m_of_list unused_arguments
-apply_nolint tactic.mllist.map unused_arguments
-apply_nolint tactic.mllist.mfilter unused_arguments
-apply_nolint tactic.mllist.mfilter_map unused_arguments
-apply_nolint tactic.mllist.mfirst unused_arguments
-apply_nolint tactic.mllist.mmap unused_arguments
-apply_nolint tactic.mllist.monad_lift unused_arguments
-apply_nolint tactic.mllist.of_list unused_arguments
-apply_nolint tactic.mllist.take unused_arguments
-apply_nolint tactic.mllist.uncons unused_arguments
-
--- data/multiset/basic.lean
-apply_nolint multiset.decidable_exists_multiset doc_blame
-apply_nolint multiset.decidable_forall_multiset doc_blame
-apply_nolint multiset.rec_on doc_blame
-apply_nolint multiset.strong_induction_on doc_blame
-apply_nolint multiset.sum doc_blame
-
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
@@ -273,12 +247,6 @@ apply_nolint nat.subtype.semilattice_sup_bot fails_quickly
 
 -- data/num/bitwise.lean
 apply_nolint snum.cadd doc_blame
-
--- data/opposite.lean
-apply_nolint opposite.op_induction doc_blame
-apply_nolint tactic.interactive.op_induction doc_blame
-apply_nolint tactic.op_induction doc_blame
-apply_nolint tactic.op_induction' doc_blame
 
 -- data/option/defs.lean
 apply_nolint option.traverse doc_blame
@@ -312,12 +280,6 @@ apply_nolint pnat.xgcd_type.succ₂ doc_blame
 apply_nolint pnat.xgcd_type.v doc_blame
 apply_nolint pnat.xgcd_type.w doc_blame
 apply_nolint pnat.xgcd_type.z doc_blame
-
--- data/polynomial/identities.lean
-apply_nolint polynomial.binom_expansion doc_blame
-apply_nolint polynomial.eval_sub_factor doc_blame
-apply_nolint polynomial.pow_add_expansion doc_blame
-apply_nolint polynomial.pow_sub_pow_factor doc_blame
 
 -- data/seq/computation.lean
 apply_nolint computation.bind.F doc_blame
@@ -432,10 +394,6 @@ apply_nolint tactic.mono doc_blame
 -- number_theory/dioph.lean
 apply_nolint poly has_inhabited_instance
 
--- number_theory/pell.lean
-apply_nolint pell.az unused_arguments
-apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
-
 -- number_theory/zsqrtd/basic.lean
 apply_nolint zsqrtd.le doc_blame
 apply_nolint zsqrtd.lt doc_blame
@@ -449,12 +407,6 @@ apply_nolint gaussian_int.mod doc_blame
 -- order/filter/pointwise.lean
 apply_nolint filter.has_add check_reducibility
 apply_nolint filter.has_mul check_reducibility
-
--- order/fixed_points.lean
-apply_nolint fixed_points.next doc_blame
-apply_nolint fixed_points.next_fixed doc_blame
-apply_nolint fixed_points.prev doc_blame
-apply_nolint fixed_points.prev_fixed doc_blame
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly

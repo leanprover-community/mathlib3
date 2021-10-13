@@ -445,6 +445,20 @@ begin
   simpa only [dif_pos hi] using h1
 end
 
+omit dec
+/-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
+  (All dependent functions on a finite type are finitely supported.) -/
+@[simps apply] def equiv_fun_on_fintype [fintype ι] : (Π₀ i, β i) ≃ (Π i, β i) :=
+{ to_fun := coe_fn,
+  inv_fun := λ f, ⟦⟨f, finset.univ.1, λ i, or.inl $ finset.mem_univ_val _⟩⟧,
+  left_inv := λ x, coe_fn_injective rfl,
+  right_inv := λ x, rfl }
+
+@[simp] lemma equiv_fun_on_fintype_symm_coe [fintype ι] (f : Π₀ i, β i) :
+  equiv_fun_on_fintype.symm f = f :=
+equiv.symm_apply_apply _ _
+include dec
+
 /-- The function `single i b : Π₀ i, β i` sends `i` to `b`
 and all other points to `0`. -/
 def single (i : ι) (b : β i) : Π₀ i, β i :=
@@ -459,6 +473,15 @@ begin
     simp only [mk_apply, dif_pos h, dif_pos h1], refl },
   { have h1 : i' ∉ ({i} : finset ι) := finset.not_mem_singleton.2 (ne.symm h),
     simp only [mk_apply, dif_neg h, dif_neg h1] }
+end
+
+lemma single_eq_pi_single {i b} : ⇑(single i b : Π₀ i, β i) = pi.single i b :=
+begin
+  ext i',
+  simp only [pi.single, function.update],
+  split_ifs,
+  { simp [h] },
+  { simp [ne.symm h] }
 end
 
 @[simp] lemma single_zero (i) : (single i 0 : Π₀ i, β i) = 0 :=
@@ -529,6 +552,14 @@ lemma single_eq_of_sigma_eq
   dfinsupp.single i xi = dfinsupp.single j xj :=
 by { cases h, refl }
 
+@[simp] lemma equiv_fun_on_fintype_single [fintype ι] (i : ι) (m : β i) :
+  (@dfinsupp.equiv_fun_on_fintype ι β _ _) (dfinsupp.single i m) = pi.single i m :=
+by { ext, simp [dfinsupp.single_eq_pi_single], }
+
+@[simp] lemma equiv_fun_on_fintype_symm_single [fintype ι] (i : ι) (m : β i) :
+  (@dfinsupp.equiv_fun_on_fintype ι β _ _).symm (pi.single i m) = dfinsupp.single i m :=
+by { ext i', simp only [← single_eq_pi_single, equiv_fun_on_fintype_symm_coe] }
+
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) : (Π₀ i, β i) → Π₀ i, β i :=
 quotient.map
@@ -545,6 +576,15 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
+  f.erase i = f - single i (f i) :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
 
 @[simp] lemma erase_zero (i : ι) : erase i (0 : Π₀ i, β i) = 0 :=
 ext $ λ _, if_t_t _ _
@@ -613,6 +653,31 @@ begin
   { simp },
   { simp [hi.symm] }
 end
+
+lemma update_eq_single_add_erase {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = single i b + f.erase i :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_erase_add_single {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = f.erase i + single i b :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_sub_add_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι)
+  (b : β i) [decidable (b = 0)] :
+  f.update i b = f - single i (f i) + single i b :=
+by rw [update_eq_erase_add_single f i b, erase_eq_sub_single f i]
 
 end update
 

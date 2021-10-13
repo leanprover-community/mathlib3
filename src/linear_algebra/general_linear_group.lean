@@ -7,8 +7,11 @@ import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
 import linear_algebra.determinant
+<<<<<<< HEAD
 import ring_theory.subsemiring
 
+=======
+>>>>>>> origin/master
 
 /-!
 # The General Linear group $GL(n, R)$
@@ -16,7 +19,11 @@ This file defines the elements of the General Linear group `general_linear_group
 consisting of all invertible `n` by `n` `R`-matrices.
 ## Main definitions
 * `matrix.general_linear_group` is the type of matrices over R which are units in the matrix ring.
+<<<<<<< HEAD
 * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with
+=======
+* `matrix.GL_pos` gives the subgroup of matrices with
+>>>>>>> origin/master
   positive determinant (over a linear ordered ring).
 ## Tags
 matrix group, group, matrix inverse
@@ -27,6 +34,7 @@ universes u v
 open_locale matrix
 open linear_map
 
+<<<<<<< HEAD
 --TODO: Move this somewhere else.
 /--Submonoid of positive elements of an ordered semiring-/
 def pos_submonoid {R : Type*} [ordered_semiring R] [nontrivial R] : submonoid R :=
@@ -41,6 +49,8 @@ subgroup (units R) :=
   inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
   ..pos_submonoid.comap (units.coe_hom R)}
 
+=======
+>>>>>>> origin/master
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
 abbreviation general_linear_group (n : Type u) (R : Type v)
@@ -97,12 +107,17 @@ variables (A B : GL n R)
 
 @[simp] lemma coe_one : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
 
+<<<<<<< HEAD
 @[simp] lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
+=======
+lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
+>>>>>>> origin/master
 begin
   letI := A.invertible,
   exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
 end
 
+<<<<<<< HEAD
 
 @[simp] lemma to_lin'_one : to_lin' (1 : GL n R).1 = linear_map.id :=
 matrix.to_lin'_one
@@ -145,6 +160,10 @@ end
 
 end finite_fields
 
+=======
+end coe_lemmas
+
+>>>>>>> origin/master
 end general_linear_group
 
 namespace special_linear_group
@@ -166,12 +185,19 @@ variables (n R)
 /-- This is the subgroup of `nxn` matrices with entries over a
 linear ordered ring and positive determinant. -/
 def GL_pos : subgroup (GL n R) :=
+<<<<<<< HEAD
 units.pos_subgroup.comap general_linear_group.det
 
 end
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
 
+=======
+(units.pos_subgroup R).comap general_linear_group.det
+end
+
+@[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
+>>>>>>> origin/master
 end
 
 section has_neg
@@ -179,6 +205,7 @@ section has_neg
 variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
 [fact (even (fintype.card n))]
 
+<<<<<<< HEAD
 /-- Formal operation of negation on special linear group on even cardinality `n` given by negating
 each element. -/
 instance : has_neg (GL_pos n R) :=
@@ -191,6 +218,23 @@ instance : has_neg (GL_pos n R) :=
   have gdet:=g.property,
   simp at gdet,
   exact gdet,}⟩⟩
+=======
+/-- Formal operation of negation on general linear group on even cardinality `n` given by negating
+each element. -/
+instance : has_neg (GL_pos n R) :=
+⟨λ g,
+   ⟨- g,
+  begin
+    simp only [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg],
+    have := det_smul g (-1),
+    simp only [general_linear_group.coe_fn_eq_coe, one_smul, coe_fn_coe_base, neg_smul] at this,
+    rw this,
+    simp [nat.neg_one_pow_of_even (fact.out (even (fintype.card n)))],
+    have gdet := g.property,
+    simp only [mem_GL_pos, general_linear_group.coe_det_apply, subtype.val_eq_coe] at gdet,
+    exact gdet,
+  end⟩⟩
+>>>>>>> origin/master
 
 @[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
 rfl
@@ -216,6 +260,7 @@ instance : has_coe (special_linear_group n R) (GL_pos n R) := ⟨to_GL_pos⟩
 
 lemma coe_eq_to_GL_pos : (coe : special_linear_group n R → GL_pos n R) = to_GL_pos := rfl
 
+<<<<<<< HEAD
 lemma to_GL_pos_is_injective:
 function.injective (to_GL_pos : special_linear_group n R → GL_pos n R):=
 begin
@@ -229,6 +274,12 @@ begin
   dsimp at *,
   rw h_2,
 end
+=======
+lemma to_GL_pos_injective :
+  function.injective (to_GL_pos : special_linear_group n R → GL_pos n R) :=
+(show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
+ from subtype.coe_injective).of_comp
+>>>>>>> origin/master
 
 end special_linear_group
 end matrix

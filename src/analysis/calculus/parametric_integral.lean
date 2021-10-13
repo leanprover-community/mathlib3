@@ -12,7 +12,7 @@ import analysis.calculus.mean_value
 A parametric integral is a function with shape `f = λ x : H, ∫ a : α, F x a ∂μ` for some
 `F : H → α → E`, where `H` and `E` are normed spaces and `α` is a measured space with measure `μ`.
 
-We already know from `continuous_of_dominated` in `measure_theory.bochner_integral` how to
+We already know from `continuous_of_dominated` in `measure_theory.integral.bochner` how to
 guarantee that `f` is continuous using the dominated convergence theorem. In this file,
 we want to express the derivative of `f` as the integral of the derivative of `F` with respect
 to `x`.
@@ -72,7 +72,7 @@ lemma has_fderiv_at_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (
 begin
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have nneg : ∀ x, 0 ≤ ∥x - x₀∥⁻¹ := λ x, inv_nonneg.mpr (norm_nonneg _) ,
-  set b : α → ℝ := λ a, abs (bound a),
+  set b : α → ℝ := λ a, |bound a|,
   have b_int : integrable b μ := bound_integrable.norm,
   have b_nonneg : ∀ a, 0 ≤ b a := λ a, abs_nonneg _,
   have hF_int' : ∀ x ∈ ball x₀ ε, integrable (F x) μ,

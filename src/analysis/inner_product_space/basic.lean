@@ -44,7 +44,7 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
 
 We globally denote the real and complex inner products by `⟪·, ·⟫_ℝ` and `⟪·, ·⟫_ℂ` respectively.
 We also provide two notation namespaces: `real_inner_product_space`, `complex_inner_product_space`,
-which respectively introduce the plain notation `⟪·, ·⟫` for the the real and complex inner product.
+which respectively introduce the plain notation `⟪·, ·⟫` for the real and complex inner product.
 
 The orthogonal complement of a submodule `K` is denoted by `Kᗮ`.
 
@@ -381,7 +381,7 @@ end
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
-local notation `absR` := _root_.abs
+local notation `absR` := has_abs.abs
 local notation `absK` := @is_R_or_C.abs 𝕜 _
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 local postfix `⋆`:90 := complex.conj

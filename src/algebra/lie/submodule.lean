@@ -175,7 +175,7 @@ def to_lie_submodule (K : lie_subalgebra R L) : lie_submodule R K L :=
 
 @[simp] lemma coe_to_lie_submodule (K : lie_subalgebra R L) :
   (K.to_lie_submodule : submodule R L) = K :=
-rfl
+by { rcases K with ⟨⟨⟩⟩, refl, }
 
 @[simp] lemma mem_to_lie_submodule {K : lie_subalgebra R L} (x : L) :
   x ∈ K.to_lie_submodule ↔ x ∈ K :=

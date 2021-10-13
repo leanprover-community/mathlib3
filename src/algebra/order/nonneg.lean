@@ -277,16 +277,22 @@ example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a
   (by apply_instance : decidable (a ≤ b)) = @conditionally_complete_linear_order_bot.decidable_le _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
-set_option pp.implicit true
-#print conditionally_complete_linear_order.decidable_eq
+-- this makes the decidable_eq proofs definitionally equal
+attribute [irreducible] subtype.decidable_eq
+-- set_option pp.implicit true
+-- set_option pp.notation false
+-- #print conditionally_complete_linear_order.decidable_eq
+-- #print id
+-- #print subtype.linear_order
 open tactic
 example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
   (by apply_instance : decidable (a = b)) = @conditionally_complete_linear_order_bot.decidable_eq _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by { do { (_, l, r) ← target_lhs_rhs,
-whnf l reducible >>= trace,
-whnf r reducible >>= trace,
+whnf l transparency.instances >>= trace,
+whnf r transparency.instances >>= trace,
+is_def_eq l r transparency.instances,
 skip },
-refl }
+tactic.reflexivity tactic.transparency.instances }
 
 example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
   (by apply_instance : decidable (a < b)) = @conditionally_complete_linear_order_bot.decidable_lt _ (nonneg.conditionally_complete_linear_order_bot h) a b :=

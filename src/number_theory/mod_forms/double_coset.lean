@@ -1,11 +1,19 @@
 import data.setoid.basic
 import group_theory.subgroup.basic
+import group_theory.coset
 import data.set.basic
+import data.nat.enat
 
 variables {G : Type*} [group G] {α : Type*} [has_mul α]
 
+namespace double_coset
+
 def double_coset_rel (H K : subgroup G) : G → G → Prop :=
-λ x y, (∃ (a ∈  H) (b ∈  K), a*x*b=y)
+λ x y, (∃ (a ∈  H) (b ∈  K), y=a*x*b)
+
+@[simp]
+lemma rel_iff (H K : subgroup G) (x y : G) :
+  double_coset_rel H K x y  ↔  (∃ (a ∈  H) (b ∈  K), y=a*x*b) := iff.rfl
 
 lemma double_coset_rel_is_equiv  (H K : subgroup G) : equivalence (double_coset_rel H K) :=
 begin
@@ -26,7 +34,7 @@ begin
   use b⁻¹,
   have hbb:= subgroup.inv_mem K hb,
   simp only [hbb, true_and],
-  rw ← hx,
+  rw  hx,
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
   intros x y z,
@@ -38,8 +46,8 @@ begin
   use b*d,
   have hdb:=  (K.mul_mem hb hd),
   simp only [hdb, true_and],
-  rw ← hyz,
-  rw ← hxy,
+  rw  hyz,
+  rw  hxy,
   simp_rw ← mul_assoc,
 end
 
@@ -115,7 +123,6 @@ end
 
 lemma disjoint_doset  (H K : subgroup G) (a b : G) : ¬ disjoint (doset H.1 K a  ) (doset H K b)
   →  (doset H.1 K a  ) = (doset H K b) :=
-
 begin
   intro h,
   have hb :  b ∈ (doset H.1 K a), by {apply disjoint_sub _ _ _ _ h, },
@@ -126,3 +133,162 @@ begin
   apply sub_doset H K b a ha,
   apply sub_doset H K a b hb,
 end
+
+def quot_to_doset (H K : subgroup G) (q : double_coset_quotient H K ) : set G :=  (doset H.1 K q.out')
+
+abbreviation mk (H K : subgroup G) (a : G) : double_coset_quotient H K  :=
+quotient.mk' a
+
+lemma eq (H K : subgroup G) (a b : G): mk H K a = mk H K b ↔ ∃ (h ∈ H) (k ∈  K), b=h*a*k :=
+begin
+rw quotient.eq',
+apply  (rel_iff H K a b),
+end
+
+lemma out_eq' (H K : subgroup G) (q : double_coset_quotient H K ) : mk H K q.out' = q :=
+quotient.out_eq' q
+
+lemma mk_out'_eq_mul  (H K : subgroup G)  (g : G) :
+  ∃ (h k : G), (h ∈ H) ∧ (k ∈ K) ∧   (mk H K g :  double_coset_quotient H K).out' = h * g * k :=
+begin
+have := eq  H K (mk H K g :  double_coset_quotient H K).out' g,
+rw out_eq' at this,
+simp only [exists_prop] at this,
+have h: mk H K g = mk H K g, by {refl,},
+have hh:= this.1 h,
+let l:=classical.some_spec hh,
+let le:=classical.some hh,
+have hr:= l.2,
+let r:=classical.some_spec hr,
+let re:=classical.some hr,
+use le⁻¹,
+use re⁻¹,
+simp only [H.inv_mem l.left, K.inv_mem r.left, true_and],
+have fl:=r.2,
+simp_rw ← le at fl,
+simp_rw ← re at fl,
+rw  fl,
+simp_rw ← mul_assoc,
+simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
+exact congr_arg quotient.out' (congr_arg (mk H K) (eq.symm fl)),
+end
+
+lemma doset_eq_quot_eq (H K : subgroup G) (a b : G) :
+  (doset H.1 K a)= (doset H K b) → mk H K a = mk H K b :=
+begin
+intro h,
+rw eq,
+have : b ∈ doset H.1 K a, by { rw h, simp, use 1, simp, simp [H.one_mem, K.one_mem], },
+simp_rw doset at this,
+simp at *,
+apply this,
+end
+
+lemma disjoint_doset'  (H K : subgroup G) (a b : double_coset_quotient H K) :
+   a ≠ b → disjoint (doset H.1 K a.out'  ) (doset H K b.out') :=
+begin
+simp,
+contrapose,
+simp,
+intro h,
+have := disjoint_doset H K _ _ h,
+have h2:= doset_eq_quot_eq _ _ _ _ this,
+simp_rw [out_eq'] at h2,
+apply h2,
+end
+
+
+lemma top_eq_union_dosets (H K : subgroup G) : (⊤ : set G) = ⋃ q, quot_to_doset H K q :=
+begin
+  simp only [set.top_eq_univ],
+  ext,
+  simp only [set.mem_Union, true_iff, set.mem_univ],
+  use mk H K x,
+  rw quot_to_doset,
+  simp only [exists_prop, doset_mem, subgroup.mem_carrier, set_like.mem_coe],
+  have:= mk_out'_eq_mul H K x,
+  let l:=classical.some_spec this,
+  let le:=classical.some this,
+  let r:=classical.some_spec l,
+  let re:=classical.some l,
+  have rf:= r.2.2,
+  use le⁻¹,
+  simp only [H.inv_mem r.left, true_and],
+  use re⁻¹,
+  simp [K.inv_mem r.2.1],
+  simp_rw ← le at rf,
+  simp_rw ← re at rf,
+  rw rf,
+  simp_rw ← mul_assoc,
+  simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
+end
+
+lemma doset_union_right_coset (H K : subgroup G) (a : G):
+  (doset H.1 K a) = ⋃ (k : K), (right_coset H (a*k)) :=
+begin
+  ext,
+  simp only [mem_right_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, doset_mem,
+    subgroup.mem_carrier, set_like.mem_coe],
+  split,
+  intro h,
+  have h1:=classical.some_spec h,
+  let l:=classical.some h,
+  have h2:=h1.2,
+  let r:=classical.some h2,
+  have h3:=classical.some_spec h2,
+  use r,
+  simp [h3.1],
+  simp_rw ← r at h3,
+  simp_rw ← l at h3,
+  have := h3.2,
+  simp_rw this,
+  simp_rw ← mul_assoc,
+  simp only [mul_inv_cancel_right, subgroup.coe_mk],
+  apply h1.1,
+  intro h,
+  let r:=classical.some h,
+  have hh:=classical.some_spec h,
+  use x*r⁻¹*a⁻¹,
+  simp_rw ← r at hh,
+  simp_rw ← mul_assoc at *,
+  simp only [hh, true_and, inv_mul_cancel_right],
+  use r,
+  simp only [set_like.coe_mem, eq_self_iff_true, and_self, inv_mul_cancel_right],
+end
+
+lemma doset_union_left_coset (H K : subgroup G) (a : G):
+  (doset H.1 K a) = ⋃ (h : H), (left_coset (h*a) K) :=
+begin
+  ext,
+  simp only [mem_left_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, doset_mem,
+    subgroup.mem_carrier, set_like.mem_coe],
+  split,
+  intro h,
+  have h1:=classical.some_spec h,
+  let l:=classical.some h,
+  have h2:=h1.2,
+  let r:=classical.some h2,
+  have h3:=classical.some_spec h2,
+  use l,
+  simp [h1.1],
+  simp_rw ← r at h3,
+  simp_rw ← l at h3,
+  have := h3.2,
+  simp_rw this,
+  simp_rw ← mul_assoc,
+  simp only [one_mul, mul_left_inv, subgroup.coe_mk, inv_mul_cancel_right],
+  apply h3.1,
+  intro h,
+  let r:=classical.some h,
+  have hh:=classical.some_spec h,
+  use r ,
+  simp_rw ← r at hh,
+  simp only [true_and, set_like.coe_mem],
+  use a⁻¹*r⁻¹*x,
+  simp only [hh, true_and],
+  simp_rw ← mul_assoc at *,
+  simp only [one_mul, mul_right_inv, mul_inv_cancel_right],
+end
+
+
+end double_coset

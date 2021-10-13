@@ -22,7 +22,8 @@ variables {R : Type*}
 lemma pow_right_comm [ordered_semiring R] {a : R} {b c : ℕ} : (a^b)^c = (a^c)^b :=
 by rw [←pow_mul, mul_comm, pow_mul]
 
-lemma new_one_lt_pow {K} [ordered_semiring K] [nontrivial K] {p : K} (hp : 1 < p) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
+lemma new_one_lt_pow {K} [ordered_semiring K] [nontrivial K] {p : K} (hp : 1 < p) :
+  ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
 | 1 h := by simp; assumption
 | (k+2) h :=
   begin
@@ -93,8 +94,10 @@ one_lt_pow_iff_of_nonneg ha two_ne_zero
 
 end group_power
 
-lemma singleton_injective : injective (singleton : α → finset α) :=
+lemma finset.singleton_injective : injective (singleton : α → finset α) :=
 λ i j, singleton_inj.1
+
+alias finset.card_pos ↔ _ finset.nonempty.card_pos
 
 namespace real
 
@@ -360,7 +363,7 @@ variables (G : simple_graph α) [decidable_rel G.adj]
 /-- A pair of finsets of vertices is ε-uniform iff their edge density is close to the density of any
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
 def is_uniform (ε : ℝ) (U V : finset α) : Prop :=
-∀ U', U' ⊆ U → ∀ V', V' ⊆ V → ε * U.card ≤ U'.card → ε * V.card ≤ V'.card →
+∀ U', U' ⊆ U → ∀ V', V' ⊆ V → (U.card : ℝ) * ε ≤ U'.card → (V.card : ℝ) * ε ≤ V'.card →
 abs (edge_density G U' V' - edge_density G U V) < ε
 
 /-- If the pair `(U, V)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
@@ -369,7 +372,7 @@ lemma is_uniform_mono {ε ε' : ℝ} {U V : finset α} (h : ε ≤ ε') (hε : i
 begin
   intros U' hU' V' hV' hU hV,
   refine (hε _ hU' _ hV' (le_trans _ hU) (le_trans _ hV)).trans_le h;
-  exact mul_le_mul_of_nonneg_right h (nat.cast_nonneg _),
+  exact mul_le_mul_of_nonneg_left h (nat.cast_nonneg _),
 end
 
 lemma is_uniform.symm {G : simple_graph α} [decidable_rel G.adj] {ε : ℝ} {U V : finset α}

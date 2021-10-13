@@ -13,7 +13,8 @@ import .index
 open finset fintype simple_graph
 open_locale classical
 
-variables {α : Type*} [fintype α] {P : finpartition α} (hP : P.is_equipartition) (G : simple_graph α) (ε : ℝ)
+variables {α : Type*} [fintype α] {P : finpartition α} (hP : P.is_equipartition)
+  (G : simple_graph α) (ε : ℝ)
 
 local notation `m` := (card α/exp_bound P.size : ℕ)
 local notation `a` := (card α/P.size - m * 4^P.size : ℕ)

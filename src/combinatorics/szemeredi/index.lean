@@ -7,6 +7,10 @@ import .mathlib
 import combinatorics.choose.bounds
 import data.sym.card
 
+/-!
+# Index
+-/
+
 open_locale big_operators
 open finset fintype function relation
 

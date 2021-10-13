@@ -19,17 +19,14 @@ This pair of functors is also known as a *morphism of sites* in the literature.
 
 * `category_theory.sites.cover_preserving`: a functor between sites is cover-preserving if it
 pushes covering sieves to covering sieves
+* `category_theory.sites.compatible_preserving`: a functor between sites is compatible-preserving
+if it pushes compatible families of elements to compatible families.
 
 ## Main results
 
 - `category_theory.sites.whiskering_left_is_sheaf_of_cover_preserving`: If `G : C ⥤ D` is
-cover-preserving, then `u ⋙ -` (`uᵖ`) as a functor `(Dᵒᵖ ⥤ A) ⥤ (Cᵒᵖ ⥤ A)` of presheaves
-maps sheaves to sheaves.
-
-## Future work
-
-- For a continuous functor to pull sheaves back to sheaves, it suffices for the functor to be
-`covering_flat`. A good reference to this is probably [shulman2012sheaves]
+cover-preserving and compatible-preserving, then `u ⋙ -` (`uᵖ`) as a functor
+`(Dᵒᵖ ⥤ A) ⥤ (Cᵒᵖ ⥤ A)` of presheaves maps sheaves to sheaves.
 
 ## References
 
@@ -80,6 +77,14 @@ variables {C D : Type u₁} [category.{v₁} C] [category.{v₁} D]
 variables {A : Type u₂} [category.{v₁} A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
+/--
+A functor `u : (C, J) ⥤ (D, K)` between sites is called compatible preserving if for each
+compatible family of elements at `C` and valued in `u.op ⋙ P`, and each commuting diagram
+`f₁ ≫ u.map g₁ = f₂ ≫ u.map g₂`, `x g₁` and `x g₂` coincides when restricted via `fᵢ`.
+This is actually stronger than merely preserving compatible families because of the definition of
+`functor_pushforward` used.
+-/
+@[nolint has_inhabited_instance]
 structure compatible_preserving (K : grothendieck_topology D) (u : C ⥤ D) :=
 (compatible :
   ∀ (P : SheafOfTypes K) {Z} {T : presieve Z}
@@ -88,11 +93,12 @@ structure compatible_preserving (K : grothendieck_topology D) (u : C ⥤ D) :=
     (hg₁ : T g₁) (hg₂ : T g₂) (eq : f₁ ≫ u.map g₁ = f₂ ≫ u.map g₂),
       P.val.map f₁.op (x g₁ hg₁) = P.val.map f₂.op (x g₂ hg₂))
 
-variables {u : C ⥤ D} (hu : compatible_preserving K u) {P : SheafOfTypes K} {Z : C}
+variables {u : C ⥤ D} (hu : compatible_preserving K u) (P : SheafOfTypes K) {Z : C}
 variables {T : presieve Z} {x : family_of_elements (u.op ⋙ P.val) T} (h : x.compatible)
 
-include hu
+include h hu
 
+/-- `compatible_preserving` functors indeed preserve compatible families. -/
 lemma presieve.family_of_elements.compatible.functor_pushforward :
     (x.functor_pushforward u).compatible :=
 begin
@@ -112,37 +118,39 @@ begin
   unfold family_of_elements.functor_pushforward,
   rcases e₁ : get_functor_pushforward_structure (image_mem_functor_pushforward u T hf) with
     ⟨X, g, f', hg, eq⟩,
-  simpa using functor_pushforward_compatible_of_dense_subsite_of_compatible u hu₁ hu₂ hT h f' (𝟙 _)
-    hg hf (by simp[eq])
+  simpa using hu.compatible P h f' (𝟙 _) hg hf (by simp[eq])
 end
 
-/--
-If `u` is cover-preserving, then `u.op ⋙ _` pulls sheaves back to sheaves.
+omit h hu
 
-This result is basically https://stacks.math.columbia.edu/tag/00WW,
-but without the condition that `C` or `D` has pullbacks.
+/--
+If `u` is cover-preserving and compatible-preserving,
+then `u.op ⋙ _` pulls sheaves back to sheaves.
+
+This result is basically https://stacks.math.columbia.edu/tag/00WW.
 -/
-theorem pullback_is_sheaf_of_cover_preserving {u : C ⥤ D} [representably_flat u]
-  (hu : cover_preserving J K u) (ℱ : Sheaf K A) :
+theorem pullback_is_sheaf_of_cover_preserving {u : C ⥤ D} (hu₁ : compatible_preserving K u)
+  (hu₂ : cover_preserving J K u) (ℱ : Sheaf K A) :
   presheaf.is_sheaf J (((whiskering_left _ _ _).obj u.op).obj ℱ.val) :=
 begin
   intros X U S hS x hx,
   change family_of_elements (u.op ⋙ ℱ.val ⋙ coyoneda.obj (op X)) ⇑S at x,
-  let H := ℱ.2 X _ (hu.cover_preserve hS),
+  let H := ℱ.2 X _ (hu₂.cover_preserve hS),
+  let hx' := hx.functor_pushforward hu₁ (sheaf_over ℱ X),
   split, swap,
   { apply H.amalgamate (x.functor_pushforward u),
-    exact hx.functor_pushforward u },
+    exact hx' },
   split,
   { intros V f hf,
-    convert H.is_amalgamation (hx.functor_pushforward u)
-      (u.map f) (image_mem_functor_pushforward u S hf),
-    rw functor_pushforward_apply_map u hx },
+    convert H.is_amalgamation hx' (u.map f) (image_mem_functor_pushforward u S hf),
+    rw hu₁.apply_map (sheaf_over ℱ X) hx },
   { intros y hy,
-    refine H.is_separated_for _ y _ _ (H.is_amalgamation (hx.functor_pushforward u)),
+    refine H.is_separated_for _ y _ _
+      (H.is_amalgamation (hx.functor_pushforward hu₁ (sheaf_over ℱ X))),
     rintros V f ⟨Z, f', g', h, rfl⟩,
     erw family_of_elements.comp_of_compatible (S.functor_pushforward u)
-      (hx.functor_pushforward u) (image_mem_functor_pushforward u S h) g',
-    simpa [functor_pushforward_apply_map u hx h, ←hy f' h], }
+      hx' (image_mem_functor_pushforward u S h) g',
+    simpa [hu₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
 end
 
 end category_theory

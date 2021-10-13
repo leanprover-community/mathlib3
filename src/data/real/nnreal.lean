@@ -287,10 +287,12 @@ example : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
 by apply_instance
 
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
-{ cSup_empty := (function.funext_iff.1
-    (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
-  .. (by apply_instance : order_bot ℝ≥0),
-  .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
+nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
+
+-- { cSup_empty := (function.funext_iff.1
+--     (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
+--   .. (by apply_instance : order_bot ℝ≥0),
+--   .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
 def foo : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
 by apply_instance
 set_option pp.implicit true

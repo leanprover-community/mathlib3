@@ -387,11 +387,6 @@ lemma is_uniform_symmetric (ε : ℝ) : symmetric (is_uniform G ε) :=
 lemma is_uniform_comm (ε : ℝ) {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
 ⟨λ h, h.symm, λ h, h.symm⟩
 
-variables {G}
-
-lemma is_uniform.symm {ε : ℝ} {U V : finset α} (h : is_uniform G ε U V) : is_uniform G ε V U :=
-G.is_uniform_symmetric ε h
-
 end simple_graph
 
 /-! ## finpartition -/
@@ -611,33 +606,6 @@ by simp_rw [pairs_count_finpartition_left P, pairs_count_finpartition_right _ Q,
 
 end relation
 
-/-! ## finpartition_on.is_uniform -/
-
-namespace finpartition_on
-variables {s : finset α} (P : finpartition_on s) (G : simple_graph α)
-open_locale classical
-
-noncomputable def non_uniform_pairs (ε : ℝ) :
-  finset (finset α × finset α) :=
-(P.parts.product P.parts).filter (λ UV, UV.1 ≠ UV.2 ∧ ¬G.is_uniform ε UV.1 UV.2)
-
-lemma mem_non_uniform_pairs (U V : finset α) (ε : ℝ) :
-  (U, V) ∈ P.non_uniform_pairs G ε ↔ U ∈ P.parts ∧ V ∈ P.parts ∧ U ≠ V ∧
-  ¬G.is_uniform ε U V :=
-by rw [non_uniform_pairs, mem_filter, mem_product, and_assoc]
-
-/-- An finpartition is `ε-uniform` iff at most a proportion of `ε` of its pairs of parts are not
-`ε-uniform`. -/
-def is_uniform (ε : ℝ) : Prop :=
-((P.non_uniform_pairs G ε).card : ℝ) ≤ ε * (P.size * (P.size - 1) : ℕ)
-
-lemma empty_is_uniform {P : finpartition_on s} (hP : P.parts = ∅) (G : simple_graph α) (ε : ℝ) :
-  P.is_uniform G ε :=
-by rw [finpartition_on.is_uniform, finpartition_on.non_uniform_pairs, finpartition_on.size, hP,
-  empty_product, filter_empty, finset.card_empty, finset.card_empty, mul_zero, nat.cast_zero,
-  mul_zero]
-
-end finpartition_on
 
 /-! ## is_equipartition -/
 
@@ -669,22 +637,19 @@ by rw [P.is_equipartition_iff_card_parts_eq_average, card_univ]
 
 /-- The discrete equipartition of a fintype is the partition in singletons. -/
 @[simps]
-def discrete_finpartition_on [decidable_eq α] (s : finset α) : finpartition_on s :=
-{ parts := s.image singleton,
+def discrete_finpartition_on (s : finset α) : finpartition_on s :=
+{ parts := s.map ⟨singleton, singleton_injective⟩,
   disjoint :=
   begin
-    simp only [mem_image, exists_true_left, exists_imp_distrib],
+    simp only [mem_map, exists_true_left, exists_imp_distrib, embedding.coe_fn_mk],
     rintro a₁ a₂ i hi rfl j hj rfl k,
     simp only [mem_singleton],
     rintro rfl rfl,
     refl
   end,
-  cover := λ v hv, ⟨{v}, mem_image.2 ⟨v, hv, rfl⟩, finset.mem_singleton_self v⟩,
+  cover := λ v hv, ⟨{v}, mem_map_of_mem _ hv, mem_singleton_self v⟩,
   subset := by simp,
-  not_empty_mem := λ h, begin
-    obtain ⟨x, _, hx⟩ := mem_image.1 h,
-    exact singleton_ne_empty _ hx,
-  end }
+  not_empty_mem := by simp }
 
 @[simps]
 def indiscrete_finpartition_on {s : finset α} (hs : s.nonempty) :
@@ -701,42 +666,12 @@ def indiscrete_finpartition_on {s : finset α} (hs : s.nonempty) :
   not_empty_mem := λ h, hs.ne_empty (mem_singleton.1 h).symm }
 
 namespace discrete_finpartition_on
-variables [decidable_eq α] (s : finset α) (G : simple_graph α)
+variables (s : finset α) (G : simple_graph α)
 
 lemma is_equipartition : (discrete_finpartition_on s).is_equipartition :=
 set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
 
 protected lemma size : (discrete_finpartition_on s).size = s.card :=
-begin
-  change finset.card (s.image _) = _,
-  rw [finset.card_image_of_injective],
-  exact λ a b, singleton_inj.1,
-end
-
-lemma non_uniform_pairs {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition_on s).non_uniform_pairs G ε = ∅ :=
-begin
-  rw eq_empty_iff_forall_not_mem,
-  rintro ⟨U, V⟩,
-  simp only [finpartition_on.mem_non_uniform_pairs, discrete_finpartition_on_parts, mem_image,
-    and_imp, exists_prop, not_and, not_not, ne.def, exists_imp_distrib],
-  rintro x hx rfl y hy rfl h U' hU' V' hV' hU hV,
-  rw [card_singleton, nat.cast_one, mul_one] at hU hV,
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
-  { rw [finset.card_empty] at hU,
-    exact (hε.not_le hU).elim },
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hV',
-  { rw [finset.card_empty] at hV,
-    exact (hε.not_le hV).elim },
-  rwa [sub_self, abs_zero],
-end
-
-lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition_on s).is_uniform G ε :=
-begin
-  rw [finpartition_on.is_uniform, discrete_finpartition_on.size, non_uniform_pairs _ _ hε,
-    finset.card_empty, nat.cast_zero],
-  exact mul_nonneg hε.le (nat.cast_nonneg _),
-end
+finset.card_map _
 
 end discrete_finpartition_on

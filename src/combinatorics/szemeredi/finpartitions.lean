@@ -293,11 +293,9 @@ begin
   refine ⟨discrete_finpartition_on _, by simp, _, _⟩,
   { intros x hx i hi,
     simp only [mem_bUnion, exists_prop, mem_filter, id.def, and_assoc],
-    exact ⟨{i}, mem_image_of_mem _ (subs x hx hi), by simpa, by simp⟩ },
-  { simp only [mem_image, and_imp, forall_exists_index, filter_true_of_mem, implies_true_iff,
-      eq_self_iff_true, discrete_finpartition_on_parts, forall_apply_eq_imp_iff₂, card_singleton],
-    rw [card_image_of_injective, hs],
-    apply singleton_injective },
+    exact ⟨{i}, mem_map_of_mem _ (subs x hx hi), by simpa, by simp⟩ },
+  { rw [discrete_finpartition_on_parts, filter_true_of_mem, card_map, hs],
+    simp },
 end
 
 -- lemma equitabilise_aux' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition_on s) :

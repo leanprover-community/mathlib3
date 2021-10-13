@@ -35,6 +35,17 @@ begin
   exact ⟨h₁, h₂, ne_of_irrefl h⟩,
 end
 
+@[simp] lemma off_diag_empty [decidable_eq α] :
+  (∅ : finset α).off_diag = ∅ :=
+by rw [off_diag, empty_product, filter_empty]
+
+@[simp] lemma distinct_pairs_empty :
+  (∅ : finset α).distinct_pairs = ∅ :=
+begin
+  rw eq_empty_iff_forall_not_mem,
+  simp [mem_distinct_pairs],
+end
+
 lemma distinct_pairs_card [decidable_eq α] :
   s.distinct_pairs.card = s.card.choose 2 :=
 begin
@@ -63,11 +74,35 @@ end
 
 end finset
 
-open finset
+/-! ## finpartition_on.is_uniform -/
+
+variables {s : finset α} (P : finpartition_on s) (G : simple_graph α)
 
 namespace finpartition_on
-variables {s : finset α} (P : finpartition_on s) (G : simple_graph α)
 open_locale classical
+open finset
+
+noncomputable def non_uniform_pairs (ε : ℝ) :
+  finset (finset α × finset α) :=
+P.parts.distinct_pairs.filter (λ UV, ¬G.is_uniform ε UV.1 UV.2)
+-- (P.parts.product P.parts).filter (λ UV, UV.1 ≠ UV.2 ∧ ¬G.is_uniform ε UV.1 UV.2)
+
+lemma mem_non_uniform_pairs (U V : finset α) (ε : ℝ) :
+  (U, V) ∈ P.non_uniform_pairs G ε ↔ U ∈ P.parts ∧ V ∈ P.parts ∧ well_ordering_rel U V ∧
+  ¬G.is_uniform ε U V :=
+by rw [non_uniform_pairs, mem_filter, mem_distinct_pairs, and_assoc, and_assoc]
+
+/-- An finpartition is `ε-uniform` iff at most a proportion of `ε` of its pairs of parts are not
+`ε-uniform`. -/
+def is_uniform (ε : ℝ) : Prop :=
+((P.non_uniform_pairs G ε).card : ℝ) ≤ ε * P.size.choose 2
+
+lemma empty_is_uniform {P : finpartition_on s} (hP : P.parts = ∅) (G : simple_graph α) (ε : ℝ) :
+  P.is_uniform G ε :=
+begin
+  rw [finpartition_on.is_uniform, finpartition_on.non_uniform_pairs, finpartition_on.size, hP],
+  simp,
+end
 
 /-- The index is the auxiliary quantity that drives the induction process in the proof of
 Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a suitable equipartition,
@@ -99,3 +134,33 @@ begin
 end
 
 end finpartition_on
+
+namespace discrete_finpartition_on
+
+lemma non_uniform_pairs {ε : ℝ} (hε : 0 < ε) :
+  (discrete_finpartition_on s).non_uniform_pairs G ε = ∅ :=
+begin
+  rw eq_empty_iff_forall_not_mem,
+  rintro ⟨U, V⟩,
+  simp only [finpartition_on.mem_non_uniform_pairs, discrete_finpartition_on_parts, mem_map,
+    and_imp, exists_prop, not_and, not_not, ne.def, exists_imp_distrib, embedding.coe_fn_mk],
+  rintro x hx rfl y hy rfl h U' hU' V' hV' hU hV,
+  rw [card_singleton, nat.cast_one, mul_one] at hU hV,
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
+  { rw [finset.card_empty] at hU,
+    exact (hε.not_le hU).elim },
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hV',
+  { rw [finset.card_empty] at hV,
+    exact (hε.not_le hV).elim },
+  rwa [sub_self, abs_zero],
+end
+
+lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
+  (discrete_finpartition_on s).is_uniform G ε :=
+begin
+  rw [finpartition_on.is_uniform, discrete_finpartition_on.size, non_uniform_pairs _ hε,
+    finset.card_empty, nat.cast_zero],
+  exact mul_nonneg hε.le (nat.cast_nonneg _),
+end
+
+end discrete_finpartition_on

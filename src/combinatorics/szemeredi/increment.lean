@@ -91,7 +91,12 @@ begin
                     (pow_pos zero_lt_four _),
                 end
         end
-    ... ≤ index G (hP.increment G ε) : sorry,
+    ... ≤ index G (hP.increment G ε) :
+    begin
+      conv_rhs { rw index },
+      rw finpartition_on.is_uniform at hPG,
+
+    end
 end.
 
 end increment

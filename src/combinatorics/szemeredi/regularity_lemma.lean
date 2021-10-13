@@ -60,7 +60,7 @@ lemma iteration_bound_le_szemeredi_bound (ε l) :
 
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity [nonempty α] {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ)
+theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ)
   (hG : l ≤ card α) :
   ∃ (P : finpartition α),
     P.is_equipartition ∧ l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
@@ -68,9 +68,12 @@ begin
   obtain hα | hα := le_total (card α) (szemeredi_bound ε l),
   { refine ⟨discrete_finpartition_on _, discrete_finpartition_on.is_equipartition _, _⟩,
     rw [discrete_finpartition_on.size, card_univ],
-    exact ⟨hG, hα, discrete_finpartition_on.is_uniform _ G hε⟩ },
+    exact ⟨hG, hα, discrete_finpartition_on.is_uniform _ hε⟩ },
   let t := iteration_bound ε l,
   have ht : 0 < t := iteration_bound_pos _ _,
+  haveI : nonempty α,
+  { rw ←fintype.card_pos_iff,
+    apply ht.trans_le ((iteration_bound_le_szemeredi_bound _ _).trans hα) },
   suffices h : ∀ i, ∃ (P : finpartition α), P.is_equipartition ∧
     t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 8 * i ≤ P.index G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (nat_floor (4/ε^5) + 1),

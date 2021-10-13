@@ -238,4 +238,13 @@ begin
   { apply Ran_is_sheaf_of_cover_lifting.glued_section_is_unique }
 end
 
+variable (A)
+
+/-- The induced functor from `Sheaf J A ⥤ Sheaf K A` given by `Ran` if `G` is cover-lifting. -/
+@[simps] def sites.copullback {G : C ⥤ D} (hu : cover_lifting J K G) : Sheaf J A ⥤ Sheaf K A :=
+{ obj := λ ℱ, ⟨(Ran G.op).obj ℱ.val, Ran_is_sheaf_of_cover_lifting hu ℱ⟩,
+  map := λ _ _ f, (Ran G.op).map f,
+  map_id' := λ ℱ, (Ran G.op).map_id ℱ.val,
+  map_comp' := λ _ _ _ f g, (Ran G.op).map_comp f g }
+
 end category_theory

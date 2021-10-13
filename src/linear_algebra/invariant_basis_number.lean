@@ -183,6 +183,12 @@ begin
   refine { .. }; { intros, exact 0 } <|> tidy
 end
 
+@[nontriviality]
+lemma not_subsingleton_of_invariant_basis_number {R : Type*} [ring R] [invariant_basis_number R] :
+  subsingleton R ↔ false :=
+⟨λ h, (not_nontrivial_iff_subsingleton.2 h) (nontrivial_of_invariant_basis_number _),
+  λ h, false.rec _ h⟩
+
 end
 
 section

@@ -229,30 +229,6 @@ variables {C : Type u₄} [category.{v₄} C] {D : Type u₅} [category.{v₅} D
   map := λ X Y f, { left := f.left, right := f.right, w' :=
     by { simp only [functor.comp_map, ←F.map_comp, f.w] } } }
 
-@[simp]
-lemma pre_left_left (F : C ⥤ D) (G : D ⥤ A) (L : A ⥤ T) (R : B ⥤ T) :
-  pre_left F (G ⋙ L) R ⋙ pre_left G L R = pre_left (F ⋙ G) L R := rfl
-
-@[simp]
-lemma pre_left_right (F : C ⥤ A) (L : A ⥤ T) (G : D ⥤ B) (R : B ⥤ T) :
-  pre_left F L (G ⋙ R) ⋙ pre_right L G R = pre_right (F ⋙ L) G R ⋙ pre_left F L R := rfl
-
-@[simp]
-lemma pre_left_post (F : C ⥤ A) (L : A ⥤ T) (R : B ⥤ T) (G : T ⥤ D) :
-  pre_left F L R ⋙ post L R G = post (F ⋙ L) R G ⋙ pre_left F (L ⋙ G) (R ⋙ G) := rfl
-
-@[simp]
-lemma pre_right_right (L : A ⥤ T) (F : C ⥤ D) (G : D ⥤ B) (R : B ⥤ T) :
-  pre_right L F (G ⋙ R) ⋙ pre_right L G R = pre_right L (F ⋙ G) R := rfl
-
-@[simp]
-lemma pre_right_post (L : A ⥤ T) (F : C ⥤ B) (R : B ⥤ T) (G : T ⥤ D) :
-  pre_right L F R ⋙ post L R G = post L (F ⋙ R) G ⋙ pre_right (L ⋙ G) F (R ⋙ G) := rfl
-
-@[simp]
-lemma post_post (L : A ⥤ T) (R : B ⥤ T) (F : T ⥤ C) (G : C ⥤ D) :
-  post L R F ⋙ post (L ⋙ F) (R ⋙ F) G = post L R (F ⋙ G) := rfl
-
 end
 end comma
 

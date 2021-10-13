@@ -58,8 +58,6 @@ open function ideal
 
 variables {R : Type*} -- This will be a ring, assumed commutative in some sections
 
-set_option old_structure_cmd true
-
 section
 variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
 
@@ -87,7 +85,8 @@ section monoid
 variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+instance : has_coe_to_fun (valuation R Γ₀) :=
+{ F := λ _, R → Γ₀, coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
 instance : has_coe (valuation R Γ₀) (monoid_with_zero_hom R Γ₀) :=
@@ -134,7 +133,7 @@ v.map_sum_lt (ne_of_gt hg) hf
 v.to_monoid_with_zero_hom.to_monoid_hom.map_pow
 
 @[ext] lemma ext {v₁ v₂ : valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ :=
-by { cases v₁, cases v₂, congr, funext r, exact h r }
+by { rcases v₁ with ⟨⟨⟩⟩, rcases v₂ with ⟨⟨⟩⟩, congr, funext r, exact h r }
 
 lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = v₂ r :=
 ⟨λ h r, congr_arg _ h, ext⟩
@@ -448,7 +447,8 @@ variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_co
 variables (R) (Γ₀) [ring R]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (add_valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+instance : has_coe_to_fun (add_valuation R Γ₀) :=
+{ F := λ _, R → Γ₀, coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 variables {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
 

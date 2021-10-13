@@ -22,17 +22,6 @@ variables {R : Type*}
 lemma pow_right_comm [ordered_semiring R] {a : R} {b c : ℕ} : (a^b)^c = (a^c)^b :=
 by rw [←pow_mul, mul_comm, pow_mul]
 
-lemma new_one_lt_pow {K} [ordered_semiring K] [nontrivial K] {p : K} (hp : 1 < p) :
-  ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
-| 1 h := by simp; assumption
-| (k+2) h :=
-  begin
-    rw [←one_mul (1 : K), pow_succ],
-    refine mul_lt_mul hp _ zero_lt_one (zero_lt_one.trans hp).le,
-    apply le_of_lt,
-    simpa using new_one_lt_pow (nat.le_add_left 1 k),
-  end
-
 lemma pow_le_of_le_one [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) :
   a ^ n ≤ a :=
 (pow_one a).subst (pow_le_pow_of_le_one h₀ h₁ (nat.pos_of_ne_zero hn))
@@ -50,7 +39,7 @@ lemma pow_le_one_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a
 begin
   refine ⟨_, pow_le_one n ha⟩,
   rw [←not_lt, ←not_lt],
-  exact mt (λ h, one_lt_pow h (nat.pos_of_ne_zero hn)),
+  exact mt (λ h, one_lt_pow h hn),
 end
 
 lemma one_le_pow_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
@@ -66,7 +55,7 @@ lemma one_lt_pow_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a
   (hn : n ≠ 0) :
   1 < a^n ↔ 1 < a :=
 begin
-  refine ⟨_, λ h, one_lt_pow h (nat.pos_of_ne_zero hn)⟩,
+  refine ⟨_, λ h, one_lt_pow h hn⟩,
   rw [←not_le, ←not_le],
   exact mt (pow_le_one n ha),
 end

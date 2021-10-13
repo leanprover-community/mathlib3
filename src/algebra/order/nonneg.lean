@@ -256,3 +256,43 @@ instance has_ordered_sub [linear_ordered_ring α] : has_ordered_sub {x : α // 0
   mk_add_mk, to_nonneg_le, subtype.coe_mk]}⟩
 
 end nonneg
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  max a b = @conditionally_complete_linear_order_bot.max _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  has_lt.lt a b = @conditionally_complete_linear_order_bot.lt _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  has_le.le a b = @conditionally_complete_linear_order_bot.le _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  min a b = @conditionally_complete_linear_order_bot.min _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  (by apply_instance : decidable (a ≤ b)) = @conditionally_complete_linear_order_bot.decidable_le _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  (by apply_instance : decidable (a = b)) = @conditionally_complete_linear_order_bot.decidable_eq _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  (by apply_instance : decidable (a < b)) = @conditionally_complete_linear_order_bot.decidable_lt _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+  (by apply_instance : linear_order {x : α // z ≤ x}) =
+
+  @conditionally_complete_linear_order_bot.min _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+set_option pp.implicit true
+#print subtype.decidable_eq
+#print subset_conditionally_complete_linear_order
+#print subtype.linear_order
+#print conditionally_complete_linear_order.to_linear_order

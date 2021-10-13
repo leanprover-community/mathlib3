@@ -113,7 +113,7 @@ quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
 
 theorem lift_mk (α) : lift.{v} (#α) = #(ulift.{v u} α) := rfl
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans equiv.ulift.symm⟩
 

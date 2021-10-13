@@ -7,6 +7,8 @@ import tactic.apply_fun
 import algebra.order.ring
 import algebra.opposites
 import algebra.big_operators.basic
+import algebra.group_power.lemmas
+import algebra.field_power
 import data.equiv.ring_aut
 import data.equiv.mul_add_aut
 
@@ -115,6 +117,10 @@ op_injective $
 @[simp] lemma star_inv [group R] [star_monoid R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
   ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
+
+@[simp] lemma star_gpow [group R] [star_monoid R] (x : R) (z : ℤ) : star (x ^ z) = star x ^ z :=
+op_injective $
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_gpow x z).trans (op_gpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div [comm_group R] [star_monoid R] (x y : R) : star (x / y) = star x / star y :=
@@ -251,6 +257,11 @@ alias star_ring_aut_self_apply ← is_R_or_C.conj_conj
 @[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
   ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
+
+@[simp] lemma star_fpow [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+  star (x ^ z) = star x ^ z :=
+op_injective $
+  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_fpow x z).trans (op_gpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=

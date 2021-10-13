@@ -63,6 +63,7 @@ protected noncomputable def conditionally_complete_linear_order_bot
     (@subset_Sup_def α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩) ∅).trans $ subtype.eq $
       by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
   ..nonneg.order_bot,
+  ..(by apply_instance : linear_order {x : α // a ≤ x}), -- gives better definitional equalities
   .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _ }
 
 instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
@@ -277,8 +278,9 @@ example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a
   (by apply_instance : decidable (a ≤ b)) = @conditionally_complete_linear_order_bot.decidable_le _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
+#print nonneg.conditionally_complete_linear_order_bot
 -- this makes the decidable_eq proofs definitionally equal
-attribute [irreducible] subtype.decidable_eq
+-- attribute [irreducible] subtype.decidable_eq
 -- set_option pp.implicit true
 -- set_option pp.notation false
 -- #print conditionally_complete_linear_order.decidable_eq

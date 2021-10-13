@@ -127,12 +127,6 @@ quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
 quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
-lemma lift_universes (a : cardinal) : lift.{u v} a = lift.{(max v u) v} a :=
-begin
-  rw [← cardinal.mk_out a],
-  exact cardinal.eq.mpr ⟨equiv.ulift.trans equiv.ulift.symm⟩,
-end
-
 /-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
   there exists an embedding (injective function) from α to β. -/
 instance : has_le cardinal.{u} :=

@@ -118,7 +118,7 @@ decidable_of_iff' _ (irrational_sqrt_rat_iff q)
 /-!
 ### Dot-style operations on `irrational`
 
-#### Coercion of a rationa/integer/natural number is not irrational
+#### Coercion of a rational/integer/natural number is not irrational
 -/
 
 namespace irrational
@@ -151,6 +151,7 @@ end irrational
 namespace irrational
 
 variables (q : ℚ) {x y : ℝ}
+
 
 /-!
 #### Addition of rational/integer/natural numbers

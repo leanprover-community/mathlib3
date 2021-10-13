@@ -30,6 +30,7 @@ We do not define extended normed groups. They can be added to the chain once som
 normed space, extended norm
 -/
 
+noncomputable theory
 local attribute [instance, priority 1001] classical.prop_decidable
 open_locale ennreal
 

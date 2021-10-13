@@ -83,15 +83,15 @@ lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
   (({lie_mem := h, ..p} : lie_submodule R L M) : submodule R M) = p :=
 by { cases p, refl, }
 
+lemma coe_submodule_injective :
+  function.injective (to_submodule : lie_submodule R L M → submodule R M) :=
+λ x y h, by { cases x, cases y, congr, injection h }
+
 @[ext] lemma ext (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
-by { cases N, cases N', simp only [], ext m, exact h m, }
+coe_submodule_injective $ set_like.ext h
 
 @[simp] lemma coe_to_submodule_eq_iff : (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
-begin
-  split; intros h,
-  { ext, rw [← mem_coe_submodule, h], simp, },
-  { rw h, },
-end
+coe_submodule_injective.eq_iff
 
 /-- Copy of a lie_submodule with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
@@ -101,6 +101,12 @@ protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
   add_mem'  := hs.symm ▸ N.add_mem',
   smul_mem' := hs.symm ▸ N.smul_mem',
   lie_mem   := hs.symm ▸ N.lie_mem, }
+
+@[simp] lemma coe_copy (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) :
+  (S.copy s hs : set M) = s := rfl
+
+lemma copy_eq (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
+coe_submodule_injective (set_like.coe_injective hs)
 
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
@@ -214,10 +220,7 @@ section lattice_structure
 open set
 
 lemma coe_injective : function.injective (coe : lie_submodule R L M → set M) :=
-λ N N' h, by { cases N, cases N', simp only, exact h, }
-
-lemma coe_submodule_injective : function.injective (coe : lie_submodule R L M → submodule R M) :=
-λ N N' h, by { ext, rw [← mem_coe_submodule, h], refl, }
+set_like.coe_injective.comp coe_submodule_injective
 
 instance : partial_order (lie_submodule R L M) :=
 { le := λ N N', ∀ ⦃x⦄, x ∈ N → x ∈ N', -- Overriding `le` like this gives a better defeq.

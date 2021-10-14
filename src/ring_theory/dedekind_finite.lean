@@ -6,6 +6,12 @@ import data.polynomial.basic
 import ring_theory.nilpotent
 import order.filter.at_top_bot
 
+/-!
+
+Dedekind finite rings
+=====================
+
+-/
 namespace dedekind_finite
 
 section
@@ -24,36 +30,34 @@ instance is_dedekind_finite_ring_of_comm_ring [comm_ring R] : is_dedekind_finite
 end
 section
 
-instance is_dedekind_finite_ring_pi {ι : Type*} {α : ι → Type*}
-  [∀ i, ring $ α i] [∀ i, is_dedekind_finite_ring $ α i] : is_dedekind_finite_ring (Π i, α i) := by pi_instance
+instance is_dedekind_finite_ring_pi {ι : Type*} {α : ι → Type*} [∀ i, ring $ α i]
+  [∀ i, is_dedekind_finite_ring $ α i] : is_dedekind_finite_ring (Π i, α i) :=
+by pi_instance
 
 end
 
 section
 variables (R : Type*)
 
---instance subring.is_dedekind_finite_ring [ring R] [is_dedekind_finite_ring R] (S : set R) [is_subring S] : is_dedekind_finite_ring S :=
+--instance subring.is_dedekind_finite_ring [ring R] [is_dedekind_finite_ring R] (S : set R)
+-- [is_subring S] : is_dedekind_finite_ring S :=
 --by subtype_instance
 
 -- def is_nilpotent {R : Type*} [ring R] (a : R) := ∃ n : ℕ, a^n = 0
 def nilpotents [ring R] : set R := { a : R | is_nilpotent a }
--- TODO would be nice to set this up as the radical of the zero ideal but currently there doesn't seem to be much about one-sided ideals in non-comm rings
+-- TODO would be nice to set this up as the radical of the zero ideal but currently there doesn't
+--  seem to be much about one-sided ideals in non-comm rings
 
 class is_reduced_ring [ring R] :=
 (no_nilpotents : ∀ a : R, is_nilpotent a → a = 0)
 
 lemma nilpotents_of_reduced [ring R] [is_reduced_ring R] : nilpotents R = {0} :=
 begin
-apply' set.eq_of_subset_of_subset,
-{
-    rintros x ⟨n, hn⟩,
-    rw set.mem_singleton_iff,
-    exact is_reduced_ring.no_nilpotents _ n hn,
-},
-{
-    rw set.singleton_subset_iff,
-    exact zero_in_nilpotents R,
-}
+  apply set.eq_of_subset_of_subset,
+  { rw set.subset_singleton_iff,
+    exact is_reduced_ring.no_nilpotents, },
+  { rw set.singleton_subset_iff,
+    exact submonoid.mem_powers 0, }
 end
 
 class is_reversible_ring [ring R] :=
@@ -62,21 +66,21 @@ class is_reversible_ring [ring R] :=
 @[priority 100]
 instance is_reversible_ring_of_domain [domain R] : is_reversible_ring R :=
 ⟨λ a b h,
-begin
+  begin
     cases domain.eq_zero_or_eq_zero_of_mul_eq_zero a b h,
     { rw h_1, rw [mul_zero], },
     { rw h_1, rw [zero_mul], },
-end⟩
+  end⟩
 
 
 @[priority 100]
 instance reversible_of_reduced [ring R] [is_reduced_ring R] : is_reversible_ring R :=
 ⟨λ a b h,
-begin
+  begin
     apply is_reduced_ring.no_nilpotents (b * a),
     use [2],
     rw [pow_two, ← mul_assoc, mul_assoc b, h, mul_zero, zero_mul],
-end⟩
+  end⟩
 
 @[priority 100]
 instance reversible_of_comm_ring [comm_ring R] : is_reversible_ring R :=
@@ -85,7 +89,7 @@ instance reversible_of_comm_ring [comm_ring R] : is_reversible_ring R :=
 @[priority 100]
 instance is_dedekind_finite_ring_of_reversible [ring R] [is_reversible_ring R] : is_dedekind_finite_ring R :=
 ⟨λ a b h,
-begin
+  begin
     have :=
     calc (b * a - 1) * b = b * (a * b) - b : by rw [sub_mul, one_mul, mul_assoc]
                     ...  = 0               : by rw [h, mul_one, sub_self],
@@ -97,7 +101,7 @@ begin
         ...    = (a * b^2) * (a * b) * a : by simp [mul_assoc] -- I feel like ac_refl should do this
         ...    = (a * b^2 * a)           : by simp [h]
         ...    = 1                       : by assoc_rw [abba_eq_one],
-end⟩
+  end⟩
 
 @[priority 100]
 instance is_dedekind_finite_ring_of_reduced [ring R] [is_reduced_ring R] :
@@ -119,21 +123,24 @@ def strict_monotone_inc_subseq {f : ℕ → γ} (h : ∀ n, ∃ m, f n < f (n + 
 begin
   have : tendsto f at_top at_top,
   { rw tendsto_at_top_at_top,
+  sorry;
     by_contra, },
+  sorry
   -- have := strict_mono_subseq_of_tendsto_at_top this,
 end
-#exit
+
 -- | 0       := 0
 -- | (n + 1) := (strict_monotone_inc_subseq n) + nat.find (h (strict_monotone_inc_subseq n))
 
-lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
-  strict_mono (f ∘ (strict_monotone_inc_subseq h)) :=
-strict_mono_nat_of_lt_succ (λ n, nat.find_spec (h (strict_monotone_inc_subseq h n)))
+-- lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
+--   strict_mono (f ∘ (strict_monotone_inc_subseq h)) :=
+-- sorry -- strict_mono_nat_of_lt_succ (λ n, nat.find_spec (h (strict_monotone_inc_subseq h n)))
 
 -- TODO artinian version of ring stuff?
 open_locale classical
 
-theorem noeth_mod_surj_inj {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M] [is_noetherian R M] {f : M →ₗ[R] M} (f_surj : function.surjective f) : function.injective f :=
+theorem noeth_mod_surj_inj {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M]
+  [is_noetherian R M] {f : M →ₗ[R] M} (f_surj : function.surjective f) : function.injective f :=
 begin
   have := well_founded_submodule_gt R M,
   rw rel_embedding.well_founded_iff_no_descending_seq at this,
@@ -164,24 +171,21 @@ begin
   contrapose! this,
   simp,
   refine nonempty.intro _,
-  have bbbb : ∀ n, ∃ (m : ℕ), (λ (n : ℕ), ordf (n + 1)) n < (λ (n : ℕ), ordf (n + 1)) (n + m) :=
-  (λ n, (begin
-      have aaaaa : ∀ n m, ordf (n + 1) ≤ ordf (n + m + 1) :=
-      λ n m x hx,
-      begin
-        simp [ordf, mem_ker, submodule.mem_coe, add_comm, add_left_comm] at hx ⊢,
-        rw [add_comm m, ←add_assoc, add_comm, pow_add, mul_eq_comp, linear_map.comp_apply,
-          hx, map_zero]
-      end,
-      have := (this (n + 1) (nat.succ_ne_zero n)),
-      cases this with m hm,
-      use m,
-      simp only [],
-      refine lt_of_le_of_ne _ _,
-      exact (aaaaa n m),
-      rw add_assoc, rw add_comm m, rw ← add_assoc,
-      exact hm,
-  end)),
+  have bbbb : ∀ n, ∃ (m : ℕ), (λ (n : ℕ), ordf (n + 1)) n < (λ (n : ℕ), ordf (n + 1)) (n + m),
+  { intro n,
+    have aaaaa : ∀ n m, ordf (n + 1) ≤ ordf (n + m + 1),
+    { intros n m x hx,
+      simp only [mem_ker, add_comm, add_left_comm, comp_app, linear_map.iterate_succ] at hx ⊢,
+      rw [add_comm m, ← add_assoc, add_comm, pow_add, mul_eq_comp, pow_add, mul_eq_comp,
+        pow_one, linear_map.comp_apply, hx, map_zero], },
+    have := this (n + 1) (nat.succ_ne_zero n),
+    cases this with m hm,
+    use m,
+    simp only [],
+    refine lt_of_le_of_ne _ _,
+    exact (aaaaa n m),
+    rw add_assoc, rw add_comm m, rw ← add_assoc,
+    exact hm, },
   refine rel_embedding.of_monotone ((λ (n : ℕ), ordf (n + 1)) ∘ strict_monotone_inc_subseq bbbb) _,
   intros a b hab,
   exact strict_monotone_inc_subseq_spec (λ n, ordf (n + 1)) bbbb hab,
@@ -191,7 +195,7 @@ end
 @[priority 100]
 instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedekind_finite_ring R :=
 ⟨λ a b h,
-begin
+  begin
     have : is_linear_map R _ := is_linear_map.is_linear_map_smul' b,
     set f : R →ₗ[R] R := is_linear_map.mk' _ this,
     have f_surj : function.surjective f := λ x, ⟨x * a, by simp [mul_assoc, h]⟩,
@@ -230,7 +234,7 @@ begin
     have : ∀ n, ordf (n + 1) > ordf n := λ n, lt_of_le_of_ne (this n) (ho n),
     have := order_embedding.nat_gt _ this,
     exact nonempty.intro this,-/
-end⟩
+  end⟩
 
 
 @[priority 80] -- see Note [lower instance priority]
@@ -239,11 +243,12 @@ instance ring.is_noetherian_ring_of_fintype (R) [fintype R] [ring R] :
 #lint
 
 @[priority 100]
-instance is_dedekind_finite_ring_of_finite [fintype R] : is_dedekind_finite_ring R := begin
-    --TODO why is this needed?
-    haveI inst : is_noetherian R R := ring.is_noetherian_of_fintype R R,
-    haveI := is_noetherian_ring_iff.mpr inst,
-    exactI dedekind_finite.is_dedekind_finite_ring_of_noetherian R,
+instance is_dedekind_finite_ring_of_finite [fintype R] : is_dedekind_finite_ring R :=
+begin
+  --TODO why is this needed?
+  haveI inst : is_noetherian R R := ring.is_noetherian_of_fintype R R,
+  haveI := is_noetherian_ring_iff.mpr inst,
+  exactI dedekind_finite.is_dedekind_finite_ring_of_noetherian R,
 end
 end
 
@@ -253,7 +258,9 @@ private lemma aux1 {i j : ℕ} : j - i = j + 1 - (i + 1) := by simp
 
 variable {R : Type*}
 
-lemma mul_eq_one_pow_mul_pow_eq [ring R] {a b : R} (hab : a * b = 1) : ∀ (i j : ℕ), a^i * b^j = if i ≤ j then b^(j - i) else a^(i - j)
+lemma mul_eq_one_pow_mul_pow_eq [ring R] {a b : R} (hab : a * b = 1) :
+  ∀ (i j : ℕ), a^i * b^j = if i ≤ j then b^(j - i) else a^(i - j)
+  -- ∀ (i j : ℕ), a^i * b^j = b^(j - i) * a^(i - j) -- TODO is this better?
 | 0       0       := by simp
 | (i + 1) 0       := by simp only [mul_one, nat.zero_sub, nat.le_zero_iff,
                         add_eq_zero_iff, if_false, nat.sub_zero, one_ne_zero,
@@ -270,8 +277,7 @@ lemma mul_eq_one_pow_mul_pow_eq [ring R] {a b : R} (hab : a * b = 1) : ∀ (i j 
         exact aux1,
     end
 
-private lemma aux3 {j k : ℕ}
-  (H : k < j) (hjk : ¬j = k + 1) : ¬j ≤ k + 1 :=
+private lemma aux3 {j k : ℕ} (H : k < j) (hjk : ¬j = k + 1) : ¬j ≤ k + 1 :=
 by simp; exact (ne.symm hjk).le_iff_lt.mp H
 
 private lemma aux4 {j k l : ℕ} (H : k < j) : j - (k + 1) + (l + 1) = j - k + l :=
@@ -288,8 +294,7 @@ private lemma aux5 {j k l : ℕ}
 private def e (a b : R) [ring R] (i j : ℕ) : R := b^i * a^j - b^(i + 1) * a^(j + 1)
 
 lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) :
-∀ {i j k l : ℕ},
-(e a b i j) * (e a b k l) = if j = k then e a b i l else (0 : R) :=
+∀ {i j k l : ℕ}, (e a b i j) * (e a b k l) = if j = k then e a b i l else (0 : R) :=
 begin
   intros,
   rw [e, e, e, mul_sub, sub_mul, sub_mul, sub_right_comm, mul_assoc, mul_assoc, mul_assoc,
@@ -382,7 +387,10 @@ instance is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (ni
     calc 1 - b * a = e a b 0 0                         : by simp [e]
               ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos (rfl)]
               ...  = e a b 0 (m + 1) * e a b (n + 1) 0 : by rw hnm
-              ...  = 0                                 : by { rw [e_orthogonal hab, if_neg], intro a_2, exact h ((add_left_inj 1).mp (eq.symm a_2)) },
+              ...  = 0                                 : _,
+    { rw [e_orthogonal hab, if_neg],
+      intro a_2,
+      exact h ((add_left_inj 1).mp a_2.symm) },
     rw sub_eq_zero at this,
     exact absurd (eq.symm this) hba, },
   intro hinf,

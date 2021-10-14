@@ -425,10 +425,8 @@ end
 lemma ceil_add_one {a : α} (ha : 0 ≤ a) : ⌈a + 1⌉₊ = ⌈a⌉₊ + 1 :=
 by { convert ceil_add_nat ha 1, exact cast_one.symm }
 
-theorem ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
-lt_ceil.1 $ by rw (
-  show ⌈a + 1⌉₊ = ⌈a⌉₊ + 1, by exact_mod_cast (ceil_add_nat a_nonneg 1));
-  apply nat.lt_succ_self
+lemma ceil_lt_add_one {a : α} (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
+lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 lemma lt_of_ceil_lt {x : α} {n : ℕ} (h : ⌈x⌉₊ < n) : x < n :=
 lt_of_le_of_lt (le_ceil x) (by exact_mod_cast h)

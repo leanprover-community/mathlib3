@@ -20,11 +20,6 @@ In this file we provide lemmas about `ordered_smul` that hold once a module stru
 
 * https://en.wikipedia.org/wiki/Ordered_module
 
-## TODO
-
-`lower_bounds_smul_of_neg` and similar aren't proved as seamlessly as their positive counterparts.
-Maybe that shows the lemmas aren't general enough?
-
 ## Tags
 
 ordered module, ordered scalar, ordered smul, ordered action, ordered vector space
@@ -153,15 +148,17 @@ begin
   exact lt_smul_iff_of_pos (neg_pos_of_neg hc),
 end
 
+variables (M)
+
 /-- Left scalar multiplication as an order isomorphism. -/
-@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o order_dual M :=
+@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : order_dual M ≃o M :=
 { to_fun := λ b, c • b,
   inv_fun := λ b, c⁻¹ • b,
   left_inv := inv_smul_smul₀ hc.ne,
   right_inv := smul_inv_smul₀ hc.ne,
   map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_neg hc }
 
-variables [ordered_add_comm_group N] [module k N] [ordered_smul k N]
+variables {M} [ordered_add_comm_group N] [module k N] [ordered_smul k N]
 
 -- TODO: solve `prod.has_lt` and `prod.has_le` misalignment issue
 instance prod.ordered_smul : ordered_smul k (M × N) :=
@@ -240,19 +237,19 @@ variables [mul_action_with_zero k M] [ordered_smul k M] {s t : set M} {c : k}
 
 @[simp] lemma lower_bounds_smul_of_pos (hc : 0 < c) :
   lower_bounds (c • s) = c • lower_bounds s :=
-(order_iso.smul_left hc).lower_bounds_image
+(order_iso.smul_left _ hc).lower_bounds_image
 
 @[simp] lemma upper_bounds_smul_of_pos (hc : 0 < c) :
   upper_bounds (c • s) = c • upper_bounds s :=
-(order_iso.smul_left hc).upper_bounds_image
+(order_iso.smul_left _ hc).upper_bounds_image
 
 @[simp] lemma bdd_below_smul_iff_of_pos (hc : 0 < c) :
   bdd_below (c • s) ↔ bdd_below s :=
-(order_iso.smul_left hc).bdd_below_image
+(order_iso.smul_left _ hc).bdd_below_image
 
 @[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) :
   bdd_above (c • s) ↔ bdd_above s :=
-(order_iso.smul_left hc).bdd_above_image
+(order_iso.smul_left _ hc).bdd_above_image
 
 end mul_action_with_zero
 
@@ -261,37 +258,19 @@ variables [module k M] [ordered_smul k M] {s t : set M} {c : k}
 
 @[simp] lemma lower_bounds_smul_of_neg (hc : c < 0) :
   lower_bounds (c • s) = c • upper_bounds s :=
-begin
-  refine set.subset.antisymm _ (smul_upper_bounds_subset_lower_bounds_smul hc.le),
-  have h : c⁻¹ • lower_bounds (c • s) ⊆ upper_bounds (c⁻¹ • c • s) :=
-    smul_lower_bounds_subset_upper_bounds_smul (inv_nonpos.2 hc.le),
-  rwa [←subset_set_smul_iff₀ hc.ne, inv_smul_smul₀ hc.ne] at h,
-end
+(order_iso.smul_left_dual M hc).lower_bounds_image
 
 @[simp] lemma upper_bounds_smul_of_neg (hc : c < 0) :
   upper_bounds (c • s) = c • lower_bounds s :=
-begin
-  refine set.subset.antisymm _ (smul_lower_bounds_subset_upper_bounds_smul hc.le),
-  have h : c⁻¹ • upper_bounds (c • s) ⊆ lower_bounds (c⁻¹ • c • s) :=
-    smul_upper_bounds_subset_lower_bounds_smul (inv_nonpos.2 hc.le),
-  rwa [←subset_set_smul_iff₀ hc.ne, inv_smul_smul₀ hc.ne] at h,
-end
+(order_iso.smul_left_dual M hc).upper_bounds_image
 
 @[simp] lemma bdd_below_smul_iff_of_neg (hc : c < 0) :
   bdd_below (c • s) ↔ bdd_above s :=
-begin
-  refine ⟨λ h, _, bdd_above.smul_of_nonpos hc.le⟩,
-  rw ←inv_smul_smul₀ hc.ne s,
-  exact h.smul_of_nonpos (inv_nonpos.2 hc.le),
-end
+(order_iso.smul_left_dual M hc).bdd_below_image
 
 @[simp] lemma bdd_above_smul_iff_of_neg (hc : c < 0) :
   bdd_above (c • s) ↔ bdd_below s :=
-begin
-  refine ⟨λ h, _, bdd_below.smul_of_nonpos hc.le⟩,
-  rw ←inv_smul_smul₀ hc.ne s,
-  exact h.smul_of_nonpos (inv_nonpos.2 hc.le),
-end
+(order_iso.smul_left_dual M hc).bdd_above_image
 
 end module
 end linear_ordered_field

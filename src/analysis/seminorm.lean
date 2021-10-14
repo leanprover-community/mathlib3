@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta
 -/
 
-import algebra.pointwise
+import data.real.pointwise
 import analysis.convex.basic
 import analysis.normed_space.basic
 import data.set.intervals
@@ -52,54 +52,6 @@ nondiscrete normed field.
 
 open normed_field set
 open_locale pointwise topological_space
-
-section stuff
-variables {α : Type*} (β : Type*) [linear_ordered_field α] [ordered_add_comm_group β]
- [mul_action_with_zero α β] [ordered_smul α β]
-
-@[simps] def order_iso.smul_left {a : α} (ha : 0 < a) : β ≃o β :=
-{ to_fun := λ b, a • b,
-  inv_fun := λ b, a⁻¹ • b,
-  left_inv := inv_smul_smul₀ ha.ne',
-  right_inv := smul_inv_smul₀ ha.ne',
-  map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_pos ha }
-
-end stuff
-
-section
-variables {α : Type*} [linear_ordered_field α] [module α ℝ] [ordered_smul α ℝ]
-
-lemma real.Inf_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :
-  Inf (a • s) = a • Inf s :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { rw [smul_set_empty, real.Inf_empty, smul_zero] },
-  obtain rfl | ha' := ha.eq_or_lt,
-  { rw [zero_smul_set hs, zero_smul],
-    exact cInf_singleton 0 },
-  by_cases bdd_below s,
-  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cInf' hs h],
-    refl },
-  rw [real.Inf_of_not_bdd_below, real.Inf_of_not_bdd_below h, smul_zero],
-  sorry
-end
-
-lemma real.Sup_smul_of_nonneg {a : α} (ha : 0 ≤ a) (s : set ℝ) :
-  Sup (a • s) = a • Sup s :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { rw [smul_set_empty, real.Sup_empty, smul_zero] },
-  obtain rfl | ha' := ha.eq_or_lt,
-  { rw [zero_smul_set hs, zero_smul],
-    exact cSup_singleton 0 },
-  by_cases bdd_above s,
-  { rw [←order_iso.smul_left_apply _ ha', (order_iso.smul_left ℝ ha').map_cSup' hs h],
-    refl },
-  rw [real.Sup_of_not_bdd_above, real.Sup_of_not_bdd_above h, smul_zero],
-  sorry
-end
-
-end
 
 section
 variables

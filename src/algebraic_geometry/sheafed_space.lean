@@ -83,8 +83,8 @@ lemma id_c (X : SheafedSpace C) :
   (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
 
 @[simp] lemma id_c_app (X : SheafedSpace C) (U) :
-  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { op_induction U, cases U, refl }) :=
-by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
+  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { induction U using opposite.rec, cases U, refl }) :=
+by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 
 @[simp] lemma comp_base {X Y Z : SheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl

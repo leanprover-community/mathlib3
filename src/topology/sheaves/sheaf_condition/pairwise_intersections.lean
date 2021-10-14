@@ -150,26 +150,21 @@ def cone_equiv_inverse_obj (F : presheaf C X)
   { app :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with (⟨i⟩|⟨i,j⟩),
       { exact c.π.app (walking_parallel_pair.zero) ≫ pi.π _ i, },
       { exact c.π.app (walking_parallel_pair.one) ≫ pi.π _ (i, j), }
     end,
     naturality' :=
     begin
-      -- Unfortunately `op_induction` isn't up to the task here, and we need to use `generalize`.
       intros x y f,
-      have ex : x = op (unop x) := rfl,
-      have ey : y = op (unop y) := rfl,
-      revert ex ey,
-      generalize : unop x = x',
-      generalize : unop y = y',
-      rintro rfl rfl,
+      induction x using opposite.rec,
+      induction y using opposite.rec,
       have ef : f = f.unop.op := rfl,
       revert ef,
       generalize : f.unop = f',
       rintro rfl,
-      rcases x' with ⟨i⟩|⟨⟩; rcases y' with ⟨⟩|⟨j,j⟩; rcases f' with ⟨⟩,
+      rcases x with ⟨i⟩|⟨⟩; rcases y with ⟨⟩|⟨j,j⟩; rcases f' with ⟨⟩,
       { dsimp, erw [F.map_id], simp, },
       { dsimp, simp only [category.id_comp, category.assoc],
         have h := c.π.naturality (walking_parallel_pair_hom.left),
@@ -202,7 +197,7 @@ def cone_equiv_inverse (F : presheaf C X)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with (⟨i⟩|⟨i,j⟩),
       { dsimp,
         rw [←(f.w walking_parallel_pair.zero), category.assoc], },
@@ -219,12 +214,13 @@ def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → ope
 { hom :=
   { hom := 𝟙 _,
     w' := λ j, begin
-      op_induction j, rcases j;
+      induction j using opposite.rec, rcases j;
       { dsimp, simp only [limits.fan.mk_π_app, category.id_comp, limits.limit.lift_π], }
     end, },
   inv :=
   { hom := 𝟙 _,
-    w' := λ j, begin op_induction j, rcases j;
+    w' := λ j, begin
+      induction j using opposite.rec, rcases j;
       { dsimp, simp only [limits.fan.mk_π_app, category.id_comp, limits.limit.lift_π], }
     end },
   hom_inv_id' := begin
@@ -298,7 +294,7 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp,
@@ -312,7 +308,7 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp,

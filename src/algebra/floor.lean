@@ -239,7 +239,7 @@ theorem ceil_mono {a b : α} (h : a ≤ b) : ⌈a⌉ ≤ ⌈b⌉ :=
 ceil_le.2 (le_trans h (le_ceil _))
 
 @[simp] theorem ceil_add_int (x : α) (z : ℤ) : ⌈x + z⌉ = ⌈x⌉ + z :=
-by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
+by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
 theorem ceil_sub_int (x : α) (z : ℤ) : ⌈x - z⌉ = ⌈x⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)

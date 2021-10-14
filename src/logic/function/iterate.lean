@@ -144,8 +144,7 @@ def iterate.rec (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) 
   p (f^[n] a) :=
 nat.rec ha (λ m, by { rw iterate_succ', exact h _ }) n
 
-lemma iterate.rec_zero (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a)
-  (n : ℕ) :
+lemma iterate.rec_zero (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) :
   iterate.rec p h ha 0 = ha :=
 rfl
 

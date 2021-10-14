@@ -107,3 +107,54 @@ begin
   simp only [barycentric_coord_apply, hi, finset.affine_combination_eq_linear_combination, if_false,
     hw, mul_boole, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination p w hw],
 end
+
+@[simp] lemma sum_barycentric_coord_apply_eq_one [fintype ι] (q : P) :
+  ∑ i, barycentric_coord h_ind h_tot i q = 1 :=
+begin
+  have hq : q ∈ affine_span k (range p), { rw h_tot, exact affine_subspace.mem_top k V q, },
+  obtain ⟨w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span_of_fintype hq,
+  convert hw,
+  ext i,
+  exact barycentric_coord_apply_combination_of_mem h_ind h_tot (finset.mem_univ i) hw,
+end
+
+@[simp] lemma affine_combination_barycentric_coord_eq_self [fintype ι] (q : P) :
+  finset.univ.affine_combination p (λ i, barycentric_coord h_ind h_tot i q) = q :=
+begin
+  have hq : q ∈ affine_span k (range p), { rw h_tot, exact affine_subspace.mem_top k V q, },
+  obtain ⟨w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span_of_fintype hq,
+  congr,
+  ext i,
+  exact barycentric_coord_apply_combination_of_mem h_ind h_tot (finset.mem_univ i) hw,
+end
+
+@[simp] lemma coe_barycentric_coord_of_subsingleton_eq_one [subsingleton ι] (i : ι) :
+  (barycentric_coord h_ind h_tot i : P → k) = 1 :=
+begin
+  ext q,
+  have hp : (range p).subsingleton,
+  { rw ← image_univ,
+    apply subsingleton.image,
+    apply subsingleton_of_subsingleton, },
+  haveI := affine_subspace.subsingleton_of_subsingleton_span_eq_top hp h_tot,
+  let s : finset ι := {i},
+  have hi : i ∈ s, { simp, },
+  have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },
+  have hq : q = s.affine_combination p (function.const ι (1 : k)), { simp, },
+  rw [pi.one_apply, hq, barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
+end
+
+lemma surjective_barycentric_coord [nontrivial ι] (i : ι) :
+  function.surjective $ barycentric_coord h_ind h_tot i :=
+begin
+  classical,
+  intros x,
+  obtain ⟨j, hij⟩ := exists_ne i,
+  let s : finset ι := {i, j},
+  have hi : i ∈ s, { simp, },
+  have hj : j ∈ s, { simp, },
+  let w : ι → k := λ j', if j' = i then x else 1-x,
+  have hw : s.sum w = 1, { simp [hij, finset.sum_ite, finset.filter_insert, finset.filter_eq'], },
+  use s.affine_combination p w,
+  simp [barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
+end

@@ -17,6 +17,7 @@ universe u
 
 variables {α : Type u}
 
+open order_dual (to_dual)
 
 namespace set
 
@@ -45,7 +46,8 @@ by simp_rw [set.disjoint_iff_inter_eq_empty, Ico_inter_Ico, Ico_eq_empty_iff,
   inf_eq_min, sup_eq_max, not_lt]
 
 @[simp] lemma Ioc_disjoint_Ioc : disjoint (Ioc a₁ a₂) (Ioc b₁ b₂) ↔ min a₂ b₂ ≤ max a₁ b₁ :=
-by simpa only [dual_Ico] using @Ico_disjoint_Ico (order_dual α) _ a₂ a₁ b₂ b₁
+have h : _ ↔ min (to_dual a₁) (to_dual b₁) ≤ max (to_dual a₂) (to_dual b₂) := Ico_disjoint_Ico,
+by simpa only [dual_Ico] using h
 
 /-- If two half-open intervals are disjoint and the endpoint of one lies in the other,
   then it must be equal to the endpoint of the other. -/

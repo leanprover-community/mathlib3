@@ -23,30 +23,11 @@ the multiplicity of `p` in this factors multiset being the p-adic valuation of `
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
+ @[derive [inhabited, has_repr, canonically_ordered_add_monoid, distrib_lattice,
+  semilattice_sup_bot, has_sub, has_ordered_sub]]
 def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
-
-instance : inhabited prime_multiset :=
-by unfold prime_multiset; apply_instance
-
-instance : has_repr prime_multiset :=
-by { dsimp [prime_multiset], apply_instance }
-
-instance : canonically_ordered_add_monoid prime_multiset :=
-by { dsimp [prime_multiset], apply_instance }
-
-instance : distrib_lattice prime_multiset :=
-by { dsimp [prime_multiset], apply_instance }
-
-instance : semilattice_sup_bot prime_multiset :=
-by { dsimp [prime_multiset], apply_instance }
-
-instance : has_sub prime_multiset :=
-by { dsimp [prime_multiset], apply_instance }
-
-theorem add_sub_of_le {u v : prime_multiset} : u ≤ v → u + (v - u) = v :=
-multiset.add_sub_of_le
 
 /-- The multiset consisting of a single prime -/
 def of_prime (p : nat.primes) : prime_multiset := ({p} : multiset nat.primes)
@@ -303,7 +284,7 @@ begin
     rw [← prod_factor_multiset m, ← prod_factor_multiset m],
     apply dvd.intro (n.factor_multiset - m.factor_multiset).prod,
     rw [← prime_multiset.prod_add, prime_multiset.factor_multiset_prod,
-        prime_multiset.add_sub_of_le h, prod_factor_multiset] },
+        add_sub_cancel_of_le h, prod_factor_multiset] },
   { intro  h,
     rw [← mul_div_exact h, factor_multiset_mul],
     exact le_self_add }

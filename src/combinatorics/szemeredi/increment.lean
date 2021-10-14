@@ -10,8 +10,49 @@ import .index
 # Increment
 -/
 
+universes u v
+def sym2_pair_bind {α : Type u} {β : Type v} [decidable_eq β] {s : finset α}
+  (f : Π (i : α), i ∈ s → finset β) :
+  sym2 {x // x ∈ s} → finset (sym2 β) :=
+begin
+  refine sym2.lift _,
+  refine ⟨λ i j, finset.image quotient.mk ((f _ i.2).product (f _ j.2)), _⟩,
+  rintro ⟨i, hi⟩ ⟨j, hj⟩,
+  ext k,
+  induction k using sym2.induction_on with x y,
+  simp only [and_comm (_ ∈ f j _), finset.mem_image, exists_prop, prod.exists, finset.mem_product],
+  rw exists_comm,
+  apply exists₂_congr,
+  intros p q,
+  rw sym2.eq_swap,
+end
+
+lemma mem_sym2_pair_bind {α β : Type*} [decidable_eq β] {s : finset α}
+  (f : Π i ∈ s, finset β) (i₁ i₂ : {x // x ∈ s}) (j₁ j₂ : β) :
+  ⟦(j₁, j₂)⟧ ∈ sym2_pair_bind f ⟦(i₁, i₂)⟧ ↔
+    (j₁ ∈ f _ i₁.2 ∧ j₂ ∈ f _ i₂.2) ∨ (j₂ ∈ f _ i₁.2 ∧ j₁ ∈ f _ i₂.2) :=
+begin
+  simp only [sym2_pair_bind, sym2.lift_mk, exists_prop, finset.mem_image, subtype.coe_mk,
+    subtype.val_eq_coe, prod.exists, finset.mem_product, sym2.eq_iff],
+  split,
+  { rintro ⟨_, _, h, (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩)⟩,
+    { apply or.inl h },
+    { apply or.inr h } },
+  tauto {closer := `[simp]},
+end
+
+lemma sym2.exists {α : Sort*} {f : sym2 α → Prop} : (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
+begin
+  split,
+  { rintro ⟨x, hx⟩,
+    induction x using sym2.induction_on with x y,
+    exact ⟨x, y, hx⟩ },
+  { rintro ⟨x, y, h⟩,
+    exact ⟨_, h⟩ }
+end
+
 open finset fintype simple_graph
-open_locale classical
+open_locale big_operators classical
 
 variables {α : Type*} [fintype α] {P : finpartition α} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ)
@@ -62,6 +103,70 @@ begin
   exact card_eq_of_mem_parts_chunk_increment hA,
 end
 
+-- def off_diag : finset (α × α) := (s.product s).filter (λ (a : α × α), a.fst ≠ a.snd)
+
+-- def distinct_pairs (s : finset α) :
+--   finset (sym2 α) :=
+-- s.off_diag.image quotient.mk
+
+
+lemma increment_distinct_pairs :
+  (hP.increment G ε).parts.distinct_pairs =
+    P.parts.attach.bUnion (λ i, (hP.chunk_increment G ε i.2).parts.distinct_pairs) ∪
+    P.parts.attach.distinct_pairs.bUnion
+      (sym2_pair_bind (λ i hi, (hP.chunk_increment G ε hi).parts)) :=
+begin
+  ext UiVj,
+  apply UiVj.induction_on (λ Ui Vj, _),
+  simp only [mem_distinct_pairs, mem_union, mem_bUnion, mem_product, exists_prop, mem_attach,
+    exists_true_left, subtype.exists, prod.exists, true_and, sym2.exists, exists_and_distrib_left,
+    finpartition_on.is_equipartition.increment, bind_parts, mem_sym2_pair_bind, ne.def],
+  split,
+  { rintro ⟨⟨U, hU, hUi⟩, ⟨V, hV, hVj⟩, h⟩,
+    rcases eq_or_ne U V with rfl | hUV,
+    { exact or.inl ⟨U, by simp [*]⟩ },
+    right,
+    refine ⟨U, hU, V, hUV, hV, _⟩,
+    left,
+    refine ⟨hUi, hVj⟩ },
+  rintro (_ | ⟨U, hU, V, hUV, hV, (⟨h₁, h₂⟩ | ⟨h₂, h₁⟩)⟩),
+  { tauto },
+  { refine ⟨⟨_, _, h₁⟩, ⟨_, _, h₂⟩, _⟩,
+    rintro rfl,
+    obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ h₁,
+    apply hUV,
+    apply P.disjoint _ _ hU hV _ (finpartition_on.subset _ h₁ hi) (finpartition_on.subset _ h₂ hi) },
+  { refine ⟨⟨_, _, h₁⟩, ⟨_, _, h₂⟩, _⟩,
+    rintro rfl,
+    obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ h₁,
+    apply hUV,
+    apply P.disjoint _ _ hU hV _ (finpartition_on.subset _ h₂ hi) (finpartition_on.subset _ h₁ hi) },
+end.
+
+-- -- dagger inequality
+-- lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+--   (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
+--   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} :
+--   G.edge_density U V^2 - ε^5/25 ≤
+--   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
+--     G.edge_density ab.1 ab.2^2)/16^P.size :=
+
+lemma sum_sym2 [decidable_eq α] {β : Type*} [division_ring β] [char_zero β] (f : sym2 α → β) (s : finset (α × α))
+  {hs₁ : ∀ i j, (i,j) ∈ s → i ≠ j} (hs₂ : ∀ i j, (i,j) ∈ s → (j,i) ∈ s):
+  ∑ (i : sym2 _) in s.image quotient.mk, f i = (∑ i in s, f ⟦i⟧)/2 :=
+begin
+  rw sum_div,
+  apply sum_image',
+  rintro ⟨x, y⟩ h,
+  suffices : s.filter (λ c', ⟦c'⟧ = ⟦(x,y)⟧) = {(x,y), (y,x)},
+  { rw [this, sum_pair, sym2.eq_swap, add_halves'],
+    rintro ⟨⟩,
+    apply hs₁ _ _ h rfl, },
+  ext ⟨i, j⟩,
+  simp only [mem_filter, mem_insert, prod.mk.inj_iff, sym2.eq_iff, mem_singleton],
+  tauto {closer := `[subst_vars; solve_by_elim]},
+end
+
 protected lemma index [nonempty α] (hP : P.is_equipartition) (hP₁₀₀ : 100 ≤ P.size)
   (hε : 100 < ε^5 * 4^P.size) (hPα : P.size * 16^P.size ≤ card α) (hPG : ¬P.is_uniform G ε) :
   P.index G + ε^5 / 8 ≤ (hP.increment G ε).index G :=
@@ -92,11 +197,23 @@ begin
                     (pow_pos zero_lt_four _),
                 end
         end
+    ... ≤
+      (∑ UV in P.parts.attach.distinct_pairs.bUnion (sym2_pair_bind (λ i hi, (hP.chunk_increment G ε hi).parts)), G.sym2_edge_density UV ^ 2) / (hP.increment G ε).size ^ 2 :
+    begin
+      rw sum_bUnion,
+      rw distinct_pairs,
+      rw sum_sym2 _ P.parts.attach.off_diag,
+      -- rw sum_image,
+    end
     ... ≤ index G (hP.increment G ε) :
     begin
-      conv_rhs { rw index },
-      rw finpartition_on.is_uniform at hPG,
-      sorry
+      rw [index, increment_distinct_pairs],
+      apply div_le_div_of_le_of_nonneg,
+      { apply sum_le_sum_of_subset_of_nonneg,
+        { apply subset_union_right },
+        intros,
+        apply sq_nonneg },
+      apply sq_nonneg
     end
 end.
 

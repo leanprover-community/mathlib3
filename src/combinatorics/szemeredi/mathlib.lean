@@ -16,6 +16,23 @@ open finset fintype function
 
 variable {α : Type u}
 
+namespace sym2
+
+attribute [elab_as_eliminator]
+lemma ind {f : sym2 α → Prop} : (∀ x y, f ⟦(x,y)⟧) → ∀ (i : sym2 α), f i :=
+begin
+  intro hf,
+  apply quotient.ind,
+  rintro ⟨x, y⟩,
+  apply hf
+end
+
+attribute [elab_as_eliminator]
+lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
+sym2.ind hf i
+
+end sym2
+
 section group_power
 variables {R : Type*}
 
@@ -409,12 +426,20 @@ lemma edge_density_le_one (U V : finset α) :
   G.edge_density U V ≤ 1 :=
 pairs_density_le_one _ U V
 
+noncomputable def sym2_edge_density : sym2 (finset α) → ℝ :=
+sym2.lift ⟨G.edge_density, G.edge_density_comm⟩
+
+@[simp]
+lemma sym2_edge_density_mk {U V : finset α} :
+  G.sym2_edge_density ⟦(U, V)⟧ = G.edge_density U V :=
+rfl
+
 end simple_graph
 
 /-! ## is_uniform for simple_graph -/
 
 namespace simple_graph
-variables (G : simple_graph α) [decidable_rel G.adj]
+variables (G : simple_graph α) (ε : ℝ) [decidable_rel G.adj]
 
 /-- A pair of finsets of vertices is ε-uniform iff their edge density is close to the density of any
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
@@ -440,11 +465,19 @@ begin
   apply h _ hU' _ hV' hU hV,
 end
 
-lemma is_uniform_symmetric (ε : ℝ) : symmetric (is_uniform G ε) :=
+lemma is_uniform_symmetric : symmetric (is_uniform G ε) :=
 λ U V h, h.symm
 
-lemma is_uniform_comm (ε : ℝ) {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
+lemma is_uniform_comm {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
 ⟨λ h, h.symm, λ h, h.symm⟩
+
+def sym2_is_uniform (UV : sym2 (finset α)) : Prop :=
+sym2.from_rel (G.is_uniform_symmetric ε) UV
+
+@[simp]
+lemma sym2_is_uniform_mk {ε : ℝ} {U V : finset α} :
+  G.sym2_is_uniform ε ⟦(U, V)⟧ ↔ G.is_uniform ε U V :=
+iff.rfl
 
 end simple_graph
 
@@ -553,6 +586,7 @@ def avoid (P : finpartition_on s) (t : finset α) : finpartition_on (s \ t) :=
 
 /-- Given a finpartition `P` of `s` and finpartitions of each part of `P`, this yields the
 finpartition that's obtained by -/
+@[simps]
 def bind (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
   disjoint := λ a ha b hb h x hx, begin

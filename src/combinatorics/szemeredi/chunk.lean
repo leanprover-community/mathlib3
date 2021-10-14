@@ -427,6 +427,7 @@ begin
           end,
 end.
 
+-- dagger inequality
 lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} :
@@ -436,7 +437,6 @@ lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size
 begin
   have hε : 0 < ε^5 := pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε)
     (pow_nonneg (by norm_num) _),
-  have hε₀ : 0 < ε := sorry,
   obtain hGε | hGε := le_total (G.edge_density U V) (ε^5/50),
   { calc
       G.edge_density U V^2 - ε^5/25

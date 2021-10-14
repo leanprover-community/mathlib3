@@ -34,7 +34,7 @@ open cardinal
 
 lemma cardinal_mk_eq_sum : #(W_type β) = sum (λ a : α, #(W_type β) ^ #(β a)) :=
 begin
-  simp only [cardinal.lift_mk, cardinal.power_def, cardinal.sum_mk],
+  simp only [cardinal.power_def, cardinal.sum_mk],
   exact cardinal.eq.2 ⟨equiv_sigma β⟩
 end
 

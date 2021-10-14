@@ -50,7 +50,7 @@ variables (J : grothendieck_topology C) (K : grothendieck_topology D)
 variables {L : grothendieck_topology E}
 
 /--
-A functor `G : (C, J) ⥤ (D, K)` between sites is called to have the cover-preserving property
+A functor `G : (C, J) ⥤ (D, K)` between sites is *cover-preserving*
 if for all covering sieves `R` in `C`, `R.pushforward_functor G` is a covering sieve in `D`.
 -/
 @[nolint has_inhabited_instance]

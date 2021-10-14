@@ -33,8 +33,7 @@ dite (U.card = m * 4^P.size + a)
   (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₃ hP hU hUcard)
   -- hP and hU are used to get that U has size m * 4^P.size + a or m * 4^P.size + a + 1
 
-noncomputable def finpartition_on.is_equipartition.star (V : finset α) :
-  finset (finset α) :=
+noncomputable def finpartition_on.is_equipartition.star (V : finset α) : finset (finset α) :=
 (hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ G.witness ε U V)
 
 /-! # star -/
@@ -49,10 +48,8 @@ bUnion_subset_iff_forall_subset.2 (subset_witness_of_mem_star hP G ε hU V)
 lemma star_subset_chunk_increment : hP.star G ε hU V ⊆ (hP.chunk_increment G ε hU).parts :=
 filter_subset _ _
 
-lemma star_pairwise_disjoint : ∀ (x y ∈ hP.star G ε hU V), ∀ i ∈ x, i ∈ y → x = y :=
-λ x y hx hy,
-  finpartition_on.disjoint _ _ _ (star_subset_chunk_increment hP G ε hU V hx)
-    (star_subset_chunk_increment hP G ε hU V hy)
+lemma star_pairwise_disjoint : (hP.star G ε hU V : set (finset α)).pairwise_disjoint :=
+(hP.chunk_increment G ε hU).disjoint.subset (star_subset_chunk_increment hP G ε hU V)
 
 variables {V}
 
@@ -79,7 +76,7 @@ begin
   apply (card_le_of_subset q).trans,
   apply card_bUnion_le.trans,
   have :
-    ∑ i in filter (λ (B : finset α), B ⊆ (G.witness ε U V).fst ∧ B.nonempty)
+    ∑ i in filter (λ (B : finset α), B ⊆ G.witness ε U V ∧ B.nonempty)
       (atomise U (P.witnesses G ε U)).parts,
       (card α / exp_bound (finpartition_on.size P))
     ≤ 2 ^ (finpartition_on.size P - 1) * (card α / exp_bound (finpartition_on.size P)),
@@ -127,23 +124,25 @@ begin
     refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two P.size),
     calc
       2^P.size * ((2^P.size * m : ℝ)/U.card)
-      = (2 * 2)^P.size/U.card : sorry
-      ... = 4^P.size/U.card : by norm_num
-      ... ≤ 1 : sorry
-      ... ≤ 2^P.size * ε^2 / 10 : begin
-        refine (one_le_sq_iff (div_nonneg (mul_nonneg (pow_nonneg (@zero_le_two ℝ _) _) $
-          sq_nonneg _) $ by norm_num)).1 _,
-        rw [div_pow, mul_pow, pow_right_comm, ←pow_mul ε,
-          one_le_div (sq_pos_of_ne_zero (10 : ℝ) $ by norm_num)],
-        calc
-          (10 ^ 2 : ℝ)
-          = 100 : by norm_num
-          ... ≤ 4^P.size * ε^5 : hPε
-          ... ≤ 4^P.size * ε^4
-              : mul_le_mul_of_nonneg_left (pow_le_pow_of_le_one hε'.le hε₁ (nat.le_succ _))
-                  (pow_nonneg zero_lt_four.le _)
-          ... = (2^2)^P.size * ε ^ (2 * 2) : by norm_num,
+          = (2 * 2)^P.size * m/U.card : by rw [mul_pow, ←mul_div_assoc, mul_assoc]
+      ... = 4^P.size * m/U.card : by norm_num
+      ... ≤ 1 : begin
+        refine div_le_one_of_le _ (nat.cast_nonneg _),
       end
+      ... ≤ 2^P.size * ε^2 / 10 : begin
+              refine (one_le_sq_iff (div_nonneg (mul_nonneg (pow_nonneg (@zero_le_two ℝ _) _) $
+                sq_nonneg _) $ by norm_num)).1 _,
+              rw [div_pow, mul_pow, pow_right_comm, ←pow_mul ε,
+                one_le_div (sq_pos_of_ne_zero (10 : ℝ) $ by norm_num)],
+              calc
+                (10 ^ 2 : ℝ)
+                = 100 : by norm_num
+                ... ≤ 4^P.size * ε^5 : hPε
+                ... ≤ 4^P.size * ε^4
+                    : mul_le_mul_of_nonneg_left (pow_le_pow_of_le_one hε'.le hε₁ (nat.le_succ _))
+                        (pow_nonneg zero_lt_four.le _)
+                ... = (2^2)^P.size * ε ^ (2 * 2) : by norm_num,
+            end
       ... = 2^P.size * (ε * (ε / 10)) : by rw [mul_div_assoc, sq, mul_div_assoc] },
   calc
     (1 - ε/10) * (G.witness ε U V).card
@@ -427,7 +426,6 @@ begin
           end,
 end.
 
--- dagger inequality
 lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} :
@@ -437,6 +435,7 @@ lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size
 begin
   have hε : 0 < ε^5 := pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε)
     (pow_nonneg (by norm_num) _),
+  have hε₀ : 0 < ε := sorry,
   obtain hGε | hGε := le_total (G.edge_density U V) (ε^5/50),
   { calc
       G.edge_density U V^2 - ε^5/25
@@ -484,7 +483,7 @@ end
 lemma abs_density_star_sub_density_le_eps (hPε : 100 ≤ 4^P.size * ε^5) (hε₁ : ε ≤ 1){U V : finset α}
   {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV' : U ≠ V) (hUV : ¬ G.is_uniform ε U V) :
   |G.edge_density ((hP.star G ε hU V).bUnion id) ((hP.star G ε hV U).bUnion id) -
-    G.edge_density (G.witness ε U V).fst (G.witness ε V U).fst| ≤ ε/5 :=
+    G.edge_density (G.witness ε U V) (G.witness ε V U)| ≤ ε/5 :=
 begin
   have hε' : 0 < ε := sorry,
   convert lemma_A G.adj

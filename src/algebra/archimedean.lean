@@ -28,6 +28,8 @@ number `n` such that `x ≤ n • y`.
 * `ℕ`, `ℤ`, and `ℚ` are archimedean.
 -/
 
+open int
+
 variables {α : Type*}
 
 /-- An ordered additive commutative monoid is called `archimedean` if for any two elements `x`, `y`
@@ -159,7 +161,7 @@ let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
-  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt))
+  (fpow_le_of_le hy.le hlt.le)
     (lt_of_le_of_lt hm (by rwa ← gpow_coe_nat at hM)))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
@@ -262,7 +264,7 @@ theorem archimedean_iff_rat_lt :
   λ H, archimedean_iff_nat_lt.2 $ λ x,
   let ⟨q, h⟩ := H x in
   ⟨⌈q⌉₊, lt_of_lt_of_le h $
-    by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (le_nat_ceil _)⟩⟩
+    by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (nat.le_ceil _)⟩⟩
 
 theorem archimedean_iff_rat_le :
   archimedean α ↔ ∀ x : α, ∃ q : ℚ, x ≤ q :=

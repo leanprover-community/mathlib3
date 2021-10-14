@@ -29,7 +29,7 @@ cover-preserving and compatible-preserving, then `G ⋙ -` (`uᵖ`) as a functor
 
 ## References
 
-* [Elephant]: *Sketches of an Elephant*, ℱ. T. Johnstone: C2.3.
+* [Elephant]: *Sketches of an Elephant*, P. T. Johnstone: C2.3.
 * https://stacks.math.columbia.edu/tag/00WW
 
 -/

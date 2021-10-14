@@ -217,6 +217,12 @@ notation `⌈` x `⌉` := ceil x
 theorem ceil_le {z : ℤ} {x : α} : ⌈x⌉ ≤ z ↔ x ≤ z :=
 by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 
+lemma floor_neg {a : α} : ⌊-a⌋ = -⌈a⌉ :=
+eq_of_forall_le_iff (λ z, by rw [le_neg, ceil_le, le_floor, int.cast_neg, le_neg])
+
+lemma ceil_neg {a : α} : ⌈-a⌉ = -⌊a⌋ :=
+eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_le])
+
 theorem lt_ceil {x : α} {z : ℤ} : z < ⌈x⌉ ↔ (z:α) < x :=
 lt_iff_lt_of_le_iff_le ceil_le
 

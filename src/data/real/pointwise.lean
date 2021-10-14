@@ -34,8 +34,7 @@ begin
   { rw [zero_smul_set hs, zero_smul],
     exact cInf_singleton 0 },
   by_cases bdd_below s,
-  { rw ←order_iso.smul_left_apply ℝ ha',
-    exact ((order_iso.smul_left ℝ ha').map_cInf' hs h).symm },
+  { exact ((order_iso.smul_left ℝ ha').map_cInf' hs h).symm },
   { rw [real.Inf_of_not_bdd_below (mt (bdd_below_smul_iff_of_pos ha').1 h),
       real.Inf_of_not_bdd_below h, smul_zero'] }
 end
@@ -48,8 +47,7 @@ begin
   { rw [zero_smul_set hs, zero_smul],
     exact cSup_singleton 0 },
   by_cases bdd_above s,
-  { rw [←order_iso.smul_left_apply _ ha'],
-    exact ((order_iso.smul_left ℝ ha').map_cSup' hs h).symm },
+  { exact ((order_iso.smul_left ℝ ha').map_cSup' hs h).symm },
   { rw [real.Sup_of_not_bdd_above (mt (bdd_above_smul_iff_of_pos ha').1 h),
       real.Sup_of_not_bdd_above h, smul_zero'] }
 end
@@ -67,8 +65,7 @@ begin
   { rw [zero_smul_set hs, zero_smul],
     exact cInf_singleton 0 },
   by_cases bdd_above s,
-  { rw [←order_iso.smul_left_dual_apply ℝ ha'],
-    exact ((order_iso.smul_left_dual ℝ ha').map_cInf' hs h).symm },
+  { exact ((order_iso.smul_left_dual ℝ ha').map_cSup' hs h).symm },
   { rw [real.Inf_of_not_bdd_below (mt (bdd_below_smul_iff_of_neg ha').1 h),
       real.Sup_of_not_bdd_above h, smul_zero'] }
 end
@@ -81,8 +78,7 @@ begin
   { rw [zero_smul_set hs, zero_smul],
     exact cSup_singleton 0 },
   by_cases bdd_below s,
-  { rw [←order_iso.smul_left_dual_apply ℝ ha'],
-    exact ((order_iso.smul_left_dual ℝ ha').map_cSup' hs h).symm },
+  { exact ((order_iso.smul_left_dual ℝ ha').map_cInf' hs h).symm },
   { rw [real.Sup_of_not_bdd_above (mt (bdd_above_smul_iff_of_neg ha').1 h),
       real.Inf_of_not_bdd_below h, smul_zero] }
 end

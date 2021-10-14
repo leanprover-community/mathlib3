@@ -799,9 +799,6 @@ variables [pred_order α] [is_pred_archimedean α] {a b : α}
 lemma has_le.le.exists_pred_iterate (h : a ≤ b) : ∃ n, pred^[n] b = a :=
 exists_pred_iterate_of_le h
 
-instance : is_succ_archimedean (order_dual α) :=
-{ exists_succ_iterate_of_le := λ a b h, by convert @exists_pred_iterate_of_le α _ _ _ _ _ h }
-
 lemma pred.rec {p : α → Prop} (hsucc : ∀ a, p a → p (pred a)) {a b : α} (h : b ≤ a) (ha : p a) :
   p b :=
 @succ.rec (order_dual α) _ _ _ _ hsucc _ _ h ha
@@ -809,6 +806,9 @@ lemma pred.rec {p : α → Prop} (hsucc : ∀ a, p a → p (pred a)) {a b : α} 
 lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : α} (h : a ≤ b) :
   p a ↔ p b :=
 (@succ.rec_iff (order_dual α) _ _ _ _ hsucc _ _ h).symm
+
+instance : is_succ_archimedean (order_dual α) :=
+{ exists_succ_iterate_of_le := λ a b h, by convert @exists_pred_iterate_of_le α _ _ _ _ _ h }
 
 end pred_order
 end preorder

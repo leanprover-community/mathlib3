@@ -85,19 +85,17 @@ open_locale classical
 open finset
 
 noncomputable def non_uniform_pairs (ε : ℝ) :
-  finset (sym2 (finset α)) :=
-P.parts.distinct_pairs.filter (λ UV, ¬G.sym2_is_uniform ε UV)
--- (P.parts.product P.parts).filter (λ UV, UV.1 ≠ UV.2 ∧ ¬G.is_uniform ε UV.1 UV.2)
+  finset (finset α × finset α) :=
+P.parts.off_diag.filter (λ UV, ¬G.is_uniform ε UV.1 UV.2)
 
 lemma mem_non_uniform_pairs (U V : finset α) (ε : ℝ) :
-  ⟦(U, V)⟧ ∈ P.non_uniform_pairs G ε ↔ U ∈ P.parts ∧ V ∈ P.parts ∧ U ≠ V ∧ ¬G.is_uniform ε U V :=
-by rw [non_uniform_pairs, mem_filter, mem_distinct_pairs, G.sym2_is_uniform_mk, and_assoc,
-  and_assoc]
+  (U, V) ∈ P.non_uniform_pairs G ε ↔ U ∈ P.parts ∧ V ∈ P.parts ∧ U ≠ V ∧ ¬G.is_uniform ε U V :=
+by rw [non_uniform_pairs, mem_filter, mem_off_diag, and_assoc, and_assoc]
 
 /-- An finpartition is `ε-uniform` iff at most a proportion of `ε` of its pairs of parts are not
 `ε-uniform`. -/
 def is_uniform (ε : ℝ) : Prop :=
-((P.non_uniform_pairs G ε).card : ℝ) ≤ ε * P.size.choose 2
+((P.non_uniform_pairs G ε).card : ℝ) ≤ ε * (P.size * (P.size - 1) : ℕ)
 
 lemma empty_is_uniform {P : finpartition s} (hP : P.parts = ∅) (G : simple_graph α) (ε : ℝ) :
   P.is_uniform G ε :=
@@ -146,10 +144,9 @@ lemma non_uniform_pairs {ε : ℝ} (hε : 0 < ε) :
   (discrete_finpartition s).non_uniform_pairs G ε = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
-  refine sym2.ind _,
-  rintro U V,
+  rintro ⟨U, V⟩,
   simp only [finpartition.mem_non_uniform_pairs, discrete_finpartition_parts, mem_map,
-    and_imp, exists_prop, not_and, not_not, ne.def, exists_imp_distrib, embedding.coe_fn_mk],
+    not_and, not_not, embedding.coe_fn_mk, exists_imp_distrib],
   rintro x hx rfl y hy rfl h U' hU' V' hV' hU hV,
   rw [card_singleton, nat.cast_one, one_mul] at hU hV,
   obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
@@ -166,7 +163,7 @@ lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
 begin
   rw [finpartition.is_uniform, discrete_finpartition.size, non_uniform_pairs _ hε,
     finset.card_empty, nat.cast_zero],
-  exact mul_nonneg hε.le (nat.cast_nonneg _),
+  apply mul_nonneg hε.le (nat.cast_nonneg _),
 end
 
 end discrete_finpartition

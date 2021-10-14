@@ -465,7 +465,7 @@ variables (G : simple_graph α) (ε : ℝ) [decidable_rel G.adj]
 
 /-- A pair of finsets of vertices is ε-uniform iff their edge density is close to the density of any
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
-def is_uniform (ε : ℝ) (U V : finset α) : Prop :=
+def is_uniform (U V : finset α) : Prop :=
 ∀ U', U' ⊆ U → ∀ V', V' ⊆ V → (U.card : ℝ) * ε ≤ U'.card → (V.card : ℝ) * ε ≤ V'.card →
 abs (edge_density G U' V' - edge_density G U V) < ε
 
@@ -492,6 +492,20 @@ lemma is_uniform_symmetric : symmetric (is_uniform G ε) :=
 
 lemma is_uniform_comm {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
 ⟨λ h, h.symm, λ h, h.symm⟩
+
+lemma is_uniform_singleton {ε : ℝ} {x y : α} (hε : 0 < ε) :
+  G.is_uniform ε {x} {y} :=
+begin
+  rintro U' hU' V' hV' hU hV,
+  rw [card_singleton, nat.cast_one, one_mul] at hU hV,
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
+  { rw [finset.card_empty] at hU,
+    exact (hε.not_le hU).elim },
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hV',
+  { rw [finset.card_empty] at hV,
+    exact (hε.not_le hV).elim },
+  rwa [sub_self, abs_zero],
+end
 
 def sym2_is_uniform (UV : sym2 (finset α)) : Prop :=
 sym2.from_rel (G.is_uniform_symmetric ε) UV

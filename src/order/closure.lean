@@ -380,6 +380,9 @@ variables [set_like α β] (l : lower_adjoint (coe : α → set β))
 lemma subset_closure (s : set β) : s ⊆ l s :=
 l.le_closure s
 
+lemma not_mem_of_not_mem_closure {s : set β} {P : β} (hP : P ∉ l s) : P ∉ s :=
+λ h, hP (subset_closure _ s h)
+
 lemma le_iff_subset (s : set β) (S : α) : l s ≤ S ↔ s ⊆ S :=
 l.gc s S
 

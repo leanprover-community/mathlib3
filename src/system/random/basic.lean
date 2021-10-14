@@ -9,10 +9,10 @@ import control.uliftable
 import control.monad.basic
 
 import data.bitvec.basic
+import data.fin.basic
 import data.list.basic
 import data.set.intervals.basic
 import data.stream.basic
-import data.fin
 
 import tactic.cache
 import tactic.interactive

@@ -1011,7 +1011,7 @@ begin
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     simp only [le_div_iff (zero_lt_one.trans_le hx), sub_mul,
       inv_mul_cancel (zero_lt_one.trans_le hx).ne'],
-    have := nat.lt_add_one (a * x),
+    have := nat.lt_floor_add_one (a * x),
     linarith },
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     rw div_le_iff (zero_lt_one.trans_le hx),

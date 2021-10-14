@@ -22,7 +22,7 @@ In this file we define:
 We also prove various lemmas about monotonicity, behaviour under `∪`, `∩`, `insert`, and provide
 formulas for `∅`, `univ`, and intervals.
 -/
-open set
+open set order_dual (to_dual of_dual)
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
@@ -461,13 +461,13 @@ section
 variables [semilattice_inf γ] [densely_ordered γ]
 
 lemma is_lub_Ioo {a b : γ} (hab : a < b) : is_lub (Ioo a b) b :=
-by simpa only [dual_Ioo] using @is_glb_Ioo (order_dual γ) _ _ b a hab
+by simpa only [dual_Ioo] using is_glb_Ioo hab.dual
 
 lemma upper_bounds_Ioo {a b : γ} (hab : a < b) : upper_bounds (Ioo a b) = Ici b :=
 (is_lub_Ioo hab).upper_bounds_eq
 
 lemma is_lub_Ico {a b : γ} (hab : a < b) : is_lub (Ico a b) b :=
-by simpa only [dual_Ioc] using @is_glb_Ioc (order_dual γ) _ _ b a hab
+by simpa only [dual_Ioc] using is_glb_Ioc hab.dual
 
 lemma upper_bounds_Ico {a b : γ} (hab : a < b) : upper_bounds (Ico a b) = Ici b :=
 (is_lub_Ico hab).upper_bounds_eq

@@ -1164,10 +1164,10 @@ by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
   mem_span_singleton, not_exists,
   show fin.tail f (default (fin 1)) = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
-lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
-  ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=
+lemma exists_linear_independent (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
+  ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (coe : b → V) :=
 begin
-  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
+  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (coe : b → V)} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,
@@ -1180,13 +1180,17 @@ begin
     { exact subset_sUnion_of_mem } }
 end
 
+variables (K t)
+
 lemma exists_linear_independent' :
   ∃ b ⊆ t, span K b = span K t ∧ linear_independent K (coe : b → V) :=
 begin
   obtain ⟨b, hb₁, -, hb₂, hb₃⟩ :=
     exists_linear_independent (linear_independent_empty K V) (set.empty_subset t),
-  exact ⟨b, hb₁, le_antisymm (submodule.span_mono hb₁) (submodule.span_le.mpr hb₂), hb₃⟩,
+  exact ⟨b, hb₁, (span_eq_of_le _ hb₂ (submodule.span_mono hb₁)).symm, hb₃⟩,
 end
+
+variables {K t}
 
 /-- `linear_independent.extend` adds vectors to a linear independent set `s ⊆ t` until it spans
 all elements of `t`. -/

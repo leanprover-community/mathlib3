@@ -199,12 +199,6 @@ end
 lemma ceil_le {z : ℤ} {a : α} : ⌈a⌉ ≤ z ↔ a ≤ z :=
 by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 
-lemma floor_neg {a : α} : ⌊-a⌋ = -⌈a⌉ :=
-eq_of_forall_le_iff (λ z, by rw [le_neg, ceil_le, le_floor, int.cast_neg, le_neg])
-
-lemma ceil_neg {a : α} : ⌈-a⌉ = -⌊a⌋ :=
-eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_le])
-
 lemma lt_ceil {a : α} {z : ℤ} : z < ⌈a⌉ ↔ (z : α) < a := lt_iff_lt_of_le_iff_le ceil_le
 
 lemma ceil_le_floor_add_one (a : α) : ⌈a⌉ ≤ ⌊a⌋ + 1 :=
@@ -218,7 +212,7 @@ eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
 lemma ceil_mono {a b : α} (h : a ≤ b) : ⌈a⌉ ≤ ⌈b⌉ := ceil_le.2 (h.trans (le_ceil _))
 
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
-by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
+by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
 
 lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)

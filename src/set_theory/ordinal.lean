@@ -852,9 +852,9 @@ induction_on a $ λ α r _, rfl
 theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
   (h : card b ≤ a.lift) : ∃ a', lift a' = b :=
 let ⟨c, e⟩ := cardinal.lift_down h in
-quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
+cardinal.induction_on c (λ α, induction_on b $ λ β s _ e', begin
   resetI,
-  rw [mk_def, card_type, ← cardinal.lift_id'.{(max u v) u} (#β),
+  rw [card_type, ← cardinal.lift_id.{max (max u v) u} (#β),
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,

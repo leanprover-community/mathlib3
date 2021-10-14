@@ -1502,23 +1502,30 @@ variables {𝕜} {V : ι → submodule 𝕜 E}
 lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
   (l : Π₀ i, V i) (i : ι) (v : V i) :
   ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
+calc ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫
+    = l.sum (λ j, λ w, ⟪(v:E), w⟫) :
 begin
-  transitivity l.sum (λ j, λ w, ⟪(v:E), w⟫),
-  { let F : E →+ 𝕜 := (@inner_right 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
-    have hF := congr_arg add_monoid_hom.to_fun
-      (dfinsupp.comp_sum_add_hom F (λ j, (V j).subtype.to_add_monoid_hom)),
-    convert congr_fun hF l using 1;
-    { simp [dfinsupp.sum_add_hom_apply],
-      congr } },
-  transitivity l.sum (λ j, λ w, ite (j=i) ⟪(v:E), w⟫ 0),
-  { congr' 1,
-    ext j,
-    split_ifs,
-    { simp [h] },
-    { exact hV (ne.symm h) v.prop x.prop } },
-  rw dfinsupp.sum,
-  simp only [submodule.coe_inner, finset.sum_ite_eq', ite_eq_left_iff, dfinsupp.mem_support_to_fun,
-    not_not],
+  let F : E →+ 𝕜 := (@inner_right 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
+  have hF := congr_arg add_monoid_hom.to_fun
+    (dfinsupp.comp_sum_add_hom F (λ j, (V j).subtype.to_add_monoid_hom)),
+  convert congr_fun hF l using 1,
+  simp only [dfinsupp.sum_add_hom_apply, continuous_linear_map.to_linear_map_eq_coe,
+    add_monoid_hom.coe_comp, inner_right_coe, add_monoid_hom.to_fun_eq_coe,
+    linear_map.to_add_monoid_hom_coe, continuous_linear_map.coe_coe],
+  congr
+end
+... = l.sum (λ j, λ w, ite (j=i) ⟪(v:E), w⟫ 0) :
+begin
+  congr' 1,
+  ext j,
+  split_ifs,
+  { simp [h] },
+  { exact hV (ne.symm h) v.prop x.prop }
+end
+... = ⟪v, l i⟫ :
+begin
+  simp only [dfinsupp.sum, submodule.coe_inner, finset.sum_ite_eq', ite_eq_left_iff,
+    dfinsupp.mem_support_to_fun, not_not],
   intros h,
   simp [h]
 end
@@ -1534,7 +1541,7 @@ begin
     ext j,
     split_ifs,
     { rw h },
-    { exact hV (ne.symm h) v.2 (l j).2 } },
+    { exact hV (ne.symm h) v.prop (l j).prop } },
   simp,
 end
 
@@ -1542,15 +1549,15 @@ lemma orthogonal_family.independent (hV : orthogonal_family 𝕜 V) :
   complete_lattice.independent V :=
 begin
   apply complete_lattice.independent_of_dfinsupp_lsum_injective,
-  rw ← @linear_map.ker_eq_bot _ _ (⨁ i, V i) _ _ _ (direct_sum.add_comm_group (λ i, V i)),
-  rw submodule.eq_bot_iff,
+  rw [← @linear_map.ker_eq_bot _ _ _ _ _ _ (direct_sum.add_comm_group (λ i, V i)),
+    submodule.eq_bot_iff],
   intros v hv,
   rw linear_map.mem_ker at hv,
   ext i,
   have : ⟪(v i : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) v⟫ = 0,
   { simp [hv] },
-  rw hV.inner_right_dfinsupp at this,
-  simpa using this,
+  simpa only [submodule.coe_zero, submodule.coe_eq_zero, direct_sum.zero_apply, inner_self_eq_zero,
+    hV.inner_right_dfinsupp] using this,
 end
 
 end orthogonal_family

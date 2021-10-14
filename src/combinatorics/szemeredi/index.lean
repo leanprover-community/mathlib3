@@ -30,11 +30,11 @@ variable {s : finset α}
 lemma mem_distinct_pairs (a b : α) :
   ⟦(a, b)⟧ ∈ s.distinct_pairs ↔ a ∈ s ∧ b ∈ s ∧ a ≠ b :=
 begin
-  simp only [distinct_pairs, mem_image, mem_off_diag, exists_prop, ne.def, sym2.eq_iff, prod.exists],
+  simp_rw [distinct_pairs, mem_image, exists_prop, mem_off_diag, ne.def, prod.exists, sym2.eq_iff],
   split,
   { tauto {closer := tactic.subst_vars >> `[simpa]} },
   rintro ⟨as, bs, ab⟩,
-  refine ⟨a, b, ⟨as, bs, ab⟩, by simp⟩,
+  exact ⟨a, b, ⟨as, bs, ab⟩, by simp⟩,
 end
 
 lemma mem_distinct_pairs' (ab : α × α) :
@@ -94,7 +94,8 @@ P.parts.distinct_pairs.filter (λ UV, ¬G.sym2_is_uniform ε UV)
 
 lemma mem_non_uniform_pairs (U V : finset α) (ε : ℝ) :
   ⟦(U, V)⟧ ∈ P.non_uniform_pairs G ε ↔ U ∈ P.parts ∧ V ∈ P.parts ∧ U ≠ V ∧ ¬G.is_uniform ε U V :=
-by rw [non_uniform_pairs, mem_filter, mem_distinct_pairs, G.sym2_is_uniform_mk, and_assoc, and_assoc]
+by rw [non_uniform_pairs, mem_filter, mem_distinct_pairs, G.sym2_is_uniform_mk, and_assoc,
+  and_assoc]
 
 /-- An finpartition is `ε-uniform` iff at most a proportion of `ε` of its pairs of parts are not
 `ε-uniform`. -/

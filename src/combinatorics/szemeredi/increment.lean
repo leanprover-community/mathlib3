@@ -134,25 +134,26 @@ begin
   { refine ⟨⟨_, _, h₁⟩, ⟨_, _, h₂⟩, _⟩,
     rintro rfl,
     obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ h₁,
-    apply hUV,
-    apply P.disjoint _ _ hU hV _ (finpartition_on.subset _ h₁ hi) (finpartition_on.subset _ h₂ hi) },
+    exact hUV (P.disjoint.elim_finset hU hV _
+      (finpartition_on.subset _ h₁ hi) (finpartition_on.subset _ h₂ hi)) },
   { refine ⟨⟨_, _, h₁⟩, ⟨_, _, h₂⟩, _⟩,
     rintro rfl,
     obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ h₁,
-    apply hUV,
-    apply P.disjoint _ _ hU hV _ (finpartition_on.subset _ h₂ hi) (finpartition_on.subset _ h₁ hi) },
+    exact hUV (P.disjoint.elim_finset hU hV _
+      (finpartition_on.subset _ h₂ hi) (finpartition_on.subset _ h₁ hi)) }
 end.
 
 -- -- dagger inequality
--- lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+-- lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α]
+-- (hPα : P.size * 16^P.size ≤ card α)
 --   (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
 --   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} :
 --   G.edge_density U V^2 - ε^5/25 ≤
 --   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
 --     G.edge_density ab.1 ab.2^2)/16^P.size :=
 
-lemma sum_sym2 [decidable_eq α] {β : Type*} [division_ring β] [char_zero β] (f : sym2 α → β) (s : finset (α × α))
-  {hs₁ : ∀ i j, (i,j) ∈ s → i ≠ j} (hs₂ : ∀ i j, (i,j) ∈ s → (j,i) ∈ s):
+lemma sum_sym2 [decidable_eq α] {β : Type*} [division_ring β] [char_zero β] (f : sym2 α → β)
+  (s : finset (α × α)) {hs₁ : ∀ i j, (i,j) ∈ s → i ≠ j} (hs₂ : ∀ i j, (i,j) ∈ s → (j,i) ∈ s) :
   ∑ (i : sym2 _) in s.image quotient.mk, f i = (∑ i in s, f ⟦i⟧)/2 :=
 begin
   rw sum_div,
@@ -198,7 +199,8 @@ begin
                 end
         end
     ... ≤
-      (∑ UV in P.parts.attach.distinct_pairs.bUnion (sym2_pair_bind (λ i hi, (hP.chunk_increment G ε hi).parts)), G.sym2_edge_density UV ^ 2) / (hP.increment G ε).size ^ 2 :
+      (∑ UV in P.parts.attach.distinct_pairs.bUnion (sym2_pair_bind (λ i hi, (hP.chunk_increment
+        G ε hi).parts)), G.sym2_edge_density UV ^ 2) / (hP.increment G ε).size ^ 2 :
     begin
       rw sum_bUnion,
       rw distinct_pairs,

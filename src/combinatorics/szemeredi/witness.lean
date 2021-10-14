@@ -104,13 +104,13 @@ end
 lemma witness_pair_spec (h₁ : U ≠ V) (h₂ : ¬ G.is_uniform ε U V) :
   ε ≤ |G.edge_density (G.witness ε U V) (G.witness ε V U) - G.edge_density U V| :=
 begin
-  classical,
   unfold witness,
-  obtain h | h := em (well_ordering_rel U V),
-  { --rw if_pos h,
+  rcases trichotomous_of well_ordering_rel U V with lt | rfl | gt,
+  { rw [if_pos lt, if_neg (asymm lt)],
     exact G.witness_aux_pair_spec h₁ h₂ },
-  { --rw [if_neg h, edge_density_comm, edge_density_comm _ U],
-    exact G.witness_aux_pair_spec h₁.symm (λ i, h₂ i.symm) }
+  { cases h₁ rfl },
+  { rw [if_neg (asymm gt), if_pos gt, edge_density_comm, edge_density_comm _ U],
+    apply G.witness_aux_pair_spec h₁.symm (λ i, h₂ i.symm) }
 end
 
 end simple_graph

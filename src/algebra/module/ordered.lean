@@ -152,8 +152,8 @@ variables (M)
 
 /-- Left scalar multiplication as an order isomorphism. -/
 @[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o order_dual M :=
-{ to_fun := λ b, c • b,
-  inv_fun := λ b, c⁻¹ • b,
+{ to_fun := λ b, order_dual.to_dual (c • b),
+  inv_fun := λ b, c⁻¹ • (order_dual.of_dual b),
   left_inv := inv_smul_smul₀ hc.ne,
   right_inv := smul_inv_smul₀ hc.ne,
   map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_neg hc }

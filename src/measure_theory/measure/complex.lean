@@ -96,7 +96,6 @@ def _root_.measure_theory.signed_measure.to_complex_measure (s t : signed_measur
   m_Union' := λ f hf hfdisj,
     (complex.has_sum_iff _ _).2 ⟨s.m_Union hf hfdisj, t.m_Union hf hfdisj⟩ }
 
-@[simp]
 lemma _root_.measure_theory.signed_measure.to_complex_measure_apply
   {s t : signed_measure α} {i : set α} : s.to_complex_measure t i = ⟨s i, t i⟩ := rfl
 

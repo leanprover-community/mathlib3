@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
+import algebra.group_power.basic
 import data.set_like.basic
 import data.sigma.basic
 import group_theory.group_action.defs
@@ -101,17 +102,66 @@ lemma mk_mul_mk [has_add ι] [ghas_mul A] {i j} (a : A i) (b : A j) :
   mk i a * mk j b = mk (i + j) (ghas_mul.mul a b) :=
 rfl
 
-/-- A graded version of `monoid`. -/
+namespace gmonoid
+
+variables {A} [add_monoid ι] [ghas_mul A] [ghas_one A]
+
+/-- A default implementation of power on a graded monoid, like `npow_rec`.
+`gmonoid.gnpow` should be used instead. -/
+def gnpow_rec : Π (n : ℕ) {i}, A i → A (n • i)
+| 0 i a := cast (congr_arg A (zero_nsmul i).symm) ghas_one.one
+| (n + 1) i a := cast (congr_arg A (succ_nsmul i n).symm) (ghas_mul.mul a $ gnpow_rec _ a)
+
+@[simp] lemma gnpow_rec_zero (a : graded_monoid A) : graded_monoid.mk _ (gnpow_rec 0 a.snd) = 1 :=
+sigma.ext (zero_nsmul _) (heq_of_cast_eq _ rfl).symm
+
+/-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_zero'` when the default
+`graded_monoid.gmonoid.gnpow_rec` is used. -/
+meta def apply_gnpow_rec_zero_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_zero]
+
+@[simp] lemma gnpow_rec_succ (n : ℕ) (a : graded_monoid A) :
+  (graded_monoid.mk _ $ gnpow_rec n.succ a.snd) = a * ⟨_, gnpow_rec n a.snd⟩ :=
+sigma.ext (succ_nsmul _ _) (heq_of_cast_eq _ rfl).symm
+
+/-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_succ'` when the default
+`graded_monoid.gmonoid.gnpow_rec` is used. -/
+meta def apply_gnpow_rec_succ_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_succ]
+
+end gmonoid
+
+/-- A graded version of `monoid`.
+
+Like `monoid.npow`, this has an optional `gmonoid.gnpow` field to allow definitional control of
+natural powers of a graded monoid. -/
 class gmonoid [add_monoid ι]  extends ghas_mul A, ghas_one A :=
 (one_mul (a : graded_monoid A) : 1 * a = a)
 (mul_one (a : graded_monoid A) : a * 1 = a)
 (mul_assoc (a b c : graded_monoid A) : a * b * c = a * (b * c))
+(gnpow : Π (n : ℕ) {i}, A i → A (n • i) := gmonoid.gnpow_rec)
+(gnpow_zero' : Π (a : graded_monoid A), graded_monoid.mk _ (gnpow 0 a.snd) = 1
+  . gmonoid.apply_gnpow_rec_zero_tac)
+(gnpow_succ' : Π (n : ℕ) (a : graded_monoid A),
+  (graded_monoid.mk _ $ gnpow n.succ a.snd) = a * ⟨_, gnpow n a.snd⟩
+  . gmonoid.apply_gnpow_rec_succ_tac)
 
 /-- `gmonoid` implies a `monoid (graded_monoid A)`. -/
 instance gmonoid.to_monoid [add_monoid ι] [gmonoid A] :
   monoid (graded_monoid A) :=
 { one := (1), mul := (*),
+  npow := λ n a, graded_monoid.mk _ (gmonoid.gnpow n a.snd),
+  npow_zero' := λ a, gmonoid.gnpow_zero' a,
+  npow_succ' := λ n a, gmonoid.gnpow_succ' n a,
   one_mul := gmonoid.one_mul, mul_one := gmonoid.mul_one, mul_assoc := gmonoid.mul_assoc }
+
+lemma mk_pow [add_monoid ι] [gmonoid A] {i} (a : A i) (n : ℕ) :
+  mk i a ^ n = mk (n • i) (gmonoid.gnpow _ a) :=
+begin
+  induction n with n,
+  { rw [pow_zero],
+    exact (gmonoid.gnpow_zero' ⟨_, a⟩).symm, },
+  { rw [pow_succ, n_ih, mk_mul_mk],
+    exact (gmonoid.gnpow_succ' n ⟨_, a⟩).symm, },
+end
 
 /-- A graded version of `comm_monoid`. -/
 class gcomm_monoid [add_comm_monoid ι] extends gmonoid A :=
@@ -244,6 +294,13 @@ def gmonoid.of_subobjects {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   mul_one := λ ⟨i, a, h⟩, sigma.subtype_ext (add_zero _) (mul_one _),
   mul_assoc := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩ ⟨k, c, hc⟩,
     sigma.subtype_ext (add_assoc _ _ _) (mul_assoc _ _ _),
+  gnpow := λ n i a, ⟨a ^ n, begin
+    induction n,
+    { rw [pow_zero, zero_nsmul], exact one_mem },
+    { rw [pow_succ', succ_nsmul'], exact mul_mem ⟨_, n_ih⟩ a },
+  end⟩,
+  gnpow_zero' := λ n, sigma.subtype_ext (zero_nsmul _) (pow_zero _),
+  gnpow_succ' := λ n a, sigma.subtype_ext (succ_nsmul _ _) (pow_succ _ _),
   ..ghas_one.of_subobjects carriers one_mem,
   ..ghas_mul.of_subobjects carriers mul_mem }
 
@@ -278,10 +335,14 @@ instance has_mul.ghas_mul [has_add ι] [has_mul R] : graded_monoid.ghas_mul (λ 
 
 /-- If all grades are the same type and themselves form a monoid, then there is a trivial grading
 structure. -/
+@[simps gnpow]
 instance monoid.gmonoid [add_monoid ι] [monoid R] : graded_monoid.gmonoid (λ i : ι, R) :=
 { one_mul := λ a, sigma.ext (zero_add _) (heq_of_eq (one_mul _)),
   mul_one := λ a, sigma.ext (add_zero _) (heq_of_eq (mul_one _)),
   mul_assoc := λ a b c, sigma.ext (add_assoc _ _ _) (heq_of_eq (mul_assoc _ _ _)),
+  gnpow := λ n i a, a ^ n,
+  gnpow_zero' := λ a, sigma.ext (zero_nsmul _) (heq_of_eq (monoid.npow_zero' _)),
+  gnpow_succ' := λ n ⟨i, a⟩, sigma.ext (succ_nsmul _ _) (heq_of_eq (monoid.npow_succ' _ _)),
   ..has_one.ghas_one ι,
   ..has_mul.ghas_mul ι }
 

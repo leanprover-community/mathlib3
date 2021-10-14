@@ -560,13 +560,13 @@ begin
                                               + Hausdorff_dist (Fl '' s) (range Fr),
   { have B : bounded (range Fl) := (is_compact_range Il.continuous).bounded,
     exact Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_nonempty_of_bounded
-      (range_nonempty _) (sne.image _) B (B.subset (image_subset_range _ _))) },
+      (range_nonempty _) (sne.image _) B (B.mono (image_subset_range _ _))) },
   have : Hausdorff_dist (Fl '' s) (range Fr) ≤ Hausdorff_dist (Fl '' s) (Fr '' (range Φ))
                                              + Hausdorff_dist (Fr '' (range Φ)) (range Fr),
   { have B : bounded (range Fr) := (is_compact_range Ir.continuous).bounded,
     exact Hausdorff_dist_triangle' (Hausdorff_edist_ne_top_of_nonempty_of_bounded
       ((range_nonempty _).image _) (range_nonempty _)
-      (bounded.subset (image_subset_range _ _) B) B) },
+      (bounded.mono (image_subset_range _ _) B) B) },
   have : Hausdorff_dist (range Fl) (Fl '' s) ≤ ε₁,
   { rw [← image_univ, Hausdorff_dist_image Il],
     have : 0 ≤ ε₁ := le_trans dist_nonneg Dxs,

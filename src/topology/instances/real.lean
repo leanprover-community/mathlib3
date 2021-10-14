@@ -278,7 +278,7 @@ end,
 begin
   intro h,
   rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
-  exact (bounded_Icc m M).subset I
+  exact (bounded_Icc m M).mono I
 end⟩
 
 lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :

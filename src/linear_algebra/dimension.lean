@@ -423,8 +423,8 @@ end
 
 section rank_zero
 
-variables {R : Type u} [semiring R] [nontrivial R]
-variables {M : Type v} [add_comm_monoid M] [module R M] [no_zero_smul_divisors R M]
+variables {R : Type u} [ring R] [nontrivial R]
+variables {M : Type v} [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
 
 lemma dim_zero_iff_forall_zero : module.rank R M = 0 ↔ ∀ x : M, x = 0 :=
 begin

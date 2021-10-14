@@ -400,8 +400,10 @@ begin
   refl
 end
 
-lemma ceil_lt_add_one {a : α} (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
-lt_ceil.1 $ by { rw ceil_add_one ha, exact nat.lt_succ_self _ }
+theorem ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
+lt_ceil.1 $ by rw (
+  show ⌈a + 1⌉₊ = ⌈a⌉₊ + 1, by exact_mod_cast (ceil_add_nat a_nonneg 1));
+  apply nat.lt_succ_self
 
 lemma lt_of_ceil_lt {a : α} {n : ℕ} (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 

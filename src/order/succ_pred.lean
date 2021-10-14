@@ -764,6 +764,9 @@ variables [preorder α]
 section succ_order
 variables [succ_order α] [is_succ_archimedean α] {a b : α}
 
+instance : is_pred_archimedean (order_dual α) :=
+{ exists_pred_iterate_of_le := λ a b h, by convert @exists_succ_iterate_of_le α _ _ _ _ _ h }
+
 lemma has_le.le.exists_succ_iterate (h : a ≤ b) : ∃ n, succ^[n] a = b :=
 exists_succ_iterate_of_le h
 
@@ -788,16 +791,19 @@ begin
   exact iterate.rec (λ b, p a ↔ p b) (λ c hc, hc.trans (hsucc _)) iff.rfl n,
 end
 
-instance : is_pred_archimedean (order_dual α) :=
-{ exists_pred_iterate_of_le := λ a b h, by convert @exists_succ_iterate_of_le α _ _ _ _ _ h }
-
 end succ_order
 
 section pred_order
 variables [pred_order α] [is_pred_archimedean α] {a b : α}
 
+instance : is_succ_archimedean (order_dual α) :=
+{ exists_succ_iterate_of_le := λ a b h, by convert @exists_pred_iterate_of_le α _ _ _ _ _ h }
+
 lemma has_le.le.exists_pred_iterate (h : a ≤ b) : ∃ n, pred^[n] b = a :=
 exists_pred_iterate_of_le h
+
+lemma exists_pred_iterate_iff_le : (∃ n, pred^[n] b = a) ↔ a ≤ b :=
+@exists_succ_iterate_iff_le (order_dual α) _ _ _ _ _
 
 lemma pred.rec {p : α → Prop} (hsucc : ∀ a, p a → p (pred a)) {a b : α} (h : b ≤ a) (ha : p a) :
   p b :=
@@ -806,9 +812,6 @@ lemma pred.rec {p : α → Prop} (hsucc : ∀ a, p a → p (pred a)) {a b : α} 
 lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : α} (h : a ≤ b) :
   p a ↔ p b :=
 (@succ.rec_iff (order_dual α) _ _ _ _ hsucc _ _ h).symm
-
-instance : is_succ_archimedean (order_dual α) :=
-{ exists_succ_iterate_of_le := λ a b h, by convert @exists_pred_iterate_of_le α _ _ _ _ _ h }
 
 end pred_order
 end preorder

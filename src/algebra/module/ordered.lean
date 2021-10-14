@@ -5,10 +5,11 @@ Authors: Frédéric Dupuis, Yaël Dillies
 -/
 
 import algebra.module.pi
-import algebra.order.pi
 import algebra.module.prod
 import algebra.order.field
+import algebra.order.pi
 import algebra.order.smul
+import algebra.pointwise
 
 /-!
 # Ordered module
@@ -19,10 +20,17 @@ In this file we provide lemmas about `ordered_smul` that hold once a module stru
 
 * https://en.wikipedia.org/wiki/Ordered_module
 
+## TODO
+
+`lower_bounds_smul_of_neg` and similar aren't proved as seamlessly as their positive counterparts.
+Maybe that shows the lemmas aren't general enough?
+
 ## Tags
 
 ordered module, ordered scalar, ordered smul, ordered action, ordered vector space
 -/
+
+open_locale pointwise
 
 variables {k M N : Type*}
 
@@ -177,3 +185,113 @@ instance pi.ordered_smul' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
 pi.ordered_smul
 
 end field
+
+/-! ### Upper/lower bounds -/
+
+section ordered_semiring
+variables [ordered_semiring k] [ordered_add_comm_monoid M] [smul_with_zero k M] [ordered_smul k M]
+  {s : set M} {c : k}
+
+lemma smul_lower_bounds_subset_lower_bounds_smul (hc : 0 ≤ c) :
+  c • lower_bounds s ⊆ lower_bounds (c • s) :=
+(monotone_smul_left hc).image_lower_bounds_subset_lower_bounds_image
+
+lemma smul_upper_bounds_subset_upper_bounds_smul (hc : 0 ≤ c) :
+  c • upper_bounds s ⊆ upper_bounds (c • s) :=
+(monotone_smul_left hc).image_upper_bounds_subset_upper_bounds_image
+
+lemma bdd_below.smul_of_nonneg (hs : bdd_below s) (hc : 0 ≤ c) :
+  bdd_below (c • s) :=
+(monotone_smul_left hc).map_bdd_below hs
+
+lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) :
+  bdd_above (c • s) :=
+(monotone_smul_left hc).map_bdd_above hs
+
+end ordered_semiring
+
+section ordered_ring
+variables [ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  {s : set M} {c : k}
+
+lemma smul_lower_bounds_subset_upper_bounds_smul (hc : c ≤ 0) :
+  c • lower_bounds s ⊆ upper_bounds (c • s) :=
+(antitone_smul_left hc).image_lower_bounds_subset_upper_bounds_image
+
+lemma smul_upper_bounds_subset_lower_bounds_smul (hc : c ≤ 0) :
+  c • upper_bounds s ⊆ lower_bounds (c • s) :=
+(antitone_smul_left hc).image_upper_bounds_subset_lower_bounds_image
+
+lemma bdd_below.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_below s) :
+  bdd_above (c • s) :=
+(antitone_smul_left hc).map_bdd_below hs
+
+lemma bdd_above.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_above s) :
+  bdd_below (c • s) :=
+(antitone_smul_left hc).map_bdd_above hs
+
+end ordered_ring
+
+section linear_ordered_field
+variables [linear_ordered_field k] [ordered_add_comm_group M]
+
+section mul_action_with_zero
+variables [mul_action_with_zero k M] [ordered_smul k M] {s t : set M} {c : k}
+
+@[simp] lemma lower_bounds_smul_of_pos (hc : 0 < c) :
+  lower_bounds (c • s) = c • lower_bounds s :=
+(order_iso.smul_left hc).lower_bounds_image
+
+@[simp] lemma upper_bounds_smul_of_pos (hc : 0 < c) :
+  upper_bounds (c • s) = c • upper_bounds s :=
+(order_iso.smul_left hc).upper_bounds_image
+
+@[simp] lemma bdd_below_smul_iff_of_pos (hc : 0 < c) :
+  bdd_below (c • s) ↔ bdd_below s :=
+(order_iso.smul_left hc).bdd_below_image
+
+@[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) :
+  bdd_above (c • s) ↔ bdd_above s :=
+(order_iso.smul_left hc).bdd_above_image
+
+end mul_action_with_zero
+
+section module
+variables [module k M] [ordered_smul k M] {s t : set M} {c : k}
+
+@[simp] lemma lower_bounds_smul_of_neg (hc : c < 0) :
+  lower_bounds (c • s) = c • upper_bounds s :=
+begin
+  refine set.subset.antisymm _ (smul_upper_bounds_subset_lower_bounds_smul hc.le),
+  have h : c⁻¹ • lower_bounds (c • s) ⊆ upper_bounds (c⁻¹ • c • s) :=
+    smul_lower_bounds_subset_upper_bounds_smul (inv_nonpos.2 hc.le),
+  rwa [←subset_set_smul_iff₀ hc.ne, inv_smul_smul₀ hc.ne] at h,
+end
+
+@[simp] lemma upper_bounds_smul_of_neg (hc : c < 0) :
+  upper_bounds (c • s) = c • lower_bounds s :=
+begin
+  refine set.subset.antisymm _ (smul_lower_bounds_subset_upper_bounds_smul hc.le),
+  have h : c⁻¹ • upper_bounds (c • s) ⊆ lower_bounds (c⁻¹ • c • s) :=
+    smul_upper_bounds_subset_lower_bounds_smul (inv_nonpos.2 hc.le),
+  rwa [←subset_set_smul_iff₀ hc.ne, inv_smul_smul₀ hc.ne] at h,
+end
+
+@[simp] lemma bdd_below_smul_iff_of_neg (hc : c < 0) :
+  bdd_below (c • s) ↔ bdd_above s :=
+begin
+  refine ⟨λ h, _, bdd_above.smul_of_nonpos hc.le⟩,
+  rw ←inv_smul_smul₀ hc.ne s,
+  exact h.smul_of_nonpos (inv_nonpos.2 hc.le),
+end
+
+@[simp] lemma bdd_above_smul_iff_of_neg (hc : c < 0) :
+  bdd_above (c • s) ↔ bdd_below s :=
+begin
+  refine ⟨λ h, _, bdd_below.smul_of_nonpos hc.le⟩,
+  rw ←inv_smul_smul₀ hc.ne s,
+  exact h.smul_of_nonpos (inv_nonpos.2 hc.le),
+end
+
+end module
+end linear_ordered_field

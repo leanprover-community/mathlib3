@@ -52,7 +52,7 @@ vectors.
 In many cases we additionally provide dot-style operations (e.g., `linear_independent.union`) to
 make the linear independence tests usable as `hv.insert ha` etc.
 
-We also prove that, when working over a field,
+We also prove that, when working over a division ring,
 any family of vectors includes a linear independent subfamily spanning the same subspace.
 
 ## Implementation notes
@@ -1178,6 +1178,14 @@ begin
     { exact sUnion_subset (λ x xc, (hc xc).1) },
     { exact linear_independent_sUnion_of_directed cc.directed_on (λ x xc, (hc xc).2) },
     { exact subset_sUnion_of_mem } }
+end
+
+lemma exists_linear_independent' :
+  ∃ b ⊆ t, span K b = span K t ∧ linear_independent K (coe : b → V) :=
+begin
+  obtain ⟨b, hb₁, -, hb₂, hb₃⟩ :=
+    exists_linear_independent (linear_independent_empty K V) (set.empty_subset t),
+  exact ⟨b, hb₁, le_antisymm (submodule.span_mono hb₁) (submodule.span_le.mpr hb₂), hb₃⟩,
 end
 
 /-- `linear_independent.extend` adds vectors to a linear independent set `s ⊆ t` until it spans

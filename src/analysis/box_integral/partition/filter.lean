@@ -9,15 +9,32 @@ import analysis.box_integral.partition.additive
 /-!
 # Filters used in box-based integrals
 
-In this file we define a structure `box_integral.integration_params`. This structure holds three
-boolean values (see below), and encodes eight different filter. Only four of these filters are
-actually used somewhere in the library (`⊥`, `Riemann`, `Henstock`, and `McShane`).
+First we define a structure `box_integral.integration_params`. This structure will be used as an
+argument in the definition of `box_integral.integral` in order to use the same definition for a few
+well-known definitions of integrals based on partitions of a rectangular box into subboxes (Riemann
+integral, Henstock-Kurzweil integral, and McShane integral).
+
+This structure holds three boolean values (see below), and encodes eight different sets of
+parameters; only four of these values are used somewhere in `mathlib`. Three of them correspond to
+the integration theories listed above, and one is a generalization of the one-dimensional
+Henstock-Kurzweil integral such that the divergence theorem works without additional integrability
+assumptions.
+
+Finally, for each set of parameters `l : box_integral.integration_params` and a rectangular box
+`I : box_integral.box ι`, we define several `filter`s that will be used either in the definition of
+the corresponding integral, or in the proofs of its properties. We equip
+`box_integral.integration_params` with a `bounded_lattice` structure such that larger
+`integration_params` produce larger filters.
+
+## Main definitions
+
+### Integration parameters
 
 The structure `box_integral.integration_params` has 3 boolean fields with the following meaning:
 
 * `bRiemann`: the value `tt` means that the filter corresponds to a Riemann-style integral, i.e. in
-  the definition of integrability we require a constant upper estimate `r` on the size of boxes of a tagged
-  partition; the value `ff` means that the estimate may depend on the position of the tag.
+  the definition of integrability we require a constant upper estimate `r` on the size of boxes of a
+  tagged partition; the value `ff` means that the estimate may depend on the position of the tag.
 
 * `bHenstock`: the value `tt` means that we require that each tag belongs to its own closed box; the
   value `ff` means that we only require that tags belong to the ambient box.
@@ -26,9 +43,121 @@ The structure `box_integral.integration_params` has 3 boolean fields with the fo
   box of a partition. Presence of this case make quite a few proofs harder but we can prove the
   divergence theorem only for the filter `⊥ = {bRiemann := ff, bHenstock := tt, bDistortion := tt}`.
 
+### Well-known sets of parameters
+
+Out of eight possible values of `box_integral.integration_params`, the following four are used in
+the library.
+
+* `box_integral.integration_params.Riemann` (`bRiemann = tt`, `bHenstock = tt`, `bDistortion = ff`):
+  this value corresponds to the Riemann integral; in the corresponding filter, we require that the
+  diameters of all boxes `J` of a tagged partition are bounded from above by a constant upper
+  estimate that may not depend on the geometry of `J`, and each tag belongs to the corresponding
+  closed box.
+
+* `box_integral.integration_params.Henstock` (`bRiemann = ff`, `bHenstock = tt`,
+  `bDistortion = ff`): this value corresponds to the most natural generalization of
+  Henstock-Kurzweil integral to higher dimension; the only (but important!) difference between this
+  theory and Riemann integral is that instead of a constant upper estimate on the size of all boxes
+  of a partition, we require that the partition is *subordinate* to a possibly discontinuous
+  function `r : (ι → ℝ) → {x : ℝ | 0 < x}`, i.e. each box `J` is included in a closed ball with
+  center `π.tag J` and radius `r J`.
+
+* `box_integral.integration_params.McShane` (`bRiemann = ff`, `bHenstock = ff`, `bDistortion = ff`):
+  this value corresponds to the McShane integral; the only difference with the Henstock integral is
+  that we allow tags to be outside of their boxes; the tags still have to be in the ambient closed
+  box, and the partition still has to be subordinate to a function.
+
+* `⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`): this is the least integration theory
+  in our list, i.e., all functions integrable in any other theory is integrable in this one as well.
+  This is a non-standard generalization of the Henstock-Kurzweil integral to higher dimension.
+  In dimension one, it generates the same filter as `Henstock`. In higher dimension, this
+  generalization defines an integration theory such that the divergence of any Fréchet
+  differentiable function `f` is integrable, and its integral is equal to the sum of integrals of
+  `f` over the faces of the box, taken with appropriate signs.
+
+  A function `f` is `⊥`-integrable if for any `ε > 0` and `c : ℝ≥0` there exists
+  `r : (ι → ℝ) → {x : ℝ | 0 < x}` such that for any tagged partition `π` subordinate to `r`, if each
+  tag belongs to the corresponding closed box and for each box `J ∈ π`, the maximal ratio of its
+  sides is less than or equal to `c`, then the integral sum of `f` over `π` is `ε`-close to the
+  integral.
+
+### Filters and predicates on `tagged_prepartition I`
+
+For each value of `integration_params` and a rectangular box `I`, we define a few filters on
+`tagged_prepartition I`. First, we define a predicate
+
+```
+structure box_integral.integration_params.mem_base_set (l : box_integral.integration_params)
+  (I : box_integral.box ι) (c : ℝ≥0) (r : (ι → ℝ) → Ioi (0 : ℝ))
+  (π : box_integral.tagged_prepartition I) : Prop :=
+```
+
+This predicate says that
+
+* if `l.bHenstock`, then `π` is a Henstock prepartition, i.e. each tag belongs to the corresponding
+  closed box;
+* `π` is subordinate to `r`;
+* if `l.bDistortion`, then the distortion of each box in `π` is less than or equal to `c`;
+* if `l.bDistortion`, then there exists a prepartition `π'` with distortion `≤ c` that covers
+  exactly `I \ π.Union`.
+
+The last condition is always true for `c > 1`, see TODO section for more details.
+
+Then we define a predicate `box_integral.integration_params.r_cond` on functions
+`r : (ι → ℝ) → {x : ℝ | 0 < x}`. If `l.bRiemann`, then this predicate requires `r` to be a constant
+function, otherwise it imposes no restrictions on `r`. We introduce this definition to prove a few
+dot-notation lemmas: e.g., `box_integral.integration_params.r_cond.min` says that the pointwise
+minimum of two functions that satisfy this condition satisfies this condition as well.
+
+Then we define four filters on `box_integral.tagged_prepartition I`.
+
+* `box_integral.integration_params.to_filter_distortion`: an auxiliary filter that takes parameters
+  `(l : box_integral.integration_params) (I : box_integral.box ι) (c : ℝ≥0)` and returns the
+  filter generated by all sets `{π | mem_base_set l I c r π}`, where `r` is a function satisfying
+  the predicate `box_integral.integration_params.r_cond l`;
+
+* `box_integral.integration_params.to_filter l I`: the supremum of `l.to_filter_distortion I c`
+  over all `c : ℝ≥0`;
+
+* `box_integral.integration_params.to_filter_distortion_Union l I c π₀`, where `π₀` is a
+  prepartition of `I`: the infimum of `l.to_filter_distortion I c` and the principal filter
+  generated by `{π | π.Union = π₀.Union}`;
+
+* `box_integral.integration_params.to_filter_Union l I π₀`: the supremum of
+  `l.to_filter_distortion_Union l I c π₀` over all `c : ℝ≥0`. This is the filter (in the case
+  `π₀ = ⊤` is the one-box partition of `I`) used in the definition of the integral of a function
+  over a box.
+
+## Implementation details
+
+* Later we define the integral of a function over a rectangular box as the limit (if it exists) of
+  the integral sums along `box_integral.integration_params.to_filter_Union l I ⊤`. While it is
+  possible to define the integral with a general filter on `box_integral.tagged_prepartition I` as a
+  parameter, many lemmas (e.g., Sacks-Henstock lemma and most results about integrability of
+  functions) require the filter to have a predictable structure. So, instead of adding assumptions
+  about the filter here and there, we define this auxiliary type that can encode all integration
+  theories we need in practice.
+
+* While the definition of the integral only uses the filter
+  `box_integral.integration_params.to_filter_Union l I ⊤` and partitions of a box, some lemmas
+  (e.g., the Henstock-Sacks lemmas) are best formulated in terms of the predicate `mem_base_set` and
+  other filters defined above.
+
+* We use `bool` instead of `Prop` for the fields of `integration_params` in order to have decidable
+  equality and inequalities.
+
+## TODO
+
+Currently, `box_integral.integration_params.mem_base_set` explicitly requires that there exists a
+partition of the complement `I \ π.Union` with distortion `≤ c`. For `c > 1`, this condition is
+always true but the proof of this fact requires more API about
+`box_integral.prepartition.split_many`. We should formalize this fact, then either require `c > 1`
+everywhere, or replace `≤ c` with `< c` so that we automatically get `c > 1` for a non-trivial
+prepartition (and consider the special case `π = ⊥` separately if needed).
+
 ## Tags
 
-integral, filter
+integral, rectangular box, partition, filter
 -/
 
 open set function filter metric finset bool
@@ -46,8 +175,8 @@ open tagged_prepartition
 used in the definition of a box-integrable function.
 
 * `bRiemann`: the value `tt` means that the filter corresponds to a Riemann-style integral, i.e. in
-  the definition of integrability we require a constant upper estimate `r` on the size of boxes of a tagged
-  partition; the value `ff` means that the estimate may depend on the position of the tag.
+  the definition of integrability we require a constant upper estimate `r` on the size of boxes of a
+  tagged partition; the value `ff` means that the estimate may depend on the position of the tag.
 
 * `bHenstock`: the value `tt` means that we require that each tag belongs to its own closed box; the
   value `ff` means that we only require that tags belong to the ambient box.
@@ -80,14 +209,47 @@ def iso_prod : integration_params ≃o bool × order_dual bool × order_dual boo
 instance : bounded_lattice integration_params :=
 iso_prod.symm.to_galois_insertion.lift_bounded_lattice
 
+/-- The value `⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`) corresponds to a
+generalization of the Henstock integral such that the Divergence theorem holds true without
+additional integrability assumptions, see the module docstring for details. -/
 instance : inhabited integration_params := ⟨⊥⟩
 
+instance : decidable_rel ((≤) : integration_params → integration_params → Prop) :=
+λ _ _, and.decidable
+
+instance : decidable_eq integration_params := λ x y, decidable_of_iff _ (ext_iff x y).symm
+
+/-- The `box_integral.integration_params` corresponding to the Riemann integral. -/
+def Riemann : integration_params :=
+{ bRiemann := tt,
+  bHenstock := tt,
+  bDistortion := ff }
+
+/-- The `box_integral.integration_params` corresponding to the McShane integral. -/
+def McShane : integration_params := ⟨ff, ff, ff⟩
+
+/-- The `box_integral.integration_params` corresponding to the Henstock-Kurzweil integral. -/
+def Henstock : integration_params := ⟨ff, tt, ff⟩
+
+lemma Henstock_le_Riemann : Henstock ≤ Riemann := dec_trivial
+
+lemma Henstock_le_McShane : Henstock ≤ McShane := dec_trivial
+
 /-- The predicate corresponding to a base set of the filter defined by an
-`integration_params`. Besides requirements `is_subordinate`, `is_Henstock` and `distortion_le`
-explained in the module docstring, we require that in the case `l.bDistortion = tt`, a prepartition
-admits a prepartition of the complement with the same estimate on the distortion. This condition is
-automatically verified for partitions, and is used in the proof of the Sacks-Henstock inequality
-to compare two prepartitions covering the same part of the box. -/
+`integration_params`. It says that
+
+* if `l.bHenstock`, then `π` is a Henstock prepartition, i.e. each tag belongs to the corresponding
+  closed box;
+* `π` is subordinate to `r`;
+* if `l.bDistortion`, then the distortion of each box in `π` is less than or equal to `c`;
+* if `l.bDistortion`, then there exists a prepartition `π'` with distortion `≤ c` that covers
+  exactly `I \ π.Union`.
+
+The last condition is automatically verified for partitions, and is used in the proof of the
+Sacks-Henstock inequality to compare two prepartitions covering the same part of the box.
+
+It is also automatically satisfied for any `c > 1`, see TODO section of the module docstring for
+details. -/
 @[protect_proj] structure mem_base_set (l : integration_params) (I : box ι) (c : ℝ≥0)
   (r : (ι → ℝ) → Ioi (0 : ℝ)) (π : tagged_prepartition I) : Prop :=
 (is_subordinate : π.is_subordinate r)
@@ -99,8 +261,8 @@ to compare two prepartitions covering the same part of the box. -/
 def r_cond {ι : Type*} (l : integration_params) (r : (ι → ℝ) → Ioi (0 : ℝ)) : Prop :=
 l.bRiemann → ∀ x, r x = r 0
 
-/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion I c` if there exists a
-function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s` contains each
+/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion I c` if there exists
+a function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s` contains each
 prepartition `π` such that `l.mem_base_set I c r π`. -/
 def to_filter_distortion (l : integration_params) (I : box ι) (c : ℝ≥0) :
   filter (tagged_prepartition I) :=
@@ -113,9 +275,9 @@ def to_filter (l : integration_params) (I : box ι) :
   filter (tagged_prepartition I) :=
 ⨆ c : ℝ≥0, l.to_filter_distortion I c
 
-/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion_Union I c π₀` if there exists a
-function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s` contains each
-prepartition `π` such that `l.mem_base_set I c r π` and `π.Union = π₀.Union`. -/
+/-- A set `s : set (tagged_prepartition I)` belongs to `l.to_filter_distortion_Union I c π₀` if
+there exists a function `r : ℝⁿ → (0, ∞)` (or a constant `r` if `l.bRiemann = tt`) such that `s`
+contains each prepartition `π` such that `l.mem_base_set I c r π` and `π.Union = π₀.Union`. -/
 def to_filter_distortion_Union (l : integration_params) (I : box ι) (c : ℝ≥0)
   (π₀ : prepartition I) :=
 l.to_filter_distortion I c ⊓ 𝓟 {π | π.Union = π₀.Union}
@@ -322,28 +484,10 @@ instance to_filter_Union_ne_bot (l : integration_params) (I : box ι) (π₀ : p
 (l.to_filter_distortion_Union_ne_bot' I π₀).mono $
   le_supr (λ c, l.to_filter_distortion_Union I c π₀) _
 
-instance : decidable_rel ((≤) : integration_params → integration_params → Prop) :=
-λ _ _, and.decidable
-
-instance : decidable_eq integration_params := λ x y, decidable_of_iff _ (ext_iff x y).symm
-
 lemma eventually_is_partition (l : integration_params) (I : box ι) :
   ∀ᶠ π in l.to_filter_Union I ⊤, tagged_prepartition.is_partition π :=
 eventually_supr.2 $ λ c, eventually_inf_principal.2 $ eventually_of_forall $
   λ π h, π.is_partition_iff_Union_eq.2 (h.trans prepartition.Union_top)
-
-/-- The `box_integral.integration_params` corresponding to the Riemann integral. -/
-def Riemann : integration_params := ⟨tt, tt, ff⟩
-
-/-- The `box_integral.integration_params` corresponding to the McShane integral. -/
-def McShane : integration_params := ⟨ff, ff, ff⟩
-
-/-- The `box_integral.integration_params` corresponding to the Henstock-Kurzweil integral. -/
-def Henstock : integration_params := ⟨ff, tt, ff⟩
-
-lemma Henstock_le_Riemann : Henstock ≤ Riemann := dec_trivial
-
-lemma Henstock_le_McShane : Henstock ≤ McShane := dec_trivial
 
 end integration_params
 

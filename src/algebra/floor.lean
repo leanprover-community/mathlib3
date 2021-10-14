@@ -400,12 +400,6 @@ begin
   refl
 end
 
-lemma ceil_add_one {a : α} (ha : 0 ≤ a) : ⌈a + 1⌉₊ = ⌈a⌉₊ + 1 :=
-begin
-  convert ceil_add_nat ha 1,
-  exact cast_one.symm,
-end
-
 lemma ceil_lt_add_one {a : α} (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ by { rw ceil_add_one ha, exact nat.lt_succ_self _ }
 

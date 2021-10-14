@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2021 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import algebra.direct_sum.ring
 import ring_theory.ideal.basic
 import ring_theory.ideal.operations
@@ -12,22 +18,10 @@ variables {ι : Type*} [add_comm_monoid ι] (A : ι → Type*) [Π i, comm_ring 
 def is_homogeneous_element (x : ⨁ i, A i) := ∃ i (y : A i), x = of A i y
 
 def is_homogeneous_ideal (I : ideal (⨁ i, A i)) :=
-  I.carrier = ⋃ (i : ι), I.carrier ∩ (set.image (of A i) univ)
-
-
-def is_homogeneous_ideal' (I : ideal (⨁ i, A i)) :=
   ∃ S, (∀ s ∈ S, is_homogeneous_element A s) ∧ I = ideal.span S
 
--- def is_homogeneous_ideal_iff_eq_span_homogeneous_elements
---   (I : ideal (⨁ i, A i)) : is_homogeneous_ideal A I ↔ is_homogeneous_ideal' A I :=
--- ⟨λ HI, begin
---   sorry
--- end, λ ⟨S, ⟨homogeneous_S, I_eq_span⟩⟩, begin
---   rw I_eq_span, ext, sorry
--- end⟩
-
-lemma prod_hom (I J : ideal (⨁ i, A i)) (HI : is_homogeneous_ideal' A I) (HJ : is_homogeneous_ideal' A J) :
-  is_homogeneous_ideal' A (I * J) :=
+lemma prod_hom (I J : ideal (⨁ i, A i)) (HI : is_homogeneous_ideal A I) (HJ : is_homogeneous_ideal A J) :
+  is_homogeneous_ideal A (I * J) :=
 begin
   rcases HI with ⟨SI, ⟨SI_hom, I_eq_span_SI⟩⟩,
   rcases HJ with ⟨SJ, ⟨SJ_hom, J_eq_span_SJ⟩⟩,

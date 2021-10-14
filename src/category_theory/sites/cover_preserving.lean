@@ -54,16 +54,16 @@ A functor `G : (C, J) ⥤ (D, K)` between sites is *cover-preserving*
 if for all covering sieves `R` in `C`, `R.pushforward_functor G` is a covering sieve in `D`.
 -/
 @[nolint has_inhabited_instance]
-structure cover_preserving (G : C ⥤ D) :=
+structure cover_preserving (G : C ⥤ D) : Prop :=
 (cover_preserve : ∀ {U : C} {S : sieve U} (hS : S ∈ J U), S.functor_pushforward G ∈ K (G.obj U))
 
 /-- The identity functor on a site is cover-preserving. -/
-def id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by simpa using hS⟩
+lemma id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by simpa using hS⟩
 
 variables (J) (K)
 
 /-- The composition of two cover-preserving functors is cover-preserving. -/
-def cover_preserving.comp {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
+lemma cover_preserving.comp {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
   cover_preserving J L (G ⋙ v) := ⟨λ U S hS,
 begin
   rw sieve.functor_pushforward_comp,

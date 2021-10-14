@@ -258,7 +258,7 @@ The fundamental groupoid of a space `X` is defined to be a type synonym for `X`,
 -/
 def fundamental_groupoid (X : Type u) := X
 
-instance : inhabited (fundamental_groupoid unit) := ⟨()⟩
+instance {X : Type u} [h : inhabited X] : inhabited (fundamental_groupoid X) := h
 
 local attribute [reducible] fundamental_groupoid
 local attribute [instance] path.homotopic.setoid

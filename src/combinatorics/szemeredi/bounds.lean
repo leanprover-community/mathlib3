@@ -17,12 +17,10 @@ variables {α : Type*}
 Szemerédi's Regularity Lemma -/
 def exp_bound (n : ℕ) : ℕ := n * 4^n
 
-lemma le_exp_bound :
- id ≤ exp_bound :=
+lemma le_exp_bound : id ≤ exp_bound :=
 λ n, nat.le_mul_of_pos_right (pow_pos (by norm_num) n)
 
-lemma exp_bound_mono :
-  monotone exp_bound :=
+lemma exp_bound_mono : monotone exp_bound :=
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
 lemma exp_bound_pos {n : ℕ} : 0 < exp_bound n ↔ 0 < n :=
@@ -63,8 +61,7 @@ begin
     ... ≤ m : nat.cast_le.2 (nat.div_le_div_right hPα)
 end
 
-lemma a_add_one_le_four_pow_size :
-  a + 1 ≤ 4^P.size :=
+lemma a_add_one_le_four_pow_size : a + 1 ≤ 4^P.size :=
 begin
   have h : 1 ≤ 4^P.size := one_le_pow_of_one_le (by norm_num) _,
   rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, sub_le_iff_left,
@@ -72,8 +69,7 @@ begin
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end
 
-lemma card_aux₁ :
-  m * 4^P.size + a = (4^P.size - a) * m + a * (m + 1) :=
+lemma card_aux₁ : m * 4^P.size + a = (4^P.size - a) * m + a * (m + 1) :=
 by rw [mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
   ((nat.le_succ _).trans a_add_one_le_four_pow_size), mul_comm]
 

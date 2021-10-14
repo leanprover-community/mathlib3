@@ -709,6 +709,12 @@ lemma finpartition.is_equipartition_iff_card_parts_eq_average [decidable_eq α] 
     ∀ a : finset α, a ∈ P.parts → a.card = card α/P.size ∨ a.card = card α/P.size + 1 :=
 by rw [P.is_equipartition_iff_card_parts_eq_average, card_univ]
 
+lemma finpartition.is_equipartition.average_le_card_part [decidable_eq α] [fintype α]
+  {P : finpartition α} (hP : P.is_equipartition) {a : finset α} (ha : a ∈ P.parts) :
+  card α/P.size ≤ a.card :=
+(finpartition.is_equipartition_iff_card_parts_eq_average.1 hP a ha).elim ge_of_eq (λ h,
+  (nat.le_succ _).trans h.ge)
+
 /-! ### Discrete and indiscrete finpartition -/
 
 /-- The discrete equipartition of a fintype is the partition in singletons. -/

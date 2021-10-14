@@ -127,8 +127,12 @@ begin
           = (2 * 2)^P.size * m/U.card : by rw [mul_pow, ←mul_div_assoc, mul_assoc]
       ... = 4^P.size * m/U.card : by norm_num
       ... ≤ 1 : begin
-        refine div_le_one_of_le _ (nat.cast_nonneg _),
-      end
+              refine div_le_one_of_le _ (nat.cast_nonneg _),
+              norm_cast,
+              rw [exp_bound, ←nat.div_div_eq_div_mul],
+              exact (nat.mul_div_le _ _).trans
+                (finpartition.is_equipartition.average_le_card_part hP hU),
+            end
       ... ≤ 2^P.size * ε^2 / 10 : begin
               refine (one_le_sq_iff (div_nonneg (mul_nonneg (pow_nonneg (@zero_le_two ℝ _) _) $
                 sq_nonneg _) $ by norm_num)).1 _,
@@ -497,15 +501,17 @@ begin
   norm_num,
 end.
 
-lemma eps_le_ [nonempty α]
-  (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
+lemma eps_le_card_star_div [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+  (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV : ¬ G.is_uniform ε U V) :
   4/5 * ε ≤ (hP.star G ε hU V).card / 4^P.size :=
 begin
   calc
     4/5 * ε
-    = (1 - 1/m) * (1 - ε/10) * ()
-    ≤ (hP.star G ε hU V).card / 4^P.size : sorry
+    ≤ (1 - 1/m) * (1 - ε/10) * (G.witness ε U V).card/U.card : sorry
+    ... ≤ (1 - 1/m) * (1 - ε/10) * ((hP.star G ε hU V).bUnion id).card / U.card : sorry
+    ... ≤ (1 - 1/m) * (hP.star G ε hU V).card * (m + 1) / (4^P.size * m) : sorry
+    ... ≤ (hP.star G ε hU V).card / 4^P.size : sorry
 end
 
 #exit

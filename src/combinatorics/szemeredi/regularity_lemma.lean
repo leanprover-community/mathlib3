@@ -16,7 +16,7 @@ In this file, we prove Szemerédi's Regularity Lemma.
 open_locale big_operators classical
 open finset fintype function
 
-variables {α : Type*} [fintype α] {P : finpartition α} (hP : P.is_equipartition)
+variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ)
 
 local notation `m` := (card α/exp_bound P.size : ℕ)
@@ -62,7 +62,7 @@ lemma iteration_bound_le_szemeredi_bound (ε l) :
 equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ)
   (hG : l ≤ card α) :
-  ∃ (P : finpartition α),
+  ∃ (P : finpartition (univ : finset α)),
     P.is_equipartition ∧ l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   obtain hα | hα := le_total (card α) (szemeredi_bound ε l),
@@ -74,7 +74,7 @@ begin
   haveI : nonempty α,
   { rw ←fintype.card_pos_iff,
     apply ht.trans_le ((iteration_bound_le_szemeredi_bound _ _).trans hα) },
-  suffices h : ∀ i, ∃ (P : finpartition α), P.is_equipartition ∧
+  suffices h : ∀ i, ∃ (P : finpartition (univ : finset α)), P.is_equipartition ∧
     t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 8 * i ≤ P.index G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (nat_floor (4/ε^5) + 1),
     refine ⟨P, hP₁, (le_iteration_bound _ _).trans hP₂, hP₃.trans _, _⟩,

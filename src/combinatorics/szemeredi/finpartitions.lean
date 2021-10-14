@@ -6,27 +6,26 @@ Authors: Yaël Dillies, Bhavik Mehta
 import .mathlib
 
 /-!
-# Constructions of `finpartition_on`
+# Constructions of `finpartition`
 -/
 
 open finset
 
 variables {α : Type*}
 
-def has_subset.subset.finpartition_on [decidable_eq α] {s : finset α}
-  {P : finpartition_on s} {A : finset (finset α)} (h : A ⊆ P.parts) :
-  finpartition_on (A.bUnion id) :=
+def has_subset.subset.finpartition [decidable_eq α] {s : finset α}
+  {P : finpartition s} {A : finset (finset α)} (h : A ⊆ P.parts) :
+  finpartition (A.sup id) :=
 { parts := A,
   disjoint := P.disjoint.subset h,
-  cover := λ x hx, mem_bUnion.1 hx,
-  subset := λ a, subset_bUnion_of_mem _,
-  not_empty_mem := λ hA, P.not_empty_mem (h hA) }
+  sup_parts := rfl,
+  not_bot_mem := λ hA, P.not_bot_mem (h hA) }
 
-lemma has_subset.subset.finpartition_on_parts [decidable_eq α] {s : finset α}
-  {P : finpartition_on s} {A : finset (finset α)} (h : A ⊆ P.parts) :
-  h.finpartition_on.parts = A := rfl
+lemma has_subset.subset.finpartition_parts [decidable_eq α] {s : finset α}
+  {P : finpartition s} {A : finset (finset α)} (h : A ⊆ P.parts) :
+  h.finpartition.parts = A := rfl
 
-open finpartition_on
+open finpartition
 
 section
 variables [decidable_eq α] {s : finset α}
@@ -68,7 +67,7 @@ begin
     simp only [mem_bUnion, mem_image, exists_prop, mem_filter, id.def],
     refine ⟨{i}, ⟨⟨i, subs x hx hi, rfl⟩, by simpa⟩, by simp⟩ },
   { rw coe_image,
-    exact finset.singleton_pairwise_disjoint.subset (set.image_subset_range _ _) },
+    exact finset.pairwise_disjoint_range_singleton.subset (set.image_subset_range _ _) },
   { simp only [mem_image, and_imp, filter_true_of_mem, implies_true_iff, eq_self_iff_true,
       forall_apply_eq_imp_iff₂, exists_imp_distrib, card_singleton],
     rw [card_image_of_injective, hs],
@@ -250,16 +249,16 @@ begin
   exact (mem_sdiff.1 (hP'₅ _ t hi)).2 hi,
 end.
 
-lemma equitabilise_aux1' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition_on s)
+lemma equitabilise_aux1' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition s)
   (h : s = ∅) :
-  ∃ (P : finpartition_on s),
+  ∃ (P : finpartition s),
     (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m + 1) ∧
     (∀ x, x ∈ A.parts → (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
     ((P.parts.filter (λ i, finset.card i = m+1)).card = b) :=
 begin
   subst h,
-  rw finpartition_on.eq_empty A,
-  refine ⟨finpartition_on.empty, by simp, by simp, _⟩,
+  rw finpartition.eq_empty A,
+  refine ⟨finpartition.empty _, by simp, by simp, _⟩,
   simp only [finset.card_empty, nat.mul_eq_zero, nat.succ_ne_zero, or_false,
     add_eq_zero_iff, and_false] at hs,
   simp [hs.2.symm],
@@ -267,7 +266,7 @@ end
 
 lemma equitabilise_aux2' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset (finset α))
   (subs : ∀ i ∈ A, i ⊆ s) (h : m = 0) :
-  ∃ (P : finpartition_on s),
+  ∃ (P : finpartition s),
     (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m+1) ∧
     (∀ x, x ∈ A → (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
     ((P.parts.filter (λ i, finset.card i = m+1)).card = b) :=
@@ -275,16 +274,16 @@ begin
   subst h,
   simp only [mul_one, zero_add, mul_zero] at hs,
   simp only [exists_prop, finset.card_eq_zero, zero_add, le_zero_iff, sdiff_eq_empty_iff_subset],
-  refine ⟨discrete_finpartition_on _, by simp, _, _⟩,
+  refine ⟨discrete_finpartition _, by simp, _, _⟩,
   { intros x hx i hi,
     simp only [mem_bUnion, exists_prop, mem_filter, id.def, and_assoc],
     exact ⟨{i}, mem_map_of_mem _ (subs x hx hi), by simpa, by simp⟩ },
-  { rw [discrete_finpartition_on_parts, filter_true_of_mem, card_map, hs],
+  { rw [discrete_finpartition_parts, filter_true_of_mem, card_map, hs],
     simp },
 end
 
--- lemma equitabilise_aux' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition_on s) :
---   ∃ (P : finpartition_on s),
+-- lemma equitabilise_aux' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition s) :
+--   ∃ (P : finpartition s),
 --     (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m + 1) ∧
 --     (∀ x, x ∈ A.parts → (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
 --     ((P.parts.filter (λ i, finset.card i = m+1)).card = b) :=
@@ -312,7 +311,7 @@ end
 
 /-! ### Equitabilise -/
 
-namespace finpartition_on
+namespace finpartition
 
 /-- Given a partition `Q` of `s`, as well as a proof that `a*m + b*(m+1) = s.card`, build a new
 partition `P` of `s` where each part has size `m` or `m+1`, every part of `Q` is the union of
@@ -320,47 +319,46 @@ parts of `P` plus at most `m` extra elements, there are `b` parts of size `m+1` 
 `m > 0`, there are `a` parts of size `m` and hence `a+b` parts in total.
 The `m > 0` condition is required since there may be zero or one parts of size `0`, while `a` could
 be arbitrary. -/
-noncomputable def equitabilise (Q : finpartition_on s) {m a b : ℕ}
-  (h : a*m + b*(m+1) = s.card) :
-  finpartition_on s :=
+noncomputable def equitabilise (Q : finpartition s) {m a b : ℕ} (h : a * m + b * (m + 1) = s.card) :
+  finpartition s :=
 begin
-  let P := classical.some (equitabilise_aux h Q.parts Q.cover Q.disjoint Q.subset),
-  have hP := classical.some_spec (equitabilise_aux h Q.parts Q.cover Q.disjoint Q.subset),
-  refine ⟨P.erase ∅, hP.2.2.2.1.subset (erase_subset _ _),
+  let P := classical.some (equitabilise_aux h Q.parts Q.cover Q.disjoint Q.le),
+  have hP := classical.some_spec (equitabilise_aux h Q.parts Q.cover Q.disjoint Q.le),
+  refine ⟨P.erase ∅, hP.2.2.2.1.le (erase_subset _ _),
     λ u hu, _, λ u hu, hP.2.2.2.2.1 _ (erase_subset _ _ hu), not_mem_erase _ _⟩,
   obtain ⟨a, ha, hua⟩ := hP.2.2.1 u hu,
   exact ⟨a, mem_erase.2 ⟨nonempty_iff_ne_empty.1 ⟨u, hua⟩, ha⟩, hua⟩,
 end
 
-lemma card_eq_of_mem_parts_equitabilise {Q : finpartition_on s} {m a b : ℕ}
+lemma card_eq_of_mem_parts_equitabilise {Q : finpartition s} {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) {u : finset α} (hu : u ∈ (Q.equitabilise h).parts) :
   u.card = m ∨ u.card = m + 1 :=
-(classical.some_spec (equitabilise_aux h Q.parts Q.cover Q.disjoint Q.subset)).1
+(classical.some_spec (equitabilise_aux h Q.parts Q.cover Q.disjoint Q.le)).1
   u (mem_of_mem_erase hu)
 
-lemma equitabilise.is_equipartition (Q : finpartition_on s) {m a b : ℕ}
+lemma equitabilise.is_equipartition (Q : finpartition s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
   (Q.equitabilise h).is_equipartition :=
 begin
-  rw [finpartition_on.is_equipartition, set.equitable_on_iff_exists_eq_eq_add_one],
+  rw [finpartition.is_equipartition, set.equitable_on_iff_exists_eq_eq_add_one],
   exact ⟨m, λ u hu, card_eq_of_mem_parts_equitabilise h hu⟩,
 end
 
-lemma card_filter_equitabilise_big (Q : finpartition_on s) {m a b : ℕ}
+lemma card_filter_equitabilise_big (Q : finpartition s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
   ((Q.equitabilise h).parts.filter (λ u : finset α, u.card = m + 1)).card = b :=
 begin
   convert (classical.some_spec (equitabilise_aux h Q.parts Q.cover Q.disjoint
-    Q.subset)).2.2.2.2.2 using 2,
+    Q.le)).2.2.2.2.2 using 2,
   ext u,
-  rw [mem_filter, mem_filter, finpartition_on.equitabilise, mem_erase, and_assoc,
+  rw [mem_filter, mem_filter, finpartition.equitabilise, mem_erase, and_assoc,
     and_iff_right_iff_imp],
   rintro hu rfl,
   rw finset.card_empty at hu,
   exact nat.succ_ne_zero _ hu.2.symm,
 end
 
-lemma card_filter_equitabilise_small (Q : finpartition_on s) {m a b : ℕ} (hm : 0 < m)
+lemma card_filter_equitabilise_small (Q : finpartition s) {m a b : ℕ} (hm : 0 < m)
   (h : a*m + b*(m+1) = s.card) :
   ((Q.equitabilise h).parts.filter (λ u : finset α, u.card = m)).card = a :=
 begin
@@ -378,7 +376,7 @@ begin
   rw [nat.succ_eq_add_one, ←hx.2.2, hx.1.2],
 end
 
-lemma equitabilise.size {Q : finpartition_on s} {m a b : ℕ} (hm : 0 < m)
+lemma equitabilise.size {Q : finpartition s} {m a b : ℕ} (hm : 0 < m)
   (h : a * m + b * (m + 1) = s.card) :
   (Q.equitabilise h).size = a + b :=
 begin
@@ -386,21 +384,21 @@ begin
     (Q.equitabilise h).parts.filter (λ u, u.card = m + 1),
   { rw [←filter_or, filter_true_of_mem],
     exact λ x hx, card_eq_of_mem_parts_equitabilise h hx },
-  rw [finpartition_on.size, hunion, card_union_eq, Q.card_filter_equitabilise_small hm,
+  rw [finpartition.size, hunion, card_union_eq, Q.card_filter_equitabilise_small hm,
     Q.card_filter_equitabilise_big],
   refine λ x hx, nat.succ_ne_self m _,
   rw [inf_eq_inter, mem_inter, mem_filter, mem_filter] at hx,
   rw [nat.succ_eq_add_one, ←hx.2.2, hx.1.2],
 end
 
-lemma almost_in_atoms_of_mem_parts_equitabilise {Q : finpartition_on s} {m a b : ℕ}
+lemma almost_in_atoms_of_mem_parts_equitabilise {Q : finpartition s} {m a b : ℕ}
   (h : a * m + b * (m + 1) = s.card) {u : finset α} (hu : u ∈ Q.parts) :
   (u \ ((Q.equitabilise h).parts.filter $ λ x, x ⊆ u).bUnion id).card ≤ m :=
 begin
   have := (classical.some_spec (equitabilise_aux h Q.parts Q.cover Q.disjoint
-    Q.subset)).2.1,
+    Q.le)).2.1,
   refine (card_le_of_subset _).trans ((classical.some_spec (equitabilise_aux h Q.parts Q.cover
-    Q.disjoint Q.subset)).2.1 u hu),
+    Q.disjoint Q.le)).2.1 u hu),
   intros x,
   simp only [not_exists, mem_bUnion, and_imp, mem_filter, mem_sdiff, id.def, ne.def],
   refine λ hxu hx, ⟨hxu, λ a ha hau, _⟩,
@@ -409,7 +407,7 @@ begin
   exact hx _ (mem_erase.2 ⟨hanemp, ha⟩) hau,
 end
 
-end finpartition_on
+end finpartition
 
 end
 
@@ -421,7 +419,7 @@ variables [decidable_eq α] {s : finset α}
 /-- Cuts `s` along the finsets in `Q`: Two elements of `s` will be in the same part if they are
 in the same finsets of `Q`. -/
 def atomise (s : finset α) (Q : finset (finset α)) :
-  finpartition_on s :=
+  finpartition s :=
 { parts := Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x)) \ {∅},
   disjoint := begin
     suffices h : (Q.powerset.image
@@ -455,7 +453,7 @@ def atomise (s : finset α) (Q : finset (finset α)) :
     obtain ⟨P, hP, rfl⟩ := hx.1,
     exact filter_subset _ s,
   end,
-  not_empty_mem := λ h, (mem_sdiff.1 h).2 (mem_singleton_self _) }
+  not_bot_mem := λ h, (mem_sdiff.1 h).2 (mem_singleton_self _) }
 
 lemma mem_atomise {s : finset α} {Q : finset (finset α)} {A : finset α} :
   A ∈ (atomise s Q).parts ↔ A.nonempty ∧ ∃ (P ⊆ Q), s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x) = A :=
@@ -577,14 +575,14 @@ end atomise
 /-- Arbitrary equipartition into `t` parts -/
 lemma dummy_equipartition [decidable_eq α] (s : finset α) {t : ℕ}
   (ht : 0 < t) (hs : t ≤ s.card) :
-  ∃ (P : finpartition_on s), P.is_equipartition ∧ P.size = t :=
+  ∃ (P : finpartition s), P.is_equipartition ∧ P.size = t :=
 begin
   have : (t - s.card % t) * (s.card / t) + (s.card % t) * (s.card / t + 1) = s.card,
   { rw [nat.mul_sub_right_distrib, mul_add, ←add_assoc, nat.sub_add_cancel, mul_one, add_comm,
       nat.mod_add_div],
     exact nat.mul_le_mul_right _ ((nat.mod_lt _ ht).le) },
-  refine ⟨(indiscrete_finpartition_on $ finset.card_pos.1 (ht.trans_le hs)).equitabilise this,
-    finpartition_on.equitabilise.is_equipartition _ _, _⟩,
-  rw [finpartition_on.equitabilise.size (nat.div_pos hs ht), nat.sub_add_cancel
+  refine ⟨(indiscrete_finpartition $ finset.card_pos.1 (ht.trans_le hs)).equitabilise this,
+    finpartition.equitabilise.is_equipartition _ _, _⟩,
+  rw [finpartition.equitabilise.size (nat.div_pos hs ht), nat.sub_add_cancel
     (nat.mod_lt _ ht).le],
 end

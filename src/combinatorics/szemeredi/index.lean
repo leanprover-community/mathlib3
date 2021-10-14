@@ -27,8 +27,7 @@ s.off_diag.image quotient.mk
 
 variable {s : finset α}
 
-lemma mem_distinct_pairs (a b : α) :
-  ⟦(a, b)⟧ ∈ s.distinct_pairs ↔ a ∈ s ∧ b ∈ s ∧ a ≠ b :=
+lemma mem_distinct_pairs (a b : α) : ⟦(a, b)⟧ ∈ s.distinct_pairs ↔ a ∈ s ∧ b ∈ s ∧ a ≠ b :=
 begin
   simp_rw [distinct_pairs, mem_image, exists_prop, mem_off_diag, ne.def, prod.exists, sym2.eq_iff],
   split,
@@ -61,12 +60,10 @@ end
 --   exact ⟨h₁, h₂, ne_of_irrefl h⟩,
 -- end
 
-@[simp] lemma off_diag_empty [decidable_eq α] :
-  (∅ : finset α).off_diag = ∅ :=
+@[simp] lemma off_diag_empty [decidable_eq α] : (∅ : finset α).off_diag = ∅ :=
 by rw [off_diag, empty_product, filter_empty]
 
-@[simp] lemma distinct_pairs_empty :
-  (∅ : finset α).distinct_pairs = ∅ :=
+@[simp] lemma distinct_pairs_empty : (∅ : finset α).distinct_pairs = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
   refine sym2.ind _,
@@ -79,11 +76,11 @@ sym2.card_image_off_diag _
 
 end finset
 
-/-! ## finpartition_on.is_uniform -/
+/-! ## finpartition.is_uniform -/
 
-variables [decidable_eq α] {s : finset α} (P : finpartition_on s) (G : simple_graph α)
+variables [decidable_eq α] {s : finset α} (P : finpartition s) (G : simple_graph α)
 
-namespace finpartition_on
+namespace finpartition
 open_locale classical
 open finset
 
@@ -102,10 +99,10 @@ by rw [non_uniform_pairs, mem_filter, mem_distinct_pairs, G.sym2_is_uniform_mk, 
 def is_uniform (ε : ℝ) : Prop :=
 ((P.non_uniform_pairs G ε).card : ℝ) ≤ ε * P.size.choose 2
 
-lemma empty_is_uniform {P : finpartition_on s} (hP : P.parts = ∅) (G : simple_graph α) (ε : ℝ) :
+lemma empty_is_uniform {P : finpartition s} (hP : P.parts = ∅) (G : simple_graph α) (ε : ℝ) :
   P.is_uniform G ε :=
 begin
-  rw [finpartition_on.is_uniform, finpartition_on.non_uniform_pairs, finpartition_on.size, hP],
+  rw [finpartition.is_uniform, finpartition.non_uniform_pairs, finpartition.size, hP],
   simp,
 end
 
@@ -113,17 +110,17 @@ end
 Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a suitable equipartition,
 we will find a new one that has an index greater than the previous one plus some fixed constant.
 Then `index_le_half` ensures this process only happens finitely many times. -/
-noncomputable def index (P : finpartition_on s) : ℝ :=
+noncomputable def index (P : finpartition s) : ℝ :=
 (∑ UV in P.parts.distinct_pairs, G.sym2_edge_density UV^2)/P.size^2
 
-lemma index_nonneg (P : finpartition_on s) :
+lemma index_nonneg (P : finpartition s) :
   0 ≤ P.index G :=
 div_nonneg (finset.sum_nonneg (λ _ _, sq_nonneg _)) (sq_nonneg _)
 
-lemma index_le_half (P : finpartition_on s) :
+lemma index_le_half (P : finpartition s) :
   P.index G ≤ 1/2 :=
 begin
-  rw finpartition_on.index,
+  rw finpartition.index,
   apply div_le_of_nonneg_of_le_mul (sq_nonneg _),
   { norm_num },
   suffices h : (∑ UV in P.parts.distinct_pairs, G.sym2_edge_density UV^2) ≤
@@ -141,17 +138,17 @@ begin
   exact G.edge_density_le_one _ _,
 end
 
-end finpartition_on
+end finpartition
 
-namespace discrete_finpartition_on
+namespace discrete_finpartition
 
 lemma non_uniform_pairs {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition_on s).non_uniform_pairs G ε = ∅ :=
+  (discrete_finpartition s).non_uniform_pairs G ε = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
   refine sym2.ind _,
   rintro U V,
-  simp only [finpartition_on.mem_non_uniform_pairs, discrete_finpartition_on_parts, mem_map,
+  simp only [finpartition.mem_non_uniform_pairs, discrete_finpartition_parts, mem_map,
     and_imp, exists_prop, not_and, not_not, ne.def, exists_imp_distrib, embedding.coe_fn_mk],
   rintro x hx rfl y hy rfl h U' hU' V' hV' hU hV,
   rw [card_singleton, nat.cast_one, one_mul] at hU hV,
@@ -165,11 +162,11 @@ begin
 end
 
 lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition_on s).is_uniform G ε :=
+  (discrete_finpartition s).is_uniform G ε :=
 begin
-  rw [finpartition_on.is_uniform, discrete_finpartition_on.size, non_uniform_pairs _ hε,
+  rw [finpartition.is_uniform, discrete_finpartition.size, non_uniform_pairs _ hε,
     finset.card_empty, nat.cast_zero],
   exact mul_nonneg hε.le (nat.cast_nonneg _),
 end
 
-end discrete_finpartition_on
+end discrete_finpartition

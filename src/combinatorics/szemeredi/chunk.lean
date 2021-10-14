@@ -12,28 +12,28 @@ import .witness
 # Chunk of `increment`
 -/
 
-open finpartition_on finset fintype relation
+open finpartition finset fintype relation
 open_locale big_operators classical
 
-variables {α : Type*} [fintype α] {P : finpartition α} (hP : P.is_equipartition)
+variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ) {U : finset α} (hU : U ∈ P.parts) (V : finset α)
 
 local notation `m` := (card α/exp_bound P.size : ℕ)
 local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 
 noncomputable def finpartition.witnesses
-  (P : finpartition α) (G : simple_graph α) (ε : ℝ) (U : finset α) :=
+  (P : finpartition (univ : finset α)) (G : simple_graph α) (ε : ℝ) (U : finset α) :=
 (P.parts.filter (λ V, U ≠ V ∧ ¬G.is_uniform ε U V)).image (G.witness ε U)
 
 /-- The part of `increment` that partitions `U`. -/
-noncomputable def finpartition_on.is_equipartition.chunk_increment :
-  finpartition_on U :=
+noncomputable def finpartition.is_equipartition.chunk_increment :
+  finpartition U :=
 dite (U.card = m * 4^P.size + a)
   (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₂ hUcard)
   (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₃ hP hU hUcard)
   -- hP and hU are used to get that U has size m * 4^P.size + a or m * 4^P.size + a + 1
 
-noncomputable def finpartition_on.is_equipartition.star (V : finset α) : finset (finset α) :=
+noncomputable def finpartition.is_equipartition.star (V : finset α) : finset (finset α) :=
 (hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ G.witness ε U V)
 
 /-! # star -/
@@ -63,7 +63,7 @@ begin
       (λ B, B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id),
   { intros x hx,
     rw [←union_of_atoms' (G.witness ε U V) hX G.witness_subset,
-      finpartition_on.is_equipartition.star, mem_sdiff, mem_bUnion] at hx,
+      finpartition.is_equipartition.star, mem_sdiff, mem_bUnion] at hx,
     simp only [not_exists, mem_bUnion, and_imp, filter_congr_decidable, exists_prop, mem_filter,
       not_and, mem_sdiff, id.def] at hx,
     simp only [not_exists, mem_bUnion, and_imp, exists_prop, mem_filter, not_and, mem_sdiff,
@@ -78,8 +78,8 @@ begin
   have :
     ∑ i in filter (λ (B : finset α), B ⊆ G.witness ε U V ∧ B.nonempty)
       (atomise U (P.witnesses G ε U)).parts,
-      (card α / exp_bound (finpartition_on.size P))
-    ≤ 2 ^ (finpartition_on.size P - 1) * (card α / exp_bound (finpartition_on.size P)),
+      (card α / exp_bound (finpartition.size P))
+    ≤ 2 ^ (finpartition.size P - 1) * (card α / exp_bound (finpartition.size P)),
   { rw sum_const_nat,
     apply mul_le_mul_of_nonneg_right,
     have t := partial_atomise (G.witness ε U V) hX G.witness_subset,
@@ -97,9 +97,9 @@ begin
   apply le_trans _ this,
   have : ∀ B ∈ (atomise U (P.witnesses G ε U)).parts,
   (B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id).card ≤
-    card α / exp_bound (finpartition_on.size P),
+    card α / exp_bound (finpartition.size P),
   { intros B hB,
-    rw [finpartition_on.is_equipartition.chunk_increment],
+    rw [finpartition.is_equipartition.chunk_increment],
     split_ifs with h₁,
     { have := almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ h₁) hB,
       rw filter_congr_decidable at this,
@@ -179,11 +179,11 @@ variables {hP G ε U hU V}
 
 lemma chunk_increment.size (m_pos : 0 < m) : (hP.chunk_increment G ε hU).size = 4^P.size :=
 begin
-  rw finpartition_on.is_equipartition.chunk_increment,
+  rw finpartition.is_equipartition.chunk_increment,
   split_ifs,
-  { rw [finpartition_on.equitabilise.size m_pos, nat.sub_add_cancel],
+  { rw [finpartition.equitabilise.size m_pos, nat.sub_add_cancel],
     exact le_of_lt a_add_one_le_four_pow_size },
-  { rw [finpartition_on.equitabilise.size m_pos, nat.sub_add_cancel],
+  { rw [finpartition.equitabilise.size m_pos, nat.sub_add_cancel],
     exact a_add_one_le_four_pow_size }
 end
 
@@ -191,12 +191,12 @@ lemma card_eq_of_mem_parts_chunk_increment {A : finset α}
   (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
   A.card = m ∨ A.card = m + 1 :=
 begin
-  simp [finpartition_on.is_equipartition.chunk_increment] at hA,
+  simp [finpartition.is_equipartition.chunk_increment] at hA,
   by_cases hUcard : U.card = m * 4^P.size + a,
   { rw dif_pos hUcard at hA,
-    exact finpartition_on.card_eq_of_mem_parts_equitabilise _ hA },
+    exact finpartition.card_eq_of_mem_parts_equitabilise _ hA },
   rw dif_neg hUcard at hA,
-  exact finpartition_on.card_eq_of_mem_parts_equitabilise _ hA,
+  exact finpartition.card_eq_of_mem_parts_equitabilise _ hA,
 end
 
 lemma m_le_card_of_mem_chunk_increment_parts {A : finset α}
@@ -337,10 +337,10 @@ begin
     ... = ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/((∑ aa in A, (aa.card : ℝ))/(m/(m + 1))
           * ((∑ b in B, (b.card : ℝ))/(m/(m + 1))))
         : begin
-            rw [relation.pairs_count_finpartition hA.finpartition_on hB.finpartition_on,
-              ←hA.finpartition_on.sum_card_parts, ←hB.finpartition_on.sum_card_parts],
+            rw [relation.pairs_count_finpartition hA.finpartition hB.finpartition,
+              ←hA.finpartition.sum_card_parts, ←hB.finpartition.sum_card_parts],
             simp only [nat.cast_sum],
-            rw [sum_div, hA.finpartition_on_parts, hB.finpartition_on_parts],
+            rw [sum_div, hA.finpartition_parts, hB.finpartition_parts],
           end
     ... ≤ ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/(A.card * ab.1.card *
           (B.card * ab.2.card))
@@ -396,9 +396,9 @@ begin
             rw mem_product at hx,
             { refine mul_pos (div_pos _ m_add_one_div_m_pos)
                 (div_pos _ m_add_one_div_m_pos); norm_cast,
-              { exact (card_pos.2 $ finpartition_on.nonempty_of_mem_parts _ $
+              { exact (card_pos.2 $ finpartition.nonempty_of_mem_parts _ $
                 hA hx.1).trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.1) },
-              { refine (card_pos.2 $ finpartition_on.nonempty_of_mem_parts _ $
+              { refine (card_pos.2 $ finpartition.nonempty_of_mem_parts _ $
                 hB hx.2).trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.2) } },
             refine mul_le_mul (sum_card_subset_chunk_increment_parts_le m_pos hA hx.1)
               (sum_card_subset_chunk_increment_parts_le m_pos hB hx.2)
@@ -407,10 +407,10 @@ begin
     ... = pairs_count G.adj (A.bUnion id) (B.bUnion id) /
           ((A.bUnion id).card/((m + 1)/m) * ((B.bUnion id).card/((m + 1)/m)))
         : begin
-            rw [relation.pairs_count_finpartition hA.finpartition_on hB.finpartition_on,
-              ←hA.finpartition_on.sum_card_parts, ←hB.finpartition_on.sum_card_parts],
+            rw [relation.pairs_count_finpartition hA.finpartition hB.finpartition,
+              ←hA.finpartition.sum_card_parts, ←hB.finpartition.sum_card_parts],
             simp only [nat.cast_sum],
-            rw [eq_comm, sum_div, hA.finpartition_on_parts, hB.finpartition_on_parts],
+            rw [eq_comm, sum_div, hA.finpartition_parts, hB.finpartition_parts],
           end
     ... = ((m + 1)/m)^2 * G.edge_density (A.bUnion id) (B.bUnion id)
         : begin
@@ -464,18 +464,18 @@ begin
         : by { rw [sub_sq, mul_right_comm, mul_div_comm, div_eq_mul_inv], norm_num }
     ... = (G.edge_density ((hP.chunk_increment G ε hU).parts.bUnion id)
             ((hP.chunk_increment G ε hV).parts.bUnion id) - ε^5/50)^2
-        : by rw [finpartition_on.bUnion_parts_eq, finpartition_on.bUnion_parts_eq]
+        : by rw [finpartition.bUnion_parts_eq, finpartition.bUnion_parts_eq]
     ... ≤ ((∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
             G.edge_density ab.1 ab.2)/((hP.chunk_increment G ε hU).size
             * (hP.chunk_increment G ε hV).size))^2
         : pow_le_pow_of_le_left
-            (by rwa [finpartition_on.bUnion_parts_eq, finpartition_on.bUnion_parts_eq])
+            (by rwa [finpartition.bUnion_parts_eq, finpartition.bUnion_parts_eq])
             (density_sub_eps_le_sum_density_div_card hPα hPε m_pos set.subset.rfl set.subset.rfl) 2
     ... ≤ (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
             G.edge_density ab.1 ab.2^2)/((hP.chunk_increment G ε hU).size
             * (hP.chunk_increment G ε hV).size)
         : by convert chebyshev _ _;
-            rw [card_product, nat.cast_mul, finpartition_on.size, finpartition_on.size]
+            rw [card_product, nat.cast_mul, finpartition.size, finpartition.size]
     ... = (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
             G.edge_density ab.1 ab.2^2)/16^P.size
         : begin

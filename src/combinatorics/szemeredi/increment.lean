@@ -54,7 +54,7 @@ end
 open finset fintype simple_graph
 open_locale big_operators classical
 
-variables {α : Type*} [fintype α] {P : finpartition α} (hP : P.is_equipartition)
+variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ)
 
 local notation `m` := (card α/exp_bound P.size : ℕ)
@@ -64,7 +64,7 @@ local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
 index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
 yields a not-too-big uniform equipartition. -/
-noncomputable def finpartition_on.is_equipartition.increment : finpartition α :=
+noncomputable def finpartition_on.is_equipartition.increment : finpartition (univ : finset α) :=
 P.bind (λ U, hP.chunk_increment G ε)
 
 open finpartition_on finpartition_on.is_equipartition

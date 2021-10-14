@@ -1199,6 +1199,8 @@ end signed_measure
 
 namespace complex_measure
 
+/-- A complex measure is said to `have_lebesgue_decomposition` with respect to a positive measure
+if both its real and imaginary part `have_lebesgue_decomposition` with respect to that measure. -/
 class have_lebesgue_decomposition (c : complex_measure α) (μ : measure α) : Prop :=
 (re_part : c.re_part.have_lebesgue_decomposition μ)
 (im_part : c.im_part.have_lebesgue_decomposition μ)
@@ -1206,9 +1208,13 @@ class have_lebesgue_decomposition (c : complex_measure α) (μ : measure α) : P
 attribute [instance] have_lebesgue_decomposition.re_part
 attribute [instance] have_lebesgue_decomposition.im_part
 
-def singular_part(c : complex_measure α) (μ : measure α) : complex_measure α :=
+/-- The singular part between a complex measure `c` and a positive measure `μ` is the complex
+measure satisfying `c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c`. This property is given
+by `measure_theory.complex_measure.singular_part_add_with_density_rn_deriv_eq`. -/
+def singular_part (c : complex_measure α) (μ : measure α) : complex_measure α :=
 (c.re_part.singular_part μ).to_complex_measure (c.im_part.singular_part μ)
 
+/-- The Radon-Nikodym derivative between a complex measure and a positive measure. -/
 def rn_deriv (c : complex_measure α) (μ : measure α) : α → ℂ := λ x,
 ⟨c.re_part.rn_deriv μ x, c.im_part.rn_deriv μ x⟩
 
@@ -1331,8 +1337,7 @@ begin
   exact ⟨signed_measure.integrable_rn_deriv _ _, signed_measure.integrable_rn_deriv _ _⟩
 end
 
-theorem singular_part_add_with_density_rn_deriv_eq
-  [c.have_lebesgue_decomposition μ] :
+theorem singular_part_add_with_density_rn_deriv_eq [c.have_lebesgue_decomposition μ] :
   c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c :=
 begin
   conv_rhs { rw [← c.to_complex_measure_to_signed_measure] },

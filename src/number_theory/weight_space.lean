@@ -766,6 +766,24 @@ lemma coe_addd (m : ℕ) (b c : zmod (d * p^m.succ)) : (b + c : zmod (d * p^m)) 
 begin
   simp only [eq_self_iff_true],
 end
+-- (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m))
+lemma maybe_generalize (m : ℕ) : (coe : zmod (p^(m.succ)) → zmod (p^m)) ∘ (coe : zmod (p^m) → zmod (p^(m.succ))) = id :=
+begin
+ ext x,
+  simp only [id.def, function.comp_app],
+  have : p^m ∣ (p^(m+1)),
+  { apply pow_dvd_pow, simp, },
+  rw ← @zmod.nat_cast_val (p^m) _ _ (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m)) x,
+  conv_rhs {
+    rw ← zmod.cast_id (p^m) x,
+    rw ← @zmod.nat_cast_val (p^m) _ _ (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m)) x, },
+  exact zmod.cast_nat_cast this x.val,
+end
+
+example (a b n : ℕ) : (m : zmod m) = 0 :=
+begin
+  rw zmod.nat_cast_self,
+end
 
 lemma equi_iso_fin (m : ℕ) (a : zmod (d * p^m)) : equi_class p d m m.succ (lt_add_one m) a ≃ fin p :=
 begin
@@ -778,11 +796,32 @@ begin
     refine ⟨classical.some (equi_class_some p d m a y), (classical.some_spec (equi_class_some p d m a y)).1⟩, },
   swap 3,
   { rintros k, refine ⟨a.val + k * d * p^m, _⟩, rw mem_equi_class,
-    rw coe_addd p d m _ _,
-    rw @zmod.cast_add _ (zmod (d * p^m)) (d * p^m),
---     show ↑((a.val) : zmod (d * p^(m.succ))) + ↑((k: zmod (d * p^(m.succ))) * ↑d * ↑p ^ m) = a,
-     sorry, },
-sorry
+    have g : (d * (p^m)) ∣ (d * p^(m.succ)),
+    { apply mul_dvd_mul,
+      { simp, },
+      { have : p^m.succ = p^m * p, exact pow_succ' p m,
+        rw this, exact dvd.intro p rfl, }, },
+    have g' : char_p (zmod (d * p ^ m)) (d * p ^ m) := zmod.char_p (d * p ^ m),
+    --rw @zmod.cast_add _ (zmod (d * p^m)) (d * p^m),
+     convert_to ↑((a.val) : zmod (d * p^(m.succ))) + ((↑k * ↑(d * p ^ m)) : zmod (d * p^m)) = a,
+     { rw zmod.cast_add g, simp,
+       have f : ((d * p^m) : zmod (d * p^m)) = 0,
+       have := zmod.nat_cast_self (d * p^m), convert this,
+       norm_cast,
+       rw mul_assoc,
+       have : (((d * p^m) : zmod (d * p^(m.succ))) : zmod (d * p^m)) = ((d * p^m) : zmod (d * p^m)),
+       { norm_cast, rw zmod.cast_nat_cast g, assumption, },
+       rw zmod.cast_mul g, rw this, rw f, rw mul_zero, all_goals { apply g', }, }, simp,
+    rw @zmod.cast_nat_cast _ _ _ (d * p^m) g' g,
+    rw @zmod.nat_cast_zmod_val _ _ _,
+    rw fact_iff at *, apply mul_pos, assumption, apply ((pow_pos (nat.prime.pos _)) m), assumption, },
+  { sorry, },
+--     rw @zmod.nat_cast_val _ _ _ _ _, rw maybe_generalize p _,
+--     suffices : (a.val : zmod (d * p^m)) = a,
+--     { conv_rhs { rw ←this, },  },
+--     simp,
+--     sorry, },
+  { sorry, },
 end
 
 lemma E_c_sum_equi_class [has_coe ℝ R] (x : zmod (d * p^m)) (hc : gcd c p = 1) :

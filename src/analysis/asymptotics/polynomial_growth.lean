@@ -27,6 +27,7 @@ https://en.wikipedia.org/wiki/Polylogarithmic_function
 
 * `polynomial_growth.polynomial_eval`: A polynomial evaluated at a polynomial growth function
     is also polynomial growth, assuming `∥k x∥` is eventually bounded below by `1`.
+* `polynomial_growth_of_norm_bdd_above`: A function with bounded norm must have polynomial growth
 -/
 
 namespace asymptotics

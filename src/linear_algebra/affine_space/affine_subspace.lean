@@ -178,11 +178,9 @@ variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [modul
           [affine_space V P]
 include V
 
+-- TODO Refactor to use `instance : set_like (affine_subspace k P) P :=` instead
 instance : has_coe (affine_subspace k P) (set P) := ⟨carrier⟩
 instance : has_mem P (affine_subspace k P) := ⟨λ p s, p ∈ (s : set P)⟩
-
-instance : set_like (affine_subspace k P) P :=
-⟨affine_subspace.carrier, λ p q h, by cases p; cases q; congr'⟩
 
 /-- A point is in an affine subspace coerced to a set if and only if
 it is in that affine subspace. -/
@@ -1229,7 +1227,10 @@ end affine_subspace
 namespace affine_map
 
 @[simp] lemma map_top_of_surjective (hf : function.surjective f) : affine_subspace.map f ⊤ = ⊤ :=
-set_like.coe_injective $ image_univ_of_surjective hf
+begin
+  rw ← affine_subspace.ext_iff,
+  exact image_univ_of_surjective hf,
+end
 
 lemma span_eq_top_of_surjective {s : set P₁}
   (hf : function.surjective f) (h : affine_span k s = ⊤) :

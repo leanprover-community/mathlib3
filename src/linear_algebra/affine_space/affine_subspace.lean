@@ -181,6 +181,9 @@ include V
 instance : has_coe (affine_subspace k P) (set P) := ⟨carrier⟩
 instance : has_mem P (affine_subspace k P) := ⟨λ p s, p ∈ (s : set P)⟩
 
+instance : set_like (affine_subspace k P) P :=
+⟨affine_subspace.carrier, λ p q h, by cases p; cases q; congr'⟩
+
 /-- A point is in an affine subspace coerced to a set if and only if
 it is in that affine subspace. -/
 @[simp] lemma mem_coe (p : P) (s : affine_subspace k P) :
@@ -1225,13 +1228,13 @@ end affine_subspace
 
 namespace affine_map
 
+@[simp] lemma map_top_of_surjective (hf : function.surjective f) : affine_subspace.map f ⊤ = ⊤ :=
+set_like.coe_injective $ image_univ_of_surjective hf
+
 lemma span_eq_top_of_surjective {s : set P₁}
   (hf : function.surjective f) (h : affine_span k s = ⊤) :
   affine_span k (f '' s) = ⊤ :=
-begin
-  rw [← affine_subspace.map_span, h, ← affine_subspace.ext_iff],
-  exact image_univ_of_surjective hf,
-end
+by rw [← affine_subspace.map_span, h, map_top_of_surjective f hf]
 
 end affine_map
 

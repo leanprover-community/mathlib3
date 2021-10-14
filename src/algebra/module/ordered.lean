@@ -151,7 +151,7 @@ end
 variables (M)
 
 /-- Left scalar multiplication as an order isomorphism. -/
-@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : order_dual M ≃o M :=
+@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o order_dual M :=
 { to_fun := λ b, c • b,
   inv_fun := λ b, c⁻¹ • b,
   left_inv := inv_smul_smul₀ hc.ne,
@@ -249,16 +249,16 @@ section module
 variables [module k M] [ordered_smul k M] {s t : set M} {c : k}
 
 @[simp] lemma lower_bounds_smul_of_neg (hc : c < 0) : lower_bounds (c • s) = c • upper_bounds s :=
-(order_iso.smul_left_dual M hc).lower_bounds_image
-
-@[simp] lemma upper_bounds_smul_of_neg (hc : c < 0) : upper_bounds (c • s) = c • lower_bounds s :=
 (order_iso.smul_left_dual M hc).upper_bounds_image
 
+@[simp] lemma upper_bounds_smul_of_neg (hc : c < 0) : upper_bounds (c • s) = c • lower_bounds s :=
+(order_iso.smul_left_dual M hc).lower_bounds_image
+
 @[simp] lemma bdd_below_smul_iff_of_neg (hc : c < 0) : bdd_below (c • s) ↔ bdd_above s :=
-(order_iso.smul_left_dual M hc).bdd_below_image
+(order_iso.smul_left_dual M hc).bdd_above_image
 
 @[simp] lemma bdd_above_smul_iff_of_neg (hc : c < 0) : bdd_above (c • s) ↔ bdd_below s :=
-(order_iso.smul_left_dual M hc).bdd_above_image
+(order_iso.smul_left_dual M hc).bdd_below_image
 
 end module
 end linear_ordered_field

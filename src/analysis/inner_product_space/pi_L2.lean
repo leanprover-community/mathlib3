@@ -117,8 +117,8 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
 def direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family
-  [decidable_eq ι] {V : ι → submodule 𝕜 E} [Π i, decidable_eq (V i)]
-  (hV : direct_sum.submodule_is_internal V) (hV' : orthogonal_family 𝕜 V) :
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+  (hV' : orthogonal_family 𝕜 V) :
   E ≃ₗᵢ[𝕜] pi_Lp 2 one_le_two (λ i, V i) :=
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),

@@ -375,6 +375,7 @@ lemma lsum_comp_map_range_to_span_singleton
   finsupp.total ι N R v :=
 by { ext, simp }
 
+omit dec_ι
 /-- If a family of submodules is `independent`, then a choice of nonzero vector from each submodule
 forms a linearly independent family. -/
 lemma independent.linear_independent [no_zero_smul_divisors R N] (p : ι → submodule R N)

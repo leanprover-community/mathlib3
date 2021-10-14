@@ -411,7 +411,7 @@ end
 
 /-- If `p` is an independent family of subspaces of a finite-dimensional space `V`, then the
 number of nontrivial subspaces in the family `p` is finite. -/
-noncomputable lemma _root_.complete_lattice.independent.fintype_ne_bot_of_finite_dimensional
+noncomputable def _root_.complete_lattice.independent.fintype_ne_bot_of_finite_dimensional
   [finite_dimensional K V] {ι : Type w} {p : ι → submodule K V}
   (hp : complete_lattice.independent p) :
   fintype {i : ι // p i ≠ ⊥} :=

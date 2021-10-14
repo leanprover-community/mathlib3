@@ -219,17 +219,25 @@ instance : decidable_rel ((≤) : integration_params → integration_params → 
 
 instance : decidable_eq integration_params := λ x y, decidable_of_iff _ (ext_iff x y).symm
 
-/-- The `box_integral.integration_params` corresponding to the Riemann integral. -/
+/-- The `box_integral.integration_params` corresponding to the Riemann integral. In the
+corresponding filter, we require that the diameters of all boxes `J` of a tagged partition are
+bounded from above by a constant upper estimate that may not depend on the geometry of `J`, and each
+tag belongs to the corresponding closed box. -/
 def Riemann : integration_params :=
 { bRiemann := tt,
   bHenstock := tt,
   bDistortion := ff }
 
-/-- The `box_integral.integration_params` corresponding to the McShane integral. -/
-def McShane : integration_params := ⟨ff, ff, ff⟩
-
-/-- The `box_integral.integration_params` corresponding to the Henstock-Kurzweil integral. -/
+/-- The `box_integral.integration_params` corresponding to the Henstock-Kurzweil integral. In the
+corresponding filter, we require that the tagged partition is subordinate to a (possibly,
+discontinuous) positive function `r` and each tag belongs to the corresponding closed box. -/
 def Henstock : integration_params := ⟨ff, tt, ff⟩
+
+/-- The `box_integral.integration_params` corresponding to the McShane integral. In the
+corresponding filter, we require that the tagged partition is subordinate to a (possibly,
+discontinuous) positive function `r`; the tags may be outside of the corresponding closed box
+(but still inside the ambient closed box `I.Icc`). -/
+def McShane : integration_params := ⟨ff, ff, ff⟩
 
 lemma Henstock_le_Riemann : Henstock ≤ Riemann := dec_trivial
 

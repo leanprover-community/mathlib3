@@ -174,7 +174,7 @@ begin
   intro n,
   -- the first `n` terms sum to `p / m ^ k!`
   rcases liouville_number_rat_initial_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,
-  refine ⟨p, m ^ n!, one_lt_pow mZ1 n.factorial_pos, _⟩,
+  refine ⟨p, m ^ n!, one_lt_pow mZ1 n.factorial_ne_zero, _⟩,
   push_cast,
   -- separate out the sum of the first `n` terms and the rest
   rw [liouville_number_eq_initial_terms_add_tail m1 n,

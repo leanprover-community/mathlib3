@@ -63,7 +63,7 @@ def id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by simp
 variables (J) (K)
 
 /-- The composition of two cover-preserving functors is cover-preserving. -/
-def comp_cover_preserving {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
+def cover_preserving.comp {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
   cover_preserving J L (G ⋙ v) := ⟨λ U S hS,
 begin
   rw sieve.functor_pushforward_comp,

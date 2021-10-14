@@ -1427,6 +1427,8 @@ variables (R) (M)
     `R` to scalar multiples of `x`.-/
 def to_span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
 
+@[simp] lemma to_span_singleton_apply (x : M) (r : R) : to_span_singleton x r = r • x := rfl
+
 /-- The range of `to_span_singleton x` is the span of `x`.-/
 lemma span_singleton_eq_range (x : M) : (R ∙ x) = (to_span_singleton R M x).range :=
 submodule.ext $ λ y, by {refine iff.trans _ mem_range.symm, exact mem_span_singleton }

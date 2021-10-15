@@ -36,7 +36,7 @@ pulls back covering sieves to covering sieves
 
 -/
 
-universes v u
+universes v u₁ u₂ u₃
 noncomputable theory
 
 open category_theory
@@ -88,8 +88,10 @@ glued into a morphism `X ⟶ ℱ(Y)`. This is done in `get_sections`.
 In `glued_limit_cone`, we verify these obtained sections are indeed compatible, and thus we obtain
 A `X ⟶ 𝒢(U)`. The remaining work is to verify that this is indeed the amalgamation and is unique.
 -/
-variables {C D : Type u} [category.{u} C] [category.{u} D]
-variables {A : Type v} [category.{u} A] [has_limits A]
+
+-- Such universe constraints are due to the constraints of `Ran` in mathlib.
+variables {C : Type v} [category.{v} C] {D : Type u₁} [category.{v} D]
+variables {A : Type u₂} [category.{v} A] [has_limits A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
 namespace Ran_is_sheaf_of_cover_lifting

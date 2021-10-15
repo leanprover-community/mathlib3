@@ -5,7 +5,8 @@ Authors: Chris Hughes
 -/
 import algebra.order.pi
 import order.well_founded
-import algebra.order.functions
+import order.min_max
+
 
 /-!
 # Lexicographic order on Pi types

@@ -555,7 +555,7 @@ theorem prod_le_prod {p q : multiset (associates α)} (h : p ≤ q) : p.prod ≤
 begin
   haveI := classical.dec_eq (associates α),
   haveI := classical.dec_eq α,
-  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [multiset.add_sub_of_le h] at this },
+  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [add_sub_cancel_of_le h] at this },
   suffices : p.prod * 1 ≤ p.prod * (q - p).prod, { simpa },
   exact mul_mono (le_refl p.prod) one_le
 end

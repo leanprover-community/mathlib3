@@ -96,8 +96,6 @@ Currying a homotopy to a continuous function fron `I` to `C(X, Y)`.
 -/
 def curry (F : homotopy f₀ f₁) : C(I, C(X, Y)) := F.to_continuous_map.curry
 
--- lemma prop (F : homotopy f₀ f₁) (t : I) : P (F.curry t) := F.prop' t
-
 @[simp]
 lemma curry_apply (F : homotopy f₀ f₁) (t : I) (x : X) : F.curry t x = F (t, x) := rfl
 

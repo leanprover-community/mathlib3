@@ -3,7 +3,7 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Riccardo Brasca
 -/
-import analysis.normed_space.normed_group_hom
+import analysis.normed.group.hom
 
 /-!
 # Quotients of seminormed groups

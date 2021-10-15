@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 
 import algebra.group.defs
+import order.basic
 
 /-!
 

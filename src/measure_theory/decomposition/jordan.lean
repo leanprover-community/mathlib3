@@ -185,8 +185,8 @@ let hi := some_spec s.exists_compl_positive_negative in
   mutually_singular :=
   begin
     refine ⟨iᶜ, hi.1.compl, _, _⟩,
-    { rw [to_measure_of_zero_le_apply _ _ hi.1 hi.1.compl], simpa },
-    { rw [to_measure_of_le_zero_apply _ _ hi.1.compl hi.1.compl.compl], simpa }
+    { rw [to_measure_of_zero_le_apply _ _ hi.1 hi.1.compl], simp },
+    { rw [to_measure_of_le_zero_apply _ _ hi.1.compl hi.1.compl.compl], simp }
   end }
 
 lemma to_jordan_decomposition_spec (s : signed_measure α) :
@@ -492,8 +492,7 @@ begin
         to_measure_of_zero_le_apply _ _ _ hS₁, to_measure_of_le_zero_apply _ _ _ hS₁],
     rw ← vector_measure.absolutely_continuous.ennreal_to_measure at h,
     simp [h (measure_mono_null (i.inter_subset_right S) hS₂),
-          h (measure_mono_null (iᶜ.inter_subset_right S) hS₂)],
-    refl },
+          h (measure_mono_null (iᶜ.inter_subset_right S) hS₂)] },
   { refine vector_measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
     rw ← vector_measure.ennreal_to_measure_apply hS₁ at hS₂,
     exact null_of_total_variation_zero s (h hS₂) }
@@ -524,11 +523,11 @@ begin
     refine ⟨u, hmeas, _, _⟩,
     { rw [total_variation, measure.add_apply, hipos, hineg,
       to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
-      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+      simp [hu₁ _ (set.inter_subset_right _ _)] },
     { rw [total_variation, measure.add_apply, hjpos, hjneg,
           to_measure_of_zero_le_apply _ _ _ hmeas.compl,
           to_measure_of_le_zero_apply _ _ _ hmeas.compl],
-      simpa [hu₂ _ (set.inter_subset_right _ _)] } },
+      simp [hu₂ _ (set.inter_subset_right _ _)] } },
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
     exact ⟨u, hmeas,
       (λ t htu, null_of_total_variation_zero _ (measure_mono_null htu hu₁)),
@@ -544,7 +543,7 @@ begin
     refine ⟨u, hmeas, _, _⟩,
     { rw [total_variation, measure.add_apply, hpos, hneg,
           to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
-      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+      simp [hu₁ _ (set.inter_subset_right _ _)] },
     { rw vector_measure.ennreal_to_measure_apply hmeas.compl,
       exact hu₂ _ (set.subset.refl _) } },
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,

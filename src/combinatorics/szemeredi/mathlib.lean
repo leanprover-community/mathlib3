@@ -9,12 +9,10 @@ import data.set.equitable
 
 /-! # Things that belong to mathlib -/
 
-universe u
-
 open_locale big_operators nat
 open finset fintype function
 
-variable {α : Type u}
+variables {α β : Type*}
 
 namespace sym2
 
@@ -109,7 +107,7 @@ begin
   exact singleton_subset_iff.2,
 end
 
-lemma finset.sup_attach {β : Type*} [semilattice_sup_bot α] (s : finset β) (f : β → α) :
+lemma finset.sup_attach [semilattice_sup_bot α] (s : finset β) (f : β → α) :
   s.attach.sup (λ x, f x) = s.sup f :=
 eq_of_forall_ge_iff $ λ c, begin
   rw [finset.sup_le_iff, finset.sup_le_iff],
@@ -134,8 +132,7 @@ not_forall.trans $ exists_congr $ λ a, begin
   exact not_not,
 end
 
-lemma finset.sup_sdiff {β : Type*} [generalized_boolean_algebra α] (s : finset β)
-  (f : β → α) (a : α) :
+lemma finset.sup_sdiff [generalized_boolean_algebra α] (s : finset β) (f : β → α) (a : α) :
   s.sup (λ b, f b \ a) = s.sup f \ a :=
 begin
   refine finset.cons_induction_on s _ (λ b t _ h, _),
@@ -188,6 +185,23 @@ lemma set.pairwise_disjoint.insert [semilattice_inf_bot α] {s : set α} (hs : s
   {a : α} (hx : ∀ b ∈ s, a ≠ b → disjoint a b) :
   (insert a s).pairwise_disjoint :=
 set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
+
+lemma set.pairwise_disjoint.bUnion [semilattice_inf_bot α] {s : set β} {f : β → set α}
+  (hs : (f '' s).pairwise_disjoint) (hf : ∀ a ∈ s, (f a).pairwise_disjoint) :
+  (⋃ a ∈ s, f a).pairwise_disjoint :=
+begin
+  rintro a ha b hb hab,
+  simp_rw set.mem_Union at ha hb,
+  obtain ⟨c, hc, ha⟩ := ha,
+  obtain ⟨d, hd, hb⟩ := hb,
+  obtain hcd | hcd := eq_or_ne (f c) (f d),
+  { exact hf d hd a (hcd.subst ha) b hb hab },
+  {
+    have := hs _ (set.mem_image_of_mem _ hc) _ (set.mem_image_of_mem _ hd) hcd,
+    sorry
+  }
+end
+
 
 lemma set.pairwise_disjoint_insert_finset [semilattice_inf_bot α] {s : finset α} {a : α} :
   (insert a s : set α).pairwise_disjoint ↔ (s : set α).pairwise_disjoint ∧
@@ -562,10 +576,13 @@ variables (P : finpartition a)
 protected lemma le {b : α} (hb : b ∈ P.parts) : b ≤ a :=
 (le_sup hb).trans P.sup_parts.le
 
+lemma ne_bot_of_mem_parts {b : α} (hb : b ∈ P.parts) : b ≠ ⊥ :=
+λ h, P.not_bot_mem $ h.subst hb
+
 lemma eq_empty (P : finpartition (⊥ : α)) : P = finpartition.empty α :=
 begin
   ext a,
-  exact iff_of_false (λ h, P.not_bot_mem $ (le_bot_iff.1 (P.le h)).subst h) (not_mem_empty a),
+  exact iff_of_false (λ h, P.ne_bot_of_mem_parts h $ le_bot_iff.1 $ P.le h) (not_mem_empty a),
 end
 
 instance : unique (finpartition (⊥ : α)) :=
@@ -588,8 +605,8 @@ begin
   { rwa ←le_bot_iff.1 ((le_sup hb).trans h.le) }
 end
 
-/-- Given a finpartition `P` of `s` and finpartitions of each part of `P`, this yields the
-finpartition that's obtained by -/
+/-- Given a finpartition `P` of `a` and finpartitions of each part of `P`, this yields the
+finpartition of `a` obtained by juxtaposing all the subpartitions. -/
 @[simps] def bind [decidable_eq α] (P : finpartition a) (Q : Π i ∈ P.parts, finpartition i) :
   finpartition a :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
@@ -663,7 +680,7 @@ variables [decidable_eq α] (s : finset α)
 variables {s} (P : finpartition s)
 
 lemma nonempty_of_mem_parts {a : finset α} (ha : a ∈ P.parts) : a.nonempty :=
-nonempty_iff_ne_empty.2 $ λ h, P.not_bot_mem $ h.subst ha
+nonempty_iff_ne_empty.2 $ P.ne_bot_of_mem_parts ha
 
 lemma nonempty_parts_iff : P.parts.nonempty ↔ s.nonempty :=
 by rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, not_iff_not, empty_parts_iff, bot_eq_empty]

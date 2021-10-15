@@ -992,7 +992,7 @@ begin
     rwa [←lift_omega, lift_le] },
 end
 
-lemma cardinal.to_nat_congr {β : Type v} (e : α ≃ β) : (mk α).to_nat = (mk β).to_nat :=
+lemma cardinal.to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
 by rw [←cardinal.to_nat_lift, cardinal.lift_mk_eq.mpr ⟨e⟩, cardinal.to_nat_lift]
 
 lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=

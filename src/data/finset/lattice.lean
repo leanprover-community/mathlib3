@@ -98,13 +98,10 @@ sup_le $ assume b hb, le_sup (h hb)
     (λ h, ⟨c, or.inl rfl, h⟩) (λ h, let ⟨b, hb, hlt⟩ := ih h in ⟨b, or.inr hb, hlt⟩)),
 (λ ⟨b, hb, hlt⟩, lt_of_lt_of_le hlt (le_sup hb))⟩
 
-lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
-eq_of_forall_ge_iff $ λ c, begin
-  rw [finset.sup_le_iff, finset.sup_le_iff],
-  exact ⟨λ h b hb, h ⟨b, hb⟩ (s.mem_attach _), λ h b _, h b.1 b.2⟩,
-end
+@[simp] lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
+(s.attach.sup_map (function.embedding.subtype _) f).symm.trans $ congr_arg _ attach_map_val
 
-lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
+@[simp] lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
 begin
   refine (sup_mono (s.erase_subset _)).antisymm (finset.sup_le_iff.2 $ λ a ha, _),
   obtain rfl | ha' := eq_or_ne a ⊥,
@@ -275,7 +272,7 @@ le_inf $ assume b hb, inf_le (h hb)
 lemma inf_attach (s : finset β) (f : β → α) : s.attach.inf (λ x, f x) = s.inf f :=
 @sup_attach (order_dual α) _ _ _ _
 
-lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
+@[simp] lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
 @sup_erase_bot (order_dual α) _ _ _
 
 lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}

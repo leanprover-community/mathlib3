@@ -44,10 +44,10 @@ open category_theory.presieve
 open category_theory.limits
 
 namespace category_theory
-section cover_preserving
-variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+variables {A : Type u₃} [category.{v₃} A]
 variables (J : grothendieck_topology C) (K : grothendieck_topology D)
-variables {L : grothendieck_topology E}
+variables {L : grothendieck_topology A}
 
 /--
 A functor `G : (C, J) ⥤ (D, K)` between sites is *cover-preserving*
@@ -70,12 +70,6 @@ begin
   exact hv.cover_preserve (hG.cover_preserve hS)
 end⟩
 
-end cover_preserving
-
-variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D]
-variables {A : Type u₃} [category.{v₃} A]
-variables {J : grothendieck_topology C} {K : grothendieck_topology D}
-
 /--
 A functor `G : (C, J) ⥤ (D, K)` between sites is called compatible preserving if for each
 compatible family of elements at `C` and valued in `G.op ⋙ ℱ`, and each commuting diagram
@@ -92,7 +86,7 @@ structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) : Pr
     (hg₁ : T g₁) (hg₂ : T g₂) (eq : f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂),
       ℱ.val.map f₁.op (x g₁ hg₁) = ℱ.val.map f₂.op (x g₂ hg₂))
 
-variables {G : C ⥤ D} (hG : compatible_preserving.{w} K G) (ℱ : SheafOfTypes.{w} K) {Z : C}
+variables {J K} {G : C ⥤ D} (hG : compatible_preserving.{w} K G) (ℱ : SheafOfTypes.{w} K) {Z : C}
 variables {T : presieve Z} {x : family_of_elements (G.op ⋙ ℱ.val) T} (h : x.compatible)
 
 include h hG

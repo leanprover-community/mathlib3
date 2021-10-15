@@ -33,7 +33,8 @@ open_locale big_operators
 
 section euclidean_domain
 
-variables (R S K L : Type*) [euclidean_domain R] [integral_domain S] [field K] [field L]
+variables (R S K L : Type*) [euclidean_domain R] [comm_ring S] [integral_domain S]
+variables [field K] [field L]
 variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L] [is_separable K L]
 variables [algRL : algebra R L] [is_scalar_tower R K L]
@@ -380,7 +381,7 @@ See also `class_group.fintype_of_admissible_of_algebraic` where `L` is an
 algebraic extension of `R`, that includes some extra assumptions.
 -/
 noncomputable def fintype_of_admissible_of_finite [is_dedekind_domain R] :
-  fintype (@class_group S L _ _ _
+  fintype (@class_group S L _ _ _ _
     (is_integral_closure.is_fraction_ring_of_finite_extension R K L S)) :=
 begin
   letI := classical.dec_eq L,

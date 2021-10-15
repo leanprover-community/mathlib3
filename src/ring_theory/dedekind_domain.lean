@@ -48,7 +48,7 @@ to add a `(h : ¬ is_field A)` assumption whenever this is explicitly needed.
 dedekind domain, dedekind ring
 -/
 
-variables (R A K : Type*) [comm_ring R] [integral_domain A] [field K]
+variables (R A K : Type*) [comm_ring R] [comm_ring A] [integral_domain A] [field K]
 
 open_locale non_zero_divisors
 
@@ -64,7 +64,7 @@ lemma dimension_le_one.principal_ideal_ring
   [is_principal_ideal_ring A] : dimension_le_one A :=
 λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
 
-lemma dimension_le_one.is_integral_closure (B : Type*) [integral_domain B]
+lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [integral_domain B]
   [nontrivial R] [algebra R A] [algebra R B] [algebra B A] [is_scalar_tower R B A]
   [is_integral_closure B R A] (h : dimension_le_one R) :
   dimension_le_one B :=
@@ -130,7 +130,7 @@ structure is_dedekind_domain_dvr : Prop :=
 
 section inverse
 
-variables {R₁ : Type*} [integral_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
+variables {R₁ : Type*} [comm_ring R₁] [integral_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
 variables {I J : fractional_ideal R₁⁰ K}
 
 noncomputable instance : has_inv (fractional_ideal R₁⁰ K) := ⟨λ I, 1 / I⟩
@@ -718,7 +718,7 @@ open algebra
 open_locale big_operators
 
 variables {A K} [algebra A K] [is_fraction_ring A K]
-variables {L : Type*} [field L] (C : Type*) [integral_domain C]
+variables {L : Type*} [field L] (C : Type*) [comm_ring C] [integral_domain C]
 variables [algebra K L] [finite_dimensional K L] [algebra A L] [is_scalar_tower A K L]
 variables [algebra C L] [is_integral_closure C A L] [algebra A C] [is_scalar_tower A C L]
 
@@ -900,7 +900,7 @@ end is_integral_closure
 
 section is_dedekind_domain
 
-variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
+variables {T : Type*} [comm_ring T] [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
 open_locale classical
 open multiset unique_factorization_monoid ideal
 

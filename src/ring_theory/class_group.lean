@@ -25,7 +25,7 @@ inside `A`'s field of fractions `K`.
 
 section integral_domain
 
-variables {R K L : Type*} [integral_domain R]
+variables {R K L : Type*} [comm_ring R] [integral_domain R]
 variables [field K] [field L] [decidable_eq L]
 variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L]

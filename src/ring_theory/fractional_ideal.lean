@@ -824,7 +824,7 @@ is a field because `R` is a domain.
 
 open_locale classical
 
-variables {R₁ : Type*} [integral_domain R₁] {K : Type*} [field K]
+variables {R₁ : Type*} [comm_ring R₁] [integral_domain R₁] {K : Type*} [field K]
 variables [algebra R₁ K] [frac : is_fraction_ring R₁ K]
 
 instance : nontrivial (fractional_ideal R₁⁰ K) :=
@@ -978,7 +978,7 @@ end quotient
 
 section field
 
-variables {R₁ K L : Type*} [integral_domain R₁] [field K] [field L]
+variables {R₁ K L : Type*} [comm_ring R₁] [integral_domain R₁] [field K] [field L]
 variables [algebra R₁ K] [is_fraction_ring R₁ K] [algebra K L] [is_fraction_ring K L]
 
 lemma eq_zero_or_one (I : fractional_ideal K⁰ L) : I = 0 ∨ I = 1 :=
@@ -999,13 +999,17 @@ begin
 end
 
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
-by { letI : field R₁ := hF.to_field R₁, exact eq_zero_or_one I }
+begin
+  letI : field R₁ := hF.to_field R₁,
+  -- TODO can this be less ugly?
+  exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
+end
 
 end field
 
 section principal_ideal_ring
 
-variables {R₁ : Type*} [integral_domain R₁] {K : Type*} [field K]
+variables {R₁ : Type*} [comm_ring R₁] [integral_domain R₁] {K : Type*} [field K]
 variables [algebra R₁ K] [is_fraction_ring R₁ K]
 
 open_locale classical
@@ -1184,7 +1188,7 @@ begin
     rwa [hx', ←mul_assoc, inv_mul_cancel map_a_nonzero, one_mul] }
 end
 
-instance is_principal {R} [integral_domain R] [is_principal_ideal_ring R]
+instance is_principal {R} [comm_ring R] [integral_domain R] [is_principal_ideal_ring R]
   [algebra R K] [is_fraction_ring R K]
   (I : fractional_ideal R⁰ K) : (I : submodule R K).is_principal :=
 begin
@@ -1256,7 +1260,7 @@ by erw [← mk'_mul_coe_ideal_eq_coe_ideal K (is_localization.sec R₁⁰ z).2.p
 
 end principal_ideal_ring
 
-variables {R₁ : Type*} [integral_domain R₁]
+variables {R₁ : Type*} [comm_ring R₁] [integral_domain R₁]
 variables {K : Type*} [field K] [algebra R₁ K] [frac : is_fraction_ring R₁ K]
 
 local attribute [instance] classical.prop_decidable

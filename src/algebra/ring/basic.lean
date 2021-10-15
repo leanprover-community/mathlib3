@@ -950,7 +950,7 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-@[protect_proj] class domain (α : Type u) [ring α] extends nontrivial α :=
+@[protect_proj] class domain (α : Type u) [ring α] extends nontrivial α : Prop :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
 section domain
@@ -986,7 +986,7 @@ end domain
 `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, an integral domain is a domain with commutative
 multiplication. -/
 @[protect_proj]
-class integral_domain (α : Type u) [comm_ring α] extends domain α
+class integral_domain (α : Type u) [comm_ring α] extends domain α : Prop
 
 section integral_domain
 variables [comm_ring α] [integral_domain α] {a b c d e : α}

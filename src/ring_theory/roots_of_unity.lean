@@ -67,7 +67,7 @@ open finset
 
 variables {M N G G₀ R S : Type*}
 variables [comm_monoid M] [comm_monoid N] [comm_group G] [comm_group_with_zero G₀]
-variables [integral_domain R] [integral_domain S]
+variables [comm_ring R] [integral_domain R] [comm_ring S] [integral_domain S]
 
 section roots_of_unity
 
@@ -218,7 +218,7 @@ variables {k : ℕ}
 
 /-- `primitive_roots k R` is the finset of primitive `k`-th roots of unity
 in the integral domain `R`. -/
-def primitive_roots (k : ℕ) (R : Type*) [integral_domain R] : finset R :=
+def primitive_roots (k : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : finset R :=
 (nth_roots k (1 : R)).to_finset.filter (λ ζ, is_primitive_root ζ k)
 
 @[simp] lemma mem_primitive_roots {ζ : R} (h0 : 0 < k) :
@@ -767,7 +767,7 @@ if there is a primitive root of unity in `R`. -/
 lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   (h : is_primitive_root ζ n) :
   nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
-@nth_roots_one_eq_bUnion_primitive_roots' _ _ _ ⟨n, hpos⟩ h
+@nth_roots_one_eq_bUnion_primitive_roots' _ _ _ _ ⟨n, hpos⟩ h
 
 end integral_domain
 

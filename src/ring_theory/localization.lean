@@ -1374,7 +1374,7 @@ def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_
 /-- The localization at of an integral domain to a set of non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
+theorem integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
   integral_domain (localization M) :=
 integral_domain_of_le_non_zero_divisors _ hM
 
@@ -1608,7 +1608,7 @@ variables (A)
 integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-def to_integral_domain : integral_domain K :=
+theorem to_integral_domain : integral_domain K :=
 integral_domain_of_le_non_zero_divisors K (le_refl (non_zero_divisors A))
 
 local attribute [instance] classical.dec_eq

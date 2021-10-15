@@ -534,7 +534,6 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
-  .. quotient.comm_ring I,
   .. quotient.nontrivial hI.1 }
 
 lemma is_integral_domain_iff_prime (I : ideal α) : is_integral_domain I.quotient ↔ I.is_prime :=

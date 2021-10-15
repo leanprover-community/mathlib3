@@ -265,7 +265,7 @@ namespace polynomial
 open polynomial
 
 section comm_ring
-variables {R S : Type*} [comm_ring R] [integral_domain S]
+variables {R S : Type*} [comm_ring R] [comm_ring S] [integral_domain S]
 variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
 
 /-- If `I` is a prime ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
@@ -323,7 +323,8 @@ end
 
 /-- If `f : R → S` descends to an integral map in the localization at `x`,
   and `R` is a Jacobson ring, then the intersection of all maximal ideals in `S` is trivial -/
-lemma jacobson_bot_of_integral_localization {R : Type*} [integral_domain R] [is_jacobson R]
+lemma jacobson_bot_of_integral_localization
+  {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
   (Rₘ Sₘ : Type*) [comm_ring Rₘ] [comm_ring Sₘ]
   (φ : R →+* S) (hφ : function.injective φ) (x : R) (hx : x ≠ 0)
   [algebra R Rₘ] [is_localization.away x Rₘ]
@@ -370,7 +371,8 @@ end
 
 /-- Used to bootstrap the proof of `is_jacobson_polynomial_iff_is_jacobson`.
   That theorem is more general and should be used instead of this one. -/
-private lemma is_jacobson_polynomial_of_domain (R : Type*) [integral_domain R] [hR : is_jacobson R]
+private lemma is_jacobson_polynomial_of_domain
+  (R : Type*) [comm_ring R] [integral_domain R] [hR : is_jacobson R]
   (P : ideal (polynomial R)) [is_prime P] (hP : ∀ (x : R), C x ∈ P → x = 0) :
   P.jacobson = P :=
 begin
@@ -415,7 +417,7 @@ begin
     refine le_antisymm (le_trans (le_sup_of_le_left le_rfl)
       (le_trans (le_of_eq this) (sup_le le_rfl hi'))) le_jacobson,
     all_goals {exact polynomial.map_surjective i hi} },
-  exact @is_jacobson_polynomial_of_domain R' _ (is_jacobson_of_surjective ⟨i, hi⟩)
+  exact @is_jacobson_polynomial_of_domain R' _ _ (is_jacobson_of_surjective ⟨i, hi⟩)
     (map (map_ring_hom i) I) _ (eq_zero_of_polynomial_mem_map_range I),
 end
 
@@ -434,7 +436,7 @@ is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
 end comm_ring
 
 section integral_domain
-variables {R : Type*} [integral_domain R] [is_jacobson R]
+variables {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
 variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
 include P hP
@@ -585,7 +587,8 @@ end
 
 variables {n : ℕ}
 
-lemma quotient_mk_comp_C_is_integral_of_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
+lemma quotient_mk_comp_C_is_integral_of_jacobson
+  {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
   (P : ideal (mv_polynomial (fin n) R)) [P.is_maximal] :
   ((quotient.mk P).comp mv_polynomial.C : R →+* P.quotient).is_integral :=
 begin
@@ -601,6 +604,7 @@ begin
       refine ring_hom.is_integral_trans _ _ _ _,
       { apply (is_integral_quotient_map_iff _).mpr (IH _),
         apply polynomial.is_maximal_comap_C_of_is_jacobson _,
+        { apply_instance, },
         { exact mv_polynomial.is_jacobson_mv_polynomial_fin n },
         { apply comap_is_maximal_of_surjective,
           exact (fin_succ_equiv R n).symm.surjective } },
@@ -609,6 +613,7 @@ begin
         refine ring_hom.is_integral_trans _ _ _ ((is_integral_quotient_map_iff _).mpr _),
         { exact ring_hom.is_integral_of_surjective _ quotient.mk_surjective },
         { apply polynomial.quotient_mk_comp_C_is_integral_of_jacobson _,
+          { apply_instance, },
           { exact mv_polynomial.is_jacobson_mv_polynomial_fin n },
           { exact comap_is_maximal_of_surjective _ (fin_succ_equiv R n).symm.surjective } } } },
     { refine (is_integral_quotient_map_iff _).mpr _,
@@ -616,7 +621,8 @@ begin
       exact ring_hom.is_integral_of_surjective _ (fin_succ_equiv R n).symm.surjective } }
 end
 
-lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
+lemma comp_C_integral_of_surjective_of_jacobson
+  {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
   {σ : Type*} [fintype σ] {S : Type*} [field S] (f : mv_polynomial σ R →+* S)
   (hf : function.surjective f) : (f.comp C).is_integral :=
 begin

@@ -674,6 +674,35 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.re, }
 lemma integrable.im (hf : integrable f μ) : integrable (λ x, is_R_or_C.im (f x)) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 
+lemma integrable.coe_complex {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, (f x : ℂ)) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.coe_complex }
+
+lemma integrable.complex_iff (f : α → ℂ) : integrable f μ ↔
+  integrable (λ x, (f x).re) μ ∧ integrable (λ x, (f x).im) μ :=
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_complex_iff f }
+
+-- lemma integrable.integral_eq_coe_re_add_coe_im {f : α → ℂ} (hf : integrable f μ) :
+--   ∫ x, f x ∂μ = ∫ x, (f x).re ∂μ + ∫ x, (f x).im ∂μ * complex.I :=
+-- begin
+--   rw [mul_comm, ← smul_eq_mul, ← integral_smul,
+--       ← integral_add (integrable.coe_re hf)], -- use dot notation after move
+--   { congr,
+--     ext1 x,
+--     rw [smul_eq_mul, mul_comm],
+--     simp },
+--   { exact ((integrable.coe_im hf).smul _) }
+-- end
+
+-- lemma integrable.integral_eq_re_add_im {f : α → ℂ} (hf : integrable f μ) :
+--   ∫ x, f x ∂μ = (∫ x, (f x).re ∂μ : ℝ) + (∫ x, (f x).im ∂μ : ℝ) * complex.I :=
+-- by { rw [integrable.integral_eq_coe_re_add_coe_im hf, integral_of_real, integral_of_real] }
+
+-- lemma integrable.set_integral_eq_re_add_im
+--   {f : α → ℂ} (hf : integrable f μ) {i : set α} :
+--   ∫ x in i, f x ∂μ = (∫ x in i, (f x).re ∂μ : ℝ) + (∫ x in i, (f x).im ∂μ : ℝ) * complex.I :=
+-- integrable.integral_eq_re_add_im hf.integrable_on
+
 end is_R_or_C
 
 section inner_product

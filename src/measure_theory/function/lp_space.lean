@@ -1135,6 +1135,54 @@ begin
   exact hf.of_le_mul hf.1.im (eventually_of_forall this),
 end
 
+section move
+
+lemma complex.norm_re_le_norm (x : ℂ) : ∥x.re∥ ≤ ∥x∥ :=
+begin
+  erw [real.le_sqrt (norm_nonneg _) (complex.norm_sq_nonneg _),
+       pow_bit0_abs, pow_two, le_add_iff_nonneg_right],
+  exact mul_self_nonneg _
+end
+
+lemma complex.norm_im_le_norm (x : ℂ) : ∥x.im∥ ≤ ∥x∥ :=
+begin
+  erw [real.le_sqrt (norm_nonneg _) (complex.norm_sq_nonneg _),
+       pow_bit0_abs, pow_two, le_add_iff_nonneg_left],
+  exact mul_self_nonneg _
+end
+
+-- move to special functions (see #check ae_measurable.re)
+lemma ae_measurable_of_re_im {f : α → ℂ}
+  (hre : ae_measurable (λ x, (f x).re) μ) (him : ae_measurable (λ x, (f x).im) μ) :
+  ae_measurable f μ :=
+begin
+  convert (complex.measurable_of_real.comp_ae_measurable hre).add
+    ((complex.measurable_of_real.comp_ae_measurable him).mul_const complex.I),
+  ext1 x,
+  simp
+end
+
+end move
+
+lemma mem_ℒp.coe_complex {f : α → ℝ} (hf : mem_ℒp f p μ) :
+  mem_ℒp (λ x, (f x : ℂ)) p μ :=
+begin
+  have : ∀ x, ∥(f x : ℂ)∥ ≤ 1 * ∥f x∥,
+  { simp },
+  exact hf.of_le_mul (complex.measurable_of_real.comp_ae_measurable hf.1)
+    (eventually_of_forall this),
+end
+
+lemma mem_ℒp_complex_iff (f : α → ℂ) : mem_ℒp f p μ ↔
+  mem_ℒp (λ x, (f x).re) p μ ∧ mem_ℒp (λ x, (f x).im) p μ :=
+begin
+  refine ⟨λ hf, ⟨hf.re, hf.im⟩, _⟩,
+  rintro ⟨hre, him⟩,
+  convert hre.coe_complex.add (him.coe_complex.const_mul complex.I),
+  ext1 x,
+  simp [mul_comm complex.I (f x).im],
+end
+
 end is_R_or_C
 
 section inner_product

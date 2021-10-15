@@ -13,7 +13,7 @@ a polynomial over an integral domain.
 -/
 
 open polynomial ideal.quotient
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R] [integral_domain R]
 
 namespace polynomial
 namespace eisenstein_criterion_aux

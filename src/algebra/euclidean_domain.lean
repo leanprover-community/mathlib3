@@ -425,7 +425,7 @@ def euclidean_domain.gcd_monoid_of_core : gcd_monoid β :=
   lcm_zero_right := lcm_zero_right }
 
 @[reducible] def euclidean_domain.of_core : euclidean_domain β :=
-{ ..(infer_instance : euclidean_domain_core β ),
+{ ..‹euclidean_domain_core β›,
   ..euclidean_domain.gcd_monoid_of_core }
 
 end

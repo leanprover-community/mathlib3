@@ -32,8 +32,21 @@ If the name `h` is not explicitly provided, then `this` will be used as name.
 This tactic uses classical reasoning.
 It is a variant on the tactic `by_contra` (`tactic.interactive.by_contra`).
 
-Example. If the goal is to prove `1 < 2`, then `by_contra' h` or `by_contra' h : 2 ≤ 1`
-will add an assumption `h : 2 ≤ 1` to the context, and turn the goal into `false`.
+Examples:
+
+```lean
+example : 1 < 2 :=
+begin
+  by_contra' h,
+  -- h : 2 ≤ 1 ⊢ false
+end
+
+example : 1 < 2 :=
+begin
+  by_contra' h : ¬ 1 < 2,
+  -- h : ¬ 1 < 2 ⊢ false
+end
+```
 -/
 meta def by_contra' (h : parse ident?) (t : parse (tk ":" *> texpr)?) : tactic unit := do
   let h := h.get_or_else `this,

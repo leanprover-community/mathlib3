@@ -402,11 +402,11 @@ theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := no
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 
-theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
-⟨λ h, mem_singleton.1 (h ▸ mem_singleton_self _), congr_arg _⟩
-
 lemma singleton_injective : injective (singleton : α → finset α) :=
-λ i j, singleton_inj.1
+λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
+
+theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
+singleton_injective.eq_iff
 
 @[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 

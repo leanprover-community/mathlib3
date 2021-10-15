@@ -5,7 +5,6 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import control.monad.basic
 import data.nat.basic
-import algebra.group_power.basic
 
 /-!
 # Basic properties of lists
@@ -2402,13 +2401,13 @@ theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simp, priority 500, to_additive]
-theorem prod_repeat (a : α) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
-begin
-  induction n with n ih,
-  { rw pow_zero, refl },
-  { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
-end
+-- @[simp, priority 500, to_additive]
+-- theorem prod_repeat (a : α) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
+-- begin
+--   induction n with n ih,
+--   { rw pow_zero, refl },
+--   { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
+-- end
 
 @[simp, to_additive]
 theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
@@ -2693,16 +2692,16 @@ begin
     exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
-@[to_additive]
-lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
-  l.prod ≤ n ^ l.length :=
-begin
-  induction l with y l IH,
-  { simp },
-  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
-    have hy : y ≤ n := h y (mem_cons_self _ _),
-    simpa [pow_succ] using mul_le_mul' hy IH }
-end
+-- @[to_additive]
+-- lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
+--   l.prod ≤ n ^ l.length :=
+-- begin
+--   induction l with y l IH,
+--   { simp },
+--   { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
+--     have hy : y ≤ n := h y (mem_cons_self _ _),
+--     simpa [pow_succ] using mul_le_mul' hy IH }
+-- end
 
 -- Several lemmas about sum/head/tail for `list ℕ`.
 -- These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.

@@ -223,7 +223,7 @@ lemma ceil_mono {a b : α} (h : a ≤ b) : ⌈a⌉ ≤ ⌈b⌉ := ceil_le.2 (h.t
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
 by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
-lemma ceil_add_one {a : α} (ha : 0 ≤ a) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
+lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
 
 lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=

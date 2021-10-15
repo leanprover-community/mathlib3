@@ -117,7 +117,7 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 
 @[simp] lemma floor_one : ⌊(1 : α)⌋ = 1 := by rw [← int.cast_one, floor_coe]
 
-@[mono] lemma floor_mono {a b : α} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ := gc_coe_floor.monotone_u h
+@[mono] lemma floor_mono : monotone (floor : α → ℤ) := gc_coe_floor.monotone_u
 
 lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a :=
 ⟨λ h, le_trans (by rwa [←int.cast_one, int.cast_le, ←zero_add (1 : ℤ), int.add_one_le_iff])
@@ -240,7 +240,7 @@ lemma le_ceil (a : α) : a ≤ ⌈a⌉ := gc_ceil_coe.le_u_l a
 @[simp] lemma ceil_coe (z : ℤ) : ⌈(z : α)⌉ = z :=
 eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
 
-lemma ceil_mono {a b : α} (h : a ≤ b) : ⌈a⌉ ≤ ⌈b⌉ := gc_ceil_coe.monotone_l h
+lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
 
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
 by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]

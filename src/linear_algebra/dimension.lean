@@ -863,8 +863,7 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq :
 -- using `linear_independent_le_span'`
 lemma dim_span_le (s : set V) : module.rank K (span K s) ≤ #s :=
 begin
-  classical,
-  obtain ⟨b, hb, hsab, hlib⟩ := exists_linear_independent' K s,
+  obtain ⟨b, hb, hsab, hlib⟩ := exists_linear_independent K s,
   convert cardinal.mk_le_mk_of_subset hb,
   rw [← hsab, dim_span_set hlib]
 end

@@ -1,14 +1,13 @@
 /-
 Copyright (c) 2021 Alex Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alex Zhao.
+Authors: Alex Zhao
 -/
 import tactic.suggest
-import tactic
+import tactic.linarith.frontend
 import data.rat.basic
 import data.nat.prime
 import data.int.gcd
-open nat
 
 /-!
 # Chicken McNugget Theorem
@@ -32,6 +31,8 @@ upper bounding the largest nonconstructible number.
 
 chicken nugget, frobenius coin
 -/
+
+open nat
 
 /-- Distributivity of coercion from N to Z over subtraction, using casework. -/
 lemma coe_sub_ge (m n : ℕ):

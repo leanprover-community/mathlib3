@@ -216,7 +216,9 @@ theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 /-- A decidable set is one whose membership predicate is decidable.
 This is short for `decidable_pred (∈ s)`. -/
 /- TODO: maybe move to core since it's not set-specific? -/
-@[reducible] def decidable_mem {α : Type u} {β : Type v} [has_mem α β] (s : β) := decidable_pred (∈ s)
+@[reducible]
+def decidable_mem {α : Type u} {β : Type v} [has_mem α β] (s : β) :=
+decidable_pred (∈ s)
 
 instance decidable_mem_of (p : α → Prop) [H : decidable_pred p] : decidable_mem {a | p a} := H
 

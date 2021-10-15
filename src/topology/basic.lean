@@ -316,6 +316,9 @@ is_closed_sInter $ assume t ⟨h₁, h₂⟩, h₁
 lemma subset_closure {s : set α} : s ⊆ closure s :=
 subset_sInter $ assume t ⟨h₁, h₂⟩, h₂
 
+lemma not_mem_of_not_mem_closure {s : set α} {P : α} (hP : P ∉ closure s) : P ∉ s :=
+λ h, hP (subset_closure h)
+
 lemma closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : is_closed t) : closure s ⊆ t :=
 sInter_subset_of_mem ⟨h₂, h₁⟩
 

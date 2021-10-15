@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
-import data.finset.intervals
+import data.nat.interval
 import data.nat.prime
 
 /-!
@@ -58,7 +58,7 @@ end
 @[simp]
 lemma mem_proper_divisors {m : ℕ} : n ∈ proper_divisors m ↔ n ∣ m ∧ n < m :=
 begin
-  rw [proper_divisors, finset.mem_filter, finset.Ico.mem, and_comm],
+  rw [proper_divisors, finset.mem_filter, finset.mem_Ico, and_comm],
   apply and_congr_right,
   rw and_iff_right_iff_imp,
   intros hdvd hlt,
@@ -70,7 +70,8 @@ end
 
 lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):
   divisors n = has_insert.insert n (proper_divisors n) :=
-by rw [divisors, proper_divisors, finset.Ico.succ_top h, finset.filter_insert, if_pos (dvd_refl n)]
+by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico h, finset.filter_insert,
+  if_pos (dvd_refl n)]
 
 @[simp]
 lemma mem_divisors {m : ℕ} :
@@ -78,7 +79,7 @@ lemma mem_divisors {m : ℕ} :
 begin
   cases m,
   { simp [divisors] },
-  simp only [divisors, finset.Ico.mem, ne.def, finset.mem_filter, succ_ne_zero, and_true,
+  simp only [divisors, finset.mem_Ico, ne.def, finset.mem_filter, succ_ne_zero, and_true,
              and_iff_right_iff_imp, not_false_iff],
   intro hdvd,
   split,
@@ -101,7 +102,7 @@ end
 lemma mem_divisors_antidiagonal {x : ℕ × ℕ} :
   x ∈ divisors_antidiagonal n ↔ x.fst * x.snd = n ∧ n ≠ 0 :=
 begin
-  simp only [divisors_antidiagonal, finset.Ico.mem, ne.def, finset.mem_filter, finset.mem_product],
+  simp only [divisors_antidiagonal, finset.mem_Ico, ne.def, finset.mem_filter, finset.mem_product],
   rw and_comm,
   apply and_congr_right,
   rintro rfl,

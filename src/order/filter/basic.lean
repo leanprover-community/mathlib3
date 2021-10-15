@@ -1135,6 +1135,14 @@ by simp
   (∀ᶠ x in f, p x → q) ↔ ((∃ᶠ x in f, p x) → q) :=
 by simp only [imp_iff_not_or, eventually_or_distrib_right, not_frequently]
 
+@[simp] lemma frequently_and_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
+  (∃ᶠ x in f, p ∧ q x) ↔ (p ∧ ∃ᶠ x in f, q x) :=
+by simp only [filter.frequently, not_and, eventually_imp_distrib_left, not_imp]
+
+@[simp] lemma frequently_and_distrib_right {f : filter α} {p : α → Prop} {q : Prop} :
+  (∃ᶠ x in f, p x ∧ q) ↔ ((∃ᶠ x in f, p x) ∧ q) :=
+by simp only [and_comm _ q, frequently_and_distrib_left]
+
 @[simp] lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
 
 @[simp]

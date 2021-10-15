@@ -15,7 +15,7 @@ import algebra.periodic
 -/
 
 noncomputable theory
-open classical set filter topological_space metric
+open classical filter int metric set topological_space
 open_locale classical topological_space filter uniformity interval
 
 universes u v w
@@ -66,7 +66,7 @@ instance : proper_space ℤ :=
 ⟨ begin
     intros x r,
     rw closed_ball_eq,
-    exact (set.Icc_ℤ_finite _ _).is_compact,
+    exact (set.finite_Icc _ _).is_compact,
   end ⟩
 
 end int
@@ -278,7 +278,7 @@ end,
 begin
   intro h,
   rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
-  exact (bounded_Icc m M).subset I
+  exact (bounded_Icc m M).mono I
 end⟩
 
 lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :

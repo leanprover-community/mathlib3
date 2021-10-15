@@ -489,8 +489,7 @@ omega_complete_partial_order.lift preorder_hom.coe_fn_hom preorder_hom.ωSup
 
 end preorder_hom
 
-section old_struct
-set_option old_structure_cmd true
+section
 variables (α β)
 
 /-- A monotone function on `ω`-continuous partial orders is said to be continuous
@@ -505,15 +504,22 @@ infixr ` →𝒄 `:25 := continuous_hom -- Input: \r\MIc
 
 instance : has_coe_to_fun (α →𝒄 β) :=
 { F := λ _, α → β,
-  coe :=  continuous_hom.to_fun }
+  coe :=  λ f, f.to_preorder_hom.to_fun }
 
 instance : has_coe (α →𝒄 β) (α →ₘ β) :=
 { coe :=  continuous_hom.to_preorder_hom }
 
 instance : partial_order (α →𝒄 β) :=
-partial_order.lift continuous_hom.to_fun $ by rintro ⟨⟩ ⟨⟩ h; congr; exact h
+partial_order.lift (λ f, f.to_preorder_hom.to_fun) $ by rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h; congr; exact h
 
-end old_struct
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def continuous_hom.simps.apply (h : α →𝒄 β) : α → β := h
+
+initialize_simps_projections continuous_hom
+  (to_preorder_hom_to_fun → apply, -to_preorder_hom)
+
+end
 
 namespace continuous_hom
 
@@ -588,7 +594,7 @@ continuous_hom.cont _ _
 they are equal. -/
 @[simps, reducible]
 def of_fun (f : α → β) (g : α →𝒄 β) (h : f = g) : α →𝒄 β :=
-by refine {to_fun := f, ..}; subst h; cases g; assumption
+by refine {to_preorder_hom := {to_fun := f, ..}, ..}; subst h; rcases g with ⟨⟨⟩⟩; assumption
 
 /-- Construct a continuous function from a monotone function with a proof of continuity. -/
 @[simps, reducible]
@@ -706,7 +712,7 @@ begin
     preorder_hom.omega_complete_partial_order_ωSup_coe, ωSup_def, forall_forall_merge,
     chain.zip_coe, preorder_hom.prod_map_coe, preorder_hom.diag_coe, prod.map_mk,
     preorder_hom.apply_coe, function.comp_app, prod.apply_coe,
-    preorder_hom.comp_coe, ωSup_to_fun, function.eval],
+    preorder_hom.comp_coe, ωSup_apply, function.eval],
 end
 
 /-- A family of continuous functions yields a continuous family of functions. -/
@@ -729,7 +735,7 @@ end
 @[simps {rhs_md := reducible}]
 noncomputable def map {β γ : Type v} (f : β → γ) (g : α →𝒄 part β) : α →𝒄 part γ :=
 of_fun (λ x, f <$> g x) (bind g (const (pure ∘ f))) $
-by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_coe, const_apply,
+by ext; simp only [map_eq_bind_pure_comp, bind_apply, preorder_hom.bind_coe, const_apply,
   preorder_hom.const_coe_coe, coe_apply]
 
 /-- `part.seq` as a continuous function. -/
@@ -737,8 +743,8 @@ by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_coe, co
 noncomputable def seq {β γ : Type v} (f : α →𝒄 part (β → γ)) (g : α →𝒄 part β) :
   α →𝒄 part γ :=
 of_fun (λ x, f x <*> g x) (bind f $ (flip $ _root_.flip map g))
-  (by ext; simp only [seq_eq_bind_map, flip, part.bind_eq_bind, map_to_fun, part.mem_bind_iff,
-                      bind_to_fun, preorder_hom.bind_coe, coe_apply, flip_to_fun]; refl)
+  (by ext; simp only [seq_eq_bind_map, flip, part.bind_eq_bind, map_apply, part.mem_bind_iff,
+                      bind_apply, preorder_hom.bind_coe, coe_apply, flip_apply]; refl)
 
 end continuous_hom
 

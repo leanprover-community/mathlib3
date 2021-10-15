@@ -1214,69 +1214,6 @@ instance with_top.linear_ordered_add_comm_group_with_top :
 
 end linear_ordered_add_comm_group
 
-/-- This is not so much a new structure as a construction mechanism
-  for ordered groups, by specifying only the "positive cone" of the group. -/
-class nonneg_add_comm_group (α : Type*) extends add_comm_group α :=
-(nonneg          : α → Prop)
-(pos             : α → Prop := λ a, nonneg a ∧ ¬ nonneg (neg a))
-(pos_iff         : ∀ a, pos a ↔ nonneg a ∧ ¬ nonneg (-a) . order_laws_tac)
-(zero_nonneg     : nonneg 0)
-(add_nonneg      : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
-(nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
-
-namespace nonneg_add_comm_group
-variable [s : nonneg_add_comm_group α]
-include s
-
-@[reducible, priority 100] -- see Note [lower instance priority]
-instance to_ordered_add_comm_group : ordered_add_comm_group α :=
-{ le               := λ a b, nonneg (b - a),
-  lt               := λ a b, pos (b - a),
-  lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,
-  le_refl          := λ a, by simp [zero_nonneg],
-  le_trans         := λ a b c nab nbc, by simp [-sub_eq_add_neg];
-    rw ← sub_add_sub_cancel; exact add_nonneg nbc nab,
-  le_antisymm      := λ a b nab nba, eq_of_sub_eq_zero $
-    nonneg_antisymm nba (by rw neg_sub; exact nab),
-  add_le_add_left  := λ a b nab c, by simpa [(≤), preorder.le] using nab,
-  ..s }
-
-theorem nonneg_def {a : α} : nonneg a ↔ 0 ≤ a :=
-show _ ↔ nonneg _, by simp
-
-theorem pos_def {a : α} : pos a ↔ 0 < a :=
-show _ ↔ pos _, by simp
-
-theorem not_zero_pos : ¬ pos (0 : α) :=
-mt pos_def.1 (lt_irrefl _)
-
-theorem zero_lt_iff_nonneg_nonneg {a : α} :
-  0 < a ↔ nonneg a ∧ ¬ nonneg (-a) :=
-pos_def.symm.trans (pos_iff _)
-
-theorem nonneg_total_iff :
-  (∀ a : α, nonneg a ∨ nonneg (-a)) ↔
-  (∀ a b : α, a ≤ b ∨ b ≤ a) :=
-⟨λ h a b, by have := h (b - a); rwa [neg_sub] at this,
- λ h a, by rw [nonneg_def, nonneg_def, neg_nonneg]; apply h⟩
-
-/--
-A `nonneg_add_comm_group` is a `linear_ordered_add_comm_group`
-if `nonneg` is total and decidable.
--/
-def to_linear_ordered_add_comm_group
-  [decidable_pred (@nonneg α _)]
-  (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
-  : linear_ordered_add_comm_group α :=
-{ le := (≤),
-  lt := (<),
-  le_total := nonneg_total_iff.1 nonneg_total,
-  decidable_le := by apply_instance,
-  decidable_lt := by apply_instance,
-  ..@nonneg_add_comm_group.to_ordered_add_comm_group _ s }
-
-end nonneg_add_comm_group
-
 namespace prod
 
 variables {G H : Type*}

@@ -98,6 +98,20 @@ sup_le $ assume b hb, le_sup (h hb)
     (λ h, ⟨c, or.inl rfl, h⟩) (λ h, let ⟨b, hb, hlt⟩ := ih h in ⟨b, or.inr hb, hlt⟩)),
 (λ ⟨b, hb, hlt⟩, lt_of_lt_of_le hlt (le_sup hb))⟩
 
+lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
+eq_of_forall_ge_iff $ λ c, begin
+  rw [finset.sup_le_iff, finset.sup_le_iff],
+  exact ⟨λ h b hb, h ⟨b, hb⟩ (s.mem_attach _), λ h b _, h b.1 b.2⟩,
+end
+
+lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
+begin
+  refine (sup_mono (s.erase_subset _)).antisymm (finset.sup_le_iff.2 $ λ a ha, _),
+  obtain rfl | ha' := eq_or_ne a ⊥,
+  { exact bot_le },
+  { exact le_sup (mem_erase.2 ⟨ha', ha⟩) }
+end
+
 lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) (bot : g ⊥ = ⊥) :
   g (s.sup f) = s.sup (g ∘ f) :=
@@ -891,6 +905,12 @@ end
 lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset β) :
   s.sup t = s.bUnion t :=
 by { ext, rw [mem_sup, mem_bUnion], }
+
+@[simp] lemma sup_singleton' [decidable_eq α] (s : finset α) : s.sup singleton = s :=
+begin
+  refine (finset.sup_le $ λ a, _).antisymm (λ a ha, mem_sup.2 ⟨a, ha, mem_singleton_self a⟩),
+  exact singleton_subset_iff.2,
+end
 
 end finset
 

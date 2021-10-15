@@ -23,7 +23,7 @@ open_locale direct_sum classical big_operators
 open set direct_sum
 
 
-variables {ι : Type*} {A : ι → Type*} [Π i, comm_ring (A i)]
+variables {ι : Type*} {A : ι → Type*} [Π i, add_comm_group (A i)]
 
 /-- An element `x : ⨁ i, A i` is a homogeneous element if it is a member of one of the summand. -/
 def is_homogeneous_element (x : ⨁ i, A i) : Prop := ∃ (y : graded_monoid A), x = of A y.fst y.snd
@@ -82,9 +82,31 @@ end, λ HI, begin
   rw [mem_range], use a, rw ha, refl,
 end⟩
 
+-- private lemma lemma1 (i j : ι) (x : A i) : (of A i x) j =
+--   dite (i = j) (λ h, h.rec_on x) (λ _, 0) :=
+-- begin
+--   split_ifs, rw h,
+-- end
+
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
-  x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I := sorry
+  x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
+⟨begin
+  intro hx, by_contra rid,
+  simp only [not_forall] at rid,
+  rcases rid with ⟨i, hi⟩,
+  set J := ideal.span (set.insert (x - of A i (x i)) I) with HJ,
+  have eq₁ := ideal.mem_span_insert.mp (show x ∈ ideal.span (set.insert (x - of A i (x i)) I), from _),
+  rcases eq₁ with ⟨a, z, Hz, H⟩, sorry,
+  -- apply direct_sum.induction_on x,
+  -- { simp only [forall_const, submodule.zero_mem, add_monoid_hom.map_zero, zero_apply] },
+  -- { intros i y hy j,
+  --   by_cases (i = j),
+  --   dsimp only at hy ⊢, convert hy,
+  --   { rw [←h, lemma1], split_ifs; refl, },
+  --   { rw lemma1, split_ifs, simp only [submodule.zero_mem, add_monoid_hom.map_zero], } },
+  -- { intros y z, }
+end, sorry⟩
 
 end defs
 

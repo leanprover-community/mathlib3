@@ -785,15 +785,28 @@ begin
   rw zmod.nat_cast_self,
 end
 
+example (a b c d : ℕ) (h : a ≤ b) (h' : b < c) : (a : zmod c) * (b : zmod c) = (a * b : zmod c) :=
+begin
+  library_search,
+  exact mul_assoc (a / b) c d,
+end
+
 lemma equi_iso_fin (m : ℕ) (a : zmod (d * p^m)) : equi_class p d m m.succ (lt_add_one m) a ≃ fin p :=
 begin
   constructor,
   swap 3,
   { rintros y,
+    refine ⟨((y.val).val - a.val) / (d * p^m), _⟩,
+    apply nat.div_lt_of_lt_mul,
+    have : 0 < d * p ^ m.succ := sorry,
+    have := @zmod.val_lt _ (fact_iff.2 this) y.val,
+    rw mul_assoc, rw ←pow_succ',
+    have f := nat.sub_le (y.val).val a.val,
+    exact gt_of_gt_of_ge this f, },
 --    have k := classical.some (equi_class_some p d m a y _),
 --    have hk := classical.some_spec (equi_class_some p m a y _),
 --    cases hk with hk h,
-    refine ⟨classical.some (equi_class_some p d m a y), (classical.some_spec (equi_class_some p d m a y)).1⟩, },
+--    refine ⟨classical.some (equi_class_some p d m a y), (classical.some_spec (equi_class_some p d m a y)).1⟩, },
   swap 3,
   { rintros k, refine ⟨a.val + k * d * p^m, _⟩, rw mem_equi_class,
     have g : (d * (p^m)) ∣ (d * p^(m.succ)),
@@ -815,13 +828,16 @@ begin
     rw @zmod.cast_nat_cast _ _ _ (d * p^m) g' g,
     rw @zmod.nat_cast_zmod_val _ _ _,
     rw fact_iff at *, apply mul_pos, assumption, apply ((pow_pos (nat.prime.pos _)) m), assumption, },
-  { sorry, },
+  { rintros x, --simp,
+    rw subtype.ext_iff_val, simp,
+    change ↑(a.val) + (((↑x).val - a.val) / (d * p^m) * d * p^m : zmod (d * p^m)) = ↑x,
+    rw mul_assoc (↑x.val - a.val / (d * p^m)) d (p^m), sorry, },
 --     rw @zmod.nat_cast_val _ _ _ _ _, rw maybe_generalize p _,
 --     suffices : (a.val : zmod (d * p^m)) = a,
 --     { conv_rhs { rw ←this, },  },
 --     simp,
 --     sorry, },
-  { sorry, },
+  { rintros x, sorry, },
 end
 
 lemma E_c_sum_equi_class [has_coe ℝ R] (x : zmod (d * p^m)) (hc : gcd c p = 1) :

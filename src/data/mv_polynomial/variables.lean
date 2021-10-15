@@ -333,7 +333,7 @@ begin
 end
 
 section integral_domain
-variables {A : Type*} [integral_domain A]
+variables {A : Type*} [comm_ring A] [integral_domain A]
 
 lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) : (C a * φ).vars = φ.vars :=
 begin

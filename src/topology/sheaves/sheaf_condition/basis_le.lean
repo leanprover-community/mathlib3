@@ -24,158 +24,158 @@ open topological_space.opens
 namespace Top
 
 variables {C : Type u} [category.{v} C]
-variables {X : Top.{v}} (B : set (opens X)) (F G : presheaf C X) (U : opens X) (𝒰 : set (opens X))
+variables {X : Top.{v}}
+structure opens_index_struct :=
+(ι : Type v)
+(f : ι → opens X)
+-- if ι and B are separated then Lean cannot infer induced category instance on ι
+variables (B : @opens_index_struct X) (U : opens X) (F G : presheaf C X)
+
+def is_basis_range := is_basis (set.range (B.f))
 
 namespace presheaf
 
 namespace sheaf_condition
 
-def basis_le_s (V : opens X) := V ≤ U ∧ V ∈ B
-def basis_le : Type v := { V // basis_le_s B U V }
-def basis_le_fam := λ V : basis_le B U, V.val
+def basis_le : Type v := { i // B.f i ≤ U }
 
+instance : category B.ι := induced_category.category (op ∘ B.f)
 instance : category (basis_le B U) := category_theory.full_subcategory _
 
-private def fsi := (full_subcategory_inclusion _ : 𝒰 ⥤ opens X)
+private abbreviation bl2b := full_subcategory_inclusion (λ i, B.f i ≤ U)
+private abbreviation idf := induced_functor (op ∘ B.f)
+private abbreviation bli := bl2b B U ⋙ idf B
 
-def basis_le_cocone : cocone (fsi (basis_le_s B U)) :=
-{ X := U,
-  ι := { app := λ V, V.property.1.hom } }
+def basis_le_fam := λ i : basis_le B U, B.f i.1
+example : (bli B U).obj = op ∘ basis_le_fam B U := rfl
 
-def basis_le_cocone' : cocone (fsi (basis_le_s B U)) :=
-{ X := supr (basis_le_fam B U),
-  ι := { app := opens.le_supr _ } }
+def basis_le_cone : cone (bli B U) :=
+{ X := op U,
+  π := { app := λ i, i.2.hom.op } }
+
+def basis_le_cone' : cone (bli B U) :=
+{ X := op (supr (basis_le_fam B U)),
+  π := { app := λ i, (opens.le_supr _ i).op } }
 
 @[ext]
-lemma cocone_ext {c1 c2 : cocone (fsi 𝒰)}
-  (h : c1.X = c2.X) : c1 = c2 :=
+lemma cone_ext {J : Type _} [category J] {f : J ⥤ (opens X)ᵒᵖ}
+  {c1 c2 : cone f} (h : c1.X = c2.X) : c1 = c2 :=
+-- or any category with subsingleton hom sets in place of (opens X)ᵒᵖ
+by { cases c1, cases c2, congr, exact h,
+     convert cast_heq _ _, dsimp at h, rw h }
+
+lemma self_eq_supr_basis_le (hB : is_basis_range B) :
+  supr (basis_le_fam B U) = U :=
 begin
-  cases c1, cases c2, congr, exact h, convert cast_heq _ _, dsimp at h, rw h,
+  apply subtype.eq, rw [hB.open_eq_sUnion' U.2, ←set.range_comp],
+  ext, exact ⟨λ ⟨_,⟨_,⟨⟨i,hi⟩,rfl⟩,rfl⟩,hx⟩, ⟨_,⟨⟨⟨i,rfl⟩,hi⟩,hx⟩⟩,
+              λ ⟨_,⟨⟨⟨i,rfl⟩,hi⟩,hx⟩⟩, ⟨_,⟨_,⟨⟨i,hi⟩,rfl⟩,rfl⟩,hx⟩⟩,
 end
 
-lemma self_eq_supr_basis_le (hB : is_basis B) : supr (basis_le_fam B U) = U :=
-begin
-  apply subtype.eq, rw hB.open_eq_sUnion' U.2,
-  dsimp, ext, rw [mem_coe, mem_supr],
-  exact ⟨λ⟨⟨V,hVU,hVB⟩,hx⟩, ⟨V,⟨⟨V,hVB,rfl⟩,hVU⟩,hx⟩,
-        λ⟨_,⟨⟨V,hVB,rfl⟩,hVU⟩,hx⟩, ⟨⟨V,hVU,hVB⟩,hx⟩⟩,
-end
+lemma basis_le_cone_eq (hB : is_basis_range B) :
+  basis_le_cone B U = basis_le_cone' B U :=
+let h := congr_arg op (self_eq_supr_basis_le B U hB).symm in cone_ext h
 
-lemma basis_le_cocone_eq (hB : is_basis B) : basis_le_cocone B U = basis_le_cocone' B U :=
-  cocone_ext _ (self_eq_supr_basis_le B U hB).symm
+def basis_le_presheaf_cone := F.map_cone (basis_le_cone B U)
 
+lemma basis_le_presheaf_cone_app (i : basis_le B U) :
+  (basis_le_presheaf_cone B U F).π.app i = F.map i.2.hom.op := rfl
 
-private def bl2b : basis_le B U ⥤ B :=
-{ obj := λV, ⟨V.1,V.2.2⟩,
-  map := λ_ _, id,
-  map_id' := by simp,
-  map_comp' := λ _ _, by simp }
+lemma basis_le_presheaf_cone_app_id (i : B.ι) :
+  (basis_le_presheaf_cone B (B.f i) F).π.app ⟨i, le_of_eq rfl⟩ = 𝟙 _
+:= by dunfold basis_le_presheaf_cone; dsimp; rw ← F.map_id; refl
 
-lemma bl2b2o : bl2b B U ⋙ fsi B = fsi (basis_le_s B U) := rfl
-
-private def bl2bo := (bl2b B U).op
-
-def basis_le_self (V : B) : basis_le B V := ⟨V,le_of_eq rfl,V.2⟩
-
-lemma basis_le_self_bl2bo (V : B) :
-  (bl2bo B V).obj (op (basis_le_self B V)) = op V :=
-by unfold bl2bo bl2b; dsimp; congr; apply subtype.eq; refl
-
-def basis_le_presheaf_cone := F.map_cone (basis_le_cocone B U).op
-
-lemma basis_le_presheaf_cone_app (V : (basis_le B U)ᵒᵖ) :
-  (basis_le_presheaf_cone B F U).π.app V = F.map V.unop.2.1.hom.op := rfl
-
-lemma basis_le_presheaf_cone_app_id (V : B) :
-  (basis_le_presheaf_cone B F V).π.app (op (basis_le_self B V)) = 𝟙 (F.obj (op V))
-:= by rw [basis_le_presheaf_cone_app, ←F.map_id]; refl
 
 def lim_basis_le : Type (max u v) :=
-  Π (U : opens X), is_limit (basis_le_presheaf_cone B F U)
+  Π (U : opens X), is_limit (basis_le_presheaf_cone B U F)
 
 
 lemma mono_to_cover_of_sheaf_condition (hF : F.sheaf_condition_opens_le_cover)
-   ⦃ι : Type v⦄ (𝒰 : ι → opens X) (hU : supr 𝒰 = U) (A : C) (f g : A ⟶ F.obj (op U))
-   -- hU is a hack to avoid "motive not type correct" in mono_to_basis_le_of_sheaf_condition below
-   (h : ∀ i, f ≫ F.map (hU.rec (opens.le_supr 𝒰 i)).op = g ≫ F.map (hU.rec (opens.le_supr 𝒰 i)).op) :
+   (hU : supr B.f = U) (A : C) (f g : A ⟶ F.obj (op U))
+   -- hU is a hack to get rid of "motive not type correct" in mono_to_basis_le_of_sheaf_condition below
+   (h : ∀ i, f ≫ F.map (hU.rec (opens.le_supr B.f i)).op = g ≫ F.map (hU.rec (opens.le_supr B.f i)).op) :
    f = g :=
 begin
-  subst hU, apply (hF 𝒰).hom_ext, intro V, dsimp at ⊢, let i := V.unop.2.some,
-  let i1 := opens.le_supr 𝒰 i, let i2 := V.unop.2.some_spec.hom,
-  have : (opens_le_cover_cocone 𝒰).ι.app V.unop = i2 ≫ i1 := rfl,
+  subst hU, apply (hF B.f).hom_ext, intro V, dsimp, let i := V.unop.2.some,
+  let i1 := opens.le_supr B.f i, let i2 := V.unop.2.some_spec.hom,
+  have : (opens_le_cover_cocone B.f).ι.app V.unop = i2 ≫ i1 := rfl,
   rw [this, op_comp, F.map_comp, ←category.assoc, h i, category.assoc],
 end
 
-lemma mono_to_basis_le_of_sheaf_condition (hB : is_basis B)
+lemma mono_to_basis_le_of_sheaf_condition (hB : is_basis_range B)
   (hF : F.sheaf_condition_opens_le_cover) (A : C) (f g : A ⟶ F.obj (op U))
-  (h : ∀ V : basis_le B U, f ≫ F.map V.2.1.hom.op = g ≫ F.map V.2.1.hom.op) :
+  (h : ∀ i : basis_le B U, f ≫ F.map i.2.hom.op = g ≫ F.map i.2.hom.op) :
   f = g :=
-mono_to_cover_of_sheaf_condition F _ hF _
+mono_to_cover_of_sheaf_condition ⟨basis_le B U, _⟩ _ F hF
   (self_eq_supr_basis_le _ U hB) _ _ _ (λ V, by convert h V)
 
-lemma cone_opens_w (c : cone ((fsi 𝒰).op ⋙ F))
-  {x : 𝒰} {y : opens X} (h : y ∈ 𝒰) (f : op ↑x  ⟶ op y) :
-  c.π.app (op x) ≫ F.map f = c.π.app (op ⟨y,h⟩) :=
-let f' : (⟨y,h⟩ : 𝒰) ⟶ x := f.unop  in  c.w f'.op
+lemma cone_opens_w (c : cone (bli B U ⋙ F))
+  {i : basis_le B U} {j : B.ι} {h : B.f j ≤ U}
+  (f : (bli B U).obj i ⟶ (idf B).obj j) :
+  c.π.app i ≫ F.map f = c.π.app ⟨j,h⟩ :=
+let f' : i ⟶ (⟨j,h⟩ : basis_le B U) := f  in  c.w f'
 
-def cone_opens_le_cover_of_cone_basis_le (hB : is_basis B) (hF : F.sheaf_condition_opens_le_cover)
-  (c : cone ((fsi (basis_le_s B U)).op ⋙ F)) :
-  cone ((fsi (opens_le_cover_s (basis_le_fam B U))).op ⋙ F) :=
+def cone_opens_le_cover_of_cone_basis_le (hB : is_basis_range B)
+  (hF : F.sheaf_condition_opens_le_cover) (c : cone (bli B U ⋙ F)) :
+  cone ((full_subcategory_inclusion _ : opens_le_cover (basis_le_fam B U) ⥤ opens X).op ⋙ F) :=
 begin
-  use c.X, refine ⟨λW, c.π.app (op W.unop.2.some) ≫ F.map W.unop.2.some_spec.hom.op, _⟩,
-  intros W₁ W₂ _,
-  apply mono_to_basis_le_of_sheaf_condition B F W₂.unop.1 hB hF,
-  intro W, dsimp at ⊢, simp only [category.id_comp, category.assoc, ←F.map_comp, ←op_comp] at ⊢,
+  use c.X, refine ⟨λW, c.π.app (W.unop.2.some) ≫ F.map W.unop.2.some_spec.hom.op, _⟩,
+  intros W₁ W₂ _, apply mono_to_basis_le_of_sheaf_condition B W₂.unop.1 F hB hF,
+  intro i, dsimp, simp only [category.id_comp, category.assoc, ←F.map_comp, ←op_comp],
   rw [cone_opens_w, cone_opens_w],
-  exact ⟨W.2.1.trans (W₂.unop.2.some_spec.trans W₂.unop.2.some.2.1), W.2.2⟩,
+  exact i.2.trans (W₂.unop.2.some_spec.trans W₂.unop.2.some.2),
 end
 
-theorem lim_basis_le_of_sheaf_condition (hB : is_basis B)
+theorem lim_basis_le_of_sheaf_condition (hB : is_basis_range B)
   (hF : F.sheaf_condition_opens_le_cover) : lim_basis_le B F :=
 begin
-  intro U, unfold basis_le_presheaf_cone, rw basis_le_cocone_eq B U hB,
-  let f := cone_opens_le_cover_of_cone_basis_le B F U hB hF,
+  intro U, unfold basis_le_presheaf_cone, rw basis_le_cone_eq B U hB,
+  let f := cone_opens_le_cover_of_cone_basis_le B U F hB hF,
   have hU := hF (basis_le_fam B U), fsplit,
-    exact λc, hU.lift (f c),
-    intros c V, abstract fac
-    { let hV : ∃ V', V.unop ≤ V' := ⟨V.unop, le_of_eq rfl⟩,
-      convert hU.fac (f c) (op ⟨V.unop.1, hV⟩) using 1,
-      exact (c.w hV.some_spec.hom.op).symm },
-    intros c ι h, apply mono_to_cover_of_sheaf_condition F _ hF _ rfl,
-    intro V, specialize h (op V),
-    rwa ← lim_basis_le_of_sheaf_condition.fac B F hB hF U hU c (op V) at h,
+    exact λ c, hU.lift (f c),
+    intros c i, abstract fac
+    { dsimp, let hi : ∃ j, B.f i ≤ basis_le_fam B U j := ⟨i, le_of_eq rfl⟩,
+      convert hU.fac (f c) (op ⟨B.f i,hi⟩) using 1,
+      exact (c.w hi.some_spec.hom.op).symm },
+    intros c ι h,
+    apply mono_to_cover_of_sheaf_condition ⟨basis_le B U, _⟩ _ F hF rfl,
+    intro i, specialize h i,
+    rwa ← lim_basis_le_of_sheaf_condition.fac B F hB hF U hU c i at h,
 end
 
+variables {B F G}
+structure sheaf_hom.uniq_extn_struct (α : idf B ⋙ F ⟶ idf B ⋙ G) :=
+  (lift : F ⟶ G)
+  (fac : whisker_left (idf B) lift = α)
+  (uniq : ∀ β, whisker_left _ β = α → β = lift)
 
-theorem sheaf_hom_extn_from_basis (hG : G.sheaf_condition_opens_le_cover)
-  (hB : is_basis B) (α : (fsi B).op ⋙ F ⟶ _ ⋙ G) :
-  ∃! αext : F ⟶ G, 𝟙 _ ◫ αext = α :=
+theorem sheaf_hom.uniq_extn_from_basis (hG : G.sheaf_condition_opens_le_cover)
+  (hB : is_basis_range B) (α : idf B ⋙ F ⟶ _ ⋙ G) :
+  sheaf_hom.uniq_extn_struct α :=
 begin
   have hl := lim_basis_le_of_sheaf_condition B G hB hG,
-  set c : Π U, cone ((fsi (basis_le_s B U)).op ⋙ G) :=
-    λ U, let α' := 𝟙 (bl2bo B U) ◫ α in
-    ⟨F.obj (op U), (basis_le_presheaf_cone B F U).π ≫ α'⟩ with hc,
-    -- must first define α', strange error when α' is inlined
+  let c : Π U, cone (bli B U ⋙ G) :=
+    λ U, let α' := whisker_left (bl2b B U) α in
+    ⟨F.obj (op U), (basis_le_presheaf_cone B U F).π ≫ α'⟩,
+    /- strange error when α' is inlined: type mismatch at application
+       whisker_left (bl2b B U).op, term (bl2b B U).op has type ... ⥤ (B.ι)ᵒᵖ
+               but is expected to have type {X_1 // B.f X_1 ≤ U}ᵒᵖ ⥤ (opens ↥X)ᵒᵖ -/
   fsplit, fsplit, exact λ U, (hl U.unop).lift (c U.unop),
-  { intros U V i,
-    apply mono_to_basis_le_of_sheaf_condition B G V.unop hB hG,
-    cases i.unop, cases down, intro W, rw category.assoc,
-    convert congr_arg (λ f, F.map i ≫ f) ((hl V.unop).fac (c V.unop) (op W)) using 1,
-    convert (hl U.unop).fac (c U.unop) (op ⟨W.1,W.2.1.trans down,W.2.2⟩) using 1,
+  { intros U V f,
+    apply mono_to_basis_le_of_sheaf_condition B V.unop G hB hG,
+    cases f.unop, cases down, intro i, rw category.assoc,
+    convert whisker_eq (F.map f) ((hl V.unop).fac (c V.unop) i) using 1,
+    convert (hl U.unop).fac (c U.unop) ⟨i.1,i.2.trans down⟩ using 1,
     rw [category.assoc, ←G.map_comp], refl,
     rw [nat_trans.comp_app, nat_trans.comp_app, ←category.assoc],
     congr, rw [basis_le_presheaf_cone_app, ←F.map_comp], refl },
-  split,
-  { ext V', set V := V'.unop with hV,
-    convert (hl V).fac (c V) (op (basis_le_self B V)) using 1,
-    dsimp at ⊢, rw [(fsi B).map_id, op_id, G.map_id, category.comp_id,
-      basis_le_presheaf_cone_app_id, category.id_comp], congr,
-    rw [basis_le_self_bl2bo, hV], refl },
+  { ext i, convert (hl (B.f i)).fac (c (B.f i)) ⟨i,le_of_eq rfl⟩ using 1,
+    rw basis_le_presheaf_cone_app_id, exact (category.comp_id _).symm,
+    dsimp, rw basis_le_presheaf_cone_app_id,
+    convert (category.id_comp _).symm },
   { intros β h, ext U, apply (hl U.unop).uniq (c U.unop),
     intro V, rw [basis_le_presheaf_cone_app, ←β.naturality],
-    dsimp at ⊢, rw ← h, dsimp at ⊢,
-    rw [(fsi B).map_id, op_id, G.map_id, category.comp_id, category.comp_id],
-    congr },
+    dsimp, rw ← h, dsimp, refl },
 end
 
 

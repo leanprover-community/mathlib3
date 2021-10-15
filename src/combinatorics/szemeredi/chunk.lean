@@ -68,11 +68,8 @@ begin
       not_and, mem_sdiff, id.def] at hx,
     simp only [not_exists, mem_bUnion, and_imp, exists_prop, mem_filter, not_and, mem_sdiff,
       id.def],
-    rcases hx with ⟨⟨B, hB₁, hB₂⟩, hx⟩,
-    refine ⟨B, hB₁, hB₂, _⟩,
-    intros A hA AB,
-    apply hx A hA,
-    apply AB.trans hB₁.2.1 },
+    obtain ⟨⟨B, hB₁, hB₂⟩, hx⟩ := hx,
+    exact ⟨B, hB₁, hB₂, λ A hA AB, hx A hA $ AB.trans hB₁.2.1⟩ },
   apply (card_le_of_subset q).trans,
   apply card_bUnion_le.trans,
   have :
@@ -337,7 +334,8 @@ begin
     ... = ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/((∑ aa in A, (aa.card : ℝ))/(m/(m + 1))
           * ((∑ b in B, (b.card : ℝ))/(m/(m + 1))))
         : begin
-            rw [relation.pairs_count_finpartition hA.finpartition hB.finpartition,
+            rw [←sup_eq_bUnion, ←sup_eq_bUnion,
+              relation.pairs_count_finpartition hA.finpartition hB.finpartition,
               ←hA.finpartition.sum_card_parts, ←hB.finpartition.sum_card_parts],
             simp only [nat.cast_sum],
             rw [sum_div, hA.finpartition_parts, hB.finpartition_parts],
@@ -407,7 +405,8 @@ begin
     ... = pairs_count G.adj (A.bUnion id) (B.bUnion id) /
           ((A.bUnion id).card/((m + 1)/m) * ((B.bUnion id).card/((m + 1)/m)))
         : begin
-            rw [relation.pairs_count_finpartition hA.finpartition hB.finpartition,
+            rw [←sup_eq_bUnion, ←sup_eq_bUnion,
+              relation.pairs_count_finpartition hA.finpartition hB.finpartition,
               ←hA.finpartition.sum_card_parts, ←hB.finpartition.sum_card_parts],
             simp only [nat.cast_sum],
             rw [eq_comm, sum_div, hA.finpartition_parts, hB.finpartition_parts],

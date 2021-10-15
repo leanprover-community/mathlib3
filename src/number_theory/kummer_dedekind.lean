@@ -303,22 +303,13 @@ lemma ideal.is_prime.quotient_equiv_prod_span_irred_factor_minpoly_apply
     ideal.quotient.mk _ (x.map p^.quotient.mk) :=
 ideal.is_prime.quotient_equiv_prod_span_coprime_factor_minpoly_apply _ _ _ _ _ _ _ _
 
-.
-
-lemma ideal.eq_prod_comap_of_equiv {ι : Type*} [fintype ι]
-  {A B : Type*} [integral_domain A] [integral_domain B] [algebra R A] [algebra R B]
-  (p : ideal A) (qs : ι → ideal B) (f : A →ₐ[R] B)
-  -- TODO: what is going on in this line:
-  (φ : by letI : comm_ring (Π i, (qs i).quotient) := @pi.comm_ring _ _ (λ i, @quotient.comm_ring B _ (qs i)); exact
-    p.quotient ≃+* Π i, (qs i).quotient) :
-  p = ∏ i, (qs i).comap f :=
-sorry -- TODO: from @Paul-Lez
-
 /-- **Kummer-Dedekind theorem**: the factorization of the minimal polynomial mod `p`
 determines how the prime ideal `p` splits in a monogenic ring extension.
 
 This version allows the user to supply the factorization; see `ideal.is_prime.prod_ideals_above`
 for this theorem stated with a (non-canonical) choice of factorization.
+
+TODO: generalize this to non-monogenic extensions (using the conductor)
 -/
 theorem ideal.is_prime.prod_span_irred_factor_minpoly {ι : Type*} [fintype ι]
   [is_dedekind_domain R]
@@ -328,7 +319,7 @@ theorem ideal.is_prime.prod_span_irred_factor_minpoly {ι : Type*} [fintype ι]
   (g_irr : ∀ i, irreducible (polynomial.map (ideal.quotient.mk p) (gs i)))
   (g_ne : ∀ i j (h : i ≠ j), ((gs i).map (ideal.quotient.mk p)) ≠ ((gs j).map (ideal.quotient.mk p)))
   (prod_eq : (∏ i, (gs i).map p^.quotient.mk ^ e i) = (minpoly R pb.gen).map (ideal.quotient.mk p)) :
-  (Π i, p.map (algebra_map R S) ⊔ ideal.span {polynomial.aeval pb.gen (gs i)}) =
+  (∏ (i : ι), (p.map (algebra_map R S) ⊔ ideal.span {polynomial.aeval pb.gen (gs i)}) ^ e i) =
     p.map (algebra_map R S) :=
 begin
   by_cases hp0 : p = ⊥,

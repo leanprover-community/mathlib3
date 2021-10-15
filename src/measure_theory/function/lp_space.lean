@@ -1151,17 +1151,6 @@ begin
   exact mul_self_nonneg _
 end
 
--- move to special functions (see #check ae_measurable.re)
-lemma ae_measurable_of_re_im {f : α → ℂ}
-  (hre : ae_measurable (λ x, (f x).re) μ) (him : ae_measurable (λ x, (f x).im) μ) :
-  ae_measurable f μ :=
-begin
-  convert (complex.measurable_of_real.comp_ae_measurable hre).add
-    ((complex.measurable_of_real.comp_ae_measurable him).mul_const complex.I),
-  ext1 x,
-  simp
-end
-
 end move
 
 lemma mem_ℒp.coe_complex {f : α → ℝ} (hf : mem_ℒp f p μ) :

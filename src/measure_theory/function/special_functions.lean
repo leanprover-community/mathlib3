@@ -163,6 +163,37 @@ is_R_or_C.measurable_im.comp hf
   ae_measurable (λ x, is_R_or_C.im (f x)) μ :=
 is_R_or_C.measurable_im.comp_ae_measurable hf
 
+section
+
+variable [borel_space 𝕜]
+
+@[measurability] lemma is_R_or_C.measurable_of_real : measurable (coe : ℝ → 𝕜) :=
+is_R_or_C.continuous_of_real.measurable
+
+@[measurability] lemma measurable_of_re_im
+  (hre : measurable (λ x, is_R_or_C.re (f x)))
+  (him : measurable (λ x, is_R_or_C.im (f x))) : measurable f :=
+begin
+  convert (is_R_or_C.measurable_of_real.comp hre).add
+    ((is_R_or_C.measurable_of_real.comp him).mul_const is_R_or_C.I),
+  { ext1 x,
+    exact (is_R_or_C.re_add_im _).symm },
+  all_goals { apply_instance },
+end
+
+@[measurability] lemma ae_measurable_of_re_im
+  (hre : ae_measurable (λ x, is_R_or_C.re (f x)) μ)
+  (him : ae_measurable (λ x, is_R_or_C.im (f x)) μ) : ae_measurable f μ :=
+begin
+  convert (is_R_or_C.measurable_of_real.comp_ae_measurable hre).add
+    ((is_R_or_C.measurable_of_real.comp_ae_measurable him).mul_const is_R_or_C.I),
+  { ext1 x,
+    exact (is_R_or_C.re_add_im _).symm },
+  all_goals { apply_instance },
+end
+
+end
+
 end is_R_or_C_composition
 
 section pow_instances

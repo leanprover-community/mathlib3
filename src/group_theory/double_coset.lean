@@ -10,17 +10,61 @@ import data.set.basic
 import data.nat.enat
 import tactic.group
 
-variables {G : Type*} [group G] {α : Type*} [has_mul α]
+variables {G : Type*} [group G] {α : Type*} [has_mul α] (J: subgroup G) (g : G)
 
 namespace double_coset
 
 /--Relation defining a double coset-/
 def double_coset_rel (H K : subgroup G) : G → G → Prop :=
-λ x y, (∃ (a ∈  H) (b ∈  K), y=a*x*b)
+λ x y, (∃ (a ∈  H) (b ∈  K), y = a*x*b)
 
 @[simp]
 lemma rel_iff (H K : subgroup G) (x y : G) :
-  double_coset_rel H K x y  ↔  (∃ (a ∈  H) (b ∈  K), y=a*x*b) := iff.rfl
+  double_coset_rel H K x y  ↔  (∃ (a ∈  H) (b ∈  K), y = a*x*b) := iff.rfl
+
+lemma left_bot_eq_left_group_rel (H : subgroup G) :
+  (double_coset_rel ⊥ H) = (quotient_group.left_rel H).rel :=
+begin
+  have h1:  (double_coset_rel ⊥ H) = (quotient_group.left_rel H).r, by {
+    ext,
+    simp,
+    split,
+    intro h,
+    rw quotient_group.left_rel,
+    rcases h with ⟨a, ha⟩,
+    rw ha.2,
+    simp [ha.1],
+    rw quotient_group.left_rel,
+    dsimp only,
+    intro h,
+    use (⟨x⁻¹*x_1, h⟩ : H),
+    simp only [h, mul_inv_cancel_left, eq_self_iff_true, and_self, subgroup.coe_mk],
+    } ,
+  apply h1,
+end
+
+
+lemma right_bot_eq_right_group_rel (H : subgroup G) :
+  (double_coset_rel  H ⊥ ) = (quotient_group.right_rel H).rel :=
+begin
+  have h1 : (double_coset_rel  H ⊥ ) = (quotient_group.right_rel H).r, by{
+    ext,
+    simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, rel_iff],
+    split,
+    intro h,
+    rw quotient_group.right_rel,
+    dsimp only,
+    rcases h with ⟨a, ha⟩,
+    rw ha.2,
+    simp [ha.1],
+    rw quotient_group.right_rel,
+    dsimp only,
+    intro h,
+    use (⟨x_1*x⁻¹, h⟩ : H),
+    simp only [h, mul_one, eq_self_iff_true, and_self, subgroup.coe_mk, inv_mul_cancel_right],
+    },
+  apply h1,
+end
 
 lemma rel_reflex (H K : subgroup G) : reflexive (double_coset_rel H K) :=
 begin
@@ -38,10 +82,10 @@ begin
   simp only [and_imp, exists_prop, forall_exists_index],
   intros a ha b hb hx,
   use a⁻¹,
-  have haa:= subgroup.inv_mem H ha,
+  have haa := subgroup.inv_mem H ha,
   simp only [haa, true_and],
   use b⁻¹,
-  have hbb:= subgroup.inv_mem K hb,
+  have hbb := subgroup.inv_mem K hb,
   simp only [hbb, true_and],
   rw  hx,
   simp_rw ← mul_assoc,
@@ -55,10 +99,10 @@ begin
   simp only [and_imp, exists_prop, forall_exists_index],
   intros a ha b hb hxy c hc d hd hyz,
   use c*a,
-  have hac:= H.mul_mem hc ha,
+  have hac := H.mul_mem hc ha,
   simp only [hac, true_and],
   use b*d,
-  have hdb:=  (K.mul_mem hb hd),
+  have hdb :=  (K.mul_mem hb hd),
   simp only [hdb, true_and],
   rw  hyz,
   rw  hxy,
@@ -81,11 +125,9 @@ def quotient (H K : subgroup G) : Type* := quotient (setoid H K)
 /--The double_coset as an element of `set α` corresponding to `s a t` -/
 def doset  (s t : set α) (a : α) : set α :={ b : α | ∃ x : (s × t), b = x.1*a*x.2 }
 
-
 @[simp]
 lemma doset_mem (s t : set α) (a b : α) :
   b ∈ (doset s t a) ↔  ∃ x : (s × t), b = x.1*a*x.2 :=iff.rfl
-
 
 lemma sub_doset  (H K : subgroup G) (a b : G) :
   b ∈ (doset H.1 K a) → (doset H.1 K b) ⊆  (doset H K a) :=
@@ -212,7 +254,6 @@ begin
   apply h2,
 end
 
-
 lemma top_eq_union_dosets (H K : subgroup G) : (⊤ : set G) = ⋃ q, quot_to_doset H K q :=
 begin
   simp only [set.top_eq_univ],
@@ -269,4 +310,28 @@ begin
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_right_inv, mul_inv_cancel_right],
 end
+
+def left_bot_eq_left_quot (H : subgroup G) :
+  quotient (⊥ : subgroup G) H = quotient_group.quotient H :=
+begin
+rw quotient_group.quotient,
+simp_rw [quotient],
+apply congr_arg,
+have hab := left_bot_eq_left_group_rel H,
+ext,
+simp_rw  ←  hab,
+refl,
+end
+
+def right_bot_eq_right_quot (H : subgroup G) :
+  quotient H (⊥ : subgroup G) = _root_.quotient  (quotient_group.right_rel H) :=
+begin
+simp_rw [quotient],
+apply congr_arg,
+have hab := right_bot_eq_right_group_rel H,
+ext,
+simp_rw  ←  hab,
+refl,
+end
+
 end double_coset

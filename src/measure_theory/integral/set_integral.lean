@@ -869,4 +869,28 @@ by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq
 
 end inner
 
+section complex
+
+-- The right hand side has a implicit coercion within the integral and hence the name
+lemma integrable.integral_eq_coe_re_add_coe_im {f : α → ℂ} (hf : integrable f μ) :
+  ∫ x, f x ∂μ = ∫ x, (f x).re ∂μ + ∫ x, (f x).im ∂μ * complex.I :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← integral_smul],
+  erw ← integral_add (hf.re.coe_complex) (hf.im.coe_complex.smul complex.I),
+  { congr,
+    ext1 x,
+    simp [mul_comm complex.I] },
+end
+
+lemma integrable.integral_eq_re_add_im {f : α → ℂ} (hf : integrable f μ) :
+  ∫ x, f x ∂μ = (∫ x, (f x).re ∂μ : ℝ) + (∫ x, (f x).im ∂μ : ℝ) * complex.I :=
+by { rw [integrable.integral_eq_coe_re_add_coe_im hf, integral_of_real, integral_of_real] }
+
+lemma integrable.set_integral_eq_re_add_im
+  {f : α → ℂ} (hf : integrable f μ) {i : set α} :
+  ∫ x in i, f x ∂μ = (∫ x in i, (f x).re ∂μ : ℝ) + (∫ x in i, (f x).im ∂μ : ℝ) * complex.I :=
+integrable.integral_eq_re_add_im hf.integrable_on
+
+end complex
+
 end

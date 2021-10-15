@@ -46,7 +46,7 @@ def homogeneous_ideal [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i,
 /-- Equivalently, an `I : ideal (⨁ i, A i)` is homogeneous iff `I` is spaned by its homogeneous
 element-/
 def homogeneous_ideal' [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) : Prop :=
-  I = ideal.span {x ∈ I.carrier | is_homogeneous_element x }
+  I = ideal.span {x ∈ I | is_homogeneous_element x }
 
 lemma homogeneous_ideal_iff_homogeneous_ideal' [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) :
@@ -54,28 +54,28 @@ lemma homogeneous_ideal_iff_homogeneous_ideal' [add_comm_monoid ι] [gcomm_semir
 ⟨λ HI, begin
   rcases HI with ⟨S, HS⟩,
   ext, split; intro hx,
-  { have HS₂ : graded_monoid.to_direct_sum '' S ⊆ {x ∈ I.carrier | is_homogeneous_element x},
+  { have HS₂ : graded_monoid.to_direct_sum '' S ⊆ {x ∈ I | is_homogeneous_element x},
     { intros y hy, split,
-      { suffices : (graded_monoid.to_direct_sum '' S) ⊆ I.carrier, refine this _, exact hy,
+      { suffices : (graded_monoid.to_direct_sum '' S) ⊆ I, refine this _, exact hy,
         suffices : (graded_monoid.to_direct_sum '' S) ⊆ I, exact this,
         rw [←ideal.span_le, HS], exact le_refl _, },
         { simp only [mem_image] at hy,
         rcases hy with ⟨x, _, hx⟩,
         refine ⟨x, _⟩, rw ←hx, refl, } },
     suffices : ideal.span (graded_monoid.to_direct_sum '' S)
-      ≤ ideal.span {x ∈ I.carrier | is_homogeneous_element x},
+      ≤ ideal.span {x ∈ I | is_homogeneous_element x},
     refine this _, rw ←HS, exact hx,
     exact ideal.span_mono HS₂ },
-  { suffices : {x ∈ (ideal.span (graded_monoid.to_direct_sum '' S)).carrier |
+  { suffices : {x ∈ ideal.span (graded_monoid.to_direct_sum '' S) |
       is_homogeneous_element x} ⊆ I,
-    have H : ideal.span {x ∈ (ideal.span (graded_monoid.to_direct_sum '' S)).carrier |
+    have H : ideal.span {x ∈ ideal.span (graded_monoid.to_direct_sum '' S) |
       is_homogeneous_element x} ≤ ideal.span I,
     { exact ideal.span_mono this },
     rw [←HS, ideal.span_eq] at H,
     refine H _, exact hx,
     rintros y ⟨hy₁, _⟩, rw ←HS at hy₁, exact hy₁ },
 end, λ HI, begin
-  use graded_monoid.to_direct_sum ⁻¹' {x ∈ I.carrier | is_homogeneous_element x },
+  use graded_monoid.to_direct_sum ⁻¹' {x ∈ I | is_homogeneous_element x },
   rw image_preimage_eq_iff.mpr, exact HI,
 
   rintros y ⟨hy₁, hy₂⟩, choose a ha using hy₂,

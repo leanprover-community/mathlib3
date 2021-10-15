@@ -1352,7 +1352,7 @@ end
 non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_localization M S]
+theorem integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_localization M S]
   (hM : M ≤ non_zero_divisors A) : integral_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
@@ -1368,8 +1368,7 @@ def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_
       { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
     end,
   exists_pair_ne := ⟨(algebra_map A S) 0, (algebra_map A S) 1,
-                     λ h, zero_ne_one (is_localization.injective S hM h)⟩,
-  .. ‹comm_ring S› }
+                     λ h, zero_ne_one (is_localization.injective S hM h)⟩, }
 
 /-- The localization at of an integral domain to a set of non-zero elements is an integral domain.
 See note [reducible non-instances]. -/

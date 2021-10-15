@@ -440,8 +440,7 @@ variables {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
 variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
 include P hP
--- set_option pp.all true
-#check integral_domain.to_domain
+
 lemma is_maximal_comap_C_of_is_maximal (hP' : ∀ (x : R), C x ∈ P → x = 0) :
   is_maximal (comap C P : ideal R) :=
 begin
@@ -451,7 +450,7 @@ begin
   let φ : (P.comap C : ideal R).quotient →+* P.quotient := quotient_map P C le_rfl,
   let M : submonoid (P.comap C : ideal R).quotient :=
     submonoid.powers ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff,
-  rw ← bot_quotient_is_maximal_iff at hP ⊢,
+  rw ← bot_quotient_is_maximal_iff at ⊢,
   have hp0 : ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
       ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
@@ -466,9 +465,7 @@ begin
   let M' : submonoid P.quotient := M.map φ,
   have hM' : (0 : P.quotient) ∉ M' :=
     λ ⟨z, hz⟩, hM (quotient_map_injective (trans hz.2 φ.map_zero.symm) ▸ hz.1),
-  -- FIXME:
-  have : M' ≤ non_zero_divisors (P.quotient) := @le_non_zero_divisors_of_no_zero_divisors P.quotient _ _ M' hM',
-  letI : integral_domain (localization M') :=
+  haveI : integral_domain (localization M') :=
     is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
   suffices : (⊥ : ideal (localization M')).is_maximal,
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (is_localization.map_injective_of_injective
@@ -478,7 +475,8 @@ begin
     apply is_integral_is_localization_polynomial_quotient P _ (submodule.coe_mem m) },
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
                      map (algebra_map P.quotient (localization M')) ⊥),
-  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) hP,
+  let bot_maximal := ((bot_quotient_is_maximal_iff _).mpr hP),
+  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) bot_maximal,
   rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
 end
 

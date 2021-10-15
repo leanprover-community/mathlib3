@@ -120,21 +120,21 @@ funext $ λ i, basis.apply_eq_iff.mpr rfl
 
 end ring
 
-section dim
+section rank
 universes u v
 variables {K : Type u} {V : Type v} {ι : Type v}
 variables [field K] [add_comm_group V] [module K V]
 
-lemma dim_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
+lemma rank_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   let bs := basis.of_vector_space K V,
-  rw [← cardinal.lift_inj, cardinal.lift_mul, ← bs.mk_eq_dim,
-      ← (finsupp.basis (λa:ι, bs)).mk_eq_dim, ← cardinal.sum_mk,
+  rw [← cardinal.lift_inj, cardinal.lift_mul, ← bs.mk_eq_rank,
+      ← (finsupp.basis (λa:ι, bs)).mk_eq_rank, ← cardinal.sum_mk,
       ← cardinal.lift_mul, cardinal.lift_inj],
   { simp only [cardinal.mk_image_eq (single_injective.{u u} _), cardinal.sum_const] }
 end
 
-end dim
+end rank
 
 end finsupp
 
@@ -154,7 +154,7 @@ variables [add_comm_group V'] [module K V']
 open module
 
 
-lemma equiv_of_dim_eq_lift_dim
+lemma equiv_of_rank_eq_lift_rank
   (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
@@ -162,17 +162,17 @@ begin
   haveI := classical.dec_eq V',
   let m := basis.of_vector_space K V,
   let m' := basis.of_vector_space K V',
-  rw [←cardinal.lift_inj.1 m.mk_eq_dim, ←cardinal.lift_inj.1 m'.mk_eq_dim] at h,
+  rw [←cardinal.lift_inj.1 m.mk_eq_rank, ←cardinal.lift_inj.1 m'.mk_eq_rank] at h,
   rcases quotient.exact h with ⟨e⟩,
   let e := (equiv.ulift.symm.trans e).trans equiv.ulift,
   exact ⟨(m.repr ≪≫ₗ (finsupp.dom_lcongr e)) ≪≫ₗ m'.repr.symm⟩
 end
 
 /-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
-def equiv_of_dim_eq_dim (h : module.rank K V₁ = module.rank K V₂) : V₁ ≃ₗ[K] V₂ :=
+def equiv_of_rank_eq_rank (h : module.rank K V₁ = module.rank K V₂) : V₁ ≃ₗ[K] V₂ :=
 begin
   classical,
-  exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
+  exact classical.choice (equiv_of_rank_eq_lift_rank (cardinal.lift_inj.2 h))
 end
 
 /-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
@@ -183,8 +183,8 @@ begin
     by simp,
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,
-  rw ←@dim_fin_fun K _ n at hn,
-  exact classical.choice (equiv_of_dim_eq_lift_dim hn),
+  rw ←@rank_fin_fun K _ n at hn,
+  exact classical.choice (equiv_of_rank_eq_lift_rank hn),
 end
 
 end module
@@ -196,22 +196,22 @@ open module
 
 variables (K V : Type u) [field K] [add_comm_group V] [module K V]
 
-lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
+lemma cardinal_mk_eq_cardinal_mk_field_pow_rank [finite_dimensional K V] :
   #V = #K ^ module.rank K V :=
 begin
   let s := basis.of_vector_space_index K V,
   let hs := basis.of_vector_space K V,
   calc #V = #(s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
     ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
-    ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
+    ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_rank, cardinal.power_def]
 end
 
 lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
   #V < ω :=
 begin
-  rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
+  rw cardinal_mk_eq_cardinal_mk_field_pow_rank K V,
   exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
-    (is_noetherian.dim_lt_omega K V),
+    (is_noetherian.rank_lt_omega K V),
 end
 
 end module

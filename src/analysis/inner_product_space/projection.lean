@@ -808,7 +808,7 @@ lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E
   finrank 𝕜 K₁ + finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = finrank 𝕜 K₂ :=
 begin
   haveI := submodule.finite_dimensional_of_le h,
-  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
+  have hd := submodule.rank_sup_add_rank_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_is_complete h
         (submodule.complete_of_finite_dimensional _)] at hd,
@@ -820,10 +820,10 @@ end
 containined in it, the dimensions of `K₁` and the intersection of its
 orthogonal subspace with `K₂` add to that of `K₂`. -/
 lemma submodule.finrank_add_inf_finrank_orthogonal' {K₁ K₂ : submodule 𝕜 E}
-  [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_dim : finrank 𝕜 K₁ + n = finrank 𝕜 K₂) :
+  [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_rank : finrank 𝕜 K₁ + n = finrank 𝕜 K₂) :
   finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = n :=
 by { rw ← add_right_inj (finrank 𝕜 K₁),
-     simp [submodule.finrank_add_inf_finrank_orthogonal h, h_dim] }
+     simp [submodule.finrank_add_inf_finrank_orthogonal h, h_rank] }
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
 that of `E`. -/
@@ -838,9 +838,9 @@ end
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
 that of `E`. -/
 lemma submodule.finrank_add_finrank_orthogonal' [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} {n : ℕ}
-  (h_dim : finrank 𝕜 K + n = finrank 𝕜 E) :
+  (h_rank : finrank 𝕜 K + n = finrank 𝕜 E) :
   finrank 𝕜 Kᗮ = n :=
-by { rw ← add_right_inj (finrank 𝕜 K), simp [submodule.finrank_add_finrank_orthogonal, h_dim] }
+by { rw ← add_right_inj (finrank 𝕜 K), simp [submodule.finrank_add_finrank_orthogonal, h_rank] }
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 

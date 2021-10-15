@@ -452,13 +452,13 @@ lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K
 begin
   tactic.unfreeze_local_instances,
   -- We prove the claim by strong induction on the dimension of the vector space.
-  induction h_dim : finrank K V using nat.strong_induction_on with n ih generalizing V,
+  induction h_rank : finrank K V using nat.strong_induction_on with n ih generalizing V,
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,
-    simp only [finrank_eq_zero.1 (eq.trans finrank_top h_dim), bot_le] },
+    simp only [finrank_eq_zero.1 (eq.trans finrank_top h_rank), bot_le] },
   -- Otherwise the vector space is nontrivial.
-  { haveI : nontrivial V := finrank_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
+  { haveI : nontrivial V := finrank_pos_iff.1 (by { rw h_rank, apply nat.zero_lt_succ }),
     -- Hence, `f` has an eigenvalue `μ₀`.
     obtain ⟨μ₀, hμ₀⟩ : ∃ μ₀, f.has_eigenvalue μ₀ := exists_eigenvalue f,
     -- We define `ES` to be the generalized eigenspace
@@ -471,18 +471,18 @@ begin
     -- Therefore, we can define the restriction `f'` of `f` to `ER`.
     let f' : End K ER := f.restrict h_f_ER,
     -- The dimension of `ES` is positive
-    have h_dim_ES_pos : 0 < finrank K ES,
+    have h_rank_ES_pos : 0 < finrank K ES,
     { dsimp only [ES],
-      rw h_dim,
+      rw h_rank,
       apply pos_finrank_generalized_eigenspace_of_has_eigenvalue hμ₀ (nat.zero_lt_succ n) },
     -- and the dimensions of `ES` and `ER` add up to `finrank K V`.
-    have h_dim_add : finrank K ER + finrank K ES = finrank K V,
+    have h_rank_add : finrank K ER + finrank K ES = finrank K V,
     { apply linear_map.finrank_range_add_finrank_ker },
     -- Therefore the dimension `ER` mus be smaller than `finrank K V`.
-    have h_dim_ER : finrank K ER < n.succ, by linarith,
+    have h_rank_ER : finrank K ER < n.succ, by linarith,
     -- This allows us to apply the induction hypothesis on `ER`:
     have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
-      from ih (finrank K ER) h_dim_ER f' rfl,
+      from ih (finrank K ER) h_rank_ER f' rfl,
     -- The induction hypothesis gives us a statement about subspaces of `ER`. We can transfer this
     -- to a statement about subspaces of `V` via `submodule.subtype`:
     have ih_ER' : (⨆ (μ : K) (k : ℕ), (f'.generalized_eigenspace μ k).map ER.subtype) = ER,
@@ -510,7 +510,7 @@ begin
     -- Since the dimensions of `ER` and `ES` add up to the dimension of `V`, it follows that the
     -- span of all generalized eigenvectors is all of `V`.
     show (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤,
-    { rw [←top_le_iff, ←submodule.eq_top_of_disjoint ER ES h_dim_add h_disjoint],
+    { rw [←top_le_iff, ←submodule.eq_top_of_disjoint ER ES h_rank_add h_disjoint],
       apply sup_le hER hES } }
 end
 

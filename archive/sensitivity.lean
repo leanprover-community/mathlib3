@@ -223,20 +223,20 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
 { eval := duality,
   total := @epsilon_total _ }
 
-/-! We will now derive the dimension of `V`, first as a cardinal in `dim_V` and,
+/-! We will now derive the dimension of `V`, first as a cardinal in `rank_V` and,
 since this cardinal is finite, as a natural number in `finrank_V` -/
 
-lemma dim_V : module.rank ℝ (V n) = 2^n :=
+lemma rank_V : module.rank ℝ (V n) = 2^n :=
 have module.rank ℝ (V n) = (2^n : ℕ),
-  by { rw [dim_eq_card_basis (dual_pair_e_ε _).basis, Q.card]; apply_instance },
+  by { rw [rank_eq_card_basis (dual_pair_e_ε _).basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
 finite_dimensional.of_fintype_basis (dual_pair_e_ε _).basis
 
 lemma finrank_V : finrank ℝ (V n) = 2^n :=
-have _ := @dim_V n,
-by rw ←finrank_eq_dim at this; assumption_mod_cast
+have _ := @rank_V n,
+by rw ←finrank_eq_rank at this; assumption_mod_cast
 
 /-! ### The linear map -/
 
@@ -357,27 +357,27 @@ begin
   let img := (g m).range,
   suffices : 0 < dim (W ⊓ img),
   { simp only [exists_prop],
-    exact_mod_cast exists_mem_ne_zero_of_dim_pos this },
-  have dim_le : dim (W ⊔ img) ≤ 2^(m + 1),
-  { convert ← dim_submodule_le (W ⊔ img),
-    apply dim_V },
-  have dim_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
-  { convert ← dim_sup_add_dim_inf_eq W img,
-    rw ← dim_eq_of_injective (g m) g_injective,
-    apply dim_V },
+    exact_mod_cast exists_mem_ne_zero_of_rank_pos this },
+  have rank_le : dim (W ⊔ img) ≤ 2^(m + 1),
+  { convert ← rank_submodule_le (W ⊔ img),
+    apply rank_V },
+  have rank_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
+  { convert ← rank_sup_add_rank_inf_eq W img,
+    rw ← rank_eq_of_injective (g m) g_injective,
+    apply rank_V },
   have dimW : dim W = card H,
   { have li : linear_independent ℝ (set.restrict e H),
     { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
       rw (dual_pair_e_ε _).coe_basis },
-    have hdW := dim_span li,
+    have hdW := rank_span li,
     rw set.range_restrict at hdW,
     convert hdW,
     rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
         cardinal.fintype_card] },
-  rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
-  rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
-  norm_cast at ⊢ dim_le dim_add dimW,
-  rw pow_succ' at dim_le,
+  rw ← finrank_eq_rank ℝ at ⊢ rank_le rank_add dimW,
+  rw [← finrank_eq_rank ℝ, ← finrank_eq_rank ℝ] at rank_add,
+  norm_cast at ⊢ rank_le rank_add dimW,
+  rw pow_succ' at rank_le,
   rw set.to_finset_card at hH,
   linarith
 end

@@ -128,12 +128,12 @@ of_finite_basis h s.finite_to_set
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K S :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))
+is_noetherian.iff_rank_lt_omega.2 (lt_of_le_of_lt (rank_submodule_le _) (rank_lt_omega K V))
 
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K (quotient S) :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_lt_omega K V))
+is_noetherian.iff_rank_lt_omega.2 (lt_of_le_of_lt (rank_quotient_le _) (rank_lt_omega K V))
 
 /-- The rank of a module as a natural number.
 
@@ -148,12 +148,12 @@ noncomputable def finrank (K V : Type*) [division_ring K]
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
 `finrank`. -/
-lemma finrank_eq_dim (K : Type u) (V : Type v) [division_ring K]
+lemma finrank_eq_rank (K : Type u) (V : Type v) [division_ring K]
   [add_comm_group V] [module K V] [finite_dimensional K V] :
   (finrank K V : cardinal.{v}) = module.rank K V :=
-by rw [finrank, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
+by rw [finrank, cast_to_nat_of_lt_omega (rank_lt_omega K V)]
 
-lemma finrank_eq_of_dim_eq {n : ℕ} (h : module.rank K V = ↑ n) : finrank K V = n :=
+lemma finrank_eq_of_rank_eq {n : ℕ} (h : module.rank K V = ↑ n) : finrank K V = n :=
 begin
   apply_fun to_nat at h,
   rw to_nat_cast at h,
@@ -163,7 +163,7 @@ end
 lemma finrank_of_infinite_dimensional
   {K V : Type*} [division_ring K] [add_comm_group V] [module K V]
   (h : ¬finite_dimensional K V) : finrank K V = 0 :=
-dif_neg $ mt is_noetherian.iff_dim_lt_omega.2 h
+dif_neg $ mt is_noetherian.iff_rank_lt_omega.2 h
 
 lemma finite_dimensional_of_finrank {K V : Type*} [division_ring K] [add_comm_group V] [module K V]
   (h : 0 < finrank K V) : finite_dimensional K V :=
@@ -186,8 +186,8 @@ lemma finrank_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
   finrank K V = fintype.card ι :=
 begin
   haveI : finite_dimensional K V := of_fintype_basis h,
-  have := dim_eq_card_basis h,
-  rw ← finrank_eq_dim at this,
+  have := rank_eq_card_basis h,
+  rw ← finrank_eq_rank at this,
   exact_mod_cast this
 end
 
@@ -241,8 +241,8 @@ lemma cardinal_mk_le_finrank_of_linear_independent
   #ι ≤ finrank K V :=
 begin
   rw ← lift_le.{_ (max v w)},
-  simpa [← finrank_eq_dim K V] using
-    cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max v w)} h
+  simpa [← finrank_eq_rank K V] using
+    cardinal_lift_le_rank_of_linear_independent.{_ _ _ (max v w)} h
 end
 
 lemma fintype_card_le_finrank_of_linear_independent
@@ -264,8 +264,8 @@ lemma lt_omega_of_linear_independent {ι : Type w} [finite_dimensional K V]
 begin
   apply cardinal.lift_lt.1,
   apply lt_of_le_of_lt,
-  apply cardinal_lift_le_dim_of_linear_independent h,
-  rw [←finrank_eq_dim, cardinal.lift_omega, cardinal.lift_nat_cast],
+  apply cardinal_lift_le_rank_of_linear_independent h,
+  rw [←finrank_eq_rank, cardinal.lift_omega, cardinal.lift_nat_cast],
   apply cardinal.nat_lt_omega,
 end
 
@@ -280,11 +280,11 @@ end
 
 /-- A finite dimensional space has positive `finrank` iff it has a nonzero element. -/
 lemma finrank_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < finrank K V ↔ ∃ x : V, x ≠ 0 :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
+iff.trans (by { rw ← finrank_eq_rank, norm_cast }) (@rank_pos_iff_exists_ne_zero K V _ _ _)
 
 /-- A finite dimensional space has positive `finrank` iff it is nontrivial. -/
 lemma finrank_pos_iff [finite_dimensional K V] : 0 < finrank K V ↔ nontrivial V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)
+iff.trans (by { rw ← finrank_eq_rank, norm_cast }) (@rank_pos_iff_nontrivial K V _ _ _)
 
 /-- A finite dimensional space is nontrivial if it has positive `finrank`. -/
 lemma nontrivial_of_finrank_pos (h : 0 < finrank K V) : nontrivial V :=
@@ -303,10 +303,10 @@ lemma finrank_pos [finite_dimensional K V] [h : nontrivial V] : 0 < finrank K V 
 finrank_pos_iff.mpr h
 
 /-- A finite dimensional space has zero `finrank` iff it is a subsingleton.
-This is the `finrank` version of `dim_zero_iff`. -/
+This is the `finrank` version of `rank_zero_iff`. -/
 lemma finrank_zero_iff [finite_dimensional K V] :
   finrank K V = 0 ↔ subsingleton V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
+iff.trans (by { rw ← finrank_eq_rank, norm_cast }) (@rank_zero_iff K V _ _ _)
 
 /-- A finite dimensional space that is a subsingleton has zero `finrank`. -/
 lemma finrank_zero_of_subsingleton [h : subsingleton V] :
@@ -347,8 +347,8 @@ variable (K)
 /-- A division_ring is one-dimensional as a vector space over itself. -/
 @[simp] lemma finrank_self : finrank K K = 1 :=
 begin
-  have := dim_self K,
-  rw [←finrank_eq_dim] at this,
+  have := rank_self K,
+  rw [←finrank_eq_rank] at this,
   exact_mod_cast this
 end
 
@@ -359,8 +359,8 @@ by apply_instance
 @[simp] lemma finrank_fintype_fun_eq_card {ι : Type v} [fintype ι] :
   finrank K (ι → K) = fintype.card ι :=
 begin
-  have : module.rank K (ι → K) = fintype.card ι := dim_fun',
-  rwa [← finrank_eq_dim, nat_cast_inj] at this,
+  have : module.rank K (ι → K) = fintype.card ι := rank_fun',
+  rwa [← finrank_eq_rank, nat_cast_inj] at this,
 end
 
 /-- The vector space of functions on `fin n` has finrank equal to `n`. -/
@@ -379,11 +379,11 @@ instance (x : V) : finite_dimensional K (K ∙ x) := by {apply span_of_finite, s
 instance (f : V →ₗ[K] V₂) (p : submodule K V) [h : finite_dimensional K p] :
   finite_dimensional K (p.map f) :=
 begin
-  unfreezingI { rw [finite_dimensional, is_noetherian.iff_dim_lt_omega ] at h ⊢ },
+  unfreezingI { rw [finite_dimensional, is_noetherian.iff_rank_lt_omega ] at h ⊢ },
   rw [← cardinal.lift_lt.{v' v}],
   rw [← cardinal.lift_lt.{v v'}] at h,
   rw [cardinal.lift_omega] at h ⊢,
-  exact (lift_dim_map_le f p).trans_lt h
+  exact (lift_rank_map_le f p).trans_lt h
 end
 
 /-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
@@ -391,8 +391,8 @@ lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensio
   finrank K (p.map f) ≤ finrank K p :=
 begin
   rw [← cardinal.nat_cast_le.{max v v'}, ← cardinal.lift_nat_cast.{v' v},
-    ← cardinal.lift_nat_cast.{v v'}, finrank_eq_dim K p, finrank_eq_dim K (p.map f)],
-  exact lift_dim_map_le f p
+    ← cardinal.lift_nat_cast.{v v'}, finrank_eq_rank K p, finrank_eq_rank K (p.map f)],
+  exact lift_rank_map_le f p
 end
 
 variable {K}
@@ -405,7 +405,7 @@ open finset
 If a finset has cardinality larger than the dimension of the space,
 then there is a nontrivial linear relation amongst its elements.
 -/
-lemma exists_nontrivial_relation_of_dim_lt_card
+lemma exists_nontrivial_relation_of_rank_lt_card
   [finite_dimensional K V] {t : finset V} (h : finrank K V < t.card) :
   ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
@@ -440,7 +440,7 @@ If a finset has cardinality larger than `finrank + 1`,
 then there is a nontrivial linear relation amongst its elements,
 such that the coefficients of the relation sum to zero.
 -/
-lemma exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card
+lemma exists_nontrivial_relation_sum_zero_of_rank_succ_lt_card
   [finite_dimensional K V] {t : finset V} (h : finrank K V + 1 < t.card) :
   ∃ f : V → K, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0 :=
 begin
@@ -454,7 +454,7 @@ begin
   { simp only [t', card_map, finset.card_erase_of_mem m],
     exact nat.lt_pred_iff.mpr h, },
   -- to obtain a function `g`.
-  obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_dim_lt_card h',
+  obtain ⟨g, gsum, x₁, x₁_mem, nz⟩ := exists_nontrivial_relation_of_rank_lt_card h',
   -- Then obtain `f` by translating back by `x₀`,
   -- and setting the value of `f` at `x₀` to ensure `∑ e in t, f e = 0`.
   let f : V → K := λ z, if z = x₀ then - ∑ z in (t.erase x₀), g (z - x₀) else g (z - x₀),
@@ -506,15 +506,15 @@ variables {L : Type*} [linear_ordered_field L]
 variables {W : Type v} [add_comm_group W] [module L W]
 
 /--
-A slight strengthening of `exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card`
+A slight strengthening of `exists_nontrivial_relation_sum_zero_of_rank_succ_lt_card`
 available when working over an ordered field:
 we can ensure a positive coefficient, not just a nonzero coefficient.
 -/
-lemma exists_relation_sum_zero_pos_coefficient_of_dim_succ_lt_card
+lemma exists_relation_sum_zero_pos_coefficient_of_rank_succ_lt_card
   [finite_dimensional L W] {t : finset W} (h : finrank L W + 1 < t.card) :
   ∃ f : W → L, ∑ e in t, f e • e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, 0 < f x :=
 begin
-  obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card h,
+  obtain ⟨f, sum, total, nonzero⟩ := exists_nontrivial_relation_sum_zero_of_rank_succ_lt_card h,
   exact ⟨f, sum, total, exists_pos_of_sum_zero_of_exists_nonzero f total nonzero⟩,
 end
 
@@ -558,35 +558,35 @@ end finite_dimensional
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
 {V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
-section zero_dim
+section zero_rank
 
 open finite_dimensional
 
-lemma finite_dimensional_of_dim_eq_zero (h : module.rank K V = 0) : finite_dimensional K V :=
+lemma finite_dimensional_of_rank_eq_zero (h : module.rank K V = 0) : finite_dimensional K V :=
 begin
   dsimp [finite_dimensional],
-  rw [is_noetherian.iff_dim_lt_omega, h],
+  rw [is_noetherian.iff_rank_lt_omega, h],
   exact cardinal.omega_pos
 end
 
-lemma finite_dimensional_of_dim_eq_one (h : module.rank K V = 1) : finite_dimensional K V :=
+lemma finite_dimensional_of_rank_eq_one (h : module.rank K V = 1) : finite_dimensional K V :=
 begin
   dsimp [finite_dimensional],
-  rw [is_noetherian.iff_dim_lt_omega, h],
+  rw [is_noetherian.iff_rank_lt_omega, h],
   exact one_lt_omega
 end
 
-lemma finrank_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : module.rank K V = 0) :
+lemma finrank_eq_zero_of_rank_eq_zero [finite_dimensional K V] (h : module.rank K V = 0) :
   finrank K V = 0 :=
 begin
-  convert finrank_eq_dim K V,
+  convert finrank_eq_rank K V,
   rw h, norm_cast
 end
 
 lemma finrank_eq_zero_of_basis_imp_not_finite
   (h : ∀ s : set V, basis.{v} (s : set V) K V → ¬ s.finite) : finrank K V = 0 :=
-dif_neg (λ dim_lt,
-  h _ (basis.of_vector_space K V) ((basis.of_vector_space K V).finite_index_of_dim_lt_omega dim_lt))
+dif_neg (λ rank_lt,
+  h _ (basis.of_vector_space K V) ((basis.of_vector_space K V).finite_index_of_rank_lt_omega rank_lt))
 
 lemma finrank_eq_zero_of_basis_imp_false
   (h : ∀ s : finset V, basis.{v} (s : set V) K V → false) : finrank K V = 0 :=
@@ -607,33 +607,33 @@ finrank_eq_zero_of_basis_imp_false (λ s b, h ⟨s, ⟨b⟩⟩)
 variables (K V)
 
 instance finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
-finite_dimensional_of_dim_eq_zero $ by simp
+finite_dimensional_of_rank_eq_zero $ by simp
 
 @[simp] lemma finrank_bot : finrank K (⊥ : submodule K V) = 0 :=
 begin
-  convert finrank_eq_dim K (⊥ : submodule K V),
-  rw dim_bot, norm_cast
+  convert finrank_eq_rank K (⊥ : submodule K V),
+  rw rank_bot, norm_cast
 end
 
 variables {K V}
 
-lemma bot_eq_top_of_dim_eq_zero (h : module.rank K V = 0) : (⊥ : submodule K V) = ⊤ :=
+lemma bot_eq_top_of_rank_eq_zero (h : module.rank K V = 0) : (⊥ : submodule K V) = ⊤ :=
 begin
-  haveI := finite_dimensional_of_dim_eq_zero h,
+  haveI := finite_dimensional_of_rank_eq_zero h,
   apply eq_top_of_finrank_eq,
-  rw [finrank_bot, finrank_eq_zero_of_dim_eq_zero h]
+  rw [finrank_bot, finrank_eq_zero_of_rank_eq_zero h]
 end
 
-@[simp] theorem dim_eq_zero {S : submodule K V} : module.rank K S = 0 ↔ S = ⊥ :=
+@[simp] theorem rank_eq_zero {S : submodule K V} : module.rank K S = 0 ↔ S = ⊥ :=
 ⟨λ h, (submodule.eq_bot_iff _).2 $ λ x hx, congr_arg subtype.val $
-  ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_dim_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
-λ h, by rw [h, dim_bot]⟩
+  ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_rank_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
+λ h, by rw [h, rank_bot]⟩
 
 @[simp] theorem finrank_eq_zero {S : submodule K V} [finite_dimensional K S] :
   finrank K S = 0 ↔ S = ⊥ :=
-by rw [← dim_eq_zero, ← finrank_eq_dim, ← @nat.cast_zero cardinal, cardinal.nat_cast_inj]
+by rw [← rank_eq_zero, ← finrank_eq_rank, ← @nat.cast_zero cardinal, cardinal.nat_cast_inj]
 
-end zero_dim
+end zero_rank
 
 namespace submodule
 open is_noetherian finite_dimensional
@@ -648,7 +648,7 @@ theorem fg_iff_finite_dimensional (s : submodule K V) :
 finite-dimensional. -/
 lemma finite_dimensional_of_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (h : S₁ ≤ S₂) :
   finite_dimensional K S₁ :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_le_of_submodule _ _ h) (dim_lt_omega K S₂))
+is_noetherian.iff_rank_lt_omega.2 (lt_of_le_of_lt (rank_le_of_submodule _ _ h) (rank_lt_omega K S₂))
 
 /-- The inf of two submodules, the first finite-dimensional, is
 finite-dimensional. -/
@@ -676,8 +676,8 @@ quotient add up to the dimension of the space. -/
 theorem finrank_quotient_add_finrank [finite_dimensional K V] (s : submodule K V) :
   finrank K s.quotient + finrank K s = finrank K V :=
 begin
-  have := dim_quotient_add_dim s,
-  rw [← finrank_eq_dim, ← finrank_eq_dim, ← finrank_eq_dim] at this,
+  have := rank_quotient_add_rank s,
+  rw [← finrank_eq_rank, ← finrank_eq_rank, ← finrank_eq_rank] at this,
   exact_mod_cast this
 end
 
@@ -700,13 +700,13 @@ lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
 by { rw ← s.finrank_quotient_add_finrank, exact nat.le_add_right _ _ }
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
-theorem dim_sup_add_dim_inf_eq (s t : submodule K V)
+theorem rank_sup_add_rank_inf_eq (s t : submodule K V)
   [finite_dimensional K s] [finite_dimensional K t] :
   finrank K ↥(s ⊔ t) + finrank K ↥(s ⊓ t) = finrank K ↥s + finrank K ↥t :=
 begin
   have key : module.rank K ↥(s ⊔ t) + module.rank K ↥(s ⊓ t) =
-    module.rank K s + module.rank K t := dim_sup_add_dim_inf_eq s t,
-  repeat { rw ←finrank_eq_dim at key },
+    module.rank K s + module.rank K t := rank_sup_add_rank_inf_eq s t,
+  repeat { rw ←finrank_eq_rank at key },
   norm_cast at key,
   exact key
 end
@@ -720,7 +720,7 @@ begin
     rw [hdisjoint, finrank_bot] },
   apply eq_top_of_finrank_eq,
   rw ←hdim,
-  convert s.dim_sup_add_dim_inf_eq t,
+  convert s.rank_sup_add_rank_inf_eq t,
   rw h_finrank_inf,
   refl,
 end
@@ -740,7 +740,7 @@ theorem finrank_eq (f : V ≃ₗ[K] V₂) [finite_dimensional K V] :
   finrank K V = finrank K V₂ :=
 begin
   haveI : finite_dimensional K V₂ := f.finite_dimensional,
-  simpa [← finrank_eq_dim] using f.lift_dim_eq
+  simpa [← finrank_eq_rank] using f.lift_rank_eq
 end
 
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
@@ -761,7 +761,7 @@ Two finite-dimensional vector spaces are isomorphic if they have the same (finit
 -/
 theorem nonempty_linear_equiv_of_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂]
   (cond : finrank K V = finrank K V₂) : nonempty (V ≃ₗ[K] V₂) :=
-nonempty_linear_equiv_of_lift_dim_eq $ by simp only [← finrank_eq_dim, cond, lift_nat_cast]
+nonempty_linear_equiv_of_lift_rank_eq $ by simp only [← finrank_eq_rank, cond, lift_nat_cast]
 
 /--
 Two finite-dimensional vector spaces are isomorphic if and only if they have the same (finite)
@@ -835,8 +835,8 @@ open finite_dimensional
 lemma surjective_of_injective [finite_dimensional K V] {f : V →ₗ[K] V}
   (hinj : injective f) : surjective f :=
 begin
-  have h := dim_eq_of_injective _ hinj,
-  rw [← finrank_eq_dim, ← finrank_eq_dim, nat_cast_inj] at h,
+  have h := rank_eq_of_injective _ hinj,
+  rw [← finrank_eq_rank, ← finrank_eq_rank, nat_cast_inj] at h,
   exact range_eq_top.1 (eq_top_of_finrank_eq h.symm)
 end
 
@@ -934,7 +934,7 @@ section top
 
 @[simp]
 theorem finrank_top : finrank K (⊤ : submodule K V) = finrank K V :=
-by { unfold finrank, simp [dim_top] }
+by { unfold finrank, simp [rank_top] }
 
 end top
 
@@ -1058,7 +1058,7 @@ lemma finrank_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   finrank K U + finrank K W = finrank K V :=
 begin
-  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
+  rw [← submodule.rank_sup_add_rank_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
       finrank_bot, add_zero],
   exact finrank_top
 end
@@ -1073,8 +1073,8 @@ lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : module.rank K (span K s) ≤ #s := dim_span_le s,
-  rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
+  have : module.rank K (span K s) ≤ #s := rank_span_le s,
+  rw [←finrank_eq_rank, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
 
@@ -1088,8 +1088,8 @@ lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
   finrank K (span K (set.range b)) = fintype.card ι :=
 begin
   haveI : finite_dimensional K (span K (set.range b)) := span_of_finite K (set.finite_range b),
-  have : module.rank K (span K (set.range b)) = #(set.range b) := dim_span hb,
-  rwa [←finrank_eq_dim, ←lift_inj, mk_range_eq_of_injective hb.injective,
+  have : module.rank K (span K (set.range b)) = #(set.range b) := rank_span hb,
+  rwa [←finrank_eq_rank, ←lift_inj, mk_range_eq_of_injective hb.injective,
     cardinal.fintype_card, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
 end
 
@@ -1098,8 +1098,8 @@ lemma finrank_span_set_eq_card (s : set V) [fin : fintype s]
   finrank K (span K s) = s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : module.rank K (span K s) = #s := dim_span_set hs,
-  rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
+  have : module.rank K (span K s) = #s := rank_span_set hs,
+  rw [←finrank_eq_rank, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
 
@@ -1250,7 +1250,7 @@ begin
     apply ne_of_lt (fintype.card_pos_iff.mpr hι),
     symmetry,
     calc fintype.card ι = finrank K V : card_eq
-                    ... = 0 : dif_neg (mt is_noetherian.iff_dim_lt_omega.mpr fin) }
+                    ... = 0 : dif_neg (mt is_noetherian.iff_rank_lt_omega.mpr fin) }
 end
 
 /-- A linear independent family of `finrank K V` vectors forms a basis. -/
@@ -1395,23 +1395,23 @@ end
 
 end finrank_eq_one
 
-section subalgebra_dim
+section subalgebra_rank
 open module
 variables {F E : Type*} [field F] [field E] [algebra F E]
 
-lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : module.rank F S = 1 :=
+lemma subalgebra.rank_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : module.rank F S = 1 :=
 begin
-  rw [← S.to_submodule_equiv.dim_eq, h,
-    (linear_equiv.of_eq (⊥ : subalgebra F E).to_submodule _ algebra.to_submodule_bot).dim_eq,
-    dim_span_set],
+  rw [← S.to_submodule_equiv.rank_eq, h,
+    (linear_equiv.of_eq (⊥ : subalgebra F E).to_submodule _ algebra.to_submodule_bot).rank_eq,
+    rank_span_set],
   exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
 end
 
 @[simp]
-lemma subalgebra.dim_bot : module.rank F (⊥ : subalgebra F E) = 1 :=
-subalgebra.dim_eq_one_of_eq_bot rfl
+lemma subalgebra.rank_bot : module.rank F (⊥ : subalgebra F E) = 1 :=
+subalgebra.rank_eq_one_of_eq_bot rfl
 
-lemma subalgebra_top_dim_eq_submodule_top_dim :
+lemma subalgebra_top_rank_eq_submodule_top_rank :
   module.rank F (⊤ : subalgebra F E) = module.rank F (⊤ : submodule F E) :=
 by { rw ← algebra.top_to_submodule, refl }
 
@@ -1419,17 +1419,17 @@ lemma subalgebra_top_finrank_eq_submodule_top_finrank :
   finrank F (⊤ : subalgebra F E) = finrank F (⊤ : submodule F E) :=
 by { rw ← algebra.top_to_submodule, refl }
 
-lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
-by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top F E }
+lemma subalgebra.rank_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
+by { rw subalgebra_top_rank_eq_submodule_top_rank, exact rank_top F E }
 
 instance subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
-finite_dimensional_of_dim_eq_one subalgebra.dim_bot
+finite_dimensional_of_rank_eq_one subalgebra.rank_bot
 
 @[simp]
 lemma subalgebra.finrank_bot : finrank F (⊥ : subalgebra F E) = 1 :=
 begin
-  have : module.rank F (⊥ : subalgebra F E) = 1 := subalgebra.dim_bot,
-  rw ← finrank_eq_dim at this,
+  have : module.rank F (⊥ : subalgebra F E) = 1 := subalgebra.rank_bot,
+  rw ← finrank_eq_rank at this,
   norm_cast at *,
   simp *,
 end
@@ -1458,19 +1458,19 @@ begin
   exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,
 end
 
-lemma subalgebra.eq_bot_of_dim_one {S : subalgebra F E} (h : module.rank F S = 1) : S = ⊥ :=
+lemma subalgebra.eq_bot_of_rank_one {S : subalgebra F E} (h : module.rank F S = 1) : S = ⊥ :=
 begin
-  haveI : finite_dimensional F S := finite_dimensional_of_dim_eq_one h,
-  rw ← finrank_eq_dim at h,
+  haveI : finite_dimensional F S := finite_dimensional_of_rank_eq_one h,
+  rw ← finrank_eq_rank at h,
   norm_cast at h,
   exact subalgebra.eq_bot_of_finrank_one h,
 end
 
 @[simp]
-lemma subalgebra.bot_eq_top_of_dim_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
+lemma subalgebra.bot_eq_top_of_rank_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
 begin
-  rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim] at h,
-  exact eq.symm (subalgebra.eq_bot_of_dim_one h),
+  rw [← rank_top, ← subalgebra_top_rank_eq_submodule_top_rank] at h,
+  exact eq.symm (subalgebra.eq_bot_of_rank_one h),
 end
 
 @[simp]
@@ -1481,14 +1481,14 @@ begin
 end
 
 @[simp]
-theorem subalgebra.dim_eq_one_iff {S : subalgebra F E} : module.rank F S = 1 ↔ S = ⊥ :=
-⟨subalgebra.eq_bot_of_dim_one, subalgebra.dim_eq_one_of_eq_bot⟩
+theorem subalgebra.rank_eq_one_iff {S : subalgebra F E} : module.rank F S = 1 ↔ S = ⊥ :=
+⟨subalgebra.eq_bot_of_rank_one, subalgebra.rank_eq_one_of_eq_bot⟩
 
 @[simp]
 theorem subalgebra.finrank_eq_one_iff {S : subalgebra F E} : finrank F S = 1 ↔ S = ⊥ :=
 ⟨subalgebra.eq_bot_of_finrank_one, subalgebra.finrank_eq_one_of_eq_bot⟩
 
-end subalgebra_dim
+end subalgebra_rank
 
 namespace module
 namespace End

@@ -151,11 +151,11 @@ begin
     -- first step: thanks to the inductive assumption, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
     have H₁ : ∀s : submodule 𝕜 E, finrank 𝕜 s = n → is_closed (s : set E),
-    { assume s s_dim,
+    { assume s s_rank,
       let b := basis.of_vector_space 𝕜 s,
       have U : uniform_embedding b.equiv_fun.symm.to_equiv,
       { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,
-          by { rw ← s_dim, exact (finrank_eq_card_basis b).symm },
+          by { rw ← s_rank, exact (finrank_eq_card_basis b).symm },
         have : continuous b.equiv_fun := IH b this,
         exact b.equiv_fun.symm.uniform_embedding (linear_map.continuous_on_pi _) this },
       have : is_complete (s : set E),

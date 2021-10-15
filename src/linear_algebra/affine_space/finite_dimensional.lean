@@ -266,7 +266,7 @@ at most `1`. -/
 def collinear (s : set P) : Prop := module.rank k (vector_span k s) ≤ 1
 
 /-- The definition of `collinear`. -/
-lemma collinear_iff_dim_le_one (s : set P) : collinear k s ↔ module.rank k (vector_span k s) ≤ 1 :=
+lemma collinear_iff_rank_le_one (s : set P) : collinear k s ↔ module.rank k (vector_span k s) ≤ 1 :=
 iff.rfl
 
 /-- A set of points, whose `vector_span` is finite-dimensional, is
@@ -275,8 +275,8 @@ collinear if and only if their `vector_span` has dimension at most
 lemma collinear_iff_finrank_le_one (s : set P) [finite_dimensional k (vector_span k s)] :
   collinear k s ↔ finrank k (vector_span k s) ≤ 1 :=
 begin
-  have h := collinear_iff_dim_le_one k s,
-  rw ←finrank_eq_dim at h,
+  have h := collinear_iff_rank_le_one k s,
+  rw ←finrank_eq_rank at h,
   exact_mod_cast h
 end
 
@@ -285,7 +285,7 @@ variables (P)
 /-- The empty set is collinear. -/
 lemma collinear_empty : collinear k (∅ : set P) :=
 begin
-  rw [collinear_iff_dim_le_one, vector_span_empty],
+  rw [collinear_iff_rank_le_one, vector_span_empty],
   simp
 end
 
@@ -294,7 +294,7 @@ variables {P}
 /-- A single point is collinear. -/
 lemma collinear_singleton (p : P) : collinear k ({p} : set P) :=
 begin
-  rw [collinear_iff_dim_le_one, vector_span_singleton],
+  rw [collinear_iff_rank_le_one, vector_span_singleton],
   simp
 end
 
@@ -304,7 +304,7 @@ vector, added to `p₀`. -/
 lemma collinear_iff_of_mem {s : set P} {p₀ : P} (h : p₀ ∈ s) :
   collinear k s ↔ ∃ v : V, ∀ p ∈ s, ∃ r : k, p = r • v +ᵥ p₀ :=
 begin
-  simp_rw [collinear_iff_dim_le_one, dim_submodule_le_one_iff', submodule.le_span_singleton_iff],
+  simp_rw [collinear_iff_rank_le_one, rank_submodule_le_one_iff', submodule.le_span_singleton_iff],
   split,
   { rintro ⟨v₀, hv⟩,
     use v₀,

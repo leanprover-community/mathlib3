@@ -243,23 +243,23 @@ instance separable : is_separable (fixed_points.subfield G F) F :=
     minpoly, polynomial.map_to_subring _ ((subfield G F).to_subring) ],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
-lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
+lemma rank_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
 begin
-  refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
-  rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
+  refine rank_le (λ s hs, cardinal.nat_cast_le.1 _),
+  rw [← @rank_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
     cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
-  exact cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max u v)}
+  exact cardinal_lift_le_rank_of_linear_independent.{_ _ _ (max u v)}
     (linear_independent_smul_of_linear_independent G F hs)
 end
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=
-is_noetherian.iff_dim_lt_omega.2 $
-lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
+is_noetherian.iff_rank_lt_omega.2 $
+lt_of_le_of_lt (rank_le_card G F) (cardinal.nat_lt_omega _)
 
 lemma finrank_le_card : finrank (fixed_points.subfield G F) F ≤ fintype.card G :=
 begin
-  rw [← cardinal.nat_cast_le, finrank_eq_dim],
-  apply dim_le_card,
+  rw [← cardinal.nat_cast_le, finrank_eq_rank],
+  apply rank_le_card,
 end
 
 end fixed_points

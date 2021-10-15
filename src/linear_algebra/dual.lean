@@ -261,11 +261,11 @@ end comm_ring
 by { haveI := classical.dec_eq ι, rw [← coe_dual_basis, total_dual_basis] }
 
 -- TODO(jmc): generalize to rings, once `module.rank` is generalized
-theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : basis ι K V) :
+theorem dual_rank_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : basis ι K V) :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
-  have := linear_equiv.lift_dim_eq b.to_dual_equiv,
+  have := linear_equiv.lift_rank_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
@@ -283,9 +283,9 @@ theorem eval_ker : (eval K V).ker = ⊥ :=
 by { classical, exact (basis.of_vector_space K V).eval_ker }
 
 -- TODO(jmc): generalize to rings, once `module.rank` is generalized
-theorem dual_dim_eq [finite_dimensional K V] :
+theorem dual_rank_eq [finite_dimensional K V] :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
-(basis.of_vector_space K V).dual_dim_eq
+(basis.of_vector_space K V).dual_rank_eq
 
 lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
 by { classical, exact (basis.of_vector_space K V).eval_range }

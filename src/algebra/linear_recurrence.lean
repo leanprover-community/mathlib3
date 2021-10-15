@@ -173,8 +173,8 @@ section field
 variables {α : Type*} [field α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
-lemma sol_space_dim : module.rank α E.sol_space = E.order :=
-@dim_fin_fun α _ E.order ▸ E.to_init.dim_eq
+lemma sol_space_rank : module.rank α E.sol_space = E.order :=
+@rank_fin_fun α _ E.order ▸ E.to_init.rank_eq
 
 end field
 

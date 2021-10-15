@@ -1091,8 +1091,7 @@ begin
                  singular_part_smul] }
 end
 
-lemma singular_part_smul (s : signed_measure α) (μ : measure α)
-  (r : ℝ) :
+lemma singular_part_smul (s : signed_measure α) (μ : measure α) (r : ℝ) :
   (r • s).singular_part μ = r • s.singular_part μ :=
 begin
   by_cases hr : 0 ≤ r,

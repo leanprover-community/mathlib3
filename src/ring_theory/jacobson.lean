@@ -440,7 +440,8 @@ variables {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
 variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
 include P hP
-
+-- set_option pp.all true
+#check integral_domain.to_domain
 lemma is_maximal_comap_C_of_is_maximal (hP' : ∀ (x : R), C x ∈ P → x = 0) :
   is_maximal (comap C P : ideal R) :=
 begin
@@ -465,6 +466,8 @@ begin
   let M' : submonoid P.quotient := M.map φ,
   have hM' : (0 : P.quotient) ∉ M' :=
     λ ⟨z, hz⟩, hM (quotient_map_injective (trans hz.2 φ.map_zero.symm) ▸ hz.1),
+  -- FIXME:
+  have : M' ≤ non_zero_divisors (P.quotient) := @le_non_zero_divisors_of_no_zero_divisors P.quotient _ _ M' hM',
   letI : integral_domain (localization M') :=
     is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
   suffices : (⊥ : ideal (localization M')).is_maximal,
@@ -529,6 +532,7 @@ begin
     ((quotient.mk P').is_integral_of_surjective quotient.mk_surjective) _,
   apply quotient_mk_comp_C_is_integral_of_jacobson' _ _ (λ x hx, _),
   any_goals { exact ideal.is_jacobson_quotient },
+  { apply_instance, },
   { exact or.rec_on (map_eq_top_or_is_maximal_of_surjective f hf hP)
     (λ h, absurd (trans (h ▸ hPJ : P = comap f ⊤) comap_top : P = ⊤) hP.ne_top) id },
   { obtain ⟨z, rfl⟩ := quotient.mk_surjective x,

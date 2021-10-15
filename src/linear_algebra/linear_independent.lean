@@ -1164,7 +1164,7 @@ by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
   mem_span_singleton, not_exists,
   show fin.tail f (default (fin 1)) = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
-lemma exists_linear_independent (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
+lemma exists_linear_independent_extension (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (coe : b → V) :=
 begin
   rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (coe : b → V)} _ _
@@ -1182,11 +1182,11 @@ end
 
 variables (K t)
 
-lemma exists_linear_independent' :
+lemma exists_linear_independent :
   ∃ b ⊆ t, span K b = span K t ∧ linear_independent K (coe : b → V) :=
 begin
   obtain ⟨b, hb₁, -, hb₂, hb₃⟩ :=
-    exists_linear_independent (linear_independent_empty K V) (set.empty_subset t),
+    exists_linear_independent_extension (linear_independent_empty K V) (set.empty_subset t),
   exact ⟨b, hb₁, (span_eq_of_le _ hb₂ (submodule.span_mono hb₁)).symm, hb₃⟩,
 end
 
@@ -1196,23 +1196,23 @@ variables {K t}
 all elements of `t`. -/
 noncomputable def linear_independent.extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : set V :=
-classical.some (exists_linear_independent hs hst)
+classical.some (exists_linear_independent_extension hs hst)
 
 lemma linear_independent.extend_subset (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : hs.extend hst ⊆ t :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hbt
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in hbt
 
 lemma linear_independent.subset_extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : s ⊆ hs.extend hst :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hsb
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in hsb
 
 lemma linear_independent.subset_span_extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : t ⊆ span K (hs.extend hst) :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in htb
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in htb
 
 lemma linear_independent.linear_independent_extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : linear_independent K (coe : hs.extend hst → V) :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hli
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in hli
 
 variables {K V}
 

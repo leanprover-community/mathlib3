@@ -4,14 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.apply_fun
-import algebra.order.ring
-import algebra.opposites
-import algebra.big_operators.basic
-import algebra.group_power.lemmas
 import algebra.field_power
 import data.equiv.ring_aut
-import data.equiv.mul_add_aut
 import group_theory.group_action.units
+import algebra.ring.comp_typeclasses
 
 /-!
 # Star monoids, rings, and modules
@@ -287,6 +283,17 @@ attribute [simp] star_smul
 /-- A commutative star monoid is a star module over itself via `monoid.to_mul_action`. -/
 instance star_monoid.to_star_module [comm_monoid R] [star_monoid R] : star_module R R :=
 ⟨star_mul'⟩
+
+namespace ring_hom_inv_pair
+
+/-- Instance needed to define star-linear maps over a commutative star ring
+(ex: conjugate-linear maps when R = ℂ).  -/
+instance [comm_semiring R] [star_ring R] :
+  ring_hom_inv_pair ((star_ring_aut : ring_aut R) : R →+* R)
+    ((star_ring_aut : ring_aut R) : R →+* R) :=
+⟨ring_hom.ext star_star, ring_hom.ext star_star⟩
+
+end ring_hom_inv_pair
 
 /-! ### Instances -/
 

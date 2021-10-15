@@ -723,6 +723,7 @@ variables {R : Type*} [comm_ring R]
 
 /-- Lift evidence that `is_integral_domain R` to `is_integral_domain (polynomial R)`. -/
 lemma polynomial (h : is_integral_domain R) : is_integral_domain (polynomial R) :=
-@integral_domain.to_is_integral_domain _ _ (@polynomial.integral_domain _ _ (h.to_integral_domain _))
+@integral_domain.to_is_integral_domain _ _
+  (@polynomial.integral_domain _ _ (h.to_integral_domain _))
 
 end is_integral_domain

@@ -51,7 +51,7 @@ namespace modular_group
 section upper_half_plane_action
 
 /-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
-instance {R : Type*} [comm_semiring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
+instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
 mul_action.comp_hom ℍ (map (algebra_map R ℝ))
 
 @[simp] lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl

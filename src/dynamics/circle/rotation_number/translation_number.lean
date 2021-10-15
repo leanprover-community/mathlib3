@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import algebra.iterate_hom
 import analysis.specific_limits
 import order.iterate
 import order.semiconj_Sup
-import algebra.iterate_hom
 
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`
@@ -114,7 +114,7 @@ Here are some short-term goals.
 circle homeomorphism, rotation number
 -/
 
-open filter set function (hiding commute)
+open filter set function (hiding commute) int
 open_locale topological_space classical
 
 /-!
@@ -311,7 +311,7 @@ by rw [← f.map_add_int, zero_add]
 
 @[simp] lemma map_fract_sub_fract_eq (x : ℝ) :
   f (fract x) - fract x = f x - x :=
-by conv_rhs { rw [← fract_add_floor x, f.map_add_int, add_sub_comm, sub_self, add_zero] }
+by rw [int.fract, f.map_sub_int, sub_sub_sub_cancel_right]
 
 /-!
 ### Pointwise order on circle maps

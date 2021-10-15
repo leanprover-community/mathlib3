@@ -173,7 +173,7 @@ lemma is_compact.elim_nhds_subcover' (hs : is_compact s) (U : Π x ∈ s, set α
   ∃ t : finset s, s ⊆ ⋃ x ∈ t, U (x : s) x.2 :=
 (hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open_interior)
   (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 $ hU _ _⟩)).imp $ λ t ht,
-subset.trans ht $ bUnion_subset_bUnion_right $ λ _ _, interior_subset
+subset.trans ht $ bUnion_mono $ λ _ _, interior_subset
 
 lemma is_compact.elim_nhds_subcover (hs : is_compact s) (U : α → set α) (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
   ∃ t : finset α, (∀ x ∈ t, x ∈ s) ∧ s ⊆ ⋃ x ∈ t, U x :=
@@ -619,7 +619,7 @@ in ⟨t, univ_subset_iff.1 ht⟩
 lemma finite_cover_nhds [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, U x) = univ :=
 let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $
-  ht ▸ bUnion_subset_bUnion_right (λ x hx, interior_subset)⟩
+  ht ▸ bUnion_mono (λ x hx, interior_subset)⟩
 
 /-- If `α` is a compact space, then a locally finite family of sets of `α` can have only finitely
 many nonempty elements. -/

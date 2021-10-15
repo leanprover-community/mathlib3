@@ -671,7 +671,7 @@ begin
   refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
   rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
   exact ⟨t, htf.countable,
-    subset.trans hst (bUnion_subset_bUnion_right $ λ _ _, ball_subset_closed_ball)⟩
+    subset.trans hst (bUnion_mono $ λ _ _, ball_subset_closed_ball)⟩
 end
 
 end compact

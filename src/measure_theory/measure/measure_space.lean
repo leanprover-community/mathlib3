@@ -306,7 +306,7 @@ begin
   simp only [← measure_bUnion_finset ((disjoint_disjointed _).pairwise_on _) (λ n _, this n)],
   refine supr_le (λ n, _),
   refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
-  exact measure_mono (bUnion_subset_bUnion_right (λ k hk, disjointed_subset _ _)),
+  exact measure_mono (bUnion_mono (λ k hk, disjointed_subset _ _)),
   simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
   generalize : (finset.range n).bUnion (λ k, (encodable.decode₂ ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
@@ -2092,6 +2092,21 @@ begin
   rcases topological_space.countable_cover_nhds hsx with ⟨t, htc, htU⟩,
   refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
   rwa sUnion_image
+end
+
+/-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
+in a second-countable space. -/
+lemma null_of_locally_null [topological_space α] [topological_space.second_countable_topology α]
+  (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, μ (s ∩ u) = 0) :
+  μ s = 0 :=
+begin
+  choose! u hu using hs,
+  obtain ⟨t, ts, t_count, ht⟩ : ∃ t ⊆ s, t.countable ∧ s ⊆ ⋃ x ∈ t, u x :=
+    topological_space.countable_cover_nhds_within (λ x hx, (hu x hx).1),
+  replace ht : s ⊆ ⋃ x ∈ t, s ∩ u x,
+    by { rw ← inter_bUnion, exact subset_inter (subset.refl _) ht },
+  apply measure_mono_null ht,
+  exact (measure_bUnion_null_iff t_count).2 (λ x hx, (hu x (ts hx)).2),
 end
 
 /-- If two finite measures give the same mass to the whole space and coincide on a π-system made

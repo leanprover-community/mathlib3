@@ -851,6 +851,10 @@ begin
     simpa using hx }
 end
 
+/-- If the subtype of all-but-one elements is a `fintype` then the type itself is a `fintype`. -/
+def fintype_of_fintype_ne (a : α) [decidable_pred (= a)] (h : fintype {b // b ≠ a}) : fintype α :=
+fintype.of_equiv _ $ equiv.sum_compl (= a)
+
 section finset
 
 /-! ### `fintype (s : finset α)` -/

@@ -322,7 +322,7 @@ by { haveI := classical.dec_eq R, exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b h, (or_iff_not_and_not.2 $ λ h0,
       h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
-  zero := 0, add := (+), mul := (*), ..e }}
+  ..e }}
 
 end gcd
 

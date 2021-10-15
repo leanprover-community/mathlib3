@@ -725,7 +725,7 @@ rfl
 rfl
 
 /-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
-def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
+@[simps] def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
 { to_fun := λ o, option.get o.2,
   inv_fun := λ x, ⟨some x, dec_trivial⟩,
   left_inv := λ o, subtype.eq $ option.some_get _,

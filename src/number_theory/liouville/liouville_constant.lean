@@ -23,7 +23,7 @@ We prove that, for $m \in \mathbb{N}$ satisfying $2 \le m$, Liouville's constant
 is a transcendental number.  Classically, the Liouville number for $m = 2$ is the one called
 ``Liouville's constant''.
 
-# Implementation notes
+## Implementation notes
 
 The indexing $m$ is eventually a natural number satisfying $2 ≤ m$.  However, we prove the first few
 lemmas for $m \in \mathbb{R}$.
@@ -159,7 +159,7 @@ begin
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ,
         show k.succ * k! - k! = (k.succ - 1) * k!, by rw [nat.mul_sub_right_distrib, one_mul],
-        nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+        nat.succ_sub_one, add_mul, one_mul, pow_add],
       simp [mul_assoc] },
     refine mul_ne_zero_iff.mpr ⟨_, _⟩,
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }

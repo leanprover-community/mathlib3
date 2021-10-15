@@ -19,8 +19,6 @@ This file defines a bundled type of absolute values `absolute_value R S`.
  * `is_absolute_value`: a type class stating that `f : β → α` satisfies the axioms of an abs val
 -/
 
-set_option old_structure_cmd true
-
 /-- `absolute_value R S` is the type of absolute values on `R` mapping to `S`:
 the maps that preserve `*`, are nonnegative, positive definite and satisfy the triangle equality. -/
 structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S]
@@ -33,7 +31,7 @@ namespace absolute_value
 
 attribute [nolint doc_blame] absolute_value.to_mul_hom
 
-initialize_simps_projections absolute_value (to_fun → apply)
+initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
 
 section ordered_semiring
 

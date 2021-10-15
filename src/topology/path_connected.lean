@@ -94,13 +94,21 @@ protected lemma continuous : continuous γ :=
 @[simp] protected lemma target : γ 1 = y :=
 γ.target'
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+because it is a composition of multiple projections. -/
+def simps.apply : I → X := γ
+
+initialize_simps_projections path (to_continuous_map_to_fun → simps.apply, -to_continuous_map)
+
+@[simp] lemma coe_to_continuous_map : ⇑γ.to_continuous_map = γ := rfl
+
 /-- Any function `φ : Π (a : α), path (x a) (y a)` can be seen as a function `α × I → X`. -/
 instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} :
   has_uncurry (Π (a : α), path (x a) (y a)) (α × I) X :=
 ⟨λ φ p, φ p.1 p.2⟩
 
 /-- The constant path from a point to itself -/
-@[refl] def refl (x : X) : path x x :=
+@[refl, simps] def refl (x : X) : path x x :=
 { to_fun := λ t, x,
   continuous_to_fun := continuous_const,
   source' := rfl,
@@ -111,7 +119,7 @@ instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} 
 by simp [path.refl, has_coe_to_fun.coe, coe_fn]
 
 /-- The reverse of a path from `x` to `y`, as a path from `y` to `x` -/
-@[symm] def symm (γ : path x y) : path y x :=
+@[symm, simps] def symm (γ : path x y) : path y x :=
 { to_fun      := γ ∘ σ,
   continuous_to_fun := by continuity,
   source'       := by simpa [-path.target] using γ.target,
@@ -402,6 +410,53 @@ begin
   rw cast_coe,
   have : ↑x ∈ (Icc 0 1 : set ℝ) := x.2,
   rw [truncate, coe_mk, max_eq_left this.1, min_eq_left this.2, extend_extends']
+end
+
+/-! #### Reparametrising a path -/
+
+/--
+Given a path `γ` and a function `f : I → I` where `f 0 = 0` and `f 1 = 1`, `γ.reparam f` is the
+path defined by `γ ∘ f`.
+-/
+def reparam (γ : path x y) (f : I → I) (hfcont : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
+  path x y :=
+{ to_fun := γ ∘ f,
+  continuous_to_fun := by continuity,
+  source' := by simp [hf₀],
+  target' := by simp [hf₁] }
+
+@[simp]
+lemma coe_to_fun (γ : path x y) {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
+  (hf₁ : f 1 = 1) : ⇑(γ.reparam f hfcont hf₀ hf₁) = γ ∘ f := rfl
+
+@[simp]
+lemma reparam_id (γ : path x y) : γ.reparam id continuous_id rfl rfl = γ :=
+by { ext, refl }
+
+lemma range_reparam (γ : path x y) {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
+  (hf₁ : f 1 = 1) : range ⇑(γ.reparam f hfcont hf₀ hf₁) = range γ :=
+begin
+  change range (γ ∘ f) = range γ,
+  have : range f = univ,
+  { rw range_iff_surjective,
+    intro t,
+    have h₁ : continuous (Icc_extend (@zero_le_one ℝ _) f),
+    { continuity },
+    have := intermediate_value_Icc (@zero_le_one ℝ _) h₁.continuous_on,
+    { rw [Icc_extend_left, Icc_extend_right] at this,
+      change Icc (f 0) (f 1) ⊆ _ at this,
+      rw [hf₀, hf₁] at this,
+      rcases this t.2 with ⟨w, hw₁, hw₂⟩,
+      rw Icc_extend_of_mem _ _ hw₁ at hw₂,
+      use [⟨w, hw₁⟩, hw₂] } },
+  rw [range_comp, this, image_univ],
+end
+
+lemma refl_reparam {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
+  (hf₁ : f 1 = 1) : (refl x).reparam f hfcont hf₀ hf₁ = refl x :=
+begin
+  ext,
+  simp,
 end
 
 end path

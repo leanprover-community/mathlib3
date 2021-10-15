@@ -17,7 +17,7 @@ operations descend to "games", defined via the equivalence relation `p ≈ q ↔
 The surreal numbers will be built as a quotient of a subtype of pregames.
 
 A pregame (`pgame` below) is axiomatised via an inductive type, whose sole constructor takes two
-types (thought of as indexing the the possible moves for the players Left and Right), and a pair of
+types (thought of as indexing the possible moves for the players Left and Right), and a pair of
 functions out of these types to `pgame` (thought of as describing the resulting game after making a
 move).
 

@@ -34,7 +34,7 @@ cover-preserving and compatible-preserving, then `G ⋙ -` (`uᵖ`) as a functor
 
 -/
 
-universes v₁ v₂ u₁ u₂
+universes w v₁ v₂ v₃ u₁ u₂ u₃
 noncomputable theory
 
 open category_theory
@@ -72,8 +72,8 @@ end⟩
 
 end cover_preserving
 
-variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D]
-variables {A : Type u₂} [category.{v₁} A]
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D]
+variables {A : Type u₃} [category.{v₃} A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
 /--
@@ -84,15 +84,15 @@ This is actually stronger than merely preserving compatible families because of 
 `functor_pushforward` used.
 -/
 @[nolint has_inhabited_instance]
-structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) :=
+structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (compatible :
-  ∀ (ℱ : SheafOfTypes K) {Z} {T : presieve Z}
+  ∀ (ℱ : SheafOfTypes.{w} K) {Z} {T : presieve Z}
     {x : family_of_elements (G.op ⋙ ℱ.val) T} (h : x.compatible)
     {Y₁ Y₂} {X} (f₁ : X ⟶ G.obj Y₁) (f₂ : X ⟶ G.obj Y₂) {g₁ : Y₁ ⟶ Z} {g₂ : Y₂ ⟶ Z}
     (hg₁ : T g₁) (hg₂ : T g₂) (eq : f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂),
       ℱ.val.map f₁.op (x g₁ hg₁) = ℱ.val.map f₂.op (x g₂ hg₂))
 
-variables {G : C ⥤ D} (hG : compatible_preserving K G) (ℱ : SheafOfTypes K) {Z : C}
+variables {G : C ⥤ D} (hG : compatible_preserving.{w} K G) (ℱ : SheafOfTypes.{w} K) {Z : C}
 variables {T : presieve Z} {x : family_of_elements (G.op ⋙ ℱ.val) T} (h : x.compatible)
 
 include h hG
@@ -128,7 +128,7 @@ then `G.op ⋙ _` pulls sheaves back to sheaves.
 
 This result is basically https://stacks.math.columbia.edu/tag/00WW.
 -/
-theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving K G)
+theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving.{v₃} K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) :
   presheaf.is_sheaf J (((whiskering_left _ _ _).obj G.op).obj ℱ.val) :=
 begin

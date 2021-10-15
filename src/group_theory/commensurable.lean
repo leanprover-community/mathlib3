@@ -123,7 +123,6 @@ begin
   apply H1 h,
 end
 
-
 lemma index_subgroup_le {H K : subgroup G} (h : H ≤ K)  : K.index = 0 → H.index = 0 :=
 begin
   intro h1,
@@ -151,7 +150,6 @@ lemma inf_ind_prod (H K L : subgroup G) :
   rw inf_comm at ht,
   simp only [ht, eq_self_iff_true, or_true],
  end
-
 
 noncomputable def  inf_quot_map (H K L : subgroup G) :
   quotient_group.quotient (H.subgroup_of (L ⊓ K)) → quotient_group.quotient ((H.subgroup_of K)) :=
@@ -387,4 +385,36 @@ begin
   apply trans (trans h1 h) ((symm _ _).1 hk),
   end
 
+
+/-
+lemma quot_equivs {G' : Type*} [group G'] (H : subgroup G) (H' : subgroup G') (f: G →* G')
+  (h1: subgroup.map f ⊤ ≃* G') (h2: subgroup.map ( f.comp  H.subtype) ⊤ ≃* H' ) :
+  quotient_group.quotient H ≃ quotient_group.quotient H' :=
+begin
+sorry,
+end
+
+--is this even true???
+noncomputable def quot_equivs' {G' : Type*} [group G'] (H : subgroup G) (H' : subgroup G') (f: G ≃ G')
+  (h1: ((quotient_group.left_rel H).rel  ⇒ (quotient_group.left_rel H').rel) f f)
+  (h2: ((quotient_group.left_rel H').rel  ⇒ (quotient_group.left_rel H).rel) f.inv_fun f.inv_fun) :
+  quotient_group.quotient H ≃ quotient_group.quotient H' :={
+  to_fun:= quot.map f.to_fun h1,
+  inv_fun:= quot.map f.inv_fun h2,
+  left_inv:= by {simp, intro x, tidy,  sorry,},
+  right_inv:= by {sorry,},
+
+  }
+
+def quot_eqv (H K L : subgroup G) :
+  quotient_group.quotient (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)) ≃
+  quotient_group.quotient (H.subgroup_of (K ⊓ L)) :=
+begin
+have g :  (K.subgroup_of L) ≃  ((K ⊓ L) : subgroup G), by {sorry,},
+apply quot_equivs' _ _ g,
+intros g h hy,
+simp_rw quotient_group.left_rel at *,
+
+end
+-/
 end commensurable

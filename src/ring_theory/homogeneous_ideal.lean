@@ -57,7 +57,6 @@ lemma homogeneous_ideal_iff_homogeneous_ideal' [add_comm_monoid ι] [gcomm_semir
   { have HS₂ : graded_monoid.to_direct_sum '' S ⊆ {x ∈ I | is_homogeneous_element x},
     { intros y hy, split,
       { suffices : (graded_monoid.to_direct_sum '' S) ⊆ I, refine this _, exact hy,
-        suffices : (graded_monoid.to_direct_sum '' S) ⊆ I, exact this,
         rw [←ideal.span_le, HS], exact le_refl _, },
         { simp only [mem_image] at hy,
         rcases hy with ⟨x, _, hx⟩,

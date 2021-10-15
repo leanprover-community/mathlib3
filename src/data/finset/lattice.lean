@@ -112,6 +112,15 @@ begin
   { exact le_sup (mem_erase.2 ⟨ha', ha⟩) }
 end
 
+lemma sup_sdiff {α β : Type*} [generalized_boolean_algebra α] (s : finset β) (f : β → α)
+  (a : α) :
+  s.sup (λ b, f b \ a) = s.sup f \ a :=
+begin
+  refine finset.cons_induction_on s _ (λ b t _ h, _),
+  { rw [sup_empty, sup_empty, bot_sdiff] },
+  { rw [sup_cons, sup_cons, h, sup_sdiff] }
+end
+
 lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) (bot : g ⊥ = ⊥) :
   g (s.sup f) = s.sup (g ∘ f) :=
@@ -262,6 +271,12 @@ le_inf $ assume b hb, inf_le (h hb)
 
 @[simp] lemma inf_lt_iff [is_total α (≤)] {a : α} : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup_iff (order_dual α) _ _ _ _ _ _
+
+lemma inf_attach (s : finset β) (f : β → α) : s.attach.inf (λ x, f x) = s.inf f :=
+@sup_attach (order_dual α) _ _ _ _
+
+lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
+@sup_erase_bot (order_dual α) _ _ _
 
 lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}
   {f : β → α} (g : α → γ) (g_inf : ∀ x y, g (x ⊓ y) = g x ⊓ g y) (top : g ⊤ = ⊤) :

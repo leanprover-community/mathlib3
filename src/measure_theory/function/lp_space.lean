@@ -1135,10 +1135,6 @@ begin
   exact hf.of_le_mul hf.1.im (eventually_of_forall this),
 end
 
--- move to complex.is_R_or_C
-lemma is_R_or_C.norm_of_real (z : ℝ) : ∥(z : 𝕜)∥ = ∥z∥ :=
-by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_real, real.norm_eq_abs] }
-
 lemma mem_ℒp.of_real [borel_space 𝕜] {f : α → ℝ} (hf : mem_ℒp f p μ) :
   mem_ℒp (λ x, (f x : 𝕜)) p μ :=
 begin

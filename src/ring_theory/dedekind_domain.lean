@@ -1224,16 +1224,28 @@ begin
     refine nat.find_spec _ },
 end
 
+open_locale big_operators
+
 end quotient_multiplicity
 
 section WIP
 
-variables {B C : Type*} [is_dedekind_domain A] [integral_domain B] [is_dedekind_domain B]
-variables (I : ideal A) (J : ideal B)
-variables {T : Type*} [comm_ring T] [algebra T A] [algebra T B] (f : I.quotient ≃ₐ[T] J.quotient)
+variables (B C : Type*) [is_dedekind_domain A] [integral_domain B] [is_dedekind_domain B]
+variables {I : ideal A} {J : ideal B} (f : I.quotient ≃+* J.quotient)
+variables (T : Type*) [comm_ring T] (g : T →+* A) (h : T →+* B) 
 
-lemma simp_ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (X : ideal T) (hX) :
-  ↑ (ideal_correspondence hI hJ f ⟨X.map (algebra_map T A), hX⟩) = X.map (algebra_map _ _) ⊔ J :=
+open unique_factorization_monoid
+open_locale big_operators
+open_locale classical
+
+theorem prod_eq_of_quot_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  {ι : Type*} [fintype ι] (g : ι → ideal A) (hg : ∀ i, g i ∈ normalized_factors I) -- TODO: generalize to `irreducible (g i)`
+  (e : ι → ℕ) (prod_eq : ∏ i, g i ^ e i = I) :
+  ∏ i, ↑(ideal_correspondence hI hJ f ⟨g i, hg i⟩) ^ e i = J := sorry
+
+lemma simp_ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (X : ideal T)
+  (comm : ring_hom.comp ↑f (I^.quotient.mk^.comp g) = J^.quotient.mk^.comp h) (hX) :
+  ↑ (ideal_correspondence hI hJ f ⟨X.map g, hX⟩) = X.map h ⊔ J :=
 sorry
 
 end WIP

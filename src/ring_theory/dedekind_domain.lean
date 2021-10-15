@@ -1029,7 +1029,7 @@ begin
   { exact pow_ne_zero n hp.ne_zero },
   { refine ⟨ p^(k - n), not_is_unit_of_not_is_unit_dvd hp.not_unit
       (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hlt))), _⟩,
-    rw [← pow_add, nat.add_sub_cancel' hlt.le] }
+    rw [← pow_add, nat.add_sub_of_le hlt.le] }
 end
 
 lemma pow_map_mk_lt (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) {k n : ℕ}
@@ -1143,86 +1143,37 @@ begin
   exact (dvd_iff_le.1 (dvd_of_mem_normalized_factors hp)),
 end
 
-def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):
-  {p : ideal T | p ∈ normalized_factors I} ≃ {p : ideal S | p ∈ normalized_factors J} :=
-{
-  to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
-    begin
-      obtain ⟨p, hp⟩ := X,
-      exact comap_map_map_mem_normalized_factors_of_mem_normalized_factors hI hJ f hp,
-    end⟩,
-  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
-    begin
-      obtain ⟨p, hp⟩ := X,
-      exact comap_map_map_mem_normalized_factors_of_mem_normalized_factors hJ hI f.symm hp,
-    end⟩,
-  left_inv := λ X,
-    begin
-      obtain ⟨p, hp⟩:= X,
-      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
-        quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _ quotient.mk_surjective,
-        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left
-        (le_of_dvd (dvd_of_mem_normalized_factors hp))],
-    end,
-  right_inv := λ X,
-    begin
-      obtain ⟨p, hp⟩:= X,
-      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
-        quotient.mk_surjective],
-      nth_rewrite 0 ← ring_equiv.symm_symm f,
-      rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
-        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left
-        (le_of_dvd (dvd_of_mem_normalized_factors hp))],
-    end
-}
+.
 
-lemma shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant (hI : I ≠ ⊥)
-  (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I)
-  (n : ℕ) : shifted_seq_pow_constant I p n
-  ↔ shifted_seq_pow_constant J ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) n :=
-begin
-  split,
-  { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
-    intros hn m hm,
-    specialize hn m hm,
-    apply_fun map (f : I.quotient →+* J.quotient) at hn,
-    rw [ideal_correspondence, equiv.coe_fn_mk, subtype.coe_mk, subtype.coe_mk,
-      map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow, hn, map_pow] },
-  { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
-    intros hn m hm,
-    specialize hn m hm,
-    rw [map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow,
-      ← map_pow _ _ m] at hn,
-    apply_fun map ↑f.symm at hn,
-    rw [map_of_equiv _ f, map_of_equiv _ f] at hn,
-    exact hn }
-end
+/-- Ideals over isomorphic rings are isomorphic. -/
+def ideal.congr {R S : Type*} [comm_ring R] [comm_ring S] (f : R ≃+* S) : ideal R ≃+* ideal S :=
+{ to_fun := map ↑f,
+  inv_fun := comap ↑f,
+  left_inv := λ I, begin
+    rw [comap_map_of_surjective, sup_eq_left],
+    { exact comap_bot_le_of_injective _ f.injective },
+    { exact f.surjective }
+  end,
+  right_inv := λ I, map_comap_of_surjective ↑f f.surjective I,
+  map_add' := map_sup ↑f,
+  map_mul' := map_mul ↑f }
 
-lemma irreducible_ideal_correspondence (hI : I ≠ 0) (hJ : J ≠ 0) (f : I.quotient ≃+* J.quotient)
-  {p : ideal T} (hp : p ∈ normalized_factors I) :
-  irreducible (ideal_correspondence hI hJ f ⟨p, hp⟩ : ideal S) :=
-begin
-  obtain ⟨q, hq⟩ := ideal_correspondence hI hJ f ⟨p, hp⟩,
-  rw subtype.coe_mk,
-  exact irreducible_of_normalized_factor q hq,
-end
+variables (I)
 
+/-- The ideals in the quotient by `I` are exactly those containing `I`. -/
+def ideal_quotient_equiv : ideal I.quotient ≃o {p : ideal T // I ≤ p} :=
+(rel_iso_of_surjective I^.quotient.mk quotient.mk_surjective).trans
+  { map_rel_iff' := by { rintros ⟨p, _⟩ ⟨q, _⟩, exact iff.rfl },
+    .. equiv.subtype_equiv_right (λ p,
+      show comap I^.quotient.mk ⊥ ≤ p ↔ I ≤ p,
+      by rw [← ring_hom.ker_eq_comap_bot, mk_ker]) }
 
-theorem multiplicity_eq_of_quot_equiv (hI : I ≠ 0) (hJ : J ≠ 0) (f : I.quotient ≃+* J.quotient)
-  {p : ideal T} (hp : p ∈ normalized_factors I):
-  quotient_multiplicity hI (irreducible_of_normalized_factor p hp) =
-  quotient_multiplicity hJ (irreducible_ideal_correspondence hI hJ f hp) :=
-begin
-  apply le_antisymm,
-  { rw [quotient_multiplicity, quotient_multiplicity],
-    apply nat.find_min',
-    rw shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant hI hJ f hp,
-    refine nat.find_spec _ },
-  { rw [quotient_multiplicity, quotient_multiplicity],
-    apply nat.find_min',
-    rw ← shifted_seq_pow_constant_iff_ideal_correspondence_shifted_eq_pow_constant hI hJ f hp,
-    refine nat.find_spec _ },
-end
+/-- The ideals in the quotient by `I` are exactly those dividing `I`. -/
+def ideal_quotient_equiv_divisors : ideal I.quotient ≃o {p : ideal T // p ∣ I} :=
+(ideal_quotient_equiv I).trans
+  { map_rel_iff' := by { rintros ⟨p, _⟩ ⟨q, _⟩, exact iff.rfl },
+    .. equiv.subtype_equiv_right (λ p, show I ≤ p ↔ p ∣ I, by rw ideal.dvd_iff_le) }
 
+.
 
 end quotient_multiplicity

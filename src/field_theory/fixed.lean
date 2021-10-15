@@ -45,7 +45,7 @@ def fixed_by.subfield : subfield F :=
   neg_mem' := λ x hx, (smul_neg m x).trans $ congr_arg _ hx,
   one_mem' := smul_one m,
   mul_mem' := λ x y hx hy, (smul_mul' m x y).trans $ congr_arg2 _ hx hy,
-  inv_mem' := λ x hx, (smul_inv' F m x).trans $ congr_arg _ hx }
+  inv_mem' := λ x hx, (smul_inv'' m x).trans $ congr_arg _ hx }
 
 section invariant_subfields
 
@@ -98,7 +98,7 @@ subtype.eq $ x.2 m
 polynomial.induction_on p
   (λ x, by rw [polynomial.smul_C, smul])
   (λ p q ihp ihq, by rw [smul_add, ihp, ihq])
-  (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow, polynomial.smul_X])
+  (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow', polynomial.smul_X])
 
 instance : algebra (fixed_points.subfield M F) F :=
 algebra.of_subring (fixed_points.subfield M F).to_subring

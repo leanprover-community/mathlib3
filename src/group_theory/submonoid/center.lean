@@ -77,7 +77,7 @@ lemma center_units_eq [group_with_zero M] :
 subset.antisymm center_units_subset subset_center_units
 
 @[simp]
-lemma inv_mem_center' [group_with_zero M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
+lemma inv_mem_center₀ [group_with_zero M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
 begin
   obtain rfl | ha0 := eq_or_ne a 0,
   { rw inv_zero, exact zero_mem_center M },
@@ -95,11 +95,11 @@ begin
 end
 
 @[simp]
-lemma div_mem_center' [group_with_zero M] {a b : M} (ha : a ∈ set.center M)
+lemma div_mem_center₀ [group_with_zero M] {a b : M} (ha : a ∈ set.center M)
   (hb : b ∈ set.center M) : a / b ∈ set.center M :=
 begin
   rw div_eq_mul_inv,
-  exact mul_mem_center ha (inv_mem_center' hb),
+  exact mul_mem_center ha (inv_mem_center₀ hb),
 end
 
 variables (M)

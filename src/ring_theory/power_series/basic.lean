@@ -192,14 +192,14 @@ end
 lemma coeff_add_monomial_mul (a : R) :
   coeff R (m + n) (monomial R m a * φ) = a * coeff R n φ :=
 begin
-  rw [coeff_monomial_mul, if_pos, nat_add_sub_cancel_left],
+  rw [coeff_monomial_mul, if_pos, add_sub_cancel_left],
   exact le_add_right le_rfl
 end
 
 lemma coeff_add_mul_monomial (a : R) :
   coeff R (m + n) (φ * monomial R n a) = coeff R m φ * a :=
 begin
-  rw [coeff_mul_monomial, if_pos, nat_add_sub_cancel],
+  rw [coeff_mul_monomial, if_pos, add_sub_cancel_right],
   exact le_add_left le_rfl
 end
 
@@ -271,8 +271,8 @@ begin
   ext k,
   simp only [coeff_mul_monomial, coeff_monomial],
   split_ifs with h₁ h₂ h₃ h₃ h₂; try { refl },
-  { rw [← h₂, nat_sub_add_cancel h₁] at h₃, exact (h₃ rfl).elim },
-  { rw [h₃, nat_add_sub_cancel] at h₂, exact (h₂ rfl).elim },
+  { rw [← h₂, sub_add_cancel_of_le h₁] at h₃, exact (h₃ rfl).elim },
+  { rw [h₃, add_sub_cancel_right] at h₂, exact (h₂ rfl).elim },
   { exact zero_mul b },
   { rw h₂ at h₁, exact (h₁ $ le_add_left le_rfl).elim }
 end
@@ -542,14 +542,14 @@ begin
       { rintros ⟨i,j⟩ hij hne, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply hne, rw [← hij, ← hi, prod.mk.inj_iff], refine ⟨rfl, _⟩,
-          ext t, simp only [nat.add_sub_cancel_left, finsupp.add_apply, finsupp.nat_sub_apply] },
+          ext t, simp only [nat.add_sub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
         { exact zero_mul _ } },
         { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply H, rw [← hij, hi], ext,
-          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, nat_add_sub_cancel_left, add_comm], },
+          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, add_sub_cancel_left, add_comm], },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
@@ -1465,7 +1465,7 @@ lemma nat_le_order (φ : power_series R) (n : ℕ) (h : ∀ i < n, coeff R i φ 
   ↑n ≤ order φ :=
 begin
   by_contra H, rw not_le at H,
-  have : (order φ).dom := enat.dom_of_le_some (le_of_lt H),
+  have : (order φ).dom := enat.dom_of_le_coe H.le,
   rw [← enat.coe_get this, enat.coe_lt_coe] at H,
   exact coeff_order _ this (h _ H)
 end
@@ -1486,7 +1486,7 @@ and the `i`th coefficient is `0` for all `i < n`.-/
 lemma order_eq_nat {φ : power_series R} {n : ℕ} :
   order φ = n ↔ (coeff R n φ ≠ 0) ∧ (∀ i, i < n → coeff R i φ = 0) :=
 begin
-  simp only [eq_some_iff, X_pow_dvd_iff], push_neg,
+  simp only [eq_coe_iff, X_pow_dvd_iff], push_neg,
   split,
   { rintros ⟨h₁, m, hm₁, hm₂⟩, refine ⟨_, h₁⟩,
     suffices : n = m, { rwa this },
@@ -1557,7 +1557,7 @@ begin
   rw not_lt at hi hj, rw finset.nat.mem_antidiagonal at hij,
   exfalso,
   apply ne_of_lt (lt_of_lt_of_le hn $ add_le_add hi hj),
-  rw [← enat.coe_add, hij]
+  rw [← nat.cast_add, hij]
 end
 
 /-- The order of the monomial `a*X^n` is infinite if `a = 0` and `n` otherwise.-/
@@ -1619,7 +1619,7 @@ by simpa using order_monomial_of_ne_zero 0 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X` is `1`.-/
 @[simp] lemma order_X : order (X : power_series R) = 1 :=
-order_monomial_of_ne_zero 1 (1:R) one_ne_zero
+by simpa only [nat.cast_one] using order_monomial_of_ne_zero 1 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X^n` is `n`.-/
 @[simp] lemma order_X_pow (n : ℕ) : order ((X : power_series R)^n) = n :=

@@ -52,7 +52,7 @@ begin
     ... = (2*a*x + b)^2 : by ring },
   { assume h,
     have ha : 2 * 2 * a ≠ 0 := mul_ne_zero (mul_ne_zero h2 h2) ha,
-    apply mul_left_cancel' ha,
+    apply mul_left_cancel₀ ha,
     calc
       2 * 2 * a * (a * x * x + b * x + c) = (2 * a * x + b) ^ 2 - (b ^ 2 - 4 * a * c) : by ring
       ... = 0 : by { rw [← h, discrim], ring }

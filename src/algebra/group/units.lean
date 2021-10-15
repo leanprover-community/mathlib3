@@ -266,6 +266,10 @@ def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 @[nontriviality] lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 ⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
+instance [monoid M] [subsingleton M] : unique (units M) :=
+{ default := 1,
+  uniq := λ a, units.coe_eq_one.mp $ subsingleton.elim (a : M) 1 }
+
 @[simp, to_additive is_add_unit_add_unit]
 protected lemma units.is_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 
@@ -333,10 +337,21 @@ by cases ha with a ha; rw [←ha, units.mul_left_inj]
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
-classical.some h
+(classical.some h).copy a (classical.some_spec h).symm _ rfl
 
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
-classical.some_spec h
+rfl
+
+lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
+  ↑(h.unit)⁻¹ * a = 1 :=
+units.mul_inv _
+
+lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
+  a * ↑(h.unit)⁻¹ = 1 :=
+begin
+  convert units.mul_inv _,
+  simp [h.unit_spec]
+end
 
 end is_unit
 

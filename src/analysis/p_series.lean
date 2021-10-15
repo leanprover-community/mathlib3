@@ -50,7 +50,7 @@ begin
     exact add_le_add ihn this,
     exacts [n.one_le_two_pow, nat.pow_le_pow_of_le_right zero_lt_two n.le_succ] },
   have : ∀ k ∈ Ico (2 ^ n) (2 ^ (n + 1)), f k ≤ f (2 ^ n) :=
-    λ k hk, hf (pow_pos zero_lt_two _) (Ico.mem.mp hk).1,
+    λ k hk, hf (pow_pos zero_lt_two _) (mem_Ico.mp hk).1,
   convert sum_le_sum this,
   simp [pow_succ, two_mul]
 end
@@ -72,8 +72,8 @@ begin
     exacts [add_le_add_right n.one_le_two_pow _,
       add_le_add_right (nat.pow_le_pow_of_le_right zero_lt_two n.le_succ) _] },
   have : ∀ k ∈ Ico (2 ^ n + 1) (2 ^ (n + 1) + 1), f (2 ^ (n + 1)) ≤ f k :=
-    λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (Ico.mem.mp hk).1)
-      (nat.le_of_lt_succ $ (Ico.mem.mp hk).2),
+    λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (mem_Ico.mp hk).1)
+      (nat.le_of_lt_succ $ (mem_Ico.mp hk).2),
   convert sum_le_sum this,
   simp [pow_succ, two_mul]
 end
@@ -153,16 +153,16 @@ Cauchy condensation test we formalized above. This test implies that `∑ n, 1 /
 and only if `∑ n, 2 ^ n / ((2 ^ n) ^ p)` converges, and the latter series is a geometric series with
 common ratio `2 ^ {1 - p}`. -/
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
 if and only if `1 < p`. -/
 @[simp] lemma real.summable_nat_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
 begin
   cases le_or_lt 0 p with hp hp,
-  /- Cauchy condensation test applies only to monotonically decreasing sequences, so we consider the
+  /- Cauchy condensation test applies only to antitone sequences, so we consider the
   cases `0 ≤ p` and `p < 0` separately. -/
   { rw ← summable_condensed_iff_of_nonneg,
     { simp_rw [nat.cast_pow, nat.cast_two, ← rpow_nat_cast, ← rpow_mul zero_lt_two.le, mul_comm _ p,
-        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow', ← mul_pow,
+        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow₀, ← mul_pow,
         summable_geometric_iff_norm_lt_1],
       nth_rewrite 0 [← rpow_one 2],
       rw [← division_def, ← rpow_sub zero_lt_two, norm_eq_abs,
@@ -187,17 +187,20 @@ begin
         hp.not_lt, hk₀] using hk₁ } }
 end
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
+@[simp] lemma real.summable_nat_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ) ↔ p < -1 :=
+by { rcases neg_surjective p with ⟨p, rfl⟩, simp [rpow_neg] }
+
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
 by simp
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
 if and only if `1 < p`. -/
 @[simp] lemma real.summable_nat_pow_inv {p : ℕ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
 by simp only [← rpow_nat_cast, real.summable_nat_rpow_inv, nat.one_lt_cast]
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_pow {p : ℕ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
 by simp
@@ -220,7 +223,10 @@ begin
   { exact λ i, div_nonneg zero_le_one i.cast_add_one_pos.le }
 end
 
-@[simp] lemma nnreal.summable_one_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
+@[simp] lemma nnreal.summable_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
+by simp [← nnreal.summable_coe]
+
+@[simp] lemma nnreal.summable_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ≥0) ↔ p < -1 :=
 by simp [← nnreal.summable_coe]
 
 lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=

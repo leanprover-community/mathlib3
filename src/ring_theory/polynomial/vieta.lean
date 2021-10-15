@@ -92,7 +92,7 @@ begin
     rwa [(nat.sub_eq_iff_eq_add h), add_comm],
     rw mem_filter,
     have haσ : a ∈ range (card σ + 1) :=
-    by { rw mem_singleton.mp ha, exact mem_range_succ_iff.mpr (nat.sub_le_self _ k) },
+    by { rw mem_singleton.mp ha, exact mem_range_succ_iff.mpr (@sub_le_self' _ _ _ _ _ k) },
     refine ⟨haσ, eq.symm _⟩,
     rw nat.sub_eq_iff_eq_add (mem_range_succ_iff.mp haσ),
     have hσ := (nat.sub_eq_iff_eq_add h).mp (mem_singleton.mp ha).symm,

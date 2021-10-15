@@ -61,13 +61,13 @@ theorem eq_nil_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = [] :=
 by simp [Ico, nat.sub_eq_zero_of_le h]
 
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
-by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
+by rw [Ico, Ico, map_add_range', add_sub_add_right_eq_sub', add_comm n k]
 
 theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
   by_cases h₂ : n < m,
   { rw [Ico, Ico],
-    rw nat.sub_sub_sub_cancel_right h₁,
+    rw sub_sub_sub_cancel_right' h₁,
     rw [map_sub_range' _ _ _ h₁] },
   { simp at h₂,
     rw [eq_nil_of_le h₂],
@@ -160,7 +160,7 @@ begin
   { rw [eq_nil_of_le hml, filter_le_of_top_le hml] }
 end
 
-@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (_root_.max n l) m :=
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
 begin
   cases le_total n l with hnl hln,
   { rw [max_eq_right hnl, filter_le_of_le hnl] },

@@ -356,6 +356,41 @@ by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
 end single
 
+/-! ### Declarations about `update` -/
+
+section update
+
+variables [has_zero M] (f : α →₀ M) (a : α) (b : M) (i : α)
+
+/-- Replace the value of a `α →₀ M` at a given point `a : α` by a given value `b : M`.
+If `b = 0`, this amounts to removing `a` from the `finsupp.support`.
+Otherwise, if `a` was not in the `finsupp.support`, it is added to it.
+
+This is the finitely-supported version of `function.update`. -/
+def update : α →₀ M :=
+⟨if b = 0 then f.support.erase a else insert a f.support,
+  function.update f a b,
+  λ i, begin
+    simp only [function.update_apply, ne.def],
+    split_ifs with hb ha ha hb;
+    simp [ha, hb]
+  end⟩
+
+@[simp] lemma coe_update : (f.update a b : α → M) = function.update f a b := rfl
+@[simp] lemma update_self : f.update a (f a) = f :=
+by { ext, simp }
+
+lemma support_update : support (f.update a b) =
+  if b = 0 then f.support.erase a else insert a f.support := rfl
+
+@[simp] lemma support_update_zero : support (f.update a 0) = f.support.erase a := if_pos rfl
+
+variables {b}
+
+lemma support_update_ne_zero (h : b ≠ 0) : support (f.update a b) = insert a f.support := if_neg h
+
+end update
+
 /-! ### Declarations about `on_finset` -/
 
 section on_finset
@@ -780,15 +815,29 @@ See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
+lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
+  f.update a b = single a b + f.erase a :=
+begin
+  ext j,
+  rcases eq_or_ne a j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, single_apply, h, erase_ne, h.symm] }
+end
+
+lemma update_eq_erase_add_single (f : α →₀ M) (a : α) (b : M) :
+  f.update a b = f.erase a + single a b :=
+begin
+  ext j,
+  rcases eq_or_ne a j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, single_apply, h, erase_ne, h.symm] }
+end
+
 lemma single_add_erase (a : α) (f : α →₀ M) : single a (f a) + f.erase a = f :=
-ext $ λ a',
-if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, add_zero]
-else by simp only [add_apply, single_eq_of_ne h, zero_add, erase_ne (ne.symm h)]
+by rw [←update_eq_single_add_erase, update_self]
 
 lemma erase_add_single (a : α) (f : α →₀ M) : f.erase a + single a (f a) = f :=
-ext $ λ a',
-if h : a = a' then by subst h; simp only [add_apply, single_eq_same, erase_same, zero_add]
-else by simp only [add_apply, single_eq_of_ne h, add_zero, erase_ne (ne.symm h)]
+by rw [←update_eq_erase_add_single, update_self]
 
 @[simp] lemma erase_add (a : α) (f f' : α →₀ M) : erase a (f + f') = erase a f + erase a f' :=
 begin
@@ -796,6 +845,11 @@ begin
   { rw [hs, add_apply, erase_same, erase_same, erase_same, add_zero] },
   rw [add_apply, erase_ne hs, erase_ne hs, erase_ne hs, add_apply],
 end
+
+/-- `finsupp.erase` as an `add_monoid_hom`. -/
+@[simps]
+def erase_add_hom (a : α) : (α →₀ M) →+ (α →₀ M) :=
+{ to_fun := erase a, map_zero' := erase_zero a, map_add' := erase_add a }
 
 @[elab_as_eliminator]
 protected theorem induction {p : (α →₀ M) → Prop} (f : α →₀ M)
@@ -948,47 +1002,6 @@ monoid_hom.finset_prod_apply _ _ _
 
 namespace finsupp
 
-section nat_sub
-instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
-
-@[simp] lemma coe_nat_sub (g₁ g₂ : α →₀ ℕ) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-lemma nat_sub_apply (g₁ g₂ : α →₀ ℕ) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
-
-@[simp] lemma single_nat_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
-begin
-  ext f,
-  by_cases h : (a = f),
-  { rw [h, nat_sub_apply, single_eq_same, single_eq_same, single_eq_same] },
-  rw [nat_sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h]
-end
-
--- These next two lemmas are used in developing
--- the partial derivative on `mv_polynomial`.
-
-lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
-  u - single a 1 + u' = u + u' - single a 1 :=
-begin
-  ext b,
-  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
-  by_cases h : a = b,
-  { rw [←h, single_eq_same], cases (u a), { contradiction }, { simp }, },
-  { simp [h], }
-end
-
-lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
-  u + (u' - single a 1) = u + u' - single a 1 :=
-begin
-  ext b,
-  rw [add_apply, nat_sub_apply, nat_sub_apply, add_apply],
-  by_cases h : a = b,
-  { rw [←h, single_eq_same], cases (u' a), { contradiction }, { simp }, },
-  { simp [h], }
-end
-
-@[simp] lemma nat_zero_sub (f : α →₀ ℕ) : 0 - f = 0 := ext $ λ x, nat.zero_sub _
-
-end nat_sub
-
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
 { add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
   .. finsupp.add_monoid }
@@ -1046,6 +1059,19 @@ finset.subset.antisymm
   support_map_range
   (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
      ... ⊆ support (- f) : support_map_range)
+
+lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
+  f.erase a = f - single a (f a) :=
+begin
+  ext a',
+  rcases eq_or_ne a a' with rfl|h,
+  { simp },
+  { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
+
+lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) :
+  f.update a b = f - single a (f a) + single a b :=
+by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
@@ -1853,6 +1879,19 @@ ext $ λ _, rfl
 @[simp] lemma single_sub {a : α} {b₁ b₂ : G} : single a (b₁ - b₂) = single a b₁ - single a b₂ :=
 (single_add_hom a : G →+ _).map_sub b₁ b₂
 
+@[simp] lemma erase_neg (a : α) (f : α →₀ G) : erase a (-f) = -erase a f :=
+(erase_add_hom a : (_ →₀ G) →+ _).map_neg f
+
+@[simp] lemma erase_sub (a : α) (f₁ f₂ : α →₀ G) : erase a (f₁ - f₂) = erase a f₁ - erase a f₂ :=
+(erase_add_hom a : (_ →₀ G) →+ _).map_sub f₁ f₂
+
+@[simp] lemma filter_neg (p : α → Prop) (f : α →₀ G) : filter p (-f) = -filter p f :=
+(filter_add_hom p : (_ →₀ G) →+ _).map_neg f
+
+@[simp] lemma filter_sub (p : α → Prop) (f₁ f₂ : α →₀ G) :
+  filter p (f₁ - f₂) = filter p f₁ - filter p f₂ :=
+(filter_add_hom p : (_ →₀ G) →+ _).map_sub f₁ f₂
+
 end group
 
 end subtype_domain
@@ -2572,22 +2611,39 @@ instance [partial_order M] [has_zero M] : partial_order (α →₀ M) :=
 { le_antisymm := λ f g hfg hgf, ext $ λ s, le_antisymm (hfg s) (hgf s),
   .. finsupp.preorder }
 
+instance [ordered_add_comm_monoid M] : ordered_add_comm_monoid (α →₀ M) :=
+{ add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
+  .. finsupp.add_comm_monoid, .. finsupp.partial_order }
+
 instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α →₀ M) :=
 { add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
   le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
   add_left_cancel := λ a b c h, ext $ λ s, add_left_cancel (ext_iff.1 h s),
   .. finsupp.add_comm_monoid, .. finsupp.partial_order }
 
+instance [ordered_add_comm_monoid M] [contravariant_class M M (+) (≤)] :
+  contravariant_class (α →₀ M) (α →₀ M) (+) (≤) :=
+⟨λ f g h H x, le_of_add_le_add_left $ H x⟩
+
 lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
+
+lemma le_iff' [canonically_ordered_add_monoid M] (f g : α →₀ M)
+  {t : finset α} (hf : f.support ⊆ t) :
+  f ≤ g ↔ ∀ s ∈ t, f s ≤ g s :=
+⟨λ h s hs, h s,
+λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
 lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
-⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+le_iff' f g (subset.refl _)
 
 instance decidable_le [canonically_ordered_add_monoid M] [decidable_rel (@has_le.le M _)] :
   decidable_rel (@has_le.le (α →₀ M) _) :=
 λ f g, decidable_of_iff _ (le_iff f g).symm
+
+@[simp] lemma single_le_iff [canonically_ordered_add_monoid M] {i : α} {x : M} {f : α →₀ M} :
+  single i x ≤ f ↔ x ≤ f i :=
+(le_iff' _ _ support_single_subset).trans $ by simp
 
 @[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
@@ -2622,24 +2678,58 @@ subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 variable {α}
 
-@[simp] lemma nat_add_sub_cancel (f g : α →₀ ℕ) : f + g - g = f :=
-ext $ λ a, nat.add_sub_cancel _ _
+/-! Declarations about subtraction on `finsupp` with codomain a `canonically_ordered_add_monoid`.
 
-@[simp] lemma nat_add_sub_cancel_left (f g : α →₀ ℕ) : f + g - f = g :=
-ext $ λ a, nat.add_sub_cancel_left _ _
+Some of these lemmas are used to develop the partial derivative on `mv_polynomial`. -/
+section nat_sub
+section canonically_ordered_monoid
 
-lemma nat_add_sub_of_le {f g : α →₀ ℕ} (h : f ≤ g) : f + (g - f) = g :=
-ext $ λ a, nat.add_sub_of_le (h a)
+variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 
-lemma nat_sub_add_cancel {f g : α →₀ ℕ} (h : f ≤ g) : g - f + f = g :=
-ext $ λ a, nat.sub_add_cancel (h a)
+/-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
+additive group. -/
+instance tsub : has_sub (α →₀ M) :=
+⟨zip_with (λ m n, m - n) (sub_self' 0)⟩
 
-instance : canonically_ordered_add_monoid (α →₀ ℕ) :=
+@[simp] lemma coe_tsub (g₁ g₂ : α →₀ M) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+
+lemma tsub_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
+instance : canonically_ordered_add_monoid (α →₀ M) :=
 { bot := 0,
   bot_le := λ f s, zero_le (f s),
-  le_iff_exists_add := λ f g, ⟨λ H, ⟨g - f, (nat_add_sub_of_le H).symm⟩,
-    λ ⟨c, hc⟩, hc.symm ▸ λ x, by simp⟩,
- .. (infer_instance : ordered_add_comm_monoid (α →₀ ℕ)) }
+  le_iff_exists_add := begin
+      intros f g,
+      split,
+      { intro H, use g - f, ext x, symmetry, exact add_sub_cancel_of_le (H x) },
+      { rintro ⟨g, rfl⟩ x, exact self_le_add_right (f x) (g x) }
+    end,
+ ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
+
+instance : has_ordered_sub (α →₀ M) :=
+⟨λ n m k, forall_congr $ λ x, sub_le_iff_right⟩
+
+@[simp] lemma single_tsub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+begin
+  ext f,
+  by_cases h : (a = f),
+  { rw [h, tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
+  rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, sub_self']
+end
+
+end canonically_ordered_monoid
+
+/-! Some lemmas specifically about `ℕ`. -/
+
+lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
+  u - single a 1 + u' = u + u' - single a 1 :=
+sub_add_eq_add_sub' $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
+
+lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
+  u + (u' - single a 1) = u + u' - single a 1 :=
+(add_sub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
+
+end nat_sub
 
 end finsupp
 

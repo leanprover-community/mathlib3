@@ -61,8 +61,10 @@ def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
+open order_dual (of_dual to_dual)
+
 /-- The galois insertion between sets and opens, but ordered by reverse inclusion. -/
-def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior subtype.val :=
+def gi : galois_insertion (to_dual ∘ @interior α _ ∘ of_dual) (to_dual ∘ subtype.val ∘ of_dual) :=
 { choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc.dual,
   le_l_u := λ _, interior_subset,
@@ -83,14 +85,7 @@ begin
   apply subtype.ext_iff_val.mpr,
   exact (is_open.inter U.2 V.2).interior_eq.symm,
 end
-/- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
-by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
-begin
-  funext,
-  apply subtype.ext_iff_val.mpr,
-  simp [Sup_range],
-  refl,
-end
+/- Sup -/ _ rfl
 /- Inf -/ _ rfl
 
 lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
@@ -139,6 +134,7 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
     exact U.property.preimage continuous_subtype_val
   end, }
 
+/-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :

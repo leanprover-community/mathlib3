@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_equiv
 import linear_algebra.tensor_product
 import data.set.intervals.unordered_interval
 
@@ -178,6 +178,7 @@ variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [modul
           [affine_space V P]
 include V
 
+-- TODO Refactor to use `instance : set_like (affine_subspace k P) P :=` instead
 instance : has_coe (affine_subspace k P) (set P) := ⟨carrier⟩
 instance : has_mem P (affine_subspace k P) := ⟨λ p s, p ∈ (s : set P)⟩
 
@@ -350,6 +351,10 @@ begin
   congr,
   exact h
 end
+
+@[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
+  (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
+⟨ext, by tidy⟩
 
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/
@@ -667,6 +672,58 @@ end
 @[simp] lemma bot_coe : ((⊥ : affine_subspace k P) : set P) = ∅ :=
 rfl
 
+lemma bot_ne_top : (⊥ : affine_subspace k P) ≠ ⊤ :=
+begin
+  intros contra,
+  rw [← ext_iff, bot_coe, top_coe] at contra,
+  exact set.empty_ne_univ contra,
+end
+
+instance : nontrivial (affine_subspace k P) := ⟨⟨⊥, ⊤, bot_ne_top k V P⟩⟩
+
+lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
+begin
+  rw ← set.ne_empty_iff_nonempty,
+  rintros rfl,
+  rw affine_subspace.span_empty at h,
+  exact bot_ne_top k V P h,
+end
+
+/-- If the affine span of a set is `⊤`, then the vector span of the same set is the `⊤`. -/
+lemma vector_span_eq_top_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) :
+  vector_span k s = ⊤ :=
+by rw [← direction_affine_span, h, direction_top]
+
+/-- For a nonempty set, the affine span is `⊤` iff its vector span is `⊤`. -/
+lemma affine_span_eq_top_iff_vector_span_eq_top_of_nonempty {s : set P} (hs : s.nonempty) :
+  affine_span k s = ⊤ ↔ vector_span k s = ⊤ :=
+begin
+  refine ⟨vector_span_eq_top_of_affine_span_eq_top k V P, _⟩,
+  intros h,
+  suffices : nonempty (affine_span k s),
+  { obtain ⟨p, hp : p ∈ affine_span k s⟩ := this,
+    rw [eq_iff_direction_eq_of_mem hp (mem_top k V p), direction_affine_span, h, direction_top] },
+  obtain ⟨x, hx⟩ := hs,
+  exact ⟨⟨x, mem_affine_span k hx⟩⟩,
+end
+
+/-- For a non-trivial space, the affine span of a set is `⊤` iff its vector span is `⊤`. -/
+lemma affine_span_eq_top_iff_vector_span_eq_top_of_nontrivial {s : set P} [nontrivial P] :
+  affine_span k s = ⊤ ↔ vector_span k s = ⊤ :=
+begin
+  cases s.eq_empty_or_nonempty with hs hs,
+  { simp [hs, subsingleton_iff_bot_eq_top, add_torsor.subsingleton_iff V P, not_subsingleton], },
+  { rw affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V P hs, },
+end
+
+lemma card_pos_of_affine_span_eq_top {ι : Type*} [fintype ι] {p : ι → P}
+  (h : affine_span k (range p) = ⊤) :
+  0 < fintype.card ι :=
+begin
+  obtain ⟨-, ⟨i, -⟩⟩ := nonempty_of_affine_span_eq_top k V P h,
+  exact fintype.card_pos_iff.mpr ⟨i⟩,
+end
+
 variables {P}
 
 /-- No points are in `⊥`. -/
@@ -680,6 +737,25 @@ variables (P)
 by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_empty, submodule.span_empty]
 
 variables {k V P}
+
+lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
+  (h₂ : affine_span k s = ⊤) : subsingleton P :=
+begin
+  obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  rw [this, ← affine_subspace.ext_iff, affine_subspace.coe_affine_span_singleton,
+    affine_subspace.top_coe, eq_comm, ← subsingleton_iff_singleton (mem_univ _)] at h₂,
+  exact subsingleton_of_univ_subsingleton h₂,
+end
+
+lemma eq_univ_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
+  (h₂ : affine_span k s = ⊤) : s = (univ : set P) :=
+begin
+  obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  rw [this, eq_comm, ← subsingleton_iff_singleton (mem_univ p), subsingleton_univ_iff],
+  exact subsingleton_of_subsingleton_span_eq_top h₁ h₂,
+end
 
 /-- A nonempty affine subspace is `⊤` if and only if its direction is
 `⊤`. -/
@@ -1100,3 +1176,77 @@ begin
 end
 
 end affine_subspace
+
+section maps
+
+variables {k V₁ P₁ V₂ P₂ : Type*} [ring k]
+variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+include V₁ V₂
+
+variables (f : P₁ →ᵃ[k] P₂)
+
+@[simp] lemma affine_map.vector_span_image_eq_submodule_map {s : set P₁} :
+  submodule.map f.linear (vector_span k s) = vector_span k (f '' s) :=
+by simp [f.image_vsub_image, vector_span_def]
+
+namespace affine_subspace
+
+/-- The image of an affine subspace under an affine map as an affine subspace. -/
+def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
+{ carrier := f '' s,
+  smul_vsub_vadd_mem :=
+    begin
+      rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
+      use t • (p₁ -ᵥ p₂) +ᵥ p₃,
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
+    end }
+
+@[simp] lemma map_coe (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+
+@[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
+by { rw ← ext_iff, exact image_empty f, }
+
+@[simp] lemma map_direction (s : affine_subspace k P₁) :
+  (s.map f).direction = s.direction.map f.linear :=
+by simp [direction_eq_vector_span]
+
+lemma map_span (s : set P₁) :
+  (affine_span k s).map f = affine_span k (f '' s) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩, { simp, },
+  apply ext_of_direction_eq,
+  { simp [direction_affine_span], },
+  { exact ⟨f p, mem_image_of_mem f (subset_affine_span k _ hp),
+                subset_affine_span k _ (mem_image_of_mem f hp)⟩, },
+end
+
+end affine_subspace
+
+namespace affine_map
+
+@[simp] lemma map_top_of_surjective (hf : function.surjective f) : affine_subspace.map f ⊤ = ⊤ :=
+begin
+  rw ← affine_subspace.ext_iff,
+  exact image_univ_of_surjective hf,
+end
+
+lemma span_eq_top_of_surjective {s : set P₁}
+  (hf : function.surjective f) (h : affine_span k s = ⊤) :
+  affine_span k (f '' s) = ⊤ :=
+by rw [← affine_subspace.map_span, h, map_top_of_surjective f hf]
+
+end affine_map
+
+lemma affine_equiv.span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
+  affine_span k s = ⊤ ↔ affine_span k (e '' s) = ⊤ :=
+begin
+  refine ⟨(e : P₁ →ᵃ[k] P₂).span_eq_top_of_surjective e.surjective, _⟩,
+  intros h,
+  have : s = e.symm '' (e '' s), { simp [← image_comp], },
+  rw this,
+  exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
+end
+
+end maps

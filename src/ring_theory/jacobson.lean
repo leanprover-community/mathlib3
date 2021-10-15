@@ -566,7 +566,7 @@ open mv_polynomial ring_hom
 lemma is_jacobson_mv_polynomial_fin {R : Type*} [comm_ring R] [H : is_jacobson R] :
   ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
 | 0 := ((is_jacobson_iso ((rename_equiv R
-  (equiv.equiv_pempty (fin 0))).to_ring_equiv.trans (pempty_ring_equiv R))).mpr H)
+  (equiv.equiv_pempty (fin 0))).to_ring_equiv.trans (is_empty_ring_equiv R pempty))).mpr H)
 | (n+1) := (is_jacobson_iso (fin_succ_equiv R n).to_ring_equiv).2
   (polynomial.is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
 

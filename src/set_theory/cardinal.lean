@@ -982,7 +982,7 @@ by rw [← to_nat_cast 0, nat.cast_zero]
 lemma one_to_nat : cardinal.to_nat 1 = 1 :=
 by rw [← to_nat_cast 1, nat.cast_one]
 
-lemma cardinal.to_nat_lift (c : cardinal.{v}) : (lift.{u v} c).to_nat = c.to_nat :=
+lemma to_nat_lift (c : cardinal.{v}) : (lift.{u v} c).to_nat = c.to_nat :=
 begin
   apply nat_cast_injective,
   cases lt_or_ge c ω with hc hc,
@@ -992,8 +992,8 @@ begin
     rwa [←lift_omega, lift_le] },
 end
 
-lemma cardinal.to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
-by rw [←cardinal.to_nat_lift, cardinal.lift_mk_eq.mpr ⟨e⟩, cardinal.to_nat_lift]
+lemma to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
+by rw [←to_nat_lift, lift_mk_eq.mpr ⟨e⟩, to_nat_lift]
 
 lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin

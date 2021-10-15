@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2021 Alex Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Alex Zhao.
+Authors: Alex Zhao.
 -/
 import tactic.suggest
+import tactic
 import data.rat.basic
 import data.nat.prime
 import data.int.gcd
@@ -32,27 +33,18 @@ upper bounding the largest nonconstructible number.
 chicken nugget, frobenius coin
 -/
 
-/- A simple lemma with the direction of distributivity of coercion from N to Z over subtraction, using casework. -/
+/-- Distributivity of coercion from N to Z over subtraction, using casework. -/
 lemma coe_sub_ge (m n : ℕ):
-  (((m-n) : ℕ):ℤ) ≥ (m : ℤ)-(n : ℤ) :=
-begin
-  by_cases h: m ≥ n,
-  have thing := int.coe_nat_sub h,
-  exact (le_of_eq thing.symm),
+  (m : ℤ)-(n : ℤ) ≤ (((m-n) : ℕ):ℤ) :=
+by by_cases m ≥ n; [norm_cast, linarith]
 
-  push_neg at h,
-  have h2 := int.coe_nat_lt.2 h,
-  have bound1 := nat.zero_le (m-n),
-  have rwbound1 := int.coe_nat_le.2 bound1,
-  have rwbound2 := int.sub_le_sub_right (le_of_lt h2) (n:ℤ),
-  rw sub_self at rwbound2,
-  exact le_trans rwbound2 rwbound1,
-end
-
-/- This lemma shows there is no solution for the maximal value over positive integers. -/
-lemma chicken_mcnugget_upper_bound_ints (a b m n : ℤ) (mpos: m>1) (npos: n>1) (cop: m.gcd n = 1) (h: a*m+b*n=m*n-m-n) (anonneg: a≥0) (bnonneg: b≥0):
-  false :=
+/-- This lemma shows there is no solution for the maximal value over positive integers. -/
+lemma chicken_mcnugget_upper_bound_ints (a b m n : ℤ) (mpos: m>1) (npos: n>1) (cop: m.gcd n = 1)
+  (anonneg: a≥0) (bnonneg: b≥0):
+    ¬ a*m+b*n=m*n-m-n :=
 begin
+  intro h,
+
   --algebra
   have id1 := mul_sub m n 1,
   rw mul_one at id1,
@@ -89,13 +81,14 @@ begin
   rw [cop,one_mul] at lcmprod,
   have mnpos := int.mul_pos (lt_trans int.zero_lt_one mpos) (lt_trans int.zero_lt_one npos),
   rw [lcmprod, ← int.eq_nat_abs_of_zero_le (le_of_lt mnpos)] at lcmdivision,
-  have contra := int.le_of_dvd h (int.dvd_of_mul_dvd_mul_left (ne_of_gt (lt_trans int.zero_lt_one mpos)) lcmdivision),
+  have contra := int.le_of_dvd h (int.dvd_of_mul_dvd_mul_left
+    (ne_of_gt (lt_trans int.zero_lt_one mpos)) lcmdivision),
   have mainbound2 := int.lt_add_one_of_le (int.sub_le_self (n-1) anonneg),
   rw sub_add_cancel at mainbound2,
   exact not_lt_of_le contra mainbound2,
 end
 
-/- This lemma shows there is no solution for the maximal value over the natural numbers, in a clean format -/
+/-- No solution for the maximal value over the natural numbers, cleanly -/
 lemma chicken_mcnugget_upper_bound (m n : ℕ) (cop : m.gcd n = 1) (mlb: m>1) (nlb: n>1):
   ¬ ∃ (a b : ℕ), a*m+b*n=m*n-m-n :=
 begin
@@ -109,8 +102,9 @@ begin
   have intcop : (m:ℤ).gcd (n:ℤ)=1,
   rw int.coe_nat_gcd m n,
   exact cop,
-  exact chicken_mcnugget_upper_bound_ints (a:ℤ) (b:ℤ) (m:ℤ) (n:ℤ) (int.coe_nat_lt.2 mlb) (int.coe_nat_lt.2 nlb)
-      intcop int_h (int.coe_nat_nonneg a) (int.coe_nat_nonneg b),
+  exact chicken_mcnugget_upper_bound_ints (a:ℤ) (b:ℤ) (m:ℤ) (n:ℤ)
+    (int.coe_nat_lt.2 mlb) (int.coe_nat_lt.2 nlb)
+      intcop (int.coe_nat_nonneg a) (int.coe_nat_nonneg b) int_h,
   have close := nat.mul_le_mul_left m (le_of_lt nlb),
   rw mul_one at close,
   exact close,
@@ -121,7 +115,7 @@ begin
   exact closing,
 end
 
-/- This lemma constructs solutions for values greater than the maximal value over the positive integers. -/
+/-- Constructs solutions for values greater than the maximal value over the positive integers. -/
 lemma chicken_mcnugget_construction_ints (m n: ℤ) (mlb: m>1) (nlb: n>1) (cop: m.gcd n=1):
   ∀ (k : ℤ), k>m*n-m-n → ∃ (a b : ℤ), a*m+b*n=k ∧ a>=0 ∧ b>=0 :=
 begin
@@ -180,7 +174,7 @@ begin
   exact not_lt_of_le qbound5 contra,
 end
 
-/- This lemma constructs solutions to values greater than the maximal value over the natural numbers. -/
+/-- Constructs solutions to values greater than the maximal value over the natural numbers. -/
 lemma chicken_mcnugget_construction (m n: ℕ) (mpos: m>1) (npos: n>1) (cop: m.gcd n=1):
   ∀ (k:ℕ), k>m*n-m-n → ∃ (a b : ℕ), a*m+b*n=k :=
 begin
@@ -190,12 +184,14 @@ begin
   exact cop,
 
   have intkbound : (k:ℤ) > (m:ℤ) * (n:ℤ) - (m:ℤ) - (n:ℤ),
-  have kbound4 := lt_of_le_of_lt (int.sub_le_sub_right (coe_sub_ge (m*n) m) n) (lt_of_le_of_lt (coe_sub_ge (m*n-m) n) (int.coe_nat_lt.2 kbound)),
+  have kbound4 := lt_of_le_of_lt (int.sub_le_sub_right (coe_sub_ge (m*n) m) n)
+    (lt_of_le_of_lt (coe_sub_ge (m*n-m) n) (int.coe_nat_lt.2 kbound)),
   rw int.coe_nat_mul at kbound4,
   exact kbound4,
 
   -- "importing" the result from the ints
-  have thing := chicken_mcnugget_construction_ints (m:ℤ) (n:ℤ) (int.coe_nat_lt.2 mpos) (int.coe_nat_lt.2 npos) intcop (k:ℤ) intkbound,
+  have thing := chicken_mcnugget_construction_ints (m:ℤ) (n:ℤ)
+    (int.coe_nat_lt.2 mpos) (int.coe_nat_lt.2 npos) intcop (k:ℤ) intkbound,
   rcases thing with ⟨a, b, relation, bounds⟩,
   cases bounds with anonneg bnonneg,
 
@@ -217,7 +213,7 @@ begin
   exact nat_relation,
 end
 
-/- This theorem combines both sublemmas in a single claim. -/
+/-- This theorem combines both sublemmas in a single claim. -/
 theorem chicken_mcnugget (m n: ℕ) (mlb: m>1) (nlb: n>1) (cop: m.gcd n=1):
   (¬ ∃ (a b : ℕ), a*m+b*n=m*n-m-n) ∧ ∀ (k:ℕ), k>m*n-m-n → ∃ (a b : ℕ), a*m+b*n=k :=
 begin

@@ -98,8 +98,7 @@ one_lt_pow_iff_of_nonneg ha two_ne_zero
 
 end group_power
 
-lemma finset.singleton_injective : injective (singleton : α → finset α) :=
-λ i j, singleton_inj.1
+lemma finset.singleton_injective : injective (singleton : α → finset α) := λ i j, singleton_inj.1
 
 @[simp] lemma finset.sup_singleton' [decidable_eq α] (s : finset α) : s.sup singleton = s :=
 begin
@@ -153,8 +152,7 @@ lemma set.pairwise_disjoint.elim_finset [decidable_eq α] {s : set (finset α)}
   (hzy : z ∈ y) : x = y :=
 hs.elim hx hy (finset.not_disjoint_iff.2 ⟨z, hzx, hzy⟩)
 
-lemma set.pairwise_disjoint_empty [semilattice_inf_bot α] :
-  (∅ : set α).pairwise_disjoint :=
+lemma set.pairwise_disjoint_empty [semilattice_inf_bot α] : (∅ : set α).pairwise_disjoint :=
 set.pairwise_on_empty _
 
 lemma set.pairwise_disjoint.image_set [semilattice_inf_bot α] {s : set α}
@@ -219,8 +217,7 @@ set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
 -- #exit
 namespace real
 
-lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) :
-  log a ≤ b ↔ a ≤ exp b :=
+lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) : log a ≤ b ↔ a ≤ exp b :=
 by rw [←exp_le_exp, exp_log ha]
 
 end real
@@ -341,13 +338,11 @@ begin
   exact hV (mem_inter.2 ⟨hx.1.2.1, hx.2.2.1⟩),
 end
 
-lemma pairs_finset_bUnion_left (A : finset (finset α)) (V : finset α)
-  (f : finset α → finset α) :
+lemma pairs_finset_bUnion_left (A : finset (finset α)) (V : finset α) (f : finset α → finset α) :
   pairs_finset r (A.bUnion f) V = A.bUnion (λ a, pairs_finset r (f a) V) :=
 by { ext x, simp only [mem_pairs_finset, mem_bUnion, exists_and_distrib_right] }
 
-lemma pairs_finset_bUnion_right (U : finset α) (B : finset (finset α))
-  (f : finset α → finset α) :
+lemma pairs_finset_bUnion_right (U : finset α) (B : finset (finset α)) (f : finset α → finset α) :
   pairs_finset r U (B.bUnion f) = B.bUnion (λ b, pairs_finset r U (f b)) :=
 begin
   ext x,
@@ -364,11 +359,9 @@ by simp_rw [product_bUnion, pairs_finset_bUnion_left, pairs_finset_bUnion_right]
 end decidable_eq
 
 /-- Number of edges between two finsets of vertices -/
-def pairs_count (U V : finset α) : ℕ :=
-(pairs_finset r U V).card
+def pairs_count (U V : finset α) : ℕ := (pairs_finset r U V).card
 
-lemma pairs_count_le_mul (U V : finset α) :
-  pairs_count r U V ≤ U.card * V.card :=
+lemma pairs_count_le_mul (U V : finset α) : pairs_count r U V ≤ U.card * V.card :=
 begin
   rw [pairs_count, pairs_finset, ←finset.card_product],
   exact finset.card_filter_le _ _,
@@ -378,12 +371,10 @@ end
 noncomputable def pairs_density (U V : finset α) : ℝ :=
 pairs_count r U V / (U.card * V.card)
 
-lemma pairs_density_nonneg (U V : finset α) :
-  0 ≤ pairs_density r U V :=
+lemma pairs_density_nonneg (U V : finset α) : 0 ≤ pairs_density r U V :=
 by { apply div_nonneg; exact_mod_cast nat.zero_le _ }
 
-lemma pairs_density_le_one (U V : finset α) :
-  pairs_density r U V ≤ 1 :=
+lemma pairs_density_le_one (U V : finset α) : pairs_density r U V ≤ 1 :=
 begin
   refine div_le_one_of_le _ (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)),
   norm_cast,
@@ -399,12 +390,10 @@ begin
   exact_mod_cast card_pairs_finset_compl r U V,
 end
 
-lemma pairs_density_empty_left (V : finset α) :
-  pairs_density r ∅ V = 0 :=
+lemma pairs_density_empty_left (V : finset α) : pairs_density r ∅ V = 0 :=
 by rw [pairs_density, finset.card_empty, nat.cast_zero, zero_mul, div_zero]
 
-lemma pairs_density_empty_right (U : finset α) :
-  pairs_density r U ∅ = 0 :=
+lemma pairs_density_empty_right (U : finset α) : pairs_density r U ∅ = 0 :=
 by rw [pairs_density, finset.card_empty, nat.cast_zero, mul_zero, div_zero]
 
 section symmetric
@@ -418,8 +407,7 @@ begin
   split; exact λ h, ⟨h.2.1, h.1, hr h.2.2⟩,
 end
 
-lemma pairs_count_comm (U V : finset α) :
-  pairs_count r U V = pairs_count r V U :=
+lemma pairs_count_comm (U V : finset α) : pairs_count r U V = pairs_count r V U :=
 begin
   apply finset.card_congr (λ (i : α × α) hi, (i.2, i.1)) _ _ _,
   { rintro ⟨i, j⟩ h,
@@ -448,35 +436,29 @@ variables (G : simple_graph α) [decidable_rel G.adj]
 
 open relation
 
-def edge_count (U V : finset α) : ℝ :=
-(pairs_finset G.adj U V).card
+def edge_count (U V : finset α) : ℝ := (pairs_finset G.adj U V).card
 
 /- Remnants of what's now under `relation`. The only point for keeping it is to sometimes avoid
 writing `G.adj` and `G.sym` sometimes. -/
 /-- Edge density between two finsets of vertices -/
-noncomputable def edge_density : finset α → finset α → ℝ :=
-pairs_density G.adj
+noncomputable def edge_density : finset α → finset α → ℝ := pairs_density G.adj
 
 lemma edge_density_eq_edge_count_div_card (U V : finset α) :
-  G.edge_density U V = G.edge_count U V/(U.card * V.card) := rfl
+  G.edge_density U V = G.edge_count U V/(U.card * V.card) :=
+rfl
 
 lemma edge_density_comm (U V : finset α) : G.edge_density U V = G.edge_density V U :=
 pairs_density_comm G.symm U V
 
-lemma edge_density_nonneg (U V : finset α) :
-  0 ≤ G.edge_density U V :=
-pairs_density_nonneg _ U V
+lemma edge_density_nonneg (U V : finset α) : 0 ≤ G.edge_density U V := pairs_density_nonneg _ U V
 
-lemma edge_density_le_one (U V : finset α) :
-  G.edge_density U V ≤ 1 :=
-pairs_density_le_one _ U V
+lemma edge_density_le_one (U V : finset α) : G.edge_density U V ≤ 1 := pairs_density_le_one _ U V
 
 noncomputable def sym2_edge_density : sym2 (finset α) → ℝ :=
 sym2.lift ⟨G.edge_density, G.edge_density_comm⟩
 
 @[simp]
-lemma sym2_edge_density_mk {U V : finset α} :
-  G.sym2_edge_density ⟦(U, V)⟧ = G.edge_density U V :=
+lemma sym2_edge_density_mk {U V : finset α} : G.sym2_edge_density ⟦(U, V)⟧ = G.edge_density U V :=
 rfl
 
 end simple_graph
@@ -510,14 +492,12 @@ begin
   apply h _ hU' _ hV' hU hV,
 end
 
-lemma is_uniform_symmetric : symmetric (is_uniform G ε) :=
-λ U V h, h.symm
+lemma is_uniform_symmetric : symmetric (is_uniform G ε) := λ U V h, h.symm
 
 lemma is_uniform_comm {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
 ⟨λ h, h.symm, λ h, h.symm⟩
 
-lemma is_uniform_singleton {ε : ℝ} {x y : α} (hε : 0 < ε) :
-  G.is_uniform ε {x} {y} :=
+lemma is_uniform_singleton {ε : ℝ} {x y : α} (hε : 0 < ε) : G.is_uniform ε {x} {y} :=
 begin
   rintro U' hU' V' hV' hU hV,
   rw [card_singleton, nat.cast_one, one_mul] at hU hV,
@@ -530,8 +510,7 @@ begin
   rwa [sub_self, abs_zero],
 end
 
-def sym2_is_uniform (UV : sym2 (finset α)) : Prop :=
-sym2.from_rel (G.is_uniform_symmetric ε) UV
+def sym2_is_uniform (UV : sym2 (finset α)) : Prop := sym2.from_rel (G.is_uniform_symmetric ε) UV
 
 @[simp]
 lemma sym2_is_uniform_mk {ε : ℝ} {U V : finset α} :
@@ -685,6 +664,12 @@ nonempty_iff_ne_empty.2 $ P.ne_bot_of_mem_parts ha
 lemma nonempty_parts_iff : P.parts.nonempty ↔ s.nonempty :=
 by rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, not_iff_not, empty_parts_iff, bot_eq_empty]
 
+lemma exists_mem {a : α} (ha : a ∈ s) : ∃ t ∈ P.parts, a ∈ t :=
+begin
+  simp_rw ←P.sup_parts at ha,
+  exact mem_sup.1 ha,
+end
+
 lemma bUnion_parts_eq : P.parts.bUnion id = s := by rw [←sup_eq_bUnion, P.sup_parts]
 
 lemma sum_card_parts : ∑ i in P.parts, i.card = s.card :=
@@ -750,8 +735,7 @@ variables [decidable_eq α] {s : finset α} (P : finpartition s)
 /-- An equipartition is a partition whose parts are all the same size, up to a difference of `1`. -/
 def is_equipartition : Prop := (P.parts : set (finset α)).equitable_on card
 
-lemma is_equipartition_iff_card_parts_eq_average :
-  P.is_equipartition ↔
+lemma is_equipartition_iff_card_parts_eq_average : P.is_equipartition ↔
   ∀ a : finset α, a ∈ P.parts → a.card = s.card/P.size ∨ a.card = s.card/P.size + 1 :=
 begin
   simp_rw [is_equipartition, finset.equitable_on_iff, ←card_bUnion P.disjoint, ←P.bUnion_parts_eq],
@@ -780,7 +764,6 @@ variables [decidable_eq α] (s : finset α) (G : simple_graph α)
 lemma is_equipartition : (discrete_finpartition s).is_equipartition :=
 set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
 
-protected lemma size : (discrete_finpartition s).size = s.card :=
-finset.card_map _
+protected lemma size : (discrete_finpartition s).size = s.card := finset.card_map _
 
 end discrete_finpartition

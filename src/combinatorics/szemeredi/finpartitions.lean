@@ -552,23 +552,17 @@ def atomise (s : finset α) (Q : finset (finset α)) :
     { rwa [hz.1.2 _ (hP' hi), ←hz.2.2 _ (hP' hi)] }
   end,
   sup_parts := begin
-    sorry
+    rw [←bot_eq_empty, sup_erase_bot],
+    refine (finset.sup_le $ λ t ht, _).antisymm (λ a ha, _),
+    { rw mem_image at ht,
+      obtain ⟨A, hA, rfl⟩ := ht,
+      exact s.filter_subset _ },
+    { rw [mem_sup],
+      refine ⟨s.filter (λ i, ∀ t, t ∈ Q → (t ∈ Q.filter (λ u, a ∈ u) ↔ i ∈ t)),
+        mem_image_of_mem _ (mem_powerset.2 $ filter_subset _ _), mem_filter.2 ⟨ha, λ t ht, _⟩⟩,
+      rw mem_filter,
+      exact and_iff_right ht }
   end,
-  -- cover := λ x hx, begin
-  --   simp only [mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc],
-  --   rw exists_exists_and_eq_and,
-  --   have h : x ∈ s.filter (λ i, ∀ y ∈ Q, (y ∈ Q.filter (λ t, x ∈ t) ↔ i ∈ y)),
-  --   { simp only [mem_filter, and_iff_right_iff_imp],
-  --     exact ⟨hx, λ y hy _, hy⟩ },
-  --   refine ⟨Q.filter (λ t, x ∈ t), filter_subset _ _, _, h⟩,
-  --   rw [mem_singleton, ←ne.def, ←nonempty_iff_ne_empty],
-  --   exact ⟨x, h⟩,
-  -- end,
-  -- subset := λ x hx, begin
-  --   simp only [mem_sdiff, mem_powerset, mem_image, exists_prop] at hx,
-  --   obtain ⟨P, hP, rfl⟩ := hx.1,
-  --   exact filter_subset _ s,
-  -- end,
   not_bot_mem := not_mem_erase _ _ }
 
 lemma mem_atomise {s : finset α} {Q : finset (finset α)} {A : finset α} :
@@ -578,7 +572,7 @@ by { simp only [atomise, mem_erase, nonempty_iff_ne_empty, mem_singleton, and_co
 
 lemma atomise_empty (hs : s.nonempty) : (atomise s ∅).parts = {s} :=
 begin
-  rw [atomise],
+  rw atomise,
   simp only [forall_false_left, filter_true_of_mem, implies_true_iff, powerset_empty, image_singleton, not_mem_empty],
   exact erase_eq_of_not_mem (not_mem_singleton.2 hs.ne_empty.symm),
 end
@@ -601,14 +595,10 @@ begin
   { rwa [hi₁.2 _ (hP' hj), ←hi₂.2 _ (hP' hj)] }
 end
 
-lemma atomise_covers {s : finset α} (Q : finset (finset α)) {x : α} (hx : x ∈ s) :
-  ∃ Y ∈ (atomise s Q).parts, x ∈ Y :=
-(atomise s Q).cover hx
-
 lemma atomise_unique_covers {s : finset α} {Q : finset (finset α)} {x : α} (hx : x ∈ s) :
   ∃! Y ∈ (atomise s Q).parts, x ∈ Y :=
 begin
-  obtain ⟨Y, hY₁, hY₂⟩ := atomise_covers Q hx,
+  obtain ⟨Y, hY₁, hY₂⟩ := (atomise s Q).exists_mem hx,
   refine exists_unique.intro2 Y hY₁ hY₂ (λ Y' hY'₁ hY'₂,
     or.resolve_left (atomise_disjoint ‹Y' ∈ _› ‹Y ∈ _›) _),
   simp only [disjoint_left, exists_prop, not_not, not_forall],
@@ -627,7 +617,7 @@ begin
   { rintro ⟨B, hB₁, hB₂, hB₃⟩,
     exact hB₂ hB₃ },
   intro hi,
-  obtain ⟨B, hB₁, hB₂⟩ := atomise_covers Q (hs hi),
+  obtain ⟨B, hB₁, hB₂⟩ := (atomise s Q).exists_mem (hs hi),
   refine ⟨B, hB₁, λ j hj, _, hB₂⟩,
   obtain ⟨P, hP, rfl⟩ := (mem_atomise.1 hB₁).2,
   simp only [mem_filter] at hB₂ hj,

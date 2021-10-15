@@ -159,20 +159,6 @@ lemma homogeneous_ideal.inf {I J : ideal (⨁ i, A i)}
 begin
   rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'],
   exact le_antisymm (homogeneous_ideal.inf_subset HI HJ) (homogeneous_ideal.subset_inf HI HJ),
-  -- { sorry
-  --   -- have eq₁ : {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} ⊆
-  --   --   ideal.span {x : ⨁ (i : ι), A i | x ∈ I ⊓ J ∧ is_homogeneous_element x} := ideal.subset_span,
-  --   -- refine eq₁ _, refine ⟨_, by use ⟨i, x i⟩⟩,
-  --   -- { rcases hx with ⟨hxi, hxj⟩, split,
-  --   --   rw HI at hxi ⊢, simp only [set_like.mem_coe] at hxi ⊢,
-  --   --   rw homogeneous_ideal.mem_iff at hxi, refine hxi _,
-  --   --   rw [←HI, homogeneous_ideal_iff_homogeneous_ideal'],
-  --   --   rw [←homogeneous_ideal'] at HI, exact HI,
-  --   --   rw HJ at hxj ⊢, simp only [set_like.mem_coe] at hxj ⊢,
-  --   --   rw homogeneous_ideal.mem_iff at hxj, refine hxj i,
-  --   --   rw [←HJ, homogeneous_ideal_iff_homogeneous_ideal'],
-  --   --   rw [←homogeneous_ideal'] at HI, exact HJ, },
-  -- },
 end
 
 end operations

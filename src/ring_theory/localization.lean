@@ -1352,7 +1352,8 @@ end
 non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-theorem integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_localization M S]
+theorem integral_domain_of_le_non_zero_divisors
+  [algebra A S] {M : submonoid A} [is_localization M S]
   (hM : M ≤ non_zero_divisors A) : integral_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin

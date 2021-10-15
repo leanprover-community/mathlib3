@@ -398,7 +398,8 @@ end
 open multiplicity
 
 /-- The `enat`-valued additive valuation on a DVR -/
-noncomputable def add_val (R : Type u) [comm_ring R] [integral_domain R] [discrete_valuation_ring R] :
+noncomputable def add_val
+  (R : Type u) [comm_ring R] [integral_domain R] [discrete_valuation_ring R] :
   add_valuation R enat :=
 add_valuation (classical.some_spec (exists_prime R))
 

@@ -292,22 +292,23 @@ variables (R L H M)
 def root_space_weight_space_product (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) :
   (root_space H χ₁) ⊗[R] (weight_space M χ₂) →ₗ⁅R,H⁆ weight_space M χ₃ :=
 lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
-{ to_fun    := λ x,
-  { to_fun    :=
-      λ m, ⟨⁅(x : L), (m : M)⁆,
-            hχ ▸ (lie_mem_weight_space_of_mem_weight_space x.property m.property) ⟩,
-    map_add'  := λ m n, by { simp only [lie_submodule.coe_add, lie_add], refl, },
-    map_smul' := λ t m, by { conv_lhs { congr, rw [lie_submodule.coe_smul, lie_smul], }, refl, }, },
-  map_add'  := λ x y, by ext m; rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk,
-    linear_map.coe_mk, subtype.coe_mk, lie_submodule.coe_add, lie_submodule.coe_add, add_lie,
-    subtype.coe_mk, subtype.coe_mk],
-  map_smul' := λ t x,
-  begin
-    simp only [ring_hom.id_apply],
-    ext m,
-    rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
-      subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
-  end,
+{ to_linear_map :=
+  { to_fun    := λ x,
+    { to_fun    :=
+        λ m, ⟨⁅(x : L), (m : M)⁆,
+              hχ ▸ (lie_mem_weight_space_of_mem_weight_space x.property m.property) ⟩,
+      map_add'  := λ m n, by { simp only [lie_submodule.coe_add, lie_add], refl, },
+      map_smul' := λ t m, by { conv_lhs { congr, rw [lie_submodule.coe_smul, lie_smul], }, refl, }, },
+    map_add'  := λ x y, by ext m; rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk,
+      linear_map.coe_mk, subtype.coe_mk, lie_submodule.coe_add, lie_submodule.coe_add, add_lie,
+      subtype.coe_mk, subtype.coe_mk],
+    map_smul' := λ t x,
+    begin
+      simp only [ring_hom.id_apply],
+      ext m,
+      rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
+        subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
+    end, },
   map_lie'  := λ x y, by ext m; rw [lie_hom.lie_apply, lie_submodule.coe_sub, linear_map.coe_mk,
     linear_map.coe_mk, subtype.coe_mk, subtype.coe_mk, lie_submodule.coe_bracket,
     lie_submodule.coe_bracket, subtype.coe_mk, lie_subalgebra.coe_bracket_of_module,

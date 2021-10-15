@@ -481,7 +481,7 @@ lemma exists_affine_independent (s : set P) :
 begin
   rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩,
   { exact ⟨∅, set.empty_subset ∅, rfl, affine_independent_of_subsingleton k _⟩, },
-  obtain ⟨b, hb₁, hb₂, hb₃⟩ := exists_linear_independent' k ((equiv.vadd_const p).symm '' s),
+  obtain ⟨b, hb₁, hb₂, hb₃⟩ := exists_linear_independent k ((equiv.vadd_const p).symm '' s),
   have hb₀ : ∀ (v : V), v ∈ b → v ≠ 0, { exact λ v hv, hb₃.ne_zero (⟨v, hv⟩ : b), },
   rw linear_independent_set_iff_affine_independent_vadd_union_singleton k hb₀ p at hb₃,
   refine ⟨{p} ∪ (equiv.vadd_const p) '' b, _, _, hb₃⟩,

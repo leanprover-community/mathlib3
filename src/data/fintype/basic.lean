@@ -204,7 +204,7 @@ instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype 
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
 instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → β) :
-  decidable_set (set.range f) :=
+  decidable_mem (set.range f) :=
 λ x, fintype.decidable_exists_fintype
 
 section bundled_homs
@@ -1054,7 +1054,7 @@ instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fin
 fintype.subtype (univ.filter p) (by simp)
 
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
-def set_fintype {α} [fintype α] (s : set α) [decidable_set s] : fintype s :=
+def set_fintype {α} [fintype α] (s : set α) [decidable_mem s] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
 
 lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :

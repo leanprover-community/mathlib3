@@ -49,7 +49,7 @@ instance : conditionally_complete_linear_order ℤ :=
 
 namespace int
 
-lemma cSup_eq_greatest_of_bdd {s : set ℤ} [decidable_set s]
+lemma cSup_eq_greatest_of_bdd {s : set ℤ} [decidable_mem s]
   (b : ℤ) (Hb : ∀ z ∈ s, z ≤ b) (Hinh : ∃ z : ℤ, z ∈ s) :
   Sup s = greatest_of_bdd b Hb Hinh :=
 begin
@@ -63,7 +63,7 @@ lemma cSup_empty : Sup (∅ : set ℤ) = 0 := dif_neg (by simp)
 
 lemma cSup_of_not_bdd_above {s : set ℤ} (h : ¬ bdd_above s) : Sup s = 0 := dif_neg (by simp [h])
 
-lemma cInf_eq_least_of_bdd {s : set ℤ} [decidable_set s]
+lemma cInf_eq_least_of_bdd {s : set ℤ} [decidable_mem s]
   (b : ℤ) (Hb : ∀ z ∈ s, b ≤ z) (Hinh : ∃ z : ℤ, z ∈ s) :
   Inf s = least_of_bdd b Hb Hinh :=
 begin

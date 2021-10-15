@@ -292,8 +292,8 @@ lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
   {a : α} {z : sym2 α} (hz : z ∈ from_rel sym) (h : a ∈ z) : h.other ≠ a :=
 mem_other_ne (from_rel_irreflexive.mp irrefl hz) h
 
-instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
-  decidable_set (sym2.from_rel sym) :=
+instance from_rel.decidable_mem (sym : symmetric r) [h : decidable_rel r] :
+  decidable_mem (sym2.from_rel sym) :=
 λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
 
 end relations

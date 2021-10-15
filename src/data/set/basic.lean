@@ -35,6 +35,8 @@ Notation used here:
 
 Definitions in the file:
 
+* `decidable_set s` for `decidable_pred (∈ s)`.
+
 * `strict_subset s₁ s₂ : Prop` : the predicate `s₁ ⊆ s₂` but `s₁ ≠ s₂`.
 
 * `nonempty s : Prop` : the predicate `s ≠ ∅`. Note that this is the preferred way to express the
@@ -211,7 +213,11 @@ lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.r
 
 theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 
-instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred (∈ {a | p a}) := H
+/-- A decidable set is one whose membership predicate is decidable.
+This is short for `decidable_pred (∈ s)`. -/
+@[reducible] def decidable_set {α : Type u} (s : set α) := decidable_pred (∈ s)
+
+instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_set {a | p a} := H
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} :
   {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
@@ -437,7 +443,7 @@ eq_univ_of_univ_subset $ hs ▸ h
 lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : set α)
 | ⟨x⟩ := ⟨x, trivial⟩
 
-instance univ_decidable : decidable_pred (∈ @set.univ α) :=
+instance univ_decidable : decidable_set (@set.univ α) :=
 λ x, is_true trivial
 
 lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
@@ -2323,19 +2329,19 @@ by { ext z, simp [hy] }
   prod.mk x ⁻¹' s.prod t = ∅ :=
 by { ext z, simp [hx] }
 
-lemma mk_preimage_prod_left_eq_if {y : β} [decidable_pred (∈ t)] :
+lemma mk_preimage_prod_left_eq_if {y : β} [decidable_set t] :
   (λ x, (x, y)) ⁻¹' s.prod t = if y ∈ t then s else ∅ :=
 by { split_ifs; simp [h] }
 
-lemma mk_preimage_prod_right_eq_if {x : α} [decidable_pred (∈ s)] :
+lemma mk_preimage_prod_right_eq_if {x : α} [decidable_set s] :
   prod.mk x ⁻¹' s.prod t = if x ∈ s then t else ∅ :=
 by { split_ifs; simp [h] }
 
-lemma mk_preimage_prod_left_fn_eq_if {y : β} [decidable_pred (∈ t)] (f : γ → α) :
+lemma mk_preimage_prod_left_fn_eq_if {y : β} [decidable_set t] (f : γ → α) :
   (λ x, (f x, y)) ⁻¹' s.prod t = if y ∈ t then f ⁻¹' s else ∅ :=
 by rw [← mk_preimage_prod_left_eq_if, prod_preimage_left, preimage_preimage]
 
-lemma mk_preimage_prod_right_fn_eq_if {x : α} [decidable_pred (∈ s)] (g : δ → β) :
+lemma mk_preimage_prod_right_fn_eq_if {x : α} [decidable_set s] (g : δ → β) :
   (λ y, (x, g y)) ⁻¹' s.prod t = if x ∈ s then g ⁻¹' t else ∅ :=
 by rw [← mk_preimage_prod_right_eq_if, prod_preimage_right, preimage_preimage]
 

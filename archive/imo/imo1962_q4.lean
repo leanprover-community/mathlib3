@@ -99,7 +99,7 @@ terms, `a ^ 2 * (2 * a ^ 2 - 1) * (4 * a ^ 2 - 3)`, being equal to zero.
 
 /-- Someday, when there is a Grobner basis tactic, try to automate this proof. (A little tricky --
 the ideals are not the same but their Jacobson radicals are.) -/
-lemma formula {R : Type*} [integral_domain R] [char_zero R] (a : R) :
+lemma formula {R : Type*} [comm_ring R] [integral_domain R] [char_zero R] (a : R) :
   a ^ 2 + (2 * a ^ 2 - 1) ^ 2 + (4 * a ^ 3 - 3 * a) ^ 2 = 1
   ↔ (2 * a ^ 2 - 1) * (4 * a ^ 3 - 3 * a) = 0 :=
 calc a ^ 2 + (2 * a ^ 2 - 1) ^ 2 + (4 * a ^ 3 - 3 * a) ^ 2 = 1

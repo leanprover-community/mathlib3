@@ -134,6 +134,15 @@ not_forall.trans $ exists_congr $ λ a, begin
   exact not_not,
 end
 
+lemma finset.sup_sdiff {β : Type*} [generalized_boolean_algebra α] (s : finset β)
+  (f : β → α) (a : α) :
+  s.sup (λ b, f b \ a) = s.sup f \ a :=
+begin
+  refine finset.cons_induction_on s _ (λ b t _ h, _),
+  { rw [sup_empty, sup_empty, bot_sdiff] },
+  { rw [sup_cons, sup_cons, h, sup_sdiff] }
+end
+
 lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
   (set.range (singleton : α → finset α)).pairwise_disjoint :=
 begin
@@ -626,8 +635,9 @@ def avoid (b : α) : finpartition (a \ b) :=
   disjoint := (P.disjoint.image_finset $ λ a, sdiff_le).subset (erase_subset _ _),
   sup_parts :=
     begin
-      rw [sup_erase_bot, sup_image, comp.left_id],
-      sorry,
+      rw [sup_erase_bot, sup_image, comp.left_id, finset.sup_sdiff],
+      congr,
+      exact P.sup_parts,
     end,
   not_bot_mem := not_mem_erase _ _ }
 

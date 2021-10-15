@@ -824,7 +824,6 @@ end⟩,
     rintros x,
     sorry
   end }
-#exit
 
 lemma E_c_sum_equi_class [has_coe ℝ R] (x : zmod (d * p^m)) (hc : gcd c p = 1) :
 ∑ (y : zmod (d * p ^ m.succ)) in (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m m.succ (lt_add_one m)) a)) x,

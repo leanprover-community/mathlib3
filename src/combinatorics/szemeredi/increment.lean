@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2021 Yaël DIllies, Bhavik Mehta. All rights reserved.
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël DIllies, Bhavik Mehta
+Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .chunk
 import .index
@@ -64,10 +64,10 @@ local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
 index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
 yields a not-too-big uniform equipartition. -/
-noncomputable def finpartition_on.is_equipartition.increment : finpartition (univ : finset α) :=
+noncomputable def finpartition.is_equipartition.increment : finpartition (univ : finset α) :=
 P.bind (λ U, hP.chunk_increment G ε)
 
-open finpartition_on finpartition_on.is_equipartition
+open finpartition finpartition.is_equipartition
 
 variables {G ε}
 
@@ -79,18 +79,18 @@ begin
   have hPα' : exp_bound P.size ≤ card α :=
     (nat.mul_le_mul_of_nonneg_left $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα,
   have hPpos : 0 < exp_bound P.size := exp_bound_pos.2 ((nat.eq_zero_or_pos _).resolve_left $ λ h,
-    hPG $ finpartition_on.empty_is_uniform (by rw [←finset.card_eq_zero, ←finpartition_on.size, h])
+    hPG $ finpartition.empty_is_uniform (by rw [←finset.card_eq_zero, ←finpartition.size, h])
     _ _),
   rw [is_equipartition, finset.equitable_on_iff] at hP,
   rw [increment, bind_size],
-  simp_rw [finpartition_on.is_equipartition.chunk_increment, apply_dite finpartition_on.size],
+  simp_rw [finpartition.is_equipartition.chunk_increment, apply_dite finpartition.size],
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
-  exact λ x hx, finpartition_on.equitabilise.size (nat.div_pos hPα' hPpos) _,
-  exact λ x hx, finpartition_on.equitabilise.size (nat.div_pos hPα' hPpos) _,
+  exact λ x hx, finpartition.equitabilise.size (nat.div_pos hPα' hPpos) _,
+  exact λ x hx, finpartition.equitabilise.size (nat.div_pos hPα' hPpos) _,
   rw [nat.sub_add_cancel a_add_one_le_four_pow_size, nat.sub_add_cancel ((nat.le_succ _).trans
     a_add_one_le_four_pow_size), ←add_mul],
   congr,
-  rw [filter_card_add_filter_neg_card_eq_card, card_attach, finpartition_on.size],
+  rw [filter_card_add_filter_neg_card_eq_card, card_attach, finpartition.size],
 end
 
 protected lemma is_equipartition (hP : P.is_equipartition) (G : simple_graph α) (ε : ℝ) :
@@ -120,7 +120,7 @@ begin
   apply UiVj.induction_on (λ Ui Vj, _),
   simp only [mem_distinct_pairs, mem_union, mem_bUnion, mem_product, exists_prop, mem_attach,
     exists_true_left, subtype.exists, prod.exists, true_and, sym2.exists, exists_and_distrib_left,
-    finpartition_on.is_equipartition.increment, bind_parts, mem_sym2_pair_bind, ne.def],
+    finpartition.is_equipartition.increment, bind_parts, mem_sym2_pair_bind, ne.def],
   split,
   { rintro ⟨⟨U, hU, hUi⟩, ⟨V, hV, hVj⟩, h⟩,
     rcases eq_or_ne U V with rfl | hUV,
@@ -135,12 +135,12 @@ begin
     rintro rfl,
     obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ h₁,
     exact hUV (P.disjoint.elim_finset hU hV _
-      (finpartition_on.subset _ h₁ hi) (finpartition_on.subset _ h₂ hi)) },
+      (finpartition.le _ h₁ hi) (finpartition.le _ h₂ hi)) },
   { refine ⟨⟨_, _, h₁⟩, ⟨_, _, h₂⟩, _⟩,
     rintro rfl,
     obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ h₁,
     exact hUV (P.disjoint.elim_finset hU hV _
-      (finpartition_on.subset _ h₂ hi) (finpartition_on.subset _ h₁ hi)) }
+      (finpartition.le _ h₂ hi) (finpartition.le _ h₁ hi)) }
 end.
 
 -- -- dagger inequality

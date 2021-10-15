@@ -66,9 +66,9 @@ theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ)
     P.is_equipartition ∧ l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   obtain hα | hα := le_total (card α) (szemeredi_bound ε l),
-  { refine ⟨discrete_finpartition_on _, discrete_finpartition_on.is_equipartition _, _⟩,
-    rw [discrete_finpartition_on.size, card_univ],
-    exact ⟨hG, hα, discrete_finpartition_on.is_uniform _ hε⟩ },
+  { refine ⟨discrete_finpartition _, discrete_finpartition.is_equipartition _, _⟩,
+    rw [discrete_finpartition.size, card_univ],
+    exact ⟨hG, hα, discrete_finpartition.is_uniform _ hε⟩ },
   let t := iteration_bound ε l,
   have ht : 0 < t := iteration_bound_pos _ _,
   haveI : nonempty α,

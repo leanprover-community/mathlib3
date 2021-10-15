@@ -647,6 +647,21 @@ theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
 @finset.induction_on α (λ T, T ⊆ S → p T) _ S (λ _, h₁) (λ a s has hqs hs,
   let ⟨hS, sS⟩ := finset.insert_subset.1 hs in h₂ hS sS has (hqs sS)) (finset.subset.refl S)
 
+/-- To prove a proposition about a nonempty `s : finset α`, it suffices to show it holds for all
+singletons and that if it holds for `t : finset α`, then it also holds for the `finset` obtained by
+inserting an element in `t`. -/
+@[elab_as_eliminator]
+lemma nonempty.cons_induction {α : Type*} {s : finset α} (hs : s.nonempty) {p : finset α → Prop}
+  (h₀ : ∀ a, p {a}) (h₁ : ∀ ⦃a⦄ s (h : a ∉ s), p s → p (finset.cons a s h)) :
+  p s :=
+begin
+  revert hs,
+  refine finset.cons_induction_on s (λ h, (h.ne_empty rfl).elim) (λ a t ha h _, _),
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { exact h₀ a },
+  { exact h₁ t ha (h ht) }
+end
+
 /-- Inserting an element to a finite set is equivalent to the option type. -/
 def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :
   {i // i ∈ insert x t} ≃ option {i // i ∈ t} :=

@@ -280,11 +280,11 @@ end
 
 /-- A finite dimensional space has positive `finrank` iff it has a nonzero element. -/
 lemma finrank_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < finrank K V ↔ ∃ x : V, x ≠ 0 :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _ _ _)
 
 /-- A finite dimensional space has positive `finrank` iff it is nontrivial. -/
 lemma finrank_pos_iff [finite_dimensional K V] : 0 < finrank K V ↔ nontrivial V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _ _ _)
 
 /-- A finite dimensional space is nontrivial if it has positive `finrank`. -/
 lemma nontrivial_of_finrank_pos (h : 0 < finrank K V) : nontrivial V :=
@@ -306,7 +306,7 @@ finrank_pos_iff.mpr h
 This is the `finrank` version of `dim_zero_iff`. -/
 lemma finrank_zero_iff [finite_dimensional K V] :
   finrank K V = 0 ↔ subsingleton V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _ _ _)
 
 /-- A finite dimensional space that is a subsingleton has zero `finrank`. -/
 lemma finrank_zero_of_subsingleton [h : subsingleton V] :

@@ -1135,41 +1135,31 @@ begin
   exact hf.of_le_mul hf.1.im (eventually_of_forall this),
 end
 
-section move
+-- move to complex.is_R_or_C
+lemma is_R_or_C.norm_of_real (z : ℝ) : ∥(z : 𝕜)∥ = ∥z∥ :=
+by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_real, real.norm_eq_abs] }
 
-lemma complex.norm_re_le_norm (x : ℂ) : ∥x.re∥ ≤ ∥x∥ :=
+lemma mem_ℒp.of_real [borel_space 𝕜] {f : α → ℝ} (hf : mem_ℒp f p μ) :
+  mem_ℒp (λ x, (f x : 𝕜)) p μ :=
 begin
-  erw [real.le_sqrt (norm_nonneg _) (complex.norm_sq_nonneg _),
-       pow_bit0_abs, pow_two, le_add_iff_nonneg_right],
-  exact mul_self_nonneg _
-end
-
-lemma complex.norm_im_le_norm (x : ℂ) : ∥x.im∥ ≤ ∥x∥ :=
-begin
-  erw [real.le_sqrt (norm_nonneg _) (complex.norm_sq_nonneg _),
-       pow_bit0_abs, pow_two, le_add_iff_nonneg_left],
-  exact mul_self_nonneg _
-end
-
-end move
-
-lemma mem_ℒp.coe_complex {f : α → ℝ} (hf : mem_ℒp f p μ) :
-  mem_ℒp (λ x, (f x : ℂ)) p μ :=
-begin
-  have : ∀ x, ∥(f x : ℂ)∥ ≤ 1 * ∥f x∥,
-  { simp },
-  exact hf.of_le_mul (complex.measurable_of_real.comp_ae_measurable hf.1)
+  have : ∀ x, ∥(f x : 𝕜)∥ ≤ 1 * ∥f x∥,
+  { intro x,
+    rw one_mul,
+    exact (is_R_or_C.norm_of_real _).le },
+  exact hf.of_le_mul (is_R_or_C.measurable_of_real.comp_ae_measurable hf.1)
     (eventually_of_forall this),
 end
 
-lemma mem_ℒp_complex_iff (f : α → ℂ) : mem_ℒp f p μ ↔
-  mem_ℒp (λ x, (f x).re) p μ ∧ mem_ℒp (λ x, (f x).im) p μ :=
+lemma mem_ℒp_re_im_iff [borel_space 𝕜] :
+  mem_ℒp (λ x, is_R_or_C.re (f x)) p μ ∧ mem_ℒp (λ x, is_R_or_C.im (f x)) p μ ↔
+  mem_ℒp f p μ :=
 begin
-  refine ⟨λ hf, ⟨hf.re, hf.im⟩, _⟩,
+  refine ⟨_, λ hf, ⟨hf.re, hf.im⟩⟩,
   rintro ⟨hre, him⟩,
-  convert hre.coe_complex.add (him.coe_complex.const_mul complex.I),
-  ext1 x,
-  simp [mul_comm complex.I (f x).im],
+  convert hre.of_real.add (him.of_real.const_mul is_R_or_C.I),
+  { ext1 x,
+    rw [pi.add_apply, mul_comm, is_R_or_C.re_add_im] },
+  all_goals { apply_instance }
 end
 
 end is_R_or_C

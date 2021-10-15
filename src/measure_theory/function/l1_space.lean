@@ -674,13 +674,14 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.re, }
 lemma integrable.im (hf : integrable f μ) : integrable (λ x, is_R_or_C.im (f x)) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 
-lemma integrable.coe_complex {f : α → ℝ} (hf : integrable f μ) :
-  integrable (λ x, (f x : ℂ)) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.coe_complex }
+lemma integrable.of_real [borel_space 𝕜] {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, (f x : 𝕜)) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_real }
 
-lemma integrable.complex_iff (f : α → ℂ) : integrable f μ ↔
-  integrable (λ x, (f x).re) μ ∧ integrable (λ x, (f x).im) μ :=
-by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_complex_iff f }
+lemma integrable.re_im_iff [borel_space 𝕜] :
+  integrable (λ x, is_R_or_C.re (f x)) μ ∧ integrable (λ x, is_R_or_C.im (f x)) μ ↔
+  integrable f μ :=
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_re_im_iff }
 
 end is_R_or_C
 

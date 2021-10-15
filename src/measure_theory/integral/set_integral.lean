@@ -828,6 +828,27 @@ lemma integral_im {f : α → 𝕜} (hf : integrable f μ) :
 lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
 (@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
 
+lemma integral_coe_re_add_coe_im {f : α → 𝕜} (hf : integrable f μ) :
+  ∫ x, (is_R_or_C.re (f x) : 𝕜) ∂μ + ∫ x, is_R_or_C.im (f x) ∂μ * is_R_or_C.I = ∫ x, f x ∂μ :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← integral_smul, ← integral_add],
+  { congr,
+    ext1 x,
+    rw [smul_eq_mul, mul_comm, is_R_or_C.re_add_im] },
+  { exact hf.re.of_real },
+  { exact hf.im.of_real.smul is_R_or_C.I }
+end
+
+lemma integral_re_add_im {f : α → 𝕜} (hf : integrable f μ) :
+  ((∫ x, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) + (∫ x, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I =
+  ∫ x, f x ∂μ :=
+by { rw [← integral_of_real, ← integral_of_real, integral_coe_re_add_coe_im hf] }
+
+lemma set_integral_re_add_im {f : α → 𝕜} (hf : integrable f μ) {i : set α} :
+  ((∫ x in i, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) +
+  (∫ x in i, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I = ∫ x in i, f x ∂μ :=
+integral_re_add_im hf.integrable_on
+
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=
 ((continuous_linear_map.fst ℝ E F).integral_comp_comm hf).symm
@@ -868,29 +889,5 @@ lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : in
 by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
 
 end inner
-
-section complex
-
--- The right hand side has a implicit coercion within the integral and hence the name
-lemma integrable.integral_eq_coe_re_add_coe_im {f : α → ℂ} (hf : integrable f μ) :
-  ∫ x, f x ∂μ = ∫ x, (f x).re ∂μ + ∫ x, (f x).im ∂μ * complex.I :=
-begin
-  rw [mul_comm, ← smul_eq_mul, ← integral_smul],
-  erw ← integral_add (hf.re.coe_complex) (hf.im.coe_complex.smul complex.I),
-  { congr,
-    ext1 x,
-    simp [mul_comm complex.I] },
-end
-
-lemma integrable.integral_eq_re_add_im {f : α → ℂ} (hf : integrable f μ) :
-  ∫ x, f x ∂μ = (∫ x, (f x).re ∂μ : ℝ) + (∫ x, (f x).im ∂μ : ℝ) * complex.I :=
-by { rw [integrable.integral_eq_coe_re_add_coe_im hf, integral_of_real, integral_of_real] }
-
-lemma integrable.set_integral_eq_re_add_im
-  {f : α → ℂ} (hf : integrable f μ) {i : set α} :
-  ∫ x in i, f x ∂μ = (∫ x in i, (f x).re ∂μ : ℝ) + (∫ x in i, (f x).im ∂μ : ℝ) * complex.I :=
-integrable.integral_eq_re_add_im hf.integrable_on
-
-end complex
 
 end

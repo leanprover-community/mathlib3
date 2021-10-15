@@ -90,9 +90,9 @@ begin
     { intro hx, rw [←ideal.span_mul_span, ←I_eq_span_SI, ←J_eq_span_SJ] at hx, exact hx, } }
 end
 
-lemma homogeneous_ideal.add [add_comm_monoid ι] [gcomm_semiring A] {I J : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.sup [add_comm_monoid ι] [gcomm_semiring A] {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
-  homogeneous_ideal (I + J) :=
+  homogeneous_ideal (I ⊔ J) :=
 begin
   rcases HI with ⟨SI, ⟨SI_hom, I_eq_span_SI⟩⟩,
   rcases HJ with ⟨SJ, ⟨SJ_hom, J_eq_span_SJ⟩⟩,
@@ -101,5 +101,5 @@ begin
   { intros x Hx, simp only [mem_union_eq] at Hx,
     cases Hx, exact SI_hom _ Hx, exact SJ_hom _ Hx, },
   { rw [←ideal.submodule_span_eq, submodule.span_union,
-      ideal.submodule_span_eq, ideal.submodule_span_eq, I_eq_span_SI, J_eq_span_SJ], refl, }
+      ideal.submodule_span_eq, ideal.submodule_span_eq, I_eq_span_SI, J_eq_span_SJ], }
 end

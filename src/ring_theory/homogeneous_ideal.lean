@@ -27,12 +27,12 @@ variables {ι : Type*} [add_comm_monoid ι] {A : ι → Type*} [Π i, comm_ring 
 /-- An element `x : ⨁ i, A i` is a homogeneous element if it is a member of one of the summand. -/
 def is_homogeneous_element (x : ⨁ i, A i) : Prop := ∃ i (y : A i), x = of A i y
 
+/-- this might be useful, but I don't know where to put it -/
 def graded_monoid.to_direct_sum : (graded_monoid A) →* (⨁ i, A i) :=
 { to_fun := λ a, of A a.fst a.snd,
   map_one' := by norm_cast at *,
   map_mul' := λ x y, begin
     rcases x with ⟨i, x⟩, rcases y with ⟨j, y⟩,
-    -- have eq₁ : (⟨i, x⟩ * ⟨j, y⟩ : graded_monoid A).fst = i + j := rfl,
     have eq₁ : (of A (⟨i, x⟩ * ⟨j, y⟩ : graded_monoid A).fst) = of A (i + j) := by congr,
     have eq₂ : (⟨i, x⟩ * ⟨j, y⟩ : graded_monoid A).snd = graded_monoid.ghas_mul.mul x y := rfl,
     rw [eq₁, eq₂, ←mul_hom_of_of], refl,
@@ -46,10 +46,34 @@ def homogeneous_ideal (I : ideal (⨁ i, A i)) : Prop :=
 /-- Equivalently, an `I : ideal (⨁ i, A i)` is homogeneous iff `I` is spaned by its homogeneous
 element-/
 def homogeneous_ideal' (I : ideal (⨁ i, A i)) : Prop :=
-  I = ideal.span {x ∈ I | is_homogeneous_element x }
+  I = ideal.span {x ∈ I.carrier | is_homogeneous_element x }
 
 lemma homogeneous_ideal_iff_homogeneous_ideal' (I : ideal (⨁ i, A i)) :
-  homogeneous_ideal I ↔ homogeneous_ideal' I := sorry
+  homogeneous_ideal I ↔ homogeneous_ideal' I :=
+⟨λ HI, begin
+    rcases HI with ⟨S, HS₁, I_eq_span_S⟩,
+    ext, split; intro hx; rw I_eq_span_S at hx,
+    { have HS₂ : S ⊆ {x ∈ I.carrier | is_homogeneous_element x},
+      { intros y hy, split,
+        { suffices : S ⊆ I.carrier, refine this _, exact hy,
+          suffices : S ⊆ I, exact this,
+          rw ←ideal.span_le, rw I_eq_span_S, exact le_refl _, },
+        { dsimp only, apply HS₁ _ hy, } },
+      suffices : ideal.span S ≤ ideal.span {x ∈ I.carrier | is_homogeneous_element x},
+      refine this _, exact hx,
+      exact ideal.span_mono HS₂ },
+    { suffices : {x ∈ (ideal.span S).carrier | is_homogeneous_element x} ⊆ I,
+      have H : ideal.span {x ∈ (ideal.span S).carrier | is_homogeneous_element x} ≤ ideal.span I,
+      { exact ideal.span_mono this },
+      rw [ideal.span_eq] at H,
+      refine H _, exact hx,
+
+      rintros y ⟨hy₁, hy₂⟩, rw ←I_eq_span_S at hy₁, exact (submodule.mem_carrier I).mp hy₁, }
+  end, λ HI, begin
+    use {x ∈ I.carrier | is_homogeneous_element x },
+    refine ⟨_, HI⟩,
+    rintros _ ⟨_, h⟩, exact h
+  end⟩
 
 lemma homogeneous_ideal.mul {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :

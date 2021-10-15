@@ -19,7 +19,7 @@ This file defines properties of ideals of graded commutative ring `⨁ i, A i`
 
 noncomputable theory
 
-open_locale direct_sum classical
+open_locale direct_sum classical big_operators
 open set direct_sum
 
 
@@ -82,6 +82,10 @@ end, λ HI, begin
   rw [mem_range], use a, rw ha, refl,
 end⟩
 
+lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
+  (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
+  x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I := sorry
+
 end defs
 
 section operations
@@ -91,7 +95,7 @@ open_locale pointwise
 variables [add_comm_monoid ι] [gcomm_semiring A]
 
 lemma homogeneous_ideal.mul {I J : ideal (⨁ i, A i)}
-  (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
+  (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J):
   homogeneous_ideal (I * J) :=
 begin
   obtain ⟨si, rfl⟩ := HI,
@@ -102,7 +106,7 @@ begin
 end
 
 lemma homogeneous_ideal.sup {I J : ideal (⨁ i, A i)}
-  (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
+  (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J):
   homogeneous_ideal (I ⊔ J) :=
 begin
   obtain ⟨si, rfl⟩ := HI,
@@ -110,6 +114,65 @@ begin
   refine ⟨si ∪ sj, _⟩,
   rw image_union,
   exact (submodule.span_union _ _).symm,
+end
+
+private lemma homogeneous_ideal.inf_subset {I J : ideal (⨁ i, A i)}
+  (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
+  I ⊓ J ≤ ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} :=
+begin
+  rintro x ⟨hxi, hxj⟩,
+  have hx : ∀ i, of A i (x i) ∈ I ⊓ J,
+  { intro j, split; refine (homogeneous_ideal.mem_iff _ _ x).mp _ _; assumption },
+  sorry,
+end
+
+private lemma homogeneous_ideal.subset_inf {I J : ideal (⨁ i, A i)}
+  (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
+  ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} ≤ I ⊓ J :=
+begin
+  intros x hx,
+  { split,
+    { simp only [set_like.mem_coe],
+      rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'] at HI,
+      rw [HI, ideal.mem_span], intros K HK,
+      replace HK := ideal.span_mono HK,
+      rw [ideal.span_eq] at HK,
+      have eq₁ : ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x}
+        ≤ ideal.span {x | x ∈ I ∧ is_homogeneous_element x},
+      { apply ideal.span_mono, rintros y ⟨⟨hy₁, _⟩, hy₂⟩, refine ⟨hy₁, hy₂⟩, },
+      refine HK _, refine eq₁ hx, },
+    { simp only [set_like.mem_coe],
+      rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'] at HJ,
+      rw [HJ, ideal.mem_span], intros K HK,
+      replace HK := ideal.span_mono HK,
+      rw [ideal.span_eq] at HK,
+      have eq₁ : ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x}
+        ≤ ideal.span {x | x ∈ J ∧ is_homogeneous_element x},
+      { apply ideal.span_mono, rintros y ⟨⟨_, hy₁⟩, hy₂⟩, refine ⟨hy₁, hy₂⟩, },
+      refine HK _, refine eq₁ hx, },
+  },
+end
+
+lemma homogeneous_ideal.inf {I J : ideal (⨁ i, A i)}
+  (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
+  homogeneous_ideal (I ⊓ J) :=
+begin
+  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'],
+  exact le_antisymm (homogeneous_ideal.inf_subset HI HJ) (homogeneous_ideal.subset_inf HI HJ),
+  -- { sorry
+  --   -- have eq₁ : {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} ⊆
+  --   --   ideal.span {x : ⨁ (i : ι), A i | x ∈ I ⊓ J ∧ is_homogeneous_element x} := ideal.subset_span,
+  --   -- refine eq₁ _, refine ⟨_, by use ⟨i, x i⟩⟩,
+  --   -- { rcases hx with ⟨hxi, hxj⟩, split,
+  --   --   rw HI at hxi ⊢, simp only [set_like.mem_coe] at hxi ⊢,
+  --   --   rw homogeneous_ideal.mem_iff at hxi, refine hxi _,
+  --   --   rw [←HI, homogeneous_ideal_iff_homogeneous_ideal'],
+  --   --   rw [←homogeneous_ideal'] at HI, exact HI,
+  --   --   rw HJ at hxj ⊢, simp only [set_like.mem_coe] at hxj ⊢,
+  --   --   rw homogeneous_ideal.mem_iff at hxj, refine hxj i,
+  --   --   rw [←HJ, homogeneous_ideal_iff_homogeneous_ideal'],
+  --   --   rw [←homogeneous_ideal'] at HI, exact HJ, },
+  -- },
 end
 
 end operations

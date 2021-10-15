@@ -167,7 +167,7 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
 The restriction of a locally ringed space along an open embedding.
 -/
 @[simps]
-noncomputable def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_Top)
+def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_Top)
   (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
   begin
@@ -182,7 +182,7 @@ noncomputable def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_To
 /--
 The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
 -/
-noncomputable def restrict_top_iso (X : LocallyRingedSpace) :
+def restrict_top_iso (X : LocallyRingedSpace) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
 @iso_of_SheafedSpace_iso (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) X
   X.to_SheafedSpace.restrict_top_iso

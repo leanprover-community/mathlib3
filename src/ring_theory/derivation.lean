@@ -52,8 +52,6 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
-
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
 

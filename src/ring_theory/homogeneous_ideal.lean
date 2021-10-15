@@ -103,5 +103,3 @@ begin
   { rw [←ideal.submodule_span_eq, submodule.span_union,
       ideal.submodule_span_eq, ideal.submodule_span_eq, I_eq_span_SI, J_eq_span_SJ], refl, }
 end
-
-#lint

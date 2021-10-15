@@ -23,7 +23,7 @@ open_locale direct_sum classical big_operators
 open set direct_sum
 
 
-variables {ι : Type*} {A : ι → Type*} [Π i, comm_ring (A i)]
+variables {ι : Type*} {A : ι → Type*} [Π i, add_comm_group (A i)]
 
 /-- An element `x : ⨁ i, A i` is a homogeneous element if it is a member of one of the summand. -/
 def is_homogeneous_element (x : ⨁ i, A i) : Prop := ∃ (y : graded_monoid A), x = of A y.fst y.snd

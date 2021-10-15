@@ -247,6 +247,11 @@ begin
     exact le_refl _, },
 end
 
+lemma cardinal_lift_le_dim_of_linear_independent'
+  {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
+  cardinal.lift.{v} (#ι) ≤ cardinal.lift.{w} (module.rank R M) :=
+cardinal_lift_le_dim_of_linear_independent.{u v w 0} hv
+
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type v} {v : ι → M} (hv : linear_independent R v) :
   #ι ≤ module.rank R M :=
@@ -432,10 +437,7 @@ begin
   choose v hvV hv using hI,
   have : linear_independent R v,
   { exact (hV.comp _ subtype.coe_injective).linear_independent _ hvV hv },
-  have : cardinal.lift.{w} (cardinal.lift.{v} (#I))
-    ≤ cardinal.lift.{w} (cardinal.lift.{w} (module.rank R M)),
-  { simpa using cardinal_lift_le_dim_of_linear_independent this },
-  rwa cardinal.lift_le at this,
+  exact cardinal_lift_le_dim_of_linear_independent' this
 end
 
 end

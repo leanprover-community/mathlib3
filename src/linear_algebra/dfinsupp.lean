@@ -324,6 +324,17 @@ begin
   simpa [eq_comm] using this,
 end
 
+/-- Combining `dfinsupp.lsum` with `linear_map.to_span_singleton` is the same as `finsupp.total` -/
+lemma lsum_comp_map_range_to_span_singleton
+  [Π (m : R), decidable (m ≠ 0)]
+  (p : ι → submodule R N) {v : ι → N} (hv : ∀ (i : ι), v i ∈ p i) :
+  ((lsum ℕ) (λ i, (p i).subtype) : _ →ₗ[R] _).comp
+    ((map_range.linear_map
+      (λ i, linear_map.to_span_singleton R ↥(p i) ⟨v i, hv i⟩) : _ →ₗ[R] _).comp
+      (finsupp_lequiv_dfinsupp R : (ι →₀ R) ≃ₗ[R] _).to_linear_map) =
+  finsupp.total ι N R v :=
+by { ext, simp }
+
 end semiring
 
 section ring
@@ -363,17 +374,6 @@ Note that this is not generally true for `[semiring R]`; see
 lemma independent_iff_dfinsupp_lsum_injective (p : ι → submodule R N) :
   independent p ↔ function.injective (lsum ℕ (λ i, (p i).subtype)) :=
 ⟨independent.dfinsupp_lsum_injective, independent_of_dfinsupp_lsum_injective p⟩
-
-/-- Combining `dfinsupp.lsum` with `linear_map.to_span_singleton` is the same as `finsupp.total` -/
-lemma lsum_comp_map_range_to_span_singleton
-  [Π (m : R), decidable (m ≠ 0)]
-  (p : ι → submodule R N) {v : ι → N} (hv : ∀ (i : ι), v i ∈ p i) :
-  ((lsum ℕ) (λ i, (p i).subtype) : _ →ₗ[R] _).comp
-    ((map_range.linear_map
-      (λ i, linear_map.to_span_singleton R ↥(p i) ⟨v i, hv i⟩) : _ →ₗ[R] _).comp
-      (finsupp_lequiv_dfinsupp R : (ι →₀ R) ≃ₗ[R] _).to_linear_map) =
-  finsupp.total ι N R v :=
-by { ext, simp }
 
 omit dec_ι
 /-- If a family of submodules is `independent`, then a choice of nonzero vector from each submodule

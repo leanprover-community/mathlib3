@@ -655,8 +655,8 @@ lemma nonempty.cons_induction {α : Type*} {s : finset α} (hs : s.nonempty) {p 
   (h₀ : ∀ a, p {a}) (h₁ : ∀ ⦃a⦄ s (h : a ∉ s), p s → p (finset.cons a s h)) :
   p s :=
 begin
-  revert hs,
-  refine finset.cons_induction_on s (λ h, (h.ne_empty rfl).elim) (λ a t ha h _, _),
+  induction s using finset.cons_induction with a t ha h,
+  { exact (not_nonempty_empty hs).elim, },
   obtain rfl | ht := t.eq_empty_or_nonempty,
   { exact h₀ a },
   { exact h₁ t ha (h ht) }

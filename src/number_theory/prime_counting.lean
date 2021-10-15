@@ -40,27 +40,70 @@ begin
   sorry,
 end
 
--- TODO prove π is nondecreasing
+lemma monotone_prime_counting : monotone prime_counting :=
+begin
+  intros a b a_le_b,
+  unfold prime_counting,
+  apply card_le_of_subset,
+  apply monotone_filter_left,
+  simp only [le_eq_subset, range_subset, add_le_add_iff_right],
+  exact a_le_b,
+end
+
+lemma monotone_prime_counting' : monotone prime_counting' :=
+begin
+  intros a b a_le_b,
+  unfold prime_counting',
+  apply card_le_of_subset,
+  apply monotone_filter_left,
+  simp only [le_eq_subset, range_subset],
+  exact a_le_b,
+end
+
+lemma split_range {n k : ℕ} (k_le_n : k ≤ n) (p : ℕ -> Prop) [decidable_pred p]
+  : (range n).filter p = (range k).filter p ∪ (Ico k n).filter p :=
+begin
+  rw <- filter_union,
+  ext,
+  simp only [mem_union, mem_filter, mem_range, and.congr_left_iff, mem_Ico],
+  intro _,
+  split,
+  { intros a_le_n,
+    cases lt_or_le a k,
+    { left, exact h, },
+    { right, exact ⟨h, a_le_n⟩, }, },
+  { intros hyp,
+    cases hyp,
+    { exact gt_of_ge_of_gt k_le_n hyp, },
+    { exact hyp.2, }, },
+end
+
+lemma prime_implies_coprime {n k : ℕ} (not_eq : n ≠ k) (is_prime : prime k) : coprime k n :=
+begin
+  sorry,
+end
 
 /-- A simple linear bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound (n k : ℕ) : π' n ≤ π' k + nat.totient k * (n - k) / k :=
+lemma linear_prime_counting_bound (n k : ℕ) (k_le_n : k ≤ n) : π' n ≤ π' k + nat.totient k * (n - k) / k :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
-              rw prime_counting',
-              have h : (range n).filter prime = (range k).filter prime ∪ (Ico k n).filter prime,
-                { sorry, },
-              rw h,
+              rw [prime_counting', split_range k_le_n],
               apply card_union_le,
             end
-     ... ≤ π' k + ((Ico k n).filter (prime)).card :
-            begin
-              rw prime_counting',
-            end
+     ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'
      ... ≤ π' k + ((Ico k n).filter (λ i, coprime i k)).card :
             begin
               apply add_le_add_left,
               apply card_le_of_subset,
-              sorry,
+              rw subset_iff,
+              simp,
+              intros p k_le_p p_lt_n p_prime,
+              split,
+              { exact ⟨k_le_p, p_lt_n⟩, },
+              { apply prime_implies_coprime _ p_prime,
+                intros k_eq_p,
+                subst k_eq_p,
+              }
             end
      ... ≤ π' k + nat.totient k * (n - k) / k :
             begin

@@ -258,7 +258,7 @@ instance : has_mul cardinal.{u} :=
 lemma mul (α : Type u) (β : Type v) :
   #(α × β) = lift.{v u} (#α) * lift.{u v} (#β) :=
 begin
-  rw [cardinal.lift_mk, cardinal.lift_mk, mul_def],
+  rw [←cardinal.mk_ulift, ←cardinal.mk_ulift, mul_def],
   exact cardinal.eq.2 ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
 end
 

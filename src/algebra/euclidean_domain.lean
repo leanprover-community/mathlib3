@@ -60,9 +60,6 @@ Euclidean domain, transfinite Euclidean domain, Bézout's lemma
 
 universe u
 
-section old_structure_cmd
-set_option old_structure_cmd true
-
 /-- A `euclidean_domain` is an `integral_domain` with a division and a remainder, satisfying
   `b * (a / b) + a % b = a`. The definition of a euclidean domain usually includes a valuation
   function `R → ℕ`. This definition is slightly generalised to include a well founded relation
@@ -77,7 +74,6 @@ class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 (r_well_founded : well_founded r)
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
-end old_structure_cmd
 
 namespace euclidean_domain
 variable {R : Type u}

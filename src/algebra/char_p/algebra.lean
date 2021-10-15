@@ -79,7 +79,8 @@ end free_algebra
 
 namespace is_fraction_ring
 
-variables (R : Type*) {K : Type*} [integral_domain R] [field K] [algebra R K] [is_fraction_ring R K]
+variables (R : Type*) {K : Type*} [comm_ring R] [integral_domain R]
+  [field K] [algebra R K] [is_fraction_ring R K]
 variables (p : ℕ)
 
 /-- If `R` has characteristic `p`, then so does Frac(R). -/

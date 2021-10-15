@@ -43,7 +43,8 @@ open polynomial
 
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
 variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
-variables {A B : Type*} [integral_domain A] [integral_domain B] [algebra A B]
+variables {A B : Type*} [comm_ring A] [integral_domain A]
+  [comm_ring B] [integral_domain B] [algebra A B]
 variables {K L : Type*} [field K] [field L] [algebra K L]
 
 /-- `pb : power_basis R S` states that `1, pb.gen, ..., pb.gen ^ (pb.dim - 1)`

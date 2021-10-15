@@ -1275,7 +1275,7 @@ by rw [aeval_def, is_scalar_tower.algebra_map_eq R S R',
 
 end integer_normalization
 
-variables {R M} (S) {A K : Type*} [integral_domain A]
+variables {R M} (S) {A K : Type*} [comm_ring A] [integral_domain A]
 
 lemma to_map_eq_zero_iff {x : R} (hM : M ≤ non_zero_divisors R) :
   algebra_map R S x = 0 ↔ x = 0 :=
@@ -1512,7 +1512,8 @@ end localization
 open is_localization
 
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
-lemma localization_map_bijective_of_field {R Rₘ : Type*} [integral_domain R] [comm_ring Rₘ]
+lemma localization_map_bijective_of_field
+  {R Rₘ : Type*} [comm_ring R] [integral_domain R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
@@ -1523,7 +1524,7 @@ begin
     by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
 
-variables (R) {A : Type*} [integral_domain A]
+variables (R) {A : Type*} [comm_ring A] [integral_domain A]
 variables (K : Type*)
 
 /-- `is_fraction_ring R K` states `K` is the field of fractions of an integral domain `R`. -/
@@ -1637,11 +1638,12 @@ noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
   inv_zero := dif_pos rfl,
-  .. to_integral_domain A }
+  .. to_integral_domain A,
+  .. show comm_ring K, by apply_instance }
 
 end comm_ring
 
-variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
+variables {B : Type*} [comm_ring B] [integral_domain B] [field K] {L : Type*} [field L]
   [algebra A K] [is_fraction_ring A K] {g : A →+* L}
 
 lemma mk'_mk_eq_div {r s} (hs : s ∈ non_zero_divisors A) :
@@ -1936,7 +1938,7 @@ end is_integral
 namespace is_integral_closure
 
 variables (A) {L : Type*} [field K] [field L] [algebra A K] [algebra A L] [is_fraction_ring A K]
-variables (C : Type*) [integral_domain C] [algebra C L] [is_integral_closure C A L]
+variables (C : Type*) [comm_ring C] [integral_domain C] [algebra C L] [is_integral_closure C A L]
 variables [algebra A C] [is_scalar_tower A C L]
 
 open algebra

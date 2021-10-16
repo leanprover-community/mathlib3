@@ -76,23 +76,22 @@ pairwise_on s disjoint
 lemma pairwise_disjoint.subset (ht : pairwise_disjoint t) (h : s ⊆ t) : pairwise_disjoint s :=
 pairwise_on.mono h ht
 
-lemma set.pairwise_disjoint_empty : (∅ : set α).pairwise_disjoint :=
+lemma pairwise_disjoint_empty : (∅ : set α).pairwise_disjoint :=
 pairwise_on_empty _
 
-lemma set.pairwise_disjoint_singleton [semilattice_inf_bot α] (a : α) :
-  ({a} : set α).pairwise_disjoint :=
+lemma pairwise_disjoint_singleton (a : α) : ({a} : set α).pairwise_disjoint :=
 pairwise_on_singleton a _
 
-lemma set.pairwise_disjoint_insert {a : α} :
+lemma pairwise_disjoint_insert {a : α} :
   (insert a s).pairwise_disjoint ↔ s.pairwise_disjoint ∧ ∀ b ∈ s, a ≠ b → disjoint a b :=
 set.pairwise_on_insert_of_symmetric symmetric_disjoint
 
-lemma set.pairwise_disjoint.insert (hs : s.pairwise_disjoint) {a : α}
+lemma pairwise_disjoint.insert (hs : s.pairwise_disjoint) {a : α}
   (hx : ∀ b ∈ s, a ≠ b → disjoint a b) :
   (insert a s).pairwise_disjoint :=
 set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
 
-lemma set.pairwise_disjoint.image (hs : s.pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
+lemma pairwise_disjoint.image (hs : s.pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
   (f '' s).pairwise_disjoint :=
 begin
   rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ h,
@@ -104,13 +103,6 @@ lemma pairwise_disjoint.range (f : s → α) (hf : ∀ (x : s), f x ≤ x.1) (ht
 begin
   rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy,
   exact (ht _ x.2 _ y.2 $ λ h, hxy $ congr_arg f $ subtype.ext h).mono (hf x) (hf y),
-end
-
-lemma set.pairwise_disjoint_range_singleton [decidable_eq α] :
-  (set.range (singleton : α → set α)).pairwise_disjoint :=
-begin
-  rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
-  exact disjoint_singleton.2 (ne_of_apply_ne _ h),
 end
 
 -- classical
@@ -126,6 +118,14 @@ lemma pairwise_disjoint.elim' (hs : pairwise_disjoint s) {x y : α} (hx : x ∈ 
 hs.elim hx hy $ λ hxy, h hxy.eq_bot
 
 end semilattice_inf_bot
+
+/-! ### Pairwise disjoint set of sets -/
+
+lemma pairwise_disjoint_range_singleton : (set.range (singleton : α → set α)).pairwise_disjoint :=
+begin
+  rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
+  exact disjoint_singleton.2 (ne_of_apply_ne _ h),
+end
 
 -- classical
 lemma pairwise_disjoint.elim_set {s : set (set α)} (hs : pairwise_disjoint s) {x y : set α}

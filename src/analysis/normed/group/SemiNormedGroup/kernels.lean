@@ -313,6 +313,24 @@ begin
   simp [explicit_cokernel_desc, explicit_cokernel_π, explicit_cokernel_iso],
 end
 
+/-- A special case of `category_theory.limits.cokernel.map` adapted to `explicit_cokernel`. -/
+noncomputable def explicit_cokernel.map {A B C D : SemiNormedGroup.{u}} {fab : A ⟶ B}
+  {fbd : B ⟶ D} {fac : A ⟶ C} {fcd : C ⟶ D} (h : fab ≫ fbd = fac ≫ fcd) :
+  explicit_cokernel fab ⟶ explicit_cokernel fcd :=
+@explicit_cokernel_desc _ _ _ fab (fbd ≫ explicit_cokernel_π _) $ by simp [reassoc_of h]
+
+/-- A special case of `category_theory.limits.cokernel.map_desc` adapted to `explicit_cokernel`. -/
+lemma explicit_coker.map_desc {A B C D B' D' : SemiNormedGroup.{u}}
+  {fab : A ⟶ B} {fbd : B ⟶ D} {fac : A ⟶ C} {fcd : C ⟶ D}
+  {h : fab ≫ fbd = fac ≫ fcd} {fbb' : B ⟶ B'} {fdd' : D ⟶ D'}
+  {condb : fab ≫ fbb' = 0} {condd : fcd ≫ fdd' = 0} {g : B' ⟶ D'}
+  (h' : fbb' ≫ g = fbd ≫ fdd'):
+  explicit_cokernel_desc condb ≫ g = explicit_cokernel.map h ≫ explicit_cokernel_desc condd :=
+begin
+  delta explicit_cokernel.map,
+  simp [← cancel_epi (explicit_cokernel_π fab), category.assoc, explicit_cokernel_π_desc, h']
+end
+
 end explicit_cokernel
 
 end cokernel

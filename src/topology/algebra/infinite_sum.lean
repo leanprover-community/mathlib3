@@ -7,6 +7,7 @@ import algebra.big_operators.intervals
 import algebra.big_operators.nat_antidiagonal
 import data.equiv.encodable.lattice
 import topology.algebra.mul_action
+import topology.algebra.ordered.monotone_convergence
 import topology.instances.real
 
 /-!

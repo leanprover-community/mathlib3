@@ -77,16 +77,15 @@ variables {a b : R} {p n : ℕ} (hp2 : (p : R) ^ 2 = 0)
 include hp2
 
 private lemma add_mul_pow_eq :
-  (a + p * b) ^ n = a ^ n + a ^ (n - 1) * (p * b) * n :=
+  (a + p * b) ^ n = a ^ (n - 1) * (p * b) * n + a ^ n :=
 begin
   cases n,
-  { rw [pow_zero, pow_zero, nat.cast_zero, mul_zero, add_zero] },
-  rw [nat.succ_sub_one, add_pow],
-  iterate 2 { rw [finset.range_succ, finset.sum_insert finset.not_mem_range_self] },
-  rw [nat.sub_self, pow_zero, nat.choose_self, mul_one, nat.cast_one, mul_one,
-    ← nat.add_one, nat.add_sub_cancel_left, pow_one,
-    nat.choose_succ_self_right, ← add_assoc, add_right_eq_self],
-  apply finset.sum_eq_zero,
+  { rw [pow_zero, pow_zero, nat.cast_zero, mul_zero, zero_add] },
+  suffices : ∀ i ∈ finset.range n, a ^ i * (p * b) ^ (n + 1 - i) * (n + 1).choose i = 0,
+  { rw [nat.succ_sub_one, ← nat.add_one, add_pow, finset.sum_range_succ, finset.sum_range_succ,
+      finset.sum_eq_zero this, nat.choose_self, nat.cast_one, nat.choose_succ_self_right,
+      nat.sub_self, nat.add_sub_cancel_left],
+    ring },
   intros i hi,
   have h : (0 : R) ∣ p ^ (n + 1 - i) := hp2 ▸ pow_dvd_pow _
     (nat.le_sub_left_of_add_le $ nat.succ_le_succ $ finset.mem_range.mp hi),

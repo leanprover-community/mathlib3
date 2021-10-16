@@ -7,12 +7,15 @@ Authors: Patrick Stevens
 import data.nat.choose.basic
 import data.nat.choose.sum
 
+/-!
+# Central binomial coefficients
+
+This file proves properties of the central binomial coefficients (that is, `nat.choose (2 * n) n`).
+-/
+
+
 open_locale nat
 namespace nat
-
-/-
-Facts about the central binomial coefficient, two_mul_n_choose_n.
--/
 
 lemma central_binom_ne_zero (n : ℕ) : (2 * n).choose n ≠ 0 :=
 (choose_pos (nat.le_mul_of_pos_left zero_lt_two)).ne'
@@ -121,12 +124,15 @@ end
 
 lemma two_mul_sub_self (n : ℕ) : 2 * n - n = n :=
 begin
-  sorry
+  calc 2 * n - n = n + n - n : by rw two_mul
+  ... = n : nat.add_sub_cancel n n,
 end
 
 lemma two_mul_succ_sub_self (n : ℕ) : 2 * n + 1 - n = n + 1 :=
 begin
-  sorry
+  calc 2 * n + 1 - n = n + n + 1 - n : by rw two_mul
+  ... = n + 1 + n - n : by ring_nf
+  ... = n + 1 : (n + 1).add_sub_cancel n
 end
 
 lemma central_binom_induction (n : ℕ) (n_pos : 0 < n) :

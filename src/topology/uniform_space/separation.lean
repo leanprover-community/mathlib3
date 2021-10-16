@@ -222,7 +222,8 @@ begin
   rcases hx (inter_mem V₁_in V_in) with ⟨z, hz, hz'⟩,
   obtain rfl : z = y,
   { by_contra hzy,
-    exact hs z hz' y hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm (ball_inter_left x _ _ hz) hy) },
+    exact hs z hz' y hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm
+      (ball_inter_left x _ _ hz) hy) },
   exact ball_inter_right x _ _ hz
 end
 

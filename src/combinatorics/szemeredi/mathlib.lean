@@ -37,107 +37,7 @@ variables {R : Type*}
 lemma pow_right_comm [ordered_semiring R] {a : R} {b c : ℕ} : (a^b)^c = (a^c)^b :=
 by rw [←pow_mul, mul_comm, pow_mul]
 
-lemma pow_le_of_le_one [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) :
-  a ^ n ≤ a :=
-(pow_one a).subst (pow_le_pow_of_le_one h₀ h₁ (nat.pos_of_ne_zero hn))
-
-lemma sq_le [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a :=
-pow_le_of_le_one h₀ h₁ two_ne_zero
-
-lemma pow_lt_one [ordered_semiring R] {a : R} (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) :
-  a^n < 1 :=
-(one_pow n).subst (pow_lt_pow_of_lt_left h₁ h₀ (nat.pos_of_ne_zero hn))
-
-lemma pow_le_one_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
-  (hn : n ≠ 0) :
-  a^n ≤ 1 ↔ a ≤ 1 :=
-begin
-  refine ⟨_, pow_le_one n ha⟩,
-  rw [←not_lt, ←not_lt],
-  exact mt (λ h, one_lt_pow h hn),
-end
-
-lemma one_le_pow_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
-  (hn : n ≠ 0) :
-  1 ≤ a^n ↔ 1 ≤ a :=
-begin
-  refine ⟨_, λ h, one_le_pow_of_one_le h n⟩,
-  rw [←not_lt, ←not_lt],
-  exact mt (λ h, pow_lt_one ha h hn),
-end
-
-lemma one_lt_pow_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
-  (hn : n ≠ 0) :
-  1 < a^n ↔ 1 < a :=
-begin
-  refine ⟨_, λ h, one_lt_pow h hn⟩,
-  rw [←not_le, ←not_le],
-  exact mt (pow_le_one n ha),
-end
-
-lemma pow_lt_one_iff_of_nonneg [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) {n : ℕ}
-  (hn : n ≠ 0) :
-  a^n < 1 ↔ a < 1 :=
-begin
-  refine ⟨_, λ h, pow_lt_one ha h hn⟩,
-  rw [←not_le, ←not_le],
-  exact mt (λ h, one_le_pow_of_one_le h n),
-end
-
-lemma sq_le_one_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : a^2 ≤ 1 ↔ a ≤ 1 :=
-pow_le_one_iff_of_nonneg ha two_ne_zero
-
-lemma sq_lt_one_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : a^2 < 1 ↔ a < 1 :=
-pow_lt_one_iff_of_nonneg ha two_ne_zero
-
-lemma one_le_sq_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : 1 ≤ a^2 ↔ 1 ≤ a :=
-one_le_pow_iff_of_nonneg ha two_ne_zero
-
-lemma one_lt_sq_iff [linear_ordered_semiring R] {a : R} (ha : 0 ≤ a) : 1 < a^2 ↔ 1 < a :=
-one_lt_pow_iff_of_nonneg ha two_ne_zero
-
 end group_power
-
-lemma finset.singleton_injective : injective (singleton : α → finset α) := λ i j, singleton_inj.1
-
-@[simp] lemma finset.sup_singleton' [decidable_eq α] (s : finset α) : s.sup singleton = s :=
-begin
-  refine (finset.sup_le $ λ a, _).antisymm (λ a ha, mem_sup.2 ⟨a, ha, mem_singleton_self a⟩),
-  exact singleton_subset_iff.2,
-end
-
-lemma finset.sup_attach [semilattice_sup_bot α] (s : finset β) (f : β → α) :
-  s.attach.sup (λ x, f x) = s.sup f :=
-eq_of_forall_ge_iff $ λ c, begin
-  rw [finset.sup_le_iff, finset.sup_le_iff],
-  exact ⟨λ h b hb, h ⟨b, hb⟩ (s.mem_attach _), λ h b _, h b.1 b.2⟩,
-end
-
-lemma finset.sup_erase_bot [semilattice_sup_bot α] [decidable_eq α] (s : finset α) :
-  (s.erase ⊥).sup id = s.sup id :=
-begin
-  refine (sup_mono (s.erase_subset _)).antisymm (finset.sup_le_iff.2 $ λ a ha, _),
-  obtain rfl | ha' := eq_or_ne a ⊥,
-  { exact bot_le },
-  { exact le_sup (mem_erase.2 ⟨ha', ha⟩) }
-end
-
-alias finset.card_pos ↔ _ finset.nonempty.card_pos
-
-lemma finset.not_disjoint_iff [decidable_eq α] {s t : finset α} :
-  ¬disjoint s t ↔ ∃ a, a ∈ s ∧ a ∈ t :=
-not_forall.trans $ exists_congr $ λ a, begin
-  rw [finset.inf_eq_inter, finset.mem_inter],
-  exact not_not,
-end
-
-lemma finset.sup_sdiff [generalized_boolean_algebra α] (s : finset β) (f : β → α) (a : α) :
-  s.sup (λ b, f b \ a) = s.sup f \ a :=
-begin
-  refine finset.cons_induction_on s _ (λ b t _ h, _),
-  { rw [sup_empty, sup_empty, bot_sdiff] },
-  { rw [sup_cons, sup_cons, h, sup_sdiff] }
-end
 
 lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
   (set.range (singleton : α → finset α)).pairwise_disjoint :=
@@ -631,7 +531,7 @@ def avoid (b : α) : finpartition (a \ b) :=
   disjoint := (P.disjoint.image_finset $ λ a, sdiff_le).subset (erase_subset _ _),
   sup_parts :=
     begin
-      rw [sup_erase_bot, sup_image, comp.left_id, finset.sup_sdiff],
+      rw [sup_erase_bot, sup_image, comp.left_id, finset.sup_sdiff_right],
       congr,
       exact P.sup_parts,
     end,

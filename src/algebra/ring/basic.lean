@@ -968,7 +968,7 @@ instance is_domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
-/-- Pullback a `is_domain  instance along an injective function. -/
+/-- Pullback an `is_domain` instance along an injective function. -/
 protected theorem function.injective.is_domain [ring β] (f : β →+* α) (hf : injective f) :
   is_domain β :=
 { .. pullback_nonzero f f.map_zero f.map_one,

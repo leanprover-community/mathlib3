@@ -116,7 +116,7 @@ by rw [←units.coe_one, eq_iff]
 
 @[simp, to_additive] lemma val_eq_coe : a.val = (↑a : α) := rfl
 
-@[simp, norm_cast, to_additive] lemma inv_eq_coe_inv : a.inv = ((a⁻¹ : units α) : α) := rfl
+@[simp, to_additive] lemma inv_eq_coe_inv : a.inv = ((a⁻¹ : units α) : α) := rfl
 
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _

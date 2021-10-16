@@ -79,13 +79,15 @@ end free_algebra
 
 namespace is_fraction_ring
 
-variables (R : Type*) {K : Type*} [comm_ring R] [integral_domain R]
+variables (R : Type*) {K : Type*} [comm_ring R]
   [field K] [algebra R K] [is_fraction_ring R K]
 variables (p : ℕ)
 
 /-- If `R` has characteristic `p`, then so does Frac(R). -/
 lemma char_p_of_is_fraction_ring [char_p R p] : char_p K p :=
 char_p_of_injective_algebra_map (is_fraction_ring.injective R K) p
+
+variables [integral_domain R]
 
 /-- If `R` has characteristic `p`, then so does `fraction_ring R`. -/
 instance char_p [char_p R p] : char_p (fraction_ring R) p :=

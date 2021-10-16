@@ -193,26 +193,6 @@ begin
   apply_instance,
 end
 
-@[simp] lemma root_multiplicity_zero {x : R} : root_multiplicity x 0 = 0 := dif_pos rfl
-
-lemma root_multiplicity_eq_zero {p : polynomial R} {x : R} (h : ¬ is_root p x) :
-  root_multiplicity x p = 0 :=
-begin
-  rw root_multiplicity_eq_multiplicity,
-  split_ifs, { refl },
-  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
-  intro hdvd,
-  exact h (dvd_iff_is_root.mp hdvd)
-end
-
-lemma root_multiplicity_pos {p : polynomial R} (hp : p ≠ 0) {x : R} :
-  0 < root_multiplicity x p ↔ is_root p x :=
-begin
-  rw [← dvd_iff_is_root, root_multiplicity_eq_multiplicity, dif_neg hp,
-      ← enat.coe_lt_coe, enat.coe_get],
-  exact multiplicity.dvd_iff_multiplicity_pos
-end
-
 lemma root_multiplicity_mul {p q : polynomial R} {x : R} (hpq : p * q ≠ 0) :
   root_multiplicity x (p * q) = root_multiplicity x p + root_multiplicity x q :=
 begin
@@ -550,31 +530,33 @@ begin
   rw [eval_sub, sub_eq_zero, ext],
 end
 
+variables [comm_ring T]
+
 /-- The set of distinct roots of `p` in `E`.
 
 If you have a non-separable polynomial, use `polynomial.roots` for the multiset
 where multiple roots have the appropriate multiplicity. -/
-def root_set (p : polynomial R) (S) [comm_ring S] [integral_domain S] [algebra R S] : set S :=
-(p.map (algebra_map R S)).roots.to_finset
+def root_set (p : polynomial T) (S) [comm_ring S] [integral_domain S] [algebra T S] : set S :=
+(p.map (algebra_map T S)).roots.to_finset
 
-lemma root_set_def (p : polynomial R) (S) [comm_ring S] [integral_domain S] [algebra R S] :
-  p.root_set S = (p.map (algebra_map R S)).roots.to_finset :=
+lemma root_set_def (p : polynomial T) (S) [comm_ring S] [integral_domain S] [algebra T S] :
+  p.root_set S = (p.map (algebra_map T S)).roots.to_finset :=
 rfl
 
-@[simp] lemma root_set_zero (S) [comm_ring S] [integral_domain S] [algebra R S] :
-  (0 : polynomial R).root_set S = ∅ :=
+@[simp] lemma root_set_zero (S) [comm_ring S] [integral_domain S] [algebra T S] :
+  (0 : polynomial T).root_set S = ∅ :=
 by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
 
-@[simp] lemma root_set_C [comm_ring S] [integral_domain S] [algebra R S] (a : R) :
+@[simp] lemma root_set_C [comm_ring S] [integral_domain S] [algebra T S] (a : T) :
   (C a).root_set S = ∅ :=
 by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
 
-instance root_set_fintype {R : Type*} [comm_ring R] [integral_domain R] (p : polynomial R)
-  (S : Type*) [comm_ring S] [integral_domain S] [algebra R S] : fintype (p.root_set S) :=
+instance root_set_fintype (p : polynomial T)
+  (S : Type*) [comm_ring S] [integral_domain S] [algebra T S] : fintype (p.root_set S) :=
 finset_coe.fintype _
 
-lemma root_set_finite {R : Type*} [comm_ring R] [integral_domain R] (p : polynomial R)
-  (S : Type*) [comm_ring S] [integral_domain S] [algebra R S] : (p.root_set S).finite :=
+lemma root_set_finite (p : polynomial T)
+  (S : Type*) [comm_ring S] [integral_domain S] [algebra T S] : (p.root_set S).finite :=
 ⟨polynomial.root_set_fintype p S⟩
 
 end roots

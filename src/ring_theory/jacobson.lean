@@ -273,7 +273,7 @@ variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
   In particular `X` is integral because it satisfies `pX`, and constants are trivially integral,
   so integrality of the entire extension follows by closure under addition and multiplication. -/
 lemma is_integral_is_localization_polynomial_quotient
-  (P : ideal (polynomial R)) [P.is_prime] (pX : polynomial R) (hpX : pX ∈ P)
+  (P : ideal (polynomial R)) (pX : polynomial R) (hpX : pX ∈ P)
   [algebra (P.comap (C : R →+* _)).quotient Rₘ]
   [is_localization.away (pX.map (quotient.mk (P.comap C))).leading_coeff Rₘ]
   [algebra P.quotient Sₘ]
@@ -436,12 +436,12 @@ is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
 end comm_ring
 
 section integral_domain
-variables {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
+variables {R : Type*} [comm_ring R] [is_jacobson R]
 variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
 include P hP
 
-lemma is_maximal_comap_C_of_is_maximal (hP' : ∀ (x : R), C x ∈ P → x = 0) :
+lemma is_maximal_comap_C_of_is_maximal [nontrivial R] (hP' : ∀ (x : R), C x ∈ P → x = 0) :
   is_maximal (comap C P : ideal R) :=
 begin
   haveI hp'_prime : (P.comap C : ideal R).is_prime := comap_is_prime C P,
@@ -481,7 +481,7 @@ begin
 end
 
 /-- Used to bootstrap the more general `quotient_mk_comp_C_is_integral_of_jacobson` -/
-private lemma quotient_mk_comp_C_is_integral_of_jacobson' (hR : is_jacobson R)
+private lemma quotient_mk_comp_C_is_integral_of_jacobson' [nontrivial R] (hR : is_jacobson R)
   (hP' : ∀ (x : R), C x ∈ P → x = 0) :
   ((quotient.mk P).comp C : R →+* P.quotient).is_integral :=
 begin
@@ -530,14 +530,15 @@ begin
     ((quotient.mk P').is_integral_of_surjective quotient.mk_surjective) _,
   apply quotient_mk_comp_C_is_integral_of_jacobson' _ _ (λ x hx, _),
   any_goals { exact ideal.is_jacobson_quotient },
-  { apply_instance, },
   { exact or.rec_on (map_eq_top_or_is_maximal_of_surjective f hf hP)
     (λ h, absurd (trans (h ▸ hPJ : P = comap f ⊤) comap_top : P = ⊤) hP.ne_top) id },
+  { apply_instance, },
   { obtain ⟨z, rfl⟩ := quotient.mk_surjective x,
     rwa [quotient.eq_zero_iff_mem, mem_comap, hPJ, mem_comap, coe_map_ring_hom, map_C] }
 end
 
-lemma is_maximal_comap_C_of_is_jacobson : (P.comap (C : R →+* polynomial R)).is_maximal :=
+lemma is_maximal_comap_C_of_is_jacobson :
+  (P.comap (C : R →+* polynomial R)).is_maximal :=
 begin
   rw [← @mk_ker _ _ P, ring_hom.ker_eq_comap_bot, comap_comap],
   exact is_maximal_comap_of_is_integral_of_is_maximal' _
@@ -590,7 +591,7 @@ end
 variables {n : ℕ}
 
 lemma quotient_mk_comp_C_is_integral_of_jacobson
-  {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
+  {R : Type*} [comm_ring R] [is_jacobson R]
   (P : ideal (mv_polynomial (fin n) R)) [P.is_maximal] :
   ((quotient.mk P).comp mv_polynomial.C : R →+* P.quotient).is_integral :=
 begin
@@ -606,7 +607,6 @@ begin
       refine ring_hom.is_integral_trans _ _ _ _,
       { apply (is_integral_quotient_map_iff _).mpr (IH _),
         apply polynomial.is_maximal_comap_C_of_is_jacobson _,
-        { apply_instance, },
         { exact mv_polynomial.is_jacobson_mv_polynomial_fin n },
         { apply comap_is_maximal_of_surjective,
           exact (fin_succ_equiv R n).symm.surjective } },
@@ -615,7 +615,6 @@ begin
         refine ring_hom.is_integral_trans _ _ _ ((is_integral_quotient_map_iff _).mpr _),
         { exact ring_hom.is_integral_of_surjective _ quotient.mk_surjective },
         { apply polynomial.quotient_mk_comp_C_is_integral_of_jacobson _,
-          { apply_instance, },
           { exact mv_polynomial.is_jacobson_mv_polynomial_fin n },
           { exact comap_is_maximal_of_surjective _ (fin_succ_equiv R n).symm.surjective } } } },
     { refine (is_integral_quotient_map_iff _).mpr _,
@@ -624,7 +623,7 @@ begin
 end
 
 lemma comp_C_integral_of_surjective_of_jacobson
-  {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
+  {R : Type*} [comm_ring R] [is_jacobson R]
   {σ : Type*} [fintype σ] {S : Type*} [field S] (f : mv_polynomial σ R →+* S)
   (hf : function.surjective f) : (f.comp C).is_integral :=
 begin

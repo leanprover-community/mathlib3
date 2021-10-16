@@ -70,8 +70,8 @@ begin
 end
 
 
-instance (n : ℕ) : decidable (prime n) := decidable_prime_1 n
-example (x : ℕ) (h : x ∈ (range 10).filter prime) : x = 2 ∨ x = 3 ∨ x = 5 ∨ x = 7 :=
+instance (n : ℕ) : decidable (nat.prime n) := decidable_prime_1 n
+example (x : ℕ) (h : x ∈ (range 10).filter nat.prime) : x = 2 ∨ x = 3 ∨ x = 5 ∨ x = 7 :=
 begin
   fin_cases h; exact dec_trivial
 end

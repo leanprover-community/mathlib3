@@ -999,7 +999,7 @@ lemma real.summable_pow_div_factorial (x : ℝ) :
   summable (λ n, x ^ n / n! : ℕ → ℝ) :=
 begin
   have A : (0 : ℝ) < ⌊∥x∥⌋₊ + 1, from zero_lt_one.trans_le (by simp),
-  have B : ∥x∥ / (⌊∥x∥⌋₊ + 1) < 1, from (div_lt_one A).2 (lt_nat_floor_add_one _),
+  have B : ∥x∥ / (⌊∥x∥⌋₊ + 1) < 1, from (div_lt_one A).2 (nat.lt_floor_add_one _),
   refine summable_of_ratio_norm_eventually_le B _,
   refine (eventually_ge_at_top ⌊∥x∥⌋₊).mono (λ n hn, _),
   simp only [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div, normed_field.norm_mul],

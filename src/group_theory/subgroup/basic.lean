@@ -960,7 +960,7 @@ eq.symm (subgroup.ext (λ g, subtype.ext_iff))
 @[simp, to_additive] lemma top_subgroup_of : (⊤ : subgroup G).subgroup_of H = ⊤ :=
 rfl
 
-@[simp, to_additive] lemma subgroup_of_bot_eq_bot : H.subgroup_of ⊥ = ⊥ :=
+@[to_additive] lemma subgroup_of_bot_eq_bot : H.subgroup_of ⊥ = ⊥ :=
 subsingleton.elim _ _
 
 @[to_additive] lemma subgroup_of_bot_eq_top : H.subgroup_of ⊥ = ⊤ :=

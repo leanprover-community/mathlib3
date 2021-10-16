@@ -120,7 +120,7 @@ end ring
 
 section integral_domain
 
-variables [comm_ring A] [integral_domain A]
+variables [comm_ring A]
 
 section ring
 
@@ -175,7 +175,7 @@ end ring
 
 section domain
 
-variables [ring B] [domain B] [algebra A B]
+variables [integral_domain A] [ring B] [algebra A B]
 variables {x : B}
 
 /-- If `a` strictly divides the minimal polynomial of `x`, then `x` cannot be a root for `a`. -/
@@ -202,6 +202,8 @@ begin
   rw [prod, degree_mul, degree_eq_nat_degree hzeroa, degree_eq_nat_degree hzerob],
   exact_mod_cast lt_add_of_pos_right _ degbzero,
 end
+
+variables [domain B]
 
 /-- A minimal polynomial is irreducible. -/
 lemma irreducible (hx : is_integral A x) : irreducible (minpoly A x) :=

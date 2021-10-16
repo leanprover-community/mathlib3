@@ -56,7 +56,7 @@ variables (e : basis ι R M)
 
 section conjugate
 
-variables {A : Type*} [comm_ring A] [integral_domain A]
+variables {A : Type*} [comm_ring A]
 variables {m n : Type*} [fintype m] [fintype n]
 
 /-- If `R^m` and `R^n` are linearly equivalent, then `m` and `n` are also equivalent. -/
@@ -68,7 +68,7 @@ namespace matrix
 
 /-- If `M` and `M'` are each other's inverse matrices, they are square matrices up to
 equivalence of types. -/
-def index_equiv_of_inv [decidable_eq m] [decidable_eq n]
+def index_equiv_of_inv [integral_domain A] [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   m ≃ n :=
@@ -79,7 +79,7 @@ by rw [det_mul, det_mul, mul_comm]
 
 /-- If there exists a two-sided inverse `M'` for `M` (indexed differently),
 then `det (N ⬝ M) = det (M ⬝ N)`. -/
-lemma det_comm' [decidable_eq m] [decidable_eq n]
+lemma det_comm' [integral_domain A] [decidable_eq m] [decidable_eq n]
   {M : matrix n m A} {N : matrix m n A} {M' : matrix m n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N) = det (N ⬝ M) :=
@@ -90,7 +90,7 @@ by rw [← det_minor_equiv_self e, minor_mul_equiv _ _ _ (equiv.refl n) _, det_c
   ← minor_mul_equiv, equiv.coe_refl, minor_id_id]
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
-lemma det_conj [decidable_eq m] [decidable_eq n]
+lemma det_conj [integral_domain A] [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N ⬝ M') = det N :=

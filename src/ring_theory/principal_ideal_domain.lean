@@ -165,7 +165,7 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
 end
 
 lemma is_field.is_principal_ideal_ring
-  {R : Type*} [comm_ring R] [integral_domain R] (h : is_field R) :
+  {R : Type*} [comm_ring R] (h : is_field R) :
   is_principal_ideal_ring R :=
 @euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
 

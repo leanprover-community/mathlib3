@@ -64,7 +64,6 @@ divisibility, gcd, lcm, normalize
 
 variables {α : Type*}
 
-set_option old_structure_cmd true
 
 
 
@@ -810,6 +809,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
   lcm := λ a b, if a = 0 then 0 else classical.some (dvd_normalize_iff.2
           ((gcd_dvd_left a b).trans (dvd.intro b rfl))),
   normalize_lcm := λ a b, by {
+    dsimp [normalize],
     split_ifs with a0,
     { exact @normalize_zero α _ _ },
     { have := (classical.some_spec (dvd_normalize_iff.2
@@ -822,8 +822,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
         { apply (a0 _).elim,
           rw [←zero_dvd_iff, ←ha],
           exact gcd_dvd_left _ _ },
-        { rw hl,
-          exact @normalize_zero α _ _ } },
+        { convert @normalize_zero α _ _ } },
       have h1 : gcd a b ≠ 0,
       { have hab : a * b ≠ 0 := mul_ne_zero a0 hb,
         contrapose! hab,
@@ -930,6 +929,7 @@ let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.in
     exact normalize_associated (a * b) },
   normalize_lcm := normalize_lcm,
   normalize_gcd := λ a b, by {
+    dsimp [normalize],
     split_ifs with h h_1,
     { apply normalize_idem },
     { apply normalize_idem },
@@ -1074,7 +1074,7 @@ instance : normalized_gcd_monoid G₀ :=
 
 @[simp]
 lemma coe_norm_unit {a : G₀} (h0 : a ≠ 0) : (↑(norm_unit a) : G₀) = a⁻¹ :=
-by simp [norm_unit, normalized_gcd_monoid.norm_unit, h0]
+by simp [norm_unit, h0]
 
 lemma normalize_eq_one {a : G₀} (h0 : a ≠ 0) : normalize a = 1 :=
 by simp [normalize_apply, h0]

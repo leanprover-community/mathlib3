@@ -192,7 +192,7 @@ theorem int.pow_sub_pow {x y : ℤ} (hxy₁ : ↑p ∣ x - y) (hxy₂ : ¬↑p �
   multiplicity ↑p (x ^ n - y ^ n) = multiplicity ↑p (x - y) + multiplicity p n :=
 begin
   cases n,
-  { rw [multiplicity.zero, add_top, pow_zero, pow_zero, sub_self, multiplicity.zero] },
+  { simp only [multiplicity.zero, add_top, pow_zero, sub_self] },
   have h : (multiplicity _ _).dom := finite_nat_iff.mpr ⟨hp.ne_one, n.succ_pos⟩,
   rcases eq_some_iff.mp (enat.coe_get h).symm with ⟨⟨k, hk⟩, hpn⟩,
   conv_lhs { rw [hk, pow_mul, pow_mul] },

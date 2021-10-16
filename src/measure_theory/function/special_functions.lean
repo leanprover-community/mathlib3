@@ -163,9 +163,12 @@ is_R_or_C.measurable_im.comp hf
   ae_measurable (λ x, is_R_or_C.im (f x)) μ :=
 is_R_or_C.measurable_im.comp_ae_measurable hf
 
+end is_R_or_C_composition
+
 section
 
-variable [borel_space 𝕜]
+variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] [measurable_space 𝕜]
+  [borel_space 𝕜] {f : α → 𝕜} {μ : measure_theory.measure α}
 
 @[measurability] lemma is_R_or_C.measurable_of_real : measurable (coe : ℝ → 𝕜) :=
 is_R_or_C.continuous_of_real.measurable
@@ -193,8 +196,6 @@ begin
 end
 
 end
-
-end is_R_or_C_composition
 
 section pow_instances
 

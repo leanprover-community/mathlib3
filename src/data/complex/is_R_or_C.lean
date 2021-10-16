@@ -446,7 +446,7 @@ by simp [abs, norm_sq, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
 lemma norm_eq_abs (z : K) : ∥z∥ = absK z := by simp [abs, norm_sq_eq_def']
 
-@[simp] lemma norm_of_real (z : ℝ) : ∥(z : K)∥ = ∥z∥ :=
+lemma norm_of_real (z : ℝ) : ∥(z : K)∥ = ∥z∥ :=
 by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_real, real.norm_eq_abs] }
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK r = r :=

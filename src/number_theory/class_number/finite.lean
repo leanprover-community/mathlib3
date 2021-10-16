@@ -381,7 +381,7 @@ See also `class_group.fintype_of_admissible_of_algebraic` where `L` is an
 algebraic extension of `R`, that includes some extra assumptions.
 -/
 noncomputable def fintype_of_admissible_of_finite [is_dedekind_domain R] :
-  fintype (@class_group S L _ _ _ _
+  fintype (@class_group S L _ _ _
     (is_integral_closure.is_fraction_ring_of_finite_extension R K L S)) :=
 begin
   letI := classical.dec_eq L,

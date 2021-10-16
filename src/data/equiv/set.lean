@@ -52,6 +52,11 @@ protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
+protected lemma subset_image' {α β} (e : α ≃ β) (s : set α) (t : set β) :
+  e '' s ⊆ t ↔ s ⊆ e.symm '' t :=
+calc e '' s ⊆ t ↔ e.symm.symm '' s ⊆ t : by rw e.symm_symm
+            ... ↔ s ⊆ e.symm '' t : by rw e.symm.subset_image
+
 @[simp] lemma symm_image_image {α β} (e : α ≃ β) (s : set α) : e.symm '' (e '' s) = s :=
 e.left_inverse_symm.image_image s
 

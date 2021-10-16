@@ -32,6 +32,7 @@ def is_homogeneous_element.to {x : ⨁ i, A i} (H : is_homogeneous_element x) :
   graded_monoid A := H.some
 
 /-- this might be useful, but I don't know where to put it -/
+@[simps]
 def graded_monoid.to_direct_sum [add_comm_monoid ι] [gcomm_semiring A] :
   (graded_monoid A) →* (⨁ i, A i) :=
 { to_fun := λ a, of A a.fst a.snd,

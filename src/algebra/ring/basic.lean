@@ -963,10 +963,8 @@ instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
-/-- Pullback a `domain` instance along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.domain [ring β] (f : β →+* α) (hf : injective f) :
+/-- Pullback a `domain` instance along an injective function. -/
+protected theorem function.injective.domain [ring β] (f : β →+* α) (hf : injective f) :
   domain β :=
 { .. pullback_nonzero f f.map_zero f.map_one,
   .. hf.no_zero_divisors f f.map_zero f.map_mul }
@@ -990,10 +988,9 @@ variables [comm_ring α] [integral_domain α] {a b c d e : α}
 instance integral_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
 { ..comm_semiring.to_comm_monoid_with_zero, ..domain.to_cancel_monoid_with_zero }
 
-/-- Pullback an `integral_domain` instance along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.integral_domain [comm_ring β] (f : β →+* α) (hf : injective f) :
+/-- Pullback an `integral_domain` instance along an injective function. -/
+protected theorem function.injective.integral_domain
+  [comm_ring β] (f : β →+* α) (hf : injective f) :
   integral_domain β :=
 { .. hf.domain f }
 
@@ -1104,7 +1101,8 @@ lemma integral_domain.to_is_integral_domain (R : Type u) [comm_ring R] [integral
 /-- If a ring satisfies the predicate for integral domains,
 then it can be endowed with an `integral_domain` instance
 whose data is definitionally equal to the existing data. -/
-def is_integral_domain.to_integral_domain (R : Type u) [comm_ring R] (h : is_integral_domain R) :
+theorem is_integral_domain.to_integral_domain
+  (R : Type u) [comm_ring R] (h : is_integral_domain R) :
   integral_domain R :=
 { .. (‹_› : is_integral_domain R) }
 

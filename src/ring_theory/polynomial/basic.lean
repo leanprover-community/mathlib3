@@ -841,7 +841,7 @@ Multivariate polynomials in finitely many variables over an integral domain form
 This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
 and then used to prove the general case without finiteness hypotheses.
 See `mv_polynomial.integral_domain` for the general case. -/
-def integral_domain_fintype
+theorem integral_domain_fintype
   (R : Type u) (σ : Type v) [comm_ring R] [integral_domain R] [fintype σ] :
   integral_domain (mv_polynomial σ R) :=
 @is_integral_domain.to_integral_domain _ _ $ mv_polynomial.is_integral_domain_fintype R σ $

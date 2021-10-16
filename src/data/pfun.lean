@@ -16,7 +16,7 @@ This file defines partial functions. Partial functions are like functions, excep
 
 * `pfun α β`: Type of partial functions from `α` to `β`. Defined as `α → part β` and denoted
   `α →. β`.
-* `pfun.dom`: is_domain of a partial function. Set of values on which it is defined. Not to be confused
+* `pfun.dom`: Domain of a partial function. Set of values on which it is defined. Not to be confused
   with the domain of a function `α → β`, which is a type (`α` presently).
 * `pfun.fn`: Evaluation of a partial function. Takes in an element and a proof it belongs to the
   partial function's `dom`.

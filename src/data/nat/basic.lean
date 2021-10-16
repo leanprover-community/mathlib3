@@ -304,7 +304,8 @@ succ_injective.ne_iff
 @[simp] lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
 succ_ne_succ.mpr n.succ_ne_zero
 
-lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ := succ_lt_succ $ succ_pos n
+@[simp] lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
+succ_lt_succ $ succ_pos n
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -543,8 +544,7 @@ begin
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
-mt (congr_arg (%2)) $ by { rw [add_comm, add_mul_mod_self_left, mul_mod_right,
-  mod_eq_of_lt one_lt_two], exact nat.zero_ne_one }
+mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
 lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
 | 0     0     := dec_trivial

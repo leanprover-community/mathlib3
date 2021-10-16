@@ -1607,10 +1607,8 @@ is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ (le_refl _) hx
 variables (A)
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
-integral domain.
-See note [reducible non-instances]. -/
-@[reducible]
-theorem is_domain : is_domain K :=
+integral domain. -/
+protected theorem is_domain : is_domain K :=
 is_domain_of_le_non_zero_divisors K (le_refl (non_zero_divisors A))
 
 local attribute [instance] classical.dec_eq
@@ -1640,7 +1638,7 @@ noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
   inv_zero := dif_pos rfl,
-  .. is_domain A,
+  .. is_fraction_ring.is_domain A,
   .. show comm_ring K, by apply_instance }
 
 end comm_ring

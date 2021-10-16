@@ -1270,8 +1270,8 @@ quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
 end comm_ring
 
-/-- The kernel of a homomorphism to an integral domain is a prime ideal. -/
-lemma ker_is_prime [ring R] [comm_ring S] [integral_domain S] (f : R →+* S) :
+/-- The kernel of a homomorphism to a domain is a prime ideal. -/
+lemma ker_is_prime [ring R] [ring S] [domain S] (f : R →+* S) :
   (ker f).is_prime :=
 ⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
 λ x y, by simpa only [mem_ker, f.map_mul] using @eq_zero_or_eq_zero_of_mul_eq_zero S _ _ _ _ _⟩

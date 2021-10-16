@@ -738,8 +738,8 @@ instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 
-instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [integral_domain R] :
-  integral_domain (hahn_series Γ R) :=
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [domain R] :
+  domain (hahn_series Γ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y xy, begin
     by_cases hx : x = 0,
     { left, exact hx },
@@ -751,10 +751,15 @@ instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [integral
     simp [coeff_order_ne_zero, hx, xy],
   end,
   .. hahn_series.nontrivial,
+  .. hahn_series.ring }
+
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [integral_domain R] :
+  integral_domain (hahn_series Γ R) :=
+{ .. hahn_series.domain,
   .. hahn_series.comm_ring }
 
 @[simp]
-lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [integral_domain R]
+lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [domain R]
   {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (x * y).order = x.order + y.order :=
 begin
@@ -1026,7 +1031,7 @@ end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [comm_ring R] [integral_domain R]
+variables [linear_ordered_add_comm_group Γ] [ring R] [domain R]
 
 instance : linear_ordered_comm_group (multiplicative Γ) :=
 { .. (infer_instance : linear_order (multiplicative Γ)),
@@ -1087,7 +1092,7 @@ end
 end valuation
 
 lemma is_pwo_Union_support_powers
-  [linear_ordered_add_comm_group Γ] [comm_ring R] [integral_domain R]
+  [linear_ordered_add_comm_group Γ] [ring R] [domain R]
   {x : hahn_series Γ R} (hx : 0 < add_val Γ R x) :
   (⋃ n : ℕ, (x ^ n).support).is_pwo :=
 begin

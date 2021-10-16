@@ -87,15 +87,15 @@ variables (p : ℕ)
 lemma char_p_of_is_fraction_ring [char_p R p] : char_p K p :=
 char_p_of_injective_algebra_map (is_fraction_ring.injective R K) p
 
+/-- If `R` has characteristic `0`, then so does Frac(R). -/
+lemma char_zero_of_is_fraction_ring [char_zero R] : char_zero K :=
+@char_p.char_p_to_char_zero K _ (char_p_of_is_fraction_ring R 0)
+
 variables [integral_domain R]
 
 /-- If `R` has characteristic `p`, then so does `fraction_ring R`. -/
 instance char_p [char_p R p] : char_p (fraction_ring R) p :=
 char_p_of_is_fraction_ring R p
-
-/-- If `R` has characteristic `0`, then so does Frac(R). -/
-lemma char_zero_of_is_fraction_ring [char_zero R] : char_zero K :=
-@char_p.char_p_to_char_zero K _ (char_p_of_is_fraction_ring R 0)
 
 /-- If `R` has characteristic `0`, then so does `fraction_ring R`. -/
 instance char_zero [char_zero R] : char_zero (fraction_ring R) :=

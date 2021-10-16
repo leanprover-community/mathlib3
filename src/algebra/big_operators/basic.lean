@@ -47,6 +47,8 @@ as `x` ranges over the elements of the finite set `s`.
 @[to_additive "`∑ x in s, f` is the sum of `f x` as `x` ranges over the elements
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
+#print prefix finset.sum
+#print prefix finset.prod
 
 @[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs : s.nodup) (f : α → β) :
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
@@ -1449,7 +1451,7 @@ multiset.induction_on s rfl
 
 lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
-by { dunfold finset.sum, rw count_sum }
+by { rw finset.sum, rw count_sum, refl }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a • {a}) = s :=

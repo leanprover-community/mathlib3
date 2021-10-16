@@ -486,7 +486,7 @@ begin
   rw linear_independent_set_iff_affine_independent_vadd_union_singleton k hb₀ p at hb₃,
   refine ⟨{p} ∪ (equiv.vadd_const p) '' b, _, _, hb₃⟩,
   { apply set.union_subset (set.singleton_subset_iff.mpr hp),
-    rwa (equiv.vadd_const p).subset_image' b s, },
+    rwa ← (equiv.vadd_const p).subset_image' b s, },
   { rw [equiv.coe_vadd_const_symm, ← vector_span_eq_span_vsub_set_right k hp] at hb₂,
     apply affine_subspace.ext_of_direction_eq,
     { have : submodule.span k b = submodule.span k (insert 0 b), { by simp, },

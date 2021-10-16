@@ -642,6 +642,14 @@ end
 lemma exists_add_lt_and_pos_of_lt (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
 ⟨(a - b) / 2, add_sub_div_two_lt h, div_pos (sub_pos_of_lt h) zero_lt_two⟩
 
+lemma exists_pos_mul_lt {a : α} (h : 0 < a) (b : α) : ∃ c : α, 0 < c ∧ b * c < a :=
+begin
+  have : 0 < a / max (b + 1) 1, from div_pos h (lt_max_iff.2 (or.inr zero_lt_one)),
+  refine ⟨a / max (b + 1) 1, this, _⟩,
+  rw [← lt_div_iff this, div_div_cancel' h.ne'],
+  exact lt_max_iff.2 (or.inl $ lt_add_one _)
+end
+
 lemma le_of_forall_sub_le (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin
   contrapose! h,

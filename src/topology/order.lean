@@ -229,6 +229,7 @@ instance discrete_topology_bot (α : Type*) : @discrete_topology α ⊥ :=
   is_closed s :=
 is_open_compl_iff.1 $ (discrete_topology.eq_bot α).symm ▸ trivial
 
+@[nontriviality]
 lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
   [topological_space β] {f : α → β} : continuous f :=
 continuous_def.2 $ λs hs, is_open_discrete _

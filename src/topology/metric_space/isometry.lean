@@ -213,6 +213,15 @@ protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry.right_inv h.right_inv,
   to_equiv := h.to_equiv.symm }
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : α ≃ᵢ β) : α → β := h
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (h : α ≃ᵢ β) : β → α := h.symm
+
+initialize_simps_projections isometric
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply)
+
 @[simp] lemma symm_symm (h : α ≃ᵢ β) : h.symm.symm = h := to_equiv_inj h.to_equiv.symm_symm
 
 @[simp] lemma apply_symm_apply (h : α ≃ᵢ β) (y : β) : h (h.symm y) = y :=

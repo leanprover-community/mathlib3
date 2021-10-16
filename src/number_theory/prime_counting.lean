@@ -78,36 +78,40 @@ begin
     { exact hyp.2, }, },
 end
 
-lemma prime_implies_coprime {n k : ℕ} (not_eq : n ≠ k) (is_prime : prime k) : coprime k n :=
+lemma eq_or_coprime_of_lt_prime {n k : ℕ} (h0 : 0 < n) (hlt : n ≤ k) (is_prime : prime k) : k = n ∨ coprime k n :=
 begin
   sorry,
 end
 
+-- TODO remove h0 h1 k_le_n assumption
 /-- A simple linear bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound (n k : ℕ) (k_le_n : k ≤ n) : π' n ≤ π' k + nat.totient k * (n - k) / k :=
+lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) (k_le_n : k ≤ n) : π' n ≤ π' k + 1 + nat.totient k * (n - k) / k :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
               rw [prime_counting', split_range k_le_n],
               apply card_union_le,
             end
      ... ≤ π' k + ((Ico k n).filter (prime)).card : by rw prime_counting'
-     ... ≤ π' k + ((Ico k n).filter (λ i, coprime i k)).card :
+     ... ≤ π' k + ((Ico k n).filter (λ i, i = k ∨ coprime i k)).card :
             begin
               apply add_le_add_left,
               apply card_le_of_subset,
               rw subset_iff,
               simp,
-              intros p k_le_p p_lt_n p_prime,
+              intros p succ_k_le_p p_lt_n p_prime,
+              -- have k_lt_p : k < p, linarith,
               split,
-              { exact ⟨k_le_p, p_lt_n⟩, },
-              { apply prime_implies_coprime _ p_prime,
-                intros k_eq_p,
-                subst k_eq_p,
-              }
+              { exact ⟨succ_k_le_p, p_lt_n⟩, },
+              { apply eq_or_coprime_of_lt_prime h0 _ p_prime,
+                exact succ_k_le_p,
+              },
             end
      ... ≤ π' k + nat.totient k * (n - k) / k :
             begin
               apply add_le_add_left,
+              rw [filter_or, filter_eq'],
+              simp,
+              rw if_pos k_lt_n,
               sorry,
             end
 

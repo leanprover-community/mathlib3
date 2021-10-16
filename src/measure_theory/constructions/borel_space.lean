@@ -488,7 +488,8 @@ begin
   { ext s,
     split; rintro ⟨l, hl, u, hu, hlt, rfl⟩,
     exacts [⟨u, hu, l, hl, hlt, dual_Ico⟩, ⟨u, hu, l, hl, hlt, dual_Ioc⟩] },
-  { rwa dual_Ioo }
+  { erw dual_Ioo,
+    exact he }
 end
 
 lemma dense.borel_eq_generate_from_Ioc_mem {α : Type*} [topological_space α] [linear_order α]
@@ -533,7 +534,8 @@ lemma ext_of_Ioc_finite {α : Type*} [topological_space α] {m : measurable_spac
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
   refine @ext_of_Ico_finite (order_dual α) _ _ _ _ _ ‹_› μ ν _ hμν (λ a b hab, _),
-  rw @dual_Ico α _ a b, exact h hab
+  erw dual_Ico,
+  exact h hab
 end
 
 /-- Two measures which are finite on closed-open intervals are equal if the agree on all
@@ -568,7 +570,7 @@ lemma ext_of_Ioc' {α : Type*} [topological_space α] {m : measurable_space α}
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
   refine @ext_of_Ico' (order_dual α) _ _ _ _ _ ‹_› _ μ ν _ _;
-    intros a b hab; rw @dual_Ico α _ a b,
+    intros a b hab; erw dual_Ico,
   exacts [hμ hab, h hab]
 end
 

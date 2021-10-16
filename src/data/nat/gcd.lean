@@ -231,6 +231,12 @@ by rwa [gcd_mul_left, H1.gcd_eq_one, mul_one] at t
 theorem coprime.dvd_of_dvd_mul_left {m n k : ℕ} (H1 : coprime k m) (H2 : k ∣ m * n) : k ∣ n :=
 by rw mul_comm at H2; exact H1.dvd_of_dvd_mul_right H2
 
+theorem coprime.dvd_mul_right {m n k : ℕ} (H : coprime k n) : k ∣ m * n ↔ k ∣ m :=
+⟨H.dvd_of_dvd_mul_right, λ h, dvd_mul_of_dvd_left h n⟩
+
+theorem coprime.dvd_mul_left {m n k : ℕ} (H : coprime k m) : k ∣ m * n ↔ k ∣ n :=
+⟨H.dvd_of_dvd_mul_left, λ h, dvd_mul_of_dvd_right h m⟩
+
 theorem coprime.gcd_mul_left_cancel {k : ℕ} (m : ℕ) {n : ℕ} (H : coprime k n) :
    gcd (k * m) n = gcd m n :=
 have H1 : coprime (gcd (k * m) n) k,

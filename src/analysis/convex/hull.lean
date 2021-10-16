@@ -143,6 +143,16 @@ begin
     ((convex_convex_hull 𝕜 s).affine_image f) }
 end
 
+lemma convex_hull_subset_affine_span : convex_hull 𝕜 s ⊆ (affine_span 𝕜 s : set E) :=
+convex_hull_min (subset_affine_span 𝕜 s) (affine_span 𝕜 s).convex
+
+@[simp] lemma affine_span_convex_hull : affine_span 𝕜 (convex_hull 𝕜 s) = affine_span 𝕜 s :=
+begin
+  refine le_antisymm _ (affine_span_mono 𝕜 (subset_convex_hull 𝕜 s)),
+  rw affine_span_le,
+  exact convex_hull_subset_affine_span,
+end
+
 end add_comm_group
 end ordered_ring
 end convex_hull

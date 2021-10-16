@@ -21,6 +21,30 @@ attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 instance : has_lt pos :=
 { lt := λ x y, (x.line, x.column) < (y.line, y.column) }
 
+namespace tactic
+
+/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
+meta def refl_conv (e : expr) : tactic (expr × expr) :=
+do p ← mk_eq_refl e, return (e, p)
+
+/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
+proof by reflexivity. -/
+meta def or_refl_conv (tac : expr → tactic (expr × expr))
+  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
+
+/-- Transitivity conversion: given two conversions (which take an
+expression `e` and returns `(e', ⊢ e = e')`), produces another
+conversion that combines them with transitivity, treating failures
+as reflexivity conversions. -/
+meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
+  tactic (expr × expr) :=
+(do (e₁, p₁) ← t₁ e,
+  (do (e₂, p₂) ← t₂ e₁,
+    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
+  return (e₁, p₁)) <|> t₂ e
+
+end tactic
+
 namespace expr
 open tactic
 
@@ -2191,7 +2215,8 @@ do d ← get_decl n,
      (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
    else if (t =ₐ `(tactic string)) then
      (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
+   else fail!
+     "name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
 /-- auxiliary function for `apply_under_n_pis` -/
 private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr → pexpr
@@ -2338,7 +2363,7 @@ ns.mfirst (λ nm, do
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
 /-- A tactic to set either a basic attribute or a user attribute.
-  If the the user attribute has a parameter, the default value will be used.
+  If the user attribute has a parameter, the default value will be used.
   This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do
@@ -2352,8 +2377,10 @@ then do
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
     ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
-    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter without a default value.
-Solution: provide an `inhabited` instance.",
+    fail! ("Cannot set attribute @[{attr_name}].\n" ++
+      "The corresponding user attribute {user_attr_nm} " ++
+      "has a parameter without a default value.\n" ++
+      "Solution: provide an `inhabited` instance."),
   tac
 else fail msg
 

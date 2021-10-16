@@ -533,8 +533,6 @@ section smooth_manifold_with_corners
 
 /-! ### Smooth manifolds with corners -/
 
-set_option old_structure_cmd true
-
 /-- Typeclass defining smooth manifolds with corners with respect to a model with corners, over a
 field `𝕜` and with infinite smoothness to simplify typeclass search and statements later on. -/
 @[ancestor has_groupoid]

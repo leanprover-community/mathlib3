@@ -40,21 +40,19 @@ open_locale direct_sum
 variables (R : Type uR) (A : ι → Type uA) {B : Type uB} [decidable_eq ι]
 
 variables [comm_semiring R] [Π i, add_comm_monoid (A i)] [Π i, module R (A i)]
-variables [add_monoid ι] [gmonoid A]
+variables [add_monoid ι] [gsemiring A]
 
 section
-
-local attribute [instance] ghas_one.to_sigma_has_one
-local attribute [instance] ghas_mul.to_sigma_has_mul
 
 /-- A graded version of `algebra`. An instance of `direct_sum.galgebra R A` endows `(⨁ i, A i)`
 with an `R`-algebra structure. -/
 class galgebra :=
 (to_fun : R →+ A 0)
-(map_one : to_fun 1 = ghas_one.one)
-(map_mul : ∀ r s, (⟨_, to_fun (r * s)⟩ : Σ i, A i) = ⟨_, ghas_mul.mul (to_fun r) (to_fun s)⟩)
-(commutes : ∀ r x, (⟨_, to_fun (r)⟩ : Σ i, A i) * x = x * ⟨_, to_fun (r)⟩)
-(smul_def : ∀ r (x : Σ i, A i), (⟨x.1, r • x.2⟩ : Σ i, A i) = ⟨_, to_fun (r)⟩ * x)
+(map_one : to_fun 1 = graded_monoid.ghas_one.one)
+(map_mul : ∀ r s,
+  graded_monoid.mk _ (to_fun (r * s)) = ⟨_, graded_monoid.ghas_mul.mul (to_fun r) (to_fun s)⟩)
+(commutes : ∀ r x, graded_monoid.mk _ (to_fun r) * x = x * ⟨_, to_fun r⟩)
+(smul_def : ∀ r (x : graded_monoid A), graded_monoid.mk x.1 (r • x.2) = ⟨_, to_fun (r)⟩ * x)
 
 end
 
@@ -80,10 +78,11 @@ instance : algebra R (⨁ i, A i) :=
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.commutes r ⟨i, xi⟩),
   end,
   smul_def' := λ r x, begin
-    change const_smul_hom _ r x = add_monoid_hom.mul (direct_sum.of _ _ _) x,
+    change distrib_mul_action.to_add_monoid_hom _ r x = add_monoid_hom.mul (direct_sum.of _ _ _) x,
     apply add_monoid_hom.congr_fun _ x,
     ext i xi : 2,
-    dsimp only [add_monoid_hom.comp_apply, const_smul_hom_apply, add_monoid_hom.mul_apply],
+    dsimp only [add_monoid_hom.comp_apply, distrib_mul_action.to_add_monoid_hom_apply,
+      add_monoid_hom.mul_apply],
     rw [direct_sum.of_mul_of, ←of_smul],
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.smul_def r ⟨i, xi⟩),
   end }
@@ -105,7 +104,7 @@ instance galgebra.of_submodules
   (carriers : ι → submodule R B)
   (one_mem : (1 : B) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : B) ∈ carriers (i + j)) :
-  by haveI : gmonoid (λ i, carriers i) := gmonoid.of_submodules carriers one_mem mul_mem; exact
+  by haveI : gsemiring (λ i, carriers i) := gsemiring.of_submodules carriers one_mem mul_mem; exact
   galgebra R (λ i, carriers i) :=
 by exact {
   to_fun := begin
@@ -129,8 +128,8 @@ coercions such as `submodule.subtype (A i)`, and the `[gmonoid A]` structure ori
 can be discharged by `rfl`. -/
 @[simps]
 def to_algebra
-  (f : Π i, A i →ₗ[R] B) (hone : f _ (ghas_one.one) = 1)
-  (hmul : ∀ {i j} (ai : A i) (aj : A j), f _ (ghas_mul.mul ai aj) = f _ ai * f _ aj)
+  (f : Π i, A i →ₗ[R] B) (hone : f _ (graded_monoid.ghas_one.one) = 1)
+  (hmul : ∀ {i j} (ai : A i) (aj : A j), f _ (graded_monoid.ghas_mul.mul ai aj) = f _ ai * f _ aj)
   (hcommutes : ∀ r, (f 0) (galgebra.to_fun r) = (algebra_map R B) r) :
   (⨁ i, A i) →ₐ[R] B :=
 { to_fun := to_semiring (λ i, (f i).to_add_monoid_hom) hone @hmul,

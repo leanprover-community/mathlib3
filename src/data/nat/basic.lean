@@ -3,8 +3,7 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.ordered_ring
-import algebra.ordered_sub
+import algebra.order.ring
 
 /-!
 # Basic operations on the natural numbers
@@ -15,6 +14,7 @@ This file contains:
 - extra recursors:
   * `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers
   * `decreasing_induction`: recursion growing downwards
+  * `le_rec_on'`, `decreasing_induction'`: versions with slightly weaker assumptions
   * `strong_rec'`: recursion based on strong inequalities
 - decidability instances on predicates about the natural numbers
 
@@ -87,10 +87,9 @@ instance : semiring nat           := by apply_instance
 instance : ordered_semiring nat   := by apply_instance
 
 instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := assume a b,
-  ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-    assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero   := assume a b, nat.eq_zero_of_mul_eq_zero,
+{ le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
+                               λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+  eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   bot               := 0,
   bot_le            := nat.zero_le,
   .. nat.nontrivial,
@@ -188,8 +187,8 @@ add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
 
 @[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
 iff.intro
-  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (assume h, h.symm ▸ ⟨1, rfl⟩)
+  (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
+  (λ h, h.symm ▸ ⟨1, rfl⟩)
 
 instance unique_units : unique (units ℕ) :=
 { default := 1, uniq := nat.units_eq_one }
@@ -198,6 +197,9 @@ instance unique_add_units : unique (add_units ℕ) :=
 { default := 0, uniq := nat.add_units_eq_zero }
 
 /-! ### Equalities and inequalities involving zero and one -/
+
+lemma one_le_iff_ne_zero {n : ℕ} : 1 ≤ n ↔ n ≠ 0 :=
+(show 1 ≤ n ↔ 0 < n, from iff.rfl).trans pos_iff_ne_zero
 
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
@@ -221,7 +223,7 @@ lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
 theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
-⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
+⟨nat.eq_zero_of_le_zero, λ h, h ▸ le_refl i⟩
 
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
@@ -369,9 +371,6 @@ end
 @[simp] theorem add_def {a b : ℕ} : nat.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℕ} : nat.mul a b = a * b := rfl
 
-attribute [simp] nat.add_sub_cancel nat.add_sub_cancel_left
-attribute [simp] nat.sub_self
-
 lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
 | 0 0 h := ⟨0, by simp⟩
 | 0 (n+1) h := ⟨n+1, by simp⟩
@@ -417,12 +416,20 @@ lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a =
 | _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
-⟨assume h,
+⟨λ h,
   match nat.eq_or_lt_of_le h with
   | or.inl h := or.inr h
   | or.inr h := or.inl $ nat.le_of_succ_le_succ h
   end,
-  or.rec (assume h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
+  or.rec (λ h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
+
+lemma le_and_le_add_one_iff {x a : ℕ} :
+  a ≤ x ∧ x ≤ a + 1 ↔ x = a ∨ x = a + 1 :=
+begin
+  rw [le_add_one_iff, and_or_distrib_left, ←le_antisymm_iff, eq_comm, and_iff_right_of_imp],
+  rintro rfl,
+  exact a.le_succ,
+end
 
 lemma add_succ_lt_add {a b c d : ℕ} (hab : a < b) (hcd : c < d) : a + c + 1 < b + d :=
 begin
@@ -475,135 +482,19 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 /-! ### `sub`
 
-Todo: remove lemmas that are proven in general for `has_ordered_sub`. -/
+Most lemmas come from the `has_ordered_sub` instance on `ℕ`. -/
 
-protected theorem sub_le_iff_right : m - n ≤ k ↔ m ≤ k + n :=
+instance : has_ordered_sub ℕ :=
 begin
+  constructor,
+  intros m n k,
   induction n with n ih generalizing k,
   { simp },
   { simp only [sub_succ, add_succ, succ_add, ih, pred_le_iff] }
 end
 
-instance : has_ordered_sub ℕ :=
-⟨λ n m k, nat.sub_le_iff_right⟩
-
-protected theorem le_sub_add (n m : ℕ) : n ≤ n - m + m :=
-le_sub_add
-
-protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
-add_sub_cancel_of_le h
-
-protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
-  (a - b) + (b - c) = a - c :=
-sub_add_sub_cancel''  hab hbc
-
-protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
-sub_eq_of_eq_add'' $ by rw [add_comm, h]
-
-theorem sub_cancel {a b c : ℕ} (h₁ : a ≤ b) (h₂ : a ≤ c) (w : b - a = c - a) : b = c :=
-sub_inj_left h₁ h₂ w
-
-lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
-sub_sub_sub_cancel_right' h₂
-
-protected lemma sub_add_eq_add_sub {a b c : ℕ} (h : b ≤ a) : (a - b) + c = (a + c) - b :=
-sub_add_eq_add_sub' h
-
-theorem sub_sub_assoc {a b c : ℕ} (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
-sub_sub_assoc h₁ h₂
-
-protected theorem lt_of_sub_pos (h : 0 < n - m) : m < n :=
-sub_pos_iff_lt.mp h
-
-protected theorem lt_of_sub_lt_sub_right : m - k < n - k → m < n :=
-lt_of_sub_lt_sub_right
-
-protected theorem lt_of_sub_lt_sub_left : m - n < m - k → k < n :=
-lt_of_sub_lt_sub_left
-
-protected theorem sub_lt_self (h₁ : 0 < m) (h₂ : 0 < n) : m - n < m :=
-sub_lt_self' h₁ h₂
-
-protected theorem le_sub_right_of_add_le (h : m + k ≤ n) : m ≤ n - k :=
-le_sub_of_add_le_right' h
-
-protected theorem le_sub_left_of_add_le (h : k + m ≤ n) : m ≤ n - k :=
-le_sub_of_add_le_left' h
-
-protected theorem lt_sub_right_of_add_lt (h : m + k < n) : m < n - k :=
-lt_sub_iff_right.mpr h
-
-protected theorem lt_sub_left_of_add_lt (h : k + m < n) : m < n - k :=
-lt_sub_iff_left.mpr h
-
-protected theorem add_lt_of_lt_sub_right (h : m < n - k) : m + k < n :=
-lt_sub_iff_right.mp h
-
-protected theorem add_lt_of_lt_sub_left (h : m < n - k) : k + m < n :=
-lt_sub_iff_left.mp h
-
-protected theorem le_add_of_sub_le_right : n - k ≤ m → n ≤ m + k :=
-sub_le_iff_right.mp
-
-protected theorem le_add_of_sub_le_left : n - k ≤ m → n ≤ k + m :=
-sub_le_iff_left.mp
-
-protected theorem lt_add_of_sub_lt_right : n - k < m → n < m + k :=
-lt_add_of_sub_lt_right'
-
-protected theorem lt_add_of_sub_lt_left : n - k < m → n < k + m :=
-lt_add_of_sub_lt_left'
-
-protected theorem sub_le_left_of_le_add : n ≤ k + m → n - k ≤ m :=
-sub_le_iff_left.mpr
-
-protected theorem sub_le_right_of_le_add : n ≤ m + k → n - k ≤ m :=
-sub_le_iff_right.mpr
-
-protected theorem sub_lt_left_iff_lt_add (H : n ≤ k) : k - n < m ↔ k < n + m :=
-sub_lt_iff_left H
-
-protected theorem le_sub_left_iff_add_le (H : m ≤ k) : n ≤ k - m ↔ m + n ≤ k :=
-le_sub_iff_left H
-
-protected theorem le_sub_right_iff_add_le (H : n ≤ k) : m ≤ k - n ↔ m + n ≤ k :=
-le_sub_iff_right H
-
-protected theorem lt_sub_left_iff_add_lt : n < k - m ↔ m + n < k :=
-lt_sub_iff_left
-
-protected theorem lt_sub_right_iff_add_lt : m < k - n ↔ m + n < k :=
-lt_sub_iff_right
-
-theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
-sub_le_iff_left
-
-theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
-sub_le_iff_right
-
-protected theorem sub_lt_right_iff_lt_add (H : k ≤ m) : m - k < n ↔ m < n + k :=
-sub_lt_iff_right H
-
-protected theorem sub_le_sub_left_iff (H : k ≤ m) : m - n ≤ m - k ↔ k ≤ n :=
-sub_le_sub_iff_left' H
-
-protected theorem sub_lt_sub_right_iff (H : k ≤ m) : m - k < n - k ↔ m < n :=
-sub_lt_sub_iff_right' H
-
-protected theorem sub_lt_sub_left_iff (H : n ≤ m) : m - n < m - k ↔ k < n :=
-sub_lt_sub_iff_left_of_le H
-
-protected theorem sub_le_iff : m - n ≤ k ↔ m - k ≤ n :=
-sub_le_iff_sub_le
-
-protected lemma sub_le_self (n m : ℕ) : n - m ≤ n :=
-sub_le_self'
-
-protected theorem sub_lt_iff (h₁ : n ≤ m) (h₂ : k ≤ m) : m - n < k ↔ m - k < n :=
-sub_lt_iff_sub_lt h₁ h₂
-
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
-@nat.lt_sub_right_iff_add_lt n 1 m
+show n < m - 1 ↔ n + 1 < m, from lt_sub_iff_right
 
 lemma lt_of_lt_pred {a b : ℕ} (h : a < b - 1) : a < b :=
 lt_of_succ_lt (lt_pred_iff.1 h)
@@ -617,9 +508,6 @@ begin
     rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
     exact nat.le_of_pred_lt h', },
 end
-
-@[simp] lemma add_sub_sub_cancel {a c : ℕ} (h : c ≤ a) (b : ℕ) : a + b - (a - c) = b + c :=
-by rw [add_comm, nat.add_sub_assoc (nat.sub_le_self _ _), nat.sub_sub_self h]
 
 /-! ### `mul` -/
 
@@ -717,7 +605,8 @@ rfl
 rfl
 
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k`,
-there is a map from `C n` to each `C m`, `n ≤ m`. -/
+there is a map from `C n` to each `C m`, `n ≤ m`. For a version where the assumption is only made
+when `k ≥ n`, see `le_rec_on'`. -/
 @[elab_as_eliminator]
 def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}, C k → C (k+1)) → C n → C m
 | 0     H next x := eq.rec_on (nat.eq_zero_of_le_zero H) x
@@ -788,7 +677,8 @@ by { simp only [strong_rec_on'], rw nat.strong_rec' }
 by apply nat.less_than_or_equal.rec h0; exact h1
 
 /-- Decreasing induction: if `P (k+1)` implies `P k`, then `P n` implies `P m` for all `m ≤ n`.
-Also works for functions to `Sort*`. -/
+Also works for functions to `Sort*`. For a version assuming only the assumption for `k < n`, see
+`decreasing_induction'`. -/
 @[elab_as_eliminator]
 def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
   (hP : P n) : P m :=
@@ -819,6 +709,30 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
   (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
+
+/-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
+there is a map from `C n` to each `C m`, `n ≤ m`. -/
+@[elab_as_eliminator]
+def le_rec_on' {C : ℕ → Sort*} {n : ℕ} :
+  Π {m : ℕ}, n ≤ m → (Π ⦃k⦄, n ≤ k → C k → C (k+1)) → C n → C m
+| 0     H next x := eq.rec_on (nat.eq_zero_of_le_zero H) x
+| (m+1) H next x := or.by_cases (of_le_succ H) (λ h : n ≤ m, next h $ le_rec_on' h next x)
+  (λ h : n = m + 1, eq.rec_on h x)
+
+/-- Decreasing induction: if `P (k+1)` implies `P k` for all `m ≤ k < n`, then `P n` implies `P m`.
+Also works for functions to `Sort*`. Weakens the assumptions of `decreasing_induction`. -/
+@[elab_as_eliminator]
+def decreasing_induction' {P : ℕ → Sort*} {m n : ℕ} (h : ∀ k < n, m ≤ k → P (k+1) → P k)
+  (mn : m ≤ n) (hP : P n) : P m :=
+begin
+  -- induction mn using nat.le_rec_on' generalizing h hP -- this doesn't work unfortunately
+  refine le_rec_on' mn _ _ h hP; clear h hP mn n,
+  { intros n mn ih h hP,
+    apply ih,
+    { exact λ k hk, h k hk.step },
+    { exact h n (lt_succ_self n) mn hP } },
+  { intros h hP, exact hP }
+end
 
 /-! ### `div` -/
 
@@ -969,7 +883,7 @@ lemma mod_mul_left_div_self (a b c : ℕ) : a % (c * b) / b = (a / b) % c :=
 by rw [mul_comm c, mod_mul_right_div_self]
 
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
-⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_refl _⟩
+⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_rfl⟩
 
 protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k ∣ m :=
 (nat.dvd_add_iff_left h).symm
@@ -1031,12 +945,12 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
       from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
     have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
     { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
-        ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
+        ← add_sub_add_right_eq_sub' a 1 b, add_comm (_ - _), add_assoc,
         nat.sub_add_cancel (succ_le_succ hb_le_a), add_comm 1] },
-    have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
-    rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
+    have wf : a - b < a + 1, from lt_succ_of_le sub_le_self',
+    rw [if_pos h₁, if_pos h₂, add_sub_add_right_eq_sub', nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
-      nat.add_sub_add_right],
+      add_sub_add_right_eq_sub'],
     simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
@@ -1072,7 +986,7 @@ by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat
 @[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
-⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
+⟨k / n, sub_eq_of_eq_add_rev (nat.mod_add_div k n).symm⟩
 
 @[simp] theorem mod_add_mod (m n k : ℕ) : (m % n + k) % n = (m + k) % n :=
 by have := (add_mul_mod_self_left (m % n + k) n (m / n)).symm;
@@ -1099,7 +1013,7 @@ begin
   rw nat.add_mod,
   split_ifs with h,
   { rw [nat.mod_eq_sub_mod h, nat.mod_eq_of_lt],
-    exact (nat.sub_lt_right_iff_lt_add h).mpr
+    exact (sub_lt_iff_right h).mpr
         (nat.add_lt_add (a.mod_lt n.zero_lt_succ) (b.mod_lt n.zero_lt_succ)) },
   { exact nat.mod_eq_of_lt (lt_of_not_ge h) }
 end
@@ -1246,11 +1160,11 @@ end
 
 /-- Two natural numbers are equal if and only if the have the same multiples. -/
 lemma dvd_right_iff_eq {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
-⟨λ h, dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _)), λ h n, by rw h⟩
+⟨λ h, dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl), λ h n, by rw h⟩
 
 /-- Two natural numbers are equal if and only if the have the same divisors. -/
 lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n :=
-⟨λ h, dvd_antisymm ((h _).mp (dvd_refl _)) ((h _).mpr (dvd_refl _)), λ h n, by rw h⟩
+⟨λ h, dvd_antisymm ((h _).mp dvd_rfl) ((h _).mpr dvd_rfl), λ h n, by rw h⟩
 
 /-- `dvd` is injective in the left argument -/
 lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
@@ -1510,7 +1424,7 @@ decidable_of_iff (∀ x < hi - lo, P (lo + x))
 ⟨λal x hl hh, by have := al (x - lo) (lt_of_not_ge $
   (not_congr (nat.sub_le_sub_right_iff _ _ _ hl)).2 $ not_le_of_gt hh);
   rwa [nat.add_sub_of_le hl] at this,
-λal x h, al _ (nat.le_add_right _ _) (nat.add_lt_of_lt_sub_left h)⟩
+λal x h, al _ (nat.le_add_right _ _) (lt_sub_iff_left.mp h)⟩
 
 instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred P] :
   decidable (∀x, lo ≤ x → x ≤ hi → P x) :=

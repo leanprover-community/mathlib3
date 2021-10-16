@@ -45,7 +45,7 @@ the error term indeed gets smaller. As a corollary, we will be able to show that
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
+open generalized_continued_fraction as gcf int
 
 variables {K : Type*} {v : K} {n : ℕ} [linear_ordered_field K] [floor_ring K]
 
@@ -63,10 +63,12 @@ begin
   cases n,
   case nat.zero
   { have : int_fract_pair.of v = ifp_n, by injection nth_stream_eq,
-    simp [fract_lt_one, fract_nonneg, int_fract_pair.of, this.symm] },
+    rw [←this, int_fract_pair.of],
+    exact ⟨fract_nonneg _, fract_lt_one _⟩ },
   case nat.succ
   { rcases (succ_nth_stream_eq_some_iff.elim_left nth_stream_eq) with ⟨_, _, _, ifp_of_eq_ifp_n⟩,
-    simp [fract_lt_one, fract_nonneg, int_fract_pair.of, ifp_of_eq_ifp_n.symm] }
+    rw [←ifp_of_eq_ifp_n, int_fract_pair.of],
+    exact ⟨fract_nonneg _, fract_lt_one _⟩ }
 end
 
 /-- Shows that the fractional parts of the stream are nonnegative. -/
@@ -297,7 +299,7 @@ begin
   exact (le_of_succ_succ_nth_continuants_aux_b nth_part_denom_eq)
 end
 
-/-- Shows that the sequence of denominators is monotonically increasing, that is `Bₙ ≤ Bₙ₊₁`. -/
+/-- Shows that the sequence of denominators is monotone, that is `Bₙ ≤ Bₙ₊₁`. -/
 theorem of_denom_mono : (gcf.of v).denominators n ≤ (gcf.of v).denominators (n + 1) :=
 begin
   let g := gcf.of v,
@@ -470,8 +472,6 @@ begin
       ... = (-1)^n / ((pB + ifp.fr⁻¹ * B) * B)                      : by rw determinant_eq
       ... = (-1)^n / (B * (ifp.fr⁻¹ * B + pB))                      : by ac_refl }
 end
-
-local notation `|` x `|` := abs x
 
 /-- Shows that `|v - Aₙ / Bₙ| ≤ 1 / (Bₙ * Bₙ₊₁)` -/
 theorem abs_sub_convergents_le (not_terminated_at_n : ¬(gcf.of v).terminated_at n) :

@@ -350,7 +350,6 @@ See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally
 lattices. -/
 theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (_ : ∀a∈s, a ≤ b)
   (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
-have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
 have ¬(Sup s < b) :=
   assume: Sup s < b,
@@ -590,7 +589,7 @@ le_infi $ λ i, hf $ infi_le _ _
 lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone f)
   {ι' : ι → Sort*} (s : Π i, ι' i → α) :
   f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
-@monotone.le_map_supr2 (order_dual α) (order_dual β) _ _ _ f hf.order_dual _ _
+@monotone.le_map_supr2 (order_dual α) (order_dual β) _ _ _ f hf.dual _ _
 
 lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
   f (Inf s) ≤ ⨅ a∈s, f a :=

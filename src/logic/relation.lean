@@ -257,7 +257,7 @@ begin
   { rcases IH with IH | IH,
     { rcases cases_head IH with rfl | ⟨e, be, ec⟩,
       { exact or.inr (single bd) },
-      { cases U.unique bd be, exact or.inl ec } },
+      { cases U bd be, exact or.inl ec } },
     { exact or.inr (IH.tail bd) } }
 end
 
@@ -513,6 +513,9 @@ begin
   case eqv_gen.symm : a b h ih { exact eqv_gen.symm _ _ ih },
   case eqv_gen.trans : a b c ih1 ih2 hab hbc { exact eqv_gen.trans _ _ _ hab hbc }
 end
+
+lemma eqv_gen_eq_of_equivalence (h : equivalence r) : eqv_gen r = r :=
+funext $ λ _, funext $ λ _, propext $ eqv_gen_iff_of_equivalence h
 
 end eqv_gen
 

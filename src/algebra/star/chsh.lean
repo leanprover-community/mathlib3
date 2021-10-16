@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.star.algebra
+import algebra.star.basic
 import algebra.algebra.ordered
 import analysis.special_functions.pow
 
@@ -98,7 +98,7 @@ Given a CHSH tuple (A₀, A₁, B₀, B₁) in a *commutative* ordered `*`-algeb
 (We could work over ℤ[⅟2] if we wanted to!)
 -/
 lemma CHSH_inequality_of_comm
-  [ordered_comm_ring R] [star_ordered_ring R] [algebra ℝ R] [ordered_module ℝ R]
+  [ordered_comm_ring R] [star_ordered_ring R] [algebra ℝ R] [ordered_smul ℝ R]
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2 :=
 begin
@@ -182,7 +182,7 @@ begin
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
-by { rw [←mul_inv'], norm_num, }
+by { rw [←mul_inv₀], norm_num, }
 
 end tsirelson_inequality
 open tsirelson_inequality
@@ -199,7 +199,7 @@ of the difference.
 -/
 lemma tsirelson_inequality
   [ordered_ring R] [star_ordered_ring R]
-  [algebra ℝ R] [ordered_module ℝ R] [star_algebra ℝ R]
+  [algebra ℝ R] [ordered_smul ℝ R] [star_module ℝ R]
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=
 begin
@@ -226,7 +226,7 @@ begin
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
-    exact mul_left_cancel' (by norm_num) tsirelson_inequality_aux, },
+    exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
     have P_sa : star P = P,
     { dsimp [P],

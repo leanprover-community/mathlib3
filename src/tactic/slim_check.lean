@@ -177,32 +177,41 @@ For more information on writing your own `sampleable` and `testable`
 instances, see `testing.slim_check.testable`.
 
 Optional arguments given with `slim_check_cfg`
- * num_inst (default 100): number of examples to test properties with
- * max_size (default 100): final size argument
- * enable_tracing (default ff): enable the printing of discarded samples
+* `num_inst` (default 100): number of examples to test properties with
+* `max_size` (default 100): final size argument
+* `enable_tracing` (default `ff`): enable the printing of discarded samples
 
 Options:
-  * `set_option trace.slim_check.decoration true`: print the proposition with quantifier annotations
-  * `set_option trace.slim_check.discarded true`: print the examples discarded because they do not satisfy assumptions
-  * `set_option trace.slim_check.shrink.steps true`: trace the shrinking of counter-example
-  * `set_option trace.slim_check.shrink.candidates true`: print the lists of candidates considered when shrinking each variable
-  * `set_option trace.slim_check.instance true`: print the instances of `testable` being used to test the proposition
-  * `set_option trace.slim_check.success true`: print the tested samples that satisfy a property
+* `set_option trace.slim_check.decoration true`: print the proposition with quantifier annotations
+* `set_option trace.slim_check.discarded true`: print the examples discarded because they do not
+  satisfy assumptions
+* `set_option trace.slim_check.shrink.steps true`: trace the shrinking of counter-example
+* `set_option trace.slim_check.shrink.candidates true`: print the lists of candidates considered
+  when shrinking each variable
+* `set_option trace.slim_check.instance true`: print the instances of `testable` being used to test
+  the proposition
+* `set_option trace.slim_check.success true`: print the tested samples that satisfy a property
 -/
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
 { tgt ← retrieve $ tactic.revert_all >> target,
   let tgt' := tactic.add_decorations tgt,
   let cfg := { cfg with
-               trace_discarded         := cfg.trace_discarded         || is_trace_enabled_for `slim_check.discarded,
-               trace_shrink            := cfg.trace_shrink            || is_trace_enabled_for `slim_check.shrink.steps,
-               trace_shrink_candidates := cfg.trace_shrink_candidates || is_trace_enabled_for `slim_check.shrink.candidates,
-               trace_success           := cfg.trace_success           || is_trace_enabled_for `slim_check.success },
+               trace_discarded         := cfg.trace_discarded
+                || is_trace_enabled_for `slim_check.discarded,
+               trace_shrink            := cfg.trace_shrink
+                || is_trace_enabled_for `slim_check.shrink.steps,
+               trace_shrink_candidates := cfg.trace_shrink_candidates
+                || is_trace_enabled_for `slim_check.shrink.candidates,
+               trace_success           := cfg.trace_success
+                || is_trace_enabled_for `slim_check.success },
   inst ← mk_app ``testable [tgt'] >>= mk_instance <|>
-    fail!"Failed to create a `testable` instance for `{tgt}`.
+    fail!("Failed to create a `testable` instance for `{tgt}`.
 What to do:
-1. make sure that the types you are using have `slim_check.sampleable` instances (you can use `#sample my_type` if you are unsure);
+1. make sure that the types you are using have `slim_check.sampleable` instances
+   (you can use `#sample my_type` if you are unsure);
 2. make sure that the relations and predicates that your proposition use are decidable;
-3. make sure that instances of `slim_check.testable` exist that, when combined, apply to your decorated proposition:
+3. make sure that instances of `slim_check.testable` exist that, when combined,
+   apply to your decorated proposition:
 ```
 {tgt'}
 ```
@@ -211,7 +220,7 @@ Use `set_option trace.class_instances true` to understand what instances are mis
 
 Try this:
 set_option trace.class_instances true
-#check (by apply_instance : slim_check.testable ({tgt'}))",
+#check (by apply_instance : slim_check.testable ({tgt'}))"),
   e ← mk_mapp ``testable.check [tgt, `(cfg), tgt', inst],
   when_tracing `slim_check.decoration trace!"[testable decoration]\n  {tgt'}",
   when_tracing `slim_check.instance   $ do

@@ -148,10 +148,11 @@ variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [module.directed_system G 
 def direct_limit_diagram : ι ⥤ Module R :=
 { obj := λ i, Module.of R (G i),
   map := λ i j hij, f i j hij.le,
-  map_id' := λ i, by { ext x, apply module.directed_system.map_self },
+  map_id' := λ i, by { apply linear_map.ext, intro x, apply module.directed_system.map_self },
   map_comp' := λ i j k hij hjk,
   begin
-    ext x,
+    apply linear_map.ext,
+    intro x,
     symmetry,
     apply module.directed_system.map_map
   end }
@@ -166,7 +167,7 @@ In `direct_limit_is_colimit` we show that it is a colimit cocone. -/
 def direct_limit_cocone : cocone (direct_limit_diagram G f) :=
 { X := Module.of R $ direct_limit G f,
   ι := { app := module.direct_limit.of R ι G f,
-         naturality' := λ i j hij, by { ext x, exact direct_limit.of_f } } }
+         naturality' := λ i j hij, by { apply linear_map.ext, intro x, exact direct_limit.of_f } } }
 
 /-- The unbundled `direct_limit` of modules is a colimit
 in the sense of `category_theory`. -/
@@ -175,7 +176,8 @@ def direct_limit_is_colimit [nonempty ι] : is_colimit (direct_limit_cocone G f)
 { desc := λ s, direct_limit.lift R ι G f s.ι.app $ λ i j h x, by { rw [←s.w (hom_of_le h)], refl },
   fac' := λ s i,
   begin
-    ext x,
+    apply linear_map.ext,
+    intro x,
     dsimp,
     exact direct_limit.lift_of s.ι.app _ x,
   end,
@@ -183,7 +185,8 @@ def direct_limit_is_colimit [nonempty ι] : is_colimit (direct_limit_cocone G f)
   begin
     have : s.ι.app = λ i, linear_map.comp m (direct_limit.of R ι (λ i, G i) (λ i j H, f i j H) i),
     { funext i, rw ← h, refl },
-    ext x,
+    apply linear_map.ext,
+    intro x,
     simp only [this],
     apply module.direct_limit.lift_unique
   end }

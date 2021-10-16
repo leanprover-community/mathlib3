@@ -45,7 +45,7 @@ comma, slice, coslice, over, under, arrow
 namespace category_theory
 
 -- declare the `v`'s first; see `category_theory.category` for an explanation
-universes v₁ v₂ v₃ u₁ u₂ u₃
+universes v₁ v₂ v₃ v₄ v₅ u₁ u₂ u₃ u₄ u₅
 variables {A : Type u₁} [category.{v₁} A]
 variables {B : Type u₂} [category.{v₂} B]
 variables {T : Type u₃} [category.{v₃} T]
@@ -210,6 +210,26 @@ def map_right_comp (r : R₁ ⟶ R₂) (r' : R₂ ⟶ R₃) :
 
 end
 
+section
+variables {C : Type u₄} [category.{v₄} C] {D : Type u₅} [category.{v₅} D]
+
+/-- The functor `(F ⋙ L, R) ⥤ (L, R)` -/
+@[simps] def pre_left (F: C ⥤ A) (L : A ⥤ T) (R : B ⥤ T) : comma (F ⋙ L) R ⥤ comma L R :=
+{ obj := λ X, { left := F.obj X.left, right := X.right, hom := X.hom },
+  map := λ X Y f, { left := F.map f.left, right := f.right, w' := by simpa using f.w } }
+
+/-- The functor `(F ⋙ L, R) ⥤ (L, R)` -/
+@[simps] def pre_right (L : A ⥤ T) (F: C ⥤ B) (R : B ⥤ T) : comma L (F ⋙ R) ⥤ comma L R :=
+{ obj := λ X, { left := X.left, right := F.obj X.right, hom := X.hom },
+  map := λ X Y f, { left := f.left, right := F.map f.right, w' := by simp } }
+
+/-- The functor `(L, R) ⥤ (L ⋙ F, R ⋙ F)` -/
+@[simps] def post (L : A ⥤ T) (R : B ⥤ T) (F: T ⥤ C) : comma L R ⥤ comma (L ⋙ F) (R ⋙ F) :=
+{ obj := λ X, { left := X.left, right := X.right, hom := F.map X.hom },
+  map := λ X Y f, { left := f.left, right := f.right, w' :=
+    by { simp only [functor.comp_map, ←F.map_comp, f.w] } } }
+
+end
 end comma
 
 end category_theory

@@ -30,6 +30,7 @@ We do not define extended normed groups. They can be added to the chain once som
 normed space, extended norm
 -/
 
+noncomputable theory
 local attribute [instance, priority 1001] classical.prop_decidable
 open_locale ennreal
 
@@ -64,7 +65,7 @@ coe_fn_injective.eq_iff
 le_antisymm (e.map_smul_le' c x) $
 begin
   by_cases hc : c = 0, { simp [hc] },
-  calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul' hc]
+  calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
   { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },
@@ -158,9 +159,9 @@ def finite_subspace : subspace 𝕜 V :=
 { carrier   := {x | e x < ⊤},
   zero_mem' := by simp,
   add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
-  smul_mem' := λ c x hx,
+  smul_mem' := λ c x (hx : _ < _),
     calc e (c • x) = nnnorm c * e x : e.map_smul c x
-               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_lt_top hx }
+               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_ne_top hx.ne }
 
 /-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space_of_dist`
 to ensure that this definition agrees with `e.emetric_space`. -/
@@ -169,8 +170,7 @@ begin
   letI := e.emetric_space,
   refine emetric_space.to_metric_space_of_dist _ (λ x y, _) (λ x y, rfl),
   change e (x - y) ≠ ⊤,
-  rw [← ennreal.lt_top_iff_ne_top],
-  exact lt_of_le_of_lt (e.map_sub_le x y) (ennreal.add_lt_top.2 ⟨x.2, y.2⟩)
+  exact ne_top_of_le_ne_top (ennreal.add_lt_top.2 ⟨x.2, y.2⟩).ne (e.map_sub_le x y)
 end
 
 lemma finite_dist_eq (x y : e.finite_subspace) : dist x y = (e (x - y)).to_real := rfl

@@ -65,7 +65,7 @@ def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 
 run_cmd do
   (_, s) ← lint tt lint_verbosity.medium [`linter.dummy_linter] tt,
-  guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n".is_suffix_of s.to_string
+  guard $ "/- found something: -/\n#check @foo.foo /- gotcha! -/\n".is_suffix_of s.to_string
 
 def incorrect_type_class_argument_test {α : Type} (x : α) [x = x] [decidable_eq α] [group α] :
   unit := ()
@@ -97,12 +97,12 @@ section
 def foo_has_mul {α} [has_mul α] : has_mul α := infer_instance
 local attribute [instance, priority 1] foo_has_mul
 run_cmd do
-  d ← get_decl `has_mul,
+  d ← get_decl `foo_has_mul,
   some s ← fails_quickly 20 d,
-  guard $ s = "type-class inference timed out"
+  guard $ "type-class inference timed out".is_prefix_of s
 local attribute [instance, priority 10000] foo_has_mul
 run_cmd do
-  d ← get_decl `has_mul,
+  d ← get_decl `foo_has_mul,
   some s ← fails_quickly 3000 d,
   guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
 end
@@ -112,15 +112,6 @@ run_cmd do
   d ← get_decl `beta_redex_test,
   x ← linter.instance_priority.test d,
   guard $ x = some "set priority below 1000"
-
-/- test of `apply_to_fresh_variables` -/
-run_cmd do
-  e ← mk_const `id,
-  e2 ← apply_to_fresh_variables e,
-  type_check e2,
-  `(@id %%α %%a) ← instantiate_mvars e2,
-  expr.sort (level.succ $ level.mvar u) ← infer_type α,
-  skip
 
 /- Test exception in `def_lemma` linter. -/
 run_cmd do

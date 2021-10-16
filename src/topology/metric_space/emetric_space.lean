@@ -3,11 +3,11 @@ Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 -/
+import data.nat.interval
 import data.real.ennreal
-import data.finset.intervals
-import topology.uniform_space.uniform_embedding
 import topology.uniform_space.pi
 import topology.uniform_space.uniform_convergence
+import topology.uniform_space.uniform_embedding
 
 /-!
 # Extended metric spaces
@@ -130,20 +130,20 @@ lemma edist_le_Ico_sum_edist (f : ℕ → α) {m n} (h : m ≤ n) :
 begin
   revert n,
   refine nat.le_induction _ _,
-  { simp only [finset.sum_empty, finset.Ico.self_eq_empty, edist_self],
+  { simp only [finset.sum_empty, finset.Ico_self, edist_self],
     -- TODO: Why doesn't Lean close this goal automatically? `apply le_refl` fails too.
     exact le_refl (0:ℝ≥0∞) },
   { assume n hn hrec,
     calc edist (f m) (f (n+1)) ≤ edist (f m) (f n) + edist (f n) (f (n+1)) : edist_triangle _ _ _
-      ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add hrec (le_refl _)
+      ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add hrec le_rfl
       ... = ∑ i in finset.Ico m (n+1), _ :
-        by rw [finset.Ico.succ_top hn, finset.sum_insert, add_comm]; simp }
+        by rw [nat.Ico_succ_right_eq_insert_Ico hn, finset.sum_insert, add_comm]; simp }
 end
 
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
 lemma edist_le_range_sum_edist (f : ℕ → α) (n : ℕ) :
   edist (f 0) (f n) ≤ ∑ i in finset.range n, edist (f i) (f (i + 1)) :=
-finset.Ico.zero_bot n ▸ edist_le_Ico_sum_edist f (nat.zero_le n)
+nat.Ico_zero_eq_range n ▸ edist_le_Ico_sum_edist f (nat.zero_le n)
 
 /-- A version of `edist_le_Ico_sum_edist` with each intermediate distance replaced
 with an upper estimate. -/
@@ -151,14 +151,14 @@ lemma edist_le_Ico_sum_of_edist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
   {d : ℕ → ℝ≥0∞} (hd : ∀ {k}, m ≤ k → k < n → edist (f k) (f (k + 1)) ≤ d k) :
   edist (f m) (f n) ≤ ∑ i in finset.Ico m n, d i :=
 le_trans (edist_le_Ico_sum_edist f hmn) $
-finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+finset.sum_le_sum $ λ k hk, hd (finset.mem_Ico.1 hk).1 (finset.mem_Ico.1 hk).2
 
 /-- A version of `edist_le_range_sum_edist` with each intermediate distance replaced
 with an upper estimate. -/
 lemma edist_le_range_sum_of_edist_le {f : ℕ → α} (n : ℕ)
   {d : ℕ → ℝ≥0∞} (hd : ∀ {k}, k < n → edist (f k) (f (k + 1)) ≤ d k) :
   edist (f 0) (f n) ≤ ∑ i in finset.range n, d i :=
-finset.Ico.zero_bot n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
+nat.Ico_zero_eq_range n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_pseudoedist :
@@ -512,19 +512,19 @@ eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
 not_lt_of_le (edist_triangle_left x y z)
   (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
 
-theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y < ⊤) : ball x ε₁ ⊆ ball y ε₂ :=
+theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
   edist z y ≤ edist z x + edist x y : edist_triangle _ _ _
   ... = edist x y + edist z x : add_comm _ _
-  ... < edist x y + ε₁ : (ennreal.add_lt_add_iff_left h').2 zx
+  ... < edist x y + ε₁ : ennreal.add_lt_add_left h' zx
   ... ≤ ε₂ : h
 
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 begin
   have : 0 < ε - edist y x := by simpa using h,
-  refine ⟨ε - edist y x, this, ball_subset _ _⟩,
-  { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
-  { have : edist y x ≠ ⊤ := ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
+  refine ⟨ε - edist y x, this, ball_subset _ (ne_top_of_lt h)⟩,
+  rw ennreal.add_sub_cancel_of_le (le_of_lt h),
+  exact le_refl ε
 end
 
 theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
@@ -656,7 +656,7 @@ begin
   refine ⟨⋃ n : ℕ, (f n⁻¹) '' (T n), Union_subset $ λ n, image_subset_iff.2 (λ z hz, hfs _ _),
     countable_Union $ λ n, (hTc n).image _, _⟩,
   refine λ x hx, mem_closure_iff.2 (λ ε ε0, _),
-  rcases ennreal.exists_inv_nat_lt (ennreal.half_pos ε0).ne' with ⟨n, hn⟩,
+  rcases ennreal.exists_inv_nat_lt (ennreal.half_pos ε0.lt.ne').ne' with ⟨n, hn⟩,
   rcases mem_bUnion_iff.1 (hsT n hx) with ⟨y, hyn, hyx⟩,
   refine ⟨f n⁻¹ y, mem_Union.2 ⟨n, mem_image_of_mem _ hyn⟩, _⟩,
   calc edist x (f n⁻¹ y) ≤ n⁻¹ * 2 : hf _ _ ⟨hyx, hx⟩
@@ -671,7 +671,7 @@ begin
   refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
   rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
   exact ⟨t, htf.countable,
-    subset.trans hst (bUnion_subset_bUnion_right $ λ _ _, ball_subset_closed_ball)⟩
+    subset.trans hst (bUnion_mono $ λ _ _, ball_subset_closed_ball)⟩
 end
 
 end compact

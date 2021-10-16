@@ -15,7 +15,8 @@ import group_theory.submonoid.operations
 * `set.add_center`: the center of an additive magma
 * `add_submonoid.center`: the center of an additive monoid
 
-We show `subgrup.center` and `subsemiring.center` and `subring.center` in other files.
+We provide `subgroup.center`, `add_subgroup.center`, `subsemiring.center`, and `subring.center` in
+other files.
 -/
 
 variables {M : Type*}
@@ -76,13 +77,29 @@ lemma center_units_eq [group_with_zero M] :
 subset.antisymm center_units_subset subset_center_units
 
 @[simp]
-lemma inv_mem_center' [group_with_zero M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
+lemma inv_mem_center₀ [group_with_zero M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
 begin
   obtain rfl | ha0 := eq_or_ne a 0,
   { rw inv_zero, exact zero_mem_center M },
   lift a to units M using ha0,
   rw ←units.coe_inv',
   exact center_units_subset (inv_mem_center (subset_center_units ha)),
+end
+
+@[simp, to_additive sub_mem_add_center]
+lemma div_mem_center [group M] {a b : M} (ha : a ∈ set.center M) (hb : b ∈ set.center M) :
+  a / b ∈ set.center M :=
+begin
+  rw [div_eq_mul_inv],
+  exact mul_mem_center ha (inv_mem_center hb),
+end
+
+@[simp]
+lemma div_mem_center₀ [group_with_zero M] {a b : M} (ha : a ∈ set.center M)
+  (hb : b ∈ set.center M) : a / b ∈ set.center M :=
+begin
+  rw div_eq_mul_inv,
+  exact mul_mem_center ha (inv_mem_center₀ hb),
 end
 
 variables (M)

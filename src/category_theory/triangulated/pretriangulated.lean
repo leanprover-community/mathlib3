@@ -6,7 +6,6 @@ Authors: Luke Kershaw
 import category_theory.additive.basic
 import category_theory.shift
 import category_theory.preadditive.additive_functor
-import category_theory.triangulated.basic
 import category_theory.triangulated.rotate
 
 /-!

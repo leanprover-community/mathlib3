@@ -108,13 +108,13 @@ theorem gcd_dvd_gcd_mul_right_right (m n k : ℕ) : gcd m n ∣ gcd m (n * k) :=
 gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 
 theorem gcd_eq_left {m n : ℕ} (H : m ∣ n) : gcd m n = m :=
-dvd_antisymm (gcd_dvd_left _ _) (dvd_gcd (dvd_refl _) H)
+dvd_antisymm (gcd_dvd_left _ _) (dvd_gcd dvd_rfl H)
 
 theorem gcd_eq_right {m n : ℕ} (H : n ∣ m) : gcd m n = n :=
 by rw [gcd_comm, gcd_eq_left H]
 
 @[simp] lemma gcd_mul_left_left (m n : ℕ) : gcd (m * n) n = n :=
-dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (dvd_mul_left _ _) (dvd_refl _))
+dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (dvd_mul_left _ _) dvd_rfl)
 
 @[simp] lemma gcd_mul_left_right (m n : ℕ) : gcd n (m * n) = n :=
 by rw [gcd_comm, gcd_mul_left_left]
@@ -126,7 +126,7 @@ by rw [mul_comm, gcd_mul_left_left]
 by rw [gcd_comm, gcd_mul_right_left]
 
 @[simp] lemma gcd_gcd_self_right_left (m n : ℕ) : gcd m (gcd m n) = gcd m n :=
-dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (gcd_dvd_left _ _) (dvd_refl _))
+dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (gcd_dvd_left _ _) dvd_rfl)
 
 @[simp] lemma gcd_gcd_self_right_right (m n : ℕ) : gcd m (gcd n m) = gcd n m :=
 by rw [gcd_comm n m, gcd_gcd_self_right_left]

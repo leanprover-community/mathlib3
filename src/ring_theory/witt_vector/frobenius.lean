@@ -79,7 +79,7 @@ private def pnat_multiplicity (n : ℕ+) : ℕ :=
 local notation `v` := pnat_multiplicity
 
 /-- An auxiliary polynomial over the integers, that satisfies
-`(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
+`p * (frobenius_poly_aux p n) + X n ^ p = frobenius_poly p n`.
 This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
 modulo `p`. -/
 noncomputable def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
@@ -122,8 +122,8 @@ begin
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
-  rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
-      ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+  rw [← enat.coe_get aux, enat.coe_le_coe, sub_le_iff_left,
+      ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
   exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 
@@ -135,8 +135,8 @@ begin
   generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
   suffices : m ≤ n - i ∧ m ≤ j,
   { rw [←nat.sub_add_comm this.2, add_comm i j, nat.add_sub_assoc (this.1.trans (nat.sub_le n i)),
-      add_assoc, nat.sub.right_comm, add_comm i, nat.sub_add_cancel (nat.le_sub_right_of_add_le
-      ((nat.le_sub_left_iff_add_le hi.le).mp this.1))] },
+      add_assoc, nat.sub.right_comm, add_comm i, nat.sub_add_cancel (le_sub_of_add_le_right'
+      ((le_sub_iff_left hi.le).mp this.1))] },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
         ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
@@ -148,7 +148,7 @@ begin
     rw [mul_add, mul_one] at hc,
     apply nat.le_of_lt_succ,
     calc m < p ^ m : nat.lt_pow_self hp.1.one_lt m
-       ... ≤ j + 1 : by { rw ← nat.sub_eq_of_eq_add hc, apply nat.sub_le } }
+       ... ≤ j + 1 : by { rw ← sub_eq_of_eq_add_rev hc, apply nat.sub_le } }
 end
 
 lemma map_frobenius_poly (n : ℕ) :
@@ -188,7 +188,7 @@ begin
   rw [←C_eq_coe_nat],
   simp only [←ring_hom.map_pow, ←C_mul],
   rw C_inj,
-  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat, nat.cast_mul],
+  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow₀, int.cast_coe_nat, nat.cast_mul],
   rw [rat.coe_nat_div _ _ (map_frobenius_poly.key₁ p (n - i) j hj)],
   simp only [nat.cast_pow, pow_add, pow_one],
   suffices : ((p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n : ℚ) =

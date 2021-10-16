@@ -29,24 +29,12 @@ namespace algebraic_geometry
 We define `Scheme` as a `X : LocallyRingedSpace`,
 along with a proof that every point has an open neighbourhood `U`
 so that that the restriction of `X` to `U` is isomorphic,
-as a space with a presheaf of commutative rings,
-to `Spec.PresheafedSpace R` for some `R : CommRing`.
-
-(Note we're not asking in the definition that this is an isomorphism as locally ringed spaces,
-although that is a consequence.)
+as a locally ringed space, to `Spec.to_LocallyRingedSpace.obj (op R)`
+for some `R : CommRing`.
 -/
 structure Scheme extends X : LocallyRingedSpace :=
 (local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),
-  nonempty (X.to_PresheafedSpace.restrict _ U.open_embedding ≅ Spec.to_PresheafedSpace.obj (op R)))
-
--- PROJECT
--- In fact, we can make the isomorphism `i` above an isomorphism in `LocallyRingedSpace`.
--- However this is a consequence of the above definition, and not necessary for defining schemes.
--- We haven't done this yet because we don't currently have an analogue of
--- `PresheafedSpace.restrict_top_iso` for locally ringed spaces. But this is needed below to show
--- that the spectrum of a ring is indeed a scheme.
--- This will follow once we have shown that the forgetful functor
--- `LocallyRingedSpace ⥤ SheafedSpace CommRing` reflects isomorphisms.
+  nonempty (X.restrict _ U.open_embedding ≅ Spec.to_LocallyRingedSpace.obj (op R)))
 
 namespace Scheme
 
@@ -67,7 +55,8 @@ induced_category.category Scheme.to_LocallyRingedSpace
 The spectrum of a commutative ring, as a scheme.
 -/
 def Spec_obj (R : CommRing) : Scheme :=
-{ local_affine := λ x, ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_PresheafedSpace.obj (op R)).restrict_top_iso⟩⟩,
+{ local_affine := λ x,
+  ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_LocallyRingedSpace.obj (op R)).restrict_top_iso⟩⟩,
   .. Spec.LocallyRingedSpace_obj R }
 
 @[simp] lemma Spec_obj_to_LocallyRingedSpace (R : CommRing) :

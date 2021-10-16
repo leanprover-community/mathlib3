@@ -537,7 +537,7 @@ finset.sigma (finset.Ico m M) (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), 
 @[simp] lemma mem_comp_partial_sum_source_iff (m M N : ℕ) (i : Σ n, (fin n) → ℕ) :
   i ∈ comp_partial_sum_source m M N ↔
     (m ≤ i.1 ∧ i.1 < M) ∧ ∀ (a : fin i.1), 1 ≤ i.2 a ∧ i.2 a < N :=
-by simp only [comp_partial_sum_source, finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma,
+by simp only [comp_partial_sum_source, finset.mem_Ico, fintype.mem_pi_finset, finset.mem_sigma,
   iff_self]
 
 /-- Change of variables appearing to compute the composition of partial sums of formal
@@ -769,7 +769,7 @@ begin
       exact Hg.continuous_on.continuous_at (is_open.mem_nhds (emetric.is_open_ball) fy_mem) },
     have B₂ : f (x + y) - f x ∈ emetric.ball (0 : F) rg,
       by simpa [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] using fy_mem,
-    rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,
+    rw [← emetric.is_open_ball.nhds_within_eq B₂] at A,
     convert Hg.tendsto_locally_uniformly_on.tendsto_comp B₁.continuous_within_at B₂ A,
     simp only [add_sub_cancel'_right] },
   -- Third step: the sum over all compositions in `comp_partial_sum_target 0 n n` converges to

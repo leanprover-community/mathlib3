@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.basic
-import algebra.ordered_field
+import algebra.order.field
 import algebra.archimedean
 /-!
 # Computable Continued Fractions
@@ -111,7 +111,7 @@ end coe
 variables [linear_ordered_field K] [floor_ring K]
 
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/
-protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, fract v⟩
+protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, int.fract v⟩
 
 /--
 Creates the stream of integer and fractional parts of a value `v` needed to obtain the continued

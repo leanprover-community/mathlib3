@@ -19,7 +19,7 @@ for `set α`, and some more set constructions.
 * `set.Union`: Union of an indexed family of sets.
 * `set.Inter`: Intersection of an indexed family of sets.
 * `set.sInter`: **s**et **Inter**. Intersection of sets belonging to a set of sets.
-* `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets. This is actually
+* `set.sUnion`: **s**et **Union**. Union of sets belonging to a set of sets. This is actually
   defined in core Lean.
 * `set.sInter_eq_bInter`, `set.sUnion_eq_bInter`: Shows that `⋂₀ s = ⋂ x ∈ s, x` and
   `⋃₀ s = ⋃ x ∈ s, x`.
@@ -29,8 +29,6 @@ for `set α`, and some more set constructions.
   `f ⁻¹ y ⊆ s`.
 * `set.seq`: Union of the image of a set under a **seq**uence of functions. `seq s t` is the union
   of `f '' t` over all `f ∈ s`, where `t : set α` and `s : set (α → β)`.
-* `set.pairwise_disjoint`: `pairwise_disjoint s` states that all sets in `s` are either equal or
-  disjoint.
 * `set.Union_eq_sigma_of_disjoint`: Equivalence between `⋃ i, t i` and `Σ i, t i`, where `t` is an
   indexed family of disjoint sets.
 
@@ -237,11 +235,11 @@ compl_supr
 compl_infi
 
 -- classical -- complete_boolean_algebra
-theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
+theorem Union_eq_compl_Inter_compl (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
 by simp only [compl_Inter, compl_compl]
 
 -- classical -- complete_boolean_algebra
-theorem Inter_eq_comp_Union_comp (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
+theorem Inter_eq_compl_Union_compl (s : ι → set β) : (⋂ i, s i) = (⋃ i, (s i)ᶜ)ᶜ :=
 by simp only [compl_Union, compl_compl]
 
 theorem inter_Union (s : set β) (t : ι → set β) :
@@ -512,14 +510,6 @@ theorem bInter_subset_bInter_left {s s' : set α} {t : α → set β}
   (h : s' ⊆ s) : (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s', t x) :=
 subset_bInter (λ x xs, bInter_subset_of_mem (h xs))
 
-theorem bUnion_subset_bUnion_right {s : set α} {t1 t2 : α → set β}
-  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋃ x ∈ s, t1 x) ⊆ (⋃ x ∈ s, t2 x) :=
-bUnion_subset (λ x xs, subset.trans (h x xs) (subset_bUnion_of_mem xs))
-
-theorem bInter_subset_bInter_right {s : set α} {t1 t2 : α → set β}
-  (h : ∀ x ∈ s, t1 x ⊆ t2 x) : (⋂ x ∈ s, t1 x) ⊆ (⋂ x ∈ s, t2 x) :=
-subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
-
 theorem bUnion_subset_bUnion {γ : Type*} {s : set α} {t : α → set β} {s' : set γ} {t' : γ → set β}
   (h : ∀ x ∈ s, ∃ y ∈ s', t x ⊆ t' y) :
   (⋃ x ∈ s, t x) ⊆ (⋃ y ∈ s', t' y) :=
@@ -542,9 +532,17 @@ theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x �
   (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
 bInter_mono' (subset.refl s) h
 
+lemma bInter_congr {s : set α} {t1 t2 : α → set β} (h : ∀ x ∈ s, t1 x = t2 x) :
+  (⋂ (x ∈ s), t1 x) = (⋂ (x ∈ s), t2 x) :=
+subset.antisymm (bInter_mono (λ x hx, by rw h x hx)) (bInter_mono (λ x hx, by rw h x hx))
+
 theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
 bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
+
+lemma bUnion_congr {s : set α} {t1 t2 : α → set β} (h : ∀ x ∈ s, t1 x = t2 x) :
+  (⋃ (x ∈ s), t1 x) = (⋃ (x ∈ s), t2 x) :=
+subset.antisymm (bUnion_mono (λ x hx, by rw h x hx)) (bUnion_mono (λ x hx, by rw h x hx))
 
 theorem bUnion_eq_Union (s : set α) (t : Π x ∈ s, set β) :
   (⋃ x ∈ s, t x ‹_›) = (⋃ x : s, t x x.2) :=
@@ -742,6 +740,35 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
   ⋃₀ c = univ ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
 by simp only [eq_univ_iff_forall, mem_sUnion]
 
+-- classical
+lemma Inter_eq_empty_iff {f : ι → set α} : (⋂ i, f i) = ∅ ↔ ∀ x, ∃ i, x ∉ f i :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+lemma bInter_eq_empty_iff {f : α → set β} {s : set α} :
+  (⋂ x ∈ s, f x) = ∅ ↔ ∀ y, ∃ x ∈ s, y ∉ f x :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+lemma sInter_eq_empty_iff {c : set (set α)} :
+  ⋂₀ c = ∅ ↔ ∀ a, ∃ b ∈ c, a ∉ b :=
+by simp [set.eq_empty_iff_forall_not_mem]
+
+-- classical
+@[simp] theorem nonempty_Inter {f : ι → set α} : (⋂ i, f i).nonempty ↔ ∃ x, ∀ i, x ∈ f i :=
+by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+
+-- classical
+@[simp] theorem nonempty_bInter {f : α → set β} {s : set α} :
+  (⋂ x ∈ s, f x).nonempty ↔ ∃ y, ∀ x ∈ s, y ∈ f x :=
+by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+
+-- classical
+@[simp] theorem nonempty_sInter {c : set (set α)}:
+  (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
+by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
+
+-- classical
 theorem compl_sUnion (S : set (set α)) :
   (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
 ext $ λ x, by simp
@@ -757,7 +784,7 @@ theorem compl_sInter (S : set (set α)) :
 by rw [sUnion_eq_compl_sInter_compl, compl_compl_image]
 
 -- classical
-theorem sInter_eq_comp_sUnion_compl (S : set (set α)) :
+theorem sInter_eq_compl_sUnion_compl (S : set (set α)) :
    ⋂₀ S = (⋃₀ (compl '' S))ᶜ :=
 by rw [←compl_compl (⋂₀ S), compl_sInter]
 
@@ -972,6 +999,23 @@ lemma image_bInter_subset {p : ι → Prop} (s : Π i (hi : p i), set α) (f : �
 lemma image_sInter_subset (S : set (set α)) (f : α → β) :
   f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
 by { rw sInter_eq_bInter, apply image_bInter_subset }
+
+lemma pairwise_on_Union {r : α → α → Prop} {f : ι → set α} (h : directed (⊆) f) :
+  (⋃ n, f n).pairwise_on r ↔ (∀ n, (f n).pairwise_on r) :=
+begin
+  split,
+  { assume H n,
+    exact pairwise_on.mono (subset_Union _ _) H },
+  { assume H i hi j hj hij,
+    rcases mem_Union.1 hi with ⟨m, hm⟩,
+    rcases mem_Union.1 hj with ⟨n, hn⟩,
+    rcases h m n with ⟨p, mp, np⟩,
+    exact H p i (mp hm) j (np hn) hij }
+end
+
+lemma pairwise_on_sUnion {r : α → α → Prop} {s : set (set α)} (h : directed_on (⊆) s) :
+  (⋃₀ s).pairwise_on r ↔ (∀ a ∈ s, set.pairwise_on a r) :=
+by { rw [sUnion_eq_Union, pairwise_on_Union (h.directed_coe), set_coe.forall], refl }
 
 /-! ### `inj_on` -/
 
@@ -1400,6 +1444,10 @@ disjoint_iff
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
+lemma not_disjoint_iff_nonempty_inter {α : Type*} {s t : set α} :
+  ¬disjoint s t ↔ (s ∩ t).nonempty :=
+by simp [set.not_disjoint_iff, set.nonempty_def]
+
 lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩
 
@@ -1467,34 +1515,17 @@ lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) 
 ⟨preimage_eq_empty,
   λ h, by { simp [eq_empty_iff_forall_not_mem, set.disjoint_iff_inter_eq_empty] at h ⊢, finish }⟩
 
+lemma disjoint_iff_subset_compl_right :
+  disjoint s t ↔ s ⊆ tᶜ :=
+disjoint_left
+
+lemma disjoint_iff_subset_compl_left :
+  disjoint s t ↔ t ⊆ sᶜ :=
+disjoint_right
+
 end set
 
 end disjoint
-
-namespace set
-
-/-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
-are disjoint. -/
-def pairwise_disjoint (s : set (set α)) : Prop :=
-pairwise_on s disjoint
-
-lemma pairwise_disjoint.subset {s t : set (set α)} (h : s ⊆ t)
-  (ht : pairwise_disjoint t) : pairwise_disjoint s :=
-pairwise_on.mono h ht
-
-lemma pairwise_disjoint.range {s : set (set α)} (f : s → set α) (hf : ∀ (x : s), f x ⊆ x.1)
-  (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
-begin
-  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine (ht _ x.2 _ y.2 _).mono (hf x) (hf y),
-  intro h, apply hxy, apply congr_arg f, exact subtype.eq h
-end
-
--- classical
-lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
-  (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
-not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
-
-end set
 
 namespace set
 variables (t : α → set β)

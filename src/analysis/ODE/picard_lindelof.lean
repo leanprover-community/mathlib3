@@ -1,28 +1,15 @@
-import analysis.calculus.times_cont_diff
-import measure_theory.integral.interval_integral
+import analysis.special_functions.integrals
 
 /-!
 -/
 
 open filter function set metric topological_space interval_integral measure_theory
 open measure_theory.measure_space (volume)
-open_locale filter topological_space nnreal ennreal nat
+open_locale filter topological_space nnreal ennreal nat interval
 
 noncomputable theory
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
-
-section
-
-localized "attribute [instance] borel" in borel_auto
-
-lemma borel_space_borel (E : Type*) [topological_space E] : @borel_space E _ (borel E) := ⟨rfl⟩
-
-localized "attribute [instance] borel_space_borel" in borel_auto
-
-end
-
-open_locale borel_auto
 
 structure picard_lindelof (E : Type*) [normed_group E] [normed_space ℝ E] :=
 (to_fun : ℝ → E → E)
@@ -33,7 +20,7 @@ structure picard_lindelof (E : Type*) [normed_group E] [normed_space ℝ E] :=
 (lipschitz' : ∀ t ∈ Icc t_min t_max, lipschitz_on_with L (to_fun t) (closed_ball x₀ R))
 (cont : ∀ x ∈ closed_ball x₀ R, continuous_on (λ t, to_fun t x) (Icc t_min t_max))
 (norm_le' : ∀ (t ∈ Icc t_min t_max) (x ∈ closed_ball x₀ R), ∥to_fun t x∥ ≤ C)
-(mul_C_le_R : max (t_max - t₀) (t₀ - t_min) * C ≤ R)
+(C_mul_le_R : (C : ℝ) * max (t_max - t₀) (t₀ - t_min) ≤ R)
 
 namespace picard_lindelof
 
@@ -136,7 +123,7 @@ protected lemma mem_closed_ball (t : Icc v.t_min v.t_max) : f t ∈ closed_ball 
 calc dist (f t) v.x₀ = dist (f t) (f.to_fun v.t₀) : by rw f.map_t₀'
                  ... ≤ v.C * dist t v.t₀          : f.lipschitz.dist_le_mul _ _
                  ... ≤ v.C * v.t_dist             : mul_le_mul_of_nonneg_left (v.dist_t₀_le _) v.C.2
-                 ... ≤ v.R                        : by { rw mul_comm, exact v.mul_C_le_R }
+                 ... ≤ v.R                        : v.C_mul_le_R
 
 def v_comp (t : ℝ) : E := v (v.proj t) (f (v.proj t))
 
@@ -150,10 +137,6 @@ begin
   exact ⟨(v.proj x).2, f.mem_closed_ball _⟩
 end
 
-lemma interval_integrable_v_comp (t₁ t₂ : ℝ) :
-  interval_integrable f.v_comp volume t₁ t₂ :=
-(f.continuous_v_comp).interval_integrable _ _
-
 lemma norm_v_comp_le (t : ℝ) : ∥f.v_comp t∥ ≤ v.C :=
 v.norm_le (v.proj t).2 $ f.mem_closed_ball _
 
@@ -166,7 +149,11 @@ lemma dist_le_of_forall {f₁ f₂ : fun_space v} {d : ℝ} (h : ∀ t, dist (f�
 (@continuous_map.dist_le_iff_of_nonempty _ _ _ _ _ f₁.to_continuous_map f₂.to_continuous_map _
   v.nonempty_Icc.to_subtype).2 h
 
-variables [second_countable_topology E]
+variables [second_countable_topology E] [measurable_space E] [borel_space E]
+
+lemma interval_integrable_v_comp (t₁ t₂ : ℝ) :
+  interval_integrable f.v_comp volume t₁ t₂ :=
+(f.continuous_v_comp).interval_integrable _ _
 
 def next (f : fun_space v) : fun_space v :=
 { to_fun := λ t, v.x₀ + ∫ τ : ℝ in v.t₀..t, f.v_comp τ,
@@ -204,26 +191,22 @@ lemma dist_next_apply_le_of_le {f₁ f₂ : fun_space v} {n : ℕ} {d : ℝ} (hd
 begin
   simp only [dist_eq_norm, next_apply, add_sub_add_left_eq_sub,
     ← interval_integral.integral_sub (interval_integrable_v_comp _ _ _)
-      (interval_integrable_v_comp _ _ _), norm_integral_eq_norm_integral_Ioc,
-    measure_theory.restrict_congr_set measure_theory.Ioc_ae_eq_Icc] at *,
-  set I := interval (v.t₀ : ℝ) t,
-  calc ∥∫ τ in I, f₁.v_comp τ - f₂.v_comp τ∥
-      ≤ ∫ τ in I, v.L * ((v.L * |τ - v.t₀|) ^ n / n! * d) :
+      (interval_integrable_v_comp _ _ _), norm_integral_eq_norm_integral_Ioc] at *,
+  calc ∥∫ τ in Ι (v.t₀ : ℝ) t, f₁.v_comp τ - f₂.v_comp τ∥
+      ≤ ∫ τ in Ι (v.t₀ : ℝ) t, v.L * ((v.L * |τ - v.t₀|) ^ n / n! * d) :
     begin
-      refine norm_integral_le_of_norm_le (continuous.integrable_on_Icc _) _,
+      refine norm_integral_le_of_norm_le (continuous.integrable_on_interval_oc _) _,
       { continuity },
-      { refine (ae_restrict_mem measurable_set_interval).mono (λ τ hτ, _),
+      { refine (ae_restrict_mem measurable_set_Ioc).mono (λ τ hτ, _),
         refine (v.lipschitz_on_with (v.proj τ).2).norm_sub_le_of_le
           (f₁.mem_closed_ball _) (f₂.mem_closed_ball _) ((h _).trans_eq _),
         rw v.proj_of_mem,
-        exact (interval_subset_Icc v.t₀.2 t.2 hτ) }
+        exact (interval_subset_Icc v.t₀.2 t.2 $ Ioc_subset_Icc_self hτ) }
     end
   ... = (v.L * |t - v.t₀|) ^ (n + 1) / (n + 1)! * d : _,
-  suffices : ∫ τ in I, |τ - v.t₀| ^ n = |t - v.t₀| ^ (n + 1) / (n + 1),
-  { simp_rw [mul_pow, div_eq_mul_inv, mul_assoc, measure_theory.integral_mul_left,
-      measure_theory.integral_mul_right, this, div_eq_mul_inv, pow_succ (v.L : ℝ),
-      nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv₀, mul_assoc] },
-  sorry
+  simp_rw [mul_pow, div_eq_mul_inv, mul_assoc, measure_theory.integral_mul_left,
+    measure_theory.integral_mul_right, integral_pow_abs_sub_interval_oc, div_eq_mul_inv,
+    pow_succ (v.L : ℝ), nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv₀, mul_assoc]
 end
 
 lemma dist_iterate_next_apply_le (f₁ f₂ : fun_space v) (n : ℕ) (t : Icc v.t_min v.t_max) :
@@ -249,6 +232,9 @@ end fun_space
 
 variables [second_countable_topology E] [complete_space E]
 
+section
+variables [measurable_space E] [borel_space E]
+
 lemma exists_contracting :
   ∃ (N : ℕ) K, contracting_with K ((fun_space.next : v.fun_space → v.fun_space)^[N]) :=
 begin
@@ -263,10 +249,13 @@ end
 lemma exists_fixed : ∃ f : v.fun_space, f.next = f :=
 let ⟨N, K, hK⟩ := exists_contracting v in ⟨_, hK.is_fixed_pt_fixed_point_iterate⟩
 
+end
+
 lemma exists_solution :
   ∃ f : ℝ → E, f v.t₀ = v.x₀ ∧ ∀ t ∈ Icc v.t_min v.t_max,
     has_deriv_within_at f (v t (f t)) (Icc v.t_min v.t_max) t :=
 begin
+  letI : measurable_space E := borel E, haveI : borel_space E := ⟨rfl⟩,
   rcases v.exists_fixed with ⟨f, hf⟩,
   refine ⟨f ∘ v.proj, _, λ t ht, _⟩,
   { simp only [(∘), proj_coe, f.map_t₀] },
@@ -276,3 +265,22 @@ begin
 end
 
 end picard_lindelof
+
+lemma exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous
+  [complete_space E] [second_countable_topology E]
+  {v : ℝ → E → E} {t_min t₀ t_max : ℝ} (ht₀ : t₀ ∈ Icc t_min t_max)
+  (x₀ : E) {C R : ℝ} (hR : 0 ≤ R) {L : ℝ≥0}
+  (Hlip : ∀ t ∈ Icc t_min t_max, lipschitz_on_with L (v t) (closed_ball x₀ R))
+  (Hcont : ∀ x ∈ closed_ball x₀ R, continuous_on (λ t, v t x) (Icc t_min t_max))
+  (Hnorm : ∀ (t ∈ Icc t_min t_max) (x ∈ closed_ball x₀ R), ∥v t x∥ ≤ C)
+  (Hmul_le : C * max (t_max - t₀) (t₀ - t_min) ≤ R) :
+  ∃ f : ℝ → E, f t₀ = x₀ ∧ ∀ t ∈ Icc t_min t_max,
+    has_deriv_within_at f (v t (f t)) (Icc t_min t_max) t :=
+begin
+  lift C to ℝ≥0 using ((norm_nonneg _).trans $ Hnorm t₀ ht₀ x₀ (mem_closed_ball_self hR)),
+  lift R to ℝ≥0 using hR,
+  lift t₀ to Icc t_min t_max using ht₀,
+  exact picard_lindelof.exists_solution
+    ⟨v, t_min, t_max, t₀, x₀, C, R, L, Hlip, Hcont, Hnorm, Hmul_le⟩
+end
+

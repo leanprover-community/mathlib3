@@ -62,7 +62,7 @@ lemma is_Gδ_Inter_of_open [encodable ι] {f : ι → set α}
 ⟨range f, by rwa forall_range_iff, countable_range _, by rw sInter_range⟩
 
 /-- The intersection of an encodable family of Gδ sets is a Gδ set. -/
-lemma is_Gδ_Inter [encodable ι]  {s : ι → set α} (hs : ∀ i, is_Gδ (s i)) : is_Gδ (⋂ i, s i) :=
+lemma is_Gδ_Inter [encodable ι] {s : ι → set α} (hs : ∀ i, is_Gδ (s i)) : is_Gδ (⋂ i, s i) :=
 begin
   choose T hTo hTc hTs using hs,
   obtain rfl : s = λ i, ⋂₀ T i := funext hTs,

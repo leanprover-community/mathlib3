@@ -5,6 +5,8 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 -/
 import algebra.quadratic_discriminant
 import analysis.special_functions.complex.log
+import analysis.complex.polynomial
+import field_theory.is_alg_closed.basic
 
 /-!
 # Complex trigonometric functions
@@ -204,7 +206,8 @@ lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
   obtain ⟨w, w₀, hw⟩ : ∃ w ≠ 0, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { rcases exists_quadratic_eq_zero (@one_ne_zero ℂ _ _) (exists_eq_mul_self _) with ⟨w, hw⟩,
+  { rcases exists_quadratic_eq_zero (@one_ne_zero ℂ _ _) (is_alg_closed.exists_eq_mul_self _)
+      with ⟨w, hw⟩,
     refine ⟨w, _, hw⟩,
     rintro rfl,
     simpa only [zero_add, one_ne_zero, mul_zero] using hw },

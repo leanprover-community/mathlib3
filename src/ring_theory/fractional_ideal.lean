@@ -1140,8 +1140,7 @@ omit loc
 
 variables (K)
 
-lemma mk'_mul_coe_ideal_eq_coe_ideal
-  {I J : ideal R₁} {x y : R₁} (hy : y ∈ R₁⁰) :
+lemma mk'_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {x y : R₁} (hy : y ∈ R₁⁰) :
   span_singleton R₁⁰ (is_localization.mk' K x ⟨y, hy⟩) * I = (J : fractional_ideal R₁⁰ K) ↔
   ideal.span {x} * I = ideal.span {y} * J :=
 begin

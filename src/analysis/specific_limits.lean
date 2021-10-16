@@ -992,6 +992,24 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end
 
+lemma real.summable_pow_div_factorial (x : ℝ) :
+  summable (λ n, x ^ n / n! : ℕ → ℝ) :=
+begin
+  have A : (0 : ℝ) < ⌊∥x∥⌋₊ + 1, from zero_lt_one.trans_le (by simp),
+  have B : ∥x∥ / (⌊∥x∥⌋₊ + 1) < 1, from (div_lt_one A).2 (lt_nat_floor_add_one _),
+  refine summable_of_ratio_norm_eventually_le B _,
+  refine (eventually_ge_at_top ⌊∥x∥⌋₊).mono (λ n hn, _),
+  simp only [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div, normed_field.norm_mul],
+  refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+  rw normed_field.norm_div,
+  refine div_le_div_of_le_left (norm_nonneg _) A _,
+  rw real.norm_coe_nat, simpa
+end
+
+lemma real.tendsto_pow_div_factorial_at_top (x : ℝ) :
+  tendsto (λ n, x ^ n / n! : ℕ → ℝ) at_top (𝓝 0) :=
+(real.summable_pow_div_factorial x).tendsto_at_top_zero
+
 /-!
 ### Ceil and floor
 -/

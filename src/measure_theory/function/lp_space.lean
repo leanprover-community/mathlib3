@@ -1119,7 +1119,20 @@ end
 end monotonicity
 
 section is_R_or_C
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] {f : α → 𝕜}
+
+lemma mem_ℒp.of_real [borel_space 𝕜] {f : α → ℝ} (hf : mem_ℒp f p μ) :
+  mem_ℒp (λ x, (f x : 𝕜)) p μ :=
+begin
+  have : ∀ x, ∥(f x : 𝕜)∥ ≤ 1 * ∥f x∥,
+  { intro x,
+    rw one_mul,
+    exact (is_R_or_C.norm_of_real _).le },
+  exact hf.of_le_mul (is_R_or_C.measurable_of_real.comp_ae_measurable hf.1)
+    (eventually_of_forall this),
+end
+
+variable [opens_measurable_space 𝕜]
 
 lemma mem_ℒp.re (hf : mem_ℒp f p μ) : mem_ℒp (λ x, is_R_or_C.re (f x)) p μ :=
 begin
@@ -1133,17 +1146,6 @@ begin
   have : ∀ x, ∥is_R_or_C.im (f x)∥ ≤ 1 * ∥f x∥,
     by { intro x, rw one_mul, exact is_R_or_C.norm_im_le_norm (f x), },
   exact hf.of_le_mul hf.1.im (eventually_of_forall this),
-end
-
-lemma mem_ℒp.of_real [borel_space 𝕜] {f : α → ℝ} (hf : mem_ℒp f p μ) :
-  mem_ℒp (λ x, (f x : 𝕜)) p μ :=
-begin
-  have : ∀ x, ∥(f x : 𝕜)∥ ≤ 1 * ∥f x∥,
-  { intro x,
-    rw one_mul,
-    exact (is_R_or_C.norm_of_real _).le },
-  exact hf.of_le_mul (is_R_or_C.measurable_of_real.comp_ae_measurable hf.1)
-    (eventually_of_forall this),
 end
 
 lemma mem_ℒp_re_im_iff [borel_space 𝕜] :

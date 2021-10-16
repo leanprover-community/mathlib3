@@ -391,6 +391,10 @@ equiv_pempty _
 def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 ⟨λ x, (), λ x, h, λ _, rfl, λ ⟨⟩, rfl⟩
 
+/-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
+def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
+⟨λ x, absurd x h, λ x, by cases x, λ x, absurd x h, λ x, by cases x⟩
+
 /-- `true` is equivalent to `punit`. -/
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
 
@@ -952,6 +956,28 @@ by { ext1 x, cases x, refl }
 @[simp] lemma sigma_congr_right_refl {α} {β : α → Type*} :
   (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
 by { ext1 x, cases x, refl }
+
+/-- A `psigma` with `Prop` fibers is equivalent to the subtype.  -/
+def psigma_equiv_subtype {α : Type v} (P : α → Prop) :
+  (Σ' i, P i) ≃ subtype P :=
+{ to_fun := λ x, ⟨x.1, x.2⟩,
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ x, by { cases x, refl, },
+  right_inv := λ x, by { cases x, refl, }, }
+
+/-- A `sigma` with `plift` fibers is equivalent to the subtype. -/
+def sigma_plift_equiv_subtype {α : Type v} (P : α → Prop) :
+  (Σ i, plift (P i)) ≃ subtype P :=
+((psigma_equiv_sigma _).symm.trans (psigma_congr_right (λ a, equiv.plift))).trans
+  (psigma_equiv_subtype P)
+
+/--
+A `sigma` with `λ i, ulift (plift (P i))` fibers is equivalent to `{ x // P x }`.
+Variant of `sigma_plift_equiv_subtype`.
+-/
+def sigma_ulift_plift_equiv_subtype {α : Type v} (P : α → Prop) :
+  (Σ i, ulift (plift (P i))) ≃ subtype P :=
+(sigma_congr_right (λ a, equiv.ulift)).trans (sigma_plift_equiv_subtype P)
 
 namespace perm
 

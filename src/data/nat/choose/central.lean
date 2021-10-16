@@ -119,11 +119,35 @@ begin
       ... = (2 * n) * (2 * n).choose n : by rw n_sum,
 end
 
-lemma central_binom_induction (n : ℕ) (n_pos : 0 < n) :
-  (2 * (2 * n + 1)) * (2 * n).choose n =
-  (n + 1) * ((2 * (n + 1)).choose (n + 1)) :=
+lemma two_mul_sub_self (n : ℕ) : 2 * n - n = n :=
 begin
   sorry
+end
+
+lemma two_mul_succ_sub_self (n : ℕ) : 2 * n + 1 - n = n + 1 :=
+begin
+  sorry
+end
+
+lemma central_binom_induction (n : ℕ) (n_pos : 0 < n) :
+  (n + 1) * ((2 * (n + 1)).choose (n + 1)) = (2 * (2 * n + 1)) * (2 * n).choose n :=
+begin
+  calc (n + 1) * ((2 * (n + 1)).choose (n + 1))
+      = (n + 1) * (2 * n + 2).choose (n + 1) : by ring_nf
+      ... = (n + 1) * ((2 * n + 1).choose n + (2 * n + 1).choose (n + 1)) : by rw choose_succ_succ
+      ... = (n + 1) * ((2 * n + 1).choose (n + 1) + (2 * n + 1).choose (n + 1)) :
+        by rw choose_symm_half
+      ... = 2 * ((2 * n + 1).choose (n + 1) * (n + 1)) : by ring
+      ... = 2 * ((2 * n + 1).choose n * (2 * n + 1 - n)) : by rw choose_succ_right_eq _ n
+      ... = 2 * ((2 * n + 1).choose n * (n + 1)) : by rw two_mul_succ_sub_self
+      ... = 2 * ((2 * n + 1).choose (n + 1) * (n + 1)) : by rw choose_symm_half
+      ... = 2 * (((2 * n).choose n + (2 * n).choose (n + 1)) * (n + 1)) :
+        by rw choose_succ_succ (2 * n) n
+      ... = 2 * ((2 * n).choose n * (n + 1) + (2 * n).choose (n + 1) * (n + 1)) : by ring
+      ... = 2 * ((2 * n).choose n * (n + 1) + (2 * n).choose n * (2 * n - n)) :
+        by rw choose_succ_right_eq (2 * n) n
+      ... = 2 * ((2 * n).choose n * (n + 1) + (2 * n).choose n * n) : by rw two_mul_sub_self
+      ... = 2 * (2 * n + 1) * (2 * n).choose n : by ring,
 end
 
 -- This bound is of interest because it appears in Tochiori's refinement of Erdős's proof
@@ -162,7 +186,7 @@ begin
         exact (mul_lt_mul_left n_big).mpr hyp,
       end
     ... = 2 * ((2 * n + 1) * (n * (2 * n).choose n)) : by rw n_collapse
-    ... = (2 * n) * ((2 * n + 1) * (2 * n).choose n) : by ring_nf
+    ... = n * (2 * (2 * n + 1) * (2 * n).choose n) : by ring_nf
     ... = n * ((n + 1) * ((2 * (n + 1)).choose (n + 1))) : by rw central_binom_induction n n_pos,
 
   exact (mul_lt_mul_left (by linarith)).mp result,

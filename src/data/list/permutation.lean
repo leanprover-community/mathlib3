@@ -35,7 +35,13 @@ all positions. Hence, to build `[0, 1, 2, 3].permutations'`, it does
    `[0, 1, 3, 2], [1, 0, 3, 2], [1, 3, 0, 2], [1, 3, 2, 0],`
    `[0, 3, 1, 2], [3, 0, 1, 2], [3, 1, 0, 2], [3, 1, 2, 0],`
    `[0, 3, 2, 1], [3, 0, 2, 1], [3, 2, 0, 1], [3, 2, 1, 0]]`
+
+## TODO
+
+Show that `l.nodup → l.permutations.nodup`. See `data.fintype.list`.
 -/
+
+open nat
 
 variables {α β : Type*}
 
@@ -61,7 +67,7 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 
 /-- A recursor for pairs of lists. To have `C l₁ l₂` for all `l₁`, `l₂`, it suffices to have it for
 `l₂ = []` and to be able to pour the elements of `l₁` into `l₂`. -/
-@[elab_as_eliminator] def permutations_aux.rec {C : list α → list α → Sort v}
+@[elab_as_eliminator] def permutations_aux.rec {C : list α → list α → Sort*}
   (H0 : ∀ is, C [] is)
   (H1 : ∀ t ts is, C ts (t::is) → C is [] → C (t::ts) is) : ∀ l₁ l₂, C l₁ l₂
 | []      is := H0 is
@@ -202,24 +208,24 @@ begin
 end
 
 lemma mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : list α} :
-    l' ∈ (permutations_aux2 t ts [] ys (append l)).2 ↔
+  l' ∈ (permutations_aux2 t ts [] ys (append l)).2 ↔
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l' = l ++ l₁ ++ t :: l₂ ++ ts :=
 begin
   induction ys with y ys ih generalizing l,
   { simp {contextual := tt} },
-  { rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
-        by funext; simp, mem_cons_iff, ih], split; intro h,
-    { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,
-      { subst l', exact ⟨[], y::ys, by simp⟩ },
-      { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
-    { rcases h with ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, rfl⟩,
-      { simp [ye] },
-      { simp at ye, rcases ye with ⟨rfl, rfl⟩,
-        exact or.inr ⟨l₁, l₂, l0, by simp⟩ } } }
+  rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
+      by funext; simp, mem_cons_iff, ih], split,
+  { rintro (e | ⟨l₁, l₂, l0, ye, _⟩),
+    { subst l', exact ⟨[], y::ys, by simp⟩ },
+    { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
+  { rintro ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, rfl⟩,
+    { simp [ye] },
+    { simp only [cons_append] at ye, rcases ye with ⟨rfl, rfl⟩,
+      exact or.inr ⟨l₁, l₂, l0, by simp⟩ } }
 end
 
 lemma mem_permutations_aux2' {t : α} {ts : list α} {ys : list α} {l : list α} :
-    l ∈ (permutations_aux2 t ts [] ys id).2 ↔
+  l ∈ (permutations_aux2 t ts [] ys id).2 ↔
     ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l = l₁ ++ t :: l₂ ++ ts :=
 by rw [show @id (list α) = append nil, by funext; refl]; apply mem_permutations_aux2
 
@@ -233,8 +239,8 @@ lemma foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
 by induction L with l L ih; [refl, {simp [ih], rw ← permutations_aux2_append}]
 
 lemma mem_foldr_permutations_aux2 {t : α} {ts : list α} {r L : list (list α)} {l' : list α} :
-  l' ∈ foldr (λy r, (permutations_aux2 t ts r y id).2) r L ↔ l' ∈ r ∨
-  ∃ l₁ l₂, l₁ ++ l₂ ∈ L ∧ l₂ ≠ [] ∧ l' = l₁ ++ t :: l₂ ++ ts :=
+  l' ∈ foldr (λy r, (permutations_aux2 t ts r y id).2) r L ↔
+    l' ∈ r ∨ ∃ l₁ l₂, l₁ ++ l₂ ∈ L ∧ l₂ ≠ [] ∧ l' = l₁ ++ t :: l₂ ++ ts :=
 have (∃ (a : list α), a ∈ L ∧
     ∃ (l₁ l₂ : list α), ¬l₂ = nil ∧ a = l₁ ++ l₂ ∧ l' = l₁ ++ t :: (l₂ ++ ts)) ↔
     ∃ (l₁ l₂ : list α), ¬l₂ = nil ∧ l₁ ++ l₂ ∈ L ∧ l' = l₁ ++ t :: (l₂ ++ ts),

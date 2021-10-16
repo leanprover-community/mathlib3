@@ -1239,8 +1239,10 @@ begin
   let y' : units (fractional_ideal R₁⁰ K) := units.mk_of_mul_eq_one _ _ this,
   have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K 1 ⟨y, hy⟩) := rfl,
   refine iff.trans _ (y'.mul_right_inj.trans inj.eq_iff),
-  simp only [coe_ideal_mul, coe_ideal_span_singleton, ← mul_assoc, coe_y',
-    span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
+  rw [coe_y', coe_ideal_mul, coe_ideal_span_singleton, coe_ideal_mul, coe_ideal_span_singleton,
+    ←mul_assoc, span_singleton_mul_span_singleton, ←mul_assoc, span_singleton_mul_span_singleton,
+    mul_comm (mk' _ _ _), ← is_localization.mk'_eq_mul_mk'_one,
+    mul_comm (mk' _ _ _), ← is_localization.mk'_eq_mul_mk'_one,
     is_localization.mk'_self, span_singleton_one, one_mul],
 end
 

@@ -198,6 +198,8 @@ lemma le_smul_iff_of_pos (hc : 0 < c) : a ≤ c • b ↔ c⁻¹ • a ≤ b :=
 calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul₀ hc.ne']
 ... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
 
+variables (M)
+
 /-- Left scalar multiplication as an order isomorphism. -/
 @[simps] def order_iso.smul_left {c : k} (hc : 0 < c) : M ≃o M :=
 { to_fun := λ b, c • b,

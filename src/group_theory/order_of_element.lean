@@ -253,7 +253,7 @@ omit hp
 -- An example on how to determine the order of an element of a finite group.
 example : order_of (-1 : units ℤ) = 2 :=
 begin
-  haveI : fact (prime 2) := ⟨prime_two⟩,
+  haveI : fact (nat.prime 2) := ⟨prime_two⟩,
   exact order_of_eq_prime (int.units_mul_self _) dec_trivial,
 end
 

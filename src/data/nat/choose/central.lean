@@ -119,11 +119,53 @@ begin
       ... = (2 * n) * (2 * n).choose n : by rw n_sum,
 end
 
-lemma four_pow_n_lt_n_mul_central_binom {n : ℕ} (n_big : 4 ≤ n) : 4 ^ n < n * (2 * n).choose n :=
+lemma central_binom_induction (n : ℕ) (n_pos : 0 < n) :
+  (2 * (2 * n + 1)) * (2 * n).choose n =
+  (n + 1) * ((2 * (n + 1)).choose (n + 1)) :=
 begin
-  induction n,
-  { linarith, },
-  { sorry, },
+  sorry
+end
+
+-- This bound is of interest because it appears in Tochiori's refinement of Erdős's proof
+-- of Bertrand's postulate
+-- (https://en.wikipedia.org/w/index.php?title=Proof_of_Bertrand%27s_postulate&oldid=859165151#Proof_by_Shigenori_Tochiori)
+lemma four_pow_n_lt_n_mul_central_binom : ∀ (n : ℕ) (n_big : 4 ≤ n), 4 ^ n < n * (2 * n).choose n
+| 0 pr := by linarith
+| 1 pr := by linarith
+| 2 pr := by linarith
+| 3 pr := by linarith
+| 4 _ := by { norm_num, unfold nat.choose, norm_num }
+| (m + 5) _ :=
+begin
+  let n := m + 4,
+  have n_pos : 0 < n := nat.succ_pos (m + 3),
+
+  have n_collapse : 2 * (n + 1) - 1 = 2 * n + 1 := by ring_nf,
+
+  have hyp := four_pow_n_lt_n_mul_central_binom (m + 4) le_add_self,
+
+  have result : n * (4 ^ (n + 1)) < n * ((n + 1) * ((2 * (n + 1)).choose (n + 1))) :=
+    calc n * (4 ^ (n + 1))
+        = 2 * (2 * n) * 4 ^ n : by ring_nf
+    ... ≤ 2 * (2 * (n + 1) - 1) * (4 ^ n) :
+      begin
+        apply mul_le_mul_right',
+        apply mul_le_mul_left',
+        ring_nf,
+        simp only [zero_le_one, add_succ_sub_one, le_add_iff_nonneg_right],
+      end
+    ... = 2 * ((2 * (n + 1) - 1) * (4 ^ n)) : mul_assoc 2 _ _
+    ... < 2 * ((2 * (n + 1) - 1) * (n * (2 * n).choose n)) :
+      begin
+        refine (mul_lt_mul_left zero_lt_two).mpr _,
+        have n_big : 0 < 2 * (n + 1) - 1 := fin.last_pos,
+        exact (mul_lt_mul_left n_big).mpr hyp,
+      end
+    ... = 2 * ((2 * n + 1) * (n * (2 * n).choose n)) : by rw n_collapse
+    ... = (2 * n) * ((2 * n + 1) * (2 * n).choose n) : by ring_nf
+    ... = n * ((n + 1) * ((2 * (n + 1)).choose (n + 1))) : by rw central_binom_induction n n_pos,
+
+  exact (mul_lt_mul_left (by linarith)).mp result,
 end
 
 end nat

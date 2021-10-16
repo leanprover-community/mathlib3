@@ -1021,7 +1021,7 @@ noncomputable def division_ring_of_finite_dimensional
     exact classical.some_spec ((show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
   inv_zero := dif_pos rfl,
-  .. ‹domain K›,
+  .. ‹is_domain K›,
   .. ‹ring K› }
 
 /-- An integral domain that is module-finite as an algebra over a field is a field. -/

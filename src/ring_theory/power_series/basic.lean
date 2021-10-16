@@ -1281,9 +1281,6 @@ section integral_domain
 
 variables [comm_ring R] [is_domain R]
 
-instance : is_domain power_series R) :=
-{ .. power_series.domain, }
-
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
 lemma span_X_is_prime : (ideal.span ({X} : set (power_series R))).is_prime :=

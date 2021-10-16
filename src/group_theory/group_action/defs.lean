@@ -173,9 +173,15 @@ def comp (g : N → M) : has_scalar N α :=
 
 variables {α}
 
-/-- If an action forms a scalar tower then so does the action formed by `has_scalar.comp`. -/
+/-- Given a tower of scalar actions `M → α → β`, if we use `has_scalar.comp`
+to pull back both of `M`'s actions by a map `g : N → M`, then we obtain a new
+tower of scalar actions `N → α → β`.
+
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
+lemma comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
   (g : N → M) :
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
@@ -323,6 +329,24 @@ section compatible_scalar
   [is_scalar_tower M N α] (x : M) (y : α) :
   (x • (1 : N)) • y = x • y :=
 by rw [smul_assoc, one_smul]
+
+@[simp] lemma smul_one_mul {M N} [monoid N] [has_scalar M N] [is_scalar_tower M N N] (x : M)
+  (y : N) : (x • 1) * y = x • y :=
+smul_one_smul N x y
+
+@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
+  (x : M) (y : N) :
+  y * (x • 1) = x • y :=
+by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
+
+lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
+  (h : ∀ (x : M) (y : N), (x • (1 : N)) * y = x • y) :
+  is_scalar_tower M N N :=
+⟨λ x y z, by rw [← h, smul_eq_mul, mul_assoc, h, smul_eq_mul]⟩
+
+@[to_additive] lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_scalar M N]
+  (H : ∀ (x : M) (y : N), y * (x • (1 : N)) = x • y) : smul_comm_class M N N :=
+⟨λ x y z, by rw [← H x z, smul_eq_mul, ← H, smul_eq_mul, mul_assoc]⟩
 
 end compatible_scalar
 

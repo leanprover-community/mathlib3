@@ -3,7 +3,7 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.fin
+import data.fin.basic
 import data.fintype.basic
 /-!
 # The structure of `fintype (fin n)`

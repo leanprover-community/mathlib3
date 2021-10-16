@@ -28,8 +28,8 @@ open_locale non_zero_divisors
 variables {R : Type*} [integral_domain R]
 
 namespace polynomial
-section gcd_monoid
-variable [gcd_monoid R]
+section normalized_gcd_monoid
+variable [normalized_gcd_monoid R]
 
 section
 variables {S : Type*} [integral_domain S] {φ : R →+* S} (hinj : function.injective φ)
@@ -180,5 +180,5 @@ lemma is_primitive.int.dvd_iff_map_cast_dvd_map_cast (p q : polynomial ℤ)
   (p ∣ q) ↔ (p.map (int.cast_ring_hom ℚ) ∣ q.map (int.cast_ring_hom ℚ)) :=
 hp.dvd_iff_fraction_map_dvd_fraction_map ℚ hq
 
-end gcd_monoid
+end normalized_gcd_monoid
 end polynomial

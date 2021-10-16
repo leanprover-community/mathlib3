@@ -34,9 +34,11 @@ We show that every nontrivial left-noetherian ring satisfies the strong rank con
 (and so in particular every division ring or field),
 and then use this to show every nontrivial commutative ring has the invariant basis number property.
 
-## Future work
+More generally, every commutative ring satisfies the strong rank condition. This is proved in
+`linear_algebra/free_module/strong_rank_condition`. We keep
+`invariant_basis_number_of_nontrivial_of_comm_ring` here since it imports fewer files.
 
-We can improve these results: in fact every commutative ring satisfies the strong rank condition.
+## Future work
 
 So far, there is no API at all for the `invariant_basis_number` class. There are several natural
 ways to formulate that a module `M` is finitely generated and free, for example

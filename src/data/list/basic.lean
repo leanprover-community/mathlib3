@@ -5,7 +5,6 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import control.monad.basic
 import data.nat.basic
-import algebra.group_power.basic
 
 /-!
 # Basic properties of lists
@@ -1172,7 +1171,7 @@ lemma nth_le_append_right_aux {l₁ l₂ : list α} {n : ℕ}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length :=
 begin
   rw list.length_append at h₂,
-  convert (nat.sub_lt_sub_right_iff h₁).mpr h₂,
+  convert (sub_lt_sub_iff_right' h₁).mpr h₂,
   simp,
 end
 
@@ -1203,7 +1202,7 @@ begin
   { rw [nth_le_nth hl, nth_le_nth, nth_le_append_right hn] },
   { rw [nth_len_le (le_of_not_lt hl), nth_len_le],
     rw [not_lt, length_append] at hl,
-    exact nat.le_sub_left_of_add_le hl }
+    exact le_sub_of_add_le_left' hl }
 end
 
 lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
@@ -1929,7 +1928,7 @@ end
 /--  The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
 dropping the first `i` elements. Version designed to rewrite from the small list to the big list. -/
 lemma nth_le_drop' (L : list α) {i j : ℕ} (h : j < (L.drop i).length) :
-  nth_le (L.drop i) j h = nth_le L (i + j) (nat.add_lt_of_lt_sub_left ((length_drop i L) ▸ h)) :=
+  nth_le (L.drop i) j h = nth_le L (i + j) (lt_sub_iff_left.mp ((length_drop i L) ▸ h)) :=
 by rw nth_le_drop
 
 lemma nth_drop (L : list α) (i j : ℕ) :
@@ -1938,7 +1937,7 @@ begin
   ext,
   simp only [nth_eq_some, nth_le_drop', option.mem_def],
   split;
-  exact λ ⟨h, ha⟩, ⟨by simpa [nat.lt_sub_left_iff_add_lt] using h, ha⟩
+  exact λ ⟨h, ha⟩, ⟨by simpa [lt_sub_iff_left] using h, ha⟩
 end
 
 @[simp] theorem drop_drop (n : ℕ) : ∀ (m) (l : list α), drop n (drop m l) = drop (n + m) l
@@ -2402,14 +2401,6 @@ theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simp, priority 500, to_additive]
-theorem prod_repeat (a : α) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
-begin
-  induction n with n ih,
-  { rw pow_zero, refl },
-  { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
-end
-
 @[simp, to_additive]
 theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
@@ -2691,17 +2682,6 @@ begin
     rcases exists_lt_of_sum_lt f g _ with ⟨y, h1y, h2y⟩,
     exact ⟨y, mem_cons_of_mem x h1y, le_of_lt h2y⟩, simp at h,
     exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
-end
-
-@[to_additive]
-lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
-  l.prod ≤ n ^ l.length :=
-begin
-  induction l with y l IH,
-  { simp },
-  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
-    have hy : y ≤ n := h y (mem_cons_self _ _),
-    simpa [pow_succ] using mul_le_mul' hy IH }
 end
 
 -- Several lemmas about sum/head/tail for `list ℕ`.
@@ -5049,7 +5029,7 @@ theorem to_chunks_length_le : ∀ n xs, n ≠ 0 → ∀ l : list α,
   { apply length_take_le },
   { refine IH _ _ h,
     simp only [measure, inv_image, length_drop],
-    exact nat.sub_lt_self (length_pos_iff_ne_nil.2 x0) (succ_pos _) },
+    exact sub_lt_self' (length_pos_iff_ne_nil.2 x0) (succ_pos _) },
 end
 
 end to_chunks

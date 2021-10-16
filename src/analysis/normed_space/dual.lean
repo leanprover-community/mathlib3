@@ -8,18 +8,16 @@ import analysis.normed_space.hahn_banach
 /-!
 # The topological dual of a normed space
 
-In this file we define the topological dual of a normed space, and the bounded linear map from
-a normed space into its double dual.
+In this file we define the topological dual `normed_space.dual` of a normed space, and the
+continuous linear map `normed_space.inclusion_in_double_dual` from a normed space into its double
+dual.
 
-We also prove that, for base field `𝕜` with `[is_R_or_C 𝕜]`, this map is an isometry.
+For base field `𝕜 = ℝ` or `𝕜 = ℂ`, this map is actually an isometric embedding; we provide a
+version `normed_space.inclusion_in_double_dual_li` of the map which is of type a bundled linear
+isometric embedding, `E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E))`.
 
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
 theory for `semi_normed_space` and we specialize to `normed_space` when needed.
-
-## TODO
-
-Express the construction `inclusion_in_double_dual_isometry` as a `linear_isometry` (not
-difficult, just overlooked).
 
 ## Tags
 
@@ -97,15 +95,17 @@ begin
 end
 
 /-- The inclusion of a normed space in its double dual is an isometry onto its image.-/
-lemma inclusion_in_double_dual_isometry (x : E) : ∥inclusion_in_double_dual 𝕜 E x∥ = ∥x∥ :=
-begin
-  apply le_antisymm,
-  { exact double_dual_bound 𝕜 E x },
-  { rw continuous_linear_map.norm_def,
+def inclusion_in_double_dual_li : E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
+{ norm_map' := begin
+    intros x,
+    apply le_antisymm,
+    { exact double_dual_bound 𝕜 E x },
+    rw continuous_linear_map.norm_def,
     apply le_cInf continuous_linear_map.bounds_nonempty,
     rintros c ⟨hc1, hc2⟩,
-    exact norm_le_dual_bound 𝕜 x hc1 hc2 },
-end
+    exact norm_le_dual_bound 𝕜 x hc1 hc2
+  end,
+  .. inclusion_in_double_dual 𝕜 E }
 
 end bidual_isometry
 

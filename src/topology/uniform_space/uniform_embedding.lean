@@ -87,7 +87,8 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
 
 /-- If the domain of a `uniform_inducing` map `f` is a `separated_space`, then `f` is injective,
 hence it is a `uniform_embedding`. -/
-theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β} (hf : uniform_inducing f) :
+theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
+  (hf : uniform_inducing f) :
   uniform_embedding f :=
 ⟨hf, λ x y h, eq_of_uniformity_basis (hf.basis_uniformity (𝓤 β).basis_sets) $
   λ s hs, mem_preimage.2 $ mem_uniformity_of_eq hs h⟩

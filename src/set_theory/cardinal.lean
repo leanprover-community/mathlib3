@@ -982,7 +982,7 @@ by rw [← to_nat_cast 0, nat.cast_zero]
 lemma one_to_nat : cardinal.to_nat 1 = 1 :=
 by rw [← to_nat_cast 1, nat.cast_one]
 
-lemma to_nat_lift (c : cardinal.{v}) : (lift.{u v} c).to_nat = c.to_nat :=
+@[simp] lemma to_nat_lift (c : cardinal.{v}) : (lift.{u v} c).to_nat = c.to_nat :=
 begin
   apply nat_cast_injective,
   cases lt_or_ge c ω with hc hc,

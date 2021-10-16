@@ -408,6 +408,8 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
+@[to_additive] instance : unique (⊥ : subgroup G) := ⟨⟨1⟩, λ g, subtype.ext g.2⟩
+
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
 begin
   rw set_like.ext'_iff,

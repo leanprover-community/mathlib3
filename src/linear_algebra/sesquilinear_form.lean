@@ -226,7 +226,7 @@ instance to_module : module R (sesq_form R M J) :=
 
 end comm_ring
 
-section domain
+section is_domain
 
 variables {R : Type*} [ring R] [is_domain R]
   {M : Type v} [add_comm_group M] [module R M]
@@ -260,7 +260,7 @@ begin
     { exact H }}
 end
 
-end domain
+end is_domain
 
 end sesq_form
 

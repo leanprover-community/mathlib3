@@ -542,7 +542,7 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
       (m.mul_mem_left _ hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-@[simp] lemma radical_bot_of_integral_domain {R : Type u} [comm_ring R] [is_domain R] :
+@[simp] lemma radical_bot_of_is_domain {R : Type u} [comm_ring R] [is_domain R] :
   radical (⊥ : ideal R) = ⊥ :=
 eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
 

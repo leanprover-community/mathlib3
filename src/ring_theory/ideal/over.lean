@@ -118,7 +118,7 @@ end
 
 end comm_ring
 
-section integral_domain
+section is_domain
 variables {S : Type*} [comm_ring S] {f : R →+* S} {I J : ideal S}
 
 lemma exists_coeff_ne_zero_mem_comap_of_root_mem
@@ -341,6 +341,6 @@ begin
   exact ⟨Q, is_maximal_of_is_integral_of_is_maximal_comap H _ (hQ.symm ▸ P_max), hQ⟩,
 end
 
-end integral_domain
+end is_domain
 
 end ideal

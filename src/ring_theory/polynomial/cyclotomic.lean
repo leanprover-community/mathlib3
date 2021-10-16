@@ -58,7 +58,7 @@ namespace polynomial
 
 section cyclotomic'
 
-section integral_domain
+section is_domain
 
 variables {R : Type*} [comm_ring R] [is_domain R]
 
@@ -133,7 +133,7 @@ lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] :
   (cyclotomic' n R).roots = (primitive_roots n R).val :=
 by { rw cyclotomic', exact roots_prod_X_sub_C (primitive_roots n R) }
 
-end integral_domain
+end is_domain
 
 section field
 

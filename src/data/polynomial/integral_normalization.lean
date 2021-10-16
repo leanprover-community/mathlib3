@@ -73,7 +73,7 @@ monic_of_degree_le f.nat_degree
 
 end semiring
 
-section domain
+section is_domain
 variables [ring R] [is_domain R]
 
 @[simp] lemma support_integral_normalization {f : polynomial R} :
@@ -86,7 +86,7 @@ begin
   intro hfi,
   split_ifs with hi; simp [hfi, hi, pow_ne_zero _ (leading_coeff_ne_zero.mpr hf)]
 end
-end domain
+end is_domain
 
 section is_domain
 variables [comm_ring R] [is_domain R]

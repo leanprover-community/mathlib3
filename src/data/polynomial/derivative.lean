@@ -302,7 +302,7 @@ end
 
 end comm_ring
 
-section domain
+section is_domain
 variables [ring R] [is_domain R]
 
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
@@ -352,7 +352,7 @@ begin
     { norm_cast at h2 } }
 end
 
-end domain
+end is_domain
 
 end derivative
 end polynomial

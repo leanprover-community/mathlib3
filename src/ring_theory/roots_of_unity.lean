@@ -187,7 +187,7 @@ instance roots_of_unity.fintype : fintype (roots_of_unity k R) :=
 fintype.of_equiv {x // x ∈ nth_roots k (1 : R)} $ (roots_of_unity_equiv_nth_roots R k).symm
 
 instance roots_of_unity.is_cyclic : is_cyclic (roots_of_unity k R) :=
-is_cyclic_of_subgroup_integral_domain ((units.coe_hom R).comp (roots_of_unity k R).subtype)
+is_cyclic_of_subgroup_is_domain ((units.coe_hom R).comp (roots_of_unity k R).subtype)
   (units.ext.comp subtype.val_injective)
 
 lemma card_roots_of_unity : fintype.card (roots_of_unity k R) ≤ k :=
@@ -441,7 +441,7 @@ end
 
 end comm_group_with_zero
 
-section integral_domain
+section is_domain
 
 variables {ζ : R}
 variables [comm_ring R] [is_domain R]
@@ -488,9 +488,9 @@ begin
   { simp only [h.pow_eq_one, one_pow] }
 end
 
-end integral_domain
+end is_domain
 
-section integral_domain
+section is_domain
 
 variables [comm_ring R]
 variables {ζ : units R} (h : is_primitive_root ζ k)
@@ -780,7 +780,7 @@ lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
 @nth_roots_one_eq_bUnion_primitive_roots' _ _ _ _ ⟨n, hpos⟩ h
 
-end integral_domain
+end is_domain
 
 section minpoly
 

@@ -1277,7 +1277,7 @@ instance : is_domain (power_series R) :=
 
 end domain
 
-section integral_domain
+section is_domain
 
 variables [comm_ring R] [is_domain R]
 
@@ -1311,7 +1311,7 @@ begin
   exact ha (pow_eq_zero h'),
 end
 
-end integral_domain
+end is_domain
 
 section local_ring
 variables {S : Type*} [comm_ring R] [comm_ring S]
@@ -1632,7 +1632,7 @@ by { rw [X_pow_eq, order_monomial_of_ne_zero], exact one_ne_zero }
 
 end order_zero_ne_one
 
-section order_integral_domain
+section order_is_domain
 variables [comm_ring R] [is_domain R]
 
 /-- The order of the product of two formal power series over an integral domain
@@ -1641,7 +1641,7 @@ lemma order_mul (φ ψ : power_series R) :
   order (φ * ψ) = order φ + order ψ :=
 multiplicity.mul (X_prime)
 
-end order_integral_domain
+end order_is_domain
 
 end power_series
 

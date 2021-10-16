@@ -408,7 +408,7 @@ by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg] using eq_X_sub_C B (1:A)
 
 end ring
 
-section domain
+section is_domain
 variables [ring B] [is_domain B] [algebra A B]
 variables {x : B}
 
@@ -447,7 +447,7 @@ end
 lemma coeff_zero_ne_zero (hx : is_integral A x) (h : x ≠ 0) : coeff (minpoly A x) 0 ≠ 0 :=
 by { contrapose! h, simpa only [hx, coeff_zero_eq_zero] using h }
 
-end domain
+end is_domain
 
 end field
 

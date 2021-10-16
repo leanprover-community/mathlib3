@@ -159,7 +159,7 @@ by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], e
 
 end comm_ring
 
-section domain
+section is_domain
 
 variables {ι : Type*} {R : Type*} [ring R] [is_domain R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
@@ -317,7 +317,7 @@ lemma basis.card_le_card_of_le
 b.card_le_card_of_linear_independent
   (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
 
-end domain
+end is_domain
 
 section is_domain
 

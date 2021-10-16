@@ -435,7 +435,7 @@ is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
 
 end comm_ring
 
-section integral_domain
+section
 variables {R : Type*} [comm_ring R] [is_jacobson R]
 variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
@@ -561,7 +561,7 @@ begin
   exact function.surjective.of_comp hf,
 end
 
-end integral_domain
+end
 
 end polynomial
 

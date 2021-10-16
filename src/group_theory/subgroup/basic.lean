@@ -1529,6 +1529,10 @@ end
 @[simp, to_additive] lemma _root_.subgroup.ker_subtype (H : subgroup G) : H.subtype.ker = ⊥ :=
 H.subtype.ker_eq_bot_iff.mpr subtype.coe_injective
 
+@[simp, to_additive] lemma _root_.subgroup.ker_inclusion {H K : subgroup G} (h : H ≤ K) :
+  (inclusion h).ker = ⊥ :=
+(inclusion h).ker_eq_bot_iff.mpr (set.inclusion_injective h)
+
 @[to_additive]
 lemma prod_map_comap_prod {G' : Type*} {N' : Type*} [group G'] [group N']
   (f : G →* N) (g : G' →* N') (S : subgroup N) (S' : subgroup N') :

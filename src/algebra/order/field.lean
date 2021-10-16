@@ -327,7 +327,8 @@ begin
   exact mul_le_mul_of_nonneg_right h (one_div_nonneg.2 hc)
 end
 
-@[mono] lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
+-- Not a `mono` lemma b/c `div_le_div` is strictly more general
+lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
 begin
   rw [div_eq_mul_inv, div_eq_mul_inv],
   exact mul_le_mul_of_nonneg_left ((inv_le_inv (hc.trans_le h) hc).mpr h) ha

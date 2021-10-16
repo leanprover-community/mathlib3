@@ -992,18 +992,25 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end
 
+/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_field_summable`
+for a version that also works in `ℂ`, and `exp_series_summable'` for a version that works in
+any normed algebra over `ℝ` or `ℂ`. -/
 lemma real.summable_pow_div_factorial (x : ℝ) :
   summable (λ n, x ^ n / n! : ℕ → ℝ) :=
 begin
+  -- We start with trivial extimates
   have A : (0 : ℝ) < ⌊∥x∥⌋₊ + 1, from zero_lt_one.trans_le (by simp),
-  have B : ∥x∥ / (⌊∥x∥⌋₊ + 1) < 1, from (div_lt_one A).2 (lt_nat_floor_add_one _),
-  refine summable_of_ratio_norm_eventually_le B _,
-  refine (eventually_ge_at_top ⌊∥x∥⌋₊).mono (λ n hn, _),
-  simp only [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div, normed_field.norm_mul],
-  refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
-  rw normed_field.norm_div,
-  refine div_le_div_of_le_left (norm_nonneg _) A _,
-  rw real.norm_coe_nat, simpa
+  have B : ∥x∥ / (⌊∥x∥⌋₊ + 1) < 1, from (div_lt_one A).2 (nat.lt_floor_add_one _),
+  -- Then we apply the ratio test. The estimate works for `n ≥ ⌊∥x∥⌋₊`.
+  suffices : ∀ n ≥ ⌊∥x∥⌋₊, ∥x ^ (n + 1) / (n + 1)!∥ ≤ ∥x∥ / (⌊∥x∥⌋₊ + 1) * ∥x ^ n / ↑n!∥,
+    from summable_of_ratio_norm_eventually_le B (eventually_at_top.2 ⟨⌊∥x∥⌋₊, this⟩),
+  -- Finally, we prove the upper estimate
+  intros n hn,
+  calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
+    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div,
+      normed_field.norm_mul, normed_field.norm_div, real.norm_coe_nat, nat.cast_succ]
+  ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
+    by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg
 end
 
 lemma real.tendsto_pow_div_factorial_at_top (x : ℝ) :

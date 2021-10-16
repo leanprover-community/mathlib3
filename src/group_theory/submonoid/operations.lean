@@ -461,9 +461,9 @@ holds for all elements of the closure of `s`.
 
 The difference with `submonoid.closure_induction` is that this acts on the subtype.
 -/
-@[to_additive "An induction principle on elements of the type `add_submonoid.closure s`.
-If `p` holds for `0` and all elements of `s`, and is preserved under addition, then `p`
-holds for all elements of the closure of `s`.
+@[elab_as_eliminator, to_additive "An induction principle on elements of the type
+`add_submonoid.closure s`.  If `p` holds for `0` and all elements of `s`, and is preserved under
+addition, then `p` holds for all elements of the closure of `s`.
 
 The difference with `add_submonoid.closure_induction` is that this acts on the subtype."]
 lemma closure_induction' (s : set M) {p : closure s → Prop}
@@ -480,8 +480,6 @@ subtype.rec_on x $ λ x hx, begin
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
-
-attribute [elab_as_eliminator] submonoid.closure_induction' add_submonoid.closure_induction'
 
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/

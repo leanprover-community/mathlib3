@@ -58,9 +58,6 @@ S.subtype.map_multiset_prod m
   ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
 S.subtype.map_prod f s
 
-attribute [norm_cast] add_submonoid.coe_nsmul add_submonoid.coe_list_sum
-  add_submonoid.coe_multiset_sum add_submonoid.coe_finset_sum
-
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
 lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ S) : l.prod ∈ S :=
@@ -226,7 +223,7 @@ lemma pow_right_injective_iff_pow_injective {n : M} :
 subtype.coe_injective.of_comp_iff (pow n)
 
 theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
-  log (pow n m) = m := 
+  log (pow n m) = m :=
 pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
 
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=

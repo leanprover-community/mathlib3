@@ -85,6 +85,8 @@ run_cmd success_if_fail (get_decl `add_some_def.in_namespace)
 example : (add_units.mk_of_add_eq_zero 0 0 (by simp) : ℕ) = (add_units.mk_of_add_eq_zero 0 0 (by simp) : ℕ) :=
 by norm_num
 
+-- TODO test alias
+
 -- test @[to_additive_relevant_args] and to_additive.first_multiplicative_arg
 
 -- first multiplicative argument: f

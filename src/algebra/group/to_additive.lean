@@ -510,14 +510,15 @@ protected meta def attr : user_attribute unit value_type :=
     else do
       transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `norm_cast, `instance, `refl, `symm, `trans,
-          `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias],
+          `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias,
+          `_ext_core, `_ext_lemma_core, `nolint],
       mwhen (has_attribute' `simps src)
         (trace "Apply the simps attribute after the to_additive attribute"),
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip
       end }
-#print attributes -- TODO check this list for more
+-- TODO check for attributes and warn user to apply by hand?
 
 add_tactic_doc
 { name                     := "to_additive",

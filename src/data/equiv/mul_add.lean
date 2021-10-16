@@ -221,8 +221,6 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
-attribute [ext] add_equiv.ext
-
 @[to_additive]
 lemma ext_iff {f g : mul_equiv M N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, ext⟩
@@ -500,8 +498,6 @@ ext $ λ x, rfl
 /-- extra simp lemma that `dsimp` can use. `simp` will never use this.  -/
 @[simp, nolint simp_nf, to_additive]
 lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
-
-attribute [nolint simp_nf] add_left_symm_apply add_right_symm_apply
 
 variable (G)
 

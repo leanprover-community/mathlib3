@@ -104,8 +104,6 @@ lemma mk_le_mk {s t : set M} (h_one) (h_mul) (h_one') (h_mul') :
 theorem ext {S T : submonoid M}
   (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
-attribute [ext] add_submonoid.ext
-
 /-- Copy a submonoid replacing `carrier` with a set that is equal to it. -/
 @[to_additive "Copy an additive submonoid replacing `carrier` with a set that is equal to it."]
 protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
@@ -269,32 +267,26 @@ variable (S)
 
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of `s`, and
 is preserved under multiplication, then `p` holds for all elements of the closure of `s`. -/
-@[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
-elements of `s`, and is preserved under addition, then `p` holds for all elements
-of the additive closure of `s`."]
+@[elab_as_eliminator, to_additive "An induction principle for additive closure membership. If `p`
+holds for `0` and all elements of `s`, and is preserved under addition, then `p` holds for all
+elements of the additive closure of `s`."]
 lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul⟩).2 Hs h
 
-attribute [elab_as_eliminator] submonoid.closure_induction add_submonoid.closure_induction
-
 /-- If `s` is a dense set in a monoid `M`, `submonoid.closure s = ⊤`, then in order to prove that
 some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`, verify `p 1`,
 and verify that `p x` and `p y` imply `p (x * y)`. -/
-@[to_additive]
+@[elab_as_eliminator, to_additive "If `s` is a dense set in an additive monoid `M`,
+`add_submonoid.closure s = ⊤`, then in order to prove that some predicate `p` holds for all `x : M`
+it suffices to verify `p x` for `x ∈ s`, verify `p 0`, and verify that `p x` and `p y` imply
+`p (x + y)`."]
 lemma dense_induction {p : M → Prop} (x : M) {s : set M} (hs : closure s = ⊤)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 have ∀ x ∈ closure s, p x, from λ x hx, closure_induction hx Hs H1 Hmul,
 by simpa [hs] using this x
-
-/-- If `s` is a dense set in an additive monoid `M`, `add_submonoid.closure s = ⊤`, then in order
-to prove that some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`,
-verify `p 0`, and verify that `p x` and `p y` imply `p (x + y)`. -/
-add_decl_doc add_submonoid.dense_induction
-
-attribute [elab_as_eliminator] dense_induction add_submonoid.dense_induction
 
 variable (M)
 

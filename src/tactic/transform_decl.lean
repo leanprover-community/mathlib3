@@ -12,18 +12,22 @@ namespace tactic
    the parameter of the user attribute, in the user attribute case. Make it persistent if `p` is
    `tt`; if `p` is `none`, the copied attribute is made persistent iff it is persistent on `src`  -/
 meta def copy_attribute' (attr_name : name) (src : name) (tgt : name) (p : option bool := none) :
-tactic unit :=
-do
-  (p', prio) ← has_attribute attr_name src,
-  let p := p.get_or_else p',
-  get_decl tgt <|> fail!"unknown declaration {tgt}",
-  set_basic_attribute attr_name tgt p prio <|> (do
-    user_attr_nm ← get_user_attribute_name attr_name,
-    user_attr_const ← mk_const user_attr_nm,
-    tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
-      λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
-    tac)
+tactic unit := do
+  t ← succeeds (has_attribute attr_name src),
+  if t then
+    do (p', prio) ← has_attribute attr_name src,
+    let p := p.get_or_else p',
+    get_decl tgt <|> fail!"unknown declaration {tgt}",
+    -- trace tgt,
+    set_basic_attribute attr_name tgt p prio <|> (do
+      -- (try (fail "ok" : tactic nat)) >>= λ u, trace u,
+      user_attr_nm ← get_user_attribute_name attr_name,
+      user_attr_const ← mk_const user_attr_nm,
+      tac ← eval_pexpr (tactic unit)
+      ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
+        λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
+      tac)
+  else return ()
 
 open expr
 /-- Auxilliary function for `additive_test`. The bool argument *only* matters when applied
@@ -102,8 +106,7 @@ Nested error message:\n").to_string $ do {
     if env.is_protected src then add_protected_decl decl else add_decl decl,
     -- we test that the declaration value type-checks, so that we get the decorated error message
     -- without this line, the type-checking might fail outside the `decorate_error`.
-    decorate_error "proof doesn't type-check. " $ type_check decl.value },
-  attrs.mmap' (λ n, try $ copy_attribute' n src tgt)
+    decorate_error "proof doesn't type-check. " $ type_check decl.value }
 
 /--
 Make a new copy of a declaration,
@@ -116,8 +119,15 @@ meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all 
 do transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
    ls.mmap' $
-    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs
-
+    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs,
+   ls.mmap' (λ src_eqn, do
+    e ← get_env,
+    let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
+    set_env (e.add_eqn_lemma tgt_eqn)),
+   attrs.mmap' (λ n, copy_attribute' n src tgt),
+   ls.mmap' (λ src_eqn, do
+    let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
+    attrs.mmap' (λ n, copy_attribute' n src_eqn tgt_eqn))
 /--
 Make a new copy of a declaration, replacing fragments of the names of identifiers in the type and
 the body using the dictionary `dict`.

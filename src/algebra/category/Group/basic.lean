@@ -71,9 +71,6 @@ lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
 
--- should to_additive do this automatically?
-attribute [ext] AddGroup.ext
-
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ _
 

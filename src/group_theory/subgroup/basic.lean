@@ -234,8 +234,6 @@ set_like.coe_injective hs
 @[ext, to_additive "Two `add_subgroup`s are equal if they have the same elements."]
 theorem ext {H K : subgroup G} (h : ∀ x, x ∈ H ↔ x ∈ K) : H = K := set_like.ext h
 
-attribute [ext] add_subgroup.ext
-
 /-- A subgroup contains the group's 1. -/
 @[to_additive "An `add_subgroup` contains the group's 0."]
 theorem one_mem : (1 : G) ∈ H := H.one_mem'

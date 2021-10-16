@@ -34,11 +34,11 @@ localized "notation `π` := nat.prime_counting" in nat
 localized "notation `π'` := nat.prime_counting'" in nat
 
 
-lemma filter_mod_eq_range_card (a b n : ℕ) :
-  (filter (λ (i : ℕ), i % a = b) (range n)).card = (n - b) / a :=
-begin
-  sorry,
-end
+-- lemma filter_mod_eq_range_card (a b n : ℕ) :
+--   (filter (λ (i : ℕ), i % a = b) (range n)).card = (n - b) / a :=
+-- begin
+--   sorry,
+-- end
 
 lemma monotone_prime_counting : monotone prime_counting :=
 begin
@@ -81,6 +81,29 @@ end
 lemma eq_or_coprime_of_lt_prime {n k : ℕ} (h0 : 0 < n) (hlt : n ≤ k) (is_prime : prime k) : k = n ∨ coprime k n :=
 begin
   sorry,
+end
+
+lemma Ico_zero : Ico 0 = range :=
+begin
+  funext,
+  rw ext_iff,
+  intro a,
+  rw [mem_Ico, mem_range],
+  simp,
+end
+
+lemma filter_mod_eq_range_card (a b n : ℕ) :
+  (filter (λ (i : ℕ), a.coprime i) (Ico n (n+a))).card = totient a :=
+begin
+  induction n,
+  -- TODO Ico 0 should simp to range
+  { simp [Ico_zero],
+    rw totient, },
+  {
+    rw <-n_ih,
+    clear n_ih,
+    sorry,
+  }
 end
 
 -- TODO remove h0 h1 k_le_n assumption

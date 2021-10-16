@@ -411,8 +411,6 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
     convert continuous_quotient_lift _ this,
   end }
 
-attribute [instance] topological_add_group_quotient
-
 end quotient_topological_group
 
 /-- A typeclass saying that `λ p : G × G, p.1 - p.2` is a continuous function. This property

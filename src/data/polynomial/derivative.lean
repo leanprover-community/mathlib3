@@ -303,7 +303,7 @@ end
 end comm_ring
 
 section domain
-variables [ring R] [domain R]
+variables [ring R] [is_domain R]
 
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=

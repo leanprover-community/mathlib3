@@ -20,7 +20,7 @@ and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
 cyclic group, as well as the fact that every finite integral domain is a field
-(`field_of_integral_domain`).
+(`field_of_is_domain`).
 
 ## Main results
 
@@ -39,7 +39,7 @@ and `q` is notation for the cardinality of `K`.
 -/
 
 variables {K : Type*} [field K] [fintype K]
-variables {R : Type*} [comm_ring R] [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 local notation `q` := fintype.card K
 
 open_locale big_operators
@@ -335,7 +335,7 @@ end zmod
 
 namespace char_p
 
-lemma sq_add_sq (R : Type*) [comm_ring R] [integral_domain R]
+lemma sq_add_sq (R : Type*) [comm_ring R] [is_domain R]
   (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin

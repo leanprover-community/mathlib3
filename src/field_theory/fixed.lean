@@ -266,7 +266,7 @@ end fixed_points
 
 lemma linear_independent_to_linear_map (R : Type u) (A : Type v) (B : Type w)
   [comm_semiring R] [ring A] [algebra R A]
-  [comm_ring B] [integral_domain B] [algebra R B] :
+  [comm_ring B] [is_domain B] [algebra R B] :
   linear_independent B (alg_hom.to_linear_map : (A →ₐ[R] B) → (A →ₗ[R] B)) :=
 have linear_independent B (linear_map.lto_fun R A B ∘ alg_hom.to_linear_map),
 from ((linear_independent_monoid_hom A B).comp

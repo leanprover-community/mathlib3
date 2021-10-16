@@ -74,7 +74,7 @@ monic_of_degree_le f.nat_degree
 end semiring
 
 section domain
-variables [ring R] [domain R]
+variables [ring R] [is_domain R]
 
 @[simp] lemma support_integral_normalization {f : polynomial R} :
   (integral_normalization f).support = f.support :=
@@ -88,8 +88,8 @@ begin
 end
 end domain
 
-section integral_domain
-variables [comm_ring R] [integral_domain R]
+section is_domain
+variables [comm_ring R] [is_domain R]
 variables [comm_ring S]
 
 lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (f : R →+* S)
@@ -130,7 +130,7 @@ lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R}
   aeval (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
 integral_normalization_eval₂_eq_zero (algebra_map R S) hz inj
 
-end integral_domain
+end is_domain
 
 end integral_normalization
 

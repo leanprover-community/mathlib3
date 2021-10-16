@@ -836,11 +836,11 @@ instance : field (zmod p) :=
   .. zmod.nontrivial p }
 
 /-- `zmod p` is an integral domain when `p` is prime. -/
-instance (p : ℕ) [hp : fact p.prime] : integral_domain (zmod p) :=
+instance (p : ℕ) [hp : fact p.prime] : is_domain (zmod p) :=
 begin
   -- We need `cases p` here in order to resolve which `comm_ring` instance is being used.
   unfreezingI { cases p, { exfalso, rcases hp with ⟨⟨⟨⟩⟩⟩, }, },
-  exact @field.to_integral_domain (zmod _) (zmod.field _)
+  exact @field.is_domain (zmod _) (zmod.field _)
 end
 
 end zmod

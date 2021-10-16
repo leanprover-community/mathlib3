@@ -1012,7 +1012,7 @@ section
 
 /-- An domain that is module-finite as an algebra over a field is a division ring. -/
 noncomputable def division_ring_of_finite_dimensional
-  (F K : Type*) [field F] [ring K] [domain K]
+  (F K : Type*) [field F] [ring K] [is_domain K]
   [algebra F K] [finite_dimensional F K] : division_ring K :=
 { inv := λ x, if H : x = 0 then 0 else classical.some $
     (show function.surjective (algebra.lmul_left F x), from
@@ -1026,7 +1026,7 @@ noncomputable def division_ring_of_finite_dimensional
 
 /-- An integral domain that is module-finite as an algebra over a field is a field. -/
 noncomputable def field_of_finite_dimensional
-  (F K : Type*) [field F] [comm_ring K] [integral_domain K]
+  (F K : Type*) [field F] [comm_ring K] [is_domain K]
   [algebra F K] [finite_dimensional F K] : field K :=
 { .. division_ring_of_finite_dimensional F K,
   .. ‹comm_ring K› }

@@ -23,8 +23,6 @@ inside `A`'s field of fractions `K`.
    where `I ~ J` iff `x I = y J` for `x y ≠ (0 : R)`
 -/
 
-section integral_domain
-
 variables {R K L : Type*} [comm_ring R]
 variables [field K] [field L] [decidable_eq L]
 variables [algebra R K] [is_fraction_ring R K]
@@ -79,7 +77,7 @@ def class_group := quotient_group.quotient (to_principal_ideal R K).range
 
 instance : inhabited (class_group R K) := ⟨1⟩
 
-variables {R} [integral_domain R]
+variables {R} [is_domain R]
 
 /-- Send a nonzero integral ideal to an invertible fractional ideal. -/
 @[simps]
@@ -207,7 +205,7 @@ begin
   simp [hx']
 end
 
-variables [integral_domain R]
+variables [is_domain R]
 
 lemma class_group.mk0_eq_one_iff [is_dedekind_domain R]
   {I : ideal R} (hI : I ∈ (ideal R)⁰) :
@@ -249,5 +247,3 @@ begin
   { rw hI, exact bot_is_principal },
   exact (class_group.mk0_eq_one_iff (mem_non_zero_divisors_iff_ne_zero.mpr hI)).mp (eq_one _),
 end
-
-end integral_domain

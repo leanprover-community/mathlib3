@@ -60,21 +60,21 @@ section cyclotomic'
 
 section integral_domain
 
-variables {R : Type*} [comm_ring R] [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 
 /-- The modified `n`-th cyclotomic polynomial with coefficients in `R`, it is the usual cyclotomic
 polynomial if there is a primitive `n`-th root of unity in `R`. -/
-def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : polynomial R :=
+def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : polynomial R :=
 ∏ μ in primitive_roots n R, (X - C μ)
 
 /-- The zeroth modified cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic'_zero
-  (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' 0 R = 1 :=
+  (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' 0 R = 1 :=
 by simp only [cyclotomic', finset.prod_empty, is_primitive_root.primitive_roots_zero]
 
 /-- The first modified cyclotomic polyomial is `X - 1`. -/
 @[simp] lemma cyclotomic'_one
-  (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' 1 R = X - 1 :=
+  (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' 1 R = X - 1 :=
 begin
   simp only [cyclotomic', finset.prod_singleton, ring_hom.map_one,
   is_primitive_root.primitive_roots_one]
@@ -82,7 +82,7 @@ end
 
 /-- The second modified cyclotomic polyomial is `X + 1` if the characteristic of `R` is not `2`. -/
 @[simp] lemma cyclotomic'_two
-  (R : Type*) [comm_ring R] [integral_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
+  (R : Type*) [comm_ring R] [is_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
   cyclotomic' 2 R = X + 1 :=
 begin
   rw [cyclotomic'],
@@ -99,12 +99,12 @@ end
 
 /-- `cyclotomic' n R` is monic. -/
 lemma cyclotomic'.monic
-  (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : (cyclotomic' n R).monic :=
+  (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : (cyclotomic' n R).monic :=
 monic_prod_of_monic _ _ $ λ z hz, monic_X_sub_C _
 
 /-- `cyclotomic' n R` is different from `0`. -/
 lemma cyclotomic'_ne_zero
-  (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' n R ≠ 0 :=
+  (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' n R ≠ 0 :=
 (cyclotomic'.monic n R).ne_zero
 
 /-- The natural degree of `cyclotomic' n R` is `totient n` if there is a primitive root of
@@ -129,7 +129,7 @@ lemma degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
 by simp only [degree_eq_nat_degree (cyclotomic'_ne_zero n R), nat_degree_cyclotomic' h]
 
 /-- The roots of `cyclotomic' n R` are the primitive `n`-th roots of unity. -/
-lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] :
+lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] :
   (cyclotomic' n R).roots = (primitive_roots n R).val :=
 by { rw cyclotomic', exact roots_prod_X_sub_C (primitive_roots n R) }
 

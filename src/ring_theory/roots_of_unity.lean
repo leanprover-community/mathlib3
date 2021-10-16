@@ -140,7 +140,7 @@ rfl
   (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
 rfl
 
-variables [integral_domain R]
+variables [is_domain R]
 
 lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : units R} :
   ζ ∈ roots_of_unity k R ↔ (ζ : R) ∈ nth_roots k (1 : R) :=
@@ -223,10 +223,10 @@ variables {k : ℕ}
 
 /-- `primitive_roots k R` is the finset of primitive `k`-th roots of unity
 in the integral domain `R`. -/
-def primitive_roots (k : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : finset R :=
+def primitive_roots (k : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 (nth_roots k (1 : R)).to_finset.filter (λ ζ, is_primitive_root ζ k)
 
-variables [comm_ring R] [integral_domain R]
+variables [comm_ring R] [is_domain R]
 
 @[simp] lemma mem_primitive_roots {ζ : R} (h0 : 0 < k) :
   ζ ∈ primitive_roots k R ↔ is_primitive_root ζ k :=
@@ -444,7 +444,7 @@ end comm_group_with_zero
 section integral_domain
 
 variables {ζ : R}
-variables [comm_ring R] [integral_domain R]
+variables [comm_ring R] [is_domain R]
 
 @[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
 begin
@@ -571,7 +571,7 @@ begin
   exact h.dvd_of_pow_eq_one _ hl
 end
 
-variables [integral_domain R]
+variables [is_domain R]
 
 lemma gpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
   subgroup.gpowers ζ = roots_of_unity k R :=

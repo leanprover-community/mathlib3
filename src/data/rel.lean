@@ -15,7 +15,7 @@ Relations are also known as set-valued functions, or partial multifunctions.
 
 * `rel α β`: Relation between `α` and `β`.
 * `rel.inv`: `r.inv` is the `rel β α` obtained by swapping the arguments of `r`.
-* `rel.dom`: Domain of a relation. `x ∈ r.dom` iff there exists `y` such that `r x y`.
+* `rel.dom`: is_domain of a relation. `x ∈ r.dom` iff there exists `y` such that `r x y`.
 * `rel.codom`: Codomain, aka range, of a relation. `y ∈ r.codom` iff there exists `x` such that
   `r x y`.
 * `rel.comp`: Relation composition. Note that the arguments order follows the `category_theory/`

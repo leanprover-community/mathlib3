@@ -22,7 +22,7 @@ if they are equal upon evaluating them on an arbitrary assignment of the variabl
 
 namespace mv_polynomial
 
-variables {R : Type*} [comm_ring R] [integral_domain R] [infinite R]
+variables {R : Type*} [comm_ring R] [is_domain R] [infinite R]
 
 private lemma funext_fin {n : ℕ} {p : mv_polynomial (fin n) R}
   (h : ∀ x : fin n → R, eval x p = 0) : p = 0 :=

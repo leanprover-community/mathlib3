@@ -69,7 +69,7 @@ immediate predecessors and what conditions are added to each of them.
 * `linear_ordered_comm_ring`
   - `ordered_comm_ring` & totality of the order & nontriviality
   - `linear_ordered_ring` & commutativity of multiplication
-  - `integral_domain` & linear order structure
+  - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
   - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
   - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
@@ -1009,7 +1009,7 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
   ..‹linear_ordered_ring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.to_domain : domain α :=
+instance linear_ordered_ring.is_domain : is_domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros a b hab,
@@ -1229,11 +1229,6 @@ class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, com
 instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :
   ordered_comm_ring α :=
 { ..d }
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
-  integral_domain α :=
-{ ..linear_ordered_ring.to_domain, ..s }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :

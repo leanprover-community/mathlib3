@@ -1241,7 +1241,7 @@ rescale_neg_one_X
 end comm_ring
 
 section domain
-variables [ring R] [domain R]
+variables [ring R] [is_domain R]
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
@@ -1271,7 +1271,7 @@ begin
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : domain (power_series R) :=
+instance : is_domain (power_series R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   .. power_series.nontrivial, }
 
@@ -1279,9 +1279,9 @@ end domain
 
 section integral_domain
 
-variables [comm_ring R] [integral_domain R]
+variables [comm_ring R] [is_domain R]
 
-instance : integral_domain (power_series R) :=
+instance : is_domain power_series R) :=
 { .. power_series.domain, }
 
 /-- The ideal spanned by the variable in the power series ring
@@ -1636,7 +1636,7 @@ by { rw [X_pow_eq, order_monomial_of_ne_zero], exact one_ne_zero }
 end order_zero_ne_one
 
 section order_integral_domain
-variables [comm_ring R] [integral_domain R]
+variables [comm_ring R] [is_domain R]
 
 /-- The order of the product of two formal power series over an integral domain
  is the sum of their orders.-/

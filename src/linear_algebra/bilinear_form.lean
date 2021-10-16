@@ -557,7 +557,7 @@ lemma is_Ortho_def {n : Type w} {B : bilin_form R M} {v : n → M} :
 
 section
 
-variables {R₄ M₄ : Type*} [ring R₄] [domain R₄]
+variables {R₄ M₄ : Type*} [ring R₄] [is_domain R₄]
 variables [add_comm_group M₄] [module R₄ M₄] {G : bilin_form R₄ M₄}
 
 @[simp]
@@ -1663,7 +1663,7 @@ section det
 
 open matrix
 
-variables {A : Type*} [comm_ring A] [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
+variables {A : Type*} [comm_ring A] [is_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
 theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :

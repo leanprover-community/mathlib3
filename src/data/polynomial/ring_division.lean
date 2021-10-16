@@ -129,13 +129,12 @@ root_mul.1 h
 
 end no_zero_divisors
 
-section domain
-variables [ring R] [domain R] {p q : polynomial R}
+section ring
+variables [ring R] [is_domain R] {p q : polynomial R}
 
-instance : domain (polynomial R) :=
+instance : is_domain (polynomial R) :=
 { ..polynomial.no_zero_divisors,
-  ..polynomial.nontrivial,
-  ..polynomial.ring }
+  ..polynomial.nontrivial, }
 
 lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
   (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
@@ -146,15 +145,10 @@ begin
     nat.add_sub_assoc (nat.sub_le _ _), add_comm, nat.add_sub_assoc (nat.sub_le _ _)],
 end
 
-end domain
+end ring
 
-section integral_domain
-variables [comm_ring R] [integral_domain R] {p q : polynomial R}
-
-instance : integral_domain (polynomial R) :=
-{ ..polynomial.no_zero_divisors,
-  ..polynomial.nontrivial,
-  ..polynomial.comm_ring }
+section comm_ring
+variables [comm_ring R] [is_domain R] {p q : polynomial R}
 
 section roots
 
@@ -358,7 +352,7 @@ lemma exists_min_root [linear_order R] (p : polynomial R) (hp : p ≠ 0) :
   ∃ x₀, ∀ x, p.is_root x → x₀ ≤ x :=
 set.exists_lower_bound_image _ _ $ not_not.mp (mt (eq_zero_of_infinite_is_root p) hp)
 
-lemma eq_of_infinite_eval_eq {R : Type*} [comm_ring R] [integral_domain R]
+lemma eq_of_infinite_eval_eq {R : Type*} [comm_ring R] [is_domain R]
   (p q : polynomial R) (h : set.infinite {x | eval x p = eval x q}) : p = q :=
 begin
   rw [← sub_eq_zero],
@@ -453,7 +447,7 @@ else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero 
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
-def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : finset R :=
+def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 multiset.to_finset (nth_roots n (1 : R))
 
 @[simp] lemma mem_nth_roots_finset {n : ℕ} (h : 0 < n) {x : R} :
@@ -551,27 +545,27 @@ variables [comm_ring T]
 
 If you have a non-separable polynomial, use `polynomial.roots` for the multiset
 where multiple roots have the appropriate multiplicity. -/
-def root_set (p : polynomial T) (S) [comm_ring S] [integral_domain S] [algebra T S] : set S :=
+def root_set (p : polynomial T) (S) [comm_ring S] [is_domain S] [algebra T S] : set S :=
 (p.map (algebra_map T S)).roots.to_finset
 
-lemma root_set_def (p : polynomial T) (S) [comm_ring S] [integral_domain S] [algebra T S] :
+lemma root_set_def (p : polynomial T) (S) [comm_ring S] [is_domain S] [algebra T S] :
   p.root_set S = (p.map (algebra_map T S)).roots.to_finset :=
 rfl
 
-@[simp] lemma root_set_zero (S) [comm_ring S] [integral_domain S] [algebra T S] :
+@[simp] lemma root_set_zero (S) [comm_ring S] [is_domain S] [algebra T S] :
   (0 : polynomial T).root_set S = ∅ :=
 by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
 
-@[simp] lemma root_set_C [comm_ring S] [integral_domain S] [algebra T S] (a : T) :
+@[simp] lemma root_set_C [comm_ring S] [is_domain S] [algebra T S] (a : T) :
   (C a).root_set S = ∅ :=
 by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
 
 instance root_set_fintype (p : polynomial T)
-  (S : Type*) [comm_ring S] [integral_domain S] [algebra T S] : fintype (p.root_set S) :=
+  (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : fintype (p.root_set S) :=
 finset_coe.fintype _
 
 lemma root_set_finite (p : polynomial T)
-  (S : Type*) [comm_ring S] [integral_domain S] [algebra T S] : (p.root_set S).finite :=
+  (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
 ⟨polynomial.root_set_fintype p S⟩
 
 end roots
@@ -604,7 +598,7 @@ this.elim
   (λ hgu, by rw [hg, degree_mul, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
 /-- Division by a monic polynomial doesn't change the leading coefficient. -/
-lemma leading_coeff_div_by_monic_of_monic {R : Type u} [comm_ring R] [integral_domain R]
+lemma leading_coeff_div_by_monic_of_monic {R : Type u} [comm_ring R] [is_domain R]
   {p q : polynomial R} (hmonic : q.monic) (hdegree : q.degree ≤ p.degree) :
   (p /ₘ q).leading_coeff = p.leading_coeff :=
 begin
@@ -648,11 +642,11 @@ begin
   rwa [monic.leading_coeff hp, monic.leading_coeff hq, one_mul] at hprod
 end
 
-end integral_domain
+end comm_ring
 
 section
 
-variables [semiring R] [comm_ring S] [integral_domain S] (φ : R →+* S)
+variables [semiring R] [comm_ring S] [is_domain S] (φ : R →+* S)
 
 lemma is_unit_of_is_unit_leading_coeff_of_is_unit_map
   (f : polynomial R) (hf : is_unit (leading_coeff f)) (H : is_unit (map φ f)) :
@@ -675,7 +669,7 @@ end
 end
 
 section
-variables [comm_ring R] [integral_domain R] [comm_ring S] [integral_domain S] (φ : R →+* S)
+variables [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] (φ : R →+* S)
 /--
 A polynomial over an integral domain `R` is irreducible if it is monic and
   irreducible after mapping into an integral domain `S`.
@@ -713,14 +707,3 @@ end
 end
 
 end polynomial
-
-namespace is_integral_domain
-
-variables {R : Type*} [comm_ring R]
-
-/-- Lift evidence that `is_integral_domain R` to `is_integral_domain (polynomial R)`. -/
-lemma polynomial (h : is_integral_domain R) : is_integral_domain (polynomial R) :=
-@integral_domain.to_is_integral_domain _ _
-  (@polynomial.integral_domain _ _ (h.to_integral_domain _))
-
-end is_integral_domain

@@ -37,8 +37,8 @@ See also `algebra.trace`, which is defined similarly as the trace of
 
 universes u v w
 
-variables {R S T : Type*} [comm_ring R] [integral_domain R] [comm_ring S] [integral_domain S]
-variables [comm_ring T] [integral_domain T]
+variables {R S T : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S]
+variables [comm_ring T] [is_domain T]
 variables [algebra R S] [algebra R T]
 variables {K L F : Type*} [field K] [field L] [field F]
 variables [algebra K L] [algebra L F] [algebra K F]

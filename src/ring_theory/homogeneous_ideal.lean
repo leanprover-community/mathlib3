@@ -27,9 +27,6 @@ variables {ι : Type*} {A : ι → Type*} [Π i, add_comm_group (A i)]
 
 /-- An element `x : ⨁ i, A i` is a homogeneous element if it is a member of one of the summand. -/
 def is_homogeneous_element (x : ⨁ i, A i) : Prop := ∃ (y : graded_monoid A), x = of A y.fst y.snd
-/-- Convert a homogeneous element `x` to its counter part in the summand. -/
-def is_homogeneous_element.to {x : ⨁ i, A i} (H : is_homogeneous_element x) :
-  graded_monoid A := H.some
 
 /-- this might be useful, but I don't know where to put it -/
 @[simps]

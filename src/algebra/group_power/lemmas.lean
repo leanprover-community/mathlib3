@@ -499,6 +499,7 @@ lemma sq_le {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of
 end ordered_semiring
 
 section linear_ordered_semiring
+
 variables [linear_ordered_semiring R]
 
 lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n) :

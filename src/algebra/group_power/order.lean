@@ -161,8 +161,7 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-lemma pow_lt_one {a : R} (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) :
-  a^n < 1 :=
+lemma pow_lt_one {a : R} (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) : a ^ n < 1 :=
 (one_pow n).subst (pow_lt_pow_of_lt_left h₁ h₀ (nat.pos_of_ne_zero hn))
 
 theorem strict_mono_on_pow {n : ℕ} (hn : 0 < n) :
@@ -202,7 +201,7 @@ lemma one_lt_pow {a : R} (ha : 1 < a) : ∀ {n : ℕ}, n ≠ 0 → 1 < a ^ n
 | 1       h := (pow_one a).symm.subst ha
 | (n + 2) h :=
   begin
-    haveI : nontrivial R := ⟨⟨_, _, ha.ne⟩⟩,
+    nontriviality R,
     rw [←one_mul (1 : R), pow_succ],
     exact mul_lt_mul ha (one_lt_pow (nat.succ_ne_zero _)).le zero_lt_one (zero_lt_one.trans ha).le,
   end
@@ -216,24 +215,24 @@ end ordered_semiring
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
-lemma pow_le_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a^n ≤ 1 ↔ a ≤ 1 :=
+lemma pow_le_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ 1 ↔ a ≤ 1 :=
 begin
   refine ⟨_, pow_le_one n ha⟩,
   rw [←not_lt, ←not_lt],
   exact mt (λ h, one_lt_pow h hn),
 end
 
-lemma one_le_pow_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : 1 ≤ a^n ↔ 1 ≤ a :=
+lemma one_le_pow_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : 1 ≤ a ^ n ↔ 1 ≤ a :=
 begin
   refine ⟨_, λ h, one_le_pow_of_one_le h n⟩,
   rw [←not_lt, ←not_lt],
   exact mt (λ h, pow_lt_one ha h hn),
 end
 
-lemma one_lt_pow_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : 1 < a^n ↔ 1 < a :=
+lemma one_lt_pow_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : 1 < a ^ n ↔ 1 < a :=
 lt_iff_lt_of_le_iff_le (pow_le_one_iff_of_nonneg ha hn)
 
-lemma pow_lt_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a^n < 1 ↔ a < 1 :=
+lemma pow_lt_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a ^ n < 1 ↔ a < 1 :=
 lt_iff_lt_of_le_iff_le (one_le_pow_iff_of_nonneg ha hn)
 
 lemma sq_le_one_iff {a : R} (ha : 0 ≤ a) : a^2 ≤ 1 ↔ a ≤ 1 :=

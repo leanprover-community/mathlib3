@@ -135,7 +135,7 @@ begin
   ... = n + 1 : (n + 1).add_sub_cancel n
 end
 
-lemma central_binom_induction (n : ℕ) (n_pos : 0 < n) :
+lemma central_binom_induction (n : ℕ) :
   (n + 1) * ((2 * (n + 1)).choose (n + 1)) = (2 * (2 * n + 1)) * (2 * n).choose n :=
 begin
   calc (n + 1) * ((2 * (n + 1)).choose (n + 1))
@@ -168,7 +168,6 @@ lemma four_pow_n_lt_n_mul_central_binom : ∀ (n : ℕ) (n_big : 4 ≤ n), 4 ^ n
 | (m + 5) _ :=
 begin
   let n := m + 4,
-  have n_pos : 0 < n := nat.succ_pos (m + 3),
 
   have n_collapse : 2 * (n + 1) - 1 = 2 * n + 1 := by ring_nf,
 
@@ -193,7 +192,7 @@ begin
       end
     ... = 2 * ((2 * n + 1) * (n * (2 * n).choose n)) : by rw n_collapse
     ... = n * (2 * (2 * n + 1) * (2 * n).choose n) : by ring_nf
-    ... = n * ((n + 1) * ((2 * (n + 1)).choose (n + 1))) : by rw central_binom_induction n n_pos,
+    ... = n * ((n + 1) * ((2 * (n + 1)).choose (n + 1))) : by rw central_binom_induction n,
 
   exact (mul_lt_mul_left (by linarith)).mp result,
 end

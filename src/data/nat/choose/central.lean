@@ -143,7 +143,7 @@ begin
       ... = (n + 1) * ((2 * n + 1).choose n + (2 * n + 1).choose (n + 1)) : by rw choose_succ_succ
       ... = (n + 1) * ((2 * n + 1).choose (n + 1) + (2 * n + 1).choose (n + 1)) :
         by rw choose_symm_half
-      ... = 2 * ((2 * n + 1).choose (n + 1) * (n + 1)) : by rw choose_symm_half
+      ... = 2 * ((2 * n + 1).choose (n + 1) * (n + 1)) : by ring
       ... = 2 * (((2 * n).choose n + (2 * n).choose (n + 1)) * (n + 1)) :
         by rw choose_succ_succ (2 * n) n
       ... = 2 * ((2 * n).choose n * (n + 1) + (2 * n).choose (n + 1) * (n + 1)) : by ring

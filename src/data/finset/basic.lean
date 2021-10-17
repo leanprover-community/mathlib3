@@ -402,8 +402,11 @@ theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := no
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 
+lemma singleton_injective : injective (singleton : α → finset α) :=
+λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
+
 theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
-⟨λ h, mem_singleton.1 (h ▸ mem_singleton_self _), congr_arg _⟩
+singleton_injective.eq_iff
 
 @[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 
@@ -643,6 +646,21 @@ theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (S : finset α) (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → a ∉ s → p s → p (insert a s)) : p S :=
 @finset.induction_on α (λ T, T ⊆ S → p T) _ S (λ _, h₁) (λ a s has hqs hs,
   let ⟨hS, sS⟩ := finset.insert_subset.1 hs in h₂ hS sS has (hqs sS)) (finset.subset.refl S)
+
+/-- To prove a proposition about a nonempty `s : finset α`, it suffices to show it holds for all
+singletons and that if it holds for `t : finset α`, then it also holds for the `finset` obtained by
+inserting an element in `t`. -/
+@[elab_as_eliminator]
+lemma nonempty.cons_induction {α : Type*} {s : finset α} (hs : s.nonempty) {p : finset α → Prop}
+  (h₀ : ∀ a, p {a}) (h₁ : ∀ ⦃a⦄ s (h : a ∉ s), p s → p (finset.cons a s h)) :
+  p s :=
+begin
+  induction s using finset.cons_induction with a t ha h,
+  { exact (not_nonempty_empty hs).elim, },
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { exact h₀ a },
+  { exact h₁ t ha (h ht) }
+end
 
 /-- Inserting an element to a finite set is equivalent to the option type. -/
 def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :
@@ -2170,6 +2188,8 @@ card_eq_zero.trans val_eq_zero
 theorem card_pos {s : finset α} : 0 < card s ↔ s.nonempty :=
 pos_iff_ne_zero.trans $ (not_congr card_eq_zero).trans nonempty_iff_ne_empty.symm
 
+alias finset.card_pos ↔ _ finset.nonempty.card_pos
+
 theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 0 :=
 (not_congr card_eq_zero).2 (ne_empty_of_mem h)
 
@@ -2793,6 +2813,13 @@ by rw [disjoint.comm, disjoint_left]
 
 theorem disjoint_iff_ne {s t : finset α} : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
 by simp only [disjoint_left, imp_not_comm, forall_eq']
+
+lemma not_disjoint_iff {s t : finset α} :
+  ¬disjoint s t ↔ ∃ a, a ∈ s ∧ a ∈ t :=
+not_forall.trans $ exists_congr $ λ a, begin
+  rw [finset.inf_eq_inter, finset.mem_inter],
+  exact not_not,
+end
 
 theorem disjoint_of_subset_left {s t u : finset α} (h : s ⊆ u) (d : disjoint u t) : disjoint s t :=
 disjoint_left.2 (λ x m₁, (disjoint_left.1 d) (h m₁))

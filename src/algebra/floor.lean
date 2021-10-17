@@ -103,6 +103,9 @@ lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,
   ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
 
+lemma floor_add_one (a : α) : ⌊a + 1⌋ = ⌊a⌋ + 1 :=
+by { convert floor_add_int a 1, exact cast_one.symm }
+
 @[simp] lemma floor_int_add (z : ℤ) (a : α) : ⌊↑z + a⌋ = z + ⌊a⌋ :=
 by simpa only [add_comm] using floor_add_int a z
 
@@ -199,6 +202,12 @@ end
 lemma ceil_le {z : ℤ} {a : α} : ⌈a⌉ ≤ z ↔ a ≤ z :=
 by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 
+lemma floor_neg {a : α} : ⌊-a⌋ = -⌈a⌉ :=
+eq_of_forall_le_iff (λ z, by rw [le_neg, ceil_le, le_floor, int.cast_neg, le_neg])
+
+lemma ceil_neg {a : α} : ⌈-a⌉ = -⌊a⌋ :=
+eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_le])
+
 lemma lt_ceil {a : α} {z : ℤ} : z < ⌈a⌉ ↔ (z : α) < a := lt_iff_lt_of_le_iff_le ceil_le
 
 lemma ceil_le_floor_add_one (a : α) : ⌈a⌉ ≤ ⌊a⌋ + 1 :=
@@ -212,7 +221,10 @@ eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
 lemma ceil_mono {a b : α} (h : a ≤ b) : ⌈a⌉ ≤ ⌈b⌉ := ceil_le.2 (h.trans (le_ceil _))
 
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
-by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
+by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
+
+lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
+by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
 
 lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
@@ -356,6 +368,9 @@ begin
   rw [int.floor_add_int, int.to_nat_add_nat (int.le_floor.2 ha)],
 end
 
+lemma floor_add_one {a : α} (ha : 0 ≤ a) : ⌊a + 1⌋₊ = ⌊a⌋₊ + 1 :=
+by { convert floor_add_nat ha 1, exact cast_one.symm }
+
 lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 :=
 begin
   refine (int.lt_floor_add_one a).trans_le (add_le_add_right _ 1),
@@ -400,10 +415,11 @@ begin
   refl
 end
 
-theorem ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
-lt_ceil.1 $ by rw (
-  show ⌈a + 1⌉₊ = ⌈a⌉₊ + 1, by exact_mod_cast (ceil_add_nat a_nonneg 1));
-  apply nat.lt_succ_self
+lemma ceil_add_one {a : α} (ha : 0 ≤ a) : ⌈a + 1⌉₊ = ⌈a⌉₊ + 1 :=
+by { convert ceil_add_nat ha 1, exact cast_one.symm }
+
+lemma ceil_lt_add_one {a : α} (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
+lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 lemma lt_of_ceil_lt {a : α} {n : ℕ} (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 

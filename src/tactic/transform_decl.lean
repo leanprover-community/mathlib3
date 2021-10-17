@@ -18,12 +18,18 @@ tactic unit := do
   mwhen (succeeds (has_attribute attr_name src)) $
     do (p', prio) ← has_attribute attr_name src,
       let p := p.get_or_else p',
-      set_basic_attribute attr_name tgt p prio <|> do
+      s ← try_or_report_error (set_basic_attribute attr_name tgt p prio),
+      sum.inr msg ← return s | skip,
+      if msg =
+        (format!"set_basic_attribute tactic failed, '{attr_name}' is not a basic attribute").to_string
+      then do
         user_attr_const ← (get_user_attribute_name attr_name >>= mk_const),
         tac ← eval_pexpr (tactic unit)
         ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
           λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
         tac
+      else
+        return ()
 
 open expr
 /-- Auxilliary function for `additive_test`. The bool argument *only* matters when applied

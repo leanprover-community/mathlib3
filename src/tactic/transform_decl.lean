@@ -28,8 +28,7 @@ tactic unit := do
         ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
           λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
         tac
-      else
-        return ()
+      else fail msg
 
 open expr
 /-- Auxilliary function for `additive_test`. The bool argument *only* matters when applied

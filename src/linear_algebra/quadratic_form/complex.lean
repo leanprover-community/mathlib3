@@ -9,7 +9,7 @@ import analysis.special_functions.pow
 /-!
 # Quadratic forms over the complex numbers
 
-A nondegenerate quadratic form over the complex numbers is equivalent to
+`equivalent_sum_squares`: A nondegenerate quadratic form over the complex numbers is equivalent to
 a sum of squares.
 
 -/

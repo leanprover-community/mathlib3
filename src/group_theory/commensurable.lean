@@ -386,7 +386,7 @@ begin
   end
 
 
-/-
+
 lemma quot_equivs {G' : Type*} [group G'] (H : subgroup G) (H' : subgroup G') (f: G →* G')
   (h1: subgroup.map f ⊤ ≃* G') (h2: subgroup.map ( f.comp  H.subtype) ⊤ ≃* H' ) :
   quotient_group.quotient H ≃ quotient_group.quotient H' :=
@@ -394,27 +394,78 @@ begin
 sorry,
 end
 
+
 --is this even true???
 noncomputable def quot_equivs' {G' : Type*} [group G'] (H : subgroup G) (H' : subgroup G') (f: G ≃ G')
-  (h1: ((quotient_group.left_rel H).rel  ⇒ (quotient_group.left_rel H').rel) f f)
-  (h2: ((quotient_group.left_rel H').rel  ⇒ (quotient_group.left_rel H).rel) f.inv_fun f.inv_fun) :
+  (h1: ((quotient_group.left_rel H).r  ⇒ (quotient_group.left_rel H').r) f f)
+  (h2: ((quotient_group.left_rel H').r  ⇒ (quotient_group.left_rel H).r) f.inv_fun f.inv_fun) :
   quotient_group.quotient H ≃ quotient_group.quotient H' :={
-  to_fun:= quot.map f.to_fun h1,
+    to_fun:= quot.map f.to_fun h1,
   inv_fun:= quot.map f.inv_fun h2,
-  left_inv:= by {simp, intro x, tidy,  sorry,},
+  left_inv:= by {simp, intro x, dsimp, sorry,},
   right_inv:= by {sorry,},
-
   }
 
-def quot_eqv (H K L : subgroup G) :
+noncomputable def quot_eqv  {G' : Type*} [group G'] (H : subgroup G) (H' : subgroup G') (f : G →* G')
+(h :subgroup.map f H = H' ) :  quotient_group.quotient H →  quotient_group.quotient H' :=
+λ x, quotient_group.mk (f x.out')
+
+lemma quote_eqv_inj {G' : Type*} [group G'] (H : subgroup G) (H' : subgroup G') (f : G →* G')
+(h :subgroup.map f H = H' ) : (function.injective f) →  function.injective (quot_eqv H H' f h) :=
+begin
+intro hf,
+rw function.injective at *,
+intros a b,
+rw quot_eqv,
+ rw quotient_group.eq',
+intro hab,
+ have ha :=  quotient.out_eq' a,
+  have hb :=  quotient.out_eq' b,
+  rw ← ha,
+  rw ← hb,
+  rw quotient_group.eq',
+  simp at *,
+  simp_rw ← h at hab,
+  simp at *,
+  have r1 : ∀ (a b : G), (f(a))⁻¹*f(b)=f(a⁻¹*b), by {simp,},
+  cases hab with t,
+  have hab2:=hab_h.2,
+  have rab:= r1 a.out' b.out',
+  rw rab at hab2,
+  have := hf hab2,
+  rw ← this,
+  exact hab_h.1,
+end
+
+def mul_map (H K L : subgroup G) : (K.subgroup_of L) →* (K ⊓ L : subgroup G) :={
+  to_fun:= λ x, ⟨L.subtype x, by {have xp:=x.property, simp [mem_subgroup_of'] at xp,simp, exact xp}⟩,
+  map_one':= by {simp, refl, },
+  map_mul':= by {intros x y,simp,refl,  },
+}
+
+lemma mul_map_img (H K L : subgroup G) :
+subgroup.map (mul_map H K L) (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)) = (H.subgroup_of (K ⊓ L)) :=
+begin
+rw mul_map,
+simp,
+ext,
+simp,
+split,
+intro hx,
+cases hx,
+rw ← hx_h.2,
+work_on_goal 0 { cases hx_h, cases hx_w, cases x, cases x_property, cases hx_h_left, cases hx_w_val, assumption },
+intros ᾰ, cases x, cases x_property, dsimp at *, simp at *,
+fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit, work_on_goal 1 { assumption } }, assumption },
+ fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { assumption }, assumption }, refl,
+end
+
+
+def quot_eqv' (H K L : subgroup G) :
   quotient_group.quotient (((H ⊓ K).subgroup_of L).subgroup_of (K.subgroup_of L)) ≃
   quotient_group.quotient (H.subgroup_of (K ⊓ L)) :=
 begin
-have g :  (K.subgroup_of L) ≃  ((K ⊓ L) : subgroup G), by {sorry,},
-apply quot_equivs' _ _ g,
-intros g h hy,
-simp_rw quotient_group.left_rel at *,
-
+sorry,
 end
--/
+
 end commensurable

@@ -288,16 +288,36 @@ set_option trace.class_instances true
 example : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
 by apply_instance
 -- end
-
+#check @linear_ordered_comm_monoid.to_ordered_comm_monoid ℝ≥0
+  (@linear_ordered_comm_monoid_with_zero.to_linear_ordered_comm_monoid ℝ≥0
+     (@linear_ordered_comm_group_with_zero.to_linear_ordered_comm_monoid_with_zero ℝ≥0
+        nnreal.linear_ordered_comm_group_with_zero))
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
-
+#print contravariant_mul_lt_of_covariant_mul_le
 -- { cSup_empty := (function.funext_iff.1
 --     (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
 --   .. (by apply_instance : order_bot ℝ≥0),
 --   .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
 def foo : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
 by apply_instance
+/-
+@contravariant_mul_lt_of_covariant_mul_le ℝ≥0
+  (@distrib.to_has_mul ℝ≥0
+     (@non_unital_non_assoc_semiring.to_distrib ℝ≥0
+        (@non_assoc_semiring.to_non_unital_non_assoc_semiring ℝ≥0
+           (@semiring.to_non_assoc_semiring ℝ≥0
+              (@ordered_semiring.to_semiring ℝ≥0
+                 (@linear_ordered_semiring.to_ordered_semiring ℝ≥0 nnreal.linear_ordered_semiring))))))
+  (@conditionally_complete_linear_order.to_linear_order ℝ≥0
+     (@conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order ℝ≥0
+        nnreal.conditionally_complete_linear_order_bot))
+  (@ordered_comm_monoid.to_covariant_class_left ℝ≥0
+     (@linear_ordered_comm_monoid.to_ordered_comm_monoid ℝ≥0
+        (@linear_ordered_comm_monoid_with_zero.to_linear_ordered_comm_monoid ℝ≥0
+           (@linear_ordered_comm_group_with_zero.to_linear_ordered_comm_monoid_with_zero ℝ≥0
+              nnreal.linear_ordered_comm_group_with_zero))))
+-/
 #print foo
 set_option pp.implicit true
 #print foo

@@ -331,11 +331,13 @@ by tactic.reflexivity tactic.transparency.instances
 
 local attribute [-instance] decidable.subsingleton
 set_option pp.implicit true
+#print subset_conditionally_complete_linear_order
+#print subtype.linear_order
 example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) :
   (by apply_instance : linear_order {x : α // 0 ≤ x}) =
   @conditionally_complete_linear_order.to_linear_order _ (@conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order {x : α // 0 ≤ x} (nonneg.conditionally_complete_linear_order_bot h)) :=
-by { dsimp [nonneg.conditionally_complete_linear_order_bot, subtype.linear_order], delta conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order conditionally_complete_linear_order.to_linear_order, dsimp [infer_instance], tactic.congr_core', all_goals { try { tactic.reflexivity tactic.transparency.instances } },
-dsimp [ord_connected_subset_conditionally_complete_linear_order, subtype.linear_order],  tactic.reflexivity tactic.transparency.instances,   }
+by { delta nonneg.conditionally_complete_linear_order_bot subtype.linear_order, delta conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order conditionally_complete_linear_order.to_linear_order, dsimp [infer_instance], tactic.congr_core', all_goals { try { tactic.reflexivity tactic.transparency.instances } },
+delta ord_connected_subset_conditionally_complete_linear_order subset_conditionally_complete_linear_order infer_instance subtype.linear_order infer_instance, dsimp only,  tactic.reflexivity tactic.transparency.instances,   }
 
 example [linear_ordered_ring α] : (by apply_instance : linear_order {x : α // 0 ≤ x}) =
   @canonically_linear_ordered_add_monoid.to_linear_order {x : α // 0 ≤ x} _ :=

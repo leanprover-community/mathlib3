@@ -594,16 +594,14 @@ le_antisymm ((closure_le $ K).2 h₁) h₂
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of `k`, and
 is preserved under multiplication and inverse, then `p` holds for all elements of the closure
 of `k`. -/
-@[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
-elements of `k`, and is preserved under addition and inverses, then `p` holds for all elements
-of the additive closure of `k`."]
+@[elab_as_eliminator, to_additive "An induction principle for additive closure membership. If `p`
+holds for `0` and all elements of `k`, and is preserved under addition and inverses, then `p` holds
+for all elements of the additive closure of `k`."]
 lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y))
   (Hinv : ∀ x, p x → p x⁻¹) : p x :=
 (@closure_le _ _ ⟨p, H1, Hmul, Hinv⟩ _).2 Hk h
-
-attribute [elab_as_eliminator] subgroup.closure_induction add_subgroup.closure_induction
 
 /-- An induction principle on elements of the subtype `subgroup.closure`.
 If `p` holds for `1` and all elements of `k`, and is preserved under multiplication and inverse,
@@ -611,9 +609,9 @@ then `p` holds for all elements `x : closure k`.
 
 The difference with `subgroup.closure_induction` is that this acts on the subtype.
 -/
-@[to_additive "An induction principle on elements of the subtype `add_subgroup.closure`.
-If `p` holds for `0` and all elements of `k`, and is preserved under addition and negation,
-then `p` holds for all elements `x : closure k`.
+@[elab_as_eliminator, to_additive "An induction principle on elements of the subtype
+`add_subgroup.closure`.  If `p` holds for `0` and all elements of `k`, and is preserved under
+addition and negation, then `p` holds for all elements `x : closure k`.
 
 The difference with `add_subgroup.closure_induction` is that this acts on the subtype."]
 lemma closure_induction' (k : set G) {p : closure k → Prop}
@@ -632,8 +630,6 @@ subtype.rec_on x $ λ x hx, begin
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩)
     (λ x hx, exists.elim hx $ λ hx' hx, ⟨inv_mem _ hx', Hinv _ hx⟩),
 end
-
-attribute [elab_as_eliminator] subgroup.closure_induction' add_subgroup.closure_induction'
 
 variable (G)
 

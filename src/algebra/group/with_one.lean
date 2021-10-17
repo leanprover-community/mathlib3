@@ -60,8 +60,7 @@ coe_ne_one.symm
 lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :=
 option.ne_none_iff_exists
 
--- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
--- unless we explicitly define this instance
+@[to_additive]
 instance : can_lift (with_one α) α :=
 { coe := coe,
   cond := λ a, a ≠ 1,
@@ -172,15 +171,6 @@ lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := 
 end with_one
 
 namespace with_zero
-
--- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
--- unless we explicitly define this instance
-instance : can_lift (with_zero α) α :=
-{ coe := coe,
-  cond := λ a, a ≠ 0,
-  prf := λ a, ne_zero_iff_exists.1 }
-
-attribute [to_additive] with_one.can_lift
 
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }

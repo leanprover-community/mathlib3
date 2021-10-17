@@ -72,7 +72,7 @@ section preorder
 variables [preorder α]
 
 /-- A constructor for `succ_order α` usable when `α` has no maximal element. -/
-def succ_order_of_succ_le_iff_of_le_lt_succ (succ : α → α)
+def of_succ_le_iff_of_le_lt_succ (succ : α → α)
   (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b)
   (hle_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b) :
   succ_order α :=
@@ -228,7 +228,7 @@ section linear_order
 variables [linear_order α]
 
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
-def succ_order_of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
+def of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
   succ_order α :=
 { succ := succ,
   le_succ := λ a, (hsucc_le_iff.1 le_rfl).le,
@@ -268,7 +268,7 @@ section preorder
 variables [preorder α]
 
 /-- A constructor for `pred_order α` usable when `α` has no minimal element. -/
-def pred_order_of_le_pred_iff_of_pred_le_pred (pred : α → α)
+def of_le_pred_iff_of_pred_le_pred (pred : α → α)
   (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b)
   (hle_of_pred_lt : ∀ {a b}, pred a < b → a ≤ b) :
   pred_order α :=
@@ -422,7 +422,7 @@ section linear_order
 variables [linear_order α]
 
 /-- A constructor for `pred_order α` usable when `α` is a linear order with no maximal element. -/
-def pred_order_of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
+def of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
   pred_order α :=
 { pred := pred,
   pred_le := λ a, (hle_pred_iff.1 le_rfl).le,
@@ -568,7 +568,7 @@ instance [order_top α] [pred_order α] : pred_order (with_top α) :=
 
 /-! #### Adding a `⊤` to a `no_top_order` -/
 
-instance succ_order_of_no_top [partial_order α] [no_top_order α] [succ_order α] :
+instance of_no_top [partial_order α] [no_top_order α] [succ_order α] :
   succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
@@ -710,7 +710,7 @@ instance [partial_order α] [no_bot_order α] [hα : nonempty α] :
     exact (le_of_lt_succ hc).not_lt (none_lt_some _) }
 end⟩
 
-instance pred_order_of_no_bot [partial_order α] [no_bot_order α] [pred_order α] :
+instance of_no_bot [partial_order α] [no_bot_order α] [pred_order α] :
   pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥

@@ -316,7 +316,7 @@ end
 /-! ### `nat.floor` and `nat.ceil` -/
 
 namespace nat
-variables [linear_ordered_ring α] [floor_ring α] {n : ℕ} {a : α}
+variables [linear_ordered_ring α] [floor_ring α] {a : α} {n : ℕ}
 
 /-- `nat.floor a` is the greatest natural `n` that is less than `a`.
 It is equal to `⌊a⌋` when `a ≥ 0`, and is `0` otherwise. It is denoted with `⌊a⌋₊`.-/
@@ -393,7 +393,7 @@ begin
   rw [int.floor_add_int, int.to_nat_add_nat (int.le_floor.2 ha)],
 end
 
-lemma floor_add_one {a : α} (ha : 0 ≤ a) : ⌊a + 1⌋₊ = ⌊a⌋₊ + 1 :=
+lemma floor_add_one (ha : 0 ≤ a) : ⌊a + 1⌋₊ = ⌊a⌋₊ + 1 :=
 by { convert floor_add_nat ha 1, exact cast_one.symm }
 
 lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 :=

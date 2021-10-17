@@ -119,6 +119,8 @@ subtype_equiv_prop h
 
 /--
 A set is equivalent to its image under an equivalence.
+
+See also `equiv.set.image_of_eq`.
 -/
 -- We could construct this using `equiv.set.image e s e.injective`,
 -- but this definition provides an explicit inverse.
@@ -199,6 +201,11 @@ protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
   inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
   left_inv := λ _, subtype.eq rfl,
   right_inv := λ _, subtype.eq rfl }
+
+@[simps apply symm_apply]
+protected def image_of_eq {α β} {s : set α} {t : set β} (e : α ≃ β) (h : e '' s = t) :
+  s ≃ t :=
+(e.image s).trans (equiv.set.of_eq h)
 
 /-- If `a ∉ s`, then `insert a s` is equivalent to `s ⊕ punit`. -/
 protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :

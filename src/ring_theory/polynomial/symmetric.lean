@@ -58,10 +58,10 @@ variables (σ R)
 
 /-- The subalgebra of symmetric `mv_polynomial`s. -/
 def symmetric_subalgebra [comm_semiring R] : subalgebra R (mv_polynomial σ R) :=
-{ carrier := set_of is_symmetric,
-  algebra_map_mem' := λ r e, rename_C e r,
-  mul_mem' := λ a b ha hb e, by rw [alg_hom.map_mul, ha, hb],
-  add_mem' := λ a b ha hb e, by rw [alg_hom.map_add, ha, hb] }
+subalgebra.mk' (set_of is_symmetric)
+  (λ a b ha hb e, by rw [alg_hom.map_add, ha, hb])
+  (λ a b ha hb e, by rw [alg_hom.map_mul, ha, hb])
+  (λ r e, rename_C e r)
 
 variables {σ R}
 

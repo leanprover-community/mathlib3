@@ -136,11 +136,7 @@ lemma induction {C : tensor_algebra R M → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (tensor_algebra R M) := {
-    carrier := C,
-    mul_mem' := h_mul,
-    add_mem' := h_add,
-    algebra_map_mem' := h_grade0, },
+  let s : subalgebra R (tensor_algebra R M) := subalgebra.mk' C h_add h_mul h_grade0,
   let of : M →ₗ[R] s := (ι R).cod_restrict s.to_submodule h_grade1,
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (tensor_algebra R M) = s.val.comp (lift R of),

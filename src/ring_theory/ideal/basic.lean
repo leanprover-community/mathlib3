@@ -464,7 +464,6 @@ namespace ideal
 
 variables [ring α] (I : ideal α) {a b : α}
 
-
 lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
 
 lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left

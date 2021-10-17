@@ -19,7 +19,8 @@ This file contains results about bases in normed affine spaces.
  * `continuous_barycentric_coord`
  * `is_open_map_barycentric_coord`
  * `interior_convex_hull_aff_basis`
- * `exists_subset_affine_independent_affine_span_eq_top_of_open`
+ * `exists_subset_affine_independent_span_eq_top_of_open`
+ * `interior_convex_hull_nonempty_iff_aff_span_eq_top`
 -/
 
 section barycentric

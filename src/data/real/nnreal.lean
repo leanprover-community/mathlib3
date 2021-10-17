@@ -283,8 +283,11 @@ iff.intro
 lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s) :=
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
+section
+set_option trace.class_instances true
 example : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
 by apply_instance
+-- end
 
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
@@ -295,8 +298,13 @@ nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
 --   .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
 def foo : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
 by apply_instance
+#print foo
 set_option pp.implicit true
 #print foo
+#print contravariant_mul_lt_of_covariant_mul_le
+#print nnreal.canonically_linear_ordered_add_monoid
+#print nnreal.conditionally_complete_linear_order_bot
+end
 
 lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Sup_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $

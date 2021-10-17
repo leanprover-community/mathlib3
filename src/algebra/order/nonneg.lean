@@ -17,7 +17,7 @@ This file defines instances and prove some properties about the nonnegative elem
 
 Currently we only state instances and states some `simp`/`norm_cast` lemmas.
 
-When `α` is `ℝ`, this will give us some properties about `ℝ≥0`.
+When `α` is `α`, this will give us some properties about `{x : α // 0 ≤ x}`.
 
 ## Main declarations
 
@@ -54,17 +54,18 @@ instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
 show densely_ordered (Ici a), from set.densely_ordered
 
-/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`. -/
-@[reducible]
-protected noncomputable def conditionally_complete_linear_order_bot
-  [conditionally_complete_linear_order α] {a : α} (h : Sup ∅ ≤ a) :
-  conditionally_complete_linear_order_bot {x : α // a ≤ x} :=
-{ cSup_empty := (function.funext_iff.1
-    (@subset_Sup_def α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩) ∅).trans $ subtype.eq $
-      by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
-  ..nonneg.order_bot,
-  ..(by apply_instance : linear_order {x : α // a ≤ x}), -- gives better definitional equalities
-  .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _ }
+-- /-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`. -/
+-- @[reducible]
+-- protected noncomputable def conditionally_complete_linear_order_bot
+--   [conditionally_complete_linear_order α] {a : α} (h : Sup ∅ ≤ a) :
+--   conditionally_complete_linear_order_bot {x : α // a ≤ x} :=
+-- { cSup_empty := (function.funext_iff.1
+--     (@subset_Sup_def α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩) ∅).trans $ subtype.eq $
+--       by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
+--   ..nonneg.order_bot,
+--   ..(by apply_instance : linear_order {x : α // a ≤ x}), -- gives better definitional equalities
+--   .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _
+--   }
 
 instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
 ⟨⟨a, le_rfl⟩⟩
@@ -78,6 +79,24 @@ protected lemma coe_zero [has_zero α] [preorder α] : ((0 : {x : α // 0 ≤ x}
 @[simp] lemma mk_eq_zero [has_zero α] [preorder α] {x : α} (hx : 0 ≤ x) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) = 0 ↔ x = 0 :=
 subtype.ext_iff
+
+/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`. -/
+@[reducible]
+protected noncomputable def conditionally_complete_linear_order_bot [has_zero α]
+  [conditionally_complete_linear_order α] (h : Sup ∅ ≤ (0 : α)) :
+  conditionally_complete_linear_order_bot {x : α // 0 ≤ x} :=
+{ cSup_empty := (function.funext_iff.1
+    (@subset_Sup_def α (set.Ici (0 : α)) _ ⟨(0 : {x : α // 0 ≤ x})⟩) ∅).trans $ subtype.eq $
+    by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
+  .. (by apply_instance : order_bot {x : α // 0 ≤ x}),
+  .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici (0 : α)) _ ⟨(0 : {x : α // 0 ≤ x})⟩ _ }
+-- { cSup_empty := (function.funext_iff.1
+--     (@subset_Sup_def α (set.Ici 0) _ ⟨(0 : {x : α // 0 ≤ x})⟩) ∅).trans $ subtype.eq $
+--       by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
+--   ..nonneg.order_bot,
+--   ..(by apply_instance : linear_order {x : α // 0 ≤ x}), -- gives better definitional equalities
+--   .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici 0) _
+--     ⟨(0 : {x : α // 0 ≤ x})⟩ _ }
 
 instance has_add [add_zero_class α] [preorder α] [covariant_class α α (+) (≤)] :
   has_add {x : α // 0 ≤ x} :=
@@ -258,36 +277,38 @@ instance has_ordered_sub [linear_ordered_ring α] : has_ordered_sub {x : α // 0
 
 end nonneg
 
-example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
   max a b = @conditionally_complete_linear_order_bot.max _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
-example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
   has_lt.lt a b = @conditionally_complete_linear_order_bot.lt _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
-example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
   has_le.le a b = @conditionally_complete_linear_order_bot.le _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
-example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
   min a b = @conditionally_complete_linear_order_bot.min _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
-example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
   (by apply_instance : decidable (a ≤ b)) = @conditionally_complete_linear_order_bot.decidable_le _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
+#print subtype.linear_order
 #print nonneg.conditionally_complete_linear_order_bot
 -- this makes the decidable_eq proofs definitionally equal
--- attribute [irreducible] subtype.decidable_eq
+attribute [irreducible] subtype.decidable_eq
 -- set_option pp.implicit true
 -- set_option pp.notation false
 -- #print conditionally_complete_linear_order.decidable_eq
 -- #print id
 -- #print subtype.linear_order
+attribute [reducible] set.Ici
 open tactic
-example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
   (by apply_instance : decidable (a = b)) = @conditionally_complete_linear_order_bot.decidable_eq _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by { do { (_, l, r) ← target_lhs_rhs,
 whnf l transparency.instances >>= trace,
@@ -295,13 +316,36 @@ whnf r transparency.instances >>= trace,
 is_def_eq l r transparency.instances,
 skip },
 tactic.reflexivity tactic.transparency.instances }
-
-example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
+--  set_option pp.implicit true
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
   (by apply_instance : decidable (a < b)) = @conditionally_complete_linear_order_bot.decidable_lt _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 by tactic.reflexivity tactic.transparency.instances
 
--- example [conditionally_complete_linear_order α] {z : α} (h : Sup ∅ ≤ z) (a b : {x : α // z ≤ x}) :
---   (by apply_instance : linear_order {x : α // z ≤ x}) =
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
+  (by apply_instance : decidable (a = b)) = @conditionally_complete_linear_order_bot.decidable_eq _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
+  (by apply_instance : decidable (a ≤ b)) = @conditionally_complete_linear_order_bot.decidable_le _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
+by tactic.reflexivity tactic.transparency.instances
+
+local attribute [-instance] decidable.subsingleton
+set_option pp.implicit true
+example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) :
+  (by apply_instance : linear_order {x : α // 0 ≤ x}) =
+  @conditionally_complete_linear_order.to_linear_order _ (@conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order {x : α // 0 ≤ x} (nonneg.conditionally_complete_linear_order_bot h)) :=
+by { dsimp [nonneg.conditionally_complete_linear_order_bot, subtype.linear_order], delta conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order conditionally_complete_linear_order.to_linear_order, dsimp [infer_instance], tactic.congr_core', all_goals { try { tactic.reflexivity tactic.transparency.instances } },
+dsimp [ord_connected_subset_conditionally_complete_linear_order, subtype.linear_order],  tactic.reflexivity tactic.transparency.instances,   }
+
+example [linear_ordered_ring α] : (by apply_instance : linear_order {x : α // 0 ≤ x}) =
+  @canonically_linear_ordered_add_monoid.to_linear_order {x : α // 0 ≤ x} _ :=
+by tactic.reflexivity tactic.transparency.instances
+
+-- #print nnreal.canonically_linear_ordered_add_monoid
+-- #print nnreal.conditionally_complete_linear_order_bot
+
+-- example [conditionally_complete_linear_order α] [has_zero α] (h : Sup ∅ ≤ (0 : α)) (a b : {x : α // 0 ≤ x}) :
+--   (by apply_instance : linear_order {x : α // 0 ≤ x}) =
 
 --   @conditionally_complete_linear_order_bot.min _ (nonneg.conditionally_complete_linear_order_bot h) a b :=
 -- by tactic.reflexivity tactic.transparency.instances

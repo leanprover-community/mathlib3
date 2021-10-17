@@ -2055,6 +2055,8 @@ lemma closed_embedding_of_pairwise_le_dist {α : Type*} [topological_space α] [
   closed_embedding f :=
 closed_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
 
+/-- If `f : β → α` sends any two distinct points to points at distance at least `ε > 0`, then
+`f` is a uniform embedding with respect to the discrete uniformity on `β`. -/
 lemma uniform_embedding_bot_of_pairwise_le_dist {β : Type*} {ε : ℝ} (hε : 0 < ε) {f : β → α}
   (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) : @uniform_embedding _ _ ⊥ (by apply_instance) f :=
 uniform_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf

@@ -724,7 +724,7 @@ end⟩
 
 lemma lifts.mem_lifts_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
   (h2 : (minpoly F s).splits (algebra_map F K)) : s ∈ (x.lift_of_splits h1 h2).1 :=
-mem_adjoin_simple_self x.1 s
+by exact (mem_adjoin_simple_self x.1 s : _)
 
 lemma lifts.exists_lift_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
   (h2 : (minpoly F s).splits (algebra_map F K)) : ∃ y, x ≤ y ∧ s ∈ y.1 :=

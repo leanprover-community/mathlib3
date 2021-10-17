@@ -1212,6 +1212,32 @@ end
 
 end linear_order
 
+/-!
+### Closed intervals in `α × β`
+-/
+
+section prod
+
+variables {α β : Type*} [preorder α] [preorder β]
+
+@[simp] lemma Iic_prod_Iic (a : α) (b : β) : (Iic a).prod (Iic b) = Iic (a, b) := rfl
+
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Ici a).prod (Ici b) = Ici (a, b) := rfl
+
+lemma Ici_prod_eq (a : α × β) : Ici a = (Ici a.1).prod (Ici a.2) := rfl
+
+lemma Iic_prod_eq (a : α × β) : Iic a = (Iic a.1).prod (Iic a.2) := rfl
+
+@[simp] lemma Icc_prod_Icc (a₁ a₂ : α) (b₁ b₂ : β) :
+  (Icc a₁ a₂).prod (Icc b₁ b₂) = Icc (a₁, b₁) (a₂, b₂) :=
+by { ext ⟨x, y⟩, simp [and.assoc, and_comm, and.left_comm] }
+
+lemma Icc_prod_eq (a b : α × β) :
+  Icc a b = (Icc a.1 b.1).prod (Icc a.2 b.2) :=
+by simp
+
+end prod
+
 /-! ### Lemmas about membership of arithmetic operations -/
 
 section ordered_comm_group

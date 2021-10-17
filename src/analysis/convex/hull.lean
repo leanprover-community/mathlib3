@@ -51,7 +51,7 @@ variables {𝕜 s} {t : set E}
 lemma convex_hull_min (hst : s ⊆ t) (ht : convex 𝕜 t) : convex_hull 𝕜 s ⊆ t :=
 closure_operator.closure_le_mk₃_iff (show s ≤ t, from hst) ht
 
-lemma convex_hull_mono (hst : s ⊆ t) : convex_hull 𝕜 s ⊆ convex_hull 𝕜 t :=
+@[mono] lemma convex_hull_mono (hst : s ⊆ t) : convex_hull 𝕜 s ⊆ convex_hull 𝕜 t :=
 (convex_hull 𝕜).monotone hst
 
 lemma convex.convex_hull_eq {s : set E} (hs : convex 𝕜 s) : convex_hull 𝕜 s = s :=

@@ -17,14 +17,19 @@ universes u u' v w
 
 open_locale tensor_product big_operators
 
-set_option old_structure_cmd true
-
 /-- A subalgebra is a sub(semi)ring that includes the range of `algebra_map`. -/
 structure subalgebra (R : Type u) (A : Type v)
   [comm_semiring R] [semiring A] [algebra R A] extends subsemiring A : Type v :=
 (algebra_map_mem' : ∀ r, algebra_map R A r ∈ carrier)
-(zero_mem' := (algebra_map R A).map_zero ▸ algebra_map_mem' 0)
-(one_mem' := (algebra_map R A).map_one ▸ algebra_map_mem' 1)
+/-
+With either `old_structure_cmd`, or hopefully Lean4's "new" structure command,
+we will be able to write:
+```
+(zero_mem' := by exact (algebra_map R A).map_zero ▸ algebra_map_mem' 0)
+(one_mem' := by exact (algebra_map R A).map_one ▸ algebra_map_mem' 1)
+```
+but in the meantime we just provide the constructor `mk'` below.
+-/
 
 /-- Reinterpret a `subalgebra` as a `subsemiring`. -/
 add_decl_doc subalgebra.to_subsemiring
@@ -36,8 +41,23 @@ variables [comm_semiring R]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [algebra R C]
 include R
 
+/-- An alternative constructor for subalgebras which does not require separate proofs that
+the subalgebra contains 0 and 1. -/
+def mk' (s : set A)
+  (add_mem : ∀ x y, x ∈ s → y ∈ s → x + y ∈ s)
+  (mul_mem : ∀ x y, x ∈ s → y ∈ s → x * y ∈ s)
+  (algebra_map_mem : ∀ r, algebra_map R A r ∈ s) :
+  subalgebra R A :=
+{ to_subsemiring :=
+  { carrier := s,
+    add_mem' := add_mem,
+    mul_mem' := mul_mem,
+    zero_mem' := (algebra_map R A).map_zero ▸ algebra_map_mem 0,
+    one_mem' := (algebra_map R A).map_one ▸ algebra_map_mem 1, },
+  algebra_map_mem' := algebra_map_mem, }
+
 instance : set_like (subalgebra R A) A :=
-⟨subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨λ s, (s.to_subsemiring : set A), λ p q h, by rcases p with ⟨⟨⟩⟩; rcases q with ⟨⟨⟩⟩; congr'⟩
 
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -51,10 +71,8 @@ lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := 
 /-- Copy of a subalgebra with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
-{ carrier := s,
-  add_mem' := hs.symm ▸ S.add_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem',
-  algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
+{ algebra_map_mem' := λ x, by { simp only [hs], apply S.algebra_map_mem', },
+  to_subsemiring := S.to_subsemiring.copy s hs }
 
 @[simp] lemma coe_copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) :
   (S.copy s hs : set A) = s := rfl
@@ -421,20 +439,21 @@ f.cod_restrict f.range f.mem_range_self
 
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
-{ carrier := {a | ϕ a = ψ a},
-  add_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x + y) = ψ (x + y),
-    rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
-  mul_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x * y) = ψ (x * y),
-    rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] },
-  algebra_map_mem' := λ x, by
-  { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
-    rw [alg_hom.commutes, alg_hom.commutes] } }
+subalgebra.mk'
+  {a | ϕ a = ψ a}
+  (λ x y hx hy, by
+    { change ϕ x = ψ x at hx,
+      change ϕ y = ψ y at hy,
+      change ϕ (x + y) = ψ (x + y),
+      rw [alg_hom.map_add, alg_hom.map_add, hx, hy] })
+  (λ x y hx hy, by
+    { change ϕ x = ψ x at hx,
+      change ϕ y = ψ y at hy,
+      change ϕ (x * y) = ψ (x * y),
+      rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] })
+  (λ x, by
+    { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
+      rw [alg_hom.commutes, alg_hom.commutes] })
 
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
@@ -581,7 +600,7 @@ theorem eq_top_iff {S : subalgebra R A} :
 
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
 subalgebra.ext $ λ x,
-  ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
+  ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, @mem_top R A _ _ _ y, hy⟩⟩
 
 @[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
 eq_bot_iff.2 $ λ x ⟨y, hy, hfy⟩, let ⟨r, hr⟩ := mem_bot.1 hy in subalgebra.range_le _
@@ -768,19 +787,19 @@ variables {ι : Type*}
 lemma coe_supr_of_directed [nonempty ι] {S : ι → subalgebra R A}
   (dir : directed (≤) S) : ↑(supr S) = ⋃ i, (S i : set A) :=
 let K : subalgebra R A :=
-  { carrier := ⋃ i, (S i),
-    mul_mem' := λ x y hx hy,
+  subalgebra.mk' (⋃ i, (S i))
+    (λ x y hx hy,
       let ⟨i, hi⟩ := set.mem_Union.1 hx in
       let ⟨j, hj⟩ := set.mem_Union.1 hy in
       let ⟨k, hik, hjk⟩ := dir i j in
-      set.mem_Union.2 ⟨k, subalgebra.mul_mem (S k) (hik hi) (hjk hj)⟩ ,
-    add_mem' := λ x y hx hy,
+      set.mem_Union.2 ⟨k, subalgebra.add_mem (S k) (hik hi) (hjk hj)⟩)
+    (λ x y hx hy,
       let ⟨i, hi⟩ := set.mem_Union.1 hx in
       let ⟨j, hj⟩ := set.mem_Union.1 hy in
       let ⟨k, hik, hjk⟩ := dir i j in
-      set.mem_Union.2 ⟨k, subalgebra.add_mem (S k) (hik hi) (hjk hj)⟩,
-    algebra_map_mem' := λ r, let i := @nonempty.some ι infer_instance in
-      set.mem_Union.2 ⟨i, subalgebra.algebra_map_mem _ _⟩ } in
+      set.mem_Union.2 ⟨k, subalgebra.mul_mem (S k) (hik hi) (hjk hj)⟩)
+    (λ r, let i := @nonempty.some ι infer_instance in
+      set.mem_Union.2 ⟨i, subalgebra.algebra_map_mem _ _⟩) in
 have supr S = K,
   from le_antisymm (supr_le (λ i, set.subset_Union (λ i, ↑(S i)) i))
     (set_like.coe_subset_coe.1

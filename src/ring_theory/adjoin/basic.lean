@@ -55,13 +55,12 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
-@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) 
+@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s)
   (Hs : ∀ x ∈ s, p x)
   (Halg : ∀ r, p (algebra_map R A r))
   (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-let S : subalgebra R A :=
-{ carrier := p, mul_mem' := Hmul, add_mem' := Hadd, algebra_map_mem' := Halg } in
+let S : subalgebra R A := subalgebra.mk' p Hadd Hmul Halg in
 adjoin_le (show s ≤ S, from Hs) h
 
 lemma adjoin_union (s t : set A) : adjoin R (s ∪ t) = adjoin R s ⊔ adjoin R t :=

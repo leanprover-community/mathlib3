@@ -1449,7 +1449,7 @@ multiset.induction_on s rfl
 
 lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
-by { rw finset.sum, rw count_sum, refl }
+by { dunfold finset.sum, rw count_sum, }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a • {a}) = s :=

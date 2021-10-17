@@ -115,13 +115,13 @@ begin
 end
 
 private lemma direct_sum.eq_sum_summand (x : ⨁ i, A i) :
-  x = ∑ i in finite.to_finset (dfinsupp.finite_support x), of A i (x i) :=
+  x = ∑ i in x.support, of A i (x i) :=
 begin
   ext, simp only [dfinsupp.finset_sum_apply, ne.def],
   simp_rw [of, dfinsupp.single_add_hom], dsimp,
   simp_rw [dfinsupp.single_apply],
   rw finset.sum_dite_eq', split_ifs, refl,
-  simp only [finite.mem_to_finset, not_not, mem_set_of_eq] at h, exact h,
+  simp only [not_not, dfinsupp.mem_support_to_fun] at h, exact h,
 end
 
 private lemma sum_mem_ideal_iff_summand_mem_ideal

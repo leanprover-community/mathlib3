@@ -154,12 +154,16 @@ theorem to_submonoid_injective :
 theorem to_submonoid_eq {p q : subgroup G} : p.to_submonoid = q.to_submonoid ↔ p = q :=
 to_submonoid_injective.eq_iff
 
-@[mono, to_additive] lemma to_submonoid_strict_mono :
+@[to_additive, mono] lemma to_submonoid_strict_mono :
   strict_mono (to_submonoid : subgroup G → submonoid G) := λ _ _, id
 
-@[mono, to_additive]
+attribute [mono] to_add_submonoid_strict_mono
+
+@[to_additive, mono]
 lemma to_submonoid_mono : monotone (to_submonoid : subgroup G → submonoid G) :=
 to_submonoid_strict_mono.monotone
+
+attribute [mono] to_add_submonoid_mono
 
 @[simp, to_additive]
 lemma to_submonoid_le {p q : subgroup G} : p.to_submonoid ≤ q.to_submonoid ↔ p ≤ q :=

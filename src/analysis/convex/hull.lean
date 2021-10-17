@@ -129,7 +129,7 @@ section ordered_ring
 variables [ordered_ring 𝕜]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] (s : set E)
 
 lemma affine_map.image_convex_hull (f : E →ᵃ[𝕜] F) :
   f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
@@ -150,7 +150,7 @@ convex_hull_min (subset_affine_span 𝕜 s) (affine_span 𝕜 s).convex
 begin
   refine le_antisymm _ (affine_span_mono 𝕜 (subset_convex_hull 𝕜 s)),
   rw affine_span_le,
-  exact convex_hull_subset_affine_span,
+  exact convex_hull_subset_affine_span s,
 end
 
 end add_comm_group

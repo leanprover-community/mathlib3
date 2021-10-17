@@ -133,7 +133,7 @@ begin
     obtain ⟨b, hb₁, hb₂, hb₃, hb₄⟩ := exists_subset_affine_independent_span_eq_top_of_open hu₂
       (singleton_subset_iff.mpr hu₃) (singleton_nonempty x)
       (affine_independent_of_subsingleton ℝ (coe : t → V)),
-    rw [eq_top_iff, ← hb₄, ← @affine_span_convex_hull _ _ _ _ _ s],
+    rw [eq_top_iff, ← hb₄, ← affine_span_convex_hull s],
     exact affine_span_mono ℝ (hb₂.trans hu₁), },
   { intros h,
     obtain ⟨t, hts, h_tot, h_ind⟩ := exists_affine_independent ℝ V s,

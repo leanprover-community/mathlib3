@@ -91,8 +91,54 @@ def span' (s : set α) : ideal α :=
     obtain ⟨s₁, r₁, rfl⟩ := ha₁,
     obtain ⟨s₂, r₂, rfl⟩ := ha₂,
     use s₁ ∪ s₂,
-    -- use a function behave differently on different set
-    sorry
+    use λ s, if (s ∈ s₁ \ s₂) then (r₁ s) else
+             if (s ∈ s₁ ∩ s₂) then (r₁ s + r₂ s) else
+             if (s ∈ s₂ \ s₁) then (r₂ s) else 0,
+    have set_eq : s₁ ∪ s₂ = (s₁ \ s₂) ∪ (s₁ ∩ s₂) ∪ (s₂ \ s₁),
+    { ext, split; intro ha,
+      simp only [finset.mem_sdiff, finset.mem_union, finset.union_assoc, finset.mem_inter] at ha ⊢,
+      tauto, simp only [finset.mem_sdiff, finset.mem_union, finset.union_assoc,
+        finset.mem_inter] at ha ⊢, tauto },
+
+    rw [set_eq, finset.sum_union, finset.sum_union],
+    simp_rw [ite_mul],
+    rw [finset.sum_ite_of_true, finset.sum_ite_of_false, finset.sum_ite_of_true,
+      finset.sum_ite_of_false, finset.sum_ite_of_false, finset.sum_ite_of_true],
+    simp_rw [add_mul],
+    rw [finset.sum_add_distrib],
+    rw [show ∑ (x : ↥s) in s₁ \ s₂, r₁ x * ↑x + (∑ (x : ↥s) in s₁ ∩ s₂, r₁ x * ↑x +
+      ∑ (x : ↥s) in s₁ ∩ s₂, r₂ x * ↑x) + ∑ (x : ↥s) in s₂ \ s₁, r₂ x * ↑x =
+      (∑ (x : ↥s) in s₁ \ s₂, r₁ x * ↑x + ∑ (x : ↥s) in s₁ ∩ s₂, r₁ x * ↑x) +
+      (∑ (x : ↥s) in s₁ ∩ s₂, r₂ x * ↑x + ∑ (x : ↥s) in s₂ \ s₁, r₂ x * ↑x),
+        by rw [←add_assoc, ←add_assoc]],
+    rw [←finset.sum_union, ←finset.sum_union], congr,
+    rw [finset.sdiff_union_inter],
+    rw [finset.union_comm, finset.inter_comm, finset.sdiff_union_inter],
+
+    rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
+    rintros x hx,
+    simp only [finset.inter_assoc, and_self_left, finset.mem_sdiff, finset.mem_inter] at hx,
+    exact hx.2.2 hx.1,
+
+    rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
+    rintros x hx,
+    simp only [finset.inter_assoc, and_self_left, finset.mem_sdiff, finset.mem_inter] at hx,
+    exact hx.1.2 hx.2.2,
+
+    exact λ _ h, h,
+    intros x hx rid, simp only [finset.mem_sdiff, finset.mem_inter] at hx rid, exact hx.2 rid.1,
+    intros x hx rid, simp only [finset.mem_sdiff] at hx rid, exact rid.2 hx.1,
+    exact λ _ h, h,
+    intros x hx rid, simp only [finset.mem_sdiff, finset.mem_inter] at hx rid, exact rid.2 hx.2,
+    exact λ _ h, h,
+
+    rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
+    intros x hx, simp only [finset.mem_sdiff, finset.mem_inter] at hx, exact hx.1.2 hx.2.2,
+
+
+    rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
+    intros x hx, simp only [finset.mem_sdiff, finset.mem_union, finset.mem_inter] at hx,
+    refine hx.2.2 _, cases hx.1; exact h.1,
   end,
   smul_mem' := λ c a ha, begin
     obtain ⟨s, r, rfl⟩ := ha,

@@ -93,7 +93,7 @@ begin
   ext x,
   split,
   { rintros ⟨y, hy⟩,
-    exact ⟨⟨algebra_map D E y, ⟨y, ⟨algebra.mem_top, rfl⟩⟩⟩, hy⟩ },
+    exact ⟨⟨algebra_map D E y, ⟨y, ⟨@algebra.mem_top C D _ _ _ y, rfl⟩⟩⟩, hy⟩ },
   { rintros ⟨⟨y, ⟨z, ⟨h0, h1⟩⟩⟩, h2⟩,
     exact ⟨z, eq.trans h1 h2⟩ },
 end

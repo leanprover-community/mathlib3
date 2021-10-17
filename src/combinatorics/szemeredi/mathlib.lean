@@ -84,21 +84,21 @@ lemma set.pairwise_disjoint.insert [semilattice_inf_bot α] {s : set α} (hs : s
   (insert a s).pairwise_disjoint :=
 set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
 
-lemma set.pairwise_disjoint.bUnion [semilattice_inf_bot α] {s : set β} {f : β → set α}
-  (hs : (f '' s).pairwise_disjoint) (hf : ∀ a ∈ s, (f a).pairwise_disjoint) :
-  (⋃ a ∈ s, f a).pairwise_disjoint :=
-begin
-  rintro a ha b hb hab,
-  simp_rw set.mem_Union at ha hb,
-  obtain ⟨c, hc, ha⟩ := ha,
-  obtain ⟨d, hd, hb⟩ := hb,
-  obtain hcd | hcd := eq_or_ne (f c) (f d),
-  { exact hf d hd a (hcd.subst ha) b hb hab },
-  {
-    have := hs _ (set.mem_image_of_mem _ hc) _ (set.mem_image_of_mem _ hd) hcd,
-    sorry
-  }
-end
+-- lemma set.pairwise_disjoint.bUnion [semilattice_inf_bot α] {s : set β} {f : β → set α}
+--   (hs : (f '' s).pairwise_disjoint) (hf : ∀ a ∈ s, (f a).pairwise_disjoint) :
+--   (⋃ a ∈ s, f a).pairwise_disjoint :=
+-- begin
+--   rintro a ha b hb hab,
+--   simp_rw set.mem_Union at ha hb,
+--   obtain ⟨c, hc, ha⟩ := ha,
+--   obtain ⟨d, hd, hb⟩ := hb,
+--   obtain hcd | hcd := eq_or_ne (f c) (f d),
+--   { exact hf d hd a (hcd.subst ha) b hb hab },
+--   {
+--     have := hs _ (set.mem_image_of_mem _ hc) _ (set.mem_image_of_mem _ hd) hcd,
+--     sorry
+--   }
+-- end
 
 
 lemma set.pairwise_disjoint_insert_finset [semilattice_inf_bot α] {s : finset α} {a : α} :

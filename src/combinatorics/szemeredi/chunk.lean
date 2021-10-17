@@ -75,8 +75,8 @@ begin
   have :
     ∑ i in filter (λ (B : finset α), B ⊆ G.witness ε U V ∧ B.nonempty)
       (atomise U (P.witnesses G ε U)).parts,
-      (card α / exp_bound (finpartition.size P))
-    ≤ 2 ^ (finpartition.size P - 1) * (card α / exp_bound (finpartition.size P)),
+      (card α / exp_bound P.size)
+    ≤ 2 ^ (P.size - 1) * (card α / exp_bound P.size),
   { rw sum_const_nat,
     apply mul_le_mul_of_nonneg_right,
     have t := partial_atomise (G.witness ε U V) hX G.witness_subset,
@@ -153,7 +153,8 @@ begin
         : by rw [sub_mul, one_mul]
     ... ≤ (G.witness ε U V).card - 2^(P.size - 1) * m : begin
           refine sub_le_sub_left _ _,
-          have : (2 : ℝ)^P.size = 2^(P.size - 1) * 2 := sorry,
+          have : (2 : ℝ)^P.size = 2^(P.size - 1) * 2,
+          { rw [←pow_succ', nat.sub_add_cancel hP₁] },
           rw [←mul_div_right_comm, this, mul_right_comm _ (2 : ℝ), mul_assoc,
             le_div_iff (mul_pos (nat.cast_pos.2 (P.nonempty_of_mem_parts hU).card_pos) hε')],
           refine mul_le_mul_of_nonneg_left _ _,
@@ -429,6 +430,7 @@ begin
           end,
 end.
 
+-- dagger inequality
 lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} :
@@ -513,7 +515,6 @@ begin
     ... ≤ (hP.star G ε hU V).card / 4^P.size : sorry
 end
 
-#exit
 lemma stuff [nonempty α]
   (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV : ¬ G.is_uniform ε U V) :

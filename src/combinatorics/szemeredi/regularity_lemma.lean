@@ -24,12 +24,12 @@ local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
-max (max 100 l) (nat_floor (real.log (100/ε^5) / real.log 4) + 1)
+max (max 7 l) (nat_floor (real.log (100/ε^5) / real.log 4) + 1)
 
 lemma le_iteration_bound (ε : ℝ) (l : ℕ) : l ≤ iteration_bound ε l :=
 (le_max_right _ _).trans (le_max_left _ _)
 
-lemma one_hundred_le_iteration_bound (ε : ℝ) (l : ℕ) : 100 ≤ iteration_bound ε l :=
+lemma one_hundred_le_iteration_bound (ε : ℝ) (l : ℕ) : 7 ≤ iteration_bound ε l :=
 (le_max_left _ _).trans (le_max_left _ _)
 
 lemma iteration_bound_pos (ε : ℝ) (l : ℕ) : 0 < iteration_bound ε l :=
@@ -75,21 +75,21 @@ begin
   { rw ←fintype.card_pos_iff,
     apply ht.trans_le ((iteration_bound_le_szemeredi_bound _ _).trans hα) },
   suffices h : ∀ i, ∃ (P : finpartition (univ : finset α)), P.is_equipartition ∧
-    t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 8 * i ≤ P.index G),
+    t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.index G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (nat_floor (4/ε^5) + 1),
     refine ⟨P, hP₁, (le_iteration_bound _ _).trans hP₂, hP₃.trans _, _⟩,
     { rw function.iterate_succ_apply',
       exact mul_le_mul_left' (pow_le_pow_of_le_left (by norm_num) (by norm_num) _) _ },
     apply hP₄.resolve_right,
     rintro hPindex,
-    apply lt_irrefl (1/2 : ℝ),
+    apply lt_irrefl (1 : ℝ),
     calc
-      1/2 = ε ^ 5 / 8 * (4 / ε ^ 5)
+      1 = ε ^ 5 / 4 * (4 / ε ^ 5)
           : by { rw [mul_comm, div_mul_div_cancel 4 (pow_pos hε 5).ne'], norm_num }
-      ... < ε ^ 5 / 8 * (nat_floor (4 / ε ^ 5) + 1)
+      ... < ε ^ 5 / 4 * (nat_floor (4 / ε ^ 5) + 1)
           : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (lt_nat_floor_add_one _)
       ... ≤ P.index G : hPindex
-      ... ≤ 1/2 : P.index_le_half G },
+      ... ≤ 1 : P.index_le_half G },
   intro i,
   induction i with i ih,
   { have : t ≤ (univ : finset α).card :=
@@ -110,7 +110,7 @@ begin
     refine pow_le_pow (by norm_num) hP₂ },
   have hi : (i : ℝ) ≤ 4 / ε^5,
   { have hi := hP₄.trans (P.index_le_half G),
-    rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 8, by norm_num)] at hi,
+    rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 4, by norm_num)] at hi,
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
   have hsize : P.size ≤ (exp_bound^[nat_floor (4/ε^5)] t) :=
@@ -119,7 +119,7 @@ begin
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨hP₁.increment G ε, increment.is_equipartition hP₁ G ε, _, _,
     or.inr (le_trans _ (increment.index hP₁ ((one_hundred_le_iteration_bound ε l).trans hP₂)
-      hεl' hPα huniform))⟩,
+      hεl' hPα huniform hε'.le))⟩,
   { rw increment.size hP₁ hPα huniform,
     exact hP₂.trans (le_exp_bound _) },
   { rw [increment.size hP₁ hPα huniform, function.iterate_succ_apply'],

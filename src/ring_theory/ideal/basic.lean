@@ -405,6 +405,10 @@ namespace ideal
 
 variables [ring α] (I : ideal α) {a b : α}
 
+lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
+  (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
+
+
 lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
 
 lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left

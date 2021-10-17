@@ -114,18 +114,6 @@ begin
   exact (submodule.span_union _ _).symm,
 end
 
-private lemma sum_mem_ideal_iff_summand_mem_ideal
-  {α R : Type*} [comm_ring R] (I : ideal R) {s : finset α} {f : α → R} :
-  (∀ i ∈ s, f i ∈ I) → (∑ i in s, f i) ∈ I :=
-begin
-  apply finset.induction_on s,
-  { intros _, simp only [finset.sum_empty, submodule.zero_mem] },
-  { intros a s ha ih H,
-    rw [finset.sum_insert ha], simp only [forall_eq_or_imp, finset.mem_insert] at H,
-    exact ideal.add_mem _ H.1 (ih H.2), }
-
-end
-
 private lemma homogeneous_ideal.inf_subset {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   I ⊓ J ≤ ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} :=
@@ -135,7 +123,7 @@ begin
   { intro j, split; refine (homogeneous_ideal.mem_iff _ _ x).mp _ _; assumption },
 
   rw [direct_sum.eq_sum_of _ x],
-  refine sum_mem_ideal_iff_summand_mem_ideal _ _,
+  refine ideal.sum_mem _ _,
   intros i hi, refine ideal.subset_span _, refine ⟨hx _, _⟩, use ⟨i, x i⟩,
 end
 

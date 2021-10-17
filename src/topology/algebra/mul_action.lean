@@ -196,8 +196,21 @@ lemma is_open_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c 
 
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
 normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
-lemma is_closed_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
+lemma is_closed_map_smul_of_ne_zero {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_closed_map
+
+/-- `smul` is a closed map in the second argument.
+
+The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
+normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
+lemma is_closed_map_smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M] [topological_space M]
+  [t1_space M] [module 𝕜 M] [topological_space 𝕜] [has_continuous_smul 𝕜 M] (c : 𝕜) :
+  is_closed_map (λ x : M, c • x) :=
+begin
+  rcases eq_or_ne c 0 with (rfl|hne),
+  { simp only [zero_smul], exact is_closed_map_const },
+  { exact (homeomorph.smul_of_ne_zero c hne).is_closed_map },
+end
 
 end group_with_zero
 

@@ -176,11 +176,7 @@ lemma induction {C : clifford_algebra Q → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (clifford_algebra Q) := {
-    carrier := C,
-    mul_mem' := h_mul,
-    add_mem' := h_add,
-    algebra_map_mem' := h_grade0, },
+  let s : subalgebra R (clifford_algebra Q) := subalgebra.mk' C h_add h_mul h_grade0,
   let of : { f : M →ₗ[R] s // ∀ m, f m * f m = algebra_map _ _ (Q m) } :=
   ⟨(ι Q).cod_restrict s.to_submodule h_grade1,
     λ m, subtype.eq $ ι_sq_scalar Q m ⟩,

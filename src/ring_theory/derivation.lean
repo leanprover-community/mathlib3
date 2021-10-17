@@ -27,9 +27,6 @@ definitive definition of derivation will be implemented.
 
 open algebra
 
--- to match `linear_map`
-set_option old_structure_cmd true
-
 /-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
 equality.
 TODO: update this when bimodules are defined. -/
@@ -55,21 +52,19 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
-
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
 
 @[simp] lemma to_linear_map_eq_coe : D.to_linear_map = D := rfl
 
-@[simp] lemma mk_coe (f : A →ₗ[R] M) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : derivation R A M) : A → M) = f := rfl
+@[simp] lemma mk_coe (f : A →ₗ[R] M) (h) :
+  ((⟨f, h⟩ : derivation R A M) : A → M) = f := rfl
 
 @[simp, norm_cast]
 lemma coe_fn_coe (f : derivation R A M) : ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective : @function.injective (derivation R A M) (A → M) coe_fn :=
-λ D1 D2 h, by { cases D1, cases D2, congr', }
+λ D1 D2 h, by { rcases D1 with ⟨⟨⟩⟩, rcases D2 with ⟨⟨⟩⟩, congr', }
 
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 coe_injective $ funext H

@@ -121,11 +121,11 @@ meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all 
 do -- In order to ensure that attributes are copied correctly we must transform declarations and
    -- attributes in the right order:
    -- first generate the transformed main declaration
-   transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs src,
+   transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt src,
    ls ← get_eqn_lemmas_for tt src,
    -- now transform all of the equational lemmas
    ls.mmap' $
-    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs,
+    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt,
    -- copy attributes for the equational lemmas so that they know if they are refl lemmas
    ls.mmap' (λ src_eqn, do
     let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),

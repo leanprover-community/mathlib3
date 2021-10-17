@@ -218,7 +218,10 @@ instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_insta
 
 theorem coprime_iff_gcd_eq_one {m n : ℕ} : coprime m n ↔ gcd m n = 1 := iff.rfl
 
-theorem coprime.gcd_eq_one {m n : ℕ} : coprime m n → gcd m n = 1 := id
+theorem coprime.gcd_eq_one {m n : ℕ} (h : coprime m n) : gcd m n = 1 := h
+
+theorem coprime.lcm_eq_mul {m n : ℕ} (h : coprime m n) : lcm m n = m * n :=
+by rw [←one_mul (lcm m n), ←h.gcd_eq_one, gcd_mul_lcm]
 
 theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n).trans
 

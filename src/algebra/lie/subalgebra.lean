@@ -34,7 +34,6 @@ section lie_subalgebra
 
 variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-set_option old_structure_cmd true
 /-- A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie algebra. -/
 structure lie_subalgebra extends submodule R L :=
@@ -83,7 +82,7 @@ lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L
 @[simp] lemma mem_carrier {x : L} : x ∈ L'.carrier ↔ x ∈ (L' : set L) := iff.rfl
 
 @[simp] lemma mem_mk_iff (S : set L) (h₁ h₂ h₃ h₄) {x : L} :
-  x ∈ (⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
+  x ∈ (⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
 iff.rfl
 
 @[simp] lemma mem_coe_submodule {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
@@ -104,14 +103,14 @@ lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x �
 ⟨λ h x, by rw h, ext L₁' L₂'⟩
 
 @[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
-  ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
+  ((⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
 
 @[simp] lemma coe_to_submodule_mk (p : submodule R L) (h) :
   (({lie_mem' := h, ..p} : lie_subalgebra R L) : submodule R L) = p :=
 by { cases p, refl, }
 
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
-λ L₁' L₂' h, by cases L₁'; cases L₂'; congr'
+by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h, congr' }
 
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff

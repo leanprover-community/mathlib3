@@ -94,16 +94,45 @@ localized "notation `#` := cardinal.mk" in cardinal
 instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
 ⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
 
+protected lemma induction_on {p : cardinal → Prop} (c : cardinal) (h : ∀ α, p (#α)) : p c :=
+quotient.induction_on c h
+
 protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (#α) := rfl
 
 @[simp] theorem mk_out (c : cardinal) : #(c.out) = c := quotient.out_eq _
 
+/-- The representative of the cardinal of a type is equivalent ot the original type. -/
+noncomputable def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
+nonempty.some $ cardinal.eq.mp (by simp)
+
 protected lemma mk_congr (e : α ≃ β) : # α = # β :=
 quot.sound ⟨e⟩
 
 alias cardinal.mk_congr ← equiv.cardinal_eq
+
+/-- The universe lift operation on cardinals. You can specify the universes explicitly with
+  `lift.{u v} : cardinal.{v} → cardinal.{max v u}` -/
+def lift (c : cardinal.{v}) : cardinal.{max v u} :=
+quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
+quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
+
+@[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl
+
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+funext $ λ a, quot.induction_on a $ λ α,
+quotient.sound ⟨equiv.ulift.trans equiv.ulift.symm⟩
+
+theorem lift_id' (a : cardinal) : lift a = a :=
+quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
+
+@[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
+
+@[simp] theorem lift_lift (a : cardinal) :
+  lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
+quot.induction_on a $ λ α,
+quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
 /-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
   there exists an embedding (injective function) from α to β. -/
@@ -141,26 +170,64 @@ noncomputable instance : linear_order cardinal.{u} :=
 -- short-circuit type class inference
 noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance
 
+theorem lift_mk_le {α : Type u} {β : Type v} :
+  lift.{(max v w)} (#α) ≤ lift.{(max u w)} (#β) ↔ nonempty (α ↪ β) :=
+⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
+ λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
+
+/-- A variant of `lift_mk_le` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
+theorem lift_mk_le' {α : Type u} {β : Type v} :
+  lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
+lift_mk_le.{u v 0}
+
+theorem lift_mk_eq {α : Type u} {β : Type v} :
+  lift.{(max v w)} (#α) = lift.{(max u w)} (#β) ↔ nonempty (α ≃ β) :=
+quotient.eq.trans
+⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
+ λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
+
+/-- A variant of `lift_mk_eq` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
+theorem lift_mk_eq' {α : Type u} {β : Type v} :
+  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
+lift_mk_eq.{u v 0}
+
+@[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
+quotient.induction_on₂ a b $ λ α β,
+by rw ← lift_umax; exact lift_mk_le
+
+@[simp] theorem lift_inj {a b : cardinal} : lift a = lift b ↔ a = b :=
+by simp [le_antisymm_iff]
+
+@[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
+by simp [lt_iff_le_not_le, -not_le]
+
 instance : has_zero cardinal.{u} := ⟨#pempty⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
-@[simp]
-lemma eq_zero_of_is_empty {α : Type u} [is_empty α] : #α = 0 :=
+@[simp] lemma mk_eq_zero (α : Type u) [is_empty α] : #α = 0 :=
 (equiv.equiv_pempty α).cardinal_eq
 
-lemma eq_zero_iff_is_empty {α : Type u} : #α = 0 ↔ is_empty α :=
-⟨λ e, let ⟨h⟩ := quotient.exact e in
-  equiv.equiv_empty_equiv α $ h.trans equiv.empty_equiv_pempty.symm,
-  @eq_zero_of_is_empty _⟩
+@[simp] theorem lift_zero : lift 0 = 0 :=
+quotient.sound ⟨equiv.equiv_pempty _⟩
 
-theorem ne_zero_iff_nonempty {α : Type u} : #α ≠ 0 ↔ nonempty α :=
-(not_iff_not.2 eq_zero_iff_is_empty).trans not_is_empty_iff
+lemma mk_eq_zero_iff {α : Type u} : #α = 0 ↔ is_empty α :=
+⟨λ e, let ⟨h⟩ := quotient.exact e in h.is_empty, @mk_eq_zero α⟩
+
+theorem mk_ne_zero_iff {α : Type u} : #α ≠ 0 ↔ nonempty α :=
+(not_iff_not.2 mk_eq_zero_iff).trans not_is_empty_iff
+
+@[simp] lemma mk_ne_zero (α : Type u) [nonempty α] : #α ≠ 0 := mk_ne_zero_iff.2 ‹_›
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : nontrivial cardinal.{u} :=
-⟨⟨1, 0, ne_zero_iff_nonempty.2 ⟨punit.star⟩⟩⟩
+instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
@@ -175,11 +242,25 @@ instance : has_add cardinal.{u} :=
 
 @[simp] theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
+lemma add (α : Type u) (β : Type v) :
+  #(α ⊕ β) = lift.{v u} (#α) + lift.{u v} (#β) :=
+begin
+  rw [←cardinal.mk_ulift, ←cardinal.mk_ulift, add_def],
+  exact cardinal.eq.2 ⟨equiv.sum_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
+end
+
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, #(α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.prod_congr e₁ e₂⟩⟩
 
 @[simp] theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
+
+lemma mul (α : Type u) (β : Type v) :
+  #(α × β) = lift.{v u} (#α) * lift.{u v} (#β) :=
+begin
+  rw [←cardinal.mk_ulift, ←cardinal.mk_ulift, mul_def],
+  exact cardinal.eq.2 ⟨equiv.prod_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
+end
 
 private theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.sum_comm α β⟩
@@ -202,13 +283,10 @@ quotient.induction_on₃ a b c $ assume α β γ, quotient.sound ⟨equiv.prod_s
 protected theorem eq_zero_or_eq_zero_of_mul_eq_zero  {a b : cardinal.{u}} :
   a * b = 0 → a = 0 ∨ b = 0 :=
 begin
-  refine quotient.induction_on b _,
-  refine quotient.induction_on a _,
-  intros a b h,
-  contrapose h,
-  simp_rw [not_or_distrib, ← ne.def] at h,
-  have := @prod.nonempty a b (ne_zero_iff_nonempty.mp h.1) (ne_zero_iff_nonempty.mp h.2),
-  exact ne_zero_iff_nonempty.mpr this
+  induction a using cardinal.induction_on with α,
+  induction b using cardinal.induction_on with β,
+  simp only [mul_def, mk_eq_zero_iff, is_empty_prod],
+  exact id
 end
 
 instance : comm_semiring cardinal.{u} :=
@@ -242,6 +320,10 @@ local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
 
 @[simp] theorem power_def (α β) : #α ^ #β = #(β → α) := rfl
 
+@[simp] theorem lift_power (a b) : lift (a ^ b) = lift a ^ lift b :=
+quotient.induction_on₂ a b $ λ α β,
+quotient.sound ⟨equiv.ulift.trans (equiv.arrow_congr equiv.ulift equiv.ulift).symm⟩
+
 @[simp] theorem power_zero {a : cardinal} : a ^ 0 = 1 :=
 quotient.induction_on a $ assume α, quotient.sound
 ⟨equiv.pempty_arrow_equiv_punit α⟩
@@ -258,14 +340,12 @@ quotient.induction_on a $ assume α, quotient.sound
 quot.sound ⟨equiv.ulift.trans $ equiv.Prop_equiv_bool.trans equiv.bool_equiv_punit_sum_punit⟩
 
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
-quotient.induction_on a $ assume α heq,
-(ne_zero_iff_nonempty.1 heq).elim $ assume a,
-by { haveI : nonempty α := ⟨a⟩, exact quotient.sound ⟨equiv.equiv_pempty _⟩ }
+quotient.induction_on a $ assume α heq, mk_eq_zero_iff.2 $ is_empty_pi.2 $
+let ⟨a⟩ := mk_ne_zero_iff.1 heq in ⟨a, pempty.is_empty⟩
 
 theorem power_ne_zero {a : cardinal} (b) : a ≠ 0 → a ^ b ≠ 0 :=
 quotient.induction_on₂ a b $ λ α β h,
-let ⟨a⟩ := ne_zero_iff_nonempty.1 h in
-ne_zero_iff_nonempty.2 ⟨λ _, a⟩
+let ⟨a⟩ := mk_ne_zero_iff.1 h in mk_ne_zero_iff.2 ⟨λ _, a⟩
 
 theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ,
@@ -323,12 +403,33 @@ noncomputable instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
+@[simp] theorem lift_one : lift 1 = 1 :=
+quotient.sound ⟨equiv.ulift.trans equiv.punit_equiv_punit⟩
+
+@[simp] theorem lift_add (a b) : lift (a + b) = lift a + lift b :=
+quotient.induction_on₂ a b $ λ α β,
+quotient.sound ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm⟩
+
+@[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
+quotient.induction_on₂ a b $ λ α β,
+quotient.sound ⟨equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).symm⟩
+
+@[simp] theorem lift_bit0 (a : cardinal) : lift (bit0 a) = bit0 (lift a) :=
+lift_add a a
+
+@[simp] theorem lift_bit1 (a : cardinal) : lift (bit1 a) = bit1 (lift a) :=
+by simp [bit1]
+
+theorem lift_two : lift.{u v} 2 = 2 := by simp
+
+theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simp
+
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
 theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
-  let ⟨a⟩ := ne_zero_iff_nonempty.1 hα in
+  let ⟨a⟩ := mk_ne_zero_iff.1 hα in
   ⟨@embedding.arrow_congr_right _ _ _ ⟨a⟩ e⟩
 
 theorem power_le_max_power_one {a b c : cardinal} (h : b ≤ c) : a ^ b ≤ max (a ^ c) 1 :=
@@ -433,8 +534,8 @@ quot.sound ⟨equiv.sigma_congr_right $ λ i,
   classical.choice $ quotient.exact $ quot.out_eq $ #(f i)⟩
 
 theorem sum_const (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a :=
-quotient.induction_on a $ λ α, by simp; exact
-  quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
+quotient.induction_on a $ λ α, by { simp only [mul_def, sum_mk, mk_def], exact
+  quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩ }
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
@@ -479,108 +580,17 @@ theorem prod_le_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : pro
 ⟨embedding.Pi_congr_right $ λ i, classical.choice $
   by have := H i; rwa [← mk_out (f i), ← mk_out (g i)] at this⟩
 
+theorem prod_eq_zero {ι} (f : ι → cardinal.{u}) : prod f = 0 ↔ ∃ i, f i = 0 :=
+by { lift f to ι → Type u using λ _, trivial, simp [mk_eq_zero_iff] }
+
 theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
-begin
-  suffices : nonempty (Π i, (f i).out) ↔ ∀ i, nonempty (f i).out,
-  { simpa [← ne_zero_iff_nonempty, prod] },
-  exact classical.nonempty_pi
-end
-
-theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
-not_iff_not.1 $ by simpa using prod_ne_zero f
-
-/-- The universe lift operation on cardinals. You can specify the universes explicitly with
-  `lift.{u v} : cardinal.{v} → cardinal.{max v u}` -/
-def lift (c : cardinal.{v}) : cardinal.{max v u} :=
-quotient.lift_on c (λ α, ⟦ulift α⟧) $ λ α β ⟨e⟩,
-quotient.sound ⟨equiv.ulift.trans $ e.trans equiv.ulift.symm⟩
-
-theorem lift_mk (α) : lift.{v} (#α) = #(ulift.{v u} α) := rfl
-
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
-funext $ λ a, quot.induction_on a $ λ α,
-quotient.sound ⟨equiv.ulift.trans equiv.ulift.symm⟩
-
-theorem lift_id' (a : cardinal) : lift a = a :=
-quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
-
-@[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
-
-@[simp] theorem lift_lift (a : cardinal) :
-  lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
-quot.induction_on a $ λ α,
-quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
-
-theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) ≤ lift.{(max u w)} (#β) ↔ nonempty (α ↪ β) :=
-⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
- λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
-
-/-- A variant of `lift_mk_le` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_le' {α : Type u} {β : Type v} :
-  lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
-lift_mk_le.{u v 0}
-
-theorem lift_mk_eq {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) = lift.{(max u w)} (#β) ↔ nonempty (α ≃ β) :=
-quotient.eq.trans
-⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
- λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
-
-/-- A variant of `lift_mk_eq` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_eq' {α : Type u} {β : Type v} :
-  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
-lift_mk_eq.{u v 0}
-
-@[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
-quotient.induction_on₂ a b $ λ α β,
-by rw ← lift_umax; exact lift_mk_le
-
-@[simp] theorem lift_inj {a b : cardinal} : lift a = lift b ↔ a = b :=
-by simp [le_antisymm_iff]
-
-@[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
-by simp [lt_iff_le_not_le, -not_le]
-
-@[simp] theorem lift_zero : lift 0 = 0 :=
-quotient.sound ⟨equiv.ulift.trans equiv.pempty_equiv_pempty⟩
-
-@[simp] theorem lift_one : lift 1 = 1 :=
-quotient.sound ⟨equiv.ulift.trans equiv.punit_equiv_punit⟩
-
-@[simp] theorem lift_add (a b) : lift (a + b) = lift a + lift b :=
-quotient.induction_on₂ a b $ λ α β,
-quotient.sound ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm⟩
-
-@[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
-quotient.induction_on₂ a b $ λ α β,
-quotient.sound ⟨equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).symm⟩
-
-@[simp] theorem lift_power (a b) : lift (a ^ b) = lift a ^ lift b :=
-quotient.induction_on₂ a b $ λ α β,
-quotient.sound ⟨equiv.ulift.trans (equiv.arrow_congr equiv.ulift equiv.ulift).symm⟩
-
-@[simp] theorem lift_bit0 (a : cardinal) : lift (bit0 a) = bit0 (lift a) :=
-lift_add a a
-
-@[simp] theorem lift_bit1 (a : cardinal) : lift (bit1 a) = bit1 (lift a) :=
-by simp [bit1]
-
-theorem lift_two : lift.{u v} 2 = 2 := by simp
-
-theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simp
+by simp [prod_eq_zero]
 
 @[simp] theorem lift_prod {ι : Type u} (c : ι → cardinal.{v}) :
   lift.{w} (prod c) = prod (λ i, lift.{w} (c i)) :=
 begin
   lift c to ι → Type v using λ _, trivial,
-  simp only [prod_mk, lift_mk],
+  simp only [prod_mk, ←mk_ulift],
   exact cardinal.mk_congr (equiv.ulift.trans $ equiv.Pi_congr_right $ λ i, equiv.ulift.symm)
 end
 
@@ -701,8 +711,7 @@ localized "notation `ω` := cardinal.omega" in cardinal
 
 lemma mk_nat : #ℕ = ω := (lift_id _).symm
 
-theorem omega_ne_zero : ω ≠ 0 :=
-ne_zero_iff_nonempty.2 ⟨⟨0⟩⟩
+theorem omega_ne_zero : ω ≠ 0 := mk_ne_zero _
 
 theorem omega_pos : 0 < ω :=
 pos_iff_ne_zero.2 omega_ne_zero
@@ -893,7 +902,7 @@ calc #α = 1 ↔ #α ≤ 1 ∧ ¬#α < 1 : eq_iff_le_not_lt
 begin
   apply and_congr le_one_iff_subsingleton,
   push_neg,
-  rw [one_le_iff_ne_zero, ne_zero_iff_nonempty]
+  rw [one_le_iff_ne_zero, mk_ne_zero_iff]
 end
 
 theorem infinite_iff {α : Type u} : infinite α ↔ ω ≤ #α :=
@@ -976,6 +985,19 @@ by rw [← to_nat_cast 0, nat.cast_zero]
 @[simp]
 lemma one_to_nat : cardinal.to_nat 1 = 1 :=
 by rw [← to_nat_cast 1, nat.cast_one]
+
+@[simp] lemma to_nat_lift (c : cardinal.{v}) : (lift.{u v} c).to_nat = c.to_nat :=
+begin
+  apply nat_cast_injective,
+  cases lt_or_ge c ω with hc hc,
+  { rw [cast_to_nat_of_lt_omega, ←lift_nat_cast, cast_to_nat_of_lt_omega hc],
+    rwa [←lift_omega, lift_lt] },
+  { rw [cast_to_nat_of_omega_le, ←lift_nat_cast, cast_to_nat_of_omega_le hc, lift_zero],
+    rwa [←lift_omega, lift_le] },
+end
+
+lemma to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
+by rw [←to_nat_lift, lift_mk_eq.mpr ⟨e⟩, to_nat_lift]
 
 lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin
@@ -1068,10 +1090,10 @@ end
 /-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
-  have : inhabited (Π (i : ι), (g i).out),
-  { refine ⟨λ i, classical.choice $ ne_zero_iff_nonempty.1 _⟩,
+  haveI : inhabited (Π (i : ι), (g i).out),
+  { refine ⟨λ i, classical.choice $ mk_ne_zero_iff.1 _⟩,
     rw mk_out,
-    exact ne_of_gt (lt_of_le_of_lt (zero_le _) (H i)) }, resetI,
+    exact (H i).ne_bot },
   let G := inv_fun F,
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
@@ -1089,9 +1111,6 @@ fintype_card empty
 @[simp] theorem mk_pempty : #pempty = 0 :=
 fintype_card pempty
 
-@[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : #(plift p) = 0 :=
-by { haveI : is_empty p := ⟨h⟩, exact quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty _⟩ }
-
 theorem mk_unit : #unit = 1 :=
 (fintype_card unit).trans nat.cast_one
 
@@ -1103,6 +1122,9 @@ quotient.sound ⟨equiv.set.singleton x⟩
 
 @[simp] theorem mk_plift_of_true {p : Prop} (h : p) : #(plift p) = 1 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_punit h⟩
+
+@[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : #(plift p) = 0 :=
+quotient.sound ⟨equiv.plift.trans $ equiv.prop_equiv_pempty h⟩
 
 @[simp] theorem mk_bool : #bool = 2 :=
 quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
@@ -1127,7 +1149,7 @@ calc  #(list α)
 ... = #(Σ n : ℕ, ulift.{u} (fin n) → α) : quotient.sound ⟨equiv.sigma_congr_right $ λ n,
   equiv.arrow_congr equiv.ulift.symm (equiv.refl α)⟩
 ... = sum (λ n : ℕ, (#α)^(n:cardinal.{u})) :
-  by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
+  by simp only [(lift_mk_fin _).symm, ←mk_ulift, power_def, sum_mk]
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : #(quot r) ≤ #α :=
 mk_le_of_surjective quot.exists_rep

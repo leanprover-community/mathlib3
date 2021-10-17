@@ -433,7 +433,9 @@ begin
   { congr' 1, simp only [←nat_cast_mul] with push_cast,
     cases k; { simp, ring, }, },
   { simp only [←nat_cast_mul] with push_cast,
-    cases n; { simp, ring, }, },
+    cases n,
+    { simp, },
+    { simp, ring, }, },
 end
 
 end bernstein_polynomial

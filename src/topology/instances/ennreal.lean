@@ -1053,57 +1053,27 @@ end⟩
 lemma continuous_of_le_add_edist {f : α → ℝ≥0∞} (C : ℝ≥0∞)
   (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
-  refine continuous_iff_continuous_at.2 (λx, tendsto_order.2 ⟨_, _⟩),
-  show ∀e, e < f x → ∀ᶠ y in 𝓝 x, e < f y,
-  { assume e he,
-    let ε := min (f x - e) 1,
-    have : ε ≠ ⊤ := ne_top_of_le_ne_top ennreal.coe_ne_top (min_le_right _ _),
-    have : 0 < ε := by simp [ε, hC, he, ennreal.zero_lt_one],
-    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, mul_eq_zero]),
-    have I : C * (C⁻¹ * (ε/2)) < ε,
-    { by_cases C_zero : C = 0,
-      { simp [C_zero, ‹0 < ε›] },
-      { calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
-        ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
-        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε ≠ ⊤›) }},
-    have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | e < f y},
-    { rintros y hy,
-      by_cases htop : f y = ⊤,
-      { simp [htop, lt_top_iff_ne_top, ne_top_of_lt he] },
-      { rw [emetric.mem_ball] at hy,
-        have : e + ε < f y + ε := calc
-          e + ε ≤ e + (f x - e) : add_le_add_left (min_le_left _ _) _
-          ... = f x : ennreal.add_sub_cancel_of_le he.le
-          ... ≤ f y + C * edist x y : h x y
-          ... = f y + C * edist y x : by simp [edist_comm]
-          ... ≤ f y + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-          ... < f y + ε : ennreal.add_lt_add_left htop I,
-        show e < f y, from lt_of_add_lt_add_right this } },
-    apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
-  show ∀e, f x < e → ∀ᶠ y in 𝓝 x, f y < e,
-  { assume e he,
-    let ε := min (e - f x) 1,
-    have : ε < ⊤ := lt_of_le_of_lt (min_le_right _ _) (by simp [lt_top_iff_ne_top]),
-    have : 0 < ε := by simp [ε, he, ennreal.zero_lt_one],
-    have : 0 < C⁻¹ * (ε/2) := bot_lt_iff_ne_bot.2 (by simp [hC, (ne_of_lt this).symm, mul_eq_zero]),
-    have I : C * (C⁻¹ * (ε/2)) < ε,
-    { by_cases C_zero : C = 0,
-      simp [C_zero, ‹0 < ε›],
-      calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
-        ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
-        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε < ⊤›.ne) },
-    have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | f y < e},
-    { rintros y hy,
-      have htop : f x ≠ ⊤ := ne_top_of_lt he,
-      show f y < e, from calc
-        f y ≤ f x + C * edist y x : h y x
-        ... ≤ f x + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
-        ... < f x + ε : ennreal.add_lt_add_left htop I
-        ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
-        ... = e : by simp [le_of_lt he] },
-    apply filter.mem_of_superset (ball_mem_nhds _ (‹0 < C⁻¹ * (ε/2)›)) this },
+  rcases eq_or_ne C 0 with (rfl|C0),
+  { simp only [zero_mul, add_zero] at h,
+    exact continuous_of_const (λ x y, le_antisymm (h _ _) (h _ _)) },
+  { refine continuous_iff_continuous_at.2 (λ x, _),
+    by_cases hx : f x = ∞,
+    { have : f =ᶠ[𝓝 x] (λ _, ∞),
+      { filter_upwards [emetric.ball_mem_nhds x ennreal.coe_lt_top],
+        refine λ y (hy : edist y x < ⊤), _, rw edist_comm at hy,
+        simpa [hx, hC, hy.ne] using h x y },
+      exact this.continuous_at },
+    { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
+      filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],
+      have hεC : C * (ε / C) = ε := ennreal.mul_div_cancel' C0 hC,
+      refine λ y (hy : edist y x ≤ ε / C), ⟨sub_le_iff_right.2 _, _⟩,
+      { rw edist_comm at hy,
+        calc f x ≤ f y + C * edist x y : h x y
+        ... ≤ f y + C * (ε / C) : add_le_add_left (mul_le_mul_left' hy C) (f y)
+        ... = f y + ε : by rw hεC },
+      { calc f y ≤ f x + C * edist y x : h y x
+        ... ≤ f x + C * (ε / C) : add_le_add_left (mul_le_mul_left' hy C) (f x)
+        ... = f x + ε : by rw hεC } } }
 end
 
 theorem continuous_edist : continuous (λp:α×α, edist p.1 p.2) :=

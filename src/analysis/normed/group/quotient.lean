@@ -142,6 +142,10 @@ begin
     rw set.mem_set_of_eq }
 end
 
+/-- The norm of the projection is smaller or equal to the norm of the original element. -/
+lemma quotient_norm_mk_le' (S : add_subgroup M) (m : M) :
+  ∥(m : quotient S)∥ ≤ ∥m∥ := quotient_norm_mk_le S m
+
 /-- The norm of the image under the natural morphism to the quotient. -/
 lemma quotient_norm_mk_eq (S : add_subgroup M) (m : M) :
   ∥mk' S m∥ = Inf ((λ x, ∥m + x∥) '' S) :=
@@ -364,8 +368,7 @@ quotient_add_group.ker_mk  _
 
 /-- The operator norm of the projection is at most `1`. -/
 lemma norm_normed_mk_le (S : add_subgroup M) : ∥S.normed_mk∥ ≤ 1 :=
-normed_group_hom.op_norm_le_bound _ zero_le_one
-  (λ m, by simp only [normed_mk.apply, one_mul, quotient_norm_mk_le])
+normed_group_hom.op_norm_le_bound _ zero_le_one (λ m, by simp [quotient_norm_mk_le'])
 
 /-- The operator norm of the projection is `1` if the subspace is not dense. -/
 lemma norm_normed_mk (S : add_subgroup M) (h : (S.topological_closure : set M) ≠ univ) :

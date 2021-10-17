@@ -75,16 +75,10 @@ def of (i : ι) : β i →+ ⨁ i, β i :=
 dfinsupp.single_add_hom β i
 
 @[simp] lemma of_eq_same (i : ι) (x : β i) : (of _ i x) i = x :=
-begin
-  rw [of, dfinsupp.single_add_hom],
-  simp only [dfinsupp.single_eq_same, add_monoid_hom.coe_mk],
-end
+dfinsupp.single_eq_same
 
 lemma of_eq_of_ne (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
-begin
-  rw [of, dfinsupp.single_add_hom],
-  simp only [h, add_monoid_hom.coe_mk, dfinsupp.single_apply, dif_neg, not_false_iff],
-end
+dfinsupp.single_eq_of_ne h
 
 section classical
 
@@ -97,13 +91,7 @@ open_locale classical
 
 lemma eq_sum_of (x : ⨁ i, β i) :
   x = ∑ i in x.support, of β i (x i) :=
-begin
-  ext, simp only [dfinsupp.finset_sum_apply, ne.def],
-  simp_rw [of, dfinsupp.single_add_hom], dsimp,
-  simp_rw [dfinsupp.single_apply],
-  rw finset.sum_dite_eq', split_ifs, refl,
-  simp only [not_not, dfinsupp.mem_support_to_fun] at h, exact h,
-end
+dfinsupp.sum_single.symm
 
 end classical
 

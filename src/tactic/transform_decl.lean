@@ -13,21 +13,17 @@ namespace tactic
    `tt`; if `p` is `none`, the copied attribute is made persistent iff it is persistent on `src`  -/
 meta def copy_attribute' (attr_name : name) (src : name) (tgt : name) (p : option bool := none) :
 tactic unit := do
-  t ← succeeds (has_attribute attr_name src),
-  if t then
+  get_decl tgt <|> fail!"unknown declaration {tgt}",
+  -- if the source doesn't have the attribute we do not error and simply return
+  mwhen (succeeds (has_attribute attr_name src)) $
     do (p', prio) ← has_attribute attr_name src,
-    let p := p.get_or_else p',
-    get_decl tgt <|> fail!"unknown declaration {tgt}",
-    -- trace tgt,
-    set_basic_attribute attr_name tgt p prio <|> (do
-      -- (try (fail "ok" : tactic nat)) >>= λ u, trace u,
-      user_attr_nm ← get_user_attribute_name attr_name,
-      user_attr_const ← mk_const user_attr_nm,
-      tac ← eval_pexpr (tactic unit)
-      ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
-        λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
-      tac)
-  else return ()
+      let p := p.get_or_else p',
+      set_basic_attribute attr_name tgt p prio <|> do
+        user_attr_const ← (get_user_attribute_name attr_name >>= mk_const),
+        tac ← eval_pexpr (tactic unit)
+        ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
+          λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
+        tac
 
 open expr
 /-- Auxilliary function for `additive_test`. The bool argument *only* matters when applied
@@ -116,15 +112,22 @@ This is used to implement `@[to_additive]`.
 meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all trace : bool)
   (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name)
   : command :=
-do transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs src,
+do -- In order to ensure that attributes are copied correctly we must transform declarations and
+   -- attributes in the right order:
+   -- first generate the transformed main declaration
+   transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
+   -- now transform all of the equational lemmas
    ls.mmap' $
     transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs,
+   -- set the transformed equation lemmas as equation lemmas for the new declaration
    ls.mmap' (λ src_eqn, do
     e ← get_env,
     let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
     set_env (e.add_eqn_lemma tgt_eqn)),
+   -- copy attributes for the main declaration
    attrs.mmap' (λ n, copy_attribute' n src tgt),
+   -- copy attributes for the equational lemmas
    ls.mmap' (λ src_eqn, do
     let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
     attrs.mmap' (λ n, copy_attribute' n src_eqn tgt_eqn))

@@ -514,11 +514,13 @@ protected meta def attr : user_attribute unit value_type :=
           `_ext_core, `_ext_lemma_core, `nolint],
       mwhen (has_attribute' `simps src)
         (trace "Apply the simps attribute after the to_additive attribute"),
+      mwhen (has_attribute' `mono src)
+        (trace $ "to_additive does not work with mono, apply the mono attribute to both" ++
+          "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip
       end }
--- TODO check for attributes and warn user to apply by hand?
 
 add_tactic_doc
 { name                     := "to_additive",

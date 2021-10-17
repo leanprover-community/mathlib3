@@ -63,8 +63,6 @@ universes u v w
 
 variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [field M]
 
-set_option old_structure_cmd true
-
 /-- `subfield R` is the type of subfields of `R`. A subfield of `R` is a subset `s` that is a
   multiplicative submonoid and an additive subgroup. Note in particular that it shares the
   same 0 and 1 as R. -/
@@ -86,23 +84,26 @@ def to_submonoid (s : subfield K) : submonoid K :=
 
 
 instance : set_like (subfield K) K :=
-⟨subfield.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨λ s, s.to_subring.carrier, λ p q h, by rcases p with ⟨⟨⟩⟩; rcases q with ⟨⟨⟩⟩; congr'⟩
 
 @[simp]
 lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
 @[simp]
-lemma mem_mk {S : set K} {x : K} (h₁ h₂ h₃ h₄ h₅ h₆) :
-  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ↔ x ∈ S := iff.rfl
+lemma mem_mk {S : subring K} {x : K} (h₁) :
+  x ∈ (⟨S, h₁⟩ : subfield K) ↔ x ∈ S := iff.rfl
 
-@[simp] lemma coe_set_mk (S : set K) (h₁ h₂ h₃ h₄ h₅ h₆) :
-  ((⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) : set K) = S := rfl
+@[simp] lemma coe_set_mk (S : subring K) (h₁) :
+  ((⟨S, h₁⟩ : subfield K) : set K) = S := rfl
 
 @[simp]
-lemma mk_le_mk {S S' : set K} (h₁ h₂ h₃  h₄ h₅ h₆ h₁' h₂' h₃'  h₄' h₅' h₆') :
-  (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅', h₆'⟩ : subfield K) ↔
-  S ⊆ S' :=
+lemma mk_le_mk {S S' : subring K} (h₁ h₁') :
+  (⟨S, h₁⟩ : subfield K) ≤ (⟨S', h₁'⟩ : subfield K) ↔
+  S ≤ S' :=
 iff.rfl
+
+@[simp]
+lemma to_subring_coe {S : subfield K} : (S.to_subring : set K) = (S : set K) := rfl
 
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
@@ -110,9 +111,8 @@ iff.rfl
 /-- Copy of a subfield with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
-{ carrier := s,
-  inv_mem' := hs.symm ▸ S.inv_mem',
-  ..S.to_subring.copy s hs }
+{ inv_mem' := λ x, by { simp only [hs], apply S.inv_mem', },
+  to_subring := S.to_subring.copy s hs }
 
 @[simp] lemma coe_copy (S : subfield K) (s : set K) (hs : s = ↑S) :
   (S.copy s hs : set K) = s := rfl
@@ -469,8 +469,8 @@ lemma closure_induction {s : set K} {p : K → Prop} {x} (h : x ∈ closure s)
   (Hneg : ∀ x, p x → p (-x))
   (Hinv : ∀ x, p x → p (x⁻¹))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul,
-  @add_neg_self K _ 1 ▸ Hadd _ _ H1 (Hneg _ H1), Hadd, Hneg, Hinv⟩).2 Hs h
+(@closure_le _ _ _ ⟨⟨p, H1, Hmul,
+  @add_neg_self K _ 1 ▸ Hadd _ _ H1 (Hneg _ H1), Hadd, Hneg⟩, Hinv⟩).2 Hs h
 
 variable (K)
 /-- `closure` forms a Galois insertion with the coercion to set. -/

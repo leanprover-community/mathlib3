@@ -98,15 +98,15 @@ section classical
 
 open_locale classical
 
-@[simp] lemma of_finite_support (i : ι) (x : β i) (h : x ≠ 0) :
+@[simp] lemma of_support (i : ι) (x : β i) (h : x ≠ 0) :
   (of _ i x).support = {i} :=
 begin
   ext,split; intro ha,
   { simp only [ne.def, dfinsupp.mem_support_to_fun] at ha,
     by_cases h₂ : i = a, rw h₂, exact finset.mem_singleton.mpr rfl,
-    exfalso, apply ha, exact (project_ne_i_of_i _ i a x h₂), },
+    exfalso, apply ha, exact (of_eq_of_ne _ i a x h₂), },
   { simp only [finset.mem_singleton] at ha, rw ha,
-    simp only [ne.def, dfinsupp.mem_support_to_fun, project_i_of_i],
+    simp only [ne.def, dfinsupp.mem_support_to_fun, of_eq_same],
     intro rid, exact h rid },
 end
 

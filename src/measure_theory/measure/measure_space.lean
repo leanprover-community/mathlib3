@@ -378,26 +378,30 @@ begin
   exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
 end
 
-/-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of measurable sets such
-that ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
-lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, measurable_set (s i))
-  (hs' : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
+/-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
+that `∑ μ sᵢ` is finite, then the limit superior of the `sᵢ` is a null set. -/
+lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
 begin
-  simp only [limsup_eq_infi_supr_of_nat', set.infi_eq_Inter, set.supr_eq_Union],
-  -- We will show that both `μ (⨅ n, ⨆ i, s (i + n))` and `0` are the limit of `μ (⊔ i, s (i + n))`
-  -- as `n` tends to infinity. For the former, we use continuity from above.
-  refine tendsto_nhds_unique
-    (tendsto_measure_Inter (λ i, measurable_set.Union (λ b, hs (b + i))) _
-      ⟨0, ne_top_of_le_ne_top hs' (measure_Union_le s)⟩) _,
-  { intros n m hnm x,
-    simp only [set.mem_Union],
-    exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩ },
-  { -- For the latter, notice that, `μ (⨆ i, s (i + n)) ≤ ∑' s (i + n)`. Since the right hand side
-    -- converges to `0` by hypothesis, so does the former and the proof is complete.
-    exact (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
-      (ennreal.tendsto_sum_nat_add (μ ∘ s) hs')
-      (eventually_of_forall (by simp only [forall_const, zero_le]))
-      (eventually_of_forall (λ i, measure_Union_le _))) }
+  -- First we replace the sequence `sₙ` with a sequence of measurable sets `tₙ ⊇ sₙ` of the same
+  -- measure.
+  set t : ℕ → set α := λ n, to_measurable μ (s n),
+  have ht : ∑' i, μ (t i) ≠ ∞, by simpa only [t, measure_to_measurable] using hs,
+  suffices : μ (limsup at_top t) = 0,
+  { have A : s ≤ t := λ n, subset_to_measurable μ (s n),
+    -- TODO default args fail
+    exact measure_mono_null (limsup_le_limsup (eventually_of_forall A) is_cobounded_le_of_bot
+      is_bounded_le_of_top) this },
+  -- Next we unfold `limsup` for sets and replace equality with an inequality
+  simp only [limsup_eq_infi_supr_of_nat', set.infi_eq_Inter, set.supr_eq_Union,
+    ← nonpos_iff_eq_zero],
+  -- Finally, we estimate `μ (⋃ i, t (i + n))` by `∑ i', μ (t (i + n))`
+  refine le_of_tendsto_of_tendsto'
+    (tendsto_measure_Inter (λ i, measurable_set.Union (λ b, measurable_set_to_measurable _ _)) _
+      ⟨0, ne_top_of_le_ne_top ht (measure_Union_le t)⟩)
+    (ennreal.tendsto_sum_nat_add (μ ∘ t) ht) (λ n, measure_Union_le _),
+  intros n m hnm x,
+  simp only [set.mem_Union],
+  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩
 end
 
 lemma measure_if {x : β} {t : set β} {s : set α} :
@@ -1556,20 +1560,19 @@ lemma self_mem_ae_restrict {s} (hs : measurable_set s) : s ∈ (μ.restrict s).a
 by simp only [ae_restrict_eq hs, exists_prop, mem_principal, mem_inf_iff];
   exact ⟨_, univ_mem, s, subset.rfl, (univ_inter s).symm⟩
 
-/-- A version of the Borel-Cantelli lemma: if `sᵢ` is a sequence of measurable sets such that
+/-- A version of the **Borel-Cantelli lemma**: if `pᵢ` is a sequence of predicates such that
+`∑ μ {x | pᵢ x}` is finite, then the measure of `x` such that `pᵢ x` holds frequently as `i → ∞` (or
+equivalently, `pᵢ x` holds for infinitely many `i`) is equal to zero. -/
+lemma measure_set_of_frequently_eq_zero {p : ℕ → α → Prop} (hp : ∑' i, μ {x | p i x} ≠ ∞) :
+  μ {x | ∃ᶠ n in at_top, p n x} = 0 :=
+by simpa only [limsup_eq_infi_supr_of_nat, frequently_at_top, set_of_forall, set_of_exists]
+  using measure_limsup_eq_zero hp
+
+/-- A version of the **Borel-Cantelli lemma**: if `sᵢ` is a sequence of sets such that
 `∑ μ sᵢ` exists, then for almost all `x`, `x` does not belong to almost all `sᵢ`. -/
-lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∀ i, measurable_set (s i))
-  (hs' : ∑' i, μ (s i) ≠ ∞) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
-begin
-  refine measure_mono_null _ (measure_limsup_eq_zero hs hs'),
-  rw ←set.le_eq_subset,
-  refine le_Inf (λ t ht x hx, _),
-  simp only [le_eq_subset, not_exists, eventually_map, exists_prop, ge_iff_le, mem_set_of_eq,
-    eventually_at_top, mem_compl_eq, not_forall, not_not_mem] at hx ht,
-  rcases ht with ⟨i, hi⟩,
-  rcases hx i with ⟨j, ⟨hj, hj'⟩⟩,
-  exact hi j hj hj'
-end
+lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) :
+  ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
+measure_set_of_frequently_eq_zero hs
 
 section dirac
 variable [measurable_space α]

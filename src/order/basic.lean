@@ -447,7 +447,7 @@ function `f : α → β`. See note [reducible non-instances]. -/
   .. partial_order.lift f inj }
 
 instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift subtype.val
+preorder.lift (coe : subtype p → α)
 
 @[simp] lemma subtype.mk_le_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) ≤ ⟨y, hy⟩ ↔ x ≤ y :=

@@ -11,7 +11,7 @@ import category_theory.groupoid
 
 Given a topological space `X`, we can define the fundamental groupoid of `X` to be the category with
 objects being points of `X`, and morphisms `x ⟶ y` being paths from `x` to `y`, quotiented by
-homotopy equivalence. With this, fundamental group of `X` based at `x` is just the automorphism
+homotopy equivalence. With this, the fundamental group of `X` based at `x` is just the automorphism
 group of `x`.
 -/
 
@@ -174,12 +174,12 @@ section assoc
 
 /-- Auxilliary function for `trans_assoc_reparam`. -/
 def trans_assoc_reparam_aux (t : I) : ℝ :=
-  if (t : ℝ) ≤ 1/4 then
-    2 * t
-  else if (t : ℝ) ≤ 1/2 then
-    t + 1/4
-  else
-    1/2 * (t + 1)
+if (t : ℝ) ≤ 1/4 then
+  2 * t
+else if (t : ℝ) ≤ 1/2 then
+  t + 1/4
+else
+  1/2 * (t + 1)
 
 @[continuity]
 lemma continuous_trans_assoc_reparam_aux : continuous trans_assoc_reparam_aux :=
@@ -253,7 +253,7 @@ end homotopy
 end path
 
 /--
-The fundamental groupoid of a space `X` is defined to be a type synonym for `X`, where we put a
+The fundamental groupoid of a space `X` is defined to be a type synonym for `X`, and we put a
 `category_theory.groupoid` structure on it.
 -/
 def fundamental_groupoid (X : Type u) := X

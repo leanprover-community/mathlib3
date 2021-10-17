@@ -126,7 +126,7 @@ do -- In order to ensure that attributes are copied correctly we must transform 
    -- now transform all of the equational lemmas
    ls.mmap' $
     transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs,
-   -- copy attributes for the equational lemmas
+   -- copy attributes for the equational lemmas so that they know if they are refl lemmas
    ls.mmap' (λ src_eqn, do
     let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
     attrs.mmap' (λ n, copy_attribute' n src_eqn tgt_eqn)),
@@ -135,7 +135,7 @@ do -- In order to ensure that attributes are copied correctly we must transform 
     e ← get_env,
     let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
     set_env (e.add_eqn_lemma tgt_eqn)),
-   -- copy attributes for the main declaration
+   -- copy attributes for the main declaration, this needs the equational lemmas to exist already
    attrs.mmap' (λ n, copy_attribute' n src tgt)
 
 /--

@@ -123,7 +123,7 @@ lemma polynomial_functions_separates_points (X : set R) :
 λ x y h,
 begin
   -- We use `polynomial.X`, then clean up.
-  refine ⟨_, ⟨⟨_, ⟨⟨polynomial.X, ⟨algebra.mem_top, rfl⟩⟩, rfl⟩⟩, _⟩⟩,
+  refine ⟨_, ⟨⟨_, ⟨⟨polynomial.X, ⟨@algebra.mem_top R R _ _ _ x, rfl⟩⟩, rfl⟩⟩, _⟩⟩,
   dsimp, simp only [polynomial.eval_X],
   exact (λ h', h (subtype.ext h')),
 end

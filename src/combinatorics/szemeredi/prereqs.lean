@@ -40,7 +40,7 @@ begin
     simp_rw sub_sq at h,
     rw [sum_add_distrib, sum_sub_distrib, sum_sub_distrib, ←sum_mul, ←mul_sum, sum_const,
       sum_const, ht, hs, nsmul_eq_mul, nsmul_eq_mul, mul_comm (a + b), ←mul_sub, add_sub_cancel',
-    mul_pow] at h,
+      mul_pow] at h,
     convert h,
     ring },
   have cs := sum_mul_sq_le_sq_mul_sq s (λ _, 1) (λ x, f x - a),
@@ -60,11 +60,11 @@ begin
   { rw [hB', nat.cast_zero, zero_div, mul_zero, zero_mul],
     exact pairs_density_nonneg r A B },
   have hAB' : (0 : ℝ) < A'.card * B'.card := by exact_mod_cast mul_pos hA' hB',
-  have hAB : (0 : ℝ) < A.card * B.card := by exact_mod_cast mul_pos (hA'.trans_le
-    (finset.card_le_of_subset hA)) (hB'.trans_le (finset.card_le_of_subset hB)),
+  have hAB : (0 : ℝ) < A.card * B.card := hAB'.trans_le
+    (by exact_mod_cast nat.mul_le_mul (card_le_of_subset hA) (card_le_of_subset hB)),
   rw [pairs_density, pairs_density, div_mul_div, mul_comm, div_mul_div_cancel _ hAB'.ne',
     div_le_div_right hAB, nat.cast_le],
-  exact finset.card_le_of_subset (pairs_finset_mono r hA hB),
+  exact card_le_of_subset (pairs_finset_mono r hA hB),
 end
 
 lemma aux₁ {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) :
@@ -79,9 +79,9 @@ calc
       : begin
           refine mul_le_of_le_one_right (sub_nonneg_of_le $ mul_le_one _ _ _)
             (pairs_density_le_one r _ _),
-          exact div_le_one_of_le (nat.cast_le.2 (finset.card_le_of_subset hA)) (nat.cast_nonneg _),
-          exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _),
-          exact div_le_one_of_le (nat.cast_le.2 (finset.card_le_of_subset hB)) (nat.cast_nonneg _),
+          { exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset hA)) (nat.cast_nonneg _) },
+          { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) },
+          { exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset hB)) (nat.cast_nonneg _) },
         end
 
 variable [decidable_eq α]
@@ -92,13 +92,10 @@ begin
   have habs : abs (pairs_density r A' B' - pairs_density r A B) ≤ 1,
   { rw [abs_sub_le_iff, ←sub_zero (1 : ℝ)],
     split; exact sub_le_sub (pairs_density_le_one r _ _) (pairs_density_nonneg r _ _) },
-  obtain hA' | hA' := nat.eq_zero_or_pos A'.card,
-  { rw [hA', nat.cast_zero, zero_div, zero_mul, sub_zero],
-    exact habs },
-  obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
-  { rw [hB', nat.cast_zero, zero_div, mul_zero, sub_zero],
-    exact habs },
-  rw finset.card_pos at hA' hB',
+  obtain rfl | hA' := A'.eq_empty_or_nonempty,
+  { rwa [finset.card_empty, nat.cast_zero, zero_div, zero_mul, sub_zero] },
+  obtain rfl | hB' := B'.eq_empty_or_nonempty,
+  { rwa [finset.card_empty, nat.cast_zero, zero_div, mul_zero, sub_zero] },
   refine abs_sub_le_iff.2 ⟨aux₁ r hA hB, _⟩,
   rw [←add_sub_cancel (pairs_density r A B) (pairs_density (λ x y, ¬r x y) A B),
     ←add_sub_cancel (pairs_density r A' B') (pairs_density (λ x y, ¬r x y) A' B'),

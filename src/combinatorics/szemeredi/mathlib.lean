@@ -196,7 +196,7 @@ lemma mem_pairs_finset' (U V : finset α) (x y : α) :
   (x, y) ∈ pairs_finset r U V ↔ x ∈ U ∧ y ∈ V ∧ r x y :=
 mem_pairs_finset _ _ _ _
 
-lemma pairs_finset_empty_left (V : finset α) :
+@[simp] lemma pairs_finset_empty_left (V : finset α) :
   pairs_finset r ∅ V = ∅ :=
 by rw [pairs_finset, finset.empty_product, filter_empty]
 
@@ -290,10 +290,10 @@ begin
   exact_mod_cast card_pairs_finset_compl r U V,
 end
 
-lemma pairs_density_empty_left (V : finset α) : pairs_density r ∅ V = 0 :=
+@[simp] lemma pairs_density_empty_left (V : finset α) : pairs_density r ∅ V = 0 :=
 by rw [pairs_density, finset.card_empty, nat.cast_zero, zero_mul, div_zero]
 
-lemma pairs_density_empty_right (U : finset α) : pairs_density r U ∅ = 0 :=
+@[simp] lemma pairs_density_empty_right (U : finset α) : pairs_density r U ∅ = 0 :=
 by rw [pairs_density, finset.card_empty, nat.cast_zero, mul_zero, div_zero]
 
 section symmetric

@@ -110,6 +110,16 @@ begin
     intro rid, exact h rid },
 end
 
+lemma eq_sum_of (x : ⨁ i, β i) :
+  x = ∑ i in x.support, of β i (x i) :=
+begin
+  ext, simp only [dfinsupp.finset_sum_apply, ne.def],
+  simp_rw [of, dfinsupp.single_add_hom], dsimp,
+  simp_rw [dfinsupp.single_apply],
+  rw finset.sum_dite_eq', split_ifs, refl,
+  simp only [not_not, dfinsupp.mem_support_to_fun] at h, exact h,
+end
+
 end classical
 
 variables {β}

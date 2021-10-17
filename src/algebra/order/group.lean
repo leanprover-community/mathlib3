@@ -1109,8 +1109,11 @@ by { rw abs_sub_comm, exact max_sub_min_eq_abs' _ _ }
 
 end add_group
 
-section add_comm_group
-variables [add_comm_group α] [linear_order α] [covariant_class α α (+) (≤)] {a b c d : α}
+end covariant_add_le
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α] {a b c d : α}
 
 lemma abs_le : |a| ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 by rw [abs_le', and.comm, neg_le]
@@ -1186,19 +1189,30 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 lemma eq_of_abs_sub_nonpos (h : |a - b| ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
 
-lemma abs_max_sub_max_le_abs (a b c : α) : |max a c - max b c| ≤ |a - b| :=
+lemma max_sub_max_le_max (a b c d : α) : max a b - max c d ≤ max (a - c) (b - d) :=
 begin
-  simp_rw [abs_le, le_sub_iff_add_le, sub_le_iff_le_add, ← max_add_add_left],
-  split; apply max_le_max; simp only [← le_sub_iff_add_le, ← sub_le_iff_le_add, sub_self, neg_le,
-    neg_le_abs_self, neg_zero, abs_nonneg, le_abs_self]
+  simp only [sub_le_iff_le_add, max_le_iff], split,
+  calc a = a - c + c : (sub_add_cancel a c).symm
+  ... ≤ max (a - c) (b - d) + max c d : add_le_add (le_max_left _ _) (le_max_left _ _),
+  calc b = b - d + d : (sub_add_cancel b d).symm
+  ... ≤ max (a - c) (b - d) + max c d : add_le_add (le_max_right _ _) (le_max_right _ _)
 end
 
-end add_comm_group
+lemma abs_max_sub_max_le_max (a b c d : α) : |max a b - max c d| ≤ max (|a - c|) (|b - d|) :=
+begin
+  refine abs_sub_le_iff.2 ⟨_, _⟩,
+  { exact (max_sub_max_le_max _ _ _ _).trans (max_le_max (le_abs_self _) (le_abs_self _)) },
+  { rw [abs_sub_comm a c, abs_sub_comm b d],
+    exact (max_sub_max_le_max _ _ _ _).trans (max_le_max (le_abs_self _) (le_abs_self _)) }
+end
 
-end covariant_add_le
+lemma abs_min_sub_min_le_max (a b c d : α) : |min a b - min c d| ≤ max (|a - c|) (|b - d|) :=
+by simpa only [max_neg_neg, neg_sub_neg, abs_sub_comm]
+  using abs_max_sub_max_le_max (-a) (-b) (-c) (-d)
 
-section linear_ordered_add_comm_group
-variable [linear_ordered_add_comm_group α]
+lemma abs_max_sub_max_le_abs (a b c : α) : |max a c - max b c| ≤ |a - b| :=
+by simpa only [sub_self, abs_zero, max_eq_left (abs_nonneg _)]
+  using abs_max_sub_max_le_max a c b c
 
 instance with_top.linear_ordered_add_comm_group_with_top :
   linear_ordered_add_comm_group_with_top (with_top α) :=

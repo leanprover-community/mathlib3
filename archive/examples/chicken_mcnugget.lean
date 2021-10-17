@@ -68,7 +68,7 @@ end
 lemma chicken_mcnugget_construction_ints (m n : ℤ) (mlb: m > 1) (nlb: n > 1) (cop: m.gcd n = 1):
   ∀ (k : ℤ), k > m * n - m - n → ∃ (a b : ℤ), a * m + b * n = k ∧ a ≥ 0 ∧ b ≥ 0 :=
 begin
-  rintro ⟨k, kbound⟩,
+  intros k kbound,
   have bezout := int.gcd_eq_gcd_ab m n,
   rw [cop,int.coe_nat_one] at bezout,
   have bezout2 : k*1 = k*(m * m.gcd_a n + n * m.gcd_b n),

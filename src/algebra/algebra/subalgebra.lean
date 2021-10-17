@@ -43,6 +43,9 @@ include R
 
 /-- An alternative constructor for subalgebras which does not require separate proofs that
 the subalgebra contains 0 and 1. -/
+-- This will not be needed in mathlib4,
+-- as the new structure command will allow setting default values for fields of parent structures
+-- whether they are the primary one or not.
 def mk' (s : set A)
   (add_mem : ∀ x y, x ∈ s → y ∈ s → x + y ∈ s)
   (mul_mem : ∀ x y, x ∈ s → y ∈ s → x * y ∈ s)

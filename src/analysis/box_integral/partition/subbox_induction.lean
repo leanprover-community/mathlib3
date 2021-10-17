@@ -70,15 +70,15 @@ hold true.
   `2 ^ n` boxes. If `p` holds true on each of these boxes, then it true on `J`.
 * For each `z` in the closed box `I.Icc` there exists a neighborhood `U` of `z` within `I.Icc` such
   that for every box `J ≤ I` such that `z ∈ J.Icc ⊆ U`, if `J` is homothetic to `I` with a
-  coefficient of the form `1 / 2 ^ n`, then `p` is true on `J`.
+  coefficient of the form `1 / 2 ^ m`, then `p` is true on `J`.
 
 Then `p I` is true. See also `box_integral.box.subbox_induction_on'` for a version using
 `box_integral.box.split_center_box` instead of `box_integral.prepartition.split_center`. -/
 @[elab_as_eliminator]
 lemma subbox_induction_on {p : box ι → Prop} (I : box ι)
   (H_ind : ∀ J ≤ I, (∀ J' ∈ split_center J, p J') → p J)
-  (H_nhds : ∀ z ∈ I.Icc, ∃ (U ∈ 𝓝[I.Icc] z), ∀ (J ≤ I) (n : ℕ), z ∈ J.Icc → J.Icc ⊆ U →
-    (∀ i, J.upper i - J.lower i = (I.upper i - I.lower i) / 2 ^ n) → p J) :
+  (H_nhds : ∀ z ∈ I.Icc, ∃ (U ∈ 𝓝[I.Icc] z), ∀ (J ≤ I) (m : ℕ), z ∈ J.Icc → J.Icc ⊆ U →
+    (∀ i, J.upper i - J.lower i = (I.upper i - I.lower i) / 2 ^ m) → p J) :
   p I :=
 begin
   refine subbox_induction_on' I (λ J hle hs, H_ind J hle $ λ J' h', _) H_nhds,
@@ -91,14 +91,14 @@ end
 
 * `π` is a Henstock partition;
 * `π` is subordinate to `r`;
-* each box in `π` is homothetic to `I` with coefficient of the form `1 / 2 ^ n`.
+* each box in `π` is homothetic to `I` with coefficient of the form `1 / 2 ^ m`.
 
 This lemma implies that the Henstock filter is nontrivial, hence the Henstock integral is
 well-defined. -/
 lemma exists_tagged_partition_is_Henstock_is_subordinate_homothetic (I : box ι)
   (r : (ι → ℝ) → Ioi (0 : ℝ)) :
   ∃ π : tagged_prepartition I, π.is_partition ∧ π.is_Henstock ∧ π.is_subordinate r ∧
-    (∀ J ∈ π, ∃ n : ℕ, ∀ i, (J : _).upper i - J.lower i = (I.upper i - I.lower i) / 2 ^ n) ∧
+    (∀ J ∈ π, ∃ m : ℕ, ∀ i, (J : _).upper i - J.lower i = (I.upper i - I.lower i) / 2 ^ m) ∧
     π.distortion = I.distortion :=
 begin
   refine subbox_induction_on I (λ J hle hJ, _) (λ z hz, _),
@@ -135,7 +135,7 @@ open tagged_prepartition finset function
 /-- Given a box `I` in `ℝⁿ`, a function `r : ℝⁿ → (0, ∞)`, and a prepartition `π` of `I`, there
 exists a tagged prepartition `π'` of `I` such that
 
-* each box of `π'` is included by some box of `π`;
+* each box of `π'` is included in some box of `π`;
 * `π'` is a Henstock partition;
 * `π'` is subordinate to `r`;
 * `π'` covers exactly the same part of `I` as `π`;
@@ -158,7 +158,7 @@ end
 /-- Given a prepartition `π` of a box `I` and a function `r : ℝⁿ → (0, ∞)`, `π.to_subordinate r`
 is a tagged partition `π'` such that
 
-* each box of `π'` is included by some box of `π`;
+* each box of `π'` is included in some box of `π`;
 * `π'` is a Henstock partition;
 * `π'` is subordinate to `r`;
 * `π'` covers exactly the same part of `I` as `π`;
@@ -191,7 +191,7 @@ end prepartition
 
 namespace tagged_prepartition
 
-/-- Given a tagged prepartition `π₁` a prepartition `π₁` that covers exactly `I \ π₁.Union`, and
+/-- Given a tagged prepartition `π₁`, a prepartition `π₂` that covers exactly `I \ π₁.Union`, and
 a function `r : ℝⁿ → (0, ∞)`, returns the union of `π₁` and `π₂.to_subordinate r`. This partition
 `π` has the following properties:
 
@@ -200,7 +200,7 @@ a function `r : ℝⁿ → (0, ∞)`, returns the union of `π₁` and `π₂.to
 * `π.tag J = π₁.tag J` whenever `J ∈ π₁`;
 * `π` is Henstock outside of `π₁`: `π.tag J ∈ J.Icc` whenever `J ∈ π`, `J ∉ π₁`;
 * `π` is subordinate to `r` outside of `π₁`;
-* the distortion of `π` is equal to the maximum of distortions of `π₁` and `π₂`.
+* the distortion of `π` is equal to the maximum of the distortions of `π₁` and `π₂`.
 -/
 def union_compl_to_subordinate (π₁ : tagged_prepartition I) (π₂ : prepartition I)
   (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :

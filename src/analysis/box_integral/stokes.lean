@@ -11,7 +11,7 @@ import analysis.calculus.fderiv
 # Divergence integral for Henstock-Kurzweil integral
 
 In this file we prove the Divergence Theorem for a Henstock-Kurzweil style integral. The theorem
-says that the following. Let `f : ℝⁿ → Eⁿ` be a function differentiable on a closed rectangular box
+says the following. Let `f : ℝⁿ → Eⁿ` be a function differentiable on a closed rectangular box
 `I` with derivative `f' x : ℝⁿ →L[ℝ] Eⁿ` at `x ∈ I`. Then the divergence `λ x, ∑ k, f' x eₖ k`,
 where `eₖ = pi.single k 1` is the `k`-th basis vector, is integrable on `I`, and its integral is
 equal to the sum of integrals of `f` over the faces of `I` taken with appropriate signs.

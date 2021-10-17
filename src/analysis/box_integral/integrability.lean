@@ -41,7 +41,7 @@ begin
     from ((measure_mono $ set.inter_subset_right _ _).trans_lt (I.measure_coe_lt_top μ)).ne,
   obtain ⟨F, hFs, hFc, hμF⟩ : ∃ F ⊆ s ∩ I.Icc, is_closed F ∧ μ ((s ∩ I.Icc) \ F) < ε,
     from (hs.inter I.measurable_set_Icc).exists_is_closed_diff_lt A (ennreal.coe_pos.2 ε0).ne',
-  obtain ⟨U, hsU, hUo, hUt, hμU⟩ : ∃ U ⊇ s ∩ I.Icc, is_open U ∧ μ U < ∞ ∧ μ (U  \ (s ∩ I.Icc)) < ε,
+  obtain ⟨U, hsU, hUo, hUt, hμU⟩ : ∃ U ⊇ s ∩ I.Icc, is_open U ∧ μ U < ∞ ∧ μ (U \ (s ∩ I.Icc)) < ε,
     from (hs.inter I.measurable_set_Icc).exists_is_open_diff_lt A (ennreal.coe_pos.2 ε0).ne',
   have : ∀ x ∈ s ∩ I.Icc, ∃ r : Ioi (0 : ℝ), closed_ball x r ⊆ U,
     from λ x hx, subtype.exists'.1 (nhds_basis_closed_ball.mem_iff.1 (hUo.mem_nhds $ hsU hx)),

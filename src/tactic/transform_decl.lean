@@ -126,17 +126,18 @@ do -- In order to ensure that attributes are copied correctly we must transform 
    -- now transform all of the equational lemmas
    ls.mmap' $
     transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs,
+   -- copy attributes for the equational lemmas
+   ls.mmap' (λ src_eqn, do
+    let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
+    attrs.mmap' (λ n, copy_attribute' n src_eqn tgt_eqn)),
    -- set the transformed equation lemmas as equation lemmas for the new declaration
    ls.mmap' (λ src_eqn, do
     e ← get_env,
     let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
     set_env (e.add_eqn_lemma tgt_eqn)),
    -- copy attributes for the main declaration
-   attrs.mmap' (λ n, copy_attribute' n src tgt),
-   -- copy attributes for the equational lemmas
-   ls.mmap' (λ src_eqn, do
-    let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
-    attrs.mmap' (λ n, copy_attribute' n src_eqn tgt_eqn))
+   attrs.mmap' (λ n, copy_attribute' n src tgt)
+
 /--
 Make a new copy of a declaration, replacing fragments of the names of identifiers in the type and
 the body using the dictionary `dict`.

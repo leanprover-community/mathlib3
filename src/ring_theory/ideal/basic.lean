@@ -51,6 +51,10 @@ variables {a}
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
+
+lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
+  (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
+
 theorem eq_top_of_unit_mem
   (x y : α) (hx : x ∈ I) (h : y * x = 1) : I = ⊤ :=
 eq_top_iff.2 $ λ z _, calc
@@ -155,6 +159,17 @@ lemma mem_span {s : set α} (x) : x ∈ span s ↔ ∀ p : ideal α, s ⊆ p →
 mem_bInter_iff
 
 lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
+
+lemma span_eq_span' {s : set α} : span s = span' s :=
+begin
+  ext, split,
+  { intros hx, rw mem_span at hx,
+    apply hx, intros a ha,
+    refine ⟨{⟨a, ha⟩}, λ _, 1, _⟩,
+    simp only [one_mul, eq_self_iff_true, finset.sum_singleton, subtype.coe_mk], refl },
+  { intros hx, rw [mem_span], intros s' hs', obtain ⟨s, r, rfl⟩ := hx, apply sum_mem,
+    intros c _, apply ideal.mul_mem_left, refine hs' _, exact subtype.mem c, }
+end
 
 lemma span_le {s : set α} {I} : span s ≤ I ↔ s ⊆ I := submodule.span_le
 
@@ -450,9 +465,6 @@ section ring
 namespace ideal
 
 variables [ring α] (I : ideal α) {a b : α}
-
-lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
-  (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
 
 
 lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff

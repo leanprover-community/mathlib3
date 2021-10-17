@@ -82,17 +82,16 @@ def mk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →+ ⨁ i, β i :=
 def of (i : ι) : β i →+ ⨁ i, β i :=
 dfinsupp.single_add_hom β i
 
-@[simp] lemma project_i_of_i (i : ι) (x : β i) : (of _ i x) i = x :=
+@[simp] lemma of_eq_same (i : ι) (x : β i) : (of _ i x) i = x :=
 begin
   rw [of, dfinsupp.single_add_hom],
-  dsimp, rw [dfinsupp.single_apply], split_ifs; refl,
+  simp only [dfinsupp.single_eq_same, add_monoid_hom.coe_mk],
 end
 
-lemma project_ne_i_of_i (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
+lemma of_eq_of_ne (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
 begin
   rw [of, dfinsupp.single_add_hom],
-  dsimp, rw [dfinsupp.single_apply], split_ifs,
-  exfalso, exact h h_1, refl,
+  simp only [h, add_monoid_hom.coe_mk, dfinsupp.single_apply, dif_neg, not_false_iff],
 end
 
 section classical

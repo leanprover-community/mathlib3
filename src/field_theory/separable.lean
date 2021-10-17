@@ -513,6 +513,26 @@ begin
   ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
 end
 
+-- further work: 90% sure that in a nontrivial comm_ring, X^n - 1 ↔ is_unit ↑n
+lemma X_pow_sub_one_separable_iff {n : ℕ} : (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
+begin
+  refine ⟨_, λ h, separable_X_pow_sub_C 1 h one_ne_zero⟩,
+  { rw [separable_def', derivative_sub, derivative_X_pow, derivative_one, sub_zero],
+    rintro ⟨a, b, h⟩ hn',
+    obtain rfl | hn := eq_or_ne n 0,
+    { simpa only [add_zero, nat.cast_zero, zero_mul,
+                  zero_ne_one, mul_zero, pow_zero, sub_self] using h },
+    rw [←C_eq_nat_cast, ←smul_eq_C_mul, hn', zero_smul, mul_zero, add_zero] at h,
+    obtain rfl | ha := eq_or_ne a 0,
+    { simpa only [zero_mul, coeff_one_zero, zero_ne_one, coeff_zero] using ext_iff.mp h 0 },
+    replace h := congr_arg polynomial.degree h,
+    rw [degree_mul, degree_one] at h,
+    refine absurd (nat.with_bot.add_eq_zero_iff.mp h).2 _,
+    rw [←C_1, degree_X_pow_sub_C hn.bot_lt],
+    exact_mod_cast hn,
+    apply_instance }
+end
+
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
 lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
   squarefree (X ^ n - C a) :=

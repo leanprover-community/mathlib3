@@ -93,16 +93,7 @@ open_locale classical
 @[simp] lemma support_zero : (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
 
 @[simp] lemma support_of (i : ι) (x : β i) (h : x ≠ 0) :
-  (of _ i x).support = {i} :=
-begin
-  ext,split; intro ha,
-  { simp only [ne.def, dfinsupp.mem_support_to_fun] at ha,
-    by_cases h₂ : i = a, rw h₂, exact finset.mem_singleton.mpr rfl,
-    exfalso, apply ha, exact (of_eq_of_ne _ i a x h₂), },
-  { simp only [finset.mem_singleton] at ha, rw ha,
-    simp only [ne.def, dfinsupp.mem_support_to_fun, of_eq_same],
-    intro rid, exact h rid },
-end
+  (of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
 
 lemma eq_sum_of (x : ⨁ i, β i) :
   x = ∑ i in x.support, of β i (x i) :=

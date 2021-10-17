@@ -208,7 +208,7 @@ begin
     rw int.coe_nat_dvd,
     rintro ⟨c, rfl⟩,
     refine hpn ⟨c, _⟩,
-    rw [pow_succ', mul_assoc, ← hk] }
+    rwa [pow_succ', mul_assoc] }
 end
 
 theorem int.pow_add_pow {x y : ℤ} (hxy₁ : ↑p ∣ x + y) (hxy₂ : ¬↑p ∣ x * y)
@@ -260,10 +260,9 @@ theorem pow_sub_pow (hxy : y < x) (hxy₁ : p ∣ x - y) (hxy₂ : ¬p ∣ x * y
   {n : ℕ} (hn : 0 < n) :
   padic_val_nat p (x ^ n - y ^ n) = padic_val_nat p (x - y) + padic_val_nat p n :=
 begin
-  iterate 3 { rw padic_val_nat_def },
-  { rw [← enat.coe_inj, enat.coe_add],
-    iterate 3 { rw enat.coe_get },
-    exact multiplicity.nat.pow_sub_pow hp.out hp1 hxy.le hxy₁ hxy₂ n },
+  rw [← enat.coe_inj, enat.coe_add],
+  iterate 3 { rw [padic_val_nat_def, enat.coe_get] },
+  { exact multiplicity.nat.pow_sub_pow hp.out hp1 hxy.le hxy₁ hxy₂ n },
   all_goals { apply ne_of_gt },
   { exact hn },
   { exact nat.sub_pos_of_lt hxy },
@@ -275,11 +274,10 @@ theorem pow_add_pow (hxy₁ : p ∣ x + y) (hxy₂ : ¬p ∣ x * y)
   padic_val_nat p (x ^ n + y ^ n) = padic_val_nat p (x + y) + padic_val_nat p n :=
 begin
   cases y,
-  { exfalso, exact hxy₂ (dvd_zero _) },
-  iterate 3 { rw padic_val_nat_def },
-  { rw [← enat.coe_inj, enat.coe_add],
-    iterate 3 { rw enat.coe_get },
-    exact multiplicity.nat.pow_add_pow hp.out hp1 hxy₁ hxy₂ hn },
+  { have := dvd_zero p, contradiction },
+  rw [← enat.coe_inj, enat.coe_add],
+  iterate 3 { rw [padic_val_nat_def, enat.coe_get] },
+  { exact multiplicity.nat.pow_add_pow hp.out hp1 hxy₁ hxy₂ hn },
   { exact ne_of_gt (nat.odd_gt_zero hn) },
   { exact nat.succ_ne_zero _ },
   { exact ne_of_gt (nat.lt_add_left _ _ _ (pow_pos y.succ_pos _)) }

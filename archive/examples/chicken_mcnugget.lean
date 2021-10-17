@@ -17,114 +17,58 @@ In this file we prove the Chicken McNugget Theorem.
 ## Theorem Statement:
 The Chicken McNugget Theorem states,
 for two relatively prime integers larger than 1,
-the largest integer not writeable as a sum of multiples of these two
+the largest integer not expressible as a sum of nonnegative multiples of these two
 is m * n - m - n.
 
 ## Implementation Notes
 
 This proof uses Bezout's greatest common divisor theorem
-to create a construction, and uses inequalities to show
-m * n - m - n cannot be written as a sum of multiples,
-upper bounding the largest nonconstructible number.
+to create a construction for all integers greater than the maximal value
+m * n - m - n. To show the maximal value doesn't work, it rewrites the equation into a multiple
+of m equalling a multiple of n, then uses inequalities to show the multiples get too large.
 
 ## Tags
 
-chicken nugget, frobenius coin
+chicken mcnugget, frobenius coin
 -/
 
 open nat
 
-/-- Distributivity of coercion from N to Z over subtraction, using casework. -/
-lemma coe_sub_ge (m n : ℕ):
-  (m : ℤ)-(n : ℤ) ≤ (((m-n) : ℕ):ℤ) :=
-by by_cases m ≥ n; [norm_cast, linarith]
-
-/-- This lemma shows there is no solution for the maximal value over positive integers. -/
-lemma chicken_mcnugget_upper_bound_ints (a b m n : ℤ) (mpos: m>1) (npos: n>1) (cop: m.gcd n = 1)
-  (anonneg: a≥0) (bnonneg: b≥0):
-    ¬ a*m+b*n=m*n-m-n :=
+/-- Auxiliary lemma for upper bound. -/
+lemma chicken_mcnugget_upper_bound_aux (a b m n : ℕ) (ha : a ≠ 0) (hb : b ≠ 0)
+  (cop : coprime m n) : a * m + b * n ≠ m * n :=
 begin
   intro h,
-
-  --algebra
-  have id1 := mul_sub m n 1,
-  rw mul_one at id1,
-  rw [← id1,(mul_comm a m)] at h,
-  have id2 := int.add_zero (n-1),
-  rw [← add_left_neg (a)] at id2,
-  rw [← id2,← add_assoc,mul_add,add_comm (m * (n - 1 + -a)) (m*a),add_sub_assoc] at h,
-  have h2 := add_left_cancel h,
-  rw [← add_zero (b*n),← add_left_neg n,sub_eq_add_neg _ n,
-    ← add_assoc,add_comm (b*n) (-n),add_comm _ (-n),add_assoc] at h2,
-  have h3 := add_left_cancel h2,
-  have h : b*n+n=n*(b+1),
-  rw mul_add,
-  simp,
-  exact mul_comm b n,
-  rw [h,← sub_eq_add_neg (n-1) a] at h3,
-  --ineqs
-  have bp1bound := int.add_lt_add_of_le_of_lt bnonneg zero_lt_one,
-  rw zero_add at bp1bound,
-  have LHSbound := int.mul_lt_mul_of_pos_left bp1bound (lt_trans int.zero_lt_one npos),
-  rw [mul_zero,h3] at LHSbound,
-  --divide by pos amount
-  by_cases h : n-1-a<=0,
-  {
-    have contra := int.mul_le_mul_of_nonpos_right (int.le_of_lt (lt_trans int.zero_lt_one mpos)) h,
-    rw zero_mul at contra,
-    exact not_lt_of_le contra LHSbound,
-  },
-  push_neg at h,
-  have div := dvd_mul_right n (b+1),
-  rw h3 at div,
-  have lcmdivision := int.lcm_dvd (dvd_mul_right m (n-1-a)) div,
-  have lcmprod := int.gcd_mul_lcm m n,
-  rw [cop,one_mul] at lcmprod,
-  have mnpos := int.mul_pos (lt_trans int.zero_lt_one mpos) (lt_trans int.zero_lt_one npos),
-  rw [lcmprod, ← int.eq_nat_abs_of_zero_le (le_of_lt mnpos)] at lcmdivision,
-  have contra := int.le_of_dvd h (int.dvd_of_mul_dvd_mul_left
-    (ne_of_gt (lt_trans int.zero_lt_one mpos)) lcmdivision),
-  have mainbound2 := int.lt_add_one_of_le (int.sub_le_self (n-1) anonneg),
-  rw sub_add_cancel at mainbound2,
-  exact not_lt_of_le contra mainbound2,
+  have h1 : n ∣ a,
+  { apply cop.symm.dvd_of_dvd_mul_right,
+    rw [nat.dvd_add_iff_left (dvd_mul_left n b), h],
+    exact dvd_mul_left n m },
+  have h2 : m ∣ b,
+  { apply cop.dvd_of_dvd_mul_right,
+    rw [nat.dvd_add_iff_right (dvd_mul_left m a), h],
+    exact dvd_mul_right m n },
+  obtain ⟨x, rfl⟩ := h1,
+  obtain ⟨y, rfl⟩ := h2,
+  rw [mul_comm n x, mul_comm m y, mul_assoc, mul_assoc, mul_comm n m, ←add_mul] at h,
+  rw [mul_comm, mul_ne_zero_iff, ←one_le_iff_ne_zero] at ha hb,
+  exact mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) h),
 end
 
 /-- No solution for the maximal value over the natural numbers, cleanly -/
-lemma chicken_mcnugget_upper_bound (m n : ℕ) (cop : m.gcd n = 1) (mlb: m>1) (nlb: n>1):
-  ¬ ∃ (a b : ℕ), a*m+b*n=m*n-m-n :=
+lemma chicken_mcnugget_upper_bound (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
+  ¬ ∃ (a b : ℕ), a * m + b * n = m * n - m - n :=
 begin
-  intros h,
-  cases h with a h,
-  cases h with b h,
-  have int_h : (((a * m + b * n):ℕ):ℤ) = (((m * n - m - n):ℕ):ℤ),
-  rw h,
-  rw [int.coe_nat_add,int.coe_nat_sub,int.coe_nat_sub] at int_h,
-  repeat {rw int.coe_nat_mul at int_h},
-  have intcop : (m:ℤ).gcd (n:ℤ)=1,
-  rw int.coe_nat_gcd m n,
-  exact cop,
-  exact chicken_mcnugget_upper_bound_ints (a:ℤ) (b:ℤ) (m:ℤ) (n:ℤ)
-    (int.coe_nat_lt.2 mlb) (int.coe_nat_lt.2 nlb)
-      intcop (int.coe_nat_nonneg a) (int.coe_nat_nonneg b) int_h,
-  have close := nat.mul_le_mul_left m (le_of_lt nlb),
-  rw mul_one at close,
-  exact close,
-  have alb2 := nat.mul_lt_mul_of_pos_right mlb (nat.sub_pos_of_lt nlb),
-  rw [(nat.mul_sub_left_distrib m n 1), mul_one, one_mul] at alb2,
-  have closing := nat.succ_le_of_lt alb2,
-  rw [succ_eq_add_one, (nat.sub_add_cancel (le_of_lt nlb))] at closing,
-  exact closing,
+  rintro ⟨a, b, h⟩,
+  apply chicken_mcnugget_upper_bound_aux _ _ m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
+  rw [add_mul, add_mul, one_mul, one_mul, add_assoc, ←add_assoc m, add_comm m, add_assoc,
+      ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end
 
 /-- Constructs solutions for values greater than the maximal value over the positive integers. -/
-lemma chicken_mcnugget_construction_ints (m n: ℤ) (mlb: m>1) (nlb: n>1) (cop: m.gcd n=1):
-  ∀ (k : ℤ), k>m*n-m-n → ∃ (a b : ℤ), a*m+b*n=k ∧ a>=0 ∧ b>=0 :=
+lemma chicken_mcnugget_construction_ints (m n : ℤ) (mlb: m > 1) (nlb: n > 1) (cop: m.gcd n = 1):
+  ∀ (k : ℤ), k > m * n - m - n → ∃ (a b : ℤ), a * m + b * n = k ∧ a ≥ 0 ∧ b ≥ 0 :=
 begin
-  --intros
-  intro k,
-  intro kbound,
-
-  --manipulation
+  rintro ⟨k, kbound⟩,
   have bezout := int.gcd_eq_gcd_ab m n,
   rw [cop,int.coe_nat_one] at bezout,
   have bezout2 : k*1 = k*(m * m.gcd_a n + n * m.gcd_b n),
@@ -137,8 +81,8 @@ begin
   have part1 : p * m + q * n = k,
   rw [hq,hp],
   have claim : n * (k * m.gcd_a n / n) + k * m.gcd_a n % n-n * (k * m.gcd_a n / n)
-    =k * m.gcd_a n-n * (k * m.gcd_a n / n),
-  rw (int.div_add_mod (k*m.gcd_a n) n),
+    = (k * m.gcd_a n) - n * (k * m.gcd_a n / n),
+    rw (int.div_add_mod (k*m.gcd_a n) n),
 
   rw [add_comm, add_sub_cancel] at claim,
   rw [claim,int.sub_mul,add_mul,← add_assoc,mul_comm n _,mul_assoc _ n m, mul_comm n m,
@@ -181,29 +125,27 @@ lemma chicken_mcnugget_construction (m n: ℕ) (mpos: m>1) (npos: n>1) (cop: m.g
 begin
   intros k kbound,
   have intcop : (m:ℤ).gcd(n:ℤ) = 1,
-  rw int.coe_nat_gcd,
-  exact cop,
+  { rw int.coe_nat_gcd,
+    exact cop },
 
-  have intkbound : (k:ℤ) > (m:ℤ) * (n:ℤ) - (m:ℤ) - (n:ℤ),
-  have kbound4 := lt_of_le_of_lt (int.sub_le_sub_right (coe_sub_ge (m*n) m) n)
-    (lt_of_le_of_lt (coe_sub_ge (m*n-m) n) (int.coe_nat_lt.2 kbound)),
-  rw int.coe_nat_mul at kbound4,
-  exact kbound4,
+  have intkbound := lt_of_le_of_lt (int.sub_le_sub_right (int.coe_sub_ge (m*n) m) n)
+    (lt_of_le_of_lt (int.coe_sub_ge (m*n-m) n) (int.coe_nat_lt.2 kbound)),
+  rw int.coe_nat_mul at intkbound,
 
   -- "importing" the result from the ints
-  have thing := chicken_mcnugget_construction_ints (m:ℤ) (n:ℤ)
-    (int.coe_nat_lt.2 mpos) (int.coe_nat_lt.2 npos) intcop (k:ℤ) intkbound,
+  have thing := chicken_mcnugget_construction_ints (m : ℤ) (n : ℤ)
+    (int.coe_nat_lt.2 mpos) (int.coe_nat_lt.2 npos) intcop (k : ℤ) intkbound,
   rcases thing with ⟨a, b, relation, bounds⟩,
   cases bounds with anonneg bnonneg,
 
+  -- ready to
   refine ⟨int.nat_abs a, int.nat_abs b, _⟩,
-  have nat_relation : int.nat_abs (a*(m:ℤ)+b*(n:ℤ)) = int.nat_abs(k:ℤ),
+  have nat_relation : int.nat_abs (a*(m:ℤ)+b*(n:ℤ)) = int.nat_abs(k : ℤ),
   rw relation,
   rw int.nat_abs_of_nat at nat_relation,
   have left_nonneg := int.mul_le_mul anonneg (int.coe_nat_nonneg m) (le_of_eq (refl 0)) anonneg,
-  rw zero_mul at left_nonneg,
   have right_nonneg := int.mul_le_mul bnonneg (int.coe_nat_nonneg n) (le_of_eq (refl 0)) bnonneg,
-  rw mul_zero at right_nonneg,
+  rw mul_zero at left_nonneg right_nonneg,
   rw (int.nat_abs_add_nonneg left_nonneg right_nonneg) at nat_relation,
   repeat {rw int.nat_abs_mul at nat_relation},
   have thingm := int.nat_abs_of_nat_core m,
@@ -215,8 +157,9 @@ begin
 end
 
 /-- This theorem combines both sublemmas in a single claim. -/
-theorem chicken_mcnugget (m n: ℕ) (mlb: m>1) (nlb: n>1) (cop: m.gcd n=1):
-  (¬ ∃ (a b : ℕ), a*m+b*n=m*n-m-n) ∧ ∀ (k:ℕ), k>m*n-m-n → ∃ (a b : ℕ), a*m+b*n=k :=
+theorem chicken_mcnugget (m n: ℕ) (mlb: m > 1) (nlb: n > 1) (cop: m.gcd n = 1):
+  (¬ ∃ (a b : ℕ), a * m + b * n = m * n - m - n) ∧
+    ∀ (k : ℕ), k > m * n - m - n → ∃ (a b : ℕ), a * m + b * n = k :=
 begin
   split,
   exact (chicken_mcnugget_upper_bound m n cop mlb nlb),

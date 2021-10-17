@@ -75,7 +75,7 @@ using the dictionary `f`.
 declaration. -/
 meta def transform_decl_with_prefix_fun_aux (f : name → option name)
   (replace_all trace : bool) (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ)
-  (pre tgt_pre : name) (attrs : list name) : name → command :=
+  (pre tgt_pre : name) : name → command :=
 λ src,
 do
   -- if this declaration is not `pre` or an internal declaration, we do nothing.

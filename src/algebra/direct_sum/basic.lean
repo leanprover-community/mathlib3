@@ -55,6 +55,14 @@ end add_comm_group
 variables [Π i, add_comm_monoid (β i)]
 
 @[simp] lemma zero_apply (i : ι) : (0 : ⨁ i, β i) i = 0 := rfl
+@[simp] lemma zero_finite_support : (0 : ⨁ i, β i).finite_support.to_finset = ∅ :=
+begin
+  ext, split,
+  { intro ha,
+    simp only [finset.not_mem_empty, set.finite_empty_to_finset,
+     eq_self_iff_true, not_true, ne.def, zero_apply] at ha, exfalso, exact ha, },
+  { intro h, exfalso, exact finset.not_mem_empty a h, }
+end
 
 variables {β}
 @[simp] lemma add_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ + g₂) i = g₁ i + g₂ i :=
@@ -73,6 +81,32 @@ def mk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →+ ⨁ i, β i :=
 /-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i`. -/
 def of (i : ι) : β i →+ ⨁ i, β i :=
 dfinsupp.single_add_hom β i
+
+@[simp] lemma project_i_of_i (i : ι) (x : β i) : (of _ i x) i = x :=
+begin
+  rw [of, dfinsupp.single_add_hom],
+  dsimp, rw [dfinsupp.single_apply], split_ifs; refl,
+end
+
+lemma project_ne_i_of_i (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
+begin
+  rw [of, dfinsupp.single_add_hom],
+  dsimp, rw [dfinsupp.single_apply], split_ifs,
+  exfalso, exact h h_1, refl,
+end
+
+@[simp] lemma of_finite_support (i : ι) (x : β i) (h : x ≠ 0) :
+  (of _ i x).finite_support.to_finset = {i} :=
+begin
+  ext,split; intro ha,
+  { simp only [set.finite.mem_to_finset, ne.def, set.mem_set_of_eq] at ha,
+    by_cases h₂ : i = a, rw h₂, exact finset.mem_singleton.mpr rfl,
+    exfalso, apply ha, exact (project_ne_i_of_i _ i a x h₂),
+  },
+  { simp only [finset.mem_singleton] at ha, rw ha,
+    simp only [set.finite.mem_to_finset, ne.def, set.mem_set_of_eq],
+    intro rid, rw project_i_of_i at rid, exact h rid }
+end
 
 variables {β}
 

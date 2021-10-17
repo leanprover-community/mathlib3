@@ -80,16 +80,9 @@ end, λ HI, begin
   rw [mem_range], use a, rw ha, refl,
 end⟩
 
--- private lemma lemma1 (i j : ι) (x : A i) : (of A i x) j =
---   dite (i = j) (λ h, h.rec_on x) (λ _, 0) :=
--- begin
---   split_ifs, rw h,
--- end
-
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
-  x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
-⟨sorry, sorry⟩
+  x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I := sorry
 
 end defs
 
@@ -124,7 +117,11 @@ end
 private lemma direct_sum.eq_sum_summand (x : ⨁ i, A i) :
   x = ∑ i in finite.to_finset (dfinsupp.finite_support x), of A i (x i) :=
 begin
-  apply direct_sum.induction_on x; simp_rw
+  ext, simp only [dfinsupp.finset_sum_apply, ne.def],
+  simp_rw [of, dfinsupp.single_add_hom], dsimp,
+  simp_rw [dfinsupp.single_apply],
+  rw finset.sum_dite_eq', split_ifs, refl,
+  simp only [finite.mem_to_finset, not_not, mem_set_of_eq] at h, exact h,
 end
 
 private lemma sum_mem_ideal_iff_summand_mem_ideal

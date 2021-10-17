@@ -91,22 +91,7 @@ end⟩
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
   x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
-⟨begin
-  intro hx, by_contra rid,
-  simp only [not_forall] at rid,
-  rcases rid with ⟨i, hi⟩,
-  set J := ideal.span (set.insert (x - of A i (x i)) I) with HJ,
-  have eq₁ := ideal.mem_span_insert.mp (show x ∈ ideal.span (set.insert (x - of A i (x i)) I), from _),
-  rcases eq₁ with ⟨a, z, Hz, H⟩, sorry,
-  -- apply direct_sum.induction_on x,
-  -- { simp only [forall_const, submodule.zero_mem, add_monoid_hom.map_zero, zero_apply] },
-  -- { intros i y hy j,
-  --   by_cases (i = j),
-  --   dsimp only at hy ⊢, convert hy,
-  --   { rw [←h, lemma1], split_ifs; refl, },
-  --   { rw lemma1, split_ifs, simp only [submodule.zero_mem, add_monoid_hom.map_zero], } },
-  -- { intros y z, }
-end, sorry⟩
+⟨sorry, sorry⟩
 
 end defs
 
@@ -138,6 +123,24 @@ begin
   exact (submodule.span_union _ _).symm,
 end
 
+private lemma direct_sum.eq_sum_summand (x : ⨁ i, A i) :
+  x = ∑ i in finite.to_finset (dfinsupp.finite_support x), of A i (x i) :=
+begin
+  apply direct_sum.induction_on x; simp_rw
+end
+
+private lemma sum_mem_ideal_iff_summand_mem_ideal
+  {α R : Type*} [comm_ring R] (I : ideal R) {s : finset α} {f : α → R} :
+  (∀ i ∈ s, f i ∈ I) → (∑ i in s, f i) ∈ I :=
+begin
+  apply finset.induction_on s,
+  { intros _, simp only [finset.sum_empty, submodule.zero_mem] },
+  { intros a s ha ih H,
+    rw [finset.sum_insert ha], simp only [forall_eq_or_imp, finset.mem_insert] at H,
+    exact ideal.add_mem _ H.1 (ih H.2), }
+
+end
+
 private lemma homogeneous_ideal.inf_subset {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   I ⊓ J ≤ ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} :=
@@ -145,7 +148,10 @@ begin
   rintro x ⟨hxi, hxj⟩,
   have hx : ∀ i, of A i (x i) ∈ I ⊓ J,
   { intro j, split; refine (homogeneous_ideal.mem_iff _ _ x).mp _ _; assumption },
-  sorry,
+
+  rw [direct_sum.eq_sum_summand x],
+  refine sum_mem_ideal_iff_summand_mem_ideal _ _,
+  intros i hi, refine ideal.subset_span _, refine ⟨hx _, _⟩, use ⟨i, x i⟩,
 end
 
 private lemma homogeneous_ideal.subset_inf {I J : ideal (⨁ i, A i)}

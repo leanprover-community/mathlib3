@@ -333,7 +333,7 @@ end
 floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
 
 @[simp, norm_cast] theorem rat.cast_ceil (x : ℚ) : ⌈(x:α)⌉ = ⌈x⌉ :=
-by rw [ceil, ← rat.cast_neg, rat.cast_floor, ← ceil]
+by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.cast_floor]
 
 @[simp, norm_cast] theorem rat.cast_round (x : ℚ) : round (x:α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,

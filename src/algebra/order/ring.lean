@@ -38,6 +38,10 @@ For short,
 * `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+`
   respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
 
+and some typeclasses to define ordered rings by specifying their nonegative elements:
+* `nonneg_ring`: To define `ordered_ring`s.
+* `linear_nonneg_ring`: To define `linear_ordered_ring`s.
+
 ## Hierarchy
 
 The hardest part of proving order lemmas might be to figure out the correct generality and its
@@ -1302,6 +1306,59 @@ def function.injective.linear_ordered_comm_ring {β : Type*}
   ..hf.ordered_comm_ring f zero one add mul neg sub }
 
 end linear_ordered_comm_ring
+
+namespace ring
+
+/-- A positive cone in a ring consists of a positive cone in underlying `add_comm_group`,
+which contains `1` and such that the positive elements are closed under multiplication. -/
+structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_cone α :=
+(one_nonneg : nonneg 1)
+(mul_pos : ∀ (a b), pos a → pos b → pos (a * b))
+
+/-- A positive cone in a ring induces a linear order if `1` is a positive element. -/
+structure total_positive_cone (α : Type*) [ring α]
+  extends positive_cone α, add_comm_group.total_positive_cone α :=
+(one_pos : pos 1)
+
+end ring
+
+namespace ordered_ring
+
+open ring
+
+/-- Construct an `ordered_ring` by
+designating a positive cone in an existing `ring`. -/
+def mk_of_positive_cone {α : Type*} [ring α] (C : positive_cone α) :
+  ordered_ring α :=
+{ zero_le_one := by { change C.nonneg (1 - 0), convert C.one_nonneg, simp, },
+  mul_pos := λ x y xp yp, begin
+    change C.pos (x*y - 0),
+    convert C.mul_pos x y (by { convert xp, simp, }) (by { convert yp, simp, }),
+    simp,
+  end,
+  ..‹ring α›,
+  ..ordered_add_comm_group.mk_of_positive_cone C.to_positive_cone }
+
+end ordered_ring
+
+namespace linear_ordered_ring
+
+open ring
+
+/-- Construct a `linear_ordered_ring` by
+designating a positive cone in an existing `ring`. -/
+def mk_of_positive_cone {α : Type*} [ring α] (C : total_positive_cone α) :
+  linear_ordered_ring α :=
+{ exists_pair_ne := ⟨0, 1, begin
+    intro h,
+    have one_pos := C.one_pos,
+    rw [←h, C.pos_iff] at one_pos,
+    simpa using one_pos,
+  end⟩,
+  ..ordered_ring.mk_of_positive_cone C.to_positive_cone,
+  ..linear_ordered_add_comm_group.mk_of_positive_cone C.to_total_positive_cone, }
+
+end linear_ordered_ring
 
 /-- A canonically ordered commutative semiring is an ordered, commutative semiring
 in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the

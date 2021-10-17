@@ -25,28 +25,30 @@ variables {R : Type u} {S : Type v} {T : Type w}
   [non_assoc_semiring R] [non_assoc_semiring S] [non_assoc_semiring T]
   (M : submonoid R)
 
-set_option old_structure_cmd true
-
 /-- A subsemiring of a semiring `R` is a subset `s` that is both a multiplicative and an additive
 submonoid. -/
-structure subsemiring (R : Type u) [non_assoc_semiring R] extends submonoid R, add_submonoid R
-
-/-- Reinterpret a `subsemiring` as a `submonoid`. -/
-add_decl_doc subsemiring.to_submonoid
+structure subsemiring (R : Type u) [non_assoc_semiring R] extends add_submonoid R :=
+(one_mem' : (1 : R) ∈ carrier)
+(mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
 
 /-- Reinterpret a `subsemiring` as an `add_submonoid`. -/
 add_decl_doc subsemiring.to_add_submonoid
 
 namespace subsemiring
 
+/-- The underlying submonoid of a subsemiring. -/
+@[ancestor]
+def to_submonoid (s : subsemiring R) : submonoid R :=
+{ ..s }
+
 instance : set_like (subsemiring R) R :=
-⟨subsemiring.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨(λ s, (s.to_add_submonoid : set R)), λ p q h, by rcases p with ⟨⟨⟩⟩; rcases q with ⟨⟨⟩⟩; congr'⟩
 
 @[simp]
 lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
 @[simp]
-lemma mem_mk {c mz ma mo mm} {x : R} : x ∈ (⟨c, mz, ma, mo, mm⟩ : subsemiring R) ↔ x ∈ c := iff.rfl
+lemma mem_mk {as mo mm} {x : R} : x ∈ (⟨as, mo, mm⟩ : subsemiring R) ↔ x ∈ as := iff.rfl
 
 /-- Two subsemirings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
@@ -54,8 +56,7 @@ lemma mem_mk {c mz ma mo mm} {x : R} : x ∈ (⟨c, mz, ma, mo, mm⟩ : subsemir
 /-- Copy of a subsemiring with a new `carrier` equal to the old one. Useful to fix definitional
 equalities.-/
 protected def copy (S : subsemiring R) (s : set R) (hs : s = ↑S) : subsemiring R :=
-{ carrier := s,
-  ..S.to_add_submonoid.copy s hs,
+{ to_add_submonoid := S.to_add_submonoid.copy s hs,
   ..S.to_submonoid.copy s hs }
 
 @[simp] lemma coe_copy (S : subsemiring R) (s : set R) (hs : s = ↑S) :
@@ -89,11 +90,8 @@ submonoid `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
 protected def mk' (s : set R) (sm : submonoid R) (hm : ↑sm = s)
   (sa : add_submonoid R) (ha : ↑sa = s) :
   subsemiring R :=
-{ carrier := s,
-  zero_mem' := ha ▸ sa.zero_mem,
-  one_mem' := hm ▸ sm.one_mem,
-  add_mem' := λ x y, by simpa only [← ha] using sa.add_mem,
-  mul_mem' := λ x y, by simpa only [← hm] using sm.mul_mem }
+{ to_add_submonoid := sa.copy s ha.symm,
+  ..sm.copy s hm.symm }
 
 @[simp] lemma coe_mk' {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_submonoid R} (ha : ↑sa = s) :
@@ -519,7 +517,7 @@ of the closure of `s`. -/
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
+(@closure_le _ _ _ ⟨⟨p, H0, Hadd⟩, H1, Hmul⟩).2 Hs h
 
 lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=

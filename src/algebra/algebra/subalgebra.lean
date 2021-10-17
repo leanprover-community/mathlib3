@@ -57,7 +57,7 @@ def mk' (s : set A)
   algebra_map_mem' := algebra_map_mem, }
 
 instance : set_like (subalgebra R A) A :=
-⟨λ s, (s.to_subsemiring : set A), λ p q h, by rcases p with ⟨⟨⟩⟩; rcases q with ⟨⟨⟩⟩; congr'⟩
+⟨λ s, (s.to_subsemiring : set A), by { rintros ⟨⟨⟨⟩⟩⟩ ⟨⟨⟨⟩⟩⟩ h, congr' }⟩
 
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl

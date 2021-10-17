@@ -59,7 +59,7 @@ namespace intermediate_field
 def to_subfield : subfield L := { ..S.to_subalgebra, ..S }
 
 instance : set_like (intermediate_field K L) L :=
-⟨λ S, (S.to_subfield : set L), by { rintros ⟨⟨⟨⟩⟩⟩ ⟨⟨⟨⟩⟩⟩ ⟨h⟩, congr, }⟩
+⟨λ S, (S.to_subfield : set L), by { rintros ⟨⟨⟨⟨⟩⟩⟩⟩ ⟨⟨⟨⟨⟩⟩⟩⟩ ⟨h⟩, congr, }⟩
 
 @[simp]
 lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl

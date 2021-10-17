@@ -89,7 +89,7 @@ def to_submonoid (s : subring R) : submonoid R :=
   ..s.to_subsemiring.to_submonoid }
 
 instance : set_like (subring R) R :=
-⟨λ s, (s.to_subsemiring : set R), λ p q h, by rcases p with ⟨⟨⟩⟩; rcases q with ⟨⟨⟩⟩; congr'⟩
+⟨λ s, (s.to_subsemiring : set R), λ p q h, by rcases p with ⟨⟨⟨⟩⟩⟩; rcases q with ⟨⟨⟨⟩⟩⟩; congr'⟩
 
 @[simp]
 lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -159,33 +159,29 @@ to_submonoid_strict_mono.monotone
 
 /-- Construct a `subring R` from a set `s`, a submonoid `sm`, and an additive
 subgroup `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
-protected def mk' (s : set R) (sm : submonoid R) (sa : add_subgroup R)
-  (hm : ↑sm = s) (ha : ↑sa = s) :
+protected def mk' (s : set R) (sm : submonoid R) (hm : ↑sm = s)
+  (sa : add_subgroup R) (ha : ↑sa = s) :
   subring R :=
-{ carrier := s,
-  zero_mem' := ha ▸ sa.zero_mem,
-  one_mem' := hm ▸ sm.one_mem,
-  add_mem' := λ x y, by simpa only [← ha] using sa.add_mem,
-  mul_mem' := λ x y, by simpa only [← hm] using sm.mul_mem,
-  neg_mem' := λ x, by simpa only [← ha] using sa.neg_mem, }
+{ to_subsemiring := subsemiring.mk' s sm hm sa.to_add_submonoid ha,
+  ..sa.copy s ha.symm }
 
 @[simp] lemma coe_mk' {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa = s) :
-  (subring.mk' s sm sa hm ha : set R) = s := rfl
+  (subring.mk' s sm hm sa ha : set R) = s := rfl
 
 @[simp] lemma mem_mk' {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa = s) {x : R} :
-  x ∈ subring.mk' s sm sa hm ha ↔ x ∈ s :=
+  x ∈ subring.mk' s sm hm sa ha ↔ x ∈ s :=
 iff.rfl
 
 @[simp] lemma mk'_to_submonoid {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa = s) :
-  (subring.mk' s sm sa hm ha).to_submonoid = sm :=
+  (subring.mk' s sm hm sa ha).to_submonoid = sm :=
 set_like.coe_injective hm.symm
 
 @[simp] lemma mk'_to_add_subgroup {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa  =s) :
-  (subring.mk' s sm sa hm ha).to_add_subgroup = sa :=
+  (subring.mk' s sm hm sa ha).to_add_subgroup = sa :=
 set_like.coe_injective ha.symm
 
 end subring
@@ -471,8 +467,9 @@ instance : has_inf (subring R) :=
 @[simp] lemma mem_inf {p p' : subring R} {x : R} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 instance : has_Inf (subring R) :=
-⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t )
-  (⨅ t ∈ s, subring.to_add_subgroup t) (by simp) (by simp)⟩
+⟨λ s, subring.mk' (⋂ t ∈ s, ↑t)
+  (⨅ t ∈ s, subring.to_submonoid t) (by simp)
+  (⨅ t ∈ s, subring.to_add_subgroup t) (by simp)⟩
 
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
@@ -591,7 +588,7 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hneg : ∀ (x : R), p x → p (-x))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨⟨p, H1, Hmul, H0, Hadd⟩, Hneg⟩).2 Hs h
+(@closure_le _ _ _ ⟨⟨⟨p,  H0, Hadd⟩, H1, Hmul⟩, Hneg⟩).2 Hs h
 
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
@@ -727,8 +724,9 @@ lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subring R} (hS :
 begin
   refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr S i) hi⟩,
   let U : subring R := subring.mk' (⋃ i, (S i : set R))
-    (⨆ i, (S i).to_submonoid) (⨆ i, (S i).to_add_subgroup)
+    (⨆ i, (S i).to_submonoid)
     (submonoid.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id))
+    (⨆ i, (S i).to_add_subgroup)
     (add_subgroup.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id)),
   suffices : (⨆ i, S i) ≤ U, by simpa using @this x,
   exact supr_le (λ i x hx, set.mem_Union.2 ⟨i, hx⟩),

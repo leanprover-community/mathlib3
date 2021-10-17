@@ -63,11 +63,11 @@ lemma id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by si
 variables (J) (K)
 
 /-- The composition of two cover-preserving functors is cover-preserving. -/
-lemma cover_preserving.comp {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
-  cover_preserving J L (G ⋙ v) := ⟨λ U S hS,
+lemma cover_preserving.comp {F} (hF : cover_preserving J K F) {G} (hG : cover_preserving K L G) :
+  cover_preserving J L (F ⋙ G) := ⟨λ U S hS,
 begin
   rw sieve.functor_pushforward_comp,
-  exact hv.cover_preserve (hG.cover_preserve hS)
+  exact hG.cover_preserve (hF.cover_preserve hS)
 end⟩
 
 /--

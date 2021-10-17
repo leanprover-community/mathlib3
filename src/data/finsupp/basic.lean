@@ -302,7 +302,7 @@ end
 
 lemma support_single_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
-by simpa [support_single_ne_zero, hb, hb'] using ne_comm
+by rw [support_single_ne_zero hb, support_single_ne_zero hb', disjoint_singleton]
 
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 by simp [ext_iff, single_eq_indicator]

@@ -356,11 +356,10 @@ lemma affine_equiv.affine_independent_iff {p : ι → P} (e : P ≃ᵃ[k] P₂) 
 e.to_affine_map.affine_independent_iff e.to_equiv.injective
 
 /-- Affine equivalences preserve affine independence of subsets. -/
-lemma affine_equiv.affine_independent_set_of_eq_iff {s : set P} {t : set P₂} (e : P ≃ᵃ[k] P₂)
-  (h : e '' s = t) :
-  affine_independent k (coe : t → P₂) ↔ affine_independent k (coe : s → P) :=
+lemma affine_equiv.affine_independent_set_of_eq_iff {s : set P} (e : P ≃ᵃ[k] P₂) :
+  affine_independent k (coe : (e '' s) → P₂) ↔ affine_independent k (coe : s → P) :=
 begin
-  have : e ∘ (coe : s → P) = (coe : t → P₂) ∘ (equiv.set.image_of_eq (e : P ≃ P₂) h), { refl, },
+  have : e ∘ (coe : s → P) = (coe : e '' s → P₂) ∘ ((e : P ≃ P₂).image s) := rfl,
   rw [← e.affine_independent_iff, this, affine_independent_equiv],
 end
 

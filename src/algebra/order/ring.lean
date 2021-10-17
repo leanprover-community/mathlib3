@@ -1314,11 +1314,13 @@ end linear_ordered_comm_ring
 
 namespace ring
 
+/-- A positive cone in a ring consists of a positive cone in underlying `add_comm_group`,
+which contains `1` and such that the positive elements are closed under multiplication. -/
 structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_cone α :=
 (one_nonneg : nonneg 1)
-(mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (mul_pos : ∀ (a b), pos a → pos b → pos (a * b))
 
+/-- A positive cone in a ring induces a linear order if `1` is a positive element. -/
 structure total_positive_cone (α : Type*) [ring α]
   extends positive_cone α, add_comm_group.total_positive_cone α :=
 (one_pos : pos 1)
@@ -1359,8 +1361,7 @@ def mk_of_positive_cone {α : Type*} [ring α] (C : total_positive_cone α) :
     simpa using one_pos,
   end⟩,
   ..ordered_ring.mk_of_positive_cone C.to_positive_cone,
-  ..linear_ordered_add_comm_group.mk_of_positive_cone C.to_total_positive_cone,
-   }
+  ..linear_ordered_add_comm_group.mk_of_positive_cone C.to_total_positive_cone, }
 
 end linear_ordered_ring
 

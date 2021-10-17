@@ -360,6 +360,22 @@ begin
     exact ⟨⟨x⟩⟩ }
 end
 
+instance [topological_space β] [preconnected_space α] [preconnected_space β] :
+  preconnected_space (α × β) :=
+⟨by { rw ← univ_prod_univ, exact is_preconnected_univ.prod is_preconnected_univ }⟩
+
+instance [topological_space β] [connected_space α] [connected_space β] :
+  connected_space (α × β) :=
+⟨prod.nonempty⟩
+
+instance {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+  [∀ i, preconnected_space (π i)] : preconnected_space (Π i, π i) :=
+⟨by { rw ← pi_univ univ, exact is_preconnected_univ_pi (λ i, is_preconnected_univ) }⟩
+
+instance {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+  [∀ i, connected_space (π i)] : connected_space (Π i, π i) :=
+⟨classical.nonempty_pi.2 $ λ i, by apply_instance⟩
+
 @[priority 100] -- see Note [lower instance priority]
 instance preirreducible_space.preconnected_space (α : Type u) [topological_space α]
   [preirreducible_space α] : preconnected_space α :=

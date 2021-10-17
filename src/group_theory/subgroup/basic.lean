@@ -408,6 +408,8 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
+@[to_additive] instance : unique (⊥ : subgroup G) := ⟨⟨1⟩, λ g, subtype.ext g.2⟩
+
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
 begin
   rw set_like.ext'_iff,
@@ -952,6 +954,18 @@ begin
   refl,
 end
 
+@[simp, to_additive] lemma bot_subgroup_of : (⊥ : subgroup G).subgroup_of H = ⊥ :=
+eq.symm (subgroup.ext (λ g, subtype.ext_iff))
+
+@[simp, to_additive] lemma top_subgroup_of : (⊤ : subgroup G).subgroup_of H = ⊤ :=
+rfl
+
+@[to_additive] lemma subgroup_of_bot_eq_bot : H.subgroup_of ⊥ = ⊥ :=
+subsingleton.elim _ _
+
+@[to_additive] lemma subgroup_of_bot_eq_top : H.subgroup_of ⊥ = ⊤ :=
+subsingleton.elim _ _
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]
@@ -1413,6 +1427,10 @@ range_top_iff_surjective.2 hf
 @[simp, to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
 by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], ext, simp }
 
+@[simp, to_additive] lemma _root_.subgroup.inclusion_range {H K : subgroup G} (h_le : H ≤ K) :
+  (inclusion h_le).range = H.subgroup_of K :=
+subgroup.ext (λ g, set.ext_iff.mp (set.range_inclusion h_le) g)
+
 /-- Restriction of a group hom to a subgroup of the domain. -/
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the domain."]
 def restrict (f : G →* N) (H : subgroup G) : H →* N :=
@@ -1525,6 +1543,13 @@ begin
     rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
   { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
 end
+
+@[simp, to_additive] lemma _root_.subgroup.ker_subtype (H : subgroup G) : H.subtype.ker = ⊥ :=
+H.subtype.ker_eq_bot_iff.mpr subtype.coe_injective
+
+@[simp, to_additive] lemma _root_.subgroup.ker_inclusion {H K : subgroup G} (h : H ≤ K) :
+  (inclusion h).ker = ⊥ :=
+(inclusion h).ker_eq_bot_iff.mpr (set.inclusion_injective h)
 
 @[to_additive]
 lemma prod_map_comap_prod {G' : Type*} {N' : Type*} [group G'] [group N']

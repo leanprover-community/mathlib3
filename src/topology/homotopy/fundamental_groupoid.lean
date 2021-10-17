@@ -253,8 +253,8 @@ end homotopy
 end path
 
 /--
-The fundamental groupoid of a space `X` is defined to be a type synonym for `X`, and we put a
-`category_theory.groupoid` structure on it.
+The fundamental groupoid of a space `X` is defined to be a type synonym for `X`, and we subsequently
+put a `category_theory.groupoid` structure on it.
 -/
 def fundamental_groupoid (X : Type u) := X
 

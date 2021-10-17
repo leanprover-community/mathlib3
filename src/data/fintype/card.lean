@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.fintype.basic
 import algebra.big_operators.ring
+import algebra.big_operators.option
 
 /-!
 Results about "big operations" over a `fintype`, and consequent
@@ -91,9 +92,7 @@ variables {M : Type*} [fintype α] [comm_monoid M]
 
 @[simp, to_additive]
 lemma fintype.prod_option (f : option α → M) : ∏ i, f i = f none * ∏ i, f (some i) :=
-show ((finset.insert_none _).1.map f).prod = _,
-by simp only [finset.prod, finset.insert_none, multiset.map_cons, multiset.prod_cons,
-  multiset.map_map]
+finset.prod_insert_none f univ
 
 end
 

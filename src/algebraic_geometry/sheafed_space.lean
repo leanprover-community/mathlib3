@@ -33,7 +33,7 @@ namespace algebraic_geometry
 
 /-- A `SheafedSpace C` is a topological space equipped with a sheaf of `C`s. -/
 structure SheafedSpace extends PresheafedSpace C :=
-(sheaf_condition : presheaf.sheaf_condition)
+(is_sheaf : presheaf.is_sheaf)
 
 variables {C}
 
@@ -43,23 +43,21 @@ instance coe_carrier : has_coe (SheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 
 /-- Extract the `sheaf C (X : Top)` from a `SheafedSpace C`. -/
-def sheaf (X : SheafedSpace C) : sheaf C (X : Top.{v}) := ⟨X.presheaf, X.sheaf_condition⟩
+def sheaf (X : SheafedSpace C) : sheaf C (X : Top.{v}) := ⟨X.presheaf, X.is_sheaf⟩
 
 @[simp] lemma as_coe (X : SheafedSpace C) : X.carrier = (X : Top.{v}) := rfl
 @[simp] lemma mk_coe (carrier) (presheaf) (h) :
-  (({ carrier := carrier, presheaf := presheaf, sheaf_condition := h } : SheafedSpace.{v} C) :
+  (({ carrier := carrier, presheaf := presheaf, is_sheaf := h } : SheafedSpace.{v} C) :
   Top.{v}) = carrier :=
 rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
 /-- The trivial `punit` valued sheaf on any topological space. -/
-noncomputable
 def punit (X : Top) : SheafedSpace (discrete punit) :=
-{ sheaf_condition := presheaf.sheaf_condition_punit _,
+{ is_sheaf := presheaf.is_sheaf_punit _,
   ..@PresheafedSpace.const (discrete punit) _ X punit.star }
 
-noncomputable
 instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
 
 instance : category (SheafedSpace C) :=
@@ -85,8 +83,8 @@ lemma id_c (X : SheafedSpace C) :
   (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
 
 @[simp] lemma id_c_app (X : SheafedSpace C) (U) :
-  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { op_induction U, cases U, refl }) :=
-by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
+  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { induction U using opposite.rec, cases U, refl }) :=
+by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 
 @[simp] lemma comp_base {X Y Z : SheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl
@@ -109,18 +107,16 @@ open Top.presheaf
 /--
 The restriction of a sheafed space along an open embedding into the space.
 -/
-noncomputable
 def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
-{ sheaf_condition := λ ι 𝒰, is_limit.of_iso_limit
-    ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.sheaf_condition _))
-    (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm,
+{ is_sheaf := λ ι 𝒰, ⟨is_limit.of_iso_limit
+    ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.is_sheaf _).some)
+    (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm⟩,
   ..X.to_PresheafedSpace.restrict f h }
 
 /--
 The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` itself.
 -/
-noncomputable
 def restrict_top_iso (X : SheafedSpace C) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
 @preimage_iso _ _ _ _ forget_to_PresheafedSpace _ _

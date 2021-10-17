@@ -1114,8 +1114,8 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
     end,
   finite := λ n, measure_Ioo_lt_top,
   spanning := Union_eq_univ_iff.2 $ λ x,
-    ⟨⌊|x|⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
-      (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
+    ⟨⌊|x|⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (nat.lt_floor_add_one _)),
+      (le_abs_self x).trans_lt (nat.lt_floor_add_one _)⟩ }
 
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
@@ -1255,7 +1255,7 @@ end
 
 instance : has_measurable_sub₂ ℝ≥0∞ :=
 ⟨by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
+  simp [← with_top.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
 
 instance : has_measurable_inv ℝ≥0∞ := ⟨ennreal.continuous_inv.measurable⟩
 

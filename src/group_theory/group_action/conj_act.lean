@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.group_action.basic
+import group_theory.subgroup.basic
 /-!
 # Conjugation action of a group on itself
 
@@ -13,7 +14,7 @@ the definition of conjugation as a homomorphism into the automorphism group.
 ## Main definitions
 
 A type alias `conj_act G` is introduced for a group `G`. The group `conj_act G` acts on `G`
-by conjugation.
+by conjugation. The group `conj_act G` also acts on any normal subgroup of `G` by conjugation.
 
 ## Implementation Notes
 
@@ -110,5 +111,37 @@ begin
   ext x,
   simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
+
+/-- As normal subgroups are closed under conjugation, they inherit the conjugation action
+  of the underlying group. -/
+instance subgroup.conj_action {H : subgroup G} [hH : H.normal] :
+  has_scalar (conj_act G) H :=
+⟨λ g h, ⟨g • h, hH.conj_mem h.1 h.2 (of_conj_act g)⟩⟩
+
+lemma subgroup.coe_conj_smul {H : subgroup G} [hH : H.normal] (g : conj_act G) (h : H) :
+  ↑(g • h) = g • (h : G) := rfl
+
+instance subgroup.conj_mul_distrib_mul_action {H : subgroup G} [hH : H.normal] :
+  mul_distrib_mul_action (conj_act G) H :=
+(subtype.coe_injective).mul_distrib_mul_action H.subtype subgroup.coe_conj_smul
+
+/-- Group conjugation on a normal subgroup. Analogous to `mul_aut.conj`. -/
+def _root_.mul_aut.conj_normal {H : subgroup G} [hH : H.normal] : G →* mul_aut H :=
+(mul_distrib_mul_action.to_mul_aut (conj_act G) H).comp to_conj_act.to_monoid_hom
+
+@[simp] lemma _root_.mul_aut.conj_normal_apply {H : subgroup G} [H.normal] (g : G) (h : H) :
+  ↑(mul_aut.conj_normal g h) = g * h * g⁻¹ := rfl
+
+@[simp] lemma _root_.mul_aut.conj_normal_symm_apply {H : subgroup G} [H.normal] (g : G) (h : H) :
+  ↑((mul_aut.conj_normal g).symm h) = g⁻¹ * h * g :=
+by { change _ * (_)⁻¹⁻¹ = _, rw inv_inv, refl }
+
+@[simp] lemma _root_.mul_aut.conj_normal_inv_apply {H : subgroup G} [H.normal] (g : G) (h : H) :
+  ↑((mul_aut.conj_normal g)⁻¹ h) = g⁻¹ * h * g :=
+mul_aut.conj_normal_symm_apply g h
+
+lemma _root_.mul_aut.conj_normal_coe {H : subgroup G} [H.normal] {h : H} :
+  mul_aut.conj_normal ↑h = mul_aut.conj h :=
+mul_equiv.ext (λ x, rfl)
 
 end conj_act

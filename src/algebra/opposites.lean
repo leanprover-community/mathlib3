@@ -22,11 +22,61 @@ universes u
 
 variables (α : Type u)
 
+instance [has_zero α] : has_zero (opposite α) :=
+{ zero := op 0 }
+
+instance [has_one α] : has_one (opposite α) :=
+{ one := op 1 }
+
 instance [has_add α] : has_add (opposite α) :=
 { add := λ x y, op (unop x + unop y) }
 
 instance [has_sub α] : has_sub (opposite α) :=
 { sub := λ x y, op (unop x - unop y) }
+
+instance [has_neg α] : has_neg (opposite α) :=
+{ neg := λ x, op $ -(unop x) }
+
+instance [has_mul α] : has_mul (opposite α) :=
+{ mul := λ x y, op (unop y * unop x) }
+
+instance [has_inv α] : has_inv (opposite α) :=
+{ inv := λ x, op $ (unop x)⁻¹ }
+
+instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
+{ smul := λ c x, op (c • unop x) }
+
+section
+variables (α)
+
+@[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
+@[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
+
+@[simp] lemma op_one [has_one α] : op (1 : α) = 1 := rfl
+@[simp] lemma unop_one [has_one α] : unop (1 : αᵒᵖ) = 1 := rfl
+
+variable {α}
+
+@[simp] lemma op_add [has_add α] (x y : α) : op (x + y) = op x + op y := rfl
+@[simp] lemma unop_add [has_add α] (x y : αᵒᵖ) : unop (x + y) = unop x + unop y := rfl
+
+@[simp] lemma op_neg [has_neg α] (x : α) : op (-x) = -op x := rfl
+@[simp] lemma unop_neg [has_neg α] (x : αᵒᵖ) : unop (-x) = -unop x := rfl
+
+@[simp] lemma op_mul [has_mul α] (x y : α) : op (x * y) = op y * op x := rfl
+@[simp] lemma unop_mul [has_mul α] (x y : αᵒᵖ) : unop (x * y) = unop y * unop x := rfl
+
+@[simp] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
+@[simp] lemma unop_inv [has_inv α] (x : αᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
+
+@[simp] lemma op_sub [add_group α] (x y : α) : op (x - y) = op x - op y := rfl
+@[simp] lemma unop_sub [add_group α] (x y : αᵒᵖ) : unop (x - y) = unop x - unop y := rfl
+
+@[simp] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : op (c • a) = c • op a := rfl
+@[simp] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵒᵖ) :
+  unop (c • a) = c • unop a := rfl
+
+end
 
 instance [add_semigroup α] : add_semigroup (opposite α) :=
 { add_assoc := λ x y z, unop_injective $ add_assoc (unop x) (unop y) (unop z),
@@ -44,8 +94,6 @@ instance [add_comm_semigroup α] : add_comm_semigroup (opposite α) :=
 { add_comm := λ x y, unop_injective $ add_comm (unop x) (unop y),
   .. opposite.add_semigroup α }
 
-instance [has_zero α] : has_zero (opposite α) :=
-{ zero := op 0 }
 
 instance [nontrivial α] : nontrivial (opposite α) :=
 let ⟨x, y, h⟩ := exists_pair_ne α in nontrivial_of_ne (op x) (op y) (op_injective.ne h)
@@ -76,9 +124,6 @@ instance [add_monoid α] : add_monoid (opposite α) :=
 instance [add_comm_monoid α] : add_comm_monoid (opposite α) :=
 { .. opposite.add_monoid α, .. opposite.add_comm_semigroup α }
 
-instance [has_neg α] : has_neg (opposite α) :=
-{ neg := λ x, op $ -(unop x) }
-
 instance [add_group α] : add_group (opposite α) :=
 { add_left_neg := λ x, unop_injective $ add_left_neg $ unop x,
   sub_eq_add_neg := λ x y, unop_injective $ sub_eq_add_neg (unop x) (unop y),
@@ -86,9 +131,6 @@ instance [add_group α] : add_group (opposite α) :=
 
 instance [add_comm_group α] : add_comm_group (opposite α) :=
 { .. opposite.add_group α, .. opposite.add_comm_monoid α }
-
-instance [has_mul α] : has_mul (opposite α) :=
-{ mul := λ x y, op (unop y * unop x) }
 
 instance [semigroup α] : semigroup (opposite α) :=
 { mul_assoc := λ x y z, unop_injective $ eq.symm $ mul_assoc (unop z) (unop y) (unop x),
@@ -106,9 +148,6 @@ instance [comm_semigroup α] : comm_semigroup (opposite α) :=
 { mul_comm := λ x y, unop_injective $ mul_comm (unop y) (unop x),
   .. opposite.semigroup α }
 
-instance [has_one α] : has_one (opposite α) :=
-{ one := op 1 }
-
 section
 local attribute [semireducible] opposite
 @[simp] lemma unop_eq_one_iff {α} [has_one α] (a : αᵒᵖ) : a.unop = 1 ↔ a = 1 :=
@@ -124,7 +163,15 @@ instance [mul_one_class α] : mul_one_class (opposite α) :=
   .. opposite.has_mul α, .. opposite.has_one α }
 
 instance [monoid α] : monoid (opposite α) :=
-{ .. opposite.semigroup α, .. opposite.mul_one_class α }
+{ npow := λ n x, op $ monoid.npow n x.unop,
+  npow_zero' := λ x, unop_injective $ monoid.npow_zero' x.unop,
+  npow_succ' := λ n x, unop_injective $ (monoid.npow_succ' n x.unop).trans begin
+    dsimp,
+    induction n with n ih,
+    { rw [monoid.npow_zero', one_mul, mul_one] },
+    { rw [monoid.npow_succ' n x.unop, mul_assoc, ih], },
+  end,
+  .. opposite.semigroup α, .. opposite.mul_one_class α }
 
 instance [right_cancel_monoid α] : left_cancel_monoid (opposite α) :=
 { .. opposite.left_cancel_semigroup α, ..opposite.monoid α }
@@ -141,12 +188,21 @@ instance [comm_monoid α] : comm_monoid (opposite α) :=
 instance [cancel_comm_monoid α] : cancel_comm_monoid (opposite α) :=
 { .. opposite.cancel_monoid α, ..opposite.comm_monoid α }
 
-instance [has_inv α] : has_inv (opposite α) :=
-{ inv := λ x, op $ (unop x)⁻¹ }
+instance [div_inv_monoid α] : div_inv_monoid (opposite α) :=
+{ gpow := λ n x, op $ div_inv_monoid.gpow n x.unop,
+  gpow_zero' := λ x, unop_injective $ div_inv_monoid.gpow_zero' x.unop,
+  gpow_succ' := λ n x, unop_injective $ (div_inv_monoid.gpow_succ' n x.unop).trans begin
+    dsimp,
+    induction n with n ih,
+    { rw [int.of_nat_zero, div_inv_monoid.gpow_zero', one_mul, mul_one] },
+    { rw [div_inv_monoid.gpow_succ' n x.unop, mul_assoc, ih], },
+  end,
+  gpow_neg' := λ z x, unop_injective $ div_inv_monoid.gpow_neg' z x.unop,
+  .. opposite.monoid α, .. opposite.has_inv α }
 
 instance [group α] : group (opposite α) :=
 { mul_left_inv := λ x, unop_injective $ mul_inv_self $ unop x,
-  .. opposite.monoid α, .. opposite.has_inv α }
+  .. opposite.div_inv_monoid α, }
 
 instance [comm_group α] : comm_group (opposite α) :=
 { .. opposite.group α, .. opposite.comm_monoid α }
@@ -181,7 +237,8 @@ instance [non_assoc_semiring α] : non_assoc_semiring (opposite α) :=
 { .. opposite.mul_zero_one_class α, .. opposite.non_unital_non_assoc_semiring α }
 
 instance [semiring α] : semiring (opposite α) :=
-{ .. opposite.non_unital_semiring α, .. opposite.non_assoc_semiring α }
+{ .. opposite.non_unital_semiring α, .. opposite.non_assoc_semiring α,
+  .. opposite.monoid_with_zero α }
 
 instance [comm_semiring α] : comm_semiring (opposite α) :=
 { .. opposite.semiring α, .. opposite.comm_semigroup α }
@@ -203,16 +260,13 @@ instance [integral_domain α] : integral_domain (opposite α) :=
 instance [group_with_zero α] : group_with_zero (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
   inv_zero := unop_injective inv_zero,
-  .. opposite.monoid_with_zero α, .. opposite.nontrivial α, .. opposite.has_inv α }
+  .. opposite.monoid_with_zero α, .. opposite.div_inv_monoid α, .. opposite.nontrivial α }
 
 instance [division_ring α] : division_ring (opposite α) :=
 { .. opposite.group_with_zero α, .. opposite.ring α }
 
 instance [field α] : field (opposite α) :=
 { .. opposite.division_ring α, .. opposite.comm_ring α }
-
-instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
-{ smul := λ c x, op (c • unop x) }
 
 instance (R : Type*) [monoid R] [mul_action R α] : mul_action R (opposite α) :=
 { one_smul := λ x, unop_injective $ one_smul R (unop x),
@@ -231,13 +285,21 @@ instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
   smul_one := λ r, unop_injective $ smul_one r,
   ..opposite.mul_action α R }
 
+instance {M N} [has_scalar M N] [has_scalar M α] [has_scalar N α] [is_scalar_tower M N α] :
+  is_scalar_tower M N αᵒᵖ :=
+⟨λ x y z, unop_injective $ smul_assoc _ _ _⟩
+
+instance {M N} [has_scalar M α] [has_scalar N α] [smul_comm_class M N α] :
+  smul_comm_class M N αᵒᵖ :=
+⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
+
 /-- Like `has_mul.to_has_scalar`, but multiplies on the right.
 
 See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/
 instance _root_.has_mul.to_has_opposite_scalar [has_mul α] : has_scalar (opposite α) α :=
 { smul := λ c x, x * c.unop }
 
-lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+@[simp] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
 
 instance _root_.semigroup.opposite_smul_comm_class [semigroup α] :
   smul_comm_class (opposite α) α α :=
@@ -253,6 +315,16 @@ instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action (opposite
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
 
+instance _root_.is_scalar_tower.opposite_mid {M N} [monoid N] [has_scalar M N]
+  [smul_comm_class M N N] :
+  is_scalar_tower M Nᵒᵖ N :=
+⟨λ x y z, mul_smul_comm _ _ _⟩
+
+instance _root_.smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
+  [is_scalar_tower M N N] :
+  smul_comm_class M Nᵒᵖ N :=
+⟨λ x y z, by { induction y using opposite.rec, simp [smul_mul_assoc] }⟩
+
 -- The above instance does not create an unwanted diamond, the two paths to
 -- `mul_action (opposite α) (opposite α)` are defeq.
 example [monoid α] : monoid.to_mul_action (opposite α) = opposite.mul_action α (opposite α) := rfl
@@ -267,32 +339,7 @@ instance _root_.cancel_monoid_with_zero.to_has_faithful_opposite_scalar
   [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar (opposite α) α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel₀ one_ne_zero (h 1)⟩
 
-@[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
-@[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
-
-@[simp] lemma op_one [has_one α] : op (1 : α) = 1 := rfl
-@[simp] lemma unop_one [has_one α] : unop (1 : αᵒᵖ) = 1 := rfl
-
 variable {α}
-
-@[simp] lemma op_add [has_add α] (x y : α) : op (x + y) = op x + op y := rfl
-@[simp] lemma unop_add [has_add α] (x y : αᵒᵖ) : unop (x + y) = unop x + unop y := rfl
-
-@[simp] lemma op_neg [has_neg α] (x : α) : op (-x) = -op x := rfl
-@[simp] lemma unop_neg [has_neg α] (x : αᵒᵖ) : unop (-x) = -unop x := rfl
-
-@[simp] lemma op_mul [has_mul α] (x y : α) : op (x * y) = op y * op x := rfl
-@[simp] lemma unop_mul [has_mul α] (x y : αᵒᵖ) : unop (x * y) = unop y * unop x := rfl
-
-@[simp] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
-@[simp] lemma unop_inv [has_inv α] (x : αᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
-
-@[simp] lemma op_sub [add_group α] (x y : α) : op (x - y) = op x - op y := rfl
-@[simp] lemma unop_sub [add_group α] (x y : αᵒᵖ) : unop (x - y) = unop x - unop y := rfl
-
-@[simp] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : op (c • a) = c • op a := rfl
-@[simp] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵒᵖ) :
-  unop (c • a) = c • unop a := rfl
 
 lemma semiconj_by.op [has_mul α] {a x y : α} (h : semiconj_by a x y) :
   semiconj_by (op a) (op y) (op x) :=
@@ -395,7 +442,7 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
 /-- The units of the opposites are equivalent to the opposites of the units. -/
 def units.op_equiv {R} [monoid R] : units Rᵒᵖ ≃* (units R)ᵒᵖ :=
 { to_fun := λ u, op ⟨unop u, unop ↑(u⁻¹), op_injective u.4, op_injective u.3⟩,
-  inv_fun := op_induction $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
+  inv_fun := opposite.rec $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
   map_mul' := λ x y, unop_injective $ units.ext $ rfl,
   left_inv := λ x, units.ext $ rfl,
   right_inv := λ x, unop_injective $ units.ext $ rfl }

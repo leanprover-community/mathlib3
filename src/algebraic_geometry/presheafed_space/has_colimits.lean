@@ -96,7 +96,7 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
   begin
     apply (op_equiv _ _).injective,
     ext U,
-    op_induction U,
+    induction U using opposite.rec,
     cases U,
     dsimp, simp, dsimp, simp,
   end,
@@ -153,7 +153,7 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
       { ext x,
         exact colimit.w_apply (F ⋙ PresheafedSpace.forget C) f x, },
       { ext U,
-        op_induction U,
+        induction U using opposite.rec,
         cases U,
         dsimp,
         simp only [PresheafedSpace.id_c_app, eq_to_hom_op, eq_to_hom_map, assoc,

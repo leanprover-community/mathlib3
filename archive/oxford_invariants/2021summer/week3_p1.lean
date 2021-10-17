@@ -133,6 +133,6 @@ begin
         end },
   -- Check the divisibility condition
   { rw [nat.mul_sub_left_distrib, ← mul_assoc, nat.mul_div_cancel' ha, add_mul,
-      nat.mul_div_cancel' han, nat.add_sub_sub_cancel ha₀, nat.add_sub_cancel],
+      nat.mul_div_cancel' han, add_sub_sub_cancel' ha₀, nat.add_sub_cancel],
     exact dvd_mul_right _ _ }
 end

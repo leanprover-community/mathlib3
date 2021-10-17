@@ -31,7 +31,6 @@ is normed) that `∥f x∥` is bounded by a multiple of `∥x∥`. Hence the "bo
 ## Main theorems
 
 * `is_bounded_bilinear_map.continuous`: A bounded bilinear map is continuous.
-* `linear_map.norm_apply_of_isometry`: A linear isometry preserves the norm.
 * `continuous_linear_equiv.is_open`: The continuous linear equivalences are an open subset of the
   set of continuous linear maps between a pair of Banach spaces.  Placed in this file because its
   proof uses `is_bounded_bilinear_map.continuous`.
@@ -496,18 +495,6 @@ begin
 end
 
 end bilinear_map
-
-/-- A linear isometry preserves the norm. -/
-lemma linear_map.norm_apply_of_isometry (f : E →ₗ[𝕜] F) {x : E} (hf : isometry f) : ∥f x∥ = ∥x∥ :=
-by { simp_rw [←dist_zero_right, ←f.map_zero], exact isometry.dist_eq hf _ _ }
-
-/-- Construct a continuous linear equiv from
-a linear map that is also an isometry with full range. -/
-def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
-  E ≃L[𝕜] F :=
-continuous_linear_equiv.of_homothety
-  (linear_equiv.of_bijective f (isometry.injective hf) (linear_map.range_eq_top.mp hfr))
-  1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])
 
 namespace continuous_linear_equiv
 

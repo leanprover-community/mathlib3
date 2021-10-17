@@ -67,20 +67,21 @@ universes u v w
 
 variables {R : Type u} {S : Type v} {T : Type w} [ring R] [ring S] [ring T]
 
-set_option old_structure_cmd true
-
 /-- `subring R` is the type of subrings of `R`. A subring of `R` is a subset `s` that is a
   multiplicative submonoid and an additive subgroup. Note in particular that it shares the
   same 0 and 1 as R. -/
-structure subring (R : Type u) [ring R] extends subsemiring R, add_subgroup R
+structure subring (R : Type u) [ring R] extends subsemiring R :=
+(neg_mem' {x} : x ∈ carrier → -x ∈ carrier)
 
 /-- Reinterpret a `subring` as a `subsemiring`. -/
 add_decl_doc subring.to_subsemiring
 
-/-- Reinterpret a `subring` as an `add_subgroup`. -/
-add_decl_doc subring.to_add_subgroup
-
 namespace subring
+
+/-- The underlying additive subgroup of a subring. -/
+@[ancestor]
+def to_add_subgroup (s : subring R) : add_subgroup R :=
+{ ..s }
 
 /-- The underlying submonoid of a subring. -/
 def to_submonoid (s : subring R) : submonoid R :=
@@ -88,22 +89,25 @@ def to_submonoid (s : subring R) : submonoid R :=
   ..s.to_subsemiring.to_submonoid }
 
 instance : set_like (subring R) R :=
-⟨subring.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨λ s, (s.to_subsemiring : set R), λ p q h, by rcases p with ⟨⟨⟩⟩; rcases q with ⟨⟨⟩⟩; congr'⟩
 
 @[simp]
 lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
 @[simp]
-lemma mem_mk {S : set R} {x : R} (h₁ h₂ h₃ h₄ h₅) :
-  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) ↔ x ∈ S := iff.rfl
+lemma mem_mk {S : subsemiring R} {x : R} (h) :
+  x ∈ (⟨S, h⟩ : subring R) ↔ x ∈ S := iff.rfl
 
-@[simp] lemma coe_set_mk (S : set R) (h₁ h₂ h₃ h₄ h₅) :
-  ((⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) : set R) = S := rfl
+@[simp] lemma coe_set_mk (S : subsemiring R) (h) :
+  ((⟨S, h⟩ : subring R) : set R) = S := rfl
 
 @[simp]
-lemma mk_le_mk {S S' : set R} (h₁ h₂ h₃  h₄ h₅ h₁' h₂' h₃'  h₄' h₅') :
-  (⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅'⟩ : subring R) ↔ S ⊆ S' :=
+lemma mk_le_mk {S S' : subsemiring R} (h h') :
+  (⟨S, h⟩ : subring R) ≤ (⟨S', h'⟩ : subring R) ↔ S ≤ S' :=
 iff.rfl
+
+@[simp]
+lemma to_subsemiring_coe {S : subring R} : (S.to_subsemiring : set R) = (S : set R) := rfl
 
 /-- Two subrings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
@@ -111,9 +115,8 @@ iff.rfl
 /-- Copy of a subring with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
-{ carrier := s,
-  neg_mem' := hs.symm ▸ S.neg_mem',
-  ..S.to_subsemiring.copy s hs }
+{ neg_mem' := λ x, by { simp only [hs], apply S.neg_mem', },
+  to_subsemiring := S.to_subsemiring.copy s hs }
 
 @[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
   (S.copy s hs : set R) = s := rfl
@@ -588,7 +591,7 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hneg : ∀ (x : R), p x → p (-x))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd, Hneg⟩).2 Hs h
+(@closure_le _ _ _ ⟨⟨p, H1, Hmul, H0, Hadd⟩, Hneg⟩).2 Hs h
 
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=

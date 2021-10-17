@@ -311,4 +311,20 @@ lemma fixed_point_lipschitz_in_map {g : α → α} (hg : contracting_with K g)
 hf.dist_fixed_point_fixed_point_of_dist_le' g hf.fixed_point_is_fixed_pt
   hg.fixed_point_is_fixed_pt hfg
 
+omit hf
+
+/-- If a map `f` has a contracting iterate `f^[n]`, then the fixed point of `f^[n]` is also a fixed
+point of `f`. -/
+lemma is_fixed_pt_fixed_point_iterate {n : ℕ} (hf : contracting_with K (f^[n])) :
+  is_fixed_pt f (hf.fixed_point (f^[n])) :=
+begin
+  set x := hf.fixed_point (f^[n]),
+  have hx : (f^[n] x) = x := hf.fixed_point_is_fixed_pt,
+  have := hf.to_lipschitz_with.dist_le_mul x (f x),
+  rw [← iterate_succ_apply, iterate_succ_apply', hx] at this,
+  contrapose! this,
+  have := dist_pos.2 (ne.symm this),
+  simpa only [nnreal.coe_one, one_mul] using (mul_lt_mul_right this).2 hf.1
+end
+
 end contracting_with

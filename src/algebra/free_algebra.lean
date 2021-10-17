@@ -367,11 +367,7 @@ lemma induction {C : free_algebra R X → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from X
-  let s : subalgebra R (free_algebra R X) := {
-    carrier := C,
-    mul_mem' := h_mul,
-    add_mem' := h_add,
-    algebra_map_mem' := h_grade0, },
+  let s : subalgebra R (free_algebra R X) := subalgebra.mk' C h_add h_mul h_grade0,
   let of : X → s := subtype.coind (ι R) h_grade1,
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (free_algebra R X) = s.val.comp (lift R of),

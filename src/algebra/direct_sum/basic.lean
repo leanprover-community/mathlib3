@@ -55,14 +55,6 @@ end add_comm_group
 variables [Π i, add_comm_monoid (β i)]
 
 @[simp] lemma zero_apply (i : ι) : (0 : ⨁ i, β i) i = 0 := rfl
-@[simp] lemma zero_finite_support : (0 : ⨁ i, β i).finite_support.to_finset = ∅ :=
-begin
-  ext, split,
-  { intro ha,
-    simp only [finset.not_mem_empty, set.finite_empty_to_finset,
-     eq_self_iff_true, not_true, ne.def, zero_apply] at ha, exfalso, exact ha, },
-  { intro h, exfalso, exact finset.not_mem_empty a h, }
-end
 
 variables {β}
 @[simp] lemma add_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ + g₂) i = g₁ i + g₂ i :=
@@ -98,7 +90,9 @@ section classical
 
 open_locale classical
 
-@[simp] lemma of_support (i : ι) (x : β i) (h : x ≠ 0) :
+@[simp] lemma support_zero : (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
+
+@[simp] lemma support_of (i : ι) (x : β i) (h : x ≠ 0) :
   (of _ i x).support = {i} :=
 begin
   ext,split; intro ha,

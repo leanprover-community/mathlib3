@@ -59,7 +59,7 @@ namespace intermediate_field
 def to_subfield : subfield L := { ..S.to_subalgebra, ..S }
 
 instance : set_like (intermediate_field K L) L :=
-⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
+⟨λ S, (S.to_subfield : set L), by { rintros ⟨⟨⟨⟩⟩⟩ ⟨⟨⟨⟩⟩⟩ ⟨h⟩, congr, }⟩
 
 @[simp]
 lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -73,8 +73,8 @@ set_like.ext h
 @[simp] lemma coe_to_subfield : (S.to_subfield : set L) = S := rfl
 
 @[simp] lemma mem_mk (s : set L) (hK : ∀ x, algebra_map K L x ∈ s)
-  (ho hm hz ha hn hi) (x : L) :
-  x ∈ intermediate_field.mk (subalgebra.mk s ho hm hz ha hK) hn hi ↔ x ∈ s := iff.rfl
+  (ha hm hn hi) (x : L) :
+  x ∈ intermediate_field.mk (subalgebra.mk' s ha hm hK) hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl

@@ -45,6 +45,9 @@ instance : set_like (subsemiring R) R :=
 @[simp]
 lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp]
+lemma mem_mk {c mz ma mo mm} {x : R} : x ∈ (⟨c, mz, ma, mo, mm⟩ : subsemiring R) ↔ x ∈ c := iff.rfl
+
 /-- Two subsemirings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 

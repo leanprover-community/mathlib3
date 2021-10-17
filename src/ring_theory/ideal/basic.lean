@@ -110,11 +110,9 @@ def span' (s : set α) : ideal α :=
       finset.sum_ite_of_false, finset.sum_ite_of_false, finset.sum_ite_of_true],
     simp_rw [add_mul],
     rw [finset.sum_add_distrib],
-    rw [show ∑ (x : ↥s) in s₁ \ s₂, r₁ x * ↑x + (∑ (x : ↥s) in s₁ ∩ s₂, r₁ x * ↑x +
-      ∑ (x : ↥s) in s₁ ∩ s₂, r₂ x * ↑x) + ∑ (x : ↥s) in s₂ \ s₁, r₂ x * ↑x =
-      (∑ (x : ↥s) in s₁ \ s₂, r₁ x * ↑x + ∑ (x : ↥s) in s₁ ∩ s₂, r₁ x * ↑x) +
-      (∑ (x : ↥s) in s₁ ∩ s₂, r₂ x * ↑x + ∑ (x : ↥s) in s₂ \ s₁, r₂ x * ↑x),
-        by rw [←add_assoc, ←add_assoc]],
+    rw [show ∑ x in s₁ \ s₂, r₁ x * x + (∑ x in s₁ ∩ s₂, r₁ x * x + ∑ x in s₁ ∩ s₂, r₂ x * x) +
+             ∑ x in s₂ \ s₁, r₂ x * x = (∑ x in s₁ \ s₂, r₁ x * x + ∑ x in s₁ ∩ s₂, r₁ x * x) +
+            (∑ x in s₁ ∩ s₂, r₂ x * x + ∑ x in s₂ \ s₁, r₂ x * x), by rw [←add_assoc, ←add_assoc]],
     rw [←finset.sum_union, ←finset.sum_union], congr,
     rw [finset.sdiff_union_inter],
     rw [finset.union_comm, finset.inter_comm, finset.sdiff_union_inter],

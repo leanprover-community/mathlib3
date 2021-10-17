@@ -2204,7 +2204,7 @@ begin
   -- Inductive case:
   -- We must prove that the first digit parsed in `lhd : ℕ` is precisely the digit that is
   -- represented by the character at position `n` in `cb : char_buffer`.
-  -- We will also prove the the correspondence between the subsequent digits `ltl : list ℕ` and the
+  -- We will also prove the correspondence between the subsequent digits `ltl : list ℕ` and the
   -- remaining characters past position `n` up to position `n'`.
   cases hx : (list.drop n (buffer.to_list cb)) with chd ctl,
   { -- Are there even characters left to parse, at position `n` in the `cb : char_buffer`? In other

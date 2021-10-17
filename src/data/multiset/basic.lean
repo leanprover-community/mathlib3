@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.perm
+import data.list.prod_monoid
 
 /-!
 # Multisets
@@ -1513,35 +1514,8 @@ quotient.induction_on₂ s t $ λ l₁ l₂,
 show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
 by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
 
-theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
-add_sub_cancel_of_le h
-
-theorem sub_add' : s - (t + u) = s - t - u :=
-sub_add_eq_sub_sub'
-
-theorem sub_add_cancel (h : t ≤ s) : s - t + t = s :=
-sub_add_cancel_of_le h
-
-@[simp] theorem add_sub_cancel_left (s : multiset α) : ∀ t, s + t - s = t :=
-add_sub_cancel_left s
-
-@[simp] theorem add_sub_cancel (s t : multiset α) : s + t - t = s :=
-add_sub_cancel_right s t
-
-theorem sub_le_sub_right (h : s ≤ t) (u) : s - u ≤ t - u :=
-sub_le_sub_right' h u
-
-theorem sub_le_sub_left (h : s ≤ t) : ∀ u, u - t ≤ u - s :=
-sub_le_sub_left' h
-
-theorem le_sub_add (s t : multiset α) : s ≤ s - t + t :=
-le_sub_add -- implicit args
-
-theorem sub_le_self (s t : multiset α) : s - t ≤ s :=
-sub_le_self' -- implicit args
-
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
-(nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel h]).symm
+(sub_eq_of_eq_add_rev $ by rw [add_comm, ← card_add, sub_add_cancel_of_le h]).symm
 
 /-! ### Union -/
 
@@ -1554,20 +1528,20 @@ instance : has_union (multiset α) := ⟨union⟩
 
 theorem union_def (s t : multiset α) : s ∪ t = s - t + t := rfl
 
-theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_sub_add _ _
+theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_sub_add
 
 theorem le_union_right (s t : multiset α) : t ≤ s ∪ t := le_add_left _ _
 
-theorem eq_union_left : t ≤ s → s ∪ t = s := sub_add_cancel
+theorem eq_union_left : t ≤ s → s ∪ t = s := sub_add_cancel_of_le
 
 theorem union_le_union_right (h : s ≤ t) (u) : s ∪ u ≤ t ∪ u :=
-add_le_add_right (sub_le_sub_right h _) u
+add_le_add_right (sub_le_sub_right' h _) u
 
 theorem union_le (h₁ : s ≤ u) (h₂ : t ≤ u) : s ∪ t ≤ u :=
 by rw ← eq_union_left h₂; exact union_le_union_right h₁ t
 
 @[simp] theorem mem_union : a ∈ s ∪ t ↔ a ∈ s ∨ a ∈ t :=
-⟨λ h, (mem_add.1 h).imp_left (mem_of_le $ sub_le_self _ _),
+⟨λ h, (mem_add.1 h).imp_left (mem_of_le sub_le_self'),
  or.rec (mem_of_le $ le_union_left _ _) (mem_of_le $ le_union_right _ _)⟩
 
 @[simp] theorem map_union [decidable_eq β] {f : α → β} (finj : function.injective f)
@@ -1662,7 +1636,7 @@ union_le (le_add_right _ _) (le_add_left _ _)
 
 theorem union_add_distrib (s t u : multiset α) : (s ∪ t) + u = (s + u) ∪ (t + u) :=
 by simpa [(∪), union, eq_comm, add_assoc] using show s + u - (t + u) = s - t,
-by rw [add_comm t, sub_add', add_sub_cancel]
+by rw [add_comm t, sub_add_eq_sub_sub', add_sub_cancel_right]
 
 theorem add_union_distrib (s t u : multiset α) : s + (t ∪ u) = (s + t) ∪ (s + u) :=
 by rw [add_comm, union_add_distrib, add_comm s, add_comm s]
@@ -1709,8 +1683,7 @@ begin
 end
 
 theorem sub_inter (s t : multiset α) : s - (s ∩ t) = s - t :=
-add_right_cancel $
-by rw [sub_add_inter s t, sub_add_cancel (inter_le_left _ _)]
+add_right_cancel $ by rw [sub_add_inter s t, sub_add_cancel_of_le (inter_le_left s t)]
 
 end
 

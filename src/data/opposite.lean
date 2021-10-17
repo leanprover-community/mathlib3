@@ -91,8 +91,9 @@ equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply
 
 instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
 
+/-- A recursor for `opposite`. Use as `induction x using opposite.rec`. -/
 @[simp]
-def op_induction {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
+protected def rec {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)
 
 end opposite
@@ -100,8 +101,6 @@ end opposite
 namespace tactic
 
 open opposite
-open interactive interactive.types lean.parser tactic
-local postfix `?`:9001 := optional
 
 namespace op_induction
 
@@ -122,23 +121,12 @@ end op_induction
 
 open op_induction
 
-meta def op_induction (h : option name) : tactic unit :=
-do h ← match h with
-   | (some h) := pure h
-   | none     := find_opposite_hyp
-   end,
+/-- A version of `induction x using opposite.rec` which finds the appropriate hypothesis
+automatically, for use with `local attribute [tidy] op_induction'`. This is necessary because
+`induction x` is not able to deduce that `opposite.rec` should be used. -/
+meta def op_induction' : tactic unit :=
+do h ← find_opposite_hyp,
    h' ← tactic.get_local h,
-   revert_lst [h'],
-   applyc `opposite.op_induction,
-   tactic.intro h,
-   skip
-
--- For use with `local attribute [tidy] op_induction`
-meta def op_induction' := op_induction none
-
-namespace interactive
-meta def op_induction (h : parse ident?) : tactic unit :=
-tactic.op_induction h
-end interactive
+   tactic.induction' h' [] `opposite.rec
 
 end tactic

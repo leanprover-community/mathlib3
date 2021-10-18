@@ -66,14 +66,14 @@ lemma add_hom.le_map_tsub [preorder β] [has_add β] [has_sub β] [has_ordered_s
 by { rw [tsub_le_iff_right, ← f.map_add], exact hf le_tsub_add }
 
 lemma le_mul_sub {R : Type*} [distrib R] [preorder R] [has_sub R] [has_ordered_sub R]
-  [covariant_class R R (*) (≤)] (a b c : R) :
+  [covariant_class R R (*) (≤)] {a b c : R} :
   a * b - a * c ≤ a * (b - c) :=
 (add_hom.mul_left a).le_map_tsub (monotone_id.const_mul' a) _ _
 
 lemma le_sub_mul {R : Type*} [comm_semiring R] [preorder R] [has_sub R] [has_ordered_sub R]
-  [covariant_class R R (*) (≤)] (a b c : R) :
+  [covariant_class R R (*) (≤)] {a b c : R} :
   a * c - b * c ≤ (a - b) * c :=
-by simpa only [mul_comm c] using le_mul_sub c a b
+by simpa only [mul_comm _ c] using le_mul_sub
 
 end has_add
 

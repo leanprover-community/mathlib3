@@ -94,9 +94,23 @@ begin
   rw [of, of, dfinsupp.single_add_hom],
   simp only [dfinsupp.single_add_hom_apply, add_monoid_hom.coe_mk],
   rw [dfinsupp.single_apply],
-  split_ifs,
-  { sorry },
-  { simp only [dfinsupp.single_zero, submodule.zero_mem], },
+  simp only [ne.def, dfinsupp.mem_support_to_fun] at *,
+  by_cases k + i = j,
+  { simp only [h, dif_pos, eq_self_iff_true],
+    have eq₁ : dfinsupp.single j (h.rec (graded_monoid.ghas_mul.mul (r k) z)) =
+    direct_sum.mul_hom _ (of A k (r k)) (of A i z),
+    { rw [show dfinsupp.single j (h.rec (graded_monoid.ghas_mul.mul (r k) z)) =
+      of A j (h.rec (graded_monoid.ghas_mul.mul (r k) z)), from rfl,
+        show of A j (h.rec (graded_monoid.ghas_mul.mul (r k) z)) =
+          of A (k + i) (graded_monoid.ghas_mul.mul (r k) z), from _],
+      rw [mul_hom_of_of], finish },
+    rw eq₁,
+
+    have eq₂ : ((mul_hom (λ (i : ι), A i)) ((of A k) (r k))) ((of A i) z) =
+    (of A k (r k)) * (of A i z) := rfl, rw eq₂,
+    apply ideal.mul_mem_left _ _ hx₂,
+    },
+  { simp only [h, dfinsupp.single_zero, dif_neg, not_false_iff, submodule.zero_mem], }
 end
 
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]

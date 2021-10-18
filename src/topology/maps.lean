@@ -324,6 +324,9 @@ begin
   { exact h s hs h2s }
 end
 
+lemma closed_range {f : α → β} (hf : is_closed_map f) : is_closed (range f) :=
+@image_univ _ _ f ▸ hf _ is_closed_univ
+
 end is_closed_map
 
 lemma inducing.is_closed_map [topological_space α] [topological_space β]

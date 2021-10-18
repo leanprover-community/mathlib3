@@ -46,10 +46,15 @@ end
 lemma m_coe_pos [nonempty α] (hPα : P.size * 16^P.size ≤ card α) : (0 : ℝ) < m :=
 nat.cast_pos.2 $ m_pos hPα
 
+lemma one_le_m_coe [nonempty α] (hPα : P.size * 16^P.size ≤ card α) : (1 : ℝ) ≤ m :=
+nat.one_le_cast.2 $ m_pos hPα
+
 lemma eps_pow_five_pos (hPε : 100 ≤ 4^P.size * ε^5) : 0 < ε^5 :=
 pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε) (pow_nonneg (by norm_num) _)
 
 lemma eps_pos (hPε : 100 ≤ 4^P.size * ε^5) : 0 < ε := pow_bit1_pos_iff.1 $ eps_pow_five_pos hPε
+
+lemma four_pow_pos {n : ℕ} : 0 < (4 : ℝ)^n := pow_pos (by norm_num) n
 
 lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hPε : 100 ≤ 4^P.size * ε^5) :
@@ -101,4 +106,13 @@ begin
     a_add_one_le_four_pow_size, ←add_assoc, mul_comm, add_sub_cancel_of_le, ←aux],
   rw ←aux,
   exact nat.le_add_right _ _,
+end
+
+lemma pow_mul_m_le_card_part (hP : P.is_equipartition) {U : finset α} (hU : U ∈ P.parts) :
+  (4 : ℝ) ^ P.size * m ≤ U.card :=
+begin
+  norm_cast,
+  rw [exp_bound, ←nat.div_div_eq_div_mul],
+  exact (nat.mul_div_le _ _).trans
+    (finpartition.is_equipartition.average_le_card_part hP hU),
 end

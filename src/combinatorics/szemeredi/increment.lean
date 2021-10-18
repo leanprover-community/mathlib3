@@ -179,16 +179,15 @@ begin
 end
 
 -- #exit
-lemma pair_contrib_lower_bound [nonempty α] (x : {i // i ∈ P.parts.off_diag}) (m_pos : 0 < m)
-  (hε₁ : ε ≤ 1) (hPα : P.size * 16^P.size ≤ card α)
-  (hPε : 100 ≤ 4^P.size * ε^5) :
+lemma pair_contrib_lower_bound [nonempty α] (x : {i // i ∈ P.parts.off_diag}) (hε₁ : ε ≤ 1)
+  (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) :
   G.edge_density x.1.1 x.1.2^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3) ≤
     pair_contrib G ε hP x / (16^P.size) :=
 begin
   split_ifs,
   { rw add_zero,
-    apply sq_density_sub_eps_le_sum_sq_density_div_card hPα hPε m_pos hε₁ },
-  { apply sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform hPα hPε m_pos hε₁ h }
+    apply sq_density_sub_eps_le_sum_sq_density_div_card hPα hPε hε₁ },
+  { apply sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform hPα hPε hε₁ h }
 end
 
 lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1) (hP₇ : 7 ≤ P.size)
@@ -210,7 +209,7 @@ begin
   { apply le_trans this,
     apply sum_le_sum,
     intros i hi,
-    apply pair_contrib_lower_bound _ i (m_pos hPα) hε₁ hPα hPε },
+    apply pair_contrib_lower_bound _ i hε₁ hPα hPε },
   have : ∑ x in P.parts.off_diag.attach,
     (G.edge_density x.1.1 x.1.2^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3)) =
     ∑ x in P.parts.off_diag,

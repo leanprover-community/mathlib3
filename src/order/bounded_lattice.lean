@@ -300,7 +300,8 @@ class bounded_lattice (α : Type u) [has_le α] extends order_top α, order_bot 
 -- end
 
 -- /-- A `distrib_lattice_bot` is a distributive lattice with a least element. -/
--- class distrib_lattice_bot α extends distrib_lattice α, semilattice_inf_bot α, semilattice_sup_bot α
+-- class distrib_lattice_bot α extends distrib_lattice α, semilattice_inf_bot α,
+-- semilattice_sup_bot α
 
 -- /-- A bounded distributive lattice is exactly what it sounds like. -/
 -- class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α

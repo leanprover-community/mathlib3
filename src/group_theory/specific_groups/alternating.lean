@@ -112,7 +112,7 @@ begin
     { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
       have hd : disjoint (swap a b) σ,
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
-          finset.singleton_disjoint],
+          finset.disjoint_singleton_left],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
       rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
       simp [mul_assoc] } }

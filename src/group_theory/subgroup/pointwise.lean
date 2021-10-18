@@ -42,6 +42,9 @@ protected def pointwise_mul_action : mul_action α (subgroup G) :=
 localized "attribute [instance] subgroup.pointwise_mul_action" in pointwise
 open_locale pointwise
 
+lemma pointwise_smul_def {a : α} (S : subgroup G) :
+  a • S = S.map (mul_distrib_mul_action.to_monoid_End _ _ a) := rfl
+
 @[simp] lemma coe_pointwise_smul (a : α) (S : subgroup G) : ↑(a • S) = a • (S : set G) := rfl
 
 @[simp] lemma pointwise_smul_to_submonoid (a : α) (S : subgroup G) :

@@ -236,7 +236,7 @@ end completion
 section extension
 
 variables {G : Type*} [semi_normed_group G]
-variables {H : Type*} [normed_group H] [complete_space H]
+variables {H : Type*} [semi_normed_group H] [separated_space H] [complete_space H]
 
 /-- If `H` is complete, the extension of `f : normed_group_hom G H` to a
 `normed_group_hom (completion G) H`. -/

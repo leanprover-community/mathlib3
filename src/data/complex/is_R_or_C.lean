@@ -216,8 +216,6 @@ abbreviation conj_to_ring_equiv : K ≃+* Kᵒᵖ := star_ring_equiv
 
 variables {K}
 
-@[simp] lemma ring_equiv_apply {x : K} : (conj_to_ring_equiv K x).unop = conj x := rfl
-
 lemma eq_conj_iff_re {z : K} : conj z = z ↔ ((re z) : K) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 

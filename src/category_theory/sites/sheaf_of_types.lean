@@ -299,7 +299,7 @@ realize it as a family of elements of `S.functor_pushforward F`. Since the preim
 choice, this is not well-defined generally.
 -/
 noncomputable
-def family_of_elements.functor_pushforward {D : Type u₂} [category.{v} D] (F : D ⥤ C) {X : D}
+def family_of_elements.functor_pushforward {D : Type u₂} [category.{v₂} D] (F : D ⥤ C) {X : D}
   {T : presieve X} (x : family_of_elements (F.op ⋙ P) T) :
     family_of_elements P (T.functor_pushforward F) := λ Y f h,
 by { obtain ⟨Z, g, h, h₁, _⟩ := get_functor_pushforward_structure h, exact P.map h.op (x g h₁) }

@@ -29,12 +29,12 @@ cover-preserving and compatible-preserving, then `G ⋙ -` (`uᵖ`) as a functor
 
 ## References
 
-* [Elephant]: *Sketches of an Elephant*, ℱ. T. Johnstone: C2.3.
+* [Elephant]: *Sketches of an Elephant*, P. T. Johnstone: C2.3.
 * https://stacks.math.columbia.edu/tag/00WW
 
 -/
 
-universes v₁ v₂ u₁ u₂
+universes w v₁ v₂ v₃ u₁ u₂ u₃
 noncomputable theory
 
 open category_theory
@@ -44,37 +44,31 @@ open category_theory.presieve
 open category_theory.limits
 
 namespace category_theory
-section cover_preserving
-variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+variables {A : Type u₃} [category.{v₃} A]
 variables (J : grothendieck_topology C) (K : grothendieck_topology D)
-variables {L : grothendieck_topology E}
+variables {L : grothendieck_topology A}
 
 /--
-A functor `G : (C, J) ⥤ (D, K)` between sites is called to have the cover-preserving property
+A functor `G : (C, J) ⥤ (D, K)` between sites is *cover-preserving*
 if for all covering sieves `R` in `C`, `R.pushforward_functor G` is a covering sieve in `D`.
 -/
 @[nolint has_inhabited_instance]
-structure cover_preserving (G : C ⥤ D) :=
+structure cover_preserving (G : C ⥤ D) : Prop :=
 (cover_preserve : ∀ {U : C} {S : sieve U} (hS : S ∈ J U), S.functor_pushforward G ∈ K (G.obj U))
 
 /-- The identity functor on a site is cover-preserving. -/
-def id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by simpa using hS⟩
+lemma id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by simpa using hS⟩
 
 variables (J) (K)
 
 /-- The composition of two cover-preserving functors is cover-preserving. -/
-def comp_cover_preserving {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
+lemma cover_preserving.comp {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
   cover_preserving J L (G ⋙ v) := ⟨λ U S hS,
 begin
   rw sieve.functor_pushforward_comp,
   exact hv.cover_preserve (hG.cover_preserve hS)
 end⟩
-
-end cover_preserving
-
-variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D]
-variables {A : Type u₂} [category.{v₁} A]
-variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
 /--
 A functor `G : (C, J) ⥤ (D, K)` between sites is called compatible preserving if for each
@@ -84,15 +78,15 @@ This is actually stronger than merely preserving compatible families because of 
 `functor_pushforward` used.
 -/
 @[nolint has_inhabited_instance]
-structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) :=
+structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (compatible :
-  ∀ (ℱ : SheafOfTypes K) {Z} {T : presieve Z}
+  ∀ (ℱ : SheafOfTypes.{w} K) {Z} {T : presieve Z}
     {x : family_of_elements (G.op ⋙ ℱ.val) T} (h : x.compatible)
     {Y₁ Y₂} {X} (f₁ : X ⟶ G.obj Y₁) (f₂ : X ⟶ G.obj Y₂) {g₁ : Y₁ ⟶ Z} {g₂ : Y₂ ⟶ Z}
     (hg₁ : T g₁) (hg₂ : T g₂) (eq : f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂),
       ℱ.val.map f₁.op (x g₁ hg₁) = ℱ.val.map f₂.op (x g₂ hg₂))
 
-variables {G : C ⥤ D} (hG : compatible_preserving K G) (ℱ : SheafOfTypes K) {Z : C}
+variables {J K} {G : C ⥤ D} (hG : compatible_preserving.{w} K G) (ℱ : SheafOfTypes.{w} K) {Z : C}
 variables {T : presieve Z} {x : family_of_elements (G.op ⋙ ℱ.val) T} (h : x.compatible)
 
 include h hG
@@ -128,7 +122,7 @@ then `G.op ⋙ _` pulls sheaves back to sheaves.
 
 This result is basically https://stacks.math.columbia.edu/tag/00WW.
 -/
-theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving K G)
+theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving.{v₃} K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) :
   presheaf.is_sheaf J (((whiskering_left _ _ _).obj G.op).obj ℱ.val) :=
 begin
@@ -151,5 +145,18 @@ begin
       hx' (image_mem_functor_pushforward G S h) g',
     simpa [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
 end
+
+variable (A)
+
+/--
+The induced functor from `Sheaf K A ⥤ Sheaf J A` given by `G.op ⋙ _`
+if `G` is cover-preserving and compatible-preserving.
+-/
+@[simps] def sites.pullback {G : C ⥤ D} (hG₁ : compatible_preserving K G)
+  (hG₂ : cover_preserving J K G) : Sheaf K A ⥤ Sheaf J A :=
+{ obj := λ ℱ, ⟨G.op ⋙ ℱ.val, pullback_is_sheaf_of_cover_preserving hG₁ hG₂ ℱ⟩,
+  map := λ _ _ f, (((whiskering_left _ _ _).obj G.op)).map f,
+  map_id' := λ ℱ, (((whiskering_left _ _ _).obj G.op)).map_id ℱ.val,
+  map_comp' := λ _ _ _ f g, (((whiskering_left _ _ _).obj G.op)).map_comp f g }
 
 end category_theory

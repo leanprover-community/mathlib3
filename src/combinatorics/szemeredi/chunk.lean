@@ -113,7 +113,7 @@ lemma one_sub_eps_mul_card_witness_le_card_star (hV : V ∈ P.parts) (hUV : U �
   (hunif : ¬G.is_uniform ε U V) (hPε : 100 ≤ 4^P.size * ε^5) (hε₁ : ε ≤ 1) :
   (1 - ε/10) * (G.witness ε U V).card ≤ ((hP.star G ε hU V).bUnion id).card :=
 begin
-  have hP₁ : 0 < P.size := sorry,
+  have hP₁ : 0 < P.size := card_pos.2 ⟨_, hU⟩,
   have : (2^P.size : ℝ) * m/(U.card * ε) ≤ ε/10,
   { rw [←div_div_eq_div_mul, div_le_iff' (eps_pos hPε)],
     refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two P.size),
@@ -481,6 +481,12 @@ begin
   norm_num,
 end.
 
+lemma m_bound {x : ℝ} (hx : 0 < x) : (x + 1) * (1 - 1/x) / x ≤ 1 :=
+begin
+  rw [div_le_one hx, one_sub_div hx.ne', mul_div_assoc', div_le_iff hx],
+  linarith,
+end
+
 lemma eps_le_card_star_div [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hPε : 100 ≤ 4^P.size * ε^5) (hm₉ : (9 : ℝ) ≤ m) (hε₁ : ε ≤ 1) {U V : finset α} {hU : U ∈ P.parts}
   (hV : V ∈ P.parts) (hUV : U ≠ V) (hunif : ¬ G.is_uniform ε U V) :
@@ -511,7 +517,16 @@ begin
         : mul_le_mul_of_nonneg_left (div_le_div_of_le_left hm
             (mul_pos four_pow_pos $ m_coe_pos hPα) $ pow_mul_m_le_card_part hP hU)
             (mul_nonneg (nat.cast_nonneg _) $ add_nonneg (nat.cast_nonneg _) zero_le_one)
-    ... ≤ (hP.star G ε hU V).card / 4^P.size : sorry
+    ... ≤ (hP.star G ε hU V).card / 4^P.size :
+    begin
+      rw [mul_assoc, mul_comm ((4:ℝ)^P.size), ←div_div_eq_div_mul, ←mul_div_assoc,
+        ←div_mul_eq_mul_div_comm],
+      refine mul_le_of_le_one_right (div_nonneg (nat.cast_nonneg _) four_pow_pos.le) _,
+      rw mul_div_assoc',
+      apply m_bound,
+      rw nat.cast_pos,
+      apply m_pos hPα,
+    end
 end
 
 lemma stuff [nonempty α]

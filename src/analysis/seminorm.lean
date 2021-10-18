@@ -3,10 +3,9 @@ Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta
 -/
-
-import data.real.pointwise
 import analysis.convex.basic
 import analysis.normed_space.basic
+import data.real.pointwise
 import data.set.intervals
 
 /-!
@@ -36,8 +35,6 @@ topology induced by a family of seminorms.
 
 Prove the properties of balanced and absorbent sets of a real vector space.
 
-Generalize `gauge` to conditionally complete ordered fields, once we have them.
-
 ## Tags
 
 absorbent, balanced, seminorm, Minkowski functional, gauge, locally convex, LCTVS
@@ -55,7 +52,7 @@ open_locale pointwise topological_space
 
 section
 variables
-(𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+(𝕜 : Type*) [normed_field 𝕜]
 {E : Type*} [add_comm_group E] [module 𝕜 E]
 
 /-- A set `A` absorbs another set `B` if `B` is contained in all scalings of
@@ -260,8 +257,7 @@ variables {E : Type*} [add_comm_group E] [module ℝ E]
 /-- Given a subset `s` of a real vector space, we have a functional (sometimes called the Minkowski
 functional) which sends `x : E` to `Inf {y ∈ set.Ioi 0 | x ∈ y • s}`, essentially the smallest
 `y` such that `x` is in `s` expanded by `y`. -/
-def gauge (s : set E) (x : E) : ℝ :=
-Inf {y : ℝ | 0 < y ∧ x ∈ y • s}
+def gauge (s : set E) (x : E) : ℝ := Inf {y : ℝ | 0 < y ∧ x ∈ y • s}
 
 variables {s : set E} {x : E}
 
@@ -277,24 +273,21 @@ begin
   exact and_congr_right (λ hy, mem_smul_set_iff_inv_smul_mem₀ hy.ne' _ _),
 end
 
-private lemma gauge_set_bdd_below :
-  bdd_below {y : ℝ | 0 < y ∧ x ∈ y • s} :=
-⟨0, λ y hy, hy.1.le⟩
+private lemma gauge_set_bdd_below : bdd_below {y : ℝ | 0 < y ∧ x ∈ y • s} := ⟨0, λ y hy, hy.1.le⟩
 
-lemma gauge_le_of_mem {θ : ℝ} (hθ : 0 < θ) {x : E} (hx : x ∈ θ • s) :
-  gauge s x ≤ θ :=
+lemma gauge_le_of_mem {θ : ℝ} (hθ : 0 < θ) {x : E} (hx : x ∈ θ • s) : gauge s x ≤ θ :=
 cInf_le gauge_set_bdd_below ⟨hθ, hx⟩
 
 /-- If the given subset is `absorbent` then the set we take an infimum over in `gauge` is nonempty,
 which is useful for proving many properties about the gauge.  -/
-lemma gauge_set_nonempty_of_absorbent (absorbs : absorbent ℝ s) :
+lemma absorbent.gauge_set_nonempty (absorbs : absorbent ℝ s) :
   {y : ℝ | 0 < y ∧ x ∈ y • s}.nonempty :=
 let ⟨θ, hθ₁, hθ₂⟩ := absorbs x in ⟨θ, hθ₁, hθ₂ θ (real.norm_of_nonneg hθ₁.le).ge⟩
 
 lemma exists_lt_of_gauge_lt (absorbs : absorbent ℝ s) {x : E} {a : ℝ} (h : gauge s x < a) :
   ∃ b, 0 < b ∧ b < a ∧ x ∈ b • s :=
 begin
-  obtain ⟨b, ⟨hb, hx⟩, hba⟩ := exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbent absorbs) h,
+  obtain ⟨b, ⟨hb, hx⟩, hba⟩ := exists_lt_of_cInf_lt absorbs.gauge_set_nonempty h,
   exact ⟨b, hb, hba, hx⟩,
 end
 
@@ -310,9 +303,14 @@ begin
 end
 
 /-- The gauge is always nonnegative. -/
-lemma gauge_nonneg (x : E) :
-  0 ≤ gauge s x :=
-real.Inf_nonneg _ (λ x hx, hx.1.le)
+lemma gauge_nonneg (x : E) : 0 ≤ gauge s x := real.Inf_nonneg _ $ λ x hx, hx.1.le
+
+lemma gauge_neg (symmetric : ∀ x ∈ s, -x ∈ s) (x : E) : gauge s (-x) = gauge s x :=
+begin
+  have : ∀ x, -x ∈ s ↔ x ∈ s := λ x, ⟨λ h, by simpa using symmetric _ h, symmetric x⟩,
+  rw [gauge_def', gauge_def'],
+  simp_rw [smul_neg, this],
+end
 
 lemma gauge_le_one_eq' (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
   {x | gauge s x ≤ 1} = ⋂ (θ : ℝ) (H : 1 < θ), θ • s :=
@@ -375,10 +373,9 @@ begin
 end
 
 lemma gauge_le_one_of_mem {x : E} (hx : x ∈ s) : gauge s x ≤ 1 :=
-gauge_le_of_mem zero_lt_one (by rwa one_smul)
+gauge_le_of_mem zero_lt_one $ by rwa one_smul
 
-lemma self_subset_gauge_le_one : s ⊆ {x | gauge s x ≤ 1} :=
-λ x, gauge_le_one_of_mem
+lemma self_subset_gauge_le_one : s ⊆ {x | gauge s x ≤ 1} := λ x, gauge_le_one_of_mem
 
 lemma convex.gauge_le_one (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
   convex ℝ {x | gauge s x ≤ 1} :=
@@ -387,8 +384,10 @@ begin
   exact convex_Inter (λ i, convex_Inter (λ (hi : _ < _), hs.smul _)),
 end
 
-lemma interior_subset_gauge_lt_one [topological_space E] [has_continuous_smul ℝ E] (s : set E) :
-  interior s ⊆ {x | gauge s x < 1} :=
+section topological_space
+variables [topological_space E] [has_continuous_smul ℝ E]
+
+lemma interior_subset_gauge_lt_one (s : set E) : interior s ⊆ {x | gauge s x < 1} :=
 begin
   intros x hx,
   let f : ℝ → E := λ t, t • x,
@@ -412,8 +411,8 @@ begin
     (hε ⟨(sub_le_self _ hε₀.le).trans ((le_add_iff_nonneg_right _).2 hε₀.le), le_rfl⟩),
 end
 
-lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E] {s : set E}
-  (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) :
+lemma gauge_lt_one_eq_self_of_open {s : set E} (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s)
+  (hs₂ : is_open s) :
   {x | gauge s x < 1} = s :=
 begin
   apply (gauge_lt_one_subset_self hs ‹_› $ absorbent_nhds_zero $ hs₂.mem_nhds zero_mem).antisymm,
@@ -421,33 +420,25 @@ begin
   exact hs₂.interior_eq.symm,
 end
 
-lemma gauge_lt_one_of_mem_of_open [topological_space E] [has_continuous_smul ℝ E] {s : set E}
-  (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) (x : E) (hx : x ∈ s) :
+lemma gauge_lt_one_of_mem_of_open {s : set E} (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s)
+  (hs₂ : is_open s) (x : E) (hx : x ∈ s) :
   gauge s x < 1 :=
 by rwa ←gauge_lt_one_eq_self_of_open hs zero_mem hs₂ at hx
 
-lemma one_le_gauge_of_not_mem [topological_space E] [has_continuous_smul ℝ E] {s : set E}
-  (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (hs₂ : is_open s) {x : E} (hx : x ∉ s) :
+lemma one_le_gauge_of_not_mem {s : set E} (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s)
+  (hs₂ : is_open s) {x : E} (hx : x ∉ s) :
   1 ≤ gauge s x :=
 begin
   rw ←gauge_lt_one_eq_self_of_open hs zero_mem hs₂ at hx,
   exact le_of_not_lt hx
 end
 
-lemma gauge_neg (symmetric : ∀ x ∈ s, -x ∈ s) (x : E) :
-  gauge s (-x) = gauge s x :=
-begin
-  have : ∀ x, -x ∈ s ↔ x ∈ s := λ x, ⟨λ h, by simpa using symmetric _ h, symmetric x⟩,
-  rw [gauge_def', gauge_def'],
-  simp_rw [smul_neg, this],
-end.
+end topological_space
 
-variables {α : Type*} [linear_ordered_field α] [topological_space α] [module α ℝ]
-  [has_continuous_smul α ℝ] [ordered_smul α ℝ]
+variables {α : Type*} [linear_ordered_field α] [mul_action_with_zero α ℝ] [ordered_smul α ℝ]
 
 lemma gauge_smul [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E} {θ : α}
-  (hθ : 0 ≤ θ)
-  (x : E) :
+  (hθ : 0 ≤ θ) (x : E) :
   gauge s (θ • x) = θ • gauge s x :=
 begin
   obtain rfl | hθ' := hθ.eq_or_lt,
@@ -507,8 +498,8 @@ begin
     ←mem_smul_set_iff_inv_smul_mem₀ hab.ne'] at this,
 end
 
-/-- If `s` is symmetric, convex and absorbent, its `gauge` is a seminorm. -/
-def gauge_seminorm (symmetric : ∀ x ∈ s, -x ∈ s) (hs : convex ℝ s) (hs' : absorbent ℝ s) :
+/-- `gauge s` as a seminorm when `s` is symmetric, convex and absorbent. -/
+@[simps] def gauge_seminorm (symmetric : ∀ x ∈ s, -x ∈ s) (hs : convex ℝ s) (hs' : absorbent ℝ s) :
   seminorm ℝ E :=
 { to_fun := gauge s,
   smul' := λ θ x, by rw [gauge_homogeneous symmetric, real.norm_eq_abs, smul_eq_mul];

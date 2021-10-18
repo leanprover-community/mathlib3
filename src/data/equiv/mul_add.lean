@@ -144,6 +144,10 @@ theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
 
 @[simp, to_additive]
+lemma to_equiv_mk (f : M → N) (g : N → M) (h₁ h₂ h₃) :
+  (mk f g h₁ h₂ h₃).to_equiv = ⟨f, g, h₁, h₂⟩ := rfl
+
+@[simp, to_additive]
 lemma symm_symm : ∀ (f : M ≃* N), f.symm.symm = f
 | ⟨f, g, h₁, h₂, h₃⟩ := rfl
 

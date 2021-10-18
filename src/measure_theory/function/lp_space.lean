@@ -23,8 +23,21 @@ The space `Lp E p μ` is the subtype of elements of `α →ₘ[μ] E` (see ae_eq
 
 ## Main definitions
 
-* `snorm' f p μ` : `(∫ ∥f a∥^p ∂μ) ^ (1/p)` for `f : α → F` and `p : ℝ`, where `α` is a  measurable
-  space and `F` is a normed group.
+  lemma lipschitz_with.comp_mem_ℒp {α E F} {K} [measurable_space α] {μ : measure α}
+  [measurable_space E] [measurable_space F] [normed_group E] [normed_group F] [borel_space E]
+  [borel_space F] [complete_space E] {f : α → E} {g : E → F} (hg : lipschitz_with K g)
+  (g0 : g 0 = 0) (hL : mem_ℒp f p μ) : mem_ℒp (g ∘ f) p μ  :=
+begin
+  have : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
+  { apply filter.eventually_of_forall (λ x, _),
+    rw [← dist_zero_right, ← dist_zero_right, ← g0],
+    apply hg.dist_le_mul },
+  exact hL.of_le_mul (hg.continuous.measurable.comp_ae_measurable hL.1) this,
+end
+
+lemma mem_ℒp.of_comp_antilipschitz_with
+space and `F` is a normed group.
+
 * `snorm_ess_sup f μ` : seminorm in `ℒ∞`, equal to the essential supremum `ess_sup ∥f∥ μ`.
 * `snorm f p μ` : for `p : ℝ≥0∞`, seminorm in `ℒp`, equal to `0` for `p=0`, to `snorm' f p μ`
   for `0 < p < ∞` and to `snorm_ess_sup f μ` for `p = ∞`.
@@ -1737,6 +1750,32 @@ variables [second_countable_topology E] [borel_space E]
   [second_countable_topology F] [measurable_space F] [borel_space F]
   {g : E → F} {c : ℝ≥0}
 
+lemma lipschitz_with.comp_mem_ℒp {α E F} {K} [measurable_space α] {μ : measure α}
+  [measurable_space E] [measurable_space F] [normed_group E] [normed_group F] [borel_space E]
+  [borel_space F] {f : α → E} {g : E → F} (hg : lipschitz_with K g)
+  (g0 : g 0 = 0) (hL : mem_ℒp f p μ) : mem_ℒp (g ∘ f) p μ  :=
+begin
+  have : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
+  { apply filter.eventually_of_forall (λ x, _),
+    rw [← dist_zero_right, ← dist_zero_right, ← g0],
+    apply hg.dist_le_mul },
+  exact hL.of_le_mul (hg.continuous.measurable.comp_ae_measurable hL.1) this,
+end
+
+lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
+  [measurable_space α] {μ : measure α} [measurable_space E] [measurable_space F] [normed_group E]
+  [normed_group F] [borel_space E] [borel_space F] [complete_space E]
+  {f : α → E} {g : E → F} (hL : mem_ℒp (g ∘ f) p μ)
+  (hg : uniform_continuous g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) : mem_ℒp f p μ :=
+begin
+  have : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
+    { apply filter.eventually_of_forall (λ x, _),
+      rw [← dist_zero_right, ← dist_zero_right, ← g0],
+      apply hg'.le_mul_dist },
+  exact hL.of_le_mul ((ae_measurable_comp_iff_of_closed_embedding g
+    (hg'.closed_embedding hg)).1 hL.1) this,
+end
+
 namespace lipschitz_with
 
 lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {μ : measure α}
@@ -1744,22 +1783,7 @@ lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {
   [borel_space F] [complete_space E]
   {f : α → E} {g : E → F} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   mem_ℒp (g ∘ f) p μ ↔ mem_ℒp f p μ :=
-begin
-  have := ae_measurable_comp_iff_of_closed_embedding g (hg'.closed_embedding hg.uniform_continuous),
-  split,
-  { assume H,
-    have A : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg'.le_mul_dist },
-    exact H.of_le_mul (this.1 H.ae_measurable) A },
-  { assume H,
-    have A : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg.dist_le_mul },
-    exact H.of_le_mul (this.2 H.ae_measurable) A }
-end
+⟨λ h, h.of_comp_antilipschitz_with hg.uniform_continuous hg' g0, λ h, hg.comp_mem_ℒp g0 h⟩
 
 /-- When `g` is a Lipschitz function sending `0` to `0` and `f` is in `Lp`, then `g ∘ f` is well
 defined as an element of `Lp`. -/

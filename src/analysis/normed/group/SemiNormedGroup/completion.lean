@@ -90,7 +90,7 @@ def Completion.lift {V W : SemiNormedGroup} [complete_space W] [separated_space 
 
 lemma lift_comp_incl {V W : SemiNormedGroup} [complete_space W] [separated_space W] (f : V ⟶ W) :
   incl ≫ (Completion.lift f) = f :=
-by {ext, exact normed_group_hom.extension_coe _ _ }
+by { ext, apply normed_group_hom.extension_coe }
 
 lemma lift_unique {V W : SemiNormedGroup} [complete_space W] [separated_space W] (f : V ⟶ W)
   (g : Completion.obj V ⟶ W) : incl ≫ g = f → g = Completion.lift f :=

@@ -1241,7 +1241,7 @@ show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
 
 variable {f}
 
-/-- The first isomorphism theorem for commutative rings, computable version. -/
+/-- The **first isomorphism theorem** for commutative rings, computable version. -/
 def quotient_ker_equiv_of_right_inverse
   {g : S → R} (hf : function.right_inverse g f) :
   f.ker.quotient ≃+* S :=
@@ -1263,7 +1263,7 @@ lemma quotient_ker_equiv_of_right_inverse.apply {g : S → R} (hf : function.rig
 lemma quotient_ker_equiv_of_right_inverse.symm.apply {g : S → R} (hf : function.right_inverse g f)
   (x : S) : (quotient_ker_equiv_of_right_inverse hf).symm x = ideal.quotient.mk f.ker (g x) := rfl
 
-/-- The first isomorphism theorem for commutative rings. -/
+/-- The **first isomorphism theorem** for commutative rings. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : function.surjective f) :
   f.ker.quotient ≃+* S :=
 quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
@@ -1474,7 +1474,7 @@ lemma ker_lift_alg_to_ring_hom (f : A →ₐ[R] B) :
 lemma ker_lift_alg_injective (f : A →ₐ[R] B) : function.injective (ker_lift_alg f) :=
 ring_hom.ker_lift_injective f
 
-/-- The first isomorphism theorem for agebras, computable version. -/
+/-- The **first isomorphism** theorem for algebras, computable version. -/
 def quotient_ker_alg_equiv_of_right_inverse
   {f : A →ₐ[R] B} {g : B → A} (hf : function.right_inverse g f) :
   f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
@@ -1492,7 +1492,7 @@ lemma quotient_ker_alg_equiv_of_right_inverse_symm.apply {f : A →ₐ[R] B} {g 
   (quotient_ker_alg_equiv_of_right_inverse hf).symm x = quotient.mkₐ R f.to_ring_hom.ker (g x) :=
   rfl
 
-/-- The first isomorphism theorem for algebras. -/
+/-- The **first isomorphism theorem** for algebras. -/
 noncomputable def quotient_ker_alg_equiv_of_surjective
   {f : A →ₐ[R] B} (hf : function.surjective f) : f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
 quotient_ker_alg_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
@@ -1748,5 +1748,35 @@ ideal.quotient.lift (I ⊔ J) (quot_quot_mk I J) (ker_quot_quot_mk I J).symm.le
 def quot_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=
 ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
+
+@[simp]
+lemma quot_quot_equiv_quot_sup_quot_quot_mk (x : R) :
+  quot_quot_equiv_quot_sup I J (quot_quot_mk I J x) = ideal.quotient.mk (I ⊔ J) x :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_sup_symm_quot_quot_mk (x : R) :
+  (quot_quot_equiv_quot_sup I J).symm (ideal.quotient.mk (I ⊔ J) x) = quot_quot_mk I J x :=
+rfl
+
+/-- The obvious isomorphism `(R/I)/J' → (R/J)/I' `   -/
+def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quotient.mk).quotient :=
+((quot_quot_equiv_quot_sup I J).trans (quot_equiv_of_eq sup_comm)).trans
+  (quot_quot_equiv_quot_sup J I).symm
+
+@[simp]
+lemma quot_quot_equiv_comm_quot_quot_mk (x : R) :
+  quot_quot_equiv_comm I J (quot_quot_mk I J x) = quot_quot_mk J I x :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_comm_comp_quot_quot_mk :
+  ring_hom.comp ↑(quot_quot_equiv_comm I J) (quot_quot_mk I J) = quot_quot_mk J I :=
+ring_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
+
+@[simp]
+lemma quot_quot_equiv_comm_symm :
+  (quot_quot_equiv_comm I J).symm = quot_quot_equiv_comm J I :=
+rfl
 
 end double_quot

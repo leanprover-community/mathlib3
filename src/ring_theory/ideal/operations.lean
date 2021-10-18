@@ -19,6 +19,8 @@ open_locale big_operators pointwise
 namespace submodule
 
 variables {R : Type u} {M : Type v}
+
+section comm_semiring
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 open_locale pointwise
@@ -164,11 +166,11 @@ le_antisymm (map_le_iff_le_comap.2 $ smul_le.2 $ λ r hr n hn, show f (r • n) 
 smul_le.2 $ λ r hr n hn, let ⟨p, hp, hfp⟩ := mem_map.1 hn in
 hfp ▸ f.map_smul r p ▸ mem_map_of_mem (smul_mem_smul hr hp)
 
-end submodule
+end comm_semiring
 
-namespace submodule
+section comm_ring
 
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+variables [comm_ring R] [add_comm_group M] [module R M]
 variables {N N₁ N₂ P P₁ P₂ : submodule R M}
 
 /-- `N.colon P` is the ideal of all elements `r : R` such that `r • P ⊆ N`. -/
@@ -192,6 +194,8 @@ le_antisymm (le_infi $ λ i, le_infi $ λ j, colon_mono (infi_le _ _) (le_supr _
 (λ r H, mem_colon'.2 $ supr_le $ λ j, map_le_iff_le_comap.1 $ le_infi $ λ i,
   map_le_iff_le_comap.2 $ mem_colon'.1 $ have _ := ((mem_infi _).1 H i),
   have _ := ((mem_infi _).1 this j), this)
+
+end comm_ring
 
 end submodule
 

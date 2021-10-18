@@ -50,8 +50,8 @@ A `floor_ring` is a linear ordered ring over `α` with a function
 class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)
 (ceil : α → ℤ)
-(gc_floor : galois_connection coe floor)
-(gc_ceil : galois_connection ceil coe)
+(gc_coe_floor : galois_connection coe floor)
+(gc_ceil_coe : galois_connection ceil coe)
 
 instance : floor_ring ℤ :=
 { floor := id,
@@ -81,8 +81,18 @@ variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 /-- `int.floor a` is the greatest integer `z` such that `z ≤ a`. It is denoted with `⌊a⌋`. -/
 def floor : α → ℤ := floor_ring.floor
 
+@[simp] lemma floor_ring_floor_eq : floor_ring.floor = int.floor := rfl
+
+@[simp] lemma floor_mk (floor ceil : α → ℤ) (gc_floor gc_ceil) :
+  (floor_ring.mk floor ceil gc_floor gc_ceil).floor = floor := rfl
+
 /-- `int.ceil a` is the smallest integer `z` such that `a ≤ z`. It is denoted with `⌈a⌉`. -/
 def ceil : α → ℤ := floor_ring.ceil
+
+@[simp] lemma floor_ring_ceil_eq : floor_ring.ceil = int.ceil := rfl
+
+@[simp] lemma ceil_mk (floor ceil : α → ℤ) (gc_floor gc_ceil) :
+  (floor_ring.mk floor ceil gc_floor gc_ceil).ceil = ceil := rfl
 
 /-- `int.fract a`, the fractional part of `a`, is `a` minus its floor. -/
 def fract (a : α) : α := a - floor a

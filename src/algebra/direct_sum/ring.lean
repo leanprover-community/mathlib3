@@ -192,6 +192,11 @@ gcomm_semiring.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem m
 
 end shorthands
 
+lemma of_eq_of_graded_monoid_eq {A : ι → Type*} [Π (i : ι), add_comm_monoid (A i)]
+  {i j : ι} {a : A i} {b : A j} (h : graded_monoid.mk i a = graded_monoid.mk j b) :
+  direct_sum.of A i a = direct_sum.of A j b :=
+dfinsupp.single_eq_of_sigma_eq h
+
 variables (A : ι → Type*)
 
 /-! ### Instances for `⨁ i, A i` -/
@@ -264,7 +269,7 @@ begin
   apply add_hom_ext, intros i xi,
   unfold has_one.one,
   rw mul_hom_of_of,
-  exact dfinsupp.single_eq_of_sigma_eq (gsemiring.one_mul ⟨i, xi⟩),
+  exact of_eq_of_graded_monoid_eq (one_mul $ graded_monoid.mk i xi),
 end
 
 private lemma mul_one (x : ⨁ i, A i) : x * 1 = x :=
@@ -274,7 +279,7 @@ begin
   apply add_hom_ext, intros i xi,
   unfold has_one.one,
   rw [flip_apply, mul_hom_of_of],
-  exact dfinsupp.single_eq_of_sigma_eq (gsemiring.mul_one ⟨i, xi⟩),
+  exact of_eq_of_graded_monoid_eq (mul_one $ graded_monoid.mk i xi),
 end
 
 private lemma mul_assoc (a b c : ⨁ i, A i) : a * b * c = a * (b * c) :=
@@ -286,7 +291,7 @@ begin
   ext ai ax bi bx ci cx : 6,
   dsimp only [coe_comp, function.comp_app, comp_hom_apply_apply, flip_apply, flip_hom_apply],
   rw [mul_hom_of_of, mul_hom_of_of, mul_hom_of_of, mul_hom_of_of],
-  exact dfinsupp.single_eq_of_sigma_eq (gsemiring.mul_assoc ⟨ai, ax⟩ ⟨bi, bx⟩ ⟨ci, cx⟩),
+  exact of_eq_of_graded_monoid_eq (mul_assoc (graded_monoid.mk ai ax) ⟨bi, bx⟩ ⟨ci, cx⟩),
 end
 
 /-- The `semiring` structure derived from `gsemiring A`. -/
@@ -300,6 +305,15 @@ instance semiring : semiring (⨁ i, A i) := {
   mul_assoc := mul_assoc A,
   ..direct_sum.non_unital_non_assoc_semiring _, }
 
+lemma of_pow {i} (a : A i) (n : ℕ) :
+  of _ i a ^ n = of _ (n • i) (graded_monoid.gmonoid.gnpow _ a) :=
+begin
+  induction n with n,
+  { exact of_eq_of_graded_monoid_eq (pow_zero $ graded_monoid.mk _ a).symm, },
+  { rw [pow_succ, n_ih, of_mul_of],
+    exact of_eq_of_graded_monoid_eq (pow_succ (graded_monoid.mk _ a) n).symm, },
+end
+
 end semiring
 
 section comm_semiring
@@ -312,7 +326,7 @@ suffices mul_hom A = (mul_hom A).flip,
 begin
   apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx,
   rw [add_monoid_hom.flip_apply, mul_hom_of_of, mul_hom_of_of],
-  exact dfinsupp.single_eq_of_sigma_eq (gcomm_semiring.mul_comm ⟨ai, ax⟩ ⟨bi, bx⟩),
+  exact of_eq_of_graded_monoid_eq (gcomm_semiring.mul_comm ⟨ai, ax⟩ ⟨bi, bx⟩),
 end
 
 /-- The `comm_semiring` structure derived from `gcomm_semiring A`. -/
@@ -377,7 +391,7 @@ section mul
 variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [gnon_unital_non_assoc_semiring A]
 
 @[simp] lemma of_zero_smul {i} (a : A 0) (b : A i) : of _ _ (a • b) = of _ _ a * of _ _ b :=
-(dfinsupp.single_eq_of_sigma_eq (graded_monoid.mk_zero_smul a b)).trans (of_mul_of _ _).symm
+(of_eq_of_graded_monoid_eq (graded_monoid.mk_zero_smul a b)).trans (of_mul_of _ _).symm
 
 @[simp] lemma of_zero_mul (a b : A 0) : of _ 0 (a * b) = of _ 0 a * of _ 0 b:=
 of_zero_smul A a b

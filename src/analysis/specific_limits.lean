@@ -1011,11 +1011,11 @@ begin
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     simp only [le_div_iff (zero_lt_one.trans_le hx), sub_mul,
       inv_mul_cancel (zero_lt_one.trans_le hx).ne'],
-    have := lt_nat_floor_add_one (a * x),
+    have := nat.lt_floor_add_one (a * x),
     linarith },
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     rw div_le_iff (zero_lt_one.trans_le hx),
-    simp [nat_floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
+    simp [nat.floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
 end
 
 lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
@@ -1027,10 +1027,10 @@ begin
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds A,
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     rw le_div_iff (zero_lt_one.trans_le hx),
-    exact le_nat_ceil _ },
+    exact nat.le_ceil _ },
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     simp [div_le_iff (zero_lt_one.trans_le hx), inv_mul_cancel (zero_lt_one.trans_le hx).ne',
-      (nat_ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
+      (nat.ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
 end
 
 end

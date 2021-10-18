@@ -55,7 +55,7 @@ lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) 
 (is_empty_or_nonempty α).elim
   (begin
     introI h,
-    rw [@cardinal.eq_zero_of_is_empty (W_type β)],
+    rw [cardinal.mk_eq_zero (W_type β)],
     exact zero_le _
   end) $
 λ hn,

@@ -62,7 +62,7 @@ map sending a morphism `f` to the associated morphism of completions is itself a
 def Completion.map_hom (V W : SemiNormedGroup.{u}) :
   (V ⟶ W) →+ (Completion.obj V ⟶ Completion.obj W) :=
 add_monoid_hom.mk' (category_theory.functor.map Completion) $ λ f g,
-  normed_group_hom.completion_add f g
+  f.completion_add g
 
 
 @[simp] lemma Completion.map_zero (V W : SemiNormedGroup) : Completion.map (0 : V ⟶ W) = 0 :=

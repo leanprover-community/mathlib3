@@ -59,21 +59,19 @@ lemma four_pow_pos {n : ℕ} : 0 < (4 : ℝ)^n := pow_pos (by norm_num) n
 lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hPε : 100 ≤ 4^P.size * ε^5) :
   100/ε^5 ≤ m :=
-begin
-  calc
-    100/ε^5
-        ≤ 4^P.size
-        : div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le (pow_nonneg (by norm_num) _) hPε
-    ... = ((P.size * 16^P.size)/exp_bound P.size : ℕ) : begin
-            norm_cast,
-            refine (nat.div_eq_of_eq_mul_left _ _).symm,
-            { rw [exp_bound_pos, P.size_eq_card_parts, card_pos],
-              exact P.parts_nonempty },
-            rw [exp_bound, mul_comm (4^P.size), mul_assoc, ←mul_pow],
-            norm_num,
-          end
-    ... ≤ m : nat.cast_le.2 (nat.div_le_div_right hPα)
-end
+calc
+  100/ε^5
+      ≤ 4^P.size
+      : div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le (pow_nonneg (by norm_num) _) hPε
+  ... = ((P.size * 16^P.size)/exp_bound P.size : ℕ) : begin
+          norm_cast,
+          refine (nat.div_eq_of_eq_mul_left _ _).symm,
+          { rw [exp_bound_pos, P.size_eq_card_parts, card_pos],
+            exact P.parts_nonempty },
+          rw [exp_bound, mul_comm (4^P.size), mul_assoc, ←mul_pow],
+          norm_num,
+        end
+  ... ≤ m : nat.cast_le.2 (nat.div_le_div_right hPα)
 
 lemma a_add_one_le_four_pow_size : a + 1 ≤ 4^P.size :=
 begin

@@ -409,13 +409,6 @@ lemma edge_density_nonneg (U V : finset α) : 0 ≤ G.edge_density U V := pairs_
 
 lemma edge_density_le_one (U V : finset α) : G.edge_density U V ≤ 1 := pairs_density_le_one _ U V
 
-noncomputable def sym2_edge_density : sym2 (finset α) → ℝ :=
-sym2.lift ⟨G.edge_density, G.edge_density_comm⟩
-
-@[simp]
-lemma sym2_edge_density_mk {U V : finset α} : G.sym2_edge_density ⟦(U, V)⟧ = G.edge_density U V :=
-rfl
-
 end simple_graph
 
 /-! ## is_uniform for simple_graph -/
@@ -464,13 +457,6 @@ begin
     exact (hε.not_le hV).elim },
   rwa [sub_self, abs_zero],
 end
-
-def sym2_is_uniform (UV : sym2 (finset α)) : Prop := sym2.from_rel (G.is_uniform_symmetric ε) UV
-
-@[simp]
-lemma sym2_is_uniform_mk {ε : ℝ} {U V : finset α} :
-  G.sym2_is_uniform ε ⟦(U, V)⟧ ↔ G.is_uniform ε U V :=
-iff.rfl
 
 end simple_graph
 

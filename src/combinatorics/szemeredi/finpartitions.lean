@@ -156,7 +156,8 @@ begin
       { apply sdiff_subset_sdiff (finset.subset.refl _) (bUnion_subset_bUnion_of_subset_left _ _),
         refine filter_subset_filter _ (subset_insert _ _) },
       { simp only [avoid, mem_erase, mem_image, bot_eq_empty],
-        refine ⟨(nonempty_of_mem_parts _ (mem_of_mem_erase hx)).ne_empty, _, mem_of_mem_erase hx, _⟩,
+        refine ⟨(nonempty_of_mem_parts _ (mem_of_mem_erase hx)).ne_empty, _,
+          mem_of_mem_erase hx, _⟩,
         rw finset.sdiff_eq_self_iff_disjoint,
         refine disjoint.mono_right hp'₁ _,
         apply A.disjoint _ (mem_of_mem_erase hx) _ hp₁ (ne_of_mem_erase hx) } },
@@ -343,7 +344,8 @@ by { simp only [atomise, mem_erase, nonempty_iff_ne_empty, mem_singleton, and_co
 lemma atomise_empty (hs : s.nonempty) : (atomise s ∅).parts = {s} :=
 begin
   rw atomise,
-  simp only [forall_false_left, filter_true_of_mem, implies_true_iff, powerset_empty, image_singleton, not_mem_empty],
+  simp only [forall_false_left, filter_true_of_mem, implies_true_iff, powerset_empty,
+    image_singleton, not_mem_empty],
   exact erase_eq_of_not_mem (not_mem_singleton.2 hs.ne_empty.symm),
 end
 

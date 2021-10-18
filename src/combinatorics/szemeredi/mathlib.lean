@@ -12,7 +12,7 @@ import data.set.equitable
 open_locale big_operators nat
 open finset fintype function
 
-variables {α β : Type*}
+variables {α β ι : Type*}
 
 namespace sym2
 
@@ -71,6 +71,24 @@ lemma odd.pow_neg (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
 
 end group_power
 
+-- change docstring of `finset.le_sum_of_subadditive`
+
+lemma finset.sum_le [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι} {a : α}
+  (h : ∀ i ∈ s, f i ≤ a) :
+  (∑ i in s, f i) ≤ s.card • a :=
+calc (∑ i in s, f i) ≤ (∑ i in s, a) : finset.sum_le_sum h
+                 ... = s.card • a    : finset.sum_const a
+
+lemma finset.le_sum [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι} {a : α}
+  (h : ∀ i ∈ s, a ≤ f i) :
+  s.card • a ≤ ∑ i in s, f i :=
+@finset.sum_le (order_dual α) _ _ _ _ _ h
+
+lemma finset.card_bUnion_le_card_mul [decidable_eq β] {s : finset α} {f : α → finset β} {n : ℕ}
+  (h : ∀ a ∈ s, (f a).card ≤ n) :
+  (s.bUnion f).card ≤ s.card * n :=
+card_bUnion_le.trans (finset.sum_le h)
+
 lemma one_div_le_one_of_one_le [linear_ordered_field α] {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha
 
@@ -107,7 +125,7 @@ begin
 end
 
 lemma set.pairwise_disjoint_singleton [semilattice_inf_bot α] (a : α) :
-  ({a} : set α ).pairwise_disjoint :=
+  ({a} : set α).pairwise_disjoint :=
 set.pairwise_on_singleton a _
 
 lemma set.pairwise_disjoint_insert [semilattice_inf_bot α] {s : set α} {a : α} :
@@ -119,8 +137,10 @@ lemma set.pairwise_disjoint.insert [semilattice_inf_bot α] {s : set α} (hs : s
   (insert a s).pairwise_disjoint :=
 set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
 
+-- -- should be `s.pairwise_disjoint (λ b, ⋃ t ∈ f b)`
 -- lemma set.pairwise_disjoint.bUnion [semilattice_inf_bot α] {s : set β} {f : β → set α}
---   (hs : (f '' s).pairwise_disjoint) (hf : ∀ a ∈ s, (f a).pairwise_disjoint) :
+--   (hs : ((λ b, ⋃ t ∈ f b, t : β → set α) '' s).pairwise_disjoint)
+  -- (hf : ∀ a ∈ s, (f a).pairwise_disjoint) :
 --   (⋃ a ∈ s, f a).pairwise_disjoint :=
 -- begin
 --   rintro a ha b hb hab,
@@ -134,7 +154,6 @@ set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
 --     sorry
 --   }
 -- end
-
 
 lemma set.pairwise_disjoint_insert_finset [semilattice_inf_bot α] {s : finset α} {a : α} :
   (insert a s : set α).pairwise_disjoint ↔ (s : set α).pairwise_disjoint ∧

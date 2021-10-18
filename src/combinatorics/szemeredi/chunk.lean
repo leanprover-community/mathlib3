@@ -45,20 +45,13 @@ lemma subset_witness_of_mem_star : ∀ A ∈ hP.star G ε hU V, A ⊆ G.witness 
 lemma bUnion_star_subset_witness : (hP.star G ε hU V).bUnion id ⊆ G.witness ε U V :=
 bUnion_subset_iff_forall_subset.2 (subset_witness_of_mem_star hP G ε hU V)
 
+variables {hP G ε hU V}
+
 lemma star_subset_chunk_increment : hP.star G ε hU V ⊆ (hP.chunk_increment G ε hU).parts :=
 filter_subset _ _
 
 lemma star_pairwise_disjoint : (hP.star G ε hU V : set (finset α)).pairwise_disjoint :=
-(hP.chunk_increment G ε hU).disjoint.subset (star_subset_chunk_increment hP G ε hU V)
-
-variables {hP G ε hU V}
-
-lemma card_bUnion_star_le_m_add_one_mul_card_star :
-  ((hP.star G ε hU V).bUnion id).card ≤ (m + 1) * (hP.star G ε hU V).card :=
-begin
-  refine card_bUnion_le.trans _,
-  sorry
-end
+(hP.chunk_increment G ε hU).disjoint.subset star_subset_chunk_increment
 
 lemma witness_sdiff_bUnion_star_small (hV : V ∈ P.parts) (hUV : U ≠ V) (h₂ : ¬G.is_uniform ε U V) :
   (G.witness ε U V \ (hP.star G ε hU V).bUnion id).card ≤ 2^(P.size - 1) * m :=
@@ -212,12 +205,16 @@ end
 
 lemma card_le_m_add_one_of_mem_chunk_increment_parts {A : finset α}
   (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
-  (A.card : ℝ) ≤ m + 1 :=
+  A.card ≤ m + 1 :=
 begin
   obtain h | h := card_eq_of_mem_parts_chunk_increment hA; rw h,
-  { exact nat.cast_le.2 (nat.le_succ _) },
-  { rw nat.cast_add_one }
+  exact nat.le_succ _,
 end
+
+lemma card_bUnion_star_le_m_add_one_card_star_mul :
+  ((hP.star G ε hU V).bUnion id).card ≤ (hP.star G ε hU V).card * (m + 1) :=
+card_bUnion_le_card_mul $ λ s hs,
+  card_le_m_add_one_of_mem_chunk_increment_parts $ star_subset_chunk_increment hs
 
 lemma le_sum_card_subset_chunk_increment_parts (m_pos : 0 < m) {A : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
@@ -230,9 +227,9 @@ begin
         = A.card * m * (u.card/(m + 1))
         : by rw [←mul_div_assoc, mul_right_comm, mul_div_assoc]
     ... ≤ A.card * m
-        : mul_le_of_le_one_right
-          (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) ((div_le_one $ by exact
-          nat.cast_add_one_pos _).2 $ card_le_m_add_one_of_mem_chunk_increment_parts $ hA hu)
+        : mul_le_of_le_one_right (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _))
+          ((div_le_one $ by exact nat.cast_add_one_pos _).2 $ nat.cast_le.2 $
+          card_le_m_add_one_of_mem_chunk_increment_parts $ hA hu)
     ... = ∑ V in A, (m : ℝ)
         : by rw [sum_const, nsmul_eq_mul]
     ... ≤ ∑ V in A, V.card
@@ -248,7 +245,8 @@ begin
   calc
     ∑ V in A, (V.card : ℝ)
         ≤ ∑ V in A, (m + 1)
-        : sum_le_sum (λ V hV, card_le_m_add_one_of_mem_chunk_increment_parts $ hA hV)
+        : sum_le_sum (λ V hV, nat.cast_le.2 $
+          card_le_m_add_one_of_mem_chunk_increment_parts $ hA hV)
     ... = A.card * (m + 1) : by rw [sum_const, nsmul_eq_mul]
     ... ≤ A.card * (m + 1) * (u.card/m) : le_mul_of_one_le_right (mul_nonneg (nat.cast_nonneg _)
           (nat.cast_add_one_pos _).le) ((one_le_div (by exact nat.cast_pos.2 m_pos)).2
@@ -316,8 +314,8 @@ begin
         ≤ (1 - ε^5/50) * G.edge_density (A.bUnion id) (B.bUnion id)
         : begin
             rw [sub_mul, one_mul],
-            exact sub_le_sub_left (mul_le_of_le_one_right (div_nonneg (eps_pow_five_pos hPε).le (by norm_num))
-              (G.edge_density_le_one _ _)) _,
+            exact sub_le_sub_left (mul_le_of_le_one_right
+              (div_nonneg (eps_pow_five_pos hPε).le $ by norm_num) $ G.edge_density_le_one _ _) _,
           end
     ... ≤ (m/(m + 1))^2 * G.edge_density (A.bUnion id) (B.bUnion id)
         : mul_le_mul_of_nonneg_right (one_sub_le_m_div_m_add_one_sq hPα hPε)
@@ -499,18 +497,21 @@ lemma eps_le_card_star_div [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hV : V ∈ P.parts) (hUV : U ≠ V) (hunif : ¬ G.is_uniform ε U V) :
   4/5 * ε ≤ (hP.star G ε hU V).card / 4^P.size :=
 begin
+  have hm : (0 : ℝ) ≤ 1 - 1/m :=
+    sub_nonneg_of_le (one_div_le_one_of_one_le $ by exact_mod_cast m_pos),
   calc
     4/5 * ε
         ≤ (1 - ε/10) * (G.witness ε U V).card * (1 - 1/m) / U.card : sorry
     ... ≤ ((hP.star G ε hU V).bUnion id).card * (1 - 1/m) / U.card
-        : begin
-          refine div_le_div_of_le (nat.cast_nonneg _) (mul_le_mul_of_nonneg_right
-            (one_sub_eps_mul_card_witness_le_card_star hV hUV hunif hPε hε₁) $ sub_nonneg_of_le $
-            one_div_le_one_of_one_le _),
-          norm_cast,
-          exact m_pos,
-        end
-    ... ≤ (1 - 1/m) * (hP.star G ε hU V).card * (m + 1) / (4^P.size * m): sorry
+        : div_le_div_of_le (nat.cast_nonneg _) (mul_le_mul_of_nonneg_right
+            (one_sub_eps_mul_card_witness_le_card_star hV hUV hunif hPε hε₁) hm)
+    ... = ((hP.star G ε hU V).bUnion id).card * ((1 - 1/m) / U.card)
+        : mul_div_assoc
+    ... ≤ (hP.star G ε hU V).card * (m + 1) * ((1 - 1/m) / U.card) : begin
+            norm_cast,
+            exact mul_le_mul_of_nonneg_right (nat.cast_le.2 card_bUnion_star_le_m_add_one_card_star_mul) (div_nonneg hm $ nat.cast_nonneg _),
+          end
+    ... = (hP.star G ε hU V).card * (m + 1) * ((1 - 1/m) / (4^P.size * m)) : sorry
     ... ≤ (hP.star G ε hU V).card / 4^P.size : sorry
 end
 

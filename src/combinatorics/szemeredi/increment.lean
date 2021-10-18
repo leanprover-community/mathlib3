@@ -110,8 +110,9 @@ end
 
 lemma increment_distinct_pairs :
   P.parts.off_diag.attach.bUnion
-    (λ UV, (hP.chunk_increment G ε ((mem_off_diag _ _).1 UV.2).1).parts.product (hP.chunk_increment G ε ((mem_off_diag _ _).1 UV.2).2.1).parts) ⊆
-  (hP.increment G ε).parts.off_diag :=
+    (λ UV, (hP.chunk_increment G ε ((mem_off_diag _ _).1 UV.2).1).parts.product
+      (hP.chunk_increment G ε ((mem_off_diag _ _).1 UV.2).2.1).parts)
+  ⊆ (hP.increment G ε).parts.off_diag :=
 begin
   rintro ⟨Ui, Vj⟩,
   simp only [finpartition.is_equipartition.increment, mem_off_diag, bind_parts, mem_bUnion,
@@ -122,7 +123,8 @@ begin
   refine ⟨⟨_, hUV.1, hUi⟩, ⟨_, hUV.2.1, hVj⟩, _⟩,
   rintro rfl,
   obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ hUi,
-  apply hUV.2.2 (P.disjoint.elim_finset hUV.1 hUV.2.1 i (finpartition.le _ hUi hi) (finpartition.le _ hVj hi)),
+  apply hUV.2.2 (P.disjoint.elim_finset hUV.1 hUV.2.1 i (finpartition.le _ hUi hi)
+    (finpartition.le _ hVj hi)),
 end
 
 -- -- dagger inequality

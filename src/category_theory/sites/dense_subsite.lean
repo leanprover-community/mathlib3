@@ -34,11 +34,11 @@ then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, t
 
 -/
 
-universes v u₁ u₂
+universes v
 
 namespace category_theory
 
-variables {C : Type*} [category.{v} C] {D : Type*} [category.{v} D] {E : Type*} [category E]
+variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
 variables (J : grothendieck_topology C) (K : grothendieck_topology D)
 variables {L : grothendieck_topology E}
 
@@ -88,13 +88,9 @@ This definition can be found in https://ncatlab.org/nlab/show/dense+sub-site Def
 structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) :=
 (is_cover : ∀ (U : D), sieve.cover_by_image G U ∈ K U)
 
--- end cover_dense
-
-
-open presieve opposite structured_arrow
--- variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
+open presieve opposite
 namespace cover_dense
-variables {A : Type u₁} [category.{v} A] {K} {G : C ⥤ D} (H : cover_dense K G)
+variables {A : Type*} [category A] {K} {G : C ⥤ D} (H : cover_dense K G)
 
 lemma sheaf_ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
@@ -142,7 +138,7 @@ lemma sheaf_eq_amalgamation (ℱ : Sheaf K A) {X : A} {U : D} {T : sieve U} (hT)
 include H
 variable [full G]
 namespace types
-variables {ℱ ℱ' : SheafOfTypes K} (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val)
+variables {ℱ ℱ' : SheafOfTypes.{v} K} (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val)
 
 /--
 (Implementation). Given a section of `ℱ` on `X`, we can obtain a family of elements valued in `ℱ'`
@@ -152,8 +148,6 @@ def pushforward_family {X} (x : ℱ.val.obj (op X)) :
   family_of_elements ℱ'.val (cover_by_image G X) := λ Y f hf,
 ℱ'.val.map (presieve.get_cover_by_image_structure hf).lift.op $ α.app (op _) $
   (ℱ.val.map (presieve.get_cover_by_image_structure hf).map.op x : _)
-
--- include H'
 
 /-- (Implementation). The `pushforward_family` defined is compatible. -/
 lemma pushforward_family_compatible {X} (x : ℱ.val.obj (op X)) :
@@ -256,14 +250,11 @@ nat_iso.of_components (λ X, app_iso H i (unop X)) (sheaf_hom H i.hom).naturalit
 end types
 open types
 
--- include H'
-
-
 /-- (Implementation). The sheaf map given in `types.sheaf_hom` is natural in terms of `X`. -/
 @[simps] noncomputable
 def sheaf_coyoneda_hom {ℱ ℱ' : Sheaf K A} (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val) :
-  coyoneda ⋙ (whiskering_left Dᵒᵖ A (Type v)).obj ℱ.val ⟶
-  coyoneda ⋙ (whiskering_left Dᵒᵖ A (Type v)).obj ℱ'.val :=
+  coyoneda ⋙ (whiskering_left Dᵒᵖ A Type*).obj ℱ.val ⟶
+  coyoneda ⋙ (whiskering_left Dᵒᵖ A Type*).obj ℱ'.val :=
 { app := λ X, sheaf_hom H (hom_over α (unop X)), naturality' := λ X Y f,
   begin
   ext U x,

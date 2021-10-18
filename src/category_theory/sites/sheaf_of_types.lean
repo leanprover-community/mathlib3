@@ -268,11 +268,6 @@ begin
   exact t.restrict (le_generate R),
 end
 
-lemma family_of_elements.comp_of_compatible (S : sieve X) {x : family_of_elements P S}
-  (t : x.compatible) {f : Y ⟶ X} (hf : S f) {Z} (g : Z ⟶ Y) :
-    x (g ≫ f) (S.downward_closed hf g) = P.map g.op (x f hf) :=
-by simpa using t (𝟙 _) g (S.downward_closed hf g) hf (category.id_comp _)
-
 section functor_pullback
 variables {D : Type u₂} [category.{v₂} D] (F : D ⥤ C) {Z : D}
 variables {T : presieve (F.obj Z)} {x : family_of_elements P T}

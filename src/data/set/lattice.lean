@@ -520,6 +520,11 @@ begin
   exact mem_bUnion c_in (hc ha)
 end
 
+theorem bInter_mono' {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : ∀ x ∈ s, t x ⊆ t' x) :
+  (⋂ x ∈ s', t x) ⊆ (⋂ x ∈ s, t' x) :=
+(bInter_subset_bInter_left hs).trans $
+  subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
+
 theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
 bInter_mono' (subset.refl s) h
@@ -527,11 +532,6 @@ bInter_mono' (subset.refl s) h
 lemma bInter_congr {s : set α} {t1 t2 : α → set β} (h : ∀ x ∈ s, t1 x = t2 x) :
   (⋂ (x ∈ s), t1 x) = (⋂ (x ∈ s), t2 x) :=
 subset.antisymm (bInter_mono (λ x hx, by rw h x hx)) (bInter_mono (λ x hx, by rw h x hx))
-
-theorem bUnion_mono' {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : ∀ x ∈ s, t x ⊆ t' x) :
-  (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s', t' x) :=
-(bUnion_subset (λ x xs, subset.trans (h x xs) (subset_bUnion_of_mem xs))).trans
-  (bUnion_subset_bUnion_left hs)
 
 theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=

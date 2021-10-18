@@ -100,7 +100,7 @@ lemma finset.le_sum [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι}
 lemma finset.card_bUnion_le_card_mul [decidable_eq β] {s : finset α} {f : α → finset β} {n : ℕ}
   (h : ∀ a ∈ s, (f a).card ≤ n) :
   (s.bUnion f).card ≤ s.card * n :=
-card_bUnion_le.trans (finset.sum_le h)
+card_bUnion_le.trans $ finset.sum_le h
 
 lemma one_div_le_one_of_one_le [linear_ordered_field α] {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha
@@ -109,8 +109,7 @@ lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
   (set.range (singleton : α → finset α)).pairwise_disjoint :=
 begin
   rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
-  rw [singleton_disjoint, not_mem_singleton],
-  exact ne_of_apply_ne _ h,
+  exact disjoint_singleton.2 (ne_of_apply_ne _ h),
 end
 
 lemma set.pairwise_disjoint.elim_finset [decidable_eq α] {s : set (finset α)}
@@ -118,37 +117,13 @@ lemma set.pairwise_disjoint.elim_finset [decidable_eq α] {s : set (finset α)}
   (hzy : z ∈ y) : x = y :=
 hs.elim hx hy (finset.not_disjoint_iff.2 ⟨z, hzx, hzy⟩)
 
-lemma set.pairwise_disjoint_empty [semilattice_inf_bot α] : (∅ : set α).pairwise_disjoint :=
-set.pairwise_on_empty _
-
-lemma set.pairwise_disjoint.image_set [semilattice_inf_bot α] {s : set α}
-  (hs : s.pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
-  (f '' s).pairwise_disjoint :=
-begin
-  rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ h,
-  exact (hs a ha b hb $ ne_of_apply_ne _ h).mono (hf a) (hf b),
-end
-
 lemma set.pairwise_disjoint.image_finset [decidable_eq α] [semilattice_inf_bot α]
   {s : finset α} (hs : (s : set α).pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
   set.pairwise_disjoint (s.image f :set α) :=
 begin
   rw coe_image,
-  exact hs.image_set hf,
+  exact hs.image_of_le hf,
 end
-
-lemma set.pairwise_disjoint_singleton [semilattice_inf_bot α] (a : α) :
-  ({a} : set α).pairwise_disjoint :=
-set.pairwise_on_singleton a _
-
-lemma set.pairwise_disjoint_insert [semilattice_inf_bot α] {s : set α} {a : α} :
-  (insert a s).pairwise_disjoint ↔ s.pairwise_disjoint ∧ ∀ b ∈ s, a ≠ b → disjoint a b :=
-set.pairwise_on_insert_of_symmetric symmetric_disjoint
-
-lemma set.pairwise_disjoint.insert [semilattice_inf_bot α] {s : set α} (hs : s.pairwise_disjoint)
-  {a : α} (hx : ∀ b ∈ s, a ≠ b → disjoint a b) :
-  (insert a s).pairwise_disjoint :=
-set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
 
 -- -- should be `s.pairwise_disjoint (λ b, ⋃ t ∈ f b)`
 -- lemma set.pairwise_disjoint.bUnion [semilattice_inf_bot α] {s : set β} {f : β → set α}

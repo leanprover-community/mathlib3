@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Patrick Stevens. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Patrick Stevens
+Authors: Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.basic
@@ -36,36 +36,15 @@ begin
    ... ≤ (2 * n).choose n : choose_le_central_binom 1 n
 end
 
-lemma two_mul_sub_self (n : ℕ) : 2 * n - n = n :=
-begin
-  calc 2 * n - n = n + n - n : by rw two_mul
-  ... = n : nat.add_sub_cancel n n,
-end
-
-lemma two_mul_succ_sub_self (n : ℕ) : 2 * n + 1 - n = n + 1 :=
-begin
-  calc 2 * n + 1 - n = n + n + 1 - n : by rw two_mul
-  ... = n + 1 + n - n : by ring_nf
-  ... = n + 1 : (n + 1).add_sub_cancel n
-end
-
 lemma central_binom_induction (n : ℕ) :
   (n + 1) * ((2 * (n + 1)).choose (n + 1)) = (2 * (2 * n + 1)) * (2 * n).choose n :=
-begin
-  calc (n + 1) * ((2 * (n + 1)).choose (n + 1))
-      = (n + 1) * (2 * n + 2).choose (n + 1) : by ring_nf
-      ... = (n + 1) * ((2 * n + 1).choose n + (2 * n + 1).choose (n + 1)) : by rw choose_succ_succ
-      ... = (n + 1) * ((2 * n + 1).choose (n + 1) + (2 * n + 1).choose (n + 1)) :
-        by rw choose_symm_half
-      ... = 2 * ((2 * n + 1).choose (n + 1) * (n + 1)) : by ring
-      ... = 2 * (((2 * n).choose n + (2 * n).choose (n + 1)) * (n + 1)) :
-        by rw choose_succ_succ (2 * n) n
-      ... = 2 * ((2 * n).choose n * (n + 1) + (2 * n).choose (n + 1) * (n + 1)) : by ring
-      ... = 2 * ((2 * n).choose n * (n + 1) + (2 * n).choose n * (2 * n - n)) :
-        by rw choose_succ_right_eq (2 * n) n
-      ... = 2 * ((2 * n).choose n * (n + 1) + (2 * n).choose n * n) : by rw two_mul_sub_self
-      ... = 2 * (2 * n + 1) * (2 * n).choose n : by ring,
-end
+calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 1) : by ring
+... = (2 * n + 1).choose n * (2 * n + 2) : by rw [choose_succ_right_eq, choose_mul_succ_eq]
+... = 2 * ((2 * n + 1).choose n * (n + 1)) : by ring
+... = 2 * ((2 * n + 1).choose n * ((2 * n + 1) - n)) :
+  by rw [two_mul n, add_assoc, nat.add_sub_cancel_left]
+... = 2 * ((2 * n).choose n * (2 * n + 1)) : by rw choose_mul_succ_eq
+... = (2 * (2 * n + 1)) * (2 * n).choose n : by ring
 
 -- This bound is of interest because it appears in Tochiori's refinement of Erdős's proof
 -- of Bertrand's postulate

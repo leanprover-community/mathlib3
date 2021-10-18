@@ -15,10 +15,18 @@ objects and morphisms).
 
 ## Main definitions
 
-- `SemiNormedGroup.Completion` : the completion of a seminormed group (defined as a functor on
-  `SemiNormedGroup`).
-- `SemiNormedGroup.Completion.lift` : a normed group hom from `V` to complete `W` extends ("lifts")
-  to a seminormed group from the completion of `V` to `W`.
+- `SemiNormedGroup.Completion : SemiNormedGroup ⥤ SemiNormedGroup` : the completion of a
+  seminormed group (defined as a functor on `SemiNormedGroup` to itself).
+- `SemiNormedGroup.Completion.lift (f : V ⟶ W) : (Completion.obj V ⟶ W)` : a normed group hom
+  from `V` to complete `W` extends ("lifts") to a seminormed group hom from the completion of
+  `V` to `W`.
+
+## Projects
+
+1. Construct the category of complete seminormed groups, say `CompleteSemiNormedGroup`
+  and promote the `Completion` functor below to a functor landing in this category.
+2. Prove that the functor `Completion : SemiNormedGroup ⥤ CompleteSemiNormedGroup`
+  is left adjoint to the forgetful functor.
 
 -/
 
@@ -51,7 +59,7 @@ lemma norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥incl v∥ = ∥v∥ := by 
 
 lemma Completion_map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
   (Completion.map f).norm_noninc :=
-normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 $ 
+normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 $
   (normed_group_hom.norm_completion f).le.trans $
   normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.1 hf
 

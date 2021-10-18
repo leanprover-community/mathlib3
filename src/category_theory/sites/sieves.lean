@@ -576,7 +576,7 @@ lemma functor_pushforward_union (S R : sieve X) :
 (functor_galois_connection F X).l_sup
 
 lemma functor_pullback_union (S R : sieve (F.obj X)) :
-  (S ⊔ R).functor_pullback Få = S.functor_pullback F ⊔ R.functor_pullback F := rfl
+  (S ⊔ R).functor_pullback F = S.functor_pullback F ⊔ R.functor_pullback F := rfl
 
 lemma functor_pullback_inter (S R : sieve (F.obj X)) :
   (S ⊓ R).functor_pullback F = S.functor_pullback F ⊓ R.functor_pullback F := rfl

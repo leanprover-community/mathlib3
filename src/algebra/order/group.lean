@@ -1243,6 +1243,7 @@ namespace add_comm_group
 /-- A collection of elements in an `add_comm_group` designated as "non-negative".
 This is useful for constructing an `ordered_add_commm_group`
 by choosing a positive cone in an exisiting `add_comm_group`. -/
+@[nolint has_inhabited_instance]
 structure positive_cone (α : Type*) [add_comm_group α] :=
 (nonneg          : α → Prop)
 (pos             : α → Prop := λ a, nonneg a ∧ ¬ nonneg (-a))
@@ -1253,9 +1254,13 @@ structure positive_cone (α : Type*) [add_comm_group α] :=
 
 /-- A positve cone in an `add_comm_group` induceds a linear order if
 for every `a`, either `a` or `-a` is non-negative. -/
+@[nolint has_inhabited_instance]
 structure total_positive_cone (α : Type*) [add_comm_group α] extends positive_cone α :=
 (nonneg_decidable : decidable_pred nonneg)
 (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
+
+/-- Forget that a `total_positive_cone` is total. -/
+add_decl_doc total_positive_cone.to_positive_cone
 
 end add_comm_group
 

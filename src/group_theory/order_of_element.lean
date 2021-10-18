@@ -407,7 +407,8 @@ equiv.of_bijective (λ n, ⟨x ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, 
   subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of x hi hj (subtype.mk_eq_mk.1 ij)),
   λ ⟨_, i, rfl⟩, ⟨⟨i % order_of x, mod_lt i (order_of_pos x)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
 
-@[simp, to_additive fin_equiv_multiples_apply] lemma fin_equiv_powers_apply {x : G} {n : fin (order_of x)} :
+@[simp, to_additive fin_equiv_multiples_apply]
+lemma fin_equiv_powers_apply {x : G} {n : fin (order_of x)} :
   fin_equiv_powers x n = ⟨x ^ ↑n, n, rfl⟩ := rfl
 
 @[simp, to_additive fin_equiv_multiples_symm_apply]

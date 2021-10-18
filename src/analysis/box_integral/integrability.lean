@@ -97,8 +97,8 @@ lemma has_integral_zero_of_ae_eq_zero {l : integration_params} {I : box ι} {f :
   (hl : l.bRiemann = ff) :
   has_integral.{u v v} I l f μ.to_box_additive.to_smul 0 :=
 begin
-  /- Each set `{x | n < ∥f x∥ ≤ n + 1}`, `n : ℕ`, has measure zero. We cover it by an open set of measure
-  less than `ε / 2 ^ n / (n + 1)`. Then the norm of the integral sum is less than `ε`. -/
+  /- Each set `{x | n < ∥f x∥ ≤ n + 1}`, `n : ℕ`, has measure zero. We cover it by an open set of
+  measure less than `ε / 2 ^ n / (n + 1)`. Then the norm of the integral sum is less than `ε`. -/
   refine has_integral_iff.2 (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.lt.le, rw [gt_iff_lt, nnreal.coe_pos] at ε0,
   rcases nnreal.exists_pos_sum_of_encodable ε0.ne' ℕ with ⟨δ, δ0, c, hδc, hcε⟩,

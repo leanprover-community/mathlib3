@@ -732,7 +732,8 @@ begin
       exact filter_subset_filter _ (filter_subset _ _) },
     { rw [finset.coe_image, set.image_subset_iff],
       exact λ J hJ, (finset.mem_filter.1 hJ).2 } },
-  /- Now we deal with boxes such that `π.tag J ∉ s`. In this case the estimate is straightforward. -/
+  /- Now we deal with boxes such that `π.tag J ∉ s`.
+  In this case the estimate is straightforward. -/
   have H₂ : ∀ J ∈ π.boxes.filter (λ J, π.tag J ∉ s), dist (vol J (f $ π.tag J)) (g J) ≤ ε' * B J,
   { intros J hJ, rw finset.mem_filter at hJ, cases hJ with hJ hJs,
     refine Hδ₂ c _ ⟨π.tag_mem_Icc _, hJs⟩ _ ε'0 _ (π.le_of_mem' _ hJ) _ (λ hH, hπδ.2 hH J hJ)

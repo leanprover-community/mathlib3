@@ -1242,7 +1242,7 @@ structure positive_cone (α : Type*) [add_comm_group α] :=
 (add_nonneg      : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
 (nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
 
-/-- A positve cone in an `add_comm_group` induceds a linear order if
+/-- A positive cone in an `add_comm_group` induces a linear order if
 for every `a`, either `a` or `-a` is non-negative. -/
 @[nolint has_inhabited_instance]
 structure total_positive_cone (α : Type*) [add_comm_group α] extends positive_cone α :=
@@ -1279,7 +1279,7 @@ namespace linear_ordered_add_comm_group
 
 open add_comm_group
 
-/-- Construct an `linear_ordered_add_comm_group` by
+/-- Construct a `linear_ordered_add_comm_group` by
 designating a positive cone in an existing `add_comm_group`
 such that for every `a`, either `a` or `-a` is non-negative. -/
 def mk_of_positive_cone {α : Type*} [add_comm_group α] (C : total_positive_cone α) :

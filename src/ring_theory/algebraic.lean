@@ -17,7 +17,7 @@ The main result in this file proves transitivity of algebraicity:
 a tower of algebraic field extensions is algebraic.
 -/
 
-universe variables u v
+universes u v
 
 open_locale classical
 open polynomial

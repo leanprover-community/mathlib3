@@ -37,7 +37,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universe variables u v
+universes u v
 
 namespace first_order
 

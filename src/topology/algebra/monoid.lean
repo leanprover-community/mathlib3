@@ -17,7 +17,7 @@ applications the underlying type is a monoid (multiplicative or additive), we do
 the definitions.
 -/
 
-universe variables u v
+universes u v
 open classical set filter topological_space
 open_locale classical topological_space big_operators pointwise
 

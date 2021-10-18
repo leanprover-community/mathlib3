@@ -12,7 +12,7 @@ import order.category.LinearOrder
 Nonempty finite linear orders form the index category for simplicial objects.
 -/
 
-universe variables u v
+universes u v
 
 open category_theory
 

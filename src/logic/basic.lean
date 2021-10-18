@@ -1305,7 +1305,7 @@ decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 /-! ### Declarations about `nonempty` -/
 
 section nonempty
-universe variables u v w
+universes u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited

@@ -23,7 +23,7 @@ namespace list
 -/
 
 section sorted
-universe variable uu
+universe uu
 variables {α : Type uu} {r : α → α → Prop}
 
 /-- `sorted r l` is the same as `pairwise r l`, preferred in the case that `r`
@@ -101,7 +101,7 @@ end
 end sorted
 
 section sort
-universe variable uu
+universe uu
 variables {α : Type uu} (r : α → α → Prop) [decidable_rel r]
 local infix ` ≼ ` : 50 := r
 

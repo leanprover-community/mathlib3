@@ -22,7 +22,7 @@ The notation `~` is used for permutation equivalence.
 open_locale nat
 
 namespace list
-universe variables uu vv
+universes uu vv
 variables {α : Type uu} {β : Type vv}
 
 /-- `perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations

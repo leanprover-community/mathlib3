@@ -14,7 +14,7 @@ import tactic.lean_core_docs
 import tactic.interactive_expr
 import system.io
 
-universe variable u
+universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 

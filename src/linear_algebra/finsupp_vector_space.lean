@@ -143,7 +143,7 @@ section module
    `universes` keyword do not get replaced by metavariables once a lemma has been proven. So if you
    prove a lemma using universe `u`, you can only apply it to universe `u` in other lemmas of the
    same section. -/
-universe variables u v w
+universes u v w
 variables {K : Type u} {V V₁ V₂ : Type v} {V' : Type w}
 variables [field K]
 variables [add_comm_group V] [module K V]

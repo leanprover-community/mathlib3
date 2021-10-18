@@ -8,8 +8,7 @@ import analysis.normed.group.SemiNormedGroup
 import category_theory.preadditive.additive_functor
 import analysis.normed.group.hom_completion
 
-/-
-
+/-!
 # Completions of normed groups
 
 This file contains an API for completions of seminormed groups (basic facts about

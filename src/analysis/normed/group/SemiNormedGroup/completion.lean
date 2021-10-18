@@ -87,39 +87,16 @@ the completion of `V`. The lemmas `lift_unique` and `lift_comp_incl` provide the
 universal property of the completion. -/
 def Completion.lift {V W : SemiNormedGroup} [complete_space W] [separated_space W] (f : V ⟶ W) :
   Completion.obj V ⟶ W :=
-{ to_fun := completion.extension f,
-  map_add' := λ x y, begin
-    refine completion.induction_on₂ x y (is_closed_eq _ _) (λ x y, _),
-    { exact continuous.comp completion.continuous_extension continuous_add },
-    { exact continuous.add (continuous.comp completion.continuous_extension continuous_fst)
-      (continuous.comp completion.continuous_extension continuous_snd) },
-    { rw [← completion.coe_add],
-      repeat {rw completion.extension_coe},
-      { exact normed_group_hom.map_add _ _ _ },
-      all_goals {exact normed_group_hom.uniform_continuous _} }
-  end,
-  bound' := begin
-    rcases f.bound with ⟨c, hc, h⟩,
-    refine ⟨c, λ v, completion.induction_on v (is_closed_le _ _) (λ a, _)⟩,
-    { exact continuous.comp continuous_norm completion.continuous_extension },
-    { exact continuous.mul continuous_const continuous_norm },
-    { rw completion.extension_coe,
-      { change _ ≤ c * ∥incl _∥,
-        simpa using h a },
-      { exact normed_group_hom.uniform_continuous _ }}
-  end }
+{ to_fun := f.extension,
+  map_add' := f.extension.to_add_monoid_hom.map_add',
+  bound' := f.extension.bound' }
 
 lemma lift_comp_incl {V W : SemiNormedGroup} [complete_space W] [separated_space W] (f : V ⟶ W) :
   incl ≫ (Completion.lift f) = f :=
-by {ext, exact completion.extension_coe (normed_group_hom.uniform_continuous _) _ }
+by {ext, exact normed_group_hom.extension_coe _ _ }
 
 lemma lift_unique {V W : SemiNormedGroup} [complete_space W] [separated_space W] (f : V ⟶ W)
   (g : Completion.obj V ⟶ W) : incl ≫ g = f → g = Completion.lift f :=
-begin
-  intros h,
-  ext,
-  simpa [← completion.extension_unique f.uniform_continuous g.uniform_continuous
-    (λ a, ((ext_iff.1 h) a).symm)],
-end
+λ h, (normed_group_hom.extension_unique _ (λ v, ((ext_iff.1 h) v).symm)).symm
 
 end SemiNormedGroup

@@ -189,8 +189,8 @@ by rw [←exp_le_exp, exp_log ha]
 
 end real
 
-lemma sum_mul_sq_le_sq_mul_sq {α β : Type*}
-  (s : finset α) (f g : α → β) [linear_ordered_comm_ring β] :
+lemma sum_mul_sq_le_sq_mul_sq {α : Type*}
+  (s : finset α) (f g : α → ℝ) :
 (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * (∑ i in s, (g i)^2) :=
 begin
   have h : 0 ≤ ∑ i in s, (f i * ∑ j in s, (g j)^2 - g i * ∑ j in s, f j * g j)^2 :=
@@ -201,7 +201,7 @@ begin
     ←mul_assoc, ←mul_sub_right_distrib] at h,
   obtain h' | h' := (sum_nonneg (λ i (hi : i ∈ s), sq_nonneg (g i))).eq_or_lt,
   { rw ←h',
-    simp only [@eq_comm _ (0:β), sum_eq_zero_iff_of_nonneg (λ i _, sq_nonneg (g i)), nat.succ_pos',
+    simp only [@eq_comm _ (0:ℝ), sum_eq_zero_iff_of_nonneg (λ i _, sq_nonneg (g i)), nat.succ_pos',
       pow_eq_zero_iff] at h',
     rw [sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h' i hi])],
     simp },

@@ -283,48 +283,8 @@ iff.intro
 lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s) :=
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
-section
-set_option trace.class_instances true
-example : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
-by apply_instance
--- end
-#check @linear_ordered_comm_monoid.to_ordered_comm_monoid ℝ≥0
-  (@linear_ordered_comm_monoid_with_zero.to_linear_ordered_comm_monoid ℝ≥0
-     (@linear_ordered_comm_group_with_zero.to_linear_ordered_comm_monoid_with_zero ℝ≥0
-        nnreal.linear_ordered_comm_group_with_zero))
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
-#print contravariant_mul_lt_of_covariant_mul_le
--- { cSup_empty := (function.funext_iff.1
---     (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
---   .. (by apply_instance : order_bot ℝ≥0),
---   .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
-def foo : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
-by apply_instance
-/-
-@contravariant_mul_lt_of_covariant_mul_le ℝ≥0
-  (@distrib.to_has_mul ℝ≥0
-     (@non_unital_non_assoc_semiring.to_distrib ℝ≥0
-        (@non_assoc_semiring.to_non_unital_non_assoc_semiring ℝ≥0
-           (@semiring.to_non_assoc_semiring ℝ≥0
-              (@ordered_semiring.to_semiring ℝ≥0
-                 (@linear_ordered_semiring.to_ordered_semiring ℝ≥0 nnreal.linear_ordered_semiring))))))
-  (@conditionally_complete_linear_order.to_linear_order ℝ≥0
-     (@conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order ℝ≥0
-        nnreal.conditionally_complete_linear_order_bot))
-  (@ordered_comm_monoid.to_covariant_class_left ℝ≥0
-     (@linear_ordered_comm_monoid.to_ordered_comm_monoid ℝ≥0
-        (@linear_ordered_comm_monoid_with_zero.to_linear_ordered_comm_monoid ℝ≥0
-           (@linear_ordered_comm_group_with_zero.to_linear_ordered_comm_monoid_with_zero ℝ≥0
-              nnreal.linear_ordered_comm_group_with_zero))))
--/
-#print foo
-set_option pp.implicit true
-#print foo
-#print contravariant_mul_lt_of_covariant_mul_le
-#print nnreal.canonically_linear_ordered_add_monoid
-#print nnreal.conditionally_complete_linear_order_bot
-end
 
 lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Sup_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
@@ -336,20 +296,12 @@ eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
 
 example : archimedean ℝ≥0 := by apply_instance
 
-example : contravariant_class ℝ≥0 ℝ≥0 (*) (<) :=
-by apply_instance
-
--- set_option trace.class_instances true
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 begin
   rcases le_iff_exists_add.1 (le_of_lt hxb) with ⟨ε, rfl⟩,
-  refine h _ _,
-
-  have := (lt_add_iff_pos_right b).1 hxb,
-
+  exact h _ ((lt_add_iff_pos_right b).1 hxb),
 end
-#exit
 
 -- TODO: generalize to some ordered add_monoids, based on #6145
 lemma le_of_add_le_left {a b c : ℝ≥0} (h : a + b ≤ c) : a ≤ c :=

@@ -955,6 +955,10 @@ def function.injective.ordered_ring {β : Type*}
   ..hf.ordered_semiring f zero one add mul,
   ..hf.ring f zero one add mul neg sub }
 
+lemma le_iff_exists_nonneg_add (a b : α) : a ≤ b ↔ ∃ c ≥ 0, b = a + c :=
+⟨λ h, ⟨b - a, sub_nonneg.mpr h, by simp⟩,
+  λ ⟨c, hc, h⟩, by { rw [h, le_add_iff_nonneg_right], exact hc }⟩
+
 end ordered_ring
 
 section ordered_comm_ring

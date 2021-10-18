@@ -193,6 +193,16 @@ lemma pow_lt_pow_iff {a : R} {n m : ℕ} (h : 1 < a) : a ^ n < a ^ m ↔ n < m :
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
 
+lemma one_lt_pow [nontrivial R] {p : R} (hp : 1 < p) :
+  ∀ {n : ℕ}, n ≠ 0 → 1 < p ^ n
+| 0       h := (h rfl).elim
+| 1       h := (pow_one p).symm.subst hp
+| (n + 2) h :=
+  begin
+    rw [←one_mul (1 : R), pow_succ],
+    exact mul_lt_mul hp (one_lt_pow (nat.succ_ne_zero _)).le zero_lt_one (zero_lt_one.trans hp).le,
+  end
+
 end ordered_semiring
 
 section linear_ordered_semiring

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
 import topology.instances.nnreal
+import topology.algebra.ordered.monotone_continuity
 
 /-!
 # Square root of a real number

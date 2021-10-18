@@ -917,9 +917,9 @@ begin
   let c := basis.of_vector_space K V₁,
   rw [← cardinal.lift_inj,
       ← (basis.prod b c).mk_eq_dim,
-      cardinal.lift_add, cardinal.lift_mk,
+      cardinal.lift_add, ← cardinal.mk_ulift,
       ← b.mk_eq_dim, ← c.mk_eq_dim,
-      cardinal.lift_mk, cardinal.lift_mk,
+      ← cardinal.mk_ulift, ← cardinal.mk_ulift,
       cardinal.add_def (ulift _)],
   exact cardinal.lift_inj.1 (cardinal.lift_mk_eq.2
       ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm ⟩),

@@ -445,7 +445,7 @@ omin {o | a ≤ b+o} ⟨a, le_add_left _ _⟩
 
 instance : has_sub ordinal := ⟨sub⟩
 
-theorem le_add_tsub (a b : ordinal) : a ≤ b + (a - b) :=
+theorem le_add_sub (a b : ordinal) : a ≤ b + (a - b) :=
 omin_mem {o | a ≤ b+o} _
 
 theorem sub_le {a b c : ordinal} : a - b ≤ c ↔ a ≤ b + c :=
@@ -465,7 +465,7 @@ h ▸ add_sub_cancel _ _
 theorem sub_le_self (a b : ordinal) : a - b ≤ a :=
 sub_le.2 $ le_add_left _ _
 
-protected theorem add_tsub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
+protected theorem add_sub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
 le_antisymm begin
   rcases zero_or_succ_or_limit (a-b) with e|⟨c,e⟩|l,
   { simp only [e, add_zero, h] },
@@ -482,7 +482,7 @@ by rw ← ordinal.le_zero; apply sub_le_self
 @[simp] theorem sub_self (a : ordinal) : a - a = 0 :=
 by simpa only [add_zero] using add_sub_cancel a 0
 
-protected theorem tsub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
+protected theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
 ⟨λ h, by simpa only [h, add_zero] using le_add_tsub a b,
  λ h, by rwa [← ordinal.le_zero, sub_le, add_zero]⟩
 

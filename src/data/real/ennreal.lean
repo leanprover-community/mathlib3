@@ -747,14 +747,14 @@ tsub_self a -- explicit arg
 lemma zero_sub : 0 - a = 0 :=
 zero_tsub a -- explicit arg
 
-protected lemma tsub_add_cancel_of_le (h : b ≤ a) : (a - b) + b = a :=
+protected lemma sub_add_cancel_of_le (h : b ≤ a) : (a - b) + b = a :=
 tsub_add_cancel_of_le h
 
 lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
 tsub_le_tsub h₁ h₂
 
 -- todo: make `add_tsub_cancel_of_le` a `@[simp]` lemma
-@[simp] protected lemma add_tsub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
+@[simp] protected lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
 add_tsub_cancel_of_le h
 
 lemma sub_add_self_eq_max : (a - b) + b = max a b :=
@@ -767,7 +767,7 @@ protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
 tsub_le_iff_tsub_le.mp h
 
 -- todo: make `tsub_eq_zero_iff_le` a `@[simp]` lemma
-@[simp] protected lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
+@[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 tsub_eq_zero_iff_le
 
 -- todo: make `tsub_pos_iff_lt` a `@[simp]` lemma
@@ -787,12 +787,12 @@ lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha
 
 /-- A version of triangle inequality for difference as a "distance". -/
-lemma tsub_le_tsub_add_tsub : a - c ≤ a - b + (b - c) :=
+lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
 tsub_le_tsub_add_tsub
 
 lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b := lt_tsub_iff_right
 
-lemma lt_tsub_comm : a < b - c ↔ c < b - a := lt_tsub_comm
+lemma lt_sub_comm : a < b - c ↔ c < b - a := lt_tsub_comm
 
 /-! The following lemmas cannot be directly replaced by the general lemmas. -/
 

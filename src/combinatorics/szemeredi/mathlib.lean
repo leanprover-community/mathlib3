@@ -29,6 +29,19 @@ attribute [elab_as_eliminator]
 lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
 sym2.ind hf i
 
+lemma sym2.exists {α : Sort*} {f : sym2 α → Prop} : (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
+begin
+  split,
+  { rintro ⟨x, hx⟩,
+    induction x using sym2.induction_on with x y,
+    exact ⟨x, y, hx⟩ },
+  { rintro ⟨x, y, h⟩,
+    exact ⟨_, h⟩ }
+end
+
+lemma sym2.forall {α : Sort*} {f : sym2 α → Prop} : (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
+⟨λ h x y, h _, sym2.ind⟩
+
 lemma sum_sym2 [decidable_eq α] {β : Type*} [division_ring β] [char_zero β] (f : sym2 α → β)
   (s : finset (α × α)) {hs₁ : ∀ i j, (i,j) ∈ s → i ≠ j} (hs₂ : ∀ i j, (i,j) ∈ s → (j,i) ∈ s) :
   ∑ (i : sym2 _) in s.image quotient.mk, f i = (∑ i in s, f ⟦i⟧)/2 :=
@@ -96,8 +109,8 @@ lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
   (set.range (singleton : α → finset α)).pairwise_disjoint :=
 begin
   rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
-  rw [disjoint_singleton, not_mem_singleton],
-  exact ne_of_apply_ne _ h.symm,
+  rw [singleton_disjoint, not_mem_singleton],
+  exact ne_of_apply_ne _ h,
 end
 
 lemma set.pairwise_disjoint.elim_finset [decidable_eq α] {s : set (finset α)}
@@ -176,29 +189,24 @@ by rw [←exp_le_exp, exp_log ha]
 
 end real
 
-lemma sum_mul_sq_le_sq_mul_sq (s : finset α) (f g : α → ℝ) :
-  (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * (∑ i in s, (g i)^2) :=
+lemma sum_mul_sq_le_sq_mul_sq {α β : Type*}
+  (s : finset α) (f g : α → β) [linear_ordered_comm_ring β] :
+(∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * (∑ i in s, (g i)^2) :=
 begin
-  have : 0 ≤ ∑ i in s, (g i)^2 := sum_nonneg (λ i hi, sq_nonneg _),
-  cases this.eq_or_lt with h h,
-  { rw [eq_comm, sum_eq_zero_iff_of_nonneg] at h,
-    { simp only [nat.succ_pos', pow_eq_zero_iff] at h,
-      rw [finset.sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h i hi]),
-          finset.sum_congr rfl (show ∀ i ∈ s, g i ^ 2 = 0, from λ i hi, by simp [h i hi])],
-      simp },
-    { intros i hi,
-      apply sq_nonneg } },
-  let lambda := (∑ i in s, f i * g i) / (∑ i in s, (g i)^2),
-  have : 0 ≤ ∑ i in s, (f i - lambda * g i)^2,
-  { apply sum_nonneg,
-    intros i hi,
-    apply sq_nonneg },
-  simp_rw [sub_sq, sum_add_distrib, sum_sub_distrib, mul_pow, mul_assoc, ←mul_sum,
-    mul_left_comm _ lambda, ←mul_sum, div_pow, div_mul_eq_mul_div, ←sq, ←div_mul_eq_mul_div,
-    div_mul_eq_mul_div_comm, sq (∑ i in s, g i ^ 2), div_self_mul_self', ←div_eq_mul_inv, two_mul,
-    ←sub_sub, sub_add_cancel, sub_nonneg] at this,
-  rw div_le_iff h at this,
-  assumption
+  have h : 0 ≤ ∑ i in s, (f i * ∑ j in s, (g j)^2 - g i * ∑ j in s, f j * g j)^2 :=
+    sum_nonneg (λ i hi, sq_nonneg _),
+  simp_rw [sub_sq, sum_add_distrib, sum_sub_distrib, mul_pow, mul_assoc, ←mul_sum, ←sum_mul,
+    mul_left_comm, ←mul_assoc, ←sum_mul, mul_right_comm, ←sq, mul_comm, sub_add, two_mul,
+    add_sub_cancel, mul_comm (∑ j in s, (g j)^2), sq (∑ j in s, (g j)^2),
+    ←mul_assoc, ←mul_sub_right_distrib] at h,
+  obtain h' | h' := (sum_nonneg (λ i (hi : i ∈ s), sq_nonneg (g i))).eq_or_lt,
+  { rw ←h',
+    simp only [@eq_comm _ (0:β), sum_eq_zero_iff_of_nonneg (λ i _, sq_nonneg (g i)), nat.succ_pos',
+      pow_eq_zero_iff] at h',
+    rw [sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h' i hi])],
+    simp },
+  rw ←sub_nonneg,
+  apply nonneg_of_mul_nonneg_right h h',
 end
 
 lemma chebyshev' (s : finset α) (f : α → ℝ) :
@@ -266,9 +274,8 @@ lemma card_pairs_finset_compl (U V : finset α) :
   (pairs_finset r U V).card + (pairs_finset (λ x y, ¬r x y) U V).card = U.card * V.card :=
 begin
   classical,
-  rw [←finset.card_product, pairs_finset, pairs_finset, ←finset.card_union_eq,
-    finset.filter_union_filter_neg_eq],
-  rw finset.disjoint_filter,
+  rw [←card_product, pairs_finset, pairs_finset, ←card_union_eq, filter_union_filter_neg_eq],
+  rw disjoint_filter,
   exact λ x _, not_not.2,
 end
 
@@ -308,7 +315,7 @@ end
 
 lemma pairs_finset_bUnion (A B : finset (finset α)) (f g : finset α → finset α) :
   pairs_finset r (A.bUnion f) (B.bUnion g) =
-  (A.product B).bUnion (λ ab, pairs_finset r (f ab.1) (g ab.2)) :=
+    (A.product B).bUnion (λ ab, pairs_finset r (f ab.1) (g ab.2)) :=
 by simp_rw [product_bUnion, pairs_finset_bUnion_left, pairs_finset_bUnion_right]
 
 end decidable_eq

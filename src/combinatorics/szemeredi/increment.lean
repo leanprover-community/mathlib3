@@ -11,45 +11,6 @@ import .index
 -/
 
 universes u v
-def sym2_pair_bind {α : Type u} {β : Type v} [decidable_eq β] {s : finset α}
-  (f : Π (i : α), i ∈ s → finset β) :
-  sym2 {x // x ∈ s} → finset (sym2 β) :=
-begin
-  refine sym2.lift _,
-  refine ⟨λ i j, finset.image quotient.mk ((f _ i.2).product (f _ j.2)), _⟩,
-  rintro ⟨i, hi⟩ ⟨j, hj⟩,
-  ext k,
-  induction k using sym2.induction_on with x y,
-  simp only [and_comm (_ ∈ f j _), finset.mem_image, exists_prop, prod.exists, finset.mem_product],
-  rw exists_comm,
-  apply exists₂_congr,
-  intros p q,
-  rw sym2.eq_swap,
-end
-
-lemma mem_sym2_pair_bind {α β : Type*} [decidable_eq β] {s : finset α}
-  (f : Π i ∈ s, finset β) (i₁ i₂ : {x // x ∈ s}) (j₁ j₂ : β) :
-  ⟦(j₁, j₂)⟧ ∈ sym2_pair_bind f ⟦(i₁, i₂)⟧ ↔
-    (j₁ ∈ f _ i₁.2 ∧ j₂ ∈ f _ i₂.2) ∨ (j₂ ∈ f _ i₁.2 ∧ j₁ ∈ f _ i₂.2) :=
-begin
-  simp only [sym2_pair_bind, sym2.lift_mk, exists_prop, finset.mem_image, subtype.coe_mk,
-    subtype.val_eq_coe, prod.exists, finset.mem_product, sym2.eq_iff],
-  split,
-  { rintro ⟨_, _, h, (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩)⟩,
-    { apply or.inl h },
-    { apply or.inr h } },
-  tauto {closer := `[simp]},
-end
-
-lemma sym2.exists {α : Sort*} {f : sym2 α → Prop} : (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
-begin
-  split,
-  { rintro ⟨x, hx⟩,
-    induction x using sym2.induction_on with x y,
-    exact ⟨x, y, hx⟩ },
-  { rintro ⟨x, y, h⟩,
-    exact ⟨_, h⟩ }
-end
 
 open finset fintype simple_graph
 open_locale big_operators classical
@@ -101,13 +62,6 @@ begin
   exact card_eq_of_mem_parts_chunk_increment hA,
 end
 
--- def off_diag : finset (α × α) := (s.product s).filter (λ (a : α × α), a.fst ≠ a.snd)
-
--- def distinct_pairs (s : finset α) :
---   finset (sym2 α) :=
--- s.off_diag.image quotient.mk
-
-
 lemma increment_distinct_pairs :
   P.parts.off_diag.attach.bUnion
     (λ UV, (hP.chunk_increment G ε ((mem_off_diag _ _).1 UV.2).1).parts.product
@@ -126,15 +80,6 @@ begin
   apply hUV.2.2 (P.disjoint.elim_finset hUV.1 hUV.2.1 i (finpartition.le _ hUi hi)
     (finpartition.le _ hVj hi)),
 end
-
--- -- dagger inequality
--- lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α]
--- (hPα : P.size * 16^P.size ≤ card α)
---   (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m) (hε₁ : ε ≤ 1)
---   {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} :
---   G.edge_density U V^2 - ε^5/25 ≤
---   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
---     G.edge_density ab.1 ab.2^2)/16^P.size :=
 
 noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equipartition)
   (x : {x // x ∈ P.parts.off_diag}) :=
@@ -173,12 +118,6 @@ begin
   apply P.disjoint.elim_finset hU₂ hU₄ j (finpartition.le _ hVj₁ hj) (finpartition.le _ hVj₂ hj),
 end
 
-example {x : ℝ} : 0 ≤ x^4 :=
-begin
-  exact pow_bit0_nonneg x 2,
-end
-
--- #exit
 lemma pair_contrib_lower_bound [nonempty α] (x : {i // i ∈ P.parts.off_diag}) (hε₁ : ε ≤ 1)
   (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) :
   G.edge_density x.1.1 x.1.2^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3) ≤

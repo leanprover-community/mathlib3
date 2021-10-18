@@ -91,7 +91,7 @@ lemma pairwise_disjoint.insert (hs : s.pairwise_disjoint) {a : α}
   (insert a s).pairwise_disjoint :=
 set.pairwise_disjoint_insert.2 ⟨hs, hx⟩
 
-lemma pairwise_disjoint.image (hs : s.pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
+lemma pairwise_disjoint.image_of_le (hs : s.pairwise_disjoint) {f : α → α} (hf : ∀ a, f a ≤ a) :
   (f '' s).pairwise_disjoint :=
 begin
   rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ h,

@@ -769,6 +769,31 @@ lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
 @nth_roots_one_eq_bUnion_primitive_roots' _ _ _ ⟨n, hpos⟩ h
 
+lemma generator_is_primitive_root_iff_card_roots_of_unity' {n : ℕ+} :
+  is_primitive_root (roots_of_unity.is_cyclic R n).exists_generator.some.val.val n ↔
+  fintype.card (roots_of_unity n R) = n :=
+begin
+  rw [subtype.val_eq_coe, units.val_eq_coe],
+  let hζ := (roots_of_unity.is_cyclic R n).exists_generator.some_spec,
+  refine ⟨λ hζ, is_primitive_root.card_roots_of_unity hζ,
+          λ hn, is_primitive_root.mk_of_lt _ _ _ (λ l hl' hl h, _)⟩,
+  { rw [←hn, fintype.card_pos_iff],
+    exact ⟨(roots_of_unity.is_cyclic R n).exists_generator.some⟩ },
+  { convert pow_order_of_eq_one _,
+    rw [←hn, order_of_units, order_of_subgroup, order_of_eq_card_of_forall_mem_gpowers hζ] },
+  rw ←order_of_eq_card_of_forall_mem_gpowers hζ at hn,
+  norm_cast at h,
+  rw [units.coe_eq_one] at h,
+  norm_cast at h,
+  exact pow_eq_one_of_lt_order_of' hl'.ne' (by rwa hn) h
+end
+
+lemma generator_is_primitive_root_iff_card_roots_of_unity {n : ℕ+} :
+  is_primitive_root (roots_of_unity.is_cyclic R n).exists_generator.some n ↔
+  fintype.card (roots_of_unity n R) = n :=
+by rw [←generator_is_primitive_root_iff_card_roots_of_unity', subtype.val_eq_coe, units.val_eq_coe,
+       is_primitive_root.coe_units_iff, is_primitive_root.coe_subgroup_iff]
+
 end integral_domain
 
 section minpoly

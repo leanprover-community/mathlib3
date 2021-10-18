@@ -68,7 +68,6 @@ While this is equivalent, `set_like` conveniently uses a carrier set projection 
 
 subobjects
 -/
-set_option old_structure_cmd true
 
 /-- A class to indicate that there is a canonical injection between `A` and `set B`.
 

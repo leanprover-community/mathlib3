@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
 import logic.function.iterate
+import data.set.intervals.proj_Icc
 import topology.metric_space.basic
 import category_theory.endomorphism
 import category_theory.types
@@ -154,6 +155,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
 
+lemma subtype_mk (hf : lipschitz_with K f) {p : β → Prop} (hp : ∀ x, p (f x)) :
+  lipschitz_with K (λ x, ⟨f x, hp x⟩ : α → {y // p y}) :=
+hf
+
 protected lemma eval {α : ι → Type u} [Π i, pseudo_emetric_space (α i)] [fintype ι] (i : ι) :
   lipschitz_with 1 (function.eval i : (Π i, α i) → α i) :=
 lipschitz_with.of_edist_le $ λ f g, by convert edist_le_pi_edist f g i
@@ -298,7 +303,45 @@ begin
   simpa only [nnreal.coe_pow] using (hf.iterate n).dist_le_mul x (f x)
 end
 
+lemma _root_.lipschitz_with_max : lipschitz_with 1 (λ p : ℝ × ℝ, max p.1 p.2) :=
+lipschitz_with.of_le_add $ λ p₁ p₂, sub_le_iff_le_add'.1 $
+  (le_abs_self _).trans (abs_max_sub_max_le_max _ _ _ _)
+
+lemma _root_.lipschitz_with_min : lipschitz_with 1 (λ p : ℝ × ℝ, min p.1 p.2) :=
+lipschitz_with.of_le_add $ λ p₁ p₂, sub_le_iff_le_add'.1 $
+  (le_abs_self _).trans (abs_min_sub_min_le_max _ _ _ _)
+
 end metric
+
+section emetric
+
+variables {α} [pseudo_emetric_space α] {f g : α → ℝ} {Kf Kg : ℝ≥0}
+
+protected lemma max (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
+  lipschitz_with (max Kf Kg) (λ x, max (f x) (g x)) :=
+by simpa only [(∘), one_mul] using lipschitz_with_max.comp (hf.prod hg)
+
+protected lemma min (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
+  lipschitz_with (max Kf Kg) (λ x, min (f x) (g x)) :=
+by simpa only [(∘), one_mul] using lipschitz_with_min.comp (hf.prod hg)
+
+lemma max_const (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, max (f x) a) :=
+by simpa only [max_eq_left (zero_le Kf)] using hf.max (lipschitz_with.const a)
+
+lemma const_max (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, max a (f x)) :=
+by simpa only [max_comm] using hf.max_const a
+
+lemma min_const (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, min (f x) a) :=
+by simpa only [max_eq_left (zero_le Kf)] using hf.min (lipschitz_with.const a)
+
+lemma const_min (hf : lipschitz_with Kf f) (a : ℝ) : lipschitz_with Kf (λ x, min a (f x)) :=
+by simpa only [min_comm] using hf.min_const a
+
+end emetric
+
+protected lemma proj_Icc {a b : ℝ} (h : a ≤ b) :
+  lipschitz_with 1 (proj_Icc a b h) :=
+((lipschitz_with.id.const_min _).const_max _).subtype_mk _
 
 end lipschitz_with
 

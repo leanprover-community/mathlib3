@@ -212,13 +212,13 @@ end
 variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
-def conj_to_ring_equiv : K ≃+* Kᵒᵖ :=
-{ to_fun := opposite.op ∘ conj,
-  inv_fun := conj ∘ opposite.unop,
-  left_inv := λ x, by simp only [conj_conj, function.comp_app, opposite.unop_op],
-  right_inv := λ x, by simp only [conj_conj, opposite.op_unop, function.comp_app],
-  map_mul' := λ x y, by simp [mul_comm],
-  map_add' := λ x y, by simp }
+abbreviation conj_to_ring_equiv : K ≃+* Kᵒᵖ := star_ring_equiv
+--{ to_fun := opposite.op ∘ conj,
+--  inv_fun := conj ∘ opposite.unop,
+--  left_inv := λ x, by simp only [conj_conj, function.comp_app, opposite.unop_op],
+--  right_inv := λ x, by simp only [conj_conj, opposite.op_unop, function.comp_app],
+--  map_mul' := λ x y, by simp [mul_comm],
+--  map_add' := λ x y, by simp }
 
 variables {K}
 

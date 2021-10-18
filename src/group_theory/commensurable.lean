@@ -76,6 +76,12 @@ begin
  refl,
 end
 
+def img_mul_hom {G' : Type*} [group G'] (H : subgroup G) (f: G →* G') :
+  H →* H.map f :={
+   to_fun:= λ x, ⟨f x, by {use x, simp,}⟩,
+   map_one' := by {simp, refl,},
+   map_mul':= by {intros x y, simp, refl,}
+  }
 
 def img_mul_equiv {G' : Type*} [group G'] (H : subgroup G) (f: G ≃* G') :
   H ≃* (subgroup.map f.to_monoid_hom) H :={
@@ -94,29 +100,29 @@ rw ← conj_map,
 apply img_mul_equiv,
 end
 
+def mul_equiv_sub_subgroup {G' : Type*} [group G'] (H : subgroup G) (K : subgroup H) (f: G →* G') :
+  subgroup (H.map f) :=  subgroup.map (img_mul_hom H f) K
+
+lemma equiv_sub_subgroup_of {G' : Type*} [group G'] (H K: subgroup G) (f: G ≃* G') :
+  (mul_equiv_sub_subgroup H (K.subgroup_of H) f.to_monoid_hom) =
+  (K.map f.to_monoid_hom).subgroup_of (H.map f.to_monoid_hom) :=
+begin
+rw mul_equiv_sub_subgroup,
+rw img_mul_hom,
+simp_rw subgroup.map,
+ext,
+simp [subgroup.mem_subgroup_of],
+tidy,
+end
+
 def conj_sub_subgroup (g : G) (H : subgroup G) (K : subgroup H) : subgroup (conj_subgroup g H) :=
  subgroup.map (conj_equiv g H).to_monoid_hom K
 
 lemma conj_sub_sub_of (g : G) (H K : subgroup G) : (conj_sub_subgroup g H (K.subgroup_of H)) =
   (conj_subgroup g K).subgroup_of (conj_subgroup g H) :=
 begin
-rw conj_sub_subgroup,
-rw conj_equiv,
-rw img_mul_equiv,
-simp_rw conj_subgroup,
-ext,
-simp [subgroup.mem_subgroup_of],
-split,
-intro h,
-cases h with y,
-use y,
-simp [h_h.1],
-rw ← h_h.2,
-simp,
-tidy,
+apply equiv_sub_subgroup_of,
 end
-
-
 
 @[simp]
 lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=
@@ -346,30 +352,10 @@ lemma cong_sub_image' (H K : subgroup G) (g : G):
 begin
    rw ←  (conj_sub_sub_of g K H),
    rw conj_sub_subgroup,
-   have :=subgroup.map_equiv_eq_comap_symm (conj_equiv g K),
-   rw this,
-   sorry,
-  /-
-  rw subgroup.map,
-  rw conj_equiv,
-  rw img_mul_equiv,
-  ext,
-  simp [subgroup.mem_subgroup_of],
-  split,
-  intro h,
-  cases h with a,
-  rcases h_h.1 with ⟨v, hv⟩,
-  cases v with vv,
-  rw ← h_h.2,
-  simp_rw ←  hv,
-  simp_rw ← mul_assoc,
-  simp only [v_property, one_mul, mul_left_inv, subgroup.coe_mk, inv_mul_cancel_right],
-  intro h,
-  use ⟨g * x * g⁻¹, by {simp,} ⟩,
-  simp only [mul_right_inj, mul_left_inj, subgroup.coe_mk],
-  use ⟨x ,h⟩,
-  refl,
-  simp only [mul_assoc, set_like.eta, mul_one, inv_mul_cancel_left, mul_left_inv],-/
+   simp_rw subgroup.map,
+   ext,
+   simp only [mul_equiv.coe_to_monoid_hom, set.mem_image, mul_equiv.symm_apply_apply,
+    exists_eq_right, exists_exists_and_eq_and, set_like.mem_coe, subgroup.mem_mk],
 end
 
 noncomputable def  quot_conj_equiv (H K : subgroup G) (g : G) :

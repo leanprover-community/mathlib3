@@ -96,10 +96,15 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
-@[protect_proj, ancestor linear_ordered_add_comm_monoid order_top]
+@[protect_proj, ancestor linear_ordered_add_comm_monoid has_top]
 class linear_ordered_add_comm_monoid_with_top (α : Type*)
-  extends linear_ordered_add_comm_monoid α, order_top α :=
+  extends linear_ordered_add_comm_monoid α, has_top α :=
+(le_top : ∀ x : α, x ≤ ⊤)
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
+
+instance linear_ordered_add_comm_monoid_with_top.to_order_top
+  [h : linear_ordered_add_comm_monoid_with_top α] : order_top α :=
+{ ..h }
 
 section linear_ordered_add_comm_monoid_with_top
 variables [linear_ordered_add_comm_monoid_with_top α] {a b : α}

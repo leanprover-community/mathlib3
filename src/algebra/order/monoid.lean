@@ -476,8 +476,8 @@ end with_bot
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other nontrivial `ordered_add_comm_group`s. -/
-@[protect_proj, ancestor ordered_add_comm_monoid order_bot]
-class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
+@[protect_proj, ancestor ordered_add_comm_monoid]
+class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α :=
 (le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
 
 /-- A canonically ordered monoid is an ordered commutative monoid
@@ -489,8 +489,8 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
   Dedekind domain satisfy this; collections of all things ≤ 1 seem to
   be more natural that collections of all things ≥ 1).
 -/
-@[protect_proj, ancestor ordered_comm_monoid order_bot, to_additive]
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, order_bot α :=
+@[protect_proj, ancestor ordered_comm_monoid, to_additive]
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α :=
 (le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)
 
 section canonically_ordered_monoid
@@ -512,7 +512,7 @@ by { rw [mul_comm], exact self_le_mul_right a b }
 @[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
 le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 
-@[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
+@[simp, to_additive] lemma bot_eq_one [order_bot α] : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
 
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
@@ -627,8 +627,8 @@ section canonically_linear_ordered_monoid
 variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
-{ ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup α :=
+{ ..lattice_of_linear_order }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

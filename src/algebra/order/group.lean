@@ -911,12 +911,6 @@ def function.injective.linear_ordered_comm_group {β : Type*}
 { ..linear_order.lift f hf,
   ..hf.ordered_comm_group f one mul inv div }
 
-@[reducible, to_additive]
-def linear_ordered_comm_group.of_covariant_class (α : Type*) [linear_order α] [comm_group α]
-  [covariant_class α α (*) (≤)] : linear_ordered_comm_group α :=
-{ mul_le_mul_left := λ a b, mul_le_mul_left',
-  .. ‹linear_order α›, .. ‹comm_group α› }
-
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
   (a b : α) (h : a < b) (c : α) : c * a < c * b :=

@@ -50,7 +50,7 @@ def incl {V : SemiNormedGroup} : V ⟶ Completion.obj V :=
   map_add' := completion.coe_add,
   bound' := ⟨1, λ v, by simp⟩ }
 
-@[simp] lemma norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥incl v∥ = ∥v∥ := by simp
+lemma norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥incl v∥ = ∥v∥ := by simp
 
 lemma Completion_map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
   (Completion.map f).norm_noninc :=

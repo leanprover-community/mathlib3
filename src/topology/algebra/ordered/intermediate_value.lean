@@ -1,9 +1,194 @@
+/-
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov, Alistair Tucker
+-/
 import topology.algebra.ordered.basic
 
+/-!
+# Intermediate Value Theorem
+
+In this file we prove the Intermediate Value Theorem: if `f : α → β` is a function defined on a
+connected set
+
+-/
+
 open filter order_dual topological_space function set
-open_locale topological_space
+open_locale topological_space filter
 
 universes u v w
+
+/-!
+### Intermediate value theorem on a (pre)connected space
+-/
+
+section
+
+variables {X : Type u} {α : Type v} [topological_space X]
+  [linear_order α] [topological_space α] [order_closed_topology α]
+
+/-- Intermediate value theorem for two functions: if `f` and `g` are two continuous functions
+on a preconnected space and `f a ≤ g a` and `g b ≤ f b`, then for some `x` we have `f x = g x`. -/
+lemma intermediate_value_univ₂ [preconnected_space X] {a b : X} {f g : X → α} (hf : continuous f)
+  (hg : continuous g) (ha : f a ≤ g a) (hb : g b ≤ f b) :
+  ∃ x, f x = g x :=
+begin
+  obtain ⟨x, h, hfg, hgf⟩ : (univ ∩ {x | f x ≤ g x ∧ g x ≤ f x}).nonempty,
+    from is_preconnected_closed_iff.1 preconnected_space.is_preconnected_univ _ _
+      (is_closed_le hf hg) (is_closed_le hg hf) (λ x hx, le_total _ _) ⟨a, trivial, ha⟩
+      ⟨b, trivial, hb⟩,
+  exact ⟨x, le_antisymm hfg hgf⟩
+end
+
+lemma intermediate_value_univ₂_eventually₁ [preconnected_space X] {a : X} {l : filter X} [ne_bot l]
+  {f g : X → α} (hf : continuous f) (hg : continuous g) (ha : f a ≤ g a) (he : g ≤ᶠ[l] f) :
+  ∃ x, f x = g x :=
+let ⟨c, hc⟩ := he.frequently.exists in intermediate_value_univ₂ hf hg ha hc
+
+lemma intermediate_value_univ₂_eventually₂ [preconnected_space X] {l₁ l₂ : filter X}
+  [ne_bot l₁] [ne_bot l₂] {f g : X → α} (hf : continuous f) (hg : continuous g)
+  (he₁ : f ≤ᶠ[l₁] g ) (he₂ : g ≤ᶠ[l₂] f) :
+  ∃ x, f x = g x :=
+let ⟨c₁, hc₁⟩ := he₁.frequently.exists, ⟨c₂, hc₂⟩ := he₂.frequently.exists in
+intermediate_value_univ₂ hf hg hc₁ hc₂
+
+/-- Intermediate value theorem for two functions: if `f` and `g` are two functions continuous
+on a preconnected set `s` and for some `a b ∈ s` we have `f a ≤ g a` and `g b ≤ f b`,
+then for some `x ∈ s` we have `f x = g x`. -/
+lemma is_preconnected.intermediate_value₂ {s : set X} (hs : is_preconnected s)
+  {a b : X} (ha : a ∈ s) (hb : b ∈ s) {f g : X → α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (ha' : f a ≤ g a) (hb' : g b ≤ f b) :
+  ∃ x ∈ s, f x = g x :=
+let ⟨x, hx⟩ := @intermediate_value_univ₂ s α _ _ _ _ (subtype.preconnected_space hs) ⟨a, ha⟩ ⟨b, hb⟩
+  _ _ (continuous_on_iff_continuous_restrict.1 hf) (continuous_on_iff_continuous_restrict.1 hg)
+  ha' hb'
+in ⟨x, x.2, hx⟩
+
+lemma is_preconnected.intermediate_value₂_eventually₁ {s : set X} (hs : is_preconnected s)
+  {a : X} {l : filter X} (ha : a ∈ s) [ne_bot l] (hl : l ≤ 𝓟 s) {f g : X → α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (ha' : f a ≤ g a) (he : g ≤ᶠ[l] f) :
+  ∃ x ∈ s, f x = g x :=
+begin
+  rw continuous_on_iff_continuous_restrict at hf hg,
+  obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₁ _ _ _ _ _ _ (subtype.preconnected_space hs)
+    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal hl) _ _ hf hg ha' (eventually_comap' he),
+  exact ⟨b, b.prop, h⟩,
+end
+
+lemma is_preconnected.intermediate_value₂_eventually₂ {s : set X} (hs : is_preconnected s)
+  {l₁ l₂ : filter X} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f g : X → α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (he₁ : f ≤ᶠ[l₁] g) (he₂ : g ≤ᶠ[l₂] f) :
+  ∃ x ∈ s, f x = g x :=
+begin
+  rw continuous_on_iff_continuous_restrict at hf hg,
+  obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₂ _ _ _ _ _ _ (subtype.preconnected_space hs)
+    _ _ (comap_coe_ne_bot_of_le_principal hl₁) (comap_coe_ne_bot_of_le_principal hl₂)
+    _ _ hf hg (eventually_comap' he₁) (eventually_comap' he₂),
+  exact ⟨b, b.prop, h⟩,
+end
+
+/-- **Intermediate Value Theorem** for continuous functions on connected sets. -/
+lemma is_preconnected.intermediate_value {s : set X} (hs : is_preconnected s)
+  {a b : X} (ha : a ∈ s) (hb : b ∈ s) {f : X → α} (hf : continuous_on f s) :
+  Icc (f a) (f b) ⊆ f '' s :=
+λ x hx, mem_image_iff_bex.2 $ hs.intermediate_value₂ ha hb hf continuous_on_const hx.1 hx.2
+
+lemma is_preconnected.intermediate_value_Ico {s : set X} (hs : is_preconnected s)
+  {a : X} {l : filter X} (ha : a ∈ s) [ne_bot l] (hl : l ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) {v : α} (ht : tendsto f l (𝓝 v)) :
+  Ico (f a) v ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₁ ha hl
+  hf continuous_on_const h.1 (eventually_ge_of_tendsto_gt h.2 ht)
+
+lemma is_preconnected.intermediate_value_Ioc {s : set X} (hs : is_preconnected s)
+  {a : X} {l : filter X} (ha : a ∈ s) [ne_bot l] (hl : l ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) {v : α} (ht : tendsto f l (𝓝 v)) :
+  Ioc v (f a) ⊆ f '' s :=
+λ y h, bex_def.1 $ bex.imp_right (λ x _, eq.symm) $ hs.intermediate_value₂_eventually₁ ha hl
+  continuous_on_const hf h.2 (eventually_le_of_tendsto_lt h.1 ht)
+
+lemma is_preconnected.intermediate_value_Ioo {s : set X} (hs : is_preconnected s)
+  {l₁ l₂ : filter X} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) {v₁ v₂ : α} (ht₁ : tendsto f l₁ (𝓝 v₁)) (ht₂ : tendsto f l₂ (𝓝 v₂)) :
+  Ioo v₁ v₂ ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (eventually_le_of_tendsto_lt h.1 ht₁) (eventually_ge_of_tendsto_gt h.2 ht₂)
+
+lemma is_preconnected.intermediate_value_Ici {s : set X} (hs : is_preconnected s)
+  {a : X} {l : filter X} (ha : a ∈ s) [ne_bot l] (hl : l ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) (ht : tendsto f l at_top) :
+  Ici (f a) ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₁ ha hl
+  hf continuous_on_const h (tendsto_at_top.1 ht y)
+
+lemma is_preconnected.intermediate_value_Iic {s : set X} (hs : is_preconnected s)
+  {a : X} {l : filter X} (ha : a ∈ s) [ne_bot l] (hl : l ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) (ht : tendsto f l at_bot) :
+  Iic (f a) ⊆ f '' s :=
+λ y h, bex_def.1 $ bex.imp_right (λ x _, eq.symm) $ hs.intermediate_value₂_eventually₁ ha hl
+  continuous_on_const hf h (tendsto_at_bot.1 ht y)
+
+lemma is_preconnected.intermediate_value_Ioi {s : set X} (hs : is_preconnected s)
+  {l₁ l₂ : filter X} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) {v : α} (ht₁ : tendsto f l₁ (𝓝 v)) (ht₂ : tendsto f l₂ at_top) :
+  Ioi v ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (eventually_le_of_tendsto_lt h ht₁) (tendsto_at_top.1 ht₂ y)
+
+lemma is_preconnected.intermediate_value_Iio {s : set X} (hs : is_preconnected s)
+  {l₁ l₂ : filter X} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) {v : α} (ht₁ : tendsto f l₁ at_bot) (ht₂ : tendsto f l₂ (𝓝 v)) :
+  Iio v ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (tendsto_at_bot.1 ht₁ y) (eventually_ge_of_tendsto_gt h ht₂)
+
+lemma is_preconnected.intermediate_value_Iii {s : set X} (hs : is_preconnected s)
+  {l₁ l₂ : filter X} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : X → α}
+  (hf : continuous_on f s) (ht₁ : tendsto f l₁ at_bot) (ht₂ : tendsto f l₂ at_top) :
+  univ ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (tendsto_at_bot.1 ht₁ y) (tendsto_at_top.1 ht₂ y)
+
+/-- **Intermediate Value Theorem** for continuous functions on connected spaces. -/
+lemma intermediate_value_univ [preconnected_space X] (a b : X) {f : X → α} (hf : continuous f) :
+  Icc (f a) (f b) ⊆ range f :=
+λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
+
+/-- **Intermediate Value Theorem** for continuous functions on connected spaces. -/
+lemma mem_range_of_exists_le_of_exists_ge [preconnected_space X] {c : α} {f : X → α}
+  (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
+  c ∈ range f :=
+let ⟨a, ha⟩ := h₁, ⟨b, hb⟩ := h₂ in intermediate_value_univ a b hf ⟨ha, hb⟩
+
+/-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
+lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
+by simpa only [image_id] using hs.intermediate_value ha hb continuous_on_id
+
+lemma is_preconnected.ord_connected {s : set α} (h : is_preconnected s) :
+  ord_connected s :=
+⟨λ x hx y hy, h.Icc_subset hx hy⟩
+
+/-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
+lemma is_connected.Icc_subset {s : set α} (hs : is_connected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
+hs.2.Icc_subset ha hb
+
+/-- If preconnected set in a linear order space is unbounded below and above, then it is the whole
+space. -/
+lemma is_preconnected.eq_univ_of_unbounded {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
+  (ha : ¬bdd_above s) :
+  s = univ :=
+begin
+  refine eq_univ_of_forall (λ x, _),
+  obtain ⟨y, ys, hy⟩ : ∃ y ∈ s, y < x := not_bdd_below_iff.1 hb x,
+  obtain ⟨z, zs, hz⟩ : ∃ z ∈ s, x < z := not_bdd_above_iff.1 ha x,
+  exact hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
+end
+
+end
 
 variables {α : Type u} {β : Type v} {γ : Type w}
   [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
@@ -297,7 +482,7 @@ lemma continuous.surjective' {f : α → δ} (hf : continuous f) (h_top : tendst
 tends to `at_bot : filter β` along `at_bot : filter ↥s` and tends to `at_top : filter β` along
 `at_top : filter ↥s`, then the restriction of `f` to `s` is surjective. We formulate the
 conclusion as `surj_on f s univ`. -/
-lemma continuous_on.surj_on_of_tendsto {f : α → β} {s : set α} [ord_connected s]
+lemma continuous_on.surj_on_of_tendsto {f : α → δ} {s : set α} [ord_connected s]
   (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_bot)
   (htop : tendsto (λ x : s, f x) at_top at_top) :
   surj_on f s univ :=
@@ -309,8 +494,8 @@ by haveI := classical.inhabited_of_nonempty hs.to_subtype;
 tends to `at_top : filter β` along `at_bot : filter ↥s` and tends to `at_bot : filter β` along
 `at_top : filter ↥s`, then the restriction of `f` to `s` is surjective. We formulate the
 conclusion as `surj_on f s univ`. -/
-lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connected s]
+lemma continuous_on.surj_on_of_tendsto' {f : α → δ} {s : set α} [ord_connected s]
   (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_top)
   (htop : tendsto (λ x : s, f x) at_top at_bot) :
   surj_on f s univ :=
-@continuous_on.surj_on_of_tendsto α (order_dual β) _ _ _ _ _ _ _ _ _ _ hs hf hbot htop
+@continuous_on.surj_on_of_tendsto α _ _ _ _ (order_dual δ) _ _ _ _ _ _ hs hf hbot htop

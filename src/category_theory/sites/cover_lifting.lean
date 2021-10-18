@@ -227,15 +227,24 @@ If `G` is cover_lifting, then `Ran G.op` pushes sheaves to sheaves.
 This result is basically https://stacks.math.columbia.edu/tag/00XK,
 but without the condition that `C` or `D` has pullbacks.
 -/
-theorem Ran_is_sheaf_of_cover_lifting {G : C ⥤ D} (hu : cover_lifting J K G) (ℱ : Sheaf J A) :
+theorem Ran_is_sheaf_of_cover_lifting {G : C ⥤ D} (hG : cover_lifting J K G) (ℱ : Sheaf J A) :
   presheaf.is_sheaf K ((Ran G.op).obj ℱ.val) :=
 begin
   intros X U S hS x hx,
   split, swap,
-  { apply Ran_is_sheaf_of_cover_lifting.glued_section hu ℱ hS hx },
+  { apply Ran_is_sheaf_of_cover_lifting.glued_section hG ℱ hS hx },
   split,
   { apply Ran_is_sheaf_of_cover_lifting.glued_section_is_amalgamation },
   { apply Ran_is_sheaf_of_cover_lifting.glued_section_is_unique }
 end
+
+variable (A)
+
+def sites.copullback {G : C ⥤ D} (hG : cover_lifting J K G) :
+  Sheaf J A ⥤ Sheaf K A :=
+{ obj := λ ℱ, ⟨(Ran G.op).obj ℱ.val, Ran_is_sheaf_of_cover_lifting hG ℱ⟩,
+  map := λ _ _ f, (Ran G.op).map f,
+  map_id' := λ ℱ, (Ran G.op).map_id ℱ.val,
+  map_comp' := λ _ _ _ f g, (Ran G.op).map_comp f g }
 
 end category_theory

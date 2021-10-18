@@ -151,7 +151,7 @@ end
 variables (M)
 
 /-- Left scalar multiplication as an order isomorphism. -/
-@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : order_dual M ≃o M :=
+@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o order_dual M :=
 { to_fun := λ b, c • b,
   inv_fun := λ b, c⁻¹ • b,
   left_inv := inv_smul_smul₀ hc.ne,
@@ -197,12 +197,10 @@ lemma smul_upper_bounds_subset_upper_bounds_smul (hc : 0 ≤ c) :
   c • upper_bounds s ⊆ upper_bounds (c • s) :=
 (monotone_smul_left hc).image_upper_bounds_subset_upper_bounds_image
 
-lemma bdd_below.smul_of_nonneg (hs : bdd_below s) (hc : 0 ≤ c) :
-  bdd_below (c • s) :=
+lemma bdd_below.smul_of_nonneg (hs : bdd_below s) (hc : 0 ≤ c) : bdd_below (c • s) :=
 (monotone_smul_left hc).map_bdd_below hs
 
-lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) :
-  bdd_above (c • s) :=
+lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) : bdd_above (c • s) :=
 (monotone_smul_left hc).map_bdd_above hs
 
 end ordered_semiring
@@ -219,12 +217,10 @@ lemma smul_upper_bounds_subset_lower_bounds_smul (hc : c ≤ 0) :
   c • upper_bounds s ⊆ lower_bounds (c • s) :=
 (antitone_smul_left hc).image_upper_bounds_subset_lower_bounds_image
 
-lemma bdd_below.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_below s) :
-  bdd_above (c • s) :=
+lemma bdd_below.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_below s) : bdd_above (c • s) :=
 (antitone_smul_left hc).map_bdd_below hs
 
-lemma bdd_above.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_above s) :
-  bdd_below (c • s) :=
+lemma bdd_above.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_above s) : bdd_below (c • s) :=
 (antitone_smul_left hc).map_bdd_above hs
 
 end ordered_ring
@@ -235,20 +231,16 @@ variables [linear_ordered_field k] [ordered_add_comm_group M]
 section mul_action_with_zero
 variables [mul_action_with_zero k M] [ordered_smul k M] {s t : set M} {c : k}
 
-@[simp] lemma lower_bounds_smul_of_pos (hc : 0 < c) :
-  lower_bounds (c • s) = c • lower_bounds s :=
+@[simp] lemma lower_bounds_smul_of_pos (hc : 0 < c) : lower_bounds (c • s) = c • lower_bounds s :=
 (order_iso.smul_left _ hc).lower_bounds_image
 
-@[simp] lemma upper_bounds_smul_of_pos (hc : 0 < c) :
-  upper_bounds (c • s) = c • upper_bounds s :=
+@[simp] lemma upper_bounds_smul_of_pos (hc : 0 < c) : upper_bounds (c • s) = c • upper_bounds s :=
 (order_iso.smul_left _ hc).upper_bounds_image
 
-@[simp] lemma bdd_below_smul_iff_of_pos (hc : 0 < c) :
-  bdd_below (c • s) ↔ bdd_below s :=
+@[simp] lemma bdd_below_smul_iff_of_pos (hc : 0 < c) : bdd_below (c • s) ↔ bdd_below s :=
 (order_iso.smul_left _ hc).bdd_below_image
 
-@[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) :
-  bdd_above (c • s) ↔ bdd_above s :=
+@[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) : bdd_above (c • s) ↔ bdd_above s :=
 (order_iso.smul_left _ hc).bdd_above_image
 
 end mul_action_with_zero
@@ -256,21 +248,17 @@ end mul_action_with_zero
 section module
 variables [module k M] [ordered_smul k M] {s t : set M} {c : k}
 
-@[simp] lemma lower_bounds_smul_of_neg (hc : c < 0) :
-  lower_bounds (c • s) = c • upper_bounds s :=
-(order_iso.smul_left_dual M hc).lower_bounds_image
-
-@[simp] lemma upper_bounds_smul_of_neg (hc : c < 0) :
-  upper_bounds (c • s) = c • lower_bounds s :=
+@[simp] lemma lower_bounds_smul_of_neg (hc : c < 0) : lower_bounds (c • s) = c • upper_bounds s :=
 (order_iso.smul_left_dual M hc).upper_bounds_image
 
-@[simp] lemma bdd_below_smul_iff_of_neg (hc : c < 0) :
-  bdd_below (c • s) ↔ bdd_above s :=
-(order_iso.smul_left_dual M hc).bdd_below_image
+@[simp] lemma upper_bounds_smul_of_neg (hc : c < 0) : upper_bounds (c • s) = c • lower_bounds s :=
+(order_iso.smul_left_dual M hc).lower_bounds_image
 
-@[simp] lemma bdd_above_smul_iff_of_neg (hc : c < 0) :
-  bdd_above (c • s) ↔ bdd_below s :=
+@[simp] lemma bdd_below_smul_iff_of_neg (hc : c < 0) : bdd_below (c • s) ↔ bdd_above s :=
 (order_iso.smul_left_dual M hc).bdd_above_image
+
+@[simp] lemma bdd_above_smul_iff_of_neg (hc : c < 0) : bdd_above (c • s) ↔ bdd_below s :=
+(order_iso.smul_left_dual M hc).bdd_below_image
 
 end module
 end linear_ordered_field

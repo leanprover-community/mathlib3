@@ -118,10 +118,8 @@ lemma lift_unique {V W : SemiNormedGroup} [complete_space W] [separated_space W]
 begin
   intros h,
   ext,
-  refine completion.induction_on x (is_closed_eq g.continuous _) (λ a, _),
-  { exact normed_group_hom.continuous _ },
-  { change (incl ≫ g) _ = (incl ≫ Completion.lift f) _,
-    rw [lift_comp_incl, h] }
+  simpa [← completion.extension_unique f.uniform_continuous g.uniform_continuous
+    (λ a, ((ext_iff.1 h) a).symm)],
 end
 
 end SemiNormedGroup

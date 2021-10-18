@@ -520,11 +520,6 @@ begin
   exact mem_bUnion c_in (hc ha)
 end
 
-theorem bInter_mono' {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : ∀ x ∈ s, t x ⊆ t' x) :
-  (⋂ x ∈ s', t x) ⊆ (⋂ x ∈ s, t' x) :=
-(bInter_subset_bInter_left hs).trans $
-  subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
-
 theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
 bInter_mono' (subset.refl s) h

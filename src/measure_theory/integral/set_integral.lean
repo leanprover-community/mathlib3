@@ -844,10 +844,10 @@ lemma integral_re_add_im {f : α → 𝕜} (hf : integrable f μ) :
   ∫ x, f x ∂μ :=
 by { rw [← integral_of_real, ← integral_of_real, integral_coe_re_add_coe_im hf] }
 
-lemma set_integral_re_add_im {f : α → 𝕜} (hf : integrable f μ) {i : set α} :
+lemma set_integral_re_add_im {f : α → 𝕜} {i : set α} (hf : integrable_on f i μ) :
   ((∫ x in i, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) +
   (∫ x in i, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I = ∫ x in i, f x ∂μ :=
-integral_re_add_im hf.integrable_on
+integral_re_add_im hf
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

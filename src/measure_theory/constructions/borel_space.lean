@@ -335,7 +335,7 @@ instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measura
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (measurable_set_Iic : measurable_set (Iic a)).principal_is_measurably_generated
 
-lemma supr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
+lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
   (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
   (⨆ x ∈ s, μ (Iic x)) = μ univ :=
 begin
@@ -599,7 +599,7 @@ begin
   refine ext_of_Ioc_finite μ ν _ (λ a b hlt, _),
   { rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, -, hst⟩,
     have : directed_on (≤) s, from directed_on_iff_directed.2 (directed_of_sup $ λ _ _, id),
-    simp only [← supr_measure_Iic hsc (hsd.exists_ge' hst) this, h] },
+    simp only [← bsupr_measure_Iic hsc (hsd.exists_ge' hst) this, h] },
   rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic,
       measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic, h a, h b],
   { rw ← h a, exact (measure_lt_top μ _).ne },

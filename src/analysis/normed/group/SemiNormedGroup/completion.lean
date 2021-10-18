@@ -38,10 +38,7 @@ def Completion : SemiNormedGroup.{u} ⥤ SemiNormedGroup.{u} :=
   map_comp' := λ U V W f g, (completion_comp f g).symm }
 
 instance Completion_complete_space {V : SemiNormedGroup} : complete_space (Completion.obj V) :=
-begin
-  change complete_space (completion V),
-  apply_instance
-end
+completion.complete_space _
 
 /-- The canonical morphism from a seminormed group `V` to its completion. -/
 @[simps]

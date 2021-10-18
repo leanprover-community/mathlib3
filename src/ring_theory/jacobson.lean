@@ -448,7 +448,7 @@ begin
   let φ : (P.comap C : ideal R).quotient →+* P.quotient := quotient_map P C le_rfl,
   let M : submonoid (P.comap C : ideal R).quotient :=
     submonoid.powers ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff,
-  rw ← bot_quotient_is_maximal_iff at hP ⊢,
+  rw ← bot_quotient_is_maximal_iff,
   have hp0 : ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
       ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
@@ -473,7 +473,8 @@ begin
     apply is_integral_is_localization_polynomial_quotient P _ (submodule.coe_mem m) },
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
                      map (algebra_map P.quotient (localization M')) ⊥),
-  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) hP,
+  let bot_maximal := ((bot_quotient_is_maximal_iff _).mpr hP),
+  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) bot_maximal,
   rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
 end
 
@@ -546,7 +547,7 @@ lemma comp_C_integral_of_surjective_of_jacobson
   {S : Type*} [field S] (f : (polynomial R) →+* S) (hf : function.surjective f) :
   (f.comp C).is_integral :=
 begin
-  haveI : (f.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f ⊥ hf bot_is_maximal,
+  haveI : (f.ker).is_maximal := f.ker_is_maximal_of_surjective hf,
   let g : f.ker.quotient →+* S := ideal.quotient.lift f.ker f (λ _ h, h),
   have hfg : (g.comp (quotient.mk f.ker)) = f := ring_hom_ext' rfl rfl,
   rw [← hfg, ring_hom.comp_assoc],
@@ -627,7 +628,7 @@ begin
   have hf' : function.surjective f' :=
     ((function.surjective.comp hf (rename_equiv R e.symm).surjective)),
   have : (f'.comp C).is_integral,
-  { haveI : (f'.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f' ⊥ hf' bot_is_maximal,
+  { haveI : (f'.ker).is_maximal := f'.ker_is_maximal_of_surjective hf',
     let g : f'.ker.quotient →+* S := ideal.quotient.lift f'.ker f' (λ _ h, h),
     have hfg : (g.comp (quotient.mk f'.ker)) = f' := ring_hom_ext (λ r, rfl) (λ i, rfl),
     rw [← hfg, ring_hom.comp_assoc],

@@ -24,25 +24,34 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 instance : metric_space ℚ :=
 metric_space.induced coe rat.cast_injective real.metric_space
 
-theorem rat.dist_eq (x y : ℚ) : dist x y = |x - y| := rfl
+namespace rat
 
-@[norm_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
+theorem dist_eq (x y : ℚ) : dist x y = |x - y| := rfl
+
+@[norm_cast, simp] lemma dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
+
+theorem uniform_continuous_coe_real : uniform_continuous (coe : ℚ → ℝ) :=
+uniform_continuous_comap
+
+theorem uniform_embedding_coe_real : uniform_embedding (coe : ℚ → ℝ) :=
+uniform_embedding_comap rat.cast_injective
+
+theorem dense_embedding_coe_real : dense_embedding (coe : ℚ → ℝ) :=
+uniform_embedding_coe_real.dense_embedding $
+λ x, mem_closure_iff_nhds.2 $ λ t ht,
+let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
+let ⟨q, h⟩ := exists_rat_near x ε0 in
+⟨_, hε (mem_ball'.2 h), q, rfl⟩
+
+theorem embedding_coe_real : embedding (coe : ℚ → ℝ) := dense_embedding_coe_real.to_embedding
+
+theorem continuous_coe_real : continuous (coe : ℚ → ℝ) := uniform_continuous_coe_real.continuous
+
+end rat
 
 namespace int
 
-lemma uniform_embedding_coe_real : uniform_embedding (coe : ℤ → ℝ) :=
-{ comap_uniformity :=
-    begin
-      refine le_antisymm (le_principal_iff.2 _) (@refl_le_uniformity ℤ $
-        uniform_space.comap coe (infer_instance : uniform_space ℝ)),
-      refine (uniformity_basis_dist.comap _).mem_iff.2 ⟨1, zero_lt_one, _⟩,
-      rintro ⟨a, b⟩ (h : |(a - b : ℝ)| < 1),
-      norm_cast at h,
-      erw [@int.lt_add_one_iff _ 0, abs_nonpos_iff, sub_eq_zero] at h, assumption
-    end,
-  inj := int.cast_injective }
-
-instance : metric_space ℤ := int.uniform_embedding_coe_real.comap_metric_space _
+instance : has_dist ℤ := ⟨λ x y, dist (x : ℝ) y⟩
 
 theorem dist_eq (x y : ℤ) : dist x y = |x - y| := rfl
 
@@ -50,6 +59,26 @@ theorem dist_eq (x y : ℤ) : dist x y = |x - y| := rfl
 
 @[norm_cast, simp] theorem dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
+
+lemma pairwise_one_le_dist : pairwise (λ m n : ℤ, 1 ≤ dist m n) :=
+begin
+  intros m n hne,
+  rw dist_eq, norm_cast, rwa [← zero_add (1 : ℤ), int.add_one_le_iff, abs_pos, sub_ne_zero]
+end
+
+lemma uniform_embedding_coe_rat : uniform_embedding (coe : ℤ → ℚ) :=
+uniform_embedding_bot_of_pairwise_le_dist zero_lt_one $ by simpa using pairwise_one_le_dist
+
+lemma closed_embedding_coe_rat : closed_embedding (coe : ℤ → ℚ) :=
+closed_embedding_of_pairwise_le_dist zero_lt_one $ by simpa using pairwise_one_le_dist
+
+lemma uniform_embedding_coe_real : uniform_embedding (coe : ℤ → ℝ) :=
+uniform_embedding_bot_of_pairwise_le_dist zero_lt_one pairwise_one_le_dist
+
+lemma closed_embedding_coe_real : closed_embedding (coe : ℤ → ℝ) :=
+closed_embedding_of_pairwise_le_dist zero_lt_one pairwise_one_le_dist
+
+instance : metric_space ℤ := int.uniform_embedding_coe_real.comap_metric_space _
 
 theorem preimage_ball (x : ℤ) (r : ℝ) : coe ⁻¹' (ball (x : ℝ) r) = ball x r := rfl
 
@@ -71,23 +100,6 @@ instance : proper_space ℤ :=
 
 end int
 
-theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
-uniform_continuous_comap
-
-theorem uniform_embedding_of_rat : uniform_embedding (coe : ℚ → ℝ) :=
-uniform_embedding_comap rat.cast_injective
-
-theorem dense_embedding_of_rat : dense_embedding (coe : ℚ → ℝ) :=
-uniform_embedding_of_rat.dense_embedding $
-λ x, mem_closure_iff_nhds.2 $ λ t ht,
-let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
-let ⟨q, h⟩ := exists_rat_near x ε0 in
-⟨_, hε (mem_ball'.2 h), q, rfl⟩
-
-theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.to_embedding
-
-theorem continuous_of_rat : continuous (coe : ℚ → ℝ) := uniform_continuous_of_rat.continuous
-
 theorem real.uniform_continuous_add : uniform_continuous (λp : ℝ × ℝ, p.1 + p.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
@@ -95,9 +107,9 @@ let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 
 -- TODO(Mario): Find a way to use rat_add_continuous_lemma
 theorem rat.uniform_continuous_add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
-uniform_embedding_of_rat.to_uniform_inducing.uniform_continuous_iff.2 $ by simp [(∘)]; exact
-real.uniform_continuous_add.comp ((uniform_continuous_of_rat.comp uniform_continuous_fst).prod_mk
-  (uniform_continuous_of_rat.comp uniform_continuous_snd))
+rat.uniform_embedding_coe_real.to_uniform_inducing.uniform_continuous_iff.2 $
+  by simp only [(∘), rat.cast_add]; exact real.uniform_continuous_add.comp
+    (rat.uniform_continuous_coe_real.prod_map rat.uniform_continuous_coe_real)
 
 theorem real.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℝ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
@@ -210,9 +222,8 @@ instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
-embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
-real.continuous_mul.comp ((continuous_of_rat.comp continuous_fst).prod_mk
-  (continuous_of_rat.comp continuous_snd))
+rat.embedding_coe_real.continuous_iff.2 $ by simp [(∘)]; exact
+real.continuous_mul.comp ((rat.continuous_coe_real.prod_map rat.continuous_coe_real))
 
 instance : topological_ring ℚ :=
 { continuous_mul := rat.continuous_mul, ..rat.topological_add_group }
@@ -243,7 +254,7 @@ by rw real.ball_eq_Ioo; apply totally_bounded_Ioo
 
 lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
 begin
-  have := totally_bounded_preimage uniform_embedding_of_rat (totally_bounded_Icc a b),
+  have := totally_bounded_preimage rat.uniform_embedding_coe_real (totally_bounded_Icc a b),
   rwa (set.ext (λ q, _) : Icc _ _ = _), simp
 end
 

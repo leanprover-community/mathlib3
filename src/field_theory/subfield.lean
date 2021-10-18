@@ -101,8 +101,7 @@ lemma mk_le_mk {S S' : subring K} (h₁ h₁') :
   S ≤ S' :=
 iff.rfl
 
-@[simp]
-lemma to_subring_coe {S : subfield K} : (S.to_subring : set K) = (S : set K) := rfl
+@[simp] lemma coe_to_subring {S : subfield K} : (S.to_subring : set K) = (S : set K) := rfl
 
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
@@ -118,9 +117,6 @@ protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
 
 lemma copy_eq (S : subfield K) (s : set K) (hs : s = ↑S) : S.copy s hs = S :=
 set_like.coe_injective hs
-
-@[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
-rfl
 
 @[simp] lemma mem_to_subring (s : subfield K) (x : K) :
   x ∈ s.to_subring ↔ x ∈ s := iff.rfl

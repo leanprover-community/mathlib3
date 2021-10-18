@@ -7,6 +7,7 @@ import algebra.big_operators.intervals
 import algebra.big_operators.nat_antidiagonal
 import data.equiv.encodable.lattice
 import topology.algebra.mul_action
+import topology.algebra.ordered.monotone_convergence
 import topology.instances.real
 
 /-!
@@ -1129,7 +1130,7 @@ begin
   rw [filter.mem_map],
   rcases hf.vanishing he with ⟨s, hs⟩,
   refine s.eventually_cofinite_nmem.mono (λ x hx, _),
-  by simpa using hs {x} (singleton_disjoint.2 hx)
+  by simpa using hs {x} (disjoint_singleton_left.2 hx)
 end
 
 lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : tendsto f at_top (𝓝 0) :=

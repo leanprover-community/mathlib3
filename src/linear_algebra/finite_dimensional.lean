@@ -280,11 +280,11 @@ end
 
 /-- A finite dimensional space has positive `finrank` iff it has a nonzero element. -/
 lemma finrank_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < finrank K V ↔ ∃ x : V, x ≠ 0 :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _ _ _)
 
 /-- A finite dimensional space has positive `finrank` iff it is nontrivial. -/
 lemma finrank_pos_iff [finite_dimensional K V] : 0 < finrank K V ↔ nontrivial V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _ _ _)
 
 /-- A finite dimensional space is nontrivial if it has positive `finrank`. -/
 lemma nontrivial_of_finrank_pos (h : 0 < finrank K V) : nontrivial V :=
@@ -306,7 +306,7 @@ finrank_pos_iff.mpr h
 This is the `finrank` version of `dim_zero_iff`. -/
 lemma finrank_zero_iff [finite_dimensional K V] :
   finrank K V = 0 ↔ subsingleton V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _ _ _)
 
 /-- A finite dimensional space that is a subsingleton has zero `finrank`. -/
 lemma finrank_zero_of_subsingleton [h : subsingleton V] :
@@ -396,6 +396,43 @@ begin
 end
 
 variable {K}
+
+lemma _root_.complete_lattice.independent.subtype_ne_bot_le_finrank_aux [finite_dimensional K V]
+  {ι : Type w} {p : ι → submodule K V} (hp : complete_lattice.independent p) :
+  #{i // p i ≠ ⊥} ≤ (finrank K V : cardinal.{w}) :=
+begin
+  suffices : cardinal.lift.{v} (#{i // p i ≠ ⊥}) ≤ cardinal.lift.{v} (finrank K V : cardinal.{w}),
+  { rwa cardinal.lift_le at this },
+  calc cardinal.lift.{v} (# {i // p i ≠ ⊥})
+      ≤ cardinal.lift.{w} (module.rank K V) : hp.subtype_ne_bot_le_rank
+  ... = cardinal.lift.{w} (finrank K V : cardinal.{v}) : by rw finrank_eq_dim
+  ... = cardinal.lift.{v} (finrank K V : cardinal.{w}) : by simp
+end
+
+/-- If `p` is an independent family of subspaces of a finite-dimensional space `V`, then the
+number of nontrivial subspaces in the family `p` is finite. -/
+noncomputable def _root_.complete_lattice.independent.fintype_ne_bot_of_finite_dimensional
+  [finite_dimensional K V] {ι : Type w} {p : ι → submodule K V}
+  (hp : complete_lattice.independent p) :
+  fintype {i : ι // p i ≠ ⊥} :=
+begin
+  suffices : #{i // p i ≠ ⊥} < (ω : cardinal.{w}),
+  { rw cardinal.lt_omega_iff_fintype at this,
+    exact this.some },
+  refine lt_of_le_of_lt hp.subtype_ne_bot_le_finrank_aux _,
+  simp [cardinal.nat_lt_omega],
+end
+
+/-- If `p` is an independent family of subspaces of a finite-dimensional space `V`, then the
+number of nontrivial subspaces in the family `p` is bounded above by the dimension of `V`.
+
+Note that the `fintype` hypothesis required here can be provided by
+`complete_lattice.independent.fintype_ne_bot_of_finite_dimensional`. -/
+lemma _root_.complete_lattice.independent.subtype_ne_bot_le_finrank
+  [finite_dimensional K V] {ι : Type w} {p : ι → submodule K V}
+  (hp : complete_lattice.independent p) [fintype {i // p i ≠ ⊥}] :
+  fintype.card {i // p i ≠ ⊥} ≤ finrank K V :=
+by simpa [cardinal.fintype_card] using hp.subtype_ne_bot_le_finrank_aux
 
 section
 open_locale big_operators

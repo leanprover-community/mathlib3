@@ -116,7 +116,9 @@ section semiring
 variables [comm_semiring R] [comm_semiring S]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 
-lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
+/-- We keep this lemma private because it picks up the `algebra.to_has_scalar` instance
+which we set to priority 0 shortly. See `smul_def` below for the public version. -/
+private lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
 
 /--
@@ -134,7 +136,7 @@ begin
   congr,
   { funext r a,
     replace w := congr_arg (λ s, s * a) (w r),
-    simp only [←algebra.smul_def] at w,
+    simp only [←smul_def''] at w,
     apply w, },
   { ext r,
     exact w r, },
@@ -144,12 +146,19 @@ end
 
 @[priority 200] -- see Note [lower instance priority]
 instance to_module : module R A :=
-{ one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_assoc],
-  smul_add := by simp [smul_def, mul_add],
-  smul_zero := by simp [smul_def],
-  add_smul := by simp [smul_def, add_mul],
-  zero_smul := by simp [smul_def] }
+{ one_smul := by simp [smul_def''],
+  mul_smul := by simp [smul_def'', mul_assoc],
+  smul_add := by simp [smul_def'', mul_add],
+  smul_zero := by simp [smul_def''],
+  add_smul := by simp [smul_def'', add_mul],
+  zero_smul := by simp [smul_def''] }
+
+-- From now on, we don't want to use the following instance anymore.
+-- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.
+attribute [instance, priority 0] algebra.to_has_scalar
+
+lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
+algebra.smul_def' r x
 
 lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
 calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm

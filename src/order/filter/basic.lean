@@ -524,13 +524,16 @@ begin
   { simp [Inter_dite, bInter_eq_Inter] }
 end
 
+lemma exists_Inter_of_mem_infi {ι : Type*} {α : Type*} {f : ι → filter α} {s}
+  (hs : s ∈ ⨅ i, f i) : ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
+let ⟨I, If, V, hVs, hV', hVU, hVU'⟩ := mem_infi'.1 hs in ⟨V, hVs, hVU'⟩
+
 lemma mem_infi_of_fintype {ι : Type*} [fintype ι] {α : Type*} {f : ι → filter α} (s) :
   s ∈ (⨅ i, f i) ↔ ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
 begin
-  split,
-  { rw mem_infi', rintro ⟨I, If, V, hVf, -, -, hs⟩, exact ⟨V, hVf, hs⟩ },
-  { rintro ⟨t, ht, rfl⟩,
-    exact Inter_mem.2 (λ i, mem_infi_of_mem i (ht i)) }
+  refine ⟨exists_Inter_of_mem_infi, _⟩,
+  rintro ⟨t, ht, rfl⟩,
+  exact Inter_mem.2 (λ i, mem_infi_of_mem i (ht i))
 end
 
 @[simp] lemma le_principal_iff {s : set α} {f : filter α} : f ≤ 𝓟 s ↔ s ∈ f :=

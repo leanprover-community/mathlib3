@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import algebra.iterate_hom
 import analysis.specific_limits
+import topology.algebra.ordered.monotone_continuity
 import order.iterate
 import order.semiconj_Sup
 

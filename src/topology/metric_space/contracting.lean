@@ -313,6 +313,8 @@ hf.dist_fixed_point_fixed_point_of_dist_le' g hf.fixed_point_is_fixed_pt
 
 omit hf
 
+/-- If a map `f` has a contracting iterate `f^[n]`, then the fixed point of `f^[n]` is also a fixed
+point of `f`. -/
 lemma is_fixed_pt_fixed_point_iterate {n : ℕ} (hf : contracting_with K (f^[n])) :
   is_fixed_pt f (hf.fixed_point (f^[n])) :=
 begin

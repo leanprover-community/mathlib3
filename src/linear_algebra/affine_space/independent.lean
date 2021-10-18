@@ -436,9 +436,9 @@ end
 
 end affine_independent
 
-section field
+section division_ring
 
-variables {k : Type*} {V : Type*} {P : Type*} [field k] [add_comm_group V] [module k V]
+variables {k : Type*} {V : Type*} {P : Type*} [division_ring k] [add_comm_group V] [module k V]
 variables [affine_space V P] {ι : Type*}
 include V
 
@@ -474,7 +474,34 @@ begin
     { use [hsvi, affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] } }
 end
 
-variables (k)
+variables (k V)
+
+lemma exists_affine_independent (s : set P) :
+  ∃ t ⊆ s, affine_span k t = affine_span k s ∧ affine_independent k (coe : t → P) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩,
+  { exact ⟨∅, set.empty_subset ∅, rfl, affine_independent_of_subsingleton k _⟩, },
+  obtain ⟨b, hb₁, hb₂, hb₃⟩ := exists_linear_independent k ((equiv.vadd_const p).symm '' s),
+  have hb₀ : ∀ (v : V), v ∈ b → v ≠ 0, { exact λ v hv, hb₃.ne_zero (⟨v, hv⟩ : b), },
+  rw linear_independent_set_iff_affine_independent_vadd_union_singleton k hb₀ p at hb₃,
+  refine ⟨{p} ∪ (equiv.vadd_const p) '' b, _, _, hb₃⟩,
+  { apply set.union_subset (set.singleton_subset_iff.mpr hp),
+    rwa ← (equiv.vadd_const p).subset_image' b s, },
+  { rw [equiv.coe_vadd_const_symm, ← vector_span_eq_span_vsub_set_right k hp] at hb₂,
+    apply affine_subspace.ext_of_direction_eq,
+    { have : submodule.span k b = submodule.span k (insert 0 b), { by simp, },
+      simp only [direction_affine_span, ← hb₂, equiv.coe_vadd_const, set.singleton_union,
+        vector_span_eq_span_vsub_set_right k (set.mem_insert p _), this],
+      congr,
+      change (equiv.vadd_const p).symm '' insert p ((equiv.vadd_const p) '' b) = _,
+      rw [set.image_insert_eq, ← set.image_comp],
+      simp, },
+    { use p,
+      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
+      exact ⟨mem_span_points k _ _ (set.mem_insert p _), mem_span_points k _ _ hp⟩, }, },
+end
+
+variables (k) {V P}
 
 /-- Two different points are affinely independent. -/
 lemma affine_independent_of_ne {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
@@ -492,7 +519,7 @@ begin
   exact linear_independent_unique _ hz
 end
 
-end field
+end division_ring
 
 namespace affine
 

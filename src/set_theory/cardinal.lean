@@ -1029,7 +1029,7 @@ begin
   have h6: classical.some h4 =0, by {simp [h0],},
   rw h6 at h5,
   simp only [nat.cast_zero] at h5,
-  rw eq_zero_iff_is_empty at h5,
+  rw cardinal.mk_eq_zero_iff at h5,
   simp only [not_is_empty_of_nonempty] at *,
   apply h5,
   apply h3,

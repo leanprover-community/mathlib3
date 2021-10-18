@@ -367,9 +367,10 @@ def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
 
-@[simp, norm_cast] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
+@[simp, norm_cast, to_additive coe_smul]
+lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 coe_subtype H ▸ monoid_hom.map_pow _ _ _
-@[simp, norm_cast] lemma coe_gpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
+@[simp, norm_cast, to_additive] lemma coe_gpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
 coe_subtype H ▸ monoid_hom.map_gpow _ _ _
 
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
@@ -1336,15 +1337,6 @@ end
 
 lemma closure_singleton_zero : closure ({0} : set A) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
-
-variable (H : add_subgroup A)
-@[simp] lemma coe_smul (x : H) (n : ℕ) : ((n • x : H) : A) = n • x :=
-coe_subtype H ▸ add_monoid_hom.map_nsmul _ _ _
-@[simp] lemma coe_gsmul (x : H) (n : ℤ) : ((n • x : H) : A) = n • x :=
-coe_subtype H ▸ add_monoid_hom.map_gsmul _ _ _
-
-attribute [to_additive add_subgroup.coe_smul] subgroup.coe_pow
-attribute [to_additive add_subgroup.coe_gsmul] subgroup.coe_gpow
 
 end add_subgroup
 

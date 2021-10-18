@@ -59,15 +59,10 @@ by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 instance mul_one_class [mul_one_class α] : mul_one_class (ulift α) :=
 by refine_struct { mul := (*), one := (1 : ulift α), .. }; tactic.pi_instance_derive_field
 
+@[to_additive]
 instance monoid [monoid α] : monoid (ulift α) :=
 by refine_struct { one := (1 : ulift α), mul := (*), npow := λ n f, ⟨npow n f.down⟩ };
 tactic.pi_instance_derive_field
-
-instance add_monoid [add_monoid α] : add_monoid (ulift α) :=
-by refine_struct { zero := (0 : ulift α), add := (+), nsmul := λ n f, ⟨nsmul n f.down⟩ };
-tactic.pi_instance_derive_field
-
-attribute [to_additive] ulift.monoid
 
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=

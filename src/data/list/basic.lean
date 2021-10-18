@@ -2463,15 +2463,14 @@ begin
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
 end
 
--- `to_additive` chokes on the next few lemmas, so we do them by hand below
-@[simp]
+@[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list α) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
 | [] i := by simp
 | L 0 := by simp
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop], }
 
-@[simp]
+@[simp, to_additive]
 lemma prod_take_succ :
   ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).prod = (L.take i).prod * L.nth_le i p
 | [] i p := by cases p
@@ -2479,9 +2478,11 @@ lemma prod_take_succ :
 | (h :: t) (n+1) _ := by { dsimp, rw [prod_cons, prod_cons, prod_take_succ, mul_assoc], }
 
 /-- A list with product not one must have positive length. -/
+@[to_additive]
 lemma length_pos_of_prod_ne_one (L : list α) (h : L.prod ≠ 1) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
+@[to_additive]
 lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
   (L.update_nth n a).prod =
     (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
@@ -2517,20 +2518,6 @@ lemma prod_inv : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).prod
 | (x :: xs) := by simp [mul_comm, prod_inv xs]
 
 end comm_group
-
-@[simp]
-lemma sum_take_add_sum_drop [add_monoid α] :
-  ∀ (L : list α) (i : ℕ), (L.take i).sum + (L.drop i).sum = L.sum
-| [] i := by simp
-| L 0 := by simp
-| (h :: t) (n+1) := by { dsimp, rw [sum_cons, sum_cons, add_assoc, sum_take_add_sum_drop], }
-
-@[simp]
-lemma sum_take_succ [add_monoid α] :
-  ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).sum = (L.take i).sum + L.nth_le i p
-| [] i p := by cases p
-| (h :: t) 0 _ := by simp
-| (h :: t) (n+1) _ := by { dsimp, rw [sum_cons, sum_cons, sum_take_succ, add_assoc], }
 
 lemma eq_of_sum_take_eq [add_left_cancel_monoid α] {L L' : list α} (h : L.length = L'.length)
   (h' : ∀ i ≤ L.length, (L.take i).sum = (L'.take i).sum) : L = L' :=
@@ -2592,10 +2579,6 @@ begin
     exact ⟨h.1, l_ih h.2⟩ },
 end⟩
 
-/-- A list with sum not zero must have positive length. -/
-lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
-by { cases L, { simp at h, cases h, }, { simp, }, }
-
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/
 lemma length_le_sum_of_one_le (L : list ℕ) (h : ∀ i ∈ L, 1 ≤ i) : L.length ≤ L.sum :=
@@ -2604,9 +2587,6 @@ begin
   rw [sum_cons, length, add_comm],
   exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
 end
-
--- Now we tie those lemmas back to their multiplicative versions.
-attribute [to_additive] prod_take_mul_prod_drop prod_take_succ length_pos_of_prod_ne_one
 
 /-- A list with positive sum must have positive length. -/
 -- This is an easy consequence of `length_pos_of_sum_ne_zero`, but often useful in applications.

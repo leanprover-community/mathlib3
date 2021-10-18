@@ -1331,10 +1331,10 @@ structure total_positive_cone (α : Type*) [ring α]
 (one_pos : pos 1)
 
 /-- Forget that a `total_positive_cone` in a ring is total. -/
-add_decl_doc positive_cone.to_positive_cone
+add_decl_doc total_positive_cone.to_positive_cone
 
 /-- Forget that a `total_positive_cone` in a ring respects the multiplicative structure. -/
-add_decl_doc positive_cone.to_total_positive_cone
+add_decl_doc total_positive_cone.to_total_positive_cone
 
 end ring
 

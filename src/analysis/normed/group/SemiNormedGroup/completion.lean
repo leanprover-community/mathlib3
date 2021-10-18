@@ -3,7 +3,6 @@ Copyright (c) 2021 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca, Johan Commelin
 -/
-
 import analysis.normed.group.SemiNormedGroup
 import category_theory.preadditive.additive_functor
 import analysis.normed.group.hom_completion
@@ -28,22 +27,15 @@ noncomputable theory
 universe u
 
 namespace SemiNormedGroup
-open uniform_space opposite category_theory
+open uniform_space opposite category_theory normed_group_hom
 
 /-- The completion of a seminormed group, as an endofunctor on `SemiNormedGroup`. -/
 @[simps]
 def Completion : SemiNormedGroup.{u} ⥤ SemiNormedGroup.{u} :=
 { obj := λ V, SemiNormedGroup.of (completion V),
   map := λ V W f, normed_group_hom.completion f,
-  map_id' := λ V, by { ext1 v, show completion.map id v = v, rw completion.map_id, refl },
-  map_comp' := λ U V W f g,
-  begin
-    ext1 v,
-    show completion.map (g ∘ f) v = _,
-    rw [← completion.map_comp],
-    { refl },
-    all_goals { exact normed_group_hom.uniform_continuous _ }
-  end }
+  map_id' := λ V, completion_id,
+  map_comp' := λ U V W f g, (completion_comp f g).symm }
 
 instance Completion_complete_space {V : SemiNormedGroup} : complete_space (Completion.obj V) :=
 begin

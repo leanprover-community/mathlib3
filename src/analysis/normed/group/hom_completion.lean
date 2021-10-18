@@ -49,6 +49,8 @@ noncomputable theory
 
 open set normed_group_hom uniform_space
 
+section completion
+
 variables {G : Type*} [semi_normed_group G]
 variables {H : Type*} [semi_normed_group H]
 variables {K : Type*} [semi_normed_group K]
@@ -229,12 +231,16 @@ begin
     exact closure_mono f.ker_le_ker_completion }
 end
 
+end completion
+
 section extension
+
+variables {G : Type*} [semi_normed_group G]
+variables {H : Type*} [normed_group H] [complete_space H]
 
 /-- If `H` is complete, the extension of `f : normed_group_hom G H` to a
 `normed_group_hom (completion G) H`. -/
-def normed_group_hom.extension [complete_space H] [separated_space H] (f : normed_group_hom G H) :
-  normed_group_hom (completion G) H :=
+def normed_group_hom.extension (f : normed_group_hom G H) : normed_group_hom (completion G) H :=
 { bound' := begin
     refine ⟨∥f∥, λ v, completion.induction_on v (is_closed_le _ _) (λ a, _)⟩,
     { exact continuous.comp continuous_norm completion.continuous_extension },
@@ -244,19 +250,17 @@ def normed_group_hom.extension [complete_space H] [separated_space H] (f : norme
   end,
   ..f.to_add_monoid_hom.extension f.continuous }
 
-lemma normed_group_hom.extension_def [complete_space H] [separated_space H]
-  (f : normed_group_hom G H) (v : G) : f.extension v = completion.extension f v := rfl
+lemma normed_group_hom.extension_def (f : normed_group_hom G H) (v : G) :
+  f.extension v = completion.extension f v := rfl
 
-@[simp] lemma normed_group_hom.extension_coe [complete_space H] [separated_space H]
-  (f : normed_group_hom G H) (v : G) : f.extension v = f v :=
-add_monoid_hom.extension_coe _ f.continuous _
+@[simp] lemma normed_group_hom.extension_coe (f : normed_group_hom G H) (v : G) :
+  f.extension v = f v := add_monoid_hom.extension_coe _ f.continuous _
 
-lemma normed_group_hom.extension_coe_to_fun [complete_space H] [separated_space H]
-  (f : normed_group_hom G H) : (f.extension : (completion G) → H) = completion.extension f := rfl
+lemma normed_group_hom.extension_coe_to_fun (f : normed_group_hom G H) :
+  (f.extension : (completion G) → H) = completion.extension f := rfl
 
-lemma normed_group_hom.extension_unique [complete_space H] [separated_space H]
-  (f : normed_group_hom G H) {g : normed_group_hom (completion G) H} (hg : ∀ v, f v = g v) :
-  f.extension = g :=
+lemma normed_group_hom.extension_unique (f : normed_group_hom G H)
+  {g : normed_group_hom (completion G) H} (hg : ∀ v, f v = g v) : f.extension = g :=
 begin
   ext v,
   rw [normed_group_hom.extension_coe_to_fun, completion.extension_unique f.uniform_continuous

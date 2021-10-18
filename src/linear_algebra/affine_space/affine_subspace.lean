@@ -1094,7 +1094,8 @@ end
 variables (k)
 
 /-- `affine_span` is monotone. -/
-@[mono] lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=
+@[mono]
+lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=
 span_points_subset_coe_of_subset_coe (set.subset.trans h (subset_affine_span k _))
 
 /-- Taking the affine span of a set, adding a point and taking the

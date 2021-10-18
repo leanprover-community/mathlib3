@@ -25,7 +25,7 @@ universes v u
 namespace category_theory
 
 /-- Category of categories. -/
-@[nolint check_univs] -- false positive
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def Cat := bundled category.{v u}
 
 namespace Cat

@@ -103,10 +103,9 @@ lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
 λ h, by simpa only [exists_prop, multiset.mem_map, exists_exists_and_eq_and]
   using hp.exists_mem_multiset_dvd h
 
--- appears to be unused, but I can find another place for it.
---lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
---  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
---hp.exists_mem_multiset_map_dvd
+lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
+  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
+hp.exists_mem_multiset_map_dvd
 
 end prime
 

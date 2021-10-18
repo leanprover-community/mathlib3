@@ -202,6 +202,55 @@ alias dimH_finite ← set.finite.dimH_zero
 alias dimH_coe_finset ← finset.dimH_zero
 
 /-!
+### Hausdorff dimension as the supremum of local Hausdorff dimensions
+-/
+
+section
+
+variables [second_countable_topology X]
+
+/-- If `r` is less than the Hausdorff dimension of a set `s` in an (extended) metric space with
+second countable topology, then there exists a point `x ∈ s` such that every neighborhood
+`t` of `x` within `s` has Hausdorff dimension greater than `r`. -/
+lemma exists_mem_nhds_within_lt_dimH_of_lt_dimH {s : set X} {r : ℝ≥0∞} (h : r < dimH s) :
+  ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, r < dimH t :=
+begin
+  contrapose! h, choose! t htx htr using h,
+  rcases countable_cover_nhds_within htx with ⟨S, hSs, hSc, hSU⟩,
+  calc dimH s ≤ dimH (⋃ x ∈ S, t x) : dimH_mono hSU
+  ... = ⨆ x ∈ S, dimH (t x) : dimH_bUnion hSc _
+  ... ≤ r : bsupr_le (λ x hx, htr x (hSs hx))
+end
+
+/-- In an (extended) metric space with second countable topology, the Hausdorff dimension
+of a set `s` is the supremum over `x ∈ s` of the limit superiors of `dimH t` along
+`(𝓝[s] x).lift' powerset`. -/
+lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+begin
+  refine le_antisymm (bsupr_le $ λ x hx, _) _,
+  { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
+    exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
+  { refine le_of_forall_ge_of_dense (λ r hr, _),
+    rcases exists_mem_nhds_within_lt_dimH_of_lt_dimH hr with ⟨x, hxs, hxr⟩,
+    refine le_bsupr_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
+    rcases eventually_lift'_powerset.1 hb with ⟨t, htx, ht⟩,
+    exact (hxr t htx).le.trans (ht t subset.rfl) }
+end
+
+/-- In an (extended) metric space with second countable topology, the Hausdorff dimension
+of a set `s` is the supremum over all `x` of the limit superiors of `dimH t` along
+`(𝓝[s] x).lift' powerset`. -/
+lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+begin
+  refine le_antisymm (supr_le $ λ x, _) _,
+  { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
+    exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
+  { rw ← bsupr_limsup_dimH, exact bsupr_le_supr _ _ }
+end
+
+end
+
+/-!
 ### Hausdorff dimension and Hölder continuity
 -/
 

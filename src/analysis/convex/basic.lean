@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
 import algebra.module.ordered
-import linear_algebra.affine_space.affine_map
+import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Convex sets and functions in vector spaces
@@ -848,6 +848,14 @@ begin
   apply h.segment_subset hx hy,
   rw segment_eq_image',
   exact mem_image_of_mem _ ht,
+end
+
+/-- Affine subspaces are convex. -/
+lemma affine_subspace.convex (Q : affine_subspace 𝕜 E) : convex 𝕜 (Q : set E) :=
+begin
+  intros x y hx hy a b ha hb hab,
+  rw [eq_sub_of_add_eq hab, ← affine_map.line_map_apply_module],
+  exact affine_map.line_map_mem b hx hy,
 end
 
 /--

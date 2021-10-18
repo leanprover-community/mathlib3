@@ -19,6 +19,8 @@ We define the `floor` function and the `floor_ring` instance on `ℚ`. Some tech
 rat, rationals, ℚ, floor
 -/
 
+open int
+
 namespace rat
 
 /-- `floor q` is the largest integer `z` such that `z ≤ q` -/
@@ -106,7 +108,7 @@ begin
   have q_num_pos : 0 < q.num, from rat.num_pos_iff_pos.elim_right q_pos,
   -- we will work with the absolute value of the numerator, which is equal to the numerator
   have q_num_abs_eq_q_num : (q.num.nat_abs : ℤ) = q.num, from
-    (int.nat_abs_of_nonneg $ le_of_lt q_num_pos),
+    (int.nat_abs_of_nonneg q_num_pos.le),
   set q_inv := (q.denom : ℚ) / q.num with q_inv_def,
   have q_inv_eq : q⁻¹ = q_inv, from rat.inv_def',
   suffices : (q_inv - ⌊q_inv⌋).num < q.num, by rwa q_inv_eq,

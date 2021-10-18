@@ -98,7 +98,7 @@ begin
   exact (hs a ha b hb $ ne_of_apply_ne _ h).mono (hf a) (hf b),
 end
 
-lemma pairwise_disjoint.range (f : s → α) (hf : ∀ (x : s), f x ≤ x.1) (ht : pairwise_disjoint s) :
+lemma pairwise_disjoint.range (f : s → α) (hf : ∀ (x : s), f x ≤ x) (ht : pairwise_disjoint s) :
   pairwise_disjoint (range f) :=
 begin
   rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy,

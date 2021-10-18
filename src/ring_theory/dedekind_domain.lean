@@ -61,7 +61,7 @@ open ideal ring
 namespace ring
 
 lemma dimension_le_one.principal_ideal_ring
-  [integral_domain A] [is_principal_ideal_ring A] : dimension_le_one A :=
+  [is_domain A] [is_principal_ideal_ring A] : dimension_le_one A :=
 λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
 
 lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [is_domain B]
@@ -72,13 +72,13 @@ lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [is_domain 
   is_integral_closure.is_maximal_of_is_maximal_comap A p
     (h _ (is_integral_closure.comap_ne_bot A ne_bot) infer_instance)
 
-lemma dimension_le_one.integral_closure [nontrivial R] [integral_domain A] [algebra R A]
+lemma dimension_le_one.integral_closure [nontrivial R] [is_domain A] [algebra R A]
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
 h.is_integral_closure R A (integral_closure R A)
 
 end ring
 
-variables [integral_domain A]
+variables [is_domain A]
 
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
@@ -853,7 +853,7 @@ lemma integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetheria
   is_noetherian_ring (integral_closure A L) :=
 is_integral_closure.is_noetherian_ring A K L (integral_closure A L)
 
-variables (A K) [integral_domain C]
+variables (A K) [is_domain C]
 /- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a Dedekind domain,
 the integral closure `C` of `A` in `L` is a Dedekind domain.
 

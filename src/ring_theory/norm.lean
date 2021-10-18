@@ -122,7 +122,7 @@ end eq_prod_roots
 
 section eq_zero_iff
 
-lemma norm_eq_zero_iff_of_basis [integral_domain S] (b : basis ι R S) {x : S} :
+lemma norm_eq_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x = 0 ↔ x = 0 :=
 begin
   have hι : nonempty ι := b.index_nonempty,
@@ -142,7 +142,7 @@ begin
     rw [alg_hom.map_zero, matrix.det_zero hι] },
 end
 
-lemma norm_ne_zero_iff_of_basis [integral_domain S] (b : basis ι R S) {x : S} :
+lemma norm_ne_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 

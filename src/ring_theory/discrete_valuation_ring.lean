@@ -181,7 +181,7 @@ begin
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-variables [integral_domain R]
+variables [is_domain R]
 
 /-- An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.

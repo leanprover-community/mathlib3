@@ -89,10 +89,10 @@ lemma mk'_apply (x : G) : mk' N x = x := rfl
 `quotient_group.mk'` are equal.
 
 See note [partially-applied ext lemmas]. -/
-@[to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
+@[ext, to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
 compositions with `add_quotient_group.mk'` are equal.
 
-See note [partially-applied ext lemmas]. "-/, ext]
+See note [partially-applied ext lemmas]. "-/]
 lemma monoid_hom_ext ⦃f g : quotient N →* H⦄ (h : f.comp (mk' N) = g.comp (mk' N)) : f = g :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ (monoid_hom.congr_fun h : _)
 

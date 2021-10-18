@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang Eric Wieser
+Authors: Jujian Zhang, Eric Wieser
 -/
 
 import algebra.direct_sum.ring
@@ -80,9 +80,35 @@ end, λ HI, begin
   rw [mem_range], use a, rw ha, refl,
 end⟩
 
+private lemma homogeneous_ideal.mul_homogeneous_element [add_comm_monoid ι] [gcomm_semiring A]
+  {I : ideal (⨁ i, A i)} (r x : ⨁ i, A i)
+  (hx₁ : is_homogeneous_element x) (hx₂ : x ∈ I) (j : ι) :
+  of A j ((r * x) j) ∈ I :=
+begin
+  rw [direct_sum.eq_sum_of _ r, finset.sum_mul, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],
+  simp_rw [mul_comm, ←smul_eq_mul, of, dfinsupp.single_add_hom],
+  simp only [add_monoid_hom.coe_mk],
+  apply ideal.sum_mem, intros k hk,
+  -- rw [←dfinsupp.single_smul x (r k)],
+end
+
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
-  x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I := sorry
+  x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
+⟨λ hx j, begin
+  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span_eq_span'] at HI,
+  rw HI at hx,
+  obtain ⟨s, r, rfl⟩ := hx,
+  simp only [dfinsupp.finset_sum_apply], rw add_monoid_hom.map_sum,
+  apply ideal.sum_mem, rintros ⟨y, y_mem_I, z, y_eq⟩ hy,
+  apply homogeneous_ideal.mul_homogeneous_element,
+  use z, simp only [subtype.coe_mk], rw [y_eq],
+
+  convert y_mem_I,
+end, begin
+  intro H, rw [direct_sum.eq_sum_of _ x], apply ideal.sum_mem, intros j hj,
+  apply H,
+end⟩
 
 end defs
 

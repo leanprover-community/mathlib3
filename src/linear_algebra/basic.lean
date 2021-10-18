@@ -818,6 +818,13 @@ begin
   exact iff.rfl
 end
 
+@[simp] lemma span_insert_zero : span R (insert (0 : M) s) = span R s :=
+begin
+  refine le_antisymm _ (submodule.span_mono (set.subset_insert 0 s)),
+  rw [span_le, set.insert_subset],
+  exact ⟨by simp only [set_like.mem_coe, submodule.zero_mem], submodule.subset_span⟩,
+end
+
 alias submodule.map_span_le ← linear_map.map_span_le
 
 /- See also `span_preimage_eq` below. -/

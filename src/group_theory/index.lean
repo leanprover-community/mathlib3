@@ -36,6 +36,23 @@ and returns 0 if the index is infinite."]
 noncomputable def index : ℕ :=
 (cardinal.mk (quotient_group.quotient H)).to_nat
 
+@[to_additive] lemma index_comap_of_surjective {G' : Type*} [group G'] {f : G' →* G}
+  (hf : function.surjective f) : (H.comap f).index = H.index :=
+begin
+  letI := quotient_group.left_rel H,
+  letI := quotient_group.left_rel (H.comap f),
+  have key : ∀ x y : G', setoid.r x y ↔ setoid.r (f x) (f y) :=
+  λ x y, iff_of_eq (congr_arg (∈ H) (by rw [f.map_mul, f.map_inv])),
+  refine cardinal.to_nat_congr (equiv.of_bijective (quotient.map' f (λ x y, (key x y).mp)) ⟨_, _⟩),
+  { simp_rw [←quotient.eq'] at key,
+    refine quotient.ind' (λ x, _),
+    refine quotient.ind' (λ y, _),
+    exact (key x y).mpr },
+  { refine quotient.ind' (λ x, _),
+    obtain ⟨y, hy⟩ := hf x,
+    exact ⟨y, (quotient.map'_mk' f _ y).trans (congr_arg quotient.mk' hy)⟩ },
+end
+
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
 cardinal.mk_to_nat_eq_card

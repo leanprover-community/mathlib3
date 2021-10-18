@@ -247,7 +247,7 @@ def normed_group_hom.extension [complete_space H] [separated_space H] (f : norme
 lemma normed_group_hom.extension_def [complete_space H] [separated_space H]
   (f : normed_group_hom G H) (v : G) : f.extension v = completion.extension f v := rfl
 
-lemma normed_group_hom.extension_coe [complete_space H] [separated_space H]
+@[simp] lemma normed_group_hom.extension_coe [complete_space H] [separated_space H]
   (f : normed_group_hom G H) (v : G) : f.extension v = f v :=
 add_monoid_hom.extension_coe _ f.continuous _
 

@@ -450,7 +450,8 @@ begin
   have hf2 : ∀ j k v, f k (f j v) = f (j + k) v :=
   λ j k v, vectors_prod_eq_one.rotate_rotate v j k,
   have hf3 : ∀ v, f p v = v := vectors_prod_eq_one.rotate_length,
-  let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, add_tsub_cancel_of_le hp.out.one_lt.le, hf3])
+  let σ := equiv.mk (f 1) (f (p - 1))
+    (λ s, by rw [hf2, add_tsub_cancel_of_le hp.out.one_lt.le, hf3])
     (λ s, by rw [hf2, nat.sub_add_cancel hp.out.pos, hf3]),
   have hσ : ∀ k v, (σ ^ k) v = f k v :=
   λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,

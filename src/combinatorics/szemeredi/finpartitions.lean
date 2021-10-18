@@ -418,8 +418,7 @@ begin
     and_iff_right_of_imp (λ h, ⟨_, h⟩)))),
 end
 
-lemma partial_atomise {s : finset α} {Q : finset (finset α)} (A : finset α)
-  (hA : A ∈ Q) (hs : A ⊆ s) :
+lemma partial_atomise {s : finset α} {Q : finset (finset α)} (A : finset α) (hA : A ∈ Q) :
   ((atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty)).card ≤ 2^(Q.card - 1) :=
 begin
   suffices h :

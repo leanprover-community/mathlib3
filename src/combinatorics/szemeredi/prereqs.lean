@@ -84,8 +84,6 @@ calc
           { exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset hB)) (nat.cast_nonneg _) },
         end
 
-variable [decidable_eq α]
-
 lemma aux₂ {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) :
   abs (pairs_density r A' B' - pairs_density r A B) ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
 begin

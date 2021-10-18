@@ -29,7 +29,25 @@ attribute [elab_as_eliminator]
 lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
 sym2.ind hf i
 
+lemma sum_sym2 [decidable_eq α] {β : Type*} [division_ring β] [char_zero β] (f : sym2 α → β)
+  (s : finset (α × α)) {hs₁ : ∀ i j, (i,j) ∈ s → i ≠ j} (hs₂ : ∀ i j, (i,j) ∈ s → (j,i) ∈ s) :
+  ∑ (i : sym2 _) in s.image quotient.mk, f i = (∑ i in s, f ⟦i⟧)/2 :=
+begin
+  rw sum_div,
+  apply sum_image',
+  rintro ⟨x, y⟩ h,
+  suffices : s.filter (λ c', ⟦c'⟧ = ⟦(x,y)⟧) = {(x,y), (y,x)},
+  { rw [this, sum_pair, sym2.eq_swap, add_halves'],
+    rintro ⟨⟩,
+    apply hs₁ _ _ h rfl, },
+  ext ⟨i, j⟩,
+  simp only [mem_filter, mem_insert, prod.mk.inj_iff, sym2.eq_iff, mem_singleton],
+  tauto {closer := `[subst_vars; solve_by_elim]},
+end
+
 end sym2
+
+lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ a ≤ b) : b < a := lt_of_not_ge' h
 
 section group_power
 variables {R : Type*}
@@ -37,7 +55,24 @@ variables {R : Type*}
 lemma pow_right_comm [ordered_semiring R] {a : R} {b c : ℕ} : (a^b)^c = (a^c)^b :=
 by rw [←pow_mul, mul_comm, pow_mul]
 
+variables [linear_ordered_ring R] {a : R} {n : ℕ}
+
+lemma odd.pow_nonneg (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_odd_neg ha hn), λ ha, pow_nonneg ha n⟩
+
+lemma odd.pow_nonpos (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_odd_pos ha hn), λ ha, pow_odd_nonpos ha hn⟩
+
+lemma odd.pow_pos (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
+⟨λ h, lt_of_not_le (λ ha, h.not_le $ pow_odd_nonpos ha hn), λ ha, pow_pos ha n⟩
+
+lemma odd.pow_neg (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
+⟨λ h, lt_of_not_le (λ ha, h.not_le $ pow_odd_nonneg ha hn), λ ha, pow_odd_neg ha hn⟩
+
 end group_power
+
+lemma one_div_le_one_of_one_le [linear_ordered_field α] {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
+(div_le_one $ zero_lt_one.trans_le ha).2 ha
 
 lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
   (set.range (singleton : α → finset α)).pairwise_disjoint :=
@@ -208,17 +243,18 @@ begin
   exact λ h, ⟨hA h.1, hB h.2.1, h.2.2⟩,
 end
 
-section decidable_eq
-variable [decidable_eq α]
-
 lemma card_pairs_finset_compl (U V : finset α) :
   (pairs_finset r U V).card + (pairs_finset (λ x y, ¬r x y) U V).card = U.card * V.card :=
 begin
+  classical,
   rw [←finset.card_product, pairs_finset, pairs_finset, ←finset.card_union_eq,
     finset.filter_union_filter_neg_eq],
   rw finset.disjoint_filter,
   exact λ x _, not_not.2,
 end
+
+section decidable_eq
+variable [decidable_eq α]
 
 lemma pairs_finset_disjoint_left {U U' : finset α} (hU : disjoint U U') (V : finset α) :
   disjoint (pairs_finset r U V) (pairs_finset r U' V) :=
@@ -281,7 +317,7 @@ begin
   exact pairs_count_le_mul r U V,
 end
 
-lemma pairs_density_compl [decidable_eq α] {U V : finset α} (hU : U.nonempty) (hV : V.nonempty) :
+lemma pairs_density_compl {U V : finset α} (hU : U.nonempty) (hV : V.nonempty) :
   pairs_density r U V + pairs_density (λ x y, ¬r x y) U V = 1 :=
 begin
   have h : ((U.card * V.card : ℕ) : ℝ) ≠ 0 := nat.cast_ne_zero.2 (mul_pos (finset.card_pos.2 hU)

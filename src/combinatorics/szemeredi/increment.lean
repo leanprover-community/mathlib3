@@ -62,7 +62,7 @@ local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
-index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
+index is bounded by a constant (see `index_le_one`), so this process eventually terminates and
 yields a not-too-big uniform equipartition. -/
 noncomputable def finpartition.is_equipartition.increment : finpartition (univ : finset α) :=
 P.bind (λ U, hP.chunk_increment G ε)
@@ -134,22 +134,6 @@ end
 --   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
 --     G.edge_density ab.1 ab.2^2)/16^P.size :=
 
-lemma sum_sym2 [decidable_eq α] {β : Type*} [division_ring β] [char_zero β] (f : sym2 α → β)
-  (s : finset (α × α)) {hs₁ : ∀ i j, (i,j) ∈ s → i ≠ j} (hs₂ : ∀ i j, (i,j) ∈ s → (j,i) ∈ s) :
-  ∑ (i : sym2 _) in s.image quotient.mk, f i = (∑ i in s, f ⟦i⟧)/2 :=
-begin
-  rw sum_div,
-  apply sum_image',
-  rintro ⟨x, y⟩ h,
-  suffices : s.filter (λ c', ⟦c'⟧ = ⟦(x,y)⟧) = {(x,y), (y,x)},
-  { rw [this, sum_pair, sym2.eq_swap, add_halves'],
-    rintro ⟨⟩,
-    apply hs₁ _ _ h rfl, },
-  ext ⟨i, j⟩,
-  simp only [mem_filter, mem_insert, prod.mk.inj_iff, sym2.eq_iff, mem_singleton],
-  tauto {closer := `[subst_vars; solve_by_elim]},
-end
-
 noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equipartition)
   (x : {x // x ∈ P.parts.off_diag}) :=
 (∑ i in
@@ -205,80 +189,68 @@ begin
   { apply sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform hPα hPε m_pos hε₁ h }
 end
 
-lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (m_pos : 0 < m) (hε₁ : ε ≤ 1)
-  (hP₇ : 7 ≤ P.size) (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5)
-  (hPG : ¬P.is_uniform G ε) :
+lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1) (hP₇ : 7 ≤ P.size)
+  (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5) (hPG : ¬P.is_uniform G ε) :
   (∑ x in P.parts.off_diag, G.edge_density x.1 x.2 ^ 2 + P.size^2 * (ε ^ 5 / 4)) / P.size ^ 2
   ≤ ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (hP.increment G ε).size ^ 2
   :=
 begin
   have hP : 1 ≤ P.parts.card := card_pos.2 (parts_nonempty _),
-  have hε : 0 < ε^5 := pos_of_mul_pos_left ((show (0:ℝ) < 100, by norm_num).trans_le hPε)
-      (pow_nonneg (by norm_num) _),
   conv_rhs {
     rw [←sum_div, increment.size _ hPα hPG, exp_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
       nat.cast_mul, mul_comm, ←div_div_eq_div_mul, (show 4^2 = 16, by norm_num), sum_div] },
   rw [←nat.cast_pow, nat.cast_pow 16],
-  apply div_le_div_of_le_of_nonneg,
-  { norm_num,
-    suffices : ∑ x in P.parts.off_diag, G.edge_density x.1 x.2 ^ 2 + P.size^2 * (ε ^ 5 / 4) ≤
-      ∑ x in P.parts.off_diag.attach,
-        (G.edge_density x.1.1 x.1.2^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3)),
-    { apply le_trans this,
-      apply sum_le_sum,
-      intros i hi,
-      apply pair_contrib_lower_bound _ i m_pos hε₁ hPα hPε },
-    have : ∑ x in P.parts.off_diag.attach, (G.edge_density x.1.1 x.1.2^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3)) =
-      ∑ x in P.parts.off_diag, (G.edge_density x.1 x.2^2 - ε^5/25 + (if G.is_uniform ε x.1 x.2 then 0 else ε^4/3)),
-    { convert sum_attach, refl },
-    rw [this, sum_add_distrib, sum_sub_distrib, sum_const, nsmul_eq_mul, sum_ite, sum_const_zero,
-      zero_add, sum_const, nsmul_eq_mul],
-    rw finpartition.is_uniform at hPG,
-    rw ←finpartition.non_uniform_pairs,
-    simp only [not_le] at hPG,
-    apply le_trans _ (add_le_add_left (mul_le_mul_of_nonneg_right hPG.le _) _),
-    { conv_rhs { congr, congr, skip, rw [off_diag_card], congr, congr,
-        conv { congr, skip, rw ←mul_one P.parts.card }, rw ←nat.mul_sub_left_distrib },
-      rw [size_eq_card_parts, mul_assoc, sub_add_eq_add_sub, add_sub_assoc, ←mul_sub_left_distrib,
-        mul_div_assoc' ε, ←pow_succ, div_eq_mul_one_div (ε^5), div_eq_mul_one_div (ε^5),
-        div_eq_mul_one_div (ε^5), ←mul_sub_left_distrib],
-      apply add_le_add_left,
-      rw [mul_left_comm, mul_left_comm _ (ε^5)],
-      apply mul_le_mul_of_nonneg_left _ hε.le,
-      rw [sq, mul_assoc, nat.cast_mul, mul_assoc],
-      apply mul_le_mul_of_nonneg_left _ (nat.cast_nonneg _),
-      rw [nat.cast_sub hP, mul_sub_right_distrib, nat.cast_one, one_mul, le_sub,
-        ←mul_sub_left_distrib],
-      rw ←div_le_iff,
-      { suffices : (7 : ℝ) ≤ P.parts.card,
-        { apply le_trans _ this,
-          norm_num },
-        exact_mod_cast hP₇ },
-      norm_num },
-      apply div_nonneg,
-      apply pow_bit0_nonneg,
-      norm_num },
-  apply nat.cast_nonneg,
+  refine div_le_div_of_le_of_nonneg _ (nat.cast_nonneg _),
+  norm_num,
+  suffices : ∑ x in P.parts.off_diag, G.edge_density x.1 x.2 ^ 2 + P.size^2 * (ε ^ 5 / 4) ≤
+    ∑ x in P.parts.off_diag.attach,
+      (G.edge_density x.1.1 x.1.2^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3)),
+  { apply le_trans this,
+    apply sum_le_sum,
+    intros i hi,
+    apply pair_contrib_lower_bound _ i (m_pos hPα) hε₁ hPα hPε },
+  have : ∑ x in P.parts.off_diag.attach,
+    (G.edge_density x.1.1 x.1.2^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3)) =
+    ∑ x in P.parts.off_diag,
+      (G.edge_density x.1 x.2^2 - ε^5/25 + (if G.is_uniform ε x.1 x.2 then 0 else ε^4/3)),
+  { convert sum_attach, refl },
+  rw [this, sum_add_distrib, sum_sub_distrib, sum_const, nsmul_eq_mul, sum_ite, sum_const_zero,
+    zero_add, sum_const, nsmul_eq_mul],
+  rw finpartition.is_uniform at hPG,
+  rw ←finpartition.non_uniform_pairs,
+  simp only [not_le] at hPG,
+  apply le_trans _ (add_le_add_left (mul_le_mul_of_nonneg_right hPG.le _) _),
+  { conv_rhs { congr, congr, skip, rw [off_diag_card], congr, congr,
+      conv { congr, skip, rw ←mul_one P.parts.card }, rw ←nat.mul_sub_left_distrib },
+    rw [size_eq_card_parts, mul_assoc, sub_add_eq_add_sub, add_sub_assoc, ←mul_sub_left_distrib,
+      mul_div_assoc' ε, ←pow_succ, div_eq_mul_one_div (ε^5), div_eq_mul_one_div (ε^5),
+      div_eq_mul_one_div (ε^5), ←mul_sub_left_distrib],
+    apply add_le_add_left,
+    rw [mul_left_comm, mul_left_comm _ (ε^5)],
+    apply mul_le_mul_of_nonneg_left _ (eps_pow_five_pos hPε).le,
+    rw [sq, mul_assoc, nat.cast_mul, mul_assoc],
+    apply mul_le_mul_of_nonneg_left _ (nat.cast_nonneg _),
+    rw [nat.cast_sub hP, mul_sub_right_distrib, nat.cast_one, one_mul, le_sub,
+      ←mul_sub_left_distrib],
+    rw ←div_le_iff,
+    { suffices : (7 : ℝ) ≤ P.parts.card,
+      { apply le_trans _ this,
+        norm_num },
+      exact_mod_cast hP₇ },
+    norm_num },
+  apply div_nonneg,
+  apply pow_bit0_nonneg,
+  norm_num,
 end
 
 protected lemma index [nonempty α] (hP : P.is_equipartition) (hP₇ : 7 ≤ P.size)
-  (hε : 100 < ε^5 * 4^P.size) (hPα : P.size * 16^P.size ≤ card α) (hPG : ¬P.is_uniform G ε)
+  (hε : 100 < 4^P.size * ε^5) (hPα : P.size * 16^P.size ≤ card α) (hPG : ¬P.is_uniform G ε)
   (hε₁ : ε ≤ 1) :
   P.index G + ε^5 / 4 ≤ (hP.increment G ε).index G :=
 begin
-  have m_pos : 0 < m,
-  { apply nat.div_pos,
-    apply le_trans (nat.mul_le_mul_left _ _) hPα,
-    refine pow_le_pow_of_le_left (by norm_num) (by norm_num) _,
-    rw exp_bound_pos,
-    linarith },
-  have : 100 ≤ 4^P.size * ε^5,
-  { rw mul_comm,
-    apply hε.le },
-  have i := uniform_add_nonuniform_eq_off_diag_pairs hP m_pos hε₁ (by linarith) hPα this hPG,
-  rw [add_div, mul_div_cancel_left] at i,
-  apply i.trans,
-  apply off_diag_pairs_le_increment_index,
+  have h := uniform_add_nonuniform_eq_off_diag_pairs hP hε₁ hP₇ hPα hε.le hPG,
+  rw [add_div, mul_div_cancel_left] at h,
+  exact h.trans (off_diag_pairs_le_increment_index hP),
   norm_num,
   apply ne_of_gt,
   linarith

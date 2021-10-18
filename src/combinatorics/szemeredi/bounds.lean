@@ -43,22 +43,30 @@ begin
   exact P.parts_nonempty,
 end
 
+lemma m_coe_pos [nonempty α] (hPα : P.size * 16^P.size ≤ card α) : (0 : ℝ) < m :=
+nat.cast_pos.2 $ m_pos hPα
+
+lemma eps_pow_five_pos (hPε : 100 ≤ 4^P.size * ε^5) : 0 < ε^5 :=
+pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε) (pow_nonneg (by norm_num) _)
+
+lemma eps_pos (hPε : 100 ≤ 4^P.size * ε^5) : 0 < ε := pow_bit1_pos_iff.1 $ eps_pow_five_pos hPε
+
 lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
   (hPε : 100 ≤ 4^P.size * ε^5) :
   100/ε^5 ≤ m :=
 begin
   calc
     100/ε^5
-        ≤ 4^P.size : div_le_of_nonneg_of_le_mul (nonneg_of_mul_nonneg_left
-          (le_trans (by norm_num) hPε) (pow_pos (by norm_num) _)) (pow_nonneg (by norm_num) _) hPε
+        ≤ 4^P.size
+        : div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le (pow_nonneg (by norm_num) _) hPε
     ... = ((P.size * 16^P.size)/exp_bound P.size : ℕ) : begin
-      norm_cast,
-      refine (nat.div_eq_of_eq_mul_left _ _).symm,
-      { rw [exp_bound_pos, P.size_eq_card_parts, card_pos],
-        exact P.parts_nonempty },
-      rw [exp_bound, mul_comm (4^P.size), mul_assoc, ←mul_pow],
-      norm_num,
-    end
+            norm_cast,
+            refine (nat.div_eq_of_eq_mul_left _ _).symm,
+            { rw [exp_bound_pos, P.size_eq_card_parts, card_pos],
+              exact P.parts_nonempty },
+            rw [exp_bound, mul_comm (4^P.size), mul_assoc, ←mul_pow],
+            norm_num,
+          end
     ... ≤ m : nat.cast_le.2 (nat.div_le_div_right hPα)
 end
 

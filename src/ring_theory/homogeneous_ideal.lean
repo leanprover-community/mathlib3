@@ -81,29 +81,36 @@ end, λ HI, begin
 end⟩
 
 private lemma homogeneous_ideal.mul_homogeneous_element [add_comm_monoid ι] [gcomm_semiring A]
-  {I : ideal (⨁ i, A i)} (r x : ⨁ i, A i)
+  {I : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) (r x : ⨁ i, A i)
   (hx₁ : is_homogeneous_element x) (hx₂ : x ∈ I) (j : ι) :
   of A j ((r * x) j) ∈ I :=
 begin
   rw [direct_sum.eq_sum_of _ r, finset.sum_mul, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],
-  simp_rw [mul_comm, ←smul_eq_mul, of, dfinsupp.single_add_hom],
-  simp only [add_monoid_hom.coe_mk],
   apply ideal.sum_mem, intros k hk,
-  sorry
+  have : (of A k) (r k) * x = direct_sum.mul_hom _ (of A k (r k)) x := rfl,
+  rw this,
+  obtain ⟨⟨i, z⟩, rfl⟩ := hx₁,
+  simp only [mul_hom_of_of],
+  rw [of, of, dfinsupp.single_add_hom],
+  simp only [dfinsupp.single_add_hom_apply, add_monoid_hom.coe_mk],
+  rw [dfinsupp.single_apply],
+  split_ifs,
+  { sorry },
+  { simp only [dfinsupp.single_zero, submodule.zero_mem], },
 end
 
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
   x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
 ⟨λ hx j, begin
-  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span_eq_span'] at HI,
-  rw HI at hx,
+  have HI' := HI,
+  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span_eq_span'] at HI',
+  rw HI' at hx,
   obtain ⟨s, r, rfl⟩ := hx,
   simp only [dfinsupp.finset_sum_apply], rw add_monoid_hom.map_sum,
   apply ideal.sum_mem, rintros ⟨y, y_mem_I, z, y_eq⟩ hy,
-  apply homogeneous_ideal.mul_homogeneous_element,
+  apply homogeneous_ideal.mul_homogeneous_element HI,
   use z, simp only [subtype.coe_mk], rw [y_eq],
-
   convert y_mem_I,
 end, begin
   intro H, rw [direct_sum.eq_sum_of _ x], apply ideal.sum_mem, intros j hj,

@@ -335,7 +335,7 @@ lemma jacobson_bot_of_integral_localization
 begin
   have hM : ((submonoid.powers x).map φ : submonoid S) ≤ non_zero_divisors S :=
     φ.map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_no_zero_divisors hx),
-  letI : is_domain ₘ := is_localization.integral_domain_of_le_non_zero_divisors _ hM,
+  letI : is_domain Rₘ := is_localization.integral_domain_of_le_non_zero_divisors _ hM,
   let φ' : Rₘ →+* Sₘ := is_localization.map _ φ (submonoid.powers x).le_comap_map,
   suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap (algebra_map S Sₘ)).is_maximal,
   { have hϕ' : comap (algebra_map S Sₘ) (⊥ : ideal Sₘ) = (⊥ : ideal S),
@@ -465,7 +465,7 @@ begin
   let M' : submonoid P.quotient := M.map φ,
   have hM' : (0 : P.quotient) ∉ M' :=
     λ ⟨z, hz⟩, hM (quotient_map_injective (trans hz.2 φ.map_zero.symm) ▸ hz.1),
-  haveI : is_domain localization M') :=
+  haveI : is_domain (localization M') :=
     is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
   suffices : (⊥ : ideal (localization M')).is_maximal,
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (is_localization.map_injective_of_injective

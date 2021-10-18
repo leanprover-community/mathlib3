@@ -34,11 +34,11 @@ then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, t
 
 -/
 
-universes v u₁ u₂
+universes v
 
 namespace category_theory
 
-variables {C : Type*} [category.{v} C] {D : Type*} [category.{v} D] {E : Type*} [category E]
+variables {C : Type*} [category C] {D : Type*} [category D] {E : Type*} [category E]
 variables (J : grothendieck_topology C) (K : grothendieck_topology D)
 variables {L : grothendieck_topology E}
 
@@ -90,7 +90,7 @@ structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) :=
 
 open presieve opposite
 namespace cover_dense
-variables {A : Type u₁} [category.{v} A] {K} {G : C ⥤ D} (H : cover_dense K G)
+variables {A : Type*} [category A] {K} {G : C ⥤ D} (H : cover_dense K G)
 
 lemma sheaf_ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
@@ -138,7 +138,7 @@ lemma sheaf_eq_amalgamation (ℱ : Sheaf K A) {X : A} {U : D} {T : sieve U} (hT)
 include H
 variable [full G]
 namespace types
-variables {ℱ ℱ' : SheafOfTypes K} (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val)
+variables {ℱ ℱ' : SheafOfTypes.{v} K} (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val)
 
 /--
 (Implementation). Given a section of `ℱ` on `X`, we can obtain a family of elements valued in `ℱ'`
@@ -253,8 +253,8 @@ open types
 /-- (Implementation). The sheaf map given in `types.sheaf_hom` is natural in terms of `X`. -/
 @[simps] noncomputable
 def sheaf_coyoneda_hom {ℱ ℱ' : Sheaf K A} (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val) :
-  coyoneda ⋙ (whiskering_left Dᵒᵖ A (Type v)).obj ℱ.val ⟶
-  coyoneda ⋙ (whiskering_left Dᵒᵖ A (Type v)).obj ℱ'.val :=
+  coyoneda ⋙ (whiskering_left Dᵒᵖ A Type*).obj ℱ.val ⟶
+  coyoneda ⋙ (whiskering_left Dᵒᵖ A Type*).obj ℱ'.val :=
 { app := λ X, sheaf_hom H (hom_over α (unop X)), naturality' := λ X Y f,
   begin
   ext U x,

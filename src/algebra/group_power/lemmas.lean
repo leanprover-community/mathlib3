@@ -158,6 +158,8 @@ by rw [← gpow_add, ← gpow_add, add_comm]
 theorem gsmul_add_comm : ∀ (a : A) (i j : ℤ), i • a + j • a = j • a + i • a :=
 @gpow_mul_comm (multiplicative A) _
 
+-- note that `mul_gsmul` and `gpow_mul` have the primes swapped since their argument order
+-- and therefore the more "natural" choice of lemma is reversed.
 @[to_additive mul_gsmul']
 theorem gpow_mul (a : G) (m n : ℤ) : a ^ (m * n) = (a ^ m) ^ n :=
 int.induction_on n (by simp) (λ n ihn, by simp [mul_add, gpow_add, ihn])

@@ -89,7 +89,7 @@ begin
   simp_rw [mul_comm, ←smul_eq_mul, of, dfinsupp.single_add_hom],
   simp only [add_monoid_hom.coe_mk],
   apply ideal.sum_mem, intros k hk,
-  -- rw [←dfinsupp.single_smul x (r k)],
+  sorry
 end
 
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]

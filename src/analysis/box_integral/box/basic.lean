@@ -355,12 +355,15 @@ have A : I.lower i - I.upper i < 0, from sub_neg.2 (I.lower_lt_upper i),
 by simpa only [← nnreal.coe_le_coe, ← dist_nndist, nnreal.coe_mul, real.dist_eq,
   abs_of_neg A, neg_sub] using I.nndist_le_distortion_mul i
 
-lemma diam_Icc_le_distortion_mul (I : box ι) (i : ι) :
-  diam I.Icc ≤ I.distortion * (I.upper i - I.lower i) :=
-have (0 : ℝ) ≤ I.distortion * (I.upper i - I.lower i),
-  from mul_nonneg I.distortion.coe_nonneg (sub_nonneg.2 $ I.lower_le_upper _),
+lemma diam_Icc_le_of_distortion_le (I : box ι) (i : ι) {c : ℝ≥0} (h : I.distortion ≤ c) :
+  diam I.Icc ≤ c * (I.upper i - I.lower i) :=
+have (0 : ℝ) ≤ c * (I.upper i - I.lower i),
+  from mul_nonneg c.coe_nonneg (sub_nonneg.2 $ I.lower_le_upper _),
 diam_le_of_forall_dist_le this $ λ x hx y hy,
-  (real.dist_le_of_mem_pi_Icc hx hy).trans (dist_le_distortion_mul I i)
+  calc dist x y ≤ dist I.lower I.upper : real.dist_le_of_mem_pi_Icc hx hy
+  ... ≤ I.distortion * (I.upper i - I.lower i) : I.dist_le_distortion_mul i
+  ... ≤ c * (I.upper i - I.lower i) :
+    mul_le_mul_of_nonneg_right h (sub_nonneg.2 (I.lower_le_upper i))
 
 end distortion
 

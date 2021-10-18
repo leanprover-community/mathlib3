@@ -65,15 +65,22 @@ lemma norm_volume_sub_integral_face_upper_sub_lower_smul_le
       integral (I.face i) ⊥ (f ∘ i.insert_nth (I.lower i)) box_additive_map.volume)∥ ≤
     2 * ε * c * ∏ j, (I.upper j - I.lower j) :=
 begin
+  /- **Plan of the proof**. The difference of the integrals of the affine function
+  `λ y, a + f' (y - x)` over the faces `x i = I.upper i` and `x i = I.lower i` is equal to the
+  volume of `I` multiplied by `f' (pi.single i 1)`, so it suffices to show that the integral of
+  `f y - a - f' (y - x)` over each of these faces is less than or equal to `ε * c * vol I`. We
+  integrate a function of the norm `≤ ε * diam I.Icc` over a box of volume
+  `∏ j ≠ i, (I.upper j - I.lower j)`. Since `diam I.Icc ≤ c * (I.upper i - I.lower i)`, we get the
+  required estimate.  -/
   have Hl : I.lower i ∈ Icc (I.lower i) (I.upper i), from left_mem_Icc.2 (I.lower_le_upper i),
   have Hu : I.upper i ∈ Icc (I.lower i) (I.upper i), from right_mem_Icc.2 (I.lower_le_upper i),
   have Hi : ∀ x ∈ Icc (I.lower i) (I.upper i),
     integrable.{0 u u} (I.face i) ⊥ (f ∘ i.insert_nth x) box_additive_map.volume,
     from λ x hx, integrable_of_continuous_on _ (box.continuous_on_face_Icc hfc hx) volume,
-  rw [← integral_sub (Hi _ Hu) (Hi _ Hl), ← box.volume_face_mul i, mul_smul, ← box.volume_apply,
-    ← box_additive_map.to_smul_apply, ← integral_const, ← box_additive_map.volume,
-    ← integral_sub (integrable_const _) ((Hi _ Hu).sub (Hi _ Hl))],
-  simp only [(∘), pi.sub_def, ← f'.map_smul, ← pi.single_smul', smul_eq_mul, mul_one],
+  /- We start with an estimate: the difference of the values of `f` at the corresponding points
+  of the faces `x i = I.lower i` and `x i = I.upper i` is `(2 * ε * diam I.Icc)`-close to the value
+  of `f'` on `pi.single i (I.upper i - I.lower i) = lᵢ • eᵢ`, where `lᵢ = I.upper i - I.lower i`
+  is the length of `i`-th edge of `I` and `eᵢ = pi.single i 1` is the `i`-th unit vector. -/
   have : ∀ y ∈ (I.face i).Icc, ∥f' (pi.single i (I.upper i - I.lower i)) -
     (f (i.insert_nth (I.upper i) y) - f (i.insert_nth (I.lower i) y))∥ ≤ 2 * ε * diam I.Icc,
   { intros y hy,
@@ -93,14 +100,45 @@ begin
         exact dist_le_diam_of_mem (is_compact_pi_Icc I.lower I.upper).bounded hy hxI },
       rw [two_mul, add_mul],
       exact norm_sub_le_of_le (hε _ (this _ Hl)) (hε _ (this _ Hu)) } },
-  refine (norm_integral_le_of_le_const this volume).trans _,
-  rw [mul_left_comm (volume _).to_real, mul_assoc (2 * ε), mul_left_comm (c : ℝ)],
-  refine mul_le_mul_of_nonneg_left _ (mul_nonneg zero_le_two h0.le),
-  refine mul_le_mul_of_nonneg_left _ ennreal.to_real_nonneg,
-  exact (I.diam_Icc_le_distortion_mul i).trans
-    (mul_le_mul_of_nonneg_right hc $ sub_nonneg.2 $ I.lower_le_upper i)
+  calc ∥(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -
+    (integral (I.face i) ⊥ (f ∘ i.insert_nth (I.upper i)) box_additive_map.volume -
+      integral (I.face i) ⊥ (f ∘ i.insert_nth (I.lower i)) box_additive_map.volume)∥
+      = ∥integral.{0 u u} (I.face i) ⊥
+          (λ (x : fin n → ℝ), f' (pi.single i (I.upper i - I.lower i)) -
+          (f (i.insert_nth (I.upper i) x) - f (i.insert_nth (I.lower i) x)))
+          box_additive_map.volume∥ :
+    begin
+      rw [← integral_sub (Hi _ Hu) (Hi _ Hl), ← box.volume_face_mul i, mul_smul, ← box.volume_apply,
+        ← box_additive_map.to_smul_apply, ← integral_const, ← box_additive_map.volume,
+        ← integral_sub (integrable_const _) ((Hi _ Hu).sub (Hi _ Hl))],
+      simp only [(∘), pi.sub_def, ← f'.map_smul, ← pi.single_smul', smul_eq_mul, mul_one]
+    end
+  ... ≤ (volume (I.face i : set ℝⁿ)).to_real * (2 * ε * c * (I.upper i - I.lower i)) :
+    begin
+      -- The hard part of the estimate was done above, here we just replace `diam I.Icc`
+      -- with `c * (I.upper i - I.lower i)`
+      refine norm_integral_le_of_le_const (λ y hy, (this y hy).trans _) volume,
+      rw mul_assoc (2 * ε),
+      exact mul_le_mul_of_nonneg_left (I.diam_Icc_le_of_distortion_le i hc)
+        (mul_nonneg zero_le_two h0.le)
+    end
+  ... = 2 * ε * c * ∏ j, (I.upper j - I.lower j) :
+    begin
+      rw [← measure.to_box_additive_apply, box.volume_apply, ← I.volume_face_mul i],
+      ac_refl
+    end
 end
 
+/-- If `f : ℝⁿ⁺¹ → E` is differentiable on a closed rectangular box `I` with derivative `f'`, then
+the partial derivative `λ x, f' x (pi.single i 1)` is Henstock-Kurzweil integrable with integral
+equal to the difference of integrals of `f` over the faces `x i = I.upper i` and `x i = I.lower i`.
+
+More precisely, we use a non-standard generalization of the Henstock-Kurzweil integral and
+we allow `f` to be non-differentiable (but still continuous) at a countable set of points.
+
+TODO: If `n > 0`, then the condition at `x ∈ s` can be replaced by a much weaker estimate but this
+requires either better integrability theorems, or usage of a filter depending on the countable set
+`s` (we need to ensure that none of the faces of a partition contain a point from `s`). -/
 lemma has_integral_bot_pderiv (f : ℝⁿ⁺¹ → E) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E) (s : set ℝⁿ⁺¹)
   (hs : countable s) (Hs : ∀ x ∈ s, continuous_within_at f I.Icc x)
   (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x) (i : fin (n + 1)) :
@@ -109,6 +147,9 @@ lemma has_integral_bot_pderiv (f : ℝⁿ⁺¹ → E) (f' : ℝⁿ⁺¹ → ℝ�
       integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.lower i) x))
         box_additive_map.volume) :=
 begin
+  /- Note that `f` is continuous on `I.Icc`, hence it is integrable on the faces of all boxes
+  `J ≤ I`, thus the difference of integrals over `x i = J.upper i` and `x i = J.lower i` is a
+  box-additive function of `J ≤ I`. -/
   have Hc : continuous_on f I.Icc,
   { intros x hx,
     by_cases hxs : x ∈ s,
@@ -118,11 +159,17 @@ begin
   set fb : Icc (I.lower i) (I.upper i) → fin n →ᵇᵃ[↑(I.face i)] E :=
     λ x, (integrable_of_continuous_on ⊥ (box.continuous_on_face_Icc Hc x.2) volume).to_box_additive,
   set F : fin (n + 1) →ᵇᵃ[I] E := box_additive_map.upper_sub_lower I i fI fb (λ x hx J, rfl),
+  /- Thus our statement follows from some local estimates. -/
   change has_integral I ⊥ (λ x, f' x (pi.single i 1)) _ (F I),
   refine has_integral_of_le_Henstock_of_forall_is_o bot_le _ _ _ s hs _ _,
-  { exact (volume : measure ℝⁿ⁺¹).to_box_additive.restrict _ le_top },
+  { /- We use the volume as an upper estimate. -/
+    exact (volume : measure ℝⁿ⁺¹).to_box_additive.restrict _ le_top },
   { exact λ J, ennreal.to_real_nonneg },
   { intros c x hx ε ε0,
+    /- Near `x ∈ s` we choose `δ` so that both vectors are small. `volume J • eᵢ` is small because
+    `volume J ≤ (2 * δ) ^ (n + 1)` is small, and the difference of the integrals is small
+    because each of the integrals is close to `volume (J.face i) • f x`.
+    TODO: there should be a shorter and more readable way to formalize this simple proof. -/
     have : ∀ᶠ δ in 𝓝[Ioi 0] (0 : ℝ), δ ∈ Ioc (0 : ℝ) (1 / 2) ∧
       (∀ y₁ y₂ ∈ closed_ball x δ ∩ I.Icc, ∥f y₁ - f y₂∥ ≤ ε / 2) ∧
       ((2 * δ) ^ (n + 1) * ∥f' x (pi.single i 1)∥ ≤ ε / 2),
@@ -182,6 +229,8 @@ begin
       ... ≤ 1 / 2 + 1 / 2 : add_le_add hδ12 hδ12
       ... = 1 : add_halves 1 } },
   { intros c x hx ε ε0,
+    /- At a point `x ∉ s`, we unfold the definition of Fréchet differentiability, then use
+    an estimate we proved earlier in this file. -/
     rcases exists_pos_mul_lt ε0 (2 * c) with ⟨ε', ε'0, hlt⟩,
     rcases (nhds_within_has_basis nhds_basis_closed_ball _).mem_iff.1 ((Hd x hx).def ε'0)
       with ⟨δ, δ0, Hδ⟩,

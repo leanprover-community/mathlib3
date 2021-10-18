@@ -174,22 +174,22 @@ lemma has_integral.tendsto (h : has_integral I l f vol y) :
 
 /-- The `ε`-`δ` definition of `box_integral.has_integral`. -/
 lemma has_integral_iff : has_integral I l f vol y ↔
-  ∀ ε > (0 : ℝ), ∃ δ : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (δ c)) ∧
-    ∀ c π, l.mem_base_set I c (δ c) π → is_partition π → dist (integral_sum f vol π) y ≤ ε :=
+  ∀ ε > (0 : ℝ), ∃ r : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (r c)) ∧
+    ∀ c π, l.mem_base_set I c (r c) π → is_partition π → dist (integral_sum f vol π) y ≤ ε :=
 ((l.has_basis_to_filter_Union_top I).tendsto_iff nhds_basis_closed_ball).trans $
   by simp [@forall_swap ℝ≥0 (tagged_prepartition I)]
 
 /-- Quite often it is more natural to prove an estimate of the form `a * ε`, not `ε` in the RHS of
 `box_integral.has_integral_iff`, so we provide this auxiliary lemma.  -/
 lemma has_integral_of_mul (a : ℝ) (h : ∀ ε : ℝ, 0 < ε →
-  ∃ δ : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (δ c)) ∧ ∀ c π, l.mem_base_set I c (δ c) π →
+  ∃ r: ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (r c)) ∧ ∀ c π, l.mem_base_set I c (r c) π →
     is_partition π → dist (integral_sum f vol π) y ≤ a * ε) :
   has_integral I l f vol y :=
 begin
   refine has_integral_iff.2 (λ ε hε, _),
   rcases exists_pos_mul_lt hε a with ⟨ε', hε', ha⟩,
-  rcases h ε' hε' with ⟨δ, hδ, H⟩,
-  exact ⟨δ, hδ, λ c π hπ hπp, (H c π hπ hπp).trans ha.le⟩
+  rcases h ε' hε' with ⟨r, hr, H⟩,
+  exact ⟨r, hr, λ c π hπ hπp, (H c π hπ hπp).trans ha.le⟩
 end
 
 lemma integrable_iff_cauchy [complete_space F] :
@@ -455,6 +455,9 @@ begin
   simpa [union_compl_to_subordinate] using (dist_triangle_right _ _ _).trans (add_le_add H₁ H₂)
 end
 
+/-- If `f` is integrable on `I` along `l`, then for two sufficiently fine tagged prepartitions
+(in the sense of the filter `box_integral.integration_params.to_filter l I`) such that they cover
+the same part of `I`, the integral sums of `f` over `π₁` and `π₂` are very close to each other.  -/
 lemma tendsto_integral_sum_to_filter_prod_self_inf_Union_eq_uniformity (h : integrable I l f vol) :
   tendsto
     (λ π : tagged_prepartition I × tagged_prepartition I,
@@ -469,6 +472,9 @@ begin
   exact h.dist_integral_sum_le_of_mem_base_set ε0 ε0 h₁.some_spec h₂.some_spec hU
 end
 
+/-- If `f` is integrable on a box `I` along `l`, then for any fixed subset `s` of `I` that can be
+represented as a finite union of boxes, the integral sums of `f` over tagged prepartitions that
+cover exactly `s` form a Cauchy “sequence” along `l`. -/
 lemma cauchy_map_integral_sum_to_filter_Union (h : integrable I l f vol) (π₀ : prepartition I) :
   cauchy ((l.to_filter_Union I π₀).map (integral_sum f vol)) :=
 begin
@@ -493,6 +499,8 @@ end
 lemma to_subbox (h : integrable I l f vol) (hJ : J ≤ I) : integrable J l f vol :=
 (h.to_subbox_aux hJ).imp $ λ y, and.left
 
+/-- If `f` is integrable on a box `I`, then integral sums of `f` over tagged prepartitions
+that cover exactly a subbox `J ≤ I` tend to the integral of `f` over `J` along `l`. -/
 lemma tendsto_integral_sum_to_filter_Union_single (h : integrable I l f vol) (hJ : J ≤ I) :
   tendsto (integral_sum f vol) (l.to_filter_Union I (prepartition.single I J hJ))
     (𝓝 $ integral J l f vol) :=
@@ -518,40 +526,46 @@ lemma dist_integral_sum_sum_integral_le_of_mem_base_set_of_Union_eq (h : integra
   (hU : π.Union = π₀.Union) :
   dist (integral_sum f vol π) (∑ J in π₀.boxes, integral J l f vol) ≤ ε :=
 begin
+  /- Let us prove that the distance is less than or equal to `ε + δ` for all positive `δ`. -/
   refine le_of_forall_pos_le_add (λ δ δ0, _),
+  /- First we choose some constants. -/
   set δ' : ℝ := δ / (π₀.boxes.card + 1),
   have H0 : 0 < (π₀.boxes.card + 1 : ℝ) := nat.cast_add_one_pos _,
   have δ'0 : 0 < δ' := div_pos δ0 H0,
   set C := max π₀.distortion π₀.compl.distortion,
-  suffices : ∀ J ∈ π₀, ∃ πi : tagged_prepartition J, πi.is_partition ∧
+  /- Next we choose a tagged partition of each `J ∈ π₀` such that the integral sum of `f` over this
+  partition is `δ'`-close to the integral of `f` over `J`. -/
+  have : ∀ J ∈ π₀, ∃ πi : tagged_prepartition J, πi.is_partition ∧
     dist (integral_sum f vol πi) (integral J l f vol) ≤ δ' ∧
     l.mem_base_set J C (h.convergence_r δ' C) πi,
-  { choose! πi hπip hπiδ' hπiC,
-    have : l.mem_base_set I C (h.convergence_r δ' C) (π₀.bUnion_tagged πi),
-      from bUnion_tagged_mem_base_set hπiC hπip (λ _, le_max_right _ _),
-    have hU' : π.Union = (π₀.bUnion_tagged πi).Union,
-      from hU.trans (prepartition.Union_bUnion_partition _ hπip).symm,
-    have := h.dist_integral_sum_le_of_mem_base_set h0 δ'0 hπ this hU',
-    rw integral_sum_bUnion_tagged at this,
-    calc dist (integral_sum f vol π) (∑ J in π₀.boxes, integral J l f vol)
-        ≤ dist (integral_sum f vol π) (∑ J in π₀.boxes, integral_sum f vol (πi J)) +
-          dist (∑ J in π₀.boxes, integral_sum f vol (πi J)) (∑ J in π₀.boxes, integral J l f vol) :
-      dist_triangle _ _ _
-    ... ≤ (ε + δ') + ∑ J in π₀.boxes, δ' : add_le_add this (dist_sum_sum_le_of_le _ hπiδ')
-    ... = ε + δ : by { field_simp [H0.ne'], ring } },
-  intros J hJ,
-  have Hle : J ≤ I := π₀.le_of_mem hJ,
-  have HJi : integrable J l f vol := h.to_subbox Hle,
-  set r := λ x, min (h.convergence_r δ' C x) (HJi.convergence_r δ' C x),
-  have hr : l.r_cond r,
-    from (h.convergence_r_cond _ C).min (HJi.convergence_r_cond _ C),
-  have hJd : J.distortion ≤ C, from le_trans (finset.le_sup hJ) (le_max_left _ _),
-  rcases l.exists_mem_base_set_is_partition J hJd r with ⟨πJ, hC, hp⟩,
-  have hC₁ : l.mem_base_set J C (HJi.convergence_r δ' C) πJ,
-  { refine hC.mono J le_rfl le_rfl (λ x hx, _), exact min_le_right _ _ },
-  have hC₂ : l.mem_base_set J C (h.convergence_r δ' C) πJ,
-  { refine hC.mono J le_rfl le_rfl (λ x hx, _), exact min_le_left _ _ },
-  exact ⟨πJ, hp, HJi.dist_integral_sum_integral_le_of_mem_base_set δ'0 hC₁ hp, hC₂⟩
+  { intros J hJ,
+    have Hle : J ≤ I := π₀.le_of_mem hJ,
+    have HJi : integrable J l f vol := h.to_subbox Hle,
+    set r := λ x, min (h.convergence_r δ' C x) (HJi.convergence_r δ' C x),
+    have hr : l.r_cond r, from (h.convergence_r_cond _ C).min (HJi.convergence_r_cond _ C),
+    have hJd : J.distortion ≤ C, from le_trans (finset.le_sup hJ) (le_max_left _ _),
+    rcases l.exists_mem_base_set_is_partition J hJd r with ⟨πJ, hC, hp⟩,
+    have hC₁ : l.mem_base_set J C (HJi.convergence_r δ' C) πJ,
+    { refine hC.mono J le_rfl le_rfl (λ x hx, _), exact min_le_right _ _ },
+    have hC₂ : l.mem_base_set J C (h.convergence_r δ' C) πJ,
+    { refine hC.mono J le_rfl le_rfl (λ x hx, _), exact min_le_left _ _ },
+    exact ⟨πJ, hp, HJi.dist_integral_sum_integral_le_of_mem_base_set δ'0 hC₁ hp, hC₂⟩ },
+  /- Now we combine these tagged partitions into a tagged prepartition of `I` that covers the
+  same part of `I` as `π₀` and apply `box_integral.dist_integral_sum_le_of_mem_base_set` to
+  `π` and this prepartition. -/
+  choose! πi hπip hπiδ' hπiC,
+  have : l.mem_base_set I C (h.convergence_r δ' C) (π₀.bUnion_tagged πi),
+    from bUnion_tagged_mem_base_set hπiC hπip (λ _, le_max_right _ _),
+  have hU' : π.Union = (π₀.bUnion_tagged πi).Union,
+    from hU.trans (prepartition.Union_bUnion_partition _ hπip).symm,
+  have := h.dist_integral_sum_le_of_mem_base_set h0 δ'0 hπ this hU',
+  rw integral_sum_bUnion_tagged at this,
+  calc dist (integral_sum f vol π) (∑ J in π₀.boxes, integral J l f vol)
+      ≤ dist (integral_sum f vol π) (∑ J in π₀.boxes, integral_sum f vol (πi J)) +
+        dist (∑ J in π₀.boxes, integral_sum f vol (πi J)) (∑ J in π₀.boxes, integral J l f vol) :
+    dist_triangle _ _ _
+  ... ≤ (ε + δ') + ∑ J in π₀.boxes, δ' : add_le_add this (dist_sum_sum_le_of_le _ hπiδ')
+  ... = ε + δ : by { field_simp [H0.ne'], ring }
 end
 
 /-- **Henstock-Sacks inequality**. Let `r : ℝⁿ → (0, ∞)` be a function such that for any tagged
@@ -572,6 +586,8 @@ lemma dist_integral_sum_sum_integral_le_of_mem_base_set (h : integrable I l f vo
   dist (integral_sum f vol π) (∑ J in π.boxes, integral J l f vol) ≤ ε :=
 h.dist_integral_sum_sum_integral_le_of_mem_base_set_of_Union_eq h0 hπ rfl
 
+/-- Integral sum of `f` over a tagged prepartition `π` such that `π.Union = π₀.Union` tends to the
+sum of integrals of `f` over the boxes of `π₀`. -/
 lemma tendsto_integral_sum_sum_integral (h : integrable I l f vol) (π₀ : prepartition I) :
   tendsto (integral_sum f vol) (l.to_filter_Union I π₀) (𝓝 $ ∑ J in π₀.boxes, integral J l f vol) :=
 begin
@@ -670,6 +686,15 @@ lemma has_integral_of_bRiemann_eq_ff_of_forall_is_o (hl : l.bRiemann = ff)
     (l.bDistortion → J.distortion ≤ c) → dist (vol J (f x)) (g J) ≤ ε * B J) :
   has_integral I l f vol (g I) :=
 begin
+  /- We choose `r x` differently for `x ∈ s` and `x ∉ s`.
+
+  For `x ∈ s`, we choose `εs` such that `∑' x : s, εs x < ε / 2 / 2 ^ #ι`, then choose `r x` so that
+  `dist (vol J (f x)) (g J) ≤ εs x` for `J` in the `r x`-neighborhood of `x`. This guarantees that
+  the sum of these distances over boxes `J` such that `π.tag J ∈ s` is less than `ε / 2`. We need an
+  additional multiplier `2 ^ #ι` because different boxes can have the same tag.
+
+  For `x ∉ s`, we choose `r x` so that `dist (vol (J (f x))) (g J) ≤ (ε / 2 / B I) * B J` for a box
+  `J` in the `δ`-neighborhood of `x`. -/
   refine ((l.has_basis_to_filter_Union_top _).tendsto_iff metric.nhds_basis_closed_ball).2 _,
   intros ε ε0,
   simp only [subtype.exists'] at H₁ H₂,
@@ -683,11 +708,14 @@ begin
   refine ⟨δ, λ c, l.r_cond_of_bRiemann_eq_ff hl, _⟩,
   simp only [set.mem_Union, mem_inter_eq, mem_set_of_eq],
   rintro π ⟨c, hπδ, hπp⟩,
+  /- Now we split the sum into two parts based on whether `π.tag J` belongs to `s` or not. -/
   rw [← g.sum_partition_boxes le_rfl hπp, mem_closed_ball, integral_sum,
     ← sum_filter_add_sum_filter_not π.boxes (λ J, π.tag J ∈ s),
     ← sum_filter_add_sum_filter_not π.boxes (λ J, π.tag J ∈ s), ← add_halves ε],
   refine dist_add_add_le_of_le _ _,
   { unfreezingI { rcases s.eq_empty_or_nonempty with rfl|hsne }, { simp [ε0'.le] },
+    /- For the boxes such that `π.tag J ∈ s`, we use the fact that at most `2 ^ #ι` boxes have the
+    same tag. -/
     specialize hlH hsne,
     have : ∀ J ∈ π.boxes.filter (λ J, π.tag J ∈ s), dist (vol J (f $ π.tag J)) (g J) ≤ εs (π.tag J),
     { intros J hJ, rw finset.mem_filter at hJ, cases hJ with hJ hJs,
@@ -704,6 +732,7 @@ begin
       exact filter_subset_filter _ (filter_subset _ _) },
     { rw [finset.coe_image, set.image_subset_iff],
       exact λ J hJ, (finset.mem_filter.1 hJ).2 } },
+  /- Now we deal with boxes such that `π.tag J ∉ s`. In this case the estimate is straightforward. -/
   have H₂ : ∀ J ∈ π.boxes.filter (λ J, π.tag J ∉ s), dist (vol J (f $ π.tag J)) (g J) ≤ ε' * B J,
   { intros J hJ, rw finset.mem_filter at hJ, cases hJ with hJ hJs,
     refine Hδ₂ c _ ⟨π.tag_mem_Icc _, hJs⟩ _ ε'0 _ (π.le_of_mem' _ hJ) _ (λ hH, hπδ.2 hH J hJ)
@@ -716,8 +745,13 @@ begin
     exact hεI.le }
 end
 
-/-- Let `l` be either `box_integral.integration_params.Henstock` or `⊥`. Let `g` a box-additive
-function on subboxes of `I`. Suppose that there exists a nonnegative box-additive function `B` and a
+/-- A function `f` has Henstock (or `⊥`) integral over `I` is equal to the value of a box-additive
+function `g` on `I` provided that `vol J (f x)` is sufficiently close to `g J` for sufficiently
+small boxes `J ∋ x`. This lemma is useful to prove, e.g., to prove the Divergence theorem for
+integral along `⊥`.
+
+Let `l` be either `box_integral.integration_params.Henstock` or `⊥`. Let `g` a box-additive function
+on subboxes of `I`. Suppose that there exists a nonnegative box-additive function `B` and a
 countable set `s` with the following property.
 
 For every `c : ℝ≥0`, a point `x ∈ I.Icc`, and a positive `ε` there exists `δ > 0` such that for any

@@ -803,7 +803,7 @@ protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 (cancel_of_ne hb).add_tsub_cancel_right
 
 @[simp] lemma add_sub_self' (ha : a ≠ ∞) : (a + b) - a = b :=
-(cancel_of_ne ha).add_sub_cancel_left
+(cancel_of_ne ha).add_tsub_cancel_left
 
 lemma sub_eq_of_add_eq (hb : b ≠ ∞) (hc : a + b = c) : c - b = a :=
 (cancel_of_ne hb).tsub_eq_of_eq_add hc.symm

@@ -51,7 +51,7 @@ begin
   suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, @and.right_comm _ (a = _), and.congr_left_iff] },
   unfreezingI {rintro rfl}, split,
-  { rintro rfl, exact ⟨le_add_right le_rfl, (add_sub_cancel_left _ _).symm⟩ },
+  { rintro rfl, exact ⟨le_add_right le_rfl, (add_tsub_cancel_left _ _).symm⟩ },
   { rintro ⟨h, rfl⟩, exact add_tsub_cancel_of_le h }
 end
 

@@ -192,14 +192,14 @@ end
 lemma coeff_add_monomial_mul (a : R) :
   coeff R (m + n) (monomial R m a * φ) = a * coeff R n φ :=
 begin
-  rw [coeff_monomial_mul, if_pos, add_sub_cancel_left],
+  rw [coeff_monomial_mul, if_pos, add_tsub_cancel_left],
   exact le_add_right le_rfl
 end
 
 lemma coeff_add_mul_monomial (a : R) :
   coeff R (m + n) (φ * monomial R n a) = coeff R m φ * a :=
 begin
-  rw [coeff_mul_monomial, if_pos, add_sub_cancel_right],
+  rw [coeff_mul_monomial, if_pos, add_tsub_cancel_right],
   exact le_add_left le_rfl
 end
 
@@ -271,8 +271,8 @@ begin
   ext k,
   simp only [coeff_mul_monomial, coeff_monomial],
   split_ifs with h₁ h₂ h₃ h₃ h₂; try { refl },
-  { rw [← h₂, sub_add_cancel_of_le h₁] at h₃, exact (h₃ rfl).elim },
-  { rw [h₃, add_sub_cancel_right] at h₂, exact (h₂ rfl).elim },
+  { rw [← h₂, tsub_add_cancel_of_le h₁] at h₃, exact (h₃ rfl).elim },
+  { rw [h₃, add_tsub_cancel_right] at h₂, exact (h₂ rfl).elim },
   { exact zero_mul b },
   { rw h₂ at h₁, exact (h₁ $ le_add_left le_rfl).elim }
 end
@@ -549,7 +549,7 @@ begin
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply H, rw [← hij, hi], ext,
-          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, add_sub_cancel_left, add_comm], },
+          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, add_tsub_cancel_left, add_comm], },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,

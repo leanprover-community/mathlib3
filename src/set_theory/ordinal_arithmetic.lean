@@ -445,11 +445,11 @@ omin {o | a ≤ b+o} ⟨a, le_add_left _ _⟩
 
 instance : has_sub ordinal := ⟨sub⟩
 
-theorem le_add_sub (a b : ordinal) : a ≤ b + (a - b) :=
+theorem le_add_tsub (a b : ordinal) : a ≤ b + (a - b) :=
 omin_mem {o | a ≤ b+o} _
 
 theorem sub_le {a b c : ordinal} : a - b ≤ c ↔ a ≤ b + c :=
-⟨λ h, le_trans (le_add_sub a b) (add_le_add_left h _),
+⟨λ h, le_trans (le_add_tsub a b) (add_le_add_left h _),
  λ h, omin_le h⟩
 
 theorem lt_sub {a b c : ordinal} : a < b - c ↔ c + a < b :=
@@ -457,7 +457,7 @@ lt_iff_lt_of_le_iff_le sub_le
 
 theorem add_sub_cancel (a b : ordinal) : a + b - a = b :=
 le_antisymm (sub_le.2 $ le_refl _)
-  ((add_le_add_iff_left a).1 $ le_add_sub _ _)
+  ((add_le_add_iff_left a).1 $ le_add_tsub _ _)
 
 theorem sub_eq_of_add_eq {a b c : ordinal} (h : a + b = c) : c - a = b :=
 h ▸ add_sub_cancel _ _
@@ -465,13 +465,13 @@ h ▸ add_sub_cancel _ _
 theorem sub_le_self (a b : ordinal) : a - b ≤ a :=
 sub_le.2 $ le_add_left _ _
 
-protected theorem add_sub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
+protected theorem add_tsub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
 le_antisymm begin
   rcases zero_or_succ_or_limit (a-b) with e|⟨c,e⟩|l,
   { simp only [e, add_zero, h] },
   { rw [e, add_succ, succ_le, ← lt_sub, e], apply lt_succ_self },
   { exact (add_le_of_limit l).2 (λ c l, le_of_lt (lt_sub.1 l)) }
-end (le_add_sub _ _)
+end (le_add_tsub _ _)
 
 @[simp] theorem sub_zero (a : ordinal) : a - 0 = a :=
 by simpa only [zero_add] using add_sub_cancel 0 a
@@ -482,8 +482,8 @@ by rw ← ordinal.le_zero; apply sub_le_self
 @[simp] theorem sub_self (a : ordinal) : a - a = 0 :=
 by simpa only [add_zero] using add_sub_cancel a 0
 
-protected theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
-⟨λ h, by simpa only [h, add_zero] using le_add_sub a b,
+protected theorem tsub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
+⟨λ h, by simpa only [h, add_zero] using le_add_tsub a b,
  λ h, by rwa [← ordinal.le_zero, sub_le, add_zero]⟩
 
 theorem sub_sub (a b c : ordinal) : a - b - c = a - (b + c) :=
@@ -1334,7 +1334,7 @@ not_congr nat_cast_eq_zero
 (_root_.le_total m n).elim
   (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
-     add_sub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
+     add_tsub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
 
 @[simp] theorem nat_cast_div {m n : ℕ} : ((m / n : ℕ) : ordinal) = m / n :=
 if n0 : n = 0 then by simp only [n0, nat.div_zero, nat.cast_zero, div_zero] else

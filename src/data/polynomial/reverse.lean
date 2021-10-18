@@ -209,7 +209,7 @@ begin
     apply le_nat_degree_of_ne_zero,
     rw [reverse, coeff_reflect, ←rev_at_le f.nat_trailing_degree_le_nat_degree, rev_at_invol],
     exact trailing_coeff_nonzero_iff_nonzero.mpr hf },
-  { rw ← le_sub_iff_left f.reverse_nat_degree_le,
+  { rw ← le_tsub_iff_left f.reverse_nat_degree_le,
     apply nat_trailing_degree_le_of_ne_zero,
     have key := mt leading_coeff_eq_zero.mp (mt reverse_eq_zero.mp hf),
     rwa [leading_coeff, coeff_reverse, rev_at_le f.reverse_nat_degree_le] at key },

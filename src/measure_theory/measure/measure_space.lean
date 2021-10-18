@@ -2283,7 +2283,7 @@ begin
   end
 end
 
-lemma sub_add_cancel_of_le [is_finite_measure ν] (h₁ : ν ≤ μ) : μ - ν + ν = μ :=
+lemma tsub_add_cancel_of_le [is_finite_measure ν] (h₁ : ν ≤ μ) : μ - ν + ν = μ :=
 begin
   ext s h_s_meas,
   rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],

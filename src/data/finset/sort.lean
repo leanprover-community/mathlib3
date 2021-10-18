@@ -188,7 +188,7 @@ lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃
 begin
   have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
   { intro i,
-    rw [finset.length_sort, ←lt_sub_iff_right],
+    rw [finset.length_sort, ←lt_tsub_iff_right],
     exact i.2 },
   have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
   λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),

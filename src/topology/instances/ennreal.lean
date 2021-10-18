@@ -222,7 +222,7 @@ begin
     assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
   { rcases exists_between xs with ⟨b, xb, ba⟩,
     have bx_pos : 0 < b - x := ennreal.sub_pos.2 xb,
-    have xbx : x + (b - x) = b := add_sub_cancel_of_le xb.le,
+    have xbx : x + (b - x) = b := add_tsub_cancel_of_le xb.le,
     refine infi_le_of_le (b - x) (infi_le_of_le bx_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },

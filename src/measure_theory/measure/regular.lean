@@ -162,7 +162,7 @@ begin
   cases eq_or_ne (μ U) 0 with h₀ h₀,
   { refine ⟨∅, empty_subset _, h0, _⟩,
     rwa [measure_empty, h₀, zero_add, pos_iff_ne_zero] },
-  { rcases H hU _ (ennreal.sub_lt_self hμU h₀ hε) with ⟨K, hKU, hKc, hrK⟩,
+  { rcases H hU _ (ennreal.tsub_lt_self hμU h₀ hε) with ⟨K, hKU, hKc, hrK⟩,
     exact ⟨K, hKU, hKc, ennreal.lt_add_of_sub_lt (or.inl hμU) hrK⟩ }
 end
 

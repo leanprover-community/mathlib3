@@ -104,7 +104,7 @@ begin
     refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
     simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
-    { rw [finset.card_compl, le_sub_iff_left σ.support.card_le_univ],
+    { rw [finset.card_compl, le_tsub_iff_left σ.support.card_le_univ],
       exact hσ },
     obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
     refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,

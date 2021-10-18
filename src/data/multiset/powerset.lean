@@ -127,7 +127,7 @@ begin
     (revzip l') ((revzip l').map prod.fst),
   { rw forall₂_map_right_iff,
     apply forall₂_same, rintro ⟨s, t⟩ h,
-    dsimp, rw [← H h, add_sub_cancel_left] },
+    dsimp, rw [← H h, add_tsub_cancel_left] },
   rw [← forall₂_eq_eq_eq, forall₂_map_right_iff], simpa
 end
 

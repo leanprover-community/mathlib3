@@ -1453,8 +1453,8 @@ protected lemma mul_sub (h : add_le_cancellable (a * c)) :
   a * (b - c) = a * b - a * c :=
 begin
   cases total_of (≤) b c with hbc hcb,
-  { rw [sub_eq_zero_iff_le.2 hbc, mul_zero, sub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
-  { apply h.eq_sub_of_add_eq, rw [← mul_add, sub_add_cancel_of_le hcb] }
+  { rw [tsub_eq_zero_iff_le.2 hbc, mul_zero, tsub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
+  { apply h.eq_tsub_of_add_eq, rw [← mul_add, tsub_add_cancel_of_le hcb] }
 end
 
 protected lemma sub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=

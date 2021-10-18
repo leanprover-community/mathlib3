@@ -143,7 +143,7 @@ begin
   { simpa using base },
   intros x t hxt h,
   rw [finset.coe_insert],
-  simpa [algebra.adjoin_insert_adjoin] using ih _ x h,
+  simpa only [algebra.adjoin_insert_adjoin] using ih _ x h,
 end
 
 end subalgebra

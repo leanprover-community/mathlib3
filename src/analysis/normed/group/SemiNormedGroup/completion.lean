@@ -50,14 +50,14 @@ completion.complete_space _
 
 /-- The canonical morphism from a seminormed group `V` to its completion. -/
 @[simps]
-def incl {V : SemiNormedGroup} : V ⟶ Completion.obj V :=
+def Completion.incl {V : SemiNormedGroup} : V ⟶ Completion.obj V :=
 { to_fun := λ v, (v : completion V),
   map_add' := completion.coe_add,
   bound' := ⟨1, λ v, by simp⟩ }
 
-lemma norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥incl v∥ = ∥v∥ := by simp
+lemma Completion.norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥Completion.incl v∥ = ∥v∥ := by simp
 
-lemma Completion_map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
+lemma Completion.map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
   (Completion.map f).norm_noninc :=
 normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 $
   (normed_group_hom.norm_completion f).le.trans $
@@ -95,12 +95,12 @@ def Completion.lift {V W : SemiNormedGroup} [complete_space W] [separated_space 
   map_add' := f.extension.to_add_monoid_hom.map_add',
   bound' := f.extension.bound' }
 
-lemma lift_comp_incl {V W : SemiNormedGroup} [complete_space W] [separated_space W] (f : V ⟶ W) :
-  incl ≫ (Completion.lift f) = f :=
+lemma Completion.lift_comp_incl {V W : SemiNormedGroup} [complete_space W] [separated_space W]
+  (f : V ⟶ W) : Completion.incl ≫ (Completion.lift f) = f :=
 by { ext, apply normed_group_hom.extension_coe }
 
-lemma lift_unique {V W : SemiNormedGroup} [complete_space W] [separated_space W] (f : V ⟶ W)
-  (g : Completion.obj V ⟶ W) : incl ≫ g = f → g = Completion.lift f :=
+lemma Completion.lift_unique {V W : SemiNormedGroup} [complete_space W] [separated_space W]
+  (f : V ⟶ W) (g : Completion.obj V ⟶ W) : Completion.incl ≫ g = f → g = Completion.lift f :=
 λ h, (normed_group_hom.extension_unique _ (λ v, ((ext_iff.1 h) v).symm)).symm
 
 end SemiNormedGroup

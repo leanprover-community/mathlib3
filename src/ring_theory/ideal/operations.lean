@@ -1073,8 +1073,7 @@ end surjective
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
 @[simp]
-lemma map_of_equiv (I : ideal R) (f : R ≃+* S) :
-  (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
+lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
 by simp [← ring_equiv.to_ring_hom_eq_coe, map_map]
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/

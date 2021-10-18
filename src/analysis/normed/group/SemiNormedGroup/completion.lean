@@ -51,8 +51,8 @@ lemma norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥incl v∥ = ∥v∥ := by 
 
 lemma Completion_map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
   (Completion.map f).norm_noninc :=
-normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 $ le_trans
-  (normed_group_hom.norm_completion f).le $
+normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 $ 
+  (normed_group_hom.norm_completion f).le.trans $
   normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.1 hf
 
 /-- Given a normed group hom `V ⟶ W`, this defines the associated morphism

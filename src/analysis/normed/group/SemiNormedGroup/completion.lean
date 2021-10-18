@@ -64,7 +64,6 @@ def Completion.map_hom (V W : SemiNormedGroup.{u}) :
 add_monoid_hom.mk' (category_theory.functor.map Completion) $ λ f g,
   f.completion_add g
 
-
 @[simp] lemma Completion.map_zero (V W : SemiNormedGroup) : Completion.map (0 : V ⟶ W) = 0 :=
 (Completion.map_hom V W).map_zero
 

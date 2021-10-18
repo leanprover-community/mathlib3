@@ -33,7 +33,7 @@ open uniform_space opposite category_theory normed_group_hom
 @[simps]
 def Completion : SemiNormedGroup.{u} ⥤ SemiNormedGroup.{u} :=
 { obj := λ V, SemiNormedGroup.of (completion V),
-  map := λ V W f, normed_group_hom.completion f,
+  map := λ V W f, f.completion,
   map_id' := λ V, completion_id,
   map_comp' := λ U V W f g, (completion_comp f g).symm }
 

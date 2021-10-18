@@ -56,24 +56,24 @@ class floor_ring (α) [linear_ordered_ring α] :=
 instance : floor_ring ℤ :=
 { floor := id,
   ceil := id,
-  gc_floor := λ a b, by { rw int.cast_id, refl },
-  gc_ceil := λ a b, by { rw int.cast_id, refl } }
+  gc_coe_floor := λ a b, by { rw int.cast_id, refl },
+  gc_ceil_coe := λ a b, by { rw int.cast_id, refl } }
 
 /-- A `floor_ring` constructor from the `floor` function alone. -/
 def floor_ring.of_floor (α) [linear_ordered_ring α] (floor : α → ℤ)
-  (gc_floor : galois_connection coe floor) : floor_ring α :=
+  (gc_coe_floor : galois_connection coe floor) : floor_ring α :=
 { floor := floor,
   ceil := λ a, -floor (-a),
-  gc_floor := gc_floor,
-  gc_ceil := λ a z, by rw [neg_le, ←gc_floor, int.cast_neg, neg_le_neg_iff] }
+  gc_coe_floor := gc_coe_floor,
+  gc_ceil_coe := λ a z, by rw [neg_le, ←gc_coe_floor, int.cast_neg, neg_le_neg_iff] }
 
 /-- A `floor_ring` constructor from the `ceil` function alone. -/
 def floor_ring.of_ceil (α) [linear_ordered_ring α] (ceil : α → ℤ)
-  (gc_ceil : galois_connection ceil coe) : floor_ring α :=
+  (gc_ceil_coe : galois_connection ceil coe) : floor_ring α :=
 { floor := λ a, -ceil (-a),
   ceil := ceil,
-  gc_floor := λ a z, by rw [le_neg, gc_ceil, int.cast_neg, neg_le_neg_iff],
-  gc_ceil := gc_ceil }
+  gc_coe_floor := λ a z, by rw [le_neg, gc_ceil_coe, int.cast_neg, neg_le_neg_iff],
+  gc_ceil_coe := gc_ceil_coe }
 
 namespace int
 variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
@@ -81,18 +81,12 @@ variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 /-- `int.floor a` is the greatest integer `z` such that `z ≤ a`. It is denoted with `⌊a⌋`. -/
 def floor : α → ℤ := floor_ring.floor
 
-@[simp] lemma floor_ring_floor_eq : floor_ring.floor = int.floor := rfl
-
-@[simp] lemma floor_mk (floor ceil : α → ℤ) (gc_floor gc_ceil) :
-  (floor_ring.mk floor ceil gc_floor gc_ceil).floor = floor := rfl
+@[simp] lemma floor_ring_floor_eq : @floor_ring.floor = @int.floor := rfl
 
 /-- `int.ceil a` is the smallest integer `z` such that `a ≤ z`. It is denoted with `⌈a⌉`. -/
 def ceil : α → ℤ := floor_ring.ceil
 
-@[simp] lemma floor_ring_ceil_eq : floor_ring.ceil = int.ceil := rfl
-
-@[simp] lemma ceil_mk (floor ceil : α → ℤ) (gc_floor gc_ceil) :
-  (floor_ring.mk floor ceil gc_floor gc_ceil).ceil = ceil := rfl
+@[simp] lemma floor_ring_ceil_eq : @floor_ring.ceil = @int.ceil := rfl
 
 /-- `int.fract a`, the fractional part of `a`, is `a` minus its floor. -/
 def fract (a : α) : α := a - floor a
@@ -103,7 +97,7 @@ notation `⌈` a `⌉` := int.ceil a
 
 /-! #### Floor -/
 
-lemma gc_coe_floor : galois_connection (coe : ℤ → α) floor := floor_ring.gc_floor
+lemma gc_coe_floor : galois_connection (coe : ℤ → α) floor := floor_ring.gc_coe_floor
 
 lemma le_floor : z ≤ ⌊a⌋ ↔ (z : α) ≤ a := (gc_coe_floor z a).symm
 
@@ -233,7 +227,7 @@ end
 
 /-! #### Ceil -/
 
-lemma gc_ceil_coe : galois_connection ceil (coe : ℤ → α) := floor_ring.gc_ceil
+lemma gc_ceil_coe : galois_connection ceil (coe : ℤ → α) := floor_ring.gc_ceil_coe
 
 lemma ceil_le : ⌈a⌉ ≤ z ↔ a ≤ z := gc_ceil_coe a z
 

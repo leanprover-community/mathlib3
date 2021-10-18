@@ -1499,7 +1499,7 @@ quot.induction_on s $ λ l, rfl
 @[simp] theorem sub_cons (a : α) (s t : multiset α) : s - a ::ₘ t = s.erase a - t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ diff_cons _ _ _
 
-/-- This is a special case of `sub_le_iff_right`, which should be used instead of this.
+/-- This is a special case of `tsub_le_iff_right`, which should be used instead of this.
   This is needed to prove `has_ordered_sub (multiset α)`. -/
 protected theorem sub_le_iff_le_add : s - t ≤ u ↔ s ≤ u + t :=
 by revert s; exact
@@ -1528,7 +1528,7 @@ instance : has_union (multiset α) := ⟨union⟩
 
 theorem union_def (s t : multiset α) : s ∪ t = s - t + t := rfl
 
-theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_sub_add
+theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_tsub_add
 
 theorem le_union_right (s t : multiset α) : t ≤ s ∪ t := le_add_left _ _
 

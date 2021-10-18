@@ -1093,7 +1093,7 @@ map_at_top_eq_of_gc (λa, a - k) k
 lemma map_sub_at_top_eq_nat (k : ℕ) : map (λa, a - k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a + k) 0
   (assume a b h, nat.sub_le_sub_right h _)
-  (assume a b _, sub_le_iff_right)
+  (assume a b _, tsub_le_iff_right)
   (assume b _, by rw [nat.add_sub_cancel])
 
 lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=

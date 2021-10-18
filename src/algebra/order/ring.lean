@@ -1446,12 +1446,6 @@ section sub
 variables [canonically_ordered_comm_semiring α] {a b c : α}
 variables [has_sub α] [has_ordered_sub α]
 
-lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
-by { rw [sub_le_iff_right, ← add_mul], exact mul_le_mul_right' le_sub_add c }
-
-lemma mul_sub_ge : a * b - a * c ≤ a * (b - c) :=
-by simp only [mul_comm a, sub_mul_ge]
-
 variables [is_total α (≤)]
 
 namespace add_le_cancellable

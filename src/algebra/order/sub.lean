@@ -8,7 +8,7 @@ import algebra.order.monoid
 # Ordered Subtraction
 
 This file proves lemmas relating (truncated) subtraction with an order. We provide a class
- `has_ordered_sub` stating that `a - b ≤ c ↔ a ≤ c + b`.
+`has_ordered_sub` stating that `a - b ≤ c ↔ a ≤ c + b`.
 
 The subtraction discussed here could both be normal subtraction in an additive group or truncated
 subtraction on a canonically ordered monoid (`ℕ`, `multiset`, `enat`, `ennreal`, ...)
@@ -24,8 +24,8 @@ The results in this file are ordered by the type-class assumption needed to prov
 This means that similar results might not be close to each other. Furthermore, we don't prove
 implications if a bi-implication can be proven under the same assumptions.
 
-Many results about this subtraction are primed, to not conflict with similar lemmas about ordered
-groups.
+Lemmas using this class are named using `tsub` instead of `sub` (short for "truncated subtraction").
+This is to avoid naming conflicts with similar lemmas about ordered groups.
 
 We provide a second version of most results that require `[contravariant_class α α (+) (≤)]`. In the
 second version we replace this type-class assumption by explicit `add_le_cancellable` assumptions.
@@ -44,31 +44,31 @@ This is satisfied both by the subtraction in additive ordered groups and by trun
 in canonically ordered monoids on many specific types.
 -/
 class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
-(sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
+(tsub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 
 section has_add
 
 variables [preorder α] [has_add α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
-@[simp] lemma sub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
-has_ordered_sub.sub_le_iff_right a b c
+@[simp] lemma tsub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
+has_ordered_sub.tsub_le_iff_right a b c
 
 /-- See `add_sub_cancel_right` for the equality if `contravariant_class α α (+) (≤)`. -/
-lemma add_sub_le_right : a + b - b ≤ a :=
-sub_le_iff_right.mpr le_rfl
+lemma add_tsub_le_right : a + b - b ≤ a :=
+tsub_le_iff_right.mpr le_rfl
 
-lemma le_sub_add : b ≤ (b - a) + a :=
-sub_le_iff_right.mp le_rfl
+lemma le_tsub_add : b ≤ (b - a) + a :=
+tsub_le_iff_right.mp le_rfl
 
-lemma add_hom.le_map_sub [preorder β] [has_add β] [has_sub β] [has_ordered_sub β]
+lemma add_hom.le_map_tsub [preorder β] [has_add β] [has_sub β] [has_ordered_sub β]
   (f : add_hom α β) (hf : monotone f) (a b : α) :
   f a - f b ≤ f (a - b) :=
-by { rw [sub_le_iff_right, ← f.map_add], exact hf le_sub_add }
+by { rw [tsub_le_iff_right, ← f.map_add], exact hf le_tsub_add }
 
 lemma le_mul_sub {R : Type*} [distrib R] [preorder R] [has_sub R] [has_ordered_sub R]
   [covariant_class R R (*) (≤)] (a b c : R) :
   a * b - a * c ≤ a * (b - c) :=
-(add_hom.mul_left a).le_map_sub (monotone_id.const_mul' a) _ _
+(add_hom.mul_left a).le_map_tsub (monotone_id.const_mul' a) _ _
 
 lemma le_sub_mul {R : Type*} [comm_semiring R] [preorder R] [has_sub R] [has_ordered_sub R]
   [covariant_class R R (*) (≤)] (a b c : R) :
@@ -85,9 +85,9 @@ lemma order_iso.map_sub {M N : Type*} [preorder M] [has_add M] [has_sub M] [has_
   e (a - b) = e a - e b :=
 begin
   set e_add : M ≃+ N := { map_add' := h_add, .. e },
-  refine le_antisymm _ (e_add.to_add_hom.le_map_sub e.monotone a b),
+  refine le_antisymm _ (e_add.to_add_hom.le_map_tsub e.monotone a b),
   suffices : e (e.symm (e a) - e.symm (e b)) ≤ e (e.symm (e a - e b)), by simpa,
-  exact e.monotone (e_add.symm.to_add_hom.le_map_sub e.symm.monotone _ _)
+  exact e.monotone (e_add.symm.to_add_hom.le_map_tsub e.symm.monotone _ _)
 end
 
 section ordered_add_comm_monoid
@@ -97,7 +97,7 @@ section preorder
 variables [preorder α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
 lemma sub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
-by rw [sub_le_iff_right, add_comm]
+by rw [tsub_le_iff_right, add_comm]
 
 lemma le_add_sub : a ≤ b + (a - b) :=
 sub_le_iff_left.mp le_rfl
@@ -110,16 +110,16 @@ lemma sub_le_sub_right' (h : a ≤ b) (c : α) : a - c ≤ b - c :=
 sub_le_iff_left.mpr $ h.trans le_add_sub
 
 lemma sub_le_iff_sub_le : a - b ≤ c ↔ a - c ≤ b :=
-by rw [sub_le_iff_left, sub_le_iff_right]
+by rw [sub_le_iff_left, tsub_le_iff_right]
 
 /-- See `sub_sub_cancel_of_le` for the equality. -/
 lemma sub_sub_le : b - (b - a) ≤ a :=
-sub_le_iff_right.mpr le_add_sub
+tsub_le_iff_right.mpr le_add_sub
 
-lemma add_monoid_hom.le_map_sub [preorder β] [add_comm_monoid β] [has_sub β]
+lemma add_monoid_hom.le_map_tsub [preorder β] [add_comm_monoid β] [has_sub β]
   [has_ordered_sub β] (f : α →+ β) (hf : monotone f) (a b : α) :
   f a - f b ≤ f (a - b) :=
-f.to_add_hom.le_map_sub hf a b
+f.to_add_hom.le_map_tsub hf a b
 
 end preorder
 
@@ -174,7 +174,7 @@ end
 lemma sub_sub_sub_le_sub : (c - a) - (c - b) ≤ b - a :=
 begin
   rw [sub_le_iff_left, sub_le_iff_left, add_left_comm],
-  refine le_sub_add.trans (add_le_add_left le_add_sub _),
+  refine le_tsub_add.trans (add_le_add_left le_add_sub _),
 end
 
 end cov
@@ -189,7 +189,7 @@ protected lemma le_add_sub (hb : add_le_cancellable b) : a ≤ a + b - b :=
 by { rw [add_comm], exact hb.le_add_sub_swap }
 
 protected lemma sub_eq_of_eq_add (hb : add_le_cancellable b) (h : a = c + b) : a - b = c :=
-le_antisymm (sub_le_iff_right.mpr h.le) $
+le_antisymm (tsub_le_iff_right.mpr h.le) $
   by { rw h, exact hb.le_add_sub }
 
 protected lemma eq_sub_of_add_eq (hc : add_le_cancellable c) (h : a + c = b) : a = b - c :=
@@ -222,7 +222,7 @@ end
 
 protected lemma lt_add_of_sub_lt_right (hc : add_le_cancellable c) (h : a - c < b) : a < b + c :=
 begin
-  rw [lt_iff_le_and_ne, ← sub_le_iff_right],
+  rw [lt_iff_le_and_ne, ← tsub_le_iff_right],
   refine ⟨h.le, _⟩,
   rintro rfl,
   simpa [hc] using h,
@@ -282,7 +282,7 @@ begin
   { rw [sub_le_iff_left, add_comm b],
     apply le_of_add_le_add_right,
     rw [add_assoc],
-    exact le_sub_add }
+    exact le_tsub_add }
 end
 
 lemma add_sub_add_eq_sub_left' (a b c : α) : (a + b) - (a + c) = b - c :=
@@ -302,7 +302,7 @@ lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right' h c) h
 
 /-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order. -/
 lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
-lt_iff_lt_of_le_iff_le sub_le_iff_right
+lt_iff_lt_of_le_iff_le tsub_le_iff_right
 
 /-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order. -/
 lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
@@ -350,7 +350,7 @@ lemma add_le_of_le_sub_left_of_le (h : a ≤ c) (h2 : b ≤ c - a) : a + b ≤ c
 (add_le_add_left h2 a).trans_eq $ add_sub_cancel_of_le h
 
 lemma sub_le_sub_iff_right' (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
-by rw [sub_le_iff_right, sub_add_cancel_of_le h]
+by rw [tsub_le_iff_right, sub_add_cancel_of_le h]
 
 lemma sub_left_inj' (h1 : c ≤ a) (h2 : c ≤ b) : a - c = b - c ↔ a = b :=
 by simp_rw [le_antisymm_iff, sub_le_sub_iff_right' h1, sub_le_sub_iff_right' h2]
@@ -447,7 +447,7 @@ begin
   apply lt_of_le_of_ne,
   { rw [← add_sub_cancel_of_le h.le, add_right_comm, add_assoc],
     rw [hc.add_sub_assoc_of_le], refine le_self_add, refine le_add_self },
-  { rintro rfl, apply h.not_le, exact le_sub_add }
+  { rintro rfl, apply h.not_le, exact le_tsub_add }
 end
 
 protected lemma lt_sub_of_add_lt_left (ha : add_le_cancellable a) (h : a + c < b) : c < b - a :=
@@ -632,7 +632,7 @@ end
 namespace add_le_cancellable
 
 protected lemma lt_sub_iff_right (hc : add_le_cancellable c) : a < b - c ↔ a + c < b :=
-⟨lt_imp_lt_of_le_imp_le sub_le_iff_right.mpr, hc.lt_sub_of_add_lt_right⟩
+⟨lt_imp_lt_of_le_imp_le tsub_le_iff_right.mpr, hc.lt_sub_of_add_lt_right⟩
 
 protected lemma lt_sub_iff_left (hc : add_le_cancellable c) : a < b - c ↔ c + a < b :=
 ⟨lt_imp_lt_of_le_imp_le sub_le_iff_left.mpr, hc.lt_sub_of_add_lt_left⟩
@@ -748,7 +748,7 @@ begin
   induction y using with_top.rec_top_coe, { simp },
   induction x using with_top.rec_top_coe, { simp },
   induction z using with_top.rec_top_coe, { simp },
-  norm_cast, exact sub_le_iff_right
+  norm_cast, exact tsub_le_iff_right
 end
 
 end with_top

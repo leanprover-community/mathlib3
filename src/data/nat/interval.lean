@@ -137,7 +137,7 @@ begin
   { rintro h,
     refine ⟨x + c, _, add_sub_cancel_right _ _⟩,
     rw mem_Ico at ⊢ h,
-    exact ⟨sub_le_iff_right.1 h.1, lt_sub_iff_right.1 h.2⟩ }
+    exact ⟨tsub_le_iff_right.1 h.1, lt_sub_iff_right.1 h.2⟩ }
 end
 
 lemma Ico_image_const_sub_eq_Ico (hac : a ≤ c) :
@@ -161,7 +161,7 @@ begin
     refine ⟨c - x, _, nat.sub_sub_self hx⟩,
     { rw mem_Ico,
       exact ⟨le_sub_of_add_le_right' ha, (sub_lt_iff_left hx).2 $ succ_le_iff.1 $
-        sub_le_iff_right.1 hb⟩ } }
+        tsub_le_iff_right.1 hb⟩ } }
 end
 
 lemma range_image_pred_top_sub (n : ℕ) :

@@ -2707,7 +2707,7 @@ instance : canonically_ordered_add_monoid (α →₀ M) :=
  ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
 
 instance : has_ordered_sub (α →₀ M) :=
-⟨λ n m k, forall_congr $ λ x, sub_le_iff_right⟩
+⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
 
 @[simp] lemma single_tsub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin

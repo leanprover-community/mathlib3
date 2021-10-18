@@ -205,7 +205,7 @@ begin
   by_cases hf : f = 0,
   { rw [hf, reverse_zero, nat_degree_zero, nat_trailing_degree_zero] },
   apply le_antisymm,
-  { refine sub_le_iff_right.mp _,
+  { refine tsub_le_iff_right.mp _,
     apply le_nat_degree_of_ne_zero,
     rw [reverse, coeff_reflect, ←rev_at_le f.nat_trailing_degree_le_nat_degree, rev_at_invol],
     exact trailing_coeff_nonzero_iff_nonzero.mpr hf },

@@ -1067,7 +1067,7 @@ begin
     { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
       filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],
       have hεC : C * (ε / C) = ε := ennreal.mul_div_cancel' C0 hC,
-      refine λ y (hy : edist y x ≤ ε / C), ⟨sub_le_iff_right.2 _, _⟩,
+      refine λ y (hy : edist y x ≤ ε / C), ⟨tsub_le_iff_right.2 _, _⟩,
       { rw edist_comm at hy,
         calc f x ≤ f y + C * edist x y : h x y
         ... ≤ f y + C * (ε / C) : add_le_add_left (mul_le_mul_left' hy C) (f y)

@@ -41,7 +41,7 @@ theorem dist_eq_sub_of_le_right {n m : ℕ} (h : m ≤ n) : dist n m = n - m :=
 begin rw [dist_comm], apply dist_eq_sub_of_le h end
 
 theorem dist_tri_left (n m : ℕ) : m ≤ dist n m + n :=
-le_trans le_sub_add (add_le_add_right (nat.le_add_left _ _) _)
+le_trans le_tsub_add (add_le_add_right (nat.le_add_left _ _) _)
 
 theorem dist_tri_right (n m : ℕ) : m ≤ n + dist n m :=
 by rw add_comm; apply dist_tri_left

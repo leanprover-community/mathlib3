@@ -717,7 +717,7 @@ end cancel
 section sub
 
 lemma sub_eq_Inf {a b : ℝ≥0∞} : a - b = Inf {d | a ≤ d + b} :=
-le_antisymm (le_Inf $ λ c, sub_le_iff_right.mpr) $ Inf_le le_sub_add
+le_antisymm (le_Inf $ λ c, tsub_le_iff_right.mpr) $ Inf_le le_tsub_add
 
 /-- This is a special case of `with_top.coe_sub` in the `ennreal` namespace -/
 lemma coe_sub : (↑(r - p) : ℝ≥0∞) = ↑r - ↑p :=
@@ -732,10 +732,10 @@ lemma sub_top : a - ∞ = 0 :=
 by simp
 
 lemma le_sub_add_self : a ≤ (a - b) + b :=
-le_sub_add
+le_tsub_add
 
 protected lemma sub_le_iff_le_add : a - b ≤ c ↔ a ≤ c + b :=
-sub_le_iff_right
+tsub_le_iff_right
 
 -- todo: make this a `@[simp]` lemma in general
 @[simp] lemma sub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=

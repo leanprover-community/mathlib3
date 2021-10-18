@@ -206,7 +206,7 @@ begin
   have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
     (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
     (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
-  rwa [fintype.card_fin, fintype.card_coe, sub_le_iff_right] at key,
+  rwa [fintype.card_fin, fintype.card_coe, tsub_le_iff_right] at key,
 end
 
 end sort_linear_order

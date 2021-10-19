@@ -16,7 +16,7 @@ be the polynomial with root `r * s` for each root `r` of `p` and proves some bas
 
 section scale_roots
 
-variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ring S]
+variables {A K R S : Type*} [comm_ring A] [integral_domain A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A}
 
 open polynomial

@@ -36,7 +36,7 @@ class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
 export wf_dvd_monoid (well_founded_dvd_not_unit)
 
 @[priority 100]  -- see Note [lower instance priority]
-instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ring α] :
+instance is_noetherian_ring.wf_dvd_monoid [comm_ring α] [integral_domain α] [is_noetherian_ring α] :
   wf_dvd_monoid α :=
 ⟨by { convert inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _),
       ext,

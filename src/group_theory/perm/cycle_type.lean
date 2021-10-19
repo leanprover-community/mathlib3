@@ -13,7 +13,7 @@ import tactic.linarith
 /-!
 # Cycle Types
 
-In this file we define the cycle type of a partition.
+In this file we define the cycle type of a permutation.
 
 ## Main definitions
 
@@ -488,7 +488,7 @@ section partition
 variables [decidable_eq α]
 
 /-- The partition corresponding to a permutation -/
-def partition (σ : perm α) : partition (fintype.card α) :=
+def partition (σ : perm α) : (fintype.card α).partition :=
 { parts := σ.cycle_type + repeat 1 (fintype.card α - σ.support.card),
   parts_pos := λ n hn,
   begin
@@ -516,7 +516,7 @@ lemma partition_eq_of_is_conj {σ τ : perm α} :
 begin
   rw [is_conj_iff_cycle_type_eq],
   refine ⟨λ h, _, λ h, _⟩,
-  { rw [partition.ext_iff, parts_partition, parts_partition,
+  { rw [nat.partition.ext_iff, parts_partition, parts_partition,
       ← sum_cycle_type, ← sum_cycle_type, h] },
   { rw [← filter_parts_partition_eq_cycle_type, ← filter_parts_partition_eq_cycle_type, h] }
 end

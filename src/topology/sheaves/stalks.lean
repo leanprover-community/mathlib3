@@ -98,7 +98,7 @@ composition with the `germ` morphisms.
 -/
 lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
-colimit.hom_ext $ λ U, by { op_induction U, cases U with U hxU, exact ih U hxU }
+colimit.hom_ext $ λ U, by { induction U using opposite.rec, cases U with U hxU, exact ih U hxU }
 
 @[simp, reassoc, elementwise]
 lemma stalk_functor_map_germ {F G : X.presheaf C} (U : opens X) (x : U)
@@ -171,7 +171,7 @@ end
 begin
   dsimp [stalk_pushforward, stalk_functor],
   ext U,
-  op_induction U,
+  induction U using opposite.rec,
   cases U,
   cases U_val,
   simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
@@ -365,7 +365,7 @@ begin
   -- We show that all components of `f` are isomorphisms.
   suffices : ∀ U : (opens X)ᵒᵖ, is_iso (f.app U),
   { exact @nat_iso.is_iso_of_is_iso_app _ _ _ _ F.1 G.1 f this, },
-  intro U, op_induction U,
+  intro U, induction U using opposite.rec,
   -- Since the forgetful functor of `C` reflects isomorphisms, it suffices to see that the
   -- underlying map between types is an isomorphism, i.e. bijective.
   suffices : is_iso ((forget C).map (f.app (op U))),

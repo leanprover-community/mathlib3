@@ -105,7 +105,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   begin
     ext1, swap,
     { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
-    { ext U, op_induction, cases U,
+    { ext U, induction U using opposite.rec, cases U,
       dsimp,
       simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
@@ -115,7 +115,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   begin
     ext1, swap,
     { dsimp, simp only [comp_id] },
-    { ext U, op_induction, cases U,
+    { ext U, induction U using opposite.rec, cases U,
       dsimp,
       simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
@@ -125,7 +125,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   begin
      ext1, swap,
      refl,
-     { ext U, op_induction, cases U,
+     { ext U, induction U using opposite.rec, cases U,
        dsimp,
        simp only [assoc, presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
        dsimp,
@@ -144,8 +144,8 @@ lemma id_c (X : PresheafedSpace C) :
   (functor.left_unitor _).inv ≫ whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ := rfl
 
 @[simp] lemma id_c_app (X : PresheafedSpace C) (U) :
-  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { op_induction U, cases U, refl }) :=
-by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
+  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { induction U using opposite.rec, cases U, refl }) :=
+by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 
 @[simp] lemma comp_base {X Y Z : PresheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl
@@ -214,13 +214,14 @@ def restrict_top_iso (X : PresheafedSpace C) :
 { hom := X.of_restrict _ _,
   inv := X.to_restrict_top,
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
-    nat_trans.ext _ _ $ funext $ λ U, by { op_induction U,
+    nat_trans.ext _ _ $ funext $ λ U, by { induction U using opposite.rec,
       dsimp only [nat_trans.comp_app, comp_c_app, to_restrict_top, of_restrict,
           whisker_right_app, comp_base, nat_trans.op_app, opens.map_iso_inv_app],
       erw [presheaf.pushforward.comp_inv_app, comp_id, ← X.presheaf.map_comp,
           ← X.presheaf.map_comp, id_c_app],
       exact X.presheaf.map_id _ },
-  inv_hom_id' := ext _ _ rfl $ nat_trans.ext _ _ $ funext $ λ U, by { op_induction U,
+  inv_hom_id' := ext _ _ rfl $ nat_trans.ext _ _ $ funext $ λ U, by {
+    induction U using opposite.rec,
     dsimp only [nat_trans.comp_app, comp_c_app, of_restrict, to_restrict_top,
         whisker_right_app, comp_base, nat_trans.op_app, opens.map_iso_inv_app],
     erw [← X.presheaf.map_comp, ← X.presheaf.map_comp, ← X.presheaf.map_comp, id_c_app],
@@ -235,7 +236,7 @@ def Γ : (PresheafedSpace C)ᵒᵖ ⥤ C :=
 { obj := λ X, (unop X).presheaf.obj (op ⊤),
   map := λ X Y f, f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op,
   map_id' := λ X, begin
-    op_induction X,
+    induction X using opposite.rec,
     erw [unop_id_op, id_c_app, eq_to_hom_refl, id_comp],
     exact X.presheaf.map_id _
   end,

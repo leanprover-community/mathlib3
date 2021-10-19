@@ -25,14 +25,14 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
 
 open_locale non_zero_divisors
 
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R] [integral_domain R]
 
 namespace polynomial
 section normalized_gcd_monoid
 variable [normalized_gcd_monoid R]
 
 section
-variables {S : Type*} [integral_domain S] {φ : R →+* S} (hinj : function.injective φ)
+variables {S : Type*} [comm_ring S] [integral_domain S] {φ : R →+* S} (hinj : function.injective φ)
 variables {f : polynomial R} (hf : f.is_primitive)
 include hinj hf
 

@@ -75,6 +75,12 @@ protected def copy (p : submodule R M) (s : set M) (hs : s = ↑p) : submodule R
   add_mem' := hs.symm ▸ p.add_mem',
   smul_mem' := hs.symm ▸ p.smul_mem' }
 
+@[simp] lemma coe_copy (S : submodule R M) (s : set M) (hs : s = ↑S) :
+  (S.copy s hs : set M) = s := rfl
+
+lemma copy_eq (S : submodule R M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=
 λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)

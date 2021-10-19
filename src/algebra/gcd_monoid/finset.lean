@@ -201,7 +201,7 @@ end finset
 namespace finset
 section integral_domain
 
-variables [integral_domain α] [normalized_gcd_monoid α]
+variables [comm_ring α] [integral_domain α] [normalized_gcd_monoid α]
 
 lemma gcd_eq_of_dvd_sub {s : finset β} {f g : β → α} {a : α}
   (h : ∀ x : β, x ∈ s → a ∣ f x - g x) :

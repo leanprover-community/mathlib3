@@ -96,8 +96,6 @@ Currying a homotopy to a continuous function fron `I` to `C(X, Y)`.
 -/
 def curry (F : homotopy f₀ f₁) : C(I, C(X, Y)) := F.to_continuous_map.curry
 
--- lemma prop (F : homotopy f₀ f₁) (t : I) : P (F.curry t) := F.prop' t
-
 @[simp]
 lemma curry_apply (F : homotopy f₀ f₁) (t : I) (x : X) : F.curry t x = F (t, x) := rfl
 
@@ -213,6 +211,17 @@ begin
     change ¬ (1 : ℝ) - x.1 ≤ _ at h₁,
     exfalso, linarith }
 end
+
+/--
+Casting a `homotopy f₀ f₁` to a `homotopy g₀ g₁` where `f₀ = g₀` and `f₁ = g₁`.
+-/
+@[simps]
+def cast {f₀ f₁ g₀ g₁ : C(X, Y)} (F : homotopy f₀ f₁) (h₀ : f₀ = g₀) (h₁ : f₁ = g₁) :
+  homotopy g₀ g₁ :=
+{ to_fun := F,
+  continuous_to_fun := by continuity,
+  to_fun_zero := by simp [←h₀],
+  to_fun_one := by simp [←h₁] }
 
 end homotopy
 
@@ -338,6 +347,15 @@ lemma symm_trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G :
   (F.trans G).symm = G.symm.trans F.symm :=
 ext $ homotopy.congr_fun $ homotopy.symm_trans _ _
 
+/--
+Casting a `homotopy_with f₀ f₁ P` to a `homotopy_with g₀ g₁ P` where `f₀ = g₀` and `f₁ = g₁`.
+-/
+@[simps]
+def cast {f₀ f₁ g₀ g₁ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (h₀ : f₀ = g₀) (h₁ : f₁ = g₁) :
+  homotopy_with g₀ g₁ P :=
+{ prop' := F.prop,
+  ..F.to_homotopy.cast h₀ h₁ }
+
 end homotopy_with
 
 /--
@@ -412,6 +430,15 @@ homotopy.trans_apply _ _ _
 lemma symm_trans (F : homotopy_rel f₀ f₁ S) (G : homotopy_rel f₁ f₂ S) :
   (F.trans G).symm = G.symm.trans F.symm :=
 homotopy_with.ext $ homotopy.congr_fun $ homotopy.symm_trans _ _
+
+/--
+Casting a `homotopy_rel f₀ f₁ S` to a `homotopy_rel g₀ g₁ S` where `f₀ = g₀` and `f₁ = g₁`.
+-/
+@[simps]
+def cast {f₀ f₁ g₀ g₁ : C(X, Y)} (F : homotopy_rel f₀ f₁ S) (h₀ : f₀ = g₀) (h₁ : f₁ = g₁) :
+  homotopy_rel g₀ g₁ S :=
+{ prop' := λ t x hx, by { simpa [←h₀, ←h₁] using F.prop t x hx },
+  ..homotopy.cast F.to_homotopy h₀ h₁ }
 
 end homotopy_rel
 

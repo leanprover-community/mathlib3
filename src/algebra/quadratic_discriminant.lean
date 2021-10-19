@@ -37,7 +37,7 @@ variables {R : Type*}
 /-- Discriminant of a quadratic -/
 def discrim [ring R] (a b c : R) : R := b^2 - 4 * a * c
 
-variables [integral_domain R] {a b c : R}
+variables [comm_ring R] [integral_domain R] {a b c : R}
 
 /--
 A quadratic has roots if and only if its discriminant equals some square.

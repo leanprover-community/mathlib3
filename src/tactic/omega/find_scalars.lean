@@ -1,9 +1,14 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
+/-
 Tactic for performing Fourier–Motzkin elimination to find
-a contradictory linear combination of input constraints. -/
+a contradictory linear combination of input constraints.
+-/
+
 import tactic.omega.term
 import data.list.min_max
 

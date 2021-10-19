@@ -2,10 +2,15 @@
 Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-Examples from the tutorial.
 -/
 import tactic.finish
+
+/-!
+# Examples for `finish`
+
+Those come from the tutorial.
+-/
+
 open auto
 
 section
@@ -56,7 +61,7 @@ variable r : Prop
 
 example : (∃ x : A, r) → r := by finish
 -- TODO(Jeremy): can we get these automatically?
-example (a : A) : r → (∃ x : A, r) := begin safe; apply a_2; assumption end
+example (a : A) : r → (∃ x : A, r) := begin safe; apply_assumption; assumption end
 example : (∃ x, p x ∧ r) ↔ (∃ x, p x) ∧ r := by finish
 
 theorem foo': (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q x) :=

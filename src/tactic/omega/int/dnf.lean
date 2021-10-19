@@ -1,8 +1,13 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
-DNF transformation. -/
+/-
+DNF transformation.
+-/
+
 import tactic.omega.clause
 import tactic.omega.int.form
 
@@ -99,7 +104,7 @@ lemma le_and_le_iff_eq {α : Type} [partial_order α] {a b : α} :
 begin
   constructor; intro h1,
   { cases h1, apply le_antisymm; assumption },
-  { constructor; apply le_of_eq; rw h1  }
+  { constructor; apply le_of_eq; rw h1 }
 end
 
 lemma implies_neg_elim : ∀ {p : preform}, preform.implies p (neg_elim p) :=

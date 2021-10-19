@@ -1,14 +1,15 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity
 import tactic.norm_num
-import algebra.ordered_ring
+import algebra.order.ring
+import measure_theory.measure.lebesgue
 import data.list.defs
 
-open list tactic tactic.interactive
+open list tactic tactic.interactive set
 
 example
   (h : 3 + 6 ≤ 4 + 5)
@@ -21,7 +22,10 @@ example
   (h : 3 ≤ (4 : ℤ))
   (h' : 5 ≤ (6 : ℤ))
 : (1 + 3 + 2) - 6 ≤ (4 + 2 + 1 : ℤ) - 5 :=
-by ac_mono
+begin
+  ac_mono,
+  mono,
+end
 
 example
   (h : 3 ≤ (4 : ℤ))
@@ -127,7 +131,7 @@ lemma list_le_mono_right {α : Type*} [preorder α] {xs ys zs : list α}
 begin
   revert ys zs,
   induction xs with x xs ; intros ys zs h,
-  { cases ys, { simp, apply list.le_refl }, cases h  },
+  { cases ys, { simp, apply list.le_refl }, cases h },
   { cases ys with y ys, cases h, simp [has_le.le,list.le] at *,
     suffices : list.le' ((zs ++ [x]) ++ xs) ((zs ++ [y]) ++ ys),
     { refine cast _ this, simp, },
@@ -228,7 +232,7 @@ example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
   (h₁ : x ≤ y)
 : (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-by {  ac_mono* := h₁ }
+by { ac_mono* := h₁ }
 
 example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
@@ -402,7 +406,7 @@ begin
   exact 3
 end
 
-example {α} [decidable_linear_order α]
+example {α} [linear_order α]
   (a b c d e : α) :
   max a b ≤ e → b ≤ e :=
 by { mono, apply le_max_right }
@@ -414,4 +418,16 @@ begin
   mono,
   mono,
   mono,
+end
+
+example : ∫ x in Icc 0 1, real.exp x ≤ ∫ x in Icc 0 1, real.exp (x+1) :=
+begin
+  mono,
+  { exact real.continuous_exp.integrable_on_compact is_compact_Icc },
+  { exact (real.continuous_exp.comp $ continuous_add_right 1).integrable_on_compact
+      is_compact_Icc },
+  intro x,
+  dsimp only,
+  mono,
+  linarith
 end

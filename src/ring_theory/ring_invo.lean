@@ -68,6 +68,7 @@ open ring_invo
 section comm_ring
 variables [comm_ring R]
 
+/-- The identity function of a `comm_ring` is a ring involution. -/
 protected def ring_invo.id : ring_invo R :=
 { involution' := λ r, rfl,
   ..(ring_equiv.to_opposite R) }

@@ -126,7 +126,7 @@ lemma tendsto_uniformly_on.tendsto_locally_uniformly_on
 
 lemma tendsto_uniformly.tendsto_locally_uniformly
   (h : tendsto_uniformly F f p) : tendsto_locally_uniformly F f p :=
-λ u hu x, ⟨univ, univ_mem_sets, by simpa using h u hu⟩
+λ u hu x, ⟨univ, univ_mem, by simpa using h u hu⟩
 
 lemma tendsto_locally_uniformly_on.mono (h : tendsto_locally_uniformly_on F f p s) (h' : s' ⊆ s) :
   tendsto_locally_uniformly_on F f p s' :=
@@ -233,7 +233,7 @@ end
 lemma continuous_of_uniform_approx_of_continuous (L : ∀ u ∈ 𝓤 β, ∃ N, ∀ y, (f y, F N y) ∈ u) :
   (∀ n, continuous (F n)) → continuous f :=
 continuous_of_locally_uniform_approx_of_continuous $ λx u hu,
-  ⟨univ, by simpa [filter.univ_mem_sets] using L u hu⟩
+  ⟨univ, by simpa [filter.univ_mem] using L u hu⟩
 
 /-!
 ### Uniform limits
@@ -317,8 +317,8 @@ lemma tendsto_locally_uniformly_on.tendsto_comp (h : tendsto_locally_uniformly_o
   tendsto (λ n, F n (g n)) p (𝓝 (f x)) :=
 tendsto_comp_of_locally_uniform_limit_within hf hg (λ u hu, h u hu x hx)
 
-/-- If `Fₙ` tends uniformly to `f` on a set `s`, and `gₙ` tends to `x` within `s`, then `Fₙ gₙ` tends
-to `f x` if `f` is continuous at `x` within `s`. -/
+/-- If `Fₙ` tends uniformly to `f` on a set `s`, and `gₙ` tends to `x` within `s`, then `Fₙ gₙ`
+tends to `f x` if `f` is continuous at `x` within `s`. -/
 lemma tendsto_uniformly_on.tendsto_comp (h : tendsto_uniformly_on F f p s)
   (hf : continuous_within_at f s x) (hg : tendsto g p (𝓝[s] x)) :
   tendsto (λ n, F n (g n)) p (𝓝 (f x)) :=

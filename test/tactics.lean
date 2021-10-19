@@ -209,64 +209,6 @@ by {have : α₁, have : α₂, have : α₃, swap, swap,
 
 end swap
 
-section lift
-
-example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
-  (h : k + n = 2 + x) (f : false) :
-  k + n = m + x :=
-begin
-  lift n to ℕ using le_of_lt hn,
-    guard_target (k + ↑n = m + x), guard_hyp hn : (0 : ℤ) < ↑n,
-  lift m to ℕ,
-    guard_target (k + ↑n = ↑m + x), tactic.swap, guard_target (0 ≤ m), tactic.swap,
-    tactic.num_goals >>= λ n, guard (n = 2),
-  lift (k + n) to ℕ using hk with l hl,
-    guard_hyp l : ℕ, guard_hyp hl : ↑l = k + ↑n, guard_target (↑l = ↑m + x),
-    tactic.success_if_fail (tactic.get_local `hk),
-  lift x to ℕ with y hy,
-    guard_hyp y : ℕ, guard_hyp hy : ↑y = x, guard_target (↑l = ↑m + x),
-  lift z to ℕ with w,
-    guard_hyp w : ℕ, tactic.success_if_fail (tactic.get_local `z),
-  lift u to ℕ using hu with u rfl hu,
-    guard_hyp hu : (0 : ℤ) ≤ ↑u,
-
-  all_goals { exfalso, assumption },
-end
-
--- test lift of functions
-example (α : Type*) (f : α → ℤ) (hf : ∀ a, 0 ≤ f a) (hf' : ∀ a, f a < 1) (a : α) : 0 ≤ 2 * f a :=
-begin
-  lift f to α → ℕ using hf,
-    guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
-    guard_hyp hf' : ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
-  trivial
-end
-
-instance can_lift_unit : can_lift unit unit :=
-⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
-
-/- test whether new instances of `can_lift` are added as simp lemmas -/
-run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
-
-/- test error messages -/
-example (n : ℤ) (hn : 0 < n) : true :=
-begin
-  success_if_fail_with_msg {lift n to ℕ using hn} "lift tactic failed. The type of\n  hn\nis
-  0 < n\nbut it is expected to be\n  0 ≤ n",
-  success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
-    "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
-  trivial
-end
-
-example (n : ℤ) : ℕ :=
-begin
-  success_if_fail_with_msg {lift n to ℕ}
-    "lift tactic failed. Tactic is only applicable when the target is a proposition.",
-  exact 0
-end
-
-end lift
-
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
        | result.success a s' := result.success "No exception" s
@@ -476,7 +418,12 @@ begin
     "No such hypothesis 1 + 2." },
   revert_deps k, tactic.intron 5, guard_target unit,
   revert_after n, tactic.intron 7, guard_target unit,
-  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  do {
+    e ← get_local `k,
+    tactic.revert_reverse_dependencies_of_hyp e,
+    l ← local_context,
+    guard $ e ∈ l,
+    intros },
   exact unit.star
 end
 
@@ -571,8 +518,9 @@ run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.hi
 run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
 
 run_cmd set_attribute `norm `prod.map tt
+run_cmd set_attribute `my_attr `prod.map
+run_cmd set_attribute `to_additive `has_mul
 run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
-run_cmd success_if_fail $ set_attribute `my_attr `prod.map
 run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
 run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
 

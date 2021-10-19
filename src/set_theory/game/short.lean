@@ -184,14 +184,16 @@ def le_lt_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤
 begin
   resetI,
   split,
-  { apply @and.decidable _ _ _ _,
+  { refine @decidable_of_iff' _ _ mk_le_mk (id _),
+    apply @and.decidable _ _ _ _,
     { apply @fintype.decidable_forall_fintype xl _ _ (by apply_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).2; apply_instance, },
     { apply @fintype.decidable_forall_fintype yr _ _ (by apply_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).2; apply_instance, }, },
-  { apply @or.decidable _ _ _ _,
+  { refine @decidable_of_iff' _ _ mk_lt_mk (id _),
+    apply @or.decidable _ _ _ _,
     { apply @fintype.decidable_exists_fintype yl _ _ (by apply_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).1; apply_instance, },
@@ -222,7 +224,8 @@ example : short (0 + 0) := by apply_instance
 
 example : decidable ((1 : pgame) ≤ 1) := by apply_instance
 
-example : (0 : pgame) ≤ 0 := dec_trivial
-example : (1 : pgame) ≤ 1 := dec_trivial
+-- No longer works since definitional reduction of well-founded definitions has been restricted.
+-- example : (0 : pgame) ≤ 0 := dec_trivial
+-- example : (1 : pgame) ≤ 1 := dec_trivial
 
 end pgame

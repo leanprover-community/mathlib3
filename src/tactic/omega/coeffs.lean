@@ -1,9 +1,14 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
+/-
 Non-constant terms of linear constraints are represented
-by storing their coefficients in integer lists. -/
+by storing their coefficients in integer lists.
+-/
+
 import data.list.func
 import tactic.ring
 import tactic.omega.misc
@@ -110,6 +115,7 @@ begin
   apply val_between_set, apply zero_le,
   apply lt_of_lt_of_le (lt_add_one _),
   simp only [length_set, zero_add, le_max_right],
+  apply_instance,
 end
 
 lemma val_between_neg {as : list int} {l : nat} :
@@ -195,9 +201,8 @@ begin
       apply ne_of_lt;
       rw nat.lt_iff_add_one_le;
       exact h3 },
-    repeat { rw add_comm,
-             apply le_trans _ (nat.le_sub_add _ _),
-            { apply le_max_right <|> apply le_max_left } } }
+    { refine le_trans (le_max_right _ _) le_add_sub },
+    { refine le_trans (le_max_left _ _) le_add_sub } }
 end
 
 open_locale omega
@@ -284,7 +289,7 @@ lemma dvd_val {as : list int} {i : int} :
 | (m+1) :=
   begin
     unfold val_between,
-    rw [@val_between_map_div m, int.add_div_of_dvd (dvd_val_between h1)],
+    rw [@val_between_map_div m, int.add_div_of_dvd_right],
     apply fun_mono_2 rfl,
     { apply calc get (l + m) (list.map (λ (x : ℤ), x / i) as) * v (l + m)
           = ((get (l + m) as) / i) * v (l + m) :

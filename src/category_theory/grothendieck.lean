@@ -124,6 +124,14 @@ instance : category (grothendieck F) :=
       refl, },
   end, }
 
+@[simp] lemma id_fiber' (X : grothendieck F) :
+  hom.fiber (𝟙 X) = eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]) :=
+id_fiber X
+
+lemma congr {X Y : grothendieck F} {f g : X ⟶ Y} (h : f = g) :
+  f.fiber = eq_to_hom (by subst h) ≫ g.fiber :=
+by { subst h, dsimp, simp, }
+
 section
 variables (F)
 
@@ -138,24 +146,32 @@ end
 universe w
 variables (G : C ⥤ Type w)
 
+/-- Auxiliary definition for `grothendieck_Type_to_Cat`, to speed up elaboration. -/
+@[simps]
+def grothendieck_Type_to_Cat_functor : grothendieck (G ⋙ Type_to_Cat) ⥤ G.elements :=
+{ obj := λ X, ⟨X.1, X.2⟩,
+  map := λ X Y f, ⟨f.1, f.2.1.1⟩ }
+
+/-- Auxiliary definition for `grothendieck_Type_to_Cat`, to speed up elaboration. -/
+@[simps]
+def grothendieck_Type_to_Cat_inverse : G.elements ⥤ grothendieck (G ⋙ Type_to_Cat) :=
+{ obj := λ X, ⟨X.1, X.2⟩,
+  map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ }
+
 /--
 The Grothendieck construction applied to a functor to `Type`
 (thought of as a functor to `Cat` by realising a type as a discrete category)
 is the same as the 'category of elements' construction.
 -/
+@[simps]
 def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
-{ functor :=
-  { obj := λ X, ⟨X.1, X.2⟩,
-    map := λ X Y f, ⟨f.1, f.2.1.1⟩ },
-  inverse :=
-  { obj := λ X, ⟨X.1, X.2⟩,
-    map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ },
+{ functor := grothendieck_Type_to_Cat_functor G,
+  inverse := grothendieck_Type_to_Cat_inverse G,
   unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
-    (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, simp, }),
+    (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, ext, simp, }),
   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
-    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
+    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, ext, simp }),
   functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
-
 
 end grothendieck
 

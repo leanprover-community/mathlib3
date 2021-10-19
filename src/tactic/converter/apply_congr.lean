@@ -61,8 +61,7 @@ begin
     -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
     apply_congr,
     skip,
-    simp [h, H],
-  }
+    simp [h, H], }
 end
 ```
 

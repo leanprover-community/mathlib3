@@ -39,8 +39,8 @@ do ns ← lean.parser.ident,
    n ← lean.parser.ident,
    let tac_name := "try_test_" ++ (remove_dot (ns ++ n).to_string),
    lean.parser.emit_code_here $
-     "meta def tactic.interactive." ++ tac_name ++ " (_ : interactive.parse " ++ (ns ++ n).to_string ++ ")"
-       ++ ": tactic unit := tactic.triv",
+     "meta def tactic.interactive." ++ tac_name ++
+       " (_ : interactive.parse " ++ (ns ++ n).to_string ++ ")" ++ ": tactic unit := tactic.triv",
    if ns = name.anonymous then tactic.skip else lean.parser.emit_code_here $
      "namespace " ++ ns.to_string,
    lean.parser.emit_code_here $

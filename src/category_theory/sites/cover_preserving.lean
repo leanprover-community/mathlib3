@@ -73,7 +73,7 @@ end⟩
 /--
 A functor `G : (C, J) ⥤ (D, K)` between sites is called compatible preserving if for each
 compatible family of elements at `C` and valued in `G.op ⋙ ℱ`, and each commuting diagram
-`f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂`, `x g₁` and `x g₂` coincides when restricted via `fᵢ`.
+`f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂`, `x g₁` and `x g₂` coincide when restricted via `fᵢ`.
 This is actually stronger than merely preserving compatible families because of the definition of
 `functor_pushforward` used.
 -/
@@ -93,7 +93,7 @@ include h hG
 
 /-- `compatible_preserving` functors indeed preserve compatible families. -/
 lemma presieve.family_of_elements.compatible.functor_pushforward :
-    (x.functor_pushforward G).compatible :=
+  (x.functor_pushforward G).compatible :=
 begin
   rintros Z₁ Z₂ W g₁ g₂ f₁' f₂' H₁ H₂ eq,
   unfold family_of_elements.functor_pushforward,
@@ -105,7 +105,7 @@ begin
   simpa using eq
 end
 
-lemma compatible_preserving.apply_map {Y : C} {f: Y ⟶ Z} (hf) :
+lemma compatible_preserving.apply_map {Y : C} {f : Y ⟶ Z} (hf) :
   x.functor_pushforward G (G.map f) (image_mem_functor_pushforward G T hf) = x f hf :=
 begin
   unfold family_of_elements.functor_pushforward,

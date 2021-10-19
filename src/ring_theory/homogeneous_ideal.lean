@@ -100,6 +100,25 @@ begin
     exact I.zero_mem }
 end
 
+
+private lemma homogeneous_ideal.homogeneous_component [add_comm_monoid ι] [gcomm_semiring A]
+  {I : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) (x : ⨁ i, A i) (hx : x ∈ I) (i : ι) :
+  of A i (x i) ∈ I :=
+begin
+  have HI' := HI,
+  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span,
+      finsupp.span_eq_range_total] at HI',
+  rw HI' at hx,
+  obtain ⟨s, rfl⟩ := hx,
+  rw [finsupp.total_apply, finsupp.sum, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],
+  apply ideal.sum_mem,
+  rintros ⟨-, y_mem_I, z, rfl⟩ hy,
+  simp only [algebra.id.smul_eq_mul, subtype.coe_mk],
+  apply homogeneous_ideal.mul_homogeneous_element HI,
+  use z, exact y_mem_I,
+end
+
+
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
   x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
@@ -117,6 +136,40 @@ end, begin
   intro H, rw [direct_sum.eq_sum_of _ x], apply ideal.sum_mem, intros j hj,
   apply H,
 end⟩
+
+/--Another definition of homogeneous ideal-/
+def homogeneous_ideal'' [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) : Prop :=
+  ∀ (x : ⨁ i, A i) (i : ι), x ∈ I → of A i (x i) ∈ I
+
+lemma homogeneous_ideal_iff_homogeneous_ideal'' [add_comm_monoid ι] [gcomm_semiring A]
+  (I : ideal (⨁ i, A i)):
+  homogeneous_ideal I ↔ homogeneous_ideal'' I :=
+⟨λ HI, begin
+  intros x i hx,
+  apply homogeneous_ideal.homogeneous_component HI x hx,
+end, λ HI, begin
+  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'],
+  ext, split; intro hx,
+  { rw direct_sum.eq_sum_of _ x,
+    refine ideal.sum_mem _ _,
+    intros j hj, specialize HI x j hx,
+    rw ideal.mem_span, intros J HJ,
+    refine HJ _,
+    simp only [mem_set_of_eq],
+    refine ⟨HI, _⟩, use ⟨j, x j⟩, },
+  { rw [ideal.mem_span] at hx,
+    apply hx,
+    intros y hy,
+    exact hy.1,  }
+end⟩
+
+lemma homogeneou_ideal.equivalent [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) :
+  tfae [homogeneous_ideal I, homogeneous_ideal' I, homogeneous_ideal'' I] :=
+begin
+  tfae_have : 1↔2, exact homogeneous_ideal_iff_homogeneous_ideal' I,
+  tfae_have : 1↔3, exact homogeneous_ideal_iff_homogeneous_ideal'' I,
+  tfae_finish,
+end
 
 end defs
 
@@ -195,5 +248,24 @@ begin
   rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'],
   exact le_antisymm (homogeneous_ideal.inf_subset HI HJ) (homogeneous_ideal.subset_inf HI HJ),
 end
+
+-- lemma homogeneous_ideal.rad_eq  {I : ideal (⨁ i, A i)}
+--   (HI : homogeneous_ideal I) :
+--   I.radical = Inf {J | I ≤ J ∧ homogeneous_ideal J ∧ J.is_prime} :=
+-- begin
+--   sorry
+-- end
+
+-- lemma homogeneous_ideal.rad {I : ideal (⨁ i, A i)}
+--   (HI : homogeneous_ideal I) : homogeneous_ideal I.radical :=
+-- begin
+--   have radI_eq := homogeneous_ideal.rad_eq HI,
+--   rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'],
+--   conv_lhs { rw radI_eq }, ext x,
+--   rw [ideal.mem_Inf], split,
+--   { sorry },
+
+--   { sorry }
+-- end
 
 end operations

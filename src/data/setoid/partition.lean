@@ -19,6 +19,14 @@ There are two implementations of partitions here:
 
 Of course both implementations are related to `quotient` and `setoid`.
 
+## TODO
+
+Link `setoid.is_partition` and `finpartition`.
+
+Could the design of `finpartition` inform the one of `setoid.is_partition`? Maybe bundling it and
+changing it from `set (set α)` to `set α` where `distrib_lattice_bot α` (or, if we had it,
+`lattice_bot`) would be make it more usable.
+
 ## Tags
 
 setoid, equivalence, iseqv, relation, equivalence relation, partition, equivalence class

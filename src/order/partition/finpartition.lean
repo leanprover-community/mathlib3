@@ -35,6 +35,8 @@ We provide many ways to build finpartitions:
 ## TODO
 
 `distrib_lattice_bot` shuld be replaced everywhere by `lattice_bot`, which we don't have.
+
+Link `finpartition` and `setoid.is_partition`.
 -/
 
 open finset function

@@ -70,6 +70,22 @@ variables {k}
 theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
 
+lemma exists_pow_nat_eq [is_alg_closed k] (x : k) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
+begin
+  rcases exists_root (X ^ n - C x) _ with ⟨z, hz⟩, swap,
+  { rw degree_X_pow_sub_C hn x,
+    exact ne_of_gt (with_bot.coe_lt_coe.2 hn) },
+  use z,
+  simp only [eval_C, eval_X, eval_pow, eval_sub, is_root.def] at hz,
+  exact sub_eq_zero.1 hz
+end
+
+lemma exists_eq_mul_self [is_alg_closed k] (x : k) : ∃ z, x = z * z :=
+begin
+  rcases exists_pow_nat_eq x zero_lt_two with ⟨z, rfl⟩,
+  exact ⟨z, sq z⟩
+end
+
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
   (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in

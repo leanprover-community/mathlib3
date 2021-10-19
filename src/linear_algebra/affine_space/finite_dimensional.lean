@@ -66,6 +66,21 @@ instance finite_dimensional_direction_affine_span_image_of_fintype [fintype ι] 
   (s : set ι) : finite_dimensional k (affine_span k (p '' s)).direction :=
 finite_dimensional_direction_affine_span_of_finite k ((set.finite.of_fintype _).image _)
 
+/-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
+noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
+  {p : ι → P} (hi : affine_independent k p) : fintype ι :=
+if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
+begin
+  let q := (not_is_empty_iff.mp hι).some,
+  rw affine_independent_iff_linear_independent_vsub k p q at hi,
+  exact fintype_of_fintype_ne _ (fintype_of_is_noetherian_linear_independent hi)
+end
+
+/-- An affine-independent subset of a finite-dimensional affine space is finite. -/
+lemma finite_of_fin_dim_affine_independent [finite_dimensional k V]
+  {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
+⟨fintype_of_fin_dim_affine_independent k hi⟩
+
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent

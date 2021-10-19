@@ -162,6 +162,10 @@ begin
   { rw [nat.mul_succ, pow_add, pow_succ', ih] }
 end
 
+@[to_additive nsmul_left_comm]
+lemma pow_right_comm (a : M) (m n : ℕ) : (a^m)^n = (a^n)^m :=
+by rw [←pow_mul, nat.mul_comm, pow_mul]
+
 @[to_additive mul_nsmul]
 theorem pow_mul' (a : M) (m n : ℕ) : a^(m * n) = (a^n)^m :=
 by rw [nat.mul_comm, pow_mul]

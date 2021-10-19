@@ -539,17 +539,23 @@ by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
 theorem pow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
 
-theorem pow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonneg_iff.mpr ha
-
-theorem pow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_pos_iff.mpr ha
-
 theorem pow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
 
 theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
+
+lemma odd.pow_nonneg (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_odd_neg ha hn), λ ha, pow_nonneg ha n⟩
+
+lemma odd.pow_nonpos (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_pos ha _), λ ha, pow_odd_nonpos ha hn⟩
+
+lemma odd.pow_pos (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
+⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_odd_nonpos ha hn), λ ha, pow_pos ha n⟩
+
+lemma odd.pow_neg (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
+⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), λ ha, pow_odd_neg ha hn⟩
 
 lemma pow_even_abs (a : R) {p : ℕ} (hp : even p) :
   |a| ^ p = a ^ p :=

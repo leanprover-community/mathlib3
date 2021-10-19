@@ -402,7 +402,7 @@ by rw mul_comm; apply mul_equiv_zero _ hf
 
 end comm_ring
 
-section integral_domain
+section domain
 variables {β : Type*} [ring β] [domain β] (abv : β → α) [is_absolute_value abv]
 
 lemma one_not_equiv_zero : ¬ (const abv 1) ≈ (const abv 0) :=
@@ -417,7 +417,7 @@ have abv 1 = 0, from le_antisymm h1 h2,
 have (1 : β) = 0, from (is_absolute_value.abv_eq_zero abv).1 this,
 absurd this one_ne_zero
 
-end integral_domain
+end domain
 
 section field
 variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]

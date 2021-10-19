@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.bag_inter
 import data.list.erase_dup
+import data.list.permutation
 import data.list.zip
 import logic.relation
 

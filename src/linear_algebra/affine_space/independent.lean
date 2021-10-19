@@ -288,6 +288,16 @@ begin
   simp [hf]
 end
 
+lemma affine_independent_equiv {ι' : Type*} (e : ι ≃ ι') {p : ι' → P} :
+  affine_independent k (p ∘ e) ↔ affine_independent k p :=
+begin
+  refine ⟨_, affine_independent.comp_embedding e.to_embedding⟩,
+  intros h,
+  have : p = p ∘ e ∘ e.symm.to_embedding, { ext, simp, },
+  rw this,
+  exact h.comp_embedding e.symm.to_embedding,
+end
+
 /-- If a set of points is affinely independent, so is any subset. -/
 protected lemma affine_independent.mono {s t : set P}
   (ha : affine_independent k (λ x, x : t → P)) (hs : s ⊆ t) :
@@ -340,18 +350,18 @@ lemma affine_map.affine_independent_iff {p : ι → P} (f : P →ᵃ[k] P₂) (h
   affine_independent k (f ∘ p) ↔ affine_independent k p :=
 ⟨affine_independent.of_comp f, λ hai, affine_independent.map' hai f hf⟩
 
-/-- In particular, affine equivalences preserve affine independence. -/
+/-- Affine equivalences preserve affine independence of families of points. -/
 lemma affine_equiv.affine_independent_iff {p : ι → P} (e : P ≃ᵃ[k] P₂) :
   affine_independent k (e ∘ p) ↔ affine_independent k p :=
 e.to_affine_map.affine_independent_iff e.to_equiv.injective
 
-omit V₂
-
-/-- In particular, homotheties preserve affine independence (when the scale factor is a unit). -/
-lemma affine_map.homothety_affine_independent_iff {k : Type*} [comm_ring k] [module k V]
-  {p : ι → P} {q : P} {t : units k} :
-  affine_independent k ((affine_map.homothety q (t : k)) ∘ p) ↔ affine_independent k p :=
-(affine_equiv.homothety_units_mul_hom q t).affine_independent_iff
+/-- Affine equivalences preserve affine independence of subsets. -/
+lemma affine_equiv.affine_independent_set_of_eq_iff {s : set P} (e : P ≃ᵃ[k] P₂) :
+  affine_independent k (coe : (e '' s) → P₂) ↔ affine_independent k (coe : s → P) :=
+begin
+  have : e ∘ (coe : s → P) = (coe : e '' s → P₂) ∘ ((e : P ≃ P₂).image s) := rfl,
+  rw [← e.affine_independent_iff, this, affine_independent_equiv],
+end
 
 end composition
 

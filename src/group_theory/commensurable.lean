@@ -77,7 +77,7 @@ end
 
 namespace subgroup
 /--`mul_hom` on subgroups induced by `mul_hom` of parent group-/
-def img_mul_hom  (H : subgroup G) (f: G →* G') :
+def img_mul_hom  (H : subgroup G) (f : G →* G') :
   H →* H.map f := {
    to_fun:= λ x, ⟨f x, by {use x,
     simp only [set_like.coe_mem, eq_self_iff_true, set_like.mem_coe, and_self],}⟩,
@@ -89,7 +89,7 @@ def img_mul_hom  (H : subgroup G) (f: G →* G') :
 }
 
 /--Isomorphism of a group with its image under an isomorphism-/
-def img_mul_equiv  (H : subgroup G) (f: G ≃* G') :
+def img_mul_equiv  (H : subgroup G) (f : G ≃* G') :
   H ≃* (subgroup.map f.to_monoid_hom) H := {
     to_fun := λ x, ⟨f.1 x, by {simp}⟩,
     inv_fun := λ x, ⟨f.2 x, by {simp only [mul_equiv.inv_fun_eq_symm],
@@ -109,10 +109,10 @@ def img_mul_equiv  (H : subgroup G) (f: G ≃* G') :
 }
 
 /--Image of a sub_subgroup under a `mul_hom`-/
-def mul_hom_sub_subgroup (H : subgroup G) (K : subgroup H) (f: G →* G') :
+def mul_hom_sub_subgroup (H : subgroup G) (K : subgroup H) (f : G →* G') :
   subgroup (H.map f) :=  subgroup.map (img_mul_hom H f) K
 
-lemma equiv_sub_subgroup_of (H K: subgroup G) (f: G ≃* G') :
+lemma equiv_sub_subgroup_of (H K: subgroup G) (f : G ≃* G') :
   (mul_hom_sub_subgroup H (K.subgroup_of H) f.to_monoid_hom) =
   (K.map f.to_monoid_hom).subgroup_of (H.map f.to_monoid_hom) :=
 begin

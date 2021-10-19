@@ -36,16 +36,15 @@ lemma rank_eq_card_choose_basis_index : module.rank R M = #(choose_basis_index R
 (choose_basis R M).mk_eq_dim''.symm
 
 /-- The rank of `(ι →₀ R)` is `(# ι).lift`. -/
-lemma rank_finsupp {ι : Type v} : module.rank R (ι →₀ R) = (# ι).lift :=
+@[simp] lemma rank_finsupp {ι : Type v} : module.rank R (ι →₀ R) = (# ι).lift :=
 by simpa [lift_id', lift_umax] using
   (basis.of_repr (linear_equiv.refl _ (ι →₀ R))).mk_eq_dim.symm
 
 /-- If `R` and `ι` lie in the same universe, the rank of `(ι →₀ R)` is `# ι`. -/
-lemma rank_finsupp' {ι : Type u} : module.rank R (ι →₀ R) = # ι :=
-(finsupp.basis_single_one : basis ι R (ι →₀ R)).mk_eq_dim''.symm
+lemma rank_finsupp' {ι : Type u} : module.rank R (ι →₀ R) = # ι := by simp
 
 /-- The rank of `M × N` is `(module.rank R M).lift + (module.rank R N).lift`. -/
-lemma rank_prod : module.rank R (M × N) = lift.{w v} (module.rank R M) +
+@[simp] lemma rank_prod : module.rank R (M × N) = lift.{w v} (module.rank R M) +
   lift.{v w} (module.rank R N) :=
 by simpa [rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R N, ← add]
   using ((choose_basis R M).prod (choose_basis R N)).mk_eq_dim.symm
@@ -53,11 +52,10 @@ by simpa [rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R
 /-- If `M` and `N` lie in the same universe, the rank of `M × N` is
   `(module.rank R M) + (module.rank R N)`. -/
 lemma rank_prod' (N : Type v) [add_comm_group N] [module R N] [module.free R N] :
-  module.rank R (M × N) = (module.rank R M) + (module.rank R N) :=
-by { rw [rank_prod R M N], simp }
+  module.rank R (M × N) = (module.rank R M) + (module.rank R N) := by simp
 
 /-- The rank of the direct sum is the sum of the ranks. -/
-lemma rank_direct_sum  {ι : Type u} (M : ι → Type v) [Π (i : ι), add_comm_group (M i)]
+@[simp] lemma rank_direct_sum  {ι : Type u} (M : ι → Type v) [Π (i : ι), add_comm_group (M i)]
   [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] :
   module.rank R (⨁ i, M i) = cardinal.sum (λ i, module.rank R (M i)) :=
 begin
@@ -75,7 +73,7 @@ variables [add_comm_group M] [module R M] [module.free R M]
 variables [add_comm_group N] [module R N] [module.free R N]
 
 /-- The rank of `M ⊗[R] N` is `(module.rank R M).lift * (module.rank R N).lift`. -/
-lemma rank_tensor_product : module.rank R (M ⊗[R] N) = lift.{w v} (module.rank R M) *
+@[simp] lemma rank_tensor_product : module.rank R (M ⊗[R] N) = lift.{w v} (module.rank R M) *
   lift.{v w} (module.rank R N) :=
 begin
   let ιM := choose_basis_index R M,
@@ -90,8 +88,7 @@ end
 /-- If `M` and `N` lie in the same universe, the rank of `M ⊗[R] N` is
   `(module.rank R M) * (module.rank R N)`. -/
 lemma rank_tensor_product' (N : Type v) [add_comm_group N] [module R N] [module.free R N] :
-  module.rank R (M ⊗[R] N) = (module.rank R M) * (module.rank R N) :=
-by { rw [rank_tensor_product R M N], simp }
+  module.rank R (M ⊗[R] N) = (module.rank R M) * (module.rank R N) := by simp
 
 end comm_ring
 

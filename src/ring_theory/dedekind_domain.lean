@@ -592,6 +592,46 @@ begin
   { exact fractional_ideal.coe_ideal_ne_zero_iff.mp (right_ne_zero_of_mul hne) }
 end
 
+lemma mul_right_le_iff [is_dedekind_domain A] {J : fractional_ideal A⁰ K}
+  (hJ : J ≠ 0) : ∀ {I I'}, I * J ≤ I' * J ↔ I ≤ I' :=
+begin
+  intros I I',
+  split,
+  { intros h, convert mul_right_mono J⁻¹ h;
+      rw [mul_assoc, fractional_ideal.mul_inv_cancel hJ, mul_one] },
+  { exact λ h, mul_right_mono J h }
+end
+
+lemma mul_left_le_iff [is_dedekind_domain A] {J : fractional_ideal A⁰ K}
+  (hJ : J ≠ 0) {I I'} : J * I ≤ J * I' ↔ I ≤ I' :=
+by convert fractional_ideal.mul_right_le_iff hJ using 1; simp only [mul_comm]
+
+lemma mul_right_strict_mono [is_dedekind_domain A] {I : fractional_ideal A⁰ K}
+  (hI : I ≠ 0) : strict_mono (* I) :=
+strict_mono_of_le_iff_le (λ _ _, (mul_right_le_iff hI).symm)
+
+lemma mul_left_strict_mono [is_dedekind_domain A] {I : fractional_ideal A⁰ K}
+  (hI : I ≠ 0) : strict_mono ((*) I) :=
+strict_mono_of_le_iff_le (λ _ _, (mul_left_le_iff hI).symm)
+
+/--
+This is also available as `_root_.div_eq_mul_inv`, using the
+`comm_group_with_zero` instance defined below.
+-/
+protected lemma div_eq_mul_inv [is_dedekind_domain A] (I J : fractional_ideal A⁰ K) :
+  I / J = I * J⁻¹ :=
+begin
+  by_cases hJ : J = 0,
+  { rw [hJ, div_zero, inv_zero', mul_zero] },
+  refine le_antisymm ((mul_right_le_iff hJ).mp _) ((le_div_iff_mul_le hJ).mpr _),
+  { rw [mul_assoc, mul_comm J⁻¹, fractional_ideal.mul_inv_cancel hJ, mul_one, mul_le],
+    intros x hx y hy,
+    rw [mem_div_iff_of_nonzero hJ] at hx,
+    exact hx y hy },
+  rw [mul_assoc, mul_comm J⁻¹, fractional_ideal.mul_inv_cancel hJ, mul_one],
+  exact le_refl I
+end
+
 end fractional_ideal
 
 /-- `is_dedekind_domain` and `is_dedekind_domain_inv` are equivalent ways
@@ -612,6 +652,8 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   comm_group_with_zero (fractional_ideal A⁰ K) :=
 { inv := λ I, I⁻¹,
   inv_zero := inv_zero' _,
+  div := (/),
+  div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
   exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective (le_refl _)).ne
     (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,

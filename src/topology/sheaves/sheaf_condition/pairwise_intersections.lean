@@ -32,7 +32,7 @@ We express this in two equivalent ways, as
 
 noncomputable theory
 
-universes v u
+universes v u v₁ u₁
 
 open topological_space
 open Top
@@ -56,6 +56,45 @@ A presheaf is a sheaf if `F` sends the cone `(pairwise.cocone U).op` to a limit 
 -/
 def is_sheaf_pairwise_intersections (F : presheaf C X) : Prop :=
 ∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (pairwise.cocone U).op))
+
+section
+variables {Y : Top.{v}} {f : X ⟶ Y} ⦃ι : Type v⦄ {U : ι → opens Y}
+
+lemma diagram_eq: pairwise.diagram U ⋙ opens.map f
+                = pairwise.diagram ((opens.map f).obj ∘ U) :=
+begin
+  apply functor.hext,
+  abstract obj_eq {intro i, cases i; refl},
+  intros i j g, apply subsingleton.helim,
+  iterate 2 {rw diagram_eq.obj_eq},
+end
+
+lemma supr_eq : (opens.map f).obj (supr U) = supr ((opens.map f).obj ∘ U) :=
+begin
+  rw [opens.supr_def, opens.supr_def, opens.map_obj],
+  apply subtype.eq, dsimp, rw set.preimage_Union, refl,
+end
+
+lemma cocone_eq : ((opens.map f).map_cocone (pairwise.cocone U))
+                  == pairwise.cocone ((opens.map f).obj ∘ U) :=
+begin
+  unfold functor.map_cocone cocones.functoriality, dsimp, congr,
+  iterate 2 {rw diagram_eq, rw supr_eq},
+  apply subsingleton.helim, rw [diagram_eq, supr_eq],
+  apply proof_irrel_heq,
+end
+
+theorem sheaf_of_sheaf_pairwise_intersection
+  (F : presheaf C X) {Y : Top.{v}} {f : X ⟶ Y}
+  (hF : F.is_sheaf_pairwise_intersections) :
+  (f _* F).is_sheaf_pairwise_intersections :=
+λ ι U, by {
+  convert hF ((opens.map f).obj ∘ U) using 2,
+  rw ← diagram_eq, refl,
+  change functor.map_cone F (functor.map_cocone (opens.map f) _).op == _,
+  congr, iterate 2 {rw diagram_eq}, apply cocone_eq }
+
+end
 
 /--
 An alternative formulation of the sheaf condition

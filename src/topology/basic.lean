@@ -252,7 +252,7 @@ lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : is_open s) :
   s ⊆ interior t ↔ s ⊆ t :=
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
-lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
+@[mono] lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) is_open_interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=

@@ -19,18 +19,6 @@ begin
 end :=
 rfl
 
--- And why not Lie rings while we're at it?
-def lie_ring.map {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) : lie_ring β :=
-by transport using e
-
--- Verify definitional equality of the new structure data.
-example {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) (x y : β) :
-begin
-  haveI := lie_ring.map e,
-  exact ⁅x, y⁆ = e ⁅e.symm x, e.symm y⁆
-end :=
-rfl
-
 -- Below we verify in more detail that the transported structure for `semiring`
 -- is definitionally what you would hope for.
 
@@ -52,7 +40,7 @@ def mynat_equiv : ℕ ≃ mynat :=
   mynat_equiv.symm (mynat.succ n) = (mynat_equiv.symm n) + 1 := rfl
 
 instance semiring_mynat : semiring mynat :=
-by transport (by apply_instance : semiring ℕ) using mynat_equiv
+semiring.map mynat_equiv
 
 lemma mynat_add_def (a b : mynat) : a + b = mynat_equiv (mynat_equiv.symm a + mynat_equiv.symm b) :=
 rfl
@@ -79,4 +67,10 @@ example : (2 : mynat) * (2 : mynat) = (4 : mynat) :=
 rfl
 
 example : (3 : mynat) + (7 : mynat) * (2 : mynat) = (17 : mynat) :=
+rfl
+
+example : (2 : ℕ) • (3 : mynat) = (6 : mynat) :=
+rfl
+
+example : (3 : mynat) ^ 2 = (9 : mynat) :=
 rfl

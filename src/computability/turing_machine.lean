@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
-import algebra.order
 import data.fintype.basic
 import data.pfun
-import tactic.apply_fun
 import logic.function.iterate
+import order.basic
+import tactic.apply_fun
 
 /-!
 # Turing machines
@@ -44,7 +44,7 @@ Given these parameters, there are a few common structures for the model that ari
   from `c`. Because of the type of `step`, these models are all deterministic by construction.
 * `init : input → cfg` sets up the initial state. The type `input` depends on the model;
   in most cases it is `list Γ`.
-* `eval : machine → input → roption output`, given a machine `M` and input `i`, starts from
+* `eval : machine → input → part output`, given a machine `M` and input `i`, starts from
   `init i`, runs `step` until it reaches an output, and then applies a function `cfg → output` to
   the final state to obtain the result. The type `output` depends on the model.
 * `supports : machine → finset Λ → Prop` asserts that a machine `M` starts in `S : finset Λ`, and
@@ -66,7 +66,8 @@ blanks (`default Γ`) to the end of `l₁`. -/
 def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
 ∃ n, l₂ = l₁ ++ list.repeat (default Γ) n
 
-@[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l := ⟨0, by simp⟩
+@[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
+⟨0, by simp⟩
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
@@ -78,7 +79,7 @@ theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
 begin
   rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
   simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
-  simp only [← list.repeat_add, nat.add_sub_cancel' h, list.append_assoc],
+  simp only [← list.repeat_add, add_sub_cancel_of_le h, list.append_assoc],
 end
 
 /-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
@@ -100,7 +101,7 @@ begin
   rw [list.append_assoc, ← list.repeat_add, nat.sub_add_cancel],
   apply_fun list.length at e,
   simp only [list.length_append, list.length_repeat] at e,
-  rwa [ge, ← add_le_add_iff_left, e, add_le_add_iff_right]
+  rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
 end
 
 /-- `blank_rel` is the symmetric closure of `blank_extends`, turning it into an equivalence
@@ -583,9 +584,9 @@ theorem tape.map_mk₁ {Γ Γ'} [inhabited Γ] [inhabited Γ'] (f : pointed_map 
 
 /-- Run a state transition function `σ → option σ` "to completion". The return value is the last
 state returned before a `none` result. If the state transition function always returns `some`,
-then the computation diverges, returning `roption.none`. -/
-def eval {σ} (f : σ → option σ) : σ → roption σ :=
-pfun.fix (λ s, roption.some $ (f s).elim (sum.inl s) sum.inr)
+then the computation diverges, returning `part.none`. -/
+def eval {σ} (f : σ → option σ) : σ → part σ :=
+pfun.fix (λ s, part.some $ (f s).elim (sum.inl s) sum.inr)
 
 /-- The reflexive transitive closure of a state transition function. `reaches f a b` means
 there is a finite sequence of steps `f a = some a₁`, `f a₁ = some a₂`, ... such that `aₙ = b`.
@@ -604,9 +605,9 @@ theorem reaches₁_eq {σ} {f : σ → option σ} {a b c}
 trans_gen.head'_iff.trans (trans_gen.head'_iff.trans $ by rw h).symm
 
 theorem reaches_total {σ} {f : σ → option σ}
-  {a b c} : reaches f a b → reaches f a c →
+  {a b c} (hab : reaches f a b) (hac : reaches f a c) :
   reaches f b c ∨ reaches f c b :=
-refl_trans_gen.total_of_right_unique $ λ _ _ _, option.mem_unique
+refl_trans_gen.total_of_right_unique (λ _ _ _, option.mem_unique) hab hac
 
 theorem reaches₁_fwd {σ} {f : σ → option σ}
   {a b c} (h₁ : reaches₁ f a c) (h₂ : b ∈ f a) : reaches f b c :=
@@ -665,27 +666,27 @@ holds of any point where `eval f a` evaluates to `b`. This formalizes the notion
   (H : ∀ a, b ∈ eval f a →
     (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
 pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
-  roption.mem_some_iff.2 $ by rw e; refl)
+  part.mem_some_iff.2 $ by rw e; refl)
 
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
   b ∈ eval f a ↔ reaches f a b ∧ f b = none :=
 ⟨λ h, begin
   refine eval_induction h (λ a h IH, _),
   cases e : f a with a',
-  { rw roption.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
-      roption.mem_some_iff.2 $ by rw e; refl),
+  { rw part.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
+      part.mem_some_iff.2 $ by rw e; refl),
     exact ⟨refl_trans_gen.refl, e⟩ },
   { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, h'⟩;
-      rw e at h; cases roption.mem_some_iff.1 h,
+      rw e at h; cases part.mem_some_iff.1 h,
     cases IH a' h' (by rwa e) with h₁ h₂,
     exact ⟨refl_trans_gen.head e h₁, h₂⟩ }
 end, λ ⟨h₁, h₂⟩, begin
   refine refl_trans_gen.head_induction_on h₁ _ (λ a a' h _ IH, _),
   { refine pfun.mem_fix_iff.2 (or.inl _),
-    rw h₂, apply roption.mem_some },
+    rw h₂, apply part.mem_some },
   { refine pfun.mem_fix_iff.2 (or.inr ⟨_, _, IH⟩),
     rw show f a = _, from h,
-    apply roption.mem_some }
+    apply part.mem_some }
 end⟩
 
 theorem eval_maximal₁ {σ} {f : σ → option σ} {a b}
@@ -700,7 +701,7 @@ refl_trans_gen_iff_eq $ λ b' h', by cases b0.symm.trans h'
 
 theorem reaches_eval {σ} {f : σ → option σ} {a b}
   (ab : reaches f a b) : eval f a = eval f b :=
-roption.ext $ λ c,
+part.ext $ λ c,
  ⟨λ h, let ⟨ac, c0⟩ := mem_eval.1 h in
     mem_eval.2 ⟨(or_iff_left_of_imp $ by exact
       λ cb, (eval_maximal h).1 cb ▸ refl_trans_gen.refl).1
@@ -811,11 +812,11 @@ theorem tr_eval' {σ₁ σ₂}
   (f₁ : σ₁ → option σ₁) (f₂ : σ₂ → option σ₂) (tr : σ₁ → σ₂)
   (H : respects f₁ f₂ (λ a b, tr a = b))
   (a₁) : eval f₂ (tr a₁) = tr <$> eval f₁ a₁ :=
-roption.ext $ λ b₂,
+part.ext $ λ b₂,
  ⟨λ h, let ⟨b₁, bb, hb⟩ := tr_eval_rev H rfl h in
-    (roption.mem_map_iff _).2 ⟨b₁, hb, bb⟩,
+    (part.mem_map_iff _).2 ⟨b₁, hb, bb⟩,
   λ h, begin
-    rcases (roption.mem_map_iff _).1 h with ⟨b₁, ab, bb⟩,
+    rcases (part.mem_map_iff _).1 h with ⟨b₁, ab, bb⟩,
     rcases tr_eval H rfl ab with ⟨_, rfl, h⟩,
     rwa bb at h
   end⟩
@@ -903,7 +904,7 @@ def init (l : list Γ) : cfg :=
 
 /-- Evaluate a Turing machine on initial input to a final state,
   if it terminates. -/
-def eval (M : machine) (l : list Γ) : roption (list_blank Γ) :=
+def eval (M : machine) (l : list Γ) : part (list_blank Γ) :=
 (eval (step M) (init l)).map (λ c, c.tape.right₀)
 
 /-- The raw definition of a Turing machine does not require that
@@ -1134,11 +1135,11 @@ end
 /-- The set of all statements in a turing machine, plus one extra value `none` representing the
 halt state. This is used in the TM1 to TM0 reduction. -/
 noncomputable def stmts (M : Λ → stmt) (S : finset Λ) : finset (option stmt) :=
-(S.bind (λ q, stmts₁ (M q))).insert_none
+(S.bUnion (λ q, stmts₁ (M q))).insert_none
 
 theorem stmts_trans {M : Λ → stmt} {S q₁ q₂}
   (h₁ : q₁ ∈ stmts₁ q₂) : some q₂ ∈ stmts M S → some q₁ ∈ stmts M S :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h₂, ⟨_, ls, stmts₁_trans h₂ h₁⟩
 
@@ -1152,7 +1153,7 @@ default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h, stmts₁_supports_stmt_mono h (ss.2 _ ls)
 
@@ -1182,7 +1183,7 @@ def init (l : list Γ) : cfg :=
 
 /-- Evaluate a TM to completion, resulting in an output list on the tape (with an indeterminate
 number of blanks on the end). -/
-def eval (M : Λ → stmt) (l : list Γ) : roption (list_blank Γ) :=
+def eval (M : Λ → stmt) (l : list Γ) : part (list_blank Γ) :=
 (eval (step M) (init l)).map (λ c, c.tape.right₀)
 
 end
@@ -1277,7 +1278,7 @@ end
 
 theorem tr_eval (l : list Γ) : TM0.eval tr l = TM1.eval M l :=
 (congr_arg _ (tr_eval' _ _ _ tr_respects ⟨some _, _, _⟩)).trans begin
-  rw [roption.map_eq_map, roption.map_map, TM1.eval],
+  rw [part.map_eq_map, part.map_map, TM1.eval],
   congr' with ⟨⟩, refl
 end
 
@@ -1292,7 +1293,7 @@ local attribute [simp] TM1.stmts₁_self
 theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
   TM0.supports tr (↑(tr_stmts S)) :=
 ⟨finset.mem_product.2 ⟨finset.some_mem_insert_none.2
-  (finset.mem_bind.2 ⟨_, ss.1, TM1.stmts₁_self⟩),
+  (finset.mem_bUnion.2 ⟨_, ss.1, TM1.stmts₁_self⟩),
   finset.mem_univ _⟩,
  λ q a q' s h₁ h₂, begin
   rcases q with ⟨_|q, v⟩, {cases h₁},
@@ -1325,7 +1326,7 @@ theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
       exact finset.mem_insert_of_mem (finset.mem_union_left _ TM1.stmts₁_self) } },
   case TM1.stmt.goto : l {
     cases h₁, exact finset.some_mem_insert_none.2
-      (finset.mem_bind.2 ⟨_, hs _ _, TM1.stmts₁_self⟩) },
+      (finset.mem_bUnion.2 ⟨_, hs _ _, TM1.stmts₁_self⟩) },
   case TM1.stmt.halt { cases h₁ }
 end⟩
 
@@ -1365,7 +1366,9 @@ theorem exists_enc_dec [fintype Γ] :
   ∃ n (enc : Γ → vector bool n) (dec : vector bool n → Γ),
     enc (default _) = vector.repeat ff n ∧ ∀ a, dec (enc a) = a :=
 begin
-  rcases fintype.exists_equiv_fin Γ with ⟨n, ⟨F⟩⟩,
+  letI := classical.dec_eq Γ,
+  let n := fintype.card Γ,
+  obtain ⟨F⟩ := fintype.trunc_equiv_fin Γ,
   let G : fin n ↪ fin n → bool := ⟨λ a b, a = b,
     λ a b h, of_to_bool_true $ (congr_fun h b).trans $ to_bool_tt rfl⟩,
   let H := (F.to_embedding.trans G).trans
@@ -1539,7 +1542,8 @@ begin
   { cases list.length_eq_zero.1 e, refl },
   cases l₂' with b l₂'; injection e with e,
   dunfold write step_aux,
-  convert IH _ _ e, simp only [list_blank.head_cons, list_blank.tail_cons,
+  convert IH _ _ e using 1,
+  simp only [list_blank.head_cons, list_blank.tail_cons,
     list_blank.append, tape.move_right_mk', tape.write_mk']
 end
 
@@ -1629,19 +1633,19 @@ noncomputable def writes : stmt₁ → finset Λ'
 /-- The set of accessible machine states, assuming that the input machine is supported on `S`,
 are the normal states embedded from `S`, plus all write states accessible from these states. -/
 noncomputable def tr_supp (S : finset Λ) : finset Λ' :=
-S.bind (λ l, insert (Λ'.normal l) (writes (M l)))
+S.bUnion (λ l, insert (Λ'.normal l) (writes (M l)))
 
 theorem tr_supports {S} (ss : supports M S) :
   supports tr (tr_supp S) :=
-⟨finset.mem_bind.2 ⟨_, ss.1, finset.mem_insert_self _ _⟩,
+⟨finset.mem_bUnion.2 ⟨_, ss.1, finset.mem_insert_self _ _⟩,
 λ q h, begin
   suffices : ∀ q, supports_stmt S q →
     (∀ q' ∈ writes q, q' ∈ tr_supp M S) →
     supports_stmt (tr_supp M S) (tr_normal dec q) ∧
     ∀ q' ∈ writes q, supports_stmt (tr_supp M S) (tr enc dec M q'),
-  { rcases finset.mem_bind.1 h with ⟨l, hl, h⟩,
+  { rcases finset.mem_bUnion.1 h with ⟨l, hl, h⟩,
     have := this _ (ss.2 _ hl) (λ q' hq,
-      finset.mem_bind.2 ⟨_, hl, finset.mem_insert_of_mem hq⟩),
+      finset.mem_bUnion.2 ⟨_, hl, finset.mem_insert_of_mem hq⟩),
     rcases finset.mem_insert.1 h with rfl | h,
     exacts [this.1, this.2 _ h] },
   intros q hs hw, induction q,
@@ -1673,7 +1677,7 @@ theorem tr_supports {S} (ss : supports M S) :
   case TM1.stmt.goto : l {
     refine ⟨_, λ _, false.elim⟩,
     refine supports_stmt_read _ (λ a _ s, _),
-    exact finset.mem_bind.2 ⟨_, hs _ _, finset.mem_insert_self _ _⟩ },
+    exact finset.mem_bUnion.2 ⟨_, hs _ _, finset.mem_insert_self _ _⟩ },
   case TM1.stmt.halt {
     refine ⟨_, λ _, false.elim⟩,
     simp only [supports_stmt, supports_stmt_move, tr_normal] }
@@ -1903,11 +1907,11 @@ end
 
 /-- The set of statements accessible from initial set `S` of labels. -/
 noncomputable def stmts (M : Λ → stmt) (S : finset Λ) : finset (option stmt) :=
-(S.bind (λ q, stmts₁ (M q))).insert_none
+(S.bUnion (λ q, stmts₁ (M q))).insert_none
 
 theorem stmts_trans {M : Λ → stmt} {S q₁ q₂}
   (h₁ : q₁ ∈ stmts₁ q₂) : some q₂ ∈ stmts M S → some q₁ ∈ stmts M S :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h₂, ⟨_, ls, stmts₁_trans h₂ h₁⟩
 
@@ -1920,7 +1924,7 @@ default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h, stmts₁_supports_stmt_mono h (ss.2 _ ls)
 
@@ -1947,7 +1951,7 @@ def init (k) (L : list (Γ k)) : cfg :=
 ⟨some (default _), default _, update (λ _, []) k L⟩
 
 /-- Evaluates a TM2 program to completion, with the output on the same stack as the input. -/
-def eval (M : Λ → stmt) (k) (L : list (Γ k)) : roption (list (Γ k)) :=
+def eval (M : Λ → stmt) (k) (L : list (Γ k)) : part (list (Γ k)) :=
 (eval (step M) (init k L)).map $ λ c, c.stk k
 
 end
@@ -2211,9 +2215,10 @@ begin
         simp only [h, list.nth_le_singleton, list.length_map, list.length_reverse, nat.succ_pos',
           list.length_append, lt_add_iff_pos_right, list.length] },
       rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth],
-      cases decidable.lt_or_gt_of_ne h with h h,
+      cases lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw [list.nth_len_le, list.nth_len_le];
+      { rw gt_iff_lt at h,
+        rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2246,9 +2251,9 @@ begin
         function.update_same, list_blank.nth_mk, list.tail, list.inth],
       { rw [list.nth_len_le], {refl}, rw [h, list.length_reverse, list.length_map] },
       rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth, e, list.map, list.reverse_cons],
-      cases decidable.lt_or_gt_of_ne h with h h,
+      cases lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw [list.nth_len_le, list.nth_len_le];
+      { rw gt_iff_lt at h, rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2375,28 +2380,28 @@ theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
     (∀ k, L'.map (proj k) = list_blank.mk ((S k).map some).reverse) ∧
     S k = L₂ :=
 begin
-  obtain ⟨c₁, h₁, rfl⟩ := (roption.mem_map_iff _).1 H₁,
-  obtain ⟨c₂, h₂, rfl⟩ := (roption.mem_map_iff _).1 H₂,
+  obtain ⟨c₁, h₁, rfl⟩ := (part.mem_map_iff _).1 H₁,
+  obtain ⟨c₂, h₂, rfl⟩ := (part.mem_map_iff _).1 H₂,
   obtain ⟨_, ⟨q, v, S, L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
-  cases roption.mem_unique h₁ h₃,
+  cases part.mem_unique h₁ h₃,
   exact ⟨S, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end
 
 /-- The support of a set of TM2 states in the TM2 emulator. -/
 noncomputable def tr_supp (S : finset Λ) : finset Λ' :=
-S.bind (λ l, insert (normal l) (tr_stmts₁ (M l)))
+S.bUnion (λ l, insert (normal l) (tr_stmts₁ (M l)))
 
 theorem tr_supports {S} (ss : TM2.supports M S) :
   TM1.supports tr (tr_supp S) :=
-⟨finset.mem_bind.2 ⟨_, ss.1, finset.mem_insert.2 $ or.inl rfl⟩,
+⟨finset.mem_bUnion.2 ⟨_, ss.1, finset.mem_insert.2 $ or.inl rfl⟩,
 λ l' h, begin
   suffices : ∀ q (ss' : TM2.supports_stmt S q)
     (sub : ∀ x ∈ tr_stmts₁ q, x ∈ tr_supp M S),
     TM1.supports_stmt (tr_supp M S) (tr_normal q) ∧
     (∀ l' ∈ tr_stmts₁ q, TM1.supports_stmt (tr_supp M S) (tr M l')),
-  { rcases finset.mem_bind.1 h with ⟨l, lS, h⟩,
+  { rcases finset.mem_bUnion.1 h with ⟨l, lS, h⟩,
     have := this _ (ss.2 l lS) (λ x hx,
-      finset.mem_bind.2 ⟨_, lS, finset.mem_insert_of_mem hx⟩),
+      finset.mem_bUnion.2 ⟨_, lS, finset.mem_insert_of_mem hx⟩),
     rcases finset.mem_insert.1 h with rfl | h;
     [exact this.1, exact this.2 _ h] },
   clear h l', refine stmt_st_rec _ _ _ _ _; intros,
@@ -2434,7 +2439,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- goto
     rw tr_stmts₁, unfold TM2to1.tr_normal TM1.supports_stmt,
     unfold TM2.supports_stmt at ss',
-    exact ⟨λ _ v, finset.mem_bind.2 ⟨_, ss' v, finset.mem_insert_self _ _⟩, λ _, false.elim⟩ },
+    exact ⟨λ _ v, finset.mem_bUnion.2 ⟨_, ss' v, finset.mem_insert_self _ _⟩, λ _, false.elim⟩ },
   { exact ⟨trivial, λ _, false.elim⟩ } -- halt
 end⟩
 

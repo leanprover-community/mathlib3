@@ -18,7 +18,8 @@ open_locale topological_space classical
 
 variables {a b : ℝ} {f f' : ℝ → ℝ}
 
-/-- Darboux's theorem: if `a ≤ b` and `f' a < m < f' b`, then `f' c = m` for some `c ∈ [a, b]`. -/
+/-- **Darboux's theorem**: if `a ≤ b` and `f' a < m < f' b`, then `f' c = m` for some
+`c ∈ [a, b]`. -/
 theorem exists_has_deriv_within_at_eq_of_gt_of_lt
   (hab : a ≤ b) (hf : ∀ x ∈ (Icc a b), has_deriv_within_at f (f' x) (Icc a b) x)
   {m : ℝ} (hma : f' a < m) (hmb : m < f' b) :
@@ -33,7 +34,7 @@ begin
   { intros x hx,
     simpa using (hf x hx).sub ((has_deriv_within_at_id x _).const_mul m) },
   obtain ⟨c, cmem, hc⟩ : ∃ c ∈ Icc a b, is_min_on g (Icc a b) c,
-    from compact_Icc.exists_forall_le (nonempty_Icc.2 $ hab)
+    from is_compact_Icc.exists_forall_le (nonempty_Icc.2 $ hab)
       (λ x hx, (hg x hx).continuous_within_at),
   have cmem' : c ∈ Ioo a b,
   { cases eq_or_lt_of_le cmem.1 with hac hac,
@@ -61,7 +62,8 @@ begin
   exact (hc.is_local_min this).has_deriv_at_eq_zero ((hg c cmem).has_deriv_at this)
 end
 
-/-- Darboux's theorem: if `a ≤ b` and `f' a > m > f' b`, then `f' c = m` for some `c ∈ [a, b]`. -/
+/-- **Darboux's theorem**: if `a ≤ b` and `f' a > m > f' b`, then `f' c = m` for some `c ∈ [a, b]`.
+-/
 theorem exists_has_deriv_within_at_eq_of_lt_of_gt
   (hab : a ≤ b) (hf : ∀ x ∈ (Icc a b), has_deriv_within_at f (f' x) (Icc a b) x)
   {m : ℝ} (hma : m < f' a) (hmb : f' b < m) :
@@ -70,24 +72,24 @@ let ⟨c, cmem, hc⟩ := exists_has_deriv_within_at_eq_of_gt_of_lt hab (λ x hx,
   (neg_lt_neg hma) (neg_lt_neg hmb)
 in ⟨c, cmem, neg_injective hc⟩
 
-/-- Darboux's theorem: the image of a convex set under `f'` is a convex set. -/
-theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex s)
+/-- **Darboux's theorem**: the image of a convex set under `f'` is a convex set. -/
+theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex ℝ s)
   (hf : ∀ x ∈ s, has_deriv_at f (f' x) x) :
-  convex (f' '' s) :=
+  convex ℝ (f' '' s) :=
 begin
-  refine real.convex_iff_ord_connected.2 _,
+  refine ord_connected.convex ⟨_⟩,
   rintros _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ m ⟨hma, hmb⟩,
   cases eq_or_lt_of_le hma with hma hma,
     by exact hma ▸ mem_image_of_mem f' ha,
   cases eq_or_lt_of_le hmb with hmb hmb,
     by exact hmb.symm ▸ mem_image_of_mem f' hb,
   cases le_total a b with hab hab,
-  { have : Icc a b ⊆ s, from hs.ord_connected ha hb,
+  { have : Icc a b ⊆ s, from hs.ord_connected.out ha hb,
     rcases exists_has_deriv_within_at_eq_of_gt_of_lt hab
       (λ x hx, (hf x $ this hx).has_deriv_within_at) hma hmb
       with ⟨c, cmem, hc⟩,
     exact ⟨c, this cmem, hc⟩ },
-  { have : Icc b a ⊆ s, from hs.ord_connected hb ha,
+  { have : Icc b a ⊆ s, from hs.ord_connected.out hb ha,
     rcases exists_has_deriv_within_at_eq_of_lt_of_gt hab
       (λ x hx, (hf x $ this hx).has_deriv_within_at) hmb hma
       with ⟨c, cmem, hc⟩,
@@ -96,12 +98,12 @@ end
 
 /-- If the derivative of a function is never equal to `m`, then either
 it is always greater than `m`, or it is always less than `m`. -/
-theorem deriv_forall_lt_or_forall_gt_of_forall_ne {s : set ℝ} (hs : convex s)
+theorem deriv_forall_lt_or_forall_gt_of_forall_ne {s : set ℝ} (hs : convex ℝ s)
   (hf : ∀ x ∈ s, has_deriv_at f (f' x) x) {m : ℝ} (hf' : ∀ x ∈ s, f' x ≠ m) :
   (∀ x ∈ s, f' x < m) ∨ (∀ x ∈ s, m < f' x) :=
 begin
   contrapose! hf',
   rcases hf' with ⟨⟨b, hb, hmb⟩, ⟨a, ha, hma⟩⟩,
-  exact (convex_image_has_deriv_at hs hf).ord_connected (mem_image_of_mem f' ha)
+  exact (convex_image_has_deriv_at hs hf).ord_connected.out (mem_image_of_mem f' ha)
     (mem_image_of_mem f' hb) ⟨hma, hmb⟩
 end

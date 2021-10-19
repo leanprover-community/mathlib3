@@ -87,7 +87,7 @@ def comap_comp (f : K → J) (g : J → I) : comap C g ⋙ comap (C ∘ g) f ≅
   inv := { app := λ X b, 𝟙 (X (g (f b))) } }
 
 /-- The natural isomorphism between pulling back then evaluating, and just evaluating. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def comap_eval_iso_eval (h : J → I) (j : J) : comap C h ⋙ eval (C ∘ h) j ≅ eval C (h j) :=
 nat_iso.of_components (λ f, iso.refl _) (by tidy)
 
@@ -113,6 +113,20 @@ def sum : (Π i, C i) ⥤ (Π j, D j) ⥤ (Π s : I ⊕ J, sum.elim C D s) :=
   { app := λ g s, sum.rec α (λ j, 𝟙 (g j)) s, }}
 
 end
+
+variables {C}
+
+/-- An isomorphism between `I`-indexed objects gives an isomorphism between each
+pair of corresponding components. -/
+@[simps] def iso_app {X Y : Π i, C i} (f : X ≅ Y) (i : I) : X i ≅ Y i :=
+⟨f.hom i, f.inv i, by { dsimp, rw [← comp_apply, iso.hom_inv_id, id_apply] },
+  by { dsimp, rw [← comp_apply, iso.inv_hom_id, id_apply] }⟩
+
+@[simp] lemma iso_app_refl (X : Π i, C i) (i : I) : iso_app (iso.refl X) i = iso.refl (X i) := rfl
+@[simp] lemma iso_app_symm {X Y : Π i, C i} (f : X ≅ Y) (i : I) :
+  iso_app f.symm i = (iso_app f i).symm := rfl
+@[simp] lemma iso_app_trans {X Y Z : Π i, C i} (f : X ≅ Y) (g : Y ≅ Z) (i : I) :
+  iso_app (f ≪≫ g) i = iso_app f i ≪≫ iso_app g i := rfl
 
 end pi
 

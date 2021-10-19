@@ -3,6 +3,14 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import tactic.doc_commands
+
+/-!
+# `generalize_proofs`
+
+A simple tactic to find and replace all occurrences of proof terms in the
+context and goal with new variables.
+-/
 
 namespace tactic
 
@@ -28,8 +36,8 @@ do t ← infer_type e,
          return (ns, h::hs)) <|> return (ns, hs)) (tac (ns, hs)) in
 match e with
 | (expr.const _ _)   := go return
-| (expr.local_const _ _ _ t) := collect_proofs_in t ctx (ns, hs)
-| (expr.mvar _ _ t)  := collect_proofs_in t ctx (ns, hs)
+| (expr.local_const _ _ _ _) := do t ← infer_type e, collect_proofs_in t ctx (ns, hs)
+| (expr.mvar _ _ _)  := do t ← infer_type e, collect_proofs_in t ctx (ns, hs)
 | (expr.app f x)     :=
   go (λ nh, collect_proofs_in f ctx nh >>= collect_proofs_in x ctx)
 | (expr.lam n b d e) :=
@@ -51,19 +59,40 @@ match e with
 | _                  := return (ns, hs)
 end
 
-meta def generalize_proofs (ns : list name) : tactic unit :=
+/-- Generalize proofs in the goal, naming them with the provided list. -/
+meta def generalize_proofs (ns : list name) (loc : interactive.loc) : tactic unit :=
 do intros_dep,
-   hs ← local_context >>= mfilter is_proof,
-   t ← target,
-   collect_proofs_in t [] (ns, hs) >> skip
+  hs ← local_context >>= mfilter is_proof,
+  n ← loc.get_locals >>= revert_lst,
+  t ← target,
+  collect_proofs_in t [] (ns, hs),
+  intron n <|> (intros $> ())
 
 open interactive interactive.types lean.parser
 local postfix *:9001 := many
 
 namespace interactive
-/-- Generalize proofs in the goal, naming them with the provided list. -/
-meta def generalize_proofs : parse ident_* → tactic unit :=
+/-- Generalize proofs in the goal, naming them with the provided list.
+
+For example:
+```lean
+example : list.nth_le [1, 2] 1 dec_trivial = 2 :=
+begin
+  -- ⊢ [1, 2].nth_le 1 _ = 2
+  generalize_proofs h,
+  -- h : 1 < [1, 2].length
+  -- ⊢ [1, 2].nth_le 1 h = 2
+end
+```
+-/
+meta def generalize_proofs : parse ident_* → parse location → tactic unit :=
 tactic.generalize_proofs
 end interactive
+
+add_tactic_doc
+{ name       := "generalize_proofs",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.generalize_proofs],
+  tags       := ["context management"] }
 
 end tactic

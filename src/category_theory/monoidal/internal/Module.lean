@@ -23,6 +23,7 @@ open category_theory
 open linear_map
 
 open_locale tensor_product
+local attribute [ext] tensor_product.ext
 
 namespace Module
 
@@ -108,13 +109,9 @@ def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
   end,
   mul_assoc' :=
   begin
-    ext xy z,
+    ext x y z,
     dsimp,
-    apply tensor_product.induction_on xy,
-    { simp only [linear_map.map_zero, tensor_product.zero_tmul], },
-    { intros x y, dsimp, simp only [mul_assoc, algebra.lmul'_apply], },
-    { intros x y hx hy, dsimp,
-      simp only [tensor_product.add_tmul, hx, hy, map_add], },
+    simp only [mul_assoc, algebra.lmul'_apply],
   end }
 
 /--
@@ -139,8 +136,12 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
   inverse := inverse,
   unit_iso := nat_iso.of_components
     (λ A,
-    { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } },
-      inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } } })
+    { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
+               mul_hom' := by { ext, dsimp at *,
+                                simp only [algebra.lmul'_apply, Mon_.X.ring_mul] } },
+      inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
+               mul_hom' := by { ext, dsimp at *,
+                                simp only [algebra.lmul'_apply, Mon_.X.ring_mul]} } })
     (by tidy),
   counit_iso := nat_iso.of_components (λ A,
   { hom :=
@@ -156,7 +157,7 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one.symm,
       map_mul' := λ x y, algebra.lmul'_apply.symm,
-      commutes' := λ r, rfl } }) (by tidy), }.
+      commutes' := λ r, rfl } }) (by { intros, refl }), }.
 
 /--
 The equivalence `Mon_ (Module R) ≌ Algebra R`

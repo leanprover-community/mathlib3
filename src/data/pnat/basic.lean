@@ -1,8 +1,9 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Neil Strickland
+Authors: Mario Carneiro, Neil Strickland
 -/
+import algebra.group_power.basic
 import data.nat.basic
 
 /-!
@@ -69,9 +70,9 @@ subtype.linear_order _
 @[simp] lemma mk_lt_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) < ⟨k, hk⟩ ↔ n < k := iff.rfl
 
-@[simp, norm_cast] lemma coe_le_coe (n k : ℕ+) : (n:ℕ) ≤ k ↔ n ≤ k := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe (n k : ℕ+) : (n : ℕ) ≤ k ↔ n ≤ k := iff.rfl
 
-@[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n:ℕ) < k ↔ n < k := iff.rfl
+@[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n : ℕ) < k ↔ n < k := iff.rfl
 
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
@@ -79,44 +80,37 @@ theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
 @[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
 
+lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_injective
 
 @[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
-instance : add_comm_semigroup ℕ+ :=
-{ add       := λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩,
-  add_comm  := λ a b, subtype.eq (add_comm a b),
-  add_assoc := λ a b c, subtype.eq (add_assoc a b c) }
+instance : has_add ℕ+ := ⟨λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩⟩
+
+instance : add_comm_semigroup ℕ+ := coe_injective.add_comm_semigroup coe (λ _ _, rfl)
 
 @[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
-instance coe_add_hom : is_add_hom (coe : ℕ+ → ℕ) := ⟨add_coe⟩
+
+/-- `pnat.coe` promoted to an `add_hom`, that is, a morphism which preserves addition. -/
+def coe_add_hom : add_hom ℕ+ ℕ :=
+{ to_fun := coe,
+  map_add' := add_coe }
 
 instance : add_left_cancel_semigroup ℕ+ :=
-{ add_left_cancel := λ a b c h, by {
-    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-    rw [add_coe, add_coe] at h,
-    exact eq ((add_right_inj (a : ℕ)).mp h)},
-  .. (pnat.add_comm_semigroup) }
+coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
 
 instance : add_right_cancel_semigroup ℕ+ :=
-{ add_right_cancel := λ a b c h, by {
-    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-    rw [add_coe, add_coe] at h,
-    exact eq ((add_left_inj (b : ℕ)).mp h)},
-  .. (pnat.add_comm_semigroup) }
+coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 
-@[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
+@[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
 
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
 
-instance : comm_monoid ℕ+ :=
-{ mul       := λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩,
-  mul_assoc := λ a b c, subtype.eq (mul_assoc _ _ _),
-  one       := succ_pnat 0,
-  one_mul   := λ a, subtype.eq (one_mul _),
-  mul_one   := λ a, subtype.eq (mul_one _),
-  mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
+instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
+instance : has_one ℕ+ := ⟨succ_pnat 0⟩
+
+instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
 λ a b, nat.lt_add_one_iff
@@ -129,9 +123,9 @@ theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
 instance : order_bot ℕ+ :=
 { bot := 1,
   bot_le := λ a, a.property,
-  ..(by apply_instance : partial_order ℕ+) }
+  .. pnat.linear_order }
 
-@[simp] lemma bot_eq_zero : (⊥ : ℕ+) = 1 := rfl
+@[simp] lemma bot_eq_one : (⊥ : ℕ+) = 1 := rfl
 
 instance : inhabited ℕ+ := ⟨1⟩
 
@@ -140,8 +134,8 @@ instance : inhabited ℕ+ := ⟨1⟩
 @[simp] lemma mk_bit0 (n) {h} : (⟨bit0 n, h⟩ : ℕ+) = (bit0 ⟨n, pos_of_bit0_pos h⟩ : ℕ+) := rfl
 @[simp] lemma mk_bit1 (n) {h} {k} : (⟨bit1 n, h⟩ : ℕ+) = (bit1 ⟨n, k⟩ : ℕ+) := rfl
 
--- Some lemmas that rewrite inequalities between explicit numerals in `pnat`
--- into the corresponding inequalities in `nat`.
+-- Some lemmas that rewrite inequalities between explicit numerals in `ℕ+`
+-- into the corresponding inequalities in `ℕ`.
 -- TODO: perhaps this should not be attempted by `simp`,
 -- and instead we should expect `norm_num` to take care of these directly?
 -- TODO: these lemmas are perhaps incomplete:
@@ -158,10 +152,16 @@ iff.rfl
 
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
-instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
- {map_one := one_coe, map_mul := mul_coe}
 
- @[simp]
+/-- `pnat.coe` promoted to a `monoid_hom`. -/
+def coe_monoid_hom : ℕ+ →* ℕ :=
+{ to_fun := coe,
+  map_one' := one_coe,
+  map_mul' := mul_coe }
+
+@[simp] lemma coe_coe_monoid_hom : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
+
+@[simp]
 lemma coe_eq_one_iff {m : ℕ+} :
 (m : ℕ) = 1 ↔ m = 1 := by { split; intro h; try { apply pnat.eq}; rw h; simp }
 
@@ -173,30 +173,16 @@ lemma coe_eq_one_iff {m : ℕ+} :
 by induction n with n ih;
  [refl, rw [pow_succ', pow_succ, mul_coe, mul_comm, ih]]
 
-instance : left_cancel_semigroup ℕ+ :=
-{ mul_left_cancel := λ a b c h, by {
-   replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_right_inj a.pos).mp h)},
-  .. (pnat.comm_monoid) }
-
-instance : right_cancel_semigroup ℕ+ :=
-{ mul_right_cancel := λ a b c h, by {
-   replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_left_inj b.pos).mp h)},
-  .. (pnat.comm_monoid) }
-
 instance : ordered_cancel_comm_monoid ℕ+ :=
 { mul_le_mul_left := by { intros, apply nat.mul_le_mul_left, assumption },
   le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
-  .. (pnat.left_cancel_semigroup),
-  .. (pnat.right_cancel_semigroup),
-  .. (pnat.linear_order),
-  .. (pnat.comm_monoid)}
+  mul_left_cancel := λ a b c h, by {
+   replace h := congr_arg (coe : ℕ+ → ℕ) h,
+   exact eq ((nat.mul_right_inj a.pos).mp h)},
+  .. pnat.comm_monoid,
+  .. pnat.linear_order }
 
-instance : distrib ℕ+ :=
-{ left_distrib  := λ a b c, eq (mul_add a b c),
-  right_distrib := λ a b c, eq (add_mul a b c),
-  ..(pnat.add_comm_semigroup), ..(pnat.comm_monoid) }
+instance : distrib ℕ+ := coe_injective.distrib coe (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Subtraction a - b is defined in the obvious way when
   a > b, and by a - b = 1 if a ≤ b.
@@ -214,30 +200,51 @@ end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
-                exact nat.add_sub_of_le (le_of_lt h) }
+                exact nat.add_sub_of_le h.le }
 
 instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
 
-/-- Strong induction on `pnat`. -/
-lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
+/-- Strong induction on `ℕ+`. -/
+def strong_induction_on {p : ℕ+ → Sort*} : ∀ (n : ℕ+) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
 | n := λ IH, IH _ (λ a h, strong_induction_on a IH)
 using_well_founded { dec_tac := `[assumption] }
 
-/-- If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
-lemma exists_eq_succ_of_ne_one : ∀ {n : pnat} (h1 : n ≠ 1), ∃ (k : pnat), n = k + 1
+/-- If `n : ℕ+` is different from `1`, then it is the successor of some `k : ℕ+`. -/
+lemma exists_eq_succ_of_ne_one : ∀ {n : ℕ+} (h1 : n ≠ 1), ∃ (k : ℕ+), n = k + 1
 | ⟨1, _⟩ h1 := false.elim $ h1 rfl
 | ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
 
-lemma case_strong_induction_on {p : pnat → Prop} (a : pnat) (hz : p 1)
+/-- Strong induction on `ℕ+`, with `n = 1` treated separately. -/
+def case_strong_induction_on {p : ℕ+ → Sort*} (a : ℕ+) (hz : p 1)
   (hi : ∀ n, (∀ m, m ≤ n → p m) → p (n + 1)) : p a :=
 begin
   apply strong_induction_on a,
-  intros k hk,
-  by_cases h1 : k = 1, { rwa h1 },
-  obtain ⟨b, rfl⟩ := exists_eq_succ_of_ne_one h1,
-  simp only [lt_add_one_iff] at hk,
-  exact hi b hk
+  rintro ⟨k, kprop⟩ hk,
+  cases k with k,
+  { exact (lt_irrefl 0 kprop).elim },
+  cases k with k,
+  { exact hz },
+  exact hi ⟨k.succ, nat.succ_pos _⟩ (λ m hm, hk _ (lt_succ_iff.2 hm)),
 end
+
+/-- An induction principle for `ℕ+`: it takes values in `Sort*`, so it applies also to Types,
+not only to `Prop`. -/
+@[elab_as_eliminator]
+def rec_on (n : ℕ+) {p : ℕ+ → Sort*} (p1 : p 1) (hp : ∀ n, p n → p (n + 1)) : p n :=
+begin
+  rcases n with ⟨n, h⟩,
+  induction n with n IH,
+  { exact absurd h dec_trivial },
+  { cases n with n,
+    { exact p1 },
+    { exact hp _ (IH n.succ_pos) } }
+end
+
+@[simp] theorem rec_on_one {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
+
+@[simp] theorem rec_on_succ (n : ℕ+) {p : ℕ+ → Sort*} (p1 hp) :
+  @pnat.rec_on (n + 1) p p1 hp = hp n (@pnat.rec_on n p p1 hp) :=
+by { cases n with n h, cases n; [exact absurd h dec_trivial, refl] }
 
 /-- We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and
@@ -279,15 +286,24 @@ def mod (m k : ℕ+) : ℕ+ := (mod_div m k).1
 -/
 def div (m k : ℕ+) : ℕ  := (mod_div m k).2
 
-theorem mod_add_div (m k : ℕ+) : (m : ℕ) = (mod m k) + k * (div m k) :=
+theorem mod_add_div (m k : ℕ+) : ((mod m k) + k * (div m k) : ℕ) = m :=
 begin
   let h₀ := nat.mod_add_div (m : ℕ) (k : ℕ),
   have : ¬ ((m : ℕ) % (k : ℕ) = 0 ∧ (m : ℕ) / (k : ℕ) = 0),
   by { rintro ⟨hr, hq⟩, rw [hr, hq, mul_zero, zero_add] at h₀,
        exact (m.ne_zero h₀.symm).elim },
   have := mod_div_aux_spec k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ)) this,
-  exact (this.trans h₀).symm,
+  exact (this.trans h₀),
 end
+
+theorem div_add_mod (m k : ℕ+) : (k * (div m k) + mod m k : ℕ) = m :=
+(add_comm _ _).trans (mod_add_div _ _)
+
+lemma mod_add_div' (m k : ℕ+) : ((mod m k) + (div m k) * k : ℕ) = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : ℕ+) : ((div m k) * k + mod m k : ℕ) = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
@@ -318,7 +334,7 @@ begin
     { let h' := nat.mul_le_mul_left (k : ℕ)
              (nat.succ_le_of_lt (nat.pos_of_ne_zero h')),
       rw [mul_one] at h', exact ⟨h', le_refl (k : ℕ)⟩ } },
-  { exact ⟨nat.mod_le (m : ℕ) (k : ℕ), le_of_lt (nat.mod_lt (m : ℕ) k.pos)⟩ }
+  { exact ⟨nat.mod_le (m : ℕ) (k : ℕ), (nat.mod_lt (m : ℕ) k.pos).le⟩ }
 end
 
 theorem dvd_iff {k m : ℕ+} : k ∣ m ↔ (k : ℕ) ∣ (m : ℕ) :=
@@ -337,7 +353,7 @@ begin
     { exact h'},
     { replace h : ((mod m k) : ℕ) = (k : ℕ) := congr_arg _ h,
       rw [mod_coe, if_neg h'] at h,
-      exact (ne_of_lt (nat.mod_lt (m : ℕ) k.pos) h).elim } }
+      exact ((nat.mod_lt (m : ℕ) k.pos).ne h).elim } }
 end
 
 lemma le_of_dvd {m n : ℕ+} : m ∣ n → m ≤ n :=
@@ -351,21 +367,33 @@ theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact m k) = m :=
 begin
  apply eq, rw [mul_coe],
  change (k : ℕ) * (div m k).succ = m,
- rw [mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
+ rw [← div_add_mod m k, dvd_iff'.mp h, nat.mul_succ]
 end
 
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
-λ hmn hnm, le_antisymm (le_of_dvd hmn) (le_of_dvd hnm)
+λ hmn hnm, (le_of_dvd hmn).antisymm (le_of_dvd hnm)
 
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
 
 lemma pos_of_div_pos {n : ℕ+} {a : ℕ} (h : a ∣ n) : 0 < a :=
 begin
-  apply zero_lt_iff_ne_zero.2,
+  apply pos_iff_ne_zero.2,
   intro hzero,
   rw hzero at h,
   exact pnat.ne_zero n (eq_zero_of_zero_dvd h)
 end
 
 end pnat
+
+section can_lift
+
+instance nat.can_lift_pnat : can_lift ℕ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' n, pnat.to_pnat'_coe hn⟩⟩
+
+instance int.can_lift_pnat : can_lift ℤ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' (int.nat_abs n),
+  by rw [coe_coe, nat.to_pnat'_coe, if_pos (int.nat_abs_pos_of_ne_zero hn.ne'),
+    int.nat_abs_of_nonneg hn.le]⟩⟩
+
+end can_lift

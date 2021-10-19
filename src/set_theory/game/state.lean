@@ -72,8 +72,8 @@ turns remaining.
 -/
 def of_aux : Π (n : ℕ) (s : S) (h : turn_bound s ≤ n), pgame
 | 0 s h     := pgame.mk {t // t ∈ L s} {t // t ∈ R s}
-    (λ t, begin exfalso, exact turn_bound_ne_zero_of_left_move t.2 (le_zero_iff_eq.mp h) end)
-    (λ t, begin exfalso, exact turn_bound_ne_zero_of_right_move t.2 (le_zero_iff_eq.mp h) end)
+    (λ t, begin exfalso, exact turn_bound_ne_zero_of_left_move t.2 (nonpos_iff_eq_zero.mp h) end)
+    (λ t, begin exfalso, exact turn_bound_ne_zero_of_right_move t.2 (nonpos_iff_eq_zero.mp h) end)
 | (n+1) s h :=
   pgame.mk {t // t ∈ L s} {t // t ∈ R s}
     (λ t, of_aux n t (turn_bound_of_left t.2 n h))
@@ -87,27 +87,27 @@ def of_aux_relabelling : Π (s : S) (n m : ℕ) (hn : turn_bound s ≤ n) (hm : 
     dsimp [pgame.of_aux],
     fsplit, refl, refl,
     { intro i, dsimp at i, exfalso,
-      exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hn) },
+      exact turn_bound_ne_zero_of_left_move i.2 (nonpos_iff_eq_zero.mp hn) },
     { intro j, dsimp at j, exfalso,
-      exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hm) }
+      exact turn_bound_ne_zero_of_right_move j.2 (nonpos_iff_eq_zero.mp hm) }
   end
 | s 0 (m+1) hn hm :=
   begin
     dsimp [pgame.of_aux],
     fsplit, refl, refl,
     { intro i, dsimp at i, exfalso,
-      exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hn) },
+      exact turn_bound_ne_zero_of_left_move i.2 (nonpos_iff_eq_zero.mp hn) },
     { intro j, dsimp at j, exfalso,
-      exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hn) }
+      exact turn_bound_ne_zero_of_right_move j.2 (nonpos_iff_eq_zero.mp hn) }
   end
 | s (n+1) 0 hn hm :=
   begin
     dsimp [pgame.of_aux],
     fsplit, refl, refl,
     { intro i, dsimp at i, exfalso,
-      exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp hm) },
+      exact turn_bound_ne_zero_of_left_move i.2 (nonpos_iff_eq_zero.mp hm) },
     { intro j, dsimp at j, exfalso,
-      exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp hm) }
+      exact turn_bound_ne_zero_of_right_move j.2 (nonpos_iff_eq_zero.mp hm) }
   end
 | s (n+1) (m+1) hn hm :=
   begin
@@ -153,11 +153,11 @@ def relabelling_move_left_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
     (move_left (of_aux n s h) t)
     (of_aux (n-1) (((left_moves_of_aux n h) t) : S)
       ((turn_bound_of_left ((left_moves_of_aux n h) t).2 (n-1)
-        (nat.le_trans h (nat.le_sub_add n 1))))) :=
+        (nat.le_trans h le_sub_add)))) :=
 begin
   induction n,
   { have t' := (left_moves_of_aux 0 h) t,
-    exfalso, exact turn_bound_ne_zero_of_left_move t'.2 (le_zero_iff_eq.mp h), },
+    exfalso, exact turn_bound_ne_zero_of_left_move t'.2 (nonpos_iff_eq_zero.mp h), },
   { refl },
 end
 /--
@@ -183,11 +183,11 @@ def relabelling_move_right_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
     (move_right (of_aux n s h) t)
     (of_aux (n-1) (((right_moves_of_aux n h) t) : S)
       ((turn_bound_of_right ((right_moves_of_aux n h) t).2 (n-1)
-        (nat.le_trans h (nat.le_sub_add n 1))))) :=
+        (nat.le_trans h le_sub_add)))) :=
 begin
   induction n,
   { have t' := (right_moves_of_aux 0 h) t,
-    exfalso, exact turn_bound_ne_zero_of_right_move t'.2 (le_zero_iff_eq.mp h), },
+    exfalso, exact turn_bound_ne_zero_of_right_move t'.2 (nonpos_iff_eq_zero.mp h), },
   { refl },
 end
 /--
@@ -223,12 +223,12 @@ instance short_of_aux : Π (n : ℕ) {s : S} (h : turn_bound s ≤ n), short (of
   (λ i, begin
     have i := (left_moves_of_aux _ _).to_fun i,
     exfalso,
-    exact turn_bound_ne_zero_of_left_move i.2 (le_zero_iff_eq.mp h),
+    exact turn_bound_ne_zero_of_left_move i.2 (nonpos_iff_eq_zero.mp h),
   end)
   (λ j, begin
     have j := (right_moves_of_aux _ _).to_fun j,
     exfalso,
-    exact turn_bound_ne_zero_of_right_move j.2 (le_zero_iff_eq.mp h),
+    exact turn_bound_ne_zero_of_right_move j.2 (nonpos_iff_eq_zero.mp h),
   end)
 | (n+1) s h :=
   short.mk'

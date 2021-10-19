@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 
 import algebra.group_power
@@ -9,10 +9,10 @@ import control.uliftable
 import control.monad.basic
 
 import data.bitvec.basic
+import data.fin.basic
 import data.list.basic
 import data.set.intervals.basic
 import data.stream.basic
-import data.fin
 
 import tactic.cache
 import tactic.interactive
@@ -127,7 +127,8 @@ def random_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g
 bounded_random.random_r g x y h
 
 /-- generate an infinite series of random values of type `α` between `x` and `y` inclusive. -/
-def random_series_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
+def random_series_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) :
+  rand_g g (stream (x .. y)) :=
 do gen ← uliftable.up (split g),
    pure $ corec_state (bounded_random.random_r g x y h) gen
 
@@ -246,7 +247,7 @@ instance nat_bounded_random : bounded_random ℕ :=
 { random_r := λ g inst x y hxy,
   do z ← @fin.random g inst (succ $ y - x) _,
      pure ⟨z.val + x, nat.le_add_left _ _,
-       by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }
+       by rw ← le_sub_iff_right hxy; apply le_of_succ_le_succ z.is_lt⟩ }
 
 /-- This `bounded_random` interval generates integers between `x` and
 `y` by first generating a natural number between `0` and `y - x` and
@@ -272,7 +273,7 @@ instance fin_bounded_random (n : ℕ) : bounded_random (fin n) :=
 a proof that `0 < n` rather than on matching on `fin (succ n)`  -/
 def random_fin_of_pos : ∀ {n : ℕ} (h : 0 < n), random (fin n)
 | (succ n) _ := fin_random _
-| 0 h := false.elim (not_lt_zero _ h)
+| 0 h := false.elim (nat.not_lt_zero _ h)
 
 lemma bool_of_nat_mem_Icc_of_mem_Icc_to_nat (x y : bool) (n : ℕ) :
   n ∈ (x.to_nat .. y.to_nat) → bool.of_nat n ∈ (x .. y) :=
@@ -284,10 +285,13 @@ begin
 end
 
 instance : random bool :=
-{ random   := λ g inst, (bool.of_nat ∘ subtype.val) <$> @bounded_random.random_r ℕ _ _ g inst 0 1 (nat.zero_le _) }
+{ random   := λ g inst,
+  (bool.of_nat ∘ subtype.val) <$> @bounded_random.random_r ℕ _ _ g inst 0 1 (nat.zero_le _) }
 
 instance : bounded_random bool :=
-{ random_r := λ g _inst x y p, subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$> @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
+{ random_r := λ g _inst x y p,
+  subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$>
+    @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
 
 open_locale fin_fact
 

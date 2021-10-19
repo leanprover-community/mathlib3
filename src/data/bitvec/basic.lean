@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import data.bitvec.core
-import data.fin
+import data.fin.basic
 import tactic.norm_num
 import tactic.monotonicity
 
@@ -22,7 +22,7 @@ by rw [of_fin,to_nat_of_nat,nat.mod_eq_of_lt]; apply i.is_lt
 
 /-- convert `bitvec` to `fin` -/
 def to_fin {n : ℕ} (i : bitvec n) : fin $ 2^n :=
-@fin.of_nat' _ (pow_pos (by norm_num) _) i.to_nat
+@fin.of_nat' _ ⟨pow_pos (by norm_num) _⟩ i.to_nat
 
 lemma add_lsb_eq_twice_add_one {x b} :
   add_lsb x b = 2 * x + cond b 1 0 :=
@@ -55,8 +55,8 @@ by cases b; simp only [nat.add_mul_div_left, add_lsb, ←two_mul, add_comm, nat.
                        nat.mul_div_right, gt_iff_lt, zero_add, cond]; norm_num
 
 lemma to_bool_add_lsb_mod_two {x b} : to_bool (add_lsb x b % 2 = 1) = b :=
-by cases b; simp only [to_bool_iff, nat.add_mul_mod_self_left, add_lsb, ←two_mul, add_comm, bool.to_bool_false,
-                       nat.mul_mod_right, zero_add, cond, zero_ne_one]; norm_num
+by cases b; simp only [to_bool_iff, nat.add_mul_mod_self_left, add_lsb, ←two_mul, add_comm,
+                       bool.to_bool_false, nat.mul_mod_right, zero_add, cond, zero_ne_one]; norm_num
 
 lemma of_nat_to_nat  {n : ℕ} (v : bitvec n) : bitvec.of_nat _ v.to_nat = v :=
 begin
@@ -69,9 +69,10 @@ begin
   generalize_hyp : xs.reverse = ys at ⊢ h, clear xs,
   induction ys generalizing n,
   { cases h, simp [bitvec.of_nat] },
-  { simp only [←nat.succ_eq_add_one, list.length] at h,
-    cases h, simp only [bitvec.of_nat, vector.to_list_cons, vector.to_list_nil, list.reverse_cons, vector.to_list_append, list.foldr],
-    erw [add_lsb_div_two,to_bool_add_lsb_mod_two],
+  { simp only [←nat.succ_eq_add_one, list.length] at h, subst n,
+    simp only [bitvec.of_nat, vector.to_list_cons, vector.to_list_nil, list.reverse_cons,
+      vector.to_list_append, list.foldr],
+    erw [add_lsb_div_two, to_bool_add_lsb_mod_two],
     congr, apply ys_ih, refl }
 end
 

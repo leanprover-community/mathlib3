@@ -3,7 +3,7 @@ Copyright (c) 2020 Heather Macbeth, Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Patrick Massot
 -/
-import group_theory.subgroup
+import group_theory.subgroup.basic
 import algebra.archimedean
 
 /-!
@@ -11,7 +11,7 @@ import algebra.archimedean
 
 This file proves a few facts about ordered groups which satisfy the `archimedean` property, that is:
 `class archimedean (α) [ordered_add_comm_monoid α] : Prop :=`
-`(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)`
+`(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)`
 
 They are placed here in a separate file (rather than incorporated as a continuation of
 `algebra.archimedean`) because they rely on some imports from `group_theory` -- bundled subgroups
@@ -40,14 +40,15 @@ begin
   obtain ⟨⟨a_in, a_pos⟩, a_min⟩ := ha,
   refine le_antisymm _ (H.closure_le.mpr $ by simp [a_in]),
   intros g g_in,
-  obtain ⟨k, nonneg, lt⟩ : ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a := exists_int_smul_near_of_pos' a_pos g,
-  have h_zero : g - k •ℤ a = 0,
+  obtain ⟨k, nonneg, lt⟩ : ∃ k, 0 ≤ g - k • a ∧ g - k • a < a :=
+    exists_int_smul_near_of_pos' a_pos g,
+  have h_zero : g - k • a = 0,
   { by_contra h,
-    have h : a ≤ g - k •ℤ a,
+    have h : a ≤ g - k • a,
     { refine a_min ⟨_, _⟩,
       { exact add_subgroup.sub_mem H g_in (add_subgroup.gsmul_mem H a_in k) },
       { exact lt_of_le_of_ne nonneg (ne.symm h) } },
-    have h' : ¬ (a ≤ g - k •ℤ a) := not_le.mpr lt,
+    have h' : ¬ (a ≤ g - k • a) := not_le.mpr lt,
     contradiction },
   simp [sub_eq_zero.mp h_zero, add_subgroup.mem_closure_singleton],
 end

@@ -39,7 +39,7 @@ and `q` is notation for the cardinality of `K`.
 -/
 
 variables {K : Type*} [field K] [fintype K]
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R] [integral_domain R]
 local notation `q` := fintype.card K
 
 open_locale big_operators
@@ -324,7 +324,7 @@ begin
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
-    @exists_root_sum_quadratic _ _ _ f g
+    @exists_root_sum_quadratic _ _ _ _ f g
       (degree_X_pow 2) (degree_X_pow_sub_C dec_trivial _) (by rw [zmod.card, hp_odd]),
   refine ⟨a, b, _⟩,
   rw ← sub_eq_zero,
@@ -335,7 +335,8 @@ end zmod
 
 namespace char_p
 
-lemma sq_add_sq (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+lemma sq_add_sq (R : Type*) [comm_ring R] [integral_domain R]
+  (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,

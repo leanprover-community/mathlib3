@@ -705,7 +705,7 @@ by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_a
 
 section nondegenerate
 
-variables {m R A : Type*} [fintype m] [comm_ring R] [integral_domain A]
+variables {m R A : Type*} [fintype m] [comm_ring R] [comm_ring A] [integral_domain A]
 
 /-- A matrix `M` is nondegenerate if for all `v ≠ 0`, there is a `w ≠ 0` with `w ⬝ M ⬝ v ≠ 0`. -/
 def nondegenerate (M : matrix m m R) :=

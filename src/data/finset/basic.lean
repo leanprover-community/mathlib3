@@ -2831,11 +2831,15 @@ disjoint_right.2 (λ x m₁, (disjoint_right.1 d) (h m₁))
 
 @[simp] theorem disjoint_empty_right (s : finset α) : disjoint s ∅ := disjoint_bot_right
 
-@[simp] theorem singleton_disjoint {s : finset α} {a : α} : disjoint (singleton a) s ↔ a ∉ s :=
+@[simp] theorem disjoint_singleton_left {s : finset α} {a : α} : disjoint (singleton a) s ↔ a ∉ s :=
 by simp only [disjoint_left, mem_singleton, forall_eq]
 
-@[simp] theorem disjoint_singleton {s : finset α} {a : α} : disjoint s (singleton a) ↔ a ∉ s :=
-disjoint.comm.trans singleton_disjoint
+@[simp] theorem disjoint_singleton_right {s : finset α} {a : α} :
+  disjoint s (singleton a) ↔ a ∉ s :=
+disjoint.comm.trans disjoint_singleton_left
+
+@[simp] lemma disjoint_singleton {a b : α} : disjoint ({a} : finset α) {b} ↔ a ≠ b :=
+by rw [disjoint_singleton_left, mem_singleton]
 
 @[simp] theorem disjoint_insert_left {a : α} {s t : finset α} :
   disjoint (insert a s) t ↔ a ∉ t ∧ disjoint s t :=

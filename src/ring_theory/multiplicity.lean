@@ -436,7 +436,8 @@ end comm_cancel_monoid_with_zero
 
 section valuation
 
-variables {R : Type*} [integral_domain R] {p : R} [decidable_rel (has_dvd.dvd : R → R → Prop)]
+variables {R : Type*} [comm_ring R] [integral_domain R] {p : R}
+  [decidable_rel (has_dvd.dvd : R → R → Prop)]
 
 /-- `multiplicity` of a prime inan integral domain as an additive valuation to `enat`. -/
 noncomputable def add_valuation (hp : prime p) : add_valuation R enat :=

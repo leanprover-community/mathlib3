@@ -26,7 +26,7 @@ Finally, we use this to show unique factorization domains are integrally closed.
 
 section scale_roots
 
-variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ring S]
+variables {A K R S : Type*} [comm_ring A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A} [algebra A S] [is_localization M S] [algebra A K] [is_fraction_ring A K]
 
 open finsupp is_fraction_ring is_localization polynomial
@@ -38,6 +38,8 @@ begin
   convert scale_roots_eval₂_eq_zero (algebra_map A S) hr,
   rw [aeval_def, mk'_spec' _ r s]
 end
+
+variables [integral_domain A]
 
 lemma num_is_root_scale_roots_of_aeval_eq_zero
   [unique_factorization_monoid A] {p : polynomial A} {x : K} (hr : aeval x p = 0) :
@@ -53,7 +55,7 @@ end scale_roots
 
 section rational_root_theorem
 
-variables {A K : Type*} [integral_domain A] [unique_factorization_monoid A] [field K]
+variables {A K : Type*} [comm_ring A] [integral_domain A] [unique_factorization_monoid A] [field K]
 variables [algebra A K] [is_fraction_ring A K]
 
 open is_fraction_ring is_localization polynomial unique_factorization_monoid

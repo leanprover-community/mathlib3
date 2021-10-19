@@ -1241,7 +1241,7 @@ rescale_neg_one_X
 end comm_ring
 
 section integral_domain
-variable [integral_domain R]
+variables [comm_ring R] [integral_domain R]
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
@@ -1628,7 +1628,7 @@ by { rw [X_pow_eq, order_monomial_of_ne_zero], exact one_ne_zero }
 end order_zero_ne_one
 
 section order_integral_domain
-variables [integral_domain R]
+variables [comm_ring R] [integral_domain R]
 
 /-- The order of the product of two formal power series over an integral domain
  is the sum of their orders.-/

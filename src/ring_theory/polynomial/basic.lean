@@ -595,14 +595,14 @@ end ideal
 
 namespace polynomial
 @[priority 100]
-instance {R : Type*} [integral_domain R] [wf_dvd_monoid R] :
+instance {R : Type*} [comm_ring R] [integral_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid (polynomial R) :=
 { well_founded_dvd_not_unit := begin
     classical,
     refine rel_hom.well_founded
       ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
       (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_5.well_founded_dvd_not_unit),
+        _inst_6.well_founded_dvd_not_unit),
     rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
     rw [polynomial.degree_mul, if_neg ane0],
     split_ifs with hac,
@@ -692,17 +692,20 @@ attribute [instance] polynomial.is_noetherian_ring
 
 namespace polynomial
 
-theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_degree_pos
+  {R : Type u} [comm_ring R] [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
 wf_dvd_monoid.exists_irreducible_factor
   (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
   (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
 
-theorem exists_irreducible_of_nat_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_nat_degree_pos
+  {R : Type u} [comm_ring R] [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.nat_degree) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_degree_le hf }
 
-theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_nat_degree_ne_zero
+  {R : Type u} [comm_ring R] [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
@@ -838,12 +841,14 @@ Multivariate polynomials in finitely many variables over an integral domain form
 This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
 and then used to prove the general case without finiteness hypotheses.
 See `mv_polynomial.integral_domain` for the general case. -/
-def integral_domain_fintype (R : Type u) (σ : Type v) [integral_domain R] [fintype σ] :
+theorem integral_domain_fintype
+  (R : Type u) (σ : Type v) [comm_ring R] [integral_domain R] [fintype σ] :
   integral_domain (mv_polynomial σ R) :=
 @is_integral_domain.to_integral_domain _ _ $ mv_polynomial.is_integral_domain_fintype R σ $
 integral_domain.to_is_integral_domain R
 
-protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {R : Type u} [integral_domain R] {σ : Type v}
+protected theorem eq_zero_or_eq_zero_of_mul_eq_zero
+  {R : Type u} [comm_ring R] [integral_domain R] {σ : Type v}
   (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=
 begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
@@ -859,7 +864,7 @@ begin
 end
 
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
-instance {R : Type u} {σ : Type v} [integral_domain R] :
+instance {R : Type u} {σ : Type v} [comm_ring R] [integral_domain R] :
   integral_domain (mv_polynomial σ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
   exists_pair_ne := ⟨0, 1, λ H,
@@ -997,7 +1002,7 @@ end mv_polynomial
 namespace polynomial
 open unique_factorization_monoid
 
-variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
+variables {D : Type u} [comm_ring D] [integral_domain D] [unique_factorization_monoid D]
 
 @[priority 100]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=

@@ -183,6 +183,19 @@ end⟩
 def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 chinese_remainder' (by convert modeq_one)
 
+lemma chinese_remainder'_lt_lcm (h : a ≡ b [MOD gcd n m]) (hn : n ≠ 0) (hm : m ≠ 0) :
+  ↑(chinese_remainder' h) < lcm n m :=
+begin
+  dsimp only [chinese_remainder'],
+  rw [dif_neg hn, dif_neg hm, subtype.coe_mk, xgcd_val, ←int.to_nat_coe_nat (lcm n m)],
+  have lcm_pos := int.coe_nat_pos.mpr (nat.pos_of_ne_zero (lcm_ne_zero hn hm)),
+  exact (int.to_nat_lt_to_nat lcm_pos).mpr (int.mod_lt_of_pos _ lcm_pos),
+end
+
+lemma chinese_remainder_lt_mul (co : coprime n m) (a b : ℕ) (hn : n ≠ 0) (hm : m ≠ 0) :
+  ↑(chinese_remainder co a b) < n * m :=
+lt_of_lt_of_le (chinese_remainder'_lt_lcm _ hn hm) (le_of_eq co.lcm_eq_mul)
+
 lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
   a ≡ b [MOD m] ∧ a ≡ b [MOD n] ↔ (a ≡ b [MOD m * n]) :=
 ⟨λ h, begin

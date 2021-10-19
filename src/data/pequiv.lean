@@ -343,7 +343,8 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf (α ≃. β) :=
     have := gh a b,
     simp [le_def],
     split_ifs; finish
-  end }
+  end,
+  ..pequiv.partial_order }
 
 end order
 

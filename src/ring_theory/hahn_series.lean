@@ -738,7 +738,7 @@ instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 
-instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R] :
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [integral_domain R] :
   integral_domain (hahn_series Γ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y xy, begin
     by_cases hx : x = 0,
@@ -754,7 +754,7 @@ instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R] :
   .. hahn_series.comm_ring }
 
 @[simp]
-lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R]
+lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [integral_domain R]
   {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (x * y).order = x.order + y.order :=
 begin
@@ -1026,7 +1026,7 @@ end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [integral_domain R]
+variables [linear_ordered_add_comm_group Γ] [comm_ring R] [integral_domain R]
 
 instance : linear_ordered_comm_group (multiplicative Γ) :=
 { .. (infer_instance : linear_order (multiplicative Γ)),
@@ -1086,7 +1086,8 @@ end
 
 end valuation
 
-lemma is_pwo_Union_support_powers [linear_ordered_add_comm_group Γ] [integral_domain R]
+lemma is_pwo_Union_support_powers
+  [linear_ordered_add_comm_group Γ] [comm_ring R] [integral_domain R]
   {x : hahn_series Γ R} (hx : 0 < add_val Γ R x) :
   (⋃ n : ℕ, (x ^ n).support).is_pwo :=
 begin
@@ -1413,7 +1414,7 @@ end emb_domain
 
 section powers
 
-variables [linear_ordered_add_comm_group Γ] [integral_domain R]
+variables [linear_ordered_add_comm_group Γ] [comm_ring R] [integral_domain R]
 
 /-- The powers of an element of positive valuation form a summable family. -/
 def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :
@@ -1480,7 +1481,7 @@ section inversion
 variables [linear_ordered_add_comm_group Γ]
 
 section integral_domain
-variable [integral_domain R]
+variables [comm_ring R] [integral_domain R]
 
 lemma unit_aux (x : hahn_series Γ R) {r : R} (hr : r * x.coeff x.order = 1) :
   0 < add_val Γ R (1 - C r * (single (- x.order) 1) * x) :=
@@ -1536,7 +1537,8 @@ instance [field R] : field (hahn_series Γ R) :=
     rw [sub_sub_cancel] at h,
     rw [← mul_assoc, mul_comm x, h],
   end,
-  .. hahn_series.integral_domain }
+  .. hahn_series.integral_domain,
+  .. hahn_series.comm_ring }
 
 end inversion
 

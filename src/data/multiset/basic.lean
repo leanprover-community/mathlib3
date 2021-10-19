@@ -413,9 +413,11 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
 
 instance : canonically_ordered_add_monoid (multiset α) :=
 { le_iff_exists_add     := @le_iff_exists_add _,
-  bot                   := 0,
-  bot_le                := multiset.zero_le,
   ..multiset.ordered_cancel_add_comm_monoid }
+
+instance : order_bot (multiset α) :=
+{ bot                   := 0,
+  bot_le                := multiset.zero_le }
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]
@@ -1619,9 +1621,6 @@ instance : lattice (multiset α) :=
 @[simp] theorem le_inter_iff : s ≤ t ∩ u ↔ s ≤ t ∧ s ≤ u := le_inf_iff
 @[simp] theorem union_le_iff : s ∪ t ≤ u ↔ s ≤ u ∧ t ≤ u := sup_le_iff
 
-instance : semilattice_inf_bot (multiset α) :=
-{ bot := 0, bot_le := zero_le, ..multiset.lattice }
-
 theorem union_comm (s t : multiset α) : s ∪ t = t ∪ s := sup_comm
 theorem inter_comm (s t : multiset α) : s ∩ t = t ∩ s := inf_comm
 
@@ -2118,11 +2117,6 @@ instance : distrib_lattice (multiset α) :=
 { le_sup_inf := λ s t u, le_of_eq $ eq.symm $
     ext.2 $ λ a, by simp only [max_min_distrib_left,
       multiset.count_inter, multiset.sup_eq_union, multiset.count_union, multiset.inf_eq_inter],
-  ..multiset.lattice }
-
-instance : semilattice_sup_bot (multiset α) :=
-{ bot := 0,
-  bot_le := zero_le,
   ..multiset.lattice }
 
 theorem repeat_inf (s : multiset α) (a : α) (n : ℕ) :

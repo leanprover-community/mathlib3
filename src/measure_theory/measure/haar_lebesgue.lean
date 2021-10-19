@@ -309,3 +309,8 @@ end
 end measure
 
 end measure_theory
+
+open measure_theory
+
+instance real.is_haar_measure_volume : measure.is_add_haar_measure (volume : measure ℝ) :=
+by { rw ← haar_measure_eq_lebesgue_measure, apply_instance }

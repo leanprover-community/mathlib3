@@ -1650,7 +1650,7 @@ lemma lintegral_infi_ae
 have fn_le_f0 : ∫⁻ a, ⨅n, f n a ∂μ ≤ ∫⁻ a, f 0 a ∂μ, from
   lintegral_mono (assume a, infi_le_of_le 0 (le_refl _)),
 have fn_le_f0' : (⨅n, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, f 0 a ∂μ, from infi_le_of_le 0 (le_refl _),
-(ennreal.tsub_right_inj h_fin fn_le_f0 fn_le_f0').1 $
+(ennreal.sub_right_inj h_fin fn_le_f0 fn_le_f0').1 $
 show ∫⁻ a, f 0 a ∂μ - ∫⁻ a, ⨅n, f n a ∂μ = ∫⁻ a, f 0 a ∂μ - (⨅n, ∫⁻ a, f n a ∂μ), from
 calc
   ∫⁻ a, f 0 a ∂μ - (∫⁻ a, ⨅n, f n a ∂μ) = ∫⁻ a, f 0 a - ⨅n, f n a ∂μ:

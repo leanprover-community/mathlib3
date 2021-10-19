@@ -141,7 +141,7 @@ begin
   have h'ε := ennreal.coe_ne_zero.2 hε,
   cases le_or_lt (μ.inner_content U) ε,
   { exact ⟨⊥, empty_subset _, le_add_left h⟩ },
-  have := ennreal.tsub_lt_self hU h.ne_bot h'ε,
+  have := ennreal.sub_lt_self hU h.ne_bot h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U

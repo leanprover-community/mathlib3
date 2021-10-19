@@ -931,7 +931,7 @@ lemma mem_Iio_self_add : x ≠ ∞ → ε ≠ 0 → x ∈ Iio (x + ε) :=
 assume xt ε0, lt_add_right xt ε0
 
 lemma mem_Ioo_self_sub_add : x ≠ ∞ → x ≠ 0 → ε₁ ≠ 0 → ε₂ ≠ 0 → x ∈ Ioo (x - ε₁) (x + ε₂) :=
-assume xt x0 ε0 ε0', ⟨ennreal.tsub_lt_self xt x0 ε0, lt_add_right xt ε0'⟩
+assume xt x0 ε0 ε0', ⟨ennreal.sub_lt_self xt x0 ε0, lt_add_right xt ε0'⟩
 
 end interval
 

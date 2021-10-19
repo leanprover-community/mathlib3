@@ -325,7 +325,7 @@ begin
   simp only [one_mul, mul_right_inv, mul_inv_cancel_right],
 end
 
-def left_bot_eq_left_quot (H : subgroup G) :
+lemma left_bot_eq_left_quot (H : subgroup G) :
   quotient (⊥ : subgroup G) H = quotient_group.quotient H :=
 begin
   rw quotient_group.quotient,
@@ -337,7 +337,7 @@ begin
   refl,
 end
 
-def right_bot_eq_right_quot (H : subgroup G) :
+lemma right_bot_eq_right_quot (H : subgroup G) :
   quotient H (⊥ : subgroup G) = _root_.quotient  (quotient_group.right_rel H) :=
 begin
   simp_rw [quotient],

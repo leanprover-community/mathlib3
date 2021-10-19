@@ -15,7 +15,7 @@ This is a basic API for the rank of free modules.
 
 -/
 
-universes u v w z
+universes u v w
 
 variables (R : Type u) (M : Type v) (N : Type w)
 

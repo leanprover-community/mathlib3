@@ -917,8 +917,7 @@ end with_top
 
 namespace subtype
 
--- TODO: fix docstrings
-/-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property.
+/-- A subtype retains a `⊥`-order if the property holds at `⊥`.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥) :
@@ -926,6 +925,8 @@ protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ _, bot_le }
 
+/-- A subtype retains a `⊤`-order if the property holds at `⊤`.
+See note [reducible non-instances]. -/
 @[reducible]
 protected def order_top [preorder α] [order_top α] {P : α → Prop} (Ptop : P ⊤) :
   order_top {x : α // P x} :=

@@ -252,7 +252,7 @@ lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : is_open s) :
   s ⊆ interior t ↔ s ⊆ t :=
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
-lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
+@[mono] lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) is_open_interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=
@@ -1260,6 +1260,14 @@ tendsto_const_nhds
 
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_continuous_at.mpr $ assume a, continuous_at_const
+
+lemma filter.eventually_eq.continuous_at {x : α} {f : α → β} {y : β} (h : f =ᶠ[𝓝 x] (λ _, y)) :
+  continuous_at f x :=
+(continuous_at_congr h).2 tendsto_const_nhds
+
+lemma continuous_of_const {f : α → β} (h : ∀ x y, f x = f y) : continuous f :=
+continuous_iff_continuous_at.mpr $ λ x, filter.eventually_eq.continuous_at $
+  eventually_of_forall (λ y, h y x)
 
 lemma continuous_at_id {x : α} : continuous_at id x :=
 continuous_id.continuous_at

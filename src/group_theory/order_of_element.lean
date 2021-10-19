@@ -239,6 +239,10 @@ by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff
   (y : H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
 
+@[to_additive order_of_add_units]
+lemma order_of_units {y : units G} : order_of (y : G) = order_of y :=
+order_of_injective (units.coe_hom G) units.ext y
+
 variables (x)
 
 lemma order_of_pow' (h : n ≠ 0) :

@@ -161,7 +161,11 @@ begin
   obtain ⟨S, hS⟩ := hB.out,
   refine ⟨⟨S, eq_top_iff.2 (λ b, _)⟩⟩,
   have le : adjoin R (S : set B) ≤ subalgebra.restrict_scalars R (adjoin A S),
+<<<<<<< HEAD
   { apply @algebra.adjoin_le _ _ _ _ _ _ (subalgebra.restrict_scalars R (adjoin A ↑S)),
+=======
+  { apply (algebra.adjoin_le _ : _ ≤ (subalgebra.restrict_scalars R (adjoin A ↑S))),
+>>>>>>> origin/master
     simp only [subalgebra.coe_restrict_scalars],
     exact algebra.subset_adjoin, },
   exact le (eq_top_iff.1 hS b),

@@ -443,9 +443,11 @@ namespace fintype
 
 variables [fintype ι]
 
-@[mono, to_additive sum_mono]
+@[to_additive sum_mono, mono]
 lemma prod_mono' [ordered_comm_monoid M] : monotone (λ f : ι → M, ∏ i, f i) :=
 λ f g hfg, finset.prod_le_prod'' $ λ x _, hfg x
+
+attribute [mono] sum_mono
 
 @[to_additive sum_strict_mono]
 lemma prod_strict_mono' [ordered_cancel_comm_monoid M] : strict_mono (λ f : ι → M, ∏ x, f x) :=

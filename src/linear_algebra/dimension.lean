@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
+import linear_algebra.dfinsupp
 import linear_algebra.std_basis
 import linear_algebra.isomorphisms
 import set_theory.cofinality
@@ -246,6 +247,11 @@ begin
     exact le_refl _, },
 end
 
+lemma cardinal_lift_le_dim_of_linear_independent'
+  {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
+  cardinal.lift.{v} (#ι) ≤ cardinal.lift.{w} (module.rank R M) :=
+cardinal_lift_le_dim_of_linear_independent.{u v w 0} hv
+
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type v} {v : ι → M} (hv : linear_independent R v) :
   #ι ≤ module.rank R M :=
@@ -418,6 +424,21 @@ lemma infinite_basis_le_maximal_linear_independent
   {κ : Type w} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
   #ι ≤ #κ :=
 cardinal.lift_le.mp (infinite_basis_le_maximal_linear_independent' b v i m)
+
+lemma complete_lattice.independent.subtype_ne_bot_le_rank [no_zero_smul_divisors R M]
+  {V : ι → submodule R M} (hV : complete_lattice.independent V) :
+  cardinal.lift.{v} (#{i : ι // V i ≠ ⊥}) ≤ cardinal.lift.{w} (module.rank R M) :=
+begin
+  set I := {i : ι // V i ≠ ⊥},
+  have hI : ∀ i : I, ∃ v ∈ V i, v ≠ (0:M),
+  { intros i,
+    rw ← submodule.ne_bot_iff,
+    exact i.prop },
+  choose v hvV hv using hI,
+  have : linear_independent R v,
+  { exact (hV.comp _ subtype.coe_injective).linear_independent _ hvV hv },
+  exact cardinal_lift_le_dim_of_linear_independent' this
+end
 
 end
 
@@ -917,9 +938,9 @@ begin
   let c := basis.of_vector_space K V₁,
   rw [← cardinal.lift_inj,
       ← (basis.prod b c).mk_eq_dim,
-      cardinal.lift_add, cardinal.lift_mk,
+      cardinal.lift_add, ← cardinal.mk_ulift,
       ← b.mk_eq_dim, ← c.mk_eq_dim,
-      cardinal.lift_mk, cardinal.lift_mk,
+      ← cardinal.mk_ulift, ← cardinal.mk_ulift,
       cardinal.add_def (ulift _)],
   exact cardinal.lift_inj.1 (cardinal.lift_mk_eq.2
       ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm ⟩),

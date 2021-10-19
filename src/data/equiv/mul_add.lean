@@ -144,6 +144,10 @@ theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
 
 @[simp, to_additive]
+lemma to_equiv_mk (f : M → N) (g : N → M) (h₁ h₂ h₃) :
+  (mk f g h₁ h₂ h₃).to_equiv = ⟨f, g, h₁, h₂⟩ := rfl
+
+@[simp, to_additive]
 lemma symm_symm : ∀ (f : M ≃* N), f.symm.symm = f
 | ⟨f, g, h₁, h₂, h₃⟩ := rfl
 
@@ -375,8 +379,8 @@ end mul_equiv
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
-@[to_additive /-"Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id` and
-`f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
+@[to_additive /-"Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id`
+and `f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
 constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
 monoid homomorphisms."-/, simps {fully_applied := ff}]
 def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (g : N →* M)

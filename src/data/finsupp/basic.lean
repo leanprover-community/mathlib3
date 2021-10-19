@@ -302,7 +302,7 @@ end
 
 lemma support_single_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
-by simpa [support_single_ne_zero, hb, hb'] using ne_comm
+by rw [support_single_ne_zero hb, support_single_ne_zero hb', disjoint_singleton]
 
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 by simp [ext_iff, single_eq_indicator]
@@ -1970,7 +1970,7 @@ begin
     rw [to_multiset_add, multiset.to_finset_add, ih, to_multiset_single, support_add_eq,
       support_single_ne_zero hn, multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton],
     refine disjoint.mono_left support_single_subset _,
-    rwa [finset.singleton_disjoint] }
+    rwa [finset.disjoint_singleton_left] }
 end
 
 @[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :

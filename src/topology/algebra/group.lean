@@ -178,6 +178,44 @@ lemma continuous_within_at.inv (hf : continuous_within_at f s x) :
   continuous_within_at (λ x, (f x)⁻¹) s x :=
 hf.inv
 
+section ordered_comm_group
+
+variables [topological_space H] [ordered_comm_group H] [topological_group H]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi {a : H} :
+  tendsto has_inv.inv (𝓝[Ioi a] a) (𝓝[Iio (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iio {a : H} :
+  tendsto has_inv.inv (𝓝[Iio a] a) (𝓝[Ioi (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Ioi (a⁻¹)] (a⁻¹)) (𝓝[Iio a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iio_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Iio (a⁻¹)] (a⁻¹)) (𝓝[Ioi a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ici {a : H} :
+  tendsto has_inv.inv (𝓝[Ici a] a) (𝓝[Iic (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic {a : H} :
+  tendsto has_inv.inv (𝓝[Iic a] a) (𝓝[Ici (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ici_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Ici (a⁻¹)] (a⁻¹)) (𝓝[Iic a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ici _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Iic (a⁻¹)] (a⁻¹)) (𝓝[Ici a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iic _ _ _ _ (a⁻¹)
+
+end ordered_comm_group
+
 @[instance, to_additive]
 instance [topological_space H] [group H] [topological_group H] :
   topological_group (G × H) :=

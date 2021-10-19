@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.complex.basic
 import data.complex.exponential
+import topology.continuous_function.basic
 
 /-!
 # The circle
@@ -44,11 +45,15 @@ def circle : submonoid ℂ :=
     simp [ha, hb],
   end }
 
-@[simp] lemma mem_circle_iff_abs (z : ℂ) : z ∈ circle ↔ abs z = 1 := mem_sphere_zero_iff_norm
+@[simp] lemma mem_circle_iff_abs {z : ℂ} : z ∈ circle ↔ abs z = 1 := mem_sphere_zero_iff_norm
 
 lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := by { ext, simp }
 
-@[simp] lemma abs_eq_of_mem_circle (z : circle) : abs z = 1 := by { convert z.2, simp }
+@[simp] lemma abs_eq_of_mem_circle (z : circle) : abs z = 1 :=
+mem_circle_iff_abs.mp z.2
+
+lemma mem_circle_iff_norm_sq {z : ℂ} : z ∈ circle ↔ norm_sq z = 1 :=
+by rw [mem_circle_iff_abs, complex.abs, real.sqrt_eq_one]
 
 @[simp] lemma norm_sq_eq_of_mem_circle (z : circle) : norm_sq z = 1 := by simp [norm_sq_eq_abs]
 
@@ -85,16 +90,19 @@ instance : topological_group circle :=
     complex.conj_cle.continuous.comp continuous_subtype_coe }
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`. -/
-def exp_map_circle (t : ℝ) : circle :=
-⟨exp (t * I), by simp [exp_mul_I, abs_cos_add_sin_mul_I]⟩
+@[simps] def exp_map_circle : C(ℝ, circle) :=
+{ to_fun := λ t, ⟨exp (t * I), by simp [exp_mul_I, abs_cos_add_sin_mul_I]⟩,
+  continuous_to_fun := by continuity }
 
-@[simp] lemma exp_map_circle_apply (t : ℝ) : ↑(exp_map_circle t) = complex.exp (t * complex.I) :=
-rfl
+@[simp] lemma exp_map_circle_zero : exp_map_circle 0 = 1 := by { ext1, simp }
+
+@[simp] lemma exp_map_circle_add (x y : ℝ) :
+  exp_map_circle (x + y) = exp_map_circle x * exp_map_circle y :=
+by { ext1, simp [add_mul, exp_add] }
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`, considered as a homomorphism of
 groups. -/
 def exp_map_circle_hom : ℝ →+ (additive circle) :=
-{ to_fun := exp_map_circle,
-  map_zero' := by { rw exp_map_circle, convert of_mul_one, simp },
-  map_add' := λ x y, show exp_map_circle (x + y) = (exp_map_circle x) * (exp_map_circle y),
-    from subtype.ext $ by simp [exp_map_circle, exp_add, add_mul] }
+{ to_fun := λ x, additive.of_mul (exp_map_circle x),
+  map_zero' := exp_map_circle_zero,
+  map_add' := exp_map_circle_add }

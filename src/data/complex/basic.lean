@@ -254,6 +254,8 @@ lemma norm_sq_apply (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
 
+@[simp] lemma norm_sq_mk (x y : ℝ) : norm_sq ⟨x, y⟩ = x * x + y * y := rfl
+
 lemma norm_sq_eq_conj_mul_self {z : ℂ} : (norm_sq z : ℂ) = conj z * z :=
 by { ext; simp [norm_sq, mul_comm], }
 
@@ -314,8 +316,7 @@ by induction n; simp [*, of_real_mul, pow_succ]
 theorem sub_conj (z : ℂ) : z - conj z = (2 * z.im : ℝ) * I :=
 ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 
-lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
-  norm_sq z + norm_sq w - 2 * (z * conj w).re :=
+lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) = norm_sq z + norm_sq w - 2 * (z * conj w).re :=
 by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
 
 /-! ### Inversion -/

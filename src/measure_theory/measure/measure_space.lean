@@ -2979,12 +2979,10 @@ begin
 end
 
 lemma piecewise_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.piecewise f g =ᵐ[μ] t.piecewise f g :=
-begin
-  filter_upwards [hst],
-  intros x hx,
-  replace hx : x ∈ s ↔ x ∈ t := iff_of_eq hx,
-  by_cases h : x ∈ s; have h' := h; rw hx at h'; simp [h, h']
-end
+hst.mem_iff.mono $ λ x hx, by simp [piecewise, hx]
+
+/-lemma measure_theory.measure.map_piecewise [measurable_space β] :
+  map (piecewise s f g) μ = -/
 
 end piecewise
 

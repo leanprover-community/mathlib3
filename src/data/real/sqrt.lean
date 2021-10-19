@@ -153,9 +153,29 @@ by rw [sqrt, ← nnreal.coe_mul, nnreal.mul_self_sqrt, real.coe_to_nnreal _ h]
 @[simp] theorem sqrt_mul_self (h : 0 ≤ x) : sqrt (x * x) = x :=
 (mul_self_inj_of_nonneg (sqrt_nonneg _) h).1 (mul_self_sqrt (mul_self_nonneg _))
 
+theorem sqrt_eq_cases : sqrt x = y ↔ y * y = x ∧ 0 ≤ y ∨ x < 0 ∧ y = 0 :=
+begin
+  split,
+  { rintro rfl,
+    cases le_or_lt 0 x with hle hlt,
+    { exact or.inl ⟨mul_self_sqrt hle, sqrt_nonneg x⟩ },
+    { exact or.inr ⟨hlt, sqrt_eq_zero_of_nonpos hlt.le⟩ } },
+  { rintro (⟨rfl, hy⟩|⟨hx, rfl⟩),
+    exacts [sqrt_mul_self hy, sqrt_eq_zero_of_nonpos hx.le] }
+end
+
 theorem sqrt_eq_iff_mul_self_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
   sqrt x = y ↔ y * y = x :=
-⟨λ h, by rw [← h, mul_self_sqrt hx], λ h, by rw [← h, sqrt_mul_self hy]⟩
+by simp [sqrt_eq_cases, hx.not_lt, hy]
+
+theorem sqrt_eq_iff_mul_self_eq_of_pos (h : 0 < y) :
+  sqrt x = y ↔ y * y = x :=
+by simp [sqrt_eq_cases, h.ne', h.le]
+
+@[simp] lemma sqrt_eq_one : sqrt x = 1 ↔ x = 1 :=
+calc sqrt x = 1 ↔ 1 * 1 = x :
+  sqrt_eq_iff_mul_self_eq_of_pos zero_lt_one
+... ↔ x = 1 : by rw [eq_comm, mul_one]
 
 @[simp] theorem sq_sqrt (h : 0 ≤ x) : (sqrt x)^2 = x :=
 by rw [sq, mul_self_sqrt h]
@@ -176,6 +196,9 @@ by rw [sq, sqrt_mul_self_eq_abs]
 @[simp] theorem sqrt_zero : sqrt 0 = 0 := by simp [sqrt]
 
 @[simp] theorem sqrt_one : sqrt 1 = 1 := by simp [sqrt]
+
+@[simp] theorem sqrt_eq_one {x : ℝ} : sqrt x = 1 ↔ x = 1 :=
+(sqrt_eq_iff_mul_self_eq _ _).trans _
 
 @[simp] theorem sqrt_le_sqrt_iff (hy : 0 ≤ y) : sqrt x ≤ sqrt y ↔ x ≤ y :=
 by rw [sqrt, sqrt, nnreal.coe_le_coe, nnreal.sqrt_le_sqrt_iff, real.to_nnreal_le_to_nnreal_iff hy]

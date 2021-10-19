@@ -611,6 +611,12 @@ supr_singleton
 @[simp] theorem bUnion_of_singleton (s : set α) : (⋃ x ∈ s, {x}) = s :=
 ext $ by simp
 
+theorem Union_ne_singleton_eq_diff (a b : α) : (⋃ h : a ≠ b, {a} : set α) = {a} \ {b} :=
+by { ext, simp [mem_Union, and.comm] { contextual := tt } }
+
+theorem Union_ne_singleton_eq_diff' (a b : α) : (⋃ h : a ≠ b, {b} : set α) = {b} \ {a} :=
+by simpa [eq_comm] using Union_ne_singleton_eq_diff b a
+
 theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
@@ -1533,6 +1539,24 @@ variables (t : α → set β)
 lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
 ⟨λ h, ⟨λ x hxs, (h hxs).1, λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
 λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2 ⟨hxs, hxu⟩⟩⟩
+
+lemma bUnion_diff_bUnion_subset (s₁ s₂ : set α) :
+  (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) ⊆ (⋃ x ∈ s₁ \ s₂, t x) :=
+begin
+  simp only [diff_subset_iff, ← bUnion_union],
+  apply bUnion_subset_bUnion_left,
+  rw union_diff_self,
+  apply subset_union_right
+end
+
+lemma bUnion_diff_bUnion_eq {s₁ s₂ : set α} (H : pairwise_on (s₁ ∪ s₂) (disjoint on t)) :
+  (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) = (⋃ x ∈ s₁ \ s₂, t x) :=
+begin
+  refine (bUnion_diff_bUnion_subset t s₁ s₂).antisymm (bUnion_subset $ λ x hx y hy, _),
+  refine (mem_diff _).2 ⟨mem_bUnion hx.1 hy, _⟩,
+  rw mem_bUnion_iff, rintro ⟨x₂, hx₂, hy₂⟩,
+  exact H x (or.inl hx.1) x₂ (or.inr hx₂) (ne_of_mem_of_not_mem hx₂ hx.2).symm ⟨hy, hy₂⟩
+end
 
 /-- If `t` is an indexed family of sets, then there is a natural map from `Σ i, t i` to `⋃ i, t i`
 sending `⟨i, x⟩` to `x`. -/

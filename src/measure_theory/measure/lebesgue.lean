@@ -209,6 +209,14 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
           ... = emetric.diam s ^ fintype.card ι              :
   by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
 
+lemma volume_pi_to_real_le_diam_pow {s : set (ι → ℝ)} (hs : metric.bounded s) :
+  (volume s).to_real ≤ metric.diam s ^ fintype.card ι :=
+begin
+  rw [metric.diam, ← ennreal.to_real_pow],
+  refine ennreal.to_real_mono _ (volume_pi_le_diam_pow s),
+  exact ennreal.pow_ne_top hs.ediam_ne_top
+end
+
 /-!
 ### Images of the Lebesgue measure under translation/multiplication in ℝ
 -/

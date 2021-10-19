@@ -205,9 +205,6 @@ begin
   exact le_antisymm (ha _) (hb _)
 end
 
--- /-- A `semilattice_sup_top` is a semilattice with top and join. -/
--- class semilattice_sup_top (α : Type u) extends semilattice_sup α, order_top α.
-
 section semilattice_sup_top
 variables [semilattice_sup α] [order_top α] {a : α}
 
@@ -263,51 +260,11 @@ end semilattice_inf_bot
 
 /-! ### Bounded lattice -/
 
-/-- A bounded lattice is a lattice with a top and bottom element,
+/-- A bounded lattice describes an order `(≤)` with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
 @[ancestor order_top order_bot]
 class bounded_lattice (α : Type u) [has_le α] extends order_top α, order_bot α.
-
--- @[priority 100] -- see Note [lower instance priority]
--- instance semilattice_inf_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
---   semilattice_inf_top α :=
--- { le_top := λ x, @le_top α _ x, ..bl }
-
--- @[priority 100] -- see Note [lower instance priority]
--- instance semilattice_inf_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
---   semilattice_inf_bot α :=
--- { bot_le := λ x, @bot_le α _ x, ..bl }
-
--- @[priority 100] -- see Note [lower instance priority]
--- instance semilattice_sup_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
---   semilattice_sup_top α :=
--- { le_top := λ x, @le_top α _ x, ..bl }
-
--- @[priority 100] -- see Note [lower instance priority]
--- instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
---   semilattice_sup_bot α :=
--- { bot_le := λ x, @bot_le α _ x, ..bl }
-
--- theorem bounded_lattice.ext {α} [lattice α] [order_top α {A B : bounded_lattice α}
---   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
--- begin
---   have H1 : @bounded_lattice.to_lattice α A =
---              @bounded_lattice.to_lattice α B := lattice.ext H,
---   have H2 := order_bot.ext H,
---   have H3 : @bounded_lattice.to_order_top α A =
---              @bounded_lattice.to_order_top α B := order_top.ext H,
---   have tt := order_bot.ext_bot H,
---   casesI A, casesI B,
---   injection H1; injection H2; injection H3; congr'
--- end
-
--- /-- A `distrib_lattice_bot` is a distributive lattice with a least element. -/
--- class distrib_lattice_bot α extends distrib_lattice α, semilattice_inf_bot α,
--- semilattice_sup_bot α
-
--- /-- A bounded distributive lattice is exactly what it sounds like. -/
--- class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
 
 lemma inf_eq_bot_iff_le_compl {α : Type u} [distrib_lattice α] [bounded_lattice α] {a b c : α}
   (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=

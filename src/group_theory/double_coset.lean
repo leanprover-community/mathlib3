@@ -7,8 +7,22 @@ import data.setoid.basic
 import group_theory.subgroup.basic
 import group_theory.coset
 import data.set.basic
-import data.nat.enat
 import tactic.group
+
+/-!
+# Double cosets
+
+This file defines double cosets for two subgroups `H K` of a group `G` and the quotient of `G` by
+the double coset relation, i.e. `H \ G / K`. We also prove that `G` can be writen as a disjoint
+union of the double cosets and that if one of `H` or `K` is the trivial group (i.e. `⊥` ) then
+this is the usual left or right quotient of a group by a subgroup.
+
+## Main definitions
+
+* `double_coset_rel`: The double coset relation defined by two subgroups `H K` of `G`.
+* `double_coset.quotient`: The quotient of `G` by the double coset relation, i.e, ``H \ G / K`.
+-/
+
 
 variables {G : Type*} [group G] {α : Type*} [has_mul α] (J: subgroup G) (g : G)
 

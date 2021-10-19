@@ -210,7 +210,7 @@ end
 end preorder
 
 section order_top
-variables [order_top α] [locally_finite_order α]
+variables [preorder α] [order_top α] [locally_finite_order α]
 
 /-- The finset of elements `x` such that `a ≤ x`. Basically `set.Ici a` as a finset. -/
 def Ici (a : α) : finset α := Icc a ⊤
@@ -236,7 +236,7 @@ by rw [←set.mem_Ioi, ←coe_Ioi, mem_coe]
 end order_top
 
 section order_bot
-variables [order_bot α] [locally_finite_order α]
+variables [preorder α] [order_bot α] [locally_finite_order α]
 
 /-- The finset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a finset. -/
 def Iic (b : α) : finset α :=

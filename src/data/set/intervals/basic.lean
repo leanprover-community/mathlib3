@@ -524,7 +524,7 @@ end order_top
 
 section order_bot
 
-variables {α : Type u} [partial_order α] [order_bot α] {a : α}
+variables {α : Type u} [preorder α] [order_bot α] {a : α}
 
 @[simp] lemma Iic_bot {α : Type u} [partial_order α] [order_bot α] : Iic (⊥ : α) = {⊥} :=
 Iic_singleton_of_bot (λ _, bot_le)

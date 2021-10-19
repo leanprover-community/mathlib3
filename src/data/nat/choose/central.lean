@@ -25,7 +25,8 @@ namespace nat
 
 def central_binom (n : ℕ) := (2 * n).choose n
 
-@[simp] lemma central_binom_def (n : ℕ) : central_binom n = (2 * n).choose n := rfl
+lemma central_binom_def (n : ℕ) : central_binom n = (2 * n).choose n := rfl
+local attribute [simp] central_binom_def
 
 lemma central_binom_pos (n : ℕ) : 0 < central_binom n :=
 choose_pos (nat.le_mul_of_pos_left zero_lt_two)
@@ -42,7 +43,7 @@ calc 2 ≤ 2 * n : le_mul_of_pos_right n_pos
 ... = (2 * n).choose 1 : (choose_one_right (2 * n)).symm
 ... ≤ (2 * n).choose n : choose_le_central_binom 1 n
 
-lemma central_binom_induction (n : ℕ) :
+lemma succ_mul_central_binom_succ (n : ℕ) :
   (n + 1) * (central_binom (n + 1)) = (2 * (2 * n + 1)) * central_binom n :=
 calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 1) : mul_comm _ _
 ... = (2 * n + 1).choose n * (2 * n + 2) : by rw [choose_succ_right_eq, choose_mul_succ_eq]
@@ -66,7 +67,7 @@ calc 4 ^ (m + 5) < 4 * ((m + 4) * central_binom (m + 4)) :
   (mul_lt_mul_left zero_lt_four).mpr (four_pow_n_lt_n_mul_central_binom (m + 4) le_add_self)
 ... = (4 * (m + 4)) * central_binom (m + 4) : (mul_assoc _ _ _).symm
 ... ≤ (2 * (2 * (m + 4) + 1)) * central_binom (m + 4) : by linarith
-... = (m + 5) * central_binom (m + 5) : (central_binom_induction (m + 4)).symm
+... = (m + 5) * central_binom (m + 5) : (succ_mul_central_binom_succ (m + 4)).symm
 
 -- This bound is of interest because it appears in Erdős's proof of Bertrand's postulate.
 lemma four_pow_le_two_mul_n_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n),

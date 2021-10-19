@@ -24,7 +24,7 @@ of `G`.
 
 open_locale pointwise
 
-variables {G G' : Type*} [group G][group G']
+variables {G G' : Type*} [group G] [group G']
 
 /--Two subgroups `H K` of `G` are commensurable if `H ⊓ K` has finite index in both `H` and `K` -/
 def commensurable (H K : subgroup G) : Prop :=

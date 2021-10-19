@@ -512,34 +512,28 @@ begin
 end
 
 lemma mem_infi' {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i ∈ I, V i ∈ s i) ∧ U = ⋂ i ∈ I, V i  :=
+  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i, V i ∈ s i) ∧
+    (∀ i ∉ I, V i = univ) ∧ (U = ⋂ i ∈ I, V i) ∧ U = ⋂ i, V i :=
 begin
   simp only [mem_infi, set_coe.forall', bInter_eq_Inter],
-  refine ⟨_, λ ⟨I, If, V, hV⟩, ⟨I, If, λ i, V i, hV⟩⟩,
-  rintro ⟨I, If, V, hV⟩,
-  lift V to ι → set α using trivial,
-  exact ⟨I, If, V, hV⟩
+  refine ⟨_, λ ⟨I, If, V, hVs, _, hVU, _⟩, ⟨I, If, λ i, V i, λ i, hVs i, hVU⟩⟩,
+  rintro ⟨I, If, V, hV, rfl⟩,
+  refine ⟨I, If, λ i, if hi : i ∈ I then V ⟨i, hi⟩ else univ, λ i, _, λ i hi, _, _⟩,
+  { split_ifs, exacts [hV _, univ_mem] },
+  { exact dif_neg hi },
+  { simp [Inter_dite, bInter_eq_Inter] }
 end
 
 lemma exists_Inter_of_mem_infi {ι : Type*} {α : Type*} {f : ι → filter α} {s}
   (hs : s ∈ ⨅ i, f i) : ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
-begin
-  classical,
-  rcases mem_infi'.mp hs with ⟨I, I_fin, V, hV, rfl⟩,
-  refine ⟨λ i, if i ∈ I then V i else univ, _, _⟩,
-  { intro i,
-    split_ifs,
-    exacts [hV i h, univ_mem] },
-  { simp [Inter_ite] },
-end
+let ⟨I, If, V, hVs, hV', hVU, hVU'⟩ := mem_infi'.1 hs in ⟨V, hVs, hVU'⟩
 
 lemma mem_infi_of_fintype {ι : Type*} [fintype ι] {α : Type*} {f : ι → filter α} (s) :
   s ∈ (⨅ i, f i) ↔ ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
 begin
   refine ⟨exists_Inter_of_mem_infi, _⟩,
-  rw mem_infi',
-  rintros ⟨t, ht, ht'⟩,
-  exact ⟨univ, finite_univ, ⟨t, λ i _, ht i, by simp [ht']⟩⟩
+  rintro ⟨t, ht, rfl⟩,
+  exact Inter_mem.2 (λ i, mem_infi_of_mem i (ht i))
 end
 
 @[simp] lemma le_principal_iff {s : set α} {f : filter α} : f ≤ 𝓟 s ↔ s ∈ f :=
@@ -1489,11 +1483,7 @@ end
 
 @[simp] lemma frequently_comap {f : filter β} {φ : α → β} {P : α → Prop} :
   (∃ᶠ a in comap φ f, P a) ↔ ∃ᶠ b in f, ∃ a, φ a = b ∧ P a :=
-begin
-  classical,
-  erw [← not_iff_not, not_not, not_not, filter.eventually_comap],
-  simp only [not_exists, not_and],
-end
+by simp only [filter.frequently, eventually_comap, not_exists, not_and]
 
 end comap
 

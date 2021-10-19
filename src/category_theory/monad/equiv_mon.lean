@@ -82,12 +82,12 @@ variable {C}
 /-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]
 def counit_iso_hom : Mon_to_Monad C ⋙ Monad_to_Mon C ⟶ 𝟭 _ :=
-{ app := λ _, { app := λ _, 𝟙 _ } }
+{ app := λ _, { hom := 𝟙 _ } }
 
 /-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]
 def counit_iso_inv : 𝟭 _ ⟶ Mon_to_Monad C ⋙ Monad_to_Mon C :=
-{ app := λ _, { app := λ _, 𝟙 _ } }
+{ app := λ _, { hom := 𝟙 _ } }
 
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps {rhs_md := semireducible}]

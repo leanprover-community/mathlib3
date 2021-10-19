@@ -43,7 +43,7 @@ theorem pairwise_on_bool {r} (hr : symmetric r) {a b : α} :
   pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b
 
-theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
+theorem pairwise_disjoint_on_bool [semilattice_inf α] [order_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
 pairwise_on_bool disjoint.symm
 
@@ -55,7 +55,7 @@ lemma symmetric.pairwise_on [linear_order β] {r} (hr : symmetric r) (f : β →
   { exact hr (h _ _ hmn') }
 end⟩
 
-theorem pairwise_disjoint_on [semilattice_inf_bot α] [linear_order β] (f : β → α) :
+theorem pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order β] (f : β → α) :
   pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
 
@@ -67,7 +67,7 @@ set.pairwise_on_univ.1 $ pairwise_on_disjoint_fiber f univ
 
 namespace set
 section semilattice_inf_bot
-variables [semilattice_inf_bot α]
+variables [semilattice_inf α] [order_bot α]
 
 /-- Elements of a set is `pairwise_disjoint`, if any distinct two are disjoint. -/
 def pairwise_disjoint (s : set α) : Prop :=

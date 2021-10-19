@@ -197,9 +197,6 @@ by rw [sq, sqrt_mul_self_eq_abs]
 
 @[simp] theorem sqrt_one : sqrt 1 = 1 := by simp [sqrt]
 
-@[simp] theorem sqrt_eq_one {x : ℝ} : sqrt x = 1 ↔ x = 1 :=
-(sqrt_eq_iff_mul_self_eq _ _).trans _
-
 @[simp] theorem sqrt_le_sqrt_iff (hy : 0 ≤ y) : sqrt x ≤ sqrt y ↔ x ≤ y :=
 by rw [sqrt, sqrt, nnreal.coe_le_coe, nnreal.sqrt_le_sqrt_iff, real.to_nnreal_le_to_nnreal_iff hy]
 

@@ -123,10 +123,11 @@ begin
     exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
     use -m,
-    simp [hm] }
+    simp at hm,
+    simp [hm], }
 end
 
-lemma quotient_norm_sub_rev {S : add_subgroup M} (x y: quotient S) : ∥x - y∥ = ∥y - x∥ :=
+lemma quotient_norm_sub_rev {S : add_subgroup M} (x y : quotient S) : ∥x - y∥ = ∥y - x∥ :=
 by rw [show x - y = -(y - x), by abel, quotient_norm_neg]
 
 /-- The norm of the projection is smaller or equal to the norm of the original element. -/
@@ -140,6 +141,10 @@ begin
   { apply set.mem_image_of_mem,
     rw set.mem_set_of_eq }
 end
+
+/-- The norm of the projection is smaller or equal to the norm of the original element. -/
+lemma quotient_norm_mk_le' (S : add_subgroup M) (m : M) :
+  ∥(m : quotient S)∥ ≤ ∥m∥ := quotient_norm_mk_le S m
 
 /-- The norm of the image under the natural morphism to the quotient. -/
 lemma quotient_norm_mk_eq (S : add_subgroup M) (m : M) :
@@ -363,7 +368,7 @@ quotient_add_group.ker_mk  _
 
 /-- The operator norm of the projection is at most `1`. -/
 lemma norm_normed_mk_le (S : add_subgroup M) : ∥S.normed_mk∥ ≤ 1 :=
-normed_group_hom.op_norm_le_bound _ zero_le_one (λ m, by simp [quotient_norm_mk_le])
+normed_group_hom.op_norm_le_bound _ zero_le_one (λ m, by simp [quotient_norm_mk_le'])
 
 /-- The operator norm of the projection is `1` if the subspace is not dense. -/
 lemma norm_normed_mk (S : add_subgroup M) (h : (S.topological_closure : set M) ≠ univ) :

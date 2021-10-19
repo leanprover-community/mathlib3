@@ -55,12 +55,12 @@ attribute [pattern] has_mul.mul
 theorem mul_eq (x y : free_magma α) : mul x y = x * y := rfl
 
 /-- Recursor for `free_magma` using `x * y` instead of `free_magma.mul x y`. -/
-@[to_additive "Recursor for `free_add_magma` using `x + y` instead of `free_add_magma.add x y`."]
+@[elab_as_eliminator, to_additive
+  "Recursor for `free_add_magma` using `x + y` instead of `free_add_magma.add x y`."]
 def rec_on' {C : free_magma α → Sort l} (x)
   (ih1 : ∀ x, C (of x)) (ih2 : ∀ x y, C x → C y → C (x * y)) :
   C x :=
 free_magma.rec_on x ih1 ih2
-attribute [elab_as_eliminator] rec_on' free_add_magma.rec_on'
 
 end free_magma
 

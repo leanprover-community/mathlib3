@@ -325,10 +325,9 @@ lemma le_def {f g : α ≃. β} : f ≤ g ↔ (∀ (a : α) (b : β), b ∈ f a 
 
 instance : order_bot (α ≃. β) :=
 { bot_le := λ _ _  _ h, (not_mem_none _ h).elim,
-  ..pequiv.partial_order,
   ..pequiv.has_bot }
 
-instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) :=
+instance [decidable_eq α] [decidable_eq β] : semilattice_inf (α ≃. β) :=
 { inf := λ f g,
   { to_fun := λ a, if f a = g a then f a else none,
     inv_fun := λ b, if f.symm b = g.symm b then f.symm b else none,
@@ -344,8 +343,7 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
     have := gh a b,
     simp [le_def],
     split_ifs; finish
-  end,
-  ..pequiv.order_bot }
+  end }
 
 end order
 

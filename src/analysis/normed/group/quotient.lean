@@ -123,7 +123,8 @@ begin
     exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
     use -m,
-    simpa using hm, }
+    simp at hm,
+    simp [hm], }
 end
 
 lemma quotient_norm_sub_rev {S : add_subgroup M} (x y : quotient S) : ∥x - y∥ = ∥y - x∥ :=

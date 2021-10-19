@@ -16,7 +16,7 @@ In this file we define the index of a subgroup, and prove several divisibility p
 
 - `H.index` : the index of `H : subgroup G` as a natural number,
   and returns 0 if the index is infinite.
-- `H.rel_index K` : the relative index of `H : subgroup G` in `K : subgroup G` as a natural number,
+- `H.relindex K` : the relative index of `H : subgroup G` in `K : subgroup G` as a natural number,
   and returns 0 if the relative index is infinite.
 
 # Main results
@@ -25,7 +25,7 @@ In this file we define the index of a subgroup, and prove several divisibility p
 - `index_dvd_card` : `H.index ∣ fintype.card G`
 - `index_eq_mul_of_le` : If `H ≤ K`, then `H.index = K.index * (H.subgroup_of K).index`
 - `index_dvd_of_le` : If `H ≤ K`, then `K.index ∣ H.index`
-- `rel_index_mul_rel_index` : `rel_index` is multiplicative in towers
+- `relindex_mul_relindex` : `relindex` is multiplicative in towers
 
 -/
 
@@ -43,7 +43,7 @@ noncomputable def index : ℕ :=
   and returns 0 if the relative index is infinite. -/
 @[to_additive "The relative index of a subgroup as a natural number,
   and returns 0 if the relative index is infinite."]
-noncomputable def rel_index : ℕ :=
+noncomputable def relindex : ℕ :=
 (H.subgroup_of K).index
 
 @[to_additive] lemma index_comap_of_surjective {G' : Type*} [group G'] {f : G' →* G}
@@ -64,28 +64,28 @@ begin
 end
 
 @[to_additive] lemma index_comap {G' : Type*} [group G'] (f : G' →* G) :
-  (H.comap f).index = H.rel_index f.range :=
+  (H.comap f).index = H.relindex f.range :=
 eq.trans (congr_arg index (by refl))
   ((H.subgroup_of f.range).index_comap_of_surjective f.range_restrict_surjective)
 
 variables {H K L}
 
-@[to_additive] lemma rel_index_mul_index (h : H ≤ K) : H.rel_index K * K.index = H.index :=
+@[to_additive] lemma relindex_mul_index (h : H ≤ K) : H.relindex K * K.index = H.index :=
 ((mul_comm _ _).trans (cardinal.to_nat_mul _ _).symm).trans
   (congr_arg cardinal.to_nat (equiv.cardinal_eq (quotient_equiv_prod_of_le h))).symm
 
 @[to_additive] lemma index_dvd_of_le (h : H ≤ K) : K.index ∣ H.index :=
-dvd_of_mul_left_eq (H.rel_index K) (rel_index_mul_index h)
+dvd_of_mul_left_eq (H.relindex K) (relindex_mul_index h)
 
-@[to_additive] lemma rel_index_subgroup_of (hKL : K ≤ L) :
-  (H.subgroup_of L).rel_index (K.subgroup_of L) = H.rel_index K :=
+@[to_additive] lemma relindex_subgroup_of (hKL : K ≤ L) :
+  (H.subgroup_of L).relindex (K.subgroup_of L) = H.relindex K :=
 ((index_comap (H.subgroup_of L) (inclusion hKL)).trans (congr_arg _ (inclusion_range hKL))).symm
 
-@[to_additive] lemma rel_index_mul_rel_index (hHK : H ≤ K) (hKL : K ≤ L) :
-  H.rel_index K * K.rel_index L = H.rel_index L :=
+@[to_additive] lemma relindex_mul_relindex (hHK : H ≤ K) (hKL : K ≤ L) :
+  H.relindex K * K.relindex L = H.relindex L :=
 begin
-  rw [←rel_index_subgroup_of hKL],
-  exact rel_index_mul_index (λ x hx, hHK hx),
+  rw [←relindex_subgroup_of hKL],
+  exact relindex_mul_index (λ x hx, hHK hx),
 end
 
 variables (H K L)

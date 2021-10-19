@@ -109,8 +109,7 @@ univ_eq_empty_iff.2 ‹_›
 
 instance : order_top (finset α) :=
 { top := univ,
-  le_top := subset_univ,
-  .. finset.partial_order }
+  le_top := subset_univ }
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
@@ -118,6 +117,7 @@ instance [decidable_eq α] : boolean_algebra (finset α) :=
   top_le_sup_compl := λ s x hx, by simp,
   sdiff_eq := λ s t, by simp [ext_iff, compl],
   ..finset.order_top,
+  ..finset.order_bot,
   ..finset.generalized_boolean_algebra }
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl

@@ -56,6 +56,12 @@ protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra
   mul_mem' := hs.symm ▸ S.mul_mem',
   algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
 
+@[simp] lemma coe_copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) :
+  (S.copy s hs : set A) = s := rfl
+
+lemma copy_eq (S : subalgebra R A) (s : set A) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 variables (S : subalgebra R A)
 
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=
@@ -504,7 +510,7 @@ protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
 { choice := λ s hs, (adjoin R s).copy s $ le_antisymm (algebra.gc.le_u_l s) hs,
   gc := algebra.gc,
   le_l_u := λ S, (algebra.gc (S : set A) (adjoin R S)).1 $ le_refl _,
-  choice_eq := λ _ _, set_like.coe_injective $ by { generalize_proofs h, exact h } }
+  choice_eq := λ _ _, subalgebra.copy_eq _ _ _ }
 
 instance : complete_lattice (subalgebra R A) :=
 galois_insertion.lift_complete_lattice algebra.gi

@@ -74,7 +74,7 @@ theorem rel_iso.cof.aux {α : Type u} {β : Type v} {r s}
   cardinal.lift.{(max u v)} (order.cof s) :=
 begin
   rw [order.cof, order.cof, lift_min, lift_min, cardinal.le_min],
-  intro S, cases S with S H, simp [(∘)],
+  intro S, cases S with S H, simp only [comp, coe_sort_coe_base, subtype.coe_mk],
   refine le_trans (min_le _ _) _,
   { exact ⟨f ⁻¹' S, λ a,
     let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, ← f.map_rel_iff, h,

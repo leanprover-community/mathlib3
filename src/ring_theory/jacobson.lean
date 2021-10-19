@@ -448,7 +448,7 @@ begin
   let φ : (P.comap C : ideal R).quotient →+* P.quotient := quotient_map P C le_rfl,
   let M : submonoid (P.comap C : ideal R).quotient :=
     submonoid.powers ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff,
-  rw ← bot_quotient_is_maximal_iff at hP ⊢,
+  rw ← bot_quotient_is_maximal_iff,
   have hp0 : ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
       ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
@@ -473,7 +473,8 @@ begin
     apply is_integral_is_localization_polynomial_quotient P _ (submodule.coe_mem m) },
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
                      map (algebra_map P.quotient (localization M')) ⊥),
-  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) hP,
+  let bot_maximal := ((bot_quotient_is_maximal_iff _).mpr hP),
+  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) bot_maximal,
   rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
 end
 

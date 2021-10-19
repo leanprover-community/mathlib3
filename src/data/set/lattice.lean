@@ -611,12 +611,6 @@ supr_singleton
 @[simp] theorem bUnion_of_singleton (s : set α) : (⋃ x ∈ s, {x}) = s :=
 ext $ by simp
 
-theorem Union_ne_singleton_eq_diff (a b : α) : (⋃ h : a ≠ b, {a} : set α) = {a} \ {b} :=
-by { ext, simp [mem_Union, and.comm] { contextual := tt } }
-
-theorem Union_ne_singleton_eq_diff' (a b : α) : (⋃ h : a ≠ b, {b} : set α) = {b} \ {a} :=
-by simpa [eq_comm] using Union_ne_singleton_eq_diff b a
-
 theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union

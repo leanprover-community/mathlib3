@@ -513,7 +513,7 @@ begin
   ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
 end
 
--- further work: 90% sure that in a nontrivial comm_ring, X^n - 1 ↔ is_unit ↑n
+-- further work: 90% sure that in a nontrivial comm_ring, X^n - 1 is separable ↔ is_unit ↑n
 lemma X_pow_sub_one_separable_iff {n : ℕ} : (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
 begin
   refine ⟨_, λ h, separable_X_pow_sub_C 1 h one_ne_zero⟩,

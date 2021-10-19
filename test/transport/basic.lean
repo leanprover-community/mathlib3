@@ -8,11 +8,11 @@ def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semirin
 by transport using e
 
 -- Indeed, it can equally well move a `semilattice_sup_top`.
-def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) : semilattice_sup_top β :=
+def sup_top.map {α : Type} [semilattice_sup α] {β : Type} (e : α ≃ β) : semilattice_sup β :=
 by transport using e
 
 -- Verify definitional equality of the new structure data.
-example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) (x y : β) :
+example {α : Type} [semilattice_sup α] {β : Type} (e : α ≃ β) (x y : β) :
 begin
   haveI := sup_top.map e,
   exact (x ≤ y) = (e.symm x ≤ e.symm y),

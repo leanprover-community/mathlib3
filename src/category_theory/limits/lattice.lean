@@ -23,7 +23,7 @@ variables {J : Type u} [small_category J] [fin_category J]
 /--
 The limit cone over any functor from a finite diagram into a `semilattice_inf_top`.
 -/
-def finite_limit_cone [semilattice_inf_top α] (F : J ⥤ α) : limit_cone F :=
+def finite_limit_cone [semilattice_inf α] [order_top α] (F : J ⥤ α) : limit_cone F :=
 { cone :=
   { X := finset.univ.inf F.obj,
     π := { app := λ j, hom_of_le (finset.inf_le (fintype.complete _)) } },
@@ -32,19 +32,19 @@ def finite_limit_cone [semilattice_inf_top α] (F : J ⥤ α) : limit_cone F :=
 /--
 The colimit cocone over any functor from a finite diagram into a `semilattice_sup_bot`.
 -/
-def finite_colimit_cocone [semilattice_sup_bot α] (F : J ⥤ α) : colimit_cocone F :=
+def finite_colimit_cocone [semilattice_sup α] [order_bot α] (F : J ⥤ α) : colimit_cocone F :=
 { cocone :=
   { X := finset.univ.sup F.obj,
     ι := { app := λ i, hom_of_le (finset.le_sup (fintype.complete _)) } },
   is_colimit := { desc := λ s, hom_of_le (finset.sup_le (λ j _, (s.ι.app j).down.down)) } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
+instance has_finite_limits_of_semilattice_inf_top [semilattice_inf α] [order_top α] :
   has_finite_limits α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_limit := λ F, has_limit.mk (finite_limit_cone F) }⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
+instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup α] [order_bot α] :
   has_finite_colimits α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_colimit := λ F, has_colimit.mk (finite_colimit_cocone F) }⟩
 
@@ -52,7 +52,7 @@ instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
 The limit of a functor from a finite diagram into a `semilattice_inf_top` is the infimum of the
 objects in the image.
 -/
-lemma finite_limit_eq_finset_univ_inf [semilattice_inf_top α] (F : J ⥤ α) :
+lemma finite_limit_eq_finset_univ_inf [semilattice_inf α] [order_top α] (F : J ⥤ α) :
   limit F = finset.univ.inf F.obj :=
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit F)
   (finite_limit_cone F).is_limit).to_eq
@@ -61,7 +61,7 @@ lemma finite_limit_eq_finset_univ_inf [semilattice_inf_top α] (F : J ⥤ α) :
 The colimit of a functor from a finite diagram into a `semilattice_sup_bot` is the supremum of the
 objects in the image.
 -/
-lemma finite_colimit_eq_finset_univ_sup [semilattice_sup_bot α] (F : J ⥤ α) :
+lemma finite_colimit_eq_finset_univ_sup [semilattice_sup α] [order_bot α] (F : J ⥤ α) :
   colimit F = finset.univ.sup F.obj :=
 (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit F)
   (finite_colimit_cocone F).is_colimit).to_eq
@@ -69,7 +69,7 @@ lemma finite_colimit_eq_finset_univ_sup [semilattice_sup_bot α] (F : J ⥤ α) 
 /--
 A finite product in the category of a `semilattice_inf_top` is the same as the infimum.
 -/
-lemma finite_product_eq_finset_inf [semilattice_inf_top α] {ι : Type u} [decidable_eq ι]
+lemma finite_product_eq_finset_inf [semilattice_inf α] [order_top α] {ι : Type u} [decidable_eq ι]
   [fintype ι] (f : ι → α) : (∏ f) = (fintype.elems ι).inf f :=
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
   (finite_limit_cone (discrete.functor f)).is_limit).to_eq
@@ -77,7 +77,7 @@ lemma finite_product_eq_finset_inf [semilattice_inf_top α] {ι : Type u} [decid
 /--
 A finite coproduct in the category of a `semilattice_sup_bot` is the same as the supremum.
 -/
-lemma finite_coproduct_eq_finset_sup [semilattice_sup_bot α] {ι : Type u} [decidable_eq ι]
+lemma finite_coproduct_eq_finset_sup [semilattice_sup α] [order_bot α] {ι : Type u} [decidable_eq ι]
   [fintype ι] (f : ι → α) : (∐ f) = (fintype.elems ι).sup f :=
 (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
   (finite_colimit_cocone (discrete.functor f)).is_colimit).to_eq
@@ -86,7 +86,7 @@ lemma finite_coproduct_eq_finset_sup [semilattice_sup_bot α] {ι : Type u} [dec
 The binary product in the category of a `semilattice_inf_top` is the same as the infimum.
 -/
 @[simp]
-lemma prod_eq_inf [semilattice_inf_top α] (x y : α) : limits.prod x y = x ⊓ y :=
+lemma prod_eq_inf [semilattice_inf α] [order_top α] (x y : α) : limits.prod x y = x ⊓ y :=
 calc limits.prod x y = limit (pair x y) : rfl
 ... = finset.univ.inf (pair x y).obj : by rw finite_limit_eq_finset_univ_inf (pair x y)
 ... = x ⊓ (y ⊓ ⊤) : rfl -- Note: finset.inf is realized as a fold, hence the definitional equality
@@ -96,7 +96,7 @@ calc limits.prod x y = limit (pair x y) : rfl
 The binary coproduct in the category of a `semilattice_sup_bot` is the same as the supremum.
 -/
 @[simp]
-lemma coprod_eq_sup [semilattice_sup_bot α] (x y : α) : limits.coprod x y = x ⊔ y :=
+lemma coprod_eq_sup [semilattice_sup α] [order_bot α] (x y : α) : limits.coprod x y = x ⊔ y :=
 calc limits.coprod x y = colimit (pair x y) : rfl
 ... = finset.univ.sup (pair x y).obj : by rw finite_colimit_eq_finset_univ_sup (pair x y)
 ... = x ⊔ (y ⊔ ⊥) : rfl -- Note: finset.sup is realized as a fold, hence the definitional equality
@@ -106,7 +106,7 @@ calc limits.coprod x y = colimit (pair x y) : rfl
 The pullback in the category of a `semilattice_inf_top` is the same as the infimum over the objects.
 -/
 @[simp]
-lemma pullback_eq_inf [semilattice_inf_top α] {x y z : α} (f : x ⟶ z) (g : y ⟶ z) :
+lemma pullback_eq_inf [semilattice_inf α] [order_top α] {x y z : α} (f : x ⟶ z) (g : y ⟶ z) :
   pullback f g = x ⊓ y :=
 calc pullback f g = limit (cospan f g) : rfl
 ... = finset.univ.inf (cospan f g).obj : by rw finite_limit_eq_finset_univ_inf
@@ -118,7 +118,7 @@ calc pullback f g = limit (cospan f g) : rfl
 The pushout in the category of a `semilattice_sup_bot` is the same as the supremum over the objects.
 -/
 @[simp]
-lemma pushout_eq_sup [semilattice_sup_bot α] (x y z : α) (f : z ⟶ x) (g : z ⟶ y) :
+lemma pushout_eq_sup [semilattice_sup α] [order_bot α] (x y z : α) (f : z ⟶ x) (g : z ⟶ y) :
   pushout f g = x ⊔ y :=
 calc pushout f g = colimit (span f g) : rfl
 ... = finset.univ.sup (span f g).obj : by rw finite_colimit_eq_finset_univ_sup

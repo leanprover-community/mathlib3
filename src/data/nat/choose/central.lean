@@ -26,7 +26,6 @@ namespace nat
 def central_binom (n : ℕ) := (2 * n).choose n
 
 lemma central_binom_def (n : ℕ) : central_binom n = (2 * n).choose n := rfl
-local attribute [simp] central_binom_def
 
 lemma central_binom_pos (n : ℕ) : 0 < central_binom n :=
 choose_pos (nat.le_mul_of_pos_left zero_lt_two)
@@ -56,30 +55,28 @@ calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 
 -- This bound is of interest because it appears in Tochiori's refinement of Erdős's proof
 -- of Bertrand's postulate
 -- (https://en.wikipedia.org/w/index.php?title=Proof_of_Bertrand%27s_postulate&oldid=859165151#Proof_by_Shigenori_Tochiori)
-lemma four_pow_n_lt_n_mul_central_binom : ∀ (n : ℕ) (n_big : 4 ≤ n), 4 ^ n < n * central_binom n
-| 0 n_big := by norm_num at n_big
-| 1 n_big := by norm_num at n_big
-| 2 n_big := by norm_num at n_big
-| 3 n_big := by norm_num at n_big
-| 4 n_big := by { norm_num, unfold nat.choose, norm_num }
-| (m + 5) n_big :=
-calc 4 ^ (m + 5) < 4 * ((m + 4) * central_binom (m + 4)) :
-  (mul_lt_mul_left zero_lt_four).mpr (four_pow_n_lt_n_mul_central_binom (m + 4) le_add_self)
-... = (4 * (m + 4)) * central_binom (m + 4) : (mul_assoc _ _ _).symm
-... ≤ (2 * (2 * (m + 4) + 1)) * central_binom (m + 4) : by linarith
-... = (m + 5) * central_binom (m + 5) : (succ_mul_central_binom_succ (m + 4)).symm
+lemma four_pow_lt_mul_central_binom (n : ℕ) (n_big : 4 ≤ n) : 4 ^ n < n * central_binom n :=
+begin
+  induction n using nat.strong_induction_on with n IH,
+  rcases lt_trichotomy n 4 with (hn|rfl|hn),
+  { clear IH, dec_trivial! },
+  { norm_num [central_binom, choose] },
+  obtain ⟨n, rfl⟩ : ∃ m, n = m + 1 := nat.exists_eq_succ_of_ne_zero (zero_lt_four.trans hn).ne',
+  calc 4 ^ (n + 1) < 4 * (n * central_binom n) :
+      (mul_lt_mul_left zero_lt_four).mpr (IH n n.lt_succ_self (nat.le_of_lt_succ hn))
+  ... ≤ 2 * (2 * n + 1) * central_binom n : by { rw ← mul_assoc, linarith }
+  ... = (n + 1) * central_binom (n + 1) : (succ_mul_central_binom_succ n).symm,
+end
 
 -- This bound is of interest because it appears in Erdős's proof of Bertrand's postulate.
 lemma four_pow_le_two_mul_n_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n),
   4 ^ n ≤ (2 * n) * central_binom n
-| 0 pr := by linarith
-| 1 pr := by norm_num
-| 2 pr := by { norm_num, unfold nat.choose, norm_num }
-| 3 pr := by { norm_num, unfold nat.choose, norm_num }
-| (m + 4) _ :=
-calc 4 ^ (m + 4) ≤ (m + 4) * central_binom (m + 4) :
-  le_of_lt (four_pow_n_lt_n_mul_central_binom (m + 4) le_add_self)
-... ≤ 2 * ((m + 4) * central_binom (m + 4)) : nat.le_mul_of_pos_left zero_lt_two
-... = 2 * (m + 4) * central_binom (m + 4) : (mul_assoc _ _ _).symm
+| 0 pr := (nat.not_lt_zero _ pr).elim
+| 1 pr := by norm_num [central_binom, choose]
+| 2 pr := by norm_num [central_binom, choose]
+| 3 pr := by norm_num [central_binom, choose]
+| n@(m + 4) _ :=
+calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_self).le
+... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
 end nat

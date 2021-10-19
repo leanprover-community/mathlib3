@@ -498,23 +498,11 @@ instance [semilattice_inf β] : semilattice_inf (germ l β) :=
     h₂.mp $ h₁.mono $ λ x, le_inf,
   .. germ.partial_order }
 
-instance [semilattice_inf_bot β] : semilattice_inf_bot (germ l β) :=
-{ .. germ.semilattice_inf, .. germ.order_bot }
-
-instance [semilattice_sup_bot β] : semilattice_sup_bot (germ l β) :=
-{ .. germ.semilattice_sup, .. germ.order_bot }
-
-instance [semilattice_inf_top β] : semilattice_inf_top (germ l β) :=
-{ .. germ.semilattice_inf, .. germ.order_top }
-
-instance [semilattice_sup_top β] : semilattice_sup_top (germ l β) :=
-{ .. germ.semilattice_sup, .. germ.order_top }
-
 instance [lattice β] : lattice (germ l β) :=
 { .. germ.semilattice_sup, .. germ.semilattice_inf }
 
 instance [bounded_lattice β] : bounded_lattice (germ l β) :=
-{ .. germ.lattice, .. germ.order_bot, .. germ.order_top }
+{ .. germ.order_bot, .. germ.order_top }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β) :=

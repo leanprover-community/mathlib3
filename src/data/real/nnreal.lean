@@ -51,7 +51,7 @@ noncomputable theory
 open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
-@[derive [semilattice_inf_bot, densely_ordered,
+@[derive [semilattice_inf, order_bot, densely_ordered,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
   has_sub, has_ordered_sub, has_div, inhabited]]
@@ -262,8 +262,8 @@ example : order_bot ℝ≥0 := by apply_instance
 example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
 example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
 example : distrib_lattice ℝ≥0 := by apply_instance
-example : semilattice_inf_bot ℝ≥0 := by apply_instance
-example : semilattice_sup_bot ℝ≥0 := by apply_instance
+example : semilattice_inf ℝ≥0 := by apply_instance
+example : semilattice_sup ℝ≥0 := by apply_instance
 example : linear_ordered_semiring ℝ≥0 := by apply_instance
 example : ordered_comm_semiring ℝ≥0 := by apply_instance
 example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance

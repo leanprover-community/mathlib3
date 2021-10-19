@@ -61,9 +61,6 @@ end
 instance lattice [lattice β] : lattice (α →₀ β) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup}
 
-instance semilattice_inf_bot : semilattice_inf_bot (α →₀ γ) :=
-{ ..finsupp.order_bot, ..finsupp.lattice}
-
 lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
 
 lemma disjoint_iff {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=

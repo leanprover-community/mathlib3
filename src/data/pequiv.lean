@@ -29,7 +29,7 @@ then `g b` is `option.some a`.
 `pequiv` is canonically ordered by inclusion; that is, if a function `f` defined on a subset `s`
 is equal to `g` on that subset, but `g` is also defined on a larger set, then `f ≤ g`. We also have
 a definition of `⊥`, which is the empty `pequiv` (sends all to `none`), which in the end gives us a
-`semilattice_inf_bot` instance.
+`semilattice_inf` with an `order_bot` instance.
 
 ## Tags
 

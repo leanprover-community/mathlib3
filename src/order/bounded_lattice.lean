@@ -205,7 +205,7 @@ begin
   exact le_antisymm (ha _) (hb _)
 end
 
-section semilattice_sup_top
+section semilattice_sup_order_top
 variables [semilattice_sup α] [order_top α] {a : α}
 
 @[simp] theorem top_sup_eq : ⊤ ⊔ a = ⊤ :=
@@ -214,9 +214,9 @@ sup_of_le_left le_top
 @[simp] theorem sup_top_eq : a ⊔ ⊤ = ⊤ :=
 sup_of_le_right le_top
 
-end semilattice_sup_top
+end semilattice_sup_order_top
 
-section semilattice_sup_bot
+section semilattice_sup_order_bot
 variables [semilattice_sup α] [order_bot α] {a b : α}
 
 @[simp] theorem bot_sup_eq : ⊥ ⊔ a = a :=
@@ -228,12 +228,12 @@ sup_of_le_left bot_le
 @[simp] theorem sup_eq_bot_iff : a ⊔ b = ⊥ ↔ (a = ⊥ ∧ b = ⊥) :=
 by rw [eq_bot_iff, sup_le_iff]; simp
 
-end semilattice_sup_bot
+end semilattice_sup_order_bot
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
 
-section semilattice_inf_top
+section semilattice_inf_order_top
 variables [semilattice_inf α] [order_top α] {a b : α}
 
 @[simp] theorem top_inf_eq : ⊤ ⊓ a = a :=
@@ -245,9 +245,9 @@ inf_of_le_left le_top
 @[simp] theorem inf_eq_top_iff : a ⊓ b = ⊤ ↔ (a = ⊤ ∧ b = ⊤) :=
 by rw [eq_top_iff, le_inf_iff]; simp
 
-end semilattice_inf_top
+end semilattice_inf_order_top
 
-section semilattice_inf_bot
+section semilattice_inf_order_bot
 variables [semilattice_inf α] [order_bot α] {a : α}
 
 @[simp] theorem bot_inf_eq : ⊥ ⊓ a = ⊥ :=
@@ -256,7 +256,7 @@ inf_of_le_left bot_le
 @[simp] theorem inf_bot_eq : a ⊓ ⊥ = ⊥ :=
 inf_of_le_right bot_le
 
-end semilattice_inf_bot
+end semilattice_inf_order_bot
 
 /-! ### Bounded lattice -/
 
@@ -350,25 +350,6 @@ instance [Π i, partial_order (α' i)] [Π i, order_bot (α' i)] : order_bot (Π
 instance [Π i, partial_order (α' i)] [Π i, bounded_lattice (α' i)] :
   bounded_lattice (Π i, α' i) :=
 { ..pi.order_top, ..pi.order_bot }
--- by refine_struct { inf := (⊓), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
-
--- instance [Π i, semilattice_inf_top (α' i)] : semilattice_inf_top (Π i, α' i) :=
--- by refine_struct { inf := (⊓), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
-
--- instance [Π i, semilattice_sup_bot (α' i)] : semilattice_sup_bot (Π i, α' i) :=
--- by refine_struct { sup := (⊔), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
-
--- instance [Π i, semilattice_sup_top (α' i)] : semilattice_sup_top (Π i, α' i) :=
--- by refine_struct { sup := (⊔), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
-
--- instance [Π i, bounded_lattice (α' i)] : bounded_lattice (Π i, α' i) :=
--- { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
-
--- instance [Π i, distrib_lattice_bot (α' i)] : distrib_lattice_bot (Π i, α' i) :=
--- { .. pi.distrib_lattice, .. pi.order_bot }
-
--- instance [Π i, bounded_distrib_lattice (α' i)] : bounded_distrib_lattice (Π i, α' i) :=
--- { .. pi.bounded_lattice, .. pi.distrib_lattice }
 
 end pi
 
@@ -937,7 +918,7 @@ end prod
 /-! ### Disjointness and complements -/
 
 section disjoint
-section semilattice_inf_bot
+section semilattice_inf_order_bot
 variables [semilattice_inf α] [order_bot α]
 
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
@@ -985,7 +966,7 @@ lemma disjoint.of_disjoint_inf_of_le {a b c : α} (h : disjoint (a ⊓ b) c) (hl
 lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (hle : b ≤ c) :
   disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_right.trans hle)]
 
-end semilattice_inf_bot
+end semilattice_inf_order_bot
 
 section bounded_lattice
 
@@ -1028,7 +1009,7 @@ lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : dis
 
 end distrib_lattice_bot
 
-section semilattice_inf_bot
+section semilattice_inf_order_bot
 
 variables [semilattice_inf α] [order_bot α] {a b : α} (c : α)
 
@@ -1044,7 +1025,7 @@ h.mono_right inf_le_left
 lemma disjoint.inf_right' (h : disjoint a b) : disjoint a (c ⊓ b) :=
 h.mono_right inf_le_right
 
-end semilattice_inf_bot
+end semilattice_inf_order_bot
 
 end disjoint
 

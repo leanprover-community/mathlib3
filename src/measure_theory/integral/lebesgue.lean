@@ -402,16 +402,13 @@ instance [semilattice_sup β] : semilattice_sup (α →ₛ β) :=
   sup_le := assume f g h hfh hgh a, sup_le (hfh a) (hgh a),
   .. simple_func.partial_order }
 
-instance [semilattice_sup_bot β] : semilattice_sup_bot (α →ₛ β) :=
-{ .. simple_func.semilattice_sup,.. simple_func.order_bot }
-
 instance [lattice β] : lattice (α →ₛ β) :=
 { .. simple_func.semilattice_sup,.. simple_func.semilattice_inf }
 
 instance [bounded_lattice β] : bounded_lattice (α →ₛ β) :=
 { .. simple_func.lattice, .. simple_func.order_bot, .. simple_func.order_top }
 
-lemma finset_sup_apply [semilattice_sup_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
+lemma finset_sup_apply [semilattice_sup β] [order_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
   s.sup f a = s.sup (λc, f c a) :=
 begin
   refine finset.induction_on s rfl _,
@@ -490,7 +487,7 @@ end restrict
 section approx
 
 section
-variables [semilattice_sup_bot β] [has_zero β]
+variables [semilattice_sup β] [order_bot β] [has_zero β]
 
 /-- Fix a sequence `i : ℕ → β`. Given a function `α → β`, its `n`-th approximation
 by simple functions is defined so that in case `β = ℝ≥0∞` it sends each `a` to the supremum

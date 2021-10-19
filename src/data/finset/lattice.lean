@@ -187,7 +187,7 @@ begin
 end
 
 -- If we acquire sublattices
--- the hypotheses should be reformulated as `s : subsemilattice_sup_bot`
+-- the hypotheses should be reformulated as `s : subsemilattice_sup` with `order_bot`
 lemma sup_mem
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :

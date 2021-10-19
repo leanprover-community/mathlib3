@@ -7,7 +7,7 @@ import algebra.lie.basic
 def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semiring β :=
 by transport using e
 
--- Indeed, it can equally well move a `semilattice_sup_top`.
+-- Indeed, it can equally well move a `semilattice_sup`.
 def sup_top.map {α : Type} [semilattice_sup α] {β : Type} (e : α ≃ β) : semilattice_sup β :=
 by transport using e
 

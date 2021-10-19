@@ -351,22 +351,19 @@ def to_colex_rel_hom [linear_order α] :
 
 instance [linear_order α] : order_bot (finset.colex α) :=
 { bot := (∅ : finset α).to_colex,
-  bot_le := λ x, empty_to_colex_le,
-  ..(by apply_instance : partial_order (finset.colex α)) }
+  bot_le := λ x, empty_to_colex_le }
 
-instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
+instance [linear_order α] [fintype α] : order_top (finset.colex α) :=
+{ top := finset.univ.to_colex,
+  le_top := λ x, colex_le_of_subset (subset_univ _) }
+
+instance [linear_order α] [fintype α] : lattice (finset.colex α) :=
+{ ..(by apply_instance : semilattice_sup (finset.colex α)),
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 
-instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
-  ..(by apply_instance : semilattice_sup (finset.colex α)) }
-
 instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
-{ top := finset.univ.to_colex,
-  le_top := λ x, colex_le_of_subset (subset_univ _),
-  ..(by apply_instance : semilattice_sup (finset.colex α)),
-  ..(by apply_instance : semilattice_inf_bot (finset.colex α)) }
+{ ..(by apply_instance : order_top (finset.colex α)),
+  ..(by apply_instance : order_bot (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :

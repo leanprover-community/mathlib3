@@ -47,11 +47,6 @@ rounding, floor, ceil
 
 variables {α : Type*}
 
-lemma int.le_to_nat_iff {n : ℕ} {z : ℤ} (h : 0 ≤ z) : n ≤ z.to_nat ↔ (n : ℤ) ≤ z :=
-by rw [←int.coe_nat_le_coe_nat_iff, int.to_nat_of_nonneg h]
-
-open_locale classical
-
 /-! ### Floor rings -/
 
 /--

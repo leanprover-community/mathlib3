@@ -403,7 +403,7 @@ by rw mul_comm; apply mul_equiv_zero _ hf
 end comm_ring
 
 section integral_domain
-variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value abv]
+variables {β : Type*} [comm_ring β] [integral_domain β] (abv : β → α) [is_absolute_value abv]
 
 lemma one_not_equiv_zero : ¬ (const abv 1) ≈ (const abv 0) :=
 assume h,

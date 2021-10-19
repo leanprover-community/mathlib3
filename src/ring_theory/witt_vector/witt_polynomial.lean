@@ -169,7 +169,7 @@ begin
   { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
   { simp only [this, int.nat_cast_eq_coe_nat],
     intros a b h,
-    apply singleton_disjoint.mpr,
+    apply disjoint_singleton_left.mpr,
     rwa mem_singleton, },
 end
 
@@ -244,7 +244,7 @@ begin
     intro i,
     rw [mem_union, mem_union],
     apply or.imp id },
-  work_on_goal 1 { rw [vars_X, singleton_disjoint] },
+  work_on_goal 1 { rw [vars_X, disjoint_singleton_left] },
   all_goals {
     intro H,
     replace H := vars_sum_subset _ _ H,

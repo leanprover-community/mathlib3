@@ -620,7 +620,7 @@ begin
            sum_ite, sum_const, filter_or, filter_eq'],
   rw card_union_eq,
   { simp },
-  { simp [h.symm] }
+  { simpa only [if_true, mem_univ, disjoint_singleton] using h }
 end
 
 include V

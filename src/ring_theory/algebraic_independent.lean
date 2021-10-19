@@ -398,6 +398,7 @@ def algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin
 (mv_polynomial.option_equiv_left _ _).to_ring_equiv.trans
   (polynomial.map_equiv hx.aeval_equiv.to_ring_equiv)
 
+@[simp]
 lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply
   (hx : algebraic_independent R x) (y) :
   hx.mv_polynomial_option_equiv_polynomial_adjoin y =
@@ -405,6 +406,7 @@ lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply
       (aeval (λ (o : option ι), o.elim polynomial.X (λ (s : ι), polynomial.C (X s))) y) :=
 rfl
 
+@[simp]
 lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_C
   (hx : algebraic_independent R x) (r) :
   hx.mv_polynomial_option_equiv_polynomial_adjoin (C r) =
@@ -418,12 +420,14 @@ begin
     polynomial.map_C, coe_coe, alg_hom.coe_to_ring_hom, alg_equiv.coe_alg_hom, alg_equiv.commutes]
 end
 
+@[simp]
 lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_X_none
   (hx : algebraic_independent R x) :
   hx.mv_polynomial_option_equiv_polynomial_adjoin (X none) = polynomial.X :=
 by rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_X,
       option.elim, polynomial.map_X]
 
+@[simp]
 lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_X_some
   (hx : algebraic_independent R x) (i) :
   hx.mv_polynomial_option_equiv_polynomial_adjoin (X (some i)) =

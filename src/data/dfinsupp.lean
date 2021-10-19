@@ -1047,14 +1047,8 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i =
 
 section prod_and_sum
 
--- [to_additive sum] for dfinsupp.prod doesn't work, the equation lemmas are not generated
-/-- `sum f g` is the sum of `g i (f i)` over the support of `f`. -/
-def sum [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [add_comm_monoid γ]
-  (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
-∑ i in f.support, g i (f i)
-
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/
-@[to_additive]
+@[to_additive "`sum f g` is the sum of `g i (f i)` over the support of `f`."]
 def prod [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
 ∏ i in f.support, g i (f i)

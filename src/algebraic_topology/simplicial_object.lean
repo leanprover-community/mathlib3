@@ -566,12 +566,32 @@ def simplicial_cosimplicial_augmented_equiv :
     (λ X, X.unop.right_op_left_op_iso.op) begin
       intros X Y f,
       dsimp,
-      rw (show f = f.unop.op, by simp),
+      rw ←quiver.hom.op_unop f,
       simp_rw ← op_comp,
       congr' 1,
-      tidy,
+      apply comma_morphism.ext,
+      { refine nat_trans.ext _ _ (funext (λ x, _)),
+        simp only [comma.comp_left, quiver.hom.unop_op, nat_trans.left_op_app, nat_trans.comp_app,
+          nat_trans.right_op_app, quiver.hom.op_unop,
+          simplicial_object.augmented.right_op_left_op_iso_hom_left_app],
+        rw [category.id_comp (f.unop.left.app x), ←category.comp_id (f.unop.left.app x)],
+        congr },
+      { simp only [comma.comp_right, simplicial_object.augmented.right_op_left_op_iso_hom_right,
+          quiver.hom.op_unop, category.id_comp f.unop.right, category.comp_id f.unop.right] },
     end,
   counit_iso := nat_iso.of_components
-    (λ X, X.left_op_right_op_iso) (by tidy) }
+    (λ X, X.left_op_right_op_iso) (begin
+      intros X Y f,
+      simp only [functor.id_map, functor.comp_map, cosimplicial_to_simplicial_augmented_map],
+      apply comma_morphism.ext,
+      { simp only [quiver.hom.unop_op, comma.comp_left,
+          simplicial_to_cosimplicial_augmented_map_left, quiver.hom.op_unop],
+        exact (category.comp_id f.left).trans (category.id_comp f.left).symm },
+      { refine nat_trans.ext _ _ (funext (λ x, _)),
+        simp only [quiver.hom.unop_op, comma.comp_right, nat_trans.left_op_app, nat_trans.comp_app,
+          nat_trans.right_op_app, quiver.hom.op_unop,
+          simplicial_to_cosimplicial_augmented_map_right],
+        exact (category.comp_id (f.right.app x)).trans (category.id_comp (f.right.app x)).symm, },
+    end) }
 
 end category_theory

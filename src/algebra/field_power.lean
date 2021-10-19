@@ -2,144 +2,77 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
-
-Integer power operation on fields.
 -/
+import algebra.group_with_zero.power
+import tactic.linarith
+import data.equiv.ring
 
-import algebra.group_power algebra.ordered_field
-import tactic.wlog tactic.linarith
+/-!
+# Integer power operation on fields and division rings
+
+This file collects basic facts about the operation of raising an element of a `division_ring` to an
+integer power. More specialised results are provided in the case of a linearly ordered field.
+-/
 
 universe u
 
-section field_power
-open int nat
-variables {K : Type u} [division_ring K]
+@[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L) :
+  ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
+f.to_monoid_with_zero_hom.map_fpow
 
-@[simp] lemma zero_gpow : ∀ z : ℕ, z ≠ 0 → (0 : K)^z = 0
-| 0 h := absurd rfl h
-| (k+1) h := zero_mul _
+@[simp] lemma ring_equiv.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K ≃+* L) :
+  ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
+f.to_ring_hom.map_fpow
 
-/-- The integer power of an element of a division ring (e.g., a field). -/
-def fpow (a : K) : ℤ → K
-| (of_nat n) := a ^ n
-| -[1+n] := 1/(a ^ (n+1))
+@[simp] lemma fpow_bit0_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
+  (-x) ^ (bit0 n) = x ^ bit0 n :=
+by rw [fpow_bit0', fpow_bit0', neg_mul_neg]
 
-instance : has_pow K ℤ := ⟨fpow⟩
-
-@[simp] lemma fpow_of_nat (a : K) (n : ℕ) : a ^ (n : ℤ) = a ^ n := rfl
-
-lemma fpow_neg_succ_of_nat (a : K) (n : ℕ) : a ^ (-[1+ n]) = 1 / (a ^ (n + 1)) := rfl
-
-lemma unit_pow {a : K} (ha : a ≠ 0) : ∀ n : ℕ, a ^ n = ↑((units.mk0 a ha)^n)
-| 0 := units.coe_one.symm
-| (k+1) := by simp only [_root_.pow_succ, units.coe_mul, units.mk0_val]; rw unit_pow
-
-lemma fpow_eq_gpow {a : K} (h : a ≠ 0) : ∀ (z : ℤ), a ^ z = ↑(gpow (units.mk0 a h) z)
-| (of_nat k) := unit_pow _ _
-| -[1+k] := by rw [fpow_neg_succ_of_nat, gpow, one_div_eq_inv, units.inv_eq_inv, unit_pow]
-
-lemma fpow_inv (a : K) : a ^ (-1 : ℤ) = a⁻¹ :=
-show 1*(a*1)⁻¹ = a⁻¹, by rw [one_mul, mul_one]
-
-lemma fpow_ne_zero_of_ne_zero {a : K} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
-| (of_nat n) := pow_ne_zero _ ha
-| -[1+n] := one_div_ne_zero $ pow_ne_zero _ ha
-
-@[simp] lemma fpow_zero {a : K} : a ^ (0 : ℤ) = 1 :=
-pow_zero a
-
-lemma fpow_add {a : K} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 + z2) = a ^ z1 * a ^ z2 :=
-begin simp only [fpow_eq_gpow ha], rw ← units.coe_mul, congr, apply gpow_add end
-
-@[simp] lemma one_fpow : ∀(i : ℤ), (1 : K) ^ i = 1
-| (int.of_nat n) := _root_.one_pow n
-| -[1+n]         := show 1/(1 ^ (n+1) : K) = 1, by simp
-
-@[simp] lemma fpow_one (a : K) : a^(1:ℤ) = a :=
-pow_one a
-
-end field_power
-
-namespace is_ring_hom
-
-lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_ring_hom f]
-  (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
-| (n : ℕ) := is_semiring_hom.map_pow f a n
-| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_ring_hom.map_inv f]
-
-lemma map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K → L) [is_ring_hom f]
-  (a : K) (ha : a ≠ 0) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
-| (n : ℕ) := is_semiring_hom.map_pow f a n
-| -[1+ n] :=
+lemma fpow_even_neg {K : Type*} [division_ring K] (a : K) {n : ℤ} (h : even n) :
+  (-a) ^ n = a ^ n :=
 begin
-  have : a^(n+1) ≠ 0 := mt pow_eq_zero ha,
-  simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_ring_hom.map_inv' f this],
+  obtain ⟨k, rfl⟩ := h,
+  rw [←bit0_eq_two_mul, fpow_bit0_neg],
 end
 
-end is_ring_hom
-
-section discrete_field_power
-open int
-variables {K : Type u} [discrete_field K]
-
-lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : K) ^ z = 0
-| (of_nat n) h := zero_gpow _ $ by rintro rfl; exact h rfl
-| -[1+n] h := show 1/(0*0^n)=(0:K), by rw [zero_mul, one_div_zero]
-
-lemma fpow_neg (a : K) : ∀ n : ℤ, a ^ (-n) = 1 / a ^ n
-| (0) := by simp
-| (of_nat (n+1)) := rfl
-| -[1+n] := show fpow a (n+1) = 1 / (1 / fpow a (n+1)), by rw one_div_one_div
-
-lemma fpow_sub {a : K} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
-by rw [sub_eq_add_neg, fpow_add ha, fpow_neg, ←div_eq_mul_one_div]
-
-lemma fpow_mul (a : K) (i j : ℤ) : a ^ (i * j) = (a ^ i) ^ j :=
-begin
-  by_cases a = 0,
-  { subst h,
-    have : ¬ i = 0 → ¬ j = 0 → ¬ i * j = 0, begin rw [mul_eq_zero, not_or_distrib], exact and.intro end,
-    by_cases hi : i = 0; by_cases hj : j = 0;
-      simp [hi, hj, zero_fpow i, zero_fpow j, zero_fpow _ (this _ _), one_fpow] },
-  rw [fpow_eq_gpow h, fpow_eq_gpow h, fpow_eq_gpow (units.ne_zero _), units.mk0_coe],
-  fapply congr_arg coe _, -- TODO: uh oh
-  exact gpow_mul (units.mk0 a h) i j
-end
-
-lemma mul_fpow (a b : K) : ∀(i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
-| (int.of_nat n) := _root_.mul_pow a b n
-| -[1+n] :=
-  by rw [fpow_neg_succ_of_nat, fpow_neg_succ_of_nat, fpow_neg_succ_of_nat,
-      mul_pow, div_mul_div, one_mul]
-
-end discrete_field_power
+@[simp] lemma fpow_bit1_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
+  (-x) ^ (bit1 n) = - x ^ bit1 n :=
+by rw [fpow_bit1', fpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
 
 section ordered_field_power
 open int
 
-variables {K : Type u} [discrete_linear_ordered_field K]
+variables {K : Type u} [linear_ordered_field K] {a : K} {n : ℤ}
 
-lemma fpow_nonneg_of_nonneg {a : K} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
-| (of_nat n) := pow_nonneg ha _
-| -[1+n] := div_nonneg' zero_le_one $ pow_nonneg ha _
+lemma fpow_eq_zero_iff (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨fpow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_fpow _ hn.ne'
+end
+
+lemma fpow_nonneg {a : K} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
+| (n : ℕ) := by { rw gpow_coe_nat, exact pow_nonneg ha _ }
+| -[1+n]  := by { rw gpow_neg_succ_of_nat, exact inv_nonneg.2 (pow_nonneg ha _) }
 
 lemma fpow_pos_of_pos {a : K} (ha : 0 < a) : ∀ (z : ℤ), 0 < a ^ z
-| (of_nat n) := pow_pos ha _
-| -[1+n] := div_pos zero_lt_one $ pow_pos ha _
+| (n : ℕ) := by { rw gpow_coe_nat, exact pow_pos ha _ }
+| -[1+n]  := by { rw gpow_neg_succ_of_nat, exact inv_pos.2 (pow_pos ha _) }
 
 lemma fpow_le_of_le {x : K} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : x ^ a ≤ x ^ b :=
 begin
   induction a with a a; induction b with b b,
-  { simp only [fpow_of_nat, of_nat_eq_coe],
+  { simp only [of_nat_eq_coe, gpow_coe_nat],
     apply pow_le_pow hx,
     apply le_of_coe_nat_le_coe_nat h },
   { apply absurd h,
     apply not_le_of_gt,
     exact lt_of_lt_of_le (neg_succ_lt_zero _) (of_nat_nonneg _) },
-  { simp only [fpow_neg_succ_of_nat, one_div_eq_inv],
+  { simp only [gpow_neg_succ_of_nat, one_div, of_nat_eq_coe, gpow_coe_nat],
     apply le_trans (inv_le_one _); apply one_le_pow_of_one_le hx },
-  { simp only [fpow_neg_succ_of_nat],
-    apply (one_div_le_one_div _ _).2,
+  { simp only [gpow_neg_succ_of_nat],
+    apply (inv_le_inv _ _).2,
     { apply pow_le_pow hx,
       have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
       have h' := le_of_neg_le_neg this,
@@ -167,26 +100,97 @@ lemma one_le_fpow_of_nonneg {p : K} (hp : 1 ≤ p) {z : ℤ} (hz : 0 ≤ z) : 1 
 calc p ^ z ≥ p ^ 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
+theorem fpow_bit0_nonneg (a : K) (n : ℤ) : 0 ≤ a ^ bit0 n :=
+by { rw fpow_bit0, exact mul_self_nonneg _ }
+
+theorem fpow_two_nonneg (a : K) : 0 ≤ a ^ 2 :=
+pow_bit0_nonneg a 1
+
+theorem fpow_bit0_pos {a : K} (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
+(fpow_bit0_nonneg a n).lt_of_ne (fpow_ne_zero _ h).symm
+
+theorem fpow_two_pos_of_ne_zero (a : K) (h : a ≠ 0) : 0 < a ^ 2 :=
+pow_bit0_pos h 1
+
+@[simp] theorem fpow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
+⟨λ h, not_le.1 $ λ h', not_le.2 h $ fpow_nonneg h' _,
+ λ h, by rw [bit1, fpow_add_one h.ne]; exact mul_neg_of_pos_of_neg (fpow_bit0_pos h.ne _) h⟩
+
+@[simp] theorem fpow_bit1_nonneg_iff : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
+le_iff_le_iff_lt_iff_lt.2 fpow_bit1_neg_iff
+
+@[simp] theorem fpow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
+begin
+  rw [le_iff_lt_or_eq, fpow_bit1_neg_iff],
+  split,
+  { rintro (h | h),
+    { exact h.le },
+    { exact (fpow_eq_zero h).le } },
+  { intro h,
+    rcases eq_or_lt_of_le h with rfl|h,
+    { exact or.inr (zero_fpow _ (bit1_ne_zero n)) },
+    { exact or.inl h } }
+end
+
+@[simp] theorem fpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
+lt_iff_lt_of_le_iff_le fpow_bit1_nonpos_iff
+
+lemma fpow_even_nonneg (a : K) {n : ℤ} (hn : even n) :
+  0 ≤ a ^ n :=
+begin
+  cases le_or_lt 0 a with h h,
+  { exact fpow_nonneg h _ },
+  { rw [←fpow_even_neg _ hn],
+    replace h : 0 ≤ -a := neg_nonneg_of_nonpos (le_of_lt h),
+    exact fpow_nonneg h _ }
+end
+
+theorem fpow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit0_pos ha k
+
+theorem fpow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_nonneg_iff.mpr ha
+
+theorem fpow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_pos_iff.mpr ha
+
+theorem fpow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_nonpos_iff.mpr ha
+
+theorem fpow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_neg_iff.mpr ha
+
+lemma fpow_even_abs (a : K) {p : ℤ} (hp : even p) :
+  |a| ^ p = a ^ p :=
+begin
+  cases abs_choice a with h h;
+  simp only [h, fpow_even_neg _ hp],
+end
+
+@[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) :
+  (|a|) ^ bit0 p = a ^ bit0 p :=
+fpow_even_abs _ (even_bit0 _)
+
+lemma abs_fpow_even (a : K) {p : ℤ} (hp : even p) :
+  |a ^ p| = a ^ p :=
+begin
+  rw [abs_eq_self],
+  exact fpow_even_nonneg _ hp
+end
+
+@[simp] lemma abs_fpow_bit0 (a : K) (p : ℤ) :
+  |a ^ bit0 p| = a ^ bit0 p :=
+abs_fpow_even _ (even_bit0 _)
+
 end ordered_field_power
 
-lemma one_lt_pow {K} [linear_ordered_semiring K] {p : K} (hp : 1 < p) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
-| 1 h := by simp; assumption
-| (k+2) h :=
-  begin
-    rw ←one_mul (1 : K),
-    apply mul_lt_mul,
-    { assumption },
-    { apply le_of_lt, simpa using one_lt_pow (nat.le_add_left 1 k)},
-    { apply zero_lt_one },
-    { apply le_of_lt (lt_trans zero_lt_one hp) }
-  end
-
-lemma one_lt_fpow {K}  [discrete_linear_ordered_field K] {p : K} (hp : 1 < p) :
+lemma one_lt_fpow {K} [linear_ordered_field K] {p : K} (hp : 1 < p) :
   ∀ z : ℤ, 0 < z → 1 < p ^ z
-| (int.of_nat n) h := one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h))
+| (n : ℕ) h := (gpow_coe_nat p n).symm.subst (one_lt_pow hp $ int.coe_nat_ne_zero.mp h.ne')
+| -[1+ n] h := ((int.neg_succ_not_pos _).mp h).elim
 
 section ordered
-variables  {K : Type*} [discrete_linear_ordered_field K]
+variables  {K : Type*} [linear_ordered_field K]
 
 lemma nat.fpow_pos_of_pos {p : ℕ} (h : 0 < p) (n:ℤ) : 0 < (p:K)^n :=
 by { apply fpow_pos_of_pos, exact_mod_cast h }
@@ -198,14 +202,12 @@ lemma fpow_strict_mono {x : K} (hx : 1 < x) :
   strict_mono (λ n:ℤ, x ^ n) :=
 λ m n h, show x ^ m < x ^ n,
 begin
-  have xpos : 0 < x := by linarith,
-  have h₀ : x ≠ 0 := by linarith,
+  have xpos : 0 < x := zero_lt_one.trans hx,
+  have h₀ : x ≠ 0 := xpos.ne',
   have hxm : 0 < x^m := fpow_pos_of_pos xpos m,
-  have hxm₀ : x^m ≠ 0 := ne_of_gt hxm,
-  suffices : 1 < x^(n-m),
-  { replace := mul_lt_mul_of_pos_right this hxm,
-    simpa [*, fpow_add, mul_assoc, fpow_neg, inv_mul_cancel], },
-  apply one_lt_fpow hx, linarith,
+  have h : 1 < x ^ (n - m) := one_lt_fpow hx _ (sub_pos_of_lt h),
+  replace h := mul_lt_mul_of_pos_right h hxm,
+  rwa [sub_eq_add_neg, fpow_add h₀, mul_assoc, fpow_neg_mul_fpow_self _ h₀, one_mul, mul_one] at h,
 end
 
 @[simp] lemma fpow_lt_iff_lt {x : K} (hx : 1 < x) {m n : ℤ} :
@@ -216,49 +218,37 @@ end
   x ^ m ≤ x ^ n ↔ m ≤ n :=
 (fpow_strict_mono hx).le_iff_le
 
-lemma injective_fpow {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
+@[simp] lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
+div_pos ha (pow_pos hb k)
+
+@[simp] lemma div_pow_le {a b : K} (ha : 0 < a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=
+(div_le_iff $ pow_pos (lt_of_lt_of_le zero_lt_one hb) k).mpr
+(calc a = a * 1 : (mul_one a).symm
+   ...  ≤ a*b^k : (mul_le_mul_left ha).mpr $ one_le_pow_of_one_le hb _)
+
+lemma fpow_injective {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
   function.injective ((^) x : ℤ → K) :=
 begin
   intros m n h,
-  rcases lt_trichotomy x 1 with H|rfl|H,
+  rcases h₁.lt_or_lt with H|H,
   { apply (fpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
-    rw [← fpow_inv, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul, h], },
-  { contradiction },
+    rw [← fpow_neg_one, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul,
+      h], },
   { exact (fpow_strict_mono H).injective h, },
 end
 
 @[simp] lemma fpow_inj {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) {m n : ℤ} :
   x ^ m = x ^ n ↔ m = n :=
-⟨λ h, injective_fpow h₀ h₁ h, congr_arg _⟩
+(fpow_injective h₀ h₁).eq_iff
 
 end ordered
 
 section
-variables {K : Type*} [discrete_field K]
+variables {K : Type*} [field K]
 
-@[simp] theorem fpow_neg_mul_fpow_self (n : ℕ) {x : K} (h : x ≠ 0) :
-  x^-(n:ℤ) * x^n = 1 :=
-begin
-  convert inv_mul_cancel (pow_ne_zero n h),
-  rw [fpow_neg, one_div_eq_inv, fpow_of_nat]
-end
-
-@[simp, move_cast] theorem cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
+@[simp, norm_cast] theorem rat.cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
   ((q ^ n : ℚ) : K) = q ^ n :=
-@is_ring_hom.map_fpow _ _ _ _ _ (rat.is_ring_hom_cast) q n
-
-lemma fpow_eq_zero {x : K} {n : ℤ} (h : x^n = 0) : x = 0 :=
-begin
-  by_cases hn : 0 ≤ n,
-  { lift n to ℕ using hn, rw fpow_of_nat at h, exact pow_eq_zero h, },
-  { by_cases hx : x = 0, { exact hx },
-    push_neg at hn, rw ← neg_pos at hn, replace hn := le_of_lt hn,
-    lift (-n) to ℕ using hn with m hm,
-    rw [← neg_neg n, fpow_neg, ← hm, fpow_of_nat] at h,
-    rw ← inv_eq_zero,
-    apply pow_eq_zero (_ : _^m = _),
-    rwa [inv_eq_one_div, one_div_pow hx], }
-end
+(rat.cast_hom K).map_fpow q n
 
 end

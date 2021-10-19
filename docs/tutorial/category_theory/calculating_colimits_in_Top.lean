@@ -1,8 +1,9 @@
 import topology.category.Top.limits
 import category_theory.limits.shapes
 import topology.instances.real
+import topology.tactic
 
-/- This file contains some demos of using the (co)limits API to do topology. -/
+/-! This file contains some demos of using the (co)limits API to do topology. -/
 
 noncomputable theory
 
@@ -16,13 +17,11 @@ def pt : Top := Top.of unit
 section MappingCylinder
 -- Let's construct the mapping cylinder.
 def to_pt (X : Top) : X ⟶ pt :=
-{ val := λ _, unit.star, property := continuous_const }
+{ to_fun := λ _, unit.star, } -- We don't need to prove continuity: this is done automatically.
 def I₀ : pt ⟶ I :=
-{ val := λ _, ⟨(0 : ℝ), begin rw [set.left_mem_Icc], norm_num, end⟩,
-  property := continuous_const }
+{ to_fun := λ _, ⟨(0 : ℝ), by norm_num [set.left_mem_Icc]⟩, }
 def I₁ : pt ⟶ I :=
-{ val := λ _, ⟨(1 : ℝ), begin rw [set.right_mem_Icc], norm_num, end⟩,
-  property := continuous_const }
+{ to_fun := λ _, ⟨(1 : ℝ), by norm_num [set.right_mem_Icc]⟩, }
 
 def cylinder (X : Top) : Top := prod X I
 -- To define a map to the cylinder, we give a map to each factor.
@@ -71,7 +70,7 @@ end MappingCylinder
 section Gluing
 
 -- Here's two copies of the real line glued together at a point.
-def f : pt ⟶ R := { val := λ _, (0 : ℝ), property := continuous_const }
+def f : pt ⟶ R := { to_fun := λ _, (0 : ℝ), }
 
 /-- Two copies of the real line glued together at 0. -/
 def X : Top := pushout f f
@@ -83,22 +82,22 @@ pushout.desc (𝟙 _) (𝟙 _) rfl
 
 end Gluing
 
-universes v u w
-
 section Products
 
 /-- The countably infinite product of copies of `ℝ`. -/
 def Y : Top := ∏ (λ n : ℕ, R)
 
-/-- We define a point of this infinite product by specifying its coordinates. -/
+/--
+We can define a point in this infinite product by specifying its coordinates.
+Let's define the point whose `n`-th coordinate is `n + 1` (as a real number).
+-/
 def q : pt ⟶ Y :=
-pi.lift (λ (n : ℕ), ⟨λ (_ : pt), (n : ℝ), continuous_const⟩)
+pi.lift (λ (n : ℕ), ⟨λ (_ : pt), (n + 1 : ℝ), by continuity⟩)
 
--- "Looking under the hood", we see that `q` is a `subtype`, whose `val` is a function `unit → Y.α`.
--- #check q.val -- q.val : pt.α → Y.α
--- `q.property` is the fact this function is continous (i.e. no content)
-
--- We can check that this function is definitionally just the function we specified.
-example : (q.val ()).val (57 : ℕ) = ((57 : ℕ) : ℝ) := rfl
+-- Note that writing `Y := ∏ (λ n : ℕ, R)` gives us *some* topological space which satisfies the
+-- universal property of the product, not some explicit construction of the product, so we cannot
+-- rely on any definitional properties of `Y` or `q`.
+-- If we really want to talk about a specific construction of the limit, we have to work directly
+-- with the corresponding limit cones. In this case, `Top.limit_cone`.
 
 end Products

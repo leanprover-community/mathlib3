@@ -2,14 +2,20 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
-
-A set of test cases for the `simp_rw` tactic.
 -/
-import tactic.simp_rw
+import data.nat.basic
 import data.set.basic
+import tactic.simp_rw
+
+/-!
+# Tests for `simp_rw` extensions
+-/
 
 -- `simp_rw` can perform rewrites under binders:
 example : (λ (x y : ℕ), x + y) = (λ x y, y + x) := by simp_rw [add_comm]
+
+-- `simp_rw` can apply reverse rules:
+example (f : ℕ → ℕ) {a b c : ℕ} (ha : f b = a) (hc : f b = c) : a = c := by simp_rw [← ha, hc]
 
 -- `simp_rw` performs rewrites in the given order (`simp` fails on this example):
 example {α β : Type} {f : α → β} {t : set β} :

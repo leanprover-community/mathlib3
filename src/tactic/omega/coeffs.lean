@@ -1,13 +1,15 @@
 /-
 Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
+/-
 Non-constant terms of linear constraints are represented
 by storing their coefficients in integer lists.
 -/
 
-import data.list.basic
+import data.list.func
 import tactic.ring
 import tactic.omega.misc
 
@@ -18,6 +20,10 @@ open list.func
 
 variable {v : nat → int}
 
+
+/-- `val_between v as l o` is the value (under valuation `v`) of the term
+    obtained taking the term represented by `(0, as)` and dropping all
+    subterms that include variables outside the range `[l,l+o)` -/
 @[simp] def val_between (v : nat → int) (as : list int) (l : nat) : nat → int
 | 0     := 0
 | (o+1) := (val_between o) + (get (l+o) as * v (l+o))
@@ -29,6 +35,7 @@ variable {v : nat → int}
   by simp only [val_between_nil m, omega.coeffs.val_between,
      get_nil, zero_add, zero_mul, int.default_eq_zero]
 
+/-- Evaluation of the nonconstant component of a normalized linear arithmetic term. -/
 def val (v : nat → int) (as : list int) : int :=
 val_between v as 0 as.length
 
@@ -108,6 +115,7 @@ begin
   apply val_between_set, apply zero_le,
   apply lt_of_lt_of_le (lt_add_one _),
   simp only [length_set, zero_add, le_max_right],
+  apply_instance,
 end
 
 lemma val_between_neg {as : list int} {l : nat} :
@@ -165,6 +173,9 @@ begin
   apply le_max_right
 end
 
+/-- `val_except k v as` is the value (under valuation `v`) of the term
+    obtained taking the term represented by `(0, as)` and dropping the
+    subterm that includes the `k`th variable. -/
 def val_except (k : nat) (v : nat → int) (as) :=
 val_between v as 0 k + val_between v as (k+1) (as.length - (k+1))
 
@@ -190,9 +201,8 @@ begin
       apply ne_of_lt;
       rw nat.lt_iff_add_one_le;
       exact h3 },
-    repeat { rw add_comm,
-             apply le_trans _ (nat.le_sub_add _ _),
-            { apply le_max_right <|> apply le_max_left } } }
+    { refine le_trans (le_max_right _ _) le_add_sub },
+    { refine le_trans (le_max_left _ _) le_add_sub } }
 end
 
 open_locale omega
@@ -225,14 +235,13 @@ begin
     { rw [add_comm, nat.sub_add_cancel h1] },
     rw h5 at h4, apply eq.trans _ h4,
      simp only [val_between, zero_add], ring },
-  rw not_lt at h1,
   have h2 : (list.length as - (n + 1)) = 0,
   { apply nat.sub_eq_zero_of_le
-    (le_trans h1 (nat.le_add_right _ _)) },
+    (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
   have h3 : val_between v as 0 (list.length as) =
             val_between v as 0 (n + 1),
   { simpa only [val] using @val_eq_of_le v as (n+1)
-      (le_trans h1 (nat.le_add_right _ _)) },
+      (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
   simp only [add_zero, val_between, zero_add, h2, h3]
 end
 
@@ -280,7 +289,7 @@ lemma dvd_val {as : list int} {i : int} :
 | (m+1) :=
   begin
     unfold val_between,
-    rw [@val_between_map_div m, int.add_div_of_dvd (dvd_val_between h1)],
+    rw [@val_between_map_div m, int.add_div_of_dvd_right],
     apply fun_mono_2 rfl,
     { apply calc get (l + m) (list.map (λ (x : ℤ), x / i) as) * v (l + m)
           = ((get (l + m) as) / i) * v (l + m) :

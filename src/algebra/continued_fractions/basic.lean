@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import data.seq.seq
+import algebra.field
 /-!
 # Basic Definitions/Theorems for Continued Fractions
 
@@ -39,28 +40,36 @@ numerics, number theory, approximations, fractions
 
 -- Fix a carrier `α`.
 variable (α : Type*)
+/-!### Definitions-/
 
 /-- We collect a partial numerator `aᵢ` and partial denominator `bᵢ` in a pair `⟨aᵢ,bᵢ⟩`. -/
 @[derive inhabited]
 protected structure generalized_continued_fraction.pair := (a : α) (b : α)
 
-/- Interlude: define some expected coercions and instances. -/
+/-! Interlude: define some expected coercions and instances. -/
 namespace generalized_continued_fraction.pair
 open generalized_continued_fraction as gcf
 
-/-- Make a gcf.pair printable. -/
+variable {α}
+
+/-- Make a `gcf.pair` printable. -/
 instance [has_repr α] : has_repr (gcf.pair α) :=
 ⟨λ p, "(a : " ++ (repr p.a) ++ ", b : " ++ (repr p.b) ++ ")"⟩
 
+/-- Maps a function `f` on both components of a given pair. -/
+def map {β : Type*} (f : α → β) (gp : gcf.pair α) : gcf.pair β :=
+⟨f gp.a, f gp.b⟩
+
 section coe
-/- Fix another type `β` and assume `α` can be converted to `β`. -/
-variables {α} {β : Type*} [has_coe α β]
+/- Fix another type `β` which we will convert to. -/
+variables {β : Type*} [has_coe α β]
 
 /-- Coerce a pair by elementwise coercion. -/
-instance has_coe_to_generalized_continued_fraction_pair : has_coe (gcf.pair α) (gcf.pair β) :=
-⟨λ ⟨a, b⟩, ⟨(a : β), (b : β)⟩⟩
+instance has_coe_to_generalized_continued_fraction_pair :
+  has_coe (gcf.pair α) (gcf.pair β) :=
+⟨map coe⟩
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction_pair {a b : α} :
   (↑(gcf.pair.mk a b) : gcf.pair β) = gcf.pair.mk (a : β) (b : β) :=
 rfl
@@ -68,11 +77,13 @@ rfl
 end coe
 end generalized_continued_fraction.pair
 
+variable (α)
+
 /--
 A *generalised continued fraction* (gcf) is a potentially infinite expression of the form
 
                                 a₀
-                h + --------------------------
+                h + ---------------------------
                                   a₁
                       b₀ + --------------------
                                     a₂
@@ -116,24 +127,19 @@ by { unfold terminated_at, apply_instance }
 /-- A gcf terminates if its sequence terminates. -/
 def terminates (g : gcf α) : Prop := g.s.terminates
 
-/- Interlude: define some expected coercions. -/
 section coe
--- Fix another type `β` and assume `α` can be converted to `β`.
+/-! Interlude: define some expected coercions. -/
+/- Fix another type `β` which we will convert to. -/
 variables {β : Type*} [has_coe α β]
-
-/-- Coerce a sequence by elementwise coercion. -/
-def seq.coe_to_seq : has_coe (seq α) (seq β) := ⟨seq.map (λ a, (a : β))⟩
-
-local attribute [instance] seq.coe_to_seq
 
 /-- Coerce a gcf by elementwise coercion. -/
 instance has_coe_to_generalized_continued_fraction : has_coe (gcf α) (gcf β) :=
-⟨λ ⟨h, s⟩, ⟨(h : β), (s : seq $ gcf.pair β)⟩⟩
+⟨λ g, ⟨(g.h : β), (g.s.map coe : seq $ gcf.pair β)⟩⟩
 
-@[simp, move_cast]
+@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction {g : gcf α} :
-  (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩ :=
-by { cases g, refl }
+  (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s.map coe : seq $ gcf.pair β)⟩ :=
+rfl
 
 end coe
 end generalized_continued_fraction
@@ -143,7 +149,7 @@ A generalized continued fraction is a *simple continued fraction* if all partial
 equal to one.
 
                                 1
-                h + --------------------------
+                h + ---------------------------
                                   1
                       b₀ + --------------------
                                     1
@@ -163,7 +169,7 @@ A *simple continued fraction* (scf) is a generalized continued fraction (gcf) wh
 numerators are equal to one.
 
                                 1
-                h + --------------------------
+                h + ---------------------------
                                   1
                       b₀ + --------------------
                                     1
@@ -196,7 +202,6 @@ instance : inhabited (scf α) := ⟨of_integer 1⟩
 instance has_coe_to_generalized_continued_fraction : has_coe (scf α) (gcf α) :=
 by {unfold scf, apply_instance}
 
-@[simp, elim_cast]
 lemma coe_to_generalized_continued_fraction {s : scf α} : (↑s : gcf α) = s.val := rfl
 
 end simple_continued_fraction
@@ -205,7 +210,7 @@ end simple_continued_fraction
 A simple continued fraction is a *(regular) continued fraction* ((r)cf) if all partial denominators
 `bᵢ` are positive, i.e. `0 < bᵢ`.
 -/
-def simple_continued_fraction.is_regular_continued_fraction [has_one α] [has_zero α] [has_lt α]
+def simple_continued_fraction.is_continued_fraction [has_one α] [has_zero α] [has_lt α]
   (s : simple_continued_fraction α) : Prop :=
 ∀ (n : ℕ) (bₙ : α),
   (↑s : generalized_continued_fraction α).partial_denominators.nth n = some bₙ → 0 < bₙ
@@ -215,14 +220,14 @@ variable (α)
 /--
 A *(regular) continued fraction* ((r)cf) is a simple continued fraction (scf) whose partial
 denominators are all positive. It is the subtype of scfs that satisfy
-`simple_continued_fraction.is_regular_continued_fraction`.
+`simple_continued_fraction.is_continued_fraction`.
  -/
 def continued_fraction [has_one α] [has_zero α] [has_lt α] :=
-{s : simple_continued_fraction α // s.is_regular_continued_fraction}
+{s : simple_continued_fraction α // s.is_continued_fraction}
 
 variable {α}
 
-/- Interlude: define some expected coercions. -/
+/-! Interlude: define some expected coercions. -/
 namespace continued_fraction
 open generalized_continued_fraction as gcf
 open simple_continued_fraction as scf
@@ -239,60 +244,59 @@ instance : inhabited (cf α) := ⟨of_integer 0⟩
 instance has_coe_to_simple_continued_fraction : has_coe (cf α) (scf α) :=
 by {unfold cf, apply_instance}
 
-@[simp, elim_cast]
 lemma coe_to_simple_continued_fraction {c : cf α} : (↑c : scf α) = c.val := rfl
 
 /-- Lift a cf to a scf using the inclusion map. -/
 instance has_coe_to_generalized_continued_fraction : has_coe (cf α) (gcf α) := ⟨λ c, ↑(↑c : scf α)⟩
 
-@[simp, elim_cast]
 lemma coe_to_generalized_continued_fraction {c : cf α} : (↑c : gcf α) = c.val := rfl
 
 end continued_fraction
 
-/-
+namespace generalized_continued_fraction
+/-!
+### Computation of Convergents
+
 We now define how to compute the convergents of a gcf. There are two standard ways to do this:
 directly evaluating the (infinite) fraction described by the gcf or using a recurrence relation.
 For (r)cfs, these computations are equivalent as shown in
 `algebra.continued_fractions.convergents_equiv`.
 -/
-namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
 -- Fix a division ring for the computations.
-variable [division_ring α]
+variables {K : Type*} [division_ring K]
 
-/-
+/-!
 We start with the definition of the recurrence relation. Given a gcf `g`, for all `n ≥ 1`, we define
-
-  `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, and
-  `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂`.
+- `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ₋₁ * Aₙ₋₁ + aₙ₋₁ * Aₙ₋₂`, and
+- `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ₋₁ * Bₙ₋₁ + aₙ₋₁ * Bₙ₋₂`.
 
 `Aₙ, `Bₙ` are called the *nth continuants*, Aₙ the *nth numerator*, and `Bₙ` the
 *nth denominator* of `g`. The *nth convergent* of `g` is given by `Aₙ / Bₙ`.
 -/
 
 /--
-Returns the next numerator `Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, where `predA` is `Aₙ₋₁`,
+Returns the next numerator `Aₙ = bₙ₋₁ * Aₙ₋₁ + aₙ₋₁ * Aₙ₋₂`, where `predA` is `Aₙ₋₁`,
 `ppredA` is `Aₙ₋₂`, `a` is `aₙ₋₁`, and `b` is `bₙ₋₁`.
 -/
-def next_numerator (a b ppredA predA : α) : α := b * predA + a * ppredA
+def next_numerator (a b ppredA predA : K) : K := b * predA + a * ppredA
 
 /--
-Returns the next denominator `Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂``, where `predB` is `Bₙ₋₁` and
+Returns the next denominator `Bₙ = bₙ₋₁ * Bₙ₋₁ + aₙ₋₁ * Bₙ₋₂``, where `predB` is `Bₙ₋₁` and
 `ppredB` is `Bₙ₋₂`, `a` is `aₙ₋₁`, and `b` is `bₙ₋₁`.
 -/
-def next_denominator (aₙ bₙ ppredB predB : α) : α := bₙ * predB + aₙ * ppredB
+def next_denominator (aₙ bₙ ppredB predB : K) : K := bₙ * predB + aₙ * ppredB
 
 /--
 Returns the next continuants `⟨Aₙ, Bₙ⟩` using `next_numerator` and `next_denominator`, where `pred`
 is `⟨Aₙ₋₁, Bₙ₋₁⟩`, `ppred` is `⟨Aₙ₋₂, Bₙ₋₂⟩`, `a` is `aₙ₋₁`, and `b` is `bₙ₋₁`.
 -/
-def next_continuants (a b : α) (ppred pred : gcf.pair α) : gcf.pair α :=
+def next_continuants (a b : K) (ppred pred : gcf.pair K) : gcf.pair K :=
 ⟨next_numerator a b ppred.a pred.a, next_denominator a b ppred.b pred.b⟩
 
 /-- Returns the continuants `⟨Aₙ₋₁, Bₙ₋₁⟩` of `g`. -/
-def continuants_aux (g : gcf α) : stream (gcf.pair α)
+def continuants_aux (g : gcf K) : stream (gcf.pair K)
 | 0 := ⟨1, 0⟩
 | 1 := ⟨g.h, 1⟩
 | (n + 2) :=
@@ -302,23 +306,23 @@ def continuants_aux (g : gcf α) : stream (gcf.pair α)
   end
 
 /-- Returns the continuants `⟨Aₙ, Bₙ⟩` of `g`. -/
-def continuants (g : gcf α) : stream (gcf.pair α) := g.continuants_aux.tail
+def continuants (g : gcf K) : stream (gcf.pair K) := g.continuants_aux.tail
 
 /-- Returns the numerators `Aₙ` of `g`. -/
-def numerators (g : gcf α) : stream α := g.continuants.map gcf.pair.a
+def numerators (g : gcf K) : stream K := g.continuants.map gcf.pair.a
 
 /-- Returns the denominators `Bₙ` of `g`. -/
-def denominators (g : gcf α) : stream α := g.continuants.map gcf.pair.b
+def denominators (g : gcf K) : stream K := g.continuants.map gcf.pair.b
 
 /-- Returns the convergents `Aₙ / Bₙ` of `g`, where `Aₙ, Bₙ` are the nth continuants of `g`. -/
-def convergents (g : gcf α) : stream α := λ (n : ℕ), (g.numerators n) / (g.denominators n)
+def convergents (g : gcf K) : stream K := λ (n : ℕ), (g.numerators n) / (g.denominators n)
 
 /--
 Returns the approximation of the fraction described by the given sequence up to a given position n.
 For example, `convergents'_aux [(1, 2), (3, 4), (5, 6)] 2 = 1 / (2 + 3 / 4)` and
 `convergents'_aux [(1, 2), (3, 4), (5, 6)] 0 = 0`.
 -/
-def convergents'_aux : seq (gcf.pair α) → ℕ → α
+def convergents'_aux : seq (gcf.pair K) → ℕ → K
 | s 0 := 0
 | s (n + 1) := match s.head with
   | none := 0
@@ -330,7 +334,7 @@ Returns the convergents of `g` by evaluating the fraction described by `g` up to
 position `n`. For example, `convergents' [9; (1, 2), (3, 4), (5, 6)] 2 = 9 + 1 / (2 + 3 / 4)` and
 `convergents' [9; (1, 2), (3, 4), (5, 6)] 0 = 9`
 -/
-def convergents' (g : gcf α) (n : ℕ) : α := g.h + convergents'_aux g.s n
+def convergents' (g : gcf K) (n : ℕ) : K := g.h + convergents'_aux g.s n
 
 end generalized_continued_fraction
 

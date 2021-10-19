@@ -4,6 +4,8 @@
 _cache
 __pycache__
 all.lean
-lint_mathlib.lean
-nolints.lean
 *.depend
+/src/.noisy_files
+*~
+.DS_Store
+*.lock

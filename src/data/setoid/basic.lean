@@ -130,14 +130,12 @@ instance complete_lattice : complete_lattice (setoid α) :=
   inf_le_left := λ _ _ _ _ h, h.1,
   inf_le_right := λ _ _ _ _ h, h.2,
   le_inf := λ _ _ _ h1 h2 _ _ h, ⟨h1 h, h2 h⟩,
-  .. complete_lattice_of_Inf (setoid α) $ assume s,
-    ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
-
-instance bounded_lattice : bounded_lattice (setoid α) :=
-{ top := ⟨λ _ _, true, ⟨λ _, trivial, λ _ _ h, h, λ _ _ _ h1 h2, h1⟩⟩,
+  top := ⟨λ _ _, true, ⟨λ _, trivial, λ _ _ h, h, λ _ _ _ h1 h2, h1⟩⟩,
   le_top := λ _ _ _ _, trivial,
   bot := ⟨(=), ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h1 h2, h1.trans h2⟩⟩,
-  bot_le := λ r x y h, h ▸ r.2.1 x }
+  bot_le := λ r x y h, h ▸ r.2.1 x,
+  .. complete_lattice_of_Inf (setoid α) $ assume s,
+    ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
 @[simp]
 lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
@@ -146,11 +144,7 @@ lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
 lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
 
 lemma eq_top_iff {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
--- by simp [eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply]
-begin
-  rw [eq_top_iff, setoid.le_def, setoid.top_def],
-  exact ⟨λ h x y, h trivial, λ h _ _ _, h _ _⟩
-end
+by simp [eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply]
 
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
@@ -376,38 +370,22 @@ def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
 
 end setoid
 
-@[simp] lemma top_implies_iff (p : Prop) : ((⊤ : Prop) → p) ↔ p :=
-begin
-  convert true_implies_iff,
-  simp only [imp_iff_right_iff, forall_const, iff_self, iff_true, eq_iff_iff],
-  exact or.inl trivial
-end
-
 @[simp]
 lemma quotient.subsingleton_iff  {s : setoid α} :
   subsingleton (quotient s) ↔ s = ⊤ :=
 begin
   simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def,
-    pi.top_apply, forall_const, top_implies_iff],
+    pi.top_apply, forall_const],
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ a, _),
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ b, _),
   exact quotient.eq',
 end
 
--- TODO: why is this not rfl?
--- (λ (i : α), pi.has_top) =
--- λ (i : α), (λ (i : α), order_top.to_has_top ((λ (b : α), α → Prop) i)) i
-
 lemma quot.subsingleton_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
 begin
-  rw [subsingleton_iff],
-  refine ⟨λ h, funext $ λ x, funext (λ y, eq_iff_iff.mpr ⟨λ _, trivial, λ _, quot.exact _ (h _ _)⟩),
-    λ h x y, _⟩,
-  induction x,
-  induction y,
-  refine quot.eqv_gen_sound _,
-  { rw h,
-    exact trivial },
-  simp,
-  simp
+  simp only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, pi.top_apply, forall_const],
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
+  rw quot.eq,
+  simp only [forall_const, le_Prop_eq],
 end

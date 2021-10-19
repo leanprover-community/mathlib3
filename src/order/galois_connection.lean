@@ -404,6 +404,7 @@ def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : co
     (gi.is_glb_of_u_image $ is_glb_Inf _) (is_glb_Inf _),
   Inf_le := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).1 },
   le_Inf := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).2 },
+  .. gi.lift_bounded_lattice,
   .. gi.lift_lattice }
 
 end lift

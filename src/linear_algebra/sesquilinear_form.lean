@@ -228,12 +228,12 @@ end comm_ring
 
 section domain
 
-variables {R : Type*} [domain R]
+variables {R : Type*} [ring R] [domain R]
   {M : Type v} [add_comm_group M] [module R M]
   {K : R ≃+* Rᵒᵖ} {G : sesq_form R M K}
 
 theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
-(is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
+  (is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
 begin
   dunfold is_ortho,
   split; intro H,
@@ -245,7 +245,7 @@ begin
 end
 
 theorem ortho_smul_right {x y : M} {a : R} (ha : a ≠ 0) :
-(is_ortho G x y) ↔ (is_ortho G x (a • y)) :=
+  (is_ortho G x y) ↔ (is_ortho G x (a • y)) :=
 begin
   dunfold is_ortho,
   split; intro H,

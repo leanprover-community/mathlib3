@@ -166,7 +166,7 @@ variables [ordered_semiring α]
 | 0     := le_refl _
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
-theorem mono_cast : monotone (coe : ℕ → α) :=
+@[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
 λ m n h, let ⟨k, hk⟩ := le_iff_exists_add.1 h in by simp [hk]
 
 variable [nontrivial α]
@@ -179,7 +179,7 @@ theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
-@[simp, norm_cast] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
+@[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
 
 @[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=

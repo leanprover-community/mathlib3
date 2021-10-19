@@ -152,8 +152,7 @@ end
 theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 
-
-lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
+lemma bot_prime {R : Type*} [comm_ring R] [integral_domain R] : (⊥ : ideal R).is_prime :=
 ⟨λ h, one_ne_zero (by rwa [ideal.eq_top_iff_one, submodule.mem_bot] at h),
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
@@ -299,7 +298,7 @@ lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
 span_le.trans $ singleton_subset_iff.trans mem_span_singleton
 
-lemma span_singleton_eq_span_singleton {α : Type u} [integral_domain α] {x y : α} :
+lemma span_singleton_eq_span_singleton {α : Type u} [comm_ring α] [integral_domain α] {x y : α} :
   span ({x} : set α) = span ({y} : set α) ↔ associated x y :=
 begin
   rw [←dvd_dvd_iff_associated, le_antisymm_iff, and_comm],
@@ -344,12 +343,13 @@ end⟩
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
 is_maximal.is_prime
 
-lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
+lemma span_singleton_lt_span_singleton [comm_ring β] [integral_domain β] {x y : β} :
   span ({x} : set β) < span ({y} : set β) ↔ dvd_not_unit y x :=
 by rw [lt_iff_le_not_le, span_singleton_le_span_singleton, span_singleton_le_span_singleton,
   dvd_and_not_dvd_iff]
 
-lemma factors_decreasing [integral_domain β] (b₁ b₂ : β) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
+lemma factors_decreasing [comm_ring β] [integral_domain β]
+  (b₁ b₂ : β) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
   span ({b₁ * b₂} : set β) < span {b₁} :=
 lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
   ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
@@ -534,7 +534,6 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
-  .. quotient.comm_ring I,
   .. quotient.nontrivial hI.1 }
 
 lemma is_integral_domain_iff_prime (I : ideal α) : is_integral_domain I.quotient ↔ I.is_prime :=
@@ -564,6 +563,7 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
     by rw dif_neg ha;
     exact classical.some_spec (exists_inv ha),
   inv_zero := dif_pos rfl,
+  ..quotient.comm_ring I,
   ..quotient.integral_domain I }
 
 /-- If the quotient by an ideal is a field, then the ideal is maximal. -/

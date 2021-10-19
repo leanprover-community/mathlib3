@@ -932,7 +932,7 @@ begin
   { intro hf, exact this (equiv.ulift.symm.injective.comp hf) },
   intro hg,
   replace hg := cardinal.mk_le_of_injective hg,
-  rw ← cardinal.lift_mk at hg,
+  rw cardinal.mk_ulift at hg,
   have := hg.trans_lt (cardinal.lift_lt_univ _),
   rw cardinal.univ_id at this,
   exact lt_irrefl _ this

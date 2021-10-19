@@ -397,6 +397,43 @@ end
 
 variable {K}
 
+lemma _root_.complete_lattice.independent.subtype_ne_bot_le_finrank_aux [finite_dimensional K V]
+  {ι : Type w} {p : ι → submodule K V} (hp : complete_lattice.independent p) :
+  #{i // p i ≠ ⊥} ≤ (finrank K V : cardinal.{w}) :=
+begin
+  suffices : cardinal.lift.{v} (#{i // p i ≠ ⊥}) ≤ cardinal.lift.{v} (finrank K V : cardinal.{w}),
+  { rwa cardinal.lift_le at this },
+  calc cardinal.lift.{v} (# {i // p i ≠ ⊥})
+      ≤ cardinal.lift.{w} (module.rank K V) : hp.subtype_ne_bot_le_rank
+  ... = cardinal.lift.{w} (finrank K V : cardinal.{v}) : by rw finrank_eq_dim
+  ... = cardinal.lift.{v} (finrank K V : cardinal.{w}) : by simp
+end
+
+/-- If `p` is an independent family of subspaces of a finite-dimensional space `V`, then the
+number of nontrivial subspaces in the family `p` is finite. -/
+noncomputable def _root_.complete_lattice.independent.fintype_ne_bot_of_finite_dimensional
+  [finite_dimensional K V] {ι : Type w} {p : ι → submodule K V}
+  (hp : complete_lattice.independent p) :
+  fintype {i : ι // p i ≠ ⊥} :=
+begin
+  suffices : #{i // p i ≠ ⊥} < (ω : cardinal.{w}),
+  { rw cardinal.lt_omega_iff_fintype at this,
+    exact this.some },
+  refine lt_of_le_of_lt hp.subtype_ne_bot_le_finrank_aux _,
+  simp [cardinal.nat_lt_omega],
+end
+
+/-- If `p` is an independent family of subspaces of a finite-dimensional space `V`, then the
+number of nontrivial subspaces in the family `p` is bounded above by the dimension of `V`.
+
+Note that the `fintype` hypothesis required here can be provided by
+`complete_lattice.independent.fintype_ne_bot_of_finite_dimensional`. -/
+lemma _root_.complete_lattice.independent.subtype_ne_bot_le_finrank
+  [finite_dimensional K V] {ι : Type w} {p : ι → submodule K V}
+  (hp : complete_lattice.independent p) [fintype {i // p i ≠ ⊥}] :
+  fintype.card {i // p i ≠ ⊥} ≤ finrank K V :=
+by simpa [cardinal.fintype_card] using hp.subtype_ne_bot_le_finrank_aux
+
 section
 open_locale big_operators
 open finset
@@ -1011,7 +1048,8 @@ noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [f
 section
 
 /-- An integral domain that is module-finite as an algebra over a field is a field. -/
-noncomputable def field_of_finite_dimensional (F K : Type*) [field F] [integral_domain K]
+noncomputable def field_of_finite_dimensional
+  (F K : Type*) [field F] [comm_ring K] [integral_domain K]
   [algebra F K] [finite_dimensional F K] : field K :=
 { inv := λ x, if H : x = 0 then 0 else classical.some $
     (show function.surjective (algebra.lmul_left F x), from
@@ -1020,7 +1058,8 @@ noncomputable def field_of_finite_dimensional (F K : Type*) [field F] [integral_
     exact classical.some_spec ((show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
   inv_zero := dif_pos rfl,
-  .. ‹integral_domain K› }
+  .. ‹integral_domain K›,
+  .. ‹comm_ring K› }
 
 end
 

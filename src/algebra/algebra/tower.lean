@@ -227,6 +227,9 @@ def restrict_scalars (U : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
   .. U }
 
+@[simp] lemma coe_restrict_scalars {U : subalgebra S A} :
+  (restrict_scalars R U : set A) = (U : set A) := rfl
+
 @[simp] lemma restrict_scalars_top : restrict_scalars R (⊤ : subalgebra S A) = ⊤ :=
 set_like.coe_injective rfl
 

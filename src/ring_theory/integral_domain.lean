@@ -30,7 +30,7 @@ section
 open finset polynomial function
 open_locale big_operators nat
 
-variables {R : Type*} {G : Type*} [integral_domain R] [group G] [fintype G]
+variables {R : Type*} {G : Type*} [comm_ring R] [integral_domain R] [group G] [fintype G]
 
 lemma card_nth_roots_subgroup_units (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
   ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
@@ -65,7 +65,8 @@ def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
   mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
-  ..show integral_domain R, by apply_instance }
+  ..show nontrivial R, by apply_instance,
+  ..show comm_ring R, by apply_instance }
 
 section
 

@@ -218,16 +218,13 @@ protected theorem nontrivial [nontrivial β] : nontrivial α :=
 e.surjective.nontrivial
 
 /-- Transfer `domain` across an `equiv` -/
-protected def domain [domain β] : domain α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub in
-by resetI; apply e.injective.domain _; intros; exact e.apply_symm_apply _
+protected theorem domain [ring α] [ring β] [domain β] (e : α ≃+* β) : domain α :=
+function.injective.domain e.to_ring_hom e.injective
 
 /-- Transfer `integral_domain` across an `equiv` -/
-protected def integral_domain [integral_domain β] : integral_domain α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub in
-by resetI; apply e.injective.integral_domain _; intros; exact e.apply_symm_apply _
+protected theorem integral_domain [comm_ring α] [comm_ring β] [integral_domain β] (e : α ≃+* β) :
+  integral_domain α :=
+function.injective.integral_domain e.to_ring_hom e.injective
 
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=

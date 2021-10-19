@@ -25,7 +25,8 @@ universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
 
 section integral_domain
-variables [integral_domain R] [normalization_monoid R]
+variables [comm_ring R] [integral_domain R] [normalization_monoid R]
+
 instance : normalization_monoid (polynomial R) :=
 { norm_unit := λ p, ⟨C ↑(norm_unit (p.leading_coeff)), C ↑(norm_unit (p.leading_coeff))⁻¹,
     by rw [← ring_hom.map_mul, units.mul_inv, C_1], by rw [← ring_hom.map_mul, units.inv_mul, C_1]⟩,

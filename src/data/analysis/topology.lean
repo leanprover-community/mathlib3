@@ -53,13 +53,14 @@ topological_space.generate_from (set.range F.f)
 
 theorem to_topsp_is_topological_basis (F : ctop α σ) :
   @topological_space.is_topological_basis _ F.to_topsp (set.range F.f) :=
+by letI := F.to_topsp; exact
 ⟨λ u ⟨a, e₁⟩ v ⟨b, e₂⟩, e₁ ▸ e₂ ▸
    λ x h, ⟨_, ⟨_, rfl⟩, F.inter_mem a b x h, F.inter_sub a b x h⟩,
 eq_univ_iff_forall.2 $ λ x, ⟨_, ⟨_, rfl⟩, F.top_mem x⟩, rfl⟩
 
 @[simp] theorem mem_nhds_to_topsp (F : ctop α σ) {s : set α} {a : α} :
   s ∈ @nhds _ F.to_topsp a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s :=
-(@topological_space.mem_nhds_of_is_topological_basis
+(@topological_space.is_topological_basis.mem_nhds_iff
   _ F.to_topsp _ _ _ F.to_topsp_is_topological_basis).trans $
 ⟨λ ⟨_, ⟨x, rfl⟩, h⟩, ⟨x, h⟩, λ ⟨x, h⟩, ⟨_, ⟨x, rfl⟩, h⟩⟩
 
@@ -92,7 +93,7 @@ is_open_iff_mem_nhds.trans $ ball_congr $ λ a h, F.mem_nhds
 
 theorem is_closed_iff [topological_space α] (F : realizer α) {s : set α} :
   is_closed s ↔ ∀ a, (∀ b, a ∈ F.F b → ∃ z, z ∈ F.F b ∩ s) → a ∈ s :=
-F.is_open_iff.trans $ forall_congr $ λ a,
+is_open_compl_iff.symm.trans $ F.is_open_iff.trans $ forall_congr $ λ a,
 show (a ∉ s → (∃ (b : F.σ), a ∈ F.F b ∧ ∀ z ∈ F.F b, z ∉ s)) ↔ _,
 by haveI := classical.prop_decidable; rw [not_imp_comm];
    simp [not_exists, not_and, not_forall, and_comm]
@@ -117,7 +118,7 @@ theorem ext [T : topological_space α] {σ : Type*} {F : ctop α σ}
   (H₁ : ∀ a, is_open (F a))
   (H₂ : ∀ a s, s ∈ 𝓝 a → ∃ b, a ∈ F b ∧ F b ⊆ s) :
   F.to_topsp = T :=
-ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_sets_iff.2 ⟨_, h₂, H₁ _, h₁⟩⟩
+ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_iff.2 ⟨_, h₂, H₁ _, h₁⟩⟩
 
 variable [topological_space α]
 
@@ -125,11 +126,11 @@ protected def id : realizer α := ⟨{x:set α // is_open x},
 { f            := subtype.val,
   top          := λ _, ⟨univ, is_open_univ⟩,
   top_mem      := mem_univ,
-  inter        := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, ⟨_, is_open_inter h₁ h₂⟩,
+  inter        := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, ⟨_, h₁.inter h₂⟩,
   inter_mem    := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a, id,
   inter_sub    := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, subset.refl _ },
 ext subtype.property $ λ x s h,
-  let ⟨t, h, o, m⟩ := mem_nhds_sets_iff.1 h in ⟨⟨t, o⟩, m, h⟩⟩
+  let ⟨t, h, o, m⟩ := mem_nhds_iff.1 h in ⟨⟨t, o⟩, m, h⟩⟩
 
 def of_equiv (F : realizer α) (E : F.σ ≃ τ) : realizer α :=
 ⟨τ, F.F.of_equiv E, ext' (λ a s, F.mem_nhds.trans $
@@ -147,7 +148,7 @@ protected def nhds (F : realizer α) (a : α) : (𝓝 a).realizer :=
   inf_le_left  := λ ⟨x, h₁⟩ ⟨y, h₂⟩ z h, (F.F.inter_sub x y a ⟨h₁, h₂⟩ h).1,
   inf_le_right := λ ⟨x, h₁⟩ ⟨y, h₂⟩ z h, (F.F.inter_sub x y a ⟨h₁, h₂⟩ h).2 },
 filter_eq $ set.ext $ λ x,
-⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_sets_iff.2 ⟨_, h, F.is_open _, as⟩,
+⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_iff.2 ⟨_, h, F.is_open _, as⟩,
  λ h, let ⟨s, h, as⟩ := F.mem_nhds.1 h in ⟨⟨s, h⟩, as⟩⟩⟩
 
 @[simp] theorem nhds_σ (m : α → β) (F : realizer α) (a : α) :

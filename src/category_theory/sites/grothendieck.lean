@@ -25,10 +25,6 @@ explicit topologies: the discrete and trivial topologies.)
 A pretopology, or a basis for a topology is defined in `pretopology.lean`. The topology associated
 to a topological space is defined in `spaces.lean`.
 
-## Todo
-
-Define sheaves on a topology, and the topos of sheaves.
-
 ## Tags
 
 Grothendieck topology, coverage, pretopology, site

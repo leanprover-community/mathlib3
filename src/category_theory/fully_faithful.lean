@@ -6,7 +6,8 @@ Authors: Scott Morrison
 import category_theory.natural_isomorphism
 import data.equiv.basic
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 namespace category_theory
 
@@ -80,10 +81,9 @@ variables (F)
 If the image of a morphism under a fully faithful functor in an isomorphism,
 then the original morphisms is also an isomorphism.
 -/
-def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
-{ inv := F.preimage (inv (F.map f)),
-  hom_inv_id' := F.map_injective (by simp),
-  inv_hom_id' := F.map_injective (by simp) }
+lemma is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
+⟨⟨F.preimage (inv (F.map f)),
+  ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩
 
 /-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
 def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
@@ -121,6 +121,11 @@ lemma faithful.of_comp [faithful $ F ⋙ G] : faithful F :=
 
 section
 variables {F F'}
+
+/-- If `F` is full, and naturally isomorphic to some `F'`, then `F'` is also full. -/
+def full.of_iso [full F] (α : F ≅ F') : full F' :=
+{ preimage := λ X Y f, F.preimage ((α.app X).hom ≫ f ≫ (α.app Y).inv),
+  witness' := λ X Y f, by simp [←nat_iso.naturality_1 α], }
 
 lemma faithful.of_iso [faithful F] (α : F ≅ F') : faithful F' :=
 { map_injective' := λ X Y f f' h, F.map_injective
@@ -201,6 +206,11 @@ lemma faithful.div_faithful (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G
 instance full.comp [full F] [full G] : full (F ⋙ G) :=
 { preimage := λ _ _ f, F.preimage (G.preimage f) }
 
+/-- If `F ⋙ G` is full and `G` is faithful, then `F` is full -/
+def full.of_comp_faithful [full $ F ⋙ G] [faithful G] : full F :=
+{ preimage := λ X Y f, (F ⋙ G).preimage (G.map f),
+  witness' := λ X Y f, G.map_injective ((F ⋙ G).image_preimage _) }
+
 /--
 Given a natural isomorphism between `F ⋙ H` and `G ⋙ H` for a fully faithful functor `H`, we
 can 'cancel' it to give a natural iso between `F` and `G`.
@@ -216,6 +226,7 @@ lemma fully_faithful_cancel_right_hom_app {F G : C ⥤ D} {H : D ⥤ E}
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
   (fully_faithful_cancel_right H comp_iso).hom.app X = H.preimage (comp_iso.hom.app X) :=
 rfl
+
 @[simp]
 lemma fully_faithful_cancel_right_inv_app {F G : C ⥤ D} {H : D ⥤ E}
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :

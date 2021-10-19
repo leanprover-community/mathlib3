@@ -7,7 +7,7 @@ import tactic.rcases
 /-!
 # lift tactic
 
-This file defines the lift tactic, allowing the user to lift elements from one type to another
+This file defines the `lift` tactic, allowing the user to lift elements from one type to another
 under a specified condition.
 
 ## Tags
@@ -15,14 +15,13 @@ under a specified condition.
 lift, tactic
 -/
 
-universe variables u v w
-
 /-- A class specifying that you can lift elements from `α` to `β` assuming `cond` is true.
   Used by the tactic `lift`. -/
-class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
+class can_lift (α β : Sort*) :=
 (coe : β → α)
 (cond : α → Prop)
 (prf : ∀(x : α), cond x → ∃(y : β), coe y = x)
+
 
 open tactic
 
@@ -34,24 +33,43 @@ This should not be applied by hand.
 meta def can_lift_attr : user_attribute (list name) :=
 { name := "_can_lift",
   descr := "internal attribute used by the lift tactic",
-  cache_cfg := { mk_cache := λ _,
-    do { ls ← attribute.get_instances `instance,
-        ls.mfilter $ λ l,
-        do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
-         return $ t.is_app_of `can_lift } },
-  dependencies := [`instance] } }
+  parser := failed,
+  cache_cfg := {
+    mk_cache := λ _,
+      do { ls ← attribute.get_instances `instance,
+          ls.mfilter $ λ l,
+          do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
+          return $ t.is_app_of `can_lift } },
+    dependencies := [`instance] } }
 
 instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
 
 /-- Enable automatic handling of pi types in `can_lift`. -/
-instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Type w)
+instance pi.can_lift (ι : Type*) (α : Π i : ι, Type*) (β : Π i : ι, Type*)
   [Π i : ι, can_lift (α i) (β i)] :
   can_lift (Π i : ι, α i) (Π i : ι, β i) :=
 { coe := λ f i, can_lift.coe (f i),
   cond := λ f, ∀ i, can_lift.cond (β i) (f i),
   prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
+
+instance pi_subtype.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
+  (p : ι → Prop) :
+  can_lift (Π i : subtype p, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  cond := λ _, true,
+  prf :=
+    begin
+      classical,
+      refine λ f _, ⟨λ i, if hi : p i then f ⟨i, hi⟩ else classical.choice (ne i), funext _⟩,
+      rintro ⟨i, hi⟩,
+      exact dif_pos hi
+    end }
+
+instance pi_subtype.can_lift' (ι : Type*) (α : Type*) [ne : nonempty α] (p : ι → Prop) :
+  can_lift (subtype p → α) (ι → α) :=
+pi_subtype.can_lift ι (λ _, α) p
 
 namespace tactic
 
@@ -69,17 +87,16 @@ If the proof was not specified, we create assert it as a local constant.
 (The name of this local constant doesn't matter, since `lift` will remove it from the context.)
 -/
 meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr)
-  (s : simp_lemmas) (to_unfold : list name) : tactic expr :=
-if h_some : h.is_some then
-  (do prf ← i_to_expr (option.get h_some), prf_ty ← infer_type prf,
+  (s : simp_lemmas) (to_unfold : list name) : tactic expr := do
   expected_prf_ty ← mk_app `can_lift.cond [old_tp, new_tp, inst, e],
-  unify prf_ty expected_prf_ty <|>
-    (do expected_prf_ty2 ← s.dsimplify to_unfold expected_prf_ty,
-      pformat!"lift tactic failed. The type of\n  {prf}\nis\n  {prf_ty}\nbut it is expected to be\n  {expected_prf_ty2}" >>= fail),
-  return prf)
-  else (do prf_nm ← get_unused_name,
-    prf ← mk_app `can_lift.cond [old_tp, new_tp, inst, e] >>= assert prf_nm,
-    dsimp_target s to_unfold {}, swap, return prf)
+  expected_prf_ty ← s.dsimplify to_unfold expected_prf_ty,
+  if h_some : h.is_some then
+    decorate_error "lift tactic failed." $ i_to_expr ``((%%(option.get h_some) : %%expected_prf_ty))
+  else do
+    prf_nm ← get_unused_name,
+    prf ← assert prf_nm expected_prf_ty,
+    swap,
+    return prf
 
 /-- Lift the expression `p` to the type `t`, with proof obligation given by `h`.
   The list `n` is used for the two newly generated names, and to specify whether `h` should
@@ -91,7 +108,7 @@ do
     fail "lift tactic failed. Tactic is only applicable when the target is a proposition.",
   e ← i_to_expr p,
   old_tp ← infer_type e,
-  new_tp ← i_to_expr t,
+  new_tp ← i_to_expr ``(%%t : Sort*),
   inst_type ← mk_app ``can_lift [old_tp, new_tp],
   inst ← mk_instance inst_type <|>
     pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"
@@ -121,7 +138,8 @@ do
   dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
   rcases none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
-  /- If the lifted variable is not a local constant, try to rewrite it away using the new equality-/
+  /- If the lifted variable is not a local constant,
+    try to rewrite it away using the new equality. -/
   when (¬ e.is_local_constant) (get_local eq_nm >>=
     λ e, interactive.rw ⟨[⟨⟨0, 0⟩, tt, (pexpr.of_expr e)⟩], none⟩ interactive.loc.wildcard),
   /- If the proof `prf_cond` is a local constant, remove it from the context,
@@ -130,8 +148,6 @@ do
     get_local (option.get h_prf_nm.1) >>= clear else skip
 
 open lean.parser interactive interactive.types
-
-reserve notation `to`
 
 local postfix `?`:9001 := optional
 /-- Parses an optional token "using" followed by a trailing `pexpr`. -/
@@ -142,8 +158,7 @@ meta def to_texpr := (tk "to" *> texpr)
 
 namespace interactive
 
-/-- Lift an expression to another type.
-
+/--
 Lift an expression to another type.
 * Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
 * If `n : ℤ` and `hn : n ≥ 0` then the tactic `lift n to ℕ using hn` creates a new
@@ -173,8 +188,8 @@ Lift an expression to another type.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
 * Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
-  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
-  generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
+  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it
+  automatically generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
 `lift` is in some sense dual to the `zify` tactic. `lift (z : ℤ) to ℕ` will change the type of an
 integer `z` (in the supertype) to `ℕ` (the subtype), given a proof that `z ≥ 0`;

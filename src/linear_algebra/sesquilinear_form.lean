@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Andreas Swerdlow
+Authors: Andreas Swerdlow
 -/
-import algebra.module.basic
 import ring_theory.ring_invo
+import algebra.module.linear_map
 
 /-!
 # Sesquilinear form
@@ -33,7 +33,7 @@ Sesquilinear form,
 
 open_locale big_operators
 
-universes u v
+universes u v w
 
 /-- A sesquilinear form over a module  -/
 structure sesq_form (R : Type u) (M : Type v) [ring R] (I : R ≃+* Rᵒᵖ)
@@ -74,37 +74,48 @@ lemma neg_right (x y : M) : S x (-y) = -(S x y) :=
 by { rw [←@neg_one_smul R _ _, smul_right], simp }
 
 lemma sub_left (x y z : M) :
-S (x - y) z = S x z - S y z := by rw [sub_eq_add_neg, add_left, neg_left]; refl
+  S (x - y) z = S x z - S y z :=
+by simp only [sub_eq_add_neg, add_left, neg_left]
 
 lemma sub_right (x y z : M) :
-S x (y - z) = S x y - S x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl
+  S x (y - z) = S x y - S x z :=
+by simp only [sub_eq_add_neg, add_right, neg_right]
 
 variable {D : sesq_form R M I}
 @[ext] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D :=
 by {cases S, cases D, congr, funext, exact H _ _}
 
-instance : add_comm_group (sesq_form R M I) :=
-{ add := λ S D, { sesq := λ x y, S x y + D x y,
-                  sesq_add_left := λ x y z, by {rw add_left, rw add_left, ac_refl},
+instance : has_add (sesq_form R M I) :=
+⟨λ S D, { sesq := λ x y, S x y + D x y,
+                  sesq_add_left := λ x y z, by {rw add_left, rw add_left, abel},
                   sesq_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]},
-                  sesq_add_right := λ x y z, by {rw add_right, rw add_right, ac_refl},
-                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} },
-  add_assoc := by {intros, ext,
-    unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
-  zero := { sesq := λ x y, 0,
+                  sesq_add_right := λ x y z, by {rw add_right, rw add_right, abel},
+                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} }⟩
+
+instance : has_zero (sesq_form R M I) :=
+⟨{ sesq := λ x y, 0,
             sesq_add_left := λ x y z, (add_zero 0).symm,
             sesq_smul_left := λ a x y, (mul_zero a).symm,
             sesq_add_right := λ x y z, (zero_add 0).symm,
-            sesq_smul_right := λ a x y, (mul_zero (I a).unop).symm },
-  zero_add := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add},
-  add_zero := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero},
-  neg := λ S, { sesq := λ x y, - (S.1 x y),
+            sesq_smul_right := λ a x y, (mul_zero (I a).unop).symm }⟩
+
+instance : has_neg (sesq_form R M I) :=
+⟨λ S, { sesq := λ x y, - (S.1 x y),
                 sesq_add_left := λ x y z, by rw [sesq_add_left, neg_add],
                 sesq_smul_left := λ a x y, by rw [sesq_smul_left, mul_neg_eq_neg_mul_symm],
                 sesq_add_right := λ x y z, by rw [sesq_add_right, neg_add],
-                sesq_smul_right := λ a x y, by rw [sesq_smul_right, mul_neg_eq_neg_mul_symm] },
-  add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self},
-  add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm} }
+                sesq_smul_right := λ a x y, by rw [sesq_smul_right, mul_neg_eq_neg_mul_symm] }⟩
+
+instance : add_comm_group (sesq_form R M I) :=
+{ add := (+),
+  add_assoc := by { intros, ext,
+    unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc },
+  zero := 0,
+  zero_add := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add },
+  add_zero := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero },
+  neg := has_neg.neg,
+  add_left_neg := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self },
+  add_comm := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm } }
 
 instance : inhabited (sesq_form R M I) := ⟨0⟩
 
@@ -115,21 +126,78 @@ S x y = 0
 lemma ortho_zero (x : M) :
 is_ortho S (0 : M) x := zero_left x
 
-lemma is_add_monoid_hom_left (S : sesq_form R M I) (x : M) : is_add_monoid_hom (λ z, S z x) :=
-{ map_add := λ z y, sesq_add_left S _ _ _,
-  map_zero := zero_left x }
+/-- For fixed `y : M`, the `R`-linear map sending `x : M` to `S x y`, where `S` is a
+sesquilinear form. -/
+@[simps] def linear_map_left (S : sesq_form R M I) (x : M) : M →ₗ[R] R :=
+{ to_fun := λ z, S z x,
+  map_add' := λ z y, sesq_add_left S _ _ _,
+  map_smul' := λ r m, sesq_smul_left S _ _ _ }
 
-lemma is_add_monoid_hom_right (S : sesq_form R M I) (x : M) : is_add_monoid_hom (λ z, S x z) :=
-{ map_add := λ z y, sesq_add_right S _ _ _,
-  map_zero := zero_right x }
+/-- For fixed `x : M`, the `add_monoid_hom` sending `y : M` to `S x y`, where `S` is a
+sesquilinear form. -/
+@[simps] def add_monoid_hom_right (S : sesq_form R M I) (x : M) : M →+ R :=
+{ to_fun := λ z, S x z,
+  map_zero' := zero_right x,
+  map_add' := λ z y, sesq_add_right S _ _ _, }
 
-lemma map_sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
+lemma sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S (∑ i in t, g i) w = ∑ i in t, S (g i) w :=
-by haveI s_inst := is_add_monoid_hom_left S w; exact (finset.sum_hom t (λ z, S z w)).symm
+(linear_map_left S w).map_sum
 
-lemma map_sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
+lemma sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S w (∑ i in t, g i) = ∑ i in t, S w (g i) :=
-by haveI s_inst := is_add_monoid_hom_right S w; exact (finset.sum_hom t (λ z, S w z)).symm
+(add_monoid_hom_right S w).map_sum _ t
+
+variables {M₂ : Type w} [add_comm_group M₂] [module R M₂]
+
+/-- Apply the linear maps `f` and `g` to the left and right arguments of the sesquilinear form. -/
+def comp (S : sesq_form R M I) (f g : M₂ →ₗ[R] M) : sesq_form R M₂ I :=
+{ sesq := λ x y, S (f x) (g y),
+  sesq_add_left := by simp [add_left],
+  sesq_smul_left := by simp [smul_left],
+  sesq_add_right := by simp [add_right],
+  sesq_smul_right := by simp [smul_right] }
+
+/-- Apply the linear map `f` to the left argument of the sesquilinear form. -/
+def comp_left (S : sesq_form R M I) (f : M →ₗ[R] M) : sesq_form R M I :=
+  S.comp f linear_map.id
+
+/-- Apply the linear map `f` to the right argument of the sesquilinear form. -/
+def comp_right (S : sesq_form R M I) (f : M →ₗ[R] M) : sesq_form R M I :=
+  S.comp linear_map.id f
+
+lemma comp_left_comp_right (S : sesq_form R M I) (f g : M →ₗ[R] M) :
+  (S.comp_left f).comp_right g = S.comp f g := rfl
+
+lemma comp_right_comp_left (S : sesq_form R M I) (f g : M →ₗ[R] M) :
+  (S.comp_right g).comp_left f = S.comp f g := rfl
+
+lemma comp_comp {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (S : sesq_form R M₃ I) (l r : M →ₗ[R] M₂) (l' r' : M₂ →ₗ[R] M₃) :
+  (S.comp l' r').comp l r = S.comp (l'.comp l) (r'.comp r) := rfl
+
+@[simp] lemma comp_apply (S : sesq_form R M₂ I) (l r : M →ₗ[R] M₂) (v w : M) :
+  S.comp l r v w = S (l v) (r w) := rfl
+
+@[simp] lemma comp_left_apply (S : sesq_form R M I) (f : M →ₗ[R] M) (v w : M) :
+  S.comp_left f v w = S (f v) w := rfl
+
+@[simp] lemma comp_right_apply (S : sesq_form R M I) (f : M →ₗ[R] M) (v w : M) :
+  S.comp_right f v w = S v (f w) := rfl
+
+/-- Let `l`, `r` be surjective linear maps, then two sesquilinear forms are equal if and only if
+  the sesquilinear forms resulting from composition with `l` and `r` are equal. -/
+lemma comp_injective (S₁ S₂ : sesq_form R M₂ I) {l r : M →ₗ[R] M₂}
+  (hl : function.surjective l) (hr : function.surjective r) :
+  S₁.comp l r = S₂.comp l r ↔ S₁ = S₂ :=
+begin
+  split; intros h,
+  { ext,
+    rcases hl x with ⟨x', rfl⟩,
+    rcases hr y with ⟨y', rfl⟩,
+    rw [← comp_apply, ← comp_apply, h], },
+  { rw h },
+end
 
 end general_ring
 

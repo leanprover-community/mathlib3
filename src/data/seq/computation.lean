@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Coinductive formalization of unbounded computations.
 -/
 import data.stream
 import tactic.basic
 
+open function
 universes u v w
 
 /-
@@ -187,7 +188,7 @@ end
 section bisim
   variable (R : computation α → computation α → Prop)
 
-  local infix ~ := R
+  local infix ` ~ `:50 := R
 
   def bisim_o : α ⊕ computation α → α ⊕ computation α → Prop
   | (sum.inl a) (sum.inl a') := a = a'
@@ -233,21 +234,26 @@ theorem le_stable (s : computation α) {a m n} (h : m ≤ n) :
   s.1 m = some a → s.1 n = some a :=
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
-theorem mem_unique :
-   relator.left_unique ((∈) : α → computation α → Prop) :=
-λa s b ⟨m, ha⟩ ⟨n, hb⟩, by injection
+theorem mem_unique {s : computation α} {a b : α} : a ∈ s → b ∈ s → a = b
+| ⟨m, ha⟩ ⟨n, hb⟩ := by injection
   (le_stable s (le_max_left m n) ha.symm).symm.trans
   (le_stable s (le_max_right m n) hb.symm)
 
-/-- `terminates s` asserts that the computation `s` eventually terminates with some value. -/
-@[class] def terminates (s : computation α) : Prop := ∃ a, a ∈ s
+theorem mem.left_unique : relator.left_unique ((∈) : α → computation α → Prop) :=
+λ a s b, mem_unique
 
-theorem terminates_of_mem {s : computation α} {a : α} : a ∈ s → terminates s :=
-exists.intro a
+/-- `terminates s` asserts that the computation `s` eventually terminates with some value. -/
+class terminates (s : computation α) : Prop := (term : ∃ a, a ∈ s)
+
+theorem terminates_iff (s : computation α) : terminates s ↔ ∃ a, a ∈ s :=
+⟨λ h, h.1, terminates.mk⟩
+
+theorem terminates_of_mem {s : computation α} {a : α} (h : a ∈ s) : terminates s :=
+⟨⟨a, h⟩⟩
 
 theorem terminates_def (s : computation α) : terminates s ↔ ∃ n, (s.1 n).is_some :=
-⟨λ⟨a, n, h⟩, ⟨n, by {dsimp [stream.nth] at h, rw ←h, exact rfl}⟩,
-λ⟨n, h⟩, ⟨option.get h, n, (option.eq_some_of_is_some h).symm⟩⟩
+⟨λ ⟨⟨a, n, h⟩⟩, ⟨n, by {dsimp [stream.nth] at h, rw ←h, exact rfl}⟩,
+ λ ⟨n, h⟩, ⟨⟨option.get h, n, (option.eq_some_of_is_some h).symm⟩⟩⟩
 
 theorem ret_mem (a : α) : a ∈ return a :=
 exists.intro 0 rfl
@@ -263,26 +269,26 @@ theorem think_mem {s : computation α} {a} : a ∈ s → a ∈ think s
 
 instance think_terminates (s : computation α) :
   ∀ [terminates s], terminates (think s)
-| ⟨a, n, h⟩ := ⟨a, n+1, h⟩
+| ⟨⟨a, n, h⟩⟩ := ⟨⟨a, n+1, h⟩⟩
 
 theorem of_think_mem {s : computation α} {a} : a ∈ think s → a ∈ s
 | ⟨n, h⟩ := by {cases n with n', contradiction, exact ⟨n', h⟩}
 
 theorem of_think_terminates {s : computation α} :
   terminates (think s) → terminates s
-| ⟨a, h⟩ := ⟨a, of_think_mem h⟩
+| ⟨⟨a, h⟩⟩ := ⟨⟨a, of_think_mem h⟩⟩
 
 theorem not_mem_empty (a : α) : a ∉ empty α :=
 λ ⟨n, h⟩, by clear _fun_match; contradiction
 
 theorem not_terminates_empty : ¬ terminates (empty α) :=
-λ ⟨a, h⟩, not_mem_empty a h
+λ ⟨⟨a, h⟩⟩, not_mem_empty a h
 
 theorem eq_empty_of_not_terminates {s} (H : ¬ terminates s) : s = empty α :=
 begin
   apply subtype.eq, funext n,
   induction h : s.val n, {refl},
-  refine absurd _ H, exact ⟨_, _, h.symm⟩
+  refine absurd _ H, exact ⟨⟨_, _, h.symm⟩⟩
 end
 
 theorem thinkN_mem {s : computation α} {a} : ∀ n, a ∈ thinkN s n ↔ a ∈ s
@@ -291,11 +297,11 @@ theorem thinkN_mem {s : computation α} {a} : ∀ n, a ∈ thinkN s n ↔ a ∈ 
 
 instance thinkN_terminates (s : computation α) :
   ∀ [terminates s] n, terminates (thinkN s n)
-| ⟨a, h⟩ n := ⟨a, (thinkN_mem n).2 h⟩
+| ⟨⟨a, h⟩⟩ n := ⟨⟨a, (thinkN_mem n).2 h⟩⟩
 
 theorem of_thinkN_terminates (s : computation α) (n) :
   terminates (thinkN s n) → terminates s
-| ⟨a, h⟩ := ⟨a, (thinkN_mem _).1 h⟩
+| ⟨⟨a, h⟩⟩ := ⟨⟨a, (thinkN_mem _).1 h⟩⟩
 
 /-- `promises s a`, or `s ~> a`, asserts that although the computation `s`
   may not terminate, if it does, then the result is `a`. -/
@@ -337,7 +343,7 @@ get_eq_of_mem _ $ (thinkN_mem _).2 (get_mem _)
 theorem get_promises : s ~> get s := λ a, get_eq_of_mem _
 
 theorem mem_of_promises {a} (p : s ~> a) : a ∈ s :=
-by { casesI h with a' h, rw p h, exact h }
+by { casesI h, cases h with a' h, rw p h, exact h }
 
 theorem get_eq_of_promises {a} : s ~> a → get s = a :=
 get_eq_of_mem _ ∘ mem_of_promises _
@@ -663,7 +669,8 @@ by rw ←bind_ret; apply_instance
 
 theorem terminates_map_iff (f : α → β) (s : computation α) :
   terminates (map f s) ↔ terminates s :=
-⟨λ⟨a, h⟩, let ⟨b, h1, _⟩ := exists_of_mem_map h in ⟨_, h1⟩, @computation.terminates_map _ _ _ _⟩
+⟨λ ⟨⟨a, h⟩⟩, let ⟨b, h1, _⟩ := exists_of_mem_map h in ⟨⟨_, h1⟩⟩,
+ @computation.terminates_map _ _ _ _⟩
 
 -- Parallel computation
 /-- `c₁ <|> c₂` calculates `c₁` and `c₂` simultaneously, returning
@@ -713,7 +720,7 @@ end
   or both loop forever. -/
 def equiv (c₁ c₂ : computation α) : Prop := ∀ a, a ∈ c₁ ↔ a ∈ c₂
 
-infix ~ := equiv
+infix ` ~ `:50 := equiv
 
 @[refl] theorem equiv.refl (s : computation α) : s ~ s := λ_, iff.rfl
 
@@ -732,7 +739,7 @@ theorem equiv_of_mem {s t : computation α} {a} (h1 : a ∈ s) (h2 : a ∈ t) : 
 
 theorem terminates_congr {c₁ c₂ : computation α}
   (h : c₁ ~ c₂) : terminates c₁ ↔ terminates c₂ :=
-exists_congr h
+by simp only [terminates_iff, exists_congr h]
 
 theorem promises_congr {c₁ c₂ : computation α}
   (h : c₁ ~ c₂) (a) : c₁ ~> a ↔ c₂ ~> a :=
@@ -767,7 +774,7 @@ def lift_rel (R : α → β → Prop) (ca : computation α) (cb : computation β
  ∀ {b}, b ∈ cb → ∃ {a}, a ∈ ca ∧ R a b
 
 theorem lift_rel.swap (R : α → β → Prop) (ca : computation α) (cb : computation β) :
-  lift_rel (function.swap R) cb ca ↔ lift_rel R ca cb :=
+  lift_rel (swap R) cb ca ↔ lift_rel R ca cb :=
 and_comm _ _
 
 theorem lift_eq_iff_equiv (c₁ c₂ : computation α) : lift_rel (=) c₁ c₂ ↔ c₁ ~ c₂ :=
@@ -800,8 +807,8 @@ theorem lift_rel.imp {R S : α → β → Prop} (H : ∀ {a b}, R a b → S a b)
 
 theorem terminates_of_lift_rel {R : α → β → Prop} {s t} :
  lift_rel R s t → (terminates s ↔ terminates t) | ⟨l, r⟩ :=
-⟨λ ⟨a, as⟩, let ⟨b, bt, ab⟩ := l as in ⟨b, bt⟩,
- λ ⟨b, bt⟩, let ⟨a, as, ab⟩ := r bt in ⟨a, as⟩⟩
+⟨λ ⟨⟨a, as⟩⟩, let ⟨b, bt, ab⟩ := l as in ⟨⟨b, bt⟩⟩,
+ λ ⟨⟨b, bt⟩⟩, let ⟨a, as, ab⟩ := r bt in ⟨⟨a, as⟩⟩⟩
 
 theorem rel_of_lift_rel {R : α → β → Prop} {ca cb} :
  lift_rel R ca cb → ∀ {a b}, a ∈ ca → b ∈ cb → R a b
@@ -826,8 +833,8 @@ theorem lift_rel_def {R : α → β → Prop} {ca cb} : lift_rel R ca cb ↔
 ⟨λh, ⟨terminates_of_lift_rel h, λ a b ma mb,
   let ⟨b', mb', ab⟩ := h.left ma in by rwa mem_unique mb mb'⟩,
 λ⟨l, r⟩,
- ⟨λ a ma, let ⟨b, mb⟩ := l.1 ⟨_, ma⟩ in ⟨b, mb, r ma mb⟩,
-  λ b mb, let ⟨a, ma⟩ := l.2 ⟨_, mb⟩ in ⟨a, ma, r ma mb⟩⟩⟩
+ ⟨λ a ma, let ⟨⟨b, mb⟩⟩ := l.1 ⟨⟨_, ma⟩⟩ in ⟨b, mb, r ma mb⟩,
+  λ b mb, let ⟨⟨a, ma⟩⟩ := l.2 ⟨⟨_, mb⟩⟩ in ⟨a, ma, r ma mb⟩⟩⟩
 
 theorem lift_rel_bind {δ} (R : α → β → Prop) (S : γ → δ → Prop)
   {s1 : computation α} {s2 : computation β}
@@ -921,7 +928,7 @@ begin
 end
 
 theorem lift_rel_aux.swap (R : α → β → Prop) (C) (a b) :
-  lift_rel_aux (function.swap R) (function.swap C) b a = lift_rel_aux R C a b :=
+  lift_rel_aux (swap R) (swap C) b a = lift_rel_aux R C a b :=
 by cases a with a ca; cases b with b cb; simp only [lift_rel_aux]
 
 @[simp] lemma lift_rel_aux.ret_right (R : α → β → Prop)
@@ -945,7 +952,7 @@ theorem lift_rel_rec {R : α → β → Prop} (C : computation α → computatio
   (ca cb) (Hc : C ca cb) : lift_rel R ca cb :=
 lift_rel_mem_cases (lift_rel_rec.lem C @H ca cb Hc) (λ b hb,
  (lift_rel.swap _ _ _).2 $
- lift_rel_rec.lem (function.swap C)
+ lift_rel_rec.lem (swap C)
    (λ cb ca h, cast (lift_rel_aux.swap _ _ _ _).symm $ H h)
    cb ca Hc b hb)
 

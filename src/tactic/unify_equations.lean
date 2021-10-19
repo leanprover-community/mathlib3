@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jannis Limperg
+Authors: Jannis Limperg
 -/
 import tactic.core
 
@@ -120,8 +120,8 @@ do
     constructor_left ← get_app_fn_const_whnf lhs semireducible ff,
     constructor_right ← get_app_fn_const_whnf rhs semireducible ff,
     inj_name ← resolve_constant $ constructor_left ++ "inj_arrow",
-    pure (lhs, rhs, constructor_left, constructor_right, inj_name)
-  } <|> fail
+    pure (lhs, rhs, constructor_left, constructor_right, inj_name) }
+  <|> fail
     ("injection tactic failed, argument must be an equality proof where lhs and rhs " ++
     "are of the form (c ...), where c is a constructor"),
   if constructor_left = constructor_right then do
@@ -151,8 +151,7 @@ do
     -- `inj_arrow` lemmas introduce these for nullary constructors.
     next ← next.mfilter $ λ h, do {
       `(true) ← infer_type h | pure tt,
-      (clear h >> pure ff) <|> pure tt
-    },
+      (clear h >> pure ff) <|> pure tt },
     pure (some next, ns)
   else do
     tgt ← target,
@@ -243,8 +242,7 @@ meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
       then pure (equ, lhs_n, rhs_n)
       else do {
         equ ← to_expr ``(eq.symm %%equ),
-        pure (equ, rhs_n, lhs_n)
-      },
+        pure (equ, rhs_n, lhs_n) },
   let diff := lhs_n - rhs_n,
   let rhs_n_expr := reflect rhs_n,
   n ← to_expr ``(%%common + %%rhs_n_expr),

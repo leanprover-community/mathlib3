@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.specific_limits
 import order.filter.countable_Inter
+import topology.G_delta
 
 /-!
 # Baire theorem
@@ -25,79 +26,11 @@ has the countable intersection property.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topological_space filter ennreal
 
 open filter encodable set
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
-
-section is_Gδ
-variable [topological_space α]
-
-/-- A Gδ set is a countable intersection of open sets. -/
-def is_Gδ (s : set α) : Prop :=
-  ∃T : set (set α), (∀t ∈ T, is_open t) ∧ countable T ∧ s = (⋂₀ T)
-
-/-- An open set is a Gδ set. -/
-lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
-⟨{s}, by simp [h], countable_singleton _, (set.sInter_singleton _).symm⟩
-
-lemma is_Gδ_univ : is_Gδ (univ : set α) := is_open_univ.is_Gδ
-
-lemma is_Gδ_bInter_of_open {I : set ι} (hI : countable I) {f : ι → set α}
-  (hf : ∀i ∈ I, is_open (f i)) : is_Gδ (⋂i∈I, f i) :=
-⟨f '' I, by rwa ball_image_iff, hI.image _, by rw sInter_image⟩
-
-lemma is_Gδ_Inter_of_open [encodable ι] {f : ι → set α}
-  (hf : ∀i, is_open (f i)) : is_Gδ (⋂i, f i) :=
-⟨range f, by rwa forall_range_iff, countable_range _, by rw sInter_range⟩
-
-/-- A countable intersection of Gδ sets is a Gδ set. -/
-lemma is_Gδ_sInter {S : set (set α)} (h : ∀s∈S, is_Gδ s) (hS : countable S) : is_Gδ (⋂₀ S) :=
-begin
-  choose T hT using h,
-  refine ⟨_, _, _, (sInter_bUnion (λ s hs, (hT s hs).2.2)).symm⟩,
-  { simp only [mem_Union],
-    rintros t ⟨s, hs, tTs⟩,
-    exact (hT s hs).1 t tTs },
-  { exact hS.bUnion (λs hs, (hT s hs).2.1) },
-end
-
-lemma is_Gδ_Inter [encodable ι]  {s : ι → set α} (hs : ∀ i, is_Gδ (s i)) : is_Gδ (⋂ i, s i) :=
-is_Gδ_sInter (forall_range_iff.2 hs) $ countable_range s
-
-lemma is_Gδ_bInter {s : set ι} (hs : countable s) {t : Π i ∈ s, set α} (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) :
-  is_Gδ (⋂ i ∈ s, t i ‹_›) :=
-begin
-  rw [bInter_eq_Inter],
-  haveI := hs.to_encodable,
-  exact is_Gδ_Inter (λ x, ht x x.2)
-end
-
-lemma is_Gδ.inter {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∩ t) :=
-by { rw inter_eq_Inter, exact is_Gδ_Inter (bool.forall_bool.2 ⟨ht, hs⟩) }
-
-/-- The union of two Gδ sets is a Gδ set. -/
-lemma is_Gδ.union {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∪ t) :=
-begin
-  rcases hs with ⟨S, Sopen, Scount, rfl⟩,
-  rcases ht with ⟨T, Topen, Tcount, rfl⟩,
-  rw [sInter_union_sInter],
-  apply is_Gδ_bInter_of_open (countable_prod Scount Tcount),
-  rintros ⟨a, b⟩ hab,
-  exact is_open_union (Sopen a hab.1) (Topen b hab.2)
-end
-
-end is_Gδ
-
-/-- A set `s` is called *residual* if it includes a dense `Gδ` set. If `α` is a Baire space
-(e.g., a complete metric space), then residual sets form a filter, see `mem_residual`.
-
- For technical reasons we define the filter `residual` in any topological space
- but in a non-Baire space it is not useful because it may contain some non-residual
- sets. -/
-def residual (α : Type*) [topological_space α] : filter α :=
-⨅ t (ht : is_Gδ t) (ht' : dense t), 𝓟 t
 
 section Baire_theorem
 open emetric ennreal
@@ -109,16 +42,16 @@ encodable source space). -/
 theorem dense_Inter_of_open_nat {f : ℕ → set α} (ho : ∀n, is_open (f n))
   (hd : ∀n, dense (f n)) : dense (⋂n, f n) :=
 begin
-  let B : ℕ → ennreal := λn, 1/2^n,
+  let B : ℕ → ℝ≥0∞ := λn, 1/2^n,
   have Bpos : ∀n, 0 < B n,
   { intro n,
-    simp only [B, div_def, one_mul, ennreal.inv_pos],
+    simp only [B, one_div, one_mul, ennreal.inv_pos],
     exact pow_ne_top two_ne_top },
   /- Translate the density assumption into two functions `center` and `radius` associating
   to any n, x, δ, δpos a center and a positive radius such that
   `closed_ball center radius` is included both in `f n` and in `closed_ball x δ`.
   We can also require `radius ≤ (1/2)^(n+1)`, to ensure we get a Cauchy sequence later. -/
-  have : ∀n x δ, δ > 0 → ∃y r, r > 0 ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n,
+  have : ∀n x δ, δ ≠ 0 → ∃y r, 0 < r ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n,
   { assume n x δ δpos,
     have : x ∈ closure (f n) := hd n x,
     rcases emetric.mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, xy⟩,
@@ -137,29 +70,30 @@ begin
     show z ∈ f n, from hr (calc
       edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
       ... ≤ r : le_trans (min_le_left _ _) (min_le_right _ _)) },
-  choose! center radius H using this,
+  choose! center radius Hpos HB Hball using this,
   refine λ x, (mem_closure_iff_nhds_basis nhds_basis_closed_eball).2 (λ ε εpos, _),
   /- `ε` is positive. We have to find a point in the ball of radius `ε` around `x` belonging to all
   `f n`. For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
   `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that
   `r n` is small enough to ensure that `c n` is a Cauchy sequence. Then `c n` converges to a
   limit which belongs to all the `f n`. -/
-  let F : ℕ → (α × ennreal) := λn, nat.rec_on n (prod.mk x (min ε (B 0)))
+  let F : ℕ → (α × ℝ≥0∞) := λn, nat.rec_on n (prod.mk x (min ε (B 0)))
                               (λn p, prod.mk (center n p.1 p.2) (radius n p.1 p.2)),
   let c : ℕ → α := λn, (F n).1,
-  let r : ℕ → ennreal := λn, (F n).2,
-  have rpos : ∀n, r n > 0,
+  let r : ℕ → ℝ≥0∞ := λn, (F n).2,
+  have rpos : ∀ n, 0 < r n,
   { assume n,
     induction n with n hn,
     exact lt_min εpos (Bpos 0),
-    exact (H n (c n) (r n) hn).1 },
+    exact Hpos n (c n) (r n) hn.ne' },
+  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne', 
   have rB : ∀n, r n ≤ B n,
   { assume n,
     induction n with n hn,
     exact min_le_right _ _,
-    exact (H n (c n) (r n) (rpos n)).2.1 },
+    exact HB n (c n) (r n) (r0 n) },
   have incl : ∀n, closed_ball (c (n+1)) (r (n+1)) ⊆ (closed_ball (c n) (r n)) ∩ (f n) :=
-    λn, (H n (c n) (r n) (rpos n)).2.2,
+    λ n, Hball n (c n) (r n) (r0 n),
   have cdist : ∀n, edist (c n) (c (n+1)) ≤ B n,
   { assume n,
     rw edist_comm,
@@ -285,15 +219,18 @@ lemma eventually_residual {p : α → Prop} :
 calc (∀ᶠ x in residual α, p x) ↔
   ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ dense t), 𝓟 t, p x :
     by simp only [residual, infi_and]
-... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x :
-  mem_binfi (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩,
-    by simp⟩) ⟨univ, is_Gδ_univ, dense_univ⟩
+... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x : mem_binfi_of_directed
+    (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩, by simp⟩)
+    ⟨univ, is_Gδ_univ, dense_univ⟩
 ... ↔ _ : by simp [and_assoc]
 
 /-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/
 lemma mem_residual {s : set α} : s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t ∧ dense t :=
 (@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
 λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
+
+lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) : dense s :=
+let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
 
 instance : countable_Inter_filter (residual α) :=
 ⟨begin

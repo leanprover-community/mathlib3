@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.ext
 import tactic.lint
@@ -220,7 +220,7 @@ end comp
 
 variables {F : Type u → Type u} [functor F]
 
-/-- If we consider `x : F α` to, in some sense, contain values of type `α`, 
+/-- If we consider `x : F α` to, in some sense, contain values of type `α`,
 predicate `liftp p x` holds iff every value contained by `x` satisfies `p`. -/
 def liftp {α : Type u} (p : α → Prop) (x : F α) : Prop :=
 ∃ u : F (subtype p), subtype.val <$> u = x
@@ -242,10 +242,3 @@ theorem of_mem_supp {α : Type u} {x : F α} {p : α → Prop} (h : liftp p x) :
 λ y hy, hy h
 
 end functor
-
-namespace ulift
-
-instance : functor ulift :=
-{ map := λ α β f, up ∘ f ∘ down }
-
-end ulift

@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import data.equiv.basic
 import control.applicative
 import control.traversable.basic
+import algebra.group.hom
 
 /-!
 # Free constructions
@@ -19,6 +20,7 @@ import control.traversable.basic
   (i.e. nonempty lists), with traversable instance and decidable equality.
 * `free_semigroup_free_magma α`: isomorphism between `magma.free_semigroup (free_magma α)` and
   `free_semigroup α`.
+* `free_magma.lift`: the universal property of the free magma, expressing its adjointness.
 -/
 
 universes u v l
@@ -53,40 +55,48 @@ attribute [pattern] has_mul.mul
 theorem mul_eq (x y : free_magma α) : mul x y = x * y := rfl
 
 /-- Recursor for `free_magma` using `x * y` instead of `free_magma.mul x y`. -/
-@[to_additive "Recursor for `free_add_magma` using `x + y` instead of `free_add_magma.add x y`."]
+@[elab_as_eliminator, to_additive
+  "Recursor for `free_add_magma` using `x + y` instead of `free_add_magma.add x y`."]
 def rec_on' {C : free_magma α → Sort l} (x)
   (ih1 : ∀ x, C (of x)) (ih2 : ∀ x y, C x → C y → C (x * y)) :
   C x :=
 free_magma.rec_on x ih1 ih2
-attribute [elab_as_eliminator] rec_on' free_add_magma.rec_on'
 
 end free_magma
 
 /-- Lifts a function `α → β` to a magma homomorphism `free_magma α → β` given a magma `β`. -/
-def free_magma.lift {α : Type u} {β : Type v} [has_mul β] (f : α → β) : free_magma α → β
+def free_magma.lift_aux {α : Type u} {β : Type v} [has_mul β] (f : α → β) : free_magma α → β
 | (free_magma.of x) := f x
-| (x * y)           := x.lift * y.lift
+| (x * y)           := x.lift_aux * y.lift_aux
 
 /-- Lifts a function `α → β` to an additive magma homomorphism `free_add_magma α → β` given
 an additive magma `β`. -/
-def free_add_magma.lift {α : Type u} {β : Type v} [has_add β] (f : α → β) : free_add_magma α → β
+def free_add_magma.lift_aux {α : Type u} {β : Type v} [has_add β] (f : α → β) : free_add_magma α → β
 | (free_add_magma.of x) := f x
-| (x + y)               := x.lift + y.lift
+| (x + y)               := x.lift_aux + y.lift_aux
 
-attribute [to_additive free_add_magma.lift] free_magma.lift
+attribute [to_additive free_add_magma.lift_aux] free_magma.lift_aux
 
 namespace free_magma
 
 variables {α : Type u} {β : Type v} [has_mul β] (f : α → β)
 
-@[simp, to_additive] lemma lift_of (x) : lift f (of x) = f x := rfl
-@[simp, to_additive] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y := rfl
-
 @[to_additive]
-theorem lift_unique (f : free_magma α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
-  f = lift (f ∘ of) :=
+theorem lift_aux_unique (F : mul_hom (free_magma α) β) : ⇑F = lift_aux (F ∘ of) :=
 funext $ λ x, free_magma.rec_on x (λ x, rfl) $ λ x y ih1 ih2,
-(hf x y).trans $ congr (congr_arg _ ih1) ih2
+(F.map_mul x y).trans $ congr (congr_arg _ ih1) ih2
+
+/-- The universal property of the free magma expressing its adjointness. -/
+@[to_additive "The universal property of the free additive magma expressing its adjointness."]
+def lift : (α → β) ≃ mul_hom (free_magma α) β :=
+{ to_fun    := λ f,
+  { to_fun := lift_aux f,
+    map_mul' := λ x y, rfl, },
+  inv_fun   := λ F, F ∘ of,
+  left_inv  := λ f, by { ext, simp only [lift_aux, mul_hom.coe_mk, function.comp_app], },
+  right_inv := λ F, by { ext, rw [mul_hom.coe_mk, lift_aux_unique], } }
+
+@[simp, to_additive] lemma lift_of (x) : lift f (of x) = f x := rfl
 
 end free_magma
 
@@ -569,12 +579,13 @@ end free_semigroup
 `add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
 def free_semigroup_free_magma (α : Type u) :
   magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
-{ to_fun := magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift_mul _),
-  inv_fun := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
-  left_inv := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
+{ to_fun    :=
+    magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift _).map_mul,
+  inv_fun   := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
+  left_inv  := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
     exact free_magma.rec_on' p
       (λ x, by rw [free_magma.lift_of, free_semigroup.lift_of])
-      (λ x y ihx ihy, by rw [free_magma.lift_mul, free_semigroup.lift_mul, ihx, ihy,
+      (λ x y ihx ihy, by rw [mul_hom.map_mul, free_semigroup.lift_mul, ihx, ihy,
         magma.free_semigroup.of_mul]),
   right_inv := λ x, free_semigroup.rec_on x
     (λ x, by rw [free_semigroup.lift_of, magma.free_semigroup.lift_of, free_magma.lift_of])

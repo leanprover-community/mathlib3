@@ -27,7 +27,7 @@ open int nat set
 section
 variable (N : ℕ) -- N = 1981
 
-structure problem_predicate (m n : ℤ) : Prop :=
+@[mk_iff] structure problem_predicate (m n : ℤ) : Prop :=
 (m_range : m ∈ Ioc 0 (N : ℤ))
 (n_range : n ∈ Ioc 0 (N : ℤ))
 (eq_one : (n ^ 2 - m * n - m ^ 2) ^ 2 = 1)
@@ -43,10 +43,6 @@ except for the base case of `(1, 1)`.
 namespace problem_predicate
 variable {N}
 
-/- This creates a lemma `problem_predicate.iff` that allows `problem_predicate`
-to be unfolded in `norm_num`. -/
-mk_iff_of_inductive_prop problem_predicate problem_predicate.iff
-
 lemma m_le_n {m n : ℤ} (h1 : problem_predicate N m n) : m ≤ n :=
 begin
   by_contradiction h2,
@@ -61,7 +57,7 @@ end
 lemma eq_imp_1 {n : ℤ} (h1 : problem_predicate N n n) : n = 1 :=
 begin
   have : n * (n * (n * n)) = 1,
-  { calc _ = (n ^ 2 - n * n - n ^ 2) ^ 2 : by simp [pow_two, mul_assoc]
+  { calc _ = (n ^ 2 - n * n - n ^ 2) ^ 2 : by simp [sq, mul_assoc]
        ... = 1                           : h1.eq_one },
   exact eq_one_of_mul_eq_one_right h1.m_range.left.le this,
 end
@@ -204,5 +200,5 @@ begin
   have := λ h, @solution_greatest 1981 16 h 3524578,
   simp only [show fib (16:ℕ) = 987 ∧ fib (16+1:ℕ) = 1597,
     by norm_num [fib_succ_succ]] at this,
-  apply_mod_cast this; norm_num [problem_predicate.iff],
+  apply_mod_cast this; norm_num [problem_predicate_iff],
 end

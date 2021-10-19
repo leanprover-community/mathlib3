@@ -3,7 +3,7 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.polynomial.degree.basic
+import data.polynomial.degree.definitions
 
 /-!
 # Cancel the leading terms of two polynomials
@@ -37,7 +37,7 @@ variables {p q}
 
 lemma dvd_cancel_leads_of_dvd_of_dvd {r : polynomial R} (pq : p ∣ q) (pr : p ∣ r) :
   p ∣ q.cancel_leads r :=
-dvd_sub (dvd.trans pr (dvd.intro_left _ rfl)) (dvd.trans pq (dvd.intro_left _ rfl))
+dvd_sub (pr.trans (dvd.intro_left _ rfl)) (pq.trans (dvd.intro_left _ rfl))
 
 end comm_ring
 

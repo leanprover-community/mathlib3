@@ -5,14 +5,16 @@ Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
 import data.nat.prime
+
 /-!
 # Divisibility properties of binomial coefficients
 -/
 
 namespace nat
-namespace prime
 
 open_locale nat
+
+namespace prime
 
 lemma dvd_choose_add {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
   (hp : prime p) : p ∣ choose (a + b) a :=
@@ -30,9 +32,10 @@ begin
   have r : k + (p - k) = p,
     by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
   have e : p ∣ choose (k + (p - k)) k,
-    by exact dvd_choose_add hkp (sub_lt (hk.trans hkp) hk) (by rw r) hp,
+    by exact dvd_choose_add hkp (nat.sub_lt (hk.trans hkp) hk) (by rw r) hp,
   rwa r at e,
 end
 
 end prime
+
 end nat

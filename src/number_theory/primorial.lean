@@ -36,7 +36,7 @@ begin
     { linarith, },
     { exfalso,
       rw ←not_even_iff at n_even r,
-      have e : even (n + 1 - n), exact (even_sub (le_of_lt (lt_add_one n))).2 (iff_of_false n_even r),
+      have e : even (n + 1 - n) := (even_sub (lt_add_one n).le).2 (iff_of_false n_even r),
       simp only [nat.add_sub_cancel_left, not_even_one] at e,
       exact e, }, },
   apply finset.prod_congr,
@@ -115,19 +115,21 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
             = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
         ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
               begin
-                rw [range_eq_Ico, range_eq_Ico, finset.union_comm, finset.Ico.union_consecutive],
+                rw [range_eq_Ico, finset.union_comm, finset.Ico_union_Ico_eq_Ico],
                 exact bot_le,
                 simp only [add_le_add_iff_right],
                 linarith,
               end
-        ... = ∏ i in (filter prime (finset.Ico (m + 2) (2 * m + 2)) ∪ (filter prime (range (m + 2)))), i :
+        ... = ∏ i in (filter prime (finset.Ico (m + 2) (2 * m + 2))
+              ∪ (filter prime (range (m + 2)))), i :
               by rw filter_union
         ... = (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i)
               * (∏ i in filter prime (range (m + 2)), i) :
               begin
                 apply finset.prod_union,
                 have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
-                { simp only [finset.disjoint_left, and_imp, finset.Ico.mem, not_lt, finset.mem_range],
+                { simp only [finset.disjoint_left, and_imp, finset.mem_Ico, not_lt,
+                    finset.mem_range],
                   intros _ pr _, exact pr, },
                 exact finset.disjoint_filter_filter disj,
               end
@@ -135,16 +137,19 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
               by exact nat.mul_le_mul_left _ (primorial_le_4_pow (m + 1))
         ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
               begin
-                have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),
+                have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)),
+                  i ∣ choose (2 * m + 1) (m + 1),
                 { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
                   { intros a, rw finset.mem_filter, cc, },
                   { intros a, rw finset.mem_filter,
                     intros pr,
                     rcases pr with ⟨ size, is_prime ⟩,
-                    simp only [finset.Ico.mem] at size,
+                    simp only [finset.mem_Ico] at size,
                     rcases size with ⟨ a_big , a_small ⟩,
-                    exact dvd_choose_of_middling_prime a is_prime m a_big (nat.lt_succ_iff.mp a_small), }, },
-                have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ choose (2 * m + 1) (m + 1),
+                    exact dvd_choose_of_middling_prime a is_prime m a_big
+                      (nat.lt_succ_iff.mp a_small), }, },
+                have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)),
+                  i ≤ choose (2 * m + 1) (m + 1),
                 { refine @nat.le_of_dvd _ _ _ s,
                   exact @choose_pos (2 * m + 1) (m + 1) (by linarith), },
                 exact nat.mul_le_mul_right _ r,
@@ -162,11 +167,8 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
         calc (n + 1)#
               ≤ 4 ^ n.succ : primorial_le_4_pow (n + 1)
           ... ≤ 4 ^ (n + 2) : pow_le_pow (by norm_num) (nat.le_succ _), },
-      { cases lt_or_le 0 n with _ n_le_zero,
-        { linarith, },
-        { have n_zero : n = 0 := eq_bot_iff.mpr n_le_zero,
-          norm_num [n_zero],
-          exact sup_eq_left.mp rfl, }, },
+      { have n_zero : n = 0 := eq_bot_iff.2 (succ_le_succ_iff.1 n_le_one),
+        norm_num [n_zero, primorial, range_succ, prod_filter, not_prime_zero, prime_two] },
     end
 
 end

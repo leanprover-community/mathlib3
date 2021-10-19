@@ -3,7 +3,7 @@ Copyright (c) 2019 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import data.real.cau_seq
+import algebra.order.absolute_value
 import topology.uniform_space.basic
 
 /-!
@@ -46,7 +46,7 @@ def uniform_space_core : uniform_space.core R :=
       have h : abv (y - x) < ε, by simpa [-sub_eq_add_neg] using h,
       by rwa abv_sub abv at h,
   comp := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h zero_lt_two) (subset.refl _)) $
+    (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem (div_pos h zero_lt_two) (subset.refl _)) $
     have ∀ (a b c : R), abv (c-a) < ε / 2 → abv (b-c) < ε / 2 → abv (b-a) < ε,
       from assume a b c hac hcb,
        calc abv (b - a) ≤ _ : abv_sub_le abv b c a
@@ -66,9 +66,10 @@ begin
   suffices : s ∈ (⨅ ε: {ε : 𝕜 // ε > 0}, 𝓟 {p:R×R | abv (p.2 - p.1) < ε.val}) ↔ _,
   { rw infi_subtype at this,
     exact this },
-  rw mem_infi,
+  rw mem_infi_of_directed,
   { simp [subset_def] },
-  { exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
+  { rintros ⟨r, hr⟩ ⟨p, hp⟩,
+    exact ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
 end
 
 end is_absolute_value

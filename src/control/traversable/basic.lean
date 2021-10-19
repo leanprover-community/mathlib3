@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import control.functor
 
@@ -30,7 +30,8 @@ For more on how to use traversable, consider the Haskell tutorial:
 
 ## Main definitions
   * `traversable` type class - exposes the `traverse` function
-  * `sequence` - based on `traverse`, turns a collection of effects into an effect returning a collection
+  * `sequence` - based on `traverse`,
+    turns a collection of effects into an effect returning a collection
   * `is_lawful_traversable` - laws for a traversable functor
   * `applicative_transformation` - the notion of a natural transformation for applicative functors
 
@@ -60,7 +61,7 @@ section applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
-/-- A transformation between applicative functors.  It a natural
+/-- A transformation between applicative functors.  It is a natural
 transformation such that `app` preserves the `has_pure.pure` and
 `functor.map` (`<*>`) operations. See
 `applicative_transformation.preserves_map` for naturality. -/

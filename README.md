@@ -3,9 +3,11 @@
 ![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)
 [![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://leanprover.zulipchat.com)
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/leanprover-community/mathlib)
 
 [Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
-It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the latter.
+It contains both programming infrastructure and mathematics,
+as well as tactics that use the former and allow to develop the latter.
 
 ## Installation
 
@@ -53,13 +55,19 @@ welcomed.
 * Mario Carneiro (@digama0): all
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra
+* Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
 * Floris van Doorn (@fpvandoorn): all
 * Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus
+* Markus Himmel (@TwoFX): category theory
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Yury G. Kudryashov (@urkud): analysis, topology
 * Robert Y. Lewis (@robertylewis): all
 * Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology
+* Bhavik Mehta (@b-mehta): category theory, combinatorics
 * Scott Morrison (@semorrison): category theory
+* Oliver Nash (@ocfnash): algebra, geometry, topology
+* Adam Topaz (@adamtopaz): algebra, category theory
+* Eric Wieser (@eric-wieser): algebra, infrastructure

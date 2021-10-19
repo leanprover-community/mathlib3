@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Johan Commelin and Robert Y. Lewis. All rights reserved.
+Copyright (c) 2020 Johan Commelin, Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin and Robert Y. Lewis
+Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import data.mv_polynomial.rename
@@ -63,11 +63,13 @@ def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_po
 aeval f
 
 /--
-`bind₂` is the "right hand side" bind operation on `mv_polynomial`, operating on the coefficient type.
-Given a polynomial `p : mv_polynomial σ R` and a map `f : R → mv_polynomial σ S` taking coefficients
-in `p` to polynomials over a new ring `S`, `bind₂ f p` replaces each coefficient in `p` with its
-value under `f`, producing a new polynomial over `S`. The variable type remains the same.
-This operation is a ring hom.
+`bind₂` is the "right hand side" bind operation on `mv_polynomial`,
+operating on the coefficient type.
+Given a polynomial `p : mv_polynomial σ R` and
+a map `f : R → mv_polynomial σ S` taking coefficients in `p` to polynomials over a new ring `S`,
+`bind₂ f p` replaces each coefficient in `p` with its value under `f`,
+producing a new polynomial over `S`.
+The variable type remains the same. This operation is a ring hom.
 -/
 def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
 eval₂_hom f X
@@ -149,7 +151,7 @@ eval₂_hom_C f X r
 
 @[simp]
 lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
-by { ext1; simp }
+by { ext : 2; simp }
 
 @[simp]
 lemma bind₂_comp_C (f : R →+* mv_polynomial σ S) :
@@ -192,9 +194,10 @@ by { ext1, apply bind₁_bind₁ }
 
 lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) :
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
-by { ext1; simp }
+by { ext : 2; simp }
 
-lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) (φ : mv_polynomial σ R) :
+lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T)
+  (φ : mv_polynomial σ R) :
   (bind₂ g) (bind₂ f φ) = bind₂ ((bind₂ g).comp f) φ :=
 ring_hom.congr_fun (bind₂_comp_bind₂ f g) φ
 
@@ -244,7 +247,8 @@ lemma eval₂_hom_comp_C (f : R →+* S) (g : σ → S) :
   (eval₂_hom f g).comp C = f :=
 by { ext1 r, exact eval₂_C f g r }
 
-lemma eval₂_hom_bind₁ (f : R →+* S) (g : τ → S) (h : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+lemma eval₂_hom_bind₁ (f : R →+* S) (g : τ → S) (h : σ → mv_polynomial τ R)
+  (φ : mv_polynomial σ R) :
   eval₂_hom f g (bind₁ h φ) = eval₂_hom f (λ i, eval₂_hom f g (h i)) φ :=
 by rw [hom_bind₁, eval₂_hom_comp_C]
 
@@ -258,14 +262,15 @@ by { ext1, apply aeval_bind₁ }
 
 lemma eval₂_hom_comp_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) :
   (eval₂_hom f g).comp (bind₂ h) = eval₂_hom ((eval₂_hom f g).comp h) g :=
-by { ext1; simp }
+by { ext : 2; simp }
 
-lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
+lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S)
+  (φ : mv_polynomial σ R) :
   eval₂_hom f g (bind₂ h φ) = eval₂_hom ((eval₂_hom f g).comp h) g φ :=
 ring_hom.congr_fun (eval₂_hom_comp_bind₂ f g h) φ
 
 lemma aeval_bind₂ [algebra S T] (f : σ → T) (g : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
-  aeval f (bind₂ g φ) = eval₂_hom ((@aeval S T σ _ f _ _ : mv_polynomial σ S →+* T).comp g) f φ :=
+  aeval f (bind₂ g φ) = eval₂_hom ((↑(aeval f : _ →ₐ[S] _) : _ →+* _).comp g) f φ :=
 eval₂_hom_bind₂ _ _ _ _
 
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl

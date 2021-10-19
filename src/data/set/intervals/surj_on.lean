@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Heather Macbeth
+Authors: Heather Macbeth
 -/
 import data.set.intervals.basic
 import data.set.function
@@ -9,14 +9,14 @@ import data.set.function
 /-!
 # Monotone surjective functions are surjective on intervals
 
-A monotone surjective function sends any interval in the range onto the interval with corresponding
+A monotone surjective function sends any interval in the domain onto the interval with corresponding
 endpoints in the range.  This is expressed in this file using `set.surj_on`, and provided for all
 permutations of interval endpoints.
 -/
 
 variables {α : Type*} {β : Type*} [linear_order α] [partial_order β] {f : α → β}
 
-open set function
+open set function order_dual (to_dual)
 
 lemma surj_on_Ioo_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
@@ -25,8 +25,7 @@ begin
   classical,
   intros p hp,
   rcases h_surj p with ⟨x, rfl⟩,
-  refine ⟨x, _, rfl⟩,
-  simp only [mem_Ioo],
+  refine ⟨x, mem_Ioo.2 _, rfl⟩,
   by_contra h,
   cases not_and_distrib.mp h with ha hb,
   { exact has_lt.lt.false (lt_of_lt_of_le hp.1 (h_mono (not_lt.mp ha))) },
@@ -37,25 +36,22 @@ lemma surj_on_Ico_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
   surj_on f (Ico a b) (Ico (f a) (f b)) :=
 begin
-  rcases lt_or_ge a b with hab|hab,
+  obtain hab | hab := lt_or_le a b,
   { intros p hp,
     rcases mem_Ioo_or_eq_left_of_mem_Ico hp with hp'|hp',
     { rw hp',
-      refine ⟨a, left_mem_Ico.mpr hab, rfl⟩ },
+      exact ⟨a, left_mem_Ico.mpr hab, rfl⟩ },
     { have := surj_on_Ioo_of_monotone_surjective h_mono h_surj a b hp',
       cases this with x hx,
       exact ⟨x, Ioo_subset_Ico_self hx.1, hx.2⟩ } },
-  { rw Ico_eq_empty (h_mono hab),
-    exact surj_on_empty f _ },
+  { rw Ico_eq_empty (h_mono hab).not_lt,
+    exact surj_on_empty f _ }
 end
 
 lemma surj_on_Ioc_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
   surj_on f (Ioc a b) (Ioc (f a) (f b)) :=
-begin
-  convert @surj_on_Ico_of_monotone_surjective _ _ _ _ _ h_mono.order_dual h_surj b a;
-  simp
-end
+by simpa using surj_on_Ico_of_monotone_surjective h_mono.dual h_surj (to_dual b) (to_dual a)
 
 -- to see that the hypothesis `a ≤ b` is necessary, consider a constant function
 lemma surj_on_Icc_of_monotone_surjective
@@ -93,7 +89,7 @@ end
 lemma surj_on_Iio_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
   surj_on f (Iio a) (Iio (f a)) :=
-@surj_on_Ioi_of_monotone_surjective _ _ _ _ _ (monotone.order_dual h_mono) h_surj a
+@surj_on_Ioi_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a
 
 lemma surj_on_Ici_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
@@ -111,4 +107,4 @@ end
 lemma surj_on_Iic_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
   surj_on f (Iic a) (Iic (f a)) :=
-@surj_on_Ici_of_monotone_surjective _ _ _ _ _ (monotone.order_dual h_mono) h_surj a
+@surj_on_Ici_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a

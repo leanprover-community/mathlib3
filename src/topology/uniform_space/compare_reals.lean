@@ -62,13 +62,13 @@ begin
   { use [ε, by exact_mod_cast ε_pos],
     intros a b hab,
     apply h,
-    rw [rat.dist_eq, abs_sub] at hab,
+    rw [rat.dist_eq, abs_sub_comm] at hab,
     exact_mod_cast hab },
   { obtain ⟨ε', h', h''⟩ : ∃ ε' : ℚ, 0 < ε' ∧ (ε' : ℝ) < ε, from exists_pos_rat_lt ε_pos,
     use [ε', h'],
     intros a b hab,
     apply h,
-    rw [rat.dist_eq, abs_sub],
+    rw [rat.dist_eq, abs_sub_comm],
     refine lt_trans _ h'',
     exact_mod_cast hab }
 end
@@ -82,8 +82,8 @@ def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_
   complete :=  by apply_instance,
   separation :=  by apply_instance,
   uniform_inducing := by { rw rat.uniform_space_eq,
-                           exact uniform_embedding_of_rat.to_uniform_inducing },
-  dense := dense_embedding_of_rat.dense }
+                           exact rat.uniform_embedding_coe_real.to_uniform_inducing },
+  dense := rat.dense_embedding_coe_real.dense }
 
 namespace compare_reals
 /-- Type wrapper around ℚ to make sure the absolute value uniform space instance is picked up

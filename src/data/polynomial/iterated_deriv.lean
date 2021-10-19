@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
+import data.nat.interval
 import data.polynomial.derivative
-import logic.function.iterate
-import data.finset.intervals
-import tactic.ring
 import tactic.linarith
 
 /-!
@@ -43,7 +41,8 @@ begin
   { rw [iterated_deriv_succ, hn, derivative_zero] },
 end
 
-@[simp] lemma iterated_deriv_add : iterated_deriv (p + q) n = iterated_deriv p n + iterated_deriv q n :=
+@[simp] lemma iterated_deriv_add :
+  iterated_deriv (p + q) n = iterated_deriv p n + iterated_deriv q n :=
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right], },
@@ -66,7 +65,7 @@ by simp only [iterated_deriv, derivative_X, function.iterate_one]
 @[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : polynomial R) n = 0 :=
 begin
   induction n with n ih,
-  { exfalso, exact not_lt_zero 1 h},
+  { exfalso, exact nat.not_lt_zero 1 h },
   { simp only [iterated_deriv_succ],
     by_cases H : n = 1,
     { rw H, simp only [iterated_deriv_X_one, derivative_one] },
@@ -76,14 +75,14 @@ end
 
 
 @[simp] lemma iterated_deriv_C_zero : iterated_deriv (C r) 0 = C r :=
-  by simp only [iterated_deriv_zero_right]
+by simp only [iterated_deriv_zero_right]
 
 @[simp] lemma iterated_deriv_C (h : 0 < n) : iterated_deriv (C r) n = 0 :=
 begin
   induction n with n ih,
   { exfalso, exact nat.lt_asymm h h },
   { by_cases H : n = 0,
-    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C]},
+    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C] },
     { replace h : 0 < n := nat.pos_of_ne_zero H,
       rw [iterated_deriv_succ, ih h], simp only [derivative_zero] } }
 end
@@ -109,7 +108,8 @@ begin
   { simp only [iterated_deriv_succ, ih, derivative_neg] }
 end
 
-@[simp] lemma iterated_deriv_sub : iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
+@[simp] lemma iterated_deriv_sub :
+  iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
 by rw [sub_eq_add_neg, iterated_deriv_add, iterated_deriv_neg, ←sub_eq_add_neg]
 
 
@@ -123,12 +123,12 @@ lemma coeff_iterated_deriv_as_prod_Ico :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) * (f.coeff (m+k)) :=
 begin
   induction k with k ih,
-  { simp only [add_zero, forall_const, one_mul, Ico.self_eq_empty, eq_self_iff_true,
+  { simp only [add_zero, forall_const, one_mul, Ico_self, eq_self_iff_true,
       iterated_deriv_zero_right, prod_empty] },
   { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_right_comm],
     apply congr_arg2,
     { have set_eq : (Ico m.succ (m + k.succ.succ)) = (Ico (m + 1).succ (m + 1 + k.succ)) ∪ {m+1},
-      { rw [union_comm, ←insert_eq, Ico.insert_succ_bot, add_succ, add_succ, add_succ _ k,
+      { rw [union_comm, ←insert_eq, Ico_insert_succ_left, add_succ, add_succ, add_succ _ k,
             ←succ_eq_add_one, succ_add],
         rw succ_eq_add_one,
         linarith },
@@ -136,25 +136,24 @@ begin
       apply congr_arg2,
       { refl },
       { simp only [prod_singleton], norm_cast },
-      { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, Ico.mem],
-        exact lt_add_one (m + 1) } },
+      { rw [disjoint_singleton_right, mem_Ico],
+        exact λ h, (nat.lt_succ_self _).not_le h.1 } },
     { exact congr_arg _ (succ_add m k) } },
 end
 
 lemma coeff_iterated_deriv_as_prod_range :
-  ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in finset.range k, ↑(m + k - i)) :=
+  ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in range k, ↑(m + k - i)) :=
 begin
   induction k with k ih,
   { simp },
-
   intro m,
   calc (f.iterated_deriv k.succ).coeff m
-      = f.coeff (m + k.succ) * (∏ i in finset.range k, ↑(m + k.succ - i)) * (m + 1) :
+      = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * (m + 1) :
     by rw [iterated_deriv_succ, coeff_derivative, ih m.succ, succ_add, add_succ]
-  ... = f.coeff (m + k.succ) * (↑(m + 1) * (∏ (i : ℕ) in range k, ↑(m + k.succ - i))) :
-    by { push_cast, ring }
-  ... = f.coeff (m + k.succ) * (∏ (i : ℕ) in range k.succ, ↑(m + k.succ - i)) :
-    by { rw [prod_range_succ, nat.add_sub_assoc (le_succ k), nat.succ_sub le_rfl, nat.sub_self] }
+  ... = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * ↑(m + 1) :
+    by push_cast
+  ... = f.coeff (m + k.succ) * (∏ i in range k.succ, ↑(m + k.succ - i)) :
+    by rw [prod_range_succ, nat.add_sub_assoc k.le_succ, succ_sub le_rfl, nat.sub_self, mul_assoc]
 end
 
 lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=
@@ -194,7 +193,7 @@ begin
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by ring
   ... = ∑ (i : ℕ) in range n.succ,
-          C ↑(n.succ.choose (i + 1)) * p.iterated_deriv (n + 1 - (i + 1)) * q.iterated_deriv (i + 1) +
+          C ↑((n+1).choose (i+1)) * p.iterated_deriv (n + 1 - (i+1)) * q.iterated_deriv (i+1) +
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by simp_rw [choose_succ_succ, succ_sub_succ, cast_add, C.map_add, add_mul, sum_add_distrib]
   ... = ∑ (k : ℕ) in range n.succ.succ,
@@ -203,7 +202,7 @@ begin
 
   congr,
   refine (sum_range_succ' _ _).trans (congr_arg2 (+) _ _),
-  { rw [sum_range_succ, nat.choose_succ_self, cast_zero, C.map_zero, zero_mul, zero_mul, zero_add],
+  { rw [sum_range_succ, nat.choose_succ_self, cast_zero, C.map_zero, zero_mul, zero_mul, add_zero],
     refine sum_congr rfl (λ k hk, _),
     rw mem_range at hk,
     congr,

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.finset.basic
 import data.multiset.fold
@@ -28,6 +28,9 @@ def fold (b : β) (f : α → β) (s : finset α) : β := (s.1.map f).fold op b
 variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 
 @[simp] theorem fold_empty : (∅ : finset α).fold op b f = b := rfl
+
+@[simp] theorem fold_cons (h : a ∉ s) : (cons a s h).fold op b f = f a * s.fold op b f :=
+by { dunfold fold, rw [cons_val, map_cons, fold_cons_left], }
 
 @[simp] theorem fold_insert [decidable_eq α] (h : a ∉ s) :
   (insert a s).fold op b f = f a * s.fold op b f :=
@@ -66,6 +69,16 @@ begin
   by_cases (a ∈ s),
   { rw [← insert_erase h], simp [← ha.assoc, hi.idempotent] },
   { apply fold_insert h },
+end
+
+theorem fold_image_idem [decidable_eq α] {g : γ → α} {s : finset γ}
+  [hi : is_idempotent β op] :
+  (image g s).fold op b f = s.fold op b (f ∘ g) :=
+begin
+  induction s using finset.cons_induction with x xs hx ih,
+  { rw [fold_empty, image_empty, fold_empty] },
+  { haveI := classical.dec_eq γ,
+    rw [fold_cons, cons_eq_insert, image_insert, fold_insert_idem, ih], }
 end
 
 lemma fold_op_rel_iff_and
@@ -115,7 +128,6 @@ begin
   { intros a s has ih, rw [fold_insert has, ih, insert_eq], }
 end
 
-@[simp]
 lemma fold_sup_bot_singleton [decidable_eq α] (s : finset α) :
   finset.fold (⊔) ⊥ singleton s = s :=
 fold_union_empty_singleton s

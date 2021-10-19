@@ -2,6 +2,10 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+import data.set.lattice
+
+/-! # Semiquotients
 
 A data type for semiquotients, which are classically equivalent to
 nonempty sets, but are useful for programming; the idea is that
@@ -10,7 +14,6 @@ element of `S`. This can be used to model nondeterministic functions,
 which return something in a range of values (represented by the
 predicate `S`) but are not completely determined.
 -/
-import data.set.lattice
 
 /-- A member of `semiquot α` is classically a nonempty `set α`,
   and in the VM is represented by an element of `α`; the relation
@@ -86,12 +89,14 @@ theorem lift_on_of_mem (q : semiquot α)
   (a : α) (aq : a ∈ q) : lift_on q f h = f a :=
 by revert h; rw eq_mk_of_mem aq; intro; refl
 
+/-- Apply a function to the unknown value stored in a `semiquot α`. -/
 def map (f : α → β) (q : semiquot α) : semiquot β :=
 ⟨f '' q.1, q.2.map (λ x, ⟨f x.1, set.mem_image_of_mem _ x.2⟩)⟩
 
 @[simp] theorem mem_map (f : α → β) (q : semiquot α) (b : β) :
   b ∈ map f q ↔ ∃ a, a ∈ q ∧ f a = b := set.mem_image _ _ _
 
+/-- Apply a function returning a `semiquot` to a `semiquot`. -/
 def bind (q : semiquot α) (f : α → semiquot β) : semiquot β :=
 ⟨⋃ a ∈ q.1, (f a).1,
  q.2.bind (λ a, (f a.1).2.map (λ b, ⟨b.1, set.mem_bUnion a.2 b.2⟩))⟩
@@ -142,8 +147,10 @@ instance : semilattice_sup (semiquot α) :=
 @[simp] theorem pure_le {a : α} {s : semiquot α} : pure a ≤ s ↔ a ∈ s :=
 set.singleton_subset_iff
 
-def is_pure (q : semiquot α) := ∀ a b ∈ q, a = b
+/-- Assert that a `semiquot` contains only one possible value. -/
+def is_pure (q : semiquot α) : Prop := ∀ a b ∈ q, a = b
 
+/-- Extract the value from a `is_pure` semiquotient. -/
 def get (q : semiquot α) (h : q.is_pure) : α := lift_on q id h
 
 theorem get_mem {q : semiquot α} (p) : get q p ∈ q :=

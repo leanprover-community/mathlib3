@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.powerset
 import data.multiset.range
@@ -32,7 +32,7 @@ quot.induction_on s $ λ l, nodup_cons
 theorem nodup_cons_of_nodup {a : α} {s : multiset α} (m : a ∉ s) (n : nodup s) : nodup (a ::ₘ s) :=
 nodup_cons.2 ⟨m, n⟩
 
-theorem nodup_singleton : ∀ a : α, nodup (a ::ₘ 0) := nodup_singleton
+theorem nodup_singleton : ∀ a : α, nodup ({a} : multiset α) := nodup_singleton
 
 theorem nodup_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a ::ₘ s)) : nodup s :=
 (nodup_cons.1 h).2
@@ -79,7 +79,8 @@ quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append
 theorem disjoint_of_nodup_add {s t : multiset α} (d : nodup (s + t)) : disjoint s t :=
 (nodup_add.1 d).2.2
 
-theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) : nodup (s + t) ↔ disjoint s t :=
+theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) :
+  nodup (s + t) ↔ disjoint s t :=
 by simp [nodup_add, d₁, d₂]
 
 theorem nodup_of_nodup_map (f : α → β) {s : multiset α} : nodup (map f s) → nodup s :=
@@ -89,8 +90,17 @@ theorem nodup_map_on {f : α → β} {s : multiset α} : (∀x∈s, ∀y∈s, f 
   nodup s → nodup (map f s) :=
 quot.induction_on s $ λ l, nodup_map_on
 
-theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) : nodup s → nodup (map f s) :=
+theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) :
+  nodup s → nodup (map f s) :=
 nodup_map_on (λ x _ y _ h, hf h)
+
+theorem inj_on_of_nodup_map {f : α → β} {s : multiset α} :
+  nodup (map f s) → ∀ (x ∈ s) (y ∈ s), f x = f y → x = y :=
+quot.induction_on s $ λ l, inj_on_of_nodup_map
+
+theorem nodup_map_iff_inj_on {f : α → β} {s : multiset α} (d : nodup s) :
+  nodup (map f s) ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
+⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
 
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
 quot.induction_on s $ λ l, nodup_filter p
@@ -143,7 +153,8 @@ nodup_of_le $ inter_le_left _ _
 theorem nodup_inter_right [decidable_eq α] (s) {t : multiset α} : nodup t → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_right _ _
 
-@[simp] theorem nodup_union [decidable_eq α] {s t : multiset α} : nodup (s ∪ t) ↔ nodup s ∧ nodup t :=
+@[simp] theorem nodup_union [decidable_eq α] {s t : multiset α} :
+  nodup (s ∪ t) ↔ nodup s ∧ nodup t :=
 ⟨λ h, ⟨nodup_of_le (le_union_left _ _) h, nodup_of_le (le_union_right _ _) h⟩,
  λ ⟨h₁, h₂⟩, nodup_iff_count_le_one.2 $ λ a, by rw [count_union]; exact
    max_le (nodup_iff_count_le_one.1 h₁ a) (nodup_iff_count_le_one.1 h₂ a)⟩
@@ -180,10 +191,10 @@ theorem range_le {m n : ℕ} : range m ≤ range n ↔ m ≤ n :=
 
 theorem mem_sub_of_nodup [decidable_eq α] {a : α} {s t : multiset α} (d : nodup s) :
   a ∈ s - t ↔ a ∈ s ∧ a ∉ t :=
-⟨λ h, ⟨mem_of_le (sub_le_self _ _) h, λ h',
+⟨λ h, ⟨mem_of_le sub_le_self' h, λ h',
   by refine count_eq_zero.1 _ h; rw [count_sub a s t, nat.sub_eq_zero_iff_le];
      exact le_trans (nodup_iff_count_le_one.1 d _) (count_pos.2 h')⟩,
- λ ⟨h₁, h₂⟩, or.resolve_right (mem_add.1 $ mem_of_le (le_sub_add _ _) h₁) h₂⟩
+ λ ⟨h₁, h₂⟩, or.resolve_right (mem_add.1 $ mem_of_le le_sub_add h₁) h₂⟩
 
 lemma map_eq_map_of_bij_of_nodup (f : α → γ) (g : β → γ) {s : multiset α} {t : multiset β}
   (hs : s.nodup) (ht : t.nodup) (i : Πa∈s, β)

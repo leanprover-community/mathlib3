@@ -16,7 +16,8 @@ It identifies atoms up to ring-equivalence: that is, `(y*3)*x` will be identifie
 where the monomial `x*y` is the linear atom.
 
 * Variables are represented by natural numbers.
-* Monomials are represented by `monom := rb_map ℕ ℕ`. The monomial `1` is represented by the empty map.
+* Monomials are represented by `monom := rb_map ℕ ℕ`.
+  The monomial `1` is represented by the empty map.
 * Linear combinations of monomials are represented by `sum := rb_map monom ℤ`.
 
 All input expressions are converted to `sum`s, preserving the map from expressions to variables.

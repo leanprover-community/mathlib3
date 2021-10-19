@@ -42,8 +42,10 @@ Partition
 
 variables {α : Type*}
 
-open multiset nat
+open multiset
 open_locale big_operators
+
+namespace nat
 
 /-- A partition of `n` is a multiset of positive integers summing to `n`. -/
 @[ext, derive decidable_eq] structure partition (n : ℕ) :=
@@ -78,7 +80,7 @@ def of_sums (n : ℕ) (l : multiset ℕ) (hl : l.sum = n) : partition n :=
   parts_pos := λ i hi, nat.pos_of_ne_zero $ by apply of_mem_filter hi,
   parts_sum :=
   begin
-    have lt : l.filter (= 0) + l.filter (≠ 0) = l := filter_add_not l,
+    have lt : l.filter (= 0) + l.filter (≠ 0) = l := filter_add_not _ l,
     apply_fun multiset.sum at lt,
     have lz : (l.filter (= 0)).sum = 0,
     { rw multiset.sum_eq_zero_iff,
@@ -129,3 +131,4 @@ finset.univ.filter (λ c, c.parts.nodup)
 def odd_distincts (n : ℕ) : finset (partition n) := odds n ∩ distincts n
 
 end partition
+end nat

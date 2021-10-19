@@ -5,8 +5,7 @@ Authors: Markus Himmel
 -/
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.regular_mono
+import category_theory.limits.shapes.normal_mono
 import category_theory.preadditive
 
 /-!
@@ -110,7 +109,7 @@ local attribute [instance] strong_epi_of_epi
 
 /-- In a `non_preadditive_abelian` category, a monomorphism which is also an epimorphism is an
     isomorphism. -/
-def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
+lemma is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
 end mono_epi_iso
@@ -132,7 +131,7 @@ let ⟨b', hb'⟩ := kernel_fork.is_limit.lift' i' (kernel.ι (prod.lift f g)) $
     ... = (0 : kernel (prod.lift f g) ⟶ P ⨯ Q) ≫ limits.prod.snd : by rw kernel.condition_assoc
     ... = 0 : zero_comp in
 has_limit.mk { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', hb'] },
-  is_limit := pullback_cone.is_limit.mk _ _ _
+  is_limit := pullback_cone.is_limit.mk _
     (λ s, kernel.lift (prod.lift f g) (pullback_cone.snd s ≫ b) $ prod.hom_ext
       (calc ((pullback_cone.snd s ≫ b) ≫ prod.lift f g) ≫ limits.prod.fst
             = pullback_cone.snd s ≫ b ≫ f : by simp only [prod.lift_fst, category.assoc]
@@ -174,7 +173,7 @@ let ⟨b', hb'⟩ := cokernel_cofork.is_colimit.desc' i' (cokernel.π (coprod.de
   ... = 0 : has_zero_morphisms.comp_zero _ _ in
 has_colimit.mk
 { cocone := pushout_cocone.mk a' b' $ by { simp only [cofork.π_of_π] at ha' hb', rw [ha', hb'] },
-  is_colimit := pushout_cocone.is_colimit.mk _ _ _
+  is_colimit := pushout_cocone.is_colimit.mk _
   (λ s, cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) $ coprod.hom_ext
     (calc coprod.inl ≫ coprod.desc f g ≫ b ≫ pushout_cocone.inr s
           = f ≫ b ≫ pushout_cocone.inr s : by rw coprod.inl_desc_assoc
@@ -188,11 +187,13 @@ has_colimit.mk
   (λ s, (cancel_epi a).1 $
     by { rw cokernel_cofork.π_of_π at ha', simp [reassoc_of ha', pushout_cocone.condition s] })
   (λ s, (cancel_epi b).1 $ by { rw cokernel_cofork.π_of_π at hb', simp [reassoc_of hb'] })
-  (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $ calc cokernel.π (coprod.desc f g) ≫ m
+  (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $
+  calc cokernel.π (coprod.desc f g) ≫ m
         = (a ≫ a') ≫ m : by { congr, exact ha'.symm }
     ... = a ≫ pushout_cocone.inl s : by rw [category.assoc, h₁]
     ... = b ≫ pushout_cocone.inr s : pushout_cocone.condition s
-    ... = cokernel.π (coprod.desc f g) ≫ cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) _ :
+    ... = cokernel.π (coprod.desc f g) ≫
+            cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) _ :
       by rw cokernel.π_desc) }
 
 section
@@ -207,8 +208,6 @@ pullback (prod.lift (𝟙 X) f) (prod.lift (𝟙 X) g)
 /-- The equalizer of `f` and `g` exists. -/
 @[irreducible]
 lemma has_limit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_limit (parallel_pair f g) :=
-have h1f : mono (prod.lift (𝟙 X) f), from mono_of_mono_fac $ prod.lift_fst (𝟙 X) f,
-have h1g : mono (prod.lift (𝟙 X) g), from mono_of_mono_fac $ prod.lift_fst (𝟙 X) g,
 have huv : (pullback.fst : P f g ⟶ X) = pullback.snd, from
   calc (pullback.fst : P f g ⟶ X) = pullback.fst ≫ 𝟙 _ : eq.symm $ category.comp_id _
     ... = pullback.fst ≫ prod.lift (𝟙 X) f ≫ limits.prod.fst : by rw prod.lift_fst
@@ -243,8 +242,6 @@ pushout (coprod.desc (𝟙 Y) f) (coprod.desc (𝟙 Y) g)
 /-- The coequalizer of `f` and `g` exists. -/
 @[irreducible]
 lemma has_colimit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_colimit (parallel_pair f g) :=
-have h1f : epi (coprod.desc (𝟙 Y) f), from epi_of_epi_fac $ coprod.inl_desc _ _,
-have h1g : epi (coprod.desc (𝟙 Y) g), from epi_of_epi_fac $ coprod.inl_desc _ _,
 have huv : (pushout.inl : Y ⟶ Q f g) = pushout.inr, from
   calc (pushout.inl : Y ⟶ Q f g) = 𝟙 _ ≫ pushout.inl : eq.symm $ category.id_comp _
     ... = (coprod.inl ≫ coprod.desc (𝟙 Y) f) ≫ pushout.inl : by rw coprod.inl_desc
@@ -301,8 +298,8 @@ lemma mono_of_zero_kernel {X Y : C} (f : X ⟶ Y) (Z : C)
   { rw [←hm, reassoc_of hw, zero_comp] },
   obtain ⟨n, hn⟩ := kernel_fork.is_limit.lift' l _ hwf,
   rw [fork.ι_of_ι, has_zero_morphisms.comp_zero] at hn,
-  haveI : is_iso (coequalizer.π u v) :=
-    by apply is_iso_colimit_cocone_parallel_pair_of_eq hn.symm hl,
+  haveI : is_iso (coequalizer.π u v),
+  { apply is_iso_colimit_cocone_parallel_pair_of_eq hn.symm hl },
   apply (cancel_mono (coequalizer.π u v)).1,
   exact coequalizer.condition _ _
  end⟩
@@ -318,13 +315,13 @@ lemma epi_of_zero_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
   { rw [←hm, category.assoc, hw, comp_zero] },
   obtain ⟨n, hn⟩ := cokernel_cofork.is_colimit.desc' l _ hwf,
   rw [cofork.π_of_π, zero_comp] at hn,
-  haveI : is_iso (equalizer.ι u v) :=
-    by apply is_iso_limit_cone_parallel_pair_of_eq hn.symm hl,
+  haveI : is_iso (equalizer.ι u v),
+  { apply is_iso_limit_cone_parallel_pair_of_eq hn.symm hl },
   apply (cancel_epi (equalizer.ι u v)).1,
   exact equalizer.condition _ _
  end⟩
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- If `g ≫ f = 0` implies `g = 0` for all `g`, then `0 : 0 ⟶ X` is a kernel of `f`. -/
 def zero_kernel_of_cancel_zero {X Y : C} (f : X ⟶ Y)
@@ -559,7 +556,7 @@ is_iso_of_mono_of_epi _
     followed by the inverse of `r`. In the category of modules, using the normal kernels and
     cokernels, this map is equal to the map `(a, b) ↦ a - b`, hence the name `σ` for
     "subtraction". -/
-abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ is_iso.inv (r A)
+abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ inv (r A)
 
 end
 

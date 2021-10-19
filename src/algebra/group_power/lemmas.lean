@@ -557,6 +557,9 @@ lemma odd.pow_pos (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
 lemma odd.pow_neg (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
 ⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), λ ha, pow_odd_neg ha hn⟩
 
+lemma even.pow_pos (hn : even n) (h₀ : 0 < n) : 0 < a ^ n ↔ a ≠ 0 :=
+⟨λ h ha, by { rw [ha, zero_pow h₀] at h, exact lt_irrefl 0 h }, λ ha, pow_even_pos ha hn⟩
+
 lemma pow_even_abs (a : R) {p : ℕ} (hp : even p) :
   |a| ^ p = a ^ p :=
 begin

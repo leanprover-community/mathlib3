@@ -62,6 +62,7 @@ attribute [pattern] has_bot.bot has_top.top
 /-- An `order_top` is a partial order with a greatest element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/
+@[ancestor has_top]
 class order_top (α : Type u) [has_le α] extends has_top α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 
@@ -132,6 +133,7 @@ end
 /-- An `order_bot` is a partial order with a least element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/
+@[ancestor has_bot]
 class order_bot (α : Type u) [has_le α] extends has_bot α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
@@ -264,6 +266,7 @@ end semilattice_inf_bot
 /-- A bounded lattice is a lattice with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
+@[ancestor order_top order_bot]
 class bounded_lattice (α : Type u) [has_le α] extends order_top α, order_bot α.
 
 -- @[priority 100] -- see Note [lower instance priority]

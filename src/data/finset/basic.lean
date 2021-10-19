@@ -954,13 +954,10 @@ instance : lattice (finset α) :=
 @[simp] theorem sup_eq_union : ((⊔) : finset α → finset α → finset α) = (∪) := rfl
 @[simp] theorem inf_eq_inter : ((⊓) : finset α → finset α → finset α) = (∩) := rfl
 
-instance : semilattice_inf_bot (finset α) :=
-{ bot := ∅, bot_le := empty_subset, ..finset.lattice }
+instance : order_bot (finset α) :=
+{ bot := ∅, bot_le := empty_subset }
 
 @[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl
-
-instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
-{ ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
@@ -1095,7 +1092,7 @@ instance : generalized_boolean_algebra (finset α) :=
       false_iff, inf_eq_inter, not_mem_empty], tauto },
   ..finset.has_sdiff,
   ..finset.distrib_lattice,
-  ..finset.semilattice_inf_bot }
+  ..finset.order_bot }
 
 lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]

@@ -83,7 +83,7 @@ end fold
 
 section order
 
-lemma max_le_of_forall_le {α : Type*} [canonically_linear_ordered_add_monoid α]
+lemma max_le_of_forall_le {α : Type*} [canonically_linear_ordered_add_monoid α] [order_bot α]
   (l : multiset α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
   l.fold max ⊥ ≤ n :=
 begin

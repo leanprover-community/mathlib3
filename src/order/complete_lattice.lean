@@ -162,7 +162,13 @@ end
   has suprema and infima for every subset. -/
 @[protect_proj]
 class complete_lattice (α : Type*) extends
-  bounded_lattice α, complete_semilattice_Sup α, complete_semilattice_Inf α.
+  lattice α, complete_semilattice_Sup α, complete_semilattice_Inf α.
+
+instance complete_lattice.to_bounded_lattice [complete_lattice α] : bounded_lattice α :=
+{ bot := Inf univ,
+  bot_le := λ _, Inf_le (mem_univ _),
+  top := Sup univ,
+  le_top := λ _, le_Sup (mem_univ _) }
 
 /-- Create a `complete_lattice` from a `partial_order` and `Inf` function
 that returns the greatest lower bound of a set. Usually this constructor provides
@@ -182,11 +188,7 @@ instance : complete_lattice my_T :=
 def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   [H2 : has_Inf α] (is_glb_Inf : ∀ s : set α, is_glb s (Inf s)) :
   complete_lattice α :=
-{ bot := Inf univ,
-  bot_le := λ x, (is_glb_Inf univ).1 trivial,
-  top := Inf ∅,
-  le_top := λ a, (is_glb_Inf ∅).2 $ by simp,
-  sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
+{ sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
   inf := λ a b, Inf {a, b},
   le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simp [*] },
   inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
@@ -229,11 +231,7 @@ instance : complete_lattice my_T :=
 def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   [H2 : has_Sup α] (is_lub_Sup : ∀ s : set α, is_lub s (Sup s)) :
   complete_lattice α :=
-{ top := Sup univ,
-  le_top := λ x, (is_lub_Sup univ).1 trivial,
-  bot := Sup ∅,
-  bot_le := λ x, (is_lub_Sup ∅).2 $ by simp,
-  sup := λ a b, Sup {a, b},
+{ sup := λ a b, Sup {a, b},
   sup_le := λ a b c hac hbc, (is_lub_Sup _).2 (by simp [*]),
   le_sup_left := λ a b, (is_lub_Sup _).1 $ mem_insert _ _,
   le_sup_right := λ a b, (is_lub_Sup _).1 $ mem_insert_of_mem _ $ mem_singleton _,
@@ -269,7 +267,7 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   Sup_le := @complete_lattice.le_Inf α _,
   Inf_le := @complete_lattice.le_Sup α _,
   le_Inf := @complete_lattice.Sup_le α _,
-  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
+  .. order_dual.lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
 { .. order_dual.complete_lattice α, .. order_dual.linear_order α }
@@ -298,16 +296,16 @@ theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 @Sup_inter_le (order_dual α) _ _ _
 
 @[simp] theorem Sup_empty : Sup ∅ = (⊥ : α) :=
-(@is_lub_empty α _).Sup_eq
+(@is_lub_empty α _ _).Sup_eq
 
 @[simp] theorem Inf_empty : Inf ∅ = (⊤ : α) :=
-(@is_glb_empty α _).Inf_eq
+(@is_glb_empty α _ _).Inf_eq
 
 @[simp] theorem Sup_univ : Sup univ = (⊤ : α) :=
-(@is_lub_univ α _).Sup_eq
+(@is_lub_univ α _ _).Sup_eq
 
 @[simp] theorem Inf_univ : Inf univ = (⊥ : α) :=
-(@is_glb_univ α _).Inf_eq
+(@is_glb_univ α _ _).Inf_eq
 
 -- TODO(Jeremy): get this automatically
 @[simp] theorem Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=
@@ -1117,7 +1115,7 @@ instance Prop.complete_lattice : complete_lattice Prop :=
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
   le_Inf := assume s a h p b hb, h b hb p,
-  .. Prop.bounded_distrib_lattice }
+  .. Prop.distrib_lattice }
 
 @[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 
@@ -1143,7 +1141,7 @@ instance pi.complete_lattice {α : Type*} {β : α → Type*} [∀ i, complete_l
   Inf_le := λ s f hf i, infi_le (λ f : s, (f : Π i, β i) i) ⟨f, hf⟩,
   Sup_le := λ s f hf i, supr_le $ λ g, hf g g.2 i,
   le_Inf := λ s f hf i, le_infi $ λ g, hf g g.2 i,
-  .. pi.bounded_lattice }
+  .. pi.lattice }
 
 lemma Inf_apply {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)]
   {s : set (Πa, β a)} {a : α} :
@@ -1201,7 +1199,7 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
   le_Inf := assume s p h,
     ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
       le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
-  .. prod.bounded_lattice α β,
+  .. prod.lattice α β,
   .. prod.has_Sup α β,
   .. prod.has_Inf α β }
 

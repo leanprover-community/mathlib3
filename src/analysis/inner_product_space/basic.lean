@@ -1712,3 +1712,47 @@ begin
 end
 
 end orthogonal
+
+section self_adjoint
+
+/-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
+`x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
+def self_adjoint (T : E →ₗ[𝕜] E) : Prop :=
+∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
+
+lemma self_adjoint.apply_swap {T : E →ₗ[𝕜] E} (hT : self_adjoint T) (x y : E) :
+  is_R_or_C.conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
+by rw [hT x y, inner_conj_sym]
+
+@[simp] lemma self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : self_adjoint (T : E →ₗ[𝕜] E))
+  (x y : E) :
+  ⟪T x, y⟫ = ⟪x, T y⟫ :=
+hT x y
+
+/-- Extract a real bilinear form from an operator.  (What generality here?) -/
+def continuous_linear_map.re_apply_inner_self (T : E →L[𝕜] E) (x : E) : ℝ :=
+is_R_or_C.re ⟪T x, x⟫
+
+lemma continuous_linear_map.re_apply_inner_self_apply (T : E →L[𝕜] E) (x : E) :
+  T.re_apply_inner_self x = is_R_or_C.re ⟪T x, x⟫ :=
+rfl
+
+lemma continuous_linear_map.re_apply_inner_self_continuous (T : E →L[𝕜] E) :
+  continuous T.re_apply_inner_self :=
+is_R_or_C.re_clm.continuous.comp $
+  (@continuous_inner 𝕜 E _ _).comp $
+    T.continuous.prod_mk continuous_id
+
+/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
+@[simp] lemma self_adjoint.coe_re_apply_inner_self_apply
+  {T : E →L[𝕜] E} (hT : self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
+  (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
+begin
+  suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
+  { obtain ⟨r, hr⟩ := this,
+    simp [hr, T.re_apply_inner_self_apply] },
+  rw ← is_R_or_C.eq_conj_iff_real,
+  exact hT.apply_swap x x
+end
+
+end self_adjoint

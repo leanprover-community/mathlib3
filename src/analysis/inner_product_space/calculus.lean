@@ -72,6 +72,11 @@ lemma has_fderiv_within_at.inner (hf : has_fderiv_within_at f f' s x)
   has_fderiv_within_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') s x :=
 (is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp_has_fderiv_within_at x (hf.prod hg)
 
+lemma has_strict_fderiv_at.inner (hf : has_strict_fderiv_at f f' x)
+  (hg : has_strict_fderiv_at g g' x) :
+  has_strict_fderiv_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') x :=
+(is_bounded_bilinear_map_inner.has_strict_fderiv_at (f x, g x)).comp x (hf.prod hg)
+
 lemma has_fderiv_at.inner (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
   has_fderiv_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') x :=
 (is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp x (hf.prod hg)

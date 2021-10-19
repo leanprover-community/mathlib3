@@ -10,8 +10,24 @@ import measure_theory.integral.interval_integral
 /-!
 # Divergence theorem for Bochner integral
 
-In this file we prove the Divergence theorem for Bochner integral on a box in `fin (n + 1) → ℝ`.
+In this file we prove the Divergence theorem for Bochner integral on a box in
+`ℝⁿ⁺¹ = fin (n + 1) → ℝ`. More precisely, we prove the following theorem.
 
+Let `E` be a complete normed space with second countably topology. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
+differentiable on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative
+`f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the divergence `λ x, ∑ i, f' x (pi.single i 1) i` is integrable on
+`[a, b]`, then its integral is equal to the sum of integrals of `f` over the faces of `[a, b]`,
+taken with appropriat signs. Moreover, the same is true if the function is not differentiable but
+continuous at countably many points of `[a, b]`.
+
+## TODO
+
+* Deduce corollaries about integrals in `ℝ × ℝ` and interval integral.
+* Add a version that assumes existence and integrability of partial derivatives.
+
+## Tags
+
+divergence theorem, Bochner integral
 -/
 
 open set finset topological_space function box_integral
@@ -27,10 +43,13 @@ local notation `ℝⁿ` := fin n → ℝ
 local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 local notation `Eⁿ⁺¹` := fin (n + 1) → E
 
-/-- Divergence theorem for Bochner integral. If `f : ℝⁿ → Eⁿ` is differentiable on a rectangular box
-`[a, b] : set ℝⁿ`, `a ≤ b`, with derivative `f' : ℝⁿ → ℝⁿ →L[ℝ] Eⁿ` and the divergence
-`λ x, ∑ i, f' x (pi.single i 1) i` is integrable on `[a, b]`, then its integral is equal to the sum
-of integrals of `f` over the faces of `[a, b]`, taken with appropriat signs. -/
+/-- **Divergence theorem** for Bochner integral. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is differentiable on a
+rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the
+divergence `λ x, ∑ i, f' x (pi.single i 1) i` is integrable on `[a, b]`, then its integral is equal
+to the sum of integrals of `f` over the faces of `[a, b]`, taken with appropriat signs.
+
+Moreover, the same is true if the function is not differentiable but continuous at countably many
+points of `[a, b]`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
   (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (a b : ℝⁿ⁺¹) (hle : a ≤ b)
   (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)

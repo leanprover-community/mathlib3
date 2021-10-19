@@ -165,11 +165,10 @@ classical.by_cases
 
 @[priority 70] -- see Note [lower instance priority]
 instance (R : Type*) [e : euclidean_domain_core R] : integral_domain R :=
-by { haveI := classical.dec_eq R, exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b h, (or_iff_not_and_not.2 $ λ h0,
       h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
-  zero := 0, add := (+), mul := (*), ..e }}
+  ..e, }
 
 class _root_.euclidean_domain (R : Type u) extends euclidean_domain_core R, gcd_monoid R.
 
@@ -328,14 +327,6 @@ theorem gcd_eq_gcd_ab (a b : R) : (gcd a b : R) = a * gcd_a a b + b * gcd_b a b 
 by { have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]),
 rwa [xgcd_aux_val, xgcd_val] at this }
-
-@[priority 70] -- see Note [lower instance priority]
-instance (R : Type*) [e : euclidean_domain R] : integral_domain R :=
-by { haveI := classical.dec_eq R, exact
-{ eq_zero_or_eq_zero_of_mul_eq_zero :=
-    λ a b h, (or_iff_not_and_not.2 $ λ h0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
-  ..e }}
 
 end gcd
 

@@ -8,6 +8,21 @@ import group_theory.quotient_group
 import tactic.linarith
 import group_theory.subgroup.pointwise
 
+/-!
+# Commensurability for subgroups
+
+This file defines commensurability for subgroups of a group `G`. It then goes on to prove that
+commensurability defines an equivalence relation and finally defines the commensurator of a subgroup
+of `G`.
+
+## Main definitions
+
+* `commensurable`: defines commensurability for two subgroups `H K` of  `G`
+* `commensurator`: defines the commensurator of a a subgroup `H` of `G`
+* `conj_subgroup`: defined the conjugate subgroup of a subgroup `H` by an element `g : G`,
+ i.e. `g H g⁻¹` --maybe this should be moved somewhere else?
+-/
+
 open_locale pointwise
 
 variables {G G' : Type*} [group G][group G']
@@ -78,37 +93,33 @@ end
 namespace subgroup
 /--`mul_hom` on subgroups induced by `mul_hom` of parent group-/
 def img_mul_hom  (H : subgroup G) (f : G →* G') :
-  H →* H.map f := {
-   to_fun := λ x, ⟨f x, by {use x,
+  H →* H.map f :=
+{ to_fun := λ x, ⟨f x, by {use x,
     simp only [set_like.coe_mem, eq_self_iff_true, set_like.mem_coe, and_self],}⟩,
-   map_one' := by {simp only [subgroup.coe_one, monoid_hom.map_one],
+  map_one' := by {simp only [subgroup.coe_one, monoid_hom.map_one],
     refl,},
-   map_mul':= by {intros x y,
-    simp only [monoid_hom.map_mul, subgroup.coe_mul],
-    refl,}
-}
+  map_mul':= by {intros x y,
+    simp only [monoid_hom.map_mul, subgroup.coe_mul], refl,}}
 
 /--Isomorphism of a subgroup with its image under an isomorphism-/
 def img_mul_equiv  (H : subgroup G) (f : G ≃* G') :
-  H ≃* (subgroup.map f.to_monoid_hom) H := {
-    to_fun := λ x, ⟨f.1 x, by {simp only [exists_prop, set_like.coe_mem,
-      mul_equiv.coe_to_monoid_hom, mul_equiv.to_fun_eq_coe, subgroup.mem_map,
-      exists_eq_right, mul_equiv.apply_eq_iff_eq]}⟩,
-    inv_fun := λ x, ⟨f.2 x, by {simp only [mul_equiv.inv_fun_eq_symm],
-      have xp := x.property,
-      simp_rw subgroup.map_equiv_eq_comap_symm at xp,
-      simp only [mul_equiv.coe_to_monoid_hom, subgroup.mem_comap, subtype.val_eq_coe] at xp,
-      apply xp,}⟩,
-    left_inv := by {intro x,
-      simp only [set_like.eta, mul_equiv.inv_fun_eq_symm, mul_equiv.symm_apply_apply,
-        mul_equiv.to_fun_eq_coe, subgroup.coe_mk],},
-    right_inv := by {intro x,
-      simp only [mul_equiv.apply_symm_apply, set_like.eta, mul_equiv.inv_fun_eq_symm,
-        mul_equiv.to_fun_eq_coe, subgroup.coe_mk],},
-    map_mul' := by {intros x y,
-      simp only [mul_equiv.to_fun_eq_coe, subgroup.coe_mul, mul_equiv.map_mul],
-      refl,},
-}
+  H ≃* (subgroup.map f.to_monoid_hom) H :=
+{ to_fun := λ x, ⟨f.1 x, by {simp only [exists_prop, set_like.coe_mem,
+    mul_equiv.coe_to_monoid_hom, mul_equiv.to_fun_eq_coe, subgroup.mem_map,
+    exists_eq_right, mul_equiv.apply_eq_iff_eq]}⟩,
+  inv_fun := λ x, ⟨f.2 x, by {simp only [mul_equiv.inv_fun_eq_symm],
+    have xp := x.property,
+    simp_rw subgroup.map_equiv_eq_comap_symm at xp,
+    simp only [mul_equiv.coe_to_monoid_hom, subgroup.mem_comap, subtype.val_eq_coe] at xp,
+    apply xp,}⟩,
+  left_inv := by {intro x,
+    simp only [set_like.eta, mul_equiv.inv_fun_eq_symm, mul_equiv.symm_apply_apply,
+      mul_equiv.to_fun_eq_coe, subgroup.coe_mk],},
+  right_inv := by {intro x,
+    simp only [mul_equiv.apply_symm_apply, set_like.eta, mul_equiv.inv_fun_eq_symm,
+      mul_equiv.to_fun_eq_coe, subgroup.coe_mk],},
+  map_mul' := by {intros x y,
+      simp only [mul_equiv.to_fun_eq_coe, subgroup.coe_mul, mul_equiv.map_mul], refl,},}
 
 /--Image of a sub_subgroup under a `mul_hom`-/
 def mul_hom_sub_subgroup (H : subgroup G) (K : subgroup H) (f : G →* G') :
@@ -417,8 +428,8 @@ end
 /--For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
 such that `commensurable (conj_subgroup g H) H`   -/
 
-def commensurator (H : subgroup G) : subgroup G := {
-  carrier := {g : G | commensurable (conj_subgroup g H) H },
+def commensurator (H : subgroup G) : subgroup G :=
+{ carrier := {g : G | commensurable (conj_subgroup g H) H },
   one_mem' := by {simp, apply reflex, },
   mul_mem' := by {intros a b ha hb,
       simp only [set.mem_set_of_eq] at *,
@@ -436,8 +447,7 @@ def commensurator (H : subgroup G) : subgroup G := {
   inv_mem' := by {simp only [set.mem_set_of_eq],
       intros x hx,
       rw symm,
-      apply (commensurable_inv H x).1 hx,},
-}
+      apply (commensurable_inv H x).1 hx,},}
 
 @[simp]
 lemma commensurator_mem_iff (H : subgroup G) (g : G) :

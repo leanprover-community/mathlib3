@@ -2463,15 +2463,14 @@ begin
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
 end
 
--- `to_additive` chokes on the next few lemmas, so we do them by hand below
-@[simp]
+@[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list α) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
 | [] i := by simp
 | L 0 := by simp
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop], }
 
-@[simp]
+@[simp, to_additive]
 lemma prod_take_succ :
   ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).prod = (L.take i).prod * L.nth_le i p
 | [] i p := by cases p
@@ -2482,6 +2481,7 @@ lemma prod_take_succ :
 lemma length_pos_of_prod_ne_one (L : list α) (h : L.prod ≠ 1) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
+@[to_additive]
 lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
   (L.update_nth n a).prod =
     (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
@@ -2505,8 +2505,9 @@ lemma prod_inv_reverse : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹))
 lemma prod_reverse_noncomm : ∀ (L : list α), L.reverse.prod = (L.map (λ x, x⁻¹)).prod⁻¹ :=
 by simp [prod_inv_reverse]
 
-/-- Counterpart to `prod_take_suc` when we have an inverse operation -/
-@[simp] lemma prod_drop_suc :
+/-- Counterpart to `list.prod_take_suc` when we have an inverse operation -/
+@[simp, to_additive /-"Counterpart to `prod_take_suc` when we have an inverse operation"-/]
+lemma prod_drop_suc :
   ∀ (L : list α) (i : ℕ) (p), (L.drop (i + 1)).prod = (L.nth_le i p)⁻¹ * (L.drop i).prod
 | [] i p := false.elim (nat.not_lt_zero _ p)
 | (x :: xs) 0 p := by simp
@@ -2524,6 +2525,7 @@ lemma prod_inv : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).prod
 | (x :: xs) := by simp [mul_comm, prod_inv xs]
 
 /-- Alternative version of `prod_update_nth` when over a group instead of a monoid -/
+@[to_additive /-"Alternative version of `sum_update_nth` when over a group instead of a monoid"-/]
 lemma prod_update_nth' (L : list α) (n : ℕ) (a : α) :
   (L.update_nth n a).prod =
     L.prod * (if hn : n < L.length then (L.nth_le n hn)⁻¹ * a else 1) :=
@@ -2537,20 +2539,6 @@ begin
 end
 
 end comm_group
-
-@[simp]
-lemma sum_take_add_sum_drop [add_monoid α] :
-  ∀ (L : list α) (i : ℕ), (L.take i).sum + (L.drop i).sum = L.sum
-| [] i := by simp
-| L 0 := by simp
-| (h :: t) (n+1) := by { dsimp, rw [sum_cons, sum_cons, add_assoc, sum_take_add_sum_drop], }
-
-@[simp]
-lemma sum_take_succ [add_monoid α] :
-  ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).sum = (L.take i).sum + L.nth_le i p
-| [] i p := by cases p
-| (h :: t) 0 _ := by simp
-| (h :: t) (n+1) _ := by { dsimp, rw [sum_cons, sum_cons, sum_take_succ, add_assoc], }
 
 lemma eq_of_sum_take_eq [add_left_cancel_monoid α] {L L' : list α} (h : L.length = L'.length)
   (h' : ∀ i ≤ L.length, (L.take i).sum = (L'.take i).sum) : L = L' :=

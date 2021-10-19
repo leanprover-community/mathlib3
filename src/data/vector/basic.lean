@@ -458,6 +458,7 @@ lemma nth_update_nth_eq_if {v : vector α n} {i j : fin n} (a : α) :
   (v.update_nth i a).nth j = if i = j then a else v.nth j :=
 by split_ifs; try {simp *}; try {rw nth_update_nth_of_ne}; assumption
 
+@[to_additive]
 lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
   (v.update_nth i a).to_list.prod =
     (v.take i).to_list.prod * a * (v.drop (i + 1)).to_list.prod :=
@@ -467,6 +468,7 @@ begin
   simp [this],
 end
 
+@[to_additive]
 lemma prod_update_nth' [comm_group α] (v : vector α n) (i : fin n) (a : α) :
   (v.update_nth i a).to_list.prod =
     v.to_list.prod * (v.nth i)⁻¹ * a :=

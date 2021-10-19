@@ -7,6 +7,7 @@ Authors: Jujian Zhang, Eric Wieser
 import algebra.direct_sum.ring
 import ring_theory.ideal.basic
 import ring_theory.ideal.operations
+import linear_algebra.finsupp
 
 
 /-!
@@ -105,7 +106,7 @@ lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
 ⟨λ hx j, begin
   have HI' := HI,
   rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span,
-    finsupp.span_eq_range_total] at HI',
+      finsupp.span_eq_range_total] at HI',
   rw HI' at hx,
   obtain ⟨s, rfl⟩ := hx,
   rw [finsupp.total_apply, finsupp.sum, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],

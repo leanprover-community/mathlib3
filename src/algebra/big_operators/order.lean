@@ -43,7 +43,8 @@ begin
 end
 
 /-- Let `{x | p x}` be an additive subsemigroup of an additive commutative monoid `M`. Let
-`f : M → N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let `g i`, `i ∈ s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
+`f : M → N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let
+`g i`, `i ∈ s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
 `f (∑ i in s, g i) ≤ ∑ i in s, f (g i)`. -/
 add_decl_doc le_sum_nonempty_of_subadditive_on_pred
 

@@ -396,7 +396,7 @@ end
 
 -- TODO: why is this not rfl?
 -- (λ (i : α), pi.has_top) =
--- λ (i : α), (λ (i : α), order_top.to_has_top ((λ (ᾰ : α), α → Prop) i)) i
+-- λ (i : α), (λ (i : α), order_top.to_has_top ((λ (b : α), α → Prop) i)) i
 
 lemma quot.subsingleton_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
 begin

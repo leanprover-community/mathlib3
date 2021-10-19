@@ -20,6 +20,10 @@ It is a finite field with `p ^ n` elements.
 
 * `galois_field p n` is a field with `p ^ n` elements
 
+## Main Results
+
+- Uniqueness of finite fields
+
 -/
 
 noncomputable theory
@@ -134,5 +138,41 @@ have h : (X ^ p ^ 1 : polynomial (zmod p)) = X ^ (fintype.card (zmod p)),
 have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
   by { rw h, apply_instance },
 by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : polynomial (zmod p))).symm
+
+variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
+
+theorem splits_X_pow_card_sub_X : splits (algebra_map (zmod p) K) (X ^ fintype.card K - X) :=
+begin
+  obtain ⟨p, n, Hprime, Hcard⟩ := finite_field.card',
+  have hp : 1 < p := Hprime.one_lt,
+  have hne : (n : ℕ) ≠ 0 := pnat.ne_zero n,
+  have h1 : roots (X ^ fintype.card K - X : polynomial K) = finset.univ.val,
+    by rw finite_field.roots_X_pow_card_sub_X _,
+  have h2 := finite_field.X_pow_card_pow_sub_X_nat_degree_eq K hne hp,
+  rw [← splits_id_iff_splits, splits_iff_card_roots],
+  simp only [map_pow, map_X, map_sub],
+  rw [h1,←finset.card_def,finset.card_univ,Hcard,h2],
+  apply_instance,
+end
+
+/-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
+def alg_equiv_galois_field (hne : n ≠ 0) (card : fintype.card K = p ^ n) :
+  K ≃ₐ[zmod p] galois_field p n :=
+begin
+  have hp : 1 < p := (fact.out (nat.prime p)).one_lt,
+  apply is_splitting_field.alg_equiv K (X ^ p ^ n - X),
+  refine {splits := _, adjoin_roots := _},
+  { rw ← card, exact splits_X_pow_card_sub_X _, },
+  simp only [map_pow, map_X, map_sub],
+  rw algebra.eq_top_iff,
+  intro x,
+  apply algebra.subset_adjoin,
+  rw [finset.mem_coe, multiset.mem_to_finset],
+  have h1 : x ^ p ^ n - x = 0 := by rw [← card, finite_field.pow_card, sub_self x],
+  have h2 := finite_field.X_pow_card_pow_sub_X_ne_zero K hne hp,
+  rw mem_roots,
+  simp only [eval_X, eval_pow, eval_sub, is_root.def],
+  assumption',
+end
 
 end galois_field

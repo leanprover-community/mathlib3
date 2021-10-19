@@ -1029,7 +1029,7 @@ begin
   { exact pow_ne_zero n hp.ne_zero },
   { refine ⟨ p^(k - n), not_is_unit_of_not_is_unit_dvd hp.not_unit
       (dvd_pow (dvd_refl p) (ne_of_gt (sub_pos_iff_lt.mpr hlt))), _⟩,
-    rw [← pow_add, nat.add_sub_cancel' hlt.le] }
+    rw [← pow_add, nat.add_sub_of_le hlt.le] }
 end
 
 lemma pow_map_mk_lt (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) {k n : ℕ}
@@ -1132,7 +1132,8 @@ begin
   exact multiset.mem_singleton.mpr ((associated_iff_eq.1 (normalize_associated
     (comap J^.quotient.mk (map ↑f (map I^.quotient.mk p))))).symm),
   apply prime.irreducible,
-  apply (prime_iff_is_prime (comap_map_map_ne_bot_of_lt f hJ)).2,
+  apply (prime_iff_is_prime
+    (comap_ne_bot_of_not_injective (mt quotient.mk_injective_iff.mp hJ) _)).2,
   convert comap_is_prime J^.quotient.mk _,
   convert map_is_prime_of_equiv f,
   convert map_is_prime_of_surjective quotient.mk_surjective _,
@@ -1141,6 +1142,7 @@ begin
   exact (dvd_iff_le.1 (dvd_of_mem_normalized_factors hp)),
 end
 
+@[simps]
 def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):
   {p : ideal T | p ∈ normalized_factors I} ≃ {p : ideal S | p ∈ normalized_factors J} :=
 {
@@ -1184,13 +1186,14 @@ begin
     intros hn m hm,
     specialize hn m hm,
     apply_fun map (f : I.quotient →+* J.quotient) at hn,
-    rw [ideal_correspondence, equiv.coe_fn_mk, subtype.coe_mk, subtype.coe_mk,
-      map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow, hn, map_pow] },
+    rw [ideal_correspondence_apply_coe, map_comap_of_surjective J^.quotient.mk quotient.mk_surjective,
+        subtype.coe_mk, ← map_pow, hn, map_pow] },
   { rw [shifted_seq_pow_constant, shifted_seq_pow_constant],
     intros hn m hm,
     specialize hn m hm,
-    rw [map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow,
-      ← map_pow _ _ m] at hn,
+    rw [ideal_correspondence_apply_coe,
+        map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, ← map_pow, ← map_pow _ _ m]
+      at hn,
     apply_fun map ↑f.symm at hn,
     rw [map_of_equiv _ f, map_of_equiv _ f] at hn,
     exact hn }

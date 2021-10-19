@@ -488,7 +488,8 @@ open with_top
 
 /-! #### Adding a `⊤` to an `order_top` -/
 
-instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] : succ_order (with_top α) :=
+instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
+  succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
     | (some a) := ite (a = ⊤) ⊤ (some (succ a))

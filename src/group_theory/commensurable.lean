@@ -88,7 +88,7 @@ def img_mul_hom  (H : subgroup G) (f : G →* G') :
     refl,}
 }
 
-/--Isomorphism of a group with its image under an isomorphism-/
+/--Isomorphism of a subgroup with its image under an isomorphism-/
 def img_mul_equiv  (H : subgroup G) (f : G ≃* G') :
   H ≃* (subgroup.map f.to_monoid_hom) H := {
     to_fun := λ x, ⟨f.1 x, by {simp}⟩,
@@ -283,7 +283,7 @@ begin
   simp only [ht, eq_self_iff_true, or_true],
  end
 
-/--Map from `L ⊓ K/(L ⊓ H ⊓ K)` to `K/H ⊓ K`-/
+/--Map from `L ⊓ K/(L ⊓ H ⊓ K)` to `K/(H ⊓ K)`-/
 noncomputable def  inf_quot_map (H K L : subgroup G) :
   quotient_group.quotient (H.subgroup_of (L ⊓ K)) → quotient_group.quotient ((H.subgroup_of K)) :=
   λ x, quotient_group.mk (⟨x.out', by

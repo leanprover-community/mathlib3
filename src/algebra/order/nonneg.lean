@@ -150,6 +150,14 @@ instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semirin
 subtype.coe_injective.ordered_comm_semiring
   (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
 
+-- These prevent noncomputable instances being found, as it does not require `linear_order` which
+-- is frequently non-computable.
+instance monoid_with_zero [ordered_semiring α] : monoid_with_zero {x : α // 0 ≤ x} :=
+by apply_instance
+
+instance comm_monoid_with_zero [ordered_comm_semiring α] : comm_monoid_with_zero {x : α // 0 ≤ x} :=
+by apply_instance
+
 instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x} :=
 ⟨ ⟨0, 1, λ h, zero_ne_one (congr_arg subtype.val h)⟩ ⟩
 

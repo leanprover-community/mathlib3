@@ -68,7 +68,6 @@ context, or if we have `(f : α → ℝ≥0∞) (hf : ∀ x, f x ≠ ∞)`.
 * `∞`: a localized notation in `ℝ≥0∞` for `⊤ : ℝ≥0∞`.
 
 -/
-noncomputable theory
 open classical set
 
 open_locale classical big_operators nnreal
@@ -76,14 +75,16 @@ variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
-@[derive [canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
+@[derive [
+  has_zero, add_comm_monoid,
+  canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub]]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
-instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
+noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
 { .. ennreal.canonically_ordered_comm_semiring,
   .. ennreal.complete_linear_order }
 
@@ -111,7 +112,7 @@ protected def to_nnreal : ℝ≥0∞ → ℝ≥0
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
 
 /-- `of_real x` returns `x` if it is nonnegative, `0` otherwise. -/
-protected def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
+protected noncomputable def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
 
 @[simp, norm_cast] lemma to_nnreal_coe : (r : ℝ≥0∞).to_nnreal = r := rfl
 
@@ -257,52 +258,56 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
-def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
+noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
 section actions
 
-/-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/
-instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
-mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
+instance {M : Type*} [has_scalar ℝ≥0∞ M] : has_scalar ℝ≥0 M :=
+has_scalar.comp M (coe : ℝ≥0 → ℝ≥0∞)
 
-lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
+lemma smul_def {M : Type*} [has_scalar ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ≥0∞) • x := rfl
 
-instance {M N : Type*} [mul_action ℝ≥0∞ M] [mul_action ℝ≥0∞ N] [has_scalar M N]
+instance {M N : Type*} [has_scalar ℝ≥0∞ M] [has_scalar ℝ≥0∞ N] [has_scalar M N]
   [is_scalar_tower ℝ≥0∞ M N] : is_scalar_tower ℝ≥0 M N :=
 { smul_assoc := λ r, (smul_assoc (r : ℝ≥0∞) : _)}
 
-instance smul_comm_class_left {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+instance smul_comm_class_left {M N : Type*} [has_scalar ℝ≥0∞ N] [has_scalar M N]
   [smul_comm_class ℝ≥0∞ M N] : smul_comm_class ℝ≥0 M N :=
 { smul_comm := λ r, (smul_comm (r : ℝ≥0∞) : _)}
 
-instance smul_comm_class_right {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+instance smul_comm_class_right {M N : Type*} [has_scalar ℝ≥0∞ N] [has_scalar M N]
   [smul_comm_class M ℝ≥0∞ N] : smul_comm_class M ℝ≥0 N :=
 { smul_comm := λ m r, (smul_comm m (r : ℝ≥0∞) : _)}
 
+/-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/
+noncomputable instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
+mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
+
 /-- A `distrib_mul_action` over `ℝ≥0∞` restricts to a `distrib_mul_action` over `ℝ≥0`. -/
-instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] : distrib_mul_action ℝ≥0 M :=
+noncomputable instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] :
+  distrib_mul_action ℝ≥0 M :=
 distrib_mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
 
 /-- A `module` over `ℝ≥0∞` restricts to a `module` over `ℝ≥0`. -/
-instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
+noncomputable instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
 module.comp_hom M of_nnreal_hom
 
 /-- An `algebra` over `ℝ≥0∞` restricts to an `algebra` over `ℝ≥0`. -/
-instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
+noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
 { smul := (•),
   commutes' := λ r x, by simp [algebra.commutes],
   smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ≥0∞) x, smul_def],
   to_ring_hom := ((algebra_map ℝ≥0∞ A).comp (of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞)) }
 
 -- verify that the above produces instances we might care about
-example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
-example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+noncomputable example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
+noncomputable example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
 
-lemma coe_smul {R} [monoid R] (r : R) (s : ℝ≥0) [mul_action R ℝ≥0] [has_scalar R ℝ≥0∞]
+lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
   (↑(r • s) : ℝ≥0∞) = r • ↑s :=
 begin
@@ -971,6 +976,8 @@ by unfold bit1; rw add_eq_top; simp
 end bit
 
 section inv
+noncomputable theory
+
 instance : has_inv ℝ≥0∞ := ⟨λa, Inf {b | 1 ≤ a * b}⟩
 
 instance : div_inv_monoid ℝ≥0∞ :=

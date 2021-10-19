@@ -507,3 +507,7 @@ begin
   { rw [@nat.floor_of_nonpos α _ inst1 a h, @nat.floor_of_nonpos α _ inst2 a h] },
   { exact (@nat.floor_eq_iff α _ inst1 a _ h).2 ⟨nat.floor_le h, nat.lt_floor_add_one a⟩ }
 end
+
+lemma int.floor_to_nat [linear_ordered_ring α] [floor_ring α] (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
+
+lemma int.ceil_to_nat [linear_ordered_ring α] [floor_ring α] (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl

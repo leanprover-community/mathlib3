@@ -39,7 +39,8 @@ lemma rel_iff (H K : subgroup G) (x y : G) :
 lemma left_bot_eq_left_group_rel (H : subgroup G) :
   (double_coset_rel ⊥ H) = (quotient_group.left_rel H).rel :=
 begin
-  have h1:  (double_coset_rel ⊥ H) = (quotient_group.left_rel H).r, by {
+  have h1:  (double_coset_rel ⊥ H) = (quotient_group.left_rel H).r,
+  {
     ext,
     simp,
     split,
@@ -160,15 +161,15 @@ begin
 end
 
 --Is this already somewhere? I'd rather not have to prove it
-lemma  auxeq : ∀ (a b c d e f : G),a*b*c=d*e*f  ↔ b=a⁻¹*d*e*f*c⁻¹ :=
+lemma auxeq : ∀ (a b c d e f : G), a * b * c = d * e * f ↔ b = a⁻¹ * d * e * f * c⁻¹ :=
 begin
   intros a b c d e f,
-  calc  a*b*c=d*e*f
-        ↔ a*(b*c)=d*e*f : by simp_rw mul_assoc
-   ... ↔ (b*c)=a⁻¹*(d*e*f) : by {simp_rw eq_inv_mul_iff_mul_eq}
-   ... ↔ b*c=a⁻¹*d*e*f : by {simp_rw ←  mul_assoc}
-   ... ↔ b=(a⁻¹*d*e*f)*c⁻¹ : by {simp_rw ←  mul_inv_eq_iff_eq_mul, simp,}
-   end
+  split; intro h,
+  { assoc_rw h.symm,
+    group, },
+  { rw h,
+    group, },
+end
 
 lemma disjoint_sub (H K : subgroup G) (a b : G) :
 ¬ disjoint (doset H.1 K a  ) (doset H K b) →  b ∈ (doset H.1 K a) :=
@@ -291,8 +292,7 @@ begin
   simp only [mem_right_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, doset_mem,
     subgroup.mem_carrier, set_like.mem_coe],
   split,
-  intro h,
-  cases h with x,
+  rintros ⟨x, h_h⟩,
   use x.2,
   rw h_h,
   simp_rw ← mul_assoc,
@@ -328,24 +328,24 @@ end
 def left_bot_eq_left_quot (H : subgroup G) :
   quotient (⊥ : subgroup G) H = quotient_group.quotient H :=
 begin
-rw quotient_group.quotient,
-simp_rw [quotient],
-apply congr_arg,
-have hab := left_bot_eq_left_group_rel H,
-ext,
-simp_rw  ←  hab,
-refl,
+  rw quotient_group.quotient,
+  simp_rw [quotient],
+  apply congr_arg,
+  have hab := left_bot_eq_left_group_rel H,
+  ext,
+  simp_rw  ←  hab,
+  refl,
 end
 
 def right_bot_eq_right_quot (H : subgroup G) :
   quotient H (⊥ : subgroup G) = _root_.quotient  (quotient_group.right_rel H) :=
 begin
-simp_rw [quotient],
-apply congr_arg,
-have hab := right_bot_eq_right_group_rel H,
-ext,
-simp_rw  ←  hab,
-refl,
+  simp_rw [quotient],
+  apply congr_arg,
+  have hab := right_bot_eq_right_group_rel H,
+  ext,
+  simp_rw  ←  hab,
+  refl,
 end
 
 end double_coset

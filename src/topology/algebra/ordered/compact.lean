@@ -13,6 +13,9 @@ order topology (or a product of such types) is compact. We also prove the extrem
 (`is_compact.exists_forall_le`, `is_compact.exists_forall_ge`): a continuous function on a compact
 set takes its minimum and maximum values.
 
+We also prove that the image of a closed interval under a continuous map is a closed interval, see
+`continuous_on.image_Icc`.
+
 ## Tags
 
 compact, extreme value theorem
@@ -107,8 +110,9 @@ is_compact_Icc
 
 /-- A complete linear order is a compact space.
 
-We do not register an instance for a `[compact_Icc_space α]` because we already have
-`prod.compact_space` and `pi.compact_space`. -/
+We do not register an instance for a `[compact_Icc_space α]` because this would only add instances
+for products (indexed or not) of complete linear orders, and we have instances with higher priority
+that cover these cases. -/
 @[priority 100] -- See note [lower instance priority]
 instance compact_space_of_bounded_compact_Icc {α : Type*} [complete_linear_order α]
   [topological_space α] [order_topology α] :

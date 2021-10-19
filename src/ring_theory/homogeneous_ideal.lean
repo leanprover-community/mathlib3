@@ -144,20 +144,20 @@ end⟩
 
 /--Another definition of homogeneous ideal-/
 def homogeneous_ideal'' [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) : Prop :=
-  ∀ (x : ⨁ i, A i) (i : ι), x ∈ I → of A i (x i) ∈ I
+  ∀ (x : ⨁ i, A i), x ∈ I → ∀ (i : ι), of A i (x i) ∈ I
 
 lemma homogeneous_ideal_iff_homogeneous_ideal'' [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)):
   homogeneous_ideal I ↔ homogeneous_ideal'' I :=
 ⟨λ HI, begin
-  intros x i hx,
+  intros x hx i,
   apply homogeneous_ideal.homogeneous_component HI x hx,
 end, λ HI, begin
   rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'],
   ext, split; intro hx,
   { rw direct_sum.eq_sum_of _ x,
     refine ideal.sum_mem _ _,
-    intros j hj, specialize HI x j hx,
+    intros j hj, specialize HI x hx j,
     rw ideal.mem_span, intros J HJ,
     refine HJ _,
     simp only [mem_set_of_eq],
@@ -296,7 +296,7 @@ lemma homogeneous_ideal.Inf {ℐ : set (ideal (⨁ i, A i))} (HI : ∀ I ∈ ℐ
   homogeneous_ideal (Inf ℐ) :=
 begin
   rw homogeneous_ideal_iff_homogeneous_ideal'',
-  intros x i Hx, simp only [submodule.mem_Inf] at Hx ⊢,
+  intros x Hx i, simp only [submodule.mem_Inf] at Hx ⊢,
   intros J HJ, specialize HI J HJ, rw homogeneous_ideal_iff_homogeneous_ideal'' at HI,
   apply HI, apply Hx, exact HJ
 end
@@ -318,10 +318,23 @@ begin
     specialize hx (homogeneous_ideal_of_ideal J) _,
     obtain ⟨HJ₁, HJ₂⟩ := HJ,
     refine ⟨_, homogeneous_ideal.homogeneous_ideal_of_ideal _, _⟩,
-    { sorry },
+    { rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'] at HI,
+      rw HI, apply ideal.span_mono, intros y hy,
+      obtain ⟨hy₁, ⟨z, hz⟩⟩ := hy,
+      specialize HJ₁ hy₁, refine ⟨⟨z, hz⟩, HJ₁⟩, },
     { rw ideal.is_prime_iff, split,
-      { sorry },
-      { sorry }, },
+      { intro rid,
+        have rid' : J = ⊤,
+        { have : homogeneous_ideal_of_ideal J ≤ J := homogeneous_ideal_of_ideal_le_ideal J,
+          rw rid at this, rw top_le_iff at this, exact this, },
+        apply HJ₂.1, exact rid', },
+      { intros y z H,
+        have H₂ : homogeneous_ideal (homogeneous_ideal_of_ideal J),
+        exact homogeneous_ideal.homogeneous_ideal_of_ideal J,
+        rw [homogeneous_ideal_iff_homogeneous_ideal'', homogeneous_ideal''] at H₂,
+        specialize H₂ (y * z) H,
+        have H₃ := HJ₂.mem_or_mem (homogeneous_ideal_of_ideal_le_ideal J H),
+        sorry }, },
     refine (homogeneous_ideal_of_ideal_le_ideal J) hx, },
 
   ext x, split; intro hx,

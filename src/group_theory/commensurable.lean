@@ -133,7 +133,7 @@ begin
   cases h with y,
   cases x.property with z,
   simp only [mul_equiv.coe_to_monoid_hom, set_like.mem_coe, subtype.val_eq_coe] at *,
-  have h1:= h_h.2,
+  have h1 := h_h.2,
   rw ← h.2 at h1,
   simp only [mul_equiv.apply_eq_iff_eq] at h1,
   use z,
@@ -171,8 +171,8 @@ noncomputable def quot_map (H : subgroup G) (H' : subgroup G')
 (f : G →* G') :  quotient_group.quotient H →  quotient_group.quotient H' :=
 λ x, quotient_group.mk (f x.out')
 
-lemma quot_map_inj (H : subgroup G) (H' : subgroup G') (f : G →* G')
-(h :subgroup.map f H = H') : (function.injective f) →  function.injective (quot_map H H' f) :=
+lemma quot_map_inj (H : subgroup G) (H' : subgroup G') (f : G →* G') (h :subgroup.map f H = H') :
+  (function.injective f) →  function.injective (quot_map H H' f) :=
 begin
   intro hf,
   rw function.injective at *,
@@ -200,7 +200,7 @@ end
 end quotient_group
 
 /--`mul_hom` from `subgroup_of` to `inf`-/
-def subgroup_of_to_inf (K L : subgroup G) : (K.subgroup_of L) →* (K ⊓ L : subgroup G) :={
+def subgroup_of_to_inf (K L : subgroup G) : (K.subgroup_of L) →* (K ⊓ L : subgroup G) := {
   to_fun := λ x, ⟨L.subtype x,
     by {have xp := x.property,
         simp_rw [subgroup.mem_subgroup_of] at xp,
@@ -358,14 +358,14 @@ begin
   apply trans,
 end
 
-lemma cong_sub_image (H K : subgroup G) (g : G):
+lemma cong_sub_image (H K : subgroup G) (g : G) :
   subgroup.map (conj_equiv g K).to_monoid_hom (H.subgroup_of K) =
   (conj_subgroup g H).subgroup_of (conj_subgroup g K) :=
 begin
 apply subgroup.equiv_sub_subgroup_of,
 end
 
-lemma cong_sub_image' (H K : subgroup G) (g : G):
+lemma cong_sub_image' (H K : subgroup G) (g : G) :
   subgroup.map ((conj_equiv g K).symm).to_monoid_hom
   ((conj_subgroup g H).subgroup_of (conj_subgroup g K)) = (H.subgroup_of K) :=
 begin

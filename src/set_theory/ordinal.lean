@@ -854,7 +854,7 @@ theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
 let ⟨c, e⟩ := cardinal.lift_down h in
 cardinal.induction_on c (λ α, induction_on b $ λ β s _ e', begin
   resetI,
-  rw [card_type, ← cardinal.lift_id.{max (max u v) u} (#β),
+  rw [card_type, ← cardinal.lift_id'.{(max u v) u} (#β),
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,
@@ -1177,9 +1177,9 @@ theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) �
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
-quotient.induction_on c $ λ α, induction_on o $ λ β s _,
+induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
 let ⟨r, _, e⟩ := ord_eq α in begin
-  resetI, simp only [mk_def, card_type], split; intro h,
+  resetI, simp only [card_type], split; intro h,
   { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,

@@ -153,8 +153,6 @@ by { rcases c with ⟨⟨⟩⟩, rcases d with ⟨⟨⟩⟩, cases H, congr, }
 lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) : c = d :=
 ext' $ by ext; apply H
 
-attribute [ext] add_con.ext
-
 /-- The map sending a congruence relation to its underlying equivalence relation is injective. -/
 @[to_additive "The map sending an additive congruence relation to its underlying equivalence
 relation is injective."]

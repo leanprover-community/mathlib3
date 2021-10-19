@@ -228,7 +228,6 @@ apply_nolint holor_index.drop doc_blame
 apply_nolint holor_index.take doc_blame
 
 -- data/list/defs.lean
-apply_nolint list.permutations_aux.rec doc_blame
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame

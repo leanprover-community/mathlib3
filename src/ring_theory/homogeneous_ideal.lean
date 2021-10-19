@@ -334,7 +334,9 @@ begin
         rw [homogeneous_ideal_iff_homogeneous_ideal'', homogeneous_ideal''] at H₂,
         specialize H₂ (y * z) H,
         have H₃ := HJ₂.mem_or_mem (homogeneous_ideal_of_ideal_le_ideal J H),
-        sorry }, },
+        cases H₃,
+        { left, sorry },
+        { right, sorry }, }, },
     refine (homogeneous_ideal_of_ideal_le_ideal J) hx, },
 
   ext x, split; intro hx,

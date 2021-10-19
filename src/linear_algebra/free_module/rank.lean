@@ -82,7 +82,7 @@ begin
   let ιN := choose_basis_index R N,
 
   have h₁ := linear_equiv.lift_dim_eq
-    (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr),
+    (tensor_product.congr (module.free.repr R M) (module.free.repr R N)),
   let b : basis (ιM × ιN) R (_ →₀ R) := finsupp.basis_single_one,
   rw [linear_equiv.dim_eq (finsupp_tensor_finsupp' R ιM ιN), ← b.mk_eq_dim, mul] at h₁,
   rw [lift_inj.1 h₁, rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R N],

@@ -70,22 +70,22 @@ eq.trans (congr_arg index (by refl))
 
 variables {H K L}
 
-@[to_additive] lemma index_eq_mul_of_le (h : H ≤ K) : H.index = K.index * H.rel_index K :=
-(congr_arg cardinal.to_nat (by exact (quotient_equiv_prod_of_le h).cardinal_eq)).trans
-  (cardinal.to_nat_mul _ _)
+@[to_additive] lemma rel_index_mul_index (h : H ≤ K) : H.rel_index K * K.index = H.index :=
+((mul_comm _ _).trans (cardinal.to_nat_mul _ _).symm).trans
+  (congr_arg cardinal.to_nat (equiv.cardinal_eq (quotient_equiv_prod_of_le h))).symm
 
 @[to_additive] lemma index_dvd_of_le (h : H ≤ K) : K.index ∣ H.index :=
-⟨H.rel_index K, index_eq_mul_of_le h⟩
+dvd_of_mul_left_eq (H.rel_index K) (rel_index_mul_index h)
 
 @[to_additive] lemma rel_index_subgroup_of (hKL : K ≤ L) :
-  H.rel_index K = (H.subgroup_of L).rel_index (K.subgroup_of L) :=
-(index_comap (H.subgroup_of L) (inclusion hKL)).trans (congr_arg _ (inclusion_range hKL))
+  (H.subgroup_of L).rel_index (K.subgroup_of L) = H.rel_index K :=
+((index_comap (H.subgroup_of L) (inclusion hKL)).trans (congr_arg _ (inclusion_range hKL))).symm
 
 @[to_additive] lemma rel_index_mul_rel_index (hHK : H ≤ K) (hKL : K ≤ L) :
   H.rel_index K * K.rel_index L = H.rel_index L :=
 begin
-  rw [rel_index_subgroup_of hKL, mul_comm, eq_comm],
-  exact index_eq_mul_of_le (λ x hx, hHK hx),
+  rw [←rel_index_subgroup_of hKL],
+  exact rel_index_mul_index (λ x hx, hHK hx),
 end
 
 variables (H K L)

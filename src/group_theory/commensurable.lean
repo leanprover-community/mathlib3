@@ -5,7 +5,6 @@ Authors: Chris Birkbeck
 -/
 import group_theory.index
 import group_theory.quotient_group
-import tactic.linarith
 import group_theory.subgroup.pointwise
 
 /-!
@@ -68,23 +67,23 @@ begin
   rw and_comm,
 end
 
-/--The conjugate of a subgroup `Γ` of `G` by `g`  -/
-def conj_subgroup (g : G) (Γ : subgroup G) : subgroup G := mul_aut.conj g •  Γ
+/--The conjugate of a subgroup `H` of `G` by `g`  -/
+def conj_subgroup (g : G) (H : subgroup G) : subgroup G := mul_aut.conj g •  H
 
-@[simp] lemma conj_mem'  (g : G)  (Γ : subgroup G) (h : G) :
-  (h ∈ conj_subgroup g Γ) ↔ ∃ x : Γ, g * x * g⁻¹ = h  :=
+@[simp] lemma conj_mem'  (g : G)  (H : subgroup G) (h : G) :
+  (h ∈ conj_subgroup g H) ↔ ∃ x : H, g * x * g⁻¹ = h  :=
 subgroup.mem_map.trans subtype.exists'
 
-lemma conj_subgroup_mul (g h : G) (Γ : subgroup G) :
-  conj_subgroup (g*h) Γ = conj_subgroup g (conj_subgroup h Γ) :=
+lemma conj_subgroup_mul (g h : G) (H : subgroup G) :
+  conj_subgroup (g*h) H = conj_subgroup g (conj_subgroup h H) :=
 begin
   simp_rw conj_subgroup,
   simp only [monoid_hom.map_mul] at *,
-  exact mul_smul (mul_aut.conj g) (mul_aut.conj h) Γ,
+  exact mul_smul (mul_aut.conj g) (mul_aut.conj h) H,
 end
 
-lemma conj_map  (g : G) (Γ : subgroup G) :
-  subgroup.map ((mul_aut.conj g).to_monoid_hom) Γ  = conj_subgroup g Γ :=
+lemma conj_map  (g : G) (H : subgroup G) :
+  subgroup.map ((mul_aut.conj g).to_monoid_hom) H  = conj_subgroup g H :=
 begin
  rw conj_subgroup,
  refl,
@@ -165,7 +164,7 @@ end
 end subgroup
 
 /--Isomorphism of a subgroup with its conjugate-/
-def conj_equiv (g : G) (Γ : subgroup G) : Γ ≃* conj_subgroup g Γ :=
+def conj_equiv (g : G) (H : subgroup G) : H ≃* conj_subgroup g H :=
 begin
   rw ← conj_map,
   apply subgroup.img_mul_equiv,

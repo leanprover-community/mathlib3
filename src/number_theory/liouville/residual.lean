@@ -73,7 +73,7 @@ lemma eventually_residual_liouville : ∀ᶠ x in residual ℝ, liouville x :=
 begin
   rw [filter.eventually, set_of_liouville_eq_irrational_inter_Inter_Union],
   refine eventually_residual_irrational.and _,
-  refine eventually_residual.2 ⟨_, _, dense_embedding_of_rat.dense.mono _, subset.rfl⟩,
+  refine eventually_residual.2 ⟨_, _, rat.dense_embedding_coe_real.dense.mono _, subset.rfl⟩,
   { exact is_Gδ_Inter (λ n, is_open.is_Gδ $ is_open_Union $ λ a, is_open_Union $
       λ b, is_open_Union $ λ hb, is_open_ball) },
   { rintro _ ⟨r, rfl⟩,

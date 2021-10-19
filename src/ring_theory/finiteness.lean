@@ -160,8 +160,11 @@ lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB 
 begin
   obtain ⟨S, hS⟩ := hB.out,
   refine ⟨⟨S, eq_top_iff.2 (λ b, _)⟩⟩,
-  convert (algebra.adjoin_le algebra.subset_adjoin :
-    adjoin R (S : set B) ≤  subalgebra.restrict_scalars R (adjoin A S)) (eq_top_iff.1 hS b)
+  have le : adjoin R (S : set B) ≤ subalgebra.restrict_scalars R (adjoin A S),
+  { apply (algebra.adjoin_le _ : _ ≤ (subalgebra.restrict_scalars R (adjoin A ↑S))),
+    simp only [subalgebra.coe_restrict_scalars],
+    exact algebra.subset_adjoin, },
+  exact le (eq_top_iff.1 hS b),
 end
 
 variables {R A B}

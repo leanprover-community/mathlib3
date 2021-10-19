@@ -1036,6 +1036,7 @@ by rw [←@not_lt _ _ o' o, enum_lt ho']
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def univ : ordinal.{max (u + 1) v} := lift.{v (u+1)} (@type ordinal.{u} (<) _)
 
 theorem univ_id : univ.{u (u+1)} = @type ordinal.{u} (<) _ := lift_id _
@@ -1254,6 +1255,7 @@ rel_embedding.order_embedding_of_lt_embedding
 /-- The cardinal `univ` is the cardinality of ordinal `univ`, or
   equivalently the cardinal of `ordinal.{u}`, or `cardinal.{u}`,
   as an element of `cardinal.{v}` (when `u < v`). -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def univ := lift.{v (u+1)} (#ordinal)
 
 theorem univ_id : univ.{u (u+1)} = #ordinal := lift_id _

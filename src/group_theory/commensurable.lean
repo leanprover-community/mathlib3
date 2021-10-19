@@ -79,7 +79,7 @@ namespace subgroup
 /--`mul_hom` on subgroups induced by `mul_hom` of parent group-/
 def img_mul_hom  (H : subgroup G) (f : G →* G') :
   H →* H.map f := {
-   to_fun:= λ x, ⟨f x, by {use x,
+   to_fun := λ x, ⟨f x, by {use x,
     simp only [set_like.coe_mem, eq_self_iff_true, set_like.mem_coe, and_self],}⟩,
    map_one' := by {simp only [subgroup.coe_one, monoid_hom.map_one],
     refl,},
@@ -91,7 +91,9 @@ def img_mul_hom  (H : subgroup G) (f : G →* G') :
 /--Isomorphism of a subgroup with its image under an isomorphism-/
 def img_mul_equiv  (H : subgroup G) (f : G ≃* G') :
   H ≃* (subgroup.map f.to_monoid_hom) H := {
-    to_fun := λ x, ⟨f.1 x, by {simp}⟩,
+    to_fun := λ x, ⟨f.1 x, by {simp only [exists_prop, set_like.coe_mem,
+      mul_equiv.coe_to_monoid_hom, mul_equiv.to_fun_eq_coe, subgroup.mem_map,
+      exists_eq_right, mul_equiv.apply_eq_iff_eq]}⟩,
     inv_fun := λ x, ⟨f.2 x, by {simp only [mul_equiv.inv_fun_eq_symm],
       have xp := x.property,
       simp_rw subgroup.map_equiv_eq_comap_symm at xp,
@@ -171,7 +173,7 @@ noncomputable def quot_map (H : subgroup G) (H' : subgroup G')
 (f : G →* G') :  quotient_group.quotient H →  quotient_group.quotient H' :=
 λ x, quotient_group.mk (f x.out')
 
-lemma quot_map_inj (H : subgroup G) (H' : subgroup G') (f : G →* G') (h :subgroup.map f H = H') :
+lemma quot_map_inj (H : subgroup G) (H' : subgroup G') (f : G →* G') (h : H.map f  = H') :
   (function.injective f) →  function.injective (quot_map H H' f) :=
 begin
   intro hf,
@@ -269,7 +271,7 @@ lemma inf_ind_prod (H K L : subgroup G) :
   (H.subgroup_of L).index = 0 ∨ (K.subgroup_of (L ⊓ H)).index = 0 :=
 begin
   have h1 : (subgroup.subgroup_of (H ⊓ K)  L) ≤ (subgroup.subgroup_of H  L),
-    by {apply subgroup.subgroup_of_le, simp,},
+    by {apply subgroup.subgroup_of_le, simp only [inf_le_left],},
   have h2 := subgroup.index_eq_mul_of_le h1,
   intro h,
   rw h at h2,

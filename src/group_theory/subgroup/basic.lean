@@ -954,6 +954,18 @@ begin
   refl,
 end
 
+@[simp, to_additive] lemma bot_subgroup_of : (⊥ : subgroup G).subgroup_of H = ⊥ :=
+eq.symm (subgroup.ext (λ g, subtype.ext_iff))
+
+@[simp, to_additive] lemma top_subgroup_of : (⊤ : subgroup G).subgroup_of H = ⊤ :=
+rfl
+
+@[to_additive] lemma subgroup_of_bot_eq_bot : H.subgroup_of ⊥ = ⊥ :=
+subsingleton.elim _ _
+
+@[to_additive] lemma subgroup_of_bot_eq_top : H.subgroup_of ⊥ = ⊤ :=
+subsingleton.elim _ _
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]

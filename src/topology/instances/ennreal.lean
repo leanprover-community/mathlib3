@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
 import topology.algebra.ordered.liminf_limsup
+import topology.metric_space.lipschitz
 /-!
 # Extended non-negative reals
 -/
@@ -1087,7 +1088,7 @@ begin
     ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]
 end
 
-theorem continuous.edist [topological_space β] {f g : β → α}
+@[continuity] theorem continuous.edist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, edist (f b) (g b)) :=
 continuous_edist.comp (hf.prod_mk hg : _)
 
@@ -1119,6 +1120,20 @@ end
 @[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
   metric.diam (closure s) = diam s :=
 by simp only [metric.diam, emetric.diam_closure]
+
+lemma is_closed_set_of_lipschitz_on_with {α β} [pseudo_emetric_space α] [pseudo_emetric_space β]
+  (K : ℝ≥0) (s : set α) :
+  is_closed {f : α → β | lipschitz_on_with K f s} :=
+begin
+  simp only [lipschitz_on_with, set_of_forall],
+  refine is_closed_bInter (λ x hx, is_closed_bInter $ λ y hy, is_closed_le _ _),
+  exacts [continuous.edist (continuous_apply x) (continuous_apply y), continuous_const]
+end
+
+lemma is_closed_set_of_lipschitz_with {α β} [pseudo_emetric_space α] [pseudo_emetric_space β]
+  (K : ℝ≥0) :
+  is_closed {f : α → β | lipschitz_with K f} :=
+by simp only [← lipschitz_on_univ, is_closed_set_of_lipschitz_on_with]
 
 namespace real
 

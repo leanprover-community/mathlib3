@@ -295,7 +295,11 @@ begin
     refine ⟨_, kA, kB⟩,
     { intros x hx,
       specialize z hx,
-      tauto } }
+      tauto } },
+  { rintro ⟨z, kA, kB⟩,
+    refine ⟨_, λ _, kB, kB, kA⟩,
+    intros x hx,
+    rw z hx }
 end
 
 /-- Colex doesn't care if you remove the other set -/

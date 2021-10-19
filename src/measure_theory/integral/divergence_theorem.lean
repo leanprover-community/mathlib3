@@ -7,7 +7,14 @@ import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
 import measure_theory.integral.interval_integral
 
-open set finset topological_space box_integral
+/-!
+# Divergence theorem for Bochner integral
+
+In this file we prove the Divergence theorem for Bochner integral on a box in `fin (n + 1) → ℝ`.
+
+-/
+
+open set finset topological_space function box_integral
 open_locale big_operators classical
 
 namespace measure_theory
@@ -26,7 +33,7 @@ local notation `Eⁿ⁺¹` := fin (n + 1) → E
 of integrals of `f` over the faces of `[a, b]`, taken with appropriat signs. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
   (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (a b : ℝⁿ⁺¹) (hle : a ≤ b)
-  (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ x ∈ Icc a b ∩ s, continuous_within_at f (Icc a b) x)
+  (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
   (Hd : ∀ x ∈ Icc a b \ s, has_fderiv_within_at f (f' x) (Icc a b) x)
   (Hi : integrable_on (λ x, ∑ i, f' x (pi.single i 1) i) (Icc a b)) :
   ∫ x in Icc a b, ∑ i, f' x (pi.single i 1) i =
@@ -56,7 +63,7 @@ begin
     have Hc : continuous_on f I.Icc,
     { intros x hx,
       by_cases hxs : x ∈ s,
-      exacts [Hc x ⟨hx, hxs⟩, (Hd x ⟨hx, hxs⟩).continuous_within_at] },
+      exacts [Hc x hxs, (Hd x ⟨hx, hxs⟩).continuous_within_at] },
     rw continuous_on_pi at Hc,
     refine (A.unique B).trans (sum_congr rfl $ λ i hi, _),
     refine congr_arg2 has_sub.sub _ _,

@@ -551,7 +551,7 @@ lemma comp_C_integral_of_surjective_of_jacobson
   {S : Type*} [field S] (f : (polynomial R) →+* S) (hf : function.surjective f) :
   (f.comp C).is_integral :=
 begin
-  haveI : (f.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f ⊥ hf bot_is_maximal,
+  haveI : (f.ker).is_maximal := f.ker_is_maximal_of_surjective hf,
   let g : f.ker.quotient →+* S := ideal.quotient.lift f.ker f (λ _ h, h),
   have hfg : (g.comp (quotient.mk f.ker)) = f := ring_hom_ext' rfl rfl,
   rw [← hfg, ring_hom.comp_assoc],
@@ -634,7 +634,7 @@ begin
   have hf' : function.surjective f' :=
     ((function.surjective.comp hf (rename_equiv R e.symm).surjective)),
   have : (f'.comp C).is_integral,
-  { haveI : (f'.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f' ⊥ hf' bot_is_maximal,
+  { haveI : (f'.ker).is_maximal := f'.ker_is_maximal_of_surjective hf',
     let g : f'.ker.quotient →+* S := ideal.quotient.lift f'.ker f' (λ _ h, h),
     have hfg : (g.comp (quotient.mk f'.ker)) = f' := ring_hom_ext (λ r, rfl) (λ i, rfl),
     rw [← hfg, ring_hom.comp_assoc],

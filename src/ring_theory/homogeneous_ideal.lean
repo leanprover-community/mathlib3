@@ -86,31 +86,17 @@ private lemma homogeneous_ideal.mul_homogeneous_element [add_comm_monoid ι] [gc
   of A j ((r * x) j) ∈ I :=
 begin
   rw [direct_sum.eq_sum_of _ r, finset.sum_mul, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],
-  apply ideal.sum_mem, intros k hk,
-  have : (of A k) (r k) * x = direct_sum.mul_hom _ (of A k (r k)) x := rfl,
-  rw this,
+  apply ideal.sum_mem,
+  intros k hk,
   obtain ⟨⟨i, z⟩, rfl⟩ := hx₁,
-  simp only [mul_hom_of_of],
-  rw [of, of, dfinsupp.single_add_hom],
-  simp only [dfinsupp.single_add_hom_apply, add_monoid_hom.coe_mk],
-  rw [dfinsupp.single_apply],
-  simp only [ne.def, dfinsupp.mem_support_to_fun] at *,
+  rw of_mul_of,
+  dsimp only,
   by_cases k + i = j,
-  { simp only [h, dif_pos, eq_self_iff_true],
-    have eq₁ : dfinsupp.single j (h.rec (graded_monoid.ghas_mul.mul (r k) z)) =
-    direct_sum.mul_hom _ (of A k (r k)) (of A i z),
-    { rw [show dfinsupp.single j (h.rec (graded_monoid.ghas_mul.mul (r k) z)) =
-      of A j (h.rec (graded_monoid.ghas_mul.mul (r k) z)), from rfl,
-        show of A j (h.rec (graded_monoid.ghas_mul.mul (r k) z)) =
-          of A (k + i) (graded_monoid.ghas_mul.mul (r k) z), from _],
-      rw [mul_hom_of_of], finish },
-    rw eq₁,
-
-    have eq₂ : ((mul_hom (λ (i : ι), A i)) ((of A k) (r k))) ((of A i) z) =
-    (of A k (r k)) * (of A i z) := rfl, rw eq₂,
-    apply ideal.mul_mem_left _ _ hx₂,
-    },
-  { simp only [h, dfinsupp.single_zero, dif_neg, not_false_iff, submodule.zero_mem], }
+  { subst h,
+    rw [of_eq_same, ←of_mul_of],
+    apply I.mul_mem_left _ hx₂, },
+  { rw [of_eq_of_ne _ _ _ _ h, add_monoid_hom.map_zero],
+    exact I.zero_mem }
 end
 
 lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
@@ -118,14 +104,14 @@ lemma homogeneous_ideal.mem_iff [add_comm_monoid ι] [gcomm_semiring A]
   x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
 ⟨λ hx j, begin
   have HI' := HI,
-  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span_eq_span'] at HI',
+  rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span,
+    finsupp.span_eq_range_total] at HI',
   rw HI' at hx,
-  obtain ⟨s, r, rfl⟩ := hx,
-  simp only [dfinsupp.finset_sum_apply], rw add_monoid_hom.map_sum,
-  apply ideal.sum_mem, rintros ⟨y, y_mem_I, z, y_eq⟩ hy,
-  apply homogeneous_ideal.mul_homogeneous_element HI,
-  use z, simp only [subtype.coe_mk], rw [y_eq],
-  convert y_mem_I,
+  obtain ⟨s, rfl⟩ := hx,
+  rw [finsupp.total_apply, finsupp.sum, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],
+  apply ideal.sum_mem,
+  rintros ⟨-, y_mem_I, z, rfl⟩ hy,
+  exact homogeneous_ideal.mul_homogeneous_element HI _ _ ⟨z, rfl⟩ y_mem_I _,
 end, begin
   intro H, rw [direct_sum.eq_sum_of _ x], apply ideal.sum_mem, intros j hj,
   apply H,

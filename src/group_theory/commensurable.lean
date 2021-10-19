@@ -16,7 +16,7 @@ of `G`.
 
 ## Main definitions
 
-* `commensurable`: defines commensurability for two subgroups `H K` of  `G`
+* `commensurable`: defines commensurability for two subgroups `H, K` of  `G`
 * `commensurator`: defines the commensurator of a a subgroup `H` of `G`
 * `conj_subgroup`: defined the conjugate subgroup of a subgroup `H` by an element `g : G`,
  i.e. `g H g⁻¹` --maybe this should be moved somewhere else?
@@ -28,8 +28,7 @@ variables {G G' : Type*} [group G][group G']
 
 /--Two subgroups `H K` of `G` are commensurable if `H ⊓ K` has finite index in both `H` and `K` -/
 def commensurable (H K : subgroup G) : Prop :=
-  subgroup.index (H.subgroup_of K) ≠ 0 ∧
-  subgroup.index (K.subgroup_of H) ≠ 0
+  subgroup.index (H.subgroup_of K) ≠ 0 ∧ subgroup.index (K.subgroup_of H) ≠ 0
 
 namespace commensurable
 

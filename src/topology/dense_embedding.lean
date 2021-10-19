@@ -31,7 +31,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- `i : α → β` is "dense inducing" if it has dense range and the topology on `α`
   is the one induced by `i` from the topology on `β`. -/
-structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
+@[protect_proj] structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
   extends inducing i : Prop :=
 (dense : dense_range i)
 
@@ -49,30 +49,24 @@ di.to_inducing.continuous
 lemma closure_range : closure (range i) = univ :=
 di.dense.closure_range
 
-lemma self_sub_closure_image_preimage_of_open {s : set β} (di : dense_inducing i) :
-  is_open s → s ⊆ closure (i '' (i ⁻¹' s)) :=
+lemma preconnected_space [preconnected_space α] (di : dense_inducing i) : preconnected_space β :=
+di.dense.preconnected_space di.continuous
+
+lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs : s ∈ 𝓝 a) :
+  closure (i '' s) ∈ 𝓝 (i a) :=
 begin
-  intros s_op b b_in_s,
-  rw [image_preimage_eq_inter_range, mem_closure_iff],
-  intros U U_op b_in,
-  rw ←inter_assoc,
-  exact (dense_iff_inter_open.1 di.dense) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
+  rw [di.nhds_eq_comap a, ((nhds_basis_opens _).comap _).mem_iff] at hs,
+  rcases hs with ⟨U, ⟨haU, hUo⟩, sub : i ⁻¹' U ⊆ s⟩,
+  refine mem_of_superset (hUo.mem_nhds haU) _,
+  calc U ⊆ closure (i '' (i ⁻¹' U)) : di.dense.subset_closure_image_preimage_of_is_open hUo
+     ... ⊆ closure (i '' s)         : closure_mono (image_subset i sub)
 end
 
-lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :
-  s ∈ 𝓝 a → closure (i '' s) ∈ 𝓝 (i a) :=
+lemma dense_image (di : dense_inducing i) {s : set α} : dense (i '' s) ↔ dense s :=
 begin
-  rw [di.nhds_eq_comap a, mem_comap_sets],
-  intro h,
-  rcases h with ⟨t, t_nhd, sub⟩,
-  rw mem_nhds_sets_iff at t_nhd,
-  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
-  have := calc i ⁻¹' U ⊆ i⁻¹' t : preimage_mono U_sub
-                   ... ⊆ s      : sub,
-  have := calc U ⊆ closure (i '' (i ⁻¹' U)) : self_sub_closure_image_preimage_of_open di U_op
-             ... ⊆ closure (i '' s)         : closure_mono (image_subset i this),
-  have U_nhd : U ∈ 𝓝 (i a) := mem_nhds_sets U_op e_a_in_U,
-  exact (𝓝 (i a)).sets_of_superset U_nhd this
+  refine ⟨λ H x, _, di.dense.dense_image di.continuous⟩,
+  rw [di.to_inducing.closure_eq_preimage_closure_image, H.closure_eq, preimage_univ],
+  trivial
 end
 
 /-- The product of two dense inducings is a dense inducing -/
@@ -94,8 +88,8 @@ variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 g↓     ↓e
  δ -h→ β
 -/
-lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i) (H : tendsto h (𝓝 d) (𝓝 (i a)))
-  (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
+lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i)
+  (H : tendsto h (𝓝 d) (𝓝 (i a))) (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
 begin
   have lim1 : map g (comap g (𝓝 d)) ≤ 𝓝 d := map_comap_le,
   replace lim1 : map h (map g (comap g (𝓝 d))) ≤ map h (𝓝 d) := map_mono lim1,
@@ -170,11 +164,11 @@ begin
     rwa di.extend_eq_of_tendsto hc },
   obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
-                            (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },
+                            (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
-  { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
+  { filter_upwards [inter_mem V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
-  have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
+  have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
   use V₂,
   tauto,
@@ -182,7 +176,7 @@ end
 
 lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
   (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
-continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem_sets' hf
+continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem' hf
 
 lemma mk'
   (i : α → β)
@@ -227,34 +221,39 @@ lemma to_embedding : embedding e :=
 protected lemma separable_space [separable_space α] : separable_space β :=
 de.to_dense_inducing.separable_space
 
-/-- The product of two dense embeddings is a dense embedding -/
-protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
+/-- The product of two dense embeddings is a dense embedding. -/
+protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁)
+  (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
     by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
   ..dense_inducing.prod de₁.to_dense_inducing de₂.to_dense_inducing }
 
 /-- The dense embedding of a subtype inside its closure. -/
-def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
+@[simps] def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
 ⟨e x, subset_closure $ mem_image_of_mem e x.prop⟩
 
 protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
-{ dense_embedding .
-  dense   := assume ⟨x, hx⟩, closure_subtype.mpr $
-    have (λ (x : {x // p x}), e x) = e ∘ coe, from rfl,
+{ dense := dense_iff_closure_eq.2 $
     begin
-      rw ← image_univ,
-      simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype.coe_image],
-      simp,
-      assumption
+      ext ⟨x, hx⟩,
+      rw image_eq_range at hx,
+      simpa [closure_subtype, ← range_comp, (∘)],
     end,
-  inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
+  inj := (de.inj.comp subtype.coe_injective).cod_restrict _,
   induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
     by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
 
+lemma dense_image {s : set α} : dense (e '' s) ↔ dense s :=
+de.to_dense_inducing.dense_image
+
 end dense_embedding
+
+lemma dense.dense_embedding_coe [topological_space α] {s : set α} (hs : dense s) :
+  dense_embedding (coe : s → α) :=
+{ dense := hs.dense_range_coe,
+  .. embedding_subtype_coe }
 
 lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop}
   (he : dense_range e) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
@@ -273,7 +272,8 @@ have ∀q:β×β, p q.1 q.2,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
   from is_closed_property (he.prod_map $ he.prod_map he) hp $ λ _, h _ _ _,
@@ -291,7 +291,8 @@ lemma dense_range.induction_on₂ [topological_space β] {e : α → β} {p : β
 
 @[elab_as_eliminator]
 lemma dense_range.induction_on₃ [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
   (b₁ b₂ b₃ : β) : p b₁ b₂ b₃ := is_closed_property3 he hp h _ _ _
 
 section

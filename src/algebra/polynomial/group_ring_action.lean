@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.polynomial.monic
+import data.polynomial.algebra_map
 import algebra.group_ring_action
 import algebra.group_action_hom
+
 
 /-!
 # Group action on rings applied to polynomials
@@ -19,39 +21,34 @@ namespace polynomial
 
 variables (R : Type*) [semiring R]
 
-noncomputable instance [mul_semiring_action M R] : mul_semiring_action M (polynomial R) :=
-{ smul := λ m, map $ mul_semiring_action.to_semiring_hom M R m,
-  one_smul := λ p, by { ext n, erw coeff_map, exact one_smul M (p.coeff n) },
-  mul_smul := λ m n p, by { ext i,
-    iterate 3 { rw coeff_map (mul_semiring_action.to_semiring_hom M R _) },
-    exact mul_smul m n (p.coeff i) },
-  smul_add := λ m p q, map_add (mul_semiring_action.to_semiring_hom M R m),
-  smul_zero := λ m, map_zero (mul_semiring_action.to_semiring_hom M R m),
-  smul_one := λ m, map_one (mul_semiring_action.to_semiring_hom M R m),
-  smul_mul := λ m p q, map_mul (mul_semiring_action.to_semiring_hom M R m), }
+variables {M}
 
-noncomputable instance [faithful_mul_semiring_action M R] :
-  faithful_mul_semiring_action M (polynomial R) :=
-{ eq_of_smul_eq_smul' := λ m₁ m₂ h, eq_of_smul_eq_smul R $ λ s, C_inj.1 $
-    calc  C (m₁ • s)
-        = m₁ • C s : (map_C $ mul_semiring_action.to_semiring_hom M R m₁).symm
-    ... = m₂ • C s : h (C s)
-    ... = C (m₂ • s) : map_C _,
-  .. polynomial.mul_semiring_action M R }
+lemma smul_eq_map [mul_semiring_action M R] (m : M) :
+  ((•) m) = map (mul_semiring_action.to_ring_hom M R m) :=
+begin
+  suffices :
+    distrib_mul_action.to_add_monoid_hom (polynomial R) m =
+      (map_ring_hom (mul_semiring_action.to_ring_hom M R m)).to_add_monoid_hom,
+  { ext1 r, exact add_monoid_hom.congr_fun this r, },
+  ext n r : 2,
+  change m • monomial n r = map (mul_semiring_action.to_ring_hom M R m) (monomial n r),
+  simpa only [polynomial.map_monomial, polynomial.smul_monomial],
+end
+
+variables (M)
+
+noncomputable instance [mul_semiring_action M R] : mul_semiring_action M (polynomial R) :=
+{ smul := (•),
+  smul_one := λ m, (smul_eq_map R m).symm ▸ map_one (mul_semiring_action.to_ring_hom M R m),
+  smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_ring_hom M R m),
+  ..polynomial.distrib_mul_action }
 
 variables {M R}
 
 variables [mul_semiring_action M R]
 
-@[simp] lemma coeff_smul' (m : M) (p : polynomial R) (n : ℕ) :
-  (m • p).coeff n = m • p.coeff n :=
-coeff_map _ _
-
-@[simp] lemma smul_C (m : M) (r : R) : m • C r = C (m • r) :=
-map_C _
-
 @[simp] lemma smul_X (m : M) : (m • X : polynomial R) = X :=
-map_X _
+(smul_eq_map R m).symm ▸ map_X _
 
 variables (S : Type*) [comm_semiring S] [mul_semiring_action M S]
 
@@ -60,8 +57,8 @@ theorem smul_eval_smul (m : M) (f : polynomial S) (x : S) :
 polynomial.induction_on f
   (λ r, by rw [smul_C, eval_C, eval_C])
   (λ f g ihf ihg, by rw [smul_add, eval_add, ihf, ihg, eval_add, smul_add])
-  (λ n r ih, by rw [smul_mul', smul_pow, smul_C, smul_X, eval_mul, eval_C, eval_pow, eval_X,
-      eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow])
+  (λ n r ih, by rw [smul_mul', smul_pow', smul_C, smul_X, eval_mul, eval_C, eval_pow, eval_X,
+      eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow'])
 
 variables (G : Type*) [group G]
 
@@ -91,22 +88,20 @@ theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=
 polynomial.monic_prod_of_monic _ _ $ λ g _, polynomial.monic_X_sub_C _
 
 theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
-(finset.prod_hom _ (polynomial.eval x)).symm.trans $
+(monoid_hom.map_prod
+  ((polynomial.aeval x).to_ring_hom.to_monoid_hom : polynomial R →* R) _ _).trans $
   finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
-  by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X,
-    polynomial.eval_C, sub_self]
+  by simp
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
-(smul_prod _ _ _ _ _).trans $ finset.prod_bij (λ g' _, g • g') (λ _ _, finset.mem_univ _)
-  (λ g' _, by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
-  (λ _ _ _ _ H, (mul_action.bijective g).1 H)
-  (λ g' _, ⟨g⁻¹ • g', finset.mem_univ _, by rw [smul_smul, mul_inv_self, one_smul]⟩)
+finset.smul_prod.trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
+  (λ g', by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
 
 theorem prod_X_sub_smul.coeff (x : R) (g : G) (n : ℕ) :
   g • (prod_X_sub_smul G R x).coeff n =
   (prod_X_sub_smul G R x).coeff n :=
-by rw [← polynomial.coeff_smul', prod_X_sub_smul.smul]
+by rw [← polynomial.coeff_smul, prod_X_sub_smul.smul]
 
 end comm_ring
 
@@ -122,9 +117,9 @@ protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M
   map_smul' := λ m p, polynomial.induction_on p
     (λ b, by rw [smul_C, map_C, coe_fn_coe, g.map_smul, map_C, coe_fn_coe, smul_C])
     (λ p q ihp ihq, by rw [smul_add, polynomial.map_add, ihp, ihq, polynomial.map_add, smul_add])
-    (λ n b ih, by rw [smul_mul', smul_C, smul_pow, smul_X, polynomial.map_mul, map_C,
+    (λ n b ih, by rw [smul_mul', smul_C, smul_pow', smul_X, polynomial.map_mul, map_C,
         polynomial.map_pow, map_X, coe_fn_coe, g.map_smul, polynomial.map_mul, map_C,
-        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow, smul_X, coe_fn_coe]),
+        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow', smul_X, coe_fn_coe]),
   map_zero' := polynomial.map_zero g,
   map_add' := λ p q, polynomial.map_add g,
   map_one' := polynomial.map_one g,

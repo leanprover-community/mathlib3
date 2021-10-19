@@ -12,7 +12,7 @@
   author : Chris Hughes
 4:
   title  : Pythagorean Theorem
-  decl   : euclidean_geometry.dist_square_eq_dist_square_add_dist_square_iff_angle_eq_pi_div_two
+  decl   : euclidean_geometry.dist_sq_eq_dist_sq_add_dist_sq_iff_angle_eq_pi_div_two
   author : Joseph Myers
 5:
   title  : Prime Number Theorem
@@ -26,6 +26,9 @@
   title  : The Impossibility of Trisecting the Angle and Doubling the Cube
 9:
   title  : The Area of a Circle
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/9_area_of_a_circle.lean
+  author : James Arthur, Benjamin Davidson, and Andrew Souther
 10:
   title  : Euler’s Generalization of Fermat’s Little Theorem
   decl   : nat.modeq.pow_totient
@@ -40,27 +43,36 @@
   title  : Polyhedron Formula
 14:
   title  : Euler’s Summation of 1 + (1/2)^2 + (1/3)^2 + ….
+  author : Marc Masdeu
+  links  :
+    result : https://github.com/mmasdeu/euler/blob/main/src/euler.lean#L712
+    website: https://github.com/mmasdeu/euler
 15:
   title  : Fundamental Theorem of Integral Calculus
+  decls  :
+    - interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right
+    - interval_integral.integral_eq_sub_of_has_deriv_right_of_le
+  author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
-  title  : Insolvability of General Higher Degree Equations
+  title  : Insolvability of General Higher Degree Equations (Abel-Ruffini Theorem)
+  author: Thomas Browning
+  links :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/16_abel_ruffini.lean
 17:
-  title  : De Moivre’s Theorem
+  title  : De Moivre’s Formula
   decl   : complex.cos_add_sin_mul_I_pow
   author : Abhimanyu Pallavi Sudhir
 18:
   title  : Liouville’s Theorem and the Construction of Transcendental Numbers
   author : Jujian Zhang
-  links  :
-    result: https://github.com/jjaassoonn/transcendental/blob/master/src/liouville_theorem.lean
-    website: https://jjaassoonn.github.io/transcendental/
+  decl   :  liouville.transcendental
 19:
   title  : Four Squares Theorem
   decl   : nat.sum_four_squares
   author : Chris Hughes
 20:
   title  : All Primes (1 mod 4) Equal the Sum of Two Squares
-  decl   : nat.prime.sum_two_squares
+  decl   : nat.prime.sq_add_sq
   author : Chris Hughes
 21:
   title  : Green’s Theorem
@@ -73,7 +85,7 @@
   decl   : pythagorean_triple.classification
   author : Paul van Wamelen
 24:
-  title  : The Undecidability of the Continuum Hypothesis
+  title  : The Independence of the Continuum Hypothesis
   author : Jesse Michael Han and Floris van Doorn
   links  :
     result: https://github.com/flypitch/flypitch/blob/master/src/summary.lean
@@ -151,12 +163,12 @@
   title  : Dirichlet’s Theorem
 49:
   title  : The Cayley-Hamilton Theorem
-  decl   : aeval_self_char_poly
+  decl   : matrix.aeval_self_charpoly
   author : Scott Morrison
 50:
   title  : The Number of Platonic Solids
 51:
-  title  : Wilson’s Theorem
+  title  : Wilson’s Lemma
   decl   : zmod.wilsons_lemma
   author : Chris Hughes
 52:
@@ -169,10 +181,15 @@
   title  : Konigsberg Bridges Problem
 55:
   title  : Product of Segments of Chords
+  decl   : euclidean_geometry.mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi
+  author : Manuel Candales
 56:
   title  : The Hermite-Lindemann Transcendence Theorem
 57:
   title  : Heron’s Formula
+  links :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/57_herons_formula.lean
+  author : Matt Kempster
 58:
   title  : Formula for the Number of Combinations
   decls  :
@@ -231,7 +248,7 @@
   author : Aaron Anderson
 71:
   title  : Order of a Subgroup
-  decl   : card_subgroup_dvd_card
+  decl   : subgroup.card_subgroup_dvd_card
   author : mathlib
 72:
   title  : Sylow’s Theorem
@@ -243,7 +260,7 @@
     card_sylow_modeq_one: https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L944
   author : Chris Hughes
 73:
-  title  : Ascending or Descending Sequences
+  title  : Ascending or Descending Sequences (Erdős–Szekeres Theorem)
   links  :
     mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/73_ascending_descending_sequences.lean
   author : Bhavik Mehta
@@ -260,6 +277,10 @@
   title  : Fourier Series
 77:
   title  : Sum of kth powers
+  decls  :
+    - sum_range_pow
+    - sum_Ico_pow
+  author : mathlib (Moritz Firsching, Fabian Kruse, Ashvni Narayanan)
 78:
   title  : The Cauchy-Schwarz Inequality
   decls  :
@@ -289,9 +310,9 @@
   author : Floris van Doorn
 83:
   title  : The Friendship Theorem
-  links:
+  links  :
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/83_friendship_graphs.lean
-  author: Aaron Anderson, Jalex Stark, Kyle Miller
+  author : Aaron Anderson, Jalex Stark, Kyle Miller
 84:
   title  : Morley’s Theorem
 85:
@@ -307,6 +328,10 @@
   title  : Desargues’s Theorem
 88:
   title  : Derangements Formula
+  decls  :
+    - card_derangements_eq_num_derangements
+    - num_derangements_sum
+  author : Henry Swanson
 89:
   title  : The Factor and Remainder Theorems
   decls  :
@@ -323,12 +348,18 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
+  decl   : fintype.card_embedding_eq
+  links  :
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
+  author : Eric Rodriguez
 94:
   title  : The Law of Cosines
-  decl   : euclidean_geometry.dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle
+  decl   : euclidean_geometry.dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle
   author : Joseph Myers
 95:
   title  : Ptolemy’s Theorem
+  decl   : euclidean_geometry.mul_dist_add_mul_dist_eq_mul_dist_of_cospherical
+  author : Manuel Candales
 96:
   title  : Principle of Inclusion/Exclusion
   links  :

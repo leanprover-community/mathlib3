@@ -3,10 +3,8 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.ideal.operations
-import data.polynomial.ring_division
-import tactic.apply_fun
 import ring_theory.prime
+import ring_theory.polynomial.content
 /-!
 # Eisenstein's criterion
 
@@ -15,7 +13,7 @@ a polynomial over an integral domain.
 -/
 
 open polynomial ideal.quotient
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R]
 
 namespace polynomial
 namespace eisenstein_criterion_aux
@@ -33,7 +31,7 @@ polynomial.ext (λ n, begin
   { rw [coeff_eq_zero_of_degree_lt, coeff_eq_zero_of_degree_lt],
     { refine lt_of_le_of_lt (degree_C_mul_X_pow_le _ _) _,
       rwa ← degree_eq_nat_degree hf0 },
-    { exact lt_of_le_of_lt (degree_map_le _) h } }
+    { exact lt_of_le_of_lt (degree_map_le _ _) h } }
 end)
 
 lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
@@ -42,7 +40,7 @@ lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
 with_bot.coe_le_coe.1
   (calc ↑n = degree (q.map (mk P)) :
       by rw [hq, degree_mul, hc0, zero_add, degree_pow, degree_X, nsmul_one, nat.cast_with_bot]
-      ... ≤ degree q : degree_map_le _
+      ... ≤ degree q : degree_map_le _ _
       ... ≤ nat_degree q : degree_le_nat_degree)
 
 lemma eval_zero_mem_ideal_of_eq_mul_X_pow {n : ℕ} {P : ideal R}
@@ -65,6 +63,8 @@ end eisenstein_criterion_aux
 
 open eisenstein_criterion_aux
 
+variables [integral_domain R]
+
 /-- If `f` is a non constant polynomial with coefficients in `R`, and `P` is a prime ideal in `R`,
 then if every coefficient in `R` except the leading coefficient is in `P`, and
 the trailing coefficient is not in `P^2` and no non units in `R` divide `f`, then `f` is
@@ -73,7 +73,7 @@ theorem irreducible_of_eisenstein_criterion {f : polynomial R} {P : ideal R} (hP
   (hfl : f.leading_coeff ∉ P)
   (hfP : ∀ n : ℕ, ↑n < degree f → f.coeff n ∈ P)
   (hfd0 : 0 < degree f) (h0 : f.coeff 0 ∉ P^2)
-  (hu : ∀ x : R, C x ∣ f → is_unit x) : irreducible f :=
+  (hu : f.is_primitive) : irreducible f :=
 have hf0 : f ≠ 0, from λ _, by simp only [*, not_true, submodule.zero_mem, coeff_zero] at *,
 have hf : f.map (mk P) = C (mk P (leading_coeff f)) * X ^ nat_degree f,
   from map_eq_C_mul_X_pow_of_forall_coeff_mem hfP hf0,
@@ -84,12 +84,12 @@ begin
   rintros p q rfl,
   rw [map_mul] at hf,
   rcases mul_eq_mul_prime_pow (show prime (X : polynomial (ideal.quotient P)),
-    from prime_of_degree_eq_one_of_monic degree_X monic_X) hf with
+    from monic_X.prime_of_degree_eq_one degree_X) hf with
       ⟨m, n, b, c, hmnd, hbc, hp, hq⟩,
   have hmn : 0 < m → 0 < n → false,
   { assume hm0 hn0,
     refine h0 _,
-    rw [coeff_zero_eq_eval_zero, eval_mul, pow_two],
+    rw [coeff_zero_eq_eval_zero, eval_mul, sq],
     exact ideal.mul_mem_mul
       (eval_zero_mem_ideal_of_eq_mul_X_pow hp hm0)
       (eval_zero_mem_ideal_of_eq_mul_X_pow hq hn0) },
@@ -107,9 +107,14 @@ begin
   have hpmqn : p.nat_degree = m ∧ q.nat_degree = n,
   { rw [nat_degree_mul hp0 hq0] at hmnd,
     clear_except hmnd hmp hnq,
-    omega },
+    contrapose hmnd,
+    apply ne_of_lt,
+    rw not_and_distrib at hmnd,
+    cases hmnd,
+    { exact add_lt_add_of_lt_of_le (lt_of_le_of_ne hmp (ne.symm hmnd)) hnq },
+    { exact add_lt_add_of_le_of_lt hmp (lt_of_le_of_ne hnq (ne.symm hmnd)) } },
   obtain rfl | rfl : m = 0 ∨ n = 0,
-  { rwa [nat.pos_iff_ne_zero, nat.pos_iff_ne_zero, imp_false, not_not,
+  { rwa [pos_iff_ne_zero, pos_iff_ne_zero, imp_false, not_not,
       ← or_iff_not_imp_left] at hmn },
   { exact or.inl (is_unit_of_nat_degree_eq_zero_of_forall_dvd_is_unit hu hpmqn.1) },
   { exact or.inr (is_unit_of_nat_degree_eq_zero_of_forall_dvd_is_unit

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kenny Lau.
+Authors: Kenny Lau
 -/
 
 import ring_theory.polynomial
@@ -40,14 +40,17 @@ rfl
 
 @[simp] theorem eval_basis_self (x : F) : (basis s x).eval x = 1 :=
 begin
-  rw [basis, ← (s.erase x).prod_hom (eval x), finset.prod_eq_one],
+  rw [basis, ← coe_eval_ring_hom, (eval_ring_hom x).map_prod, coe_eval_ring_hom,
+    finset.prod_eq_one],
   intros y hy, simp_rw [eval_mul, eval_sub, eval_C, eval_X],
   exact inv_mul_cancel (sub_ne_zero_of_ne (finset.ne_of_mem_erase hy).symm)
 end
 
 @[simp] theorem eval_basis_ne (x y : F) (h1 : y ∈ s) (h2 : y ≠ x) : (basis s x).eval y = 0 :=
 begin
-  rw [basis, ← (s.erase x).prod_hom (eval y), finset.prod_eq_zero (finset.mem_erase.2 ⟨h2, h1⟩)],
+  rw [basis,
+  ← coe_eval_ring_hom, (eval_ring_hom y).map_prod, coe_eval_ring_hom,
+    finset.prod_eq_zero (finset.mem_erase.2 ⟨h2, h1⟩)],
   simp_rw [eval_mul, eval_sub, eval_C, eval_X, sub_self, mul_zero]
 end
 
@@ -74,7 +77,7 @@ begin
     { rw ← pow_one (X : polynomial F) at hz, exact X_pow_sub_C_ne_zero zero_lt_one _ hz } }
 end
 
-variables (f : (↑s : set F) → F)
+variables (f : s → F)
 
 /-- Lagrange interpolation: given a finset `s` and a function `f : s → F`,
 `interpolate s f` is the unique polynomial of degree `< s.card`
@@ -87,7 +90,9 @@ rfl
 
 @[simp] theorem eval_interpolate (x) (H : x ∈ s) : eval x (interpolate s f) = f ⟨x, H⟩ :=
 begin
-  rw [interpolate, ← finset.sum_hom _ (eval x), finset.sum_eq_single (⟨x, H⟩ : { x // x ∈ s })],
+  rw [interpolate,
+  ← coe_eval_ring_hom, (eval_ring_hom x).map_sum, coe_eval_ring_hom,
+      finset.sum_eq_single (⟨x, H⟩ : { x // x ∈ s })],
   { rw [eval_mul, eval_C, subtype.coe_mk, eval_basis_self, mul_one] },
   { rintros ⟨y, hy⟩ _ hyx, rw [eval_mul, subtype.coe_mk, eval_basis_ne s y x H, mul_zero],
     { rintros rfl, exact hyx rfl } },
@@ -96,7 +101,7 @@ end
 
 theorem degree_interpolate_lt : (interpolate s f).degree < s.card :=
 if H : s = ∅ then by { subst H, rw [interpolate_empty, degree_zero], exact with_bot.bot_lt_coe _ }
-else lt_of_le_of_lt (degree_sum_le _ _) $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
+else (degree_sum_le _ _).trans_lt $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
 calc  (C (f b) * basis s b).degree
     ≤ (C (f b)).degree + (basis s b).degree : degree_mul_le _ _
 ... ≤ 0 + (basis s b).degree : add_le_add_right degree_C_le _
@@ -106,7 +111,7 @@ calc  (C (f b) * basis s b).degree
 ... < s.card : with_bot.coe_lt_coe.2 (nat.pred_lt $ mt finset.card_eq_zero.1 H)
 
 /-- Linear version of `interpolate`. -/
-def linterpolate : ((↑s : set F) → F) →ₗ[F] polynomial F :=
+def linterpolate : (s → F) →ₗ[F] polynomial F :=
 { to_fun := interpolate s,
   map_add' := λ f g, by { simp_rw [interpolate, ← finset.sum_add_distrib, ← add_mul, ← C_add],
     refl },
@@ -148,10 +153,12 @@ eq_of_eval_eq s (degree_interpolate_lt s _) hf $ λ x hx, eval_interpolate s _ x
 
 /-- Lagrange interpolation induces isomorphism between functions from `s` and polynomials
 of degree less than `s.card`. -/
-def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] ((↑s : set F) → F) :=
+def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] (s → F) :=
 { to_fun := λ f x, f.1.eval x,
   map_add' := λ f g, funext $ λ x, eval_add,
-  map_smul' := λ c f, funext $ λ x, by { rw [pi.smul_apply, smul_eq_mul, ← @eval_C F c _ x,
+  map_smul' := λ c f, funext $ λ x, by {
+      change eval ↑x (c • f).val = (c • λ (x : s), eval ↑x f.val) x,
+      rw [pi.smul_apply, smul_eq_mul, ← @eval_C F c _ x,
       ← eval_mul, eval_C, C_mul'], refl },
   inv_fun := λ f, ⟨interpolate s f, mem_degree_lt.2 $ degree_interpolate_lt s f⟩,
   left_inv := λ f, subtype.eq $ eq_interpolate s f $ mem_degree_lt.1 f.2,

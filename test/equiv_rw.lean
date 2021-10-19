@@ -120,8 +120,7 @@ begin
   have : (α → α) ≃ _, {
     apply equiv.arrow_congr,
     apply e,
-    apply e,
-  },
+    apply e, },
   equiv_rw e,
   exact (@id β),
 end
@@ -238,8 +237,7 @@ begin
     -- intro h,
     -- clear_dependent mul,
     -- rename mul' mul,
-    exact mul,
-  },
+    exact mul, },
   -- transport axioms by simplifying, and applying the original axiom
   { intros, dsimp, simp, apply S.mul_assoc, }
 end
@@ -255,8 +253,6 @@ begin
   exact x * y = e (e.symm x * e.symm y)
 end :=
 rfl
-
-attribute [ext] semigroup
 
 lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }
@@ -287,7 +283,7 @@ mk_simp_attribute transport_simps "simps useful inside `transport`"
 
 attribute [transport_simps]
   eq_rec_constant
-  eq_mpr_rfl
+  cast_eq
   equiv.to_fun_as_coe
   equiv.arrow_congr'_apply
   equiv.symm_apply_apply
@@ -312,6 +308,17 @@ begin
     simp only with transport_simps,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
+    solve_by_elim, },
+  { have npow := S.npow, equiv_rw e at npow, exact npow, },
+  { try { unfold_projs },
+    simp only with transport_simps,
+    have npow_zero' := S.npow_zero',
+    equiv_rw e at npow_zero',
+    solve_by_elim, },
+  { try { unfold_projs },
+    simp only with transport_simps,
+    have npow_succ' := S.npow_succ',
+    equiv_rw e at npow_succ',
     solve_by_elim, },
 end
 

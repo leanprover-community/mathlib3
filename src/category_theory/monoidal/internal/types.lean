@@ -19,7 +19,6 @@ Moreover, this equivalence is compatible with the forgetful functors to `Type`.
 universes v u
 
 open category_theory
-open category_theory.monoidal
 
 namespace Mon_Type_equivalence_Mon
 

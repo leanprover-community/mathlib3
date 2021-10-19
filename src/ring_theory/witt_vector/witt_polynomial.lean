@@ -4,22 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import algebra.invertible
+import algebra.char_p.invertible
+import data.fintype.card
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
 import data.zmod.basic
-
-open mv_polynomial
-open finset (hiding map)
-open finsupp (single)
-
-open_locale big_operators
-
-local attribute [-simp] coe_eval₂_hom
-
-variables (p : ℕ)
-variables (R : Type*) [comm_ring R]
 
 /-!
 # Witt polynomials
@@ -59,7 +49,23 @@ In this file we use the following notation
 * `R` and `S` are commutative rings
 * `W n` (and `W_ R n` when the ring needs to be explicit) denotes the `n`th Witt polynomial
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
+
+open mv_polynomial
+open finset (hiding map)
+open finsupp (single)
+
+open_locale big_operators
+
+local attribute [-simp] coe_eval₂_hom
+
+variables (p : ℕ)
+variables (R : Type*) [comm_ring R]
 
 /-- `witt_polynomial p R n` is the `n`-th Witt polynomial
 with respect to a prime `p` with coefficients in a commutative ring `R`.
@@ -112,14 +118,14 @@ begin
   rintro i hi,
   rw [if_neg],
   rw [finsupp.single_eq_zero],
-  exact ne_of_gt (pow_pos hp.pos _)
+  exact ne_of_gt (pow_pos hp.1.pos _)
 end
 
 @[simp] lemma witt_polynomial_zero : witt_polynomial p R 0 = X 0 :=
 by simp only [witt_polynomial, X, sum_singleton, range_one, pow_zero]
 
 @[simp] lemma witt_polynomial_one : witt_polynomial p R 1 = C ↑p * X 1 + (X 0) ^ p :=
-by simp only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ, range_one,
+by simp only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ_comm, range_one,
     sum_singleton, one_mul, pow_one, C_1, pow_zero]
 
 lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ → A) (n : ℕ) :
@@ -128,19 +134,19 @@ by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_i
 
 /--
 Over the ring `zmod (p^(n+1))`, we produce the `n+1`st Witt polynomial
-by expanding the `n`th witt polynomial by `p`.
+by expanding the `n`th Witt polynomial by `p`.
 -/
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
   W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
 begin
   simp only [witt_polynomial_eq_sum_C_mul_X_pow],
-  rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul, zero_add,
-      alg_hom.map_sum, sum_congr rfl],
+  rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul,
+      add_zero, alg_hom.map_sum, sum_congr rfl],
   intros k hk,
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
   rw mem_range at hk,
-  omega
+  rw [add_comm, nat.add_sub_assoc (nat.lt_succ_iff.mp hk), ← add_comm],
 end
 
 section p_prime
@@ -154,16 +160,16 @@ begin
   have : ∀ i, (monomial (finsupp.single i (p ^ (n - i))) (p ^ i : R)).vars = {i},
   { intro i,
     rw vars_monomial_single,
-    { rw ← nat.pos_iff_ne_zero,
-      apply pow_pos hp.pos },
+    { rw ← pos_iff_ne_zero,
+      apply pow_pos hp.1.pos },
     { rw [← nat.cast_pow, nat.cast_ne_zero],
       apply ne_of_gt,
-      apply pow_pos hp.pos i } },
+      apply pow_pos hp.1.pos i } },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, int.nat_cast_eq_coe_nat, bind_singleton_eq_self], },
+  { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
   { simp only [this, int.nat_cast_eq_coe_nat],
     intros a b h,
-    apply singleton_disjoint.mpr,
+    apply disjoint_singleton_left.mpr,
     rwa mem_singleton, },
 end
 
@@ -212,7 +218,7 @@ begin
     rw mem_range at H,
     simp only [ring_hom.map_mul, ring_hom.map_pow, constant_coeff_C, IH m H],
     rw [zero_pow, mul_zero],
-    apply pow_pos hp.pos, }
+    apply pow_pos hp.1.pos, }
 end
 
 @[simp] lemma X_in_terms_of_W_zero [invertible (p : R)] :
@@ -229,7 +235,8 @@ lemma X_in_terms_of_W_vars_aux (n : ℕ) :
 begin
   apply nat.strong_induction_on n, clear n,
   intros n ih,
-  rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X, range_succ, insert_eq],
+  rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X, range_succ,
+      insert_eq],
   swap 3, { apply nonzero_of_invertible },
   work_on_goal 0 {
     simp only [true_and, true_or, eq_self_iff_true,
@@ -237,15 +244,15 @@ begin
     intro i,
     rw [mem_union, mem_union],
     apply or.imp id },
-  work_on_goal 1 { rw [vars_X, singleton_disjoint] },
+  work_on_goal 1 { rw [vars_X, disjoint_singleton_left] },
   all_goals {
     intro H,
     replace H := vars_sum_subset _ _ H,
-    rw mem_bind at H,
+    rw mem_bUnion at H,
     rcases H with ⟨j, hj, H⟩,
     rw vars_C_mul at H,
     swap,
-    { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    { apply pow_ne_zero, exact_mod_cast hp.1.ne_zero },
     rw mem_range at hj,
     replace H := (ih j hj).2 (vars_pow _ _ H),
     rw mem_range at H },
@@ -270,7 +277,7 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
 begin
   rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
   simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
-  rw [sum_range_succ, nat.sub_self, pow_zero, pow_one, bind₁_X_right,
+  rw [sum_range_succ_comm, nat.sub_self, pow_zero, pow_one, bind₁_X_right,
       mul_comm, ← C_pow, X_in_terms_of_W_aux],
   simp only [C_pow, bind₁_X_right, sub_add_cancel],
 end
@@ -280,9 +287,10 @@ end
 begin
   apply nat.strong_induction_on n,
   clear n, intros n H,
-  rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C, alg_hom.map_sum],
+  rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C,
+      alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
-  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ,
+  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ_comm,
     pow_one, add_sub_cancel, pow_zero],
   rw [sum_congr rfl, this],
   { -- this is really slow for some reason

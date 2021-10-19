@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.uniform_space.completion
 import topology.metric_space.isometry
+import topology.instances.real
 
 /-!
 # The completion of a metric space
@@ -20,7 +21,7 @@ open_locale filter
 noncomputable theory
 
 universes u
-variables {α : Type u} [metric_space α]
+variables {α : Type u} [pseudo_metric_space α]
 
 namespace metric
 
@@ -100,7 +101,7 @@ begin
       { have : {x : completion α × completion α | ε ≤ dist (x.fst) (x.snd) ∨ (x.fst, x.snd) ∈ t}
                = {p : completion α × completion α | ε ≤ dist p.1 p.2} ∪ t, by ext; simp,
         rw this,
-        apply is_closed_union _ tclosed,
+        apply is_closed.union _ tclosed,
         exact is_closed_le continuous_const completion.uniform_continuous_dist.continuous },
       { assume x y,
         rw completion.dist_eq,
@@ -125,7 +126,7 @@ begin
     simp only [uniformity_prod_eq_prod, mem_prod_iff, exists_prop,
                filter.mem_map, set.mem_set_of_eq] at T,
     rcases T with ⟨t1, ht1, t2, ht2, ht⟩,
-    refine mem_sets_of_superset ht1 _,
+    refine mem_of_superset ht1 _,
     have A : ∀a b : completion α, (a, b) ∈ t1 → dist a b < ε,
     { assume a b hab,
       have : ((a, b), (a, a)) ∈ set.prod t1 t2 := ⟨hab, refl_mem_uniformity ht2⟩,
@@ -155,7 +156,7 @@ of the metric space structure. -/
 protected lemma completion.uniformity_dist' :
   uniformity (completion α) = (⨅ε:{ε : ℝ // 0 < ε}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
 begin
-  ext s, rw mem_infi,
+  ext s, rw mem_infi_of_directed,
   { simp [completion.mem_uniformity_dist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
     simp [lt_min_iff, (≥)] {contextual := tt} }
@@ -165,7 +166,7 @@ protected lemma completion.uniformity_dist :
   uniformity (completion α) = (⨅ ε>0, 𝓟 {p | dist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @completion.uniformity_dist' α _
 
-/-- Metric space structure on the completion of a metric space. -/
+/-- Metric space structure on the completion of a pseudo_metric space. -/
 instance completion.metric_space : metric_space (completion α) :=
 { dist_self          := completion.dist_self,
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,

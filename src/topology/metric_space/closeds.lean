@@ -1,16 +1,17 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.hausdorff_distance
+import topology.compacts
 import analysis.specific_limits
 
 /-!
 # Closed subsets
 
-This file defines the metric and emetric space structure on the types of closed subsets and nonempty compact
-subsets of a metric or emetric space.
+This file defines the metric and emetric space structure on the types of closed subsets and nonempty
+compact subsets of a metric or emetric space.
 
 The Hausdorff distance induces an emetric space structure on the type of closed subsets
 of an emetric space, called `closeds`. Its completeness, resp. compactness, resp.
@@ -22,8 +23,7 @@ always finite in this context.
 -/
 
 noncomputable theory
-open_locale classical
-open_locale topological_space
+open_locale classical topological_space ennreal
 
 universe u
 open classical set function topological_space filter
@@ -89,11 +89,11 @@ begin
   `edist (s n) (s (n+1)) < 2^{-n}`, then it converges. This is enough to guarantee
   completeness, by a standard completeness criterion.
   We use the shorthand `B n = 2^{-n}` in ennreal. -/
-  let B : ℕ → ennreal := λ n, (2⁻¹)^n,
-  have B_pos : ∀ n, (0:ennreal) < B n,
+  let B : ℕ → ℝ≥0∞ := λ n, (2⁻¹)^n,
+  have B_pos : ∀ n, (0:ℝ≥0∞) < B n,
     by simp [B, ennreal.pow_pos],
   have B_ne_top : ∀ n, B n ≠ ⊤,
-    by simp [B, ennreal.div_def, ennreal.pow_ne_top],
+    by simp [B, ennreal.pow_ne_top],
   /- Consider a sequence of closed sets `s n` with `edist (s n) (s (n+1)) < B n`.
   We will show that it converges. The limit set is t0 = ⋂n, closure (⋃m≥n, s m).
   We will have to show that a point in `s n` is close to a point in `t0`, and a point
@@ -119,7 +119,7 @@ begin
       { assume l z,
         obtain ⟨z', z'_mem, hz'⟩ : ∃ z' ∈ (s (n+l+1)).val, edist (z:α) z' < B n / 2^l,
         { apply exists_edist_lt_of_Hausdorff_edist_lt z.2,
-          simp only [B, ennreal.div_def, ennreal.inv_pow],
+          simp only [B, ennreal.inv_pow, div_eq_mul_inv],
           rw [← pow_add],
           apply hs; simp },
         exact ⟨⟨z', z'_mem⟩, le_of_lt hz'⟩ },
@@ -135,7 +135,8 @@ begin
     -- First, we check it belongs to `t0`.
     have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto y_lim
     begin
-      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage, set.preimage_Union],
+      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage,
+        set.preimage_Union],
       exact ⟨k, λ m hm, ⟨n+m, zero_add k ▸ add_le_add (zero_le n) hm, (z m).2⟩⟩
     end),
     use this,
@@ -185,10 +186,11 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     i.e., for all ε>0, there is a finite set which is ε-dense.
     start from a set `s` which is ε-dense in α. Then the subsets of `s`
     are finitely many, and ε-dense for the Hausdorff distance. -/
-  refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
+  refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _))
+    is_closed_univ,
   rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
-  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
-    with ⟨s, fs, hs⟩,
+  rcases emetric.totally_bounded_iff.1
+    (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.
   have main : ∀ u : set α, ∃v ⊆ s, Hausdorff_edist u v ≤ δ,
@@ -257,13 +259,13 @@ begin
     -- since `t` is nonempty, so is `s`
     exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
   { refine compact_iff_totally_bounded_complete.2 ⟨_, s.property.is_complete⟩,
-    refine totally_bounded_iff.2 (λε εpos, _),
+    refine totally_bounded_iff.2 (λε (εpos : 0 < ε), _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s
-    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
+    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos.ne') with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
-    rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2) (ennreal.half_pos εpos)
-      with ⟨u, fu, ut⟩,
+    rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2)
+      (ennreal.half_pos εpos.ne') with ⟨u, fu, ut⟩,
     refine ⟨u, ⟨fu, λx hx, _⟩⟩,
     -- u : set α,  fu : finite u,  ut : t.val ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε
@@ -280,16 +282,17 @@ end
 from the same statement for closed subsets -/
 instance nonempty_compacts.complete_space [complete_space α] :
   complete_space (nonempty_compacts α) :=
-(complete_space_iff_is_complete_range nonempty_compacts.to_closeds.uniform_embedding).2 $
+(complete_space_iff_is_complete_range
+  nonempty_compacts.to_closeds.uniform_embedding.to_uniform_inducing).2 $
   nonempty_compacts.is_closed_in_closeds.is_complete
 
 /-- In a compact space, the type of nonempty compact subsets is compact. This follows from
 the same statement for closed subsets -/
 instance nonempty_compacts.compact_space [compact_space α] : compact_space (nonempty_compacts α) :=
 ⟨begin
-  rw embedding.compact_iff_compact_image nonempty_compacts.to_closeds.uniform_embedding.embedding,
+  rw nonempty_compacts.to_closeds.uniform_embedding.embedding.is_compact_iff_is_compact_image,
   rw [image_univ],
-  exact nonempty_compacts.is_closed_in_closeds.compact
+  exact nonempty_compacts.is_closed_in_closeds.is_compact
 end⟩
 
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/
@@ -318,17 +321,18 @@ begin
     { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
+      have δpos' : 0 < δ / 2, from ennreal.half_pos δpos.ne',
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,
-        rcases mem_closure_iff.1 (s_dense x) (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
+        rcases mem_closure_iff.1 (s_dense x) (δ/2) δpos' with ⟨y, ys, hy⟩,
         exact ⟨y, ⟨ys, hy⟩⟩ },
       let F := λx, some (Exy x),
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),
 
       -- cover `t` with finitely many balls. Their centers form a set `a`
       have : totally_bounded t.val := (compact_iff_totally_bounded_complete.1 t.property.2).1,
-      rcases totally_bounded_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨a, af, ta⟩,
+      rcases totally_bounded_iff.1 this (δ/2) δpos' with ⟨a, af, ta⟩,
       -- a : set α,  af : finite a,  ta : t.val ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
       let b := F '' a,
@@ -389,7 +393,7 @@ variables {α : Type u} [metric_space α]
 edistance between two such sets is finite. -/
 instance nonempty_compacts.metric_space : metric_space (nonempty_compacts α) :=
 emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_nonempty_of_bounded x.2.1 y.2.1
-  (bounded_of_compact x.2.2) (bounded_of_compact y.2.2)
+  x.2.2.bounded y.2.2.bounded
 
 /-- The distance on `nonempty_compacts α` is the Hausdorff distance, by construction -/
 lemma nonempty_compacts.dist_eq {x y : nonempty_compacts α} :

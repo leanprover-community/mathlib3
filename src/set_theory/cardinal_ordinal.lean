@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
 import set_theory.ordinal_arithmetic
-import tactic.omega
+import tactic.linarith
+import logic.small
 
 /-!
 # Cardinals and ordinals
@@ -13,21 +14,27 @@ import tactic.omega
 Relationships between cardinals and ordinals, properties of cardinals that are proved
 using ordinals.
 
-## Main definitions and results
+## Main definitions
 
-* The `aleph'` function gives the cardinals listed by their ordinal
-  index, and is the inverse of `aleph_idx`.
-  `aleph' n = n`, `aleph' ω = ω`, `aleph' (ω + 1) = ℵ₁`, etc. It is an order isomorphism
-  between ordinals and cardinals.
-* The `aleph` function gives the infinite cardinals listed by their
-  ordinal index. `aleph 0 = ω`, `aleph 1 = succ ω` is the first
+* The function `cardinal.aleph'` gives the cardinals listed by their ordinal
+  index, and is the inverse of `cardinal.aleph_idx`.
+  `aleph' n = n`, `aleph' ω = cardinal.omega = ℵ₀`, `aleph' (ω + 1) = ℵ₁`, etc.
+  It is an order isomorphism between ordinals and cardinals.
+* The function `cardinal.aleph` gives the infinite cardinals listed by their
+  ordinal index. `aleph 0 = cardinal.omega = ℵ₀`, `aleph 1 = ℵ₁` is the first
   uncountable cardinal, and so on.
 
-* `mul_eq_max` and `add_eq_max` state that the product (resp. sum) of two infinite cardinals
-  is just their maximum. Several variations around this fact are also given.
-* `mk_list_eq_mk` : when `α` is infinite, `α` and `list α` have the same cardinality.
-* simp lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making simp
+## Main Statements
+
+* `cardinal.mul_eq_max` and `cardinal.add_eq_max` state that the product (resp. sum) of two infinite
+  cardinals is just their maximum. Several variations around this fact are also given.
+* `cardinal.mk_list_eq_mk` : when `α` is infinite, `α` and `list α` have the same cardinality.
+* simp lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making `simp`
   able to prove inequalities about numeral cardinals.
+
+## Tags
+
+cardinal arithmetic (for infinite cardinals)
 -/
 
 noncomputable theory
@@ -45,7 +52,7 @@ theorem ord_is_limit {c} (co : omega ≤ c) : (ord c).is_limit :=
 begin
   refine ⟨λ h, omega_ne_zero _, λ a, lt_imp_lt_of_le_imp_le _⟩,
   { rw [← ordinal.le_zero, ord_le] at h,
-    simpa only [card_zero, le_zero] using le_trans co h },
+    simpa only [card_zero, nonpos_iff_eq_zero] using le_trans co h },
   { intro h, rw [ord_le] at h ⊢,
     rwa [← @add_one_of_omega_le (card a), ← card_succ],
     rw [← ord_le, ← le_succ_of_is_limit, ord_le],
@@ -75,7 +82,7 @@ def aleph_idx : cardinal → ordinal := aleph_idx.initial_seg
   (aleph_idx.initial_seg : cardinal → ordinal) = aleph_idx := rfl
 
 @[simp] theorem aleph_idx_lt {a b} : aleph_idx a < aleph_idx b ↔ a < b :=
-aleph_idx.initial_seg.to_rel_embedding.map_rel_iff.symm
+aleph_idx.initial_seg.to_rel_embedding.map_rel_iff
 
 @[simp] theorem aleph_idx_le {a b} : aleph_idx a ≤ aleph_idx b ↔ a ≤ b :=
 by rw [← not_lt, ← not_lt, aleph_idx_lt]
@@ -110,7 +117,7 @@ end
 @[simp] theorem type_cardinal : @ordinal.type cardinal (<) _ = ordinal.univ.{u (u+1)} :=
 by rw ordinal.univ_id; exact quotient.sound ⟨aleph_idx.rel_iso⟩
 
-@[simp] theorem mk_cardinal : mk cardinal = univ.{u (u+1)} :=
+@[simp] theorem mk_cardinal : #cardinal = univ.{u (u+1)} :=
 by simpa only [card_type, card_univ] using congr_arg card type_cardinal
 
 /-- The `aleph'` function gives the cardinals listed by their ordinal
@@ -130,7 +137,7 @@ def aleph' : ordinal → cardinal := aleph'.rel_iso
   (aleph'.rel_iso : ordinal → cardinal) = aleph' := rfl
 
 @[simp] theorem aleph'_lt {o₁ o₂ : ordinal.{u}} : aleph' o₁ < aleph' o₂ ↔ o₁ < o₂ :=
-aleph'.rel_iso.map_rel_iff.symm
+aleph'.rel_iso.map_rel_iff
 
 @[simp] theorem aleph'_le {o₁ o₂ : ordinal.{u}} : aleph' o₁ ≤ aleph' o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph'_lt
@@ -142,7 +149,7 @@ cardinal.aleph_idx.rel_iso.to_equiv.symm_apply_apply c
 cardinal.aleph_idx.rel_iso.to_equiv.apply_symm_apply o
 
 @[simp] theorem aleph'_zero : aleph' 0 = 0 :=
-by rw [← le_zero, ← aleph'_aleph_idx 0, aleph'_le];
+by rw [← nonpos_iff_eq_zero, ← aleph'_aleph_idx 0, aleph'_le];
    apply ordinal.zero_le
 
 @[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' o.succ = (aleph' o).succ :=
@@ -216,13 +223,20 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
+begin
+  have : aleph 1 = (aleph 0).succ, by simp only [← aleph_succ, ordinal.succ_zero],
+  rw [countable_iff, ← aleph_zero, this, lt_succ],
+end
+
 /-! ### Properties of `mul` -/
 
 /-- If `α` is an infinite type, then `α × α` and `α` have the same cardinality. -/
 theorem mul_eq_self {c : cardinal} (h : omega ≤ c) : c * c = c :=
 begin
   refine le_antisymm _
-    (by simpa only [mul_one] using mul_le_mul_left c (le_trans (le_of_lt one_lt_omega) h)),
+    (by simpa only [mul_one] using
+      mul_le_mul_left' (one_lt_omega.le.trans h) c),
   -- the only nontrivial part is `c * c ≤ c`. We prove it inductively.
   refine acc.rec_on (cardinal.wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
@@ -250,7 +264,8 @@ begin
   refine lt_of_le_of_lt (_ : _ ≤ card (typein (<) (g p)).succ * card (typein (<) (g p)).succ) _,
   { have : {q|s q p} ⊆ (insert (g p) {x | x < (g p)}).prod (insert (g p) {x | x < (g p)}),
     { intros q h,
-      simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj] at h,
+      simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
+        at h,
       exact max_le_iff.1 (le_iff_lt_or_eq.2 $ h.imp_right and.left) },
     suffices H : (insert (g p) {x | r x (g p)} : set α) ≃ ({x | r x (g p)} ⊕ punit),
     { exact ⟨(set.embedding_of_subset _ _ this).trans
@@ -272,21 +287,24 @@ of the cardinalities of `α` and `β`. -/
 theorem mul_eq_max {a b : cardinal} (ha : omega ≤ a) (hb : omega ≤ b) : a * b = max a b :=
 le_antisymm
   (mul_eq_self (le_trans ha (le_max_left a b)) ▸
-    mul_le_mul (le_max_left _ _) (le_max_right _ _)) $
+    mul_le_mul' (le_max_left _ _) (le_max_right _ _)) $
 max_le
-  (by simpa only [mul_one] using mul_le_mul_left a (le_trans (le_of_lt one_lt_omega) hb))
-  (by simpa only [one_mul] using mul_le_mul_right b (le_trans (le_of_lt one_lt_omega) ha))
+  (by simpa only [mul_one] using
+    mul_le_mul_left' (one_lt_omega.le.trans hb) a)
+  (by simpa only [one_mul] using
+    mul_le_mul_right' (one_lt_omega.le.trans ha) b)
 
 theorem mul_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
   (h1 : a < c) (h2 : b < c) : a * b < c :=
-lt_of_le_of_lt (mul_le_mul (le_max_left a b) (le_max_right a b)) $
+lt_of_le_of_lt (mul_le_mul' (le_max_left a b) (le_max_right a b)) $
 (lt_or_le (max a b) omega).elim
   (λ h, lt_of_lt_of_le (mul_lt_omega h h) hc)
   (λ h, by rw mul_eq_self h; exact max_lt h1 h2)
 
 lemma mul_le_max_of_omega_le_left {a b : cardinal} (h : omega ≤ a) : a * b ≤ max a b :=
 begin
-  convert mul_le_mul (le_max_left a b) (le_max_right a b), rw [mul_eq_self],
+  convert mul_le_mul' (le_max_left a b) (le_max_right a b),
+  rw [mul_eq_self],
   refine le_trans h (le_max_left a b)
 end
 
@@ -295,7 +313,23 @@ begin
   apply le_antisymm, apply mul_le_max_of_omega_le_left h,
   cases le_or_gt omega b with hb hb, rw [mul_eq_max h hb],
   have : b ≤ a, exact le_trans (le_of_lt hb) h,
-  rw [max_eq_left this], convert mul_le_mul_left _ (one_le_iff_ne_zero.mpr h'), rw [mul_one],
+  rw [max_eq_left this],
+  convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
+end
+
+theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=
+begin
+  by_cases ha0 : a = 0,
+  { simp [ha0] },
+  by_cases hb0 : b = 0,
+  { simp [hb0] },
+  by_cases ha : ω ≤ a,
+  { rw [mul_eq_max_of_omega_le_left ha hb0],
+    exact le_max_left _ _ },
+  { by_cases hb : ω ≤ b,
+    { rw [mul_comm, mul_eq_max_of_omega_le_left hb ha0, max_comm],
+      exact le_max_left _ _ },
+    { exact le_max_of_le_right (le_of_lt (mul_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
 end
 
 lemma mul_eq_left {a b : cardinal} (ha : omega ≤ a) (hb : b ≤ a) (hb' : b ≠ 0) : a * b = a :=
@@ -305,7 +339,8 @@ lemma mul_eq_right {a b : cardinal} (hb : omega ≤ b) (ha : a ≤ b) (ha' : a �
 by { rw [mul_comm, mul_eq_left hb ha ha'] }
 
 lemma le_mul_left {a b : cardinal} (h : b ≠ 0) : a ≤ b * a :=
-by { convert mul_le_mul_right _ (one_le_iff_ne_zero.mpr h), rw [one_mul] }
+by { convert mul_le_mul_right' (one_le_iff_ne_zero.mpr h) _,
+  rw [one_mul] }
 
 lemma le_mul_right {a b : cardinal} (h : b ≠ 0) : a ≤ a * b :=
 by { rw [mul_comm], exact le_mul_left h }
@@ -325,7 +360,7 @@ begin
     rcases ha with rfl|rfl|⟨⟨n, rfl⟩, ⟨m, rfl⟩⟩, contradiction, contradiction,
     rw [← ne] at h2a, rw [← one_le_iff_ne_zero] at h2a hb, norm_cast at h2a hb h ⊢,
     apply le_antisymm _ hb, rw [← not_lt], intro h2b,
-    apply ne_of_gt _ h, rw [gt], conv_lhs { rw [← mul_one n] },
+    apply ne_of_gt _ h, conv_lhs { rw [← mul_one n] },
     rwa [mul_lt_mul_left], apply nat.lt_of_succ_le h2a },
   { rintro (⟨⟨ha, hab⟩, hb⟩|rfl|rfl),
     { rw [mul_eq_max_of_omega_le_left ha hb, max_eq_left hab] },
@@ -338,8 +373,8 @@ end
 theorem add_eq_self {c : cardinal} (h : omega ≤ c) : c + c = c :=
 le_antisymm
   (by simpa only [nat.cast_bit0, nat.cast_one, mul_eq_self h, two_mul] using
-     mul_le_mul_right c (le_trans (le_of_lt $ nat_lt_omega 2) h))
-  (le_add_left c c)
+     mul_le_mul_right' ((nat_lt_omega 2).le.trans h) c)
+  (self_le_add_left c c)
 
 /-- If `α` is an infinite type, then the cardinality of `α ⊕ β` is the maximum
 of the cardinalities of `α` and `β`. -/
@@ -347,7 +382,18 @@ theorem add_eq_max {a b : cardinal} (ha : omega ≤ a) : a + b = max a b :=
 le_antisymm
   (add_eq_self (le_trans ha (le_max_left a b)) ▸
     add_le_add (le_max_left _ _) (le_max_right _ _)) $
-max_le (le_add_right _ _) (le_add_left _ _)
+max_le (self_le_add_right _ _) (self_le_add_left _ _)
+
+theorem add_le_max (a b : cardinal) : a + b ≤ max (max a b) ω :=
+begin
+  by_cases ha : ω ≤ a,
+  { rw [add_eq_max ha],
+    exact le_max_left _ _ },
+  { by_cases hb : ω ≤ b,
+    { rw [add_comm, add_eq_max hb, max_comm],
+      exact le_max_left _ _ },
+    { exact le_max_of_le_right (le_of_lt (add_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
+end
 
 theorem add_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=
@@ -360,7 +406,7 @@ lemma eq_of_add_eq_of_omega_le {a b c : cardinal} (h : a + b = c) (ha : a < c) (
   b = c :=
 begin
   apply le_antisymm,
-  { rw [← h], apply cardinal.le_add_left },
+  { rw [← h], apply self_le_add_left },
   rw[← not_lt], intro hb,
   have : a + b < c := add_lt_of_lt hc ha hb,
   simpa [h, lt_irrefl] using this
@@ -377,7 +423,7 @@ begin
   rw [max_le_iff], split,
   { intro h, cases (le_or_lt omega a) with ha ha,
     { left, use ha, rw [← not_lt], intro hb, apply ne_of_gt _ h,
-      exact lt_of_lt_of_le hb (le_add_left b a) },
+      exact lt_of_lt_of_le hb (self_le_add_left b a) },
     right, rw [← h, add_lt_omega_iff, lt_omega, lt_omega] at ha,
     rcases ha with ⟨⟨n, rfl⟩, ⟨m, rfl⟩⟩, norm_cast at h ⊢,
     rw [← add_right_inj, h, add_zero] },
@@ -400,7 +446,7 @@ begin
     rw [eq_of_add_eq_of_omega_le h this hb] },
   { have hc : c < omega,
     { rw [← not_le], intro hc,
-      apply lt_irrefl omega, apply lt_of_le_of_lt (le_trans hc (le_add_left _ a)),
+      apply lt_irrefl omega, apply lt_of_le_of_lt (le_trans hc (self_le_add_left _ a)),
       rw [← h], apply add_lt_omega ha hb },
     rw [lt_omega] at *,
     rcases ha with ⟨n, rfl⟩, rcases hb with ⟨m, rfl⟩, rcases hc with ⟨k, rfl⟩,
@@ -413,25 +459,54 @@ by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left 
 
 /-! ### Properties about power -/
 
-theorem pow_le {κ μ : cardinal.{u}} (H1 : omega ≤ κ) (H2 : μ < omega) : κ ^ μ ≤ κ :=
+theorem pow_le {κ μ : cardinal.{u}} (H1 : ω ≤ κ) (H2 : μ < ω) : κ ^ μ ≤ κ :=
 let ⟨n, H3⟩ := lt_omega.1 H2 in
 H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
   (le_of_lt $ lt_of_lt_of_le (by rw [nat.cast_zero, power_zero];
     from one_lt_omega) H1)
   (λ n ih, trans_rel_left _
-    (by rw [nat.cast_succ, power_add, power_one];
-      from mul_le_mul_right _ ih)
+    (by { rw [nat.cast_succ, power_add, power_one];
+      exact mul_le_mul_right' ih _ })
     (mul_eq_self H1))) H1)
 
-lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
+lemma power_self_eq {c : cardinal} (h : ω ≤ c) : c ^ c = 2 ^ c :=
 begin
   apply le_antisymm,
-  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [power_mul, mul_eq_self h] },
+  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [← power_mul, mul_eq_self h] },
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
-lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
+lemma prod_eq_two_power {ι : Type u} [infinite ι] {c : ι → cardinal.{v}} (h₁ : ∀ i, 2 ≤ c i)
+  (h₂ : ∀ i, lift.{u} (c i) ≤ lift.{v} (#ι)) :
+  prod c = 2 ^ lift.{v} (#ι) :=
+begin
+  rw [← lift_id' (prod c), lift_prod, ← lift_two_power],
+  apply le_antisymm,
+  { refine (prod_le_prod _ _ h₂).trans_eq _,
+    rw [← lift_prod, prod_const, power_self_eq (omega_le_mk ι)] },
+  { rw [← prod_const, lift_prod],
+    refine prod_le_prod _ _ (λ i, _),
+    rw [lift_two, ← lift_two.{u v}, lift_le],
+    exact h₁ i }
+end
+
+lemma power_eq_two_power {c₁ c₂ : cardinal} (h₁ : ω ≤ c₁) (h₂ : 2 ≤ c₂) (h₂' : c₂ ≤ c₁) :
+  c₂ ^ c₁ = 2 ^ c₁ :=
+le_antisymm (power_self_eq h₁ ▸ power_le_power_right h₂') (power_le_power_right h₂)
+
+lemma nat_power_eq {c : cardinal.{u}} (h : ω ≤ c) {n : ℕ} (hn : 2 ≤ n) :
+  (n : cardinal.{u}) ^ c = 2 ^ c :=
+power_eq_two_power h (by assumption_mod_cast) ((nat_lt_omega n).le.trans h)
+
+lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : ω ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)
+
+lemma power_nat_le_max {c : cardinal.{u}} {n : ℕ} : c ^ (n : cardinal.{u}) ≤ max c ω :=
+begin
+  by_cases hc : ω ≤ c,
+  { exact le_max_of_le_left (power_nat_le hc) },
+  { exact le_max_of_le_right (le_of_lt (power_lt_omega (lt_of_not_ge hc) (nat_lt_omega _))) }
+end
 
 lemma powerlt_omega {c : cardinal} (h : omega ≤ c) : c ^< omega = c :=
 begin
@@ -449,24 +524,24 @@ end
 
 /-! ### Computing cardinality of various types -/
 
-theorem mk_list_eq_mk {α : Type u} (H1 : omega ≤ mk α) : mk (list α) = mk α :=
+theorem mk_list_eq_mk {α : Type u} (H1 : ω ≤ #α) : #(list α) = #α :=
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
-calc  mk (list α)
-    = sum (λ n : ℕ, mk α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
-... ≤ sum (λ n : ℕ, mk α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
-... = sum (λ n : ulift.{u} ℕ, mk α) : quotient.sound
-  ⟨@sigma_congr_left _ _ (λ _, quotient.out (mk α)) equiv.ulift.symm⟩
-... = omega * mk α : sum_const _ _
-... = max (omega) (mk α) : mul_eq_max (le_refl _) H1
-... = mk α : max_eq_right H1
+calc  #(list α)
+    = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
+... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
+... = sum (λ n : ulift.{u} ℕ, #α) : quotient.sound
+  ⟨@sigma_congr_left _ _ (λ _, quotient.out (#α)) equiv.ulift.symm⟩
+... = omega * #α : sum_const _ _
+... = max ω (#α) : mul_eq_max (le_refl _) H1
+... = #α : max_eq_right H1
 
-theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ mk α) : mk (finset α) = mk α :=
+theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ #α) : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
-calc mk (finset α) ≤ mk (list α) : mk_le_of_surjective list.to_finset_surjective
-... = mk α : mk_list_eq_mk h
+calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
+... = #α : mk_list_eq_mk h
 
-lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ mk α) :
-  mk {t : set α // mk t ≤ c} ≤ mk α ^ c :=
+lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ #α) :
+  #{t : set α // mk t ≤ c} ≤ #α ^ c :=
 begin
   refine le_trans _ (by rw [←add_one_eq hα]), refine quotient.induction_on c _, clear c, intro β,
   fapply mk_le_of_surjective,
@@ -487,18 +562,18 @@ begin
 end
 
 lemma mk_bounded_set_le (α : Type u) (c : cardinal) :
-  mk {t : set α // mk t ≤ c} ≤ max (mk α) omega ^ c :=
+  #{t : set α // #t ≤ c} ≤ max (#α) omega ^ c :=
 begin
-  transitivity mk {t : set (ulift.{u} nat ⊕ α) // mk t ≤ c},
+  transitivity #{t : set (ulift.{u} nat ⊕ α) // #t ≤ c},
   { refine ⟨embedding.subtype_map _ _⟩, apply embedding.image,
     use sum.inr, apply sum.inr.inj, intros s hs, exact le_trans mk_image_le hs },
   refine le_trans
-    (mk_bounded_set_le_of_omega_le (ulift.{u} nat ⊕ α) c (le_add_right omega (mk α))) _,
+    (mk_bounded_set_le_of_omega_le (ulift.{u} nat ⊕ α) c (self_le_add_right omega (#α))) _,
   rw [max_comm, ←add_eq_max]; refl
 end
 
 lemma mk_bounded_subset_le {α : Type u} (s : set α) (c : cardinal.{u}) :
-  mk {t : set α // t ⊆ s ∧ mk t ≤ c} ≤ max (mk s) omega ^ c :=
+  #{t : set α // t ⊆ s ∧ #t ≤ c} ≤ max (#s) omega ^ c :=
 begin
   refine le_trans _ (mk_bounded_set_le s c),
   refine ⟨embedding.cod_restrict _ _ _⟩,
@@ -523,9 +598,9 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} {s t : set α} (h : omega ≤ #
 by { rw [mk_compl_of_omega_le s h hs, mk_compl_of_omega_le t h ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} {s : set α} {t : set β}
-  (hα : #α < omega) (h1 : lift.{u (max v w)} (#α) = lift.{v (max u w)} (#β))
-  (h2 : lift.{u (max v w)} (#s) = lift.{v (max u w)} (#t)) :
-  lift.{u (max v w)} (#(sᶜ : set α)) = lift.{v (max u w)} (#(tᶜ : set β)) :=
+  (hα : #α < omega) (h1 : lift.{(max v w)} (#α) = lift.{(max u w)} (#β))
+  (h2 : lift.{(max v w)} (#s) = lift.{(max u w)} (#t)) :
+  lift.{(max v w)} (#(sᶜ : set α)) = lift.{(max u w)} (#(tᶜ : set β)) :=
 begin
   have hα' := hα, have h1' := h1,
   rw [← mk_sum_compl s, ← mk_sum_compl t] at h1,
@@ -556,7 +631,7 @@ theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
 begin
   intros, have := h, cases this with g,
   let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
-    ((sum_congr (equiv.set.range f f.2) g).trans
+    ((sum_congr (equiv.of_injective f f.2) g).trans
     (set.sum_compl (range f))),
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end
@@ -600,7 +675,7 @@ by { norm_cast, norm_num }
 ```
 -/
 
-@[simp] lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
+lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
 by simp [bit0]
 
 @[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=
@@ -610,14 +685,14 @@ by simp [bit1]
 by { rw ←not_iff_not, simp [bit0], }
 
 @[simp] lemma zero_lt_bit1 (a : cardinal) : 0 < bit1 a :=
-lt_of_lt_of_le zero_lt_one (le_add_left _ _)
+lt_of_lt_of_le zero_lt_one (self_le_add_left _ _)
 
 @[simp] lemma one_le_bit0 (a : cardinal) : 1 ≤ bit0 a ↔ 0 < a :=
 ⟨λ h, (zero_lt_bit0 a).mp (lt_of_lt_of_le zero_lt_one h),
- λ h, le_trans (one_le_iff_pos.mpr h) (le_add_left a a)⟩
+ λ h, le_trans (one_le_iff_pos.mpr h) (self_le_add_left a a)⟩
 
 @[simp] lemma one_le_bit1 (a : cardinal) : 1 ≤ bit1 a :=
-le_add_left _ _
+self_le_add_left _ _
 
 theorem bit0_eq_self {c : cardinal} (h : omega ≤ c) : bit0 c = c :=
 add_eq_self h
@@ -637,7 +712,7 @@ begin
     rcases lt_omega.1 (not_le.1 h) with ⟨n, rfl⟩,
     norm_cast,
     dsimp [bit1, bit0],
-    omega }
+    linarith }
 end
 
 @[simp] theorem bit1_lt_omega {c : cardinal} : bit1 c < omega ↔ c < omega :=
@@ -698,10 +773,10 @@ end
 begin
   split,
   { assume h,
-    apply bit0_le_bit1.1 (le_trans ((bit0 a).le_add_right 1) h) },
+    apply bit0_le_bit1.1 (le_trans (self_le_add_right (bit0 a) 1) h) },
   { assume h,
-    calc a + a + 1 ≤ a + b + 1 : add_le_add_right 1 (add_le_add_left a h)
-           ... ≤ b + b + 1 : add_le_add_right 1 (add_le_add_right b h) }
+    calc a + a + 1 ≤ a + b + 1 : add_le_add_right (add_le_add_left h a) 1
+           ... ≤ b + b + 1 : add_le_add_right (add_le_add_right h b) 1 }
 end
 
 @[simp] lemma bit1_le_bit0 {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ omega ≤ a)) :=
@@ -848,3 +923,25 @@ le_refl _
 end bit
 
 end cardinal
+
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+begin
+  let g : ordinal.{u} → ulift.{u+1} α := λ o, ulift.up (f o),
+  suffices : ¬ function.injective g,
+  { intro hf, exact this (equiv.ulift.symm.injective.comp hf) },
+  intro hg,
+  replace hg := cardinal.mk_le_of_injective hg,
+  rw cardinal.mk_ulift at hg,
+  have := hg.trans_lt (cardinal.lift_lt_univ _),
+  rw cardinal.univ_id at this,
+  exact lt_irrefl _ this
+end
+
+lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+begin
+  intro hf,
+  apply not_injective_of_ordinal (equiv_shrink α ∘ f),
+  exact (equiv_shrink _).injective.comp hf,
+end

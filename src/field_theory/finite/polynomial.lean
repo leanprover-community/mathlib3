@@ -8,6 +8,7 @@ import field_theory.finite.basic
 import field_theory.mv_polynomial
 import data.mv_polynomial.expand
 import linear_algebra.basic
+import linear_algebra.finite_dimensional
 
 /-!
 ## Polynomials over finite fields
@@ -63,17 +64,17 @@ begin
   rw [← finite_field.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
-by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
-    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
-    sub_self, zero_pow this, sub_zero, finset.prod_const_one]
+by { simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
+    (eval a).map_one, (eval a).map_pow, eval_X, eval_C,
+    sub_self, zero_pow this, sub_zero, finset.prod_const_one] }
 
 lemma eval_indicator_apply_eq_zero (a b : σ → K) (h : a ≠ b) :
   eval a (indicator b) = 0 :=
 have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
-  simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
-    is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
+  simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
+    (eval a).map_one, (eval a).map_pow, eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
   rw [finite_field.pow_card_sub_one_eq_one, sub_self],
@@ -81,7 +82,7 @@ begin
 end
 
 lemma degrees_indicator (c : σ → K) :
-  degrees (indicator c) ≤ ∑ s : σ, (fintype.card K - 1) •ℕ {s} :=
+  degrees (indicator c) ≤ ∑ s : σ, (fintype.card K - 1) • {s} :=
 begin
   rw [indicator],
   refine le_trans (degrees_prod _ _) (finset.sum_le_sum $ assume s hs, _),
@@ -90,7 +91,7 @@ begin
   refine le_trans (degrees_pow _ _) (nsmul_le_nsmul_of_le_right _ _),
   refine le_trans (degrees_sub _ _) _,
   rw [degrees_C, ← bot_eq_zero, sup_bot_eq],
-  exact degrees_X _
+  exact degrees_X' _
 end
 
 lemma indicator_mem_restrict_degree (c : σ → K) :
@@ -99,22 +100,21 @@ begin
   rw [mem_restrict_degree_iff_sup, indicator],
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
-  rw [← finset.univ.sum_hom (multiset.count n)],
-  simp only [is_add_monoid_hom.map_nsmul (multiset.count n), multiset.singleton_eq_singleton,
-    nsmul_eq_mul, nat.cast_id],
+  simp_rw [ ← multiset.coe_count_add_monoid_hom, (multiset.count_add_monoid_hom n).map_sum,
+    add_monoid_hom.map_nsmul, multiset.coe_count_add_monoid_hom, nsmul_eq_mul, nat.cast_id],
   transitivity,
   refine finset.sum_eq_single n _ _,
-  { assume b hb ne, rw [multiset.count_cons_of_ne ne.symm, multiset.count_zero, mul_zero] },
+  { assume b hb ne, rw [multiset.count_singleton, if_neg ne.symm, mul_zero] },
   { assume h, exact (h $ finset.mem_univ _).elim },
-  { rw [multiset.count_cons_self, multiset.count_zero, mul_one] }
+  { rw [multiset.count_singleton_self, mul_one] }
 end
 
 section
 variables (K σ)
 def evalₗ : mv_polynomial σ K →ₗ[K] (σ → K) → K :=
-⟨ λp e, eval e p,
-  assume p q, (by { ext x, rw ring_hom.map_add, refl, }),
-  assume a p, funext $ assume e, by rw [smul_eq_C_mul, ring_hom.map_mul, eval_C]; refl ⟩
+{ to_fun := λ p e, eval e p,
+  map_add' := λ p q, by { ext x, rw ring_hom.map_add, refl, },
+  map_smul' := λ a p, by { ext e, rw [smul_eq_C_mul, ring_hom.map_mul, eval_C], refl } }
 end
 
 lemma evalₗ_apply (p : mv_polynomial σ K) (e : σ → K) : evalₗ K σ p e = eval e p :=
@@ -122,7 +122,7 @@ rfl
 
 lemma map_restrict_dom_evalₗ : (restrict_degree σ K (fintype.card K - 1)).map (evalₗ K σ) = ⊤ :=
 begin
-  refine top_unique (submodule.le_def'.2 $ assume e _, mem_map.2 _),
+  refine top_unique (set_like.le_def.2 $ assume e _, mem_map.2 _),
   refine ⟨∑ n : σ → K, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
@@ -140,42 +140,46 @@ end mv_polynomial
 
 namespace mv_polynomial
 
-open_locale classical
+open_locale classical cardinal
 open linear_map submodule
 
 universe u
 variables (σ : Type u) (K : Type u) [fintype σ] [field K] [fintype K]
 
-@[derive [add_comm_group, vector_space K, inhabited]]
+@[derive [add_comm_group, module K, inhabited]]
 def R : Type u := restrict_degree σ K (fintype.card K - 1)
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
-  decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
+  decidable_pred (∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
 by simp only [set.mem_set_of_eq]; apply_instance
 
-lemma dim_R : vector_space.dim K (R σ K) = fintype.card (σ → K) :=
-calc vector_space.dim K (R σ K) =
-  vector_space.dim K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
+lemma dim_R : module.rank K (R σ K) = fintype.card (σ → K) :=
+calc module.rank K (R σ K) =
+  module.rank K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
     linear_equiv.dim_eq
       (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card K - 1 })
-  ... = cardinal.mk {s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
-    by rw [finsupp.dim_eq, dim_of_field, mul_one]
-  ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
+  ... = #{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
+    by rw [finsupp.dim_eq, dim_self, mul_one]
+  ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
-    refine quotient.sound ⟨equiv.subtype_congr finsupp.equiv_fun_on_fintype $ assume f, _⟩,
-    refine forall_congr (assume n, nat.le_sub_right_iff_add_le _),
+    refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
+    refine forall_congr (assume n, le_sub_iff_right _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
-  ... = cardinal.mk (σ → {n // n < fintype.card K}) :
-    quotient.sound ⟨@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)⟩
-  ... = cardinal.mk (σ → fin (fintype.card K)) :
-    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm⟩
-  ... = cardinal.mk (σ → K) :
-  begin
-    refine (trunc.induction_on (fintype.equiv_fin K) $ assume (e : K ≃ fin (fintype.card K)), _),
-    refine quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) e.symm⟩
-  end
+  ... = #(σ → {n // n < fintype.card K}) :
+    (@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)).cardinal_eq
+  ... = #(σ → fin (fintype.card K)) :
+    (equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm).cardinal_eq
+  ... = #(σ → K) :
+    (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
   ... = fintype.card (σ → K) : cardinal.fintype_card _
+
+instance : finite_dimensional K (R σ K) :=
+is_noetherian.iff_dim_lt_omega.mpr
+  (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
+
+lemma finrank_R : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=
+finite_dimensional.finrank_eq_of_dim_eq (dim_R σ K)
 
 def evalᵢ : R σ K →ₗ[K] (σ → K) → K :=
 ((evalₗ K σ).comp (restrict_degree σ K (fintype.card K - 1)).subtype)
@@ -188,9 +192,8 @@ end
 
 lemma ker_evalₗ : (evalᵢ σ K).ker = ⊥ :=
 begin
-  refine injective_of_surjective _ _ _ (range_evalᵢ _ _),
-  { rw [dim_R], exact cardinal.nat_lt_omega _ },
-  { rw [dim_R, dim_fun, dim_of_field, mul_one] }
+  refine (ker_eq_bot_iff_range_eq_top_of_finrank_eq_finrank _).mpr (range_evalᵢ _ _),
+  rw [finite_dimensional.finrank_fintype_fun_eq_card, finrank_R]
 end
 
 lemma eq_zero_of_eval_eq_zero (p : mv_polynomial σ K)

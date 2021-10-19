@@ -1,12 +1,28 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison, Minchao Wu
-
-Lexicographic preorder / partial_order / linear_order / linear_order,
-for pairs and dependent pairs.
+Authors: Scott Morrison, Minchao Wu
 -/
 import tactic.basic
+
+/-!
+# Lexicographic order
+
+This file defines the lexicographic relation for pairs and dependent pairs of orders, partial orders
+and linear orders.
+
+## Main declarations
+
+* `lex α β`: Synonym of `α × β` to equip it with lexicographic order without creating conflicting
+  instances.
+* `lex_<pre/partial_/linear_>order`: Instances lifting the orders on `α` and `β` to `lex α β`
+* `dlex_<pre/partial_/linear_>order`: Instances lifting the orders on every `Z a` to the dependent
+  pair `Z`.
+
+## See also
+
+The lexicographic ordering on lists is provided in `data.list.basic`.
+-/
 
 universes u v
 
@@ -67,7 +83,8 @@ instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
 instance lex_partial_order [partial_order α] [partial_order β] : partial_order (lex α β) :=
 { le_antisymm :=
   begin
-    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
+      (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
     { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) },
     { exfalso, exact lt_irrefl a₁ hlt₁ },
     { exfalso, exact lt_irrefl a₁ hlt₂ },
@@ -80,14 +97,14 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
 { le_total :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases le_total a₁ a₂ with ha | ha;
+    obtain ha | ha := le_total a₁ a₂;
       cases lt_or_eq_of_le ha with a_lt a_eq,
     -- Deal with the two goals with a₁ ≠ a₂
     { left, left, exact a_lt },
     swap,
     { right, left, exact a_lt },
     -- Now deal with the two goals with a₁ = a₂
-    all_goals { subst a_eq, rcases le_total b₁ b₂ with hb | hb },
+    all_goals { subst a_eq, obtain hb | hb := le_total b₁ b₂ },
     { left, right, exact hb },
     { right, right, exact hb },
     { left, right, exact hb },
@@ -96,7 +113,7 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
   decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
+    obtain a_lt | a_le := linear_order.decidable_le a₁ a₂,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -104,7 +121,7 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { rw h,
-        rcases linear_order.decidable_le b₁ b₂ with b_lt | b_le,
+        obtain b_lt | b_le := linear_order.decidable_le b₁ b₂,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₂, assumption },
@@ -166,10 +183,12 @@ instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ' a, 
   .. dlex_has_lt }
 
 /-- Dictionary / lexicographic partial_order for dependent pairs. -/
-instance dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] : partial_order (Σ' a, Z a) :=
+instance dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] :
+  partial_order (Σ' a, Z a) :=
 { le_antisymm :=
   begin
-    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
+      (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
     { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) },
     { exfalso, exact lt_irrefl a₁ hlt₁ },
     { exfalso, exact lt_irrefl a₁ hlt₂ },
@@ -182,14 +201,14 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
 { le_total :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases le_total a₁ a₂ with ha | ha;
+    obtain ha | ha := le_total a₁ a₂;
       cases lt_or_eq_of_le ha with a_lt a_eq,
     -- Deal with the two goals with a₁ ≠ a₂
     { left, left, exact a_lt },
     swap,
     { right, left, exact a_lt },
     -- Now deal with the two goals with a₁ = a₂
-    all_goals { subst a_eq, rcases le_total b₁ b₂ with hb | hb },
+    all_goals { subst a_eq, obtain hb | hb := le_total b₁ b₂ },
     { left, right, exact hb },
     { right, right, exact hb },
     { left, right, exact hb },
@@ -198,7 +217,7 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
   decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
+    obtain a_lt | a_le := linear_order.decidable_le a₁ a₂,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -206,7 +225,7 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { subst h,
-        rcases linear_order.decidable_le b₁ b₂ with b_lt | b_le,
+        obtain b_lt | b_le := linear_order.decidable_le b₁ b₂,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₁, assumption },

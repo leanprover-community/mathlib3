@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner.
+Authors: Gabriel Ebner
 
 Tactic to split if-then-else-expressions.
 -/
@@ -15,8 +15,8 @@ open interactive
 meta def find_if_cond : expr → option expr | e :=
 e.fold none $ λ e _ acc, acc <|> do
 c ← match e with
-| `(@ite %%c %%_ _ _ _) := some c
-| `(@dite %%c %%_ _ _ _) := some c
+| `(@ite _ %%c %%_ _ _) := some c
+| `(@dite _ %%c %%_ _ _) := some c
 | _ := none
 end,
 guard ¬c.has_var,
@@ -37,7 +37,7 @@ sls ← get_user_simp_lemmas `split_if_reduction,
 let cfg : simp_config := { fail_if_unchanged := ff },
 let discharger := assumption <|> (applyc `not_not_intro >> assumption),
 hs ← at_.get_locals, hs.mmap' (λ h, simp_hyp sls [] h cfg discharger >> skip),
-when at_.include_goal (simp_target sls [] cfg discharger)
+when at_.include_goal (simp_target sls [] cfg discharger >> skip)
 
 meta def split_if1 (c : expr) (n : name) (at_ : loc) : tactic unit :=
 by_cases c n; reduce_ifs_at at_
@@ -53,7 +53,8 @@ private meta def value_known (c : expr) : tactic bool := do
 lctx ← local_context, lctx ← lctx.mmap infer_type,
 return $ c ∈ lctx ∨ `(¬%%c) ∈ lctx
 
-private meta def split_ifs_core (at_ : loc) (names : ref (list name)) : list expr → tactic unit | done := do
+private meta def split_ifs_core (at_ : loc) (names : ref (list name)) :
+  list expr → tactic unit | done := do
 some cond ← find_if_cond_at at_ | fail "no if-then-else expressions to split",
 let cond := match cond with `(¬%%p) := p | p := p end,
 if cond ∈ done then skip else do

@@ -3,8 +3,8 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.module.linear_map
 import algebra.opposites
+import data.equiv.module
 
 /-!
 # Module operations on `Mᵒᵖ`
@@ -16,10 +16,10 @@ cycles.
 namespace opposite
 universes u v
 
-variables (R : Type u) {M : Type v} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables (R : Type u) {M : Type v} [semiring R] [add_comm_monoid M] [module R M]
 
-/-- `opposite.distrib_mul_action` extends to a `semimodule` -/
-instance : semimodule R (opposite M) :=
+/-- `opposite.distrib_mul_action` extends to a `module` -/
+instance : module R (opposite M) :=
 { add_smul := λ r₁ r₂ x, unop_injective $ add_smul r₁ r₂ (unop x),
   zero_smul := λ x, unop_injective $ zero_smul _ (unop x),
   ..opposite.distrib_mul_action M R }

@@ -50,16 +50,17 @@ meta def find (p : parse lean.parser.pexpr) (c : itactic) : old_conv unit :=
   pat ← tactic.pexpr_to_pattern p,
   s   ← simp_lemmas.mk_default, -- to be able to use congruence lemmas @[congr]
   (found, new_lhs, pr) ←
-     tactic.ext_simplify_core ff {zeta := ff, beta := ff, single_pass := tt, eta := ff, proj := ff} s
-       (λ u, return u)
-       (λ found s r p e, do
-         guard (not found),
-         matched ← (tactic.match_pattern pat e >> return tt) <|> return ff,
-         guard matched,
-         ⟨u, new_e, pr⟩ ← c r e,
-         return (tt, new_e, pr, ff))
-       (λ a s r p e, tactic.failed)
-       r lhs,
+    tactic.ext_simplify_core ff {zeta := ff, beta := ff, single_pass := tt, eta := ff, proj := ff}
+      s
+      (λ u, return u)
+      (λ found s r p e, do
+        guard (not found),
+        matched ← (tactic.match_pattern pat e >> return tt) <|> return ff,
+        guard matched,
+        ⟨u, new_e, pr⟩ ← c r e,
+        return (tt, new_e, pr, ff))
+      (λ a s r p e, tactic.failed)
+      r lhs,
   if not found then tactic.fail "find converter failed, pattern was not found"
   else return ⟨(), new_lhs, some pr⟩
 

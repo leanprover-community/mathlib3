@@ -18,6 +18,11 @@ instance : binclass ℤ ℤ := ⟨⟩
 
 @[derive λ α, binclass α ℤ] def V := ℤ
 
+-- test instance naming
+example := U.ring
+example := U.binclass
+example := V.binclass
+
 @[derive ring] def id_ring (α) [ring α] : Type := α
 
 @[derive decidable_eq] def S := ℕ

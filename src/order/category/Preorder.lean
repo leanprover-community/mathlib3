@@ -20,7 +20,7 @@ instance : bundled_hom @preorder_hom :=
 { to_fun := @preorder_hom.to_fun,
   id := @preorder_hom.id,
   comp := @preorder_hom.comp,
-  hom_ext := @preorder_hom.coe_inj }
+  hom_ext := @preorder_hom.ext }
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] Preorder
 

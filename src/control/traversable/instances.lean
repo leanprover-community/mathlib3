@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Instances of `traversable` for types from the core library
 -/
@@ -107,14 +107,9 @@ variables [is_lawful_applicative F]
 lemma mem_traverse {f : α' → set β'} :
   ∀(l : list α') (n : list β'), n ∈ traverse f l ↔ forall₂ (λb a, b ∈ f a) n l
 | []      []      := by simp
-| (a::as) []      := by simp; exact assume h, match h with end
+| (a::as) []      := by simp
 | []      (b::bs) := by simp
-| (a::as) (b::bs) :=
-  suffices (b :: bs : list β') ∈ traverse f (a :: as) ↔ b ∈ f a ∧ bs ∈ traverse f as,
-    by simpa [mem_traverse as bs],
-  iff.intro
-    (assume ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩, ⟨hb, hl⟩)
-    (assume ⟨hb, hl⟩, ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩)
+| (a::as) (b::bs) := by simp [mem_traverse as bs]
 
 end traverse
 

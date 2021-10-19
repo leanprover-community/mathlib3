@@ -37,11 +37,11 @@ variables {p q}
 
 lemma dvd_cancel_leads_of_dvd_of_dvd {r : polynomial R} (pq : p ∣ q) (pr : p ∣ r) :
   p ∣ q.cancel_leads r :=
-dvd_sub (dvd.trans pr (dvd.intro_left _ rfl)) (dvd.trans pq (dvd.intro_left _ rfl))
+dvd_sub (pr.trans (dvd.intro_left _ rfl)) (pq.trans (dvd.intro_left _ rfl))
 
 end comm_ring
 
-lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree [integral_domain R]
+lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree [comm_ring R] [integral_domain R]
   {p q : polynomial R} (h : p.nat_degree ≤ q.nat_degree) (hq : 0 < q.nat_degree) :
   (p.cancel_leads q).nat_degree < q.nat_degree :=
 begin

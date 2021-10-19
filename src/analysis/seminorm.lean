@@ -42,10 +42,10 @@ section
 
 variables
 (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-{E : Type*} [add_comm_group E] [vector_space 𝕜 E]
+{E : Type*} [add_comm_group E] [module 𝕜 E]
 
 open set normed_field
-open_locale topological_space
+open_locale topological_space pointwise
 
 /-- A set `A` absorbs another set `B` if `B` is contained in scaling
 `A` by elements of sufficiently large norms. -/
@@ -65,37 +65,72 @@ lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
 begin
   use [1, zero_lt_one],
   intros a ha x hx,
-  rw mem_smul_set_iff_inv_smul_mem,
+  rw mem_smul_set_iff_inv_smul_mem₀,
   { apply hA a⁻¹,
     { rw norm_inv, exact inv_le_one ha },
     { rw mem_smul_set, use [x, hx] }},
   { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
 end
 
+lemma balanced.univ : balanced 𝕜 (univ : set E) :=
+λ a ha, subset_univ _
+
+lemma balanced.union {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
+  balanced 𝕜 (A₁ ∪ A₂) :=
+begin
+  intros a ha t ht,
+  rw [smul_set_union] at ht,
+  exact ht.imp (λ x, hA₁ _ ha x) (λ x, hA₂ _ ha x),
+end
+
+lemma balanced.inter {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
+  balanced 𝕜 (A₁ ∩ A₂) :=
+begin
+  rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
+  exact ⟨hA₁ _ ha ⟨_, hx₁, rfl⟩, hA₂ _ ha ⟨_, hx₂, rfl⟩⟩,
+end
+
+lemma balanced.add {A₁ A₂ : set E} (hA₁ : balanced 𝕜 A₁) (hA₂ : balanced 𝕜 A₂) :
+  balanced 𝕜 (A₁ + A₂) :=
+begin
+  rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
+  rw smul_add,
+  exact ⟨_, _, hA₁ _ ha ⟨_, hx, rfl⟩, hA₂ _ ha ⟨_, hy, rfl⟩, rfl⟩,
+end
+
+lemma balanced.smul (hA : balanced 𝕜 A) : balanced 𝕜 (a • A) :=
+begin
+  rintro b hb _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
+  exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
+end
+
+lemma absorbent_iff_forall_absorbs_singleton :
+  absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
+by simp [absorbs, absorbent]
+
 /-!
 Properties of balanced and absorbing sets in a topological vector space:
 -/
-variables [topological_space E] [topological_vector_space 𝕜 E]
+variables [topological_space E] [has_continuous_smul 𝕜 E]
 
 /-- Every neighbourhood of the origin is absorbent. -/
 lemma absorbent_nhds_zero (hA : A ∈ 𝓝 (0 : E)) : absorbent 𝕜 A :=
 begin
   intro x,
-  rcases mem_nhds_sets_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
+  rcases mem_nhds_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
   have hc : continuous (λ t : 𝕜, t • x), from continuous_id.smul continuous_const,
   rcases metric.is_open_iff.mp (hw₂.preimage hc) 0 (by rwa [mem_preimage, zero_smul])
     with ⟨r, hr₁, hr₂⟩,
   have hr₃, from inv_pos.mpr (half_pos hr₁),
   use [(r/2)⁻¹, hr₃],
   intros a ha₁,
-  have ha₂ : 0 < ∥a∥, from calc 0 < _ : hr₃ ... ≤ _ : ha₁,
-  have ha₃ : a ⁻¹ • x ∈ w, begin
-    apply hr₂,
-    rw [metric.mem_ball, dist_eq_norm, sub_zero, norm_inv],
+  have ha₂ : 0 < ∥a∥ := hr₃.trans_le ha₁,
+  have ha₃ : a ⁻¹ • x ∈ w,
+  { apply hr₂,
+    rw [metric.mem_ball, dist_zero_right, norm_inv],
     calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
-    ...       < r : half_lt_self hr₁,
-  end,
-  rw [mem_smul_set_iff_inv_smul_mem (norm_pos_iff.mp ha₂)],
+    ...       < r : half_lt_self hr₁ },
+  rw [mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp ha₂)],
   exact hw₁ ha₃,
 end
 
@@ -106,16 +141,12 @@ lemma balanced_zero_union_interior (hA : balanced 𝕜 A) :
 begin
   intros a ha, by_cases a = 0,
   { rw [h, zero_smul_set],
-    apply subset_union_left _,
-    exact union_nonempty.mpr (or.intro_left _ $ singleton_nonempty _) },
-  { rw [←image_smul, image_union, union_subset_iff], split,
-    { rw [image_singleton, smul_zero], exact subset_union_left _ _ },
-    { apply subset_union_of_subset_right,
-      apply interior_maximal,
-      rw image_subset_iff,
-      calc _ ⊆ A : interior_subset
-      ...    ⊆ _ : by { rw ←image_subset_iff, exact hA _ ha},
-      exact is_open_map_smul_of_ne_zero h _ is_open_interior }},
+    exacts [subset_union_left _ _, ⟨0, or.inl rfl⟩] },
+  { rw [←image_smul, image_union],
+    apply union_subset_union,
+    { rw [image_singleton, smul_zero] },
+    { calc a • interior A ⊆ interior (a • A) : (is_open_map_smul₀ h).image_interior_subset A
+                      ... ⊆ interior A       : interior_mono (hA _ ha) } }
 end
 
 /-- The interior of a balanced set is balanced if it contains the origin. -/
@@ -129,14 +160,9 @@ end
 
 /-- The closure of a balanced set is balanced. -/
 lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
-begin
-  intros a ha,
-  calc _ ⊆ closure (a • A) :
-  by { simp_rw ←image_smul,
-       exact image_closure_subset_closure_image
-               (continuous_const.smul continuous_id) }
-  ...    ⊆ _ : closure_mono (hA _ ha),
-end
+assume a ha,
+calc _ ⊆ closure (a • A) : image_closure_subset_closure_image (continuous_id.const_smul _)
+...    ⊆ _ : closure_mono (hA _ ha)
 
 end
 
@@ -148,14 +174,14 @@ end
 the reals that is positive semidefinite, positive homogeneous, and
 subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*)
-  [normed_field 𝕜] [add_comm_group E] [vector_space 𝕜 E] :=
+  [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] :=
 (to_fun    : E → ℝ)
 (smul'     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 (triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
 variables
 {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [add_comm_group E] [vector_space 𝕜 E]
+{E : Type*} [add_comm_group E] [module 𝕜 E]
 
 instance : inhabited (seminorm 𝕜 E) :=
 ⟨{ to_fun     := λ _, 0,

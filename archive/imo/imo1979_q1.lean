@@ -3,30 +3,27 @@ Copyright (c) 2020 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
-
-import tactic
 import algebra.big_operators.ring
+import data.nat.interval
 import data.nat.parity
-import data.finset.intervals
-import data.padics.padic_norm
 
 /-!
 # IMO 1979 Q1
 
 Let `p` and `q` be positive integers such that
 
-`p/q=1-1/2+1/3-1/4+...-1/1318+1/1319`
+`p/q = 1 - 1/2 + 1/3 - 1/4 + ... - 1/1318 + 1/1319`
 
-Prove that `p` is a multiple of 1979.
+Prove that `p` is a multiple of `1979`.
 
 ## The solution
 
 The proof we formalise is the following. Rewrite the sum as
-`1+1/2+1/3+...+1/1319 - 2*(1/2+1/4+1/6+...+1/1318)=1/660+1/661+...+1/1319`
-and now re-arranging as `(1/660+1/1319)+(1/661+1/1318)+...` we see that
-the numerator of each fraction is 1979 and the denominator is coprime to 1979
-(note that 1979 is prime). Hence the 1979-adic valuation of each fraction is positive,
-and thus the 1979-adic valuation of the sum is also positive.
+`1 + 1/2 + 1/3 + ... + 1/1319 - 2 * (1/2 + 1/4 + 1/6 + ... + 1/1318) = 1/660 + 1/661 + ... + 1/1319`
+and now re-arranging as `(1/660 + 1/1319) + (1/661 + 1/1318) + ...` we see that
+the numerator of each fraction is `1979` and the denominator is coprime to `1979`
+(note that `1979` is prime). Hence the `1979`-adic valuation of each fraction is positive,
+and thus the `1979`-adic valuation of the sum is also positive.
 
 ## Remarks on the formalisation
 
@@ -36,23 +33,21 @@ In retrospect it might have been easier to work with p-adic norms, which are ℚ
 and don't have this problem.
 -/
 
-
-open_locale big_operators
-
 open finset nat
+open_locale big_operators
 
 instance : fact (nat.prime 1979) := by norm_num
 
 namespace imo1979q1
 
--- some constants. The nolint attribute is to work around lean#502 (not part of mathlib
--- at the time of writing)
-@[reducible, nolint fails_quickly] def a : ℚ := ∑ n in range 1320, (-1)^(n + 1) / n
-@[reducible, nolint fails_quickly] def b : ℚ := ∑ n in range 1320, 1 / n
-@[reducible, nolint fails_quickly] def c : ℚ := ∑ n in range 660, 1 / n
-@[reducible, nolint fails_quickly] def d : ℚ := ∑ n in Ico 660 1320, 1 / n
-@[reducible, nolint fails_quickly] def e : ℚ := ∑ n in range 330, 1 / (n + 660)
-@[reducible, nolint fails_quickly] def f : ℚ := ∑ n in range 330, 1 / (1319 - n)
+def a : ℚ := ∑ n in range 1320, (-1)^(n + 1) / n
+def b : ℚ := ∑ n in range 1320, 1 / n
+def c : ℚ := ∑ n in range 660, 1 / n
+def d : ℚ := ∑ n in Ico 660 1320, 1 / n
+def e : ℚ := ∑ n in range 330, 1 / (n + 660)
+def f : ℚ := ∑ n in range 330, 1 / (1319 - n)
+
+attribute [reducible] a b c d e f
 
 /-
   The goal is equivalent to showing that the 1979-adic valuation of a is positive.
@@ -107,11 +102,10 @@ lemma lemma1 : b - a = c :=
 lemma lemma2 : c + d = b :=
 begin
   unfold c d b,
-  simp only [← Ico.zero_bot],
-  rw ← sum_union (Ico.disjoint_consecutive _ _ _),
-  refine sum_congr _ (by {intros, refl}),
-  apply Ico.union_consecutive;
-  linarith,
+  rw finset.Iio_eq_Ico,
+  rw ← sum_union (Ico_disjoint_Ico_consecutive _ _ _),
+  refine sum_congr (finset.Ico_union_Ico_eq_Ico _ _) (by {intros, refl});
+    linarith,
 end
 
 lemma corollary3 : a = d :=
@@ -164,7 +158,7 @@ begin
       intros,
       apply congr_arg,
       rw nat.cast_sub, norm_cast,
-      rw Ico.mem at H,
+      rw mem_Ico at H,
       cases H, linarith },
     { intros x hx y hy,
       intro h,
@@ -177,9 +171,9 @@ begin
   rw h, clear h,
   rw ←sum_union,
   { apply sum_congr,
-    { apply Ico.union_consecutive; linarith },
+    { apply Ico_union_Ico_eq_Ico; linarith },
     { intros, refl } },
-  { apply Ico.disjoint_consecutive }
+  { apply Ico_disjoint_Ico_consecutive }
 end
 
 lemma easy1 {n : ℕ} (hn : n < 330) : padic_val_rat 1979 (n + 660) = 0 :=

@@ -1,66 +1,150 @@
 /-
 Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Sébastien Gouëzel
+Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import algebra.module.ordered
 import data.complex.basic
 import data.matrix.notation
 import field_theory.tower
-import linear_algebra.finite_dimensional
 
 /-!
 # Complex number as a vector space over `ℝ`
 
-This file contains three instances:
-* `ℂ` is an `ℝ` algebra;
+This file contains the following instances:
+* Any `•`-structure (`has_scalar`, `mul_action`, `distrib_mul_action`, `module`, `algebra`) on
+  `ℝ` imbues a corresponding structure on `ℂ`. This includes the statement that `ℂ` is an `ℝ`
+  algebra.
 * any complex vector space is a real vector space;
-* any finite dimensional complex vector space is a finite dimesional real vector space;
+* any finite dimensional complex vector space is a finite dimensional real vector space;
 * the space of `ℝ`-linear maps from a real vector space to a complex vector space is a complex
   vector space.
 
-It also defines three linear maps:
+It also defines bundled versions of four standard maps (respectively, the real part, the imaginary
+part, the embedding of `ℝ` in `ℂ`, and the complex conjugate):
 
-* `complex.linear_map.re`;
-* `complex.linear_map.im`;
-* `complex.linear_map.of_real`.
+* `complex.re_lm` (`ℝ`-linear map);
+* `complex.im_lm` (`ℝ`-linear map);
+* `complex.of_real_am` (`ℝ`-algebra (homo)morphism);
+* `complex.conj_ae` (`ℝ`-algebra equivalence).
 
-They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
-as `ℝ`-linear maps.
+It also provides a universal property of the complex numbers `complex.lift`, which constructs a
+`ℂ →ₐ[ℝ] A` into any `ℝ`-algebra `A` given a square root of `-1`.
+
 -/
-noncomputable theory
 
 namespace complex
 
-instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
+variables {R : Type*} {S : Type*}
 
-@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
+section
 
-@[simp] lemma re_smul (a : ℝ) (z : ℂ) : re (a • z) = a * re z := by simp [algebra.smul_def]
+variables [has_scalar R ℝ]
 
-@[simp] lemma im_smul (a : ℝ) (z : ℂ) : im (a • z) = a * im z := by simp [algebra.smul_def]
+/- The useless `0` multiplication in `smul` is to make sure that
+`restrict_scalars.module ℝ ℂ ℂ = complex.module` definitionally. -/
+instance : has_scalar R ℂ :=
+{ smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
+
+lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simp [(•)]
+lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simp [(•)]
+
+@[simp] lemma real_smul {x : ℝ} {z : ℂ} : x • z = x * z := rfl
+
+end
+
+instance [has_scalar R ℝ] [has_scalar S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
+{ smul_comm := λ r s x, by ext; simp [smul_re, smul_im, smul_comm] }
+
+instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower R S ℝ] :
+  is_scalar_tower R S ℂ :=
+{ smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
+
+instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
+{ one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
+  mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
+
+instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+{ smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
+  smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
+
+instance [semiring R] [module R ℝ] : module R ℂ :=
+{ add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],
+  zero_smul := λ r, by ext; simp [smul_re, smul_im, zero_smul] }
+
+instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
+{ smul := (•),
+  smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
+  commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
+  ..complex.of_real.comp (algebra_map R ℝ) }
+
+@[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
+
+section
+variables {A : Type*} [semiring A] [algebra ℝ A]
+
+/-- We need this lemma since `complex.coe_algebra_map` diverts the simp-normal form away from
+`alg_hom.commutes`. -/
+@[simp] lemma _root_.alg_hom.map_coe_real_complex (f : ℂ →ₐ[ℝ] A) (x : ℝ) :
+  f x = algebra_map ℝ A x :=
+f.commutes x
+
+/-- Two `ℝ`-algebra homomorphisms from ℂ are equal if they agree on `complex.I`. -/
+@[ext]
+lemma alg_hom_ext ⦃f g : ℂ →ₐ[ℝ] A⦄ (h : f I = g I) : f = g :=
+begin
+  ext ⟨x, y⟩,
+  simp only [mk_eq_add_mul_I, alg_hom.map_add, alg_hom.map_coe_real_complex, alg_hom.map_mul, h]
+end
+
+end
+
+section
+open_locale complex_order
+
+protected lemma ordered_smul : ordered_smul ℝ ℂ :=
+ordered_smul.mk' $ λ a b r hab hr, ⟨by simp [hr, hab.1.le], by simp [hab.2]⟩
+
+localized "attribute [instance] complex.ordered_smul" in complex_order
+
+end
 
 open submodule finite_dimensional
 
-lemma is_basis_one_I : is_basis ℝ ![1, I] :=
-begin
-  refine ⟨linear_independent_fin2.2 ⟨I_ne_zero, λ a, mt (congr_arg re) $ by simp⟩,
-    eq_top_iff'.2 $ λ z, _⟩,
-  suffices : ∃ a b, z = a • I + b • 1,
-    by simpa [mem_span_insert, mem_span_singleton, -set.singleton_one],
-  use [z.im, z.re],
-  simp [algebra.smul_def, add_comm]
-end
+/-- `ℂ` has a basis over `ℝ` given by `1` and `I`. -/
+noncomputable def basis_one_I : basis (fin 2) ℝ ℂ :=
+basis.of_equiv_fun
+{ to_fun := λ z, ![z.re, z.im],
+  inv_fun := λ c, c 0 + c 1 • I,
+  left_inv := λ z, by simp,
+  right_inv := λ c, by { ext i, fin_cases i; simp },
+  map_add' := λ z z', by simp,
+  map_smul' := λ c z, by simp }
 
-instance : finite_dimensional ℝ ℂ := of_fintype_basis is_basis_one_I
+@[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
 
-@[simp] lemma findim_real_complex : finite_dimensional.findim ℝ ℂ = 2 :=
-by rw [findim_eq_card_basis is_basis_one_I, fintype.card_fin]
+@[simp] lemma coe_basis_one_I : ⇑basis_one_I = ![1, I] :=
+funext $ λ i, basis.apply_eq_iff.mpr $ finsupp.ext $ λ j,
+by fin_cases i; fin_cases j;
+    simp only [coe_basis_one_I_repr, finsupp.single_eq_same, finsupp.single_eq_of_ne,
+              matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
+              nat.one_ne_zero, fin.one_eq_zero_iff, fin.zero_eq_one_iff, ne.def, not_false_iff,
+              one_re, one_im, I_re, I_im]
 
-@[simp] lemma dim_real_complex : vector_space.dim ℝ ℂ = 2 :=
-by simp [← findim_eq_dim, findim_real_complex]
+instance : finite_dimensional ℝ ℂ := of_fintype_basis basis_one_I
 
-lemma {u} dim_real_complex' : cardinal.lift.{0 u} (vector_space.dim ℝ ℂ) = 2 :=
-by simp [← findim_eq_dim, findim_real_complex, bit0]
+@[simp] lemma finrank_real_complex : finite_dimensional.finrank ℝ ℂ = 2 :=
+by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
+
+@[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
+by simp [← finrank_eq_dim, finrank_real_complex]
+
+lemma {u} dim_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
+by simp [← finrank_eq_dim, finrank_real_complex, bit0]
+
+/-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
+circle. -/
+lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
 
 end complex
 
@@ -68,11 +152,16 @@ end complex
 vector space. -/
 @[priority 900]
 instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
-restrict_scalars.semimodule ℝ ℂ E
+restrict_scalars.module ℝ ℂ E
 
 instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E] :
   is_scalar_tower ℝ ℂ E :=
 restrict_scalars.is_scalar_tower ℝ ℂ E
+
+@[simp, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
+  (x : ℝ) (y : E) :
+  (x : ℂ) • y = x • y :=
+rfl
 
 @[priority 100]
 instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E]
@@ -80,38 +169,99 @@ instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [modu
 finite_dimensional.trans ℝ ℂ E
 
 lemma dim_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
-  vector_space.dim ℝ E = 2 * vector_space.dim ℂ E :=
+  module.rank ℝ E = 2 * module.rank ℂ E :=
 cardinal.lift_inj.1 $
   by { rw [← dim_mul_dim' ℝ ℂ E, complex.dim_real_complex], simp [bit0] }
 
-lemma findim_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
-  finite_dimensional.findim ℝ E = 2 * finite_dimensional.findim ℂ E :=
-by rw [← finite_dimensional.findim_mul_findim ℝ ℂ E, complex.findim_real_complex]
+lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
+  finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=
+by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_real_complex]
 
 namespace complex
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
+def re_lm : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
   map_add' := add_re,
-  map_smul' := re_smul }
+  map_smul' := by simp, }
 
-@[simp] lemma linear_map.coe_re : ⇑linear_map.re = re := rfl
+@[simp] lemma re_lm_coe : ⇑re_lm = re := rfl
 
 /-- Linear map version of the imaginary part function, from `ℂ` to `ℝ`. -/
-def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
+def im_lm : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
   map_add' := add_im,
-  map_smul' := im_smul }
+  map_smul' := by simp, }
 
-@[simp] lemma linear_map.coe_im : ⇑linear_map.im = im := rfl
+@[simp] lemma im_lm_coe : ⇑im_lm = im := rfl
 
-/-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
-{ to_fun := coe,
-  map_add' := of_real_add,
-  map_smul' := λc x, by simp [algebra.smul_def] }
+/-- `ℝ`-algebra morphism version of the canonical embedding of `ℝ` in `ℂ`. -/
+def of_real_am : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 
-@[simp] lemma linear_map.coe_of_real : ⇑linear_map.of_real = coe := rfl
+@[simp] lemma of_real_am_coe : ⇑of_real_am = coe := rfl
+
+/-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
+def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
+{ inv_fun := conj,
+  left_inv := conj_conj,
+  right_inv := conj_conj,
+  commutes' := conj_of_real,
+  .. conj }
+
+@[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
+
+section lift
+
+variables {A : Type*} [ring A] [algebra ℝ A]
+
+/-- There is an alg_hom from `ℂ` to any `ℝ`-algebra with an element that squares to `-1`.
+
+See `complex.lift` for this as an equiv. -/
+def lift_aux (I' : A) (hf : I' * I' = -1) : ℂ →ₐ[ℝ] A :=
+alg_hom.of_linear_map
+  ((algebra.of_id ℝ A).to_linear_map.comp re_lm + (linear_map.to_span_singleton _ _ I').comp im_lm)
+  (show algebra_map ℝ A 1 + (0 : ℝ) • I' = 1,
+    by rw [ring_hom.map_one, zero_smul, add_zero])
+  (λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, show algebra_map ℝ A (x₁ * x₂ - y₁ * y₂) + (x₁ * y₂ + y₁ * x₂) • I'
+                          = (algebra_map ℝ A x₁ + y₁ • I') * (algebra_map ℝ A x₂ + y₂ • I'),
+    begin
+      rw [add_mul, mul_add, mul_add, add_comm _ (y₁ • I' * y₂ • I'), add_add_add_comm],
+      congr' 1, -- equate "real" and "imaginary" parts
+      { rw [smul_mul_smul, hf, smul_neg, ←algebra.algebra_map_eq_smul_one, ←sub_eq_add_neg,
+          ←ring_hom.map_mul, ←ring_hom.map_sub], },
+      { rw [algebra.smul_def, algebra.smul_def, algebra.smul_def, ←algebra.right_comm _ x₂,
+          ←mul_assoc, ←add_mul, ←ring_hom.map_mul, ←ring_hom.map_mul, ←ring_hom.map_add] }
+    end)
+
+@[simp]
+lemma lift_aux_apply (I' : A) (hI') (z : ℂ) :
+ lift_aux I' hI' z = algebra_map ℝ A z.re + z.im • I' := rfl
+
+lemma lift_aux_apply_I (I' : A) (hI') : lift_aux I' hI' I = I' := by simp
+
+/-- A universal property of the complex numbers, providing a unique `ℂ →ₐ[ℝ] A` for every element
+of `A` which squares to `-1`.
+
+This can be used to embed the complex numbers in the `quaternion`s.
+
+This isomorphism is named to match the very similar `zsqrtd.lift`. -/
+@[simps {simp_rhs := tt}]
+def lift : {I' : A // I' * I' = -1} ≃ (ℂ →ₐ[ℝ] A) :=
+{ to_fun := λ I', lift_aux I' I'.prop,
+  inv_fun := λ F, ⟨F I, by rw [←F.map_mul, I_mul_I, alg_hom.map_neg, alg_hom.map_one]⟩,
+  left_inv := λ I', subtype.ext $ lift_aux_apply_I I' I'.prop,
+  right_inv := λ F, alg_hom_ext $ lift_aux_apply_I _ _, }
+
+/- When applied to `complex.I` itself, `lift` is the identity. -/
+@[simp]
+lemma lift_aux_I : lift_aux I I_mul_I = alg_hom.id ℝ ℂ :=
+alg_hom_ext $ lift_aux_apply_I _ _
+
+/- When applied to `-complex.I`, `lift` is conjugation, `conj`. -/
+@[simp]
+lemma lift_aux_neg_I : lift_aux (-I) ((neg_mul_neg _ _).trans I_mul_I) = conj_ae :=
+alg_hom_ext $ (lift_aux_apply_I _ _).trans conj_I.symm
+
+end lift
 
 end complex

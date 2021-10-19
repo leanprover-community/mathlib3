@@ -113,8 +113,8 @@ noncomputable theory
 
 universes u v w u' v' w'
 
-open set
-open_locale manifold
+open set filter
+open_locale manifold filter topological_space
 
 localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
 
@@ -130,7 +130,7 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=
 (source_eq          : source = univ)
-(unique_diff'       : unique_diff_on 𝕜 (range to_fun))
+(unique_diff'       : unique_diff_on 𝕜 to_local_equiv.target)
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
@@ -139,16 +139,9 @@ attribute [simp, mfld_simps] model_with_corners.source_eq
 /-- A vector space is a model with corners. -/
 def model_with_corners_self (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] : model_with_corners 𝕜 E E :=
-{ to_fun       := id,
-  inv_fun      := id,
-  source       := univ,
-  target       := univ,
+{ to_local_equiv := local_equiv.refl E,
   source_eq    := rfl,
-  map_source'  := λ_ _, mem_univ _,
-  map_target'  := λ_ _, mem_univ _,
-  left_inv'    := λ_ _, rfl,
-  right_inv'   := λ_ _, rfl,
-  unique_diff' := by { rw range_id, exact unique_diff_on_univ },
+  unique_diff' := unique_diff_on_univ,
   continuous_to_fun  := continuous_id,
   continuous_inv_fun := continuous_id }
 
@@ -161,117 +154,167 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
   (I : model_with_corners 𝕜 E H)
 
+namespace model_with_corners
+
 instance : has_coe_to_fun (model_with_corners 𝕜 E H) := ⟨_, λ e, e.to_fun⟩
 
 /-- The inverse to a model with corners, only registered as a local equiv. -/
-protected def model_with_corners.symm : local_equiv E H := I.to_local_equiv.symm
+protected def symm : local_equiv E H := I.to_local_equiv.symm
 
 /- Register a few lemmas to make sure that `simp` puts expressions in normal form -/
-@[simp, mfld_simps] lemma model_with_corners.to_local_equiv_coe : (I.to_local_equiv : H → E) = I := rfl
-
-@[simp, mfld_simps] lemma model_with_corners.mk_coe (e : local_equiv H E) (a b c d) :
-  ((model_with_corners.mk e a b c d : model_with_corners 𝕜 E H) : H → E) = (e : H → E) := rfl
-
-@[simp, mfld_simps] lemma model_with_corners.to_local_equiv_coe_symm :
-  (I.to_local_equiv.symm : E → H) = I.symm := rfl
-
-@[simp, mfld_simps] lemma model_with_corners.mk_coe_symm (e : local_equiv H E) (a b c d) :
-  ((model_with_corners.mk e a b c d : model_with_corners 𝕜 E H).symm : E → H) = (e.symm : E → H) :=
+@[simp, mfld_simps] lemma to_local_equiv_coe : (I.to_local_equiv : H → E) = I :=
 rfl
 
-lemma model_with_corners.unique_diff : unique_diff_on 𝕜 (range I) := I.unique_diff'
+@[simp, mfld_simps] lemma mk_coe (e : local_equiv H E) (a b c d) :
+  ((model_with_corners.mk e a b c d : model_with_corners 𝕜 E H) : H → E) = (e : H → E) := rfl
 
-protected lemma model_with_corners.continuous : continuous I := I.continuous_to_fun
+@[simp, mfld_simps] lemma to_local_equiv_coe_symm : (I.to_local_equiv.symm : E → H) = I.symm := rfl
 
-lemma model_with_corners.continuous_symm : continuous I.symm := I.continuous_inv_fun
+@[simp, mfld_simps] lemma mk_symm (e : local_equiv H E) (a b c d) :
+  (model_with_corners.mk e a b c d : model_with_corners 𝕜 E H).symm = e.symm :=
+rfl
+
+@[continuity] protected lemma continuous : continuous I := I.continuous_to_fun
+
+protected lemma continuous_at {x} : continuous_at I x := I.continuous.continuous_at
+
+protected lemma continuous_within_at {s x} : continuous_within_at I s x :=
+I.continuous_at.continuous_within_at
+
+@[continuity] lemma continuous_symm : continuous I.symm := I.continuous_inv_fun
+
+lemma continuous_at_symm {x} : continuous_at I.symm x := I.continuous_symm.continuous_at
+
+lemma continuous_within_at_symm {s x} : continuous_within_at I.symm s x :=
+I.continuous_symm.continuous_within_at
+
+@[simp, mfld_simps] lemma target_eq : I.target = range (I : H → E) :=
+by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
+
+protected lemma unique_diff : unique_diff_on 𝕜 (range I) := I.target_eq ▸ I.unique_diff'
+
+@[simp, mfld_simps] protected lemma left_inv (x : H) : I.symm (I x) = x :=
+by { refine I.left_inv' _, simp }
+
+protected lemma left_inverse : function.left_inverse I.symm I := I.left_inv
+
+@[simp, mfld_simps] lemma symm_comp_self : I.symm ∘ I = id :=
+I.left_inverse.comp_eq_id
+
+protected lemma right_inv_on : right_inv_on I.symm I (range I) :=
+I.left_inverse.right_inv_on_range
+
+@[simp, mfld_simps] protected lemma right_inv {x : E} (hx : x ∈ range I) : I (I.symm x) = x :=
+I.right_inv_on hx
+
+protected lemma image_eq (s : set H) : I '' s = I.symm ⁻¹' s ∩ range I :=
+begin
+  refine (I.to_local_equiv.image_eq_target_inter_inv_preimage _).trans _,
+  { rw I.source_eq, exact subset_univ _ },
+  { rw [inter_comm, I.target_eq, I.to_local_equiv_coe_symm] }
+end
+
+protected lemma closed_embedding : closed_embedding I :=
+I.left_inverse.closed_embedding I.continuous_symm I.continuous
+
+lemma closed_range : is_closed (range I) :=
+I.closed_embedding.closed_range
+
+lemma map_nhds_eq (x : H) : map I (𝓝 x) = 𝓝[range I] (I x) :=
+I.closed_embedding.to_embedding.map_nhds_eq x
+
+lemma image_mem_nhds_within {x : H} {s : set H} (hs : s ∈ 𝓝 x) :
+  I '' s ∈ 𝓝[range I] (I x) :=
+I.map_nhds_eq x ▸ image_mem_map hs
+
+lemma symm_map_nhds_within_range (x : H) :
+  map I.symm (𝓝[range I] (I x)) = 𝓝 x :=
+by rw [← I.map_nhds_eq, map_map, I.symm_comp_self, map_id]
+
+lemma unique_diff_preimage {s : set H} (hs : is_open s) :
+  unique_diff_on 𝕜 (I.symm ⁻¹' s ∩ range I) :=
+by { rw inter_comm, exact I.unique_diff.inter (hs.preimage I.continuous_inv_fun) }
+
+lemma unique_diff_preimage_source {β : Type*} [topological_space β]
+  {e : local_homeomorph H β} : unique_diff_on 𝕜 (I.symm ⁻¹' (e.source) ∩ range I) :=
+I.unique_diff_preimage e.open_source
+
+lemma unique_diff_at_image {x : H} : unique_diff_within_at 𝕜 (range I) (I x) :=
+I.unique_diff _ (mem_range_self _)
+
+protected lemma locally_compact [locally_compact_space E] (I : model_with_corners 𝕜 E H) :
+  locally_compact_space H :=
+begin
+  have : ∀ (x : H), (𝓝 x).has_basis (λ s, s ∈ 𝓝 (I x) ∧ is_compact s)
+    (λ s, I.symm '' (s ∩ range ⇑I)),
+  { intro x,
+    rw ← I.symm_map_nhds_within_range,
+    exact ((compact_basis_nhds (I x)).inf_principal _).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨-, hsc⟩,
+  exact (hsc.inter_right I.closed_range).image I.continuous_symm
+end
+
+open topological_space
+
+protected lemma second_countable_topology [second_countable_topology E]
+  (I : model_with_corners 𝕜 E H) : second_countable_topology H :=
+I.closed_embedding.to_embedding.second_countable_topology
+
+end model_with_corners
 
 section
 variables (𝕜 E)
 
 /-- In the trivial model with corners, the associated local equiv is the identity. -/
 @[simp, mfld_simps] lemma model_with_corners_self_local_equiv :
-  (model_with_corners_self 𝕜 E).to_local_equiv = local_equiv.refl E := rfl
+  (𝓘(𝕜, E)).to_local_equiv = local_equiv.refl E := rfl
 
 @[simp, mfld_simps] lemma model_with_corners_self_coe :
-  (model_with_corners_self 𝕜 E : E → E) = id := rfl
+  (𝓘(𝕜, E) : E → E) = id := rfl
 
 @[simp, mfld_simps] lemma model_with_corners_self_coe_symm :
-  ((model_with_corners_self 𝕜 E).symm : E → E) = id := rfl
+  (𝓘(𝕜, E).symm : E → E) = id := rfl
 
 end
-
-@[simp, mfld_simps] lemma model_with_corners.target : I.target = range (I : H → E) :=
-by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
-
-@[simp, mfld_simps] lemma model_with_corners.left_inv (x : H) : I.symm (I x) = x :=
-by { convert I.left_inv' _, simp }
-
-@[simp, mfld_simps] lemma model_with_corners.left_inv' : I.symm ∘ I = id :=
-by { ext x, exact model_with_corners.left_inv _ _ }
-
-@[simp, mfld_simps] lemma model_with_corners.right_inv {x : E} (hx : x ∈ range I) :
-  I (I.symm x) = x :=
-by { apply I.right_inv', simp [hx] }
-
-lemma model_with_corners.image (s : set H) :
-  I '' s = I.symm ⁻¹' s ∩ range I :=
-begin
-  ext x,
-  simp only [mem_image, mem_inter_eq, mem_range, mem_preimage],
-  split,
-  { rintros ⟨y, ⟨ys, hy⟩⟩,
-    rw ← hy,
-    simp only [ys, true_and, model_with_corners.left_inv],
-    exact ⟨y, rfl⟩ },
-  { rintros ⟨xs, ⟨y, yx⟩⟩,
-    rw ← yx at xs,
-    simp only [model_with_corners.left_inv] at xs,
-    exact ⟨y, ⟨xs, yx⟩⟩ }
-end
-
-lemma model_with_corners.unique_diff_preimage {s : set H} (hs : is_open s) :
-  unique_diff_on 𝕜 (I.symm ⁻¹' s ∩ range I) :=
-by { rw inter_comm, exact I.unique_diff.inter (hs.preimage I.continuous_inv_fun) }
-
-lemma model_with_corners.unique_diff_preimage_source {β : Type*} [topological_space β]
-  {e : local_homeomorph H β} : unique_diff_on 𝕜 (I.symm ⁻¹' (e.source) ∩ range I) :=
-I.unique_diff_preimage e.open_source
-
-lemma model_with_corners.unique_diff_at_image {x : H} : unique_diff_within_at 𝕜 (range I) (I x) :=
-I.unique_diff _ (mem_range_self _)
 
 end
 
 section model_with_corners_prod
 
 /-- Given two model_with_corners `I` on `(E, H)` and `I'` on `(E', H')`, we define the model with
-corners `I.prod I'` on `(E × E', H × H')`. This appears in particular for the manifold structure on
-the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on `(E × E, H × E)`. -/
+corners `I.prod I'` on `(E × E', model_prod H H')`. This appears in particular for the manifold
+structure on the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on
+`(E × E, H × E)`. See note [Manifold type tags] for explanation about `model_prod H H'`
+vs `H × H'`. -/
 def model_with_corners.prod
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H)
   {E' : Type v'} [normed_group E'] [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
   (I' : model_with_corners 𝕜 E' H') : model_with_corners 𝕜 (E × E') (model_prod H H') :=
-{ to_fun       := λ p, (I p.1, I' p.2),
-  inv_fun      := λ p, (I.symm p.1, I'.symm p.2),
-  source       := (univ : set (H × H')),
-  target       := set.prod (range I) (range I'),
-  map_source'  := λ ⟨x, x'⟩ _, by simp [-mem_range, mem_range_self],
-  map_target'  := λ ⟨x, x'⟩ _, mem_univ _,
-  left_inv'    := λ ⟨x, x'⟩ _, by simp,
-  right_inv'   := λ ⟨x, x'⟩ ⟨hx, hx'⟩, by simp [hx, hx'],
-  source_eq    := rfl,
-  unique_diff' := begin
-    have : range (λ(p : model_prod H H'), (I p.1, I' p.2)) = set.prod (range I) (range I'),
-      by { dsimp [model_prod], rw ← prod_range_range_eq },
-    rw this,
-    exact unique_diff_on.prod I.unique_diff I'.unique_diff,
-  end,
-  continuous_to_fun := (continuous.comp I.continuous_to_fun continuous_fst).prod_mk
-    (continuous.comp I'.continuous_to_fun continuous_snd),
-  continuous_inv_fun := (continuous.comp I.continuous_inv_fun continuous_fst).prod_mk
-    (continuous.comp I'.continuous_inv_fun continuous_snd) }
+{ to_fun := λ x, (I x.1, I' x.2),
+  inv_fun := λ x, (I.symm x.1, I'.symm x.2),
+  source := {x | x.1 ∈ I.source ∧ x.2 ∈ I'.source},
+  source_eq    := by simp only [set_of_true] with mfld_simps,
+  unique_diff' := I.unique_diff'.prod I'.unique_diff',
+  continuous_to_fun := I.continuous_to_fun.prod_map I'.continuous_to_fun,
+  continuous_inv_fun := I.continuous_inv_fun.prod_map I'.continuous_inv_fun,
+  .. I.to_local_equiv.prod I'.to_local_equiv }
+
+/-- Given a finite family of `model_with_corners` `I i` on `(E i, H i)`, we define the model with
+corners `pi I` on `(Π i, E i, model_pi H)`. See note [Manifold type tags] for explanation about
+`model_pi H`. -/
+def model_with_corners.pi
+  {𝕜 : Type u} [nondiscrete_normed_field 𝕜] {ι : Type v} [fintype ι]
+  {E : ι → Type w} [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {H : ι → Type u'} [Π i, topological_space (H i)] (I : Π i, model_with_corners 𝕜 (E i) (H i)) :
+  model_with_corners 𝕜 (Π i, E i) (model_pi H) :=
+{ to_local_equiv := local_equiv.pi (λ i, (I i).to_local_equiv),
+  source_eq := by simp only [set.pi_univ] with mfld_simps,
+  unique_diff' := unique_diff_on.pi ι E _ _ (λ i _, (I i).unique_diff'),
+  continuous_to_fun := continuous_pi $ λ i, (I i).continuous.comp (continuous_apply i),
+  continuous_inv_fun := continuous_pi $ λ i, (I i).continuous_symm.comp (continuous_apply i) }
 
 /-- Special case of product model with corners, which is trivial on the second factor. This shows up
 as the model to tangent bundles. -/
@@ -279,7 +322,7 @@ as the model to tangent bundles. -/
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (model_prod H E) :=
- I.prod (model_with_corners_self 𝕜 E)
+I.prod (𝓘(𝕜, E))
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
@@ -289,13 +332,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {I : model_with_corners 𝕜 E H} {J : model_with_corners 𝕜 F G}
 
 @[simp, mfld_simps] lemma model_with_corners_prod_to_local_equiv :
-  (I.prod J).to_local_equiv = (I.to_local_equiv).prod (J.to_local_equiv) :=
-begin
-  ext1 x,
-  { refl, },
-  { intro x, refl, },
-  { simp only [set.univ_prod_univ, model_with_corners.source_eq, local_equiv.prod_source], }
-end
+  (I.prod J).to_local_equiv = I.to_local_equiv.prod (J.to_local_equiv) :=
+rfl
 
 @[simp, mfld_simps] lemma model_with_corners_prod_coe
   (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
@@ -468,14 +506,12 @@ begin
   split;
   simp only [local_equiv.prod_source, local_homeomorph.prod_to_local_equiv],
   { have h3 := times_cont_diff_on.prod_map he he',
-    rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
-    set.prod_image_image_eq] at h3,
-    rw ← model_with_corners.image (I.prod I') _,
+    rw [← I.image_eq, ← I'.image_eq, set.prod_image_image_eq] at h3,
+    rw ← (I.prod I').image_eq,
     exact h3, },
   { have h3 := times_cont_diff_on.prod_map he_symm he'_symm,
-    rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
-    set.prod_image_image_eq] at h3,
-    rw ← model_with_corners.image (I.prod I') _,
+    rw [← I.image_eq, ← I'.image_eq, set.prod_image_image_eq] at h3,
+    rw ← (I.prod I').image_eq,
     exact h3, }
 end
 
@@ -497,8 +533,6 @@ section smooth_manifold_with_corners
 
 /-! ### Smooth manifolds with corners -/
 
-set_option old_structure_cmd true
-
 /-- Typeclass defining smooth manifolds with corners with respect to a model with corners, over a
 field `𝕜` and with infinite smoothness to simplify typeclass search and statements later on. -/
 @[ancestor has_groupoid]
@@ -507,6 +541,13 @@ class smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M] extends
   has_groupoid M (times_cont_diff_groupoid ∞ I) : Prop
+
+lemma smooth_manifold_with_corners.mk' {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  (M : Type*) [topological_space M] [charted_space H M]
+  [gr : has_groupoid M (times_cont_diff_groupoid ∞ I)] :
+  smooth_manifold_with_corners I M := { ..gr }
 
 lemma smooth_manifold_with_corners_of_times_cont_diff_on
   {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -573,14 +614,47 @@ instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   smooth_manifold_with_corners (I.prod I') (M×M') :=
 { compatible :=
   begin
-    rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
-    rw [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans],
+    rintros f g ⟨f1, f2, hf1, hf2, rfl⟩ ⟨g1, g2, hg1, hg2, rfl⟩,
+    rw [local_homeomorph.prod_symm, local_homeomorph.prod_trans],
     have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf1 hg1,
     have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,
     exact times_cont_diff_groupoid_prod h1 h2,
   end }
 
 end smooth_manifold_with_corners
+
+lemma local_homeomorph.singleton_smooth_manifold_with_corners
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {M : Type*} [topological_space M]
+  (e : local_homeomorph M H) (h : e.source = set.univ) :
+  @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ (e.singleton_charted_space h) :=
+@smooth_manifold_with_corners.mk' _ _ _ _ _ _ _ _ _ _ (id _) $
+e.singleton_has_groupoid h (times_cont_diff_groupoid ∞ I)
+
+lemma open_embedding.singleton_smooth_manifold_with_corners
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {M : Type*} [topological_space M]
+  [nonempty M] {f : M → H} (h : open_embedding f) :
+  @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ h.singleton_charted_space :=
+(h.to_local_homeomorph f).singleton_smooth_manifold_with_corners I (by simp)
+
+namespace topological_space.opens
+
+open topological_space
+
+variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (s : opens M)
+
+instance : smooth_manifold_with_corners I s := { ..s.has_groupoid (times_cont_diff_groupoid ∞ I) }
+
+end topological_space.opens
 
 section extended_charts
 open_locale topological_space
@@ -605,6 +679,11 @@ of `x` to the model vector space. -/
 @[simp, mfld_simps] def ext_chart_at (x : M) : local_equiv M E :=
 (chart_at H x).to_local_equiv.trans I.to_local_equiv
 
+lemma ext_chart_at_coe : ⇑(ext_chart_at I x) = I ∘ chart_at H x := rfl
+
+lemma ext_chart_at_coe_symm :
+  ⇑(ext_chart_at I x).symm = (chart_at H x).symm ∘ I.symm := rfl
+
 lemma ext_chart_at_source : (ext_chart_at I x).source = (chart_at H x).source :=
 by rw [ext_chart_at, local_equiv.trans_source, I.source_eq, preimage_univ, inter_univ]
 
@@ -612,27 +691,41 @@ lemma ext_chart_at_open_source : is_open (ext_chart_at I x).source :=
 by { rw ext_chart_at_source, exact (chart_at H x).open_source }
 
 lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
-by simp only with mfld_simps
+by simp only [ext_chart_at_source, mem_chart_source]
 
 lemma ext_chart_at_to_inv :
   (ext_chart_at I x).symm ((ext_chart_at I x) x) = x :=
-by simp only with mfld_simps
+(ext_chart_at I x).left_inv (mem_ext_chart_source I x)
+
+lemma ext_chart_at_source_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
+  (ext_chart_at I x).source ∈ 𝓝 x' :=
+is_open.mem_nhds (ext_chart_at_open_source I x) h
 
 lemma ext_chart_at_source_mem_nhds : (ext_chart_at I x).source ∈ 𝓝 x :=
-mem_nhds_sets (ext_chart_at_open_source I x) (mem_ext_chart_source I x)
+ext_chart_at_source_mem_nhds' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_source_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
+  (ext_chart_at I x).source ∈ 𝓝[s] x' :=
+mem_nhds_within_of_mem_nhds (ext_chart_at_source_mem_nhds' I x h)
+
+lemma ext_chart_at_source_mem_nhds_within :
+  (ext_chart_at I x).source ∈ 𝓝[s] x :=
+mem_nhds_within_of_mem_nhds (ext_chart_at_source_mem_nhds I x)
 
 lemma ext_chart_at_continuous_on :
   continuous_on (ext_chart_at I x) (ext_chart_at I x).source :=
 begin
-  refine continuous_on.comp I.continuous.continuous_on _ subset_preimage_univ,
+  refine I.continuous.comp_continuous_on _,
   rw ext_chart_at_source,
   exact (chart_at H x).continuous_on
 end
 
-lemma ext_chart_at_continuous_at :
-  continuous_at (ext_chart_at I x) x :=
-(ext_chart_at_continuous_on I x x (mem_ext_chart_source I x)).continuous_at
-  (ext_chart_at_source_mem_nhds I x)
+lemma ext_chart_at_continuous_at' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
+  continuous_at (ext_chart_at I x) x' :=
+(ext_chart_at_continuous_on I x).continuous_at $ ext_chart_at_source_mem_nhds' I x h
+
+lemma ext_chart_at_continuous_at : continuous_at (ext_chart_at I x) x :=
+ext_chart_at_continuous_at' _ _ (mem_ext_chart_source I x)
 
 lemma ext_chart_at_continuous_on_symm :
   continuous_on (ext_chart_at I x).symm (ext_chart_at I x).target :=
@@ -641,47 +734,116 @@ begin
   simp [ext_chart_at, local_equiv.trans_target]
 end
 
-lemma ext_chart_at_target_mem_nhds_within :
-  (ext_chart_at I x).target ∈ 𝓝[range I] ((ext_chart_at I x) x) :=
+lemma ext_chart_at_map_nhds' {x y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x) (𝓝 y) = 𝓝[range I] (ext_chart_at I x y) :=
 begin
-  rw [ext_chart_at, local_equiv.trans_target],
-  simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
-  refine inter_mem_nhds_within _
-    (mem_nhds_sets ((chart_at H x).open_target.preimage I.continuous_symm) _),
-  simp only with mfld_simps
+  rw [ext_chart_at_coe, (∘), ← I.map_nhds_eq, ← (chart_at H x).map_nhds_eq, map_map],
+  rwa ext_chart_at_source at hy
 end
 
-lemma ext_chart_at_coe (p : M) : (ext_chart_at I x) p = I ((chart_at H x : M → H) p) := rfl
+lemma ext_chart_at_map_nhds :
+  map (ext_chart_at I x) (𝓝 x) = 𝓝[range I] (ext_chart_at I x x) :=
+ext_chart_at_map_nhds' I $ mem_ext_chart_source I x
 
-lemma ext_chart_at_coe_symm (p : E) :
-  (ext_chart_at I x).symm p = ((chart_at H x).symm : H → M) (I.symm p) := rfl
+lemma ext_chart_at_target_mem_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  (ext_chart_at I x).target ∈ 𝓝[range I] (ext_chart_at I x y) :=
+begin
+  rw [← local_equiv.image_source_eq_target, ← ext_chart_at_map_nhds' I hy],
+  exact image_mem_map (ext_chart_at_source_mem_nhds' _ _ hy)
+end
+
+lemma ext_chart_at_target_mem_nhds_within :
+  (ext_chart_at I x).target ∈ 𝓝[range I] (ext_chart_at I x x) :=
+ext_chart_at_target_mem_nhds_within' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_target_subset_range : (ext_chart_at I x).target ⊆ range I :=
+by simp only with mfld_simps
+
+lemma nhds_within_ext_chart_target_eq' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  𝓝[(ext_chart_at I x).target] (ext_chart_at I x y) =
+  𝓝[range I] (ext_chart_at I x y) :=
+(nhds_within_mono _ (ext_chart_at_target_subset_range _ _)).antisymm $
+  nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within' _ _ hy)
 
 lemma nhds_within_ext_chart_target_eq :
   𝓝[(ext_chart_at I x).target] ((ext_chart_at I x) x) =
   𝓝[range I] ((ext_chart_at I x) x) :=
-begin
-  apply le_antisymm,
-  { apply nhds_within_mono,
-    simp only with mfld_simps},
-  { apply nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within _ _) }
-end
+nhds_within_ext_chart_target_eq' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_continuous_at_symm'' {y : E} (h : y ∈ (ext_chart_at I x).target) :
+  continuous_at (ext_chart_at I x).symm y :=
+continuous_at.comp ((chart_at H x).continuous_at_symm h.2) (I.continuous_symm.continuous_at)
 
 lemma ext_chart_continuous_at_symm' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
-  continuous_at (ext_chart_at I x).symm ((ext_chart_at I x) x') :=
-begin
-  apply continuous_at.comp,
-  { rw ext_chart_at_source at h,
-    simp only with mfld_simps,
-    exact ((chart_at H x).continuous_on_symm _
-      ((chart_at H x).map_source h)).continuous_at
-        (mem_nhds_sets (chart_at H x).open_target
-          ((chart_at H x).map_source h)) },
-  { exact I.continuous_symm.continuous_at }
-end
+  continuous_at (ext_chart_at I x).symm (ext_chart_at I x x') :=
+ext_chart_continuous_at_symm'' I _ $ (ext_chart_at I x).map_source h
 
 lemma ext_chart_continuous_at_symm :
   continuous_at (ext_chart_at I x).symm ((ext_chart_at I x) x) :=
 ext_chart_continuous_at_symm' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_continuous_on_symm :
+  continuous_on (ext_chart_at I x).symm (ext_chart_at I x).target :=
+λ y hy, (ext_chart_continuous_at_symm'' _ _ hy).continuous_within_at
+
+lemma ext_chart_preimage_open_of_open' {s : set E} (hs : is_open s) :
+  is_open ((ext_chart_at I x).source ∩ ext_chart_at I x ⁻¹' s) :=
+(ext_chart_at_continuous_on I x).preimage_open_of_open (ext_chart_at_open_source _ _) hs
+
+lemma ext_chart_preimage_open_of_open {s : set E} (hs : is_open s) :
+  is_open ((chart_at H x).source ∩ ext_chart_at I x ⁻¹' s) :=
+by { rw ← ext_chart_at_source I, exact ext_chart_preimage_open_of_open' I x hs }
+
+lemma ext_chart_at_map_nhds_within_eq_image' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x) (𝓝[s] y) =
+    𝓝[ext_chart_at I x '' ((ext_chart_at I x).source ∩ s)] (ext_chart_at I x y) :=
+by set e := ext_chart_at I x;
+calc map e (𝓝[s] y) = map e (𝓝[e.source ∩ s] y) :
+  congr_arg (map e) (nhds_within_inter_of_mem (ext_chart_at_source_mem_nhds_within' I x hy)).symm
+... = 𝓝[e '' (e.source ∩ s)] (e y) :
+  ((ext_chart_at I x).left_inv_on.mono $ inter_subset_left _ _).map_nhds_within_eq
+    ((ext_chart_at I x).left_inv hy)
+    (ext_chart_continuous_at_symm' I x hy).continuous_within_at
+    (ext_chart_at_continuous_at' I x hy).continuous_within_at
+
+lemma ext_chart_at_map_nhds_within_eq_image :
+  map (ext_chart_at I x) (𝓝[s] x) =
+    𝓝[ext_chart_at I x '' ((ext_chart_at I x).source ∩ s)] (ext_chart_at I x x) :=
+ext_chart_at_map_nhds_within_eq_image' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_map_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x) (𝓝[s] y) =
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x y) :=
+by rw [ext_chart_at_map_nhds_within_eq_image' I x hy, nhds_within_inter,
+  ← nhds_within_ext_chart_target_eq' _ _ hy, ← nhds_within_inter,
+  (ext_chart_at I x).image_source_inter_eq', inter_comm]
+
+lemma ext_chart_at_map_nhds_within :
+  map (ext_chart_at I x) (𝓝[s] x) =
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x) :=
+ext_chart_at_map_nhds_within' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_symm_map_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x).symm
+    (𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x y)) = 𝓝[s] y :=
+begin
+  rw [← ext_chart_at_map_nhds_within' I x hy, map_map, map_congr, map_id],
+  exact (ext_chart_at I x).left_inv_on.eq_on.eventually_eq_of_mem
+    (ext_chart_at_source_mem_nhds_within' _ _ hy)
+end
+
+lemma ext_chart_at_symm_map_nhds_within_range' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x).symm (𝓝[range I] (ext_chart_at I x y)) = 𝓝 y :=
+by rw [← nhds_within_univ, ← ext_chart_at_symm_map_nhds_within' I x hy, preimage_univ, univ_inter]
+
+lemma ext_chart_at_symm_map_nhds_within :
+  map (ext_chart_at I x).symm
+    (𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)) = 𝓝[s] x :=
+ext_chart_at_symm_map_nhds_within' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_symm_map_nhds_within_range :
+  map (ext_chart_at I x).symm (𝓝[range I] (ext_chart_at I x x)) = 𝓝 x :=
+ext_chart_at_symm_map_nhds_within_range' I x (mem_ext_chart_source I x)
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
 in the source is a neighborhood of the preimage, within a set. -/
@@ -689,14 +851,7 @@ lemma ext_chart_preimage_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x
   (ht : t ∈ 𝓝[s] x') :
   (ext_chart_at I x).symm ⁻¹' t ∈
     𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x') :=
-begin
-  apply (ext_chart_continuous_at_symm' I x h).continuous_within_at.tendsto_nhds_within_image,
-  rw (ext_chart_at I x).left_inv h,
-  apply nhds_within_mono _ _ ht,
-  have : (ext_chart_at I x).symm '' ((ext_chart_at I x).symm ⁻¹' s) ⊆ s :=
-    image_preimage_subset _ _,
-  exact subset.trans (image_subset _ (inter_subset_left _ _)) this
-end
+by rwa [← ext_chart_at_symm_map_nhds_within' I x h, mem_map] at ht
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of the
 base point is a neighborhood of the preimage, within a set. -/

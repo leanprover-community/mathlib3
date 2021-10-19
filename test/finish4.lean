@@ -7,7 +7,7 @@ Tests for `finish using [...]`
 -/
 
 import tactic.finish
-import algebra.ordered_ring
+import algebra.order.ring
 
 section list_rev
 open list
@@ -45,7 +45,9 @@ end barber
 
 constant real : Type
 @[instance] constant orreal : ordered_ring real
-@[irreducible] noncomputable instance : has_lt real := by apply_instance -- TODO(Mario): suspicious fix
+
+-- TODO(Mario): suspicious fix
+@[irreducible] noncomputable instance : has_lt real := by apply_instance
 constants (log exp : real → real)
 constant  log_exp_eq : ∀ x, log (exp x) = x
 constant  exp_log_eq : ∀ {x}, x > 0 → exp (log x) = x

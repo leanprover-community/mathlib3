@@ -25,7 +25,8 @@ variable [division_ring K]
 
 lemma continuants_aux_stable_step_of_terminated (terminated_at_n : g.terminated_at n) :
   g.continuants_aux (n + 2) = g.continuants_aux (n + 1) :=
-by { rw [terminated_at_iff_s_none] at terminated_at_n, simp only [terminated_at_n, continuants_aux] }
+by { rw [terminated_at_iff_s_none] at terminated_at_n,
+     simp only [terminated_at_n, continuants_aux] }
 
 lemma continuants_aux_stable_of_terminated (succ_n_le_m : (n + 1) ≤ m)
   (terminated_at_n : g.terminated_at n) :

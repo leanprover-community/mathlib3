@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison
+Authors: Scott Morrison
 -/
-import category_theory.category
+import category_theory.category.basic
 import data.equiv.functor
 
 /-!
@@ -46,14 +46,32 @@ def map_equiv :
   f α ≃ f β :=
 { to_fun := equiv_functor.map e,
   inv_fun := equiv_functor.map e.symm,
-  left_inv := λ x, begin convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simp, end,
-  right_inv := λ y, begin convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simp, end, }
+  left_inv := λ x, by { convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simp, },
+  right_inv := λ y, by { convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simp, }, }
 
 @[simp] lemma map_equiv_apply (x : f α) :
   map_equiv f e x = equiv_functor.map e x := rfl
 
-@[simp] lemma map_equiv_symm_apply (y : f β) :
+lemma map_equiv_symm_apply (y : f β) :
   (map_equiv f e).symm y = equiv_functor.map e.symm y := rfl
+
+@[simp] lemma map_equiv_refl (α) :
+  map_equiv f (equiv.refl α) = equiv.refl (f α) :=
+by simpa [equiv_functor.map_equiv]
+
+@[simp] lemma map_equiv_symm :
+  (map_equiv f e).symm = map_equiv f e.symm :=
+equiv.ext $ map_equiv_symm_apply f e
+
+/--
+The composition of `map_equiv`s is carried over the `equiv_functor`.
+For plain `functor`s, this lemma is named `map_map` when applied
+or `map_comp_map` when not applied.
+-/
+@[simp] lemma map_equiv_trans {γ : Type u₀} (ab : α ≃ β) (bc : β ≃ γ) :
+  (map_equiv f ab).trans (map_equiv f bc) = map_equiv f (ab.trans bc) :=
+equiv.ext $ λ x, by simp [map_equiv, map_trans']
+
 end
 
 @[priority 100]
@@ -62,5 +80,11 @@ instance of_is_lawful_functor
 { map := λ α β e, functor.map e,
   map_refl' := λ α, by { ext, apply is_lawful_functor.id_map, },
   map_trans' := λ α β γ k h, by { ext x, apply (is_lawful_functor.comp_map k h x), } }
+
+lemma map_equiv.injective
+  (f : Type u₀ → Type u₁) [applicative f] [is_lawful_applicative f] {α β : Type u₀}
+  (h : ∀ γ, function.injective (pure : γ → f γ)) :
+  function.injective (@equiv_functor.map_equiv f _ α β) :=
+λ e₁ e₂ H, equiv.ext $ λ x, h β (by simpa [equiv_functor.map] using equiv.congr_fun H (pure x))
 
 end equiv_functor

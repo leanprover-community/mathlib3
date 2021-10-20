@@ -13,7 +13,7 @@ import tactic.linarith
 /-!
 # Cycle Types
 
-In this file we define the cycle type of a partition.
+In this file we define the cycle type of a permutation.
 
 ## Main definitions
 
@@ -221,10 +221,10 @@ lemma cycle_type_mul_mem_cycle_factors_finset_eq_sub {f g : perm α}
   (g * f⁻¹).cycle_type = g.cycle_type - f.cycle_type :=
 begin
   suffices : (g * f⁻¹).cycle_type + f.cycle_type = g.cycle_type - f.cycle_type + f.cycle_type,
-  { rw multiset.sub_add_cancel (cycle_type_le_of_mem_cycle_factors_finset hf) at this,
+  { rw sub_add_cancel_of_le (cycle_type_le_of_mem_cycle_factors_finset hf) at this,
     simp [←this] },
   simp [←(disjoint_mul_inv_of_mem_cycle_factors_finset hf).cycle_type,
-    multiset.sub_add_cancel (cycle_type_le_of_mem_cycle_factors_finset hf)]
+    sub_add_cancel_of_le (cycle_type_le_of_mem_cycle_factors_finset hf)]
 end
 
 theorem is_conj_of_cycle_type_eq {σ τ : perm α} (h : cycle_type σ = cycle_type τ) : is_conj σ τ :=
@@ -250,13 +250,13 @@ begin
       { rw is_conj_iff,
         use σ'⁻¹,
         simp [mul_assoc] },
-      refine is_conj_trans _ key,
+      refine is_conj.trans _ key,
       have hs : σ.cycle_type = σ'.cycle_type,
       { rw [←finset.mem_def, mem_cycle_factors_finset_iff] at hσ'l,
         rw [hσ.cycle_type, ←hσ', hσ'l.left.cycle_type] },
       refine hστ.is_conj_mul (h1 hs) (h2 _) _,
       { rw [cycle_type_mul_mem_cycle_factors_finset_eq_sub, ←hπ, add_comm, hs,
-            multiset.add_sub_cancel],
+            add_sub_cancel_right],
         rwa finset.mem_def },
       { exact (disjoint_mul_inv_of_mem_cycle_factors_finset hσ'l).symm } } }
 end
@@ -450,7 +450,7 @@ begin
   have hf2 : ∀ j k v, f k (f j v) = f (j + k) v :=
   λ j k v, vectors_prod_eq_one.rotate_rotate v j k,
   have hf3 : ∀ v, f p v = v := vectors_prod_eq_one.rotate_length,
-  let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, nat.add_sub_cancel' hp.out.pos, hf3])
+  let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, add_sub_cancel_of_le hp.out.one_lt.le, hf3])
     (λ s, by rw [hf2, nat.sub_add_cancel hp.out.pos, hf3]),
   have hσ : ∀ k v, (σ ^ k) v = f k v :=
   λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,
@@ -488,7 +488,7 @@ section partition
 variables [decidable_eq α]
 
 /-- The partition corresponding to a permutation -/
-def partition (σ : perm α) : partition (fintype.card α) :=
+def partition (σ : perm α) : (fintype.card α).partition :=
 { parts := σ.cycle_type + repeat 1 (fintype.card α - σ.support.card),
   parts_pos := λ n hn,
   begin
@@ -497,7 +497,7 @@ def partition (σ : perm α) : partition (fintype.card α) :=
     { exact lt_of_lt_of_le zero_lt_one (ge_of_eq (multiset.eq_of_mem_repeat hn)) },
   end,
   parts_sum := by rw [sum_add, sum_cycle_type, multiset.sum_repeat, nsmul_eq_mul,
-    nat.cast_id, mul_one, nat.add_sub_cancel' σ.support.card_le_univ] }
+    nat.cast_id, mul_one, add_sub_cancel_of_le σ.support.card_le_univ] }
 
 lemma parts_partition {σ : perm α} :
   σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - σ.support.card) := rfl
@@ -516,7 +516,7 @@ lemma partition_eq_of_is_conj {σ τ : perm α} :
 begin
   rw [is_conj_iff_cycle_type_eq],
   refine ⟨λ h, _, λ h, _⟩,
-  { rw [partition.ext_iff, parts_partition, parts_partition,
+  { rw [nat.partition.ext_iff, parts_partition, parts_partition,
       ← sum_cycle_type, ← sum_cycle_type, h] },
   { rw [← filter_parts_partition_eq_cycle_type, ← filter_parts_partition_eq_cycle_type, h] }
 end

@@ -72,6 +72,11 @@ lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
 by { by_cases h : P; simp [h], }
 
 @[to_additive]
+lemma ite_one_mul {P : Prop} [decidable P] {a b : M} :
+  ite P 1 (a * b) = ite P 1 a * ite P 1 b :=
+by { by_cases h : P; simp [h], }
+
+@[to_additive]
 lemma eq_one_iff_eq_one_of_mul_eq_one {a b : M} (h : a * b = 1) : a = 1 ↔ b = 1 :=
 by split; { rintro rfl, simpa using h }
 
@@ -89,7 +94,6 @@ variables {G : Type u} [comm_semigroup G]
 @[no_rsimp, to_additive]
 lemma mul_left_comm : ∀ a b c : G, a * (b * c) = b * (a * c) :=
 left_comm has_mul.mul mul_comm mul_assoc
-attribute [no_rsimp] add_left_comm
 
 @[to_additive]
 lemma mul_right_comm : ∀ a b c : G, a * b * c = a * c * b :=

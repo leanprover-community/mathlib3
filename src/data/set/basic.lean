@@ -291,6 +291,8 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
+@[simp] lemma nonempty_coe_sort (s : set α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+
 lemma nonempty_def : s.nonempty ↔ ∃ x, x ∈ s := iff.rfl
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
@@ -662,6 +664,13 @@ by simp only [subset_def, or_imp_distrib, forall_and_distrib, forall_eq, mem_ins
 
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t := λ x, or.imp_right (@h _)
 
+theorem insert_subset_insert_iff (ha : a ∉ s) : insert a s ⊆ insert a t ↔ s ⊆ t :=
+begin
+  refine ⟨λ h x hx, _, insert_subset_insert⟩,
+  rcases h (subset_insert _ _ hx) with (rfl|hxt),
+  exacts [(ha hx).elim, hxt]
+end
+
 theorem ssubset_iff_insert {s t : set α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 begin
   simp only [insert_subset, exists_and_distrib_right, ssubset_def, not_subset],
@@ -707,9 +716,9 @@ theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := (insert_emptyc
 
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b := iff.rfl
 
-@[simp]
-lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} :=
-ext $ λ n, (set.mem_singleton_iff).symm
+@[simp] lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := rfl
+
+@[simp] lemma set_of_eq_eq_singleton' {a : α} : {x | a = x} = {a} := ext $ λ x, eq_comm
 
 -- TODO: again, annotation needed
 @[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := @rfl _ _
@@ -795,6 +804,14 @@ by { ext, simp }
 
 @[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
 by { ext, simp }
+
+lemma sep_inter_sep {p q : α → Prop} :
+  {x ∈ s | p x} ∩ {x ∈ s | q x} = {x ∈ s | p x ∧ q x} :=
+begin
+  ext,
+  simp_rw [mem_inter_iff, mem_sep_iff],
+  rw [and_and_and_comm, and_self],
+end
 
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl
@@ -1580,8 +1597,22 @@ by { rcases hs.eq_empty_or_singleton with rfl|⟨x, rfl⟩, exacts [he, h₁ _] 
 lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 λ x hx y hy, subsingleton.elim x y
 
+lemma subsingleton_of_univ_subsingleton (h : (univ : set α).subsingleton) : subsingleton α :=
+⟨λ a b, h (mem_univ a) (mem_univ b)⟩
+
+@[simp] lemma subsingleton_univ_iff : (univ : set α).subsingleton ↔ subsingleton α :=
+⟨subsingleton_of_univ_subsingleton, λ h, @subsingleton_univ _ h⟩
+
 lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
 subsingleton.mono subsingleton_univ (subset_univ s)
+
+lemma subsingleton_is_top (α : Type*) [partial_order α] :
+  set.subsingleton {x : α | is_top x} :=
+λ x hx y hy, hx.unique (hy x)
+
+lemma subsingleton_is_bot (α : Type*) [partial_order α] :
+  set.subsingleton {x : α | is_bot x} :=
+λ x hx y hy, hx.unique (hy x)
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/
@@ -1646,6 +1677,16 @@ eq_univ_iff_forall
 alias range_iff_surjective ↔ _ function.surjective.range_eq
 
 @[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
+
+@[simp] theorem _root_.prod.range_fst [nonempty β] : range (prod.fst : α × β → α) = univ :=
+prod.fst_surjective.range_eq
+
+@[simp] theorem _root_.prod.range_snd [nonempty α] : range (prod.snd : α × β → β) = univ :=
+prod.snd_surjective.range_eq
+
+@[simp] theorem range_eval {ι : Type*} {α : ι → Sort*} [Π i, nonempty (α i)] (i : ι) :
+  range (eval i : (Π i, α i) → α i) = univ :=
+(surjective_eval i).range_eq
 
 theorem is_compl_range_inl_range_inr : is_compl (range $ @sum.inl α β) (range sum.inr) :=
 ⟨by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc },
@@ -1718,6 +1759,12 @@ ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,
 lemma image_preimage_eq_of_subset {f : α → β} {s : set β} (hs : s ⊆ range f) :
   f '' (f ⁻¹' s) = s :=
 by rw [image_preimage_eq_inter_range, inter_eq_self_of_subset_left hs]
+
+instance set.can_lift [can_lift α β] : can_lift (set α) (set β) :=
+{ coe := λ s, can_lift.coe '' s,
+  cond := λ s, ∀ x ∈ s, can_lift.cond β x,
+  prf := λ s hs, ⟨can_lift.coe ⁻¹' s, image_preimage_eq_of_subset $
+    λ x hx, can_lift.prf _ (hs x hx)⟩ }
 
 lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s ↔ s ⊆ range f :=
 ⟨by { intro h, rw [← h], apply image_subset_range }, image_preimage_eq_of_subset⟩
@@ -1993,6 +2040,11 @@ lemma pairwise_on_pair_of_symmetric {r : α → α → Prop} {x y : α} (hr : sy
   pairwise_on {x, y} r ↔ (x ≠ y → r x y) :=
 by simp [pairwise_on_insert_of_symmetric hr]
 
+lemma pairwise_on_disjoint_on_mono {s : set α} {f g : α → set β}
+  (h : s.pairwise_on (disjoint on f)) (h' : ∀ x ∈ s, g x ⊆ f x) :
+  s.pairwise_on (disjoint on g) :=
+λ i hi j hj hij, disjoint.mono (h' i hi) (h' j hj) (h i hi j hj hij)
+
 end set
 
 open set
@@ -2046,6 +2098,16 @@ lemma injective.mem_range_iff_exists_unique (hf : injective f) {b : β} :
 lemma injective.exists_unique_of_mem_range (hf : injective f) {b : β} (hb : b ∈ range f) :
   ∃! a, f a = b :=
 hf.mem_range_iff_exists_unique.mp hb
+
+theorem injective.compl_image_eq (hf : injective f) (s : set α) :
+  (f '' s)ᶜ = f '' sᶜ ∪ (range f)ᶜ :=
+begin
+  ext y,
+  rcases em (y ∈ range f) with ⟨x, rfl⟩|hx,
+  { simp [hf.eq_iff] },
+  { rw [mem_range, not_exists] at hx,
+    simp [hx] }
+end
 
 lemma left_inverse.image_image {g : β → α} (h : left_inverse g f) (s : set α) :
   g '' (f '' s) = s :=

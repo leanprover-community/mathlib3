@@ -521,7 +521,7 @@ In particular this provides the instance `algebra k (monoid_algebra k G)`.
 -/
 instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   algebra k (monoid_algebra A G) :=
-{ smul_def' := λ r a, by { ext, simp [single_one_mul_apply, algebra.smul_def'', pi.smul_apply], },
+{ smul_def' := λ r a, by { ext, simp [single_one_mul_apply, algebra.smul_def, pi.smul_apply], },
   commutes' := λ r f, by { ext, simp [single_one_mul_apply, mul_single_one_apply,
     algebra.commutes], },
   ..single_one_ring_hom.comp (algebra_map k A) }
@@ -667,6 +667,7 @@ def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
   apply finsupp.induction c,
   { simp, },
   { intros g r c' nm nz w,
+    dsimp at *,
     simp only [add_smul, f.map_add, w, add_left_inj, single_eq_algebra_map_mul_of, ← smul_smul],
     erw [algebra_map_smul (monoid_algebra k G) r, algebra_map_smul (monoid_algebra k G) r,
       f.map_smul, h g v, of_apply],
@@ -1270,7 +1271,7 @@ In particular this provides the instance `algebra k (add_monoid_algebra k G)`.
 -/
 instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   algebra R (add_monoid_algebra k G) :=
-{ smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def'', pi.smul_apply], },
+{ smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def, pi.smul_apply], },
   commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply,
                                       algebra.commutes], },
   ..single_zero_ring_hom.comp (algebra_map R k) }

@@ -7,7 +7,6 @@ Authors: Kenny Lau
 import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
-import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 import ring_theory.polynomial.content
 
@@ -304,6 +303,20 @@ begin
   exact subtype.mem (coeff p n : T)
 end
 
+section mod_by_monic
+
+variables {q : polynomial R}
+
+lemma mem_ker_mod_by_monic [nontrivial R] (hq : q.monic) {p : polynomial R} :
+  p ∈ (mod_by_monic_hom hq).ker ↔ q ∣ p :=
+linear_map.mem_ker.trans (dvd_iff_mod_by_monic_eq_zero hq)
+
+@[simp] lemma ker_mod_by_monic_hom [nontrivial R] (hq : q.monic) :
+  (polynomial.mod_by_monic_hom hq).ker = (ideal.span {q}).restrict_scalars R :=
+submodule.ext (λ f, (mem_ker_mod_by_monic hq).trans ideal.mem_span_singleton.symm)
+
+end mod_by_monic
+
 end polynomial
 
 variables {R : Type u} {σ : Type v} {M : Type w} [comm_ring R] [add_comm_group M] [module R M]
@@ -378,15 +391,19 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
     ((quotient.mk (map C I : ideal (polynomial R)) X)),
   inv_fun := quotient.lift (map C I : ideal (polynomial R))
     (eval₂_ring_hom (C.comp (quotient.mk I)) X) eval₂_C_mk_eq_zero,
-  map_mul' := λ f g, by simp,
-  map_add' := λ f g, by simp,
+  map_mul' := λ f g, by simp only [coe_eval₂_ring_hom, eval₂_mul],
+  map_add' := λ f g, by simp only [eval₂_add, coe_eval₂_ring_hom],
   left_inv := begin
     intro f,
     apply polynomial.induction_on' f,
-    { simp_intros p q hp hq,
-      rw [hp, hq] },
+    { intros p q hp hq,
+      simp only [coe_eval₂_ring_hom] at hp,
+      simp only [coe_eval₂_ring_hom] at hq,
+      simp only [coe_eval₂_ring_hom, hp, hq, ring_hom.map_add] },
     { rintros n ⟨x⟩,
-      simp [monomial_eq_smul_X, C_mul'] }
+      simp only [monomial_eq_smul_X, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
+        quotient.mk_eq_mk, eval₂_X_pow, eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow,
+        eval₂_C, ring_hom.coe_comp, ring_hom.map_mul, eval₂_X] }
   end,
   right_inv := begin
     rintro ⟨f⟩,
@@ -394,9 +411,27 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
     { simp_intros p q hp hq,
       rw [hp, hq] },
     { intros n a,
-      simp [monomial_eq_smul_X, ← C_mul' a (X ^ n)] },
+      simp only [monomial_eq_smul_X, ← C_mul' a (X ^ n), quotient.lift_mk,
+        submodule.quotient.quot_mk_eq_mk, quotient.mk_eq_mk, eval₂_X_pow,
+        eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow, eval₂_C, ring_hom.coe_comp,
+        ring_hom.map_mul, eval₂_X] },
   end,
 }
+
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_symm_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial.symm (quotient.mk _ f) = f.map (quotient.mk I) :=
+by rw [polynomial_quotient_equiv_quotient_polynomial, ring_equiv.symm_mk, ring_equiv.coe_mk,
+  ideal.quotient.lift_mk, coe_eval₂_ring_hom, eval₂_eq_eval_map, ←polynomial.map_map,
+  ←eval₂_eq_eval_map, polynomial.eval₂_C_X]
+
+@[simp]
+lemma polynomial_quotient_equiv_quotient_polynomial_map_mk (I : ideal R) (f : polynomial R) :
+  I.polynomial_quotient_equiv_quotient_polynomial (f.map I^.quotient.mk) = quotient.mk _ f :=
+begin
+  apply (polynomial_quotient_equiv_quotient_polynomial I).symm.injective,
+  rw [ring_equiv.symm_apply_apply, polynomial_quotient_equiv_quotient_polynomial_symm_mk],
+end
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
 lemma is_integral_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
@@ -505,7 +540,7 @@ begin
       rw [leading_coeff, nat_degree, hpdeg], refl } },
   { rintro ⟨p, hpI, hpdeg, rfl⟩,
     have : nat_degree p + (n - nat_degree p) = n,
-    { exact nat.add_sub_cancel' (nat_degree_le_of_degree_le hpdeg) },
+    { exact add_sub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
     refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right _ hpI⟩, _⟩,
     { apply le_trans (degree_mul_le _ _) _,
       apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
@@ -531,7 +566,7 @@ begin
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
   refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
-  rw [← with_bot.coe_add, nat.add_sub_cancel' H],
+  rw [← with_bot.coe_add, add_sub_cancel_of_le H],
   exact le_refl _
 end
 
@@ -560,14 +595,14 @@ end ideal
 
 namespace polynomial
 @[priority 100]
-instance {R : Type*} [integral_domain R] [wf_dvd_monoid R] :
+instance {R : Type*} [comm_ring R] [integral_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid (polynomial R) :=
 { well_founded_dvd_not_unit := begin
     classical,
     refine rel_hom.well_founded
       ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
       (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_5.well_founded_dvd_not_unit),
+        _inst_6.well_founded_dvd_not_unit),
     rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
     rw [polynomial.degree_mul, if_neg ane0],
     split_ifs with hac,
@@ -636,7 +671,7 @@ begin
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
     { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
-      rw [← with_bot.coe_add, nat.add_sub_cancel', hn],
+      rw [← with_bot.coe_add, add_sub_cancel_of_le, hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },
       rw [polynomial.leading_coeff_X_pow, mul_one],
       exact mt polynomial.leading_coeff_eq_zero.1 hq0 },
@@ -657,17 +692,20 @@ attribute [instance] polynomial.is_noetherian_ring
 
 namespace polynomial
 
-theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_degree_pos
+  {R : Type u} [comm_ring R] [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
 wf_dvd_monoid.exists_irreducible_factor
   (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
   (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
 
-theorem exists_irreducible_of_nat_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_nat_degree_pos
+  {R : Type u} [comm_ring R] [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.nat_degree) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_degree_le hf }
 
-theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_nat_degree_ne_zero
+  {R : Type u} [comm_ring R] [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
@@ -803,12 +841,14 @@ Multivariate polynomials in finitely many variables over an integral domain form
 This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
 and then used to prove the general case without finiteness hypotheses.
 See `mv_polynomial.integral_domain` for the general case. -/
-def integral_domain_fintype (R : Type u) (σ : Type v) [integral_domain R] [fintype σ] :
+theorem integral_domain_fintype
+  (R : Type u) (σ : Type v) [comm_ring R] [integral_domain R] [fintype σ] :
   integral_domain (mv_polynomial σ R) :=
 @is_integral_domain.to_integral_domain _ _ $ mv_polynomial.is_integral_domain_fintype R σ $
 integral_domain.to_is_integral_domain R
 
-protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {R : Type u} [integral_domain R] {σ : Type v}
+protected theorem eq_zero_or_eq_zero_of_mul_eq_zero
+  {R : Type u} [comm_ring R] [integral_domain R] {σ : Type v}
   (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=
 begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
@@ -824,7 +864,7 @@ begin
 end
 
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
-instance {R : Type u} {σ : Type v} [integral_domain R] :
+instance {R : Type u} {σ : Type v} [comm_ring R] [integral_domain R] :
   integral_domain (mv_polynomial σ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
   exists_pair_ne := ⟨0, 1, λ H,
@@ -962,13 +1002,13 @@ end mv_polynomial
 namespace polynomial
 open unique_factorization_monoid
 
-variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
+variables {D : Type u} [comm_ring D] [integral_domain D] [unique_factorization_monoid D]
 
 @[priority 100]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
 begin
   haveI := arbitrary (normalization_monoid D),
-  haveI := to_gcd_monoid D,
+  haveI := to_normalized_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
 

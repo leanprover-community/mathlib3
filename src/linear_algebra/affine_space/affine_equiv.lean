@@ -118,7 +118,7 @@ to_affine_map_injective.eq_iff
 @[ext] lemma ext {e e' : P₁ ≃ᵃ[k] P₂} (h : ∀ x, e x = e' x) : e = e' :=
 to_affine_map_injective $ affine_map.ext h
 
-lemma coe_fn_injective : injective (λ (e : P₁ ≃ᵃ[k] P₂) (x : P₁), e x) :=
+lemma coe_fn_injective : @injective (P₁ ≃ᵃ[k] P₂) (P₁ → P₂) coe_fn :=
 λ e e' H, ext $ congr_fun H
 
 @[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : ⇑e = e' ↔ e = e' :=

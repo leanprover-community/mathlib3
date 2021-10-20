@@ -164,7 +164,7 @@ begin
             _ (hps hp0),
           orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃', h', hcr p0 hp0,
           dist_eq_norm_vsub V _ cc₃', vadd_vsub, norm_smul, ←dist_eq_norm_vsub V p,
-          real.norm_eq_abs, ←mul_assoc, mul_comm _ (abs t₃), ←mul_assoc, abs_mul_abs_self],
+          real.norm_eq_abs, ←mul_assoc, mul_comm _ (|t₃|), ←mul_assoc, abs_mul_abs_self],
       ring },
     replace hcr₃ := hcr₃ p (set.mem_insert _ _),
     rw [hpo, hcc₃'', hcr₃val, ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
@@ -196,8 +196,7 @@ lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonemp
   ∃! cccr : (P × ℝ), cccr.fst ∈ affine_span ℝ (set.range p) ∧
     ∀ i, dist (p i) cccr.fst = cccr.snd :=
 begin
-  generalize' hn : fintype.card ι = n,
-  unfreezingI { induction n with m hm generalizing ι },
+  unfreezingI { induction hn : fintype.card ι with m hm generalizing ι },
   { exfalso,
     have h := fintype.card_pos_iff.2 hne,
     rw hn at h,
@@ -621,7 +620,7 @@ begin
            sum_ite, sum_const, filter_or, filter_eq'],
   rw card_union_eq,
   { simp },
-  { simp [h.symm] }
+  { simpa only [if_true, mem_univ, disjoint_singleton] using h }
 end
 
 include V

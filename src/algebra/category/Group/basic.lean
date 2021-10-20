@@ -42,6 +42,12 @@ attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concret
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
 
+/-- Typecheck a `monoid_hom` as a morphism in `Group`. -/
+@[to_additive] def of_hom {X Y : Type u} [group X] [group Y] (f : X →* Y) : of X ⟶ of Y := f
+
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddGroup`. -/
+add_decl_doc AddGroup.of_hom
+
 @[to_additive]
 instance (G : Group) : group G := G.str
 
@@ -64,9 +70,6 @@ lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 @[ext, to_additive]
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
-
--- should to_additive do this automatically?
-attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ _
@@ -98,6 +101,13 @@ attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
 /-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
 add_decl_doc AddCommGroup.of
 
+/-- Typecheck a `monoid_hom` as a morphism in `CommGroup`. -/
+@[to_additive] def of_hom {X Y : Type u} [comm_group X] [comm_group Y] (f : X →* Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddCommGroup`. -/
+add_decl_doc AddCommGroup.of_hom
+
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 
@@ -115,11 +125,9 @@ instance one.unique : unique (1 : CommGroup) :=
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive,ext]
+@[ext, to_additive]
 lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
-
-attribute [ext] AddCommGroup.ext
 
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget₂ CommGroup Group := bundled_hom.forget₂ _ _

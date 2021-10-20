@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.sublists
+import data.list.lex
 
 /-!
 # Pairwise relations on a list

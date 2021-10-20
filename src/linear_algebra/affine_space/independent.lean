@@ -213,6 +213,26 @@ end
 
 variables {k}
 
+/-- If we single out one member of an affine-independent family of points and affinely transport
+all others along the line joining them to this member, the resulting new family of points is affine-
+independent.
+
+This is the affine version of `linear_independent.units_smul`. -/
+lemma affine_independent.units_line_map
+  {p : ι → P} (hp : affine_independent k p) (j : ι) (w : ι → units k) :
+  affine_independent k (λ i, affine_map.line_map (p j) (p i) (w i : k)) :=
+begin
+  rw affine_independent_iff_linear_independent_vsub k _ j at hp ⊢,
+  simp only [affine_map.line_map_vsub_left, affine_map.coe_const, affine_map.line_map_same],
+  exact hp.units_smul (λ i, w i),
+end
+
+lemma affine_independent.indicator_eq_of_affine_combination_eq {p : ι → P}
+  (ha : affine_independent k p) (s₁ s₂ : finset ι) (w₁ w₂ : ι → k) (hw₁ : ∑ i in s₁, w₁ i = 1)
+  (hw₂ : ∑ i in s₂, w₂ i = 1) (h : s₁.affine_combination p w₁ = s₂.affine_combination p w₂) :
+  set.indicator ↑s₁ w₁ = set.indicator ↑s₂ w₂ :=
+(affine_independent_iff_indicator_eq_of_affine_combination_eq k p).1 ha s₁ s₂ w₁ w₂ hw₁ hw₂ h
+
 /-- An affinely independent family is injective, if the underlying
 ring is nontrivial. -/
 protected lemma affine_independent.injective [nontrivial k] {p : ι → P}
@@ -268,6 +288,16 @@ begin
   simp [hf]
 end
 
+lemma affine_independent_equiv {ι' : Type*} (e : ι ≃ ι') {p : ι' → P} :
+  affine_independent k (p ∘ e) ↔ affine_independent k p :=
+begin
+  refine ⟨_, affine_independent.comp_embedding e.to_embedding⟩,
+  intros h,
+  have : p = p ∘ e ∘ e.symm.to_embedding, { ext, simp, },
+  rw this,
+  exact h.comp_embedding e.symm.to_embedding,
+end
+
 /-- If a set of points is affinely independent, so is any subset. -/
 protected lemma affine_independent.mono {s t : set P}
   (ha : affine_independent k (λ x, x : t → P)) (hs : s ⊆ t) :
@@ -320,18 +350,18 @@ lemma affine_map.affine_independent_iff {p : ι → P} (f : P →ᵃ[k] P₂) (h
   affine_independent k (f ∘ p) ↔ affine_independent k p :=
 ⟨affine_independent.of_comp f, λ hai, affine_independent.map' hai f hf⟩
 
-/-- In particular, affine equivalences preserve affine independence. -/
+/-- Affine equivalences preserve affine independence of families of points. -/
 lemma affine_equiv.affine_independent_iff {p : ι → P} (e : P ≃ᵃ[k] P₂) :
   affine_independent k (e ∘ p) ↔ affine_independent k p :=
 e.to_affine_map.affine_independent_iff e.to_equiv.injective
 
-omit V₂
-
-/-- In particular, homotheties preserve affine independence (when the scale factor is a unit). -/
-lemma affine_map.homothety_affine_independent_iff {k : Type*} [comm_ring k] [module k V]
-  {p : ι → P} {q : P} {t : units k} :
-  affine_independent k ((affine_map.homothety q (t : k)) ∘ p) ↔ affine_independent k p :=
-(affine_equiv.homothety_units_mul_hom q t).affine_independent_iff
+/-- Affine equivalences preserve affine independence of subsets. -/
+lemma affine_equiv.affine_independent_set_of_eq_iff {s : set P} (e : P ≃ᵃ[k] P₂) :
+  affine_independent k (coe : (e '' s) → P₂) ↔ affine_independent k (coe : s → P) :=
+begin
+  have : e ∘ (coe : s → P) = (coe : e '' s → P₂) ∘ ((e : P ≃ P₂).image s) := rfl,
+  rw [← e.affine_independent_iff, this, affine_independent_equiv],
+end
 
 end composition
 
@@ -416,9 +446,9 @@ end
 
 end affine_independent
 
-section field
+section division_ring
 
-variables {k : Type*} {V : Type*} {P : Type*} [field k] [add_comm_group V] [module k V]
+variables {k : Type*} {V : Type*} {P : Type*} [division_ring k] [add_comm_group V] [module k V]
 variables [affine_space V P] {ι : Type*}
 include V
 
@@ -454,7 +484,34 @@ begin
     { use [hsvi, affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] } }
 end
 
-variables (k)
+variables (k V)
+
+lemma exists_affine_independent (s : set P) :
+  ∃ t ⊆ s, affine_span k t = affine_span k s ∧ affine_independent k (coe : t → P) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩,
+  { exact ⟨∅, set.empty_subset ∅, rfl, affine_independent_of_subsingleton k _⟩, },
+  obtain ⟨b, hb₁, hb₂, hb₃⟩ := exists_linear_independent k ((equiv.vadd_const p).symm '' s),
+  have hb₀ : ∀ (v : V), v ∈ b → v ≠ 0, { exact λ v hv, hb₃.ne_zero (⟨v, hv⟩ : b), },
+  rw linear_independent_set_iff_affine_independent_vadd_union_singleton k hb₀ p at hb₃,
+  refine ⟨{p} ∪ (equiv.vadd_const p) '' b, _, _, hb₃⟩,
+  { apply set.union_subset (set.singleton_subset_iff.mpr hp),
+    rwa ← (equiv.vadd_const p).subset_image' b s, },
+  { rw [equiv.coe_vadd_const_symm, ← vector_span_eq_span_vsub_set_right k hp] at hb₂,
+    apply affine_subspace.ext_of_direction_eq,
+    { have : submodule.span k b = submodule.span k (insert 0 b), { by simp, },
+      simp only [direction_affine_span, ← hb₂, equiv.coe_vadd_const, set.singleton_union,
+        vector_span_eq_span_vsub_set_right k (set.mem_insert p _), this],
+      congr,
+      change (equiv.vadd_const p).symm '' insert p ((equiv.vadd_const p) '' b) = _,
+      rw [set.image_insert_eq, ← set.image_comp],
+      simp, },
+    { use p,
+      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
+      exact ⟨mem_span_points k _ _ (set.mem_insert p _), mem_span_points k _ _ hp⟩, }, },
+end
+
+variables (k) {V P}
 
 /-- Two different points are affinely independent. -/
 lemma affine_independent_of_ne {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
@@ -472,7 +529,7 @@ begin
   exact linear_independent_unique _ hz
 end
 
-end field
+end division_ring
 
 namespace affine
 

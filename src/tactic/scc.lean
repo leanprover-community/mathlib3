@@ -2,13 +2,6 @@
 Copyright (c) 2018 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Tactics based on the strongly connected components (SCC) of a graph where
-the vertices are propositions and the edges are implications found
-in the context.
-
-They are used for finding the sets of equivalent propositions in a set
-of implications.
 -/
 import tactic.tauto
 import data.sum

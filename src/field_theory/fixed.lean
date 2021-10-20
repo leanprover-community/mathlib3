@@ -98,7 +98,7 @@ subtype.eq $ x.2 m
 polynomial.induction_on p
   (λ x, by rw [polynomial.smul_C, smul])
   (λ p q ihp ihq, by rw [smul_add, ihp, ihq])
-  (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow, polynomial.smul_X])
+  (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow', polynomial.smul_X])
 
 instance : algebra (fixed_points.subfield M F) F :=
 algebra.of_subring (fixed_points.subfield M F).to_subring
@@ -224,7 +224,7 @@ theorem is_integral : is_integral (fixed_points.subfield G F) x :=
 
 theorem minpoly_eq_minpoly :
   minpoly G F x = _root_.minpoly (fixed_points.subfield G F) x :=
-minpoly.unique' (minpoly.irreducible G F x)
+minpoly.eq_of_irreducible_of_monic (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points.subfield G F) F :=
@@ -265,7 +265,8 @@ end
 end fixed_points
 
 lemma linear_independent_to_linear_map (R : Type u) (A : Type v) (B : Type w)
-  [comm_semiring R] [integral_domain A] [algebra R A] [integral_domain B] [algebra R B] :
+  [comm_semiring R] [comm_ring A] [algebra R A]
+  [comm_ring B] [integral_domain B] [algebra R B] :
   linear_independent B (alg_hom.to_linear_map : (A →ₐ[R] B) → (A →ₗ[R] B)) :=
 have linear_independent B (linear_map.lto_fun R A B ∘ alg_hom.to_linear_map),
 from ((linear_independent_monoid_hom A B).comp

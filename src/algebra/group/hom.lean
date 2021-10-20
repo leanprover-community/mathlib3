@@ -269,8 +269,6 @@ lemma monoid_with_zero_hom.ext [mul_zero_one_class M] [mul_zero_one_class N]
   ⦃f g : monoid_with_zero_hom M N⦄ (h : ∀ x, f x = g x) : f = g :=
 monoid_with_zero_hom.coe_inj (funext h)
 
-attribute [ext] zero_hom.ext add_hom.ext add_monoid_hom.ext
-
 @[to_additive]
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, one_hom.ext h⟩
@@ -495,10 +493,10 @@ lemma one_hom.cancel_left [has_one M] [has_one N] [has_one P]
 ⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
-lemma mul_hom.cancel_left [has_one M] [has_one N] [has_one P]
-  {g : one_hom N P} {f₁ f₂ : one_hom M N} (hg : function.injective g) :
+lemma mul_hom.cancel_left [has_mul M] [has_mul N] [has_mul P]
+  {g : mul_hom N P} {f₁ f₂ : mul_hom M N} (hg : function.injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
+⟨λ h, mul_hom.ext $ λ x, hg $ by rw [← mul_hom.comp_apply, h, mul_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
 lemma monoid_hom.cancel_left [mul_one_class M] [mul_one_class N] [mul_one_class P]

@@ -3,7 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.ordered_ring
+import algebra.order.ring
 import tactic.monotonicity.basic
 import group_theory.group_action.defs
 
@@ -416,7 +416,7 @@ by rw [sq, sq, mul_self_sub_mul_self]
 
 alias sq_sub_sq ← pow_two_sub_pow_two
 
-lemma eq_or_eq_neg_of_sq_eq_sq [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+lemma eq_or_eq_neg_of_sq_eq_sq [comm_ring R] [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
   a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
         ← sq_sub_sq a b, sub_eq_zero]

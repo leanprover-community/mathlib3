@@ -5,6 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import algebra.lie.of_associative
+import ring_theory.adjoin.basic
 import ring_theory.algebra_tower
 
 /-!
@@ -25,9 +26,6 @@ definitive definition of derivation will be implemented.
 -/
 
 open algebra
-
--- to match `linear_map`
-set_option old_structure_cmd true
 
 /-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
 equality.
@@ -54,21 +52,19 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
-
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
 
 @[simp] lemma to_linear_map_eq_coe : D.to_linear_map = D := rfl
 
-@[simp] lemma mk_coe (f : A →ₗ[R] M) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : derivation R A M) : A → M) = f := rfl
+@[simp] lemma mk_coe (f : A →ₗ[R] M) (h) :
+  ((⟨f, h⟩ : derivation R A M) : A → M) = f := rfl
 
 @[simp, norm_cast]
 lemma coe_fn_coe (f : derivation R A M) : ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective : @function.injective (derivation R A M) (A → M) coe_fn :=
-λ D1 D2 h, by { cases D1, cases D2, congr', }
+λ D1 D2 h, by { rcases D1 with ⟨⟨⟩⟩, rcases D2 with ⟨⟨⟩⟩, congr', }
 
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 coe_injective $ funext H
@@ -101,6 +97,17 @@ begin
     have : a * a ^ (n - 1) = a ^ n, by rw [← pow_succ, nat.sub_add_cancel hpos],
     simp [pow_succ, leibniz, ihn, smul_comm a n, smul_smul a, add_smul, this, nat.succ_eq_add_one] }
 end
+
+lemma eq_on_adjoin {s : set A} (h : set.eq_on D1 D2 s) : set.eq_on D1 D2 (adjoin R s) :=
+λ x hx, algebra.adjoin_induction hx h
+  (λ r, (D1.map_algebra_map r).trans (D2.map_algebra_map r).symm)
+  (λ x y hx hy, by simp only [map_add, *])
+  (λ x y hx hy, by simp only [leibniz, *])
+
+/-- If adjoin of a set is the whole algebra, then any two derivations equal on this set are equal
+on the whole algebra. -/
+lemma ext_of_adjoin_eq_top (s : set A) (hs : adjoin R s = ⊤) (h : set.eq_on D1 D2 s) : D1 = D2 :=
+ext $ λ a, eq_on_adjoin h $ hs.symm ▸ trivial
 
 /- Data typeclasses -/
 
@@ -239,7 +246,7 @@ instance : has_bracket (derivation R A A) (derivation R A A) :=
 ⟨λ D1 D2, { leibniz' := λ a b, by
             { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_apply, leibniz,
                         linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring, },
-            ..⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }⟩
+            to_linear_map := ⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }⟩
 
 @[simp] lemma commutator_coe_linear_map :
   ↑⁅D1, D2⁆ = ⁅(D1 : module.End R A), (D2 : module.End R A)⁆ := rfl

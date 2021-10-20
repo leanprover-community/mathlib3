@@ -45,8 +45,8 @@ not the standard one unless there is a primitive `n`th root of unity in `R`. For
 To get the standard cyclotomic polynomials, we use `int_coeff_of_cycl`, with `R = ℂ`, to get a
 polynomial with integer coefficients and then we map it to `polynomial R`, for any ring `R`.
 To prove `cyclotomic.irreducible`, the irreducibility of `cyclotomic n ℤ`, we show in
-`minpoly_primitive_root_eq_cyclotomic` that `cyclotomic n ℤ` is the minimal polynomial of
-any `n`-th primitive root of unity `μ : K`, where `K` is a field of characteristic `0`.
+`cyclotomic_eq_minpoly` that `cyclotomic n ℤ` is the minimal polynomial of any `n`-th primitive root
+of unity `μ : K`, where `K` is a field of characteristic `0`.
 -/
 
 open_locale classical big_operators
@@ -60,26 +60,29 @@ section cyclotomic'
 
 section integral_domain
 
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R] [integral_domain R]
 
 /-- The modified `n`-th cyclotomic polynomial with coefficients in `R`, it is the usual cyclotomic
 polynomial if there is a primitive `n`-th root of unity in `R`. -/
-def cyclotomic' (n : ℕ) (R : Type*) [integral_domain R] : polynomial R :=
+def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : polynomial R :=
 ∏ μ in primitive_roots n R, (X - C μ)
 
 /-- The zeroth modified cyclotomic polyomial is `1`. -/
-@[simp] lemma cyclotomic'_zero (R : Type*) [integral_domain R] : cyclotomic' 0 R = 1 :=
+@[simp] lemma cyclotomic'_zero
+  (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' 0 R = 1 :=
 by simp only [cyclotomic', finset.prod_empty, is_primitive_root.primitive_roots_zero]
 
 /-- The first modified cyclotomic polyomial is `X - 1`. -/
-@[simp] lemma cyclotomic'_one (R : Type*) [integral_domain R] : cyclotomic' 1 R = X - 1 :=
+@[simp] lemma cyclotomic'_one
+  (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' 1 R = X - 1 :=
 begin
   simp only [cyclotomic', finset.prod_singleton, ring_hom.map_one,
   is_primitive_root.primitive_roots_one]
 end
 
 /-- The second modified cyclotomic polyomial is `X + 1` if the characteristic of `R` is not `2`. -/
-@[simp] lemma cyclotomic'_two (R : Type*) [integral_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
+@[simp] lemma cyclotomic'_two
+  (R : Type*) [comm_ring R] [integral_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
   cyclotomic' 2 R = X + 1 :=
 begin
   rw [cyclotomic'],
@@ -95,11 +98,13 @@ begin
 end
 
 /-- `cyclotomic' n R` is monic. -/
-lemma cyclotomic'.monic (n : ℕ) (R : Type*) [integral_domain R] : (cyclotomic' n R).monic :=
+lemma cyclotomic'.monic
+  (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : (cyclotomic' n R).monic :=
 monic_prod_of_monic _ _ $ λ z hz, monic_X_sub_C _
 
 /-- `cyclotomic' n R` is different from `0`. -/
-lemma cyclotomic'_ne_zero (n : ℕ) (R : Type*) [integral_domain R] : cyclotomic' n R ≠ 0 :=
+lemma cyclotomic'_ne_zero
+  (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' n R ≠ 0 :=
 (cyclotomic'.monic n R).ne_zero
 
 /-- The natural degree of `cyclotomic' n R` is `totient n` if there is a primitive root of
@@ -124,7 +129,7 @@ lemma degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
 by simp only [degree_eq_nat_degree (cyclotomic'_ne_zero n R), nat_degree_cyclotomic' h]
 
 /-- The roots of `cyclotomic' n R` are the primitive `n`-th roots of unity. -/
-lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [integral_domain R] :
+lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] :
   (cyclotomic' n R).roots = (primitive_roots n R).val :=
 by { rw cyclotomic', exact roots_prod_X_sub_C (primitive_roots n R) }
 
@@ -598,7 +603,7 @@ end
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
 `n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
-lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime] {a : ℕ}
+lemma order_of_root_cyclotomic_eq {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime] {a : ℕ}
   (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
 begin
@@ -633,7 +638,7 @@ begin
   simp only [map_nat_cast, map_X, map_sub] at habs,
   replace habs := degree_eq_zero_of_is_unit habs,
   rw [← C_eq_nat_cast, degree_X_sub_C] at habs,
-  norm_cast at habs
+  exact one_ne_zero habs
 end
 
 end order
@@ -643,7 +648,7 @@ section minpoly
 open is_primitive_root complex
 
 /-- The minimal polynomial of a primitive `n`-th root of unity `μ` divides `cyclotomic n ℤ`. -/
-lemma minpoly_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+lemma _root_.minpoly_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
@@ -657,7 +662,7 @@ lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
   cyclotomic n ℤ = minpoly ℤ μ :=
 begin
   refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
-    (cyclotomic.monic n ℤ) (minpoly_primitive_root_dvd_cyclotomic h hpos) _,
+    (cyclotomic.monic n ℤ) (minpoly_dvd_cyclotomic h hpos) _,
   simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h hpos
 end
 

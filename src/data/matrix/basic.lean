@@ -667,7 +667,7 @@ variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra 
 instance : algebra R (matrix n n α) :=
 { commutes' := λ r x, begin
     ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
-  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
+  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def r], end,
   ..((matrix.scalar n).comp (algebra_map R α)) }
 
 lemma algebra_map_matrix_apply {r : R} {i j : n} :

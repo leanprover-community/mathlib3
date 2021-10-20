@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Patrick Massot
 
 import topology.uniform_space.basic
 import tactic.apply_fun
+import data.set.pairwise
 
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.
@@ -208,7 +209,7 @@ instance separated_regular [separated_space α] : regular_space α :=
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
 
 lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
-  {s : set α} (hs : ∀ {x y}, x ∈ s → y ∈ s → (x, y) ∈ V₀ → x = y) : is_closed s :=
+  {s : set α} (hs : pairwise_on s (λ x y, (x, y) ∉ V₀)) : is_closed s :=
 begin
   rcases comp_symm_mem_uniformity_sets V₀_in with ⟨V₁, V₁_in, V₁_symm, h_comp⟩,
   apply is_closed_of_closure_subset,
@@ -219,11 +220,17 @@ begin
   apply eq_of_forall_symmetric,
   intros V V_in V_symm,
   rcases hx (inter_mem V₁_in V_in) with ⟨z, hz, hz'⟩,
-  suffices : z = y,
-  { rw ← this,
-    exact ball_inter_right x _ _ hz },
-  exact hs hz' hy' (h_comp $ mem_comp_of_mem_ball V₁_symm (ball_inter_left x _ _ hz) hy)
+  obtain rfl : z = y,
+  { by_contra hzy,
+    exact hs z hz' y hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm
+      (ball_inter_left x _ _ hz) hy) },
+  exact ball_inter_right x _ _ hz
 end
+
+lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
+  {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
+is_closed_of_spaced_out V₀_in $
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (mt (congr_arg f) h) }
 
 /-!
 ### Separated sets

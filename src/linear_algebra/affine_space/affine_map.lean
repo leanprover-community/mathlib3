@@ -178,6 +178,8 @@ instance : add_comm_group (P1 →ᵃ[k] V2) :=
 @[simp, norm_cast] lemma coe_zero : ⇑(0 : P1 →ᵃ[k] V2) = 0 := rfl
 @[simp] lemma zero_linear : (0 : P1 →ᵃ[k] V2).linear = 0 := rfl
 @[simp, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
+@[simp, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
+@[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := by simp [sub_eq_add_neg]
 @[simp]
 lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
 
@@ -291,13 +293,32 @@ include V2
 @[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
   function.injective f.linear ↔ function.injective f :=
 begin
-  split; intros hf x y hxy,
-  { rw [← @vsub_eq_zero_iff_eq V1, ← @submodule.mem_bot k V1, ← linear_map.ker_eq_bot.mpr hf,
-      linear_map.mem_ker, affine_map.linear_map_vsub, hxy, vsub_self], },
-  { obtain ⟨p⟩ := (by apply_instance : nonempty P1),
-    have hxy' : (f.linear x) +ᵥ f p = (f.linear y) +ᵥ f p, { rw hxy, },
-    rw [← f.map_vadd, ← f.map_vadd] at hxy',
-    exact (vadd_right_cancel_iff _).mp (hf hxy'), },
+  obtain ⟨p⟩ := (infer_instance : nonempty P1),
+  have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, equiv.comp_injective, equiv.injective_comp],
+end
+
+@[simp] lemma surjective_iff_linear_surjective (f : P1 →ᵃ[k] P2) :
+  function.surjective f.linear ↔ function.surjective f :=
+begin
+  obtain ⟨p⟩ := (infer_instance : nonempty P1),
+  have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
+  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  rw [h, equiv.comp_surjective, equiv.surjective_comp],
+end
+
+lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
+  (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
+begin
+  ext v,
+  simp only [set.mem_vsub, set.mem_image, exists_exists_and_eq_and, exists_and_distrib_left,
+    ← f.linear_map_vsub],
+  split,
+  { rintros ⟨x, hx, y, hy, hv⟩,
+    exact ⟨x -ᵥ y, ⟨x, hx, y, hy, rfl⟩, hv⟩, },
+  { rintros ⟨-, ⟨x, hx, y, hy, rfl⟩, rfl⟩,
+    exact ⟨x, hx, y, hy, rfl⟩, },
 end
 
 omit V2
@@ -489,6 +510,8 @@ lemma homothety_eq_line_map (c : P1) (r : k) (p : P1) : homothety c r p = line_m
 
 @[simp] lemma homothety_one (c : P1) : homothety c (1:k) = id k P1 :=
 by { ext p, simp [homothety_apply] }
+
+@[simp] lemma homothety_apply_same (c : P1) (r : k) : homothety c r c = c := line_map_same_apply c r
 
 lemma homothety_mul (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ * r₂) = (homothety c r₁).comp (homothety c r₂) :=

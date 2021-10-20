@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
-import linear_algebra.basic
+import linear_algebra.quotient
 import order.zorn
 import order.atoms
 import order.compactly_generated
@@ -152,8 +152,7 @@ end
 theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 
-
-lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
+lemma bot_prime {R : Type*} [comm_ring R] [integral_domain R] : (⊥ : ideal R).is_prime :=
 ⟨λ h, one_ne_zero (by rwa [ideal.eq_top_iff_one, submodule.mem_bot] at h),
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
@@ -299,7 +298,7 @@ lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
 span_le.trans $ singleton_subset_iff.trans mem_span_singleton
 
-lemma span_singleton_eq_span_singleton {α : Type u} [integral_domain α] {x y : α} :
+lemma span_singleton_eq_span_singleton {α : Type u} [comm_ring α] [integral_domain α] {x y : α} :
   span ({x} : set α) = span ({y} : set α) ↔ associated x y :=
 begin
   rw [←dvd_dvd_iff_associated, le_antisymm_iff, and_comm],
@@ -344,12 +343,13 @@ end⟩
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
 is_maximal.is_prime
 
-lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
+lemma span_singleton_lt_span_singleton [comm_ring β] [integral_domain β] {x y : β} :
   span ({x} : set β) < span ({y} : set β) ↔ dvd_not_unit y x :=
 by rw [lt_iff_le_not_le, span_singleton_le_span_singleton, span_singleton_le_span_singleton,
   dvd_and_not_dvd_iff]
 
-lemma factors_decreasing [integral_domain β] (b₁ b₂ : β) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
+lemma factors_decreasing [comm_ring β] [integral_domain β]
+  (b₁ b₂ : β) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
   span ({b₁ * b₂} : set β) < span {b₁} :=
 lt_of_le_not_le (ideal.span_le.2 $ singleton_subset_iff.2 $
   ideal.mem_span_singleton.2 ⟨b₂, rfl⟩) $ λ h,
@@ -428,6 +428,13 @@ end division_ring
 section comm_ring
 
 namespace ideal
+
+theorem mul_sub_mul_mem {R : Type*} [comm_ring R] (I : ideal R) {a b c d : R}
+  (h1 : a - b ∈ I) (h2 : c - d ∈ I) : a * c - b * d ∈ I :=
+begin
+  rw (show a * c - b * d = (a - b) * c + b * (c - d), by {rw [sub_mul, mul_sub], abel}),
+  exact I.add_mem (I.mul_mem_right _ h1) (I.mul_mem_left _ h2),
+end
 
 variables [comm_ring α] (I : ideal α) {a b : α}
 
@@ -527,7 +534,6 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
         (or.inr ∘ eq_zero_iff_mem.2),
-  .. quotient.comm_ring I,
   .. quotient.nontrivial hI.1 }
 
 lemma is_integral_domain_iff_prime (I : ideal α) : is_integral_domain I.quotient ↔ I.is_prime :=
@@ -557,6 +563,7 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
     by rw dif_neg ha;
     exact classical.some_spec (exists_inv ha),
   inv_zero := dif_pos rfl,
+  ..quotient.comm_ring I,
   ..quotient.integral_domain I }
 
 /-- If the quotient by an ideal is a field, then the ideal is maximal. -/
@@ -629,27 +636,43 @@ variables (ι : Type v)
 
 /-- `R^n/I^n` is a `R/I`-module. -/
 instance module_pi : module (I.quotient) (I.pi ι).quotient :=
-begin
-  refine { smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) _, .. },
-  { intros c₁ m₁ c₂ m₂ hc hm,
-    change c₁ - c₂ ∈ I at hc,
-    change m₁ - m₂ ∈ (I.pi ι) at hm,
+{ smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) begin
+    intros c₁ m₁ c₂ m₂ hc hm,
     apply ideal.quotient.eq.2,
-    have : c₁ • (m₂ - m₁) ∈ I.pi ι,
-    { rw ideal.mem_pi,
-      intro i,
-      simp only [smul_eq_mul, pi.smul_apply, pi.sub_apply],
-      apply ideal.mul_mem_left,
-      rw ←ideal.neg_mem_iff,
-      simpa only [neg_sub] using hm i },
-    rw [←ideal.add_mem_iff_left (I.pi ι) this, sub_eq_add_neg, add_comm, ←add_assoc, ←smul_add,
-      sub_add_cancel, ←sub_eq_add_neg, ←sub_smul, ideal.mem_pi],
-    exact λ i, I.mul_mem_right _ hc },
-  all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
-    simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
+    intro i,
+    exact I.mul_sub_mul_mem hc (hm i),
+  end,
+  one_smul := begin
+    rintro ⟨a⟩,
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr' with i, simp [mul_assoc, mul_add, add_mul] }
-end
+    congr' with i, exact one_mul (a i),
+  end,
+  mul_smul := begin
+    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    simp only [(•)],
+    congr' with i, exact mul_assoc a b (c i),
+  end,
+  smul_add := begin
+    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact mul_add a (b i) (c i),
+  end,
+  smul_zero := begin
+    rintro ⟨a⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact mul_zero a,
+  end,
+  add_smul := begin
+    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact add_mul a b (c i),
+  end,
+  zero_smul := begin
+    rintro ⟨a⟩,
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr' with i, exact zero_mul (a i),
+  end, }
 
 /-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/
 noncomputable def pi_quot_equiv : (I.pi ι).quotient ≃ₗ[I.quotient] (ι → I.quotient) :=

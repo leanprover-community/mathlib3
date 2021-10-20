@@ -822,7 +822,7 @@ begin
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   by_contra hzero,
-  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero))
+  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero)
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is squarefree. -/

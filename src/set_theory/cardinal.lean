@@ -147,6 +147,8 @@ iff.rfl
 theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : #α ≤ #β :=
 ⟨⟨f, hf⟩⟩
 
+theorem _root_.function.embedding.cardinal_le {α β : Type u} (f : α ↪ β) : #α ≤ #β := ⟨f⟩
+
 theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : #β ≤ #α :=
 ⟨embedding.of_surjective f hf⟩
 
@@ -248,6 +250,9 @@ begin
   rw [←cardinal.mk_ulift, ←cardinal.mk_ulift, add_def],
   exact cardinal.eq.2 ⟨equiv.sum_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
 end
+
+@[simp] theorem mk_option {α : Type u} : #(option α) = #α + 1 :=
+(equiv.option_equiv_sum_punit α).cardinal_eq
 
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, #(α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -503,10 +508,10 @@ by rw [← not_le, succ_le, not_lt]
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
-  refine le_cInf nonempty_Ioi (λ b (hlt : c < b), _),
-  rcases ⟨b, c⟩ with ⟨⟨β⟩, ⟨γ⟩⟩,
-  cases hlt.left with f,
-  have : ¬ surjective f := λ hn, hlt.not_le hn.cardinal_le,
+  refine le_min.2 (λ b, _),
+  rcases ⟨b, c⟩ with ⟨⟨⟨β⟩, hlt⟩, ⟨γ⟩⟩,
+  cases hlt.le with f,
+  have : ¬ surjective f := λ hn, hlt.not_le (mk_le_of_surjective hn),
   simp only [surjective, not_forall] at this,
   rcases this with ⟨b, hb⟩,
   calc #γ + 1 = #(option γ) : mk_option.symm
@@ -1133,9 +1138,6 @@ begin
   rw [← prop_eq_two, cardinal.power_def (ulift Prop) α, cardinal.eq],
   exact ⟨equiv.arrow_congr (equiv.refl _) equiv.ulift.symm⟩,
 end
-
-@[simp] theorem mk_option {α : Type u} : #(option α) = #α + 1 :=
-quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
 
 theorem mk_list_eq_sum_pow (α : Type u) : #(list α) = sum (λ n : ℕ, (#α)^(n:cardinal.{u})) :=
 calc  #(list α)

@@ -130,10 +130,6 @@ by { rw [modeq_iff_dvd] at *, exact (dvd_mul_left (n : ℤ) (m : ℤ)).trans h }
 theorem of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
 mul_comm m n ▸ of_modeq_mul_left _
 
-lemma le_of_lt_add (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
-(le_total a b).elim id (λ h3, nat.le_of_sub_eq_zero
-  (eq_zero_of_dvd_of_lt ((modeq_iff_dvd' h3).mp h1.symm) ((sub_lt_iff_left h3).mpr h2)))
-
 end modeq
 
 theorem modeq_one : a ≡ b [MOD 1] := modeq_of_dvd (one_dvd _)
@@ -148,6 +144,17 @@ by rw [nat.modeq, nat.mod_zero, nat.mod_zero]
 by rw [nat.modeq, nat.add_mod_left]
 @[simp] lemma add_modeq_right {a n : ℕ} : a + n ≡ a [MOD n] :=
 by rw [nat.modeq, nat.add_mod_right]
+
+namespace modeq
+
+lemma le_of_lt_add (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
+(le_total a b).elim id (λ h3, nat.le_of_sub_eq_zero
+  (eq_zero_of_dvd_of_lt ((modeq_iff_dvd' h3).mp h1.symm) ((sub_lt_iff_left h3).mpr h2)))
+
+lemma add_le_of_lt (h1 : a ≡ b [MOD m]) (h2 : a < b) : a + m ≤ b :=
+le_of_lt_add (add_modeq_right.trans h1) (add_lt_add_right h2 m)
+
+end modeq
 
 local attribute [semireducible] int.nonneg
 

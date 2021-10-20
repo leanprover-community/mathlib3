@@ -38,10 +38,10 @@ instance [inhabited α] [inhabited β] : inhabited (lex α β) :=
 prod.inhabited
 
 /-- Dictionary / lexicographic ordering on pairs.  -/
-instance lex_has_le [preorder α] [preorder β] : has_le (lex α β) :=
+instance lex_has_le [has_lt α] [has_le β] : has_le (lex α β) :=
 { le := prod.lex (<) (≤) }
 
-instance lex_has_lt [preorder α] [preorder β] : has_lt (lex α β) :=
+instance lex_has_lt [has_lt α] [has_lt β] : has_lt (lex α β) :=
 { lt := prod.lex (<) (<) }
 
 /-- Dictionary / lexicographic preorder for pairs. -/

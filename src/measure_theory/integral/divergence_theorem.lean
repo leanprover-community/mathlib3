@@ -15,10 +15,10 @@ In this file we prove the Divergence theorem for Bochner integral on a box in
 
 Let `E` be a complete normed space with second countably topology. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
 differentiable on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative
-`f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the divergence `λ x, ∑ i, f' x (pi.single i 1) i` is integrable on
-`[a, b]`, then its integral is equal to the sum of integrals of `f` over the faces of `[a, b]`,
-taken with appropriat signs. Moreover, the same is true if the function is not differentiable but
-continuous at countably many points of `[a, b]`.
+`f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on `[a, b]`,
+where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the sum of
+integrals of `f` over the faces of `[a, b]`, taken with appropriat signs. Moreover, the same is true
+if the function is not differentiable but continuous at countably many points of `[a, b]`.
 
 ## TODO
 
@@ -45,11 +45,19 @@ local notation `Eⁿ⁺¹` := fin (n + 1) → E
 
 /-- **Divergence theorem** for Bochner integral. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is differentiable on a
 rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the
-divergence `λ x, ∑ i, f' x (pi.single i 1) i` is integrable on `[a, b]`, then its integral is equal
-to the sum of integrals of `f` over the faces of `[a, b]`, taken with appropriat signs.
+divergence `λ x, ∑ i, f' x eᵢ i` is integrable on `[a, b]`, where `eᵢ = pi.single i 1` is the `i`-th
+basis vector, then its integral is equal to the sum of integrals of `f` over the faces of `[a, b]`,
+taken with appropriat signs.
 
 Moreover, the same is true if the function is not differentiable but continuous at countably many
-points of `[a, b]`. -/
+points of `[a, b]`.
+
+We represent both faces `x i = a i` and `x i = b i` as the box
+`[a ∘ fin.succ_above i, b ∘ fin.succ_above i]` in `ℝⁿ`, where
+`fin.succ_abvoe : fin n ↪o fin (n + 1)` is the order embedding with range `{i}ᶜ`. The restrictions
+of `f : ℝⁿ⁺¹ → Eⁿ⁺¹` to these faces are given by `λ y, f (fin.insert_nth i (a i) y)`
+and `λ y, f (fin.insert_nth i (b i) y)`, respectively, where `fin.insert_nth i a y` takes
+`y : ℝⁿ` and returns a vector `x : ℝⁿ⁺¹` such that `x i = a` and `x (fin.succ_above j) = y j`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
   (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (a b : ℝⁿ⁺¹) (hle : a ≤ b)
   (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)

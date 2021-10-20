@@ -36,11 +36,11 @@ section ring
 
 variables [ring R] [domain R] [fintype R]
 
-lemma bijective_mul_left (a : R) (ha : a ≠ 0) : bijective (λ b, a * b) :=
-fintype.injective_iff_bijective.1 $ λ b c, mul_left_cancel₀ ha
+lemma mul_right_bijective (a : R) (ha : a ≠ 0) : bijective (λ b, a * b) :=
+fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
 
-lemma bijective_mul_right (a : R) (ha : a ≠ 0) : bijective (λ b, b * a) :=
-fintype.injective_iff_bijective.1 $ λ b c, mul_right_cancel₀ ha
+lemma mul_left_bijective (a : R) (ha : a ≠ 0) : bijective (λ b, b * a) :=
+fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
 
 /-- Every finite domain is a division ring.
 

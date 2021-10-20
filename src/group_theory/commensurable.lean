@@ -28,7 +28,7 @@ variables {G G' : Type*} [group G] [group G']
 
 /--Two subgroups `H K` of `G` are commensurable if `H ⊓ K` has finite index in both `H` and `K` -/
 def commensurable (H K : subgroup G) : Prop :=
-  subgroup.index (H.subgroup_of K) ≠ 0 ∧ subgroup.index (K.subgroup_of H) ≠ 0
+  K.relindex H ≠ 0 ∧ H.relindex K ≠ 0
 
 namespace commensurable
 
@@ -54,6 +54,7 @@ begin
   rw commensurable,
   simp only [ne.def, and_self],
   have := subgroup_of_top H,
+  rw subgroup.relindex,
   rw this,
   have h2 := index_of_top,
   rw h2,
@@ -269,10 +270,11 @@ end
 lemma index_subgroup_le {H K : subgroup G} (h : H ≤ K)  : K.index = 0 → H.index = 0 :=
 begin
   intro h1,
-  have := subgroup.index_eq_mul_of_le h,
+  have := subgroup.relindex_mul_index h,
+  rw subgroup.relindex at *,
   rw h1 at this,
-  simp only [zero_mul] at this,
-  apply this,
+  simp  at this,
+  apply this.symm,
 end
 
 lemma inf_ind_prod (H K L : subgroup G) :
@@ -281,7 +283,8 @@ lemma inf_ind_prod (H K L : subgroup G) :
 begin
   have h1 : (subgroup.subgroup_of (H ⊓ K)  L) ≤ (subgroup.subgroup_of H  L),
     by {apply subgroup.subgroup_of_le, simp only [inf_le_left],},
-  have h2 := subgroup.index_eq_mul_of_le h1,
+  have h2 := subgroup.relindex_mul_index h1,
+  rw subgroup.relindex at *,
   intro h,
   rw h at h2,
   simp only [nat.zero_eq_mul] at h2,

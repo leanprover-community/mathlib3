@@ -96,12 +96,16 @@ lemma self_adjoint.eq_smul_self_of_is_local_extr_on (hT : self_adjoint (T : E �
   (hextr : is_local_extr_on T.re_apply_inner_self (sphere (0:E) ∥x₀∥) x₀) :
   T x₀ = (↑(T.re_apply_inner_self x₀ / ∥x₀∥ ^ 2) : 𝕜) • x₀ :=
 begin
-  sorry
-  -- have _i : normed_space 𝕜 E := by apply_instance,
-  -- haveI := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  -- let S : E →L[ℝ] E := @continuous_linear_map.restrict_scalars 𝕜 E E _ _ _ _i.to_module,
-  -- have : self_adjoint (S : E →ₗ[ℝ] E),
-  -- { sorry },
+  letI := inner_product_space.is_R_or_C_to_real 𝕜 E,
+  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
+  let S : E →L[ℝ] E :=
+    @continuous_linear_map.restrict_scalars 𝕜 E E _ _ _ _ _ _ _ ℝ _ _ _ _ T,
+  have hSA : self_adjoint (S : E →ₗ[ℝ] E) := λ x y, by
+  { have := hT x y,
+    simp only [continuous_linear_map.coe_coe] at this,
+    simp only [real_inner_eq_re_inner, this, continuous_linear_map.coe_restrict_scalars,
+      continuous_linear_map.coe_coe, linear_map.coe_restrict_scalars_eq_coe] },
+  exact self_adjoint.eq_smul_self_of_is_local_extr_on_real hSA hextr,
 end
 
 /-- For a self-adjoint operator `T`, a local extremum of the Rayleigh quotient of `T` on a sphere

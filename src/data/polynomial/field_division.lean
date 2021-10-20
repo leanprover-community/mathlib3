@@ -145,16 +145,14 @@ lemma mul_div_eq_iff_is_root : (X - C a) * (p / (X - C a)) = p ↔ is_root p a :
 div_by_monic_eq_div p (monic_X_sub_C a) ▸ mul_div_by_monic_eq_iff_is_root
 
 instance : euclidean_domain (polynomial R) :=
-{ quotient := (/),
+euclidean_domain.of_core { quotient := (/),
   quotient_zero := by simp [div_def],
   remainder := (%),
   r := _,
   r_well_founded := degree_lt_wf,
   quotient_mul_add_remainder_eq := quotient_mul_add_remainder_eq_aux,
   remainder_lt := λ p q hq, remainder_lt_aux _ hq,
-  mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq),
-  .. polynomial.comm_ring,
-  .. polynomial.nontrivial }
+  mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq) }
 
 lemma mod_eq_self_iff (hq0 : q ≠ 0) : p % q = p ↔ degree p < degree q :=
 ⟨λ h, h ▸ euclidean_domain.mod_lt _ hq0,

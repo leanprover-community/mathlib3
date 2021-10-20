@@ -428,7 +428,7 @@ end lcm
 end euclidean_domain
 
 section
-variables {R : Type*} [comm_ring R] [nontrivial R] [euclidean_domain_core R] [decidable_eq R]
+variables {R : Type*} [comm_ring R] [nontrivial R] [decidable_eq R]
 
 open euclidean_domain
 

@@ -3,12 +3,11 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.gcd_monoid.basic
+import algebra.euclidean_domain
 import data.polynomial.derivative
 import data.polynomial.ring_division
 import data.set.pairwise
 import ring_theory.coprime.lemmas
-import ring_theory.euclidean_domain
 import ring_theory.principal_ideal_domain
 
 /-!

@@ -135,7 +135,9 @@ end is_prime
 
 section
 open euclidean_domain
-variable [euclidean_domain R]
+variables [comm_ring R] [integral_domain R] [euclidean_domain R]
+
+#print euclidean_domain
 
 lemma mod_mem_iff {S : ideal R} {x y : R} (hy : y ∈ S) : x % y ∈ S ↔ x ∈ S :=
 ⟨λ hxy, div_add_mod x y ▸ S.add_mem (S.mul_mem_right _ hy) hxy,
@@ -146,7 +148,8 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
 { principal := λ S, by exactI
     ⟨if h : {x : R | x ∈ S ∧ x ≠ 0}.nonempty
     then
-    have wf : well_founded (euclidean_domain.r : R → R → Prop) := euclidean_domain.r_well_founded,
+    have wf : well_founded (euclidean_domain_core.r : R → R → Prop) :=
+      euclidean_domain_core.r_well_founded,
     have hmin : well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h ∈ S ∧
         well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h ≠ 0,
       from well_founded.min_mem wf {x : R | x ∈ S ∧ x ≠ 0} h,

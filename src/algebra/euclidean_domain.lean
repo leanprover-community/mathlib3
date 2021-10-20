@@ -21,7 +21,9 @@ don't satisfy the classical notion were provided independently by Hiblot and Nag
 
 * `euclidean_domain`: Defines Euclidean domain with functions `quotient` and `remainder`. Instances
   of `has_div` and `has_mod` are provided, so that one can write `a = b * (a / b) + a % b`.
-* `gcd`: defines the greatest common divisors of two elements of a Euclidean domain.
+* `euclidean_domain.gcd`: defines the greatest common divisors of two
+  elements, given a quotient and remainder operator. The canonical `gcd` operator on a Euclidean
+  domain is called `gcd_monoid.gcd`, which may differ from `euclidean_domain.gcd` by a unit.
 * `xgcd`: given two elements `a b : R`, `xgcd a b` defines the pair `(x, y)` such that
   `x * a + y * b = gcd a b`.
 * `lcm`: defines the lowest common multiple of two elements `a` and `b` of a Euclidean domain as
@@ -40,6 +42,13 @@ ring over a field, `p ≺ q` for polynomials `p` and `q` if and only if the degr
 the degree of `q`.
 
 ## Implementation details
+
+`euclidean_domain` is defined as a class extending `gcd_monoid` and `euclidean_domain_core`.
+The fields in `euclidean_domain_core` is sufficient to define a `gcd` operation up to units.
+By extending `gcd_monoid` in `euclidean_domain`, we gain control over the definition of `gcd`.
+If you only have a quotient and remainder operation, and don't care about the precise value
+of `gcd` in your Euclidean domain structure, you can use `euclidean_domain.of_core` to define
+the `gcd` accordingly.
 
 Instead of working with a valuation, `euclidean_domain` is implemented with the existence of a well
 founded relation `r` on the integral domain `R`, which in the example of `ℤ` would correspond to
@@ -61,12 +70,15 @@ Euclidean domain, transfinite Euclidean domain, Bézout's lemma
 
 universe u
 
-/-- A `euclidean_domain` is an `integral_domain` with a division and a remainder, satisfying
-  `b * (a / b) + a % b = a`. The definition of a euclidean domain usually includes a valuation
-  function `R → ℕ`. This definition is slightly generalised to include a well founded relation
-  `r` with the property that `r (a % b) b`, instead of a valuation.  -/
+/-- A `euclidean_domain_core` is a `comm_ring` with a division and a remainder, satisfying
+`b * (a / b) + a % b = a`.
+This is used to implement the class `euclidean_domain`, which also provides a `gcd` operator.
+
+The definition of a euclidean domain usually includes a valuation
+function `R → ℕ`. This definition is slightly generalised to include a well founded relation
+`r` with the property that `r (a % b) b`, instead of a valuation.  -/
 @[protect_proj without mul_left_not_lt r_well_founded]
-class euclidean_domain_core (R : Type u) extends comm_ring R, nontrivial R :=
+class euclidean_domain_core (R : Type u) [comm_ring R] :=
 (quotient : R → R → R)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : R → R → R)
@@ -76,10 +88,22 @@ class euclidean_domain_core (R : Type u) extends comm_ring R, nontrivial R :=
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 
+/-- A `euclidean_domain` is an `integral_domain` with gcd, lcm, division and remainder,
+satisfying `b * (a / b) + a % b = a` .
+
+You can construct the `gcd` and `lcm` non-uniquely using only division and remainder,
+see `euclidean_domain.of_core`.
+
+The definition of a euclidean domain usually includes a valuation
+function `R → ℕ`. This definition is slightly generalised to include a well founded relation
+`r` with the property that `r (a % b) b`, instead of a valuation.  -/
+class euclidean_domain (R : Type u) [comm_ring R]
+  extends euclidean_domain_core R, integral_domain R, gcd_monoid R.
+
 namespace euclidean_domain
+
 open euclidean_domain_core
-variable {R : Type u}
-variables [euclidean_domain_core R]
+variables {R : Type u} [comm_ring R] [euclidean_domain_core R]
 
 local infix ` ≺ `:50 := euclidean_domain_core.r
 
@@ -101,7 +125,7 @@ by { rw mul_comm, exact mod_add_div _ _ }
 lemma div_add_mod' (m k : R) : (m / k) * k + m % k = m :=
 by { rw mul_comm, exact div_add_mod _ _ }
 
-lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain_core R] (a b : R) :
+lemma mod_eq_sub_mul_div (a b : R) :
   a % b = a - b * (a / b) :=
 calc a % b = b * (a / b) + a % b - b * (a / b) : (add_sub_cancel' _ _).symm
 ... = a - b * (a / b) : by rw div_add_mod
@@ -163,15 +187,15 @@ classical.by_cases
   (λ a0 : a = 0, a0.symm ▸ div_zero 0)
   (λ a0, by simpa only [zero_mul] using mul_div_cancel 0 a0)
 
-@[priority 70] -- see Note [lower instance priority]
-instance (R : Type*) [e : euclidean_domain_core R] : integral_domain R :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero :=
-    λ a b h, (or_iff_not_and_not.2 $ λ h0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
-  ..e, }
+/-- A ring with a Euclidean algorithm has no zero divisors.
 
-class _root_.euclidean_domain (R : Type u) extends euclidean_domain_core R, gcd_monoid R.
-
+See also `euclidean_domain.to_integral_domain`.
+-/
+@[priority 70] -- See note [lower instance priority]
+instance (R : Type*) [comm_ring R]
+  [e : euclidean_domain_core R] : no_zero_divisors R :=
+⟨λ a b h, (or_iff_not_and_not.2 $ λ h0,
+    h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div])⟩
 
 @[simp, priority 900] lemma div_self {a : R} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
@@ -324,7 +348,7 @@ end
 
 /-- An explicit version of **Bézout's lemma** for Euclidean domains. -/
 theorem gcd_eq_gcd_ab (a b : R) : (gcd a b : R) = a * gcd_a a b + b * gcd_b a b :=
-by { have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
+by { have := @xgcd_aux_P _ _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]),
 rwa [xgcd_aux_val, xgcd_val] at this }
 
@@ -350,7 +374,7 @@ classical.by_cases
   (λ hxy, let ⟨z, hz⟩ := (gcd_dvd x y).1 in ⟨z, eq.symm $ eq_div_of_mul_eq_right hxy $
     by rw [← mul_assoc, mul_right_comm, ← hz]⟩)
 
-theorem lcm_dvd {x y z : R} (hxz : x ∣ z) (hyz : y ∣ z) : lcm x y ∣ z :=
+theorem lcm_dvd [integral_domain R] {x y z : R} (hxz : x ∣ z) (hyz : y ∣ z) : lcm x y ∣ z :=
 begin
   rw lcm, by_cases hxy : gcd x y = 0,
   { rw [hxy, div_zero], rw euclidean_domain.gcd_eq_zero_iff at hxy, rwa hxy.1 at hxz },
@@ -365,7 +389,7 @@ begin
   { rw [mul_left_comm, mul_comm], exact mul_dvd_mul_left _ (hxz.mul_right _) }
 end
 
-@[simp] lemma lcm_dvd_iff {x y z : R} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=
+@[simp] lemma lcm_dvd_iff [integral_domain R] {x y z : R} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=
 ⟨λ hz, ⟨(dvd_lcm_left _ _).trans hz, (dvd_lcm_right _ _).trans hz⟩,
 λ ⟨hxz, hyz⟩, lcm_dvd hxz hyz⟩
 
@@ -404,12 +428,17 @@ end lcm
 end euclidean_domain
 
 section
-variables {β : Type*} [euclidean_domain_core β] [decidable_eq β]
+variables {R : Type*} [comm_ring R] [nontrivial R] [euclidean_domain_core R] [decidable_eq R]
 
 open euclidean_domain
 
--- TODO: This is really slow
-def euclidean_domain.gcd_monoid_of_core : gcd_monoid β :=
+/-- Extend `euclidean_domain_core` to `euclidean_domain` by non-uniquely choosing a definition for
+`gcd` and `lcm`.
+
+The `gcd` and `lcm` operators are unique only up to units; use `euclidean_domain.mk` if you need
+control over their definition.
+-/
+@[reducible] def euclidean_domain.of_core : euclidean_domain R :=
 { gcd := gcd,
   lcm := lcm,
   gcd_dvd_left := gcd_dvd_left,
@@ -417,21 +446,15 @@ def euclidean_domain.gcd_monoid_of_core : gcd_monoid β :=
   dvd_gcd := λ a b c, dvd_gcd,
   gcd_mul_lcm := λ a b, by rw euclidean_domain.gcd_mul_lcm,
   lcm_zero_left := lcm_zero_left,
-  lcm_zero_right := lcm_zero_right }
-
-@[reducible] def euclidean_domain.of_core : euclidean_domain β :=
-{ ..‹euclidean_domain_core β›,
-  ..euclidean_domain.gcd_monoid_of_core }
+  lcm_zero_right := lcm_zero_right,
+  ..‹euclidean_domain_core R›,
+  ..‹nontrivial R›,
+  ..euclidean_domain.no_zero_divisors R }
 
 end
 
 instance int.euclidean_domain_core : euclidean_domain_core ℤ :=
-{ add := (+),
-  mul := (*),
-  one := 1,
-  zero := 0,
-  neg := has_neg.neg,
-  quotient := (/),
+{ quotient := (/),
   quotient_zero := int.div_zero,
   remainder := (%),
   quotient_mul_add_remainder_eq := λ a b, int.div_add_mod _ _,
@@ -442,20 +465,14 @@ instance int.euclidean_domain_core : euclidean_domain_core ℤ :=
       exact int.mod_lt _ b0 },
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by {rw [← mul_one a.nat_abs, int.nat_abs_mul],
-      exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) },
-  .. int.comm_ring,
-  .. int.nontrivial }
+      exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) } }
+
 instance int.euclidean_domain : euclidean_domain ℤ :=
 euclidean_domain.of_core
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain_core {K : Type u} [field K] : euclidean_domain_core K :=
-{ add := (+),
-  mul := (*),
-  one := 1,
-  zero := 0,
-  neg := has_neg.neg,
-  quotient := (/),
+{ quotient := (/),
   remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
   quotient_mul_add_remainder_eq := λ a b,
@@ -464,7 +481,8 @@ instance field.to_euclidean_domain_core {K : Type u} [field K] : euclidean_domai
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
   remainder_lt := λ a b hnb, by simp [hnb],
-  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb,
-  .. ‹field K› }
+  mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb }
+
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] [decidable_eq K] : euclidean_domain K :=
 euclidean_domain.of_core

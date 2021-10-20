@@ -90,15 +90,16 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma card_units : fintype.card (units K) = fintype.card K - 1 :=
+lemma card_units (D : Type*) [division_ring D] [fintype D] :
+  fintype.card (units D) = fintype.card D - 1 :=
 begin
   classical,
-  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩)],
-  haveI := set_fintype {a : K | a ≠ 0},
-  haveI := set_fintype (@set.univ K),
+  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : D)⟩)],
+  haveI := set_fintype {a : D | a ≠ 0},
+  haveI := set_fintype (@set.univ D),
   rw [fintype.card_congr (equiv.units_equiv_ne_zero _),
-    ← @set.card_insert _ _ {a : K | a ≠ 0} _ (not_not.2 (eq.refl (0 : K)))
-    (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ K).symm],
+    ← @set.card_insert _ _ {a : D | a ≠ 0} _ (not_not.2 (eq.refl (0 : D)))
+    (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ D).symm],
   congr; simp [set.ext_iff, classical.em]
 end
 

@@ -110,17 +110,65 @@ end
 end cyclotomic
 
 variables (D : Type*) [division_ring D] [fintype D]
+variables {D}
+
+@[simps]
+def center_units_to_center (u : subgroup.center (units D)) : subring.center D :=
+⟨u, λ r,
+begin
+  by_cases hr : r = 0, { subst r, rw [mul_zero, zero_mul] },
+  exact congr_arg coe (u.2 (units.mk0 r hr)),
+end⟩
+
+def center_units_to_units_center (u : subgroup.center (units D)) : units (subring.center D) :=
+⟨center_units_to_center u, center_units_to_center u⁻¹,
+by { ext, simp only [subring.coe_mul, subring.coe_one, units.coe_inv', subgroup.coe_inv,
+  units.mul_inv', center_units_to_center_coe, coe_coe], },
+by { ext, simp only [subring.coe_mul, subring.coe_one, units.coe_inv', units.inv_mul',
+  subgroup.coe_inv, center_units_to_center_coe, coe_coe], }⟩
+
+variables (D)
+
+-- move this
+@[simps]
+def center_units_equiv_units_center :
+  subgroup.center (units D) ≃* units (subring.center D) :=
+{ to_fun := center_units_to_units_center,
+  inv_fun := λ u, ⟨units.map (subring.center D).subtype.to_monoid_hom u, λ r,
+    by { ext, simp only [subring.coe_subtype, units.coe_map, ring_hom.coe_monoid_hom,
+      ring_hom.to_monoid_hom_eq_coe, units.coe_mul],
+      exact u.1.2 _ }⟩,
+  left_inv := λ u, by { ext, refl },
+  right_inv := λ u, by { ext, refl },
+  map_mul' := λ x y, by { ext, refl } }
 
 def induction_hyp : Prop :=
 ∀ R : subring D, R < ⊤ → ∀ ⦃x y⦄, x ∈ R → y ∈ R → x * y = y * x
 
 namespace induction_hyp
+open finite_dimensional
 
 variables {D}
 
-def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : field R :=
+protected def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : field R :=
 { mul_comm := λ x y, subtype.ext $ hD R hR x.2 y.2,
   ..(show division_ring R, from division_ring_of_domain R)}
+
+lemma top_is_field (hD : induction_hyp D) (x y : D) : x * y = y * x :=
+begin
+  let Z := subring.center D,
+  by_cases hZ : Z = ⊤, { have : y ∈ Z, rw hZ, trivial, exact this x },
+  replace hZ := ne.lt_top hZ,
+  letI : field Z := hD.field Z hZ,
+  set q := fintype.card Z with hq,
+  let n := finrank Z D,
+  have card_D : fintype.card D = q ^ n := card_eq_pow_finrank,
+  have key := class_equation (units D),
+  simp only [nat.card_eq_fintype_card] at key,
+  rw [fintype.card_congr (center_units_equiv_units_center D).to_equiv,
+    finite_field.card_units, ← hq, finite_field.card_units, card_D] at key,
+  sorry
+end
 
 end induction_hyp
 

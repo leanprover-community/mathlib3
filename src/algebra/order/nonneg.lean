@@ -74,8 +74,7 @@ protected noncomputable def conditionally_complete_linear_order_bot
       by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
   ..nonneg.order_bot,
   ..(by apply_instance : linear_order {x : α // a ≤ x}),
-  .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _
-  }
+  .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _ }
 
 instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
 ⟨⟨a, le_rfl⟩⟩

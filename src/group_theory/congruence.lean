@@ -532,7 +532,7 @@ def comap (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (c : con N) : con M
 iff.rfl
 
 section
-open quotient
+open _root_.quotient
 
 /-- Given a congruence relation `c` on a type `M` with a multiplication, the order-preserving
     bijection between the set of congruence relations containing `c` and the congruence relations

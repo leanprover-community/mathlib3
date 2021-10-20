@@ -196,12 +196,16 @@ Arguments for `solve_by_elim`:
   (If both `lemmas` and `lemma_thunks` are specified, only `lemma_thunks` is used.)
 * `ctx_thunk` is for internal use only: it returns the local hypotheses which will be used.
 * `max_depth` bounds the depth of the search.
+* `try_this` is a flag (default: true) that controls whether a "Try this:"-line should be traced.
+  Currently, this feature is only implemented for the tactics
+  `suggets` and `library_search`.
 -/
 meta structure opt extends basic_opt :=
 (backtrack_all_goals : bool := ff)
 (lemmas : option (list expr) := none)
 (lemma_thunks : option (list (tactic expr)) := lemmas.map (λ l, l.map return))
 (ctx_thunk : tactic (list expr) := local_context)
+(try_this : bool := tt)
 
 /--
 If no lemmas have been specified, generate the default set

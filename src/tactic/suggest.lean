@@ -398,7 +398,7 @@ do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
      { compulsory_hyps := use,
        lemma_thunks := some lemma_thunks,
        ctx_thunk := ctx_thunk, ..opt },
-  if is_trace_enabled_for `silence_suggest then
+  if !opt.try_this || is_trace_enabled_for `silence_suggest then
     skip
   else
     if L.length = 0 then
@@ -496,7 +496,7 @@ do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
        md := if semireducible.is_some then
          tactic.transparency.semireducible else tactic.transparency.reducible,
        ..opt } >>=
-   if is_trace_enabled_for `silence_library_search then
+   if !opt.try_this || is_trace_enabled_for `silence_library_search then
      (λ _, skip)
    else
      trace) <|>

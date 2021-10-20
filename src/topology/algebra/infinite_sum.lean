@@ -536,6 +536,17 @@ lemma tsum_even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
 
 end tsum
 
+section prod
+
+variables [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
+
+lemma has_sum.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
+  (hf : has_sum f a) (hg : has_sum g b) :
+  has_sum (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
+by simp [has_sum, ← prod_mk_sum, filter.tendsto.prod_mk_nhds hf hg]
+
+end prod
+
 section pi
 variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
 

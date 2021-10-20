@@ -217,12 +217,117 @@ end
 end defs
 
 section properties
-
-lemma homogeneous_ideal.is_prime_iff [add_comm_monoid ι] [gcomm_semiring A]
+/-- this lemma needs well-ordering theorem-/
+lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (I_ne_top : I ≠ ⊤)
   (homogeneous_mem_or_mem : ∀ {x y : ⨁ i, A i}, is_homogeneous_element x → is_homogeneous_element y
     → (x * y ∈ I → x ∈ I ∨ y ∈ I)) : ideal.is_prime I :=
-⟨I_ne_top, sorry⟩
+⟨I_ne_top, begin
+  intros x y hxy, by_contradiction rid,
+  obtain ⟨rid₁, rid₂⟩ := not_or_distrib.mp rid,
+  set set₁ := finset.filter (λ i, of A i (x i) ∉ I) x.support with set₁_eq,
+  set set₂ := finset.filter (λ i, of A i (y i) ∉ I) y.support with set₂_eq,
+  have set₁_nonempty : set₁.nonempty,
+  { rw [homogeneous_ideal.mem_iff _ HI, not_forall] at rid₁,
+    obtain ⟨i, h⟩ := rid₁,
+    refine ⟨i, _⟩, rw set₁_eq, simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter],
+    refine ⟨_, h⟩, intro rid₃, rw rid₃ at h,
+    simp only [not_true, submodule.zero_mem, add_monoid_hom.map_zero] at h, exact h, },
+  have set₂_nonempty : set₂.nonempty,
+  { rw [homogeneous_ideal.mem_iff _ HI, not_forall] at rid₂,
+    obtain ⟨i, h⟩ := rid₂,
+    refine ⟨i, _⟩, rw set₂_eq, simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter],
+    refine ⟨_, h⟩, intro rid₃, rw rid₃ at h,
+    simp only [not_true, submodule.zero_mem, add_monoid_hom.map_zero] at h, exact h, },
+  set max₁ := set₁.max' set₁_nonempty with max₁_eq,
+  set max₂ := set₂.max' set₂_nonempty with max₂_eq,
+  have mem_max₁ := finset.max'_mem set₁ set₁_nonempty,
+  rw [←max₁_eq, set₁_eq] at mem_max₁,
+  have mem_max₂ := finset.max'_mem set₂ set₂_nonempty,
+  rw [←max₂_eq, set₂_eq] at mem_max₂,
+  rw homogeneous_ideal.mem_iff _ HI at hxy,
+  specialize hxy (max₁ + max₂),
+  have eq :=
+    calc  of A (max₁ + max₂) ((x * y) (max₁ + max₂))
+        = ∑ ij in (x.support.product y.support).filter (λ z, prod.fst z + prod.snd z = max₁ + max₂),
+            of A (prod.fst ij + prod.snd ij)
+              (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij))) : _ -- (1)
+    ... = ∑ ij in ((x.support.product y.support).filter (λ z, z.fst + z.snd = max₁ + max₂))
+                    \ {(max₁, max₂)} ∪ {(max₁, max₂)},
+            of A (prod.fst ij + prod.snd ij)
+              (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij)))
+        : _ -- (2)
+    ... = ∑ ij in (x.support.product y.support).filter (λ z, prod.fst z + prod.snd z = max₁ + max₂)
+                    \ {(max₁, max₂)},
+            of A (prod.fst ij + prod.snd ij)
+              (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij)))
+        + ∑ ij in {(max₁, max₂)},
+            of A (prod.fst ij + prod.snd ij)
+              (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij))) : _ -- (3)
+    ... = ∑ ij in (x.support.product y.support).filter (λ z, prod.fst z + prod.snd z = max₁ + max₂)
+                    \ {(max₁, max₂)},
+            of A (prod.fst ij + prod.snd ij)
+              (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij)))
+        + of A (max₁ + max₂) (graded_monoid.ghas_mul.mul (x max₁) (y max₂))
+        : by rw finset.sum_singleton,
+
+  have eq₂ : of A (max₁ + max₂) (graded_monoid.ghas_mul.mul (x max₁) (y max₂))
+          = of A (max₁ + max₂) ((x * y) (max₁ + max₂))
+          - ∑ ij in (x.support.product y.support).filter (λ z, prod.fst z + prod.snd z = max₁ + max₂)
+                    \ {(max₁, max₂)},
+            of A (prod.fst ij + prod.snd ij)
+              (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij))),
+  { rw eq, ring },
+
+  have mem_I₂ : ∑ ij in (x.support.product y.support).filter (λ z, prod.fst z + prod.snd z = max₁ + max₂)
+                    \ {(max₁, max₂)},
+                  of A (prod.fst ij + prod.snd ij)
+                  (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij))) ∈ I,
+  { apply ideal.sum_mem, sorry, },
+  have mem_I₃ : of A (max₁ + max₂) (graded_monoid.ghas_mul.mul (x max₁) (y max₂)) ∈ I,
+  { rw eq₂, apply ideal.sub_mem,
+    rw [homogeneous_ideal_iff_homogeneous_ideal'', homogeneous_ideal''] at HI,
+    specialize HI _ hxy (max₁ + max₂), exact hxy, exact mem_I₂, },
+  rw ←of_mul_of at mem_I₃,
+  specialize homogeneous_mem_or_mem ⟨⟨max₁, x max₁⟩, rfl⟩ ⟨⟨max₂, y max₂⟩, rfl⟩ mem_I₃,
+  cases homogeneous_mem_or_mem,
+  simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁,
+  refine mem_max₁.2 homogeneous_mem_or_mem,
+  simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₂,
+  refine mem_max₂.2 homogeneous_mem_or_mem,
+
+  -- equalities from calc
+  -- (1)
+  sorry,
+
+  -- (2)
+  congr, ext, split; intros H,
+  { simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product] at H,
+    rw finset.mem_union,
+    by_cases a = (max₁, max₂),
+    right, rw h, exact finset.mem_singleton_self (max₁, max₂),
+    left, rw finset.mem_sdiff, split,
+    simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
+    exact H, intro rid, simp only [finset.mem_singleton] at rid, exact h rid, },
+  { rw finset.mem_union at H, cases H,
+    rw finset.mem_sdiff at H, exact H.1,
+    simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
+    simp only [finset.mem_singleton] at H, rw H,
+    refine ⟨⟨_, _⟩, rfl⟩,
+    simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁,
+    exact mem_max₁.1,
+    simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₂,
+    exact mem_max₂.1, },
+
+  -- (3)
+  rw [finset.sum_union],
+  apply finset.disjoint_iff_inter_eq_empty.mpr,
+  rw finset.eq_empty_iff_forall_not_mem, rintros ⟨i, j⟩ Hij,
+  rw [finset.mem_inter, finset.mem_sdiff, finset.mem_filter] at Hij,
+  simp only [not_and, prod.mk.inj_iff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_singleton,
+    finset.mem_product] at Hij,
+  exact Hij.1.2 Hij.2.1 Hij.2.2,
+end⟩
 
 end properties
 
@@ -311,7 +416,7 @@ begin
   apply HI, apply Hx, exact HJ
 end
 
-lemma homogeneous_ideal.rad_eq  {I : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.rad_eq [linear_ordered_add_comm_monoid ι] {I : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) :
   I.radical = Inf {J | I ≤ J ∧ homogeneous_ideal J ∧ J.is_prime} :=
 begin
@@ -363,7 +468,7 @@ begin
   exact subset₁ hx, exact subset₂ hx,
 end
 
-lemma homogeneous_ideal.rad {I : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.rad [linear_ordered_add_comm_monoid ι] {I : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) : homogeneous_ideal I.radical :=
 begin
   have radI_eq := homogeneous_ideal.rad_eq HI,

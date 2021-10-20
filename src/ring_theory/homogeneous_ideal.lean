@@ -216,6 +216,16 @@ end
 
 end defs
 
+section properties
+
+lemma homogeneous_ideal.is_prime [add_comm_monoid ι] [gcomm_semiring A]
+  (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (I_ne_top : I ≠ ⊤)
+  (homogeneous_mem_or_mem : ∀ {x y : ⨁ i, A i}, is_homogeneous_element x → is_homogeneous_element y
+    → (x * y ∈ I → x ∈ I ∨ y ∈ I)) : ideal.is_prime I :=
+⟨I_ne_top, sorry⟩
+
+end properties
+
 section operations
 
 open_locale pointwise
@@ -322,22 +332,32 @@ begin
       rw HI, apply ideal.span_mono, intros y hy,
       obtain ⟨hy₁, ⟨z, hz⟩⟩ := hy,
       specialize HJ₁ hy₁, refine ⟨⟨z, hz⟩, HJ₁⟩, },
-    { rw ideal.is_prime_iff, split,
-      { intro rid,
-        have rid' : J = ⊤,
-        { have : homogeneous_ideal_of_ideal J ≤ J := homogeneous_ideal_of_ideal_le_ideal J,
-          rw rid at this, rw top_le_iff at this, exact this, },
-        apply HJ₂.1, exact rid', },
-      { intros y z H,
-        have H₂ : homogeneous_ideal (homogeneous_ideal_of_ideal J),
-        exact homogeneous_ideal.homogeneous_ideal_of_ideal J,
-        rw [homogeneous_ideal_iff_homogeneous_ideal'', homogeneous_ideal''] at H₂,
-        specialize H₂ (y * z) H,
-        have H₃ := HJ₂.mem_or_mem (homogeneous_ideal_of_ideal_le_ideal J H),
-        cases H₃,
-        { left, sorry },
-        { right, sorry }, }, },
-    refine (homogeneous_ideal_of_ideal_le_ideal J) hx, },
+    { apply homogeneous_ideal.is_prime _ (homogeneous_ideal.homogeneous_ideal_of_ideal J),
+      intro rid,
+      have rid' : J = ⊤,
+      { have : homogeneous_ideal_of_ideal J ≤ J := homogeneous_ideal_of_ideal_le_ideal J,
+        rw rid at this, rw top_le_iff at this, exact this, },
+      apply HJ₂.1, exact rid',
+      rintros x y hx hy hxy,
+      have H := HJ₂.mem_or_mem (homogeneous_ideal_of_ideal_le_ideal J hxy),
+      cases H,
+      { left, rw homogeneous_ideal.mem_iff, intros j,
+        obtain ⟨⟨i, z⟩, rfl⟩ := hx,
+        by_cases i = j,
+        { rw [←h, direct_sum.of_eq_same, homogeneous_ideal_of_ideal],
+          refine ideal.subset_span ⟨⟨⟨i,z⟩,rfl⟩, H⟩, },
+        { rw direct_sum.of_eq_of_ne _ _ _ _ h,
+          simp only [submodule.zero_mem, add_monoid_hom.map_zero], },
+          exact homogeneous_ideal.homogeneous_ideal_of_ideal _, },
+      { right, rw homogeneous_ideal.mem_iff, intros j,
+        obtain ⟨⟨i, z⟩, rfl⟩ := hy,
+        by_cases i = j,
+        { rw [←h, direct_sum.of_eq_same, homogeneous_ideal_of_ideal],
+          refine ideal.subset_span ⟨⟨⟨i,z⟩,rfl⟩, H⟩, },
+        { rw direct_sum.of_eq_of_ne _ _ _ _ h,
+          simp only [submodule.zero_mem, add_monoid_hom.map_zero], },
+          exact homogeneous_ideal.homogeneous_ideal_of_ideal _, }, },
+      refine (homogeneous_ideal_of_ideal_le_ideal J) hx, },
 
   ext x, split; intro hx,
   exact subset₁ hx, exact subset₂ hx,

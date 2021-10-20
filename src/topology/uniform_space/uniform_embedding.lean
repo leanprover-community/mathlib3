@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Sébastien Gouëzel, Patrick Massot
 import topology.uniform_space.cauchy
 import topology.uniform_space.separation
 import topology.dense_embedding
-import data.set.pairwise
 
 /-!
 # Uniform embeddings of uniform spaces.

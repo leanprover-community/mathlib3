@@ -1047,7 +1047,7 @@ noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [f
 
 section
 
-/-- An domain that is module-finite as an algebra over a field is a division ring. -/
+/-- A domain that is module-finite as an algebra over a field is a division ring. -/
 noncomputable def division_ring_of_finite_dimensional
   (F K : Type*) [field F] [ring K] [is_domain K]
   [algebra F K] [finite_dimensional F K] : division_ring K :=

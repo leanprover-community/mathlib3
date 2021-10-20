@@ -438,7 +438,7 @@ open euclidean_domain
 The `gcd` and `lcm` operators are unique only up to units; use `euclidean_domain.mk` if you need
 control over their definition.
 -/
-@[reducible] def euclidean_domain.of_core : euclidean_domain R :=
+@[reducible] def euclidean_domain.of_core (h : euclidean_domain_core R) : euclidean_domain R :=
 { gcd := gcd,
   lcm := lcm,
   gcd_dvd_left := gcd_dvd_left,
@@ -468,7 +468,7 @@ instance int.euclidean_domain_core : euclidean_domain_core ℤ :=
       exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) } }
 
 instance int.euclidean_domain : euclidean_domain ℤ :=
-euclidean_domain.of_core
+euclidean_domain.of_core int.euclidean_domain_core
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain_core {K : Type u} [field K] : euclidean_domain_core K :=
@@ -485,4 +485,4 @@ instance field.to_euclidean_domain_core {K : Type u} [field K] : euclidean_domai
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_euclidean_domain {K : Type u} [field K] [decidable_eq K] : euclidean_domain K :=
-euclidean_domain.of_core
+euclidean_domain.of_core field.to_euclidean_domain_core

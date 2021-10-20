@@ -129,44 +129,14 @@ begin
   { rintros a b c ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
     use b.2 * t₁ * t₂,
     simp only [submonoid.coe_mul],
-    calc a.1 * c.2 * (b.2 * t₁ * t₂) = a.1 * b.2 * t₁ * c.2 * t₂ : _
-    ... = b.1 * c.2 * t₂ * a.2 * t₁ : _
-    --ac_refl }
-    ... = c.1 * a.2 * (b.2 * t₁ * t₂) : _, --,  by { rw ht₂, sorry }, --ac_refl },
-    { rw mul_assoc a.fst,
-      rw mul_assoc a.fst,
-      rw mul_assoc a.fst,
-      rw mul_assoc a.fst,
-      rw ←mul_assoc _ _ ↑t₂,
-      rw mul_comm ↑c.snd, },
-    { rw ht₁,
-      rw mul_assoc b.fst,
-      rw mul_assoc b.fst,
-      rw mul_assoc b.fst,
-      rw mul_assoc b.fst,
-      rw mul_assoc b.fst,
-      rw mul_assoc b.fst,
-      rw mul_assoc (↑(c.snd) * ↑t₂),
-      rw mul_comm (↑(c.snd) * ↑t₂),
-      rw mul_assoc },
-    { rw ht₂,
-      rw mul_assoc c.fst,
-      rw mul_assoc c.fst,
-      rw mul_assoc c.fst,
-      rw mul_assoc c.fst,
-      congr' 1,
-      rw mul_comm ↑a.snd,
-      rw mul_assoc ↑b.snd,
-      rw mul_assoc ↑b.snd,
-      rw mul_comm _ ↑t₁,
-      rw ←mul_assoc ↑b.snd,
-      rw ←mul_assoc (↑b.snd * _) } },
+    calc a.1 * c.2 * (b.2 * t₁ * t₂) = a.1 * b.2 * t₁ * c.2 * t₂ : by ac_refl
+    ... = b.1 * c.2 * t₂ * a.2 * t₁ : by { rw ht₁, ac_refl }
+    ... = c.1 * a.2 * (b.2 * t₁ * t₂) : by { rw ht₂, ac_refl } },
   { rintros a b c d ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
     use t₁ * t₂,
-    calc (a.1 * c.1) * (b.2 * d.2) * (t₁ * t₂) = (a.1 * b.2 * t₁) * (c.1 * d.2 * t₂) : _
-    ... = (b.1 * d.1) * (a.2 * c.2) * (t₁ * t₂) : _,
-    { sorry },
-    { rw [ht₁, ht₂], sorry } }
+    calc (a.1 * c.1) * (b.2 * d.2) * (t₁ * t₂) = (a.1 * b.2 * t₁) * (c.1 * d.2 * t₂) :
+      by ac_refl
+    ... = (b.1 * d.1) * (a.2 * c.2) * (t₁ * t₂) : by { rw [ht₁, ht₂], ac_refl } }
 end
 
 /-- The congruence relation used to localize a `comm_monoid` at a submonoid can be expressed
@@ -489,15 +459,11 @@ f.to_map x * ↑(is_unit.lift_right (f.to_map.mrestrict S) f.map_units y)⁻¹
 @[to_additive] lemma mk'_mul (x₁ x₂ : M) (y₁ y₂ : S) :
   f.mk' (x₁ * x₂) (y₁ * y₂) = f.mk' x₁ y₁ * f.mk' x₂ y₂ :=
 (mul_inv_left f.map_units _ _ _).2 $
-  show _ = _ * (_ * _ * (_ * _)), by {
+  show _ = _ * (_ * _ * (_ * _)), by
   rw [←mul_assoc, ←mul_assoc, mul_inv_right f.map_units, mul_assoc, mul_assoc,
       mul_comm _ (f.to_map x₂), ←mul_assoc, ←mul_assoc, mul_inv_right f.map_units,
-      submonoid.coe_mul, f.to_map.map_mul, f.to_map.map_mul],
-  rw mul_assoc (_ * _),
-  rw mul_comm (f.to_map y₂),
-  rw mul_comm,
-  rw ←mul_assoc (_ * _),
-  }
+      submonoid.coe_mul, f.to_map.map_mul, f.to_map.map_mul];
+  ac_refl
 
 @[to_additive] lemma mk'_one (x) : f.mk' x (1 : S) = f.to_map x :=
 by rw [mk', monoid_hom.map_one]; exact mul_one _

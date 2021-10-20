@@ -63,7 +63,7 @@ def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → B 
 def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → x ∈ a • A
 
 /-- A set `A` is balanced if `a • A` is contained in `A` whenever `a`
-has norm less than one. -/
+has norm less than or equal to one. -/
 def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
 variables {𝕜} (a : 𝕜) {A : set E}

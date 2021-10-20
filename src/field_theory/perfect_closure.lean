@@ -348,7 +348,7 @@ lemma of_apply (x : K) : of K p x = mk _ _ (0, x) := rfl
 
 end ring
 
-theorem eq_iff [integral_domain K] (p : ℕ) [fact p.prime] [char_p K p]
+theorem eq_iff [comm_ring K] [integral_domain K] (p : ℕ) [fact p.prime] [char_p K p]
   (x y : ℕ × K) : quot.mk (r K p) x = quot.mk (r K p) y ↔
     (frobenius K p^[y.1] x.2) = (frobenius K p^[x.1] y.2) :=
 (eq_iff' K p x y).trans ⟨λ ⟨z, H⟩, (frobenius_inj K p).iterate z $

@@ -25,7 +25,7 @@ inside `A`'s field of fractions `K`.
 
 section integral_domain
 
-variables {R K L : Type*} [integral_domain R]
+variables {R K L : Type*} [comm_ring R]
 variables [field K] [field L] [decidable_eq L]
 variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L]
@@ -79,7 +79,7 @@ def class_group := quotient_group.quotient (to_principal_ideal R K).range
 
 instance : inhabited (class_group R K) := ⟨1⟩
 
-variables {R}
+variables {R} [integral_domain R]
 
 /-- Send a nonzero integral ideal to an invertible fractional ideal. -/
 @[simps]
@@ -207,6 +207,8 @@ begin
   simp [hx']
 end
 
+variables [integral_domain R]
+
 lemma class_group.mk0_eq_one_iff [is_dedekind_domain R]
   {I : ideal R} (hI : I ∈ (ideal R)⁰) :
   class_group.mk0 K ⟨I, hI⟩ = 1 ↔ I.is_principal :=
@@ -238,7 +240,7 @@ end
 lemma card_class_group_eq_one_iff [is_dedekind_domain R] [fintype (class_group R K)] :
   fintype.card (class_group R K) = 1 ↔ is_principal_ideal_ring R :=
 begin
-  split, swap, { introsI, convert card_class_group_eq_one, assumption },
+  split, swap, { introsI, convert card_class_group_eq_one, assumption, assumption, },
   rw fintype.card_eq_one_iff,
   rintros ⟨I, hI⟩,
   have eq_one : ∀ J : class_group R K, J = 1 := λ J, trans (hI J) (hI 1).symm,

@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.int.interval
-import topology.algebra.ordered.basic
+import topology.algebra.ordered.compact
 import topology.metric_space.emetric_space
 
 /-!
@@ -1432,6 +1432,14 @@ lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
   closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 (le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
 
+lemma real.dist_le_of_mem_pi_Icc {x y x' y' : β → ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
+  dist x y ≤ dist x' y' :=
+begin
+  refine (dist_pi_le_iff dist_nonneg).2 (λ b, (real.dist_le_of_mem_interval _ _).trans
+    (dist_le_pi_dist _ _ b)); refine Icc_subset_interval _,
+  exacts [⟨hx.1 _, hx.2 _⟩, ⟨hy.1 _, hy.2 _⟩]
+end
+
 end pi
 
 section compact
@@ -1638,7 +1646,7 @@ lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
   (λ ⟨x, hx⟩, H x hx)⟩
 
 /-- Subsets of a bounded set are also bounded -/
-lemma bounded.subset (incl : s ⊆ t) : bounded t → bounded s :=
+lemma bounded.mono (incl : s ⊆ t) : bounded t → bounded s :=
 Exists.imp $ λ C hC x y hx hy, hC x y (incl hx) (incl hy)
 
 /-- Closed balls are bounded -/
@@ -1651,7 +1659,7 @@ end⟩
 
 /-- Open balls are bounded -/
 lemma bounded_ball : bounded (ball x r) :=
-bounded_closed_ball.subset ball_subset_closed_ball
+bounded_closed_ball.mono ball_subset_closed_ball
 
 /-- Given a point, a bounded subset is included in some ball around this point -/
 lemma bounded_iff_subset_ball (c : α) : bounded s ↔ ∃r, s ⊆ closed_ball c r :=
@@ -1663,7 +1671,7 @@ begin
       exact ⟨C + dist x c, λ y hy, calc
         dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
             ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _⟩ } },
-  { exact bounded_closed_ball.subset hC }
+  { exact bounded_closed_ball.mono hC }
 end
 
 lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r :=
@@ -1676,12 +1684,12 @@ let ⟨C, h⟩ := h in
 alias bounded_closure_of_bounded ← metric.bounded.closure
 
 @[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
-⟨λ h, h.subset subset_closure, λ h, h.closure⟩
+⟨λ h, h.mono subset_closure, λ h, h.closure⟩
 
 /-- The union of two bounded sets is bounded iff each of the sets is bounded -/
 @[simp] lemma bounded_union :
   bounded (s ∪ t) ↔ bounded s ∧ bounded t :=
-⟨λh, ⟨h.subset (by simp), h.subset (by simp)⟩,
+⟨λh, ⟨h.mono (by simp), h.mono (by simp)⟩,
 begin
   rintro ⟨hs, ht⟩,
   refine bounded_iff_mem_bounded.2 (λ x _, _),
@@ -1703,7 +1711,7 @@ lemma _root_.totally_bounded.bounded {s : set α} (h : totally_bounded s) : boun
 -- We cover the totally bounded set by finitely many balls of radius 1,
 -- and then argue that a finite union of bounded sets is bounded
 let ⟨t, fint, subs⟩ := (totally_bounded_iff.mp h) 1 zero_lt_one in
-bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
+bounded.mono subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
 
 /-- A compact set is bounded -/
 lemma _root_.is_compact.bounded {s : set α} (h : is_compact s) : bounded s :=
@@ -1728,7 +1736,7 @@ exists_congr $ λ C, ⟨
 
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
-compact_univ.bounded.subset (subset_univ _)
+compact_univ.bounded.mono (subset_univ _)
 
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
   is_compact s :=
@@ -1769,7 +1777,7 @@ lemma bounded_Ioo (a b : α) : bounded (Ioo a b) :=
 lemma bounded_of_bdd_above_of_bdd_below {s : set α} (h₁ : bdd_above s) (h₂ : bdd_below s) :
   bounded s :=
 let ⟨u, hu⟩ := h₁, ⟨l, hl⟩ := h₂ in
-bounded.subset (λ x hx, mem_Icc.mpr ⟨hl hx, hu hx⟩) (bounded_Icc l u)
+bounded.mono (λ x hx, mem_Icc.mpr ⟨hl hx, hu hx⟩) (bounded_Icc l u)
 
 end conditionally_complete_linear_order
 
@@ -1864,7 +1872,7 @@ by rw [diam, ediam_of_unbounded h, ennreal.top_to_real]
 lemma diam_mono {s t : set α} (h : s ⊆ t) (ht : bounded t) : diam s ≤ diam t :=
 begin
   unfold diam,
-  rw ennreal.to_real_le_to_real (bounded.subset h ht).ediam_ne_top ht.ediam_ne_top,
+  rw ennreal.to_real_le_to_real (bounded.mono h ht).ediam_ne_top ht.ediam_ne_top,
   exact emetric.diam_mono h
 end
 
@@ -1875,8 +1883,8 @@ lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) :
   diam (s ∪ t) ≤ diam s + dist x y + diam t :=
 begin
   by_cases H : bounded (s ∪ t),
-  { have hs : bounded s, from H.subset (subset_union_left _ _),
-    have ht : bounded t, from H.subset (subset_union_right _ _),
+  { have hs : bounded s, from H.mono (subset_union_left _ _),
+    have ht : bounded t, from H.mono (subset_union_right _ _),
     rw [bounded_iff_ediam_ne_top] at H hs ht,
     rw [dist_edist, diam, diam, diam, ← ennreal.to_real_add, ← ennreal.to_real_add,
       ennreal.to_real_le_to_real];
@@ -2045,6 +2053,21 @@ def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
 instance metric_space.to_emetric_space : emetric_space γ :=
 { eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
   ..pseudo_metric_space.to_pseudo_emetric_space, }
+
+lemma is_closed_of_pairwise_on_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
+  (hs : pairwise_on s (λ x y, ε ≤ dist x y)) : is_closed s :=
+is_closed_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hs
+
+lemma closed_embedding_of_pairwise_le_dist {α : Type*} [topological_space α] [discrete_topology α]
+  {ε : ℝ} (hε : 0 < ε) {f : α → γ} (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) :
+  closed_embedding f :=
+closed_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
+
+/-- If `f : β → α` sends any two distinct points to points at distance at least `ε > 0`, then
+`f` is a uniform embedding with respect to the discrete uniformity on `β`. -/
+lemma uniform_embedding_bot_of_pairwise_le_dist {β : Type*} {ε : ℝ} (hε : 0 < ε) {f : β → α}
+  (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) : @uniform_embedding _ _ ⊥ (by apply_instance) f :=
+uniform_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
 
 end metric
 

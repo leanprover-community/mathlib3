@@ -777,7 +777,7 @@ begin
   rwa [span_mul_span, singleton_mul_singleton, span_singleton_le_iff_mem],
 end
 
-variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
+variables {A : Type*} [comm_ring A] [integral_domain A] [is_noetherian_ring A]
 
 /--In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
   product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as

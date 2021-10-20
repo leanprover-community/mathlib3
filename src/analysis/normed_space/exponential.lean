@@ -3,7 +3,6 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import algebra.char_p.algebra
 import analysis.calculus.deriv
 import analysis.calculus.fderiv_analytic
 import analysis.specific_limits
@@ -56,9 +55,7 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 
 ### Other useful compatibility results
 
-- `exp_eq_exp_of_field_extension` : given `𝕂' / 𝕂` a normed field extension (that is, an instance
-  of `normed_algebra 𝕂 𝕂'`) and a normed algebra `𝔸` over both `𝕂` and `𝕂'` then
-  `exp 𝕂 𝔸 = exp 𝕂' 𝔸`
+- `exp_eq_exp` : if `𝔸` is a normed algebra over two fields `𝕂` and `𝕂'`, then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`
 - `complex.exp_eq_exp_ℂ_ℂ` : `complex.exp = exp ℂ ℂ`
 - `real.exp_eq_exp_ℝ_ℝ` : `real.exp = exp ℝ ℝ`
 
@@ -330,36 +327,6 @@ section any_algebra
 
 variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
--- This is private because one can use the more general `exp_series_summable_field` intead.
-private lemma real.summable_pow_div_factorial (x : ℝ) : summable (λ n : ℕ, x^n / n!) :=
-begin
-  by_cases h : x = 0,
-  { refine summable_of_norm_bounded_eventually 0 summable_zero _,
-    filter_upwards [eventually_cofinite_ne 0],
-    intros n hn,
-    rw [h, zero_pow' n hn, zero_div, norm_zero],
-    exact le_refl _ },
-  { refine summable_of_ratio_test_tendsto_lt_one zero_lt_one (eventually_of_forall $
-      λ n, div_ne_zero (pow_ne_zero n h) (nat.cast_ne_zero.mpr n.factorial_ne_zero)) _,
-    suffices : ∀ n : ℕ, ∥x^(n+1) / (n+1)!∥ / ∥x^n / n!∥ = ∥x∥ / ∥((n+1 : ℕ) : ℝ)∥,
-    { conv {congr, funext, rw [this, real.norm_coe_nat] },
-      exact (tendsto_const_div_at_top_nhds_0_nat _).comp (tendsto_add_at_top_nat 1) },
-    intro n,
-    calc ∥x^(n+1) / (n+1)!∥ / ∥x^n / n!∥
-        = (∥x∥^n * ∥x∥) * (∥(n! : ℝ)∥⁻¹ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * ((∥x∥^n)⁻¹ * ∥(n! : ℝ)∥) :
-          by rw [ normed_field.norm_div, normed_field.norm_div,
-                  normed_field.norm_pow, normed_field.norm_pow, pow_add, pow_one,
-                  div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv₀, inv_inv₀,
-                  nat.factorial_succ, nat.cast_mul, normed_field.norm_mul, mul_inv_rev₀ ]
-    ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * (∥x∥^n * (∥x∥^n)⁻¹) * (∥(n! : ℝ)∥ * ∥(n! : ℝ)∥⁻¹) :
-          by linarith --faster than ac_refl !
-    ... = (∥x∥ * ∥((n+1 : ℕ) : ℝ)∥⁻¹) * 1 * 1 :
-          by  rw [mul_inv_cancel (pow_ne_zero _ $ λ h', h $ norm_eq_zero.mp h'), mul_inv_cancel
-                    (λ h', n.factorial_ne_zero $ nat.cast_eq_zero.mp $ norm_eq_zero.mp h')];
-              apply_instance
-    ... = ∥x∥ / ∥((n+1 : ℕ) : ℝ)∥ : by rw [mul_one, mul_one, ← div_eq_mul_inv] }
-end
-
 variables (𝕂 𝔸)
 
 /-- In a normed algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, the series defining the exponential map
@@ -521,41 +488,25 @@ end is_R_or_C
 section scalar_tower
 
 variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
-  [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝕂'] [normed_algebra 𝕂' 𝔸]
-  [is_scalar_tower 𝕂 𝕂' 𝔸]
+  [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂' 𝔸]
 
-lemma exp_series_eq_exp_series_of_field_extension (n : ℕ) (x : 𝔸) :
+/-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
+`exp_series` on `𝔸`. -/
+lemma exp_series_eq_exp_series (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
-begin
-  let p := ring_char 𝕂,
-  haveI : char_p 𝕂' p := char_p_of_injective_algebra_map (algebra_map 𝕂 𝕂').injective p,
-  rw [exp_series, exp_series,
-      smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
-      smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
-      ←inv_eq_one_div, ←inv_eq_one_div, ← smul_one_smul 𝕂' (_ : 𝕂) (_ : 𝔸)],
-  congr,
-  symmetry,
-  have key : (n! : 𝕂) = 0 ↔ (n! : 𝕂') = 0,
-  { rw [char_p.cast_eq_zero_iff 𝕂' p, char_p.cast_eq_zero_iff 𝕂 p] },
-  by_cases h : (n! : 𝕂) = 0,
-  { have h' : (n! : 𝕂') = 0 := key.mp h,
-    field_simp [h, h'] },
-  { have h' : (n! : 𝕂') ≠ 0 := λ hyp, h (key.mpr hyp),
-    suffices : (n! : 𝕂) • (n!⁻¹ : 𝕂') = (n! : 𝕂) • ((n!⁻¹ : 𝕂) • 1),
-    { apply_fun (λ (x : 𝕂'), (n!⁻¹ : 𝕂) • x) at this,
-      rwa [inv_smul_smul₀ h, inv_smul_smul₀ h] at this },
-    rw [← smul_assoc, ← nsmul_eq_smul_cast, nsmul_eq_smul_cast 𝕂' _ (_ : 𝕂')],
-    field_simp [h, h'] }
-end
+by rw [exp_series, exp_series,
+       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
+       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
+       one_div, one_div, inv_nat_cast_smul_eq 𝕂 𝕂']
 
-/-- Given `𝕂' / 𝕂` a normed field extension (that is, an instance of `normed_algebra 𝕂 𝕂'`) and a
-normed algebra `𝔸` over both `𝕂` and `𝕂'` then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`. -/
-lemma exp_eq_exp_of_field_extension : exp 𝕂 𝔸 = exp 𝕂' 𝔸 :=
+/-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
+exponential function on `𝔸`. -/
+lemma exp_eq_exp : exp 𝕂 𝔸 = exp 𝕂' 𝔸 :=
 begin
   ext,
   rw [exp, exp],
   refine tsum_congr (λ n, _),
-  rw exp_series_eq_exp_series_of_field_extension 𝕂 𝕂' 𝔸 n x
+  rw exp_series_eq_exp_series 𝕂 𝕂' 𝔸 n x
 end
 
 end scalar_tower
@@ -571,7 +522,7 @@ begin
 end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
-exp_eq_exp_of_field_extension ℝ ℂ ℂ
+exp_eq_exp ℝ ℂ ℂ
 
 end complex
 

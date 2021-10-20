@@ -186,7 +186,7 @@ Ring Theory:
     rupture fields: 'adjoin_root'
     splitting fields: 'polynomial.splitting_field'
     finite fields: 'field_theory/finite.html'
-    rational fraction fields with one indeterminate over a field:
+    rational fraction fields with one indeterminate over a field: 'ratfunc'
     $\R(X)$-partial fraction decomposition:
     $\C(X)$-partial fraction decomposition:
 
@@ -328,7 +328,7 @@ Single Variable Real Analysis:
     Taylor series expansions:
   Elementary functions (trigonometric, rational, $\exp$, $\log$, etc):
     polynomial functions: 'polynomial.eval'
-    rational functions:
+    rational functions: 'ratfunc.eval'
     logarithms: 'real.log'
     exponential: 'real.exp'
     power functions: 'real.rpow'

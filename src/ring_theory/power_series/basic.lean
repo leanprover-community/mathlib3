@@ -1240,8 +1240,8 @@ rescale_neg_one_X
 
 end comm_ring
 
-section integral_domain
-variables [comm_ring R] [integral_domain R]
+section domain
+variables [ring R] [domain R]
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
@@ -1271,10 +1271,18 @@ begin
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : integral_domain (power_series R) :=
+instance : domain (power_series R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nontrivial,
-  .. power_series.comm_ring }
+  .. power_series.nontrivial, }
+
+end domain
+
+section integral_domain
+
+variables [comm_ring R] [integral_domain R]
+
+instance : integral_domain (power_series R) :=
+{ .. power_series.domain, }
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/

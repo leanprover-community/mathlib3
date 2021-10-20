@@ -48,11 +48,11 @@ free module, finitely generated module, rank, structure theorem
 
 open_locale big_operators
 
-section comm_ring
-
 universes u v
 
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+section ring
+
+variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
 variables {ι : Type*} (b : basis ι R M)
 
 open submodule.is_principal
@@ -136,6 +136,15 @@ begin
   exact (linear_map.mem_submodule_image_of_le hNO).mpr ⟨x, hx, rfl⟩
 end
 
+end ring
+
+section comm_ring
+
+variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+variables {ι : Type*} (b : basis ι R M)
+
+open submodule.is_principal
+
 -- Note that the converse may not hold if `ϕ` is not injective.
 lemma generator_map_dvd_of_mem {N : submodule R M}
   (ϕ : M →ₗ[R] R) [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
@@ -150,9 +159,9 @@ by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], e
 
 end comm_ring
 
-section integral_domain
+section domain
 
-variables {ι : Type*} {R : Type*} [comm_ring R] [integral_domain R]
+variables {ι : Type*} {R : Type*} [ring R] [domain R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 lemma not_mem_of_ortho {x : M} {N : submodule R M}
@@ -307,6 +316,13 @@ lemma basis.card_le_card_of_le
   fintype.card ι' ≤ fintype.card ι :=
 b.card_le_card_of_linear_independent
   (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
+
+end domain
+
+section integral_domain
+
+variables {ι : Type*} {R : Type*} [comm_ring R] [integral_domain R]
+variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 /-- If `N` is a submodule in a free, finitely generated module,
 do induction on adjoining a linear independent element to a submodule. -/

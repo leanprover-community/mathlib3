@@ -126,8 +126,6 @@ instance : semilattice_inf (open_subgroup G) :=
   inf_le_left := λ U V, set.inter_subset_left _ _,
   inf_le_right := λ U V, set.inter_subset_right _ _,
   le_inf := λ U V W hV hW, set.subset_inter hV hW,
-  top := ⊤,
-  le_top := λ U, set.subset_univ _,
   ..open_subgroup.partial_order }
 
 @[to_additive]

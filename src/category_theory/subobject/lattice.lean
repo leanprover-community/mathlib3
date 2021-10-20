@@ -341,7 +341,8 @@ instance {B : C} : semilattice_inf (subobject B) :=
 { inf := λ m n, (inf.obj m).obj n,
   inf_le_left := inf_le_left,
   inf_le_right := inf_le_right,
-  le_inf := le_inf }
+  le_inf := le_inf,
+  ..subobject.partial_order _ }
 
 lemma factors_left_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
   (h : (X ⊓ Y).factors f) : X.factors f :=

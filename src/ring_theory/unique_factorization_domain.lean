@@ -221,21 +221,6 @@ by haveI := classical.dec_eq α; exact
         (hf p (by simp)).ne_zero)),
     end)
 
-section
-
-set_option profiler true
-set_option trace.class_instances true
-
-example {α : Type*} [decidable_eq α] (s : multiset α) : decidable (s = 0) := by apply_instance
--- multiple seconds, trace is enormous
-
-local attribute [irreducible] multiset
-
-example {α : Type*} [decidable_eq α] (s : multiset α) : decidable (s = 0) := by apply_instance
--- a couple of miliseconds, trace is big but not huge
-
-end
-
 /-- If an irreducible has a prime factorization,
   then it is an associate of one of its prime factors. -/
 lemma prime_factors_irreducible [comm_cancel_monoid_with_zero α] {a : α} {f : multiset α}

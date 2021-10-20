@@ -135,9 +135,7 @@ end is_prime
 
 section
 open euclidean_domain
-variables [comm_ring R] [integral_domain R] [euclidean_domain R]
-
-#print euclidean_domain
+variables [comm_ring R] [euclidean_domain R]
 
 lemma mod_mem_iff {S : ideal R} {x y : R} (hy : y ∈ S) : x % y ∈ S ↔ x ∈ S :=
 ⟨λ hxy, div_add_mod x y ▸ S.add_mem (S.mul_mem_right _ hy) hxy,
@@ -171,7 +169,15 @@ end
 lemma is_field.is_principal_ideal_ring
   {R : Type*} [comm_ring R] (h : is_field R) :
   is_principal_ideal_ring R :=
-@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
+begin
+  letI := h.to_field R,
+  haveI : euclidean_domain R,
+  { convert @field.to_euclidean_domain R _ _,
+    -- refl, /- TODO: why doesn't this work? -/
+    unfreezingI { cases _inst_1 },
+    refl /- works -/ },
+  exact euclidean_domain.to_principal_ideal_domain
+end
 
 namespace principal_ideal_ring
 open is_principal_ideal_ring
@@ -284,11 +290,11 @@ end surjective
 
 section
 open ideal
-variables {α : Type*} [integral_domain α] [is_principal_ideal_ring α] [gcd_monoid α]
+variables [comm_ring R] [integral_domain R] [is_principal_ideal_ring R] [gcd_monoid R]
 
-theorem span_gcd (x y : α) : span ({gcd x y} : set α) = span ({x, y} : set α) :=
+theorem span_gcd (x y : R) : span ({gcd x y} : set R) = span ({x, y} : set R) :=
 begin
-  obtain ⟨d, hd⟩ := is_principal_ideal_ring.principal (span ({x, y} : set α)),
+  obtain ⟨d, hd⟩ := is_principal_ideal_ring.principal (span ({x, y} : set R)),
   rw submodule_span_eq at hd,
   rw [hd],
   suffices : associated d (gcd x y),
@@ -308,12 +314,12 @@ begin
     exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
 end
 
-theorem gcd_is_unit_iff {x y : α} : is_unit (gcd x y) ↔ is_coprime x y :=
+theorem gcd_is_unit_iff {x y : R} : is_unit (gcd x y) ↔ is_coprime x y :=
 by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
 
 -- this should be proved for UFDs surely?
-theorem is_coprime_of_dvd {x y : α}
-  (z : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits α, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
+theorem is_coprime_of_dvd {x y : R}
+  (z : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits R, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
 begin
   rw [← gcd_is_unit_iff],
@@ -323,7 +329,7 @@ begin
 end
 
 -- this should be proved for UFDs surely?
-theorem dvd_or_coprime (x y : α) (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
+theorem dvd_or_coprime (x y : R) (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
 begin
   refine or_iff_not_imp_left.2 (λ h', _),
   apply is_coprime_of_dvd,

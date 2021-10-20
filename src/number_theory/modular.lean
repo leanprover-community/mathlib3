@@ -250,8 +250,7 @@ end
 
   `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
 
-  which does not
-  need to be decomposed depending on whether `c = 0`. -/
+  which does not need to be decomposed depending on whether `c = 0`. -/
 lemma smul_eq_acbd_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (z : ℍ) {g : SL(2,ℤ)}
   (hg : ↑ₘg 1 = p) :
   ↑(g • z) = ((acbd p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)

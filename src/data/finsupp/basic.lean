@@ -2695,10 +2695,12 @@ instance tsub : has_sub (α →₀ M) :=
 
 lemma tsub_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
-instance : canonically_ordered_add_monoid (α →₀ M) :=
+instance : order_bot (α →₀ M) :=
 { bot := 0,
-  bot_le := λ f s, zero_le (f s),
-  le_iff_exists_add := begin
+  bot_le := λ f s, zero_le (f s) }
+
+instance : canonically_ordered_add_monoid (α →₀ M) :=
+{ le_iff_exists_add := begin
       intros f g,
       split,
       { intro H, use g - f, ext x, symmetry, exact add_sub_cancel_of_le (H x) },

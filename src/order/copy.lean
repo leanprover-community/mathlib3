@@ -19,15 +19,24 @@ variables {α : Type u}
 
 /-- A function to create a provable equal copy of a bounded lattice
 with possibly different definitional equalities. -/
-def bounded_lattice.copy (c : bounded_lattice α)
-  (le : α → α → Prop) (eq_le : le = @bounded_lattice.le α c)
-  (top : α) (eq_top : top = @bounded_lattice.top α c)
-  (bot : α) (eq_bot : bot = @bounded_lattice.bot α c)
-  (sup : α → α → α) (eq_sup : sup = @bounded_lattice.sup α c)
-  (inf : α → α → α) (eq_inf : inf = @bounded_lattice.inf α c) :
+def bounded_lattice.copy [has_le α] (c : bounded_lattice α)
+  (top : α) (eq_top : top = @bounded_lattice.top α _ c)
+  (bot : α) (eq_bot : bot = @bounded_lattice.bot α _ c) :
   bounded_lattice α :=
 begin
-  refine { le := le, top := top, bot := bot, sup := sup, inf := inf, .. },
+  refine { top := top, bot := bot, .. },
+  all_goals { abstract { subst_vars, casesI c, assumption } }
+end
+
+/-- A function to create a provable equal copy of a lattice
+with possibly different definitional equalities. -/
+def lattice.copy (c : lattice α)
+  (le : α → α → Prop) (eq_le : le = @lattice.le α c)
+  (sup : α → α → α) (eq_sup : sup = @lattice.sup α c)
+  (inf : α → α → α) (eq_inf : inf = @lattice.inf α c) :
+  lattice α :=
+begin
+  refine { le := le, sup := sup, inf := inf, .. },
   all_goals { abstract { subst_vars, casesI c, assumption } }
 end
 
@@ -56,8 +65,8 @@ def complete_lattice.copy (c : complete_lattice α)
   complete_lattice α :=
 begin
   refine { le := le, top := top, bot := bot, sup := sup, inf := inf, Sup := Sup, Inf := Inf,
-    .. bounded_lattice.copy (@complete_lattice.to_bounded_lattice α c)
-      le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf,
+    .. lattice.copy (@complete_lattice.to_lattice α c)
+      le eq_le sup eq_sup inf eq_inf,
     .. },
   all_goals { abstract { subst_vars, casesI c, assumption } }
 end

@@ -59,13 +59,13 @@ variables {α}
 namespace compacts
 
 instance : semilattice_sup (compacts α) :=
-subtype.semilattice_sup is_compact_empty (λ K₁ K₂, is_compact.union)
+subtype.semilattice_sup (λ K₁ K₂, is_compact.union)
 
 instance : order_bot (compacts α) :=
-subtype.order_bot is_compact_empty (λ K₁ K₂, is_compact.union)
+subtype.order_bot is_compact_empty
 
 instance [t2_space α]: semilattice_inf (compacts α) :=
-subtype.semilattice_inf is_compact_empty (λ K₁ K₂, is_compact.inter)
+subtype.semilattice_inf (λ K₁ K₂, is_compact.inter)
 
 instance [t2_space α] : lattice (compacts α) :=
 subtype.lattice (λ K₁ K₂, is_compact.union) (λ K₁ K₂, is_compact.inter)

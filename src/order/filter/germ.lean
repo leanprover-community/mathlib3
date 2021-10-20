@@ -454,21 +454,17 @@ instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥:β)⟩
 
 @[simp, norm_cast] lemma const_bot [has_bot β] : (↑(⊥:β) : germ l β) = ⊥ := rfl
 
-instance [order_bot β] : order_bot (germ l β) :=
+instance [has_le β] [order_bot β] : order_bot (germ l β) :=
 { bot := ⊥,
-  le := (≤),
-  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le,
-  .. germ.partial_order }
+  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le }
 
 instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
 
 @[simp, norm_cast] lemma const_top [has_top β] : (↑(⊤:β) : germ l β) = ⊤ := rfl
 
-instance [order_top β] : order_top (germ l β) :=
+instance [has_le β] [order_top β] : order_top (germ l β) :=
 { top := ⊤,
-  le := (≤),
-  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top,
-  .. germ.partial_order }
+  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top }
 
 instance [has_sup β] : has_sup (germ l β) := ⟨map₂ (⊔)⟩
 
@@ -501,7 +497,7 @@ instance [semilattice_inf β] : semilattice_inf (germ l β) :=
 instance [lattice β] : lattice (germ l β) :=
 { .. germ.semilattice_sup, .. germ.semilattice_inf }
 
-instance [bounded_lattice β] : bounded_lattice (germ l β) :=
+instance [has_le β] [bounded_lattice β] : bounded_lattice (germ l β) :=
 { .. germ.order_bot, .. germ.order_top }
 
 @[to_additive]

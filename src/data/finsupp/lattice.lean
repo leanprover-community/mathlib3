@@ -19,9 +19,6 @@ variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
 
-instance : order_bot (α →₀ μ) :=
-{ bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
-
 instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 { inf := zip_with (⊓) inf_idem,
   inf_le_left := λ a b c, inf_le_left,
@@ -51,7 +48,7 @@ instance [semilattice_sup β] : semilattice_sup (α →₀ β) :=
 lemma sup_apply [semilattice_sup β] {a : α} {f g : α →₀ β} : (f ⊔ g) a = f a ⊔ g a := rfl
 
 @[simp]
-lemma support_sup
+lemma support_sup [order_bot γ]
   {f g : α →₀ γ} : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext, simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ← bot_eq_zero],
@@ -61,9 +58,9 @@ end
 instance lattice [lattice β] : lattice (α →₀ β) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup}
 
-lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
+lemma bot_eq_zero [order_bot γ] : (⊥ : α →₀ γ) = 0 := rfl
 
-lemma disjoint_iff {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
+lemma disjoint_iff [order_bot γ] {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
 begin
   unfold disjoint, repeat {rw le_bot_iff},
   rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,

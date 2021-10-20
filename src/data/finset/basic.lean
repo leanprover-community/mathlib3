@@ -1077,7 +1077,7 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
 instance : has_sdiff (finset α) :=
-⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le sub_le_self' s₁.2⟩⟩
+⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le tsub_le_self s₁.2⟩⟩
 
 @[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
 
@@ -2458,7 +2458,7 @@ def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁,
   t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : finset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (sub_lt_sub_iff_left_of_le ht).2 (finset.card_lt_card h),
+     from (tsub_lt_tsub_iff_left_of_le ht).2 (finset.card_lt_card h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
 

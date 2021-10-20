@@ -540,7 +540,7 @@ begin
       rw [leading_coeff, nat_degree, hpdeg], refl } },
   { rintro ⟨p, hpI, hpdeg, rfl⟩,
     have : nat_degree p + (n - nat_degree p) = n,
-    { exact add_sub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
+    { exact add_tsub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
     refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right _ hpI⟩, _⟩,
     { apply le_trans (degree_mul_le _ _) _,
       apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
@@ -566,7 +566,7 @@ begin
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
   refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
-  rw [← with_bot.coe_add, add_sub_cancel_of_le H],
+  rw [← with_bot.coe_add, add_tsub_cancel_of_le H],
   exact le_refl _
 end
 
@@ -671,7 +671,7 @@ begin
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
     { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
-      rw [← with_bot.coe_add, add_sub_cancel_of_le, hn],
+      rw [← with_bot.coe_add, add_tsub_cancel_of_le, hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },
       rw [polynomial.leading_coeff_X_pow, mul_one],
       exact mt polynomial.leading_coeff_eq_zero.1 hq0 },

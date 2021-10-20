@@ -2505,13 +2505,13 @@ lemma prod_inv_reverse : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹))
 lemma prod_reverse_noncomm : ∀ (L : list α), L.reverse.prod = (L.map (λ x, x⁻¹)).prod⁻¹ :=
 by simp [prod_inv_reverse]
 
-/-- Counterpart to `list.prod_take_suc` when we have an inverse operation -/
-@[simp, to_additive /-"Counterpart to `prod_take_suc` when we have an inverse operation"-/]
-lemma prod_drop_suc :
+/-- Counterpart to `list.prod_take_succ` when we have an inverse operation -/
+@[simp, to_additive /-"Counterpart to `list.sum_take_succ` when we have an negation operation"-/]
+lemma prod_drop_succ :
   ∀ (L : list α) (i : ℕ) (p), (L.drop (i + 1)).prod = (L.nth_le i p)⁻¹ * (L.drop i).prod
 | [] i p := false.elim (nat.not_lt_zero _ p)
 | (x :: xs) 0 p := by simp
-| (x :: xs) (i + 1) p := prod_drop_suc xs i _
+| (x :: xs) (i + 1) p := prod_drop_succ xs i _
 
 end group
 
@@ -2524,15 +2524,15 @@ lemma prod_inv : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).prod
 | [] := by simp
 | (x :: xs) := by simp [mul_comm, prod_inv xs]
 
-/-- Alternative version of `prod_update_nth` when over a group instead of a monoid -/
-@[to_additive /-"Alternative version of `sum_update_nth` when over a group instead of a monoid"-/]
+/-- Alternative version of `list.prod_update_nth` when the list is over a group -/
+@[to_additive /-"Alternative version of `list.sum_update_nth` when the list is over a group"-/]
 lemma prod_update_nth' (L : list α) (n : ℕ) (a : α) :
   (L.update_nth n a).prod =
     L.prod * (if hn : n < L.length then (L.nth_le n hn)⁻¹ * a else 1) :=
 begin
   refine (prod_update_nth L n a).trans _,
   split_ifs with hn hn,
-  { rw [mul_comm _ a, mul_assoc a, prod_drop_suc L n hn, mul_comm _ (drop n L).prod,
+  { rw [mul_comm _ a, mul_assoc a, prod_drop_succ L n hn, mul_comm _ (drop n L).prod,
       ← mul_assoc (take n L).prod, prod_take_mul_prod_drop, mul_comm a, mul_assoc] },
   { simp only [take_all_of_le (le_of_not_lt hn), prod_nil, mul_one,
       drop_eq_nil_of_le ((le_of_not_lt hn).trans n.le_succ)] }

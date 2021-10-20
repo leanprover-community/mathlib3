@@ -15,8 +15,6 @@ We provide some instances for finite and free modules.
 
 ## Main results
 
-* `module.free.pi` : the product of finitely many free modules is free.
-* `module.free.matrix` : the module of (finite) matrices is free.
 * `module.free.choose_basis_index.fintype` : If a free module is finite, then any basis is
   finite.
 * `module.free.linear_map.free ` : if `M` and `N` are finite and free, then `M →ₗ[R] N` is free.

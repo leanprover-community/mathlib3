@@ -151,7 +151,8 @@ begin
   exact absurd this zero_ne_one,
 end
 
-theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
+-- this statement doesn't use `q` because we want `K` to be an explicit parameter
+theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
 let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
 
 @[simp] lemma cast_card_eq_zero : (q : K) = 0 :=

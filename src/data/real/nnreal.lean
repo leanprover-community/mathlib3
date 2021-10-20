@@ -298,6 +298,12 @@ eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
 
 example : archimedean ℝ≥0 := by apply_instance
 
+-- TODO: why are these two instances necessary? why aren't they inferred?
+instance : covariant_class ℝ≥0 ℝ≥0 (+) (≤) := ordered_add_comm_monoid.to_covariant_class_left ℝ≥0
+
+instance : contravariant_class ℝ≥0 ℝ≥0 (+) (<) :=
+  ordered_cancel_add_comm_monoid.to_contravariant_class_left ℝ≥0
+
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 begin

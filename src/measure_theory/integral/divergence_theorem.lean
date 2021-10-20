@@ -30,7 +30,7 @@ continuous at countably many points of `[a, b]`.
 divergence theorem, Bochner integral
 -/
 
-open set finset topological_space function box_integral
+open set finset topological_space function box_integral measure_theory
 open_locale big_operators classical
 
 namespace measure_theory
@@ -92,6 +92,22 @@ begin
     { have := box.continuous_on_face_Icc (Hc i) (left_mem_Icc.2 (hle i)),
       have := (this.integrable_on_compact box.is_compact_Icc).mono_set box.coe_subset_Icc,
       exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance } }
+end
+
+open_locale interval
+
+theorem FTC1 (f f' : ℝ → E) {a b : ℝ} {s : set ℝ} (hs : countable s)
+  (Hc : ∀ x ∈ s, continuous_within_at f [a, b] x)
+  (Hd : ∀ x ∈ [a, b] \ s, has_deriv_within_at f (f' x) [a, b] x)
+  (Hi : interval_integrable f' volume a b) :
+  ∫ x in a..b, f' x = f b - f a :=
+begin
+  wlog hab : a ≤ b := le_total a b using [a b, b a] tactic.skip,
+  { set F : (fin 1 → ℝ) → E := λ x, f (x 0),
+
+    rw interval_integrable_iff_integrable_Ioc_of_le hab at Hi,
+    replace Hi := Hi.congr_set_ae Ioc_ae_eq_Icc.symm,
+     }
 end
 
 end measure_theory

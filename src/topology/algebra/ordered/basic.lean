@@ -65,22 +65,6 @@ see their statements.
   sandwich theorem, theorem of Carabinieri, and two policemen (and a drunk) theorem; if `g` and `h`
   both converge to `a`, and eventually `g x ≤ f x ≤ h x`, then `f` converges to `a`.
 
-### Connected sets and Intermediate Value Theorem
-
-* `is_preconnected_I??` : all intervals `I??` are preconnected,
-* `is_preconnected.intermediate_value`, `intermediate_value_univ` : Intermediate Value Theorem for
-  connected sets and connected spaces, respectively;
-* `intermediate_value_Icc`, `intermediate_value_Icc'`: Intermediate Value Theorem for functions
-  on closed intervals.
-
-### Miscellaneous facts
-
-* `is_closed.Icc_subset_of_forall_mem_nhds_within` : “Continuous induction” principle;
-  if `s ∩ [a, b]` is closed, `a ∈ s`, and for each `x ∈ [a, b) ∩ s` some of its right neighborhoods
-  is included `s`, then `[a, b] ⊆ s`.
-* `is_closed.Icc_subset_of_forall_exists_gt`, `is_closed.mem_of_ge_of_forall_exists_gt` : two
-  other versions of the “continuous induction” principle.
-
 ## Implementation notes
 
 We do _not_ register the order topology as an instance on a preorder (or even on a linear order).

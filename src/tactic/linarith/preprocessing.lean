@@ -7,6 +7,7 @@ Authors: Robert Y. Lewis
 import tactic.linarith.datatypes
 import tactic.zify
 import tactic.cancel_denoms
+import order.lexicographic
 
 /-!
 # Linarith preprocessing

@@ -734,9 +734,10 @@ end nat
 
 /-! ### Primality prover -/
 
+open norm_num
+
 namespace tactic
 namespace norm_num
-open norm_num
 
 lemma is_prime_helper (n : ℕ)
   (h₁ : 1 < n) (h₂ : nat.min_fac n = n) : nat.prime n :=

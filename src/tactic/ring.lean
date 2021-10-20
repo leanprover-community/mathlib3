@@ -584,10 +584,10 @@ return (e', pr)
 end ring
 
 namespace interactive
-open interactive interactive.types lean.parser
+
 open tactic.ring
 
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /-- Tactic for solving equations in the language of *commutative* (semi)rings.
   This version of `ring` fails if the target is not an equality

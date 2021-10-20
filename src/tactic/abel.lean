@@ -325,10 +325,9 @@ return (e', pr)
 end abel
 
 namespace interactive
-open interactive interactive.types lean.parser
 open tactic.abel
 
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /-- Tactic for solving equations in the language of
 *additive*, commutative monoids and groups.

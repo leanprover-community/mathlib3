@@ -496,7 +496,8 @@ end norm_fin
 
 
 namespace interactive
-open interactive interactive.types
+
+setup_tactic_parser
 
 /-- Rewrites occurrences of fin expressions to normal form anywhere in the goal.
 The `norm_num` extension will only rewrite fin expressions if they appear in equalities and

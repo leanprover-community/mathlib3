@@ -22,7 +22,7 @@ It is a finite field with `p ^ n` elements.
 
 ## Main Results
 
-- Uniqueness of finite fields
+- `galois_field.alg_equiv_galois_field`: Uniqueness of finite fields
 
 -/
 

@@ -5,6 +5,7 @@ Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
 import algebra.regular.smul
+import data.matrix.notation
 import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
@@ -306,6 +307,20 @@ begin
        by rw [←one_mul b, ←ha, mul_assoc, hb, nat.sub_add_cancel zero_lt_card]
      ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
      ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
+end
+
+lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
+  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+begin
+  ext i j,
+  fin_cases i; fin_cases j; simp [adjugate_apply, det_fin_two],
+end
+
+lemma adjugate_fin_two' (a b c d : α) : adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+begin
+  rw adjugate_fin_two,
+  ext i j,
+  fin_cases i; fin_cases j; simp,
 end
 
 end adjugate

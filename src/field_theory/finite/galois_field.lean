@@ -22,7 +22,8 @@ It is a finite field with `p ^ n` elements.
 
 ## Main Results
 
-- `galois_field.alg_equiv_galois_field`: Uniqueness of finite fields
+- `galois_field.alg_equiv_galois_field`: Any finite field is isomorphic to some `galois_field p n`
+-
 
 -/
 
@@ -160,9 +161,16 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
     exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out _)
   end }
 
-/-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
+/-- Any finite field is isomorphic to some Galois field. -/
 def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
 by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
+
+variables {K' : Type*} [field K'] [fintype K'] [algebra (zmod p) K']
+
+/-- Uniqueness of finite fields: Any two finite fields with the same cardinality are isomorphic-/
+def alg_equiv_of_card_eq (hK : fintype.card K = p ^ n) (hK' : fintype.card K' = p ^ n) :
+  K ≃ₐ[zmod p] K' :=
+alg_equiv.trans (alg_equiv_galois_field p n hK) (alg_equiv_galois_field p n hK').symm
 
 end galois_field

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.coset
+import group_theory.quotient_group
 import set_theory.cardinal
 
 /-!
@@ -89,6 +89,16 @@ begin
 end
 
 variables (H K L)
+
+@[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
+(congr_arg cardinal.to_nat (cardinal.eq_one_iff_unique.mpr
+  ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩)).trans cardinal.one_to_nat
+
+@[to_additive] lemma index_bot : (⊥ : subgroup G).index = cardinal.to_nat (cardinal.mk G) :=
+cardinal.to_nat_congr (quotient_group.quotient_bot.to_equiv)
+
+@[to_additive] lemma index_bot_eq_card [fintype G] : (⊥ : subgroup G).index = fintype.card G :=
+index_bot.trans cardinal.mk_to_nat_eq_card
 
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=

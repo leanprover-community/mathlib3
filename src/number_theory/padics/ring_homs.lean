@@ -37,9 +37,11 @@ which removes some boilerplate code.
 -/
 
 noncomputable theory
+
 open_locale classical
-namespace padic_int
 open nat local_ring padic
+
+namespace padic_int
 
 variables {p : ℕ} [hp_prime : fact (p.prime)]
 include hp_prime

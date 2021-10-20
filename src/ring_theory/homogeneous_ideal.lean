@@ -218,7 +218,7 @@ end defs
 
 section properties
 
-lemma homogeneous_ideal.is_prime [add_comm_monoid ι] [gcomm_semiring A]
+lemma homogeneous_ideal.is_prime_iff [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (I_ne_top : I ≠ ⊤)
   (homogeneous_mem_or_mem : ∀ {x y : ⨁ i, A i}, is_homogeneous_element x → is_homogeneous_element y
     → (x * y ∈ I → x ∈ I ∨ y ∈ I)) : ideal.is_prime I :=
@@ -332,7 +332,7 @@ begin
       rw HI, apply ideal.span_mono, intros y hy,
       obtain ⟨hy₁, ⟨z, hz⟩⟩ := hy,
       specialize HJ₁ hy₁, refine ⟨⟨z, hz⟩, HJ₁⟩, },
-    { apply homogeneous_ideal.is_prime _ (homogeneous_ideal.homogeneous_ideal_of_ideal J),
+    { apply homogeneous_ideal.is_prime_iff _ (homogeneous_ideal.homogeneous_ideal_of_ideal J),
       intro rid,
       have rid' : J = ⊤,
       { have : homogeneous_ideal_of_ideal J ≤ J := homogeneous_ideal_of_ideal_le_ideal J,
@@ -363,16 +363,12 @@ begin
   exact subset₁ hx, exact subset₂ hx,
 end
 
--- lemma homogeneous_ideal.rad {I : ideal (⨁ i, A i)}
---   (HI : homogeneous_ideal I) : homogeneous_ideal I.radical :=
--- begin
---   have radI_eq := homogeneous_ideal.rad_eq HI,
---   rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal'],
---   conv_lhs { rw radI_eq }, ext x,
---   rw [ideal.mem_Inf], split,
---   { sorry },
-
---   { sorry }
--- end
+lemma homogeneous_ideal.rad {I : ideal (⨁ i, A i)}
+  (HI : homogeneous_ideal I) : homogeneous_ideal I.radical :=
+begin
+  have radI_eq := homogeneous_ideal.rad_eq HI,
+  rw radI_eq, apply homogeneous_ideal.Inf,
+  rintros J ⟨_, HJ, _⟩, exact HJ,
+end
 
 end operations

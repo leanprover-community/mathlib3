@@ -54,7 +54,7 @@ points of `[a, b]`.
 
 We represent both faces `x i = a i` and `x i = b i` as the box
 `[a ∘ fin.succ_above i, b ∘ fin.succ_above i]` in `ℝⁿ`, where
-`fin.succ_abvoe : fin n ↪o fin (n + 1)` is the order embedding with range `{i}ᶜ`. The restrictions
+`fin.succ_above : fin n ↪o fin (n + 1)` is the order embedding with range `{i}ᶜ`. The restrictions
 of `f : ℝⁿ⁺¹ → Eⁿ⁺¹` to these faces are given by `λ y, f (fin.insert_nth i (a i) y)`
 and `λ y, f (fin.insert_nth i (b i) y)`, respectively, where `fin.insert_nth i a y` takes
 `y : ℝⁿ` and returns a vector `x : ℝⁿ⁺¹` such that `x i = a` and `x (fin.succ_above j) = y j`. -/

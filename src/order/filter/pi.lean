@@ -21,19 +21,40 @@ lemma mem_pi_of_mem (i : ι) {s : set (α i)} (hs : s ∈ f i) :
   eval i ⁻¹' s ∈ pi f :=
 mem_infi_of_mem i $ preimage_mem_comap hs
 
+lemma pi_mem_pi {I : set ι} (hI : finite I) (h : ∀ i ∈ I, s i ∈ f i) :
+  I.pi s ∈ pi f :=
+begin
+  rw [pi_def, bInter_eq_Inter],
+  refine mem_infi_of_Inter hI (λ i, _) subset.rfl,
+  exact preimage_mem_comap (h i i.2)
+end
+
 lemma mem_pi {s : set (Π i, α i)} : s ∈ pi f ↔
-  ∃ (I : set ι), finite I ∧ ∃ t : Π i, set (α i), (∀ i, t i ∈ f i) ∧
-    (⋂ i ∈ I, (eval i : (Π j, α j) → α i) ⁻¹' t i) ⊆ s :=
+  ∃ (I : set ι), finite I ∧ ∃ t : Π i, set (α i), (∀ i, t i ∈ f i) ∧ I.pi t ⊆ s :=
 begin
   split,
-  { simp only [pi, mem_infi', mem_comap],
+  { simp only [pi, mem_infi', mem_comap, pi_def],
     rintro ⟨I, If, V, hVf, hVI, rfl, -⟩, choose t htf htV using hVf,
     exact ⟨I, If, t, htf, bInter_mono (λ i _, htV i)⟩ },
   { rintro ⟨I, If, t, htf, hts⟩,
-    rw bInter_eq_Inter at hts,
-    refine mem_infi_of_Inter If (λ i, _) hts,
-    exact preimage_mem_comap (htf i) }
+    exact mem_of_superset (pi_mem_pi If $ λ i _, htf i) hts }
 end
+
+lemma mem_of_pi_mem_pi [∀ i, ne_bot (f i)] {I : set ι} (h : I.pi s ∈ pi f) {i : ι} (hi : i ∈ I) :
+  s i ∈ f i :=
+begin
+  rcases mem_pi.1 h with ⟨I', I'f, t, htf, hts⟩,
+  refine mem_of_superset (htf i) (λ x hx, _),
+  have : ∀ i, (t i).nonempty, from λ i, nonempty_of_mem (htf i),
+  choose g hg,
+  have : update g i x ∈ I'.pi t,
+  { intros j hj, rcases eq_or_ne j i with (rfl|hne); simp * },
+  simpa using hts this i hi
+end
+
+@[simp] lemma pi_mem_pi_iff [∀ i, ne_bot (f i)] {I : set ι} (hI : finite I) :
+  I.pi s ∈ pi f ↔ ∀ i ∈ I, s i ∈ f i :=
+⟨λ h i hi, mem_of_pi_mem_pi h hi, pi_mem_pi hI⟩
 
 @[simp] lemma pi_inf_principal_pi_eq_bot :
   pi f ⊓ 𝓟 (set.pi univ s) = ⊥ ↔ ∃ i, f i ⊓ 𝓟 (s i) = ⊥ :=
@@ -43,7 +64,7 @@ begin
     rintros (hsf : ∀ i, ∃ᶠ x in f i, x ∈ s i) I If t htf hts,
     have : ∀ i, (s i ∩ t i).nonempty, from λ i, ((hsf i).and_eventually (htf i)).exists,
     choose x hxs hxt,
-    exact hts (mem_bInter (λ i hi, hxt i)) (mem_univ_pi.2 hxs) },
+    exact hts (λ i hi, hxt i) (mem_univ_pi.2 hxs) },
   { simp only [inf_principal_eq_bot],
     rintro ⟨i, hi⟩,
     filter_upwards [mem_pi_of_mem i hi],

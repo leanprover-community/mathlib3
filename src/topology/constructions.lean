@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.maps
+import order.filter.pi
 
 /-!
 # Constructions of new topological spaces from old ones
@@ -690,24 +691,25 @@ lemma continuous_pi_iff [topological_space α] [∀ i, topological_space (π i)]
 iff.intro (λ h i, (continuous_apply i).comp h) continuous_pi
 
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
-  𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
+  𝓝 a = pi (λ i, 𝓝 (a i)) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
   ... = (⨅i, comap (λx, x i) (𝓝 (a i))) : by simp [nhds_induced]
 
-lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g : Πi, π i} {u : filter α} :
+lemma tendsto_pi_nhds [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g : Πi, π i}
+  {u : filter α} :
   tendsto f u (𝓝 g) ↔ ∀ x, tendsto (λ i, f i x) u (𝓝 (g x)) :=
-by simp [nhds_pi, filter.tendsto_comap_iff]
+by rw [nhds_pi, filter.tendsto_pi]
 
 lemma continuous_at_pi [∀ i, topological_space (π i)] [topological_space α] {f : α → Π i, π i}
   {x : α} :
   continuous_at f x ↔ ∀ i, continuous_at (λ y, f y i) x :=
-tendsto_pi
+tendsto_pi_nhds
 
 lemma filter.tendsto.update [∀i, topological_space (π i)] [decidable_eq ι]
   {l : filter α} {f : α → Π i, π i} {x : Π i, π i} (hf : tendsto f l (𝓝 x)) (i : ι)
   {g : α → π i} {xi : π i} (hg : tendsto g l (𝓝 xi)) :
   tendsto (λ a, function.update (f a) i (g a)) l (𝓝 $ function.update x i xi) :=
-tendsto_pi.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hf.apply] }
+tendsto_pi_nhds.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hf.apply] }
 
 lemma continuous_at.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
   {f : α → Π i, π i} {a : α} (hf : continuous_at f a) (i : ι) {g : α → π i}
@@ -729,7 +731,7 @@ lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topo
   (i : fin (n + 1)) {f : α → π i} {l : filter α} {x : π i} (hf : tendsto f l (𝓝 x))
   {g : α → Π j : fin n, π (i.succ_above j)} {y : Π j, π (i.succ_above j)} (hg : tendsto g l (𝓝 y)) :
   tendsto (λ a, i.insert_nth (f a) (g a)) l (𝓝 $ i.insert_nth x y) :=
-tendsto_pi.2 (λ j, fin.succ_above_cases i (by simpa) (by simpa using tendsto_pi.1 hg) j)
+tendsto_pi_nhds.2 (λ j, fin.succ_above_cases i (by simpa) (by simpa using tendsto_pi_nhds.1 hg) j)
 
 lemma continuous_at.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
   [topological_space α] (i : fin (n + 1)) {f : α → π i} {a : α} (hf : continuous_at f a)
@@ -786,7 +788,7 @@ lemma set_pi_mem_nhds_iff [fintype ι] {α : ι → Type*} [Π (i : ι), topolog
 lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
   {I : set ι} {s : Π i, set (α i)} :
   interior (pi I s) = I.pi (λ i, interior (s i)) :=
-by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
+by { ext a, simp only [set.mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
 
 lemma exists_finset_piecewise_mem_of_mem_nhds [decidable_eq ι] [Π i, topological_space (π i)]
   {s : set (Π a, π a)} {x : Π a, π a} (hs : s ∈ 𝓝 x) (y : Π a, π a) :

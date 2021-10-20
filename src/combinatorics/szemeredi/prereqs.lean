@@ -17,7 +17,7 @@ variables {α : Type*}
 section relation
 variables (r : α → α → Prop) [decidable_rel r]
 
-lemma lemma_B {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a b : ℝ}
+lemma lemma_B {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a : ℝ} (b : ℝ)
   (hs : (∑ x in s, f x)/s.card = a + b) (ht : (∑ x in t, f x) / t.card = a) :
   a^2 + s.card/t.card * b^2 ≤ (∑ x in t, f x^2)/t.card :=
 begin
@@ -48,6 +48,22 @@ begin
   apply cs.trans _,
   rw mul_le_mul_left hscard,
   exact sum_le_sum_of_subset_of_nonneg hst (λ i _ _, sq_nonneg _),
+end
+
+lemma lemma_B_ineq {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) (d : ℝ) {x : ℝ} (hx : 0 ≤ x)
+  (hs : x ≤ abs ((∑ x in s, f x)/s.card - (∑ x in t, f x) / t.card))
+  (ht : d ≤ ((∑ x in t, f x) / t.card)^2) :
+  d + s.card/t.card * x^2 ≤ (∑ x in t, f x^2)/t.card :=
+begin
+  apply (add_le_add_right ht _).trans,
+  apply le_trans _ (lemma_B hst f ((∑ x in s, f x) / s.card - (∑ x in t, f x) / t.card) _ rfl),
+  { refine add_le_add_left _ _,
+    apply mul_le_mul_of_nonneg_left,
+    { apply sq_le_sq,
+      rwa abs_of_nonneg hx },
+    apply div_nonneg;
+    apply nat.cast_nonneg },
+  rw add_sub_cancel'_right,
 end
 
 lemma aux₀ {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) :

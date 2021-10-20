@@ -126,7 +126,8 @@ begin
   split_ifs,
   { rw add_zero,
     apply sq_density_sub_eps_le_sum_sq_density_div_card hPα hPε hε₁ },
-  { apply sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform hPα hPε hε₁ h }
+  { apply sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform hPα hPε hε₁ _ h,
+    apply ((mem_off_diag _ _).1 x.2).2.2 }
 end
 
 lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1) (hP₇ : 7 ≤ P.size)

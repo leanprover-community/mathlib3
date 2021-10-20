@@ -73,6 +73,19 @@ calc
         end
   ... ≤ m : nat.cast_le.2 (nat.div_le_div_right hPα)
 
+lemma le_div_self {x y : ℝ} (hx : 0 ≤ x) (hy₀ : 0 < y) (hy₁ : y ≤ 1) : x ≤ x / y :=
+by simpa using div_le_div_of_le_left hx hy₀ hy₁
+
+lemma hundred_le_m [nonempty α] (hPα : P.size * 16^P.size ≤ card α) (hPε : 100 ≤ 4^P.size * ε^5)
+  (hε : ε ≤ 1) :
+  100 ≤ m :=
+begin
+  suffices : (100 : ℝ) ≤ m, assumption_mod_cast,
+  apply le_trans _ (hundred_div_ε_pow_five_le_m hPα hPε),
+  refine le_div_self (by norm_num) (eps_pow_five_pos hPε) _,
+  apply pow_le_one _ (eps_pos hPε).le hε,
+end
+
 lemma a_add_one_le_four_pow_size : a + 1 ≤ 4^P.size :=
 begin
   have h : 1 ≤ 4^P.size := one_le_pow_of_one_le (by norm_num) _,

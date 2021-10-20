@@ -32,10 +32,6 @@ theorem odd_iff : odd n ↔ n % 2 = 1 :=
 ⟨λ ⟨m, hm⟩, by norm_num [hm, add_mod],
  λ h, ⟨n / 2, (mod_add_div n 2).symm.trans (by rw [h, add_comm])⟩⟩
 
-theorem even_iff_modeq : even n ↔ n ≡ 0 [MOD 2] := even_iff
-
-lemma odd_iff_modeq : odd n ↔ n ≡ 1 [MOD 2] := odd_iff
-
 lemma not_even_iff : ¬ even n ↔ n % 2 = 1 :=
 by rw [even_iff, mod_two_ne_zero]
 

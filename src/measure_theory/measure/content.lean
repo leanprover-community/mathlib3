@@ -48,7 +48,7 @@ We prove that, on a locally compact space, the measure `μ.measure` is regular.
 * <https://en.wikipedia.org/wiki/Content_(measure_theory)>
 -/
 
-universe variables u v w
+universes u v w
 noncomputable theory
 
 open set topological_space

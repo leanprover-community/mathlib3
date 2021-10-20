@@ -120,13 +120,15 @@ lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [encodable α] :
 { countable := countable_encodable _,
   .. at_bot_basis }
 
-lemma is_countably_generated_at_top [nonempty α] [semilattice_sup α] [encodable α] :
+@[priority 200]
+instance at_top.is_countably_generated [preorder α] [encodable α] :
   (at_top : filter $ α).is_countably_generated :=
-at_top_countable_basis.is_countably_generated
+is_countably_generated_seq _
 
-lemma is_countably_generated_at_bot [nonempty α] [semilattice_inf α] [encodable α] :
+@[priority 200]
+instance at_bot.is_countably_generated [preorder α] [encodable α] :
   (at_bot : filter $ α).is_countably_generated :=
-at_bot_countable_basis.is_countably_generated
+is_countably_generated_seq _
 
 lemma order_top.at_top_eq (α) [order_top α] : (at_top : filter α) = pure ⊤ :=
 le_antisymm (le_pure_iff.2 $ (eventually_ge_at_top ⊤).mono $ λ b, top_unique)
@@ -1214,18 +1216,15 @@ lemma has_antitone_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter 
 (at_top_basis.tendsto_iff hl.to_has_basis).2 $ assume i hi,
   ⟨i, trivial, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩
 
-namespace is_countably_generated
-
 /-- An abstract version of continuity of sequentially continuous functions on metric spaces:
 if a filter `k` is countably generated then `tendsto f k l` iff for every sequence `u`
 converging to `k`, `f ∘ u` tends to `l`. -/
-lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
-  (hcb : k.is_countably_generated) :
+lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.is_countably_generated] :
   tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
 suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
-  obtain ⟨g, gbasis, gmon, -⟩ := hcb.exists_antitone_basis,
+  obtain ⟨g, gbasis, gmon, -⟩ := k.exists_antitone_basis,
   contrapose,
   simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
   rintro ⟨B, hBl, hfBk⟩,
@@ -1239,17 +1238,16 @@ begin
     apply (h i).right },
 end
 
-lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
-  (hcb : k.is_countably_generated) :
+lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.is_countably_generated] :
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
-hcb.tendsto_iff_seq_tendsto.2
+tendsto_iff_seq_tendsto.2
 
-lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
+lemma subseq_tendsto_of_ne_bot {f : filter α} [is_countably_generated f]
   {u : ℕ → α}
   (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
-  obtain ⟨B, h⟩ := hf.exists_antitone_basis,
+  obtain ⟨B, h⟩ := f.exists_antitone_basis,
   have : ∀ N, ∃ n ≥ N, u n ∈ B N,
     from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
   choose φ hφ using this,
@@ -1262,8 +1260,6 @@ begin
     from strict_mono_subseq_of_tendsto_at_top lim_φ,
   exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp hψ.tendsto_at_top⟩,
 end
-
-end is_countably_generated
 
 end filter
 

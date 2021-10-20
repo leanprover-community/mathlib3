@@ -406,6 +406,8 @@ include t
 class first_countable_topology : Prop :=
 (nhds_generated_countable : ∀a:α, (𝓝 a).is_countably_generated)
 
+attribute [instance] first_countable_topology.nhds_generated_countable
+
 namespace first_countable_topology
 variable {α}
 
@@ -414,19 +416,15 @@ is the limit of some subsequence. -/
 lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α}
   (hx : map_cluster_pt x at_top u) :
   ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
-(nhds_generated_countable x).subseq_tendsto hx
+subseq_tendsto_of_ne_bot hx
 
 end first_countable_topology
 
 variables {α}
 
-lemma is_countably_generated_nhds [first_countable_topology α] (x : α) :
-  is_countably_generated (𝓝 x) :=
-first_countable_topology.nhds_generated_countable x
-
 lemma is_countably_generated_nhds_within [first_countable_topology α] (x : α) (s : set α) :
   is_countably_generated (𝓝[s] x) :=
-(is_countably_generated_nhds x).inf_principal s
+inf.is_countably_generated _ _
 
 variable (α)
 

@@ -73,7 +73,7 @@ It is defined as:
 
 `∑_{i ≤ n} p^i X_i^{p^{n-i}} ∈ R[X_0, X_1, X_2, …]`. -/
 noncomputable def witt_polynomial (n : ℕ) : mv_polynomial ℕ R :=
-∑ i in range (n+1), monomial (single i (p ^ (n - i))) (p ^ i)
+∑ i in range (n+1), monomial (single i (p ^ (n - i))) (p ^ i : R)
 
 lemma witt_polynomial_eq_sum_C_mul_X_pow (n : ℕ) :
   witt_polynomial p R n = ∑ i in range (n+1), C (p ^ i : R) * X i ^ (p ^ (n - i)) :=
@@ -159,12 +159,9 @@ lemma witt_polynomial_vars [char_zero R] (n : ℕ) :
 begin
   have : ∀ i, (monomial (finsupp.single i (p ^ (n - i))) (p ^ i : R)).vars = {i},
   { intro i,
-    rw vars_monomial_single,
-    { rw ← pos_iff_ne_zero,
-      apply pow_pos hp.1.pos },
-    { rw [← nat.cast_pow, nat.cast_ne_zero],
-      apply ne_of_gt,
-      apply pow_pos hp.1.pos i } },
+    refine vars_monomial_single i (pow_ne_zero _ hp.1.ne_zero) _,
+    rw [← nat.cast_pow, nat.cast_ne_zero],
+    exact pow_ne_zero i hp.1.ne_zero },
   rw [witt_polynomial, vars_sum_of_disjoint],
   { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
   { simp only [this, int.nat_cast_eq_coe_nat],

@@ -2142,8 +2142,8 @@ alias is_glb.mem_of_is_closed ← is_closed.is_glb_mem
 ### Existence of sequences tending to Inf or Sup of a given set
 -/
 
-lemma is_lub.exists_seq_strict_mono_tendsto_of_not_mem {t : set α} {x : α} [is_countably_generated (𝓝 x)]
-  (htx : is_lub t x) (not_mem : x ∉ t) (ht : t.nonempty) :
+lemma is_lub.exists_seq_strict_mono_tendsto_of_not_mem {t : set α} {x : α}
+  [is_countably_generated (𝓝 x)] (htx : is_lub t x) (not_mem : x ∉ t) (ht : t.nonempty) :
   ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
 begin
   rcases ht with ⟨l, hl⟩,

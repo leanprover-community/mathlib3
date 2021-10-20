@@ -422,7 +422,7 @@ end first_countable_topology
 
 variables {α}
 
-lemma is_countably_generated_nhds_within [first_countable_topology α] (x : α) (s : set α) :
+instance is_countably_generated_nhds_within (x : α) [is_countably_generated (𝓝 x)] (s : set α) :
   is_countably_generated (𝓝[s] x) :=
 inf.is_countably_generated _ _
 

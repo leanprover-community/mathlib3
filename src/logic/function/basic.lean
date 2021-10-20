@@ -92,12 +92,11 @@ lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) 
     hx ▸ hy ▸ λ hf, h hf ▸ rfl,
   λ h, h.comp hg.injective⟩
 
+
+/-- Composition by an injective function on the left is itself injective. -/
 lemma injective.comp_left {g : β → γ} (hg : function.injective g) :
-  function.injective ((∘) g : (α → β) → (α → γ)) := λ f₁ f₂ hgf,
-begin
-  refine funext (λ i, hg _),
-  exact congr_fun hgf i,
-end
+  function.injective ((∘) g : (α → β) → (α → γ)) :=
+λ f₁ f₂ hgf, funext $ λ i, hg $ (congr_fun hgf i : _)
 
 lemma injective_of_subsingleton [subsingleton α] (f : α → β) :
   injective f :=

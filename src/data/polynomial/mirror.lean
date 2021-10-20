@@ -131,7 +131,7 @@ by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
 lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
-lemma mirror_mul_of_domain {R : Type*} [comm_ring R] [integral_domain R] (p q : polynomial R) :
+lemma mirror_mul_of_domain {R : Type*} [ring R] [domain R] (p q : polynomial R) :
   (p * q).mirror = p.mirror * q.mirror :=
 begin
   by_cases hp : p = 0,
@@ -139,10 +139,12 @@ begin
   by_cases hq : q = 0,
   { rw [hq, mul_zero, mirror_zero, mul_zero] },
   rw [mirror, mirror, mirror, reverse_mul_of_domain, nat_trailing_degree_mul hp hq, pow_add],
-  ring,
+  rw [mul_assoc, ←mul_assoc q.reverse],
+  conv_lhs { congr, skip, congr, rw [←X_pow_mul] },
+  repeat { rw [mul_assoc], },
 end
 
-lemma mirror_smul {R : Type*} [comm_ring R] [integral_domain R] (p : polynomial R) (a : R) :
+lemma mirror_smul {R : Type*} [ring R] [domain R] (p : polynomial R) (a : R) :
   (a • p).mirror = a • p.mirror :=
 by rw [←C_mul', ←C_mul', mirror_mul_of_domain, mirror_C]
 

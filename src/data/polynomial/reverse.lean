@@ -253,7 +253,7 @@ begin
   simp [reverse_mul, *],
 end
 
-lemma trailing_coeff_mul {R : Type*} [comm_ring R] [integral_domain R] (p q : polynomial R) :
+lemma trailing_coeff_mul {R : Type*} [ring R] [domain R] (p q : polynomial R) :
   (p * q).trailing_coeff = p.trailing_coeff * q.trailing_coeff :=
 by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
   reverse_leading_coeff, reverse_leading_coeff]

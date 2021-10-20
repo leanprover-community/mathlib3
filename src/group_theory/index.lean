@@ -104,7 +104,7 @@ index_bot.trans nat.card_eq_fintype_card
 @[simp, to_additive] lemma relindex_top_left : (⊤ : subgroup G).relindex H = 1 :=
 index_top
 
-@[simp, to_additive] lemma relindex_top_right [fintype H] : H.relindex ⊤ = H.index :=
+@[simp, to_additive] lemma relindex_top_right : H.relindex ⊤ = H.index :=
 by rw [←relindex_mul_index (show H ≤ ⊤, from le_top), index_top, mul_one]
 
 @[simp, to_additive] lemma relindex_bot_left : (⊥ : subgroup G).relindex H = nat.card H :=

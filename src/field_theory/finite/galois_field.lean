@@ -158,21 +158,14 @@ end
 /-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
 def alg_equiv_galois_field (hne : n ≠ 0) (card : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
-begin
-  have hp : 1 < p := (fact.out (nat.prime p)).one_lt,
-  apply is_splitting_field.alg_equiv K (X ^ p ^ n - X),
-  refine {splits := _, adjoin_roots := _},
-  { rw ← card, exact splits_X_pow_card_sub_X _, },
-  simp only [map_pow, map_X, map_sub],
-  rw algebra.eq_top_iff,
-  intro x,
-  apply algebra.subset_adjoin,
-  rw [finset.mem_coe, multiset.mem_to_finset],
-  have h1 : x ^ p ^ n - x = 0 := by rw [← card, finite_field.pow_card, sub_self x],
-  have h2 := finite_field.X_pow_card_pow_sub_X_ne_zero K hne hp,
-  rw mem_roots,
-  simp only [eval_X, eval_pow, eval_sub, is_root.def],
-  assumption',
-end
+@is_splitting_field.alg_equiv (zmod p) K _ _ _ (X ^ (p ^ n) - X)
+{ splits := by
+  { rw ← card,
+    exact splits_X_pow_card_sub_X p },
+  adjoin_roots := by
+  { refine algebra.eq_top_iff.mpr (λ x, algebra.subset_adjoin _),
+    rw [map_sub, map_pow, map_X, finset.mem_coe, multiset.mem_to_finset, mem_roots,
+        is_root.def, eval_sub, eval_pow, eval_X, ←card, finite_field.pow_card, sub_self],
+    exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out (nat.prime p)).one_lt } }
 
 end galois_field

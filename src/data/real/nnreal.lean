@@ -283,8 +283,8 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s)
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
-{ cSup_empty := (function.funext_iff.1
-    (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
+{ cSup_empty := (function.funext_iff.1 (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans
+  $ nnreal.eq (by rw nonneg.bot_eq; simp),
   .. (by apply_instance : order_bot ℝ≥0),
   .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
 

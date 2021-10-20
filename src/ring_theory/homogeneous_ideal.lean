@@ -283,7 +283,19 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
                     \ {(max₁, max₂)},
                   of A (prod.fst ij + prod.snd ij)
                   (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij))) ∈ I,
-  { apply ideal.sum_mem, sorry, },
+  { apply ideal.sum_mem, rintros ⟨i, j⟩ H,
+    simp only [not_and, prod.mk.inj_iff, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_singleton,
+      finset.mem_filter, finset.mem_product] at H,
+    rw ←of_mul_of,
+    obtain ⟨⟨⟨H₁, H₂⟩, H₃⟩, H₄⟩ := H,
+    cases lt_trichotomy i max₁,
+    { -- in this case `i < max₁`, so `max₂ < j`, so `of A j (y j) ∈ I`
+      sorry, },
+    { cases h,
+      { -- in this case `i = max₁`, so `max₂ = j`, contradictory
+        sorry, },
+      { -- in this case `i > max₁`, so `i < max₁`, so `of A i (x i) ∈ I`
+        sorry, } }, },
   have mem_I₃ : of A (max₁ + max₂) (graded_monoid.ghas_mul.mul (x max₁) (y max₂)) ∈ I,
   { rw eq₂, apply ideal.sub_mem,
     rw [homogeneous_ideal_iff_homogeneous_ideal'', homogeneous_ideal''] at HI,
@@ -328,6 +340,11 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
     finset.mem_product] at Hij,
   exact Hij.1.2 Hij.2.1 Hij.2.2,
 end⟩
+
+-- example {ι : Type*} [linear_ordered_cancel_add_comm_monoid ι] (a b c d : ι) (h : a + b = c + d) (h' : a < c) : (d < b) :=
+-- begin
+--   linarith,
+-- end
 
 end properties
 

@@ -498,28 +498,24 @@ theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _), λ h,
   by exact min_le _ (subtype.mk b h)⟩
 
-theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
+@[simp] theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
 
-theorem add_one_le_succ (c : cardinal) : c + 1 ≤ succ c :=
+theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
-  refine quot.induction_on c (λ α, _) (lt_succ_self c),
-  refine quot.induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
-  cases h.left with f,
-  have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
-  cases not_forall.1 this with b nex,
-  refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
-  { exact λ _, b },
-  { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
-    { rw f.injective h },
-    { exact nex.elim ⟨_, h⟩ },
-    { exact nex.elim ⟨_, h.symm⟩ },
-    { refl } }
+  refine le_cInf nonempty_Ioi (λ b (hlt : c < b), _),
+  rcases ⟨b, c⟩ with ⟨⟨β⟩, ⟨γ⟩⟩,
+  cases hlt.left with f,
+  have : ¬ surjective f := λ hn, hlt.not_le hn.cardinal_le,
+  simp only [surjective, not_forall] at this,
+  rcases this with ⟨b, hb⟩,
+  calc #γ + 1 = #(option γ) : mk_option.symm
+          ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 :=
-by { rw [←pos_iff_ne_zero, lt_succ], apply zero_le }
+lemma succ_pos (c : cardinal) : 0 < succ c := by simp
+
+lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
 /-- The indexed sum of cardinals is the cardinality of the
   indexed disjoint union, i.e. sigma type. -/

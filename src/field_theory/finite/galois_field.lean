@@ -142,15 +142,9 @@ by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : polynomial (
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
 theorem splits_X_pow_card_sub_X : splits (algebra_map (zmod p) K) (X ^ fintype.card K - X) :=
-begin
-  obtain ⟨p, n, hp, hn⟩ := finite_field.card' K,
-  have h1 : roots (X ^ fintype.card K - X : polynomial K) = finset.univ.val,
-    by rw finite_field.roots_X_pow_card_sub_X _,
-  have h2 := finite_field.X_pow_card_pow_sub_X_nat_degree_eq K n.ne_zero hp.one_lt,
-  rw [← splits_id_iff_splits, splits_iff_card_roots],
-  simp only [map_pow, map_X, map_sub],
-  rw [h1, ← finset.card_def, finset.card_univ, hn, h2],
-end
+by rw [←splits_id_iff_splits, map_sub, map_pow, map_X, splits_iff_card_roots,
+  finite_field.roots_X_pow_card_sub_X, ←finset.card_def, finset.card_univ,
+  finite_field.X_pow_card_sub_X_nat_degree_eq]; exact fintype.one_lt_card
 
 /-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
 def alg_equiv_galois_field (h : fintype.card K = p ^ n) :

@@ -23,7 +23,7 @@ It is a finite field with `p ^ n` elements.
 ## Main Results
 
 - `galois_field.alg_equiv_galois_field`: Any finite field is isomorphic to some `galois_field p n`
--
+- `alg_equiv_of_card_eq`: Uniqueness of finite fields
 
 -/
 

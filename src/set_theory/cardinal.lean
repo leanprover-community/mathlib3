@@ -979,12 +979,20 @@ lemma mk_to_nat_eq_card [fintype α] : (#α).to_nat = fintype.card α :=
 by simp [fintype_card]
 
 @[simp]
-lemma zero_to_nat : cardinal.to_nat 0 = 0 :=
+lemma zero_to_nat : to_nat 0 = 0 :=
 by rw [← to_nat_cast 0, nat.cast_zero]
 
 @[simp]
-lemma one_to_nat : cardinal.to_nat 1 = 1 :=
+lemma one_to_nat : to_nat 1 = 1 :=
 by rw [← to_nat_cast 1, nat.cast_one]
+
+lemma to_nat_eq_one {c : cardinal} : to_nat c = 1 ↔ c = 1 :=
+⟨λ h, (cast_to_nat_of_lt_omega (lt_of_not_ge (one_ne_zero ∘ h.symm.trans ∘
+  to_nat_apply_of_omega_le))).symm.trans ((congr_arg coe h).trans nat.cast_one),
+  λ h, (congr_arg to_nat h).trans one_to_nat⟩
+
+lemma to_nat_eq_one_iff_unique {α : Type*} : (#α).to_nat = 1 ↔ subsingleton α ∧ nonempty α :=
+to_nat_eq_one.trans eq_one_iff_unique
 
 @[simp] lemma to_nat_lift (c : cardinal.{v}) : (lift.{u v} c).to_nat = c.to_nat :=
 begin

@@ -31,13 +31,15 @@ In this file we define the index of a subgroup, and prove several divisibility p
 
 namespace subgroup
 
+open_locale cardinal
+
 variables {G : Type*} [group G] (H K L : subgroup G)
 
 /-- The index of a subgroup as a natural number, and returns 0 if the index is infinite. -/
 @[to_additive "The index of a subgroup as a natural number,
 and returns 0 if the index is infinite."]
 noncomputable def index : ℕ :=
-(cardinal.mk (quotient_group.quotient H)).to_nat
+(#(quotient_group.quotient H)).to_nat
 
 /-- The relative index of a subgroup as a natural number,
   and returns 0 if the relative index is infinite. -/
@@ -91,10 +93,9 @@ end
 variables (H K L)
 
 @[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
-(congr_arg cardinal.to_nat (cardinal.eq_one_iff_unique.mpr
-  ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩)).trans cardinal.one_to_nat
+cardinal.to_nat_eq_one_iff_unique.mpr ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩
 
-@[to_additive] lemma index_bot : (⊥ : subgroup G).index = cardinal.to_nat (cardinal.mk G) :=
+@[to_additive] lemma index_bot : (⊥ : subgroup G).index = cardinal.to_nat (#G) :=
 cardinal.to_nat_congr (quotient_group.quotient_bot.to_equiv)
 
 @[to_additive] lemma index_bot_eq_card [fintype G] : (⊥ : subgroup G).index = fintype.card G :=

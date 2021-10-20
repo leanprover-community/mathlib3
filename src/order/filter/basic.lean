@@ -1076,12 +1076,8 @@ lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter 
 lemma frequently_iff {f : filter α} {P : α → Prop} :
   (∃ᶠ x in f, P x) ↔ ∀ {U}, U ∈ f → ∃ x ∈ U, P x :=
 begin
-  rw frequently_iff_forall_eventually_exists_and,
-  split ; intro h,
-  { intros U U_in,
-    simpa [exists_prop, and_comm] using h U_in },
-  { intros H H',
-    simpa [and_comm] using h H' },
+  simp only [frequently_iff_forall_eventually_exists_and, exists_prop, and_comm (P _)],
+  refl
 end
 
 @[simp] lemma not_eventually {p : α → Prop} {f : filter α} :

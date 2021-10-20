@@ -146,10 +146,8 @@ by rw [←splits_id_iff_splits, map_sub, map_pow, map_X, splits_iff_card_roots,
   finite_field.roots_X_pow_card_sub_X, ←finset.card_def, finset.card_univ,
   finite_field.X_pow_card_sub_X_nat_degree_eq]; exact fintype.one_lt_card
 
-/-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
-def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
-  K ≃ₐ[zmod p] galois_field p n :=
-@is_splitting_field.alg_equiv (zmod p) K _ _ _ (X ^ (p ^ n) - X)
+lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
+  is_splitting_field (zmod p) K (X ^ (p ^ n) - X) :=
 { splits := by { rw ← h, exact splits_X_pow_card_sub_X p },
   adjoin_roots :=
   begin
@@ -161,5 +159,10 @@ def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
         is_root.def, eval_sub, eval_pow, eval_X, ← h, finite_field.pow_card, sub_self],
     exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out _)
   end }
+
+/-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
+def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
+  K ≃ₐ[zmod p] galois_field p n :=
+by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
 
 end galois_field

@@ -1469,6 +1469,18 @@ lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
 @[simp] lemma quotient.mkₐ_eq_mk (I : ideal A) :
   ⇑(quotient.mkₐ R I) = ideal.quotient.mk I := rfl
 
+@[simp] lemma quotient.algebra_map_eq (I : ideal R) :
+  algebra_map R I.quotient = I^.quotient.mk :=
+rfl
+
+@[simp] lemma quotient.mk_comp_algebra_map (I : ideal A) :
+  (quotient.mk I).comp (algebra_map R A) = algebra_map R I.quotient :=
+rfl
+
+@[simp] lemma quotient.mk_algebra_map (I : ideal A) (x : R) :
+  quotient.mk I (algebra_map R A x) = algebra_map R I.quotient x :=
+rfl
+
 /-- The canonical morphism `A →ₐ[R] I.quotient` is surjective. -/
 lemma quotient.mkₐ_surjective (I : ideal A) : function.surjective (quotient.mkₐ R I) :=
 surjective_quot_mk _
@@ -1542,6 +1554,12 @@ lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.c
   {x : R} : quotient_map I f H (quotient.mk J x) = quotient.mk I (f x) :=
 quotient.lift_mk J _ _
 
+@[simp]
+lemma quotient_map_algebra_map {J : ideal A} {I : ideal S} {f : A →+* S} {H : J ≤ I.comap f}
+  {x : R} :
+  quotient_map I f H (algebra_map R J.quotient x) = quotient.mk I (f (algebra_map _ _ x)) :=
+quotient.lift_mk J _ _
+
 lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J ≤ I.comap f) :
   (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
@@ -1593,11 +1611,7 @@ variables {I : ideal R} {J : ideal S} [algebra R S]
 /-- The algebra hom `A/I →+* S/J` induced by an algebra hom `f : A →ₐ[R] S` with `I ≤ f⁻¹(J)`. -/
 def quotient_mapₐ {I : ideal A} (J : ideal S) (f : A →ₐ[R] S) (hIJ : I ≤ J.comap f) :
   I.quotient →ₐ[R] J.quotient :=
-{ commutes' := λ r,
-  begin
-    have h : (algebra_map R I.quotient) r = (quotient.mk I) (algebra_map R A r) := rfl,
-    simpa [h]
-  end
+{ commutes' := λ r, by simp,
   ..quotient_map J ↑f hIJ }
 
 @[simp]
@@ -1612,11 +1626,7 @@ alg_hom.ext (λ x, by simp only [quotient_map_mkₐ, quotient.mkₐ_eq_mk, alg_h
 where`J = f(I)`. -/
 def quotient_equiv_alg (I : ideal A) (J : ideal S) (f : A ≃ₐ[R] S) (hIJ : J = I.map (f : A →+* S)) :
   I.quotient ≃ₐ[R] J.quotient :=
-{ commutes' := λ r,
-  begin
-    have h : (algebra_map R I.quotient) r = (quotient.mk I) (algebra_map R A r) := rfl,
-    simpa [h]
-  end,
+{ commutes' := λ r, by simp,
   ..quotient_equiv I J (f : A ≃+* S) hIJ }
 
 @[priority 100]

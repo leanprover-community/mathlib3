@@ -28,7 +28,7 @@ variables {G G' : Type*} [group G] [group G']
 
 /--Two subgroups `H K` of `G` are commensurable if `H ⊓ K` has finite index in both `H` and `K` -/
 def commensurable (H K : subgroup G) : Prop :=
-  K.relindex H ≠ 0 ∧ H.relindex K ≠ 0
+  H.relindex K ≠ 0 ∧ K.relindex H ≠ 0
 
 namespace commensurable
 
@@ -287,14 +287,14 @@ begin
   rw subgroup.relindex at *,
   intro h,
   rw h at h2,
-  simp only [nat.zero_eq_mul] at h2,
+  simp  at h2,
   cases h2,
-  simp only [h2, true_or, eq_self_iff_true],
   have := (subgroup_of_index_zero_index_zero K H L),
   rw inf_comm at this,
   have ht := this h2,
   rw inf_comm at ht,
   simp only [ht, eq_self_iff_true, or_true],
+  simp [h2],
  end
 
 /--Map from `L ⊓ K/(L ⊓ H ⊓ K)` to `K/(H ⊓ K)`-/
@@ -356,6 +356,7 @@ lemma trans {H K L : subgroup G} (hhk : commensurable H K ) (hkl : commensurable
   commensurable H L :=
 begin
   simp_rw commensurable at *,
+  simp_rw subgroup.relindex at *,
   split,
   apply trans' H K L hhk.1 hkl.1,
   apply trans' L K H hkl.2 hhk.2,
@@ -410,6 +411,7 @@ lemma commensurable_conj {H K : subgroup G} (g : G) :
   commensurable H K  ↔ commensurable (conj_subgroup g H) (conj_subgroup g K) :=
 begin
   simp_rw commensurable,
+  simp_rw subgroup.relindex,
   simp_rw subgroup.index,
   have h1 := quot_conj_equiv H K g,
   have h11 := cardinal.mk_congr h1,

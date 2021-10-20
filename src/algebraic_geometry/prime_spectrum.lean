@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import topology.opens
 import ring_theory.ideal.prod
+import ring_theory.integral_closure
 import linear_algebra.finsupp
 import algebra.punit_instances
 
@@ -360,6 +361,21 @@ lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
 by { rw [is_closed_iff_zero_locus], exact ⟨s, rfl⟩ }
 
+lemma is_closed_singleton_iff_is_maximal (x : prime_spectrum R) :
+  is_closed ({x} : set (prime_spectrum R)) ↔ x.as_ideal.is_maximal :=
+begin
+  refine (is_closed_iff_zero_locus _).trans ⟨λ h, _, λ h, _⟩,
+  { obtain ⟨s, hs⟩ := h,
+    rw [eq_comm, set.eq_singleton_iff_unique_mem] at hs,
+    refine ⟨⟨x.2.1, λ I hI, not_not.1 (mt (ideal.exists_le_maximal I) $
+      not_exists.2 (λ J, not_and.2 $ λ hJ hIJ,_))⟩⟩,
+    exact ne_of_lt (lt_of_lt_of_le hI hIJ) (symm $ congr_arg prime_spectrum.as_ideal
+      (hs.2 ⟨J, hJ.is_prime⟩ (λ r hr, hIJ (le_of_lt hI $ hs.1 hr)))) },
+  { refine ⟨x.as_ideal.1, _⟩,
+    rw [eq_comm, set.eq_singleton_iff_unique_mem],
+    refine ⟨λ _ h, h, λ y hy, prime_spectrum.ext.2 (h.eq_of_le y.2.ne_top hy).symm⟩ }
+end
+
 lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
   zero_locus (vanishing_ideal t : set R) = closure t :=
 begin
@@ -406,12 +422,24 @@ begin
   refl
 end
 
+lemma comap_injective_of_surjective (f : R →+* S) (hf : function.surjective f) :
+  function.injective (comap f) :=
+λ x y h, prime_spectrum.ext.2 (ideal.comap_injective_of_surjective f hf
+  (congr_arg prime_spectrum.as_ideal h : (comap f x).as_ideal = (comap f y).as_ideal))
+
 lemma comap_continuous (f : R →+* S) : continuous (comap f) :=
 begin
   rw continuous_iff_is_closed,
   simp only [is_closed_iff_zero_locus],
   rintro _ ⟨s, rfl⟩,
   exact ⟨_, preimage_comap_zero_locus f s⟩
+end
+
+lemma comap_thing [algebra R S] (hRS : algebra.is_integral R S) (x : prime_spectrum S)
+  is_closed ({x} : set (prime_spectrum S)) :
+  is_closed ({comap (algebra_map R S) x} : set (prime_spectrum R)) :=
+begin
+  sorry,
 end
 
 end comap

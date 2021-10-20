@@ -986,7 +986,7 @@ by rw [← to_nat_cast 0, nat.cast_zero]
 lemma one_to_nat : to_nat 1 = 1 :=
 by rw [← to_nat_cast 1, nat.cast_one]
 
-lemma to_nat_eq_one {c : cardinal} : to_nat c = 1 ↔ c = 1 :=
+@[simp] lemma to_nat_eq_one {c : cardinal} : to_nat c = 1 ↔ c = 1 :=
 ⟨λ h, (cast_to_nat_of_lt_omega (lt_of_not_ge (one_ne_zero ∘ h.symm.trans ∘
   to_nat_apply_of_omega_le))).symm.trans ((congr_arg coe h).trans nat.cast_one),
   λ h, (congr_arg to_nat h).trans one_to_nat⟩

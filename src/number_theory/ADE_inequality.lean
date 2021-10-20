@@ -172,7 +172,8 @@ lemma admissible_of_one_lt_sum_inv_aux' {p q r : ℕ+} (hpq : p ≤ q) (hqr : q 
   admissible {p,q,r} :=
 begin
   have hp3 : p < 3 := lt_three hpq hqr H,
-  interval_cases p,
+  have hp1 : 1 ≤ p := p.one_le,
+  interval_cases using hp1 hp3,
   { exact admissible_A' q r },
   have hq4 : q < 4 := lt_four hqr H,
   interval_cases q,

@@ -1275,7 +1275,7 @@ by rw [aeval_def, is_scalar_tower.algebra_map_eq R S R',
 
 end integer_normalization
 
-variables {R M} (S) {A K : Type*} [comm_ring A] [integral_domain A]
+variables {R M} (S) {K : Type*}
 
 lemma to_map_eq_zero_iff {x : R} (hM : M ≤ non_zero_divisors R) :
   algebra_map R S x = 0 ↔ x = 0 :=
@@ -1347,6 +1347,8 @@ begin
   { refine ⟨⟨algebra_map R S x, _⟩⟩,
     rw [hx, ideal.submodule_span_eq, coe_submodule_span_singleton] }
 end
+
+variables {A : Type*} [comm_ring A] [integral_domain A]
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain.

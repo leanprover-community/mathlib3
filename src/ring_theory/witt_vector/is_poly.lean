@@ -158,7 +158,7 @@ end interactive
 end tactic
 
 namespace witt_vector
-universe variable u
+universe u
 
 variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 

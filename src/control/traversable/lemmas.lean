@@ -15,7 +15,7 @@ Inspired by:
 import control.traversable.basic
 import control.applicative
 
-universe variables u
+universes u
 
 open is_lawful_traversable
 open function (hiding comp)

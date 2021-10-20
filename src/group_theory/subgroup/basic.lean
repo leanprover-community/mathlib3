@@ -957,6 +957,9 @@ subsingleton.elim _ _
 @[to_additive] lemma subgroup_of_bot_eq_top : H.subgroup_of ⊥ = ⊤ :=
 subsingleton.elim _ _
 
+@[simp, to_additive] lemma subgroup_of_self : H.subgroup_of H = ⊤ :=
+top_le_iff.mp (λ g hg, g.2)
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]

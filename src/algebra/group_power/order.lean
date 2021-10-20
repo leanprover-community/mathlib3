@@ -19,12 +19,14 @@ section preorder
 
 variables [monoid M] [preorder M] [covariant_class M M (*) (≤)]
 
-@[mono, to_additive nsmul_le_nsmul_of_le_right]
+@[to_additive nsmul_le_nsmul_of_le_right, mono]
 lemma pow_le_pow_of_le_left' [covariant_class M M (function.swap (*)) (≤)]
   {a b : M} (hab : a ≤ b) : ∀ i : ℕ, a ^ i ≤ b ^ i
 | 0     := by simp
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul' hab (pow_le_pow_of_le_left' k) }
+
+attribute [mono] nsmul_le_nsmul_of_le_right
 
 @[to_additive nsmul_nonneg]
 theorem one_le_pow_of_one_le' {a : M} (H : 1 ≤ a) : ∀ n : ℕ, 1 ≤ a ^ n
@@ -61,7 +63,7 @@ theorem pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
 @one_lt_pow' (order_dual M) _ _ _ _ ha k hk
 
 @[to_additive nsmul_lt_nsmul]
-theorem pow_lt_pow'' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
+theorem pow_lt_pow' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
   a ^ n < a ^ m :=
 begin
   rcases nat.le.dest h with ⟨k, rfl⟩, clear h,

@@ -286,8 +286,12 @@ s.to_subsemiring.nontrivial
 instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s :=
 s.to_subsemiring.no_zero_divisors
 
+/-- A subring of a domain is a domain. -/
+instance {R} [ring R] [domain R] (s : subring R) : domain s :=
+{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
+
 /-- A subring of an integral domain is an integral domain. -/
-instance {R} [integral_domain R] (s : subring R) : integral_domain s :=
+instance {R} [comm_ring R] [integral_domain R] (s : subring R) : integral_domain s :=
 { .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/

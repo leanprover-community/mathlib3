@@ -835,6 +835,14 @@ instance : field (zmod p) :=
   .. zmod.has_inv p,
   .. zmod.nontrivial p }
 
+/-- `zmod p` is an integral domain when `p` is prime. -/
+instance (p : ℕ) [hp : fact p.prime] : integral_domain (zmod p) :=
+begin
+  -- We need `cases p` here in order to resolve which `comm_ring` instance is being used.
+  unfreezingI { cases p, { exfalso, rcases hp with ⟨⟨⟨⟩⟩⟩, }, },
+  exact @field.to_integral_domain (zmod _) (zmod.field _)
+end
+
 end zmod
 
 lemma ring_hom.ext_zmod {n : ℕ} {R : Type*} [semiring R] (f g : (zmod n) →+* R) : f = g :=

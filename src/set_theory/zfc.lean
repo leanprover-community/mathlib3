@@ -242,6 +242,7 @@ protected def lift : pSet.{u} → pSet.{max u v}
 | ⟨α, A⟩ := ⟨ulift α, λ ⟨x⟩, lift (A x)⟩
 
 /-- Embedding of one universe in another -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def embed : pSet.{max (u+1) v} := ⟨ulift.{v u+1} pSet, λ ⟨x⟩, pSet.lift.{u (max (u+1) v)} x⟩
 
 theorem lift_mem_embed : Π (x : pSet.{u}), pSet.lift.{u (max (u+1) v)} x ∈ embed.{u v} :=

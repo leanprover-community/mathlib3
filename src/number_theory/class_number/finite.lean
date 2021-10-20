@@ -33,7 +33,8 @@ open_locale big_operators
 
 section euclidean_domain
 
-variables (R S K L : Type*) [euclidean_domain R] [integral_domain S] [field K] [field L]
+variables (R S K L : Type*) [euclidean_domain R] [comm_ring S] [integral_domain S]
+variables [field K] [field L]
 variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L] [is_separable K L]
 variables [algRL : algebra R L] [is_scalar_tower R K L]

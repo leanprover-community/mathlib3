@@ -11,7 +11,7 @@ import tactic.norm_num
 # Equivalences for `fin n`
 -/
 
-universe variables u
+universes u
 
 variables {m n : ℕ}
 

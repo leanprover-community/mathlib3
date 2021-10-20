@@ -708,7 +708,7 @@ end unique_unit
 
 section integral_domain
 
-variables [integral_domain α] [normalized_gcd_monoid α]
+variables [comm_ring α] [integral_domain α] [normalized_gcd_monoid α]
 
 lemma gcd_eq_of_dvd_sub_right {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
 begin

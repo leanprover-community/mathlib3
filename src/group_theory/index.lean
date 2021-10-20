@@ -90,6 +90,25 @@ end
 
 variables (H K L)
 
+lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
+by rw [←subgroup_of_map_subtype, relindex, relindex, subgroup_of,
+  comap_map_eq_self_of_injective (show function.injective K.subtype, from subtype.coe_injective)]
+
+lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
+by rw [inf_comm, inf_relindex_right]
+
+variables {H K}
+
+lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
+  K.relindex L ∣ H.relindex L :=
+begin
+  apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
+  rw [←inf_relindex_right H L, ←inf_relindex_right K L,
+      relindex_mul_relindex (inf_le_inf_right L hHK) inf_le_right],
+end
+
+variables (H K)
+
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
 cardinal.mk_to_nat_eq_card

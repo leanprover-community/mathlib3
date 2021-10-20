@@ -165,7 +165,7 @@ def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
     refine algebra.eq_top_iff.mpr (λ x, algebra.subset_adjoin _),
     rw [map_sub, map_pow, map_X, finset.mem_coe, multiset.mem_to_finset, mem_roots,
         is_root.def, eval_sub, eval_pow, eval_X, ← h, finite_field.pow_card, sub_self],
-    exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out (nat.prime p)).one_lt
+    exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out _)
   end }
 
 end galois_field

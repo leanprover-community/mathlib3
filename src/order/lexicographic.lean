@@ -31,6 +31,9 @@ def lex (α : Type u) (β : Type v) := α × β
 
 variables {α : Type u} {β : Type v}
 
+meta instance [has_to_format α] [has_to_format β] : has_to_format (lex α β) :=
+prod.has_to_format
+
 instance [decidable_eq α] [decidable_eq β] : decidable_eq (lex α β) :=
 prod.decidable_eq
 

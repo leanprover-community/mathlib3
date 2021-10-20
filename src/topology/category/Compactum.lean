@@ -69,7 +69,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 -/
 
-universe variable u
+universe u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
 open_locale classical topological_space
 

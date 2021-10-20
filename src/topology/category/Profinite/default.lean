@@ -41,7 +41,7 @@ profinite
 
 -/
 
-universe variable u
+universe u
 
 open category_theory
 

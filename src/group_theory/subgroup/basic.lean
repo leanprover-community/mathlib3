@@ -957,6 +957,9 @@ subsingleton.elim _ _
 @[to_additive] lemma subgroup_of_bot_eq_top : H.subgroup_of ⊥ = ⊤ :=
 subsingleton.elim _ _
 
+@[simp, to_additive] lemma subgroup_of_self : H.subgroup_of H = ⊤ :=
+top_le_iff.mp (λ g hg, g.2)
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]
@@ -1069,6 +1072,9 @@ lemma center_to_submonoid : (center G).to_submonoid = submonoid.center G := rfl
 variable {G}
 
 @[to_additive] lemma mem_center_iff {z : G} : z ∈ center G ↔ ∀ g, g * z = z * g := iff.rfl
+
+instance decidable_mem_center [decidable_eq G] [fintype G] : decidable_pred (∈ center G) :=
+λ _, decidable_of_iff' _ mem_center_iff
 
 @[priority 100, to_additive]
 instance center_normal : (center G).normal :=

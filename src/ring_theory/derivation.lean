@@ -92,10 +92,12 @@ by rw [←mul_one r, ring_hom.map_mul, ring_hom.map_one, ←smul_def, map_smul, 
 @[simp] lemma leibniz_pow (n : ℕ) : D (a ^ n) = n • a ^ (n - 1) • D a :=
 begin
   induction n with n ihn,
-  { simp },
-  { rcases (zero_le n).eq_or_lt with (rfl|hpos), { simp },
-    have : a * a ^ (n - 1) = a ^ n, by rw [← pow_succ, nat.sub_add_cancel hpos],
-    simp [pow_succ, leibniz, ihn, smul_comm a n, smul_smul a, add_smul, this, nat.succ_eq_add_one] }
+  { rw [pow_zero, map_one_eq_zero, zero_smul] },
+  { rcases (zero_le n).eq_or_lt with (rfl|hpos),
+    { rw [pow_one, one_smul, pow_zero, one_smul] },
+    { have : a * a ^ (n - 1) = a ^ n, by rw [← pow_succ, nat.sub_add_cancel hpos],
+      simp only [pow_succ, leibniz, ihn, smul_comm a n, smul_smul a, add_smul, this,
+        nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, one_nsmul] } }
 end
 
 lemma eq_on_adjoin {s : set A} (h : set.eq_on D1 D2 s) : set.eq_on D1 D2 (adjoin R s) :=
@@ -209,6 +211,18 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 @[simp] lemma map_neg : D (-a) = -D a := linear_map.map_neg D a
 @[simp] lemma map_sub : D (a - b) = D a - D b := linear_map.map_sub D a b
+
+lemma map_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
+begin
+  rw neg_smul,
+  refine eq_neg_of_add_eq_zero _,
+  calc D a + a ^ 2 • D b = a • b • D a + a • a • D b : by simp only [smul_smul, h, one_smul, sq]
+                     ... = a • D (a * b)             : by rw [leibniz, smul_add, add_comm]
+                     ... = 0                         : by rw [h, map_one_eq_zero, smul_zero]
+end
+
+lemma map_inv_of [invertible a] : D (⅟a) = -⅟a^2 • D a :=
+D.map_of_mul_eq_one $ inv_of_mul_self a
 
 instance : has_neg (derivation R A M) :=
 ⟨λ D, { leibniz' := λ a b, by simp only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz,

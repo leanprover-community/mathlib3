@@ -19,6 +19,9 @@ variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
 
+instance : order_bot (α →₀ μ) :=
+{ bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero] }
+
 instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 { inf := zip_with (⊓) inf_idem,
   inf_le_left := λ a b c, inf_le_left,
@@ -58,9 +61,9 @@ end
 instance lattice [lattice β] : lattice (α →₀ β) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup}
 
-lemma bot_eq_zero [order_bot γ] : (⊥ : α →₀ γ) = 0 := rfl
+lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
 
-lemma disjoint_iff [order_bot γ] {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
+lemma disjoint_iff {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
 begin
   unfold disjoint, repeat {rw le_bot_iff},
   rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,

@@ -11,14 +11,20 @@ import linear_algebra.finite_dimensional
 
 /-!
 # Galois fields
+
 If `p` is a prime number, and `n` a natural number,
 then `galois_field p n` is defined as the splitting field of `X^(p^n) - X` over `zmod p`.
 It is a finite field with `p ^ n` elements.
+
 ## Main definition
+
 * `galois_field p n` is a field with `p ^ n` elements
+
 ## Main Results
+
 - `galois_field.alg_equiv_galois_field`: Any finite field is isomorphic to some Galois field
 - `galois_field.alg_equiv_of_card_eq`: Uniqueness of finite fields
+
 -/
 
 noncomputable theory

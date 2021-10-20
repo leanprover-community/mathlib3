@@ -734,6 +734,9 @@ end units
 lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
 | ⟨x, hx⟩ := hx ▸ (-x).is_unit
 
+lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
+⟨λ h, neg_neg a ▸ h.neg, is_unit.neg⟩
+
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/

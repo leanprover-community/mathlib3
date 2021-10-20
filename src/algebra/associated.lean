@@ -357,9 +357,19 @@ lemma irreducible.associated_of_dvd [cancel_monoid_with_zero α] {p q : α}
   (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=
 associated_of_dvd_dvd dvd (p_irr.dvd_symm q_irr dvd)
 
+lemma irreducible_dvd_irreducible_iff_associated {α : Type*} [comm_cancel_monoid_with_zero α]
+  {p q : α} (pp : irreducible p) (qp : irreducible q) :
+  p ∣ q ↔ associated p q :=
+⟨irreducible.associated_of_dvd pp qp, associated.dvd⟩
+
 lemma prime.associated_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
   (p_prime : prime p) (q_prime : prime q) (dvd : p ∣ q) : associated p q :=
 p_prime.irreducible.associated_of_dvd q_prime.irreducible dvd
+
+theorem prime_dvd_prime_iff_associated {R : Type*} [comm_cancel_monoid_with_zero R]
+  {p q : R} (pp : prime p) (qp : prime q) :
+  p ∣ q ↔ associated p q :=
+irreducible_dvd_irreducible_iff_associated pp.irreducible qp.irreducible
 
 lemma associated.prime_iff [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=

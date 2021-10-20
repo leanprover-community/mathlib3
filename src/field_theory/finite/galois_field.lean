@@ -143,29 +143,29 @@ variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
 theorem splits_X_pow_card_sub_X : splits (algebra_map (zmod p) K) (X ^ fintype.card K - X) :=
 begin
-  obtain ⟨p, n, Hprime, Hcard⟩ := finite_field.card',
-  have hp : 1 < p := Hprime.one_lt,
-  have hne : (n : ℕ) ≠ 0 := pnat.ne_zero n,
+  obtain ⟨p, n, hp, hn⟩ := finite_field.card' K,
   have h1 : roots (X ^ fintype.card K - X : polynomial K) = finset.univ.val,
     by rw finite_field.roots_X_pow_card_sub_X _,
-  have h2 := finite_field.X_pow_card_pow_sub_X_nat_degree_eq K hne hp,
+  have h2 := finite_field.X_pow_card_pow_sub_X_nat_degree_eq K n.ne_zero hp.one_lt,
   rw [← splits_id_iff_splits, splits_iff_card_roots],
   simp only [map_pow, map_X, map_sub],
-  rw [h1,←finset.card_def,finset.card_univ,Hcard,h2],
-  apply_instance,
+  rw [h1, ← finset.card_def, finset.card_univ, hn, h2],
 end
 
 /-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
-def alg_equiv_galois_field (hne : n ≠ 0) (card : fintype.card K = p ^ n) :
+def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
 @is_splitting_field.alg_equiv (zmod p) K _ _ _ (X ^ (p ^ n) - X)
-{ splits := by
-  { rw ← card,
-    exact splits_X_pow_card_sub_X p },
-  adjoin_roots := by
-  { refine algebra.eq_top_iff.mpr (λ x, algebra.subset_adjoin _),
+{ splits := by { rw ← h, exact splits_X_pow_card_sub_X p },
+  adjoin_roots :=
+  begin
+    have hne : n ≠ 0,
+    { rintro rfl, rw [pow_zero, fintype.card_eq_one_iff_nonempty_unique] at h,
+      cases h, resetI, exact false_of_nontrivial_of_subsingleton K },
+    refine algebra.eq_top_iff.mpr (λ x, algebra.subset_adjoin _),
     rw [map_sub, map_pow, map_X, finset.mem_coe, multiset.mem_to_finset, mem_roots,
-        is_root.def, eval_sub, eval_pow, eval_X, ←card, finite_field.pow_card, sub_self],
-    exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out (nat.prime p)).one_lt } }
+        is_root.def, eval_sub, eval_pow, eval_X, ← h, finite_field.pow_card, sub_self],
+    exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out (nat.prime p)).one_lt
+  end }
 
 end galois_field

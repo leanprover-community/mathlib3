@@ -156,7 +156,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 namespace model_with_corners
 
-instance : has_coe_to_fun (model_with_corners 𝕜 E H) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (model_with_corners 𝕜 E H) (λ _, H → E) := ⟨λ e, e.to_fun⟩
 
 /-- The inverse to a model with corners, only registered as a local equiv. -/
 protected def symm : local_equiv E H := I.to_local_equiv.symm

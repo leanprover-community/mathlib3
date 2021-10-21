@@ -163,7 +163,7 @@ instance : inhabited (bounded_additive_measure α) :=
   additive' := λ s t hst, by simp,
   exists_bound := ⟨0, λ s, by simp⟩ }⟩
 
-instance : has_coe_to_fun (bounded_additive_measure α) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (bounded_additive_measure α) (λ _, set α → ℝ) := ⟨λ f, f.to_fun⟩
 
 namespace bounded_additive_measure
 

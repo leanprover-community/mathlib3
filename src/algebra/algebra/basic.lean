@@ -7,6 +7,7 @@ import algebra.iterate_hom
 import data.equiv.ring_aut
 import algebra.module.opposites
 import linear_algebra.basic
+import tactic.abel
 
 /-!
 # Algebras over commutative semirings
@@ -298,7 +299,7 @@ lemma algebra_map_injective [ring A] [nontrivial A]
 smul_left_injective R one_ne_zero
 
 variables {R A}
-lemma iff_algebra_map_injective [ring A] [domain A] [algebra R A] :
+lemma iff_algebra_map_injective [ring A] [is_domain A] [algebra R A] :
   no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
 ⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
  no_zero_smul_divisors.of_algebra_map_injective⟩
@@ -368,7 +369,7 @@ section semiring
 variables [comm_semiring R] [semiring A] [semiring B] [semiring C] [semiring D]
 variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
 
-instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (A →ₐ[R] B) (λ _, A → B) := ⟨alg_hom.to_fun⟩
 
 initialize_simps_projections alg_hom (to_fun → apply)
 
@@ -398,6 +399,8 @@ variables (φ : A →ₐ[R] B)
 
 theorem coe_fn_injective : @function.injective (A →ₐ[R] B) (A → B) coe_fn :=
 by { intros φ₁ φ₂ H, cases φ₁, cases φ₂, congr, exact H }
+
+theorem coe_fn_inj {φ₁ φ₂ : A →ₐ[R] B} : (φ₁ : A → B) = φ₂ ↔ φ₁ = φ₂ := coe_fn_injective.eq_iff
 
 theorem coe_ring_hom_injective : function.injective (coe : (A →ₐ[R] B) → (A →+* B)) :=
 λ φ₁ φ₂ H, coe_fn_injective $ show ((φ₁ : (A →+* B)) : A → B) = ((φ₂ : (A →+* B)) : A → B),
@@ -653,7 +656,7 @@ variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
 
-instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) := ⟨_, alg_equiv.to_fun⟩
+instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) (λ _, A₁ → A₂) := ⟨alg_equiv.to_fun⟩
 
 @[ext]
 lemma ext {f g : A₁ ≃ₐ[R] A₂} (h : ∀ a, f a = g a) : f = g :=

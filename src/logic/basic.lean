@@ -82,16 +82,26 @@ lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : su
   (a : α) : (a : γ) = (a : β) := rfl
 
 theorem coe_fn_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+  {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ δ]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+/-- Non-dependent version of `coe_fn_coe_trans`, helps `rw` figure out the argument. -/
+theorem coe_fn_coe_trans'
+  {α β γ} {δ : out_param $ _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 @[simp] theorem coe_fn_coe_base
-  {α β} [has_coe α β] [has_coe_to_fun β]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+  {α β γ} [has_coe α β] [has_coe_to_fun β γ]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+/-- Non-dependent version of `coe_fn_coe_base`, helps `rw` figure out the argument. -/
+theorem coe_fn_coe_base'
+  {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 theorem coe_sort_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+  {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
+  (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
 
 /--
 Many structures such as bundled morphisms coerce to functions so that you can
@@ -121,8 +131,8 @@ often causes loops in the simplifier.)
 library_note "function coercion"
 
 @[simp] theorem coe_sort_coe_base
-  {α β} [has_coe α β] [has_coe_to_sort β]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+  {α β γ} [has_coe α β] [has_coe_to_sort β γ]
+  (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
 
 /-- `pempty` is the universe-polymorphic analogue of `empty`. -/
 @[derive decidable_eq]
@@ -1305,8 +1315,7 @@ decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 /-! ### Declarations about `nonempty` -/
 
 section nonempty
-universe variables u v w
-variables {α : Type u} {β : Type v} {γ : α → Type w}
+variables {α β : Type*} {γ : α → Type*}
 
 attribute [simp] nonempty_of_inhabited
 
@@ -1327,14 +1336,13 @@ lemma not_nonempty_iff_imp_false {α : Sort*} : ¬ nonempty α ↔ α → false 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
 iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
 
-@[simp] lemma nonempty_subtype {α : Sort u} {p : α → Prop} : nonempty (subtype p) ↔ (∃a:α, p a) :=
+@[simp] lemma nonempty_subtype {α} {p : α → Prop} : nonempty (subtype p) ↔ (∃a:α, p a) :=
 iff.intro (assume ⟨⟨a, h⟩⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a, h⟩⟩)
 
 @[simp] lemma nonempty_prod : nonempty (α × β) ↔ (nonempty α ∧ nonempty β) :=
 iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
 
-@[simp] lemma nonempty_pprod {α : Sort u} {β : Sort v} :
-  nonempty (pprod α β) ↔ (nonempty α ∧ nonempty β) :=
+@[simp] lemma nonempty_pprod {α β} : nonempty (pprod α β) ↔ (nonempty α ∧ nonempty β) :=
 iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
 
 @[simp] lemma nonempty_sum : nonempty (α ⊕ β) ↔ (nonempty α ∨ nonempty β) :=
@@ -1342,14 +1350,12 @@ iff.intro
   (assume ⟨h⟩, match h with sum.inl a := or.inl ⟨a⟩ | sum.inr b := or.inr ⟨b⟩ end)
   (assume h, match h with or.inl ⟨a⟩ := ⟨sum.inl a⟩ | or.inr ⟨b⟩ := ⟨sum.inr b⟩ end)
 
-@[simp] lemma nonempty_psum {α : Sort u} {β : Sort v} :
-  nonempty (psum α β) ↔ (nonempty α ∨ nonempty β) :=
+@[simp] lemma nonempty_psum {α β} : nonempty (psum α β) ↔ (nonempty α ∨ nonempty β) :=
 iff.intro
   (assume ⟨h⟩, match h with psum.inl a := or.inl ⟨a⟩ | psum.inr b := or.inr ⟨b⟩ end)
   (assume h, match h with or.inl ⟨a⟩ := ⟨psum.inl a⟩ | or.inr ⟨b⟩ := ⟨psum.inr b⟩ end)
 
-@[simp] lemma nonempty_psigma {α : Sort u} {β : α → Sort v} :
-  nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
+@[simp] lemma nonempty_psigma {α} {β : α → Sort*} : nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
 iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
 
 @[simp] lemma nonempty_empty : ¬ nonempty empty :=
@@ -1358,45 +1364,42 @@ assume ⟨h⟩, h.elim
 @[simp] lemma nonempty_ulift : nonempty (ulift α) ↔ nonempty α :=
 iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
 
-@[simp] lemma nonempty_plift {α : Sort u} : nonempty (plift α) ↔ nonempty α :=
+@[simp] lemma nonempty_plift {α} : nonempty (plift α) ↔ nonempty α :=
 iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
 
-@[simp] lemma nonempty.forall {α : Sort u} {p : nonempty α → Prop} :
-  (∀h:nonempty α, p h) ↔ (∀a, p ⟨a⟩) :=
+@[simp] lemma nonempty.forall {α} {p : nonempty α → Prop} : (∀h:nonempty α, p h) ↔ (∀a, p ⟨a⟩) :=
 iff.intro (assume h a, h _) (assume h ⟨a⟩, h _)
 
-@[simp] lemma nonempty.exists {α : Sort u} {p : nonempty α → Prop} :
-  (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
+@[simp] lemma nonempty.exists {α} {p : nonempty α → Prop} : (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
 iff.intro (assume ⟨⟨a⟩, h⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a⟩, h⟩)
 
-lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
-  nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
+lemma classical.nonempty_pi {α} {β : α → Sort*} : nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
 /-- Using `classical.choice`, lifts a (`Prop`-valued) `nonempty` instance to a (`Type`-valued)
   `inhabited` instance. `classical.inhabited_of_nonempty` already exists, in
   `core/init/classical.lean`, but the assumption is not a type class argument,
   which makes it unsuitable for some applications. -/
-noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty α] : inhabited α :=
+noncomputable def classical.inhabited_of_nonempty' {α} [h : nonempty α] : inhabited α :=
 ⟨classical.choice h⟩
 
 /-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-@[reducible] protected noncomputable def nonempty.some {α : Sort u} (h : nonempty α) : α :=
+@[reducible] protected noncomputable def nonempty.some {α} (h : nonempty α) : α :=
 classical.choice h
 
 /-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-@[reducible] protected noncomputable def classical.arbitrary (α : Sort u) [h : nonempty α] : α :=
+@[reducible] protected noncomputable def classical.arbitrary (α) [h : nonempty α] : α :=
 classical.choice h
 
 /-- Given `f : α → β`, if `α` is nonempty then `β` is also nonempty.
   `nonempty` cannot be a `functor`, because `functor` is restricted to `Type`. -/
-lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α → nonempty β
+lemma nonempty.map {α β} (f : α → β) : nonempty α → nonempty β
 | ⟨h⟩ := ⟨f h⟩
 
 protected lemma nonempty.map2 {α β γ : Sort*} (f : α → β → γ) : nonempty α → nonempty β → nonempty γ
 | ⟨x⟩ ⟨y⟩ := ⟨f x y⟩
 
-protected lemma nonempty.congr {α : Sort u} {β : Sort v} (f : α → β) (g : β → α) :
+protected lemma nonempty.congr {α β} (f : α → β) (g : β → α) :
   nonempty α ↔ nonempty β :=
 ⟨nonempty.map f, nonempty.map g⟩
 

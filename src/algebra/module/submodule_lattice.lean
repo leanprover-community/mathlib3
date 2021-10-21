@@ -155,7 +155,7 @@ instance : complete_lattice (submodule R M) :=
   ..submodule.order_top,
   ..submodule.order_bot }
 
-@[simp] theorem inf_coe : (p ⊓ q : set M) = p ∩ q := rfl
+@[simp] theorem inf_coe : ↑(p ⊓ q) = (p ∩ q : set M) := rfl
 
 @[simp] theorem mem_inf {p q : submodule R M} {x : M} :
   x ∈ p ⊓ q ↔ x ∈ p ∧ x ∈ q := iff.rfl

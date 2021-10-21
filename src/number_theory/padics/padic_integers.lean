@@ -131,9 +131,9 @@ by refine_struct
   zero  := (0 : ℤ_[p]),
   one   := 1,
   sub   := has_sub.sub,
-  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+  npow  := @npow_rec _ ⟨(1 : ℤ_[p])⟩ ⟨(*)⟩,
+  nsmul := @nsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩,
+  gsmul := @gsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; ext; simp; ring
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
@@ -234,7 +234,7 @@ instance is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 
 variables {p}
 
-instance : integral_domain ℤ_[p] :=
+instance : is_domain ℤ_[p] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y, padic_int.eq_zero_or_eq_zero_of_mul_eq_zero x y,
   exists_pair_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
   .. padic_int.normed_comm_ring p }

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.coset
+import group_theory.quotient_group
 import set_theory.cardinal
 
 /-!
@@ -31,13 +31,15 @@ In this file we define the index of a subgroup, and prove several divisibility p
 
 namespace subgroup
 
+open_locale cardinal
+
 variables {G : Type*} [group G] (H K L : subgroup G)
 
 /-- The index of a subgroup as a natural number, and returns 0 if the index is infinite. -/
 @[to_additive "The index of a subgroup as a natural number,
 and returns 0 if the index is infinite."]
 noncomputable def index : ℕ :=
-(cardinal.mk (quotient_group.quotient H)).to_nat
+(#(quotient_group.quotient H)).to_nat
 
 /-- The relative index of a subgroup as a natural number,
   and returns 0 if the relative index is infinite. -/
@@ -89,6 +91,15 @@ begin
 end
 
 variables (H K L)
+
+@[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
+cardinal.to_nat_eq_one_iff_unique.mpr ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩
+
+@[to_additive] lemma index_bot : (⊥ : subgroup G).index = cardinal.to_nat (#G) :=
+cardinal.to_nat_congr (quotient_group.quotient_bot.to_equiv)
+
+@[to_additive] lemma index_bot_eq_card [fintype G] : (⊥ : subgroup G).index = fintype.card G :=
+index_bot.trans cardinal.mk_to_nat_eq_card
 
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=

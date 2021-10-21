@@ -373,9 +373,9 @@ theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ
     (λ hnm : n < m,
       have h0m : 0 < m, from (lt_of_le_of_lt n.zero_le hnm),
       have wf : m - 1 < m,  from nat.sub_lt h0m zero_lt_one,
-      have hnm1 : n ≤ m - 1, from le_sub_of_add_le_right' hnm,
+      have hnm1 : n ≤ m - 1, from le_tsub_of_add_le_right hnm,
       let ⟨K, hK⟩ := @exists_subgroup_card_pow_prime_le n (m - 1) hp
-        (nat.pow_dvd_of_le_of_pow_dvd sub_le_self' hdvd) H hH hnm1 in
+        (nat.pow_dvd_of_le_of_pow_dvd tsub_le_self hdvd) H hH hnm1 in
       have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [nat.sub_add_cancel h0m],
       let ⟨K', hK'⟩ := @exists_subgroup_card_pow_succ _ _ _ _ _ hp hdvd' K hK.1 in
       ⟨K', by rw [hK'.1, nat.sub_add_cancel h0m], le_trans hK.2 hK'.2⟩)

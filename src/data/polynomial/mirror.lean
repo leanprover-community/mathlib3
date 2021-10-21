@@ -81,15 +81,15 @@ begin
   { rw [coeff_eq_zero_of_nat_degree_lt (by rwa mirror_nat_degree)],
     by_cases h1 : n ≤ p.nat_degree + p.nat_trailing_degree,
     { rw [rev_at_le h1, coeff_eq_zero_of_lt_nat_trailing_degree],
-      exact (sub_lt_iff_left h1).mpr (nat.add_lt_add_right h2 _) },
+      exact (tsub_lt_iff_left h1).mpr (nat.add_lt_add_right h2 _) },
     { rw [←rev_at_fun_eq, rev_at_fun, if_neg h1, coeff_eq_zero_of_nat_degree_lt h2] } },
   rw not_lt at h2,
   rw [rev_at_le (h2.trans (nat.le_add_right _ _))],
   by_cases h3 : p.nat_trailing_degree ≤ n,
-  { rw [←sub_add_eq_add_sub' h2, ←sub_sub_assoc h2 h3, mirror, coeff_mul_X_pow',
-        if_pos h3, coeff_reverse, rev_at_le (sub_le_self'.trans h2)] },
+  { rw [←tsub_add_eq_add_tsub h2, ←tsub_tsub_assoc h2 h3, mirror, coeff_mul_X_pow',
+        if_pos h3, coeff_reverse, rev_at_le (tsub_le_self.trans h2)] },
   rw not_le at h3,
-  rw coeff_eq_zero_of_nat_degree_lt (lt_sub_iff_right.mpr (nat.add_lt_add_left h3 _)),
+  rw coeff_eq_zero_of_nat_degree_lt (lt_tsub_iff_right.mpr (nat.add_lt_add_left h3 _)),
   exact coeff_eq_zero_of_lt_nat_trailing_degree (by rwa mirror_nat_trailing_degree),
 end
 
@@ -102,7 +102,7 @@ begin
   { intros n hn hp,
     rw finset.mem_range_succ_iff at *,
     rw rev_at_le (hn.trans (nat.le_add_right _ _)),
-    rw [sub_le_iff_sub_le, add_comm, nat.add_sub_cancel, ←mirror_nat_trailing_degree],
+    rw [tsub_le_iff_tsub_le, add_comm, nat.add_sub_cancel, ←mirror_nat_trailing_degree],
     exact nat_trailing_degree_le_of_ne_zero hp },
   { exact λ n₁ n₂ hn₁ hp₁ hn₂ hp₂ h, by rw [←@rev_at_invol _ n₁, h, rev_at_invol] },
   { intros n hn hp,
@@ -110,7 +110,7 @@ begin
     refine ⟨_, _, rev_at_invol.symm⟩,
     { rw finset.mem_range_succ_iff at *,
       rw rev_at_le (hn.trans (nat.le_add_right _ _)),
-      rw [sub_le_iff_sub_le, add_comm, nat.add_sub_cancel],
+      rw [tsub_le_iff_tsub_le, add_comm, nat.add_sub_cancel],
       exact nat_trailing_degree_le_of_ne_zero hp },
     { change p.mirror.coeff _ ≠ 0,
       rwa [coeff_mirror, rev_at_invol] } },
@@ -131,7 +131,7 @@ by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
 lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
-lemma mirror_mul_of_domain {R : Type*} [comm_ring R] [integral_domain R] (p q : polynomial R) :
+lemma mirror_mul_of_domain {R : Type*} [ring R] [is_domain R] (p q : polynomial R) :
   (p * q).mirror = p.mirror * q.mirror :=
 begin
   by_cases hp : p = 0,
@@ -139,17 +139,19 @@ begin
   by_cases hq : q = 0,
   { rw [hq, mul_zero, mirror_zero, mul_zero] },
   rw [mirror, mirror, mirror, reverse_mul_of_domain, nat_trailing_degree_mul hp hq, pow_add],
-  ring,
+  rw [mul_assoc, ←mul_assoc q.reverse],
+  conv_lhs { congr, skip, congr, rw [←X_pow_mul] },
+  repeat { rw [mul_assoc], },
 end
 
-lemma mirror_smul {R : Type*} [comm_ring R] [integral_domain R] (p : polynomial R) (a : R) :
+lemma mirror_smul {R : Type*} [ring R] [is_domain R] (p : polynomial R) (a : R) :
   (a • p).mirror = a • p.mirror :=
 by rw [←C_mul', ←C_mul', mirror_mul_of_domain, mirror_C]
 
 lemma mirror_neg {R : Type*} [ring R] (p : polynomial R) : (-p).mirror = -(p.mirror) :=
 by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
-lemma irreducible_of_mirror {R : Type*} [comm_ring R] [integral_domain R] {f : polynomial R}
+lemma irreducible_of_mirror {R : Type*} [comm_ring R] [is_domain R] {f : polynomial R}
   (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)
   (h3 : ∀ g, g ∣ f → g ∣ f.mirror → is_unit g) : irreducible f :=

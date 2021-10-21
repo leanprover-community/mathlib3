@@ -777,7 +777,7 @@ begin
   rwa [span_mul_span, singleton_mul_singleton, span_singleton_le_iff_mem],
 end
 
-variables {A : Type*} [comm_ring A] [integral_domain A] [is_noetherian_ring A]
+variables {A : Type*} [comm_ring A] [is_domain A] [is_noetherian_ring A]
 
 /--In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
   product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as
@@ -793,7 +793,7 @@ begin
   refine is_noetherian.induction (λ (M : ideal A) hgt, _) I,
   intro h_nzM,
   have hA_nont : nontrivial A,
-  apply is_integral_domain.to_nontrivial (integral_domain.to_is_integral_domain A),
+  apply is_domain.to_nontrivial,
   by_cases h_topM : M = ⊤,
   { rcases h_topM with rfl,
     obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ ⊥ ∧ p.is_prime,

@@ -10,7 +10,7 @@ import tactic.hint
 open expr tactic
 
 namespace tactic
-open interactive
+setup_tactic_parser
 
 meta def find_if_cond : expr → option expr | e :=
 e.fold none $ λ e _ acc, acc <|> do

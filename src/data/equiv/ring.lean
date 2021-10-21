@@ -63,7 +63,7 @@ section basic
 
 variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add S']
 
-instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
+instance : has_coe_to_fun (R ≃+* S) (λ _, R → S) := ⟨ring_equiv.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 
@@ -425,22 +425,14 @@ variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 @[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
 @[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
-/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
-  (hB : is_integral_domain B) (e : A ≃+* B) : is_integral_domain A :=
-{ mul_comm := λ x y, have e.symm (e x * e y) = e.symm (e y * e x), by rw hB.mul_comm, by simpa,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
+/-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
+protected lemma is_domain
+  {A : Type*} (B : Type*) [ring A] [ring B] [is_domain B]
+  (e : A ≃+* B) : is_domain A :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
-    (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
-      (λ hy, by simpa using congr_arg e.symm hy),
-  exists_pair_ne := ⟨e.symm 0, e.symm 1,
-    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
-
-/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected lemma integral_domain
-  {A : Type*} (B : Type*) [comm_ring A] [comm_ring B] [integral_domain B]
-  (e : A ≃+* B) : integral_domain A :=
-{ .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
+    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this,
+  exists_pair_ne := ⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩ }
 
 end ring_equiv
 

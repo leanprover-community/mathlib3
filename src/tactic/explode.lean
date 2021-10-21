@@ -153,7 +153,7 @@ do const n _ ← resolve_name n | fail "cannot resolve name",
   t ← pp d.type,
   explode_expr v <* trace (to_fmt n ++ " : " ++ t) >>= trace
 
-open interactive lean lean.parser interaction_monad.result
+setup_tactic_parser
 
 /--
 `#explode decl_name` displays a proof term in a line-by-line format somewhat akin to a Fitch-style

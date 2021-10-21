@@ -537,12 +537,3 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
-/-
-We ignore the third argument of `has_coe_to_fun.F` when deciding whether the operation
-needs to be additivized. The reason is that this argument is the element to be coerced,
-which usually does not actually show up in the type after reduction.
-Hypothetically, this could be ignoring too much, in that case, we can remove this,
-but in that case we have to add the `to_additive_ignore_args` attribute more systematically
-to a lot of other definitions (like `times_cont_mdiff_map.comp`).
--/
-attribute [to_additive_ignore_args 3] has_coe_to_fun.F

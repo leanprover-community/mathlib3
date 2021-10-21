@@ -1900,7 +1900,7 @@ coe_injective $ by simp only [coe_map, coe_singleton, set.image_singleton]
 by simp only [insert_eq, map_union, map_singleton]
 
 @[simp] lemma map_erase [decidable_eq α] [decidable_eq β] (f : α ↪ β) (s : finset α) (a : α) :
-  (s.erase a).map f = (s.image f).erase (f a) :=
+  (s.erase a).map f = (s.map f).erase (f a) :=
 by { rw map_eq_image, exact s.image_erase f.2 a }
 
 @[simp] theorem map_eq_empty : s.map f = ∅ ↔ s = ∅ :=
@@ -2033,8 +2033,7 @@ ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left
   (insert a s).image f = insert (f a) (s.image f) :=
 by simp only [insert_eq, image_singleton, image_union]
 
-@[simp] lemma image_erase {f : α → β} (hf : injective f)
-  (s : finset α) (a : α) :
+@[simp] lemma image_erase {f : α → β} (hf : injective f) (s : finset α) (a : α) :
   (s.erase a).image f = (s.image f).erase (f a) :=
 begin
   ext b,

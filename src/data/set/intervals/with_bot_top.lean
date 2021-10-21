@@ -26,7 +26,7 @@ variables [partial_order α] {a b : α}
 begin
   ext x,
   rw [mem_Iio, lt_top_iff_ne_top, mem_range, ← none_eq_top, option.ne_none_iff_exists],
-  exact exists_congr (λ _, eq_comm)
+  refl,
 end
 
 @[simp] lemma preimage_coe_Ioi : (coe : α → with_top α) ⁻¹' (Ioi a) = Ioi a := ext $ λ x, coe_lt_coe

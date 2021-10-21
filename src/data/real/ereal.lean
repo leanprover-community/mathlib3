@@ -52,8 +52,9 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [order_bot, order_top, comm_monoid_with_zero,
-  has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
+
+@[derive [has_top, comm_monoid_with_zero, has_Sup, has_Inf,
+  linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
 /-- The canonical inclusion froms reals to ereals. Do not use directly: as this is registered as
@@ -61,6 +62,12 @@ a coercion, use the coercion instead. -/
 def real.to_ereal : ℝ → ereal := some ∘ some
 
 namespace ereal
+
+instance : has_bot ereal := ⟨some ⊥⟩
+
+noncomputable instance : complete_linear_order ereal :=
+{ ..ereal.has_bot,
+  ..with_top.with_bot.complete_linear_order }
 
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne

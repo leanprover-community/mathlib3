@@ -836,7 +836,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
 λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
 
-variables [integral_domain R₁]
+variables [is_domain R₁]
 
 include frac
 
@@ -976,7 +976,7 @@ end quotient
 
 section field
 
-variables {R₁ K L : Type*} [comm_ring R₁] [integral_domain R₁] [field K] [field L]
+variables {R₁ K L : Type*} [comm_ring R₁] [is_domain R₁] [field K] [field L]
 variables [algebra R₁ K] [is_fraction_ring R₁ K] [algebra K L] [is_fraction_ring K L]
 
 lemma eq_zero_or_one (I : fractional_ideal K⁰ L) : I = 0 ∨ I = 1 :=
@@ -1170,7 +1170,7 @@ lemma span_singleton_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {z : K} :
 by erw [← mk'_mul_coe_ideal_eq_coe_ideal K (is_localization.sec R₁⁰ z).2.prop,
         is_localization.mk'_sec K z]
 
-variables [integral_domain R₁]
+variables [is_domain R₁]
 
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
@@ -1220,7 +1220,7 @@ begin
     rwa [hx', ←mul_assoc, inv_mul_cancel map_a_nonzero, one_mul] }
 end
 
-instance is_principal {R} [comm_ring R] [integral_domain R] [is_principal_ideal_ring R]
+instance is_principal {R} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
   [algebra R K] [is_fraction_ring R K]
   (I : fractional_ideal R⁰ K) : (I : submodule R K).is_principal :=
 begin
@@ -1283,7 +1283,7 @@ begin
 end
 
 include frac
-variables [integral_domain R₁]
+variables [is_domain R₁]
 
 lemma is_noetherian_span_singleton_inv_to_map_mul (x : R₁) {I : fractional_ideal R₁⁰ K}
   (hI : is_noetherian R₁ I) :

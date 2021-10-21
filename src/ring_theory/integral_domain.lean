@@ -16,9 +16,9 @@ Assorted theorems about integral domains.
 
 ## Main theorems
 
-* `is_cyclic_of_subgroup_integral_domain` : A finite subgroup of the units of an integral domain
+* `is_cyclic_of_subgroup_is_domain` : A finite subgroup of the units of an integral domain
                                             is cyclic.
-* `field_of_integral_domain`              : A finite integral domain is a field.
+* `field_of_is_domain`              : A finite integral domain is a field.
 
 ## Tags
 
@@ -34,7 +34,7 @@ variables {R : Type*} {G : Type*}
 
 section ring
 
-variables [ring R] [domain R] [fintype R]
+variables [ring R] [is_domain R] [fintype R]
 
 lemma mul_right_bijective₀ (a : R) (ha : a ≠ 0) : bijective (λ b, a * b) :=
 fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
@@ -46,7 +46,7 @@ fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
 
 TODO: Prove Wedderburn's little theorem,
 which shows a finite domain is in fact commutative, hence a field. -/
-def division_ring_of_domain (R : Type*) [ring R] [domain R] [decidable_eq R] [fintype R] :
+def division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R] [fintype R] :
   division_ring R :=
 { inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective₀ a h) 1,
   mul_inv_cancel := λ a ha, show a * dite _ _ _ = _,
@@ -57,7 +57,7 @@ def division_ring_of_domain (R : Type*) [ring R] [domain R] [decidable_eq R] [fi
 
 end ring
 
-variables [comm_ring R] [integral_domain R] [group G] [fintype G]
+variables [comm_ring R] [is_domain R] [group G] [fintype G]
 
 lemma card_nth_roots_subgroup_units (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
   ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
@@ -72,7 +72,7 @@ begin
 end
 
 /-- A finite subgroup of the unit group of an integral domain is cyclic. -/
-lemma is_cyclic_of_subgroup_integral_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
+lemma is_cyclic_of_subgroup_is_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
 begin
   classical,
   apply is_cyclic_of_card_pow_eq_one_le,
@@ -82,11 +82,11 @@ end
 
 /-- The unit group of a finite integral domain is cyclic. -/
 instance [fintype R] : is_cyclic (units R) :=
-is_cyclic_of_subgroup_integral_domain (units.coe_hom R) $ units.ext
+is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
-def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
-{ ..division_ring_of_domain R, ..‹comm_ring R› }
+def field_of_is_domain [decidable_eq R] [fintype R] : field R :=
+{ ..division_ring_of_is_domain R, ..‹comm_ring R› }
 
 section
 
@@ -95,7 +95,7 @@ variables (S : subgroup (units R)) [fintype S]
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
 begin
-  refine is_cyclic_of_subgroup_integral_domain ⟨(coe : S → R), _, _⟩
+  refine is_cyclic_of_subgroup_is_domain ⟨(coe : S → R), _, _⟩
     (units.ext.comp subtype.val_injective),
   { simp },
   { intros, simp },

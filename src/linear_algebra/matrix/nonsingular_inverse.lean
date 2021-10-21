@@ -721,7 +721,7 @@ lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix m m R} (hM : nondege
   {v : m → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
 not_forall.mp (mt hM.eq_zero_of_ortho hv)
 
-variables [comm_ring A] [integral_domain A]
+variables [comm_ring A] [is_domain A]
 
 /-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
 

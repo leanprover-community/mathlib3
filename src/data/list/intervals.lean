@@ -75,11 +75,6 @@ begin
     refl }
 end
 
-theorem map_sub' (n m k : ℕ) : (Ico n m).map (λ x, k - x) = Ico (k - m) (k - n) :=
-begin
-  sorry
-end
-
 @[simp] theorem self_empty {n : ℕ} : Ico n n = [] :=
 eq_nil_of_le (le_refl n)
 

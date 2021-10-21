@@ -6,6 +6,8 @@ Authors: Kevin Buzzard
 import algebra.big_operators.ring
 import data.nat.interval
 import data.nat.parity
+import number_theory.padics.padic_norm
+import tactic.linarith
 
 /-!
 # IMO 1979 Q1
@@ -43,7 +45,7 @@ namespace imo1979q1
 def a : ℚ := ∑ n in range 1320, (-1)^(n + 1) / n
 def b : ℚ := ∑ n in range 1320, 1 / n
 def c : ℚ := ∑ n in range 660, 1 / n
-def d : ℚ := ∑ n in Ico 660 1320, 1 / n
+def d : ℚ := ∑ n in Ico (660 : ℕ) 1320, 1 / n
 def e : ℚ := ∑ n in range 330, 1 / (n + 660)
 def f : ℚ := ∑ n in range 330, 1 / (1319 - n)
 
@@ -69,7 +71,7 @@ lemma lemma1 : b - a = c :=
   calc b - a = ∑ n in range 1320, (1/n - (-1)^(n+1)/n) : by rw sum_sub_distrib
     ... = ∑ n in range 1320, ite (even n) (2/n) 0 : by {
       apply sum_congr rfl,
-      rintros x -,
+      rintro x -,
       rw [pow_succ, neg_one_mul, neg_div, sub_neg_eq_add, div_add_div_same],
       split_ifs,
       { rw [neg_one_pow_of_even h], norm_num },

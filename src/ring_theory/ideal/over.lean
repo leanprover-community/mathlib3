@@ -116,6 +116,50 @@ begin
   exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
 end
 
+variables {p : ideal R} {P : ideal S}
+
+/-- If there is an injective map `R/p → S/P` such that following diagram commutes:
+```
+R   → S
+↓     ↓
+R/p → S/P
+```
+then `P` lies over `p`.
+-/
+lemma comap_eq_of_scalar_tower_quotient [algebra R S] [algebra p.quotient P.quotient]
+  [is_scalar_tower R p.quotient P.quotient]
+  (h : function.injective (algebra_map p.quotient P.quotient)) :
+  comap (algebra_map R S) P = p :=
+begin
+  ext x, split; rw [mem_comap, ← quotient.eq_zero_iff_mem, ← quotient.eq_zero_iff_mem,
+    quotient.mk_algebra_map, is_scalar_tower.algebra_map_apply _ p.quotient,
+    quotient.algebra_map_eq],
+  { intro hx,
+    exact (algebra_map p.quotient P.quotient).injective_iff.mp h _ hx },
+  { intro hx,
+    rw [hx, ring_hom.map_zero] },
+end
+
+/-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`. -/
+def quotient.algebra_quotient_of_over (h : p ≤ comap f P) :
+  algebra p.quotient P.quotient :=
+ring_hom.to_algebra $ quotient_map _ f h
+
+/-- `R / p` has a canonical map to `S / pS`. -/
+instance quotient.algebra_quotient_map_quotient :
+  algebra p.quotient (map f p).quotient :=
+quotient.algebra_quotient_of_over le_comap_map
+
+@[simp] lemma quotient.algebra_map_quotient_map_quotient (x : R) :
+  algebra_map p.quotient (map f p).quotient (quotient.mk p x) = quotient.mk _ (f x) :=
+rfl
+
+instance quotient.tower_quotient_map_quotient [algebra R S] :
+  is_scalar_tower R p.quotient (map (algebra_map R S) p).quotient :=
+is_scalar_tower.of_algebra_map_eq $ λ x,
+by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
+       quotient.mk_algebra_map]
+
 end comm_ring
 
 section is_domain

@@ -313,15 +313,15 @@ lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
   adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
 begin
   ext i j,
-  fin_cases i; fin_cases j; simp [adjugate_apply, det_fin_two],
+  rw [adjugate_apply, det_fin_two],
+  fin_cases i with [0, 1]; fin_cases j with [0, 1];
+  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, if_true, zero_mul, fin.zero_eq_one_iff,
+    eq_self_iff_true, sub_zero, if_false, ne.def, not_false_iff, update_row_self, update_row_ne,
+    cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
 end
-
-lemma adjugate_fin_two' (a b c d : α) : adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
-begin
-  rw adjugate_fin_two,
-  ext i j,
-  fin_cases i; fin_cases j; simp,
-end
+@[simp] lemma adjugate_fin_two' (a b c d : α) :
+  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+adjugate_fin_two _
 
 end adjugate
 

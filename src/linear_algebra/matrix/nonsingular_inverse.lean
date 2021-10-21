@@ -319,6 +319,7 @@ begin
     eq_self_iff_true, sub_zero, if_false, ne.def, not_false_iff, update_row_self, update_row_ne,
     cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
 end
+
 @[simp] lemma adjugate_fin_two' (a b c d : α) :
   adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
 adjugate_fin_two _

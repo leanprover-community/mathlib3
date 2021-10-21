@@ -152,7 +152,7 @@ begin
 end
 
 lemma tsub_add_eq_tsub_tsub_swap (a b c : α) : a - (b + c) = a - c - b :=
-by { rw [add_comm], exact tsub_add_eq_tsub_tsub }
+by { rw [add_comm], apply tsub_add_eq_tsub_tsub }
 
 lemma add_le_add_add_tsub : a + b ≤ (a + c) + (b - c) :=
 by { rw [add_assoc], exact add_le_add_left le_add_tsub a }

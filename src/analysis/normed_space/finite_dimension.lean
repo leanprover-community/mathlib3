@@ -153,7 +153,6 @@ begin
     have H₁ : ∀s : submodule 𝕜 E, finrank 𝕜 s = n → is_closed (s : set E),
     { assume s s_dim,
       let b := basis.of_vector_space 𝕜 s,
-      haveI : is_noetherian 𝕜 s := is_noetherian.iff_fg.2 infer_instance,
       have U : uniform_embedding b.equiv_fun.symm.to_equiv,
       { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,
           by { rw ← s_dim, exact (finrank_eq_card_basis b).symm },
@@ -211,7 +210,6 @@ begin
   -- for the proof, go to a model vector space `b → 𝕜` thanks to `continuous_equiv_fun_basis`, and
   -- argue that all linear maps there are continuous.
   let b := basis.of_vector_space 𝕜 E,
-  haveI : is_noetherian 𝕜 E := is_noetherian.iff_fg.2 infer_instance,
   have A : continuous b.equiv_fun :=
     continuous_equiv_fun_basis b,
   have B : continuous (f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E)) :=

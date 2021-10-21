@@ -378,8 +378,8 @@ lemma proper_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
 by { ext, simp [mem_proper_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a], }
 
 @[simp, to_additive]
-lemma prod_proper_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
-  ∏ x in (p ^ k).proper_divisors, f x = ∏ x in range k, f (p ^ x) :=
+lemma prod_proper_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α}
+  (h : p.prime) : ∏ x in (p ^ k).proper_divisors, f x = ∏ x in range k, f (p ^ x) :=
 by simp [h, proper_divisors_prime_pow]
 
 @[simp, to_additive]

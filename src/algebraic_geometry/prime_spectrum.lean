@@ -393,6 +393,20 @@ lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
   vanishing_ideal (closure t) = vanishing_ideal t :=
 zero_locus_vanishing_ideal_eq_closure t ▸ congr_fun (gc R).u_l_u_eq_u t
 
+lemma t1_space_iff_is_field [integral_domain R] :
+  t1_space (prime_spectrum R) ↔ is_field R :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { introI h,
+    have hbot : ideal.is_prime (⊥ : ideal R) := ideal.bot_prime,
+    exact not_not.1 (mt (ring.ne_bot_of_is_maximal_of_not_is_field $
+      (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
+  { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
+    by_cases hx : x.as_ideal = ⊥,
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
+end
+
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 
@@ -443,14 +457,11 @@ begin
   exact (is_closed_singleton_iff_is_maximal _).2 (ideal.comap_is_maximal_of_surjective f hf)
 end
 
-lemma comap_singleton_is_closed_of_is_integral [algebra R S] (hRS : algebra.is_integral R S)
+lemma comap_singleton_is_closed_of_is_integral (f : R →+* S) (hf : f.is_integral)
   (x : prime_spectrum S) (hx : is_closed ({x} : set (prime_spectrum S))) :
-  is_closed ({comap (algebra_map R S) x} : set (prime_spectrum R)) :=
-begin
-  haveI : x.as_ideal.is_maximal := (is_closed_singleton_iff_is_maximal x).1 hx,
-  exact (is_closed_singleton_iff_is_maximal _).2
-    (ideal.is_maximal_comap_of_is_integral_of_is_maximal hRS x.as_ideal),
-end
+  is_closed ({comap f x} : set (prime_spectrum R)) :=
+(is_closed_singleton_iff_is_maximal _).2 (ideal.is_maximal_comap_of_is_integral_of_is_maximal'
+  f hf x.as_ideal $ (is_closed_singleton_iff_is_maximal x).1 hx)
 
 end comap
 

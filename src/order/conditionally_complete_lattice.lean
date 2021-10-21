@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.set.intervals.ord_connected
-import order.filter.extr
 
 /-!
 # Theory of conditionally complete lattices.
@@ -514,17 +513,6 @@ See `infi_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in complete latt
 theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → α} (h₁ : ∀ i, b ≤ f i)
   (h₂ : ∀ w, b < w → (∃ i, f i < w)) : (⨅ (i : ι), f i) = b :=
 @csupr_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _ _ ‹_› ‹_› ‹_›
-
-lemma is_max_on.supr_eq {f : β → α} {s : set β} {x₀ : β} (hx₀ : x₀ ∈ s) (h : is_max_on f s x₀) :
-  (⨆ x : s, f x) = f x₀ :=
-begin
-  haveI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
-  exact csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ x, h x.prop) (λ w hw, ⟨⟨x₀, hx₀⟩, hw⟩),
-end
-
-lemma is_min_on.infi_eq {f : β → α} {s : set β} {x₀ : β} (hx₀ : x₀ ∈ s) (h : is_min_on f s x₀) :
-  (⨅ x : s, f x) = f x₀ :=
-@is_max_on.supr_eq (order_dual α) β _ _ _ _
 
 /-- Nested intervals lemma: if `f` is a monotone sequence, `g` is an antitone sequence, and
 `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/

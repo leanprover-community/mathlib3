@@ -737,10 +737,6 @@ le_tsub_add
 protected lemma sub_le_iff_le_add : a - b ≤ c ↔ a ≤ c + b :=
 tsub_le_iff_right
 
--- todo: make this a `@[simp]` lemma in general
-@[simp] lemma sub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
-tsub_eq_zero_iff_le.mpr h
-
 lemma sub_self : a - a = 0 :=
 tsub_self a -- explicit arg
 
@@ -753,10 +749,6 @@ tsub_add_cancel_of_le h
 lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
 tsub_le_tsub h₁ h₂
 
--- todo: make `add_tsub_cancel_of_le` a `@[simp]` lemma
-@[simp] protected lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
-add_tsub_cancel_of_le h
-
 lemma sub_add_self_eq_max : (a - b) + b = max a b :=
 tsub_add_eq_max
 
@@ -765,14 +757,6 @@ tsub_le_iff_left
 
 protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
 tsub_le_iff_tsub_le.mp h
-
--- todo: make `tsub_eq_zero_iff_le` a `@[simp]` lemma
-@[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
-tsub_eq_zero_iff_le
-
--- todo: make `tsub_pos_iff_lt` a `@[simp]` lemma
-@[simp] protected lemma sub_pos : 0 < a - b ↔ b < a :=
-tsub_pos_iff_lt
 
 lemma sub_le_self (a b : ℝ≥0∞) : a - b ≤ a :=
 tsub_le_self

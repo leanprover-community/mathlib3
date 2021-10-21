@@ -35,13 +35,3 @@ begin
   rw coe_image,
   exact hs.image_of_le hf,
 end
-
-lemma set.pairwise_disjoint_insert_finset [semilattice_inf_bot α] {s : finset α} {a : α} :
-  (insert a s : set α).pairwise_disjoint ↔ (s : set α).pairwise_disjoint ∧
-    ∀ b ∈ s, a ≠ b → disjoint a b :=
-set.pairwise_on_insert_of_symmetric symmetric_disjoint
-
-lemma set.pairwise_disjoint.insert_finset [semilattice_inf_bot α] {s : finset α}
-  (hs : (s : set α).pairwise_disjoint) {a : α} (hx : ∀ b ∈ s, a ≠ b → disjoint a b) :
-  (insert a s : set α).pairwise_disjoint :=
-set.pairwise_disjoint_insert.2 ⟨hs, hx⟩

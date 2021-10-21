@@ -67,6 +67,15 @@ variables [distrib_lattice_bot α]
   sup_parts := (sup_erase_bot _).trans sup_parts,
   not_bot_mem := not_mem_erase _ _ }
 
+/-- A `finpartition` constructor from a bigger existing finpartition. -/
+@[simps] def of_subset {a b : α} (P : finpartition a) {parts : finset α}
+  (subset : parts ⊆ P.parts) (sup_parts : parts.sup id = b) :
+  finpartition b :=
+{ parts := parts,
+  disjoint := P.disjoint.subset subset,
+  sup_parts := sup_parts,
+  not_bot_mem := λ h, P.not_bot_mem (subset h) }
+
 variables (α)
 
 /-- The empty finpartition. -/
@@ -120,8 +129,7 @@ variables [decidable_eq α]
 
 /-- Given a finpartition `P` of `a` and finpartitions of each part of `P`, this yields the
 finpartition of `a` obtained by juxtaposing all the subpartitions. -/
-@[simps] def bind (P : finpartition a) (Q : Π i ∈ P.parts, finpartition i) :
-  finpartition a :=
+@[simps] def bind (P : finpartition a) (Q : Π i ∈ P.parts, finpartition i) : finpartition a :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
   disjoint := λ a ha b hb h, begin
     rw [finset.mem_coe, finset.mem_bUnion] at ha hb,
@@ -142,8 +150,7 @@ finpartition of `a` obtained by juxtaposing all the subpartitions. -/
     exact (Q A hA).not_bot_mem h,
   end }
 
-lemma mem_bind_parts {P : finpartition a} {Q : Π i ∈ P.parts, finpartition i}
-  {b : α} :
+lemma mem_bind {P : finpartition a} {Q : Π i ∈ P.parts, finpartition i} {b : α} :
   b ∈ (P.bind Q).parts ↔ ∃ A hA, b ∈ (Q A hA).parts :=
 begin
   rw [bind, mem_bUnion],
@@ -154,7 +161,7 @@ begin
     exact ⟨⟨A, hA⟩, mem_attach _ ⟨A, hA⟩, h⟩ }
 end
 
-lemma bind_card_parts (Q : Π i ∈ P.parts, finpartition i) :
+lemma card_bind (Q : Π i ∈ P.parts, finpartition i) :
   (P.bind Q).parts.card = ∑ A in P.parts.attach, (Q _ A.2).parts.card :=
 begin
   apply card_bUnion,
@@ -170,16 +177,21 @@ end bind
 
 /-- Adds `b` to a finpartition of `a` to make a finpartition of `a ⊔ b`. -/
 @[simps] def extend [decidable_eq α] (P : finpartition a) {b c : α} (hb : b ≠ ⊥)
-  (hab : disjoint a b) (h : a ⊔ b = c) :
+  (hab : disjoint a b) (hc : a ⊔ b = c) :
   finpartition c :=
 { parts := insert b P.parts,
   disjoint :=
   begin
     rw coe_insert,
-    exact P.disjoint.insert_finset (λ d hd hbd, hab.symm.mono_right $ P.le hd),
+    exact P.disjoint.insert (λ d hd hbd, hab.symm.mono_right $ P.le hd),
   end,
   sup_parts := by rwa [sup_insert, P.sup_parts, sup_comm],
   not_bot_mem := λ h, (mem_insert.1 h).elim hb.symm P.not_bot_mem }
+
+lemma card_extend [decidable_eq α] (P : finpartition a) (b c : α) {hb : b ≠ ⊥} {hab : disjoint a b}
+  {hc : a ⊔ b = c} :
+  (P.extend hb hab hc).parts.card = P.parts.card + 1 :=
+card_insert_of_not_mem $ λ h, hb $ hab.symm.eq_bot_of_le $ P.le h
 
 end distrib_lattice_bot
 
@@ -211,7 +223,7 @@ nonempty_iff_ne_empty.2 $ P.ne_bot ha
 lemma exists_mem {a : α} (ha : a ∈ s) : ∃ t ∈ P.parts, a ∈ t :=
 by { simp_rw ←P.sup_parts at ha, exact mem_sup.1 ha }
 
-lemma bUnion_parts : P.parts.bUnion id = s := by rw [←sup_eq_bUnion, P.sup_parts]
+lemma bUnion_parts : P.parts.bUnion id = s := (sup_eq_bUnion _ _).symm.trans P.sup_parts
 
 lemma sum_card_parts : ∑ i in P.parts, i.card = s.card :=
 begin
@@ -233,6 +245,8 @@ parts_nonempty_iff.2 univ_nonempty.ne_empty
     end,
   sup_parts := by rw [sup_map, comp.left_id, embedding.coe_fn_mk, finset.sup_singleton'],
   not_bot_mem := by simp }
+
+lemma card_discrete : (discrete s).parts.card = s.card := finset.card_map _
 
 section atomise
 
@@ -280,7 +294,7 @@ begin
   exact erase_eq_of_not_mem (not_mem_singleton.2 hs.ne_empty.symm),
 end
 
-lemma card_parts_atomise_le : (atomise s F).parts.card ≤ 2^F.card :=
+lemma card_atomise_le : (atomise s F).parts.card ≤ 2^F.card :=
 (card_le_of_subset $ erase_subset _ _).trans $ finset.card_image_le.trans (card_powerset _).le
 
 lemma bUnion_filter_atomise (t : finset α) (ht : t ∈ F) (hts : t ⊆ s) :

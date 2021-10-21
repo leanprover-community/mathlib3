@@ -36,7 +36,9 @@ variables (E : Type*) [semi_normed_group E] [semi_normed_space 𝕜 E]
 variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
 /-- The topological dual of a seminormed space `E`. -/
-@[derive [inhabited, has_coe_to_fun, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+@[derive [inhabited, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+
+instance : has_coe_to_fun (dual 𝕜 E) (λ _, E → 𝕜) := continuous_linear_map.to_fun
 
 instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
 

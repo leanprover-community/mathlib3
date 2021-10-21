@@ -1216,7 +1216,7 @@ begin
   refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
   have hsum := hN n hn,
   -- We simplify the known inequality
-  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, add_sub_cancel_left] at hsum,
+  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, add_tsub_cancel_left] at hsum,
   norm_cast at hsum,
   replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
   rw edist_comm,

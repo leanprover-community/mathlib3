@@ -669,7 +669,7 @@ end
 
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field. -/
 lemma is_field_of_is_integral_of_is_field
-  {R S : Type*} [comm_ring R] [integral_domain R] [comm_ring S] [integral_domain S]
+  {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S]
   [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=
 begin
@@ -706,7 +706,7 @@ begin
   rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
-  have : 1 ≤ p.nat_degree - i := le_sub_of_add_le_left' (finset.mem_range.mp hi),
+  have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),
   rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
 end
 
@@ -718,10 +718,10 @@ eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2
 ⟨⟨x, @is_integral_trans _ _ _ _ _ _ _ _ (integral_closure R A).algebra
      _ integral_closure.is_integral x hx⟩, rfl⟩
 
-section integral_domain
-variables {R S : Type*} [comm_ring R] [comm_ring S] [integral_domain S] [algebra R S]
+section is_domain
+variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
 
-instance : integral_domain (integral_closure R S) :=
+instance : is_domain (integral_closure R S) :=
 infer_instance
 
-end integral_domain
+end is_domain

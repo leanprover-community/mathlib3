@@ -298,7 +298,7 @@ begin
     simp [h, adjugate_eq_one_of_card_eq_one h] },
   have one_lt_card : 1 < fintype.card n := by linarith,
   have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
-    (sub_lt_sub_iff_right' (refl 1)).mpr one_lt_card,
+    (tsub_lt_tsub_iff_right (refl 1)).mpr one_lt_card,
 
   apply det_adjugate_of_cancel,
   intros b hb,
@@ -721,7 +721,7 @@ lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix m m R} (hM : nondege
   {v : m → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
 not_forall.mp (mt hM.eq_zero_of_ortho hv)
 
-variables [comm_ring A] [integral_domain A]
+variables [comm_ring A] [is_domain A]
 
 /-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
 

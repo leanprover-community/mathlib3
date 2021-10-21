@@ -161,7 +161,7 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
     exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out _)
   end }
 
-/-- Any finite field is isomorphic to some Galois field. -/
+/-- Any finite field is (non-canonically) isomorphic to some Galois field. -/
 def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
 by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _

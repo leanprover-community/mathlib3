@@ -1,9 +1,14 @@
 import ring_theory.integral_domain
 import group_theory.group_action.conj_act
 import ring_theory.polynomial.cyclotomic
+import tactic.by_contra
 
 noncomputable theory
 open_locale classical nnreal big_operators
+
+-- move this
+lemma fintype.card_pos (X : Type*) [h : nonempty X] [fintype X] : 0 < fintype.card X :=
+fintype.card_pos_iff.mpr h
 
 -- move this
 @[simps] def complex.abs_hom : ℂ →* ℝ :=
@@ -49,6 +54,22 @@ congr_arg coe (complex.nnnorm_eq_one_of_pow_eq_one h hn)
 lemma is_primitive_root.norm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
   ∥ζ∥ = 1 :=
 complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
+
+lemma fintype.card_conj_act (G : Type*) [fintype G] : fintype.card (conj_act G) = fintype.card G :=
+rfl
+
+namespace polynomial
+
+lemma cyclotomic_dvd_X_pow_sub_one (n : ℕ) (hn : n ≠ 0) (R : Type*) [comm_ring R] :
+  cyclotomic n R ∣ X ^ n - 1 :=
+begin
+  rw ← prod_cyclotomic_eq_X_pow_sub_one hn.bot_lt R,
+  apply finset.dvd_prod_of_mem,
+  rw nat.mem_divisors,
+  exact ⟨dvd_rfl, hn⟩
+end
+
+end polynomial
 
 namespace little_wedderburn
 
@@ -146,7 +167,7 @@ def induction_hyp : Prop :=
 ∀ R : subring D, R < ⊤ → ∀ ⦃x y⦄, x ∈ R → y ∈ R → x * y = y * x
 
 namespace induction_hyp
-open finite_dimensional
+open finite_dimensional polynomial
 
 variables {D}
 
@@ -154,19 +175,51 @@ protected def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : fiel
 { mul_comm := λ x y, subtype.ext $ hD R hR x.2 y.2,
   ..(show division_ring R, from division_ring_of_domain R)}
 
-lemma top_is_field (hD : induction_hyp D) (x y : D) : x * y = y * x :=
+lemma center_eq_top (hD : induction_hyp D) : subring.center D = ⊤ :=
 begin
-  let Z := subring.center D,
-  by_cases hZ : Z = ⊤, { have : y ∈ Z, rw hZ, trivial, exact this x },
-  replace hZ := ne.lt_top hZ,
+  set Z := subring.center D,
+  by_contra hZ, replace hZ := ne.lt_top hZ,
   letI : field Z := hD.field Z hZ,
-  set q := fintype.card Z with hq,
+  set q := fintype.card Z with card_Z,
+  have hq : 2 ≤ q, { rw card_Z, exact fintype.one_lt_card },
+  have h1q : 1 ≤ q := one_le_two.trans hq,
   let n := finrank Z D,
+  have hn : 1 < n,
+  { by_contra' hn : n ≤ 1,
+    rw finrank_le_one_iff at hn,
+    rcases hn with ⟨x, hx⟩,
+    refine not_le_of_lt hZ _,
+    rintro y - z,
+    obtain ⟨r, rfl⟩ := hx y, obtain ⟨s, rfl⟩ := hx z,
+    show (s.1 * x) * (r.1 * x) = (r.1 * x) * (s.1 * x),
+    rw [← r.2, ← s.2, mul_assoc, mul_assoc, ← r.2, ← s.2, mul_assoc, mul_assoc, r.2], },
+  have h0n : 0 < n := zero_lt_one.trans hn,
   have card_D : fintype.card D = q ^ n := card_eq_pow_finrank,
+  have h1qn : 1 ≤ q ^ n, { rw ← card_D, exact fintype.card_pos _ },
   have key := class_equation (units D),
   simp only [nat.card_eq_fintype_card] at key,
   rw [fintype.card_congr (center_units_equiv_units_center D).to_equiv,
-    finite_field.card_units, ← hq, finite_field.card_units, card_D] at key,
+    finite_field.card_units, ← card_Z, finite_field.card_units, card_D] at key,
+  let Φ := cyclotomic n ℤ,
+  have aux : Φ.eval q ∣ q^n - 1,
+  { simpa only [eval_X, eval_one, eval_pow, eval_sub, coe_eval_ring_hom] using
+      (eval_ring_hom (q : ℤ)).map_dvd (cyclotomic_dvd_X_pow_sub_one n h0n.ne' ℤ), },
+  apply_fun (coe : ℕ → ℤ) at key,
+  simp only [nat.cast_one, nat.cast_pow,
+    ←int.nat_cast_eq_coe_nat, nat.cast_add, nat.cast_sub h1qn] at key aux,
+  rw [← key, ← dvd_add_iff_left, ← int.nat_abs_dvd, ← int.dvd_nat_abs] at aux,
+  simp only [int.nat_cast_eq_coe_nat, int.nat_abs_of_nat, int.coe_nat_dvd] at aux,
+  { refine not_lt_of_ge (nat.le_of_dvd _ aux) (sub_one_lt_nat_abs_cyclotomic_eval _ _ hn hq),
+    exact nat.sub_pos_of_lt hq },
+  suffices : Φ.eval q ∣ ↑∑ x in (conj_classes.noncenter (units D)).to_finset,fintype.card x.carrier,
+  { simp only [int.nat_cast_eq_coe_nat] at this ⊢,
+    convert this using 2, convert finsum_cond_eq_sum_of_cond_iff _ _,
+    simp only [iff_self, set.mem_to_finset, implies_true_iff] },
+  simp only [← int.nat_cast_eq_coe_nat, nat.cast_sum],
+  apply finset.dvd_sum,
+  rintro ⟨x⟩ hx,
+  simp only [int.nat_cast_eq_coe_nat, conj_classes.quot_mk_eq_mk],
+  rw [card_carrier, fintype.card_conj_act, finite_field.card_units, card_D],
   sorry
 end
 

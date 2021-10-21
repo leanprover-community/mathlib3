@@ -184,6 +184,26 @@ lemma orbit_rel_r (X : Type*) [mul_action G X] :
 lemma orbit_rel_r_apply {X : Type*} [mul_action G X] (x y : X) :
   @setoid.r _ (orbit_rel G X) x y ↔ x ∈ orbit G y := iff.rfl
 
+section
+open_locale classical
+
+lemma carrier_eq_orbit (g : G) : (conj_classes.mk g).carrier = orbit (conj_act G) g :=
+begin
+  ext h,
+  rw [conj_classes.mem_carrier_iff_mk_eq, conj_classes.mk_eq_mk_iff_is_conj, mem_orbit_conj_act_iff]
+end
+
+lemma card_carrier (g : G) :
+  fintype.card (conj_classes.mk g).carrier =
+    fintype.card (conj_act G) / fintype.card (stabilizer (conj_act G) g) :=
+begin
+  rw [← card_orbit_mul_card_stabilizer_eq_card_group (conj_act G) g,
+    nat.mul_div_cancel, carrier_eq_orbit],
+  rw fintype.card_pos_iff, apply_instance
+end
+
+end
+
 lemma class_equation' [decidable_rel (is_conj : G → G → Prop)] :
   ∑ x : conj_classes G, x.fincarrier.card = fintype.card G :=
 begin

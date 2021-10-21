@@ -864,7 +864,8 @@ by simp [metric.mem_closure_iff, dist_eq_norm]
 lemma norm_le_zero_iff' [separated_space E] {g : E} :
   ∥g∥ ≤ 0 ↔ g = 0 :=
 begin
-  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space ‹_›, .. ‹semi_normed_group E› },
+  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space ‹_›,
+    .. ‹semi_normed_group E› },
   rw [← dist_zero_right], exact dist_le_zero
 end
 

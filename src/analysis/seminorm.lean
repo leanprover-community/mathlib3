@@ -13,12 +13,15 @@ import data.set.intervals
 
 This file introduces the following notions, defined for a vector space
 over a normed field:
-* `absorbent`:
-* `balanced`: The subset properties of being `absorbent` and `balanced`
-* `seminorm`: A function to the reals that is positive-semidefinite,
-  absolutely homogeneous, and subadditive.
+* `absorbent`: A set `s` is absorbent if every point eventually belongs to all large scalings of
+  `s`.
+* `balanced`: A set `s` is balanced if `a • s ⊆ s` for all `a` of norm less than `1`.
+* `seminorm`: A function to the reals that is positive-semidefinite, absolutely homogeneous, and
+  subadditive.
 * `gauge`: Aka Minkowksi functional. `gauge s x` is the smallest (actually, an infimum) `θ` such
   that `x ∈ θ • s`.
+* `gauge_seminorm`: The Minkowski functional as a seminorm, when `s` is symmetric, convex and
+  absorbent.
 
 We prove related properties.
 
@@ -41,7 +44,7 @@ absorbent, balanced, seminorm, Minkowski functional, gauge, locally convex, LCTV
 -/
 
 /-!
-### Subset Properties
+### Set Properties
 
 Absorbent and balanced sets in a vector space over a
 nondiscrete normed field.

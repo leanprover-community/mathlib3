@@ -595,8 +595,12 @@ variables {V : Type*} [add_comm_group V] [module K V] [finite_dimensional K V]
 variables {W : Type*} [add_comm_group W] [module K W] [finite_dimensional K W]
 
 instance : finite_dimensional K (V →ₗ[K] W) :=
-linear_equiv.finite_dimensional
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  letI : is_noetherian K W := is_noetherian.iff_fg.2 infer_instance,
+  exact linear_equiv.finite_dimensional
   (linear_map.to_matrix (basis.of_vector_space K V) (basis.of_vector_space K W)).symm
+end
 
 /--
 The dimension of the space of linear transformations is the product of the dimensions of the
@@ -606,6 +610,8 @@ domain and codomain.
   finite_dimensional.finrank K (V →ₗ[K] W) =
   (finite_dimensional.finrank K V) * (finite_dimensional.finrank K W) :=
 begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  letI : is_noetherian K W := is_noetherian.iff_fg.2 infer_instance,
   let hbV := basis.of_vector_space K V,
   let hbW := basis.of_vector_space K W,
   rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), matrix.finrank_matrix,

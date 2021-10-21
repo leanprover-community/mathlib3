@@ -448,8 +448,7 @@ meta def add_coinductive_predicate
 
   try triv -- we setup a trivial goal for the tactic framework
 
-open lean.parser
-open interactive
+setup_tactic_parser
 
 @[user_command]
 meta def coinductive_predicate (meta_info : decl_meta_info) (_ : parse $ tk "coinductive") :

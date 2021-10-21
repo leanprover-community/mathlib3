@@ -7,10 +7,8 @@ Without loss of generality tactic.
 -/
 import data.list.perm
 
-open expr tactic lean lean.parser
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+open expr
+setup_tactic_parser
 
 namespace tactic
 

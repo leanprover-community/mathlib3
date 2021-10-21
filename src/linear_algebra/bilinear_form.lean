@@ -68,8 +68,7 @@ variables {B : bilin_form R M} {B₁ : bilin_form R₁ M₁} {B₂ : bilin_form 
 
 namespace bilin_form
 
-instance : has_coe_to_fun (bilin_form R M) :=
-⟨_, λ B, B.bilin⟩
+instance : has_coe_to_fun (bilin_form R M) (λ _, M → M → R) := ⟨bilin⟩
 
 initialize_simps_projections bilin_form (bilin -> apply)
 
@@ -557,7 +556,8 @@ lemma is_Ortho_def {n : Type w} {B : bilin_form R M} {v : n → M} :
 
 section
 
-variables {R₄ M₄ : Type*} [domain R₄] [add_comm_group M₄] [module R₄ M₄] {G : bilin_form R₄ M₄}
+variables {R₄ M₄ : Type*} [ring R₄] [is_domain R₄]
+variables [add_comm_group M₄] [module R₄ M₄] {G : bilin_form R₄ M₄}
 
 @[simp]
 theorem is_ortho_smul_left {x y : M₄} {a : R₄} (ha : a ≠ 0) :
@@ -1662,7 +1662,7 @@ section det
 
 open matrix
 
-variables {A : Type*} [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
+variables {A : Type*} [comm_ring A] [is_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
 theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :

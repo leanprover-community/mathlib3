@@ -76,8 +76,6 @@ variables {G : Type u} [semigroup G]
 lemma mul_assoc : ∀ a b c : G, a * b * c = a * (b * c) :=
 semigroup.mul_assoc
 
-attribute [no_rsimp] add_assoc -- TODO(Mario): find out why this isn't copying
-
 @[to_additive]
 instance semigroup.to_is_associative : is_associative G (*) :=
 ⟨mul_assoc⟩
@@ -101,7 +99,6 @@ variables {G : Type u} [comm_semigroup G]
 @[no_rsimp, to_additive]
 lemma mul_comm : ∀ a b : G, a * b = b * a :=
 comm_semigroup.mul_comm
-attribute [no_rsimp] add_comm
 
 @[to_additive]
 instance comm_semigroup.to_is_commutative : is_commutative G (*) :=
@@ -206,8 +203,6 @@ begin
   exact (one_mul₂ one₁).symm.trans (mul_one₁ one₂),
 end
 
-attribute [ext] add_zero_class.ext
-
 section mul_one_class
 variables {M : Type u} [mul_one_class M]
 
@@ -218,8 +213,6 @@ mul_one_class.one_mul
 @[ematch, simp, to_additive]
 lemma mul_one : ∀ a : M, a * 1 = a :=
 mul_one_class.mul_one
-
-attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
 
 @[to_additive]
 instance mul_one_class.to_is_left_id : is_left_id M (*) 1 :=
@@ -382,8 +375,6 @@ begin
   subst h_npow,
 end
 
-attribute [ext] add_monoid.ext
-
 section monoid
 variables {M : Type u} [monoid M]
 
@@ -432,8 +423,6 @@ end
 lemma comm_monoid.ext {M : Type*} ⦃m₁ m₂ : comm_monoid M⦄ (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
 comm_monoid.to_monoid_injective $ monoid.ext h_mul
 
-attribute [ext] add_comm_monoid.ext
-
 section left_cancel_monoid
 
 /-- An additive monoid in which addition is left-cancellative.
@@ -458,8 +447,6 @@ end
 lemma left_cancel_monoid.ext {M : Type*} ⦃m₁ m₂ : left_cancel_monoid M⦄
   (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
 left_cancel_monoid.to_monoid_injective $ monoid.ext h_mul
-
-attribute [ext] add_left_cancel_monoid.ext
 
 end left_cancel_monoid
 
@@ -487,8 +474,6 @@ end
 lemma right_cancel_monoid.ext {M : Type*} ⦃m₁ m₂ : right_cancel_monoid M⦄
   (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
 right_cancel_monoid.to_monoid_injective $ monoid.ext h_mul
-
-attribute [ext] add_right_cancel_monoid.ext
 
 end right_cancel_monoid
 
@@ -518,8 +503,6 @@ lemma cancel_monoid.ext {M : Type*} ⦃m₁ m₂ : cancel_monoid M⦄
   (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
 cancel_monoid.to_left_cancel_monoid_injective $ left_cancel_monoid.ext h_mul
 
-attribute [ext] add_cancel_monoid.ext
-
 /-- Commutative version of add_cancel_monoid. -/
 @[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
 class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
@@ -540,8 +523,6 @@ end
 lemma cancel_comm_monoid.ext {M : Type*} ⦃m₁ m₂ : cancel_comm_monoid M⦄
   (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
 cancel_comm_monoid.to_comm_monoid_injective $ comm_monoid.ext h_mul
-
-attribute [ext] add_cancel_comm_monoid.ext
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M] :
@@ -676,8 +657,6 @@ begin
   subst h_gpow,
 end
 
-attribute [ext] sub_neg_monoid.ext
-
 @[to_additive]
 lemma div_eq_mul_inv {G : Type u} [div_inv_monoid G] :
   ∀ a b : G, a / b = a * b⁻¹ :=
@@ -794,8 +773,6 @@ begin
   exact h_inv
 end
 
-attribute [ext] add_group.ext
-
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
 class comm_group (G : Type u) extends group G, comm_monoid G
@@ -820,8 +797,6 @@ end
 lemma comm_group.ext {G : Type*} ⦃g₁ g₂ : comm_group G⦄
   (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=
 comm_group.to_group_injective $ group.ext h_mul
-
-attribute [ext] add_comm_group.ext
 
 section comm_group
 

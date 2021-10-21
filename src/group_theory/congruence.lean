@@ -108,7 +108,7 @@ instance : inhabited (con M) :=
 
 /-- A coercion from a congruence relation to its underlying binary relation. -/
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
-instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, @setoid.r _ c.to_setoid x y⟩
+instance : has_coe_to_fun (con M) (λ _, M → M → Prop) := ⟨λ c, λ x y, @setoid.r _ c.to_setoid x y⟩
 
 @[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
 
@@ -152,8 +152,6 @@ by { rcases c with ⟨⟨⟩⟩, rcases d with ⟨⟨⟩⟩, cases H, congr, }
 @[ext, to_additive "Extensionality rule for additive congruence relations."]
 lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) : c = d :=
 ext' $ by ext; apply H
-
-attribute [ext] add_con.ext
 
 /-- The map sending a congruence relation to its underlying equivalence relation is injective. -/
 @[to_additive "The map sending an additive congruence relation to its underlying equivalence
@@ -534,7 +532,7 @@ def comap (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (c : con N) : con M
 iff.rfl
 
 section
-open quotient
+open _root_.quotient
 
 /-- Given a congruence relation `c` on a type `M` with a multiplication, the order-preserving
     bijection between the set of congruence relations containing `c` and the congruence relations

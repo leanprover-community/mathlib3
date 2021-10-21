@@ -59,8 +59,7 @@ structure closure_operator [preorder α] extends α →ₘ α :=
 
 namespace closure_operator
 
-instance [preorder α] : has_coe_to_fun (closure_operator α) :=
-{ F := _, coe := λ c, c.to_fun }
+instance [preorder α] : has_coe_to_fun (closure_operator α) (λ _, α → α) := ⟨λ c, c.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def simps.apply [preorder α] (f : closure_operator α) : α → α := f
@@ -258,8 +257,7 @@ instance [preorder α] : inhabited (lower_adjoint (id : α → α)) := ⟨lower_
 section preorder
 variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
-instance : has_coe_to_fun (lower_adjoint u) :=
-{ F := λ _, α → β, coe := to_fun }
+instance : has_coe_to_fun (lower_adjoint u) (λ _, α → β) := { coe := to_fun }
 
 /-- See Note [custom simps projection] -/
 def simps.apply : α → β := l

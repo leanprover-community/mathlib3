@@ -49,7 +49,7 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ X M, (finsupp.lift M R X).to_equiv.symm,
   hom_equiv_naturality_left_symm' := λ _ _ M f g,
   finsupp.lhom_ext' (λ x, linear_map.ext_ring
-    (finsupp.sum_map_domain_index_add_monoid_hom (λ y, ((smul_add_hom R ↥M).flip) (g y))).symm) }
+    (finsupp.sum_map_domain_index_add_monoid_hom (λ y, ((smul_add_hom R M).flip) (g y))).symm) }
 
 instance : is_right_adjoint (forget (Module.{u} R)) := ⟨_, adj R⟩
 
@@ -59,61 +59,72 @@ namespace free
 variables [comm_ring R]
 local attribute [ext] tensor_product.ext
 
+/-- (Implementation detail) The unitor for `free R`. -/
+def ε : 𝟙_ (Module.{u} R) ⟶ (free R).obj (𝟙_ (Type u)) :=
+finsupp.lsingle punit.star
+
+/-- (Implementation detail) The tensorator for `free R`. -/
+def μ (α β : Type u) : (free R).obj α ⊗ (free R).obj β ⟶ (free R).obj (α ⊗ β) :=
+(finsupp_tensor_finsupp' R α β).to_linear_map
+
+lemma μ_natural {X Y X' Y' : Type u} (f : X ⟶ Y) (g : X' ⟶ Y') :
+  ((free R).map f ⊗ (free R).map g) ≫ (μ R Y Y') =
+    (μ R X X') ≫ (free R).map (f ⊗ g) :=
+begin
+  intros,
+  ext x x' ⟨y, y'⟩,
+  dsimp [μ],
+  simp_rw [finsupp.map_domain_single, finsupp_tensor_finsupp'_single_tmul_single, mul_one,
+    finsupp.map_domain_single, category_theory.tensor_apply],
+end
+
+lemma left_unitality (X : Type u) :
+  (λ_ ((free R).obj X)).hom =
+  (ε R ⊗ 𝟙 ((free R).obj X)) ≫ μ R (𝟙_ (Type u)) X ≫ map (free R).obj (λ_ X).hom :=
+begin
+  intros,
+  ext,
+  dsimp [ε, μ],
+  simp_rw [finsupp_tensor_finsupp'_single_tmul_single,
+    Module.monoidal_category.left_unitor_hom_apply, finsupp.smul_single', mul_one,
+    finsupp.map_domain_single, category_theory.left_unitor_hom_apply],
+end
+
+lemma right_unitality (X : Type u) :
+  (ρ_ ((free R).obj X)).hom =
+  (𝟙 ((free R).obj X) ⊗ ε R) ≫ μ R X (𝟙_ (Type u)) ≫ map (free R).obj (ρ_ X).hom :=
+begin
+  intros,
+  ext,
+  dsimp [ε, μ],
+  simp_rw [finsupp_tensor_finsupp'_single_tmul_single,
+    Module.monoidal_category.right_unitor_hom_apply, finsupp.smul_single', mul_one,
+    finsupp.map_domain_single, category_theory.right_unitor_hom_apply],
+end
+
+lemma associativity (X Y Z : Type u) :
+  (μ R X Y ⊗ 𝟙 ((free R).obj Z)) ≫ μ R (X ⊗ Y) Z ≫ map (free R).obj (α_ X Y Z).hom =
+  (α_ ((free R).obj X) ((free R).obj Y) ((free R).obj Z)).hom ≫
+    (𝟙 ((free R).obj X) ⊗ μ R Y Z) ≫ μ R X (Y ⊗ Z) :=
+begin
+  intros,
+  ext,
+  dsimp [μ],
+  simp_rw [finsupp_tensor_finsupp'_single_tmul_single, finsupp.map_domain_single, mul_one,
+    category_theory.associator_hom_apply],
+end
+
 /-- The free R-module functor is lax monoidal. -/
 -- In fact, it's strong monoidal, but we don't yet have a typeclass for that.
 instance : lax_monoidal.{u} (free R).obj :=
 { -- Send `R` to `punit →₀ R`
-  ε := finsupp.lsingle punit.star,
+  ε := ε R,
   -- Send `(α →₀ R) ⊗ (β →₀ R)` to `α × β →₀ R`
-  μ := λ α β, (finsupp_tensor_finsupp' R α β).to_linear_map,
-  μ_natural' := begin
-    intros,
-    ext x x' ⟨y, y'⟩,
-    -- This is rather tedious: it's a terminal simp, with no arguments,
-    -- but between the four of them it is too slow.
-    simp only [tensor_product.mk_apply, mul_one, tensor_apply, monoidal_category.hom_apply,
-      Module.free_map, Module.coe_comp, map_functorial_obj,
-      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
-      function.comp_app,
-      finsupp.lmap_domain_apply, finsupp.map_domain_single,
-      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
-  end,
-  left_unitality' := begin
-    intros,
-    ext,
-    simp only [tensor_product.mk_apply, mul_one,
-      Module.id_apply, Module.free_map, Module.coe_comp, map_functorial_obj,
-      Module.monoidal_category.hom_apply, left_unitor_hom_apply,
-      Module.monoidal_category.left_unitor_hom_apply,
-      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
-      function.comp_app,
-      finsupp.lmap_domain_apply, finsupp.smul_single', finsupp.map_domain_single,
-      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
-  end,
-  right_unitality' := begin
-    intros,
-    ext,
-    simp only [tensor_product.mk_apply, mul_one,
-      Module.id_apply, Module.free_map, Module.coe_comp, map_functorial_obj,
-      Module.monoidal_category.hom_apply, right_unitor_hom_apply,
-      Module.monoidal_category.right_unitor_hom_apply,
-      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
-      function.comp_app,
-      finsupp.lmap_domain_apply, finsupp.smul_single', finsupp.map_domain_single,
-      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
-  end,
-  associativity' := begin
-    intros,
-    ext,
-    simp only [tensor_product.mk_apply, mul_one,
-      Module.id_apply, Module.free_map, Module.coe_comp, map_functorial_obj,
-      Module.monoidal_category.hom_apply, associator_hom_apply,
-      Module.monoidal_category.associator_hom_apply,
-      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
-      function.comp_app,
-      finsupp.lmap_domain_apply, finsupp.smul_single', finsupp.map_domain_single,
-      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
-  end, }
+  μ := μ R,
+  μ_natural' := λ X Y X' Y' f g, μ_natural R f g,
+  left_unitality' := left_unitality R,
+  right_unitality' := right_unitality R,
+  associativity' := associativity R, }
 
 end free
 

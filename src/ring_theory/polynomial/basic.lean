@@ -14,7 +14,7 @@ import ring_theory.polynomial.content
 # Ring-theoretic supplement of data.polynomial.
 
 ## Main results
-* `mv_polynomial.integral_domain`:
+* `mv_polynomial.is_domain`:
   If a ring is an integral domain, then so is its polynomial ring over finitely many variables.
 * `polynomial.is_noetherian_ring`:
   Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
@@ -434,17 +434,16 @@ begin
 end
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
-lemma is_integral_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
-  is_integral_domain (quotient (map C P : ideal (polynomial R))) :=
-ring_equiv.is_integral_domain (polynomial (quotient P))
-  (integral_domain.to_is_integral_domain (polynomial (quotient P)))
+lemma is_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
+  is_domain (quotient (map C P : ideal (polynomial R))) :=
+ring_equiv.is_domain (polynomial (quotient P))
   (polynomial_quotient_equiv_quotient_polynomial P).symm
 
 /-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
 lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
   is_prime (map C P : ideal (polynomial R)) :=
-(quotient.is_integral_domain_iff_prime (map C P : ideal (polynomial R))).mp
-  (is_integral_domain_map_C_quotient H)
+(quotient.is_domain_iff_prime (map C P : ideal (polynomial R))).mp
+  (is_domain_map_C_quotient H)
 
 /-- Given any ring `R` and an ideal `I` of `polynomial R`, we get a map `R → R[x] → R[x]/I`.
   If we let `R` be the image of `R` in `R[x]/I` then we also have a map `R[x] → R'[x]`.
@@ -540,7 +539,7 @@ begin
       rw [leading_coeff, nat_degree, hpdeg], refl } },
   { rintro ⟨p, hpI, hpdeg, rfl⟩,
     have : nat_degree p + (n - nat_degree p) = n,
-    { exact add_sub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
+    { exact add_tsub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
     refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right _ hpI⟩, _⟩,
     { apply le_trans (degree_mul_le _ _) _,
       apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
@@ -566,7 +565,7 @@ begin
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
   refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
-  rw [← with_bot.coe_add, add_sub_cancel_of_le H],
+  rw [← with_bot.coe_add, add_tsub_cancel_of_le H],
   exact le_refl _
 end
 
@@ -595,14 +594,14 @@ end ideal
 
 namespace polynomial
 @[priority 100]
-instance {R : Type*} [integral_domain R] [wf_dvd_monoid R] :
+instance {R : Type*} [comm_ring R] [is_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid (polynomial R) :=
 { well_founded_dvd_not_unit := begin
     classical,
     refine rel_hom.well_founded
       ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
       (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_5.well_founded_dvd_not_unit),
+        _inst_6.well_founded_dvd_not_unit),
     rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
     rw [polynomial.degree_mul, if_neg ane0],
     split_ifs with hac,
@@ -671,7 +670,7 @@ begin
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
     { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
-      rw [← with_bot.coe_add, add_sub_cancel_of_le, hn],
+      rw [← with_bot.coe_add, add_tsub_cancel_of_le, hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },
       rw [polynomial.leading_coeff_X_pow, mul_one],
       exact mt polynomial.leading_coeff_eq_zero.1 hq0 },
@@ -692,17 +691,20 @@ attribute [instance] polynomial.is_noetherian_ring
 
 namespace polynomial
 
-theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_degree_pos
+  {R : Type u} [comm_ring R] [is_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
 wf_dvd_monoid.exists_irreducible_factor
   (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
   (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
 
-theorem exists_irreducible_of_nat_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_nat_degree_pos
+  {R : Type u} [comm_ring R] [is_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.nat_degree) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_degree_le hf }
 
-theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [wf_dvd_monoid R]
+theorem exists_irreducible_of_nat_degree_ne_zero
+  {R : Type u} [comm_ring R] [is_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
@@ -806,9 +808,9 @@ instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
 
-lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
-  is_integral_domain (mv_polynomial (fin 0) R) :=
-ring_equiv.is_integral_domain R hR
+lemma is_domain_fin_zero (R : Type u) [comm_ring R] [is_domain R] :
+  is_domain (mv_polynomial (fin 0) R) :=
+ring_equiv.is_domain R
   ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans
     (mv_polynomial.is_empty_ring_equiv R pempty))
 
@@ -817,33 +819,31 @@ Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
 and then used to prove the general case without any finiteness hypotheses.
-See `mv_polynomial.integral_domain` for the general case. -/
-lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
-  ∀ (n : ℕ), is_integral_domain (mv_polynomial (fin n) R)
-| 0 := is_integral_domain_fin_zero R hR
+See `mv_polynomial.is_domain` for the general case. -/
+lemma is_domain_fin (R : Type u) [comm_ring R] [is_domain R] :
+  ∀ (n : ℕ), is_domain (mv_polynomial (fin n) R)
+| 0 := is_domain_fin_zero R
 | (n+1) :=
-  ring_equiv.is_integral_domain
-    (polynomial (mv_polynomial (fin n) R))
-    (is_integral_domain_fin n).polynomial
-    (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv
-
-lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
-  (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=
-@ring_equiv.is_integral_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
-  (mv_polynomial.is_integral_domain_fin _ hR _)
-  (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
+  begin
+    haveI := is_domain_fin n,
+    exact ring_equiv.is_domain
+      (polynomial (mv_polynomial (fin n) R))
+      (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv
+  end
 
 /-- Auxiliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
-This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
+This fact is proven by transport of structure from the `mv_polynomial.is_domain_fin`,
 and then used to prove the general case without finiteness hypotheses.
-See `mv_polynomial.integral_domain` for the general case. -/
-def integral_domain_fintype (R : Type u) (σ : Type v) [integral_domain R] [fintype σ] :
-  integral_domain (mv_polynomial σ R) :=
-@is_integral_domain.to_integral_domain _ _ $ mv_polynomial.is_integral_domain_fintype R σ $
-integral_domain.to_is_integral_domain R
+See `mv_polynomial.is_domain` for the general case. -/
+lemma is_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
+  [is_domain R] : is_domain (mv_polynomial σ R) :=
+@ring_equiv.is_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
+  (mv_polynomial.is_domain_fin _ _)
+  (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
 
-protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {R : Type u} [integral_domain R] {σ : Type v}
+protected theorem eq_zero_or_eq_zero_of_mul_eq_zero
+  {R : Type u} [comm_ring R] [is_domain R] {σ : Type v}
   (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=
 begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
@@ -852,15 +852,15 @@ begin
     rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) p *
     rename (subtype.map id (finset.subset_union_right s t) : {x // x ∈ t} → {x // x ∈ s ∪ t}) q = 0,
   { apply rename_injective _ subtype.val_injective, simpa using h },
-  letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
+  letI := mv_polynomial.is_domain_fintype R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
   cases this; [left, right],
   all_goals { simpa using congr_arg (rename subtype.val) this }
 end
 
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
-instance {R : Type u} {σ : Type v} [integral_domain R] :
-  integral_domain (mv_polynomial σ R) :=
+instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] :
+  is_domain (mv_polynomial σ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
   exists_pair_ne := ⟨0, 1, λ H,
   begin
@@ -997,7 +997,7 @@ end mv_polynomial
 namespace polynomial
 open unique_factorization_monoid
 
-variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
+variables {D : Type u} [comm_ring D] [is_domain D] [unique_factorization_monoid D]
 
 @[priority 100]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=

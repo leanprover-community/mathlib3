@@ -341,7 +341,7 @@ section coeff
 
 /-- The coefficient of the monomial `m` in the multi-variable polynomial `p`. -/
 def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ R) : R :=
-@coe_fn _ (monoid_algebra.has_coe_to_fun _ _) p m
+@coe_fn _ _ (monoid_algebra.has_coe_to_fun _ _) p m
 
 @[simp] lemma mem_support_iff {p : mv_polynomial σ R} {m : σ →₀ ℕ} :
   m ∈ p.support ↔ p.coeff m ≠ 0 :=

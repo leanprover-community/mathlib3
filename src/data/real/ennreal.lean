@@ -617,6 +617,10 @@ by simpa only [add_comm _ a] using le_of_add_le_add_left
 
 section mul
 
+-- TODO: why are the two covariant instances necessary? why aren't they inferred?
+instance : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
+canonically_ordered_comm_semiring.to_covariant_mul_le
+
 @[mono] lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
 mul_le_mul'
 
@@ -715,6 +719,9 @@ lemma add_left_inj (h : a ≠ ∞) : b + a = c + a ↔ b = c :=
 end cancel
 
 section sub
+
+instance covariant_class_add : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
 lemma sub_eq_Inf {a b : ℝ≥0∞} : a - b = Inf {d | a ≤ d + b} :=
 le_antisymm (le_Inf $ λ c, sub_le_iff_right.mpr) $ Inf_le le_sub_add

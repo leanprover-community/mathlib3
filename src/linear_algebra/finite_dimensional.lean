@@ -83,7 +83,7 @@ open cardinal submodule module function
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
 Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
-from a conventional definition. -/
+from a other definitions. -/
 @[reducible] def finite_dimensional (K V : Type*) [division_ring K]
   [add_comm_group V] [module K V] := module.finite K V
 

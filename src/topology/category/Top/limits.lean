@@ -5,8 +5,9 @@ Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
 import topology.category.Top.basic
 import category_theory.limits.types
-import category_theory.limits.preserves.basic
+import category_theory.limits.preserves.limits
 import category_theory.category.ulift
+import category_theory.limits.shapes.types
 
 /-!
 # The category of topological spaces has all limits and colimits
@@ -124,6 +125,65 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
   { preserves_colimit := λ F,
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
+
+lemma colimit_coinduced (F : J ⥤ Top.{u}) :
+  (colimit F).str = ⨆ j, (F.obj j).str.coinduced (colimit.ι F j) :=
+begin
+  let homeo := homeo_of_iso (colimit.iso_colimit_cocone ⟨_, colimit_cocone_is_colimit F⟩),
+  ext,
+  refine homeo.symm.is_open_preimage.symm.trans (iff.trans _ is_open_supr_iff.symm),
+  exact is_open_supr_iff
+end
+
+lemma colimit_is_open_iff (F : J ⥤ Top.{u}) (U : set ((colimit F : _) : Type u)) :
+  is_open U ↔ ∀ j, is_open (colimit.ι F j ⁻¹' U) :=
+begin
+  change (colimit F).str.is_open U ↔ _,
+  conv_lhs { rw colimit_coinduced F },
+  exact is_open_supr_iff
+end
+
+lemma coequalizer_is_open_iff (F : walking_parallel_pair ⥤ Top.{u})
+  (U : set ((colimit F : _) : Type u)) :
+  is_open U ↔ is_open (colimit.ι F walking_parallel_pair.one ⁻¹' U) :=
+begin
+  rw colimit_is_open_iff,
+  split,
+  { intro H, exact H _ },
+  { intros H j,
+    cases j,
+    rw ←colimit.w F walking_parallel_pair_hom.left,
+    exact (F.map walking_parallel_pair_hom.left).continuous_to_fun.is_open_preimage _ H,
+    exact H }
+end
+
+def coprod_iso_sigma {ι : Type u} (α : ι → Top) : ((∐ α : Top) : Type*) ≅ Σ i, α i :=
+begin
+  refine preserves_colimit_iso forget _ ≪≫
+    colim.map_iso (nat_iso.of_components _ _) ≪≫
+    colimit.iso_colimit_cocone (limits.types.coproduct_colimit_cocone (λ i, α i)),
+  exact λ i, iso.refl (α i),
+  intros _ _ _, tidy,
+end
+
+@[simp]
+lemma coprod_iso_sigma_hom_app {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
+  (coprod_iso_sigma α).hom ((sigma.ι α i : _) x) = ⟨i, x⟩ :=
+begin
+  change (@category_struct.comp (Type u) _ _ _ _ (sigma.ι α i : _ ⟶ ↥∐ α)
+    (coprod_iso_sigma α).hom) x = _,
+  delta coprod_iso_sigma sigma.ι,
+  simp only [iso.trans_hom, functor.map_iso_hom, ←category.assoc],
+  erw ι_preserves_colimits_iso_hom forget (discrete.functor α) i,
+  simpa only [colimit.ι_map, nat_iso.of_components.hom_app, category.assoc,
+    colimit.iso_colimit_cocone_ι_hom]
+end
+
+@[simp]
+lemma coprod_iso_sigma_inv_app {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
+  (coprod_iso_sigma α).inv ⟨i, x⟩ = (sigma.ι α i : _) x :=
+by rw [← coprod_iso_sigma_hom_app, hom_inv_id_apply]
+
 
 end Top
 

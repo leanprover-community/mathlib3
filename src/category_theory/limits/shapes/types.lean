@@ -227,6 +227,23 @@ def equalizer_limit : limits.limit_cone (parallel_pair g h) :=
 
 end fork
 
+section cofork
+variables {X Y Z : Type u} (f g : X ⟶ Y)
+
+inductive coequalizer_rel : Y → Y → Prop
+| rel (x : X) : coequalizer_rel (f x) (g x)
+
+def coequalizer_limit : limits.colimit_cocone (parallel_pair f g) :=
+{ cocone := cofork.of_π (quot.mk (coequalizer_rel f g))
+    (funext (λ x, quot.sound (coequalizer_rel.rel x))),
+  is_colimit := cofork.is_colimit.mk' _ $ λ s,
+    ⟨ quot.lift s.π (λ a b (h : coequalizer_rel f g a b),
+        by { cases h, exact congr_fun s.condition h_1 }),
+      rfl,
+      λ m hm, funext $ λ x, quot.induction_on x (congr_fun hm : _) ⟩ }
+
+end cofork
+
 section pullback
 open category_theory.limits.walking_pair
 open category_theory.limits.walking_cospan

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.bounds
 import data.set.bool
+import data.nat.basic
 
 /-!
 # Theory of complete lattices

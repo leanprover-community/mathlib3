@@ -488,7 +488,8 @@ begin
   exact le_antisymm (homogeneous_ideal.inf_subset HI HJ) (homogeneous_ideal.subset_inf HI HJ),
 end
 
-lemma homogeneous_ideal.Inf [add_comm_monoid ι] {ℐ : set (ideal (⨁ i, A i))} (HI : ∀ I ∈ ℐ, homogeneous_ideal I) :
+lemma homogeneous_ideal.Inf [add_comm_monoid ι] {ℐ : set (ideal (⨁ i, A i))} 
+  (HI : ∀ I ∈ ℐ, homogeneous_ideal I) :
   homogeneous_ideal (Inf ℐ) :=
 begin
   rw homogeneous_ideal_iff_homogeneous_ideal'',

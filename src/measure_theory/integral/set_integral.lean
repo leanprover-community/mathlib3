@@ -734,6 +734,8 @@ the composition, as we are dealing with classes of functions, but it has already
 as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 -/
 
+open_locale complex_conjugate
+
 variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   [normed_group F] [normed_space 𝕜 F]
   {p : ennreal}
@@ -832,7 +834,7 @@ lemma integral_im {f : α → 𝕜} (hf : integrable f μ) :
   ∫ a, is_R_or_C.im (f a) ∂μ = is_R_or_C.im ∫ a, f a ∂μ :=
 (@is_R_or_C.im_clm 𝕜 _).integral_comp_comm hf
 
-lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+lemma integral_conj {f : α → 𝕜} : ∫ a, conj (f a) ∂μ = conj ∫ a, f a ∂μ :=
 (@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :

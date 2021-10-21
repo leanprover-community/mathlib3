@@ -262,20 +262,3 @@ begin
   refine cInf_le_cSup _ _ (nonempty_interval.image _); rw h.image_interval_eq_Icc,
   exacts [bdd_below_Icc, bdd_above_Icc]
 end
-
-/-- **Intermediate value theorem**: if `f` is continuous on an unordered interval [a, b]` and `x`,
-`y` are two points of this interval, then `f` sends `[a, b]` to a superset of `[f x, f y]`. -/
-lemma continuous_on.interval_subset_image_interval
-  (h : continuous_on f [a, b]) (hx : x ∈ [a, b]) (hy : y ∈ [a, b]) :
-  [f x, f y] ⊆ f '' [a, b] :=
-begin
-  rw [h.image_interval, interval_subset_interval_iff_mem, ← h.image_interval],
-  exact ⟨mem_image_of_mem f hx, mem_image_of_mem f hy⟩
-end
-
-/-- **Intermediate value theorem**: if `f` is continuous on an unordered interval [a, b]` and `x`,
-`y` are two points of this interval, then `f` sends `[a, b]` to a superset of `[f x, f y]`. -/
-lemma continuous_on.surj_on_interval (h : continuous_on f [a, b]) (hx : x ∈ [a, b])
-  (hy : y ∈ [a, b]) :
-  surj_on f [a, b] [f x, f y] :=
-h.interval_subset_image_interval hx hy

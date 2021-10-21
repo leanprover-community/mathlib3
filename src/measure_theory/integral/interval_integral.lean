@@ -2289,7 +2289,7 @@ begin
     have h2x : f x ∈ I, { rw [← hI], exact mem_image_of_mem f (Ioo_subset_Icc_self hx) },
     have h2g : interval_integrable g volume (f a) (f x),
     { refine (hg.mono $ _).interval_integrable,
-      exact hf.interval_subset_image_interval left_mem_interval (Ioo_subset_Icc_self hx) },
+      exact hf.surj_on_interval left_mem_interval (Ioo_subset_Icc_self hx) },
     rw [hI] at hg,
     have h3g : measurable_at_filter g (𝓝[I] f x) volume :=
     hg.measurable_at_filter_nhds_within measurable_set_Icc (f x),
@@ -2340,7 +2340,7 @@ theorem integral_deriv_comp_smul_deriv' {f f' : ℝ → ℝ} {g g' : ℝ → E}
 begin
   rw [integral_comp_smul_deriv'' hf hff' hf' hg',
   integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
-  exact hf.interval_subset_image_interval left_mem_interval right_mem_interval,
+  exact intermediate_value_interval hf
 end
 
 theorem integral_deriv_comp_smul_deriv {f f' : ℝ → ℝ} {g g' : ℝ → E}

@@ -134,9 +134,9 @@ lemma map_frobenius_poly.key₂ {n i j : ℕ} (hi : i < n) (hj : j < p ^ (n - i)
 begin
   generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
   suffices : m ≤ n - i ∧ m ≤ j,
-  { rw [tsub_add_eq_add_tsub this.2, add_comm i j, add_tsub_assoc_of_le (this.1.trans (nat.sub_le n i)),
-      add_assoc, tsub_right_comm, add_comm i, tsub_add_cancel_of_le (le_tsub_of_add_le_right
-      ((le_tsub_iff_left hi.le).mp this.1))] },
+  { rw [tsub_add_eq_add_tsub this.2, add_comm i j,
+      add_tsub_assoc_of_le (this.1.trans (nat.sub_le n i)), add_assoc, tsub_right_comm, add_comm i,
+      tsub_add_cancel_of_le (le_tsub_of_add_le_right ((le_tsub_iff_left hi.le).mp this.1))] },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
         ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],

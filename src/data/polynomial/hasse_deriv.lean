@@ -64,7 +64,8 @@ begin
     rw [coeff_monomial],
     by_cases hik : i < k,
     { simp only [nat.choose_eq_zero_of_lt hik, if_t_t, nat.cast_zero, zero_mul], },
-    { push_neg at hik, rw if_neg, contrapose! hink, exact (tsub_eq_iff_eq_add_of_le hik).mp hink, } },
+    { push_neg at hik, rw if_neg, contrapose! hink,
+      exact (tsub_eq_iff_eq_add_of_le hik).mp hink, } },
   { intro h, simp only [not_mem_support_iff.mp h, monomial_zero_right, mul_zero, coeff_zero] }
 end
 
@@ -187,8 +188,9 @@ begin
     { simp only [nat.choose_eq_zero_of_lt hn, nat.cast_zero,
         zero_mul, mul_zero, monomial_zero_right], },
     push_neg at hm hn,
-    rw [tsub_add_eq_add_tsub hm, ← add_tsub_assoc_of_le hn, ← tsub_add_eq_tsub_tsub, add_comm x.2 x.1,
-      mul_assoc, ← mul_assoc r, ← (nat.cast_commute _ r).eq, mul_assoc, mul_assoc], },
+    rw [tsub_add_eq_add_tsub hm, ← add_tsub_assoc_of_le hn, ← tsub_add_eq_tsub_tsub,
+      add_comm x.2 x.1, mul_assoc, ← mul_assoc r, ← (nat.cast_commute _ r).eq, mul_assoc,
+      mul_assoc], },
   conv_rhs { apply_congr, skip, rw aux _ H, },
   rw_mod_cast [← linear_map.map_sum, ← finset.sum_mul, ← nat.add_choose_eq],
 end

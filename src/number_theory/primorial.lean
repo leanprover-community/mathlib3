@@ -60,7 +60,7 @@ begin
   have t : ¬(p ∣ (2 * m + 1 - (m + 1))!),
   { intros p_div_fact,
     have p_small : p ≤ 2 * m + 1 - (m + 1) := (prime.dvd_factorial is_prime).mp p_div_fact,
-    have t : 2 * m + 1 - (m + 1) = m, by { norm_num, rw two_mul m, exact add_tsub_cancel_right m m, },
+    have t : 2 * m + 1 - (m + 1) = m, { norm_num, rw two_mul m, exact add_tsub_cancel_right m m, },
     rw t at p_small,
     obtain p_lt_m | rfl | m_lt_p : _ := lt_trichotomy p m,
     { have r : m < m + 1 := lt_add_one m, linarith, },

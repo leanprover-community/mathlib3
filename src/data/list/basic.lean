@@ -1181,7 +1181,8 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
 | (a :: l) _ (n+1) h₁ h₂ :=
   begin
     dsimp,
-    conv { to_rhs, congr, skip, rw [tsub_add_eq_tsub_tsub, tsub_right_comm, add_tsub_cancel_right], },
+    conv { to_rhs, congr, skip,
+      rw [tsub_add_eq_tsub_tsub, tsub_right_comm, add_tsub_cancel_right], },
     rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
   end
 

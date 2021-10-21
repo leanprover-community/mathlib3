@@ -121,7 +121,8 @@ p.radius_eq_top_of_forall_nnreal_is_O $
   λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simp [hn]) eventually_eq.rfl
 
 lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ∞ :=
-p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2 ⟨n, λ k hk, tsub_add_cancel_of_le hk ▸ hn _⟩
+p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2
+  ⟨n, λ k hk, tsub_add_cancel_of_le hk ▸ hn _⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
 for some `0 < a < 1`, `∥p n∥ rⁿ = o(aⁿ)`. -/

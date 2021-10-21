@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.coset
-import set_theory.cardinal
+import group_theory.quotient_group
+import set_theory.fincard
 
 /-!
 # Index of a Subgroup
@@ -31,13 +31,15 @@ In this file we define the index of a subgroup, and prove several divisibility p
 
 namespace subgroup
 
+open_locale cardinal
+
 variables {G : Type*} [group G] (H K L : subgroup G)
 
 /-- The index of a subgroup as a natural number, and returns 0 if the index is infinite. -/
 @[to_additive "The index of a subgroup as a natural number,
 and returns 0 if the index is infinite."]
 noncomputable def index : ℕ :=
-(cardinal.mk (quotient_group.quotient H)).to_nat
+nat.card (quotient_group.quotient H)
 
 /-- The relative index of a subgroup as a natural number,
   and returns 0 if the relative index is infinite. -/
@@ -90,17 +92,41 @@ end
 
 variables (H K L)
 
+@[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
+cardinal.to_nat_eq_one_iff_unique.mpr ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩
+
+@[simp, to_additive] lemma index_bot : (⊥ : subgroup G).index = nat.card G :=
+cardinal.to_nat_congr (quotient_group.quotient_bot.to_equiv)
+
+@[to_additive] lemma index_bot_eq_card [fintype G] : (⊥ : subgroup G).index = fintype.card G :=
+index_bot.trans nat.card_eq_fintype_card
+
+@[simp, to_additive] lemma relindex_top_left : (⊤ : subgroup G).relindex H = 1 :=
+index_top
+
+@[simp, to_additive] lemma relindex_top_right : H.relindex ⊤ = H.index :=
+by rw [←relindex_mul_index (show H ≤ ⊤, from le_top), index_top, mul_one]
+
+@[simp, to_additive] lemma relindex_bot_left : (⊥ : subgroup G).relindex H = nat.card H :=
+by rw [relindex, bot_subgroup_of, index_bot]
+
+@[to_additive] lemma relindex_bot_left_eq_card [fintype H] :
+  (⊥ : subgroup G).relindex H = fintype.card H :=
+H.relindex_bot_left.trans nat.card_eq_fintype_card
+
+@[simp, to_additive] lemma relindex_bot_right : H.relindex ⊥ = 1 :=
+by rw [relindex, subgroup_of_bot_eq_top, index_top]
+
+@[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
+by rw [relindex, subgroup_of_self, index_top]
+
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
-cardinal.mk_to_nat_eq_card
+nat.card_eq_fintype_card
 
 @[to_additive] lemma index_mul_card [fintype G] [hH : fintype H] :
   H.index * fintype.card H = fintype.card G :=
-begin
-  classical,
-  rw H.index_eq_card,
-  apply H.card_eq_card_quotient_mul_card_subgroup.symm,
-end
+by rw [←relindex_bot_left_eq_card, ←index_bot_eq_card, mul_comm]; exact relindex_mul_index bot_le
 
 @[to_additive] lemma index_dvd_card [fintype G] : H.index ∣ fintype.card G :=
 begin

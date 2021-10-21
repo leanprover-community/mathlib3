@@ -84,8 +84,8 @@ namespace ring_of_integers
 
 variables [algebra (polynomial Fq) F]
 
-instance : integral_domain (ring_of_integers Fq F) :=
-(ring_of_integers Fq F).integral_domain
+instance : is_domain (ring_of_integers Fq F) :=
+(ring_of_integers Fq F).is_domain
 
 instance : is_integral_closure (ring_of_integers Fq F) (polynomial Fq) F :=
 integral_closure.is_integral_closure _ _

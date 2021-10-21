@@ -44,7 +44,7 @@ and Chris Hughes (on an earlier repository).
 noncomputable theory
 open_locale classical
 
-universe variables u v
+universes u v
 
 variables (R : Type u) [comm_ring R]
 

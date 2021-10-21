@@ -215,33 +215,33 @@ instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
 
 instance decidable_eq_embedding_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ↪ β) :=
-λ a b, decidable_of_iff (⇑a = b) function.embedding.coe_injective.eq_iff
+λ a b, decidable_of_iff ((a : α → β) = b) function.embedding.coe_injective.eq_iff
 
 @[to_additive]
 instance decidable_eq_one_hom_fintype [decidable_eq β] [fintype α] [has_one α] [has_one β]:
   decidable_eq (one_hom α β) :=
-λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff one_hom.coe_inj)
+λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff one_hom.coe_inj)
 
 @[to_additive]
 instance decidable_eq_mul_hom_fintype [decidable_eq β] [fintype α] [has_mul α] [has_mul β]:
   decidable_eq (mul_hom α β) :=
-λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff mul_hom.coe_inj)
+λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff mul_hom.coe_inj)
 
 @[to_additive]
 instance decidable_eq_monoid_hom_fintype [decidable_eq β] [fintype α]
   [mul_one_class α] [mul_one_class β]:
   decidable_eq (α →* β) :=
-λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff monoid_hom.coe_inj)
+λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_hom.coe_inj)
 
 instance decidable_eq_monoid_with_zero_hom_fintype [decidable_eq β] [fintype α]
   [mul_zero_one_class α] [mul_zero_one_class β]:
   decidable_eq (monoid_with_zero_hom α β) :=
-λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff monoid_with_zero_hom.coe_inj)
+λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_with_zero_hom.coe_inj)
 
 instance decidable_eq_ring_hom_fintype [decidable_eq β] [fintype α]
   [semiring α] [semiring β]:
   decidable_eq (α →+* β) :=
-λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff ring_hom.coe_inj)
+λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff ring_hom.coe_inj)
 
 end bundled_homs
 

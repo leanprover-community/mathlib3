@@ -522,7 +522,7 @@ begin
   { rintros ⟨w, hw⟩,
     use (units_equiv 𝕜 E w).trans e,
     ext x,
-    simp [hw] }
+    simp [coe_fn_coe_base' w, hw] }
 end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :

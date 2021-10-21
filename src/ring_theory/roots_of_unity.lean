@@ -140,7 +140,7 @@ rfl
   (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
 rfl
 
-variables [integral_domain R]
+variables [is_domain R]
 
 lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : units R} :
   ζ ∈ roots_of_unity k R ↔ (ζ : R) ∈ nth_roots k (1 : R) :=
@@ -187,7 +187,7 @@ instance roots_of_unity.fintype : fintype (roots_of_unity k R) :=
 fintype.of_equiv {x // x ∈ nth_roots k (1 : R)} $ (roots_of_unity_equiv_nth_roots R k).symm
 
 instance roots_of_unity.is_cyclic : is_cyclic (roots_of_unity k R) :=
-is_cyclic_of_subgroup_integral_domain ((units.coe_hom R).comp (roots_of_unity k R).subtype)
+is_cyclic_of_subgroup_is_domain ((units.coe_hom R).comp (roots_of_unity k R).subtype)
   (units.ext.comp subtype.val_injective)
 
 lemma card_roots_of_unity : fintype.card (roots_of_unity k R) ≤ k :=
@@ -223,10 +223,10 @@ variables {k : ℕ}
 
 /-- `primitive_roots k R` is the finset of primitive `k`-th roots of unity
 in the integral domain `R`. -/
-def primitive_roots (k : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : finset R :=
+def primitive_roots (k : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 (nth_roots k (1 : R)).to_finset.filter (λ ζ, is_primitive_root ζ k)
 
-variables [comm_ring R] [integral_domain R]
+variables [comm_ring R] [is_domain R]
 
 @[simp] lemma mem_primitive_roots {ζ : R} (h0 : 0 < k) :
   ζ ∈ primitive_roots k R ↔ is_primitive_root ζ k :=
@@ -281,7 +281,7 @@ begin
   wlog hij : i ≤ j,
   apply le_antisymm hij,
   rw ← nat.sub_eq_zero_iff_le,
-  apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt sub_le_self' hj),
+  apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt tsub_le_self hj),
   apply h.dvd_of_pow_eq_one,
   rw [← ((h.is_unit (lt_of_le_of_lt (nat.zero_le _) hi)).pow i).mul_left_inj,
       ← pow_add, nat.sub_add_cancel hij, H, one_mul]
@@ -441,10 +441,10 @@ end
 
 end comm_group_with_zero
 
-section integral_domain
+section is_domain
 
 variables {ζ : R}
-variables [comm_ring R] [integral_domain R]
+variables [comm_ring R] [is_domain R]
 
 @[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
 begin
@@ -488,9 +488,9 @@ begin
   { simp only [h.pow_eq_one, one_pow] }
 end
 
-end integral_domain
+end is_domain
 
-section integral_domain
+section is_domain
 
 variables [comm_ring R]
 variables {ζ : units R} (h : is_primitive_root ζ k)
@@ -571,7 +571,7 @@ begin
   exact h.dvd_of_pow_eq_one _ hl
 end
 
-variables [integral_domain R]
+variables [is_domain R]
 
 lemma gpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
   subgroup.gpowers ζ = roots_of_unity k R :=
@@ -780,7 +780,7 @@ lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
 @nth_roots_one_eq_bUnion_primitive_roots' _ _ _ _ ⟨n, hpos⟩ h
 
-end integral_domain
+end is_domain
 
 section minpoly
 
@@ -822,7 +822,7 @@ begin
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   by_contra hzero,
-  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero))
+  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero)
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is squarefree. -/
@@ -909,7 +909,7 @@ begin
   have hfree : squarefree (X ^ n - 1 : polynomial (zmod p)),
   { refine squarefree_X_pow_sub_C 1 _ one_ne_zero,
     by_contra hzero,
-    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },
+    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero) },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
   { rw nat.cast_one at habs, exact hle.not_lt habs },

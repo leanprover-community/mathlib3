@@ -620,8 +620,8 @@ begin
   -- A function `F` associating to `p : GH_space` the data of all distances between points
   -- in the `ε`-dense set `s p`.
   let F : GH_space → Σn:ℕ, (fin n → fin n → ℤ) :=
-    λ p, ⟨N p, λ a b, floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⟩,
-  refine ⟨_, by apply_instance, F, λ p q hpq, _⟩,
+    λp, ⟨N p, λa b, ⌊ε⁻¹ * dist ((E p).symm a) ((E p).symm b)⌋⟩,
+  refine ⟨Σ n, fin n → fin n → ℤ, by apply_instance, F, λp q hpq, _⟩,
   /- As the target space of F is countable, it suffices to show that two points
   `p` and `q` with `F p = F q` are at distance `≤ δ`.
   For this, we construct a map `Φ` from `s p ⊆ p.rep` (representing `p`)
@@ -769,7 +769,7 @@ begin
     λ p, ⟨⟨N p, lt_of_le_of_lt (hN p) (nat.lt_succ_self _)⟩,
          λ a b, ⟨min M ⌊(ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⌋₊,
                 ( min_le_left _ _).trans_lt (nat.lt_succ_self _) ⟩ ⟩,
-  refine ⟨_, by apply_instance, (λ p, F p), _⟩,
+  refine ⟨_, _, (λ p, F p), _⟩, apply_instance,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,
   have Npq : N p = N q := (fin.ext_iff _ _).1 (sigma.mk.inj_iff.1 hpq).1,

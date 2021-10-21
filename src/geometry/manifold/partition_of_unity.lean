@@ -122,8 +122,9 @@ namespace smooth_partition_of_unity
 
 variables {s : set M} (f : smooth_partition_of_unity ι I M s)
 
-instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s) :=
-⟨λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯, smooth_partition_of_unity.to_fun⟩
+instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s)
+  (λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) :=
+⟨smooth_partition_of_unity.to_fun⟩
 
 protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
 f.locally_finite'
@@ -206,7 +207,9 @@ namespace smooth_bump_covering
 
 variables {s : set M} {U : M → set M} (fs : smooth_bump_covering ι I M s) {I}
 
-instance : has_coe_to_fun (smooth_bump_covering ι I M s) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (smooth_bump_covering ι I M s)
+  (λ x, Π (i : ι), smooth_bump_function I (x.c i)) :=
+⟨to_fun⟩
 
 @[simp] lemma coe_mk (c : ι → M) (to_fun : Π i, smooth_bump_function I (c i))
   (h₁ h₂ h₃) : ⇑(mk c to_fun h₁ h₂ h₃ : smooth_bump_covering ι I M s) = to_fun :=

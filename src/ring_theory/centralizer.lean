@@ -17,4 +17,10 @@ def centralizer (r : R) : subring R :=
 
 @[simp] lemma mem_centralizer (r x : R) : x ∈ centralizer r ↔ r * x = x * r := iff.rfl
 
+lemma center_le_centralizer (r : R) : center R ≤ centralizer r := λ x hx, hx r
+
+lemma mem_center_of_centralizer_eq_top {r : R} (h : centralizer r = ⊤) :
+  r ∈ center R :=
+λ x, eq.symm $ show x ∈ centralizer r, by { rw h, exact mem_top x }
+
 end subring

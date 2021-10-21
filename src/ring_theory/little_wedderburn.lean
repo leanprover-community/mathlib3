@@ -10,6 +10,18 @@ open_locale classical nnreal big_operators
 lemma fintype.card_pos (X : Type*) [h : nonempty X] [fintype X] : 0 < fintype.card X :=
 fintype.card_pos_iff.mpr h
 
+lemma int.dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
+begin
+  by_cases ha : a = 0, { simp only [ha, euclidean_domain.div_zero, dvd_zero] },
+  rcases h with ⟨d, rfl⟩,
+  refine ⟨d, _⟩,
+  rw [mul_assoc, mul_comm a, int.mul_div_cancel _ ha],
+end
+
+lemma finset.prod_dvd_prod_of_subset {ι M : Type*} [comm_monoid M] (s t : finset ι) (f : ι → M)
+  (h : s ⊆ t) : ∏ i in s, f i ∣ ∏ i in t, f i :=
+by { rw [← finset.prod_sdiff h], exact dvd_mul_left _ _ }
+
 -- move this
 @[simps] def complex.abs_hom : ℂ →* ℝ :=
 { to_fun := complex.abs,
@@ -57,6 +69,10 @@ complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
 
 lemma fintype.card_conj_act (G : Type*) [fintype G] : fintype.card (conj_act G) = fintype.card G :=
 rfl
+
+/-- The ring homomorphism associated to an inclusion of subrings. -/
+def subring.inclusion' {R : Type*} [ring R] {S T : subring R} (h : S ≤ T) : S →+* T :=
+S.subtype.cod_restrict' _ (λ x, h x.2)
 
 namespace polynomial
 
@@ -127,11 +143,72 @@ begin
     refine (hζ.pow_ne_one_of_pos_of_lt zero_lt_one hn _).elim, rw pow_one },
   { refine (ne_of_lt _ norm_ζ).elim, nlinarith }
 end
+.
+
+lemma cyclotomic_eval_dvd_pow_sub_one_div_pow_sub_one_of_dvd (q d n : ℕ)
+  (hd : d ∣ n) (hd0 : d ≠ 0) (hdn : d < n) :
+  (cyclotomic n ℤ).eval q ∣ (q ^ n - 1) / (q ^ d - 1) :=
+begin
+  have h0d : 0 < d := hd0.bot_lt,
+  have h0n : 0 < n := h0d.trans hdn,
+  apply int.dvd_div_of_mul_dvd,
+  have aux : ∀ k:ℕ, ((X : polynomial ℤ) ^ k - 1).eval q = q ^ k - 1,
+  { intro, simp only [eval_X, eval_one, eval_pow, eval_sub], },
+  rw [← aux, ← aux, ← eval_mul],
+  apply (eval_ring_hom (q : ℤ)).map_dvd,
+  rw [← prod_cyclotomic_eq_X_pow_sub_one h0d, ← prod_cyclotomic_eq_X_pow_sub_one h0n,
+    mul_comm, ← @finset.prod_insert _ _ d.divisors n (λ k, cyclotomic k ℤ)],
+  swap, { intro h, exact not_le_of_lt hdn (nat.divisor_le h), },
+  apply finset.prod_dvd_prod_of_subset,
+  intros k hk,
+  simp only [nat.mem_divisors, ne.def, finset.mem_insert] at hk ⊢,
+  rcases hk with (rfl|⟨H1, H2⟩),
+  { exact ⟨dvd_rfl, h0n.ne'⟩ },
+  { exact ⟨H1.trans hd, h0n.ne'⟩ }
+end
 
 end cyclotomic
 
 variables (D : Type*) [division_ring D] [fintype D]
+variables {R : Type*} [ring R]
 variables {D}
+
+def units_centralizer_to_stabilizer (x : units D) :
+  units (subring.centralizer (x : D)) → mul_action.stabilizer (conj_act $ units D) x :=
+λ u, ⟨conj_act.to_conj_act (units.map (subring.centralizer (x:D)).subtype.to_monoid_hom u),
+  by { show _ • _ = _, rw conj_act.smul_def,
+    simp only [conj_act.of_conj_act_to_conj_act, ring_hom.to_monoid_hom_eq_coe],
+    rw mul_inv_eq_iff_eq_mul, ext, exact u.1.2.symm, }⟩
+
+def stabilizer_units_to_centralizer (x : units D) :
+  mul_action.stabilizer (conj_act $ units D) x → subring.centralizer (x : D) :=
+λ u, ⟨↑(conj_act.of_conj_act u.1 : units D),
+  by { show _ = _, have : _ • _ = _ := u.2,
+    rw [conj_act.smul_def, mul_inv_eq_iff_eq_mul, units.ext_iff] at this,
+    exact this.symm }⟩
+
+def stabilizer_units_to_units_centralizer (x : units D) :
+  mul_action.stabilizer (conj_act $ units D) x → units (subring.centralizer (x : D)) :=
+λ u, ⟨stabilizer_units_to_centralizer x u,
+      stabilizer_units_to_centralizer x u⁻¹,
+      by { ext, simp only [stabilizer_units_to_centralizer, conj_act.of_conj_act_inv,
+        subring.coe_mul, set_like.coe_mk, subring.coe_one, units.coe_inv',
+        subgroup.coe_inv, units.mul_inv', subtype.val_eq_coe], },
+      by { ext, simp only [stabilizer_units_to_centralizer, conj_act.of_conj_act_inv,
+        subring.coe_mul, set_like.coe_mk, subring.coe_one, units.coe_inv',
+        units.inv_mul', subgroup.coe_inv, subtype.val_eq_coe], }⟩
+
+def units_centralizer_equiv (x : units D) :
+  units (subring.centralizer (x : D)) ≃* mul_action.stabilizer (conj_act $ units D) x :=
+{ to_fun := units_centralizer_to_stabilizer x,
+  inv_fun := stabilizer_units_to_units_centralizer x,
+  left_inv := λ u, by { ext, refl },
+  right_inv := λ u, by { ext, refl },
+  map_mul' := λ x y, by { ext, refl } }
+
+lemma mem_center_units_of_coe_mem_center (x : units R) (h : (x : R) ∈ subring.center R) :
+  x ∈ subgroup.center (units R) :=
+λ y, units.ext $ h y
 
 @[simps]
 def center_units_to_center (u : subgroup.center (units D)) : subring.center D :=
@@ -162,6 +239,7 @@ def center_units_equiv_units_center :
   left_inv := λ u, by { ext, refl },
   right_inv := λ u, by { ext, refl },
   map_mul' := λ x y, by { ext, refl } }
+.
 
 def induction_hyp : Prop :=
 ∀ R : subring D, R < ⊤ → ∀ ⦃x y⦄, x ∈ R → y ∈ R → x * y = y * x
@@ -219,10 +297,65 @@ begin
   apply finset.dvd_sum,
   rintro ⟨x⟩ hx,
   simp only [int.nat_cast_eq_coe_nat, conj_classes.quot_mk_eq_mk],
-  rw [card_carrier, fintype.card_conj_act, finite_field.card_units, card_D],
-  sorry
+  rw [card_carrier, fintype.card_conj_act, finite_field.card_units, card_D,
+    ← fintype.card_congr (units_centralizer_equiv x).to_equiv],
+  set Zx := subring.centralizer (x:D),
+  have hZx : Zx < ⊤,
+  { rw lt_top_iff_ne_top, intro hZx,
+    have Hx := mem_center_units_of_coe_mem_center _
+      (subring.mem_center_of_centralizer_eq_top hZx),
+    simp only [set.mem_to_finset, conj_classes.quot_mk_eq_mk] at hx,
+    exact (conj_classes.mk_bij_on (units D)).1 Hx hx },
+  letI : field Zx := hD.field _ hZx,
+  letI : algebra Z Zx := (subring.inclusion' $ subring.center_le_centralizer (x : D)).to_algebra,
+  let d := finrank Z Zx,
+  have card_Zx : fintype.card Zx = q ^ d := card_eq_pow_finrank,
+  have h1qd : 1 ≤ q ^ d, { rw ← card_Zx, exact fintype.card_pos _ },
+  haveI : is_scalar_tower Z Zx D := ⟨λ x y z, mul_assoc _ _ _⟩,
+  have hdn : d ∣ n := ⟨_, (finrank_mul_finrank Z Zx D).symm⟩,
+  rw [finite_field.card_units, card_Zx, int.coe_nat_div],
+  simp only [←int.nat_cast_eq_coe_nat, nat.cast_sub h1qd, nat.cast_sub h1qn,
+    nat.cast_one, nat.cast_pow],
+  simp only [int.nat_cast_eq_coe_nat],
+  apply cyclotomic_eval_dvd_pow_sub_one_div_pow_sub_one_of_dvd _ _ _ hdn,
+  { apply ne_of_gt, exact finrank_pos },
+  rw [← (nat.pow_right_strict_mono hq).lt_iff_lt],
+  dsimp,
+  rw [← card_D, ← card_Zx],
+  obtain ⟨b, -, hb⟩ := set_like.exists_of_lt hZx,
+  refine fintype.card_lt_of_injective_of_not_mem _ subtype.val_injective _,
+  exact b,
+  simp only [not_exists, set.mem_range, subtype.val_eq_coe],
+  rintro y rfl, exact hb y.2
 end
 
 end induction_hyp
 
+lemma center_eq_top : subring.center D = ⊤ :=
+begin
+  suffices : ∀ (n : ℕ) (D : Type*) [division_ring D] [fintype D],
+    by exactI fintype.card D ≤ n → subring.center D = ⊤,
+  { exact this _ D le_rfl },
+  unfreezingI { clear_dependent D },
+  intro n, apply nat.strong_induction_on n, clear n,
+  introsI n IH D _D_dr _D_fin hD,
+  apply induction_hyp.center_eq_top,
+  intros R hR x y hx hy,
+  suffices : (⟨y,hy⟩ : R) ∈ subring.center R,
+  { exact congr_arg subtype.val (this ⟨x, hx⟩), },
+  letI R_dr : division_ring R := division_ring_of_domain R,
+  rw IH (fintype.card R) _ R le_rfl, { trivial },
+  obtain ⟨b, -, hb⟩ := set_like.exists_of_lt hR,
+  refine lt_of_lt_of_le (fintype.card_lt_of_injective_of_not_mem _ subtype.val_injective _) hD,
+  exact b,
+  simp only [not_exists, set.mem_range, subtype.val_eq_coe],
+  rintro y rfl, exact hb y.2
+end
+
 end little_wedderburn
+
+def little_wedderburn (D : Type*) [hD : division_ring D] [fintype D] :
+  field D :=
+{ mul_comm := λ x y, suffices y ∈ subring.center D, from this x,
+  by { rw little_wedderburn.center_eq_top, trivial },
+  .. hD }

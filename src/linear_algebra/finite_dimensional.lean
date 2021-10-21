@@ -114,6 +114,22 @@ lemma of_fintype_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
   finite_dimensional K V :=
 ⟨⟨finset.univ.image h, by { convert h.span_eq, simp } ⟩⟩
 
+/-- If a vector space is `finite_dimensional`, all bases are indexed by a finite type -/
+noncomputable
+lemma fintype_basis_index {ι : Type*} [finite_dimensional K V] (b : basis ι K V) : fintype ι :=
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact is_noetherian.fintype_basis_index b,
+end
+
+/-- If a vector space is `finite_dimensional`, `basis.of_vector_space` is indexed by
+  a finite type.-/
+noncomputable instance [finite_dimensional K V] : fintype (basis.of_vector_space_index K V) :=
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  apply_instance
+end
+
 /-- If a vector space has a basis indexed by elements of a finite set, then it is
 finite-dimensional. -/
 lemma of_finite_basis {ι : Type w} {s : set ι} (h : basis s K V) (hs : set.finite s) :

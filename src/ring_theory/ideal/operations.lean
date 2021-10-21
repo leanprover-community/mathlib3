@@ -327,16 +327,7 @@ end
 
 lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
   (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
-begin
-  letI := classical.dec_eq ι,
-  refine finset.induction_on s _ _,
-  { simp },
-  { intros _ _ H ih,
-    rw [finset.prod_insert H, finset.prod_insert H, ih, ideal.span_mul_span],
-    congr' 1,
-    ext x,
-    simp [set.mem_mul, eq_comm] }
-end
+by rw [prod_span, set.finset_prod_singleton]
 
 lemma infi_span_singleton {ι : Type*} [fintype ι] (I : ι → R)
   (hI : ∀ i j (hij : i ≠ j), is_coprime (I i) (I j)):

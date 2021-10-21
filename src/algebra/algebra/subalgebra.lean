@@ -372,6 +372,10 @@ instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divi
   [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
 S.to_subsemiring.no_zero_divisors
 
+instance domain {R A : Type*} [comm_ring R] [ring A] [domain A] [algebra R A]
+  (S : subalgebra R A) : domain S :=
+subring.domain S.to_subring
+
 instance integral_domain {R A : Type*} [comm_ring R] [comm_ring A] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
 subring.integral_domain S.to_subring

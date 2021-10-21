@@ -55,7 +55,7 @@ namespace affine_equiv
 
 include V₁ V₂
 
-instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) (λ _, P₁ → P₂) := ⟨λ e, e.to_fun⟩
 
 instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ ≃ P₂) := ⟨affine_equiv.to_equiv⟩
 
@@ -121,7 +121,7 @@ to_affine_map_injective $ affine_map.ext h
 lemma coe_fn_injective : @injective (P₁ ≃ᵃ[k] P₂) (P₁ → P₂) coe_fn :=
 λ e e' H, ext $ congr_fun H
 
-@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : ⇑e = e' ↔ e = e' :=
+@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : (e : P₁ → P₂) = e' ↔ e = e' :=
 coe_fn_injective.eq_iff
 
 lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁ ≃ P₂)) :=

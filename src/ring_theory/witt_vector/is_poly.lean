@@ -158,7 +158,7 @@ end interactive
 end tactic
 
 namespace witt_vector
-universe variable u
+universe u
 
 variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 
@@ -349,8 +349,9 @@ begin
   simp only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
 end
 
-namespace tactic
 open tactic
+
+namespace tactic
 
 /-!
 ### The `@[is_poly]` attribute

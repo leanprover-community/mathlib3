@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.int.interval
-import topology.algebra.ordered.basic
+import topology.algebra.ordered.compact
 import topology.metric_space.emetric_space
 
 /-!
@@ -1198,7 +1198,7 @@ lemma nnreal.nndist_eq (a b : ℝ≥0) :
 begin
   wlog h : a ≤ b,
   { apply nnreal.coe_eq.1,
-    rw [sub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
+    rw [tsub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
       nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
     apply max_eq_right,
     linarith [nnreal.coe_le_coe.2 h] },
@@ -1431,6 +1431,14 @@ for a version assuming `0 ≤ r` instead of `nonempty β`. -/
 lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
   closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 (le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
+
+lemma real.dist_le_of_mem_pi_Icc {x y x' y' : β → ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
+  dist x y ≤ dist x' y' :=
+begin
+  refine (dist_pi_le_iff dist_nonneg).2 (λ b, (real.dist_le_of_mem_interval _ _).trans
+    (dist_le_pi_dist _ _ b)); refine Icc_subset_interval _,
+  exacts [⟨hx.1 _, hx.2 _⟩, ⟨hy.1 _, hy.2 _⟩]
+end
 
 end pi
 
@@ -2045,6 +2053,21 @@ def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
 instance metric_space.to_emetric_space : emetric_space γ :=
 { eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
   ..pseudo_metric_space.to_pseudo_emetric_space, }
+
+lemma is_closed_of_pairwise_on_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
+  (hs : pairwise_on s (λ x y, ε ≤ dist x y)) : is_closed s :=
+is_closed_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hs
+
+lemma closed_embedding_of_pairwise_le_dist {α : Type*} [topological_space α] [discrete_topology α]
+  {ε : ℝ} (hε : 0 < ε) {f : α → γ} (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) :
+  closed_embedding f :=
+closed_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
+
+/-- If `f : β → α` sends any two distinct points to points at distance at least `ε > 0`, then
+`f` is a uniform embedding with respect to the discrete uniformity on `β`. -/
+lemma uniform_embedding_bot_of_pairwise_le_dist {β : Type*} {ε : ℝ} (hε : 0 < ε) {f : β → α}
+  (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) : @uniform_embedding _ _ ⊥ (by apply_instance) f :=
+uniform_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
 
 end metric
 

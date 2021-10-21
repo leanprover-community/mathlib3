@@ -72,7 +72,7 @@ structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)
 
-instance : has_coe_to_fun (path x y) := ⟨_, λ p, p.to_fun⟩
+instance : has_coe_to_fun (path x y) (λ _, I → X) := ⟨λ p, p.to_fun⟩
 
 @[ext] protected lemma path.ext {X : Type*} [topological_space X] {x y : X} :
   ∀ {γ₁ γ₂ : path x y}, (γ₁ : I → X) = γ₂ → γ₁ = γ₂
@@ -124,6 +124,9 @@ by simp [path.refl, has_coe_to_fun.coe, coe_fn]
   continuous_to_fun := by continuity,
   source'       := by simpa [-path.target] using γ.target,
   target'      := by simpa [-path.source] using γ.source }
+
+@[simp] lemma symm_symm {γ : path x y} : γ.symm.symm = γ :=
+by { ext, simp }
 
 @[simp] lemma refl_symm {X : Type*} [topological_space X] {a : X} :
   (path.refl a).symm = path.refl a :=
@@ -202,6 +205,31 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
   end,
   source' := by norm_num,
   target' := by norm_num }
+
+lemma trans_apply (γ : path x y) (γ' : path y z) (t : I) : (γ.trans γ') t =
+  if h : (t : ℝ) ≤ 1/2 then
+    γ ⟨2 * t, (mul_pos_mem_iff zero_lt_two).2 ⟨t.2.1, h⟩⟩
+  else
+    γ' ⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩ :=
+show ite _ _ _ = _,
+by split_ifs; rw extend_extends
+
+@[simp] lemma trans_symm (γ : path x y) (γ' : path y z) :
+  (γ.trans γ').symm = γ'.symm.trans γ.symm :=
+begin
+  ext t,
+  simp only [trans_apply, one_div, symm_apply, not_le, comp_app],
+  split_ifs with h h₁ h₂ h₃ h₄; rw [coe_symm_eq] at h,
+  { have ht : (t : ℝ) = 1/2,
+    { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
+    norm_num [ht] },
+  { refine congr_arg _ (subtype.ext _),
+    norm_num [sub_sub_assoc_swap, mul_sub] },
+  { refine congr_arg _ (subtype.ext _),
+    have h : 2 - 2 * (t : ℝ) - 1 = 1 - 2 * t, by linarith,
+    norm_num [mul_sub, h] },
+  { exfalso, linarith [unit_interval.nonneg t, unit_interval.le_one t] }
+end
 
 @[simp] lemma refl_trans_refl {X : Type*} [topological_space X] {a : X} :
   (path.refl a).trans (path.refl a) = path.refl a :=

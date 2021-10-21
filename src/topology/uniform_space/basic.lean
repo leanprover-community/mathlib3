@@ -293,6 +293,10 @@ lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
   (x, x) ∈ s :=
 refl_le_uniformity h rfl
 
+lemma mem_uniformity_of_eq {x y : α} {s : set (α × α)} (h : s ∈ 𝓤 α) (hx : x = y) :
+  (x, y) ∈ s :=
+hx ▸ refl_mem_uniformity h
+
 lemma symm_le_uniformity : map (@prod.swap α α) (𝓤 _) ≤ (𝓤 _) :=
 (@uniform_space.to_core α _).symm
 
@@ -531,12 +535,12 @@ begin
   exact iff.rfl,
 end
 
-lemma nhds_basis_uniformity' {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s)
+lemma nhds_basis_uniformity' {p : ι → Prop} {s : ι → set (α × α)} (h : (𝓤 α).has_basis p s)
   {x : α} :
   (𝓝 x).has_basis p (λ i, ball x (s i)) :=
 by { rw [nhds_eq_comap_uniformity], exact h.comap (prod.mk x) }
 
-lemma nhds_basis_uniformity {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s) {x : α} :
+lemma nhds_basis_uniformity {p : ι → Prop} {s : ι → set (α × α)} (h : (𝓤 α).has_basis p s) {x : α} :
   (𝓝 x).has_basis p (λ i, {y | (y, x) ∈ s i}) :=
 begin
   replace h := h.comap prod.swap,
@@ -576,21 +580,11 @@ open uniform_space
 
 lemma uniform_space.mem_closure_iff_symm_ball {s : set α} {x} :
   x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (s ∩ ball x V).nonempty :=
-begin
-  simp [mem_closure_iff_nhds_basis (has_basis_nhds x)],
-  tauto,
-end
+by simp [mem_closure_iff_nhds_basis (has_basis_nhds x), set.nonempty]
 
 lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
   x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → (ball x V ∩ s).nonempty :=
-begin
-  simp_rw [mem_closure_iff_nhds, uniform_space.mem_nhds_iff],
-  split,
-  { intros h V V_in,
-    exact h (ball x V) ⟨V, V_in, subset.refl _⟩ },
-  { rintros h t ⟨V, V_in, Vt⟩,
-    exact nonempty.mono (inter_subset_inter_left s Vt) (h V_in) },
-end
+by simp [mem_closure_iff_nhds_basis' (nhds_basis_uniformity' (𝓤 α).basis_sets)]
 
 lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
@@ -861,6 +855,14 @@ lemma uniform_space.has_seq_basis (h : is_countably_generated $ 𝓤 α) :
   ∃ V : ℕ → set (α × α), has_antitone_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
 let ⟨U, hsym, hbasis⟩ := h.exists_antitone_subbasis uniform_space.has_basis_symmetric
 in ⟨U, hbasis, λ n, (hsym n).2⟩
+
+lemma filter.has_basis.bInter_bUnion_ball {p : ι → Prop} {U : ι → set (α × α)}
+  (h : has_basis (𝓤 α) p U) (s : set α) :
+  (⋂ i (hi : p i), ⋃ x ∈ s, ball x (U i)) = closure s :=
+begin
+  ext x,
+  simp [mem_closure_iff_nhds_basis (nhds_basis_uniformity h), ball]
+end
 
 /-! ### Uniform continuity -/
 

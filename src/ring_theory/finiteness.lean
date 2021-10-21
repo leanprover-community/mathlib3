@@ -59,7 +59,7 @@ instance is_noetherian.finite [is_noetherian R M] : finite R M :=
 ⟨is_noetherian.noetherian ⊤⟩
 
 namespace finite
-open submodule set
+open _root_.submodule set
 
 lemma iff_add_monoid_fg {M : Type*} [add_comm_monoid M] : module.finite ℕ M ↔ add_monoid.fg M :=
 ⟨λ h, add_monoid.fg_def.2 $ (fg_iff_add_submonoid_fg ⊤).1 (finite_def.1 h),
@@ -160,8 +160,11 @@ lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB 
 begin
   obtain ⟨S, hS⟩ := hB.out,
   refine ⟨⟨S, eq_top_iff.2 (λ b, _)⟩⟩,
-  convert (algebra.adjoin_le algebra.subset_adjoin :
-    adjoin R (S : set B) ≤  subalgebra.restrict_scalars R (adjoin A S)) (eq_top_iff.1 hS b)
+  have le : adjoin R (S : set B) ≤ subalgebra.restrict_scalars R (adjoin A S),
+  { apply (algebra.adjoin_le _ : _ ≤ (subalgebra.restrict_scalars R (adjoin A ↑S))),
+    simp only [subalgebra.coe_restrict_scalars],
+    exact algebra.subset_adjoin, },
+  exact le (eq_top_iff.1 hS b),
 end
 
 variables {R A B}

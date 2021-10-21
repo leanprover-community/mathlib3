@@ -32,11 +32,11 @@ open_locale ennreal
 universes u v
 
 /-- The category of measurable spaces and measurable functions. -/
-@[derive has_coe_to_sort]
 def Meas : Type (u+1) := bundled measurable_space
 
 namespace Meas
 
+instance : has_coe_to_sort Meas Type* := bundled.has_coe_to_sort
 instance (X : Meas) : measurable_space X := X.str
 
 /-- Construct a bundled `Meas` from the underlying type and the typeclass. -/

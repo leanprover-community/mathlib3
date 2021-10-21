@@ -962,7 +962,6 @@ begin
     exact (ennreal.rpow_lt_top_of_nonneg (by simp [hp_pos.le]) (measure_ne_top μ set.univ)).ne },
   have hq0 : q ≠ 0,
   { by_contra hq_eq_zero,
-    push_neg at hq_eq_zero,
     have hp_eq_zero : p = 0, from le_antisymm (by rwa hq_eq_zero at hpq) (zero_le _),
     rw [hp_eq_zero, ennreal.zero_to_real] at hp_pos,
     exact (lt_irrefl _) hp_pos, },
@@ -1219,7 +1218,7 @@ namespace Lp
 
 variables [borel_space E] [second_countable_topology E]
 
-instance : has_coe_to_fun (Lp E p μ) := ⟨λ _, α → E, λ f, ((f : α →ₘ[μ] E) : α → E)⟩
+instance : has_coe_to_fun (Lp E p μ) (λ _, α → E) := ⟨λ f, ((f : α →ₘ[μ] E) : α → E)⟩
 
 @[ext] lemma ext {f g : Lp E p μ} (h : f =ᵐ[μ] g) : f = g :=
 begin

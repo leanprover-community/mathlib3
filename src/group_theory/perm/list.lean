@@ -286,10 +286,10 @@ begin
             nat.mod_eq_of_lt],
         { simp },
         { rw nat.sub_add_cancel,
-          refine sub_lt_self' _ (nat.zero_lt_succ _),
+          refine tsub_lt_self _ (nat.zero_lt_succ _),
           all_goals { simpa using (nat.zero_le _).trans_lt hk' } } } },
     all_goals { rw [nat.sub_sub, ←length_reverse],
-      refine sub_lt_self' _ (zero_lt_one.trans_le (le_add_right le_rfl)),
+      refine tsub_lt_self _ (zero_lt_one.trans_le (le_add_right le_rfl)),
       exact k.zero_le.trans_lt hk } },
 end
 

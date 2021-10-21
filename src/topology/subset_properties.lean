@@ -1103,7 +1103,7 @@ structure compact_exhaustion (X : Type*) [topological_space X] :=
 
 namespace compact_exhaustion
 
-instance : has_coe_to_fun (compact_exhaustion α) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (compact_exhaustion α) (λ _, ℕ → set α) := ⟨to_fun⟩
 
 variables {α} (K : compact_exhaustion α)
 

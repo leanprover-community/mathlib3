@@ -26,9 +26,7 @@ meta def execute (c : old_conv unit) : tactic unit :=
 conversion c
 
 namespace interactive
-open lean.parser
-open interactive
-open interactive.types
+setup_tactic_parser
 
 meta def itactic : Type :=
 old_conv unit
@@ -87,7 +85,7 @@ do pf ← lock_tactic_state (do m ← lhs >>= mk_meta_var,
    skip
 
 namespace interactive
-open interactive
+setup_tactic_parser
 open tactic.interactive (rw_rules)
 
 /-- The `conv` tactic provides a `conv` within a `conv`. It allows the user to return to a
@@ -118,10 +116,7 @@ end conv
 
 namespace tactic
 namespace interactive
-open lean
-open lean.parser
-open interactive
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 meta def old_conv (c : old_conv.interactive.itactic) : tactic unit :=
 do t ← target,

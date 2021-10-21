@@ -168,6 +168,8 @@ iff.rfl
 theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : #α ≤ #β :=
 ⟨⟨f, hf⟩⟩
 
+theorem _root_.function.embedding.cardinal_le {α β : Type u} (f : α ↪ β) : #α ≤ #β := ⟨f⟩
+
 theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : #β ≤ #α :=
 ⟨embedding.of_surjective f hf⟩
 
@@ -265,6 +267,9 @@ begin
   rw [←cardinal.mk_ulift, ←cardinal.mk_ulift, add_def],
   exact cardinal.eq.2 ⟨equiv.sum_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
 end
+
+@[simp] theorem mk_option {α : Type u} : #(option α) = #α + 1 :=
+(equiv.option_equiv_sum_punit α).cardinal_eq
 
 instance : has_mul cardinal.{u} := ⟨map₂ prod $ λ α β γ δ, equiv.prod_congr⟩
 
@@ -505,27 +510,24 @@ theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _), λ h,
   by exact min_le _ (subtype.mk b h)⟩
 
-theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
+@[simp] theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
 
-theorem add_one_le_succ (c : cardinal) : c + 1 ≤ succ c :=
+theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
-  refine induction_on c (λ α, _) (lt_succ_self c),
-  refine induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
-  cases h.left with f,
-  have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
-  cases not_forall.1 this with b nex,
-  refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
-  { exact λ _, b },
-  { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
-    { rw f.injective h },
-    { exact nex.elim ⟨_, h⟩ },
-    { exact nex.elim ⟨_, h.symm⟩ },
-    { refl } }
+  refine le_min.2 (λ b, _),
+  rcases ⟨b, c⟩ with ⟨⟨⟨β⟩, hlt⟩, ⟨γ⟩⟩,
+  cases hlt.le with f,
+  have : ¬ surjective f := λ hn, hlt.not_le (mk_le_of_surjective hn),
+  simp only [surjective, not_forall] at this,
+  rcases this with ⟨b, hb⟩,
+  calc #γ + 1 = #(option γ) : mk_option.symm
+          ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (lt_succ_self c).ne_bot
+lemma succ_pos (c : cardinal) : 0 < succ c := by simp
+
+lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
 /-- The indexed sum of cardinals is the cardinality of the
   indexed disjoint union, i.e. sigma type. -/
@@ -1149,9 +1151,6 @@ begin
   rw [← prop_eq_two, cardinal.power_def (ulift Prop) α, cardinal.eq],
   exact ⟨equiv.arrow_congr (equiv.refl _) equiv.ulift.symm⟩,
 end
-
-@[simp] theorem mk_option {α : Type u} : #(option α) = #α + 1 :=
-quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
 
 theorem mk_list_eq_sum_pow (α : Type u) : #(list α) = sum (λ n : ℕ, (#α)^(n:cardinal.{u})) :=
 calc  #(list α)

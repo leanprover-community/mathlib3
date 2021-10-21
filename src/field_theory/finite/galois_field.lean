@@ -23,7 +23,7 @@ It is a finite field with `p ^ n` elements.
 ## Main Results
 
 - `galois_field.alg_equiv_galois_field`: Any finite field is isomorphic to some Galois field
-- `galois_field.alg_equiv_of_card_eq`: Uniqueness of finite fields
+- `finite_field.alg_equiv_of_card_eq`: Uniqueness of finite fields
 
 -/
 
@@ -166,11 +166,29 @@ def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
 by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
 
-variables {K' : Type*} [field K'] [fintype K'] [algebra (zmod p) K']
-
-/-- Uniqueness of finite fields: Finite fields with the same cardinality are isomorphic-/
-def alg_equiv_of_card_eq (hK : fintype.card K = p ^ n) (hK' : fintype.card K' = p ^ n) :
-  K ≃ₐ[zmod p] K' :=
-alg_equiv.trans (alg_equiv_galois_field p n hK) (alg_equiv_galois_field p n hK').symm
-
 end galois_field
+
+namespace finite_field
+
+variables (p : ℕ) [fact p.prime] {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
+{K' : Type*} [field K'] [fintype K'] [algebra (zmod p) K']
+
+/-- Uniqueness of finite fields:
+Any two finite fields of the same cardinality are (non canonically) isomorphic-/
+theorem alg_equiv_of_card_eq (hKK' : fintype.card K = fintype.card K') :
+  nonempty (K ≃ₐ[zmod p] K') :=
+begin
+  haveI : char_p K p,
+  { rw ← algebra.char_p_iff (zmod p) K p, exact zmod.char_p p, },
+  haveI : char_p K' p,
+  { rw ← algebra.char_p_iff (zmod p) K' p, exact zmod.char_p p, },
+  obtain ⟨n,_,hK⟩ := finite_field.card K p,
+  obtain ⟨n',_,hK'⟩ := finite_field.card K' p,
+  rw [hK,hK'] at hKK',
+  have hGalK := galois_field.alg_equiv_galois_field p n hK,
+  have hK'Gal := (galois_field.alg_equiv_galois_field p n' hK').symm,
+  rw (nat.pow_right_injective (fact.out (nat.prime p)).one_lt hKK') at *,
+  use alg_equiv.trans hGalK hK'Gal,
+end
+
+end finite_field

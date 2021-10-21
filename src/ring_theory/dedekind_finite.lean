@@ -5,11 +5,11 @@ import data.matrix.basic
 import data.polynomial.basic
 import ring_theory.nilpotent
 import order.filter.at_top_bot
+import tactic.omega
 
 /-!
 
-Dedekind finite rings
-=====================
+# Dedekind finite rings
 
 -/
 namespace dedekind_finite
@@ -64,10 +64,10 @@ class is_reversible_ring [ring R] :=
 (zero_div_comm : ∀ a b : R, a * b = 0 → b * a = 0)
 
 @[priority 100]
-instance is_reversible_ring_of_domain [domain R] : is_reversible_ring R :=
+instance is_reversible_ring_of_domain [ring R] [is_domain R] : is_reversible_ring R :=
 ⟨λ a b h,
   begin
-    cases domain.eq_zero_or_eq_zero_of_mul_eq_zero a b h,
+    cases is_domain.eq_zero_or_eq_zero_of_mul_eq_zero h,
     { rw h_1, rw [mul_zero], },
     { rw h_1, rw [zero_mul], },
   end⟩
@@ -87,7 +87,8 @@ instance reversible_of_comm_ring [comm_ring R] : is_reversible_ring R :=
 ⟨λ a b h, h ▸ mul_comm b a⟩
 
 @[priority 100]
-instance is_dedekind_finite_ring_of_reversible [ring R] [is_reversible_ring R] : is_dedekind_finite_ring R :=
+instance is_dedekind_finite_ring_of_reversible [ring R] [is_reversible_ring R] :
+  is_dedekind_finite_ring R :=
 ⟨λ a b h,
   begin
     have :=
@@ -113,28 +114,27 @@ variable [ring R]
 open linear_map
 open function
 
--- TODO this used to "work" for preorder, but new proofs don't?
-variables {γ : Type*} [linear_order γ]
--- [decidable_rel ((≤) : γ → γ → Prop)]
+variables {γ : Type*} [preorder γ] [decidable_rel ((≤) : γ → γ → Prop)]
 
 open filter
-def strict_monotone_inc_subseq {f : ℕ → γ} (h : ∀ n, ∃ m, f n < f (n + m)) : ∃ g : ℕ → ℕ,
-  strict_mono g ∧ strict_mono (f ∘ g) :=
-begin
-  have : tendsto f at_top at_top,
-  { rw tendsto_at_top_at_top,
-  sorry;
-    by_contra, },
-  sorry
-  -- have := strict_mono_subseq_of_tendsto_at_top this,
-end
+def strict_monotone_inc_subseq {f : ℕ → γ} (h : ∀ n, ∃ m, f n < f (n + m)) :
+ℕ → ℕ
+-- ∃ g : ℕ → ℕ, strict_mono g ∧ strict_mono (f ∘ g) :=
+-- begin
+--   have : tendsto f at_top at_top,
+--   { rw tendsto_at_top_at_top,
+--   sorry;
+--     by_contra, },
+--   sorry
+--   -- have := strict_mono_subseq_of_tendsto_at_top this,
+-- end
 
--- | 0       := 0
--- | (n + 1) := (strict_monotone_inc_subseq n) + nat.find (h (strict_monotone_inc_subseq n))
+| 0       := 0
+| (n + 1) := (strict_monotone_inc_subseq n) + nat.find (h (strict_monotone_inc_subseq n))
 
--- lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
---   strict_mono (f ∘ (strict_monotone_inc_subseq h)) :=
--- sorry -- strict_mono_nat_of_lt_succ (λ n, nat.find_spec (h (strict_monotone_inc_subseq h n)))
+lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
+  strict_mono (f ∘ (strict_monotone_inc_subseq h)) :=
+strict_mono_nat_of_lt_succ (λ n, nat.find_spec (h (strict_monotone_inc_subseq h n)))
 
 -- TODO artinian version of ring stuff?
 open_locale classical
@@ -201,10 +201,12 @@ instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedek
     have f_surj : function.surjective f := λ x, ⟨x * a, by simp [mul_assoc, h]⟩,
     have f_inj := noeth_mod_surj_inj f_surj,
     exact sub_eq_zero.mp (f_inj (
-        calc f (b * a - 1) = (b * a - 1) * b : by simp only [is_linear_map.mk'_apply, smul_eq_mul, sub_eq_add_neg]
+        calc f (b * a - 1) = (b * a - 1) * b : by simp only [is_linear_map.mk'_apply,
+                                                              smul_eq_mul, sub_eq_add_neg]
                        ... = b * a * b - b   : by rw [sub_mul, one_mul]
                        ... = 0               : by rw [mul_assoc, h, mul_one, sub_self]
-                       ... = f 0             : by simp only [zero_mul, is_linear_map.mk'_apply, smul_eq_mul])),
+                       ... = f 0             : by simp only [zero_mul, is_linear_map.mk'_apply,
+                                                              smul_eq_mul])),
     /-
     have := well_founded_submodule_gt R R,
     rw order_embedding.well_founded_iff_no_descending_seq at this,
@@ -218,7 +220,8 @@ instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedek
         have :=
         calc iterate f (n + 1) c = f (b * a - 1)   : by rw [iterate_succ', comp_apply, hc]
                             ...  = (b * a - 1) * b : by simp [f]
-                            ...  = 0               : by rw [sub_mul, one_mul, mul_assoc, h, mul_one, sub_self],
+                            ...  = 0               : by rw [sub_mul, one_mul, mul_assoc, h,
+                                                              mul_one, sub_self],
         rw ← linear_map.mem_ker at this,
         dsimp only [ordf] at hn,
         rw ← hn at this,
@@ -230,7 +233,8 @@ instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedek
     by_contradiction ho,
     apply this,
     push_neg at ho,
-    have : ∀ n, ordf n ≤ ordf (n + 1) := λ n x hx, begin simp [ordf, iterate_succ'] at hx ⊢, rw [hx, zero_mul], end,
+    have : ∀ n, ordf n ≤ ordf (n + 1),
+    { intros n x hx, simp [ordf, iterate_succ'] at hx ⊢, rw [hx, zero_mul], },
     have : ∀ n, ordf (n + 1) > ordf n := λ n, lt_of_le_of_ne (this n) (ho n),
     have := order_embedding.nat_gt _ this,
     exact nonempty.intro this,-/
@@ -240,7 +244,6 @@ instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedek
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_ring_of_fintype (R) [fintype R] [ring R] :
   is_noetherian_ring R := by rw is_noetherian_ring_iff; apply_instance
-#lint
 
 @[priority 100]
 instance is_dedekind_finite_ring_of_finite [fintype R] : is_dedekind_finite_ring R :=
@@ -282,14 +285,14 @@ by simp; exact (ne.symm hjk).le_iff_lt.mp H
 
 private lemma aux4 {j k l : ℕ} (H : k < j) : j - (k + 1) + (l + 1) = j - k + l :=
 have k + 1 ≤ j := H,
-by zify [this]; suggest
+by omega
 
 private lemma aux5 {j k l : ℕ}
   (H : k < j)  :
   j + 1 - (k + 1) + (l + 1) = j + 1 - k + l :=
  have k + 1 < j + 1 := nat.succ_lt_succ H,
- have k ≤ j + 1 := by library_search,
- by zify [this, H]; linarith
+ have k ≤ j + 1 := by omega,
+ by omega  --zify [this, H]; linarith
 
 private def e (a b : R) [ring R] (i j : ℕ) : R := b^i * a^j - b^(i + 1) * a^(j + 1)
 
@@ -311,7 +314,7 @@ begin
     swap, exact H,
     rw if_pos,
     swap, exact le_add_right H,
-    rw ← nat.succ_pred_eq_of_pos (sub_pos_iff_lt.mpr H),
+    rw ← nat.succ_pred_eq_of_pos (tsub_pos_of_lt H),
     rw ← nat.succ_pred_eq_of_pos (_ : k + 1 - j > 0),
     rw pow_succ, rw pow_succ, rw mul_assoc, rw mul_assoc,
     rw ← mul_sub b, rw ← mul_assoc, rw ← pow_succ',
@@ -339,7 +342,7 @@ begin
     rw if_pos (le_refl (j + 1)),
 
     rw nat.sub_self, rw pow_zero, rw one_mul,
-    rw (add_sub_cancel_left j 1),
+    rw (add_tsub_cancel_left j 1),
     rw ← pow_add, rw pow_one, rw nat.sub_self, rw pow_zero,
     rw one_mul, rw add_comm,
     rw sub_self, rw mul_zero, rw sub_zero, rw mul_sub,
@@ -374,45 +377,49 @@ open_locale classical
 instance is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite)
   : is_dedekind_finite_ring R :=
 ⟨begin
-  tactic.unfreeze_local_instances,
   contrapose! h,
   rcases h with ⟨a, b, hab, hba⟩,
   haveI : infinite (nilpotents R),
-  { let e1 : ℕ → nilpotents R := (λ n, ⟨e a b 0 (n + 1), 2, e_ne_pow_two hab (ne.symm (nat.succ_ne_zero n)) ⟩),
+  { let e1 : ℕ → nilpotents R := λ n, ⟨e a b 0 (n + 1), 2, e_ne_pow_two hab n.succ_ne_zero.symm⟩,
     refine infinite.of_injective e1 _,
     intros n m hnm,
     by_contradiction h,
     simp only [subtype.mk_eq_mk] at hnm,
     have :=
     calc 1 - b * a = e a b 0 0                         : by simp [e]
-              ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos (rfl)]
+              ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos rfl]
               ...  = e a b 0 (m + 1) * e a b (n + 1) 0 : by rw hnm
-              ...  = 0                                 : _,
-    { rw [e_orthogonal hab, if_neg],
+              ...  = 0                                 :
+    begin
+      rw [e_orthogonal hab, if_neg],
       intro a_2,
-      exact h ((add_left_inj 1).mp a_2.symm) },
+      exact h ((add_left_inj 1).mp a_2.symm)
+    end,
     rw sub_eq_zero at this,
-    exact absurd (eq.symm this) hba, },
+    exact absurd this.symm hba, },
   intro hinf,
-  exact infinite.not_fintype (set.finite.fintype hinf),
+  exact infinite.not_fintype hinf.fintype,
 end⟩
 
 end
 end dedekind_finite
 -- IIRC this was an attempt to p
 -- section
--- variables  {R : Type*} [comm_ring R] [nontrivial R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
+-- variables  {R : Type*} [comm_ring R] [nontrivial R] {M : Type*} [add_comm_group M]
+-- [module R M] (f : M →ₗ[R] M)
 
 -- noncomputable theory
 
 
 
--- -- if I dont have this some nat decidable instances crop up later and make some "same" finsets different
+-- -- if I dont have this some nat decidable instances crop up later and make some "same" finsets
+-- -- different
 -- local attribute [instance, priority 1000] classical.prop_decidable
 
 
 -- set_option pp.all false
--- instance module_polynomial_ring_endo : module (polynomial R) M := { smul := λ r m, r.support.sum (λ i, r.coeff i • (f ^ i) m),
+-- instance module_polynomial_ring_endo : module (polynomial R) M := { smul := λ r m,
+-- r.support.sum (λ i, r.coeff i • (f ^ i) m),
 --   one_smul := λ b, begin
 --     simp,
 --     have : (1 : polynomial R).support = {0} := by library_search,
@@ -436,10 +443,12 @@ end dedekind_finite
 --     rw [←linear_map.coe_pow, linear_map.map_zero, smul_zero]
 --   end,
 --   add_smul := λ x y m, begin
---     simp only [smul_add, linear_map.map_zero, linear_map.one_apply, if_true, polynomial.coeff_add,
+--     simp only [smul_add, linear_map.map_zero, linear_map.one_apply, if_true,
+--                           polynomial.coeff_add,
 --       eq_self_iff_true, one_smul, linear_map.pow_apply, finset.sum_singleton, zero_ne_one,
 --       linear_map.map_add, smul_zero, pow_zero],
---     have := @finset.sum_subset _ _ (x + y).support (x.support ∪ y.support) _ _ finsupp.support_add _,
+--     have := @finset.sum_subset _ _ (x + y).support (x.support ∪ y.support) _ _
+--                 finsupp.support_add _,
 --     rw this,
 --     conv_lhs{congr,skip, funext,
 --     rw add_smul,},
@@ -479,7 +488,8 @@ end dedekind_finite
 --         rw finset.sum_subset supp_X,
 --         {simp only [polynomial.coeff_X_one, one_smul, finset.sum_singleton, pow_one]},
 --         rintros x - a,
---         have : polynomial.coeff (polynomial.X : polynomial R) x = 0 := finsupp.not_mem_support_iff.mp a,
+--         have : polynomial.coeff (polynomial.X : polynomial R) x = 0 :=
+--                                      finsupp.not_mem_support_iff.mp a,
 --         rw this,
 --         rw zero_smul,
 --     end,
@@ -507,7 +517,9 @@ end dedekind_finite
 -- sorry
 
 --     end,
---     obtain ⟨F, ⟨hFa,hFb⟩⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I (⊤ : submodule (polynomial R) M) hfgpoly this,
+--     obtain ⟨F, ⟨hFa,hFb⟩⟩ :=
+-- submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I
+-- (⊤ : submodule (polynomial R) M) hfgpoly this,
 --     rw  ← linear_map.ker_eq_bot,
 --     rw linear_map.ker_eq_bot',
 --     intros m hm,
@@ -530,4 +542,3 @@ end dedekind_finite
 -- end
 
 #lint
-end

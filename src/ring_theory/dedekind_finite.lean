@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Alex J. Best. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alex J. Best
+-/
 import tactic.subtype_instance
 import ring_theory.noetherian
 import ring_theory.adjoin
@@ -10,6 +15,11 @@ import tactic.omega
 /-!
 
 # Dedekind finite rings
+
+
+## References
+
+* https://ysharifi.wordpress.com/2010/09/17/dedekind-finite-rings/
 
 -/
 namespace dedekind_finite
@@ -67,9 +77,9 @@ class is_reversible_ring [ring R] :=
 instance is_reversible_ring_of_domain [ring R] [is_domain R] : is_reversible_ring R :=
 ⟨λ a b h,
   begin
-    cases is_domain.eq_zero_or_eq_zero_of_mul_eq_zero h,
-    { rw h_1, rw [mul_zero], },
-    { rw h_1, rw [zero_mul], },
+    rcases is_domain.eq_zero_or_eq_zero_of_mul_eq_zero h with rfl | rfl,
+    { rw [mul_zero], },
+    { rw [zero_mul], },
   end⟩
 
 
@@ -309,44 +319,60 @@ begin
   { conv_rhs {rw if_neg (ne_of_lt H),},
     -- TODO omega gets stuck on instances
     rw if_pos (le_of_lt H),
-    rw if_pos,
-    rw if_pos,
-    swap, exact H,
-    rw if_pos,
-    swap, exact le_add_right H,
+    rw if_pos (by linarith : j ≤ k + 1),
+    rw if_pos (nat.succ_le_iff.mpr H),
+    rw if_pos (le_add_right H : j + 1 ≤ k + 1),
     rw ← nat.succ_pred_eq_of_pos (tsub_pos_of_lt H),
     rw ← nat.succ_pred_eq_of_pos (_ : k + 1 - j > 0),
-    rw pow_succ, rw pow_succ, rw mul_assoc, rw mul_assoc,
-    rw ← mul_sub b, rw ← mul_assoc, rw ← pow_succ',
+    rw pow_succ,
+    rw pow_succ,
+    rw mul_assoc,
+    rw mul_assoc,
+    rw ← mul_sub b,
+    rw ← mul_assoc,
+    rw ← pow_succ',
     rw ← mul_sub (b ^ (i + 1)),
     convert mul_zero _,
-    rw nat.pred_eq_sub_one, rw nat.pred_eq_sub_one,
-    rw sub_sub_assoc_swap, rw (nat.succ_sub_succ k j : k + 1 - j - 1 = k - j),
+    rw nat.pred_eq_sub_one,
+    rw nat.pred_eq_sub_one,
+    rw sub_sub_assoc_swap,
+    rw (nat.succ_sub_succ k j : k + 1 - j - 1 = k - j),
     rw (_ : k + 1 - j - 1 = k - j),
     swap,
     exact nat.succ_sub_succ k j,
-    rw nat.sub_sub, rw add_comm j 1,
+    rw nat.sub_sub,
+    rw add_comm j 1,
     rw ← nat.sub_sub,
     abel,
-    any_goals {linarith,},
-    {apply nat.sub_pos_of_lt,
-    transitivity k,
-    exact H,
-    exact lt_add_one k,}, },
+    { apply nat.sub_pos_of_lt,
+      transitivity k,
+      exact H,
+      exact lt_add_one k,}, },
   { conv_rhs {rw if_pos,},
 
-    rw if_pos (le_refl j), rw if_pos (nat.le_succ j),
-    rw if_neg,
-    swap,
-    exact nat.lt_irrefl j,
+    rw if_pos (le_refl j),
+    rw if_pos (nat.le_succ j),
+    rw if_neg (by exact nat.lt_irrefl j : ¬j + 1 ≤ j),
     rw if_pos (le_refl (j + 1)),
 
-    rw nat.sub_self, rw pow_zero, rw one_mul,
+    rw nat.sub_self,
+    rw pow_zero,
+    rw one_mul,
     rw (add_tsub_cancel_left j 1),
-    rw ← pow_add, rw pow_one, rw nat.sub_self, rw pow_zero,
-    rw one_mul, rw add_comm,
-    rw sub_self, rw mul_zero, rw sub_zero, rw mul_sub,
-    rw ← mul_assoc, rw ← pow_succ', },
+    rw ← pow_add,
+    -- rw pow_one,
+    -- rw nat.sub_self,
+    -- rw pow_zero,
+    -- rw one_mul,
+    -- rw add_comm,
+    -- rw sub_self,
+    -- rw mul_zero,
+    -- rw sub_zero,
+    -- rw mul_sub,
+    -- rw ← mul_assoc,
+    simp [add_comm, mul_sub, mul_assoc, pow_succ'],
+    -- rw ← pow_succ',
+    },
   { conv_rhs {rw if_neg (ne_of_gt H),},
     rw if_neg (not_le.mpr H),
     have : ite (j ≤ k + 1) (b ^ (k + 1 - j)) (a ^ (j - (k + 1))) = a ^ (j - (k + 1)),
@@ -354,12 +380,9 @@ begin
       { rw [if_pos (le_of_eq hjk), ← hjk],
         simp, },
       { rw if_neg, exact aux3 H hjk, } },
-    rw this, rw if_neg,
-    swap,
-    exact (nat.lt_asymm H),
-    rw if_neg,
-    swap,
-    exact nat.le_lt_antisymm H,
+    rw this,
+    rw if_neg (by exact (nat.lt_asymm H) : ¬j + 1 ≤ k),
+    rw if_neg (by exact nat.le_lt_antisymm H : ¬j + 1 ≤ k + 1),
     rw [← pow_add, ← pow_add, ← pow_add, ← pow_add,
       (aux4 H : j - (k + 1) + (l + 1) = j - k + l),
       sub_self, mul_zero, zero_sub,
@@ -373,10 +396,10 @@ by rw [pow_two, e_orthogonal hab, if_neg (ne.symm hij)]
 
 open_locale classical
 
-@[priority 100]
-instance is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite)
+lemma is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite)
   : is_dedekind_finite_ring R :=
-⟨begin
+begin
+  apply is_dedekind_finite_ring.mk,
   contrapose! h,
   rcases h with ⟨a, b, hab, hba⟩,
   haveI : infinite (nilpotents R),
@@ -385,21 +408,20 @@ instance is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (ni
     intros n m hnm,
     by_contradiction h,
     simp only [subtype.mk_eq_mk] at hnm,
+    have : e a b 0 (m + 1) * e a b (n + 1) 0 = 0,
+    { rw [e_orthogonal hab, if_neg],
+      intro a_2,
+      exact h ((add_left_inj 1).mp a_2.symm) },
     have :=
     calc 1 - b * a = e a b 0 0                         : by simp [e]
               ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos rfl]
               ...  = e a b 0 (m + 1) * e a b (n + 1) 0 : by rw hnm
-              ...  = 0                                 :
-    begin
-      rw [e_orthogonal hab, if_neg],
-      intro a_2,
-      exact h ((add_left_inj 1).mp a_2.symm)
-    end,
+              ...  = 0                                 : this,
     rw sub_eq_zero at this,
     exact absurd this.symm hba, },
   intro hinf,
   exact infinite.not_fintype hinf.fintype,
-end⟩
+end
 
 end
 end dedekind_finite

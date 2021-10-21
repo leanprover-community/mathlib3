@@ -1,6 +1,6 @@
-import ring_theory.integral_domain
 import group_theory.group_action.conj_act
 import ring_theory.polynomial.cyclotomic
+import ring_theory.centralizer
 import tactic.by_contra
 
 noncomputable theory

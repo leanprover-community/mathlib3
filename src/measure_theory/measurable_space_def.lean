@@ -307,10 +307,6 @@ iff.intro
   (assume h u hu, h _ $ measurable_set_generate_from hu)
   (assume h, generate_from_le h)
 
-@[mono] lemma generate_from_mono {s t : set (set α)} (h : s ⊆ t) :
-  generate_from s ≤ generate_from t :=
-generate_from_le $ λ u hu, generate_measurable.basic _ (h hu)
-
 @[simp] lemma generate_from_measurable_set [measurable_space α] :
   generate_from {s : set α | measurable_set s} = ‹_› :=
 le_antisymm (generate_from_le $ λ _, id) $ λ s, measurable_set_generate_from

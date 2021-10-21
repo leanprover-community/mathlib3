@@ -79,24 +79,22 @@ instance : group (quotient N) :=
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* quotient N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
 /-- Two `monoid_hom`s from a quotient group are equal if their compositions with
 `quotient_group.mk'` are equal.
 
 See note [partially-applied ext lemmas]. -/
-@[to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
+@[ext, to_additive /-" Two `add_monoid_hom`s from an additive quotient group are equal if their
 compositions with `add_quotient_group.mk'` are equal.
 
-See note [partially-applied ext lemmas]. "-/, ext]
+See note [partially-applied ext lemmas]. "-/]
 lemma monoid_hom_ext ⦃f g : quotient N →* H⦄ (h : f.comp (mk' N) = g.comp (mk' N)) : f = g :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ (monoid_hom.congr_fun h : _)
-
-attribute [ext] quotient_add_group.add_monoid_hom_ext
 
 @[simp, to_additive quotient_add_group.eq_zero_iff]
 lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=

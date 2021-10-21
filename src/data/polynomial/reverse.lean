@@ -205,11 +205,11 @@ begin
   by_cases hf : f = 0,
   { rw [hf, reverse_zero, nat_degree_zero, nat_trailing_degree_zero] },
   apply le_antisymm,
-  { refine sub_le_iff_right.mp _,
+  { refine tsub_le_iff_right.mp _,
     apply le_nat_degree_of_ne_zero,
     rw [reverse, coeff_reflect, ←rev_at_le f.nat_trailing_degree_le_nat_degree, rev_at_invol],
     exact trailing_coeff_nonzero_iff_nonzero.mpr hf },
-  { rw ← le_sub_iff_left f.reverse_nat_degree_le,
+  { rw ← le_tsub_iff_left f.reverse_nat_degree_le,
     apply nat_trailing_degree_le_of_ne_zero,
     have key := mt leading_coeff_eq_zero.mp (mt reverse_eq_zero.mp hf),
     rwa [leading_coeff, coeff_reverse, rev_at_le f.reverse_nat_degree_le] at key },
@@ -243,7 +243,7 @@ begin
   rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
 end
 
-@[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
+@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [is_domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
@@ -253,7 +253,7 @@ begin
   simp [reverse_mul, *],
 end
 
-lemma trailing_coeff_mul {R : Type*} [integral_domain R] (p q : polynomial R) :
+lemma trailing_coeff_mul {R : Type*} [ring R] [is_domain R] (p q : polynomial R) :
   (p * q).trailing_coeff = p.trailing_coeff * q.trailing_coeff :=
 by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
   reverse_leading_coeff, reverse_leading_coeff]

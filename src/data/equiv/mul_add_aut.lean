@@ -27,10 +27,8 @@ mul_aut, add_aut
 variables {A : Type*} {M : Type*} {G : Type*}
 
 /-- The group of multiplicative automorphisms. -/
-@[to_additive "The group of additive automorphisms."]
+@[reducible, to_additive "The group of additive automorphisms."]
 def mul_aut (M : Type*) [has_mul M] := M ≃* M
-
-attribute [reducible] mul_aut add_aut
 
 namespace mul_aut
 

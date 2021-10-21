@@ -365,10 +365,10 @@ begin
 end
 
 /-! ### GCD prover -/
+open norm_num
 
 namespace tactic
 namespace norm_num
-open norm_num
 
 lemma int_gcd_helper' {d : ℕ} {x y a b : ℤ} (h₁ : (d:ℤ) ∣ x) (h₂ : (d:ℤ) ∣ y)
   (h₃ : x * a + y * b = d) : int.gcd x y = d :=

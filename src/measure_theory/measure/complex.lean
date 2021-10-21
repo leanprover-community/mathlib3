@@ -6,6 +6,28 @@ Authors: Kexing Ying
 
 import measure_theory.decomposition.jordan
 
+/-!
+# Complex measure
+
+This file proves some elementary results about complex measures. In particular, we prove that
+a complex measure is always in the form `s + it` where `s` and `t` are signed measures.
+
+## Main definitions
+
+* `measure_theory.complex_measure.re_part`: obtains a signed measure `s` from a complex measure `c`
+  such that `s i = (c i).re` for all measurable sets `i`.
+* `measure_theory.complex_measure.im_part`: obtains a signed measure `s` from a complex measure `c`
+  such that `s i = (c i).im` for all measurable sets `i`.
+* `measure_theory.signed_measure.to_complex_measure`: given two signed measures `s` and `t`,
+  `s.to_complex_measure t` provides a complex measure of the form `s + it`.
+* `measure_theory.complex_measure.equiv_signed_measure`: is the equivalence between the complex
+  measures and the type of the product of the signed measures with itself.
+
+# Tags
+
+Complex measure
+-/
+
 noncomputable theory
 open_locale classical measure_theory ennreal nnreal
 

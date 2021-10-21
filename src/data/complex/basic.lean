@@ -296,7 +296,9 @@ ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
-by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
+by { rw [sub_eq_add_neg, norm_sq_add],
+     simp only [ring_equiv.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
+                tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/
 

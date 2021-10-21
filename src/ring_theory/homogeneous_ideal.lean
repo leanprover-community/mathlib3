@@ -217,7 +217,7 @@ end defs
 
 section properties
 /-- this lemma needs well-ordering theorem-/
-lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_semiring A]
+lemma homogeneous_ideal.is_prime_iff [linear_ordered_cancel_add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (I_ne_top : I ≠ ⊤)
   (homogeneous_mem_or_mem : ∀ {x y : ⨁ i, A i}, is_homogeneous_element x → is_homogeneous_element y
     → (x * y ∈ I → x ∈ I ∨ y ∈ I)) : ideal.is_prime I :=
@@ -290,7 +290,11 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
     cases lt_trichotomy i max₁,
     { -- in this case `i < max₁`, so `max₂ < j`, so `of A j (y j) ∈ I`
       have ineq : max₂ < j,
-      { sorry },
+      { by_contra rid₂, rw not_lt at rid₂,
+        have rid₃ := add_lt_add_of_le_of_lt rid₂ h,
+        conv_lhs at rid₃ { rw add_comm },
+        conv_rhs at rid₃ { rw add_comm },
+        rw H₃ at rid₃, exact lt_irrefl _ rid₃, },
       have not_mem_j : j ∉ set₂,
       { intro rid₂,
         rw max₂_eq at ineq,
@@ -305,12 +309,15 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
     { cases h,
       { -- in this case `i = max₁`, so `max₂ = j`, contradictory
         have : j = max₂,
-        { sorry },
+        { rw h at H₃,
+          exact linear_ordered_cancel_add_comm_monoid.add_left_cancel _ _ _ H₃, },
         exfalso,
         exact H₄ h this, },
       { -- in this case `i > max₁`, so `i < max₁`, so `of A i (x i) ∈ I`
         have ineq : max₁ < i,
-        { sorry },
+        { by_contra rid₂, rw not_lt at rid₂,
+          have rid₃ := add_lt_add_of_le_of_lt rid₂ h,
+          conv_lhs at rid₃ { rw add_comm }, exact lt_irrefl _ rid₃, },
         have not_mem_i : i ∉ set₁,
         { intro rid₂,
           rw max₁_eq at ineq,
@@ -404,7 +411,7 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
 end⟩
 
 end properties
-#exit
+
 section operations
 
 open_locale pointwise

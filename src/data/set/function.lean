@@ -295,6 +295,10 @@ lemma inj_on.preimage_image_inter (hf : inj_on f s) (hs : s₁ ⊆ s) :
   f ⁻¹' (f '' s₁) ∩ s = s₁ :=
 ext $ λ x, ⟨λ ⟨h₁, h₂⟩, hf.mem_of_mem_image hs h₂ h₁, λ h, ⟨mem_image_of_mem _ h, hs h⟩⟩
 
+lemma inj_on.pairwise_on_image (h : inj_on f s) {r : β → β → Prop} :
+  pairwise_on (f '' s) r ↔ pairwise_on s (λ x y, r (f x) (f y)) :=
+by simp [h.eq_iff, pairwise_on] {contextual := tt}
+
 /-! ### Surjectivity on a set -/
 
 /-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/

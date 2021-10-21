@@ -131,7 +131,7 @@ by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
 lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
-lemma mirror_mul_of_domain {R : Type*} [integral_domain R] (p q : polynomial R) :
+lemma mirror_mul_of_domain {R : Type*} [comm_ring R] [integral_domain R] (p q : polynomial R) :
   (p * q).mirror = p.mirror * q.mirror :=
 begin
   by_cases hp : p = 0,
@@ -142,14 +142,14 @@ begin
   ring,
 end
 
-lemma mirror_smul {R : Type*} [integral_domain R] (p : polynomial R) (a : R) :
+lemma mirror_smul {R : Type*} [comm_ring R] [integral_domain R] (p : polynomial R) (a : R) :
   (a • p).mirror = a • p.mirror :=
 by rw [←C_mul', ←C_mul', mirror_mul_of_domain, mirror_C]
 
 lemma mirror_neg {R : Type*} [ring R] (p : polynomial R) : (-p).mirror = -(p.mirror) :=
 by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
-lemma irreducible_of_mirror {R : Type*} [integral_domain R] {f : polynomial R}
+lemma irreducible_of_mirror {R : Type*} [comm_ring R] [integral_domain R] {f : polynomial R}
   (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)
   (h3 : ∀ g, g ∣ f → g ∣ f.mirror → is_unit g) : irreducible f :=

@@ -172,10 +172,10 @@ on it is trivial. -/
 def max_triv_linear_map_equiv_lie_module_hom :
   (max_triv_submodule R L (M →ₗ[R] N)) ≃ₗ[R] (M →ₗ⁅R,L⁆ N) :=
 { to_fun    := λ f,
-    { map_lie' := λ x m, by
+    { to_linear_map := f.val,
+      map_lie' := λ x m, by
       { have hf : ⁅x, f.val⁆ m = 0, { rw [f.property x, linear_map.zero_apply], },
-        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
-      ..f.val, },
+        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, }, },
   map_add'  := λ f g, by { ext, simp, },
   map_smul' := λ F G, by { ext, simp, },
   inv_fun   := λ F, ⟨F, λ x, by { ext, simp, }⟩,

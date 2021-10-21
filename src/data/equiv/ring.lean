@@ -386,6 +386,27 @@ g.to_ring_hom.map_sum f s
 
 end big_operators
 
+section division_ring
+
+variables {K K' : Type*} [division_ring K] [division_ring K']
+  (g : K ≃+* K') (x y : K)
+
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_ring_hom.map_inv x
+
+lemma map_div : g (x / y) = g x / g y := g.to_ring_hom.map_div x y
+
+end division_ring
+
+section group_power
+
+variables [semiring R] [semiring S]
+
+@[simp] lemma map_pow (f : R ≃+* S) (a) :
+  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
+f.to_ring_hom.map_pow a
+
+end group_power
+
 end ring_equiv
 
 namespace mul_equiv
@@ -416,9 +437,10 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
     by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]
+protected lemma integral_domain
+  {A : Type*} (B : Type*) [comm_ring A] [comm_ring B] [integral_domain B]
   (e : A ≃+* B) : integral_domain A :=
-{ .. (‹_› : ring A), .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
+{ .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
 
 end ring_equiv
 

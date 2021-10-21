@@ -280,7 +280,7 @@ end comm_ring
 
 section integral_domain
 
-variables (R : Type u) [integral_domain R]
+variables (R : Type u) [comm_ring R] [integral_domain R]
 
 theorem is_local_ring_hom_expand {p : ℕ} (hp : 0 < p) :
   is_local_ring_hom (↑(expand R p) : polynomial R →+* polynomial R) :=

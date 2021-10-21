@@ -82,6 +82,8 @@ begin
   rw ← splitting_field.adjoin_root_set,
   simp_rw algebra.mem_adjoin_iff,
   intros x hx,
+  -- We discharge the `p = 0` separately, to avoid typeclass issues on `zmod p`.
+  unfreezingI { cases p, cases hp, },
   apply subring.closure_induction hx; clear_dependent x; simp_rw mem_root_set aux,
   { rintros x (⟨r, rfl⟩ | hx),
     { simp only [aeval_X_pow, aeval_X, alg_hom.map_sub],
@@ -120,6 +122,8 @@ begin
   { convert finite_field.roots_X_pow_card_sub_X _,
     exact (zmod.card p).symm },
   have h2 := finite_field.X_pow_card_sub_X_nat_degree_eq (zmod p) hp,
+  -- We discharge the `p = 0` separately, to avoid typeclass issues on `zmod p`.
+  unfreezingI { cases p, cases hp, },
   rw [splits_iff_card_roots, h1, ←finset.card_def, finset.card_univ, h2, zmod.card],
 end
 

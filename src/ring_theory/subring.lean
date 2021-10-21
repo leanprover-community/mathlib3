@@ -115,6 +115,12 @@ protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
   neg_mem' := hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
 
+@[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
+  (S.copy s hs : set R) = s := rfl
+
+lemma copy_eq (S : subring R) (s : set R) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 lemma to_subsemiring_injective : function.injective (to_subsemiring : subring R → subsemiring R)
 | r s h := ext (set_like.ext_iff.mp h : _)
 
@@ -280,8 +286,12 @@ s.to_subsemiring.nontrivial
 instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s :=
 s.to_subsemiring.no_zero_divisors
 
+/-- A subring of a domain is a domain. -/
+instance {R} [ring R] [domain R] (s : subring R) : domain s :=
+{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
+
 /-- A subring of an integral domain is an integral domain. -/
-instance {R} [integral_domain R] (s : subring R) : integral_domain s :=
+instance {R} [comm_ring R] [integral_domain R] (s : subring R) : integral_domain s :=
 { .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/

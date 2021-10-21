@@ -120,7 +120,7 @@ end ring
 
 section integral_domain
 
-variables [integral_domain A]
+variables [comm_ring A]
 
 section ring
 
@@ -175,7 +175,7 @@ end ring
 
 section domain
 
-variables [domain B] [algebra A B]
+variables [integral_domain A] [ring B] [algebra A B]
 variables {x : B}
 
 /-- If `a` strictly divides the minimal polynomial of `x`, then `x` cannot be a root for `a`. -/
@@ -202,6 +202,8 @@ begin
   rw [prod, degree_mul, degree_eq_nat_degree hzeroa, degree_eq_nat_degree hzerob],
   exact_mod_cast lt_add_of_pos_right _ degbzero,
 end
+
+variables [domain B]
 
 /-- A minimal polynomial is irreducible. -/
 lemma irreducible (hx : is_integral A x) : irreducible (minpoly A x) :=
@@ -311,19 +313,20 @@ by { rw is_scalar_tower.aeval_apply R K,
 
 variables {A x}
 
-theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
+theorem eq_of_irreducible_of_monic
+  [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
   (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
 eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
 mul_one (minpoly A x) ▸ hq.symm ▸ associated.mul_left _ $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
-lemma unique'' [nontrivial B] {p : polynomial A}
+lemma eq_of_irreducible [nontrivial B] {p : polynomial A}
   (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0) :
   p * C p.leading_coeff⁻¹ = minpoly A x :=
 begin
   have : p.leading_coeff ≠ 0 := leading_coeff_ne_zero.mpr hp1.ne_zero,
-  apply unique',
+  apply eq_of_irreducible_of_monic,
   { exact associated.irreducible ⟨⟨C p.leading_coeff⁻¹, C p.leading_coeff,
       by rwa [←C_mul, inv_mul_cancel, C_1], by rwa [←C_mul, mul_inv_cancel, C_1]⟩, rfl⟩ hp1 },
   { rw [aeval_mul, hp2, zero_mul] },
@@ -350,13 +353,14 @@ section gcd_domain
 
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. -/
-lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [integral_domain A]
-  [normalized_gcd_monoid A] [field K] [integral_domain R] [algebra A K] [is_fraction_ring A K]
+lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [comm_ring A] [integral_domain A]
+  [normalized_gcd_monoid A] [field K]
+  [comm_ring R] [integral_domain R] [algebra A K] [is_fraction_ring A K]
   [algebra K R] [algebra A R] [is_scalar_tower A K R] {x : R} (hx : is_integral A x) :
   minpoly K x = (minpoly A x).map (algebra_map A K) :=
 begin
   symmetry,
-  refine unique' _ _ _,
+  refine eq_of_irreducible_of_monic _ _ _,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
       (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),
@@ -367,7 +371,8 @@ end
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
 lemma gcd_domain_dvd {A R : Type*} (K : Type*)
-  [integral_domain A] [normalized_gcd_monoid A] [field K] [integral_domain R] [algebra A K]
+  [comm_ring A] [integral_domain A] [normalized_gcd_monoid A] [field K]
+  [comm_ring R] [integral_domain R] [algebra A K]
   [is_fraction_ring A K] [algebra K R] [algebra A R] [is_scalar_tower A K R]
   {x : R} (hx : is_integral A x)
   {P : polynomial A} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
@@ -405,7 +410,7 @@ by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg] using eq_X_sub_C B (1:A)
 end ring
 
 section domain
-variables [domain B] [algebra A B]
+variables [ring B] [domain B] [algebra A B]
 variables {x : B}
 
 /-- A minimal polynomial is prime. -/

@@ -209,6 +209,11 @@ lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f)
 set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
+lemma mem_map_iff_mem {f : M →* N} (hf : function.injective f) {S : submonoid M} {x : M} :
+  f x ∈ S.map f ↔ x ∈ S :=
+hf.mem_set_image
+
+@[to_additive]
 lemma map_le_iff_le_comap {f : M →* N} {S : submonoid M} {T : submonoid N} :
   S.map f ≤ T ↔ S ≤ T.comap f :=
 image_subset_iff
@@ -384,10 +389,8 @@ instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
-@[simp, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-@[simp, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
-attribute [norm_cast] coe_mul coe_one
-attribute [norm_cast] add_submonoid.coe_add add_submonoid.coe_zero
+@[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
 /-- A submonoid of a unital magma inherits a unital magma structure. -/
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
@@ -458,9 +461,9 @@ holds for all elements of the closure of `s`.
 
 The difference with `submonoid.closure_induction` is that this acts on the subtype.
 -/
-@[to_additive "An induction principle on elements of the type `add_submonoid.closure s`.
-If `p` holds for `0` and all elements of `s`, and is preserved under addition, then `p`
-holds for all elements of the closure of `s`.
+@[elab_as_eliminator, to_additive "An induction principle on elements of the type
+`add_submonoid.closure s`.  If `p` holds for `0` and all elements of `s`, and is preserved under
+addition, then `p` holds for all elements of the closure of `s`.
 
 The difference with `add_submonoid.closure_induction` is that this acts on the subtype."]
 lemma closure_induction' (s : set M) {p : closure s → Prop}
@@ -477,8 +480,6 @@ subtype.rec_on x $ λ x hx, begin
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
       ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
-
-attribute [elab_as_eliminator] submonoid.closure_induction' add_submonoid.closure_induction'
 
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/

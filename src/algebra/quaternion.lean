@@ -539,12 +539,14 @@ by { rw norm_sq_def', apply_rules [sq_nonneg, add_nonneg] }
 @[simp] lemma norm_sq_le_zero : norm_sq a ≤ 0 ↔ a = 0 :=
 by simpa only [le_antisymm_iff, norm_sq_nonneg, and_true] using @norm_sq_eq_zero _ _ a
 
+instance : nontrivial ℍ[R] :=
+{ exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩, }
+
 instance : domain ℍ[R] :=
-{ exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
     have norm_sq a * norm_sq b = 0, by rwa [← norm_sq.map_mul, norm_sq_eq_zero],
     (eq_zero_or_eq_zero_of_mul_eq_zero this).imp norm_sq_eq_zero.1 norm_sq_eq_zero.1,
-  .. quaternion.ring }
+  ..quaternion.nontrivial, }
 
 end linear_ordered_comm_ring
 
@@ -559,7 +561,8 @@ instance : division_ring ℍ[R] :=
   inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
-  .. quaternion.domain }
+  .. quaternion.nontrivial,
+  .. quaternion.ring }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
 monoid_with_zero_hom.map_inv norm_sq _

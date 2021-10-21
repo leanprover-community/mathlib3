@@ -285,10 +285,7 @@ by { classical, exact (basis.of_vector_space K V).eval_ker }
 -- TODO(jmc): generalize to rings, once `module.rank` is generalized
 theorem dual_dim_eq [finite_dimensional K V] :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
-begin
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  exact (basis.of_vector_space K V).dual_dim_eq,
-end
+(basis.of_vector_space K V).dual_dim_eq
 
 lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
 begin
@@ -543,19 +540,13 @@ open finite_dimensional
 variables {V₁ : Type*} [add_comm_group V₁] [module K V₁]
 
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
-begin
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  exact linear_equiv.finite_dimensional (basis.of_vector_space K V).to_dual_equiv
-end
+linear_equiv.finite_dimensional (basis.of_vector_space K V).to_dual_equiv
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 
 @[simp] lemma dual_finrank_eq :
   finrank K (module.dual K V) = finrank K V :=
-begin
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  exact linear_equiv.finrank_eq (basis.of_vector_space K V).to_dual_equiv.symm
-end
+linear_equiv.finrank_eq (basis.of_vector_space K V).to_dual_equiv.symm
 
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/
 noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :
@@ -567,7 +558,6 @@ linear_equiv.quot_equiv_of_quot_equiv $
 noncomputable def quot_equiv_annihilator (W : subspace K V) :
   W.quotient ≃ₗ[K] W.dual_annihilator :=
 begin
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   refine _ ≪≫ₗ W.quot_dual_equiv_annihilator,
   refine linear_equiv.quot_equiv_of_equiv _ (basis.of_vector_space K V).to_dual_equiv,
   exact (basis.of_vector_space K W).to_dual_equiv.trans W.dual_equiv_dual

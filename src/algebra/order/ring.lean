@@ -1433,7 +1433,7 @@ end add_le_cancellable
 variables [contravariant_class α α (+) (≤)]
 
 lemma mul_tsub (a b c : α) : a * (b - c) = a * b - a * c :=
-contravariant.add_le_cancellable.mul_sub
+contravariant.add_le_cancellable.mul_tsub
 
 lemma tsub_mul (a b c : α) : (a - b) * c = a * c - b * c :=
 contravariant.add_le_cancellable.tsub_mul

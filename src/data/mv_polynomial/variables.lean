@@ -172,7 +172,7 @@ begin
   simp only [finsupp.count_to_multiset],
   by_cases h0 : d = 0,
   { simp only [h0, zero_le, finsupp.zero_apply], },
-  { refine @finset.le_sup _ _ _ (p + q).support _ d _,
+  { refine @finset.le_sup _ _ _ _ (p + q).support _ d _,
     rw [mem_support_iff, coeff_add],
     suffices : q.coeff d = 0,
     { rwa [this, add_zero, coeff, ← finsupp.mem_support_iff], },

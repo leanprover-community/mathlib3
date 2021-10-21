@@ -526,6 +526,25 @@ begin
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
 end
 
+/-- If `p ^ k` is prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
+lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
+  cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p :=
+begin
+  have : ∀ m, cyclotomic (p ^ (m + 1)) R = geom_sum (X ^ (p ^ m)) p ↔
+    geom_sum (X ^ p ^ m) p * ∏ (x : ℕ) in finset.range (m + 1),
+      cyclotomic (p ^ x) R = X ^ p ^ (m + 1) - 1,
+  { intro m,
+    have := eq_cyclotomic_iff (pow_pos hp.pos (m + 1)) _,
+    rw eq_comm at this,
+    rw [this, nat.prod_proper_divisors_prime_pow hp], },
+  induction n with n_n n_ih,
+  { simp [cyclotomic_eq_geom_sum hp], },
+  rw ((eq_cyclotomic_iff (pow_pos hp.pos (n_n.succ + 1)) _).mpr _).symm,
+  rw [nat.prod_proper_divisors_prime_pow hp, finset.prod_range_succ, n_ih],
+  rw this at n_ih,
+  rw [mul_comm _ (geom_sum _ _), n_ih, geom_sum_mul, sub_left_inj, ← pow_mul, pow_add, pow_one],
+end
+
 /-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/
 lemma cyclotomic_coeff_zero (R : Type*) [comm_ring R] {n : ℕ} (hn : 2 ≤ n) :
   (cyclotomic n R).coeff 0 = 1 :=

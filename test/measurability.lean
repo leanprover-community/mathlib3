@@ -75,5 +75,5 @@ example [topological_space α] [borel_space α] [normed_group β] [borel_space �
   ae_measurable (∑ i in s, (λ x, F (i+1) x - F i x)) μ :=
 by measurability
 
-example : measurable (λ x : ℝ, real.exp (2 * (inner x 3 : ℝ))) :=
+example : measurable (λ x : ℝ, real.exp (2 * inner x 3)) :=
 by measurability

@@ -290,8 +290,9 @@ lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f :
 
 lemma is_open_map_iff_interior [topological_space α] [topological_space β] {f : α → β} :
   is_open_map f ↔ ∀ s, f '' (interior s) ⊆ interior (f '' s) :=
-⟨is_open_map.image_interior_subset, λ hs u hu, have h : _, from hs u,
-  interior_eq_iff_open.1 $ interior_subset.antisymm $ by rwa hu.interior_eq at h⟩
+⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_open.mp $
+  calc f '' u = f '' (interior u) : by rw hu.interior_eq
+          ... ⊆ interior (f '' u) : hs u⟩
 
 lemma inducing.is_open_map [topological_space α] [topological_space β] {f : α → β}
   (hi : inducing f) (ho : is_open (range f)) :
@@ -353,8 +354,9 @@ end
 
 lemma is_closed_map_iff_closure_image [topological_space α] [topological_space β] {f : α → β} :
   is_closed_map f ↔ ∀ s, closure (f '' s) ⊆ f '' closure s :=
-⟨is_closed_map.closure_image_subset, λ hs c hc, have h : _, from hs c,
-  closure_eq_iff_is_closed.1 $ subset.antisymm (by rwa hc.closure_eq at h) subset_closure⟩
+⟨is_closed_map.closure_image_subset, λ hs c hc, is_closed_of_closure_subset $
+  calc closure (f '' c) ⊆ f '' (closure c) : hs c
+                    ... = f '' c : by rw hc.closure_eq⟩
 
 section open_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]

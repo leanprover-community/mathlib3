@@ -54,8 +54,8 @@ section upper_half_plane_action
 instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
 mul_action.comp_hom ℍ (map (algebra_map R ℝ))
 
-@[simp] lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
-@[simp] lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
+lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
+lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 @[simp] lemma smul_coe (g : SL(2, ℤ)) (z : ℍ) : (g : SL(2,ℝ)) • z = g • z := rfl
 
 @[simp] lemma neg_smul (g : SL(2, ℤ)) (z : ℍ) : -g • z = g • z :=
@@ -103,6 +103,7 @@ section tendsto_lemmas
 
 open filter continuous_linear_map
 local attribute [instance] matrix.normed_group matrix.normed_space
+local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
 -/
@@ -163,6 +164,9 @@ def acbd (p : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
   acbd p g = p 0 * g 0 0 + p 1 * g 0 1 :=
 by simp [acbd]
 
+@[simp] lemma acbd_apply' (a b : ℝ) (c d : ℤ) (v : fin 2 → ℝ) :
+  acbd ![c, d] ![![a, b], v] = c * a + d * b :=
+by simp [acbd]
 
 /-- Linear map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed
   `(c₀, d₀)`.
@@ -171,6 +175,20 @@ def acbd_extend (cd : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] 
 ((matrix.mul_vec_lin ![![(cd 0:ℝ), cd 1], ![cd 1,-cd 0]]).comp
   (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod
   (linear_map.proj 1)
+
+--set_option trace.simplify.rewrite true
+
+lemma acbd_extend_apply (c₀ d₀ : ℤ) (a b c d : ℝ) :
+acbd_extend ![c₀, d₀] ![![a, b], ![c, d]] = (![a * c₀ + b * d₀, a * d₀ - b * c₀],![c, d]) :=
+begin
+  simp only [add_zero, function.comp_app, function.eval_apply, linear_map.coe_comp,
+  linear_map.coe_proj, linear_map.prod_apply, matrix.cons_val_one, matrix.cons_val_zero,
+  matrix.head_cons, matrix.mul_vec_cons, matrix.mul_vec_empty, matrix.mul_vec_lin_apply,
+  modular_group.acbd_extend, prod.mk.inj_iff],
+  refine ⟨_ , rfl⟩,
+  ext i,
+  fin_cases i;  simp; ring,
+end
 
 lemma acbd_extend_ker_eq_bot {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   (acbd_extend cd).ker = ⊥ :=
@@ -181,25 +199,13 @@ begin
     exact hcd.sq_add_sq_ne_zero },
   let F : matrix (fin 2) (fin 2) ℝ := ((cd 0)^2+(cd 1)^2:ℝ)⁻¹ • ![![cd 0, cd 1], ![cd 1, -cd 0]],
   let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := F.mul_vec_lin,
-  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨x , cd⟩, ![f₁ x, cd],
+  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ x, ![f₁ x.1, x.2],
   have : function.left_inverse f (acbd_extend cd),
   { intros g,
     simp [acbd_extend, f, f₁, F, vec_head, vec_tail], -- squeeze_simp times out!
     ext i j,
     fin_cases i,
-    { fin_cases j,
-      { change (↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 0)
-          * (↑(cd 0) * g 0 0 + ↑(cd 1) * g 0 1)
-        + (↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 1)
-          * (↑(cd 1) * g 0 0 + -(↑(cd 0) * g 0 1)) = _,
-        field_simp,
-        ring },
-      { change (↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 1)
-          * (↑(cd 0) * g 0 0 + ↑(cd 1) * g 0 1)
-        + -((↑(cd 0) ^ 2 + ↑(cd 1) ^ 2)⁻¹ * ↑(cd 0)
-          * (↑(cd 1) * g 0 0 + -(↑(cd 0) * g 0 1))) = _,
-        field_simp,
-        ring } },
+    { fin_cases j; { field_simp, ring }, },
     { fin_cases j; refl } },
   exact this.injective,
 end
@@ -290,6 +296,8 @@ end tendsto_lemmas
 
 section fundamental_domain
 
+local attribute [simp] coe_smul re_smul
+
 /-- For `z : ℍ`, there is a `g : SL(2,ℤ)` maximizing `(g•z).im` -/
 lemma exists_g_with_max_im (z : ℍ) :
   ∃ g : SL(2, ℤ), ∀ g' : SL(2, ℤ), (g' • z).im ≤ (g • z).im :=
@@ -325,19 +333,19 @@ begin
 end
 
 /-- The matrix `T = [[1,1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T : SL(2,ℤ) := ⟨![![1, 1], ![0, 1]], by simp [matrix.det_fin_two]⟩
+def T : SL(2,ℤ) := ⟨![![1, 1], ![0, 1]], by norm_num [matrix.det_fin_two]⟩
 
 /-- The matrix `T' (= T⁻¹) = [[1,-1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T' : SL(2,ℤ) := ⟨![![1, -1], ![0, 1]], by simp [matrix.det_fin_two]⟩
+def T' : SL(2,ℤ) := ⟨![![1, -1], ![0, 1]], by norm_num [matrix.det_fin_two]⟩
 
 /-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
-def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by simp [matrix.det_fin_two]⟩
+def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]⟩
 
 /-- The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
 def fundamental_domain : set ℍ :=
 {z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}
 
-notation `𝒟` := fundamental_domain
+localized "notation `𝒟` := fundamental_domain" in modular
 
 /-- If `|z|<1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
@@ -365,35 +373,27 @@ begin
     { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, denom_apply, denom_apply, hg] },
     simpa only [hg''] using hg₀ },
   split,
-  { -- Claim: `|g•z| > 1`. If not, then `S•g•z` has larger imaginary part
+  { -- Claim: `1 ≤ ⇑norm_sq ↑(g • z)`. If not, then `S•g•z` has larger imaginary part
     contrapose! hg₀',
     refine ⟨S * g, _⟩,
     rw mul_action.mul_smul,
     exact im_lt_im_S hg₀' },
-  { -- Claim: `|Re(g•z)| < 1/2`; if not, then either `T` or `T'` decrease |Re|.
+  { show |(g • z).re| ≤ 1 / 2, -- if not, then either `T` or `T'` decrease |Re|.
     rw abs_le,
     split,
     { contrapose! hg',
-      refine ⟨T * g, _, _⟩,
-      { -- goal: `bottom_row (T * g) = bottom_row g`.
-        simp [T, vec_head, vec_tail], },
+      refine ⟨T * g, by simp [T, vec_head, vec_tail], _⟩,
       rw mul_action.mul_smul,
-      change (g • z).re < _ at hg',
       have : |(g • z).re + 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
       convert this,
-      -- goal: `(T • g • z).re = (g • z).re + 1`.
       simp [T] },
     { contrapose! hg',
-      refine ⟨T' * g, _, _⟩,
-      { -- goal: `bottom_row (T' * g) = bottom_row g`.
-        simp [T', vec_head, vec_tail] },
+      refine ⟨T' * g, by simp [T', vec_head, vec_tail], _⟩,
       rw mul_action.mul_smul,
-      change _ < (g • z).re at hg',
       have : |(g • z).re - 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
       convert this,
-      -- goal: `(T' • g • z).re = (g • z).re - 1`.
       simp [T', sub_eq_add_neg] } }
 end
 

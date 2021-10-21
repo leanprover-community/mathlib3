@@ -114,9 +114,13 @@ quotient.has_scalar' P
 
 @[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
 
+instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
+  [smul_comm_class S T M] : smul_comm_class S T P.quotient :=
+{ smul_comm := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_comm _ _ _) }
+
 instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M] [has_scalar S T]
   [is_scalar_tower S T M] : is_scalar_tower S T P.quotient :=
-{ smul_assoc := by rintros x y ⟨z⟩; rw [quot_mk_eq_mk, ← mk_smul, smul_assoc, mk_smul, mk_smul] }
+{ smul_assoc := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_assoc _ _ _) }
 
 end has_scalar
 

@@ -3,7 +3,6 @@ Copyright (c) 2018 Mario Carneiro, Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
--- import algebraic_geometry.prime_spectrum
 import data.multiset.finset_ops
 import linear_algebra.linear_independent
 import order.order_iso_nat

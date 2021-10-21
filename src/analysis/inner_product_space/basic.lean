@@ -1499,6 +1499,14 @@ def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
 
 variables {𝕜} {V : ι → submodule 𝕜 E}
 
+lemma orthogonal_family.eq_ite (hV : orthogonal_family 𝕜 V) {i j : ι} (v : V i) (w : V j) :
+  ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
+begin
+  split_ifs,
+  { refl },
+  { exact hV h v.prop w.prop }
+end
+
 lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
   (l : Π₀ i, V i) (i : ι) (v : V i) :
   ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
@@ -1514,17 +1522,11 @@ begin
     linear_map.to_add_monoid_hom_coe, continuous_linear_map.coe_coe],
   congr
 end
-... = l.sum (λ j, λ w, ite (j=i) ⟪(v:E), w⟫ 0) :
-begin
-  congr' 1,
-  ext j,
-  split_ifs,
-  { simp [h] },
-  { exact hV (ne.symm h) v.prop x.prop }
-end
+... = l.sum (λ j, λ w, ite (i=j) ⟪(v:E), w⟫ 0) :
+  congr_arg l.sum $ funext $ λ j, funext $ hV.eq_ite v
 ... = ⟪v, l i⟫ :
 begin
-  simp only [dfinsupp.sum, submodule.coe_inner, finset.sum_ite_eq', ite_eq_left_iff,
+  simp only [dfinsupp.sum, submodule.coe_inner, finset.sum_ite_eq, ite_eq_left_iff,
     dfinsupp.mem_support_to_fun, not_not],
   intros h,
   simp [h]
@@ -1533,18 +1535,15 @@ end
 lemma orthogonal_family.inner_right_fintype
   [fintype ι] (hV : orthogonal_family 𝕜 V) (l : Π i, V i) (i : ι) (v : V i) :
   ⟪(v : E), ∑ j : ι, l j⟫ = ⟪v, l i⟫ :=
-begin
-  classical,
-  transitivity ∑ j, ite (j = i) ⟪(v : E), l i⟫ 0,
-  { rw inner_sum,
-    congr' 1,
-    ext j,
-    split_ifs,
-    { rw h },
-    { exact hV (ne.symm h) v.prop (l j).prop } },
-  simp,
-end
+calc ⟪(v : E), ∑ j : ι, l j⟫
+    = ∑ j : ι, ⟪(v : E), l j⟫: by rw inner_sum
+... = ∑ j, ite (i = j) ⟪(v : E), l j⟫ 0 :
+  congr_arg (finset.sum finset.univ) $ funext $ λ j, (hV.eq_ite v (l j))
+... = ⟪v, l i⟫ : by simp
 
+/-- An orthogonal family forms an independent family of subspaces; that is, any collection of
+elements each from a different subspace in the family is linearly independent. In particular, the
+pairwise intersections of elements of the family are 0. -/
 lemma orthogonal_family.independent (hV : orthogonal_family 𝕜 V) :
   complete_lattice.independent V :=
 begin

@@ -436,14 +436,14 @@ instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [
   [module R M]: is_scalar_tower ℤ R M :=
 { smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_int_module_smul n x }
 
-instance add_comm_group.int_smul_comm_class {R : Type u} {M : Type v} [semiring S] : smul_comm_class ℤ S M :=
-{ smul_comm := λ n x y, int.induction_on n
-    (by simp only [zero_smul, smul_zero])
-    (λ n ih, by simp only [one_smul, add_smul, smul_add, ih])
-    (λ n ih, by simp only [one_smul, sub_smul, smul_sub, ih]) }
+instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [semiring S]
+  [add_comm_group M] [module S M] :
+  smul_comm_class ℤ S M :=
+{ smul_comm := λ n x y, ((smul_add_hom S M x).map_gsmul y n).symm }
 
 -- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' : smul_comm_class S ℤ M :=
+instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [semiring S]
+  [add_comm_group M] [module S M] : smul_comm_class S ℤ M :=
 smul_comm_class.symm _ _ _
 
 instance is_scalar_tower.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]

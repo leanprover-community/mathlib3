@@ -84,7 +84,7 @@ end
 
 To support `units ℤ` and other infinite monoids with finite groups of units, this requires only
 `fintype (units R)` rather than deducing it from `fintype R`. -/
-instance [fintype R] : is_cyclic (units R) :=
+instance [fintype (units R)] : is_cyclic (units R) :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/

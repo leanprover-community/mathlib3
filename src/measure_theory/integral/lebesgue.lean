@@ -55,9 +55,9 @@ namespace simple_func
 
 section measurable
 variables [measurable_space α]
-instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) := ⟨_, to_fun⟩
+instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) (λ _, α → β) := ⟨to_fun⟩
 
-lemma coe_injective ⦃f g : α →ₛ β⦄ (H : ⇑f = g) : f = g :=
+lemma coe_injective ⦃f g : α →ₛ β⦄ (H : (f : α → β) = g) : f = g :=
 by cases f; cases g; congr; exact H
 
 @[ext] theorem ext {f g : α →ₛ β} (H : ∀ a, f a = g a) : f = g :=
@@ -609,7 +609,7 @@ begin
         coe_sub, pi.sub_apply, ennreal.coe_to_nnreal,
         ennreal.add_sub_cancel_of_le (monotone_eapprox f (nat.le_succ _) _)],
     apply (lt_of_le_of_lt _ (eapprox_lt_top f (n+1) a)).ne,
-    rw ennreal.sub_le_iff_le_add,
+    rw tsub_le_iff_right,
     exact le_self_add },
 end
 
@@ -1062,7 +1062,7 @@ begin
   rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
-  simp only [add_apply, sub_apply, add_sub_eq_max]
+  simp only [add_apply, sub_apply, add_tsub_eq_max]
 end
 
 theorem supr_lintegral_le {ι : Sort*} (f : ι → α → ℝ≥0∞) :
@@ -1275,7 +1275,7 @@ begin
     begin
       rw [← simple_func.add_lintegral, ← simple_func.map_add @ennreal.coe_add],
       refine simple_func.lintegral_mono (λ x, _) le_rfl,
-      simp [-ennreal.coe_add, add_sub_eq_max, le_max_right]
+      simp [-ennreal.coe_add, add_tsub_eq_max, le_max_right]
     end
   ... ≤ (map coe φ).lintegral (μ.restrict s) + ε₁ :
     begin
@@ -1287,7 +1287,7 @@ begin
   ... = C * μ s + ε₁ : by simp [← simple_func.lintegral_eq_lintegral]
   ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ : by { mono*, exacts [le_rfl, hs.le, le_rfl] }
   ... ≤ (ε₂ - ε₁) + ε₁ : add_le_add mul_div_le le_rfl
-  ... = ε₂ : sub_add_cancel_of_le hε₁₂.le,
+  ... = ε₂ : tsub_add_cancel_of_le hε₁₂.le,
 end
 
 /-- If `f` has finite integral, then `∫⁻ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
@@ -1590,10 +1590,10 @@ lemma lintegral_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurab
   ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
 begin
   rw [← ennreal.add_left_inj hg_fin,
-        ennreal.sub_add_cancel_of_le (lintegral_mono_ae h_le),
+        tsub_add_cancel_of_le (lintegral_mono_ae h_le),
       ← lintegral_add (hf.sub hg) hg],
   refine lintegral_congr_ae (h_le.mono $ λ x hx, _),
-  exact ennreal.sub_add_cancel_of_le hx
+  exact tsub_add_cancel_of_le hx
 end
 
 lemma lintegral_sub_le (f g : α → ℝ≥0∞)
@@ -1661,7 +1661,7 @@ calc
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
     lintegral_supr_ae
       (assume n, (h_meas 0).sub (h_meas n))
-      (assume n, (h_mono n).mono $ assume a ha, ennreal.sub_le_sub (le_refl _) ha)
+      (assume n, (h_mono n).mono $ assume a ha, tsub_le_tsub (le_refl _) ha)
   ... = ⨆n, ∫⁻ a, f 0 a ∂μ - ∫⁻ a, f n a ∂μ :
     have h_mono : ∀ᵐ a ∂μ, ∀n:ℕ, f n.succ a ≤ f n a := ae_all_iff.2 h_mono,
     have h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f 0 a := assume n, h_mono.mono $ assume a h,

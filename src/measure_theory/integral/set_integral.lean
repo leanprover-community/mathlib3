@@ -170,7 +170,7 @@ begin
     ← coe_nnnorm, nnreal.coe_le_coe, ← ennreal.coe_le_coe],
   refine (ennnorm_integral_le_lintegral_ennnorm _).trans _,
   rw [← with_density_apply _ (hSm.diff (hsm _)), ← hν, measure_diff hsub hSm (hsm _)],
-  exacts [ennreal.sub_le_of_sub_le hi.1,
+  exacts [tsub_le_iff_tsub_le.mp hi.1,
     (hi.2.trans_lt $ ennreal.add_lt_top.2 ⟨hfi', ennreal.coe_lt_top⟩).ne]
 end
 
@@ -678,8 +678,9 @@ lemma continuous_at.integral_sub_linear_is_o_ae
 /-- If a function is continuous on an open set `s`, then it is measurable at the filter `𝓝 x` for
   all `x ∈ s`. -/
 lemma continuous_on.measurable_at_filter
-  [topological_space α] [opens_measurable_space α] [borel_space E]
-  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
+  [topological_space α] [opens_measurable_space α] [measurable_space β] [topological_space β]
+  [borel_space β]
+  {f : α → β} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 λ x hx, ⟨s, is_open.mem_nhds hs hx, hf.ae_measurable hs.measurable_set⟩
 
@@ -689,11 +690,17 @@ lemma continuous_at.measurable_at_filter
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
 
+lemma continuous.measurable_at_filter [topological_space α] [opens_measurable_space α]
+  [measurable_space β] [topological_space β] [borel_space β] {f : α → β} (hf : continuous f)
+  (μ : measure α) (l : filter α) :
+  measurable_at_filter f l μ :=
+hf.measurable.measurable_at_filter
+
 /-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
   `𝓝[s] x` for all `x`. -/
-lemma continuous_on.measurable_at_filter_nhds_within {α E : Type*} [measurable_space α]
-  [measurable_space E] [normed_group E] [topological_space α] [opens_measurable_space α]
-  [borel_space E] {f : α → E} {s : set α} {μ : measure α}
+lemma continuous_on.measurable_at_filter_nhds_within {α β : Type*} [measurable_space α]
+  [topological_space α] [opens_measurable_space α] [measurable_space β] [topological_space β]
+  [borel_space β] {f : α → β} {s : set α} {μ : measure α}
   (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
   measurable_at_filter f (𝓝[s] x) μ :=
 ⟨s, self_mem_nhds_within, hf.ae_measurable hs⟩

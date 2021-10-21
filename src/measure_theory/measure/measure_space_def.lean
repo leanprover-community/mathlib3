@@ -76,8 +76,9 @@ For measurable sets this returns the measure assigned by the `measure_of` field 
 But we can extend this to _all_ sets, but using the outer measure. This gives us monotonicity and
 subadditivity for all sets.
 -/
-instance measure.has_coe_to_fun [measurable_space α] : has_coe_to_fun (measure α) :=
-⟨λ _, set α → ℝ≥0∞, λ m, m.to_outer_measure⟩
+instance measure.has_coe_to_fun [measurable_space α] :
+  has_coe_to_fun (measure α) (λ _, set α → ℝ≥0∞) :=
+⟨λ m, m.to_outer_measure⟩
 
 section
 

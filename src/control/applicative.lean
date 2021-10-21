@@ -8,7 +8,7 @@ Instances for identity and composition functors
 import control.functor
 import algebra.group.basic
 
-universe variables u v w
+universes u v w
 
 section lemmas
 

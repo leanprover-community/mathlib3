@@ -638,7 +638,7 @@ begin
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),
       exact trans hmn (list.tail_sublist_forall₂_self _) },
-    { rw [← (sub_lt_iff_left (le_of_not_lt hm))] at mn,
+    { rw [← (tsub_lt_iff_left (le_of_not_lt hm))] at mn,
       apply hf1.2 _ _ (g.lt_iff_lt.2 mn),
       rw [← list.cons_head_tail (hnil (g (m - g 0))), ← list.cons_head_tail (hnil (g n'))],
       exact list.sublist_forall₂.cons (hg _ _ (le_of_lt mn)) hmn, } }

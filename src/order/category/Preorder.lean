@@ -22,7 +22,9 @@ instance : bundled_hom @preorder_hom :=
   comp := @preorder_hom.comp,
   hom_ext := @preorder_hom.ext }
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Preorder
+attribute [derive [large_category, concrete_category]] Preorder
+
+instance : has_coe_to_sort Preorder Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled Preorder from the underlying type and typeclass. -/
 def of (α : Type*) [preorder α] : Preorder := bundled.of α

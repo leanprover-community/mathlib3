@@ -73,7 +73,7 @@ def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
 begin
   apply invertible_of_pow_succ_eq_one x (n - 1),
   convert hx,
-  exact nat.sub_add_cancel (nat.succ_le_of_lt hn),
+  exact tsub_add_cancel_of_le (nat.succ_le_of_lt hn),
 end
 
 lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :

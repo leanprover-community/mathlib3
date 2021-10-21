@@ -99,8 +99,8 @@ begin
     preterm.val_add, preterm.val_var, preterm.val_const],
   by_cases h2 : t.val v ≤ s.val v,
   { right, refine ⟨h2,_⟩,
-    rw [h1, one_mul, nat.sub_eq_zero_iff_le], exact h2 },
-  { left, rw [h1, one_mul, add_comm, nat.sub_add_cancel _],
+    rw [h1, one_mul, tsub_eq_zero_iff_le], exact h2 },
+  { left, rw [h1, one_mul, add_comm, tsub_add_cancel_of_le _],
     rw not_le at h2, apply le_of_lt h2 }
 end
 

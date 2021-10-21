@@ -121,7 +121,7 @@ p.radius_eq_top_of_forall_nnreal_is_O $
   λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simp [hn]) eventually_eq.rfl
 
 lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ∞ :=
-p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2 ⟨n, λ k hk, nat.sub_add_cancel hk ▸ hn _⟩
+p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2 ⟨n, λ k hk, tsub_add_cancel_of_le hk ▸ hn _⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
 for some `0 < a < 1`, `∥p n∥ rⁿ = o(aⁿ)`. -/
@@ -783,7 +783,7 @@ with non-definitional equalities. -/
   (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l}) ≃ Σ n : ℕ, finset (fin n) :=
 { to_fun := λ s, ⟨s.1 + s.2.1, s.2.2⟩,
   inv_fun := λ s, ⟨s.1 - s.2.card, s.2.card, ⟨s.2.map
-    (fin.cast $ (nat.sub_add_cancel $ card_finset_fin_le s.2).symm).to_equiv.to_embedding,
+    (fin.cast $ (tsub_add_cancel_of_le $ card_finset_fin_le s.2).symm).to_equiv.to_embedding,
     finset.card_map _⟩⟩,
   left_inv :=
     begin
@@ -802,7 +802,7 @@ with non-definitional equalities. -/
   right_inv :=
     begin
       rintro ⟨n, s⟩,
-      simp [nat.sub_add_cancel (card_finset_fin_le s), fin.cast_to_equiv]
+      simp [tsub_add_cancel_of_le (card_finset_fin_le s), fin.cast_to_equiv]
     end }
 
 lemma change_origin_series_summable_aux₁ {r r' : ℝ≥0} (hr : (r + r' : ℝ≥0∞) < p.radius) :
@@ -816,9 +816,9 @@ begin
     (λ s : finset (fin n), ∥p (n - s.card + s.card)∥₊ * r ^ s.card * r' ^ (n - s.card))
     (∥p n∥₊ * (r + r') ^ n),
   { intro n,
-    -- TODO: why `simp only [nat.sub_add_cancel (card_finset_fin_le _)]` fails?
+    -- TODO: why `simp only [tsub_add_cancel_of_le (card_finset_fin_le _)]` fails?
     convert_to has_sum (λ s : finset (fin n), ∥p n∥₊ * (r ^ s.card * r' ^ (n - s.card))) _,
-    { ext1 s, rw [nat.sub_add_cancel (card_finset_fin_le _), mul_assoc] },
+    { ext1 s, rw [tsub_add_cancel_of_le (card_finset_fin_le _), mul_assoc] },
     rw ← fin.sum_pow_mul_eq_add_pow,
     exact (has_sum_fintype _).mul_left _ },
   refine nnreal.summable_sigma.2 ⟨λ n, (this n).summable, _⟩,

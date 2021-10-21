@@ -245,7 +245,7 @@ begin
   simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
     ← int.nat_cast_eq_coe_nat, ← nat.cast_pow],
   rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),
-  { rw [← pow_add, ←add_assoc], congr' 2, rw [add_comm, ←nat.sub_eq_iff_eq_add hk] },
+  { rw [← pow_add, ←add_assoc], congr' 2, rw [add_comm, ←tsub_eq_iff_eq_add_of_le hk] },
   rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
   apply mul_dvd_mul_left,
   rw show p ^ (n + 1 - k) = p * p ^ (n - k),

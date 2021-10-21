@@ -749,7 +749,7 @@ finset.card_pos.mpr c.boundaries_nonempty
 def length : ℕ := finset.card c.boundaries - 1
 
 lemma card_boundaries_eq_succ_length : c.boundaries.card = c.length + 1 :=
-(nat.sub_eq_iff_eq_add c.card_boundaries_pos).mp rfl
+(tsub_eq_iff_eq_add_of_le c.card_boundaries_pos).mp rfl
 
 lemma length_lt_card_boundaries : c.length < c.boundaries.card :=
 by { rw c.card_boundaries_eq_succ_length, exact lt_add_one _ }

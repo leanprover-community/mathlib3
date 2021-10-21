@@ -833,7 +833,7 @@ by simp [eq_iff_veq]
 
 @[simp] lemma add_nat_sub_nat {i : fin (n + m)} (h : m ≤ i) :
   add_nat m (sub_nat m i h) = i :=
-ext $ nat.sub_add_cancel h
+ext $ tsub_add_cancel_of_le h
 
 @[simp] lemma sub_nat_add_nat (i : fin n) (m : ℕ) (h : m ≤ add_nat m i := le_coe_add_nat m i) :
   sub_nat m (add_nat m i) h = i :=
@@ -1053,7 +1053,7 @@ instance (n : ℕ) : has_neg (fin n) :=
 /-- Abelian group structure on `fin (n+1)`. -/
 instance (n : ℕ) : add_comm_group (fin (n+1)) :=
 { add_left_neg := λ ⟨a, ha⟩, fin.ext $ trans (nat.mod_add_mod _ _ _) $
-    by { rw [fin.coe_mk, fin.coe_zero, nat.sub_add_cancel, nat.mod_self], exact le_of_lt ha },
+    by { rw [fin.coe_mk, fin.coe_zero, tsub_add_cancel_of_le, nat.mod_self], exact le_of_lt ha },
   sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, fin.ext $
     show (a + (n + 1 - b)) % (n + 1) = (a + (n + 1 - b) % (n + 1)) % (n + 1), by simp,
   sub := fin.sub,

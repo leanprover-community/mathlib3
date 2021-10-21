@@ -256,7 +256,7 @@ end
 
 lemma pow_map_zero_of_le
   {f : module.End R M} {m : M} {k l : ℕ} (hk : k ≤ l) (hm : (f^k) m = 0) : (f^l) m = 0 :=
-by rw [← nat.sub_add_cancel hk, pow_add, mul_apply, hm, map_zero]
+by rw [← tsub_add_cancel_of_le hk, pow_add, mul_apply, hm, map_zero]
 
 lemma commute_pow_left_of_commute
   {f : M →ₛₗ[σ₁₂] M₂} {g : module.End R M} {g₂ : module.End R₂ M₂}

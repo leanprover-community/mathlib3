@@ -157,7 +157,7 @@ begin
     { simp only [one_pow], },
     { have le := (pow_le_iff_le_right (nat.le_add_left _ _)).mp a,
       use (x+2)^(l-k),
-      rw [←pow_add, add_comm k, nat.sub_add_cancel le], } }
+      rw [←pow_add, add_comm k, tsub_add_cancel_of_le le], } }
 end
 
 /-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/

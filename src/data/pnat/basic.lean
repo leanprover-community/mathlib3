@@ -195,7 +195,7 @@ begin
     ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,
   split_ifs with h,
   { exact to_pnat'_coe (nat.sub_pos_of_lt h) },
-  { rw [nat.sub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
+  { rw [tsub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=

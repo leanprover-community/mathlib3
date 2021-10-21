@@ -1664,7 +1664,7 @@ def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
   begin
     assume j,
     rw subtype.ext_iff_val,
-    apply nat.sub_add_cancel,
+    apply tsub_add_cancel_of_le,
     simpa using j.2
   end,
   right_inv := λ j, nat.add_sub_cancel _ _ }

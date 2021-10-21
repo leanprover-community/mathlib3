@@ -42,7 +42,7 @@ variables {m n : ℕ}
 @[simp] theorem factorial_two : 2! = 2 := rfl
 
 theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
-nat.sub_add_cancel hn ▸ rfl
+tsub_add_cancel_of_le hn ▸ rfl
 
 theorem factorial_pos : ∀ n, 0 < n!
 | 0        := zero_lt_one
@@ -308,7 +308,7 @@ lemma desc_factorial_self : ∀ n : ℕ, n.desc_factorial n = n!
 | 0        := by simp only [desc_factorial_zero, nat.one_ne_zero, nat.not_lt_zero]
 | (succ k) := begin
   rw [desc_factorial_succ, mul_eq_zero, desc_factorial_eq_zero_iff_lt, lt_succ_iff,
-    nat.sub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
+    tsub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
   exact λ h _, h,
 end
 

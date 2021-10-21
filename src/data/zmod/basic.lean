@@ -690,7 +690,7 @@ by rw [val_nat_cast, nat.mod_eq_of_lt h]
 lemma neg_val' {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = (n - a.val) % n :=
 calc (-a).val = val (-a)    % n : by rw nat.mod_eq_of_lt ((-a).val_lt)
           ... = (n - val a) % n : nat.modeq.add_right_cancel' _ (by rw [nat.modeq, ←val_add,
-                  add_left_neg, nat.sub_add_cancel a.val_le, nat.mod_self, val_zero])
+                  add_left_neg, tsub_add_cancel_of_le a.val_le, nat.mod_self, val_zero])
 
 lemma neg_val {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = if a = 0 then 0 else n - a.val :=
 begin

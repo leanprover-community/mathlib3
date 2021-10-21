@@ -51,14 +51,14 @@ suffices n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m, by simp [Ico, this],
 begin
   cases le_total n m with hnm hmn,
   { rw [nat.add_sub_of_le hnm] },
-  { rw [nat.sub_eq_zero_of_le hmn, add_zero],
+  { rw [tsub_eq_zero_iff_le.mpr hmn, add_zero],
     exact and_congr_right (assume hnl, iff.intro
       (assume hln, (not_le_of_gt hln hnl).elim)
       (assume hlm, lt_of_lt_of_le hlm hmn)) }
 end
 
 theorem eq_nil_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = [] :=
-by simp [Ico, nat.sub_eq_zero_of_le h]
+by simp [Ico, tsub_eq_zero_iff_le.mpr h]
 
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', add_tsub_add_right_eq_tsub, add_comm n k]
@@ -79,7 +79,7 @@ end
 eq_nil_of_le (le_refl n)
 
 @[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = [] ↔ m ≤ n :=
-iff.intro (assume h, nat.le_of_sub_eq_zero $ by rw [← length, h]; refl) eq_nil_of_le
+iff.intro (assume h, tsub_eq_zero_iff_le.mp $ by rw [← length, h]; refl) eq_nil_of_le
 
 lemma append_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m ++ Ico m l = Ico n l :=
@@ -87,7 +87,7 @@ begin
   dunfold Ico,
   convert range'_append _ _ _,
   { exact (nat.add_sub_of_le hnm).symm },
-  { rwa [← nat.add_sub_assoc hnm, nat.sub_add_cancel] }
+  { rwa [← add_tsub_assoc_of_le hnm, tsub_add_cancel_of_le] }
 end
 
 @[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = [] :=

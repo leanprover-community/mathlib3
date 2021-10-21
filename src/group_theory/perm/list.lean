@@ -285,7 +285,7 @@ begin
       { rw [length_reverse, nat.mod_eq_of_lt hk', ←nat.sub_add_comm (nat.le_pred_of_lt hk'),
             nat.mod_eq_of_lt],
         { simp },
-        { rw nat.sub_add_cancel,
+        { rw tsub_add_cancel_of_le,
           refine tsub_lt_self _ (nat.zero_lt_succ _),
           all_goals { simpa using (nat.zero_le _).trans_lt hk' } } } },
     all_goals { rw [nat.sub_sub, ←length_reverse],

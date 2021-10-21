@@ -39,8 +39,8 @@ begin
   simp_rw [add_succ, succ_sub_one],
   obtain h | h := le_total a b,
   { rw [desc_factorial_of_lt (lt_succ_of_le h), desc_factorial_of_lt (lt_succ_of_le _)],
-    rw [nat.sub_eq_zero_of_le h, zero_add] },
-  { rw nat.sub_add_cancel h }
+    rw [tsub_eq_zero_iff_le.mpr h, zero_add] },
+  { rw tsub_add_cancel_of_le h }
 end
 
 lemma cast_factorial :

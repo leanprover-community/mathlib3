@@ -339,7 +339,7 @@ begin
   dsimp [appr],
   split_ifs with h,
   { exact ih },
-  rw [add_comm, nat.add_sub_assoc (appr_mono _ (nat.le_add_right m k))],
+  rw [add_comm, add_tsub_assoc_of_le (appr_mono _ (nat.le_add_right m k))],
   apply dvd_add _ ih,
   apply dvd_mul_of_dvd_left,
   apply pow_dvd_pow _ (nat.le_add_right m k),

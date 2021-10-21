@@ -28,14 +28,14 @@ instance : locally_finite_order ℕ :=
     rw [list.mem_to_finset, list.mem_range'],
     cases le_or_lt a b,
     { rw [add_tsub_cancel_of_le (nat.lt_succ_of_le h).le, nat.lt_succ_iff] },
-    { rw [nat.sub_eq_zero_iff_le.2 h, add_zero],
+    { rw [tsub_eq_zero_iff_le.2 h, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
   end,
   finset_mem_Ico := λ a b x, begin
     rw [list.mem_to_finset, list.mem_range'],
     cases le_or_lt a b,
     { rw [add_tsub_cancel_of_le h] },
-    { rw [nat.sub_eq_zero_iff_le.2 h.le, add_zero],
+    { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2.le)) }
   end,
   finset_mem_Ioc := λ a b x, begin
@@ -43,14 +43,14 @@ instance : locally_finite_order ℕ :=
     cases le_or_lt a b,
     { rw [←succ_sub_succ, add_tsub_cancel_of_le (succ_le_succ h), nat.lt_succ_iff,
         nat.succ_le_iff] },
-    { rw [nat.sub_eq_zero_iff_le.2 h.le, add_zero],
+    { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.le.trans hx.2)) }
   end,
   finset_mem_Ioo := λ a b x, begin
     rw [list.mem_to_finset, list.mem_range', nat.sub_sub],
     cases le_or_lt (a + 1) b,
     { rw [add_tsub_cancel_of_le h, nat.succ_le_iff] },
-    { rw [nat.sub_eq_zero_iff_le.2 h.le, add_zero],
+    { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
   end }
 
@@ -151,7 +151,7 @@ begin
     refine ⟨_, ((tsub_le_tsub_iff_left hac).2 hx.1).trans_lt ((tsub_lt_tsub_iff_right hac).2
       (nat.lt_succ_self _))⟩,
     cases lt_or_le c b,
-    { rw nat.sub_eq_zero_of_le h,
+    { rw tsub_eq_zero_iff_le.mpr h,
       exact zero_le _ },
     { rw ←succ_sub_succ c,
       exact (tsub_le_tsub_iff_left (succ_le_succ $ hx.2.le.trans h)).2 hx.2 } },

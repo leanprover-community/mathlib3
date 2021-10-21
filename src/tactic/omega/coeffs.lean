@@ -45,7 +45,7 @@ lemma val_between_eq_of_le {as : list int} {l : nat} :
   ∀ m, as.length ≤ l + m →
   val_between v as l m = val_between v as l (as.length - l)
 | 0 h1 :=
-  begin rw (nat.sub_eq_zero_iff_le.elim_right _), apply h1 end
+  begin rw (tsub_eq_zero_iff_le.elim_right _), apply h1 end
 | (m+1) h1 :=
   begin
     rw le_iff_eq_or_lt at h1, cases h1,
@@ -232,11 +232,11 @@ begin
   by_cases h1 : n + 1 ≤ as.length,
   { have h4 := @val_between_add_val_between v as 0 (n+1) (as.length - (n+1)),
     have h5 : n + 1 + (as.length - (n + 1)) = as.length,
-    { rw [add_comm, nat.sub_add_cancel h1] },
+    { rw [add_comm, tsub_add_cancel_of_le h1] },
     rw h5 at h4, apply eq.trans _ h4,
      simp only [val_between, zero_add], ring },
   have h2 : (list.length as - (n + 1)) = 0,
-  { apply nat.sub_eq_zero_of_le
+  { apply tsub_eq_zero_iff_le.mpr
     (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
   have h3 : val_between v as 0 (list.length as) =
             val_between v as 0 (n + 1),

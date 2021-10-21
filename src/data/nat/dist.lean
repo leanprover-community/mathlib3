@@ -26,16 +26,16 @@ by simp [dist.def, nat.sub_self]
 
 theorem eq_of_dist_eq_zero {n m : ℕ} (h : dist n m = 0) : n = m :=
 have n - m = 0, from nat.eq_zero_of_add_eq_zero_right h,
-have n ≤ m, from nat.le_of_sub_eq_zero this,
+have n ≤ m, from tsub_eq_zero_iff_le.mp this,
 have m - n = 0, from nat.eq_zero_of_add_eq_zero_left h,
-have m ≤ n, from nat.le_of_sub_eq_zero this,
+have m ≤ n, from tsub_eq_zero_iff_le.mp this,
 le_antisymm ‹n ≤ m› ‹m ≤ n›
 
 theorem dist_eq_zero {n m : ℕ} (h : n = m) : dist n m = 0 :=
 begin rw [h, dist_self] end
 
 theorem dist_eq_sub_of_le {n m : ℕ} (h : n ≤ m) : dist n m = m - n :=
-begin rw [dist.def, nat.sub_eq_zero_of_le h, zero_add] end
+begin rw [dist.def, tsub_eq_zero_iff_le.mpr h, zero_add] end
 
 theorem dist_eq_sub_of_le_right {n m : ℕ} (h : m ≤ n) : dist n m = n - m :=
 begin rw [dist_comm], apply dist_eq_sub_of_le h end

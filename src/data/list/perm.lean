@@ -1036,7 +1036,7 @@ begin
     apply (reverse_perm _).trans; assumption, },
   { have : drop n xs = [],
     { apply eq_nil_of_length_eq_zero,
-      rw [length_drop, nat.sub_eq_zero_iff_le],
+      rw [length_drop, tsub_eq_zero_iff_le],
       apply le_of_not_ge h'' },
     simp [this, list.inter], }
 end

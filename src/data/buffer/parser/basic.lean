@@ -683,7 +683,7 @@ lemma remaining_ne_fail : remaining cb n ≠ fail n' err :=
 by simp [remaining]
 
 lemma eof_eq_done {u : unit} : eof cb n = done n' u ↔ n = n' ∧ cb.size ≤ n :=
-by simp [eof, guard_eq_done, remaining_eq_done, nat.sub_eq_zero_iff_le, and_comm, and_assoc]
+by simp [eof, guard_eq_done, remaining_eq_done, tsub_eq_zero_iff_le, and_comm, and_assoc]
 
 @[simp] lemma foldr_core_zero_eq_done {f : α → β → β} {p : parser α} {b' : β} :
   foldr_core f p b 0 cb n ≠ done n' b' :=
@@ -719,7 +719,7 @@ lemma foldr_eq_fail_iff_mono_at_end {f : α → β → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldr, foldr_core_succ_eq_fail, this, and.left_comm, foldr_core_zero_eq_fail,
              ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
              exists_and_distrib_left],
@@ -773,7 +773,7 @@ lemma foldl_eq_fail_iff_mono_at_end {f : β → α → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldl f b p cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldl, foldl_core_succ_eq_fail, this, and.left_comm, ne_iff_lt_iff_le, exists_eq_left,
              exists_and_distrib_right, and.congr_left_iff, exists_and_distrib_left,
              foldl_core_zero_eq_fail],
@@ -2622,7 +2622,7 @@ begin
       obtain ⟨m, rfl⟩ : ∃ m, n' = n + m + 1 := nat.exists_eq_add_of_lt hn,
       -- The following rearrangement lemma is to simplify the `list.take (n' - n)` expression we had
       have : n + m + 1 - n = m + 1,
-        { rw [add_assoc, nat.sub_eq_iff_eq_add, add_comm],
+        { rw [add_assoc, tsub_eq_iff_eq_add_of_le, add_comm],
           exact nat.le_add_right _ _ },
       -- We also have to prove what is the `prod.snd` of the result of the fold of a `list (ℕ × ℕ)`
       -- with the function above. We use this lemma to finish our inductive case.

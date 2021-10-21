@@ -99,7 +99,7 @@ calc eval₂ f (f s * r) (scale_roots p s) =
   (λ i hi, by simp_rw [f.map_mul, f.map_pow, pow_add, mul_pow, mul_assoc])
 ... = p.support.sum (λ (i : ℕ), f s ^ p.nat_degree * (f (p.coeff i) * r ^ i)) :
   finset.sum_congr rfl
-  (λ i hi, by { rw [mul_assoc, mul_left_comm, nat.sub_add_cancel],
+  (λ i hi, by { rw [mul_assoc, mul_left_comm, tsub_add_cancel_of_le],
                 exact le_nat_degree_of_ne_zero (polynomial.mem_support_iff.mp hi) })
 ... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
 ... = f s ^ p.nat_degree * eval₂ f r p : by { simp [eval₂_eq_sum, sum_def] }

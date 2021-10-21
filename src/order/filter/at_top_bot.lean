@@ -1088,7 +1088,7 @@ lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k
   (assume a b h, add_le_add_right h k)
   (assume a b h, (le_tsub_iff_right h).symm)
-  (assume a h, by rw [nat.sub_add_cancel h])
+  (assume a h, by rw [tsub_add_cancel_of_le h])
 
 lemma map_sub_at_top_eq_nat (k : ℕ) : map (λa, a - k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a + k) 0

@@ -126,7 +126,7 @@ begin
   wlog hlt : i < j := hij.lt_or_lt using [i j, j i] tactic.skip,
   { simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
     refine ⟨f^[i] x, hxi, j - i, ⟨nat.sub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
-    rwa [← iterate_add_apply, nat.sub_add_cancel hlt.le] },
+    rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le] },
   { exact λ hi hj hij hxi hxj, this hj hi hij.symm hxj hxi }
 end
 

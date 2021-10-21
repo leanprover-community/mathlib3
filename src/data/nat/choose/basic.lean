@@ -103,7 +103,7 @@ begin
       simp [factorial_succ, mul_comm, mul_left_comm, mul_assoc],
     have h₃ : k * n! ≤ n * n! := nat.mul_le_mul_right _ (le_of_succ_le_succ hk),
     rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, add_mul,
-      nat.mul_sub_right_distrib, factorial_succ, ← nat.add_sub_assoc h₃, add_assoc, ← add_mul,
+      nat.mul_sub_right_distrib, factorial_succ, ← add_tsub_assoc_of_le h₃, add_assoc, ← add_mul,
       nat.add_sub_cancel_left, add_comm] },
   { simp [hk₁, mul_comm, choose, nat.sub_self] }
 end

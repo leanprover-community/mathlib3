@@ -61,9 +61,9 @@ begin
   have h'' : y ≤ z,
   { transitivity, apply le_of_lt h, assumption },
   apply @nat.lt_of_add_lt_add_right _ x,
-  rw [nat.sub_add_cancel h'],
+  rw [tsub_add_cancel_of_le h'],
   apply @lt_of_le_of_lt _ _ _ (z - y + y),
-  rw [nat.sub_add_cancel h''],
+  rw [tsub_add_cancel_of_le h''],
   apply nat.add_lt_add_left h
 end
 

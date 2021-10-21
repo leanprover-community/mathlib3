@@ -60,7 +60,7 @@ begin
   by_cases hR : nontrivial R,
   { haveI := hR,
     rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
-        nat.sub_add_cancel p.nat_trailing_degree_le_nat_degree],
+        tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
     rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero] },
   { haveI := not_nontrivial_iff_subsingleton.mp hR,
     exact congr_arg nat_degree (subsingleton.elim p.mirror p) },

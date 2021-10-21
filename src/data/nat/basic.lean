@@ -909,7 +909,7 @@ lemma dvd_sub' {k m n : ℕ} (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
 begin
   cases le_total n m with H H,
   { exact dvd_sub H h₁ h₂ },
-  { rw nat.sub_eq_zero_of_le H,
+  { rw tsub_eq_zero_iff_le.mpr H,
     exact dvd_zero k },
 end
 
@@ -946,7 +946,7 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
     { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
         ← add_tsub_add_right_eq_tsub a 1 b, add_comm (_ - _), add_assoc,
-        nat.sub_add_cancel (succ_le_succ hb_le_a), add_comm 1] },
+        tsub_add_cancel_of_le (succ_le_succ hb_le_a), add_comm 1] },
     have wf : a - b < a + 1, from lt_succ_of_le tsub_le_self,
     rw [if_pos h₁, if_pos h₂, add_tsub_add_right_eq_tsub, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),

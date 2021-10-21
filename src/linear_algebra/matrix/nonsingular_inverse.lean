@@ -303,7 +303,7 @@ begin
   apply det_adjugate_of_cancel,
   intros b hb,
   calc b = a * (det A ^ (fintype.card n - 1 + 1)) :
-       by rw [←one_mul b, ←ha, mul_assoc, hb, nat.sub_add_cancel zero_lt_card]
+       by rw [←one_mul b, ←ha, mul_assoc, hb, tsub_add_cancel_of_le zero_lt_card]
      ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
      ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
 end

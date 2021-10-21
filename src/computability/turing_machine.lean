@@ -98,7 +98,7 @@ theorem blank_extends.above_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
 begin
   rintro ⟨i, rfl⟩ ⟨j, e⟩ h, use i - j,
   refine list.append_right_cancel (e.symm.trans _),
-  rw [list.append_assoc, ← list.repeat_add, nat.sub_add_cancel],
+  rw [list.append_assoc, ← list.repeat_add, tsub_add_cancel_of_le],
   apply_fun list.length at e,
   simp only [list.length_append, list.length_repeat] at e,
   rwa [← add_le_add_iff_left, e, add_le_add_iff_right]

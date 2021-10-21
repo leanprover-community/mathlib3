@@ -94,7 +94,7 @@ begin
   split_ifs,
   { subst h, simp, },
   { obtain w | w := (n - ν).eq_zero_or_pos,
-    { simp [nat.choose_eq_zero_of_lt ((nat.le_of_sub_eq_zero w).lt_of_ne (ne.symm h))] },
+    { simp [nat.choose_eq_zero_of_lt ((tsub_eq_zero_iff_le.mp w).lt_of_ne (ne.symm h))] },
     { simp [zero_pow w] } },
 end.
 
@@ -186,11 +186,11 @@ begin
       { simp },
       { have : n - 1 - (ν - 1) = n - ν,
         { rw ←nat.succ_le_iff at h'',
-          rw [nat.sub_sub, add_comm, nat.sub_add_cancel h''] },
+          rw [nat.sub_sub, add_comm, tsub_add_cancel_of_le h''] },
         rw [this, pochhammer_eval_succ],
-        rw_mod_cast nat.sub_add_cancel (h'.trans n.pred_le) } } },
+        rw_mod_cast tsub_add_cancel_of_le (h'.trans n.pred_le) } } },
   { simp only [not_le] at h,
-    rw [nat.sub_eq_zero_of_le (nat.le_pred_of_lt h), eq_zero_of_lt R h],
+    rw [tsub_eq_zero_iff_le.mpr (nat.le_pred_of_lt h), eq_zero_of_lt R h],
     simp [pos_iff_ne_zero.mp (pos_of_gt h)] },
 end
 

@@ -129,7 +129,7 @@ nat.rec_on m rfl $ λ m ih, by erw [function.iterate_succ_apply', coeff_frobeniu
 
 lemma coeff_iterate_frobenius' (f : ring.perfection R p) (n m : ℕ) (hmn : m ≤ n) :
   coeff R p n (frobenius _ p ^[m] f) = coeff R p (n - m) f :=
-eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (nat.sub_add_cancel hmn).symm ▸ rfl
+eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (tsub_add_cancel_of_le hmn).symm ▸ rfl
 
 lemma pth_root_frobenius : (pth_root R p).comp (frobenius _ p) = ring_hom.id _ :=
 ring_hom.ext $ λ x, ext $ λ n,

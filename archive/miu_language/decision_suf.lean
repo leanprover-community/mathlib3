@@ -181,7 +181,7 @@ end arithmetic
 lemma repeat_pow_minus_append  {m : ℕ} : M :: repeat I (2^m - 1) ++ [I] = M::(repeat I (2^m)) :=
 begin
   change [I] with repeat I 1,
-  rw [cons_append, ←repeat_add, nat.sub_add_cancel (one_le_pow' m 1)],
+  rw [cons_append, ←repeat_add, tsub_add_cancel_of_le (one_le_pow' m 1)],
 end
 
 /--

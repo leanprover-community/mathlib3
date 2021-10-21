@@ -553,7 +553,7 @@ begin
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
-        { subst t, simpa using nat.sub_add_cancel H },
+        { subst t, simpa using tsub_add_cancel_of_le H },
         { simp [finsupp.single_apply, hst] } } } }
 end
 

@@ -1721,8 +1721,8 @@ theorem take_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
 by rw ← h; apply take_left
 
 theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) l
-| n         0        l      := by rw [nat.min_zero, take_zero, take_nil]
-| 0         m        l      := by rw [nat.zero_min, take_zero, take_zero]
+| n         0        l      := by rw [min_zero, take_zero, take_nil]
+| 0         m        l      := by rw [zero_min, take_zero, take_zero]
 | (succ n)  (succ m) nil    := by simp only [take_nil]
 | (succ n)  (succ m) (a::l) := by simp only [take, min_succ_succ, take_take n m l]; split; refl
 
@@ -1814,7 +1814,7 @@ by simp [init_eq_take, min_eq_left_of_lt h, take_take, pred_le]
 
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
-by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
+by simpa [←length_eq_zero] using tsub_eq_zero_iff_le.mpr h
 
 lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
   l.drop k = [] ↔ l.length ≤ k :=

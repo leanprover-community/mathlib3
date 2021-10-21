@@ -324,7 +324,7 @@ variables [add_left_cancel_monoid A] (a)
 lemma pow_injective_aux (h : n ≤ m)
   (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
 by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
+  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [tsub_eq_iff_eq_add_of_le h, ne.symm]),
   have h₂ : m = n + (m - n) := (nat.add_sub_of_le h).symm,
   have h₃ : x ^ (m - n) = 1,
     by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
@@ -910,7 +910,7 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
 { carrier := S,
   one_mem' := by {
     obtain ⟨a, ha⟩ := hS1,
-    rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
+    rw [←pow_order_of_eq_one a, ←tsub_add_cancel_of_le (order_of_pos a)],
     exact pow_mem a ha (order_of a - 1) },
   mul_mem' := λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb) }
 

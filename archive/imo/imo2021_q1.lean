@@ -10,8 +10,6 @@ import tactic.linarith
 import tactic.norm_cast
 import tactic.norm_num
 import tactic.ring_exp
-import set_theory.cardinal
-
 
 /-!
 # IMO 2021 Q1
@@ -105,7 +103,7 @@ begin
   { cases this with l t,
     use l,
     exact ⟨lower_bound n l t.1, upper_bound n l t.2⟩ },
-  lift floor (sqrt (1 + n) - 1) to ℕ with x,
+  lift int.floor (sqrt (1 + n) - 1) to ℕ with x,
   have hx : (x : ℝ) = ⌊sqrt (1 + ↑n) - 1⌋,
   { norm_cast,
     convert h,
@@ -120,15 +118,15 @@ begin
       { linarith },
       have t :  (⌈sqrt (1 + n) - 1⌉:ℝ) ≤ ⌊sqrt (1 + n) - 1⌋ + 1,
       { norm_cast,
-        exact ceil_le_floor_add_one _ },
+        exact int.ceil_le_floor_add_one _ },
       apply le_trans _ t,
-      exact le_ceil (sqrt (1 + n) - 1) },
+      exact int.le_ceil (sqrt (1 + n) - 1) },
       suffices : sqrt (4 + 2 * n) ≤ 2 * (sqrt (1 + n) - 3),
       { linarith },
     exact radical_inequality hn },
   { rw hx,
-    exact floor_le _ },
-  { rw [floor_nonneg, le_sub, sub_zero, le_sqrt];
+    exact int.floor_le _ },
+  { rw [int.floor_nonneg, le_sub, sub_zero, le_sqrt];
     { norm_cast, linarith } },
 end
 
@@ -216,11 +214,13 @@ begin
   linarith,
 end
 
--- If for n ∈ ℕ, and finite sets B, X, Y such that B ⊆ X ∪ Y and B has cardinality at least
--- 2 * n + 1, then there exists a subset C ⊆ A of cardinality at least n + 1, which is entirely
--- contained in X or Y. For our result, we will apply this lemma with n = 1 and any X such that
--- X ⊆ [n, 2n] and Y = [n, 2n] \ X, while we'll let B ⊆ [n, 2n] be the subset such that each
--- pairwise unequal pair of B sums to a perfect square.
+/-
+If for n ∈ ℕ, and finite sets B, X, Y such that B ⊆ X ∪ Y and B has cardinality at least
+2 * n + 1, then there exists a subset C ⊆ A of cardinality at least n + 1, which is entirely
+contained in X or Y. For our result, we will apply this lemma with n = 1 and any X such that
+X ⊆ [n, 2n] and Y = [n, 2n] \ X, while we'll let B ⊆ [n, 2n] be the subset such that each
+pairwise unequal pair of B sums to a perfect square.
+-/
 lemma finset_subset_or_complement_cardinality {α : Type*} [decidable_eq α] (B X Y : finset α)
   (h : B ⊆ X ∪ Y) {n : ℕ} (hB : 2 * n + 1 ≤ B.card) :
   ∃ C, C ⊆ B ∧ n + 1 ≤ C.card ∧ (C ⊆ X ∨ C ⊆ Y) :=
@@ -235,7 +235,9 @@ begin
     rw ← finset.sdiff_union_inter B X,
     rw finset.union_comm },
   rw h₁ at hB,
-  rcases snorg hB with hC₁|hC₂,
+  replace hB := nat.succ_le_iff.mp hB,
+  rw two_mul at hB,
+  rcases lt_or_lt_of_add_lt_add hB with hC₁|hC₂,
   { refine ⟨C₁, (finset.inter_subset_left B X), hC₁, or.inl (finset.inter_subset_right B X)⟩, },
   { refine ⟨C₂, (finset.sdiff_subset B X), hC₂, or.inr _⟩,
     apply finset.subset.trans (finset.sdiff_subset_sdiff h (finset.subset.refl X)) _,
@@ -271,7 +273,7 @@ begin
   have hBA : B ⊆ (finset.Ico n (2 * n + 1) \ A) ∪ A,
   { rw finset.sdiff_union_of_subset hA,
     intros c hc,
-    simp only [finset.Ico.mem],
+    simp only [finset.mem_Ico],
     refine ⟨(h₂ c hc).1, _⟩,
     { replace h₂ := (h₂ c hc).2,
       exact nat.lt_succ_iff.mpr h₂ }},

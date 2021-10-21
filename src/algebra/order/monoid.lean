@@ -859,19 +859,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
   .. order_dual.partial_order α,
   .. order_dual.comm_monoid }
 
-section linear_ordered_cancel_add_comm_monoid
-variables [linear_ordered_cancel_add_comm_monoid α]
-
-lemma lt_or_lt_of_add_lt_add {a b m n : α} (h : m + n < a + b) : m < a ∨ n < b :=
-begin
-  simp_rw [← not_le],
-  by_contra h₁,
-  rw ← and_iff_not_or_not at h₁,
-  exact (not_le.mpr h) (add_le_add h₁.1 h₁.2)
-end
-
-end linear_ordered_cancel_add_comm_monoid
-
 @[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
 instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
   contravariant_class (order_dual α) (order_dual α) has_mul.mul has_le.le :=
@@ -895,6 +882,19 @@ instance [linear_ordered_comm_monoid α] :
   .. order_dual.ordered_comm_monoid }
 
 end order_dual
+
+section linear_ordered_cancel_add_comm_monoid
+variables [linear_ordered_cancel_add_comm_monoid α]
+
+lemma lt_or_lt_of_add_lt_add {a b m n : α} (h : m + n < a + b) : m < a ∨ n < b :=
+begin
+  simp_rw [← not_le],
+  by_contra h₁,
+  rw ← and_iff_not_or_not at h₁,
+  exact (not_le.mpr h) (add_le_add h₁.1 h₁.2)
+end
+
+end linear_ordered_cancel_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid
 

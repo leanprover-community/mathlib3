@@ -416,9 +416,9 @@ section operations
 
 open_locale pointwise
 
-variables [add_comm_monoid ι] [gcomm_semiring A]
+variables [gcomm_semiring A]
 
-lemma homogeneous_ideal.mul {I J : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.mul [add_comm_monoid ι]  {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J):
   homogeneous_ideal (I * J) :=
 begin
@@ -429,7 +429,7 @@ begin
   exact congr_arg _ (image_mul graded_monoid.to_direct_sum.to_mul_hom).symm,
 end
 
-lemma homogeneous_ideal.sup {I J : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.sup [add_comm_monoid ι] {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J):
   homogeneous_ideal (I ⊔ J) :=
 begin
@@ -440,7 +440,7 @@ begin
   exact (submodule.span_union _ _).symm,
 end
 
-private lemma homogeneous_ideal.inf_subset {I J : ideal (⨁ i, A i)}
+private lemma homogeneous_ideal.inf_subset [add_comm_monoid ι] {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   I ⊓ J ≤ ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} :=
 begin
@@ -453,7 +453,7 @@ begin
   intros i hi, refine ideal.subset_span _, refine ⟨hx _, _⟩, use ⟨i, x i⟩,
 end
 
-private lemma homogeneous_ideal.subset_inf {I J : ideal (⨁ i, A i)}
+private lemma homogeneous_ideal.subset_inf [add_comm_monoid ι] {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} ≤ I ⊓ J :=
 begin
@@ -480,7 +480,7 @@ begin
   },
 end
 
-lemma homogeneous_ideal.inf {I J : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.inf [add_comm_monoid ι]  {I J : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   homogeneous_ideal (I ⊓ J) :=
 begin
@@ -488,7 +488,7 @@ begin
   exact le_antisymm (homogeneous_ideal.inf_subset HI HJ) (homogeneous_ideal.subset_inf HI HJ),
 end
 
-lemma homogeneous_ideal.Inf {ℐ : set (ideal (⨁ i, A i))} (HI : ∀ I ∈ ℐ, homogeneous_ideal I) :
+lemma homogeneous_ideal.Inf [add_comm_monoid ι] {ℐ : set (ideal (⨁ i, A i))} (HI : ∀ I ∈ ℐ, homogeneous_ideal I) :
   homogeneous_ideal (Inf ℐ) :=
 begin
   rw homogeneous_ideal_iff_homogeneous_ideal'',

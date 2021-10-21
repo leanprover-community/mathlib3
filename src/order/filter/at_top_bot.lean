@@ -1087,13 +1087,13 @@ by rw [← map_coe_Iic_at_bot a, tendsto_map'_iff]
 lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k
   (assume a b h, add_le_add_right h k)
-  (assume a b h, (le_sub_iff_right h).symm)
+  (assume a b h, (le_tsub_iff_right h).symm)
   (assume a h, by rw [nat.sub_add_cancel h])
 
 lemma map_sub_at_top_eq_nat (k : ℕ) : map (λa, a - k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a + k) 0
   (assume a b h, nat.sub_le_sub_right h _)
-  (assume a b _, sub_le_iff_right)
+  (assume a b _, tsub_le_iff_right)
   (assume b _, by rw [nat.add_sub_cancel])
 
 lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
@@ -1293,10 +1293,10 @@ by simp [at_top, ← e.surjective.infi_comp]
 @[simp] lemma comap_at_bot (e : α ≃o β) : comap e at_bot = at_bot :=
 e.dual.comap_at_top
 
-@[simp] lemma map_at_top (e : α ≃o β) : map ⇑e at_top = at_top :=
+@[simp] lemma map_at_top (e : α ≃o β) : map (e : α → β) at_top = at_top :=
 by rw [← e.comap_at_top, map_comap_of_surjective e.surjective]
 
-@[simp] lemma map_at_bot (e : α ≃o β) : map ⇑e at_bot = at_bot :=
+@[simp] lemma map_at_bot (e : α ≃o β) : map (e : α → β) at_bot = at_bot :=
 e.dual.map_at_top
 
 lemma tendsto_at_top (e : α ≃o β) : tendsto e at_top at_top :=

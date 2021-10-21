@@ -41,7 +41,7 @@ profinite
 
 -/
 
-universe variable u
+universe u
 
 open category_theory
 
@@ -65,7 +65,7 @@ instance category : category Profinite := induced_category.category to_CompHaus
 instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
 instance has_forget₂ : has_forget₂ Profinite Top := induced_category.has_forget₂ _
 
-instance : has_coe_to_sort Profinite := ⟨Type*, λ X, X.to_CompHaus⟩
+instance : has_coe_to_sort Profinite Type* := ⟨λ X, X.to_CompHaus⟩
 instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconnected
 
 -- We check that we automatically infer that Profinite sets are compact and Hausdorff.
@@ -225,7 +225,7 @@ noncomputable def iso_of_bijective (bij : function.bijective f) : X ≅ Y :=
 by letI := Profinite.is_iso_of_bijective f bij; exact as_iso f
 
 instance forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite) :=
-⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
+⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective f).mp hf)⟩
 
 /-- Construct an isomorphism from a homeomorphism. -/
 @[simps hom inv] def iso_of_homeo (f : X ≃ₜ Y) : X ≅ Y :=

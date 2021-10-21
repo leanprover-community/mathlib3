@@ -309,7 +309,8 @@ The canonical morphism from the first object in the spaces diagram to the first 
 sites diagram. Note that this is *not* an isomorphism, as the product `pi_opens F U` may contain
 duplicate factors, i.e. `U : ι → opens X` may not be injective.
 -/
-def pi_opens_to_first_obj : pi_opens F U ⟶ presheaf.first_obj (presieve_of_covering U) F :=
+def pi_opens_to_first_obj : pi_opens F U ⟶
+  presheaf.first_obj.{v v u} (presieve_of_covering U) F :=
 pi.lift (λ f, pi.π _ (index_of_hom U f) ≫ F.map (eq_to_hom (index_of_hom_spec U f)).op)
 
 /--
@@ -355,7 +356,8 @@ end
 The canonical morphism from the second object of the spaces diagram to the second object of the
 sites diagram.
 -/
-def pi_inters_to_second_obj : pi_inters F U ⟶ presheaf.second_obj (presieve_of_covering U) F :=
+def pi_inters_to_second_obj : pi_inters F U ⟶
+  presheaf.second_obj.{v v u} (presieve_of_covering U) F :=
 pi.lift (λ f, pi.π _ (index_of_hom U f.fst, index_of_hom U f.snd) ≫
   F.map (eq_to_hom
     (by rw [complete_lattice.pullback_eq_inf, ← index_of_hom_spec U, ← index_of_hom_spec U])).op)

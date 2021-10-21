@@ -146,7 +146,7 @@ lemma sum_range_id_mul_two (n : ℕ) :
 calc (∑ i in range n, i) * 2 = (∑ i in range n, i) + (∑ i in range n, (n - 1 - i)) :
   by rw [sum_range_reflect (λ i, i) n, mul_two]
 ... = ∑ i in range n, (i + (n - 1 - i)) : sum_add_distrib.symm
-... = ∑ i in range n, (n - 1) : sum_congr rfl $ λ i hi, add_sub_cancel_of_le $
+... = ∑ i in range n, (n - 1) : sum_congr rfl $ λ i hi, add_tsub_cancel_of_le $
   nat.le_pred_of_lt $ mem_range.1 hi
 ... = n * (n - 1) : by rw [sum_const, card_range, nat.nsmul_eq_mul]
 

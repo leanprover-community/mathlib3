@@ -89,7 +89,7 @@ begin
 end
 
 theorem nth_tail (x : vector α n) (i) :
-  x.tail.nth i = x.nth ⟨i.1 + 1, lt_sub_iff_right.mp i.2⟩ :=
+  x.tail.nth i = x.nth ⟨i.1 + 1, lt_tsub_iff_right.mp i.2⟩ :=
 by { rcases x with ⟨_|_, h⟩; refl, }
 
 @[simp]

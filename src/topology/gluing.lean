@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import topology.category.Top
-import tactic.elementwise
+import category_theory.limits.concrete_category
 
 /-!
 # Gluing Topological spaces
@@ -155,8 +155,6 @@ begin
   rcases (coprod_iso_sigma _).hom x' with ⟨i, y⟩,
   exact ⟨i, y, by simpa⟩
 end
-
-local attribute[elementwise] colimit.ι_desc
 
 @[simp]
 lemma glue_condition (i j : D.ι) :

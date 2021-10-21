@@ -171,7 +171,7 @@ theorem reverse_range' : ∀ s n : ℕ,
 | s (n+1) := by rw [range'_concat, reverse_append, range_succ_eq_map];
   simpa only [show s + (n + 1) - 1 = s + n, from rfl, (∘),
     λ a i, show a - 1 - i = a - succ i, from pred_sub _ _,
-    reverse_singleton, map_cons, nat.sub_zero, cons_append,
+    reverse_singleton, map_cons, tsub_zero, cons_append,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 

@@ -49,7 +49,7 @@ lemma val_between_eq_of_le {as : list int} {l : nat} :
 | (m+1) h1 :=
   begin
     rw le_iff_eq_or_lt at h1, cases h1,
-    { rw [h1, add_comm l, nat.add_sub_cancel] },
+    { rw [h1, add_comm l, add_tsub_cancel_right] },
     have h2 :  list.length as ≤ l + m,
     { rw ← nat.lt_succ_iff, apply h1 },
     simpa [ get_eq_default_of_le _ h2, zero_mul, add_zero,

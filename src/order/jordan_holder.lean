@@ -451,7 +451,7 @@ lemma append_nat_add_aux
 begin
   cases i,
   simp only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    nat.add_sub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
+    add_tsub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
 end
 
 lemma append_succ_nat_add_aux
@@ -462,7 +462,7 @@ lemma append_succ_nat_add_aux
 begin
   cases i with i hi,
   simp only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    nat.add_sub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
+    add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
 end
 
 /-- Append two composition series `s₁` and `s₂` such that

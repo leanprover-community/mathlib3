@@ -67,7 +67,7 @@ theorem num_dvd_of_is_root {p : polynomial A} {r : K} (hr : aeval r p = 0) :
   num A r ∣ p.coeff 0 :=
 begin
   suffices : num A r ∣ (scale_roots p (denom A r)).coeff 0,
-  { simp only [coeff_scale_roots, nat.sub_zero] at this,
+  { simp only [coeff_scale_roots, tsub_zero] at this,
     haveI := classical.prop_decidable,
     by_cases hr : num A r = 0,
     { obtain ⟨u, hu⟩ := (is_unit_denom_of_num_eq_zero hr).pow p.nat_degree,

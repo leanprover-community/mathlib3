@@ -132,8 +132,7 @@ begin
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
-    { apply nat.sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
-
+    { apply tsub_lt_self (pow_pos b_pos _) ((pow_pos b_pos _).trans_le h₁) },
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
     -- Normalize goal and h1

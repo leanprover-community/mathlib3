@@ -271,7 +271,7 @@ begin
   have hf : f ≠ 0, { intro hf, apply hfg, rw [hf, zero_div_by_monic] },
   rw [degree_eq_nat_degree hf, degree_eq_nat_degree hg.ne_zero, degree_eq_nat_degree hfg,
       ← with_bot.coe_add, with_bot.coe_eq_coe] at this,
-  rw [← this, nat.add_sub_cancel_left]
+  rw [← this, add_tsub_cancel_left]
 end
 
 lemma div_mod_by_monic_unique {f g} (q r : polynomial R) (hg : monic g)

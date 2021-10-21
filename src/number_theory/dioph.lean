@@ -511,7 +511,7 @@ ext (D&1 D= D&0 D+ D&2 D∨ D&1 D≤ D&2 D∧ D&0 D= D.0) $ (vector_all_iff_fora
 show (y = x + z ∨ y ≤ z ∧ x = 0) ↔ y - z = x, from
 ⟨λo, begin
   rcases o with ae | ⟨yz, x0⟩,
-  { rw [ae, nat.add_sub_cancel] },
+  { rw [ae, add_tsub_cancel_right] },
   { rw [x0, tsub_eq_zero_iff_le.mpr yz] }
 end, λh, begin
   subst x,

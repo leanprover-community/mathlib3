@@ -457,7 +457,7 @@ of `library_search`.
 Typical usage is:
 ```lean
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
+by library_search -- Try this: exact mul_tsub n m k
 ```
 
 `library_search using h₁ h₂` will only show solutions

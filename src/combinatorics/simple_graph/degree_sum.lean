@@ -215,7 +215,7 @@ begin
   simp only [hc, filter_congr_decidable],
   rw [←filter_filter, filter_ne', card_erase_of_mem],
   { use k - 1,
-    rw [nat.pred_eq_succ_iff, hg, nat.mul_sub_left_distrib, ← nat.sub_add_comm, eq_comm,
+    rw [nat.pred_eq_succ_iff, hg, mul_tsub, tsub_add_eq_add_tsub, eq_comm,
       ← (tsub_eq_iff_eq_add_of_le _).symm],
     { ring },
     { exact add_le_add_right (zero_le (2 * k)) 2 },

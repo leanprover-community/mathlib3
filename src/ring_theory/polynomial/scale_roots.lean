@@ -32,7 +32,7 @@ by simp [scale_roots, coeff_monomial] {contextual := tt}
 
 lemma coeff_scale_roots_nat_degree (p : polynomial R) (s : R) :
   (scale_roots p s).coeff p.nat_degree = p.leading_coeff :=
-by rw [leading_coeff, coeff_scale_roots, nat.sub_self, pow_zero, mul_one]
+by rw [leading_coeff, coeff_scale_roots, tsub_self, pow_zero, mul_one]
 
 @[simp] lemma zero_scale_roots (s : R) : scale_roots 0 s = 0 := by { ext, simp }
 

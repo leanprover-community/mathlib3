@@ -47,7 +47,7 @@ instance : locally_finite_order ℕ :=
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.le.trans hx.2)) }
   end,
   finset_mem_Ioo := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range', nat.sub_sub],
+    rw [list.mem_to_finset, list.mem_range', ← tsub_add_eq_tsub_tsub],
     cases le_or_lt (a + 1) b,
     { rw [add_tsub_cancel_of_le h, nat.succ_le_iff] },
     { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
@@ -158,7 +158,7 @@ begin
   { rintro ⟨hb, ha⟩,
     rw [lt_tsub_iff_left, lt_succ_iff] at ha,
     have hx : x ≤ c := (nat.le_add_left _ _).trans ha,
-    refine ⟨c - x, _, nat.sub_sub_self hx⟩,
+    refine ⟨c - x, _, tsub_tsub_cancel_of_le hx⟩,
     { rw mem_Ico,
       exact ⟨le_tsub_of_add_le_right ha, (tsub_lt_iff_left hx).2 $ succ_le_iff.1 $
         tsub_le_iff_right.1 hb⟩ } }
@@ -170,7 +170,7 @@ begin
   cases n,
   { rw [range_zero, image_empty] },
   { rw [finset.range_eq_Ico, Ico_image_const_sub_eq_Ico (zero_le _)],
-    simp_rw [succ_sub_succ, nat.sub_zero, nat.sub_self] }
+    simp_rw [succ_sub_succ, tsub_zero, tsub_self] }
 end
 
 end nat

@@ -226,7 +226,7 @@ def raise : list ℕ → ℕ → list ℕ
 
 lemma lower_raise : ∀ l n, lower (raise l n) n = l
 | []       n := rfl
-| (m :: l) n := by rw [raise, lower, nat.add_sub_cancel, lower_raise]
+| (m :: l) n := by rw [raise, lower, add_tsub_cancel_right, lower_raise]
 
 lemma raise_lower : ∀ {l n}, list.sorted (≤) (n :: l) → raise (lower l n) n = l
 | []       n h := rfl
@@ -273,7 +273,7 @@ def raise' : list ℕ → ℕ → list ℕ
 
 lemma lower_raise' : ∀ l n, lower' (raise' l n) n = l
 | []       n := rfl
-| (m :: l) n := by simp [raise', lower', nat.add_sub_cancel, lower_raise']
+| (m :: l) n := by simp [raise', lower', add_tsub_cancel_right, lower_raise']
 
 lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l → raise' (lower' l n) n = l
 | []       n h₁ h₂ := rfl

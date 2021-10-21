@@ -387,7 +387,7 @@ end
 
 lemma inv_embedding_comp (i : fin c.length) (j : fin (c.blocks_fun i)) :
   (c.inv_embedding (c.embedding i j) : ℕ) = j :=
-by simp_rw [coe_inv_embedding, index_embedding, coe_embedding, nat.add_sub_cancel_left]
+by simp_rw [coe_inv_embedding, index_embedding, coe_embedding, add_tsub_cancel_left]
 
 /-- Equivalence between the disjoint union of the blocks (each of them seen as
 `fin (c.blocks_fun i)`) with `fin n`. -/
@@ -645,7 +645,7 @@ begin
   induction ns with n ns IH; intros l h; simp at h ⊢,
   { exact (length_eq_zero.1 h.symm).symm },
   rw IH, {simp},
-  rwa [length_drop, ← h, nat.add_sub_cancel_left]
+  rwa [length_drop, ← h, add_tsub_cancel_left]
 end
 
 /-- If one splits a list along a composition, and then joins the sublists, one gets back the

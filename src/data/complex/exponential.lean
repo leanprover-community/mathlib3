@@ -195,7 +195,7 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
       ⟨mem_range.1 (mem_sigma.1 ha).1, (mem_range.1 (mem_sigma.1 ha).2)⟩,
   ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 (lt_tsub_iff_right.1 ha.2),
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
-  sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
+  sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (add_tsub_cancel_right _ _).symm⟩⟩⟩)
 
 -- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
 lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
@@ -1206,12 +1206,12 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
       (by simp at hm; tauto))
     (λ m hm, by rw tsub_add_cancel_of_le; simp at *; tauto)
     (λ a₁ a₂ ha₁ ha₂ h,
-      by rwa [tsub_eq_iff_eq_add_of_le, ← nat.sub_add_comm, eq_comm, tsub_eq_iff_eq_add_of_le,
+      by rwa [tsub_eq_iff_eq_add_of_le, tsub_add_eq_add_tsub, eq_comm, tsub_eq_iff_eq_add_of_le,
               add_left_inj, eq_comm] at h;
         simp at *; tauto)
     (λ b hb, ⟨b + n,
       mem_filter.2 ⟨mem_range.2 $ lt_tsub_iff_right.mp (mem_range.1 hb), nat.le_add_left _ _⟩,
-      by rw nat.add_sub_cancel⟩)
+      by rw add_tsub_cancel_right⟩)
 ... ≤ ∑ m in range (j - n), (n! * n.succ ^ m)⁻¹ :
   begin
     refine  sum_le_sum (assume m n, _),
@@ -1286,7 +1286,7 @@ begin
   simp_rw [←sub_eq_add_neg],
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n / (n!) * 2,
   let k := j - n,
-  have hj : j = n + k := (nat.add_sub_of_le hj).symm,
+  have hj : j = n + k := (← add_tsub_cancel_of_le hj).symm,
   rw [hj, sum_range_add_sub_sum_range],
   calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
       ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _

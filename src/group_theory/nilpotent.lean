@@ -228,9 +228,9 @@ begin
         apply hH,
         convert hx,
         rw nat.sub_succ,
-        exact nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm) } },
+        exact nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm) } },
     { use n,
-      rwa nat.sub_self } },
+      rwa tsub_self } },
   { rintro ⟨H, ⟨h0, hH⟩, n, hn⟩,
     use (λ m, H (n - m)),
     split,
@@ -245,9 +245,9 @@ begin
         dsimp only,
         convert hH x _ hx g,
         rw nat.sub_succ,
-        exact (nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm)).symm } },
+        exact (nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm)).symm } },
     { use n,
-      rwa nat.sub_self } },
+      rwa tsub_self } },
 end
 
 /-- The lower central series of a group `G` is a sequence `H n` of subgroups of `G`, defined

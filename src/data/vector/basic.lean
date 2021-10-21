@@ -191,7 +191,7 @@ lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
 lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
 begin
   have : 0 = v.to_list.length - 1 - n,
-    { simp only [nat.add_succ_sub_one, add_zero, to_list_length, nat.sub_self,
+    { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
                  list.length_reverse] },
   rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
   simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],

@@ -249,7 +249,7 @@ begin
   rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
   apply mul_dvd_mul_left,
   rw show p ^ (n + 1 - k) = p * p ^ (n - k),
-  { rw [← pow_succ, nat.sub_add_comm hk] },
+  { rw [← pow_succ, ← tsub_add_eq_add_tsub hk] },
   rw [pow_mul],
   -- the machine!
   apply dvd_sub_pow_of_dvd_sub,

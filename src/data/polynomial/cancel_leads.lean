@@ -68,7 +68,7 @@ begin
   { contrapose! h0,
     rw [← leading_coeff_eq_zero, leading_coeff, h0, mul_assoc, mul_comm _ p,
       ← tsub_add_cancel_of_le h, add_comm _ p.nat_degree],
-    simp only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, nat.add_sub_cancel_left, coeff_add],
+    simp only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, add_tsub_cancel_left, coeff_add],
     rw [add_comm p.nat_degree, tsub_add_cancel_of_le h, ← leading_coeff, ← leading_coeff,
       mul_comm _ q.leading_coeff, ← sub_eq_add_neg, ← mul_sub, sub_self, mul_zero] }
 end

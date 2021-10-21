@@ -955,7 +955,7 @@ match match_sign b with
 end
 
 theorem sub_nat_pos (a b c : ℕ) (h : b + c = a) : a - b = c :=
-h ▸ nat.add_sub_cancel_left _ _
+h ▸ add_tsub_cancel_left _ _
 theorem sub_nat_neg (a b c : ℕ) (h : a + c = b) : a - b = 0 :=
 tsub_eq_zero_iff_le.mpr $ h ▸ nat.le_add_right _ _
 

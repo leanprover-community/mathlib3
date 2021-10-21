@@ -162,7 +162,7 @@ lemma pderiv_pow {i : σ} {f : mv_polynomial σ R} {n : ℕ} :
 begin
   induction n with n ih,
   { simp, },
-  { simp only [nat.succ_sub_succ_eq_sub, nat.cast_succ, nat.sub_zero, mv_polynomial.pderiv_mul,
+  { simp only [nat.succ_sub_succ_eq_sub, nat.cast_succ, tsub_zero, mv_polynomial.pderiv_mul,
       pow_succ, ih],
     cases n,
     { simp, },

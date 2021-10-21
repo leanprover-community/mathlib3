@@ -1024,7 +1024,7 @@ begin
   by_cases h'' : n ≤ xs.length,
   { let n' := xs.length - n,
     have h₀ : n = xs.length - n',
-    { dsimp [n'], rwa nat.sub_sub_self, } ,
+    { dsimp [n'], rwa tsub_tsub_cancel_of_le, } ,
     have h₁ : n' ≤ xs.length,
     { apply tsub_le_self },
     have h₂ : xs.drop n = (xs.reverse.take n').reverse,

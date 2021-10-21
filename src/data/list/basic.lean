@@ -1181,7 +1181,7 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
 | (a :: l) _ (n+1) h₁ h₂ :=
   begin
     dsimp,
-    conv { to_rhs, congr, skip, rw [←nat.sub_sub, nat.sub.right_comm, nat.add_sub_cancel], },
+    conv { to_rhs, congr, skip, rw [tsub_add_eq_tsub_tsub, tsub_right_comm, add_tsub_cancel_right], },
     rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
   end
 
@@ -1274,7 +1274,7 @@ theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
     have aux := nth_le_reverse_aux2 l (a :: r) i,
     have heq := calc length (a :: l) - 1 - (i + 1)
           = length l - (1 + i) : by rw add_comm; refl
-      ... = length l - 1 - i   : by rw nat.sub_sub,
+      ... = length l - 1 - i   : by rw ← tsub_add_eq_tsub_tsub,
     rw [← heq] at aux,
     apply aux
   end
@@ -1314,12 +1314,12 @@ lemma modify_nth_tail_modify_nth_tail_le
     l.modify_nth_tail (λl, (f l).modify_nth_tail g (m - n)) n :=
 begin
   rcases le_iff_exists_add.1 h with ⟨m, rfl⟩,
-  rw [nat.add_sub_cancel_left, add_comm, modify_nth_tail_modify_nth_tail]
+  rw [add_tsub_cancel_left, add_comm, modify_nth_tail_modify_nth_tail]
 end
 
 lemma modify_nth_tail_modify_nth_tail_same {f g : list α → list α} (n : ℕ) (l:list α) :
   (l.modify_nth_tail f n).modify_nth_tail g n = l.modify_nth_tail (g ∘ f) n :=
-by rw [modify_nth_tail_modify_nth_tail_le n n l (le_refl n), nat.sub_self]; refl
+by rw [modify_nth_tail_modify_nth_tail_le n n l (le_refl n), tsub_self]; refl
 
 lemma modify_nth_tail_id :
   ∀n (l:list α), l.modify_nth_tail id n = l
@@ -1985,14 +1985,14 @@ lemma reverse_take {α} {xs : list α} (n : ℕ)
   xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
 begin
   induction xs generalizing n;
-    simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
+    simp only [reverse_cons, drop, reverse_nil, zero_tsub, length, take_nil],
   cases h.lt_or_eq_dec with h' h',
   { replace h' := le_of_succ_le_succ h',
     rwa [take_append_of_le_length, xs_ih _ h'],
     rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n), from _, drop],
-    { rwa [succ_eq_add_one, nat.sub_add_comm] },
+    { rwa [succ_eq_add_one, ← tsub_add_eq_add_tsub] },
     { rwa length_reverse } },
-  { subst h', rw [length, nat.sub_self, drop],
+  { subst h', rw [length, tsub_self, drop],
     suffices : xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length,
       by rw [this, take_length, reverse_cons],
     rw [length_append, length_reverse], refl }
@@ -2704,7 +2704,7 @@ lemma head_le_sum (L : list ℕ) : L.head ≤ L.sum :=
 nat.le.intro (head_add_tail_sum L)
 
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
-by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
+by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 
 section
 variables {G : Type*} [comm_group G]
@@ -3732,7 +3732,7 @@ theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ d
 
 theorem suffix_iff_eq_append {l₁ l₂ : list α} :
   l₁ <:+ l₂ ↔ take (length l₂ - length l₁) l₂ ++ l₁ = l₂ :=
-⟨by rintros ⟨r, rfl⟩; simp only [length_append, nat.add_sub_cancel, take_left], λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp only [length_append, add_tsub_cancel_right, take_left], λ e, ⟨_, e⟩⟩
 
 theorem prefix_iff_eq_take {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ = take (length l₁) l₂ :=
 ⟨λ h, append_right_cancel $

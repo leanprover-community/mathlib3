@@ -715,7 +715,7 @@ is itself an analytic function of `x` given by the series `p.change_origin_serie
 def change_origin_series_term (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l) :
   E [×l]→L[𝕜] E [×k]→L[𝕜] F :=
 continuous_multilinear_map.curry_fin_finset 𝕜 E F hs
-    (by erw [finset.card_compl, fintype.card_fin, hs, nat.add_sub_cancel]) (p $ k + l)
+    (by erw [finset.card_compl, fintype.card_fin, hs, add_tsub_cancel_right]) (p $ k + l)
 
 lemma change_origin_series_term_apply (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l)
   (x y : E) :
@@ -794,7 +794,7 @@ with non-definitional equalities. -/
       suffices : ∀ k' l', k' = k → l' = l → ∀ (hkl : k + l = k' + l') hs',
         (⟨k', l', ⟨finset.map (fin.cast hkl).to_equiv.to_embedding s, hs'⟩⟩ :
           (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l})) = ⟨k, l, ⟨s, hs⟩⟩,
-      { apply this; simp only [hs, nat.add_sub_cancel] },
+      { apply this; simp only [hs, add_tsub_cancel_right] },
       rintro _ _ rfl rfl hkl hs',
       simp only [equiv.refl_to_embedding, fin.cast_refl, finset.map_refl, eq_self_iff_true,
         order_iso.refl_to_equiv, and_self, heq_iff_eq]

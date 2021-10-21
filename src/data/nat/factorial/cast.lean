@@ -59,8 +59,8 @@ lemma cast_desc_factorial_two :
 begin
   rw cast_desc_factorial,
   cases a,
-  { rw [nat.zero_sub, cast_zero, pochhammer_ne_zero_eval_zero _ (two_ne_zero), zero_mul] },
-  { rw [succ_sub_succ, nat.sub_zero, cast_succ, add_sub_cancel, pochhammer_succ_right,
+  { rw [zero_tsub, cast_zero, pochhammer_ne_zero_eval_zero _ (two_ne_zero), zero_mul] },
+  { rw [succ_sub_succ, tsub_zero, cast_succ, add_sub_cancel, pochhammer_succ_right,
       pochhammer_one, polynomial.X_mul, polynomial.eval_mul_X, polynomial.eval_add,
       polynomial.eval_X, cast_one, polynomial.eval_one] }
 end

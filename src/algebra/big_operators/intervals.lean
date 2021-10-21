@@ -106,8 +106,8 @@ begin
     refine (prod_image _).symm,
     simp only [mem_Ico],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
-    rw [← nat.sub_sub_self (this _ im), Hij, nat.sub_sub_self (this _ jm)] },
-  { simp [Ico_eq_empty_of_le, nat.sub_le_sub_left, hkm] }
+    rw [← tsub_tsub_cancel_of_le (this _ im), Hij, tsub_tsub_cancel_of_le (this _ jm)] },
+  { simp [Ico_eq_empty_of_le, tsub_le_tsub_left, hkm] }
 end
 
 lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
@@ -120,7 +120,7 @@ lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
 begin
   cases n,
   { simp },
-  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, nat.sub_zero],
+  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, tsub_zero],
     rw prod_Ico_reflect _ _ le_rfl,
     simp }
 end

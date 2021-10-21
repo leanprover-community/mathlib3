@@ -116,7 +116,7 @@ begin
   cases hm.lt_or_lt with hm hm,
   { rw [nat.div_eq_zero, bodd_zero],
     exact nat.pow_lt_pow_of_lt_right one_lt_two hm },
-  { rw [pow_div hm.le zero_lt_two, ←tsub_add_cancel_of_le (nat.sub_pos_of_lt hm), pow_succ],
+  { rw [pow_div hm.le zero_lt_two, ←tsub_add_cancel_of_le (tsub_pos_of_lt hm), pow_succ],
     simp }
 end
 

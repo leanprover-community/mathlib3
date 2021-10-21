@@ -927,10 +927,10 @@ when the function we are summing is monotone.
 lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
-  refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
+  refine sum_range_induction _ _ (tsub_self _) (λ n, _) _,
   have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
   have h₂ : f 0 ≤ f n := h (nat.zero_le _),
-  rw [←nat.sub_add_comm h₂, add_tsub_cancel_of_le h₁],
+  rw [tsub_add_eq_add_tsub h₂, add_tsub_cancel_of_le h₁],
 end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=

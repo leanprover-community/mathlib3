@@ -116,7 +116,7 @@ begin
     refine congr (congr_arg (*) (congr (congr_arg (*) _) rfl)) rfl,
     -- Now it's just about binomial coefficients
     exact_mod_cast congr_arg (λ m : ℕ, (m : polynomial R)) (nat.succ_mul_choose_eq n ν).symm, },
-  { rw nat.sub_sub, rw [←mul_assoc,←mul_assoc], congr' 1,
+  { rw [← tsub_add_eq_tsub_tsub, ← mul_assoc, ← mul_assoc], congr' 1,
     rw mul_comm , rw [←mul_assoc,←mul_assoc],  congr' 1,
     norm_cast,
     congr' 1,
@@ -178,7 +178,7 @@ begin
     { simp [eval_at_0], },
     { have h' : ν ≤ n-1 := le_tsub_of_add_le_right h,
       simp only [derivative_succ, ih (n-1) h', iterate_derivative_succ_at_0_eq_zero,
-        nat.succ_sub_succ_eq_sub, nat.sub_zero, sub_zero,
+        nat.succ_sub_succ_eq_sub, tsub_zero, sub_zero,
         iterate_derivative_sub, iterate_derivative_cast_nat_mul,
         eval_one, eval_mul, eval_add, eval_sub, eval_X, eval_comp, eval_nat_cast,
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
@@ -186,7 +186,7 @@ begin
       { simp },
       { have : n - 1 - (ν - 1) = n - ν,
         { rw ←nat.succ_le_iff at h'',
-          rw [nat.sub_sub, add_comm, tsub_add_cancel_of_le h''] },
+          rw [← tsub_add_eq_tsub_tsub, add_comm, tsub_add_cancel_of_le h''] },
         rw [this, pochhammer_eval_succ],
         rw_mod_cast tsub_add_cancel_of_le (h'.trans n.pred_le) } } },
   { simp only [not_le] at h,
@@ -205,7 +205,7 @@ begin
   obtain rfl|h' := nat.eq_zero_or_pos ν,
   { simp, },
   { rw ← nat.succ_pred_eq_of_pos h' at h,
-    exact pochhammer_pos _ _ (nat.sub_pos_of_lt (nat.lt_of_succ_le h)) }
+    exact pochhammer_pos _ _ (tsub_pos_of_lt (nat.lt_of_succ_le h)) }
 end
 
 /-!
@@ -231,7 +231,7 @@ begin
   { simp, },
   { congr,
     norm_cast,
-    rw [nat.sub_sub, nat.sub_sub_self (nat.succ_le_iff.mpr h')] },
+    rw [← tsub_add_eq_tsub_tsub, tsub_tsub_cancel_of_le (nat.succ_le_iff.mpr h')] },
 end
 
 lemma iterate_derivative_at_1_ne_zero [char_zero R] (n ν : ℕ) (h : ν ≤ n) :

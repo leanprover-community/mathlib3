@@ -317,7 +317,7 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
             simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       have 1 ≤ n + m, from le_trans hn0 (nat.le_add_right n m),
       finite_mul_aux hpx hb ⟨s, mul_right_cancel₀ hp.1 begin
-          rw [← nat.sub_add_comm hn0, tsub_add_cancel_of_le this],
+          rw [tsub_add_eq_add_tsub hn0, tsub_add_cancel_of_le this],
           clear _fun_match _fun_match finite_mul_aux,
           simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
         end⟩)

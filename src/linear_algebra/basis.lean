@@ -99,9 +99,8 @@ variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 section repr
 
 /-- `b i` is the `i`th basis vector. -/
-instance : has_coe_to_fun (basis ι R M) :=
-{ F := λ _, ι → M,
-  coe := λ b i, b.repr.symm (finsupp.single i 1) }
+instance : has_coe_to_fun (basis ι R M) (λ _, ι → M) :=
+{ coe := λ b i, b.repr.symm (finsupp.single i 1) }
 
 @[simp] lemma coe_of_repr (e : M ≃ₗ[R] (ι →₀ R)) :
   ⇑(of_repr e) = λ i, e.symm (finsupp.single i 1) :=

@@ -677,7 +677,7 @@ end
 end compact
 
 section second_countable
-open topological_space
+open _root_.topological_space
 
 variables (α)
 

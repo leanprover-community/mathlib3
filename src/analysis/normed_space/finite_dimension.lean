@@ -153,6 +153,7 @@ begin
     have H₁ : ∀s : submodule 𝕜 E, finrank 𝕜 s = n → is_closed (s : set E),
     { assume s s_dim,
       let b := basis.of_vector_space 𝕜 s,
+      haveI : is_noetherian 𝕜 s := is_noetherian.iff_fg.2 infer_instance,
       have U : uniform_embedding b.equiv_fun.symm.to_equiv,
       { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,
           by { rw ← s_dim, exact (finrank_eq_card_basis b).symm },
@@ -210,6 +211,7 @@ begin
   -- for the proof, go to a model vector space `b → 𝕜` thanks to `continuous_equiv_fun_basis`, and
   -- argue that all linear maps there are continuous.
   let b := basis.of_vector_space 𝕜 E,
+  haveI : is_noetherian 𝕜 E := is_noetherian.iff_fg.2 infer_instance,
   have A : continuous b.equiv_fun :=
     continuous_equiv_fun_basis b,
   have B : continuous (f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E)) :=
@@ -474,14 +476,14 @@ theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : 
   ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
 begin
   let F := submodule.span 𝕜 (s : set E),
-  haveI : finite_dimensional 𝕜 F,
-  { apply is_noetherian_span_of_finite _ (finset.finite_to_set s), apply_instance },
+  haveI : finite_dimensional 𝕜 F := module.finite_def.2
+    ((submodule.fg_top _).2 (submodule.fg_def.2 ⟨s, finset.finite_to_set _, rfl⟩)),
   have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
   have : ∃ x, x ∉ F,
   { contrapose! h,
     have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
     have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
-    exact is_noetherian_top_iff.1 this },
+    refine module.finite_def.2 ((submodule.fg_top _).1 (module.finite_def.1 this)) },
   obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
     riesz_lemma_of_norm_lt hc hR Fclosed this,
   have hx' : ∀ (y : E), y ∈ F → 1 ≤ ∥y - x∥,

@@ -181,6 +181,7 @@ lemma times_cont_diff.dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff 
 times_cont_diff_iff_times_cont_diff_at.2 $
   λ x, hf.times_cont_diff_at.dist hg.times_cont_diff_at (hne x)
 
+omit 𝕜
 lemma has_strict_fderiv_at_norm_sq (x : F) :
   has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (inner_right x)) x :=
 begin
@@ -189,6 +190,7 @@ begin
   ext y,
   simp [bit0, real_inner_comm],
 end
+include 𝕜
 
 lemma differentiable_at.norm_sq (hf : differentiable_at ℝ f x) :
   differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=

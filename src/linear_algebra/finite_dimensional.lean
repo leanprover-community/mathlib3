@@ -52,7 +52,8 @@ Preservation of finite-dimensionality and formulas for the dimension are given f
 
 Basic properties of linear maps of a finite-dimensional vector space are given. Notably, the
 equivalence of injectivity and surjectivity is proved in `linear_map.injective_iff_surjective`,
-and the equivalence between left-inverse and right-inverse in `linear_map.mul_eq_one_comm` and `linear_map.comp_eq_id_comm`.
+and the equivalence between left-inverse and right-inverse in `linear_map.mul_eq_one_comm`
+and `linear_map.comp_eq_id_comm`.
 
 ## Implementation notes
 

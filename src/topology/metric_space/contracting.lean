@@ -324,7 +324,7 @@ begin
   rw [← iterate_succ_apply, iterate_succ_apply', hx] at this,
   contrapose! this,
   have := dist_pos.2 (ne.symm this),
-  simpa only [nnreal.coe_one, one_mul] using (mul_lt_mul_right this).2 hf.1
+  simpa only [nnreal.coe_one, one_mul, nnreal.val_eq_coe] using (mul_lt_mul_right this).mpr hf.left
 end
 
 end contracting_with

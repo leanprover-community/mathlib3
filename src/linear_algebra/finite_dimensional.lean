@@ -1307,6 +1307,7 @@ begin
   { exfalso,
     apply ne_of_lt (fintype.card_pos_iff.mpr hι),
     symmetry,
+    replace fin := (not_iff_not.2 is_noetherian.iff_fg).2 fin,
     calc fintype.card ι = finrank K V : card_eq
                     ... = 0 : dif_neg (mt is_noetherian.iff_dim_lt_omega.mpr fin) }
 end

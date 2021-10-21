@@ -23,7 +23,7 @@ giving the expected definitional implementation:
 * the coproduct of a family `f : J → Type` is `Σ j, f j`
 * the binary coproduct of `X` and `Y` is the sum type `X ⊕ Y`
 * the equalizer of a pair of maps `(g, h)` is the subtype `{x : Y // g x = h x}`
-* the coequalizer of a pair of maps `(f, g)` is the quotient of `Y` by `∀ x : Y, f x ~ g x`.
+* the coequalizer of a pair of maps `(f, g)` is the quotient of `Y` by `∀ x : Y, f x ~ g x`
 * the pullback of `f : X ⟶ Z` and `g : Y ⟶ Z` is the subtype `{ p : X × Y // f p.1 = g p.2 }`
   of the product
 

@@ -109,6 +109,6 @@ begin
   -- show that (n + 1) * (-1)^x * asc_fac x (n - x) = (-1)^x * asc_fac x (n.succ - x)
   intros x hx,
   have h_le : x ≤ n := finset.mem_range_succ_iff.mp hx,
-  rw [nat.succ_sub h_le, nat.asc_factorial_succ, add_sub_cancel_of_le h_le,
+  rw [nat.succ_sub h_le, nat.asc_factorial_succ, add_tsub_cancel_of_le h_le,
     int.coe_nat_mul, int.coe_nat_succ, mul_left_comm],
 end

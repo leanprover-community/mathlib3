@@ -47,7 +47,7 @@ lemma nat.pred_iterate (a : ℕ) : ∀ n, pred^[n] a = a - n
 | (n + 1) := by { rw [function.iterate_succ', sub_succ], exact congr_arg _ n.pred_iterate }
 
 instance : is_succ_archimedean ℕ :=
-⟨λ a b h, ⟨b - a, by rw [nat.succ_iterate, add_sub_cancel_of_le h]⟩⟩
+⟨λ a b h, ⟨b - a, by rw [nat.succ_iterate, add_tsub_cancel_of_le h]⟩⟩
 
 instance : is_pred_archimedean ℕ :=
-⟨λ a b h, ⟨b - a, by rw [nat.pred_iterate, sub_sub_cancel_of_le h]⟩⟩
+⟨λ a b h, ⟨b - a, by rw [nat.pred_iterate, tsub_tsub_cancel_of_le h]⟩⟩

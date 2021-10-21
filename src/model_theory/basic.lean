@@ -37,7 +37,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universe variables u v
+universes u v
 
 namespace first_order
 
@@ -128,8 +128,7 @@ lemma fun_map_eq_coe_const {c : L.const} {x : fin 0 → M} :
 
 namespace hom
 
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M →[L] N) :=
-⟨(λ _, M → N), first_order.language.hom.to_fun⟩
+@[simps] instance has_coe_to_fun : has_coe_to_fun (M →[L] N) (λ _, M → N) := ⟨to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : M →[L] N} : f.to_fun = (f : M → N) := rfl
 
@@ -180,8 +179,7 @@ end hom
 
 namespace embedding
 
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) :=
-⟨(λ _, M → N), λ f, f.to_fun⟩
+@[simps] instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma map_fun (φ : M ↪[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
@@ -274,8 +272,7 @@ namespace equiv
   end,
   .. f.to_equiv.symm }
 
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) :=
-⟨(λ _, M → N), λ f, f.to_fun⟩
+@[simps] instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x

@@ -50,7 +50,7 @@ variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
 variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
-instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
@@ -234,7 +234,7 @@ instance : has_bracket (derivation R A A) (derivation R A A) :=
 ⟨λ D1 D2, { leibniz' := λ a b, by
             { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_apply, leibniz,
                         linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring, },
-            ..⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }⟩
+            to_linear_map := ⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }⟩
 
 @[simp] lemma commutator_coe_linear_map :
   ↑⁅D1, D2⁆ = ⁅(D1 : module.End R A), (D2 : module.End R A)⁆ := rfl

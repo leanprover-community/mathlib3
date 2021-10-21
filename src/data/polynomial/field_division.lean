@@ -24,8 +24,8 @@ namespace polynomial
 universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
 
-section integral_domain
-variables [comm_ring R] [integral_domain R] [normalization_monoid R]
+section is_domain
+variables [comm_ring R] [is_domain R] [normalization_monoid R]
 
 instance : normalization_monoid (polynomial R) :=
 { norm_unit := λ p, ⟨C ↑(norm_unit (p.leading_coeff)), C ↑(norm_unit (p.leading_coeff))⁻¹,
@@ -52,7 +52,7 @@ by simp [norm_unit]
 lemma leading_coeff_normalize (p : polynomial R) :
   leading_coeff (normalize p) = normalize (leading_coeff p) := by simp
 
-end integral_domain
+end is_domain
 
 section field
 variables [field R] {p q : polynomial R}

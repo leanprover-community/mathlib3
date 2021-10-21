@@ -701,6 +701,11 @@ end zero_dim
 namespace submodule
 open is_noetherian finite_dimensional
 
+/-- A submodule is finitely generated if and only if it is finite-dimensional -/
+theorem fg_iff_finite_dimensional (s : submodule K V) :
+  s.fg ↔ finite_dimensional K s :=
+⟨λ h, module.finite_def.2 $ (fg_top s).2 h, λ h, (fg_top s).1 $ module.finite_def.1 h⟩
+
 /-- A submodule contained in a finite-dimensional submodule is
 finite-dimensional. -/
 lemma finite_dimensional_of_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (h : S₁ ≤ S₂) :

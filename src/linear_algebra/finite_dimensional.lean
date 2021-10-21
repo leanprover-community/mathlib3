@@ -85,7 +85,7 @@ open cardinal submodule module function
 Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
 from a conventional definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [division_ring K]
-  [add_comm_group V] [module K V] := is_noetherian K V
+  [add_comm_group V] [module K V] := module.finite K V
 
 namespace finite_dimensional
 
@@ -101,7 +101,7 @@ variables (K V)
 -- Without this apparently redundant instance we get typeclass search errors
 -- in `analysis.normed_space.finite_dimension`.
 instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
-is_noetherian_pi
+iff_fg.1 is_noetherian_pi
 
 /-- A finite dimensional vector space over a finite field is finite -/
 noncomputable def fintype_of_fintype [fintype K] [is_noetherian K V] : fintype V :=
@@ -112,7 +112,7 @@ variables {K V}
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
 lemma of_fintype_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
   finite_dimensional K V :=
-iff_fg.2 $ ⟨⟨finset.univ.image h, by { convert h.span_eq, simp } ⟩⟩
+⟨⟨finset.univ.image h, by { convert h.span_eq, simp } ⟩⟩
 
 /-- If a vector space has a basis indexed by elements of a finite set, then it is
 finite-dimensional. -/
@@ -128,12 +128,21 @@ of_finite_basis h s.finite_to_set
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K S :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))
+begin
+  letI : is_noetherian K V := iff_fg.2 _,
+  exact iff_fg.1
+    (is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))),
+  apply_instance,
+end
 
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K (quotient S) :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_lt_omega K V))
+begin
+  letI : is_noetherian K V := iff_fg.2 infer_instance,
+  exact iff_fg.1
+    (is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_lt_omega K V))),
+end
 
 /-- The rank of a module as a natural number.
 
@@ -151,7 +160,10 @@ noncomputable def finrank (K V : Type*) [division_ring K]
 lemma finrank_eq_dim (K : Type u) (V : Type v) [division_ring K]
   [add_comm_group V] [module K V] [finite_dimensional K V] :
   (finrank K V : cardinal.{v}) = module.rank K V :=
-by rw [finrank, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
+begin
+  letI : is_noetherian K V := iff_fg.2 infer_instance,
+  rw [finrank, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
+end
 
 lemma finrank_eq_of_dim_eq {n : ℕ} (h : module.rank K V = ↑ n) : finrank K V = n :=
 begin

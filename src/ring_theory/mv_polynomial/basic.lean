@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import ring_theory.ideal.operations
-import linear_algebra.finsupp_vector_space
 import algebra.char_p.basic
+import linear_algebra.finsupp_vector_space
 
 /-!
 # Multivariate polynomials over commutative rings

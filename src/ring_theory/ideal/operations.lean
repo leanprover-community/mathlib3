@@ -7,7 +7,7 @@ import algebra.algebra.operations
 import algebra.algebra.tower
 import data.equiv.ring
 import data.nat.choose.sum
-import ring_theory.ideal.basic
+import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors
 /-!
 # More operations on modules and ideals
@@ -200,83 +200,6 @@ end comm_ring
 end submodule
 
 namespace ideal
-
-section chinese_remainder
-variables {R : Type u} [comm_ring R] {ι : Type v}
-
-theorem exists_sub_one_mem_and_mem (s : finset ι) {f : ι → ideal R}
-  (hf : ∀ i ∈ s, ∀ j ∈ s, i ≠ j → f i ⊔ f j = ⊤) (i : ι) (his : i ∈ s) :
-  ∃ r : R, r - 1 ∈ f i ∧ ∀ j ∈ s, j ≠ i → r ∈ f j :=
-begin
-  have : ∀ j ∈ s, j ≠ i → ∃ r : R, ∃ H : r - 1 ∈ f i, r ∈ f j,
-  { intros j hjs hji, specialize hf i his j hjs hji.symm,
-    rw [eq_top_iff_one, submodule.mem_sup] at hf,
-    rcases hf with ⟨r, hri, s, hsj, hrs⟩, refine ⟨1 - r, _, _⟩,
-    { rw [sub_right_comm, sub_self, zero_sub], exact (f i).neg_mem hri },
-    { rw [← hrs, add_sub_cancel'], exact hsj } },
-  classical,
-  have : ∃ g : ι → R, (∀ j, g j - 1 ∈ f i) ∧ ∀ j ∈ s, j ≠ i → g j ∈ f j,
-  { choose g hg1 hg2,
-    refine ⟨λ j, if H : j ∈ s ∧ j ≠ i then g j H.1 H.2 else 1, λ j, _, λ j, _⟩,
-    { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
-    { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
-  rcases this with ⟨g, hgi, hgj⟩, use (∏ x in s.erase i, g x), split,
-  { rw [← quotient.eq, ring_hom.map_one, ring_hom.map_prod],
-    apply finset.prod_eq_one, intros, rw [← ring_hom.map_one, quotient.eq], apply hgi },
-  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ring_hom.map_prod],
-  refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
-  rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
-end
-
-theorem exists_sub_mem [fintype ι] {f : ι → ideal R}
-  (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) (g : ι → R) :
-  ∃ r : R, ∀ i, r - g i ∈ f i :=
-begin
-  have : ∃ φ : ι → R, (∀ i, φ i - 1 ∈ f i) ∧ (∀ i j, i ≠ j → φ i ∈ f j),
-  { have := exists_sub_one_mem_and_mem (finset.univ : finset ι) (λ i _ j _ hij, hf i j hij),
-    choose φ hφ,
-    existsi λ i, φ i (finset.mem_univ i),
-    exact ⟨λ i, (hφ i _).1, λ i j hij, (hφ i _).2 j (finset.mem_univ j) hij.symm⟩ },
-  rcases this with ⟨φ, hφ1, hφ2⟩,
-  use ∑ i, g i * φ i,
-  intros i,
-  rw [← quotient.eq, ring_hom.map_sum],
-  refine eq.trans (finset.sum_eq_single i _ _) _,
-  { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left _ (hφ2 j i hji) },
-  { intros hi, exact (hi $ finset.mem_univ i).elim },
-  specialize hφ1 i, rw [← quotient.eq, ring_hom.map_one] at hφ1,
-  rw [ring_hom.map_mul, hφ1, mul_one]
-end
-
-/-- The homomorphism from `R/(⋂ i, f i)` to `∏ i, (R / f i)` featured in the Chinese
-  Remainder Theorem. It is bijective if the ideals `f i` are comaximal. -/
-def quotient_inf_to_pi_quotient (f : ι → ideal R) :
-  (⨅ i, f i).quotient →+* Π i, (f i).quotient :=
-quotient.lift (⨅ i, f i)
-  (pi.ring_hom (λ i : ι, (quotient.mk (f i) : _))) $
-  λ r hr, begin
-    rw submodule.mem_infi at hr,
-    ext i,
-    exact quotient.eq_zero_iff_mem.2 (hr i)
-  end
-
-theorem quotient_inf_to_pi_quotient_bijective [fintype ι] {f : ι → ideal R}
-  (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
-  function.bijective (quotient_inf_to_pi_quotient f) :=
-⟨λ x y, quotient.induction_on₂' x y $ λ r s hrs, quotient.eq.2 $
-  (submodule.mem_infi _).2 $ λ i, quotient.eq.1 $
-  show quotient_inf_to_pi_quotient f (quotient.mk' r) i = _, by rw hrs; refl,
-λ g, let ⟨r, hr⟩ := exists_sub_mem hf (λ i, quotient.out' (g i)) in
-⟨quotient.mk _ r, funext $ λ i, quotient.out_eq' (g i) ▸ quotient.eq.2 (hr i)⟩⟩
-
-/-- Chinese Remainder Theorem. Eisenbud Ex.2.6. Similar to Atiyah-Macdonald 1.10 and Stacks 00DT -/
-noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
-  (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
-  (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
-{ .. equiv.of_bijective _ (quotient_inf_to_pi_quotient_bijective hf),
-  .. quotient_inf_to_pi_quotient f }
-
-end chinese_remainder
 
 section mul_and_radical
 variables {R : Type u} {ι : Type*} [comm_semiring R]

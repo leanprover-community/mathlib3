@@ -5,11 +5,11 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 import algebraic_geometry.prime_spectrum
 import data.multiset.finset_ops
-import linear_algebra.linear_independent
-import order.order_iso_nat
-import order.compactly_generated
-import ring_theory.ideal.operations
 import group_theory.finiteness
+import linear_algebra.linear_independent
+import order.compactly_generated
+import order.order_iso_nat
+import ring_theory.ideal.quotient
 
 /-!
 # Noetherian rings and modules

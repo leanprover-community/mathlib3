@@ -409,7 +409,12 @@ instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetri
     (le_trans (edist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
-    simp [pseudo_emetric_space.uniformity_edist, comap_infi],
+    suffices :
+      ((⨅ (i : ℝ≥0∞) (h :  0 < i), 𝓟 {a : (α × β) × α × β | edist a.fst.fst a.snd.fst < i}) ⊓
+       ⨅ (i : ℝ≥0∞) (h : 0 < i), 𝓟 {a : (α × β) × α × β | edist a.fst.snd a.snd.snd < i}) =
+      ⨅ (ε : ℝ≥0∞) (h: 0 < ε),
+        𝓟 {p : (α × β) × α × β | edist p.fst.fst p.snd.fst < ε ∧ edist p.fst.snd p.snd.snd < ε},
+    { simpa [pseudo_emetric_space.uniformity_edist, comap_infi] },
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
     simp [inf_principal, ext_iff, max_lt_iff]
@@ -483,7 +488,7 @@ def closed_ball (x : α) (ε : ℝ≥0∞) := {y | edist y x ≤ ε}
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
 
 @[simp] theorem closed_ball_top (x : α) : closed_ball x ∞ = univ :=
-eq_univ_of_forall $ λ y, @le_top _ _ (edist y x)
+eq_univ_of_forall $ λ y, le_top
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y hy, le_of_lt hy

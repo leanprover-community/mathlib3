@@ -476,7 +476,7 @@ def radical (I : ideal R) : ideal R :=
       (λ hcm, I.mul_mem_right _ $ I.mul_mem_left _ $ nat.add_comm n m ▸
         (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right _ hyni)
-      (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ add_sub_cancel_of_le hmc ▸
+      (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ add_tsub_cancel_of_le hmc ▸
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
   smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, (mul_pow r s n).symm ▸ I.mul_mem_left (r^n) hsni⟩ }
 
@@ -1299,8 +1299,8 @@ quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
 end comm_ring
 
-/-- The kernel of a homomorphism to an integral domain is a prime ideal. -/
-lemma ker_is_prime [ring R] [comm_ring S] [integral_domain S] (f : R →+* S) :
+/-- The kernel of a homomorphism to a domain is a prime ideal. -/
+lemma ker_is_prime [ring R] [ring S] [domain S] (f : R →+* S) :
   (ker f).is_prime :=
 ⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
 λ x y, by simpa only [mem_ker, f.map_mul] using @eq_zero_or_eq_zero_of_mul_eq_zero S _ _ _ _ _⟩

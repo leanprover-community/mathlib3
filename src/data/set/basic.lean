@@ -77,7 +77,7 @@ singleton, complement, powerset
 
 open function
 
-universe variables u v w x
+universes u v w x
 
 run_cmd do e ← tactic.get_env,
   tactic.set_env $ e.mk_protected `set.compl

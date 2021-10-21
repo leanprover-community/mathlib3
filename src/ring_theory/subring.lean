@@ -524,6 +524,9 @@ variables {R}
 lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
 iff.rfl
 
+instance decidable_mem_center [decidable_eq R] [fintype R] : decidable_pred (∈ center R) :=
+λ _, decidable_of_iff' _ mem_center_iff
+
 @[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
 set_like.coe_injective (set.center_eq_univ R)
 

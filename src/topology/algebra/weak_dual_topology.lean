@@ -72,12 +72,13 @@ noncomputable theory
 open filter
 open_locale topological_space
 
+universes u v
+
 section weak_star_topology
 /-!
 ### Weak star topology on duals of topological modules
 -/
 
-universe variables u v
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
 variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
 

@@ -46,7 +46,7 @@ This result is not yet formalised.
 
 -/
 
-universe variables u v
+universes u v
 
 namespace module
 open function (injective)

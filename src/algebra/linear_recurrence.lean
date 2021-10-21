@@ -65,7 +65,7 @@ def mk_sol (init : fin E.order → α) : ℕ → α
   ∑ k : fin E.order,
     have n - E.order + k < n :=
     begin
-      rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h), sub_lt_iff_left],
+      rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h), tsub_lt_iff_left],
       { exact add_lt_add_right k.is_lt n },
       { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h),
         simp only [zero_add] }
@@ -93,7 +93,7 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
     congr' with k,
     exact have wf : n - E.order + k < n :=
       begin
-        rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h'), sub_lt_iff_left],
+        rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h'), tsub_lt_iff_left],
         { exact add_lt_add_right k.is_lt n },
         { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h'),
           simp only [zero_add] }

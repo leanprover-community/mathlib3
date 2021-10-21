@@ -930,7 +930,7 @@ begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
   have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
   have h₂ : f 0 ≤ f n := h (nat.zero_le _),
-  rw [←nat.sub_add_comm h₂, add_sub_cancel_of_le h₁],
+  rw [←nat.sub_add_comm h₂, add_tsub_cancel_of_le h₁],
 end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=

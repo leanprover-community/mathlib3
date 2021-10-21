@@ -30,7 +30,34 @@ section
 open finset polynomial function
 open_locale big_operators nat
 
-variables {R : Type*} {G : Type*} [comm_ring R] [integral_domain R] [group G] [fintype G]
+variables {R : Type*} {G : Type*}
+
+section ring
+
+variables [ring R] [domain R] [fintype R]
+
+lemma mul_right_bijective₀ (a : R) (ha : a ≠ 0) : bijective (λ b, a * b) :=
+fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
+
+lemma mul_left_bijective₀ (a : R) (ha : a ≠ 0) : bijective (λ b, b * a) :=
+fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
+
+/-- Every finite domain is a division ring.
+
+TODO: Prove Wedderburn's little theorem,
+which shows a finite domain is in fact commutative, hence a field. -/
+def division_ring_of_domain (R : Type*) [ring R] [domain R] [decidable_eq R] [fintype R] :
+  division_ring R :=
+{ inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective₀ a h) 1,
+  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _,
+    by { rw dif_neg ha, exact fintype.right_inverse_bij_inv _ _ },
+  inv_zero := dif_pos rfl,
+  ..show nontrivial R, by apply_instance,
+  ..‹ring R› }
+
+end ring
+
+variables [comm_ring R] [integral_domain R] [group G] [fintype G]
 
 lemma card_nth_roots_subgroup_units (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
   ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
@@ -59,14 +86,7 @@ is_cyclic_of_subgroup_integral_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
 def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
-{ inv := λ a, if h : a = 0 then 0
-    else fintype.bij_inv (show function.bijective (* a),
-      from fintype.injective_iff_bijective.1 $ λ _ _, mul_right_cancel₀ h) 1,
-  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
-    exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
-  inv_zero := dif_pos rfl,
-  ..show nontrivial R, by apply_instance,
-  ..show comm_ring R, by apply_instance }
+{ ..division_ring_of_domain R, ..‹comm_ring R› }
 
 section
 

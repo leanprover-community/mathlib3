@@ -104,8 +104,8 @@ instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → 
 iff_fg.1 is_noetherian_pi
 
 /-- A finite dimensional vector space over a finite field is finite -/
-noncomputable def fintype_of_fintype [fintype K] [is_noetherian K V] : fintype V :=
-module.fintype_of_fintype (finset_basis K V)
+noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=
+module.fintype_of_fintype (@finset_basis K V _ _ _ _ (iff_fg.2 infer_instance))
 
 variables {K V}
 

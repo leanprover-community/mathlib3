@@ -28,10 +28,11 @@ For each of these definitions (except for `is_clopen`), we also have a class sta
 space satisfies that property:
 `compact_space`, `irreducible_space`
 
-Furthermore, we have two more classes:
+Furthermore, we have three more classes:
 * `locally_compact_space`: for every point `x`, every open neighborhood of `x` contains a compact
   neighborhood of `x`. The definition is formulated in terms of the neighborhood filter.
-* `sigma_compact_space`: a space that is the union of a countably many compact subspaces.
+* `sigma_compact_space`: a space that is the union of a countably many compact subspaces;
+* `noncompact_space`: a space that is not a compact space.
 
 ## On the definition of irreducible and connected sets/spaces
 

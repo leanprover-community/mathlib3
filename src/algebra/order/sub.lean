@@ -362,6 +362,10 @@ by { refine ((tsub_le_tsub_iff_right h).mp h2.le).lt_of_ne _, rintro rfl, exact 
 @[simp] lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by rw [← nonpos_iff_eq_zero, tsub_le_iff_left, add_zero]
 
+/-- One direction of `tsub_eq_zero_iff_le`, as a `@[simp]`-lemma. -/
+@[simp] lemma tsub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
+tsub_eq_zero_iff_le.mpr h
+
 @[simp] lemma tsub_self (a : α) : a - a = 0 :=
 tsub_eq_zero_iff_le.mpr le_rfl
 

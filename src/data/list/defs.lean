@@ -919,29 +919,6 @@ def take_list {α} : list α → list ℕ → list (list α) × list α
   let ⟨xss, rest⟩ := take_list xs₂ ns in
   (xs₁ :: xss, rest)
 
-/--
-`to_rbmap as` is the map that associates each index `i` of `as` with the
-corresponding element of `as`.
-
-```
-to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
-```
--/
-def to_rbmap : list α → rbmap ℕ α :=
-foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
-
-/--
-`to_rb_map as` is the map that associates each index `i` of `as` with the
-corresponding element of `as`.
-
-```
-to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
-```
--/
-meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
-foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
-
-
 /-- Auxliary definition used to define `to_chunks`.
 
   `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks (n+1))`,

@@ -609,7 +609,7 @@ begin
         coe_sub, pi.sub_apply, ennreal.coe_to_nnreal,
         ennreal.add_sub_cancel_of_le (monotone_eapprox f (nat.le_succ _) _)],
     apply (lt_of_le_of_lt _ (eapprox_lt_top f (n+1) a)).ne,
-    rw ennreal.sub_le_iff_le_add,
+    rw tsub_le_iff_right,
     exact le_self_add },
 end
 
@@ -1590,10 +1590,10 @@ lemma lintegral_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurab
   ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
 begin
   rw [← ennreal.add_left_inj hg_fin,
-        ennreal.sub_add_cancel_of_le (lintegral_mono_ae h_le),
+        tsub_add_cancel_of_le (lintegral_mono_ae h_le),
       ← lintegral_add (hf.sub hg) hg],
   refine lintegral_congr_ae (h_le.mono $ λ x hx, _),
-  exact ennreal.sub_add_cancel_of_le hx
+  exact tsub_add_cancel_of_le hx
 end
 
 lemma lintegral_sub_le (f g : α → ℝ≥0∞)
@@ -1661,7 +1661,7 @@ calc
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
     lintegral_supr_ae
       (assume n, (h_meas 0).sub (h_meas n))
-      (assume n, (h_mono n).mono $ assume a ha, ennreal.sub_le_sub (le_refl _) ha)
+      (assume n, (h_mono n).mono $ assume a ha, tsub_le_tsub (le_refl _) ha)
   ... = ⨆n, ∫⁻ a, f 0 a ∂μ - ∫⁻ a, f n a ∂μ :
     have h_mono : ∀ᵐ a ∂μ, ∀n:ℕ, f n.succ a ≤ f n a := ae_all_iff.2 h_mono,
     have h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f 0 a := assume n, h_mono.mono $ assume a h,

@@ -3,11 +3,7 @@ Copyright (c) 2021 Alex Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Zhao
 -/
-import tactic.suggest
-import tactic.linarith.frontend
-import data.rat.basic
-import data.nat.prime
-import data.int.gcd
+import data.nat.modeq
 
 /-!
 # Chicken McNugget Theorem

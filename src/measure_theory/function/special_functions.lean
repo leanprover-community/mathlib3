@@ -173,7 +173,7 @@ variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] [measurable_s
 @[measurability] lemma is_R_or_C.measurable_of_real : measurable (coe : ℝ → 𝕜) :=
 is_R_or_C.continuous_of_real.measurable
 
-@[measurability] lemma measurable_of_re_im
+lemma measurable_of_re_im
   (hre : measurable (λ x, is_R_or_C.re (f x)))
   (him : measurable (λ x, is_R_or_C.im (f x))) : measurable f :=
 begin
@@ -184,7 +184,7 @@ begin
   all_goals { apply_instance },
 end
 
-@[measurability] lemma ae_measurable_of_re_im
+lemma ae_measurable_of_re_im
   (hre : ae_measurable (λ x, is_R_or_C.re (f x)) μ)
   (him : ae_measurable (λ x, is_R_or_C.im (f x)) μ) : ae_measurable f μ :=
 begin

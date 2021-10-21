@@ -8,6 +8,7 @@ import algebra.direct_sum.ring
 import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
+import tactic.linarith
 
 
 /-!
@@ -273,19 +274,19 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
 
   have eq₂ : of A (max₁ + max₂) (graded_monoid.ghas_mul.mul (x max₁) (y max₂))
           = of A (max₁ + max₂) ((x * y) (max₁ + max₂))
-          - ∑ ij in (x.support.product y.support).filter (λ z, prod.fst z + prod.snd z = max₁ + max₂)
-                    \ {(max₁, max₂)},
+          - ∑ ij in (x.support.product y.support).filter
+              (λ z, prod.fst z + prod.snd z = max₁ + max₂) \ {(max₁, max₂)},
             of A (prod.fst ij + prod.snd ij)
               (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij))),
   { rw eq, ring },
 
-  have mem_I₂ : ∑ ij in (x.support.product y.support).filter (λ z, prod.fst z + prod.snd z = max₁ + max₂)
-                    \ {(max₁, max₂)},
+  have mem_I₂ : ∑ ij in (x.support.product y.support).filter
+                    (λ z, prod.fst z + prod.snd z = max₁ + max₂) \ {(max₁, max₂)},
                   of A (prod.fst ij + prod.snd ij)
                   (graded_monoid.ghas_mul.mul (x (prod.fst ij)) (y (prod.snd ij))) ∈ I,
   { apply ideal.sum_mem, rintros ⟨i, j⟩ H,
-    simp only [not_and, prod.mk.inj_iff, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_singleton,
-      finset.mem_filter, finset.mem_product] at H,
+    simp only [not_and, prod.mk.inj_iff, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun,
+       finset.mem_singleton, finset.mem_filter, finset.mem_product] at H,
     rw ←of_mul_of,
     obtain ⟨⟨⟨H₁, H₂⟩, H₃⟩, H₄⟩ := H,
     cases lt_trichotomy i max₁,
@@ -310,7 +311,43 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
 
   -- equalities from calc
   -- (1)
-  sorry,
+  conv_lhs { rw [direct_sum.eq_sum_of _ x, direct_sum.eq_sum_of _ y, finset.sum_mul_sum] },
+  simp only [dfinsupp.finset_sum_apply],
+  rw [add_monoid_hom.map_sum],
+  simp_rw [of_mul_of],
+  rw calc
+        ∑ (ij : ι × ι) in x.support.product y.support,
+          (of A (max₁ + max₂)) (of A (ij.fst + ij.snd)
+            (graded_monoid.ghas_mul.mul (x ij.fst) (y ij.snd))
+            (max₁ + max₂))
+      = ∑ (ij : ι × ι) in (x.support.product y.support).filter (λ z, z.fst + z.snd = max₁ + max₂),
+          (of A (max₁ + max₂)) ((of A (ij.fst + ij.snd))
+            (graded_monoid.ghas_mul.mul (x ij.fst) (y ij.snd))
+            (max₁ + max₂))
+      + ∑ (ij : ι × ι) in (x.support.product y.support).filter (λ z, z.fst + z.snd ≠ max₁ + max₂),
+          (of A (max₁ + max₂)) ((of A (ij.fst + ij.snd))
+            (graded_monoid.ghas_mul.mul (x ij.fst) (y ij.snd))
+            (max₁ + max₂)) : by rw finset.sum_filter_add_sum_filter_not
+  ... = ∑ (ij : ι × ι) in (x.support.product y.support).filter (λ z, z.fst + z.snd = max₁ + max₂),
+          (of A (max₁ + max₂)) ((of A (ij.fst + ij.snd))
+            (graded_monoid.ghas_mul.mul (x ij.fst) (y ij.snd))
+            (max₁ + max₂)) : _, -- (1.1)
+  apply finset.sum_congr, refl,
+  rintros ⟨i, j⟩ hij,
+  simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter, finset.mem_product] at hij,
+  rw [←hij.2, of_eq_same],
+  -- (1.1)
+  have eq :
+    ∑ (ij : ι × ι) in (x.support.product y.support).filter (λ z, z.fst + z.snd ≠ max₁ + max₂),
+        (of A (max₁ + max₂)) ((of A (ij.fst + ij.snd))
+          (graded_monoid.ghas_mul.mul (x ij.fst) (y ij.snd))
+          (max₁ + max₂)) = 0,
+  { apply finset.sum_eq_zero,
+    rintros ⟨i, j⟩ hij,
+    simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter, finset.mem_product] at hij,
+    rw of_eq_of_ne, simp only [add_monoid_hom.map_zero],
+    exact hij.2, },
+  rw [eq, add_zero],
 
   -- (2)
   congr, ext, split; intros H,
@@ -340,11 +377,6 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
     finset.mem_product] at Hij,
   exact Hij.1.2 Hij.2.1 Hij.2.2,
 end⟩
-
--- example {ι : Type*} [linear_ordered_cancel_add_comm_monoid ι] (a b c d : ι) (h : a + b = c + d) (h' : a < c) : (d < b) :=
--- begin
---   linarith,
--- end
 
 end properties
 
@@ -433,7 +465,7 @@ begin
   apply HI, apply Hx, exact HJ
 end
 
-lemma homogeneous_ideal.rad_eq [linear_ordered_add_comm_monoid ι] {I : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.rad_eq [linear_ordered_cancel_add_comm_monoid ι] {I : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) :
   I.radical = Inf {J | I ≤ J ∧ homogeneous_ideal J ∧ J.is_prime} :=
 begin
@@ -485,7 +517,7 @@ begin
   exact subset₁ hx, exact subset₂ hx,
 end
 
-lemma homogeneous_ideal.rad [linear_ordered_add_comm_monoid ι] {I : ideal (⨁ i, A i)}
+lemma homogeneous_ideal.rad [linear_ordered_cancel_add_comm_monoid ι] {I : ideal (⨁ i, A i)}
   (HI : homogeneous_ideal I) : homogeneous_ideal I.radical :=
 begin
   have radI_eq := homogeneous_ideal.rad_eq HI,

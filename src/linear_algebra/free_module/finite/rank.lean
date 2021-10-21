@@ -25,9 +25,23 @@ open cardinal
 
 namespace module.free
 
+section ring
+
+variables [ring R] [strong_rank_condition R]
+variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
+
+/-- If `M` is finite and free, `finrank M = rank M`. -/
+lemma finrank_eq_rank : ↑(finite_dimensional.finrank R M) = module.rank R M :=
+begin
+  letI := nontrivial_of_invariant_basis_number R,
+  simp [finite_dimensional.finrank, rank_eq_card_choose_basis_index, fintype_card],
+end
+
+end ring
+
 section comm_ring
 
-variables [comm_ring R] [nontrivial R] [strong_rank_condition R]
+variables [comm_ring R] [strong_rank_condition R]
 variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
 variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 
@@ -36,6 +50,7 @@ variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
   lift.{v w} (module.rank R N) :=
 begin
   classical,
+  letI := nontrivial_of_invariant_basis_number R,
   have h := (linear_map.to_matrix (choose_basis R M) (choose_basis R N)).lift_dim_eq,
   simp only [rank_matrix, lift_lift, lift_mul] at h,
   rw [← lift_lift.{(max w v) (max (max w v u) v w) w},

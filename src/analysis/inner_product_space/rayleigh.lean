@@ -75,19 +75,19 @@ end
 
 lemma supr_rayleigh_eq_supr_rayleigh_sphere {r : ℝ} (hr : 0 < r) :
   (⨆ x : {x : E // x ≠ 0}, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2)
-  = (⨆ x : sphere (0:E) r, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2) :=
+  = ⨆ x : sphere (0:E) r, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2 :=
 begin
   let F : E → ℝ := λ x, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2,
-  change  (⨆ x : ({0} : set E)ᶜ, F x) = (⨆ x : sphere (0:E) r, F x),
+  change (⨆ x : ({0} : set E)ᶜ, F x) = (⨆ x : sphere (0:E) r, F x),
   simp only [csupr_set, T.image_rayleigh_eq_image_rayleigh_sphere hr],
 end
 
 lemma infi_rayleigh_eq_infi_rayleigh_sphere {r : ℝ} (hr : 0 < r) :
   (⨅ x : {x : E // x ≠ 0}, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2)
-  = (⨅ x : sphere (0:E) r, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2) :=
+  = ⨅ x : sphere (0:E) r, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2 :=
 begin
   let F : E → ℝ := λ x, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2,
-  change  (⨅ x : ({0} : set E)ᶜ, F x) = (⨅ x : sphere (0:E) r, F x),
+  change (⨅ x : ({0} : set E)ᶜ, F x) = (⨅ x : sphere (0:E) r, F x),
   simp only [cinfi_set, T.image_rayleigh_eq_image_rayleigh_sphere hr],
 end
 
@@ -197,7 +197,7 @@ quotient. -/
 lemma has_eigenvector_of_is_max_on (hT : self_adjoint (T : E →ₗ[𝕜] E)) {x₀ : E}
   (hx₀ : x₀ ≠ 0) (hextr : is_max_on T.re_apply_inner_self (sphere (0:E) ∥x₀∥) x₀) :
   has_eigenvector (T : E →ₗ[𝕜] E)
-    ↑(supr (λ x : {x : E // x ≠ 0}, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2)) x₀ :=
+    ↑(⨆ x : {x : E // x ≠ 0}, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2) x₀ :=
 begin
   convert hT.has_eigenvector_of_is_local_extr_on hx₀ (or.inr hextr.localize),
   have hx₀' : 0 < ∥x₀∥ := by simp [hx₀],
@@ -217,7 +217,7 @@ quotient. -/
 lemma has_eigenvector_of_is_min_on (hT : self_adjoint (T : E →ₗ[𝕜] E)) {x₀ : E}
   (hx₀ : x₀ ≠ 0) (hextr : is_min_on T.re_apply_inner_self (sphere (0:E) ∥x₀∥) x₀) :
   has_eigenvector (T : E →ₗ[𝕜] E)
-    ↑(infi (λ x : {x : E // x ≠ 0}, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2)) x₀ :=
+    ↑(⨅ x : {x : E // x ≠ 0}, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2) x₀ :=
 begin
   convert hT.has_eigenvector_of_is_local_extr_on hx₀ (or.inl hextr.localize),
   have hx₀' : 0 < ∥x₀∥ := by simp [hx₀],
@@ -239,7 +239,7 @@ variables [finite_dimensional 𝕜 E] [nontrivial E] {T : E →ₗ[𝕜] E}
 /-- The supremum of the Rayleigh quotient of a self-adjoint operator `T` on a nontrivial
 finite-dimensional vector space is an eigenvalue for that operator. -/
 lemma has_eigenvalue_supr_of_finite_dimensional (hT : self_adjoint T) :
-  has_eigenvalue T ↑(supr (λ x : {x : E// x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2)) :=
+  has_eigenvalue T ↑(⨆ x : {x : E // x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2) :=
 begin
   let T' : E →L[𝕜] E := T.to_continuous_linear_map,
   have hT' : self_adjoint (T' : E →ₗ[𝕜] E) := hT,
@@ -261,7 +261,7 @@ end
 /-- The infimum of the Rayleigh quotient of a self-adjoint operator `T` on a nontrivial
 finite-dimensional vector space is an eigenvalue for that operator. -/
 lemma has_eigenvalue_infi_of_finite_dimensional (hT : self_adjoint T) :
-  has_eigenvalue T ↑(infi (λ x : {x : E// x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2)) :=
+  has_eigenvalue T ↑(⨅ x : {x : E // x ≠ 0}, is_R_or_C.re ⟪T x, x⟫ / ∥(x:E)∥ ^ 2) :=
 begin
   let T' : E →L[𝕜] E := T.to_continuous_linear_map,
   have hT' : self_adjoint (T' : E →ₗ[𝕜] E) := hT,

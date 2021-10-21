@@ -164,6 +164,17 @@ def restrict_scalars_equiv [ring S] [has_scalar S R] [module S M] [is_scalar_tow
   map_smul' := λ c x, quotient.induction_on' x (λ x', rfl),
   ..quotient.congr_right $ λ _ _, iff.rfl }
 
+@[simp] lemma restrict_scalars_equiv_mk
+  [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
+  (x : M) : restrict_scalars_equiv S P (mk x) = mk x :=
+rfl
+
+@[simp] lemma restrict_scalars_equiv_symm_mk
+  [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
+  (x : M) : (restrict_scalars_equiv S P).symm (mk x) = mk x :=
+rfl
+
+
 end module
 
 lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=

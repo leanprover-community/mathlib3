@@ -7,6 +7,7 @@ import algebra.algebra.operations
 import algebra.algebra.tower
 import data.equiv.ring
 import data.nat.choose.sum
+import ring_theory.coprime.lemmas
 import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors
 /-!
@@ -310,6 +311,43 @@ lemma span_singleton_mul_eq_span_singleton_mul {x y : R} (I J : ideal R) :
     ((∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ) ∧
      (∀ zJ ∈ J, ∃ zI ∈ I, x * zI = y * zJ)) :=
 by simp only [le_antisymm_iff, span_singleton_mul_le_span_singleton_mul, eq_comm]
+
+lemma prod_span {ι : Type*} (s : finset ι) (I : ι → set R) :
+  (∏ i in s, ideal.span (I i)) = ideal.span (∏ i in s, I i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simp },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih, ideal.span_mul_span],
+    congr' 1,
+    ext x,
+    simp [set.mem_mul, eq_comm] }
+end
+
+lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
+  (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simp },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih, ideal.span_mul_span],
+    congr' 1,
+    ext x,
+    simp [set.mem_mul, eq_comm] }
+end
+
+lemma infi_span_singleton {ι : Type*} [fintype ι] (I : ι → R)
+  (hI : ∀ i j (hij : i ≠ j), is_coprime (I i) (I j)):
+  (⨅ i, ideal.span ({I i} : set R)) = ideal.span {∏ i, I i} :=
+begin
+  letI := classical.dec_eq ι,
+  ext x,
+  simp only [submodule.mem_infi, ideal.mem_span_singleton],
+  exact ⟨fintype.prod_dvd_of_coprime hI,
+    λ h i, dvd_trans (finset.dvd_prod_of_mem _ (finset.mem_univ _)) h⟩
+end
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩

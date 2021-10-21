@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import order.lexicographic
 import tactic.linarith.datatypes
 import tactic.zify
 import tactic.cancel_denoms

@@ -1,7 +1,7 @@
 import tactic.simps
 import algebra.group.hom
 
-universe variables v u w
+universes v u w
 -- set_option trace.simps.verbose true
 -- set_option trace.simps.debug true
 -- set_option trace.app_builder true

@@ -152,7 +152,7 @@ end
 theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 
-lemma bot_prime {R : Type*} [comm_ring R] [integral_domain R] : (⊥ : ideal R).is_prime :=
+lemma bot_prime {R : Type*} [ring R] [domain R] : (⊥ : ideal R).is_prime :=
 ⟨λ h, one_ne_zero (by rwa [ideal.eq_top_iff_one, submodule.mem_bot] at h),
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 

@@ -43,12 +43,12 @@ by rw [non_uniform_pairs, mem_filter, mem_off_diag, and_assoc, and_assoc]
 /-- An finpartition is `ε-uniform` iff at most a proportion of `ε` of its pairs of parts are not
 `ε-uniform`. -/
 def is_uniform (ε : ℝ) : Prop :=
-((P.non_uniform_pairs G ε).card : ℝ) ≤ (P.size * (P.size - 1) : ℕ) * ε
+((P.non_uniform_pairs G ε).card : ℝ) ≤ (P.parts.card * (P.parts.card - 1) : ℕ) * ε
 
 lemma empty_is_uniform {P : finpartition s} {G : simple_graph α} {ε : ℝ} (hP : P.parts = ∅) :
   P.is_uniform G ε :=
 begin
-  rw [finpartition.is_uniform, finpartition.non_uniform_pairs, finpartition.size, hP],
+  rw [finpartition.is_uniform, finpartition.non_uniform_pairs, hP],
   simp,
 end
 
@@ -65,7 +65,7 @@ Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a sui
 we will find a new one that has an index greater than the previous one plus some fixed constant.
 Then `index_le_one` ensures this process only happens finitely many times. -/
 noncomputable def index (P : finpartition s) : ℝ :=
-(∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2)/P.size^2
+(∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2)/P.parts.card^2
 
 lemma index_nonneg (P : finpartition s) :
   0 ≤ P.index G :=
@@ -78,7 +78,7 @@ begin
   refine div_le_of_nonneg_of_le_mul (sq_nonneg _) zero_le_one _,
   suffices h : (∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2) ≤ P.parts.off_diag.card,
   { apply h.trans,
-    rw [off_diag_card, one_mul, size_eq_card_parts, ←nat.cast_pow, nat.cast_le, sq],
+    rw [off_diag_card, one_mul, ←nat.cast_pow, nat.cast_le, sq],
     apply sub_le_self' },
   refine (sum_le_of_forall_le _ _ 1 _).trans _,
   { rintro UV _,
@@ -87,16 +87,12 @@ begin
   rw nat.smul_one_eq_coe,
 end
 
-end finpartition
-
-namespace discrete_finpartition
-
-lemma non_uniform_pairs {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition s).non_uniform_pairs G ε = ∅ :=
+lemma non_uniform_pairs_discrete {ε : ℝ} (hε : 0 < ε) :
+  (finpartition.discrete s).non_uniform_pairs G ε = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
   rintro ⟨U, V⟩,
-  simp only [finpartition.mem_non_uniform_pairs, discrete_finpartition_parts, mem_map,
+  simp only [finpartition.mem_non_uniform_pairs, finpartition.discrete_parts, mem_map,
     not_and, not_not, embedding.coe_fn_mk, exists_imp_distrib],
   rintro x hx rfl y hy rfl h U' hU' V' hV' hU hV,
   rw [card_singleton, nat.cast_one, one_mul] at hU hV,
@@ -109,12 +105,11 @@ begin
   rwa [sub_self, abs_zero],
 end
 
-lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition s).is_uniform G ε :=
+lemma discrete_is_uniform {ε : ℝ} (hε : 0 < ε) : (finpartition.discrete s).is_uniform G ε :=
 begin
-  rw [finpartition.is_uniform, discrete_finpartition.size, non_uniform_pairs _ hε,
+  rw [finpartition.is_uniform, finpartition.card_discrete, non_uniform_pairs_discrete _ hε,
     finset.card_empty, nat.cast_zero],
   apply mul_nonneg (nat.cast_nonneg _) hε.le ,
 end
 
-end discrete_finpartition
+end finpartition

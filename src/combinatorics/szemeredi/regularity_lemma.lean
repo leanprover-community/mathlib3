@@ -14,13 +14,13 @@ In this file, we prove Szemerédi's Regularity Lemma.
 -/
 
 open_locale big_operators classical
-open finset fintype function
+open finpartition finset fintype function
 
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ)
 
-local notation `m` := (card α/exp_bound P.size : ℕ)
-local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
+local notation `m` := (card α/exp_bound P.parts.card : ℕ)
+local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
@@ -62,19 +62,20 @@ equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ)
   (hG : l ≤ card α) :
   ∃ (P : finpartition (univ : finset α)),
-    P.is_equipartition ∧ l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
+    P.is_equipartition ∧ l ≤ P.parts.card ∧ P.parts.card ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   obtain hα | hα := le_total (card α) (szemeredi_bound ε l),
-  { refine ⟨discrete_finpartition _, discrete_finpartition.is_equipartition _, _⟩,
-    rw [discrete_finpartition.size, card_univ],
-    exact ⟨hG, hα, discrete_finpartition.is_uniform _ hε⟩ },
+  { refine ⟨finpartition.discrete _, discrete_is_equipartition _, _⟩,
+    rw [card_discrete, card_univ],
+    exact ⟨hG, hα, discrete_is_uniform _ hε⟩ },
   let t := iteration_bound ε l,
   have ht : 0 < t := iteration_bound_pos _ _,
   haveI : nonempty α,
   { rw ←fintype.card_pos_iff,
     apply ht.trans_le ((iteration_bound_le_szemeredi_bound _ _).trans hα) },
   suffices h : ∀ i, ∃ (P : finpartition (univ : finset α)), P.is_equipartition ∧
-    t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.index G),
+    t ≤ P.parts.card ∧ P.parts.card ≤ (exp_bound^[i]) t ∧
+      (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.index G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (⌊4 / ε^5⌋₊ + 1),
     refine ⟨P, hP₁, (le_iteration_bound _ _).trans hP₂, hP₃.trans _, _⟩,
     { rw function.iterate_succ_apply',
@@ -103,7 +104,7 @@ begin
     rw function.iterate_succ_apply',
     exact hP₃.trans (le_exp_bound _) },
   replace hP₄ := hP₄.resolve_left huniform,
-  have hεl' : 100 < 4 ^ P.size * ε ^ 5,
+  have hεl' : 100 < 4 ^ P.parts.card * ε ^ 5,
   { apply (const_lt_pow_iteration_bound_mul hε l).trans_le,
     rw mul_le_mul_right (pow_pos hε 5),
     refine pow_le_pow (by norm_num) hP₂ },
@@ -112,16 +113,16 @@ begin
     rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 4, by norm_num)] at hi,
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
-  have hsize : P.size ≤ (exp_bound^[⌊4 / ε^5⌋₊] t) :=
+  have hsize : P.parts.card ≤ (exp_bound^[⌊4 / ε^5⌋₊] t) :=
     hP₃.trans (iterate_le_iterate_of_id_le le_exp_bound (nat.le_floor_of_le hi) _),
-  have hPα : P.size * 16^P.size ≤ card α :=
+  have hPα : P.parts.card * 16^P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
-  refine ⟨hP₁.increment G ε, increment.is_equipartition hP₁ G ε, _, _,
-    or.inr (le_trans _ (increment.index hP₁ ((one_hundred_le_iteration_bound ε l).trans hP₂)
+  refine ⟨hP₁.increment G ε, increment_is_equipartition hP₁ G ε, _, _,
+    or.inr (le_trans _ (index_increment hP₁ ((one_hundred_le_iteration_bound ε l).trans hP₂)
       hεl' hPα huniform hε'.le))⟩,
-  { rw increment.size hP₁ hPα huniform,
+  { rw card_increment hPα huniform,
     exact hP₂.trans (le_exp_bound _) },
-  { rw [increment.size hP₁ hPα huniform, function.iterate_succ_apply'],
+  { rw [card_increment hPα huniform, function.iterate_succ_apply'],
     exact exp_bound_mono hP₃ },
   { rw [nat.cast_succ, mul_add, mul_one],
     exact add_le_add_right hP₄ _ }

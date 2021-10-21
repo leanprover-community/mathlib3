@@ -194,7 +194,6 @@ variables (K V : Type u) [field K] [add_comm_group V] [module K V]
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
   #V = #K ^ module.rank K V :=
 begin
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   let s := basis.of_vector_space_index K V,
   let hs := basis.of_vector_space K V,
   calc #V = #(s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩

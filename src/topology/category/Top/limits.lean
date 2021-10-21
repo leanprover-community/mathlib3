@@ -157,6 +157,7 @@ begin
     exact H }
 end
 
+/-- The isomorphism `∐ α ≅ Σ i, α i` as types. -/
 def coprod_iso_sigma {ι : Type u} (α : ι → Top) : ((∐ α : Top) : Type*) ≅ Σ i, α i :=
 begin
   refine preserves_colimit_iso forget _ ≪≫
@@ -183,7 +184,6 @@ end
 lemma coprod_iso_sigma_inv_app {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
   (coprod_iso_sigma α).inv ⟨i, x⟩ = (sigma.ι α i : _) x :=
 by rw [← coprod_iso_sigma_hom_app, hom_inv_id_apply]
-
 
 end Top
 

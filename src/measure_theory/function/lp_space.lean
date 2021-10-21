@@ -23,21 +23,8 @@ The space `Lp E p μ` is the subtype of elements of `α →ₘ[μ] E` (see ae_eq
 
 ## Main definitions
 
-  lemma lipschitz_with.comp_mem_ℒp {α E F} {K} [measurable_space α] {μ : measure α}
-  [measurable_space E] [measurable_space F] [normed_group E] [normed_group F] [borel_space E]
-  [borel_space F] [complete_space E] {f : α → E} {g : E → F} (hg : lipschitz_with K g)
-  (g0 : g 0 = 0) (hL : mem_ℒp f p μ) : mem_ℒp (g ∘ f) p μ  :=
-begin
-  have : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
-  { apply filter.eventually_of_forall (λ x, _),
-    rw [← dist_zero_right, ← dist_zero_right, ← g0],
-    apply hg.dist_le_mul },
-  exact hL.of_le_mul (hg.continuous.measurable.comp_ae_measurable hL.1) this,
-end
-
-lemma mem_ℒp.of_comp_antilipschitz_with
-space and `F` is a normed group.
-
+* `snorm' f p μ` : `(∫ ∥f a∥^p ∂μ) ^ (1/p)` for `f : α → F` and `p : ℝ`, where `α` is a  measurable
+  space and `F` is a normed group.
 * `snorm_ess_sup f μ` : seminorm in `ℒ∞`, equal to the essential supremum `ess_sup ∥f∥ μ`.
 * `snorm f p μ` : for `p : ℝ≥0∞`, seminorm in `ℒp`, equal to `0` for `p=0`, to `snorm' f p μ`
   for `0 < p < ∞` and to `snorm_ess_sup f μ` for `p = ∞`.

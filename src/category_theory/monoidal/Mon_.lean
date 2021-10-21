@@ -11,7 +11,7 @@ import algebra.punit_instances
 # The category of monoids in a monoidal category.
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ u₁ u₂ u
 
 open category_theory
 open category_theory.monoidal_category
@@ -220,13 +220,13 @@ namespace equiv_lax_monoidal_functor_punit
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
-def lax_monoidal_to_Mon : lax_monoidal_functor (discrete punit) C ⥤ Mon_ C :=
+def lax_monoidal_to_Mon : lax_monoidal_functor (discrete punit.{u+1}) C ⥤ Mon_ C :=
 { obj := λ F, (F.map_Mon : Mon_ _ ⥤ Mon_ C).obj (trivial (discrete punit)),
   map := λ F G α, ((map_Mon_functor (discrete punit) C).map α).app _ }
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
-def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
+def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit.{u+1}) C :=
 { obj := λ A,
   { obj := λ _, A.X,
     map := λ _ _ _, 𝟙 _,
@@ -243,7 +243,8 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
 def unit_iso :
-  𝟭 (lax_monoidal_functor (discrete punit) C) ≅ lax_monoidal_to_Mon C ⋙ Mon_to_lax_monoidal C :=
+  𝟭 (lax_monoidal_functor (discrete punit.{u+1}) C) ≅
+    lax_monoidal_to_Mon C ⋙ Mon_to_lax_monoidal C :=
 nat_iso.of_components (λ F,
   monoidal_nat_iso.of_components
     (λ _, F.to_functor.map_iso (eq_to_iso (by ext)))
@@ -264,7 +265,7 @@ open equiv_lax_monoidal_functor_punit
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
 -/
 @[simps]
-def equiv_lax_monoidal_functor_punit : lax_monoidal_functor (discrete punit) C ≌ Mon_ C :=
+def equiv_lax_monoidal_functor_punit : lax_monoidal_functor (discrete punit.{u+1}) C ≌ Mon_ C :=
 { functor := lax_monoidal_to_Mon C,
   inverse := Mon_to_lax_monoidal C,
   unit_iso := unit_iso C,

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
-import linear_algebra.matrix.determinant
+import algebra.regular.smul
+import data.matrix.notation
+import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
 
@@ -89,18 +91,47 @@ is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 lemma cramer_apply (i : n) : cramer A b i = (A.update_column i b).det := rfl
 
 lemma cramer_transpose_row_self (i : n) :
-  Aᵀ.cramer (A i) = λ j, ite (i = j) A.det 0 :=
+  Aᵀ.cramer (A i) = pi.single i A.det :=
 begin
   ext j,
-  rw cramer_apply,
-  by_cases h : i = j,
+  rw [cramer_apply, pi.single_apply],
+  split_ifs with h,
   { -- i = j: this entry should be `A.det`
-    rw [update_column_transpose, det_transpose], simp [update_row, h], },
+    subst h,
+    simp only [update_column_transpose, det_transpose, update_row, function.update_eq_self] },
   { -- i ≠ j: this entry should be 0
-    rw [if_neg h, update_column_transpose, det_transpose],
+    rw [update_column_transpose, det_transpose],
     apply det_zero_of_row_eq h,
-    rw [update_row_self, update_row_ne],
-    apply h }
+    rw [update_row_self, update_row_ne (ne.symm h)] }
+end
+
+lemma cramer_row_self (i : n) (h : ∀ j, b j = A j i) :
+  A.cramer b = pi.single i A.det :=
+begin
+  rw [← transpose_transpose A, det_transpose],
+  convert cramer_transpose_row_self Aᵀ i,
+  exact funext h
+end
+
+@[simp] lemma cramer_one : cramer (1 : matrix n n α) = 1 :=
+begin
+  ext i j,
+  convert congr_fun (cramer_row_self (1 : matrix n n α) (pi.single i 1) i _) j,
+  { simp },
+  { intros j, rw [matrix.one_eq_pi_single, pi.single_comm] }
+end
+
+@[simp] lemma cramer_subsingleton_apply [subsingleton n] (A : matrix n n α) (b : n → α) (i : n) :
+  cramer A b i = b i :=
+by rw [cramer_apply, det_eq_elem_of_subsingleton _ i, update_column_self]
+
+lemma cramer_zero [nontrivial n] : cramer (0 : matrix n n α) = 0 :=
+begin
+  ext i j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
+  apply det_eq_zero_of_column_eq_zero j',
+  intro j'',
+  simp [update_column_ne hj'],
 end
 
 /-- Use linearity of `cramer` to take it out of a summation. -/
@@ -196,7 +227,7 @@ lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
   rw [mul_apply, pi.smul_apply, pi.smul_apply, one_apply, smul_eq_mul, mul_boole],
-  simp [mul_adjugate_apply, sum_cramer_apply, cramer_transpose_row_self],
+  simp [mul_adjugate_apply, sum_cramer_apply, cramer_transpose_row_self, pi.single_apply, eq_comm]
 end
 
 lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
@@ -218,11 +249,16 @@ lemma det_adjugate_of_cancel {A : matrix n n α}
 h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (det_mul _ _).symm
                                               ... = A.det ^ fintype.card n : by simp [mul_adjugate])
 
+lemma adjugate_subsingleton [subsingleton n] (A : matrix n n α) : adjugate A = 1 :=
+begin
+  ext i j,
+  simp [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_subsingleton _ i]
+end
+
 lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
 begin
   haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
-  ext i j,
-  simp [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_card_eq_one h j],
+  exact adjugate_subsingleton _
 end
 
 @[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
@@ -233,6 +269,9 @@ begin
   intro j'',
   simp [update_column_ne hj'],
 end
+
+@[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
+by { ext, simp [adjugate_def, matrix.one_apply] }
 
 lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
 calc (adjugate A).det
@@ -260,7 +299,7 @@ begin
     simp [h, adjugate_eq_one_of_card_eq_one h] },
   have one_lt_card : 1 < fintype.card n := by linarith,
   have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
-    (nat.sub_lt_sub_right_iff (refl 1)).mpr one_lt_card,
+    (tsub_lt_tsub_iff_right (refl 1)).mpr one_lt_card,
 
   apply det_adjugate_of_cancel,
   intros b hb,
@@ -269,6 +308,21 @@ begin
      ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
      ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
 end
+
+lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
+  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+begin
+  ext i j,
+  rw [adjugate_apply, det_fin_two],
+  fin_cases i with [0, 1]; fin_cases j with [0, 1];
+  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, if_true, zero_mul, fin.zero_eq_one_iff,
+    eq_self_iff_true, sub_zero, if_false, ne.def, not_false_iff, update_row_self, update_row_ne,
+    cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
+end
+
+@[simp] lemma adjugate_fin_two' (a b c d : α) :
+  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+adjugate_fin_two _
 
 end adjugate
 
@@ -293,9 +347,15 @@ if h : is_unit A.det then h.unit⁻¹ • A.adjugate else 0
 
 noncomputable instance : has_inv (matrix n n α) := ⟨matrix.nonsing_inv⟩
 
+lemma inv_def (A : matrix n n α) : A⁻¹ = A.nonsing_inv := rfl
+
+lemma nonsing_inv_apply_not_is_unit (h : ¬ is_unit A.det) :
+  A⁻¹ = 0 :=
+by rw [inv_def, nonsing_inv, dif_neg h]
+
 lemma nonsing_inv_apply (h : is_unit A.det) :
   A⁻¹ = h.unit⁻¹ • A.adjugate :=
-by { change A.nonsing_inv = _, dunfold nonsing_inv, simp only [dif_pos, h], }
+by rw [inv_def, nonsing_inv, dif_pos h]
 
 lemma transpose_nonsing_inv (h : is_unit A.det) :
   (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
@@ -319,6 +379,14 @@ calc A⁻¹ ⬝ A = (Aᵀ ⬝ (Aᵀ)⁻¹)ᵀ : by { rw [transpose_mul,
          ... = 1ᵀ             : by { rw Aᵀ.mul_nonsing_inv, exact A.is_unit_det_transpose h, }
          ... = 1              : transpose_one
 
+lemma nonsing_inv_cancel_or_zero :
+  (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=
+begin
+  by_cases h : is_unit A.det,
+  { exact or.inl ⟨nonsing_inv_mul _ h, mul_nonsing_inv _ h⟩ },
+  { exact or.inr (nonsing_inv_apply_not_is_unit _ h) }
+end
+
 @[simp] lemma nonsing_inv_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
 by rw [←det_mul, A.nonsing_inv_mul h, det_one]
 
@@ -331,6 +399,19 @@ calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
          ... = A                  : by { rw [matrix.mul_assoc,
                                          (A⁻¹).mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
                                          matrix.mul_one], }
+
+@[simp] lemma is_unit_nonsing_inv_det_iff {A : matrix n n α} :
+  is_unit A⁻¹.det ↔ is_unit A.det :=
+begin
+  refine ⟨λ h, _, is_unit_nonsing_inv_det _⟩,
+  nontriviality α,
+  casesI is_empty_or_nonempty n,
+  { simp },
+  contrapose! h,
+  rw [nonsing_inv_apply_not_is_unit _ h, det_zero],
+  { simp },
+  { apply_instance }
+end
 
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
 def invertible_of_det_invertible [invertible A.det] : invertible A :=
@@ -413,6 +494,12 @@ lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 lemma is_unit_det_of_right_inverse (h : A ⬝ B = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_right_inverse _ _ h)
 
+lemma det_ne_zero_of_left_inverse [nontrivial α] (h : B ⬝ A = 1) : A.det ≠ 0 :=
+is_unit.ne_zero (matrix.is_unit_det_of_left_inverse h)
+
+lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠ 0 :=
+is_unit.ne_zero (matrix.is_unit_det_of_right_inverse h)
+
 lemma nonsing_inv_left_right (h : A ⬝ B = 1) : B ⬝ A = 1 :=
 begin
   have h' : is_unit B.det := is_unit_det_of_left_inverse h,
@@ -451,7 +538,9 @@ def invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
 def invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
 ⟨B, nonsing_inv_left_right h, h⟩
 
-variables {C: matrix n n α}
+section inv_eq_inv
+
+variables {C : matrix n n α}
 
 /-- The left inverse of matrix A is unique when existing. -/
 lemma left_inv_eq_left_inv (h: B ⬝ A = 1) (g: C ⬝ A = 1) : B = C :=
@@ -465,6 +554,16 @@ by rw [←(inv_eq_right_inv h), ←(inv_eq_right_inv g)]
 lemma right_inv_eq_left_inv (h: A ⬝ B = 1) (g: C ⬝ A = 1) : B = C :=
 by rw [←(inv_eq_right_inv h), ←(inv_eq_left_inv g)]
 
+lemma inv_inj (h : A⁻¹ = B⁻¹) (h' : is_unit A.det) : A = B :=
+begin
+  refine left_inv_eq_left_inv (mul_nonsing_inv _ h') _,
+  rw h,
+  refine mul_nonsing_inv _ _,
+  rwa [←is_unit_nonsing_inv_det_iff, ←h, is_unit_nonsing_inv_det_iff]
+end
+
+end inv_eq_inv
+
 variable (A)
 
 @[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
@@ -473,15 +572,144 @@ mul_nonsing_inv A (is_unit_det_of_invertible A)
 @[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
 nonsing_inv_mul A (is_unit_det_of_invertible A)
 
+@[simp] lemma inv_zero : (0 : matrix n n α)⁻¹ = 0 :=
+begin
+  casesI (subsingleton_or_nontrivial α) with ht ht,
+  { simp },
+  cases (fintype.card n).zero_le.eq_or_lt with hc hc,
+  { rw [eq_comm, fintype.card_eq_zero_iff] at hc,
+    haveI := hc,
+    ext i,
+    exact (is_empty.false i).elim },
+  { have hn : nonempty n := fintype.card_pos_iff.mp hc,
+    refine nonsing_inv_apply_not_is_unit _ _,
+    simp [hn] },
+end
+
+@[simp] lemma inv_one : (1 : matrix n n α)⁻¹ = 1 :=
+inv_eq_left_inv (by simp)
+
+lemma inv_smul (k : α) [invertible k] (h : is_unit A.det) : (k • A)⁻¹ = ⅟k • A⁻¹ :=
+inv_eq_left_inv (by simp [h, smul_smul])
+
+lemma inv_smul' (k : units α) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
+inv_eq_left_inv (by simp [h, smul_smul])
+
+lemma inv_adjugate (A : matrix n n α) (h : is_unit A.det) :
+  (adjugate A)⁻¹ = h.unit⁻¹ • A :=
+begin
+  refine inv_eq_left_inv _,
+  rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
+end
+
+@[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=
+begin
+  by_cases h : is_unit A.det,
+  { rw [nonsing_inv_nonsing_inv _ h] },
+  { simp [nonsing_inv_apply_not_is_unit _ h] }
+end
+
+lemma mul_inv_rev (A B : matrix n n α) : (A ⬝ B)⁻¹ = B⁻¹ ⬝ A⁻¹ :=
+begin
+  by_cases h : is_unit (A ⬝ B).det,
+  { refine inv_eq_left_inv _,
+    rw det_mul at h,
+    rw [←matrix.mul_assoc, matrix.mul_assoc _ _ A,
+        nonsing_inv_mul _ (is_unit_of_mul_is_unit_left h),
+        matrix.mul_one, nonsing_inv_mul _ (is_unit_of_mul_is_unit_right h)] },
+  { rw nonsing_inv_apply_not_is_unit _ h,
+    rw det_mul at h,
+    have : ¬ is_unit A.det ∨ ¬ is_unit B.det,
+    { contrapose! h,
+      exact h.left.mul h.right },
+    cases this with h' h';
+    simp [nonsing_inv_apply_not_is_unit _ h'] }
+end
+
+lemma ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
+  (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
+begin
+  ext i k,
+  have : (λ (j : n), ite (i = j) (1 : S) 0) = f ∘ (λ (j : n), ite (i = j) 1 0),
+  { ext,
+    simp [apply_ite f] },
+  rw [adjugate_apply, ring_hom.map_matrix_apply, map_apply, ring_hom.map_matrix_apply,
+      this, ←map_update_row, ←ring_hom.map_matrix_apply, ←ring_hom.map_det, ←adjugate_apply]
+end
+
+lemma is_regular_of_is_left_regular_det {A : matrix n n α} (hA : is_left_regular A.det) :
+  is_regular A :=
+begin
+  split,
+  { intros B C h,
+    refine hA.matrix _,
+    rw [←matrix.one_mul B, ←matrix.one_mul C, ←matrix.smul_mul, ←matrix.smul_mul, ←adjugate_mul,
+        matrix.mul_assoc, matrix.mul_assoc, ←mul_eq_mul A, h, mul_eq_mul] },
+  { intros B C h,
+    simp only [mul_eq_mul] at h,
+    refine hA.matrix _,
+    rw [←matrix.mul_one B, ←matrix.mul_one C, ←matrix.mul_smul, ←matrix.mul_smul, ←mul_adjugate,
+        ←matrix.mul_assoc, ←matrix.mul_assoc, h] }
+end
+
+lemma adjugate_mul_distrib_aux (A B : matrix n n α)
+  (hA : is_left_regular A.det)
+  (hB : is_left_regular B.det) :
+  adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
+begin
+  have hAB : is_left_regular (A ⬝ B).det,
+  { rw [det_mul],
+    exact hA.mul hB },
+  refine (is_regular_of_is_left_regular_det hAB).left _,
+  rw [mul_eq_mul, mul_adjugate, mul_eq_mul, matrix.mul_assoc, ←matrix.mul_assoc B, mul_adjugate,
+      smul_mul, matrix.one_mul, mul_smul, mul_adjugate, smul_smul, mul_comm, ←det_mul]
+end
+
+/--
+Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Section 5.3
+-/
+lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
+begin
+  casesI subsingleton_or_nontrivial α,
+  { simp },
+  let g : matrix n n α → matrix n n (polynomial α) :=
+    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
+  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  have f'_inv : ∀ M, f' (g M) = M,
+  { intro,
+    ext,
+    simp [f', g], },
+  have f'_adj : ∀ (M : matrix n n α), f' (adjugate (g M)) = adjugate M,
+  { intro,
+    rw [ring_hom.map_adjugate, f'_inv] },
+  have f'_g_mul : ∀ (M N : matrix n n α), f' (g M ⬝ g N) = M ⬝ N,
+  { intros,
+    rw [←mul_eq_mul, ring_hom.map_mul, f'_inv, f'_inv, mul_eq_mul] },
+  have hu : ∀ (M : matrix n n α), is_regular (g M).det,
+  { intros M,
+    refine polynomial.monic.is_regular _,
+    simp only [g, polynomial.monic.def, ←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
+  rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,
+      ←adjugate_mul_distrib_aux _ _ (hu A).left (hu B).left, ring_hom.map_adjugate,
+      ring_hom.map_adjugate, f'_inv, f'_g_mul]
+end
+
+@[simp] lemma adjugate_pow (A : matrix n n α) (k : ℕ) :
+  adjugate (A ^ k) = (adjugate A) ^ k :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [pow_succ', mul_eq_mul, adjugate_mul_distrib, IH, ←mul_eq_mul, pow_succ] }
+end
+
 end inv
 
 /-- One form of Cramer's rule -/
 @[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
   A.det • A⁻¹.mul_vec b = cramer A b :=
 begin
-  rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc],
-  conv_lhs { congr, congr, rw ← h.unit_spec, },
-  rw [←units.smul_def, smul_inv_smul],
+  rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc, units.smul_def,
+      smul_smul, h.mul_coe_inv, one_smul]
 end
 
 /-- A stronger form of **Cramer's rule** that allows us to solve some instances of `A ⬝ x = b` even
@@ -490,5 +718,55 @@ divides `b`. -/
 @[simp] lemma mul_vec_cramer (A : matrix n n α) (b : n → α) :
   A.mul_vec (cramer A b) = A.det • b :=
 by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, one_mul_vec]
+
+section nondegenerate
+
+variables {m R A : Type*} [fintype m] [comm_ring R]
+
+/-- A matrix `M` is nondegenerate if for all `v ≠ 0`, there is a `w ≠ 0` with `w ⬝ M ⬝ v ≠ 0`. -/
+def nondegenerate (M : matrix m m R) :=
+∀ v, (∀ w, matrix.dot_product v (mul_vec M w) = 0) → v = 0
+
+/-- If `M` is nondegenerate and `w ⬝ M ⬝ v = 0` for all `w`, then `v = 0`. -/
+lemma nondegenerate.eq_zero_of_ortho {M : matrix m m R} (hM : nondegenerate M)
+  {v : m → R} (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+hM v hv
+
+/-- If `M` is nondegenerate and `v ≠ 0`, then there is some `w` such that `w ⬝ M ⬝ v ≠ 0`. -/
+lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix m m R} (hM : nondegenerate M)
+  {v : m → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
+not_forall.mp (mt hM.eq_zero_of_ortho hv)
+
+variables [comm_ring A] [is_domain A]
+
+/-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
+
+See also `bilin_form.nondegenerate_of_det_ne_zero'` and `bilin_form.nondegenerate_of_det_ne_zero`.
+-/
+theorem nondegenerate_of_det_ne_zero {M : matrix n n A} (hM : M.det ≠ 0) :
+  nondegenerate M :=
+begin
+  intros v hv,
+  ext i,
+  specialize hv (M.cramer (pi.single i 1)),
+  refine (mul_eq_zero.mp _).resolve_right hM,
+  convert hv,
+  simp only [mul_vec_cramer M (pi.single i 1), dot_product, pi.smul_apply, smul_eq_mul],
+  rw [finset.sum_eq_single i, pi.single_eq_same, mul_one],
+  { intros j _ hj, simp [hj] },
+  { intros, have := finset.mem_univ i, contradiction }
+end
+
+theorem eq_zero_of_vec_mul_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
+  (hv : M.vec_mul v = 0) : v = 0 :=
+(nondegenerate_of_det_ne_zero hM).eq_zero_of_ortho
+  (λ w, by rw [dot_product_mul_vec, hv, zero_dot_product])
+
+theorem eq_zero_of_mul_vec_eq_zero {M : matrix n n A} (hM : M.det ≠ 0) {v : n → A}
+  (hv : M.mul_vec v = 0) :
+  v = 0 :=
+eq_zero_of_vec_mul_eq_zero (by rwa det_transpose) ((vec_mul_transpose M v).trans hv)
+
+end nondegenerate
 
 end matrix

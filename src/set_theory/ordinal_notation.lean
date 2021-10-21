@@ -285,7 +285,7 @@ begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
   have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
-  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd_left (power_dvd_power _ L) _).1 d⟩
+  exact ⟨L, (dvd_add_iff $ (power_dvd_power _ L).mul_right _).1 d⟩
 end
 
 theorem NF.of_dvd_omega {e n a} (h : NF (oadd e n a)) :
@@ -423,14 +423,14 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   conv in (_-oadd _ _ _) {simp [has_sub.sub, sub]},
   have ee := @cmp_compares _ _ h₁.fst h₂.fst,
   cases cmp e₁ e₂,
-  { rw [sub_eq_zero_iff_le.2], {refl},
+  { rw [ordinal.sub_eq_zero_iff_le.2], {refl},
     exact le_of_lt (oadd_lt_oadd_1 h₁ ee) },
   { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
       { simp [en], rwa [add_sub_add_cancel] },
       { simp [en, -repr],
-        exact (sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
+        exact (ordinal.sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
           lt_of_le_of_ne (nat.sub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
     { simp [nat.succ_pnat, -nat.cast_succ],
       rw [(nat.sub_eq_iff_eq_add $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,
@@ -564,7 +564,7 @@ theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → spli
     have : 1 + (e - 1) = e,
     { refine repr_inj.1 _, simp,
       have := mt repr_inj.1 e0,
-      exact add_sub_cancel_of_le (one_le_iff_ne_zero.2 this) },
+      exact ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this) },
     intros, substs o' m, simp [scale, this] }
 end
 
@@ -581,7 +581,7 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
     intros, substs o' m,
     have : ω ^ repr e = ω ^ (1 : ordinal.{0}) * ω ^ (repr e - 1),
     { have := mt repr_inj.1 e0,
-      rw [← power_add, add_sub_cancel_of_le (one_le_iff_ne_zero.2 this)] },
+      rw [← power_add, ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this)] },
     refine ⟨NF.oadd (by apply_instance) _ _, _⟩,
     { simp at this ⊢,
       refine IH₁.below_of_lt' ((mul_lt_mul_iff_left omega_pos).1 $

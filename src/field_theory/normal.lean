@@ -128,7 +128,7 @@ lemma normal.of_is_splitting_field (p : polynomial F) [hFEp : is_splitting_field
   normal F E :=
 begin
   by_cases hp : p = 0,
-  { haveI : is_splitting_field F F p := by { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
+  { haveI : is_splitting_field F F p, { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
     exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F p).trans
       (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
@@ -158,8 +158,8 @@ begin
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
   letI : algebra C E := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F E) x (minpoly.aeval F x)),
-  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
-  haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
+  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
+  haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
   suffices : nonempty (D →ₐ[C] E),
   { exact nonempty.map (alg_hom.restrict_scalars F) this },
   let S : set D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
@@ -177,9 +177,11 @@ begin
           ←aeval_def, minpoly.aeval F z, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
-  suffices : (algebra.adjoin C S).res F = (algebra.adjoin E {adjoin_root.root q}).res F,
-  { rw [adjoin_root.adjoin_root_eq_top, subalgebra.res_top, ←@subalgebra.res_top F C] at this,
-    exact top_le_iff.mpr (subalgebra.res_inj F this) },
+  suffices : (algebra.adjoin C S).restrict_scalars F
+           = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
+  { rw [adjoin_root.adjoin_root_eq_top, subalgebra.restrict_scalars_top,
+      ←@subalgebra.restrict_scalars_top F C] at this,
+    exact top_le_iff.mpr (subalgebra.restrict_scalars_injective F this) },
   dsimp only [S],
   rw [←finset.image_to_finset, finset.coe_image],
   apply eq.trans (algebra.adjoin_res_eq_adjoin_res F E C D

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.algebra_map
+import data.polynomial.degree.lemmas
 import data.polynomial.monic
 
 /-!
@@ -72,8 +73,8 @@ monic_of_degree_le f.nat_degree
 
 end semiring
 
-section domain
-variables [integral_domain R]
+section is_domain
+variables [ring R] [is_domain R]
 
 @[simp] lemma support_integral_normalization {f : polynomial R} :
   (integral_normalization f).support = f.support :=
@@ -85,7 +86,10 @@ begin
   intro hfi,
   split_ifs with hi; simp [hfi, hi, pow_ne_zero _ (leading_coeff_ne_zero.mpr hf)]
 end
+end is_domain
 
+section is_domain
+variables [comm_ring R] [is_domain R]
 variables [comm_ring S]
 
 lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (f : R →+* S)
@@ -126,7 +130,7 @@ lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R}
   aeval (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
 integral_normalization_eval₂_eq_zero (algebra_map R S) hz inj
 
-end domain
+end is_domain
 
 end integral_normalization
 

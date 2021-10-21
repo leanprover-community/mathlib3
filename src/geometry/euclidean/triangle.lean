@@ -108,9 +108,9 @@ begin
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
-        mul_inv_rev', mul_inv_rev', ←mul_assoc, ←mul_assoc] at h,
+        mul_inv_rev₀, mul_inv_rev₀, ←mul_assoc, ←mul_assoc] at h,
     replace h :=
-      mul_right_cancel' (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
+      mul_right_cancel₀ (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
     rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_sq,
         real_inner_self_eq_norm_sq, mul_sub_right_distrib, mul_sub_right_distrib,
         mul_self_mul_inv, mul_self_mul_inv, sub_eq_sub_iff_sub_eq_sub,
@@ -125,7 +125,7 @@ begin
             ←neg_sub, ←mul_div_assoc, mul_comm, mul_div_assoc, ←mul_neg_one] at h,
         symmetry,
         by_contradiction hyx,
-        replace h := (mul_left_cancel' (sub_ne_zero_of_ne hyx) h).symm,
+        replace h := (mul_left_cancel₀ (sub_ne_zero_of_ne hyx) h).symm,
         rw [real_inner_div_norm_mul_norm_eq_neg_one_iff, ←angle_eq_pi_iff] at h,
         exact hpi h } } }
 end
@@ -142,10 +142,10 @@ begin
     have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
     have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
     have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
-    apply mul_right_cancel' hxn,
-    apply mul_right_cancel' hyn,
-    apply mul_right_cancel' hxyn,
-    apply mul_right_cancel' hxyn,
+    apply mul_right_cancel₀ hxn,
+    apply mul_right_cancel₀ hyn,
+    apply mul_right_cancel₀ hxyn,
+    apply mul_right_cancel₀ hxyn,
     have H1 : real.sin (angle x (x - y)) * real.sin (angle y (y - x)) *
                 ∥x∥ * ∥y∥ * ∥x - y∥ * ∥x - y∥ =
               (real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥)) *
@@ -179,10 +179,10 @@ begin
     have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
     have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
     have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
-    apply mul_right_cancel' hxn,
-    apply mul_right_cancel' hyn,
-    apply mul_right_cancel' hxyn,
-    apply mul_right_cancel' hxyn,
+    apply mul_right_cancel₀ hxn,
+    apply mul_right_cancel₀ hyn,
+    apply mul_right_cancel₀ hxyn,
+    apply mul_right_cancel₀ hxyn,
     have H1 : real.sin (angle x (x - y)) * (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
                 real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥) *
                   (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
@@ -398,7 +398,7 @@ begin
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },
   { have h1 : 0 ≤ r * dist a b, { rw ← hab, exact dist_nonneg },
     have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
-    exact (eq_of_sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
+    exact (sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
 end
 
 end euclidean_geometry

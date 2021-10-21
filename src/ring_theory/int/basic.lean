@@ -3,11 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
-
-import data.int.basic
-import data.int.gcd
-import ring_theory.multiplicity
-import ring_theory.principal_ideal_domain
+import ring_theory.coprime.basic
+import ring_theory.unique_factorization_domain
 
 /-!
 # Divisibility over ℕ and ℤ
@@ -42,7 +39,7 @@ begin
       cases p, { exfalso, apply h.ne_one rfl },
       exact (add_le_add_right (zero_le p) 2 : _ ) },
     { cases hm with n hn,
-      cases h.2.2 m n (hn ▸ dvd_refl _) with hpm hpn,
+      cases h.2.2 m n (hn ▸ dvd_rfl) with hpm hpn,
       { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
       { left,
         cases n, { exfalso, rw [hn, mul_zero] at h, apply h.ne_zero rfl },
@@ -54,7 +51,7 @@ end
 
 theorem nat.irreducible_iff_prime {p : ℕ} : irreducible p ↔ prime p :=
 begin
-  refine ⟨λ h, _, irreducible_of_prime⟩,
+  refine ⟨λ h, _, prime.irreducible⟩,
   rw ← nat.prime_iff,
   refine ⟨_, λ m hm, _⟩,
   { cases p, { exfalso, apply h.ne_zero rfl },
@@ -87,6 +84,27 @@ instance : unique_factorization_monoid ℕ :=
 ⟨λ _, nat.irreducible_iff_prime⟩
 
 end nat
+
+/-- `ℕ` is a gcd_monoid. -/
+instance : gcd_monoid ℕ :=
+{ gcd := nat.gcd,
+  lcm := nat.lcm,
+  gcd_dvd_left := nat.gcd_dvd_left ,
+  gcd_dvd_right := nat.gcd_dvd_right,
+  dvd_gcd := λ a b c, nat.dvd_gcd,
+  gcd_mul_lcm := λ a b, by rw [nat.gcd_mul_lcm],
+  lcm_zero_left := nat.lcm_zero_left,
+  lcm_zero_right := nat.lcm_zero_right }
+
+instance : normalized_gcd_monoid ℕ :=
+{ normalize_gcd := λ a b, normalize_eq _,
+  normalize_lcm := λ a b, normalize_eq _,
+  .. (infer_instance : gcd_monoid ℕ),
+  .. (infer_instance : normalization_monoid ℕ) }
+
+lemma gcd_eq_nat_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
+
+lemma lcm_eq_nat_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
 
 namespace int
 
@@ -131,11 +149,17 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_left   := assume a b, int.gcd_dvd_left _ _,
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
-  normalize_gcd  := assume a b, normalize_coe_nat _,
-  gcd_mul_lcm    := by intros; rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  gcd_mul_lcm    := λ a b, by {
+    rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+    exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
-  lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _,
-  .. int.normalization_monoid }
+  lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}
+
+instance : normalized_gcd_monoid ℤ :=
+{ normalize_gcd  := λ a b, normalize_coe_nat _,
+  normalize_lcm  := λ a b, normalize_coe_nat _,
+  .. int.normalization_monoid,
+  .. (infer_instance : gcd_monoid ℤ) }
 
 lemma coe_gcd (i j : ℤ) : ↑(int.gcd i j) = gcd_monoid.gcd i j := rfl
 lemma coe_lcm (i j : ℤ) : ↑(int.lcm i j) = gcd_monoid.lcm i j := rfl
@@ -170,8 +194,8 @@ begin
     obtain ⟨p, ⟨hp, ha, hb⟩⟩ := nat.prime.not_coprime_iff_dvd.mp hg,
     apply nat.prime.not_dvd_one hp,
     rw [←coe_nat_dvd, int.coe_nat_one, ← h],
-    exact dvd_add (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr ha) _)
-      (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr hb) _) }
+    exact dvd_add ((coe_nat_dvd_left.mpr ha).mul_left _)
+      ((coe_nat_dvd_left.mpr hb).mul_left _) }
 end
 
 lemma coprime_iff_nat_coprime {a b : ℤ} : is_coprime a b ↔ nat.coprime a.nat_abs b.nat_abs :=
@@ -180,7 +204,7 @@ by rw [←gcd_eq_one_iff_coprime, nat.coprime_iff_gcd_eq_one, gcd_eq_nat_abs]
 lemma sq_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
-  have h' : gcd_monoid.gcd a b = 1, { rw [← coe_gcd, h], dec_trivial },
+  have h' : is_unit (gcd_monoid.gcd a b), { rw [← coe_gcd, h, int.coe_nat_one], exact is_unit_one },
   obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow h' heq,
   use d,
   rw ← hu,
@@ -282,13 +306,13 @@ end
 
 open unique_factorization_monoid
 
-theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=
+theorem nat.factors_eq {n : ℕ} : normalized_factors n = n.factors :=
 begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply factors_unique (irreducible_of_factor) _,
+  apply factors_unique (irreducible_of_normalized_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
-    apply factors_prod (nat.succ_ne_zero _) },
+    apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
@@ -297,10 +321,11 @@ end
 
 lemma nat.factors_multiset_prod_of_irreducible
   {s : multiset ℕ} (h : ∀ (x : ℕ), x ∈ s → irreducible x) :
-  unique_factorization_monoid.factors (s.prod) = s :=
+  normalized_factors (s.prod) = s :=
 begin
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply (unique_factorization_monoid.factors_unique irreducible_of_factor h (factors_prod _)),
+  apply unique_factorization_monoid.factors_unique irreducible_of_normalized_factor h
+    (normalized_factors_prod _),
   rw [ne.def, multiset.prod_eq_zero_iff],
   intro con,
   exact not_irreducible_zero (h 0 con),
@@ -335,13 +360,10 @@ begin
 end
 
 lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=
-associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr (dvd_refl _)) (int.nat_abs_dvd.mpr (dvd_refl _))
+associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr dvd_rfl) (int.nat_abs_dvd.mpr dvd_rfl)
 
 lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
-begin
-  rw nat.prime_iff_prime_int,
-  rw prime_iff_of_associated (int.associated_nat_abs k),
-end
+(int.associated_nat_abs k).prime_iff.trans nat.prime_iff_prime_int.symm
 
 theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
 begin

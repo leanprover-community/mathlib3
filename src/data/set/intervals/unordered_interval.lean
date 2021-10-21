@@ -16,7 +16,7 @@ In any decidable linear order `α`, we define the set of elements lying between 
 interval as defined in this file is always the set of things lying between `a` and `b`, regardless
 of the relative order of `a` and `b`.
 
-For real numbers, `Icc (min a b) (max a b)` is the same as `segment a b`.
+For real numbers, `Icc (min a b) (max a b)` is the same as `segment ℝ a b`.
 
 ## Notation
 
@@ -26,6 +26,7 @@ make the notation available.
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
@@ -36,7 +37,7 @@ variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ x : α}
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included. -/
 def interval (a b : α) := Icc (min a b) (max a b)
 
-localized "notation `[`a `, ` b `]` := interval a b" in interval
+localized "notation `[`a `, ` b `]` := set.interval a b" in interval
 
 @[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
 by rw [interval, min_eq_left h, max_eq_right h]
@@ -118,7 +119,7 @@ end
 def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)
 
 -- Below is a capital iota
-localized "notation `Ι` := interval_oc" in interval
+localized "notation `Ι` := set.interval_oc" in interval
 
 lemma interval_oc_of_le (h : a ≤ b) : Ι a b = Ioc a b :=
 by simp [interval_oc, h]
@@ -144,7 +145,7 @@ by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_r
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
-@[simp] lemma preimage_neg_interval : -([a, b]) = [-a, -b] :=
+@[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
 by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
@@ -172,7 +173,7 @@ variables {a b c x y}
 
 /-- If `[x, y]` is a subinterval of `[a, b]`, then the distance between `x` and `y`
 is less than or equal to that of `a` and `b` -/
-lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : abs (y - x) ≤ abs (b - a) :=
+lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : |y - x| ≤ |b - a| :=
 begin
   rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
   rw [interval_subset_interval_iff_le] at h,
@@ -181,12 +182,12 @@ end
 
 /-- If `x ∈ [a, b]`, then the distance between `a` and `x` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : abs (x - a) ≤ abs (b - a) :=
+lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : |x - a| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_left h)
 
 /-- If `x ∈ [a, b]`, then the distance between `x` and `b` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : abs (b - x) ≤ abs (b - a) :=
+lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : |b - x| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
 end ordered_add_comm_group
@@ -207,7 +208,7 @@ by simp only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv']
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv₀]
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else

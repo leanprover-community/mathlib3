@@ -211,6 +211,44 @@ end
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
 f.map_finprod_plift g (finite.of_fintype _)
 
+@[to_additive] lemma monoid_hom.map_finprod_of_preimage_one (f : M →* N)
+  (hf : ∀ x, f x = 1 → x = 1) (g : α → M) :
+  f (∏ᶠ i, g i) = ∏ᶠ i, f (g i) :=
+begin
+  by_cases hg : (mul_support $ g ∘ plift.down).finite, { exact f.map_finprod_plift g hg },
+  rw [finprod, dif_neg, f.map_one, finprod, dif_neg],
+  exacts [infinite.mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
+end
+
+@[to_additive] lemma monoid_hom.map_finprod_of_injective (g : M →* N) (hg : injective g)
+  (f : α → M) :
+  g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
+g.map_finprod_of_preimage_one (λ x, (hg.eq_iff' g.map_one).mp) f
+
+@[to_additive] lemma mul_equiv.map_finprod (g : M ≃* N) (f : α → M) :
+  g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
+g.to_monoid_hom.map_finprod_of_injective g.injective f
+
+lemma finsum_smul {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] (f : ι → R) (x : M) :
+  (∑ᶠ i, f i) • x = (∑ᶠ i, (f i) • x) :=
+begin
+  rcases eq_or_ne x 0 with rfl|hx, { simp },
+  exact ((smul_add_hom R M).flip x).map_finsum_of_injective (smul_left_injective R hx) _
+end
+
+lemma smul_finsum {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] (c : R) (f : ι → M) :
+  c • (∑ᶠ i, f i) = (∑ᶠ i, c • f i) :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc, { simp },
+  exact (smul_add_hom R M c).map_finsum_of_injective (smul_right_injective M hc) _
+end
+
+@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
+  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
+((mul_equiv.inv G).map_finprod f).symm
+
 end sort
 
 section type
@@ -444,7 +482,7 @@ over `i ∈ t`. -/
 @[to_additive] lemma finprod_mem_union_inter (hs : s.finite) (ht : t.finite) :
   (∏ᶠ i ∈ s ∪ t, f i) * ∏ᶠ i ∈ s ∩ t, f i = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t, f i :=
 begin
-  unfreezingI { lift s to finset α using hs, lift t to finset α using ht },
+  lift s to finset α using hs, lift t to finset α using ht,
   classical,
   rw [← finset.coe_union, ← finset.coe_inter],
   simp only [finprod_mem_coe_finset, finset.prod_union_inter]
@@ -527,6 +565,18 @@ end
 @[to_additive] lemma finprod_mem_insert_one (h : f a = 1) :
   ∏ᶠ i ∈ (insert a s), f i = ∏ᶠ i ∈ s, f i :=
 finprod_mem_insert_of_eq_one_if_not_mem (λ _, h)
+
+/-- If the multiplicative support of `f` is finite, then for every `x` in the domain of `f`,
+`f x` divides `finprod f`.  -/
+lemma finprod_mem_dvd {f : α → N} (a : α) (hf : finite (mul_support f)) :
+  f a ∣ finprod f :=
+begin
+  by_cases ha : a ∈ mul_support f,
+  { rw finprod_eq_prod_of_mul_support_to_finset_subset f hf (set.subset.refl _),
+    exact finset.dvd_prod_of_mem f ((finite.mem_to_finset hf).mpr ha) },
+  { rw nmem_mul_support.mp ha,
+    exact one_dvd (finprod f) }
+end
 
 /-- The product of `f i` over `i ∈ {a, b}`, `a ≠ b`, is equal to `f a * f b`. -/
 @[to_additive] lemma finprod_mem_pair (h : a ≠ b) : ∏ᶠ i ∈ ({a, b} : set α), f i = f a * f b :=
@@ -623,7 +673,7 @@ of the products of `f a` over `a ∈ t i`. -/
   (h : pairwise (disjoint on t)) (ht : ∀ i, (t i).finite) :
   ∏ᶠ a ∈ (⋃ i : ι, t i), f a = ∏ᶠ i, (∏ᶠ a ∈ t i, f a) :=
 begin
-  unfreezingI { lift t to ι → finset α using ht },
+  lift t to ι → finset α using ht,
   classical,
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
     finprod_mem_coe_finset, finset.prod_bUnion],
@@ -657,7 +707,7 @@ with the product over `t`. -/
   (f : α → β → M) (hs : s.finite) (ht : t.finite) :
   ∏ᶠ i ∈ s, ∏ᶠ j ∈ t, f i j = ∏ᶠ j ∈ t, ∏ᶠ i ∈ s, f i j :=
 begin
-  unfreezingI { lift s to finset α using hs, lift t to finset β using ht },
+  lift s to finset α using hs, lift t to finset β using ht,
   simp only [finprod_mem_coe_finset],
   exact finset.prod_comm
 end

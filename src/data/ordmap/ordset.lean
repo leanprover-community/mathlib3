@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.ordmap.ordnode
-import algebra.ordered_ring
+import algebra.order.ring
 import data.nat.dist
 import tactic.linarith
 
@@ -683,7 +683,7 @@ end
 
 theorem raised.dist_le {n m} (H : raised n m) : nat.dist n m ≤ 1 :=
 by cases raised_iff.1 H with H1 H2;
-  rwa [nat.dist_eq_sub_of_le H1, nat.sub_le_left_iff_le_add]
+  rwa [nat.dist_eq_sub_of_le H1, tsub_le_iff_left]
 
 theorem raised.dist_le' {n m} (H : raised n m) : nat.dist m n ≤ 1 :=
 by rw nat.dist_comm; exact H.dist_le
@@ -1535,7 +1535,7 @@ begin
       rw [t_ih_r, h.sz.1],
       have h_pos_t_r_size := pos_size_of_mem h.right.sz h_mem,
       cases t_r.size with t_r_size, { cases h_pos_t_r_size },
-      simp [nat.succ_add] } },
+      simp [nat.succ_add, nat.add_succ] } },
 end
 
 end

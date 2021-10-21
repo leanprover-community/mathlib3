@@ -184,6 +184,22 @@ by {rw mul_comm, exact norm_smul _ _}
 def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
+lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
+by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
+
+lemma to_span_singleton_add (x y : E) :
+  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [semi_normed_space 𝕜' E]
+  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+lemma to_span_singleton_smul (c : 𝕜) (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+to_span_singleton_smul' 𝕜 𝕜 c x
+
 end
 
 section op_norm
@@ -195,7 +211,7 @@ instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 
 lemma norm_def : ∥f∥ = Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥} := rfl
 
--- So that invocations of `real.Inf_le` make sense: we show that the set of
+-- So that invocations of `le_cInf` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : E →L[𝕜] F} :
   ∃ c, c ∈ { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
@@ -206,7 +222,7 @@ lemma bounds_bdd_below {f : E →L[𝕜] F} :
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
-lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
+le_cInf bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- The fundamental property of the operator norm: `∥f x∥ ≤ ∥f∥ * ∥x∥`. -/
 theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
@@ -216,7 +232,7 @@ begin
   by_cases h : ∥x∥ = 0,
   { rwa [h, mul_zero] at ⊢ hC },
   have hlt : 0 < ∥x∥ := lt_of_le_of_ne (norm_nonneg x) (ne.symm h),
-  exact  (div_le_iff hlt).mp ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2 (λ c ⟨_, hc⟩,
+  exact  (div_le_iff hlt).mp (le_cInf bounds_nonempty (λ c ⟨_, hc⟩,
     (div_le_iff hlt).mpr $ by { apply hc })),
 end
 
@@ -236,7 +252,7 @@ mul_one ∥f∥ ▸ f.le_op_norm_of_le
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
-Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
+cInf_le bounds_bdd_below ⟨hMp, hM⟩
 
 theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
@@ -258,7 +274,7 @@ lemma op_norm_le_of_ball {f : E →L[𝕜] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 <
 begin
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
-  rwa ball_0_eq
+  rwa ball_zero_eq
 end
 
 lemma op_norm_le_of_nhds_zero {f : E →L[𝕜] F} {C : ℝ} (hC : 0 ≤ C)
@@ -272,11 +288,11 @@ begin
   by_cases h0 : c = 0,
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
-    { rwa ball_0_eq at hx } },
-  { rw [← inv_inv' c, normed_field.norm_inv,
+    { rwa ball_zero_eq at hx } },
+  { rw [← inv_inv₀ c, normed_field.norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
-    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv'] }
+    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv₀] }
 end
 
 lemma op_norm_eq_of_bounds {φ : E →L[𝕜] F} {M : ℝ} (M_nonneg : 0 ≤ M)
@@ -293,7 +309,7 @@ theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 
 /-- The norm of the `0` operator is `0`. -/
 theorem op_norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
-le_antisymm (real.Inf_le _ bounds_bdd_below
+le_antisymm (cInf_le bounds_bdd_below
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul], exact norm_zero })⟩)
     (op_norm_nonneg _)
 
@@ -331,7 +347,7 @@ instance to_semi_normed_space {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_
 
 /-- The operator norm is submultiplicative. -/
 lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f∥ :=
-(Inf_le _ bounds_bdd_below
+(cInf_le bounds_bdd_below
   ⟨mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x,
     by { rw mul_assoc, exact h.le_op_norm_of_le (f.le_op_norm x) } ⟩)
 
@@ -384,7 +400,9 @@ begin
   simp [subsingleton.elim x 0]
 end
 
-/-- A continuous linear map is an isometry if and only if it preserves the norm. -/
+/-- A continuous linear map is an isometry if and only if it preserves the norm.
+(Note: Do you really want to use this lemma?  Try using the bundled structure `linear_isometry`
+instead.) -/
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
@@ -621,6 +639,19 @@ variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
+
+@[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
+
+variables {𝕜'}
+
+lemma norm_to_span_singleton (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+begin
+  refine op_norm_eq_of_bounds (norm_nonneg _) (λ x, _) (λ N hN_nonneg h, _),
+  { rw [to_span_singleton_apply, norm_smul, mul_comm], },
+  { specialize h 1,
+    rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
+    exact (mul_le_mul_right (by simp)).mp h, },
+end
 
 end smul_linear
 
@@ -915,8 +946,8 @@ iff.intro
   (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (Inf_le _ bounds_bdd_below
-    ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
+  (λ hf, le_antisymm (cInf_le bounds_bdd_below
+    ⟨le_rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
@@ -1102,14 +1133,14 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
     refine h_dense.induction_on₂ _ _,
     { exact is_closed_eq (cont.comp continuous_add)
         ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
-    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _  },
+    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _ },
   end,
   map_smul' := λk,
   begin
     refine (λ b, h_dense.induction_on b _ _),
     { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
         ((continuous_const.smul continuous_id).comp cont) },
-    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
+    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _ },
   end,
   cont := cont
 }

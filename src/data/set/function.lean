@@ -66,11 +66,17 @@ rfl
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
 
+@[simp] lemma injective_cod_restrict (h : ∀ x, f x ∈ t) :
+  injective (cod_restrict f t h) ↔ injective f :=
+by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
+
+alias injective_cod_restrict ↔ _ function.injective.cod_restrict
+
 /-! ### Equality on a set -/
 
 /-- Two functions `f₁ f₂ : α → β` are equal on `s`
   if `f₁ x = f₂ x` for all `x ∈ a`. -/
-@[reducible] def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
+def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
@@ -120,6 +126,8 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
+
+@[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
 
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
 
@@ -215,8 +223,14 @@ theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x
 @[reducible] def inj_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃x₁ : α⦄, x₁ ∈ s → ∀ ⦃x₂ : α⦄, x₂ ∈ s → f x₁ = f x₂ → x₁ = x₂
 
-theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
-λ _ h₁, false.elim h₁
+theorem subsingleton.inj_on (hs : s.subsingleton) (f : α → β) : inj_on f s :=
+λ x hx y hy h, hs hx hy
+
+@[simp] theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
+subsingleton_empty.inj_on f
+
+@[simp] theorem inj_on_singleton (f : α → β) (a : α) : inj_on f {a} :=
+subsingleton_singleton.inj_on f
 
 theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y ↔ x = y :=
@@ -232,17 +246,22 @@ theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
 λ x hx y hy H, ht (h hx) (h hy) H
 
+theorem inj_on_union (h : disjoint s₁ s₂) :
+  inj_on f (s₁ ∪ s₂) ↔ inj_on f s₁ ∧ inj_on f s₂ ∧ ∀ (x ∈ s₁) (y ∈ s₂), f x ≠ f y :=
+begin
+  refine ⟨λ H, ⟨H.mono $ subset_union_left _ _, H.mono $ subset_union_right _ _, _⟩, _⟩,
+  { intros x hx y hy hxy,
+    obtain rfl : x = y, from H (or.inl hx) (or.inr hy) hxy,
+    exact h ⟨hx, hy⟩ },
+  { rintro ⟨h₁, h₂, h₁₂⟩,
+    rintro x (hx|hx) y (hy|hy) hxy,
+    exacts [h₁ hx hy hxy, (h₁₂ _ hx _ hy hxy).elim, (h₁₂ _ hy _ hx hxy.symm).elim, h₂ hx hy hxy] }
+end
+
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
-⟨λ hf, ⟨hf.mono $ subset_insert a s,
-  λ ⟨x, hxs, hx⟩, has $ mem_of_eq_of_mem (hf (or.inl rfl) (or.inr hxs) hx.symm) hxs⟩,
-λ ⟨h1, h2⟩ x hx y hy hfxy, or.cases_on hx
-  (λ hxa : x = a, or.cases_on hy
-    (λ hya : y = a, hxa.trans hya.symm)
-    (λ hys : y ∈ s, h2.elim ⟨y, hys, hxa ▸ hfxy.symm⟩))
-  (λ hxs : x ∈ s, or.cases_on hy
-    (λ hya : y = a, h2.elim ⟨x, hxs, hya ▸ hfxy⟩)
-    (λ hys : y ∈ s, h1 hxs hys hfxy))⟩
+have disjoint s {a}, from λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
+by { rw [← union_singleton, inj_on_union this], simp }
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 ⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
@@ -275,6 +294,10 @@ lemma inj_on.mem_image_iff {x} (hf : inj_on f s) (hs : s₁ ⊆ s) (hx : x ∈ s
 lemma inj_on.preimage_image_inter (hf : inj_on f s) (hs : s₁ ⊆ s) :
   f ⁻¹' (f '' s₁) ∩ s = s₁ :=
 ext $ λ x, ⟨λ ⟨h₁, h₂⟩, hf.mem_of_mem_image hs h₂ h₁, λ h, ⟨mem_image_of_mem _ h, hs h⟩⟩
+
+lemma inj_on.pairwise_on_image (h : inj_on f s) {r : β → β → Prop} :
+  pairwise_on (f '' s) r ↔ pairwise_on s (λ x y, r (f x) (f y)) :=
+by simp [h.eq_iff, pairwise_on] {contextual := tt}
 
 /-! ### Surjectivity on a set -/
 
@@ -603,7 +626,7 @@ lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective 
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { simp [left_inverse_inv_fun hf _, mem_image_of_injective hf] },
+  { simp [left_inverse_inv_fun hf _, hf.mem_set_image] },
   { simp [mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
@@ -612,12 +635,28 @@ lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : inject
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { rw [mem_preimage, left_inverse_inv_fun hf, mem_image_of_injective hf] },
+  { rw [mem_preimage, left_inverse_inv_fun hf, hf.mem_set_image] },
   { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
     simp only [mem_preimage, inv_fun_neg hx, h, this] },
 end
 
 end set
+
+/-! ### Monotone -/
+
+namespace monotone
+
+variables [preorder α] [preorder β] {f : α → β}
+
+protected lemma restrict (h : monotone f) (s : set α) : monotone (s.restrict f) :=
+λ x y hxy, h hxy
+
+protected lemma cod_restrict (h : monotone f) {s : set β} (hs : ∀ x, f x ∈ s) :
+  monotone (s.cod_restrict f hs) := h
+
+protected lemma range_factorization (h : monotone f) : monotone (set.range_factorization f) := h
+
+end monotone
 
 /-! ### Piecewise defined function -/
 
@@ -755,6 +794,16 @@ begin
   { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
 end
 
+lemma injective_piecewise_iff {f g : α → β} :
+  injective (s.piecewise f g) ↔ inj_on f s ∧ inj_on g sᶜ ∧ (∀ (x ∈ s) (y ∉ s), f x ≠ g y) :=
+begin
+  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ s _),
+    (piecewise_eq_on s f g).inj_on_iff, (piecewise_eq_on_compl s f g).inj_on_iff],
+  refine and_congr iff.rfl (and_congr iff.rfl $ forall_congr $ λ x, forall_congr $ λ hx,
+    forall_congr $ λ y, forall_congr $ λ hy, _),
+  rw [piecewise_eq_of_mem s f g hx, piecewise_eq_of_not_mem s f g hy]
+end
+
 lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
   {f g} (hf : f ∈ pi t t') (hg : g ∈ pi t t') :
   s.piecewise f g ∈ pi t t' :=
@@ -777,27 +826,39 @@ by simp
 
 end set
 
-lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
-  (H : strict_mono_incr_on f s) :
+lemma strict_mono_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_on f s) :
   s.inj_on f :=
 λ x hx y hy hxy, show ordering.eq.compares x y, from (H.compares hx hy).1 hxy
 
-lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
-  (H : strict_mono_decr_on f s) :
+lemma strict_anti_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_anti_on f s) :
   s.inj_on f :=
-@strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
+@strict_mono_on.inj_on α (order_dual β) _ _ f s H
 
-lemma strict_mono_incr_on.comp [preorder α] [preorder β] [preorder γ]
-  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_incr_on g t)
-  (hf : strict_mono_incr_on f s) (hs : set.maps_to f s t) :
-  strict_mono_incr_on (g ∘ f) s :=
+lemma strict_mono_on.comp [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)
+  (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
+  strict_mono_on (g ∘ f) s :=
 λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
 
-lemma strict_mono.comp_strict_mono_incr_on [preorder α] [preorder β] [preorder γ]
-  {g : β → γ} {f : α → β} {s : set α} (hg : strict_mono g)
-  (hf : strict_mono_incr_on f s) :
-  strict_mono_incr_on (g ∘ f) s :=
-λ x hx y hy hxy, hg $ hf hx hy hxy
+lemma strict_mono_on.comp_strict_anti_on [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)
+  (hf : strict_anti_on f s) (hs : set.maps_to f s t) :
+  strict_anti_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hy) (hs hx) $ hf hx hy hxy
+
+lemma strict_anti_on.comp [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_anti_on g t)
+  (hf : strict_anti_on f s) (hs : set.maps_to f s t) :
+  strict_mono_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hy) (hs hx) $ hf hx hy hxy
+
+lemma strict_anti_on.comp_strict_mono_on [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_anti_on g t)
+  (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
+  strict_anti_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
 
 lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
   {s : set β} (hs : ∀ x, f x ∈ s) :

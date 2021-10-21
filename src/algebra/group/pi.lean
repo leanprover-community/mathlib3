@@ -58,18 +58,18 @@ tactic.pi_instance_derive_field
 @[to_additive]
 instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
   div_inv_monoid (Π i : I, f i) :=
-{ div_eq_mul_inv := λ x y, funext (λ i, div_eq_mul_inv (x i) (y i)),
-  .. pi.monoid, .. pi.has_div, .. pi.has_inv }
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := npow, gpow := λ z x i, gpow z (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n x i, npow n (x i), gpow := λ n x i, gpow n (x i) }; tactic.pi_instance_derive_field
+  npow := npow, gpow := gpow }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n x i, npow n (x i), gpow := λ n x i, gpow n (x i) }; tactic.pi_instance_derive_field
+  npow := npow, gpow := gpow }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
@@ -84,25 +84,25 @@ by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
 @[to_additive add_left_cancel_monoid]
 instance left_cancel_monoid [∀ i, left_cancel_monoid $ f i] :
   left_cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow };
 tactic.pi_instance_derive_field
 
 @[to_additive add_right_cancel_monoid]
 instance right_cancel_monoid [∀ i, right_cancel_monoid $ f i] :
   right_cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i), .. };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow, .. };
 tactic.pi_instance_derive_field
 
 @[to_additive add_cancel_monoid]
 instance cancel_monoid [∀ i, cancel_monoid $ f i] :
   cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow };
 tactic.pi_instance_derive_field
 
 @[to_additive add_cancel_comm_monoid]
 instance cancel_comm_monoid [∀ i, cancel_comm_monoid $ f i] :
   cancel_comm_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow };
 tactic.pi_instance_derive_field
 
 instance mul_zero_class [∀ i, mul_zero_class $ f i] :
@@ -117,12 +117,12 @@ by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), 
 instance monoid_with_zero [∀ i, monoid_with_zero $ f i] :
   monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
-  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
+  npow := npow }; tactic.pi_instance_derive_field
 
 instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
-  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
+  npow := npow }; tactic.pi_instance_derive_field
 
 section instance_lemmas
 open function
@@ -153,6 +153,13 @@ def pi.eval_monoid_hom (i : I) : (Π i, f i) →* f i :=
 { to_fun := λ g, g i,
   map_one' := pi.one_apply i,
   map_mul' := λ x y, pi.mul_apply _ _ i, }
+
+/-- `function.const` as a `monoid_hom`. -/
+@[to_additive "`function.const` as an `add_monoid_hom`.", simps]
+def pi.const_monoid_hom (α β : Type*) [mul_one_class β] : β →* (α → β) :=
+{ to_fun := function.const α,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 /-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
 
@@ -227,6 +234,15 @@ lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
 
+lemma pi.update_eq_sub_add_single [Π i, add_group $ f i] (g : Π (i : I), f i) (x : f i) :
+  function.update g i x = g - single i (g i) + single i x :=
+begin
+  ext j,
+  rcases eq_or_ne i j with rfl|h,
+  { simp },
+  { simp [function.update_noteq h.symm, h] }
+end
+
 end single
 
 section piecewise
@@ -250,3 +266,16 @@ lemma pi.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈
 s.piecewise_op₂ _ _ _ _ (λ _, (/))
 
 end piecewise
+
+section extend
+
+variables {ι : Type u} {η : Type v} (R : Type w) (s : ι → η)
+
+/-- `function.extend s f 1` as a bundled hom. -/
+@[to_additive function.extend_by_zero.hom "`function.extend s f 0` as a bundled hom.", simps]
+noncomputable def function.extend_by_one.hom [mul_one_class R] : (ι → R) →* (η → R) :=
+{ to_fun := λ f, function.extend s f 1,
+  map_one' := function.extend_one s,
+  map_mul' := λ f g, by { simpa using function.extend_mul s f g 1 1 } }
+
+end extend

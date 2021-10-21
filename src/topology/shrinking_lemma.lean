@@ -58,7 +58,7 @@ namespace partial_refinement
 
 variables {u : ι → set X} {s : set X}
 
-instance : has_coe_to_fun (partial_refinement u s) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (partial_refinement u s) (λ _, ι → set X) := ⟨to_fun⟩
 
 lemma subset_Union (v : partial_refinement u s) : s ⊆ ⋃ i, v i := v.subset_Union'
 

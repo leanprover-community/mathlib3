@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.reverse
 import algebra.associated
+import algebra.regular.smul
 
 /-!
 # Theory of monic polynomials
@@ -50,14 +51,18 @@ if h : (0 : S) = 1 then
   exact subsingleton.elim _ _
 else
 have f (leading_coeff p) ≠ 0,
-  by rwa [show _ = _, from hp, is_semiring_hom.map_one f, ne.def, eq_comm],
+  by rwa [show _ = _, from hp, f.map_one, ne.def, eq_comm],
 by
 begin
   rw [monic, leading_coeff, coeff_map],
   suffices : p.coeff (map f p).nat_degree = 1, simp [this],
   suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
-  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
+  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f _)
 end
+
+lemma monic_C_mul_of_mul_leading_coeff_eq_one [nontrivial R] {b : R}
+  (hp : b * p.leading_coeff = 1) : monic (C b * p) :=
+by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
 
 lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
   (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
@@ -101,7 +106,7 @@ by rwa [monic, leading_coeff_add_of_degree_lt hpq]
 namespace monic
 
 @[simp]
-lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
+lemma nat_degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
   p.nat_degree = 0 ↔ p = 1 :=
 begin
   split; intro h,
@@ -112,12 +117,43 @@ begin
   rw this, convert C_1, rw ← h, apply hp,
 end
 
+@[simp]
+lemma degree_le_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
+  p.degree ≤ 0 ↔ p = 1 :=
+by rw [←hp.nat_degree_eq_zero_iff_eq_one, nat_degree_eq_zero_iff_degree_le_zero]
+
 lemma nat_degree_mul {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
   (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 begin
   nontriviality R,
   apply nat_degree_mul',
   simp [hp.leading_coeff, hq.leading_coeff]
+end
+
+lemma degree_mul_comm {p : polynomial R} (hp : p.monic) (q : polynomial R) :
+  (p * q).degree = (q * p).degree :=
+begin
+  by_cases h : q = 0,
+  { simp [h] },
+  rw [degree_mul', hp.degree_mul],
+  { exact add_comm _ _ },
+  { rwa [hp.leading_coeff, one_mul, leading_coeff_ne_zero] }
+end
+
+lemma nat_degree_mul' {p q : polynomial R} (hp : p.monic) (hq : q ≠ 0) :
+  (p * q).nat_degree = p.nat_degree + q.nat_degree :=
+begin
+  rw [nat_degree_mul', add_comm],
+  simpa [hp.leading_coeff, leading_coeff_ne_zero]
+end
+
+lemma nat_degree_mul_comm {p : polynomial R} (hp : p.monic) (q : polynomial R) :
+  (p * q).nat_degree = (q * p).nat_degree :=
+begin
+  by_cases h : q = 0,
+  { simp [h] },
+  rw [hp.nat_degree_mul' h, polynomial.nat_degree_mul', add_comm],
+  simpa [hp.leading_coeff, leading_coeff_ne_zero]
 end
 
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
@@ -127,6 +163,20 @@ begin
   simp only [← coeff_one_reverse],
   rw reverse_mul;
     simp [coeff_mul, nat.antidiagonal, hp.leading_coeff, hq.leading_coeff, add_comm]
+end
+
+lemma eq_one_of_map_eq_one {S : Type*} [semiring S] [nontrivial S]
+  (f : R →+* S) (hp : p.monic) (map_eq : p.map f = 1) : p = 1 :=
+begin
+  nontriviality R,
+  have hdeg : p.degree = 0,
+  { rw [← degree_map_eq_of_leading_coeff_ne_zero f _, map_eq, degree_one],
+    { rw [hp.leading_coeff, f.map_one],
+      exact one_ne_zero } },
+  have hndeg : p.nat_degree = 0 :=
+    with_bot.coe_eq_coe.mp ((degree_eq_nat_degree hp.ne_zero).symm.trans hdeg),
+  convert eq_C_of_degree_eq_zero hdeg,
+  rw [← hndeg, ← polynomial.leading_coeff, hp.leading_coeff, C.map_one]
 end
 
 end monic
@@ -237,6 +287,34 @@ open function
 variables [semiring S] {f : R →+* S} (hf : injective f)
 include hf
 
+lemma degree_map_eq_of_injective (p : polynomial R) : degree (p.map f) = degree p :=
+if h : p = 0 then by simp [h]
+else degree_map_eq_of_leading_coeff_ne_zero _
+  (by rw [← f.map_zero]; exact mt hf.eq_iff.1
+    (mt leading_coeff_eq_zero.1 h))
+
+lemma degree_map' (p : polynomial R) :
+  degree (p.map f) = degree p :=
+p.degree_map_eq_of_injective hf
+
+lemma nat_degree_map' (p : polynomial R) :
+  nat_degree (p.map f) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_map' hf p)
+
+lemma leading_coeff_map' (p : polynomial R) :
+  leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  unfold leading_coeff,
+  rw [coeff_map, nat_degree_map' hf p],
+end
+
+lemma next_coeff_map (p : polynomial R) :
+  (p.map f).next_coeff = f p.next_coeff :=
+begin
+  unfold next_coeff,
+  rw nat_degree_map' hf,
+  split_ifs; simp
+end
 
 lemma leading_coeff_of_injective (p : polynomial R) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
@@ -248,7 +326,7 @@ end
 lemma monic_of_injective {p : polynomial R} (hp : (p.map f).monic) : p.monic :=
 begin
   apply hf,
-  rw [← leading_coeff_of_injective hf, hp.leading_coeff, is_semiring_hom.map_one f]
+  rw [← leading_coeff_of_injective hf, hp.leading_coeff, f.map_one]
 end
 
 end injective
@@ -266,5 +344,146 @@ lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 
 end nonzero_semiring
 
+section not_zero_divisor
+
+-- TODO: using gh-8537, rephrase lemmas that involve commutation around `*` using the op-ring
+
+variables [semiring R] {p : polynomial R}
+
+lemma monic.mul_left_ne_zero (hp : monic p) {q : polynomial R} (hq : q ≠ 0) :
+  q * p ≠ 0 :=
+begin
+  by_cases h : p = 1,
+  { simpa [h] },
+  rw [ne.def, ←degree_eq_bot, hp.degree_mul, with_bot.add_eq_bot, not_or_distrib, degree_eq_bot],
+  refine ⟨hq, _⟩,
+  rw [←hp.degree_le_zero_iff_eq_one, not_le] at h,
+  refine (lt_trans _ h).ne',
+  simp
+end
+
+lemma monic.mul_right_ne_zero (hp : monic p) {q : polynomial R} (hq : q ≠ 0) :
+  p * q ≠ 0 :=
+begin
+  by_cases h : p = 1,
+  { simpa [h] },
+  rw [ne.def, ←degree_eq_bot, hp.degree_mul_comm, hp.degree_mul, with_bot.add_eq_bot,
+      not_or_distrib, degree_eq_bot],
+  refine ⟨hq, _⟩,
+  rw [←hp.degree_le_zero_iff_eq_one, not_le] at h,
+  refine (lt_trans _ h).ne',
+  simp
+end
+
+lemma monic.mul_nat_degree_lt_iff (h : monic p) {q : polynomial R} :
+  (p * q).nat_degree < p.nat_degree ↔ p ≠ 1 ∧ q = 0 :=
+begin
+  by_cases hq : q = 0,
+  { suffices : 0 < p.nat_degree ↔ p.nat_degree ≠ 0,
+    { simpa [hq, ←h.nat_degree_eq_zero_iff_eq_one] },
+    exact ⟨λ h, h.ne', λ h, lt_of_le_of_ne (nat.zero_le _) h.symm ⟩ },
+  { simp [h.nat_degree_mul', hq] }
+end
+
+lemma monic.mul_right_eq_zero_iff (h : monic p) {q : polynomial R} :
+  p * q = 0 ↔ q = 0 :=
+begin
+  by_cases hq : q = 0;
+  simp [h.mul_right_ne_zero, hq]
+end
+
+lemma monic.mul_left_eq_zero_iff (h : monic p) {q : polynomial R} :
+  q * p = 0 ↔ q = 0 :=
+begin
+  by_cases hq : q = 0;
+  simp [h.mul_left_ne_zero, hq]
+end
+
+lemma monic.is_regular {R : Type*} [ring R] {p : polynomial R} (hp : monic p) : is_regular p :=
+begin
+  split,
+  { intros q r h,
+    rw [←sub_eq_zero, ←hp.mul_right_eq_zero_iff, mul_sub, h, sub_self] },
+  { intros q r h,
+    simp only at h,
+    rw [←sub_eq_zero, ←hp.mul_left_eq_zero_iff, sub_mul, h, sub_self] }
+end
+
+lemma degree_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
+  (k • p).degree = p.degree :=
+begin
+  refine le_antisymm _ _,
+  { rw degree_le_iff_coeff_zero,
+    intros m hm,
+    rw degree_lt_iff_coeff_zero at hm,
+    simp [hm m le_rfl] },
+  { rw degree_le_iff_coeff_zero,
+    intros m hm,
+    rw degree_lt_iff_coeff_zero at hm,
+    refine h _,
+    simpa using hm m le_rfl },
+end
+
+lemma nat_degree_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
+  (k • p).nat_degree = p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree hp, ←degree_eq_nat_degree,
+      degree_smul_of_smul_regular p h],
+  contrapose! hp,
+  rw ←smul_zero k at hp,
+  exact h.polynomial hp
+end
+
+lemma leading_coeff_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
+  (k • p).leading_coeff = k • p.leading_coeff :=
+by rw [leading_coeff, leading_coeff, coeff_smul, nat_degree_smul_of_smul_regular p h]
+
+lemma monic_of_is_unit_leading_coeff_inv_smul (h : is_unit p.leading_coeff) :
+  monic (h.unit⁻¹ • p) :=
+begin
+  rw [monic.def, leading_coeff_smul_of_smul_regular _ (is_smul_regular_of_group _), units.smul_def],
+  obtain ⟨k, hk⟩ := h,
+  simp only [←hk, smul_eq_mul, ←units.coe_mul, units.coe_eq_one, inv_mul_eq_iff_eq_mul],
+  simp [units.ext_iff, is_unit.unit_spec]
+end
+
+lemma is_unit_leading_coeff_mul_right_eq_zero_iff (h : is_unit p.leading_coeff) {q : polynomial R} :
+  p * q = 0 ↔ q = 0 :=
+begin
+  split,
+  { intro hp,
+    rw ←smul_eq_zero_iff_eq (h.unit)⁻¹ at hp,
+    have : (h.unit)⁻¹ • (p * q) = ((h.unit)⁻¹ • p) * q,
+    { ext,
+      simp only [units.smul_def, coeff_smul, coeff_mul, smul_eq_mul, mul_sum],
+      refine sum_congr rfl (λ x hx, _),
+      rw ←mul_assoc },
+    rwa [this, monic.mul_right_eq_zero_iff] at hp,
+    exact monic_of_is_unit_leading_coeff_inv_smul _ },
+  { rintro rfl,
+    simp }
+end
+
+lemma is_unit_leading_coeff_mul_left_eq_zero_iff (h : is_unit p.leading_coeff) {q : polynomial R} :
+  q * p = 0 ↔ q = 0 :=
+begin
+  split,
+  { intro hp,
+    replace hp := congr_arg (* C ↑(h.unit)⁻¹) hp,
+    simp only [zero_mul] at hp,
+    rwa [mul_assoc, monic.mul_left_eq_zero_iff] at hp,
+    nontriviality,
+    refine monic_mul_C_of_leading_coeff_mul_eq_one _,
+    simp [units.mul_inv_eq_iff_eq_mul, is_unit.unit_spec] },
+  { rintro rfl,
+    rw zero_mul }
+end
+
+end not_zero_divisor
 
 end polynomial

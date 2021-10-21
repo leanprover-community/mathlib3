@@ -3,8 +3,9 @@ Copyright (c) 2020 Johan Commelin, Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Damiano Testa
 -/
-import order.basic
 import data.equiv.basic
+import logic.nontrivial
+import order.basic
 
 /-!
 # Initial lemmas to work with the `order_dual`
@@ -69,4 +70,18 @@ lemma to_dual_le [has_le α] {a : α} {b : order_dual α} :
 lemma to_dual_lt [has_lt α] {a : α} {b : order_dual α} :
   to_dual a < b ↔ of_dual b < a := iff.rfl
 
+/-- Recursor for `order_dual α`. -/
+@[elab_as_eliminator]
+protected def rec {C : order_dual α → Sort*} (h₂ : Π (a : α), C (to_dual a)) :
+  Π (a : order_dual α), C a := h₂
+
+@[simp] protected lemma «forall» {p : order_dual α → Prop} : (∀ a, p a) ↔ ∀ a, p (to_dual a) :=
+iff.rfl
+
+@[simp] protected lemma «exists» {p : order_dual α → Prop} : (∃ a, p a) ↔ ∃ a, p (to_dual a) :=
+iff.rfl
+
 end order_dual
+
+alias order_dual.to_dual_lt_to_dual ↔ _ has_lt.lt.dual
+alias order_dual.to_dual_le_to_dual ↔ _ has_le.le.dual

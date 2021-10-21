@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
-import algebra.ordered_group
+import algebra.order.group
 import data.set.basic
 import order.rel_iso
+import order.order_dual
 
 /-!
 # Intervals
@@ -31,6 +32,7 @@ universe u
 namespace set
 
 open set
+open order_dual (to_dual of_dual)
 
 section intervals
 variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
@@ -95,17 +97,17 @@ lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
 lemma right_mem_Iic : a ∈ Iic a := by simp
 
-@[simp] lemma dual_Ici : @Ici (order_dual α) _ a = @Iic α _ a := rfl
-@[simp] lemma dual_Iic : @Iic (order_dual α) _ a = @Ici α _ a := rfl
-@[simp] lemma dual_Ioi : @Ioi (order_dual α) _ a = @Iio α _ a := rfl
-@[simp] lemma dual_Iio : @Iio (order_dual α) _ a = @Ioi α _ a := rfl
-@[simp] lemma dual_Icc : @Icc (order_dual α) _ a b = @Icc α _ b a :=
+@[simp] lemma dual_Ici : Ici (to_dual a) = of_dual ⁻¹' Iic a := rfl
+@[simp] lemma dual_Iic : Iic (to_dual a) = of_dual ⁻¹' Ici a := rfl
+@[simp] lemma dual_Ioi : Ioi (to_dual a) = of_dual ⁻¹' Iio a := rfl
+@[simp] lemma dual_Iio : Iio (to_dual a) = of_dual ⁻¹' Ioi a := rfl
+@[simp] lemma dual_Icc : Icc (to_dual a) (to_dual b) = of_dual ⁻¹' Icc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioc : @Ioc (order_dual α) _ a b = @Ico α _ b a :=
+@[simp] lemma dual_Ioc : Ioc (to_dual a) (to_dual b) = of_dual ⁻¹' Ico b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ico : @Ico (order_dual α) _ a b = @Ioc α _ b a :=
+@[simp] lemma dual_Ico : Ico (to_dual a) (to_dual b) = of_dual ⁻¹' Ioc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioo : @Ioo (order_dual α) _ a b = @Ioo α _ b a :=
+@[simp] lemma dual_Ioo : Ioo (to_dual a) (to_dual b) = of_dual ⁻¹' Ioo b a :=
 set.ext $ λ x, and_comm _ _
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
@@ -430,14 +432,14 @@ by rw [← Ico_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Ico.2 hab)]
 
 lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
-by simpa only [dual_Ioo, dual_Ico] using @Ioo_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioo, dual_Ico] using Ioo_union_left hab.dual
 
 lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
 by rw [← Icc_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Icc.2 hab)]
 
 lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
-by simpa only [dual_Ioc, dual_Icc] using @Ioc_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioc, dual_Icc] using Ioc_union_left hab.dual
 
 lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
   s ∈ ({Ici a, Ioi a} : set (set α)) :=
@@ -492,7 +494,7 @@ end
 lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
   x = b ∨ x ∈ Ioo a b :=
 begin
-  have := @mem_Ioo_or_eq_left_of_mem_Ico (order_dual α) _ b a x,
+  have := @mem_Ioo_or_eq_left_of_mem_Ico _ _ (to_dual b) (to_dual a) (to_dual x),
   rw [dual_Ioo, dual_Ico] at this,
   exact this hmem
 end
@@ -599,6 +601,10 @@ lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
 ⟨λ h, have a₂ ≤ a₁ ∧ a₁ < b₂ := h ⟨le_rfl, h₁⟩,
   ⟨this.1, le_of_not_lt $ λ h', lt_irrefl b₂ (h ⟨this.2.le, h'⟩).2⟩,
  λ ⟨h₁, h₂⟩, Ico_subset_Ico h₁ h₂⟩
+
+lemma Ioc_subset_Ioc_iff (h₁ : a₁ < b₁) :
+  Ioc a₁ b₁ ⊆ Ioc a₂ b₂ ↔ b₁ ≤ b₂ ∧ a₂ ≤ a₁ :=
+by { convert @Ico_subset_Ico_iff (order_dual α) _ b₁ b₂ a₁ a₂ h₁; exact (@dual_Ico α _ _ _).symm }
 
 lemma Ioo_subset_Ioo_iff [densely_ordered α] (h₁ : a₁ < b₁) :
   Ioo a₁ b₁ ⊆ Ioo a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -1123,6 +1129,10 @@ by { ext x, simp [Ici] }
 @[simp] lemma Ioi_inter_Ioi [is_total α (≤)] {a b : α} : Ioi a ∩ Ioi b = Ioi (a ⊔ b) :=
 by { ext x, simp [Ioi] }
 
+@[simp] lemma Ioc_inter_Ioi [is_total α (≤)] {a b c : α} : Ioc a b ∩ Ioi c = Ioc (a ⊔ c) b :=
+by rw [← Ioi_inter_Iic, inter_assoc, inter_comm, inter_assoc, Ioi_inter_Ioi, inter_comm,
+  Ioi_inter_Iic, sup_comm]
+
 end sup
 
 section both
@@ -1174,10 +1184,13 @@ lemma Iic_inter_Ioc_of_le (h : a₂ ≤ a) : Iic a₂ ∩ Ioc a₁ a = Ioc a₁ 
 ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
-ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
+ext $ by simp [iff_def] {contextual:=tt}
+
+@[simp] lemma Ioc_diff_Ioi : Ioc a b \ Ioi c = Ioc a (min b c) :=
+ext $ by simp [iff_def] {contextual:=tt}
 
 @[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
-ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
+ext $ by simp [iff_def] {contextual:=tt}
 
 @[simp] lemma Ioc_union_Ioc_right : Ioc a b ∪ Ioc a c = Ioc a (max b c) :=
 by rw [Ioc_union_Ioc, min_self]; exact (min_le_left _ _).trans (le_max_left _ _)
@@ -1264,7 +1277,7 @@ lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a
 -- I think that symmetric intervals deserve attention and API: they arise all the time,
 -- for instance when considering metric balls in `ℝ`.
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
-  abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
+  |x - y| ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
 abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le neg_le_sub_iff_le_add
 
 end ordered_add_comm_group
@@ -1286,10 +1299,10 @@ end linear_ordered_add_comm_group
 
 end set
 
+open set
+
 namespace order_iso
 variables {α β : Type*}
-
-open set
 
 section preorder
 variables [preorder α] [preorder β]
@@ -1317,6 +1330,30 @@ by simp [← Ioi_inter_Iic]
 
 @[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
 by simp [← Ioi_inter_Iio]
+
+@[simp] lemma image_Iic (e : α ≃o β) (a : α) : e '' (Iic a) = Iic (e a) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Iic, e.symm_symm]
+
+@[simp] lemma image_Ici (e : α ≃o β) (a : α) : e '' (Ici a) = Ici (e a) :=
+e.dual.image_Iic a
+
+@[simp] lemma image_Iio (e : α ≃o β) (a : α) : e '' (Iio a) = Iio (e a) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Iio, e.symm_symm]
+
+@[simp] lemma image_Ioi (e : α ≃o β) (a : α) : e '' (Ioi a) = Ioi (e a) :=
+e.dual.image_Iio a
+
+@[simp] lemma image_Ioo (e : α ≃o β) (a b : α) : e '' (Ioo a b) = Ioo (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Ioo, e.symm_symm]
+
+@[simp] lemma image_Ioc (e : α ≃o β) (a b : α) : e '' (Ioc a b) = Ioc (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Ioc, e.symm_symm]
+
+@[simp] lemma image_Ico (e : α ≃o β) (a b : α) : e '' (Ico a b) = Ico (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Ico, e.symm_symm]
+
+@[simp] lemma image_Icc (e : α ≃o β) (a b : α) : e '' (Icc a b) = Icc (e a) (e b) :=
+by rw [e.image_eq_preimage, e.symm.preimage_Icc, e.symm_symm]
 
 end preorder
 

@@ -7,6 +7,7 @@ import data.lazy_list.basic
 import data.tree
 import data.int.basic
 import control.bifunctor
+import control.ulift
 import tactic.linarith
 import testing.slim_check.gen
 
@@ -196,8 +197,7 @@ instance sampleable_ext.functor {α} {F} [functor F] [sampleable_functor F] [sam
   interp := functor.map (interp _),
   sample := sampleable_functor.sample F (sampleable_ext.sample α),
   shrink := sampleable_functor.shrink _ sampleable_ext.shrink,
-  p_repr := sampleable_functor.p_repr _ sampleable_ext.p_repr
-  }
+  p_repr := sampleable_functor.p_repr _ sampleable_ext.p_repr }
 
 instance sampleable_ext.bifunctor {α β} {F} [bifunctor F] [sampleable_bifunctor F]
   [sampleable_ext α] [sampleable_ext β] : sampleable_ext (F α β) :=
@@ -206,8 +206,7 @@ instance sampleable_ext.bifunctor {α β} {F} [bifunctor F] [sampleable_bifuncto
   interp := bifunctor.bimap (interp _) (interp _),
   sample := sampleable_bifunctor.sample F (sampleable_ext.sample α) (sampleable_ext.sample β),
   shrink := sampleable_bifunctor.shrink _ _ sampleable_ext.shrink sampleable_ext.shrink,
-  p_repr := sampleable_bifunctor.p_repr _ _ sampleable_ext.p_repr sampleable_ext.p_repr
-  }
+  p_repr := sampleable_bifunctor.p_repr _ _ sampleable_ext.p_repr sampleable_ext.p_repr }
 
 end prio
 
@@ -681,7 +680,7 @@ instance nat_ge.sampleable {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y, by norm_num⟩ },
   shrink := λ ⟨y, h⟩, (λ a : { y' // sizeof y' < sizeof (y - x) },
-    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, nat.add_lt_of_lt_sub_left h'⟩) <$>
+    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, lt_tsub_iff_left.mp h'⟩) <$>
       shrink (y - x) }
 
 /- there is no `nat_lt.sampleable` instance because if `y = 0`, there is no valid choice
@@ -699,14 +698,14 @@ instance le.sampleable {y : α} [sampleable α] [linear_ordered_add_comm_group �
   slim_check.sampleable { x : α // x ≤ y } :=
 { sample :=
          do { x ← sample α,
-              pure ⟨y - abs x, sub_le_self _ (abs_nonneg _) ⟩ },
+              pure ⟨y - |x|, sub_le_self _ (abs_nonneg _) ⟩ },
   shrink := λ _, lazy_list.nil }
 
 instance ge.sampleable {x : α}  [sampleable α] [linear_ordered_add_comm_group α] :
   slim_check.sampleable { y : α // x ≤ y } :=
 { sample :=
          do { y ← sample α,
-              pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
+              pure ⟨x + |y|, by norm_num [abs_nonneg]⟩ },
   shrink := λ _, lazy_list.nil }
 
 

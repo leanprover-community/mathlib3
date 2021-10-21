@@ -216,6 +216,11 @@ begin
       image_subset_iff.2 hvu⟩ }
 end
 
+protected lemma is_topological_basis.continuous {β : Type*} [topological_space β]
+  {B : set (set β)} (hB : is_topological_basis B) (f : α → β) (hf : ∀ s ∈ B, is_open (f ⁻¹' s)) :
+  continuous f :=
+begin rw hB.eq_generate_from, exact continuous_generated_from hf end
+
 variables (α)
 
 /-- A separable space is one with a countable dense subset, available through
@@ -256,6 +261,47 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 @[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
   dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
 
+variable {α}
+
+/-- In a separable space, a family of nonempty disjoint open sets is countable. -/
+lemma countable_of_is_open_of_disjoint [separable_space α] {β : Type*}
+  (s : β → set α) {a : set β} (ha : ∀ i ∈ a, is_open (s i)) (h'a : ∀ i ∈ a, (s i).nonempty)
+  (h : a.pairwise_on (disjoint on s)) :
+  countable a :=
+begin
+  rcases eq_empty_or_nonempty a with rfl|H, { exact countable_empty },
+  haveI : inhabited α,
+  { choose i ia using H,
+    choose y hy using h'a i ia,
+    exact ⟨y⟩ },
+  rcases exists_countable_dense α with ⟨u, u_count, u_dense⟩,
+  have : ∀ i, i ∈ a → ∃ y, y ∈ s i ∩ u :=
+    λ i hi, dense_iff_inter_open.1 u_dense (s i) (ha i hi) (h'a i hi),
+  choose! f hf using this,
+  have f_inj : inj_on f a,
+  { assume i hi j hj hij,
+    have : ¬disjoint (s i) (s j),
+    { rw not_disjoint_iff_nonempty_inter,
+      refine ⟨f i, (hf i hi).1, _⟩,
+      rw hij,
+      exact (hf j hj).1 },
+    contrapose! this,
+    exact h i hi j hj this },
+  apply countable_of_injective_of_countable_image f_inj,
+  apply u_count.mono _,
+  exact image_subset_iff.2 (λ i hi, (hf i hi).2)
+end
+
+/-- In a separable space, a family of disjoint sets with nonempty interiors is countable. -/
+lemma countable_of_nonempty_interior_of_disjoint [separable_space α] {β : Type*} (s : β → set α)
+  {a : set β} (ha : ∀ i ∈ a, (interior (s i)).nonempty) (h : a.pairwise_on (disjoint on s)) :
+  countable a :=
+begin
+  have : a.pairwise_on (disjoint on (λ i, interior (s i))) :=
+    pairwise_on_disjoint_on_mono h (λ i hi, interior_subset),
+  exact countable_of_is_open_of_disjoint (λ i, interior (s i)) (λ i hi, is_open_interior) ha this
+end
+
 end topological_space
 
 open topological_space
@@ -274,8 +320,8 @@ begin
     exact is_topological_basis.is_open (cond i) (h1 i hi) },
   { intros a U ha hU,
     have : U ∈ nhds a := is_open.mem_nhds hU ha,
-    rw [nhds_pi, filter.mem_infi_iff] at this,
-    obtain ⟨F, hF, V, hV1, hV2⟩ := this,
+    rw [nhds_pi, filter.mem_infi] at this,
+    obtain ⟨F, hF, V, hV1, rfl⟩ := this,
     choose U' hU' using hV1,
     obtain ⟨hU1, hU2⟩ := ⟨λ i, (hU' i).1, λ i, (hU' i).2⟩,
     have : ∀ j : F, ∃ (T' : set (X j)) (hT : T' ∈ T j), a j ∈ T' ∧ T' ⊆ U' j,
@@ -296,7 +342,6 @@ begin
       rw dif_pos hi,
       exact (hU'' _).2.1 },
     { intros x hx,
-      apply hV2,
       rintros - ⟨i, rfl⟩,
       refine hU2 i ((hU'' i).2.2 _),
       convert hx i i.2,
@@ -342,6 +387,13 @@ protected lemma dense_range.separable_space {α β : Type*} [topological_space �
   separable_space β :=
 let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
 ⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
+
+lemma dense.exists_countable_dense_subset {α : Type*} [topological_space α]
+  {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t :=
+let ⟨t, htc, htd⟩ := exists_countable_dense s
+in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _, htc.image coe,
+  hs.dense_range_coe.dense_image continuous_subtype_val htd⟩
 
 namespace topological_space
 universe u
@@ -538,6 +590,16 @@ begin
     from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
   simp only [hsU, eq_univ_iff_forall, mem_Union],
   exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
+end
+
+lemma countable_cover_nhds_within [second_countable_topology α] {f : α → set α} {s : set α}
+  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ (⋃ x ∈ t, f x) :=
+begin
+  have : ∀ x : s, coe ⁻¹' (f x) ∈ 𝓝 x, from λ x, preimage_coe_mem_nhds_subtype.2 (hf x x.2),
+  rcases countable_cover_nhds this with ⟨t, htc, htU⟩,
+  refine ⟨coe '' t, subtype.coe_image_subset _ _, htc.image _, λ x hx, _⟩,
+  simp only [bUnion_image, eq_univ_iff_forall, ← preimage_Union, mem_preimage] at htU ⊢,
+  exact htU ⟨x, hx⟩
 end
 
 end topological_space

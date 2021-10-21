@@ -193,6 +193,10 @@ lemma vsub_mem_vsub {ps pt : P} (hs : ps ∈ s) (ht : pt ∈ t) :
   (ps -ᵥ pt) ∈ s -ᵥ t :=
 mem_image2_of_mem hs ht
 
+@[simp] lemma mem_vsub {s t : set P} (g : G) :
+  g ∈ s -ᵥ t ↔ ∃ (x y : P), x ∈ s ∧ y ∈ t ∧ x -ᵥ y = g :=
+mem_image2
+
 /-- `s -ᵥ t` is monotone in both arguments. -/
 @[mono] lemma vsub_subset_vsub {s' t' : set P} (hs : s ⊆ s') (ht : t ⊆ t') :
   s -ᵥ t ⊆ s' -ᵥ t' :=
@@ -205,10 +209,12 @@ image2_subset_iff
 
 end vsub
 
+open_locale pointwise
+
 instance add_action : add_action (set G) (set P) :=
-{ vadd := set.image2 (+ᵥ),
-  zero_vadd := λ s, by simp [← singleton_zero],
-  add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd } }
+{ zero_vadd := λ s, by simp [has_vadd.vadd, ←singleton_zero, image2_singleton_left],
+  add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd },
+  ..(show has_vadd (set G) (set P), by apply_instance) }
 
 variables {s s' : set G} {t t' : set P}
 
@@ -216,9 +222,6 @@ variables {s s' : set G} {t t' : set P}
 image2_subset hs ht
 
 @[simp] lemma vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s := image2_singleton_right
-
-@[simp] lemma singleton_vadd (v : G) (s : set P) : ({v} : set G) +ᵥ s = ((+ᵥ) v) '' s :=
-image2_singleton_left
 
 lemma finite.vadd (hs : finite s) (ht : finite t) : finite (s +ᵥ t) := hs.image2 _ ht
 
@@ -336,11 +339,6 @@ instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, 
   vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (p₁ i) (p₂ i),
   vadd_vsub' := λ g p, funext $ λ i, vadd_vsub (g i) (p i) }
 
-/-- Addition in a product of `add_torsor`s. -/
-@[simp] lemma vadd_apply [T : ∀ i, add_torsor (fg i) (fp i)] (x : Π i, fg i) (y : Π i, fp i)
-  {i : I} : (x +ᵥ y) i = x i +ᵥ y i
-:= rfl
-
 end pi
 
 namespace equiv
@@ -433,3 +431,10 @@ lemma injective_point_reflection_left_of_injective_bit0 {G P : Type*} [add_comm_
     h.eq_iff, vsub_eq_zero_iff_eq] at hy
 
 end equiv
+
+lemma add_torsor.subsingleton_iff (G P : Type*) [add_group G] [add_torsor G P] :
+  subsingleton G ↔ subsingleton P :=
+begin
+  inhabit P,
+  exact (equiv.vadd_const (default P)).subsingleton_congr,
+end

@@ -61,8 +61,10 @@ def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
+open order_dual (of_dual to_dual)
+
 /-- The galois insertion between sets and opens, but ordered by reverse inclusion. -/
-def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior subtype.val :=
+def gi : galois_insertion (to_dual ∘ @interior α _ ∘ of_dual) (to_dual ∘ subtype.val ∘ of_dual) :=
 { choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc.dual,
   le_l_u := λ _, interior_subset,
@@ -83,14 +85,7 @@ begin
   apply subtype.ext_iff_val.mpr,
   exact (is_open.inter U.2 V.2).interior_eq.symm,
 end
-/- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
-by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
-begin
-  funext,
-  apply subtype.ext_iff_val.mpr,
-  simp [Sup_range],
-  refl,
-end
+/- Sup -/ _ rfl
 /- Inf -/ _ rfl
 
 lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
@@ -111,16 +106,13 @@ instance : inhabited (opens α) := ⟨∅⟩
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : ↑(Sup Us) = ⋃₀ ((coe : _ → set α) '' Us) :=
-begin
-  rw [@galois_connection.l_Sup (opens α) (set α) _ _ (coe : opens α → set α) interior gc Us],
-  rw [set.sUnion_image]
-end
+by { rw [(@gc α _).l_Sup, set.sUnion_image], refl }
 
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 
 @[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
-  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⨆ i, s i, is_open_Union h⟩ :=
+  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⋃ i, s i, is_open_Union h⟩ :=
 by { rw supr_def, simp }
 
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
@@ -142,6 +134,7 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
     exact U.property.preimage continuous_subtype_val
   end, }
 
+/-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
 lemma is_basis_iff_nbhd {B : set (opens α)} :

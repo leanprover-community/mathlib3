@@ -64,7 +64,7 @@ begin
     exact pi.cons_swap eq }
 end
 
-@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = pi.empty δ ::ₘ 0 := rfl
+@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} := rfl
 
 @[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
   pi (a ::ₘ m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=

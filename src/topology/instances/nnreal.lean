@@ -16,7 +16,7 @@ The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 Instances for the following typeclasses are defined:
 
 * `topological_space ℝ≥0`
-* `topological_semiring ℝ≥0`
+* `topological_ring ℝ≥0`
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
@@ -52,7 +52,7 @@ open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
-instance : topological_semiring ℝ≥0 :=
+instance : topological_ring ℝ≥0 :=
 { continuous_mul := continuous_subtype_mk _ $
     (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
   continuous_add := continuous_subtype_mk _ $
@@ -96,7 +96,7 @@ lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m 
 (continuous_of_real.tendsto _).comp h
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
-nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, set.Iio]
 
 lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, Iio a) :=
 nhds_bot_basis
@@ -106,7 +106,7 @@ instance : has_continuous_sub ℝ≥0 :=
   ((continuous_coe.comp continuous_fst).sub
    (continuous_coe.comp continuous_snd)).max continuous_const⟩
 
-instance : has_continuous_inv' ℝ≥0 :=
+instance : has_continuous_inv₀ ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
 
@@ -134,12 +134,26 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
+lemma summable_coe_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
+  @summable (ℝ≥0) _ _ _ (λ n, ⟨f n, hf₁ n⟩) ↔ summable f :=
+begin
+  lift f to α → ℝ≥0 using hf₁ with f rfl hf₁,
+  simp only [summable_coe, subtype.coe_eta]
+end
+
 open_locale classical
 
 @[norm_cast] lemma coe_tsum {f : α → ℝ≥0} : ↑∑'a, f a = ∑'a, (f a : ℝ) :=
 if hf : summable f
 then (eq.symm $ (has_sum_coe.2 $ hf.has_sum).tsum_eq)
 else by simp [tsum, hf, mt summable_coe.1 hf]
+
+lemma coe_tsum_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
+  (⟨∑' n, f n, tsum_nonneg hf₁⟩ : ℝ≥0) = (∑' n, ⟨f n, hf₁ n⟩ : ℝ≥0) :=
+begin
+  lift f to α → ℝ≥0 using hf₁ with f rfl hf₁,
+  simp_rw [← nnreal.coe_tsum, subtype.coe_eta]
+end
 
 lemma tsum_mul_left (a : ℝ≥0) (f : α → ℝ≥0) : ∑' x, a * f x = a * ∑' x, f x :=
 nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_left]
@@ -190,5 +204,14 @@ end
 lemma tendsto_at_top_zero_of_summable {f : ℕ → ℝ≥0} (hf : summable f) :
   tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_summable hf }
+
+/-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
+space. This does not need a summability assumption, as otherwise all sums are zero. -/
+lemma tendsto_tsum_compl_at_top_zero {α : Type*} (f : α → ℝ≥0) :
+  tendsto (λ (s : finset α), ∑' b : {x // x ∉ s}, f b) at_top (𝓝 0) :=
+begin
+  simp_rw [← tendsto_coe, coe_tsum, nnreal.coe_zero],
+  exact tendsto_tsum_compl_at_top_zero (λ (a : α), (f a : ℝ))
+end
 
 end nnreal

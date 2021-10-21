@@ -429,9 +429,19 @@ end adjoin_intermediate_field_lattice
 
 section adjoin_integral_element
 
-variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
+variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
+lemma minpoly_gen {α : E} (h : is_integral F α) :
+  minpoly F (adjoin_simple.gen F α) = minpoly F α :=
+begin
+  rw ← adjoin_simple.algebra_map_gen F α at h,
+  have inj := (algebra_map F⟮α⟯ E).injective,
+  exact minpoly.eq_of_algebra_map_eq inj ((is_integral_algebra_map_iff inj).mp h)
+    (adjoin_simple.algebra_map_gen _ _).symm
+end
+
+variables (F)
 lemma aeval_gen_minpoly (α : E) :
   aeval (adjoin_simple.gen F α) (minpoly F α) = 0 :=
 begin
@@ -444,10 +454,9 @@ end
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
 noncomputable def adjoin_root_equiv_adjoin (h : is_integral F α) :
   adjoin_root (minpoly F α) ≃ₐ[F] F⟮α⟯ :=
-alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
-  (adjoin_simple.gen F α) (aeval_gen_minpoly F α)) (ring_hom.map_one _)
-  (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
-  (by { exact λ _, adjoin_root.lift_of })) (begin
+alg_equiv.of_bijective
+  (adjoin_root.lift_hom (minpoly F α) (adjoin_simple.gen F α) (aeval_gen_minpoly F α))
+  (begin
     set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
     haveI := minpoly.irreducible h,
     split,
@@ -462,42 +471,63 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
 lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
   adjoin_root_equiv_adjoin F h (adjoin_root.root (minpoly F α)) =
     adjoin_simple.gen F α :=
+adjoin_root.lift_root (aeval_gen_minpoly F α)
+
+section power_basis
+
+variables {L : Type*} [field L] [algebra K L]
+
+/-- The elements `1, x, ..., x ^ (d - 1)` form a basis for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def power_basis_aux {x : L} (hx : is_integral K x) :
+  basis (fin (minpoly K x).nat_degree) K K⟮x⟯ :=
+(adjoin_root.power_basis (minpoly.ne_zero hx)).basis.map
+  (adjoin_root_equiv_adjoin K hx).to_linear_equiv
+
+/-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+@[simps]
+noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
+  power_basis K K⟮x⟯ :=
+{ gen := adjoin_simple.gen K x,
+  dim := (minpoly K x).nat_degree,
+  basis := power_basis_aux hx,
+  basis_eq_pow := λ i,
+    by rw [power_basis_aux, basis.map_apply, power_basis.basis_eq_pow,
+           alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow, adjoin_root.power_basis_gen,
+           adjoin_root_equiv_adjoin_apply_root] }
+
+lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
+power_basis.finite_dimensional (adjoin.power_basis hx)
+
+lemma adjoin.finrank {x : L} (hx : is_integral K x) :
+  finite_dimensional.finrank K K⟮x⟯ = (minpoly K x).nat_degree :=
 begin
-  refine adjoin_root.lift_root,
-  { exact minpoly F α },
-  { exact aeval_gen_minpoly F α }
+  rw power_basis.finrank (adjoin.power_basis hx : _),
+  refl
 end
+
+end power_basis
 
 /-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
 of `minpoly α` in `K`. -/
 noncomputable def alg_hom_adjoin_integral_equiv (h : is_integral F α) :
   (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minpoly F α).map (algebra_map F K)).roots} :=
-let ϕ := adjoin_root_equiv_adjoin F h,
-  swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minpoly F α) →ₐ[F] K) :=
-  { to_fun := λ f, f.comp ϕ.to_alg_hom,
-    inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
-    left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
-      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply] },
-    right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
-      alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
-  swap2 := adjoin_root.equiv F K (minpoly F α) (minpoly.ne_zero h) in
-swap1.trans swap2
+(adjoin.power_basis h).lift_equiv'.trans ((equiv.refl _).subtype_equiv (λ x,
+  by rw [adjoin.power_basis_gen, minpoly_gen h, equiv.refl_apply]))
 
 /-- Fintype of algebra homomorphism `F⟮α⟯ →ₐ[F] K` -/
 noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
   fintype (F⟮α⟯ →ₐ[F] K) :=
-fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
+power_basis.alg_hom.fintype (adjoin.power_basis h)
 
 lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minpoly F α).separable)
   (h_splits : (minpoly F α).splits (algebra_map F K)) :
   @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
     (minpoly F α).nat_degree :=
 begin
-  let s := ((minpoly F α).map (algebra_map F K)).roots.to_finset,
-  have H := λ x, multiset.mem_to_finset,
-  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
-      nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
-  exact nodup_roots ((separable_map (algebra_map F K)).mpr h_sep),
+  rw alg_hom.card_of_power_basis;
+    simp only [adjoin.power_basis_dim, adjoin.power_basis_gen, minpoly_gen h, h_sep, h_splits],
 end
 
 end adjoin_integral_element
@@ -728,42 +758,6 @@ section power_basis
 
 variables {K L : Type*} [field K] [field L] [algebra K L]
 
-namespace intermediate_field
-
-/-- The elements `1, x, ..., x ^ (d - 1)` form a basis for `K⟮x⟯`,
-where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def power_basis_aux {x : L} (hx : is_integral K x) :
-  basis (fin (minpoly K x).nat_degree) K K⟮x⟯ :=
-(adjoin_root.power_basis (minpoly.ne_zero hx)).basis.map
-  (adjoin_root_equiv_adjoin K hx).to_linear_equiv
-
-/-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
-where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
-  power_basis K K⟮x⟯ :=
-{ gen := adjoin_simple.gen K x,
-  dim := (minpoly K x).nat_degree,
-  basis := power_basis_aux hx,
-  basis_eq_pow := λ i,
-    by rw [power_basis_aux, basis.map_apply, power_basis.basis_eq_pow,
-           alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow, adjoin_root.power_basis_gen,
-           adjoin_root_equiv_adjoin_apply_root] }
-
-@[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
-  (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
-
-lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
-power_basis.finite_dimensional (adjoin.power_basis hx)
-
-lemma adjoin.finrank {x : L} (hx : is_integral K x) :
-  finite_dimensional.finrank K K⟮x⟯ = (minpoly K x).nat_degree :=
-begin
-  rw power_basis.finrank (adjoin.power_basis hx : _),
-  refl
-end
-
-end intermediate_field
-
 namespace power_basis
 
 open intermediate_field
@@ -771,30 +765,30 @@ open intermediate_field
 /-- `pb.equiv_adjoin_simple` is the equivalence between `K⟮pb.gen⟯` and `L` itself. -/
 noncomputable def equiv_adjoin_simple (pb : power_basis K L) :
   K⟮pb.gen⟯ ≃ₐ[K] L :=
-(adjoin.power_basis pb.is_integral_gen).equiv pb
+(adjoin.power_basis pb.is_integral_gen).equiv_of_minpoly pb
   (minpoly.eq_of_algebra_map_eq (algebra_map K⟮pb.gen⟯ L).injective
     (adjoin.power_basis pb.is_integral_gen).is_integral_gen
-    (by rw [adjoin.power_basis.gen_eq, adjoin_simple.algebra_map_gen]))
+    (by rw [adjoin.power_basis_gen, adjoin_simple.algebra_map_gen]))
 
 @[simp]
 lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : polynomial K) :
   pb.equiv_adjoin_simple (aeval (adjoin_simple.gen K pb.gen) f) = aeval pb.gen f :=
-equiv_aeval _ pb _ f
+equiv_of_minpoly_aeval _ pb _ f
 
 @[simp]
 lemma equiv_adjoin_simple_gen (pb : power_basis K L) :
   pb.equiv_adjoin_simple (adjoin_simple.gen K pb.gen) = pb.gen :=
-equiv_gen _ pb _
+equiv_of_minpoly_gen _ pb _
 
 @[simp]
 lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : polynomial K) :
   pb.equiv_adjoin_simple.symm (aeval pb.gen f) = aeval (adjoin_simple.gen K pb.gen) f :=
-by rw [equiv_adjoin_simple, equiv_symm, equiv_aeval, adjoin.power_basis.gen_eq]
+by rw [equiv_adjoin_simple, equiv_of_minpoly_symm, equiv_of_minpoly_aeval, adjoin.power_basis_gen]
 
 @[simp]
 lemma equiv_adjoin_simple_symm_gen (pb : power_basis K L) :
   pb.equiv_adjoin_simple.symm pb.gen = (adjoin_simple.gen K pb.gen) :=
-by rw [equiv_adjoin_simple, equiv_symm, equiv_gen, adjoin.power_basis.gen_eq]
+by rw [equiv_adjoin_simple, equiv_of_minpoly_symm, equiv_of_minpoly_gen, adjoin.power_basis_gen]
 
 end power_basis
 

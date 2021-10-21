@@ -39,7 +39,7 @@ lemma euler_criterion_units (x : units (zmod p)) :
   (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
-  { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim  },
+  { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_gpowers, apply hg },
   split,
@@ -105,14 +105,14 @@ begin
   calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
                                ... = (∏ x : units (zmod p), x) : _
-                               ... = -1 :
-    by rw [prod_hom _ (coe : units (zmod p) → zmod p),
-           prod_univ_units_id_eq_neg_one, units.coe_neg, units.coe_one],
+                               ... = -1 : by simp_rw [← units.coe_hom_apply,
+    ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
+    units.coe_neg, units.coe_one],
   have hp : 0 < p := (fact.out p.prime).pos,
   symmetry,
   refine prod_bij (λ a _, (a : zmod p).val) _ _ _ _,
   { intros a ha,
-    rw [Ico.mem, ← nat.succ_sub hp, nat.succ_sub_one],
+    rw [mem_Ico, ← nat.succ_sub hp, nat.succ_sub_one],
     split,
     { apply nat.pos_of_ne_zero, rw ← @val_zero p,
       assume h, apply units.ne_zero a (val_injective p h) },
@@ -120,7 +120,7 @@ begin
   { intros a ha, simp only [cast_id, nat_cast_val], },
   { intros _ _ _ _ h, rw units.ext_iff, exact val_injective p h },
   { intros b hb,
-    rw [Ico.mem, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, pos_iff_ne_zero] at hb,
+    rw [mem_Ico, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, pos_iff_ne_zero] at hb,
     refine ⟨units.mk0 b _, finset.mem_univ _, _⟩,
     { assume h, apply hb.1, apply_fun val at h,
       simpa only [val_cast_of_lt hb.right, val_zero] using h },
@@ -157,7 +157,7 @@ begin
   have hsurj : ∀ (b : ℕ) (hb : b ∈ Ico 1 (p / 2).succ),
     ∃ x ∈ Ico 1 (p / 2).succ, b = (a * x : zmod p).val_min_abs.nat_abs,
   { assume b hb,
-    refine ⟨(b / a : zmod p).val_min_abs.nat_abs, Ico.mem.mpr ⟨_, _⟩, _⟩,
+    refine ⟨(b / a : zmod p).val_min_abs.nat_abs, mem_Ico.mpr ⟨_, _⟩, _⟩,
     { apply nat.pos_of_ne_zero,
       simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
         val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
@@ -165,9 +165,9 @@ begin
       { rw nat_cast_nat_abs_val_min_abs,
         split_ifs,
         { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
-            if_pos (le_of_lt_succ (Ico.mem.1 hb).2), int.nat_abs_of_nat], },
+            if_pos (le_of_lt_succ (mem_Ico.1 hb).2), int.nat_abs_of_nat], },
         { erw [mul_neg_eq_neg_mul_symm, mul_div_cancel' _ hap, nat_abs_val_min_abs_neg,
-            val_min_abs_def_pos, val_cast_of_lt (hep hb), if_pos (le_of_lt_succ (Ico.mem.1 hb).2),
+            val_min_abs_def_pos, val_cast_of_lt (hep hb), if_pos (le_of_lt_succ (mem_Ico.1 hb).2),
             int.nat_abs_of_nat] } } },
   exact multiset.map_eq_map_of_bij_of_nodup _ _ (finset.nodup _) (finset.nodup _)
     (λ x _, (a * x : zmod p).val_min_abs.nat_abs) hmem (λ _ _, rfl)
@@ -182,7 +182,7 @@ private lemma gauss_lemma_aux₁ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)]
 calc (a ^ (p / 2) * (p / 2)! : zmod p) =
     (∏ x in Ico 1 (p / 2).succ, a * x) :
   by rw [prod_mul_distrib, ← prod_nat_cast, ← prod_nat_cast, prod_Ico_id_eq_factorial,
-      prod_const, Ico.card, succ_sub_one]; simp
+      prod_const, card_Ico, succ_sub_one]; simp
 ... = (∏ x in Ico 1 (p / 2).succ, (a * x : zmod p).val) : by simp
 ... = (∏ x in Ico 1 (p / 2).succ,
     (if (a * x : zmod p).val ≤ p / 2 then 1 else -1) *
@@ -325,23 +325,23 @@ begin
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)),
   { apply disjoint_filter.2 (λ x hx hpq hqp, _),
     have hxp : x.1 < p, from lt_of_le_of_lt
-      (show x.1 ≤ p / 2, by simp only [*, lt_succ_iff, Ico.mem, mem_product] at *; tauto)
+      (show x.1 ≤ p / 2, by simp only [*, lt_succ_iff, mem_Ico, mem_product] at *; tauto)
       (nat.div_lt_self hp.1.pos dec_trivial),
     have : (x.1 : zmod p) = 0,
       { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
-    simpa only [this, nonpos_iff_eq_zero, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
+    simpa only [this, nonpos_iff_eq_zero, mem_Ico, one_ne_zero, false_and, mem_product] using hx },
   have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q) ∪
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p) =
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)),
   from finset.ext (λ x, by have := le_total (x.2 * p) (x.1 * q);
-    simp only [mem_union, mem_filter, Ico.mem, mem_product]; tauto),
+    simp only [mem_union, mem_filter, mem_Ico, mem_product]; tauto),
   rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product],
-  simp only [Ico.card, nat.sub_zero, succ_sub_succ_eq_sub]
+  simp only [card_Ico, nat.sub_zero, succ_sub_succ_eq_sub]
 end
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]

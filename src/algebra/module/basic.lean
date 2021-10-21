@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
-import algebra.group.hom
-import group_theory.group_action.group
 import algebra.smul_with_zero
+import group_theory.group_action.group
+import tactic.norm_num
 
 /-!
 # Modules over a ring
@@ -18,16 +18,17 @@ In this file we define
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
 
-  ## Implementation notes
-  In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
-  word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
-  If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
-  Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
-  without changing the axioms in `module`, mathlib calls everything a `module`.
+## Implementation notes
 
-  In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
-  This caused inference issues in some cases, while not providing any real advantages, so we decided
-  to use a canonical `module` typeclass throughout.
+In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
+word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
+If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
+Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
+without changing the axioms in `module`, mathlib calls everything a `module`.
+
+In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
+This caused inference issues in some cases, while not providing any real advantages, so we decided
+to use a canonical `module` typeclass throughout.
 
 ## Tags
 
@@ -105,27 +106,31 @@ variables {R} (M)
 See note [reducible non-instances]. -/
 @[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
-{ smul := (•) ∘ f,
+{ smul := has_scalar.comp.smul f,
   add_smul := λ r s x, by simp [add_smul],
   .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
   .. distrib_mul_action.comp_hom M (f : S →* R) }
 
 variables (R) (M)
 
-/-- `(•)` as an `add_monoid_hom`. -/
+/-- `(•)` as an `add_monoid_hom`.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_End` -/
+@[simps apply_apply]
+def module.to_add_monoid_End : R →+* add_monoid.End M :=
+{ map_zero' := add_monoid_hom.ext $ λ r, by simp,
+  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul],
+  ..distrib_mul_action.to_add_monoid_End R M }
+
+/-- A convenience alias for `module.to_add_monoid_End` as an `add_monoid_hom`, usually to allow the
+use of `add_monoid_hom.flip`. -/
 def smul_add_hom : R →+ M →+ M :=
-{ to_fun := const_smul_hom M,
-  map_zero' := add_monoid_hom.ext $ λ r, by simp,
-  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
+(module.to_add_monoid_End R M).to_add_monoid_hom
 
 variables {R M}
 
 @[simp] lemma smul_add_hom_apply (r : R) (x : M) :
   smul_add_hom R M r x = r • x := rfl
-
-@[simp] lemma smul_add_hom_one {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
-  smul_add_hom R M 1 = add_monoid_hom.id _ :=
-const_smul_hom_one
 
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
@@ -145,7 +150,9 @@ end add_comm_monoid
 variables (R)
 
 /-- An `add_comm_monoid` that is a `module` over a `ring` carries a natural `add_comm_group`
-structure. -/
+structure.
+See note [reducible non-instances]. -/
+@[reducible]
 def module.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [module R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
@@ -202,10 +209,8 @@ lemma module_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q :
   P = Q :=
 begin
   unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
-  congr,
-  funext r m,
-  exact w r m,
-  all_goals { apply proof_irrel_heq },
+  obtain rfl : P = Q, by { funext r m, exact w r m },
+  congr
 end
 
 section module
@@ -213,6 +218,9 @@ variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
 eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
+
+@[simp] lemma neg_smul_neg : -r • -x = r • x :=
+by rw [neg_smul, smul_neg, neg_neg]
 
 @[simp] theorem units.neg_smul (u : units R) (x : M) : -u • x = - (u • x) :=
 by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
@@ -241,15 +249,33 @@ instance semiring.to_module [semiring R] : module R R :=
   zero_smul := zero_mul,
   smul_zero := mul_zero }
 
+/-- Like `semiring.to_module`, but multiplies on the right. -/
+@[priority 910] -- see Note [lower instance priority]
+instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
+{ smul_add := λ r x y, add_mul _ _ _,
+  add_smul := λ r x y, mul_add _ _ _,
+  ..monoid_with_zero.to_opposite_mul_action_with_zero R}
+
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
-{ smul := λ r x, f r * x,
-  smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
-  add_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_add, add_mul],
-  mul_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_mul, mul_assoc],
-  one_smul := λ x, show f 1 * x = _, by rw [f.map_one, one_mul],
-  zero_smul := λ x, show f 0 * x = 0, by rw [f.map_zero, zero_mul],
-  smul_zero := λ r, mul_zero (f r) }
+module.comp_hom S f
+
+/-- The tautological action by `R →+* R` on `R`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R →+* R) R :=
+{ smul := ($),
+  smul_zero := ring_hom.map_zero,
+  smul_add := ring_hom.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma ring_hom.smul_def [semiring R] (f : R →+* R) (a : R) :
+  f • a = f a := rfl
+
+/-- `ring_hom.apply_distrib_mul_action` is faithful. -/
+instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+⟨ring_hom.ext⟩
 
 section add_comm_monoid
 
@@ -353,39 +379,77 @@ lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 by simp only [f.map_gsmul]
 
-lemma map_int_cast_smul
-  [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
-  (f : M →+ M₂) (x : ℤ) (a : M) : f ((x : R) • a) = (x : R) • f a :=
+lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂]
+  (f : M →+ M₂) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
+  (x : ℤ) (a : M) : f ((x : R) • a) = (x : S) • f a :=
 by simp only [←gsmul_eq_smul_cast, f.map_gsmul]
 
-lemma map_nat_cast_smul
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
-  [module R M] [module R M₂] (f : M →+ M₂) (x : ℕ) (a : M) :
-  f ((x : R) • a) = (x : R) • f a :=
+lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂)
+  (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂] (x : ℕ) (a : M) :
+  f ((x : R) • a) = (x : S) • f a :=
 by simp only [←nsmul_eq_smul_cast, f.map_nsmul]
 
-lemma map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
-  {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]
-  (f : E →+ F) (c : ℚ) (x : E) :
-  f ((c : R) • x) = (c : R) • f x :=
+lemma map_inv_int_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
+  (n : ℤ) (x : E) :
+  f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
 begin
-  have : ∀ (x : E) (n : ℕ), 0 < n → f (((n⁻¹ : ℚ) : R) • x) = ((n⁻¹ : ℚ) : R) • f x,
-  { intros x n hn,
-    replace hn : (n : R) ≠ 0 := nat.cast_ne_zero.2 (ne_of_gt hn),
-    conv_rhs { congr, skip, rw [← one_smul R x, ← mul_inv_cancel hn, mul_smul] },
-    rw [f.map_nat_cast_smul, smul_smul, rat.cast_inv, rat.cast_coe_nat,
-      inv_mul_cancel hn, one_smul] },
-  refine c.num_denom_cases_on (λ m n hn hmn, _),
-  rw [rat.mk_eq_div, div_eq_mul_inv, rat.cast_mul, int.cast_coe_nat, mul_smul, mul_smul,
-    rat.cast_coe_int, f.map_int_cast_smul, this _ n hn]
+  by_cases hR : (n : R) = 0; by_cases hS : (n : S) = 0,
+  { simp [hR, hS] },
+  { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
+    rw [← inv_smul_smul₀ hS (f x), ← map_int_cast_smul f R S], simp [hR] },
+  { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
+    rw [← smul_inv_smul₀ hR x, map_int_cast_smul f R S, hS, zero_smul] },
+  { rw [← inv_smul_smul₀ hS (f _), ← map_int_cast_smul f R S, smul_inv_smul₀ hR] }
 end
+
+lemma map_inv_nat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
+  (n : ℕ) (x : E) :
+  f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
+f.map_inv_int_cast_smul R S n x
+
+lemma map_rat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
+  (c : ℚ) (x : E) :
+  f ((c : R) • x) = (c : S) • f x :=
+by rw [rat.cast_def, rat.cast_def, div_eq_mul_inv, div_eq_mul_inv, mul_smul, mul_smul,
+  map_int_cast_smul f R S, map_inv_nat_cast_smul f R S]
 
 lemma map_rat_module_smul {E : Type*} [add_comm_group E] [module ℚ E]
   {F : Type*} [add_comm_group F] [module ℚ F] (f : E →+ F) (c : ℚ) (x : E) :
   f (c • x) = c • f x :=
-rat.cast_id c ▸ f.map_rat_cast_smul c x
+rat.cast_id c ▸ f.map_rat_cast_smul ℚ ℚ c x
 
 end add_monoid_hom
+
+/-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
+an instance because `simp` becomes very slow if we have many `subsingleton` instances,
+see [gh-6025]. -/
+lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
+⟨λ P Q, module_ext P Q $ λ r x,
+  @add_monoid_hom.map_rat_module_smul E ‹_› P E ‹_› Q (add_monoid_hom.id _) r x⟩
+
+/-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
+agree on inverses of integer numbers in `R` and `S`. -/
+lemma inv_int_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
+  [division_ring S] [module R E] [module S E] (n : ℤ) (x : E) :
+  (n⁻¹ : R) • x = (n⁻¹ : S) • x :=
+(add_monoid_hom.id E).map_inv_int_cast_smul R S n x
+
+/-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
+agree on inverses of natural numbers in `R` and `S`. -/
+lemma inv_nat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
+  [division_ring S] [module R E] [module S E] (n : ℕ) (x : E) :
+  (n⁻¹ : R) • x = (n⁻¹ : S) • x :=
+(add_monoid_hom.id E).map_inv_nat_cast_smul R S n x
+
+/-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
+agree on rational numbers in `R` and `S`. -/
+lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
+  [division_ring S] [module R E] [module S E] (r : ℚ) (x : E) :
+  (r : R) • x = (r : S) • x :=
+(add_monoid_hom.id E).map_rat_cast_smul R S r x
 
 section no_zero_smul_divisors
 /-! ### `no_zero_smul_divisors`
@@ -451,7 +515,7 @@ section smul_injective
 
 variables (M)
 
-lemma smul_left_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective (λ (x : M), c • x) :=
 λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc c • (x - y) = c • x - c • y : smul_sub c x y
@@ -484,7 +548,7 @@ section smul_injective
 
 variables (R)
 
-lemma smul_right_injective {x : M} (hx : x ≠ 0) :
+lemma smul_left_injective {x : M} (hx : x ≠ 0) :
   function.injective (λ (c : R), c • x) :=
 λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc (c - d) • x = c • x - d • x : sub_smul c d x

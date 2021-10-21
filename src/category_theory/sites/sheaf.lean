@@ -38,7 +38,7 @@ and `A` live in the same universe.
   additionally assumes filtered colimits.
 -/
 
-universes v v' u' u
+universes w v₁ v₂ u₁ u₂
 
 noncomputable theory
 
@@ -48,8 +48,8 @@ open opposite category_theory category limits sieve classical
 
 namespace presheaf
 
-variables {C : Type u} [category.{v} C]
-variables {A : Type u'} [category.{v} A]
+variables {C : Type u₁} [category.{v₁} C]
+variables {A : Type u₂} [category.{v₂} A]
 variables (J : grothendieck_topology C)
 
 -- We follow https://stacks.math.columbia.edu/tag/00VL definition 00VR
@@ -65,9 +65,9 @@ def is_sheaf (P : Cᵒᵖ ⥤ A) : Prop :=
 
 end presheaf
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C]
 variables (J : grothendieck_topology C)
-variables (A : Type u') [category.{v} A]
+variables (A : Type u₂) [category.{v₂} A]
 
 /-- The category of sheaves taking values in `A` on a grothendieck topology. -/
 @[derive category]
@@ -79,7 +79,7 @@ def Sheaf : Type* :=
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 full_subcategory_inclusion (presheaf.is_sheaf J)
 
-lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type v) :
+lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type w) :
   presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
 begin
   split,
@@ -105,7 +105,7 @@ end
 The category of sheaves taking values in Type is the same as the category of set-valued sheaves.
 -/
 @[simps]
-def Sheaf_equiv_SheafOfTypes : Sheaf J (Type v) ≌ SheafOfTypes J :=
+def Sheaf_equiv_SheafOfTypes : Sheaf J (Type w) ≌ SheafOfTypes J :=
 { functor :=
   { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.2⟩,
     map := λ S₁ S₂ f, f },
@@ -115,7 +115,7 @@ def Sheaf_equiv_SheafOfTypes : Sheaf J (Type v) ≌ SheafOfTypes J :=
   unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
   counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }
 
-instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type v)) :=
+instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type w)) :=
 ⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj (default _)⟩
 
 end category_theory
@@ -130,8 +130,8 @@ namespace presheaf
 -- make sense otherwise). It's described in https://stacks.math.columbia.edu/tag/00VL,
 -- between 00VQ and 00VR.
 
-variables {C : Type v} [small_category C]
-variables {A : Type u} [category.{v} A]
+variables {C : Type u₁} [category.{v₁} C]
+variables {A : Type u₂} [category.{max v₁ u₁} A]
 variables (J : grothendieck_topology C)
 variables {U : C} (R : presieve U)
 variables (P : Cᵒᵖ ⥤ A)
@@ -190,7 +190,7 @@ def is_sheaf' (P : Cᵒᵖ ⥤ A) : Prop := ∀ (U : C) (R : presieve U) (hR : g
 nonempty (is_limit (fork.of_ι _ (w R P)))
 
 /-- (Implementation). An auxiliary lemma to convert between sheaf conditions. -/
-def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type v)
+def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type (max v₁ u₁))
   [Π J, preserves_limits_of_shape (discrete J) s] (U : C) (R : presieve U) :
   is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃
     is_limit (fork.of_ι _ (equalizer.presieve.w (P ⋙ s) R)) :=
@@ -255,7 +255,7 @@ Note this lemma applies for "algebraic" categories, eg groups, abelian groups an
 for the category of topological spaces, topological rings, etc since reflecting isomorphisms doesn't
 hold.
 -/
-lemma is_sheaf_iff_is_sheaf_forget (s : A ⥤ Type v)
+lemma is_sheaf_iff_is_sheaf_forget (s : A ⥤ Type (max v₁ u₁))
   [has_limits A] [preserves_limits s] [reflects_isomorphisms s] :
   is_sheaf J P ↔ is_sheaf J (P ⋙ s) :=
 begin
@@ -265,7 +265,7 @@ begin
   letI : reflects_limits s := reflects_limits_of_reflects_isomorphisms,
   have : is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃ is_limit (fork.of_ι _ (w R (P ⋙ s))) :=
     is_sheaf_for_is_sheaf_for' P s U R,
-  rw ←equiv.nonempty_iff_nonempty this,
+  rw ←equiv.nonempty_congr this,
   split,
   { exact nonempty.map (λ t, is_limit_of_preserves s t) },
   { exact nonempty.map (λ t, is_limit_of_reflects s t) }

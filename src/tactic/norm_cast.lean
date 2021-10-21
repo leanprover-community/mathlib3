@@ -2,8 +2,6 @@
 Copyright (c) 2019 Paul-Nicolas Madelaine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul-Nicolas Madelaine, Robert Y. Lewis
-
-Normalizing casts inside expressions.
 -/
 import tactic.converter.interactive
 import tactic.hint
@@ -579,11 +577,10 @@ decorate_error "assumption_mod_cast failed:" $ do
     fail_if_unchanged := ff,
     canonize_instances := ff,
     canonize_proofs := ff,
-    proj := ff
-  },
+    proj := ff },
   replace_at derive [] tt,
   ctx ← local_context,
-  try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
+  ctx.mfirst (λ h, aux_mod_cast h ff >>= tactic.exact)
 
 end tactic
 
@@ -629,8 +626,7 @@ do
     pty ← pp ty, ptgt ← pp e,
     fail ("exact_mod_cast failed, expression type not directly " ++
     "inferrable. Try:\n\nexact_mod_cast ...\nshow " ++
-    to_fmt pty ++ ",\nfrom " ++ ptgt : format)
-  },
+    to_fmt pty ++ ",\nfrom " ++ ptgt : format) },
   tactic.exact_mod_cast e
 
 /--

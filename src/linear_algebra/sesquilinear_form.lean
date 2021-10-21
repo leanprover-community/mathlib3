@@ -5,6 +5,7 @@ Authors: Andreas Swerdlow
 -/
 import ring_theory.ring_invo
 import algebra.module.linear_map
+import tactic.abel
 
 /-!
 # Sesquilinear form
@@ -50,8 +51,7 @@ section general_ring
 variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
 variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 
-instance : has_coe_to_fun (sesq_form R M I) :=
-⟨_, λ S, S.sesq⟩
+instance : has_coe_to_fun (sesq_form R M I) (λ _, M → M → R) := ⟨sesq⟩
 
 lemma add_left (x y z : M) : S (x + y) z = S x z + S y z := sesq_add_left S x y z
 
@@ -126,21 +126,27 @@ S x y = 0
 lemma ortho_zero (x : M) :
 is_ortho S (0 : M) x := zero_left x
 
-lemma is_add_monoid_hom_left (S : sesq_form R M I) (x : M) : is_add_monoid_hom (λ z, S z x) :=
-{ map_add := λ z y, sesq_add_left S _ _ _,
-  map_zero := zero_left x }
+/-- For fixed `y : M`, the `R`-linear map sending `x : M` to `S x y`, where `S` is a
+sesquilinear form. -/
+@[simps] def linear_map_left (S : sesq_form R M I) (x : M) : M →ₗ[R] R :=
+{ to_fun := λ z, S z x,
+  map_add' := λ z y, sesq_add_left S _ _ _,
+  map_smul' := λ r m, sesq_smul_left S _ _ _ }
 
-lemma is_add_monoid_hom_right (S : sesq_form R M I) (x : M) : is_add_monoid_hom (λ z, S x z) :=
-{ map_add := λ z y, sesq_add_right S _ _ _,
-  map_zero := zero_right x }
+/-- For fixed `x : M`, the `add_monoid_hom` sending `y : M` to `S x y`, where `S` is a
+sesquilinear form. -/
+@[simps] def add_monoid_hom_right (S : sesq_form R M I) (x : M) : M →+ R :=
+{ to_fun := λ z, S x z,
+  map_zero' := zero_right x,
+  map_add' := λ z y, sesq_add_right S _ _ _, }
 
 lemma sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S (∑ i in t, g i) w = ∑ i in t, S (g i) w :=
-by haveI s_inst := is_add_monoid_hom_left S w; exact (finset.sum_hom t (λ z, S z w)).symm
+(linear_map_left S w).map_sum
 
 lemma sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S w (∑ i in t, g i) = ∑ i in t, S w (g i) :=
-by haveI s_inst := is_add_monoid_hom_right S w; exact (finset.sum_hom t (λ z, S w z)).symm
+(add_monoid_hom_right S w).map_sum _ t
 
 variables {M₂ : Type w} [add_comm_group M₂] [module R M₂]
 
@@ -220,14 +226,14 @@ instance to_module : module R (sesq_form R M J) :=
 
 end comm_ring
 
-section domain
+section is_domain
 
-variables {R : Type*} [domain R]
+variables {R : Type*} [ring R] [is_domain R]
   {M : Type v} [add_comm_group M] [module R M]
   {K : R ≃+* Rᵒᵖ} {G : sesq_form R M K}
 
 theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
-(is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
+  (is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
 begin
   dunfold is_ortho,
   split; intro H,
@@ -239,7 +245,7 @@ begin
 end
 
 theorem ortho_smul_right {x y : M} {a : R} (ha : a ≠ 0) :
-(is_ortho G x y) ↔ (is_ortho G x (a • y)) :=
+  (is_ortho G x y) ↔ (is_ortho G x (a • y)) :=
 begin
   dunfold is_ortho,
   split; intro H,
@@ -254,7 +260,7 @@ begin
     { exact H }}
 end
 
-end domain
+end is_domain
 
 end sesq_form
 

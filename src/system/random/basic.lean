@@ -9,10 +9,10 @@ import control.uliftable
 import control.monad.basic
 
 import data.bitvec.basic
+import data.fin.basic
 import data.list.basic
 import data.set.intervals.basic
 import data.stream.basic
-import data.fin
 
 import tactic.cache
 import tactic.interactive
@@ -247,7 +247,7 @@ instance nat_bounded_random : bounded_random ℕ :=
 { random_r := λ g inst x y hxy,
   do z ← @fin.random g inst (succ $ y - x) _,
      pure ⟨z.val + x, nat.le_add_left _ _,
-       by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }
+       by rw ← le_tsub_iff_right hxy; apply le_of_succ_le_succ z.is_lt⟩ }
 
 /-- This `bounded_random` interval generates integers between `x` and
 `y` by first generating a natural number between `0` and `y - x` and
@@ -273,7 +273,7 @@ instance fin_bounded_random (n : ℕ) : bounded_random (fin n) :=
 a proof that `0 < n` rather than on matching on `fin (succ n)`  -/
 def random_fin_of_pos : ∀ {n : ℕ} (h : 0 < n), random (fin n)
 | (succ n) _ := fin_random _
-| 0 h := false.elim (not_lt_zero _ h)
+| 0 h := false.elim (nat.not_lt_zero _ h)
 
 lemma bool_of_nat_mem_Icc_of_mem_Icc_to_nat (x y : bool) (n : ℕ) :
   n ∈ (x.to_nat .. y.to_nat) → bool.of_nat n ∈ (x .. y) :=

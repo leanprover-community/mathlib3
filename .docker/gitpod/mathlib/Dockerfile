@@ -19,7 +19,7 @@ RUN curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | s
 RUN . ~/.profile && elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}')
 # install `leanproject` using `pip`
 # RUN python3 -m pip install --user mathlibtools
-RUN python3 -m pip install --user pipx && python3 -m pipx ensurepath && source ~/.profile && pipx install mathlibtools
+RUN python3 -m pip install --user pipx && python3 -m pipx ensurepath && source ~/.profile && pipx install mathlibtools==1.1.0
 
 ENV PATH="/home/gitpod/.local/bin:/home/gitpod/.elan/bin:${PATH}"
 

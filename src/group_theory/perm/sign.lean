@@ -365,11 +365,13 @@ begin
   rcases a₂.zero_le.eq_or_lt with rfl|H',
   { simp only [and_true, eq_self_iff_true, heq_iff_eq, mem_singleton] at ha₂,
     have : 1 < a₁ := lt_of_le_of_ne (nat.succ_le_of_lt ha₁) (ne.symm ha₂),
-    norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) ha₂, this.not_le] },
+    have h01 : equiv.swap (0 : fin (n + 2)) 1 0 = 1, by simp, -- TODO : fix properly
+    norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) ha₂, this.not_le, h01] },
   { have le : 1 ≤ a₂ := nat.succ_le_of_lt H',
     have lt : 1 < a₁ := le.trans_lt ha₁,
+    have h01 : equiv.swap (0 : fin (n + 2)) 1 1 = 0, by simp, -- TODO
     rcases le.eq_or_lt with rfl|lt',
-    { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt), H.not_le] },
+    { norm_num [swap_apply_of_ne_of_ne H.ne' lt.ne', H.not_le, h01] },
     { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt),
         swap_apply_of_ne_of_ne (ne_of_gt H') (ne_of_gt lt'), ha₁.not_le] } }
 end
@@ -534,7 +536,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
       by { rw [← is_conj_iff_eq, ← or.resolve_right (int.units_eq_one_or _) h, hab'],
-        exact (monoid_hom.of s).map_is_conj (is_conj_swap hab hxy) },
+        exact s.map_is_conj (is_conj_swap hab hxy) },
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := (trunc_swap_factors g).out in
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,

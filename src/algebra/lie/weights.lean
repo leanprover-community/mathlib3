@@ -8,6 +8,7 @@ import algebra.lie.tensor_product
 import algebra.lie.character
 import algebra.lie.cartan_subalgebra
 import linear_algebra.eigenspace
+import ring_theory.tensor_product
 
 /-!
 # Weights and roots of Lie modules and Lie algebras
@@ -109,7 +110,7 @@ begin
   /- Eliminate `g` from the picture. -/
   let f₁ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
   let f₂ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
-  have h_comm_square : F.comp ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
+  have h_comm_square : F ∘ₗ ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
   { ext m₁ m₂, simp only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, sub_tmul, tmul_sub, smul_tmul,
       lie_tmul_right, tmul_smul, to_endomorphism_apply_apply, lie_module_hom.map_smul,
       linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.smul_apply,
@@ -286,11 +287,12 @@ end
 
 variables (R L H M)
 
-/-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
-`R`-bilinear product of root vectors and weight vectors, compatible with the actions of `H`. -/
-def root_space_weight_space_product (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) :
-  (root_space H χ₁) ⊗[R] (weight_space M χ₂) →ₗ⁅R,H⁆ weight_space M χ₃ :=
-lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
+/--
+Auxiliary definition for `root_space_weight_space_product`,
+which is close to the deterministic timeout limit.
+-/
+def root_space_weight_space_product_aux {χ₁ χ₂ χ₃ : H → R} (hχ : χ₁ + χ₂ = χ₃) :
+  (root_space H χ₁) →ₗ[R] (weight_space M χ₂) →ₗ[R] (weight_space M χ₃) :=
 { to_fun    := λ x,
   { to_fun    :=
       λ m, ⟨⁅(x : L), (m : M)⁆,
@@ -300,9 +302,22 @@ lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
   map_add'  := λ x y, by ext m; rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk,
     linear_map.coe_mk, subtype.coe_mk, lie_submodule.coe_add, lie_submodule.coe_add, add_lie,
     subtype.coe_mk, subtype.coe_mk],
-  map_smul' := λ t x, by ext m; rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
-    subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
-  map_lie'  := λ x y, by ext m; rw [lie_hom.lie_apply, lie_submodule.coe_sub, linear_map.coe_mk,
+  map_smul' := λ t x,
+  begin
+    simp only [ring_hom.id_apply],
+    ext m,
+    rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
+      subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
+  end, }
+
+/-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
+`R`-bilinear product of root vectors and weight vectors, compatible with the actions of `H`. -/
+def root_space_weight_space_product (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) :
+  (root_space H χ₁) ⊗[R] (weight_space M χ₂) →ₗ⁅R,H⁆ weight_space M χ₃ :=
+lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
+{ to_linear_map := root_space_weight_space_product_aux R L H M hχ,
+  map_lie' := λ x y, by ext m; rw [root_space_weight_space_product_aux,
+    lie_hom.lie_apply, lie_submodule.coe_sub, linear_map.coe_mk,
     linear_map.coe_mk, subtype.coe_mk, subtype.coe_mk, lie_submodule.coe_bracket,
     lie_submodule.coe_bracket, subtype.coe_mk, lie_subalgebra.coe_bracket_of_module,
     lie_subalgebra.coe_bracket_of_module, lie_submodule.coe_bracket,
@@ -311,7 +326,8 @@ lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
 @[simp] lemma coe_root_space_weight_space_product_tmul
   (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) (x : root_space H χ₁) (m : weight_space M χ₂) :
   (root_space_weight_space_product R L H M χ₁ χ₂ χ₃ hχ (x ⊗ₜ m) : M) = ⁅(x : L), (m : M)⁆ :=
-by simp only [root_space_weight_space_product, lift_apply, lie_module_hom.coe_to_linear_map,
+by simp only [root_space_weight_space_product, root_space_weight_space_product_aux,
+  lift_apply, lie_module_hom.coe_to_linear_map,
   coe_lift_lie_eq_lift_coe, submodule.coe_mk, linear_map.coe_mk, lie_module_hom.coe_mk]
 
 /-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural

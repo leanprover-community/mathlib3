@@ -25,7 +25,7 @@ numbers on `[0, 1]`. There are many technical difficulties with formalizing this
 needs to formalize the "dyadic induction", then prove that the resulting family of open sets is
 monotone). So, we formalize a slightly different proof.
 
-Let `urysohns.CU` the the type of pairs `(C, U)` of a closed set `C`and an open set `U` such that
+Let `urysohns.CU` be the type of pairs `(C, U)` of a closed set `C`and an open set `U` such that
 `C ⊆ U`. Since `X` is a normal topological space, for each `c : CU X` there exists an open set `u`
 such that `c.C ⊆ u ∧ closure u ⊆ c.U`. We define `c.left` and `c.right` to be `(c.C, u)` and
 `(closure u, c.U)`, respectively. Then we define a family of functions
@@ -196,7 +196,7 @@ begin
 end
 
 lemma approx_mono (c : CU X) (x : X) : monotone (λ n, c.approx n x) :=
-monotone_of_monotone_nat $ λ n, c.approx_le_succ n x
+monotone_nat_of_le_succ $ λ n, c.approx_le_succ n x
 
 /-- A continuous function `f : X → ℝ` such that
 

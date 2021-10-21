@@ -186,10 +186,10 @@ monotone.map_min cast_mono
 monotone.map_max cast_mono
 
 @[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
-  ((abs q : ℤ) : α) = abs q :=
-by simp [abs]
+  ((|q| : ℤ) : α) = |q| :=
+by simp [abs_eq_max_neg]
 
-lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = abs n
+lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
 | (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
 | -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
                            ← nat.cast_succ, nat.abs_cast]
@@ -201,6 +201,19 @@ ring_hom.map_dvd (int.cast_ring_hom α) h
 end cast
 
 end int
+
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+  [has_zero β] [has_one β] [has_add β] [has_neg β]
+
+@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
 
 open int
 

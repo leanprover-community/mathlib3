@@ -210,6 +210,9 @@ begin
   simp [decode_sum]; cases bodd n; simp [decode_sum]; rw e; refl
 end
 
+noncomputable instance «Prop» : encodable Prop :=
+of_equiv bool equiv.Prop_equiv_bool
+
 section sigma
 variables {γ : α → Type*} [encodable α] [∀ a, encodable (γ a)]
 
@@ -447,7 +450,7 @@ end
 variables [preorder β] {f : α → β} (hf : directed (≤) f)
 
 lemma sequence_mono : monotone (f ∘ (hf.sequence f)) :=
-monotone_of_monotone_nat $ hf.sequence_mono_nat
+monotone_nat_of_le_succ $ hf.sequence_mono_nat
 
 lemma le_sequence (a : α) : f a ≤ f (hf.sequence f (encode a + 1)) :=
 hf.rel_sequence a

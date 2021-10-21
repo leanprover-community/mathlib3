@@ -2,13 +2,11 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
-
-Theory of topological rings.
 -/
-import topology.algebra.group
+import algebra.ring.prod
 import ring_theory.ideal.basic
 import ring_theory.subring
-import algebra.ring.prod
+import topology.algebra.group
 
 /-!
 
@@ -23,24 +21,26 @@ of topological (semi)rings.
 
 - `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
   `subring`/`subsemiring` is itself a `sub(semi)ring`.
-- `prod_ring`/`prod_semiring`: The product of two topological (semi)rings.
+- `prod.topological_ring`/`prod.topological_ring`: The product of two topological (semi)rings.
+- `pi.topological_ring`/`pi.topological_ring`: The arbitrary product of topological (semi)rings.
 - `ideal.closure`: The closure of an ideal is an ideal.
 - `topological_ring_quotient`: The quotient of a topological ring by an ideal is a topological ring.
 
 -/
 
-open classical set filter topological_space
-open_locale classical
+open classical set filter topological_space function
+open_locale classical topological_space filter
 
 section topological_ring
 variables (α : Type*)
 
-/-- A topological semiring is a semiring where addition and multiplication are continuous. -/
-class topological_semiring [topological_space α] [semiring α]
+/-- A topological (semi)ring is a (semi)ring `R` where addition and multiplication are continuous.
+If `R` is a ring, then negation is automatically continuous, as it is multiplication with `-1`. -/
+class topological_ring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 
 section
-variables {α} [topological_space α] [semiring α] [topological_semiring α]
+variables {α} [topological_space α] [semiring α] [topological_ring α]
 
 /-- The (topological-space) closure of a subsemiring of a topological semiring is
 itself a subsemiring. -/
@@ -53,8 +53,8 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   (s.topological_closure : set α) = closure (s : set α) :=
 rfl
 
-instance subsemiring.topological_closure_topological_semiring (s : subsemiring α) :
-  topological_semiring (s.topological_closure) :=
+instance subsemiring.topological_closure_topological_ring (s : subsemiring α) :
+  topological_ring (s.topological_closure) :=
 { ..s.to_add_submonoid.topological_closure_has_continuous_add,
   ..s.to_submonoid.topological_closure_has_continuous_mul }
 
@@ -73,35 +73,63 @@ closure_minimal h ht
 
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
-instance prod_semiring {β : Type*}
-  [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
-{}
+instance {β : Type*} [semiring β] [topological_space β] [topological_ring β] :
+  topological_ring (α × β) := {}
 
+instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
+  [Π b, semiring (C b)] [Π b, topological_ring (C b)] : topological_ring (Π b, C b) := {}
 end
-
-/-- A topological ring is a ring where the ring operations are continuous. -/
-class topological_ring [topological_space α] [ring α]
-  extends has_continuous_add α, has_continuous_mul α : Prop :=
-(continuous_neg : continuous (λa:α, -a))
-
-variables {α} [ring α] [topological_space α]
 
 section
-variables [t : topological_ring α]
-@[priority 100] -- see Note [lower instance priority]
-instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
+variables {R : Type*} [ring R] [topological_space R]
 
-@[priority 100] -- see Note [lower instance priority]
-instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
+lemma topological_ring.of_add_group_of_nhds_zero [topological_add_group R]
+  (hmul : tendsto (uncurry ((*) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) $ 𝓝 0)
+  (hmul_left : ∀ (x₀ : R), tendsto (λ x : R, x₀ * x) (𝓝 0) $ 𝓝 0)
+  (hmul_right : ∀ (x₀ : R), tendsto (λ x : R, x * x₀) (𝓝 0) $ 𝓝 0) : topological_ring R :=
+begin
+  refine {..‹topological_add_group R›, ..},
+  have hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0), by simp,
+  have hadd : tendsto (uncurry ((+) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) (𝓝 0),
+  { rw ← nhds_prod_eq,
+    convert continuous_add.tendsto ((0 : R), (0 : R)),
+    rw zero_add },
+  rw continuous_iff_continuous_at,
+  rintro ⟨x₀, y₀⟩,
+  rw [continuous_at, nhds_prod_eq, hleft x₀, hleft y₀, hleft (x₀*y₀), filter.prod_map_map_eq,
+      tendsto_map'_iff],
+  suffices :
+    tendsto ((λ (x : R), x + x₀ * y₀) ∘ (λ (p : R × R), p.1 + p.2) ∘
+              (λ (p : R × R), (p.1*y₀ + x₀*p.2, p.1*p.2)))
+            ((𝓝 0) ×ᶠ (𝓝 0)) (map (λ (x : R), x + x₀ * y₀) $ 𝓝 0),
+  { convert this using 1,
+    { ext, simp only [comp_app, mul_add, add_mul], abel },
+    { simp only [add_comm] } },
+  refine tendsto_map.comp (hadd.comp (tendsto.prod_mk _ hmul)),
+  exact hadd.comp (((hmul_right y₀).comp tendsto_fst).prod_mk ((hmul_left  x₀).comp tendsto_snd))
 end
 
-variables [topological_ring α]
+lemma topological_ring.of_nhds_zero
+  (hadd : tendsto (uncurry ((+) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) $ 𝓝 0)
+  (hneg : tendsto (λ x, -x : R → R) (𝓝 0) (𝓝 0))
+  (hmul : tendsto (uncurry ((*) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) $ 𝓝 0)
+  (hmul_left : ∀ (x₀ : R), tendsto (λ x : R, x₀ * x) (𝓝 0) $ 𝓝 0)
+  (hmul_right : ∀ (x₀ : R), tendsto (λ x : R, x * x₀) (𝓝 0) $ 𝓝 0)
+  (hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0)) : topological_ring R :=
+begin
+  haveI := topological_add_group.of_comm_of_nhds_zero hadd hneg hleft,
+  exact topological_ring.of_add_group_of_nhds_zero hmul hmul_left hmul_right
+end
 
-/-- The product topology on the cartesian product of two topological rings
-  makes the product into a topological ring. -/
-instance prod_ring {β : Type*}
-  [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
-{ continuous_neg := continuous_neg }
+end
+
+variables {α} [ring α] [topological_space α] [topological_ring α]
+
+@[priority 100] -- See note [lower instance priority]
+instance topological_ring.to_topological_add_group : topological_add_group α :=
+{ continuous_add := continuous_add,
+  continuous_neg := by simpa only [neg_one_mul, id.def] using
+    (@continuous_const α α _ _ (-1)).mul continuous_id }
 
 /-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_left_continuous (x : α) : continuous (add_monoid_hom.mul_left x) :=
@@ -115,8 +143,8 @@ continuous_id.mul continuous_const
 itself a subring. -/
 def subring.topological_closure (S : subring α) : subring α :=
 { carrier := closure (S : set α),
-  ..(S.to_submonoid.topological_closure),
-  ..(S.to_add_subgroup.topological_closure) }
+  ..S.to_submonoid.topological_closure,
+  ..S.to_add_subgroup.topological_closure }
 
 instance subring.topological_closure_topological_ring (s : subring α) :
   topological_ring (s.topological_closure) :=
@@ -178,11 +206,108 @@ instance topological_ring_quotient : topological_ring N.quotient :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
       continuous_quot_mk.comp continuous_add,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).mpr cont,
-  continuous_neg :=
-    by convert continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg); apply_instance,
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).mpr cont }
 
 end topological_ring
+
+/-!
+### Lattice of ring topologies
+We define a type class `ring_topology α` which endows a ring `α` with a topology such that all ring
+operations are continuous.
+
+Ring topologies on a fixed ring `α` are ordered, by reverse inclusion. They form a complete lattice,
+with `⊥` the discrete topology and `⊤` the indiscrete topology.
+
+Any function `f : α → β` induces `coinduced f : topological_space α → ring_topology β`. -/
+
+universes u v
+
+/-- A ring topology on a ring `α` is a topology for which addition, negation and multiplication
+are continuous. -/
+@[ext]
+structure ring_topology (α : Type u) [ring α]
+  extends topological_space α, topological_ring α : Type u
+
+namespace ring_topology
+variables {α : Type*} [ring α]
+
+instance inhabited {α : Type u} [ring α] : inhabited (ring_topology α) :=
+⟨{to_topological_space := ⊤,
+  continuous_add       := continuous_top,
+  continuous_mul       := continuous_top}⟩
+
+@[ext]
+lemma ext' {f g : ring_topology α} (h : f.is_open = g.is_open) : f = g :=
+by { ext, rw h }
+
+/-- The ordering on ring topologies on the ring `α`.
+  `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
+instance : partial_order (ring_topology α) :=
+partial_order.lift ring_topology.to_topological_space $ ext
+
+local notation `cont` := @continuous _ _
+
+private def def_Inf (S : set (ring_topology α)) : ring_topology α :=
+let Inf_S' := Inf (to_topological_space '' S) in
+{ to_topological_space := Inf_S',
+  continuous_add       :=
+  begin
+    apply continuous_Inf_rng,
+    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
+    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
+    have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
+    have h_continuous_add : cont (id _) t (λ (p : α × α), p.fst + p.snd) := continuous_add,
+    exact @continuous.comp _ _ _ (id _) (id _) t _ _ h_continuous_add h_continuous_id,
+  end,
+  continuous_mul       :=
+  begin
+    apply continuous_Inf_rng,
+    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
+    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
+    have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
+    have h_continuous_mul : cont (id _) t (λ (p : α × α), p.fst * p.snd) := continuous_mul,
+    exact @continuous.comp _ _ _ (id _) (id _) t _ _ h_continuous_mul h_continuous_id,
+  end }
+
+/-- Ring topologies on `α` form a complete lattice, with `⊥` the discrete topology and `⊤` the
+indiscrete topology.
+
+The infimum of a collection of ring topologies is the topology generated by all their open sets
+(which is a ring topology).
+
+The supremum of two ring topologies `s` and `t` is the infimum of the family of all ring topologies
+contained in the intersection of `s` and `t`. -/
+instance : complete_semilattice_Inf (ring_topology α) :=
+{ Inf    := def_Inf,
+  Inf_le := λ S a haS, by { apply topological_space.complete_lattice.Inf_le, use [a, ⟨ haS, rfl⟩] },
+  le_Inf :=
+  begin
+    intros S a hab,
+    apply topological_space.complete_lattice.le_Inf,
+    rintros _ ⟨b, hbS, rfl⟩,
+    exact hab b hbS,
+  end,
+  ..ring_topology.partial_order }
+
+instance : complete_lattice (ring_topology α) :=
+complete_lattice_of_complete_semilattice_Inf _
+
+/--  Given `f : α → β` and a topology on `α`, the coinduced ring topology on `β` is the finest
+topology such that `f` is continuous and `β` is a topological ring. -/
+def coinduced {α β : Type*} [t : topological_space α] [ring β] (f : α → β) :
+  ring_topology β :=
+Inf {b : ring_topology β | (topological_space.coinduced f t) ≤ b.to_topological_space}
+
+lemma coinduced_continuous {α β : Type*} [t : topological_space α] [ring β] (f : α → β) :
+  cont t (coinduced f).to_topological_space f :=
+begin
+  rw continuous_iff_coinduced_le,
+  refine le_Inf _,
+  rintros _ ⟨t', ht', rfl⟩,
+  exact ht',
+end
+
+end ring_topology

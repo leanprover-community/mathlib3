@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis
 -/
 import algebra.group_with_zero.power
 import tactic.linarith
+import data.equiv.ring
 
 /-!
 # Integer power operation on fields and division rings
@@ -19,6 +20,10 @@ universe u
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
 f.to_monoid_with_zero_hom.map_fpow
 
+@[simp] lemma ring_equiv.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K ≃+* L) :
+  ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
+f.to_ring_hom.map_fpow
+
 @[simp] lemma fpow_bit0_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit0 n) = x ^ bit0 n :=
 by rw [fpow_bit0', fpow_bit0', neg_mul_neg]
@@ -27,7 +32,7 @@ lemma fpow_even_neg {K : Type*} [division_ring K] (a : K) {n : ℤ} (h : even n)
   (-a) ^ n = a ^ n :=
 begin
   obtain ⟨k, rfl⟩ := h,
-  simp [←bit0_eq_two_mul]
+  rw [←bit0_eq_two_mul, fpow_bit0_neg],
 end
 
 @[simp] lemma fpow_bit1_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
@@ -156,48 +161,33 @@ theorem fpow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_neg_iff.mpr ha
 
 lemma fpow_even_abs (a : K) {p : ℤ} (hp : even p) :
-  abs a ^ p = a ^ p :=
+  |a| ^ p = a ^ p :=
 begin
-  cases le_or_lt a (-a) with h h;
-  simp [abs, h, max_eq_left_of_lt, fpow_even_neg _ hp]
+  cases abs_choice a with h h;
+  simp only [h, fpow_even_neg _ hp],
 end
 
 @[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) :
-  (abs a) ^ bit0 p = a ^ bit0 p :=
+  (|a|) ^ bit0 p = a ^ bit0 p :=
 fpow_even_abs _ (even_bit0 _)
 
 lemma abs_fpow_even (a : K) {p : ℤ} (hp : even p) :
-  abs (a ^ p) = a ^ p :=
+  |a ^ p| = a ^ p :=
 begin
-  rw [←fpow_even_abs _ hp, abs_eq_self],
+  rw [abs_eq_self],
   exact fpow_even_nonneg _ hp
 end
 
 @[simp] lemma abs_fpow_bit0 (a : K) (p : ℤ) :
-  abs (a ^ bit0 p) = a ^ bit0 p :=
+  |a ^ bit0 p| = a ^ bit0 p :=
 abs_fpow_even _ (even_bit0 _)
 
 end ordered_field_power
 
-lemma one_lt_pow {K} [linear_ordered_semiring K] {p : K} (hp : 1 < p) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
-| 1 h := by simp; assumption
-| (k+2) h :=
-  begin
-    rw [←one_mul (1 : K), pow_succ],
-    apply mul_lt_mul,
-    { assumption },
-    { apply le_of_lt, simpa using one_lt_pow (nat.le_add_left 1 k)},
-    { apply zero_lt_one },
-    { apply le_of_lt (lt_trans zero_lt_one hp) }
-  end
-
-section
-local attribute [semireducible] int.nonneg
-lemma one_lt_fpow {K}  [linear_ordered_field K] {p : K} (hp : 1 < p) :
+lemma one_lt_fpow {K} [linear_ordered_field K] {p : K} (hp : 1 < p) :
   ∀ z : ℤ, 0 < z → 1 < p ^ z
-| (n : ℕ) h := by { rw [gpow_coe_nat],
-    exact one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h)) }
-end
+| (n : ℕ) h := (gpow_coe_nat p n).symm.subst (one_lt_pow hp $ int.coe_nat_ne_zero.mp h.ne')
+| -[1+ n] h := ((int.neg_succ_not_pos _).mp h).elim
 
 section ordered
 variables  {K : Type*} [linear_ordered_field K]
@@ -215,12 +205,9 @@ begin
   have xpos : 0 < x := zero_lt_one.trans hx,
   have h₀ : x ≠ 0 := xpos.ne',
   have hxm : 0 < x^m := fpow_pos_of_pos xpos m,
-  have hxm₀ : x^m ≠ 0 := ne_of_gt hxm,
-  suffices : 1 < x^(n-m),
-  { replace := mul_lt_mul_of_pos_right this hxm,
-    simp [sub_eq_add_neg] at this,
-    simpa [*, fpow_add, mul_assoc, fpow_neg, inv_mul_cancel], },
-  apply one_lt_fpow hx, linarith,
+  have h : 1 < x ^ (n - m) := one_lt_fpow hx _ (sub_pos_of_lt h),
+  replace h := mul_lt_mul_of_pos_right h hxm,
+  rwa [sub_eq_add_neg, fpow_add h₀, mul_assoc, fpow_neg_mul_fpow_self _ h₀, one_mul, mul_one] at h,
 end
 
 @[simp] lemma fpow_lt_iff_lt {x : K} (hx : 1 < x) {m n : ℤ} :
@@ -243,12 +230,11 @@ lemma fpow_injective {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
   function.injective ((^) x : ℤ → K) :=
 begin
   intros m n h,
-  rcases lt_trichotomy x 1 with H|rfl|H,
+  rcases h₁.lt_or_lt with H|H,
   { apply (fpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
     rw [← fpow_neg_one, ← fpow_mul, ← fpow_mul, mul_comm _ m, mul_comm _ n, fpow_mul, fpow_mul,
       h], },
-  { contradiction },
   { exact (fpow_strict_mono H).injective h, },
 end
 

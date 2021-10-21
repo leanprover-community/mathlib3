@@ -84,7 +84,7 @@ lemma bernoulli'_spec' (n : ℕ) :
 begin
   refine ((sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
   refine sum_congr rfl (λ x hx, _),
-  simp only [nat.add_sub_cancel', mem_range_succ_iff.mp hx, cast_sub],
+  simp only [add_tsub_cancel_of_le, mem_range_succ_iff.mp hx, cast_sub],
 end
 
 /-! ### Examples -/
@@ -121,7 +121,7 @@ begin
   congr',
   have : ((n - k : ℕ) : ℚ) + 1 ≠ 0 := by apply_mod_cast succ_ne_zero,
   field_simp [← cast_sub (mem_range.1 hk).le, mul_comm],
-  rw_mod_cast [nat.sub_add_eq_add_sub (mem_range.1 hk).le, choose_mul_succ_eq],
+  rw_mod_cast [tsub_add_eq_add_tsub (mem_range.1 hk).le, choose_mul_succ_eq],
 end
 
 /-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/
@@ -331,7 +331,7 @@ begin
   let f' := λ i, bernoulli' i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
   suffices : ∑ k in Ico 1 n.succ, ↑k ^ p.succ = ∑ i in range p.succ.succ, f' i, { convert this },
   -- prove some algebraic facts that will make things easier for us later on
-  have hle := le_add_left 1 n,
+  have hle := nat.le_add_left 1 n,
   have hne : (p + 1 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero p.succ,
   have h1 : ∀ r : ℚ, r * (p + 1 + 1) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
     λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],

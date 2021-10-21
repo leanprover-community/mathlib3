@@ -67,7 +67,6 @@ open finset
 
 variables {M N G G₀ R S : Type*}
 variables [comm_monoid M] [comm_monoid N] [comm_group G] [comm_group_with_zero G₀]
-variables [integral_domain R] [integral_domain S]
 
 section roots_of_unity
 
@@ -96,6 +95,52 @@ begin
   rintros _ ⟨ζ, h, rfl⟩,
   simp only [←monoid_hom.map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
 end
+
+variables [comm_ring R]
+
+@[norm_cast]
+lemma roots_of_unity.coe_pow (ζ : roots_of_unity k R) (m : ℕ) : ↑(ζ ^ m) = (ζ ^ m : R) :=
+begin
+  change ↑(↑(ζ ^ m) : units R) = ↑(ζ : units R) ^ m,
+  rw [subgroup.coe_pow, units.coe_pow],
+end
+
+variables [comm_ring S]
+
+/-- Restrict a ring homomorphism between integral domains to the nth roots of unity -/
+def ring_hom.restrict_roots_of_unity (σ : R →+* S) (n : ℕ+) :
+  roots_of_unity n R →* roots_of_unity n S :=
+let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
+{ change (σ (ξ : units R)) ^ (n : ℕ) = 1,
+  rw [←σ.map_pow, ←units.coe_pow, show ((ξ : units R) ^ (n : ℕ) = 1), from ξ.2,
+      units.coe_one, σ.map_one] } in
+{ to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.2),
+    by { ext, rw units.coe_pow, exact h ξ }⟩,
+  map_one' := by { ext, exact σ.map_one },
+  map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact σ.map_mul _ _ } }
+
+@[simp] lemma ring_hom.restrict_roots_of_unity_coe_apply (σ : R →+* S) (ζ : roots_of_unity k R) :
+  ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
+rfl
+
+/-- Restrict a ring isomorphism between integral domains to the nth roots of unity -/
+def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
+  roots_of_unity n R ≃* roots_of_unity n S :=
+{ to_fun := σ.to_ring_hom.restrict_roots_of_unity n,
+  inv_fun := σ.symm.to_ring_hom.restrict_roots_of_unity n,
+  left_inv := λ ξ, by { ext, exact σ.symm_apply_apply ξ },
+  right_inv := λ ξ, by { ext, exact σ.apply_symm_apply ξ },
+  map_mul' := (σ.to_ring_hom.restrict_roots_of_unity n).map_mul }
+
+@[simp] lemma ring_equiv.restrict_roots_of_unity_coe_apply (σ : R ≃+* S) (ζ : roots_of_unity k R) :
+  ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
+rfl
+
+@[simp] lemma ring_equiv.restrict_roots_of_unity_symm (σ : R ≃+* S) :
+  (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
+rfl
+
+variables [is_domain R]
 
 lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : units R} :
   ζ ∈ roots_of_unity k R ↔ (ζ : R) ∈ nth_roots k (1 : R) :=
@@ -142,7 +187,7 @@ instance roots_of_unity.fintype : fintype (roots_of_unity k R) :=
 fintype.of_equiv {x // x ∈ nth_roots k (1 : R)} $ (roots_of_unity_equiv_nth_roots R k).symm
 
 instance roots_of_unity.is_cyclic : is_cyclic (roots_of_unity k R) :=
-is_cyclic_of_subgroup_integral_domain ((units.coe_hom R).comp (roots_of_unity k R).subtype)
+is_cyclic_of_subgroup_is_domain ((units.coe_hom R).comp (roots_of_unity k R).subtype)
   (units.ext.comp subtype.val_injective)
 
 lemma card_roots_of_unity : fintype.card (roots_of_unity k R) ≤ k :=
@@ -154,46 +199,6 @@ calc  fintype.card (roots_of_unity k R)
 ... ≤ k                                           : card_nth_roots k 1
 
 variables {k R}
-
-@[norm_cast]
-lemma roots_of_unity.coe_pow (ζ : roots_of_unity k R) (m : ℕ) : ↑(ζ ^ m) = (ζ ^ m : R) :=
-begin
-  change ↑(↑(ζ ^ m) : units R) = ↑(ζ : units R) ^ m,
-  rw [subgroup.coe_pow, units.coe_pow],
-end
-
-/-- Restrict a ring homomorphism between integral domains to the nth roots of unity -/
-def ring_hom.restrict_roots_of_unity (σ : R →+* S) (n : ℕ+) :
-  roots_of_unity n R →* roots_of_unity n S :=
-let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
-{ change (σ (ξ : units R)) ^ (n : ℕ) = 1,
-  rw [←σ.map_pow, ←units.coe_pow, show ((ξ : units R) ^ (n : ℕ) = 1), from ξ.2,
-      units.coe_one, σ.map_one] } in
-{ to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.2),
-    by { ext, rw units.coe_pow, exact h ξ }⟩,
-  map_one' := by { ext, exact σ.map_one },
-  map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact σ.map_mul _ _ } }
-
-@[simp] lemma ring_hom.restrict_roots_of_unity_coe_apply (σ : R →+* S) (ζ : roots_of_unity k R) :
-  ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
-rfl
-
-/-- Restrict a ring isomorphism between integral domains to the nth roots of unity -/
-def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
-  roots_of_unity n R ≃* roots_of_unity n S :=
-{ to_fun := σ.to_ring_hom.restrict_roots_of_unity n,
-  inv_fun := σ.symm.to_ring_hom.restrict_roots_of_unity n,
-  left_inv := λ ξ, by { ext, exact σ.symm_apply_apply ξ },
-  right_inv := λ ξ, by { ext, exact σ.apply_symm_apply ξ },
-  map_mul' := (σ.to_ring_hom.restrict_roots_of_unity n).map_mul }
-
-@[simp] lemma ring_equiv.restrict_roots_of_unity_coe_apply (σ : R ≃+* S) (ζ : roots_of_unity k R) :
-  ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
-rfl
-
-@[simp] lemma ring_equiv.restrict_roots_of_unity_symm (σ : R ≃+* S) :
-  (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
-rfl
 
 lemma ring_hom.map_root_of_unity_eq_pow_self (σ : R →+* R) (ζ : roots_of_unity k R) :
   ∃ m : ℕ, σ ζ = ζ ^ m :=
@@ -218,8 +223,10 @@ variables {k : ℕ}
 
 /-- `primitive_roots k R` is the finset of primitive `k`-th roots of unity
 in the integral domain `R`. -/
-def primitive_roots (k : ℕ) (R : Type*) [integral_domain R] : finset R :=
+def primitive_roots (k : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 (nth_roots k (1 : R)).to_finset.filter (λ ζ, is_primitive_root ζ k)
+
+variables [comm_ring R] [is_domain R]
 
 @[simp] lemma mem_primitive_roots {ζ : R} (h0 : 0 < k) :
   ζ ∈ primitive_roots k R ↔ is_primitive_root ζ k :=
@@ -274,7 +281,7 @@ begin
   wlog hij : i ≤ j,
   apply le_antisymm hij,
   rw ← nat.sub_eq_zero_iff_le,
-  apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt (nat.sub_le_self _ _) hj),
+  apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt tsub_le_self hj),
   apply h.dvd_of_pow_eq_one,
   rw [← ((h.is_unit (lt_of_le_of_lt (nat.zero_le _) hi)).pow i).mul_left_inj,
       ← pow_add, nat.sub_add_cancel hij, H, one_mul]
@@ -402,20 +409,20 @@ begin
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj', ← fpow_neg, ← hl', gpow_coe_nat, inv_one] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj₀, ← fpow_neg, ← hl', gpow_coe_nat, inv_one] }
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow'],
+{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow₀],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
     apply h.dvd_of_pow_eq_one l,
-    rw [← inv_inj', ← inv_pow', hl, inv_one]
+    rw [← inv_inj₀, ← inv_pow₀, hl, inv_one]
   end }
 
 @[simp] lemma inv_iff' : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
-by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv' ζ], exact inv' h }
+by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv₀ ζ], exact inv' h }
 
 lemma fpow_of_gcd_eq_one (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 1) :
   is_primitive_root (ζ ^ i) k :=
@@ -434,9 +441,10 @@ end
 
 end comm_group_with_zero
 
-section integral_domain
+section is_domain
 
 variables {ζ : R}
+variables [comm_ring R] [is_domain R]
 
 @[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
 begin
@@ -480,10 +488,11 @@ begin
   { simp only [h.pow_eq_one, one_pow] }
 end
 
-end integral_domain
+end is_domain
 
-section integral_domain
+section is_domain
 
+variables [comm_ring R]
 variables {ζ : units R} (h : is_primitive_root ζ k)
 
 protected
@@ -547,6 +556,22 @@ by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe
 @[simp] lemma zmod_equiv_gpowers_symm_apply_pow' (i : ℕ) :
   h.zmod_equiv_gpowers.symm ⟨ζ ^ i, i, rfl⟩ = i :=
 h.zmod_equiv_gpowers_symm_apply_pow i
+
+/-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
+then there is a `b`-th primitive root of unity in `R`. -/
+lemma pow {ζ : R} {n : ℕ} {a b : ℕ}
+  (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
+  is_primitive_root (ζ ^ a) b :=
+begin
+  subst n,
+  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
+  intros l hl,
+  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
+  rwa ← mul_dvd_mul_iff_left ha0,
+  exact h.dvd_of_pow_eq_one _ hl
+end
+
+variables [is_domain R]
 
 lemma gpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
   subgroup.gpowers ζ = roots_of_unity k R :=
@@ -715,20 +740,6 @@ begin
   apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
 end
 
-/-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
-then there is a `b`-th primitive root of unity in `R`. -/
-lemma pow {ζ : R} {n : ℕ} {a b : ℕ}
-  (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
-  is_primitive_root (ζ ^ a) b :=
-begin
-  subst n,
-  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
-  intros l hl,
-  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
-  rwa ← mul_dvd_mul_iff_left ha0,
-  exact h.dvd_of_pow_eq_one _ hl
-end
-
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
 lemma nth_roots_one_eq_bUnion_primitive_roots' {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
@@ -767,9 +778,9 @@ if there is a primitive root of unity in `R`. -/
 lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   (h : is_primitive_root ζ n) :
   nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
-@nth_roots_one_eq_bUnion_primitive_roots' _ _ _ ⟨n, hpos⟩ h
+@nth_roots_one_eq_bUnion_primitive_roots' _ _ _ _ ⟨n, hpos⟩ h
 
-end integral_domain
+end is_domain
 
 section minpoly
 
@@ -806,12 +817,12 @@ lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minpoly ℤ μ)) ∣ X ^ n - 1,
-  { simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using
-      ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p))))
+  { simpa [map_pow, map_X, map_one, map_sub] using
+      ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p)))
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   by_contra hzero,
-  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero))
+  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero)
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is squarefree. -/
@@ -846,7 +857,7 @@ begin
     map (int.cast_ring_hom (zmod p)) (expand ℤ p Q),
   by rw [← zmod.expand_card, map_expand hprime.1.pos],
   rw [hfrob],
-  apply ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))),
+  apply ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p))),
   exact minpoly_dvd_expand h hpos hprime.1 hdiv
 end
 
@@ -882,13 +893,13 @@ begin
       rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
       intro hdiv,
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
-      exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
+      exact associated_of_dvd_dvd hdiv (Pirr.dvd_symm Qirr hdiv) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
       exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime.1 hdiv) hpos } },
-  replace prod := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))) prod,
-  rw [ring_hom.coe_of, map_mul, map_sub, map_one, map_pow, map_X] at prod,
+  replace prod := ring_hom.map_dvd ((map_ring_hom (int.cast_ring_hom (zmod p)))) prod,
+  rw [coe_map_ring_hom, map_mul, map_sub, map_one, map_pow, map_X] at prod,
   obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hpos hdiv,
   rw [hR, ← mul_assoc, ← map_mul, ← sq, map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
@@ -898,15 +909,15 @@ begin
   have hfree : squarefree (X ^ n - 1 : polynomial (zmod p)),
   { refine squarefree_X_pow_sub_C 1 _ one_ne_zero,
     by_contra hzero,
-    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },
+    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero) },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
-  { exact not_lt_of_le hle habs },
+  { rw nat.cast_one at habs, exact hle.not_lt habs },
   { replace hunit := degree_eq_zero_of_is_unit hunit,
-    rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
-    { exact (ne_of_lt (minpoly.degree_pos (is_integral h hpos))).symm hunit },
+    rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
+    { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },
     simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-      not_false_iff, one_ne_zero] },
+      not_false_iff, one_ne_zero] }
 end
 
 /-- If `m : ℕ` is coprime with `n`,

@@ -3,9 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
 import algebra.field_power
 import data.rat
+import data.int.least_greatest
 
 /-!
 # Archimedean groups and fields.
@@ -28,12 +28,19 @@ number `n` such that `x ≤ n • y`.
 * `ℕ`, `ℤ`, and `ℚ` are archimedean.
 -/
 
+open int
+
 variables {α : Type*}
 
 /-- An ordered additive commutative monoid is called `archimedean` if for any two elements `x`, `y`
 such that `0 < y` there exists a natural number `n` such that `x ≤ n • y`. -/
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
+
+instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] :
+  archimedean (order_dual α) :=
+⟨λ x y hy, let ⟨n, hn⟩ := archimedean.arch (-x : α) (neg_pos.2 hy) in
+  ⟨n, by rwa [neg_nsmul, neg_le_neg_iff] at hn⟩⟩
 
 namespace linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] [archimedean α]
@@ -154,7 +161,7 @@ let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
-  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt))
+  (fpow_le_of_le hy.le hlt.le)
     (lt_of_le_of_lt hm (by rwa ← gpow_coe_nat at hM)))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
@@ -180,7 +187,7 @@ begin
   { use 1, simp only [pow_one], linarith, },
   rw [not_le] at y_pos,
   rcases pow_unbounded_of_one_lt (x⁻¹) (one_lt_inv y_pos hy) with ⟨q, hq⟩,
-  exact ⟨q, by rwa [inv_pow', inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
+  exact ⟨q, by rwa [inv_pow₀, inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
 end
 
 /-- Given `x` and `y` between `0` and `1`, `x` is between two successive powers of `y`.
@@ -192,8 +199,8 @@ begin
   rcases exists_nat_pow_near (one_le_inv_iff.2 ⟨xpos, hx⟩) (one_lt_inv_iff.2 ⟨ypos, hy⟩)
     with ⟨n, hn, h'n⟩,
   refine ⟨n, _, _⟩,
-  { rwa [inv_pow', inv_lt_inv xpos (pow_pos ypos _)] at h'n },
-  { rwa [inv_pow', inv_le_inv (pow_pos ypos _) xpos] at hn }
+  { rwa [inv_pow₀, inv_lt_inv xpos (pow_pos ypos _)] at h'n },
+  { rwa [inv_pow₀, inv_le_inv (pow_pos ypos _) xpos] at hn }
 end
 
 variables [floor_ring α]
@@ -229,8 +236,8 @@ by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one]
 cases we have a computable `floor` function. -/
 noncomputable def archimedean.floor_ring (α)
   [linear_ordered_ring α] [archimedean α] : floor_ring α :=
-{ floor := λ x, classical.some (exists_floor x),
-  le_floor := λ z x, classical.some_spec (exists_floor x) z }
+floor_ring.of_floor α (λ a, classical.some (exists_floor a))
+  (λ z a, (classical.some_spec (exists_floor a) z).symm)
 
 section linear_ordered_field
 variables [linear_ordered_field α]
@@ -256,8 +263,8 @@ theorem archimedean_iff_rat_lt :
 ⟨@exists_rat_gt α _,
   λ H, archimedean_iff_nat_lt.2 $ λ x,
   let ⟨q, h⟩ := H x in
-  ⟨nat_ceil q, lt_of_lt_of_le h $
-    by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (le_nat_ceil _)⟩⟩
+  ⟨⌈q⌉₊, lt_of_lt_of_le h $
+    by simpa only [rat.cast_coe_nat] using (@rat.cast_le α _ _ _).2 (nat.le_ceil _)⟩⟩
 
 theorem archimedean_iff_rat_le :
   archimedean α ↔ ∀ x : α, ∃ q : ℚ, x ≤ q :=
@@ -314,7 +321,7 @@ def round (x : α) : ℤ := ⌊x + 1 / 2⌋
 @[simp] lemma round_zero : round (0 : α) = 0 := floor_eq_iff.2 (by norm_num)
 @[simp] lemma round_one : round (1 : α) = 1 := floor_eq_iff.2 (by norm_num)
 
-lemma abs_sub_round (x : α) : abs (x - round x) ≤ 1 / 2 :=
+lemma abs_sub_round (x : α) : |x - round x| ≤ 1 / 2 :=
 begin
   rw [round, abs_sub_le_iff],
   have := floor_le (x + 1 / 2),
@@ -326,7 +333,7 @@ end
 floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
 
 @[simp, norm_cast] theorem rat.cast_ceil (x : ℚ) : ⌈(x:α)⌉ = ⌈x⌉ :=
-by rw [ceil, ← rat.cast_neg, rat.cast_floor, ← ceil]
+by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.cast_floor]
 
 @[simp, norm_cast] theorem rat.cast_round (x : ℚ) : round (x:α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
@@ -338,7 +345,7 @@ section
 variables [linear_ordered_field α] [archimedean α]
 
 theorem exists_rat_near (x : α) {ε : α} (ε0 : 0 < ε) :
-  ∃ q : ℚ, abs (x - q) < ε :=
+  ∃ q : ℚ, |x - q| < ε :=
 let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
   lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
 ⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩

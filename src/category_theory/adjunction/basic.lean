@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.equivalence
-import data.equiv.basic
 
 namespace category_theory
 open category
@@ -169,7 +168,7 @@ end core_hom_equiv
 
 /--
 This is an auxiliary data structure useful for constructing adjunctions.
-See `adjunction.mk_of_hom_equiv`.
+See `adjunction.mk_of_unit_counit`.
 This structure won't typically be used anywhere else.
 -/
 @[nolint has_inhabited_instance]
@@ -201,7 +200,7 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
     begin
       intros,
       erw [← adj.hom_equiv_naturality_left, ← adj.hom_equiv_naturality_right],
-      dsimp, simp  -- See note [dsimp, simp].
+      dsimp, simp -- See note [dsimp, simp].
     end },
   counit :=
   { app := λ Y, (adj.hom_equiv _ _).inv_fun (𝟙 (G.obj Y)),

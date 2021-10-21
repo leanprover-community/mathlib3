@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.fintype.basic
 import algebra.big_operators.ring
+import algebra.big_operators.option
 
 /-!
 Results about "big operations" over a `fintype`, and consequent
@@ -71,11 +72,6 @@ begin
   exact λ hc, (hc (finset.mem_univ _)).elim
 end
 
-@[to_additive]
-lemma prod_unique [unique β] (f : β → M) :
-  (∏ x, f x) = f (default β) :=
-by simp only [finset.prod_singleton, univ_unique]
-
 /-- If a product of a `finset` of a subsingleton type has a given
 value, so do the terms in that product. -/
 @[to_additive "If a sum of a `finset` of a subsingleton type has a given
@@ -96,9 +92,7 @@ variables {M : Type*} [fintype α] [comm_monoid M]
 
 @[simp, to_additive]
 lemma fintype.prod_option (f : option α → M) : ∏ i, f i = f none * ∏ i, f (some i) :=
-show ((finset.insert_none _).1.map f).prod = _,
-by simp only [finset.prod, finset.insert_none, multiset.map_cons, multiset.prod_cons,
-  multiset.map_map]
+finset.prod_insert_none f univ
 
 end
 
@@ -131,50 +125,34 @@ theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f x`, for some `x : fin (n + 1)` times the remaining product -/
-theorem fin.prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) (x : fin (n + 1)) :
+@[to_additive
+/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
+is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/]
+theorem fin.prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β)
+  (x : fin (n + 1)) :
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
 begin
-  rw [fin.univ_succ_above, finset.prod_insert, finset.prod_image],
-  { intros x _ y _ hxy, exact fin.succ_above_right_inj.mp hxy },
-  { simp [fin.succ_above_ne] }
+  rw [fintype.prod_eq_mul_prod_compl x, ← fin.image_succ_above_univ, prod_image],
+  exact λ _ _ _ _ h, x.succ_above.injective h
 end
-
-/-- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/
-theorem fin.sum_univ_succ_above [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) → β)
-  (x : fin (n + 1)) :
-  ∑ i, f i = f x + ∑ i : fin n, f (x.succ_above i) :=
-by apply @fin.prod_univ_succ_above (multiplicative β)
-
-attribute [to_additive] fin.prod_univ_succ_above
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f 0` plus the remaining product -/
+@[to_additive
+/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
+is the sum of `f 0` plus the remaining product -/]
 theorem fin.prod_univ_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = f 0 * ∏ i : fin n, f i.succ :=
 fin.prod_univ_succ_above f 0
 
-/-- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f 0` plus the remaining product -/
-theorem fin.sum_univ_succ [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
-  ∑ i, f i = f 0 + ∑ i : fin n, f i.succ :=
-fin.sum_univ_succ_above f 0
-
-attribute [to_additive] fin.prod_univ_succ
-
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f (fin.last n)` plus the remaining product -/
+@[to_additive
+/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
+is the sum of `f (fin.last n)` plus the remaining sum -/]
 theorem fin.prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (fin.last n) :=
 by simpa [mul_comm] using fin.prod_univ_succ_above f (fin.last n)
-
-/-- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f (fin.last n)` plus the remaining sum -/
-theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
-  ∑ i, f i = ∑ i : fin n, f i.cast_succ + f (fin.last n) :=
-by apply @fin.prod_univ_cast_succ (multiplicative β)
-
-attribute [to_additive] fin.prod_univ_cast_succ
 
 open finset
 
@@ -182,11 +160,6 @@ open finset
   [fintype α] [∀ a, fintype (β a)] :
   fintype.card (sigma β) = ∑ a, fintype.card (β a) :=
 card_sigma _ _
-
--- FIXME ouch, this should be in the main file.
-@[simp] theorem fintype.card_sum (α β : Type*) [fintype α] [fintype β] :
-  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-by simp [sum.fintype, fintype.of_equiv_card]
 
 @[simp] lemma finset.card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :

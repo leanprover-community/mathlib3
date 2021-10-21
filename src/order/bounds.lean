@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.set.intervals.basic
-import algebra.ordered_group
+
 /-!
 
 # Upper / lower bounds
@@ -22,7 +22,7 @@ In this file we define:
 We also prove various lemmas about monotonicity, behaviour under `∪`, `∩`, `insert`, and provide
 formulas for `∅`, `univ`, and intervals.
 -/
-open set
+open set order_dual (to_dual of_dual)
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
@@ -35,7 +35,7 @@ variables [preorder α] [preorder β] {s t : set α} {a b : α}
 -/
 
 /-- The set of upper bounds of a set. -/
-def upper_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s →  a ≤ x }
+def upper_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s → a ≤ x }
 /-- The set of lower bounds of a set. -/
 def lower_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s → x ≤ a }
 
@@ -140,6 +140,18 @@ hb.mono ha $ upper_bounds_mono_set hst
 lemma is_glb.mono (ha : is_glb s a) (hb : is_glb t b) (hst : s ⊆ t) : b ≤ a :=
 hb.mono ha $ lower_bounds_mono_set hst
 
+lemma subset_lower_bounds_upper_bounds (s : set α) : s ⊆ lower_bounds (upper_bounds s) :=
+λ x hx y hy, hy hx
+
+lemma subset_upper_bounds_lower_bounds (s : set α) : s ⊆ upper_bounds (lower_bounds s) :=
+λ x hx y hy, hy hx
+
+lemma set.nonempty.bdd_above_lower_bounds (hs : s.nonempty) : bdd_above (lower_bounds s) :=
+hs.mono (subset_upper_bounds_lower_bounds s)
+
+lemma set.nonempty.bdd_below_upper_bounds (hs : s.nonempty) : bdd_below (upper_bounds s) :=
+hs.mono (subset_lower_bounds_upper_bounds s)
+
 /-!
 ### Conversions
 -/
@@ -165,6 +177,12 @@ by { rw h.upper_bounds_eq, refl }
 
 lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
 by { rw h.lower_bounds_eq, refl }
+
+lemma is_lub_iff_le_iff : is_lub s a ↔ ∀ b, a ≤ b ↔ b ∈ upper_bounds s :=
+⟨λ h b, is_lub_le_iff h, λ H, ⟨(H _).1 le_rfl, λ b hb, (H b).2 hb⟩⟩
+
+lemma is_glb_iff_le_iff : is_glb s a ↔ ∀ b, b ≤ a ↔ b ∈ lower_bounds s :=
+@is_lub_iff_le_iff (order_dual α) _ _ _
 
 /-- If `s` has a least upper bound, then it is bounded above. -/
 lemma is_lub.bdd_above (h : is_lub s a) : bdd_above s := ⟨a, h.1⟩
@@ -443,13 +461,13 @@ section
 variables [semilattice_inf γ] [densely_ordered γ]
 
 lemma is_lub_Ioo {a b : γ} (hab : a < b) : is_lub (Ioo a b) b :=
-by simpa only [dual_Ioo] using @is_glb_Ioo (order_dual γ) _ _ b a hab
+by simpa only [dual_Ioo] using is_glb_Ioo hab.dual
 
 lemma upper_bounds_Ioo {a b : γ} (hab : a < b) : upper_bounds (Ioo a b) = Ici b :=
 (is_lub_Ioo hab).upper_bounds_eq
 
 lemma is_lub_Ico {a b : γ} (hab : a < b) : is_lub (Ico a b) b :=
-by simpa only [dual_Ioc] using @is_glb_Ioc (order_dual γ) _ _ b a hab
+by simpa only [dual_Ioc] using is_glb_Ioc hab.dual
 
 lemma upper_bounds_Ico {a b : γ} (hab : a < b) : upper_bounds (Ico a b) = Ici b :=
 (is_lub_Ico hab).upper_bounds_eq
@@ -465,20 +483,19 @@ by simp only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici,
   bdd_above_iff_subset_Iic, exists_and_distrib_left, exists_and_distrib_right]
 
 /-!
-### Univ
+#### Univ
 -/
 
-lemma order_top.upper_bounds_univ [order_top γ] : upper_bounds (univ : set γ) = {⊤} :=
-set.ext $ λ b, iff.trans ⟨λ hb, top_unique $ hb trivial, λ hb x hx, hb.symm ▸ le_top⟩
-  mem_singleton_iff.symm
-
 lemma is_greatest_univ [order_top γ] : is_greatest (univ : set γ) ⊤ :=
-by simp only [is_greatest, order_top.upper_bounds_univ, mem_univ, mem_singleton, true_and]
+⟨mem_univ _, λ x hx, le_top⟩
+
+@[simp] lemma order_top.upper_bounds_univ [order_top γ] : upper_bounds (univ : set γ) = {⊤} :=
+by rw [is_greatest_univ.upper_bounds_eq, Ici_top]
 
 lemma is_lub_univ [order_top γ] : is_lub (univ : set γ) ⊤ :=
 is_greatest_univ.is_lub
 
-lemma order_bot.lower_bounds_univ [order_bot γ] : lower_bounds (univ : set γ) = {⊥} :=
+@[simp] lemma order_bot.lower_bounds_univ [order_bot γ] : lower_bounds (univ : set γ) = {⊥} :=
 @order_top.upper_bounds_univ (order_dual γ) _
 
 lemma is_least_univ [order_bot γ] : is_least (univ : set γ) ⊥ :=
@@ -487,15 +504,21 @@ lemma is_least_univ [order_bot γ] : is_least (univ : set γ) ⊥ :=
 lemma is_glb_univ [order_bot γ] : is_glb (univ : set γ) ⊥ :=
 is_least_univ.is_glb
 
-lemma no_top_order.upper_bounds_univ [no_top_order α] : upper_bounds (univ : set α) = ∅ :=
+@[simp] lemma no_top_order.upper_bounds_univ [no_top_order α] : upper_bounds (univ : set α) = ∅ :=
 eq_empty_of_subset_empty $ λ b hb, let ⟨x, hx⟩ := no_top b in
 not_le_of_lt hx (hb trivial)
 
-lemma no_bot_order.lower_bounds_univ [no_bot_order α] : lower_bounds (univ : set α) = ∅ :=
+@[simp] lemma no_bot_order.lower_bounds_univ [no_bot_order α] : lower_bounds (univ : set α) = ∅ :=
 @no_top_order.upper_bounds_univ (order_dual α) _ _
 
+@[simp] lemma not_bdd_above_univ [no_top_order α] : ¬bdd_above (univ : set α) :=
+by simp [bdd_above]
+
+@[simp] lemma not_bdd_below_univ [no_bot_order α] : ¬bdd_below (univ : set α) :=
+@not_bdd_above_univ (order_dual α) _ _
+
 /-!
-### Empty set
+#### Empty set
 -/
 
 @[simp] lemma upper_bounds_empty : upper_bounds (∅ : set α) = univ :=
@@ -532,7 +555,7 @@ lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonem
 @nonempty_of_not_bdd_above (order_dual α) _ _ _ h
 
 /-!
-### insert
+#### insert
 -/
 
 /-- Adding a point to a set preserves its boundedness above. -/
@@ -586,7 +609,7 @@ by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 ⟨⊥, assume a ha, order_bot.bot_le a⟩
 
 /-!
-### Pair
+#### Pair
 -/
 
 lemma is_lub_pair [semilattice_sup γ] {a b : γ} : is_lub {a, b} (a ⊔ b) :=
@@ -600,6 +623,16 @@ is_least_singleton.insert _
 
 lemma is_greatest_pair [linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
 is_greatest_singleton.insert _
+
+/-!
+#### Lower/upper bounds
+-/
+
+@[simp] lemma is_lub_lower_bounds : is_lub (lower_bounds s) a ↔ is_glb s a :=
+⟨λ H, ⟨λ x hx, H.2 $ subset_upper_bounds_lower_bounds s hx, H.1⟩, is_greatest.is_lub⟩
+
+@[simp] lemma is_glb_upper_bounds : is_glb (upper_bounds s) a ↔ is_lub s a :=
+@is_lub_lower_bounds (order_dual α) _ _ _
 
 end
 
@@ -736,6 +769,17 @@ lemma mem_lower_bounds_image (Ha : a ∈ lower_bounds s) :
   f a ∈ lower_bounds (f '' s) :=
 ball_image_of_ball (assume x H, Hf (Ha ‹x ∈ s›))
 
+lemma image_upper_bounds_subset_upper_bounds_image (hf : monotone f) :
+  f '' upper_bounds s ⊆ upper_bounds (f '' s) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩,
+  exact hf.mem_upper_bounds_image ha,
+end
+
+lemma image_lower_bounds_subset_lower_bounds_image (hf : monotone f) :
+  f '' lower_bounds s ⊆ lower_bounds (f '' s) :=
+hf.dual.image_upper_bounds_subset_upper_bounds_image
+
 /-- The image under a monotone function of a set which is bounded above is bounded above. -/
 lemma map_bdd_above (hf : monotone f) : bdd_above s → bdd_above (f '' s)
 | ⟨C, hC⟩ := ⟨f C, hf.mem_upper_bounds_image hC⟩
@@ -762,6 +806,49 @@ Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 
 end monotone
 
+namespace antitone
+variables [preorder α] [preorder β] {f : α → β} (hf : antitone f) {a : α} {s : set α}
+
+lemma mem_upper_bounds_image (ha : a ∈ lower_bounds s) :
+  f a ∈ upper_bounds (f '' s) :=
+hf.dual_right.mem_lower_bounds_image ha
+
+lemma mem_lower_bounds_image (ha : a ∈ upper_bounds s) :
+  f a ∈ lower_bounds (f '' s) :=
+hf.dual_right.mem_upper_bounds_image ha
+
+lemma image_lower_bounds_subset_upper_bounds_image (hf : antitone f) :
+  f '' lower_bounds s ⊆ upper_bounds (f '' s) :=
+hf.dual_right.image_lower_bounds_subset_lower_bounds_image
+
+lemma image_upper_bounds_subset_lower_bounds_image (hf : antitone f) :
+  f '' upper_bounds s ⊆ lower_bounds (f '' s) :=
+hf.dual_right.image_upper_bounds_subset_upper_bounds_image
+
+/-- The image under an antitone function of a set which is bounded above is bounded below. -/
+lemma map_bdd_above (hf : antitone f) : bdd_above s → bdd_below (f '' s) :=
+hf.dual_right.map_bdd_above
+
+/-- The image under an antitone function of a set which is bounded below is bounded above. -/
+lemma map_bdd_below (hf : antitone f) : bdd_below s → bdd_above (f '' s) :=
+hf.dual_right.map_bdd_below
+
+/-- An antitone map sends a greatest element of a set to a least element of its image. -/
+lemma map_is_greatest (ha : is_greatest s a) : is_least (f '' s) (f a) :=
+hf.dual_right.map_is_greatest ha
+
+/-- An antitone map sends a least element of a set to a greatest element of its image. -/
+lemma map_is_least (ha : is_least s a) : is_greatest (f '' s) (f a) :=
+hf.dual_right.map_is_least ha
+
+lemma is_lub_image_le (ha : is_glb s a) {b : β} (hb : is_lub (f '' s) b) : b ≤ f a :=
+hf.dual_left.is_lub_image_le ha hb
+
+lemma le_is_glb_image (ha : is_lub s a) {b : β} (hb : is_glb (f '' s) b) : f a ≤ b :=
+hf.dual_left.le_is_glb_image ha hb
+
+end antitone
+
 lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
   {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :
   is_glb s x :=
@@ -772,3 +859,86 @@ lemma is_lub.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y
   {s : set α} {x : α} (hx : is_lub (f '' s) (f x)) :
   is_lub s x :=
 @is_glb.of_image (order_dual α) (order_dual β) _ _ f (λ x y, hf) _ _ hx
+
+lemma is_lub_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a)} {f : Π a, π a} :
+  is_lub s f ↔ ∀ a, is_lub (function.eval a '' s) (f a) :=
+begin
+  classical,
+  refine ⟨λ H a, ⟨(function.monotone_eval a).mem_upper_bounds_image H.1, λ b hb, _⟩, λ H, ⟨_, _⟩⟩,
+  { suffices : function.update f a b ∈ upper_bounds s,
+      from function.update_same a b f ▸ H.2 this a,
+    refine λ g hg, le_update_iff.2 ⟨hb $ mem_image_of_mem _ hg, λ i hi, H.1 hg i⟩ },
+  { exact λ g hg a, (H a).1 (mem_image_of_mem _ hg) },
+  { exact λ g hg a, (H a).2 ((function.monotone_eval a).mem_upper_bounds_image hg) }
+end
+
+lemma is_glb_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a)} {f : Π a, π a} :
+  is_glb s f ↔ ∀ a, is_glb (function.eval a '' s) (f a) :=
+@is_lub_pi α (λ a, order_dual (π a)) _ s f
+
+lemma is_lub_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :
+  is_lub s p ↔ is_lub (prod.fst '' s) p.1 ∧ is_lub (prod.snd '' s) p.2 :=
+begin
+  refine ⟨λ H, ⟨⟨monotone_fst.mem_upper_bounds_image H.1, λ a ha, _⟩,
+    ⟨monotone_snd.mem_upper_bounds_image H.1, λ a ha, _⟩⟩, λ H, ⟨_, _⟩⟩,
+  { suffices : (a, p.2) ∈ upper_bounds s, from (H.2 this).1,
+    exact λ q hq, ⟨ha $ mem_image_of_mem _ hq, (H.1 hq).2⟩ },
+  { suffices : (p.1, a) ∈ upper_bounds s, from (H.2 this).2,
+    exact λ q hq, ⟨(H.1 hq).1, ha $ mem_image_of_mem _ hq⟩ },
+  { exact λ q hq, ⟨H.1.1 $ mem_image_of_mem _ hq, H.2.1 $ mem_image_of_mem _ hq⟩ },
+  { exact λ q hq, ⟨H.1.2 $ monotone_fst.mem_upper_bounds_image hq,
+      H.2.2 $ monotone_snd.mem_upper_bounds_image hq⟩ }
+end
+
+lemma is_glb_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :
+  is_glb s p ↔ is_glb (prod.fst '' s) p.1 ∧ is_glb (prod.snd '' s) p.2 :=
+@is_lub_prod (order_dual α) (order_dual β) _ _ _ _
+
+namespace order_iso
+
+variables [preorder α] [preorder β] (f : α ≃o β)
+
+lemma upper_bounds_image {s : set α} :
+  upper_bounds (f '' s) = f '' upper_bounds s :=
+subset.antisymm
+  (λ x hx, ⟨f.symm x, λ y hy, f.le_symm_apply.2 (hx $ mem_image_of_mem _ hy), f.apply_symm_apply x⟩)
+  f.monotone.image_upper_bounds_subset_upper_bounds_image
+
+lemma lower_bounds_image {s : set α} :
+  lower_bounds (f '' s) = f '' lower_bounds s :=
+@upper_bounds_image (order_dual α) (order_dual β) _ _ f.dual _
+
+@[simp] lemma is_lub_image {s : set α} {x : β} :
+  is_lub (f '' s) x ↔ is_lub s (f.symm x) :=
+⟨λ h, is_lub.of_image (λ _ _, f.le_iff_le) ((f.apply_symm_apply x).symm ▸ h),
+  λ h, is_lub.of_image (λ _ _, f.symm.le_iff_le) $ (f.symm_image_image s).symm ▸ h⟩
+
+lemma is_lub_image' {s : set α} {x : α} :
+  is_lub (f '' s) (f x) ↔ is_lub s x :=
+by rw [is_lub_image, f.symm_apply_apply]
+
+@[simp] lemma is_glb_image {s : set α} {x : β} :
+  is_glb (f '' s) x ↔ is_glb s (f.symm x) :=
+f.dual.is_lub_image
+
+lemma is_glb_image' {s : set α} {x : α} :
+  is_glb (f '' s) (f x) ↔ is_glb s x :=
+f.dual.is_lub_image'
+
+@[simp] lemma is_lub_preimage {s : set β} {x : α} :
+  is_lub (f ⁻¹' s) x ↔ is_lub s (f x) :=
+by rw [← f.symm_symm, ← image_eq_preimage, is_lub_image]
+
+lemma is_lub_preimage' {s : set β} {x : β} :
+  is_lub (f ⁻¹' s) (f.symm x) ↔ is_lub s x :=
+by rw [is_lub_preimage, f.apply_symm_apply]
+
+@[simp] lemma is_glb_preimage {s : set β} {x : α} :
+  is_glb (f ⁻¹' s) x ↔ is_glb s (f x) :=
+f.dual.is_lub_preimage
+
+lemma is_glb_preimage' {s : set β} {x : β} :
+  is_glb (f ⁻¹' s) (f.symm x) ↔ is_glb s x :=
+f.dual.is_lub_preimage'
+
+end order_iso

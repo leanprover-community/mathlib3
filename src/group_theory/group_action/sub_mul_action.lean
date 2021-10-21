@@ -5,7 +5,7 @@ Authors: Eric Wieser
 -/
 import algebra.group_action_hom
 import algebra.module.basic
-import data.set_like
+import data.set_like.basic
 import group_theory.group_action.basic
 /-!
 
@@ -57,6 +57,12 @@ equalities.-/
 protected def copy (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) : sub_mul_action R M :=
 { carrier := s,
   smul_mem' := hs.symm ▸ p.smul_mem' }
+
+@[simp] lemma coe_copy (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) :
+  (p.copy s hs : set M) = s := rfl
+
+lemma copy_eq (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) : p.copy s hs = p :=
+set_like.coe_injective hs
 
 instance : has_bot (sub_mul_action R M) :=
 ⟨{ carrier := ∅, smul_mem' := λ c, set.not_mem_empty}⟩

@@ -3,7 +3,6 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
-import data.int.modeq
 import data.nat.parity
 
 /-!
@@ -46,7 +45,7 @@ by rw [not_odd_iff, even_iff]
 @[simp] lemma odd_iff_not_even : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
-lemma is_compl_even_odd : is_compl {n : ℕ | even n} {n | odd n} :=
+lemma is_compl_even_odd : is_compl {n : ℤ | even n} {n | odd n} :=
 by simp [← set.compl_set_of, is_compl_compl]
 
 lemma even_or_odd (n : ℤ) : even n ∨ odd n :=

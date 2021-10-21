@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
-import linear_algebra.basic
 import linear_algebra.pi
 
 /-!
@@ -177,6 +176,10 @@ lemma mem_supported' {s : set α}  (p : α →₀ M) :
 by haveI := classical.dec_pred (λ (x : α), x ∈ s);
    simp [mem_supported, set.subset_def, not_imp_comm]
 
+lemma mem_supported_support (p : α →₀ M) :
+  p ∈ finsupp.supported M R (p.support : set α) :=
+by rw finsupp.mem_supported
+
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
 set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
@@ -197,7 +200,7 @@ end
 variables (M R)
 
 /-- Interpret `finsupp.filter s` as a linear map from `α →₀ M` to `supported M R s`. -/
-def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
+def restrict_dom (s : set α) : (α →₀ M) →ₗ[R] supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
     map_add' := λ l₁ l₂, filter_add,
@@ -208,7 +211,7 @@ variables {M R}
 
 section
 @[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ M) :
-  ((restrict_dom M R s : (α →₀ M) →ₗ supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
+  ((restrict_dom M R s : (α →₀ M) →ₗ[R] supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
 end
 
 theorem restrict_dom_comp_subtype (s : set α) :
@@ -379,7 +382,7 @@ begin
     le_trans (supported_mono $ set.subset_preimage_image _ _)
        (supported_comap_lmap_domain _ _ _ _)) _,
   intros l hl,
-  refine ⟨(lmap_domain M R (function.inv_fun_on f s) : (α' →₀ M) →ₗ α →₀ M) l, λ x hx, _, _⟩,
+  refine ⟨(lmap_domain M R (function.inv_fun_on f s) : (α' →₀ M) →ₗ[R] α →₀ M) l, λ x hx, _, _⟩,
   { rcases finset.mem_image.1 (map_domain_support hx) with ⟨c, hc, rfl⟩,
     exact function.inv_fun_on_mem (by simpa using hl hc) },
   { rw [← linear_map.comp_apply, ← lmap_domain_comp],
@@ -428,6 +431,10 @@ finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_
 @[simp] theorem total_single (c : R) (a : α) :
   finsupp.total α M R v (single a c) = c • (v a) :=
 by simp [total_apply, sum_single_index]
+
+theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
+  f (finsupp.total α M R v l) = finsupp.total α M' R (f ∘ v) l :=
+by apply finsupp.induction_linear l; simp { contextual := tt, }
 
 theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
@@ -523,6 +530,23 @@ theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by { rw span_image_eq_map_total, simp, }
 
+lemma total_option (v : option α → M) (f : option α →₀ R) :
+  finsupp.total (option α) M R v f =
+    f none • v none + finsupp.total α M R (v ∘ option.some) f.some :=
+by rw [total_apply, sum_option_index_smul, total_apply]
+
+lemma total_total {α β : Type*} (A : α → M) (B : β → (α →₀ R)) (f : β →₀ R) :
+  finsupp.total α M R A (finsupp.total β (α →₀ R) R B f) =
+    finsupp.total β M R (λ b, finsupp.total α M R A (B b)) f :=
+begin
+  simp only [total_apply],
+  apply induction_linear f,
+  { simp only [sum_zero_index], },
+  { intros f₁ f₂ h₁ h₂,
+    simp [sum_add_index, h₁, h₂, add_smul], },
+  { simp [sum_single_index, sum_smul_index, smul_sum, mul_smul], }
+end
+
 @[simp] lemma total_fin_zero (f : fin 0 → M) :
   finsupp.total (fin 0) M R f = 0 :=
 by { ext i, apply fin_zero_elim i }
@@ -573,7 +597,8 @@ end total
 
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions.
 
-This is `finsupp.dom_congr` as a `linear_equiv`.-/
+This is `finsupp.dom_congr` as a `linear_equiv`.
+See also `linear_map.fun_congr_left` for the case of arbitrary functions. -/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv $
@@ -609,8 +634,8 @@ noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
 begin
   haveI := classical.dec_pred (λ x, x ∈ s),
   haveI := classical.dec_pred (λ x, x ∈ t),
-  refine linear_equiv.trans (finsupp.supported_equiv_finsupp s)
-      (linear_equiv.trans _ (finsupp.supported_equiv_finsupp t).symm),
+  refine (finsupp.supported_equiv_finsupp s) ≪≫ₗ
+      (_ ≪≫ₗ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e
 end
 
@@ -631,6 +656,12 @@ lemma map_range.linear_map_comp (f : N →ₗ[R] P) (f₂ : M →ₗ[R] N) :
     (map_range.linear_map f).comp (map_range.linear_map f₂) :=
 linear_map.ext $ map_range_comp _ _ _ _ _
 
+@[simp]
+lemma map_range.linear_map_to_add_monoid_hom (f : M →ₗ[R] N) :
+  (map_range.linear_map f).to_add_monoid_hom =
+    (map_range.add_monoid_hom f.to_add_monoid_hom : (α →₀ M) →+ _):=
+add_monoid_hom.ext $ λ _, rfl
+
 /-- `finsupp.map_range` as a `linear_equiv`. -/
 @[simps apply]
 def map_range.linear_equiv (e : M ≃ₗ[R] N) : (α →₀ M) ≃ₗ[R] (α →₀ N) :=
@@ -645,7 +676,7 @@ lemma map_range.linear_equiv_refl :
 linear_equiv.ext map_range_id
 
 lemma map_range.linear_equiv_trans (f : M ≃ₗ[R] N) (f₂ : N ≃ₗ[R] P) :
-  (map_range.linear_equiv (f.trans f₂) : linear_equiv R (α →₀ _) _) =
+  (map_range.linear_equiv (f.trans f₂) : (α →₀ _) ≃ₗ[R] _) =
     (map_range.linear_equiv f).trans (map_range.linear_equiv f₂) :=
 linear_equiv.ext $ map_range_comp _ _ _ _ _
 
@@ -653,6 +684,18 @@ linear_equiv.ext $ map_range_comp _ _ _ _ _
 lemma map_range.linear_equiv_symm (f : M ≃ₗ[R] N) :
   ((map_range.linear_equiv f).symm : (α →₀ _) ≃ₗ[R] _) = map_range.linear_equiv f.symm :=
 linear_equiv.ext $ λ x, rfl
+
+@[simp]
+lemma map_range.linear_equiv_to_add_equiv (f : M ≃ₗ[R] N) :
+  (map_range.linear_equiv f).to_add_equiv =
+    (map_range.add_equiv f.to_add_equiv : (α →₀ M) ≃+ _):=
+add_equiv.ext $ λ _, rfl
+
+@[simp]
+lemma map_range.linear_equiv_to_linear_map (f : M ≃ₗ[R] N) :
+  (map_range.linear_equiv f).to_linear_map =
+    (map_range.linear_map f.to_linear_map : (α →₀ M) →ₗ[R] _):=
+linear_map.ext $ λ _, rfl
 
 /-- An equivalence of domain and a linear equivalence of codomain induce a linear equivalence of the
 corresponding finitely supported functions. -/
@@ -665,15 +708,7 @@ by simp [lcongr]
 
 @[simp] lemma lcongr_apply_apply {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (f : ι →₀ M) (k : κ) :
   lcongr e₁ e₂ f k = e₂ (f (e₁.symm k)) :=
-begin
-  apply finsupp.induction_linear f,
-  { simp, },
-  { intros f g hf hg, simp [map_add, hf, hg], },
-  { intros i m,
-    simp only [finsupp.lcongr_single],
-    simp only [finsupp.single, equiv.eq_symm_apply, finsupp.coe_mk],
-    split_ifs; simp, },
-end
+rfl
 
 theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
   (lcongr e₁ e₂).symm (finsupp.single k n) = finsupp.single (e₁.symm k) (e₂.symm n) :=
@@ -708,7 +743,8 @@ This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. 
 { map_smul' :=
     by { intros, ext;
           simp only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
-              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp] },
+              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp,
+              ring_hom.id_apply] },
   .. sum_finsupp_add_equiv_prod_finsupp }
 
 lemma fst_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
@@ -796,8 +832,7 @@ variables (R)
 Pick some representation of `x : span R w` as a linear combination in `w`,
 using the axiom of choice.
 -/
-def span.repr (w : set M) (x : span R w) :
-  w →₀ R :=
+def span.repr (w : set M) (x : span R w) : w →₀ R :=
 ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
 
 @[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
@@ -914,7 +949,7 @@ lemma splitting_of_finsupp_surjective_injective (f : M →ₗ[R] (α →₀ R)) 
 def splitting_of_fun_on_fintype_surjective [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   (α → R) →ₗ[R] M :=
 (finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)).comp
-  (@linear_equiv_fun_on_fintype R R α _ _ _ _).symm.to_linear_map
+  (linear_equiv_fun_on_fintype R R α).symm.to_linear_map
 
 lemma splitting_of_fun_on_fintype_surjective_splits
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :

@@ -3,9 +3,9 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.fin.basic
 import data.list.sort
 import data.list.duplicate
-import data.fin
 
 /-!
 # Isomorphism between `fin (length l)` and `{x // x ∈ l}`
@@ -87,7 +87,7 @@ begin
   have : some hd = _ := hf 0,
   rw [eq_comm, list.nth_eq_some] at this,
   obtain ⟨w, h⟩ := this,
-  let f' : ℕ ↪o ℕ := order_embedding.of_map_rel_iff (λ i, f (i + 1) - (f 0 + 1))
+  let f' : ℕ ↪o ℕ := order_embedding.of_map_le_iff (λ i, f (i + 1) - (f 0 + 1))
     (λ a b, by simp [nat.sub_le_sub_right_iff, nat.succ_le_iff, nat.lt_succ_iff]),
   have : ∀ ix, tl.nth ix = (l'.drop (f 0 + 1)).nth (f' ix),
   { intro ix,
@@ -114,7 +114,7 @@ begin
       refine ⟨f.trans (order_embedding.of_strict_mono (+ 1) (λ _, by simp)), _⟩,
       simpa using hf },
     { obtain ⟨f, hf⟩ := IH,
-      refine ⟨order_embedding.of_map_rel_iff
+      refine ⟨order_embedding.of_map_le_iff
         (λ (ix : ℕ), if ix = 0 then 0 else (f ix.pred).succ) _, _⟩,
       { rintro ⟨_|a⟩ ⟨_|b⟩;
         simp [nat.succ_le_succ_iff] },
@@ -143,7 +143,7 @@ begin
       rw [nth_le_nth hi, eq_comm, nth_eq_some] at hf,
       obtain ⟨h, -⟩ := hf,
       exact h },
-    refine ⟨order_embedding.of_map_rel_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
+    refine ⟨order_embedding.of_map_le_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
     { simp },
     { intro i,
       apply option.some_injective,
@@ -188,7 +188,7 @@ begin
   { rintro ⟨n, hn, m, hm, hnm, h, h'⟩,
     refine ⟨order_embedding.of_strict_mono (λ i, if (i : ℕ) = 0 then ⟨n, hn⟩ else ⟨m, hm⟩) _, _⟩,
     { rintros ⟨⟨_|i⟩, hi⟩ ⟨⟨_|j⟩, hj⟩,
-      { simp  },
+      { simp },
       { simp [hnm] },
       { simp },
       { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]

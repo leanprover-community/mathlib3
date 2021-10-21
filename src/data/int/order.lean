@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import order.conditionally_complete_lattice
+import data.int.least_greatest
 
 /-!
 ## `ℤ` forms a conditionally complete linear order

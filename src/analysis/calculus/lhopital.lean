@@ -29,7 +29,7 @@ L'Hôpital's rule, L'Hopital's rule
 -/
 
 open filter set
-open_locale filter topological_space
+open_locale filter topological_space pointwise
 
 variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 
@@ -37,7 +37,7 @@ variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 ## Interval-based versions
 
 We start by proving statements where all conditions (derivability, `g' ≠ 0`) have
-to be satisfied on an explicitely-provided interval.
+to be satisfied on an explicitly-provided interval.
 -/
 
 namespace has_deriv_at
@@ -182,7 +182,7 @@ begin
           refine neg_ne_zero.mpr (inv_ne_zero $ pow_ne_zero _ $ ne_of_gt hx) }),
   have := this.comp tendsto_inv_at_top_zero',
   unfold function.comp at this,
-  simpa only [inv_inv'],
+  simpa only [inv_inv₀],
 end
 
 theorem lhopital_zero_at_bot_on_Iio
@@ -319,7 +319,7 @@ begin
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ 𝓝[Ioi a] a := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ 𝓝[Ioi a] a := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_nhds_within_Ioi_iff_exists_Ioo_subset at hs,
   rcases hs with ⟨u, hau, hu⟩,
   refine lhopital_zero_right_on_Ioo hau _ _ _ hfa hga hdiv;
@@ -342,7 +342,7 @@ begin
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ 𝓝[Iio a] a := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ 𝓝[Iio a] a := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_nhds_within_Iio_iff_exists_Ioo_subset at hs,
   rcases hs with ⟨l, hal, hl⟩,
   refine lhopital_zero_left_on_Ioo hal _ _ _ hfa hga hdiv;
@@ -396,7 +396,7 @@ begin
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ at_top := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ at_top := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_at_top_sets at hs,
   rcases hs with ⟨l, hl⟩,
   have hl' : Ioi l ⊆ s := λ x hx, hl x (le_of_lt hx),
@@ -420,7 +420,7 @@ begin
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ at_bot := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ at_bot := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_at_bot_sets at hs,
   rcases hs with ⟨l, hl⟩,
   have hl' : Iio l ⊆ s := λ x hx, hl x (le_of_lt hx),

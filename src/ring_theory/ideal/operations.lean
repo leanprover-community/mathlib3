@@ -1446,7 +1446,12 @@ variables (R) {A : Type*} [comm_ring A] [algebra R A]
 
 /-- The `R`-algebra structure on `A/I` for an `R`-algebra `A` -/
 instance {I : ideal A} : algebra R (ideal.quotient I) :=
-(ring_hom.comp (ideal.quotient.mk I) (algebra_map R A)).to_algebra
+{ to_fun := λ x, ideal.quotient.mk I (algebra_map R A x),
+  smul := (•),
+  smul_def' := λ r x, quotient.induction_on' x $ λ x,
+      ((quotient.mk I).congr_arg $ algebra.smul_def _ _).trans (ring_hom.map_mul _ _ _),
+  commutes' := λ _ _, mul_comm _ _,
+  .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R A) }
 
 /-- The canonical morphism `A →ₐ[R] I.quotient` as morphism of `R`-algebras, for `I` an ideal of
 `A`, where `A` is an `R`-algebra. -/
@@ -1455,7 +1460,7 @@ def quotient.mkₐ (I : ideal A) : A →ₐ[R] I.quotient :=
 
 lemma quotient.alg_map_eq (I : ideal A) :
   algebra_map R I.quotient = (algebra_map A I.quotient).comp (algebra_map R A) :=
-by simp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_id]
+rfl
 
 instance [algebra S A] [algebra S R] [is_scalar_tower S R A]
   {I : ideal A} : is_scalar_tower S R (ideal.quotient I) :=

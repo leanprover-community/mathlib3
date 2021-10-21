@@ -356,7 +356,7 @@ variables {rα : non_assoc_semiring α} {rβ : non_assoc_semiring β}
 
 include rα rβ
 
-instance : has_coe_to_fun (α →+* β) := ⟨_, ring_hom.to_fun⟩
+instance : has_coe_to_fun (α →+* β) (λ _, α → β) := ⟨ring_hom.to_fun⟩
 
 initialize_simps_projections ring_hom (to_fun → apply)
 

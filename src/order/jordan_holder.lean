@@ -142,8 +142,8 @@ namespace composition_series
 
 variables {X : Type u} [lattice X] [jordan_holder_lattice X]
 
-instance : has_coe_to_fun (composition_series X) :=
-{ F := _, coe := composition_series.series }
+instance : has_coe_to_fun (composition_series X) (λ x, fin (x.length + 1) → X) :=
+{ coe := composition_series.series }
 
 instance [inhabited X] : inhabited (composition_series X) :=
 ⟨{ length := 0,

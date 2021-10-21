@@ -565,8 +565,9 @@ end integral_domain
 
 end polynomial
 
-namespace mv_polynomial
 open mv_polynomial ring_hom
+
+namespace mv_polynomial
 
 lemma is_jacobson_mv_polynomial_fin {R : Type*} [comm_ring R] [H : is_jacobson R] :
   ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)

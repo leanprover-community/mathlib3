@@ -349,8 +349,9 @@ begin
   simp only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
 end
 
-namespace tactic
 open tactic
+
+namespace tactic
 
 /-!
 ### The `@[is_poly]` attribute

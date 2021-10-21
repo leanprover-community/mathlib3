@@ -46,10 +46,11 @@ variables {I G}
 
 namespace left_invariant_derivation
 
-instance : has_coe (left_invariant_derivation I G) (derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯)
-:= ⟨λ X, X.to_derivation⟩
+instance : has_coe (left_invariant_derivation I G) (derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) :=
+⟨λ X, X.to_derivation⟩
 
-instance : has_coe_to_fun (left_invariant_derivation I G) := ⟨_, λ X, X.to_derivation.to_fun⟩
+instance : has_coe_to_fun (left_invariant_derivation I G) (λ _, C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) :=
+⟨λ X, X.to_derivation.to_fun⟩
 
 variables
 {M : Type*} [topological_space M] [charted_space H M] {x : M} {r : 𝕜}

@@ -1146,12 +1146,12 @@ lemma mk'_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {x y : R₁} (hy : y ∈
 begin
   have inj : function.injective (coe : ideal R₁ → fractional_ideal R₁⁰ K) :=
     fractional_ideal.coe_ideal_injective,
-  have : span_singleton R₁⁰ (is_localization.mk' _ 1 ⟨y, hy⟩) *
+  have : span_singleton R₁⁰ (is_localization.mk' _ (1 : R₁) ⟨y, hy⟩) *
            span_singleton R₁⁰ (algebra_map R₁ K y) = 1,
   { rw [span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
         is_localization.mk'_self, span_singleton_one] },
   let y' : units (fractional_ideal R₁⁰ K) := units.mk_of_mul_eq_one _ _ this,
-  have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K 1 ⟨y, hy⟩) := rfl,
+  have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K (1 : R₁) ⟨y, hy⟩) := rfl,
   refine iff.trans _ (y'.mul_right_inj.trans inj.eq_iff),
   rw [coe_y', coe_ideal_mul, coe_ideal_span_singleton, coe_ideal_mul, coe_ideal_span_singleton,
     ←mul_assoc, span_singleton_mul_span_singleton, ←mul_assoc, span_singleton_mul_span_singleton,

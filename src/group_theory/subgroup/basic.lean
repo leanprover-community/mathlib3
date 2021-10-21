@@ -463,8 +463,8 @@ begin
   { left,
     exact H.eq_bot_iff_forall.mpr h },
   { right,
-    push_neg at h,
-    simpa [nontrivial_iff_exists_ne_one] using h },
+    simp only [not_forall] at h,
+    simpa only [nontrivial_iff_exists_ne_one] }
 end
 
 /-- A subgroup is either the trivial subgroup or contains a nonzero element. -/
@@ -2110,7 +2110,7 @@ instance {C : Type*} [comm_group C] [is_simple_group C] :
   is_simple_lattice (subgroup C) :=
 ⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
 
-open subgroup
+open _root_.subgroup
 
 @[to_additive]
 lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]

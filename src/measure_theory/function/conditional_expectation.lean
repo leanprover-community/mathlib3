@@ -550,7 +550,7 @@ lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero'
   f =ᵐ[μ] 0 :=
 begin
   let f_meas : Lp_meas E' 𝕜 m p μ := ⟨f, hf_meas⟩,
-  have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base, subtype.coe_mk],
+  have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base', subtype.coe_mk],
   refine hf_f_meas.trans _,
   refine Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero hm f_meas hp_ne_zero hp_ne_top _ _,
   { intros s hs hμs,

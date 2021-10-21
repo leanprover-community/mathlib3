@@ -67,7 +67,7 @@ protected def linear_isometry : V →ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 omit V V₂
 
 @[simp] lemma coe_to_affine_map : ⇑f.to_affine_map = f := rfl
@@ -193,7 +193,7 @@ instance : monoid (P →ᵃⁱ[𝕜] P) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : P →ᵃⁱ[𝕜] P) : ⇑(f * g) = f ∘ g := rfl
 
 end affine_isometry
@@ -228,7 +228,7 @@ protected def linear_isometry_equiv : V ≃ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ∥e.linear x∥ = ∥x∥) :
   ⇑(mk e he) = e :=

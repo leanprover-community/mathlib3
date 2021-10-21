@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.finset.fold
+import algebra.group.pi
 import data.equiv.mul_add
-import tactic.abel
+import data.finset.fold
+import data.fintype.basic
 
 /-!
 # Big operators
@@ -164,6 +165,10 @@ variables [comm_monoid β]
 
 @[simp, to_additive]
 lemma prod_empty {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
+
+@[simp, to_additive]
+lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=
+fold_cons h
 
 @[simp, to_additive]
 lemma prod_insert [decidable_eq α] : a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x :=
@@ -813,13 +818,13 @@ by { rw [range_one], apply @prod_singleton β ℕ 0 f }
 
 open multiset
 
-lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
+@[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [comm_monoid M] (f : α → M) :
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
-  apply s.induction_on, { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
-  intros a s ih,
-  simp only [prod_cons, map_cons, to_finset_cons, ih],
+  induction s using multiset.induction_on with a s ih,
+  { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  simp only [multiset.prod_cons, map_cons, to_finset_cons, ih],
   by_cases has : a ∈ s.to_finset,
   { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),
         prod_insert (not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
@@ -830,12 +835,6 @@ begin
   rw count_cons_of_ne,
   rintro rfl, exact has hx
 end
-
-lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
-  {M : Type*} [add_comm_monoid M] (f : α → M) :
-  (s.map f).sum = ∑ m in s.to_finset, s.count m • f m :=
-@prod_multiset_map_count _ _ _ (multiplicative M) _ f
-attribute [to_additive] prod_multiset_map_count
 
 @[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
@@ -903,11 +902,11 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
 reduces to the difference of the last and first terms.-/
 lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-by { apply sum_range_induction; abel, simp }
+by { apply sum_range_induction; simp }
 
 lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
-by { apply sum_range_induction; abel, simp }
+by { apply sum_range_induction; simp }
 
 /-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
 reduces to the ratio of the last and first factors.-/
@@ -932,7 +931,7 @@ begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
   have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
   have h₂ : f 0 ≤ f n := h (nat.zero_le _),
-  rw [←nat.sub_add_comm h₂, add_sub_cancel_of_le h₁],
+  rw [←nat.sub_add_comm h₂, add_tsub_cancel_of_le h₁],
 end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
@@ -1206,7 +1205,7 @@ over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`. Se
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
-by { rw finset.sum_range_sub, abel }
+by rw [finset.sum_range_sub, add_sub_cancel'_right]
 
 lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=

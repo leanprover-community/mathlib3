@@ -76,8 +76,9 @@ For measurable sets this returns the measure assigned by the `measure_of` field 
 But we can extend this to _all_ sets, but using the outer measure. This gives us monotonicity and
 subadditivity for all sets.
 -/
-instance measure.has_coe_to_fun [measurable_space α] : has_coe_to_fun (measure α) :=
-⟨λ _, set α → ℝ≥0∞, λ m, m.to_outer_measure⟩
+instance measure.has_coe_to_fun [measurable_space α] :
+  has_coe_to_fun (measure α) (λ _, set α → ℝ≥0∞) :=
+⟨λ m, m.to_outer_measure⟩
 
 section
 
@@ -377,6 +378,17 @@ by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
+
+@[to_additive]
+lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
+  (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
+begin
+  rw [filter.eventually_eq, ae_iff] at h,
+  convert h,
+  ext a,
+  rw ← set.mul_indicator_eq_one_iff,
+  refl
+end
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

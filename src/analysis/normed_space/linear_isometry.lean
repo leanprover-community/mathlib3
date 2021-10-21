@@ -51,7 +51,7 @@ namespace linear_isometry
 /-- We use `f₁` when we need the domain to be a `normed_space`. -/
 variables (f : E →ₛₗᵢ[σ₁₂] E₂) (f₁ : F →ₛₗᵢ[σ₁₂] E₂)
 
-instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_linear_map : ⇑f.to_linear_map = f := rfl
 
@@ -121,7 +121,7 @@ f.isometry.comp_continuous_iff
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = _root_.id := rfl
+@[simp] lemma coe_id : ((id : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 
 @[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
 
@@ -156,7 +156,7 @@ instance : monoid (E →ₗᵢ[R] E) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_one : ((1 : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : E →ₗᵢ[R] E) : ⇑(f * g) = f ∘ g := rfl
 
 end linear_isometry
@@ -206,7 +206,7 @@ namespace linear_isometry_equiv
 variables (e : E ≃ₛₗᵢ[σ₁₂] E₂)
 
 include σ₂₁
-instance : has_coe_to_fun (E ≃ₛₗᵢ[σ₁₂] E₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (E ≃ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : E ≃ₛₗ[σ₁₂] E₂) (he : ∀ x, ∥e x∥ = ∥x∥) :
   ⇑(mk e he) = e :=

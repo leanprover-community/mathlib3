@@ -43,9 +43,8 @@ the morphisms `U ⟶ V` are not just proofs `U ≤ V`, but rather
 `ulift (plift (U ≤ V))`.
 -/
 
-instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
-{ F := λ f, U → V,
-  coe := λ f x, ⟨x, f.le x.2⟩ }
+instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) (λ f, U → V) :=
+⟨λ f x, ⟨x, f.le x.2⟩⟩
 
 /-!
 We now construct as morphisms various inclusions of open sets.

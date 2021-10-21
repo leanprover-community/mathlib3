@@ -315,9 +315,9 @@ Expected type:\n  {raw_expr_type}" },
         raw_expr_lambda ← lambdas [hyp] raw_expr,
         return (raw_expr, raw_expr_lambda.lambdas args))
       else (do
-        e_inst_type ← to_expr ((const class_nm []).app (pexpr.of_expr e_str)),
+        e_inst_type ← to_expr (((const class_nm []).app (pexpr.of_expr e_str)).app ``(_)),
         e_inst ← try_for 1000 (mk_instance e_inst_type),
-        raw_expr ← mk_mapp proj_nm [e_str, e_inst],
+        raw_expr ← mk_mapp proj_nm [e_str, none, e_inst],
         return (raw_expr, raw_expr.lambdas args)),
       raw_expr_whnf ← whnf raw_expr,
       let relevant_proj := raw_expr_whnf.binding_body.get_app_fn.const_name,

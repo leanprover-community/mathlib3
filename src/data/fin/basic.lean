@@ -790,7 +790,7 @@ by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
 -- This is not a simp lemma by default, because `pred_mk_succ` is nicer when it applies.
 lemma pred_mk {n : ℕ} (i : ℕ) (h : i < n + 1) (w) :
   fin.pred ⟨i, h⟩ w =
-  ⟨i - 1, by rwa sub_lt_iff_right (nat.succ_le_of_lt $ nat.pos_of_ne_zero (fin.vne_of_ne w))⟩ :=
+  ⟨i - 1, by rwa tsub_lt_iff_right (nat.succ_le_of_lt $ nat.pos_of_ne_zero (fin.vne_of_ne w))⟩ :=
 rfl
 
 @[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
@@ -818,13 +818,13 @@ end
 
 /-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
 def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
-⟨(i : ℕ) - m, by { rw [sub_lt_iff_right h], exact i.is_lt }⟩
+⟨(i : ℕ) - m, by { rw [tsub_lt_iff_right h], exact i.is_lt }⟩
 
 @[simp] lemma coe_sub_nat (i : fin (n + m)) (h : m ≤ i) : (i.sub_nat m h : ℕ) = i - m :=
 rfl
 
 @[simp] lemma sub_nat_mk {i : ℕ} (h₁ : i < n + m) (h₂ : m ≤ i) :
-  sub_nat m ⟨i, h₁⟩ h₂ = ⟨i - m, (sub_lt_iff_right h₂).2 h₁⟩ :=
+  sub_nat m ⟨i, h₁⟩ h₂ = ⟨i - m, (tsub_lt_iff_right h₂).2 h₁⟩ :=
 rfl
 
 @[simp] lemma pred_cast_succ_succ (i : fin n) :
@@ -968,7 +968,7 @@ else
   let j : fin n := ⟨i, lt_of_le_of_ne (nat.le_of_lt_succ i.2) (λ h, hi (fin.ext h))⟩ in
   have wf : n + 1 - j.succ < n + 1 - i, begin
     cases i,
-    rw [sub_lt_sub_iff_left_of_le];
+    rw [tsub_lt_tsub_iff_left_of_le];
     simp [*, nat.succ_le_iff],
   end,
   have hi : i = fin.cast_succ j, from fin.ext rfl,
@@ -1586,7 +1586,7 @@ for the vector length. -/
 def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
 λ i, if h : (i : ℕ) < m
   then u ⟨i, h⟩
-  else v ⟨(i : ℕ) - m, (sub_lt_iff_left (le_of_not_lt h)).2 (ho ▸ i.property)⟩
+  else v ⟨(i : ℕ) - m, (tsub_lt_iff_left (le_of_not_lt h)).2 (ho ▸ i.property)⟩
 
 @[simp] lemma fin_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
   (u : fin (m + 1) → α) (v : fin n → α) :

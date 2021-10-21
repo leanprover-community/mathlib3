@@ -157,7 +157,7 @@ namespace isometric
 section pseudo_emetric_space
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 
-instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ᵢ β) (λ _, α → β) := ⟨λe, e.to_equiv⟩
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 
@@ -213,6 +213,15 @@ protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry.right_inv h.right_inv,
   to_equiv := h.to_equiv.symm }
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : α ≃ᵢ β) : α → β := h
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (h : α ≃ᵢ β) : β → α := h.symm
+
+initialize_simps_projections isometric
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply)
+
 @[simp] lemma symm_symm (h : α ≃ᵢ β) : h.symm.symm = h := to_equiv_inj h.to_equiv.symm_symm
 
 @[simp] lemma apply_symm_apply (h : α ≃ᵢ β) (y : β) : h (h.symm y) = y :=
@@ -254,7 +263,7 @@ by rw [← h.range_eq_univ, h.isometry.ediam_range]
 by rw [← image_symm, ediam_image]
 
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
-protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
+@[simps to_equiv] protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := h.continuous,
   continuous_inv_fun := h.symm.continuous,
   to_equiv := h.to_equiv }
@@ -262,10 +271,6 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 @[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
 
 @[simp] lemma coe_to_homeomorph_symm (h : α ≃ᵢ β) : ⇑(h.to_homeomorph.symm) = h.symm := rfl
-
-@[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
-  h.to_homeomorph.to_equiv = h.to_equiv :=
-rfl
 
 @[simp] lemma comp_continuous_on_iff {γ} [topological_space γ] (h : α ≃ᵢ β)
   {f : γ → α} {s : set γ} :
@@ -300,12 +305,12 @@ lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e�
 
 @[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
-protected lemma complete_space (e : α ≃ᵢ β) (hF : complete_space β) : complete_space α :=
+protected lemma complete_space [complete_space β] (e : α ≃ᵢ β) : complete_space α :=
 complete_space_of_is_complete_univ $ is_complete_of_complete_image e.isometry.uniform_inducing $
   by rwa [set.image_univ, isometric.range_eq_univ, ← complete_space_iff_is_complete_univ]
 
 lemma complete_space_iff (e : α ≃ᵢ β) : complete_space α ↔ complete_space β :=
-⟨λ h, e.symm.complete_space h, λ h, e.complete_space h⟩
+by { split; introI H, exacts [e.symm.complete_space, e.complete_space] }
 
 end pseudo_emetric_space
 
@@ -328,11 +333,8 @@ end isometric
 
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
+@[simps to_equiv apply { simp_rhs := tt }]
 def isometry.isometric_on_range [emetric_space α] [pseudo_emetric_space β] {f : α → β}
   (h : isometry f) : α ≃ᵢ range f :=
 { isometry_to_fun := λx y, by simpa [subtype.edist_eq] using h x y,
-  .. equiv.of_injective f h.injective }
-
-@[simp] lemma isometry.isometric_on_range_apply [emetric_space α] [pseudo_emetric_space β]
-  {f : α → β} (h : isometry f) (x : α) : h.isometric_on_range x = ⟨f x, mem_range_self _⟩ :=
-rfl
+  to_equiv := equiv.of_injective f h.injective }

@@ -557,6 +557,12 @@ end orthogonal_projection
 section reflection
 variables {𝕜} (K) [complete_space K]
 
+/-- Auxiliary definition for `reflection`: the reflection as a linear equivalence. -/
+def reflection_linear_equiv : E ≃ₗ[𝕜] E :=
+linear_equiv.of_involutive
+  (bit0 (K.subtype.comp (orthogonal_projection K).to_linear_map) - linear_map.id)
+  (λ x, by simp [bit0])
+
 /-- Reflection in a complete subspace of an inner product space.  The word "reflection" is
 sometimes understood to mean specifically reflection in a codimension-one subspace, and sometimes
 more generally to cover operations such as reflection in a point.  The definition here, of
@@ -569,14 +575,17 @@ def reflection : E ≃ₗᵢ[𝕜] E :=
     let v := x - w,
     have : ⟪v, w⟫ = 0 := orthogonal_projection_inner_eq_zero x w w.2,
     convert norm_sub_eq_norm_add this using 2,
-    { simp [bit0],
+    { rw [linear_equiv.coe_mk, reflection_linear_equiv,
+        linear_equiv.to_fun_eq_coe, linear_equiv.coe_of_involutive,
+        linear_map.sub_apply, linear_map.id_apply, bit0, linear_map.add_apply,
+        linear_map.comp_apply, submodule.subtype_apply,
+        continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe],
       dsimp [w, v],
-      abel },
-    { simp [bit0] }
+      abel,
+      },
+    { simp only [add_sub_cancel'_right, eq_self_iff_true], }
   end,
-  ..linear_equiv.of_involutive
-      (bit0 (K.subtype.comp (orthogonal_projection K).to_linear_map) - linear_map.id)
-      (λ x, by simp [bit0]) }
+  ..reflection_linear_equiv K }
 
 variables {K}
 
@@ -853,6 +862,19 @@ submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, 
 
 end orthogonal
 
+section orthogonal_family
+variables {ι : Type*}
+
+/-- An orthogonal family of subspaces of `E` satisfies `direct_sum.submodule_is_internal` (that is,
+they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
+orthogonal complement. -/
+lemma orthogonal_family.submodule_is_internal_iff [finite_dimensional 𝕜 E]
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) :
+  direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
+by simp only [direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top, hV.independent,
+  true_and, submodule.orthogonal_eq_bot_iff (supr V).complete_of_finite_dimensional]
+
+end orthogonal_family
 
 section orthonormal_basis
 

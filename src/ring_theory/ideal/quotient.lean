@@ -5,7 +5,6 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
 import linear_algebra.quotient
 import ring_theory.ideal.basic
-
 /-#
 # Ideal quotients
 
@@ -17,6 +16,10 @@ See `algebra.ring_quot` for quotients of non-commutative rings.
 ## Main definitions
 
  - `ideal.quotient`: the quotient of a commutative ring `R` by an ideal `I : ideal R`
+
+## Main results
+
+ - `ideal.quotient_inf_ring_equiv_pi_quotient`: the **Chinese Remainder Theorem**
 -/
 
 universes u v w

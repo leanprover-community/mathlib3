@@ -8,6 +8,7 @@ import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
+import tactic.abel
 
 /-!
 # Partial sums of geometric series

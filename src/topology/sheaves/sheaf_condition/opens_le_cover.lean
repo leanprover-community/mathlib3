@@ -87,7 +87,7 @@ open sheaf_condition
 /--
 An equivalent formulation of the sheaf condition
 (which we prove equivalent to the usual one below as
-`sheaf_condition_equiv_sheaf_condition_opens_le_cover`).
+`is_sheaf_iff_is_sheaf_opens_le_cover`).
 
 A presheaf is a sheaf if `F` sends the cone `(opens_le_cover_cocone U).op` to a limit cone.
 (Recall `opens_le_cover_cocone U`, has cone point `supr U`,

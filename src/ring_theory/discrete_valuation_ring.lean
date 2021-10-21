@@ -50,13 +50,13 @@ open ideal local_ring
 
 /-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
   is not a field. -/
-class discrete_valuation_ring (R : Type u) [integral_domain R]
+class discrete_valuation_ring (R : Type u) [comm_ring R] [is_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)
 
 namespace discrete_valuation_ring
 
-variables (R : Type u) [integral_domain R] [discrete_valuation_ring R]
+variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
@@ -107,7 +107,7 @@ theorem exists_prime : ∃ ϖ : R, prime ϖ :=
 (exists_irreducible R).imp (λ _, principal_ideal_ring.irreducible_iff_prime.1)
 
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
-theorem iff_pid_with_one_nonzero_prime (R : Type u) [integral_domain R] :
+theorem iff_pid_with_one_nonzero_prime (R : Type u) [comm_ring R] [is_domain R] :
   discrete_valuation_ring R ↔ is_principal_ideal_ring R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P :=
 begin
   split,
@@ -151,12 +151,12 @@ namespace discrete_valuation_ring
 variable (R : Type*)
 
 /-- Alternative characterisation of discrete valuation rings. -/
-def has_unit_mul_pow_irreducible_factorization [integral_domain R] : Prop :=
+def has_unit_mul_pow_irreducible_factorization [comm_ring R] : Prop :=
 ∃ p : R, irreducible p ∧ ∀ {x : R}, x ≠ 0 → ∃ (n : ℕ), associated (p ^ n) x
 
 namespace has_unit_mul_pow_irreducible_factorization
 
-variables {R} [integral_domain R] (hR : has_unit_mul_pow_irreducible_factorization R)
+variables {R} [comm_ring R] (hR : has_unit_mul_pow_irreducible_factorization R)
 include hR
 
 lemma unique_irreducible ⦃p q : R⦄ (hp : irreducible p) (hq : irreducible q) :
@@ -180,6 +180,8 @@ begin
     { rw [add_comm, pow_succ] at H0,
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
+
+variables [is_domain R]
 
 /-- An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
@@ -240,7 +242,7 @@ end
 end has_unit_mul_pow_irreducible_factorization
 
 lemma aux_pid_of_ufd_of_unique_irreducible
-  (R : Type u) [integral_domain R] [unique_factorization_monoid R]
+  (R : Type u) [comm_ring R] [is_domain R] [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   is_principal_ideal_ring R :=
@@ -276,7 +278,8 @@ A unique factorization domain with at least one irreducible element
 in which all irreducible elements are associated
 is a discrete valuation ring.
 -/
-lemma of_ufd_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_monoid R]
+lemma of_ufd_of_unique_irreducible
+  {R : Type u} [comm_ring R] [is_domain R] [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   discrete_valuation_ring R :=
@@ -295,7 +298,8 @@ begin
     apply span_singleton_eq_span_singleton.mpr,
     apply h₂ _ hp,
     erw [ne.def, span_singleton_eq_bot] at I0,
-    rwa [unique_factorization_monoid.irreducible_iff_prime, ← ideal.span_singleton_prime I0], },
+    rwa [unique_factorization_monoid.irreducible_iff_prime, ← ideal.span_singleton_prime I0],
+    apply_instance, },
 end
 
 /--
@@ -303,7 +307,7 @@ An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p`
 is a discrete valuation ring.
 -/
-lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
+lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [comm_ring R] [is_domain R]
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin
@@ -314,7 +318,7 @@ end
 
 section
 
-variables [integral_domain R] [discrete_valuation_ring R]
+variables [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 variable {R}
 
@@ -396,7 +400,8 @@ end
 open multiplicity
 
 /-- The `enat`-valued additive valuation on a DVR -/
-noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_ring R] :
+noncomputable def add_val
+  (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
   add_valuation R enat :=
 add_valuation (classical.some_spec (exists_prime R))
 
@@ -469,7 +474,7 @@ lemma add_val_add {a b : R} :
 
 end
 
-instance (R : Type*) [integral_domain R] [discrete_valuation_ring R] :
+instance (R : Type*) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
   is_Hausdorff (maximal_ideal R) R :=
 { haus' := λ x hx,
   begin

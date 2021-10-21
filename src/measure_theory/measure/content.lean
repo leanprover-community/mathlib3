@@ -48,7 +48,7 @@ We prove that, on a locally compact space, the measure `μ.measure` is regular.
 * <https://en.wikipedia.org/wiki/Content_(measure_theory)>
 -/
 
-universe variables u v w
+universes u v w
 noncomputable theory
 
 open set topological_space
@@ -76,7 +76,7 @@ instance : inhabited (content G) :=
 /-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
 functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
 is more convenient in a complete lattice, and aim at constructing a measure. -/
-instance : has_coe_to_fun (content G) := ⟨_, λ μ s, (μ.to_fun s : ℝ≥0∞)⟩
+instance : has_coe_to_fun (content G) (λ _, compacts G → ℝ≥0∞) := ⟨λ μ s, μ.to_fun s⟩
 
 namespace content
 

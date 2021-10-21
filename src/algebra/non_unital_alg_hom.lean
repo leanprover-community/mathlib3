@@ -65,7 +65,7 @@ variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
 variables [non_unital_non_assoc_semiring C] [distrib_mul_action R C]
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (non_unital_alg_hom R A B) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (non_unital_alg_hom R A B) (λ _, A → B) := ⟨to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : non_unital_alg_hom R A B) : f.to_fun = ⇑f := rfl
 

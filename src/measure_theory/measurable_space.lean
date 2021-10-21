@@ -693,8 +693,7 @@ namespace measurable_equiv
 
 variables (α β) [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
 
-instance : has_coe_to_fun (α ≃ᵐ β) :=
-⟨λ _, α → β, λ e, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ᵐ β) (λ _, α → β) := ⟨λ e, e.to_fun⟩
 
 variables {α β}
 

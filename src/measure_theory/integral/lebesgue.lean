@@ -55,9 +55,9 @@ namespace simple_func
 
 section measurable
 variables [measurable_space α]
-instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) := ⟨_, to_fun⟩
+instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) (λ _, α → β) := ⟨to_fun⟩
 
-lemma coe_injective ⦃f g : α →ₛ β⦄ (H : ⇑f = g) : f = g :=
+lemma coe_injective ⦃f g : α →ₛ β⦄ (H : (f : α → β) = g) : f = g :=
 by cases f; cases g; congr; exact H
 
 @[ext] theorem ext {f g : α →ₛ β} (H : ∀ a, f a = g a) : f = g :=
@@ -1062,7 +1062,7 @@ begin
   rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
-  simp only [add_apply, sub_apply, add_sub_eq_max]
+  simp only [add_apply, sub_apply, add_tsub_eq_max]
 end
 
 theorem supr_lintegral_le {ι : Sort*} (f : ι → α → ℝ≥0∞) :
@@ -1275,7 +1275,7 @@ begin
     begin
       rw [← simple_func.add_lintegral, ← simple_func.map_add @ennreal.coe_add],
       refine simple_func.lintegral_mono (λ x, _) le_rfl,
-      simp [-ennreal.coe_add, add_sub_eq_max, le_max_right]
+      simp [-ennreal.coe_add, add_tsub_eq_max, le_max_right]
     end
   ... ≤ (map coe φ).lintegral (μ.restrict s) + ε₁ :
     begin
@@ -1287,7 +1287,7 @@ begin
   ... = C * μ s + ε₁ : by simp [← simple_func.lintegral_eq_lintegral]
   ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ : by { mono*, exacts [le_rfl, hs.le, le_rfl] }
   ... ≤ (ε₂ - ε₁) + ε₁ : add_le_add mul_div_le le_rfl
-  ... = ε₂ : sub_add_cancel_of_le hε₁₂.le,
+  ... = ε₂ : tsub_add_cancel_of_le hε₁₂.le,
 end
 
 /-- If `f` has finite integral, then `∫⁻ x in s, f x ∂μ` is absolutely continuous in `s`: it tends

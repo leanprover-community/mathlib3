@@ -284,7 +284,7 @@ begin
     rw [← prod_factor_multiset m, ← prod_factor_multiset m],
     apply dvd.intro (n.factor_multiset - m.factor_multiset).prod,
     rw [← prime_multiset.prod_add, prime_multiset.factor_multiset_prod,
-        add_sub_cancel_of_le h, prod_factor_multiset] },
+        add_tsub_cancel_of_le h, prod_factor_multiset] },
   { intro  h,
     rw [← mul_div_exact h, factor_multiset_mul],
     exact le_self_add }

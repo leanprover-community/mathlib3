@@ -5,7 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
 import linear_algebra.quotient
 import ring_theory.ideal.basic
-/-#
+/-!
 # Ideal quotients
 
 This file defines ideal quotients as a special case of submodule quotients and proves some basic

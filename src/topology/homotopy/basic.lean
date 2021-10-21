@@ -61,7 +61,7 @@ section
 
 variables {f₀ f₁ : C(X, Y)}
 
-instance : has_coe_to_fun (homotopy f₀ f₁) := ⟨_, λ F, F.to_fun⟩
+instance : has_coe_to_fun (homotopy f₀ f₁) (λ _, I × X → Y) := ⟨λ F, F.to_fun⟩
 
 lemma coe_fn_injective : @function.injective (homotopy f₀ f₁) (I × X → Y) coe_fn :=
 begin
@@ -239,7 +239,7 @@ section
 
 variables {f₀ f₁ : C(X, Y)} {P : C(X, Y) → Prop}
 
-instance : has_coe_to_fun (homotopy_with f₀ f₁ P) := ⟨_, λ F, F.to_fun⟩
+instance : has_coe_to_fun (homotopy_with f₀ f₁ P) (λ _, I × X → Y) := ⟨λ F, F.to_fun⟩
 
 lemma coe_fn_injective : @function.injective (homotopy_with f₀ f₁ P) (I × X → Y) coe_fn :=
 begin

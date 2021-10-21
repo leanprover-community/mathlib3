@@ -1995,7 +1995,7 @@ lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
   sigma_finite μ :=
 begin
   obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ∞) ∧ (⋃ n, s n) = univ,
-    from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
+    from (@exists_seq_cover_iff_countable _ (λ x, μ x < ⊤) ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
   exact ⟨⟨⟨λ n, s n, λ n, trivial, hμ, hs⟩⟩⟩,
 end
 

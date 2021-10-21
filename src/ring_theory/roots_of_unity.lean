@@ -822,7 +822,7 @@ begin
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   by_contra hzero,
-  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero))
+  exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero)
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is squarefree. -/
@@ -909,7 +909,7 @@ begin
   have hfree : squarefree (X ^ n - 1 : polynomial (zmod p)),
   { refine squarefree_X_pow_sub_C 1 _ one_ne_zero,
     by_contra hzero,
-    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },
+    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 hzero) },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
     (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
   { rw nat.cast_one at habs, exact hle.not_lt habs },

@@ -1856,13 +1856,13 @@ iff.intro
 lemma bounded.ediam_ne_top (h : bounded s) : emetric.diam s ≠ ⊤ :=
 bounded_iff_ediam_ne_top.1 h
 
-lemma noncompact_space_iff_ediam_eq_top [proper_space α] :
+lemma ediam_univ_eq_top_iff_noncompact [proper_space α] :
   noncompact_space α ↔ emetric.diam (univ : set α) = ∞ :=
 by rw [← not_compact_space_iff, compact_space_iff_bounded_univ, bounded_iff_ediam_ne_top, not_not]
 
 @[simp] lemma ediam_univ_of_noncompact [proper_space α] [noncompact_space α] :
   emetric.diam (univ : set α) = ∞ :=
-noncompact_space_iff_ediam_eq_top.1 ‹_›
+ediam_univ_eq_top_iff_noncompact.mpr ‹_›
 
 @[simp] lemma diam_univ_of_noncompact [proper_space α] [noncompact_space α] :
   diam (univ : set α) = 0 :=

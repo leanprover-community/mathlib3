@@ -156,6 +156,8 @@ begin
   exact ⟨i, y, by simpa⟩
 end
 
+local attribute[elementwise] colimit.ι_desc
+
 @[simp]
 lemma glue_condition (i j : D.ι) :
   D.f i j ≫ opens.inclusion _ ≫ D.imm j = opens.inclusion _ ≫ D.imm i :=
@@ -217,8 +219,6 @@ end
 lemma inv_image.equivalence {α : Sort u} {β : Sort v} (r : β → β → Prop) (f : α → β)
   (h : equivalence r) : equivalence (inv_image r f) :=
 ⟨λ _, h.1 _, λ _ _ x, h.2.1 x, inv_image.trans r f h.2.2⟩
-
-local attribute[elementwise] colimit.ι_desc
 
 lemma imm_eq_iff_rel (i j : D.ι) (x : D.U i) (y : D.U j) :
   D.imm i x = D.imm j y ↔ D.rel ⟨i, x⟩ ⟨j, y⟩ :=

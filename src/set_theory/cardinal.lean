@@ -304,25 +304,6 @@ begin
   exact id
 end
 
-instance : comm_semiring cardinal.{u} :=
-{ zero          := 0,
-  one           := 1,
-  add           := (+),
-  mul           := (*),
-  zero_add      := zero_add,
-  add_zero      := assume a, by rw [add_comm a 0, zero_add a],
-  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
-  add_comm      := add_comm,
-  zero_mul      := zero_mul,
-  mul_zero      := assume a, by rw [mul_comm a 0, zero_mul a],
-  one_mul       := one_mul,
-  mul_one       := assume a, by rw [mul_comm a 1, one_mul a],
-  mul_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.prod_assoc α β γ),
-  mul_comm      := mul_comm,
-  left_distrib  := left_distrib,
-  right_distrib := assume a b c,
-    by rw [mul_comm (a + b) c, left_distrib c a b, mul_comm c a, mul_comm c b] }
-
 /-- The cardinal exponential. `#α ^ #β` is the cardinal of `β → α`. -/
 protected def power (a b : cardinal.{u}) : cardinal.{u} :=
 map₂ (λ α β : Type u, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁) a b
@@ -342,6 +323,31 @@ induction_on a $ assume α, (equiv.pempty_arrow_equiv_punit α).cardinal_eq
 @[simp] theorem power_one {a : cardinal} : a ^ 1 = a :=
 induction_on a $ assume α, (equiv.punit_arrow_equiv α).cardinal_eq
 
+theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
+induction_on₃ a b c $ assume α β γ, (equiv.sum_arrow_equiv_prod_arrow β γ α).cardinal_eq
+
+instance : comm_semiring cardinal.{u} :=
+{ zero          := 0,
+  one           := 1,
+  add           := (+),
+  mul           := (*),
+  zero_add      := zero_add,
+  add_zero      := assume a, by rw [add_comm a 0, zero_add a],
+  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
+  add_comm      := add_comm,
+  zero_mul      := zero_mul,
+  mul_zero      := assume a, by rw [mul_comm a 0, zero_mul a],
+  one_mul       := one_mul,
+  mul_one       := assume a, by rw [mul_comm a 1, one_mul a],
+  mul_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.prod_assoc α β γ),
+  mul_comm      := mul_comm,
+  left_distrib  := left_distrib,
+  right_distrib := assume a b c,
+    by rw [mul_comm (a + b) c, left_distrib c a b, mul_comm c a, mul_comm c b],
+  npow          := λ n c, c ^ n,
+  npow_zero'    := @power_zero,
+  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, mul_comm c] }
+
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 
@@ -359,17 +365,13 @@ let ⟨a⟩ := mk_ne_zero_iff.1 h in mk_ne_zero_iff.2 ⟨λ _, a⟩
 theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
 induction_on₃ a b c $ assume α β γ, (equiv.arrow_prod_equiv_prod_arrow α β γ).cardinal_eq
 
-theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
-induction_on₃ a b c $ assume α β γ, (equiv.sum_arrow_equiv_prod_arrow β γ α).cardinal_eq
-
 theorem power_mul {a b c : cardinal} : a ^ (b * c) = (a ^ b) ^ c :=
 by rw [_root_.mul_comm b c];
 from (induction_on₃ a b c $ assume α β γ, mk_congr (equiv.curry γ β α))
 
-@[simp] lemma pow_cast_right (κ : cardinal.{u}) :
-  ∀ n : ℕ, (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n
-| 0 := by simp
-| (_+1) := by rw [nat.cast_succ, power_add, power_one, _root_.mul_comm, pow_succ, pow_cast_right]
+@[simp] lemma pow_cast_right (κ : cardinal.{u}) (n : ℕ) :
+  (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n :=
+rfl
 
 section order_properties
 open sum
@@ -382,7 +384,6 @@ by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e
 
 protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
 cardinal.add_le_add (le_refl _)
-
 
 protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 ⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,

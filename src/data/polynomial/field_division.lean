@@ -52,6 +52,11 @@ by simp [norm_unit]
 lemma leading_coeff_normalize (p : polynomial R) :
   leading_coeff (normalize p) = normalize (leading_coeff p) := by simp
 
+lemma monic.normalize_eq_self {p : polynomial R} (hp : p.monic) :
+  normalize p = p :=
+by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
+  units.coe_one, polynomial.C.map_one, mul_one]
+
 end is_domain
 
 section field

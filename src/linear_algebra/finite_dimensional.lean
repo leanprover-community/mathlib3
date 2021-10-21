@@ -26,12 +26,8 @@ proof, it is defined using the second point of view, i.e., as `finite`. However,
 that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
-- `basis.of_vector_space_index.fintype` states that a finite-dimensional
+- `fintype_basis_index` states that a finite-dimensional
   vector space has a finite basis
-- `finite_dimensional.fintype_basis_index` states that a basis of a
-  finite-dimensional vector space contains finitely many basis vectors
-- `finite_dimensional.finset_basis` states that a finite-dimensional
-  vector space has a basis indexed by a `finset`
 - `finite_dimensional.fin_basis` and `finite_dimensional.fin_basis_of_finrank_eq`
   are bases for finite dimensional vector spaces, where the index type
   is `fin`
@@ -56,8 +52,7 @@ Preservation of finite-dimensionality and formulas for the dimension are given f
 
 Basic properties of linear maps of a finite-dimensional vector space are given. Notably, the
 equivalence of injectivity and surjectivity is proved in `linear_map.injective_iff_surjective`,
-and the equivalence between left-inverse and right-inverse in `mul_eq_one_comm` and
-`comp_eq_id_comm`.
+and the equivalence between left-inverse and right-inverse in `linear_map.mul_eq_one_comm` and `linear_map.comp_eq_id_comm`.
 
 ## Implementation notes
 

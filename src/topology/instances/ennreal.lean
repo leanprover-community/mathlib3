@@ -701,7 +701,7 @@ begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
   { rw [ennreal.tsum_add, add_sub_self h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
-  { ext n, rw ennreal.sub_add_cancel_of_le (h₂ n)},
+  { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,
 end
 

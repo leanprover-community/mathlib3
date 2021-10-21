@@ -13,7 +13,7 @@ open finset fintype
 
 variables {α : Type*}
 
-/-- Auxiliary function to explicit the bound on the size of the equipartition in the proof of
+/-- Auxiliary function to explicit the bound on the parts.card of the equipartition in the proof of
 Szemerédi's Regularity Lemma -/
 def exp_bound (n : ℕ) : ℕ := n * 4^n
 
@@ -87,7 +87,7 @@ begin
   apply pow_le_one _ (eps_pos hPε).le hε,
 end
 
-lemma a_add_one_le_four_pow_size : a + 1 ≤ 4^P.parts.card :=
+lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin
   have h : 1 ≤ 4^P.parts.card := one_le_pow_of_one_le (by norm_num) _,
   rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, sub_le_iff_left,
@@ -97,12 +97,12 @@ end
 
 lemma card_aux₁ : m * 4^P.parts.card + a = (4^P.parts.card - a) * m + a * (m + 1) :=
 by rw [mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
-  ((nat.le_succ _).trans a_add_one_le_four_pow_size), mul_comm]
+  ((nat.le_succ _).trans a_add_one_le_four_pow_parts_card), mul_comm]
 
 lemma card_aux₂ {U : finset α} (hUcard : U.card = m * 4^P.parts.card + a) :
   (4^P.parts.card - a) * m + a * (m + 1) = U.card :=
 by rw [hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
-  ((nat.le_succ _).trans a_add_one_le_four_pow_size), mul_comm]
+  ((nat.le_succ _).trans a_add_one_le_four_pow_parts_card), mul_comm]
 
 lemma card_aux₃ (hP : P.is_equipartition) {U : finset α} (hU : U ∈ P.parts)
   (hUcard : ¬U.card = m * 4^P.parts.card + a) :
@@ -115,7 +115,7 @@ begin
   rw aux at hUcard,
   rw finpartition.is_equipartition_iff_card_parts_eq_average' at hP,
   rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
-    a_add_one_le_four_pow_size, ←add_assoc, mul_comm, add_sub_cancel_of_le, ←aux],
+    a_add_one_le_four_pow_parts_card, ←add_assoc, mul_comm, add_sub_cancel_of_le, ←aux],
   rw ←aux,
   exact nat.le_add_right _ _,
 end
@@ -125,6 +125,5 @@ lemma pow_mul_m_le_card_part (hP : P.is_equipartition) {U : finset α} (hU : U �
 begin
   norm_cast,
   rw [exp_bound, ←nat.div_div_eq_div_mul],
-  exact (nat.mul_div_le _ _).trans
-    (finpartition.is_equipartition.average_le_card_part hP hU),
+  exact (nat.mul_div_le _ _).trans (hP.average_le_card_part hU),
 end

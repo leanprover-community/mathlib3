@@ -47,11 +47,10 @@ end
 lemma left_witness_aux_card (h₁ : U ≠ V) (h₂ : ¬ G.is_uniform ε U V) :
   (U.card : ℝ) * ε ≤ (G.witness_aux ε U V).1.card :=
 begin
-  rw [witness_aux, dif_neg],
-  { unfold is_uniform at h₂,
-    push_neg at h₂,
-    apply h₂.some_spec.2.some_spec.2.1 },
-  exact λ h, h.elim h₁ h₂,
+  rw [witness_aux, dif_neg (λ h, or.elim h h₁ h₂)],
+  unfold is_uniform at h₂,
+  push_neg at h₂,
+  apply h₂.some_spec.2.some_spec.2.1,
 end
 
 lemma right_witness_aux_subset : (G.witness_aux ε U V).2 ⊆ V :=

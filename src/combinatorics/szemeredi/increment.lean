@@ -46,10 +46,10 @@ begin
   simp_rw [finpartition.is_equipartition.chunk_increment, apply_dite finpartition.parts,
     apply_dite card],
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
-  exact λ x hx, finpartition.equitabilise.parts.card (nat.div_pos hPα' hPpos) _,
-  exact λ x hx, finpartition.equitabilise.parts.card (nat.div_pos hPα' hPpos) _,
-  rw [nat.sub_add_cancel a_add_one_le_four_pow_size, nat.sub_add_cancel ((nat.le_succ _).trans
-    a_add_one_le_four_pow_size), ←add_mul],
+  exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _,
+  exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _,
+  rw [nat.sub_add_cancel a_add_one_le_four_pow_parts_card, nat.sub_add_cancel ((nat.le_succ _).trans
+    a_add_one_le_four_pow_parts_card), ←add_mul],
   congr,
   rw [filter_card_add_filter_neg_card_eq_card, card_attach],
 end

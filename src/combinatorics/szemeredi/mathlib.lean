@@ -419,6 +419,18 @@ begin
   rwa [sub_self, abs_zero],
 end
 
+lemma not_is_uniform_zero {U V : finset α} : ¬ G.is_uniform 0 U V :=
+λ h, not_le_of_lt (h ∅ (by simp) ∅ (by simp) (by simp) (by simp)) (abs_nonneg _)
+
+lemma is_uniform_of_one_le (hε : 1 ≤ ε) {U V : finset α} : G.is_uniform ε U V :=
+begin
+  intros U' hU' V' hV' hU hV,
+  have hU'' := nat.cast_le.1 ((le_mul_of_one_le_right (nat.cast_nonneg _) hε).trans hU),
+  have hV'' := nat.cast_le.1 ((le_mul_of_one_le_right (nat.cast_nonneg _) hε).trans hV),
+  rw [eq_of_subset_of_card_le hU' hU'', eq_of_subset_of_card_le hV' hV'', sub_self, abs_zero],
+  linarith
+end
+
 end simple_graph
 
 /-! ## pairs_count with finpartition -/

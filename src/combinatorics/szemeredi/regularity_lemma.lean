@@ -19,8 +19,7 @@ open finpartition finset fintype function
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ)
 
-local notation `m` := (card α/exp_bound P.parts.card : ℕ)
-local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
+local notation `m` := (card α/exp_bound P.size : ℕ)
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
@@ -59,7 +58,7 @@ lemma iteration_bound_le_szemeredi_bound (ε l) :
 
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ)
+theorem szemeredi_regularity {ε : ℝ} (l : ℕ) (hε : 0 < ε) (hε' : ε ≤ 1)
   (hG : l ≤ card α) :
   ∃ (P : finpartition (univ : finset α)),
     P.is_equipartition ∧ l ≤ P.parts.card ∧ P.parts.card ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
@@ -119,7 +118,7 @@ begin
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨hP₁.increment G ε, increment_is_equipartition hP₁ G ε, _, _,
     or.inr (le_trans _ (index_increment hP₁ ((one_hundred_le_iteration_bound ε l).trans hP₂)
-      hεl' hPα huniform hε'.le))⟩,
+      hεl' hPα huniform hε'))⟩,
   { rw card_increment hPα huniform,
     exact hP₂.trans (le_exp_bound _) },
   { rw [card_increment hPα huniform, function.iterate_succ_apply'],

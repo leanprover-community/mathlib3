@@ -201,10 +201,7 @@ lemma card_eq_of_mem_parts_equitabilise {Q : finpartition s} {m a b : ℕ}
 lemma equitabilise.is_equipartition (Q : finpartition s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
   (Q.equitabilise h).is_equipartition :=
-begin
-  rw [finpartition.is_equipartition, set.equitable_on_iff_exists_eq_eq_add_one],
-  exact ⟨m, λ u hu, card_eq_of_mem_parts_equitabilise h hu⟩,
-end
+set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨m, λ u hu, card_eq_of_mem_parts_equitabilise h hu⟩
 
 lemma card_filter_equitabilise_big (Q : finpartition s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
@@ -215,7 +212,7 @@ lemma card_filter_equitabilise_small (Q : finpartition s) {m a b : ℕ} (hm : 0 
   (h : a*m + b*(m+1) = s.card) :
   ((Q.equitabilise h).parts.filter (λ u : finset α, u.card = m)).card = a :=
 begin
-  refine (mul_eq_mul_right_iff.1 $ (add_left_inj $ b * (m + 1)).1 _).resolve_right hm.ne',
+  refine (mul_eq_mul_right_iff.1 ((add_left_inj (b * (m + 1))).1 _)).resolve_right hm.ne',
   rw [h, ←(Q.equitabilise h).sum_card_parts],
   have hunion : (Q.equitabilise h).parts = (Q.equitabilise h).parts.filter (λ u, u.card = m) ∪
     (Q.equitabilise h).parts.filter (λ u, u.card = m + 1),
@@ -229,7 +226,7 @@ begin
   rw [nat.succ_eq_add_one, ←hx.2.2, hx.1.2],
 end
 
-lemma equitabilise.parts.card {Q : finpartition s} {m a b : ℕ} (hm : 0 < m)
+lemma equitabilise.parts_card {Q : finpartition s} {m a b : ℕ} (hm : 0 < m)
   (h : a * m + b * (m + 1) = s.card) :
   (Q.equitabilise h).parts.card = a + b :=
 begin
@@ -247,14 +244,13 @@ lemma almost_in_atoms_of_mem_parts_equitabilise {Q : finpartition s} {m a b : �
   (h : a * m + b * (m + 1) = s.card) {u : finset α} (hu : u ∈ Q.parts) :
   (u \ ((Q.equitabilise h).parts.filter $ λ x, x ⊆ u).bUnion id).card ≤ m :=
 begin
-  have := (classical.some_spec (equitabilise_aux' h Q)).2.1,
   refine (card_le_of_subset _).trans ((classical.some_spec (equitabilise_aux' h Q)).2.1 u hu),
   intros x,
   simp only [not_exists, mem_bUnion, and_imp, mem_filter, mem_sdiff, id.def, ne.def],
   refine λ hxu hx, ⟨hxu, λ a ha hau, _⟩,
   obtain rfl | hanemp := eq_or_ne a ∅,
   { exact not_mem_empty _ },
-  apply hx _ ha hau,
+  { apply hx _ ha hau },
 end
 
 end finpartition
@@ -262,6 +258,8 @@ end finpartition
 end
 
 /-! ### Atomise -/
+
+open finpartition
 
 section atomise
 variables [decidable_eq α] {s : finset α}
@@ -339,8 +337,7 @@ begin
   { rw [nat.mul_sub_right_distrib, mul_add, ←add_assoc, nat.sub_add_cancel, mul_one, add_comm,
       nat.mod_add_div],
     exact nat.mul_le_mul_right _ ((nat.mod_lt _ ht).le) },
-  refine ⟨(indiscrete (finset.card_pos.1 $ ht.trans_le hs).ne_empty).equitabilise this,
-    finpartition.equitabilise.is_equipartition _ _, _⟩,
-  rw [finpartition.equitabilise.parts.card (nat.div_pos hs ht), nat.sub_add_cancel
-    (nat.mod_lt _ ht).le],
+  refine ⟨(finpartition.indiscrete (finset.card_pos.1 $ ht.trans_le hs).ne_empty).equitabilise this,
+    equitabilise.is_equipartition _ _, _⟩,
+  rw [equitabilise.parts_card (nat.div_pos hs ht), nat.sub_add_cancel (nat.mod_lt _ ht).le],
 end

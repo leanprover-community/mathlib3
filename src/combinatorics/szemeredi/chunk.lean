@@ -73,43 +73,27 @@ begin
       id.def],
     obtain ⟨⟨B, hB₁, hB₂⟩, hx⟩ := hx,
     exact ⟨B, hB₁, hB₂, λ A hA AB, hx A hA $ AB.trans hB₁.2.1⟩ },
-  apply (card_le_of_subset q).trans,
-  apply card_bUnion_le.trans,
+  apply (card_le_of_subset q).trans (card_bUnion_le.trans _),
   have :
-    ∑ i in filter (λ (B : finset α), B ⊆ G.witness ε U V ∧ B.nonempty)
-      (atomise U (P.witnesses G ε U)).parts,
-      (card α / exp_bound P.parts.card)
-    ≤ 2 ^ (P.parts.card - 1) * (card α / exp_bound P.parts.card),
+    ∑ i in (atomise U (P.witnesses G ε U)).parts.filter (λ B, B ⊆ G.witness ε U V ∧ B.nonempty), m
+      ≤ 2 ^ (P.parts.card - 1) * m,
   { rw sum_const_nat,
-    apply mul_le_mul_of_nonneg_right,
-    have t := partial_atomise (G.witness ε U V) hX,
-    rw filter_congr_decidable at t,
-    apply t.trans,
-    refine pow_le_pow (by norm_num) _,
-    apply nat.sub_le_sub_right,
-    rw finpartition.witnesses,
-    apply card_image_le.trans,
-    apply card_le_of_subset,
-    apply filter_subset,
-    apply zero_le,
-    intros,
-    refl },
+    { apply nat.mul_le_mul_right,
+      have t := partial_atomise (G.witness ε U V) hX,
+      rw filter_congr_decidable at t,
+      apply t.trans (pow_le_pow (by norm_num) (nat.sub_le_sub_right _ _)),
+      apply card_image_le.trans (card_le_of_subset (filter_subset _ _)) },
+    { intros,
+      refl } },
   apply le_trans _ this,
   have : ∀ B ∈ (atomise U (P.witnesses G ε U)).parts,
-  (B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id).card ≤
-    card α / exp_bound P.parts.card,
+          (B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id).card ≤ m,
   { intros B hB,
     rw [finpartition.is_equipartition.chunk_increment],
     split_ifs with h₁,
-    { have := almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ h₁) hB,
-      rw filter_congr_decidable at this,
-      apply this },
-    have := almost_in_atoms_of_mem_parts_equitabilise (card_aux₃ hP hU h₁) hB,
-    rw filter_congr_decidable at this,
-    apply this },
-  apply sum_le_sum,
-  intros B hB,
-  apply this B (filter_subset _ _ hB),
+    { convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ h₁) hB },
+    convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₃ hP hU h₁) hB },
+  apply sum_le_sum (λ B hB, this B (filter_subset _ _ hB)),
 end
 
 lemma one_sub_eps_mul_card_witness_le_card_star (hV : V ∈ P.parts) (hUV : U ≠ V)
@@ -175,10 +159,10 @@ lemma card_chunk_increment (m_pos : 0 < m) :
 begin
   rw finpartition.is_equipartition.chunk_increment,
   split_ifs,
-  { rw [finpartition.equitabilise.parts.card m_pos, nat.sub_add_cancel],
-    exact le_of_lt a_add_one_le_four_pow_size },
-  { rw [finpartition.equitabilise.parts.card m_pos, nat.sub_add_cancel],
-    exact a_add_one_le_four_pow_size }
+  { rw [finpartition.equitabilise.parts_card m_pos, nat.sub_add_cancel],
+    exact le_of_lt a_add_one_le_four_pow_parts_card },
+  { rw [finpartition.equitabilise.parts_card m_pos, nat.sub_add_cancel],
+    exact a_add_one_le_four_pow_parts_card }
 end
 
 lemma card_eq_of_mem_parts_chunk_increment {A : finset α}

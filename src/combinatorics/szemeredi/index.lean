@@ -26,7 +26,8 @@ end finset
 
 /-! ## finpartition.is_uniform -/
 
-variables [decidable_eq α] {s : finset α} (P : finpartition s) (G : simple_graph α)
+variables [decidable_eq α] {s : finset α} (P : finpartition s)
+variables (G : simple_graph α) [decidable_rel G.adj]
 
 namespace finpartition
 open_locale classical
@@ -47,17 +48,19 @@ def is_uniform (ε : ℝ) : Prop :=
 
 lemma empty_is_uniform {P : finpartition s} {G : simple_graph α} {ε : ℝ} (hP : P.parts = ∅) :
   P.is_uniform G ε :=
-begin
-  rw [finpartition.is_uniform, finpartition.non_uniform_pairs, hP],
-  simp,
-end
+by simp [is_uniform, hP, non_uniform_pairs]
 
 lemma nonempty_of_not_uniform {P : finpartition s} {G : simple_graph α} {ε : ℝ}
   (h : ¬ P.is_uniform G ε) : P.parts.nonempty :=
+nonempty_of_ne_empty (λ h₁, h (empty_is_uniform h₁))
+
+lemma uniform_of_one_le_eps {ε : ℝ} (hε : 1 ≤ ε) :
+  P.is_uniform G ε :=
 begin
-  rw nonempty_iff_ne_empty,
-  intro h₁,
-  apply h (empty_is_uniform h₁),
+  apply le_trans _ (mul_le_mul_of_nonneg_left hε (nat.cast_nonneg _)),
+  rw [mul_one, nat.cast_le],
+  apply le_trans (card_filter_le _ _),
+  rw [off_diag_card, nat.mul_sub_left_distrib, mul_one],
 end
 
 /-- The index is the auxiliary quantity that drives the induction process in the proof of
@@ -74,14 +77,13 @@ div_nonneg (finset.sum_nonneg (λ _ _, sq_nonneg _)) (sq_nonneg _)
 lemma index_le_one (P : finpartition s) :
   P.index G ≤ 1 :=
 begin
-  rw finpartition.index,
   refine div_le_of_nonneg_of_le_mul (sq_nonneg _) zero_le_one _,
-  suffices h : (∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2) ≤ P.parts.off_diag.card,
+  suffices h : ∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2 ≤ P.parts.off_diag.card,
   { apply h.trans,
     rw [off_diag_card, one_mul, ←nat.cast_pow, nat.cast_le, sq],
     apply sub_le_self' },
   refine (sum_le_of_forall_le _ _ 1 _).trans _,
-  { rintro UV _,
+  { intros UV _,
     rw sq_le_one_iff (G.edge_density_nonneg _ _),
     apply G.edge_density_le_one },
   rw nat.smul_one_eq_coe,
@@ -94,22 +96,15 @@ begin
   rintro ⟨U, V⟩,
   simp only [finpartition.mem_non_uniform_pairs, finpartition.discrete_parts, mem_map,
     not_and, not_not, embedding.coe_fn_mk, exists_imp_distrib],
-  rintro x hx rfl y hy rfl h U' hU' V' hV' hU hV,
-  rw [card_singleton, nat.cast_one, one_mul] at hU hV,
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
-  { rw [finset.card_empty] at hU,
-    exact (hε.not_le hU).elim },
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hV',
-  { rw [finset.card_empty] at hV,
-    exact (hε.not_le hV).elim },
-  rwa [sub_self, abs_zero],
+  rintro x hx rfl y hy rfl h,
+  apply G.is_uniform_singleton hε,
 end
 
 lemma discrete_is_uniform {ε : ℝ} (hε : 0 < ε) : (finpartition.discrete s).is_uniform G ε :=
 begin
   rw [finpartition.is_uniform, finpartition.card_discrete, non_uniform_pairs_discrete _ hε,
     finset.card_empty, nat.cast_zero],
-  apply mul_nonneg (nat.cast_nonneg _) hε.le ,
+  apply mul_nonneg (nat.cast_nonneg _) hε.le,
 end
 
 end finpartition

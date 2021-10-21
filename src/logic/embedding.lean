@@ -23,7 +23,7 @@ structure embedding (α : Sort*) (β : Sort*) :=
 
 infixr ` ↪ `:25 := embedding
 
-instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embedding.to_fun⟩
+instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) (λ _, α → β) := ⟨embedding.to_fun⟩
 
 initialize_simps_projections embedding (to_fun → apply)
 

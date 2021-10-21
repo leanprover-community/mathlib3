@@ -162,7 +162,7 @@ lemma exists_succ (x : s) : ∃ n, ↑x + n + 1 ∈ s :=
 classical.by_contradiction $ λ h,
 have ∀ (a : ℕ) (ha : a ∈ s), a < succ x,
   from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x + 1),
-    by rwa [add_right_comm, add_sub_cancel_of_le hax]⟩),
+    by rwa [add_right_comm, add_tsub_cancel_of_le hax]⟩),
 fintype.false
   ⟨(((multiset.range (succ x)).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)

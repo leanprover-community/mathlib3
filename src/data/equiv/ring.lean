@@ -63,7 +63,7 @@ section basic
 
 variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add S']
 
-instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
+instance : has_coe_to_fun (R ≃+* S) (λ _, R → S) := ⟨ring_equiv.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 
@@ -437,9 +437,10 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
     by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]
+protected lemma integral_domain
+  {A : Type*} (B : Type*) [comm_ring A] [comm_ring B] [integral_domain B]
   (e : A ≃+* B) : integral_domain A :=
-{ .. (‹_› : ring A), .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
+{ .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
 
 end ring_equiv
 

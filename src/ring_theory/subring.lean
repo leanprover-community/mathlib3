@@ -286,8 +286,12 @@ s.to_subsemiring.nontrivial
 instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s :=
 s.to_subsemiring.no_zero_divisors
 
+/-- A subring of a domain is a domain. -/
+instance {R} [ring R] [domain R] (s : subring R) : domain s :=
+{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
+
 /-- A subring of an integral domain is an integral domain. -/
-instance {R} [integral_domain R] (s : subring R) : integral_domain s :=
+instance {R} [comm_ring R] [integral_domain R] (s : subring R) : integral_domain s :=
 { .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
@@ -519,6 +523,9 @@ variables {R}
 
 lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
 iff.rfl
+
+instance decidable_mem_center [decidable_eq R] [fintype R] : decidable_pred (∈ center R) :=
+λ _, decidable_of_iff' _ mem_center_iff
 
 @[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
 set_like.coe_injective (set.center_eq_univ R)

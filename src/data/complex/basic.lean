@@ -152,7 +152,7 @@ by refine_struct
     zero_add := λ z, by { apply ext_iff.2, simp },
     add_zero := λ z, by { apply ext_iff.2, simp },
     nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
-    npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
     gsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 

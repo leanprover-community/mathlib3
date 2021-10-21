@@ -63,15 +63,15 @@ lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _
 
 instance : comm_ring ℝ :=
 begin
-  refine_struct { zero  := 0,
-                  one   := 1,
+  refine_struct { zero  := (0 : ℝ),
+                  one   := (1 : ℝ),
                   mul   := (*),
                   add   := (+),
                   neg   := @has_neg.neg ℝ _,
                   sub   := λ a b, a + (-b),
-                  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
+                  npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
+                  nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
+                  gsmul := @gsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
@@ -262,7 +262,7 @@ noncomputable instance : linear_ordered_field ℝ :=
 noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
 noncomputable instance field : field ℝ                            := by apply_instance
 noncomputable instance : division_ring ℝ                          := by apply_instance
-noncomputable instance : integral_domain ℝ                        := by apply_instance
+instance : integral_domain ℝ                                      := by apply_instance
 noncomputable instance : distrib_lattice ℝ                        := by apply_instance
 noncomputable instance : lattice ℝ                                := by apply_instance
 noncomputable instance : semilattice_inf ℝ                        := by apply_instance

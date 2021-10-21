@@ -8,8 +8,6 @@ import algebra.direct_sum.ring
 import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
-import tactic.linarith
-
 
 /-!
 
@@ -291,12 +289,39 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
     obtain ⟨⟨⟨H₁, H₂⟩, H₃⟩, H₄⟩ := H,
     cases lt_trichotomy i max₁,
     { -- in this case `i < max₁`, so `max₂ < j`, so `of A j (y j) ∈ I`
-      sorry, },
+      have ineq : max₂ < j,
+      { sorry },
+      have not_mem_j : j ∉ set₂,
+      { intro rid₂,
+        rw max₂_eq at ineq,
+        have rid₃ := (finset.max'_lt_iff set₂ set₂_nonempty).mp ineq j rid₂,
+        exact lt_irrefl _ rid₃, },
+      rw set₂_eq at not_mem_j,
+      simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
+        finset.mem_filter] at not_mem_j,
+      specialize not_mem_j H₂,
+      apply ideal.mul_mem_left,
+      convert not_mem_j, },
     { cases h,
       { -- in this case `i = max₁`, so `max₂ = j`, contradictory
-        sorry, },
+        have : j = max₂,
+        { sorry },
+        exfalso,
+        exact H₄ h this, },
       { -- in this case `i > max₁`, so `i < max₁`, so `of A i (x i) ∈ I`
-        sorry, } }, },
+        have ineq : max₁ < i,
+        { sorry },
+        have not_mem_i : i ∉ set₁,
+        { intro rid₂,
+          rw max₁_eq at ineq,
+          have rid₃ := (finset.max'_lt_iff set₁ set₁_nonempty).mp ineq i rid₂,
+          exact lt_irrefl _ rid₃,},
+        rw set₁_eq at not_mem_i,
+        simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
+          finset.mem_filter] at not_mem_i,
+        specialize not_mem_i H₁,
+        apply ideal.mul_mem_right,
+        convert not_mem_i, }, } },
   have mem_I₃ : of A (max₁ + max₂) (graded_monoid.ghas_mul.mul (x max₁) (y max₂)) ∈ I,
   { rw eq₂, apply ideal.sub_mem,
     rw [homogeneous_ideal_iff_homogeneous_ideal'', homogeneous_ideal''] at HI,
@@ -379,7 +404,7 @@ lemma homogeneous_ideal.is_prime_iff [linear_ordered_add_comm_monoid ι] [gcomm_
 end⟩
 
 end properties
-
+#exit
 section operations
 
 open_locale pointwise

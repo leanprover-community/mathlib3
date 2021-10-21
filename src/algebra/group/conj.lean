@@ -160,7 +160,7 @@ instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_cla
 quotient.decidable_eq
 
 noncomputable
-lemma decidable_rel_is_conj [decidable_eq α] [fintype α] :
+def decidable_rel_is_conj [decidable_eq α] [fintype α] :
   decidable_rel (is_conj : α → α → Prop) :=
 λ a b, by { delta is_conj semiconj_by, apply_instance }
 
@@ -234,6 +234,9 @@ end
 lemma carrier_eq_preimage_mk {a : conj_classes α} :
   a.carrier = conj_classes.mk ⁻¹' {a} :=
 set.ext (λ x, mem_carrier_iff_mk_eq)
+instance decidable_mem_carrier [decidable_eq (conj_classes α)] {b : conj_classes α} :
+  decidable_pred (∈ carrier b) :=
+λ a, decidable_of_iff' _ mem_carrier_iff_mk_eq
 
 section fintype
 

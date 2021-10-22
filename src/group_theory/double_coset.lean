@@ -42,13 +42,13 @@ begin
   have h1:  (double_coset_rel ⊥ H) = (quotient_group.left_rel H).r,
   {
     ext,
-    simp,
+    simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, rel_iff],
     split,
     intro h,
     rw quotient_group.left_rel,
     rcases h with ⟨a, ha⟩,
     rw ha.2,
-    simp [ha.1],
+    simp only [ha.left, inv_mul_cancel_left],
     rw quotient_group.left_rel,
     dsimp only,
     intro h,
@@ -71,7 +71,7 @@ begin
     dsimp only,
     rcases h with ⟨a, ha⟩,
     rw ha.2,
-    simp [ha.1],
+    simp only [ha.left, mul_one, mul_inv_cancel_right],
     rw quotient_group.right_rel,
     dsimp only,
     intro h,
@@ -250,18 +250,21 @@ lemma doset_eq_quot_eq (H K : subgroup G) (a b : G) :
 begin
   intro h,
   rw eq,
-  have : b ∈ doset H.1 K a, by { rw h, simp, use 1, simp, simp [H.one_mem, K.one_mem], },
-  simp_rw doset at this,
-  simp at *,
+  have : b ∈ doset H.1 K a, by { rw h,
+    simp only [exists_prop, set_coe.exists, doset_mem, set_like.mem_coe, subgroup.coe_mk, prod.exists],
+    use 1,
+    simp only [H.one_mem, K.one_mem, one_mul, exists_eq_right, self_eq_mul_right, and_self], },
+  simp only [doset, exists_prop, set_coe.exists, subgroup.mem_carrier, set_like.mem_coe,
+    set.mem_set_of_eq, subgroup.coe_mk, prod.exists] at *,
   apply this,
 end
 
 lemma disjoint_doset'  (H K : subgroup G) (a b : quotient H K) :
    a ≠ b → disjoint (doset H.1 K a.out'  ) (doset H K b.out') :=
 begin
-  simp,
+  simp only [ne.def],
   contrapose,
-  simp,
+  simp only [not_not],
   intro h,
   have := disjoint_doset H K _ _ h,
   have h2:= doset_eq_quot_eq _ _ _ _ this,

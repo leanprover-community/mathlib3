@@ -1149,7 +1149,8 @@ def transpose_add_equiv [has_add α] : matrix m n α ≃+ matrix n m α :=
 @[simp] lemma transpose_add_equiv_symm [has_add α] :
   (transpose_add_equiv : matrix m n α ≃+ matrix n m α).symm = transpose_add_equiv := rfl
 
-lemma transpose_list_sum [add_monoid α] (l : list (matrix m n α)) : l.sumᵀ = (l.map transpose).sum :=
+lemma transpose_list_sum [add_monoid α] (l : list (matrix m n α)) :
+  l.sumᵀ = (l.map transpose).sum :=
 (transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_list_sum l
 
 lemma transpose_multiset_sum [add_comm_monoid α] (s : multiset (matrix m n α)) :

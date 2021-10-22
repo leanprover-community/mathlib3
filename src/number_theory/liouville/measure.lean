@@ -1,22 +1,29 @@
+/-
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
 import measure_theory.measure.lebesgue
 import number_theory.liouville.residual
 import number_theory.liouville.liouville_with
 import analysis.p_series
 
 /-!
+# Volume of the set of Liouville numbers
+
+In this file we prove that the set of Liouville numbers with exponent (irrationality measure)
+strictly greater than two is a set of Lebesuge measure zero, see
+`volume_set_of_exists_liouville_with`.
+
+Since this set is a residual set, we show that the filters `residual` and `volume.ae` are disjoint.
+These filters correspond to two common notions of genericity on `ℝ`: residual sets and sets of full
+measure. The fact that the filters are disjoint means that two mutually exclusive properties can be
+“generic” at the same time (in the these of different “genericity” filters).
+
+## Tags
+
+Liouville number, Lebesgue measure, residual, generic property
 -/
-
-namespace filter
-
-lemma disjoint_of_disjoint_of_mem {α} {f g : filter α} {s t : set α} (h : disjoint s t)
-  (hs : s ∈ f) (ht : t ∈ g) : disjoint f g :=
-begin
-  refine le_of_eq (empty_mem_iff_bot.1 _),
-  rw [← set.disjoint_iff_inter_eq_empty.1 h],
-  exact inter_mem_inf hs ht
-end
-
-end filter
 
 open_locale filter big_operators ennreal topological_space nnreal
 open filter set metric measure_theory real
@@ -34,8 +41,8 @@ begin
     ∃ᶠ b : ℕ in at_top, ∃ a ∈ finset.Icc (0 : ℤ) b, |y - a / b| < 1 / b ^ (2 + 1 / (n + 1) : ℝ),
   { simp only [mem_Union, mem_preimage],
     have hx : x + ↑(-⌊x⌋) ∈ Ico (0 : ℝ) 1,
-    { simp only [floor_le, lt_floor_add_one, add_neg_lt_iff_le_add', zero_add, and_self, mem_Ico,
-      int.cast_neg, le_add_neg_iff_add_le] },
+    { simp only [int.floor_le, int.lt_floor_add_one, add_neg_lt_iff_le_add', zero_add, and_self,
+        mem_Ico, int.cast_neg, le_add_neg_iff_add_le] },
     refine ⟨-⌊x⌋, n + 1, n.succ_pos, this _ (hxp.add_int _) hx⟩ },
   clear hxp x, intros x hxp hx01,
   refine ((hxp.frequently_lt_rpow_neg hn).and_eventually (eventually_ge_at_top 1)).mono _,
@@ -60,6 +67,8 @@ begin
     ... = b : one_mul b }
 end
 
+/-- The set of numbers satisfying the Liouville condition with some exponent `p > 2` has Lebesgue
+measure zero. -/
 @[simp] lemma volume_set_of_exists_liouville_with :
   volume {x : ℝ | ∃ p > 2, liouville_with p x} = 0 :=
 begin
@@ -98,6 +107,11 @@ by simpa only [ae_iff, not_forall, not_not] using volume_set_of_exists_liouville
 lemma ae_not_liouville : ∀ᵐ x, ¬liouville x :=
 ae_not_liouville_with.mono $ λ x h₁ h₂, h₁ 3 (by norm_num) (h₂.liouville_with 3)
 
+/-- The set of Liouville numbers has Lebesgue measure zero. -/
+@[simp] lemma volume_set_of_liouville : volume {x : ℝ | liouville x} = 0 :=
+by simpa only [ae_iff, not_not] using ae_not_liouville
+
+/-- The filters `residual ℝ` and `volume.ae` are disjoint. This means that there exists a residual
+set of Lebesgue measure zero (e.g., the set of Liouville numbers). -/
 lemma real.disjoint_residual_ae : disjoint (residual ℝ) volume.ae :=
 disjoint_of_disjoint_of_mem disjoint_compl_right eventually_residual_liouville ae_not_liouville
-

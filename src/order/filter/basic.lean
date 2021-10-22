@@ -583,6 +583,14 @@ lemma compl_not_mem {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ
 lemma filter_eq_bot_of_is_empty [is_empty α] (f : filter α) : f = ⊥ :=
 empty_mem_iff_bot.mp $ univ_mem' is_empty_elim
 
+lemma disjoint_of_disjoint_of_mem {f g : filter α} {s t : set α} (h : disjoint s t)
+  (hs : s ∈ f) (ht : t ∈ g) : disjoint f g :=
+begin
+  refine le_of_eq (empty_mem_iff_bot.1 _),
+  rw [← set.disjoint_iff_inter_eq_empty.1 h],
+  exact inter_mem_inf hs ht
+end
+
 /-- There is exactly one filter on an empty type. --/
 -- TODO[gh-6025]: make this globally an instance once safe to do so
 local attribute [instance]
@@ -1056,6 +1064,11 @@ begin
   refine mt (λ h, hq.mp $ h.mono _) hp,
   exact λ x hpq hq hp, hpq ⟨hp, hq⟩
 end
+
+lemma eventually.and_frequently {p q : α → Prop} {f : filter α}
+  (hp : ∀ᶠ x in f, p x) (hq : ∃ᶠ x in f, q x) :
+  ∃ᶠ x in f, p x ∧ q x :=
+by simpa only [and.comm] using hq.and_eventually hp
 
 lemma frequently.exists {p : α → Prop} {f : filter α} (hp : ∃ᶠ x in f, p x) : ∃ x, p x :=
 begin

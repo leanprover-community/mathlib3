@@ -149,7 +149,7 @@ lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
 ⟨empty_not_mem_classes, classes_eqv_classes⟩
 
 lemma is_partition.pairwise_disjoint {c : set (set α)} (hc : is_partition c) :
-  c.pairwise_disjoint :=
+  c.pairwise_disjoint id :=
 eqv_classes_disjoint hc.2
 
 lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :

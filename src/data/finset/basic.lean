@@ -1899,10 +1899,6 @@ coe_injective $ by simp only [coe_map, coe_singleton, set.image_singleton]
   (insert a s).map f = insert (f a) (s.map f) :=
 by simp only [insert_eq, map_union, map_singleton]
 
-@[simp] lemma map_erase [decidable_eq α] [decidable_eq β] (f : α ↪ β) (s : finset α) (a : α) :
-  (s.erase a).map f = (s.map f).erase (f a) :=
-by { rw map_eq_image, exact s.image_erase f.2 a }
-
 @[simp] theorem map_eq_empty : s.map f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_map_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
@@ -2033,7 +2029,7 @@ ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left
   (insert a s).image f = insert (f a) (s.image f) :=
 by simp only [insert_eq, image_singleton, image_union]
 
-@[simp] lemma image_erase {f : α → β} (hf : injective f) (s : finset α) (a : α) :
+@[simp] lemma image_erase [decidable_eq α] {f : α → β} (hf : injective f) (s : finset α) (a : α) :
   (s.erase a).image f = (s.image f).erase (f a) :=
 begin
   ext b,
@@ -2097,6 +2093,10 @@ eq_of_veq (s.map f).2.erase_dup.symm
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   h.bex, true_and, mem_singleton, eq_comm]
+
+@[simp] lemma map_erase [decidable_eq α] (f : α ↪ β) (s : finset α) (a : α) :
+  (s.erase a).map f = (s.map f).erase (f a) :=
+by { simp_rw map_eq_image, exact s.image_erase f.2 a }
 
 /--
 Because `finset.image` requires a `decidable_eq` instances for the target type,

@@ -182,7 +182,7 @@ lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :
 eq_of_forall_le_iff $ λ b, begin
   rw [le_floor_iff (add_nonneg ha n.cast_nonneg), ←sub_le_iff_le_add],
   obtain hb | hb := le_total n b,
-  { rw [←cast_sub hb, ←sub_le_iff_right],
+  { rw [←cast_sub hb, ←tsub_le_iff_right],
     exact (le_floor_iff ha).symm },
   { exact iff_of_true ((sub_nonpos_of_le $ cast_le.2 hb).trans ha) (le_add_left hb) }
 end
@@ -197,7 +197,7 @@ eq_of_forall_ge_iff $ λ b, begin
   rw [←not_lt, ←not_lt, not_iff_not],
   rw [lt_ceil],
   obtain hb | hb := le_or_lt n b,
-  { rw [←sub_lt_iff_right hb, ←sub_lt_iff_lt_add, ←cast_sub hb],
+  { rw [←tsub_lt_iff_right hb, ←sub_lt_iff_lt_add, ←cast_sub hb],
     exact lt_ceil.symm },
   { exact iff_of_true (lt_add_of_nonneg_of_lt ha $ cast_lt.2 hb) (lt_add_left _ _ _ hb) }
 end

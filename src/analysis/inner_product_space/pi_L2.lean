@@ -114,11 +114,31 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 lemma finrank_euclidean_space_fin {n : ℕ} :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
+/-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
+from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
+def direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+  (hV' : orthogonal_family 𝕜 V) :
+  E ≃ₗᵢ[𝕜] pi_Lp 2 one_le_two (λ i, V i) :=
+begin
+  let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
+  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  refine (e₂.symm.trans e₁).isometry_of_inner _,
+  suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
+  { intros v₀ w₀,
+    convert this (e₁ (e₂.symm v₀)) (e₁ (e₂.symm w₀));
+    simp only [linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] },
+  intros v w,
+  transitivity ⟪(∑ i, (v i : E)), ∑ i, (w i : E)⟫,
+  { simp [sum_inner, hV'.inner_right_fintype] },
+  { congr; simp }
+end
+
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
 `euclidean_space 𝕜 ι`. -/
 def basis.isometry_euclidean_of_orthonormal
   (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
-  E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 ι) :=
+  E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι :=
 v.equiv_fun.isometry_of_inner
 begin
   intros x y,

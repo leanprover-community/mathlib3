@@ -26,7 +26,7 @@ open classical filter order_dual topological_space function set
 /-!
 ### Compactness of a closed interval
 
-In this section we define a typeclass `compact_Icc_space α` saying that all closed interavls in `α`
+In this section we define a typeclass `compact_Icc_space α` saying that all closed intervals in `α`
 are compact. Then we provide an instance for a `conditionally_complete_linear_order` and prove that
 the product (both `α × β` and an indexed product) of spaces with this property inherits the
 property.

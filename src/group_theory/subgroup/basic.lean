@@ -960,18 +960,18 @@ subsingleton.elim _ _
 @[simp, to_additive] lemma subgroup_of_self : H.subgroup_of H = ⊤ :=
 top_le_iff.mp (λ g hg, g.2)
 
-lemma subgroup_of_le (H K L : subgroup G) (h : H ≤ K) : H.subgroup_of L ≤ K.subgroup_of L :=
-begin
-  intros x h,
-  cases x,
-  solve_by_elim,
-end
+lemma subgroup_of_mono_left {H K : subgroup G} (L : subgroup G) (h : H ≤ K) :
+  H.subgroup_of L ≤ K.subgroup_of L := comap_mono h
 
-lemma inf_self_subgroup_of (K L :subgroup G) : (K ⊓ L).subgroup_of L = K.subgroup_of L :=
-begin
-ext,
-simp [subgroup.mem_subgroup_of],
-end
+lemma inf_subgroup_of (L : subgroup G) :
+  (H ⊓ K).subgroup_of L = H.subgroup_of L ⊓ K.subgroup_of L :=
+comap_inf H K L.subtype
+
+lemma subgroup_of_inf_left : (H ⊓ K).subgroup_of H = K.subgroup_of H :=
+by rw [inf_subgroup_of, subgroup_of_self, top_inf_eq]
+
+lemma subgroup_of_inf_right : (H ⊓ K).subgroup_of K = H.subgroup_of K :=
+by rw [inf_subgroup_of, subgroup_of_self, inf_top_eq]
 
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`

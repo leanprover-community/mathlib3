@@ -1030,34 +1030,22 @@ begin
     exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
 end
 
-lemma nonempty_to_nat_eq_zero_infinite {α : Type u} [nonempty α] :  (#α).to_nat = 0 → ω ≤ (#α) :=
+lemma to_nat_eq_zero {c : cardinal} : c.to_nat = 0 ↔ c = 0 ∨ ω ≤ c :=
 begin
-  intro h0,
-  rw to_nat at h0,
-  simp only [zero_hom.coe_mk] at *,
-  by_contradiction h3,
-  simp only [not_le] at h3,
-  rw dif_pos at h0,
-  have h4:= lt_omega.1 h3,
-  have h5:=classical.some_spec h4,
-  have h6: classical.some h4 =0, by {simp only [h0],},
-  rw h6 at h5,
-  simp only [nat.cast_zero] at h5,
-  rw mk_eq_zero_iff at h5,
-  simp only [not_is_empty_of_nonempty] at *,
-  apply h5,
-  apply h3,
+  refine ⟨_, λ h, h.elim (λ h, (congr_arg to_nat h).trans zero_to_nat) to_nat_apply_of_omega_le⟩,
+  rw [or_iff_not_imp_right, not_le],
+  intros hc1 hc2,
+  rw [←cast_to_nat_of_lt_omega hc2, hc1, nat.cast_zero],
 end
+lemma to_nat_eq_zero_of_ne_zero {c : cardinal} (hc : c ≠ 0) : c.to_nat = 0 ↔ ω ≤ c :=
+⟨λ h, (to_nat_eq_zero.mp h).resolve_left hc, to_nat_eq_zero.mpr ∘ or.inr⟩
 
-theorem to_nat_zero_of_injective' {α β : Type u} {f : α → β} [nonempty α] (hf : injective f) :
-  (#α).to_nat = 0 →  (#β).to_nat=0 :=
-begin
-  intro h,
-  apply to_nat_apply_of_omega_le,
-  have ha : ω ≤ #α , by {apply nonempty_to_nat_eq_zero_infinite h,},
-  have hab:=mk_le_of_injective hf,
-  apply le_trans ha hab,
-end
+lemma mk_to_nat_eq_zero_of_nonempty [nonempty α] : (#α).to_nat = 0 ↔ ω ≤ (#α) :=
+to_nat_eq_zero_of_ne_zero (mk_ne_zero α)
+
+theorem to_nat_eq_zero_of_injective [nonempty α] {f : α → β} (hf : injective f)
+  (hα : (#α).to_nat = 0) : (#β).to_nat=0 :=
+ to_nat_eq_zero.mpr (or.inr ((mk_to_nat_eq_zero_of_nonempty.mp hα).trans (mk_le_of_injective hf)))
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/

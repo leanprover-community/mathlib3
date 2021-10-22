@@ -7,6 +7,7 @@ import algebra.iterate_hom
 import data.equiv.ring_aut
 import algebra.module.basic
 import linear_algebra.basic
+import tactic.abel
 
 /-!
 # Algebras over commutative semirings

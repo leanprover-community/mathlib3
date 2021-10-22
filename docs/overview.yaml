@@ -161,7 +161,7 @@ Linear algebra:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
     determinant: 'matrix.det'
-    invertibility: 'matrix.nonsing_inv'
+    invertibility: 'matrix.has_inv'
   Endomorphism polynomials:
     minimal polynomial: 'minpoly'
     characteristic polynomial: 'matrix.charpoly'

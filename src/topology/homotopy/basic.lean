@@ -280,6 +280,9 @@ The quotient on `C(X, Y)` by `homotopic`.
 -/
 protected def quotient := quotient (homotopic.setoid X Y)
 
+instance : inhabited (homotopic.quotient unit unit) :=
+⟨@quotient.mk _ (homotopic.setoid unit unit) id⟩
+
 end homotopic
 
 /--
@@ -563,6 +566,9 @@ The quotient on `C(X, Y)` by `homotopic_rel`.
 -/
 protected def quotient :=
 quotient (homotopic_rel.setoid X Y S)
+
+instance : inhabited (homotopic_rel.quotient unit unit set.univ) :=
+⟨@quotient.mk _ (homotopic_rel.setoid unit unit set.univ) id⟩
 
 end homotopic_rel
 

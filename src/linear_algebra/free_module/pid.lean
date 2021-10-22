@@ -15,7 +15,7 @@ equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `
 
 This file proves a submodule of a free `R`-module of finite rank is also
 a free `R`-module of finite rank, if `R` is a principal ideal domain (PID),
-i.e. we have instances `[integral_domain R] [is_principal_ideal_ring R]`.
+i.e. we have instances `[is_domain R] [is_principal_ideal_ring R]`.
 We express "free `R`-module of finite rank" as a module `M` which has a basis
 `b : ι → R`, where `ι` is a `fintype`.
 We call the cardinality of `ι` the rank of `M` in this file;
@@ -159,9 +159,9 @@ by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], e
 
 end comm_ring
 
-section domain
+section is_domain
 
-variables {ι : Type*} {R : Type*} [ring R] [domain R]
+variables {ι : Type*} {R : Type*} [ring R] [is_domain R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 lemma not_mem_of_ortho {x : M} {N : submodule R M}
@@ -210,7 +210,7 @@ end
 
 /-- In an `n`-dimensional space, the rank is at most `m`. -/
 lemma basis.card_le_card_of_linear_independent_aux
-  {R : Type*} [comm_ring R] [integral_domain R]
+  {R : Type*} [comm_ring R] [is_domain R]
   (n : ℕ) {m : ℕ} (v : fin m → fin n → R) :
   linear_independent R v → m ≤ n :=
 begin
@@ -287,7 +287,7 @@ begin
 end
 
 lemma basis.card_le_card_of_linear_independent
-  {R : Type*} [comm_ring R] [integral_domain R] [module R M]
+  {R : Type*} [comm_ring R] [is_domain R] [module R M]
   {ι : Type*} [fintype ι] (b : basis ι R M)
   {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
   fintype.card ι' ≤ fintype.card ι :=
@@ -303,25 +303,25 @@ begin
 end
 
 lemma basis.card_le_card_of_submodule
-  {R : Type*} [comm_ring R] [integral_domain R] [module R M] (N : submodule R M)
+  {R : Type*} [comm_ring R] [is_domain R] [module R M] (N : submodule R M)
   {ι : Type*} [fintype ι] (b : basis ι R M)
   {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
   fintype.card ι' ≤ fintype.card ι :=
 b.card_le_card_of_linear_independent (b'.linear_independent.map' N.subtype N.ker_subtype)
 
 lemma basis.card_le_card_of_le
-  {R : Type*} [comm_ring R] [integral_domain R] [module R M] {N O : submodule R M} (hNO : N ≤ O)
+  {R : Type*} [comm_ring R] [is_domain R] [module R M] {N O : submodule R M} (hNO : N ≤ O)
   {ι : Type*} [fintype ι] (b : basis ι R O)
   {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
   fintype.card ι' ≤ fintype.card ι :=
 b.card_le_card_of_linear_independent
   (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
 
-end domain
+end is_domain
 
-section integral_domain
+section is_domain
 
-variables {ι : Type*} {R : Type*} [comm_ring R] [integral_domain R]
+variables {ι : Type*} {R : Type*} [comm_ring R] [is_domain R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 /-- If `N` is a submodule in a free, finitely generated module,
@@ -347,7 +347,7 @@ end
 /-- If `S` a finite-dimensional ring extension of `R` which is free as an `R`-module,
 then the rank of an ideal `I` of `S` over `R` is the same as the rank of `S`.
 -/
-lemma ideal.rank_eq {S : Type*} [ring S] [domain S] [algebra R S]
+lemma ideal.rank_eq {S : Type*} [ring S] [is_domain S] [algebra R S]
   {n m : Type*} [fintype n] [fintype m]
   (b : basis n R S) {I : ideal S} (hI : I ≠ ⊥) (c : basis m R I) :
   fintype.card m = fintype.card n :=
@@ -366,13 +366,13 @@ begin
     (c.card_le_card_of_linear_independent this),
 end
 
-end integral_domain
+end is_domain
 
 section principal_ideal_domain
 
 open submodule.is_principal set submodule
 
-variables {ι : Type*} {R : Type*} [comm_ring R] [integral_domain R] [is_principal_ideal_ring R]
+variables {ι : Type*} {R : Type*} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 open submodule.is_principal
@@ -761,7 +761,7 @@ need to map `I` into a submodule of `R`.
 This is a strengthening of `submodule.basis_of_pid`.
 -/
 noncomputable def ideal.smith_normal_form
-  [fintype ι] {S : Type*} [comm_ring S] [integral_domain S] [algebra R S]
+  [fintype ι] {S : Type*} [comm_ring S] [is_domain S] [algebra R S]
   (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   basis.smith_normal_form (I.restrict_scalars R) ι (fintype.card ι) :=
 let ⟨n, bS, bI, f, a, snf⟩ := (I.restrict_scalars R).smith_normal_form b in
@@ -779,7 +779,7 @@ See also `ideal.smith_normal_form` for a version of this theorem that returns
 a `basis.smith_normal_form`.
 -/
 theorem ideal.exists_smith_normal_form
-  [fintype ι] {S : Type*} [comm_ring S] [integral_domain S] [algebra R S]
+  [fintype ι] {S : Type*} [comm_ring S] [is_domain S] [algebra R S]
   (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   ∃ (b' : basis ι R S) (a : ι → R) (ab' : basis ι R I),
   ∀ i, (ab' i : S) = a i • b' i :=

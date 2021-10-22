@@ -49,7 +49,7 @@ end comm_ring
 section fraction_field
 
 variables {K : Type u} {Γ₀ : Type v} [field K] [linear_ordered_comm_group_with_zero Γ₀]
-variables {v : valuation K Γ₀} {O : Type w} [comm_ring O] [integral_domain O]
+variables {v : valuation K Γ₀} {O : Type w} [comm_ring O] [is_domain O]
 variables [algebra O K] [is_fraction_ring O K]
 variables (hv : integers v O)
 

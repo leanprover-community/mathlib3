@@ -14,7 +14,7 @@ principal ideal domain (PID) is an integral domain which is a principal ideal ri
 # Main definitions
 
 Note that for principal ideal domains, one should use
-`[integral_domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
+`[is_domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
 Theorems about PID's are in the `principal_ideal_ring` namespace.
 
 - `is_principal_ideal_ring`: a predicate on rings, saying that every left ideal is principal.
@@ -116,7 +116,7 @@ open submodule.is_principal ideal
 -- 0 isn't prime in a non-ID PIR but the Krull dimension is still <= 1.
 -- The below result follows from this, but we could also use the below result to
 -- prove this (quotient out by p).
-lemma to_maximal_ideal [comm_ring R] [integral_domain R] [is_principal_ideal_ring R] {S : ideal R}
+lemma to_maximal_ideal [comm_ring R] [is_domain R] [is_principal_ideal_ring R] {S : ideal R}
   [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
@@ -193,7 +193,7 @@ lemma is_maximal_of_irreducible [comm_ring R] [is_principal_ideal_ring R]
   erw [ideal.span_singleton_le_span_singleton, is_unit.mul_right_dvd hb]
 end⟩⟩
 
-variables [comm_ring R] [integral_domain R] [is_principal_ideal_ring R]
+variables [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 
 lemma irreducible_iff_prime {p : R} : irreducible p ↔ prime p :=
 ⟨λ hp, (ideal.span_singleton_prime hp.ne_zero).1 $
@@ -218,7 +218,7 @@ begin
 end
 
 lemma ne_zero_of_mem_factors
-  {R : Type v} [comm_ring R] [integral_domain R] [is_principal_ideal_ring R] {a b : R}
+  {R : Type v} [comm_ring R] [is_domain R] [is_principal_ideal_ring R] {a b : R}
   (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
 
 lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
@@ -233,7 +233,7 @@ end
 /-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it
 also maps `a` into that submonoid. -/
 lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
-  [comm_ring R] [integral_domain R] [is_principal_ideal_ring R] [semiring S]
+  [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [semiring S]
   (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
   (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
   f a ∈ s :=

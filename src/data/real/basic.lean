@@ -234,8 +234,8 @@ noncomputable instance : linear_ordered_comm_ring ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
-instance : domain ℝ                     :=
-{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
+instance : is_domain ℝ :=
+{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
 
 /-- The real numbers are an ordered `*`-ring, with the trivial `*`-structure. -/
 instance : star_ordered_ring ℝ :=
@@ -254,15 +254,13 @@ noncomputable instance : linear_ordered_field ℝ :=
     exact cau_seq.completion.inv_mul_cancel h,
   end,
   inv_zero := by simp [← zero_cauchy, inv_cauchy],
-  ..real.linear_ordered_comm_ring,
-  ..real.domain }
+  ..real.linear_ordered_comm_ring, }
 
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
 noncomputable instance field : field ℝ                            := by apply_instance
 noncomputable instance : division_ring ℝ                          := by apply_instance
-instance : integral_domain ℝ                                      := by apply_instance
 noncomputable instance : distrib_lattice ℝ                        := by apply_instance
 noncomputable instance : lattice ℝ                                := by apply_instance
 noncomputable instance : semilattice_inf ℝ                        := by apply_instance

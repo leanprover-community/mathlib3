@@ -168,6 +168,8 @@ iff.rfl
 theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : #α ≤ #β :=
 ⟨⟨f, hf⟩⟩
 
+theorem _root_.function.embedding.cardinal_le {α β : Type u} (f : α ↪ β) : #α ≤ #β := ⟨f⟩
+
 theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : #β ≤ #α :=
 ⟨embedding.of_surjective f hf⟩
 
@@ -266,6 +268,9 @@ begin
   exact cardinal.eq.2 ⟨equiv.sum_congr (equiv.ulift).symm (equiv.ulift).symm⟩,
 end
 
+@[simp] theorem mk_option {α : Type u} : #(option α) = #α + 1 :=
+(equiv.option_equiv_sum_punit α).cardinal_eq
+
 instance : has_mul cardinal.{u} := ⟨map₂ prod $ λ α β γ δ, equiv.prod_congr⟩
 
 @[simp] theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
@@ -304,25 +309,6 @@ begin
   exact id
 end
 
-instance : comm_semiring cardinal.{u} :=
-{ zero          := 0,
-  one           := 1,
-  add           := (+),
-  mul           := (*),
-  zero_add      := zero_add,
-  add_zero      := assume a, by rw [add_comm a 0, zero_add a],
-  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
-  add_comm      := add_comm,
-  zero_mul      := zero_mul,
-  mul_zero      := assume a, by rw [mul_comm a 0, zero_mul a],
-  one_mul       := one_mul,
-  mul_one       := assume a, by rw [mul_comm a 1, one_mul a],
-  mul_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.prod_assoc α β γ),
-  mul_comm      := mul_comm,
-  left_distrib  := left_distrib,
-  right_distrib := assume a b c,
-    by rw [mul_comm (a + b) c, left_distrib c a b, mul_comm c a, mul_comm c b] }
-
 /-- The cardinal exponential. `#α ^ #β` is the cardinal of `β → α`. -/
 protected def power (a b : cardinal.{u}) : cardinal.{u} :=
 map₂ (λ α β : Type u, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁) a b
@@ -342,6 +328,31 @@ induction_on a $ assume α, (equiv.pempty_arrow_equiv_punit α).cardinal_eq
 @[simp] theorem power_one {a : cardinal} : a ^ 1 = a :=
 induction_on a $ assume α, (equiv.punit_arrow_equiv α).cardinal_eq
 
+theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
+induction_on₃ a b c $ assume α β γ, (equiv.sum_arrow_equiv_prod_arrow β γ α).cardinal_eq
+
+instance : comm_semiring cardinal.{u} :=
+{ zero          := 0,
+  one           := 1,
+  add           := (+),
+  mul           := (*),
+  zero_add      := zero_add,
+  add_zero      := assume a, by rw [add_comm a 0, zero_add a],
+  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
+  add_comm      := add_comm,
+  zero_mul      := zero_mul,
+  mul_zero      := assume a, by rw [mul_comm a 0, zero_mul a],
+  one_mul       := one_mul,
+  mul_one       := assume a, by rw [mul_comm a 1, one_mul a],
+  mul_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.prod_assoc α β γ),
+  mul_comm      := mul_comm,
+  left_distrib  := left_distrib,
+  right_distrib := assume a b c,
+    by rw [mul_comm (a + b) c, left_distrib c a b, mul_comm c a, mul_comm c b],
+  npow          := λ n c, c ^ n,
+  npow_zero'    := @power_zero,
+  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, mul_comm c] }
+
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 
@@ -359,17 +370,13 @@ let ⟨a⟩ := mk_ne_zero_iff.1 h in mk_ne_zero_iff.2 ⟨λ _, a⟩
 theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
 induction_on₃ a b c $ assume α β γ, (equiv.arrow_prod_equiv_prod_arrow α β γ).cardinal_eq
 
-theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
-induction_on₃ a b c $ assume α β γ, (equiv.sum_arrow_equiv_prod_arrow β γ α).cardinal_eq
-
 theorem power_mul {a b c : cardinal} : a ^ (b * c) = (a ^ b) ^ c :=
 by rw [_root_.mul_comm b c];
 from (induction_on₃ a b c $ assume α β γ, mk_congr (equiv.curry γ β α))
 
-@[simp] lemma pow_cast_right (κ : cardinal.{u}) :
-  ∀ n : ℕ, (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n
-| 0 := by simp
-| (_+1) := by rw [nat.cast_succ, power_add, power_one, _root_.mul_comm, pow_succ, pow_cast_right]
+@[simp] lemma pow_cast_right (κ : cardinal.{u}) (n : ℕ) :
+  (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n :=
+rfl
 
 section order_properties
 open sum
@@ -382,7 +389,6 @@ by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e
 
 protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
 cardinal.add_le_add (le_refl _)
-
 
 protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 ⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
@@ -504,27 +510,24 @@ theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _), λ h,
   by exact min_le _ (subtype.mk b h)⟩
 
-theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
+@[simp] theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
 
-theorem add_one_le_succ (c : cardinal) : c + 1 ≤ succ c :=
+theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
-  refine induction_on c (λ α, _) (lt_succ_self c),
-  refine induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
-  cases h.left with f,
-  have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
-  cases not_forall.1 this with b nex,
-  refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
-  { exact λ _, b },
-  { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
-    { rw f.injective h },
-    { exact nex.elim ⟨_, h⟩ },
-    { exact nex.elim ⟨_, h.symm⟩ },
-    { refl } }
+  refine le_min.2 (λ b, _),
+  rcases ⟨b, c⟩ with ⟨⟨⟨β⟩, hlt⟩, ⟨γ⟩⟩,
+  cases hlt.le with f,
+  have : ¬ surjective f := λ hn, hlt.not_le (mk_le_of_surjective hn),
+  simp only [surjective, not_forall] at this,
+  rcases this with ⟨b, hb⟩,
+  calc #γ + 1 = #(option γ) : mk_option.symm
+          ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (lt_succ_self c).ne_bot
+lemma succ_pos (c : cardinal) : 0 < succ c := by simp
+
+lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
 /-- The indexed sum of cardinals is the cardinality of the
   indexed disjoint union, i.e. sigma type. -/
@@ -1148,9 +1151,6 @@ begin
   rw [← prop_eq_two, cardinal.power_def (ulift Prop) α, cardinal.eq],
   exact ⟨equiv.arrow_congr (equiv.refl _) equiv.ulift.symm⟩,
 end
-
-@[simp] theorem mk_option {α : Type u} : #(option α) = #α + 1 :=
-quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
 
 theorem mk_list_eq_sum_pow (α : Type u) : #(list α) = sum (λ n : ℕ, (#α)^(n:cardinal.{u})) :=
 calc  #(list α)

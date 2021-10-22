@@ -833,7 +833,7 @@ namespace subring
 open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
-def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
+def inclusion {S T : subring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=

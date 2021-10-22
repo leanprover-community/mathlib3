@@ -8,6 +8,7 @@ import linear_algebra.quotient
 import order.zorn
 import order.atoms
 import order.compactly_generated
+import tactic.abel
 /-!
 
 # Ideals over a ring

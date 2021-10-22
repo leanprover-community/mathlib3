@@ -59,7 +59,7 @@ instance is_noetherian.finite [is_noetherian R M] : finite R M :=
 ⟨is_noetherian.noetherian ⊤⟩
 
 namespace finite
-open submodule set
+open _root_.submodule set
 
 lemma iff_add_monoid_fg {M : Type*} [add_comm_monoid M] : module.finite ℕ M ↔ add_monoid.fg M :=
 ⟨λ h, add_monoid.fg_def.2 $ (fg_iff_add_submonoid_fg ⊤).1 (finite_def.1 h),
@@ -322,10 +322,10 @@ equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 lemma iff : finite_presentation R A ↔
   ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
 begin
-  refine ⟨λ h,_, λ h, _⟩,
-  { obtain ⟨n, f, hf⟩ := h,
-    use [n, f.to_ring_hom.ker, ideal.quotient_ker_alg_equiv_of_surjective hf.1, hf.2] },
-  { obtain ⟨n, I, e, hfg⟩ := h,
+  split,
+  { rintros ⟨n, f, hf⟩,
+    exact ⟨n, f.to_ring_hom.ker, ideal.quotient_ker_alg_equiv_of_surjective hf.1, hf.2⟩ },
+  { rintros ⟨n, I, e, hfg⟩,
     exact equiv (quotient hfg (mv_polynomial R _)) e }
 end
 

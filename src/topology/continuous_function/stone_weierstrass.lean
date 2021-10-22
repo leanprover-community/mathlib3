@@ -230,9 +230,10 @@ begin
   { intros x z,
     obtain ⟨y, ym, zm⟩ := set.exists_set_mem_of_union_eq_top _ _ (ys_w x) z,
     dsimp [h],
-    simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
-    exact ⟨y, ym, zm⟩, },
-  have h_eq : ∀ x, h x x = f x, by { intro x, simp only [coe_fn_coe_base] at w₁, simp [w₁], },
+    simp only [coe_fn_coe_base', subtype.coe_mk, sup'_coe, finset.sup'_apply, finset.lt_sup'_iff],
+    exact ⟨y, ym, zm⟩ },
+  have h_eq : ∀ x, h x x = f x,
+  { intro x, simp only [coe_fn_coe_base'] at w₁, simp [coe_fn_coe_base', w₁], },
 
   -- For each `x`, we define `W x` to be `{z | h x z < f z + ε}`,
   let W : Π x, set X := λ x, {z | h x z < f z + ε},

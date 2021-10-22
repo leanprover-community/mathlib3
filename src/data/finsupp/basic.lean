@@ -94,7 +94,7 @@ namespace finsupp
 section basic
 variable [has_zero M]
 
-instance : has_coe_to_fun (α →₀ M) := ⟨λ _, α → M, to_fun⟩
+instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := ⟨to_fun⟩
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
@@ -2684,7 +2684,7 @@ variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 /-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
 additive group. -/
 instance tsub : has_sub (α →₀ M) :=
-⟨zip_with (λ m n, m - n) (sub_self' 0)⟩
+⟨zip_with (λ m n, m - n) (tsub_self 0)⟩
 
 @[simp] lemma coe_tsub (g₁ g₂ : α →₀ M) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 
@@ -2696,20 +2696,20 @@ instance : canonically_ordered_add_monoid (α →₀ M) :=
   le_iff_exists_add := begin
       intros f g,
       split,
-      { intro H, use g - f, ext x, symmetry, exact add_sub_cancel_of_le (H x) },
+      { intro H, use g - f, ext x, symmetry, exact add_tsub_cancel_of_le (H x) },
       { rintro ⟨g, rfl⟩ x, exact self_le_add_right (f x) (g x) }
     end,
  ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
 
 instance : has_ordered_sub (α →₀ M) :=
-⟨λ n m k, forall_congr $ λ x, sub_le_iff_right⟩
+⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
 
 @[simp] lemma single_tsub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin
   ext f,
   by_cases h : (a = f),
   { rw [h, tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
-  rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, sub_self']
+  rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self]
 end
 
 end canonically_ordered_monoid
@@ -2718,11 +2718,11 @@ end canonically_ordered_monoid
 
 lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
   u - single a 1 + u' = u + u' - single a 1 :=
-sub_add_eq_add_sub' $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
+tsub_add_eq_add_tsub $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
 
 lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
   u + (u' - single a 1) = u + u' - single a 1 :=
-(add_sub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
+(add_tsub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
 
 end nat_sub
 

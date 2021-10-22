@@ -29,8 +29,8 @@ local attribute [instance]
   This is the object part of the functor `simplex_category.to_Top`. -/
 def to_Top_obj (x : simplex_category) := { f : x → ℝ≥0 | ∑ i, f i = 1 }
 
-instance (x : simplex_category) : has_coe_to_fun x.to_Top_obj :=
-⟨_, λ f, (f : x → ℝ≥0)⟩
+instance (x : simplex_category) : has_coe_to_fun x.to_Top_obj (λ _, x → ℝ≥0) :=
+⟨λ f, (f : x → ℝ≥0)⟩
 
 @[ext]
 lemma to_Top_obj.ext {x : simplex_category} (f g : x.to_Top_obj) :

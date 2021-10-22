@@ -28,7 +28,7 @@ f.to_ring_hom.map_fpow
   (-x) ^ (bit0 n) = x ^ bit0 n :=
 by rw [fpow_bit0', fpow_bit0', neg_mul_neg]
 
-lemma fpow_even_neg {K : Type*} [division_ring K] (a : K) {n : ℤ} (h : even n) :
+lemma even.fpow_neg {K : Type*} [division_ring K] {n : ℤ} (h : even n) (a : K) :
   (-a) ^ n = a ^ n :=
 begin
   obtain ⟨k, rfl⟩ := h,
@@ -135,52 +135,47 @@ end
 @[simp] theorem fpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le fpow_bit1_nonpos_iff
 
-lemma fpow_even_nonneg (a : K) {n : ℤ} (hn : even n) :
+lemma even.fpow_nonneg {n : ℤ} (hn : even n) (a : K) :
   0 ≤ a ^ n :=
 begin
   cases le_or_lt 0 a with h h,
   { exact fpow_nonneg h _ },
-  { rw [←fpow_even_neg _ hn],
-    replace h : 0 ≤ -a := neg_nonneg_of_nonpos (le_of_lt h),
-    exact fpow_nonneg h _ }
+  { exact (hn.fpow_neg a).subst (fpow_nonneg (neg_nonneg_of_nonpos h.le) _) }
 end
 
-theorem fpow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
+theorem even.fpow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit0_pos ha k
 
-theorem fpow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
+theorem odd.fpow_nonneg (hn : odd n) (ha : 0 ≤ a) : 0 ≤ a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_nonneg_iff.mpr ha
 
-theorem fpow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
+theorem odd.fpow_pos (hn : odd n) (ha : 0 < a) : 0 < a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_pos_iff.mpr ha
 
-theorem fpow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
+theorem odd.fpow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_nonpos_iff.mpr ha
 
-theorem fpow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
+theorem odd.fpow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_neg_iff.mpr ha
 
-lemma fpow_even_abs (a : K) {p : ℤ} (hp : even p) :
-  |a| ^ p = a ^ p :=
+lemma even.fpow_abs {p : ℤ} (hp : even p) (a : K) : |a| ^ p = a ^ p :=
 begin
   cases abs_choice a with h h;
-  simp only [h, fpow_even_neg _ hp],
+  simp only [h, hp.fpow_neg _],
 end
 
-@[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) :
-  (|a|) ^ bit0 p = a ^ bit0 p :=
-fpow_even_abs _ (even_bit0 _)
+@[simp] lemma fpow_bit0_abs (a : K) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p :=
+(even_bit0 _).fpow_abs _
 
-lemma abs_fpow_even (a : K) {p : ℤ} (hp : even p) :
-  |a ^ p| = a ^ p :=
+lemma even.abs_fpow {p : ℤ} (hp : even p) (a : K) : |a ^ p| = a ^ p :=
 begin
   rw [abs_eq_self],
-  exact fpow_even_nonneg _ hp
+  exact hp.fpow_nonneg _
 end
 
 @[simp] lemma abs_fpow_bit0 (a : K) (p : ℤ) :
   |a ^ bit0 p| = a ^ bit0 p :=
-abs_fpow_even _ (even_bit0 _)
+(even_bit0 _).abs_fpow _
 
 end ordered_field_power
 

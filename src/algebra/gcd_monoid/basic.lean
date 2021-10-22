@@ -11,7 +11,7 @@ import data.nat.gcd
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
 
-This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `integral_domain`s.
+This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `is_domain`s.
 
 ## Main Definitions
 
@@ -706,9 +706,9 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 
 end unique_unit
 
-section integral_domain
+section is_domain
 
-variables [comm_ring α] [integral_domain α] [normalized_gcd_monoid α]
+variables [comm_ring α] [is_domain α] [normalized_gcd_monoid α]
 
 lemma gcd_eq_of_dvd_sub_right {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
 begin
@@ -729,7 +729,7 @@ end
 lemma gcd_eq_of_dvd_sub_left {a b c : α} (h : a ∣ b - c) : gcd b a = gcd c a :=
 by rw [gcd_comm _ a, gcd_comm _ a, gcd_eq_of_dvd_sub_right h]
 
-end integral_domain
+end is_domain
 
 section constructors
 noncomputable theory

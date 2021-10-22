@@ -33,6 +33,7 @@ is the kernel of the homomorphism `complex.norm_sq` from `ℂ` to `ℝ`.
 noncomputable theory
 
 open complex metric
+open_locale complex_conjugate
 
 /-- The unit circle in `ℂ`, here given the structure of a submonoid of `ℂ`. -/
 def circle : submonoid ℂ :=
@@ -55,12 +56,12 @@ lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := by { ext, simp }
 lemma nonzero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := nonzero_of_mem_unit_sphere z
 
 instance : group circle :=
-{ inv := λ z, ⟨conj z, by simp⟩,
+{ inv := λ z, ⟨conj (z : ℂ), by simp⟩,
   mul_left_inv := λ z, subtype.ext $ by { simp [has_inv.inv, ← norm_sq_eq_conj_mul_self,
     ← mul_self_abs] },
   .. circle.to_monoid }
 
-lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj z := rfl
+lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = (conj : ring_aut ℂ) z := rfl
 
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin

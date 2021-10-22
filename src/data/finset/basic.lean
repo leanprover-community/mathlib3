@@ -2991,6 +2991,25 @@ lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
   ∃ (B : finset α), B ⊆ A ∧ card B = i :=
 let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
 
+lemma exists_subset_or_subset_of_two_mul_le_card [decidable_eq α] {X Y : finset α} {n : ℕ}
+  (hXY : 2 * n < (X ∪ Y).card) :
+  ∃ C : finset α, n < C.card ∧ (C ⊆ X ∨ C ⊆ Y) :=
+begin
+  have h₁ : (X ∪ Y).card = X.card + (Y \ X).card,
+  convert card_union_add_card_inter X (Y \ X),
+  have h₂ : (X ∩ (Y \ X)).card = 0,
+  { rw finset.card_eq_zero,
+    exact finset.inter_sdiff_self X Y },
+  rw finset.union_sdiff_self_eq_union,
+  simp only [h₂, add_zero],
+  rw h₁ at hXY,
+  replace hB := nat.succ_le_iff.mp hXY,
+  rw two_mul at hB,
+  rcases lt_or_lt_of_add_lt_add hB with h₃|h₄,
+  { refine ⟨X, h₃, or.inl (finset.subset.refl X)⟩ },
+  { refine ⟨Y \ X, h₄, or.inr (finset.sdiff_subset Y X)⟩ }
+end
+
 /-- `finset.fin_range k` is the finset `{0, 1, ..., k-1}`, as a `finset (fin k)`. -/
 def fin_range (k : ℕ) : finset (fin k) :=
 ⟨list.fin_range k, list.nodup_fin_range k⟩

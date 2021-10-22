@@ -206,62 +206,9 @@ begin
       { linarith }}},
 end
 
-lemma snorg {a b n : ℕ} (h : 2 * n + 1 ≤ a + b) : n + 1 ≤ a ∨ n + 1 ≤ b :=
-begin
-  by_contradiction w,
-  simp [not_or_distrib] at w,
-  cases w with w₁ w₂,
-  linarith,
-end
-
-/-
-If for n ∈ ℕ, and finite sets B, X, Y such that B ⊆ X ∪ Y and B has cardinality at least
-2 * n + 1, then there exists a subset C ⊆ A of cardinality at least n + 1, which is entirely
-contained in X or Y. For our result, we will apply this lemma with n = 1 and any X such that
-X ⊆ [n, 2n] and Y = [n, 2n] \ X, while we'll let B ⊆ [n, 2n] be the subset such that each
-pairwise unequal pair of B sums to a perfect square.
--/
-lemma finset_subset_or_complement_cardinality {α : Type*} [decidable_eq α] (B X Y : finset α)
-  (h : B ⊆ X ∪ Y) {n : ℕ} (hB : 2 * n + 1 ≤ B.card) :
-  ∃ C, C ⊆ B ∧ n + 1 ≤ C.card ∧ (C ⊆ X ∨ C ⊆ Y) :=
-begin
-  let C₁ := B ∩ X,
-  let C₂ := B \ X,
-  have h₁ : B.card = C₁.card + C₂.card,
-  { have h₂ : disjoint C₁ C₂,
-    { rw disjoint_iff,
-      simp },
-    convert finset.card_disjoint_union h₂,
-    rw ← finset.sdiff_union_inter B X,
-    rw finset.union_comm },
-  rw h₁ at hB,
-  replace hB := nat.succ_le_iff.mp hB,
-  rw two_mul at hB,
-  rcases lt_or_lt_of_add_lt_add hB with hC₁|hC₂,
-  { refine ⟨C₁, (finset.inter_subset_left B X), hC₁, or.inl (finset.inter_subset_right B X)⟩, },
-  { refine ⟨C₂, (finset.sdiff_subset B X), hC₂, or.inr _⟩,
-    apply finset.subset.trans (finset.sdiff_subset_sdiff h (finset.subset.refl X)) _,
-    intros i hi,
-    simp only [finset.mem_sdiff, finset.mem_union] at hi,
-    cases hi with hi₁ hi₂,
-    cases hi₁,
-    { contradiction },
-    { exact hi₁ }}
-end
-
-lemma finset_two_le_card_exists_pair_neq (C : finset ℕ) (hC : 2 ≤ C.card) :
-  ∃ (a b ∈ C), a ≠ b :=
-begin
-  by_contra hab,
-  push_neg at hab,
-  rw ← finset.card_le_one_iff at hab,
-  linarith,
-end
-
-
-theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Ico n (2 * n + 1)),
+theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
   (∃ (a b ∈ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) ∨
-  (∃ (a b ∈ finset.Ico n (2 * n + 1) \ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) :=
+  (∃ (a b ∈ finset.Icc n (2 * n) \ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) :=
 begin
   intros n hn A hA,
   -- For each n ∈ ℕ such that 100 ≤ n, there exists a pairwise unequal triplet {a, b, c} ⊆ [n, 2n]
@@ -270,28 +217,40 @@ begin
   -- noting that B has cardinality greater or equal to 3, by the explicit construction of the
   -- triplet {a, b, c} before.
   obtain ⟨B, hB, h₁, h₂⟩ := exists_finset_of_3_leq_card_with_pairs_summing_to_squares n hn,
-  have hBA : B ⊆ (finset.Ico n (2 * n + 1) \ A) ∪ A,
-  { rw finset.sdiff_union_of_subset hA,
-    intros c hc,
-    simp only [finset.mem_Ico],
-    refine ⟨(h₂ c hc).1, _⟩,
-    { replace h₂ := (h₂ c hc).2,
-      exact nat.lt_succ_iff.mpr h₂ }},
+  have hB : 2 * 1 < ((B ∩ (finset.Icc n (2 * n) \ A)) ∪ (B ∩ A)).card,
+  { rw ← finset.inter_distrib_left,
+    have hBinter : B ∩ ((finset.Icc n (2 * n) \ A) ∪ A) = B,
+    { rw finset.inter_eq_left_iff_subset,
+      simp only [finset.sdiff_union_self_eq_union],
+      rw finset.union_eq_left_iff_subset.mpr hA,
+      intros c hcB,
+      simp only [finset.mem_Icc],
+      exact h₂ c hcB },
+    rw hBinter,
+    exact nat.succ_le_iff.mp hB },
   -- Since B has cardinality greater or equal to 3, there must exist a subset C ⊆ B such that
   -- for any A ⊆ [n, 2n], either C ⊆ A or C ⊆ [n, 2n] \ A and C has cardinality greater
   -- or equal to 2.
-  have hp₂ := finset_subset_or_complement_cardinality B (finset.Ico n (2 * n + 1) \ A) A hBA hB,
-  rcases hp₂ with (⟨C, hCB, hC, (hCA | hCA)⟩),
+  have hp₂ := finset.exists_subset_or_subset_of_two_mul_le_card hB,
+  rcases hp₂ with (⟨C, hC, (hCA | hCA)⟩),
   -- First, we deal with the case when C ⊆ [n, 2n] \ A.
   { right,
-    norm_num at hC,
-    have hab := finset_two_le_card_exists_pair_neq C hC,
-    rcases hab with ⟨a, b, ha, hb, hab⟩,
-    exact ⟨a, b, hCA ha, hCA hb, hab, h₁ a b (hCB ha) (hCB hb) hab⟩ },
+    replace hC := nat.succ_le_iff.mp hC,
+    rw finset.one_lt_card at hC,
+    rcases hC with ⟨a, ha, b, hb, hab⟩,
+    refine ⟨a, b, _, _, hab, h₁ a b _ _ hab⟩,
+    { exact finset.mem_of_mem_inter_right (hCA ha) },
+    { exact finset.mem_of_mem_inter_right (hCA hb) },
+    { exact finset.mem_of_mem_inter_left (hCA ha) },
+    { exact finset.mem_of_mem_inter_left (hCA hb) }},
   -- Then, we finish the proof in the case when C ⊆ A.
   { left,
-    norm_num at hC,
-    have hab := finset_two_le_card_exists_pair_neq C hC,
-    rcases hab with ⟨a, b, ha, hb, hab⟩,
-    exact ⟨a, b, hCA ha, hCA hb, hab, h₁ a b (hCB ha) (hCB hb) hab⟩ },
+    replace hC := nat.succ_le_iff.mp hC,
+    rw finset.one_lt_card at hC,
+    rcases hC with ⟨a, ha, b, hb, hab⟩,
+    refine ⟨a, b, _, _, hab, h₁ a b _ _ hab⟩,
+    { exact finset.mem_of_mem_inter_right (hCA ha) },
+    { exact finset.mem_of_mem_inter_right (hCA hb) },
+    { exact finset.mem_of_mem_inter_left (hCA ha) },
+    { exact finset.mem_of_mem_inter_left (hCA hb) }},
 end

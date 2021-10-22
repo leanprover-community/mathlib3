@@ -923,7 +923,7 @@ pos_iff_ne_zero.trans $ not_iff_comm.mp $ not_nonempty_iff.trans card_eq_zero_if
 lemma card_pos [h : nonempty α] : 0 < card α :=
 card_pos_iff.mpr h
 
-lemma card_ne_zero [hG : nonempty α] : card α ≠ 0 :=
+lemma card_ne_zero [nonempty α] : card α ≠ 0 :=
 ne_of_gt card_pos
 
 lemma card_le_one_iff : card α ≤ 1 ↔ (∀ a b : α, a = b) :=

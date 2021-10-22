@@ -28,7 +28,7 @@ In a `locally_finite_order`,
 * `finset.Ioc`: Open-closed interval as a finset.
 * `finset.Ioo`: Open-open interval as a finset.
 * `multiset.Icc`: Closed-closed interval as a multiset.
-* `multiset.Ico`: Closed-open interval as a multiset. Currently only for `ℕ`.
+* `multiset.Ico`: Closed-open interval as a multiset.
 * `multiset.Ioc`: Open-closed interval as a multiset.
 * `multiset.Ioo`: Open-open interval as a finset.
 
@@ -272,23 +272,25 @@ variables [preorder α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `a ≤ x` and `x ≤ b`. Basically `set.Icc a b` as a
 multiset. -/
-def Icc (a b : α) : multiset α :=
-(finset.Icc a b).val
+def Icc (a b : α) : multiset α := (finset.Icc a b).val
 
--- TODO@Yaël: Nuke `data.multiset.intervals` and redefine `multiset.Ico` here
+/-- The multiset of elements `x` such that `a ≤ x` and `x < b`. Basically `set.Ico a b` as a
+multiset. -/
+def Ico (a b : α) : multiset α := (finset.Ico a b).val
 
 /-- The multiset of elements `x` such that `a < x` and `x ≤ b`. Basically `set.Ioc a b` as a
 multiset. -/
-def Ioc (a b : α) : multiset α :=
-(finset.Ioc a b).val
+def Ioc (a b : α) : multiset α := (finset.Ioc a b).val
 
 /-- The multiset of elements `x` such that `a < x` and `x < b`. Basically `set.Ioo a b` as a
 multiset. -/
-def Ioo (a b : α) : multiset α :=
-(finset.Ioo a b).val
+def Ioo (a b : α) : multiset α := (finset.Ioo a b).val
 
 @[simp] lemma mem_Icc {a b x : α} : x ∈ Icc a b ↔ a ≤ x ∧ x ≤ b :=
 by rw [Icc, ←finset.mem_def, finset.mem_Icc]
+
+@[simp] lemma mem_Ico {a b x : α} : x ∈ Ico a b ↔ a ≤ x ∧ x < b :=
+by rw [Ico, ←finset.mem_def, finset.mem_Ico]
 
 @[simp] lemma mem_Ioc {a b x : α} : x ∈ Ioc a b ↔ a < x ∧ x ≤ b :=
 by rw [Ioc, ←finset.mem_def, finset.mem_Ioc]
@@ -302,12 +304,10 @@ section order_top
 variables [order_top α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `a ≤ x`. Basically `set.Ici a` as a multiset. -/
-def Ici (a : α) : multiset α :=
-(finset.Ici a).val
+def Ici (a : α) : multiset α := (finset.Ici a).val
 
 /-- The multiset of elements `x` such that `a < x`. Basically `set.Ioi a` as a multiset. -/
-def Ioi (a : α) : multiset α :=
-(finset.Ioi a).val
+def Ioi (a : α) : multiset α := (finset.Ioi a).val
 
 @[simp] lemma mem_Ici {a x : α} : x ∈ Ici a ↔ a ≤ x :=
 by rw [Ici, ←finset.mem_def, finset.mem_Ici]
@@ -321,12 +321,10 @@ section order_bot
 variables [order_bot α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a multiset. -/
-def Iic (b : α) : multiset α :=
-(finset.Iic b).val
+def Iic (b : α) : multiset α := (finset.Iic b).val
 
 /-- The multiset of elements `x` such that `x < b`. Basically `set.Iio b` as a multiset. -/
-def Iio (b : α) : multiset α :=
-(finset.Iio b).val
+def Iio (b : α) : multiset α := (finset.Iio b).val
 
 @[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b :=
 by rw [Iic, ←finset.mem_def, finset.mem_Iic]
@@ -413,16 +411,14 @@ section preorder
 variables [preorder α]
 
 /-- A noncomputable constructor from the finiteness of all closed intervals. -/
-noncomputable def locally_finite_order.of_finite_Icc
-  (h : ∀ a b : α, (set.Icc a b).finite) :
+noncomputable def locally_finite_order.of_finite_Icc (h : ∀ a b : α, (set.Icc a b).finite) :
   locally_finite_order α :=
 @locally_finite_order.of_Icc' α _ (classical.dec_rel _)
   (λ a b, (h a b).to_finset)
   (λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc])
 
 /-- A fintype is noncomputably a locally finite order. -/
-noncomputable def fintype.to_locally_finite_order [fintype α] :
-  locally_finite_order α :=
+noncomputable def fintype.to_locally_finite_order [fintype α] : locally_finite_order α :=
 { finset_Icc := λ a b, (set.finite.of_fintype (set.Icc a b)).to_finset,
   finset_Ico := λ a b, (set.finite.of_fintype (set.Ico a b)).to_finset,
   finset_Ioc := λ a b, (set.finite.of_fintype (set.Ioc a b)).to_finset,
@@ -451,8 +447,7 @@ variables [preorder β] [locally_finite_order β]
 
 -- Should this be called `locally_finite_order.lift`?
 /-- Given an order embedding `α ↪o β`, pulls back the `locally_finite_order` on `β` to `α`. -/
-noncomputable def order_embedding.locally_finite_order (f : α ↪o β) :
-  locally_finite_order α :=
+noncomputable def order_embedding.locally_finite_order (f : α ↪o β) : locally_finite_order α :=
 { finset_Icc := λ a b, (Icc (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
   finset_Ico := λ a b, (Ico (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
   finset_Ioc := λ a b, (Ioc (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),

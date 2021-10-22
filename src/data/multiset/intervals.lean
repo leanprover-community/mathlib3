@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.multiset.nodup
+import data.multiset.interval
 import data.list.intervals
 
 /-!
@@ -16,9 +17,6 @@ namespace multiset
 open list
 
 /-! ### Ico -/
-
-/-- `Ico n m` is the multiset lifted from the list `Ico n m`, e.g. the set `{n, n+1, ..., m-1}`. -/
-def Ico (n m : ℕ) : multiset ℕ := Ico n m
 
 namespace Ico
 
@@ -33,20 +31,6 @@ congr_arg coe $ list.Ico.zero_bot _
 
 @[simp] theorem card (n m : ℕ) : (Ico n m).card = m - n :=
 list.Ico.length _ _
-
-theorem nodup (n m : ℕ) : nodup (Ico n m) := Ico.nodup _ _
-
-@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
-list.Ico.mem
-
-theorem eq_zero_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = 0 :=
-congr_arg coe $ list.Ico.eq_nil_of_le h
-
-@[simp] theorem self_eq_zero {n : ℕ} : Ico n n = 0 :=
-eq_zero_of_le $ le_refl n
-
-@[simp] theorem eq_zero_iff {n m : ℕ} : Ico n m = 0 ↔ m ≤ n :=
-iff.trans (coe_eq_zero _) list.Ico.eq_empty_iff
 
 lemma add_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m + Ico m l = Ico n l :=

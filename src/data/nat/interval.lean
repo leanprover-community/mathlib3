@@ -62,11 +62,9 @@ lemma Ico_eq_range' : Ico a b = (list.range' a (b - a)).to_finset := rfl
 lemma Ioc_eq_range' : Ioc a b = (list.range' (a + 1) (b - a)).to_finset := rfl
 lemma Ioo_eq_range' : Ioo a b = (list.range' (a + 1) (b - a - 1)).to_finset := rfl
 
-lemma Iio_eq_range : Iio = range :=
-by { ext b x, rw [mem_Iio, mem_range] }
+lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
-lemma Ico_zero_eq_range : Ico 0 a = range a :=
-by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
+lemma Ico_zero_eq_range : Ico 0 a = range a := by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
 
 lemma _root_.finset.range_eq_Ico : range = Ico 0 := by { funext, exact (Ico_zero_eq_range n).symm }
 
@@ -96,14 +94,11 @@ by rw [←card_Ioo, fintype.card_of_finset]
 
 -- TODO@Yaël: Generalize all the following lemmas to `succ_order`
 
-lemma Icc_succ_left : Icc a.succ b = Ioc a b :=
-by { ext x, rw [mem_Icc, mem_Ioc, succ_le_iff] }
+lemma Icc_succ_left : Icc a.succ b = Ioc a b := by { ext x, rw [mem_Icc, mem_Ioc, succ_le_iff] }
 
-lemma Ico_succ_right : Ico a b.succ = Icc a b :=
-by { ext x, rw [mem_Ico, mem_Icc, lt_succ_iff] }
+lemma Ico_succ_right : Ico a b.succ = Icc a b := by { ext x, rw [mem_Ico, mem_Icc, lt_succ_iff] }
 
-lemma Ico_succ_left : Ico a.succ b = Ioo a b :=
-by { ext x, rw [mem_Ico, mem_Ioo, succ_le_iff] }
+lemma Ico_succ_left : Ico a.succ b = Ioo a b := by { ext x, rw [mem_Ico, mem_Ioo, succ_le_iff] }
 
 lemma Icc_pred_right {b : ℕ} (h : 0 < b) : Icc a (b - 1) = Ico a b :=
 by { ext x, rw [mem_Icc, mem_Ico, lt_iff_le_pred h] }
@@ -111,8 +106,7 @@ by { ext x, rw [mem_Icc, mem_Ico, lt_iff_le_pred h] }
 lemma Ico_succ_succ : Ico a.succ b.succ = Ioc a b :=
 by { ext x, rw [mem_Ico, mem_Ioc, succ_le_iff, lt_succ_iff] }
 
-@[simp] lemma Ico_succ_singleton : Ico a (a + 1) = {a} :=
-by rw [Ico_succ_right, Icc_self]
+@[simp] lemma Ico_succ_singleton : Ico a (a + 1) = {a} := by rw [Ico_succ_right, Icc_self]
 
 @[simp] lemma Ico_pred_singleton {a : ℕ} (h : 0 < a) : Ico (a - 1) a = {a - 1} :=
 by rw [←Icc_pred_right _ h, Icc_self]
@@ -125,8 +119,7 @@ by rw [Ico_succ_right, ←Ico_insert_right h]
 lemma Ico_insert_succ_left (h : a < b) : insert a (Ico a.succ b) = Ico a b :=
 by rw [Ico_succ_left, ←Ioo_insert_left h]
 
-lemma image_sub_const_Ico (h : c ≤ a) :
-  (Ico a b).image (λ x, x - c) = Ico (a - c) (b - c) :=
+lemma image_sub_const_Ico (h : c ≤ a) : (Ico a b).image (λ x, x - c) = Ico (a - c) (b - c) :=
 begin
   ext x,
   rw mem_image,

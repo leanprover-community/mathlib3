@@ -18,7 +18,7 @@ properties:
 2. The composition of two conjugate-linear maps is *definitionally* a plain linear map.
 
 3. The inverse of a conjugate-linear equivalence is *definitionally* a conjugate-linear
-equivalence.
+  equivalence.
 
 This file contains tests to make sure that future refactors do not lose these definitional
 properties.

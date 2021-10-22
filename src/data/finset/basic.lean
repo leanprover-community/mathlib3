@@ -1011,6 +1011,13 @@ theorem not_mem_erase (a : α) (s : finset α) : a ∉ erase s a := mem_erase_of
 -- While this can be solved by `simp`, this lemma is eligible for `dsimp`
 @[nolint simp_nf, simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
 
+@[simp] lemma erase_singleton (a : α) : ({a} : finset α).erase a = ∅ :=
+begin
+  ext x,
+  rw [mem_erase, mem_singleton, not_and_self],
+  refl,
+end
+
 theorem ne_of_mem_erase {a b : α} {s : finset α} : b ∈ erase s a → b ≠ a :=
 by simp only [mem_erase]; exact and.left
 
@@ -2022,6 +2029,18 @@ ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left
   (insert a s).image f = insert (f a) (s.image f) :=
 by simp only [insert_eq, image_singleton, image_union]
 
+@[simp] lemma image_erase [decidable_eq α] {f : α → β} (hf : injective f) (s : finset α) (a : α) :
+  (s.erase a).image f = (s.image f).erase (f a) :=
+begin
+  ext b,
+  simp only [mem_image, exists_prop, mem_erase],
+  split,
+  { rintro ⟨a', ⟨haa', ha'⟩, rfl⟩,
+    exact ⟨hf.ne haa', a', ha', rfl⟩ },
+  { rintro ⟨h, a', ha', rfl⟩,
+    exact ⟨a', ⟨ne_of_apply_ne _ h, ha'⟩, rfl⟩ }
+end
+
 @[simp] theorem image_eq_empty : s.image f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
@@ -2074,6 +2093,10 @@ eq_of_veq (s.map f).2.erase_dup.symm
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   h.bex, true_and, mem_singleton, eq_comm]
+
+@[simp] lemma map_erase [decidable_eq α] (f : α ↪ β) (s : finset α) (a : α) :
+  (s.erase a).map f = (s.map f).erase (f a) :=
+by { simp_rw map_eq_image, exact s.image_erase f.2 a }
 
 /--
 Because `finset.image` requires a `decidable_eq` instances for the target type,

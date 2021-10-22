@@ -37,9 +37,11 @@ which removes some boilerplate code.
 -/
 
 noncomputable theory
+
 open_locale classical
-namespace padic_int
 open nat local_ring padic
+
+namespace padic_int
 
 variables {p : ℕ} [hp_prime : fact (p.prime)]
 include hp_prime
@@ -315,7 +317,7 @@ begin
       apply le_pred_of_lt,
       apply zmod.val_lt },
     { rw [nat.mul_sub_left_distrib, mul_one, ← pow_succ'],
-      apply add_sub_cancel_of_le (le_of_lt hp) } }
+      apply add_tsub_cancel_of_le (le_of_lt hp) } }
 end
 
 lemma appr_mono (x : ℤ_[p]) : monotone x.appr :=

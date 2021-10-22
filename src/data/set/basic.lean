@@ -77,7 +77,7 @@ singleton, complement, powerset
 
 open function
 
-universe variables u v w x
+universes u v w x
 
 run_cmd do e ← tactic.get_env,
   tactic.set_env $ e.mk_protected `set.compl
@@ -121,7 +121,7 @@ instance {α : Type*} : boolean_algebra (set α) :=
 @[simp] lemma compl_eq_compl : set.compl = (has_compl.compl : set α → set α) := rfl
 
 /-- Coercion from a set to the corresponding subtype. -/
-instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+instance {α : Type u} : has_coe_to_sort (set α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
 
 instance pi_set_coe.can_lift (ι : Type u) (α : Π i : ι, Type v) [ne : Π i, nonempty (α i)]
   (s : set ι) :
@@ -664,6 +664,13 @@ by simp only [subset_def, or_imp_distrib, forall_and_distrib, forall_eq, mem_ins
 
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t := λ x, or.imp_right (@h _)
 
+theorem insert_subset_insert_iff (ha : a ∉ s) : insert a s ⊆ insert a t ↔ s ⊆ t :=
+begin
+  refine ⟨λ h x hx, _, insert_subset_insert⟩,
+  rcases h (subset_insert _ _ hx) with (rfl|hxt),
+  exacts [(ha hx).elim, hxt]
+end
+
 theorem ssubset_iff_insert {s t : set α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 begin
   simp only [insert_subset, exists_and_distrib_right, ssubset_def, not_subset],
@@ -797,6 +804,14 @@ by { ext, simp }
 
 @[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
 by { ext, simp }
+
+lemma sep_inter_sep {p q : α → Prop} :
+  {x ∈ s | p x} ∩ {x ∈ s | q x} = {x ∈ s | p x ∧ q x} :=
+begin
+  ext,
+  simp_rw [mem_inter_iff, mem_sep_iff],
+  rw [and_and_and_comm, and_self],
+end
 
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl
@@ -2104,6 +2119,15 @@ by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 
 end function
 open function
+
+lemma option.injective_iff {α β} {f : option α → β} :
+  injective f ↔ injective (f ∘ some) ∧ f none ∉ range (f ∘ some) :=
+begin
+  simp only [mem_range, not_exists, (∘)],
+  refine ⟨λ hf, ⟨hf.comp (option.some_injective _), λ x, hf.ne $ option.some_ne_none _⟩, _⟩,
+  rintro ⟨h_some, h_none⟩ (_|a) (_|b) hab,
+  exacts [rfl, (h_none _ hab.symm).elim, (h_none _ hab).elim, congr_arg some (h_some hab)]
+end
 
 /-! ### Image and preimage on subtypes -/
 

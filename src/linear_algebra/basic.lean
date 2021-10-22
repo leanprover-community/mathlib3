@@ -818,6 +818,13 @@ begin
   exact iff.rfl
 end
 
+@[simp] lemma span_insert_zero : span R (insert (0 : M) s) = span R s :=
+begin
+  refine le_antisymm _ (submodule.span_mono (set.subset_insert 0 s)),
+  rw [span_le, set.insert_subset],
+  exact ⟨by simp only [set_like.mem_coe, submodule.zero_mem], submodule.subset_span⟩,
+end
+
 alias submodule.map_span_le ← linear_map.map_span_le
 
 /- See also `span_preimage_eq` below. -/
@@ -1425,7 +1432,7 @@ variables (R) (M)
 
 /-- Given an element `x` of a module `M` over `R`, the natural map from
     `R` to scalar multiples of `x`.-/
-def to_span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
+@[simps] def to_span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
 
 /-- The range of `to_span_singleton x` is the span of `x`.-/
 lemma span_singleton_eq_range (x : M) : (R ∙ x) = (to_span_singleton R M x).range :=
@@ -2148,7 +2155,7 @@ end neg
 section comm_semiring
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₂] [module R M₃]
-open linear_map
+open _root_.linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
@@ -2232,7 +2239,7 @@ section field
 variables [field K] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [module K M] [module K M₂] [module K M₃]
 variables (K) (M)
-open linear_map
+open _root_.linear_map
 
 /-- Multiplying by a nonzero element `a` of the field `K` is a linear equivalence. -/
 def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
@@ -2471,7 +2478,7 @@ end
 end linear_map
 
 namespace linear_equiv
-open linear_map
+open _root_.linear_map
 
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
@@ -2561,7 +2568,7 @@ variables (R M)
 namespace general_linear_group
 variables {R M}
 
-instance : has_coe_to_fun (general_linear_group R M) := by apply_instance
+instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by apply_instance
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

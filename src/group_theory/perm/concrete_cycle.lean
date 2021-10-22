@@ -9,7 +9,7 @@ import group_theory.perm.cycle_type
 
 /-!
 
-# Properties of cyclic permutations constructed from lists
+# Properties of cyclic permutations constructed from lists/cycles
 
 In the following, `{α : Type*} [fintype α] [decidable_eq α]`.
 
@@ -17,11 +17,30 @@ In the following, `{α : Type*} [fintype α] [decidable_eq α]`.
 
 * `cycle.form_perm`: the cyclic permutation created by looping over a `cycle α`
 * `equiv.perm.to_list`: the list formed by iterating application of a permutation
+* `equiv.perm.to_cycle`: the cycle formed by iterating application of a permutation
+* `equiv.perm.iso_cycle`: the equivalence between cyclic permutations `f : perm α`
+  and the terms of `cycle α` that correspond to them
+* `equiv.perm.iso_cycle'`: the same equivalence as `equiv.perm.iso_cycle`
+  but with evaluation via choosing over fintypes
+* The notation `c[1, 2, 3]` to emulate notation of cyclic permutations `(1 2 3)`
+* A `has_repr` instance for any `perm α`, by representing the `finset` of
+  `cycle α` that correspond to the cycle factors.
 
 ## Main results
 
 * `list.is_cycle_form_perm`: a nontrivial list without duplicates, when interpreted as
   a permutation, is cyclic
+* `equiv.perm.is_cycle.exists_unique_cycle`: there is only one nontrivial `cycle α`
+  corresponding to each cyclic `f : perm α`
+
+## Implementation details
+
+The forward direction of `equiv.perm.iso_cycle'` uses `fintype.choose` of the uniqueness
+result, relying on the `fintype` instance of a `cycle.nodup` subtype.
+It is unclear if this works faster than the `equiv.perm.to_cycle`, which relies
+on recursion over `finset.univ`.
+Running `#eval` on even a simple noncyclic permutation `c[(1 : fin 7), 2, 3] * c[0, 5]`
+to show it takes a long time. TODO: is this because computing the cycle factors is slow?
 
 -/
 
@@ -405,5 +424,112 @@ begin
   rintro ⟨t, ht⟩ ht',
   simpa using hs' _ ⟨ht, ht'⟩
 end
+
+lemma is_cycle.exists_unique_cycle_nontrivial_subtype {f : perm α} (hf : is_cycle f) :
+  ∃! (s : {s : cycle α // s.nodup ∧ s.nontrivial}), (s : cycle α).form_perm s.prop.left = f :=
+begin
+  obtain ⟨⟨s, hn⟩, hs, hs'⟩ := hf.exists_unique_cycle_subtype,
+  refine ⟨⟨s, hn, _⟩, _, _⟩,
+  { rw hn.nontrivial_iff,
+    subst f,
+    intro H,
+    refine hf.ne_one _,
+    simpa using cycle.form_perm_subsingleton _ H },
+  { simpa using hs },
+  { rintro ⟨t, ht, ht'⟩ ht'',
+    simpa using hs' ⟨t, ht⟩ ht'' }
+end
+
+/--
+Given a cyclic `f : perm α`, generate the `cycle α` in the order
+of application of `f`. Implemented by finding an element `x : α`
+in the support of `f` in `finset.univ`, and iterating on using
+`equiv.perm.to_list f x`.
+-/
+def to_cycle (f : perm α) (hf : is_cycle f) : cycle α :=
+multiset.rec_on (finset.univ : finset α).val
+  (quot.mk _ [])
+  (λ x s l, if f x = x then l else to_list f x)
+  (by { intros x y m s,
+    refine heq_of_eq _,
+    split_ifs with hx hy hy; try { refl },
+    { have hc : same_cycle f x y := is_cycle.same_cycle hf hx hy,
+      exact quotient.sound' hc.to_list_is_rotated }})
+
+lemma to_cycle_eq_to_list (f : perm α) (hf : is_cycle f) (x : α) (hx : f x ≠ x) :
+  to_cycle f hf = to_list f x :=
+begin
+  have key : (finset.univ : finset α).val = x ::ₘ finset.univ.val.erase x,
+  { simp },
+  rw [to_cycle, key],
+  simp [hx]
+end
+
+lemma nodup_to_cycle (f : perm α) (hf : is_cycle f) : (to_cycle f hf).nodup :=
+begin
+  obtain ⟨x, hx, -⟩ := id hf,
+  simpa [to_cycle_eq_to_list f hf x hx] using nodup_to_list _ _
+end
+
+lemma nontrivial_to_cycle (f : perm α) (hf : is_cycle f) : (to_cycle f hf).nontrivial :=
+begin
+  obtain ⟨x, hx, -⟩ := id hf,
+  simp [to_cycle_eq_to_list f hf x hx, hx, cycle.nontrivial_coe_nodup_iff (nodup_to_list _ _)]
+end
+
+/--
+Any cyclic `f : perm α` is isomorphic to the nontrivial `cycle α`
+that corresponds to repeated application of `f`.
+The forward direction is implemented by `equiv.perm.to_cycle`.
+-/
+def iso_cycle : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.nontrivial} :=
+{ to_fun := λ f, ⟨to_cycle (f : perm α) f.prop, nodup_to_cycle f f.prop,
+    nontrivial_to_cycle _ f.prop⟩,
+  inv_fun := λ s, ⟨(s : cycle α).form_perm s.prop.left,
+    (s : cycle α).is_cycle_form_perm _ s.prop.right⟩,
+  left_inv := λ f, by {
+    obtain ⟨x, hx, -⟩ := id f.prop,
+    simpa [to_cycle_eq_to_list (f : perm α) f.prop x hx, form_perm_to_list, subtype.ext_iff]
+      using f.prop.cycle_of_eq hx },
+  right_inv := λ s, by {
+    rcases s with ⟨⟨s⟩, hn, ht⟩,
+    obtain ⟨x, -, -, hx, -⟩ := id ht,
+    have hl : 2 ≤ s.length := by simpa using cycle.length_nontrivial ht,
+    simp only [cycle.mk_eq_coe, cycle.nodup_coe_iff, cycle.mem_coe_iff, subtype.coe_mk,
+               cycle.form_perm_coe] at hn hx ⊢,
+    rw to_cycle_eq_to_list _ _ x,
+    { refine quotient.sound' _,
+      exact to_list_form_perm_is_rotated_self _ hl hn _ hx },
+    { rw [←mem_support, support_form_perm_of_nodup _ hn],
+      { simpa using hx },
+      { rintro _ rfl,
+        simpa [nat.succ_le_succ_iff] using hl } } } }
+
+/--
+Any cyclic `f : perm α` is isomorphic to the nontrivial `cycle α`
+that corresponds to repeated application of `f`.
+The forward direction is implemented by finding this `cycle α` using `fintype.choose`.
+-/
+def iso_cycle' : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.nontrivial} :=
+{ to_fun := λ f, fintype.choose _ f.prop.exists_unique_cycle_nontrivial_subtype,
+  inv_fun := λ s, ⟨(s : cycle α).form_perm s.prop.left,
+    (s : cycle α).is_cycle_form_perm _ s.prop.right⟩,
+  left_inv := λ f, by simpa [subtype.ext_iff]
+    using fintype.choose_spec _ f.prop.exists_unique_cycle_nontrivial_subtype,
+  right_inv := λ ⟨s, hs, ht⟩, by {
+    simp [subtype.coe_mk],
+    convert fintype.choose_subtype_eq (λ (s' : cycle α), s'.nodup ∧ s'.nontrivial) _,
+    ext ⟨s', hs', ht'⟩,
+    simp [cycle.form_perm_eq_form_perm_iff, (iff_not_comm.mp hs.nontrivial_iff),
+          (iff_not_comm.mp hs'.nontrivial_iff), ht] } }
+
+notation `c[` l:(foldr `, ` (h t, list.cons h t) list.nil `]`) :=
+  cycle.form_perm ↑l (cycle.nodup_coe_iff.mpr dec_trivial)
+
+instance repr_perm [has_repr α] : has_repr (perm α) :=
+⟨λ f, repr (multiset.pmap (λ (g : perm α) (hg : g.is_cycle),
+  iso_cycle ⟨g, hg⟩) -- to_cycle is faster?
+  (perm.cycle_factors_finset f).val
+  (λ g hg, (mem_cycle_factors_finset_iff.mp (finset.mem_def.mpr hg)).left))⟩
 
 end equiv.perm

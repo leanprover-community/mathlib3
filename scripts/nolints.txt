@@ -228,7 +228,6 @@ apply_nolint holor_index.drop doc_blame
 apply_nolint holor_index.take doc_blame
 
 -- data/list/defs.lean
-apply_nolint list.permutations_aux.rec doc_blame
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
@@ -247,12 +246,6 @@ apply_nolint nat.subtype.semilattice_sup_bot fails_quickly
 
 -- data/num/bitwise.lean
 apply_nolint snum.cadd doc_blame
-
--- data/opposite.lean
-apply_nolint opposite.op_induction doc_blame
-apply_nolint tactic.interactive.op_induction doc_blame
-apply_nolint tactic.op_induction doc_blame
-apply_nolint tactic.op_induction' doc_blame
 
 -- data/option/defs.lean
 apply_nolint option.traverse doc_blame

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.order.ring
-import algebra.order.sub
 
 /-!
 # Basic operations on the natural numbers
@@ -483,32 +482,19 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 /-! ### `sub`
 
-Todo: clean up the remaining lemmas that are proven in general for `has_ordered_sub`. -/
+Most lemmas come from the `has_ordered_sub` instance on `ℕ`. -/
 
-protected theorem sub_le_iff_right : m - n ≤ k ↔ m ≤ k + n :=
+instance : has_ordered_sub ℕ :=
 begin
+  constructor,
+  intros m n k,
   induction n with n ih generalizing k,
   { simp },
   { simp only [sub_succ, add_succ, succ_add, ih, pred_le_iff] }
 end
 
-instance : has_ordered_sub ℕ :=
-⟨λ n m k, nat.sub_le_iff_right⟩
-
-protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
-sub_eq_of_eq_add'' $ by rw [add_comm, h]
-
-theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
-sub_le_iff_left
-
-theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
-sub_le_iff_right
-
-protected lemma sub_le_self (n m : ℕ) : n - m ≤ n :=
-sub_le_self'
-
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
-show n < m - 1 ↔ n + 1 < m, from lt_sub_iff_right
+show n < m - 1 ↔ n + 1 < m, from lt_tsub_iff_right
 
 lemma lt_of_lt_pred {a b : ℕ} (h : a < b - 1) : a < b :=
 lt_of_succ_lt (lt_pred_iff.1 h)
@@ -522,9 +508,6 @@ begin
     rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
     exact nat.le_of_pred_lt h', },
 end
-
-@[simp] lemma add_sub_sub_cancel {a c : ℕ} (h : c ≤ a) (b : ℕ) : a + b - (a - c) = b + c :=
-by rw [add_comm, nat.add_sub_assoc sub_le_self', nat.sub_sub_self h]
 
 /-! ### `mul` -/
 
@@ -962,12 +945,12 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
       from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
     have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
     { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
-        ← add_sub_add_right_eq_sub' a 1 b, add_comm (_ - _), add_assoc,
+        ← add_tsub_add_right_eq_tsub a 1 b, add_comm (_ - _), add_assoc,
         nat.sub_add_cancel (succ_le_succ hb_le_a), add_comm 1] },
-    have wf : a - b < a + 1, from lt_succ_of_le sub_le_self',
-    rw [if_pos h₁, if_pos h₂, add_sub_add_right_eq_sub', nat.sub_add_comm hb_le_a,
+    have wf : a - b < a + 1, from lt_succ_of_le tsub_le_self,
+    rw [if_pos h₁, if_pos h₂, add_tsub_add_right_eq_tsub, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
-      add_sub_add_right_eq_sub'],
+      add_tsub_add_right_eq_tsub],
     simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
@@ -1003,7 +986,7 @@ by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat
 @[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
-⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
+⟨k / n, tsub_eq_of_eq_add_rev (nat.mod_add_div k n).symm⟩
 
 @[simp] theorem mod_add_mod (m n k : ℕ) : (m % n + k) % n = (m + k) % n :=
 by have := (add_mul_mod_self_left (m % n + k) n (m / n)).symm;
@@ -1030,7 +1013,7 @@ begin
   rw nat.add_mod,
   split_ifs with h,
   { rw [nat.mod_eq_sub_mod h, nat.mod_eq_of_lt],
-    exact (sub_lt_iff_right h).mpr
+    exact (tsub_lt_iff_right h).mpr
         (nat.add_lt_add (a.mod_lt n.zero_lt_succ) (b.mod_lt n.zero_lt_succ)) },
   { exact nat.mod_eq_of_lt (lt_of_not_ge h) }
 end
@@ -1441,7 +1424,7 @@ decidable_of_iff (∀ x < hi - lo, P (lo + x))
 ⟨λal x hl hh, by have := al (x - lo) (lt_of_not_ge $
   (not_congr (nat.sub_le_sub_right_iff _ _ _ hl)).2 $ not_le_of_gt hh);
   rwa [nat.add_sub_of_le hl] at this,
-λal x h, al _ (nat.le_add_right _ _) (lt_sub_iff_left.mp h)⟩
+λal x h, al _ (nat.le_add_right _ _) (lt_tsub_iff_left.mp h)⟩
 
 instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred P] :
   decidable (∀x, lo ≤ x → x ≤ hi → P x) :=

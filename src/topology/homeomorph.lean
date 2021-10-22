@@ -41,7 +41,7 @@ infix ` ≃ₜ `:25 := homeomorph
 namespace homeomorph
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ₜ β) (λ _, α → β) := ⟨λe, e.to_equiv⟩
 
 @[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
   ((homeomorph.mk a b c) : α → β) = a :=

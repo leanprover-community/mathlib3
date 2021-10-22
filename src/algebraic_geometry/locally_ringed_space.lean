@@ -52,9 +52,8 @@ def to_RingedSpace : RingedSpace := X.to_SheafedSpace
 /-- The underlying topological space of a locally ringed space. -/
 def to_Top : Top := X.1.carrier
 
-instance : has_coe_to_sort LocallyRingedSpace :=
-{ S := Type u,
-  coe := λ X : LocallyRingedSpace, (X.to_Top : Type u), }
+instance : has_coe_to_sort LocallyRingedSpace (Type u) :=
+⟨λ X : LocallyRingedSpace, (X.to_Top : Type u)⟩
 
 -- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
@@ -167,7 +166,7 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
 The restriction of a locally ringed space along an open embedding.
 -/
 @[simps]
-noncomputable def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_Top)
+def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_Top)
   (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
   begin
@@ -182,7 +181,7 @@ noncomputable def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_To
 /--
 The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
 -/
-noncomputable def restrict_top_iso (X : LocallyRingedSpace) :
+def restrict_top_iso (X : LocallyRingedSpace) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
 @iso_of_SheafedSpace_iso (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) X
   X.to_SheafedSpace.restrict_top_iso

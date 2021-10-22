@@ -65,9 +65,8 @@ nonsing_inv_unit A h
 noncomputable def mk''' {K : Type*} [field K] (A : matrix n n K) (h : matrix.det A ≠ 0) : GL n K :=
 mk'' A (is_unit_iff_ne_zero.mpr h)
 
-instance coe_fun : has_coe_to_fun (GL n R) :=
-{ F   := λ _, n → n → R,
-  coe := λ A, A.val }
+instance coe_fun : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
+{ coe := λ A, A.val }
 
 lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, (A : matrix n n R) i j = (B : matrix n n R) i j) :=
 units.ext_iff.trans matrix.ext_iff.symm
@@ -148,7 +147,7 @@ instance : has_neg (GL_pos n R) :=
   begin
     simp only [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg],
     have := det_smul g (-1),
-    simp only [general_linear_group.coe_fn_eq_coe, one_smul, coe_fn_coe_base, neg_smul] at this,
+    simp only [general_linear_group.coe_fn_eq_coe, one_smul, coe_fn_coe_base', neg_smul] at this,
     rw this,
     simp [nat.neg_one_pow_of_even (fact.out (even (fintype.card n)))],
     have gdet := g.property,
@@ -161,7 +160,7 @@ rfl
 
 @[simp]lemma GL_pos_neg_elt (g : GL_pos n R): ∀ i j, ( ↑(-g): matrix n n R) i j= - (g i j):=
 begin
-simp,
+  simp [coe_fn_coe_base'],
 end
 
 end has_neg

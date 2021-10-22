@@ -17,7 +17,7 @@ hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 local notation `abs'` := has_abs.abs
 open is_absolute_value
-open_locale classical big_operators nat
+open_locale classical big_operators nat complex_conjugate
 
 section
 open real is_absolute_value finset
@@ -178,7 +178,7 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
 (λ a ha, have h₁ : a.1 < n := mem_range.1 (mem_sigma.1 ha).1,
   have h₂ : a.2 < nat.succ a.1 := mem_range.1 (mem_sigma.1 ha).2,
     mem_sigma.2 ⟨mem_range.2 (lt_of_lt_of_le h₂ h₁),
-    mem_range.2 ((sub_lt_sub_iff_right' (nat.le_of_lt_succ h₂)).2 h₁)⟩)
+    mem_range.2 ((tsub_lt_tsub_iff_right (nat.le_of_lt_succ h₂)).2 h₁)⟩)
 (λ _ _, rfl)
 (λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ha hb h,
   have ha : a₁ < n ∧ a₂ ≤ a₁ :=
@@ -193,7 +193,7 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
 (λ ⟨a₁, a₂⟩ ha,
   have ha : a₁ < n ∧ a₂ < n - a₁ :=
       ⟨mem_range.1 (mem_sigma.1 ha).1, (mem_range.1 (mem_sigma.1 ha).2)⟩,
-  ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 (lt_sub_iff_right.1 ha.2),
+  ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 (lt_tsub_iff_right.1 ha.2),
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
 
@@ -266,7 +266,7 @@ have hsumlesum : ∑ i in range (max N M + 1), abv (a i) *
     ∑ i in range (max N M + 1), abv (a i) * (ε / (2 * P)),
   from sum_le_sum (λ m hmJ, mul_le_mul_of_nonneg_left
     (le_of_lt (hN (K - m) K
-      (le_sub_of_add_le_left' (le_trans
+      (le_tsub_of_add_le_left (le_trans
         (by rw two_mul; exact add_le_add (le_of_lt (mem_range.1 hmJ))
           (le_trans (le_max_left _ _) (le_of_lt (lt_add_one _)))) hK))
       (le_of_lt hKN))) (abv_nonneg abv _)),
@@ -475,9 +475,9 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw conj.map_sum,
+  rw star_ring_aut.map_sum,
   refine sum_congr rfl (λ n hn, _),
-  rw [conj.map_div, conj.map_pow, ← of_real_nat_cast, conj_of_real]
+  rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
@@ -540,8 +540,8 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.map_div, conj_bit0,
-  conj.map_one]
+by rw [sinh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_sub, sinh,
+  ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -556,8 +556,8 @@ lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
 begin
-  rw [cosh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_add, cosh, conj.map_div,
-      conj_bit0, conj.map_one]
+  rw [cosh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_add, cosh,
+      ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
 end
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
@@ -578,7 +578,7 @@ lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
 lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
-by rw [tanh, sinh_conj, cosh_conj, ← conj.map_div, tanh]
+by rw [tanh, sinh_conj, cosh_conj, ← ring_equiv.map_div, tanh]
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
@@ -751,7 +751,7 @@ end
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
-       ← conj_neg_I, ← conj.map_mul, ← conj.map_mul, sinh_conj,
+       ← conj_neg_I, ← ring_equiv.map_mul, ← ring_equiv.map_mul, sinh_conj,
        mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
@@ -766,7 +766,7 @@ by rw [← of_real_sin_of_real_re, of_real_im]
 lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 lemma cos_conj : cos (conj x) = conj (cos x) :=
-by rw [← cosh_mul_I, ← conj_neg_I, ← conj.map_mul, ← cosh_mul_I,
+by rw [← cosh_mul_I, ← conj_neg_I, ← ring_equiv.map_mul, ← cosh_mul_I,
        cosh_conj, mul_neg_eq_neg_mul_symm, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
@@ -790,7 +790,7 @@ by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
-by rw [tan, sin_conj, cos_conj, ← conj.map_div, tan]
+by rw [tan, sin_conj, cos_conj, ← ring_equiv.map_div, tan]
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]
@@ -1202,7 +1202,7 @@ lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (h
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :
   sum_bij (λ m _, m - n)
-    (λ m hm, mem_range.2 $ (sub_lt_sub_iff_right' (by simp at hm; tauto)).2
+    (λ m hm, mem_range.2 $ (tsub_lt_tsub_iff_right (by simp at hm; tauto)).2
       (by simp at hm; tauto))
     (λ m hm, by rw nat.sub_add_cancel; simp at *; tauto)
     (λ a₁ a₂ ha₁ ha₂ h,
@@ -1210,7 +1210,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
               add_left_inj, eq_comm] at h;
         simp at *; tauto)
     (λ b hb, ⟨b + n,
-      mem_filter.2 ⟨mem_range.2 $ lt_sub_iff_right.mp (mem_range.1 hb), nat.le_add_left _ _⟩,
+      mem_filter.2 ⟨mem_range.2 $ lt_tsub_iff_right.mp (mem_range.1 hb), nat.le_add_left _ _⟩,
       by rw nat.add_sub_cancel⟩)
 ... ≤ ∑ m in range (j - n), (n! * n.succ ^ m)⁻¹ :
   begin
@@ -1259,7 +1259,7 @@ begin
     begin
       refine congr_arg abs (sum_congr rfl (λ m hm, _)),
       rw [mem_filter, mem_range] at hm,
-      rw [← mul_div_assoc, ← pow_add, add_sub_cancel_of_le hm.2]
+      rw [← mul_div_assoc, ← pow_add, add_tsub_cancel_of_le hm.2]
     end
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m!) :

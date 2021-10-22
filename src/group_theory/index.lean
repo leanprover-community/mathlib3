@@ -180,15 +180,15 @@ begin
   intro h,
   simp_rw subgroup.relindex at h,
   rw h at h2,
-  simp  at h2,
+  simp only [nat.mul_eq_zero] at h2,
   cases h2,
   have := (inf_relindex_subgroup_of K H L),
   rw inf_comm,
   rw ← this,
   rw inf_comm,
-  simp [h2],
+  simp only [h2, eq_self_iff_true, or_true],
   simp_rw subgroup.relindex,
-  simp [h2],
+  simp only [h2, true_or, eq_self_iff_true],
  end
 
 lemma relindex_ne_zero_trans (H K L : subgroup G) (hhk : H.relindex K ≠ 0) (hkl : K.relindex L ≠ 0):

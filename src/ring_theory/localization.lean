@@ -619,7 +619,7 @@ variables [is_localization.away x S]
 
 /-- Given `x : R` and a localization map `F : R →+* S` away from `x`, `inv_self` is `(F x)⁻¹`. -/
 noncomputable def inv_self : S :=
-mk' S 1 ⟨x, submonoid.mem_powers _⟩
+mk' S (1 : R) ⟨x, submonoid.mem_powers _⟩
 
 variables {g : R →+* P}
 
@@ -1068,7 +1068,7 @@ begin
   { have : I = ⊤,
     { rw ideal.eq_top_iff_one,
       rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_comap] at hM,
-      convert I.mul_mem_right (mk' S 1 ⟨m, hm⟩) hM,
+      convert I.mul_mem_right (mk' S (1 : R) ⟨m, hm⟩) hM,
       rw [← mk'_eq_mul_mk'_one, mk'_self] },
     exact ⟨0, eq_comm.1 (by simp [ideal.quotient.eq_zero_iff_mem, this])⟩ },
   { rw ideal.quotient.maximal_ideal_iff_is_field_quotient at hI,
@@ -1275,7 +1275,7 @@ by rw [aeval_def, is_scalar_tower.algebra_map_eq R S R',
 
 end integer_normalization
 
-variables {R M} (S) {A K : Type*} [integral_domain A]
+variables {R M} (S) {K : Type*}
 
 lemma to_map_eq_zero_iff {x : R} (hM : M ≤ non_zero_divisors R) :
   algebra_map R S x = 0 ↔ x = 0 :=
@@ -1348,12 +1348,15 @@ begin
     rw [hx, ideal.submodule_span_eq, coe_submodule_span_singleton] }
 end
 
+variables {A : Type*} [comm_ring A] [is_domain A]
+
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_localization M S]
-  (hM : M ≤ non_zero_divisors A) : integral_domain S :=
+theorem is_domain_of_le_non_zero_divisors
+  [algebra A S] {M : submonoid A} [is_localization M S]
+  (hM : M ≤ non_zero_divisors A) : is_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros z w h,
@@ -1368,22 +1371,21 @@ def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_
       { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
     end,
   exists_pair_ne := ⟨(algebra_map A S) 0, (algebra_map A S) 1,
-                     λ h, zero_ne_one (is_localization.injective S hM h)⟩,
-  .. ‹comm_ring S› }
+                     λ h, zero_ne_one (is_localization.injective S hM h)⟩, }
 
 /-- The localization at of an integral domain to a set of non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
-  integral_domain (localization M) :=
-integral_domain_of_le_non_zero_divisors _ hM
+theorem is_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
+  is_domain (localization M) :=
+is_domain_of_le_non_zero_divisors _ hM
 
 /--
 The localization of an integral domain at the complement of a prime ideal is an integral domain.
 -/
-instance integral_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
-  integral_domain (localization.at_prime P) :=
-integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors
+instance is_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
+  is_domain (localization.at_prime P) :=
+is_domain_localization (le_non_zero_divisors_of_no_zero_divisors
   (not_not_intro P.zero_mem))
 
 namespace at_prime
@@ -1512,7 +1514,8 @@ end localization
 open is_localization
 
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
-lemma localization_map_bijective_of_field {R Rₘ : Type*} [integral_domain R] [comm_ring Rₘ]
+lemma localization_map_bijective_of_field
+  {R Rₘ : Type*} [comm_ring R] [is_domain R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
@@ -1523,7 +1526,7 @@ begin
     by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
 
-variables (R) {A : Type*} [integral_domain A]
+variables (R) {A : Type*} [comm_ring A] [is_domain A]
 variables (K : Type*)
 
 /-- `is_fraction_ring R K` states `K` is the field of fractions of an integral domain `R`. -/
@@ -1604,11 +1607,9 @@ is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ (le_refl _) hx
 variables (A)
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
-integral domain.
-See note [reducible non-instances]. -/
-@[reducible]
-def to_integral_domain : integral_domain K :=
-integral_domain_of_le_non_zero_divisors K (le_refl (non_zero_divisors A))
+integral domain. -/
+protected theorem is_domain : is_domain K :=
+is_domain_of_le_non_zero_divisors K (le_refl (non_zero_divisors A))
 
 local attribute [instance] classical.dec_eq
 
@@ -1637,11 +1638,12 @@ noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
   inv_zero := dif_pos rfl,
-  .. to_integral_domain A }
+  .. is_fraction_ring.is_domain A,
+  .. show comm_ring K, by apply_instance }
 
 end comm_ring
 
-variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
+variables {B : Type*} [comm_ring B] [is_domain B] [field K] {L : Type*} [field L]
   [algebra A K] [is_fraction_ring A K] {g : A →+* L}
 
 lemma mk'_mk_eq_div {r s} (hs : s ∈ non_zero_divisors A) :
@@ -1936,7 +1938,7 @@ end is_integral
 namespace is_integral_closure
 
 variables (A) {L : Type*} [field K] [field L] [algebra A K] [algebra A L] [is_fraction_ring A K]
-variables (C : Type*) [integral_domain C] [algebra C L] [is_integral_closure C A L]
+variables (C : Type*) [comm_ring C] [is_domain C] [algebra C L] [is_integral_closure C A L]
 variables [algebra A C] [is_scalar_tower A C L]
 
 open algebra

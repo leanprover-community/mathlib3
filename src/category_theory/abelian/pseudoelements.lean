@@ -132,9 +132,8 @@ def pseudoelement (P : C) : Type (max u v) := quotient (pseudoelement.setoid P)
 namespace pseudoelement
 
 /-- A coercion from an object of an abelian category to its pseudoelements. -/
-def object_to_sort : has_coe_to_sort C :=
-{ S := Type (max u v),
-  coe := λ P, pseudoelement P }
+def object_to_sort : has_coe_to_sort C (Type (max u v)) :=
+⟨λ P, pseudoelement P⟩
 
 local attribute [instance] object_to_sort
 
@@ -157,7 +156,7 @@ def pseudo_apply {P Q : C} (f : P ⟶ Q) : P → Q :=
 quotient.map (λ (g : over P), app f g) (pseudo_apply_aux f)
 
 /-- A coercion from morphisms to functions on pseudoelements -/
-def hom_to_fun {P Q : C} : has_coe_to_fun (P ⟶ Q) := ⟨_, pseudo_apply⟩
+def hom_to_fun {P Q : C} : has_coe_to_fun (P ⟶ Q) (λ _, P → Q) := ⟨pseudo_apply⟩
 
 local attribute [instance] hom_to_fun
 

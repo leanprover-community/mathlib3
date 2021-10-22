@@ -63,15 +63,15 @@ lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _
 
 instance : comm_ring ℝ :=
 begin
-  refine_struct { zero  := 0,
-                  one   := 1,
+  refine_struct { zero  := (0 : ℝ),
+                  one   := (1 : ℝ),
                   mul   := (*),
                   add   := (+),
                   neg   := @has_neg.neg ℝ _,
                   sub   := λ a b, a + (-b),
-                  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
+                  npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
+                  nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
+                  gsmul := @gsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
@@ -234,8 +234,8 @@ noncomputable instance : linear_ordered_comm_ring ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
-instance : domain ℝ                     :=
-{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
+instance : is_domain ℝ :=
+{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
 
 /-- The real numbers are an ordered `*`-ring, with the trivial `*`-structure. -/
 instance : star_ordered_ring ℝ :=
@@ -254,15 +254,13 @@ noncomputable instance : linear_ordered_field ℝ :=
     exact cau_seq.completion.inv_mul_cancel h,
   end,
   inv_zero := by simp [← zero_cauchy, inv_cauchy],
-  ..real.linear_ordered_comm_ring,
-  ..real.domain }
+  ..real.linear_ordered_comm_ring, }
 
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
 noncomputable instance field : field ℝ                            := by apply_instance
 noncomputable instance : division_ring ℝ                          := by apply_instance
-noncomputable instance : integral_domain ℝ                        := by apply_instance
 noncomputable instance : distrib_lattice ℝ                        := by apply_instance
 noncomputable instance : lattice ℝ                                := by apply_instance
 noncomputable instance : semilattice_inf ℝ                        := by apply_instance
@@ -357,14 +355,13 @@ begin
     refine int.cast_le.1 (hy.trans _),
     push_cast,
     exact mul_le_mul_of_nonneg_right ((hU yS).trans hk.le) d.cast_nonneg },
-  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, floor_le _⟩,
+  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, int.floor_le _⟩,
   have hf₁ : ∀ n > 0, ∃ y ∈ S, ((f n / n:ℚ):ℝ) ≤ y := λ n n0,
     let ⟨y, yS, hy⟩ := (hf n).1 in
     ⟨y, yS, by simpa using (div_le_iff ((nat.cast_pos.2 n0):((_:ℝ) < _))).2 hy⟩,
   have hf₂ : ∀ (n > 0) (y ∈ S), (y - (n:ℕ)⁻¹ : ℝ) < (f n / n:ℚ),
   { intros n n0 y yS,
-    have := lt_of_lt_of_le (sub_one_lt_floor _)
-      (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, floor_le _⟩),
+    have := (int.sub_one_lt_floor _).trans_le (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, int.floor_le _⟩),
     simp [-sub_eq_add_neg],
     rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },
@@ -374,8 +371,8 @@ begin
     { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
       rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
     intros j k ij ik,
-    replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
-    replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
+    replace ij := le_trans (nat.le_ceil _) (nat.cast_le.2 ij),
+    replace ik := le_trans (nat.le_ceil _) (nat.cast_le.2 ik),
     have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
     have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
     rcases hf₁ _ j0 with ⟨y, yS, hy⟩,

@@ -152,7 +152,7 @@ by refine_struct
     zero_add := λ z, by { apply ext_iff.2, simp },
     add_zero := λ z, by { apply ext_iff.2, simp },
     nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
-    npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
     gsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
@@ -304,7 +304,9 @@ ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
-by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
+by { rw [sub_eq_add_neg, norm_sq_add],
+     simp only [ring_equiv.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
+                tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/
 

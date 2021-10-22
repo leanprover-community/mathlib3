@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import group_theory.group_action.conj_act
 import group_theory.p_group
 
 /-!
@@ -97,8 +98,13 @@ instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_act
   one_smul := λ P, sylow.ext (one_smul α P),
   mul_smul := λ g h P, sylow.ext (mul_smul g h P) }
 
+lemma sylow.pointwise_smul_def {α : Type*} [group α] [mul_distrib_mul_action α G]
+  {g : α} {P : sylow p G} : ↑(g • P) = g • (P : subgroup G) := rfl
+
 instance sylow.mul_action : mul_action G (sylow p G) :=
 comp_hom _ mul_aut.conj
+
+lemma sylow.smul_def {g : G} {P : sylow p G} : g • P = mul_aut.conj g • P := rfl
 
 lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : subgroup G) := rfl
@@ -197,6 +203,22 @@ lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : s
 lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
+
+/-- Frattini's Argument -/
+lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]
+  [fintype (sylow p N)] (P : sylow p N) : ((↑P : subgroup N).map N.subtype).normalizer ⊔ N = ⊤ :=
+begin
+  refine top_le_iff.mp (λ g hg, _),
+  obtain ⟨n, hn⟩ := exists_smul_eq N ((mul_aut.conj_normal g : mul_aut N) • P) P,
+  rw ← inv_mul_cancel_left ↑n g,
+  refine mul_mem _ (inv_mem _ (mem_sup_right n.2)) (mem_sup_left _),
+  rw [sylow.smul_def, ←mul_smul, ←mul_aut.conj_normal_coe, ←mul_aut.conj_normal.map_mul,
+      sylow.ext_iff, sylow.pointwise_smul_def, pointwise_smul_def] at hn,
+  refine λ x, (mem_map_iff_mem (show function.injective (mul_aut.conj (↑n * g)).to_monoid_hom,
+    from (mul_aut.conj (↑n * g)).injective)).symm.trans _,
+  rw [map_map, ←(congr_arg (map N.subtype) hn), map_map],
+  refl,
+end
 
 end infinite_sylow
 
@@ -351,9 +373,9 @@ theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ
     (λ hnm : n < m,
       have h0m : 0 < m, from (lt_of_le_of_lt n.zero_le hnm),
       have wf : m - 1 < m,  from nat.sub_lt h0m zero_lt_one,
-      have hnm1 : n ≤ m - 1, from le_sub_of_add_le_right' hnm,
+      have hnm1 : n ≤ m - 1, from le_tsub_of_add_le_right hnm,
       let ⟨K, hK⟩ := @exists_subgroup_card_pow_prime_le n (m - 1) hp
-        (nat.pow_dvd_of_le_of_pow_dvd sub_le_self' hdvd) H hH hnm1 in
+        (nat.pow_dvd_of_le_of_pow_dvd tsub_le_self hdvd) H hH hnm1 in
       have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [nat.sub_add_cancel h0m],
       let ⟨K', hK'⟩ := @exists_subgroup_card_pow_succ _ _ _ _ _ hp hdvd' K hK.1 in
       ⟨K', by rw [hK'.1, nat.sub_add_cancel h0m], le_trans hK.2 hK'.2⟩)

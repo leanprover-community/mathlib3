@@ -43,7 +43,7 @@ def mk' (f : R →+* Rᵒᵖ) (involution : ∀ r, (f (f r).unop).unop = r) :
   involution' := involution,
   ..f }
 
-instance : has_coe_to_fun (ring_invo R) := ⟨_, λ f, f.to_ring_equiv.to_fun⟩
+instance : has_coe_to_fun (ring_invo R) (λ _, R → Rᵒᵖ) := ⟨λ f, f.to_ring_equiv.to_fun⟩
 
 @[simp]
 lemma to_fun_eq_coe (f : ring_invo R) : f.to_fun = f := rfl

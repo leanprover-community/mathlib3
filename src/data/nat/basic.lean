@@ -216,8 +216,7 @@ iff.intro eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt})
 by rw [eq_comm, nat.mul_eq_zero]
 
 lemma eq_zero_of_double_le {a : ℕ} (h : 2 * a ≤ a) : a = 0 :=
-nat.eq_zero_of_le_zero $
-  by rwa [two_mul, ← le_tsub_iff_left, tsub_self] at h; refl
+add_right_eq_self.mp $ le_antisymm ((two_mul a).symm.trans_le h) le_add_self
 
 lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
@@ -462,10 +461,10 @@ theorem pred_eq_of_eq_succ {m n : ℕ} (H : m = n.succ) : m.pred = n := by simp 
 by cases n; split; rintro ⟨⟩; refl
 
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
-by rw [← nat.sub_one, ← tsub_add_eq_tsub_tsub, one_add]; refl
+by rw [← nat.sub_one, nat.sub_sub, one_add, sub_succ]
 
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
-tsub_le_tsub_right h 1
+nat.sub_le_sub_right h 1
 
 lemma le_of_pred_lt {m n : ℕ} : pred m < n → m ≤ n :=
 match m with

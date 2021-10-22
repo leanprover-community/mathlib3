@@ -58,7 +58,11 @@ instance : comm_ring int :=
                                   int.one_mul],
   gsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
-/-! ### Extra instances to short-circuit type class resolution -/
+/-! ### Extra instances to short-circuit type class resolution
+
+These also prevent non-computable instances like `int.normed_comm_ring` being used to construct
+these instances non-computably.
+-/
 -- instance : has_sub int            := by apply_instance -- This is in core
 instance : add_comm_monoid int    := by apply_instance
 instance : add_monoid int         := by apply_instance
@@ -66,6 +70,8 @@ instance : monoid int             := by apply_instance
 instance : comm_monoid int        := by apply_instance
 instance : comm_semigroup int     := by apply_instance
 instance : semigroup int          := by apply_instance
+instance : add_comm_group int     := by apply_instance
+instance : add_group int          := by apply_instance
 instance : add_comm_semigroup int := by apply_instance
 instance : add_semigroup int      := by apply_instance
 instance : comm_semiring int      := by apply_instance

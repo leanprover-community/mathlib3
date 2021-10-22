@@ -73,7 +73,7 @@ begin
   { rw [list.take_append_drop, list.take_append_drop] },
 
   { simp only [list.length_drop, list.length_take],
-    rw [min_eq_left (hm.trans hlen), min_eq_left hle, add_sub_cancel_of_le hle],
+    rw [min_eq_left (hm.trans hlen), min_eq_left hle, add_tsub_cancel_of_le hle],
     exact hm },
 
   { intro h,

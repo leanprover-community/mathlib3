@@ -63,7 +63,7 @@ theorem pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
 @one_lt_pow' (order_dual M) _ _ _ _ ha k hk
 
 @[to_additive nsmul_lt_nsmul]
-theorem pow_lt_pow'' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
+theorem pow_lt_pow' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
   a ^ n < a ^ m :=
 begin
   rcases nat.le.dest h with ⟨k, rfl⟩, clear h,

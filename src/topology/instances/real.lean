@@ -98,7 +98,18 @@ instance : proper_space ℤ :=
     exact (set.finite_Icc _ _).is_compact,
   end ⟩
 
+instance : noncompact_space ℤ :=
+begin
+  rw [← not_compact_space_iff, metric.compact_space_iff_bounded_univ],
+  rintro ⟨r, hr⟩,
+  refine (hr (⌊r⌋ + 1) 0 trivial trivial).not_lt _,
+  simpa [dist_eq] using (lt_floor_add_one r).trans_le (le_abs_self _)
+end
+
 end int
+
+instance : noncompact_space ℚ := int.closed_embedding_coe_rat.noncompact_space
+instance : noncompact_space ℝ := int.closed_embedding_coe_real.noncompact_space
 
 theorem real.uniform_continuous_add : uniform_continuous (λp : ℝ × ℝ, p.1 + p.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,

@@ -55,7 +55,7 @@ open box prepartition finset
 variables {N : Type*} [add_comm_monoid M] [add_comm_monoid N] {I₀ : with_top (box ι)}
   {I J : box ι} {i : ι}
 
-instance : has_coe_to_fun (ι →ᵇᵃ[I₀] M) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (ι →ᵇᵃ[I₀] M) (λ _, box ι → M) := ⟨to_fun⟩
 
 initialize_simps_projections box_integral.box_additive_map (to_fun → apply)
 

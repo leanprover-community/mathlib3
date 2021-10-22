@@ -79,7 +79,7 @@ end
 
 section
 
-open monad
+open _root_.monad
 variable [has_binary_coproducts C]
 
 /-- `X ⨿ -` has a monad structure. This is sometimes called the either monad. -/

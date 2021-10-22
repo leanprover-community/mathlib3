@@ -355,12 +355,9 @@ meta def library_search (opt : suggest_opt := { }) : tactic string :=
   return a.script)
 
 namespace interactive
-open tactic
-open interactive
-open lean.parser
-open interactive.types
+setup_tactic_parser
+
 open solve_by_elim
-local postfix `?`:9001 := optional
 
 declare_trace silence_suggest -- Turn off `Try this: exact/refine ...` trace messages for `suggest`
 

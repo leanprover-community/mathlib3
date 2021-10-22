@@ -163,7 +163,7 @@ calc module.rank K (R σ K) =
   ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
     refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
-    refine forall_congr (assume n, le_sub_iff_right _),
+    refine forall_congr (assume n, le_tsub_iff_right _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
   ... = #(σ → {n // n < fintype.card K}) :

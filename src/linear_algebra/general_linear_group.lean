@@ -61,6 +61,10 @@ unit_of_det_invertible A
 noncomputable def mk'' (A : matrix n n R) (h : is_unit (matrix.det A)) : GL n R :=
 nonsing_inv_unit A h
 
+/--Given a matrix with non-zero determinant over a field, we get an element of `GL n K`-/
+noncomputable def mk''' {K : Type*} [field K] (A : matrix n n K) (h : matrix.det A ≠ 0) : GL n K :=
+mk'' A (is_unit_iff_ne_zero.mpr h)
+
 instance coe_fun : has_coe_to_fun (GL n R) :=
 { F   := λ _, n → n → R,
   coe := λ A, A.val }
@@ -187,30 +191,17 @@ section examples
 
 /-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
 `GL_2` if `a ^ 2 + b ^ 2` is nonzero. -/
-def abnba {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
+noncomputable def abnba {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   matrix.general_linear_group (fin 2) R :=
-{ val := ![![a, b], ![-b, a]],
-  inv := (a ^ 2 + b ^ 2)⁻¹ • ![![a, -b], ![b, a]],
-  val_inv := begin
-    ext i j,
-    fin_cases i;
-    fin_cases j;
-    simp;
-    field_simp;
-    ring
-  end,
-  inv_val := begin
-    ext i j,
-    fin_cases i;
-    fin_cases j;
-    simp;
-    field_simp;
-    ring
-  end }
+general_linear_group.mk''' ![![a, b], ![-b, a]] (by simpa [det_fin_two, sq] using hab)
 
 @[simp] lemma coe_abnba {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   (abnba a b hab : matrix (fin 2) (fin 2) R) = ![![a, b], ![-b, a]] :=
 rfl
+
+/- TO DO: Add Iwasawa matrices `n_x=![![1,x],![0,1]]`, `a_t=![![exp(t/2),0],![0,exp(-t/2)]]` and
+  `k_θ==![![cos θ, sin θ],![-sin θ, cos θ]]`
+-/
 
 end examples
 

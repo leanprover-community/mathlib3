@@ -85,9 +85,5 @@ end
 
 /-- This theorem combines both sublemmas in a single claim. -/
 theorem chicken_mcnugget (m n : ℕ) (mlb : 1 < m) (nlb: 1 < n) (cop: coprime m n):
-  (¬ ∃ (a b : ℕ), a*m+b*n=m*n-m-n) ∧ ∀ (k:ℕ), k>m*n-m-n → ∃ (a b : ℕ), a*m+b*n=k :=
-begin
-  split,
-  exact (chicken_mcnugget_upper_bound m n cop mlb nlb),
-  exact (chicken_mcnugget_construction m n cop mlb nlb),
-end
+  (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, k > m * n - m - n → ∃ a b, a * m + b * n = k :=
+⟨chicken_mcnugget_upper_bound m n cop mlb nlb, chicken_mcnugget_construction m n cop mlb nlb⟩

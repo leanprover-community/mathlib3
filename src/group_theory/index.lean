@@ -134,4 +134,84 @@ begin
   exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
 
+lemma le_relindex_zero (H K L : subgroup G) (h : L ≤ K): H.relindex L = 0 → H.relindex K = 0 :=
+begin
+  simp_rw [subgroup.relindex, subgroup.index,nat.card],
+  have H1 := cardinal.to_nat_zero_of_injective' (quotient_group.le_quot_map_injective H K L h),
+  intro hy,
+  apply H1 hy,
+end
+
+lemma index_subgroup_le {H K : subgroup G} (h : H ≤ K)  : K.index = 0 → H.index = 0 :=
+begin
+  intro h1,
+  have := subgroup.relindex_mul_index h,
+  rw h1 at this,
+  simp only [mul_zero] at this,
+  apply this.symm,
+end
+
+lemma inf_relindex_inf (H K L : subgroup G) :(H ⊓ K).relindex (K ⊓ L) = H.relindex (K ⊓ L) :=
+begin
+  simp_rw subgroup.relindex,
+  apply congr_arg,
+  ext,
+  have xp:=x.property,
+  simp only [subgroup.mem_subgroup_of, and_iff_left_iff_imp, subgroup.mem_inf,
+    subtype.val_eq_coe] at *,
+  simp only [xp, implies_true_iff],
+end
+
+lemma inf_relindex_subgroup_of  (H K L : subgroup G) :
+  ((H ⊓ K).subgroup_of L).relindex (K.subgroup_of L) = H.relindex (K ⊓ L) :=
+begin
+  have h0: K ⊓ L ≤ L, by {simp only [inf_le_right],},
+  rw ← subgroup.inf_self_subgroup_of K L,
+  rw ← inf_relindex_inf,
+  apply subgroup.relindex_subgroup_of h0,
+end
+
+lemma inf_ind_prod (H K L : subgroup G) :
+  (H ⊓ K).relindex L = 0  → H.relindex L = 0 ∨ K.relindex (L ⊓ H) = 0 :=
+begin
+  have h1 : (subgroup.subgroup_of (H ⊓ K)  L) ≤ (subgroup.subgroup_of H  L),
+    by {apply subgroup.subgroup_of_le, simp only [inf_le_left],},
+  have h2 := subgroup.relindex_mul_index h1,
+  intro h,
+  simp_rw subgroup.relindex at h,
+  rw h at h2,
+  simp  at h2,
+  cases h2,
+  have := (inf_relindex_subgroup_of K H L),
+  rw inf_comm,
+  rw ← this,
+  rw inf_comm,
+  simp [h2],
+  simp_rw subgroup.relindex,
+  simp [h2],
+ end
+
+lemma relindex_ne_zero_trans (H K L : subgroup G) (hhk : H.relindex K ≠ 0) (hkl : K.relindex L ≠ 0):
+   H.relindex L  ≠ 0 :=
+begin
+  by_contradiction,
+  simp only [not_not, ne.def] at *,
+  have s1 : (H ⊓ K).subgroup_of L ≤ H.subgroup_of L ,
+    by {apply subgroup.subgroup_of_le, simp only [inf_le_left],},
+  have H2 := (index_subgroup_le s1) h,
+  have H3 := inf_ind_prod K H L,
+  have hh0: L ⊓ K ≤ K, by {simp only [inf_le_right],},
+  have H4 := le_relindex_zero H K (L ⊓ K) hh0,
+  rw inf_comm at H2,
+  have H5 := H3 H2,
+  cases H5,
+  rw H5 at hkl,
+  simp only [eq_self_iff_true, not_true, false_and] at hkl,
+  exact hkl,
+  have H6 := H4 H5,
+  rw H6 at hhk,
+  simp only [eq_self_iff_true, not_true, false_and] at hhk,
+  exact hhk,
+end
+
 end subgroup

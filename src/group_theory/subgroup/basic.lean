@@ -960,6 +960,19 @@ subsingleton.elim _ _
 @[simp, to_additive] lemma subgroup_of_self : H.subgroup_of H = ⊤ :=
 top_le_iff.mp (λ g hg, g.2)
 
+lemma subgroup_of_le (H K L : subgroup G) (h : H ≤ K) : H.subgroup_of L ≤ K.subgroup_of L :=
+begin
+  intros x h,
+  cases x,
+  solve_by_elim,
+end
+
+lemma inf_self_subgroup_of (K L :subgroup G) : (K ⊓ L).subgroup_of L = K.subgroup_of L :=
+begin
+ext,
+simp [subgroup.mem_subgroup_of],
+end
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]

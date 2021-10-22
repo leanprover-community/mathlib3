@@ -690,7 +690,7 @@ of the products of `f a` over `a ∈ t i`. -/
   ∏ᶠ a ∈ ⋃ x ∈ I, t x, f a = ∏ᶠ i ∈ I, ∏ᶠ j ∈ t i, f j :=
 begin
   haveI := hI.fintype,
-  rw [← Union_subtype, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
+  rw [bUnion_eq_Union, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
   exacts [λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
 end
 

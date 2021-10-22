@@ -2406,7 +2406,7 @@ theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
   ... = l₁.prod * l₂.prod : foldl_assoc
 
-@[simp, to_additive]
+@[to_additive]
 theorem prod_concat : (l.concat a).prod = l.prod * a :=
 by rw [concat_eq_append, prod_append, prod_cons, prod_nil, mul_one]
 

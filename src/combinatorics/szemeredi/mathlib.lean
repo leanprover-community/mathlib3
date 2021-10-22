@@ -15,6 +15,14 @@ open finset fintype function
 
 variables {α β ι : Type*}
 
+namespace finset
+variable [decidable_eq α]
+
+@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ :=
+by rw [off_diag, empty_product, filter_empty]
+
+end finset
+
 namespace sym2
 
 attribute [elab_as_eliminator]

@@ -16,14 +16,6 @@ open finset fintype function relation
 
 variables {α : Type*}
 
-namespace finset
-variable [decidable_eq α]
-
-@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ :=
-by rw [off_diag, empty_product, filter_empty]
-
-end finset
-
 /-! ## finpartition.is_uniform -/
 
 variables [decidable_eq α] {s : finset α} (P : finpartition s)
@@ -70,12 +62,10 @@ Then `index_le_one` ensures this process only happens finitely many times. -/
 noncomputable def index (P : finpartition s) : ℝ :=
 (∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2)/P.parts.card^2
 
-lemma index_nonneg (P : finpartition s) :
-  0 ≤ P.index G :=
+lemma index_nonneg (P : finpartition s) : 0 ≤ P.index G :=
 div_nonneg (finset.sum_nonneg (λ _ _, sq_nonneg _)) (sq_nonneg _)
 
-lemma index_le_one (P : finpartition s) :
-  P.index G ≤ 1 :=
+lemma index_le_one (P : finpartition s) : P.index G ≤ 1 :=
 begin
   refine div_le_of_nonneg_of_le_mul (sq_nonneg _) zero_le_one _,
   suffices h : ∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2 ≤ P.parts.off_diag.card,

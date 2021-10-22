@@ -48,13 +48,10 @@ end
 /-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma
 -/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
-(exp_bound^[⌊4 / ε^5⌋₊] (iteration_bound ε l)) *
-  16^(exp_bound^[⌊4 / ε^5⌋₊] (iteration_bound ε l))
+(exp_bound^[⌊4 / ε^5⌋₊] (iteration_bound ε l)) * 16^(exp_bound^[⌊4 / ε^5⌋₊] (iteration_bound ε l))
 
-lemma iteration_bound_le_szemeredi_bound (ε l) :
-  iteration_bound ε l ≤ szemeredi_bound ε l :=
-(id_le_iterate_of_id_le le_exp_bound _ _).trans
-  (nat.le_mul_of_pos_right (pow_pos (by norm_num) _))
+lemma iteration_bound_le_szemeredi_bound (ε l) : iteration_bound ε l ≤ szemeredi_bound ε l :=
+(id_le_iterate_of_id_le le_exp_bound _ _).trans (nat.le_mul_of_pos_right (pow_pos (by norm_num) _))
 
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/

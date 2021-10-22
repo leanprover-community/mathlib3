@@ -311,7 +311,7 @@ iff.intro
   (λ v, v.mul u.is_unit)
 
 /-- Multiplication by a `u : units M` on the left doesn't affect `is_unit`. -/
-@[simp, to_additive is_add_unit_add_units_add "Addition of a `u : add_units M`  on the left doesn't
+@[simp, to_additive is_add_unit_add_units_add "Addition of a `u : add_units M` on the left doesn't
 affect `is_add_unit`."]
 theorem units.is_unit_units_mul {M : Type*} [monoid M] (u : units M) (a : M) :
   is_unit (↑u * a) ↔ is_unit a :=

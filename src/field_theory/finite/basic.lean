@@ -116,7 +116,7 @@ variables [group_with_zero K] [fintype K]
 lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) : a ^ (q - 1) = 1 :=
 calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
     by rw [units.coe_pow, units.coe_mk0]
-  ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
+  ... = 1 : by { classical, rw [← fintype.card_units, pow_card_eq_one], refl }
 
 lemma pow_card (a : K) : a ^ q = a :=
 begin
@@ -169,7 +169,7 @@ lemma forall_pow_eq_one_iff (i : ℕ) :
 begin
   classical,
   obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
-  rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
+  rw [← fintype.card_units, ← order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
   split,
   { intro h, apply h },
   { intros h y,
@@ -193,7 +193,7 @@ begin
   suffices : (q - 1) ∣ i ↔ φ = 1,
   { simp only [this],
     split_ifs with h h, swap, refl,
-    rw [card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
+    rw [fintype.card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
     show 1 ≤ q, from fintype.card_pos_iff.mpr ⟨0⟩ },
   rw [← forall_pow_eq_one_iff, monoid_hom.ext_iff],
   apply forall_congr, intro x,
@@ -404,7 +404,7 @@ end
 by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
-by rw [card_units, card]
+by rw [fintype.card_units, card]
 
 /-- **Fermat's Little Theorem**: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : units (zmod p)) :

@@ -46,6 +46,10 @@ namespace irrational
 
 variable {x : ℝ}
 
+instance : order_topology {x // irrational x} :=
+induced_order_topology _ (λ x y, iff.rfl) $ λ x y hlt,
+  let ⟨a, ha, hxa, hay⟩ := exists_irrational_btwn hlt in ⟨⟨a, ha⟩, hxa, hay⟩
+
 lemma eventually_forall_le_dist_cast_div (hx : irrational x) (n : ℕ) :
   ∀ᶠ ε : ℝ in 𝓝 0, ∀ m : ℤ, ε ≤ dist x (m / n) :=
 begin

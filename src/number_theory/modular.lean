@@ -5,6 +5,7 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
 import analysis.complex.upper_half_plane
+import linear_algebra.general_linear_group
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -158,69 +159,44 @@ end
   This is the linear map version of this operation.
 -/
 def acbd (p : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
-(p 0 • linear_map.proj 0 + p 1 • linear_map.proj 1 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).comp (linear_map.proj 0)
+((p 0:ℝ) • linear_map.proj 0 + (p 1:ℝ) • linear_map.proj 1 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).comp
+  (linear_map.proj 0)
 
 @[simp] lemma acbd_apply (p : fin 2 → ℤ) (g : matrix (fin 2) (fin 2) ℝ) :
   acbd p g = p 0 * g 0 0 + p 1 * g 0 1 :=
-by simp [acbd]
+rfl
 
-@[simp] lemma acbd_apply' (a b : ℝ) (c d : ℤ) (v : fin 2 → ℝ) :
+lemma acbd_apply' (a b : ℝ) (c d : ℤ) (v : fin 2 → ℝ) :
   acbd ![c, d] ![![a, b], v] = c * a + d * b :=
-by simp [acbd]
+by simp
 
-/-- Linear map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed
-  `(c₀, d₀)`.
--/
-def acbd_extend (cd : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fin 2 → ℝ) × (fin 2 → ℝ)) :=
-((matrix.mul_vec_lin ![![(cd 0:ℝ), cd 1], ![cd 1,-cd 0]]).comp
-  (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod
-  (linear_map.proj 1)
+/-- Linear map sending the matrix [a, b; c, d] to the matrix [ac₀ + bd₀, - ad₀ + bc₀; c, d], for
+some fixed `(c₀, d₀)`. -/
+@[simps] def acbd_extend {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+  (matrix (fin 2) (fin 2) ℝ) ≃ₗ[ℝ] matrix (fin 2) (fin 2) ℝ :=
+linear_equiv.Pi_congr_right
+![begin
+    refine linear_map.general_linear_group.general_linear_equiv ℝ (fin 2 → ℝ)
+      (general_linear_group.to_linear (abnba (cd 0 : ℝ) (cd 1 : ℝ) _)),
+    norm_cast,
+    exact hcd.sq_add_sq_ne_zero
+  end,
+  (linear_equiv.refl _ _)]
 
---set_option trace.simplify.rewrite true
-
-lemma acbd_extend_apply (c₀ d₀ : ℤ) (a b c d : ℝ) :
-acbd_extend ![c₀, d₀] ![![a, b], ![c, d]] = (![a * c₀ + b * d₀, a * d₀ - b * c₀],![c, d]) :=
-begin
-  simp only [add_zero, function.comp_app, function.eval_apply, linear_map.coe_comp,
-  linear_map.coe_proj, linear_map.prod_apply, matrix.cons_val_one, matrix.cons_val_zero,
-  matrix.head_cons, matrix.mul_vec_cons, matrix.mul_vec_empty, matrix.mul_vec_lin_apply,
-  modular_group.acbd_extend, prod.mk.inj_iff],
-  refine ⟨_ , rfl⟩,
-  ext i,
-  fin_cases i;  simp; ring,
-end
-
-lemma acbd_extend_ker_eq_bot {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
-  (acbd_extend cd).ker = ⊥ :=
-begin
-  rw linear_map.ker_eq_bot,
-  have nonZ : ((cd 0)^2+(cd 1)^2:ℝ) ≠ 0,
-  { norm_cast,
-    exact hcd.sq_add_sq_ne_zero },
-  let F : matrix (fin 2) (fin 2) ℝ := ((cd 0)^2+(cd 1)^2:ℝ)⁻¹ • ![![cd 0, cd 1], ![cd 1, -cd 0]],
-  let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := F.mul_vec_lin,
-  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ x, ![f₁ x.1, x.2],
-  have : function.left_inverse f (acbd_extend cd),
-  { intros g,
-    simp [acbd_extend, f, f₁, F, vec_head, vec_tail], -- squeeze_simp times out!
-    ext i j,
-    fin_cases i,
-    { fin_cases j; { field_simp, ring }, },
-    { fin_cases j; refl } },
-  exact this.injective,
-end
-
-/-- The map `acbd` is proper, that is, preimages of cocompact sets are finite in `[[*,*],[c,d]]`.-/
+/-- The map `acbd` is proper, that is, preimages of cocompact sets are finite in
+`[[* , *], [c, d]]`.-/
 theorem tendsto_acbd {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   tendsto (λ g : {g : SL(2, ℤ) // g 1 = cd}, acbd cd ↑(↑g : SL(2, ℝ))) cofinite (cocompact ℝ) :=
 begin
-  let mB : ℝ → ((fin 2 → ℝ) × (fin 2 → ℝ)) := λ t, (![t, 1], coe ∘ cd),
+  let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-1:ℝ)], coe ∘ cd],
   have hmB : continuous mB,
-  { refine continuous.prod_mk (continuous_pi _) continuous_const,
-    intros i,
+  { refine continuous_pi (λ i, _),
     fin_cases i,
-    { exact continuous_id },
-    { simpa using continuous_const } },
+    { refine continuous_pi (λ j, _),
+      fin_cases j,
+      { exact continuous_id },
+      { exact @continuous_const _ _ _ _ (-1:ℝ) } },
+    exact @continuous_const _ _ _ _ (coe ∘ cd) },
   convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
     λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
@@ -232,24 +208,21 @@ begin
       refl } },
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
-  have hf₂ := (linear_equiv.closed_embedding_of_injective
-    (acbd_extend_ker_eq_bot hcd)).tendsto_cocompact,
-  convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
+  have hf₂ : closed_embedding (acbd_extend hcd) :=
+    (acbd_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
+  convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,
-  simp [mB, f₁, acbd_extend], -- squeeze_simp fails here for some reason
-  split,
+  funext j,
+  fin_cases j,
   { ext i,
     fin_cases i,
-    { simp [vec_head, vec_tail] },
-    { have : (1:ℝ) = ↑(g 1 1) * ↑(g 0 0) + -(↑(g 1 0) * ↑(g 0 1)),
-      { norm_cast,
-        simp only [← g.det_coe, det_fin_two, coe_fn_eq_coe],
-        ring },
-      simpa [← hg, vec_head, vec_tail] using this } },
-  { rw ← hg,
-    ext i,
-    fin_cases i; refl }
+    { simp [mB, f₁, vec_head, vec_tail] },
+    { convert congr_arg (λ n : ℤ, -(n:ℝ)) g.det_coe.symm using 1,
+      { simp [mB, f₁] },
+      simp [-special_linear_group.det_coe, ← hg, det_fin_two],
+      ring } },
+  { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:

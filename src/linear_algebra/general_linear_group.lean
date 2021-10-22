@@ -3,10 +3,12 @@ Copyright (c) 2021 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
+import data.matrix.notation
 import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
 import linear_algebra.determinant
+import tactic.field_simp
 
 /-!
 # The General Linear group $GL(n, R)$
@@ -86,6 +88,18 @@ begin
   letI := A.invertible,
   exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
 end
+
+/-- An element of the matrix general linear group on `(n) [fintype n]` can be considered as an
+element of the endomorphism general linear group on `n → R`.
+
+TODO Improve this from a homomorphism to an isomorphism. -/
+def to_linear :
+  (general_linear_group (fin 2) R) →* linear_map.general_linear_group R (fin 2 → R) :=
+units.map matrix.to_lin_alg_equiv'.to_ring_equiv.to_ring_hom.to_monoid_hom
+
+@[simp] lemma coe_to_linear (M : general_linear_group (fin 2) R) :
+  (to_linear  M : (fin 2 → R) →ₗ[R] (fin 2 → R)) = matrix.mul_vec_lin M :=
+rfl
 
 end coe_lemmas
 
@@ -167,4 +181,36 @@ lemma to_GL_pos_injective :
  from subtype.coe_injective).of_comp
 
 end special_linear_group
+
+section examples
+
+/-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
+`GL_2` if `a ^ 2 + b ^ 2` is nonzero. -/
+def abnba {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
+  matrix.general_linear_group (fin 2) R :=
+{ val := ![![a, b], ![-b, a]],
+  inv := (a ^ 2 + b ^ 2)⁻¹ • ![![a, -b], ![b, a]],
+  val_inv := begin
+    ext i j,
+    fin_cases i;
+    fin_cases j;
+    simp;
+    field_simp;
+    ring
+  end,
+  inv_val := begin
+    ext i j,
+    fin_cases i;
+    fin_cases j;
+    simp;
+    field_simp;
+    ring
+  end }
+
+@[simp] lemma coe_abnba {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
+  (abnba a b hab : matrix (fin 2) (fin 2) R) = ![![a, b], ![-b, a]] :=
+rfl
+
+end examples
+
 end matrix

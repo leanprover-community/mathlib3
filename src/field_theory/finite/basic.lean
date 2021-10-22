@@ -36,6 +36,12 @@ cyclic group, as well as the fact that every finite integral domain is a field
 Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.
 
+## Implementation notes
+
+While `fintype (units K)` can be inferred from `fintype K` in the presence of `decidable_eq K`,
+in this file we take the `fintype (units K)` argument directly to reduce the chance of typeclass
+diamonds, as `fintype` carries data.
+
 -/
 
 variables {K : Type*} [field K] [fintype K]
@@ -90,7 +96,7 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma card_units : fintype.card (units K) = fintype.card K - 1 :=
+lemma card_units [fintype (units K)] : fintype.card (units K) = fintype.card K - 1 :=
 begin
   classical,
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩)],
@@ -102,7 +108,7 @@ begin
   congr; simp [set.ext_iff, classical.em]
 end
 
-lemma prod_univ_units_id_eq_neg_one :
+lemma prod_univ_units_id_eq_neg_one [fintype (units K)] :
   (∏ x : units K, x) = (-1 : units K) :=
 begin
   classical,
@@ -167,8 +173,8 @@ end
 lemma forall_pow_eq_one_iff (i : ℕ) :
   (∀ x : units K, x ^ i = 1) ↔ q - 1 ∣ i :=
 begin
-  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
   classical,
+  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
   rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
   split,
   { intro h, apply h },
@@ -180,7 +186,7 @@ end
 
 /-- The sum of `x ^ i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q - 1) ∣ i`, in which case the sum is `q - 1`. -/
-lemma sum_pow_units (i : ℕ) :
+lemma sum_pow_units [fintype (units K)] (i : ℕ) :
   ∑ x : units K, (x ^ i : K) = if (q - 1) ∣ i then -1 else 0 :=
 begin
   let φ : units K →* K :=

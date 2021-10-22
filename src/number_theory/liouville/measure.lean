@@ -13,7 +13,7 @@ import analysis.p_series
 
 In this file we prove that the set of Liouville numbers with exponent (irrationality measure)
 strictly greater than two is a set of Lebesuge measure zero, see
-`volume_set_of_exists_liouville_with`.
+`volume_Union_set_of_liouville_with`.
 
 Since this set is a residual set, we show that the filters `residual` and `volume.ae` are disjoint.
 These filters correspond to two common notions of genericity on `ℝ`: residual sets and sets of full
@@ -69,9 +69,10 @@ end
 
 /-- The set of numbers satisfying the Liouville condition with some exponent `p > 2` has Lebesgue
 measure zero. -/
-@[simp] lemma volume_set_of_exists_liouville_with :
-  volume {x : ℝ | ∃ p > 2, liouville_with p x} = 0 :=
+@[simp] lemma volume_Union_set_of_liouville_with :
+  volume (⋃ (p : ℝ) (hp : 2 < p), {x : ℝ | liouville_with p x}) = 0 :=
 begin
+  simp only [← set_of_exists],
   refine measure_mono_null set_of_liouville_with_subset_aux _,
   rw measure_Union_null_iff, intro m, rw real.volume_preimage_add_right, clear m,
   refine (measure_bUnion_null_iff $ countable_encodable _).2 (λ n (hn : 1 ≤ n), _),
@@ -102,7 +103,8 @@ begin
 end
 
 lemma ae_not_liouville_with : ∀ᵐ x, ∀ p > (2 : ℝ), ¬liouville_with p x :=
-by simpa only [ae_iff, not_forall, not_not] using volume_set_of_exists_liouville_with
+by simpa only [ae_iff, not_forall, not_not, set_of_exists]
+  using volume_Union_set_of_liouville_with
 
 lemma ae_not_liouville : ∀ᵐ x, ¬liouville x :=
 ae_not_liouville_with.mono $ λ x h₁ h₂, h₁ 3 (by norm_num) (h₂.liouville_with 3)

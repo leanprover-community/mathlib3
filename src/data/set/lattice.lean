@@ -552,6 +552,10 @@ theorem bInter_eq_Inter (s : set α) (t : Π x ∈ s, set β) :
   (⋂ x ∈ s, t x ‹_›) = (⋂ x : s, t x x.2) :=
 infi_subtype'
 
+theorem Union_subtype (p : α → Prop) (s : {x // p x} → set β) :
+  (⋃ x : {x // p x}, s x) = ⋃ x (hx : p x), s ⟨x, hx⟩ :=
+supr_subtype
+
 theorem Inter_subtype (p : α → Prop) (s : {x // p x} → set β) :
   (⋂ x : {x // p x}, s x) = ⋂ x (hx : p x), s ⟨x, hx⟩ :=
 infi_subtype

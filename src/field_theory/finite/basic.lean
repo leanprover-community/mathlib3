@@ -44,8 +44,7 @@ diamonds, as `fintype` carries data.
 
 -/
 
-variables {K : Type*} [field K] [fintype K]
-variables {R : Type*} [comm_ring R] [is_domain R]
+variables {K : Type*} {R : Type*}
 local notation `q` := fintype.card K
 
 open_locale big_operators
@@ -54,6 +53,8 @@ namespace finite_field
 open finset function
 
 section polynomial
+
+variables [comm_ring R] [is_domain R]
 
 open polynomial
 
@@ -96,19 +97,20 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma card_units [fintype (units K)] : fintype.card (units K) = fintype.card K - 1 :=
+lemma card_units [group_with_zero K] [fintype K] [fintype (units K)] :
+  fintype.card (units K) = fintype.card K - 1 :=
 begin
   classical,
-  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩)],
-  haveI := set_fintype {a : K | a ≠ 0},
-  haveI := set_fintype (@set.univ K),
-  rw [fintype.card_congr (equiv.units_equiv_ne_zero _),
-    ← @set.card_insert _ _ {a : K | a ≠ 0} _ (not_not.2 (eq.refl (0 : K)))
-    (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ K).symm],
-  congr; simp [set.ext_iff, classical.em]
+  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩),
+    fintype.card_congr (equiv.units_equiv_ne_zero K)],
+  have := fintype.card_congr (equiv.sum_compl (= (0 : K))).symm,
+  rw [fintype.card_sum, add_comm] at this,
+  convert this,
+  -- TODO: fix `fintype.card_subtype_eq` to not need `convert` to perform subsingleton elimination
+  convert (fintype.card_subtype_eq _).symm,
 end
 
-lemma prod_univ_units_id_eq_neg_one [fintype (units K)] :
+lemma prod_univ_units_id_eq_neg_one [field K] [fintype (units K)] :
   (∏ x : units K, x) = (-1 : units K) :=
 begin
   classical,
@@ -120,6 +122,9 @@ begin
   rw [← insert_erase (mem_univ (-1 : units K)), prod_insert (not_mem_erase _ _),
       this, mul_one]
 end
+
+section
+variables [group_with_zero K] [fintype K]
 
 lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) : a ^ (q - 1) = 1 :=
 calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
@@ -141,7 +146,9 @@ begin
   { simp [pow_succ, pow_mul, ih, pow_card], },
 end
 
-variable (K)
+end
+
+variables (K) [field K] [fintype K]
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
@@ -377,7 +384,7 @@ end
 
 section
 
-variables {V : Type*} [add_comm_group V] [module K V]
+variables {V : Type*} [fintype K] [division_ring K] [add_comm_group V] [module K V]
 
 -- should this go in a namespace?
 -- finite_dimensional would be natural,

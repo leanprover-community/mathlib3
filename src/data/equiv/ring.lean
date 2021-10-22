@@ -438,13 +438,13 @@ end ring_equiv
 
 namespace equiv
 
-variables (K : Type*) [division_ring K]
+variables (K : Type*) [group_with_zero K]
 
 /-- In a division ring `K`, the unit group `units K`
 is equivalent to the subtype of nonzero elements. -/
 -- TODO: this might already exist elsewhere for `group_with_zero`
 -- deduplicate or generalize
-def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
+def units_equiv_ne_zero : units K ≃ {a : K // a ≠ 0} :=
 ⟨λ a, ⟨a.1, a.ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
 variable {K}

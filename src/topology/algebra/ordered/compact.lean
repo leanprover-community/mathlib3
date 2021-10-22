@@ -114,7 +114,7 @@ We do not register an instance for a `[compact_Icc_space α]` because this would
 for products (indexed or not) of complete linear orders, and we have instances with higher priority
 that cover these cases. -/
 @[priority 100] -- See note [lower instance priority]
-instance compact_space_of_bounded_compact_Icc {α : Type*} [complete_linear_order α]
+instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]
   [topological_space α] [order_topology α] :
   compact_space α :=
 ⟨by simp only [← Icc_bot_top, is_compact_Icc]⟩

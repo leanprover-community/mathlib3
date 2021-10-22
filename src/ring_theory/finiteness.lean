@@ -750,6 +750,8 @@ begin
     exact ⟨r • P, alg_hom.map_smul _ _ _⟩ }
 end
 
+variables (R M)
+
 /-- If an additive monoid `M` is finitely generated then `add_monoid_algebra R M` is of finite
 type. -/
 instance finite_type_of_fg [comm_ring R] [h : add_monoid.fg M] :
@@ -759,6 +761,8 @@ begin
   exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval
     (λ (s : (S : set M)), of' R M ↑s)) (mv_polynomial_aeval_of_surjective_of_closure hS)
 end
+
+variables {R M}
 
 /-- An additive monoid `M` is finitely generated if and only if `add_monoid_algebra R M` is of
 finite type. -/
@@ -901,8 +905,7 @@ end
 
 /-- If a monoid `M` is finitely generated then `monoid_algebra R M` is of finite type. -/
 instance finite_type_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
-algebra.finite_type.equiv (@add_monoid_algebra.finite_type_of_fg R (additive M) _ _ _)
-  (to_additive_alg_equiv R M).symm
+(add_monoid_algebra.finite_type_of_fg R (additive M)).equiv (to_additive_alg_equiv R M).symm
 
 /-- A monoid `M` is finitely generated if and only if `monoid_algebra R M` is of finite type. -/
 lemma finite_type_iff_fg [comm_ring R] [nontrivial R] :

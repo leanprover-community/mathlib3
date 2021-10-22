@@ -35,9 +35,9 @@ section real
 variables {M : Type*} [add_comm_monoid M] [module ℝ M]
 variables {M₂ : Type*} [add_comm_monoid M₂] [module ℝ M₂]
 
-example (f : M →ₗ*[ℝ] M₂) : M →ₗ[ℝ] M₂ := f
+example (f : M →ₗ⋆[ℝ] M₂) : M →ₗ[ℝ] M₂ := f
 
-example (f : M →ₗ[ℝ] M₂) : M →ₗ*[ℝ] M₂ := f
+example (f : M →ₗ[ℝ] M₂) : M →ₗ⋆[ℝ] M₂ := f
 
 end real
 
@@ -47,11 +47,14 @@ variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {M₂ : Type*} [add_comm_monoid M₂] [module R M₂]
 variables {M₃ : Type*} [add_comm_monoid M₃] [module R M₃]
 
-example (f : M →ₗ*[R] M₂) (g : M₂ →ₗ*[R] M₃) : M →ₗ[R] M₃ := g.comp f
+example (f : M →ₗ⋆[R] M₂) (g : M₂ →ₗ⋆[R] M₃) : M →ₗ[R] M₃ := g.comp f
 
-example (f : M →ₗ[R] M₂) (g : M₂ →ₗ*[R] M₃) : M →ₗ*[R] M₃ := g.comp f
-example (f : M →ₗ*[R] M₂) (g : M₂ →ₗ[R] M₃) : M →ₗ*[R] M₃ := g.comp f
+example (f : M →ₗ[R] M₂) (g : M₂ →ₗ⋆[R] M₃) : M →ₗ⋆[R] M₃ := g.comp f
+example (f : M →ₗ⋆[R] M₂) (g : M₂ →ₗ[R] M₃) : M →ₗ⋆[R] M₃ := g.comp f
 
-example (f : M ≃ₗ*[R] M₂) : M₂ ≃ₗ*[R] M := f.symm
+example (f : M ≃ₗ⋆[R] M₂) : M₂ ≃ₗ⋆[R] M := f.symm
 
 end star_ring
+
+⋆
+

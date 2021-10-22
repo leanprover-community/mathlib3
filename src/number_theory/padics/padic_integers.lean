@@ -234,7 +234,7 @@ instance is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 
 variables {p}
 
-instance : integral_domain ℤ_[p] :=
+instance : is_domain ℤ_[p] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y, padic_int.eq_zero_or_eq_zero_of_mul_eq_zero x y,
   exists_pair_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
   .. padic_int.normed_comm_ring p }

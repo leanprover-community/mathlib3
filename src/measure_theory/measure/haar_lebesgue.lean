@@ -294,7 +294,7 @@ begin
   { rw [← closed_ball_diff_ball,
         measure_diff ball_subset_closed_ball measurable_set_closed_ball measurable_set_ball
           ((add_haar_ball_lt_top μ x r).ne),
-        add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, ennreal.sub_self] }
+        add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self] }
 end
 
 lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :

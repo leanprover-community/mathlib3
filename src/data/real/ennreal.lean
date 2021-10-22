@@ -731,54 +731,11 @@ by simp
 lemma sub_top : a - ∞ = 0 :=
 by simp
 
-lemma le_sub_add_self : a ≤ (a - b) + b :=
-le_tsub_add
-
-protected lemma sub_le_iff_le_add : a - b ≤ c ↔ a ≤ c + b :=
-tsub_le_iff_right
-
-lemma sub_self : a - a = 0 :=
-tsub_self a -- explicit arg
-
-lemma zero_sub : 0 - a = 0 :=
-zero_tsub a -- explicit arg
-
-protected lemma sub_add_cancel_of_le (h : b ≤ a) : (a - b) + b = a :=
-tsub_add_cancel_of_le h
-
-lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
-tsub_le_tsub h₁ h₂
-
-lemma sub_add_self_eq_max : (a - b) + b = max a b :=
-tsub_add_eq_max
-
-protected lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
-tsub_le_iff_left
-
-protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
-tsub_le_iff_tsub_le.mp h
-
-lemma sub_le_self (a b : ℝ≥0∞) : a - b ≤ a :=
-tsub_le_self
-
-lemma sub_zero : a - 0 = a :=
-tsub_zero a -- explicit
-
 lemma sub_eq_top_iff : a - b = ∞ ↔ a = ∞ ∧ b ≠ ∞ :=
 by { cases a; cases b; simp [← with_top.coe_sub] }
 
 lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha
-
-/-- A version of triangle inequality for difference as a "distance". -/
-lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
-tsub_le_tsub_add_tsub
-
-lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b := lt_tsub_iff_right
-
-lemma lt_sub_comm : a < b - c ↔ c < b - a := lt_tsub_comm
-
-/-! The following lemmas cannot be directly replaced by the general lemmas. -/
 
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 ((cancel_of_lt' $ hac.trans_lt h).tsub_lt_iff_right hac).mpr h
@@ -827,8 +784,7 @@ begin
   exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).sub_mul
 end
 
-lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) :
-  a * (b - c) = a * b - a * c :=
+lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) : a * (b - c) = a * b - a * c :=
 by { simp only [mul_comm a], exact sub_mul h }
 
 end sub
@@ -1600,18 +1556,18 @@ variables {ι : Sort*} {f g : ι → ℝ≥0∞}
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
   (le_infi $ assume i, add_le_add (infi_le _ _) $ le_refl _)
-  (ennreal.sub_le_iff_le_add.1 $ le_infi $ assume i, ennreal.sub_le_iff_le_add.2 $ infi_le _ _)
+  (tsub_le_iff_right.1 $ le_infi $ assume i, tsub_le_iff_right.2 $ infi_le _ _)
 
 lemma supr_sub : (⨆i, f i) - a = (⨆i, f i - a) :=
 le_antisymm
-  (ennreal.sub_le_iff_le_add.2 $ supr_le $ assume i, ennreal.sub_le_iff_le_add.1 $ le_supr _ i)
-  (supr_le $ assume i, ennreal.sub_le_sub (le_supr _ _) (le_refl a))
+  (tsub_le_iff_right.2 $ supr_le $ assume i, tsub_le_iff_right.1 $ le_supr _ i)
+  (supr_le $ assume i, tsub_le_tsub (le_supr _ _) (le_refl a))
 
 lemma sub_infi : a - (⨅i, f i) = (⨆i, a - f i) :=
 begin
   refine (eq_of_forall_ge_iff $ λ c, _),
-  rw [ennreal.sub_le_iff_le_add, add_comm, infi_add],
-  simp [ennreal.sub_le_iff_le_add, sub_eq_add_neg, add_comm],
+  rw [tsub_le_iff_right, add_comm, infi_add],
+  simp [tsub_le_iff_right, sub_eq_add_neg, add_comm],
 end
 
 lemma Inf_add {s : set ℝ≥0∞} : Inf s + a = ⨅b∈s, b + a :=

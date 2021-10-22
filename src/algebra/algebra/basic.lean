@@ -7,6 +7,7 @@ import algebra.iterate_hom
 import data.equiv.ring_aut
 import algebra.module.basic
 import linear_algebra.basic
+import tactic.abel
 
 /-!
 # Algebras over commutative semirings
@@ -359,7 +360,7 @@ by { convert this, ext, rw [algebra.smul_def, mul_one] },
 smul_left_injective R one_ne_zero
 
 variables {R A}
-lemma iff_algebra_map_injective [ring A] [domain A] [algebra R A] :
+lemma iff_algebra_map_injective [ring A] [is_domain A] [algebra R A] :
   no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
 ⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
  no_zero_smul_divisors.of_algebra_map_injective⟩

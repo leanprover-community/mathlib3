@@ -57,7 +57,7 @@ attribute [nolint doc_blame] linear_equiv.to_add_equiv
 
 notation M ` ≃ₛₗ[`:50 σ `] ` M₂ := linear_equiv σ M M₂
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv (ring_hom.id R) M M₂
-notation M ` ≃ₗ*[`:25 R:25 `] `:0 M₂:0 := linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` ≃ₗ*[`:50 R `] ` M₂ := linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
 
 namespace linear_equiv
 

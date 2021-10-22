@@ -25,17 +25,19 @@ non-commutative case. Any development on the theory of derivations is discourage
 definitive definition of derivation will be implemented.
 -/
 
-open algebra
+open algebra opposite
+
+local notation m ` <• `:72 r:73 := op r • m
 
 /-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
 equality.
 TODO: update this when bimodules are defined. -/
 @[protect_proj]
-structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
-  [algebra R A] (M : Type*) [add_cancel_comm_monoid M] [module A M] [module R M]
-  [is_scalar_tower R A M]
+structure derivation (R : Type*) (A : Type*) [comm_semiring R] [semiring A]
+  [algebra R A] (M : Type*)
+  [add_comm_monoid M] [has_scalar A M] [has_scalar Aᵒᵖ M] [smul_comm_class A Aᵒᵖ M] [module R M]
   extends A →ₗ[R] M :=
-(leibniz' (a b : A) : to_fun (a * b) = a • to_fun b + b • to_fun a)
+(leibniz' (a b : A) : to_fun (a * b) = a • to_fun b + to_fun a <• b)
 
 /-- The `linear_map` underlying a `derivation`. -/
 add_decl_doc derivation.to_linear_map
@@ -46,8 +48,8 @@ section
 
 variables {R : Type*} [comm_semiring R]
 variables {A : Type*} [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
-variables [is_scalar_tower R A M]
+variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module Aᵒᵖ M] [module R M]
+variables [is_scalar_tower R A M] [smul_comm_class A Aᵒᵖ M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
@@ -74,12 +76,12 @@ lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := congr_fun (congr_arg coe_
 @[simp] lemma map_add : D (a + b) = D a + D b := linear_map.map_add D a b
 @[simp] lemma map_zero : D 0 = 0 := linear_map.map_zero D
 @[simp] lemma map_smul : D (r • a) = r • D a := linear_map.map_smul D r a
-@[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
+@[simp] lemma leibniz : D (a * b) = a • D b + D a <• b := D.leibniz' _ _
 
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
-  rwa [leibniz D 1 1, one_smul, self_eq_add_right] at h
+  rwa [leibniz D 1 1, op_one, one_smul, one_smul, self_eq_add_right] at h
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
@@ -119,8 +121,12 @@ rfl
 lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 
 instance Rscalar : has_scalar R (derivation R A M) :=
-⟨λ r D, { leibniz' := λ a b, by simp only [linear_map.smul_apply, leibniz,
-            linear_map.to_fun_eq_coe, smul_algebra_smul_comm, coe_fn_coe, smul_add, add_comm],
+⟨λ r D, { leibniz' := λ a b, begin
+            simp only [linear_map.smul_apply, leibniz,
+                       linear_map.to_fun_eq_coe, coe_fn_coe, smul_add, add_comm],
+            rw [←smul_one_smul A r (D a <• b), smul_comm (r • 1 : A) (op b) (D a), smul_one_smul],
+            rw smul_comm,
+          end,
           ..(r • D : A →ₗ[R] M) }⟩
 
 @[simp] lemma coe_Rsmul (r : R) (D : derivation R A M) : ⇑(r • D) = r • D := rfl
@@ -159,7 +165,8 @@ instance : is_scalar_tower R A (derivation R A M) :=
 
 section push_forward
 
-variables {N : Type*} [add_cancel_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A N]
+variables {N : Type*} [add_cancel_comm_monoid N] [module A N] [module Aᵒᵖ N]
+                      [module R N] [is_scalar_tower R A N] [is_scalar_tower A Aᵒᵖ N]
 variables (f : M →ₗ[A] N)
 
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a

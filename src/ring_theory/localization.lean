@@ -3,14 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 -/
-import tactic.ring_exp
 import data.equiv.ring
 import group_theory.monoid_localization
-import ring_theory.ideal.operations
-import ring_theory.ideal.local_ring
 import ring_theory.algebraic
+import ring_theory.ideal.local_ring
+import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.non_zero_divisors
+import tactic.ring_exp
 
 /-!
 # Localizations of commutative rings

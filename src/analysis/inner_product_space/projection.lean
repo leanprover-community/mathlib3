@@ -527,7 +527,7 @@ begin
   { intros x hx,
     obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
     have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
-    simp [inner_sub_left, inner_smul_left, inner_smul_right, is_R_or_C.conj_div, mul_comm, hv,
+    simp [inner_sub_left, inner_smul_left, inner_smul_right, ring_equiv.map_div, mul_comm, hv,
       inner_product_space.conj_sym, hv] }
 end
 

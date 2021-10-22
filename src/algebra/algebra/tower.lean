@@ -150,14 +150,6 @@ by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commu
 
 end semiring
 
-section division_ring
-variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]
-
-instance rat : is_scalar_tower ℚ R S :=
-of_algebra_map_eq $ λ x, ((algebra_map R S).map_rat_cast x).symm
-
-end division_ring
-
 end is_scalar_tower
 
 section homs

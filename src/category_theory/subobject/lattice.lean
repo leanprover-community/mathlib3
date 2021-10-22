@@ -201,8 +201,7 @@ instance order_top {X : C} : order_top (subobject X) :=
   begin
     refine quotient.ind' (λ f, _),
     exact ⟨mono_over.le_top f⟩,
-  end,
-  ..subobject.partial_order X}
+  end }
 
 instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
@@ -266,8 +265,7 @@ instance order_bot {X : C} : order_bot (subobject X) :=
   begin
     refine quotient.ind' (λ f, _),
     exact ⟨mono_over.bot_le f⟩,
-  end,
-  ..subobject.partial_order X }
+  end }
 
 lemma bot_eq_initial_to {B : C} : (⊥ : subobject B) = subobject.mk (initial.to B) := rfl
 

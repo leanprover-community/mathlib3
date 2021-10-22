@@ -472,7 +472,7 @@ instance partial_order [partial_order α] : partial_order (with_bot α) :=
 
 instance order_bot [preorder α] : order_bot (with_bot α) :=
 { bot_le := λ a a' h, option.no_confusion h,
-  ..with_bot.partial_order, ..with_bot.has_bot }
+  ..with_bot.has_bot }
 
 @[simp, norm_cast] theorem coe_le_coe [preorder α] {a b : α} :
   (a : with_bot α) ≤ b ↔ a ≤ b :=
@@ -579,8 +579,7 @@ lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_bot α) = ma
 
 instance order_top [preorder α] [order_top α] : order_top (with_bot α) :=
 { top := some ⊤,
-  le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩,
-  ..with_bot.partial_order }
+  le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩ }
 
 instance bounded_lattice [preorder α] [bounded_lattice α] : bounded_lattice (with_bot α) :=
 { ..with_bot.order_top, ..with_bot.order_bot }
@@ -710,7 +709,7 @@ instance partial_order [partial_order α] : partial_order (with_top α) :=
 
 instance order_top [preorder α] : order_top (with_top α) :=
 { le_top := λ a a' h, option.no_confusion h,
-  ..with_top.partial_order, .. with_top.has_top }
+  .. with_top.has_top }
 
 @[simp, norm_cast] theorem coe_le_coe [preorder α] {a b : α} :
   (a : with_top α) ≤ b ↔ a ≤ b :=
@@ -816,8 +815,7 @@ lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_top α) = ma
 
 instance order_bot [preorder α] [order_bot α] : order_bot (with_top α) :=
 { bot := some ⊥,
-  bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩,
-  ..with_top.preorder }
+  bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩ }
 
 instance bounded_lattice [preorder α] [bounded_lattice α] : bounded_lattice (with_top α) :=
 { ..with_top.order_top, ..with_top.order_bot }

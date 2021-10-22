@@ -938,6 +938,8 @@ end
 
 @[simp] lemma omega_add_omega : ω + ω = ω := mk_denumerable _
 
+@[simp] lemma omega_mul_omega : ω * ω = ω := mk_denumerable _
+
 @[simp] lemma add_le_omega {c₁ c₂ : cardinal} : c₁ + c₂ ≤ ω ↔ c₁ ≤ ω ∧ c₂ ≤ ω :=
 ⟨λ h, ⟨le_self_add.trans h, le_add_self.trans h⟩, λ h, omega_add_omega ▸ add_le_add h.1 h.2⟩
 

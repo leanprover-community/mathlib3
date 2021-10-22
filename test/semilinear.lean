@@ -46,7 +46,6 @@ variables {R : Type*} [comm_semiring R] [star_ring R]
 variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {M₂ : Type*} [add_comm_monoid M₂] [module R M₂]
 variables {M₃ : Type*} [add_comm_monoid M₃] [module R M₃]
-variables {N : Type*} [add_comm_monoid N] [module ℝ N]
 
 example (f : M →ₗ*[R] M₂) (g : M₂ →ₗ*[R] M₃) : M →ₗ[R] M₃ := g.comp f
 

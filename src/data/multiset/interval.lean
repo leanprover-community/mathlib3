@@ -91,20 +91,16 @@ by { classical, rw [Ioo, Ioo, ←finset.image_add_left_Ioo, finset.image_val,
     (multiset.nodup_map (add_right_injective c) $ finset.nodup _).erase_dup] }
 
 lemma map_add_right_Icc (a b c : α) : (Icc a b).map (λ x, x + c) = Icc (a + c) (b + c) :=
-by { classical, rw [Icc, Icc, ←finset.image_add_right_Icc, finset.image_val,
-    (multiset.nodup_map (add_left_injective c) $ finset.nodup _).erase_dup] }
+by { simp_rw add_comm _ c, exact map_add_left_Icc _ _ _ }
 
-lemma map_add_right_Icc (a b c : α) : (Icc a b).map (λ x, x + c) = Icc (a + c) (b + c) :=
-by { classical, rw [Icc, Icc, ←finset.image_add_right_Icc, finset.image_val,
-    (multiset.nodup_map (add_left_injective c) $ finset.nodup _).erase_dup] }
+lemma map_add_right_Ico (a b c : α) : (Ico a b).map (λ x, x + c) = Ico (a + c) (b + c) :=
+by { simp_rw add_comm _ c, exact map_add_left_Ico _ _ _ }
 
 lemma map_add_right_Ioc (a b c : α) : (Ioc a b).map (λ x, x + c) = Ioc (a + c) (b + c) :=
-by { classical, rw [Ioc, Ioc, ←finset.image_add_right_Ioc, finset.image_val,
-    (multiset.nodup_map (add_left_injective c) $ finset.nodup _).erase_dup] }
+by { simp_rw add_comm _ c, exact map_add_left_Ioc _ _ _ }
 
 lemma map_add_right_Ioo (a b c : α) : (Ioo a b).map (λ x, x + c) = Ioo (a + c) (b + c) :=
-by { classical, rw [Ioo, Ioo, ←finset.image_add_right_Ioo, finset.image_val,
-    (multiset.nodup_map (add_left_injective c) $ finset.nodup _).erase_dup] }
+by { simp_rw add_comm _ c, exact map_add_left_Ioo _ _ _ }
 
 end ordered_cancel_add_comm_monoid
 end multiset

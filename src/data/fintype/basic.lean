@@ -711,19 +711,13 @@ by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 @[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
 finset.ext is_empty_elim
 
-@[simp] lemma fintype.card_subtype_eq (y : α)  :
+@[simp] lemma fintype.card_subtype_eq (y : α) [fintype {x // x = y}] :
   fintype.card {x // x = y} = 1 :=
-begin
-  convert fintype.card_unique,
-  exact unique.subtype_eq _
-end
+fintype.card_unique
 
-@[simp] lemma fintype.card_subtype_eq' (y : α) :
+@[simp] lemma fintype.card_subtype_eq' (y : α) [fintype {x // y = x}] :
   fintype.card {x // y = x} = 1 :=
-begin
-  convert fintype.card_unique,
-  exact unique.subtype_eq' _
-end
+fintype.card_unique
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 
@@ -1058,6 +1052,9 @@ lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype �
   fintype.card ↥s ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype s)
 
+section
+variables (α)
+
 /-- The `units α` type is equivalent to a subtype of `α × α`. -/
 @[simps]
 def _root_.units_equiv_prod_subtype [monoid α] :
@@ -1067,8 +1064,26 @@ def _root_.units_equiv_prod_subtype [monoid α] :
   left_inv := λ u, units.ext rfl,
   right_inv := λ p, subtype.ext $ prod.ext rfl rfl}
 
+/-- In a `group_with_zero` `α`, the unit group `units α` is equivalent to the subtype of nonzero
+elements. -/
+@[simps]
+def _root_.units_equiv_ne_zero [group_with_zero α] : units α ≃ {a : α // a ≠ 0} :=
+⟨λ a, ⟨a, a.ne_zero⟩, λ a, units.mk0 _ a.prop, λ _, units.ext rfl, λ _, subtype.ext rfl⟩
+
+end
+
 instance [monoid α] [fintype α] [decidable_eq α] : fintype (units α) :=
-fintype.of_equiv _ units_equiv_prod_subtype.symm
+fintype.of_equiv _ (units_equiv_prod_subtype α).symm
+
+lemma fintype.card_units [group_with_zero α] [fintype α] [fintype (units α)] :
+  fintype.card (units α) = fintype.card α - 1 :=
+begin
+  classical,
+  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩),
+    fintype.card_congr (units_equiv_ne_zero α)],
+  have := fintype.card_congr (equiv.sum_compl (= (0 : α))).symm,
+  rwa [fintype.card_sum, add_comm, fintype.card_subtype_eq] at this,
+end
 
 namespace function.embedding
 

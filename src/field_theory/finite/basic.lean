@@ -24,7 +24,7 @@ cyclic group, as well as the fact that every finite integral domain is a field
 
 ## Main results
 
-1. `card_units`: The unit group of a finite field is has cardinality `q - 1`.
+1. `fintype.card_units`: The unit group of a finite field is has cardinality `q - 1`.
 2. `sum_pow_units`: The sum of `x^i`, where `x` ranges over the units of `K`, is
    - `q-1` if `q-1 ∣ i`
    - `0`   otherwise
@@ -96,19 +96,6 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
     nat_degree_eq_of_degree_eq_some hg2, bit0, mul_add]
 
 end polynomial
-
-lemma card_units [group_with_zero K] [fintype K] [fintype (units K)] :
-  fintype.card (units K) = fintype.card K - 1 :=
-begin
-  classical,
-  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩),
-    fintype.card_congr (equiv.units_equiv_ne_zero K)],
-  have := fintype.card_congr (equiv.sum_compl (= (0 : K))).symm,
-  rw [fintype.card_sum, add_comm] at this,
-  convert this,
-  -- TODO: fix `fintype.card_subtype_eq` to not need `convert` to perform subsingleton elimination
-  convert (fintype.card_subtype_eq _).symm,
-end
 
 lemma prod_univ_units_id_eq_neg_one [field K] [fintype (units K)] :
   (∏ x : units K, x) = (-1 : units K) :=

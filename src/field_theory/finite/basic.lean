@@ -169,7 +169,7 @@ lemma forall_pow_eq_one_iff (i : ℕ) :
 begin
   classical,
   obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
-  rw [← fintype.card_units, ← order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
+  rw [←fintype.card_units, ←order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
   split,
   { intro h, apply h },
   { intros h y,

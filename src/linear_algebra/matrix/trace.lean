@@ -78,6 +78,24 @@ lemma trace_mul_comm {S : Type v} [comm_semiring S] (A : matrix m n S) (B : matr
   trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
 by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
 
+/-! ### Special cases for `fin n`
+
+While `simp [fin.sum_univ_succ]` can prove these, we include them for convenience and consistency
+with `matrix.det_fin_two` etc.
+-/
+
+lemma trace_fin_zero (A : matrix (fin 0) (fin 0) R) : trace _ R R A = 0 :=
+rfl
+
+lemma trace_fin_one (A : matrix (fin 1) (fin 1) R) : trace _ R R A = A 0 0 :=
+add_zero _
+
+lemma trace_fin_two (A : matrix (fin 2) (fin 2) R) : trace _ R R A = A 0 0 + A 1 1 :=
+congr_arg ((+) _) (add_zero (A 1 1))
+
+lemma trace_fin_three (A : matrix (fin 3) (fin 3) R) : trace _ R R A = A 0 0 + A 1 1 + A 2 2 :=
+by { rw [← add_zero (A 2 2), add_assoc], refl }
+
 end trace
 
 end matrix

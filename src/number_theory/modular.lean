@@ -188,14 +188,14 @@ linear_equiv.Pi_congr_right
 theorem tendsto_acbd {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   tendsto (λ g : {g : SL(2, ℤ) // g 1 = cd}, acbd cd ↑(↑g : SL(2, ℝ))) cofinite (cocompact ℝ) :=
 begin
-  let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-1:ℝ)], coe ∘ cd],
+  let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
   { refine continuous_pi (λ i, _),
     fin_cases i,
     { refine continuous_pi (λ j, _),
       fin_cases j,
       { exact continuous_id },
-      { exact @continuous_const _ _ _ _ (-1:ℝ) } },
+      { exact @continuous_const _ _ _ _ (-(1:ℤ):ℝ) } },
     exact @continuous_const _ _ _ _ (coe ∘ cd) },
   convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
@@ -218,8 +218,7 @@ begin
   { ext i,
     fin_cases i,
     { simp [mB, f₁, vec_head, vec_tail] },
-    { convert congr_arg (λ n : ℤ, -(n:ℝ)) g.det_coe.symm using 1,
-      { simp [mB, f₁] },
+    { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
       simp [-special_linear_group.det_coe, ← hg, det_fin_two],
       ring } },
   { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }

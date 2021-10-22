@@ -143,7 +143,7 @@ def freq_aux : Π (xs : list (ℕ+ × gen α)) i, i < (xs.map (subtype.val ∘ p
 | ((i, x) :: xs) j h :=
   if h' : j < i then x
   else freq_aux xs (j - i)
-    (by { rw sub_lt_iff_right (le_of_not_gt h'),
+    (by { rw tsub_lt_iff_right (le_of_not_gt h'),
       simpa [list.sum_cons, add_comm] using h })
 
 /--
@@ -158,9 +158,9 @@ have ha : 1 ≤ s, from
   (le_trans pos $
     list.length_map (subtype.val ∘ prod.fst) xs ▸
       (list.length_le_sum_of_one_le _ (λ i, by { simp, intros, assumption }))),
-have 0 ≤ s - 1, from le_sub_of_add_le_right' ha,
+have 0 ≤ s - 1, from le_tsub_of_add_le_right ha,
 uliftable.adapt_up gen.{0} gen.{u} (choose_nat 0 (s-1) this) $ λ i,
-freq_aux xs i.1 (by rcases i with ⟨i,h₀,h₁⟩; rwa le_sub_iff_right at h₁; exact ha)
+freq_aux xs i.1 (by rcases i with ⟨i,h₀,h₁⟩; rwa le_tsub_iff_right at h₁; exact ha)
 
 /-- Generate a random permutation of a given list. -/
 def permutation_of {α : Type u} : Π xs : list α, gen (subtype $ list.perm xs)

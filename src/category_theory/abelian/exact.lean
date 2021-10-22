@@ -42,7 +42,7 @@ local attribute [instance] has_equalizers_of_has_kernels
 In an abelian category, a pair of morphisms `f : X ⟶ Y`, `g : Y ⟶ Z` is exact
 iff `image_subobject f = kernel_subobject g`.
 -/
-theorem exact_iff'' : exact f g ↔ image_subobject f = kernel_subobject g :=
+theorem exact_iff_image_eq_kernel : exact f g ↔ image_subobject f = kernel_subobject g :=
 begin
   split,
   { introI h,
@@ -96,7 +96,7 @@ theorem exact_tfae :
         image_subobject f = kernel_subobject g] :=
 begin
   tfae_have : 1 ↔ 2, { apply exact_iff },
-  tfae_have : 1 ↔ 3, { apply exact_iff'' },
+  tfae_have : 1 ↔ 3, { apply exact_iff_image_eq_kernel },
   tfae_finish
 end
 

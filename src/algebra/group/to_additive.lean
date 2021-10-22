@@ -509,10 +509,14 @@ protected meta def attr : user_attribute unit value_type :=
     then proceed_fields env src tgt prio
     else do
       transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
-        [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
-         `no_rsimp, `measurability],
+        [`reducible, `_refl_lemma, `simp, `norm_cast, `instance, `refl, `symm, `trans,
+          `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias,
+          `_ext_core, `_ext_lemma_core, `nolint],
       mwhen (has_attribute' `simps src)
         (trace "Apply the simps attribute after the to_additive attribute"),
+      mwhen (has_attribute' `mono src)
+        (trace $ "to_additive does not work with mono, apply the mono attribute to both" ++
+          "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip
@@ -533,12 +537,3 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
-/-
-We ignore the third argument of `has_coe_to_fun.F` when deciding whether the operation
-needs to be additivized. The reason is that this argument is the element to be coerced,
-which usually does not actually show up in the type after reduction.
-Hypothetically, this could be ignoring too much, in that case, we can remove this,
-but in that case we have to add the `to_additive_ignore_args` attribute more systematically
-to a lot of other definitions (like `times_cont_mdiff_map.comp`).
--/
-attribute [to_additive_ignore_args 3] has_coe_to_fun.F

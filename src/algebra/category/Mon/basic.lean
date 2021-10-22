@@ -45,8 +45,10 @@ instance bundled_hom : bundled_hom assoc_monoid_hom :=
  λ M N P [monoid M] [monoid N] [monoid P], by exactI @monoid_hom.comp M N P _ _ _,
  λ M N [monoid M] [monoid N], by exactI @monoid_hom.coe_inj M N _ _⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Mon
-attribute [to_additive] Mon.has_coe_to_sort Mon.large_category Mon.concrete_category
+attribute [derive [large_category, concrete_category]] Mon
+attribute [to_additive] Mon.large_category Mon.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Mon Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 @[to_additive]
@@ -87,8 +89,10 @@ namespace CommMon
 @[to_additive]
 instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommMon
-attribute [to_additive] CommMon.has_coe_to_sort CommMon.large_category CommMon.concrete_category
+attribute [derive [large_category, concrete_category]] CommMon
+attribute [to_additive] CommMon.large_category CommMon.concrete_category
+
+@[to_additive] instance : has_coe_to_sort CommMon Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `CommMon` from the underlying type and typeclass. -/
 @[to_additive]

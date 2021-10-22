@@ -427,6 +427,26 @@ lemma root_multiplicity_eq_multiplicity (p : polynomial R) (a : R) :
 by simp [multiplicity, root_multiplicity, part.dom];
   congr; funext; congr
 
+@[simp] lemma root_multiplicity_zero {x : R} : root_multiplicity x 0 = 0 := dif_pos rfl
+
+lemma root_multiplicity_eq_zero {p : polynomial R} {x : R} (h : ¬ is_root p x) :
+  root_multiplicity x p = 0 :=
+begin
+  rw root_multiplicity_eq_multiplicity,
+  split_ifs, { refl },
+  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
+  intro hdvd,
+  exact h (dvd_iff_is_root.mp hdvd)
+end
+
+lemma root_multiplicity_pos {p : polynomial R} (hp : p ≠ 0) {x : R} :
+  0 < root_multiplicity x p ↔ is_root p x :=
+begin
+  rw [← dvd_iff_is_root, root_multiplicity_eq_multiplicity, dif_neg hp,
+      ← enat.coe_lt_coe, enat.coe_get],
+  exact multiplicity.dvd_iff_multiplicity_pos
+end
+
 lemma pow_root_multiplicity_dvd (p : polynomial R) (a : R) :
   (X - C a) ^ root_multiplicity a p ∣ p :=
 if h : p = 0 then by simp [h]

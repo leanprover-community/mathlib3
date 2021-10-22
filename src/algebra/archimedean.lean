@@ -236,8 +236,8 @@ by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one]
 cases we have a computable `floor` function. -/
 noncomputable def archimedean.floor_ring (α)
   [linear_ordered_ring α] [archimedean α] : floor_ring α :=
-{ floor := λ x, classical.some (exists_floor x),
-  le_floor := λ z x, classical.some_spec (exists_floor x) z }
+floor_ring.of_floor α (λ a, classical.some (exists_floor a))
+  (λ z a, (classical.some_spec (exists_floor a) z).symm)
 
 section linear_ordered_field
 variables [linear_ordered_field α]

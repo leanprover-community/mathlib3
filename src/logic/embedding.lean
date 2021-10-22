@@ -23,7 +23,7 @@ structure embedding (α : Sort*) (β : Sort*) :=
 
 infixr ` ↪ `:25 := embedding
 
-instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embedding.to_fun⟩
+instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) (λ _, α → β) := ⟨embedding.to_fun⟩
 
 initialize_simps_projections embedding (to_fun → apply)
 
@@ -111,6 +111,7 @@ lemma equiv_symm_to_embedding_trans_to_embedding {α β : Sort*} (e : α ≃ β)
   e.symm.to_embedding.trans e.to_embedding = embedding.refl _ :=
 by { ext, simp, }
 
+@[simps { fully_applied := ff }]
 protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
 (equiv.to_embedding e₁.symm).trans (f.trans e₂.to_embedding)
@@ -147,6 +148,12 @@ by simp [set_value]
 /-- Embedding into `option` -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
+
+/-- Given an embedding `f : α ↪ β` and a point outside of `set.range f`, construct an embedding
+`option α ↪ β`. -/
+@[simps] def option_elim {α β} (f : α ↪ β) (x : β) (h : x ∉ set.range f) :
+  option α ↪ β :=
+⟨λ o, o.elim x f, option.injective_iff.2 ⟨f.2, h⟩⟩
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
@@ -277,8 +284,8 @@ def subtype_injective_equiv_embedding (α β : Sort*) :
 is equivalent to the type of embeddings `α₂ ↪ β₂`. -/
 @[congr, simps apply] def embedding_congr {α β γ δ : Sort*}
   (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
-{ to_fun := λ f, h.symm.to_embedding.trans $ f.trans $ h'.to_embedding,
-  inv_fun := λ f, h.to_embedding.trans $ f.trans $ h'.symm.to_embedding,
+{ to_fun := λ f, f.congr h h',
+  inv_fun := λ f, f.congr h.symm h'.symm,
   left_inv := λ x, by {ext, simp},
   right_inv := λ x, by {ext, simp} }
 

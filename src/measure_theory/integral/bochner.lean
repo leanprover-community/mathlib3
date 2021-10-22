@@ -286,7 +286,7 @@ begin
   rw [simple_func.integral_eq_sum_filter, finset.sum_subset hs],
   rintro x - hx, rw [finset.mem_filter, not_and_distrib, ne.def, not_not] at hx,
   rcases hx with hx|rfl; [skip, simp],
-  rw [simple_func.mem_range] at hx, rw [preimage_eq_empty]; simp [disjoint_singleton_left, hx]
+  rw [simple_func.mem_range] at hx, rw [preimage_eq_empty]; simp [set.disjoint_singleton_left, hx]
 end
 
 @[simp] lemma integral_const {m : measurable_space α} (μ : measure α) (y : F) :

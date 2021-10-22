@@ -54,7 +54,7 @@ infix ` →r `:25 := rel_hom
 
 namespace rel_hom
 
-instance : has_coe_to_fun (r →r s) := ⟨λ _, α → β, λ o, o.to_fun⟩
+instance : has_coe_to_fun (r →r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
 initialize_simps_projections rel_hom (to_fun → apply)
 
@@ -182,7 +182,7 @@ def to_rel_hom (f : r ↪r s) : (r →r s) :=
 
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
+instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
@@ -419,7 +419,7 @@ def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ≃r s) := ⟨λ _, α → β, λ f, f⟩
+instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 

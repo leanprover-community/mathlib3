@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.finset.fold
+import algebra.group.pi
 import data.equiv.mul_add
-import tactic.abel
+import data.finset.fold
+import data.fintype.basic
 
 /-!
 # Big operators
@@ -901,11 +902,11 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
 reduces to the difference of the last and first terms.-/
 lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-by { apply sum_range_induction; abel, simp }
+by { apply sum_range_induction; simp }
 
 lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
-by { apply sum_range_induction; abel, simp }
+by { apply sum_range_induction; simp }
 
 /-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
 reduces to the ratio of the last and first factors.-/
@@ -930,7 +931,7 @@ begin
   refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
   have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
   have h₂ : f 0 ≤ f n := h (nat.zero_le _),
-  rw [←nat.sub_add_comm h₂, add_sub_cancel_of_le h₁],
+  rw [←nat.sub_add_comm h₂, add_tsub_cancel_of_le h₁],
 end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
@@ -1204,7 +1205,7 @@ over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`. Se
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
-by { rw finset.sum_range_sub, abel }
+by rw [finset.sum_range_sub, add_sub_cancel'_right]
 
 lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=

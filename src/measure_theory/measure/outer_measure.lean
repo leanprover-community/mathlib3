@@ -70,7 +70,7 @@ section basic
 
 variables {α : Type*} {β : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
 
-instance : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
+instance : has_coe_to_fun (outer_measure α) (λ _, set α → ℝ≥0∞) := ⟨λ m, m.measure_of⟩
 
 @[simp] lemma measure_of_eq_coe (m : outer_measure α) : m.measure_of = m := rfl
 

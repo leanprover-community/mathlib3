@@ -222,7 +222,7 @@ begin
                     ... = 4 * (m * (r * s)) : by ring },
   have hrsz : r * s ≠ 0, -- because b ^ 2 is not zero and (b / 2) ^ 2 = m * (r * s)
   { by_contradiction hrsz,
-    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, (not_not.mp hrsz)],
+    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, hrsz],
     simp },
   have h2b0 : b' ≠ 0,
   { apply ne_zero_pow (dec_trivial : 2 ≠ 0),

@@ -44,8 +44,8 @@ namespace linear_pmap
 
 open submodule
 
-instance : has_coe_to_fun (linear_pmap R E F) :=
-⟨λ f : linear_pmap R E F, f.domain → F, λ f, f.to_fun⟩
+instance : has_coe_to_fun (linear_pmap R E F) (λ f : linear_pmap R E F, f.domain → F) :=
+⟨λ f, f.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : linear_pmap R E F) (x : f.domain) :
   f.to_fun x = f x := rfl

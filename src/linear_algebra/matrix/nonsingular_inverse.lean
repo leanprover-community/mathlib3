@@ -5,6 +5,7 @@ Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
 import algebra.regular.smul
+import data.matrix.notation
 import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
@@ -298,7 +299,7 @@ begin
     simp [h, adjugate_eq_one_of_card_eq_one h] },
   have one_lt_card : 1 < fintype.card n := by linarith,
   have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
-    (sub_lt_sub_iff_right' (refl 1)).mpr one_lt_card,
+    (tsub_lt_tsub_iff_right (refl 1)).mpr one_lt_card,
 
   apply det_adjugate_of_cancel,
   intros b hb,
@@ -307,6 +308,21 @@ begin
      ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
      ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
 end
+
+lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
+  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+begin
+  ext i j,
+  rw [adjugate_apply, det_fin_two],
+  fin_cases i with [0, 1]; fin_cases j with [0, 1];
+  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, if_true, zero_mul, fin.zero_eq_one_iff,
+    eq_self_iff_true, sub_zero, if_false, ne.def, not_false_iff, update_row_self, update_row_ne,
+    cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
+end
+
+@[simp] lemma adjugate_fin_two' (a b c d : α) :
+  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+adjugate_fin_two _
 
 end adjugate
 
@@ -705,7 +721,7 @@ by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_a
 
 section nondegenerate
 
-variables {m R A : Type*} [fintype m] [comm_ring R] [integral_domain A]
+variables {m R A : Type*} [fintype m] [comm_ring R]
 
 /-- A matrix `M` is nondegenerate if for all `v ≠ 0`, there is a `w ≠ 0` with `w ⬝ M ⬝ v ≠ 0`. -/
 def nondegenerate (M : matrix m m R) :=
@@ -720,6 +736,8 @@ hM v hv
 lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix m m R} (hM : nondegenerate M)
   {v : m → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
 not_forall.mp (mt hM.eq_zero_of_ortho hv)
+
+variables [comm_ring A] [is_domain A]
 
 /-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
 

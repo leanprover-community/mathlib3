@@ -400,7 +400,7 @@ begin
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
     norm_cast at *,
     convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
-    rw [ennreal.coe_inv $ ne_of_gt $ sub_pos_iff_lt.2 hr] },
+    rw [ennreal.coe_inv $ ne_of_gt $ tsub_pos_iff_lt.2 hr] },
   { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),

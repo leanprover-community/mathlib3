@@ -184,7 +184,7 @@ theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (
 -- TODO: should be simpler when sets' order is based on lattices
 @supr_le (set β) _ _ _ _ h
 
-theorem Union_subset_iff {s : ι → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t) :=
+@[simp] theorem Union_subset_iff {s : ι → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t) :=
 ⟨λ h i, subset.trans (le_supr s _) h, Union_subset⟩
 
 theorem mem_Inter_of_mem {x : β} {s : ι → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
@@ -193,7 +193,7 @@ mem_Inter.2
 theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t ⊆ ⋂ i, s i :=
 @le_infi (set β) _ _ _ _ h
 
-theorem subset_Inter_iff {t : set β} {s : ι → set β} : t ⊆ (⋂ i, s i) ↔ ∀ i, t ⊆ s i :=
+@[simp] theorem subset_Inter_iff {t : set β} {s : ι → set β} : t ⊆ (⋂ i, s i) ↔ ∀ i, t ⊆ s i :=
 @le_infi_iff (set β) _ _ _ _
 
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
@@ -557,6 +557,14 @@ theorem bInter_eq_Inter (s : set α) (t : Π x ∈ s, set β) :
   (⋂ x ∈ s, t x ‹_›) = (⋂ x : s, t x x.2) :=
 infi_subtype'
 
+theorem Union_subtype (p : α → Prop) (s : {x // p x} → set β) :
+  (⋃ x : {x // p x}, s x) = ⋃ x (hx : p x), s ⟨x, hx⟩ :=
+supr_subtype
+
+theorem Inter_subtype (p : α → Prop) (s : {x // p x} → set β) :
+  (⋂ x : {x // p x}, s x) = ⋂ x (hx : p x), s ⟨x, hx⟩ :=
+infi_subtype
+
 theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
 infi_emptyset
 
@@ -620,9 +628,13 @@ theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
-@[simp] lemma Union_subtype {α β : Type*} (s : set α) (f : α → set β) :
+@[simp] lemma Union_coe_set {α β : Type*} (s : set α) (f : α → set β) :
   (⋃ (i : s), f i) = ⋃ (i ∈ s), f i :=
-(set.bUnion_eq_Union s $ λ x _, f x).symm
+Union_subtype _ _
+
+@[simp] lemma Inter_coe_set {α β : Type*} (s : set α) (f : α → set β) :
+  (⋂ (i : s), f i) = ⋂ (i ∈ s), f i :=
+Inter_subtype _ _
 
 -- TODO(Jeremy): once again, simp doesn't do it alone.
 
@@ -670,11 +682,14 @@ subset.trans h₁ (subset_sUnion_of_mem h₂)
 theorem sUnion_subset {S : set (set α)} {t : set α} (h : ∀ t' ∈ S, t' ⊆ t) : (⋃₀ S) ⊆ t :=
 Sup_le h
 
-theorem sUnion_subset_iff {s : set (set α)} {t : set α} : ⋃₀ s ⊆ t ↔ ∀ t' ∈ s, t' ⊆ t :=
-⟨λ h t' ht', subset.trans (subset_sUnion_of_mem ht') h, sUnion_subset⟩
+@[simp] theorem sUnion_subset_iff {s : set (set α)} {t : set α} : ⋃₀ s ⊆ t ↔ ∀ t' ∈ s, t' ⊆ t :=
+@Sup_le_iff (set α) _ _ _
 
 theorem subset_sInter {S : set (set α)} {t : set α} (h : ∀ t' ∈ S, t ⊆ t') : t ⊆ (⋂₀ S) :=
 le_Inf h
+
+@[simp] theorem subset_sInter_iff {S : set (set α)} {t : set α} : t ⊆ (⋂₀ S) ↔ ∀ t' ∈ S, t ⊆ t' :=
+@le_Inf_iff (set α) _ _ _
 
 theorem sUnion_subset_sUnion {S T : set (set α)} (h : S ⊆ T) : ⋃₀ S ⊆ ⋃₀ T :=
 sUnion_subset $ λ s hs, subset_sUnion_of_mem (h hs)
@@ -1504,6 +1519,9 @@ by simp [set.disjoint_iff, subset_def]; exact iff.rfl
 @[simp] theorem disjoint_singleton_right {a : α} {s : set α} : disjoint s {a} ↔ a ∉ s :=
 by rw [disjoint.comm]; exact disjoint_singleton_left
 
+@[simp] lemma disjoint_singleton {a b : α} : disjoint ({a} : set α) {b} ↔ a ≠ b :=
+by rw [disjoint_singleton_left, mem_singleton_iff]
+
 theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : set γ}
   (h : ∀ b ∈ s, ∀ c ∈ t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintro a ⟨⟨b, hb, eq⟩, c, hc, rfl⟩; exact h b hb c hc eq
@@ -1538,6 +1556,24 @@ variables (t : α → set β)
 lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
 ⟨λ h, ⟨λ x hxs, (h hxs).1, λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
 λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2 ⟨hxs, hxu⟩⟩⟩
+
+lemma bUnion_diff_bUnion_subset (s₁ s₂ : set α) :
+  (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) ⊆ (⋃ x ∈ s₁ \ s₂, t x) :=
+begin
+  simp only [diff_subset_iff, ← bUnion_union],
+  apply bUnion_subset_bUnion_left,
+  rw union_diff_self,
+  apply subset_union_right
+end
+
+lemma bUnion_diff_bUnion_eq {s₁ s₂ : set α} (H : pairwise_on (s₁ ∪ s₂) (disjoint on t)) :
+  (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) = (⋃ x ∈ s₁ \ s₂, t x) :=
+begin
+  refine (bUnion_diff_bUnion_subset t s₁ s₂).antisymm (bUnion_subset $ λ x hx y hy, _),
+  refine (mem_diff _).2 ⟨mem_bUnion hx.1 hy, _⟩,
+  rw mem_bUnion_iff, rintro ⟨x₂, hx₂, hy₂⟩,
+  exact H x (or.inl hx.1) x₂ (or.inr hx₂) (ne_of_mem_of_not_mem hx₂ hx.2).symm ⟨hy, hy₂⟩
+end
 
 /-- If `t` is an indexed family of sets, then there is a natural map from `Σ i, t i` to `⋃ i, t i`
 sending `⟨i, x⟩` to `x`. -/

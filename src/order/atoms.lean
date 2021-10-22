@@ -28,7 +28,8 @@ which are lattices with only two elements, and related ideas.
 
 ### Simple Lattices
   * `is_simple_lattice` indicates that a bounded lattice has only two elements, `⊥` and `⊤`.
-  * `is_simple_lattice.bounded_distrib_lattice`
+  * `is_simple_lattice.bounded_lattice`
+  * `is_simple_lattice.distrib_lattice`
   * Given an instance of `is_simple_lattice`, we provide the following definitions. These are not
     made global instances as they contain data :
     * `is_simple_lattice.boolean_algebra`

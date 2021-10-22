@@ -19,23 +19,28 @@ instances for `Prop` and `fun`.
 ## Main declarations
 
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
-* `order_<top/bot> α`: Order with a top/bottom element.
+* `order_<top/bot> α`: Ordering with a top/bottom element.
+* `bounded_lattice α`: Ordering with a top and bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
-* `bounded_lattice α`: Lattice with a top and bottom element.
-* `distrib_lattice_bot α`: Distributive lattice with a bottom element. It captures the properties
-  of `disjoint` that are common to `generalized_boolean_algebra` and `bounded_distrib_lattice`.
-* `bounded_distrib_lattice α`: Bounded and distributive lattice. Typical examples include `Prop` and
-  `set α`.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
 * `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
 
+## Main results
+
+* lemmas about when `lattice α` and `bounded_lattice α` hold
+* Distributive lattices with a bottom element. Notated by `[distrib_lattice α] [order_bot α]`
+  It captures the properties of `disjoint` that are common to `generalized_boolean_algebra` and
+  `distrib_lattice` when `order_bot`.
+* Bounded and distributive lattice. Notated by `[distrib_lattice α] [bounded_lattice α]`.
+  Typical examples include `Prop` and `set α`.
+
 ## Implementation notes
 
-We didn't define `distrib_lattice_top` because the dual notion of `disjoint` isn't really used
-anywhere.
+We didn't prove things about `[distrib_lattice α] [order_top α]` because the dual notion of
+`disjoint` isn't really used anywhere.
 -/
 
 /-! ### Top, bottom element -/
@@ -888,9 +893,6 @@ instance [has_le α] [order_top α] : order_bot (order_dual α) :=
 instance [has_le α] [bounded_lattice α] : bounded_lattice (order_dual α) :=
 { .. order_dual.order_top α, .. order_dual.order_bot α }
 
-/- If you define `distrib_lattice_top`, add the `order_dual` instances between `distrib_lattice_bot`
-and `distrib_lattice_top` here -/
-
 end order_dual
 
 namespace prod
@@ -983,7 +985,7 @@ end
 
 end bounded_lattice
 
-section distrib_lattice_bot
+section distrib_lattice_order_bot
 variables [distrib_lattice α] [order_bot α] {a b c : α}
 
 @[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
@@ -1005,7 +1007,7 @@ lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : dis
 @le_of_inf_le_sup_le _ _ a b c ((disjoint_iff.mp hd).symm ▸ bot_le)
   ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 
-end distrib_lattice_bot
+end distrib_lattice_order_bot
 
 section semilattice_inf_order_bot
 
@@ -1163,6 +1165,7 @@ end nontrivial
 
 namespace bool
 
+-- TODO: is this comment relevant now that `bounded_lattice` is factored out?
 -- Could be generalised to `bounded_distrib_lattice` and `is_complemented`
 instance : bounded_lattice bool :=
 { top := tt,

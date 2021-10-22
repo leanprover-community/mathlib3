@@ -1,8 +1,31 @@
+/-
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
 import topology.metric_space.hausdorff_distance
 import topology.metric_space.baire
 import data.real.irrational
 
 /-!
+# Topology of irrational numbers
+
+In this file we prove the following theorems:
+
+* `is_Gδ_irrational`, `dense_irrational`, `eventually_residual_irrational`: irrational numbers
+  form a dense Gδ set;
+
+* `irrational.eventually_forall_le_dist_cast_div`,
+  `irrational.eventually_forall_le_dist_cast_div_of_denom_le`;
+  `irrational.eventually_forall_le_dist_cast_rat_of_denom_le`: a sufficiently small neighborhood of
+  an irrational number is disjoint with the set of rational numbers with bounded denominator.
+
+We also provide `order_topology`, `no_bot_order`, `no_top_order`, and `densely_ordered`
+instances for `{x // irrational x}`.
+
+## Tags
+
+irrational, residual
 -/
 
 open set filter metric
@@ -25,6 +48,19 @@ eventually_residual.2 ⟨_, is_Gδ_irrational, dense_irrational, λ _, id⟩
 namespace irrational
 
 variable {x : ℝ}
+
+instance : order_topology {x // irrational x} :=
+induced_order_topology _ (λ x y, iff.rfl) $ λ x y hlt,
+  let ⟨a, ha, hxa, hay⟩ := exists_irrational_btwn hlt in ⟨⟨a, ha⟩, hxa, hay⟩
+
+instance : no_top_order {x // irrational x} :=
+⟨λ ⟨x, hx⟩, ⟨⟨x + (1 : ℕ), hx.add_nat 1⟩, by simp⟩⟩
+
+instance : no_bot_order {x // irrational x} :=
+⟨λ ⟨x, hx⟩, ⟨⟨x - (1 : ℕ), hx.sub_nat 1⟩, by simp⟩⟩
+
+instance : densely_ordered {x // irrational x} :=
+⟨λ x y hlt, let ⟨z, hz, hxz, hzy⟩ := exists_irrational_btwn hlt in ⟨⟨z, hz⟩, hxz, hzy⟩⟩
 
 lemma eventually_forall_le_dist_cast_div (hx : irrational x) (n : ℕ) :
   ∀ᶠ ε : ℝ in 𝓝 0, ∀ m : ℤ, ε ≤ dist x (m / n) :=

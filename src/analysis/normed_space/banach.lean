@@ -35,7 +35,7 @@ structure nonlinear_right_inverse :=
 (bound' : ∀ y, ∥to_fun y∥ ≤ nnnorm * ∥y∥)
 (right_inv' : ∀ y, f (to_fun y) = y)
 
-instance : has_coe_to_fun (nonlinear_right_inverse f) := ⟨_, λ fsymm, fsymm.to_fun⟩
+instance : has_coe_to_fun (nonlinear_right_inverse f) (λ _, F → E) := ⟨λ fsymm, fsymm.to_fun⟩
 
 @[simp] lemma nonlinear_right_inverse.right_inv {f : E →L[𝕜] F} (fsymm : nonlinear_right_inverse f)
   (y : F) : f (fsymm y) = y :=

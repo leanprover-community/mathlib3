@@ -52,7 +52,7 @@ namespace pequiv
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 open function option
 
-instance : has_coe_to_fun (α ≃. β) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (α ≃. β) (λ _, α → option β) := ⟨to_fun⟩
 
 @[simp] lemma coe_mk_apply (f₁ : α → option β) (f₂ : β → option α) (h) (x : α) :
   (pequiv.mk f₁ f₂ h : α → option β) x = f₁ x := rfl

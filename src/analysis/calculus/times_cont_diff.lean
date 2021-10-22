@@ -1708,16 +1708,9 @@ domains. -/
 lemma continuous_linear_equiv.comp_times_cont_diff_within_at_iff
   {n : with_top ℕ} (e : F ≃L[𝕜] G) :
   times_cont_diff_within_at 𝕜 n (e ∘ f) s x ↔ times_cont_diff_within_at 𝕜 n f s x :=
-begin
-  split,
-  { assume H,
-    have : f = e.symm ∘ (e ∘ f),
-      by { ext y, simp only [function.comp_app], rw e.symm_apply_apply (f y) },
-    rw this,
-    exact H.continuous_linear_map_comp _ },
-  { assume H,
-    exact H.continuous_linear_map_comp _ }
-end
+⟨λ H, by simpa only [(∘), e.symm.coe_coe, e.symm_apply_apply]
+  using H.continuous_linear_map_comp (e.symm : G →L[𝕜] F),
+  λ H, H.continuous_linear_map_comp (e : F →L[𝕜] G)⟩
 
 /-- Composition by continuous linear equivs on the left respects higher differentiability on
 domains. -/
@@ -1790,31 +1783,24 @@ lemma continuous_linear_equiv.times_cont_diff_within_at_comp_iff {n : with_top �
 begin
   split,
   { assume H,
-    have A : f = (f ∘ e) ∘ e.symm,
-      by { ext y, simp only [function.comp_app], rw e.apply_symm_apply y },
-    have B : e.symm ⁻¹' (e ⁻¹' s) = s,
-      by { rw [← preimage_comp, e.self_comp_symm], refl },
-    rw [A, ← B],
-    exact H.comp_continuous_linear_map _},
+    simpa [← preimage_comp, (∘)] using H.comp_continuous_linear_map (e.symm : E →L[𝕜] G) },
   { assume H,
-    have : x = e (e.symm x), by simp,
-    rw this at H,
+    rw [← e.apply_symm_apply x, ← e.coe_coe] at H,
     exact H.comp_continuous_linear_map _ },
 end
-
 
 /-- Composition by continuous linear equivs on the right respects higher differentiability on
 domains. -/
 lemma continuous_linear_equiv.times_cont_diff_on_comp_iff {n : with_top ℕ} (e : G ≃L[𝕜] E) :
   times_cont_diff_on 𝕜 n (f ∘ e) (e ⁻¹' s) ↔ times_cont_diff_on 𝕜 n f s :=
 begin
-  refine ⟨λ H, _, λ H, H.comp_continuous_linear_map _⟩,
+  refine ⟨λ H, _, λ H, H.comp_continuous_linear_map (e : G →L[𝕜] E)⟩,
   have A : f = (f ∘ e) ∘ e.symm,
     by { ext y, simp only [function.comp_app], rw e.apply_symm_apply y },
   have B : e.symm ⁻¹' (e ⁻¹' s) = s,
     by { rw [← preimage_comp, e.self_comp_symm], refl },
   rw [A, ← B],
-  exact H.comp_continuous_linear_map _
+  exact H.comp_continuous_linear_map (e.symm : E →L[𝕜] G)
 end
 
 /-- If two functions `f` and `g` admit Taylor series `p` and `q` in a set `s`, then the cartesian

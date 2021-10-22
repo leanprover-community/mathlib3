@@ -35,7 +35,7 @@ section basics
 variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (α →ᵇ β) (λ _, α → β) :=  ⟨λ f, f.to_fun⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/

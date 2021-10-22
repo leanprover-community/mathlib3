@@ -73,7 +73,7 @@ instead. -/
 def to_fun : M → ℝ :=
 indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c)
 
-instance : has_coe_to_fun (smooth_bump_function I c) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (smooth_bump_function I c) (λ _, M → ℝ) := ⟨to_fun⟩
 
 lemma coe_def :
   ⇑f = indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c) :=

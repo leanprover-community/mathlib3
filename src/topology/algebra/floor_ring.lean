@@ -29,21 +29,16 @@ open_locale topological_space
 variables {α : Type*} [linear_ordered_ring α] [floor_ring α]
 
 lemma tendsto_floor_at_top : tendsto (floor : α → ℤ) at_top at_top :=
-begin
-  refine monotone.tendsto_at_top_at_top (λ a b hab, floor_mono hab) (λ b, _),
-  use (b : α) + ((1 : ℤ) : α),
-  rw [floor_add_int, floor_coe],
-  exact (lt_add_one _).le
-end
+floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ), by { rw floor_coe, exact (lt_add_one _).le }⟩
 
 lemma tendsto_floor_at_bot : tendsto (floor : α → ℤ) at_bot at_bot :=
-monotone.tendsto_at_bot_at_bot (λ a b, floor_mono) (λ b, ⟨b, (floor_coe _).le⟩)
+floor_mono.tendsto_at_bot_at_bot $ λ b, ⟨b, (floor_coe _).le⟩
 
 lemma tendsto_ceil_at_top : tendsto (ceil : α → ℤ) at_top at_top :=
-tendsto_neg_at_bot_at_top.comp (tendsto_floor_at_bot.comp tendsto_neg_at_top_at_bot)
+ceil_mono.tendsto_at_top_at_top $ λ b, ⟨b, (ceil_coe _).ge⟩
 
 lemma tendsto_ceil_at_bot : tendsto (ceil : α → ℤ) at_bot at_bot :=
-tendsto_neg_at_top_at_bot.comp (tendsto_floor_at_top.comp tendsto_neg_at_bot_at_top)
+ceil_mono.tendsto_at_bot_at_bot $ λ b, ⟨(b - 1 : ℤ), by { rw ceil_coe, exact (sub_one_lt _).le }⟩
 
 variables [topological_space α]
 

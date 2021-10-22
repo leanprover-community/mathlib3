@@ -3,6 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
+import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.normed_space.bounded_linear_maps
 import linear_algebra.bilinear_form
@@ -1485,6 +1486,80 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
+
+/-! ### Families of mutually-orthogonal subspaces of an inner product space -/
+
+section orthogonal_family
+variables {ι : Type*} (𝕜)
+open_locale direct_sum
+
+/-- An indexed family of mutually-orthogonal subspaces of an inner product space `E`. -/
+def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
+∀ ⦃i j⦄, i ≠ j → ∀ {v : E} (hv : v ∈ V i) {w : E} (hw : w ∈ V j), ⟪v, w⟫ = 0
+
+variables {𝕜} {V : ι → submodule 𝕜 E}
+
+lemma orthogonal_family.eq_ite (hV : orthogonal_family 𝕜 V) {i j : ι} (v : V i) (w : V j) :
+  ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
+begin
+  split_ifs,
+  { refl },
+  { exact hV h v.prop w.prop }
+end
+
+lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
+  (l : Π₀ i, V i) (i : ι) (v : V i) :
+  ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
+calc ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫
+    = l.sum (λ j, λ w, ⟪(v:E), w⟫) :
+begin
+  let F : E →+ 𝕜 := (@inner_right 𝕜 E _ _ v).to_linear_map.to_add_monoid_hom,
+  have hF := congr_arg add_monoid_hom.to_fun
+    (dfinsupp.comp_sum_add_hom F (λ j, (V j).subtype.to_add_monoid_hom)),
+  convert congr_fun hF l using 1,
+  simp only [dfinsupp.sum_add_hom_apply, continuous_linear_map.to_linear_map_eq_coe,
+    add_monoid_hom.coe_comp, inner_right_coe, add_monoid_hom.to_fun_eq_coe,
+    linear_map.to_add_monoid_hom_coe, continuous_linear_map.coe_coe],
+  congr
+end
+... = l.sum (λ j, λ w, ite (i=j) ⟪(v:E), w⟫ 0) :
+  congr_arg l.sum $ funext $ λ j, funext $ hV.eq_ite v
+... = ⟪v, l i⟫ :
+begin
+  simp only [dfinsupp.sum, submodule.coe_inner, finset.sum_ite_eq, ite_eq_left_iff,
+    dfinsupp.mem_support_to_fun, not_not],
+  intros h,
+  simp [h]
+end
+
+lemma orthogonal_family.inner_right_fintype
+  [fintype ι] (hV : orthogonal_family 𝕜 V) (l : Π i, V i) (i : ι) (v : V i) :
+  ⟪(v : E), ∑ j : ι, l j⟫ = ⟪v, l i⟫ :=
+calc ⟪(v : E), ∑ j : ι, l j⟫
+    = ∑ j : ι, ⟪(v : E), l j⟫: by rw inner_sum
+... = ∑ j, ite (i = j) ⟪(v : E), l j⟫ 0 :
+  congr_arg (finset.sum finset.univ) $ funext $ λ j, (hV.eq_ite v (l j))
+... = ⟪v, l i⟫ : by simp
+
+/-- An orthogonal family forms an independent family of subspaces; that is, any collection of
+elements each from a different subspace in the family is linearly independent. In particular, the
+pairwise intersections of elements of the family are 0. -/
+lemma orthogonal_family.independent (hV : orthogonal_family 𝕜 V) :
+  complete_lattice.independent V :=
+begin
+  apply complete_lattice.independent_of_dfinsupp_lsum_injective,
+  rw [← @linear_map.ker_eq_bot _ _ _ _ _ _ (direct_sum.add_comm_group (λ i, V i)),
+    submodule.eq_bot_iff],
+  intros v hv,
+  rw linear_map.mem_ker at hv,
+  ext i,
+  have : ⟪(v i : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) v⟫ = 0,
+  { simp [hv] },
+  simpa only [submodule.coe_zero, submodule.coe_eq_zero, direct_sum.zero_apply, inner_self_eq_zero,
+    hV.inner_right_dfinsupp] using this,
+end
+
+end orthogonal_family
 
 section is_R_or_C_to_real
 

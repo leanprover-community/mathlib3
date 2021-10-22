@@ -34,8 +34,7 @@ attribute [instance] Algebra.is_ring Algebra.is_algebra
 
 namespace Algebra
 
-instance : has_coe_to_sort (Algebra R) :=
-{ S := Type v, coe := Algebra.carrier }
+instance : has_coe_to_sort (Algebra R) (Type v) := ⟨Algebra.carrier⟩
 
 instance : category (Algebra.{v} R) :=
 { hom   := λ A B, A →ₐ[R] B,

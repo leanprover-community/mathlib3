@@ -582,6 +582,10 @@ begin
     ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
+lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
+
+lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
+
 /--  An inequality involving `2`. -/
 lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
   (1 - 1 / a)⁻¹ ≤ 2 :=

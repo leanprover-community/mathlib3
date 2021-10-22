@@ -93,12 +93,11 @@ end
 element of the endomorphism general linear group on `n → R`.
 
 TODO Improve this from a homomorphism to an isomorphism. -/
-def to_linear :
-  (general_linear_group (fin 2) R) →* linear_map.general_linear_group R (fin 2 → R) :=
+def to_linear : (general_linear_group n R) →* linear_map.general_linear_group R (n → R) :=
 units.map matrix.to_lin_alg_equiv'.to_ring_equiv.to_ring_hom.to_monoid_hom
 
-@[simp] lemma coe_to_linear (M : general_linear_group (fin 2) R) :
-  (to_linear  M : (fin 2 → R) →ₗ[R] (fin 2 → R)) = matrix.mul_vec_lin M :=
+@[simp] lemma coe_to_linear (M : general_linear_group n R) :
+  (to_linear M : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin M :=
 rfl
 
 end coe_lemmas

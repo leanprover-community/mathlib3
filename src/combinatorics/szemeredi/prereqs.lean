@@ -17,53 +17,39 @@ variables {α : Type*}
 section relation
 variables (r : α → α → Prop) [decidable_rel r]
 
-lemma lemma_B {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a : ℝ} (b : ℝ)
-  (hs : (∑ x in s, f x)/s.card = a + b) (ht : (∑ x in t, f x) / t.card = a) :
-  a^2 + s.card/t.card * b^2 ≤ (∑ x in t, f x^2)/t.card :=
+lemma lemma_B_ineq_zero {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {x : ℝ}
+  (hs : x^2 ≤ ((∑ x in s, f x)/s.card)^2) :
+  (s.card : ℝ) * x^2 ≤ ∑ x in t, f x^2 :=
 begin
-  obtain htcard | htcard := (t.card.cast_nonneg : (0 : ℝ) ≤ t.card).eq_or_lt,
-  { rw [←ht, ←htcard, div_zero, div_zero, div_zero, zero_mul, add_zero, pow_succ, zero_mul] },
-  obtain hscard | hscard := (s.card.cast_nonneg : (0 : ℝ) ≤ s.card).eq_or_lt,
-  { rw [←hscard, zero_div, zero_mul, add_zero, ←ht, le_div_iff htcard, div_pow, sq (t.card : ℝ),
-      div_mul_eq_mul_div_comm, div_self_mul_self', mul_inv_le_iff htcard],
-    simpa using sum_mul_sq_le_sq_mul_sq t (λ _, (1 : ℝ)) f },
-  have htzero : (t.card : ℝ) ≠ 0 := htcard.ne',
-  have hszero : (s.card : ℝ) ≠ 0 := hscard.ne',
-  rw div_eq_iff htzero at ht,
-  rw div_eq_iff hszero at hs,
-  suffices h : (∑ x in s, (f x - a))^2 ≤ s.card * (∑ x in t, (f x - a)^2),
-  { apply le_of_mul_le_mul_left _ htcard,
-    rw [mul_add, ←mul_assoc, mul_div_cancel' _ htzero, mul_div_cancel' _ htzero,
-      ←le_sub_iff_add_le'],
-    apply le_of_mul_le_mul_left _ hscard,
-    rw [←mul_assoc, ←sq],
-    simp_rw sub_sq at h,
-    rw [sum_add_distrib, sum_sub_distrib, sum_sub_distrib, ←sum_mul, ←mul_sum, sum_const,
-      sum_const, ht, hs, nsmul_eq_mul, nsmul_eq_mul, mul_comm (a + b), ←mul_sub, add_sub_cancel',
-      mul_pow] at h,
-    convert h,
-    ring },
-  have cs := sum_mul_sq_le_sq_mul_sq s (λ _, (1 : ℝ)) (λ x, f x - a),
-  simp only [one_pow, one_mul, nsmul_eq_mul, sum_const, nat.smul_one_eq_coe] at cs,
-  apply cs.trans _,
-  rw mul_le_mul_left hscard,
-  exact sum_le_sum_of_subset_of_nonneg hst (λ i _ _, sq_nonneg _),
+  refine (mul_le_mul_of_nonneg_left (hs.trans (chebyshev s f)) (nat.cast_nonneg _)).trans _,
+  refine le_trans _ (sum_le_sum_of_subset_of_nonneg hst (λ i _ _, sq_nonneg _)),
+  refine (mul_div_cancel_of_imp' _).le,
+  simp only [finset.card_eq_zero, nat.cast_eq_zero],
+  rintro rfl,
+  simp
 end
 
 lemma lemma_B_ineq {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) (d : ℝ) {x : ℝ} (hx : 0 ≤ x)
-  (hs : x ≤ abs ((∑ x in s, f x)/s.card - (∑ x in t, f x) / t.card))
-  (ht : d ≤ ((∑ x in t, f x) / t.card)^2) :
-  d + s.card/t.card * x^2 ≤ (∑ x in t, f x^2)/t.card :=
+  (hs : x ≤ abs ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card))
+  (ht : d ≤ ((∑ i in t, f i)/t.card)^2) :
+  d + s.card/t.card * x^2 ≤ (∑ i in t, f i^2)/t.card :=
 begin
+  obtain hscard | hscard := (s.card.cast_nonneg : (0 : ℝ) ≤ s.card).eq_or_lt,
+  { rw [←hscard, zero_div, zero_mul, add_zero],
+    apply ht.trans (chebyshev _ _) },
+  have htcard : (0:ℝ) < t.card := hscard.trans_le (nat.cast_le.2 (card_le_of_subset hst)),
+  have h₁ : x^2 ≤ ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card)^2 :=
+    sq_le_sq (by rwa [abs_of_nonneg hx]),
+  have h₂ : x^2 ≤ ((∑ i in s, (f i - (∑ j in t, f j)/t.card))/s.card)^2,
+  { apply h₁.trans,
+    rw [sum_sub_distrib, sum_const, nsmul_eq_mul, sub_div, mul_div_cancel_left _ hscard.ne'] },
   apply (add_le_add_right ht _).trans,
-  apply le_trans _ (lemma_B hst f ((∑ x in s, f x) / s.card - (∑ x in t, f x) / t.card) _ rfl),
-  { refine add_le_add_left _ _,
-    apply mul_le_mul_of_nonneg_left,
-    { apply sq_le_sq,
-      rwa abs_of_nonneg hx },
-    apply div_nonneg;
-    apply nat.cast_nonneg },
-  rw add_sub_cancel'_right,
+  rw [←mul_div_right_comm, le_div_iff htcard, add_mul, div_mul_cancel _ htcard.ne'],
+  have h₃ := lemma_B_ineq_zero hst (λ i, f i - (∑ j in t, f j) / t.card) h₂,
+  apply (add_le_add_left h₃ _).trans,
+  simp [←mul_div_right_comm _ (t.card : ℝ), sub_div' _ _ _ htcard.ne', ←sum_div, ←add_div, mul_pow,
+    div_le_iff (sq_pos_of_ne_zero _ htcard.ne'), sub_sq, sum_add_distrib, ←sum_mul, ←mul_sum],
+  ring_nf,
 end
 
 lemma aux₀ {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) :
@@ -85,20 +71,13 @@ end
 
 lemma aux₁ {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) :
   pairs_density r A' B' - pairs_density r A B ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
-calc
-  pairs_density r A' B' - pairs_density r A B
-      ≤ pairs_density r A' B' - A'.card/A.card * (B'.card/B.card) * pairs_density r A' B'
-      : sub_le_sub_left (aux₀ r hA hB) _
-  ... = (1 - A'.card/A.card * (B'.card/B.card)) * pairs_density r A' B'
-      : by rw [sub_mul, one_mul]
-  ... ≤ 1 - A'.card/A.card * (B'.card/B.card)
-      : begin
-          refine mul_le_of_le_one_right (sub_nonneg_of_le $ mul_le_one _ _ _)
-            (pairs_density_le_one r _ _),
-          { exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset hA)) (nat.cast_nonneg _) },
-          { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) },
-          { exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset hB)) (nat.cast_nonneg _) },
-        end
+begin
+  refine (sub_le_sub_left (aux₀ r hA hB) _).trans _,
+  refine le_trans _ (mul_le_of_le_one_right _ (pairs_density_le_one r A' B')),
+  { rw [sub_mul, one_mul] },
+  refine sub_nonneg_of_le (mul_le_one _ (div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) _);
+  exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset ‹_›)) (nat.cast_nonneg _),
+end
 
 lemma aux₂ {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) :
   abs (pairs_density r A' B' - pairs_density r A B) ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
@@ -124,8 +103,7 @@ lemma aux₃ {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} 
 begin
   have hδ' : 0 ≤ 2 * δ - δ ^ 2,
   { rw [sub_nonneg, sq],
-    refine mul_le_mul_of_nonneg_right (hδ₁.le.trans _) hδ₀,
-    norm_num },
+    exact mul_le_mul_of_nonneg_right (hδ₁.le.trans (by norm_num)) hδ₀ },
   rw ←sub_pos at hδ₁,
   obtain hA' | hA'pos := (nat.cast_nonneg A'.card).eq_or_lt,
   { rw ←hA' at hAcard,
@@ -135,17 +113,13 @@ begin
   { rw ←hB' at hBcard,
     rwa [pairs_density, pairs_density, ←hB', (nonpos_of_mul_nonpos_left hBcard hδ₁).antisymm
       (nat.cast_nonneg _), mul_zero, mul_zero, div_zero, div_zero, sub_zero, abs_zero] },
-  have hApos : (0 : ℝ) < A.card := hA'pos.trans_le (nat.cast_le.2 (finset.card_le_of_subset hA)),
-  have hBpos : (0 : ℝ) < B.card := hB'pos.trans_le (nat.cast_le.2 (finset.card_le_of_subset hB)),
-  calc
-    abs (pairs_density r A' B' - pairs_density r A B)
-        ≤ 1 - A'.card/A.card * (B'.card/B.card)
-        : aux₂ r hA hB
-    ... ≤ 1 - (1 - δ) * (1 - δ)
-        : sub_le_sub_left (mul_le_mul ((le_div_iff hApos).2 hAcard) ((le_div_iff hBpos).2
-            hBcard) hδ₁.le (div_nonneg hA'pos.le hApos.le)) 1
-    ... = 2*δ - δ^2
-        : by ring,
+  have hApos : (0 : ℝ) < A.card := hA'pos.trans_le (nat.cast_le.2 (card_le_of_subset hA)),
+  have hBpos : (0 : ℝ) < B.card := hB'pos.trans_le (nat.cast_le.2 (card_le_of_subset hB)),
+  apply (aux₂ r hA hB).trans,
+  apply (sub_le_sub_left (mul_le_mul ((le_div_iff hApos).2 hAcard) _ hδ₁.le _) _).trans,
+  { exact le_of_eq (by ring) },
+  { rwa le_div_iff hBpos },
+  { refine div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) },
 end
 
 /-- Lemma A: if A' ⊆ A, B' ⊆ B each take up all but a δ-proportion, then the difference in edge
@@ -154,13 +128,11 @@ lemma lemma_A {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ}
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
   abs (pairs_density r A' B' - pairs_density r A B) ≤ 2 * δ :=
 begin
-  cases le_or_lt 1 δ,
-  { refine (abs_sub _ _).trans _,
-    rw [abs_of_nonneg (pairs_density_nonneg r _ _), abs_of_nonneg (pairs_density_nonneg r A B),
-      two_mul],
-    exact add_le_add ((pairs_density_le_one r _ _).trans h)
-      ((pairs_density_le_one r A B).trans h) },
-  exact (aux₃ r hA hB hδ h hAcard hBcard).trans ((sub_le_self_iff _).2 (sq_nonneg δ)),
+  cases lt_or_le δ 1,
+  { exact (aux₃ r hA hB hδ h hAcard hBcard).trans ((sub_le_self_iff _).2 (sq_nonneg δ)) },
+  refine (abs_sub _ _).trans _,
+  simp only [abs_of_nonneg (pairs_density_nonneg r _ _), two_mul],
+  exact add_le_add ((pairs_density_le_one r _ _).trans h) ((pairs_density_le_one r A B).trans h),
 end
 
 end relation

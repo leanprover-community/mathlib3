@@ -4877,6 +4877,15 @@ theorem monoid_hom.map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α
   f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
 
+open opposite
+
+/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements -/
+lemma monoid_hom.unop_map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* βᵒᵖ) (l : list α):
+  unop (f l.prod) = (l.map (unop ∘ f)).reverse.prod :=
+begin
+  rw [f.map_list_prod l, opposite.unop_list_prod, list.map_map],
+end
+
 namespace list
 
 @[to_additive]

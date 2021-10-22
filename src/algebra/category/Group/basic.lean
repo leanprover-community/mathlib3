@@ -33,8 +33,10 @@ namespace Group
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group
-attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concrete_category
+attribute [derive [large_category, concrete_category]] Group
+attribute [to_additive] Group.large_category Group.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Group Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
@@ -71,9 +73,6 @@ lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
 
--- should to_additive do this automatically?
-attribute [ext] AddGroup.ext
-
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ _
 
@@ -94,9 +93,11 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup
-attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
-  CommGroup.concrete_category
+attribute [derive [large_category, concrete_category]] CommGroup
+attribute [to_additive] CommGroup.large_category CommGroup.concrete_category
+
+@[to_additive] instance : has_coe_to_sort CommGroup Type* := bundled.has_coe_to_sort
+
 
 /-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
@@ -128,11 +129,9 @@ instance one.unique : unique (1 : CommGroup) :=
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive,ext]
+@[ext, to_additive]
 lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
-
-attribute [ext] AddCommGroup.ext
 
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget₂ CommGroup Group := bundled_hom.forget₂ _ _

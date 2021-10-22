@@ -400,7 +400,9 @@ begin
   simp [subsingleton.elim x 0]
 end
 
-/-- A continuous linear map is an isometry if and only if it preserves the norm. -/
+/-- A continuous linear map is an isometry if and only if it preserves the norm.
+(Note: Do you really want to use this lemma?  Try using the bundled structure `linear_isometry`
+instead.) -/
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 

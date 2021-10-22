@@ -106,10 +106,8 @@ ext hv
 
 variables (a b : units α) {c : units α}
 @[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
-attribute [norm_cast] add_units.coe_add
 
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
-attribute [norm_cast] add_units.coe_zero
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]

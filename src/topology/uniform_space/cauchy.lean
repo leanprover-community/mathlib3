@@ -75,6 +75,15 @@ lemma filter.tendsto.cauchy_map {l : filter β} [ne_bot l] {f : β → α} {a : 
   cauchy (map f l) :=
 cauchy_nhds.mono h
 
+lemma cauchy.prod [uniform_space β] {f : filter α} {g : filter β} (hf : cauchy f) (hg : cauchy g) :
+  cauchy (f ×ᶠ g) :=
+begin
+  refine ⟨hf.1.prod hg.1, _⟩,
+  simp only [uniformity_prod, le_inf_iff, ← map_le_iff_le_comap, ← prod_map_map_eq],
+  exact ⟨le_trans (prod_mono tendsto_fst tendsto_fst) hf.2,
+    le_trans (prod_mono tendsto_snd tendsto_snd) hg.2⟩
+end
+
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
 `sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`
 one can choose a set `t ∈ f` of diameter `s` such that it contains a point `y`
@@ -137,16 +146,20 @@ defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it 
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
 def cauchy_seq [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
-lemma cauchy_seq.mem_entourage {ι : Type*} [nonempty ι] [linear_order ι] {u : ι → α}
+lemma cauchy_seq.tendsto_uniformity [semilattice_sup β] {u : β → α} (h : cauchy_seq u) :
+  tendsto (prod.map u u) at_top (𝓤 α) :=
+by simpa only [tendsto, prod_map_map_eq', prod_at_top_at_top_eq] using h.right
+
+lemma cauchy_seq.nonempty [semilattice_sup β] {u : β → α} (hu : cauchy_seq u) : nonempty β :=
+@nonempty_of_ne_bot _ _ $ (map_ne_bot_iff _).1 hu.1
+
+lemma cauchy_seq.mem_entourage {β : Type*} [semilattice_sup β] {u : β → α}
   (h : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
   ∃ k₀, ∀ i j, k₀ ≤ i → k₀ ≤ j → (u i, u j) ∈ V :=
 begin
-  have := h.right hV,
-  obtain ⟨⟨i₀, j₀⟩, H⟩ : ∃ a, ∀ b : ι × ι, b ≥ a → prod.map u u b ∈ V,
-    by rwa [prod_map_at_top_eq, mem_map, mem_at_top_sets] at this,
-  refine ⟨max i₀ j₀, _⟩,
-  intros i j hi hj,
-  exact H (i, j) ⟨le_of_max_le_left  hi, le_of_max_le_right hj⟩,
+  haveI := h.nonempty,
+  have := h.tendsto_uniformity, rw ← prod_at_top_at_top_eq at this,
+  simpa [maps_to] using at_top_basis.prod_self.tendsto_left_iff.1 this V hV
 end
 
 lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → α} {x}
@@ -160,6 +173,11 @@ tendsto_const_nhds.cauchy_seq
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
 cauchy_map_iff'.trans $ by simp only [prod_at_top_at_top_eq, prod.map_def]
+
+lemma cauchy_seq.comp_tendsto {γ} [semilattice_sup β] [semilattice_sup γ] [nonempty γ]
+  {f : β → α} (hf : cauchy_seq f) {g : γ → β} (hg : tendsto g at_top at_top) :
+  cauchy_seq (f ∘ g) :=
+cauchy_seq_iff_tendsto.2 $ hf.tendsto_uniformity.comp (hg.prod_at_top hg)
 
 lemma cauchy_seq.subseq_subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
   {u : ℕ → α} (hu : cauchy_seq u)
@@ -178,6 +196,23 @@ lemma cauchy_seq_iff {u : ℕ → α} :
   cauchy_seq u ↔ ∀ V ∈ 𝓤 α, ∃ N, ∀ k ≥ N, ∀ l ≥ N, (u k, u l) ∈ V :=
 by simp [cauchy_seq_iff', filter.eventually_at_top_prod_self', prod_map]
 
+lemma cauchy_seq.prod_map {γ δ} [uniform_space β] [semilattice_sup γ] [semilattice_sup δ]
+  {u : γ → α} {v : δ → β}
+  (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (prod.map u v) :=
+by simpa only [cauchy_seq, prod_map_map_eq', prod_at_top_at_top_eq] using hu.prod hv
+
+lemma cauchy_seq.prod {γ} [uniform_space β] [semilattice_sup γ] {u : γ → α} {v : γ → β}
+  (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (λ x, (u x, v x)) :=
+begin
+  haveI := hu.nonempty,
+  exact (hu.prod hv).mono (tendsto.prod_mk le_rfl le_rfl)
+end
+
+lemma uniform_continuous.comp_cauchy_seq {γ} [uniform_space β] [semilattice_sup γ]
+  {f : α → β} (hf : uniform_continuous f) {u : γ → α} (hu : cauchy_seq u) :
+  cauchy_seq (f ∘ u) :=
+hu.map hf
+
 lemma cauchy_seq.subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
   {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, (u $ φ (n + 1), u $ φ n) ∈ V n :=
@@ -190,6 +225,16 @@ begin
   obtain ⟨φ : ℕ → ℕ, φ_extr : strict_mono φ, hφ : ∀ n, ∀ l ≥ φ n, (u l, u $ φ n) ∈ V n⟩ :=
     extraction_forall_of_eventually' this,
   exact ⟨φ, φ_extr, λ n, hφ _ _ (φ_extr $ lt_add_one n).le⟩,
+end
+
+lemma filter.tendsto.subseq_mem_entourage {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
+  {u : ℕ → α} {a : α} (hu : tendsto u at_top (𝓝 a)) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ (u (φ 0), a) ∈ V 0 ∧ ∀ n, (u $ φ (n + 1), u $ φ n) ∈ V (n + 1) :=
+begin
+  rcases mem_at_top_sets.1 (hu (ball_mem_nhds a (symm_le_uniformity $ hV 0))) with ⟨n, hn⟩,
+  rcases (hu.comp (tendsto_add_at_top_nat n)).cauchy_seq.subseq_mem (λ n, hV (n + 1))
+    with ⟨φ, φ_mono, hφV⟩,
+  exact ⟨λ k, φ k + n, φ_mono.add_const _, hn _ le_add_self, hφV⟩
 end
 
 /-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
@@ -250,15 +295,6 @@ begin
   rcases complete_space.complete hf with ⟨x, hx⟩,
   exact ⟨x, mem_univ x, hx⟩
 end
-
-lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
-  cauchy f → cauchy g → cauchy (f ×ᶠ g)
-| ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
-  let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
-  suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
-    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap, (∘),
-        inf_assoc, inf_comm, inf_left_comm],
-  inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 
 instance complete_space.prod [uniform_space β] [complete_space α] [complete_space β] :
   complete_space (α × β) :=

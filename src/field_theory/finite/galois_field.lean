@@ -20,6 +20,10 @@ It is a finite field with `p ^ n` elements.
 
 * `galois_field p n` is a field with `p ^ n` elements
 
+## Main Results
+
+- `galois_field.alg_equiv_galois_field`: Uniqueness of finite fields
+
 -/
 
 noncomputable theory
@@ -82,6 +86,8 @@ begin
   rw ← splitting_field.adjoin_root_set,
   simp_rw algebra.mem_adjoin_iff,
   intros x hx,
+  -- We discharge the `p = 0` separately, to avoid typeclass issues on `zmod p`.
+  unfreezingI { cases p, cases hp, },
   apply subring.closure_induction hx; clear_dependent x; simp_rw mem_root_set aux,
   { rintros x (⟨r, rfl⟩ | hx),
     { simp only [aeval_X_pow, aeval_X, alg_hom.map_sub],
@@ -120,6 +126,8 @@ begin
   { convert finite_field.roots_X_pow_card_sub_X _,
     exact (zmod.card p).symm },
   have h2 := finite_field.X_pow_card_sub_X_nat_degree_eq (zmod p) hp,
+  -- We discharge the `p = 0` separately, to avoid typeclass issues on `zmod p`.
+  unfreezingI { cases p, cases hp, },
   rw [splits_iff_card_roots, h1, ←finset.card_def, finset.card_univ, h2, zmod.card],
 end
 
@@ -130,5 +138,31 @@ have h : (X ^ p ^ 1 : polynomial (zmod p)) = X ^ (fintype.card (zmod p)),
 have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
   by { rw h, apply_instance },
 by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : polynomial (zmod p))).symm
+
+variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
+
+theorem splits_X_pow_card_sub_X : splits (algebra_map (zmod p) K) (X ^ fintype.card K - X) :=
+by rw [←splits_id_iff_splits, map_sub, map_pow, map_X, splits_iff_card_roots,
+  finite_field.roots_X_pow_card_sub_X, ←finset.card_def, finset.card_univ,
+  finite_field.X_pow_card_sub_X_nat_degree_eq]; exact fintype.one_lt_card
+
+lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
+  is_splitting_field (zmod p) K (X ^ (p ^ n) - X) :=
+{ splits := by { rw ← h, exact splits_X_pow_card_sub_X p },
+  adjoin_roots :=
+  begin
+    have hne : n ≠ 0,
+    { rintro rfl, rw [pow_zero, fintype.card_eq_one_iff_nonempty_unique] at h,
+      cases h, resetI, exact false_of_nontrivial_of_subsingleton K },
+    refine algebra.eq_top_iff.mpr (λ x, algebra.subset_adjoin _),
+    rw [map_sub, map_pow, map_X, finset.mem_coe, multiset.mem_to_finset, mem_roots,
+        is_root.def, eval_sub, eval_pow, eval_X, ← h, finite_field.pow_card, sub_self],
+    exact finite_field.X_pow_card_pow_sub_X_ne_zero K hne (fact.out _)
+  end }
+
+/-- Uniqueness of finite fields : Any finite field is isomorphic to some Galois field. -/
+def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
+  K ≃ₐ[zmod p] galois_field p n :=
+by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
 
 end galois_field

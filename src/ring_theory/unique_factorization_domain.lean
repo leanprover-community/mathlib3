@@ -36,7 +36,7 @@ class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
 export wf_dvd_monoid (well_founded_dvd_not_unit)
 
 @[priority 100]  -- see Note [lower instance priority]
-instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ring α] :
+instance is_noetherian_ring.wf_dvd_monoid [comm_ring α] [is_domain α] [is_noetherian_ring α] :
   wf_dvd_monoid α :=
 ⟨by { convert inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _),
       ext,
@@ -138,7 +138,8 @@ class unique_factorization_monoid (α : Type*) [comm_cancel_monoid_with_zero α]
   extends wf_dvd_monoid α : Prop :=
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
-instance ufm_of_gcd_of_wf_dvd_monoid [comm_cancel_monoid_with_zero α]
+/-- Can't be an instance because it would cause a loop `ufm → wf_dvd_monoid → ufm → ...`. -/
+lemma ufm_of_gcd_of_wf_dvd_monoid [comm_cancel_monoid_with_zero α]
   [wf_dvd_monoid α] [gcd_monoid α] : unique_factorization_monoid α :=
 { irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
   .. ‹wf_dvd_monoid α› }

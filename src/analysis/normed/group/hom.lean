@@ -68,17 +68,17 @@ variables {V V₁ V₂ V₃ : Type*}
 variables [semi_normed_group V] [semi_normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
 variables {f g : normed_group_hom V₁ V₂}
 
-instance : has_coe_to_fun (normed_group_hom V₁ V₂) := ⟨_, normed_group_hom.to_fun⟩
+instance : has_coe_to_fun (normed_group_hom V₁ V₂) (λ _, V₁ → V₂) := ⟨normed_group_hom.to_fun⟩
 
 initialize_simps_projections normed_group_hom (to_fun → apply)
 
-lemma coe_inj (H : ⇑f = g) : f = g :=
+lemma coe_inj (H : (f : V₁ → V₂) = g) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
 lemma coe_injective : @function.injective (normed_group_hom V₁ V₂) (V₁ → V₂) coe_fn :=
 by apply coe_inj
 
-lemma coe_inj_iff : f = g ↔ ⇑f = g := ⟨congr_arg _, coe_inj⟩
+lemma coe_inj_iff : f = g ↔ (f : V₁ → V₂) = g := ⟨congr_arg _, coe_inj⟩
 
 @[ext] lemma ext (H : ∀ x, f x = g x) : f = g := coe_inj $ funext H
 
@@ -547,6 +547,9 @@ lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
   (hg : g.norm_noninc) (hf : f.norm_noninc) :
   (g.comp f).norm_noninc :=
 λ v, (hg (f v)).trans (hf v)
+
+@[simp] lemma neg_iff {f : normed_group_hom V₁ V₂} : (-f).norm_noninc ↔ f.norm_noninc :=
+⟨λ h x, by { simpa using h x }, λ h x, (norm_neg (f x)).le.trans (h x)⟩
 
 end norm_noninc
 

@@ -397,6 +397,10 @@ lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a →
   (∀ x, p x (update f a b x)) ↔ p a b ∧ ∀ x ≠ a, p x (f x) :=
 by { rw [← and_forall_ne a, update_same], simp { contextual := tt } }
 
+lemma exists_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
+  (∃ x, p x (update f a b x)) ↔ p a b ∨ ∃ x ≠ a, p x (f x) :=
+by { rw [← not_forall_not, forall_update_iff f (λ a b, ¬p a b)], simp [not_and_distrib] }
+
 lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
   update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=
 funext_iff.trans $ forall_update_iff _ (λ x y, y = g x)

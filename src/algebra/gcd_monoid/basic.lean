@@ -11,7 +11,7 @@ import data.nat.gcd
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
 
-This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `integral_domain`s.
+This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `is_domain`s.
 
 ## Main Definitions
 
@@ -64,7 +64,6 @@ divisibility, gcd, lcm, normalize
 
 variables {α : Type*}
 
-set_option old_structure_cmd true
 
 
 
@@ -162,22 +161,6 @@ lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
 units.mul_right_dvd
 
 end normalization_monoid
-
-namespace comm_group_with_zero
-variables [decidable_eq α] [comm_group_with_zero α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance : normalization_monoid α :=
-{ norm_unit := λ x, if h : x = 0 then 1 else (units.mk0 x h)⁻¹,
-  norm_unit_zero := dif_pos rfl,
-  norm_unit_mul := λ x y x0 y0, units.eq_iff.1 (by simp [x0, y0, mul_comm]),
-  norm_unit_coe_units := λ u, by { rw [dif_neg (units.ne_zero _), units.mk0_coe], apply_instance } }
-
-@[simp]
-lemma coe_norm_unit {a : α} (h0 : a ≠ 0) : (↑(norm_unit a) : α) = a⁻¹ :=
-by simp [norm_unit, h0]
-
-end comm_group_with_zero
 
 namespace associates
 variables [comm_cancel_monoid_with_zero α] [normalization_monoid α]
@@ -723,9 +706,9 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 
 end unique_unit
 
-section integral_domain
+section is_domain
 
-variables [integral_domain α] [normalized_gcd_monoid α]
+variables [comm_ring α] [is_domain α] [normalized_gcd_monoid α]
 
 lemma gcd_eq_of_dvd_sub_right {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
 begin
@@ -746,7 +729,7 @@ end
 lemma gcd_eq_of_dvd_sub_left {a b c : α} (h : a ∣ b - c) : gcd b a = gcd c a :=
 by rw [gcd_comm _ a, gcd_comm _ a, gcd_eq_of_dvd_sub_right h]
 
-end integral_domain
+end is_domain
 
 section constructors
 noncomputable theory
@@ -826,6 +809,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
   lcm := λ a b, if a = 0 then 0 else classical.some (dvd_normalize_iff.2
           ((gcd_dvd_left a b).trans (dvd.intro b rfl))),
   normalize_lcm := λ a b, by {
+    dsimp [normalize],
     split_ifs with a0,
     { exact @normalize_zero α _ _ },
     { have := (classical.some_spec (dvd_normalize_iff.2
@@ -838,8 +822,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
         { apply (a0 _).elim,
           rw [←zero_dvd_iff, ←ha],
           exact gcd_dvd_left _ _ },
-        { rw hl,
-          exact @normalize_zero α _ _ } },
+        { convert @normalize_zero α _ _ } },
       have h1 : gcd a b ≠ 0,
       { have hab : a * b ≠ 0 := mul_ne_zero a0 hb,
         contrapose! hab,
@@ -946,6 +929,7 @@ let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.in
     exact normalize_associated (a * b) },
   normalize_lcm := normalize_lcm,
   normalize_gcd := λ a b, by {
+    dsimp [normalize],
     split_ifs with h h_1,
     { apply normalize_idem },
     { apply normalize_idem },
@@ -1055,3 +1039,44 @@ normalized_gcd_monoid_of_lcm
   (λ a b, normalize_idem _)
 
 end constructors
+
+namespace comm_group_with_zero
+
+variables (G₀ : Type*) [comm_group_with_zero G₀] [decidable_eq G₀]
+
+@[priority 100] -- see Note [lower instance priority]
+instance : normalized_gcd_monoid G₀ :=
+{ norm_unit := λ x, if h : x = 0 then 1 else (units.mk0 x h)⁻¹,
+  norm_unit_zero := dif_pos rfl,
+  norm_unit_mul := λ x y x0 y0, units.eq_iff.1 (by simp [x0, y0, mul_comm]),
+  norm_unit_coe_units := λ u, by { rw [dif_neg (units.ne_zero _), units.mk0_coe], apply_instance },
+  gcd := λ a b, if a = 0 ∧ b = 0 then 0 else 1,
+  lcm := λ a b, if a = 0 ∨ b = 0 then 0 else 1,
+  gcd_dvd_left := λ a b, by { split_ifs with h, { rw h.1 }, { exact one_dvd _ } },
+  gcd_dvd_right := λ a b, by { split_ifs with h, { rw h.2 }, { exact one_dvd _ } },
+  dvd_gcd := λ a b c hac hab, begin
+    split_ifs with h, { apply dvd_zero },
+    cases not_and_distrib.mp h with h h;
+      refine is_unit_iff_dvd_one.mp (is_unit_of_dvd_unit _ (is_unit.mk0 _ h));
+      assumption
+  end,
+  gcd_mul_lcm := λ a b, begin
+    by_cases ha : a = 0, { simp [ha] },
+    by_cases hb : b = 0, { simp [hb] },
+    rw [if_neg (not_and_of_not_left _ ha), one_mul, if_neg (not_or ha hb)],
+    exact (associated_one_iff_is_unit.mpr ((is_unit.mk0 _ ha).mul (is_unit.mk0 _ hb))).symm
+  end,
+  lcm_zero_left := λ b, if_pos (or.inl rfl),
+  lcm_zero_right := λ a, if_pos (or.inr rfl),
+  -- `split_ifs` wants to split `normalize`, so handle the cases manually
+  normalize_gcd := λ a b, if h : a = 0 ∧ b = 0 then by simp [if_pos h] else by simp [if_neg h],
+  normalize_lcm := λ a b, if h : a = 0 ∨ b = 0 then by simp [if_pos h] else by simp [if_neg h] }
+
+@[simp]
+lemma coe_norm_unit {a : G₀} (h0 : a ≠ 0) : (↑(norm_unit a) : G₀) = a⁻¹ :=
+by simp [norm_unit, h0]
+
+lemma normalize_eq_one {a : G₀} (h0 : a ≠ 0) : normalize a = 1 :=
+by simp [normalize_apply, h0]
+
+end comm_group_with_zero

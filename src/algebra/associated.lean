@@ -433,6 +433,13 @@ quotient (associated.setoid α)
 namespace associates
 open associated
 
+instance [monoid α] [subsingleton α] : subsingleton (associates α) :=
+begin
+  constructor,
+  rintros ⟨a⟩ ⟨b⟩,
+  rw subsingleton.elim a b,
+end
+
 /-- The canonical quotient map from a monoid `α` into the `associates` of `α` -/
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧

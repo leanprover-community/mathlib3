@@ -40,10 +40,10 @@ calc (2 * n).choose r ≤ (2 * n).choose (2 * n / 2) : choose_le_middle r (2 * n
 lemma two_le_central_binom (n : ℕ) (n_pos : 0 < n) : 2 ≤ central_binom n :=
 calc 2 ≤ 2 * n : le_mul_of_pos_right n_pos
 ... = (2 * n).choose 1 : (choose_one_right (2 * n)).symm
-... ≤ (2 * n).choose n : choose_le_central_binom 1 n
+... ≤ central_binom n : choose_le_central_binom 1 n
 
 lemma succ_mul_central_binom_succ (n : ℕ) :
-  (n + 1) * (central_binom (n + 1)) = (2 * (2 * n + 1)) * central_binom n :=
+  (n + 1) * central_binom (n + 1) = 2 * (2 * n + 1) * central_binom n :=
 calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 1) : mul_comm _ _
 ... = (2 * n + 1).choose n * (2 * n + 2) : by rw [choose_succ_right_eq, choose_mul_succ_eq]
 ... = 2 * ((2 * n + 1).choose n * (n + 1)) : by ring

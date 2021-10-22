@@ -120,6 +120,16 @@ def equiv_signed_measureₗ : complex_measure α ≃ₗ[R] signed_measure α × 
 
 end
 
+lemma absolutely_continuous_ennreal_iff (c : complex_measure α) (μ : vector_measure α ℝ≥0∞) :
+  c ≪ᵥ μ ↔ c.re_part ≪ᵥ μ ∧ c.im_part ≪ᵥ μ :=
+begin
+  split; intro h,
+  { split; { intros i hi, simp [h hi] } },
+  { intros i hi,
+    rw [← complex.re_add_im (c i), (_ : (c i).re = 0), (_ : (c i).im = 0)],
+    exacts [by simp, h.2 hi, h.1 hi] }
+end
+
 end complex_measure
 
 end measure_theory

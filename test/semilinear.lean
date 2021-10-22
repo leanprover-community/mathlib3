@@ -55,6 +55,3 @@ example (f : M →ₗ⋆[R] M₂) (g : M₂ →ₗ[R] M₃) : M →ₗ⋆[R] M�
 example (f : M ≃ₗ⋆[R] M₂) : M₂ ≃ₗ⋆[R] M := f.symm
 
 end star_ring
-
-⋆
-

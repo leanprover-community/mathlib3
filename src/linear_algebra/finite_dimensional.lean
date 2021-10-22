@@ -112,7 +112,7 @@ lemma of_fintype_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
 
 /-- If a vector space is `finite_dimensional`, all bases are indexed by a finite type -/
 noncomputable
-lemma fintype_basis_index {ι : Type*} [finite_dimensional K V] (b : basis ι K V) : fintype ι :=
+def fintype_basis_index {ι : Type*} [finite_dimensional K V] (b : basis ι K V) : fintype ι :=
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   exact is_noetherian.fintype_basis_index b,

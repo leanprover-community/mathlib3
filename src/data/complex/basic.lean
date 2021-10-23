@@ -25,6 +25,8 @@ notation `ℂ` := complex
 
 namespace complex
 
+open_locale complex_conjugate
+
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
@@ -184,17 +186,19 @@ by rw [pow_bit1', I_mul_I]
 
 /-! ### Complex conjugation -/
 
-/-- The complex conjugate. -/
-def conj : ℂ →+* ℂ :=
-begin
-  refine_struct { to_fun := λ z : ℂ, (⟨z.re, -z.im⟩ : ℂ), .. };
-  { intros, ext; simp [add_comm], },
-end
+/-- This defines the complex conjugate as the `star` operation of the `star_ring ℂ`. It
+is recommended to use the ring automorphism version `star_ring_aut`, available under the
+notation `conj` in the locale `complex_conjugate`. -/
+instance : star_ring ℂ :=
+{ star := λ z, ⟨z.re, -z.im⟩,
+  star_involutive := λ x, by simp only [eta, neg_neg],
+  star_mul := λ a b, by ext; simp [add_comm]; ring,
+  star_add := λ a b, by ext; simp [add_comm] }
 
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 
-@[simp] lemma conj_of_real (r : ℝ) : conj r = r := ext_iff.2 $ by simp [conj]
+@[simp] lemma conj_of_real (r : ℝ) : conj (r : ℂ) = r := ext_iff.2 $ by simp [conj]
 
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
 
@@ -203,19 +207,6 @@ end
 
 @[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
-@[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
-ext_iff.2 $ by simp
-
-lemma conj_involutive : function.involutive conj := conj_conj
-
-lemma conj_bijective : function.bijective conj := conj_involutive.bijective
-
-lemma conj_inj {z w : ℂ} : conj z = conj w ↔ z = w :=
-conj_bijective.1.eq_iff
-
-@[simp] lemma conj_eq_zero {z : ℂ} : conj z = 0 ↔ z = 0 :=
-by simpa using @conj_inj z 0
-
 lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 ⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
  λ ⟨h, e⟩, by rw [e, conj_of_real]⟩
@@ -223,20 +214,9 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
-
-lemma conj_sub (z z': ℂ) : conj (z - z') = conj z - conj z' := conj.map_sub z z'
-
-lemma conj_one : conj 1 = 1 := by rw conj.map_one
-
 lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
-
-instance : star_ring ℂ :=
-{ star := (conj : ℂ → ℂ),
-  star_involutive := conj_conj,
-  star_mul := λ a b, (conj.map_mul a b).trans (mul_comm _ _),
-  star_add := conj.map_add }
 
 @[simp] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
 
@@ -316,7 +296,9 @@ ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
-by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
+by { rw [sub_eq_add_neg, norm_sq_add],
+     simp only [ring_equiv.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
+                tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/
 
@@ -649,7 +631,7 @@ by rw [lim_eq_lim_im_add_lim_re]; simp
 
 lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
-⟨i, λ j hj, by rw [← conj.map_sub, abs_conj]; exact hi j hj⟩
+⟨i, λ j hj, by rw [← ring_equiv.map_sub, abs_conj]; exact hi j hj⟩
 
 /-- The complex conjugate of a complex Cauchy sequence, as a complex Cauchy sequence. -/
 noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=

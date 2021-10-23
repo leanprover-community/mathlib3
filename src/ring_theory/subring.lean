@@ -287,12 +287,8 @@ instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s 
 s.to_subsemiring.no_zero_divisors
 
 /-- A subring of a domain is a domain. -/
-instance {R} [ring R] [domain R] (s : subring R) : domain s :=
+instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
 { .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
-
-/-- A subring of an integral domain is an integral domain. -/
-instance {R} [comm_ring R] [integral_domain R] (s : subring R) : integral_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
@@ -837,7 +833,7 @@ namespace subring
 open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
-def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
+def inclusion {S T : subring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=

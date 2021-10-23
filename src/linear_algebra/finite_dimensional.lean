@@ -1047,9 +1047,9 @@ noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [f
 
 section
 
-/-- An domain that is module-finite as an algebra over a field is a division ring. -/
+/-- A domain that is module-finite as an algebra over a field is a division ring. -/
 noncomputable def division_ring_of_finite_dimensional
-  (F K : Type*) [field F] [ring K] [domain K]
+  (F K : Type*) [field F] [ring K] [is_domain K]
   [algebra F K] [finite_dimensional F K] : division_ring K :=
 { inv := λ x, if H : x = 0 then 0 else classical.some $
     (show function.surjective (algebra.lmul_left F x), from
@@ -1058,12 +1058,12 @@ noncomputable def division_ring_of_finite_dimensional
     exact classical.some_spec ((show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
   inv_zero := dif_pos rfl,
-  .. ‹domain K›,
+  .. ‹is_domain K›,
   .. ‹ring K› }
 
 /-- An integral domain that is module-finite as an algebra over a field is a field. -/
 noncomputable def field_of_finite_dimensional
-  (F K : Type*) [field F] [comm_ring K] [integral_domain K]
+  (F K : Type*) [field F] [comm_ring K] [is_domain K]
   [algebra F K] [finite_dimensional F K] : field K :=
 { .. division_ring_of_finite_dimensional F K,
   .. ‹comm_ring K› }

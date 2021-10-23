@@ -162,6 +162,10 @@ begin
   { rw [nat.mul_succ, pow_add, pow_succ', ih] }
 end
 
+@[to_additive nsmul_left_comm]
+lemma pow_right_comm (a : M) (m n : ℕ) : (a^m)^n = (a^n)^m :=
+by rw [←pow_mul, nat.mul_comm, pow_mul]
+
 @[to_additive mul_nsmul]
 theorem pow_mul' (a : M) (m n : ℕ) : a^(m * n) = (a^n)^m :=
 by rw [nat.mul_comm, pow_mul]
@@ -416,7 +420,7 @@ by rw [sq, sq, mul_self_sub_mul_self]
 
 alias sq_sub_sq ← pow_two_sub_pow_two
 
-lemma eq_or_eq_neg_of_sq_eq_sq [comm_ring R] [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+lemma eq_or_eq_neg_of_sq_eq_sq [comm_ring R] [is_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
   a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
         ← sq_sub_sq a b, sub_eq_zero]

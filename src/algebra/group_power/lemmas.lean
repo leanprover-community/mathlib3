@@ -533,34 +533,40 @@ by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero
 @[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
 
-theorem pow_even_nonneg (a : R) (hn : even n) : 0 ≤ a ^ n :=
+lemma even.pow_nonneg (hn : even n) (a : R) : 0 ≤ a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
 
-theorem pow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
+lemma even.pow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
 
-theorem pow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonneg_iff.mpr ha
-
-theorem pow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_pos_iff.mpr ha
-
-theorem pow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
+lemma odd.pow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
 
-theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
+lemma odd.pow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
 
-lemma pow_even_abs (a : R) {p : ℕ} (hp : even p) :
-  |a| ^ p = a ^ p :=
+lemma odd.pow_nonneg_iff (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ hn.pow_neg ha), λ ha, pow_nonneg ha n⟩
+
+lemma odd.pow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_pos ha _), hn.pow_nonpos⟩
+
+lemma odd.pow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
+⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
+
+lemma odd.pow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
+⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
+
+lemma even.pow_pos_iff (hn : even n) (h₀ : 0 < n) : 0 < a ^ n ↔ a ≠ 0 :=
+⟨λ h ha, by { rw [ha, zero_pow h₀] at h, exact lt_irrefl 0 h }, hn.pow_pos⟩
+
+lemma even.pow_abs {p : ℕ} (hp : even p) (a : R) : |a| ^ p = a ^ p :=
 begin
   rw [←abs_pow, abs_eq_self],
-  exact pow_even_nonneg _ hp
+  exact hp.pow_nonneg _
 end
 
-@[simp] lemma pow_bit0_abs (a : R) (p : ℕ) :
-  |a| ^ bit0 p = a ^ bit0 p :=
-pow_even_abs _ (even_bit0 _)
+@[simp] lemma pow_bit0_abs (a : R) (p : ℕ) : |a| ^ bit0 p = a ^ bit0 p := (even_bit0 _).pow_abs _
 
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
 begin

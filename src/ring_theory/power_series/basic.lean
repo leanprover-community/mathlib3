@@ -6,7 +6,6 @@ Authors: Johan Commelin, Kenny Lau
 import data.mv_polynomial
 import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
-import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
 import tactic.linarith
@@ -1241,7 +1240,7 @@ rescale_neg_one_X
 end comm_ring
 
 section domain
-variables [ring R] [domain R]
+variables [ring R] [is_domain R]
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
@@ -1271,18 +1270,15 @@ begin
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : domain (power_series R) :=
+instance : is_domain (power_series R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   .. power_series.nontrivial, }
 
 end domain
 
-section integral_domain
+section is_domain
 
-variables [comm_ring R] [integral_domain R]
-
-instance : integral_domain (power_series R) :=
-{ .. power_series.domain, }
+variables [comm_ring R] [is_domain R]
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1314,7 +1310,7 @@ begin
   exact ha (pow_eq_zero h'),
 end
 
-end integral_domain
+end is_domain
 
 section local_ring
 variables {S : Type*} [comm_ring R] [comm_ring S]
@@ -1635,8 +1631,8 @@ by { rw [X_pow_eq, order_monomial_of_ne_zero], exact one_ne_zero }
 
 end order_zero_ne_one
 
-section order_integral_domain
-variables [comm_ring R] [integral_domain R]
+section order_is_domain
+variables [comm_ring R] [is_domain R]
 
 /-- The order of the product of two formal power series over an integral domain
  is the sum of their orders.-/
@@ -1644,7 +1640,7 @@ lemma order_mul (φ ψ : power_series R) :
   order (φ * ψ) = order φ + order ψ :=
 multiplicity.mul (X_prime)
 
-end order_integral_domain
+end order_is_domain
 
 end power_series
 

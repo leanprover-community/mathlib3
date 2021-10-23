@@ -13,8 +13,8 @@ We show that the continuants and convergents of a gcf stabilise once the gcf ter
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
-variables {K : Type*} {g : gcf K} {n m : ℕ}
+
+variables {K : Type*} {g : generalized_continued_fraction K} {n m : ℕ}
 
 /-- If a gcf terminated at position `n`, it also terminated at `m ≥ n`.-/
 lemma terminated_stable (n_le_m : n ≤ m) (terminated_at_n : g.terminated_at n) :
@@ -46,7 +46,7 @@ begin
     exact (eq.trans this IH) }
 end
 
-lemma convergents'_aux_stable_step_of_terminated {s : seq $ gcf.pair K}
+lemma convergents'_aux_stable_step_of_terminated {s : seq $ pair K}
   (terminated_at_n : s.terminated_at n) :
   convergents'_aux s (n + 1) = convergents'_aux s n :=
 begin
@@ -62,7 +62,8 @@ begin
       simp only [convergents'_aux, s_head_eq, (IH this)] } }
 end
 
-lemma convergents'_aux_stable_of_terminated {s : seq $ gcf.pair K} (n_le_m : n ≤ m)
+lemma convergents'_aux_stable_of_terminated
+  {s : seq $ pair K} (n_le_m : n ≤ m)
   (terminated_at_n : s.terminated_at n) :
   convergents'_aux s m = convergents'_aux s n :=
 begin

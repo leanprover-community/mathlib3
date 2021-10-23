@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.order
 import algebra.big_operators.ring
+import data.rat.cast
 
 /-!
 # The Oxford Invariants Puzzle Challenges - Summer 2021, Week 3, Problem 1

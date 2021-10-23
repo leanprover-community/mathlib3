@@ -1060,6 +1060,9 @@ by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
 @[simp] theorem lt_to_nat {n : ℕ} {a : ℤ} : n < to_nat a ↔ (n : ℤ) < a :=
 le_iff_le_iff_lt_iff_lt.1 to_nat_le
 
+@[simp]lemma le_to_nat_iff {n : ℕ} {z : ℤ} (h : 0 ≤ z) : n ≤ z.to_nat ↔ (n : ℤ) ≤ z :=
+by rw [←int.coe_nat_le_coe_nat_iff, int.to_nat_of_nonneg h]
+
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)
 

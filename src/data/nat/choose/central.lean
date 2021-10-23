@@ -134,11 +134,24 @@ lemma multiplicity_central_binom_of_large_le_one
   : (padic_val_nat p (central_binom n)) ≤ 1
   :=
 begin
-  have u : log p (2 * n) ≤ 1,
-    { let e := log_le_log_of_le _,
-    sorry,
+  have log_weak_bound : log p (2 * n) ≤ 2,
+    { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
+      ... = 2 : log_pow hp.out.one_lt 2, },
+
+  have log_bound : log p (2 * n) ≤ 1,
+    { cases le_or_lt (log p (2 * n)) 1,
+      { exact h, },
+      { have v : log p (2 * n) = 2 := by linarith,
+        exfalso, clear h log_weak_bound,
+        have hyp : p ≤ (2 * n) ∧ 1 < p,
+        { split,
+          { sorry, },
+          { exact hp.out.one_lt, }, },
+        unfold log at v,
+        sorry,
+      }
     },
-  exact le_trans (multiplicity_central_binom_le p n n_pos) u,
+  exact le_trans (multiplicity_central_binom_le p n n_pos) log_bound,
 end
 
 lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p = 2

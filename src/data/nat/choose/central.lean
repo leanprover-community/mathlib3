@@ -36,6 +36,9 @@ choose_pos (nat.le_mul_of_pos_left zero_lt_two)
 lemma central_binom_ne_zero (n : ℕ) : central_binom n ≠ 0 :=
 (central_binom_pos n).ne'
 
+lemma central_binom_zero (n : ℕ) : central_binom 0 = 1 :=
+by rw [central_binom, choose_zero_right]
+
 /--
 The central binomial coefficient is the largest binomial coefficient.
 -/
@@ -49,7 +52,7 @@ calc 2 ≤ 2 * n : le_mul_of_pos_right n_pos
 ... ≤ central_binom n : choose_le_central_binom 1 n
 
 /--
-An inductive definition of the central binomial coefficient.
+An inductive property of the central binomial coefficient.
 -/
 lemma succ_mul_central_binom_succ (n : ℕ) :
   (n + 1) * central_binom (n + 1) = 2 * (2 * n + 1) * central_binom n :=
@@ -63,9 +66,8 @@ calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 
 
 /--
 An exponential lower bound on the central binomial coefficient.
-This bound is of interest because it appears in Tochiori's refinement of Erdős's proof
-of Bertrand's postulate
-(https://en.wikipedia.org/w/index.php?title=Proof_of_Bertrand%27s_postulate&oldid=859165151#Proof_by_Shigenori_Tochiori).
+This bound is of interest because it appears in
+[Tochiori's refinement of Erdős's proof of Bertrand's postulate](https://en.wikipedia.org/w/index.php?title=Proof_of_Bertrand%27s_postulate&oldid=859165151#Proof_by_Shigenori_Tochiori).
 -/
 lemma four_pow_lt_mul_central_binom (n : ℕ) (n_big : 4 ≤ n) : 4 ^ n < n * central_binom n :=
 begin

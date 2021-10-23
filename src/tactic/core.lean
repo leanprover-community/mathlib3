@@ -14,12 +14,13 @@ import tactic.lean_core_docs
 import tactic.interactive_expr
 import system.io
 
-universe variable u
+universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
+-- Rather than import order.lexicographic here, we can get away with defining the order by hand.
 instance : has_lt pos :=
-{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+{ lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
 
 namespace tactic
 
@@ -1886,9 +1887,9 @@ It does *not* use the `namespace` command, so it will typically be used after
 meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") :
   lean.parser unit :=
 emit_code_here "
-open lean
-open lean.parser
-open interactive interactive.types
+open _root_.lean
+open _root_.lean.parser
+open _root_.interactive _root_.interactive.types
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
@@ -2111,7 +2112,7 @@ See `proof_state`, `goal` and `get_proof_state`.
 meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
 try_core $ retrieve $ tac >> get_proof_state
 
-open lean interactive
+open lean _root_.interactive
 
 /-- A type alias for `tactic format`, standing for "pretty print format". -/
 meta def pformat := tactic format

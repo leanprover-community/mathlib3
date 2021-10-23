@@ -270,8 +270,7 @@ let ⟨B₀, hAB₀, hB₀C⟩ := exists_subalgebra_of_fg A B C hAC hBC in
 algebra.fg_trans' (B₀.fg_top.2 hAB₀) $ subalgebra.fg_of_submodule_fg $
 have is_noetherian_ring B₀, from is_noetherian_ring_of_fg hAB₀,
 have is_noetherian B₀ C, by exactI is_noetherian_of_fg_of_noetherian' hB₀C,
-by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map
-  (linear_map.ker_eq_bot.2 hBCi)
+by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map hBCi
 
 end artin_tate
 

@@ -197,7 +197,7 @@ variables [lie_ring L₃] [lie_algebra R L₃]
 instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨lie_hom.to_linear_map⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, λ f, f.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) (λ _, L₁ → L₂) := ⟨λ f, f.to_linear_map.to_fun⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
@@ -331,10 +331,10 @@ instance has_coe_to_lie_hom : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ →ₗ⁅R
 instance has_coe_to_linear_equiv : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ ≃ₗ[R] L₂) := ⟨to_linear_equiv⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) := ⟨_, λ e, e.to_lie_hom.to_fun⟩
+instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) (λ _, L₁ → L₂) := ⟨λ e, e.to_lie_hom.to_fun⟩
 
 @[simp, norm_cast] lemma coe_to_lie_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
-  rfl
+rfl
 
 @[simp, norm_cast] lemma coe_to_linear_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) :
   ((e : L₁ ≃ₗ[R] L₂) : L₁ → L₂) = e := rfl
@@ -417,7 +417,7 @@ variables {R L M N P}
 instance : has_coe (M →ₗ⁅R,L⁆ N) (M →ₗ[R] N) := ⟨lie_module_hom.to_linear_map⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (M →ₗ⁅R,L⁆ N) := ⟨_, λ f, f.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (M →ₗ⁅R,L⁆ N) (λ _, M → N) := ⟨λ f, f.to_linear_map.to_fun⟩
 
 @[simp, norm_cast] lemma coe_to_linear_map (f : M →ₗ⁅R,L⁆ N) : ((f : M →ₗ[R] N) : M → N) = f :=
 rfl
@@ -576,7 +576,7 @@ instance has_coe_to_lie_module_hom : has_coe (M ≃ₗ⁅R,L⁆ N) (M →ₗ⁅R
 instance has_coe_to_linear_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ₗ[R] N) := ⟨to_linear_equiv⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, λ e, e.to_lie_module_hom.to_fun⟩
+instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) (λ _, M → N) := ⟨λ e, e.to_lie_module_hom.to_fun⟩
 
 lemma injective (e : M ≃ₗ⁅R,L⁆ N) : function.injective e := e.to_equiv.injective
 

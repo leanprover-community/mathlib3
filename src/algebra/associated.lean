@@ -357,10 +357,19 @@ lemma irreducible.associated_of_dvd [cancel_monoid_with_zero α] {p q : α}
   (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=
 associated_of_dvd_dvd dvd (p_irr.dvd_symm q_irr dvd)
 
+lemma irreducible.dvd_irreducible_iff_associated [cancel_monoid_with_zero α]
+  {p q : α} (pp : irreducible p) (qp : irreducible q) :
+  p ∣ q ↔ associated p q :=
+⟨irreducible.associated_of_dvd pp qp, associated.dvd⟩
+
 lemma prime.associated_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
   (p_prime : prime p) (q_prime : prime q) (dvd : p ∣ q) : associated p q :=
 p_prime.irreducible.associated_of_dvd q_prime.irreducible dvd
 
+theorem prime.dvd_prime_iff_associated [comm_cancel_monoid_with_zero α]
+  {p q : α} (pp : prime p) (qp : prime q) :
+  p ∣ q ↔ associated p q :=
+pp.irreducible.dvd_irreducible_iff_associated qp.irreducible
 lemma associated.prime_iff [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=
 ⟨h.prime, h.symm.prime⟩
@@ -554,7 +563,7 @@ theorem prod_le_prod {p q : multiset (associates α)} (h : p ≤ q) : p.prod ≤
 begin
   haveI := classical.dec_eq (associates α),
   haveI := classical.dec_eq α,
-  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [add_sub_cancel_of_le h] at this },
+  suffices : p.prod ≤ (p + (q - p)).prod, { rwa [add_tsub_cancel_of_le h] at this },
   suffices : p.prod * 1 ≤ p.prod * (q - p).prod, { simpa },
   exact mul_mono (le_refl p.prod) one_le
 end
@@ -577,6 +586,9 @@ variables [comm_monoid_with_zero α]
 
 @[simp] theorem mk_eq_zero {a : α} : associates.mk a = 0 ↔ a = 0 :=
 ⟨assume h, (associated_zero_iff_eq_zero a).1 $ quotient.exact h, assume h, h.symm ▸ rfl⟩
+
+theorem mk_ne_zero {a : α} : associates.mk a ≠ 0 ↔ a ≠ 0 :=
+not_congr mk_eq_zero
 
 instance : comm_monoid_with_zero (associates α) :=
 { zero_mul := by { rintro ⟨a⟩, show associates.mk (0 * a) = associates.mk 0, rw [zero_mul] },
@@ -632,8 +644,7 @@ begin
     apply and_congr, refl,
     apply forall_congr, assume a,
     exact forall_associated },
-  apply and_congr,
-  { rw [(≠), mk_eq_zero] },
+  apply and_congr mk_ne_zero,
   apply and_congr,
   { rw [is_unit_mk], },
   apply forall_congr, assume a,
@@ -660,7 +671,7 @@ theorem mk_dvd_not_unit_mk_iff {a b : α} :
   dvd_not_unit (associates.mk a) (associates.mk b) ↔
   dvd_not_unit a b :=
 begin
-  rw [dvd_not_unit, dvd_not_unit, ne, ne, mk_eq_zero],
+  rw [dvd_not_unit, dvd_not_unit, mk_ne_zero],
   apply and_congr_right, intro ane0,
   split,
   { contrapose!, rw forall_associated,
@@ -730,7 +741,7 @@ begin
   rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
   rcases quotient.exact' h with ⟨u, hu⟩,
   have hu : a * (b * ↑u) = a * c, { rwa [← mul_assoc] },
-  exact quotient.sound' ⟨u, mul_left_cancel₀ (mt mk_eq_zero.2 ha) hu⟩
+  exact quotient.sound' ⟨u, mul_left_cancel₀ (mk_ne_zero.1 ha) hu⟩
 end
 
 lemma eq_of_mul_eq_mul_right :

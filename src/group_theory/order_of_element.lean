@@ -910,7 +910,7 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
 { carrier := S,
   one_mem' := by {
     obtain ⟨a, ha⟩ := hS1,
-    rw [←pow_order_of_eq_one a, ←tsub_add_cancel_of_le (order_of_pos a)],
+    rw [←pow_order_of_eq_one a, ← tsub_add_cancel_of_le (succ_le_of_lt (order_of_pos a))],
     exact pow_mem a ha (order_of a - 1) },
   mul_mem' := λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb) }
 

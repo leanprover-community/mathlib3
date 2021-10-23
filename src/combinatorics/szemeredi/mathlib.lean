@@ -96,6 +96,15 @@ lemma disjoint.eq_bot_of_ge {α : Type*} [semilattice_inf_bot α] {a b : α} (ha
   b = ⊥ :=
 hab.symm.eq_bot_of_le h
 
+lemma set.subsingleton.equitable_on {α β : Type*} [ordered_semiring β] {s : set α}
+  (hs : s.subsingleton) (f : α → β) :
+  s.equitable_on f :=
+λ i j hi hj, by { rw hs hi hj, exact le_add_of_nonneg_right zero_le_one }
+
+lemma set.equitable_on_singleton {α β : Type*} [ordered_semiring β] (a : α) (f : α → β) :
+  set.equitable_on {a} f :=
+set.subsingleton_singleton.equitable_on f
+
 namespace real
 
 lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) : log a ≤ b ↔ a ≤ exp b :=

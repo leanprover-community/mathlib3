@@ -39,7 +39,7 @@ begin
   have hPα' : exp_bound P.parts.card ≤ card α :=
     (nat.mul_le_mul_of_nonneg_left $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα,
   have hPpos : 0 < exp_bound P.parts.card :=
-    exp_bound_pos.2 (card_pos.2 (nonempty_of_not_uniform hPG)),
+    exp_bound_pos.2 (nonempty_of_not_uniform hPG).card_pos,
   rw [is_equipartition, finset.equitable_on_iff] at hP,
   rw [increment, card_bind],
   simp_rw [finpartition.is_equipartition.chunk_increment, apply_dite finpartition.parts,
@@ -161,7 +161,7 @@ begin
     apply add_le_add_left,
     apply mul_le_mul_of_nonneg_left _ (eps_pow_five_pos hPε).le,
     apply mul_le_mul_of_nonneg_left _ (nat.cast_nonneg _),
-    rw [nat.cast_sub (card_pos.2 (parts_nonempty P)), mul_sub_right_distrib, nat.cast_one, one_mul,
+    rw [nat.cast_sub (parts_nonempty P).card_pos, mul_sub_right_distrib, nat.cast_one, one_mul,
       le_sub, ←mul_sub_left_distrib, ←div_le_iff (show (0:ℝ) < 1/3 - 1/25 - 1/4, by norm_num)],
     refine le_trans (show _ ≤ (7:ℝ), by norm_num) (by exact_mod_cast hP₇) },
   exact div_nonneg (pow_bit0_nonneg _ _) (by norm_num),

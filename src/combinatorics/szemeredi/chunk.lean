@@ -98,7 +98,7 @@ lemma one_sub_eps_mul_card_witness_le_card_star (hV : V ∈ P.parts) (hUV : U �
   (hunif : ¬G.is_uniform ε U V) (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1) :
   (1 - ε/10) * (G.witness ε U V).card ≤ ((hP.star G ε hU V).bUnion id).card :=
 begin
-  have hP₁ : 0 < P.parts.card := card_pos.2 ⟨_, hU⟩,
+  have hP₁ : 0 < P.parts.card := finset.card_pos.2 ⟨_, hU⟩,
   have : (2^P.parts.card : ℝ) * m/(U.card * ε) ≤ ε/10,
   { rw [←div_div_eq_div_mul, div_le_iff' (eps_pos hPε)],
     refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two P.parts.card),
@@ -193,7 +193,7 @@ end
 
 lemma card_bUnion_star_le_m_add_one_card_star_mul :
   ((hP.star G ε hU V).bUnion id).card ≤ (hP.star G ε hU V).card * (m + 1) :=
-card_bUnion_le_card_mul $ λ s hs,
+card_bUnion_le_card_mul _ _ _ $ λ s hs,
   card_le_m_add_one_of_mem_chunk_increment_parts $ star_subset_chunk_increment hs
 
 lemma le_sum_card_subset_chunk_increment_parts (m_pos : (0 : ℝ) < m) {A : finset (finset α)}
@@ -318,7 +318,7 @@ calc
           refine sum_le_sum (λ x hx, div_le_div_of_le_left (nat.cast_nonneg _) _ _);
           rw mem_product at hx,
           { norm_cast,
-            refine mul_pos (mul_pos _ _) (mul_pos _ _); rw card_pos,
+            refine mul_pos (mul_pos _ _) (mul_pos _ _); rw finset.card_pos,
             exacts [⟨x.1, hx.1⟩, nonempty_of_mem_parts _ (hA hx.1), ⟨x.2, hx.2⟩,
               nonempty_of_mem_parts _ (hB hx.2)] },
           refine mul_le_mul (le_sum_card_subset_chunk_increment_parts (m_coe_pos hPα) hA hx.1)
@@ -362,10 +362,10 @@ begin
             rw mem_product at hx,
             { refine mul_pos (div_pos _ m_add_one_div_m_pos)
                 (div_pos _ m_add_one_div_m_pos); norm_cast,
-              { exact (card_pos.2 $ finpartition.nonempty_of_mem_parts _ $
-                hA hx.1).trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.1) },
-              { refine (card_pos.2 $ finpartition.nonempty_of_mem_parts _ $
-                hB hx.2).trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.2) } },
+              { exact (finpartition.nonempty_of_mem_parts _ $
+                hA hx.1).card_pos.trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.1) },
+              { refine (finpartition.nonempty_of_mem_parts _ $
+                hB hx.2).card_pos.trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.2) } },
             refine mul_le_mul (sum_card_subset_chunk_increment_parts_le (m_coe_pos hPα) hA hx.1)
               (sum_card_subset_chunk_increment_parts_le (m_coe_pos hPα) hB hx.2)
               (div_nonneg _ (div_nonneg _ _)) _; norm_cast; exact nat.zero_le _,
@@ -520,7 +520,7 @@ begin
                 (by exact_mod_cast ((show 9 ≤ 100, by norm_num).trans
                 $ hundred_le_m hPα hPε hε₁))) _)
               (by norm_num) hε)
-            ((le_div_iff' $ (@nat.cast_pos ℝ _ _ _).2 $ card_pos.2 $ P.nonempty_of_mem_parts hU).2
+            ((le_div_iff' $ (@nat.cast_pos ℝ _ _ _).2 (P.nonempty_of_mem_parts hU).card_pos).2
               (G.witness_card hunif))
             (eps_pos hPε).le
             (mul_nonneg hε hm)

@@ -33,12 +33,8 @@ local notation `m` := (card α/exp_bound P.parts.card : ℕ)
 local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
 lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m :=
-begin
-  refine nat.div_pos ((nat.mul_le_mul_left _ (nat.pow_le_pow_of_le_left (by norm_num) _)).trans hPα)
-    _,
-  rw [exp_bound_pos, card_pos],
-  exact P.parts_nonempty,
-end
+nat.div_pos ((nat.mul_le_mul_left _ (nat.pow_le_pow_of_le_left (by norm_num) _)).trans hPα)
+  (exp_bound_pos.2 P.parts_nonempty.card_pos)
 
 lemma m_coe_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : (0 : ℝ) < m :=
 nat.cast_pos.2 $ m_pos hPα
@@ -63,9 +59,7 @@ calc
       : div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le (pow_nonneg (by norm_num) _) hPε
   ... = ((P.parts.card * 16^P.parts.card)/exp_bound P.parts.card : ℕ) : begin
           norm_cast,
-          refine (nat.div_eq_of_eq_mul_left _ _).symm,
-          { rw [exp_bound_pos, card_pos],
-            exact P.parts_nonempty },
+          refine (nat.div_eq_of_eq_mul_left (exp_bound_pos.2 P.parts_nonempty.card_pos) _).symm,
           rw [exp_bound, mul_comm (4^P.parts.card), mul_assoc, ←mul_pow],
           norm_num,
         end
@@ -83,7 +77,7 @@ by exact_mod_cast
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin
   have h : 1 ≤ 4^P.parts.card := one_le_pow_of_one_le (by norm_num) _,
-  rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, sub_le_iff_left,
+  rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, tsub_le_iff_left,
     ←nat.add_sub_assoc h],
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end
@@ -102,13 +96,13 @@ lemma card_aux₃ (hP : P.is_equipartition) {U : finset α} (hU : U ∈ P.parts)
   (4^P.parts.card - (a + 1)) * m + (a + 1) * (m + 1) = U.card :=
 begin
   have aux : m * 4^P.parts.card + a = card α/P.parts.card,
-  { apply add_sub_cancel_of_le,
+  { apply add_tsub_cancel_of_le,
     rw [exp_bound, ←nat.div_div_eq_div_mul],
     exact nat.div_mul_le_self _ _ },
   rw aux at hUcard,
   rw finpartition.is_equipartition_iff_card_parts_eq_average' at hP,
   rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
-    a_add_one_le_four_pow_parts_card, ←add_assoc, mul_comm, add_sub_cancel_of_le, ←aux],
+    a_add_one_le_four_pow_parts_card, ←add_assoc, mul_comm, add_tsub_cancel_of_le, ←aux],
   rw ←aux,
   exact nat.le_add_right _ _,
 end

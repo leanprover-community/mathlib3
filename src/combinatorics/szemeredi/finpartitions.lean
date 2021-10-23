@@ -85,7 +85,7 @@ begin
     have hcard : ite (0 < a) (a - 1) a * m + ite (0 < a) b (b - 1) * (m + 1) = (s \ p').card,
     { rw [card_sdiff (hp'₁.trans (A.le hp₁)), ←hs, hp'₂, h'],
       split_ifs,
-      { rw [nat.mul_sub_right_distrib, one_mul, sub_add_eq_add_sub' (nat.le_mul_of_pos_left h)] },
+      { rw [nat.mul_sub_right_distrib, one_mul, tsub_add_eq_add_tsub (nat.le_mul_of_pos_left h)] },
       { rw [nat.mul_sub_right_distrib, one_mul, ←nat.add_sub_assoc],
         apply nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left h) } },
     have : p'.nonempty,
@@ -152,7 +152,7 @@ begin
   { rw [card_sdiff ‹s' ⊆ s›, hs'₂, h', ←hs],
     split_ifs,
     { rw [nat.mul_sub_right_distrib, one_mul,
-        sub_add_eq_add_sub' (nat.le_mul_of_pos_left ‹0 < a›)] },
+        tsub_add_eq_add_tsub (nat.le_mul_of_pos_left ‹0 < a›)] },
     rw [nat.mul_sub_right_distrib, one_mul, ←nat.add_sub_assoc],
     exact nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left ‹¬0 < a›) },
   obtain ⟨P', hP'₁, hP'₂, hP'₃⟩ := @ih (s \ s') (sdiff_ssubset hs'₁ ‹s'.nonempty›) (A.avoid s')

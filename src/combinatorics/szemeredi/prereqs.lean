@@ -93,9 +93,9 @@ begin
   { simpa [(nonpos_of_mul_nonpos_left hB' hδ₁).antisymm (nat.cast_nonneg _)] using hδ' },
   apply (aux₂ r hA hB hA'' hB'').trans (le_trans _ (show 1 - (1-δ)*(1-δ) = 2*δ - δ^2, by ring).le),
   apply sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hA') ((le_div_iff _).2 hB') hδ₁.le _) _,
-  { exact_mod_cast card_pos.2 (nonempty.mono hA hA'') },
-  { exact_mod_cast card_pos.2 (nonempty.mono hB hB'') },
-  { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) },
+  { exact_mod_cast (hA''.mono hA).card_pos },
+  { exact_mod_cast (hB''.mono hB).card_pos },
+  { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) }
 end
 
 /-- Lemma A: if A' ⊆ A, B' ⊆ B each take up all but a δ-proportion, then the difference in edge

@@ -53,13 +53,16 @@ noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
 lemma iteration_bound_le_szemeredi_bound (ε l) : iteration_bound ε l ≤ szemeredi_bound ε l :=
 (id_le_iterate_of_id_le le_exp_bound _ _).trans (nat.le_mul_of_pos_right (pow_pos (by norm_num) _))
 
-/-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
+/-- Effective Szemerédi Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity {ε : ℝ} (l : ℕ) (hε : 0 < ε) (hε' : ε ≤ 1)
-  (hG : l ≤ card α) :
+theorem szemeredi_regularity {ε : ℝ} (l : ℕ) (hε : 0 < ε) (hε' : ε ≤ 1) (hG : l ≤ card α) :
   ∃ (P : finpartition (univ : finset α)),
     P.is_equipartition ∧ l ≤ P.parts.card ∧ P.parts.card ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
+  obtain hε₁ | hε₁ := le_total 1 ε,
+  { refine ⟨finpartition.indiscrete _, discrete_is_equipartition _, _⟩,
+    rw [card_discrete, card_univ],
+    exact ⟨hG, hα, discrete_is_uniform _ hε⟩ },
   obtain hα | hα := le_total (card α) (szemeredi_bound ε l),
   { refine ⟨finpartition.discrete _, discrete_is_equipartition _, _⟩,
     rw [card_discrete, card_univ],
@@ -110,7 +113,7 @@ begin
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
   have hsize : P.parts.card ≤ (exp_bound^[⌊4 / ε^5⌋₊] t) :=
-    hP₃.trans (iterate_le_iterate_of_id_le le_exp_bound (nat.le_floor_of_le hi) _),
+    hP₃.trans (iterate_le_iterate_of_id_le le_exp_bound (nat.le_floor hi) _),
   have hPα : P.parts.card * 16^P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨hP₁.increment G ε, increment_is_equipartition hP₁ G ε, _, _,

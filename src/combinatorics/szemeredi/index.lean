@@ -71,7 +71,7 @@ begin
   suffices h : ∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2 ≤ P.parts.off_diag.card,
   { apply h.trans,
     rw [off_diag_card, one_mul, ←nat.cast_pow, nat.cast_le, sq],
-    apply sub_le_self' },
+    apply tsub_le_self },
   refine (sum_le_of_forall_le _ _ 1 _).trans _,
   { intros UV _,
     rw sq_le_one_iff (G.edge_density_nonneg _ _),

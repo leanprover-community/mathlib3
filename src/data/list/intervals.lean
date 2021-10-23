@@ -38,13 +38,13 @@ theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
 by rw [Ico, tsub_zero, range_eq_range']
 
 @[simp] theorem length (n m : ℕ) : length (Ico n m) = m - n :=
-by dsimp [Ico]; simp only [length_range']
+by { dsimp [Ico], simp only [length_range'] }
 
 theorem pairwise_lt (n m : ℕ) : pairwise (<) (Ico n m) :=
-by dsimp [Ico]; simp only [pairwise_lt_range']
+by { dsimp [Ico], simp only [pairwise_lt_range'] }
 
 theorem nodup (n m : ℕ) : nodup (Ico n m) :=
-by dsimp [Ico]; simp only [nodup_range']
+by { dsimp [Ico], simp only [nodup_range'] }
 
 @[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
 suffices n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m, by simp [Ico, this],
@@ -79,7 +79,7 @@ end
 eq_nil_of_le (le_refl n)
 
 @[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = [] ↔ m ≤ n :=
-iff.intro (assume h, tsub_eq_zero_iff_le.mp $ by rw [← length, h]; refl) eq_nil_of_le
+iff.intro (assume h, tsub_eq_zero_iff_le.mp $ by rw [← length, h, list.length]) eq_nil_of_le
 
 lemma append_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m ++ Ico m l = Ico n l :=
@@ -104,16 +104,16 @@ end
 (bag_inter_nil_iff_inter_nil _ _).2 (inter_consecutive n m l)
 
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = [n] :=
-by dsimp [Ico]; simp [add_tsub_cancel_left]
+by { dsimp [Ico], simp [add_tsub_cancel_left] }
 
 theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = Ico n m ++ [m] :=
-by rwa [← succ_singleton, append_consecutive]; exact nat.le_succ _
+by { rwa [← succ_singleton, append_consecutive], exact nat.le_succ _ }
 
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
-by rw [← append_consecutive (nat.le_succ n) h, succ_singleton]; refl
+by { rw [← append_consecutive (nat.le_succ n) h, succ_singleton], refl }
 
 @[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = [m - 1] :=
-by dsimp [Ico]; rw tsub_tsub_cancel_of_le h; simp
+by { dsimp [Ico], rw tsub_tsub_cancel_of_le (succ_le_of_lt h), simp }
 
 theorem chain'_succ (n m : ℕ) : chain' (λa b, b = succ a) (Ico n m) :=
 begin
@@ -123,7 +123,7 @@ begin
 end
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
-by simp; intros; refl
+by simp
 
 lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
 filter_eq_self.2 $ assume k hk, lt_of_lt_of_le (mem.1 hk).2 hml

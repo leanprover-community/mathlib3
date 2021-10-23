@@ -206,7 +206,7 @@ begin
     have h2 := nat.coprime_pow_primes n n' hp hp' hne,
     rw [(eq.congr hK hK').mp hKK', nat.coprime_self, pow_eq_one_iff (pnat.ne_zero n')] at h2,
     exact nat.prime.ne_one hp' h2,
-    all_goals {apply_instance},  },
+    all_goals {apply_instance}, },
   rw ← hpp' at *,
   haveI := fact_iff.2 hp,
   exact alg_equiv_of_card_eq p hKK',

@@ -6,6 +6,7 @@ Authors: Shing Tak Lam
 
 import topology.homotopy.basic
 import topology.path_connected
+import analysis.convex.basic
 
 /-!
 # Homotopy between paths
@@ -55,7 +56,7 @@ section
 
 variables {p₀ p₁ : path x₀ x₁}
 
-instance : has_coe_to_fun (homotopy p₀ p₁) := ⟨_, λ F, F.to_fun⟩
+instance : has_coe_to_fun (homotopy p₀ p₁) (λ _, I × I → X) := ⟨λ F, F.to_fun⟩
 
 lemma coe_fn_injective : @function.injective (homotopy p₀ p₁) (I × I → X) coe_fn :=
 continuous_map.homotopy_with.coe_fn_injective
@@ -141,6 +142,14 @@ lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
   (F.trans G).symm = G.symm.trans F.symm :=
 continuous_map.homotopy_rel.symm_trans _ _
 
+/--
+Casting a `homotopy p₀ p₁` to a `homotopy q₀ q₁` where `p₀ = q₀` and `p₁ = q₁`.
+-/
+@[simps]
+def cast {p₀ p₁ q₀ q₁ : path x₀ x₁} (F : homotopy p₀ p₁) (h₀ : p₀ = q₀) (h₁ : p₁ = q₁) :
+  homotopy q₀ q₁ :=
+continuous_map.homotopy_rel.cast F (congr_arg _ h₀) (congr_arg _ h₁)
+
 end
 
 section
@@ -191,6 +200,44 @@ lemma hcomp_half (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (t : I) :
 show ite _ _ _ = _, by norm_num
 
 end
+
+/--
+Suppose `p` is a path, then we have a homotopy from `p` to `p.reparam f` by the convexity of `I`.
+-/
+def reparam (p  : path x₀ x₁) (f : I → I) (hf : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
+  homotopy p (p.reparam f hf hf₀ hf₁) :=
+{ to_fun := λ x, p ⟨σ x.1 * x.2 + x.1 * f x.2,
+    show (σ x.1 : ℝ) • (x.2 : ℝ) + (x.1 : ℝ) • (f x.2 : ℝ) ∈ I, from convex_Icc _ _ x.2.2 (f x.2).2
+    (by unit_interval) (by unit_interval) (by simp)⟩,
+  continuous_to_fun := by continuity,
+  to_fun_zero := λ x, by norm_num,
+  to_fun_one := λ x, by norm_num,
+  prop' := λ t x hx,
+  begin
+    cases hx,
+    { rw hx, norm_num [hf₀] },
+    { rw set.mem_singleton_iff at hx,
+      rw hx,
+      norm_num [hf₁] }
+  end }
+
+/--
+Suppose `F : homotopy p q`. Then we have a `homotopy p.symm q.symm` by reversing the second
+argument.
+-/
+@[simps]
+def symm₂ {p q : path x₀ x₁} (F : p.homotopy q) : p.symm.homotopy q.symm :=
+{ to_fun := λ x, F ⟨x.1, σ x.2⟩,
+  continuous_to_fun := by continuity,
+  to_fun_zero := by simp [path.symm],
+  to_fun_one := by simp [path.symm],
+  prop' := λ t x hx, begin
+    cases hx,
+    { rw hx, simp },
+    { rw set.mem_singleton_iff at hx,
+      rw hx,
+      simp }
+  end }
 
 end homotopy
 

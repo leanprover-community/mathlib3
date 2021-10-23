@@ -1052,6 +1052,14 @@ theorem infi_option (f : option β → α) :
   (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
 @supr_option (order_dual α) _ _ _
 
+/-- A version of `supr_option` useful for rewriting right-to-left. -/
+lemma supr_option_elim (a : α) (f : β → α) : (⨆ o : option β, o.elim a f) = a ⊔ ⨆ b, f b :=
+by simp [supr_option]
+
+/-- A version of `infi_option` useful for rewriting right-to-left. -/
+lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
+@supr_option_elim (order_dual α) _ _ _ _
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/

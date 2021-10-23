@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import algebra.iterate_hom
 import analysis.specific_limits
+import topology.algebra.ordered.monotone_continuity
 import order.iterate
 import order.semiconj_Sup
 
@@ -129,7 +130,7 @@ structure circle_deg1_lift : Type :=
 
 namespace circle_deg1_lift
 
-instance : has_coe_to_fun circle_deg1_lift := ⟨λ _, ℝ → ℝ, circle_deg1_lift.to_fun⟩
+instance : has_coe_to_fun circle_deg1_lift (λ _, ℝ → ℝ) := ⟨circle_deg1_lift.to_fun⟩
 
 @[simp] lemma coe_mk (f h₁ h₂) : ⇑(mk f h₁ h₂) = f := rfl
 
@@ -173,8 +174,8 @@ lemma mul_apply (x) : (f * g) x = f (g x) := rfl
 
 @[simp] lemma coe_one : ⇑(1 : circle_deg1_lift) = id := rfl
 
-instance units_has_coe_to_fun : has_coe_to_fun (units circle_deg1_lift) :=
-⟨λ _, ℝ → ℝ, λ f, ⇑(f : circle_deg1_lift)⟩
+instance units_has_coe_to_fun : has_coe_to_fun (units circle_deg1_lift) (λ _, ℝ → ℝ) :=
+⟨λ f, ⇑(f : circle_deg1_lift)⟩
 
 @[simp, norm_cast] lemma units_coe (f : units circle_deg1_lift) : ⇑(f : circle_deg1_lift) = f := rfl
 

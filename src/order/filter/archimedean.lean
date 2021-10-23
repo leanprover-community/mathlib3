@@ -3,8 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
+import algebra.order.archimedean
 import order.filter.at_top_bot
-import algebra.archimedean
 
 /-!
 # `at_top` filter and archimedean (semi)rings/fields

@@ -3,9 +3,9 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import algebra.order.archimedean
 import algebra.order.sub
 import algebra.order.with_zero
-import algebra.archimedean
 import order.lattice_intervals
 import order.conditionally_complete_lattice
 

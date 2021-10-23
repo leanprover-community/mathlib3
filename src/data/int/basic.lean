@@ -58,7 +58,11 @@ instance : comm_ring int :=
                                   int.one_mul],
   gsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
-/-! ### Extra instances to short-circuit type class resolution -/
+/-! ### Extra instances to short-circuit type class resolution
+
+These also prevent non-computable instances like `int.normed_comm_ring` being used to construct
+these instances non-computably.
+-/
 -- instance : has_sub int            := by apply_instance -- This is in core
 instance : add_comm_monoid int    := by apply_instance
 instance : add_monoid int         := by apply_instance
@@ -66,6 +70,8 @@ instance : monoid int             := by apply_instance
 instance : comm_monoid int        := by apply_instance
 instance : comm_semigroup int     := by apply_instance
 instance : semigroup int          := by apply_instance
+instance : add_comm_group int     := by apply_instance
+instance : add_group int          := by apply_instance
 instance : add_comm_semigroup int := by apply_instance
 instance : add_semigroup int      := by apply_instance
 instance : comm_semiring int      := by apply_instance
@@ -1053,6 +1059,9 @@ by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
 
 @[simp] theorem lt_to_nat {n : ℕ} {a : ℤ} : n < to_nat a ↔ (n : ℤ) < a :=
 le_iff_le_iff_lt_iff_lt.1 to_nat_le
+
+@[simp]lemma le_to_nat_iff {n : ℕ} {z : ℤ} (h : 0 ≤ z) : n ≤ z.to_nat ↔ (n : ℤ) ≤ z :=
+by rw [←int.coe_nat_le_coe_nat_iff, int.to_nat_of_nonneg h]
 
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)

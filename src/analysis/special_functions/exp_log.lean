@@ -572,6 +572,19 @@ log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real
 lemma log_ne_zero_of_pos_of_ne_one {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : log x ≠ 0 :=
 mt (eq_one_of_pos_of_log_eq_zero hx_pos) hx
 
+@[simp] lemma log_eq_zero {x : ℝ} : log x = 0 ↔ x = 0 ∨ x = 1 ∨ x = -1 :=
+begin
+  split,
+  { intros h,
+    rcases lt_trichotomy x 0 with x_lt_zero | rfl | x_gt_zero,
+    { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
+      rw [←log_neg_eq_log x] at h,
+      exact (eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h).symm, },
+    { exact or.inl rfl },
+    { exact or.inr (or.inl (eq_one_of_pos_of_log_eq_zero x_gt_zero h)), }, },
+  { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
+end
+
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id

@@ -788,6 +788,17 @@ lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space 
   interior (pi I s) = I.pi (λ i, interior (s i)) :=
 by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
 
+lemma exists_finset_piecewise_mem_of_mem_nhds [decidable_eq ι] [Π i, topological_space (π i)]
+  {s : set (Π a, π a)} {x : Π a, π a} (hs : s ∈ 𝓝 x) (y : Π a, π a) :
+  ∃ I : finset ι, I.piecewise x y ∈ s :=
+begin
+  simp only [nhds_pi, mem_infi', mem_comap] at hs,
+  rcases hs with ⟨I, hI, V, hV, hV_univ, rfl, -⟩,
+  choose t ht htV using hV,
+  refine ⟨hI.to_finset, mem_bInter $ λ i hi, htV i _⟩,
+  simpa [hI.mem_to_finset.2 hi] using mem_of_mem_nhds (ht i)
+end
+
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =
   generate_from {g | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, is_open (s a)) ∧ g = pi ↑i s} :=

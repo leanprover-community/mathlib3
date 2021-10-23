@@ -466,9 +466,21 @@ lemma lipschitz_on_with.norm_sub_le {f : E → F} {C : ℝ≥0} {s : set E} (h :
   {x y : E} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
 
+lemma lipschitz_on_with.norm_sub_le_of_le {f : E → F} {C : ℝ≥0} {s : set E}
+  (h : lipschitz_on_with C f s){x y : E} (x_in : x ∈ s) (y_in : y ∈ s) {d : ℝ} (hd : ∥x - y∥ ≤ d) :
+  ∥f x - f y∥ ≤ C * d :=
+(h.norm_sub_le x_in y_in).trans $ mul_le_mul_of_nonneg_left hd C.2
+
 lemma lipschitz_with_iff_norm_sub_le {f : E → F} {C : ℝ≥0} :
   lipschitz_with C f ↔ ∀ x y, ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 by simp only [lipschitz_with_iff_dist_le_mul, dist_eq_norm]
+
+alias lipschitz_with_iff_norm_sub_le ↔ lipschitz_with.norm_sub_le _
+
+lemma lipschitz_with.norm_sub_le_of_le {f : E → F} {C : ℝ≥0} (h : lipschitz_with C f)
+  {x y : E} {d : ℝ} (hd : ∥x - y∥ ≤ d) :
+  ∥f x - f y∥ ≤ C * d :=
+(h.norm_sub_le x y).trans $ mul_le_mul_of_nonneg_left hd C.2
 
 /-- A homomorphism `f` of seminormed groups is continuous, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
@@ -638,7 +650,7 @@ begin
   letI : pseudo_metric_space α := pseudo_emetric_space.to_pseudo_metric_space hf.edist_ne_top,
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw le_div_iff (nnreal.coe_pos.2 $ sub_pos_iff_lt.2 hK),
+  rw le_div_iff (nnreal.coe_pos.2 $ tsub_pos_iff_lt.2 hK),
   rw [mul_comm, nnreal.coe_sub hK.le, sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
     sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)

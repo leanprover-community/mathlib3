@@ -142,8 +142,8 @@ begin
   refine finset.induction_on t _ _,
   { simpa using base },
   intros x t hxt h,
-  convert ih _ x h using 1,
-  rw [finset.coe_insert, algebra.adjoin_insert_adjoin]
+  rw [finset.coe_insert],
+  simpa only [algebra.adjoin_insert_adjoin] using ih _ x h,
 end
 
 end subalgebra

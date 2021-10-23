@@ -216,9 +216,9 @@ begin
   rw [←filter_filter, filter_ne', card_erase_of_mem],
   { use k - 1,
     rw [nat.pred_eq_succ_iff, hg, mul_tsub, tsub_add_eq_add_tsub, eq_comm,
-      ← (tsub_eq_iff_eq_add_of_le _).symm],
+      tsub_eq_iff_eq_add_of_le],
     { ring },
-    { exact add_le_add_right (zero_le (2 * k)) 2 },
+    { exact add_le_add_right (zero_le _) 2 },
     { exact nat.mul_le_mul_left _ hk } },
   { simpa only [true_and, mem_filter, mem_univ] },
 end

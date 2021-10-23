@@ -32,7 +32,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 -/
 
 open real set filter is_R_or_C
-open_locale big_operators uniformity topological_space nnreal ennreal
+open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate
 
 noncomputable theory
 
@@ -67,7 +67,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   begin
     intros x y,
     unfold inner,
-    rw conj.map_sum,
+    rw ring_equiv.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
     apply inner_conj_sym,

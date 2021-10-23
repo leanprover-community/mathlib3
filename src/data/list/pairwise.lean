@@ -46,8 +46,8 @@ theorem pairwise.tail : ∀ {l : list α} (p : pairwise R l), pairwise R l.tail
 
 theorem pairwise.drop : ∀ {l : list α} {n : ℕ}, list.pairwise R l → list.pairwise R (l.drop n)
 | _ 0 h := h
-| [] _ _ := by simp
-| (a :: b) (n + 1) h := by {unfold drop, exact pairwise.drop (pairwise_cons.mp h).right}
+| [] (n + 1) h := list.pairwise.nil
+| (a :: l) (n + 1) h := pairwise.drop (pairwise_cons.mp h).right
 
 theorem pairwise.imp_of_mem {S : α → α → Prop} {l : list α}
   (H : ∀ {a b}, a ∈ l → b ∈ l → R a b → S a b) (p : pairwise R l) : pairwise S l :=

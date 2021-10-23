@@ -2642,7 +2642,7 @@ begin
       { -- On the way to proving this, we have to actually show that `m ≤ tl.length`, by showing
         -- that since `tl` was a subsequence in `cb`, and was retrieved from `n + 1` to `n + m + 1`,
         -- then since `n + m + 1 ≤ cb.size`, we have that `tl` must be at least `m` in length.
-        simpa [←H.right, le_tsub_iff_left (hn''.trans_le hn').le, add_comm, add_assoc,
+        simpa [←H.right, le_tsub_iff_right (hn''.trans_le hn').le, add_comm, add_assoc,
                add_left_comm] using hn' },
       -- Finally, we rely on the simplifier. We already expressions of `nat.of_digits` on both
       -- the LHS and RHS. All that is left to do is to prove that the summand on the LHS is produced

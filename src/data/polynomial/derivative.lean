@@ -50,7 +50,7 @@ begin
   { assume b, cases b,
     { intros, rw [nat.cast_zero, mul_zero, zero_mul], },
     { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } },
-  { rw [if_pos (add_tsub_cancel_right _ _).symm, mul_one, nat.cast_add, nat.cast_one,
+  { rw [if_pos (add_tsub_cancel_right n 1).symm, mul_one, nat.cast_add, nat.cast_one,
       mem_support_iff],
     intro h, push_neg at h, simp [h], },
 end

@@ -52,38 +52,37 @@ element-/
 def homogeneous_ideal' [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) : Prop :=
   I = ideal.span {x | x ∈ I ∧ is_homogeneous_element x }
 
+lemma homogeneous_ideal_iff_eq_span_image_preimage [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) :
+  homogeneous_ideal' I ↔
+    I = ideal.span (graded_monoid.to_direct_sum '' (graded_monoid.to_direct_sum ⁻¹' I)) :=
+by { rw [image_preimage_eq_inter_range, range_to_direct_sum], refl }
+
+/-- In a galois insertion between sets and some other type, if there exists a set such that
+`I = l (f '' S)`, then `S = (f ⁻¹' u I)` is one such set. -/
+lemma _root_.galois_connection.exists_l_image_iff {α β γ} [partial_order β] {l : set α → β}
+  {u : β → set α}
+  (gc : galois_connection l u) (I : β) (f : γ → α):
+    (∃ S : set γ, I = l (f '' S)) ↔ I = l (f '' (f ⁻¹' u I)) :=
+begin
+  split,
+  { rintro ⟨S, rfl⟩,
+    apply le_antisymm,
+    { apply gc.l_le,
+      refine le_trans _ (gc.le_u_l _),
+      exact image_subset _ (image_subset_iff.mp $ gc.le_u_l _), },
+    { apply gc.l_le (image_preimage_subset _ _), }, },
+  { intro HI,
+    rw [←preimage_image_preimage] at HI,
+    exact ⟨_, HI⟩, },
+end
+
 lemma homogeneous_ideal_iff_homogeneous_ideal' [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) :
   homogeneous_ideal I ↔ homogeneous_ideal' I :=
-⟨λ HI, begin
-  rcases HI with ⟨S, HS⟩,
-  ext, split; intro hx,
-  { have HS₂ : graded_monoid.to_direct_sum '' S ⊆ {x | x ∈ I ∧ is_homogeneous_element x},
-    { intros y hy, split,
-      { suffices : (graded_monoid.to_direct_sum '' S) ⊆ I, refine this _, exact hy,
-        rw [←ideal.span_le, HS], exact le_refl _, },
-      { simp only [mem_image] at hy,
-        rcases hy with ⟨x, _, hx⟩,
-        refine ⟨x, _⟩, rw ←hx, refl, } },
-    suffices : ideal.span (graded_monoid.to_direct_sum '' S)
-      ≤ ideal.span {x ∈ I | is_homogeneous_element x},
-    refine this _, rw ←HS, exact hx,
-    exact ideal.span_mono HS₂ },
-  { suffices : {x | x ∈ ideal.span (graded_monoid.to_direct_sum '' S) ∧
-      is_homogeneous_element x} ⊆ I,
-    have H : ideal.span {x | x ∈ ideal.span (graded_monoid.to_direct_sum '' S) ∧
-      is_homogeneous_element x} ≤ ideal.span I,
-    { exact ideal.span_mono this },
-    rw [←HS, ideal.span_eq] at H,
-    refine H _, exact hx,
-    rintros y ⟨hy₁, _⟩, rw ←HS at hy₁, exact hy₁ },
-end, λ HI, begin
-  use graded_monoid.to_direct_sum ⁻¹' {x | x ∈ I ∧ is_homogeneous_element x },
-  rw image_preimage_eq_iff.mpr, exact HI,
-
-  rintros y ⟨hy₁, hy₂⟩, choose a ha using hy₂,
-  rw [mem_range], use a, rw ←ha, refl,
-end⟩
+begin
+  rw [homogeneous_ideal_iff_eq_span_image_preimage, homogeneous_ideal],
+  exact (submodule.gi _ _).gc.exists_l_image_iff _ _,
+end
 
 private lemma homogeneous_ideal.mul_homogeneous_element [add_comm_monoid ι] [gcomm_semiring A]
   {I : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) (r x : ⨁ i, A i)

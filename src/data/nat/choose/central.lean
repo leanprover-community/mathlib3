@@ -15,9 +15,9 @@ This file proves properties of the central binomial coefficients (that is, `nat.
 ## Main definition and results
 
 * `nat.central_binom`: the central binomial coefficient, `(2 * n).choose n`.
-* `nat.central_binom_induction`: the inductive relationship between successive central binomial
+* `nat.succ_mul_central_binom_succ`: the inductive relationship between successive central binomial
   coefficients.
-* `nat.four_pow_n_lt_n_mul_central_binom`: an exponential lower bound on the central binomial
+* `nat.four_pow_lt_mul_central_binom`: an exponential lower bound on the central binomial
   coefficient.
 -/
 
@@ -85,7 +85,7 @@ An exponential lower bound on the central binomial coefficient.
 This bound is weaker than `four_pow_n_lt_n_mul_central_binom`, but it is of historical interest
 because it appears in Erdős's proof of Bertrand's postulate.
 -/
-lemma four_pow_le_two_mul_n_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n),
+lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n),
   4 ^ n ≤ (2 * n) * central_binom n
 | 0 pr := (nat.not_lt_zero _ pr).elim
 | 1 pr := by norm_num [central_binom, choose]

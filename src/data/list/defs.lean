@@ -975,4 +975,15 @@ def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β 
 | (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
 | _       _       _       _       _       := []
 
+/--
+`to_rbmap as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+def to_rbmap {α : Type*} : list α → rbmap ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
+
 end list

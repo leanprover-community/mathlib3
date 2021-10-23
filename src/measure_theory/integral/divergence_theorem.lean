@@ -20,6 +20,19 @@ where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is eq
 integrals of `f` over the faces of `[a, b]`, taken with appropriat signs. Moreover, the same is true
 if the function is not differentiable but continuous at countably many points of `[a, b]`.
 
+## Notations
+
+We use the following local notation to make the statement more readable. Note that the documentation
+website shows the actual terms, not those abbreviated using local notations.
+
+* `ℝⁿ`, `ℝⁿ⁺¹`, `Eⁿ⁺¹`: `fin n → ℝ`, `fin (n + 1) → ℝ`, `fin (n + 1) → E`;
+* `face i`: the `i`-th face of the box `[a, b]` as a closed segment in `ℝⁿ`, namely `[a ∘
+  fin.succ_above i, b ∘ fin.succ_above i]`;
+* `e i` : `i`-th basis vector `pi.single i 1`;
+* `front_face i`, `back_face i`: embeddings `ℝⁿ → ℝⁿ⁺¹` corresponding to the front face
+  `{x | x i = b i}` and back face `{x | x i = a i}` of the box `[a, b]`, respectively.
+  They are given by `fin.insert_nth i (b i)` and `fin.insert_nth i (a i)`.
+
 ## TODO
 
 * Deduce corollaries about integrals in `ℝ × ℝ` and interval integral.
@@ -37,11 +50,21 @@ namespace measure_theory
 
 universes u
 variables {E : Type u} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E] {n : ℕ}
+  [second_countable_topology E] [complete_space E]
+
+section
+variables {n : ℕ}
 
 local notation `ℝⁿ` := fin n → ℝ
 local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 local notation `Eⁿ⁺¹` := fin (n + 1) → E
+
+variables (a b : ℝⁿ⁺¹)
+
+local notation `face` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_above i)
+local notation `e` i := pi.single i 1
+local notation `front_face` i:2000 := fin.insert_nth i (b i)
+local notation `back_face` i:2000 := fin.insert_nth i (a i)
 
 /-- **Divergence theorem** for Bochner integral. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is differentiable on a
 rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, with derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹` and the
@@ -53,20 +76,19 @@ Moreover, the same is true if the function is not differentiable but continuous 
 points of `[a, b]`.
 
 We represent both faces `x i = a i` and `x i = b i` as the box
-`[a ∘ fin.succ_above i, b ∘ fin.succ_above i]` in `ℝⁿ`, where
+`face i = [a ∘ fin.succ_above i, b ∘ fin.succ_above i]` in `ℝⁿ`, where
 `fin.succ_above : fin n ↪o fin (n + 1)` is the order embedding with range `{i}ᶜ`. The restrictions
-of `f : ℝⁿ⁺¹ → Eⁿ⁺¹` to these faces are given by `λ y, f (fin.insert_nth i (a i) y)`
-and `λ y, f (fin.insert_nth i (b i) y)`, respectively, where `fin.insert_nth i a y` takes
-`y : ℝⁿ` and returns a vector `x : ℝⁿ⁺¹` such that `x i = a` and `x (fin.succ_above j) = y j`. -/
-lemma integral_divergence_of_has_fderiv_within_at_off_countable (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
-  (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (a b : ℝⁿ⁺¹) (hle : a ≤ b)
-  (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
+of `f : ℝⁿ⁺¹ → Eⁿ⁺¹` to these faces are given by `f ∘ back_face i` and `f ∘ front_face i`, where
+`back_face i = fin.insert_nth i (a i)` and `front_face i = fin.insert_nth i (b i)` are embeddings
+`ℝⁿ → ℝⁿ⁺¹` that take `y : ℝⁿ` and insert `a i` (resp., `b i`) as `i`-th coordinate. -/
+lemma integral_divergence_of_has_fderiv_within_at_off_countable (hle : a ≤ b) (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
+  (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
+  (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
   (Hd : ∀ x ∈ Icc a b \ s, has_fderiv_within_at f (f' x) (Icc a b) x)
   (Hi : integrable_on (λ x, ∑ i, f' x (pi.single i 1) i) (Icc a b)) :
-  ∫ x in Icc a b, ∑ i, f' x (pi.single i 1) i =
+  ∫ x in Icc a b, ∑ i, f' x (e i) i =
     ∑ i : fin (n + 1),
-      ((∫ x in Icc (a ∘ i.succ_above) (b ∘ i.succ_above), f (i.insert_nth (b i) x) i) -
-      ∫ x in Icc (a ∘ i.succ_above) (b ∘ i.succ_above), f (i.insert_nth (a i) x) i) :=
+      ((∫ x in face i, f (front_face i x) i) - ∫ x in face i, f (back_face i x) i) :=
 begin
   simp only [volume_pi, ← set_integral_congr_set_ae measure.univ_pi_Ioc_ae_eq_Icc],
   by_cases heq : ∃ i, a i = b i,
@@ -100,6 +122,8 @@ begin
     { have := box.continuous_on_face_Icc (Hc i) (left_mem_Icc.2 (hle i)),
       have := (this.integrable_on_compact box.is_compact_Icc).mono_set box.coe_subset_Icc,
       exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance } }
+end
+
 end
 
 end measure_theory

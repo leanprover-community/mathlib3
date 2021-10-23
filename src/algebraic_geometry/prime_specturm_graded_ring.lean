@@ -7,7 +7,7 @@ import algebra.direct_sum.ring
 
 
 noncomputable theory
-open_locale classical direct_sum big_operators
+open_locale classical direct_sum big_operators pointwise
 open direct_sum
 
 variables {ι : Type*} [linear_ordered_cancel_add_comm_monoid ι]
@@ -133,5 +133,9 @@ def irrelavent_ideal : ideal (⨁ i, A i) :=
   smul_mem' := λ c x hx, begin
     simp only [set.image_univ, set.mem_range, algebra.id.smul_eq_mul] at hx ⊢,
     obtain ⟨y, hy⟩ := hx,
+    set y' := ∑ i in y.support, (of (λ i : ι⁺, A i.val) (⟨i.val + i.val, _⟩ : ι⁺)
+      (graded_monoid.ghas_mul.mul (c i.val) (y i))) with hy',
+    use y',
+    rw [←hy],
     sorry,
   end }

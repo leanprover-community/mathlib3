@@ -37,7 +37,7 @@ lemma central_binom_ne_zero (n : ℕ) : central_binom n ≠ 0 :=
 (central_binom_pos n).ne'
 
 @[simp] lemma central_binom_zero : central_binom 0 = 1 :=
-by rw [central_binom, choose_zero_right]
+choose_zero_right _
 
 /--
 The central binomial coefficient is the largest binomial coefficient.

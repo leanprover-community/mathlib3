@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.lattice
+import data.set.pairwise
 
 /-!
 # Finite supremum independence
@@ -53,14 +54,14 @@ lemma sup_indep.sup {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
   (s.sup g).sup_indep f :=
 begin
   rintro i hi,
-  rw disjoint_sup_right',
+  rw disjoint_sup_right,
   refine λ j hj, _,
   rw mem_sup at hi,
   obtain ⟨i', hi', hi⟩ := hi,
   rw [mem_erase, mem_sup] at hj,
   obtain ⟨hij, j', hj', hj⟩ := hj,
   obtain hij' | hij' := eq_or_ne j' i',
-  { exact disjoint_sup_right'.1 (hg i' hi' hi) _ (mem_erase.2 ⟨hij, hij'.subst hj⟩) },
+  { exact disjoint_sup_right.1 (hg i' hi' hi) _ (mem_erase.2 ⟨hij, hij'.subst hj⟩) },
   { exact (hs hi').mono (le_sup hi) ((le_sup hj).trans $ le_sup $ mem_erase.2 ⟨hij', hj'⟩) }
 end
 
@@ -83,7 +84,7 @@ lemma sup_inded_iff_pairwise_disjoint {s : finset α} [decidable_eq α] :
   s.sup_indep id ↔ (s : set α).pairwise_disjoint :=
 begin
   refine ⟨sup_indep.pairwise_disjoint, λ hs a ha, _⟩,
-  rw disjoint_sup_right',
+  rw disjoint_sup_right,
   exact λ b hb, hs a ha b (mem_of_mem_erase hb) (ne_of_mem_erase hb).symm,
 end
 

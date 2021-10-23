@@ -104,8 +104,7 @@ by rw [inf_comm, inf_relindex_right]
 lemma inf_relindex_eq_relindex_sup [K.normal] : (H ⊓ K).relindex H = K.relindex (H ⊔ K) :=
 cardinal.to_nat_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv
 
-lemma relindex_eq_relindex_sup [K.normal] :
-  K.relindex H = K.relindex (H ⊔ K) :=
+lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
 by rw [←inf_relindex_left, inf_relindex_eq_relindex_sup]
 
 variables {H K}

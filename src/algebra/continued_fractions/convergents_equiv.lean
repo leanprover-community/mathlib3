@@ -385,6 +385,8 @@ end
 
 end generalized_continued_fraction
 
+open generalized_continued_fraction
+
 namespace continued_fraction
 
 /-- Shows that the recurrence relation (`convergents`) and direct evaluation (`convergents'`) of a

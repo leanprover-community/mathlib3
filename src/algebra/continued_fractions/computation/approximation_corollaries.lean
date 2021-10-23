@@ -37,7 +37,9 @@ convergence, fractions
 -/
 
 variables {K : Type*} (v : K) [linear_ordered_field K] [floor_ring K]
+
 open generalized_continued_fraction (of)
+open generalized_continued_fraction
 
 lemma generalized_continued_fraction.of_is_simple_continued_fraction :
   (of v).is_simple_continued_fraction :=
@@ -45,7 +47,7 @@ lemma generalized_continued_fraction.of_is_simple_continued_fraction :
 
 /-- Creates the simple continued fraction of a value. -/
 def simple_continued_fraction.of : simple_continued_fraction K :=
-⟨of v, of_is_simple_continued_fraction v⟩
+⟨of v, generalized_continued_fraction.of_is_simple_continued_fraction v⟩
 
 lemma simple_continued_fraction.of_is_continued_fraction :
   (simple_continued_fraction.of v).is_continued_fraction :=

@@ -1,4 +1,5 @@
 import analysis.special_functions.trigonometric.basic
+import analysis.special_functions.log
 
 namespace real
 

@@ -6,6 +6,12 @@ Authors: Anatole Dedecker
 import analysis.normed_space.exponential
 import analysis.calculus.fderiv_analytic
 import data.complex.exponential
+import topology.metric_space.cau_seq_filter
+
+/-!
+# Calculus results on exponential in a Banach algebra
+
+-/
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
 open_locale nat topological_space big_operators ennreal

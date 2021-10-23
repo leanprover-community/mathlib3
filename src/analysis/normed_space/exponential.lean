@@ -6,7 +6,6 @@ Authors: Anatole Dedecker
 import analysis.specific_limits
 import analysis.analytic.basic
 import analysis.complex.basic
-import topology.metric_space.cau_seq_filter
 
 /-!
 # Exponential in a Banach algebra
@@ -15,9 +14,11 @@ In this file, we define `exp 𝕂 𝔸`, the exponential map in a normed algebra
 normed field `𝕂`. Although the definition doesn't require `𝔸` to be complete, we need to assume it
 for most results.
 
-We then prove basic results, as described below.
+We then prove some basic results, but we avoid importing derivatives here to minimize dependencies.
+Results involving derivatives and comparisons with `real.exp` and `complex.exp` can be found in
+`analysis/special_functions/exponential`.
 
-## Main result
+## Main results
 
 We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂 = ℝ` or `𝕂 = ℂ`.
 

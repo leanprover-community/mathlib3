@@ -50,28 +50,6 @@ end sym2
 
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ a ≤ b) : b < a := lt_of_not_ge' h
 
-section group_power
-variables {R : Type*}
-
-lemma pow_right_comm [ordered_semiring R] {a : R} {b c : ℕ} : (a^b)^c = (a^c)^b :=
-by rw [←pow_mul, mul_comm, pow_mul]
-
-variables [linear_ordered_ring R] {a : R} {n : ℕ}
-
-lemma odd.pow_nonneg (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
-⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_odd_neg ha hn), λ ha, pow_nonneg ha n⟩
-
-lemma odd.pow_nonpos (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
-⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_odd_pos ha hn), λ ha, pow_odd_nonpos ha hn⟩
-
-lemma odd.pow_pos (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
-⟨λ h, lt_of_not_le (λ ha, h.not_le $ pow_odd_nonpos ha hn), λ ha, pow_pos ha n⟩
-
-lemma odd.pow_neg (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
-⟨λ h, lt_of_not_le (λ ha, h.not_le $ pow_odd_nonneg ha hn), λ ha, pow_odd_neg ha hn⟩
-
-end group_power
-
 section generalized_boolean_algebra
 variables [generalized_boolean_algebra α] {x y : α}
 
@@ -91,11 +69,6 @@ lemma finset.le_sum [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι}
   (h : ∀ i ∈ s, a ≤ f i) :
   s.card • a ≤ ∑ i in s, f i :=
 @finset.sum_le (order_dual α) _ _ _ _ _ h
-
-lemma finset.card_bUnion_le_card_mul [decidable_eq β] {s : finset α} {f : α → finset β} {n : ℕ}
-  (h : ∀ a ∈ s, (f a).card ≤ n) :
-  (s.bUnion f).card ≤ s.card * n :=
-card_bUnion_le.trans $ finset.sum_le h
 
 lemma one_div_le_one_of_one_le [linear_ordered_field α] {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha
@@ -160,8 +133,7 @@ begin
   rcases s.eq_empty_or_nonempty with rfl | hs,
   { simp },
   rw div_pow,
-  have hs' : 0 < (s.card : ℝ),
-  { rwa [nat.cast_pos, card_pos] },
+  have hs' : 0 < (s.card : ℝ) := nat.cast_pos.2 hs.card_pos,
   rw [div_le_div_iff (sq_pos_of_ne_zero _ hs'.ne') hs', sq (s.card : ℝ), ←mul_assoc],
   apply mul_le_mul_of_nonneg_right (chebyshev' _ _) hs'.le,
 end
@@ -366,16 +338,13 @@ begin
   exact mul_le_mul_of_nonneg_left h (nat.cast_nonneg _),
 end
 
-lemma is_uniform.symm {G : simple_graph α} [decidable_rel G.adj] {ε : ℝ} {U V : finset α}
-  (h : G.is_uniform ε U V) :
-  G.is_uniform ε V U :=
+lemma is_uniform.symm {G : simple_graph α} [decidable_rel G.adj] {ε : ℝ} :
+  symmetric (is_uniform G ε) :=
 begin
-  intros V' hV' U' hU' hV hU,
+  intros U V h V' hV' U' hU' hV hU,
   rw [edge_density_comm _ V', edge_density_comm _ V],
   apply h _ hU' _ hV' hU hV,
 end
-
-lemma is_uniform_symmetric : symmetric (is_uniform G ε) := λ U V h, h.symm
 
 lemma is_uniform_comm {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
 ⟨λ h, h.symm, λ h, h.symm⟩
@@ -433,7 +402,6 @@ lemma pairs_count_finpartition {U V : finset α} (P : finpartition U) (Q : finpa
 by simp_rw [pairs_count_finpartition_left P, pairs_count_finpartition_right _ Q, sum_product]
 
 end relation
-
 
 /-! ## is_equipartition -/
 

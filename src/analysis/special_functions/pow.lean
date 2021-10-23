@@ -6,6 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébasti
 -/
 import analysis.special_functions.complex.log
 import analysis.calculus.extend_deriv
+import analysis.special_functions.log_deriv
 
 /-!
 # Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`

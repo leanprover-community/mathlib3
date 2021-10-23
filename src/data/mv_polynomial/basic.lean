@@ -456,7 +456,7 @@ begin
     congr' with  t,
     by_cases hj : s = t,
     { subst t, simp only [tsub_apply, add_apply, single_eq_same],
-      refine (tsub_add_cancel_of_le $ nat.pos_of_ne_zero _).symm,
+      refine (tsub_add_cancel_of_le (nat.pos_of_ne_zero _).succ_le).symm,
       rwa finsupp.mem_support_iff at h },
     { simp [single_eq_of_ne hj] } },
   { rw ← not_mem_support_iff, intro hm, apply h,

@@ -28,7 +28,7 @@ The central binomial coefficient, `nat.choose (2 * n) n`.
 -/
 def central_binom (n : ℕ) := (2 * n).choose n
 
-lemma central_binom_def (n : ℕ) : central_binom n = (2 * n).choose n := rfl
+lemma central_binom_eq_two_mul_choose (n : ℕ) : central_binom n = (2 * n).choose n := rfl
 
 lemma central_binom_pos (n : ℕ) : 0 < central_binom n :=
 choose_pos (nat.le_mul_of_pos_left zero_lt_two)

@@ -6,7 +6,6 @@ Authors: Patrick Massot, Johannes Hölzl
 import analysis.normed_space.multilinear
 import analysis.normed_space.units
 import analysis.asymptotics.asymptotics
-import analysis.complex.basic
 
 /-!
 # Bounded linear maps

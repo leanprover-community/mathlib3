@@ -216,7 +216,6 @@ end
 end defs
 
 section properties
-/-- this lemma needs well-ordering theorem-/
 lemma homogeneous_ideal.is_prime_iff [linear_ordered_cancel_add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (I_ne_top : I ≠ ⊤)
   (homogeneous_mem_or_mem : ∀ {x y : ⨁ i, A i}, is_homogeneous_element x → is_homogeneous_element y

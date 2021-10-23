@@ -37,7 +37,7 @@ structure stieltjes_function :=
 
 namespace stieltjes_function
 
-instance : has_coe_to_fun stieltjes_function := ⟨_, to_fun⟩
+instance : has_coe_to_fun stieltjes_function (λ _, ℝ → ℝ) := ⟨to_fun⟩
 
 initialize_simps_projections stieltjes_function (to_fun → apply)
 

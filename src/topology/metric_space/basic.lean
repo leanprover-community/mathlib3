@@ -1198,7 +1198,7 @@ lemma nnreal.nndist_eq (a b : ℝ≥0) :
 begin
   wlog h : a ≤ b,
   { apply nnreal.coe_eq.1,
-    rw [sub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
+    rw [tsub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
       nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
     apply max_eq_right,
     linarith [nnreal.coe_le_coe.2 h] },
@@ -1431,6 +1431,14 @@ for a version assuming `0 ≤ r` instead of `nonempty β`. -/
 lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
   closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 (le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
+
+lemma real.dist_le_of_mem_pi_Icc {x y x' y' : β → ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
+  dist x y ≤ dist x' y' :=
+begin
+  refine (dist_pi_le_iff dist_nonneg).2 (λ b, (real.dist_le_of_mem_interval _ _).trans
+    (dist_le_pi_dist _ _ b)); refine Icc_subset_interval _,
+  exacts [⟨hx.1 _, hx.2 _⟩, ⟨hy.1 _, hy.2 _⟩]
+end
 
 end pi
 
@@ -1847,6 +1855,18 @@ iff.intro
 
 lemma bounded.ediam_ne_top (h : bounded s) : emetric.diam s ≠ ⊤ :=
 bounded_iff_ediam_ne_top.1 h
+
+lemma ediam_univ_eq_top_iff_noncompact [proper_space α] :
+  emetric.diam (univ : set α) = ∞ ↔ noncompact_space α :=
+by rw [← not_compact_space_iff, compact_space_iff_bounded_univ, bounded_iff_ediam_ne_top, not_not]
+
+@[simp] lemma ediam_univ_of_noncompact [proper_space α] [noncompact_space α] :
+  emetric.diam (univ : set α) = ∞ :=
+ediam_univ_eq_top_iff_noncompact.mpr ‹_›
+
+@[simp] lemma diam_univ_of_noncompact [proper_space α] [noncompact_space α] :
+  diam (univ : set α) = 0 :=
+by simp [diam]
 
 /-- The distance between two points in a set is controlled by the diameter of the set. -/
 lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=

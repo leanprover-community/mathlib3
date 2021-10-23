@@ -52,7 +52,8 @@ element-/
 def homogeneous_ideal' [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) : Prop :=
   I = ideal.span {x | x ∈ I ∧ is_homogeneous_element x }
 
-lemma homogeneous_ideal_iff_eq_span_image_preimage [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) :
+lemma homogeneous_ideal_iff_eq_span_image_preimage [add_comm_monoid ι] [gcomm_semiring A] 
+  (I : ideal (⨁ i, A i)) :
   homogeneous_ideal' I ↔
     I = ideal.span (graded_monoid.to_direct_sum '' (graded_monoid.to_direct_sum ⁻¹' I)) :=
 by { rw [image_preimage_eq_inter_range, range_to_direct_sum], refl }

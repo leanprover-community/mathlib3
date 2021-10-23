@@ -799,7 +799,7 @@ theorem mem_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → x ∈ l
   head (s ++ t) = head s :=
 by {induction s, contradiction, refl}
 
-@[simp] theorem head'_append {s t : list α} {x : α} (h : x ∈ s.head') :
+theorem head'_append {s t : list α} {x : α} (h : x ∈ s.head') :
   x ∈ (s ++ t).head' :=
 by { cases s, contradiction, exact h }
 

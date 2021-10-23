@@ -42,6 +42,21 @@ by simp [proj_Icc, hx, h]
 @[simp] lemma proj_Icc_right : proj_Icc a b h b = ⟨b, right_mem_Icc.2 h⟩ :=
 proj_Icc_of_right_le h le_rfl
 
+lemma proj_Icc_eq_left (h : a < b) : proj_Icc a b h.le x = ⟨a, left_mem_Icc.mpr h.le⟩ ↔ x ≤ a :=
+begin
+  refine ⟨λ h', _, proj_Icc_of_le_left _⟩,
+  simp_rw [subtype.ext_iff_val, proj_Icc, max_eq_left_iff, min_le_iff, h.not_le, false_or] at h',
+  exact h'
+end
+
+lemma proj_Icc_eq_right (h : a < b) : proj_Icc a b h.le x = ⟨b, right_mem_Icc.mpr h.le⟩ ↔ b ≤ x :=
+begin
+  refine ⟨λ h', _, proj_Icc_of_right_le _⟩,
+  simp_rw [subtype.ext_iff_val, proj_Icc] at h',
+  have := ((max_choice _ _).resolve_left (by simp [h.ne', h'])).symm.trans h',
+  exact min_eq_left_iff.mp this
+end
+
 lemma proj_Icc_of_mem (hx : x ∈ Icc a b) : proj_Icc a b h x = ⟨x, hx⟩ :=
 by simp [proj_Icc, hx.1, hx.2]
 

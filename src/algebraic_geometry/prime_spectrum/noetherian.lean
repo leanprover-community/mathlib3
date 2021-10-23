@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
 -/
 import algebraic_geometry.prime_spectrum.basic
-
-noncomputable theory
+/-!
+This file proves additional properties of the prime spectrum a ring is Noetherian.
+-/
 
 universes u v
 
@@ -18,7 +19,6 @@ variables {A : Type u} [comm_ring A] [is_domain A] [is_noetherian_ring A]
 
 /--In a noetherian ring, every ideal contains a product of prime ideals
 ([samuel, § 3.3, Lemma 3])-/
-
 lemma exists_prime_spectrum_prod_le (I : ideal R) :
   ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
 begin
@@ -50,9 +50,7 @@ end
 
 /--In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
   product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as
-  product or prime ideals ([samuel, § 3.3, Lemma 3])
--/
-
+  product or prime ideals ([samuel, § 3.3, Lemma 3]) -/
 lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain
   (h_fA : ¬ is_field A) {I : ideal A} (h_nzI: I ≠ ⊥) :
   ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧

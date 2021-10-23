@@ -64,8 +64,6 @@ See the documentation of `to_additive.attr` for more information.
 ## Todo
 
 We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fintype X)`.
-There is work on `fincard` in the pipeline, which returns the cardinality of `X` if it
-is finite, and 0 otherwise.
 
 ## Tags
 

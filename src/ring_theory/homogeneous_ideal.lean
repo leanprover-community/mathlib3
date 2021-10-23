@@ -23,7 +23,7 @@ open_locale direct_sum classical big_operators
 open set direct_sum
 
 
-variables {ι : Type*} {A : ι → Type*} [Π i, add_comm_group (A i)]
+variables {ι : Type*} {A : ι → Type*} [Π i, add_comm_monoid (A i)]
 
 /-- An element `x : ⨁ i, A i` is a homogeneous element if it is a member of one of the summand. -/
 def is_homogeneous_element (x : ⨁ i, A i) : Prop := ∃ (y : graded_monoid A), of A y.fst y.snd = x
@@ -52,7 +52,7 @@ element-/
 def homogeneous_ideal' [add_comm_monoid ι] [gcomm_semiring A] (I : ideal (⨁ i, A i)) : Prop :=
   I = ideal.span {x | x ∈ I ∧ is_homogeneous_element x }
 
-lemma homogeneous_ideal_iff_eq_span_image_preimage [add_comm_monoid ι] [gcomm_semiring A] 
+lemma homogeneous_ideal_iff_eq_span_image_preimage [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) :
   homogeneous_ideal' I ↔
     I = ideal.span (graded_monoid.to_direct_sum '' (graded_monoid.to_direct_sum ⁻¹' I)) :=

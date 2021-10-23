@@ -328,7 +328,7 @@ perm_lookmap _ $ begin
   exact (h (h_2.symm.trans h_1)).elim
 end
 
-/-! `kerase` -/
+/-! ### `kerase` -/
 
 /-- Remove the first pair with the key `a`. -/
 def kerase (a : α) : list (sigma β) → list (sigma β) :=
@@ -497,7 +497,7 @@ begin
   { by_cases x = y.1; simp [*, list.sizeof] },
 end
 
-/-! `kinsert` -/
+/-! ### `kinsert` -/
 
 /-- Insert the pair `⟨a, b⟩` and erase the first pair with the key `a`. -/
 def kinsert (a : α) (b : β a) (l : list (sigma β)) : list (sigma β) :=

@@ -374,6 +374,8 @@ end
 lemma not_is_uniform_zero {U V : finset α} : ¬ G.is_uniform 0 U V :=
 λ h, not_le_of_lt (h ∅ (by simp) ∅ (by simp) (by simp) (by simp)) (abs_nonneg _)
 
+variables {ε}
+
 lemma is_uniform_of_one_le (hε : 1 ≤ ε) {U V : finset α} : G.is_uniform ε U V :=
 begin
   intros U' hU' V' hV' hU hV,
@@ -427,6 +429,12 @@ begin
   refl,
 end
 
+variables {P}
+
+lemma is_equipartition_of_subsingleton (h : (P.parts : set (finset α)).subsingleton) :
+  P.is_equipartition :=
+h.equitable_on _
+
 end finpartition
 
 lemma finpartition.is_equipartition_iff_card_parts_eq_average' [decidable_eq α] [fintype α]
@@ -448,5 +456,11 @@ variables [decidable_eq α] (s : finset α)
 
 lemma discrete_is_equipartition : (discrete s).is_equipartition :=
 set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
+
+lemma indiscrete_is_equipartition {hs : s.nonempty} : (indiscrete hs.ne_empty).is_equipartition :=
+by { rw [is_equipartition, indiscrete_parts, coe_singleton], exact set.equitable_on_singleton s _ }
+
+lemma indiscrete'_is_equipartition : (indiscrete' s).is_equipartition :=
+is_equipartition_of_subsingleton subsingleton_parts_indiscrete
 
 end finpartition

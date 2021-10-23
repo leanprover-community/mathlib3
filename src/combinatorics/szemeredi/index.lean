@@ -46,8 +46,7 @@ lemma nonempty_of_not_uniform {P : finpartition s} {G : simple_graph α} {ε : �
   (h : ¬ P.is_uniform G ε) : P.parts.nonempty :=
 nonempty_of_ne_empty (λ h₁, h (empty_is_uniform h₁))
 
-lemma uniform_of_one_le_eps {ε : ℝ} (hε : 1 ≤ ε) :
-  P.is_uniform G ε :=
+lemma is_uniform_of_one_le {ε : ℝ} (hε : 1 ≤ ε) : P.is_uniform G ε :=
 begin
   apply le_trans _ (mul_le_mul_of_nonneg_left hε (nat.cast_nonneg _)),
   rw [mul_one, nat.cast_le],

@@ -93,7 +93,48 @@ variables {α} {a : α}
   sup_parts := finset.sup_singleton,
   not_bot_mem := λ h, ha (mem_singleton.1 h).symm }
 
-instance : inhabited (finpartition (⊥ : α)) := ⟨finpartition.empty α ⟩
+/-- The finpartition in (at most) one part, aka indiscrete finpartition. -/
+def indiscrete' (a : α) [decidable (a = ⊥)] : finpartition a :=
+{ parts := if a = ⊥ then ∅ else {a},
+  disjoint := begin
+    rw [apply_ite coe, coe_empty, coe_singleton],
+    split_ifs,
+    { exact set.pairwise_disjoint_empty },
+    { exact set.pairwise_disjoint_singleton a }
+  end,
+  sup_parts := begin
+    split_ifs,
+    { rw [sup_empty, h] },
+    { exact sup_singleton }
+  end,
+  not_bot_mem := begin
+    split_ifs,
+    { exact not_mem_empty _ },
+    { exact not_mem_singleton.2 (ne.symm h) }
+  end}
+
+@[simp] lemma parts_indiscrete_bot [decidable ((⊥ : α) = ⊥)] : (indiscrete' (⊥ : α)).parts = ∅ :=
+if_pos rfl
+
+@[simp] lemma parts_indiscrete_of_ne_bot [decidable (a = ⊥)] (ha : a ≠ ⊥) :
+  (indiscrete' a).parts = {a} :=
+if_neg ha
+
+lemma subsingleton_parts_indiscrete [decidable (a = ⊥)] :
+  ((indiscrete' a).parts : set α).subsingleton :=
+begin
+  unfold indiscrete',
+  split_ifs,
+  { rw coe_empty,
+    exact set.subsingleton_empty },
+  { rw coe_singleton,
+    exact set.subsingleton_singleton }
+end
+
+lemma indiscrete_eq_empty [decidable ((⊥ : α) = ⊥)] : indiscrete' (⊥ : α) = finpartition.empty α :=
+by { ext, simp }
+
+-- instance [decidable (a = ⊥)] : inhabited (finpartition a) := ⟨indiscrete' a⟩
 
 variables (P : finpartition a)
 
@@ -107,7 +148,24 @@ begin
   exact iff_of_false (λ h, P.ne_bot h $ le_bot_iff.1 $ P.le h) (not_mem_empty a),
 end
 
+lemma indiscrete'_eq_empty [decidable ((⊥ : α) = ⊥)] :
+  indiscrete' (⊥ : α) = finpartition.empty α :=
+by { ext, simp }
+
+lemma indiscrete'_eq_indiscrete [decidable ((⊥ : α) = ⊥)] :
+  indiscrete' (⊥ : α) = finpartition.empty α :=
+by { ext, simp }
+
+instance : inhabited (finpartition (⊥ : α)) := ⟨finpartition.empty α⟩
+
 instance : unique (finpartition (⊥ : α)) := { uniq := eq_empty ..finpartition.inhabited }
+
+-- instance : unique (finpartition (⊥ : α)) :=
+-- begin
+--   haveI : decidable ((⊥ : α) = ⊥) := decidable.is_true rfl,
+--   exact { uniq := λ P, by { rw P.eq_empty, exact indiscrete_eq_empty.symm }
+--     ..finpartition.inhabited }
+-- end
 
 variables {P}
 

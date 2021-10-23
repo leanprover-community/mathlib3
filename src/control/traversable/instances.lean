@@ -10,7 +10,7 @@ import data.set.lattice
 /-!
 # Traversable instances
 
-This file provides instances  of `traversable` for types from the core library: `option`, `list` and
+This file provides instances of `traversable` for types from the core library: `option`, `list` and
 `sum`.
 -/
 

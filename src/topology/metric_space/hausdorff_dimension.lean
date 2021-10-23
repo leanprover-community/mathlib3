@@ -179,7 +179,7 @@ end
   dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
 begin
   haveI := hs.to_encodable,
-  rw [← Union_subtype, dimH_Union, ← supr_subtype'']
+  rw [bUnion_eq_Union, dimH_Union, ← supr_subtype'']
 end
 
 @[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=

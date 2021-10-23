@@ -37,7 +37,7 @@ of three sections:
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
+open generalized_continued_fraction (of)
 
 /- Fix a discrete linear ordered floor field and a value `v`. -/
 variables {K : Type*} [linear_ordered_field K] [floor_ring K] {v : K}
@@ -147,12 +147,12 @@ process.
 @[simp]
 lemma int_fract_pair.seq1_fst_eq_of : (int_fract_pair.seq1 v).fst = int_fract_pair.of v := rfl
 
-lemma of_h_eq_int_fract_pair_seq1_fst_b : (gcf.of v).h = (int_fract_pair.seq1 v).fst.b :=
-by { cases aux_seq_eq : (int_fract_pair.seq1 v), simp [gcf.of, aux_seq_eq] }
+lemma of_h_eq_int_fract_pair_seq1_fst_b : (of v).h = (int_fract_pair.seq1 v).fst.b :=
+by { cases aux_seq_eq : (int_fract_pair.seq1 v), simp [of, aux_seq_eq] }
 
 /-- The head term of the gcf of `v` is `⌊v⌋`. -/
 @[simp]
-lemma of_h_eq_floor : (gcf.of v).h = ⌊v⌋ :=
+lemma of_h_eq_floor : (of v).h = ⌊v⌋ :=
 by simp [of_h_eq_int_fract_pair_seq1_fst_b, int_fract_pair.of]
 
 end head
@@ -180,16 +180,16 @@ Let's first show how the termination of one sequence implies the termination of 
 -/
 
 lemma of_terminated_at_iff_int_fract_pair_seq1_terminated_at :
-  (gcf.of v).terminated_at n ↔ (int_fract_pair.seq1 v).snd.terminated_at n :=
+  (of v).terminated_at n ↔ (int_fract_pair.seq1 v).snd.terminated_at n :=
 begin
-  rw [gcf.terminated_at_iff_s_none, gcf.of],
+  rw [terminated_at_iff_s_none, of],
   rcases (int_fract_pair.seq1 v) with ⟨head, ⟨st⟩⟩,
   cases st_n_eq : st n;
-  simp [gcf.of, st_n_eq, seq.map, seq.nth, stream.map, seq.terminated_at, stream.nth]
+  simp [of, st_n_eq, seq.map, seq.nth, stream.map, seq.terminated_at, stream.nth]
 end
 
 lemma of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none :
-  (gcf.of v).terminated_at n ↔ int_fract_pair.stream v (n + 1) = none :=
+  (of v).terminated_at n ↔ int_fract_pair.stream v (n + 1) = none :=
 by rw [of_terminated_at_iff_int_fract_pair_seq1_terminated_at, seq.terminated_at,
   int_fract_pair.nth_seq1_eq_succ_nth_stream]
 
@@ -202,13 +202,13 @@ section values
 Now let's show how the values of the sequences correspond to one another.
 -/
 
-lemma int_fract_pair.exists_succ_nth_stream_of_gcf_of_nth_eq_some {gp_n : gcf.pair K}
-  (s_nth_eq : (gcf.of v).s.nth n = some gp_n) :
+lemma int_fract_pair.exists_succ_nth_stream_of_gcf_of_nth_eq_some {gp_n : pair K}
+  (s_nth_eq : (of v).s.nth n = some gp_n) :
   ∃ (ifp : int_fract_pair K), int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : K) = gp_n.b :=
 begin
   obtain ⟨ifp, stream_succ_nth_eq, gp_n_eq⟩ :
-    ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ gcf.pair.mk 1 (ifp.b : K) = gp_n, by
-    { unfold gcf.of int_fract_pair.seq1 at s_nth_eq,
+    ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ pair.mk 1 (ifp.b : K) = gp_n, by
+    { unfold of int_fract_pair.seq1 at s_nth_eq,
       rwa [seq.map_tail, seq.nth_tail, seq.map_nth, option.map_eq_some'] at s_nth_eq },
   cases gp_n_eq,
   injection gp_n_eq with _ ifp_b_eq_gp_n_b,
@@ -222,9 +222,9 @@ integer parts of the stream of integer and fractional parts.
 -/
 lemma nth_of_eq_some_of_succ_nth_int_fract_pair_stream {ifp_succ_n : int_fract_pair K}
   (stream_succ_nth_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n) :
-  (gcf.of v).s.nth n = some ⟨1, ifp_succ_n.b⟩ :=
+  (of v).s.nth n = some ⟨1, ifp_succ_n.b⟩ :=
 begin
-  unfold gcf.of int_fract_pair.seq1,
+  unfold of int_fract_pair.seq1,
   rw [seq.map_tail, seq.nth_tail, seq.map_nth],
   simp [seq.nth, stream_succ_nth_eq]
 end
@@ -235,7 +235,7 @@ fractional parts of the stream of integer and fractional parts.
 -/
 lemma nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero {ifp_n : int_fract_pair K}
   (stream_nth_eq : int_fract_pair.stream v n = some ifp_n) (nth_fr_ne_zero : ifp_n.fr ≠ 0) :
-  (gcf.of v).s.nth n = some ⟨1, (int_fract_pair.of ifp_n.fr⁻¹).b⟩ :=
+  (of v).s.nth n = some ⟨1, (int_fract_pair.of ifp_n.fr⁻¹).b⟩ :=
 have int_fract_pair.stream v (n + 1) = some (int_fract_pair.of ifp_n.fr⁻¹), by
   { cases ifp_n, simp [int_fract_pair.stream, stream_nth_eq, nth_fr_ne_zero], refl },
 nth_of_eq_some_of_succ_nth_int_fract_pair_stream this

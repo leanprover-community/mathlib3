@@ -7,6 +7,30 @@ import tactic.core
 
 namespace tactic
 
+/-- `copy_attribute' attr_name src tgt p d_name` copy (user) attribute `attr_name` from
+   `src` to `tgt` if it is defined for `src`; unlike `copy_attribute` the primed version also copies
+   the parameter of the user attribute, in the user attribute case. Make it persistent if `p` is
+   `tt`; if `p` is `none`, the copied attribute is made persistent iff it is persistent on `src`  -/
+meta def copy_attribute' (attr_name : name) (src : name) (tgt : name) (p : option bool := none) :
+tactic unit := do
+  get_decl tgt <|> fail!"unknown declaration {tgt}",
+  -- if the source doesn't have the attribute we do not error and simply return
+  mwhen (succeeds (has_attribute attr_name src)) $
+    do (p', prio) ← has_attribute attr_name src,
+      let p := p.get_or_else p',
+      s ← try_or_report_error (set_basic_attribute attr_name tgt p prio),
+      sum.inr msg ← return s | skip,
+      if msg =
+        (format!("set_basic_attribute tactic failed, '{attr_name}' " ++
+          "is not a basic attribute")).to_string
+      then do
+        user_attr_const ← (get_user_attribute_name attr_name >>= mk_const),
+        tac ← eval_pexpr (tactic unit)
+        ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
+          λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
+        tac
+      else fail msg
+
 open expr
 /-- Auxilliary function for `additive_test`. The bool argument *only* matters when applied
 to exactly a constant. -/
@@ -51,7 +75,7 @@ using the dictionary `f`.
 declaration. -/
 meta def transform_decl_with_prefix_fun_aux (f : name → option name)
   (replace_all trace : bool) (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ)
-  (pre tgt_pre : name) (attrs : list name) : name → command :=
+  (pre tgt_pre : name) : name → command :=
 λ src,
 do
   -- if this declaration is not `pre` or an internal declaration, we do nothing.
@@ -84,8 +108,7 @@ Nested error message:\n").to_string $ do {
     if env.is_protected src then add_protected_decl decl else add_decl decl,
     -- we test that the declaration value type-checks, so that we get the decorated error message
     -- without this line, the type-checking might fail outside the `decorate_error`.
-    decorate_error "proof doesn't type-check. " $ type_check decl.value },
-  attrs.mmap' $ λ n, copy_attribute n src tgt
+    decorate_error "proof doesn't type-check. " $ type_check decl.value }
 
 /--
 Make a new copy of a declaration,
@@ -95,10 +118,25 @@ This is used to implement `@[to_additive]`.
 meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all trace : bool)
   (relevant : name_map ℕ) (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name)
   : command :=
-do transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs src,
+do -- In order to ensure that attributes are copied correctly we must transform declarations and
+   -- attributes in the right order:
+   -- first generate the transformed main declaration
+   transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt src,
    ls ← get_eqn_lemmas_for tt src,
+   -- now transform all of the equational lemmas
    ls.mmap' $
-    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt attrs
+    transform_decl_with_prefix_fun_aux f replace_all trace relevant ignore reorder src tgt,
+   -- copy attributes for the equational lemmas so that they know if they are refl lemmas
+   ls.mmap' (λ src_eqn, do
+    let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
+    attrs.mmap' (λ n, copy_attribute' n src_eqn tgt_eqn)),
+   -- set the transformed equation lemmas as equation lemmas for the new declaration
+   ls.mmap' (λ src_eqn, do
+    e ← get_env,
+    let tgt_eqn := src_eqn.map_prefix (λ n, if n = src then some tgt else none),
+    set_env (e.add_eqn_lemma tgt_eqn)),
+   -- copy attributes for the main declaration, this needs the equational lemmas to exist already
+   attrs.mmap' (λ n, copy_attribute' n src tgt)
 
 /--
 Make a new copy of a declaration, replacing fragments of the names of identifiers in the type and

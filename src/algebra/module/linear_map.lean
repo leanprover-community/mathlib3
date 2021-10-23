@@ -110,12 +110,12 @@ variables [module R M] [module R M₂] [module S M₃]
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
 { map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
 
-instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) := ⟨_, to_fun⟩
+instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
 
 initialize_simps_projections linear_map (to_fun → apply)
 
 @[simp] lemma coe_mk {σ : R →+* S} (f : M → M₃) (h₁ h₂) :
-  ⇑(linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) = f := rfl
+  ((linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) : M → M₃) = f := rfl
 
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=
@@ -668,7 +668,7 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   one := (1 : M →ₗ[R] M),
   zero := 0,
   add := (+),
-  npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+  npow := @npow_rec _ ⟨(1 : M →ₗ[R] M)⟩ ⟨(*)⟩,
   mul_zero := comp_zero,
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,

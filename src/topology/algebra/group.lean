@@ -169,8 +169,6 @@ variables [topological_space α] {f : α → G} {s : set α} {x : α}
 lemma continuous.inv (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
 
-attribute [continuity] continuous.neg -- TODO
-
 @[to_additive]
 lemma continuous_on.inv (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
@@ -450,8 +448,6 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
       continuous_quot_mk.comp continuous_inv,
     convert continuous_quotient_lift _ this,
   end }
-
-attribute [instance] topological_add_group_quotient
 
 end quotient_topological_group
 

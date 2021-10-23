@@ -93,7 +93,7 @@ meta def normal_expr.e : normal_expr → expr
 | (normal_expr.nterm e _ _ _) := e
 
 meta instance : has_coe normal_expr expr := ⟨normal_expr.e⟩
-meta instance : has_coe_to_fun normal_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
+meta instance : has_coe_to_fun normal_expr (λ _, expr → expr) := ⟨λ e, ⇑(e : expr)⟩
 
 meta def normal_expr.term' (c : context) (n : expr × ℤ) (x : expr) (a : normal_expr) :
   normal_expr :=
@@ -325,10 +325,9 @@ return (e', pr)
 end abel
 
 namespace interactive
-open interactive interactive.types lean.parser
 open tactic.abel
 
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /-- Tactic for solving equations in the language of
 *additive*, commutative monoids and groups.

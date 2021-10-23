@@ -224,7 +224,7 @@ instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (prime_spectrum.Top R
   comm_ring ((structure_sheaf_in_Type R).1.obj U) :=
 (sections_subring R U).to_comm_ring
 
-open prime_spectrum
+open _root_.prime_spectrum
 
 /--
 The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued

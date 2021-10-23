@@ -260,6 +260,8 @@ end map
 /-- The monadic sequencing operation for `pmf`. -/
 def seq (f : pmf (α → β)) (p : pmf α) : pmf β := f.bind (λ m, p.bind $ λ a, pure (m a))
 
+section uniform
+
 /-- Given a non-empty multiset `s` we construct the `pmf` which sends `a` to the fraction of
   elements in `s` that are `a`. -/
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
@@ -273,6 +275,45 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
     apply has_sum_sum_of_ne_finset_zero,
     simp {contextual := tt},
   end⟩
+
+/-- Uniform distribution taking the same non-zero probability on the nonempty finset `s` -/
+def of_finset (s : finset α) (hs : s.nonempty) : pmf α :=
+⟨λ a, if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0,
+  begin
+    obtain ⟨x, hx⟩ := hs,
+    have : ∀ (b : α), b ∉ s → ite (b ∈ s) (s.card : ℝ≥0)⁻¹ 0 = 0 := λ b hb, by simp [hb],
+    convert has_sum_sum_of_ne_finset_zero this,
+    refine symm _,
+    calc ∑ (a : α) in s, ite (a ∈ s) (s.card : ℝ≥0)⁻¹ 0
+      = ∑ (a : α) in s, (s.card : ℝ≥0)⁻¹ : finset.sum_congr rfl (λ x hx, by simp [hx])
+      ... = s.card • (s.card : ℝ≥0)⁻¹ : finset.sum_const _
+      ... = (s.card : ℝ≥0) * (s.card : ℝ≥0)⁻¹ : by rw nsmul_eq_mul
+      ... = 1 : div_self (nat.cast_ne_zero.2 $ finset.card_ne_zero_of_mem hx)
+  end⟩
+
+@[simp]
+lemma of_finset_apply (s : finset α) (hs : s.nonempty) (a : α) :
+  of_finset s hs a = if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0 :=
+rfl
+
+lemma of_finset_apply_of_mem {s : finset α} (hs : s.nonempty) (a : α) (ha : a ∈ s) :
+  of_finset s hs a = (s.card)⁻¹ :=
+by simp [ha]
+
+lemma of_finset_apply_of_not_mem {s : finset α} (hs : s.nonempty) (a : α) (ha : a ∉ s) :
+  of_finset s hs a = 0 :=
+by simp [ha]
+
+/-- The uniform pmf taking the same uniform value on all of the fintype `α` -/
+def uniform (α : Type*) [fintype α] [inhabited α] : pmf α :=
+  of_finset (finset.univ) (finset.univ_nonempty)
+
+@[simp]
+lemma uniform_apply [fintype α] [inhabited α] (a : α) :
+  uniform α a = (fintype.card α)⁻¹ :=
+by simpa only [uniform, finset.mem_univ, if_true, of_finset_apply]
+
+end uniform
 
 /-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by its `tsum` -/
 def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
@@ -331,27 +372,5 @@ lemma bernuolli_apply (p : ℝ≥0) (h : p ≤ 1) (b : bool) :
 rfl
 
 end bernoulli
-
-section uniform
-
-variables [fintype α] [inhabited α]
-
-lemma has_sum_inv_card (α : Type*) [fintype α] [inhabited α] :
-  has_sum (λ (a : α), (fintype.card α : nnreal)⁻¹) 1 :=
-begin
-  convert has_sum_fintype (λ (a : α), (fintype.card α : nnreal)⁻¹),
-  refine symm ((finset.sum_const _).trans $ (nsmul_eq_mul _ _).trans (div_self _)),
-  exact nat.cast_ne_zero.2 (finset.card_ne_zero_of_mem (by simp : arbitrary α ∈ _)),
-end
-
-/-- Uniform `pmf` on a inhabited fintype assigning the same probabability to all elements of `α` -/
-def uniform (α : Type*) [fintype α] [inhabited α] : pmf α :=
-⟨λ a, (fintype.card α : nnreal)⁻¹, has_sum_inv_card α⟩
-
-@[simp]
-lemma uniform_apply (a : α) : (pmf.uniform α) a = (fintype.card α)⁻¹ :=
-rfl
-
-end uniform
 
 end pmf

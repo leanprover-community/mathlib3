@@ -7,7 +7,6 @@ def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
 lemma foo3 (n m : ℕ) : ℕ := n - m
 lemma foo.foo (n m : ℕ) : n ≥ n := le_refl n
-
 instance bar.bar : has_add ℕ := by apply_instance  -- we don't check the name of instances
 lemma foo.bar (ε > 0) : ε = ε := rfl -- >/≥ is allowed in binders (and in fact, in all hypotheses)
 /-- Test exception in `def_lemma` linter. -/

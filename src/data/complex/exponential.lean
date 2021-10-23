@@ -1286,7 +1286,7 @@ begin
   simp_rw [←sub_eq_add_neg],
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n / (n!) * 2,
   let k := j - n,
-  have hj : j = n + k := (← add_tsub_cancel_of_le hj).symm,
+  have hj : j = n + k := (add_tsub_cancel_of_le hj).symm,
   rw [hj, sum_range_add_sub_sum_range],
   calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
       ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _

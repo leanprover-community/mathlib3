@@ -3,7 +3,6 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.nat.basic
 import algebra.group_power.order
 
 /-! # `nat.pow`
@@ -132,7 +131,7 @@ begin
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
-    { apply tsub_lt_self (pow_pos b_pos _) ((pow_pos b_pos _).trans_le h₁) },
+    { exact tsub_lt_self ((pow_pos b_pos _).trans_le h₁) (pow_pos b_pos _) },
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
     -- Normalize goal and h1

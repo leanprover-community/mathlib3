@@ -325,7 +325,7 @@ lemma pow_injective_aux (h : n ≤ m)
   (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
 by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [tsub_eq_iff_eq_add_of_le h, ne.symm]),
-  have h₂ : m = n + (m - n) := (← add_tsub_cancel_of_le h).symm,
+  have h₂ : m = n + (m - n) := (add_tsub_cancel_of_le h).symm,
   have h₃ : x ^ (m - n) = 1,
     by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
   have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,

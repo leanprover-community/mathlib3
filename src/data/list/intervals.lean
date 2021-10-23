@@ -50,7 +50,7 @@ by dsimp [Ico]; simp only [nodup_range']
 suffices n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m, by simp [Ico, this],
 begin
   cases le_total n m with hnm hmn,
-  { rw [← add_tsub_cancel_of_le hnm] },
+  { rw [add_tsub_cancel_of_le hnm] },
   { rw [tsub_eq_zero_iff_le.mpr hmn, add_zero],
     exact and_congr_right (assume hnl, iff.intro
       (assume hln, (not_le_of_gt hln hnl).elim)
@@ -86,7 +86,7 @@ lemma append_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 begin
   dunfold Ico,
   convert range'_append _ _ _,
-  { exact (← add_tsub_cancel_of_le hnm).symm },
+  { exact (add_tsub_cancel_of_le hnm).symm },
   { rwa [← add_tsub_assoc_of_le hnm, tsub_add_cancel_of_le] }
 end
 

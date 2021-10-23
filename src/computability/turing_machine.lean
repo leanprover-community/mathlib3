@@ -269,7 +269,7 @@ begin
   swap, { exact (this $ λ i, (H i).symm).symm },
   refine quotient.sound' (or.inl ⟨l₂.length - l₁.length, _⟩),
   refine list.ext_le _ (λ i h h₂, eq.symm _),
-  { simp only [← add_tsub_cancel_of_le h, list.length_append, list.length_repeat] },
+  { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_repeat] },
   simp at H,
   cases lt_or_le i l₁.length with h' h',
   { simpa only [list.nth_le_append _ h',

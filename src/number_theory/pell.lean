@@ -248,7 +248,7 @@ by injection (pell_zd_add _ m n) with _ h;
 
 theorem pell_zd_sub {m n} (h : n ≤ m) : pell_zd (m - n) = pell_zd m * (pell_zd n).conj :=
 let t := pell_zd_add n (m - n) in
-by rw [← add_tsub_cancel_of_le h] at t;
+by rw [add_tsub_cancel_of_le h] at t;
     rw [t, mul_comm (pell_zd _ n) _, mul_assoc, (is_pell_norm _).1 (is_pell_pell_zd _ _), mul_one]
 
 theorem xz_sub {m n} (h : n ≤ m) : xz (m - n) = xz m * xz n - d * yz m * yz n :=
@@ -557,7 +557,7 @@ have npos : 0 < n, from lt_of_lt_of_le ipos hin,
   (λj2n : j ≤ 2 * n, eq_of_xn_modeq npos j2n i2n h $
     λa2 n1, ⟨λj0 i2, by rw [n1, i2] at hin; exact absurd hin dec_trivial,
               λj2 i0, ne_of_gt ipos i0⟩)
-  (λj2n : 2 * n < j, suffices i = 4*n - j, by rw [this, ← add_tsub_cancel_of_le j4n],
+  (λj2n : 2 * n < j, suffices i = 4*n - j, by rw [this, add_tsub_cancel_of_le j4n],
     have j42n : 4*n - j ≤ 2*n, from @nat.le_of_add_le_add_right j _ _ $
     by rw [tsub_add_cancel_of_le j4n, show 4*n = 2*n + 2*n, from right_distrib 2 2 n];
       exact nat.add_le_add_left (le_of_lt j2n) _,

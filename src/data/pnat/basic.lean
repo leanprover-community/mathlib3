@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import algebra.group_power.basic
-import data.nat.basic
 
 /-!
 # The positive natural numbers
@@ -200,7 +199,7 @@ end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
-                exact ← add_tsub_cancel_of_le h.le }
+                exact add_tsub_cancel_of_le h.le }
 
 instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
 

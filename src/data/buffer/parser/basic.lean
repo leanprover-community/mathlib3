@@ -882,7 +882,7 @@ begin
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9],
     rintro ⟨np, c, ⟨hn, ⟨ge0, le9⟩, rfl, rfl⟩, rfl, rfl⟩,
     simpa [hn, ge0, le9, true_and, and_true, eq_self_iff_true, exists_prop_of_true,
-            tsub_le_tsub_right_iff, l09] using (le_iff_le.mp le9) },
+            tsub_le_tsub_iff_right, l09] using (le_iff_le.mp le9) },
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9,
                le_iff_le],
     rintro ⟨hn, rfl, -, rfl, ge0, le9⟩,
@@ -2304,7 +2304,7 @@ begin
                 tsub_zero],
     -- We now have a goal of proving an inequality dealing with `nat` subtraction and `nat.pred`,
     -- both of which require special care to provide positivity hypotheses.
-    rw [tsub_le_tsub_right_iff, nat.pred_le_iff],
+    rw [tsub_le_tsub_iff_right, nat.pred_le_iff],
     { -- We know that `n' ≤ cb.size` because of the `bounded` property, that a parser will not
       -- produce a `done` result at a position farther than the size of the underlying
       -- `char_buffer`.
@@ -2576,7 +2576,7 @@ begin
       { -- We rewrite the statement to be a statement about characters instead, and split the
         -- inequality into the case that our hypotheses prove, and that `'0' ≤ '9'`, which
         -- is true by computation, handled by `dec_trivial`.
-        rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, tsub_le_tsub_right_iff],
+        rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, tsub_le_tsub_iff_right],
         { exact ho.right },
         { dec_trivial } },
         -- We rely on the simplifier, mostly powered by `digit_eq_done`, and supply all the

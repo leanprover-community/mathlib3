@@ -108,7 +108,7 @@ begin
         rw [← mul_assoc, this.eq, mul_assoc, ← pow_succ y (n - 1 - i)],
         congr' 2,
         rw [add_tsub_cancel_right, ← tsub_add_eq_tsub_tsub, add_comm 1 i],
-        have : i + 1 + (n - (i + 1)) = n := ← add_tsub_cancel_of_le (mem_range.mp hi),
+        have : i + 1 + (n - (i + 1)) = n := add_tsub_cancel_of_le (mem_range.mp hi),
         rw [add_comm (i + 1)] at this,
         rw [← this, add_tsub_cancel_right, add_comm i 1, ← add_assoc,
             add_tsub_cancel_right] },
@@ -225,7 +225,7 @@ begin
   simp_rw pow_mul_comm y (n-m) _,
   simp_rw ← mul_assoc,
   rw [← sum_mul, ← geom_sum₂_def, mul_sub, h.mul_geom_sum₂, ← mul_assoc,
-    h.mul_geom_sum₂, sub_mul, ← pow_add, ← add_tsub_cancel_of_le hmn,
+    h.mul_geom_sum₂, sub_mul, ← pow_add, add_tsub_cancel_of_le hmn,
     sub_sub_sub_cancel_right (x ^ n) (x ^ m * y ^ (n - m)) (y ^ n)],
 end
 

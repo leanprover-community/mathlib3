@@ -42,7 +42,7 @@ variables {m n : ℕ}
 @[simp] theorem factorial_two : 2! = 2 := rfl
 
 theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
-tsub_add_cancel_of_le hn ▸ rfl
+tsub_add_cancel_of_le (nat.succ_le_of_lt hn) ▸ rfl
 
 theorem factorial_pos : ∀ n, 0 < n!
 | 0        := zero_lt_one
@@ -169,7 +169,7 @@ begin
     apply pow_le_pow_of_le_left (zero_le n) (le_succ n),
     exact factorial_pos n,},
   convert nat.factorial_mul_pow_le_factorial,
-  exact (← add_tsub_cancel_of_le hnm).symm,
+  exact (add_tsub_cancel_of_le hnm).symm,
 end
 
 

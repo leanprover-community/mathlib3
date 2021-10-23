@@ -1590,17 +1590,17 @@ begin
     ∃ k, k ≤ finrank K V ∧ linear_map.ker (f ^ k) = linear_map.ker (f ^ k.succ) :=
     exists_ker_pow_eq_ker_pow_succ f,
   calc (f ^ m).ker = (f ^ (k + (m - k))).ker :
-      by rw ← add_tsub_cancel_of_le (h_k_le.trans hm)
+      by rw add_tsub_cancel_of_le (h_k_le.trans hm)
     ...  = (f ^ k).ker : by rw ker_pow_constant hk _
     ...  = (f ^ (k + (finrank K V - k))).ker : ker_pow_constant hk (finrank K V - k)
-    ...  = (f ^ finrank K V).ker : by rw ← add_tsub_cancel_of_le h_k_le
+    ...  = (f ^ finrank K V).ker : by rw add_tsub_cancel_of_le h_k_le
 end
 
 lemma ker_pow_le_ker_pow_finrank [finite_dimensional K V] (f : End K V) (m : ℕ) :
   (f ^ m).ker ≤ (f ^ finrank K V).ker :=
 begin
   by_cases h_cases: m < finrank K V,
-  { rw [←← add_tsub_cancel_of_le (nat.le_of_lt h_cases), add_comm, pow_add],
+  { rw [←add_tsub_cancel_of_le (nat.le_of_lt h_cases), add_comm, pow_add],
     apply linear_map.ker_le_ker_comp },
   { rw [ker_pow_eq_ker_pow_finrank_of_le (le_of_not_lt h_cases)],
     exact le_refl _ }

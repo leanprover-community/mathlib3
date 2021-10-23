@@ -425,7 +425,7 @@ open lucas_lehmer
 theorem lucas_lehmer_sufficiency (p : ℕ) (w : 1 < p) : lucas_lehmer_test p → (mersenne p).prime :=
 begin
   let p' := p - 2,
-  have z : p = p' + 2 := (tsub_eq_iff_eq_add_of_le w).mp rfl,
+  have z : p = p' + 2 := (tsub_eq_iff_eq_add_of_le w.succ_le).mp rfl,
   have w : 1 < p' + 2 := (nat.lt_of_sub_eq_succ rfl),
   contrapose,
   intros a t,

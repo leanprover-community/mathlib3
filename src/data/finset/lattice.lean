@@ -195,13 +195,11 @@ lemma sup_mem
 
 end sup
 
-lemma disjoint_sup_right [distrib_lattice_bot α] [decidable_eq β] {a : α} {s : finset β}
-  {f : β → α} :
+lemma disjoint_sup_right [distrib_lattice_bot α] {a : α} {s : finset β} {f : β → α} :
   disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
 ⟨λ h i hi, h.mono_right (le_sup hi), sup_induction disjoint_bot_right (λ b c, disjoint.sup_right)⟩
 
-lemma disjoint_sup_left [distrib_lattice_bot α] [decidable_eq β] {a : α} {s : finset β}
-  {f : β → α} :
+lemma disjoint_sup_left [distrib_lattice_bot α] {a : α} {s : finset β} {f : β → α} :
   disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
 by { simp_rw @disjoint.comm _ _ _ a, exact disjoint_sup_right }
 

@@ -72,19 +72,20 @@ noncomputable theory
 open filter
 open_locale topological_space
 
+universes u v
+
 section weak_star_topology
 /-!
 ### Weak star topology on duals of topological modules
 -/
 
-universe variables u v
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
 variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
 
 /-- The weak dual of a topological module `E` over a topological semiring `𝕜` consists of
 continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the usual dual
 (when the latter is defined), but will be equipped with a different topology. -/
-@[derive [inhabited, has_coe_to_fun]]
+@[derive [inhabited, λ α, has_coe_to_fun α (λ _, E → 𝕜)]]
 def weak_dual := E →L[𝕜] 𝕜
 
 instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) :=

@@ -56,7 +56,7 @@ section
 
 variables {p₀ p₁ : path x₀ x₁}
 
-instance : has_coe_to_fun (homotopy p₀ p₁) := ⟨_, λ F, F.to_fun⟩
+instance : has_coe_to_fun (homotopy p₀ p₁) (λ _, I × I → X) := ⟨λ F, F.to_fun⟩
 
 lemma coe_fn_injective : @function.injective (homotopy p₀ p₁) (I × I → X) coe_fn :=
 continuous_map.homotopy_with.coe_fn_injective

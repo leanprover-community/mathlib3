@@ -120,7 +120,7 @@ lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : 
   p.degree = 1 :=
 degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _)
 
-lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [domain K]
+lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
   function.surjective (algebra_map k K) :=
 begin
@@ -135,11 +135,11 @@ begin
 end
 
 lemma algebra_map_surjective_of_is_integral'
-  {k K : Type*} [field k] [comm_ring K] [integral_domain K]
+  {k K : Type*} [field k] [comm_ring K] [is_domain K]
   [hk : is_alg_closed k] (f : k →+* K) (hf : f.is_integral) : function.surjective f :=
 @algebra_map_surjective_of_is_integral k K _ _ _ _ f.to_algebra hf
 
-lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [domain K]
+lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
 algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)

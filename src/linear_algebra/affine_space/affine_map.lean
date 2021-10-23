@@ -8,6 +8,7 @@ import linear_algebra.tensor_product
 import linear_algebra.prod
 import linear_algebra.pi
 import data.set.intervals.unordered_interval
+import tactic.abel
 
 /-!
 # Affine maps
@@ -60,7 +61,7 @@ instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
     [ring k]
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
     [add_comm_group V2] [module k V2] [affine_space V2 P2]:
-    has_coe_to_fun (P1 →ᵃ[k] P2) := ⟨_, affine_map.to_fun⟩
+    has_coe_to_fun (P1 →ᵃ[k] P2) (λ _, P1 → P2) := ⟨affine_map.to_fun⟩
 
 namespace linear_map
 

@@ -865,7 +865,7 @@ convergence.-/
 lemma change_origin_radius : p.radius - ∥x∥₊ ≤ (p.change_origin x).radius :=
 begin
   refine ennreal.le_of_forall_pos_nnreal_lt (λ r h0 hr, _),
-  rw [ennreal.lt_sub_iff_add_lt, add_comm] at hr,
+  rw [lt_tsub_iff_right, add_comm] at hr,
   have hr' : (∥x∥₊ : ℝ≥0∞) < p.radius, from (le_add_right le_rfl).trans_lt hr,
   apply le_radius_of_summable_nnnorm,
   have : ∀ k : ℕ, ∥p.change_origin x k∥₊ * r ^ k ≤
@@ -896,7 +896,7 @@ begin
     from mem_emetric_ball_zero_iff.2 ((le_add_right le_rfl).trans_lt h),
   have y_mem_ball : y ∈ emetric.ball (0 : E) (p.change_origin x).radius,
   { refine mem_emetric_ball_zero_iff.2 (lt_of_lt_of_le _ p.change_origin_radius),
-    rwa [ennreal.lt_sub_iff_add_lt, add_comm] },
+    rwa [lt_tsub_iff_right, add_comm] },
   have x_add_y_mem_ball : x + y ∈ emetric.ball (0 : E) p.radius,
   { refine mem_emetric_ball_zero_iff.2 (lt_of_le_of_lt _ h),
     exact_mod_cast nnnorm_add_le x y },
@@ -949,17 +949,17 @@ theorem has_fpower_series_on_ball.change_origin
   has_fpower_series_on_ball f (p.change_origin y) (x + y) (r - ∥y∥₊) :=
 { r_le := begin
     apply le_trans _ p.change_origin_radius,
-    exact ennreal.sub_le_sub hf.r_le (le_refl _)
+    exact tsub_le_tsub hf.r_le (le_refl _)
   end,
   r_pos := by simp [h],
   has_sum := λ z hz, begin
     convert (p.change_origin y).has_sum _,
-    { rw [mem_emetric_ball_zero_iff, ennreal.lt_sub_iff_add_lt, add_comm] at hz,
+    { rw [mem_emetric_ball_zero_iff, lt_tsub_iff_right, add_comm] at hz,
       rw [p.change_origin_eval (hz.trans_le hf.r_le), add_assoc, hf.sum],
       refine mem_emetric_ball_zero_iff.2 (lt_of_le_of_lt _ hz),
       exact_mod_cast nnnorm_add_le y z },
     { refine emetric.ball_subset_ball (le_trans _ p.change_origin_radius) hz,
-      exact ennreal.sub_le_sub hf.r_le le_rfl }
+      exact tsub_le_tsub hf.r_le le_rfl }
   end }
 
 /-- If a function admits a power series expansion `p` on an open ball `B (x, r)`, then

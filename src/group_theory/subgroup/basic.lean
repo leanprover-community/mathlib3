@@ -1129,6 +1129,10 @@ variable {H}
 instance normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
 ⟨λ x xH g, by simpa using (g.2 x).1 xH⟩
 
+@[to_additive] lemma normalizer_eq_top : H.normalizer = ⊤ ↔ H.normal :=
+eq_top_iff.trans ⟨λ h, ⟨λ a ha b, (h (mem_top b) a).mp ha⟩, λ h a ha b,
+  ⟨λ hb, h.conj_mem b hb a, λ hb, by rwa [h.mem_comm_iff, inv_mul_cancel_left] at hb⟩⟩
+
 open_locale classical
 
 @[to_additive]

@@ -10,7 +10,7 @@ import ring_theory.integrally_closed
 import ring_theory.polynomial.rational_root
 import ring_theory.trace
 import algebra.associated
-import algebraic_geometry.prime_spectrum
+import algebraic_geometry.prime_spectrum.noetherian
 
 /-!
 # Dedekind domains

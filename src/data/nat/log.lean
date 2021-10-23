@@ -36,6 +36,12 @@ begin
   rw [log, ←ite_not, if_pos hnb],
 end
 
+lemma log_of_one_lt_of_le {b n : ℕ} (h : 1 < b) (hn : b ≤ n) : log b n = log b (n / b) + 1 :=
+begin
+  rw log,
+  exact if_pos ⟨hn, h⟩,
+end
+
 lemma log_of_lt {b n : ℕ} (hnb : n < b) : log b n = 0 :=
 by rw [log, if_neg (λ h : b ≤ n ∧ 1 < b, h.1.not_lt hnb)]
 
@@ -45,22 +51,12 @@ by rw [log, if_neg (λ h : b ≤ n ∧ 1 < b, h.2.not_le hb)]
 lemma log_eq_zero_iff {b n : ℕ} : log b n = 0 ↔ n < b ∨ b ≤ 1 :=
 begin
   split,
-  { rw log,
-    cases le_or_lt b n with b_le_n,
-    { cases lt_or_le 1 b with one_lt_b,
-      { rw if_pos,
-        { intros h,
-          exfalso,
-          exact succ_ne_zero _ h, },
-        { exact ⟨b_le_n, one_lt_b⟩, }, },
-      { rw if_neg,
-        { intros _, exact or.inr h, },
-        { rintro ⟨_, bad⟩,
-          exact lt_irrefl _ (lt_of_lt_of_le bad h) }, }, },
-    { rw if_neg,
-      { intros, exact or.inl h, },
-      { rintro ⟨bad, _⟩,
-        exact lt_irrefl _ (lt_of_lt_of_le h bad), }, }, },
+  { intro h_log,
+    by_contra h,
+    push_neg at h,
+    have := log_of_one_lt_of_le h.2 h.1,
+    rw h_log at this,
+    exact succ_ne_zero _ this.symm, },
   { exact log_eq_zero, },
 end
 
@@ -68,31 +64,21 @@ lemma log_eq_one_iff {b n : ℕ} : log b n = 1 ↔ n < b * b ∧ 1 < b ∧ b ≤
 -- This is best possible: if b = 2, n = 5, then 1 < b and b ≤ n but n > b * b.
 begin
   split,
-  { rw log,
-    cases le_or_lt b n with b_le_n,
-    { cases lt_or_le 1 b with one_lt_b,
-      { rw if_pos,
-        { rw [succ_inj', log_eq_zero_iff],
-          rintro (h|bad),
-          { rw nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b) at h,
-            exact ⟨h, one_lt_b, b_le_n⟩, },
-          { exfalso, exact lt_irrefl _ (lt_of_lt_of_le one_lt_b bad), }, },
-        { exact ⟨b_le_n, one_lt_b⟩, }, },
-      { rw if_neg,
-        { intros bad, exfalso, exact zero_ne_one bad, },
-        { rintro ⟨_, bad⟩,
-          exact lt_irrefl _ (lt_of_lt_of_le bad h), }, }, },
-    { rw if_neg,
-      { intros bad, exfalso, exact zero_ne_one bad, },
-      { rintro ⟨bad, _⟩,
-        exact lt_irrefl _ (lt_of_lt_of_le h bad), }, }, },
+  { intro h_log,
+    have bound : 1 < b ∧ b ≤ n,
+    { contrapose h_log,
+      rw [not_and_distrib, not_lt, not_le, or_comm, ←log_eq_zero_iff] at h_log,
+      rw h_log,
+      exact nat.zero_ne_one, },
+    cases bound with one_lt_b b_le_n,
+    refine ⟨_, one_lt_b, b_le_n⟩,
+    rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj',
+        log_eq_zero_iff, nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b)] at h_log,
+    exact h_log.resolve_right (λ b_small, lt_irrefl _ (lt_of_lt_of_le one_lt_b b_small)), },
   { rintros ⟨h, one_lt_b, b_le_n⟩,
-    rw [log, if_pos, succ_inj'],
-    { rw log_eq_zero_iff,
-      left,
-      rw nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b),
-      exact h, },
-    { exact ⟨b_le_n, one_lt_b⟩, }, },
+    rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj',
+        log_eq_zero_iff, nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b)],
+    exact or.inl h, },
 end
 
 @[simp] lemma log_zero_left (n : ℕ) : log 0 n = 0 :=

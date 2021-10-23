@@ -37,7 +37,8 @@ variables {α : Type*} {β : Type*}
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
 
 /-- A version of `quotient.eq'` compatible with `setoid.rel`, to make rewriting possible. -/
-lemma quotient.eq_rel {r : setoid α} {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y := quotient.eq'
+lemma quotient.eq_rel {r : setoid α} {x y} :
+  (quotient.mk' x : quotient r) = quotient.mk' y ↔ r.rel x y := quotient.eq
 
 namespace setoid
 
@@ -61,6 +62,9 @@ theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x 
 @[trans] lemma trans' (r : setoid α) : ∀ {x y z}, r.rel x y → r.rel y z → r.rel x z :=
 λ _ _ _ hx, r.2.2.2 hx
 
+lemma comm' (s : setoid α) {x y} : s.rel x y ↔ s.rel y x :=
+⟨s.symm', s.symm'⟩
+
 /-- The kernel of a function is an equivalence relation. -/
 def ker (f : α → β) : setoid α :=
 ⟨λ x y, f x = f y, ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h, h.trans⟩⟩
@@ -68,6 +72,14 @@ def ker (f : α → β) : setoid α :=
 /-- The kernel of the quotient map induced by an equivalence relation r equals r. -/
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
+
+lemma ker_apply_mk_out {f : α → β} (a : α) :
+  f (by haveI := setoid.ker f; exact ⟦a⟧.out) = f a :=
+@quotient.mk_out _ (setoid.ker f) a
+
+lemma ker_apply_mk_out' {f : α → β} (a : α) :
+  f ((quotient.mk' a : quotient $ setoid.ker f).out') = f a :=
+@quotient.mk_out' _ (setoid.ker f) a
 
 lemma ker_def {f : α → β} {x y : α} : (ker f).rel x y ↔ f x = f y := iff.rfl
 
@@ -124,6 +136,15 @@ instance complete_lattice : complete_lattice (setoid α) :=
   bot_le := λ r x y h, h ▸ r.2.1 x,
   .. complete_lattice_of_Inf (setoid α) $ assume s,
     ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
+
+@[simp]
+lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
+
+@[simp]
+lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
+
+lemma eq_top_iff {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
+by simp [eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply]
 
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
@@ -185,7 +206,7 @@ theorem eqv_gen_le {r : α → α → Prop} {s : setoid α} (h : ∀ x y, r x y 
   eqv_gen.setoid r ≤ s :=
 by rw eqv_gen_eq; exact Inf_le h
 
-/-- Equivalence closure of binary relations is monotonic. -/
+/-- Equivalence closure of binary relations is monotone. -/
 theorem eqv_gen_mono {r s : α → α → Prop} (h : ∀ x y, r x y → s x y) :
   eqv_gen.setoid r ≤ eqv_gen.setoid s :=
 eqv_gen_le $ λ _ _ hr, eqv_gen.rel _ _ $ h _ _ hr
@@ -223,7 +244,7 @@ theorem lift_unique {r : setoid α} {f : α → β} (H : r ≤ ker f) (g : quoti
   (Hg : f = g ∘ quotient.mk) : quotient.lift f H = g :=
 begin
   ext ⟨x⟩,
-  erw [quotient.lift_beta f H, Hg],
+  erw [quotient.lift_mk f H, Hg],
   refl
 end
 
@@ -249,12 +270,25 @@ noncomputable def quotient_ker_equiv_range :
 equiv.of_bijective (@quotient.lift _ (set.range f) (ker f)
   (λ x, ⟨f x, set.mem_range_self x⟩) $ λ _ _ h, subtype.ext_val h)
   ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
-   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext_iff_val.2 hz⟩⟩
+   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_mk; exact subtype.ext_iff_val.2 hz⟩⟩
 
-/-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/
+/-- If `f` has a computable right-inverse, then the quotient by its kernel is equivalent to its
+domain. -/
+@[simps]
+def quotient_ker_equiv_of_right_inverse (g : β → α) (hf : function.right_inverse g f) :
+  quotient (ker f) ≃ β :=
+{ to_fun := λ a, quotient.lift_on' a f $ λ _ _, id,
+  inv_fun := λ b, quotient.mk' (g b),
+  left_inv := λ a, quotient.induction_on' a $ λ a, quotient.sound' $ by exact hf (f a),
+  right_inv := hf }
+
+/-- The quotient of α by the kernel of a surjective function f bijects with f's codomain.
+
+If a specific right-inverse of `f` is known, `setoid.quotient_ker_equiv_of_right_inverse` can be
+definitionally more useful. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
   quotient (ker f) ≃ β :=
-(quotient_ker_equiv_range f).trans $ equiv.subtype_univ_equiv hf
+quotient_ker_equiv_of_right_inverse _ (function.surj_inv hf) (right_inverse_surj_inv hf)
 
 variables {r f}
 
@@ -285,6 +319,9 @@ by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 def comap (f : α → β) (r : setoid β) : setoid α :=
 ⟨λ x y, r.rel (f x) (f y), ⟨λ _, r.refl' _, λ _ _ h, r.symm' h, λ _ _ _ h1, r.trans' h1⟩⟩
 
+lemma comap_rel (f : α → β) (r : setoid β) (x y : α) : (comap f r).rel x y ↔ r.rel (f x) (f y) :=
+iff.rfl
+
 /-- Given a map `f : N → M` and an equivalence relation `r` on `β`, the equivalence relation
     induced on `α` by `f` equals the kernel of `r`'s quotient map composed with `f`. -/
 lemma comap_eq {f : α → β} {r : setoid β} : comap f r = ker (@quotient.mk _ r ∘ f) :=
@@ -314,21 +351,41 @@ variables {r f}
 
 open quotient
 
-/-- Given an equivalence relation r on α, the order-preserving bijection between the set of
-    equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
+/-- Given an equivalence relation `r` on `α`, the order-preserving bijection between the set of
+equivalence relations containing `r` and the equivalence relations on the quotient of `α` by `r`. -/
 def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
 { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
-  inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
+  inv_fun := λ s, ⟨comap quotient.mk' s, λ x y h, by rw [comap_rel, eq_rel.2 h]⟩,
   left_inv := λ s, subtype.ext_iff_val.2 $ ext' $ λ _ _,
     ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
       s.1.trans' (s.1.symm' $ s.2 $ eq_rel.1 hx) $ s.1.trans' H $ s.2 $ eq_rel.1 hy,
      λ h, ⟨_, _, rfl, rfl, h⟩⟩,
-  right_inv := λ s, let Hm : ker quotient.mk ≤ comap quotient.mk s :=
-      λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
+  right_inv := λ s, let Hm : ker quotient.mk' ≤ comap quotient.mk' s :=
+      λ x y h, by rw [comap_rel, (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h)] in
     ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-    λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
-      t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy⟩ }
+  map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
+      t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy,
+      λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end setoid
+
+@[simp]
+lemma quotient.subsingleton_iff  {s : setoid α} :
+  subsingleton (quotient s) ↔ s = ⊤ :=
+begin
+  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def,
+    pi.top_apply, forall_const],
+  refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ b, _),
+  exact quotient.eq',
+end
+
+lemma quot.subsingleton_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
+begin
+  simp only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, pi.top_apply, forall_const],
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
+  rw quot.eq,
+  simp only [forall_const, le_Prop_eq],
+end

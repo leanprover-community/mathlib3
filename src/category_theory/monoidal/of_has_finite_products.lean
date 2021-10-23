@@ -10,7 +10,8 @@ import category_theory.limits.shapes.terminal
 /-!
 # The natural monoidal structure on any category with finite (co)products.
 
-A category with a monoidal structure provided in this way is sometimes called a (co)cartesian category,
+A category with a monoidal structure provided in this way
+is sometimes called a (co)cartesian category,
 although this is also sometimes used to mean a finitely complete category.
 (See <https://ncatlab.org/nlab/show/cartesian+category>.)
 
@@ -42,7 +43,8 @@ section
 local attribute [tidy] tactic.case_bash
 
 /-- A category with a terminal object and binary products has a natural monoidal structure. -/
-def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] : monoidal_category C :=
+def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] :
+  monoidal_category C :=
 { tensor_unit  := ⊤_ C,
   tensor_obj   := λ X Y, X ⨯ Y,
   tensor_hom   := λ _ _ _ _ f g, limits.prod.map f g,
@@ -109,7 +111,8 @@ section
 local attribute [tidy] tactic.case_bash
 
 /-- A category with an initial object and binary coproducts has a natural monoidal structure. -/
-def monoidal_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] : monoidal_category C :=
+def monoidal_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] :
+  monoidal_category C :=
 { tensor_unit  := ⊥_ C,
   tensor_obj   := λ X Y, X ⨿ Y,
   tensor_hom   := λ _ _ _ _ f g, limits.coprod.map f g,

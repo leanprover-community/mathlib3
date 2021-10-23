@@ -41,8 +41,8 @@ variables [monoid α] {a b c : α}
 instance monoid_has_dvd : has_dvd α :=
 has_dvd.mk (λ a b, ∃ c, b = a * c)
 
--- TODO: this used to not have c explicit, but that seems to be important
---       for use with tactics, similar to exist.intro
+-- TODO: this used to not have `c` explicit, but that seems to be important
+--       for use with tactics, similar to `exists.intro`
 theorem dvd.intro (c : α) (h : a * c = b) : a ∣ b :=
 exists.intro c h^.symm
 
@@ -54,7 +54,10 @@ theorem dvd.elim {P : Prop} {a b : α} (H₁ : a ∣ b) (H₂ : ∀ c, b = a * c
 exists.elim H₁ H₂
 
 @[refl, simp] theorem dvd_refl (a : α) : a ∣ a :=
-dvd.intro 1 (by simp)
+dvd.intro 1 (mul_one _)
+
+lemma dvd_rfl {a : α} : a ∣ a :=
+dvd_refl a
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
@@ -64,17 +67,31 @@ match h₁, h₂ with
   ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
 end
 
-alias dvd_trans ← dvd.trans
+alias dvd_trans ← has_dvd.dvd.trans
 
-theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
+theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
 
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
 
 theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
-dvd.elim h (λ d h', begin rw [h', mul_assoc], apply dvd_mul_right end)
+h.trans (dvd_mul_right b c)
+
+alias dvd_mul_of_dvd_left ← has_dvd.dvd.mul_right
 
 theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
-dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
+(dvd_mul_right a b).trans h
+
+section map_dvd
+
+variables {M N : Type*}
+
+lemma mul_hom.map_dvd [monoid M] [monoid N] (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b
+| ⟨c, h⟩ := ⟨f c, h.symm ▸ f.map_mul a c⟩
+
+lemma monoid_hom.map_dvd [monoid M] [monoid N] (f : M →* N) {a b} : a ∣ b → f a ∣ f b :=
+f.to_mul_hom.map_dvd
+
+end map_dvd
 
 end monoid
 
@@ -96,7 +113,9 @@ exists.elim (exists_eq_mul_left_of_dvd h₁) (assume c, assume h₃ : b = c * a,
 @[simp] theorem dvd_mul_left (a b : α) : a ∣ b * a := dvd.intro b (mul_comm a b)
 
 theorem dvd_mul_of_dvd_right (h : a ∣ b) (c : α) : a ∣ c * b :=
-begin rw mul_comm, exact dvd_mul_of_dvd_left h _ end
+begin rw mul_comm, exact h.mul_right _ end
+
+alias dvd_mul_of_dvd_right ← has_dvd.dvd.mul_left
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
@@ -160,9 +179,9 @@ lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simp⟩
 lemma dvd_mul_right : a ∣ b * u ↔ a ∣ b :=
 iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
-  (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
+  (assume ⟨c, eq⟩, eq.symm ▸ (dvd_mul_right _ _).mul_right _)
 
-/-- In a monoid, an element a divides an element b iff all associates of `a` divide `b`.-/
+/-- In a monoid, an element `a` divides an element `b` iff all associates of `a` divide `b`. -/
 lemma mul_right_dvd : a * u ∣ b ↔ a ∣ b :=
 iff.intro
   (λ ⟨c, eq⟩, ⟨↑u * c, eq.trans (mul_assoc _ _ _)⟩)
@@ -227,7 +246,8 @@ section comm_monoid_with_zero
 
 variable [comm_monoid_with_zero α]
 
-/-- `dvd_not_unit a b` expresses that `a` divides `b` "strictly", i.e. that `b` divided by `a` is not a unit. -/
+/-- `dvd_not_unit a b` expresses that `a` divides `b` "strictly", i.e. that `b` divided by `a`
+is not a unit. -/
 def dvd_not_unit (a b : α) : Prop := a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x
 
 lemma dvd_not_unit_of_dvd_of_not_dvd {a b : α} (hd : a ∣ b) (hnd : ¬ b ∣ a) :

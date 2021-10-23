@@ -13,7 +13,7 @@ import data.finset
 
 Suppose `α β` are linear orders, with `α` countable and `β` dense, nonempty, without endpoints.
 Then there is an order embedding `α ↪ β`. If in addition `α` is dense, nonempty, without
-endpoints and `β` is countable, then we can upgrade this to an order isomorhpism `α ≃ β`.
+endpoints and `β` is countable, then we can upgrade this to an order isomorphism `α ≃ β`.
 
 The idea for both results is to consider "partial isomorphisms", which
 identify a finite subset of `α` with a finite subset of `β`, and prove that
@@ -156,7 +156,7 @@ def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [n
       change (a, b) ∈ f'.val.image _,
       rwa [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] },
     { change _ ⊆ f'.val.image _,
-      rw [←finset.coe_subset, finset.coe_image, equiv.subset_image],
+      rw [←finset.coe_subset, finset.coe_image, ← equiv.subset_image],
       change f.val.image _ ⊆ _ at hl,
       rwa [←finset.coe_subset, finset.coe_image] at hl }
   end }

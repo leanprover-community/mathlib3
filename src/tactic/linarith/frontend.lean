@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis
 -/
 
 import tactic.linarith.verification
@@ -153,7 +153,8 @@ Otherwise returns `none`.
 meta def apply_contr_lemma : tactic (option (expr × expr)) :=
 do t ← target,
    match get_contr_lemma_name_and_type t with
-   | some (nm, tp) := do refine ((expr.const nm []) pexpr.mk_placeholder), v ← intro1, return $ some (tp, v)
+   | some (nm, tp) :=
+     do refine ((expr.const nm []) pexpr.mk_placeholder), v ← intro1, return $ some (tp, v)
    | none := return none
    end
 
@@ -242,22 +243,26 @@ do t ← target,
 if t.is_eq.is_some then
   linarith_trace "target is an equality: splitting" >>
     seq' (applyc ``eq_of_not_lt_of_not_gt) tactic.linarith else
-do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try auto.split_hyps),
+do hyps ← hyps.mmap $ λ e, i_to_expr e >>= note_anon none,
+   when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try auto.split_hyps),
 /- If we are proving a comparison goal (and not just `false`), we consider the type of the
    elements in the comparison to be the "preferred" type. That is, if we find comparison
    hypotheses in multiple types, we will run `linarith` on the goal type first.
    In this case we also recieve a new variable from moving the goal to a hypothesis.
-   Otherwise, there is no preferred type and no new variable; we simply change the goal to `false`. -/
+   Otherwise, there is no preferred type and no new variable; we simply change the goal to `false`.
+-/
    pref_type_and_new_var_from_tgt ← apply_contr_lemma,
    when pref_type_and_new_var_from_tgt.is_none $
      if cfg.exfalso then linarith_trace "using exfalso" >> exfalso
      else fail "linarith failed: target is not a valid comparison",
    let cfg := cfg.update_reducibility reduce_semi,
-   let (pref_type, new_var) := pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+   let (pref_type, new_var) :=
+     pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
    -- set up the list of hypotheses, considering the `only_on` and `restrict_type` options
-   hyps ← hyps.mmap i_to_expr,
-   hyps ← if only_on then return (new_var.elim [] singleton ++ hyps) else (++ hyps) <$> local_context,
-   hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
+   hyps ← if only_on then return (new_var.elim [] singleton ++ hyps)
+          else (++ hyps) <$> local_context,
+   hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|>
+     return hyps,
    linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
    run_linarith_on_pfs cfg hyps pref_type
 

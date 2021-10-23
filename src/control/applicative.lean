@@ -1,14 +1,14 @@
 /-
 Copyright (c) 2017 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Instances for identity and composition functors
 -/
 import control.functor
 import algebra.group.basic
 
-universe variables u v w
+universes u v w
 
 section lemmas
 

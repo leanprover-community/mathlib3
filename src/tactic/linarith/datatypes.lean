@@ -115,7 +115,8 @@ end linexp
 
 /-! ### Inequalities -/
 
-/-- The three-element type `ineq` is used to represent the strength of a comparison between terms. -/
+/-- The three-element type `ineq` is used to represent the strength of a comparison between
+terms. -/
 @[derive decidable_eq, derive inhabited]
 inductive ineq : Type
 | eq | le | lt
@@ -230,7 +231,8 @@ meta structure preprocessor : Type :=
 
 /--
 Some preprocessors need to examine the full list of hypotheses instead of working item by item.
-As with `preprocessor`, the input to a `global_preprocessor` is replaced by, not added to, its output.
+As with `preprocessor`, the input to a `global_preprocessor` is replaced by, not added to, its
+output.
 -/
 meta structure global_preprocessor : Type :=
 (name : string)
@@ -240,7 +242,8 @@ meta structure global_preprocessor : Type :=
 Some preprocessors perform branching case splits. A `branch` is used to track one of these case
 splits. The first component, an `expr`, is the goal corresponding to this branch of the split,
 given as a metavariable. The `list expr` component is the list of hypotheses for `linarith`
-in this branch. Every `expr` in this list should be type correct in the context of the associated goal.
+in this branch. Every `expr` in this list should be type correct in the context of the associated
+goal.
 -/
 meta def branch : Type := expr × list expr
 
@@ -273,7 +276,8 @@ meta def global_preprocessor.branching (pp : global_preprocessor) : global_branc
 `process pp l` runs `pp.transform` on `l` and returns the result,
 tracing the result if `trace.linarith` is on.
 -/
-meta def global_branching_preprocessor.process (pp : global_branching_preprocessor) (l : list expr) :
+meta def global_branching_preprocessor.process (pp : global_branching_preprocessor)
+  (l : list expr) :
   tactic (list branch) :=
 do l ← pp.transform l,
    when (l.length > 1) $
@@ -298,7 +302,8 @@ by eliminating all variables ≤ `max_var`.
 If successful, it returns a map `coeff : ℕ → ℕ` as a certificate.
 This map represents that we can find a contradiction by taking the sum  `∑ (coeff i) * hyps[i]`.
 
-The default `certificate_oracle` used by `linarith` is `linarith.fourier_motzkin.produce_certificate`
+The default `certificate_oracle` used by `linarith` is
+`linarith.fourier_motzkin.produce_certificate`.
 -/
 meta def certificate_oracle : Type :=
 list comp → ℕ → tactic (rb_map ℕ ℕ)

@@ -91,13 +91,13 @@ and runs `simp` on those results
 before assigning the simplified values to the original goals.
 -/
 meta def simp_result {α} (t : tactic α)
-  (cfg : simp_config := { fail_if_unchanged := ff }) (discharger : tactic unit := failed) (no_defaults := ff)
-  (attr_names : list name := []) (hs : list simp_arg_type := []) : tactic α :=
+  (cfg : simp_config := { fail_if_unchanged := ff }) (discharger : tactic unit := failed)
+  (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) : tactic α :=
 intercept_result (λ g, prod.fst <$>
   g.simp cfg discharger no_defaults attr_names hs) t
 
 namespace interactive
-open interactive interactive.types
+setup_tactic_parser
 
 /--
 `dsimp_result { tac }`

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Lemmas about traversing collections.
 
@@ -15,7 +15,7 @@ Inspired by:
 import control.traversable.basic
 import control.applicative
 
-universe variables u
+universes u
 
 open is_lawful_traversable
 open function (hiding comp)

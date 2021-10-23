@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import tactic.basic
+import logic.is_empty
 
 /-!
 # Types with a unique term
@@ -52,14 +53,31 @@ structure unique (α : Sort u) extends inhabited α :=
 
 attribute [class] unique
 
+/-- Given an explicit `a : α` with `[subsingleton α]`, we can construct
+a `[unique α]` instance. This is a def because the typeclass search cannot
+arbitrarily invent the `a : α` term. Nevertheless, these instances are all
+equivalent by `unique.subsingleton.unique`.
+
+See note [reducible non-instances]. -/
+@[reducible] def unique_of_subsingleton {α : Sort*} [subsingleton α] (a : α) : unique α :=
+{ default := a,
+  uniq := λ _, subsingleton.elim _ _ }
+
 instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
+
+/-- Every provable proposition is unique, as all proofs are equal. -/
+def unique_prop {p : Prop} (h : p) : unique p :=
+{ default := h, uniq := λ x, rfl }
+
+instance : unique true := unique_prop trivial
 
 lemma fin.eq_zero : ∀ n : fin 1, n = 0
 | ⟨n, hn⟩ := fin.eq_of_veq (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn))
 
 instance {n : ℕ} : inhabited (fin n.succ) := ⟨0⟩
+instance inhabited_fin_one_add (n : ℕ) : inhabited (fin (1 + n)) := ⟨⟨0, nat.zero_lt_one_add n⟩⟩
 
 @[simp] lemma fin.default_eq_zero (n : ℕ) : default (fin n.succ) = 0 := rfl
 
@@ -81,7 +99,7 @@ lemma eq_default (a : α) : a = default α := uniq _ a
 lemma default_eq (a : α) : default α = a := (uniq _ a).symm
 
 @[priority 100] -- see Note [lower instance priority]
-instance : subsingleton α := ⟨λ a b, by rw [eq_default a, eq_default b]⟩
+instance : subsingleton α := subsingleton_of_forall_eq _ eq_default
 
 lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=
 ⟨λ h, h _, λ h x, by rwa [unique.eq_default x]⟩
@@ -117,9 +135,10 @@ instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a
   .. pi.inhabited α }
 
 /-- There is a unique function on an empty domain. -/
-def pi.unique_of_empty (h : α → false) (β : Π a : α, Sort v) : unique (Π a, β a) :=
-{ default := λ a, (h a).elim,
-  uniq := λ f, funext $ λ a, (h a).elim }
+instance pi.unique_of_is_empty [is_empty α] (β : Π a : α, Sort v) :
+  unique (Π a, β a) :=
+{ default := is_empty_elim,
+  uniq := λ f, funext is_empty_elim }
 
 namespace function
 
@@ -142,3 +161,26 @@ protected def injective.unique [inhabited α] [subsingleton β] (hf : injective 
 @unique.mk' _ _ hf.subsingleton
 
 end function
+
+namespace option
+
+/-- `option α` is a `subsingleton` if and only if `α` is empty. -/
+lemma subsingleton_iff_is_empty {α} : subsingleton (option α) ↔ is_empty α :=
+⟨λ h, ⟨λ x, option.no_confusion $ @subsingleton.elim _ h x none⟩,
+  λ h, ⟨λ x y, option.cases_on x (option.cases_on y rfl (λ x, h.elim x)) (λ x, h.elim x)⟩⟩
+
+instance {α} [is_empty α] : unique (option α) := @unique.mk' _ _ (subsingleton_iff_is_empty.2 ‹_›)
+
+end option
+
+section subtype
+
+instance unique.subtype_eq (y : α) : unique {x // x = y} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx }
+
+instance unique.subtype_eq' (y : α) : unique {x // y = x} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx.symm }
+
+end subtype

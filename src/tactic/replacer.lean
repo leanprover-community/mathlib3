@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import tactic.core
 
@@ -92,7 +92,8 @@ let nattr := ntac <.> "attr" in do
     "are defined later with the `@[" ++ to_string ntac ++ "]` attribute. " ++
     "It is intended for use with `auto_param`s for structure fields."
 
-open interactive lean.parser
+setup_tactic_parser
+
 /--
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
 effectively be defined and re-defined later, by tagging definitions with `@[foo]`.

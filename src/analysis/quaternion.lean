@@ -3,8 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.quaternion
-import analysis.normed_space.inner_product
+import algebra.quaternion
+import analysis.inner_product_space.basic
 
 /-!
 # Quaternions as a normed algebra
@@ -43,14 +43,13 @@ instance : inner_product_space ℝ ℍ :=
 inner_product_space.of_core
 { inner := has_inner.inner,
   conj_sym := λ x y, by simp [inner_def, mul_comm],
-  nonneg_im := λ _, rfl,
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
 
-lemma norm_sq_eq_norm_square (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
-by rw [← inner_self, real_inner_self_eq_norm_square]
+lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
+by rw [← inner_self, real_inner_self_eq_norm_sq]
 
 instance : norm_one_class ℍ :=
 ⟨by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_one, real.sqrt_one]⟩
@@ -62,7 +61,7 @@ begin
 end
 
 @[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
-by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sqr_eq_abs, real.norm_eq_abs]
+by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
 noncomputable instance : normed_ring ℍ :=
 { dist_eq := λ _ _, rfl,
@@ -83,7 +82,8 @@ instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 @[simp, norm_cast] lemma coe_complex_mul (z w : ℂ) : ↑(z * w) = (z * w : ℍ) := by ext; simp
 @[simp, norm_cast] lemma coe_complex_zero : ((0 : ℂ) : ℍ) = 0 := rfl
 @[simp, norm_cast] lemma coe_complex_one : ((1 : ℂ) : ℍ) = 1 := rfl
-@[simp, norm_cast] lemma coe_complex_smul (r : ℝ) (z : ℂ) : ↑(r • z) = (r • z : ℍ) := by ext; simp
+@[simp, norm_cast] lemma coe_real_complex_mul (r : ℝ) (z : ℂ) : (r • z : ℍ) = ↑r * ↑z :=
+by ext; simp
 @[simp, norm_cast] lemma coe_complex_coe (r : ℝ) : ((r : ℂ) : ℍ) = r := rfl
 
 /-- Coercion `ℂ →ₐ[ℝ] ℍ` as an algebra homomorphism. -/

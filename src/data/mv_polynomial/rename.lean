@@ -15,6 +15,7 @@ which modifies the set of variables.
 ## Main declarations
 
 * `mv_polynomial.rename`
+* `mv_polynomial.rename_equiv`
 
 ## Notation
 
@@ -90,7 +91,7 @@ end
 lemma rename_eq (f : σ → τ) (p : mv_polynomial σ R) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
-  simp only [rename, aeval_def, eval₂, finsupp.map_domain, ring_hom.coe_of],
+  simp only [rename, aeval_def, eval₂, finsupp.map_domain],
   congr' with s a : 2,
   rw [← monomial, monomial_eq, finsupp.prod_sum_index],
   congr' with n i : 2,
@@ -107,6 +108,31 @@ have (rename f : mv_polynomial σ R → mv_polynomial τ R) =
 begin
   rw this,
   exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
+end
+
+section
+variables (R)
+
+/-- `mv_polynomial.rename e` is an equivalence when `e` is. -/
+@[simps apply]
+def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
+{ to_fun := rename f,
+  inv_fun := rename f.symm,
+  left_inv := λ p, by rw [rename_rename, f.symm_comp_self, rename_id],
+  right_inv := λ p, by rw [rename_rename, f.self_comp_symm, rename_id],
+  ..rename f}
+
+@[simp] lemma rename_equiv_refl :
+  rename_equiv R (equiv.refl σ) = alg_equiv.refl :=
+alg_equiv.ext rename_id
+
+@[simp] lemma rename_equiv_symm (f : σ ≃ τ) :
+  (rename_equiv R f).symm = rename_equiv R f.symm := rfl
+
+@[simp] lemma rename_equiv_trans (e : σ ≃ τ) (f : τ ≃ α):
+  (rename_equiv R e).trans (rename_equiv R f) = rename_equiv R (e.trans f) :=
+alg_equiv.ext (rename_rename e f)
+
 end
 
 section
@@ -162,7 +188,8 @@ theorem exists_fin_rename (p : mv_polynomial σ R) :
   ∃ (n : ℕ) (f : fin n → σ) (hf : injective f) (q : mv_polynomial (fin n) R), p = rename f q :=
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
-  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
+  let n := fintype.card {x // x ∈ s},
+  let e := fintype.equiv_fin {x // x ∈ s},
   refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, rename e q, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]
@@ -195,13 +222,13 @@ lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →
   (h : ∀ u : σ →₀ ℕ, u.map_domain f = d → φ.coeff u = 0) :
   (rename f φ).coeff d = 0 :=
 begin
-  rw [rename_eq, coeff, ← not_mem_support_iff],
+  rw [rename_eq, ← not_mem_support_iff],
   intro H,
   replace H := map_domain_support H,
   rw [finset.mem_image] at H,
   obtain ⟨u, hu, rfl⟩ := H,
   specialize h u rfl,
-  simp [mem_support_iff, coeff] at h hu,
+  simp at h hu,
   contradiction
 end
 

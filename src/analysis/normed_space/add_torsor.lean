@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joseph Myers, Yury Kudryashov.
+Authors: Joseph Myers, Yury Kudryashov
 -/
+import analysis.normed_space.basic
 import linear_algebra.affine_space.midpoint
-import topology.metric_space.isometry
 import topology.instances.real_vector_space
 
 /-!
@@ -20,6 +20,17 @@ noncomputable theory
 open_locale nnreal topological_space
 open filter
 
+/-- A `semi_normed_add_torsor V P` is a torsor of an additive seminormed group
+action by a `semi_normed_group V` on points `P`. We bundle the pseudometric space
+structure and require the distance to be the same as results from the
+norm (which in fact implies the distance yields a pseudometric space, but
+bundling just the distance and using an instance for the pseudometric space
+results in type class problems). -/
+class semi_normed_add_torsor (V : out_param $ Type*) (P : Type*)
+  [out_param $ semi_normed_group V] [pseudo_metric_space P]
+  extends add_torsor V P :=
+(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
+
 /-- A `normed_add_torsor V P` is a torsor of an additive normed group
 action by a `normed_group V` on points `P`. We bundle the metric space
 structure and require the distance to be the same as results from the
@@ -31,24 +42,36 @@ class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
-variables {α V P : Type*} [normed_group V] [metric_space P] [normed_add_torsor V P]
+/-- A `normed_add_torsor` is a `semi_normed_add_torsor`. -/
+@[priority 100]
+instance normed_add_torsor.to_semi_normed_add_torsor {V P : Type*} [normed_group V] [metric_space P]
+  [β : normed_add_torsor V P] : semi_normed_add_torsor V P := { ..β }
+
+variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [semi_normed_add_torsor V P]
+variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
+
+/-- A `semi_normed_group` is a `semi_normed_add_torsor` over itself. -/
+@[priority 100]
+instance semi_normed_group.normed_add_torsor : semi_normed_add_torsor V V :=
+{ dist_eq_norm' := dist_eq_norm }
+
+/-- A `normed_group` is a `normed_add_torsor` over itself. -/
+@[priority 100]
+instance normed_group.normed_add_torsor : normed_add_torsor W W :=
+{ dist_eq_norm' := dist_eq_norm }
+
 include V
 
 section
 
-variable (V)
+variables (V W)
 
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
 lemma dist_eq_norm_vsub (x y : P) :
   dist x y = ∥(x -ᵥ y)∥ :=
-normed_add_torsor.dist_eq_norm' x y
-
-/-- A `normed_group` is a `normed_add_torsor` over itself. -/
-@[priority 100]
-instance normed_group.normed_add_torsor : normed_add_torsor V V :=
-{ dist_eq_norm' := dist_eq_norm }
+semi_normed_add_torsor.dist_eq_norm' x y
 
 end
 
@@ -99,6 +122,21 @@ by { simp only [edist_nndist], apply_mod_cast nndist_vsub_vsub_le }
 
 omit V
 
+/-- The pseudodistance defines a pseudometric space structure on the torsor. This
+is not an instance because it depends on `V` to define a `metric_space
+P`. -/
+def pseudo_metric_space_of_normed_group_of_add_torsor (V P : Type*) [semi_normed_group V]
+  [add_torsor V P] : pseudo_metric_space P :=
+{ dist := λ x y, ∥(x -ᵥ y : V)∥,
+  dist_self := λ x, by simp,
+  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
+  dist_triangle := begin
+    intros x y z,
+    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
+    rw ←vsub_add_vsub_cancel,
+    apply norm_add_le
+  end }
+
 /-- The distance defines a metric space structure on the torsor. This
 is not an instance because it depends on `V` to define a `metric_space
 P`. -/
@@ -117,93 +155,7 @@ def metric_space_of_normed_group_of_add_torsor (V P : Type*) [normed_group V] [a
 
 include V
 
-namespace isometric
-
-/-- The map `v ↦ v +ᵥ p` as an isometric equivalence between `V` and `P`. -/
-def vadd_const (p : P) : V ≃ᵢ P :=
-⟨equiv.vadd_const p, isometry_emetric_iff_metric.2 $ λ x₁ x₂, dist_vadd_cancel_right x₁ x₂ p⟩
-
-@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const p) = λ v, v +ᵥ p := rfl
-
-@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const p).symm = λ p', p' -ᵥ p := rfl
-
-@[simp] lemma vadd_const_to_equiv (p : P) : (vadd_const p).to_equiv = equiv.vadd_const p := rfl
-
-/-- `p' ↦ p -ᵥ p'` as an equivalence. -/
-def const_vsub (p : P) : P ≃ᵢ V :=
-⟨equiv.const_vsub p, isometry_emetric_iff_metric.2 $ λ p₁ p₂, dist_vsub_cancel_left _ _ _⟩
-
-@[simp] lemma coe_const_vsub (p : P) : ⇑(const_vsub p) = (-ᵥ) p := rfl
-
-@[simp] lemma coe_const_vsub_symm (p : P) : ⇑(const_vsub p).symm = λ v, -v +ᵥ p := rfl
-
-variables (P)
-
-/-- The map `p ↦ v +ᵥ p` as an isometric automorphism of `P`. -/
-def const_vadd (v : V) : P ≃ᵢ P :=
-⟨equiv.const_vadd P v, isometry_emetric_iff_metric.2 $ dist_vadd_cancel_left v⟩
-
-@[simp] lemma coe_const_vadd (v : V) : ⇑(const_vadd P v) = (+ᵥ) v := rfl
-
-variable (V)
-
-@[simp] lemma const_vadd_zero : const_vadd P (0:V) = isometric.refl P :=
-isometric.to_equiv_inj $ equiv.const_vadd_zero V P
-
-variables {P V}
-
-/-- Point reflection in `x` as an `isometric` homeomorphism. -/
-def point_reflection (x : P) : P ≃ᵢ P :=
-(const_vsub x).trans (vadd_const x)
-
-lemma point_reflection_apply (x y : P) : point_reflection x y = x -ᵥ y +ᵥ x := rfl
-
-@[simp] lemma point_reflection_to_equiv (x : P) :
-  (point_reflection x).to_equiv = equiv.point_reflection x := rfl
-
-@[simp] lemma point_reflection_self (x : P) : point_reflection x x = x :=
-equiv.point_reflection_self x
-
-lemma point_reflection_involutive (x : P) : function.involutive (point_reflection x : P → P) :=
-equiv.point_reflection_involutive x
-
-@[simp] lemma point_reflection_symm (x : P) : (point_reflection x).symm = point_reflection x :=
-to_equiv_inj $ equiv.point_reflection_symm x
-
-@[simp] lemma dist_point_reflection_fixed (x y : P) :
-  dist (point_reflection x y) x = dist y x :=
-by rw [← (point_reflection x).dist_eq y x, point_reflection_self]
-
-lemma dist_point_reflection_self' (x y : P) :
-  dist (point_reflection x y) y = ∥bit0 (x -ᵥ y)∥ :=
-by rw [point_reflection_apply, dist_eq_norm_vsub V, vadd_vsub_assoc, bit0]
-
-lemma dist_point_reflection_self (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 V] (x y : P) :
-  dist (point_reflection x y) y = ∥(2:𝕜)∥ * dist x y :=
-by rw [dist_point_reflection_self', ← two_smul' 𝕜 (x -ᵥ y), norm_smul, ← dist_eq_norm_vsub V]
-
-lemma point_reflection_fixed_iff (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 V] [invertible (2:𝕜)]
-  {x y : P} :
-  point_reflection x y = y ↔ y = x :=
-affine_equiv.point_reflection_fixed_iff_of_module 𝕜
-
-variables [normed_space ℝ V]
-
-lemma dist_point_reflection_self_real (x y : P) :
-  dist (point_reflection x y) y = 2 * dist x y :=
-by { rw [dist_point_reflection_self ℝ, real.norm_two], apply_instance }
-
-@[simp] lemma point_reflection_midpoint_left (x y : P) :
-  point_reflection (midpoint ℝ x y) x = y :=
-affine_equiv.point_reflection_midpoint_left x y
-
-@[simp] lemma point_reflection_midpoint_right (x y : P) :
-  point_reflection (midpoint ℝ x y) y = x :=
-affine_equiv.point_reflection_midpoint_right x y
-
-end isometric
-
-lemma lipschitz_with.vadd [emetric_space α] {f : α → V} {g : α → P} {Kf Kg : ℝ≥0}
+lemma lipschitz_with.vadd [pseudo_emetric_space α] {f : α → V} {g : α → P} {Kf Kg : ℝ≥0}
   (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
   lipschitz_with (Kf + Kg) (f +ᵥ g) :=
 λ x y,
@@ -214,7 +166,7 @@ calc edist (f x +ᵥ g x) (f y +ᵥ g y) ≤ edist (f x) (f y) + edist (g x) (g 
 ... = (Kf + Kg) * edist x y :
   (add_mul _ _ _).symm
 
-lemma lipschitz_with.vsub [emetric_space α] {f g : α → P} {Kf Kg : ℝ≥0}
+lemma lipschitz_with.vsub [pseudo_emetric_space α] {f g : α → P} {Kf Kg : ℝ≥0}
   (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
   lipschitz_with (Kf + Kg) (f -ᵥ g) :=
 λ x y,
@@ -280,21 +232,25 @@ hf.vsub hg
 
 end
 
-variables {V' : Type*} {P' : Type*} [normed_group V'] [metric_space P'] [normed_add_torsor V' P']
+section
 
-/-- The map `g` from `V1` to `V2` corresponding to a map `f` from `P1`
-to `P2`, at a base point `p`, is an isometry if `f` is one. -/
-lemma isometry.vadd_vsub {f : P → P'} (hf : isometry f) {p : P} {g : V → V'}
-  (hg : ∀ v, g v = f (v +ᵥ p) -ᵥ f p) : isometry g :=
-begin
-  convert (isometric.vadd_const (f p)).symm.isometry.comp
-    (hf.comp (isometric.vadd_const p).isometry),
-  exact funext hg
+variables {R : Type*} [ring R] [topological_space R] [module R V] [has_continuous_smul R V]
+
+lemma filter.tendsto.line_map {l : filter α} {f₁ f₂ : α → P} {g : α → R} {p₁ p₂ : P} {c : R}
+  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) (hg : tendsto g l (𝓝 c)) :
+  tendsto (λ x, affine_map.line_map (f₁ x) (f₂ x) (g x)) l (𝓝 $ affine_map.line_map p₁ p₂ c) :=
+(hg.smul (h₂.vsub h₁)).vadd h₁
+
+lemma filter.tendsto.midpoint [invertible (2:R)] {l : filter α} {f₁ f₂ : α → P} {p₁ p₂ : P}
+  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) :
+  tendsto (λ x, midpoint R (f₁ x) (f₂ x)) l (𝓝 $ midpoint R p₁ p₂) :=
+h₁.line_map h₂ tendsto_const_nhds
+
 end
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
+variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 V]
 
 open affine_map
 
@@ -334,17 +290,31 @@ by rw [midpoint_comm, dist_midpoint_left, dist_comm]
   dist p₂ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
 by rw [dist_comm, dist_midpoint_right]
 
+lemma dist_midpoint_midpoint_le' (p₁ p₂ p₃ p₄ : P) :
+  dist (midpoint 𝕜 p₁ p₂) (midpoint 𝕜 p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / ∥(2 : 𝕜)∥ :=
+begin
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, midpoint_vsub_midpoint];
+    try { apply_instance },
+  rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, normed_field.norm_inv, ← div_eq_inv_mul],
+  exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
+end
+
 end normed_space
 
-variables [normed_space ℝ V] [normed_space ℝ V']
-include V'
+variables [semi_normed_space ℝ V] [normed_space ℝ W]
+
+lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
+  dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=
+by simpa using dist_midpoint_midpoint_le' p₁ p₂ p₃ p₄
+
+include W
 
 /-- A continuous map between two normed affine spaces is an affine map provided that
 it sends midpoints to midpoints. -/
-def affine_map.of_map_midpoint (f : P → P')
+def affine_map.of_map_midpoint (f : P → Q)
   (h : ∀ x y, f (midpoint ℝ x y) = midpoint ℝ (f x) (f y))
   (hfc : continuous f) :
-  P →ᵃ[ℝ] P' :=
+  P →ᵃ[ℝ] Q :=
 affine_map.mk' f
   ↑((add_monoid_hom.of_map_midpoint ℝ ℝ
     ((affine_equiv.vadd_const ℝ (f $ classical.arbitrary P)).symm ∘ f ∘

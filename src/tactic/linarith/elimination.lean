@@ -118,8 +118,8 @@ Thus, if `c.maybe_minimal` is false, `c` is known not to be minimal and must be 
 See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
 (Theorem 7).
 The condition described there considers only implicitly eliminated variables that have been
-officially eliminated from the system. This is not the case for every implicitly eliminated variable.
-Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
+officially eliminated from the system. This is not the case for every implicitly eliminated
+variable. Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
 `{2*x < 0}`; `y` is implicitly but not officially eliminated.
 
 This implementation of Fourier-Motzkin elimination processes variables in decreasing order of

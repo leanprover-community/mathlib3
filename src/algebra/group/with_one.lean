@@ -6,7 +6,19 @@ Authors: Mario Carneiro, Johan Commelin
 import algebra.ring.basic
 import data.equiv.basic
 
-universes u v
+/-!
+# Adjoining a zero/one to semigroups and related algebraic structures
+
+This file contains different results about adjoining an element to an algebraic structure which then
+behaves like a zero or a one. An example is adjoining a one to a semigroup to obtain a monoid. That
+this provides an example of an adjunction is proved in `algebra.category.Mon.adjunctions`.
+
+Another result says that adjoining to a group an element `zero` gives a `group_with_zero`. For more
+information about these structures (which are not that standard in informal mathematics, see
+`algebra.group_with_zero.basic`)
+-/
+
+universes u v w
 variable {α : Type u}
 
 /-- Add an extra element `1` to a type -/
@@ -20,6 +32,9 @@ instance : monad with_one := option.monad
 
 @[to_additive]
 instance : has_one (with_one α) := ⟨none⟩
+
+@[to_additive]
+instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
@@ -45,49 +60,58 @@ coe_ne_one.symm
 lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :=
 option.ne_none_iff_exists
 
--- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
--- unless we explicitly define this instance
+@[to_additive]
 instance : can_lift (with_one α) α :=
 { coe := coe,
   cond := λ a, a ≠ 1,
   prf := λ a, ne_one_iff_exists.1 }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
 option.some_inj
-
-attribute [norm_cast] coe_inj with_zero.coe_inj
 
 @[elab_as_eliminator, to_additive]
 protected lemma cases_on {P : with_one α → Prop} :
   ∀ (x : with_one α), P 1 → (∀ a : α, P a) → P x :=
 option.cases_on
 
+-- the `show` statements in the proofs are important, because otherwise the generated lemmas
+-- `with_one.mul_one_class._proof_{1,2}` have an ill-typed statement after `with_one` is made
+-- irreducible.
 @[to_additive]
-instance [has_mul α] : has_mul (with_one α) :=
-{ mul := option.lift_or_get (*) }
+instance [has_mul α] : mul_one_class (with_one α) :=
+{ mul := (*),
+  one := (1),
+  one_mul   := show ∀ x : with_one α, 1 * x = x, from (option.lift_or_get_is_left_id _).1,
+  mul_one   := show ∀ x : with_one α, x * 1 = x, from (option.lift_or_get_is_right_id _).1 }
 
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
-  one_mul   := (option.lift_or_get_is_left_id _).1,
-  mul_one   := (option.lift_or_get_is_right_id _).1,
-  ..with_one.has_one,
-  ..with_one.has_mul }
+  ..with_one.mul_one_class }
+
+example [semigroup α] :
+  @monoid.to_mul_one_class _ (@with_one.monoid α _) = @with_one.mul_one_class α _ := rfl
 
 @[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
 
+section
+-- workaround: we make `with_one`/`with_zero` irreducible for this definition, otherwise `simps`
+-- will unfold it in the statement of the lemma it generates.
+local attribute [irreducible] with_one with_zero
 /-- `coe` as a bundled morphism -/
-@[simps apply, to_additive "`coe` as a bundled morphism"]
+@[to_additive "`coe` as a bundled morphism", simps apply]
 def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
 { to_fun := coe, map_mul' := λ x y, rfl }
 
+end
+
 section lift
 
-variables [semigroup α] {β : Type v} [monoid β]
+variables [has_mul α] {β : Type v} [mul_one_class β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
@@ -119,7 +143,7 @@ end lift
 
 section map
 
-variables {β : Type v} [semigroup α] [semigroup β]
+variables {β : Type v} [has_mul α] [has_mul β]
 
 /-- Given a multiplicative map from `α → β` returns a monoid homomorphism
   from `with_one α` to `with_one β` -/
@@ -127,6 +151,15 @@ variables {β : Type v} [semigroup α] [semigroup β]
   from `with_zero α` to `with_zero β`"]
 def map (f : mul_hom α β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
+
+@[simp, to_additive]
+lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
+by { ext, cases x; refl }
+
+@[simp, to_additive]
+lemma map_comp {γ : Type w} [has_mul γ] (f : mul_hom α β) (g : mul_hom β γ) :
+map (g.comp f) = (map g).comp (map f) :=
+by { ext, cases x; refl }
 
 end map
 
@@ -138,15 +171,6 @@ lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := 
 end with_one
 
 namespace with_zero
-
--- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
--- unless we explicitly define this instance
-instance : can_lift (with_zero α) α :=
-{ coe := coe,
-  cond := λ a, a ≠ 0,
-  prf := λ a, ne_zero_iff_exists.1 }
-
-attribute [to_additive] with_one.can_lift
 
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
@@ -168,7 +192,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 @[simp] lemma mul_zero {α : Type u} [has_mul α]
   (a : with_zero α) : a * 0 = 0 := by cases a; refl
 
-instance [semigroup α] : semigroup (with_zero α) :=
+instance [semigroup α] : semigroup_with_zero (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
     | none,   _,      _      := rfl
     | some a, none,   _      := rfl
@@ -183,9 +207,9 @@ instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
     | some a, none   := rfl
     | some a, some b := congr_arg some (mul_comm _ _)
     end,
-  ..with_zero.semigroup }
+  ..with_zero.semigroup_with_zero }
 
-instance [monoid α] : monoid_with_zero (with_zero α) :=
+instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
 { one_mul := λ a, match a with
     | none   := rfl
     | some a := congr_arg some $ one_mul _
@@ -195,8 +219,11 @@ instance [monoid α] : monoid_with_zero (with_zero α) :=
     | some a := congr_arg some $ mul_one _
     end,
   ..with_zero.mul_zero_class,
-  ..with_zero.has_one,
-  ..with_zero.semigroup }
+  ..with_zero.has_one }
+
+instance [monoid α] : monoid_with_zero (with_zero α) :=
+{ ..with_zero.mul_zero_one_class,
+  ..with_zero.semigroup_with_zero }
 
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }

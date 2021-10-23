@@ -801,7 +801,7 @@ by {induction s, contradiction, refl}
 
 @[simp] theorem head'_append {s t : list α} {x : α} (h : x ∈ s.head') :
   x ∈ (s ++ t).head' :=
-by {induction s, contradiction, simp at *, exact h}
+by { cases s, contradiction, exact h }
 
 theorem tail_append_singleton_of_ne_nil {a : α} {l : list α} (h : l ≠ nil) :
   tail (l ++ [a]) = tail l ++ [a] :=

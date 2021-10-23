@@ -7,6 +7,7 @@ import algebra.iterate_hom
 import data.equiv.ring_aut
 import algebra.module.basic
 import linear_algebra.basic
+import tactic.abel
 
 /-!
 # Algebras over commutative semirings
@@ -359,7 +360,7 @@ by { convert this, ext, rw [algebra.smul_def, mul_one] },
 smul_left_injective R one_ne_zero
 
 variables {R A}
-lemma iff_algebra_map_injective [ring A] [domain A] [algebra R A] :
+lemma iff_algebra_map_injective [ring A] [is_domain A] [algebra R A] :
   no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
 ⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
  no_zero_smul_divisors.of_algebra_map_injective⟩
@@ -758,9 +759,10 @@ rfl
 
 @[simp] lemma to_fun_eq_coe (e : A₁ ≃ₐ[R] A₂) : e.to_fun = e := rfl
 
--- TODO: decide on a simp-normal form so that only one of these two lemmas is needed
+@[simp] lemma to_ring_equiv_eq_coe : e.to_ring_equiv = e := rfl
+
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
-@[simp] lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
+lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
 λ e₁ e₂ h, ext $ ring_equiv.congr_fun h

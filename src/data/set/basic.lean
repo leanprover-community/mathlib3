@@ -2120,6 +2120,15 @@ by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 end function
 open function
 
+lemma option.injective_iff {α β} {f : option α → β} :
+  injective f ↔ injective (f ∘ some) ∧ f none ∉ range (f ∘ some) :=
+begin
+  simp only [mem_range, not_exists, (∘)],
+  refine ⟨λ hf, ⟨hf.comp (option.some_injective _), λ x, hf.ne $ option.some_ne_none _⟩, _⟩,
+  rintro ⟨h_some, h_none⟩ (_|a) (_|b) hab,
+  exacts [rfl, (h_none _ hab.symm).elim, (h_none _ hab).elim, congr_arg some (h_some hab)]
+end
+
 /-! ### Image and preimage on subtypes -/
 
 namespace subtype

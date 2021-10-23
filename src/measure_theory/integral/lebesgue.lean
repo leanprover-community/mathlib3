@@ -609,7 +609,7 @@ begin
         coe_sub, pi.sub_apply, ennreal.coe_to_nnreal,
         ennreal.add_sub_cancel_of_le (monotone_eapprox f (nat.le_succ _) _)],
     apply (lt_of_le_of_lt _ (eapprox_lt_top f (n+1) a)).ne,
-    rw ennreal.sub_le_iff_le_add,
+    rw tsub_le_iff_right,
     exact le_self_add },
 end
 
@@ -1590,10 +1590,10 @@ lemma lintegral_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurab
   ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
 begin
   rw [← ennreal.add_left_inj hg_fin,
-        ennreal.sub_add_cancel_of_le (lintegral_mono_ae h_le),
+        tsub_add_cancel_of_le (lintegral_mono_ae h_le),
       ← lintegral_add (hf.sub hg) hg],
   refine lintegral_congr_ae (h_le.mono $ λ x hx, _),
-  exact ennreal.sub_add_cancel_of_le hx
+  exact tsub_add_cancel_of_le hx
 end
 
 lemma lintegral_sub_le (f g : α → ℝ≥0∞)
@@ -1661,7 +1661,7 @@ calc
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
     lintegral_supr_ae
       (assume n, (h_meas 0).sub (h_meas n))
-      (assume n, (h_mono n).mono $ assume a ha, ennreal.sub_le_sub (le_refl _) ha)
+      (assume n, (h_mono n).mono $ assume a ha, tsub_le_tsub (le_refl _) ha)
   ... = ⨆n, ∫⁻ a, f 0 a ∂μ - ∫⁻ a, f n a ∂μ :
     have h_mono : ∀ᵐ a ∂μ, ∀n:ℕ, f n.succ a ≤ f n a := ae_all_iff.2 h_mono,
     have h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f 0 a := assume n, h_mono.mono $ assume a h,
@@ -1762,31 +1762,31 @@ end
 
 /-- Dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
+  [l.is_countably_generated]
   {F : ι → α → ℝ≥0∞} {f : α → ℝ≥0∞} (bound : α → ℝ≥0∞)
-  (hl_cb : l.is_countably_generated)
   (hF_meas : ∀ᶠ n in l, measurable (F n))
   (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, F n a ≤ bound a)
   (h_fin : ∫⁻ a, bound a ∂μ ≠ ∞)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, F n a ∂μ) l (𝓝 $ ∫⁻ a, f a ∂μ) :=
 begin
-  rw hl_cb.tendsto_iff_seq_tendsto,
-  { intros x xl,
-    have hxl, { rw tendsto_at_top' at xl, exact xl },
-    have h := inter_mem hF_meas h_bound,
-    replace h := hxl _ h,
-    rcases h with ⟨k, h⟩,
-    rw ← tendsto_add_at_top_iff_nat k,
-    refine tendsto_lintegral_of_dominated_convergence _ _ _ _ _,
-    { exact bound },
-    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
-    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+  rw tendsto_iff_seq_tendsto,
+  intros x xl,
+  have hxl, { rw tendsto_at_top' at xl, exact xl },
+  have h := inter_mem hF_meas h_bound,
+  replace h := hxl _ h,
+  rcases h with ⟨k, h⟩,
+  rw ← tendsto_add_at_top_iff_nat k,
+  refine tendsto_lintegral_of_dominated_convergence _ _ _ _ _,
+  { exact bound },
+  { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+  { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+  { assumption },
+  { refine h_lim.mono (λ a h_lim, _),
+    apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
     { assumption },
-    { refine h_lim.mono (λ a h_lim, _),
-      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
-      { assumption },
-      rw tendsto_add_at_top_iff_nat,
-      assumption } },
+    rw tendsto_add_at_top_iff_nat,
+    assumption }
 end
 
 section

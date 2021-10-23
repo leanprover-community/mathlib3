@@ -545,7 +545,7 @@ end
 
 end classical
 
-instance : integral_domain (pre_tilt K v O hv p) :=
+instance : is_domain (pre_tilt K v O hv p) :=
 { exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.1.ne_one).1,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,

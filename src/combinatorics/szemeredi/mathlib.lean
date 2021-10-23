@@ -27,12 +27,7 @@ namespace sym2
 
 attribute [elab_as_eliminator]
 lemma ind {f : sym2 α → Prop} : (∀ x y, f ⟦(x,y)⟧) → ∀ (i : sym2 α), f i :=
-begin
-  intro hf,
-  apply quotient.ind,
-  rintro ⟨x, y⟩,
-  apply hf
-end
+λ hf, quotient.ind (by simpa using hf)
 
 attribute [elab_as_eliminator]
 lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
@@ -50,22 +45,6 @@ end
 
 lemma «forall» {α : Sort*} {f : sym2 α → Prop} : (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
 ⟨λ h x y, h _, sym2.ind⟩
-
-lemma sum_sym2 [decidable_eq α] {β : Type*} [division_ring β] [char_zero β] (f : sym2 α → β)
-  (s : finset (α × α)) {hs₁ : ∀ i j, (i,j) ∈ s → i ≠ j} (hs₂ : ∀ i j, (i,j) ∈ s → (j,i) ∈ s) :
-  ∑ (i : sym2 _) in s.image quotient.mk, f i = (∑ i in s, f ⟦i⟧)/2 :=
-begin
-  rw sum_div,
-  apply sum_image',
-  rintro ⟨x, y⟩ h,
-  suffices : s.filter (λ c', ⟦c'⟧ = ⟦(x,y)⟧) = {(x,y), (y,x)},
-  { rw [this, sum_pair, sym2.eq_swap, add_halves'],
-    rintro ⟨⟩,
-    apply hs₁ _ _ h rfl, },
-  ext ⟨i, j⟩,
-  simp only [mem_filter, mem_insert, prod.mk.inj_iff, sym2.eq_iff, mem_singleton],
-  tauto {closer := `[subst_vars; solve_by_elim]},
-end
 
 end sym2
 
@@ -268,12 +247,7 @@ by { ext x, simp only [mem_pairs_finset, mem_bUnion, exists_and_distrib_right] }
 
 lemma pairs_finset_bUnion_right (U : finset α) (B : finset (finset α)) (f : finset α → finset α) :
   pairs_finset r U (B.bUnion f) = B.bUnion (λ b, pairs_finset r U (f b)) :=
-begin
-  ext x,
-  simp only [mem_pairs_finset, mem_bUnion, exists_prop],
-  simp only [←and_assoc, exists_and_distrib_right, @and.right_comm _ (x.fst ∈ U)],
-  rw [and_comm (x.fst ∈ U), and.right_comm],
-end
+by { ext x, simp only [mem_pairs_finset, mem_bUnion], tauto }
 
 lemma pairs_finset_bUnion (A B : finset (finset α)) (f g : finset α → finset α) :
   pairs_finset r (A.bUnion f) (B.bUnion g) =
@@ -299,19 +273,14 @@ lemma pairs_density_nonneg (U V : finset α) : 0 ≤ pairs_density r U V :=
 by { apply div_nonneg; exact_mod_cast nat.zero_le _ }
 
 lemma pairs_density_le_one (U V : finset α) : pairs_density r U V ≤ 1 :=
-begin
-  refine div_le_one_of_le _ (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)),
-  norm_cast,
-  exact pairs_count_le_mul r U V,
-end
+div_le_one_of_le (by exact_mod_cast (pairs_count_le_mul _ _ _)) (by exact_mod_cast (nat.zero_le _))
 
 lemma pairs_density_compl {U V : finset α} (hU : U.nonempty) (hV : V.nonempty) :
   pairs_density r U V + pairs_density (λ x y, ¬r x y) U V = 1 :=
 begin
-  have h : ((U.card * V.card : ℕ) : ℝ) ≠ 0 := nat.cast_ne_zero.2 (mul_pos (finset.card_pos.2 hU)
-    (finset.card_pos.2 hV)).ne.symm,
-  rw [pairs_density, pairs_density, div_add_div_same, ←nat.cast_mul, div_eq_iff h, one_mul],
-  exact_mod_cast card_pairs_finset_compl r U V,
+  rw [pairs_density, pairs_density, div_add_div_same, div_eq_one_iff_eq],
+  { exact_mod_cast card_pairs_finset_compl r U V },
+  { exact_mod_cast (mul_pos hU.card_pos hV.card_pos).ne' },
 end
 
 @[simp] lemma pairs_density_empty_left (V : finset α) : pairs_density r ∅ V = 0 :=
@@ -335,15 +304,12 @@ lemma pairs_count_comm (U V : finset α) : pairs_count r U V = pairs_count r V U
 begin
   apply finset.card_congr (λ (i : α × α) hi, (i.2, i.1)) _ _ _,
   { rintro ⟨i, j⟩ h,
-    rw mem_pairs_finset_comm hr,
-    exact h },
-  { rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ h₁ h₂ h,
-    rcases h,
+    rwa mem_pairs_finset_comm hr },
+  { rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ h₁ h₂ ⟨⟩,
     refl },
   rintro ⟨i, j⟩ h,
   refine ⟨⟨j, i⟩, _, rfl⟩,
-  rw mem_pairs_finset_comm hr,
-  exact h,
+  rwa mem_pairs_finset_comm hr,
 end
 
 lemma pairs_density_comm (U V : finset α) : pairs_density r U V = pairs_density r V U :=
@@ -389,13 +355,13 @@ variables (G : simple_graph α) (ε : ℝ) [decidable_rel G.adj]
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
 def is_uniform (U V : finset α) : Prop :=
 ∀ U', U' ⊆ U → ∀ V', V' ⊆ V → (U.card : ℝ) * ε ≤ U'.card → (V.card : ℝ) * ε ≤ V'.card →
-abs (edge_density G U' V' - edge_density G U V) < ε
+  abs (edge_density G U' V' - edge_density G U V) < ε
 
 /-- If the pair `(U, V)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
 lemma is_uniform_mono {ε ε' : ℝ} {U V : finset α} (h : ε ≤ ε') (hε : is_uniform G ε U V) :
   is_uniform G ε' U V :=
+λ U' hU' V' hV' hU hV,
 begin
-  intros U' hU' V' hV' hU hV,
   refine (hε _ hU' _ hV' (le_trans _ hU) (le_trans _ hV)).trans_le h;
   exact mul_le_mul_of_nonneg_left h (nat.cast_nonneg _),
 end
@@ -449,8 +415,7 @@ variables [decidable_eq α] {r : α → α → Prop} [decidable_rel r]
 lemma pairs_count_finpartition_left {U : finset α} (P : finpartition U) (V : finset α) :
   pairs_count r U V = ∑ a in P.parts, pairs_count r a V :=
 begin
-  unfold pairs_count,
-  simp_rw [←P.bUnion_parts, pairs_finset_bUnion_left, id],
+  simp_rw [pairs_count, ←P.bUnion_parts, pairs_finset_bUnion_left, id.def],
   rw card_bUnion,
   exact λ x hx y hy h, pairs_finset_disjoint_left r (P.disjoint x hx y hy h) _,
 end
@@ -458,8 +423,7 @@ end
 lemma pairs_count_finpartition_right (U : finset α) {V : finset α} (P : finpartition V) :
   pairs_count r U V = ∑ b in P.parts, pairs_count r U b :=
 begin
-  unfold pairs_count,
-  simp_rw [←P.bUnion_parts, pairs_finset_bUnion_right, id],
+  simp_rw [pairs_count, ←P.bUnion_parts, pairs_finset_bUnion_right, id],
   rw card_bUnion,
   exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint x hx y hy h),
 end
@@ -497,8 +461,8 @@ by rw [P.is_equipartition_iff_card_parts_eq_average, card_univ]
 lemma finpartition.is_equipartition.average_le_card_part [decidable_eq α] [fintype α]
   {P : finpartition (univ : finset α)} (hP : P.is_equipartition) {a : finset α} (ha : a ∈ P.parts) :
   card α/P.parts.card ≤ a.card :=
-(finpartition.is_equipartition_iff_card_parts_eq_average'.1 hP a ha).elim ge_of_eq (λ h,
-  (nat.le_succ _).trans h.ge)
+(finpartition.is_equipartition_iff_card_parts_eq_average'.1 hP a ha).elim ge_of_eq
+  (λ h, (nat.le_succ _).trans h.ge)
 
 /-! ### Discrete and indiscrete finpartition -/
 

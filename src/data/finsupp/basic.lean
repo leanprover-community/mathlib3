@@ -351,7 +351,7 @@ lemma support_subset_singleton {f : α →₀ M} {a : α} :
 ⟨λ h, eq_single_iff.mpr ⟨h, rfl⟩, λ h, (eq_single_iff.mp h).left⟩
 
 lemma support_subset_singleton' {f : α →₀ M} {a : α} :
-  f.support ⊆ {a} ↔ ∃ b, f = single a b  :=
+  f.support ⊆ {a} ↔ ∃ b, f = single a b :=
 ⟨λ h, ⟨f a, support_subset_singleton.mp h⟩,
   λ ⟨b, hb⟩, by rw [hb, support_subset_singleton, single_eq_same]⟩
 

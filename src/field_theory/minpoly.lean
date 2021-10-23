@@ -118,7 +118,7 @@ end
 
 end ring
 
-section integral_domain
+section comm_ring
 
 variables [comm_ring A]
 
@@ -173,9 +173,9 @@ end
 
 end ring
 
-section domain
+section is_domain
 
-variables [integral_domain A] [ring B] [algebra A B]
+variables [is_domain A] [ring B] [algebra A B]
 variables {x : B}
 
 /-- If `a` strictly divides the minimal polynomial of `x`, then `x` cannot be a root for `a`. -/
@@ -203,7 +203,7 @@ begin
   exact_mod_cast lt_add_of_pos_right _ degbzero,
 end
 
-variables [domain B]
+variables [is_domain B]
 
 /-- A minimal polynomial is irreducible. -/
 lemma irreducible (hx : is_integral A x) : irreducible (minpoly A x) :=
@@ -238,9 +238,9 @@ begin
     exact ⟨hbmonic.ne_zero, _, mt is_unit_of_mul_is_unit_left ha_nunit, prod⟩ },
 end
 
-end domain
+end is_domain
 
-end integral_domain
+end comm_ring
 
 section field
 variables [field A]
@@ -353,9 +353,9 @@ section gcd_domain
 
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. -/
-lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [comm_ring A] [integral_domain A]
+lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [comm_ring A] [is_domain A]
   [normalized_gcd_monoid A] [field K]
-  [comm_ring R] [integral_domain R] [algebra A K] [is_fraction_ring A K]
+  [comm_ring R] [is_domain R] [algebra A K] [is_fraction_ring A K]
   [algebra K R] [algebra A R] [is_scalar_tower A K R] {x : R} (hx : is_integral A x) :
   minpoly K x = (minpoly A x).map (algebra_map A K) :=
 begin
@@ -371,8 +371,8 @@ end
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
 lemma gcd_domain_dvd {A R : Type*} (K : Type*)
-  [comm_ring A] [integral_domain A] [normalized_gcd_monoid A] [field K]
-  [comm_ring R] [integral_domain R] [algebra A K]
+  [comm_ring A] [is_domain A] [normalized_gcd_monoid A] [field K]
+  [comm_ring R] [is_domain R] [algebra A K]
   [is_fraction_ring A K] [algebra K R] [algebra A R] [is_scalar_tower A K R]
   {x : R} (hx : is_integral A x)
   {P : polynomial A} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
@@ -409,8 +409,8 @@ by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg] using eq_X_sub_C B (1:A)
 
 end ring
 
-section domain
-variables [ring B] [domain B] [algebra A B]
+section is_domain
+variables [ring B] [is_domain B] [algebra A B]
 variables {x : B}
 
 /-- A minimal polynomial is prime. -/
@@ -448,7 +448,7 @@ end
 lemma coeff_zero_ne_zero (hx : is_integral A x) (h : x ≠ 0) : coeff (minpoly A x) 0 ≠ 0 :=
 by { contrapose! h, simpa only [hx, coeff_zero_eq_zero] using h }
 
-end domain
+end is_domain
 
 end field
 

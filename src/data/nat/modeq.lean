@@ -145,6 +145,17 @@ by rw [nat.modeq, nat.add_mod_left]
 @[simp] lemma add_modeq_right {a n : ℕ} : a + n ≡ a [MOD n] :=
 by rw [nat.modeq, nat.add_mod_right]
 
+namespace modeq
+
+lemma le_of_lt_add (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
+(le_total a b).elim id (λ h3, nat.le_of_sub_eq_zero
+  (eq_zero_of_dvd_of_lt ((modeq_iff_dvd' h3).mp h1.symm) ((tsub_lt_iff_left h3).mpr h2)))
+
+lemma add_le_of_lt (h1 : a ≡ b [MOD m]) (h2 : a < b) : a + m ≤ b :=
+le_of_lt_add (add_modeq_right.trans h1) (add_lt_add_right h2 m)
+
+end modeq
+
 local attribute [semireducible] int.nonneg
 
 /-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/
@@ -356,7 +367,7 @@ lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
   begin
     rw [← option.some_inj, ← list.nth_le_nth],
     conv {to_lhs, rw ← h ((list.length (a :: l)) - n)},
-    rw [nth_rotate hn, add_sub_cancel_of_le (le_of_lt hn),
+    rw [nth_rotate hn, add_tsub_cancel_of_le (le_of_lt hn),
       nat.mod_self, nth_le_repeat], refl
   end⟩,
   λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simp)

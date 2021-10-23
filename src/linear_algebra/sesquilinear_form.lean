@@ -5,6 +5,7 @@ Authors: Andreas Swerdlow
 -/
 import ring_theory.ring_invo
 import algebra.module.linear_map
+import tactic.abel
 
 /-!
 # Sesquilinear form
@@ -50,8 +51,7 @@ section general_ring
 variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
 variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 
-instance : has_coe_to_fun (sesq_form R M I) :=
-⟨_, λ S, S.sesq⟩
+instance : has_coe_to_fun (sesq_form R M I) (λ _, M → M → R) := ⟨sesq⟩
 
 lemma add_left (x y z : M) : S (x + y) z = S x z + S y z := sesq_add_left S x y z
 
@@ -226,9 +226,9 @@ instance to_module : module R (sesq_form R M J) :=
 
 end comm_ring
 
-section domain
+section is_domain
 
-variables {R : Type*} [ring R] [domain R]
+variables {R : Type*} [ring R] [is_domain R]
   {M : Type v} [add_comm_group M] [module R M]
   {K : R ≃+* Rᵒᵖ} {G : sesq_form R M K}
 
@@ -260,7 +260,7 @@ begin
     { exact H }}
 end
 
-end domain
+end is_domain
 
 end sesq_form
 

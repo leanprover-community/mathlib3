@@ -35,6 +35,8 @@ It also provides a universal property of the complex numbers `complex.lift`, whi
 
 namespace complex
 
+open_locale complex_conjugate
+
 variables {R : Type*} {S : Type*}
 
 section
@@ -179,6 +181,8 @@ by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_rea
 
 namespace complex
 
+open_locale complex_conjugate
+
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def re_lm : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
@@ -203,8 +207,8 @@ def of_real_am : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 /-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
 def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
 { inv_fun := conj,
-  left_inv := conj_conj,
-  right_inv := conj_conj,
+  left_inv := star_star,
+  right_inv := star_star,
   commutes' := conj_of_real,
   .. conj }
 

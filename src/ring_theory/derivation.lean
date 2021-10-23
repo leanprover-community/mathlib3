@@ -50,7 +50,7 @@ variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
 variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
-instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩

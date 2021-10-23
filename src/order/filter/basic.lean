@@ -720,32 +720,17 @@ lemma binfi_sup_left (p : ι → Prop) (f : ι → filter α) (g : filter α) :
   (⨅ i (h : p i), (g ⊔ f i)) = g ⊔ (⨅ i (h : p i), f i) :=
 by rw [infi_subtype', infi_sup_left, infi_subtype']
 
-lemma mem_infi_finset {s : finset α} {f : α → filter β} :
-  ∀ t, t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⋂ a ∈ s, p a) :=
-show ∀ t, t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⨅ a ∈ s, p a),
+lemma mem_infi_finset {s : finset α} {f : α → filter β} {t : set β} :
+  t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⋂ a ∈ s, p a) :=
 begin
-  simp only [(finset.inf_eq_infi _ _).symm],
-  refine finset.induction_on s _ _,
-  { simp only [finset.not_mem_empty, false_implies_iff, finset.inf_empty, top_le_iff,
-      imp_true_iff, mem_top, true_and, exists_const],
-    intros; refl },
-  { intros a s has ih t,
-    simp only [ih, finset.forall_mem_insert, finset.inf_insert, mem_inf_iff, exists_prop,
-      iff_iff_implies_and_implies, exists_imp_distrib, and_imp, and_assoc] {contextual := tt},
-    split,
-    { rintro t₁ ht₁ t₂ p hp ht₂ rfl,
-      use function.update p a t₁,
-      have : ∀ a' ∈ s, function.update p a t₁ a' = p a',
-        from λ a' ha',
-        have a' ≠ a, from λ h, has $ h ▸ ha',
-        function.update_noteq this _ _,
-      have eq : s.inf (λj, function.update p a t₁ j) = s.inf (λj, p j) :=
-        finset.inf_congr rfl this,
-      simp only [this, ht₁, hp, function.update_same, true_and, imp_true_iff, eq]
-        {contextual := tt},
-      refl },
-    rintro p hpa hp rfl,
-    exact ⟨p a, hpa, s.inf p, ⟨p, hp, rfl⟩, rfl⟩ }
+  simp only [← finset.set_bInter_coe, bInter_eq_Inter, infi_subtype'],
+  refine ⟨λ h, _, _⟩,
+  { rcases (mem_infi_of_fintype _).1 h with ⟨p, hp, rfl⟩,
+    refine ⟨λ a, if h : a ∈ s then p ⟨a, h⟩ else univ, λ a ha, by simpa [ha] using hp ⟨a, ha⟩, _⟩,
+    refine Inter_congr id function.surjective_id _,
+    rintro ⟨a, ha⟩, simp [ha] },
+  { rintro ⟨p, hpf, rfl⟩,
+    exact Inter_mem.2 (λ a, mem_infi_of_mem a (hpf a a.2)) }
 end
 
 /-- If `f : ι → filter α` is directed, `ι` is not empty, and `∀ i, f i ≠ ⊥`, then `infi f ≠ ⊥`.

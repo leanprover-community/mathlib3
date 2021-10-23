@@ -141,17 +141,19 @@ begin
       ... = 2 : log_pow hp.out.one_lt 2, },
 
   have log_bound : log p (2 * n) ≤ 1,
-    { cases le_or_lt (log p (2 * n)) 1,
-      { exact h, },
+    { cases le_or_lt (log p (2 * n)) 1 with log_le lt_log,
+      { exact log_le, },
       { have v : log p (2 * n) = 2 := by linarith,
-        clear h log_weak_bound,
-        cases le_or_lt p (2 * n) with h,
+        cases le_or_lt p (2 * n) with h h,
         { exfalso,
-          rw [log, if_pos.1 ⟨h, hp.out.one_lt⟩, succ_inj'] at v,
-          sorry,
-        },
-        { rw [log_eq_zero (or.inl h)],
+          rw [log_of_one_lt_of_le hp.out.one_lt h, succ_inj', log_eq_one_iff] at v,
+          have bad : p ^ 2 ≤ 2 * n,
+            { rw pow_two,
+              exact (nat.le_div_iff_mul_le _ _ (prime.pos hp.out)).1 v.2.2, },
+          exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
+        { rw log_eq_zero (or.inl h),
           exact zero_le 1, }, }, },
+
   exact le_trans (multiplicity_central_binom_le p n n_pos) log_bound,
 end
 

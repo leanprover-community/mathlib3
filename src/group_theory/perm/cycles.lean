@@ -313,7 +313,7 @@ begin
 end
 
 lemma nodup_of_pairwise_disjoint_cycles {l : list (perm β)} (h1 : ∀ f ∈ l, is_cycle f)
-  (h2 : l.pairwise disjoint id) : l.nodup :=
+  (h2 : l.pairwise disjoint) : l.nodup :=
 nodup_of_pairwise_disjoint (λ h, (h1 1 h).ne_one rfl) h2
 
 end sign_cycle

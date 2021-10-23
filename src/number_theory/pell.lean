@@ -499,7 +499,7 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
     { rw nat.mod_eq_of_lt (strict_mono_x _ lin),
       have ll : xn a1 (n-1) + xn a1 (n-1) ≤ xn a1 n,
       { rw [← two_mul, mul_comm, show xn a1 n = xn a1 (n-1+1),
-                                  by rw [tsub_add_cancel_of_le npos], xn_succ],
+                                  by rw [tsub_add_cancel_of_le (succ_le_of_lt npos)], xn_succ],
         exact le_trans (nat.mul_le_mul_left _ a1) (nat.le_add_right _ _) },
       have npm : (n-1).succ = n := nat.succ_pred_eq_of_pos npos,
       have il : i ≤ n - 1, { apply nat.le_of_succ_le_succ, rw npm, exact lin },
@@ -509,11 +509,12 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
         apply lt_of_le_of_ne ll,
         rw ← two_mul,
         exact λe, ntriv $
-          let ⟨a2, s1⟩ := @eq_of_xn_modeq_lem2 _ a1 (n-1) (by rwa [tsub_add_cancel_of_le npos]) in
+          let ⟨a2, s1⟩ := @eq_of_xn_modeq_lem2 _ a1 (n-1)
+            (by rwa [tsub_add_cancel_of_le (succ_le_of_lt npos)]) in
           have n1 : n = 1, from le_antisymm (tsub_eq_zero_iff_le.mp s1) npos,
           by rw [ile, a2, n1]; exact ⟨rfl, rfl, rfl, rfl⟩ } },
     { rw [ein, nat.mod_self, add_zero],
-      exact strict_mono_x _ (nat.pred_lt $ ne_of_gt npos) } })
+      exact strict_mono_x _ (nat.pred_lt npos.ne') } })
   (λ (jn : j > n),
     have lem1 : j ≠ n → xn j % xn n < xn (j + 1) % xn n → xn i % xn n < xn (j + 1) % xn n,
       from λjn s,

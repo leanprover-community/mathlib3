@@ -278,6 +278,8 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 
+lemma _root_.has_lt.lt.succ_le {n m : ℕ} (h : n < m) : succ n ≤ m := succ_le_of_lt h
+
 lemma succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
 by rw [nat.succ_eq_add_one, nat.add_comm]
 
@@ -533,13 +535,13 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},
-  exact decidable.mul_le_mul_of_nonneg_right (nat.succ_le_of_lt h) dec_trivial,
+  exact decidable.mul_le_mul_of_nonneg_right h.succ_le dec_trivial,
 end
 
 lemma le_mul_of_pos_right {m n : ℕ} (h : 0 < n) : m ≤ m * n :=
 begin
   conv {to_lhs, rw [← mul_one(m)]},
-  exact decidable.mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
+  exact decidable.mul_le_mul_of_nonneg_left h.succ_le dec_trivial,
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=

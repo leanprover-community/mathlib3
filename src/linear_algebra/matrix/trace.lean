@@ -100,7 +100,7 @@ While `simp [fin.sum_univ_succ]` can prove these, we include them for convenienc
 with `matrix.det_fin_two` etc.
 -/
 
-lemma trace_fin_zero (A : matrix (fin 0) (fin 0) R) : trace _ R R A = 0 :=
+@[simp] lemma trace_fin_zero (A : matrix (fin 0) (fin 0) R) : trace _ R R A = 0 :=
 rfl
 
 lemma trace_fin_one (A : matrix (fin 1) (fin 1) R) : trace _ R R A = A 0 0 :=

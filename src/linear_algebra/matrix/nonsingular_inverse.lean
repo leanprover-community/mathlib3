@@ -309,10 +309,10 @@ begin
      ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
 end
 
-lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
+@[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
 @subsingleton.elim _ matrix.subsingleton_of_empty_left _ _
 
-lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
+@[simp] lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
 adjugate_subsingleton A
 
 lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :

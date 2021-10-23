@@ -570,7 +570,7 @@ protected def function.injective.comm_semiring [has_zero γ] [has_one γ] [has_a
   comm_semiring γ :=
 { .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
 
-/-- Pullback a `semiring` instance along an injective function.
+/-- Pushforward a `semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
@@ -620,7 +620,7 @@ protected def function.injective.ring
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
-/-- Pullback a `ring` instance along an injective function.
+/-- Pushforward a `ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.ring
@@ -871,7 +871,7 @@ protected def function.injective.comm_ring
   comm_ring β :=
 { .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
 
-/-- Pullback a `comm_ring` instance along an injective function.
+/-- Pushforward a `comm_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_ring

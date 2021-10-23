@@ -588,7 +588,7 @@ begin
 end
 
 lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)}
-  (h : l.pairwise disjoint id) :
+  (h : l.pairwise disjoint) :
   l.prod.support.card = (l.map (finset.card ∘ support)).sum :=
 begin
   induction l with a t ih,

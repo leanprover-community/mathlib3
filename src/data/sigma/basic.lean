@@ -15,7 +15,8 @@ A sigma type is a dependent function type. Like `α → β` but where the codoma
 according to the input. This can be seen as a generalization of the sum type `α ⊕ β`:
 * `α ⊕ β` is made of stuff which is either of type `α` or `β`.
 * Given `α : ι → Type*`, `sigma α` is made of stuff which is of type `α i` for some `i : ι`. One
-  effectively recovers a type isomorphic to `α ⊕ β` by taking a `ι` with exactly two elements.
+  effectively recovers a type isomorphic to `α ⊕ β` by taking a `ι` with exactly two elements. See
+  `equiv.sum_equiv_sigma_bool`.
 
 ## Notes
 

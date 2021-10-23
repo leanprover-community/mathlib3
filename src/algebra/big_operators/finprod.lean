@@ -61,8 +61,6 @@ The first arguments in all definitions and lemmas is the codomain of the functio
 operator. This is necessary for the heuristic in `@[to_additive]`.
 See the documentation of `to_additive.attr` for more information.
 
-## Todo
-
 We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fintype X)`.
 
 ## Tags

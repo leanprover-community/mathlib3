@@ -144,15 +144,14 @@ begin
     { cases le_or_lt (log p (2 * n)) 1,
       { exact h, },
       { have v : log p (2 * n) = 2 := by linarith,
-        exfalso, clear h log_weak_bound,
-        have hyp : p ≤ (2 * n) ∧ 1 < p,
-        { split,
-          { sorry, },
-          { exact hp.out.one_lt, }, },
-        unfold log at v,
-        sorry,
-      }
-    },
+        clear h log_weak_bound,
+        cases le_or_lt p (2 * n) with h,
+        { exfalso,
+          rw [log, if_pos.1 ⟨h, hp.out.one_lt⟩, succ_inj'] at v,
+          sorry,
+        },
+        { rw [log_eq_zero (or.inl h)],
+          exact zero_le 1, }, }, },
   exact le_trans (multiplicity_central_binom_le p n n_pos) log_bound,
 end
 

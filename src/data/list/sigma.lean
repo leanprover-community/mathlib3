@@ -286,7 +286,7 @@ by simp [lookup_all_eq_lookup, nd₁, nd₂, perm_lookup a nd₁ nd₂ p]
 
 /-! ### `kreplace` -/
 
-/-- Replaces values with key `a` by `b`. -/
+/-- Replaces the first value with key `a` by `b`. -/
 def kreplace (a : α) (b : β a) : list (sigma β) → list (sigma β) :=
 lookmap $ λ s, if a = s.1 then some ⟨a, b⟩ else none
 

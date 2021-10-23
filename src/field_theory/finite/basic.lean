@@ -93,7 +93,7 @@ end polynomial
 lemma card_units : fintype.card (units K) = fintype.card K - 1 :=
 begin
   classical,
-  rw [eq_comm, tsub_eq_iff_eq_add_of_le (fintype.card_pos_iff.2 ⟨(0 : K)⟩)],
+  rw [eq_comm, tsub_eq_iff_eq_add_of_le (fintype.card_pos_iff.2 ⟨(0 : K)⟩).succ_le],
   haveI := set_fintype {a : K | a ≠ 0},
   haveI := set_fintype (@set.univ K),
   rw [fintype.card_congr (equiv.units_equiv_ne_zero _),

@@ -484,12 +484,12 @@ lemma filter.tendsto.div' {f g : α → G} {l : filter α} {a b : G} (hf : tends
   (hg : tendsto g l (𝓝 b)) : tendsto (λ x, f x / g x) l (𝓝 (a / b)) :=
 (continuous_div'.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
 
-@[to_additive filter.tendsto.const_sub]
+@[to_additive const_sub]
 lemma filter.tendsto.const_div' (b : G) {c : G} {f : α → G} {l : filter α}
   (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, b / f k) l (𝓝 (b / c)) :=
 tendsto_const_nhds.div' h
 
-@[to_additive filter.tendsto.sub_const]
+@[to_additive sub_const]
 lemma filter.tendsto.div_const' (b : G) {c : G} {f : α → G} {l : filter α}
   (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, f k / b) l (𝓝 (c / b)) :=
 h.div' tendsto_const_nhds
@@ -508,7 +508,7 @@ continuous_const.div' continuous_id
 lemma continuous_div_right' (a : G) : continuous (λ b : G, b / a) :=
 continuous_id.div' continuous_const
 
-@[to_additive continuous_at.sub]
+@[to_additive sub]
 lemma continuous_at.div' {f g : α → G} {x : α} (hf : continuous_at f x) (hg : continuous_at g x) :
   continuous_at (λx, f x / g x) x :=
 hf.div' hg

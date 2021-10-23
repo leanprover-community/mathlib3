@@ -73,7 +73,13 @@ quotient.induction_on' x ih
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp C
 
-instance : algebra R (adjoin_root f) := (of f).to_algebra
+instance : algebra R (adjoin_root f) :=
+{ smul := @@has_scalar.smul (submodule.quotient.has_scalar' _),
+  smul_def' := λ r (x : submodule.quotient _),
+    show r • x = mk f (C r) * x,
+    by rw [C_eq_algebra_map, mk, ← ideal.quotient.mkₐ_eq_mk R,
+      alg_hom.commutes, ← algebra.smul_def],
+  .. (of f).to_algebra }
 
 @[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
 
@@ -266,9 +272,9 @@ end power_basis
 
 section equiv
 
-section integral_domain
+section is_domain
 
-variables [comm_ring R] [integral_domain R] [comm_ring S] [integral_domain S] [algebra R S]
+variables [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]
 variables (g : polynomial R) (pb : _root_.power_basis R S)
 
 /-- If `S` is an extension of `R` with power basis `pb` and `g` is a monic polynomial over `R`
@@ -299,7 +305,7 @@ rfl
   (equiv' g pb h₁ h₂).symm.to_alg_hom = pb.lift (root g) h₁ :=
 rfl
 
-end integral_domain
+end is_domain
 
 section field
 

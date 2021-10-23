@@ -70,7 +70,7 @@ lemma flip (n ν : ℕ) (h : ν ≤ n) :
   (bernstein_polynomial R n ν).comp (1-X) = bernstein_polynomial R n (n-ν) :=
 begin
   dsimp [bernstein_polynomial],
-  simp [h, sub_sub_assoc, mul_right_comm],
+  simp [h, tsub_tsub_assoc, mul_right_comm],
 end
 
 lemma flip' (n ν : ℕ) (h : ν ≤ n) :
@@ -176,7 +176,7 @@ begin
   by_cases h : ν ≤ n,
   { induction ν with ν ih generalizing n h,
     { simp [eval_at_0], },
-    { have h' : ν ≤ n-1 := le_sub_of_add_le_right' h,
+    { have h' : ν ≤ n-1 := le_tsub_of_add_le_right h,
       simp only [derivative_succ, ih (n-1) h', iterate_derivative_succ_at_0_eq_zero,
         nat.succ_sub_succ_eq_sub, nat.sub_zero, sub_zero,
         iterate_derivative_sub, iterate_derivative_cast_nat_mul,
@@ -216,7 +216,7 @@ lemma iterate_derivative_at_1_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
   k < n - ν → (polynomial.derivative^[k] (bernstein_polynomial R n ν)).eval 1 = 0 :=
 begin
   intro w,
-  rw flip' _ _ _ (sub_pos_iff_lt.mp (pos_of_gt w)).le,
+  rw flip' _ _ _ (tsub_pos_iff_lt.mp (pos_of_gt w)).le,
   simp [polynomial.eval_comp, iterate_derivative_at_0_eq_zero_of_lt R n w],
 end
 
@@ -272,7 +272,7 @@ begin
       apply span_induction m,
       { simp,
         rintro ⟨a, w⟩, simp only [fin.coe_mk],
-        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ n ((sub_lt_sub_iff_left_of_le h).mpr w)] },
+        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ n ((tsub_lt_tsub_iff_left_of_le h).mpr w)] },
       { simp, },
       { intros x y hx hy, simp [hx, hy], },
       { intros a x h, simp [h], }, }, },

@@ -37,7 +37,7 @@ section ordered_semiring
 
 variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
 
-instance : has_coe_to_fun (absolute_value R S) := ⟨λ f, R → S, λ f, f.to_fun⟩
+instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
 

@@ -16,8 +16,8 @@ creates one goal for each possible value of `x`, where either:
 -/
 
 namespace tactic
-open lean.parser
-open interactive interactive.types expr
+
+open expr
 open conv.interactive
 
 /-- Checks that the expression looks like `x ∈ A` for `A : finset α`, `multiset α` or `A : list α`,
@@ -99,8 +99,9 @@ do ty ← try_core $ guard_mem_fin e,
     end
 
 namespace interactive
+
+setup_tactic_parser
 private meta def hyp := tk "*" *> return none <|> some <$> ident
-local postfix `?`:9001 := optional
 
 /--
 `fin_cases h` performs case analysis on a hypothesis of the form

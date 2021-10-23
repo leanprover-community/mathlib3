@@ -12,7 +12,7 @@ than `fintype` in that it assigns each element a rank in a finite
 enumeration.
 -/
 
-universe variables u v
+universes u v
 open finset
 
 /-- `fin_enum α` means that `α` is finite and can be enumerated in some order,

@@ -129,7 +129,7 @@ noncomputable def is_cycle.gpowers_equiv_support {σ : perm α} (hσ : is_cycle 
 equiv.of_bijective (λ τ, ⟨τ (classical.some hσ),
 begin
   obtain ⟨τ, n, rfl⟩ := τ,
-  rw [finset.mem_coe, coe_fn_coe_base, subtype.coe_mk, gpow_apply_mem_support, mem_support],
+  rw [finset.mem_coe, coe_fn_coe_base', subtype.coe_mk, gpow_apply_mem_support, mem_support],
   exact (classical.some_spec hσ).1,
 end⟩)
 begin
@@ -1390,7 +1390,7 @@ section fixed_points
 lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
   (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
-  rw [lt_sub_iff_left, ← lt_sub_iff_right, ← finset.card_compl,
+  rw [lt_tsub_iff_left, ← lt_tsub_iff_right, ← finset.card_compl,
     finset.compl_filter],
   exact one_lt_card_support_of_ne_one h
 end

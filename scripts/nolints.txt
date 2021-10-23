@@ -921,9 +921,6 @@ apply_nolint topological_space.open_nhds.map doc_blame
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance
 
--- topology/maps.lean
-apply_nolint inducing doc_blame
-
 -- topology/sheaves/presheaf.lean
 apply_nolint Top.presheaf has_inhabited_instance
 

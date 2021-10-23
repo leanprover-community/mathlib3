@@ -28,24 +28,12 @@ variables {G G' : Type*} [group G] [group G']
 
 /--Two subgroups `H K` of `G` are commensurable if `H ⊓ K` has finite index in both `H` and `K` -/
 def commensurable (H K : subgroup G) : Prop :=
-  H.relindex K ≠ 0 ∧ K.relindex H ≠ 0
+H.relindex K ≠ 0 ∧ K.relindex H ≠ 0
 
 namespace commensurable
 
-lemma reflex (H : subgroup G) : commensurable H H :=
-begin
-  rw commensurable,
-  simp [subgroup.relindex_self H],
-end
-
-lemma symm (H K : subgroup G) : commensurable H K ↔ commensurable K H :=
-begin
-  simp_rw commensurable,
-  rw and_comm,
-end
-
 /--The conjugate of a subgroup `H` of `G` by `g`  -/
-def conj_subgroup (g : G) (H : subgroup G) : subgroup G := mul_aut.conj g •  H
+def conj_subgroup (g : G) (H : subgroup G) : subgroup G := mul_aut.conj g • H
 
 @[simp] lemma conj_mem'  (g : G)  (H : subgroup G) (h : G) :
   (h ∈ conj_subgroup g H) ↔ ∃ x : H, g * x * g⁻¹ = h  :=
@@ -98,8 +86,8 @@ def img_mul_equiv  (H : subgroup G) (f : G ≃* G') :
       simp only [mul_equiv.to_fun_eq_coe, subgroup.coe_mul, mul_equiv.map_mul], refl,},}
 
 /--Image of a sub_subgroup under a `mul_hom`-/
-def mul_hom_sub_subgroup (H : subgroup G) (K : subgroup H) (f : G →* G') :
-  subgroup (H.map f) :=  subgroup.map (img_mul_hom H f) K
+def mul_hom_sub_subgroup (H : subgroup G) (K : subgroup H) (f : G →* G') : subgroup (H.map f) :=
+subgroup.map (img_mul_hom H f) K
 
 lemma equiv_sub_subgroup_of (H K: subgroup G) (f : G ≃* G') :
   (mul_hom_sub_subgroup H (K.subgroup_of H) f.to_monoid_hom) =
@@ -147,6 +135,26 @@ begin
   simp only [one_smul, monoid_hom.map_one],
 end
 
+@[refl] protected lemma refl (H : subgroup G) : commensurable H H :=
+begin
+  rw commensurable,
+  simp [subgroup.relindex_self H],
+end
+
+lemma comm (H K : subgroup G) : commensurable H K ↔ commensurable K H :=
+begin
+  simp_rw commensurable,
+  rw and_comm,
+end
+
+@[symm]
+lemma symm {H K : subgroup G}  : commensurable H K →  commensurable K H :=
+begin
+  simp_rw comm,
+  simp only [imp_self],
+end
+
+@[trans]
 lemma trans {H K L : subgroup G} (hhk : commensurable H K ) (hkl : commensurable K L) :
   commensurable H L :=
 begin
@@ -161,10 +169,10 @@ lemma equivalence : equivalence (@commensurable G _) :=
 begin
   rw equivalence,
   split,
-  apply reflex,
+  apply commensurable.refl,
   split,
   rw symmetric,
-  simp only [symm, imp_self, forall_const],
+  simp only [comm, imp_self, forall_const],
   apply trans,
 end
 
@@ -179,11 +187,11 @@ lemma cong_sub_image' (H K : subgroup G) (g : G) :
   subgroup.map ((conj_equiv g K).symm).to_monoid_hom
   ((conj_subgroup g H).subgroup_of (conj_subgroup g K)) = (H.subgroup_of K) :=
 begin
-   rw ←  cong_sub_image H K g,
+   rw ← cong_sub_image H K g,
    simp_rw subgroup.map,
    ext,
    simp only [mul_equiv.coe_to_monoid_hom, set.mem_image, mul_equiv.symm_apply_apply,
-    exists_eq_right, exists_exists_and_eq_and, set_like.mem_coe, subgroup.mem_mk],
+   exists_eq_right, exists_exists_and_eq_and, set_like.mem_coe, subgroup.mem_mk],
 end
 
 namespace quotient_group
@@ -250,8 +258,7 @@ end
 lemma commensurable_inv (H : subgroup G) (g : G) :
   commensurable (conj_subgroup g H) H ↔ commensurable H (conj_subgroup g⁻¹ H)  :=
 begin
-  rw commensurable_conj g⁻¹ ,
-  rw ← conj_subgroup_mul g⁻¹ g,
+  rw [commensurable_conj g⁻¹ ,← conj_subgroup_mul g⁻¹ g],
   simp only [mul_left_inv, cong_subgroup_id_eq_self],
 end
 
@@ -260,23 +267,23 @@ such that `commensurable (conj_subgroup g H) H`   -/
 
 def commensurator (H : subgroup G) : subgroup G :=
 { carrier := {g : G | commensurable (conj_subgroup g H) H },
-  one_mem' := by {simp only [set.mem_set_of_eq, cong_subgroup_id_eq_self], apply reflex, },
+  one_mem' := by {simp only [set.mem_set_of_eq, cong_subgroup_id_eq_self], },
   mul_mem' := by {intros a b ha hb,
       simp only [set.mem_set_of_eq] at *,
       rw conj_subgroup_mul,
       have h1 : commensurable (conj_subgroup a (conj_subgroup b H)) (conj_subgroup a H),
-      { have hab := trans ha ((symm _ _).1 hb),
+      { have hab := trans ha ((comm _ _).1 hb),
         rw (commensurable_conj a⁻¹) at hab,
         rw ← conj_subgroup_mul at hab,
         simp only [mul_left_inv, cong_subgroup_id_eq_self] at hab,
         have r1 := commensurable_inv (conj_subgroup b H) a,
         have hab2 := trans hb hab,
         have r2 := r1.2 hab2,
-        apply trans r2 (trans hb ((symm _ _).1 ha)),},
+        apply trans r2 (trans hb (symm  ha)),},
       exact trans h1 ha,},
   inv_mem' := by {simp only [set.mem_set_of_eq],
       intros x hx,
-      rw symm,
+      rw comm,
       apply (commensurable_inv H x).1 hx,},}
 
 @[simp]
@@ -293,9 +300,9 @@ begin
   split,
   intro h,
   have h2 := trans h hk,
-  apply trans ((symm _ _).1 h1) h2,
+  apply trans (symm h1) h2,
   intro h,
-  apply trans (trans h1 h) ((symm _ _).1 hk),
+  apply trans (trans h1 h) (symm hk),
 end
 
 end commensurable

@@ -1037,6 +1037,7 @@ begin
   intros hc1 hc2,
   rw [←cast_to_nat_of_lt_omega hc2, hc1, nat.cast_zero],
 end
+
 lemma to_nat_eq_zero_of_ne_zero {c : cardinal} (hc : c ≠ 0) : c.to_nat = 0 ↔ ω ≤ c :=
 ⟨λ h, (to_nat_eq_zero.mp h).resolve_left hc, to_nat_eq_zero.mpr ∘ or.inr⟩
 
@@ -1045,7 +1046,7 @@ to_nat_eq_zero_of_ne_zero (mk_ne_zero α)
 
 theorem to_nat_eq_zero_of_injective [nonempty α] {f : α → β} (hf : injective f)
   (hα : (#α).to_nat = 0) : (#β).to_nat=0 :=
- to_nat_eq_zero.mpr (or.inr ((mk_to_nat_eq_zero_of_nonempty.mp hα).trans (mk_le_of_injective hf)))
+to_nat_eq_zero.mpr (or.inr ((mk_to_nat_eq_zero_of_nonempty.mp hα).trans (mk_le_of_injective hf)))
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/

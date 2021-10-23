@@ -134,10 +134,10 @@ begin
   exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
 
-lemma right_le_relindex_zero  (h : K ≤ L) (h2 : H.relindex K = 0) : H.relindex L = 0 :=
+lemma relindex_eq_zero_of_le  (h : K ≤ L) (h2 : H.relindex K = 0) : H.relindex L = 0 :=
 cardinal.to_nat_eq_zero_of_injective (quotient_group.le_quot_map_injective H L K h ) h2
 
-lemma index_subgroup_le {H K : subgroup G} (h : H ≤ K) (h1 : K.index = 0) : H.index = 0 :=
+lemma index_eq_zero_of_le {H K : subgroup G} (h : H ≤ K) (h1 : K.index = 0) : H.index = 0 :=
 begin
   have := subgroup.relindex_mul_index h,
   rw h1 at this,
@@ -156,12 +156,11 @@ begin
   simp only [xp, implies_true_iff],
 end
 
-lemma inf_relindex_subgroup_of  :
+lemma inf_relindex_subgroup_of :
   ((H ⊓ K).subgroup_of L).relindex (K.subgroup_of L) = H.relindex (K ⊓ L) :=
 begin
   have h0: K ⊓ L ≤ L, by {simp only [inf_le_right],},
-  rw ← subgroup.subgroup_of_inf_right K L,
-  rw ← inf_relindex_inf,
+  rw [← subgroup.subgroup_of_inf_right K L, ← inf_relindex_inf],
   apply subgroup.relindex_subgroup_of h0,
 end
 
@@ -174,26 +173,23 @@ begin
   rw h at h2,
   simp only [nat.mul_eq_zero] at h2,
   cases h2,
-  have := (inf_relindex_subgroup_of K H L),
-  rw inf_comm,
-  rw ← this,
-  rw inf_comm,
+  rw [inf_comm, ← inf_relindex_subgroup_of K H L, inf_comm],
   simp only [h2, eq_self_iff_true, or_true],
   simp_rw subgroup.relindex,
   simp only [h2, true_or, eq_self_iff_true],
  end
 
-lemma relindex_ne_zero_trans (hhk : H.relindex K ≠ 0) (hkl : K.relindex L ≠ 0):
+lemma relindex_ne_zero_trans (hhk : H.relindex K ≠ 0) (hkl : K.relindex L ≠ 0) :
    H.relindex L  ≠ 0 :=
 begin
   by_contradiction,
   simp only [not_not, ne.def] at *,
   have s1 : (H ⊓ K).subgroup_of L ≤ H.subgroup_of L ,
     by {apply subgroup.subgroup_of_mono_left, simp only [inf_le_left],},
-  have H2 := (index_subgroup_le s1) h,
+  have H2 := (index_eq_zero_of_le s1) h,
   have H3 := inf_ind_prod K H L,
   have hh0: L ⊓ K ≤ K, by {simp only [inf_le_right],},
-  have H4 := right_le_relindex_zero H  (L ⊓ K) K hh0,
+  have H4 := relindex_eq_zero_of_le H  (L ⊓ K) K hh0,
   rw inf_comm at H2,
   have H5 := H3 H2,
   cases H5,

@@ -155,18 +155,21 @@ variables {f : M →ₗ[R] P}
 theorem fg_map {N : submodule R M} (hs : N.fg) : (N.map f).fg :=
 let ⟨t, ht⟩ := fg_def.1 hs in fg_def.2 ⟨f '' t, ht.1.image _, by rw [span_image, ht.2]⟩
 
-lemma fg_of_fg_map {R M P : Type*} [ring R] [add_comm_group M] [module R M]
-  [add_comm_group P] [module R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) {N : submodule R M}
+lemma fg_of_fg_map_injective (f : M →ₗ[R] P) (hf : function.injective f) {N : submodule R M}
   (hfn : (N.map f).fg) : N.fg :=
-let ⟨t, ht⟩ := hfn in ⟨t.preimage f $ λ x _ y _ h, linear_map.ker_eq_bot.1 hf h,
-linear_map.map_injective hf $ by { rw [f.map_span, finset.coe_preimage,
+let ⟨t, ht⟩ := hfn in ⟨t.preimage f $ λ x _ y _ h, hf h,
+submodule.map_injective_of_injective hf $ by { rw [f.map_span, finset.coe_preimage,
     set.image_preimage_eq_inter_range, set.inter_eq_self_of_subset_left, ht],
   rw [← linear_map.range_coe, ← span_le, ht, ← map_top], exact map_mono le_top }⟩
 
-lemma fg_top {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (N : submodule R M) : (⊤ : submodule R N).fg ↔ N.fg :=
+lemma fg_of_fg_map {R M P : Type*} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group P] [module R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) {N : submodule R M}
+  (hfn : (N.map f).fg) : N.fg :=
+fg_of_fg_map_injective f (linear_map.ker_eq_bot.1 hf) hfn
+
+lemma fg_top (N : submodule R M) : (⊤ : submodule R N).fg ↔ N.fg :=
 ⟨λ h, N.range_subtype ▸ map_top N.subtype ▸ fg_map h,
-λ h, fg_of_fg_map N.subtype N.ker_subtype $ by rwa [map_top, range_subtype]⟩
+λ h, fg_of_fg_map_injective N.subtype subtype.val_injective $ by rwa [map_top, range_subtype]⟩
 
 lemma fg_of_linear_equiv (e : M ≃ₗ[R] P) (h : (⊤ : submodule R P).fg) :
   (⊤ : submodule R M).fg :=
@@ -334,7 +337,7 @@ class is_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M] : Prop :
 
 section
 variables {R : Type*} {M : Type*} {P : Type*}
-variables [ring R] [add_comm_group M] [add_comm_group P]
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid P]
 variables [module R M] [module R P]
 open is_noetherian
 include R
@@ -345,10 +348,15 @@ lemma is_noetherian_def : is_noetherian R M ↔ ∀ (s : submodule R M), s.fg :=
 
 theorem is_noetherian_submodule {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, s ≤ N → s.fg :=
-⟨λ ⟨hn⟩, λ s hs, have s ≤ N.subtype.range, from (N.range_subtype).symm ▸ hs,
-  submodule.map_comap_eq_self this ▸ submodule.fg_map (hn _),
-λ h, ⟨λ s, submodule.fg_of_fg_map_of_fg_inf_ker N.subtype (h _ $ submodule.map_subtype_le _ _) $
-  by rw [submodule.ker_subtype, inf_bot_eq]; exact submodule.fg_bot⟩⟩
+begin
+  refine ⟨λ ⟨hn⟩, λ s hs, have s ≤ N.subtype.range, from (N.range_subtype).symm ▸ hs,
+    submodule.map_comap_eq_self this ▸ submodule.fg_map (hn _), λ h, ⟨λ s, _⟩⟩,
+  have f := (submodule.equiv_map_of_injective N.subtype subtype.val_injective s).symm,
+  have h₁ := h (s.map N.subtype) (submodule.map_subtype_le N s),
+  have h₂ : (⊤ : submodule R (s.map N.subtype)).map (↑f : _ →ₗ[R] s) = ⊤ := by simp,
+  have h₃ := @submodule.fg_map _ _ _ _ _ _ _ _ (↑f : _ →ₗ[R] s) _ ((submodule.fg_top _).2 h₁),
+  exact (submodule.fg_top _).1 (h₂ ▸ h₃),
+end
 
 theorem is_noetherian_submodule_left {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, (N ⊓ s).fg :=
@@ -386,13 +394,30 @@ begin
   { exact is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R M) rfl).symm },
 end
 
-lemma is_noetherian_of_injective [is_noetherian R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
+lemma is_noetherian_of_injective [is_noetherian R P] (f : M →ₗ[R] P) (hf : function.injective f) :
+  is_noetherian R M :=
+is_noetherian_of_linear_equiv (linear_equiv.of_injective f hf).symm
+
+lemma fg_of_injective [is_noetherian R P] {N : submodule R M} (f : M →ₗ[R] P)
+  (hf : function.injective f) : N.fg :=
+@@is_noetherian.noetherian _ _ _ (is_noetherian_of_injective f hf) N
+
+end
+
+section
+variables {R : Type*} {M : Type*} {P : Type*}
+variables [ring R] [add_comm_group M] [add_comm_group P]
+variables [module R M] [module R P]
+open is_noetherian
+include R
+
+lemma is_noetherian_of_ker_bot [is_noetherian R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   is_noetherian R M :=
 is_noetherian_of_linear_equiv (linear_equiv.of_injective f $ linear_map.ker_eq_bot.mp hf).symm
 
-lemma fg_of_injective [is_noetherian R P] {N : submodule R M} (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
+lemma fg_of_ker_bot [is_noetherian R P] {N : submodule R M} (f : M →ₗ[R] P) (hf : f.ker = ⊥) :
   N.fg :=
-@@is_noetherian.noetherian _ _ _ (is_noetherian_of_injective f hf) N
+@@is_noetherian.noetherian _ _ _ (is_noetherian_of_ker_bot f hf) N
 
 instance is_noetherian_prod [is_noetherian R M]
   [is_noetherian R P] : is_noetherian R (M × P) :=

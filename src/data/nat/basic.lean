@@ -1420,9 +1420,8 @@ decidable_of_iff (∀ k (h : k < succ n), P k (le_of_lt_succ h))
 instance decidable_lo_hi (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred P] :
   decidable (∀x, lo ≤ x → x < hi → P x) :=
 decidable_of_iff (∀ x < hi - lo, P (lo + x))
-⟨λal x hl hh, by have := al (x - lo) (lt_of_not_ge $
-  (not_congr (tsub_le_tsub_right_iff _ _ _ hl)).2 $ not_le_of_gt hh);
-  rwa [← add_tsub_cancel_of_le hl] at this,
+⟨λal x hl hh, by { have := al (x - lo) ((tsub_lt_tsub_iff_right hl).mpr hh),
+  rwa [add_tsub_cancel_of_le hl] at this, },
 λal x h, al _ (nat.le_add_right _ _) (lt_tsub_iff_left.mp h)⟩
 
 instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred P] :

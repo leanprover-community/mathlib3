@@ -167,6 +167,25 @@ begin
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
 end
 
+lemma is_topological_basis.is_open_map_iff {β} [topological_space β] {B : set (set α)}
+  (hB : is_topological_basis B) {f : α → β} :
+  is_open_map f ↔ ∀ s ∈ B, is_open (f '' s) :=
+begin
+  refine ⟨λ H o ho, H _ (hB.is_open ho), λ hf o ho, _⟩,
+  rw [hB.open_eq_sUnion' ho, sUnion_eq_Union, image_Union],
+  exact is_open_Union (λ s, hf s s.2.1)
+end
+
+lemma is_topological_basis.exists_nonempty_subset {B : set (set α)}
+  (hb : is_topological_basis B) {u : set α} (hu : u.nonempty) (ou : is_open u) :
+  ∃ v ∈ B, set.nonempty v ∧ v ⊆ u :=
+begin
+  cases hu with x hx,
+  rw [hb.open_eq_sUnion' ou, mem_sUnion] at hx,
+  rcases hx with ⟨v, hv, hxv⟩,
+  exact ⟨v, hv.1, ⟨x, hxv⟩, hv.2⟩
+end
+
 lemma is_topological_basis_opens : is_topological_basis { U : set α | is_open U } :=
 is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
 

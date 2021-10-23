@@ -144,7 +144,7 @@ lemma index_ne_one_of_ne_top (hH : H ≠ ⊤) : H.index ≠ 1 :=
 mt index_eq_one.mp hH
 
 lemma index_ne_zero_of_fintype [hH : fintype (quotient_group.quotient H)] : H.index ≠ 0 :=
-by rw index_eq_card; exact fintype.card_ne_zero
+by { rw index_eq_card, exact fintype.card_ne_zero }
 
 lemma one_lt_index_of_ne_top [fintype (quotient_group.quotient H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, index_ne_one_of_ne_top hH⟩

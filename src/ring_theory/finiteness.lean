@@ -81,7 +81,7 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   exact submodule.fg_map hM.1
 end⟩
 
-lemma of_injective[is_noetherian R N] (f : M →ₗ[R] N)
+lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
   (hf : function.injective f) : finite R M :=
 ⟨fg_of_injective f hf⟩
 

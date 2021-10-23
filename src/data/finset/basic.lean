@@ -2991,7 +2991,7 @@ lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
   ∃ (B : finset α), B ⊆ A ∧ card B = i :=
 let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
 
-lemma exists_subset_or_subset_of_two_mul_le_card [decidable_eq α] {X Y : finset α} {n : ℕ}
+lemma exists_subset_or_subset_of_two_mul_lt_card [decidable_eq α] {X Y : finset α} {n : ℕ}
   (hXY : 2 * n < (X ∪ Y).card) :
   ∃ C : finset α, n < C.card ∧ (C ⊆ X ∨ C ⊆ Y) :=
 begin

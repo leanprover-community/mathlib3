@@ -50,6 +50,11 @@ def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
 @[simp] lemma mem_support_iff (p : pmf α) (a : α) :
   a ∈ p.support ↔ p a ≠ 0 := iff.rfl
 
+lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
+has_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (has_sum_ite_eq a (p a)) p.2
+
+section pure
+
 /-- The pure `pmf` is the `pmf` where all the mass lies in one point.
   The value of `pure a` is `1` at `a` and `0` elsewhere. -/
 def pure (a : α) : pmf α := ⟨λ a', if a' = a then 1 else 0, has_sum_ite_eq _ _⟩
@@ -61,8 +66,9 @@ by simp
 
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 
-lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
-has_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (has_sum_ite_eq a (p a)) p.2
+end pure
+
+section bind
 
 protected lemma bind.summable (p : pmf α) (f : α → pmf β) (b : β) :
   summable (λ a : α, p a * f a b) :=
@@ -119,6 +125,10 @@ begin
   rw [ennreal.tsum_comm],
   simp [mul_assoc, mul_left_comm, mul_comm]
 end
+
+end bind
+
+section bind_on_support
 
 protected lemma bind_on_support.summable (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
   summable (λ a : α, p a * if h : p a = 0 then 0 else f a h b) :=
@@ -228,6 +238,10 @@ begin
   split_ifs with h1 h2 h2; ring,
 end
 
+end bind_on_support
+
+section map
+
 /-- The functorial action of a function on a `pmf`. -/
 def map (f : α → β) (p : pmf α) : pmf β := bind p (pure ∘ f)
 
@@ -240,6 +254,8 @@ by simp [map]
 
 lemma pure_map (a : α) (f : α → β) : (pure a).map f = pure (f a) :=
 by simp [map]
+
+end map
 
 /-- The monadic sequencing operation for `pmf`. -/
 def seq (f : pmf (α → β)) (p : pmf α) : pmf β := f.bind (λ m, p.bind $ λ a, pure (m a))
@@ -258,10 +274,6 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
     simp {contextual := tt},
   end⟩
 
-/-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
-def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
-⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
-
 /-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by its `tsum` -/
 def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
 ⟨λ a, f a * (∑' x, f x)⁻¹,
@@ -270,6 +282,8 @@ def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
 
 lemma normalize_apply {f : α → ℝ≥0} (hf0 : tsum f ≠ 0) (a : α) :
   (normalize f hf0) a = f a * (∑' x, f x)⁻¹ := rfl
+
+section filter
 
 /-- Create new `pmf` by filtering on a set with non-zero measure and normalizing -/
 def filter (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) : pmf α :=
@@ -299,8 +313,45 @@ lemma filter_apply_ne_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a �
   (p.filter s h) a ≠ 0 ↔ a ∈ (p.support ∩ s) :=
 by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_not]
 
+end filter
+
+section bernoulli
+
+/-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
+def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
+⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
+
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])
+
+@[simp]
+lemma bernuolli_apply (p : ℝ≥0) (h : p ≤ 1) (b : bool) :
+  bernoulli p h b = cond b p (1 - p) :=
+rfl
+
+end bernoulli
+
+section uniform
+
+variables [fintype α] [inhabited α]
+
+lemma has_sum_inv_card (α : Type*) [fintype α] [inhabited α] :
+  has_sum (λ (a : α), (fintype.card α : nnreal)⁻¹) 1 :=
+begin
+  convert has_sum_fintype (λ (a : α), (fintype.card α : nnreal)⁻¹),
+  refine symm ((finset.sum_const _).trans $ (nsmul_eq_mul _ _).trans (div_self _)),
+  exact nat.cast_ne_zero.2 (finset.card_ne_zero_of_mem (by simp : arbitrary α ∈ _)),
+end
+
+/-- Uniform `pmf` on a inhabited fintype assigning the same probabability to all elements of `α` -/
+def uniform (α : Type*) [fintype α] [inhabited α] : pmf α :=
+⟨λ a, (fintype.card α : nnreal)⁻¹, has_sum_inv_card α⟩
+
+@[simp]
+lemma uniform_apply (a : α) : (pmf.uniform α) a = (fintype.card α)⁻¹ :=
+rfl
+
+end uniform
 
 end pmf

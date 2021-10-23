@@ -74,7 +74,7 @@ monic_of_degree_le f.nat_degree
 end semiring
 
 section domain
-variables [integral_domain R]
+variables [comm_ring R] [integral_domain R]
 
 @[simp] lemma support_integral_normalization {f : polynomial R} :
   (integral_normalization f).support = f.support :=

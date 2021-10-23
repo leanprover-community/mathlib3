@@ -135,11 +135,9 @@ lemma summable_condensed_iff_of_nonneg {f : ℕ → ℝ} (h_nonneg : ∀ n, 0 �
   (h_mono : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) :
   summable (λ k : ℕ, (2 ^ k) * f (2 ^ k)) ↔ summable f :=
 begin
-  set g : ℕ → ℝ≥0 := λ n, ⟨f n, h_nonneg n⟩,
-  have : f = λ n, g n := rfl,
-  simp only [this],
-  have : ∀ ⦃m n⦄, 0 < m → m ≤ n → g n ≤ g m := λ m n hm h, nnreal.coe_le_coe.2 (h_mono hm h),
-  exact_mod_cast nnreal.summable_condensed_iff this
+  lift f to ℕ → ℝ≥0 using h_nonneg,
+  simp only [nnreal.coe_le_coe] at *,
+  exact_mod_cast nnreal.summable_condensed_iff h_mono
 end
 
 open real

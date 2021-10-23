@@ -486,14 +486,15 @@ begin
   exact this.lt_iff_lt
 end
 
-lemma pow_le_pow_of_le_one  {a : R} (h : 0 ≤ a) (ha : a ≤ 1)
-  {i j : ℕ} (hij : i ≤ j) : a ^ j ≤ a ^ i :=
+lemma pow_le_pow_of_le_one {a : R} (h : 0 ≤ a) (ha : a ≤ 1) {i j : ℕ} (hij : i ≤ j) :
+  a ^ j ≤ a ^ i :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
 by rw hk; exact pow_le_pow_of_le_one_aux h ha _ _
 
-lemma pow_le_one {x : R} : ∀ (n : ℕ) (h0 : 0 ≤ x) (h1 : x ≤ 1), x ^ n ≤ 1
-| 0     h0 h1 := by rw [pow_zero]
-| (n+1) h0 h1 := by { rw [pow_succ], exact mul_le_one h1 (pow_nonneg h0 _) (pow_le_one n h0 h1) }
+lemma pow_le_of_le_one {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ a :=
+(pow_one a).subst (pow_le_pow_of_le_one h₀ h₁ (nat.pos_of_ne_zero hn))
+
+lemma sq_le {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
 
 end ordered_semiring
 

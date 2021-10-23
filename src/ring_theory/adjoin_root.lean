@@ -268,7 +268,7 @@ section equiv
 
 section integral_domain
 
-variables [integral_domain R] [integral_domain S] [algebra R S]
+variables [comm_ring R] [integral_domain R] [comm_ring S] [integral_domain S] [algebra R S]
 variables (g : polynomial R) (pb : _root_.power_basis R S)
 
 /-- If `S` is an extension of `R` with power basis `pb` and `g` is a monic polynomial over `R`

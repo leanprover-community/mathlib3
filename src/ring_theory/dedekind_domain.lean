@@ -48,7 +48,7 @@ to add a `(h : ¬ is_field A)` assumption whenever this is explicitly needed.
 dedekind domain, dedekind ring
 -/
 
-variables (R A K : Type*) [comm_ring R] [integral_domain A] [field K]
+variables (R A K : Type*) [comm_ring R] [comm_ring A] [field K]
 
 open_locale non_zero_divisors
 
@@ -61,10 +61,10 @@ open ideal ring
 namespace ring
 
 lemma dimension_le_one.principal_ideal_ring
-  [is_principal_ideal_ring A] : dimension_le_one A :=
+  [integral_domain A] [is_principal_ideal_ring A] : dimension_le_one A :=
 λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
 
-lemma dimension_le_one.is_integral_closure (B : Type*) [integral_domain B]
+lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [integral_domain B]
   [nontrivial R] [algebra R A] [algebra R B] [algebra B A] [is_scalar_tower R B A]
   [is_integral_closure B R A] (h : dimension_le_one R) :
   dimension_le_one B :=
@@ -72,11 +72,13 @@ lemma dimension_le_one.is_integral_closure (B : Type*) [integral_domain B]
   is_integral_closure.is_maximal_of_is_maximal_comap A p
     (h _ (is_integral_closure.comap_ne_bot A ne_bot) infer_instance)
 
-lemma dimension_le_one.integral_closure [nontrivial R] [algebra R A]
+lemma dimension_le_one.integral_closure [nontrivial R] [integral_domain A] [algebra R A]
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
 h.is_integral_closure R A (integral_closure R A)
 
 end ring
+
+variables [integral_domain A]
 
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
@@ -130,7 +132,7 @@ structure is_dedekind_domain_dvr : Prop :=
 
 section inverse
 
-variables {R₁ : Type*} [integral_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
+variables {R₁ : Type*} [comm_ring R₁] [integral_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
 variables {I J : fractional_ideal R₁⁰ K}
 
 noncomputable instance : has_inv (fractional_ideal R₁⁰ K) := ⟨λ I, 1 / I⟩
@@ -208,8 +210,8 @@ open submodule submodule.is_principal
   (fractional_ideal.span_singleton R₁⁰ x)⁻¹ = fractional_ideal.span_singleton _ (x⁻¹) :=
 fractional_ideal.one_div_span_singleton x
 
-lemma mul_generator_self_inv (I : fractional_ideal R₁⁰ K)
-  [submodule.is_principal (I : submodule R₁ K)] (h : I ≠ 0) :
+lemma mul_generator_self_inv {R₁ : Type*} [comm_ring R₁] [algebra R₁ K] [is_localization R₁⁰ K]
+  (I : fractional_ideal R₁⁰ K) [submodule.is_principal (I : submodule R₁ K)] (h : I ≠ 0) :
   I * fractional_ideal.span_singleton _ (generator (I : submodule R₁ K))⁻¹ = 1 :=
 begin
   -- Rewrite only the `I` that appears alone.
@@ -592,6 +594,46 @@ begin
   { exact fractional_ideal.coe_ideal_ne_zero_iff.mp (right_ne_zero_of_mul hne) }
 end
 
+lemma mul_right_le_iff [is_dedekind_domain A] {J : fractional_ideal A⁰ K}
+  (hJ : J ≠ 0) : ∀ {I I'}, I * J ≤ I' * J ↔ I ≤ I' :=
+begin
+  intros I I',
+  split,
+  { intros h, convert mul_right_mono J⁻¹ h;
+      rw [mul_assoc, fractional_ideal.mul_inv_cancel hJ, mul_one] },
+  { exact λ h, mul_right_mono J h }
+end
+
+lemma mul_left_le_iff [is_dedekind_domain A] {J : fractional_ideal A⁰ K}
+  (hJ : J ≠ 0) {I I'} : J * I ≤ J * I' ↔ I ≤ I' :=
+by convert fractional_ideal.mul_right_le_iff hJ using 1; simp only [mul_comm]
+
+lemma mul_right_strict_mono [is_dedekind_domain A] {I : fractional_ideal A⁰ K}
+  (hI : I ≠ 0) : strict_mono (* I) :=
+strict_mono_of_le_iff_le (λ _ _, (mul_right_le_iff hI).symm)
+
+lemma mul_left_strict_mono [is_dedekind_domain A] {I : fractional_ideal A⁰ K}
+  (hI : I ≠ 0) : strict_mono ((*) I) :=
+strict_mono_of_le_iff_le (λ _ _, (mul_left_le_iff hI).symm)
+
+/--
+This is also available as `_root_.div_eq_mul_inv`, using the
+`comm_group_with_zero` instance defined below.
+-/
+protected lemma div_eq_mul_inv [is_dedekind_domain A] (I J : fractional_ideal A⁰ K) :
+  I / J = I * J⁻¹ :=
+begin
+  by_cases hJ : J = 0,
+  { rw [hJ, div_zero, inv_zero', mul_zero] },
+  refine le_antisymm ((mul_right_le_iff hJ).mp _) ((le_div_iff_mul_le hJ).mpr _),
+  { rw [mul_assoc, mul_comm J⁻¹, fractional_ideal.mul_inv_cancel hJ, mul_one, mul_le],
+    intros x hx y hy,
+    rw [mem_div_iff_of_nonzero hJ] at hx,
+    exact hx y hy },
+  rw [mul_assoc, mul_comm J⁻¹, fractional_ideal.mul_inv_cancel hJ, mul_one],
+  exact le_refl I
+end
+
 end fractional_ideal
 
 /-- `is_dedekind_domain` and `is_dedekind_domain_inv` are equivalent ways
@@ -612,6 +654,8 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   comm_group_with_zero (fractional_ideal A⁰ K) :=
 { inv := λ I, I⁻¹,
   inv_zero := inv_zero' _,
+  div := (/),
+  div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
   exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective (le_refl _)).ne
     (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
@@ -718,7 +762,7 @@ open algebra
 open_locale big_operators
 
 variables {A K} [algebra A K] [is_fraction_ring A K]
-variables {L : Type*} [field L] (C : Type*) [integral_domain C]
+variables {L : Type*} [field L] (C : Type*) [comm_ring C]
 variables [algebra K L] [finite_dimensional K L] [algebra A L] [is_scalar_tower A K L]
 variables [algebra C L] [is_integral_closure C A L] [algebra A C] [is_scalar_tower A C L]
 
@@ -851,7 +895,7 @@ lemma integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetheria
   is_noetherian_ring (integral_closure A L) :=
 is_integral_closure.is_noetherian_ring A K L (integral_closure A L)
 
-variables (A K)
+variables (A K) [integral_domain C]
 /- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a Dedekind domain,
 the integral closure `C` of `A` in `L` is a Dedekind domain.
 
@@ -900,7 +944,7 @@ end is_integral_closure
 
 section is_dedekind_domain
 
-variables {T : Type*} [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
+variables {T : Type*} [comm_ring T] [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
 open_locale classical
 open multiset unique_factorization_monoid ideal
 

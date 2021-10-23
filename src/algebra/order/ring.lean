@@ -73,7 +73,7 @@ immediate predecessors and what conditions are added to each of them.
 * `linear_ordered_comm_ring`
   - `ordered_comm_ring` & totality of the order & nontriviality
   - `linear_ordered_ring` & commutativity of multiplication
-  - `integral_domain` & linear order structure
+  - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
   - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
   - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
@@ -1013,7 +1013,7 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
   ..‹linear_ordered_ring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.to_domain : domain α :=
+instance linear_ordered_ring.is_domain : is_domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros a b hab,
@@ -1235,11 +1235,6 @@ instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_
 { ..d }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
-  integral_domain α :=
-{ ..linear_ordered_ring.to_domain, ..s }
-
-@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=
 { .. d, ..linear_ordered_ring.to_linear_ordered_semiring }
@@ -1312,101 +1307,69 @@ def function.injective.linear_ordered_comm_ring {β : Type*}
 
 end linear_ordered_comm_ring
 
-/-- Extend `nonneg_add_comm_group` to support ordered rings
-  specified by their nonnegative elements -/
-class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α :=
+namespace ring
+
+/-- A positive cone in a ring consists of a positive cone in underlying `add_comm_group`,
+which contains `1` and such that the positive elements are closed under multiplication. -/
+@[nolint has_inhabited_instance]
+structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_cone α :=
 (one_nonneg : nonneg 1)
-(mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
-(mul_pos : ∀ {a b}, pos a → pos b → pos (a * b))
+(mul_pos : ∀ (a b), pos a → pos b → pos (a * b))
 
-/-- Extend `nonneg_add_comm_group` to support linearly ordered rings
-  specified by their nonnegative elements -/
-class linear_nonneg_ring (α : Type*) extends domain α, nonneg_add_comm_group α :=
+/-- Forget that a positive cone in a ring respects the multiplicative structure. -/
+add_decl_doc positive_cone.to_positive_cone
+
+/-- A positive cone in a ring induces a linear order if `1` is a positive element. -/
+@[nolint has_inhabited_instance]
+structure total_positive_cone (α : Type*) [ring α]
+  extends positive_cone α, add_comm_group.total_positive_cone α :=
 (one_pos : pos 1)
-(mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
-(nonneg_total : ∀ a, nonneg a ∨ nonneg (-a))
-[dec_nonneg : decidable_pred nonneg]
 
-namespace nonneg_ring
-open nonneg_add_comm_group
-variable [nonneg_ring α]
+/-- Forget that a `total_positive_cone` in a ring is total. -/
+add_decl_doc total_positive_cone.to_positive_cone
 
-/-- `to_linear_nonneg_ring` shows that a `nonneg_ring` with a linear order is a `domain`,
-hence a `linear_nonneg_ring`. -/
-def to_linear_nonneg_ring [nontrivial α] [decidable_pred (@nonneg α _)]
-  (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
-  : linear_nonneg_ring α :=
-{ one_pos := (pos_iff 1).mpr ⟨one_nonneg, λ h, zero_ne_one (nonneg_antisymm one_nonneg h).symm⟩,
-  nonneg_total := nonneg_total,
-  eq_zero_or_eq_zero_of_mul_eq_zero :=
-    suffices ∀ {a} b : α, nonneg a → a * b = 0 → a = 0 ∨ b = 0,
-    from λ a b, (nonneg_total a).elim (this b)
-      (λ na, by simpa using this b na),
-    suffices ∀ {a b : α}, nonneg a → nonneg b → a * b = 0 → a = 0 ∨ b = 0,
-    from λ a b na, (nonneg_total b).elim (this na)
-      (λ nb, by simpa using this na nb),
-    λ a b na nb z, decidable.by_cases
-      (λ nna : nonneg (-a), or.inl (nonneg_antisymm na nna))
-      (λ pa, decidable.by_cases
-        (λ nnb : nonneg (-b), or.inr (nonneg_antisymm nb nnb))
-        (λ pb, absurd z $ ne_of_gt $ pos_def.1 $ mul_pos
-          ((pos_iff _).2 ⟨na, pa⟩)
-          ((pos_iff _).2 ⟨nb, pb⟩))),
-  ..‹nontrivial α›,
-  ..‹nonneg_ring α› }
+/-- Forget that a `total_positive_cone` in a ring respects the multiplicative structure. -/
+add_decl_doc total_positive_cone.to_total_positive_cone
 
-end nonneg_ring
+end ring
 
-namespace linear_nonneg_ring
-open nonneg_add_comm_group
-variable [linear_nonneg_ring α]
+namespace ordered_ring
 
-@[priority 100] -- see Note [lower instance priority]
-instance to_nonneg_ring : nonneg_ring α :=
-{ one_nonneg := ((pos_iff _).mp one_pos).1,
-  mul_pos := λ a b pa pb,
-  let ⟨a1, a2⟩ := (pos_iff a).1 pa,
-      ⟨b1, b2⟩ := (pos_iff b).1 pb in
-  have ab : nonneg (a * b), from mul_nonneg a1 b1,
-  (pos_iff _).2 ⟨ab, λ hn,
-    have a * b = 0, from nonneg_antisymm ab hn,
-    (eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).elim
-      (ne_of_gt (pos_def.1 pa))
-      (ne_of_gt (pos_def.1 pb))⟩,
-  ..‹linear_nonneg_ring α› }
+open ring
 
-/-- Construct `linear_order` from `linear_nonneg_ring`. This is not an instance
-because we don't use it in `mathlib`. -/
-local attribute [instance]
-def to_linear_order [decidable_pred (nonneg : α → Prop)] : linear_order α :=
-{ le_total := nonneg_total_iff.1 nonneg_total,
-  decidable_le := by apply_instance,
-  decidable_lt := by apply_instance,
-  ..‹linear_nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
-
-/-- Construct `linear_ordered_ring` from `linear_nonneg_ring`.
-This is not an instance because we don't use it in `mathlib`. -/
-local attribute [instance]
-def to_linear_ordered_ring [decidable_pred (nonneg : α → Prop)] : linear_ordered_ring α :=
-{ mul_pos := by simp [pos_def.symm]; exact @nonneg_ring.mul_pos _ _,
-  zero_le_one := le_of_lt $ lt_of_not_ge $ λ (h : nonneg (0 - 1)), begin
-    rw [zero_sub] at h,
-    have := mul_nonneg h h, simp at this,
-    exact zero_ne_one (nonneg_antisymm this h).symm
+/-- Construct an `ordered_ring` by
+designating a positive cone in an existing `ring`. -/
+def mk_of_positive_cone {α : Type*} [ring α] (C : positive_cone α) :
+  ordered_ring α :=
+{ zero_le_one := by { change C.nonneg (1 - 0), convert C.one_nonneg, simp, },
+  mul_pos := λ x y xp yp, begin
+    change C.pos (x*y - 0),
+    convert C.mul_pos x y (by { convert xp, simp, }) (by { convert yp, simp, }),
+    simp,
   end,
-  ..‹linear_nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α),
-  ..(infer_instance : linear_order α) }
+  ..‹ring α›,
+  ..ordered_add_comm_group.mk_of_positive_cone C.to_positive_cone }
 
-/-- Convert a `linear_nonneg_ring` with a commutative multiplication and
-decidable non-negativity into a `linear_ordered_comm_ring` -/
-def to_linear_ordered_comm_ring
-  [decidable_pred (@nonneg α _)]
-  [comm : @is_commutative α (*)]
-  : linear_ordered_comm_ring α :=
-{ mul_comm := is_commutative.comm,
-  ..@linear_nonneg_ring.to_linear_ordered_ring _ _ _ }
+end ordered_ring
 
-end linear_nonneg_ring
+namespace linear_ordered_ring
+
+open ring
+
+/-- Construct a `linear_ordered_ring` by
+designating a positive cone in an existing `ring`. -/
+def mk_of_positive_cone {α : Type*} [ring α] (C : total_positive_cone α) :
+  linear_ordered_ring α :=
+{ exists_pair_ne := ⟨0, 1, begin
+    intro h,
+    have one_pos := C.one_pos,
+    rw [←h, C.pos_iff] at one_pos,
+    simpa using one_pos,
+  end⟩,
+  ..ordered_ring.mk_of_positive_cone C.to_positive_cone,
+  ..linear_ordered_add_comm_group.mk_of_positive_cone C.to_total_positive_cone, }
+
+end linear_ordered_ring
 
 /-- A canonically ordered commutative semiring is an ordered, commutative semiring
 in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the
@@ -1446,12 +1409,6 @@ section sub
 variables [canonically_ordered_comm_semiring α] {a b c : α}
 variables [has_sub α] [has_ordered_sub α]
 
-lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
-by { rw [sub_le_iff_right, ← add_mul], exact mul_le_mul_right' le_sub_add c }
-
-lemma mul_sub_ge : a * b - a * c ≤ a * (b - c) :=
-by simp only [mul_comm a, sub_mul_ge]
-
 variables [is_total α (≤)]
 
 namespace add_le_cancellable
@@ -1459,8 +1416,8 @@ protected lemma mul_sub (h : add_le_cancellable (a * c)) :
   a * (b - c) = a * b - a * c :=
 begin
   cases total_of (≤) b c with hbc hcb,
-  { rw [sub_eq_zero_iff_le.2 hbc, mul_zero, sub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
-  { apply h.eq_sub_of_add_eq, rw [← mul_add, sub_add_cancel_of_le hcb] }
+  { rw [tsub_eq_zero_iff_le.2 hbc, mul_zero, tsub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
+  { apply h.eq_tsub_of_add_eq, rw [← mul_add, tsub_add_cancel_of_le hcb] }
 end
 
 protected lemma sub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=

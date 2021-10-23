@@ -94,10 +94,10 @@ begin
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,
-  rcases nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within)
-    with ⟨_, hu, u, rfl⟩,
+  obtain ⟨_, hu : y + _ • _ ∈ s, u, rfl⟩ :=
+    nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within),
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
-  exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+  rwa [s.add_mem_iff_right hy', ←units.smul_def, s.smul_mem_iff' u] at hu,
 end
 
 variables (R M)
@@ -254,7 +254,7 @@ instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) :
 
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
-instance to_fun : has_coe_to_fun $ M₁ →SL[σ₁₂] M₂ := ⟨λ _, M₁ → M₂, λ f, f⟩
+instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M₂) := ⟨λ f, f⟩
 
 @[simp] lemma coe_mk (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
 @[simp] lemma coe_mk' (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ → M₂) = f := rfl
@@ -1078,7 +1078,7 @@ instance : has_coe (M₁ ≃SL[σ₁₂] M₂) (M₁ →SL[σ₁₂] M₂) := �
 
 /-- Coerce continuous linear equivs to maps. -/
 -- see Note [function coercion]
-instance : has_coe_to_fun (M₁ ≃SL[σ₁₂] M₂) := ⟨λ _, M₁ → M₂, λ f, f⟩
+instance : has_coe_to_fun (M₁ ≃SL[σ₁₂] M₂) (λ _, M₁ → M₂) := ⟨λ f, f⟩
 
 @[simp] theorem coe_def_rev (e : M₁ ≃SL[σ₁₂] M₂) : e.to_continuous_linear_map = e := rfl
 
@@ -1460,7 +1460,7 @@ end
 
 variables [module R M₂] [topological_add_group M]
 
-open continuous_linear_map (id fst snd subtype_val mem_ker)
+open _root_.continuous_linear_map (id fst snd subtype_val mem_ker)
 
 /-- A pair of continuous linear maps such that `f₁ ∘ f₂ = id` generates a continuous
 linear equivalence `e` between `M` and `M₂ × f₁.ker` such that `(e x).2 = x` for `x ∈ f₁.ker`,
@@ -1550,12 +1550,11 @@ begin
     simp },
   { suffices : ¬is_unit ((e.symm : M₂ →L[R] M).comp f),
     { simp [this, h₁] },
-    revert h₁,
-    contrapose!,
-    rintros ⟨F, hF⟩,
+    contrapose! h₁,
+    rcases h₁ with ⟨F, hF⟩,
     use (continuous_linear_equiv.units_equiv _ _ F).trans e,
     ext,
-    simp [hF] }
+    dsimp, rw [coe_fn_coe_base' F, hF], simp }
 end
 
 lemma ring_inverse_eq_map_inverse : ring.inverse = @inverse R M M _ _ _ _ _ _ _ :=

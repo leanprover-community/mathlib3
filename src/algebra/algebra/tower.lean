@@ -48,7 +48,7 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 lemma lmul_algebra_map (x : R) :
   lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
-eq.symm $ linear_map.ext $ smul_def'' x
+eq.symm $ linear_map.ext $ smul_def x
 
 end algebra
 
@@ -104,9 +104,10 @@ instance subalgebra' (S₀ : subalgebra R S) : is_scalar_tower R S₀ A :=
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
   (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
 begin
-  unfreezingI { cases h1 with f1 g1 h11 h12, cases h2 with f2 g2 h21 h22,
-  cases f1, cases f2, congr', { ext r x, exact h },
-  ext r, erw [← mul_one (g1 r), ← h12, ← mul_one (g2 r), ← h22, h], refl }
+  unfreezingI { cases h1 with f1 g1 h11 h12, cases h2 with f2 g2 h21 h22, cases f1, cases f2, },
+  congr',
+  { ext r x, exact h },
+  { ext r, erw [← mul_one (g1 r), ← h12, ← mul_one (g2 r), ← h22, h], refl, },
 end
 
 /-- In a tower, the canonical map from the middle element to the top element is an
@@ -148,14 +149,6 @@ instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_s
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
 end semiring
-
-section division_ring
-variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]
-
-instance rat : is_scalar_tower ℚ R S :=
-of_algebra_map_eq $ λ x, ((algebra_map R S).map_rat_cast x).symm
-
-end division_ring
 
 end is_scalar_tower
 

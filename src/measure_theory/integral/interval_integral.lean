@@ -890,7 +890,6 @@ lemma continuous_within_at_of_dominated_interval
   (h_cont : ∀ᵐ t ∂(μ.restrict $ Ι a b), continuous_within_at (λ x, F x t) s x₀) :
   continuous_within_at (λ x, ∫ t in a..b, F x t ∂μ) s x₀ :=
 begin
-  have gcs := is_countably_generated_nhds_within x₀ s,
   cases bound_integrable,
   cases le_or_lt a b with hab hab;
   [{ rw interval_oc_of_le hab at *,
@@ -898,7 +897,7 @@ begin
    { rw interval_oc_of_lt hab at *,
      simp_rw interval_integral.integral_of_ge hab.le,
      refine tendsto.neg _ }];
-  apply tendsto_integral_filter_of_dominated_convergence bound gcs hF_meas hF_meas₀ h_bound,
+  apply tendsto_integral_filter_of_dominated_convergence bound hF_meas hF_meas₀ h_bound,
   exacts [bound_integrable_left, h_cont, bound_integrable_right, h_cont]
 end
 

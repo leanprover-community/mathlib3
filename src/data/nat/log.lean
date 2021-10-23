@@ -83,12 +83,9 @@ begin
       { rintro ⟨bad, _⟩,
         exact lt_irrefl _ (lt_of_lt_of_le h bad), }, }, },
   { rintros ⟨h, one_lt_b, b_le_n⟩,
-    rw [log, if_pos, succ_inj'],
-    { rw log_eq_zero_iff,
-      left,
-      rw nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b),
-      exact h, },
-    { exact ⟨b_le_n, one_lt_b⟩, }, },
+    rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj',
+        log_eq_zero_iff, nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b)],
+    exact or.inl h, },
 end
 
 @[simp] lemma log_zero_left (n : ℕ) : log 0 n = 0 :=

@@ -295,12 +295,10 @@ lemma union_of_atoms' {s : finset α} {Q : finset (finset α)} (A : finset α)
   ((atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty)).bUnion id = A :=
 begin
   ext x,
-  rw mem_bUnion,
-  simp only [exists_prop, mem_filter, id.def, and_assoc],
+  simp only [mem_bUnion, exists_prop, mem_filter, id.def, and_assoc],
   rw ←union_of_atoms_aux hx hs,
-  simp only [exists_prop],
-  exact exists_congr (λ a, and_congr_right (λ b, and_congr_right (λ c,
-    and_iff_right_of_imp (λ h, ⟨_, h⟩)))),
+  simp only [exists_prop, finset.nonempty],
+  tauto,
 end
 
 lemma partial_atomise {s : finset α} {Q : finset (finset α)} (A : finset α) (hA : A ∈ Q) :
@@ -310,8 +308,7 @@ begin
     (atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty) ⊆
       (Q.erase A).powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ insert A P ↔ i ∈ x)),
   { apply (card_le_of_subset h).trans (card_image_le.trans _),
-    rw [card_powerset, card_erase_of_mem hA],
-    refl },
+    rw [card_powerset, card_erase_of_mem hA, nat.pred_eq_sub_one] },
   rw subset_iff,
   simp only [mem_erase, mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
     finset.nonempty, exists_imp_distrib, and_imp, mem_atomise, forall_apply_eq_imp_iff₂],
@@ -320,8 +317,7 @@ begin
   have : A ∈ P,
   { rw mem_filter at hi,
     rw hi.2 _ hA,
-    apply hy₂,
-    exact mem_filter.2 hi },
+    apply hy₂ (mem_filter.2 hi) },
   simp only [insert_erase this, filter_congr_decidable],
 end
 

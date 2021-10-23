@@ -19,7 +19,6 @@ variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : 
   (G : simple_graph α) (ε : ℝ)
 
 local notation `m` := (card α/exp_bound P.parts.card : ℕ)
-local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
 namespace finpartition
 

@@ -24,10 +24,7 @@ lemma exp_bound_mono : monotone exp_bound :=
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
 lemma exp_bound_pos {n : ℕ} : 0 < exp_bound n ↔ 0 < n :=
-begin
-  rw exp_bound,
-  exact zero_lt_mul_right (pow_pos (by norm_num) _),
-end
+zero_lt_mul_right (pow_pos (by norm_num) _)
 
 variables [decidable_eq α] [fintype α] {G : simple_graph α} {P : finpartition (univ : finset α)}
   {ε : ℝ}
@@ -78,14 +75,10 @@ lemma le_div_self {x y : ℝ} (hx : 0 ≤ x) (hy₀ : 0 < y) (hy₁ : y ≤ 1) :
 by simpa using div_le_div_of_le_left hx hy₀ hy₁
 
 lemma hundred_le_m [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
-  (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε : ε ≤ 1) :
-  100 ≤ m :=
-begin
-  suffices : (100 : ℝ) ≤ m, assumption_mod_cast,
-  apply le_trans _ (hundred_div_ε_pow_five_le_m hPα hPε),
-  refine le_div_self (by norm_num) (eps_pow_five_pos hPε) _,
-  apply pow_le_one _ (eps_pos hPε).le hε,
-end
+  (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε : ε ≤ 1) : 100 ≤ m :=
+by exact_mod_cast
+  (le_div_self (by norm_num) (eps_pow_five_pos hPε) (pow_le_one _ (eps_pos hPε).le hε)).trans
+    (hundred_div_ε_pow_five_le_m hPα hPε)
 
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin

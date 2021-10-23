@@ -65,12 +65,10 @@ begin
       (λ B, B ⊆ G.witness ε U V ∧ B.nonempty)).bUnion
       (λ B, B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id),
   { intros x hx,
-    rw [←union_of_atoms' (G.witness ε U V) hX G.witness_subset,
+    rw [←union_of_atoms' (G.witness ε U V) hX (G.witness_subset h₂),
       finpartition.is_equipartition.star, mem_sdiff, mem_bUnion] at hx,
     simp only [not_exists, mem_bUnion, and_imp, filter_congr_decidable, exists_prop, mem_filter,
-      not_and, mem_sdiff, id.def] at hx,
-    simp only [not_exists, mem_bUnion, and_imp, exists_prop, mem_filter, not_and, mem_sdiff,
-      id.def],
+      not_and, mem_sdiff, id.def, mem_sdiff] at hx ⊢,
     obtain ⟨⟨B, hB₁, hB₂⟩, hx⟩ := hx,
     exact ⟨B, hB₁, hB₂, λ A hA AB, hx A hA $ AB.trans hB₁.2.1⟩ },
   apply (card_le_of_subset q).trans (card_bUnion_le.trans _),
@@ -137,7 +135,7 @@ begin
           rw [←mul_div_right_comm, this, mul_right_comm _ (2 : ℝ), mul_assoc, le_div_iff
             (mul_pos (nat.cast_pos.2 (P.nonempty_of_mem_parts hU).card_pos) (eps_pos hPε))],
           refine mul_le_mul_of_nonneg_left _ _,
-          exact (G.witness_card hUV hunif).trans
+          exact (G.witness_card hunif).trans
             (le_mul_of_one_le_left (nat.cast_nonneg _) one_le_two),
           exact mul_nonneg (pow_nonneg zero_le_two _) (nat.cast_nonneg _),
         end
@@ -522,8 +520,8 @@ begin
                 (by exact_mod_cast ((show 9 ≤ 100, by norm_num).trans
                 $ hundred_le_m hPα hPε hε₁))) _)
               (by norm_num) hε)
-            ((le_div_iff' $ (@nat.cast_pos ℝ _ _ _).2 $ card_pos.2 $ P.nonempty_of_mem_parts
-              hU).2 (G.witness_card hUV hunif))
+            ((le_div_iff' $ (@nat.cast_pos ℝ _ _ _).2 $ card_pos.2 $ P.nonempty_of_mem_parts hU).2
+              (G.witness_card hunif))
             (eps_pos hPε).le
             (mul_nonneg hε hm)
     ... = (1 - ε/10) * (G.witness ε U V).card * ((1 - 1/m) / U.card)

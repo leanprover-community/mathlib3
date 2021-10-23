@@ -919,6 +919,17 @@ def take_list {α} : list α → list ℕ → list (list α) × list α
   let ⟨xss, rest⟩ := take_list xs₂ ns in
   (xs₁ :: xss, rest)
 
+/--
+`to_rbmap as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+def to_rbmap {α : Type*} : list α → rbmap ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
+
 /-- Auxliary definition used to define `to_chunks`.
 
   `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks (n+1))`,
@@ -974,16 +985,5 @@ def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → lis
 def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
 | (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
 | _       _       _       _       _       := []
-
-/--
-`to_rbmap as` is the map that associates each index `i` of `as` with the
-corresponding element of `as`.
-
-```
-to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
-```
--/
-def to_rbmap {α : Type*} : list α → rbmap ℕ α :=
-foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
 
 end list

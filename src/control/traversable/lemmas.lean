@@ -14,8 +14,7 @@ This file proves basic properties of traversable and applicative functors and de
 
 ## References
 
-Inspired by [Jeremy Gibbons and Bruno César dos Santos Oliveira, *The Essence of the Iterator
-Pattern*](gibbons2009)
+Inspired by [The Essence of the Iterator Pattern][gibbons2009].
 -/
 
 universes u

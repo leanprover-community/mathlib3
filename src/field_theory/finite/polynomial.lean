@@ -61,7 +61,7 @@ lemma eval_indicator_apply_eq_one (a : σ → K) :
   eval a (indicator a) = 1 :=
 have 0 < fintype.card K - 1,
 begin
-  rw [← finite_field.card_units, fintype.card_pos_iff],
+  rw [← fintype.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
 by { simp only [indicator, (eval a).map_prod, ring_hom.map_sub,

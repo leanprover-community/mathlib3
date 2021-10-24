@@ -24,39 +24,25 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 
 ### General case
 
-- `has_strict_fderiv_at_exp_zero_of_radius_pos` : `exp 𝕂 𝔸` has strict Fréchet-derivative
-  `1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero
-  (see also `has_strict_deriv_at_exp_zero_of_radius_pos` for the case `𝔸 = 𝕂`)
 - `exp_add_of_commute_of_lt_radius` : if `𝕂` has characteristic zero, then given two commuting
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
 - `exp_add_of_lt_radius` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
-- `has_strict_fderiv_at_exp_of_lt_radius` : if `𝕂` has characteristic zero and `𝔸` is commutative,
-  then given a point `x` in the disk of convergence, `exp 𝕂 𝔸` as strict Fréchet-derivative
-  `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at x (see also `has_strict_deriv_at_exp_of_lt_radius` for the case
-  `𝔸 = 𝕂`)
 
 ### `𝕂 = ℝ` or `𝕂 = ℂ`
 
 - `exp_series_radius_eq_top` : the `formal_multilinear_series` defining `exp 𝕂 𝔸` has infinite
   radius of convergence
-- `has_strict_fderiv_at_exp_zero` : `exp 𝕂 𝔸` has strict Fréchet-derivative `1 : 𝔸 →L[𝕂] 𝔸` at zero
-  (see also `has_strict_deriv_at_exp_zero` for the case `𝔸 = 𝕂`)
 - `exp_add_of_commute` : given two commuting elements `x` and `y`, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
 - `exp_add` : if `𝔸` is commutative, then we have `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
   for any `x` and `y`
-- `has_strict_fderiv_at_exp` : if `𝔸` is commutative, then given any point `x`, `exp 𝕂 𝔸` as strict
-  Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at x (see also `has_strict_deriv_at_exp` for the
-  case `𝔸 = 𝕂`)
 
 ### Other useful compatibility results
 
 - `exp_eq_exp` : if `𝔸` is a normed algebra over two fields `𝕂` and `𝕂'`, then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`
-- `complex.exp_eq_exp_ℂ_ℂ` : `complex.exp = exp ℂ ℂ`
-- `real.exp_eq_exp_ℝ_ℝ` : `real.exp = exp ℝ ℝ`
 
 -/
 
@@ -375,5 +361,8 @@ begin
   refine tsum_congr (λ n, _),
   rw exp_series_eq_exp_series 𝕂 𝕂' 𝔸 n x
 end
+
+lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
+exp_eq_exp ℝ ℂ ℂ
 
 end scalar_tower

@@ -11,6 +11,37 @@ import topology.metric_space.cau_seq_filter
 /-!
 # Calculus results on exponential in a Banach algebra
 
+In this file, we prove basic properties about the derivative of the exponential map `exp 𝕂 𝔸`
+in a Banach algebra `𝔸` over a field `𝕂`. We keep them separate from the main file
+`analysis/normed_space/exponential` in order to minimize dependencies.
+
+## Main results
+
+We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂 = ℝ` or `𝕂 = ℂ`.
+
+### General case
+
+- `has_strict_fderiv_at_exp_zero_of_radius_pos` : `exp 𝕂 𝔸` has strict Fréchet-derivative
+  `1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero
+  (see also `has_strict_deriv_at_exp_zero_of_radius_pos` for the case `𝔸 = 𝕂`)
+- `has_strict_fderiv_at_exp_of_lt_radius` : if `𝕂` has characteristic zero and `𝔸` is commutative,
+  then given a point `x` in the disk of convergence, `exp 𝕂 𝔸` as strict Fréchet-derivative
+  `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at x (see also `has_strict_deriv_at_exp_of_lt_radius` for the case
+  `𝔸 = 𝕂`)
+
+### `𝕂 = ℝ` or `𝕂 = ℂ`
+
+- `has_strict_fderiv_at_exp_zero` : `exp 𝕂 𝔸` has strict Fréchet-derivative `1 : 𝔸 →L[𝕂] 𝔸` at zero
+  (see also `has_strict_deriv_at_exp_zero` for the case `𝔸 = 𝕂`)
+- `has_strict_fderiv_at_exp` : if `𝔸` is commutative, then given any point `x`, `exp 𝕂 𝔸` as strict
+  Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at x (see also `has_strict_deriv_at_exp` for the
+  case `𝔸 = 𝕂`)
+
+### Compatibilty with `real.exp` and `complex.exp`
+
+- `complex.exp_eq_exp_ℂ_ℂ` : `complex.exp = exp ℂ ℂ`
+- `real.exp_eq_exp_ℝ_ℝ` : `real.exp = exp ℝ ℝ`
+
 -/
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
@@ -185,9 +216,6 @@ begin
   exact tendsto_nhds_unique x.exp'.tendsto_limit
     (exp_series_field_summable x).has_sum.tendsto_sum_nat
 end
-
-lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
-exp_eq_exp ℝ ℂ ℂ
 
 end complex
 

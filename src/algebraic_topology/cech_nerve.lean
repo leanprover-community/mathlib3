@@ -67,17 +67,20 @@ def cech_nerve : arrow C ⥤ simplicial_object C :=
 { obj := λ f, f.cech_nerve,
   map := λ f g F,
   { app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
-      (λ i, wide_pullback.π _ i ≫ F.left) (λ i, by simp [← category.assoc]) },
-  -- tidy needs a bit of help here...
-  map_id' := by { intros i, ext, tidy },
+      (λ i, wide_pullback.π _ i ≫ F.left)
+      (λ i, by simp only [eq_self_iff_true, arrow.w, category.assoc,
+        limits.wide_pullback.π_arrow_assoc]) },
+  map_id' := by { intros i, ext;
+    { simp only [category.comp_id, category.id_comp, eq_self_iff_true, arrow.id_right,
+        limits.wide_pullback.lift_π, nat_trans.id_app, arrow.id_left] } },
   map_comp' := begin
     intros f g h F G,
-    ext,
-    all_goals {
-      dsimp,
-      simp only [category.assoc, limits.wide_pullback.lift_base,
-        limits.wide_pullback.lift_π, limits.limit.lift_π_assoc],
-      simpa only [← category.assoc] },
+    ext;
+    { simp only [wide_pullback.lift_π, eq_self_iff_true, wide_pullback.lift_π_assoc,
+        wide_pullback.π_arrow, wide_pullback.lift_base_assoc, wide_pullback.lift_base,
+        arrow.w, category.assoc, limits.wide_pullback.lift_base,
+        limits.wide_pullback.lift_π, limits.limit.lift_π_assoc, limits.wide_pullback.lift_π_assoc,
+        nat_trans.comp_app, comma.comp_left, category.assoc, limits.wide_pullback.lift_π] },
   end }
 
 /-- The augmented Čech nerve construction, as a functor from `arrow C`. -/

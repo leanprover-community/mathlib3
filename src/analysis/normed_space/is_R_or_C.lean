@@ -27,13 +27,16 @@ This file exists mainly to avoid importing `is_R_or_C` in the main normed space 
 
 open metric
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
 
 @[simp] lemma _root_.is_R_or_C.norm_of_nonneg {r : ℝ} (r_nn : 0 ≤ r) : ∥(r : 𝕜)∥ = r :=
 by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_real], exact abs_eq_self.mpr r_nn, }
 
-@[simp] lemma _root_.is_R_or_C.norm_coe_norm {z : E} : ∥(∥ z ∥ : 𝕜)∥ = ∥ z ∥ :=
+@[simp] lemma _root_.is_R_or_C.norm_coe_norm {E : Type*} [normed_group E] {z : E} :
+  ∥(∥ z ∥ : 𝕜)∥ = ∥ z ∥ :=
 by { unfold_coes, simp only [norm_algebra_map_eq, ring_hom.to_fun_eq_coe, norm_norm], }
+
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 lemma linear_map.bound_of_sphere_bound
   {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] 𝕜)

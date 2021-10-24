@@ -66,7 +66,11 @@ protected noncomputable def conditionally_complete_linear_order
   conditionally_complete_linear_order {x : α // a ≤ x} :=
 { .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _ }
 
-/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`. -/
+/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`.
+
+This instance uses data fields from `subtype.linear_order` to help type-class inference.
+The `set.Ici` data fields are definitionally equal, but that requires unfolding semireducible
+definitions, so type-class inference won't see this. -/
 @[reducible]
 protected noncomputable def conditionally_complete_linear_order_bot
   [conditionally_complete_linear_order α] {a : α} (h : Sup ∅ ≤ a) :

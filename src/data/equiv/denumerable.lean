@@ -158,13 +158,13 @@ variables {s : set ℕ} [infinite s]
 section classical
 open_locale classical
 
-lemma exists_succ (x : s) : ∃ n, x.1 + n + 1 ∈ s :=
+lemma exists_succ (x : s) : ∃ n, ↑x + n + 1 ∈ s :=
 classical.by_contradiction $ λ h,
-have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
-  from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
+have ∀ (a : ℕ) (ha : a ∈ s), a < succ x,
+  from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x + 1),
     by rwa [add_right_comm, add_tsub_cancel_of_le hax]⟩),
 fintype.false
-  ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
+  ⟨(((multiset.range (succ x)).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,
     by simpa [subtype.ext_iff_val, multiset.mem_filter, -multiset.range_succ]⟩
@@ -175,27 +175,27 @@ variable [decidable_pred (∈ s)]
 
 /-- Returns the next natural in a set, according to the usual ordering of `ℕ`. -/
 def succ (x : s) : s :=
-have h : ∃ m, x.1 + m + 1 ∈ s, from exists_succ x,
-⟨x.1 + nat.find h + 1, nat.find_spec h⟩
+have h : ∃ m, ↑x + m + 1 ∈ s, from exists_succ x,
+⟨↑x + nat.find h + 1, nat.find_spec h⟩
 
 lemma succ_le_of_lt {x y : s} (h : y < x) : succ y ≤ x :=
-have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
+have hx : ∃ m, ↑y + m + 1 ∈ s, from exists_succ _,
 let ⟨k, hk⟩ := nat.exists_eq_add_of_lt h in
 have nat.find hx ≤ k, from nat.find_min' _ (hk ▸ x.2),
-show y.1 + nat.find hx + 1 ≤ x.1,
+show (y : ℕ) + nat.find hx + 1 ≤ x,
 by rw hk; exact add_le_add_right (add_le_add_left this _) _
 
 lemma le_succ_of_forall_lt_le {x y : s} (h : ∀ z < x, z ≤ y) : x ≤ succ y :=
-have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
-show x.1 ≤ y.1 + nat.find hx + 1,
+have hx : ∃ m, ↑y + m + 1 ∈ s, from exists_succ _,
+show ↑x ≤ ↑y + nat.find hx + 1,
 from le_of_not_gt $ λ hxy,
 (h ⟨_, nat.find_spec hx⟩ hxy).not_lt $
-  calc y.1 ≤ y.1 + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
-  ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
+  calc ↑y ≤ ↑y + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
+  ... < ↑y + nat.find hx + 1 : nat.lt_succ_self _
 
 lemma lt_succ_self (x : s) : x < succ x :=
-calc x.1 ≤ x.1 + _ : le_self_add
-... < succ x : nat.lt_succ_self (x.1 + _)
+calc (x : ℕ) ≤ x + _ : le_self_add
+... < succ x : nat.lt_succ_self (x + _)
 
 lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt (λ h', not_le_of_gt h (succ_le_of_lt h')),
@@ -211,7 +211,7 @@ lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = 
   (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
   by simp [list.mem_filter, subtype.ext_iff_val, t]; intros; refl,
-have wf : ∀ m : s, list.maximum t = m → m.1 < x,
+have wf : ∀ m : s, list.maximum t = m → ↑m < x,
   from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
 begin
   cases hmax : list.maximum t with m,

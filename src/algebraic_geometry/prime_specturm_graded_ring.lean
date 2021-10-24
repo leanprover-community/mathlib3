@@ -20,21 +20,56 @@ local notation ι`⁺` := {i : ι // 0 < i}
 instance has_add_ι_nonneg : has_add (ι⁺⁰) :=
 { add := λ i j, ⟨i.1 + j.1, by {convert add_le_add i.2 j.2, rw zero_add }⟩}
 
+instance has_zero_ι_nonneg : has_zero (ι⁺⁰) :=
+⟨⟨0, le_refl 0⟩⟩
+
 instance add_comm_monoid_ι_nonneg : add_comm_monoid (ι⁺⁰) :=
-{ add_assoc := sorry,
-  zero := sorry,
-  add_zero := sorry,
-  zero_add := sorry,
-  add_comm := sorry,
-  .. (has_add_ι_nonneg)}
+{ add_assoc := λ i j k, begin
+    rw calc
+        i + j + k
+      = ⟨i.1 + j.1 + k.1, _⟩ : rfl
+  ... = ⟨i.1 + (j.1 + k.1), _⟩ : _
+  ... = i + (j + k) : rfl,
+  simp only [subtype.val_eq_coe],
+  rw add_assoc,
+  end,
+  add_zero := λ x, begin
+    rw calc
+        x + 0
+      = ⟨x.1 + 0, _⟩ : rfl
+  ... = ⟨x.1, x.2⟩ : _
+  ... = x : _,
+  simp only [subtype.val_eq_coe], rw add_zero,
+  simp only [subtype.coe_eta, subtype.val_eq_coe],
+  end,
+  add_comm := λ x y, begin
+    rw calc
+        x + y
+      = ⟨x.1 + y.1, _⟩ : rfl
+  ... = ⟨y.1 + x.1, _⟩ : _
+  ... = y + x : rfl,
+  simp only [subtype.val_eq_coe], rw add_comm,
+  end,
+  zero_add := λ x, begin
+    rw calc
+        0 + x
+      = ⟨0 + x.1, _⟩ : rfl
+  ... = ⟨x.1, x.2⟩ : _
+  ... = x : _,
+  simp only [subtype.val_eq_coe], rw zero_add,
+  simp only [subtype.coe_eta, subtype.val_eq_coe],
+  end,
+  .. (has_add_ι_nonneg),
+  .. (has_zero_ι_nonneg)}
 
 variables {A : ι⁺⁰ → Type*} [Π i, add_comm_group (A i)] [gcomm_semiring A]
 
+private lemma postive_embedding (i : ι⁺) : ι⁺⁰ := ⟨i.1, le_of_lt i.2⟩
 
 #exit
 
-private def irrelavent_ideal_embedding : (⨁ i : ι⁺, A ⟨i.val, _⟩) →+ (⨁ i, A i) :=
-{ to_fun := λ x, ∑ i in x.support, of A i.val (x i),
+private def irrelavent_ideal_embedding : (⨁ i : ι⁺, A (postive_embedding i)) →+ (⨁ i, A i) :=
+{ to_fun := λ x, ∑ i in x.support, of A (postive_embedding i) (x i),
   map_add' := λ x y, begin
     have set_eq₁ : x.support = { i ∈ x.support | x i = - y i } ∪ { i ∈ x.support | x i ≠ - y i },
     { ext, split; intro h;

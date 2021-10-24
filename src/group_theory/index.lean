@@ -163,13 +163,11 @@ by rw [←subgroup.relindex_mul_index h, h1, mul_zero]
 
 lemma inf_relindex_inf : (H ⊓ K).relindex (K ⊓ L) = H.relindex (K ⊓ L) :=
 begin
-  simp_rw subgroup.relindex,
-  apply congr_arg,
-  ext,
-  have xp:=x.property,
-  simp only [subgroup.mem_subgroup_of, and_iff_left_iff_imp, subgroup.mem_inf,
-    subtype.val_eq_coe] at *,
-  simp only [xp, implies_true_iff],
+  rw ← inf_relindex_right H (K ⊓ L),
+  rw ←  inf_relindex_left (K ⊓ L) (H ⊓ K),
+  have : K ⊓ L ⊓ (H ⊓ K) = H ⊓ (K ⊓ L),
+  by {rw inf_comm, simp_rw ← inf_assoc, simp only [inf_right_idem], },
+  simp_rw this,
 end
 
 lemma inf_relindex_subgroup_of :

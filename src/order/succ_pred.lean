@@ -120,7 +120,7 @@ lemma succ_le_iff : succ a ≤ b ↔ a < b :=
 
 alias succ_le_succ_iff ↔ le_of_succ_le_succ _
 
-@[simp] lemma succ_lt_succ_iff : succ a < succ b ↔ a < b :=
+lemma succ_lt_succ_iff : succ a < succ b ↔ a < b :=
 by simp_rw [lt_iff_le_not_le, succ_le_succ_iff]
 
 alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ

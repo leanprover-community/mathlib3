@@ -159,7 +159,7 @@ lemma multiplicity_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ((finset.Ico 1 b).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i)).card :=
 calc ∑ i in finset.Ico 1 b, n / p ^ i
     = ∑ i in finset.Ico 1 b, (k + (n - k)) / p ^ i :
-    by simp only [add_sub_cancel_of_le hkn]
+    by simp only [add_tsub_cancel_of_le hkn]
 ... = ∑ i in finset.Ico 1 b, (k / p ^ i + (n - k) / p ^ i +
       if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) :
     by simp only [nat.add_div (pow_pos hp.pos _)]
@@ -178,7 +178,7 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
     rw [← hp.multiplicity_mul, ← mul_assoc, choose_mul_factorial_mul_factorial hkn,
         hp.multiplicity_factorial hnb, hp.multiplicity_mul,
         hp.multiplicity_factorial ((log_le_log_of_le hkn).trans_lt hnb),
-        hp.multiplicity_factorial (lt_of_le_of_lt (log_le_log_of_le sub_le_self') hnb),
+        hp.multiplicity_factorial (lt_of_le_of_lt (log_le_log_of_le tsub_le_self) hnb),
         multiplicity_choose_aux hp hkn],
     simp [add_comm],
   end,
@@ -205,7 +205,7 @@ else begin
         (Ico 1 (log p n).succ).filter (λ i, p ^ i ∣ k) ).card :
     card_le_of_subset $ λ i, begin
       have := @le_mod_add_mod_of_dvd_add_of_not_dvd k (n - k) (p ^ i),
-      simp [add_sub_cancel_of_le (le_of_not_gt hkn)] at * {contextual := tt},
+      simp [add_tsub_cancel_of_le (le_of_not_gt hkn)] at * {contextual := tt},
       tauto
     end
   ... ≤ ((Ico 1 (log p n).succ).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i)).card +

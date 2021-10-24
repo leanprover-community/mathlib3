@@ -74,7 +74,7 @@ end tidy
 meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 
 namespace interactive
-open lean.parser interactive
+setup_tactic_parser
 
 /-- Use a variety of conservative tactics to solve goals.
 

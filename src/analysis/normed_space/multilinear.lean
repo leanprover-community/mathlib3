@@ -821,7 +821,8 @@ protected def pi_field_equiv : G ≃L[𝕜] (continuous_multilinear_map 𝕜 (λ
     rw one_mul,
     change ∥f (λi, 1)∥ ≤ ∥f∥,
     apply @continuous_multilinear_map.unit_le_op_norm 𝕜 ι (λ (i : ι), 𝕜) G _ _ _ _ _ _ _ f,
-    simp [pi_norm_le_iff zero_le_one, le_refl]
+    simp only [pi_norm_le_iff zero_le_one, norm_one],
+    exact λ _, le_rfl
   end,
   .. continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G }
 

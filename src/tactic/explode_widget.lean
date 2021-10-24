@@ -288,7 +288,9 @@ do expr.const n _ ← resolve_name n | fail "cannot resolve name",
 
 end explode_widget
 
-open lean lean.parser interactive explode_widget
+open explode_widget
+
+setup_tactic_parser
 
 /--
 User command of the explode widget.

@@ -512,34 +512,28 @@ begin
 end
 
 lemma mem_infi' {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i ∈ I, V i ∈ s i) ∧ U = ⋂ i ∈ I, V i  :=
+  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i, V i ∈ s i) ∧
+    (∀ i ∉ I, V i = univ) ∧ (U = ⋂ i ∈ I, V i) ∧ U = ⋂ i, V i :=
 begin
   simp only [mem_infi, set_coe.forall', bInter_eq_Inter],
-  refine ⟨_, λ ⟨I, If, V, hV⟩, ⟨I, If, λ i, V i, hV⟩⟩,
-  rintro ⟨I, If, V, hV⟩,
-  lift V to ι → set α using trivial,
-  exact ⟨I, If, V, hV⟩
+  refine ⟨_, λ ⟨I, If, V, hVs, _, hVU, _⟩, ⟨I, If, λ i, V i, λ i, hVs i, hVU⟩⟩,
+  rintro ⟨I, If, V, hV, rfl⟩,
+  refine ⟨I, If, λ i, if hi : i ∈ I then V ⟨i, hi⟩ else univ, λ i, _, λ i hi, _, _⟩,
+  { split_ifs, exacts [hV _, univ_mem] },
+  { exact dif_neg hi },
+  { simp [Inter_dite, bInter_eq_Inter] }
 end
 
 lemma exists_Inter_of_mem_infi {ι : Type*} {α : Type*} {f : ι → filter α} {s}
   (hs : s ∈ ⨅ i, f i) : ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
-begin
-  classical,
-  rcases mem_infi'.mp hs with ⟨I, I_fin, V, hV, rfl⟩,
-  refine ⟨λ i, if i ∈ I then V i else univ, _, _⟩,
-  { intro i,
-    split_ifs,
-    exacts [hV i h, univ_mem] },
-  { simp [Inter_ite] },
-end
+let ⟨I, If, V, hVs, hV', hVU, hVU'⟩ := mem_infi'.1 hs in ⟨V, hVs, hVU'⟩
 
 lemma mem_infi_of_fintype {ι : Type*} [fintype ι] {α : Type*} {f : ι → filter α} (s) :
   s ∈ (⨅ i, f i) ↔ ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
 begin
   refine ⟨exists_Inter_of_mem_infi, _⟩,
-  rw mem_infi',
-  rintros ⟨t, ht, ht'⟩,
-  exact ⟨univ, finite_univ, ⟨t, λ i _, ht i, by simp [ht']⟩⟩
+  rintro ⟨t, ht, rfl⟩,
+  exact Inter_mem.2 (λ i, mem_infi_of_mem i (ht i))
 end
 
 @[simp] lemma le_principal_iff {s : set α} {f : filter α} : f ≤ 𝓟 s ↔ s ∈ f :=
@@ -562,6 +556,9 @@ top_unique $ by simp only [le_principal_iff, mem_top, eq_self_iff_true]
 
 @[simp] lemma principal_empty : 𝓟 (∅ : set α) = ⊥ :=
 bot_unique $ λ s _, empty_subset _
+
+lemma generate_eq_binfi (S : set (set α)) : generate S = ⨅ s ∈ S, 𝓟 s :=
+eq_of_forall_le_iff $ λ f, by simp [sets_iff_generate, le_principal_iff, subset_def]
 
 /-! ### Lattice equations -/
 
@@ -726,32 +723,17 @@ lemma binfi_sup_left (p : ι → Prop) (f : ι → filter α) (g : filter α) :
   (⨅ i (h : p i), (g ⊔ f i)) = g ⊔ (⨅ i (h : p i), f i) :=
 by rw [infi_subtype', infi_sup_left, infi_subtype']
 
-lemma mem_infi_finset {s : finset α} {f : α → filter β} :
-  ∀ t, t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⋂ a ∈ s, p a) :=
-show ∀ t, t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⨅ a ∈ s, p a),
+lemma mem_infi_finset {s : finset α} {f : α → filter β} {t : set β} :
+  t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⋂ a ∈ s, p a) :=
 begin
-  simp only [(finset.inf_eq_infi _ _).symm],
-  refine finset.induction_on s _ _,
-  { simp only [finset.not_mem_empty, false_implies_iff, finset.inf_empty, top_le_iff,
-      imp_true_iff, mem_top, true_and, exists_const],
-    intros; refl },
-  { intros a s has ih t,
-    simp only [ih, finset.forall_mem_insert, finset.inf_insert, mem_inf_iff, exists_prop,
-      iff_iff_implies_and_implies, exists_imp_distrib, and_imp, and_assoc] {contextual := tt},
-    split,
-    { rintro t₁ ht₁ t₂ p hp ht₂ rfl,
-      use function.update p a t₁,
-      have : ∀ a' ∈ s, function.update p a t₁ a' = p a',
-        from λ a' ha',
-        have a' ≠ a, from λ h, has $ h ▸ ha',
-        function.update_noteq this _ _,
-      have eq : s.inf (λj, function.update p a t₁ j) = s.inf (λj, p j) :=
-        finset.inf_congr rfl this,
-      simp only [this, ht₁, hp, function.update_same, true_and, imp_true_iff, eq]
-        {contextual := tt},
-      refl },
-    rintro p hpa hp rfl,
-    exact ⟨p a, hpa, s.inf p, ⟨p, hp, rfl⟩, rfl⟩ }
+  simp only [← finset.set_bInter_coe, bInter_eq_Inter, infi_subtype'],
+  refine ⟨λ h, _, _⟩,
+  { rcases (mem_infi_of_fintype _).1 h with ⟨p, hp, rfl⟩,
+    refine ⟨λ a, if h : a ∈ s then p ⟨a, h⟩ else univ, λ a ha, by simpa [ha] using hp ⟨a, ha⟩, _⟩,
+    refine Inter_congr id function.surjective_id _,
+    rintro ⟨a, ha⟩, simp [ha] },
+  { rintro ⟨p, hpf, rfl⟩,
+    exact Inter_mem.2 (λ a, mem_infi_of_mem a (hpf a a.2)) }
 end
 
 /-- If `f : ι → filter α` is directed, `ι` is not empty, and `∀ i, f i ≠ ⊥`, then `infi f ≠ ⊥`.
@@ -1489,11 +1471,7 @@ end
 
 @[simp] lemma frequently_comap {f : filter β} {φ : α → β} {P : α → Prop} :
   (∃ᶠ a in comap φ f, P a) ↔ ∃ᶠ b in f, ∃ a, φ a = b ∧ P a :=
-begin
-  classical,
-  erw [← not_iff_not, not_not, not_not, filter.eventually_comap],
-  simp only [not_exists, not_and],
-end
+by simp only [filter.frequently, eventually_comap, not_exists, not_and]
 
 end comap
 

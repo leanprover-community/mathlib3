@@ -77,9 +77,8 @@ namespace applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
-instance : has_coe_to_fun (applicative_transformation F G) :=
-{ F := λ _, Π {α}, F α → G α,
-  coe := λ a, a.app }
+instance : has_coe_to_fun (applicative_transformation F G) (λ _, Π {α}, F α → G α) :=
+⟨applicative_transformation.app⟩
 
 variables {F G}
 

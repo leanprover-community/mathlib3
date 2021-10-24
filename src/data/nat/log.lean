@@ -92,7 +92,7 @@ lemma log_eq_iff {b : ℕ} : ∀ {n a : ℕ} (a_pos : 0 < a), log b n = a ↔ b^
       exact ⟨b_le_n, ⟨small, one_lt_b⟩⟩, },
     { rintro ⟨b_le_n, n_small, one_lt_b⟩,
       rw [sq b] at n_small,
-      exact ⟨n_small, ⟨one_lt_b, b_le_n⟩⟩, },
+      exact ⟨n_small, one_lt_b, by rwa ←pow_one b⟩, },
   end
 | n (a + 2) a_add_pos :=
 begin

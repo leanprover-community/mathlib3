@@ -2163,7 +2163,7 @@ instance : metric_space punit :=
 section real
 
 /-- Instantiate the reals as a metric space. -/
-instance real.metric_space : metric_space ℝ :=
+noncomputable instance real.metric_space : metric_space ℝ :=
 { eq_of_dist_eq_zero := λ x y h, by simpa [dist, sub_eq_zero] using h,
   ..real.pseudo_metric_space }
 

@@ -12,10 +12,10 @@ import control.traversable.lemmas
 This file provides `bitraversable` instances for concrete bifunctors:
 * `prod`
 * `sum`
-* `const`
+* `functor.const`
 * `flip`
-* `bicompl`
-* `bicompr`
+* `function.bicompl`
+* `function.bicompr`
 
 ## References
 
@@ -65,7 +65,7 @@ by constructor; introsI; cases x;
 instance bitraversable.const : bitraversable const :=
 { bitraverse := @const.bitraverse }
 
-instance is_lawful_bitraversable.const : is_lawful_bitraversable const  :=
+instance is_lawful_bitraversable.const : is_lawful_bitraversable const :=
 by constructor; introsI;
      simp [bitraverse,const.bitraverse] with functor_norm; refl
 
@@ -77,8 +77,8 @@ instance bitraversable.flip : bitraversable (flip t) :=
 { bitraverse := @flip.bitraverse t _ }
 
 open is_lawful_bitraversable
-instance is_lawful_bitraversable.flip [is_lawful_bitraversable t]
-  : is_lawful_bitraversable (flip t)  :=
+instance is_lawful_bitraversable.flip [is_lawful_bitraversable t] :
+  is_lawful_bitraversable (flip t)  :=
 by constructor; intros; unfreezingI { casesm is_lawful_bitraversable t }; tactic.apply_assumption
 
 open bitraversable functor
@@ -111,7 +111,7 @@ def bicompl.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f'
 instance : bitraversable (bicompl t F G) :=
 { bitraverse := @bicompl.bitraverse t _ F G _ _ }
 
-instance [is_lawful_traversable F]  [is_lawful_traversable G] [is_lawful_bitraversable t] :
+instance [is_lawful_traversable F] [is_lawful_traversable G] [is_lawful_bitraversable t] :
   is_lawful_bitraversable (bicompl t F G) :=
 begin
   constructor; introsI;

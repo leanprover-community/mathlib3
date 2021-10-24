@@ -88,18 +88,6 @@ class euclidean_domain_core (R : Type u) [comm_ring R] :=
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 
-/-- A `euclidean_domain` is a `comm_ring` with gcd, lcm, division and remainder,
-satisfying `b * (a / b) + a % b = a` .
-
-You can construct the `gcd` and `lcm` non-uniquely using only division and remainder,
-see `euclidean_domain.of_core`.
-
-The definition of a euclidean domain usually includes a valuation
-function `R → ℕ`. This definition is slightly generalised to include a well founded relation
-`r` with the property that `r (a % b) b`, instead of a valuation.  -/
-class euclidean_domain (R : Type u) [comm_ring R]
-  extends euclidean_domain_core R, integral_domain R, gcd_monoid R.
-
 namespace euclidean_domain
 
 open euclidean_domain_core
@@ -196,6 +184,12 @@ instance (R : Type*) [comm_ring R]
   [e : euclidean_domain_core R] : no_zero_divisors R :=
 ⟨λ a b h, (or_iff_not_and_not.2 $ λ h0,
     h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div])⟩
+
+@[priority 70] -- See note [lower instance priority]
+instance (R : Type*) [comm_ring R] [nontrivial R]
+  [e : euclidean_domain_core R] : is_domain R :=
+{ ..(by apply_instance : no_zero_divisors R),
+  ..(by apply_instance : nontrivial R) }
 
 @[simp, priority 900] lemma div_self {a : R} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
@@ -374,7 +368,7 @@ classical.by_cases
   (λ hxy, let ⟨z, hz⟩ := (gcd_dvd x y).1 in ⟨z, eq.symm $ eq_div_of_mul_eq_right hxy $
     by rw [← mul_assoc, mul_right_comm, ← hz]⟩)
 
-theorem lcm_dvd [integral_domain R] {x y z : R} (hxz : x ∣ z) (hyz : y ∣ z) : lcm x y ∣ z :=
+theorem lcm_dvd [is_domain R] {x y z : R} (hxz : x ∣ z) (hyz : y ∣ z) : lcm x y ∣ z :=
 begin
   rw lcm, by_cases hxy : gcd x y = 0,
   { rw [hxy, div_zero], rw euclidean_domain.gcd_eq_zero_iff at hxy, rwa hxy.1 at hxz },
@@ -389,7 +383,7 @@ begin
   { rw [mul_left_comm, mul_comm], exact mul_dvd_mul_left _ (hxz.mul_right _) }
 end
 
-@[simp] lemma lcm_dvd_iff [integral_domain R] {x y z : R} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=
+@[simp] lemma lcm_dvd_iff [is_domain R] {x y z : R} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=
 ⟨λ hz, ⟨(dvd_lcm_left _ _).trans hz, (dvd_lcm_right _ _).trans hz⟩,
 λ ⟨hxz, hyz⟩, lcm_dvd hxz hyz⟩
 
@@ -402,7 +396,9 @@ by rw [lcm, mul_zero, zero_div]
 @[simp] lemma lcm_eq_zero_iff {x y : R} : lcm x y = 0 ↔ x = 0 ∨ y = 0 :=
 begin
   split,
-  { intro hxy, rw [lcm, mul_div_assoc _ (gcd_dvd_right _ _), mul_eq_zero] at hxy,
+  { -- TODO why?
+    haveI : no_zero_divisors R, apply euclidean_domain.no_zero_divisors,
+    intro hxy, rw [lcm, mul_div_assoc x (gcd_dvd_right x y), mul_eq_zero] at hxy,
     apply or_of_or_of_imp_right hxy, intro hy,
     by_cases hgxy : gcd x y = 0,
     { rw euclidean_domain.gcd_eq_zero_iff at hgxy, exact hgxy.2 },
@@ -428,6 +424,18 @@ end lcm
 end euclidean_domain
 
 section
+/-- A `euclidean_domain` is a `comm_ring` with gcd, lcm, division and remainder,
+satisfying `b * (a / b) + a % b = a` .
+
+You can construct the `gcd` and `lcm` non-uniquely using only division and remainder,
+see `euclidean_domain.of_core`.
+
+The definition of a euclidean domain usually includes a valuation
+function `R → ℕ`. This definition is slightly generalised to include a well founded relation
+`r` with the property that `r (a % b) b`, instead of a valuation.  -/
+class euclidean_domain (R : Type u) [comm_ring R] [nontrivial R]
+  extends euclidean_domain_core R, gcd_monoid R.
+
 variables {R : Type*} [comm_ring R] [nontrivial R] [decidable_eq R]
 
 open euclidean_domain

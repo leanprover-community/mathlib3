@@ -61,26 +61,32 @@ namespace simplicial_object
 variables [∀ (n : ℕ) (f : arrow C),
   has_wide_pullback f.right (λ i : ulift (fin (n+1)), f.left) (λ i, f.hom)]
 
+def cech_nerve_map {f g : arrow C} (F : f ⟶ g) : (f.cech_nerve ⟶ g.cech_nerve) :=
+{ app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
+    (λ i, wide_pullback.π _ i ≫ F.left)
+    (λ i, by simp only [eq_self_iff_true, arrow.w, category.assoc,
+      limits.wide_pullback.π_arrow_assoc]) }
+
 /-- The Čech nerve construction, as a functor from `arrow C`. -/
 @[simps]
 def cech_nerve : arrow C ⥤ simplicial_object C :=
 { obj := λ f, f.cech_nerve,
-  map := λ f g F,
-  { app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
-      (λ i, wide_pullback.π _ i ≫ F.left)
-      (λ i, by simp only [eq_self_iff_true, arrow.w, category.assoc,
-        limits.wide_pullback.π_arrow_assoc]) },
+  map := λ f g F, cech_nerve_map F,
   map_id' := by { intros i, ext;
-    { simp only [category.comp_id, category.id_comp, eq_self_iff_true, arrow.id_right,
-        limits.wide_pullback.lift_π, nat_trans.id_app, arrow.id_left] } },
+    { simp only [cech_nerve_map, category.comp_id, category.id_comp, eq_self_iff_true,
+        arrow.id_right, limits.wide_pullback.lift_π, nat_trans.id_app, arrow.id_left,
+        limits.wide_pullback.lift_base] } },
   map_comp' := begin
     intros f g h F G,
-    ext;
-    { simp only [wide_pullback.lift_π, eq_self_iff_true, wide_pullback.lift_π_assoc,
+    ext,
+    all_goals {
+      simp only [cech_nerve_map, wide_pullback.lift_π, eq_self_iff_true, wide_pullback.lift_π_assoc,
         wide_pullback.π_arrow, wide_pullback.lift_base_assoc, wide_pullback.lift_base,
         arrow.w, category.assoc, limits.wide_pullback.lift_base,
         limits.wide_pullback.lift_π, limits.limit.lift_π_assoc, limits.wide_pullback.lift_π_assoc,
-        nat_trans.comp_app, comma.comp_left, category.assoc, limits.wide_pullback.lift_π] },
+        nat_trans.comp_app, comma.comp_left, category.assoc, limits.wide_pullback.lift_π,
+        comma.comp_right] },
+    simpa only [←category.assoc],
   end }
 
 /-- The augmented Čech nerve construction, as a functor from `arrow C`. -/

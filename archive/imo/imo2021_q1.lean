@@ -231,7 +231,7 @@ begin
   -- Since B has cardinality greater or equal to 3, there must exist a subset C ⊆ B such that
   -- for any A ⊆ [n, 2n], either C ⊆ A or C ⊆ [n, 2n] \ A and C has cardinality greater
   -- or equal to 2.
-  have hp₂ := finset.exists_subset_or_subset_of_two_mul_le_card hB,
+  have hp₂ := finset.exists_subset_or_subset_of_two_mul_lt_card hB,
   rcases hp₂ with (⟨C, hC, (hCA | hCA)⟩),
   -- First, we deal with the case when C ⊆ [n, 2n] \ A.
   { right,

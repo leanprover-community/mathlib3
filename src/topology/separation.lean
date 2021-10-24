@@ -334,9 +334,7 @@ fact₂ fact₁ (eq.refl $ f a)
 `f` admits *some* limit at `a`. -/
 lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
-have this : f a = b,
-  from eq_of_tendsto_nhds h,
-by rwa ← this at h
+show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/

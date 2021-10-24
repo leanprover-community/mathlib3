@@ -331,12 +331,9 @@ section
 variables (R)
 /-- `gsmul` is equal to any other module structure via a cast. -/
 lemma gsmul_eq_smul_cast (n : ℤ) (b : M) : n • b = (n : R) • b :=
-begin
-  induction n using int.induction_on with p hp n hn,
-  { rw [int.cast_zero, zero_smul, zero_smul] },
-  { rw [int.cast_add, int.cast_one, add_smul, add_smul, one_smul, one_smul, hp] },
-  { rw [int.cast_sub, int.cast_one, sub_smul, sub_smul, one_smul, one_smul, hn] },
-end
+have (smul_add_hom ℤ M).flip b = ((smul_add_hom R M).flip b).comp (int.cast_add_hom R),
+  by { ext, simp },
+add_monoid_hom.congr_fun this n
 end
 
 /-- Convert back any exotic `ℤ`-smul to the canonical instance. This should not be needed since in
@@ -351,33 +348,17 @@ def add_comm_group.int_module.unique : unique (module ℤ M) :=
 { default := by apply_instance,
   uniq := λ P, module_ext P _ $ λ n, int_smul_eq_gsmul P n }
 
-instance add_comm_group.int_is_scalar_tower : is_scalar_tower ℤ R M :=
-{ smul_assoc := λ n x y, int.induction_on n
-    (by simp only [zero_smul])
-    (λ n ih, by simp only [one_smul, add_smul, ih])
-    (λ n ih, by simp only [one_smul, sub_smul, ih]) }
-
-instance add_comm_group.int_smul_comm_class : smul_comm_class ℤ S M :=
-{ smul_comm := λ n x y, int.induction_on n
-    (by simp only [zero_smul, smul_zero])
-    (λ n ih, by simp only [one_smul, add_smul, smul_add, ih])
-    (λ n ih, by simp only [one_smul, sub_smul, smul_sub, ih]) }
-
--- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' : smul_comm_class S ℤ M :=
-smul_comm_class.symm _ _ _
-
 end add_comm_group
 
 namespace add_monoid_hom
 
 lemma map_nat_module_smul [add_comm_monoid M] [add_comm_monoid M₂]
   (f : M →+ M₂) (x : ℕ) (a : M) : f (x • a) = x • f a :=
-by simp only [f.map_nsmul]
+f.map_nsmul a x
 
 lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
-by simp only [f.map_gsmul]
+f.map_gsmul a x
 
 lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
@@ -450,6 +431,32 @@ lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ri
   [division_ring S] [module R E] [module S E] (r : ℚ) (x : E) :
   (r : R) • x = (r : S) • x :=
 (add_monoid_hom.id E).map_rat_cast_smul R S r x
+
+instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [add_comm_group M]
+  [module R M]: is_scalar_tower ℤ R M :=
+{ smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_int_module_smul n x }
+
+instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [semiring S]
+  [add_comm_group M] [module S M] :
+  smul_comm_class ℤ S M :=
+{ smul_comm := λ n x y, ((smul_add_hom S M x).map_gsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [semiring S]
+  [add_comm_group M] [module S M] : smul_comm_class S ℤ M :=
+smul_comm_class.symm _ _ _
+
+instance is_scalar_tower.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]
+  [module R M] [module ℚ R] [module ℚ M] : is_scalar_tower ℚ R M :=
+{ smul_assoc := λ r x y, ((smul_add_hom R M).flip y).map_rat_module_smul r x }
+
+instance smul_comm_class.rat {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
+  [module R M] [module ℚ M] : smul_comm_class ℚ R M :=
+{ smul_comm := λ r x y, ((smul_add_hom R M x).map_rat_module_smul r y).symm }
+
+instance smul_comm_class.rat' {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
+  [module R M] [module ℚ M] : smul_comm_class R ℚ M :=
+smul_comm_class.symm _ _ _
 
 section no_zero_smul_divisors
 /-! ### `no_zero_smul_divisors`

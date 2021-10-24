@@ -223,11 +223,11 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+theorem succ_omega : succ ω = aleph 1 :=
+by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
+
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
-begin
-  have : aleph 1 = (aleph 0).succ, by simp only [← aleph_succ, ordinal.succ_zero],
-  rw [countable_iff, ← aleph_zero, this, lt_succ],
-end
+by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
 /-! ### Properties of `mul` -/
 

@@ -94,10 +94,10 @@ begin
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,
-  rcases nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within)
-    with ⟨_, hu, u, rfl⟩,
+  obtain ⟨_, hu : y + _ • _ ∈ s, u, rfl⟩ :=
+    nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within),
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
-  exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+  rwa [s.add_mem_iff_right hy', ←units.smul_def, s.smul_mem_iff' u] at hu,
 end
 
 variables (R M)

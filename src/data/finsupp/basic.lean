@@ -346,6 +346,23 @@ by simp only [card_eq_one, support_eq_singleton]
 lemma card_support_eq_one' {f : α →₀ M} : card f.support = 1 ↔ ∃ a (b ≠ 0), f = single a b :=
 by simp only [card_eq_one, support_eq_singleton']
 
+lemma support_subset_singleton {f : α →₀ M} {a : α} :
+  f.support ⊆ {a} ↔ f = single a (f a) :=
+⟨λ h, eq_single_iff.mpr ⟨h, rfl⟩, λ h, (eq_single_iff.mp h).left⟩
+
+lemma support_subset_singleton' {f : α →₀ M} {a : α} :
+  f.support ⊆ {a} ↔ ∃ b, f = single a b :=
+⟨λ h, ⟨f a, support_subset_singleton.mp h⟩,
+  λ ⟨b, hb⟩, by rw [hb, support_subset_singleton, single_eq_same]⟩
+
+lemma card_support_le_one [nonempty α] {f : α →₀ M} :
+  card f.support ≤ 1 ↔ ∃ a, f = single a (f a) :=
+by simp only [card_le_one_iff_subset_singleton, support_subset_singleton]
+
+lemma card_support_le_one' [nonempty α] {f : α →₀ M} :
+  card f.support ≤ 1 ↔ ∃ a b, f = single a b :=
+by simp only [card_le_one_iff_subset_singleton, support_subset_singleton']
+
 @[simp] lemma equiv_fun_on_fintype_single [fintype α] (x : α) (m : M) :
   (@finsupp.equiv_fun_on_fintype α M _ _) (finsupp.single x m) = pi.single x m :=
 by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }

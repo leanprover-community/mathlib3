@@ -392,6 +392,12 @@ instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
+@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
+  (⟨x, hx⟩ : S) * ⟨y, hy⟩ = ⟨x * y, S.mul_mem hx hy⟩ := rfl
+
+@[to_additive] lemma mul_def (x y : S) : x * y = ⟨x * y, S.mul_mem x.2 y.2⟩ := rfl
+@[to_additive] lemma one_def : (1 : S) = ⟨1, S.one_mem⟩ := rfl
+
 /-- A submonoid of a unital magma inherits a unital magma structure. -/
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
 structure."]
@@ -766,9 +772,9 @@ set_like.ext_iff.trans $ by simp [iff_def, S.one_mem] { contextual := tt }
 
 @[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) :
   nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
-calc nontrivial S ↔ ∃ x : S, x ≠ 1 : nontrivial_iff_exists_ne 1
-... ↔ ∃ x (hx : x ∈ S), (⟨x, hx⟩ : S) ≠ ⟨1, S.one_mem⟩ : subtype.exists
-... ↔ ∃ x ∈ S, x ≠ (1 : M) : by simp only [ne.def]
+calc nontrivial S ↔ ∃ x : S, x ≠ 1                                   : nontrivial_iff_exists_ne 1
+              ... ↔ ∃ x (hx : x ∈ S), (⟨x, hx⟩ : S) ≠ ⟨1, S.one_mem⟩ : subtype.exists
+              ... ↔ ∃ x ∈ S, x ≠ (1 : M)                             : by simp only [ne.def]
 
 /-- A submonoid is either the trivial submonoid or nontrivial. -/
 @[to_additive] lemma bot_or_nontrivial (S : submonoid M) : S = ⊥ ∨ nontrivial S :=
@@ -776,10 +782,7 @@ by simp only [eq_bot_iff_forall, nontrivial_iff_exists_ne_one, ← not_forall, c
 
 /-- A submonoid is either the trivial submonoid or contains a nonzero element. -/
 @[to_additive] lemma bot_or_exists_ne_one (S : submonoid M) : S = ⊥ ∨ ∃ x ∈ S, x ≠ (1:M) :=
-begin
-  convert S.bot_or_nontrivial,
-  rw nontrivial_iff_exists_ne_one
-end
+S.bot_or_nontrivial.imp_right S.nontrivial_iff_exists_ne_one.mp
 
 end submonoid
 

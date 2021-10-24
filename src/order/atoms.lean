@@ -313,10 +313,6 @@ instance : distrib_lattice α :=
   .. (infer_instance : lattice α) }
 
 @[priority 100]
-instance : bounded_lattice α :=
-{ .. (infer_instance : bounded_lattice α) }
-
-@[priority 100]
 instance : is_atomic α :=
 ⟨λ b, (eq_bot_or_eq_top b).imp_right (λ h, ⟨⊤, ⟨is_atom_top, ge_of_eq h⟩⟩)⟩
 

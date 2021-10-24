@@ -403,7 +403,7 @@ def lift_order_top [preorder α] [order_top α] (gi : galois_insertion l u) : or
   le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top) }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois insertion -/
-def lift_bounded_lattice [preorder α] [partial_order β] [bounded_lattice α]
+def lift_bounded_lattice [preorder α] [bounded_lattice α]
   (gi : galois_insertion l u) : bounded_lattice β :=
 { .. gi.lift_order_top, .. gi.gc.lift_order_bot }
 
@@ -569,7 +569,7 @@ def lift_order_bot [preorder β] [order_bot β] (gi : galois_coinsertion l u) : 
   .. @order_dual.order_bot _ _ gi.dual.lift_order_top }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois coinsertion -/
-def lift_bounded_lattice [partial_order α] [preorder β] [bounded_lattice β]
+def lift_bounded_lattice [preorder β] [bounded_lattice β]
   (gi : galois_coinsertion l u) : bounded_lattice α :=
 { .. gi.lift_order_bot, .. gi.gc.lift_order_top }
 

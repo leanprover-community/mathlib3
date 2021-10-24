@@ -165,7 +165,7 @@ def order_top [preorder α] {a b : α} (h : a ≤ b) : order_top (Icc a b) :=
   le_top := λ x, x.prop.2 }
 
 /-- `Icc a b` is a `bounded_lattice` whenever `a ≤ b`. -/
-def bounded_lattice [preorder α] [bounded_lattice α] {a b : α} (h : a ≤ b) :
+def bounded_lattice [preorder α] {a b : α} (h : a ≤ b) :
   bounded_lattice (Icc a b) :=
 { .. (Icc.order_top h),
   .. (Icc.order_bot h) }

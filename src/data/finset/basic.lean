@@ -955,7 +955,7 @@ instance : lattice (finset α) :=
 @[simp] theorem sup_eq_union : ((⊔) : finset α → finset α → finset α) = (∪) := rfl
 @[simp] theorem inf_eq_inter : ((⊓) : finset α → finset α → finset α) = (∩) := rfl
 
-instance : order_bot (finset α) :=
+instance {α : Type u} : order_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset }
 
 @[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl

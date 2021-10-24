@@ -357,7 +357,7 @@ instance [linear_order α] [fintype α] : order_top (finset.colex α) :=
 { top := finset.univ.to_colex,
   le_top := λ x, colex_le_of_subset (subset_univ _) }
 
-instance [linear_order α] [fintype α] : lattice (finset.colex α) :=
+instance [linear_order α] : lattice (finset.colex α) :=
 { ..(by apply_instance : semilattice_sup (finset.colex α)),
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 

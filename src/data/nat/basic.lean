@@ -104,7 +104,7 @@ instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonem
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
   bot_le := λ x, nat.find_min' _ x.2 }
 
-instance nat.subtype.semilattice_sup (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
+instance nat.subtype.semilattice_sup (s : set ℕ) :
   semilattice_sup s :=
 { ..subtype.linear_order s,
   ..lattice_of_linear_order }

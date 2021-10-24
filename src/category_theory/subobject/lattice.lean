@@ -488,17 +488,16 @@ end
 end semilattice_sup
 
 section lattice
+
+instance [has_initial C] [initial_mono_class C] {B : C} : bounded_lattice (subobject B) :=
+{ ..subobject.order_top,
+  ..subobject.order_bot }
+
 variables [has_pullbacks C] [has_images C] [has_binary_coproducts C]
 
 instance {B : C} : lattice (subobject B) :=
 { ..subobject.semilattice_inf,
   ..subobject.semilattice_sup }
-
-variables [has_initial C] [initial_mono_class C]
-
-instance {B : C} : bounded_lattice (subobject B) :=
-{ ..subobject.order_top,
-  ..subobject.order_bot }
 
 end lattice
 

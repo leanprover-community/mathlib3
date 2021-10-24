@@ -96,7 +96,7 @@ instance [preorder α] [order_bot α] : order_bot (Iic a) :=
 { bot := ⟨⊥, bot_le⟩,
   bot_le := λ ⟨_,_⟩, subtype.mk_le_mk.2 bot_le }
 
-@[simp] lemma coe_bot [preorder α] [order_bot α] {a : α} : ↑(⊥ : Iic a) = (⊥ : α) := rfl
+lemma coe_bot [preorder α] [order_bot α] {a : α} : ↑(⊥ : Iic a) = (⊥ : α) := rfl
 
 instance [partial_order α] [no_bot_order α] {a : α} : no_bot_order (Iic a) :=
 ⟨λ x, let ⟨y, hy⟩ := no_bot x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon, Yaël Dillies
+Authors: Simon Hudon, Yaël Dillies, Patrick Stevens
 -/
 import data.nat.pow
 
@@ -79,6 +79,55 @@ begin
     rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj',
         log_eq_zero_iff, nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b)],
     exact or.inl h, },
+end
+
+lemma log_eq_iff {b : ℕ} : ∀ {n a : ℕ} (a_pos : 0 < a), log b n = a ↔ b^a ≤ n ∧ n < b^(a+1) ∧ 1 < b
+| _ 0 a_pos := by exfalso; exact lt_irrefl _ a_pos
+| _ 1 _ :=
+  begin
+    rw log_eq_one_iff,
+    split,
+    { rintro ⟨small, one_lt_b, b_le_n⟩,
+      simp only [sq b, pow_one],
+      exact ⟨b_le_n, ⟨small, one_lt_b⟩⟩, },
+    { rintro ⟨b_le_n, n_small, one_lt_b⟩,
+      rw [sq b] at n_small,
+      exact ⟨n_small, ⟨one_lt_b, b_le_n⟩⟩, },
+  end
+| n (a + 2) a_add_pos :=
+begin
+  split,
+  { intro h_log,
+    have bound : 1 < b ∧ b ≤ n,
+    { contrapose h_log,
+      rw [not_and_distrib, not_lt, not_le, or_comm, ←log_eq_zero_iff] at h_log,
+      rw [h_log, eq_comm],
+      exact pos_iff_ne_zero.1 (succ_pos _), },
+    cases bound with one_lt_b b_le_n,
+    refine ⟨_, _, one_lt_b⟩,
+    { rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj'] at h_log,
+      rw log_eq_iff (succ_pos _) at h_log,
+      rcases h_log with ⟨h_log, _, _⟩,
+      calc b ^ (a + 2) = b ^ (a + 1) * b : pow_succ' b (a + 1)
+        ... ≤ n / b * b : mul_le_mul_right' h_log b
+        ... ≤ n : div_mul_le_self n b, },
+    { sorry,  },
+},
+{ rintros ⟨h_b_pow, n_small, one_lt_b⟩,
+  have b_le_n : b ≤ n :=
+    calc b = b ^ 1 : (pow_one b).symm
+      ... ≤ b ^ (a + 2) : pow_le_pow (le_of_lt one_lt_b) (succ_le_iff.mpr a_add_pos)
+      ... ≤ n : h_b_pow,
+  rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj', log_eq_iff (succ_pos _)],
+  refine ⟨_, _, one_lt_b⟩,
+  { calc b ^ (a + 1) = b ^ (a + 2 - 1) : by refl
+    ... = b ^ (a + 2) / b ^ 1 : (pow_div (succ_le_iff.mpr a_add_pos) (pos_of_gt one_lt_b)).symm
+    ... = b ^ (a + 2) / b : by rw pow_one
+    ... ≤ n / b : nat.div_le_div_right h_b_pow, },
+  { calc n / b < b ^ (a + 2 + 1) / b : by sorry
+    ... = b ^ (a + 2 + 1) / b ^ 1 : by rw pow_one
+    ... = b ^ (a + 2 + 1 - 1) : pow_div le_add_self (pos_of_gt one_lt_b)
+    ... = b ^ (a + 2) : by refl, }, },
 end
 
 @[simp] lemma log_zero_left (n : ℕ) : log 0 n = 0 :=

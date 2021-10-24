@@ -308,35 +308,6 @@ lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
 subset_Icc_cInf_cSup (real.bounded_iff_bdd_below_bdd_above.1 h).1
   (real.bounded_iff_bdd_below_bdd_above.1 h).2
 
-lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
-  f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
-eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
-  (is_compact_Icc.image_of_continuous_on h)
-
-lemma real.image_interval_eq_Icc {f : ℝ → ℝ} {a b : ℝ} (h : continuous_on f $ [a, b]) :
-  f '' [a, b] = Icc (Inf (f '' [a, b])) (Sup (f '' [a, b])) :=
-begin
-  cases le_total a b with h2 h2,
-  { simp_rw [interval_of_le h2] at h ⊢, exact real.image_Icc h2 h },
-  { simp_rw [interval_of_ge h2] at h ⊢, exact real.image_Icc h2 h },
-end
-
-lemma real.image_interval {f : ℝ → ℝ} {a b : ℝ} (h : continuous_on f $ [a, b]) :
-  f '' [a, b] = [Inf (f '' [a, b]), Sup (f '' [a, b])] :=
-begin
-  refine (real.image_interval_eq_Icc h).trans (interval_of_le _).symm,
-  rw [real.image_interval_eq_Icc h],
-  exact real.Inf_le_Sup _ bdd_below_Icc bdd_above_Icc
-end
-
-lemma real.interval_subset_image_interval {f : ℝ → ℝ} {a b x y : ℝ}
-  (h : continuous_on f [a, b]) (hx : x ∈ [a, b]) (hy : y ∈ [a, b]) :
-  [f x, f y] ⊆ f '' [a, b] :=
-begin
-  rw [real.image_interval h, interval_subset_interval_iff_mem, ← real.image_interval h],
-  exact ⟨mem_image_of_mem f hx, mem_image_of_mem f hy⟩
-end
-
 end
 
 section periodic

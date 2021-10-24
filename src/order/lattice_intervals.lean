@@ -17,9 +17,9 @@ intervals, but more can be added easily along the same lines when needed.
 
 ## Main definitions
 In the following, `*` can represent either `c`, `o`, or `i`.
-  * `set.Ic*.semilattice_inf_bot`
+  * `set.Ic*.orer_bot`
   * `set.Ii*.semillatice_inf`
-  * `set.I*c.semilattice_sup_top`
+  * `set.I*c.order_top`
   * `set.I*c.semillatice_inf`
   * `set.Iic.bounded_lattice`, within a `bounded_lattice`
   * `set.Ici.bounded_lattice`, within a `bounded_lattice`

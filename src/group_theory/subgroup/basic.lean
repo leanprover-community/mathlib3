@@ -1919,6 +1919,68 @@ begin
   exact ((f.lift_of_right_inverse f_inv hf).apply_symm_apply _).symm,
 end
 
+/--`mul_hom` on subgroups induced by `mul_hom` of parent group-/
+def img_mul_hom  (H : subgroup G) (f : G →* G₁) :
+  H →* H.map f :=
+(f.comp H.subtype).cod_restrict (H.map f) (H.apply_coe_mem_map f)
+
+/--Isomorphism of a subgroup with its image under an isomorphism-/
+def img_mul_equiv  (H : subgroup G) (f : G ≃* G₁) :
+  H ≃* (subgroup.map f.to_monoid_hom) H :=
+{ to_fun := λ x, ⟨f.1 x, by {simp only [exists_prop, set_like.coe_mem,
+    mul_equiv.coe_to_monoid_hom, mul_equiv.to_fun_eq_coe, subgroup.mem_map,
+    exists_eq_right, mul_equiv.apply_eq_iff_eq]}⟩,
+  inv_fun := λ x, ⟨f.2 x, by {simp only [mul_equiv.inv_fun_eq_symm],
+    have xp := x.property,
+    simp_rw subgroup.map_equiv_eq_comap_symm at xp,
+    simp only [mul_equiv.coe_to_monoid_hom, subgroup.mem_comap, subtype.val_eq_coe] at xp,
+    apply xp,}⟩,
+  left_inv := by {intro x,
+    simp only [set_like.eta, mul_equiv.inv_fun_eq_symm, mul_equiv.symm_apply_apply,
+      mul_equiv.to_fun_eq_coe, subgroup.coe_mk],},
+  right_inv := by {intro x,
+    simp only [mul_equiv.apply_symm_apply, set_like.eta, mul_equiv.inv_fun_eq_symm,
+      mul_equiv.to_fun_eq_coe, subgroup.coe_mk],},
+  map_mul' := by {intros x y,
+      simp only [mul_equiv.to_fun_eq_coe, subgroup.coe_mul, mul_equiv.map_mul], refl,},}
+
+/--Image of a sub_subgroup under a `mul_hom`-/
+def mul_hom_sub_subgroup (H : subgroup G) (K : subgroup H) (f : G →* G₁) : subgroup (H.map f) :=
+subgroup.map (img_mul_hom H f) K
+
+lemma equiv_sub_subgroup_of (H K: subgroup G) (f : G ≃* G₁) :
+  (mul_hom_sub_subgroup H (K.subgroup_of H) f.to_monoid_hom) =
+  (K.map f.to_monoid_hom).subgroup_of (H.map f.to_monoid_hom) :=
+begin
+  rw mul_hom_sub_subgroup,
+  rw img_mul_hom,
+  simp_rw subgroup.map,
+  ext,
+  simp only [subgroup.mem_subgroup_of, mul_equiv.coe_to_monoid_hom, set.mem_image, set_like.mem_coe,
+  subgroup.mem_mk, monoid_hom.coe_mk],
+  split,
+  intro h,
+  cases h with y,
+  use y,
+  simp only [h_h, true_and],
+  rw ← h_h.2,
+  simp only [mul_equiv.coe_to_monoid_hom, subgroup.coe_subtype, cod_restrict_apply, coe_comp,
+  subgroup.coe_mk],
+  intro h,
+  cases h with y,
+  cases x.property with z,
+  simp only [mul_equiv.coe_to_monoid_hom, set_like.mem_coe, subtype.val_eq_coe] at *,
+  have h1 := h_h.2,
+  rw ← h.2 at h1,
+  simp only [mul_equiv.apply_eq_iff_eq] at h1,
+  use z,
+  apply h.1,
+  simp_rw ← h1,
+  simp only [h_h, set_like.eta, mul_equiv.coe_to_monoid_hom, subgroup.coe_subtype, eq_self_iff_true,
+  function.comp_app, cod_restrict_apply, and_self, coe_comp, subgroup.coe_mk],
+end
+
+
 end monoid_hom
 
 variables {N : Type*} [group N]

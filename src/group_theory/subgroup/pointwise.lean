@@ -112,6 +112,39 @@ subset_set_smul_iff₀ ha
 
 end group_with_zero
 
+section conjugate_subgroup
+open_locale pointwise
+
+/--The conjugate of a subgroup `H` of `G` by `g`  -/
+def conj_subgroup (g : G) (H : subgroup G) : subgroup G := mul_aut.conj g • H
+
+@[simp] lemma conj_mem'  (g : G)  (H : subgroup G) (h : G) :
+  (h ∈ conj_subgroup g H) ↔ ∃ x : H, g * x * g⁻¹ = h  :=
+subgroup.mem_map.trans subtype.exists'
+
+lemma conj_subgroup_mul (g h : G) (H : subgroup G) :
+  conj_subgroup (g * h) H = conj_subgroup g (conj_subgroup h H) :=
+by rw [conj_subgroup, conj_subgroup, conj_subgroup, mul_aut.conj.map_mul, mul_smul]
+
+lemma conj_map  (g : G) (H : subgroup G) :
+  subgroup.map ((mul_aut.conj g).to_monoid_hom) H  = conj_subgroup g H := rfl
+
+/--Isomorphism of a subgroup with its conjugate-/
+def conj_equiv (g : G) (H : subgroup G) : H ≃* conj_subgroup g H :=
+begin
+  rw ← conj_map,
+  apply monoid_hom.img_mul_equiv,
+end
+
+@[simp]
+lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=
+begin
+  rw conj_subgroup,
+  simp only [one_smul, monoid_hom.map_one],
+end
+
+end conjugate_subgroup
+
 end subgroup
 
 namespace add_subgroup

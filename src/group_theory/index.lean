@@ -83,14 +83,14 @@ dvd_of_mul_left_eq (H.relindex K) (relindex_mul_index h)
   (H.subgroup_of L).relindex (K.subgroup_of L) = H.relindex K :=
 ((index_comap (H.subgroup_of L) (inclusion hKL)).trans (congr_arg _ (inclusion_range hKL))).symm
 
+variables (H K L)
+
 @[to_additive] lemma relindex_mul_relindex (hHK : H ≤ K) (hKL : K ≤ L) :
   H.relindex K * K.relindex L = H.relindex L :=
 begin
   rw [←relindex_subgroup_of hKL],
   exact relindex_mul_index (λ x hx, hHK hx),
 end
-
-variables (H K L)
 
 @[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
 cardinal.to_nat_eq_one_iff_unique.mpr ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩
@@ -138,12 +138,7 @@ lemma relindex_eq_zero_of_le  (h : K ≤ L) (h2 : H.relindex K = 0) : H.relindex
 cardinal.to_nat_eq_zero_of_injective (quotient_group.le_quot_map_injective H L K h ) h2
 
 lemma index_eq_zero_of_le {H K : subgroup G} (h : H ≤ K) (h1 : K.index = 0) : H.index = 0 :=
-begin
-  have := subgroup.relindex_mul_index h,
-  rw h1 at this,
-  simp only [mul_zero] at this,
-  apply this.symm,
-end
+by rw [←subgroup.relindex_mul_index h, h1, mul_zero]
 
 lemma inf_relindex_inf : (H ⊓ K).relindex (K ⊓ L) = H.relindex (K ⊓ L) :=
 begin

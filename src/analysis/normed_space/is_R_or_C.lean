@@ -27,7 +27,7 @@ This file exists mainly to avoid importing `is_R_or_C` in the main normed space 
 
 open metric
 
-@[simp] lemma _root_.is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
+@[simp] lemma is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
   {E : Type*} [normed_group E] {z : E} : ∥(∥ z ∥ : 𝕜)∥ = ∥ z ∥ :=
 by { unfold_coes, simp only [norm_algebra_map_eq, ring_hom.to_fun_eq_coe, norm_norm], }
 

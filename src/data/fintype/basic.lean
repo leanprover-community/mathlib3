@@ -161,6 +161,17 @@ lemma piecewise_compl [decidable_eq α] (s : finset α) [Π i : α, decidable (i
   sᶜ.piecewise f g = s.piecewise g f :=
 by { ext i, simp [piecewise] }
 
+@[simp] lemma piecewise_erase_univ {δ : α → Sort*} [decidable_eq α] [fintype α] (a : α)
+  (f g : Π a, δ a) :
+  (finset.univ.erase a).piecewise f g = function.update f a (g a) :=
+begin
+  ext i,
+  by_cases h : i = a,
+  { rw [h, function.update_same, piecewise_eq_of_not_mem _ _ _ (not_mem_erase a _)], },
+  { rw [function.update_noteq h,
+      piecewise_eq_of_mem _ _ _ (mem_erase_of_ne_of_mem h (mem_univ _))], },
+end
+
 lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
   univ.map e.to_embedding = univ :=
 eq_univ_iff_forall.mpr (λ b, mem_map.mpr ⟨e.symm b, mem_univ _, by simp⟩)

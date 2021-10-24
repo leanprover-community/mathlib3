@@ -42,7 +42,7 @@ section is_R_or_C
 variables (𝕜 : Type*)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
+local postfix `†`:90 := star_ring_aut
 
 /--
 Given some `x` in an inner product space, we can define its dual as the continuous linear map
@@ -115,7 +115,7 @@ begin
       exact sub_eq_zero.mp (eq.symm h₃) },
     have h₄ := calc
       ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
-            : by simp [inner_smul_left, conj_div, conj_conj]
+            : by simp [inner_smul_left, ring_equiv.map_div, conj_conj]
                             ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
             : by rw [←div_mul_eq_mul_div]
                             ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫

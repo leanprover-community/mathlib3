@@ -3,7 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import linear_algebra.basis
+import linear_algebra.free_module.strong_rank_condition
 import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
@@ -213,78 +213,7 @@ lemma basis.card_le_card_of_linear_independent_aux
   {R : Type*} [comm_ring R] [is_domain R]
   (n : ℕ) {m : ℕ} (v : fin m → fin n → R) :
   linear_independent R v → m ≤ n :=
-begin
-  revert m,
-  refine nat.rec_on n _ _,
-  { intros m v hv,
-    cases m, { refl },
-    exfalso,
-    have : v 0 = 0,
-    { ext i, exact fin_zero_elim i },
-    have := hv.ne_zero 0,
-    contradiction },
-  intros n ih m v hv,
-  cases m,
-  { exact nat.zero_le _ },
-
-  -- Induction: try deleting a dimension and a vector.
-  suffices : ∃ (v' : fin m → fin n → R), linear_independent R v',
-  { obtain ⟨v', hv'⟩ := this,
-    exact nat.succ_le_succ (ih v' hv') },
-  -- Either the `0`th dimension is irrelevant...
-  by_cases this : linear_independent R (λ i, v i ∘ fin.succ),
-  { exact ⟨_, this.comp fin.succ (fin.succ_injective _)⟩ },
-  -- ... or we can write (x, 0, 0, ...) = ∑ i, c i • v i where c i ≠ 0 for some i.
-  simp only [fintype.linear_independent_iff, not_forall, not_imp] at this,
-  obtain ⟨c, hc, i, hi⟩ := this,
-  have hc : ∀ (j : fin n), ∑ (i : fin m.succ), c i * v i j.succ = 0,
-  { intro j,
-    convert congr_fun hc j,
-    rw [@finset.sum_apply (fin n) (λ _, R) _ _ _],
-    simp },
-  set x := ∑ i', c i' * v i' 0 with x_eq,
-  -- We'll show each equation of the form (y, 0, 0, ...) = ∑ i', c' i' • v i' must have c' i ≠ 0.
-  use λ i' j', v (i.succ_above i') j'.succ,
-  rw fintype.linear_independent_iff at ⊢ hv,
-  -- Assume that ∑ i, c' i • v i = (y, 0, 0, ...).
-  intros c' hc' i',
-  set y := ∑ i', c' i' * v (i.succ_above i') 0 with y_eq,
-  have hc' : ∀ (j : fin n), (∑ (i' : fin m), c' i' * v (i.succ_above i') j.succ) = 0,
-  { intro j,
-    convert congr_fun hc' j,
-    rw [@finset.sum_apply (fin n) (λ _, R) _ _ _],
-    simp },
-  -- Combine these equations to get a linear dependence on the full space.
-  have : ∑ i', (y * c i' - x * (@fin.insert_nth _ (λ _, R) i 0 c') i') • v i' = 0,
-  { simp only [sub_smul, mul_smul, finset.sum_sub_distrib, ← finset.smul_sum],
-    ext j,
-    rw [pi.zero_apply, @pi.sub_apply (fin n.succ) (λ _, R) _ _ _ _],
-    simp only [finset.sum_apply, pi.smul_apply, smul_eq_mul, sub_eq_zero],
-    symmetry,
-    rw [fin.sum_univ_succ_above _ i, fin.insert_nth_apply_same, zero_mul, zero_add, mul_comm],
-    simp only [fin.insert_nth_apply_succ_above],
-    refine fin.cases _ _ j,
-    { simp },
-    { intro j,
-      rw [hc', hc, zero_mul, mul_zero] } },
-  have hyc := hv _ this i,
-  simp only [fin.insert_nth_apply_same, mul_zero, sub_zero, mul_eq_zero] at hyc,
-  -- Therefore, either `c i = 0` (which contradicts the assumption on `i`) or `y = 0`.
-  have hy := hyc.resolve_right hi,
-  -- If `y = 0`, then we can extend `c'` to a linear dependence on the full space,
-  -- which implies `c'` is trivial.
-  convert hv (@fin.insert_nth _ (λ _, R) i 0 c') _ (i.succ_above i'),
-  { rw fin.insert_nth_apply_succ_above },
-  ext j,
-  -- After a bit of calculation, we find that `∑ i, c' i • v i = (y, 0, 0, ...) = 0` as promised.
-  rw [@finset.sum_apply (fin n.succ) (λ _, R) _ _ _, pi.zero_apply],
-  simp only [pi.smul_apply, smul_eq_mul],
-  rw [fin.sum_univ_succ_above _ i, fin.insert_nth_apply_same, zero_mul, zero_add],
-  simp only [fin.insert_nth_apply_succ_above],
-  refine fin.cases _ _ j,
-  { rw [← y_eq, hy] },
-  { exact hc' },
-end
+λ h, by simpa using (linear_independent_le_basis (pi.basis_fun R (fin n)) v h)
 
 lemma basis.card_le_card_of_linear_independent
   {R : Type*} [comm_ring R] [is_domain R] [module R M]

@@ -17,7 +17,7 @@ hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 local notation `abs'` := has_abs.abs
 open is_absolute_value
-open_locale classical big_operators nat
+open_locale classical big_operators nat complex_conjugate
 
 section
 open real is_absolute_value finset
@@ -475,9 +475,9 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw conj.map_sum,
+  rw star_ring_aut.map_sum,
   refine sum_congr rfl (λ n hn, _),
-  rw [conj.map_div, conj.map_pow, ← of_real_nat_cast, conj_of_real]
+  rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
@@ -540,8 +540,8 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.map_div, conj_bit0,
-  conj.map_one]
+by rw [sinh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_sub, sinh,
+  ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -556,8 +556,8 @@ lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
 begin
-  rw [cosh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_add, cosh, conj.map_div,
-      conj_bit0, conj.map_one]
+  rw [cosh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_add, cosh,
+      ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
 end
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
@@ -578,7 +578,7 @@ lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
 lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
-by rw [tanh, sinh_conj, cosh_conj, ← conj.map_div, tanh]
+by rw [tanh, sinh_conj, cosh_conj, ← ring_equiv.map_div, tanh]
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
@@ -751,7 +751,7 @@ end
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
-       ← conj_neg_I, ← conj.map_mul, ← conj.map_mul, sinh_conj,
+       ← conj_neg_I, ← ring_equiv.map_mul, ← ring_equiv.map_mul, sinh_conj,
        mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
@@ -766,7 +766,7 @@ by rw [← of_real_sin_of_real_re, of_real_im]
 lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 lemma cos_conj : cos (conj x) = conj (cos x) :=
-by rw [← cosh_mul_I, ← conj_neg_I, ← conj.map_mul, ← cosh_mul_I,
+by rw [← cosh_mul_I, ← conj_neg_I, ← ring_equiv.map_mul, ← cosh_mul_I,
        cosh_conj, mul_neg_eq_neg_mul_symm, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
@@ -790,7 +790,7 @@ by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
-by rw [tan, sin_conj, cos_conj, ← conj.map_div, tan]
+by rw [tan, sin_conj, cos_conj, ← ring_equiv.map_div, tan]
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]

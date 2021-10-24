@@ -1,4 +1,5 @@
 import analysis.special_functions.trigonometric.basic
+import analysis.special_functions.log_deriv
 
 namespace real
 
@@ -33,7 +34,6 @@ example (x : ℝ) (h : x ≠ 0) : deriv (λ x, x * (log x - 1)) x = log x :=
 by simp [h]
 
 end real
-
 
 namespace complex
 

@@ -71,7 +71,7 @@ the structure of a traversable functor using a traversable functor
 protected def traverse (f : α → m β) (x : t' α) : m (t' β) :=
 eqv β <$> traverse f ((eqv α).symm x)
 
-/-- The function `equiv.tranverse` transfers a traversable functor
+/-- The function `equiv.traverse` transfers a traversable functor
 instance across the equivalences `eqv`. -/
 protected def traversable : traversable t' :=
 { to_functor := equiv.functor eqv,

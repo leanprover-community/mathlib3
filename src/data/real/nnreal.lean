@@ -287,7 +287,7 @@ iff.intro
 lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s) :=
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
-instance : conditionally_complete_linear_order_bot ℝ≥0 :=
+noncomputable instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 { cSup_empty := (function.funext_iff.1 (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans
     $ nnreal.eq (by rw nonneg.bot_eq; simp),
   .. (by apply_instance : order_bot ℝ≥0),
@@ -308,7 +308,7 @@ instance covariant_add : covariant_class ℝ≥0 ℝ≥0 (+) (≤) :=
 ordered_add_comm_monoid.to_covariant_class_left ℝ≥0
 
 instance contravariant_add : contravariant_class ℝ≥0 ℝ≥0 (+) (<) :=
-  ordered_cancel_add_comm_monoid.to_contravariant_class_left ℝ≥0
+ordered_cancel_add_comm_monoid.to_contravariant_class_left ℝ≥0
 
 instance covariant_mul : covariant_class ℝ≥0 ℝ≥0 (*) (≤) :=
 ordered_comm_monoid.to_covariant_class_left ℝ≥0

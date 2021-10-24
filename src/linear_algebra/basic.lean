@@ -1048,19 +1048,7 @@ begin
 end
 
 lemma span_insert (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
-begin
-  ext z,
-  rw [mem_span_insert, submodule.mem_sup],
-  split,
-  { rintro ⟨a, b, hb, rfl⟩,
-    refine ⟨a • x, _, b, hb, rfl⟩,
-    rw mem_span_singleton,
-    exact ⟨a, rfl⟩ },
-  { rintro ⟨a, ha, b, hb, rfl⟩,
-    rw mem_span_singleton at ha,
-    obtain ⟨a', rfl⟩ := ha,
-    exact ⟨a', b, hb, rfl⟩ }
-end
+by rw [insert_eq, span_union]
 
 lemma span_insert_eq_span (h : x ∈ span R s) : span R (insert x s) = span R s :=
 span_eq_of_le _ (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mono $ subset_insert _ _)

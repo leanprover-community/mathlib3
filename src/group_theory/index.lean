@@ -92,6 +92,27 @@ begin
   exact relindex_mul_index (λ x hx, hHK hx),
 end
 
+lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
+begin
+  rw [←subgroup_of_map_subtype, relindex, relindex, subgroup_of, comap_map_eq_self_of_injective],
+  exact subtype.coe_injective,
+end
+
+lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
+by rw [inf_comm, inf_relindex_right]
+
+variables {H K}
+
+lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
+  K.relindex L ∣ H.relindex L :=
+begin
+  apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
+  rw [←inf_relindex_right H L, ←inf_relindex_right K L],
+  exact relindex_mul_relindex _ _ _ (inf_le_inf_right L hHK) inf_le_right,
+end
+
+variables (H K)
+
 @[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
 cardinal.to_nat_eq_one_iff_unique.mpr ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩
 
@@ -174,27 +195,16 @@ begin
   simp only [h2, true_or, eq_self_iff_true],
  end
 
-lemma relindex_ne_zero_trans (hhk : H.relindex K ≠ 0) (hkl : K.relindex L ≠ 0) :
-   H.relindex L  ≠ 0 :=
+lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
+  H.relindex L ≠ 0 :=
 begin
-  by_contradiction,
-  simp only [not_not, ne.def] at *,
-  have s1 : (H ⊓ K).subgroup_of L ≤ H.subgroup_of L ,
-    by {apply subgroup.subgroup_of_mono_left, simp only [inf_le_left],},
-  have H2 := (index_eq_zero_of_le s1) h,
-  have H3 := inf_ind_prod K H L,
-  have hh0: L ⊓ K ≤ K, by {simp only [inf_le_right],},
-  have H4 := relindex_eq_zero_of_le H  (L ⊓ K) K hh0,
-  rw inf_comm at H2,
-  have H5 := H3 H2,
-  cases H5,
-  rw H5 at hkl,
-  simp only [eq_self_iff_true, not_true, false_and] at hkl,
-  exact hkl,
-  have H6 := H4 H5,
-  rw H6 at hhk,
-  simp only [eq_self_iff_true, not_true, false_and] at hhk,
-  exact hhk,
+  have key := mt (relindex_eq_zero_of_le H (K ⊓ L) K inf_le_left) hHK,
+  rw ← inf_relindex_right at hKL key,
+  replace key := mul_ne_zero key hKL,
+  rw [relindex_mul_relindex (H ⊓ (K ⊓ L)) (K ⊓ L) L inf_le_right inf_le_right, ←inf_assoc,
+      inf_comm, ←inf_assoc, ←relindex_mul_relindex (L ⊓ H ⊓ K) (L ⊓ H) L inf_le_left inf_le_left,
+      inf_relindex_left, inf_relindex_left, mul_ne_zero_iff] at key,
+  exact key.2,
 end
 
 end subgroup

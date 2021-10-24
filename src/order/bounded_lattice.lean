@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import data.option.basic
 import logic.nontrivial
 import order.lattice
+import order.order_dual
 import tactic.pi_instances
 
 /-!
@@ -83,6 +84,9 @@ theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
 @[simp] theorem not_top_lt : ¬ ⊤ < a :=
 λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
 
+@[simp] theorem is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
+⟨λ h, h.unique le_top, λ h b, h.symm ▸ le_top⟩
+
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
 
@@ -147,6 +151,9 @@ theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
 
 @[simp] theorem not_lt_bot : ¬ a < ⊥ :=
 λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)
+
+@[simp] theorem is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
+⟨λ h, h.unique bot_le, λ h b, h.symm ▸ bot_le⟩
 
 theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 λ ha, hb $ bot_unique $ ha ▸ hab
@@ -1156,7 +1163,9 @@ lemma inf_eq_bot (h : is_compl x y) : x ⊓ y = ⊥ := h.disjoint.eq_bot
 
 lemma sup_eq_top (h : is_compl x y) : x ⊔ y = ⊤ := top_unique h.top_le_sup
 
-lemma to_order_dual (h : is_compl x y) : @is_compl (order_dual α) _ x y := ⟨h.2, h.1⟩
+open order_dual (to_dual)
+
+lemma to_order_dual (h : is_compl x y) : is_compl (to_dual x) (to_dual y) := ⟨h.2, h.1⟩
 
 end bounded_lattice
 

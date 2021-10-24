@@ -311,6 +311,16 @@ begin
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
+lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
+  (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
+begin
+  simp only [eq_singleton_iff_unique_mem, mem_Inter],
+  refine ⟨λ i hi, mem_of_mem_nhds $ h.mem_of_mem hi, λ y hy, _⟩,
+  contrapose! hy,
+  rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
+  exact ⟨i, hi, λ h, hsub h rfl⟩
+end
+
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
 lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[{x}ᶜ] x)]
@@ -518,8 +528,7 @@ lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
   ∀ (s t : finset α), disjoint s t → separated (s : set α) t :=
 begin
   refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
-  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
-      (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
+  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation (finset.disjoint_singleton.1 ab),
     refine ⟨U, V, oU, oV, _, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
     exact singleton_subset_set_iff.mpr ‹_› },
   { intros a b c ac bc d,
@@ -529,7 +538,7 @@ end
 
 lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
   separated ({x} : set α) s :=
-by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h)
+by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (finset.disjoint_singleton_left.mpr h)
 
 end separated
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import linear_algebra.free_module.finite
+import linear_algebra.free_module.finite.basic
 import linear_algebra.matrix.charpoly.coeff
 
 /-!
@@ -71,7 +71,7 @@ minpoly.dvd _ _ (aeval_self_charpoly f)
 
 variable {f}
 
-lemma charpoly_coeff_zero_of_injective (hf : function.injective f) : (minpoly R f).coeff 0 ≠ 0 :=
+lemma minpoly_coeff_zero_of_injective (hf : function.injective f) : (minpoly R f).coeff 0 ≠ 0 :=
 begin
   intro h,
   obtain ⟨P, hP⟩ := X_dvd_iff.2 h,

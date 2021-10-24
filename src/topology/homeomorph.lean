@@ -41,7 +41,7 @@ infix ` ≃ₜ `:25 := homeomorph
 namespace homeomorph
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ₜ β) (λ _, α → β) := ⟨λe, e.to_equiv⟩
 
 @[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
   ((homeomorph.mk a b c) : α → β) = a :=
@@ -250,6 +250,24 @@ h.inducing.continuous_iff.symm
 @[simp] lemma comp_continuous_iff' (h : α ≃ₜ β) {f : β → γ} :
   continuous (f ∘ h) ↔ continuous f :=
 h.quotient_map.continuous_iff.symm
+
+@[simp] lemma comp_is_open_map_iff (h : α ≃ₜ β) {f : γ → α} :
+  is_open_map (h ∘ f) ↔ is_open_map f :=
+begin
+  refine ⟨_, λ hf, h.is_open_map.comp hf⟩,
+  intros hf,
+  rw [← function.comp.left_id f, ← h.symm_comp_self, function.comp.assoc],
+  exact h.symm.is_open_map.comp hf,
+end
+
+@[simp] lemma comp_is_open_map_iff' (h : α ≃ₜ β) {f : β → γ} :
+  is_open_map (f ∘ h) ↔ is_open_map f :=
+begin
+  refine ⟨_, λ hf, hf.comp h.is_open_map⟩,
+  intros hf,
+  rw [← function.comp.right_id f, ← h.self_comp_symm, ← function.comp.assoc],
+  exact hf.comp h.symm.is_open_map,
+end
 
 /-- If two sets are equal, then they are homeomorphic. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=

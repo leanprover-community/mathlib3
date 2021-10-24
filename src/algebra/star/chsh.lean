@@ -3,8 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.star.algebra
-import algebra.algebra.ordered
+import algebra.star.basic
+import algebra.order.algebra
 import analysis.special_functions.pow
 
 /-!
@@ -199,7 +199,7 @@ of the difference.
 -/
 lemma tsirelson_inequality
   [ordered_ring R] [star_ordered_ring R]
-  [algebra ℝ R] [ordered_smul ℝ R] [star_algebra ℝ R]
+  [algebra ℝ R] [ordered_smul ℝ R] [star_module ℝ R]
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=
 begin

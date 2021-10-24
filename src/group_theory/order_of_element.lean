@@ -239,6 +239,10 @@ by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff
   (y : H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
 
+@[to_additive order_of_add_units]
+lemma order_of_units {y : units G} : order_of (y : G) = order_of y :=
+order_of_injective (units.coe_hom G) units.ext y
+
 variables (x)
 
 lemma order_of_pow' (h : n ≠ 0) :
@@ -326,7 +330,7 @@ by_contradiction $ assume ne : n ≠ m,
     by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
   have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
   have lt : m - n < order_of x,
-    from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
+    from (tsub_lt_iff_left h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (le.trans_lt lt)
 
 -- TODO: This lemma was originally private, but this doesn't seem to work with `to_additive`,
@@ -479,7 +483,7 @@ begin
       using (not_injective_infinite_fintype (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
   refine ⟨i - j, nat.sub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
-  rw [mul_one, ← pow_add, ← a_eq, nat.add_sub_cancel' h''],
+  rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
 end
 
 lemma exists_nsmul_eq_zero (a : A) : is_of_fin_add_order a :=
@@ -832,7 +836,7 @@ by rw [pow_eq_mod_order_of, ←nat.mod_mod_of_dvd n order_of_dvd_card_univ,
 
 @[to_additive] lemma gpow_eq_mod_card (n : ℤ) :
   x ^ n = x ^ (n % fintype.card G) :=
-by by rw [gpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
+by rw [gpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
   ← gpow_eq_mod_order_of]
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one

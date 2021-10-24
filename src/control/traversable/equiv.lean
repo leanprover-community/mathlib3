@@ -71,7 +71,7 @@ the structure of a traversable functor using a traversable functor
 protected def traverse (f : α → m β) (x : t' α) : m (t' β) :=
 eqv β <$> traverse f ((eqv α).symm x)
 
-/-- The function `equiv.tranverse` transfers a traversable functor
+/-- The function `equiv.traverse` transfers a traversable functor
 instance across the equivalences `eqv`. -/
 protected def traversable : traversable t' :=
 { to_functor := equiv.functor eqv,
@@ -121,7 +121,7 @@ protected def is_lawful_traversable :
 /-- If the `traversable t'` instance has the properties that `map`,
 `map_const`, and `traverse` are equal to the ones that come from
 carrying the traversable functor structure from `t` over the
-equivalences, then the the fact `t` is a lawful traversable functor
+equivalences, then the fact `t` is a lawful traversable functor
 carries over as well. -/
 protected def is_lawful_traversable' [_i : traversable t']
   (h₀ : ∀ {α β} (f : α → β),

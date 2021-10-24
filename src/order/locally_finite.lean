@@ -24,7 +24,7 @@ locally finite orders, `α →₀ β` the finitely supported functions to a loca
 
 In a `locally_finite_order`,
 * `finset.Icc`: Closed-closed interval as a finset.
-* `finset.Ico`: Closed-open interval as a finset. Currently only for `ℕ`.
+* `finset.Ico`: Closed-open interval as a finset.
 * `finset.Ioc`: Open-closed interval as a finset.
 * `finset.Ioo`: Open-open interval as a finset.
 * `multiset.Icc`: Closed-closed interval as a multiset.
@@ -53,6 +53,13 @@ A `locally_finite_order` instance can be built
 * from a definition of `finset.Icc` alone. See `locally_finite_order.of_Icc`.
 * by pulling back `locally_finite_order β` through an order embedding `f : α →o β`. See
   `order_embedding.locally_finite_order`.
+
+Instances for concrete types are proved in their respective files:
+* `ℕ` is in `data.nat.intervals`
+* `ℤ` is in `data.int.intervals`
+* `ℕ+` is in `data.pnat.intervals`
+* `fin n` is in `data.fin.intervals`
+Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO
 
@@ -153,7 +160,10 @@ variables [preorder α] [locally_finite_order α]
 def Icc (a b : α) : finset α :=
 locally_finite_order.finset_Icc a b
 
--- TODO@Yaël: Nuke `data.finset.intervals` and redefine `finset.Ico` here
+/-- The finset of elements `x` such that `a ≤ x` and `x < b`. Basically `set.Ico a b` as a finset.
+-/
+def Ico (a b : α) : finset α :=
+locally_finite_order.finset_Ico a b
 
 /-- The finset of elements `x` such that `a < x` and `x ≤ b`. Basically `set.Ioc a b` as a finset.
 -/
@@ -168,6 +178,9 @@ locally_finite_order.finset_Ioo a b
 @[simp] lemma mem_Icc {a b x : α} : x ∈ Icc a b ↔ a ≤ x ∧ x ≤ b :=
 locally_finite_order.finset_mem_Icc a b x
 
+@[simp] lemma mem_Ico {a b x : α} : x ∈ Ico a b ↔ a ≤ x ∧ x < b :=
+locally_finite_order.finset_mem_Ico a b x
+
 @[simp] lemma mem_Ioc {a b x : α} : x ∈ Ioc a b ↔ a < x ∧ x ≤ b :=
 locally_finite_order.finset_mem_Ioc a b x
 
@@ -177,11 +190,22 @@ locally_finite_order.finset_mem_Ioo a b x
 @[simp, norm_cast] lemma coe_Icc (a b : α) : (Icc a b : set α) = set.Icc a b :=
 by { ext, rw [mem_coe, mem_Icc, set.mem_Icc] }
 
+@[simp, norm_cast] lemma coe_Ico (a b : α) : (Ico a b : set α) = set.Ico a b :=
+by { ext, rw [mem_coe, mem_Ico, set.mem_Ico] }
+
 @[simp, norm_cast] lemma coe_Ioc (a b : α) : (Ioc a b : set α) = set.Ioc a b :=
 by { ext, rw [mem_coe, mem_Ioc, set.mem_Ioc] }
 
 @[simp, norm_cast] lemma coe_Ioo (a b : α) : (Ioo a b : set α) = set.Ioo a b :=
 by { ext, rw [mem_coe, mem_Ioo, set.mem_Ioo] }
+
+theorem Ico_subset_Ico {a₁ b₁ a₂ b₂ : α} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) :
+  Ico a₁ b₁ ⊆ Ico a₂ b₂ :=
+begin
+  rintro x hx,
+  rw mem_Ico at ⊢ hx,
+  exact ⟨ha.trans hx.1, hx.2.trans_le hb⟩,
+end
 
 end preorder
 
@@ -218,15 +242,24 @@ variables [order_bot α] [locally_finite_order α]
 def Iic (b : α) : finset α :=
 Icc ⊥ b
 
--- TODO@Yaël: Define `finset.Iio` here
+/-- The finset of elements `x` such that `x < b`. Basically `set.Iio b` as a finset. -/
+def Iio (b : α) : finset α :=
+Ico ⊥ b
 
 lemma Iic_eq_Icc : Iic = Icc (⊥ : α) := rfl
+lemma Iio_eq_Ico : Iio = Ico (⊥ : α) := rfl
 
 @[simp, norm_cast] lemma coe_Iic (b : α) : (Iic b : set α) = set.Iic b :=
 by rw [Iic, coe_Icc, set.Icc_bot]
 
+@[simp, norm_cast] lemma coe_Iio (b : α) : (Iio b : set α) = set.Iio b :=
+by rw [Iio, coe_Ico, set.Ico_bot]
+
 @[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b :=
 by rw [←set.mem_Iic, ←coe_Iic, mem_coe]
+
+@[simp] lemma mem_Iio {b x : α} : x ∈ Iio b ↔ x < b :=
+by rw [←set.mem_Iio, ←coe_Iio, mem_coe]
 
 end order_bot
 end finset
@@ -291,10 +324,15 @@ variables [order_bot α] [locally_finite_order α]
 def Iic (b : α) : multiset α :=
 (finset.Iic b).val
 
--- TODO@Yaël: Define `multiset.Iio` here
+/-- The multiset of elements `x` such that `x < b`. Basically `set.Iio b` as a multiset. -/
+def Iio (b : α) : multiset α :=
+(finset.Iio b).val
 
 @[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b :=
 by rw [Iic, ←finset.mem_def, finset.mem_Iic]
+
+@[simp] lemma mem_Iio {b x : α} : x ∈ Iio b ↔ x < b :=
+by rw [Iio, ←finset.mem_def, finset.mem_Iio]
 
 end order_bot
 end multiset
@@ -308,6 +346,9 @@ variables [preorder α] [locally_finite_order α] (a b : α)
 instance fintype_Icc : fintype (Icc a b) :=
 fintype.of_finset (finset.Icc a b) (λ x, by rw [finset.mem_Icc, mem_Icc])
 
+instance fintype_Ico : fintype (Ico a b) :=
+fintype.of_finset (finset.Ico a b) (λ x, by rw [finset.mem_Ico, mem_Ico])
+
 instance fintype_Ioc : fintype (Ioc a b) :=
 fintype.of_finset (finset.Ioc a b) (λ x, by rw [finset.mem_Ioc, mem_Ioc])
 
@@ -316,6 +357,9 @@ fintype.of_finset (finset.Ioo a b) (λ x, by rw [finset.mem_Ioo, mem_Ioo])
 
 lemma finite_Icc : (Icc a b).finite :=
 ⟨set.fintype_Icc a b⟩
+
+lemma finite_Ico : (Ico a b).finite :=
+⟨set.fintype_Ico a b⟩
 
 lemma finite_Ioc : (Ioc a b).finite :=
 ⟨set.fintype_Ioc a b⟩
@@ -348,8 +392,14 @@ variables [order_bot α] [locally_finite_order α] (b : α)
 instance fintype_Iic : fintype (Iic b) :=
 fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])
 
+instance fintype_Iio : fintype (Iio b) :=
+fintype.of_finset (finset.Iio b) (λ x, by rw [finset.mem_Iio, mem_Iio])
+
 lemma finite_Iic : (Iic b).finite :=
 ⟨set.fintype_Iic b⟩
+
+lemma finite_Iio : (Iio b).finite :=
+⟨set.fintype_Iio b⟩
 
 end order_bot
 
@@ -404,13 +454,11 @@ variables [preorder β] [locally_finite_order β]
 noncomputable def order_embedding.locally_finite_order (f : α ↪o β) :
   locally_finite_order α :=
 { finset_Icc := λ a b, (Icc (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
-  finset_Ico := λ a b, (locally_finite_order.finset_Ico (f a) (f b)).preimage f
-    (f.to_embedding.injective.inj_on _),
+  finset_Ico := λ a b, (Ico (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
   finset_Ioc := λ a b, (Ioc (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
   finset_Ioo := λ a b, (Ioo (f a) (f b)).preimage f (f.to_embedding.injective.inj_on _),
   finset_mem_Icc := λ a b x, by rw [mem_preimage, mem_Icc, f.le_iff_le, f.le_iff_le],
-  finset_mem_Ico := λ a b x, by rw [mem_preimage,locally_finite_order.finset_mem_Ico, f.le_iff_le,
-    f.lt_iff_lt],
+  finset_mem_Ico := λ a b x, by rw [mem_preimage, mem_Ico, f.le_iff_le, f.lt_iff_lt],
   finset_mem_Ioc := λ a b x, by rw [mem_preimage, mem_Ioc, f.lt_iff_lt, f.le_iff_le],
   finset_mem_Ioo := λ a b x, by rw [mem_preimage, mem_Ioo, f.lt_iff_lt, f.lt_iff_lt] }
 
@@ -429,12 +477,12 @@ variables [preorder α] [locally_finite_order α] (p : α → Prop) [decidable_p
 
 instance : locally_finite_order (subtype p) :=
 { finset_Icc := λ a b, (Icc (a : α) b).subtype p,
-  finset_Ico := λ a b, (locally_finite_order.finset_Ico (a : α) b).subtype p,
+  finset_Ico := λ a b, (Ico (a : α) b).subtype p,
   finset_Ioc := λ a b, (Ioc (a : α) b).subtype p,
   finset_Ioo := λ a b, (Ioo (a : α) b).subtype p,
   finset_mem_Icc := λ a b x, by simp_rw [finset.mem_subtype, mem_Icc, subtype.coe_le_coe],
-  finset_mem_Ico := λ a b x, by simp_rw [finset.mem_subtype, locally_finite_order.finset_mem_Ico,
-    subtype.coe_le_coe, subtype.coe_lt_coe],
+  finset_mem_Ico := λ a b x, by simp_rw [finset.mem_subtype, mem_Ico, subtype.coe_le_coe,
+    subtype.coe_lt_coe],
   finset_mem_Ioc := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioc, subtype.coe_le_coe,
     subtype.coe_lt_coe],
   finset_mem_Ioo := λ a b x, by simp_rw [finset.mem_subtype, mem_Ioo, subtype.coe_lt_coe] }
@@ -444,6 +492,7 @@ variables (a b : subtype p)
 namespace finset
 
 lemma subtype_Icc_eq : Icc a b = (Icc (a : α) b).subtype p := rfl
+lemma subtype_Ico_eq : Ico a b = (Ico (a : α) b).subtype p := rfl
 lemma subtype_Ioc_eq : Ioc a b = (Ioc (a : α) b).subtype p := rfl
 lemma subtype_Ioo_eq : Ioo a b = (Ioo (a : α) b).subtype p := rfl
 
@@ -456,6 +505,14 @@ begin
   refine finset.subtype_map_of_mem (λ x hx, _),
   rw mem_Icc at hx,
   exact hp hx.1 hx.2 a.prop b.prop,
+end
+
+lemma map_subtype_embedding_Ico : (Ico a b).map (function.embedding.subtype p) = Ico (a : α) b :=
+begin
+  rw subtype_Ico_eq,
+  refine finset.subtype_map_of_mem (λ x hx, _),
+  rw mem_Ico at hx,
+  exact hp hx.1 hx.2.le a.prop b.prop,
 end
 
 lemma map_subtype_embedding_Ioc : (Ioc a b).map (function.embedding.subtype p) = Ioc (a : α) b :=

@@ -99,9 +99,8 @@ variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 section repr
 
 /-- `b i` is the `i`th basis vector. -/
-instance : has_coe_to_fun (basis ι R M) :=
-{ F := λ _, ι → M,
-  coe := λ b i, b.repr.symm (finsupp.single i 1) }
+instance : has_coe_to_fun (basis ι R M) (λ _, ι → M) :=
+{ coe := λ b i, b.repr.symm (finsupp.single i 1) }
 
 @[simp] lemma coe_of_repr (e : M ≃ₗ[R] (ι →₀ R)) :
   ⇑(of_repr e) = λ i, e.symm (finsupp.single i 1) :=
@@ -280,6 +279,8 @@ section map_coeffs
 variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (x : M), f c • x = c • x)
 
 include f h b
+
+local attribute [instance] has_scalar.comp.is_scalar_tower
 
 /-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
 then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.

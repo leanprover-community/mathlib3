@@ -104,7 +104,8 @@ begin
 end
 
 lemma uncurry_exp_comparison (A B : C) :
-  uncurry ((exp_comparison F A).app B) = inv (prod_comparison F _ _) ≫ F.map ((ev _).app _) :=
+  cartesian_closed.uncurry ((exp_comparison F A).app B) =
+    inv (prod_comparison F _ _) ≫ F.map ((ev _).app _) :=
 by rw [uncurry_eq, exp_comparison_ev]
 
 /-- The exponential comparison map is natural in `A`. -/

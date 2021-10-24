@@ -350,7 +350,6 @@ See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally
 lattices. -/
 theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (_ : ∀a∈s, a ≤ b)
   (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
-have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
 have ¬(Sup s < b) :=
   assume: Sup s < b,
@@ -1052,6 +1051,14 @@ eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sup_le_iff, option.forall
 theorem infi_option (f : option β → α) :
   (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
 @supr_option (order_dual α) _ _ _
+
+/-- A version of `supr_option` useful for rewriting right-to-left. -/
+lemma supr_option_elim (a : α) (f : β → α) : (⨆ o : option β, o.elim a f) = a ⊔ ⨆ b, f b :=
+by simp [supr_option]
+
+/-- A version of `infi_option` useful for rewriting right-to-left. -/
+lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
+@supr_option_elim (order_dual α) _ _ _ _
 
 /-!
 ### `supr` and `infi` under `ℕ`

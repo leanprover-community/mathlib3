@@ -3,11 +3,10 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
-import number_theory.pell
+import data.fin.fin2
 import data.pfun
-import data.fin2
 import data.vector3
+import number_theory.pell
 
 /-!
 # Diophantine functions and Matiyasevic's theorem
@@ -118,7 +117,7 @@ namespace poly
 section
 parameter {α : Type u}
 
-instance : has_coe_to_fun (poly α) := ⟨_, λ f, f.1⟩
+instance : has_coe_to_fun (poly α) (λ _, (α → ℕ) → ℤ) := ⟨λ f, f.1⟩
 
 /-- The underlying function of a `poly` is a polynomial -/
 lemma isp (f : poly α) : is_poly f := f.2
@@ -179,15 +178,15 @@ instance : has_mul (poly α) := ⟨poly.mul⟩
 | ⟨f, pf⟩ ⟨g, pg⟩ x := rfl
 
 instance : comm_ring (poly α) := by refine_struct
-{ add   := (+),
-  zero  := (0 : poly α),
-  neg   := has_neg.neg,
-  mul   := (*),
+{ add   := ((+) : poly α → poly α → poly α),
+  zero  := 0,
+  neg   := (has_neg.neg : poly α → poly α),
+  mul   := ((*)),
   one   := 1,
-  sub   := has_sub.sub,
-  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨neg⟩ };
+  sub   := (has_sub.sub),
+  npow  := @npow_rec _ ⟨(1 : poly α)⟩ ⟨(*)⟩,
+  nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩,
+  gsmul := @gsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨neg⟩ };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 

@@ -80,8 +80,11 @@ begin
   convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
 end
 
-/-- The unit group of a finite integral domain is cyclic. -/
-instance [fintype R] : is_cyclic (units R) :=
+/-- The unit group of a finite integral domain is cyclic.
+
+To support `units ℤ` and other infinite monoids with finite groups of units, this requires only
+`fintype (units R)` rather than deducing it from `fintype R`. -/
+instance [fintype (units R)] : is_cyclic (units R) :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/

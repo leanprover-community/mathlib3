@@ -138,7 +138,7 @@ begin
   push_neg at H h,
   obtain ⟨u, u_mono, u_lt, u_lim, -⟩ : ∃ (u : ℕ → β), strict_mono u ∧ (∀ (n : ℕ), u n < c)
       ∧ tendsto u at_top (nhds c) ∧ ∀ (n : ℕ), u n ∈ set.Iio c :=
-    H.exists_seq_strict_mono_tendsto_of_not_mem h (lt_irrefl c),
+    H.exists_seq_strict_mono_tendsto_of_not_mem (lt_irrefl c) h,
   have h_Union : {x | f x < c} = ⋃ (n : ℕ), {x | f x ≤ u n},
   { ext1 x,
     simp_rw [set.mem_Union, set.mem_set_of_eq],

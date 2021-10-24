@@ -734,22 +734,14 @@ theorem mem_last'_eq_last : ∀ {l : list α} {x : α}, x ∈ l.last' → ∃ h,
     rwa [last_cons]
   end
 
-theorem last'_eq_last_of_ne_nil {l : list α} (h : l ≠ []) : l.last' = some (l.last h) :=
-begin
-  let x := option.get (last'_is_some.mpr h),
-  have hx : x ∈ l.last' := by simp,
-  cases mem_last'_eq_last hx with y hy,
-  rw [← hy, option.mem_def.mp hx],
-end
+theorem last'_eq_last_of_ne_nil : ∀ {l : list α} (h : l ≠ []), l.last' = some (l.last h)
+| [] h := (h rfl).elim
+| [a] _ := refl
+| (a::b::l) _ := @last'_eq_last_of_ne_nil (b::l) (cons_ne_nil _ _)
 
-theorem mem_last'_cons {l : list α} {x y : α} (h : x ∈ l.last') : x ∈ (y :: l).last' :=
-begin
-  cases mem_last'_eq_last h with hl hx,
-  have h₁ := last_cons (cons_ne_nil y _) hl,
-  rw ←hx at h₁,
-  rw [last'_eq_last_of_ne_nil (cons_ne_nil _ _), h₁],
-  exact option.mem_def.mpr rfl,
-end
+theorem mem_last'_cons {x y : α} : ∀ {l : list α} (h : x ∈ l.last'), x ∈ (y :: l).last'
+| [] _ := by contradiction
+| (a::l) h := h
 
 theorem mem_of_mem_last' {l : list α} {a : α} (ha : a ∈ l.last') : a ∈ l :=
 let ⟨h₁, h₂⟩ := mem_last'_eq_last ha in h₂.symm ▸ last_mem _

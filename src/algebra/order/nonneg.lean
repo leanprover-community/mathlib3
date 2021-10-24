@@ -56,9 +56,6 @@ instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
 show densely_ordered (Ici a), from set.densely_ordered
 
-lemma Ici.le_iff [preorder α] {a : α} (x y : set.Ici a) :
-  x ≤ y ↔ (x : α) ≤ y := iff.rfl
-
 /-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order`. -/
 @[reducible]
 protected noncomputable def conditionally_complete_linear_order

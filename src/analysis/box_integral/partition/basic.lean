@@ -482,7 +482,8 @@ instance : semilattice_inf (prepartition I) :=
 { inf_le_left := λ π₁ π₂, π₁.bUnion_le _,
   inf_le_right := λ π₁ π₂, (bUnion_le_iff _).2 (λ J hJ, le_rfl),
   le_inf := λ π π₁ π₂ h₁ h₂, π₁.le_bUnion_iff.2 ⟨h₁, λ J hJ, restrict_mono h₂⟩,
-  .. prepartition.has_inf }
+  .. prepartition.has_inf,
+  .. prepartition.partial_order }
 
 /-- The prepartition with boxes `{J ∈ π | p J}`. -/
 @[simps] def filter (π : prepartition I) (p : box ι → Prop) : prepartition I :=

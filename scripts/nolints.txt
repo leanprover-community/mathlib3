@@ -54,12 +54,6 @@ apply_nolint mzip_with' doc_blame
 apply_nolint succeeds doc_blame
 apply_nolint sum.bind doc_blame
 
--- control/bifunctor.lean
-apply_nolint bifunctor doc_blame
-apply_nolint bifunctor.fst doc_blame
-apply_nolint bifunctor.snd doc_blame
-apply_nolint is_lawful_bifunctor doc_blame
-
 -- control/bitraversable/basic.lean
 apply_nolint bisequence doc_blame
 apply_nolint bitraversable doc_blame
@@ -232,11 +226,6 @@ apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
-
--- data/list/sigma.lean
-apply_nolint list.kextract doc_blame
-apply_nolint list.kreplace doc_blame
-apply_nolint list.nodupkeys doc_blame
 
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
@@ -920,9 +909,6 @@ apply_nolint topological_space.open_nhds.map doc_blame
 
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance
-
--- topology/maps.lean
-apply_nolint inducing doc_blame
 
 -- topology/sheaves/presheaf.lean
 apply_nolint Top.presheaf has_inhabited_instance

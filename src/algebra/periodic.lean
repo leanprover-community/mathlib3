@@ -3,9 +3,9 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import data.int.parity
 import algebra.module.opposites
-import algebra.archimedean
+import algebra.order.archimedean
+import data.int.parity
 
 /-!
 # Periodicity

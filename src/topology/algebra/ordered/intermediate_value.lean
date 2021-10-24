@@ -520,6 +520,20 @@ or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.1 (not_lt_of_lt (he ▸ h.2)))
   _ _ ((hf.continuous_within_at ⟨hab, refl b⟩).mono Ioo_subset_Icc_self)
   ((hf.continuous_within_at ⟨refl a, hab⟩).mono Ioo_subset_Icc_self))
 
+/-- **Intermediate value theorem**: if `f` is continuous on an order-connected set `s` and `a`,
+`b` are two points of this set, then `f` sends `s` to a superset of `Icc (f x) (f y)`. -/
+lemma continuous_on.surj_on_Icc {s : set α} [hs : ord_connected s] {f : α → δ}
+  (hf : continuous_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  surj_on f s (Icc (f a) (f b)) :=
+hs.is_preconnected.intermediate_value ha hb hf
+
+/-- **Intermediate value theorem**: if `f` is continuous on an order-connected set `s` and `a`,
+`b` are two points of this set, then `f` sends `s` to a superset of `[f x, f y]`. -/
+lemma continuous_on.surj_on_interval {s : set α} [hs : ord_connected s] {f : α → δ}
+  (hf : continuous_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  surj_on f s (interval (f a) (f b)) :=
+by cases le_total (f a) (f b) with hab hab; simp [hf.surj_on_Icc, *]
+
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
 lemma continuous.surjective {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :

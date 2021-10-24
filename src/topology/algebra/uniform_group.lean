@@ -141,6 +141,10 @@ uniform_continuous_of_tendsto_zero $
   suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa f.map_zero at this,
   h.tendsto 0
 
+lemma cauchy_seq.add {ι : Type*} [semilattice_sup ι] {u v : ι → α} (hu : cauchy_seq u)
+  (hv : cauchy_seq v) : cauchy_seq (u + v) :=
+uniform_continuous_add.comp_cauchy_seq (hu.prod hv)
+
 end uniform_add_group
 
 section topological_add_comm_group

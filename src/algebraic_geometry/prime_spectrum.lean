@@ -167,7 +167,7 @@ lemma gc_set : @galois_connection
   (set R) (order_dual (set (prime_spectrum R))) _ _
   (λ s, zero_locus s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,
-by simpa [zero_locus_span, function.comp] using galois_connection.compose _ _ _ _ ideal_gc (gc R)
+by simpa [zero_locus_span, function.comp] using ideal_gc.compose (gc R)
 
 lemma subset_zero_locus_iff_subset_vanishing_ideal (t : set (prime_spectrum R)) (s : set R) :
   t ⊆ zero_locus s ↔ s ⊆ vanishing_ideal t :=
@@ -191,7 +191,7 @@ begin
 end
 
 @[simp] lemma zero_locus_radical (I : ideal R) : zero_locus (I.radical : set R) = zero_locus I :=
-vanishing_ideal_zero_locus_eq_radical I ▸ congr_fun (gc R).l_u_l_eq_l I
+vanishing_ideal_zero_locus_eq_radical I ▸ (gc R).l_u_l_eq_l I
 
 lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
   t ⊆ zero_locus (vanishing_ideal t) :=
@@ -375,7 +375,7 @@ end
 
 lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
   vanishing_ideal (closure t) = vanishing_ideal t :=
-zero_locus_vanishing_ideal_eq_closure t ▸ congr_fun (gc R).u_l_u_eq_u t
+zero_locus_vanishing_ideal_eq_closure t ▸ (gc R).u_l_u_eq_u t
 
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']

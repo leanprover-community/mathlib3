@@ -26,11 +26,12 @@ variables {ι : Type*} {A : ι → Type*}
 
 section defs
 
-variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_semiring A]
+variables [Π i, add_comm_monoid (A i)]
 
 /-- An element `x : ⨁ i, A i` is a homogeneous element if it is a member of one of the summand. -/
 def is_homogeneous_element (x : ⨁ i, A i) : Prop := ∃ (y : graded_monoid A), of A y.fst y.snd = x
 
+variables [add_comm_monoid ι] [gcomm_semiring A]
 /-- this might be useful, but I don't know where to put it -/
 @[simps]
 def graded_monoid.to_direct_sum :
@@ -443,7 +444,7 @@ begin
   exact (submodule.span_union _ _).symm,
 end
 
-private lemma homogeneous_ideal.inf_subset [add_comm_monoid ι] [gcomm_semiring A]
+private lemma homogeneous_ideal.inf_subset
   {I J : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   I ⊓ J ≤ ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} :=
 begin
@@ -456,7 +457,7 @@ begin
   intros i hi, refine ideal.subset_span _, refine ⟨hx _, _⟩, use ⟨i, x i⟩,
 end
 
-private lemma homogeneous_ideal.subset_inf [add_comm_monoid ι] [gcomm_semiring A]
+private lemma homogeneous_ideal.subset_inf
   {I J : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   ideal.span {x | x ∈ I ⊓ J ∧ is_homogeneous_element x} ≤ I ⊓ J :=
 begin
@@ -483,7 +484,7 @@ begin
   },
 end
 
-lemma homogeneous_ideal.inf [add_comm_monoid ι] [gcomm_semiring A]
+lemma homogeneous_ideal.inf
   {I J : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) (HJ : homogeneous_ideal J) :
   homogeneous_ideal (I ⊓ J) :=
 begin
@@ -491,7 +492,7 @@ begin
   exact le_antisymm (homogeneous_ideal.inf_subset HI HJ) (homogeneous_ideal.subset_inf HI HJ),
 end
 
-lemma homogeneous_ideal.Inf [add_comm_monoid ι] [gcomm_semiring A] {ℐ : set (ideal (⨁ i, A i))}
+lemma homogeneous_ideal.Inf {ℐ : set (ideal (⨁ i, A i))}
   (HI : ∀ I ∈ ℐ, homogeneous_ideal I) :
   homogeneous_ideal (Inf ℐ) :=
 begin
@@ -505,6 +506,7 @@ end operations
 
 
 section
+
 variables [Π i, add_comm_group (A i)] [linear_ordered_cancel_add_comm_monoid ι] [gcomm_semiring A]
 
 lemma homogeneous_ideal.rad_eq {I : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) :
@@ -560,11 +562,12 @@ begin
   exact subset₁ hx, exact subset₂ hx,
 end
 
-lemma homogeneous_ideal.rad [linear_ordered_cancel_add_comm_monoid ι] [gcomm_semiring A]
+lemma homogeneous_ideal.rad
   {I : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) : homogeneous_ideal I.radical :=
 begin
   have radI_eq := homogeneous_ideal.rad_eq HI,
   rw radI_eq, apply homogeneous_ideal.Inf,
   rintros J ⟨_, HJ, _⟩, exact HJ,
 end
+
 end

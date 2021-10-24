@@ -1485,6 +1485,23 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
 
 end ring
 
+section
+
+variables (ι R M : Type*) [unique ι] [semiring R] [add_comm_monoid M] [module R M]
+  [topological_space M]
+
+/-- If `ι` has a unique element, then `ι → M` is continuously linear equivalent to `M`. -/
+def fun_unique : (ι → M) ≃L[R] M :=
+{ to_linear_equiv := linear_equiv.fun_unique ι R M,
+  .. homeomorph.fun_unique ι M }
+
+variables {ι R M}
+
+@[simp] lemma coe_fun_unique : ⇑(fun_unique ι R M) = function.eval (default ι) := rfl
+@[simp] lemma coe_fun_unique_symm : ⇑(fun_unique ι R M).symm = function.const ι := rfl
+
+end
+
 end continuous_linear_equiv
 
 namespace continuous_linear_map

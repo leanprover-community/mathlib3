@@ -665,6 +665,13 @@ class boolean_algebra (α : Type u) extends generalized_boolean_algebra α, bool
 
 section of_core
 
+/-- Create a `has_sdiff` instance from a `boolean_algebra.core` instance, defining `x \ y` to
+be `x ⊓ yᶜ`.
+
+For some types, it may be more convenient to create the `boolean_algebra` instance by hand in order
+to have a simpler `sdiff` operation.
+
+See note [reducible non-instances]. -/
 @[reducible]
 def boolean_algebra.core.sdiff [boolean_algebra.core α] : has_sdiff α := ⟨λ x y, x ⊓ yᶜ⟩
 

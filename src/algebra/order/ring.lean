@@ -73,7 +73,7 @@ immediate predecessors and what conditions are added to each of them.
 * `linear_ordered_comm_ring`
   - `ordered_comm_ring` & totality of the order & nontriviality
   - `linear_ordered_ring` & commutativity of multiplication
-  - `integral_domain` & linear order structure
+  - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
   - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
   - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
@@ -1013,7 +1013,7 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
   ..‹linear_ordered_ring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.to_domain : domain α :=
+instance linear_ordered_ring.is_domain : is_domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros a b hab,
@@ -1235,11 +1235,6 @@ instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_
 { ..d }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
-  integral_domain α :=
-{ ..linear_ordered_ring.to_domain, ..s }
-
-@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=
 { .. d, ..linear_ordered_ring.to_linear_ordered_semiring }
@@ -1414,12 +1409,6 @@ section sub
 variables [canonically_ordered_comm_semiring α] {a b c : α}
 variables [has_sub α] [has_ordered_sub α]
 
-lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
-by { rw [sub_le_iff_right, ← add_mul], exact mul_le_mul_right' le_sub_add c }
-
-lemma mul_sub_ge : a * b - a * c ≤ a * (b - c) :=
-by simp only [mul_comm a, sub_mul_ge]
-
 variables [is_total α (≤)]
 
 namespace add_le_cancellable
@@ -1427,8 +1416,8 @@ protected lemma mul_sub (h : add_le_cancellable (a * c)) :
   a * (b - c) = a * b - a * c :=
 begin
   cases total_of (≤) b c with hbc hcb,
-  { rw [sub_eq_zero_iff_le.2 hbc, mul_zero, sub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
-  { apply h.eq_sub_of_add_eq, rw [← mul_add, sub_add_cancel_of_le hcb] }
+  { rw [tsub_eq_zero_iff_le.2 hbc, mul_zero, tsub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
+  { apply h.eq_tsub_of_add_eq, rw [← mul_add, tsub_add_cancel_of_le hcb] }
 end
 
 protected lemma sub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=

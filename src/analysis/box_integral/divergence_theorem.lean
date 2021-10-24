@@ -97,7 +97,7 @@ begin
       { intros y hy,
         refine (hε y hy).trans (mul_le_mul_of_nonneg_left _ h0.le),
         rw ← dist_eq_norm,
-        exact dist_le_diam_of_mem (is_compact_pi_Icc I.lower I.upper).bounded hy hxI },
+        exact dist_le_diam_of_mem I.is_compact_Icc.bounded hy hxI },
       rw [two_mul, add_mul],
       exact norm_sub_le_of_le (hε _ (this _ Hl)) (hε _ (this _ Hu)) } },
   calc ∥(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -

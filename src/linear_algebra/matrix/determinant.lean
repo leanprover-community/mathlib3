@@ -263,16 +263,28 @@ section hom_map
 
 variables {S : Type w} [comm_ring S]
 
-lemma ring_hom.map_det {M : matrix n n R} {f : R →+* S} :
+lemma _root_.ring_hom.map_det (f : R →+* S) (M : matrix n n R) :
   f M.det = matrix.det (f.map_matrix M) :=
 by simp [matrix.det_apply', f.map_sum, f.map_prod]
 
-lemma alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
-  {M : matrix n n S} {f : S →ₐ[R] T} :
+lemma _root_.ring_equiv.map_det (f : R ≃+* S) (M : matrix n n R) :
+  f M.det = matrix.det (f.map_matrix M) :=
+f.to_ring_hom.map_det _
+
+lemma _root_.alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
+  (f : S →ₐ[R] T) (M : matrix n n S) :
   f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
-by rw [← alg_hom.coe_to_ring_hom, ring_hom.map_det]
+f.to_ring_hom.map_det _
+
+lemma _root_.alg_equiv.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
+  (f : S ≃ₐ[R] T) (M : matrix n n S) :
+  f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
+f.to_alg_hom.map_det _
 
 end hom_map
+
+@[simp] lemma det_conj_transpose [star_ring R] (M : matrix m m R) : det (Mᴴ) = star (det M) :=
+((star_ring_aut : ring_aut R).map_det _).symm.trans $ congr_arg star M.det_transpose
 
 section det_zero
 /-!

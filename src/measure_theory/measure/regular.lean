@@ -308,7 +308,7 @@ begin
       (disjoint_disjointed s.set).mono (λ k l hkl, hkl.mono inf_le_right inf_le_right), _⟩,
     rw [← inter_Union, Union_disjointed, s.spanning, inter_univ] },
   rcases ennreal.exists_pos_sum_of_encodable' (ennreal.sub_pos.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
-  rw [ennreal.lt_sub_iff_add_lt, add_comm] at hδε,
+  rw [lt_tsub_iff_right, add_comm] at hδε,
   have : ∀ n, ∃ U ⊇ A n, is_open U ∧ μ U < μ (A n) + δ n,
   { intro n,
     have H₁ : ∀ t, μ.restrict (s.set n) t = μ (t ∩ s.set n), from λ t, restrict_apply' (hm n),
@@ -347,7 +347,7 @@ begin
   calc μ s ≤ μ U                   : μ.mono hsU
        ... < μ K + ε               : hKr
        ... ≤ μ (K \ U') + μ U' + ε :
-    add_le_add_right (ennreal.sub_le_iff_le_add.1 le_measure_diff) _
+    add_le_add_right (tsub_le_iff_right.1 le_measure_diff) _
        ... ≤ μ (K \ U') + ε + ε    : by { mono*, exacts [hμU'.le, le_rfl] }
        ... = μ (K \ U') + (ε + ε)  : add_assoc _ _ _
 end

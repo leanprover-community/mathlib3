@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import topology.category.Top
 import category_theory.limits.concrete_category
+import category_theory.limits.shapes.kernel_pair
 
 /-!
 # Gluing Topological spaces
@@ -55,14 +56,189 @@ provided.
 noncomputable theory
 
 open topological_space category_theory
-open category_theory.limits
-namespace Top
 
 universes v u
 
-instance has_lift_to_open (U : Top) (V : opens U) :
-  has_lift ((opens.to_Top U).obj V) U := ⟨λ x, x.val⟩
+namespace category_theory.limits
+open category_theory.limits.walking_cospan
+local attribute [tidy] tactic.case_bash
 
+variables {C : Type*} [category C] {X Y Z : C}
+section
+variables {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g)
+
+def pullback_cone.symm : pullback_cone g f :=
+{ X := c.X,
+  π :=
+    { app := by { rintro (_|_|_), exacts [c.π.app none, c.π.app right, c.π.app left] },
+      naturality' := λ A B f, by
+      { cases f,
+        cases A; simp; erw category.id_comp,
+        cases f_1, simpa using c.π.naturality hom.inr, simpa using c.π.naturality hom.inl } } }
+
+@[simp] lemma pullback_cone.symm_X : c.symm.X = c.X := rfl
+@[simp] lemma pullback_cone.symm_fst : c.symm.fst = c.snd := rfl
+@[simp] lemma pullback_cone.symm_snd : c.symm.snd = c.fst := rfl
+@[simp] lemma pullback_cone.symm_π_app_none  : c.symm.π.app none  = c.π.app none  := rfl
+@[simp] lemma pullback_cone.symm_π_app_left  : c.symm.π.app left  = c.π.app right := rfl
+@[simp] lemma pullback_cone.symm_π_app_right : c.symm.π.app right = c.π.app left  := rfl
+
+def pullback_cone.symm_is_limit (c : pullback_cone f g) (h : is_limit c) : is_limit c.symm :=
+{ lift := λ s, h.lift (pullback_cone.symm s),
+  fac' := λ s, by { rintros (_|_|_); apply h.fac },
+  uniq' := λ s m h', h.uniq' (pullback_cone.symm s) m
+    (by { rintros (_|_|_), exacts [h' none, h' right, h' left] }) }
+
+variables (f) (g)
+
+lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
+⟨⟨⟨_, pullback_cone.symm_is_limit _ (limit.is_limit _)⟩⟩⟩
+
+section
+local attribute[instance] has_pullback_symmetry
+
+@[simps]
+def pullback_symmetry [has_pullback f g] :
+  pullback f g ≅ pullback g f :=
+is_limit.cone_point_unique_up_to_iso
+  (pullback_cone.symm_is_limit _ (limit.is_limit (cospan f g)))
+  (@@limit.is_limit _ _ _ (has_pullback_symmetry f g))
+
+lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
+  (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simp
+
+end
+
+section left_iso
+variable [is_iso f]
+
+def pullback_cone_of_left_iso : pullback_cone f g :=
+{ X := Y, π := { app := by { rintro (_|_|_), exacts [g, g ≫ inv f, 𝟙 _] }, naturality' := λ A B i,
+  begin
+    cases i, rcases A with (_|_|_); simp [category.id_comp g], refl,
+    cases i_1; simp [category.id_comp g]
+  end } }
+
+@[simp] lemma pullback_cone_of_left_iso_X :
+  (pullback_cone_of_left_iso f g).X = Y := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_fst :
+  (pullback_cone_of_left_iso f g).fst = g ≫ inv f := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_snd :
+  (pullback_cone_of_left_iso f g).snd = 𝟙 _ := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_π_app_none :
+  (pullback_cone_of_left_iso f g).π.app none = g := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_π_app_left :
+  (pullback_cone_of_left_iso f g).π.app left = g ≫ inv f := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_π_app_right :
+  (pullback_cone_of_left_iso f g).π.app right = 𝟙 _ := rfl
+
+def pullback_cone_of_left_iso_is_limit :
+  is_limit (pullback_cone_of_left_iso f g) :=
+pullback_cone.is_limit_aux' _ (λ s, ⟨s.snd, by simp [← s.condition_assoc]⟩)
+
+@[priority 100]
+instance has_pullback_of_left_iso : has_pullback f g :=
+⟨⟨⟨_, pullback_cone_of_left_iso_is_limit f g⟩⟩⟩
+
+instance pullback_snd_iso_of_left_iso : is_iso (pullback.snd : pullback f g ⟶ _) :=
+begin
+  have := (pullback_cone_of_left_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
+    (limit.is_limit (cospan f g)) right,
+  have : pullback.snd = _ := (iso.hom_comp_eq_id _).mp this,
+  rw this,
+  apply_instance
+end
+
+end left_iso
+
+
+section right_iso
+variable [is_iso g]
+
+def pullback_cone_of_right_iso : pullback_cone f g :=
+{ X := X, π := { app := by { rintro (_|_|_), exacts [f, 𝟙 _, f ≫ inv g] }, naturality' := λ A B i,
+  begin
+    cases i, rcases A with (_|_|_); simp [category.id_comp f], refl,
+    cases i_1; simp [category.id_comp f]
+  end } }
+
+@[simp] lemma pullback_cone_of_right_iso_X :
+  (pullback_cone_of_right_iso f g).X = X := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_fst :
+  (pullback_cone_of_right_iso f g).fst = 𝟙 _ := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_snd :
+  (pullback_cone_of_right_iso f g).snd = f ≫ inv g := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_π_app_none :
+  (pullback_cone_of_right_iso f g).π.app none = f := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_π_app_left :
+  (pullback_cone_of_right_iso f g).π.app left = 𝟙 _ := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_π_app_right :
+  (pullback_cone_of_right_iso f g).π.app right = f ≫ inv g := rfl
+
+def pullback_cone_of_right_iso_is_limit :
+  is_limit (pullback_cone_of_right_iso f g) :=
+pullback_cone.is_limit_aux' _ (λ s, ⟨s.fst, by simp [s.condition_assoc]⟩)
+
+@[priority 100]
+instance has_pullback_of_right_iso : has_pullback f g :=
+⟨⟨⟨_, pullback_cone_of_right_iso_is_limit f g⟩⟩⟩
+
+instance pullback_snd_iso_of_right_iso : is_iso (pullback.fst : pullback f g ⟶ _) :=
+begin
+  have := (pullback_cone_of_right_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
+    (limit.is_limit (cospan f g)) left,
+  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
+  rw this,
+  apply_instance
+end
+
+end right_iso
+
+end
+
+variable (f : X ⟶ Y)
+
+instance has_kernel_pair_of_mono [mono f] : has_pullback f f :=
+⟨⟨⟨_, (is_kernel_pair.id_of_mono f).is_limit⟩⟩⟩
+
+lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pullback.snd :=
+((is_kernel_pair.id_of_mono f).is_limit.fac (get_limit_cone (cospan f f)).cone left).symm.trans
+  ((is_kernel_pair.id_of_mono f).is_limit.fac (get_limit_cone (cospan f f)).cone right : _)
+
+@[simp]
+lemma pullback_symmetry_hom_of_eq_fun [mono f] :
+(@pullback_symmetry _ _ _ _ _ f f _).hom = 𝟙 _ :=
+begin
+  have : (pullback_symmetry f f).hom ≫ pullback.fst = 𝟙 _ ≫ pullback.snd := by simp,
+  rw fst_eq_snd_of_mono_eq at this,
+  exact mono.right_cancellation _ _ this,
+end
+
+instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
+begin
+  have := (is_kernel_pair.id_of_mono f).is_limit.cone_point_unique_up_to_iso_hom_comp
+    (limit.is_limit (cospan f f)) left,
+  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
+  rw this,
+  apply_instance
+end
+
+instance snd_iso_of_mono_eq [mono f] : is_iso (pullback.snd : pullback f f ⟶ _) :=
+by {rw ←fst_eq_snd_of_mono_eq, apply_instance }
+
+end category_theory.limits
+open category_theory.limits
+namespace Top
 /--
 A family of gluing data consists of
 1. An index type `ι`
@@ -81,47 +257,76 @@ We can then glue the topological spaces `U i` along `V i j`.
 structure glue_data : Type (u+1) :=
   (ι : Type u)
   (U : ι → Top.{u})
-  (V : Π i, ι → opens (U i))
-  (f : Π i j, (opens.to_Top _).obj (V i j) ⟶ (opens.to_Top _).obj (V j i))
-  (V_id : ∀ i, V i i = ⊤)
-  (f_id : ∀ i, ⇑(f i i) = id)
-  (f_inter : ∀ ⦃i j⦄ k (x : V i j), ↑x ∈ V i k → ↑(f i j x) ∈ V j k)
-  (cocycle : ∀ i j k (x : V i j) (h : ↑x ∈ V i k),
-    ↑(f j k ⟨↑(f i j x), f_inter k x h⟩) = (↑(f i k ⟨x, h⟩) : U k))
+  (V : ι × ι → Top.{u})
+  (f : Π i j, V (i, j) ⟶ U i)
+  (f_open : ∀ i j, open_embedding (f i j))
+  (f_id : ∀ i, is_iso (f i i))
+  (t : Π i j, V (i, j) ⟶ V (j, i))
+  (t_id : ∀ i, t i i = 𝟙 _)
+  (t' : Π i j k, pullback (f i j) (f i k) ⟶ pullback (f j k) (f j i))
+  (t_fac : ∀ i j k, t' i j k ≫ pullback.snd = pullback.fst ≫ t i j)
+  (cocycle : ∀ i j k , t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _)
 
-attribute [simp] glue_data.V_id glue_data.f_id
+attribute [simp] glue_data.t_id
+attribute [instance] glue_data.f_id
+attribute [reassoc] glue_data.t_fac glue_data.cocycle
+
 
 namespace glue_data
 
 variable (D : glue_data.{u})
 
-@[simp, reassoc, elementwise] lemma inv (i j : D.ι) :
-  D.f i j ≫ D.f j i = 𝟙 _ :=
+instance (i j : D.ι) : mono (D.f i j) :=
+(Top.mono_iff_injective _).mpr (D.f_open i j).to_embedding.inj
+
+@[simp] lemma t'_iij (i j : D.ι) : D.t' i i j = (pullback_symmetry _ _).hom :=
 begin
-  ext x,
-  change ↑(D.f j i (D.f i j x)) = ↑x,
-  have := D.cocycle i j i x (by simp),
-  rw f_id at this,
-  convert this,
-  ext, refl,
+  have eq₁ := D.t_fac i i j,
+  have eq₂ := (is_iso.eq_comp_inv (D.f i i)).mpr (@pullback.condition _ _ _ _ _ _ (D.f i j) _),
+  rw [D.t_id, category.comp_id, eq₂] at eq₁,
+  have eq₃ := (is_iso.eq_comp_inv (D.f i i)).mp eq₁,
+  rw [category.assoc, ←pullback.condition, ←category.assoc] at eq₃,
+  exact mono.right_cancellation _ _
+    ((mono.right_cancellation _ _ eq₃).trans (pullback_symmetry_hom_comp_fst _ _).symm)
 end
+
+lemma t'_jii (i j : D.ι) : D.t' j i i = pullback.fst ≫ D.t j i ≫ inv pullback.snd :=
+by { rw [←category.assoc, ←D.t_fac], simp }
+
+lemma t'_iji (i j : D.ι) : D.t' i j i = pullback.fst ≫ D.t i j ≫ inv pullback.snd :=
+by { rw [←category.assoc, ←D.t_fac], simp }
+
+@[simp, reassoc, elementwise] lemma t_inv (i j : D.ι) :
+  D.t i j ≫ D.t j i = 𝟙 _ :=
+begin
+  have eq : (pullback_symmetry (D.f i i) (D.f i j)).hom = pullback.snd ≫ inv pullback.fst,
+  simp,
+  have := D.cocycle i j i,
+  rw [D.t'_iij, D.t'_jii, D.t'_iji, fst_eq_snd_of_mono_eq, eq] at this,
+  simp only [category.assoc, is_iso.inv_hom_id_assoc] at this,
+  rw [←is_iso.eq_inv_comp, ←category.assoc, is_iso.comp_inv_eq] at this,
+  simpa using this,
+end
+
+instance t_is_iso (i j : D.ι) : is_iso (D.t i j) :=
+⟨⟨D.t j i, D.t_inv _ _, D.t_inv _ _⟩⟩
+
+instance t'_is_iso (i j k : D.ι) : is_iso (D.t' i j k) :=
+⟨⟨D.t' j k i ≫ D.t' k i j, D.cocycle _ _ _, D.cocycle _ _ _⟩⟩
 
 /-- (Implementation) The disjoint union of `U i`. -/
 def sigma_opens : Top := ∐ D.U
 
-/-- (Implementation) The family of `V i j` as topological spaces indexed by `ι × ι`. -/
-def inters : D.ι × D.ι → Top := (λ p : D.ι × D.ι, (opens.to_Top _).obj (D.V p.1 p.2))
-
 /-- (Implementation) The disjoint union of `V i j`. -/
-def sigma_inters : Top := ∐ D.inters
+def sigma_inters : Top := ∐ D.V
 
 /-- (Implementation) The projection `∐ D.inters ⟶ ∐ D.U` via left projection. -/
 def left_imm : D.sigma_inters ⟶ D.sigma_opens :=
-sigma.desc (λ p : D.ι × D.ι, opens.inclusion _ ≫ sigma.ι _ p.1)
+sigma.desc (λ ⟨i, j⟩, D.f i j ≫ sigma.ι D.U i)
 
 /-- (Implementation) The projection `∐ D.inters ⟶ ∐ D.U` via right projection. -/
 def right_imm : D.sigma_inters ⟶ D.sigma_opens :=
-sigma.desc (λ p : D.ι × D.ι, D.f p.1 p.2 ≫ opens.inclusion _ ≫ sigma.ι _ p.2)
+sigma.desc (λ ⟨i, j⟩, D.t i j ≫ D.f j i ≫ sigma.ι D.U j)
 
 /-- (Implementation) The diagram to take colimit of. -/
 def diagram := parallel_pair D.left_imm D.right_imm
@@ -147,7 +352,6 @@ sigma.ι _ _ ≫ D.π
 lemma is_open_iff (U : set D.glued) : is_open U ↔ ∀ i, is_open (D.imm i ⁻¹' U) :=
 by { rw [coequalizer_is_open_iff, colimit_is_open_iff], refl }
 
-
 lemma imm_jointly_surjective (x : D.glued) : ∃ i (y : D.U i), D.imm i y = x :=
 begin
   rcases D.π_surjective x with ⟨x', rfl⟩,
@@ -156,44 +360,66 @@ begin
   exact ⟨i, y, by simpa⟩
 end
 
-@[simp]
+@[simp, elementwise]
 lemma glue_condition (i j : D.ι) :
-  D.f i j ≫ opens.inclusion _ ≫ D.imm j = opens.inclusion _ ≫ D.imm i :=
+  D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
 begin
   ext x,
   symmetry,
-  simpa [π, left_imm, right_imm] using
-    continuous_map.congr_fun (coequalizer.condition D.left_imm D.right_imm)
-      ((sigma.ι D.inters (i, j) : _) x),
+  simpa [π, left_imm, right_imm] using continuous_map.congr_fun
+    (coequalizer.condition D.left_imm D.right_imm) ((sigma.ι D.V (i, j) : _) x),
 end
 
-@[simp] lemma glue_condition_apply (i j : D.ι) (x) :
-  D.imm j ↑(D.f i j x) = D.imm i ↑x :=
-continuous_map.congr_fun (D.glue_condition i j) x
+def pullback_preimage {X Y Z : Top.{v}} (f : X ⟶ Z) (g : Y ⟶ Z) (x : X) (y : Y)
+  (h : f x = g y) : (pullback f g : Top) :=
+(limit.is_limit (cospan _ _)).lift
+  (@pullback_cone.mk Top _ _ _ _ f g ⟨punit⟩
+    ⟨λ _, x, by continuity⟩ ⟨λ _, y, by continuity⟩
+    (by { ext a, cases a, simp[h] })) punit.star
 
-/--
-An equivalence relation on `Σ i, D.U i` that holds iff `D.imm i x = D.imm j x`.
-See `Top.gluing_data.imm_eq_iff_rel`.
--/
-inductive rel : (Σ i, D.U i) → (Σ i, D.U i) → Prop
-| refl (x : Σ i, D.U i) : rel x x
-| eq {i j : D.ι} (x : D.V i j) (y : D.V j i) (h : D.f i j x = y) : rel ⟨i, x⟩ ⟨j, y⟩
+@[simp] lemma pullback_preimage_fst {X Y Z : Top.{v}} (f : X ⟶ Z) (g : Y ⟶ Z) (x : X) (y : Y)
+  (h : f x = g y) :
+  (pullback.fst : pullback f g ⟶ _) (pullback_preimage f g x y h) = x :=
+by { unfold pullback_preimage, simp }
+
+@[simp] lemma pullback_preimage_snd {X Y Z : Top.{v}} (f : X ⟶ Z) (g : Y ⟶ Z) (x : X) (y : Y)
+  (h : f x = g y) :
+  (pullback.snd : pullback f g ⟶ _) (pullback_preimage f g x y h) = y :=
+by { unfold pullback_preimage, simp }
+
+def rel (a b : Σ i, D.U i) : Prop :=
+  a = b ∨ ∃ (x : D.V (a.1, b.1)) , D.f _ _ x = a.2 ∧ D.f _ _ (D.t _ _ x) = b.2
 
 lemma rel_equiv : equivalence D.rel :=
-⟨ rel.refl,
-  λ x y h, by { cases h, exact h, apply rel.eq, simp [←h_h] },
-  λ _ _ _ h₁ h₂, by
-  { cases h₁ with _ i j x y, exact h₂,
-    cases x with x hx, cases y with y hy,
-    cases h₂ with _ _ k z _, exact h₁,
-    cases h₂_h,
-    cases z with z hz,
-    dsimp at *,
-    have eq : x = ↑(D.f j i ⟨z, hy⟩) := by simp [←h₁_h],
-    refine rel.eq ⟨x, _⟩ ⟨(↑(D.f j k ⟨z, _⟩) : D.U k), _⟩ _; cases eq,
-    { apply D.f_inter, exact hz },
-    { apply D.f_inter, exact hy },
-    { ext, apply D.cocycle } } ⟩
+⟨ λ x, or.inl (refl x),
+  λ a b h,
+  begin
+    rcases h with (⟨⟨⟩⟩|⟨x,e₁,e₂⟩), exact or.inl rfl,
+    right,
+    use (D.t _ _ x), simp[e₁, e₂]
+  end,
+  begin
+    rintros ⟨i,a⟩ ⟨j,b⟩ ⟨k,c⟩ (⟨⟨⟩⟩|⟨x,e₁,e₂⟩), exact id,
+    rintro (⟨⟨⟩⟩|⟨y,e₃,e₄⟩), exact or.inr ⟨x,e₁,e₂⟩,
+    let z : (pullback (D.f j i) (D.f j k) : Top) :=
+      pullback_preimage (D.f j i) (D.f j k) (D.t i j x) y (e₂.trans e₃.symm),
+    have eq₁ : (D.t j i) ((pullback.fst : _ ⟶ D.V _) z) = x := by simp,
+    have eq₂ : (pullback.snd : _ ⟶ D.V _) z = _ := pullback_preimage_snd _ _ _ _ _,
+    clear_value z,
+    right,
+    use (pullback.fst : _ ⟶ D.V (i, k)) (D.t' _ _ _ z),
+    dsimp only at *,
+    cases e₁, cases e₃, cases e₄, cases eq₁, cases eq₂, simp,
+    have h₁ : D.t' j i k ≫ pullback.fst ≫ D.f i k = pullback.fst ≫ D.t j i ≫ D.f i j,
+    { rw ←D.t_fac_assoc, congr' 1, exact pullback.condition },
+    have h₂ : D.t' j i k ≫ pullback.fst ≫ D.t i k ≫ D.f k i =
+      pullback.snd ≫ D.t j k ≫ D.f k j,
+    { rw ←D.t_fac_assoc,
+      apply @epi.left_cancellation _ _ _ _ (D.t' k j i),
+      rw [D.cocycle_assoc, D.t_fac_assoc, D.t_inv_assoc],
+      exact pullback.condition.symm },
+    exact ⟨continuous_map.congr_fun h₁ z, continuous_map.congr_fun h₂ z⟩
+  end⟩
 
 open category_theory.limits.walking_parallel_pair
 
@@ -231,57 +457,63 @@ begin
     refine relation.eqv_gen_mono _ (D.eqv_gen_of_π_eq h : _),
     rintros _ _ ⟨x⟩,
     rw ← (show (coprod_iso_sigma _).inv _ = x, from congr_fun (coprod_iso_sigma _).hom_inv_id x),
-    generalize : (coprod_iso_sigma D.inters).hom x = x',
-    cases x',
+    generalize : (coprod_iso_sigma D.V).hom x = x',
+    rcases x' with ⟨⟨i,j⟩,y⟩,
     unfold inv_image left_imm right_imm,
     simp only [opens.inclusion_to_fun, Top.comp_app, coprod_iso_sigma_inv_app,
       category_theory.limits.colimit.ι_desc_apply, cofan.mk_ι_app,
       coprod_iso_sigma_hom_app, continuous_map.to_fun_eq_coe],
-    apply rel.eq,
-    simp },
-  { rintro (⟨⟩ | ⟨_, _, x,_,rfl⟩),
-    refl, simp }
+    erw [Top.coprod_iso_sigma_hom_app, Top.coprod_iso_sigma_hom_app],
+    exact or.inr ⟨y, by simp⟩ },
+  { rintro (⟨⟨⟩⟩ | ⟨_, e₁, e₂⟩),
+    refl, dsimp only at *, cases e₁, cases e₂, simp }
 end
 
 lemma imm_injective (i : D.ι) : function.injective (D.imm i) :=
 begin
   intros x y h,
-  rcases (D.imm_eq_iff_rel _ _ _ _).mp h with (_ | ⟨_,_,_,_,rfl⟩); simp,
+  rcases (D.imm_eq_iff_rel _ _ _ _).mp h with (⟨⟨⟩⟩| ⟨_,e₁,e₂⟩),
+  refl,
+  dsimp only at *,
+  cases e₁, cases e₂, simp
 end
 
 instance imm_mono (i : D.ι) : mono (D.imm i) :=
 (Top.mono_iff_injective _).mpr (D.imm_injective _)
 
+local attribute [elementwise] is_iso.hom_inv_id is_iso.inv_hom_id
+
 lemma image_inter (i j : D.ι) :
-  set.range (D.imm i) ∩ set.range (D.imm j) = D.imm i '' D.V i j :=
+  set.range (D.imm i) ∩ set.range (D.imm j) = set.range (D.f i j ≫ D.imm _) :=
 begin
   ext x,
   split,
   { rintro ⟨⟨x₁, eq₁⟩, ⟨x₂, eq₂⟩⟩,
-  have := (D.imm_eq_iff_rel _ _ _ _).mp (eq₁.trans eq₂.symm),
-  cases this with _ _ _ x y h,
-  exact ⟨x₁, by simp, eq₁⟩,
-  exact ⟨x, x.property, eq₁⟩ },
-  { rintro ⟨x, hx, rfl⟩,
-    split, simp,
-    exact ⟨↑(D.f i j ⟨x, hx⟩), continuous_map.congr_fun (D.glue_condition i j) ⟨x, hx⟩⟩ }
+    have := (D.imm_eq_iff_rel _ _ _ _).mp (eq₁.trans eq₂.symm),
+    rcases this with (⟨⟨⟩⟩|⟨y,e₁,e₂⟩),
+    exact ⟨inv (D.f i i) x₁, by simp[eq₁]⟩,
+    dsimp only at *,
+    cases e₁, cases eq₁,
+    exact ⟨y, by simpa⟩ },
+  { rintro ⟨x, hx⟩,
+    exact ⟨⟨D.f i j x, hx⟩, ⟨D.f j i (D.t _ _ x), by simp[←hx]⟩⟩ }
 end
 
 lemma preimage_range (i j : D.ι) :
-  D.imm j ⁻¹' (set.range (D.imm i)) = D.V j i :=
-by rw [←set.preimage_image_eq ↑(D.V j i) (D.imm_injective j),
-       ←image_inter, set.preimage_range_inter]
+  D.imm j ⁻¹' (set.range (D.imm i)) = set.range (D.f j i) :=
+by rw [ ←set.preimage_image_eq (set.range (D.f j i)) (D.imm_injective j), ←set.image_univ,
+        ←set.image_univ, ←set.image_comp, ←coe_comp, set.image_univ,set.image_univ,
+        ←image_inter, set.preimage_range_inter]
 
 lemma preimage_image_eq_preimage_f (i j : D.ι) (U : set (D.U i)) :
-D.imm j ⁻¹' (D.imm i '' U) = opens.inclusion _ '' ((D.f j i ≫ opens.inclusion _) ⁻¹' U) :=
+D.imm j ⁻¹' (D.imm i '' U) = D.f _ _ '' ((D.t j i ≫ D.f _ _) ⁻¹' U) :=
 begin
-  have : coe ⁻¹' (D.imm j ⁻¹' (D.imm i '' U)) = (D.f j i ≫ opens.inclusion _) ⁻¹' U,
+  have : D.f _ _ ⁻¹' (D.imm j ⁻¹' (D.imm i '' U)) = (D.t j i ≫ D.f _ _) ⁻¹' U,
   { ext x,
     conv_rhs { rw ← set.preimage_image_eq U (D.imm_injective _) },
     generalize : D.imm i '' U = U',
     simp },
-  change _ = coe '' _,
-  rw [←this, subtype.image_preimage_coe, subtype.val_eq_coe],
+  rw [←this, set.image_preimage_eq_inter_range],
   symmetry,
   apply set.inter_eq_self_of_subset_left,
   rw ← D.preimage_range i j,
@@ -293,8 +525,8 @@ begin
   rw is_open_iff,
   intro j,
   rw preimage_image_eq_preimage_f,
-  apply (opens.open_embedding _).is_open_map,
-  apply (D.f j i ≫ (D.V i j).inclusion).continuous_to_fun.is_open_preimage,
+  apply (D.f_open _ _).is_open_map,
+  apply (D.t j i ≫ D.f i j).continuous_to_fun.is_open_preimage,
   exact U.property
 end
 
@@ -305,3 +537,4 @@ open_embedding_of_continuous_injective_open
 end glue_data
 
 end Top
+#lint

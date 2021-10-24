@@ -197,8 +197,8 @@ lemma list.apply_id_cons [decidable_eq α] (xs : list (α × α)) (x y z : α) :
   list.apply_id ((y, z) :: xs) x = if y = x then z else list.apply_id xs x :=
 by simp only [list.apply_id, list.lookup, eq_rec_constant, prod.to_sigma, list.map]; split_ifs; refl
 
-open function list prod (to_sigma)
-open nat
+open function _root_.list _root_.prod (to_sigma)
+open _root_.nat
 
 lemma list.apply_id_zip_eq [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
   (h₁ : xs.length = ys.length) (x y : α) (i : ℕ)
@@ -425,5 +425,10 @@ instance monotone.testable [preorder α] [preorder β] (f : α → β)
   [I : testable (named_binder "x" $
     ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ x ≤ y → f x ≤ f y)] :
   testable (monotone f) := I
+
+instance antitone.testable [preorder α] [preorder β] (f : α → β)
+  [I : testable (named_binder "x" $
+    ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ x ≤ y → f y ≤ f x)] :
+  testable (antitone f) := I
 
 end slim_check

@@ -41,8 +41,8 @@ support in the tensor product library, it is far easier to bootstrap like this, 
 definition below. -/
 private def bracket' : (A ⊗[R] L) →ₗ[R] (A ⊗[R] L) →ₗ[R] A ⊗[R] L :=
 tensor_product.curry $
-  (tensor_product.map (algebra.lmul' R) (lie_module.to_module_hom R L L : L ⊗[R] L →ₗ[R] L)).comp $
-  tensor_product.tensor_tensor_tensor_comm R A L A L
+  (tensor_product.map (algebra.lmul' R) (lie_module.to_module_hom R L L : L ⊗[R] L →ₗ[R] L))
+  ∘ₗ ↑(tensor_product.tensor_tensor_tensor_comm R A L A L)
 
 @[simp] private lemma bracket'_tmul (s t : A) (x y : L) :
   bracket' R A L (s ⊗ₜ[R] x) (t ⊗ₜ[R] y) = (s*t) ⊗ₜ ⁅x, y⁆ :=

@@ -12,6 +12,8 @@ A simple tactic to find and replace all occurrences of proof terms in the
 context and goal with new variables.
 -/
 
+open interactive interactive.types lean.parser
+
 namespace tactic
 
 private meta def collect_proofs_in :
@@ -68,7 +70,6 @@ do intros_dep,
   collect_proofs_in t [] (ns, hs),
   intron n <|> (intros $> ())
 
-open interactive interactive.types lean.parser
 local postfix *:9001 := many
 
 namespace interactive

@@ -126,6 +126,10 @@ attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
 lemma order_of_eq_zero (h : ¬ is_of_fin_order x) : order_of x = 0 :=
 by rwa [order_of, minimal_period, dif_neg]
 
+@[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
+  order_of x = 0 ↔ ¬ is_of_fin_order x :=
+⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
+
 lemma nsmul_ne_zero_of_lt_add_order_of' (n0 : n ≠ 0) (h : n < add_order_of a) :
   n • a ≠ 0 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
@@ -213,7 +217,7 @@ lemma add_order_of_eq_add_order_of_iff {B : Type*} [add_monoid B] {b : B} :
   add_order_of a = add_order_of b ↔ ∀ n : ℕ, n • a = 0 ↔ n • b = 0 :=
 begin
   simp_rw ← add_order_of_dvd_iff_nsmul_eq_zero,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl)⟩,
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]
@@ -234,6 +238,10 @@ by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff
 @[simp, norm_cast, to_additive] lemma order_of_submonoid {H : submonoid G}
   (y : H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
+
+@[to_additive order_of_add_units]
+lemma order_of_units {y : units G} : order_of (y : G) = order_of y :=
+order_of_injective (units.coe_hom G) units.ext y
 
 variables (x)
 
@@ -322,7 +330,7 @@ by_contradiction $ assume ne : n ≠ m,
     by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
   have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
   have lt : m - n < order_of x,
-    from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
+    from (tsub_lt_iff_left h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (le.trans_lt lt)
 
 -- TODO: This lemma was originally private, but this doesn't seem to work with `to_additive`,
@@ -382,10 +390,6 @@ begin
 end
 
 attribute [to_additive gsmul_eq_mod_add_order_of] gpow_eq_mod_order_of
-
-@[to_additive add_order_of_eq_zero_iff] lemma order_of_eq_zero_iff :
-  order_of x = 0 ↔ ¬ is_of_fin_order x :=
-⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
@@ -475,10 +479,11 @@ lemma exists_pow_eq_one (x : G) : is_of_fin_order x :=
 begin
   refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
   obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), x ^ i = x ^ j ∧ i ≠ j :=
-    by simpa only [not_forall, exists_prop] using (not_injective_infinite_fintype (λi:ℕ, x^i)),
+    by simpa only [not_forall, exists_prop, injective]
+      using (not_injective_infinite_fintype (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
   refine ⟨i - j, nat.sub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
-  rw [mul_one, ← pow_add, ← a_eq, nat.add_sub_cancel' h''],
+  rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
 end
 
 lemma exists_nsmul_eq_zero (a : A) : is_of_fin_add_order a :=
@@ -831,7 +836,7 @@ by rw [pow_eq_mod_order_of, ←nat.mod_mod_of_dvd n order_of_dvd_card_univ,
 
 @[to_additive] lemma gpow_eq_mod_card (n : ℤ) :
   x ^ n = x ^ (n % fintype.card G) :=
-by by rw [gpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
+by rw [gpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
   ← gpow_eq_mod_order_of]
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one

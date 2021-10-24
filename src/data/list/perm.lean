@@ -5,17 +5,26 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.bag_inter
 import data.list.erase_dup
+import data.list.permutation
 import data.list.zip
 import logic.relation
 
 /-!
-# List permutations
+# List Permutations
+
+This file introduces the `list.perm` relation, which is true if two lists are permutations of one
+another.
+
+## Notation
+
+The notation `~` is used for permutation equivalence.
 -/
 
 open_locale nat
 
+universes uu vv
+
 namespace list
-universe variables uu vv
 variables {α : Type uu} {β : Type vv}
 
 /-- `perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
@@ -289,7 +298,7 @@ this ▸ hbd
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (left_unique_flip hr.1) hab.flip hcd.flip)
+  (rel_perm_imp hr.left.flip hab.flip hcd.flip)
 
 end rel
 
@@ -697,7 +706,7 @@ end⟩
 lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
 h.trans (sublist_cons x l').subperm
 
-/-- The list version of `multiset.add_sub_of_le`. -/
+/-- The list version of `add_tsub_cancel_of_le` for multisets. -/
 lemma subperm_append_diff_self_of_count_le {l₁ l₂ : list α}
   (h : ∀ x ∈ l₁, count x l₁ ≤ count x l₂) : l₁ ++ l₂.diff l₁ ~ l₂ :=
 begin
@@ -1017,7 +1026,7 @@ begin
     have h₀ : n = xs.length - n',
     { dsimp [n'], rwa nat.sub_sub_self, } ,
     have h₁ : n' ≤ xs.length,
-    { apply nat.sub_le_self },
+    { apply tsub_le_self },
     have h₂ : xs.drop n = (xs.reverse.take n').reverse,
     { rw [reverse_take _ h₁, h₀, reverse_reverse], },
     rw [h₂],

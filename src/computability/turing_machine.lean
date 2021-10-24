@@ -3,11 +3,11 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order
 import data.fintype.basic
 import data.pfun
-import tactic.apply_fun
 import logic.function.iterate
+import order.basic
+import tactic.apply_fun
 
 /-!
 # Turing machines
@@ -79,7 +79,7 @@ theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
 begin
   rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
   simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
-  simp only [← list.repeat_add, nat.add_sub_cancel' h, list.append_assoc],
+  simp only [← list.repeat_add, add_tsub_cancel_of_le h, list.append_assoc],
 end
 
 /-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
@@ -305,8 +305,8 @@ structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
 ⟨⟨λ _, default _, rfl⟩⟩
 
-instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') :=
-⟨_, pointed_map.f⟩
+instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
+⟨pointed_map.f⟩
 
 @[simp] theorem pointed_map.mk_val {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : Γ → Γ') (pt) : (pointed_map.mk f pt : Γ → Γ') = f := rfl
@@ -605,9 +605,9 @@ theorem reaches₁_eq {σ} {f : σ → option σ} {a b c}
 trans_gen.head'_iff.trans (trans_gen.head'_iff.trans $ by rw h).symm
 
 theorem reaches_total {σ} {f : σ → option σ}
-  {a b c} : reaches f a b → reaches f a c →
+  {a b c} (hab : reaches f a b) (hac : reaches f a c) :
   reaches f b c ∨ reaches f c b :=
-refl_trans_gen.total_of_right_unique ⟨λ _ _ _, option.mem_unique⟩
+refl_trans_gen.total_of_right_unique (λ _ _ _, option.mem_unique) hab hac
 
 theorem reaches₁_fwd {σ} {f : σ → option σ}
   {a b c} (h₁ : reaches₁ f a c) (h₂ : b ∈ f a) : reaches f b c :=

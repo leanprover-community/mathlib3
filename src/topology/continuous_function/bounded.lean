@@ -35,7 +35,7 @@ section basics
 variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (α →ᵇ β) (λ _, α → β) :=  ⟨λ f, f.to_fun⟩
 
 protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.bounded'
 @[continuity]
@@ -184,20 +184,22 @@ lemma const_apply (a : α) (b : β) : (const α b : α → β) a = b := rfl
 /-- If the target space is inhabited, so is the space of bounded continuous functions -/
 instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)⟩
 
+lemma lipschitz_evalx (x : α) : lipschitz_with 1 (λ f : α →ᵇ β, f x) :=
+lipschitz_with.mk_one $ λ f g, dist_coe_le_dist x
+
+theorem uniform_continuous_coe : @uniform_continuous (α →ᵇ β) (α → β) _ _ coe_fn :=
+uniform_continuous_pi.2 $ λ x, (lipschitz_evalx x).uniform_continuous
+
+lemma continuous_coe : continuous (λ (f : α →ᵇ β) x, f x) :=
+uniform_continuous.continuous uniform_continuous_coe
+
+/-- When `x` is fixed, `(f : α →ᵇ β) ↦ f x` is continuous -/
+@[continuity] theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
+(continuous_apply x).comp continuous_coe
+
 /-- The evaluation map is continuous, as a joint function of `u` and `x` -/
 @[continuity] theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
-continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
-/- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
-have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
-mem_of_superset (prod_is_open.mem_nhds (ball_mem_nhds _ (half_pos ε0)) Hs) $
-λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
-      ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
-  ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) hy
-  ... = ε : add_halves _
-
-/-- In particular, when `x` is fixed, `f → f x` is continuous -/
-@[continuity] theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
-continuous_eval.comp (continuous_id.prod_mk continuous_const)
+continuous_prod_of_continuous_lipschitz _ 1 (λ f, f.continuous) $ lipschitz_evalx
 
 /-- Bounded continuous functions taking values in a complete space form a complete space. -/
 instance [complete_space β] : complete_space (α →ᵇ β) :=
@@ -414,7 +416,7 @@ begin
     ... = δ : add_halves _,
   calc
     dist (f y) (f z) ≤ b (dist y z) : H y z f hf
-    ... ≤ abs (b (dist y z)) : le_abs_self _
+    ... ≤ |b (dist y z)| : le_abs_self _
     ... = dist (b (dist y z)) 0 : by simp [real.dist_eq]
     ... < ε : hδ (by simpa [real.dist_eq] using this),
 end
@@ -755,7 +757,7 @@ variables (𝕜)
 def eval_clm (x : α) : (α →ᵇ β) →L[𝕜] β :=
 { to_fun := λ f, f x,
   map_add' := λ f g, by simp only [pi.add_apply, coe_add],
-  map_smul' := λ c f, by simp only [coe_smul] }
+  map_smul' := λ c f, by simp only [coe_smul, ring_hom.id_apply] }
 
 @[simp] lemma eval_clm_apply (x : α) (f : α →ᵇ β) :
   eval_clm 𝕜 x f = f x := rfl

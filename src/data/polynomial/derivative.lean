@@ -33,7 +33,7 @@ def derivative : polynomial R →ₗ[R] polynomial R :=
   map_add' := λ p q, by rw sum_add_index;
     simp only [add_mul, forall_const, ring_hom.map_add,
       eq_self_iff_true, zero_mul, ring_hom.map_zero],
-  map_smul' := λ a p, by rw sum_smul_index;
+  map_smul' := λ a p, by dsimp; rw sum_smul_index;
     simp only [mul_sum, ← C_mul', mul_assoc, coeff_C_mul, ring_hom.map_mul, forall_const,
       zero_mul, ring_hom.map_zero, sum] }
 
@@ -302,8 +302,8 @@ end
 
 end comm_ring
 
-section domain
-variables [integral_domain R]
+section is_domain
+variables [ring R] [is_domain R]
 
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
@@ -352,7 +352,7 @@ begin
     { norm_cast at h2 } }
 end
 
-end domain
+end is_domain
 
 end derivative
 end polynomial

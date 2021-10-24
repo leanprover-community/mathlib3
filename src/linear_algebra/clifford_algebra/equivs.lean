@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.quaternion_basis
 import data.complex.module
-import linear_algebra.clifford_algebra.basic
 import linear_algebra.clifford_algebra.conjugation
 
 /-!
@@ -54,6 +53,7 @@ open clifford_algebra
 
 /-! ### The clifford algebra isomorphic to a ring -/
 namespace clifford_algebra_ring
+open_locale complex_conjugate
 
 variables {R : Type*} [comm_ring R]
 
@@ -102,6 +102,7 @@ end clifford_algebra_ring
 
 /-! ### The clifford algebra isomorphic to the complex numbers -/
 namespace clifford_algebra_complex
+open_locale complex_conjugate
 
 /-- The quadratic form sending elements to the negation of their square. -/
 def Q : quadratic_form ℝ ℝ := -quadratic_form.lin_mul_lin linear_map.id linear_map.id
@@ -114,7 +115,7 @@ lemma Q_apply (r : ℝ) : Q r = - (r * r) := rfl
 def to_complex : clifford_algebra Q →ₐ[ℝ] ℂ :=
 clifford_algebra.lift Q ⟨linear_map.to_span_singleton _ _ complex.I, λ r, begin
   dsimp [linear_map.to_span_singleton, linear_map.id],
-  rw smul_mul_smul,
+  rw mul_mul_mul_comm,
   simp,
 end⟩
 
@@ -124,9 +125,9 @@ clifford_algebra.lift_ι_apply _ _ r
 
 /-- `clifford_algebra.involute` is analogous to `complex.conj`. -/
 @[simp] lemma to_complex_involute (c : clifford_algebra Q) :
-  to_complex (c.involute) = (to_complex c).conj :=
+  to_complex (c.involute) = conj (to_complex c) :=
 begin
-  have : to_complex (involute (ι Q 1)) = complex.conj (to_complex (ι Q 1)),
+  have : to_complex (involute (ι Q 1)) = conj (to_complex (ι Q 1)),
   { simp only [involute_ι, to_complex_ι, alg_hom.map_neg, one_smul, complex.conj_I] },
   suffices : to_complex.comp involute = complex.conj_ae.to_alg_hom.comp to_complex,
   { exact alg_hom.congr_fun this c },
@@ -196,7 +197,7 @@ lemma reverse_eq_id : (reverse : clifford_algebra Q →ₗ[ℝ] _) = linear_map.
 linear_map.ext reverse_apply
 
 /-- `complex.conj` is analogous to `clifford_algebra.involute`. -/
-@[simp] lemma of_complex_conj (c : ℂ) : of_complex (c.conj) = (of_complex c).involute :=
+@[simp] lemma of_complex_conj (c : ℂ) : of_complex (conj c) = (of_complex c).involute :=
 clifford_algebra_complex.equiv.injective $
   by rw [equiv_apply, equiv_apply, to_complex_involute, to_complex_of_complex,
     to_complex_of_complex]

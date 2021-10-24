@@ -147,17 +147,17 @@ lemma monoid_with_zero_hom.coe_eq_to_zero_hom
   (f : zero_hom M N) = f.to_zero_hom := rfl
 
 @[to_additive]
-instance {mM : has_one M} {mN : has_one N} : has_coe_to_fun (one_hom M N) :=
-⟨_, one_hom.to_fun⟩
+instance {mM : has_one M} {mN : has_one N} : has_coe_to_fun (one_hom M N) (λ _, M → N) :=
+⟨one_hom.to_fun⟩
 @[to_additive]
-instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) :=
-⟨_, mul_hom.to_fun⟩
+instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) (λ _, M → N) :=
+⟨mul_hom.to_fun⟩
 @[to_additive]
-instance {mM : mul_one_class M} {mN : mul_one_class N} : has_coe_to_fun (M →* N) :=
-⟨_, monoid_hom.to_fun⟩
+instance {mM : mul_one_class M} {mN : mul_one_class N} : has_coe_to_fun (M →* N) (λ _, M → N) :=
+⟨monoid_hom.to_fun⟩
 instance {mM : mul_zero_one_class M} {mN : mul_zero_one_class N} :
-  has_coe_to_fun (monoid_with_zero_hom M N) :=
-⟨_, monoid_with_zero_hom.to_fun⟩
+  has_coe_to_fun (monoid_with_zero_hom M N) (λ _, M → N) :=
+⟨monoid_with_zero_hom.to_fun⟩
 
 -- these must come after the coe_to_fun definitions
 initialize_simps_projections zero_hom (to_fun → apply)
@@ -268,8 +268,6 @@ monoid_hom.coe_inj (funext h)
 lemma monoid_with_zero_hom.ext [mul_zero_one_class M] [mul_zero_one_class N]
   ⦃f g : monoid_with_zero_hom M N⦄ (h : ∀ x, f x = g x) : f = g :=
 monoid_with_zero_hom.coe_inj (funext h)
-
-attribute [ext] zero_hom.ext add_hom.ext add_monoid_hom.ext
 
 @[to_additive]
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
@@ -495,10 +493,10 @@ lemma one_hom.cancel_left [has_one M] [has_one N] [has_one P]
 ⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
-lemma mul_hom.cancel_left [has_one M] [has_one N] [has_one P]
-  {g : one_hom N P} {f₁ f₂ : one_hom M N} (hg : function.injective g) :
+lemma mul_hom.cancel_left [has_mul M] [has_mul N] [has_mul P]
+  {g : mul_hom N P} {f₁ f₂ : mul_hom M N} (hg : function.injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, one_hom.ext $ λ x, hg $ by rw [← one_hom.comp_apply, h, one_hom.comp_apply],
+⟨λ h, mul_hom.ext $ λ x, hg $ by rw [← mul_hom.comp_apply, h, mul_hom.comp_apply],
  λ h, h ▸ rfl⟩
 @[to_additive]
 lemma monoid_hom.cancel_left [mul_one_class M] [mul_one_class N] [mul_one_class P]
@@ -569,7 +567,7 @@ instance : monoid (monoid.End M) :=
 
 instance : inhabited (monoid.End M) := ⟨1⟩
 
-instance : has_coe_to_fun (monoid.End M) := ⟨_, monoid_hom.to_fun⟩
+instance : has_coe_to_fun (monoid.End M) (λ _, M → M) := ⟨monoid_hom.to_fun⟩
 
 end End
 
@@ -596,7 +594,7 @@ instance : monoid (add_monoid.End A) :=
 
 instance : inhabited (add_monoid.End A) := ⟨1⟩
 
-instance : has_coe_to_fun (add_monoid.End A) := ⟨_, add_monoid_hom.to_fun⟩
+instance : has_coe_to_fun (add_monoid.End A) (λ _, A → A) := ⟨add_monoid_hom.to_fun⟩
 
 end End
 

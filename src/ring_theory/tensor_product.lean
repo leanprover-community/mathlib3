@@ -80,7 +80,7 @@ lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
   restrict_scalars R (curry f) = curry (f.restrict_scalars R) :=
 rfl
 
-/-- Just as `tensor_product.mk_compr₂_inj` is marked `ext` instead of `tensor_product.ext`, this is
+/-- Just as `tensor_product.ext` is marked `ext` instead of `tensor_product.ext'`, this is
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.
 
 See note [partially-applied ext lemmas]. -/
@@ -109,7 +109,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def lift (f : M →ₗ[A] (N →ₗ[R] P)) : (M ⊗[R] N) →ₗ[A] P :=
 { map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp (lsmul R _ c) x =
       (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
-    from ext_iff.1 $ tensor_product.ext $ λ x y,
+    from ext_iff.1 $ tensor_product.ext' $ λ x y,
     by simp only [comp_apply, algebra.lsmul_coe, smul_tmul', lift.tmul, coe_restrict_scalars_eq_coe,
         f.map_smul, smul_apply],
   .. lift (f.restrict_scalars R) }
@@ -127,7 +127,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def uncurry : (M →ₗ[A] (N →ₗ[R] P)) →ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
 { to_fun := lift,
   map_add' := λ f g, ext $ λ x y, by simp only [lift_tmul, add_apply],
-  map_smul' := λ c f, ext $ λ x y, by simp only [lift_tmul, smul_apply] }
+  map_smul' := λ c f, ext $ λ x y, by simp only [lift_tmul, smul_apply, ring_hom.id_apply] }
 
 /-- Heterobasic version of `tensor_product.lcurry`:
 
@@ -155,6 +155,8 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 @[simps] def mk : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
 { map_smul' := λ c x, rfl,
   .. mk R M N }
+
+local attribute [ext] tensor_product.ext
 
 /-- Heterobasic version of `tensor_product.assoc`:
 
@@ -197,7 +199,8 @@ def base_change (f : M →ₗ[R] N) : A ⊗[R] M →ₗ[A] A ⊗[R] N :=
   map_smul' := λ a x,
     show (f.ltensor A) (rtensor M (algebra.lmul R A a) x) =
       (rtensor N ((algebra.lmul R A) a)) ((ltensor A f) x),
-    by simp only [← comp_apply, ltensor_comp_rtensor, rtensor_comp_ltensor] }
+    by { rw [← comp_apply, ← comp_apply],
+      simp only [ltensor_comp_rtensor, rtensor_comp_ltensor] } }
 
 variables {A}
 
@@ -278,13 +281,13 @@ as an `R`-bilinear map.
 -/
 def mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
 tensor_product.lift $ linear_map.mk₂ R mul_aux
-  (λ x₁ x₂ y, tensor_product.ext $ λ x' y',
+  (λ x₁ x₂ y, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.add_apply, add_mul, add_tmul])
-  (λ c x y, tensor_product.ext $ λ x' y',
+  (λ c x y, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul', smul_mul_assoc])
-  (λ x y₁ y₂, tensor_product.ext $ λ x' y',
+  (λ x y₁ y₂, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.add_apply, add_mul, tmul_add])
-  (λ c x y, tensor_product.ext $ λ x' y',
+  (λ c x y, tensor_product.ext' $ λ x' y',
     by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul, smul_tmul', smul_mul_assoc])
 
 @[simp]
@@ -300,15 +303,15 @@ lemma mul_assoc' (mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] 
 begin
     intros,
     apply tensor_product.induction_on x,
-    { simp, },
+    { simp only [linear_map.map_zero, linear_map.zero_apply], },
     apply tensor_product.induction_on y,
-    { simp, },
+    { simp only [linear_map.map_zero, forall_const, linear_map.zero_apply], },
     apply tensor_product.induction_on z,
-    { simp, },
-    { intros, simp [h], },
-    { intros, simp [linear_map.map_add, *], },
-    { intros, simp [linear_map.map_add, *], },
-    { intros, simp [linear_map.map_add, *], },
+    { simp only [linear_map.map_zero, forall_const], },
+    { intros, simp only [h], },
+    { intros, simp only [linear_map.map_add, *], },
+    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
+    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
 end
 
 lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=
@@ -691,6 +694,12 @@ alg_hom_of_linear_map_tensor_product
   map f g (a ⊗ₜ c) = f a ⊗ₜ g c :=
 rfl
 
+@[simp] lemma map_comp_include_left (f : A →ₐ[R] B) (g : C →ₐ[R] D) :
+  (map f g).comp include_left = include_left.comp f := alg_hom.ext $ by simp
+
+@[simp] lemma map_comp_include_right (f : A →ₐ[R] B) (g : C →ₐ[R] D) :
+  (map f g).comp include_right = include_right.comp g := alg_hom.ext $ by simp
+
 /--
 Construct an isomorphism between tensor products of R-algebras
 from isomorphisms between the tensor factors.
@@ -712,6 +721,51 @@ end
 
 end monoidal
 
-end tensor_product
+section
 
+variables {R A B S : Type*} [comm_semiring R] [semiring A] [semiring B] [comm_semiring S]
+variables [algebra R A] [algebra R B] [algebra R S]
+variables (f : A →ₐ[R] S) (g : B →ₐ[R] S)
+
+variables (R)
+
+/-- `algebra.lmul'` is an alg_hom on commutative rings. -/
+def lmul' : S ⊗[R] S →ₐ[R] S :=
+alg_hom_of_linear_map_tensor_product (algebra.lmul' R)
+  (λ a₁ a₂ b₁ b₂, by simp only [algebra.lmul'_apply, mul_mul_mul_comm])
+  (λ r, by simp only [algebra.lmul'_apply, _root_.mul_one])
+
+variables {R}
+
+lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = algebra.lmul' R := rfl
+
+@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := lmul'_apply
+
+@[simp]
+lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=
+alg_hom.ext $ λ _, (lmul'_apply_tmul _ _).trans (_root_.mul_one _)
+
+@[simp]
+lemma lmul'_comp_include_right : (lmul' R : _ →ₐ[R] S).comp include_right = alg_hom.id R S :=
+alg_hom.ext $ λ _, (lmul'_apply_tmul _ _).trans (_root_.one_mul _)
+
+/--
+If `S` is commutative, for a pair of morphisms `f : A →ₐ[R] S`, `g : B →ₐ[R] S`,
+We obtain a map `A ⊗[R] B →ₐ[R] S` that commutes with `f`, `g` via `a ⊗ b ↦ f(a) * g(b)`.
+-/
+def product_map : A ⊗[R] B →ₐ[R] S := (lmul' R).comp (tensor_product.map f g)
+
+@[simp] lemma product_map_apply_tmul (a : A) (b : B) : product_map f g (a ⊗ₜ b) = f a * g b :=
+by { unfold product_map lmul', simp }
+
+lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
+
+@[simp] lemma product_map_left : (product_map f g).comp include_left = f := alg_hom.ext $ by simp
+
+lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b := by simp
+
+@[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext $ by simp
+
+end
+end tensor_product
 end algebra

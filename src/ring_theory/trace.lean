@@ -5,11 +5,11 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.bilinear_form
-import linear_algebra.char_poly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
 import linear_algebra.vandermonde
 import linear_algebra.trace
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
 import ring_theory.power_basis
 
@@ -183,7 +183,7 @@ begin
   have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
   haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
   -- Write the LHS as the `d-1`'th coefficient of `minpoly K pb.gen`
-  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_char_poly_coeff, char_poly_left_mul_matrix,
+  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
       ring_hom.map_neg, ← pb.nat_degree_minpoly, fintype.card_fin,
       ← next_coeff_of_pos_nat_degree _ d_pos',
       ← next_coeff_map (algebra_map K F).injective],
@@ -359,7 +359,7 @@ begin
     vandermonde (λ i, e.symm i pb.gen),
   calc algebra_map K (algebraic_closure _) (bilin_form.to_matrix pb.basis (trace_form K L)).det
       = det ((algebra_map K _).map_matrix $
-              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det
+              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det _ _
   ... = det (Mᵀ ⬝ M) : _
   ... = det M * det M : by rw [det_mul, det_transpose]
   ... ≠ 0 : mt mul_self_eq_zero.mp _,
@@ -376,7 +376,7 @@ begin
   { rw [alg_hom.card, pb.finrank] }
 end
 
-lemma det_trace_form_ne_zero  [is_separable K L] [decidable_eq ι] (b : basis ι K L) :
+lemma det_trace_form_ne_zero [is_separable K L] [decidable_eq ι] (b : basis ι K L) :
   det (bilin_form.to_matrix b (trace_form K L)) ≠ 0 :=
 begin
   haveI : finite_dimensional K L := finite_dimensional.of_fintype_basis b,
@@ -396,5 +396,12 @@ begin
   ... = 1 : by simp only [basis.to_matrix_mul_to_matrix_flip, matrix.transpose_one,
                           matrix.mul_one, matrix.det_one]
 end
+
+variables (K L)
+
+theorem trace_form_nondegenerate [finite_dimensional K L] [is_separable K L] :
+  (trace_form K L).nondegenerate :=
+bilin_form.nondegenerate_of_det_ne_zero (trace_form K L) _
+  (det_trace_form_ne_zero (finite_dimensional.fin_basis K L))
 
 end det_ne_zero

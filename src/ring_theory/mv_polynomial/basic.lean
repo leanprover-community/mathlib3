@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import ring_theory.ideal.operations
-import linear_algebra.finsupp_vector_space
 import algebra.char_p.basic
+import linear_algebra.finsupp_vector_space
 
 /-!
 # Multivariate polynomials over commutative rings
@@ -114,6 +113,10 @@ def basis_monomials : basis (σ →₀ ℕ) R (mv_polynomial σ R) := finsupp.ba
 @[simp] lemma coe_basis_monomials :
   (basis_monomials σ R : (σ →₀ ℕ) → mv_polynomial σ R) = λ s, monomial s 1 :=
 rfl
+
+lemma linear_independent_X : linear_independent R (X : σ → mv_polynomial σ R) :=
+(basis_monomials σ R).linear_independent.comp
+  (λ s : σ, finsupp.single s 1) (finsupp.single_left_injective one_ne_zero)
 
 end degree
 

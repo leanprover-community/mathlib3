@@ -680,7 +680,7 @@ instance nat_ge.sampleable {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y, by norm_num⟩ },
   shrink := λ ⟨y, h⟩, (λ a : { y' // sizeof y' < sizeof (y - x) },
-    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, nat.add_lt_of_lt_sub_left h'⟩) <$>
+    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, lt_tsub_iff_left.mp h'⟩) <$>
       shrink (y - x) }
 
 /- there is no `nat_lt.sampleable` instance because if `y = 0`, there is no valid choice
@@ -698,14 +698,14 @@ instance le.sampleable {y : α} [sampleable α] [linear_ordered_add_comm_group �
   slim_check.sampleable { x : α // x ≤ y } :=
 { sample :=
          do { x ← sample α,
-              pure ⟨y - abs x, sub_le_self _ (abs_nonneg _) ⟩ },
+              pure ⟨y - |x|, sub_le_self _ (abs_nonneg _) ⟩ },
   shrink := λ _, lazy_list.nil }
 
 instance ge.sampleable {x : α}  [sampleable α] [linear_ordered_add_comm_group α] :
   slim_check.sampleable { y : α // x ≤ y } :=
 { sample :=
          do { y ← sample α,
-              pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
+              pure ⟨x + |y|, by norm_num [abs_nonneg]⟩ },
   shrink := λ _, lazy_list.nil }
 
 

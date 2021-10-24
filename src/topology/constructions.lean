@@ -725,6 +725,24 @@ continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_a
   continuous (λ f : (Π j, π j) × π i, function.update f.1 i f.2) :=
 continuous_fst.update i continuous_snd
 
+lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
+  (i : fin (n + 1)) {f : α → π i} {l : filter α} {x : π i} (hf : tendsto f l (𝓝 x))
+  {g : α → Π j : fin n, π (i.succ_above j)} {y : Π j, π (i.succ_above j)} (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ a, i.insert_nth (f a) (g a)) l (𝓝 $ i.insert_nth x y) :=
+tendsto_pi.2 (λ j, fin.succ_above_cases i (by simpa) (by simpa using tendsto_pi.1 hg) j)
+
+lemma continuous_at.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
+  [topological_space α] (i : fin (n + 1)) {f : α → π i} {a : α} (hf : continuous_at f a)
+  {g : α → Π j : fin n, π (i.succ_above j)} (hg : continuous_at g a) :
+  continuous_at (λ a, i.insert_nth (f a) (g a)) a :=
+hf.fin_insert_nth i hg
+
+lemma continuous.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
+  [topological_space α] (i : fin (n + 1)) {f : α → π i} (hf : continuous f)
+  {g : α → Π j : fin n, π (i.succ_above j)} (hg : continuous g) :
+  continuous (λ a, i.insert_nth (f a) (g a)) :=
+continuous_iff_continuous_at.2 $ λ a, hf.continuous_at.fin_insert_nth i hg.continuous_at
+
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
@@ -769,6 +787,17 @@ lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space 
   {I : set ι} {s : Π i, set (α i)} :
   interior (pi I s) = I.pi (λ i, interior (s i)) :=
 by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
+
+lemma exists_finset_piecewise_mem_of_mem_nhds [decidable_eq ι] [Π i, topological_space (π i)]
+  {s : set (Π a, π a)} {x : Π a, π a} (hs : s ∈ 𝓝 x) (y : Π a, π a) :
+  ∃ I : finset ι, I.piecewise x y ∈ s :=
+begin
+  simp only [nhds_pi, mem_infi', mem_comap] at hs,
+  rcases hs with ⟨I, hI, V, hV, hV_univ, rfl, -⟩,
+  choose t ht htV using hV,
+  refine ⟨hI.to_finset, mem_bInter $ λ i hi, htV i _⟩,
+  simpa [hI.mem_to_finset.2 hi] using mem_of_mem_nhds (ht i)
+end
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =

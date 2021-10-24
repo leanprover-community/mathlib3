@@ -285,7 +285,7 @@ begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
   have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
-  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd_left (power_dvd_power _ L) _).1 d⟩
+  exact ⟨L, (dvd_add_iff $ (power_dvd_power _ L).mul_right _).1 d⟩
 end
 
 theorem NF.of_dvd_omega {e n a} (h : NF (oadd e n a)) :
@@ -564,7 +564,7 @@ theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → spli
     have : 1 + (e - 1) = e,
     { refine repr_inj.1 _, simp,
       have := mt repr_inj.1 e0,
-      exact add_sub_cancel_of_le (one_le_iff_ne_zero.2 this) },
+      exact ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this) },
     intros, substs o' m, simp [scale, this] }
 end
 
@@ -581,7 +581,7 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
     intros, substs o' m,
     have : ω ^ repr e = ω ^ (1 : ordinal.{0}) * ω ^ (repr e - 1),
     { have := mt repr_inj.1 e0,
-      rw [← power_add, add_sub_cancel_of_le (one_le_iff_ne_zero.2 this)] },
+      rw [← power_add, ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this)] },
     refine ⟨NF.oadd (by apply_instance) _ _, _⟩,
     { simp at this ⊢,
       refine IH₁.below_of_lt' ((mul_lt_mul_iff_left omega_pos).1 $

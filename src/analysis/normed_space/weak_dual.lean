@@ -41,15 +41,19 @@ The first main result concerns the comparison of the operator norm topology on `
 weak-* topology on (its type synonym) `weak_dual 𝕜 E`:
 * `dual_norm_topology_le_weak_dual_topology`: The weak-* topology on the dual of a normed space is
   coarser (not necessarily strictly) than the operator norm topology.
+* `polar_nhd_weak_star_compact` (a version of the Banach-Alaoglu theorem): The polar set of a
+  neighborhood of the origin in a normed space `E` over `ℝ` or `ℂ` is compact in `weak_dual _ E`.
+* `unit_ball_weak_star_compact` (the most common special case of the Banach-Alaoglu theorem):
+  The dual unit ball of a normed space `E` over `ℝ` or `ℂ` is compact in the weak-star topology.
 
 TODOs:
 * Add that in finite dimensions, the weak-* topology and the dual norm topology coincide.
 * Add that in infinite dimensions, the weak-* topology is strictly coarser than the dual norm
   topology.
-* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.weak_dual_topology`).
-* Add metrizability of the dual unit ball (more generally bounded subsets) of `weak_dual 𝕜 E`
-  under the assumption of separability of `E`. Sequential Banach-Alaoglu theorem would then follow
-  from the general one.
+* Add metrizability of the dual unit ball (more generally weak-star compact subsets) of
+  `weak_dual 𝕜 E` under the assumption of separability of `E`.
+* Add the sequential Banach-Alaoglu theorem: the dual unit ball of a separable normed space `E`
+  is sequentially compact in the weak-star topology. (Would follow from the metrizability above.)
 
 ## Notations
 

@@ -6,16 +6,34 @@ import ring_theory.homogeneous_ideal
 import algebra.direct_sum.ring
 
 
+-- we only consider rings graded by nonnegative elements
+
 noncomputable theory
 open_locale classical direct_sum big_operators pointwise
 open direct_sum
 
 variables {ι : Type*} [linear_ordered_cancel_add_comm_monoid ι]
-  {A : ι → Type*} [Π i, add_comm_group (A i)] [gcomm_semiring A]
 
+local notation ι`⁺⁰` := {i : ι // 0 ≤ i}
 local notation ι`⁺` := {i : ι // 0 < i}
 
-private def irrelavent_ideal_embedding : (⨁ i : ι⁺, A i.val) →+ (⨁ i, A i) :=
+instance has_add_ι_nonneg : has_add (ι⁺⁰) :=
+{ add := λ i j, ⟨i.1 + j.1, by {convert add_le_add i.2 j.2, rw zero_add }⟩}
+
+instance add_comm_monoid_ι_nonneg : add_comm_monoid (ι⁺⁰) :=
+{ add_assoc := sorry,
+  zero := sorry,
+  add_zero := sorry,
+  zero_add := sorry,
+  add_comm := sorry,
+  .. (has_add_ι_nonneg)}
+
+variables {A : ι⁺⁰ → Type*} [Π i, add_comm_group (A i)] [gcomm_semiring A]
+
+
+#exit
+
+private def irrelavent_ideal_embedding : (⨁ i : ι⁺, A ⟨i.val, _⟩) →+ (⨁ i, A i) :=
 { to_fun := λ x, ∑ i in x.support, of A i.val (x i),
   map_add' := λ x y, begin
     have set_eq₁ : x.support = { i ∈ x.support | x i = - y i } ∪ { i ∈ x.support | x i ≠ - y i },
@@ -133,15 +151,12 @@ def irrelavent_ideal : ideal (⨁ i, A i) :=
   smul_mem' := λ c x hx, begin
     simp only [set.image_univ, set.mem_range, algebra.id.smul_eq_mul] at hx ⊢,
     obtain ⟨y, hy⟩ := hx,
-    set y' := ∑ i in y.support, (of (λ i : ι⁺, A i.val) (⟨i.val + i.val, _⟩ : ι⁺)
-      (graded_monoid.ghas_mul.mul (c i.val) (y i))) with hy',
+    set y' := ∑ ij in x.support.product y.support, (of (λ i : ι⁺, A i.val) (⟨ij.1 + ij.2.val, _⟩ : ι⁺)
+      (graded_monoid.ghas_mul.mul (c ij.1) (y ij.2))) with hy',
     use y',
     rw [←hy, direct_sum.eq_sum_of _ y],
     conv_rhs { rw [add_monoid_hom.map_sum, finset.mul_sum], },
     conv_lhs { rw [hy', add_monoid_hom.map_sum], },
-    apply finset.sum_congr rfl,
-    rintros ⟨j, hj⟩ mem_supp,
     sorry,
 
-    all_goals { convert add_lt_add i.2 i.2, rw zero_add, },
   end }

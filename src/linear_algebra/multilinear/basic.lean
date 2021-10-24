@@ -600,6 +600,15 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = (∏ i, c i) • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
 
+@[simp] lemma map_update_smul [fintype ι] (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+  f (update (c • m) i x) = c^(fintype.card ι - 1) • f (update m i x) :=
+begin
+  have : f ((finset.univ.erase i).piecewise (c • update m i x) (update m i x))
+       = (∏ i in finset.univ.erase i, c) • f (update m i x) :=
+    map_piecewise_smul f _ _ _,
+  simpa [←function.update_smul c m] using this,
+end
+
 section distrib_mul_action
 
 variables {R' A : Type*} [monoid R'] [semiring A]

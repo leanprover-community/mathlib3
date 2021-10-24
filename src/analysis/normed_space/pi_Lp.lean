@@ -58,13 +58,11 @@ variables {ι : Type*}
 /-- A copy of a Pi type, on which we will put the `L^p` distance. Since the Pi type itself is
 already endowed with the `L^∞` distance, we need the type synonym to avoid confusing typeclass
 resolution. Also, we let it depend on `p`, to get a whole family of type on which we can put
-different distances, and we provide the assumption `[fact (1 ≤ p)]` in the definition, to make it
-available to typeclass resolution when it looks for a distance on `pi_Lp p α`. -/
+different distances. -/
 @[nolint unused_arguments]
-def pi_Lp {ι : Type*} (p : ℝ) [fact (1 ≤ p)] (α : ι → Type*) : Type* := Π (i : ι), α i
+def pi_Lp {ι : Type*} (p : ℝ) (α : ι → Type*) : Type* := Π (i : ι), α i
 
-instance {ι : Type*} (p : ℝ) [fact (1 ≤ p)] (α : ι → Type*) [∀ i, inhabited (α i)] :
-  inhabited (pi_Lp p α) :=
+instance {ι : Type*} (p : ℝ) (α : ι → Type*) [∀ i, inhabited (α i)] : inhabited (pi_Lp p α) :=
 ⟨λ i, default (α i)⟩
 
 lemma fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
@@ -72,7 +70,7 @@ lemma fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
-variables (p : ℝ) [fact (1 ≤ p)] (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ) [_i : fact (1 ≤ p)] (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -95,6 +93,7 @@ explaining why having definitionally the right uniformity is often important.
 -/
 
 variables [∀ i, emetric_space (α i)] [∀ i, pseudo_emetric_space (β i)] [fintype ι]
+include _i
 
 /-- Endowing the space `pi_Lp p β` with the `L^p` pseudoedistance. This definition is not
 satisfactory, as it does not register the fact that the topology and the uniform structure coincide
@@ -204,6 +203,7 @@ instance uniform_space [∀ i, uniform_space (β i)] : uniform_space (pi_Lp p β
 Pi.uniform_space _
 
 variable [fintype ι]
+include _i
 
 /-- pseudoemetric space instance on the product of finitely many pseudoemetric spaces, using the
 `L^p` pseudoedistance, and having as uniformity the product uniformity. -/
@@ -215,9 +215,11 @@ edistance, and having as uniformity the product uniformity. -/
 instance [∀ i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
 (emetric_aux p α).replace_uniformity (aux_uniformity_eq p α).symm
 
+omit _i
 protected lemma edist {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀ i, pseudo_emetric_space (β i)] (x y : pi_Lp p β) :
   edist x y = (∑ (i : ι), (edist (x i) (y i)) ^ p) ^ (1/p) := rfl
+include _i
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
@@ -255,9 +257,11 @@ begin
           ennreal.to_real_sum A, dist_edist] }
 end
 
+omit _i
 protected lemma dist {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀ i, pseudo_metric_space (β i)] (x y : pi_Lp p β) :
   dist x y = (∑ (i : ι), (dist (x i) (y i)) ^ p) ^ (1/p) := rfl
+include _i
 
 /-- seminormed group instance on the product of finitely many normed groups, using the `L^p`
 norm. -/
@@ -270,6 +274,7 @@ instance semi_normed_group [∀i, semi_normed_group (β i)] : semi_normed_group 
 instance normed_group [∀i, normed_group (α i)] : normed_group (pi_Lp p α) :=
 { ..pi_Lp.semi_normed_group p α }
 
+omit _i
 lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
@@ -278,6 +283,7 @@ lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
 by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
+include _i
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 

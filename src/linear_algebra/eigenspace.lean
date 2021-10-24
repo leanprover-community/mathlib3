@@ -181,7 +181,7 @@ begin
   obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional K f,
   use c,
   rw linear_map.is_unit_iff at nu,
-  exact has_eigenvalue_of_has_eigenvector (exists_mem_ne_zero_of_ne_bot nu).some_spec,
+  exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
 end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
@@ -282,11 +282,11 @@ begin
       exact h_lμ_eq_0 μ h_cases } }
 end
 
-lemma eigenspaces_independent (f : End K M) : complete_lattice.independent (λ μ, eigenspace f μ) :=
+lemma eigenspaces_independent (f : End K V) : complete_lattice.independent (λ μ, eigenspace f μ) :=
 sorry
 
-noncomputable instance [finite_dimensional K M] (f : End K M) : fintype (eigenvalues f) :=
-(eigenspaces_independent T).fintype_ne_bot_of_finite_dimensional
+noncomputable instance [finite_dimensional K V] (f : End K V) : fintype (eigenvalues f) :=
+(eigenspaces_independent f).fintype_ne_bot_of_finite_dimensional
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
 kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for
@@ -431,9 +431,9 @@ end
 of `f` to `p` is a submodule of the `μ`-eigenspace of `f`. -/
 lemma eigenspace_restrict_le_eigenspace (f : End R M) {p : submodule R M}
   (hfp : ∀ x ∈ p, f x ∈ p) (μ : R) :
-  (eigenspace (linear_map.restrict f hfp) μ).map V.subtype ≤ eigenspace f μ :=
+  (eigenspace (linear_map.restrict f hfp) μ).map p.subtype ≤ eigenspace f μ :=
 begin
-  rintros - ⟨x, hx, rfl⟩,
+  rintros a ⟨x, hx, rfl⟩,
   simp only [set_like.mem_coe, mem_eigenspace_iff, linear_map.restrict_apply] at hx ⊢,
   exact congr_arg coe hx
 end
@@ -465,7 +465,7 @@ lemma eigenspace_restrict_eq_bot {f : End R M} {p : submodule R M}
 begin
   rw eq_bot_iff,
   intros x hx,
-  simpa using hfp ⟨eigenspace_restrict_le_eigenspace hfp μ ⟨x, hx, rfl⟩, x.prop⟩,
+  simpa using hμp ⟨eigenspace_restrict_le_eigenspace f hfp μ ⟨x, hx, rfl⟩, x.prop⟩,
 end
 
 /-- The generalized eigenspace of an eigenvalue has positive dimension for positive exponents. -/

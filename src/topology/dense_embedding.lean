@@ -133,8 +133,8 @@ lemma extend_eq [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
   di.extend f (i a) = f a :=
 di.extend_eq_at a hf.continuous_at
 
-/-- Variation of `extend_eq` where we ask that `f` has limits everywhere "while staying
-in `i '' α`". This is a strictly stronger assumption that continuity of `f`, but in a lot of cases
+/-- Variation of `extend_eq` where we ask that `f` has a limit along `comap i (𝓝 b)` for each
+`b : β`. This is a strictly stronger assumption that continuity of `f`, but in a lot of cases
 you'd have to prove it anyway to use `continuous_extend`, so this avoids doing the work twice. -/
 lemma extend_eq' [t2_space γ] {f : α → γ}
   (di : dense_inducing i) (hf : ∀ b, ∃ c, tendsto f (comap i (𝓝 b)) (𝓝 c)) (a : α) :

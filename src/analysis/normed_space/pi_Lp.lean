@@ -287,7 +287,7 @@ instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_s
 { norm_smul_le :=
   begin
     assume c f,
-    have : p * (1 / p) = 1 := mul_div_cancel' 1 (ne_of_gt (lt_of_lt_of_le zero_lt_one (fact.out _))),
+    have : p * (1 / p) = 1 := mul_div_cancel' 1 (lt_of_lt_of_le zero_lt_one (fact.out _)).ne',
     simp only [pi_Lp.norm_eq, norm_smul, mul_rpow, norm_nonneg, ←finset.mul_sum, pi.smul_apply],
     rw [mul_rpow (rpow_nonneg_of_nonneg (norm_nonneg _) _), ← rpow_mul (norm_nonneg _),
         this, rpow_one],

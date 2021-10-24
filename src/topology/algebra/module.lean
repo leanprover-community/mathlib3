@@ -16,12 +16,12 @@ import linear_algebra.pi
 
 We use the class `has_continuous_smul` for topological (semi) modules and topological vector spaces.
 
-In this file we define continuous linear maps, as linear maps between topological modules which are
-continuous. The set of continuous linear maps between the topological `R`-modules `M` and `M₂` is
-denoted by `M →L[R] M₂`.
+In this file we define continuous (semi-)linear maps, as semilinear maps between topological
+modules which are continuous. The set of continuous semilinear maps between the topological
+`R₁`-module `M` and `R₂`-module `M₂` with respect to the `ring_hom` `σ` is denoted by `M →SL[σ] M₂`.
+Plain linear maps are denoted by `M →L[R] M₂` and star-linear maps by `M →L⋆[R] M₂`.
 
-Continuous linear equivalences are denoted by `M ≃L[R] M₂`.
-
+The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M₂` and `M ≃L⋆[R] M₂`.
 -/
 
 open filter
@@ -210,6 +210,7 @@ structure continuous_linear_map
 
 notation M ` →SL[`:25 σ `] ` M₂ := continuous_linear_map σ M M₂
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map (ring_hom.id R) M M₂
+notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
@@ -227,6 +228,7 @@ structure continuous_linear_equiv
 
 notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
+notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
 
 namespace continuous_linear_map
 

@@ -669,7 +669,6 @@ lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
 ⟨⟨⟨pullback_cone.mk _ _ pullback.condition.symm,
   pullback_cone.flip_is_limit (pullback_is_pullback _ _)⟩⟩⟩
 
-section
 local attribute[instance] has_pullback_symmetry
 
 /-- The isomorphism `X ×[Z] Y ≅ Y ×[Z] X`. -/
@@ -703,8 +702,6 @@ by simpa using pullback_symmetry_inv_comp_fst f g
     (pullback_is_pullback f g)).lift
     (limit.cone (cospan g f)) ≫ pullback.snd = pullback.fst :=
 by simpa using pullback_symmetry_inv_comp_snd f g
-
-end
 
 end symmetry
 
@@ -743,9 +740,10 @@ def pullback_cone_of_left_iso_is_limit :
   is_limit (pullback_cone_of_left_iso f g) :=
 pullback_cone.is_limit_aux' _ (λ s, ⟨s.snd, by simp [← s.condition_assoc]⟩)
 
-@[priority 100]
-instance has_pullback_of_left_iso : has_pullback f g :=
+lemma has_pullback_of_left_iso : has_pullback f g :=
 ⟨⟨⟨_, pullback_cone_of_left_iso_is_limit f g⟩⟩⟩
+
+local attribute [instance] has_pullback_of_left_iso
 
 instance pullback_snd_iso_of_left_iso : is_iso (pullback.snd : pullback f g ⟶ _) :=
 begin
@@ -793,9 +791,10 @@ def pullback_cone_of_right_iso_is_limit :
   is_limit (pullback_cone_of_right_iso f g) :=
 pullback_cone.is_limit_aux' _ (λ s, ⟨s.fst, by simp [s.condition_assoc]⟩)
 
-@[priority 100]
-instance has_pullback_of_right_iso : has_pullback f g :=
+lemma has_pullback_of_right_iso : has_pullback f g :=
 ⟨⟨⟨_, pullback_cone_of_right_iso_is_limit f g⟩⟩⟩
+
+local attribute [instance] has_pullback_of_right_iso
 
 instance pullback_snd_iso_of_right_iso : is_iso (pullback.fst : pullback f g ⟶ _) :=
 begin
@@ -807,6 +806,39 @@ begin
 end
 
 end right_iso
+
+section
+open walking_cospan
+variable (f : X ⟶ Y)
+
+instance has_kernel_pair_of_mono [mono f] : has_pullback f f :=
+⟨⟨⟨_, pullback_cone.is_limit_mk_id_id f⟩⟩⟩
+
+lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pullback.snd :=
+((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone left).symm.trans
+  ((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone right : _)
+
+@[simp] lemma pullback_symmetry_hom_of_mono_eq [mono f] :
+(@pullback_symmetry _ _ _ _ _ f f _).hom = 𝟙 _ :=
+begin
+  have : (pullback_symmetry f f).hom ≫ pullback.fst = 𝟙 _ ≫ pullback.snd := by simp,
+  rw fst_eq_snd_of_mono_eq at this,
+  exact mono.right_cancellation _ _ this,
+end
+
+instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
+begin
+  have := (pullback_cone.is_limit_mk_id_id f).cone_point_unique_up_to_iso_hom_comp
+    (limit.is_limit (cospan f f)) left,
+  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
+  rw this,
+  apply_instance
+end
+
+instance snd_iso_of_mono_eq [mono f] : is_iso (pullback.snd : pullback f f ⟶ _) :=
+by {rw ←fst_eq_snd_of_mono_eq, apply_instance }
+
+end
 
 variables (C)
 

@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 import topology.category.Top
 import category_theory.limits.concrete_category
-import category_theory.limits.shapes.kernel_pair
 
 /-!
 # Gluing Topological spaces
@@ -13,17 +12,17 @@ import category_theory.limits.shapes.kernel_pair
 Given a family of gluing data, consisting of
 1. An index type `ι`
 2. A topological space `U i` for each `i : ι`.
-3. An open subset `V i j ⊆ U i` for each `i j : ι`.
-4. A transition map `f i j : V i j ⟶ V j i` for each `i j : ι`.
+3. An open immersion `f i j : V i j ↪ U i` for each `i j : ι`.
+4. A transition map `t i j : V i j ⟶ V j i` for each `i j : ι`.
 such that
-5. `V i i = U i`.
-6. `f i i` is the identity.
-7. `f i j x ∈ V j k` for all `x ∈ V i j ∩ V i k`.
-8. `f i j ≫ f j k = f i k`.
+6. `f i i : V i i ↪ U i` is iso.
+7. Each `V i j ×[U i] V i k ⟶ V i j ⟶ V j i` factors through `V j k ×[U j] V j i` via some
+   `t' i j k : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
+8. The cocycle condition `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙`.
 
 We can then glue the topological spaces `U i` along `V i j`.
 
-THe construction should be "sealed" and considered as a black box, while only using the API
+The construction should be "sealed" and considered as a black box, while only using the API
 provided.
 
 ## Main definitions
@@ -34,7 +33,7 @@ provided.
     be used.
 * `Top.gluing_data.imm`: The immersion `imm i : U i ⟶ glued` for each `i : ι`.
 * `Top.gluing_data.rel`: A relation on `Σ i, D.U i` defined by `⟨i, x⟩ ~ ⟨j, y⟩` iff
-    `⟨i, x⟩ = ⟨j, y⟩` or `f i j x = y`. See `Top.gluing_data.imm_eq_iff_rel`.
+    `⟨i, x⟩ = ⟨j, y⟩` or `t i j x = y`. See `Top.gluing_data.imm_eq_iff_rel`.
 
 ## Main results
 
@@ -58,198 +57,20 @@ noncomputable theory
 open topological_space category_theory
 
 universes v u
-
-namespace category_theory.limits
-open category_theory.limits.walking_cospan
-local attribute [tidy] tactic.case_bash
-
-variables {C : Type*} [category C] {X Y Z : C}
-section
-variables {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g)
-
-def pullback_cone.symm : pullback_cone g f :=
-{ X := c.X,
-  π :=
-    { app := by { rintro (_|_|_), exacts [c.π.app none, c.π.app right, c.π.app left] },
-      naturality' := λ A B f, by
-      { cases f,
-        cases A; simp; erw category.id_comp,
-        cases f_1, simpa using c.π.naturality hom.inr, simpa using c.π.naturality hom.inl } } }
-
-@[simp] lemma pullback_cone.symm_X : c.symm.X = c.X := rfl
-@[simp] lemma pullback_cone.symm_fst : c.symm.fst = c.snd := rfl
-@[simp] lemma pullback_cone.symm_snd : c.symm.snd = c.fst := rfl
-@[simp] lemma pullback_cone.symm_π_app_none  : c.symm.π.app none  = c.π.app none  := rfl
-@[simp] lemma pullback_cone.symm_π_app_left  : c.symm.π.app left  = c.π.app right := rfl
-@[simp] lemma pullback_cone.symm_π_app_right : c.symm.π.app right = c.π.app left  := rfl
-
-def pullback_cone.symm_is_limit (c : pullback_cone f g) (h : is_limit c) : is_limit c.symm :=
-{ lift := λ s, h.lift (pullback_cone.symm s),
-  fac' := λ s, by { rintros (_|_|_); apply h.fac },
-  uniq' := λ s m h', h.uniq' (pullback_cone.symm s) m
-    (by { rintros (_|_|_), exacts [h' none, h' right, h' left] }) }
-
-variables (f) (g)
-
-lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
-⟨⟨⟨_, pullback_cone.symm_is_limit _ (limit.is_limit _)⟩⟩⟩
-
-section
-local attribute[instance] has_pullback_symmetry
-
-@[simps]
-def pullback_symmetry [has_pullback f g] :
-  pullback f g ≅ pullback g f :=
-is_limit.cone_point_unique_up_to_iso
-  (pullback_cone.symm_is_limit _ (limit.is_limit (cospan f g)))
-  (@@limit.is_limit _ _ _ (has_pullback_symmetry f g))
-
-lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
-  (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simp
-
-end
-
-section left_iso
-variable [is_iso f]
-
-def pullback_cone_of_left_iso : pullback_cone f g :=
-{ X := Y, π := { app := by { rintro (_|_|_), exacts [g, g ≫ inv f, 𝟙 _] }, naturality' := λ A B i,
-  begin
-    cases i, rcases A with (_|_|_); simp [category.id_comp g], refl,
-    cases i_1; simp [category.id_comp g]
-  end } }
-
-@[simp] lemma pullback_cone_of_left_iso_X :
-  (pullback_cone_of_left_iso f g).X = Y := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_fst :
-  (pullback_cone_of_left_iso f g).fst = g ≫ inv f := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_snd :
-  (pullback_cone_of_left_iso f g).snd = 𝟙 _ := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_π_app_none :
-  (pullback_cone_of_left_iso f g).π.app none = g := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_π_app_left :
-  (pullback_cone_of_left_iso f g).π.app left = g ≫ inv f := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_π_app_right :
-  (pullback_cone_of_left_iso f g).π.app right = 𝟙 _ := rfl
-
-def pullback_cone_of_left_iso_is_limit :
-  is_limit (pullback_cone_of_left_iso f g) :=
-pullback_cone.is_limit_aux' _ (λ s, ⟨s.snd, by simp [← s.condition_assoc]⟩)
-
-@[priority 100]
-instance has_pullback_of_left_iso : has_pullback f g :=
-⟨⟨⟨_, pullback_cone_of_left_iso_is_limit f g⟩⟩⟩
-
-instance pullback_snd_iso_of_left_iso : is_iso (pullback.snd : pullback f g ⟶ _) :=
-begin
-  have := (pullback_cone_of_left_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f g)) right,
-  have : pullback.snd = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
-end
-
-end left_iso
-
-
-section right_iso
-variable [is_iso g]
-
-def pullback_cone_of_right_iso : pullback_cone f g :=
-{ X := X, π := { app := by { rintro (_|_|_), exacts [f, 𝟙 _, f ≫ inv g] }, naturality' := λ A B i,
-  begin
-    cases i, rcases A with (_|_|_); simp [category.id_comp f], refl,
-    cases i_1; simp [category.id_comp f]
-  end } }
-
-@[simp] lemma pullback_cone_of_right_iso_X :
-  (pullback_cone_of_right_iso f g).X = X := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_fst :
-  (pullback_cone_of_right_iso f g).fst = 𝟙 _ := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_snd :
-  (pullback_cone_of_right_iso f g).snd = f ≫ inv g := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_π_app_none :
-  (pullback_cone_of_right_iso f g).π.app none = f := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_π_app_left :
-  (pullback_cone_of_right_iso f g).π.app left = 𝟙 _ := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_π_app_right :
-  (pullback_cone_of_right_iso f g).π.app right = f ≫ inv g := rfl
-
-def pullback_cone_of_right_iso_is_limit :
-  is_limit (pullback_cone_of_right_iso f g) :=
-pullback_cone.is_limit_aux' _ (λ s, ⟨s.fst, by simp [s.condition_assoc]⟩)
-
-@[priority 100]
-instance has_pullback_of_right_iso : has_pullback f g :=
-⟨⟨⟨_, pullback_cone_of_right_iso_is_limit f g⟩⟩⟩
-
-instance pullback_snd_iso_of_right_iso : is_iso (pullback.fst : pullback f g ⟶ _) :=
-begin
-  have := (pullback_cone_of_right_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f g)) left,
-  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
-end
-
-end right_iso
-
-end
-
-variable (f : X ⟶ Y)
-
-instance has_kernel_pair_of_mono [mono f] : has_pullback f f :=
-⟨⟨⟨_, (is_kernel_pair.id_of_mono f).is_limit⟩⟩⟩
-
-lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pullback.snd :=
-((is_kernel_pair.id_of_mono f).is_limit.fac (get_limit_cone (cospan f f)).cone left).symm.trans
-  ((is_kernel_pair.id_of_mono f).is_limit.fac (get_limit_cone (cospan f f)).cone right : _)
-
-@[simp]
-lemma pullback_symmetry_hom_of_eq_fun [mono f] :
-(@pullback_symmetry _ _ _ _ _ f f _).hom = 𝟙 _ :=
-begin
-  have : (pullback_symmetry f f).hom ≫ pullback.fst = 𝟙 _ ≫ pullback.snd := by simp,
-  rw fst_eq_snd_of_mono_eq at this,
-  exact mono.right_cancellation _ _ this,
-end
-
-instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
-begin
-  have := (is_kernel_pair.id_of_mono f).is_limit.cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f f)) left,
-  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
-end
-
-instance snd_iso_of_mono_eq [mono f] : is_iso (pullback.snd : pullback f f ⟶ _) :=
-by {rw ←fst_eq_snd_of_mono_eq, apply_instance }
-
-end category_theory.limits
 open category_theory.limits
 namespace Top
+
 /--
 A family of gluing data consists of
 1. An index type `ι`
 2. A topological space `U i` for each `i : ι`.
-3. An open subset `V i j ⊆ U i` for each `i j : ι`.
-4. A transition map `f i j : V i j ⟶ V j i` for each `i j : ι`.
+3. An open immersion `f i j : V i j ↪ U i` for each `i j : ι`.
+4. A transition map `t i j : V i j ⟶ V j i` for each `i j : ι`.
 such that
-5. `V i i = U i`.
-6. `f i i` is the identity.
-7. `f i j x ∈ V j k` for all `x ∈ V i j ∩ V i k`.
-8. `f i j ≫ f j k = f i k`.
+6. `f i i : V i i ↪ U i` is iso.
+7. Each `V i j ×[U i] V i k ⟶ V i j ⟶ V j i` factors through `V j k ×[U j] V j i` via some
+   `t' i j k : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
+8. The cocycle condition `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙`.
 
 We can then glue the topological spaces `U i` along `V i j`.
 -/
@@ -270,7 +91,6 @@ structure glue_data : Type (u+1) :=
 attribute [simp] glue_data.t_id
 attribute [instance] glue_data.f_id
 attribute [reassoc] glue_data.t_fac glue_data.cocycle
-
 
 namespace glue_data
 
@@ -370,6 +190,11 @@ begin
     (coequalizer.condition D.left_imm D.right_imm) ((sigma.ι D.V (i, j) : _) x),
 end
 
+/--
+Given two continuous maps `f : X ⟶ Z`, `g : Y ⟶ Z`, and two elements `x : X`, `y : Y` such
+that `f x = g y`, we may obtain an element in `X ×[Z] Y` whose projection onto `X` and `Y` are
+`x` and `y`, respectively.
+-/
 def pullback_preimage {X Y Z : Top.{v}} (f : X ⟶ Z) (g : Y ⟶ Z) (x : X) (y : Y)
   (h : f x = g y) : (pullback f g : Top) :=
 (limit.is_limit (cospan _ _)).lift
@@ -387,6 +212,10 @@ by { unfold pullback_preimage, simp }
   (pullback.snd : pullback f g ⟶ _) (pullback_preimage f g x y h) = y :=
 by { unfold pullback_preimage, simp }
 
+/--
+ An equivalence relation on `Σ i, D.U i` that holds iff `D.imm i x = D.imm j y`.
+ See `Top.gluing_data.imm_eq_iff_rel`.
+ -/
 def rel (a b : Σ i, D.U i) : Prop :=
   a = b ∨ ∃ (x : D.V (a.1, b.1)) , D.f _ _ x = a.2 ∧ D.f _ _ (D.t _ _ x) = b.2
 
@@ -537,4 +366,3 @@ open_embedding_of_continuous_injective_open
 end glue_data
 
 end Top
-#lint

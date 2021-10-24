@@ -145,6 +145,9 @@ by simp [ext_iff]
 lemma compl_ne_univ_iff_nonempty [decidable_eq α] (s : finset α) : sᶜ ≠ univ ↔ s.nonempty :=
 by simp [eq_univ_iff_forall, finset.nonempty]
 
+lemma compl_singleton [decidable_eq α] (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
+by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
+
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
   univ ∩ s = s := ext $ λ a, by simp
 
@@ -164,13 +167,7 @@ by { ext i, simp [piecewise] }
 @[simp] lemma piecewise_erase_univ {δ : α → Sort*} [decidable_eq α] [fintype α] (a : α)
   (f g : Π a, δ a) :
   (finset.univ.erase a).piecewise f g = function.update f a (g a) :=
-begin
-  ext i,
-  by_cases h : i = a,
-  { rw [h, function.update_same, piecewise_eq_of_not_mem _ _ _ (not_mem_erase a _)], },
-  { rw [function.update_noteq h,
-      piecewise_eq_of_mem _ _ _ (mem_erase_of_ne_of_mem h (mem_univ _))], },
-end
+by rw [←compl_singleton, piecewise_compl, piecewise_singleton]
 
 lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
   univ.map e.to_embedding = univ :=

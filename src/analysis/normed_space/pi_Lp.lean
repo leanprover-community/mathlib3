@@ -18,8 +18,7 @@ We give instances of this construction for emetric spaces, metric spaces, normed
 spaces.
 
 To avoid conflicting instances, all these are defined on a copy of the original Pi type, named
-`pi_Lp p α`, where `[fact (1 ≤ p)]`. This assumption is included in the definition of the type
-to make sure that it is always available to typeclass inference to construct the instances.
+`pi_Lp p α`. The assumpion `[fact (1 ≤ p)]` is required for the metric and normed space instances.
 
 We ensure that the topology and uniform structure on `pi_Lp p α` are (defeq to) the product
 topology and product uniformity, to be able to use freely continuity statements for the coordinate

@@ -105,9 +105,9 @@ by refine_struct
   mul            := (*),
   sub            := λ a b, a + -b,
   one            := 1,
-  npow           := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul          := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul          := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩ };
+  npow           := @npow_rec (ℤ√d) ⟨1⟩ ⟨(*)⟩,
+  nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩,
+  gsmul          := @gsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩ };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
 instance : add_comm_monoid ℤ√d    := by apply_instance
@@ -650,7 +650,7 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
-instance : integral_domain ℤ√d :=
+instance : is_domain ℤ√d :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
   .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
 

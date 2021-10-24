@@ -266,6 +266,12 @@ begin
   { rw [div_eq_iff (sqrt_ne_zero'.mpr h), mul_self_sqrt h.le] },
 end
 
+theorem sqrt_div_self' : sqrt x / x = 1 / sqrt x :=
+by rw [←div_sqrt, one_div_div, div_sqrt]
+
+theorem sqrt_div_self : sqrt x / x = (sqrt x)⁻¹ :=
+by rw [sqrt_div_self', one_div]
+
 theorem lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
 by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), sq, mul_self_sqrt hy]
 

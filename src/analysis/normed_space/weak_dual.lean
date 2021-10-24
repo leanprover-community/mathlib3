@@ -7,6 +7,7 @@ import topology.algebra.weak_dual_topology
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
 import analysis.seminorm
+import analysis.normed_space.is_R_or_C
 
 /-!
 # Weak dual of normed space

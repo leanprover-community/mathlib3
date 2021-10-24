@@ -133,9 +133,9 @@ by refine_struct
     sub := has_sub.sub,
     mul := (*),
     one := 1,
-    nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-    gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
+    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩,
+    gsmul := @gsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+    npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩ };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
@@ -542,7 +542,7 @@ by simpa only [le_antisymm_iff, norm_sq_nonneg, and_true] using @norm_sq_eq_zero
 instance : nontrivial ℍ[R] :=
 { exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩, }
 
-instance : domain ℍ[R] :=
+instance : is_domain ℍ[R] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
     have norm_sq a * norm_sq b = 0, by rwa [← norm_sq.map_mul, norm_sq_eq_zero],
     (eq_zero_or_eq_zero_of_mul_eq_zero this).imp norm_sq_eq_zero.1 norm_sq_eq_zero.1,

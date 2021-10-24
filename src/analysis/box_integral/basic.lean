@@ -643,7 +643,7 @@ lemma integrable_of_continuous_on [complete_space E] {I : box ι} {f : ℝⁿ �
   (hc : continuous_on f I.Icc) (μ : measure ℝⁿ) [is_locally_finite_measure μ] :
   integrable.{u v v} I l f μ.to_box_additive.to_smul :=
 begin
-  have huc := (is_compact_pi_Icc I.lower I.upper).uniform_continuous_on_of_continuous hc,
+  have huc := I.is_compact_Icc.uniform_continuous_on_of_continuous hc,
   rw metric.uniform_continuous_on_iff_le at huc,
   refine integrable_iff_cauchy_basis.2 (λ ε ε0, _),
   rcases exists_pos_mul_lt ε0 (μ.to_box_additive I) with ⟨ε', ε0', hε⟩,

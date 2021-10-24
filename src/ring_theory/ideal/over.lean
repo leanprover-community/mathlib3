@@ -118,11 +118,11 @@ end
 
 end comm_ring
 
-section integral_domain
+section is_domain
 variables {S : Type*} [comm_ring S] {f : R →+* S} {I J : ideal S}
 
 lemma exists_coeff_ne_zero_mem_comap_of_root_mem
-  [integral_domain S] {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
+  [is_domain S] {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
   {p : polynomial R} : ∀ (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0),
   ∃ i, p.coeff i ≠ 0 ∧ p.coeff i ∈ I.comap f :=
 exists_coeff_ne_zero_mem_comap_of_non_zero_divisor_root_mem
@@ -175,7 +175,7 @@ begin
   convert I.zero_mem
 end
 
-lemma comap_ne_bot_of_root_mem [integral_domain S] {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
+lemma comap_ne_bot_of_root_mem [is_domain S] {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
   {p : polynomial R} (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0) :
   I.comap f ≠ ⊥ :=
 λ h, let ⟨i, hi, mem⟩ := exists_coeff_ne_zero_mem_comap_of_root_mem r_ne_zero hr p_ne_zero hp in
@@ -195,16 +195,16 @@ lemma is_maximal_of_is_integral_of_is_maximal_comap'
 
 variables [algebra R S]
 
-lemma comap_ne_bot_of_algebraic_mem [integral_domain S] {x : S}
+lemma comap_ne_bot_of_algebraic_mem [is_domain S] {x : S}
   (x_ne_zero : x ≠ 0) (x_mem : x ∈ I) (hx : is_algebraic R x) : I.comap (algebra_map R S) ≠ ⊥ :=
 let ⟨p, p_ne_zero, hp⟩ := hx
 in comap_ne_bot_of_root_mem x_ne_zero x_mem p_ne_zero hp
 
-lemma comap_ne_bot_of_integral_mem [nontrivial R] [integral_domain S] {x : S}
+lemma comap_ne_bot_of_integral_mem [nontrivial R] [is_domain S] {x : S}
   (x_ne_zero : x ≠ 0) (x_mem : x ∈ I) (hx : is_integral R x) : I.comap (algebra_map R S) ≠ ⊥ :=
 comap_ne_bot_of_algebraic_mem x_ne_zero x_mem (hx.is_algebraic R)
 
-lemma eq_bot_of_comap_eq_bot [nontrivial R] [integral_domain S] (hRS : algebra.is_integral R S)
+lemma eq_bot_of_comap_eq_bot [nontrivial R] [is_domain S] (hRS : algebra.is_integral R S)
   (hI : I.comap (algebra_map R S) = ⊥) : I = ⊥ :=
 begin
   refine eq_bot_iff.2 (λ x hx, _),
@@ -243,7 +243,7 @@ lemma is_integral_closure.is_maximal_of_is_maximal_comap
   (hI : is_maximal (I.comap (algebra_map R A))) : is_maximal I :=
 is_maximal_of_is_integral_of_is_maximal_comap (λ x, is_integral_closure.is_integral R S x) I hI
 
-variables [integral_domain A]
+variables [is_domain A]
 
 lemma is_integral_closure.comap_ne_bot [nontrivial R] {I : ideal A}
   (I_ne_bot : I ≠ ⊥) : I.comap (algebra_map R A) ≠ ⊥ :=
@@ -267,7 +267,7 @@ lemma integral_closure.is_maximal_of_is_maximal_comap
 is_integral_closure.is_maximal_of_is_maximal_comap S I hI
 
 section
-variables [integral_domain S]
+variables [is_domain S]
 
 lemma integral_closure.comap_ne_bot [nontrivial R] {I : ideal (integral_closure R S)}
   (I_ne_bot : I ≠ ⊥) : I.comap (algebra_map R (integral_closure R S)) ≠ ⊥ :=
@@ -288,8 +288,8 @@ begin
     exact absurd (hP x0) hx },
   let Rₚ := localization P.prime_compl,
   let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
-  letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
-    is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
+  letI : is_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
+    is_localization.is_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
   haveI Qₚ_max : is_maximal (comap _ Qₚ) :=
     @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
@@ -332,7 +332,7 @@ end
 
 /-- `comap (algebra_map R S)` is a surjection from the max spec of `S` to max spec of `R`.
 `hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/
-lemma exists_ideal_over_maximal_of_is_integral [integral_domain S] (H : algebra.is_integral R S)
+lemma exists_ideal_over_maximal_of_is_integral [is_domain S] (H : algebra.is_integral R S)
   (P : ideal R) [P_max : is_maximal P] (hP : (algebra_map R S).ker ≤ P) :
   ∃ (Q : ideal S), is_maximal Q ∧ Q.comap (algebra_map R S) = P :=
 begin
@@ -341,6 +341,6 @@ begin
   exact ⟨Q, is_maximal_of_is_integral_of_is_maximal_comap H _ (hQ.symm ▸ P_max), hQ⟩,
 end
 
-end integral_domain
+end is_domain
 
 end ideal

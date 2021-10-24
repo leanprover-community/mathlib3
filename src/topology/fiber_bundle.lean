@@ -177,7 +177,7 @@ open topological_fiber_bundle
 
 namespace topological_fiber_bundle.pretrivialization
 
-instance : has_coe_to_fun (pretrivialization F proj) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (pretrivialization F proj) (λ _, Z → (B × F)) := ⟨λ e, e.to_fun⟩
 
 variables {F} (e : pretrivialization F proj) {x : Z}
 
@@ -267,7 +267,7 @@ variables {F} (e : trivialization F proj) {x : Z}
 /-- Natural identification as a `pretrivialization`. -/
 def to_pretrivialization : topological_fiber_bundle.pretrivialization F proj := { ..e }
 
-instance : has_coe_to_fun (trivialization F proj) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (trivialization F proj) (λ _, Z → B × F) := ⟨λ e, e.to_fun⟩
 instance : has_coe (trivialization F proj) (pretrivialization F proj) :=
 ⟨to_pretrivialization⟩
 

@@ -136,6 +136,12 @@ def irrelavent_ideal : ideal (⨁ i, A i) :=
     set y' := ∑ i in y.support, (of (λ i : ι⁺, A i.val) (⟨i.val + i.val, _⟩ : ι⁺)
       (graded_monoid.ghas_mul.mul (c i.val) (y i))) with hy',
     use y',
-    rw [←hy],
+    rw [←hy, direct_sum.eq_sum_of _ y],
+    conv_rhs { rw [add_monoid_hom.map_sum, finset.mul_sum], },
+    conv_lhs { rw [hy', add_monoid_hom.map_sum], },
+    apply finset.sum_congr rfl,
+    rintros ⟨j, hj⟩ mem_supp,
     sorry,
+
+    all_goals { convert add_lt_add i.2 i.2, rw zero_add, },
   end }

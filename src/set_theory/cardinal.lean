@@ -929,12 +929,19 @@ lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ω :=
 @[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ω :=
 denumerable_iff.1 ⟨‹_›⟩
 
-lemma countable_iff (s : set α) : countable s ↔ #s ≤ ω :=
+@[simp] lemma mk_set_le_omega (s : set α) : #s ≤ ω ↔ countable s :=
 begin
   rw [countable_iff_exists_injective], split,
-  rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩,
-  rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
+  { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
+  { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
+
+@[simp] lemma omega_add_omega : ω + ω = ω := mk_denumerable _
+
+@[simp] lemma omega_mul_omega : ω * ω = ω := mk_denumerable _
+
+@[simp] lemma add_le_omega {c₁ c₂ : cardinal} : c₁ + c₂ ≤ ω ↔ c₁ ≤ ω ∧ c₂ ≤ ω :=
+⟨λ h, ⟨le_self_add.trans h, le_add_self.trans h⟩, λ h, omega_add_omega ▸ add_le_add h.1 h.2⟩
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/
@@ -1291,6 +1298,9 @@ lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : #{x // p x} 
 
 lemma mk_set_le (s : set α) : #s ≤ #α :=
 mk_subtype_le s
+
+lemma mk_union_le_omega {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ω ↔ #P ≤ ω ∧ #Q ≤ ω :=
+by simp
 
 lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
   lift.{u} (#(f '' s)) = lift.{v} (#s) :=

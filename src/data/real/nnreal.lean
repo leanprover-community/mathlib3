@@ -46,12 +46,12 @@ of `x` with `↑x`. This tactic also works for a function `f : α → ℝ` with 
 This file defines `ℝ≥0` as a localized notation for `nnreal`.
 -/
 
-noncomputable theory
-
 open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
-@[derive [semilattice_inf, densely_ordered, order_bot,
+@[derive [
+  ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  semilattice_inf, densely_ordered, order_bot,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
   has_sub, has_ordered_sub, has_div, inhabited]]
@@ -79,7 +79,7 @@ lemma ne_iff {x y : ℝ≥0} : (x : ℝ) ≠ (y : ℝ) ↔ x ≠ y :=
 not_iff_not_of_iff $ nnreal.eq_iff
 
 /-- Reinterpret a real number `r` as a non-negative real number. Returns `0` if `r < 0`. -/
-def _root_.real.to_nnreal (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
+noncomputable def _root_.real.to_nnreal (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
 
 lemma _root_.real.coe_to_nnreal (r : ℝ) (hr : 0 ≤ r) : (real.to_nnreal r : ℝ) = r :=
 max_eq_left hr
@@ -94,11 +94,12 @@ theorem coe_mk (a : ℝ) (ha) : ((⟨a, ha⟩ : ℝ≥0) : ℝ) = a := rfl
 example : has_zero ℝ≥0  := by apply_instance
 example : has_one ℝ≥0   := by apply_instance
 example : has_add ℝ≥0   := by apply_instance
-example : has_sub ℝ≥0   := by apply_instance
+noncomputable example : has_sub ℝ≥0   := by apply_instance
 example : has_mul ℝ≥0   := by apply_instance
-example : has_inv ℝ≥0   := by apply_instance
-example : has_div ℝ≥0   := by apply_instance
-example : has_le ℝ≥0    := by apply_instance
+noncomputable example : has_inv ℝ≥0   := by apply_instance
+noncomputable example : has_div ℝ≥0   := by apply_instance
+noncomputable example : has_le ℝ≥0    := by apply_instance
+example : has_bot ℝ≥0   := by apply_instance
 example : inhabited ℝ≥0 := by apply_instance
 example : nontrivial ℝ≥0 := by apply_instance
 
@@ -177,7 +178,9 @@ example : distrib_mul_action (units ℝ≥0) ℝ := by apply_instance
 
 end actions
 
-example : comm_group_with_zero ℝ≥0 := by apply_instance
+example : monoid_with_zero ℝ≥0 := by apply_instance
+example : comm_monoid_with_zero ℝ≥0 := by apply_instance
+noncomputable example : comm_group_with_zero ℝ≥0 := by apply_instance
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
@@ -232,7 +235,7 @@ by norm_cast
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 to_real_hom.map_nat_cast n
 
-example : linear_order ℝ≥0 := by apply_instance
+noncomputable example : linear_order ℝ≥0 := by apply_instance
 
 @[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
@@ -253,21 +256,24 @@ nnreal.eq (nnreal.coe_nat_cast n).symm
 nnreal.eq $ by simp [real.coe_to_nnreal]
 
 /-- `real.to_nnreal` and `coe : ℝ≥0 → ℝ` form a Galois insertion. -/
-protected def gi : galois_insertion real.to_nnreal coe :=
+noncomputable def gi : galois_insertion real.to_nnreal coe :=
 galois_insertion.monotone_intro nnreal.coe_mono real.to_nnreal_mono
   real.le_coe_to_nnreal (λ _, real.to_nnreal_coe)
 
+-- note that anything involving the (decidability of the) linear order, including `⊔`/`⊓` (min, max)
+-- will be noncomputable, everything else should not be.
 example : order_bot ℝ≥0 := by apply_instance
-example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
-example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
-example : distrib_lattice ℝ≥0 := by apply_instance
-example : semilattice_inf ℝ≥0 := by apply_instance
-example : semilattice_sup ℝ≥0 := by apply_instance
-example : linear_ordered_semiring ℝ≥0 := by apply_instance
+example : partial_order ℝ≥0 := by apply_instance
+noncomputable example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
+noncomputable example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
+noncomputable example : distrib_lattice ℝ≥0 := by apply_instance
+noncomputable example : semilattice_inf ℝ≥0 := by apply_instance
+noncomputable example : semilattice_sup ℝ≥0 := by apply_instance
+noncomputable example : linear_ordered_semiring ℝ≥0 := by apply_instance
 example : ordered_comm_semiring ℝ≥0 := by apply_instance
-example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
-example : linear_ordered_comm_monoid_with_zero ℝ≥0 := by apply_instance
-example : linear_ordered_comm_group_with_zero ℝ≥0 := by apply_instance
+noncomputable example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
+noncomputable example : linear_ordered_comm_monoid_with_zero ℝ≥0 := by apply_instance
+noncomputable example : linear_ordered_comm_group_with_zero ℝ≥0 := by apply_instance
 example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
 example : densely_ordered ℝ≥0 := by apply_instance
 example : no_top_order ℝ≥0 := by apply_instance
@@ -283,7 +289,7 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s)
 
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 { cSup_empty := (function.funext_iff.1 (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans
-  $ nnreal.eq (by rw nonneg.bot_eq; simp),
+    $ nnreal.eq (by rw nonneg.bot_eq; simp),
   .. (by apply_instance : order_bot ℝ≥0),
   .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
 
@@ -316,10 +322,10 @@ end
 
 -- TODO: generalize to some ordered add_monoids, based on #6145
 lemma le_of_add_le_left {a b c : ℝ≥0} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, simp }
+by { refine le_trans _ h, exact (le_add_iff_nonneg_right _).mpr zero_le' }
 
 lemma le_of_add_le_right {a b c : ℝ≥0} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, simp }
+by { refine le_trans _ h, exact (le_add_iff_nonneg_left _).mpr zero_le' }
 
 lemma lt_iff_exists_rat_btwn (a b : ℝ≥0) :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < real.to_nnreal q ∧ real.to_nnreal q < b) :=
@@ -502,7 +508,7 @@ lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
 lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 
-example : has_ordered_sub ℝ≥0 := by apply_instance
+noncomputable example : has_ordered_sub ℝ≥0 := by apply_instance
 
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c :=
 by simp only [div_eq_mul_inv, sub_mul']
@@ -669,14 +675,14 @@ end nnreal
 namespace real
 
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
-@[pp_nodot] def nnabs : monoid_with_zero_hom ℝ ℝ≥0 :=
+@[pp_nodot] noncomputable def nnabs : monoid_with_zero_hom ℝ ℝ≥0 :=
 { to_fun := λ x, ⟨|x|, abs_nonneg x⟩,
   map_zero' := by { ext, simp },
   map_one' := by { ext, simp },
   map_mul' := λ x y, by { ext, simp [abs_mul] } }
 
 @[norm_cast, simp] lemma coe_nnabs (x : ℝ) : (nnabs x : ℝ) = |x| :=
-by simp [nnabs]
+rfl
 
 @[simp] lemma nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : nnabs x = to_nnreal x :=
 by { ext, simp [coe_to_nnreal x h, abs_of_nonneg h] }

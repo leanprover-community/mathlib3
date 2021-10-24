@@ -417,39 +417,7 @@ lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α →
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
 
-lemma cauchy_seq.add {u v : ℕ → E} (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u + v) :=
-begin
-  rw normed_group.cauchy_seq_iff at *,
-  intros ε ε_pos,
-  rcases hu (ε/2) (half_pos ε_pos) with ⟨Nu, hNu⟩,
-  rcases hv (ε/2) (half_pos ε_pos) with ⟨Nv, hNv⟩,
-  use max Nu Nv,
-  intros m n hm hn,
-  replace hm := max_le_iff.mp hm,
-  replace hn := max_le_iff.mp hn,
-
-  calc ∥(u + v) m - (u + v) n∥ = ∥u m + v m - (u n + v n)∥ : rfl
-  ... = ∥(u m - u n) + (v m - v n)∥ : by abel
-  ... ≤ ∥u m - u n∥ + ∥v m - v n∥ : norm_add_le _ _
-  ... < ε : by linarith only [hNu m n hm.1 hn.1, hNv m n hm.2 hn.2]
-end
-
 open finset
-
-lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
-  (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
-begin
-  let d : ℕ → E := λ n, ∑ k in range (n + 1), (u k - v k),
-  rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
-    by { ext n, simp [d] },
-  have : ∀ n ≥ N, d n = d N,
-  { intros n hn,
-    dsimp [d],
-    rw eventually_constant_sum _ hn,
-    intros m hm,
-    simp [huv m hm] },
-  exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
-end
 
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
@@ -896,22 +864,31 @@ by simp [metric.mem_closure_iff, dist_eq_norm]
 lemma norm_le_zero_iff' [separated_space E] {g : E} :
   ∥g∥ ≤ 0 ↔ g = 0 :=
 begin
-  have : g = 0 ↔ g ∈ closure ({0} : set E),
-  by simpa only [separated_space.out, mem_id_rel, sub_zero] using group_separation_rel g (0 : E),
-  rw [this, semi_normed_group.mem_closure_iff],
-  simp [forall_lt_iff_le']
+  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space ‹_›,
+    .. ‹semi_normed_group E› },
+  rw [← dist_zero_right], exact dist_le_zero
 end
 
 lemma norm_eq_zero_iff' [separated_space E] {g : E} : ∥g∥ = 0 ↔ g = 0 :=
-begin
-  conv_rhs { rw ← norm_le_zero_iff' },
-  split ; intro h,
-  { rw h },
-  { exact le_antisymm h (norm_nonneg g) }
-end
+(norm_nonneg g).le_iff_eq.symm.trans norm_le_zero_iff'
 
 lemma norm_pos_iff' [separated_space E] {g : E} : 0 < ∥g∥ ↔ g ≠ 0 :=
 by rw [← not_le, norm_le_zero_iff']
+
+lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
+  (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
+begin
+  let d : ℕ → E := λ n, ∑ k in range (n + 1), (u k - v k),
+  rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
+    by { ext n, simp [d] },
+  have : ∀ n ≥ N, d n = d N,
+  { intros n hn,
+    dsimp [d],
+    rw eventually_constant_sum _ hn,
+    intros m hm,
+    simp [huv m hm] },
+  exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
+end
 
 end semi_normed_group
 
@@ -954,32 +931,23 @@ noncomputable def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm 
 
 variables [normed_group E] [normed_group F]
 
-@[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 :=
-dist_zero_right g ▸ dist_eq_zero
+@[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 := norm_eq_zero_iff'
 
-@[simp] lemma norm_pos_iff {g : E} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
-dist_zero_right g ▸ dist_pos
+@[simp] lemma norm_pos_iff {g : E} : 0 < ∥ g ∥ ↔ g ≠ 0 := norm_pos_iff'
 
-@[simp] lemma norm_le_zero_iff {g : E} : ∥g∥ ≤ 0 ↔ g = 0 :=
-by { rw [← dist_zero_right], exact dist_le_zero }
+@[simp] lemma norm_le_zero_iff {g : E} : ∥g∥ ≤ 0 ↔ g = 0 := norm_le_zero_iff'
+
+lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
+by rw [norm_eq_zero, sub_eq_zero]
 
 lemma eq_of_norm_sub_le_zero {g h : E} (a : ∥g - h∥ ≤ 0) : g = h :=
 by rwa [← sub_eq_zero, ← norm_le_zero_iff]
 
 lemma eq_of_norm_sub_eq_zero {u v : E} (h : ∥u - v∥ = 0) : u = v :=
-begin
-  apply eq_of_dist_eq_zero,
-  rwa dist_eq_norm
-end
-
-lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
-begin
-  convert dist_eq_zero,
-  rwa dist_eq_norm
-end
+norm_sub_eq_zero_iff.1 h
 
 @[simp] lemma nnnorm_eq_zero {a : E} : ∥a∥₊ = 0 ↔ a = 0 :=
-by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
+by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
 `normed_group` structure on the domain.

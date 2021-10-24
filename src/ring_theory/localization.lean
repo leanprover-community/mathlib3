@@ -209,20 +209,32 @@ by rw [mul_comm, sec_spec]
 
 open_locale big_operators
 
-/-- We can clear the denominators of a finite set of fractions. -/
-lemma exist_integer_multiples_of_finset (s : finset S) :
-  ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
+/-- We can clear the denominators of a `finset`-indexed family of fractions. -/
+lemma exist_integer_multiples {ι : Type*} (s : finset ι) (f : ι → S) :
+  ∃ (b : M), ∀ i ∈ s, is_localization.is_integer R ((b : R) • f i) :=
 begin
   haveI := classical.prop_decidable,
-  use ∏ a in s, (is_localization.sec M a).2,
-  intros a ha,
-  use (∏ x in s.erase a, (is_localization.sec M x).2) * (is_localization.sec M a).1,
+  refine ⟨∏ i in s, (sec M (f i)).2, λ i hi, ⟨_, _⟩⟩,
+  { exact (∏ j in s.erase i, (sec M (f j)).2) * (sec M (f i)).1 },
   rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←(algebra_map R S).map_mul, ← algebra.smul_def],
   congr' 2,
   refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
-  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase a), finset.insert_erase ha],
-  refl,
+  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase i), finset.insert_erase hi],
+  refl
 end
+
+/-- We can clear the denominators of a `fintype`-indexed family of fractions. -/
+lemma exist_integer_multiples_of_fintype {ι : Type*} [fintype ι] (f : ι → S) :
+  ∃ (b : M), ∀ i, is_localization.is_integer R ((b : R) • f i) :=
+begin
+  obtain ⟨b, hb⟩ := exist_integer_multiples M finset.univ f,
+  exact ⟨b, λ i, hb i (finset.mem_univ _)⟩
+end
+
+/-- We can clear the denominators of a finite set of fractions. -/
+lemma exist_integer_multiples_of_finset (s : finset S) :
+  ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
+exist_integer_multiples M s id
 
 variables {R M}
 

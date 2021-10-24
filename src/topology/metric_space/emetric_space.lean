@@ -253,7 +253,8 @@ mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
 namespace emetric
 
-theorem uniformity_has_countable_basis : is_countably_generated (𝓤 α) :=
+@[priority 900]
+instance : is_countably_generated (𝓤 α) :=
 is_countably_generated_of_seq ⟨_, uniformity_basis_edist_inv_nat.eq_infi⟩
 
 /-- ε-δ characterization of uniform continuity on a set for pseudoemetric spaces -/
@@ -306,13 +307,12 @@ theorem complete_of_convergent_controlled_sequences (B : ℕ → ℝ≥0∞) (hB
     ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
 uniform_space.complete_of_convergent_controlled_sequences
-  uniformity_has_countable_basis
   (λ n, {p:α×α | edist p.1 p.2 < B n}) (λ n, edist_mem_uniformity $ hB n) H
 
 /-- A sequentially complete pseudoemetric space is complete. -/
 theorem complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
-uniform_space.complete_of_cauchy_seq_tendsto uniformity_has_countable_basis
+uniform_space.complete_of_cauchy_seq_tendsto
 
 /-- Expressing locally uniform convergence on a set using `edist`. -/
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
@@ -624,15 +624,6 @@ theorem totally_bounded_iff' {s : set α} :
                ⟨t, _, ft, h⟩ := H ε ε0 in
   ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
 
-section first_countable
-
-@[priority 100] -- see Note [lower instance priority]
-instance (α : Type u) [pseudo_emetric_space α] :
-  topological_space.first_countable_topology α :=
-uniform_space.first_countable_topology uniformity_has_countable_basis
-
-end first_countable
-
 section compact
 
 /-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
@@ -681,20 +672,12 @@ open _root_.topological_space
 
 variables (α)
 
-/-- A separable pseudoemetric space is second countable: one obtains a countable basis by taking
-the balls centered at points in a dense subset, and with rational radii. We do not register
-this as an instance, as there is already an instance going in the other direction
-from second countable spaces to separable spaces, and we want to avoid loops. -/
-lemma second_countable_of_separable [separable_space α] :
-  second_countable_topology α :=
-uniform_space.second_countable_of_separable uniformity_has_countable_basis
-
 /-- A sigma compact pseudo emetric space has second countable topology. This is not an instance
 to avoid a loop with `sigma_compact_space_of_locally_compact_second_countable`.  -/
 lemma second_countable_of_sigma_compact [sigma_compact_space α] :
   second_countable_topology α :=
 begin
-  suffices : separable_space α, by exactI second_countable_of_separable α,
+  suffices : separable_space α, by exactI uniform_space.second_countable_of_separable α,
   choose T hTsub hTc hsubT
     using λ n, subset_countable_closure_of_compact (is_compact_compact_covering α n),
   refine ⟨⟨⋃ n, T n, countable_Union hTc, λ x, _⟩⟩,
@@ -708,7 +691,7 @@ lemma second_countable_of_almost_dense_set
   (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
   second_countable_topology α :=
 begin
-  suffices : separable_space α, by exactI second_countable_of_separable α,
+  suffices : separable_space α, by exactI uniform_space.second_countable_of_separable α,
   rcases subset_countable_closure_of_almost_dense_set (univ : set α) (λ ε ε0, _)
     with ⟨t, -, htc, ht⟩,
   { exact ⟨⟨t, htc, λ x, ht (mem_univ x)⟩⟩ },

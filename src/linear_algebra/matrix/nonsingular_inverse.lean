@@ -615,7 +615,7 @@ begin
   { simp [nonsing_inv_apply_not_is_unit _ h] }
 end
 
-lemma ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
+lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
 begin
   ext i k,

@@ -102,28 +102,23 @@ assume p1 p2, not.intro (assume Pain, absurd (eq_or_mem_of_mem_cons Pain) (not_o
 theorem ne_and_not_mem_of_not_mem_cons {a y : α} {l : list α} : a ∉ y::l → a ≠ y ∧ a ∉ l :=
 assume p, and.intro (ne_of_not_mem_cons p) (not_mem_of_not_mem_cons p)
 
-theorem mem_map_of_mem (f : α → β) {a : α} {l : list α} (h : a ∈ l) : f a ∈ map f l :=
-begin
-  induction l with b l' ih,
-  {cases h},
-  {rcases h with rfl | h,
-    {exact or.inl rfl},
-    {exact or.inr (ih h)}}
-end
-
-theorem exists_of_mem_map {f : α → β} {b : β} {l : list α} (h : b ∈ map f l) :
-  ∃ a, a ∈ l ∧ f a = b :=
-begin
-  induction l with c l' ih,
-  {cases h},
-  {cases (eq_or_mem_of_mem_cons h) with h h,
-    {exact ⟨c, mem_cons_self _ _, h.symm⟩},
-    {rcases ih h with ⟨a, ha₁, ha₂⟩,
-      exact ⟨a, mem_cons_of_mem _ ha₁, ha₂⟩ }}
-end
-
 @[simp] theorem mem_map {f : α → β} {b : β} {l : list α} : b ∈ map f l ↔ ∃ a, a ∈ l ∧ f a = b :=
-⟨exists_of_mem_map, λ ⟨a, la, h⟩, by rw [← h]; exact mem_map_of_mem f la⟩
+begin
+  -- This proof uses no axioms, that's why it's longer that `induction`; simp [...]
+  induction l with a l ihl,
+  { split, { rintro ⟨_⟩ }, { rintro ⟨a, ⟨_⟩, _⟩ } },
+  { refine (or_congr eq_comm ihl).trans _,
+    split,
+    { rintro (h|⟨c, hcl, h⟩),
+      exacts [⟨a, or.inl rfl, h⟩, ⟨c, or.inr hcl, h⟩] },
+    { rintro ⟨c, (hc|hc), h⟩,
+      exacts [or.inl $ (congr_arg f hc.symm).trans h, or.inr ⟨c, hc, h⟩] } }
+end
+
+alias mem_map ↔ list.exists_of_mem_map _
+
+theorem mem_map_of_mem (f : α → β) {a : α} {l : list α} (h : a ∈ l) : f a ∈ map f l :=
+mem_map.2 ⟨a, h, rfl⟩
 
 theorem mem_map_of_injective {f : α → β} (H : injective f) {a : α} {l : list α} :
   f a ∈ map f l ↔ a ∈ l :=
@@ -2959,7 +2954,7 @@ begin
   { exact lt_add_of_pos_of_le (zero_lt_one_add _) (le_of_lt (ih hx)) }
 end
 
-theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
+@[simp] theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
   @pmap _ _ p (λ a _, f a) l H = map f l :=
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
 

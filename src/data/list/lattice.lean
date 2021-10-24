@@ -37,9 +37,9 @@ lemma disjoint.symm (d : disjoint l₁ l₂) : disjoint l₂ l₁ := λ a i₂ i
 
 lemma disjoint_comm : disjoint l₁ l₂ ↔ disjoint l₂ l₁ := ⟨disjoint.symm, disjoint.symm⟩
 
-lemma disjoint_left : disjoint l₁ l₂ ↔ ∀, a ∈ l₁ → a ∉ l₂ := iff.rfl
+lemma disjoint_left : disjoint l₁ l₂ ↔ ∀ ⦃a⦄, a ∈ l₁ → a ∉ l₂ := iff.rfl
 
-lemma disjoint_right : disjoint l₁ l₂ ↔ ∀, a ∈ l₂ → a ∉ l₁ := disjoint_comm
+lemma disjoint_right : disjoint l₁ l₂ ↔ ∀ ⦃a⦄, a ∈ l₂ → a ∉ l₁ := disjoint_comm
 
 lemma disjoint_iff_ne : disjoint l₁ l₂ ↔ ∀ a ∈ l₁, ∀ b ∈ l₂, a ≠ b :=
 by simp only [disjoint_left, imp_not_comm, forall_eq']

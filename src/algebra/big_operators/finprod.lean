@@ -61,11 +61,7 @@ The first arguments in all definitions and lemmas is the codomain of the functio
 operator. This is necessary for the heuristic in `@[to_additive]`.
 See the documentation of `to_additive.attr` for more information.
 
-## Todo
-
 We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fintype X)`.
-There is work on `fincard` in the pipeline, which returns the cardinality of `X` if it
-is finite, and 0 otherwise.
 
 ## Tags
 
@@ -690,7 +686,7 @@ of the products of `f a` over `a ∈ t i`. -/
   ∏ᶠ a ∈ ⋃ x ∈ I, t x, f a = ∏ᶠ i ∈ I, ∏ᶠ j ∈ t i, f j :=
 begin
   haveI := hI.fintype,
-  rw [← Union_subtype, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
+  rw [bUnion_eq_Union, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
   exacts [λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
 end
 

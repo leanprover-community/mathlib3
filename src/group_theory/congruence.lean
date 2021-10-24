@@ -208,7 +208,8 @@ relation", priority 0]
 instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
 /-- The quotient by a decidable congruence relation has decidable equality. -/
-@[to_additive "The quotient by a decidable additive congruence relation has decidable equality."]
+@[to_additive "The quotient by a decidable additive congruence relation has decidable equality.",
+  priority 500] -- Lower the priority since it unifies with any quotient type.
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 

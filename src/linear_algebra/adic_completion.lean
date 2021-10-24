@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 
 import linear_algebra.smodeq
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient
 import ring_theory.jacobson_ideal
 
 /-!

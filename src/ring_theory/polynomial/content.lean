@@ -59,7 +59,7 @@ end
 
 end primitive
 
-variables {R : Type*} [comm_ring R] [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 
 section normalized_gcd_monoid
 variable [normalized_gcd_monoid R]

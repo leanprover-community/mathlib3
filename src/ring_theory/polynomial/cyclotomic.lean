@@ -58,23 +58,23 @@ namespace polynomial
 
 section cyclotomic'
 
-section integral_domain
+section is_domain
 
-variables {R : Type*} [comm_ring R] [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 
 /-- The modified `n`-th cyclotomic polynomial with coefficients in `R`, it is the usual cyclotomic
 polynomial if there is a primitive `n`-th root of unity in `R`. -/
-def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : polynomial R :=
+def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : polynomial R :=
 ∏ μ in primitive_roots n R, (X - C μ)
 
 /-- The zeroth modified cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic'_zero
-  (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' 0 R = 1 :=
+  (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' 0 R = 1 :=
 by simp only [cyclotomic', finset.prod_empty, is_primitive_root.primitive_roots_zero]
 
 /-- The first modified cyclotomic polyomial is `X - 1`. -/
 @[simp] lemma cyclotomic'_one
-  (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' 1 R = X - 1 :=
+  (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' 1 R = X - 1 :=
 begin
   simp only [cyclotomic', finset.prod_singleton, ring_hom.map_one,
   is_primitive_root.primitive_roots_one]
@@ -82,7 +82,7 @@ end
 
 /-- The second modified cyclotomic polyomial is `X + 1` if the characteristic of `R` is not `2`. -/
 @[simp] lemma cyclotomic'_two
-  (R : Type*) [comm_ring R] [integral_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
+  (R : Type*) [comm_ring R] [is_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
   cyclotomic' 2 R = X + 1 :=
 begin
   rw [cyclotomic'],
@@ -99,12 +99,12 @@ end
 
 /-- `cyclotomic' n R` is monic. -/
 lemma cyclotomic'.monic
-  (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : (cyclotomic' n R).monic :=
+  (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : (cyclotomic' n R).monic :=
 monic_prod_of_monic _ _ $ λ z hz, monic_X_sub_C _
 
 /-- `cyclotomic' n R` is different from `0`. -/
 lemma cyclotomic'_ne_zero
-  (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] : cyclotomic' n R ≠ 0 :=
+  (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' n R ≠ 0 :=
 (cyclotomic'.monic n R).ne_zero
 
 /-- The natural degree of `cyclotomic' n R` is `totient n` if there is a primitive root of
@@ -129,11 +129,11 @@ lemma degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
 by simp only [degree_eq_nat_degree (cyclotomic'_ne_zero n R), nat_degree_cyclotomic' h]
 
 /-- The roots of `cyclotomic' n R` are the primitive `n`-th roots of unity. -/
-lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [integral_domain R] :
+lemma roots_of_cyclotomic (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] :
   (cyclotomic' n R).roots = (primitive_roots n R).val :=
 by { rw cyclotomic', exact roots_prod_X_sub_C (primitive_roots n R) }
 
-end integral_domain
+end is_domain
 
 section field
 
@@ -524,6 +524,25 @@ lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] {p : ℕ}
 begin
   refine ((eq_cyclotomic_iff hp.pos _).mpr _).symm,
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
+end
+
+/-- If `p ^ k` is prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
+lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
+  cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p :=
+begin
+  have : ∀ m, cyclotomic (p ^ (m + 1)) R = geom_sum (X ^ (p ^ m)) p ↔
+    geom_sum (X ^ p ^ m) p * ∏ (x : ℕ) in finset.range (m + 1),
+      cyclotomic (p ^ x) R = X ^ p ^ (m + 1) - 1,
+  { intro m,
+    have := eq_cyclotomic_iff (pow_pos hp.pos (m + 1)) _,
+    rw eq_comm at this,
+    rw [this, nat.prod_proper_divisors_prime_pow hp], },
+  induction n with n_n n_ih,
+  { simp [cyclotomic_eq_geom_sum hp], },
+  rw ((eq_cyclotomic_iff (pow_pos hp.pos (n_n.succ + 1)) _).mpr _).symm,
+  rw [nat.prod_proper_divisors_prime_pow hp, finset.prod_range_succ, n_ih],
+  rw this at n_ih,
+  rw [mul_comm _ (geom_sum _ _), n_ih, geom_sum_mul, sub_left_inj, ← pow_mul, pow_add, pow_one],
 end
 
 /-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/

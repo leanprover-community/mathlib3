@@ -650,7 +650,7 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
-instance : integral_domain ℤ√d :=
+instance : is_domain ℤ√d :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
   .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
 

@@ -121,6 +121,10 @@ begin
   { intros j, rw [matrix.one_eq_pi_single, pi.single_comm] }
 end
 
+lemma cramer_smul (r : α) (A : matrix n n α) :
+  cramer (r • A) = r ^ (fintype.card n - 1) • cramer A :=
+linear_map.ext $ λ b, funext $ λ _, det_update_column_smul' _ _ _ _
+
 @[simp] lemma cramer_subsingleton_apply [subsingleton n] (A : matrix n n α) (b : n → α) (i : n) :
   cramer A b i = b i :=
 by rw [cramer_apply, det_eq_elem_of_subsingleton _ i, update_column_self]
@@ -234,6 +238,13 @@ lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
 calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
+
+lemma adjugate_smul (r : α) (A : matrix n n α) :
+  adjugate (r • A) = r ^ (fintype.card n - 1) • adjugate A :=
+begin
+  rw [adjugate, adjugate, transpose_smul, cramer_smul],
+  refl,
+end
 
 /-- `det_adjugate_of_cancel` is an auxiliary lemma for computing `(adjugate A).det`,
   used in `det_adjugate_eq_one` and `det_adjugate_of_is_unit`.
@@ -613,6 +624,14 @@ begin
     simp [apply_ite f] },
   rw [adjugate_apply, ring_hom.map_matrix_apply, map_apply, ring_hom.map_matrix_apply,
       this, ←map_update_row, ←ring_hom.map_matrix_apply, ←ring_hom.map_det, ←adjugate_apply]
+end
+
+lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=
+begin
+  dsimp only [conj_transpose],
+  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) :=
+    ((star_ring_aut : α ≃+* α).to_ring_hom.map_adjugate Aᵀ),
+  rw [A.adjugate_transpose, this],
 end
 
 lemma is_regular_of_is_left_regular_det {A : matrix n n α} (hA : is_left_regular A.det) :

@@ -1059,6 +1059,14 @@ lemma continuous_within_at_fst {s : set (α × β)} {p : α × β} :
   continuous_within_at prod.fst s p :=
 continuous_fst.continuous_within_at
 
+lemma continuous_on.fst {f : α → β × γ} {s : set α} (hf : continuous_on f s) :
+  continuous_on (λ x, (f x).1) s :=
+continuous_fst.comp_continuous_on hf
+
+lemma continuous_within_at.fst {f : α → β × γ} {s : set α} {a : α}
+  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).fst) s a :=
+continuous_at_fst.comp_continuous_within_at h
+
 lemma continuous_on_snd {s : set (α × β)} : continuous_on prod.snd s :=
 continuous_snd.continuous_on
 
@@ -1066,9 +1074,9 @@ lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
   continuous_within_at prod.snd s p :=
 continuous_snd.continuous_within_at
 
-lemma continuous_within_at.fst {f : α → β × γ} {s : set α} {a : α}
-  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).fst) s a :=
-continuous_at_fst.comp_continuous_within_at h
+lemma continuous_on.snd {f : α → β × γ} {s : set α} (hf : continuous_on f s) :
+  continuous_on (λ x, (f x).2) s :=
+continuous_snd.comp_continuous_on hf
 
 lemma continuous_within_at.snd {f : α → β × γ} {s : set α} {a : α}
   (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).snd) s a :=

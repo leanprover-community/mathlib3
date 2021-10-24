@@ -168,6 +168,7 @@ class complete_lattice (α : Type*) extends
 (le_top : ∀ x : α, x ≤ ⊤)
 (bot_le : ∀ x : α, ⊥ ≤ x)
 
+@[priority 100]  -- see Note [lower instance priority]
 instance complete_lattice.to_bounded_lattice [h : complete_lattice α] : bounded_lattice α :=
 { ..h }
 

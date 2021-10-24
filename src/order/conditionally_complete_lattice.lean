@@ -102,6 +102,7 @@ class conditionally_complete_linear_order_bot (α : Type*)
 (cSup_empty : Sup ∅ = ⊥)
 (bot_le : ∀ x : α, ⊥ ≤ x)
 
+@[priority 100]  -- see Note [lower instance priority]
 instance conditionally_complete_linear_order_bot.to_order_bot
   [h : conditionally_complete_linear_order_bot α] : order_bot α :=
 { ..h }

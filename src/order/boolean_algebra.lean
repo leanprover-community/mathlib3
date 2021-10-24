@@ -104,6 +104,7 @@ by rw [sup_comm, sup_inf_sdiff]
 @[simp] theorem inf_sdiff_inf (x y : α) : (x \ y) ⊓ (x ⊓ y) = ⊥ :=
 by rw [inf_comm, inf_inf_sdiff]
 
+@[priority 100]  -- see Note [lower instance priority]
 instance generalized_boolean_algebra.to_order_bot : order_bot α :=
 { bot_le := λ a, by { rw [←inf_inf_sdiff a a, inf_assoc], exact inf_le_left },
   ..generalized_boolean_algebra.to_has_bot α }
@@ -546,6 +547,7 @@ class boolean_algebra.core (α : Type u) extends distrib_lattice α, has_compl �
 (le_top : ∀ a : α, a ≤ ⊤)
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
+@[priority 100]  -- see Note [lower instance priority]
 instance boolean_algebra.core.to_bounded_lattice [h : boolean_algebra.core α] : bounded_lattice α :=
 { ..h }
 

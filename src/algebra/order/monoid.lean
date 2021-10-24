@@ -102,6 +102,7 @@ class linear_ordered_add_comm_monoid_with_top (α : Type*)
 (le_top : ∀ x : α, x ≤ ⊤)
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
 
+@[priority 100]  -- see Note [lower instance priority]
 instance linear_ordered_add_comm_monoid_with_top.to_order_top
   [h : linear_ordered_add_comm_monoid_with_top α] : order_top α :=
 { ..h }

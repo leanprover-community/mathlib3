@@ -32,7 +32,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 -/
 
 open real set filter is_R_or_C
-open_locale big_operators uniformity topological_space nnreal ennreal
+open_locale big_operators uniformity topological_space nnreal ennreal direct_sum
 
 noncomputable theory
 
@@ -114,6 +114,22 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 lemma finrank_euclidean_space_fin {n : ℕ} :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
+@[simp] lemma dfinsupp.sum_eq_sum_fintype {ι β : Type*} [fintype ι] [decidable_eq ι]
+  [add_comm_monoid β]
+  {α : ι → Type*}
+  [Π i, has_zero (α i)] [Π (i : ι) (x : α i), decidable (x ≠ 0)]
+  (v : Π₀ i, α i) {f : Π i, α i → β} (hf : ∀ i, f i 0 = 0) :
+  v.sum f = ∑ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
+begin
+  suffices : ∑ i in v.support, f i (v i) = ∑ i, f i (v i),
+  { simp [dfinsupp.sum, this] },
+  apply finset.sum_subset,
+  refine (dfinsupp.support v).subset_univ,
+  intros i hi' hi,
+  rw [dfinsupp.mem_support_iff, not_not] at hi,
+  rw [hi, hf],
+end
+
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
 def direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family
@@ -133,6 +149,21 @@ begin
   { simp [sum_inner, hV'.inner_right_fintype] },
   { congr; simp }
 end
+
+@[simp] lemma direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+  (hV' : orthogonal_family 𝕜 V) (w : pi_Lp 2 one_le_two (λ i, V i)) :
+  (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
+begin
+  classical,
+  let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
+  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
+  { exact this (e₁.symm w) },
+  intros v,
+  simp [e₂, direct_sum.to_module, dfinsupp.sum_add_hom_apply],
+end
+
 
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
 `euclidean_space 𝕜 ι`. -/

@@ -64,6 +64,11 @@ x ∈ eigenspace f μ ∧ x ≠ 0
 def has_eigenvalue (f : End R M) (a : R) : Prop :=
 eigenspace f a ≠ ⊥
 
+/-- The eigenvalues of the operator `f`, as a subtype of `R`. -/
+def eigenvalues (f : End R M) := {μ : R // has_eigenvalue f μ}
+
+instance (f : End R M) : has_coe (eigenvalues f) R := coe_subtype
+
 lemma has_eigenvalue_of_has_eigenvector {f : End R M} {μ : R} {x : M} (h : has_eigenvector f μ x) :
   has_eigenvalue f μ :=
 begin
@@ -74,6 +79,14 @@ end
 lemma mem_eigenspace_iff {f : End R M} {μ : R} {x : M} : x ∈ eigenspace f μ ↔ f x = μ • x :=
 by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_apply,
   sub_eq_zero]
+
+lemma has_eigenvalue.exists_has_eigenvector (f : End R M) {μ : R} (hμ : has_eigenvalue f μ) :
+  ∃ v, has_eigenvector f μ v :=
+begin
+  have : ⊥ < eigenspace f μ := ne.bot_lt hμ,
+  obtain ⟨⟨v₁, hv₁⟩, hv⟩ := submodule.nonzero_mem_of_bot_lt this,
+  exact ⟨v₁, hv₁, by simpa using hv⟩,
+end
 
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
@@ -269,6 +282,12 @@ begin
       exact h_lμ_eq_0 μ h_cases } }
 end
 
+lemma eigenspaces_independent (f : End K M) : complete_lattice.independent (λ μ, eigenspace f μ) :=
+sorry
+
+noncomputable instance [finite_dimensional K M] (f : End K M) : fintype (eigenvalues f) :=
+(eigenspaces_independent T).fintype_ne_bot_of_finite_dimensional
+
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
 kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for
 some exponent `k` is contained in the generalized eigenspace for exponents larger than `k`. -/
@@ -408,6 +427,17 @@ begin
       ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
+/-- If `p` is an invariant submodule of an operator `f`, then the `μ`-eigenspace of the restriction
+of `f` to `p` is a submodule of the `μ`-eigenspace of `f`. -/
+lemma eigenspace_restrict_le_eigenspace (f : End R M) {p : submodule R M}
+  (hfp : ∀ x ∈ p, f x ∈ p) (μ : R) :
+  (eigenspace (linear_map.restrict f hfp) μ).map V.subtype ≤ eigenspace f μ :=
+begin
+  rintros - ⟨x, hx, rfl⟩,
+  simp only [set_like.mem_coe, mem_eigenspace_iff, linear_map.restrict_apply] at hx ⊢,
+  exact congr_arg coe hx
+end
+
 /-- Generalized eigenrange and generalized eigenspace for exponent `finrank K V` are disjoint. -/
 lemma generalized_eigenvec_disjoint_range_ker [finite_dimensional K V] (f : End K V) (μ : K) :
   disjoint (f.generalized_eigenrange μ (finrank K V)) (f.generalized_eigenspace μ (finrank K V))  :=
@@ -425,6 +455,17 @@ begin
   rw [disjoint, generalized_eigenrange, linear_map.range_eq_map, submodule.map_inf_eq_map_inf_comap,
     top_inf_eq, h],
   apply submodule.map_comap_le
+end
+
+/-- If an invariant subspace `V` of an operator `T` is disjoint from the `μ`-eigenspace of `T`,
+then the restriction of `T` to `V` has trivial `μ`-eigenspace. -/
+lemma eigenspace_restrict_eq_bot {f : End R M} {p : submodule R M}
+  (hfp : ∀ x ∈ p, f x ∈ p) {μ : R} (hμp : disjoint (eigenspace f μ) p) :
+  eigenspace (linear_map.restrict f hfp) μ = ⊥ :=
+begin
+  rw eq_bot_iff,
+  intros x hx,
+  simpa using hfp ⟨eigenspace_restrict_le_eigenspace hfp μ ⟨x, hx, rfl⟩, x.prop⟩,
 end
 
 /-- The generalized eigenspace of an eigenvalue has positive dimension for positive exponents. -/

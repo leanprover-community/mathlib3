@@ -1559,6 +1559,13 @@ begin
     hV.inner_right_dfinsupp] using this,
 end
 
+/-- The composition of an orthogonal family of subspaces with an injective function is also an
+orthogonal family. -/
+lemma orthogonal_family.comp (hV : orthogonal_family 𝕜 V) {γ : Type*} {f : γ → ι}
+  (hf : function.injective f) :
+  orthogonal_family 𝕜 (V ∘ f) :=
+λ i j hij v hv w hw, hV (hf.ne hij) hv hw
+
 end orthogonal_family
 
 section is_R_or_C_to_real

@@ -43,7 +43,7 @@ local notation `SL(` n `, ` R `)`:= special_linear_group (fin n) R
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) ℤ) _
 
 
-open_locale upper_half_plane
+open_locale upper_half_plane complex_conjugate
 
 local attribute [instance] fintype.card_fin_even
 
@@ -143,8 +143,9 @@ begin
       rw [f_def, add_im, of_real_mul_im, of_real_im, add_zero, mul_left_comm,
         inv_mul_cancel hz, mul_one], },
     { show ((z : ℂ).im)⁻¹ * ((z : ℂ) * conj (f c)).im = c 1,
-      rw [f_def, ring_hom.map_add, ring_hom.map_mul, mul_add, mul_left_comm, mul_conj, conj_of_real,
-        conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add, inv_mul_eq_iff_eq_mul₀ hz],
+      rw [f_def, ring_equiv.map_add, ring_equiv.map_mul, mul_add, mul_left_comm, mul_conj,
+        conj_of_real, conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add,
+        inv_mul_eq_iff_eq_mul₀ hz],
       simp only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
   have h₁ := (linear_equiv.closed_embedding_of_injective hf).tendsto_cocompact,
   have h₂ : tendsto (λ p : fin 2 → ℤ, (coe : ℤ → ℝ) ∘ p) cofinite (cocompact _),

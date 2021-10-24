@@ -170,6 +170,10 @@ lemma continuous.inv (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
 
 @[to_additive]
+lemma continuous_at.inv (hf : continuous_at f x) : continuous_at (λ x, (f x)⁻¹) x :=
+continuous_at_inv.comp hf
+
+@[to_additive]
 lemma continuous_on.inv (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
 
@@ -456,42 +460,76 @@ automatically holds for topological additive groups but it also holds, e.g., for
 class has_continuous_sub (G : Type*) [topological_space G] [has_sub G] : Prop :=
 (continuous_sub : continuous (λ p : G × G, p.1 - p.2))
 
-@[priority 100] -- see Note [lower instance priority]
-instance topological_add_group.to_has_continuous_sub [topological_space G] [add_group G]
-  [topological_add_group G] :
-  has_continuous_sub G :=
-⟨by { simp only [sub_eq_add_neg], exact continuous_fst.add continuous_snd.neg }⟩
+/-- A typeclass saying that `λ p : G × G, p.1 / p.2` is a continuous function. This property
+automatically holds for topological groups. Lemmas using this class have primes.
+The unprimed version is for `group_with_zero`. -/
+@[to_additive]
+class has_continuous_div (G : Type*) [topological_space G] [has_div G] : Prop :=
+(continuous_div' : continuous (λ p : G × G, p.1 / p.2))
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance topological_group.to_has_continuous_div [topological_space G] [group G]
+  [topological_group G] : has_continuous_div G :=
+⟨by { simp only [div_eq_mul_inv], exact continuous_fst.mul continuous_snd.inv }⟩
 
 export has_continuous_sub (continuous_sub)
+export has_continuous_div (continuous_div')
 
-section has_continuous_sub
+section has_continuous_div
 
-variables [topological_space G] [has_sub G] [has_continuous_sub G]
+variables [topological_space G] [has_div G] [has_continuous_div G]
 
-lemma filter.tendsto.sub {f g : α → G} {l : filter α} {a b : G} (hf : tendsto f l (𝓝 a))
-  (hg : tendsto g l (𝓝 b)) :
-  tendsto (λx, f x - g x) l (𝓝 (a - b)) :=
-(continuous_sub.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
+@[to_additive sub]
+lemma filter.tendsto.div' {f g : α → G} {l : filter α} {a b : G} (hf : tendsto f l (𝓝 a))
+  (hg : tendsto g l (𝓝 b)) : tendsto (λ x, f x / g x) l (𝓝 (a / b)) :=
+(continuous_div'.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
+
+@[to_additive const_sub]
+lemma filter.tendsto.const_div' (b : G) {c : G} {f : α → G} {l : filter α}
+  (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, b / f k) l (𝓝 (b / c)) :=
+tendsto_const_nhds.div' h
+
+@[to_additive sub_const]
+lemma filter.tendsto.div_const' (b : G) {c : G} {f : α → G} {l : filter α}
+  (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, f k / b) l (𝓝 (c / b)) :=
+h.div' tendsto_const_nhds
 
 variables [topological_space α] {f g : α → G} {s : set α} {x : α}
 
-@[continuity] lemma continuous.sub (hf : continuous f) (hg : continuous g) :
-  continuous (λ x, f x - g x) :=
-continuous_sub.comp (hf.prod_mk hg : _)
+@[continuity, to_additive sub] lemma continuous.div' (hf : continuous f) (hg : continuous g) :
+  continuous (λ x, f x / g x) :=
+continuous_div'.comp (hf.prod_mk hg : _)
 
-lemma continuous_within_at.sub (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
-  continuous_within_at (λ x, f x - g x) s x :=
-hf.sub hg
+@[to_additive continuous_sub_left]
+lemma continuous_div_left' (a : G) : continuous (λ b : G, a / b) :=
+continuous_const.div' continuous_id
 
-lemma continuous_on.sub (hf : continuous_on f s) (hg : continuous_on g s) :
-  continuous_on (λx, f x - g x) s :=
-λ x hx, (hf x hx).sub (hg x hx)
+@[to_additive continuous_sub_right]
+lemma continuous_div_right' (a : G) : continuous (λ b : G, b / a) :=
+continuous_id.div' continuous_const
 
-end has_continuous_sub
+@[to_additive sub]
+lemma continuous_at.div' {f g : α → G} {x : α} (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λx, f x / g x) x :=
+hf.div' hg
 
-lemma nhds_translation [topological_space G] [add_group G] [topological_add_group G] (x : G) :
-  comap (λy:G, y - x) (𝓝 0) = 𝓝 x :=
-by simpa only [sub_eq_add_neg] using nhds_translation_add_neg x
+@[to_additive sub]
+lemma continuous_within_at.div' (hf : continuous_within_at f s x)
+  (hg : continuous_within_at g s x) :
+  continuous_within_at (λ x, f x / g x) s x :=
+hf.div' hg
+
+@[to_additive sub]
+lemma continuous_on.div' (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λx, f x / g x) s :=
+λ x hx, (hf x hx).div' (hg x hx)
+
+end has_continuous_div
+
+@[to_additive]
+lemma nhds_translation_div [topological_space G] [group G] [topological_group G] (x : G) :
+  comap (λy:G, y / x) (𝓝 1) = 𝓝 x :=
+by simpa only [div_eq_mul_inv] using nhds_translation_mul_inv x
 
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.

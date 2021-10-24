@@ -121,17 +121,17 @@ lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
   di.extend f b = c :=
 by haveI := di.comap_nhds_ne_bot; exact hf.lim_eq
 
-lemma extend_eq_at [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
+lemma extend_eq_at [t2_space γ] {f : α → γ} {a : α} (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
 extend_eq_of_tendsto _ $ di.nhds_eq_comap a ▸ hf
 
-lemma extend_eq_at' [t2_space γ] {f : α → γ} (a : α) (c : γ) (hf : tendsto f (𝓝 a) (𝓝 c)) :
+lemma extend_eq_at' [t2_space γ] {f : α → γ} {a : α} (c : γ) (hf : tendsto f (𝓝 a) (𝓝 c)) :
   di.extend f (i a) = f a :=
-di.extend_eq_at a (continuous_at_of_tendsto_nhds hf)
+di.extend_eq_at (continuous_at_of_tendsto_nhds hf)
 
 lemma extend_eq [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
   di.extend f (i a) = f a :=
-di.extend_eq_at a hf.continuous_at
+di.extend_eq_at hf.continuous_at
 
 /-- Variation of `extend_eq` where we ask that `f` has a limit along `comap i (𝓝 b)` for each
 `b : β`. This is a strictly stronger assumption than continuity of `f`, but in a lot of cases
@@ -141,7 +141,7 @@ lemma extend_eq' [t2_space γ] {f : α → γ}
   di.extend f (i a) = f a :=
 begin
   rcases hf (i a) with ⟨b, hb⟩,
-  refine di.extend_eq_at' a b _,
+  refine di.extend_eq_at' b _,
   rwa ← di.to_inducing.nhds_eq_comap at hb,
 end
 

@@ -25,7 +25,7 @@ namespace absolute_value
 
 section ordered_semiring
 
-variables {R S : Type*} [comm_ring R] [integral_domain R] [euclidean_domain R] [ordered_semiring S]
+variables {R S : Type*} [comm_ring R] [nontrivial R] [euclidean_domain R] [ordered_semiring S]
 variables (abv : absolute_value R S)
 
 /-- An absolute value `abv : R → S` is Euclidean if it is compatible with the

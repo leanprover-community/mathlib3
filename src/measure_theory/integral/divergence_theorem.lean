@@ -44,7 +44,7 @@ divergence theorem, Bochner integral
 -/
 
 open set finset topological_space function box_integral measure_theory
-open_locale big_operators classical
+open_locale big_operators classical topological_space
 
 namespace measure_theory
 
@@ -127,19 +127,77 @@ end
 end
 
 open_locale interval
+open continuous_linear_map (smul_right)
 
-theorem FTC1 (f f' : ℝ → E) {a b : ℝ} {s : set ℝ} (hs : countable s)
-  (Hc : ∀ x ∈ s, continuous_within_at f [a, b] x)
+local notation `ℝ¹` := fin 1 → ℝ
+local notation `ℝ²` := fin 2 → ℝ
+local notation `E¹` := fin 1 → E
+local notation `E²` := fin 2 → E
+
+theorem integral_eq_of_has_deriv_within_at_off_countable_of_le (f f' : ℝ → E)
+  {a b : ℝ} (hle : a ≤ b) {s : set ℝ} (hs : countable s)
+  (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
+  (Hd : ∀ x ∈ Icc a b \ s, has_deriv_within_at f (f' x) (Icc a b) x)
+  (Hi : interval_integrable f' volume a b) :
+  ∫ x in a..b, f' x = f b - f a :=
+begin
+  set eL : ℝ¹ →L[ℝ] ℝ := continuous_linear_map.proj 0,
+  set eE : E →L[ℝ] E¹ := continuous_linear_map.pi (λ _, continuous_linear_map.id _ _),
+  set eo : ℝ¹ ≃o ℝ := order_iso.fun_unique _ _,
+  set e : ℝ¹ ≃ᵐ ℝ := measurable_equiv.fun_unique _ _,
+  have he : measure_preserving e volume volume, from ⟨e.measurable, measure.map_fun_unique volume⟩,
+  set F : ℝ¹ → E¹ := λ x i, f (x 0),
+  set F' : ℝ¹ → ℝ¹ →L[ℝ] E¹ := λ x, eE ∘L ((1 : ℝ →L[ℝ] ℝ).smul_right (f' (x 0))) ∘L eL,
+  have hF' : ∀ x, ∑ i, F' (λ _, x) (pi.single i 1) i = f' x,
+  { intro x, dsimp *,
+    erw [sum_singleton, pi.single_eq_same, one_smul] },
+  calc ∫ x in a..b, f' x
+      = ∫ x : ℝ¹ in Icc (eo.symm a) (eo.symm b), ∑ i : fin 1, F' x (pi.single i 1) i :
+    begin
+      simp only [volume_pi, set_integral_fun_unique_pi, interval_integral.integral_of_le hle,
+        set_integral_congr_set_ae Ioc_ae_eq_Icc, ← eo.preimage_Icc, hF'],
+      refl
+    end
+  ... = ∑ i : fin 1, ((∫ x in Icc (const _ a) (const _ b), F (i.insert_nth b x) i) -
+                     ∫ x in Icc (const _ a) (const _ b), F (i.insert_nth a x) i) :
+    begin
+      refine integral_divergence_of_has_fderiv_within_at_off_countable (const _ a) (const _ b)
+        (λ _, hle) F F' (eo.symm '' s) (hs.image _) (ball_image_iff.2 $ λ x hx, _) _ _,
+      { refine continuous_within_at_pi.2 (λ i, _), rw [← eo.preimage_Icc],
+        refine continuous_within_at.comp _ eL.continuous.continuous_within_at subset.rfl,
+        exact Hc x hx },
+      { rw [eo.symm.image_eq_preimage, eo.symm_symm, ← eo.preimage_Icc, ← preimage_diff],
+        intros x hx,
+        refine eE.has_fderiv_at.comp_has_fderiv_within_at x _,
+        refine has_fderiv_within_at.comp x _ eL.has_fderiv_within_at subset.rfl,
+        exact Hd (x 0) hx },
+      { rw [← eo.preimage_Icc, ← he.symm.map_eq, integrable_on_map_equiv],
+        rw [interval_integrable_iff_integrable_Ioc_of_le hle] at Hi,
+        convert Hi.congr_set_ae Ioc_ae_eq_Icc.symm using 1,
+        exact funext hF' }
+    end
+  ... = (∫ x in Icc (const _ a) (const _ b), F ((0 : fin 1).insert_nth b x) 0) -
+         ∫ x in Icc (const _ a) (const _ b), F ((0 : fin 1).insert_nth a x) 0 :
+    finset.sum_singleton
+  ... = f b - f a :
+    begin
+      have : ∀ c : ℝ, const (fin 0) c = is_empty_elim := λ c, subsingleton.elim _ _,
+      simp [F, this, volume_pi, measure.pi_of_empty _ _ (λ _, volume)],
+    end
+end
+
+theorem integral_eq_of_has_deriv_within_at_off_countable (f f' : ℝ → E) {a b : ℝ} {s : set ℝ}
+  (hs : countable s) (Hc : ∀ x ∈ s, continuous_within_at f [a, b] x)
   (Hd : ∀ x ∈ [a, b] \ s, has_deriv_within_at f (f' x) [a, b] x)
   (Hi : interval_integrable f' volume a b) :
   ∫ x in a..b, f' x = f b - f a :=
 begin
-  wlog hab : a ≤ b := le_total a b using [a b, b a] tactic.skip,
-  { set F : (fin 1 → ℝ) → E := λ x, f (x 0),
-
-    rw interval_integrable_iff_integrable_Ioc_of_le hab at Hi,
-    replace Hi := Hi.congr_set_ae Ioc_ae_eq_Icc.symm,
-     }
+  cases le_total a b with hab hab,
+  { simp only [interval_of_le hab] at *,
+    exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi },
+  { simp only [interval_of_ge hab] at *,
+    rw [interval_integral.integral_symm, neg_eq_iff_neg_eq, neg_sub, eq_comm],
+    exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
 end
 
 end measure_theory

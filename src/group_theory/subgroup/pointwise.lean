@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import group_theory.subgroup.basic
 import group_theory.submonoid.pointwise
+import group_theory.quotient_group
 
 /-! # Pointwise instances on `subgroup` and `add_subgroup`s
 
@@ -141,6 +142,24 @@ lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=
 begin
   rw conj_subgroup,
   simp only [one_smul, monoid_hom.map_one],
+end
+
+lemma cong_sub_image (H K : subgroup G) (g : G) :
+  subgroup.map (subgroup.conj_equiv g K).to_monoid_hom (H.subgroup_of K) =
+  (subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K) :=
+begin
+  apply monoid_hom.equiv_sub_subgroup_of,
+end
+
+lemma cong_sub_image' (H K : subgroup G) (g : G) :
+  subgroup.map ((subgroup.conj_equiv g K).symm).to_monoid_hom
+  ((subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K)) = (H.subgroup_of K) :=
+begin
+   rw ← cong_sub_image H K g,
+   simp_rw subgroup.map,
+   ext,
+   simp only [mul_equiv.coe_to_monoid_hom, set.mem_image, mul_equiv.symm_apply_apply,
+   exists_eq_right, exists_exists_and_eq_and, set_like.mem_coe, subgroup.mem_mk],
 end
 
 end conjugate_subgroup

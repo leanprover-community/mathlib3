@@ -71,69 +71,17 @@ begin
   apply trans,
 end
 
-lemma cong_sub_image (H K : subgroup G) (g : G) :
-  subgroup.map (subgroup.conj_equiv g K).to_monoid_hom (H.subgroup_of K) =
-  (subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K) :=
-begin
-  apply monoid_hom.equiv_sub_subgroup_of,
-end
-
-lemma cong_sub_image' (H K : subgroup G) (g : G) :
-  subgroup.map ((subgroup.conj_equiv g K).symm).to_monoid_hom
-  ((subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K)) = (H.subgroup_of K) :=
-begin
-   rw ← cong_sub_image H K g,
-   simp_rw subgroup.map,
-   ext,
-   simp only [mul_equiv.coe_to_monoid_hom, set.mem_image, mul_equiv.symm_apply_apply,
-   exists_eq_right, exists_exists_and_eq_and, set_like.mem_coe, subgroup.mem_mk],
-end
-
-namespace quotient_group
-/--The map induced by a `mul_hom` on a quotient-/
-noncomputable def quot_map (H : subgroup G) (H' : subgroup G')
-(f : G →* G') :  quotient_group.quotient H →  quotient_group.quotient H' :=
-λ x, quotient_group.mk (f x.out')
-
-lemma quot_map_inj (H : subgroup G) (H' : subgroup G') (f : G →* G') (h : H.map f  = H') :
-  (function.injective f) →  function.injective (quot_map H H' f) :=
-begin
-  intro hf,
-  rw function.injective at *,
-  intros a b,
-  rw quot_map,
-  rw quotient_group.eq',
-  intro hab,
-  have ha :=  quotient.out_eq' a,
-  have hb :=  quotient.out_eq' b,
-  rw ← ha,
-  rw ← hb,
-  rw quotient_group.eq',
-  simp_rw ← h at hab,
-  have r1 : ∀ (a b : G), (f(a))⁻¹*f(b)=f(a⁻¹*b), by {
-    simp only [forall_const, monoid_hom.map_mul, eq_self_iff_true, monoid_hom.map_inv],},
-  cases hab with t,
-  have hab2 := hab_h.2,
-  have rab := r1 a.out' b.out',
-  rw rab at hab2,
-  have := hf hab2,
-  rw ← this,
-  exact hab_h.1,
-end
-
-end quotient_group
-
 /--Equivalence of `K/H ⊓ K` with `gKg⁻¹/gHg⁻¹ ⊓ gKg⁻¹`-/
 noncomputable def  quot_conj_equiv (H K : subgroup G) (g : G) :
-   quotient_group.quotient (H.subgroup_of K) ≃
-   quotient_group.quotient ((subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K)) :=
+  quotient_group.quotient (H.subgroup_of K) ≃
+  quotient_group.quotient ((subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K)) :=
 begin
   have h1 := quotient_group.quot_map_inj (H.subgroup_of K) ((subgroup.conj_subgroup g H).subgroup_of
-    (subgroup.conj_subgroup g K))(subgroup.conj_equiv g K).to_monoid_hom (cong_sub_image H K g)
-    (subgroup.conj_equiv g K).injective,
+    (subgroup.conj_subgroup g K))(subgroup.conj_equiv g K).to_monoid_hom
+    (subgroup.cong_sub_image H K g) (subgroup.conj_equiv g K).injective,
   have h2 :=  quotient_group.quot_map_inj ((subgroup.conj_subgroup g H).subgroup_of
     (subgroup.conj_subgroup g K)) (H.subgroup_of K) ((subgroup.conj_equiv g K).symm).to_monoid_hom
-    (cong_sub_image' H K g) (subgroup.conj_equiv g K).symm.injective,
+    (subgroup.cong_sub_image' H K g) (subgroup.conj_equiv g K).symm.injective,
   have := function.embedding.schroeder_bernstein  h1 h2,
   apply equiv.of_bijective this.some,
   apply this.some_spec,

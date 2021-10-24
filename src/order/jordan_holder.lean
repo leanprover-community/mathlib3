@@ -142,8 +142,8 @@ namespace composition_series
 
 variables {X : Type u} [lattice X] [jordan_holder_lattice X]
 
-instance : has_coe_to_fun (composition_series X) :=
-{ F := _, coe := composition_series.series }
+instance : has_coe_to_fun (composition_series X) (λ x, fin (x.length + 1) → X) :=
+{ coe := composition_series.series }
 
 instance [inhabited X] : inhabited (composition_series X) :=
 ⟨{ length := 0,
@@ -351,15 +351,15 @@ by_contradiction (λ hxy, pos_iff_ne_zero.1 (length_pos_of_mem_ne hx hy hxy) hs)
 has length zero, then `s.erase_top = s` -/
 @[simps] def erase_top (s : composition_series X) : composition_series X :=
 { length := s.length - 1,
-  series := λ i, s ⟨i, lt_of_lt_of_le i.2 (nat.succ_le_succ sub_le_self')⟩,
+  series := λ i, s ⟨i, lt_of_lt_of_le i.2 (nat.succ_le_succ tsub_le_self)⟩,
   step' := λ i, begin
-    have := s.step ⟨i, lt_of_lt_of_le i.2 sub_le_self'⟩,
+    have := s.step ⟨i, lt_of_lt_of_le i.2 tsub_le_self⟩,
     cases i,
     exact this
   end }
 
 lemma top_erase_top (s : composition_series X) :
-  s.erase_top.top = s ⟨s.length - 1, lt_of_le_of_lt sub_le_self' (nat.lt_succ_self _)⟩ :=
+  s.erase_top.top = s ⟨s.length - 1, lt_of_le_of_lt tsub_le_self (nat.lt_succ_self _)⟩ :=
 show s _ = s _, from congr_arg s
 begin
   ext,
@@ -368,7 +368,7 @@ begin
 end
 
 lemma erase_top_top_le (s : composition_series X) : s.erase_top.top ≤ s.top :=
-by simp [erase_top, top, s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe, sub_le_self']
+by simp [erase_top, top, s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe, tsub_le_self]
 
 @[simp] lemma bot_erase_top (s : composition_series X) : s.erase_top.bot = s.bot := rfl
 

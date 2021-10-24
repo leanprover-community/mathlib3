@@ -88,7 +88,7 @@ class euclidean_domain_core (R : Type u) [comm_ring R] :=
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 
-/-- A `euclidean_domain` is an `integral_domain` with gcd, lcm, division and remainder,
+/-- A `euclidean_domain` is a `comm_ring` with gcd, lcm, division and remainder,
 satisfying `b * (a / b) + a % b = a` .
 
 You can construct the `gcd` and `lcm` non-uniquely using only division and remainder,

@@ -818,7 +818,7 @@ begin
     replace key : ∀ k : ℕ, f (n + k) = f (n + k + 1) ∧ f (n + k) = f n :=
     λ k, nat.rec ⟨hn2, rfl⟩ (λ k ih, ⟨h3 _ ih.1, ih.1.symm.trans ih.2⟩) k,
     replace key : ∀ k : ℕ, n ≤ k → f k = f n :=
-    λ k hk, (congr_arg f (add_sub_cancel_of_le hk)).symm.trans (key (k - n)).2,
+    λ k hk, (congr_arg f (add_tsub_cancel_of_le hk)).symm.trans (key (k - n)).2,
     exact λ k hk, (key k (hn1.trans hk)).trans (key B hn1).symm },
 end
 

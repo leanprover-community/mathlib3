@@ -5,7 +5,7 @@ Authors: Patrick Stevens, Bolton Bailey
 -/
 
 import data.nat.prime
-import data.finset.intervals
+import data.finset.interval
 import data.nat.multiplicity
 import data.nat.choose.sum
 import number_theory.padics.padic_norm
@@ -14,7 +14,6 @@ import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
 import analysis.special_functions.pow
-import analysis.special_functions.trigonometric
 import analysis.special_functions.sqrt
 import analysis.calculus.local_extr
 import data.real.sqrt

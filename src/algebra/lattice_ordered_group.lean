@@ -129,10 +129,10 @@ the element `a ⊔ 1` is said to be the *positive component* of `a`, denoted `a�
 @[to_additive pos /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
-"-/
-]
-def mpos (a : α) : α :=  a ⊔ 1
-postfix `⁺`:1000 := mpos
+"-/,
+priority 100
+] -- see Note [lower instance priority]
+instance has_one_lattice_has_pos_part [has_one α] [lattice α] : has_pos_part (α)  := ⟨λa, a ⊔ 1⟩
 
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
@@ -141,10 +141,10 @@ the element `(-a) ⊔ 1` is said to be the *negative component* of `a`, denoted 
 @[to_additive neg /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
-"-/
-]
-def mneg (a : α) : α := a⁻¹ ⊔ 1
-postfix `⁻`:1000 := mneg
+"-/,
+priority 100
+] -- see Note [lower instance priority]
+instance has_one_lattice_has_neg_part [has_one α] [lattice α] : has_neg_part (α)  := ⟨λa, a⁻¹ ⊔ 1⟩
 
 @[to_additive le_abs /-"
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
@@ -189,7 +189,7 @@ lemma m_le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the negative
 component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
 "-/]
-lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by { unfold mneg, unfold mpos}
+lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by { unfold has_neg_part.neg, unfold has_pos_part.pos}
 
 @[to_additive /-"
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the positive
@@ -219,7 +219,7 @@ $$a⁻ = -(a ⊓ 0).$$
 "-/]
 lemma neg_eq_inv_inf_one [covariant_class α α (*) (≤)] (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
 begin
-  unfold lattice_ordered_comm_group.mneg,
+  unfold has_neg_part.neg,
   rw [← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv],
 end
 
@@ -233,9 +233,9 @@ lemma pos_inv_neg [covariant_class α α (*) (≤)] (a : α) : a = a⁺ / a⁻ :
 begin
   rw div_eq_mul_inv,
   apply eq_mul_inv_of_mul_eq,
-  unfold lattice_ordered_comm_group.mneg,
+  unfold has_neg_part.neg,
   rw [mul_sup_eq_mul_sup_mul, mul_one, mul_right_inv, sup_comm],
-  unfold lattice_ordered_comm_group.mpos,
+  unfold has_pos_part.pos,
 end
 
 -- Hack to work around rewrite not working if lhs is a variable
@@ -447,7 +447,7 @@ equal to its positive component `a⁺`.
 "-/]
 lemma m_pos_pos_id (a : α) (h : 1 ≤ a): a⁺ = a :=
 begin
-  unfold lattice_ordered_comm_group.mpos,
+  unfold has_pos_part.pos,
   apply sup_of_le_left h,
 end
 

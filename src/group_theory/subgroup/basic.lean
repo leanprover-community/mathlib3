@@ -1050,7 +1050,8 @@ end normal
 
 variables (H)
 
-/-- A subgroup is characteristic if it is fixed by all automorphisms -/
+/-- A subgroup is characteristic if it is fixed by all automorphisms.
+  Several equivalent conditions are provided by lemmas of the form `characteristic.iff...` -/
 structure characteristic : Prop :=
 (fixed : ∀ ϕ : G ≃* G, H.comap ϕ.to_monoid_hom = H)
 
@@ -1065,7 +1066,8 @@ namespace add_subgroup
 
 variables (H : add_subgroup A)
 
-/-- An add_subgroup is characteristic if it is fixed by all automorphisms -/
+/-- A add_subgroup is characteristic if it is fixed by all automorphisms.
+  Several equivalent conditions are provided by lemmas of the form `characteristic.iff...` -/
 structure characteristic  : Prop :=
 (fixed : ∀ ϕ : A ≃+ A, H.comap ϕ.to_add_monoid_hom = H)
 
@@ -1117,10 +1119,10 @@ begin
 end
 
 @[to_additive] instance bot_characteristic : characteristic (⊥ : subgroup G) :=
-characteristic_iff_map_eq.mpr (λ ϕ, map_bot ϕ.to_monoid_hom)
+characteristic_iff_le_map.mpr (λ ϕ, bot_le)
 
 @[to_additive] instance top_characteristic : characteristic (⊤ : subgroup G) :=
-characteristic_iff_comap_eq.mpr (λ ϕ, comap_top ϕ.to_monoid_hom)
+characteristic_iff_map_le.mpr (λ ϕ, le_top)
 
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
@@ -1144,7 +1146,7 @@ variable {G}
 instance decidable_mem_center [decidable_eq G] [fintype G] : decidable_pred (∈ center G) :=
 λ _, decidable_of_iff' _ mem_center_iff
 
-@[priority 100, to_additive] instance center_characteristic : (center G).characteristic :=
+@[to_additive] instance center_characteristic : (center G).characteristic :=
 begin
   refine characteristic_iff_comap_le.mpr (λ ϕ g hg h, _),
   rw [←ϕ.injective.eq_iff, ϕ.map_mul, ϕ.map_mul],

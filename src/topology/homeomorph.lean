@@ -251,6 +251,18 @@ h.inducing.continuous_iff.symm
   continuous (f ∘ h) ↔ continuous f :=
 h.quotient_map.continuous_iff.symm
 
+lemma comp_continuous_at_iff (h : α ≃ₜ β) (f : γ → α) (x : γ) :
+  continuous_at (h ∘ f) x ↔ continuous_at f x :=
+h.inducing.continuous_at_iff.symm
+
+lemma comp_continuous_at_iff' (h : α ≃ₜ β) (f : β → γ) (x : α) :
+  continuous_at (f ∘ h) x ↔ continuous_at f (h x) :=
+h.inducing.continuous_at_iff' (by simp)
+
+lemma comp_continuous_within_at_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) (x : γ) :
+  continuous_within_at f s x ↔ continuous_within_at (h ∘ f) s x :=
+h.inducing.continuous_within_at_iff
+
 @[simp] lemma comp_is_open_map_iff (h : α ≃ₜ β) {f : γ → α} :
   is_open_map (h ∘ f) ↔ is_open_map f :=
 begin

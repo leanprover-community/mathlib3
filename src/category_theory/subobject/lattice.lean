@@ -312,7 +312,7 @@ def functor [has_pullbacks C] : Cᵒᵖ ⥤ Type (max u₁ v₁) :=
 
 end functor
 
-section semilattice_inf_order_top
+section semilattice_inf_top
 variables [has_pullbacks C]
 
 /-- The functorial infimum on `mono_over A` descends to an infimum on `subobject A`. -/
@@ -444,7 +444,7 @@ begin
   rw [pullback_comp, pullback_map_self],
 end
 
-end semilattice_inf_order_top
+end semilattice_inf_top
 
 section semilattice_sup
 variables [has_images C] [has_binary_coproducts C]

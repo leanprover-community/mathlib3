@@ -146,7 +146,7 @@ begin
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
   rw mem_range at hk,
-  rw [add_comm, nat.add_sub_assoc (nat.lt_succ_iff.mp hk), ← add_comm],
+  rw [add_comm, add_tsub_assoc_of_le (nat.lt_succ_iff.mp hk), ← add_comm],
 end
 
 section p_prime
@@ -277,7 +277,7 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
 begin
   rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
   simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
-  rw [sum_range_succ_comm, nat.sub_self, pow_zero, pow_one, bind₁_X_right,
+  rw [sum_range_succ_comm, tsub_self, pow_zero, pow_one, bind₁_X_right,
       mul_comm, ← C_pow, X_in_terms_of_W_aux],
   simp only [C_pow, bind₁_X_right, sub_add_cancel],
 end
@@ -290,7 +290,7 @@ begin
   rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C,
       alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
-  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ_comm,
+  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, tsub_self, sum_range_succ_comm,
     pow_one, add_sub_cancel, pow_zero],
   rw [sum_congr rfl, this],
   { -- this is really slow for some reason

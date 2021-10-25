@@ -401,7 +401,7 @@ begin
     (ennreal.tendsto_sum_nat_add (μ ∘ t) ht) (λ n, measure_Union_le _),
   intros n m hnm x,
   simp only [set.mem_Union],
-  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩
+  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, tsub_add_cancel_of_le hnm] using hi⟩
 end
 
 lemma measure_if {x : β} {t : set β} {s : set α} :

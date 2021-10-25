@@ -1661,6 +1661,10 @@ lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
 (range_eq_map f).symm ▸ map_mono le_top
 
 @[to_additive]
+lemma map_subtype_le {H : subgroup G} (K : subgroup H) : K.map H.subtype ≤ H :=
+(K.map_le_range H.subtype).trans (le_of_eq H.subtype_range)
+
+@[to_additive]
 lemma ker_le_comap (H : subgroup N) : f.ker ≤ comap f H :=
 (comap_bot f) ▸ comap_mono bot_le
 

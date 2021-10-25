@@ -831,8 +831,8 @@ lemma basis.card_le_card_of_submodule (N : submodule R M) [fintype ι] (b : basi
 b.card_le_card_of_linear_independent (b'.linear_independent.map' N.subtype N.ker_subtype)
 
 lemma basis.card_le_card_of_le
-  {N O : submodule R M} (hNO : N ≤ O) [fintype ι] (b : basis ι R O) [fintype ι'] (b' : basis ι' R N) :
-  fintype.card ι' ≤ fintype.card ι :=
+  {N O : submodule R M} (hNO : N ≤ O) [fintype ι] (b : basis ι R O) [fintype ι']
+  (b' : basis ι' R N) : fintype.card ι' ≤ fintype.card ι :=
 b.card_le_card_of_linear_independent
   (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
 

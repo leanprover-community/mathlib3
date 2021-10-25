@@ -222,15 +222,15 @@ begin
   exact hV (mem_inter.2 ⟨hx.1.2.1, hx.2.2.1⟩),
 end
 
-lemma pairs_finset_bUnion_left (A : finset (finset α)) (V : finset α) (f : finset α → finset α) :
+lemma pairs_finset_bUnion_left (A : finset β) (V : finset α) (f : β → finset α) :
   pairs_finset r (A.bUnion f) V = A.bUnion (λ a, pairs_finset r (f a) V) :=
 by { ext x, simp only [mem_pairs_finset, mem_bUnion, exists_and_distrib_right] }
 
-lemma pairs_finset_bUnion_right (U : finset α) (B : finset (finset α)) (f : finset α → finset α) :
+lemma pairs_finset_bUnion_right (U : finset α) (B : finset β) (f : β → finset α) :
   pairs_finset r U (B.bUnion f) = B.bUnion (λ b, pairs_finset r U (f b)) :=
 by { ext x, simp only [mem_pairs_finset, mem_bUnion], tauto }
 
-lemma pairs_finset_bUnion (A B : finset (finset α)) (f g : finset α → finset α) :
+lemma pairs_finset_bUnion (A B : finset β) (f g : β → finset α) :
   pairs_finset r (A.bUnion f) (B.bUnion g) =
     (A.product B).bUnion (λ ab, pairs_finset r (f ab.1) (g ab.2)) :=
 by simp_rw [product_bUnion, pairs_finset_bUnion_left, pairs_finset_bUnion_right]
@@ -245,6 +245,31 @@ begin
   rw [pairs_count, pairs_finset, ←finset.card_product],
   exact finset.card_filter_le _ _,
 end
+
+--   -- rw card_bUnion,
+--   -- exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint x hx y hy h),
+
+-- lemma pairs_count_bUnion_left [decidable_eq α] (A : finset β) (f : β → finset α) (B : finset α) :
+--   pairs_count r (A.bUnion f) B = ∑ a in A, pairs_count r (f a) B :=
+-- begin
+--   rw [pairs_count, pairs_finset_bUnion_left, card_bUnion],
+--   { refl },
+--   intros x hx y hy h,
+--   apply pairs_finset_disjoint_left,
+--   -- simp only [pairs_count, pairs_finset_bUnion],
+--   -- rw card_bUnion,
+
+-- end
+
+-- lemma pairs_count_bUnion [decidable_eq α] (A B : finset β) (f g : β → finset α) :
+--   pairs_count r (A.bUnion f) (B.bUnion g) = ∑ ab in A.product B, pairs_count r (f ab.1) (g ab.2) :=
+-- begin
+--   simp only [pairs_count, pairs_finset_bUnion],
+--   rw card_bUnion,
+
+-- end
+
+-- #exit
 
 /-- Edge density between two finsets of vertices -/
 noncomputable def pairs_density (U V : finset α) : ℝ :=

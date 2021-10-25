@@ -19,7 +19,7 @@ variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : 
   (G : simple_graph α) (ε : ℝ) {U : finset α} (hU : U ∈ P.parts) (V : finset α)
 
 local notation `m` := (card α/exp_bound P.parts.card : ℕ)
-local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
+-- local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
 /-- The witnesses of non uniformity among the parts of a finpartition. -/
 noncomputable def finpartition.witnesses
@@ -29,7 +29,7 @@ noncomputable def finpartition.witnesses
 /-- The portion of `increment` that partitions `U`. -/
 noncomputable def finpartition.is_equipartition.chunk_increment :
   finpartition U :=
-dite (U.card = m * 4^P.parts.card + a)
+dite (U.card = m * 4^P.parts.card + (card α/P.parts.card - m * 4^P.parts.card))
   (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₂ hUcard)
   (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₃ hP hU hUcard)
   -- hP and hU are used to get that U has size m * 4^P.parts.card + a or m * 4^P.parts.card + a + 1
@@ -180,17 +180,11 @@ lemma card_le_m_add_one_of_mem_chunk_increment_parts {A : finset α}
 (card_eq_of_mem_parts_chunk_increment hA).elim (λ i, by simp [i]) (λ i, i.le)
 
 lemma card_bUnion_star_le_m_add_one_card_star_mul :
-  ((hP.star G ε hU V).bUnion id).card ≤ (hP.star G ε hU V).card * (m + 1) :=
-card_bUnion_le_card_mul _ _ _ $ λ s hs,
-  card_le_m_add_one_of_mem_chunk_increment_parts $ star_subset_chunk_increment hs
+  (((hP.star G ε hU V).bUnion id).card : ℝ) ≤ (hP.star G ε hU V).card * (m + 1) :=
+by exact_mod_cast (card_bUnion_le_card_mul _ _ _ $ λ s hs,
+  card_le_m_add_one_of_mem_chunk_increment_parts $ star_subset_chunk_increment hs)
 
-@[to_additive]
-lemma le_prod_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
-  (n : β) (h : ∀ (x ∈ s), n ≤ f x) :
-  n ^ s.card ≤ s.prod f :=
-@prod_le_of_forall_le α (order_dual β) _ s f n h
-
-lemma le_sum_card_subset_chunk_increment_parts (m_pos : (0 : ℝ) < m) {A : finset (finset α)}
+lemma le_sum_card_subset_chunk_increment_parts {A : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
   (A.card : ℝ) * u.card * (m/(m+1)) ≤ (A.sup id).card :=
 begin
@@ -274,8 +268,8 @@ begin
     { exact_mod_cast (nat.zero_le _) },
     rw [sq, mul_mul_mul_comm, mul_comm ((m:ℝ)/_), mul_comm ((m:ℝ)/_)],
     refine mul_le_mul _ _ _ (nat.cast_nonneg _),
-    apply le_sum_card_subset_chunk_increment_parts (m_coe_pos hPα) hA hx,
-    apply le_sum_card_subset_chunk_increment_parts (m_coe_pos hPα) hB hy,
+    apply le_sum_card_subset_chunk_increment_parts hA hx,
+    apply le_sum_card_subset_chunk_increment_parts hB hy,
     apply mul_nonneg (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) _,
     refine div_nonneg (nat.cast_nonneg m) coe_m_add_one_pos.le },
   refine mul_pos (mul_pos _ _) (mul_pos _ _); rw [nat.cast_pos, finset.card_pos],
@@ -336,8 +330,7 @@ begin
     (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) ≤ ε^5/50,
   { apply this.trans,
     exact div_le_div_of_le_left (eps_pow_five_pos hPε).le (by norm_num) (by norm_num) },
-  rw sub_le_iff_le_add,
-  rw ←sub_le_iff_le_add',
+  rw [sub_le_iff_le_add, ←sub_le_iff_le_add'],
   apply density_sub_eps_le_sum_density_div_card hPα hPε hA hB,
 end
 
@@ -350,42 +343,26 @@ lemma sq_density_sub_eps_le_sum_sq_density_div_card_aux [nonempty α]
     G.edge_density ab.1 ab.2)/16^P.parts.card)^2 :=
 begin
   obtain hGε | hGε := le_total (G.edge_density U V) (ε^5/50),
-  { calc
-      G.edge_density U V^2 - ε^5/25
-          ≤ G.edge_density U V - ε^5/25
-          : sub_le_sub_right (sq_le (G.edge_density_nonneg _ _) (G.edge_density_le_one _ _)) _
-      ... ≤ ε^5/50 - ε^5/25
-          : sub_le_sub_right hGε _
-      ... ≤ 0
-          : sub_nonpos_of_le (div_le_div_of_le_left (eps_pow_five_pos hPε).le (by norm_num)
-              (by norm_num))
-      ... ≤ _ : sq_nonneg _ },
+  { refine (sub_nonpos_of_le _).trans (sq_nonneg _),
+    refine (sq_le (G.edge_density_nonneg _ _) (G.edge_density_le_one _ _)).trans (hGε.trans _),
+    exact div_le_div_of_le_left (eps_pow_five_pos hPε).le (by norm_num) (by norm_num) },
   rw ←sub_nonneg at hGε,
-  calc
-    G.edge_density U V^2 - ε^5/25
-        ≤ G.edge_density U V^2 - ε^5/25 * G.edge_density U V
-        : sub_le_sub_left (mul_le_of_le_one_right
-            (div_nonneg (eps_pow_five_pos hPε).le $ by norm_num) $ G.edge_density_le_one _ _) _
-    ... ≤ G.edge_density U V^2 - ε^5/25 * G.edge_density U V + (ε^5/50)^2
-        : le_add_of_nonneg_right (sq_nonneg _)
-    ... = (G.edge_density U V - ε^5/50)^2
-        : by { rw [sub_sq, mul_right_comm, mul_div_comm, div_eq_mul_inv], norm_num }
-    ... = (G.edge_density ((hP.chunk_increment G ε hU).parts.bUnion id)
-            ((hP.chunk_increment G ε hV).parts.bUnion id) - ε^5/50)^2
-        : by rw [finpartition.bUnion_parts, finpartition.bUnion_parts]
-    ... ≤ ((∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
-            G.edge_density ab.1 ab.2)/((hP.chunk_increment G ε hU).parts.card
-            * (hP.chunk_increment G ε hV).parts.card))^2
-        : pow_le_pow_of_le_left
-            (by rwa [finpartition.bUnion_parts, finpartition.bUnion_parts])
-            (density_sub_eps_le_sum_density_div_card hPα hPε set.subset.rfl set.subset.rfl) 2
-    ... ≤ ((∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
-    G.edge_density ab.1 ab.2)/16^P.parts.card)^2
-        : begin
-            rw [card_chunk_increment (m_pos hPα), card_chunk_increment (m_pos hPα), ←nat.cast_mul,
-              ←mul_pow],
-            norm_cast,
-          end,
+  have : G.edge_density U V - ε ^ 5 / 50 ≤
+    (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
+      G.edge_density ab.1 ab.2) / (16 ^ P.parts.card),
+  { apply (le_trans _ (density_sub_eps_le_sum_density_div_card hPα hPε
+      (set.subset.refl (hP.chunk_increment G ε hU).parts)
+      (set.subset.refl (hP.chunk_increment G ε hV).parts))).trans _,
+    { rw [bUnion_parts, bUnion_parts] },
+    { rw [card_chunk_increment (m_pos hPα), card_chunk_increment (m_pos hPα), ←nat.cast_mul,
+        ←mul_pow, nat.cast_pow],
+      norm_cast } },
+  apply le_trans _ (pow_le_pow_of_le_left hGε this 2),
+  rw [sub_sq, sub_add, sub_le_sub_iff_left],
+  apply (sub_le_self _ (sq_nonneg (ε^5/50))).trans,
+  rw [mul_right_comm, mul_div_comm, div_eq_mul_one_div (ε^5), (show (2:ℝ)/50 = 1/25, by norm_num)],
+  refine mul_le_of_le_one_right (mul_nonneg _ (by norm_num)) (G.edge_density_le_one _ _),
+  apply (eps_pow_five_pos hPε).le,
 end
 
 -- dagger inequality
@@ -415,8 +392,7 @@ begin
     (div_nonneg (eps_pos hPε).le $ by norm_num)
     (one_sub_eps_mul_card_witness_le_card_star hV hUV' hUV hPε hε₁)
     (one_sub_eps_mul_card_witness_le_card_star hU hUV'.symm (λ hVU, hUV hVU.symm) hPε hε₁),
-  rw [mul_div_comm, div_eq_mul_one_div],
-  norm_num,
+  linarith,
 end
 
 lemma m_bound {x : ℝ} (hx : 0 < x) : (x + 1) * (1 - 1/x) / x ≤ 1 :=
@@ -455,11 +431,8 @@ begin
             (one_sub_eps_mul_card_witness_le_card_star hV hUV hunif hPε hε₁)
             (div_nonneg hm $ nat.cast_nonneg _))
     ... ≤ (hP.star G ε hU V).card * (m + 1) * ((1 - 1/m) / U.card) :
-          begin
-            norm_cast,
-            exact mul_le_mul_of_nonneg_right (nat.cast_le.2
-              card_bUnion_star_le_m_add_one_card_star_mul) (div_nonneg hm $ nat.cast_nonneg _),
-          end
+            mul_le_mul_of_nonneg_right card_bUnion_star_le_m_add_one_card_star_mul
+              (div_nonneg hm $ nat.cast_nonneg _)
     ... ≤ (hP.star G ε hU V).card * (m + 1) * ((1 - 1/m) / (4^P.parts.card * m))
         : mul_le_mul_of_nonneg_left (div_le_div_of_le_left hm
             (mul_pos four_pow_pos $ m_coe_pos hPα) $ pow_mul_m_le_card_part hP hU)
@@ -470,9 +443,7 @@ begin
         ←div_mul_eq_mul_div_comm],
       refine mul_le_of_le_one_right (div_nonneg (nat.cast_nonneg _) four_pow_pos.le) _,
       rw mul_div_assoc',
-      apply m_bound,
-      rw nat.cast_pos,
-      apply m_pos hPα,
+      apply m_bound (m_coe_pos hPα),
     end
 end
 
@@ -503,8 +474,7 @@ begin
   { have := average_density_near_total_density hPα hPε hε₁
       (subset.refl (hP.chunk_increment G ε hU).parts)
       (subset.refl (hP.chunk_increment G ε hV).parts),
-    have m_pos : 0 < m := m_pos hPα,
-    simp_rw [←sup_eq_bUnion, sup_parts, card_chunk_increment m_pos, nat.cast_pow] at this,
+    simp_rw [←sup_eq_bUnion, sup_parts, card_chunk_increment (m_pos hPα), nat.cast_pow] at this,
     norm_num at this,
     exact this },
   have hε : 0 < ε := eps_pos hPε,
@@ -519,15 +489,6 @@ begin
   cases hst,
   left, linarith,
   right, linarith,
-end
-
-lemma product_subset_product {α β : Type*} {A A' : finset α} {B B' : finset β}
-  (hA : A' ⊆ A) (hB : B' ⊆ B) :
-  A'.product B' ⊆ A.product B :=
-begin
-  rintro ⟨x,y⟩ h,
-  simp only [mem_product] at h ⊢,
-  exact ⟨hA h.1, hB h.2⟩,
 end
 
 -- double dagger inequality
@@ -566,7 +527,6 @@ calc
   ... ≤ (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
           G.edge_density ab.1 ab.2^2)/16^P.parts.card :
     begin
-      -- have := product_subset_product,
       have t : (hP.star G ε hU V).product (hP.star G ε hV U) ⊆
         (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts :=
           product_subset_product star_subset_chunk_increment star_subset_chunk_increment,

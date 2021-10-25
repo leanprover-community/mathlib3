@@ -279,15 +279,6 @@ begin
   rwa [←hj.2 _ hA, hB₂.2 _ hA]
 end
 
-lemma union_of_atoms {s : finset α} {Q : finset (finset α)} {A : finset α}
-  (hA : A ∈ Q) (hs : A ⊆ s) :
-  s.filter (λ i, ∃ B ∈ (atomise s Q).parts, B ⊆ A ∧ i ∈ B) = A :=
-begin
-  ext i,
-  simp only [mem_filter, union_of_atoms_aux hA hs],
-  exact and_iff_right_iff_imp.2 (@hs i),
-end
-
 open_locale classical
 
 lemma union_of_atoms' {s : finset α} {Q : finset (finset α)} (A : finset α)

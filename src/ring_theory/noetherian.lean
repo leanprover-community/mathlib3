@@ -8,7 +8,7 @@ import group_theory.finiteness
 import linear_algebra.linear_independent
 import order.compactly_generated
 import order.order_iso_nat
-import ring_theory.ideal.quotient
+import ring_theory.ideal.operations
 
 /-!
 # Noetherian rings and modules

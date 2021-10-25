@@ -1468,3 +1468,82 @@ end
 end dense_range
 
 end continuous
+
+/--
+The library contains many lemmas that functions/operations are continuous. There are many ways
+to formulate the continuity of operations. Some are more convenient than others.
+Note: for the most part this note also applies to other properties
+(measurable, differentiable, continuous_on, ...).
+
+### The traditional way
+As an example, let's look at addition `(+) : M → M → M`. We can state that this is continuous
+in different definitionally equal ways (omitting some typing information)
+* `continuous (λ p, p.1 + p.2)`;
+* `continuous (function.uncurry (+))`;
+* `continuous ↿(+)`.
+
+However, lemmas with this conclusion are not nice to use in practice because
+(1) They confuse the elaborator. The following two examples fail, because of limitations in the
+elaboration process.
+```
+variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
+example : continuous (λ x : M, x + x) :=
+continuous_add.comp _
+
+example : continuous (λ x : M, x + x) :=
+continuous_add.comp (continuous_id.prod_mk continuous_id)
+```
+The second is a valid proof, which is accepted if you write it as
+`continuous_add.comp (continuous_id.prod_mk continuous_id : _)`
+
+(2) If the operation has more than 2 arguments, they are impractical to use, because in your
+application the arguments in the domain might be in a different order or associated differently.
+
+### The convenient way
+A much more convenient way to write continuity lemmas is like `continuous.add`:
+```
+continuous.add : {f g : X → M} (hf : continuous f) (hg : continuous g) : continuous (λ x, f x + g x)
+```
+This has the following advantages
+* It supports projection notation, so is shorter to write.
+* `continuous.add _ _` is recognized correctly by the elaborator and gives useful new goals.
+* It works for in any application, since the domain is the variable `X`.
+
+As an example for an unary operation, we have `continuous.neg`.
+```
+continuous.neg {f : α → G} (hf : continuous f) : continuous (λ x, -f x)
+```
+For unary functions, the elaborator is not confused when applying the traditional lemma
+(like `continuous_neg`), but it's still convenient to have the short version available (compare
+`hf.neg.neg.neg` with `continuous_neg.comp $ continuous_neg.comp $ continuous_neg.comp hf`).
+
+As an harder example, consider an operation of the following type:
+```
+def strans {x : F} (γ γ' : path x x) (t₀ : I) : path x x
+```
+The precise definition is not important, only its type.
+The correct continuity principle for this operation is:
+```
+{f : X → F} {γ γ' : ∀ x, path (f x) (f x)} {t₀ s : X → I}
+  (hγ : continuous ↿γ) (hγ' : continuous ↿γ')
+  (ht : continuous t₀) (hs : continuous s)
+  (some additional assumptions, if the definition might contain continuities) :
+  continuous (λ x, strans (γ x) (γ' x) (t x) (s x))
+```
+Note that *all* arguments of `strans` are indexed over `X`, even the basepoint `x`, and the last
+argument `s` that arises since `path x x` has a coercion to `I → F`. The paths `γ` and `γ'` (which
+are unary functions from `I`) become binary functions in the continuity lemma.
+
+### Notes
+* In summary, make sure that your continuity lemmas are stated in the most general way. That means
+  that:
+  - Wherever possible, all point arguments are replaced by functions
+  - All `n`-ary function arguments are replaced by `n+1`-ary functions
+  - The conclusion has as domain a variable (not something like `X × Y`), and neither does the
+    continuity happen in a `Π`-type.
+  - All (relevant) arguments have continuity assumptions, and perhaps there are additional
+    assumptions needed to make the operation continuous.
+* This library note is about the *conclusions* of continuity lemmas. In assumptions it's fine to
+  state that a function with more than 1 argument is continuous using `↿` or `function.uncurry`.
+-/
+library_note "continuity lemma statement"

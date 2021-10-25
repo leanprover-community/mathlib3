@@ -167,7 +167,7 @@ homomorphism mapping addition in `G` into multiplication in the automorphism gro
 (written additively in order to define the map). -/
 def conj [add_group G] : G →+ additive (add_aut G) :=
 { to_fun := λ g, @additive.of_mul (add_aut G)
-  { to_fun := λ h, g + h + -g,
+  { to_fun := λ h, g + h + -g, -- this definition is chosen to match the definition of `mul_aut.conj`
     inv_fun := λ h, -g + h + g,
     left_inv := λ _, by simp [add_assoc],
     right_inv := λ _, by simp [add_assoc],

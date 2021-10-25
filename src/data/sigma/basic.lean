@@ -19,8 +19,9 @@ depends on the first component. This can be seen as a generalization of the sum 
   `equiv.sum_equiv_sigma_bool`.
 
 `Σ x, A x` is notation for `sigma A` (note the difference with the big operator `∑`).
-`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...` In that case, the types
-will be `A : α → β → γ → ... → Type*`, `x : α`, `y : β`, `z : γ`...
+`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...`. Here we have 
+`α : Type*`, `β : α → Type*`, `γ : Π a : α, β a → Type*`, ..., `A : Π (a : α) (b : β a) (c : γ a b) ..., Type*` 
+with `x : α` `y : β x`, `z : γ x y`, ...
 
 ## Notes
 

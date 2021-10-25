@@ -1517,7 +1517,7 @@ For unary functions, the elaborator is not confused when applying the traditiona
 (like `continuous_neg`), but it's still convenient to have the short version available (compare
 `hf.neg.neg.neg` with `continuous_neg.comp $ continuous_neg.comp $ continuous_neg.comp hf`).
 
-As an harder example, consider an operation of the following type:
+As a harder example, consider an operation of the following type:
 ```
 def strans {x : F} (γ γ' : path x x) (t₀ : I) : path x x
 ```
@@ -1534,16 +1534,17 @@ Note that *all* arguments of `strans` are indexed over `X`, even the basepoint `
 argument `s` that arises since `path x x` has a coercion to `I → F`. The paths `γ` and `γ'` (which
 are unary functions from `I`) become binary functions in the continuity lemma.
 
-### Notes
-* In summary, make sure that your continuity lemmas are stated in the most general way. That means
-  that:
-  - Wherever possible, all point arguments are replaced by functions
+### Summary
+* Make sure that your continuity lemmas are stated in the most general way, and in a convenient
+  form. That means that:
+  - The conclusion has a variable `X` as domain (not something like `Y × Z`);
+  - Wherever possible, all point arguments `c : Y` are replaced by functions `c : X → Y`;
   - All `n`-ary function arguments are replaced by `n+1`-ary functions
-  - The conclusion has a variable as domain (not something like `X × Y`), and neither does the
-    continuity happen in a `Π`-type.
+    (`f : Y → Z` becomes `f : X → Y → Z`);
   - All (relevant) arguments have continuity assumptions, and perhaps there are additional
-    assumptions needed to make the operation continuous.
-* This library note is mostly about the format of the *conclusion* of a continuity lemma.
+    assumptions needed to make the operation continuous;
+  - The function in the conclusion is fully applied.
+* These remarks are mostly about the format of the *conclusion* of a continuity lemma.
   In assumptions it's fine to state that a function with more than 1 argument is continuous using
   `↿` or `function.uncurry`.
 -/

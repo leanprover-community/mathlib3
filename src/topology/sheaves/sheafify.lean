@@ -202,7 +202,7 @@ end
 /-- A sheaf is isomorphic to its sheafification. -/
 @[simps] def _root_.Top.sheaf.iso_sheafify (F : sheaf (Type v) X) : F ≅ F.val.sheafify :=
 @as_iso (sheaf (Type v) X) _ _ _ F.val.to_sheafify
-  ((is_iso_iff_is_iso' _ _ _ F.val.to_sheafify).mp F.to_sheafify_is_iso)
+  ((is_iso_iff_is_iso' _ _ F.val.to_sheafify).mp F.to_sheafify_is_iso)
 
 /-- A morphsim `F ⟶ G` into a sheaf factors through the sheafification `F♯ ⟶ G`. -/
 def sheafify_lift {F : presheaf (Type v) X} {G : sheaf (Type v) X} (α : F ⟶ G.val) :

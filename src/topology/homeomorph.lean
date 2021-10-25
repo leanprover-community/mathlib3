@@ -392,6 +392,13 @@ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
 
 end distrib
 
+/-- If `ι` has a unique element, then `ι → α` is homeomorphic to `α`. -/
+@[simps { fully_applied := ff }]
+def fun_unique (ι α : Type*) [unique ι] [topological_space α] : (ι → α) ≃ₜ α :=
+{ to_equiv := equiv.fun_unique ι α,
+  continuous_to_fun := continuous_apply _,
+  continuous_inv_fun := continuous_pi (λ _, continuous_id) }
+
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.
 -/

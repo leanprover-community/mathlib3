@@ -1473,7 +1473,7 @@ end continuous
 The library contains many lemmas stating that functions/operations are continuous. There are many
 ways to formulate the continuity of operations. Some are more convenient than others.
 Note: for the most part this note also applies to other properties
-(measurable, differentiable, continuous_on, ...).
+(`measurable`, `differentiable`, `continuous_on`, ...).
 
 ### The traditional way
 As an example, let's look at addition `(+) : M → M → M`. We can state that this is continuous
@@ -1502,7 +1502,7 @@ application the arguments in the domain might be in a different order or associa
 ### The convenient way
 A much more convenient way to write continuity lemmas is like `continuous.add`:
 ```
-continuous.add : {f g : X → M} (hf : continuous f) (hg : continuous g) : continuous (λ x, f x + g x)
+continuous.add {f g : X → M} (hf : continuous f) (hg : continuous g) : continuous (λ x, f x + g x)
 ```
 This has the following advantages
 * It supports projection notation, so is shorter to write.

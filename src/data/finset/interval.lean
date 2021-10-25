@@ -202,6 +202,25 @@ end
 
 end linear_order
 
+section order_top
+variables [order_top α] [locally_finite_order α]
+
+lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
+begin
+  obtain ⟨a, ha⟩ := hs,
+  exact (Ici a).finite_to_set.subset (λ b hb, mem_Ici.2 $ ha hb),
+end
+
+end order_top
+
+section order_bot
+variables [order_bot α] [locally_finite_order α]
+
+lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite :=
+hs.dual.finite
+
+end order_bot
+
 section ordered_cancel_add_comm_monoid
 variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
   [locally_finite_order α]

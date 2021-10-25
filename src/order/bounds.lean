@@ -82,6 +82,10 @@ lemma not_bdd_below_iff {α : Type*} [linear_order α] {s : set α} :
   ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y < x :=
 @not_bdd_above_iff (order_dual α) _ _
 
+lemma bdd_above.dual (h : bdd_above s) : @bdd_below (order_dual α) _ s := h
+
+lemma bdd_below.dual (h : bdd_below s) : @bdd_above (order_dual α) _ s := h
+
 /-!
 ### Monotonicity
 -/

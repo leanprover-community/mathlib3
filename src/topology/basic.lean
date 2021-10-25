@@ -1559,5 +1559,7 @@ lemma continuous_on.comp_fract {X Y : Type*} [topological_space X] [topological_
   {f : X → ℝ → Y} {g : X → ℝ} (hf : continuous ↿f) (hg : continuous g) (h : ∀ s, f s 0 = f s 1) :
   continuous (λ x, f x (fract (g x)))
 ```
+With `continuous_at` you can be even more precise about what to prove in case of discontinuities,
+see e.g. `continuous_at.comp_div_cases`.
 -/
 library_note "continuity lemma statement"

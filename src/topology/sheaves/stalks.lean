@@ -268,6 +268,19 @@ begin
     rw [heq, subsingleton.elim (i₁ x) (i₂ x)] }
 end
 
+lemma hom_section_ext {F : presheaf C X} {G : sheaf C X} (α β : F ⟶ G.val)
+  (H : ∀ x, (stalk_functor _ x).map α = (stalk_functor _ x).map β) : α = β :=
+begin
+  ext U,
+  apply concrete_category.hom_ext,
+  intro s,
+  apply section_ext G (unop U),
+  intro x,
+  convert congr_hom (H x) (((forget C).map (F.germ x)) s),
+  exact (stalk_functor_map_germ_apply _ _ α _).symm,
+  exact (stalk_functor_map_germ_apply _ _ β _).symm
+end
+
 /-
 Note that the analogous statement for surjectivity is false: Surjectivity on stalks does not
 imply surjectivity of the components of a sheaf morphism. However it does imply that the morphism

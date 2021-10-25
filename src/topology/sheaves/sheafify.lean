@@ -124,6 +124,129 @@ The isomorphism betweeen a stalk of the sheafification and the original stalk.
 def sheafify_stalk_iso (x : X) : F.sheafify.1.stalk x ≅ F.stalk x :=
 (equiv.of_bijective _ ⟨stalk_to_fiber_injective _ _, stalk_to_fiber_surjective _ _⟩).to_iso
 
--- PROJECT functoriality, and that sheafification is the left adjoint of the forgetful functor.
+open category_theory
+
+instance stalk_to_fiber_is_iso (x : X) : is_iso (F.stalk_to_fiber x) :=
+(is_iso_iff_bijective _).mpr
+  ⟨stalk_to_fiber_injective _ _, stalk_to_fiber_surjective _ _⟩
+
+@[simp, reassoc] lemma stalk_functor_sheafify_comp_stalk_to_fiber (x : X) :
+  (stalk_functor (Type v) x).map F.to_sheafify ≫ F.stalk_to_fiber x = 𝟙 _ :=
+begin
+  ext U s,
+  induction U using opposite.rec,
+  cases U,
+  delta stalk_functor to_sheafify stalk_to_fiber Top.stalk_to_fiber presheaf.germ sheafify,
+  simp,
+  congr
+end
+
+@[simp, reassoc] lemma stalk_to_fiber_comp_stalk_functor_sheafify (x : X) :
+  F.stalk_to_fiber x ≫ (stalk_functor (Type v) x).map F.to_sheafify = 𝟙 _ :=
+is_iso.inv_eq_of_inv_hom_id (stalk_functor_sheafify_comp_stalk_to_fiber F x) ▸
+      is_iso.hom_inv_id _
+
+def sheafify_map {F G : presheaf (Type v) X} (α : F ⟶ G) :
+  F.sheafify ⟶ G.sheafify :=
+{ app := λ U s, ⟨λ x, (stalk_functor _ x.val).map α (s.val x),
+  begin
+    intro x,
+    rcases s.2 x with ⟨V, hV, i, a, ha⟩,
+    refine ⟨V, hV, i, (α.app _) a, _⟩,
+    intro y, have : s.1 _ = _ := ha y,
+    dsimp only,
+    rw this,
+    erw functor.comp_map,
+    rw whiskering_left_obj_map,
+    erw limits.types.colimit.ι_map_apply,
+    congr
+  end⟩,
+  naturality' := λ A B f,
+  begin
+    ext y, cases y,
+    delta presheaf.sheafify subsheaf_to_Types subpresheaf_to_Types presheaf.stalk_functor,
+    simp only [types_comp_apply, subtype.coe_mk],
+    congr
+  end }
+
+variable (X)
+
+def sheafify_functor : X.presheaf (Type v) ⥤ X.sheaf (Type v) :=
+{ obj := λ F, F.sheafify,
+  map := λ _ _ f, sheafify_map f,
+  map_id' := λ F, by { unfold sheafify_map, simp, congr },
+  map_comp' := λ F G H α β, by { unfold sheafify_map, simp, congr } }
+
+variable {X}
+
+@[simp, reassoc]
+lemma sheafify_naturality (F G : presheaf (Type v) X) (α : F ⟶ G) :
+  F.to_sheafify ≫ (sheafify_functor _).map α = α ≫ G.to_sheafify :=
+begin
+  change F.to_sheafify ≫ sheafify_map α = _,
+  delta to_sheafify sheafify_map presheaf.stalk_functor presheaf.germ,
+  ext,
+  simp,
+  erw limits.types.colimit.ι_map_apply,
+  congr
+end
+
+instance _root_.Top.sheaf.to_sheafify_is_iso (F : sheaf (Type v) X) :
+  is_iso F.val.to_sheafify :=
+begin
+  rw is_iso_iff_is_iso',
+  rw is_iso_iff_stalk_functor_map_iso,
+  intro x,
+  rw ←is_iso.inv_eq_of_inv_hom_id (stalk_functor_sheafify_comp_stalk_to_fiber F.val x),
+  exact is_iso.inv_is_iso
+end
+
+@[simps]
+def _root_.Top.sheaf.iso_sheafify (F : sheaf (Type v) X) : F ≅ F.val.sheafify :=
+@as_iso (sheaf (Type v) X) _ _ _ F.val.to_sheafify
+  ((is_iso_iff_is_iso' _ _ F.val.to_sheafify).mp F.to_sheafify_is_iso)
+
+def sheafify_lift {F : presheaf (Type v) X} {G : sheaf (Type v) X} (α : F ⟶ G.val) :
+  F.sheafify ⟶ G := (sheafify_functor _).map α ≫ G.iso_sheafify.inv
+
+@[simp]
+lemma sheafify_lift_fac {F : presheaf (Type v) X} {G : sheaf (Type v) X} (α : F ⟶ G.val) :
+  F.to_sheafify ≫ sheafify_lift α = α :=
+by erw [sheafify_naturality_assoc, G.iso_sheafify.hom_inv_id, category.comp_id]
+
+@[simp]
+lemma sheafify_lift_comp {F : presheaf (Type v) X} (G H : sheaf (Type v) X) (α : F ⟶ G.val)
+  (β : G ⟶ H) : sheafify_lift (α ≫ β) = sheafify_lift α ≫ β :=
+begin
+  unfold sheafify_lift,
+  simp only [functor.map_comp, category.assoc, Top.sheaf.iso_sheafify_inv],
+  congr' 1,
+  simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
+  exact sheafify_naturality _ _ _
+end
+
+lemma to_sheafify_mono (F : presheaf (Type v) X) (G : sheaf (Type v) X) (α β : F.sheafify ⟶ G)
+  (H : F.to_sheafify ≫ α = F.to_sheafify ≫ β) : α = β :=
+hom_section_ext _ _
+  (λ x, by simpa using congr_arg (λ f, F.stalk_to_fiber x ≫ (stalk_functor (Type v) x).map f) H)
+
+@[simp] lemma sheafify_map_to_sheafify (F : presheaf (Type v) X) :
+  sheafify_map F.to_sheafify = F.sheafify.val.to_sheafify :=
+to_sheafify_mono _ _ _ _ (sheafify_naturality _ _ (F.to_sheafify))
+
+@[simp] lemma sheafify_lift_to_sheafify (F : presheaf (Type v) X) :
+  sheafify_lift F.to_sheafify = 𝟙 _ :=
+by { delta sheafify_lift sheafify_functor, simpa }
+
+def sheafify_adjunction : sheafify_functor X ⊣ sheaf.forget (Type v) X :=
+{ hom_equiv := λ F G,
+  { to_fun := λ α, F.to_sheafify ≫ α,
+    inv_fun := λ α, sheafify_lift α,
+    left_inv := λ α, by simp,
+    right_inv := λ α, by simp },
+  unit := { app := λ F, F.to_sheafify,
+    naturality' := λ _ _ f, by { simp [sheafify_naturality _ _ f], } },
+  counit := { app := λ F, F.iso_sheafify.inv,
+    naturality' := λ F G f, by { simp, exact sheafify_naturality _ _ _ } } }
 
 end Top.presheaf

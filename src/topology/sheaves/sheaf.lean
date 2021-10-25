@@ -101,7 +101,7 @@ namespace sheaf
 /--
 The forgetful functor from sheaves to presheaves.
 -/
-@[derive [full, faithful]]
+@[simps, derive [full, faithful]]
 def forget : Top.sheaf C X ⥤ Top.presheaf C X :=
 full_subcategory_inclusion presheaf.is_sheaf
 

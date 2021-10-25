@@ -106,6 +106,14 @@ induced_category.full subtype.val
 instance full_subcategory.faithful : faithful (full_subcategory_inclusion Z) :=
 induced_category.faithful subtype.val
 
+lemma is_iso_iff_is_iso {X Y : {X : C // Z X}} (f : X ⟶ Y) :
+is_iso f ↔ @is_iso C _ _ _ f :=
+by split; rintros ⟨a,b,c⟩; exact ⟨⟨a,b,c⟩⟩
+
+lemma is_iso_iff_is_iso' (X Y : {X : C // Z X}) (f : X.val ⟶ Y.val) :
+is_iso f ↔ @is_iso {X : C // Z X} _ _ _ f :=
+by split; rintros ⟨a,b,c⟩; exact ⟨⟨a,b,c⟩⟩
+
 end full_subcategory
 
 end category_theory

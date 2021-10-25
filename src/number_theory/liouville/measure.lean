@@ -18,7 +18,7 @@ strictly greater than two is a set of Lebesuge measure zero, see
 Since this set is a residual set, we show that the filters `residual` and `volume.ae` are disjoint.
 These filters correspond to two common notions of genericity on `ℝ`: residual sets and sets of full
 measure. The fact that the filters are disjoint means that two mutually exclusive properties can be
-“generic” at the same time (in the these of different “genericity” filters).
+“generic” at the same time (in the sense of different “genericity” filters).
 
 ## Tags
 

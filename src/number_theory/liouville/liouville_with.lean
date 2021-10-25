@@ -276,7 +276,7 @@ namespace liouville
 variables {x : ℝ}
 
 /-- If `x` is a Liouville number, then for any `n`, for infinitely many denominators `b` there
-exists a numberator `a` such that `x ≠ a / b` and `|x - a / b| < 1 / b ^ n`. -/
+exists a numerator `a` such that `x ≠ a / b` and `|x - a / b| < 1 / b ^ n`. -/
 lemma frequently_exists_num (hx : liouville x) (n : ℕ) :
   ∃ᶠ b : ℕ in at_top, ∃ a : ℤ, x ≠ a / b ∧ |x - a / b| < 1 / b ^ n :=
 begin

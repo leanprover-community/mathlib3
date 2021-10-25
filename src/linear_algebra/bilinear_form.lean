@@ -1213,7 +1213,7 @@ begin
   suffices : x * ↑u = ↑v * y ↔ ↑v⁻¹ * x = y * ↑u⁻¹,
   { dunfold matrix.is_adjoint_pair,
     repeat { rw matrix.transpose_mul, },
-    simp only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv h'],
+    simp only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv],
     conv_lhs { to_rhs, rw [mul_assoc, mul_assoc], congr, skip, rw ←mul_assoc, },
     conv_rhs { rw [mul_assoc, mul_assoc], conv { to_lhs, congr, skip, rw ←mul_assoc }, },
     exact this, },

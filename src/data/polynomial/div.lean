@@ -396,6 +396,28 @@ lemma eval₂_mod_by_monic_eq_self_of_root [comm_ring S] {f : R →+* S}
   (p %ₘ q).eval₂ f x = p.eval₂ f x :=
 by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
 
+lemma sum_fin [add_comm_monoid S] (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0)
+  {n : ℕ} (hn : p.degree < n) :
+  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
+  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
+  calc  ∑ (i : fin n), f i (p.coeff i)
+      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
+  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
+    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
+    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
+  ... = p.sum f : p.sum_def _
+end
+
+lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
+  {n : ℕ} (hn : q.degree ≤ n) :
+  ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
+(sum_fin (λ i c, monomial i c) (by simp)
+  ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
+  (sum_monomial_eq _)
+
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
 The algorithm is "compute `p %ₘ q` and compare to `0`". `

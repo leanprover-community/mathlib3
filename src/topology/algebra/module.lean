@@ -16,12 +16,12 @@ import linear_algebra.pi
 
 We use the class `has_continuous_smul` for topological (semi) modules and topological vector spaces.
 
-In this file we define continuous linear maps, as linear maps between topological modules which are
-continuous. The set of continuous linear maps between the topological `R`-modules `M` and `M₂` is
-denoted by `M →L[R] M₂`.
+In this file we define continuous (semi-)linear maps, as semilinear maps between topological
+modules which are continuous. The set of continuous semilinear maps between the topological
+`R₁`-module `M` and `R₂`-module `M₂` with respect to the `ring_hom` `σ` is denoted by `M →SL[σ] M₂`.
+Plain linear maps are denoted by `M →L[R] M₂` and star-linear maps by `M →L⋆[R] M₂`.
 
-Continuous linear equivalences are denoted by `M ≃L[R] M₂`.
-
+The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M₂` and `M ≃L⋆[R] M₂`.
 -/
 
 open filter
@@ -94,10 +94,10 @@ begin
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,
-  rcases nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within)
-    with ⟨_, hu, u, rfl⟩,
+  obtain ⟨_, hu : y + _ • _ ∈ s, u, rfl⟩ :=
+    nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within),
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
-  exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+  rwa [s.add_mem_iff_right hy', ←units.smul_def, s.smul_mem_iff' u] at hu,
 end
 
 variables (R M)
@@ -210,6 +210,7 @@ structure continuous_linear_map
 
 notation M ` →SL[`:25 σ `] ` M₂ := continuous_linear_map σ M M₂
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map (ring_hom.id R) M M₂
+notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
@@ -227,6 +228,7 @@ structure continuous_linear_equiv
 
 notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
+notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
 
 namespace continuous_linear_map
 
@@ -1484,6 +1486,23 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
   (equiv_of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
 
 end ring
+
+section
+
+variables (ι R M : Type*) [unique ι] [semiring R] [add_comm_monoid M] [module R M]
+  [topological_space M]
+
+/-- If `ι` has a unique element, then `ι → M` is continuously linear equivalent to `M`. -/
+def fun_unique : (ι → M) ≃L[R] M :=
+{ to_linear_equiv := linear_equiv.fun_unique ι R M,
+  .. homeomorph.fun_unique ι M }
+
+variables {ι R M}
+
+@[simp] lemma coe_fun_unique : ⇑(fun_unique ι R M) = function.eval (default ι) := rfl
+@[simp] lemma coe_fun_unique_symm : ⇑(fun_unique ι R M).symm = function.const ι := rfl
+
+end
 
 end continuous_linear_equiv
 

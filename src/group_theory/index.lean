@@ -92,6 +92,33 @@ end
 
 variables (H K L)
 
+lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
+begin
+  rw [←subgroup_of_map_subtype, relindex, relindex, subgroup_of, comap_map_eq_self_of_injective],
+  exact subtype.coe_injective,
+end
+
+lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
+by rw [inf_comm, inf_relindex_right]
+
+lemma inf_relindex_eq_relindex_sup [K.normal] : (H ⊓ K).relindex H = K.relindex (H ⊔ K) :=
+cardinal.to_nat_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv
+
+lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
+by rw [←inf_relindex_left, inf_relindex_eq_relindex_sup]
+
+variables {H K}
+
+lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
+  K.relindex L ∣ H.relindex L :=
+begin
+  apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
+  rw [←inf_relindex_right H L, ←inf_relindex_right K L],
+  exact relindex_mul_relindex (inf_le_inf_right L hHK) inf_le_right,
+end
+
+variables (H K)
+
 @[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
 cardinal.to_nat_eq_one_iff_unique.mpr ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩
 

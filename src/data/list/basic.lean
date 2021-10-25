@@ -102,28 +102,23 @@ assume p1 p2, not.intro (assume Pain, absurd (eq_or_mem_of_mem_cons Pain) (not_o
 theorem ne_and_not_mem_of_not_mem_cons {a y : α} {l : list α} : a ∉ y::l → a ≠ y ∧ a ∉ l :=
 assume p, and.intro (ne_of_not_mem_cons p) (not_mem_of_not_mem_cons p)
 
-theorem mem_map_of_mem (f : α → β) {a : α} {l : list α} (h : a ∈ l) : f a ∈ map f l :=
-begin
-  induction l with b l' ih,
-  {cases h},
-  {rcases h with rfl | h,
-    {exact or.inl rfl},
-    {exact or.inr (ih h)}}
-end
-
-theorem exists_of_mem_map {f : α → β} {b : β} {l : list α} (h : b ∈ map f l) :
-  ∃ a, a ∈ l ∧ f a = b :=
-begin
-  induction l with c l' ih,
-  {cases h},
-  {cases (eq_or_mem_of_mem_cons h) with h h,
-    {exact ⟨c, mem_cons_self _ _, h.symm⟩},
-    {rcases ih h with ⟨a, ha₁, ha₂⟩,
-      exact ⟨a, mem_cons_of_mem _ ha₁, ha₂⟩ }}
-end
-
 @[simp] theorem mem_map {f : α → β} {b : β} {l : list α} : b ∈ map f l ↔ ∃ a, a ∈ l ∧ f a = b :=
-⟨exists_of_mem_map, λ ⟨a, la, h⟩, by rw [← h]; exact mem_map_of_mem f la⟩
+begin
+  -- This proof uses no axioms, that's why it's longer that `induction`; simp [...]
+  induction l with a l ihl,
+  { split, { rintro ⟨_⟩ }, { rintro ⟨a, ⟨_⟩, _⟩ } },
+  { refine (or_congr eq_comm ihl).trans _,
+    split,
+    { rintro (h|⟨c, hcl, h⟩),
+      exacts [⟨a, or.inl rfl, h⟩, ⟨c, or.inr hcl, h⟩] },
+    { rintro ⟨c, (hc|hc), h⟩,
+      exacts [or.inl $ (congr_arg f hc.symm).trans h, or.inr ⟨c, hc, h⟩] } }
+end
+
+alias mem_map ↔ list.exists_of_mem_map _
+
+theorem mem_map_of_mem (f : α → β) {a : α} {l : list α} (h : a ∈ l) : f a ∈ map f l :=
+mem_map.2 ⟨a, h, rfl⟩
 
 theorem mem_map_of_injective {f : α → β} (H : injective f) {a : α} {l : list α} :
   f a ∈ map f l ↔ a ∈ l :=
@@ -2463,15 +2458,14 @@ begin
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
 end
 
--- `to_additive` chokes on the next few lemmas, so we do them by hand below
-@[simp]
+@[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list α) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
 | [] i := by simp
 | L 0 := by simp
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop], }
 
-@[simp]
+@[simp, to_additive]
 lemma prod_take_succ :
   ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).prod = (L.take i).prod * L.nth_le i p
 | [] i p := by cases p
@@ -2482,6 +2476,7 @@ lemma prod_take_succ :
 lemma length_pos_of_prod_ne_one (L : list α) (h : L.prod ≠ 1) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
+@[to_additive]
 lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
   (L.update_nth n a).prod =
     (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
@@ -2505,6 +2500,14 @@ lemma prod_inv_reverse : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹))
 lemma prod_reverse_noncomm : ∀ (L : list α), L.reverse.prod = (L.map (λ x, x⁻¹)).prod⁻¹ :=
 by simp [prod_inv_reverse]
 
+/-- Counterpart to `list.prod_take_succ` when we have an inverse operation -/
+@[simp, to_additive /-"Counterpart to `list.sum_take_succ` when we have an negation operation"-/]
+lemma prod_drop_succ :
+  ∀ (L : list α) (i : ℕ) (p), (L.drop (i + 1)).prod = (L.nth_le i p)⁻¹ * (L.drop i).prod
+| [] i p := false.elim (nat.not_lt_zero _ p)
+| (x :: xs) 0 p := by simp
+| (x :: xs) (i + 1) p := prod_drop_succ xs i _
+
 end group
 
 section comm_group
@@ -2516,21 +2519,21 @@ lemma prod_inv : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).prod
 | [] := by simp
 | (x :: xs) := by simp [mul_comm, prod_inv xs]
 
+/-- Alternative version of `list.prod_update_nth` when the list is over a group -/
+@[to_additive /-"Alternative version of `list.sum_update_nth` when the list is over a group"-/]
+lemma prod_update_nth' (L : list α) (n : ℕ) (a : α) :
+  (L.update_nth n a).prod =
+    L.prod * (if hn : n < L.length then (L.nth_le n hn)⁻¹ * a else 1) :=
+begin
+  refine (prod_update_nth L n a).trans _,
+  split_ifs with hn hn,
+  { rw [mul_comm _ a, mul_assoc a, prod_drop_succ L n hn, mul_comm _ (drop n L).prod,
+      ← mul_assoc (take n L).prod, prod_take_mul_prod_drop, mul_comm a, mul_assoc] },
+  { simp only [take_all_of_le (le_of_not_lt hn), prod_nil, mul_one,
+      drop_eq_nil_of_le ((le_of_not_lt hn).trans n.le_succ)] }
+end
+
 end comm_group
-
-@[simp]
-lemma sum_take_add_sum_drop [add_monoid α] :
-  ∀ (L : list α) (i : ℕ), (L.take i).sum + (L.drop i).sum = L.sum
-| [] i := by simp
-| L 0 := by simp
-| (h :: t) (n+1) := by { dsimp, rw [sum_cons, sum_cons, add_assoc, sum_take_add_sum_drop], }
-
-@[simp]
-lemma sum_take_succ [add_monoid α] :
-  ∀ (L : list α) (i : ℕ) (p), (L.take (i + 1)).sum = (L.take i).sum + L.nth_le i p
-| [] i p := by cases p
-| (h :: t) 0 _ := by simp
-| (h :: t) (n+1) _ := by { dsimp, rw [sum_cons, sum_cons, sum_take_succ, add_assoc], }
 
 lemma eq_of_sum_take_eq [add_left_cancel_monoid α] {L L' : list α} (h : L.length = L'.length)
   (h' : ∀ i ≤ L.length, (L.take i).sum = (L'.take i).sum) : L = L' :=
@@ -2959,7 +2962,7 @@ begin
   { exact lt_add_of_pos_of_le (zero_lt_one_add _) (le_of_lt (ih hx)) }
 end
 
-theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
+@[simp] theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
   @pmap _ _ p (λ a _, f a) l H = map f l :=
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
@@ -4368,200 +4371,6 @@ theorem length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
 by induction l₁ with x l₁ IH; [refl,
 simp only [map, sigma_cons, length_append, length_map, IH, sum_cons]]
 end
-
-/-! ### disjoint -/
-section disjoint
-
-theorem disjoint.symm {l₁ l₂ : list α} (d : disjoint l₁ l₂) : disjoint l₂ l₁
-| a i₂ i₁ := d i₁ i₂
-
-theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
-⟨disjoint.symm, disjoint.symm⟩
-
-theorem disjoint_left {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ ∀ {a}, a ∈ l₁ → a ∉ l₂ := iff.rfl
-
-theorem disjoint_right {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ ∀ {a}, a ∈ l₂ → a ∉ l₁ :=
-disjoint_comm
-
-theorem disjoint_iff_ne {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ ∀ a ∈ l₁, ∀ b ∈ l₂, a ≠ b :=
-by simp only [disjoint_left, imp_not_comm, forall_eq']
-
-theorem disjoint_of_subset_left {l₁ l₂ l : list α} (ss : l₁ ⊆ l) (d : disjoint l l₂) :
-  disjoint l₁ l₂
-| x m₁ := d (ss m₁)
-
-theorem disjoint_of_subset_right {l₁ l₂ l : list α} (ss : l₂ ⊆ l) (d : disjoint l₁ l) :
-  disjoint l₁ l₂
-| x m m₁ := d m (ss m₁)
-
-theorem disjoint_of_disjoint_cons_left {a : α} {l₁ l₂} : disjoint (a::l₁) l₂ → disjoint l₁ l₂ :=
-disjoint_of_subset_left (list.subset_cons _ _)
-
-theorem disjoint_of_disjoint_cons_right {a : α} {l₁ l₂} : disjoint l₁ (a::l₂) → disjoint l₁ l₂ :=
-disjoint_of_subset_right (list.subset_cons _ _)
-
-@[simp] theorem disjoint_nil_left (l : list α) : disjoint [] l
-| a := (not_mem_nil a).elim
-
-@[simp] theorem disjoint_nil_right (l : list α) : disjoint l [] :=
-by rw disjoint_comm; exact disjoint_nil_left _
-
-@[simp, priority 1100] theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
-by simp only [disjoint, mem_singleton, forall_eq]; refl
-
-@[simp, priority 1100] theorem disjoint_singleton {l : list α} {a : α} : disjoint l [a] ↔ a ∉ l :=
-by rw disjoint_comm; simp only [singleton_disjoint]
-
-@[simp] theorem disjoint_append_left {l₁ l₂ l : list α} :
-  disjoint (l₁++l₂) l ↔ disjoint l₁ l ∧ disjoint l₂ l :=
-by simp only [disjoint, mem_append, or_imp_distrib, forall_and_distrib]
-
-@[simp] theorem disjoint_append_right {l₁ l₂ l : list α} :
-  disjoint l (l₁++l₂) ↔ disjoint l l₁ ∧ disjoint l l₂ :=
-disjoint_comm.trans $ by simp only [disjoint_comm, disjoint_append_left]
-
-@[simp] theorem disjoint_cons_left {a : α} {l₁ l₂ : list α} :
-  disjoint (a::l₁) l₂ ↔ a ∉ l₂ ∧ disjoint l₁ l₂ :=
-(@disjoint_append_left _ [a] l₁ l₂).trans $ by simp only [singleton_disjoint]
-
-@[simp] theorem disjoint_cons_right {a : α} {l₁ l₂ : list α} :
-  disjoint l₁ (a::l₂) ↔ a ∉ l₁ ∧ disjoint l₁ l₂ :=
-disjoint_comm.trans $ by simp only [disjoint_comm, disjoint_cons_left]
-
-theorem disjoint_of_disjoint_append_left_left {l₁ l₂ l : list α} (d : disjoint (l₁++l₂) l) :
-  disjoint l₁ l :=
-(disjoint_append_left.1 d).1
-
-theorem disjoint_of_disjoint_append_left_right {l₁ l₂ l : list α} (d : disjoint (l₁++l₂) l) :
-  disjoint l₂ l :=
-(disjoint_append_left.1 d).2
-
-theorem disjoint_of_disjoint_append_right_left {l₁ l₂ l : list α} (d : disjoint l (l₁++l₂)) :
-  disjoint l l₁ :=
-(disjoint_append_right.1 d).1
-
-theorem disjoint_of_disjoint_append_right_right {l₁ l₂ l : list α} (d : disjoint l (l₁++l₂)) :
-  disjoint l l₂ :=
-(disjoint_append_right.1 d).2
-
-theorem disjoint_take_drop {l : list α} {m n : ℕ} (hl : l.nodup) (h : m ≤ n) :
-  disjoint (l.take m) (l.drop n) :=
-begin
-  induction l generalizing m n,
-  case list.nil : m n
-  { simp },
-  case list.cons : x xs xs_ih m n
-  { cases m; cases n; simp only [disjoint_cons_left, mem_cons_iff, disjoint_cons_right, drop,
-                                 true_or, eq_self_iff_true, not_true, false_and,
-                                 disjoint_nil_left, take],
-    { cases h },
-    cases hl with _ _ h₀ h₁, split,
-    { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
-    solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
-end
-
-end disjoint
-
-/-! ### union -/
-section union
-variable [decidable_eq α]
-
-@[simp] theorem nil_union (l : list α) : [] ∪ l = l := rfl
-
-@[simp] theorem cons_union (l₁ l₂ : list α) (a : α) : a :: l₁ ∪ l₂ = insert a (l₁ ∪ l₂) := rfl
-
-@[simp] theorem mem_union {l₁ l₂ : list α} {a : α} : a ∈ l₁ ∪ l₂ ↔ a ∈ l₁ ∨ a ∈ l₂ :=
-by induction l₁; simp only [nil_union, not_mem_nil, false_or, cons_union, mem_insert_iff,
-  mem_cons_iff, or_assoc, *]
-
-theorem mem_union_left {a : α} {l₁ : list α} (h : a ∈ l₁) (l₂ : list α) : a ∈ l₁ ∪ l₂ :=
-mem_union.2 (or.inl h)
-
-theorem mem_union_right {a : α} (l₁ : list α) {l₂ : list α} (h : a ∈ l₂) : a ∈ l₁ ∪ l₂ :=
-mem_union.2 (or.inr h)
-
-theorem sublist_suffix_of_union : ∀ l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ t ++ l₂ = l₁ ∪ l₂
-| [] l₂ := ⟨[], by refl, rfl⟩
-| (a::l₁) l₂ := let ⟨t, s, e⟩ := sublist_suffix_of_union l₁ l₂ in
-  if h : a ∈ l₁ ∪ l₂
-  then ⟨t, sublist_cons_of_sublist _ s, by simp only [e, cons_union, insert_of_mem h]⟩
-  else ⟨a::t, cons_sublist_cons _ s, by simp only [cons_append, cons_union, e, insert_of_not_mem h];
-    split; refl⟩
-
-theorem suffix_union_right (l₁ l₂ : list α) : l₂ <:+ l₁ ∪ l₂ :=
-(sublist_suffix_of_union l₁ l₂).imp (λ a, and.right)
-
-theorem union_sublist_append (l₁ l₂ : list α) : l₁ ∪ l₂ <+ l₁ ++ l₂ :=
-let ⟨t, s, e⟩ := sublist_suffix_of_union l₁ l₂ in
-e ▸ (append_sublist_append_right _).2 s
-
-theorem forall_mem_union {p : α → Prop} {l₁ l₂ : list α} :
-  (∀ x ∈ l₁ ∪ l₂, p x) ↔ (∀ x ∈ l₁, p x) ∧ (∀ x ∈ l₂, p x) :=
-by simp only [mem_union, or_imp_distrib, forall_and_distrib]
-
-theorem forall_mem_of_forall_mem_union_left {p : α → Prop} {l₁ l₂ : list α}
-   (h : ∀ x ∈ l₁ ∪ l₂, p x) : ∀ x ∈ l₁, p x :=
-(forall_mem_union.1 h).1
-
-theorem forall_mem_of_forall_mem_union_right {p : α → Prop} {l₁ l₂ : list α}
-   (h : ∀ x ∈ l₁ ∪ l₂, p x) : ∀ x ∈ l₂, p x :=
-(forall_mem_union.1 h).2
-
-end union
-
-/-! ### inter -/
-section inter
-variable [decidable_eq α]
-
-@[simp] theorem inter_nil (l : list α) : [] ∩ l = [] := rfl
-
-@[simp] theorem inter_cons_of_mem {a : α} (l₁ : list α) {l₂ : list α} (h : a ∈ l₂) :
-  (a::l₁) ∩ l₂ = a :: (l₁ ∩ l₂) :=
-if_pos h
-
-@[simp] theorem inter_cons_of_not_mem {a : α} (l₁ : list α) {l₂ : list α} (h : a ∉ l₂) :
-  (a::l₁) ∩ l₂ = l₁ ∩ l₂ :=
-if_neg h
-
-theorem mem_of_mem_inter_left {l₁ l₂ : list α} {a : α} : a ∈ l₁ ∩ l₂ → a ∈ l₁ :=
-mem_of_mem_filter
-
-theorem mem_of_mem_inter_right {l₁ l₂ : list α} {a : α} : a ∈ l₁ ∩ l₂ → a ∈ l₂ :=
-of_mem_filter
-
-theorem mem_inter_of_mem_of_mem {l₁ l₂ : list α} {a : α} : a ∈ l₁ → a ∈ l₂ → a ∈ l₁ ∩ l₂ :=
-mem_filter_of_mem
-
-@[simp] theorem mem_inter {a : α} {l₁ l₂ : list α} : a ∈ l₁ ∩ l₂ ↔ a ∈ l₁ ∧ a ∈ l₂ :=
-mem_filter
-
-theorem inter_subset_left (l₁ l₂ : list α) : l₁ ∩ l₂ ⊆ l₁ :=
-filter_subset _
-
-theorem inter_subset_right (l₁ l₂ : list α) : l₁ ∩ l₂ ⊆ l₂ :=
-λ a, mem_of_mem_inter_right
-
-theorem subset_inter {l l₁ l₂ : list α} (h₁ : l ⊆ l₁) (h₂ : l ⊆ l₂) : l ⊆ l₁ ∩ l₂ :=
-λ a h, mem_inter.2 ⟨h₁ h, h₂ h⟩
-
-theorem inter_eq_nil_iff_disjoint {l₁ l₂ : list α} : l₁ ∩ l₂ = [] ↔ disjoint l₁ l₂ :=
-by simp only [eq_nil_iff_forall_not_mem, mem_inter, not_and]; refl
-
-theorem forall_mem_inter_of_forall_left {p : α → Prop} {l₁ : list α} (h : ∀ x ∈ l₁, p x)
-     (l₂ : list α) :
-  ∀ x, x ∈ l₁ ∩ l₂ → p x :=
-ball.imp_left (λ x, mem_of_mem_inter_left) h
-
-theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l₂ : list α}
-    (h : ∀ x ∈ l₂, p x) :
-  ∀ x, x ∈ l₁ ∩ l₂ → p x :=
-ball.imp_left (λ x, mem_of_mem_inter_right) h
-
-@[simp] lemma inter_reverse {xs ys : list α} :
-  xs.inter ys.reverse = xs.inter ys :=
-by simp only [list.inter, mem_reverse]; congr
-
-end inter
 
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)

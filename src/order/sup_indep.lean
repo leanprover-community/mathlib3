@@ -80,7 +80,7 @@ lemma sup_indep.pairwise_disjoint {s : finset α} [decidable_eq α] (hs : s.sup_
 -- Once `finset.sup_indep` will have been generalized to non distributive lattices, we can state
 -- this lemma for nondistributive atomic lattices. This setting makes the `←` implication much
 -- harder.
-lemma sup_inded_iff_pairwise_disjoint {s : finset α} [decidable_eq α] :
+lemma sup_indep_iff_pairwise_disjoint {s : finset α} [decidable_eq α] :
   s.sup_indep id ↔ (s : set α).pairwise_disjoint :=
 begin
   refine ⟨sup_indep.pairwise_disjoint, λ hs a ha, _⟩,

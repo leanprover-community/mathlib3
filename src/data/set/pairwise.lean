@@ -66,7 +66,7 @@ theorem pairwise_disjoint_fiber (f : α → β) : pairwise (disjoint on (λ y : 
 set.pairwise_on_univ.1 $ pairwise_on_disjoint_fiber f univ
 
 namespace set
-section semilattice_inf_order_bot
+section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α]
 
 /-- Elements of a set is `pairwise_disjoint`, if any distinct two are disjoint. -/
@@ -117,7 +117,7 @@ lemma pairwise_disjoint.elim' (hs : pairwise_disjoint s) {x y : α} (hx : x ∈ 
   x = y :=
 hs.elim hx hy $ λ hxy, h hxy.eq_bot
 
-end semilattice_inf_order_bot
+end semilattice_inf_bot
 
 /-! ### Pairwise disjoint set of sets -/
 

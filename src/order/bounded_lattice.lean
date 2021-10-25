@@ -19,7 +19,7 @@ instances for `Prop` and `fun`.
 ## Main declarations
 
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
-* `order_<top/bot> α`: Ordering with a top/bottom element.
+* `order_<top/bot> α`: Order with a top/bottom element.
 * `bounded_lattice α`: Ordering with a top and bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
@@ -28,9 +28,8 @@ instances for `Prop` and `fun`.
   non distributive lattice, an element can have several complements.
 * `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
 
-## Main results
+## Common lattices
 
-* lemmas about when `lattice α` and `bounded_lattice α` hold
 * Distributive lattices with a bottom element. Notated by `[distrib_lattice α] [order_bot α]`
   It captures the properties of `disjoint` that are common to `generalized_boolean_algebra` and
   `distrib_lattice` when `order_bot`.
@@ -64,9 +63,7 @@ notation `⊥` := has_bot.bot
 
 attribute [pattern] has_bot.bot has_top.top
 
-/-- An `order_top` is a partial order with a greatest element.
-  (We could state this on preorders, but then it wouldn't be unique
-  so distinguishing one would seem odd.) -/
+/-- An `order_top` is an order with a greatest element.  -/
 @[ancestor has_top]
 class order_top (α : Type u) [has_le α] extends has_top α :=
 (le_top : ∀ a : α, a ≤ ⊤)
@@ -135,9 +132,7 @@ begin
   exact le_antisymm (hb _) (ha _),
 end
 
-/-- An `order_bot` is a partial order with a least element.
-  (We could state this on preorders, but then it wouldn't be unique
-  so distinguishing one would seem odd.) -/
+/-- An `order_bot` is an order with a least element. -/
 @[ancestor has_bot]
 class order_bot (α : Type u) [has_le α] extends has_bot α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
@@ -210,7 +205,7 @@ begin
   exact le_antisymm (ha _) (hb _)
 end
 
-section semilattice_sup_order_top
+section semilattice_sup_top
 variables [semilattice_sup α] [order_top α] {a : α}
 
 @[simp] theorem top_sup_eq : ⊤ ⊔ a = ⊤ :=
@@ -219,9 +214,9 @@ sup_of_le_left le_top
 @[simp] theorem sup_top_eq : a ⊔ ⊤ = ⊤ :=
 sup_of_le_right le_top
 
-end semilattice_sup_order_top
+end semilattice_sup_top
 
-section semilattice_sup_order_bot
+section semilattice_sup_bot
 variables [semilattice_sup α] [order_bot α] {a b : α}
 
 @[simp] theorem bot_sup_eq : ⊥ ⊔ a = a :=
@@ -233,12 +228,12 @@ sup_of_le_left bot_le
 @[simp] theorem sup_eq_bot_iff : a ⊔ b = ⊥ ↔ (a = ⊥ ∧ b = ⊥) :=
 by rw [eq_bot_iff, sup_le_iff]; simp
 
-end semilattice_sup_order_bot
+end semilattice_sup_bot
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
 
-section semilattice_inf_order_top
+section semilattice_inf_top
 variables [semilattice_inf α] [order_top α] {a b : α}
 
 @[simp] theorem top_inf_eq : ⊤ ⊓ a = a :=
@@ -250,9 +245,9 @@ inf_of_le_left le_top
 @[simp] theorem inf_eq_top_iff : a ⊓ b = ⊤ ↔ (a = ⊤ ∧ b = ⊤) :=
 by rw [eq_top_iff, le_inf_iff]; simp
 
-end semilattice_inf_order_top
+end semilattice_inf_top
 
-section semilattice_inf_order_bot
+section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α] {a : α}
 
 @[simp] theorem bot_inf_eq : ⊥ ⊓ a = ⊥ :=
@@ -261,10 +256,11 @@ inf_of_le_left bot_le
 @[simp] theorem inf_bot_eq : a ⊓ ⊥ = ⊥ :=
 inf_of_le_right bot_le
 
-end semilattice_inf_order_bot
+end semilattice_inf_bot
 
 /-! ### Bounded lattice -/
 
+-- TODO: rename `bounded_lattice` since it no longer requires `lattice`
 /-- A bounded lattice describes an order `(≤)` with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
@@ -282,7 +278,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [distrib_lattice α] [bounded_lattic
     calc a ⊓ b ≤ b ⊓ c : by { rw inf_comm, exact inf_le_inf_left _ h }
       ... = ⊥ : h₂⟩
 
-/-- Propositions form a bounded distributive lattice. -/
+/-- Propositions form a distributive lattice. -/
 instance Prop.distrib_lattice : distrib_lattice Prop :=
 { le           := λ a b, a → b,
   le_refl      := λ _, id,
@@ -301,7 +297,7 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
   le_sup_inf   := λ a b c H, or_iff_not_imp_left.2 $
     λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩ }
 
-/-- Propositions form a bounded distributive lattice. -/
+/-- Propositions form a bounded order. -/
 instance Prop.bounded_lattice : bounded_lattice Prop :=
 { top          := true,
   le_top       := λ a Ha, true.intro,
@@ -346,13 +342,14 @@ instance [Π i, has_top (α' i)] : has_top (Π i, α' i) := ⟨λ i, ⊤⟩
 
 lemma top_def [Π i, has_top (α' i)] : (⊤ : Π i, α' i) = λ i, ⊤ := rfl
 
-instance [Π i, partial_order (α' i)] [Π i, order_top (α' i)] : order_top (Π i, α' i) :=
+-- TODO: make a pi.has_le and generalize here
+instance [Π i, preorder (α' i)] [Π i, order_top (α' i)] : order_top (Π i, α' i) :=
 { le_top := λ _ _, le_top, ..pi.has_top }
 
-instance [Π i, partial_order (α' i)] [Π i, order_bot (α' i)] : order_bot (Π i, α' i) :=
+instance [Π i, preorder (α' i)] [Π i, order_bot (α' i)] : order_bot (Π i, α' i) :=
 { bot_le := λ _ _, bot_le, ..pi.has_bot }
 
-instance [Π i, partial_order (α' i)] [Π i, bounded_lattice (α' i)] :
+instance [Π i, preorder (α' i)] [Π i, bounded_lattice (α' i)] :
   bounded_lattice (Π i, α' i) :=
 { ..pi.order_top, ..pi.order_bot }
 
@@ -858,7 +855,7 @@ end with_top
 
 namespace subtype
 
-/-- A subtype retains a `⊥`-order if the property holds at `⊥`.
+/-- A subtype remains a `⊥`-order if the property holds at `⊥`.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥) :
@@ -866,7 +863,7 @@ protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ _, bot_le }
 
-/-- A subtype retains a `⊤`-order if the property holds at `⊤`.
+/-- A subtype remains a `⊤`-order if the property holds at `⊤`.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def order_top [preorder α] [order_top α] {P : α → Prop} (Ptop : P ⊤) :
@@ -918,7 +915,7 @@ end prod
 /-! ### Disjointness and complements -/
 
 section disjoint
-section semilattice_inf_order_bot
+section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α]
 
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
@@ -966,7 +963,7 @@ lemma disjoint.of_disjoint_inf_of_le {a b c : α} (h : disjoint (a ⊓ b) c) (hl
 lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (hle : b ≤ c) :
   disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_right.trans hle)]
 
-end semilattice_inf_order_bot
+end semilattice_inf_bot
 
 section bounded_lattice
 
@@ -985,7 +982,7 @@ end
 
 end bounded_lattice
 
-section distrib_lattice_order_bot
+section distrib_lattice_bot
 variables [distrib_lattice α] [order_bot α] {a b c : α}
 
 @[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
@@ -1007,9 +1004,9 @@ lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : dis
 @le_of_inf_le_sup_le _ _ a b c ((disjoint_iff.mp hd).symm ▸ bot_le)
   ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 
-end distrib_lattice_order_bot
+end distrib_lattice_bot
 
-section semilattice_inf_order_bot
+section semilattice_inf_bot
 
 variables [semilattice_inf α] [order_bot α] {a b : α} (c : α)
 
@@ -1025,7 +1022,7 @@ h.mono_right inf_le_left
 lemma disjoint.inf_right' (h : disjoint a b) : disjoint a (c ⊓ b) :=
 h.mono_right inf_le_right
 
-end semilattice_inf_order_bot
+end semilattice_inf_bot
 
 end disjoint
 

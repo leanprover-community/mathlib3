@@ -107,7 +107,7 @@ instance conditionally_complete_linear_order_bot.to_order_bot
   [h : conditionally_complete_linear_order_bot α] : order_bot α :=
 { ..h }
 
-/- A complete lattice is a conditionally complete lattice, as there are no restrictions
+/-- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
 
 @[priority 100] -- see Note [lower instance priority]

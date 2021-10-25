@@ -17,7 +17,7 @@ intervals, but more can be added easily along the same lines when needed.
 
 ## Main definitions
 In the following, `*` can represent either `c`, `o`, or `i`.
-  * `set.Ic*.orer_bot`
+  * `set.Ic*.order_bot`
   * `set.Ii*.semillatice_inf`
   * `set.I*c.order_top`
   * `set.I*c.semillatice_inf`

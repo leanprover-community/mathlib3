@@ -44,7 +44,7 @@ namespace nonneg
 instance order_bot [preorder α] {a : α} : order_bot {x : α // a ≤ x} :=
 set.Ici.order_bot
 
-@[simp] lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl⟩ := rfl
+lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl⟩ := rfl
 
 instance no_top_order [partial_order α] [no_top_order α] {a : α} : no_top_order {x : α // a ≤ x} :=
 set.Ici.no_top_order

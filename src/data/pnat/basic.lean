@@ -124,7 +124,7 @@ instance : order_bot ℕ+ :=
 { bot := 1,
   bot_le := λ a, a.property }
 
-lemma bot_eq_one : (⊥ : ℕ+) = 1 := rfl
+@[simp] lemma bot_eq_one : (⊥ : ℕ+) = 1 := rfl
 
 instance : inhabited ℕ+ := ⟨1⟩
 

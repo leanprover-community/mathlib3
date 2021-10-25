@@ -116,6 +116,30 @@ def augmented_cech_nerve_map
   right := F.right,
   w' := augmented_cech_nerve_w' f g F }
 
+lemma augmented_cech_nerve_map_comp :
+  ∀ {X Y Z : arrow C} (f : X ⟶ Y) (g : Y ⟶ Z),
+    augmented_cech_nerve_map X Z (f ≫ g) =
+      augmented_cech_nerve_map X Y f ≫ augmented_cech_nerve_map Y Z g :=
+begin
+  simp only [augmented_cech_nerve_map, cech_nerve_map, comma.comp_left, cech_nerve_map_2,
+    comma.comp_right],
+  intros,
+  ext,
+  simp only [category_theory.limits.wide_pullback.lift_π_assoc,
+ category_theory.nat_trans.comp_app,
+ eq_self_iff_true,
+ category_theory.comma.comp_left,
+ category_theory.category.assoc,
+ category_theory.limits.wide_pullback.lift_π],
+ simp only [category_theory.nat_trans.comp_app,
+ category_theory.limits.wide_pullback.lift_base_assoc,
+ eq_self_iff_true,
+ category_theory.comma.comp_left,
+ category_theory.category.assoc,
+ category_theory.limits.wide_pullback.lift_base],
+ simp only [category_theory.comma.comp_right, eq_self_iff_true],
+end
+
 
 /-- The augmented Čech nerve construction, as a functor from `arrow C`. -/
 @[simps]
@@ -136,8 +160,7 @@ def augmented_cech_nerve : arrow C ⥤ simplicial_object.augmented C :=
  category_theory.comma.id_left,
  category_theory.limits.wide_pullback.lift_base,
  category_theory.nat_trans.id_app]}, refl },
-  map_comp' := by { simp [augmented_cech_nerve_map, cech_nerve_map],
-    tidy, } }
+  map_comp' := by { apply augmented_cech_nerve_map_comp } }
 
 /-- A helper function used in defining the Čech adjunction. -/
 @[simps]

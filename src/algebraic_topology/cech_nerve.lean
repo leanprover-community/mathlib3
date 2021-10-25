@@ -89,20 +89,55 @@ def cech_nerve : arrow C ⥤ simplicial_object C :=
     simpa only [←category.assoc],
   end }
 
+lemma augmented_cech_nerve_w' {C : Type u}
+  [category C]
+  [∀ (n : ℕ) (f : arrow C),
+     has_wide_pullback f.right (λ (i : ulift (fin (n + 1))), f.left)
+       (λ (i : ulift (fin (n + 1))), f.hom)]
+  (f g : arrow C)
+  (F : f ⟶ g) :
+  (𝟭 (simplicial_object C)).map (cech_nerve.map F) ≫
+      g.augmented_cech_nerve.hom =
+    f.augmented_cech_nerve.hom ≫ (const C).map F.right :=
+begin
+  simp only [cech_nerve_map, functor.id_map, cech_nerve_map_2],
+  apply nat_trans.ext,
+  apply funext,
+  intro x,
+  simp only [arrow.augmented_cech_nerve_hom_app, functor.const.map_app, nat_trans.comp_app,
+    eq_self_iff_true, limits.wide_pullback.lift_base],
+end
+
+def augmented_cech_nerve_map
+  (f g : arrow C)
+  (F : f ⟶ g) :
+  f.augmented_cech_nerve ⟶ g.augmented_cech_nerve :=
+{ left := cech_nerve.map F,
+  right := F.right,
+  w' := augmented_cech_nerve_w' f g F }
+
+
 /-- The augmented Čech nerve construction, as a functor from `arrow C`. -/
 @[simps]
 def augmented_cech_nerve : arrow C ⥤ simplicial_object.augmented C :=
 { obj := λ f, f.augmented_cech_nerve,
-  map := λ f g F,
-  { left := cech_nerve.map F,
-    right := F.right,
-    w' := by {
-      simp only [cech_nerve_map, functor.id_map, cech_nerve_map_2],
-      apply nat_trans.ext,
-      apply funext,
-      intro x,
-      simp only [arrow.augmented_cech_nerve_hom_app, functor.const.map_app, nat_trans.comp_app,
-        eq_self_iff_true, limits.wide_pullback.lift_base] } } }
+  map := λ f g F, augmented_cech_nerve_map f g F,
+  map_id' := by { simp [augmented_cech_nerve_map, cech_nerve_map], intros X,
+    ext1,
+    work_on_goal 0 {
+      ext,
+      work_on_goal 0 { simp only [category_theory.category.id_comp,
+ eq_self_iff_true,
+ category_theory.comma.id_left,
+ category_theory.limits.wide_pullback.lift_π,
+ category_theory.nat_trans.id_app], },
+      simp only [category_theory.category.id_comp,
+ eq_self_iff_true,
+ category_theory.comma.id_left,
+ category_theory.limits.wide_pullback.lift_base,
+ category_theory.nat_trans.id_app]}, refl },
+  map_comp' := by { simp [augmented_cech_nerve_map, cech_nerve_map],
+    tidy, } }
 
 /-- A helper function used in defining the Čech adjunction. -/
 @[simps]

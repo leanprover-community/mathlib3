@@ -1047,7 +1047,7 @@ begin
   simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
 
-lemma span_insert (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
+lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
 by rw [insert_eq, span_union]
 
 lemma span_insert_eq_span (h : x ∈ span R s) : span R (insert x s) = span R s :=

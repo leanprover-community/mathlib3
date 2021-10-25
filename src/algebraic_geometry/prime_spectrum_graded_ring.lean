@@ -268,7 +268,7 @@ lemma zero_locus_inf (I J : ideal (⨁ i, A i)) :
 set.ext $ λ x, by simpa using x.2.1.inf_le
 
 lemma union_zero_locus (s s' : set (⨁ i, A i)) :
-  zero_locus s ∪ zero_locus s' = zero_locus ((ideal.span s) ⊓ (ideal.span s') : ideal (⨁ i, A i)) :=
+  zero_locus s ∪ zero_locus s' = zero_locus ((ideal.span s) ⊓ (ideal.span s'): ideal (⨁ i, A i)) :=
 by { rw zero_locus_inf, simp }
 
 lemma zero_locus_mul (I J : ideal (⨁ i, A i)) :
@@ -278,10 +278,6 @@ set.ext $ λ x, by simpa using x.2.1.mul_le
 lemma zero_locus_singleton_mul (f g : (⨁ i, A i)) :
   zero_locus ({f * g} : set (⨁ i, A i)) = zero_locus {f} ∪ zero_locus {g} :=
 set.ext $ λ x, by simpa using x.2.1.mul_mem_iff_mem_or_mem
-
--- @[simp] lemma zero_locus_pow (I : ideal (⨁ i, A i)) {n : ℕ} (hn : 0 < n) :
---   zero_locus ((I ^ n : ideal (⨁ i, A i)) : set (⨁ i, A i)) = zero_locus I :=
--- zero_locus_radical (I ^ n) ▸ (I.radical_pow n hn).symm ▸ zero_locus_radical I
 
 @[simp] lemma zero_locus_singleton_pow (f : (⨁ i, A i)) (n : ℕ) (hn : 0 < n) :
   zero_locus ({f ^ n} : set (⨁ i, A i)) = zero_locus {f} :=
@@ -357,7 +353,8 @@ def basic_open (r : (⨁ i, A i)) : topological_space.opens (prime_spectrum_of_g
 @[simp] lemma mem_basic_open (f : (⨁ i, A i)) (x : prime_spectrum_of_graded_ring A) :
   x ∈ basic_open f ↔ f ∉ x.as_ideal := iff.rfl
 
-lemma is_open_basic_open {a : (⨁ i, A i)} : is_open ((basic_open a) : set (prime_spectrum_of_graded_ring A)) :=
+lemma is_open_basic_open {a : (⨁ i, A i)} : is_open ((basic_open a) :
+  set (prime_spectrum_of_graded_ring A)) :=
 (basic_open a).property
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : (⨁ i, A i)) :
@@ -379,7 +376,8 @@ by { rw basic_open_mul f g, exact inf_le_left }
 lemma basic_open_mul_le_right (f g : (⨁ i, A i)) : basic_open (f * g) ≤ basic_open g :=
 by { rw basic_open_mul f g, exact inf_le_right }
 
-@[simp] lemma basic_open_pow (f : (⨁ i, A i)) (n : ℕ) (hn : 0 < n) : basic_open (f ^ n) = basic_open f :=
+@[simp] lemma basic_open_pow (f : (⨁ i, A i)) (n : ℕ) (hn : 0 < n) :
+  basic_open (f ^ n) = basic_open f :=
 topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
 
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis

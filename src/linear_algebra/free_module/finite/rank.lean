@@ -57,6 +57,15 @@ begin
     mk_to_nat_eq_card, fintype.card_prod, mul_comm]
 end
 
+/-- The finrank of `M × N` is `(finrank R M) + (finrank R N)`. -/
+@[simp] lemma finrank_prod : finrank R (M × N) = (finrank R M) + (finrank R N) :=
+begin
+  letI := nontrivial_of_invariant_basis_number R,
+  rw [finrank, ← ((choose_basis R M).prod (choose_basis R N)).mk_eq_dim'',
+    mk_to_nat_eq_card, fintype.card_sum, finrank, finrank, rank_eq_card_choose_basis_index,
+    rank_eq_card_choose_basis_index, mk_to_nat_eq_card, mk_to_nat_eq_card]
+end
+
 end comm_ring
 
 end module.free

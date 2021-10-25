@@ -103,8 +103,7 @@ begin
   dsimp,
   erw [PresheafedSpace.id_c_app, comap_id], swap,
     { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
-  rw [eq_to_hom_op, eq_to_hom_map, eq_to_hom_trans],
-  refl,
+  simpa,
 end
 
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
@@ -112,8 +111,8 @@ lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) 
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
 begin
   dsimp,
-  erw [Top.presheaf.pushforward.comp_inv_app, ← category.assoc, category.comp_id,
-    (structure_sheaf T).1.map_id, category.comp_id, comap_comp],
+  rw [category.comp_id],
+    rw [(structure_sheaf T).1.map_id, category.comp_id, comap_comp],
   refl,
 end
 

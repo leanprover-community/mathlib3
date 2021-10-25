@@ -970,9 +970,10 @@ begin
   refl,
 end
 
-@[elementwise, reassoc] lemma to_open_comp_comap (f : R →+* S) :
-  to_open R ⊤ ≫ comap f ⊤ ⊤ (λ p hpV, trivial) =
-  @category_theory.category_struct.comp _ _ (CommRing.of R) (CommRing.of S) _ f (to_open S ⊤) :=
+@[elementwise, reassoc] lemma to_open_comp_comap (f : R →+* S)
+  (U : opens (prime_spectrum.Top R)):
+  to_open R U ≫ comap f U (opens.comap (comap_continuous f) U) (λ _, id) =
+  CommRing.of_hom f ≫ (to_open S _) :=
 ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin
   simp_rw [comp_apply, comap_apply, subtype.val_eq_coe],

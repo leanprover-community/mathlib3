@@ -37,6 +37,12 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_coe_to_fun (α →ᵇ β) (λ _, α → β) :=  ⟨λ f, f.to_fun⟩
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : α →ᵇ β) : α → β := h
+
+initialize_simps_projections bounded_continuous_function (to_continuous_map_to_fun → apply)
+
 protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.bounded'
 @[continuity]
 protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
@@ -67,14 +73,9 @@ rfl
 
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
-def mk_of_discrete [discrete_topology α] (f : α → β)
+@[simps] def mk_of_discrete [discrete_topology α] (f : α → β)
   (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
 ⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
-
-@[simp] lemma mk_of_discrete_apply
-  [discrete_topology α] (f : α → β) (C) (h) (a : α) :
-  mk_of_discrete f C h a = f a :=
-rfl
 
 section
 variables (α β)
@@ -174,12 +175,12 @@ instance : metric_space (α →ᵇ β) :=
 variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
-def const (b : β) : α →ᵇ β := ⟨continuous_map.const b, 0, by simp [le_refl]⟩
+@[simps {fully_applied := ff}] def const (b : β) : α →ᵇ β :=
+⟨continuous_map.const b, 0, by simp [le_refl]⟩
 
 variable {α}
 
-@[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
-lemma const_apply (a : α) (b : β) : (const α b : α → β) a = b := rfl
+lemma const_apply' (a : α) (b : β) : (const α b : α → β) a = b := rfl
 
 /-- If the target space is inhabited, so is the space of bounded continuous functions -/
 instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)⟩

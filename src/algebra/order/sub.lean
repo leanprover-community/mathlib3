@@ -327,7 +327,7 @@ end linear_order
 section canonically_ordered_add_monoid
 variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
-lemma add_tsub_cancel_of_le (h : a ≤ b) : a + (b - a) = b :=
+@[simp] lemma add_tsub_cancel_of_le (h : a ≤ b) : a + (b - a) = b :=
 begin
   refine le_antisymm _ le_add_tsub,
   obtain ⟨c, rfl⟩ := le_iff_exists_add.1 h,
@@ -359,8 +359,12 @@ by simp_rw [le_antisymm_iff, tsub_le_tsub_iff_right h1, tsub_le_tsub_iff_right h
 lemma lt_of_tsub_lt_tsub_right_of_le (h : c ≤ b) (h2 : a - c < b - c) : a < b :=
 by { refine ((tsub_le_tsub_iff_right h).mp h2.le).lt_of_ne _, rintro rfl, exact h2.false }
 
-lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
+@[simp] lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by rw [← nonpos_iff_eq_zero, tsub_le_iff_left, add_zero]
+
+/-- One direction of `tsub_eq_zero_iff_le`, as a `@[simp]`-lemma. -/
+@[simp] lemma tsub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
+tsub_eq_zero_iff_le.mpr h
 
 @[simp] lemma tsub_self (a : α) : a - a = 0 :=
 tsub_eq_zero_iff_le.mpr le_rfl
@@ -620,7 +624,7 @@ end canonically_ordered_add_monoid
 section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
-lemma tsub_pos_iff_lt : 0 < a - b ↔ b < a :=
+@[simp] lemma tsub_pos_iff_lt : 0 < a - b ↔ b < a :=
 by rw [tsub_pos_iff_not_le, not_le]
 
 lemma tsub_eq_tsub_min (a b : α) : a - b = a - min a b :=

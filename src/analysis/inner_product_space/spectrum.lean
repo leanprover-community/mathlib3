@@ -3,10 +3,36 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
 
+/-! # Spectral theory of self-adjoint operators
+
+This file covers the spectral theory of self-adjoint operators on an inner product space.
+
+The first part of the file covers general properties, true without any condition on boundedness or
+compactness of the operator or finite-dimensionality of the underlying space, notably:
+* `self_adjoint.conj_eigenvalue_eq_self`: the eigenvalues are real
+* `self_adjoint.orthogonal_family_eigenspaces`: the eigenspaces are orthogonal
+* `self_adjoint.orthogonal_supr_eigenspaces`: the restriction of the operator to the mutual
+  orthogonal complement of the eigenspaces has, itself, no eigenvectors
+
+The second part of the file covers properties of self-adjoint operators in finite dimension.  The
+definition `self_adjoint.diagonalization` provides a linear isometry equivalence from a space `E`
+to the direct sum of the eigenspaces of a self-adjoint operator `T` on `E`.  The theorem
+`self_adjoint.diagonalization_apply_self_apply` states that, when `T` is transferred via this
+equivalence to an operator on the direct sum, it acts diagonally.  This is the *diagonalization
+theorem* for self-adjoint operators on finite-dimensional inner product spaces.
+
+## TODO
+
+Spectral theory for compact self-adjoint operators, bounded self-adjoint operators.
+
+## Tags
+
+self-adjoint operator, spectral theorem, diagonalization theorem
+
+-/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
 variables {E : Type*} [inner_product_space 𝕜 E]
@@ -17,39 +43,6 @@ local attribute [instance] fact_one_le_two_real
 
 open_locale classical big_operators complex_conjugate
 open module.End
-
--- move this
-lemma foo {ι L : Type*} [complete_lattice L] (V : ι → L) :
-  (⨆ i : {i // V i ≠ ⊥}, V i) = ⨆ i, V i :=
-begin
-  by_cases htriv : ∀ i, V i = ⊥,
-  { simp only [htriv, supr_bot] },
-  refine le_antisymm (supr_comp_le V _) (supr_le_supr2 _),
-  intros i,
-  by_cases hi : V i = ⊥,
-  { rw hi,
-    obtain ⟨i₀, hi₀⟩ := not_forall.mp htriv,
-    exact ⟨⟨i₀, hi₀⟩, bot_le⟩ },
-  { exact ⟨⟨i, hi⟩, rfl.le⟩ },
-end
-
-
-/-- The infimum of a family of invariant submodule of an operator is also an invariant submodule.
--/
-lemma linear_map.infi_invariant {ι : Type*} (T : E →ₗ[𝕜] E) {V : ι → submodule 𝕜 E}
-  (hT : ∀ i, ∀ v ∈ (V i), T v ∈ V i) :
-  ∀ v ∈ infi V, T v ∈ infi V :=
-begin
-  have : ∀ i, (V i).map T ≤ V i,
-  { rintros i - ⟨v, hv, rfl⟩,
-    exact hT i v hv },
-  suffices : (infi V).map T ≤ infi V,
-  { intros v hv,
-    exact this ⟨v, hv, rfl⟩ },
-  refine le_infi _,
-  intros i,
-  exact (submodule.map_mono (infi_le V i)).trans (this i),
-end
 
 namespace self_adjoint
 
@@ -130,7 +123,7 @@ end
 lemma orthogonal_supr_eigenspaces_eq_bot' : (⨆ μ : eigenvalues T, eigenspace T μ)ᗮ = ⊥ :=
 begin
   convert hT.orthogonal_supr_eigenspaces_eq_bot using 1,
-  rw ← foo (λ μ, eigenspace T μ),
+  rw ← supr_ne_bot_subtype (λ μ, eigenspace T μ),
   refl,
 end
 

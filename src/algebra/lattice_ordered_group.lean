@@ -135,7 +135,7 @@ the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a�
 "-/,
 priority 100
 ] -- see Note [lower instance priority]
-instance has_one_lattice_has_pos_part [has_one α] [lattice α] : has_pos_part (α)  := ⟨λa, a ⊔ 1⟩
+instance has_one_lattice_has_pos_part : has_pos_part (α)  := ⟨λa, a ⊔ 1⟩
 
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
@@ -147,7 +147,7 @@ the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted 
 "-/,
 priority 100
 ] -- see Note [lower instance priority]
-instance has_one_lattice_has_neg_part [has_one α] [lattice α] : has_neg_part (α)  := ⟨λa, a⁻¹ ⊔ 1⟩
+instance has_one_lattice_has_neg_part : has_neg_part (α)  := ⟨λa, a⁻¹ ⊔ 1⟩
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value

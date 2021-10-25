@@ -102,6 +102,8 @@ have 2 * dist x y ≥ 0,
     ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
 nonneg_of_mul_nonneg_left this zero_lt_two
 
+/-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is
+used. -/
 protected meta def pseudo_metric_space.edist_dist_tac : tactic unit :=
 tactic.intros >> `[exact (ennreal.of_real_eq_coe_nnreal _).symm <|> control_laws_tac]
 

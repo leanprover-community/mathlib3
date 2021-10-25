@@ -93,18 +93,61 @@ begin
   simp,
 end
 
-lemma filter_mod_eq_range_card (a b n : ℕ) :
-  (filter (λ (i : ℕ), a.coprime i) (Ico n (n+a))).card = totient a :=
+example (a b : ℕ) (h : a ≠ b) : a ≤ b ↔ a < b := ne.le_iff_lt h
+
+lemma Ico_eq_insert_Ico_succ (a b : ℕ) (h : a < b) : Ico a b = insert a (Ico a.succ b) :=
 begin
-  induction n,
-  -- TODO Ico 0 should simp to range
-  { simp [Ico_zero],
-    rw totient, },
-  {
-    rw <-n_ih,
-    clear n_ih,
-    sorry,
-  }
+  rw Ico_succ_left,
+  rw ext_iff,
+  intro a_1,
+  simp only [mem_Ico, mem_Ioo, mem_insert],
+  by_cases h2 : a_1 = a,
+  { simp [h2, h], },
+  { simp [h2],
+    intro h3,
+    exact (ne.symm h2).le_iff_lt,},
+end
+
+-- TODO spin off new PR and move these lemmas to data.finset.interval
+lemma Ioo_eq_Ico_erase (a b : ℕ) : Ioo a b = (Ico a b).erase a :=
+begin
+  rw ext_iff,
+  intro a_1,
+  simp only [mem_Ico, mem_Ioo, mem_insert],
+  by_cases h2 : a_1 = a,
+  { simp [h2, h], },
+  { simp [h2],
+    intro h3,
+    exact (ne.symm h2).le_iff_lt,},
+end
+
+lemma Ico_succ_left_eq_erase_Ico (a b : ℕ) : Ico a.succ b = erase (Ico a b) a :=
+begin
+  rw Ico_succ_left,
+  rw Ioo_eq_Ico_erase,
+end
+
+
+lemma filter_mod_eq_range_card (a b n : ℕ) :
+  (filter (a.coprime) (Ico n (n+a))).card = totient a :=
+begin
+  by_cases a = 0,
+  { simp [h], },
+  { induction n,
+    -- TODO Ico 0 should simp to range
+    { simp [Ico_zero],
+      rw totient, },
+    {
+      rw <-n_ih,
+      clear n_ih,
+      rw succ_add,
+      rw Ico_succ_right_eq_insert_Ico,
+      rw Ico_succ_left_eq_erase_Ico,
+      rw filter_insert,
+      -- rw Ico_succ_left,
+      apply Ioo_insert_left,
+      sorry,
+    }}
 end
 
 -- TODO remove h0 h1 k_le_n assumption

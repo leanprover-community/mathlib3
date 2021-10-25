@@ -252,7 +252,6 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     congr
   end }
 
-
 end stalk_pullback
 
 section concrete

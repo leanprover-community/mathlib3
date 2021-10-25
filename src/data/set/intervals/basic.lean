@@ -1299,10 +1299,10 @@ end linear_ordered_add_comm_group
 
 end set
 
+open set
+
 namespace order_iso
 variables {α β : Type*}
-
-open set
 
 section preorder
 variables [preorder α] [preorder β]

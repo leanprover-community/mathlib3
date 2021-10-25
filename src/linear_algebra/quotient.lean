@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
+import algebra.algebra.basic
 import linear_algebra.basic
 
 /-!
@@ -100,18 +101,81 @@ instance : add_comm_group (quotient p) :=
     refl },
   gsmul_neg' := by { rintros n ⟨x⟩, simp_rw [gsmul_neg_succ_of_nat, gsmul_coe_nat], refl }, }
 
-instance : has_scalar R (quotient p) :=
-⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
- λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_mem p a h⟩
+section has_scalar
 
-@[simp] theorem mk_smul : (mk (r • x) : quotient p) = r • mk x := rfl
+variables {S : Type*} [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] (P : submodule R M)
 
-@[simp] theorem mk_nsmul (n : ℕ) : (mk (n • x) : quotient p) = n • mk x := rfl
+instance has_scalar' : has_scalar S (quotient P) :=
+⟨λ a, quotient.map' ((•) a) $ λ x y h, by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
 
-instance : module R (quotient p) :=
-module.of_core $ by refine {smul := (•), ..};
-  repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
-    -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
+/-- Shortcut to help the elaborator in the common case. -/
+instance has_scalar : has_scalar R (quotient P) :=
+quotient.has_scalar' P
+
+@[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : quotient P) = r • mk x := rfl
+
+instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
+  [smul_comm_class S T M] : smul_comm_class S T P.quotient :=
+{ smul_comm := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_comm _ _ _) }
+
+instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M] [has_scalar S T]
+  [is_scalar_tower S T M] : is_scalar_tower S T P.quotient :=
+{ smul_assoc := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_assoc _ _ _) }
+
+end has_scalar
+
+section module
+
+variables {S : Type*}
+
+instance mul_action' [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+  (P : submodule R M) : mul_action S (quotient P) :=
+function.surjective.mul_action mk (surjective_quot_mk _) P^.quotient.mk_smul
+
+instance mul_action (P : submodule R M) : mul_action R (quotient P) :=
+quotient.mul_action' P
+
+instance distrib_mul_action' [monoid S] [has_scalar S R] [distrib_mul_action S M]
+  [is_scalar_tower S R M]
+  (P : submodule R M) : distrib_mul_action S (quotient P) :=
+function.surjective.distrib_mul_action
+  ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
+
+instance distrib_mul_action (P : submodule R M) : distrib_mul_action R (quotient P) :=
+quotient.distrib_mul_action' P
+
+instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
+  (P : submodule R M) : module S (quotient P) :=
+function.surjective.module _
+  ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
+
+instance module (P : submodule R M) : module R (quotient P) :=
+quotient.module' P
+
+variables (S)
+
+/-- The quotient of `P` as an `S`-submodule is the same as the quotient of `P` as an `R`-submodule,
+where `P : submodule R M`.
+-/
+def restrict_scalars_equiv [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
+  (P : submodule R M) :
+  (P.restrict_scalars S).quotient ≃ₗ[S] P.quotient :=
+{ map_add' := λ x y, quotient.induction_on₂' x y (λ x' y', rfl),
+  map_smul' := λ c x, quotient.induction_on' x (λ x', rfl),
+  ..quotient.congr_right $ λ _ _, iff.rfl }
+
+@[simp] lemma restrict_scalars_equiv_mk
+  [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
+  (x : M) : restrict_scalars_equiv S P (mk x) = mk x :=
+rfl
+
+@[simp] lemma restrict_scalars_equiv_symm_mk
+  [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
+  (x : M) : (restrict_scalars_equiv S P).symm (mk x) = mk x :=
+rfl
+
+
+end module
 
 lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
 by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }

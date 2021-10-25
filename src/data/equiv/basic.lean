@@ -86,8 +86,7 @@ namespace equiv
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
 
-instance : has_coe_to_fun (α ≃ β) :=
-⟨_, to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨to_fun⟩
 
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
@@ -99,7 +98,7 @@ theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
-@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : (e₁ : α → β) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
 @[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
@@ -1641,7 +1640,7 @@ theorem swap_comp_apply {a b x : α} (π : perm α) :
 by { cases π, refl }
 
 lemma swap_eq_update (i j : α) :
-  ⇑(equiv.swap i j) = update (update id j i) i j :=
+  (equiv.swap i j : α → α) = update (update id j i) i j :=
 funext $ λ x, by rw [update_apply _ i j, update_apply _ j i, equiv.swap_apply_def, id.def]
 
 lemma comp_swap_eq_update (i j : α) (f : α → β) :

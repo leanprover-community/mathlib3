@@ -35,7 +35,7 @@ TODO: provide the unit, and prove the triangle identities.
 -/
 
 noncomputable theory
-universe variables u v
+universes u v
 
 namespace algebraic_geometry
 open opposite

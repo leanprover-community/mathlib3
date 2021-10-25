@@ -69,7 +69,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 -/
 
-universe variable u
+universe u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
 open_locale classical topological_space
 
@@ -93,8 +93,8 @@ def adj : free ⊣ forget := monad.adj _
 
 -- Basic instances
 instance : concrete_category Compactum := { forget := forget }
-instance : has_coe_to_sort Compactum := ⟨Type*,forget.obj⟩
-instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) := ⟨λ f, X → Y, λ f, f.f⟩
+instance : has_coe_to_sort Compactum Type* := ⟨forget.obj⟩
+instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) (λ f, X → Y) := ⟨λ f, f.f⟩
 instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forget
 
 /-- The structure map for a compactum, essentially sending an ultrafilter to its limit. -/

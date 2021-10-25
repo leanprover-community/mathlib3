@@ -60,31 +60,12 @@ lemma homogeneous_ideal_iff_eq_span_image_preimage
     I = ideal.span (graded_monoid.to_direct_sum '' (graded_monoid.to_direct_sum ⁻¹' I)) :=
 by { rw [image_preimage_eq_inter_range, range_to_direct_sum], refl }
 
-/-- In a galois insertion between sets and some other type, if there exists a set such that
-`I = l (f '' S)`, then `S = (f ⁻¹' u I)` is one such set. -/
-lemma _root_.galois_connection.exists_l_image_iff {α β γ} [partial_order β] {l : set α → β}
-  {u : β → set α}
-  (gc : galois_connection l u) (I : β) (f : γ → α):
-    (∃ S : set γ, I = l (f '' S)) ↔ I = l (f '' (f ⁻¹' u I)) :=
-begin
-  split,
-  { rintro ⟨S, rfl⟩,
-    apply le_antisymm,
-    { apply gc.l_le,
-      refine le_trans _ (gc.le_u_l _),
-      exact image_subset _ (image_subset_iff.mp $ gc.le_u_l _), },
-    { apply gc.l_le (image_preimage_subset _ _), }, },
-  { intro HI,
-    rw [←preimage_image_preimage] at HI,
-    exact ⟨_, HI⟩, },
-end
-
-lemma homogeneous_ideal_iff_homogeneous_ideal'
+lemma homogeneous_ideal_iff_homogeneous_ideal' [add_comm_monoid ι] [gcomm_semiring A]
   (I : ideal (⨁ i, A i)) :
   homogeneous_ideal I ↔ homogeneous_ideal' I :=
 begin
   rw [homogeneous_ideal_iff_eq_span_image_preimage, homogeneous_ideal],
-  exact (submodule.gi _ _).gc.exists_l_image_iff _ _,
+  exact (set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _ _,
 end
 
 private lemma homogeneous_ideal.mul_homogeneous_element

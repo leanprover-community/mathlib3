@@ -190,7 +190,19 @@ e ← get_env,
 pure $ e.filter $ λ d, e.is_prefix_of_file proj_folder d.to_name
 
 /-- Returns the linter message by running the linter on all declarations in project `proj_name` in
-folder `proj_folder`. It also returns a `name_set` containing all declarations that fail. -/
+folder `proj_folder`. It also returns a `name_set` containing all declarations that fail.
+
+To add a linter command for your own project, write
+```
+open lean.parser lean tactic interactive
+@[user_command] meta def lint_my_project_cmd (_ : parse $ tk "#lint_my_project") : parser unit :=
+do str ← get_project_dir n k, lint_cmd_aux (@lint_project str "my project")
+```
+Here `n` is the name of any declaration in the project (like `` `lint_my_project_cmd`` and `k` is
+the number of characters in the filename of `n` *after* the `src/` directory
+(so e.g. the number of characters in `tactic/lint/frontend.lean`).
+Warning: the linter will not work in the file where `n` is declared.
+-/
 meta def lint_project (proj_folder proj_name : string) (slow : bool := tt)
   (verbose : lint_verbosity := lint_verbosity.medium)
   (extra : list name := []) (use_only : bool := ff) : tactic (name_set × format) := do

@@ -184,41 +184,20 @@ lemma le_vanishing_ideal_zero_locus (I : ideal (⨁ i, A i)) :
   I ≤ vanishing_ideal (zero_locus I) :=
 (gc _).le_u_l I
 
--- @[simp] lemma vanishing_ideal_zero_locus_eq_radical (I : ideal R) :
---   vanishing_ideal (zero_locus (I : set R)) = I.radical := ideal.ext $ λ f,
--- begin
---   rw [mem_vanishing_ideal, ideal.radical_eq_Inf, submodule.mem_Inf],
---   exact ⟨(λ h x hx, h ⟨x, hx.2⟩ hx.1), (λ h x hx, h x.1 ⟨hx, x.2⟩)⟩
--- end
+lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum_of_graded_ring A)) :
+  t ⊆ zero_locus (vanishing_ideal t) :=
+(gc A).l_u_le t
 
--- @[simp] lemma zero_locus_radical (I : ideal R) : zero_locus (I.radical : set R) = zero_locus I :=
--- vanishing_ideal_zero_locus_eq_radical I ▸ congr_fun (gc R).l_u_l_eq_l I
+lemma zero_locus_anti_mono {s t : set (⨁ i, A i)} (h : s ⊆ t) : zero_locus t ⊆ zero_locus s :=
+(gc_set A).monotone_l h
 
--- lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
---   t ⊆ zero_locus (vanishing_ideal t) :=
--- (gc R).l_u_le t
+lemma zero_locus_anti_mono_ideal {s t : ideal (⨁ i, A i)} (h : s ≤ t) :
+  zero_locus (t : set (⨁ i, A i)) ⊆ zero_locus (s : set (⨁ i, A i)) :=
+(gc A).monotone_l h
 
--- lemma zero_locus_anti_mono {s t : set R} (h : s ⊆ t) : zero_locus t ⊆ zero_locus s :=
--- (gc_set R).monotone_l h
-
--- lemma zero_locus_anti_mono_ideal {s t : ideal R} (h : s ≤ t) :
---   zero_locus (t : set R) ⊆ zero_locus (s : set R) :=
--- (gc R).monotone_l h
-
--- lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum R)} (h : s ⊆ t) :
---   vanishing_ideal t ≤ vanishing_ideal s :=
--- (gc R).monotone_u h
-
--- lemma zero_locus_subset_zero_locus_iff (I J : ideal R) :
---   zero_locus (I : set R) ⊆ zero_locus (J : set R) ↔ J ≤ I.radical :=
--- ⟨λ h, ideal.radical_le_radical_iff.mp (vanishing_ideal_zero_locus_eq_radical I ▸
---   vanishing_ideal_zero_locus_eq_radical J ▸ vanishing_ideal_anti_mono h),
--- λ h, zero_locus_radical I ▸ zero_locus_anti_mono_ideal h⟩
-
--- lemma zero_locus_subset_zero_locus_singleton_iff (f g : R) :
---   zero_locus ({f} : set R) ⊆ zero_locus {g} ↔ g ∈ (ideal.span ({f} : set R)).radical :=
--- by rw [← zero_locus_span {f}, ← zero_locus_span {g}, zero_locus_subset_zero_locus_iff,
---     ideal.span_le, set.singleton_subset_iff, set_like.mem_coe]
+lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum_of_graded_ring A)} (h : s ⊆ t) :
+  vanishing_ideal t ≤ vanishing_ideal s :=
+(gc A).monotone_u h
 
 lemma zero_locus_bot :
   zero_locus ((⊥ : ideal (⨁ i, A i)) : set (⨁ i, A i)) = set.univ :=
@@ -250,18 +229,6 @@ end
 @[simp] lemma zero_locus_singleton_one :
   zero_locus ({1} : set (⨁ i, A i)) = ∅ :=
 zero_locus_empty_of_one_mem (set.mem_singleton (1 : ⨁ i, A i))
-
--- lemma zero_locus_empty_iff_eq_top {I : ideal (⨁ i, A i)} :
---   zero_locus (I : set (⨁ i, A i)) = ∅ ↔ I = ⊤ :=
--- begin
---   split,
---   { contrapose!,
---     intro h,
---     apply set.ne_empty_iff_nonempty.mpr,
---     rcases ideal.exists_le_maximal I h with ⟨M, hM, hIM⟩,
---     exact ⟨⟨M, hM.is_prime⟩, hIM⟩ },
---   { rintro rfl, apply zero_locus_empty_of_one_mem, trivial }
--- end
 
 @[simp] lemma zero_locus_univ :
   zero_locus (set.univ : set (⨁ i, A i)) = ∅ :=
@@ -361,22 +328,102 @@ lemma is_closed_zero_locus (s : set (⨁ i, A i)) :
   is_closed (zero_locus s) :=
 by { rw [is_closed_iff_zero_locus], exact ⟨s, rfl⟩ }
 
--- lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum_of_graded_ring A)) :
---   zero_locus (vanishing_ideal t : set (⨁ i, A i)) = closure t :=
--- begin
---   apply set.subset.antisymm,
---   { rintro x hx t' ⟨ht', ht⟩,
---     obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
---     by rwa [is_closed_iff_zero_locus] at ht',
---     rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
---     exact set.subset.trans ht hx },
---   { rw (is_closed_zero_locus _).closure_subset_iff,
---     exact subset_zero_locus_vanishing_ideal t }
--- end
+lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum_of_graded_ring A)) :
+  zero_locus (vanishing_ideal t : set (⨁ i, A i)) = closure t :=
+begin
+  apply set.subset.antisymm,
+  { rintro x hx t' ⟨ht', ht⟩,
+    obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
+    by rwa [is_closed_iff_zero_locus] at ht',
+    rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
+    exact set.subset.trans ht hx },
+  { rw (is_closed_zero_locus _).closure_subset_iff,
+    exact subset_zero_locus_vanishing_ideal t }
+end
 
--- lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
---   vanishing_ideal (closure t) = vanishing_ideal t :=
--- zero_locus_vanishing_ideal_eq_closure t ▸ congr_fun (gc R).u_l_u_eq_u t
+lemma vanishing_ideal_closure (t : set (prime_spectrum_of_graded_ring A)) :
+  vanishing_ideal (closure t) = vanishing_ideal t :=
+zero_locus_vanishing_ideal_eq_closure t ▸ congr_fun (gc A).u_l_u_eq_u t
 
+
+section basic_open
+
+/-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
+def basic_open (r : (⨁ i, A i)) : topological_space.opens (prime_spectrum_of_graded_ring A) :=
+{ val := { x | r ∉ x.as_ideal },
+  property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+
+@[simp] lemma mem_basic_open (f : (⨁ i, A i)) (x : prime_spectrum_of_graded_ring A) :
+  x ∈ basic_open f ↔ f ∉ x.as_ideal := iff.rfl
+
+lemma is_open_basic_open {a : (⨁ i, A i)} : is_open ((basic_open a) : set (prime_spectrum_of_graded_ring A)) :=
+(basic_open a).property
+
+@[simp] lemma basic_open_eq_zero_locus_compl (r : (⨁ i, A i)) :
+  (basic_open r : set (prime_spectrum_of_graded_ring A)) = (zero_locus {r})ᶜ :=
+set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+
+@[simp] lemma basic_open_one : basic_open (1 : (⨁ i, A i)) = ⊤ :=
+topological_space.opens.ext $ by {simp, refl}
+
+@[simp] lemma basic_open_zero : basic_open (0 : (⨁ i, A i)) = ⊥ :=
+topological_space.opens.ext $ by {simp, refl}
+
+lemma basic_open_mul (f g : (⨁ i, A i)) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
+topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}
+
+lemma basic_open_mul_le_left (f g : (⨁ i, A i)) : basic_open (f * g) ≤ basic_open f :=
+by { rw basic_open_mul f g, exact inf_le_left }
+
+lemma basic_open_mul_le_right (f g : (⨁ i, A i)) : basic_open (f * g) ≤ basic_open g :=
+by { rw basic_open_mul f g, exact inf_le_right }
+
+@[simp] lemma basic_open_pow (f : (⨁ i, A i)) (n : ℕ) (hn : 0 < n) : basic_open (f ^ n) = basic_open f :=
+topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
+
+lemma is_topological_basis_basic_opens : topological_space.is_topological_basis
+  (set.range (λ (r : (⨁ i, A i)), (basic_open r : set (prime_spectrum_of_graded_ring A)))) :=
+begin
+  apply topological_space.is_topological_basis_of_open_of_nhds,
+  { rintros _ ⟨r, rfl⟩,
+    exact is_open_basic_open },
+  { rintros p U hp ⟨s, hs⟩,
+    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    obtain ⟨f, hfs, hfp⟩ := hp,
+    refine ⟨basic_open f, ⟨f, rfl⟩, hfp, _⟩,
+    rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
+    exact zero_locus_anti_mono (set.singleton_subset_iff.mpr hfs) }
+end
+
+end basic_open
+
+section order
+
+/-!
+## The specialization order
+
+We endow `prime_spectrum R` with a partial order,
+where `x ≤ y` if and only if `y ∈ closure {x}`.
+
+TODO: maybe define sober topological spaces, and generalise this instance to those
+-/
+
+instance : partial_order (prime_spectrum_of_graded_ring A) :=
+subtype.partial_order _
+
+@[simp] lemma as_ideal_le_as_ideal (x y : prime_spectrum_of_graded_ring A) :
+  x.as_ideal ≤ y.as_ideal ↔ x ≤ y :=
+subtype.coe_le_coe
+
+@[simp] lemma as_ideal_lt_as_ideal (x y : prime_spectrum_of_graded_ring A) :
+  x.as_ideal < y.as_ideal ↔ x < y :=
+subtype.coe_lt_coe
+
+lemma le_iff_mem_closure (x y : prime_spectrum_of_graded_ring A) :
+  x ≤ y ↔ y ∈ closure ({x} : set (prime_spectrum_of_graded_ring A)) :=
+by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
+    mem_zero_locus, vanishing_ideal_singleton, set_like.coe_subset_coe]
+
+end order
 
 end prime_spectrum_of_graded_ring

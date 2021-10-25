@@ -86,9 +86,17 @@ lemma inducing.tendsto_nhds_iff {ι : Type*}
   tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
 by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
 
+lemma inducing.continuous_at_iff {f : α → β} {g : β → γ} (hg : inducing g) {x : α} :
+  continuous_at f x ↔ continuous_at (g ∘ f) x :=
+by simp_rw [continuous_at, inducing.tendsto_nhds_iff hg]
+
 lemma inducing.continuous_iff {f : α → β} {g : β → γ} (hg : inducing g) :
   continuous f ↔ continuous (g ∘ f) :=
-by simp [continuous_iff_continuous_at, continuous_at, inducing.tendsto_nhds_iff hg]
+by simp_rw [continuous_iff_continuous_at, hg.continuous_at_iff]
+
+lemma inducing.continuous_at_iff' {f : α → β} {g : β → γ} (hf : inducing f) {x : α}
+  (h : range f ∈ 𝓝 (f x)) : continuous_at (g ∘ f) x ↔ continuous_at g (f x) :=
+by { simp_rw [continuous_at, filter.tendsto, ← hf.map_nhds_of_mem _ h, filter.map_map] }
 
 lemma inducing.continuous {f : α → β} (hf : inducing f) : continuous f :=
 hf.continuous_iff.mp continuous_id

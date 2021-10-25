@@ -225,7 +225,8 @@ functions satisfying `is_locally_fraction`.
 def structure_sheaf_in_Type : sheaf Type* (prime_spectrum_of_graded_ring.Top A):=
 subsheaf_to_Types (is_locally_fraction A)
 
-instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (prime_spectrum_of_graded_ring.Top A))ᵒᵖ) :
+instance comm_ring_structure_sheaf_in_Type_obj
+  (U : (opens (prime_spectrum_of_graded_ring.Top A))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type A).1.obj U) :=
 (sections_subring A U).to_comm_ring
 

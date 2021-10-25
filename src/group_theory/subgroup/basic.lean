@@ -479,6 +479,9 @@ end
     (λ x hx, by simpa [subtype.ext_iff] using fintype.card_le_one_iff.1 h ⟨x, hx⟩ 1),
   λ h, by simp [h]⟩
 
+@[to_additive] lemma one_lt_card_iff_ne_bot [fintype H] : 1 < fintype.card H ↔ H ≠ ⊥ :=
+lt_iff_not_ge'.trans (not_iff_not.mpr H.card_le_one_iff_eq_bot)
+
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
 instance : has_inf (subgroup G) :=
@@ -1129,6 +1132,10 @@ variable {H}
 instance normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
 ⟨λ x xH g, by simpa using (g.2 x).1 xH⟩
 
+@[to_additive] lemma normalizer_eq_top : H.normalizer = ⊤ ↔ H.normal :=
+eq_top_iff.trans ⟨λ h, ⟨λ a ha b, (h (mem_top b) a).mp ha⟩, λ h a ha b,
+  ⟨λ hb, h.conj_mem b hb a, λ hb, by rwa [h.mem_comm_iff, inv_mul_cancel_left] at hb⟩⟩
+
 open_locale classical
 
 @[to_additive]
@@ -1656,6 +1663,10 @@ variables {N : Type*} [group N] (f : G →* N)
 @[to_additive]
 lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
 (range_eq_map f).symm ▸ map_mono le_top
+
+@[to_additive]
+lemma map_subtype_le {H : subgroup G} (K : subgroup H) : K.map H.subtype ≤ H :=
+(K.map_le_range H.subtype).trans (le_of_eq H.subtype_range)
 
 @[to_additive]
 lemma ker_le_comap (H : subgroup N) : f.ker ≤ comap f H :=

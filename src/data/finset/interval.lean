@@ -6,10 +6,10 @@ Authors: Scott Morrison, Yaël Dillies
 import order.locally_finite
 
 /-!
-# Intervals as finsets
+# Intervals as finsets and intervals of finsets
 
-This file provides basic results about all the `finset.Ixx`, which are defined in
-`order.locally_finite`.
+This file provides basic results about all the `finset.Ixx (defined in
+`order.locally_finite`) and the `locally_finite_order` instance for `finset α`.
 
 ## TODO
 
@@ -18,8 +18,9 @@ generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are m
 what's to do is taking the lemmas in `data.x.intervals` and abstract away the concrete structure.
 -/
 
-namespace finset
 variables {α : Type*}
+
+namespace finset
 section preorder
 variables [preorder α] [locally_finite_order α] {a b : α}
 
@@ -79,6 +80,9 @@ by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
 
 @[simp] lemma right_not_mem_Ico {a b : α} : b ∉ Ico a b :=
 by { rw [mem_Ico, not_and], exact λ _, lt_irrefl _ }
+
+@[simp] lemma left_not_mem_Ioo {a b : α} : a ∉ Ioo a b :=
+by { rw [mem_Ioo, not_and], exact λ h _, lt_irrefl _ h }
 
 lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hca : c ≤ a) :
   (Ico a b).filter (λ x, x < c) = ∅ :=
@@ -143,6 +147,28 @@ begin
   rw [mem_filter, mem_Ico, mem_singleton, and.right_comm, ←le_antisymm_iff, eq_comm],
   exact and_iff_left_of_imp (λ h, h.le.trans_lt hab),
 end
+
+lemma card_Ico_eq_card_Icc_sub_one (h : a ≤ b) : (Ico a b).card = (Icc a b).card - 1 :=
+begin
+  classical,
+  rw [←Ico_insert_right h, card_insert_of_not_mem right_not_mem_Ico],
+  exact (nat.add_sub_cancel _ _).symm,
+end
+
+lemma card_Ioc_eq_card_Icc_sub_one (h : a ≤ b) : (Ioc a b).card = (Icc a b).card - 1 :=
+@card_Ico_eq_card_Icc_sub_one (order_dual α) _ _ _ _ h
+
+lemma card_Ioo_eq_card_Ico_sub_one (h : a ≤ b) : (Ioo a b).card = (Ico a b).card - 1 :=
+begin
+  obtain rfl | h' := h.eq_or_lt,
+  { rw [Ioo_self, Ico_self, card_empty] },
+  classical,
+  rw [←Ioo_insert_left h', card_insert_of_not_mem left_not_mem_Ioo],
+  exact (nat.add_sub_cancel _ _).symm,
+end
+
+lemma card_Ioo_eq_card_Icc_sub_two (h : a ≤ b) : (Ioo a b).card = (Icc a b).card - 2 :=
+by { rw [card_Ioo_eq_card_Ico_sub_one h, card_Ico_eq_card_Icc_sub_one h], refl }
 
 end partial_order
 
@@ -271,4 +297,47 @@ begin
 end
 
 end ordered_cancel_add_comm_monoid
+
+/-! ### Intervals of finsets -/
+
+variables [decidable_eq α] {s t : finset α}
+
+instance : locally_finite_order (finset α) :=
+locally_finite_order.of_Icc (finset α)
+  (λ s t, t.powerset.filter ((⊆) s))
+  (λ s t u, by {rw [mem_filter, mem_powerset], exact and_comm _ _ })
+
+lemma Icc_eq_image_powerset (h : s ⊆ t) : Icc s t = (t \ s).powerset.image ((∪) s) :=
+begin
+  ext u,
+  simp_rw [mem_Icc, mem_image, exists_prop, mem_powerset],
+  split,
+  { rintro ⟨hs, ht⟩,
+    exact ⟨u \ s, sdiff_le_self_sdiff ht, sup_sdiff_of_le hs⟩ },
+  { rintro ⟨v, hv, rfl⟩,
+    exact ⟨le_sup_left, union_subset h $ hv.trans $ sdiff_subset _ _⟩ }
+end
+
+/-- Cardinality of an `Icc` of finsets. **Not** of any `finset.Icc`. -/
+lemma card_Icc_finset (h : s ⊆ t) : (Icc s t).card = 2 ^ (t.card - s.card) :=
+begin
+  rw [←card_sdiff h, ←card_powerset, Icc_eq_image_powerset h, finset.card_image_eq_iff_inj_on],
+  rintro u hu v hv (huv : s ⊔ u = s ⊔ v),
+  rw [mem_coe, mem_powerset] at hu hv,
+  rw [←(disjoint_sdiff.mono_right hu : disjoint s u).sup_sdiff_cancel_left,
+    ←(disjoint_sdiff.mono_right hv : disjoint s v).sup_sdiff_cancel_left, huv],
+end
+
+/-- Cardinality of an `Ico` of finsets. **Not** of any `finset.Ico`. -/
+lemma card_Ico_finset (h : s ⊆ t) : (Ico s t).card = 2 ^ (t.card - s.card) - 1 :=
+by rw [card_Ico_eq_card_Icc_sub_one (le_iff_subset.2 h), card_Icc_finset h]
+
+/-- Cardinality of an `Ioc` of finsets. **Not** of any `finset.Ioc`. -/
+lemma card_Ioc_finset (h : s ⊆ t) : (Ioc s t).card = 2 ^ (t.card - s.card) - 1 :=
+by rw [card_Ioc_eq_card_Icc_sub_one (le_iff_subset.2 h), card_Icc_finset h]
+
+/-- Cardinality of an `Ioo` of finsets. **Not** of any `finset.Ioo`. -/
+lemma card_Ioo_finset (h : s ⊆ t) : (Ioo s t).card = 2 ^ (t.card - s.card) - 2 :=
+by rw [card_Ioo_eq_card_Icc_sub_two (le_iff_subset.2 h), card_Icc_finset h]
+
 end finset

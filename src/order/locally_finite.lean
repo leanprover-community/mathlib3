@@ -30,7 +30,7 @@ In a `locally_finite_order`,
 * `multiset.Icc`: Closed-closed interval as a multiset.
 * `multiset.Ico`: Closed-open interval as a multiset. Currently only for `ℕ`.
 * `multiset.Ioc`: Open-closed interval as a multiset.
-* `multiset.Ioo`: Open-open interval as a finset.
+* `multiset.Ioo`: Open-open interval as a multiset.
 
 When it's also an `order_top`,
 * `finset.Ici`: Closed-infinite interval as a finset.
@@ -55,16 +55,16 @@ A `locally_finite_order` instance can be built
   `order_embedding.locally_finite_order`.
 
 Instances for concrete types are proved in their respective files:
-* `ℕ` is in `data.nat.intervals`
-* `ℤ` is in `data.int.intervals`
-* `ℕ+` is in `data.pnat.intervals`
-* `fin n` is in `data.fin.intervals`
+* `ℕ` is in `data.nat.interval`
+* `ℤ` is in `data.int.interval`
+* `ℕ+` is in `data.pnat.interval`
+* `fin n` is in `data.fin.interval`
+* `finset α` is in `data.finset.interval`
 Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO
 
-`finset.Ico` and `multiset.Ico` haven't been generalized yet. All of `data.finset.intervals` and
-`data.multiset.intervals` should be generalized.
+`multiset.Ico` hasn't been generalized yet. All of `data.multiset.intervals` should be generalized.
 
 Provide the `locally_finite_order` instance for `lex α β` where `locally_finite_order α` and
 `fintype β`.
@@ -462,7 +462,19 @@ noncomputable def order_embedding.locally_finite_order (f : α ↪o β) :
   finset_mem_Ioc := λ a b x, by rw [mem_preimage, mem_Ioc, f.lt_iff_lt, f.le_iff_le],
   finset_mem_Ioo := λ a b x, by rw [mem_preimage, mem_Ioo, f.lt_iff_lt, f.lt_iff_lt] }
 
+open order_dual
+
 variables [locally_finite_order α]
+
+instance : locally_finite_order (order_dual α) :=
+{ finset_Icc := λ a b, @Icc α _ _ (of_dual b) (of_dual a),
+  finset_Ico := λ a b, @Ioc α _ _ (of_dual b) (of_dual a),
+  finset_Ioc := λ a b, @Ico α _ _ (of_dual b) (of_dual a),
+  finset_Ioo := λ a b, @Ioo α _ _ (of_dual b) (of_dual a),
+  finset_mem_Icc := λ a b x, mem_Icc.trans (and_comm _ _),
+  finset_mem_Ico := λ a b x, mem_Ioc.trans (and_comm _ _),
+  finset_mem_Ioc := λ a b x, mem_Ico.trans (and_comm _ _),
+  finset_mem_Ioo := λ a b x, mem_Ioo.trans (and_comm _ _) }
 
 instance [decidable_rel ((≤) : α × β → α × β → Prop)] : locally_finite_order (α × β) :=
 locally_finite_order.of_Icc' (α × β)

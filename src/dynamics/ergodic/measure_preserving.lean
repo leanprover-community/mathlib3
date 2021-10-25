@@ -47,6 +47,11 @@ namespace measure_preserving
 protected lemma id (μ : measure α) : measure_preserving id μ μ :=
 ⟨measurable_id, map_id⟩
 
+lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
+  measure_preserving e.symm μb μa :=
+⟨e.symm.measurable,
+  by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩
+
 protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preserving f μa μb) :
   quasi_measure_preserving f μa μb :=
 ⟨hf.1, hf.2.absolutely_continuous⟩
@@ -79,22 +84,21 @@ begin
   have : measurable (λ p : α × γ, (f p.1, g p.1 p.2)) := (hf.1.comp measurable_fst).prod_mk hgm,
   /- if `μa = 0`, then the lemma is trivial, otherwise we can use `hg`
   to deduce `sigma_finite μc`. -/
-  by_cases ha : μa = 0,
-  { rw [← hf.map_eq, ha, zero_prod, (map f).map_zero, zero_prod],
+  rcases eq_or_ne μa 0 with (rfl|ha),
+  { rw [← hf.map_eq, zero_prod, (map f).map_zero, zero_prod],
     exact ⟨this, (map _).map_zero⟩ },
-  haveI : μa.ae.ne_bot := ae_ne_bot.2 ha,
-  rcases hg.exists with ⟨x, hx⟩,
-  haveI : sigma_finite μc := sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx),
-  clear hx x,
+  haveI : sigma_finite μc,
+  { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
+    exact sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx) },
+  -- Thus we can apply `measure.prod_eq` to prove equality of measures.
   refine ⟨this, (prod_eq $ λ s t hs ht, _).symm⟩,
   rw [map_apply this (hs.prod ht)],
   refine (prod_apply (this $ hs.prod ht)).trans _,
   have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' s.prod t) = indicator (f ⁻¹' s) (λ y, μd t) x,
-  { refine hg.mono (λ x hx, _),
+  { refine hg.mono (λ x hx, _), unfreezingI { subst hx },
     simp only [mk_preimage_prod_right_fn_eq_if, indicator_apply, mem_preimage],
     split_ifs,
-    { rw [← map_apply hgm.of_uncurry_left ht, hx] },
-    { exact measure_empty } },
+    exacts [(map_apply hgm.of_uncurry_left ht).symm, measure_empty] },
   simp only [preimage_preimage],
   rw [lintegral_congr_ae this, lintegral_indicator _ (hf.1 hs),
     set_lintegral_const, hf.measure_preimage hs, mul_comm]

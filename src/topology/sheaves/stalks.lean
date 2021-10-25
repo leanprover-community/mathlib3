@@ -262,7 +262,7 @@ begin
   -- neighborhoods form a cover of `U`.
   apply F.eq_of_locally_eq' V U i₁,
   { intros x hxU,
-    rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_coe, opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
   { intro x,
     rw [heq, subsingleton.elim (i₁ x) (i₂ x)] }
@@ -303,7 +303,7 @@ begin
   -- These neighborhoods clearly cover all of `U`.
   have V_cover : U ≤ supr V,
   { intros x hxU,
-    rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_coe, opens.mem_supr],
     exact ⟨⟨x, hxU⟩, mV ⟨x, hxU⟩⟩ },
   -- Since `F` is a sheaf, we can glue all the local preimages together to get a global preimage.
   obtain ⟨s, s_spec, -⟩ := F.exists_unique_gluing' V U iVU V_cover sf _,

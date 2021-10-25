@@ -607,7 +607,7 @@ begin
   { simp only [nat.nat_zero_eq_zero, finset.sum_singleton, finset.range_one], refl },
   { rw [finset.sum_range_succ, nat.succ_eq_add_one, IH, eapprox_diff, coe_map, function.comp_app,
         coe_sub, pi.sub_apply, ennreal.coe_to_nnreal,
-        ennreal.add_sub_cancel_of_le (monotone_eapprox f (nat.le_succ _) _)],
+        add_tsub_cancel_of_le (monotone_eapprox f (nat.le_succ _) _)],
     apply (lt_of_le_of_lt _ (eapprox_lt_top f (n+1) a)).ne,
     rw tsub_le_iff_right,
     exact le_self_add },
@@ -1266,7 +1266,7 @@ begin
   rcases exists_between hε₂0 with ⟨ε₁, hε₁0, hε₁₂⟩,
   rcases exists_simple_func_forall_lintegral_sub_lt_of_pos h hε₁0.ne' with ⟨φ, hle, hφ⟩,
   rcases φ.exists_forall_le with ⟨C, hC⟩,
-  use [(ε₂ - ε₁) / C, ennreal.div_pos_iff.2 ⟨(ennreal.sub_pos.2 hε₁₂).ne', ennreal.coe_ne_top⟩],
+  use [(ε₂ - ε₁) / C, ennreal.div_pos_iff.2 ⟨(tsub_pos_iff_lt.2 hε₁₂).ne', ennreal.coe_ne_top⟩],
   refine λ s hs, lt_of_le_of_lt _ hε₂ε,
   simp only [lintegral_eq_nnreal, supr_le_iff],
   intros ψ hψ,
@@ -1612,10 +1612,10 @@ lemma lintegral_strict_mono_of_ae_le_of_ae_lt_on {f g : α → ℝ≥0∞}
   {s : set α} (hμs : μ s ≠ 0) (h : ∀ᵐ x ∂μ, x ∈ s → f x < g x) :
   ∫⁻ x, f x ∂μ < ∫⁻ x, g x ∂μ :=
 begin
-  rw [← ennreal.sub_pos, ← lintegral_sub hg hf hfi h_le],
+  rw [← tsub_pos_iff_lt, ← lintegral_sub hg hf hfi h_le],
   by_contra hnlt,
   rw [not_lt, nonpos_iff_eq_zero, lintegral_eq_zero_iff (hg.sub hf), filter.eventually_eq] at hnlt,
-  simp only [ae_iff, ennreal.sub_eq_zero_iff_le, pi.zero_apply, not_lt, not_le] at hnlt h,
+  simp only [ae_iff, tsub_eq_zero_iff_le, pi.zero_apply, not_lt, not_le] at hnlt h,
   refine hμs _,
   push_neg at h,
   have hs_eq : s = {a : α | a ∈ s ∧ g a ≤ f a} ∪ {a : α | a ∈ s ∧ f a < g a},

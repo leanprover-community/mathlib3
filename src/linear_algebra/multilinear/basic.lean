@@ -332,13 +332,13 @@ begin
   -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,
   { rcases Ai_empty with ⟨i, hi⟩,
-    have : ∑ j in A i, g i j = 0, by convert sum_empty,
+    have : ∑ j in A i, g i j = 0, by rw [hi, finset.sum_empty],
     rw f.map_coord_zero i this,
     have : pi_finset A = ∅,
     { apply finset.eq_empty_of_forall_not_mem (λ r hr, _),
       have : r i ∈ A i := mem_pi_finset.mp hr i,
       rwa hi at this },
-    convert sum_empty.symm },
+    rw [this, finset.sum_empty] },
   push_neg at Ai_empty,
   -- Otherwise, if all sets are at most singletons, then they are exactly singletons and the result
   -- is again straightforward

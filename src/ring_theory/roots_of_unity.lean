@@ -269,7 +269,7 @@ by { rintro ⟨i, rfl⟩, simp only [pow_mul, h.pow_eq_one, one_pow, pnat.mul_co
 lemma is_unit (h : is_primitive_root ζ k) (h0 : 0 < k) : is_unit ζ :=
 begin
   apply is_unit_of_mul_eq_one ζ (ζ ^ (k - 1)),
-  rw [← pow_succ, tsub_add_cancel_of_le h0.succ_le, h.pow_eq_one]
+  rw [← pow_succ, tsub_add_cancel_of_le h0.nat_succ_le, h.pow_eq_one]
 end
 
 lemma pow_ne_one_of_pos_of_lt (h0 : 0 < l) (hl : l < k) : ζ ^ l ≠ 1 :=

@@ -3,10 +3,11 @@ Copyright (c) 2020 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import group_theory.submonoid
+import group_theory.submonoid.pointwise
 import group_theory.submonoid.center
 import algebra.group.conj
 import order.atoms
+import algebra.pointwise
 
 /-!
 # Subgroups

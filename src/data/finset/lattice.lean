@@ -212,7 +212,7 @@ end
 
 /-! ### inf -/
 section inf
--- can be defined with just `[has_top α]` where some lemmas hold without requiring `[order_top α]`
+-- TODO: define with just `[has_top α]` where some lemmas hold without requiring `[order_top α]`
 variables [semilattice_inf α] [order_top α]
 
 /-- Infimum of a finite set: `inf {a, b, c} f = f a ⊓ f b ⊓ f c` -/

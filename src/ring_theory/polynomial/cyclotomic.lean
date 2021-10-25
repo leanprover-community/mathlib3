@@ -721,8 +721,8 @@ begin
 end
 
 @[simp]
-lemma eval₂_one_cyclotomic_prime_pow {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S) {n : ℕ}
-(k : ℕ) [fact n.prime] :
+lemma eval₂_one_cyclotomic_prime_pow {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
+  {n : ℕ} (k : ℕ) [fact n.prime] :
   eval₂ f 1 (cyclotomic (n ^ (k + 1)) R) = n :=
 by simp
 

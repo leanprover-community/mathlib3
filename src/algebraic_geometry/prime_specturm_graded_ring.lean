@@ -62,6 +62,7 @@ It is naturally endowed with a topology (the Zariski topology),
 and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
 
+@[nolint has_inhabited_instance]
 def prime_spectrum_of_graded_ring :=
   {I : ideal (⨁ i, A i) //
     I.is_prime ∧ homogeneous_ideal I ∧ ¬(irrelavent_ideal A ≤ I)}

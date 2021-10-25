@@ -129,7 +129,7 @@ theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_
   presheaf.is_sheaf J (G.op ⋙ ℱ.val) :=
 begin
   intros X U S hS x hx,
-  change family_of_elements (G.op ⋙ ℱ.val ⋙ coyoneda.obj (op X)) ⇑S at x,
+  change family_of_elements (G.op ⋙ ℱ.val ⋙ coyoneda.obj (op X)) _ at x,
   let H := ℱ.2 X _ (hG₂.cover_preserve hS),
   let hx' := hx.functor_pushforward hG₁ (sheaf_over ℱ X),
   split, swap,

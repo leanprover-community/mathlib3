@@ -112,6 +112,11 @@ begin
   exact and_iff_right_of_imp (λ h, hac.trans h.1),
 end
 
+lemma _root_.bdd_below.finite_of_bdd_above {s : set α} (h₀ : bdd_below s) (h₁ : bdd_above s) :
+  s.finite :=
+let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in
+(Icc a b).finite_to_set.subset (λ c hc, mem_Icc.2 $ ⟨ha hc, hb hc⟩)
+
 end preorder
 
 section partial_order
@@ -206,18 +211,14 @@ section order_top
 variables [order_top α] [locally_finite_order α]
 
 lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
-begin
-  obtain ⟨a, ha⟩ := hs,
-  exact (Ici a).finite_to_set.subset (λ b hb, mem_Ici.2 $ ha hb),
-end
+hs.finite_of_bdd_above $ order_top.bdd_above s
 
 end order_top
 
 section order_bot
 variables [order_bot α] [locally_finite_order α]
 
-lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite :=
-hs.dual.finite
+lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
 
 end order_bot
 

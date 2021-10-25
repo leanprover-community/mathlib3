@@ -193,7 +193,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
-    rw [← nhds_translation a, mem_comap, mem_comap],
+    rw [← nhds_translation_sub, mem_comap, mem_comap],
     refine exists_congr (assume t, exists_congr (assume ht, _)),
     show (λ (y : G), y - a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd - p.fst) ⁻¹' t ⊆ S' a,
     split,

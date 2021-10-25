@@ -528,8 +528,7 @@ lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
   ∀ (s t : finset α), disjoint s t → separated (s : set α) t :=
 begin
   refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
-  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
-      (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
+  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation (finset.disjoint_singleton.1 ab),
     refine ⟨U, V, oU, oV, _, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
     exact singleton_subset_set_iff.mpr ‹_› },
   { intros a b c ac bc d,
@@ -539,7 +538,7 @@ end
 
 lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
   separated ({x} : set α) s :=
-by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h)
+by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (finset.disjoint_singleton_left.mpr h)
 
 end separated
 

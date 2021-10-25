@@ -41,7 +41,7 @@ infix ` ≃ₜ `:25 := homeomorph
 namespace homeomorph
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ₜ β) (λ _, α → β) := ⟨λe, e.to_equiv⟩
 
 @[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
   ((homeomorph.mk a b c) : α → β) = a :=
@@ -251,6 +251,18 @@ h.inducing.continuous_iff.symm
   continuous (f ∘ h) ↔ continuous f :=
 h.quotient_map.continuous_iff.symm
 
+lemma comp_continuous_at_iff (h : α ≃ₜ β) (f : γ → α) (x : γ) :
+  continuous_at (h ∘ f) x ↔ continuous_at f x :=
+h.inducing.continuous_at_iff.symm
+
+lemma comp_continuous_at_iff' (h : α ≃ₜ β) (f : β → γ) (x : α) :
+  continuous_at (f ∘ h) x ↔ continuous_at f (h x) :=
+h.inducing.continuous_at_iff' (by simp)
+
+lemma comp_continuous_within_at_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) (x : γ) :
+  continuous_within_at f s x ↔ continuous_within_at (h ∘ f) s x :=
+h.inducing.continuous_within_at_iff
+
 @[simp] lemma comp_is_open_map_iff (h : α ≃ₜ β) {f : γ → α} :
   is_open_map (h ∘ f) ↔ is_open_map f :=
 begin
@@ -379,6 +391,13 @@ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
     (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
 
 end distrib
+
+/-- If `ι` has a unique element, then `ι → α` is homeomorphic to `α`. -/
+@[simps { fully_applied := ff }]
+def fun_unique (ι α : Type*) [unique ι] [topological_space α] : (ι → α) ≃ₜ α :=
+{ to_equiv := equiv.fun_unique ι α,
+  continuous_to_fun := continuous_apply _,
+  continuous_inv_fun := continuous_pi (λ _, continuous_id) }
 
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.

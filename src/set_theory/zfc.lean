@@ -242,6 +242,7 @@ protected def lift : pSet.{u} → pSet.{max u v}
 | ⟨α, A⟩ := ⟨ulift α, λ ⟨x⟩, lift (A x)⟩
 
 /-- Embedding of one universe in another -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def embed : pSet.{max (u+1) v} := ⟨ulift.{v u+1} pSet, λ ⟨x⟩, pSet.lift.{u (max (u+1) v)} x⟩
 
 theorem lift_mem_embed : Π (x : pSet.{u}), pSet.lift.{u (max (u+1) v)} x ∈ embed.{u v} :=
@@ -472,9 +473,9 @@ resp.eval 1 ⟨powerset, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
     λ ⟨a, b, qb, ab⟩, ⟨⟨b, qb⟩, ab⟩,
     λ ⟨b, qb⟩, let ⟨a, ab⟩ := βα b in ⟨⟨a, b, qb, ab⟩, ab⟩⟩⟩⟩
 
-@[simp] theorem mem_powerset {x y : Set} : y ∈ powerset x ↔ y ⊆ x :=
-quotient.induction_on₂ x y (λ ⟨α, A⟩ ⟨β, B⟩,
-  show (⟨β, B⟩ : pSet) ∈ (pSet.powerset ⟨α, A⟩) ↔ _,
+@[simp] theorem mem_powerset {x y : Set.{u}} : y ∈ powerset x ↔ y ⊆ x :=
+quotient.induction_on₂ x y ( λ ⟨α, A⟩ ⟨β, B⟩,
+  show (⟨β, B⟩ : pSet.{u}) ∈ (pSet.powerset.{u} ⟨α, A⟩) ↔ _,
     by simp [mem_powerset, subset_iff])
 
 theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : ∀ a, ∃ b, equiv (A a) (B b)) :

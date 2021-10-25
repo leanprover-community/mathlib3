@@ -2,12 +2,17 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Instances of `traversable` for types from the core library
 -/
+import control.traversable.lemmas
 import data.list.forall2
 import data.set.lattice
-import control.traversable.lemmas
+
+/-!
+# Traversable instances
+
+This file provides instances of `traversable` for types from the core library: `option`, `list` and
+`sum`.
+-/
 
 universes u v
 

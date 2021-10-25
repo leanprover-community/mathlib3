@@ -11,7 +11,8 @@ import analysis.normed_space.basic
 In this file we define `linear_isometry σ₁₂ E E₂` (notation: `E →ₛₗᵢ[σ₁₂] E₂`) to be a semilinear
 isometric embedding of `E` into `E₂` and `linear_isometry_equiv` (notation: `E ≃ₛₗᵢ[σ₁₂] E₂`) to be
 a semilinear isometric equivalence between `E` and `E₂`.  The notation for the associated purely
-linear concepts is `E →ₗᵢ[R] E₂`, `E ≃ₗᵢ[R] E₂`.
+linear concepts is `E →ₗᵢ[R] E₂`, `E ≃ₗᵢ[R] E₂`, and `E →ₗᵢ⋆[R] E₂`, `E ≃ₗᵢ⋆[R] E₂` for
+the star-linear versions.
 
 We also prove some trivial lemmas and provide convenience constructors.
 
@@ -45,13 +46,14 @@ structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*) [semi_norme
 
 notation E ` →ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry σ₁₂ E E₂
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry (ring_hom.id R) E E₂
+notation E ` →ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 := linear_isometry (@star_ring_aut R _ _ : R →+* R) E E₂
 
 namespace linear_isometry
 
 /-- We use `f₁` when we need the domain to be a `normed_space`. -/
 variables (f : E →ₛₗᵢ[σ₁₂] E₂) (f₁ : F →ₛₗᵢ[σ₁₂] E₂)
 
-instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_linear_map : ⇑f.to_linear_map = f := rfl
 
@@ -121,7 +123,7 @@ f.isometry.comp_continuous_iff
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = _root_.id := rfl
+@[simp] lemma coe_id : ((id : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 
 @[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
 
@@ -156,7 +158,7 @@ instance : monoid (E →ₗᵢ[R] E) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_one : ((1 : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : E →ₗᵢ[R] E) : ⇑(f * g) = f ∘ g := rfl
 
 end linear_isometry
@@ -200,13 +202,15 @@ structure linear_isometry_equiv (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+*
 
 notation E ` ≃ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry_equiv σ₁₂ E E₂
 notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry_equiv (ring_hom.id R) E E₂
+notation E ` ≃ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 :=
+  linear_isometry_equiv (@star_ring_aut R _ _ : R →+* R) E E₂
 
 namespace linear_isometry_equiv
 
 variables (e : E ≃ₛₗᵢ[σ₁₂] E₂)
 
 include σ₂₁
-instance : has_coe_to_fun (E ≃ₛₗᵢ[σ₁₂] E₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (E ≃ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : E ≃ₛₗ[σ₁₂] E₂) (he : ∀ x, ∥e x∥ = ∥x∥) :
   ⇑(mk e he) = e :=

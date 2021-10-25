@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 
 import algebra.ring.prod
+import algebra.module.basic
 import group_theory.submonoid.membership
 import group_theory.submonoid.center
 import data.set.finite

@@ -71,7 +71,7 @@ namespace structure_sheaf
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
 @[derive [comm_ring, local_ring]]
-def localizations (P : prime_spectrum_of_graded_ring.Top A) : Type* := localization.at_prime P.as_ideal
+def localizations (P : prime_spectrum_of_graded_ring.Top A) := localization.at_prime P.as_ideal
 
 instance (P : prime_spectrum_of_graded_ring.Top A) : inhabited (localizations A P) :=
 ⟨1⟩
@@ -90,11 +90,13 @@ variables {A}
 The predicate saying that a dependent function on an open `U` is realised as a fixed fraction
 `r / s` in each of the stalks (which are localizations at various prime ideals).
 -/
-def is_fraction {U : opens (prime_spectrum_of_graded_ring.Top A)} (f : Π x : U, localizations A x) : Prop :=
+def is_fraction {U : opens (prime_spectrum_of_graded_ring.Top A)}
+  (f : Π x : U, localizations A x) : Prop :=
 ∃ (r s : (⨁ i, A i)), ∀ x : U,
   ¬ (s ∈ x.1.as_ideal) ∧ f x * algebra_map _ _ s = algebra_map _ _ r
 
-lemma is_fraction.eq_mk' {U : opens (prime_spectrum_of_graded_ring.Top A)} {f : Π x : U, localizations A x}
+lemma is_fraction.eq_mk' {U : opens (prime_spectrum_of_graded_ring.Top A)}
+  {f : Π x : U, localizations A x}
   (hf : is_fraction f) :
   ∃ (r s : (⨁ i, A i)) , ∀ x : U, ∃ (hs : s ∉ x.1.as_ideal), f x =
     is_localization.mk' (localization.at_prime _) r

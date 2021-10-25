@@ -164,8 +164,7 @@ lemma piecewise_compl [decidable_eq α] (s : finset α) [Π i : α, decidable (i
   sᶜ.piecewise f g = s.piecewise g f :=
 by { ext i, simp [piecewise] }
 
-@[simp] lemma piecewise_erase_univ {δ : α → Sort*} [decidable_eq α] [fintype α] (a : α)
-  (f g : Π a, δ a) :
+@[simp] lemma piecewise_erase_univ {δ : α → Sort*} [decidable_eq α] (a : α) (f g : Π a, δ a) :
   (finset.univ.erase a).piecewise f g = function.update f a (g a) :=
 by rw [←compl_singleton, piecewise_compl, piecewise_singleton]
 

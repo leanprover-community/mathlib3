@@ -95,7 +95,14 @@ def augmented_cech_nerve : arrow C ⥤ simplicial_object.augmented C :=
 { obj := λ f, f.augmented_cech_nerve,
   map := λ f g F,
   { left := cech_nerve.map F,
-    right := F.right } }
+    right := F.right,
+    w' := by {
+      simp only [cech_nerve_map, functor.id_map, cech_nerve_map_2],
+      apply nat_trans.ext,
+      apply funext,
+      intro x,
+      simp only [arrow.augmented_cech_nerve_hom_app, functor.const.map_app, nat_trans.comp_app,
+        eq_self_iff_true, limits.wide_pullback.lift_base] } } }
 
 /-- A helper function used in defining the Čech adjunction. -/
 @[simps]

@@ -370,7 +370,7 @@ lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
 lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
   f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
 
-/-- A isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
+/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
 lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵒᵖ) (l : list R) :
   opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
 f.to_ring_hom.unop_map_list_prod l

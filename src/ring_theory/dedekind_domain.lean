@@ -843,6 +843,7 @@ lemma finite_dimensional.exists_is_basis_integral :
   ∃ (s : finset L) (b : basis s K L), (∀ x, is_integral A (b x)) :=
 begin
   letI := classical.dec_eq L,
+  letI : is_noetherian K L := is_noetherian.iff_fg.2 infer_instance,
   let s' := is_noetherian.finset_basis_index K L,
   let bs' := is_noetherian.finset_basis K L,
   obtain ⟨y, hy, his'⟩ := exists_integral_multiples A K (finset.univ.image bs'),

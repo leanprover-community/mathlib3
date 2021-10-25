@@ -274,10 +274,10 @@ begin
   exact adjugate_subsingleton _
 end
 
-@[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
+@[simp] lemma adjugate_zero [nontrivial n] : adjugate (0 : matrix n n α) = 0 :=
 begin
   ext i j,
-  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := fintype.exists_ne_of_one_lt_card h j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
   apply det_eq_zero_of_column_eq_zero j',
   intro j'',
   simp [update_column_ne hj'],

@@ -1539,11 +1539,12 @@ are unary functions from `I`) become binary functions in the continuity lemma.
   that:
   - Wherever possible, all point arguments are replaced by functions
   - All `n`-ary function arguments are replaced by `n+1`-ary functions
-  - The conclusion has as domain a variable (not something like `X × Y`), and neither does the
+  - The conclusion has a variable as domain (not something like `X × Y`), and neither does the
     continuity happen in a `Π`-type.
   - All (relevant) arguments have continuity assumptions, and perhaps there are additional
     assumptions needed to make the operation continuous.
-* This library note is about the *conclusions* of continuity lemmas. In assumptions it's fine to
-  state that a function with more than 1 argument is continuous using `↿` or `function.uncurry`.
+* This library note is mostly about the format of the *conclusion* of a continuity lemma.
+  In assumptions it's fine to state that a function with more than 1 argument is continuous using
+  `↿` or `function.uncurry`.
 -/
 library_note "continuity lemma statement"

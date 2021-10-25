@@ -14,11 +14,11 @@ a function `α → ℝ≥0` such that the values have (infinite) sum `1`.
 
 This file features the monadic structure of `pmf` and the Bernoulli distribution
 
-## Implementation Notes
-
-This file is not yet connected to the `measure_theory` library in any way.
-At some point we need to define a `measure` from a `pmf` and prove the appropriate lemmas about
-that.
+Given `p : pmf α`, `pmf.to_outer_measure` constructs an `outer_measure` on `α`,
+by assigning each set the sum of the probabilities of each of it's elements.
+Under this outer measure, every set is Carathéodory-measurable,
+so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
+`pmf.to_measure.is_probability_measure` shows this assosiated measure is a probability measure.
 
 ## Tags
 
@@ -46,7 +46,7 @@ lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 @[simp] lemma tsum_coe (p : pmf α) : ∑' a, p a = 1 := p.has_sum_coe_one.tsum_eq
 
 /-- The support of a `pmf` is the set where it is nonzero. -/
-def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
+def support (p : pmf α) : set α := function.support p
 
 @[simp] lemma mem_support_iff (p : pmf α) (a : α) :
   a ∈ p.support ↔ p a ≠ 0 := iff.rfl
@@ -304,79 +304,75 @@ by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_not]
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])
 
+
+section outer_measure
+
+/-- Construct an `outer_measure` from a `pmf`, by assigning measure to each set `s : set α` equal
+  to the sum of `p x` for for each `x ∈ α` -/
+def to_outer_measure (p : pmf α) : measure_theory.outer_measure α :=
+measure_theory.outer_measure.sum
+  (λ (x : α), (p x) • (measure_theory.outer_measure.dirac x))
+
+@[simp]
+lemma to_outer_measure_apply (p : pmf α) (s : set α) :
+  p.to_outer_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+tsum_congr (λ x, (measure_theory.outer_measure.smul_dirac_apply (p x) x s))
+
+lemma to_outer_measure_apply' (p : pmf α) (s : set α) :
+  p.to_outer_measure s = ↑(∑' (x : α), s.indicator p x) :=
+by simp only [ennreal.coe_tsum (nnreal.indicator_summable (summable_coe p) s),
+  ennreal.coe_indicator, to_outer_measure_apply]
+
+@[simp]
+lemma to_outer_measure_apply_finset (p : pmf α) (s : finset α) :
+  p.to_outer_measure s = ∑ x in s, p x :=
+begin
+  refine (to_outer_measure_apply p s).trans ((@tsum_eq_sum _ _ _ _ _ _ s _).trans _),
+  { exact λ x hx, set.indicator_of_not_mem hx _ },
+  { exact finset.sum_congr rfl (λ x hx, set.indicator_of_mem hx _) }
+end
+
+@[simp]
+lemma to_outer_measure_apply_eq_zero_iff (p : pmf α) (s : set α) :
+  p.to_outer_measure s = 0 ↔ disjoint p.support s :=
+begin
+  rw [to_outer_measure_apply', ennreal.coe_eq_zero,
+    tsum_eq_zero_iff (nnreal.indicator_summable (summable_coe p) s)],
+  exact function.funext_iff.symm.trans set.indicator_eq_zero',
+end
+
+@[simp]
+lemma to_outer_measure_caratheodory (p : pmf α) :
+  (to_outer_measure p).caratheodory = ⊤ :=
+begin
+  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _)
+    (measure_theory.outer_measure.le_sum_caratheodory _)),
+  obtain ⟨y, hy⟩ := hx,
+  exact ((le_of_eq (measure_theory.outer_measure.dirac_caratheodory _).symm).trans
+    (measure_theory.outer_measure.le_smul_caratheodory _ _)).trans (le_of_eq hy),
+end
+
+end outer_measure
+
 section measure
-
-open measure_theory
-
-lemma ite_mono {α : Type*} [partial_order α]
-  {x y : α} (hxy : y ≤ x) {p q : Prop} (hpq : p → q) :
-  ite p x y ≤ ite q x y :=
-begin
-  split_ifs with hp hq hq,
-  { exact le_rfl },
-  { exact absurd (hpq hp) hq },
-  { exact hxy },
-  { exact le_rfl }
-end
-
-def outer_measure_of_pmf (p : pmf α) : outer_measure α :=
-{ measure_of := λ s, ∑' x, if x ∈ s then p x else 0,
-  empty := by simp only [tsum_zero, set.mem_empty_eq, if_false],
-  mono := λ s s' h, tsum_le_tsum (λ x, ite_mono (ennreal.coe_nonneg.2 zero_le') (λ hx, h hx))
-      ennreal.summable ennreal.summable,
-  Union_nat := begin
-    intro s,
-    rw tsum_comm' ennreal.summable (λ _, ennreal.summable) (λ _, ennreal.summable),
-    refine tsum_le_tsum (λ x, _) ennreal.summable ennreal.summable,
-    split_ifs,
-    { obtain ⟨i, hi⟩ := set.mem_Union.1 h,
-      exact le_trans (by simp only [hi, ennreal.coe_le_coe, if_true])
-        (le_tsum' ennreal.summable i) },
-    { simp at h,
-      simp [h] }
-  end }
-
-@[simp]
-lemma outer_measure_of_pmf_apply (p : pmf α) (s : set α) :
-  outer_measure_of_pmf p s = ∑' x, if x ∈ s then p x else 0 :=
-rfl
-
-@[simp]
-lemma is_caratheodory (p : pmf α) (s : set α) :
-  (outer_measure_of_pmf p).is_caratheodory s :=
-begin
-  intros t,
-  simp only [outer_measure_of_pmf_apply, set.mem_inter_eq, set.mem_diff],
-  refine trans _ (tsum_add ennreal.summable ennreal.summable),
-  refine tsum_congr (λ x, _),
-  by_cases hx : x ∈ t,
-  { simp only [hx, true_and, if_true, ite_not],
-    split_ifs; simp },
-  { simp only [hx, add_zero, if_false, false_and] }
-end
-
-lemma caratheodory_eq_top (p : pmf α) :
-  (outer_measure_of_pmf p).caratheodory = ⊤ :=
-eq_top_iff.2 (λ x hx, is_caratheodory p x)
 
 variables [measurable_space α]
 
-def measure_of_pmf (p : pmf α) : measure α :=
-outer_measure.to_measure (outer_measure_of_pmf p)
-  (le_trans le_top $ le_of_eq (caratheodory_eq_top p).symm)
+/-- Since every set is Carathéodory-measurable under `pmf.to_outer_measure`,
+  we can further extend this `outer_measure` to a `measure` on `α` -/
+def to_measure (p : pmf α) : measure_theory.measure α :=
+p.to_outer_measure.to_measure ((to_outer_measure_caratheodory p).symm ▸ le_top)
 
 @[simp]
-lemma measure_of_pmf_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
-  measure_of_pmf p s = ∑' x, if x ∈ s then p x else 0 :=
-to_measure_apply _ _ hs
+lemma to_measure_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
+  p.to_measure s = p.to_outer_measure s :=
+measure_theory.to_measure_apply p.to_outer_measure _ hs
 
-instance measure_of_pmf.is_probability_measure (p : pmf α) :
-  is_probability_measure (measure_of_pmf p) :=
-⟨begin
-  simp only [if_true, measurable_set.univ, set.mem_univ, measure_of_pmf_apply],
-  refine (ennreal.coe_tsum (summable_coe p)).symm.trans
-    (congr_arg coe $ tsum_coe p),
-end⟩
+/-- The measure associated to a `pmf` by `to_measure` is a probability measure -/
+instance to_measure.is_probability_measure (p : pmf α) :
+  measure_theory.is_probability_measure (p.to_measure) :=
+⟨by simpa only [measurable_set.univ, to_measure_apply, set.indicator_univ,
+  to_outer_measure_apply', ennreal.coe_eq_one] using tsum_coe p⟩
 
 end measure
 

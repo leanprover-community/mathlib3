@@ -987,10 +987,6 @@ include dec dec'
 noncomputable instance : has_sup (associates α) := ⟨λa b, (a.factors ⊔ b.factors).prod⟩
 noncomputable instance : has_inf (associates α) := ⟨λa b, (a.factors ⊓ b.factors).prod⟩
 
-noncomputable instance [nontrivial α] : bounded_lattice (associates α) :=
-{ .. associates.order_top,
-  .. associates.order_bot }
-
 noncomputable instance [nontrivial α] : lattice (associates α) :=
 { sup          := (⊔),
   inf          := (⊓),

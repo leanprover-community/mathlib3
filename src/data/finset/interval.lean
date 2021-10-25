@@ -300,12 +300,24 @@ end ordered_cancel_add_comm_monoid
 
 /-! ### Intervals of finsets -/
 
-variables [decidable_eq α] {s t : finset α}
+variables [decidable_eq α] (s t : finset α)
 
 instance : locally_finite_order (finset α) :=
-locally_finite_order.of_Icc (finset α)
-  (λ s t, t.powerset.filter ((⊆) s))
-  (λ s t u, by {rw [mem_filter, mem_powerset], exact and_comm _ _ })
+{ finset_Icc := λ s t, t.powerset.filter ((⊆) s),
+  finset_Ioc := λ s t, t.powerset.filter ((⊂) s),
+  finset_mem_Icc := λ s t u, by {rw [mem_filter, mem_powerset], exact and_comm _ _ },
+  finset_mem_Ioc := λ s t u, by {rw [mem_filter, mem_powerset], exact and_comm _ _ },
+  ..locally_finite_order.of_Icc (finset α)
+    (λ s t, t.powerset.filter ((⊆) s))
+    (λ s t u, by {rw [mem_filter, mem_powerset], exact and_comm _ _ }) }
+
+lemma Icc_eq_filter_powerset : Icc s t = t.powerset.filter ((⊆) s) := rfl
+
+lemma Ioc_eq_filter_powerset : Ioc s t = t.powerset.filter ((⊂) s) := rfl
+
+lemma Iic_eq_powerset : Iic s = s.powerset := filter_true_of_mem $ λ t _, empty_subset t
+
+variables {s t}
 
 lemma Icc_eq_image_powerset (h : s ⊆ t) : Icc s t = (t \ s).powerset.image ((∪) s) :=
 begin
@@ -318,7 +330,7 @@ begin
     exact ⟨le_sup_left, union_subset h $ hv.trans $ sdiff_subset _ _⟩ }
 end
 
-/-- Cardinality of an `Icc` of finsets. **Not** of any `finset.Icc`. -/
+/-- Cardinality of a non-empty `Icc` of finsets. -/
 lemma card_Icc_finset (h : s ⊆ t) : (Icc s t).card = 2 ^ (t.card - s.card) :=
 begin
   rw [←card_sdiff h, ←card_powerset, Icc_eq_image_powerset h, finset.card_image_eq_iff_inj_on],
@@ -328,15 +340,15 @@ begin
     ←(disjoint_sdiff.mono_right hv : disjoint s v).sup_sdiff_cancel_left, huv],
 end
 
-/-- Cardinality of an `Ico` of finsets. **Not** of any `finset.Ico`. -/
+/-- Cardinality of an `Ico` of finsets. -/
 lemma card_Ico_finset (h : s ⊆ t) : (Ico s t).card = 2 ^ (t.card - s.card) - 1 :=
 by rw [card_Ico_eq_card_Icc_sub_one (le_iff_subset.2 h), card_Icc_finset h]
 
-/-- Cardinality of an `Ioc` of finsets. **Not** of any `finset.Ioc`. -/
+/-- Cardinality of an `Ioc` of finsets. -/
 lemma card_Ioc_finset (h : s ⊆ t) : (Ioc s t).card = 2 ^ (t.card - s.card) - 1 :=
 by rw [card_Ioc_eq_card_Icc_sub_one (le_iff_subset.2 h), card_Icc_finset h]
 
-/-- Cardinality of an `Ioo` of finsets. **Not** of any `finset.Ioo`. -/
+/-- Cardinality of an `Ioo` of finsets. -/
 lemma card_Ioo_finset (h : s ⊆ t) : (Ioo s t).card = 2 ^ (t.card - s.card) - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two (le_iff_subset.2 h), card_Icc_finset h]
 

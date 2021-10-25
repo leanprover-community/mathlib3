@@ -598,21 +598,6 @@ instance : finite_dimensional K (V →ₗ[K] W) :=
 linear_equiv.finite_dimensional
   (linear_map.to_matrix (basis.of_vector_space K V) (basis.of_vector_space K W)).symm
 
-/--
-The dimension of the space of linear transformations is the product of the dimensions of the
-domain and codomain.
--/
-@[simp] lemma finrank_linear_map :
-  finite_dimensional.finrank K (V →ₗ[K] W) =
-  (finite_dimensional.finrank K V) * (finite_dimensional.finrank K W) :=
-begin
-  let hbV := basis.of_vector_space K V,
-  let hbW := basis.of_vector_space K W,
-  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), matrix.finrank_matrix,
-    finite_dimensional.finrank_eq_card_basis hbV, finite_dimensional.finrank_eq_card_basis hbW,
-    mul_comm],
-end
-
 end finite_dimensional
 end linear_map
 

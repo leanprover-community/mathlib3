@@ -78,7 +78,8 @@ begin
     { exact hyp.2, }, },
 end
 
-lemma eq_or_coprime_of_lt_prime {n k : ℕ} (h0 : 0 < n) (hlt : n ≤ k) (is_prime : prime k) : k = n ∨ coprime k n :=
+lemma eq_or_coprime_of_lt_prime {n k : ℕ} (h0 : 0 < n) (hlt : n ≤ k) (is_prime : prime k) :
+  k = n ∨ coprime k n :=
 begin
   sorry,
 end
@@ -108,7 +109,8 @@ end
 
 -- TODO remove h0 h1 k_le_n assumption
 /-- A simple linear bound on the size of the `prime_counting'` function -/
-lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) (k_le_n : k ≤ n) : π' n ≤ π' k + 1 + nat.totient k * (n - k) / k :=
+lemma linear_prime_counting_bound (n k : ℕ) (h0 : 0 < k) (k_lt_n : k < n) (k_le_n : k ≤ n) :
+  π' n ≤ π' k + 1 + nat.totient k * (n - k) / k :=
 calc π' n ≤ ((range k).filter (prime)).card + ((Ico k n).filter (prime)).card :
             begin
               rw [prime_counting', split_range k_le_n],

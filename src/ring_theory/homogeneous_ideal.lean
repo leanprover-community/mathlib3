@@ -65,7 +65,7 @@ lemma homogeneous_ideal_iff_homogeneous_ideal' [add_comm_monoid ι] [gcomm_semir
   homogeneous_ideal I ↔ homogeneous_ideal' I :=
 begin
   rw [homogeneous_ideal_iff_eq_span_image_preimage, homogeneous_ideal],
-  exact (set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _ _,
+  exact (set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _,
 end
 
 private lemma homogeneous_ideal.mul_homogeneous_element

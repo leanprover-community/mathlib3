@@ -370,7 +370,7 @@ protected def boolean_algebra : boolean_algebra α :=
         split_ifs with h h;
         simpa [h] }
     end,
-  .. is_simple_lattice.bounded_lattice,
+  .. (show bounded_lattice α, by apply_instance),
   .. is_simple_lattice.distrib_lattice }
 
 end decidable_eq

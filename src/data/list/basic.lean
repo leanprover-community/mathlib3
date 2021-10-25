@@ -2402,6 +2402,10 @@ theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
   ... = l₁.prod * l₂.prod : foldl_assoc
 
+@[to_additive]
+theorem prod_concat : (l.concat a).prod = l.prod * a :=
+by rw [concat_eq_append, prod_append, prod_cons, prod_nil, mul_one]
+
 @[simp, to_additive]
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
@@ -2484,6 +2488,18 @@ lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
 | (x::xs) 0     a := by simp [update_nth]
 | (x::xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
 | []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
+
+open opposite
+
+lemma _root_.opposite.op_list_prod : ∀ (l : list α), op (l.prod) = (l.map op).reverse.prod
+| [] := rfl
+| (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, op_mul,
+                      _root_.opposite.op_list_prod]
+
+lemma _root_.opposite.unop_list_prod : ∀ (l : list αᵒᵖ), (l.prod).unop = (l.map unop).reverse.prod
+| [] := rfl
+| (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, unop_mul,
+                      _root_.opposite.unop_list_prod]
 
 end monoid
 
@@ -4670,6 +4686,15 @@ end list
 theorem monoid_hom.map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* β) (l : list α) :
   f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
+
+open opposite
+
+/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements -/
+lemma monoid_hom.unop_map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* βᵒᵖ) (l : list α):
+  unop (f l.prod) = (l.map (unop ∘ f)).reverse.prod :=
+begin
+  rw [f.map_list_prod l, opposite.unop_list_prod, list.map_map],
+end
 
 namespace list
 

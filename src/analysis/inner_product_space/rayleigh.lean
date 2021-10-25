@@ -98,18 +98,18 @@ namespace self_adjoint
 section real
 variables {F : Type*} [inner_product_space ℝ F] [complete_space F] {T : F →L[ℝ] F}
 
+lemma has_strict_fderiv_at_re_apply_inner_self (hT : self_adjoint (T : F →ₗ[ℝ] F)) (x₀ : F) :
+  has_strict_fderiv_at T.re_apply_inner_self (bit0 (inner_right (T x₀))) x₀ :=
+begin
+  convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
+  ext y,
+  simp [bit0, hT.apply_clm x₀ y, real_inner_comm x₀]
+end
+
 lemma linearly_dependent_of_is_local_extr_on (hT : self_adjoint (T : F →ₗ[ℝ] F))
   {x₀ : F} (hextr : is_local_extr_on T.re_apply_inner_self (sphere (0:F) ∥x₀∥) x₀) :
   ∃ a b : ℝ, (a, b) ≠ 0 ∧ a • x₀ + b • T x₀ = 0 :=
 begin
-  let φ' : F →L[ℝ] ℝ := bit0 (inner_right (T x₀)),
-  have hφ' : has_strict_fderiv_at T.re_apply_inner_self φ' x₀,
-  { convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
-    ext y,
-    simp only [φ', add_left_inj, bit0, continuous_linear_map.add_apply,
-      continuous_linear_map.coe_comp', continuous_linear_map.coe_id',
-      continuous_linear_map.prod_apply, eq_self_iff_true, fderiv_inner_clm_apply,
-      function.comp_app, id.def, inner_right_apply, hT.apply_clm x₀ y, real_inner_comm x₀] },
   have H : is_local_extr_on T.re_apply_inner_self {x : F | ∥x∥ ^ 2 = ∥x₀∥ ^ 2} x₀,
   { convert hextr,
     ext x,
@@ -117,13 +117,13 @@ begin
   -- find Lagrange multipliers for the function `T.re_apply_inner_self` and the
   -- hypersurface-defining function `λ x, ∥x∥ ^ 2`
   obtain ⟨a, b, h₁, h₂⟩ := is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at_1d H
-    (has_strict_fderiv_at_norm_sq x₀) hφ',
+    (has_strict_fderiv_at_norm_sq x₀) (hT.has_strict_fderiv_at_re_apply_inner_self x₀),
   refine ⟨a, b, h₁, _⟩,
   apply (inner_product_space.to_dual_map F).injective,
   simp only [linear_isometry.map_add, linear_isometry.map_smul, linear_isometry.map_zero],
   change a • inner_right x₀ + b • inner_right (T x₀) = 0,
   apply smul_right_injective (F →L[ℝ] ℝ) (two_ne_zero : (2:ℝ) ≠ 0),
-  simpa only [φ', bit0, add_smul, smul_add, one_smul, add_zero] using h₂
+  simpa only [bit0, add_smul, smul_add, one_smul, add_zero] using h₂
 end
 
 lemma eq_smul_self_of_is_local_extr_on_real (hT : self_adjoint (T : F →ₗ[ℝ] F))

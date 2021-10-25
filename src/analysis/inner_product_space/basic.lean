@@ -1659,9 +1659,7 @@ rfl
 
 lemma continuous_linear_map.re_apply_inner_self_continuous (T : E →L[𝕜] E) :
   continuous T.re_apply_inner_self :=
-re_clm.continuous.comp $
-  (@continuous_inner 𝕜 E _ _).comp $
-    T.continuous.prod_mk continuous_id
+re_clm.continuous.comp $ T.continuous.inner continuous_id
 
 lemma continuous_linear_map.re_apply_inner_self_smul (T : E →L[𝕜] E) (x : E) {c : 𝕜} :
   T.re_apply_inner_self (c • x) = ∥c∥ ^ 2 * T.re_apply_inner_self x :=

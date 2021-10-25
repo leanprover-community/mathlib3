@@ -111,14 +111,7 @@ end
 -- TODO spin off new PR and move these lemmas to data.finset.interval
 lemma Ioo_eq_Ico_erase (a b : ℕ) : Ioo a b = (Ico a b).erase a :=
 begin
-  rw ext_iff,
-  intro a_1,
-  simp only [mem_Ico, mem_Ioo, mem_insert],
-  by_cases h2 : a_1 = a,
-  { simp [h2, h], },
-  { simp [h2],
-    intro h3,
-    exact (ne.symm h2).le_iff_lt,},
+  sorry,
 end
 
 lemma Ico_succ_left_eq_erase_Ico (a b : ℕ) : Ico a.succ b = erase (Ico a b) a :=

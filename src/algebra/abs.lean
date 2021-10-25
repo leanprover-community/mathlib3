@@ -26,7 +26,14 @@ Absolute value is a unary operator with properties similar to the absolute value
 class has_abs (α : Type*) := (abs : α → α)
 export has_abs (abs)
 
+/--
+The positive part of an element admiting a decomposition into positive and negative parts.
+-/
 class has_pos_part (α : Type*) := (pos : α → α)
+
+/--
+The negative part of an element admiting a decomposition into positive and negative parts.
+-/
 class has_neg_part (α : Type*) := (neg : α → α)
 
 notation `|`a`|` := abs a

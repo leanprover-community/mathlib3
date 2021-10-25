@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.ennreal
+import measure_theory.measure.measure_space
 
 /-!
 # Probability mass functions
@@ -302,5 +303,81 @@ by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_not]
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])
+
+section measure
+
+open measure_theory
+
+lemma ite_mono {α : Type*} [partial_order α]
+  {x y : α} (hxy : y ≤ x) {p q : Prop} (hpq : p → q) :
+  ite p x y ≤ ite q x y :=
+begin
+  split_ifs with hp hq hq,
+  { exact le_rfl },
+  { exact absurd (hpq hp) hq },
+  { exact hxy },
+  { exact le_rfl }
+end
+
+def outer_measure_of_pmf (p : pmf α) : outer_measure α :=
+{ measure_of := λ s, ∑' x, if x ∈ s then p x else 0,
+  empty := by simp only [tsum_zero, set.mem_empty_eq, if_false],
+  mono := λ s s' h, tsum_le_tsum (λ x, ite_mono (ennreal.coe_nonneg.2 zero_le') (λ hx, h hx))
+      ennreal.summable ennreal.summable,
+  Union_nat := begin
+    intro s,
+    rw tsum_comm' ennreal.summable (λ _, ennreal.summable) (λ _, ennreal.summable),
+    refine tsum_le_tsum (λ x, _) ennreal.summable ennreal.summable,
+    split_ifs,
+    { obtain ⟨i, hi⟩ := set.mem_Union.1 h,
+      exact le_trans (by simp only [hi, ennreal.coe_le_coe, if_true])
+        (le_tsum' ennreal.summable i) },
+    { simp at h,
+      simp [h] }
+  end }
+
+@[simp]
+lemma outer_measure_of_pmf_apply (p : pmf α) (s : set α) :
+  outer_measure_of_pmf p s = ∑' x, if x ∈ s then p x else 0 :=
+rfl
+
+@[simp]
+lemma is_caratheodory (p : pmf α) (s : set α) :
+  (outer_measure_of_pmf p).is_caratheodory s :=
+begin
+  intros t,
+  simp only [outer_measure_of_pmf_apply, set.mem_inter_eq, set.mem_diff],
+  refine trans _ (tsum_add ennreal.summable ennreal.summable),
+  refine tsum_congr (λ x, _),
+  by_cases hx : x ∈ t,
+  { simp only [hx, true_and, if_true, ite_not],
+    split_ifs; simp },
+  { simp only [hx, add_zero, if_false, false_and] }
+end
+
+lemma caratheodory_eq_top (p : pmf α) :
+  (outer_measure_of_pmf p).caratheodory = ⊤ :=
+eq_top_iff.2 (λ x hx, is_caratheodory p x)
+
+variables [measurable_space α]
+
+def measure_of_pmf (p : pmf α) : measure α :=
+outer_measure.to_measure (outer_measure_of_pmf p)
+  (le_trans le_top $ le_of_eq (caratheodory_eq_top p).symm)
+
+@[simp]
+lemma measure_of_pmf_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
+  measure_of_pmf p s = ∑' x, if x ∈ s then p x else 0 :=
+to_measure_apply _ _ hs
+
+instance measure_of_pmf.is_probability_measure (p : pmf α) :
+  is_probability_measure (measure_of_pmf p) :=
+⟨begin
+  simp only [if_true, measurable_set.univ, set.mem_univ, measure_of_pmf_apply],
+  refine (ennreal.coe_tsum (summable_coe p)).symm.trans
+    (congr_arg coe $ tsum_coe p),
+end⟩
+
+end measure
 
 end pmf

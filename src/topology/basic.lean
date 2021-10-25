@@ -1470,8 +1470,8 @@ end dense_range
 end continuous
 
 /--
-The library contains many lemmas that functions/operations are continuous. There are many ways
-to formulate the continuity of operations. Some are more convenient than others.
+The library contains many lemmas stating that functions/operations are continuous. There are many
+ways to formulate the continuity of operations. Some are more convenient than others.
 Note: for the most part this note also applies to other properties
 (measurable, differentiable, continuous_on, ...).
 
@@ -1480,7 +1480,7 @@ As an example, let's look at addition `(+) : M → M → M`. We can state that t
 in different definitionally equal ways (omitting some typing information)
 * `continuous (λ p, p.1 + p.2)`;
 * `continuous (function.uncurry (+))`;
-* `continuous ↿(+)`.
+* `continuous ↿(+)`. (`↿` is notation for recursively uncurrying a function)
 
 However, lemmas with this conclusion are not nice to use in practice because
 (1) They confuse the elaborator. The following two examples fail, because of limitations in the
@@ -1507,7 +1507,7 @@ continuous.add : {f g : X → M} (hf : continuous f) (hg : continuous g) : conti
 This has the following advantages
 * It supports projection notation, so is shorter to write.
 * `continuous.add _ _` is recognized correctly by the elaborator and gives useful new goals.
-* It works for in any application, since the domain is the variable `X`.
+* It works generally, since the domain is a variable.
 
 As an example for an unary operation, we have `continuous.neg`.
 ```
@@ -1522,12 +1522,11 @@ As a harder example, consider an operation of the following type:
 def strans {x : F} (γ γ' : path x x) (t₀ : I) : path x x
 ```
 The precise definition is not important, only its type.
-The correct continuity principle for this operation is:
+The correct continuity principle for this operation is something like this:
 ```
 {f : X → F} {γ γ' : ∀ x, path (f x) (f x)} {t₀ s : X → I}
   (hγ : continuous ↿γ) (hγ' : continuous ↿γ')
-  (ht : continuous t₀) (hs : continuous s)
-  (some additional assumptions, if the definition might contain continuities) :
+  (ht : continuous t₀) (hs : continuous s) :
   continuous (λ x, strans (γ x) (γ' x) (t x) (s x))
 ```
 Note that *all* arguments of `strans` are indexed over `X`, even the basepoint `x`, and the last
@@ -1547,5 +1546,18 @@ are unary functions from `I`) become binary functions in the continuity lemma.
 * These remarks are mostly about the format of the *conclusion* of a continuity lemma.
   In assumptions it's fine to state that a function with more than 1 argument is continuous using
   `↿` or `function.uncurry`.
+
+### Functions with discontinuities
+
+In some cases, you want to work with discontinuous functions, and in certain expressions they are
+still continuous. For example, consider the fractional part of a number, `fract : ℝ → ℝ`.
+In this case, you want to add conditions to when a function involving `fract` is continuous, so you
+get something like this: (assumption `hf` could be weakened, but the important thing is the shape
+of the conclusion)
+```
+lemma continuous_on.comp_fract {X Y : Type*} [topological_space X] [topological_space Y]
+  {f : X → ℝ → Y} {g : X → ℝ} (hf : continuous ↿f) (hg : continuous g) (h : ∀ s, f s 0 = f s 1) :
+  continuous (λ x, f x (fract (g x)))
+```
 -/
 library_note "continuity lemma statement"

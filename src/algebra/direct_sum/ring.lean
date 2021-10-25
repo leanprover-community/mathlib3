@@ -616,3 +616,11 @@ direct_sum.gcomm_semiring.of_submodules _
   (λ i j p q, by { rw pow_add, exact submodule.mul_mem_mul p.prop q.prop })
 
 end submodule
+
+namespace punit
+
+variables [decidable_eq ι] [add_comm_monoid ι]
+
+instance gcomm_semiring_punit : direct_sum.gcomm_semiring (λ i : ι, punit) := by apply_instance
+
+end punit

@@ -13,7 +13,9 @@ variables {E : Type*} [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
-open_locale classical big_operators
+local attribute [instance] fact_one_le_two_real
+
+open_locale classical big_operators complex_conjugate
 open module.End
 
 -- move this
@@ -31,7 +33,7 @@ begin
   { exact ⟨⟨i, hi⟩, rfl.le⟩ },
 end
 
--- move this
+
 /-- The infimum of a family of invariant submodule of an operator is also an invariant submodule.
 -/
 lemma linear_map.infi_invariant {ι : Type*} (T : E →ₗ[𝕜] E) {V : ι → submodule 𝕜 E}
@@ -69,10 +71,9 @@ begin
 end
 
 /-- The eigenvalues of a self-adjoint operator are real. -/
-lemma conj_eigenvalue_eq_self {μ : 𝕜} (hμ : has_eigenvalue T μ) :
-  is_R_or_C.conj μ = μ :=
+lemma conj_eigenvalue_eq_self {μ : 𝕜} (hμ : has_eigenvalue T μ) : conj μ = μ :=
 begin
-  obtain ⟨v, hv₁, hv₂⟩ := hμ.has_eigenvector,
+  obtain ⟨v, hv₁, hv₂⟩ := hμ.exists_has_eigenvector _, -- fix this lemma
   rw mem_eigenspace_iff at hv₁,
   simpa [hv₂, inner_smul_left, inner_smul_right, hv₁] using hT v v
 end
@@ -92,30 +93,43 @@ end
 lemma orthogonal_family_eigenspaces' : orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) :=
 hT.orthogonal_family_eigenspaces.comp subtype.coe_injective
 
+/-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner
+product space is an invariant subspace of the operator. -/
+lemma orthogonal_supr_eigenspaces_invariant ⦃v : E⦄ (hv : v ∈ (⨆ μ, eigenspace T μ)ᗮ) :
+  T v ∈ (⨆ μ, eigenspace T μ)ᗮ :=
+begin
+  rw ← submodule.infi_orthogonal at ⊢ hv,
+  exact T.infi_invariant hT.invariant_orthogonal_eigenspace v hv
+end
+
+/-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner
+product space has no eigenvalues. -/
+lemma orthogonal_supr_eigenspaces (μ : 𝕜) :
+  eigenspace (T.restrict hT.orthogonal_supr_eigenspaces_invariant) μ = ⊥ :=
+begin
+  set p : submodule 𝕜 E := (⨆ μ, eigenspace T μ)ᗮ,
+  refine eigenspace_restrict_eq_bot hT.orthogonal_supr_eigenspaces_invariant _,
+  have H₂ : p ≤ (eigenspace T μ)ᗮ := submodule.orthogonal_le (le_supr _ _),
+  exact (eigenspace T μ).orthogonal_disjoint.mono_right H₂
+end
+
 /-! ### Finite-dimensional theory -/
 
 variables [finite_dimensional 𝕜 E]
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on a
 finite-dimensional inner product space is trivial. -/
-lemma orthogonal_supr_eigenspaces : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
+lemma orthogonal_supr_eigenspaces_eq_bot : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
 begin
-  suffices : subsingleton (supr (eigenspace T))ᗮ,
-  { resetI,
-    exact submodule.eq_bot_of_subsingleton },
-  rw ← submodule.infi_orthogonal,
-  set p : submodule 𝕜 E := ⨅ μ, (eigenspace T μ)ᗮ,
-  have hp : ∀ v ∈ p, T v ∈ p := T.infi_invariant hT.invariant_orthogonal_eigenspace,
-  have hp_eig : ∀ μ, eigenspace (T.restrict hp) μ = ⊥,-- := λ μ, baz₃ _ _ (infi_le _ _),
-  { intros μ,
-    have H₂ : p ≤ (eigenspace T μ)ᗮ := infi_le _ _,
-    exact module.End.eigenspace_restrict_eq_bot hp ((eigenspace T μ).orthogonal_disjoint.mono_right H₂) },
-  exact (hT.restrict_invariant hp).subsingleton_of_no_eigenvalue_finite_dimensional hp_eig,
+  have hT' : self_adjoint _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
+  -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue
+  haveI := hT'.subsingleton_of_no_eigenvalue_finite_dimensional hT.orthogonal_supr_eigenspaces,
+  exact submodule.eq_bot_of_subsingleton _,
 end
 
-lemma orthogonal_supr_eigenspaces' : (⨆ μ : eigenvalues T, eigenspace T μ)ᗮ = ⊥ :=
+lemma orthogonal_supr_eigenspaces_eq_bot' : (⨆ μ : eigenvalues T, eigenspace T μ)ᗮ = ⊥ :=
 begin
-  convert hT.orthogonal_supr_eigenspaces using 1,
+  convert hT.orthogonal_supr_eigenspaces_eq_bot using 1,
   rw ← foo (λ μ, eigenspace T μ),
   refl,
 end
@@ -125,17 +139,15 @@ an internal direct sum decomposition of `E`. -/
 lemma direct_sum_submodule_is_internal :
   direct_sum.submodule_is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
 by convert hT.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
-  hT.orthogonal_supr_eigenspaces'
+  hT.orthogonal_supr_eigenspaces_eq_bot'
 
 /-- Isometry from an inner product space `E` to the direct sum of the eigenspaces of some
 self-adjoint operator `T` on `E`. -/
-noncomputable def diagonalization :
-  E ≃ₗᵢ[𝕜] pi_Lp 2 one_le_two (λ μ : eigenvalues T, eigenspace T μ) :=
+noncomputable def diagonalization : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
 hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
   hT.orthogonal_family_eigenspaces'
 
-@[simp] lemma diagonalization_symm_apply
-  (w : pi_Lp 2 one_le_two (λ μ : eigenvalues T, eigenspace T μ)) :
+@[simp] lemma diagonalization_symm_apply (w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ)) :
   hT.diagonalization.symm w = ∑ μ, w μ :=
 hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   hT.orthogonal_family_eigenspaces' w
@@ -146,7 +158,7 @@ direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
   hT.diagonalization (T v) μ = (μ : 𝕜) • hT.diagonalization v μ :=
 begin
-  suffices : ∀ w : pi_Lp 2 one_le_two (λ μ : eigenvalues T, eigenspace T μ),
+  suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
   { simpa [linear_isometry_equiv.symm_apply_apply, -self_adjoint.diagonalization_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },

@@ -154,7 +154,7 @@ end
 
 @[simp] lemma direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
-  (hV' : orthogonal_family 𝕜 V) (w : pi_Lp 2 one_le_two (λ i, V i)) :
+  (hV' : orthogonal_family 𝕜 V) (w : pi_Lp 2 (λ i, V i)) :
   (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
 begin
   classical,
@@ -165,7 +165,6 @@ begin
   intros v,
   simp [e₂, direct_sum.to_module, dfinsupp.sum_add_hom_apply],
 end
-
 
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
 `euclidean_space 𝕜 ι`. -/

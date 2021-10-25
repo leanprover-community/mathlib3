@@ -48,21 +48,19 @@ Uniform limit, uniform convergence, tends uniformly to
  -/
 
 noncomputable theory
-open_locale topological_space classical uniformity
+open_locale topological_space classical uniformity filter
 
 open set filter
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α β γ ι : Type*} [uniform_space β]
+variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
 /-!
 ### Different notions of uniform convergence
 
 We define uniform convergence and locally uniform convergence, on a set or in the whole space.
 -/
-
-variables {ι : Type*} [uniform_space β]
-{F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
 /-- A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` with
 respect to the filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
@@ -105,6 +103,47 @@ begin
   apply (h u hu).mono (λ n hn, _),
   exact λ x, hn _
 end
+
+/-- Uniform convergence to a constant function is equivalent to convergence in in `p ×ᶠ ⊤`. -/
+lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=
+let j : β → β × β := prod.mk c in
+calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
+    ↔ map ↿F (p ×ᶠ ⊤) ≤ (𝓝 c) : iff.rfl
+... ↔ map ↿F (p ×ᶠ ⊤) ≤ comap j (𝓤 β) : by rw nhds_eq_comap_uniformity
+... ↔ map j (map ↿F (p ×ᶠ ⊤)) ≤ 𝓤 β : map_le_iff_le_comap.symm
+... ↔ map (j ∘ ↿F) (p ×ᶠ ⊤) ≤ 𝓤 β : by rw map_map
+... ↔ ∀ V ∈ 𝓤 β, {x | (c, ↿F x) ∈ V} ∈ p ×ᶠ (⊤ : filter α) : iff.rfl
+... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [filter.mem_prod_top]
+
+lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
+  {x : α} {U : set α} (hU : U ∈ 𝓝 x)
+  {F : α → β → γ} (hF : uniform_continuous_on ↿F (U.prod univ)) :
+  tendsto_uniformly F (F x) (𝓝 x) :=
+begin
+  intros V hV,
+  rw [uniform_continuous_on, uniformity_prod_eq_prod] at hF,
+  specialize hF hV,
+  rw [mem_map, mem_inf_iff] at hF,
+  rcases hF with ⟨s, hs, t, ht, hst⟩,
+  rw [mem_map, mem_prod_iff] at hs, rcases hs with ⟨u, hu, v, hv, huvs⟩,
+  rw [mem_principal] at ht,
+  rw [← image_subset_iff] at huvs,
+  have hU' := mem_nhds_uniformity_iff_right.mp hU,
+  rw [nhds_eq_comap_uniformity, eventually_comap],
+  apply eventually_of_mem (inter_mem hu hU'),
+  rintro ⟨x', y'⟩ ⟨hxyu, hxyU⟩ y hxy b,
+  cases hxy,
+  show ((x, b), (y, b)) ∈ (λ p : _ × _, (↿F p.1, ↿F p.2)) ⁻¹' V,
+  rw [hst],
+  refine ⟨huvs ⟨((x, y), (b, b)), _, rfl⟩, ht _⟩,
+  exact ⟨hxyu, refl_mem_uniformity hv⟩,
+  refine ⟨⟨mem_of_mem_nhds hU, mem_univ b⟩, ⟨hxyU rfl, mem_univ b⟩⟩
+end
+
+lemma uniform_continuous₂.tendsto_uniformly [uniform_space α] [uniform_space γ]
+  {f : α → β → γ} (h : uniform_continuous₂ f) {x : α} : tendsto_uniformly f (f x) (𝓝 x) :=
+uniform_continuous_on.tendsto_uniformly univ_mem $
+  by rwa [univ_prod_univ, uniform_continuous_on_univ]
 
 variable [topological_space α]
 

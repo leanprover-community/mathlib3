@@ -2427,6 +2427,14 @@ end
     (λ ht'e, absurd ht'e (nonempty_of_mem ht').ne_empty)),
   λ h, prod_mem_prod h.1 h.2⟩
 
+lemma filter.mem_prod_top {f : filter α} {s : set (α × β)} :
+  s ∈ f ×ᶠ (⊤ : filter β) ↔ {a | ∀ b, (a, b) ∈ s} ∈ f :=
+begin
+  rw [← @exists_mem_subset_iff _ f],
+  simp only [mem_prod_iff, exists_prop, exists_eq_left, mem_top, prod_univ, mem_preimage,
+    prod.forall, subset_def, mem_set_of_eq, imp_forall_iff]
+end
+
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
 by erw [comap_inf, filter.comap_comap, filter.comap_comap]

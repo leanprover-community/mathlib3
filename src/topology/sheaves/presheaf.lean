@@ -33,7 +33,7 @@ variables (C : Type u) [category.{v} C]
 namespace Top
 
 /-- The category of `C`-valued presheaves on a (bundled) topological space `X`. -/
-@[derive category]
+@[derive category, nolint has_inhabited_instance]
 def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
 
 variables {C}
@@ -130,14 +130,22 @@ section pullback
 variable [has_colimits C]
 noncomputable theory
 
+/--
+Pullback a presheaf on `Y` along a continuous map `f : X ⟶ Y`, obtaining a presheaf on `X`.
+
+This is defined in terms of left kan extensions, which is just a fancy way of saying
+"take the colimits over the open sets whose preimage contains U".
+-/
 @[simps]
 def pullback_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : Y.presheaf C) : X.presheaf C :=
 (Lan (opens.map f).op).obj ℱ
 
+/-- Pulling back along continuous maps is functorial. -/
 def pullback_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : Y.presheaf C} (α : ℱ ⟶ 𝒢) :
   pullback_obj f ℱ ⟶ pullback_obj f 𝒢 :=
 (Lan (opens.map f).op).map α
 
+/-- If `f '' U` is open, then `f⁻¹ℱ U ≅ ℱ (f '' U)`.  -/
 @[simps]
 def pullback_obj_obj_of_image_open {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : Y.presheaf C) (U : opens X)
   (H : is_open (f '' U)) : (pullback_obj f ℱ).obj (op U) ≅ ℱ.obj (op ⟨_, H⟩) :=
@@ -160,12 +168,9 @@ end
 namespace pullback
 variables {X Y : Top.{v}} (ℱ : Y.presheaf C)
 
-def whiskering_left_id {D : Type*} [category D] : (whiskering_left _ _ C).obj (𝟭 D) ≅ 𝟭 _ :=
-nat_iso.of_components functor.left_unitor
-  (λ X Y f, nat_trans.ext _ _ $ funext $ λ _, (category.comp_id _).trans (category.id_comp _).symm)
-
 local attribute [reassoc] colimit.pre_desc
 
+/-- The pullback along the identity is isomorphic to the original presheaf. -/
 def id : pullback_obj (𝟙 _) ℱ ≅ ℱ :=
 nat_iso.of_components
   (λ U, pullback_obj_obj_of_image_open (𝟙 _) ℱ (unop U) (by simpa using U.unop.2) ≪≫
@@ -197,21 +202,22 @@ end pullback
 end pullback
 variable (C)
 
-@[simps]
-def pushforward {X Y : Top.{v}} (f : X ⟶ Y) :
-  X.presheaf C ⥤ Y.presheaf C := {obj := pushforward_obj f, map := λ _ _, pushforward_map f }
+/-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
+on `Y`. -/
+@[simps] def pushforward {X Y : Top.{v}} (f : X ⟶ Y) :
+  X.presheaf C ⥤ Y.presheaf C := { obj := pushforward_obj f, map := λ _ _, pushforward_map f }
 
 variables [has_colimits C]
 
-/-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
-on `Y`. -/
-@[simps] noncomputable
+/-- Pullback a presheaf on `Y` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
+on `X`. -/
+@[simps]
 def pullback {X Y : Top.{v}} (f : X ⟶ Y) : Y.presheaf C ⥤ X.presheaf C := Lan (opens.map f).op
 
-noncomputable
+/-- The pullback and pushforward along a continuous map are adjoint to each other. -/
+@[simps unit_app_app counit_app_app]
 def pushforward_pullback_adjunction {X Y : Top.{v}} (f : X ⟶ Y) :
-  pullback C f ⊣ (pushforward C f) := Lan.adjunction _ _
+  pullback C f ⊣ pushforward C f := Lan.adjunction _ _
 
 end presheaf
-
 end Top

@@ -817,7 +817,7 @@ lemma dim_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι R M) :
 by {haveI := nontrivial_of_invariant_basis_number R,
   rw [←h.mk_range_eq_dim, cardinal.fintype_card, set.card_range_of_injective h.injective] }
 
-lemma basis.card_le_card_of_linear_independent [module R M] {ι : Type*} [fintype ι]
+lemma basis.card_le_card_of_linear_independent {ι : Type*} [fintype ι]
   (b : basis ι R M) {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
   fintype.card ι' ≤ fintype.card ι :=
 begin
@@ -826,17 +826,12 @@ begin
     cardinal_lift_le_dim_of_linear_independent' hv
 end
 
-lemma basis.card_le_card_of_submodule
-  {R : Type*} [ring R] [strong_rank_condition R] [module R M] (N : submodule R M)
-  {ι : Type*} [fintype ι] (b : basis ι R M)
-  {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
-  fintype.card ι' ≤ fintype.card ι :=
+lemma basis.card_le_card_of_submodule (N : submodule R M) [fintype ι] (b : basis ι R M)
+  [fintype ι'] (b' : basis ι' R N) : fintype.card ι' ≤ fintype.card ι :=
 b.card_le_card_of_linear_independent (b'.linear_independent.map' N.subtype N.ker_subtype)
 
 lemma basis.card_le_card_of_le
-  {R : Type*} [ring R] [strong_rank_condition R] [module R M] {N O : submodule R M} (hNO : N ≤ O)
-  {ι : Type*} [fintype ι] (b : basis ι R O)
-  {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
+  {N O : submodule R M} (hNO : N ≤ O) [fintype ι] (b : basis ι R O) [fintype ι'] (b' : basis ι' R N) :
   fintype.card ι' ≤ fintype.card ι :=
 b.card_le_card_of_linear_independent
   (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))

@@ -1,10 +1,14 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Leonardo de Moura
+Authors: Leonardo de Moura
 -/
 open nat function option
 universes u v w
+
+/-!
+# Streams a.k.a. infinite lists a.k.a. infinite sequences
+-/
 
 def stream (α : Type u) := nat → α
 
@@ -131,16 +135,20 @@ variable (f : α → β → δ)
 def zip (s₁ : stream α) (s₂ : stream β) : stream δ :=
 λ n, f (nth n s₁) (nth n s₂)
 
-theorem drop_zip (n : nat) (s₁ : stream α) (s₂ : stream β) : drop n (zip f s₁ s₂) = zip f (drop n s₁) (drop n s₂) :=
+theorem drop_zip (n : nat) (s₁ : stream α) (s₂ : stream β) :
+  drop n (zip f s₁ s₂) = zip f (drop n s₁) (drop n s₂) :=
 stream.ext (λ i, rfl)
 
-theorem nth_zip (n : nat) (s₁ : stream α) (s₂ : stream β) : nth n (zip f s₁ s₂) = f (nth n s₁) (nth n s₂) := rfl
+theorem nth_zip (n : nat) (s₁ : stream α) (s₂ : stream β) :
+  nth n (zip f s₁ s₂) = f (nth n s₁) (nth n s₂) := rfl
 
 theorem head_zip (s₁ : stream α) (s₂ : stream β) : head (zip f s₁ s₂) = f (head s₁) (head s₂) := rfl
 
-theorem tail_zip (s₁ : stream α) (s₂ : stream β) : tail (zip f s₁ s₂) = zip f (tail s₁) (tail s₂) := rfl
+theorem tail_zip (s₁ : stream α) (s₂ : stream β) :
+  tail (zip f s₁ s₂) = zip f (tail s₁) (tail s₂) := rfl
 
-theorem zip_eq (s₁ : stream α) (s₂ : stream β) : zip f s₁ s₂ = f (head s₁) (head s₂) :: zip f (tail s₁) (tail s₂) :=
+theorem zip_eq (s₁ : stream α) (s₂ : stream β) :
+  zip f s₁ s₂ = f (head s₁) (head s₂) :: zip f (tail s₁) (tail s₂) :=
 begin rw [← stream.eta (zip f s₁ s₂)], refl end
 
 end zip
@@ -191,7 +199,8 @@ end
 
 theorem nth_zero_iterate (f : α → α) (a : α) : nth 0 (iterate f a) = a := rfl
 
-theorem nth_succ_iterate (n : nat) (f : α → α) (a : α) : nth (succ n) (iterate f a) = nth n (iterate f (f a)) :=
+theorem nth_succ_iterate (n : nat) (f : α → α) (a : α) :
+  nth (succ n) (iterate f a) = nth n (iterate f (f a)) :=
 by rw [nth_succ, tail_iterate]
 
 section bisim
@@ -200,7 +209,8 @@ section bisim
 
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → head s₁ = head s₂ ∧ tail s₁ ~ tail s₂
 
-  theorem nth_of_bisim (bisim : is_bisimulation R) : ∀ {s₁ s₂} n, s₁ ~ s₂ → nth n s₁ = nth n s₂ ∧ drop (n+1) s₁ ~ drop (n+1) s₂
+  theorem nth_of_bisim (bisim : is_bisimulation R) :
+    ∀ {s₁ s₂} n, s₁ ~ s₂ → nth n s₁ = nth n s₂ ∧ drop (n+1) s₁ ~ drop (n+1) s₂
   | s₁ s₂ 0     h := bisim h
   | s₁ s₂ (n+1) h :=
     match bisim h with
@@ -212,7 +222,8 @@ section bisim
   λ s₁ s₂ r, stream.ext (λ n, and.elim_left (nth_of_bisim R bisim n r))
 end bisim
 
-theorem bisim_simple (s₁ s₂ : stream α) : head s₁ = head s₂ → s₁ = tail s₁ → s₂ = tail s₂ → s₁ = s₂ :=
+theorem bisim_simple (s₁ s₂ : stream α) :
+  head s₁ = head s₂ → s₁ = tail s₁ → s₂ = tail s₂ → s₁ = s₂ :=
 assume hh ht₁ ht₂, eq_of_bisim
   (λ s₁ s₂, head s₁ = head s₂ ∧ s₁ = tail s₁ ∧ s₂ = tail s₂)
   (λ s₁ s₂ ⟨h₁, h₂, h₃⟩,
@@ -222,15 +233,18 @@ assume hh ht₁ ht₂, eq_of_bisim
   (and.intro hh (and.intro ht₁ ht₂))
 
 theorem coinduction {s₁ s₂ : stream α} :
-        head s₁ = head s₂ → (∀ (β : Type u) (fr : stream α → β), fr s₁ = fr s₂ → fr (tail s₁) = fr (tail s₂)) → s₁ = s₂ :=
+  head s₁ = head s₂ → (∀ (β : Type u) (fr : stream α → β), fr s₁ = fr s₂ →
+    fr (tail s₁) = fr (tail s₂)) → s₁ = s₂ :=
 assume hh ht,
   eq_of_bisim
-    (λ s₁ s₂, head s₁ = head s₂ ∧ ∀ (β : Type u) (fr : stream α → β), fr s₁ = fr s₂ → fr (tail s₁) = fr (tail s₂))
+    (λ s₁ s₂, head s₁ = head s₂ ∧ ∀ (β : Type u) (fr : stream α → β), fr s₁ = fr s₂ →
+      fr (tail s₁) = fr (tail s₂))
     (λ s₁ s₂ h,
       have h₁ : head s₁ = head s₂,               from and.elim_left h,
       have h₂ : head (tail s₁) = head (tail s₂), from and.elim_right h α (@head α) h₁,
-      have h₃ : ∀ (β : Type u) (fr : stream α → β), fr (tail s₁) = fr (tail s₂) → fr (tail (tail s₁)) = fr (tail (tail s₂)), from
-        λ β fr, and.elim_right h β (λ s, fr (tail s)),
+      have h₃ : ∀ (β : Type u) (fr : stream α → β),
+        fr (tail s₁) = fr (tail s₂) → fr (tail (tail s₁)) = fr (tail (tail s₂)),
+      from λ β fr, and.elim_right h β (λ s, fr (tail s)),
       and.intro h₁ (and.intro h₂ h₃))
     (and.intro hh ht)
 
@@ -406,21 +420,27 @@ def append_stream : list α → stream α → stream α
 
 theorem nil_append_stream (s : stream α) : append_stream [] s = s := rfl
 
-theorem cons_append_stream (a : α) (l : list α) (s : stream α) : append_stream (a::l) s = a :: append_stream l s := rfl
+theorem cons_append_stream (a : α) (l : list α) (s : stream α) :
+  append_stream (a::l) s = a :: append_stream l s := rfl
 
 infix `++ₛ`:65 := append_stream
 
-theorem append_append_stream : ∀ (l₁ l₂ : list α) (s : stream α), (l₁ ++ l₂) ++ₛ s = l₁ ++ₛ (l₂ ++ₛ s)
+theorem append_append_stream :
+  ∀ (l₁ l₂ : list α) (s : stream α), (l₁ ++ l₂) ++ₛ s = l₁ ++ₛ (l₂ ++ₛ s)
 | []               l₂ s := rfl
-| (list.cons a l₁) l₂ s := by rw [list.cons_append, cons_append_stream, cons_append_stream, append_append_stream]
+| (list.cons a l₁) l₂ s := by rw [list.cons_append, cons_append_stream, cons_append_stream,
+                                  append_append_stream]
 
-theorem map_append_stream (f : α → β) : ∀ (l : list α) (s : stream α), map f (l ++ₛ s) = list.map f l ++ₛ map f s
+theorem map_append_stream (f : α → β) :
+  ∀ (l : list α) (s : stream α), map f (l ++ₛ s) = list.map f l ++ₛ map f s
 | []              s := rfl
-| (list.cons a l) s := by rw [cons_append_stream, list.map_cons, map_cons, cons_append_stream, map_append_stream]
+| (list.cons a l) s := by rw [cons_append_stream, list.map_cons, map_cons, cons_append_stream,
+                              map_append_stream]
 
 theorem drop_append_stream : ∀ (l : list α) (s : stream α), drop l.length (l ++ₛ s) = s
 | []              s := by refl
-| (list.cons a l) s := by rw [list.length_cons, add_one, drop_succ, cons_append_stream, tail_cons, drop_append_stream]
+| (list.cons a l) s := by rw [list.length_cons, add_one, drop_succ, cons_append_stream, tail_cons,
+                              drop_append_stream]
 
 theorem append_stream_head_tail (s : stream α) : [head s] ++ₛ tail s = s :=
 by rw [cons_append_stream, nil_append_stream, stream.eta]
@@ -444,13 +464,15 @@ def approx : nat → stream α → list α
 
 theorem approx_zero (s : stream α) : approx 0 s = [] := rfl
 
-theorem approx_succ (n : nat) (s : stream α) : approx (succ n) s = head s :: approx n (tail s) := rfl
+theorem approx_succ (n : nat) (s : stream α) :
+  approx (succ n) s = head s :: approx n (tail s) := rfl
 
 theorem nth_approx : ∀ (n : nat) (s : stream α), list.nth (approx (succ n) s) n = some (nth n s)
 | 0     s := rfl
 | (n+1) s := begin rw [approx_succ, add_one, list.nth, nth_approx], refl end
 
-theorem append_approx_drop : ∀ (n : nat) (s : stream α), append_stream (approx n s) (drop n s) = s :=
+theorem append_approx_drop :
+  ∀ (n : nat) (s : stream α), append_stream (approx n s) (drop n s) = s :=
 begin
   intro n,
   induction n with n' ih,
@@ -489,7 +511,8 @@ def cycle : Π (l : list α), l ≠ [] → stream α
 theorem cycle_eq : ∀ (l : list α) (h : l ≠ []), cycle l h = l ++ₛ cycle l h
 | []              h := absurd rfl h
 | (list.cons a l) h :=
-  have gen : ∀ l' a', corec cycle_f cycle_g (a', l', a, l) = (a' :: l') ++ₛ corec cycle_f cycle_g (a, l, a, l),
+  have gen : ∀ l' a', corec cycle_f cycle_g (a', l', a, l) =
+    (a' :: l') ++ₛ corec cycle_f cycle_g (a, l, a, l),
     begin
       intro l',
       induction l' with a₁ l₁ ih,
@@ -530,13 +553,16 @@ corec_on (l, s)
 def inits (s : stream α) : stream (list α) :=
 inits_core [head s] (tail s)
 
-theorem inits_core_eq (l : list α) (s : stream α) : inits_core l s = l :: inits_core (l ++ [head s]) (tail s) :=
+theorem inits_core_eq (l : list α) (s : stream α) :
+  inits_core l s = l :: inits_core (l ++ [head s]) (tail s) :=
 begin unfold inits_core corec_on, rw [corec_eq], refl end
 
-theorem tail_inits (s : stream α) : tail (inits s) = inits_core [head s, head (tail s)] (tail (tail s)) :=
+theorem tail_inits (s : stream α) :
+  tail (inits s) = inits_core [head s, head (tail s)] (tail (tail s)) :=
 begin unfold inits, rw inits_core_eq, refl end
 
-theorem inits_tail (s : stream α) : inits (tail s) = inits_core [head (tail s)] (tail (tail s)) := rfl
+theorem inits_tail (s : stream α) :
+  inits (tail s) = inits_core [head (tail s)] (tail (tail s)) := rfl
 
 theorem cons_nth_inits_core : ∀ (a : α) (n : nat) (l : list α) (s : stream α),
                                  a :: nth n (inits_core l s) = nth n (inits_core (a::l) s) :=
@@ -578,9 +604,11 @@ def apply (f : stream (α → β)) (s : stream α) : stream β :=
 infix `⊛`:75 := apply  -- input as \o*
 
 theorem identity (s : stream α) : pure id ⊛ s = s := rfl
-theorem composition (g : stream (β → δ)) (f : stream (α → β)) (s : stream α) : pure comp ⊛ g ⊛ f ⊛ s = g ⊛ (f ⊛ s) := rfl
+theorem composition (g : stream (β → δ)) (f : stream (α → β)) (s : stream α) :
+  pure comp ⊛ g ⊛ f ⊛ s = g ⊛ (f ⊛ s) := rfl
 theorem homomorphism (f : α → β) (a : α) : pure f ⊛ pure a = pure (f a) := rfl
-theorem interchange (fs : stream (α → β)) (a : α) : fs ⊛ pure a = pure (λ f : α → β, f a) ⊛ fs := rfl
+theorem interchange (fs : stream (α → β)) (a : α) :
+  fs ⊛ pure a = pure (λ f : α → β, f a) ⊛ fs := rfl
 theorem map_eq_apply (f : α → β) (s : stream α) : map f s = pure f ⊛ s := rfl
 
 def nats : stream nat :=

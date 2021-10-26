@@ -173,6 +173,15 @@ lemma map_range.linear_map_comp (f : Π i, β₁ i →ₗ[R] β₂ i) (f₂ : Π
     (map_range.linear_map f).comp (map_range.linear_map f₂) :=
 linear_map.ext $ map_range_comp (λ i x, f i x) (λ i x, f₂ i x) _ _ _
 
+include dec_ι
+lemma sum_map_range_index.linear_map
+  [Π (i : ι) (x : β₁ i), decidable (x ≠ 0)] [Π (i : ι) (x : β₂ i), decidable (x ≠ 0)]
+  {f : Π i, β₁ i →ₗ[R] β₂ i} {h : Π i, β₂ i →ₗ[R] N} {l : Π₀ i, β₁ i} :
+  dfinsupp.lsum ℕ h (map_range.linear_map f l) = dfinsupp.lsum ℕ (λ i, (h i).comp (f i)) l :=
+by simpa [dfinsupp.sum_add_hom_apply] using
+  @sum_map_range_index ι N _ _ _ _ _ _ _ _ (λ i, f i) (λ i, by simp) l (λ i, h i) (λ i, by simp)
+omit dec_ι
+
 /-- `dfinsupp.map_range.linear_map` as an `linear_equiv`. -/
 @[simps apply]
 def map_range.linear_equiv (e : Π i, β₁ i ≃ₗ[R] β₂ i) : (Π₀ i, β₁ i) ≃ₗ[R] (Π₀ i, β₂ i) :=

@@ -82,7 +82,7 @@ instance inhabited_fin_one_add (n : ℕ) : inhabited (fin (1 + n)) := ⟨⟨0, n
 @[simp] lemma fin.default_eq_zero (n : ℕ) : default (fin n.succ) = 0 := rfl
 
 instance fin.unique : unique (fin 1) :=
-{ uniq := fin.eq_zero, to_inhabited := fin.inhabited }
+{ uniq := fin.eq_zero, .. fin.inhabited }
 
 namespace unique
 open function

@@ -67,7 +67,7 @@ structure hom (X Y : PresheafedSpace C) :=
 
 @[ext] lemma ext {X Y : PresheafedSpace C} (α β : hom X Y)
   (w : α.base = β.base)
-  (h : α.c ≫ eq_to_hom (presheaf.pushforward_eq' w _) = β.c) :
+  (h : α.c ≫ eq_to_hom (by rw w) = β.c) :
   α = β :=
 begin
   cases α, cases β,
@@ -112,24 +112,13 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
 { hom := hom,
   id := id,
   comp := λ X Y Z f g, comp f g,
-  id_comp' := λ X Y f,
-  begin
-    ext1, { rw comp_c,
-      erw eq_to_hom_map, simp,
-      apply comp_id },
-    apply id_comp,
-  end,
-  comp_id' := λ X Y f,
-  begin
-    ext1, { rw comp_c,
-      erw congr_hom (presheaf.id_pushforward) f.c,
-      simp, erw eq_to_hom_trans_assoc, simp },
-    apply comp_id,
-  end,
-  assoc' := λ W X Y Z f g h,
-  begin
-    ext1, repeat {rw comp_c}, simpa, refl,
-  end }
+  id_comp' := λ X Y f, by { ext1,
+    { rw comp_c, erw eq_to_hom_map, simp, apply comp_id }, apply id_comp },
+  comp_id' := λ X Y f, by { ext1,
+    { rw comp_c, erw congr_hom (presheaf.id_pushforward) f.c,
+      simp, erw eq_to_hom_trans_assoc, simp }, apply comp_id },
+  assoc' := λ W X Y Z f g h, by { ext1,
+    repeat {rw comp_c}, simpa, refl } }
 
 end
 
@@ -183,7 +172,7 @@ def of_restrict {U : Top} (X : PresheafedSpace C)
   X.restrict h ⟶ X :=
 { base := f,
   c := { app := λ V, X.presheaf.map (h.is_open_map.adjunction.counit.app V.unop).op,
-    naturality':= λ U V f, show _ = _ ≫ X.presheaf.map _,
+    naturality' := λ U V f, show _ = _ ≫ X.presheaf.map _,
       by { rw [← map_comp, ← map_comp], refl } } }
 
 lemma restrict_top_presheaf (X : PresheafedSpace C) :

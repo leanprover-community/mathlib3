@@ -126,8 +126,9 @@ begin
   induction n generalizing u v,
   { ext p,
     cases p,
-    { simp! only [dite_eq_ite, set.mem_singleton, if_true, finset.coe_singleton, eq_self_iff_true, and_self, list.nodup_nil,
-            set.mem_set_of_eq], },
+    { simp! only [dite_eq_ite, set.mem_singleton, if_true, finset.coe_singleton, eq_self_iff_true,
+      and_self, list.nodup_nil,
+      set.mem_set_of_eq], },
     simp! only [set.mem_set_of_eq, iff_false, finset.mem_coe, false_and],
     split_ifs,
     { subst u, simp, },
@@ -137,12 +138,18 @@ begin
     { have : ∀ n, 0 = n + 1 ↔ false,
       { intro n,
         simp only [forall_const, (nat.succ_ne_zero n).symm], },
-      simp! only [nat.succ_eq_add_one, this, set.mem_Union, nat.nat_zero_eq_zero, finset.coe_bUnion, finset.mem_univ, set.Union_true,
-        list.nodup_nil, set.mem_set_of_eq, exists_imp_distrib, iff_false, finset.mem_coe, false_and],
-      intro w,
-      split_ifs, simp! only [and_imp, exists_prop, finset.mem_bUnion, forall_true_left, exists_imp_distrib], intro q, split_ifs, simp, simp,
-      simp, },
-    { simp! only [set.mem_Union, finset.coe_bUnion, finset.mem_univ, set.Union_true, list.nodup_cons, set.mem_set_of_eq, finset.mem_coe],
+      simp! only [
+          nat.succ_eq_add_one, this, set.mem_Union, nat.nat_zero_eq_zero, finset.coe_bUnion,
+          finset.mem_univ, set.Union_true, list.nodup_nil, set.mem_set_of_eq, exists_imp_distrib,
+          iff_false, finset.mem_coe, false_and
+        ],
+      intro w, split_ifs,
+      simp! only [and_imp, exists_prop, finset.mem_bUnion, forall_true_left, exists_imp_distrib],
+      intro q, split_ifs, simp, simp, simp, },
+    { simp! only [
+        set.mem_Union, finset.coe_bUnion, finset.mem_univ, set.Union_true,
+        list.nodup_cons, set.mem_set_of_eq, finset.mem_coe
+      ],
       split,
       { rintro ⟨w, -, hh⟩,
         split_ifs at hh,
@@ -188,7 +195,7 @@ begin
 end-/
 
 instance finset_nonempty_decidable {α : Type*} : Π (s : finset α), decidable (finset.nonempty s) :=
-begin  
+begin
   intro s,
   rw [←finset.card_pos],
   change decidable (0 < s.val.card),

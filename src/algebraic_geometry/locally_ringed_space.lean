@@ -32,7 +32,7 @@ namespace algebraic_geometry
 such that all the stalks are local rings.
 
 A morphism of locally ringed spaces is a morphism of ringed spaces
-such that the morphims induced on stalks are local ring homomorphisms. -/
+such that the morphisms induced on stalks are local ring homomorphisms. -/
 @[nolint has_inhabited_instance]
 structure LocallyRingedSpace extends SheafedSpace CommRing :=
 (local_ring : ∀ x, local_ring (presheaf.stalk x))

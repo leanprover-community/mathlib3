@@ -160,7 +160,7 @@ lemma pairwise_on.on_injective (hs : s.pairwise_on r) (hf : function.injective f
   pairwise (r on f) :=
 λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
 
-lemma inj_on.pairwise_on_image (h : s.inj_on f) {r : β → β → Prop} :
+lemma inj_on.pairwise_on_image {s : set ι} (h : s.inj_on f) :
   (f '' s).pairwise_on r ↔ s.pairwise_on (r on f) :=
 by simp [h.eq_iff, pairwise_on] {contextual := tt}
 
@@ -259,19 +259,21 @@ lemma pairwise_disjoint.elim_set {s : set (set α)} (hs : pairwise_disjoint s) {
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
 hs.elim hx hy (not_disjoint_iff.2 ⟨z, hzx, hzy⟩)
 
-lemma bUnion_diff_bUnion_eq {s₁ s₂ : set α} (H : (s₁ ∪ s₂).pairwise_on (disjoint on t)) :
-  (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) = (⋃ x ∈ s₁ \ s₂, t x) :=
+lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α}
+  (h : (s ∪ t).pairwise_on (disjoint on f)) :
+  (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=
 begin
-  refine (bUnion_diff_bUnion_subset t s₁ s₂).antisymm (bUnion_subset $ λ x hx y hy, _),
-  refine (mem_diff _).2 ⟨mem_bUnion hx.1 hy, _⟩,
-  rw mem_bUnion_iff, rintro ⟨x₂, hx₂, hy₂⟩,
-  exact H x (or.inl hx.1) x₂ (or.inr hx₂) (ne_of_mem_of_not_mem hx₂ hx.2).symm ⟨hy, hy₂⟩
+  refine (bUnion_diff_bUnion_subset f s t).antisymm
+    (bUnion_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
+  rw mem_bUnion_iff, rintro ⟨j, hj, haj⟩,
+  exact h i (or.inl hi.1) j (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
 end
 
 /-- Equivalence between a disjoint bounded union and a dependent sum. -/
-noncomputable def bUnion_eq_sigma_of_disjoint {s : set α} {t : α → set β}
-  (h : pairwise_on s (disjoint on t)) : (⋃ i ∈ s, t i) ≃ (Σ i : s, t i.val) :=
-equiv.trans (equiv.set_congr (bUnion_eq_Union _ _)) $ Union_eq_sigma_of_disjoint $
+noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
+  (h : pairwise_on s (disjoint on f)) :
+  (⋃ i ∈ s, f i) ≃ (Σ i : s, f i) :=
+(equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h _ hi _ hj $ λ eq, ne $ subtype.eq eq
 
 end set

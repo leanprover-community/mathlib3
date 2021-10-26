@@ -32,8 +32,8 @@ variables ⦃ι : Type v⦄ {U : ι → opens Y}
 namespace Top
 namespace presheaf.sheaf_condition_pairwise_intersections
 
-lemma map_diagram: pairwise.diagram U ⋙ opens.map f
-                 = pairwise.diagram ((opens.map f).obj ∘ U) :=
+lemma map_diagram :
+  pairwise.diagram U ⋙ opens.map f = pairwise.diagram ((opens.map f).obj ∘ U) :=
 begin
   apply functor.hext,
   abstract obj_eq {intro i, cases i; refl},

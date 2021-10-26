@@ -75,7 +75,7 @@ begin
   tidy, -- TODO including `injections` would make tidy work earlier.
 end
 
-lemma ext' {X Y : PresheafedSpace C} (α β : hom X Y)
+lemma hext {X Y : PresheafedSpace C} (α β : hom X Y)
   (w : α.base = β.base)
   (h : α.c == β.c) :
   α = β :=
@@ -181,19 +181,19 @@ lemma restrict_top_presheaf (X : PresheafedSpace C) :
 by { dsimp, rw opens.inclusion_top_functor X.carrier, refl }
 
 lemma of_restrict_top_c (X : PresheafedSpace C) :
-  ∃ h, (X.of_restrict (opens.open_embedding ⊤)).c = eq_to_hom h :=
+  (X.of_restrict (opens.open_embedding ⊤)).c = eq_to_hom
+    (by { rw [restrict_top_presheaf, ←presheaf.pushforward.comp_eq],
+          erw iso.inv_hom_id, rw presheaf.pushforward.id_eq }) :=
   /- another approach would be to prove the left hand side
      is a natural isoomorphism, but I encountered a universe
      issue when `apply nat_iso.is_iso_of_is_iso_app`. -/
 begin
-  fsplit, { rw [restrict_top_presheaf, ←presheaf.pushforward.comp_eq],
-    erw iso.inv_hom_id, rw presheaf.pushforward.id_eq },
   ext U, change X.presheaf.map _ = _, convert eq_to_hom_map _ _ using 1,
   congr, simpa,
   { induction U using opposite.rec, dsimp, congr, ext,
     exact ⟨ λ h, ⟨⟨x,trivial⟩,h,rfl⟩, λ ⟨⟨_,_⟩,h,rfl⟩, h ⟩ },
-    /- or `rw [opens.inclusion_top_functor, ←comp_obj, ←opens.map_comp_eq],
-           erw iso.inv_hom_id, cases U, refl` after `dsimp` -/
+  /- or `rw [opens.inclusion_top_functor, ←comp_obj, ←opens.map_comp_eq],
+         erw iso.inv_hom_id, cases U, refl` after `dsimp` -/
 end
 
 /--
@@ -215,9 +215,9 @@ def restrict_top_iso (X : PresheafedSpace C) :
 { hom := X.of_restrict _,
   inv := X.to_restrict_top,
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
-    by { erw comp_c, rw X.of_restrict_top_c.some_spec, simpa },
+    by { erw comp_c, rw X.of_restrict_top_c, simpa },
   inv_hom_id' := ext _ _ rfl $
-    by { erw comp_c, rw X.of_restrict_top_c.some_spec, simpa } }
+    by { erw comp_c, rw X.of_restrict_top_c, simpa } }
 
 /--
 The global sections, notated Gamma.

@@ -135,8 +135,6 @@ def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=
 let ⟨_,_⟩ := U in rfl
--- by { ext, refl } -- not quite `rfl`, since we don't have eta for records
--- or cases U, refl
 
 @[simp] lemma map_id_obj' (U) (p) : (map (𝟙 X)).obj ⟨U, p⟩ = ⟨U, p⟩ :=
 rfl

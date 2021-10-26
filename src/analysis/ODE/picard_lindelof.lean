@@ -1,6 +1,29 @@
+/-
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
 import analysis.special_functions.integrals
 
 /-!
+# Picard-Lindelöf (Cauchy-Lipschitz) Theorem
+
+In this file we prove that an ordinary differential equation $\dot x=v(t, x)$ such that $v$ is
+Lipschitz continuous in $x$ and continuous in $t$ has a local solution, see
+`exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous`.
+
+## Implementation notes
+
+In order to split the proof into small lemmas, we introduce a structure `picard_lindelof` that holds
+all assumptions of the main theorem. This structure and lemmas in the `picard_lindelof` namespace
+should be treated as private implementation details.
+
+We only prove existence of a solution in this file. For uniqueness see `ODE_solution_unique` and
+related theorems in `analysis.ODE.gronwall`.
+
+## Tags
+
+differential equation
 -/
 
 open filter function set metric topological_space interval_integral measure_theory
@@ -11,6 +34,9 @@ noncomputable theory
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
+/-- This structure holds arguments of the Picard-Lipschitz (Cauchy-Lipschitz) theorem. Unless you
+want to use one of the auxiliary lemmas, use
+`exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous` instead of using this structure. -/
 structure picard_lindelof (E : Type*) [normed_group E] [normed_space ℝ E] :=
 (to_fun : ℝ → E → E)
 (t_min t_max : ℝ)
@@ -26,7 +52,12 @@ namespace picard_lindelof
 
 variables (v : picard_lindelof E)
 
-instance : has_coe_to_fun (picard_lindelof E) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (picard_lindelof E) (λ _, ℝ → E → E) := ⟨to_fun⟩
+
+instance : inhabited (picard_lindelof E) :=
+⟨⟨0, 0, 0, ⟨0, le_rfl, le_rfl⟩, 0, 0, 0, 0, λ t ht, (lipschitz_with.const 0).lipschitz_on_with _,
+  λ _ _, by simpa only [pi.zero_apply] using continuous_on_const, λ t ht x hx, norm_zero.le,
+  (zero_mul _).le⟩⟩
 
 lemma t_min_le_t_max : v.t_min ≤ v.t_max := v.t₀.2.1.trans v.t₀.2.2
 
@@ -46,6 +77,7 @@ lemma norm_le {t : ℝ} (ht : t ∈ Icc v.t_min v.t_max) {x : E} (hx : x ∈ clo
   ∥v t x∥ ≤ v.C :=
 v.norm_le' _ ht _ hx
 
+/-- The maximum of distances from `t₀` to the endpoints of `[t_min, t_max]`. -/
 def t_dist : ℝ := max (v.t_max - v.t₀) (v.t₀ - v.t_min)
 
 lemma t_dist_nonneg : 0 ≤ v.t_dist := le_max_iff.2 $ or.inl $ sub_nonneg.2 v.t₀.2.2
@@ -60,6 +92,8 @@ begin
     exact (sub_le_sub_right t.2.2 _).trans (le_max_left _ _) }
 end
 
+/-- Projection $ℝ → [t_{min}, t_{max}]$ sending $(-∞, t_{min}]$ to $t_{min}$ and $[t_{max}, ∞)$ to
+$t_{max}$. -/
 def proj : ℝ → Icc v.t_min v.t_max := proj_Icc v.t_min v.t_max v.t_min_le_t_max
 
 lemma proj_coe (t : Icc v.t_min v.t_max) : v.proj t = t := proj_Icc_coe _ _
@@ -69,6 +103,10 @@ by simp only [proj, proj_Icc_of_mem _ ht, subtype.coe_mk]
 
 @[continuity] lemma continuous_proj : continuous v.proj := continuous_proj_Icc
 
+/-- The space of curves $γ \colon [t_{min}, t_{max}] \to E$ such that $γ(t₀) = x₀$ and $γ$ is
+Lipschitz continuous with constant $C$. The map sending $γ$ to
+$\mathbf Pγ(t)=x₀ + ∫_{t₀}^{t} v(τ, γ(τ))\,dτ$ is a contracting map on this space, and its fixed
+point is a solution of the ODE $\dot x=v(t, x)$. -/
 structure fun_space :=
 (to_fun : Icc v.t_min v.t_max → E)
 (map_t₀' : to_fun v.t₀ = v.x₀)
@@ -78,7 +116,7 @@ namespace fun_space
 
 variables {v} (f : fun_space v)
 
-instance : has_coe_to_fun (fun_space v) := ⟨λ _, Icc v.t_min v.t_max → E, to_fun⟩
+instance : has_coe_to_fun (fun_space v) (λ _, Icc v.t_min v.t_max → E) := ⟨to_fun⟩
 
 instance : inhabited v.fun_space :=
 ⟨⟨λ _, v.x₀, rfl, (lipschitz_with.const _).weaken (zero_le _)⟩⟩
@@ -87,6 +125,7 @@ protected lemma lipschitz : lipschitz_with v.C f := f.lipschitz'
 
 protected lemma continuous : continuous f := f.lipschitz.continuous
 
+/-- Each curve in `picard_lindelof.fun_space` is continuous. -/
 def to_continuous_map : v.fun_space ↪ C(Icc v.t_min v.t_max, E) :=
 ⟨λ f, ⟨f, f.continuous⟩, λ f g h, by { cases f, cases g, simpa using h }⟩
 
@@ -104,19 +143,6 @@ begin
   { rcases f with ⟨f, hf⟩, rintro ⟨hf₀, hf_lip⟩, exact ⟨⟨f, hf₀, hf_lip⟩, rfl⟩ }
 end
 
-variables [complete_space E]
-
-instance : complete_space v.fun_space :=
-begin
-  refine (complete_space_iff_is_complete_range
-    uniform_inducing_to_continuous_map).2 (is_closed.is_complete _),
-  rw [range_to_continuous_map, set_of_and],
-  refine (is_closed_eq (continuous_map.continuous_evalx _) continuous_const).inter _,
-  have : is_closed {f : Icc v.t_min v.t_max → E | lipschitz_with v.C f} :=
-    is_closed_set_of_lipschitz_with v.C,
-  exact this.preimage continuous_map.continuous_coe
-end
-
 lemma map_t₀ : f v.t₀ = v.x₀ := f.map_t₀'
 
 protected lemma mem_closed_ball (t : Icc v.t_min v.t_max) : f t ∈ closed_ball v.x₀ v.R :=
@@ -125,6 +151,9 @@ calc dist (f t) v.x₀ = dist (f t) (f.to_fun v.t₀) : by rw f.map_t₀'
                  ... ≤ v.C * v.t_dist             : mul_le_mul_of_nonneg_left (v.dist_t₀_le _) v.C.2
                  ... ≤ v.R                        : v.C_mul_le_R
 
+/-- Given a curve $γ \colon [t_{min}, t_{max}] → E$, `v_comp` is the function $F(t)=v(π t, γ(π t))$,
+where `π` is the projection $ℝ → [t_{min}, t_{max}]$. The integral of this function is the image of
+`γ` under the contracting map we are going to define below. -/
 def v_comp (t : ℝ) : E := v (v.proj t) (f (v.proj t))
 
 lemma v_comp_apply_coe (t : Icc v.t_min v.t_max) : f.v_comp t = v t (f t) :=
@@ -149,12 +178,29 @@ lemma dist_le_of_forall {f₁ f₂ : fun_space v} {d : ℝ} (h : ∀ t, dist (f�
 (@continuous_map.dist_le_iff_of_nonempty _ _ _ _ _ f₁.to_continuous_map f₂.to_continuous_map _
   v.nonempty_Icc.to_subtype).2 h
 
-variables [second_countable_topology E] [measurable_space E] [borel_space E]
+instance [complete_space E] : complete_space v.fun_space :=
+begin
+  refine (complete_space_iff_is_complete_range
+    uniform_inducing_to_continuous_map).2 (is_closed.is_complete _),
+  rw [range_to_continuous_map, set_of_and],
+  refine (is_closed_eq (continuous_map.continuous_evalx _) continuous_const).inter _,
+  have : is_closed {f : Icc v.t_min v.t_max → E | lipschitz_with v.C f} :=
+    is_closed_set_of_lipschitz_with v.C,
+  exact this.preimage continuous_map.continuous_coe
+end
+
+variables [measurable_space E] [borel_space E]
 
 lemma interval_integrable_v_comp (t₁ t₂ : ℝ) :
   interval_integrable f.v_comp volume t₁ t₂ :=
 (f.continuous_v_comp).interval_integrable _ _
 
+variables [second_countable_topology E] [complete_space E]
+
+/-- The Picard-Lindelöf operator. This is a contracting map on `picard_lindelof.fun_space v` such
+that the fixed point of this map is the solution of the corresponding ODE.
+
+More precisely, some iteration of this map is a contracting map. -/
 def next (f : fun_space v) : fun_space v :=
 { to_fun := λ t, v.x₀ + ∫ τ : ℝ in v.t₀..t, f.v_comp τ,
   map_t₀' := by rw [integral_same, add_zero],
@@ -185,7 +231,7 @@ begin
   rw v.proj_of_mem ht'
 end
 
-lemma dist_next_apply_le_of_le {f₁ f₂ : fun_space v} {n : ℕ} {d : ℝ} (hd : 0 ≤ d)
+lemma dist_next_apply_le_of_le {f₁ f₂ : fun_space v} {n : ℕ} {d : ℝ}
   (h : ∀ t, dist (f₁ t) (f₂ t) ≤ (v.L * |t - v.t₀|) ^ n / n! * d) (t : Icc v.t_min v.t_max) :
   dist (next f₁ t) (next f₂ t) ≤ (v.L * |t - v.t₀|) ^ (n + 1) / (n + 1)! * d :=
 begin
@@ -216,7 +262,7 @@ begin
   { rw [pow_zero, nat.factorial_zero, nat.cast_one, div_one, one_mul],
     exact dist_apply_le_dist f₁ f₂ t },
   { rw [iterate_succ_apply', iterate_succ_apply'],
-    exact dist_next_apply_le_of_le dist_nonneg ihn _ }
+    exact dist_next_apply_le_of_le ihn _ }
 end
 
 lemma dist_iterate_next_le (f₁ f₂ : fun_space v) (n : ℕ) :
@@ -235,7 +281,7 @@ variables [second_countable_topology E] [complete_space E]
 section
 variables [measurable_space E] [borel_space E]
 
-lemma exists_contracting :
+lemma exists_contracting_iterate :
   ∃ (N : ℕ) K, contracting_with K ((fun_space.next : v.fun_space → v.fun_space)^[N]) :=
 begin
   rcases ((real.tendsto_pow_div_factorial_at_top (v.L * v.t_dist)).eventually
@@ -247,10 +293,11 @@ begin
 end
 
 lemma exists_fixed : ∃ f : v.fun_space, f.next = f :=
-let ⟨N, K, hK⟩ := exists_contracting v in ⟨_, hK.is_fixed_pt_fixed_point_iterate⟩
+let ⟨N, K, hK⟩ := exists_contracting_iterate v in ⟨_, hK.is_fixed_pt_fixed_point_iterate⟩
 
 end
 
+/-- Picard-Lindelöf (Cauchy-Lipschitz) theorem. -/
 lemma exists_solution :
   ∃ f : ℝ → E, f v.t₀ = v.x₀ ∧ ∀ t ∈ Icc v.t_min v.t_max,
     has_deriv_within_at f (v t (f t)) (Icc v.t_min v.t_max) t :=
@@ -266,6 +313,7 @@ end
 
 end picard_lindelof
 
+/-- Picard-Lindelöf (Cauchy-Lipschitz) theorem. -/
 lemma exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous
   [complete_space E] [second_countable_topology E]
   {v : ℝ → E → E} {t_min t₀ t_max : ℝ} (ht₀ : t₀ ∈ Icc t_min t_max)
@@ -283,4 +331,3 @@ begin
   exact picard_lindelof.exists_solution
     ⟨v, t_min, t_max, t₀, x₀, C, R, L, Hlip, Hcont, Hnorm, Hmul_le⟩
 end
-

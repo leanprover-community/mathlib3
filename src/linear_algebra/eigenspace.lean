@@ -203,17 +203,13 @@ begin
   { let l' := dfinsupp.map_range.linear_map
       (λ μ, (μ - μ₀) • @linear_map.id K (f.eigenspace μ) _ _ _) l,
     -- The support of `l'_f` is the support of `l` without `μ₀`.
-    have h_l_support' : l'.support = l_support' := sorry,
-    -- have h_l_support' : ∀ μ, μ ∈ l_support' ↔ l'_f μ ≠ 0 ,
-    -- { intro μ,
-    --   sorry },
-    --   -- suffices : μ ∈ l_support' → μ ≠ μ₀,
-    --   -- { simp [l'_f, dfinsupp.mem_support_iff, h_l_support, sub_eq_zero, ←subtype.ext_iff],
-    --   --   tauto },
-    --   -- rintro hμ rfl,
-    --   -- contradiction },
-    -- -- Now we can define `l'_f` as an actual linear combination `l'` because we know that the
-    -- -- support is finite.
+    have h_l_support' : l'.support = l_support',
+    { have : l_support' = finset.erase l.support μ₀,
+      { rw [h_l_support, finset.erase_insert hμ₀] },
+      rw this,
+      ext a,
+      simp [dfinsupp.mem_support_iff, l', sub_eq_zero],
+      tauto },
     -- The linear combination `l'` over `xs` adds up to `0`.
     have total_l' : S l' = 0,
     { have : S l' = f (S l) - μ₀ • S l,

@@ -39,7 +39,7 @@ begin
   rw [aeval_def, mk'_spec' _ r s]
 end
 
-variables [integral_domain A]
+variables [is_domain A]
 
 lemma num_is_root_scale_roots_of_aeval_eq_zero
   [unique_factorization_monoid A] {p : polynomial A} {x : K} (hr : aeval x p = 0) :
@@ -55,7 +55,7 @@ end scale_roots
 
 section rational_root_theorem
 
-variables {A K : Type*} [comm_ring A] [integral_domain A] [unique_factorization_monoid A] [field K]
+variables {A K : Type*} [comm_ring A] [is_domain A] [unique_factorization_monoid A] [field K]
 variables [algebra A K] [is_fraction_ring A K]
 
 open is_fraction_ring is_localization polynomial unique_factorization_monoid
@@ -67,7 +67,7 @@ theorem num_dvd_of_is_root {p : polynomial A} {r : K} (hr : aeval r p = 0) :
   num A r ∣ p.coeff 0 :=
 begin
   suffices : num A r ∣ (scale_roots p (denom A r)).coeff 0,
-  { simp only [coeff_scale_roots, nat.sub_zero] at this,
+  { simp only [coeff_scale_roots, tsub_zero] at this,
     haveI := classical.prop_decidable,
     by_cases hr : num A r = 0,
     { obtain ⟨u, hu⟩ := (is_unit_denom_of_num_eq_zero hr).pow p.nat_degree,
@@ -103,7 +103,7 @@ begin
   by_cases h : j < p.nat_degree,
   { rw coeff_scale_roots,
     refine (dvd_mul_of_dvd_right _ _).mul_right _,
-    convert pow_dvd_pow _ (nat.succ_le_iff.mpr (lt_sub_iff_left.mpr _)),
+    convert pow_dvd_pow _ (nat.succ_le_iff.mpr (lt_tsub_iff_left.mpr _)),
     { exact (pow_one _).symm },
     simpa using h },
   rw [←nat_degree_scale_roots p (denom A r)] at *,

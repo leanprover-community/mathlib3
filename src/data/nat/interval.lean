@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.interval
+import data.finset.locally_finite
 
 /-!
 # Finite intervals of naturals
@@ -14,7 +14,7 @@ intervals as finsets and fintypes.
 ## TODO
 
 Some lemmas can be generalized using `ordered_group`, `canonically_ordered_monoid` or `succ_order`
-and subsequently be moved upstream to `data.finset.interval`.
+and subsequently be moved upstream to `data.finset.locally_finite`.
 -/
 
 open finset nat
@@ -27,30 +27,30 @@ instance : locally_finite_order ℕ :=
   finset_mem_Icc := λ a b x, begin
     rw [list.mem_to_finset, list.mem_range'],
     cases le_or_lt a b,
-    { rw [add_sub_cancel_of_le (nat.lt_succ_of_le h).le, nat.lt_succ_iff] },
-    { rw [nat.sub_eq_zero_iff_le.2 h, add_zero],
+    { rw [add_tsub_cancel_of_le (nat.lt_succ_of_le h).le, nat.lt_succ_iff] },
+    { rw [tsub_eq_zero_iff_le.2 (succ_le_of_lt h), add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
   end,
   finset_mem_Ico := λ a b x, begin
     rw [list.mem_to_finset, list.mem_range'],
     cases le_or_lt a b,
-    { rw [add_sub_cancel_of_le h] },
-    { rw [nat.sub_eq_zero_iff_le.2 h.le, add_zero],
+    { rw [add_tsub_cancel_of_le h] },
+    { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2.le)) }
   end,
   finset_mem_Ioc := λ a b x, begin
     rw [list.mem_to_finset, list.mem_range'],
     cases le_or_lt a b,
-    { rw [←succ_sub_succ, add_sub_cancel_of_le (succ_le_succ h), nat.lt_succ_iff,
+    { rw [←succ_sub_succ, add_tsub_cancel_of_le (succ_le_succ h), nat.lt_succ_iff,
         nat.succ_le_iff] },
-    { rw [nat.sub_eq_zero_iff_le.2 h.le, add_zero],
+    { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.le.trans hx.2)) }
   end,
   finset_mem_Ioo := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range', nat.sub_sub],
+    rw [list.mem_to_finset, list.mem_range', ← tsub_add_eq_tsub_tsub],
     cases le_or_lt (a + 1) b,
-    { rw [add_sub_cancel_of_le h, nat.succ_le_iff] },
-    { rw [nat.sub_eq_zero_iff_le.2 h.le, add_zero],
+    { rw [add_tsub_cancel_of_le h, nat.succ_le_iff] },
+    { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
   end }
 
@@ -133,11 +133,11 @@ begin
   split,
   { rintro ⟨x, hx, rfl⟩,
     rw [mem_Ico] at ⊢ hx,
-    exact ⟨sub_le_sub_right' hx.1 _, sub_lt_sub_right_of_le (h.trans hx.1) hx.2⟩ },
+    exact ⟨tsub_le_tsub_right hx.1 _, tsub_lt_tsub_right_of_le (h.trans hx.1) hx.2⟩ },
   { rintro h,
-    refine ⟨x + c, _, add_sub_cancel_right _ _⟩,
+    refine ⟨x + c, _, add_tsub_cancel_right _ _⟩,
     rw mem_Ico at ⊢ h,
-    exact ⟨sub_le_iff_right.1 h.1, lt_sub_iff_right.1 h.2⟩ }
+    exact ⟨tsub_le_iff_right.1 h.1, lt_tsub_iff_right.1 h.2⟩ }
 end
 
 lemma Ico_image_const_sub_eq_Ico (hac : a ≤ c) :
@@ -148,20 +148,20 @@ begin
   split,
   { rintro ⟨x, hx, rfl⟩,
     rw mem_Ico at hx,
-    refine ⟨_, ((sub_le_sub_iff_left' hac).2 hx.1).trans_lt ((sub_lt_sub_iff_right' hac).2
+    refine ⟨_, ((tsub_le_tsub_iff_left hac).2 hx.1).trans_lt ((tsub_lt_tsub_iff_right hac).2
       (nat.lt_succ_self _))⟩,
     cases lt_or_le c b,
-    { rw nat.sub_eq_zero_of_le h,
+    { rw tsub_eq_zero_iff_le.mpr (succ_le_of_lt h),
       exact zero_le _ },
     { rw ←succ_sub_succ c,
-      exact (sub_le_sub_iff_left' (succ_le_succ $ hx.2.le.trans h)).2 hx.2 } },
+      exact (tsub_le_tsub_iff_left (succ_le_succ $ hx.2.le.trans h)).2 hx.2 } },
   { rintro ⟨hb, ha⟩,
-    rw [lt_sub_iff_left, lt_succ_iff] at ha,
+    rw [lt_tsub_iff_left, lt_succ_iff] at ha,
     have hx : x ≤ c := (nat.le_add_left _ _).trans ha,
-    refine ⟨c - x, _, nat.sub_sub_self hx⟩,
+    refine ⟨c - x, _, tsub_tsub_cancel_of_le hx⟩,
     { rw mem_Ico,
-      exact ⟨le_sub_of_add_le_right' ha, (sub_lt_iff_left hx).2 $ succ_le_iff.1 $
-        sub_le_iff_right.1 hb⟩ } }
+      exact ⟨le_tsub_of_add_le_right ha, (tsub_lt_iff_left hx).2 $ succ_le_iff.1 $
+        tsub_le_iff_right.1 hb⟩ } }
 end
 
 lemma range_image_pred_top_sub (n : ℕ) :
@@ -170,7 +170,7 @@ begin
   cases n,
   { rw [range_zero, image_empty] },
   { rw [finset.range_eq_Ico, Ico_image_const_sub_eq_Ico (zero_le _)],
-    simp_rw [succ_sub_succ, nat.sub_zero, nat.sub_self] }
+    simp_rw [succ_sub_succ, tsub_zero, tsub_self] }
 end
 
 end nat

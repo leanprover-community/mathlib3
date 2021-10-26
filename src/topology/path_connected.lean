@@ -72,7 +72,7 @@ structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)
 
-instance : has_coe_to_fun (path x y) := ⟨_, λ p, p.to_fun⟩
+instance : has_coe_to_fun (path x y) (λ _, I → X) := ⟨λ p, p.to_fun⟩
 
 @[ext] protected lemma path.ext {X : Type*} [topological_space X] {x y : X} :
   ∀ {γ₁ γ₂ : path x y}, (γ₁ : I → X) = γ₂ → γ₁ = γ₂

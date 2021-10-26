@@ -63,7 +63,7 @@ theorem pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
 @one_lt_pow' (order_dual M) _ _ _ _ ha k hk
 
 @[to_additive nsmul_lt_nsmul]
-theorem pow_lt_pow'' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
+theorem pow_lt_pow' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
   a ^ n < a ^ m :=
 begin
   rcases nat.le.dest h with ⟨k, rfl⟩, clear h,
@@ -156,7 +156,7 @@ theorem pow_lt_pow_of_lt_left {x y : R} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x
   x ^ n < y ^ n :=
 begin
   cases lt_or_eq_of_le Hxpos,
-  { rw ←nat.sub_add_cancel Hnpos,
+  { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt Hnpos),
     induction (n - 1), { simpa only [pow_one] },
     rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
     apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },

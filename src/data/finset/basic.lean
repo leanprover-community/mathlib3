@@ -134,6 +134,8 @@ finite sets, finset
 
 open multiset subtype nat function
 
+universes u
+
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- `finset α` is the type of finite sets of elements of `α`. It is implemented
@@ -202,7 +204,7 @@ lemma coe_injective {α} : injective (coe : finset α → set α) :=
 /-! ### type coercion -/
 
 /-- Coercion from a finset to the corresponding subtype. -/
-instance {α : Type*} : has_coe_to_sort (finset α) := ⟨_, λ s, {x // x ∈ s}⟩
+instance {α : Type u} : has_coe_to_sort (finset α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
 
 instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
   (s : finset ι) :
@@ -573,7 +575,6 @@ ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 (insert_nonempty a s).ne_empty
 
 section
-universe u
 /-!
 The universe annotation is required for the following instance, possibly this is a bug in Lean. See
 leanprover.zulipchat.com/#narrow/stream/113488-general/topic/strange.20error.20(universe.20issue.3F)
@@ -1010,6 +1011,13 @@ theorem not_mem_erase (a : α) (s : finset α) : a ∉ erase s a := mem_erase_of
 -- While this can be solved by `simp`, this lemma is eligible for `dsimp`
 @[nolint simp_nf, simp] theorem erase_empty (a : α) : erase ∅ a = ∅ := rfl
 
+@[simp] lemma erase_singleton (a : α) : ({a} : finset α).erase a = ∅ :=
+begin
+  ext x,
+  rw [mem_erase, mem_singleton, not_and_self],
+  refl,
+end
+
 theorem ne_of_mem_erase {a b : α} {s : finset α} : b ∈ erase s a → b ≠ a :=
 by simp only [mem_erase]; exact and.left
 
@@ -1077,7 +1085,7 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
 instance : has_sdiff (finset α) :=
-⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le sub_le_self' s₁.2⟩⟩
+⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le tsub_le_self s₁.2⟩⟩
 
 @[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
 
@@ -1622,7 +1630,7 @@ lemma mem_range_le {n x : ℕ} (hx : x ∈ range n) : x ≤ n :=
 (mem_range.1 hx).le
 
 lemma mem_range_sub_ne_zero {n x : ℕ} (hx : x ∈ range n) : n - x ≠ 0 :=
-ne_of_gt $ nat.sub_pos_of_lt $ mem_range.1 hx
+ne_of_gt $ tsub_pos_of_lt $ mem_range.1 hx
 
 @[simp] lemma nonempty_range_iff : (range n).nonempty ↔ n ≠ 0 :=
 ⟨λ ⟨k, hk⟩, ((zero_le k).trans_lt $ mem_range.1 hk).ne',
@@ -1663,10 +1671,10 @@ def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
   begin
     assume j,
     rw subtype.ext_iff_val,
-    apply nat.sub_add_cancel,
+    apply tsub_add_cancel_of_le,
     simpa using j.2
   end,
-  right_inv := λ j, nat.add_sub_cancel _ _ }
+  right_inv := λ j, add_tsub_cancel_right _ _ }
 
 @[simp] lemma coe_not_mem_range_equiv (k : ℕ) :
   (not_mem_range_equiv k : {n // n ∉ range k} → ℕ) = (λ i, i - k) := rfl
@@ -2021,6 +2029,18 @@ ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left
   (insert a s).image f = insert (f a) (s.image f) :=
 by simp only [insert_eq, image_singleton, image_union]
 
+@[simp] lemma image_erase [decidable_eq α] {f : α → β} (hf : injective f) (s : finset α) (a : α) :
+  (s.erase a).image f = (s.image f).erase (f a) :=
+begin
+  ext b,
+  simp only [mem_image, exists_prop, mem_erase],
+  split,
+  { rintro ⟨a', ⟨haa', ha'⟩, rfl⟩,
+    exact ⟨hf.ne haa', a', ha', rfl⟩ },
+  { rintro ⟨h, a', ha', rfl⟩,
+    exact ⟨a', ⟨ne_of_apply_ne _ h, ha'⟩, rfl⟩ }
+end
+
 @[simp] theorem image_eq_empty : s.image f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
@@ -2073,6 +2093,10 @@ eq_of_veq (s.map f).2.erase_dup.symm
 lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) = singleton b :=
 ext $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   h.bex, true_and, mem_singleton, eq_comm]
+
+@[simp] lemma map_erase [decidable_eq α] (f : α ↪ β) (s : finset α) (a : α) :
+  (s.erase a).map f = (s.map f).erase (f a) :=
+by { simp_rw map_eq_image, exact s.image_erase f.2 a }
 
 /--
 Because `finset.image` requires a `decidable_eq` instances for the target type,
@@ -2458,7 +2482,7 @@ def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁,
   t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : finset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (sub_lt_sub_iff_left_of_le ht).2 (finset.card_lt_card h),
+     from (tsub_lt_tsub_iff_left_of_le ht).2 (finset.card_lt_card h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
 
@@ -2897,7 +2921,7 @@ by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empt
 
 theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
-by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
+by rw [card_disjoint_union sdiff_disjoint, add_tsub_cancel_right]
 
 lemma card_sdiff_add_card {s t : finset α} : (s \ t).card + t.card = (s ∪ t).card :=
 by rw [← card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]
@@ -2970,7 +2994,7 @@ begin
   { exact ⟨A, h₂, subset.refl _, h.symm⟩ },
   { have : (A \ B).nonempty,
     { rw [← card_pos, card_sdiff h₂, ← h, nat.add_right_comm,
-          nat.add_sub_cancel, nat.add_succ],
+          add_tsub_cancel_right, nat.add_succ],
       apply nat.succ_pos },
     rcases this with ⟨a, ha⟩,
     have z : i + card B + k = card (erase A a),

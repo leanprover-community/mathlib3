@@ -6,7 +6,6 @@ Authors: Johan Commelin, Kenny Lau
 import data.mv_polynomial
 import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
-import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
 import tactic.linarith
@@ -192,14 +191,14 @@ end
 lemma coeff_add_monomial_mul (a : R) :
   coeff R (m + n) (monomial R m a * φ) = a * coeff R n φ :=
 begin
-  rw [coeff_monomial_mul, if_pos, add_sub_cancel_left],
+  rw [coeff_monomial_mul, if_pos, add_tsub_cancel_left],
   exact le_add_right le_rfl
 end
 
 lemma coeff_add_mul_monomial (a : R) :
   coeff R (m + n) (φ * monomial R n a) = coeff R m φ * a :=
 begin
-  rw [coeff_mul_monomial, if_pos, add_sub_cancel_right],
+  rw [coeff_mul_monomial, if_pos, add_tsub_cancel_right],
   exact le_add_left le_rfl
 end
 
@@ -271,8 +270,8 @@ begin
   ext k,
   simp only [coeff_mul_monomial, coeff_monomial],
   split_ifs with h₁ h₂ h₃ h₃ h₂; try { refl },
-  { rw [← h₂, sub_add_cancel_of_le h₁] at h₃, exact (h₃ rfl).elim },
-  { rw [h₃, add_sub_cancel_right] at h₂, exact (h₂ rfl).elim },
+  { rw [← h₂, tsub_add_cancel_of_le h₁] at h₃, exact (h₃ rfl).elim },
+  { rw [h₃, add_tsub_cancel_right] at h₂, exact (h₂ rfl).elim },
   { exact zero_mul b },
   { rw h₂ at h₁, exact (h₁ $ le_add_left le_rfl).elim }
 end
@@ -542,18 +541,18 @@ begin
       { rintros ⟨i,j⟩ hij hne, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply hne, rw [← hij, ← hi, prod.mk.inj_iff], refine ⟨rfl, _⟩,
-          ext t, simp only [nat.add_sub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
+          ext t, simp only [add_tsub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
         { exact zero_mul _ } },
         { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply H, rw [← hij, hi], ext,
-          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, add_sub_cancel_left, add_comm], },
+          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, add_tsub_cancel_left, add_comm], },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
-        { subst t, simpa using nat.sub_add_cancel H },
+        { subst t, simpa using tsub_add_cancel_of_le H },
         { simp [finsupp.single_apply, hst] } } } }
 end
 
@@ -1240,8 +1239,8 @@ rescale_neg_one_X
 
 end comm_ring
 
-section integral_domain
-variables [comm_ring R] [integral_domain R]
+section domain
+variables [ring R] [is_domain R]
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
@@ -1271,10 +1270,15 @@ begin
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : integral_domain (power_series R) :=
+instance : is_domain (power_series R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nontrivial,
-  .. power_series.comm_ring }
+  .. power_series.nontrivial, }
+
+end domain
+
+section is_domain
+
+variables [comm_ring R] [is_domain R]
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1306,7 +1310,7 @@ begin
   exact ha (pow_eq_zero h'),
 end
 
-end integral_domain
+end is_domain
 
 section local_ring
 variables {S : Type*} [comm_ring R] [comm_ring S]
@@ -1627,8 +1631,8 @@ by { rw [X_pow_eq, order_monomial_of_ne_zero], exact one_ne_zero }
 
 end order_zero_ne_one
 
-section order_integral_domain
-variables [comm_ring R] [integral_domain R]
+section order_is_domain
+variables [comm_ring R] [is_domain R]
 
 /-- The order of the product of two formal power series over an integral domain
  is the sum of their orders.-/
@@ -1636,7 +1640,7 @@ lemma order_mul (φ ψ : power_series R) :
   order (φ * ψ) = order φ + order ψ :=
 multiplicity.mul (X_prime)
 
-end order_integral_domain
+end order_is_domain
 
 end power_series
 

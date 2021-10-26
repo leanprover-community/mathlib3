@@ -3,7 +3,8 @@ Copyright (c) 2020 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import group_theory.submonoid
+import group_theory.submonoid.pointwise
+import group_theory.submonoid.membership
 import group_theory.submonoid.center
 import algebra.group.conj
 import order.atoms
@@ -463,8 +464,8 @@ begin
   { left,
     exact H.eq_bot_iff_forall.mpr h },
   { right,
-    push_neg at h,
-    simpa [nontrivial_iff_exists_ne_one] using h },
+    simp only [not_forall] at h,
+    simpa only [nontrivial_iff_exists_ne_one] }
 end
 
 /-- A subgroup is either the trivial subgroup or contains a nonzero element. -/
@@ -478,6 +479,9 @@ end
 ⟨λ h, (eq_bot_iff_forall _).2
     (λ x hx, by simpa [subtype.ext_iff] using fintype.card_le_one_iff.1 h ⟨x, hx⟩ 1),
   λ h, by simp [h]⟩
+
+@[to_additive] lemma one_lt_card_iff_ne_bot [fintype H] : 1 < fintype.card H ↔ H ≠ ⊥ :=
+lt_iff_not_ge'.trans (not_iff_not.mpr H.card_le_one_iff_eq_bot)
 
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
@@ -957,6 +961,9 @@ subsingleton.elim _ _
 @[to_additive] lemma subgroup_of_bot_eq_top : H.subgroup_of ⊥ = ⊤ :=
 subsingleton.elim _ _
 
+@[simp, to_additive] lemma subgroup_of_self : H.subgroup_of H = ⊤ :=
+top_le_iff.mp (λ g hg, g.2)
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]
@@ -1045,11 +1052,81 @@ have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH.conj_mem (a * b) h a⁻¹, by
 
 end normal
 
-@[priority 100, to_additive]
-instance bot_normal : normal (⊥ : subgroup G) := ⟨by simp⟩
+variables (H)
 
-@[priority 100, to_additive]
-instance top_normal : normal (⊤ : subgroup G) := ⟨λ _ _, mem_top⟩
+/-- A subgroup is characteristic if it is fixed by all automorphisms.
+  Several equivalent conditions are provided by lemmas of the form `characteristic.iff...` -/
+structure characteristic : Prop :=
+(fixed : ∀ ϕ : G ≃* G, H.comap ϕ.to_monoid_hom = H)
+
+attribute [class] characteristic
+
+@[priority 100] instance normal_of_characteristic [h : H.characteristic] : H.normal :=
+⟨λ a ha b, (set_like.ext_iff.mp (h.fixed (mul_aut.conj b)) a).mpr ha⟩
+
+end subgroup
+
+namespace add_subgroup
+
+variables (H : add_subgroup A)
+
+/-- A add_subgroup is characteristic if it is fixed by all automorphisms.
+  Several equivalent conditions are provided by lemmas of the form `characteristic.iff...` -/
+structure characteristic  : Prop :=
+(fixed : ∀ ϕ : A ≃+ A, H.comap ϕ.to_add_monoid_hom = H)
+
+attribute [to_additive add_subgroup.characteristic] subgroup.characteristic
+attribute [class] characteristic
+
+@[priority 100] instance normal_of_characteristic [h : H.characteristic] : H.normal :=
+⟨λ a ha b, (set_like.ext_iff.mp (h.fixed (add_aut.conj b)) a).mpr ha⟩
+
+end add_subgroup
+
+namespace subgroup
+
+variables {H K : subgroup G}
+
+@[to_additive] lemma characteristic_iff_comap_eq :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.comap ϕ.to_monoid_hom = H :=
+⟨characteristic.fixed, characteristic.mk⟩
+
+@[to_additive] lemma characteristic_iff_comap_le :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.comap ϕ.to_monoid_hom ≤ H :=
+characteristic_iff_comap_eq.trans ⟨λ h ϕ, le_of_eq (h ϕ),
+  λ h ϕ, le_antisymm (h ϕ) (λ g hg, h ϕ.symm ((congr_arg (∈ H) (ϕ.symm_apply_apply g)).mpr hg))⟩
+
+@[to_additive] lemma characteristic_iff_le_comap :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H ≤ H.comap ϕ.to_monoid_hom :=
+characteristic_iff_comap_eq.trans ⟨λ h ϕ, ge_of_eq (h ϕ),
+  λ h ϕ, le_antisymm (λ g hg, (congr_arg (∈ H) (ϕ.symm_apply_apply g)).mp (h ϕ.symm hg)) (h ϕ)⟩
+
+@[to_additive] lemma characteristic_iff_map_eq :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.map ϕ.to_monoid_hom = H :=
+begin
+  simp_rw map_equiv_eq_comap_symm,
+  exact characteristic_iff_comap_eq.trans ⟨λ h ϕ, h ϕ.symm, λ h ϕ, h ϕ.symm⟩,
+end
+
+@[to_additive] lemma characteristic_iff_map_le :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.map ϕ.to_monoid_hom ≤ H :=
+begin
+  simp_rw map_equiv_eq_comap_symm,
+  exact characteristic_iff_comap_le.trans ⟨λ h ϕ, h ϕ.symm, λ h ϕ, h ϕ.symm⟩,
+end
+
+@[to_additive] lemma characteristic_iff_le_map :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H ≤ H.map ϕ.to_monoid_hom :=
+begin
+  simp_rw map_equiv_eq_comap_symm,
+  exact characteristic_iff_le_comap.trans ⟨λ h ϕ, h ϕ.symm, λ h ϕ, h ϕ.symm⟩,
+end
+
+@[to_additive] instance bot_characteristic : characteristic (⊥ : subgroup G) :=
+characteristic_iff_le_map.mpr (λ ϕ, bot_le)
+
+@[to_additive] instance top_characteristic : characteristic (⊤ : subgroup G) :=
+characteristic_iff_map_le.mpr (λ ϕ, le_top)
 
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
@@ -1070,13 +1147,15 @@ variable {G}
 
 @[to_additive] lemma mem_center_iff {z : G} : z ∈ center G ↔ ∀ g, g * z = z * g := iff.rfl
 
-@[priority 100, to_additive]
-instance center_normal : (center G).normal :=
-⟨begin
-  assume n hn g h,
-  assoc_rw [hn (h * g), hn g],
-  simp
-end⟩
+instance decidable_mem_center [decidable_eq G] [fintype G] : decidable_pred (∈ center G) :=
+λ _, decidable_of_iff' _ mem_center_iff
+
+@[to_additive] instance center_characteristic : (center G).characteristic :=
+begin
+  refine characteristic_iff_comap_le.mpr (λ ϕ g hg h, _),
+  rw [←ϕ.injective.eq_iff, ϕ.map_mul, ϕ.map_mul],
+  exact hg (ϕ h),
+end
 
 variables {G} (H)
 /-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/
@@ -1122,6 +1201,10 @@ variable {H}
 @[priority 100, to_additive]
 instance normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
 ⟨λ x xH g, by simpa using (g.2 x).1 xH⟩
+
+@[to_additive] lemma normalizer_eq_top : H.normalizer = ⊤ ↔ H.normal :=
+eq_top_iff.trans ⟨λ h, ⟨λ a ha b, (h (mem_top b) a).mp ha⟩, λ h a ha b,
+  ⟨λ hb, h.conj_mem b hb a, λ hb, by rwa [h.mem_comm_iff, inv_mul_cancel_left] at hb⟩⟩
 
 open_locale classical
 
@@ -1652,6 +1735,10 @@ lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
 (range_eq_map f).symm ▸ map_mono le_top
 
 @[to_additive]
+lemma map_subtype_le {H : subgroup G} (K : subgroup H) : K.map H.subtype ≤ H :=
+(K.map_le_range H.subtype).trans (le_of_eq H.subtype_range)
+
+@[to_additive]
 lemma ker_le_comap (H : subgroup N) : f.ker ≤ comap f H :=
 (comap_bot f) ▸ comap_mono bot_le
 
@@ -2104,7 +2191,7 @@ instance {C : Type*} [comm_group C] [is_simple_group C] :
   is_simple_lattice (subgroup C) :=
 ⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
 
-open subgroup
+open _root_.subgroup
 
 @[to_additive]
 lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]

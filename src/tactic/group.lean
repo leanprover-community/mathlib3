@@ -38,7 +38,11 @@ lemma tactic.group.gpow_trick_sub {G : Type*} [group G] (a b : G) (n m : ℤ) :
 by rw [mul_assoc, ← gpow_add] ; refl
 
 namespace tactic
-open tactic.simp_arg_type tactic.interactive interactive tactic.group.
+
+setup_tactic_parser
+
+open tactic.simp_arg_type interactive tactic.group
+
 /-- Auxiliary tactic for the `group` tactic. Calls the simplifier only. -/
 meta def aux_group₁ (locat : loc) : tactic unit :=
   simp_core {} skip tt [
@@ -50,7 +54,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   expr ``(add_neg_self),
   expr ``(neg_add_self),
   expr ``(neg_neg),
-  expr ``(nat.sub_self),
+  expr ``(tsub_self),
   expr ``(int.coe_nat_add),
   expr ``(int.coe_nat_mul),
   expr ``(int.coe_nat_zero),

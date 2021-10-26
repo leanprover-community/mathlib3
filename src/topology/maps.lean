@@ -47,6 +47,10 @@ open_locale topological_space filter
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 section inducing
+
+/-- A function `f : α → β` between topological spaces is inducing if the topology on `α` is induced
+by the topology on `β` through `f`, meaning that a set `s : set α` is open iff it is the preimage
+under `f` of some open set `t : set β`. -/
 structure inducing [tα : topological_space α] [tβ : topological_space β] (f : α → β) : Prop :=
 (induced : tα = tβ.induced f)
 
@@ -82,9 +86,17 @@ lemma inducing.tendsto_nhds_iff {ι : Type*}
   tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
 by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
 
+lemma inducing.continuous_at_iff {f : α → β} {g : β → γ} (hg : inducing g) {x : α} :
+  continuous_at f x ↔ continuous_at (g ∘ f) x :=
+by simp_rw [continuous_at, inducing.tendsto_nhds_iff hg]
+
 lemma inducing.continuous_iff {f : α → β} {g : β → γ} (hg : inducing g) :
   continuous f ↔ continuous (g ∘ f) :=
-by simp [continuous_iff_continuous_at, continuous_at, inducing.tendsto_nhds_iff hg]
+by simp_rw [continuous_iff_continuous_at, hg.continuous_at_iff]
+
+lemma inducing.continuous_at_iff' {f : α → β} {g : β → γ} (hf : inducing f) {x : α}
+  (h : range f ∈ 𝓝 (f x)) : continuous_at (g ∘ f) x ↔ continuous_at g (f x) :=
+by { simp_rw [continuous_at, filter.tendsto, ← hf.map_nhds_of_mem _ h, filter.map_map] }
 
 lemma inducing.continuous {f : α → β} (hf : inducing f) : continuous f :=
 hf.continuous_iff.mp continuous_id
@@ -284,6 +296,12 @@ lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f :
   is_open_map f ↔ ∀(a:α), 𝓝 (f a) ≤ (𝓝 a).map f :=
 ⟨λ hf, hf.nhds_le, is_open_map.of_nhds_le⟩
 
+lemma is_open_map_iff_interior [topological_space α] [topological_space β] {f : α → β} :
+  is_open_map f ↔ ∀ s, f '' (interior s) ⊆ interior (f '' s) :=
+⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_open.mp $
+  calc f '' u = f '' (interior u) : by rw hu.interior_eq
+          ... ⊆ interior (f '' u) : hs u⟩
+
 lemma inducing.is_open_map [topological_space α] [topological_space β] {f : α → β}
   (hi : inducing f) (ho : is_open (range f)) :
   is_open_map f :=
@@ -308,6 +326,10 @@ protected lemma id : is_closed_map (@id α) := assume s hs, by rwa image_id
 protected lemma comp {g : β → γ} {f : α → β} (hg : is_closed_map g) (hf : is_closed_map f) :
   is_closed_map (g ∘ f) :=
 by { intros s hs, rw image_comp, exact hg _ (hf _ hs) }
+
+lemma closure_image_subset {f : α → β} (hf : is_closed_map f) (s : set α) :
+  closure (f '' s) ⊆ f '' closure s :=
+closure_minimal (image_subset _ subset_closure) (hf _ is_closed_closure)
 
 lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
@@ -337,6 +359,12 @@ begin
   rw image_preimage_eq_inter_range,
   exact is_closed.inter ht h
 end
+
+lemma is_closed_map_iff_closure_image [topological_space α] [topological_space β] {f : α → β} :
+  is_closed_map f ↔ ∀ s, closure (f '' s) ⊆ f '' closure s :=
+⟨is_closed_map.closure_image_subset, λ hs c hc, is_closed_of_closure_subset $
+  calc closure (f '' c) ⊆ f '' (closure c) : hs c
+                    ... = f '' c : by rw hc.closure_eq⟩
 
 section open_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]

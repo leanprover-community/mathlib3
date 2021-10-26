@@ -15,11 +15,24 @@ two self-maps that commute with each other.
 Current selection of inequalities is motivated by formalization of the rotation number of
 a circle homeomorphism.
 -/
-variables {α : Type*}
+variables {α β : Type*}
+open function
 
 namespace monotone
 
 variables [preorder α] {f : α → α} {x y : ℕ → α}
+
+/-!
+### Comparison of two sequences
+
+If $f$ is a monotone function, then $∀ k, x_{k+1} ≤ f(x_k)$ implies that $x_k$ grows slower than
+$f^k(x_0)$, and similarly for the reversed inequalities. If $x_k$ and $y_k$ are two sequences such
+that $x_{k+1} ≤ f(x_k)$ and $y_{k+1} ≥ f(y_k)$ for all $k < n$, then $x_0 ≤ y_0$ implies
+$x_n ≤ y_n$, see `monotone.seq_le_seq`.
+
+If some of the inequalities in this lemma are strict, then we have $x_n < y_n$. The rest of the
+lemmas in this section formalize this fact for different inequalities made strict.
+-/
 
 lemma seq_le_seq (hf : monotone f) (n : ℕ) (h₀ : x 0 ≤ y 0)
   (hx : ∀ k < n, x (k + 1) ≤ f (x k)) (hy : ∀ k < n, f (y k) ≤ y (k + 1)) :
@@ -59,38 +72,74 @@ lemma seq_lt_seq_of_le_of_lt (hf : monotone f) (n : ℕ) (h₀ : x 0 < y 0)
   x n < y n :=
 hf.dual.seq_lt_seq_of_lt_of_le n h₀ hy hx
 
+/-!
+### Iterates of two functions
+
+In this section we compare the iterates of a monotone function `f : α → α` to iterates of any
+function `g : β → β`. If `h : β → α` satisfies `h ∘ g ≤ f ∘ h`, then `h (g^[n] x)` grows slower
+than `f^[n] (h x)`, and similarly for the reversed inequality.
+
+Then we specialize these two lemmas to the case `β = α`, `h = id`.
+-/
+
+variables {g : β → β} {h : β → α}
+open function
+
+lemma le_iterate_comp_of_le (hf : monotone f) (H : h ∘ g ≤ f ∘ h) (n : ℕ) :
+  h ∘ (g^[n]) ≤ (f^[n]) ∘ h :=
+λ x, by refine hf.seq_le_seq n _ (λ k hk, _) (λ k hk, _); simp [iterate_succ', H _]
+
+lemma iterate_comp_le_of_le (hf : monotone f) (H : f ∘ h ≤ h ∘ g) (n : ℕ) :
+  f^[n] ∘ h ≤ h ∘ (g^[n]) :=
+hf.dual.le_iterate_comp_of_le H n
+
+/-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
+lemma iterate_le_of_le {g : α → α} (hf : monotone f) (h : f ≤ g) (n : ℕ) :
+  f^[n] ≤ (g^[n]) :=
+hf.iterate_comp_le_of_le h n
+
+/-- If `f ≤ g` and `g` is monotone, then `f^[n] ≤ g^[n]`. -/
+lemma le_iterate_of_le {g : α → α} (hg : monotone g) (h : f ≤ g) (n : ℕ) :
+  f^[n] ≤ (g^[n]) :=
+hg.dual.iterate_le_of_le h n
+
 end monotone
+
+/-!
+### Comparison of iterations and the identity function
+
+If $f(x) ≤ x$ for all $x$ (we express this as `f ≤ id` in the code), then the same is true for
+any iterate of $f$, and similarly for the reversed inequality.
+-/
 
 namespace function
 
 section preorder
 variables [preorder α] {f : α → α}
 
-lemma id_le_iterate_of_id_le (h : id ≤ f) :
-  ∀ n, id ≤ (f^[n])
-| 0 := by { rw function.iterate_zero, exact le_rfl }
-| (n + 1) := λ x,
-  begin
-    rw function.iterate_succ_apply',
-    exact (id_le_iterate_of_id_le n x).trans (h _),
-  end
+/-- If $x ≤ f x$ for all $x$ (we write this as `id ≤ f`), then the same is true for any iterate
+`f^[n]` of `f`. -/
+lemma id_le_iterate_of_id_le (h : id ≤ f) (n : ℕ) : id ≤ (f^[n]) :=
+by simpa only [iterate_id] using monotone_id.iterate_le_of_le h n
 
-lemma iterate_le_id_of_le_id (h : f ≤ id) :
-  ∀ n, (f^[n]) ≤ id :=
-@id_le_iterate_of_id_le (order_dual α) _ f h
+lemma iterate_le_id_of_le_id (h : f ≤ id) (n : ℕ) : (f^[n]) ≤ id :=
+@id_le_iterate_of_id_le (order_dual α) _ f h n
 
-lemma iterate_le_iterate_of_id_le (h : id ≤ f) {m n : ℕ} (hmn : m ≤ n) :
-  f^[m] ≤ (f^[n]) :=
-begin
-  rw [←add_sub_cancel_of_le hmn, add_comm, function.iterate_add],
-  exact λ x, id_le_iterate_of_id_le h _ _,
-end
+lemma monotone_iterate_of_id_le (h : id ≤ f) : monotone (λ m, f^[m]) :=
+monotone_nat_of_le_succ $ λ n x, by { rw iterate_succ_apply', exact h _ }
 
-lemma iterate_le_iterate_of_le_id (h : f ≤ id) {m n : ℕ} (hmn : m ≤ n) :
-  f^[n] ≤ (f^[m]) :=
-@iterate_le_iterate_of_id_le (order_dual α) _ f h m n hmn
+lemma antitone_iterate_of_le_id (h : f ≤ id) : antitone (λ m, f^[m]) :=
+λ m n hmn, @monotone_iterate_of_id_le (order_dual α) _ f h m n hmn
 
 end preorder
+
+/-!
+### Iterates of commuting functions
+
+If `f` and `g` are monotone and commute, then `f x ≤ g x` implies `f^[n] x ≤ g^[n] x`, see
+`function.commute.iterate_le_of_map_le`. We also prove two strict inequality versions of this lemma,
+as well as `iff` versions.
+-/
 
 namespace commute
 
@@ -155,32 +204,34 @@ end function
 
 namespace monotone
 
-open function
+variables [preorder α] {f : α → α} {x : α}
 
-section
+/-- If `f` is a monotone map and `x ≤ f x` at some point `x`, then the iterates `f^[n] x` form
+a monotone sequence. -/
+lemma monotone_iterate_of_le_map (hf : monotone f) (hx : x ≤ f x) : monotone (λ n, f^[n] x) :=
+monotone_nat_of_le_succ $ λ n, by { rw iterate_succ_apply, exact hf.iterate n hx  }
 
-variables {β : Type*} [preorder β] {f : α → α} {g : β → β} {h : α → β}
-
-lemma le_iterate_comp_of_le (hg : monotone g) (H : ∀ x, h (f x) ≤ g (h x)) (n : ℕ) (x : α) :
-  h (f^[n] x) ≤ (g^[n] (h x)) :=
-by refine hg.seq_le_seq n _ (λ k hk, _) (λ k hk, _); simp [iterate_succ', H _]
-
-lemma iterate_comp_le_of_le (hg : monotone g) (H : ∀ x, g (h x) ≤ h (f x)) (n : ℕ) (x : α) :
-  g^[n] (h x) ≤ h (f^[n] x) :=
-hg.dual.le_iterate_comp_of_le H n x
-
-end
-
-variables [preorder α] {f g : α → α}
-
-/-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
-lemma iterate_le_of_le (hf : monotone f) (h : f ≤ g) (n : ℕ) :
-  f^[n] ≤ (g^[n]) :=
-hf.iterate_comp_le_of_le h n
-
-/-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
-lemma iterate_ge_of_ge (hg : monotone g) (h : f ≤ g) (n : ℕ) :
-  f^[n] ≤ (g^[n]) :=
-hg.dual.iterate_le_of_le h n
+/-- If `f` is a monotone map and `f x ≤ x` at some point `x`, then the iterates `f^[n] x` form
+a antitone sequence. -/
+lemma antitone_iterate_of_map_le (hf : monotone f) (hx : f x ≤ x) : antitone (λ n, f^[n] x) :=
+hf.dual.monotone_iterate_of_le_map hx
 
 end monotone
+
+namespace strict_mono
+
+variables [preorder α] {f : α → α} {x : α}
+
+/-- If `f` is a strictly monotone map and `x < f x` at some point `x`, then the iterates `f^[n] x`
+form a strictly monotone sequence. -/
+lemma strict_mono_iterate_of_lt_map (hf : strict_mono f) (hx : x < f x) :
+  strict_mono (λ n, f^[n] x) :=
+strict_mono_nat_of_lt_succ $ λ n, by { rw iterate_succ_apply, exact hf.iterate n hx  }
+
+/-- If `f` is a strictly antitone map and `f x < x` at some point `x`, then the iterates `f^[n] x`
+form a strictly antitone sequence. -/
+lemma strict_anti_iterate_of_map_lt (hf : strict_mono f) (hx : f x < x) :
+  strict_anti (λ n, f^[n] x) :=
+hf.dual.strict_mono_iterate_of_lt_map hx
+
+end strict_mono

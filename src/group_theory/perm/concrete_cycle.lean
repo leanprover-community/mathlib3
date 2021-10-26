@@ -373,7 +373,7 @@ begin
   have hr : l ~r l.rotate k := ⟨k, rfl⟩,
   rw form_perm_eq_of_is_rotated hn hr,
   rw ←nth_le_rotate' l k k,
-  simp only [nat.mod_eq_of_lt hk, nat.sub_add_cancel hk.le, nat.mod_self],
+  simp only [nat.mod_eq_of_lt hk, tsub_add_cancel_of_le hk.le, nat.mod_self],
   rw [to_list_form_perm_nontrivial],
   { simp },
   { simpa using hl },

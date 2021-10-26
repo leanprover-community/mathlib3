@@ -83,7 +83,7 @@ localized "notation E ` ≃ₘ[` 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' ⊤" in manifold
 
 namespace diffeomorph
-instance : has_coe_to_fun (M ≃ₘ^n⟮I, I'⟯ M') := ⟨λ _, M → M', λe, e.to_equiv⟩
+instance : has_coe_to_fun (M ≃ₘ^n⟮I, I'⟯ M') (λ _, M → M') := ⟨λe, e.to_equiv⟩
 
 instance : has_coe (M ≃ₘ^n⟮I, I'⟯ M') C^n⟮I, M; I', M'⟯ := ⟨λ Φ, ⟨Φ, Φ.times_cont_mdiff_to_fun⟩⟩
 

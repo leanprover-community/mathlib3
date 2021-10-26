@@ -256,7 +256,7 @@ end
 
 lemma pow_map_zero_of_le
   {f : module.End R M} {m : M} {k l : ℕ} (hk : k ≤ l) (hm : (f^k) m = 0) : (f^l) m = 0 :=
-by rw [← nat.sub_add_cancel hk, pow_add, mul_apply, hm, map_zero]
+by rw [← tsub_add_cancel_of_le hk, pow_add, mul_apply, hm, map_zero]
 
 lemma commute_pow_left_of_commute
   {f : M →ₛₗ[σ₁₂] M₂} {g : module.End R M} {g₂ : module.End R₂ M₂}
@@ -1046,6 +1046,9 @@ begin
   rw [exists_comm],
   simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
+
+lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
+by rw [insert_eq, span_union]
 
 lemma span_insert_eq_span (h : x ∈ span R s) : span R (insert x s) = span R s :=
 span_eq_of_le _ (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mono $ subset_insert _ _)

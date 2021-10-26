@@ -861,8 +861,8 @@ end
 
 /-- Lebesgue dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
+  [l.is_countably_generated]
   {F : ι → α → E} {f : α → E} (bound : α → ℝ)
-  (hl_cb : l.is_countably_generated)
   (hF_meas : ∀ᶠ n in l, ae_measurable (F n) μ)
   (f_measurable : ae_measurable f μ)
   (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
@@ -870,25 +870,25 @@ lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a ∂μ) l (𝓝 $ ∫ a, f a ∂μ) :=
 begin
-  rw hl_cb.tendsto_iff_seq_tendsto,
-  { intros x xl,
-    have hxl, { rw tendsto_at_top' at xl, exact xl },
-    have h := inter_mem hF_meas h_bound,
-    replace h := hxl _ h,
-    rcases h with ⟨k, h⟩,
-    rw ← tendsto_add_at_top_iff_nat k,
-    refine tendsto_integral_of_dominated_convergence _ _ _ _ _ _,
-    { exact bound },
-    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+  rw tendsto_iff_seq_tendsto,
+  intros x xl,
+  have hxl, { rw tendsto_at_top' at xl, exact xl },
+  have h := inter_mem hF_meas h_bound,
+  replace h := hxl _ h,
+  rcases h with ⟨k, h⟩,
+  rw ← tendsto_add_at_top_iff_nat k,
+  refine tendsto_integral_of_dominated_convergence _ _ _ _ _ _,
+  { exact bound },
+  { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+  { assumption },
+  { assumption },
+  { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+  { filter_upwards [h_lim],
+    assume a h_lim,
+    apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
     { assumption },
-    { assumption },
-    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
-    { filter_upwards [h_lim],
-      assume a h_lim,
-      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
-      { assumption },
-      rw tendsto_add_at_top_iff_nat,
-      assumption } },
+    rw tendsto_add_at_top_iff_nat,
+    assumption }
 end
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
@@ -898,9 +898,7 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
   (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
   continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
-tendsto_integral_filter_of_dominated_convergence bound
-  (first_countable_topology.nhds_generated_countable x₀) ‹_›
-    (mem_of_mem_nhds hF_meas : _) ‹_› ‹_› ‹_›
+tendsto_integral_filter_of_dominated_convergence bound ‹_› (mem_of_mem_nhds hF_meas : _) ‹_› ‹_› ‹_›
 
 lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
   (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)

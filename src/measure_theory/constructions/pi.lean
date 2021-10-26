@@ -401,9 +401,8 @@ variable (μ)
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
 (finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).sigma_finite
 
-lemma pi_of_empty {α : Type*} [is_empty α] (β : α → Type* := is_empty_elim)
-  (m : Π a, measurable_space (β a) := is_empty_elim)
-  (μ : Π a : α, measure (β a) := is_empty_elim) (x : Π a, β a := is_empty_elim) :
+lemma pi_of_empty {α : Type*} [is_empty α] {β : α → Type*} {m : Π a, measurable_space (β a)}
+  (μ : Π a : α, measure (β a)) (x : Π a, β a := is_empty_elim) :
   measure.pi μ = dirac x :=
 begin
   haveI : ∀ a, sigma_finite (μ a) := is_empty_elim,

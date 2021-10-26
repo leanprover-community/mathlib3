@@ -56,7 +56,7 @@ begin
   { show unpair (b * b + a) = (a, b),
     have be : sqrt (b * b + a) = b,
       from sqrt_add_eq _ (le_trans (le_of_lt h) (nat.le_add_left _ _)),
-    simp [unpair, be, nat.add_sub_cancel, h] },
+    simp [unpair, be, add_tsub_cancel_right, h] },
   { show unpair (a * a + a + b) = (a, b),
     have ae : sqrt (a * a + (a + b)) = a,
     { rw sqrt_add_eq, exact add_le_add_left (le_of_not_gt h) _ },

@@ -557,6 +557,9 @@ top_unique $ by simp only [le_principal_iff, mem_top, eq_self_iff_true]
 @[simp] lemma principal_empty : 𝓟 (∅ : set α) = ⊥ :=
 bot_unique $ λ s _, empty_subset _
 
+lemma generate_eq_binfi (S : set (set α)) : generate S = ⨅ s ∈ S, 𝓟 s :=
+eq_of_forall_le_iff $ λ f, by simp [sets_iff_generate, le_principal_iff, subset_def]
+
 /-! ### Lattice equations -/
 
 lemma empty_mem_iff_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
@@ -582,6 +585,14 @@ lemma compl_not_mem {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ
 
 lemma filter_eq_bot_of_is_empty [is_empty α] (f : filter α) : f = ⊥ :=
 empty_mem_iff_bot.mp $ univ_mem' is_empty_elim
+
+lemma disjoint_of_disjoint_of_mem {f g : filter α} {s t : set α} (h : disjoint s t)
+  (hs : s ∈ f) (ht : t ∈ g) : disjoint f g :=
+begin
+  refine le_of_eq (empty_mem_iff_bot.1 _),
+  rw [← set.disjoint_iff_inter_eq_empty.1 h],
+  exact inter_mem_inf hs ht
+end
 
 /-- There is exactly one filter on an empty type. --/
 -- TODO[gh-6025]: make this globally an instance once safe to do so
@@ -1041,6 +1052,11 @@ begin
   refine mt (λ h, hq.mp $ h.mono _) hp,
   exact λ x hpq hq hp, hpq ⟨hp, hq⟩
 end
+
+lemma eventually.and_frequently {p q : α → Prop} {f : filter α}
+  (hp : ∀ᶠ x in f, p x) (hq : ∃ᶠ x in f, q x) :
+  ∃ᶠ x in f, p x ∧ q x :=
+by simpa only [and.comm] using hq.and_eventually hp
 
 lemma frequently.exists {p : α → Prop} {f : filter α} (hp : ∃ᶠ x in f, p x) : ∃ x, p x :=
 begin

@@ -243,7 +243,7 @@ lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
 begin
   conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
-  conv_rhs { rw [← nhds_translation f', tendsto_comap_iff] },
+  conv_rhs { rw [← nhds_translation_sub f', tendsto_comap_iff] },
   refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
   refine (eventually_principal.2 $ λ z hz, _).filter_mono inf_le_right,
   simp only [(∘)],

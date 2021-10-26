@@ -333,6 +333,17 @@ begin
   simp [update_row_transpose, det_transpose]
 end
 
+lemma det_update_row_smul' (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_row (s • M) j u) = s ^ (fintype.card n - 1) * det (update_row M j u) :=
+multilinear_map.map_update_smul _ M j s u
+
+lemma det_update_column_smul' (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_column (s • M) j u) = s ^ (fintype.card n - 1) * det (update_column M j u) :=
+begin
+  rw [← det_transpose, ← update_row_transpose, transpose_smul, det_update_row_smul'],
+  simp [update_row_transpose, det_transpose]
+end
+
 section det_eq
 
 /-! ### `det_eq` section

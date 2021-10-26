@@ -53,6 +53,30 @@ namespace asymptotics
 open_locale topological_space
 open filter
 
+section new_version
+
+def superpolynomial_decay' {α 𝕜 : Type*} [normed_linear_ordered_field 𝕜]
+  (l : filter α) (k : α → 𝕜) (f : α → 𝕜) :=
+∀ (z : ℤ), tendsto (λ (a : α), (k a) ^ z * f a) l (𝓝 0)
+
+variables {α 𝕜 : Type*} [normed_linear_ordered_field 𝕜] (l : filter α) (k : α → 𝕜)
+variables (f g : α → 𝕜)
+
+lemma superpolynomial_decay'_add (hf : superpolynomial_decay' l k f)
+  (hg : superpolynomial_decay' l k g) : superpolynomial_decay' l k (f + g) :=
+λ z, by simpa [mul_add] using tendsto.add (hf z) (hg z)
+
+lemma superpolynomial_decay'_mul (hf : superpolynomial_decay' l k f)
+  (hg : superpolynomial_decay' l k g) : superpolynomial_decay' l k (f * g) :=
+λ z, by simpa [mul_assoc] using tendsto.mul (hf z) (hg 0)
+
+lemma superpolynomial_decay'_const_mul (hf : superpolynomial_decay' l k f)
+  (c : 𝕜) : superpolynomial_decay' l k (λ n, c * f n) :=
+λ z, by simpa [← mul_assoc, ← mul_comm c] using tendsto.const_mul c (hf z)
+
+
+end new_version
+
 /-- A function `f` from an `ordered_comm_semiring` to a `normed_field` has superpolynomial decay
   iff `f(x)` is `O(x ^ c)` for all integers `c`. -/
 def superpolynomial_decay {α 𝕜 : Type*} [ordered_comm_semiring α] [normed_field 𝕜] [algebra α 𝕜]

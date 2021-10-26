@@ -90,9 +90,9 @@ lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :
   (∏ k in Ico m n, f k) = (∏ k in range (n - m), f (m + k)) :=
 begin
   by_cases h : m ≤ n,
-  { rw [←nat.Ico_zero_eq_range, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
+  { rw [←nat.Ico_zero_eq_range, prod_Ico_add, zero_add, tsub_add_cancel_of_le h] },
   { replace h : n ≤ m :=  le_of_not_ge h,
-     rw [Ico_eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
+     rw [Ico_eq_empty_of_le h, tsub_eq_zero_iff_le.mpr h, range_zero, prod_empty, prod_empty] }
 end
 
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
@@ -106,8 +106,8 @@ begin
     refine (prod_image _).symm,
     simp only [mem_Ico],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
-    rw [← nat.sub_sub_self (this _ im), Hij, nat.sub_sub_self (this _ jm)] },
-  { simp [Ico_eq_empty_of_le, nat.sub_le_sub_left, hkm] }
+    rw [← tsub_tsub_cancel_of_le (this _ im), Hij, tsub_tsub_cancel_of_le (this _ jm)] },
+  { simp [Ico_eq_empty_of_le, tsub_le_tsub_left, hkm] }
 end
 
 lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
@@ -120,7 +120,7 @@ lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
 begin
   cases n,
   { simp },
-  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, nat.sub_zero],
+  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, tsub_zero],
     rw prod_Ico_reflect _ _ le_rfl,
     simp }
 end

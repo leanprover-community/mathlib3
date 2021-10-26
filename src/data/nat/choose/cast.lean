@@ -29,7 +29,7 @@ end
 
 lemma cast_add_choose {a b : ℕ} :
   ((a + b).choose a : K) = (a + b)! / (a! * b!) :=
-by rw [cast_choose K (le_add_right le_rfl), nat.add_sub_cancel_left]
+by rw [cast_choose K (le_add_right le_rfl), add_tsub_cancel_left]
 
 lemma cast_choose_eq_pochhammer_div (a b : ℕ) :
   (a.choose b : K) = (pochhammer K b).eval (a - (b - 1) : ℕ) / b! :=

@@ -401,7 +401,7 @@ begin
     (ennreal.tendsto_sum_nat_add (μ ∘ t) ht) (λ n, measure_Union_le _),
   intros n m hnm x,
   simp only [set.mem_Union],
-  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩
+  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, tsub_add_cancel_of_le hnm] using hi⟩
 end
 
 lemma measure_if {x : β} {t : set β} {s : set α} :
@@ -1117,6 +1117,16 @@ lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
   map f (dirac a) = dirac (f a) :=
 ext $ assume s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
 
+@[simp] lemma restrict_singleton (μ : measure α) (a : α) : μ.restrict {a} = μ {a} • dirac a :=
+begin
+  ext1 s hs,
+  by_cases ha : a ∈ s,
+  { have : s ∩ {a} = {a}, by simpa,
+    simp * },
+  { have : s ∩ {a} = ∅, from inter_singleton_eq_empty.2 ha,
+    simp * }
+end
+
 end dirac
 
 section sum
@@ -1761,7 +1771,7 @@ lemma _root_.set.subsingleton.measure_zero {α : Type*} {m : measurable_space α
   μ s = 0 :=
 hs.induction_on measure_empty measure_singleton
 
-@[simp] lemma measure.restrict_singleton' {a : α} :
+lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
 by simp only [measure_singleton, measure.restrict_eq_zero]
 

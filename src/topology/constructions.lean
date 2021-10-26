@@ -121,11 +121,25 @@ continuous_inf_dom_left continuous_induced_dom
 lemma continuous_at_fst {p : α × β} : continuous_at prod.fst p :=
 continuous_fst.continuous_at
 
+lemma continuous.fst {f : α → β × γ} (hf : continuous f) : continuous (λ a : α, (f a).1) :=
+continuous_fst.comp hf
+
+lemma continuous_at.fst {f : α → β × γ} {x : α} (hf : continuous_at f x) :
+  continuous_at (λ a : α, (f a).1) x :=
+continuous_at_fst.comp hf
+
 @[continuity] lemma continuous_snd : continuous (@prod.snd α β) :=
 continuous_inf_dom_right continuous_induced_dom
 
 lemma continuous_at_snd {p : α × β} : continuous_at prod.snd p :=
 continuous_snd.continuous_at
+
+lemma continuous.snd {f : α → β × γ} (hf : continuous f) : continuous (λ a : α, (f a).2) :=
+continuous_snd.comp hf
+
+lemma continuous_at.snd {f : α → β × γ} {x : α} (hf : continuous_at f x) :
+  continuous_at (λ a : α, (f a).2) x :=
+continuous_at_snd.comp hf
 
 @[continuity] lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
@@ -152,7 +166,7 @@ lemma filter.eventually.prod_mk_nhds {pa : α → Prop} {a} (ha : ∀ᶠ x in �
 (ha.prod_inl_nhds b).and (hb.prod_inr_nhds a)
 
 lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
-continuous.prod_mk continuous_snd continuous_fst
+continuous_snd.prod_mk continuous_fst
 
 lemma continuous_uncurry_left {f : α → β → γ} (a : α)
   (h : continuous (function.uncurry f)) : continuous (f a) :=

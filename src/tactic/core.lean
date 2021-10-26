@@ -2194,7 +2194,7 @@ do e ← pformat_macro () s,
 /-- A hackish way to get the `src` directory of any project.
   Requires as argument any declaration name `n` in that project, and `k`, the number of characters
   in the path of the file where `n` is declared not part of the `src` directory.
-  Example: For `mathlib_dir_locator` this is the length of `tactic/cache.lean`, so `17`.
+  Example: For `mathlib_dir_locator` this is the length of `tactic/project_dir.lean`, so `23`.
   Note: does not work in the file where `n` is declared. -/
 meta def get_project_dir (n : name) (k : ℕ) : tactic string :=
 do e ← get_env,

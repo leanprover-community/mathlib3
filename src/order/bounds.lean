@@ -82,17 +82,17 @@ lemma not_bdd_below_iff {α : Type*} [linear_order α] {s : set α} :
   ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y < x :=
 @not_bdd_above_iff (order_dual α) _ _
 
-lemma bdd_above.dual (h : bdd_above s) : @bdd_below (order_dual α) _ s := h
+lemma bdd_above.dual (h : bdd_above s) : bdd_below (of_dual ⁻¹' s) := h
 
-lemma bdd_below.dual (h : bdd_below s) : @bdd_above (order_dual α) _ s := h
+lemma bdd_below.dual (h : bdd_below s) : bdd_above (of_dual ⁻¹' s) := h
 
-lemma is_least.dual (h : is_least s a) : @is_greatest (order_dual α) _ s a := h
+lemma is_least.dual (h : is_least s a) : is_greatest (of_dual ⁻¹' s) (to_dual a) := h
 
-lemma is_greatest.dual (h : is_greatest s a) : @is_least (order_dual α) _ s a := h
+lemma is_greatest.dual (h : is_greatest s a) : is_least (of_dual ⁻¹' s) (to_dual a) := h
 
-lemma is_lub.dual (h : is_lub s a) : @is_glb (order_dual α) _ s a := h
+lemma is_lub.dual (h : is_lub s a) : is_glb (of_dual ⁻¹' _) (to_dual a) := h
 
-lemma is_glb.dual (h : is_glb s a) : @is_lub (order_dual α) _ s a := h
+lemma is_glb.dual (h : is_glb s a) : is_lub (of_dual ⁻¹' s) (to_dual a) := h
 
 /-!
 ### Monotonicity

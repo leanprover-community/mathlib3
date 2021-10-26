@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import topology.opens
 import ring_theory.ideal.prod
-import ring_theory.jacobson
+import ring_theory.ideal.over
 import linear_algebra.finsupp
 import algebra.punit_instances
 

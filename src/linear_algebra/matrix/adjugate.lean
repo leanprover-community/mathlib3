@@ -13,7 +13,8 @@ import tactic.ring_exp
 /-!
 # Cramer's rule and adjugate matrices
 
-The adjugate is calculated with Cramer's rule, which we introduce first.
+The adjugate matrix is the transpose of the cofactor matrix.
+It is calculated with Cramer's rule, which we introduce first.
 The vectors returned by Cramer's rule are given by the linear map `cramer`,
 which sends a matrix `A` and vector `b` to the vector consisting of the
 determinant of replacing the `i`th column of `A` with `b` at index `i`

@@ -112,10 +112,14 @@ begin
   exact and_iff_right_of_imp (λ h, hac.trans h.1),
 end
 
+/-- A set with upper and lower bounds in a locally finite order is a fintype -/
+def _root_.set.fintype_of_mem_bounds {a b} {s : set α} [decidable_pred (∈ s)]
+  (ha : a ∈ lower_bounds s) (hb : b ∈ upper_bounds s) : fintype s :=
+set.fintype_subset (set.Icc a b) $ λ x hx, ⟨ha hx, hb hx⟩
+
 lemma _root_.bdd_below.finite_of_bdd_above {s : set α} (h₀ : bdd_below s) (h₁ : bdd_above s) :
   s.finite :=
-let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in
-(Icc a b).finite_to_set.subset (λ c hc, mem_Icc.2 $ ⟨ha hc, hb hc⟩)
+let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fintype_of_mem_bounds ha hb⟩ }
 
 end preorder
 

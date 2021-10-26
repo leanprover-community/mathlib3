@@ -1289,7 +1289,7 @@ begin
   rw walk.append_support' at hs,
   have : multiset.count w {v} = 0,
   { simp only [multiset.singleton_eq_cons, multiset.count_eq_zero, multiset.mem_singleton],
-    simp, exact ne.symm hne, },
+    simpa using ne.symm hne, },
   rw [multiset.count_sub, this, sub_zero', multiset.count_add] at hs,
   simp_rw [multiset.coe_count] at hs,
   rw [path.support_count_eq_one] at hs,

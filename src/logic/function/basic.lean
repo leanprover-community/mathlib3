@@ -397,6 +397,10 @@ lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a →
   (∀ x, p x (update f a b x)) ↔ p a b ∧ ∀ x ≠ a, p x (f x) :=
 by { rw [← and_forall_ne a, update_same], simp { contextual := tt } }
 
+lemma exists_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
+  (∃ x, p x (update f a b x)) ↔ p a b ∨ ∃ x ≠ a, p x (f x) :=
+by { rw [← not_forall_not, forall_update_iff f (λ a b, ¬p a b)], simp [not_and_distrib] }
+
 lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
   update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=
 funext_iff.trans $ forall_update_iff _ (λ x y, y = g x)
@@ -433,6 +437,15 @@ update_comp_eq_of_injective' g hf i a
 lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
   (f : Π i, α i → β i) (g : Π i, α i) (i : ι) (v : α i) (j : ι) :
   f j (update g i v j) = update (λ k, f k (g k)) i (f i v) j :=
+begin
+  by_cases h : j = i,
+  { subst j, simp },
+  { simp [h] }
+end
+
+lemma apply_update₂ {ι : Sort*} [decidable_eq ι] {α β γ : ι → Sort*}
+  (f : Π i, α i → β i → γ i) (g : Π i, α i) (h : Π i, β i) (i : ι) (v : α i) (w : β i) (j : ι) :
+  f j (update g i v j) (update h i w j) = update (λ k, f k (g k) (h k)) i (f i v w) j :=
 begin
   by_cases h : j = i,
   { subst j, simp },

@@ -68,7 +68,6 @@ context, or if we have `(f : α → ℝ≥0∞) (hf : ∀ x, f x ≠ ∞)`.
 * `∞`: a localized notation in `ℝ≥0∞` for `⊤ : ℝ≥0∞`.
 
 -/
-noncomputable theory
 open classical set
 
 open_locale classical big_operators nnreal
@@ -76,14 +75,16 @@ variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
-@[derive [canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
+@[derive [
+  has_zero, add_comm_monoid,
+  canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub]]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
-instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
+noncomputable instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
 { .. ennreal.canonically_ordered_comm_semiring,
   .. ennreal.complete_linear_order }
 
@@ -111,7 +112,7 @@ protected def to_nnreal : ℝ≥0∞ → ℝ≥0
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
 
 /-- `of_real x` returns `x` if it is nonnegative, `0` otherwise. -/
-protected def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
+protected noncomputable def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
 
 @[simp, norm_cast] lemma to_nnreal_coe : (r : ℝ≥0∞).to_nnreal = r := rfl
 
@@ -257,7 +258,7 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
-def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
+noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
@@ -265,7 +266,7 @@ def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 section actions
 
 /-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/
-instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
+noncomputable instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
 mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
 
 lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
@@ -284,32 +285,30 @@ instance smul_comm_class_right {M N : Type*} [mul_action ℝ≥0∞ N] [has_scal
 { smul_comm := λ m r, (smul_comm m (r : ℝ≥0∞) : _)}
 
 /-- A `distrib_mul_action` over `ℝ≥0∞` restricts to a `distrib_mul_action` over `ℝ≥0`. -/
-instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] : distrib_mul_action ℝ≥0 M :=
+noncomputable instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] :
+  distrib_mul_action ℝ≥0 M :=
 distrib_mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
 
 /-- A `module` over `ℝ≥0∞` restricts to a `module` over `ℝ≥0`. -/
-instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
+noncomputable instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
 module.comp_hom M of_nnreal_hom
 
 /-- An `algebra` over `ℝ≥0∞` restricts to an `algebra` over `ℝ≥0`. -/
-instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
+noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
 { smul := (•),
   commutes' := λ r x, by simp [algebra.commutes],
   smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ≥0∞) x, smul_def],
   to_ring_hom := ((algebra_map ℝ≥0∞ A).comp (of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞)) }
 
 -- verify that the above produces instances we might care about
-example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
-example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+noncomputable example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
+noncomputable example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
 
-lemma coe_smul {R} [monoid R] (r : R) (s : ℝ≥0) [mul_action R ℝ≥0] [has_scalar R ℝ≥0∞]
+lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
   (↑(r • s) : ℝ≥0∞) = r • ↑s :=
-begin
-  rw ←smul_one_smul ℝ≥0 r (s: ℝ≥0∞),
-  change ↑(r • s) = ↑(r • (1 : ℝ≥0)) * ↑s,
-  rw [←ennreal.coe_mul, smul_mul_assoc, one_mul],
-end
+by rw [←smul_one_smul ℝ≥0 r (s: ℝ≥0∞), smul_def, smul_eq_mul, ←ennreal.coe_mul, smul_mul_assoc,
+    one_mul]
 
 end actions
 
@@ -528,13 +527,13 @@ begin
   have ad : a < d,
   { rw of_real_eq_coe_nnreal c_nonneg at ac,
     exact coe_lt_coe.1 ac },
-  refine ⟨d-a, sub_pos_iff_lt.2 ad, _⟩,
+  refine ⟨d-a, tsub_pos_iff_lt.2 ad, _⟩,
   rw [some_eq_coe, ← coe_add],
   convert cb,
   have : real.to_nnreal c = d,
     by { rw [← nnreal.coe_eq, real.coe_to_nnreal _ c_nonneg], refl },
   rw [add_comm, this],
-  exact sub_add_cancel_of_le ad.le
+  exact tsub_add_cancel_of_le ad.le
 end
 
 lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r := ennreal.coe_nat n ▸ coe_lt_coe
@@ -717,7 +716,7 @@ end cancel
 section sub
 
 lemma sub_eq_Inf {a b : ℝ≥0∞} : a - b = Inf {d | a ≤ d + b} :=
-le_antisymm (le_Inf $ λ c, sub_le_iff_right.mpr) $ Inf_le le_sub_add
+le_antisymm (le_Inf $ λ c, tsub_le_iff_right.mpr) $ Inf_le le_tsub_add
 
 /-- This is a special case of `with_top.coe_sub` in the `ennreal` namespace -/
 lemma coe_sub : (↑(r - p) : ℝ≥0∞) = ↑r - ↑p :=
@@ -731,119 +730,60 @@ by simp
 lemma sub_top : a - ∞ = 0 :=
 by simp
 
-lemma le_sub_add_self : a ≤ (a - b) + b :=
-le_sub_add
-
-protected lemma sub_le_iff_le_add : a - b ≤ c ↔ a ≤ c + b :=
-sub_le_iff_right
-
--- todo: make this a `@[simp]` lemma in general
-@[simp] lemma sub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
-sub_eq_zero_iff_le.mpr h
-
-lemma sub_self : a - a = 0 :=
-sub_self' a -- explicit arg
-
-lemma zero_sub : 0 - a = 0 :=
-zero_sub' a -- explicit arg
-
-protected lemma sub_add_cancel_of_le (h : b ≤ a) : (a - b) + b = a :=
-sub_add_cancel_of_le h
-
-lemma sub_le_sub (h₁ : a ≤ b) (h₂ : d ≤ c) : a - c ≤ b - d :=
-sub_le_sub' h₁ h₂
-
--- todo: make `add_sub_cancel_of_le` a `@[simp]` lemma
-@[simp] protected lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
-add_sub_cancel_of_le h
-
-lemma sub_add_self_eq_max : (a - b) + b = max a b :=
-sub_add_eq_max
-
-protected lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
-sub_le_iff_left
-
-protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
-sub_le_iff_sub_le.mp h
-
--- todo: make `sub_eq_zero_iff_le` a `@[simp]` lemma
-@[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
-sub_eq_zero_iff_le
-
--- todo: make `sub_pos_iff_lt` a `@[simp]` lemma
-@[simp] protected lemma sub_pos : 0 < a - b ↔ b < a :=
-sub_pos_iff_lt
-
-lemma sub_le_self (a b : ℝ≥0∞) : a - b ≤ a :=
-sub_le_self'
-
-lemma sub_zero : a - 0 = a :=
-sub_zero' a -- explicit
-
 lemma sub_eq_top_iff : a - b = ∞ ↔ a = ∞ ∧ b ≠ ∞ :=
 by { cases a; cases b; simp [← with_top.coe_sub] }
 
 lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha
 
-/-- A version of triangle inequality for difference as a "distance". -/
-lemma sub_le_sub_add_sub : a - c ≤ a - b + (b - c) :=
-sub_le_sub_add_sub
-
-lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b := lt_sub_iff_right
-
-lemma lt_sub_comm : a < b - c ↔ c < b - a := lt_sub_comm
-
-/-! The following lemmas cannot be directly replaced by the general lemmas. -/
-
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
-((cancel_of_lt' $ hac.trans_lt h).sub_lt_iff_right hac).mpr h
+((cancel_of_lt' $ hac.trans_lt h).tsub_lt_iff_right hac).mpr h
 
 @[simp] lemma add_sub_self (hb : b ≠ ∞) : (a + b) - b = a :=
-(cancel_of_ne hb).add_sub_cancel_right
+(cancel_of_ne hb).add_tsub_cancel_right
 
 @[simp] lemma add_sub_self' (ha : a ≠ ∞) : (a + b) - a = b :=
-(cancel_of_ne ha).add_sub_cancel_left
+(cancel_of_ne ha).add_tsub_cancel_left
 
 lemma sub_eq_of_add_eq (hb : b ≠ ∞) (hc : a + b = c) : c - b = a :=
-(cancel_of_ne hb).sub_eq_of_eq_add hc.symm
+(cancel_of_ne hb).tsub_eq_of_eq_add hc.symm
 
 protected lemma lt_add_of_sub_lt (ht : a ≠ ∞ ∨ b ≠ ∞) (h : a - b < c) : a < c + b :=
 begin
   rcases eq_or_ne b ∞ with rfl|hb,
   { rw [add_top, lt_top_iff_ne_top], exact ht.resolve_right (not_not.2 rfl) },
-  { exact (cancel_of_ne hb).lt_add_of_sub_lt_right h }
+  { exact (cancel_of_ne hb).lt_add_of_tsub_lt_right h }
 end
 
 protected lemma sub_lt_iff_lt_add (hb : b ≠ ∞) (hab : b ≤ a) : a - b < c ↔ a < c + b :=
-(cancel_of_ne hb).sub_lt_iff_right hab
+(cancel_of_ne hb).tsub_lt_iff_right hab
 
 protected lemma sub_lt_self (hat : a ≠ ∞) (ha0 : a ≠ 0) (hb : b ≠ 0) : a - b < a :=
 begin
   cases b, { simp [pos_iff_ne_zero, ha0] },
-  exact (cancel_of_ne hat).sub_lt_self cancel_coe (pos_iff_ne_zero.mpr ha0) (pos_iff_ne_zero.mpr hb)
+  exact (cancel_of_ne hat).tsub_lt_self cancel_coe (pos_iff_ne_zero.mpr ha0)
+    (pos_iff_ne_zero.mpr hb)
 end
 
 lemma sub_lt_of_sub_lt (h₂ : c ≤ a) (h₃ : a ≠ ∞ ∨ b ≠ ∞) (h₁ : a - b < c) : a - c < b :=
 ennreal.sub_lt_of_lt_add h₂ (add_comm c b ▸ ennreal.lt_add_of_sub_lt h₃ h₁)
 
 lemma sub_sub_cancel (h : a ≠ ∞) (h2 : b ≤ a) : a - (a - b) = b :=
-(cancel_of_ne $ sub_ne_top h).sub_sub_cancel_of_le h2
+(cancel_of_ne $ sub_ne_top h).tsub_tsub_cancel_of_le h2
 
 lemma sub_right_inj {a b c : ℝ≥0∞} (ha : a ≠ ∞) (hb : b ≤ a) (hc : c ≤ a) :
   a - b = a - c ↔ b = c :=
-(cancel_of_ne ha).sub_right_inj (cancel_of_ne $ ne_top_of_le_ne_top ha hb)
+(cancel_of_ne ha).tsub_right_inj (cancel_of_ne $ ne_top_of_le_ne_top ha hb)
   (cancel_of_ne $ ne_top_of_le_ne_top ha hc) hb hc
 
 lemma sub_mul (h : 0 < b → b < a → c ≠ ∞) : (a - b) * c = a * c - b * c :=
 begin
   cases le_or_lt a b with hab hab, { simp [hab, mul_right_mono hab] },
   rcases eq_or_lt_of_le (zero_le b) with rfl|hb, { simp },
-  exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).sub_mul
+  exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).tsub_mul
 end
 
-lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) :
-  a * (b - c) = a * b - a * c :=
+lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) : a * (b - c) = a * b - a * c :=
 by { simp only [mul_comm a], exact sub_mul h }
 
 end sub
@@ -971,6 +911,8 @@ by unfold bit1; rw add_eq_top; simp
 end bit
 
 section inv
+noncomputable theory
+
 instance : has_inv ℝ≥0∞ := ⟨λa, Inf {b | 1 ≤ a * b}⟩
 
 instance : div_inv_monoid ℝ≥0∞ :=
@@ -1615,18 +1557,18 @@ variables {ι : Sort*} {f g : ι → ℝ≥0∞}
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
   (le_infi $ assume i, add_le_add (infi_le _ _) $ le_refl _)
-  (ennreal.sub_le_iff_le_add.1 $ le_infi $ assume i, ennreal.sub_le_iff_le_add.2 $ infi_le _ _)
+  (tsub_le_iff_right.1 $ le_infi $ assume i, tsub_le_iff_right.2 $ infi_le _ _)
 
 lemma supr_sub : (⨆i, f i) - a = (⨆i, f i - a) :=
 le_antisymm
-  (ennreal.sub_le_iff_le_add.2 $ supr_le $ assume i, ennreal.sub_le_iff_le_add.1 $ le_supr _ i)
-  (supr_le $ assume i, ennreal.sub_le_sub (le_supr _ _) (le_refl a))
+  (tsub_le_iff_right.2 $ supr_le $ assume i, tsub_le_iff_right.1 $ le_supr _ i)
+  (supr_le $ assume i, tsub_le_tsub (le_supr _ _) (le_refl a))
 
 lemma sub_infi : a - (⨅i, f i) = (⨆i, a - f i) :=
 begin
   refine (eq_of_forall_ge_iff $ λ c, _),
-  rw [ennreal.sub_le_iff_le_add, add_comm, infi_add],
-  simp [ennreal.sub_le_iff_le_add, sub_eq_add_neg, add_comm],
+  rw [tsub_le_iff_right, add_comm, infi_add],
+  simp [tsub_le_iff_right, sub_eq_add_neg, add_comm],
 end
 
 lemma Inf_add {s : set ℝ≥0∞} : Inf s + a = ⨅b∈s, b + a :=

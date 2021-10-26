@@ -42,8 +42,10 @@ namespace Magma
 instance bundled_hom : bundled_hom @mul_hom :=
 ⟨@mul_hom.to_fun, @mul_hom.id, @mul_hom.comp, @mul_hom.coe_inj⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Magma
-attribute [to_additive] Magma.has_coe_to_sort Magma.large_category Magma.concrete_category
+attribute [derive [large_category, concrete_category]] Magma
+attribute [to_additive] Magma.large_category Magma.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Magma Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Magma` from the underlying type and typeclass. -/
 @[to_additive]
@@ -81,9 +83,10 @@ namespace Semigroup
 @[to_additive]
 instance : bundled_hom.parent_projection semigroup.to_has_mul := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Semigroup
-attribute [to_additive] Semigroup.has_coe_to_sort Semigroup.large_category
-  Semigroup.concrete_category
+attribute [derive [large_category, concrete_category]] Semigroup
+attribute [to_additive] Semigroup.large_category Semigroup.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Semigroup Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Semigroup` from the underlying type and typeclass. -/
 @[to_additive]

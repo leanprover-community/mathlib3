@@ -33,6 +33,8 @@ noncomputable theory
 
 namespace complex
 
+open_locale complex_conjugate
+
 instance : has_norm ℂ := ⟨abs⟩
 
 instance : normed_group ℂ :=
@@ -140,14 +142,14 @@ def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 
 lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
 
-@[continuity] lemma continuous_conj : continuous conj := conj_lie.continuous
+@[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := conj_lie.continuous
 
 /-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
 def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 
 @[simp] lemma conj_cle_coe : conj_cle.to_linear_equiv = conj_ae.to_linear_equiv := rfl
 
-@[simp] lemma conj_cle_apply (z : ℂ) : conj_cle z = z.conj := rfl
+@[simp] lemma conj_cle_apply (z : ℂ) : conj_cle z = conj z := rfl
 
 @[simp] lemma conj_cle_norm : ∥(conj_cle : ℂ →L[ℝ] ℂ)∥ = 1 :=
 conj_lie.to_linear_isometry.norm_to_continuous_linear_map
@@ -171,7 +173,6 @@ def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
   im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
-  conj := complex.conj,
   I := complex.I,
   I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
   I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
@@ -183,8 +184,8 @@ noncomputable instance : is_R_or_C ℂ :=
                                       complex.coe_algebra_map, complex.of_real_eq_coe],
   mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
   mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
-  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
-  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
+  conj_re_ax := λ z, rfl,
+  conj_im_ax := λ z, rfl,
   conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
   norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
     add_monoid_hom.coe_mk, complex.norm_eq_abs],
@@ -193,20 +194,47 @@ noncomputable instance : is_R_or_C ℂ :=
     complex.of_real_eq_coe, complex.norm_eq_abs],
   div_I_ax := complex.div_I }
 
+section
+
+variables {α β γ : Type*}
+  [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
+
+/-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
+def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
+{ map_add' := by simp, .. equiv_real_prod }
+
+/-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+def equiv_real_prod_add_hom_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
+{ map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
+
+/-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+def equiv_real_prodₗ : ℂ ≃L[ℝ] ℝ × ℝ :=
+equiv_real_prod_add_hom_lm.to_continuous_linear_equiv
+
+end
+
+lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
+  has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
+begin
+  refine ⟨λ h, ⟨h.mapL re_clm, h.mapL im_clm⟩, _⟩,
+  rintro ⟨h₁, h₂⟩,
+  convert (h₁.prod_mk h₂).mapL equiv_real_prodₗ.symm.to_continuous_linear_map,
+  { ext x; refl },
+  { cases c, refl }
+end
+
 end complex
 
 namespace is_R_or_C
 
 local notation `reC` := @is_R_or_C.re ℂ _
 local notation `imC` := @is_R_or_C.im ℂ _
-local notation `conjC` := @is_R_or_C.conj ℂ _
 local notation `IC` := @is_R_or_C.I ℂ _
 local notation `absC` := @is_R_or_C.abs ℂ _
 local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 
 @[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
 @[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
-@[simp] lemma conj_to_complex {x : ℂ} : conjC x = x.conj := rfl
 @[simp] lemma I_to_complex : IC = complex.I := rfl
 @[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
 by simp [is_R_or_C.norm_sq, complex.norm_sq]

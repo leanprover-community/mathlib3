@@ -37,20 +37,22 @@ convergence, fractions
 -/
 
 variables {K : Type*} (v : K) [linear_ordered_field K] [floor_ring K]
-open generalized_continued_fraction as gcf
+
+open generalized_continued_fraction (of)
+open generalized_continued_fraction
 
 lemma generalized_continued_fraction.of_is_simple_continued_fraction :
-  (gcf.of v).is_simple_continued_fraction :=
-(λ _ _ nth_part_num_eq, gcf.of_part_num_eq_one nth_part_num_eq)
+  (of v).is_simple_continued_fraction :=
+(λ _ _ nth_part_num_eq, of_part_num_eq_one nth_part_num_eq)
 
 /-- Creates the simple continued fraction of a value. -/
 def simple_continued_fraction.of : simple_continued_fraction K :=
-⟨gcf.of v, generalized_continued_fraction.of_is_simple_continued_fraction v⟩
+⟨of v, generalized_continued_fraction.of_is_simple_continued_fraction v⟩
 
 lemma simple_continued_fraction.of_is_continued_fraction :
   (simple_continued_fraction.of v).is_continued_fraction :=
-(λ _ denom nth_part_denom_eq,
-  lt_of_lt_of_le zero_lt_one(gcf.of_one_le_nth_part_denom nth_part_denom_eq))
+(λ _ denom nth_part_denom_eq, lt_of_lt_of_le zero_lt_one
+  (of_one_le_nth_part_denom nth_part_denom_eq))
 
 /-- Creates the continued fraction of a value. -/
 def continued_fraction.of : continued_fraction K :=
@@ -58,10 +60,9 @@ def continued_fraction.of : continued_fraction K :=
 
 namespace generalized_continued_fraction
 
-open continued_fraction as cf
-
-lemma of_convergents_eq_convergents' : (gcf.of v).convergents = (gcf.of v).convergents' :=
-@cf.convergents_eq_convergents'  _ _ (continued_fraction.of v)
+lemma of_convergents_eq_convergents' :
+  (of v).convergents = (of v).convergents' :=
+@continued_fraction.convergents_eq_convergents'  _ _ (continued_fraction.of v)
 
 section convergence
 /-!
@@ -74,7 +75,7 @@ variable [archimedean K]
 open nat
 
 theorem of_convergence_epsilon :
-  ∀ (ε > (0 : K)), ∃ (N : ℕ), ∀ (n ≥ N), |v - (gcf.of v).convergents n| < ε :=
+  ∀ (ε > (0 : K)), ∃ (N : ℕ), ∀ (n ≥ N), |v - (of v).convergents n| < ε :=
 begin
   assume ε ε_pos,
   -- use the archimedean property to obtian a suitable N
@@ -82,7 +83,7 @@ begin
   let N := max N' 5, -- set minimum to 5 to have N ≤ fib N work
   existsi N,
   assume n n_ge_N,
-  let g := gcf.of v,
+  let g := of v,
   cases decidable.em (g.terminated_at n) with terminated_at_n not_terminated_at_n,
   { have : v = g.convergents n, from of_correctness_of_terminated_at terminated_at_n,
     have : v - g.convergents n = 0, from sub_eq_zero.elim_right this,
@@ -136,7 +137,7 @@ end
 local attribute [instance] preorder.topology
 
 theorem of_convergence [order_topology K] :
-  filter.tendsto ((gcf.of v).convergents) filter.at_top $ nhds v :=
+  filter.tendsto ((of v).convergents) filter.at_top $ nhds v :=
 by simpa [linear_ordered_add_comm_group.tendsto_nhds, abs_sub_comm] using (of_convergence_epsilon v)
 
 end convergence

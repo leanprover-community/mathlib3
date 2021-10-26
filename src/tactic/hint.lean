@@ -23,7 +23,7 @@ add_tactic_doc
   decl_names               := [`tactic.hint.hint_tactic_attribute],
   tags                     := ["rewrite", "search"] }
 
-open lean lean.parser interactive
+setup_tactic_parser
 
 private meta def add_tactic_hint (n : name) (t : expr) : tactic unit :=
 do

@@ -6,11 +6,7 @@ Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 import tactic.lint
 import tactic.dependencies
 
-open lean
-open lean.parser
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+setup_tactic_parser
 
 namespace tactic
 namespace interactive

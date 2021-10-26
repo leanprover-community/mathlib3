@@ -122,7 +122,7 @@ begin
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
-  rw [← enat.coe_get aux, enat.coe_le_coe, sub_le_iff_left,
+  rw [← enat.coe_get aux, enat.coe_le_coe, tsub_le_iff_left,
       ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
   exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
@@ -134,9 +134,9 @@ lemma map_frobenius_poly.key₂ {n i j : ℕ} (hi : i < n) (hj : j < p ^ (n - i)
 begin
   generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
   suffices : m ≤ n - i ∧ m ≤ j,
-  { rw [←nat.sub_add_comm this.2, add_comm i j, nat.add_sub_assoc (this.1.trans (nat.sub_le n i)),
-      add_assoc, nat.sub.right_comm, add_comm i, nat.sub_add_cancel (le_sub_of_add_le_right'
-      ((le_sub_iff_left hi.le).mp this.1))] },
+  { rw [tsub_add_eq_add_tsub this.2, add_comm i j,
+      add_tsub_assoc_of_le (this.1.trans (nat.sub_le n i)), add_assoc, tsub_right_comm, add_comm i,
+      tsub_add_cancel_of_le (le_tsub_of_add_le_right ((le_tsub_iff_left hi.le).mp this.1))] },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
         ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
@@ -148,7 +148,7 @@ begin
     rw [mul_add, mul_one] at hc,
     apply nat.le_of_lt_succ,
     calc m < p ^ m : nat.lt_pow_self hp.1.one_lt m
-       ... ≤ j + 1 : by { rw ← sub_eq_of_eq_add_rev hc, apply nat.sub_le } }
+       ... ≤ j + 1 : by { rw ← tsub_eq_of_eq_add_rev hc, apply nat.sub_le } }
 end
 
 lemma map_frobenius_poly (n : ℕ) :
@@ -162,7 +162,7 @@ begin
   simp only [alg_hom.map_sum, alg_hom.map_sub, alg_hom.map_mul, alg_hom.map_pow, bind₁_C_right],
   have h1 : (↑p ^ n) * (⅟ (↑p : ℚ) ^ n) = 1 := by rw [←mul_pow, mul_inv_of_self, one_pow],
   rw [bind₁_X_right, function.comp_app, witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ,
-      sum_range_succ, nat.sub_self, nat.add_sub_cancel_left, pow_zero, pow_one, pow_one, sub_mul,
+      sum_range_succ, tsub_self, add_tsub_cancel_left, pow_zero, pow_one, pow_one, sub_mul,
       add_mul, add_mul, mul_right_comm, mul_right_comm (C (↑p ^ (n + 1))), ←C_mul, ←C_mul, pow_succ,
       mul_assoc ↑p (↑p ^ n), h1, mul_one, C_1, one_mul, add_comm _ (X n ^ p), add_assoc, ←add_sub,
       add_right_inj, frobenius_poly_aux_eq, ring_hom.map_sub, map_X, mul_sub, sub_eq_add_neg,
@@ -173,7 +173,7 @@ begin
   rw mem_range at hi,
   rw [← IH i hi],
   clear IH,
-  rw [add_comm (X i ^ p), add_pow, sum_range_succ', pow_zero, nat.sub_zero, nat.choose_zero_right,
+  rw [add_comm (X i ^ p), add_pow, sum_range_succ', pow_zero, tsub_zero, nat.choose_zero_right,
       one_mul, nat.cast_one, mul_one, mul_add, add_mul, nat.succ_sub (le_of_lt hi),
       nat.succ_eq_add_one (n - i), pow_succ, pow_mul, add_sub_cancel, mul_sum, sum_mul],
   apply sum_congr rfl,

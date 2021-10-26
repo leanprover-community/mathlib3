@@ -197,7 +197,7 @@ le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 ⟨induction_on o $ λ α r _ z, by exactI
   let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_is_empty.2 $
   ⟨λ a, let ⟨b, h, _⟩ := hl a in
-    (eq_zero_iff_is_empty.1 (e.trans z)).elim' ⟨_, h⟩⟩,
+    (mk_eq_zero_iff.1 (e.trans z)).elim' ⟨_, h⟩⟩,
 λ e, by simp [e]⟩
 
 @[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
@@ -218,7 +218,7 @@ end
 ⟨induction_on o $ λ α r _ z, begin
   resetI,
   rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
-  cases ne_zero_iff_nonempty.1 (by rw e; exact one_ne_zero) with a,
+  cases mk_ne_zero_iff.1 (by rw e; exact one_ne_zero) with a,
   refine ⟨typein r a, eq.symm $ quotient.sound
     ⟨rel_iso.of_surjective (rel_embedding.of_monotone _
       (λ x y, _)) (λ x, _)⟩⟩,
@@ -466,6 +466,12 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=
 ω ≤ c ∧ c.ord.cof = c
+
+lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
+omega_pos.trans_le H.left
+
+lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
+by { rw cardinal.lt_ord, exact H.pos }
 
 theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩

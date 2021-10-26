@@ -86,7 +86,7 @@ def append : Π {u v w : V}, G.walk u v → G.walk v w → G.walk u w
 /-- The concatenation of the reverse of the first walk with the second walk. -/
 protected def reverse_aux : Π {u v w : V}, G.walk u v → G.walk u w → G.walk v w
 | _ _ _ nil q := q
-| _ _ _ (cons h p) q := reverse_aux p (cons (G.sym h) q)
+| _ _ _ (cons h p) q := reverse_aux p (cons (G.symm h) q)
 
 /-- Reverse the orientation of a walk. -/
 @[symm]
@@ -120,7 +120,7 @@ lemma append_assoc : Π {u v w x : V} (p : G.walk u v) (q : G.walk v w) (r : G.w
 @[simp] lemma nil_reverse {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
 lemma singleton_reverse {u v : V} (h : G.adj u v) :
-  (cons h nil).reverse = cons (G.sym h) nil := rfl
+  (cons h nil).reverse = cons (G.symm h) nil := rfl
 
 @[simp]
 protected lemma reverse_aux_eq_reverse_append {u v w : V} (p : G.walk u v) (q : G.walk u w) :
@@ -144,7 +144,7 @@ begin
 end
 
 @[simp] lemma cons_reverse {u v w : V} (h : G.adj u v) (p : G.walk v w) :
-  (cons h p).reverse = p.reverse.append (cons (G.sym h) nil) :=
+  (cons h p).reverse = p.reverse.append (cons (G.symm h) nil) :=
 begin
   dsimp [reverse, walk.reverse_aux],
   simp only [walk.reverse_aux_eq_reverse_append, append_nil],
@@ -203,7 +203,8 @@ by cases p; simp
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp *
 
-lemma support_chain_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w), list.chain G.adj u p.support
+lemma support_chain_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+  list.chain G.adj u p.support
 | _ _ _ h nil := list.chain.cons h list.chain.nil
 | _ _ _ h (cons h' p) := list.chain.cons h (support_chain_aux h' p)
 
@@ -464,7 +465,7 @@ lemma append_support'' {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
 begin
   rw [append_support, ←multiset.coe_add],
   congr' 1,
-  simp only [multiset.singleton_eq_singleton, multiset.cons_coe,
+  simp only [multiset.singleton_eq_cons, multiset.cons_coe,
     zero_add, multiset.coe_eq_coe, multiset.cons_add],
   rw [←support_eq],
 end
@@ -475,12 +476,7 @@ begin
   rw append_support,
   cases p',
   { simp only [nil_support, list.tail_cons, list.append_nil],
-    convert_to _ = (p.support + ([v] - {v}) : multiset V),
-    { erw multiset.add_sub_cancel,
-      simp, },
-    { nth_rewrite 0 ←add_zero (p.support : multiset V),
-      rw add_left_cancel_iff,
-      simp, }, },
+    erw multiset.add_sub_cancel, },
   { simp_rw [cons_support, list.tail_cons, ←multiset.cons_coe, ←multiset.singleton_add],
     rw [add_comm, add_assoc, add_comm],
     erw multiset.add_sub_cancel,
@@ -1134,7 +1130,7 @@ begin
     rw is_bridge_iff_walks_contain,
     intro p,
     by_contra hne,
-    specialize hc (walk.cons (G.sym h) p.to_path) _,
+    specialize hc (walk.cons (G.symm h) p.to_path) _,
     { simp [walk.is_cycle_def, walk.cons_is_trail_iff],
       split,
       { intro h,
@@ -1212,7 +1208,7 @@ begin
     { cases_matching* [_ ∧ _],
       simp only [walk.is_path_def],
       split; assumption, },
-    specialize h _ _ ⟨c_p, hp⟩ (path.singleton (G.sym c_h)),
+    specialize h _ _ ⟨c_p, hp⟩ (path.singleton (G.symm c_h)),
     simp [path.singleton] at h,
     subst c_p,
     simpa [walk.edges, -quotient.eq, sym2.eq_swap] using hc, },
@@ -1292,8 +1288,8 @@ begin
   have hw := walk.mem_support_of_mem_edges _ hwv,
   rw walk.append_support' at hs,
   have : multiset.count w {v} = 0,
-  { simp only [multiset.singleton_eq_singleton, multiset.count_eq_zero, multiset.mem_singleton], 
-    exact ne.symm hne, },
+  { simp only [multiset.singleton_eq_cons, multiset.count_eq_zero, multiset.mem_singleton],
+    simpa using ne.symm hne, },
   rw [multiset.count_sub, this, sub_zero', multiset.count_add] at hs,
   simp_rw [multiset.coe_count] at hs,
   rw [path.support_count_eq_one] at hs,
@@ -1318,7 +1314,7 @@ begin
   push_neg at hr,
   rcases hr with ⟨hrv, hrw⟩,
   specialize hrv hvw,
-  specialize hrw (G.sym hvw),
+  specialize hrw (G.symm hvw),
   let p := (G.tree_path h v root : G.walk v root).append
            (G.tree_path h w root : G.walk w root).reverse,
   specialize h' _ _ (path.singleton hvw) p.to_path,

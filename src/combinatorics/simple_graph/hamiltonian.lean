@@ -24,7 +24,8 @@ variables {V : Type*} {G : simple_graph V}
 
 namespace walk
 
-/-- A walk `p` is *Hamiltonian* if it visits every vertex exactly once and every edge at most once. -/
+/-- A walk `p` is *Hamiltonian* if it visits every vertex exactly once and every edge at most
+once. -/
 def is_hamiltonian [decidable_eq V] {u v : V} (p : G.walk u v) : Prop :=
 p.edges.nodup ∧ ∀ v, p.support.count v = 1
 

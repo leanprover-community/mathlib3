@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.baire
 import analysis.normed_space.operator_norm
+import analysis.normed_space.affine_isometry
 
 /-!
 # Banach open mapping theorem
@@ -34,7 +35,7 @@ structure nonlinear_right_inverse :=
 (bound' : ∀ y, ∥to_fun y∥ ≤ nnnorm * ∥y∥)
 (right_inv' : ∀ y, f (to_fun y) = y)
 
-instance : has_coe_to_fun (nonlinear_right_inverse f) := ⟨_, λ fsymm, fsymm.to_fun⟩
+instance : has_coe_to_fun (nonlinear_right_inverse f) (λ _, F → E) := ⟨λ fsymm, fsymm.to_fun⟩
 
 @[simp] lemma nonlinear_right_inverse.right_inv {f : E →L[𝕜] F} (fsymm : nonlinear_right_inverse f)
   (y : F) : f (fsymm y) = y :=
@@ -239,6 +240,17 @@ begin
   exact set.mem_image_of_mem _ (hε this)
 end
 
+lemma open_mapping_affine {P Q : Type*}
+  [metric_space P] [normed_add_torsor E P] [metric_space Q] [normed_add_torsor F Q]
+  {f : P →ᵃ[𝕜] Q} (hf : continuous f) (surj : surjective f) :
+  is_open_map f :=
+begin
+  rw ← affine_map.is_open_map_linear_iff,
+  exact open_mapping
+    { cont := affine_map.continuous_linear_iff.mpr hf, .. f.linear }
+    (f.surjective_iff_linear_surjective.mpr surj),
+end
+
 /-! ### Applications of the Banach open mapping theorem -/
 
 namespace continuous_linear_map
@@ -352,7 +364,7 @@ lemma range_eq_map_coprod_subtypeL_equiv_of_is_compl
   (f : E →L[𝕜] F) {G : submodule 𝕜 F}
   (h : is_compl f.range G) [complete_space G] (hker : f.ker = ⊥) :
     f.range = ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)).map
-      (coprod_subtypeL_equiv_of_is_compl f h hker) :=
+      (f.coprod_subtypeL_equiv_of_is_compl h hker : E × G →ₗ[𝕜] F) :=
 by rw [coprod_subtypeL_equiv_of_is_compl, _root_.coe_coe, continuous_linear_equiv.coe_of_bijective,
     coe_coprod, linear_map.coprod_map_prod, submodule.map_bot, sup_bot_eq, submodule.map_top,
     range]

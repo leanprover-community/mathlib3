@@ -3,7 +3,7 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.euclidean_absolute_value
+import algebra.order.euclidean_absolute_value
 import data.polynomial.field_division
 
 /-!
@@ -40,7 +40,7 @@ noncomputable def card_pow_degree :
 have card_pos : 0 < fintype.card Fq := fintype.card_pos_iff.mpr infer_instance,
 have pow_pos : ∀ n, 0 < (fintype.card Fq : ℤ) ^ n := λ n, pow_pos (int.coe_nat_pos.mpr card_pos) n,
 { to_fun := λ p, if p = 0 then 0 else fintype.card Fq ^ p.nat_degree,
-  nonneg' := λ p, by { split_ifs, { refl }, exact pow_nonneg (int.coe_zero_le _) _ },
+  nonneg' := λ p, by { dsimp, split_ifs, { refl }, exact pow_nonneg (int.coe_zero_le _) _ },
   eq_zero' := λ p, ite_eq_left_iff.trans $ ⟨λ h, by { contrapose! h, exact ⟨h, (pow_pos _).ne'⟩ },
     absurd⟩,
   add_le' := λ p q, begin

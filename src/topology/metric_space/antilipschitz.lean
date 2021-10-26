@@ -30,6 +30,14 @@ open set
 def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 
+lemma antilipschitz_with.edist_lt_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y < ⊤ :=
+(h x y).trans_lt $ ennreal.mul_lt_top ennreal.coe_ne_top (edist_ne_top _ _)
+
+lemma antilipschitz_with.edist_ne_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y ≠ ⊤ :=
+(h.edist_lt_top x y).ne
+
 section metric
 
 variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : α → β}
@@ -133,7 +141,7 @@ lemma comap_uniformity_le (hf : antilipschitz_with K f) :
   (𝓤 β).comap (prod.map f f) ≤ 𝓤 α :=
 begin
   refine ((uniformity_basis_edist.comap _).le_basis_iff uniformity_basis_edist).2 (λ ε h₀, _),
-  refine ⟨K⁻¹ * ε, ennreal.mul_pos.2 ⟨ennreal.inv_pos.2 ennreal.coe_ne_top, h₀⟩, _⟩,
+  refine ⟨K⁻¹ * ε, ennreal.mul_pos (ennreal.inv_ne_zero.2 ennreal.coe_ne_top) h₀.ne', _⟩,
   refine λ x hx, (hf x.1 x.2).trans_lt _,
   rw [mul_comm, ← div_eq_mul_inv] at hx,
   rw mul_comm,

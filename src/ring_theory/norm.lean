@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.char_poly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
 import ring_theory.power_basis
 
@@ -37,8 +37,8 @@ See also `algebra.trace`, which is defined similarly as the trace of
 
 universes u v w
 
-variables {R S T : Type*} [integral_domain R] [integral_domain S] [integral_domain T]
-variables [algebra R S] [algebra R T]
+variables {R S T : Type*} [comm_ring R] [is_domain R] [comm_ring S]
+variables [algebra R S]
 variables {K L F : Type*} [field K] [field L] [field F]
 variables [algebra K L] [algebra L F] [algebra K F]
 variables {ι : Type w} [fintype ι]
@@ -104,14 +104,14 @@ lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=
 begin
   -- Write the LHS as the 0'th coefficient of `minpoly K pb.gen`
-  rw [norm_eq_matrix_det pb.basis, det_eq_sign_char_poly_coeff, char_poly_left_mul_matrix,
+  rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
       ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
       ← polynomial.coeff_map, fintype.card_fin],
   -- Rewrite `minpoly K pb.gen` as a product over the roots.
   conv_lhs { rw polynomial.eq_prod_roots_of_splits hf },
   rw [polynomial.coeff_C_mul, polynomial.coeff_zero_multiset_prod, multiset.map_map,
       (minpoly.monic pb.is_integral_gen).leading_coeff, ring_hom.map_one, one_mul],
-  -- Incorporate the `-1` from the `char_poly` back into the product.
+  -- Incorporate the `-1` from the `charpoly` back into the product.
   rw [← multiset.prod_repeat (-1 : F), ← pb.nat_degree_minpoly,
       polynomial.nat_degree_eq_card_roots hf, ← multiset.map_const, ← multiset.prod_map_mul],
   -- And conclude that both sides are the same.
@@ -122,7 +122,7 @@ end eq_prod_roots
 
 section eq_zero_iff
 
-lemma norm_eq_zero_iff_of_basis (b : basis ι R S) {x : S} :
+lemma norm_eq_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x = 0 ↔ x = 0 :=
 begin
   have hι : nonempty ι := b.index_nonempty,
@@ -142,7 +142,7 @@ begin
     rw [alg_hom.map_zero, matrix.det_zero hι] },
 end
 
-lemma norm_ne_zero_iff_of_basis (b : basis ι R S) {x : S} :
+lemma norm_ne_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 

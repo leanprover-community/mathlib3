@@ -61,11 +61,7 @@ The first arguments in all definitions and lemmas is the codomain of the functio
 operator. This is necessary for the heuristic in `@[to_additive]`.
 See the documentation of `to_additive.attr` for more information.
 
-## Todo
-
 We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fintype X)`.
-There is work on `fincard` in the pipeline, which returns the cardinality of `X` if it
-is finite, and 0 otherwise.
 
 ## Tags
 
@@ -217,7 +213,7 @@ f.map_finprod_plift g (finite.of_fintype _)
 begin
   by_cases hg : (mul_support $ g ∘ plift.down).finite, { exact f.map_finprod_plift g hg },
   rw [finprod, dif_neg, f.map_one, finprod, dif_neg],
-  exacts [infinite_mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
+  exacts [infinite.mono (λ x hx, mt (hf (g x.down)) hx) hg, hg]
 end
 
 @[to_additive] lemma monoid_hom.map_finprod_of_injective (g : M →* N) (hg : injective g)
@@ -566,6 +562,18 @@ end
   ∏ᶠ i ∈ (insert a s), f i = ∏ᶠ i ∈ s, f i :=
 finprod_mem_insert_of_eq_one_if_not_mem (λ _, h)
 
+/-- If the multiplicative support of `f` is finite, then for every `x` in the domain of `f`,
+`f x` divides `finprod f`.  -/
+lemma finprod_mem_dvd {f : α → N} (a : α) (hf : finite (mul_support f)) :
+  f a ∣ finprod f :=
+begin
+  by_cases ha : a ∈ mul_support f,
+  { rw finprod_eq_prod_of_mul_support_to_finset_subset f hf (set.subset.refl _),
+    exact finset.dvd_prod_of_mem f ((finite.mem_to_finset hf).mpr ha) },
+  { rw nmem_mul_support.mp ha,
+    exact one_dvd (finprod f) }
+end
+
 /-- The product of `f i` over `i ∈ {a, b}`, `a ≠ b`, is equal to `f a * f b`. -/
 @[to_additive] lemma finprod_mem_pair (h : a ≠ b) : ∏ᶠ i ∈ ({a, b} : set α), f i = f a * f b :=
 by { rw [finprod_mem_insert, finprod_mem_singleton], exacts [h, finite_singleton b] }
@@ -678,7 +686,7 @@ of the products of `f a` over `a ∈ t i`. -/
   ∏ᶠ a ∈ ⋃ x ∈ I, t x, f a = ∏ᶠ i ∈ I, ∏ᶠ j ∈ t i, f j :=
 begin
   haveI := hI.fintype,
-  rw [← Union_subtype, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
+  rw [bUnion_eq_Union, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
   exacts [λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
 end
 

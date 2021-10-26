@@ -439,6 +439,8 @@ private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (lengt
 
 local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 
+/-- A recursor for pairs of lists. To have `C l₁ l₂` for all `l₁`, `l₂`, it suffices to have it for
+`l₂ = []` and to be able to pour the elements of `l₁` into `l₂`. -/
 @[elab_as_eliminator] def permutations_aux.rec {C : list α → list α → Sort v}
   (H0 : ∀ is, C [] is)
   (H1 : ∀ t ts is, C ts (t::is) → C is [] → C (t::ts) is) : ∀ l₁ l₂, C l₁ l₂
@@ -925,20 +927,8 @@ corresponding element of `as`.
 to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
 ```
 -/
-def to_rbmap : list α → rbmap ℕ α :=
+def to_rbmap {α : Type*} : list α → rbmap ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
-
-/--
-`to_rb_map as` is the map that associates each index `i` of `as` with the
-corresponding element of `as`.
-
-```
-to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
-```
--/
-meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
-foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
-
 
 /-- Auxliary definition used to define `to_chunks`.
 

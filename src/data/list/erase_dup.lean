@@ -56,6 +56,9 @@ theorem nodup_erase_dup : ∀ l : list α, nodup (erase_dup l) := pairwise_pw_fi
 
 theorem erase_dup_eq_self {l : list α} : erase_dup l = l ↔ nodup l := pw_filter_eq_self
 
+protected lemma nodup.erase_dup {l : list α} (h : l.nodup) : l.erase_dup = l :=
+list.erase_dup_eq_self.2 h
+
 @[simp] theorem erase_dup_idempotent {l : list α} : erase_dup (erase_dup l) = erase_dup l :=
 pw_filter_idempotent
 

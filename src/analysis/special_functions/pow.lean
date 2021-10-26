@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
   Rémy Degenne
 -/
-import analysis.special_functions.trigonometric
+import analysis.special_functions.complex.log
 import analysis.calculus.extend_deriv
+import analysis.special_functions.log_deriv
 
 /-!
 # Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
@@ -56,6 +57,22 @@ by { simp only [cpow_def], split_ifs; simp [*, exp_ne_zero] }
 
 @[simp] lemma zero_cpow {x : ℂ} (h : x ≠ 0) : (0 : ℂ) ^ x = 0 :=
 by simp [cpow_def, *]
+
+lemma zero_cpow_eq_iff {x : ℂ} {a : ℂ} : 0 ^ x = a ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+begin
+  split,
+  { intros hyp,
+    simp [cpow_def] at hyp,
+    by_cases x = 0,
+    { subst h, simp only [if_true, eq_self_iff_true] at hyp, right, exact ⟨rfl, hyp.symm⟩},
+    { rw if_neg h at hyp, left, exact ⟨h, hyp.symm⟩, }, },
+  { rintro (⟨h, rfl⟩|⟨rfl,rfl⟩),
+    { exact zero_cpow h, },
+    { exact cpow_zero _, }, },
+end
+
+lemma eq_zero_cpow_iff {x : ℂ} {a : ℂ} : a = 0 ^ x ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+by rw [←zero_cpow_eq_iff, eq_comm]
 
 @[simp] lemma cpow_one (x : ℂ) : x ^ (1 : ℂ) = x :=
 if hx : x = 0 then by simp [hx, cpow_def]
@@ -404,6 +421,25 @@ by rw rpow_def_of_pos hx; apply exp_pos
 @[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
 by simp [rpow_def, *]
 
+lemma zero_rpow_eq_iff {x : ℝ} {a : ℝ} : 0 ^ x = a ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+begin
+  split,
+  { intros hyp,
+    simp [rpow_def] at hyp,
+    by_cases x = 0,
+    { subst h,
+      simp only [complex.one_re, complex.of_real_zero, complex.cpow_zero] at hyp,
+      exact or.inr ⟨rfl, hyp.symm⟩},
+    { rw complex.zero_cpow (complex.of_real_ne_zero.mpr h) at hyp,
+      exact or.inl ⟨h, hyp.symm⟩, }, },
+  { rintro (⟨h,rfl⟩|⟨rfl,rfl⟩),
+    { exact zero_rpow h, },
+    { exact rpow_zero _, }, },
+end
+
+lemma eq_zero_rpow_iff {x : ℝ} {a : ℝ} : a = 0 ^ x ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+by rw [←zero_rpow_eq_iff, eq_comm]
+
 @[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
@@ -418,7 +454,7 @@ lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
 by rw [rpow_def_of_nonneg hx];
   split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
 
-lemma abs_rpow_le_abs_rpow (x y : ℝ) : abs (x ^ y) ≤ abs (x) ^ y :=
+lemma abs_rpow_le_abs_rpow (x y : ℝ) : |x ^ y| ≤ |x| ^ y :=
 begin
   rcases lt_trichotomy 0 x with (hx|rfl|hx),
   { rw [abs_of_pos hx, abs_of_pos (rpow_pos_of_pos hx _)] },
@@ -428,7 +464,7 @@ begin
     exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
 end
 
-lemma abs_rpow_le_exp_log_mul (x y : ℝ) : abs (x ^ y) ≤ exp (log x * y) :=
+lemma abs_rpow_le_exp_log_mul (x y : ℝ) : |x ^ y| ≤ exp (log x * y) :=
 begin
   refine (abs_rpow_le_abs_rpow x y).trans _,
   by_cases hx : x = 0,
@@ -436,7 +472,7 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : abs (x ^ y) = (abs x) ^ y :=
+lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
 begin
   have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
   rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
@@ -1500,7 +1536,7 @@ lemma rpow_ne_top_of_nonneg {x : ℝ≥0∞} {y : ℝ} (hy0 : 0 ≤ y) (h : x �
 mt (ennreal.rpow_eq_top_of_nonneg x hy0) h
 
 lemma rpow_lt_top_of_nonneg {x : ℝ≥0∞} {y : ℝ} (hy0 : 0 ≤ y) (h : x ≠ ⊤) : x ^ y < ⊤ :=
-ennreal.lt_top_iff_ne_top.mpr (ennreal.rpow_ne_top_of_nonneg hy0 h)
+lt_top_iff_ne_top.mpr (ennreal.rpow_ne_top_of_nonneg hy0 h)
 
 lemma rpow_add {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y + z) = x ^ y * x ^ z :=
 begin

@@ -2,8 +2,6 @@
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
-
-The Special Linear group $SL(n, R)$
 -/
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
@@ -179,9 +177,8 @@ end has_neg
 section coe_fn_instance
 
 /-- This instance is here for convenience, but is not the simp-normal form. -/
-instance : has_coe_to_fun (special_linear_group n R) :=
-{ F   := λ _, n → n → R,
-  coe := λ A, A.val }
+instance : has_coe_to_fun (special_linear_group n R) (λ _, n → n → R) :=
+{ coe := λ A, A.val }
 
 @[simp]
 lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl

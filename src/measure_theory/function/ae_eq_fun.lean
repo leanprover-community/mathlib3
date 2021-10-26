@@ -98,8 +98,8 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 def mk (f : α → β) (hf : ae_measurable f μ) : α →ₘ[μ] β := quotient.mk' ⟨f, hf⟩
 
 /-- A measurable representative of an `ae_eq_fun` [f] -/
-instance : has_coe_to_fun (α →ₘ[μ] β) :=
-⟨_, λf, ae_measurable.mk _ (quotient.out' f : {f : α → β // ae_measurable f μ}).2⟩
+instance : has_coe_to_fun (α →ₘ[μ] β) (λ _, α → β) :=
+⟨λf, ae_measurable.mk _ (quotient.out' f : {f : α → β // ae_measurable f μ}).2⟩
 
 protected lemma measurable (f : α →ₘ[μ] β) : measurable f :=
 ae_measurable.measurable_mk _
@@ -349,7 +349,7 @@ variables [second_countable_topology γ]
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
 
-@[to_additive, simp] lemma mk_div (f g : α → γ) (hf hg) :
+@[simp, to_additive] lemma mk_div (f g : α → γ) (hf hg) :
   mk (f / g) (ae_measurable.div hf hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
 rfl
 

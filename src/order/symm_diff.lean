@@ -105,7 +105,7 @@ begin
     rw [←hca, sdiff_eq_self_iff_disjoint],
     exact hba.of_disjoint_inf_of_le ha },
   { have hd : disjoint a b := by { rw ←h, exact disjoint_sdiff_self_right },
-    rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_of_le ha], },
+    rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_cancel_right ha] }
 end
 
 lemma disjoint.symm_diff_eq_sup {a b : α} (h : disjoint a b) : a Δ b = a ⊔ b :=

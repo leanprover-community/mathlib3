@@ -332,7 +332,6 @@ begin
   { exact finset.sum_congr rfl (λ x hx, set.indicator_of_mem hx _) }
 end
 
-@[simp]
 lemma to_outer_measure_apply_eq_zero_iff (p : pmf α) (s : set α) :
   p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin

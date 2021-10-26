@@ -1442,9 +1442,6 @@ lemma map_congr {m₁ m₂ : α → β} {f : filter α} (h : m₁ =ᶠ[f] m₂) 
 filter.ext' $ λ p,
 by { simp only [eventually_map], exact eventually_congr (h.mono $ λ x hx, hx ▸ iff.rfl) }
 
-lemma _root_.function.surjective.filter_map_top {f : α → β} (hf : surjective f) : map f ⊤ = ⊤ :=
-by { ext, simp only [mem_map, mem_top, eq_univ_iff_forall, mem_preimage, iff.comm, hf.forall] }
-
 end map
 
 section comap
@@ -1692,6 +1689,9 @@ lemma comap_le_comap_iff {f g : filter β} {m : α → β} (hf : range m ∈ f) 
 theorem map_comap_of_surjective {f : α → β} (hf : surjective f) (l : filter β) :
   map f (comap f l) = l :=
 map_comap_of_mem $ by simp only [hf.range_eq, univ_mem]
+
+lemma _root_.function.surjective.filter_map_top {f : α → β} (hf : surjective f) : map f ⊤ = ⊤ :=
+(congr_arg _ comap_top).symm.trans $ map_comap_of_surjective hf ⊤
 
 lemma subtype_coe_map_comap (s : set α) (f : filter α) :
   map (coe : s → α) (comap (coe : s → α) f) = f ⊓ 𝓟 s :=

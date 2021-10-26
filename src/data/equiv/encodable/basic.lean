@@ -161,6 +161,10 @@ def equiv_range_encode (α : Type*) [encodable α] : α ≃ set.range (@encode �
     rw [encode_injective.eq_iff, ← option.some_inj, option.some_get, ← hx, encodek₂],
   end }
 
+/-- A type with unique element is encodable. -/
+@[priority 100] instance _root_.unique.encodable [unique α] : encodable α :=
+⟨λ _, 0, λ _, some (default α), unique.forall_iff.2 rfl⟩
+
 section sum
 variables [encodable α] [encodable β]
 

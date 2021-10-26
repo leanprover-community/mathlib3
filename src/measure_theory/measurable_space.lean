@@ -913,13 +913,13 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       (by { rintro ⟨a|b, c⟩; simp [set.prod_eq] })
       _
       _,
-    { refine (set.prod (range sum.inl) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inl) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inl,
       ext ⟨a, c⟩, refl },
-    { refine (set.prod (range sum.inr) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inr) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inr,
       ext ⟨b, c⟩, refl }

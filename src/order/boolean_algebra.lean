@@ -691,6 +691,9 @@ boolean_algebra.of_core
 instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] : has_sdiff (Π i, α i) :=
 ⟨λ x y i, x i \ y i⟩
 
+lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
+  (x \ y) = λ i, x i \ y i := rfl
+
 @[simp]
 lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
   (x \ y) i = x i \ y i := rfl
@@ -698,8 +701,11 @@ lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)
 instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] : has_compl (Π i, α i) :=
 ⟨λ x i, (x i)ᶜ⟩
 
+lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
+  xᶜ = λ i, (x i)ᶜ := rfl
+
 @[simp]
-lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
+lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι) :
   xᶜ i = (x i)ᶜ := rfl
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :

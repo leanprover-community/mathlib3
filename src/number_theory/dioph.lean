@@ -511,13 +511,13 @@ ext (D&1 D= D&0 D+ D&2 D∨ D&1 D≤ D&2 D∧ D&0 D= D.0) $ (vector_all_iff_fora
 show (y = x + z ∨ y ≤ z ∧ x = 0) ↔ y - z = x, from
 ⟨λo, begin
   rcases o with ae | ⟨yz, x0⟩,
-  { rw [ae, nat.add_sub_cancel] },
-  { rw [x0, nat.sub_eq_zero_of_le yz] }
+  { rw [ae, add_tsub_cancel_right] },
+  { rw [x0, tsub_eq_zero_iff_le.mpr yz] }
 end, λh, begin
   subst x,
   cases le_total y z with yz zy,
-  { exact or.inr ⟨yz, nat.sub_eq_zero_of_le yz⟩ },
-  { exact or.inl (nat.sub_add_cancel zy).symm },
+  { exact or.inr ⟨yz, tsub_eq_zero_iff_le.mpr yz⟩ },
+  { exact or.inl (tsub_add_cancel_of_le zy).symm },
 end⟩
 localized "infix ` D- `:80 := dioph.sub_dioph" in dioph
 

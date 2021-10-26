@@ -54,7 +54,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   expr ``(add_neg_self),
   expr ``(neg_add_self),
   expr ``(neg_neg),
-  expr ``(nat.sub_self),
+  expr ``(tsub_self),
   expr ``(int.coe_nat_add),
   expr ``(int.coe_nat_mul),
   expr ``(int.coe_nat_zero),

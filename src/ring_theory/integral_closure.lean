@@ -696,18 +696,18 @@ begin
     rw [ring_hom.map_mul, mul_assoc],
     congr,
     have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
-    { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
+    { rw [← pow_add a_inv, tsub_add_cancel_of_le (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
     rw [ring_hom.map_pow, this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] },
 
   -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
   -- TODO: we could use a lemma for `polynomial.div_X` here.
-  rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+  rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, tsub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
   rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
   have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),
-  rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
+  rw [mul_assoc, ← pow_succ', tsub_add_cancel_of_le this]
 end
 
 end algebra

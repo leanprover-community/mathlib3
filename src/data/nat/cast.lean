@@ -124,7 +124,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
 
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
   ((n - m : ℕ) : α) = n - m :=
-eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
+eq_sub_of_add_eq $ by rw [← cast_add, tsub_add_cancel_of_le h]
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm

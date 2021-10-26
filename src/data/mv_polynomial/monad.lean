@@ -143,7 +143,7 @@ variable (f : σ → mv_polynomial τ R)
 
 @[simp]
 lemma bind₁_C_right (f : σ → mv_polynomial τ R) (x) : bind₁ f (C x) = C x :=
-by simp [bind₁, C, aeval_monomial, finsupp.prod_zero_index]; refl
+by simp [bind₁, algebra_map_eq]
 
 @[simp]
 lemma bind₂_C_right (f : R →+* mv_polynomial σ S) (r : R) : bind₂ f (C r) = f r :=

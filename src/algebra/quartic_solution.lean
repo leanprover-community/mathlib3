@@ -1,14 +1,38 @@
+/-
+Copyright (c) 2021 Nicholas Dyson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Nicholas Dyson.
+-/
+
 import algebra.invertible
 import tactic.linarith
 import order.filter.at_top_bot
 import algebra.cubic_solution
 
+/-!
+# Quartic solutions
+
+In this file we define and prove the four solutions to a general quartic in a general
+field that is not of characteristic two or three, and uniqueness of these solutions.
+
+## Main results
+
+`quartic_to_linear_product` : Reduction of a general quartic to a product of four linear expressions.
+-/
+
 section field
 variables {F : Type*}
 
+/--
+Substitute x into a quartic expression.
+-/
 def quartic_expression [field F] (x a b c d e : F) : F :=
   ((x * x * x * x * a) + (x * x * x * b) + (x * x * c) + (x * d) + e)
 
+/--
+The proof starts by showing that every cubic can be reduced to a "depressed cubic" (with no x^3 term)
+through a change of variable.  The below formulae are the coefficients of the resulting expression.
+-/
 def depressed_quartic_squ_coefficient [field F] (b c : F) : F :=
   (c - (3 * b * b)/8)
 
@@ -34,6 +58,10 @@ begin
   field_simp, ring,
 end
 
+/--
+We prove the solution by showing that a depressed quartic can be reduced to a product of two quadratic
+expressions.  We can construct some simultaneous equations in the coefficients of the resulting quadratics.
+-/
 lemma factorise_depressed_quartic_simultaneous [field F] (c d e x p q s : F)
   (two_ne_zero : (2 : F) ≠ 0) (p_ne_zero : p ≠ 0) :
   (c + p * p = s + q) ->
@@ -52,6 +80,9 @@ begin
   field_simp, ring,
 end
 
+/--
+We can use the solution to a cubic to find the solution to those simultaneous equations.
+-/
 lemma depressed_quartic_simultaneous_solution [field F] (c d e p q s cubrt sqrt : F)
     (one_ne_zero : (1 : F) ≠ 0) (two_ne_zero : (2 : F) ≠ 0) (three_ne_zero : (3 : F) ≠ 0)
     (p_ne_zero : p ≠ 0) (int_quantity_ne_zero : depressed_cubic_x_term 1 (2 * c) (c * c - 4 * e) ≠ 0) :
@@ -77,6 +108,9 @@ begin
   ring_nf, ring_nf at h_cubic, rw <- neg_inj, rw neg_zero, rw <- h_cubic, ring,
 end
 
+/--
+So these last two lemmas are enough to reduce a depressed quartic to a product of quadratics.
+-/
 lemma depressed_quartic_to_quadratic_product [field F] (x c d e sqrt_p sqrt_cubic cubrt: F)
     (one_ne_zero : (1 : F) ≠ 0) (two_ne_zero : (2 : F) ≠ 0) (three_ne_zero : (3 : F) ≠ 0)
     (sqrt_p_ne_zero : sqrt_p ≠ 0) (int_quantity_ne_zero : depressed_cubic_x_term 1 (2 * c) (c * c - 4 * e) ≠ 0)
@@ -116,12 +150,7 @@ begin
   rw finale, apply cubic_solution, repeat {assumption},
 end
 
-/- In a submission to the standard library, I'd use the work in the existing
-    quadratic_discriminant.lean.  However, I need some things that aren't
-    already in there, and I don't want to mix my work with the existing
-    work in the same file, as that would leave it ambiguous what I'd done
-    when it comes to mark the project.  Hence, I move all the work that
-    I need out to here.-/
+/- The solution to a quadratic is easy...-/
 def quadratic_formula [field F] (b sqrt : F) : F := (sqrt - b) / 2
 def quadratic_discriminant [field F] (b c : F) : F := (b * b) - (4 * c)
 
@@ -162,6 +191,9 @@ begin
   rw zero_mul,
 end
 
+/--
+The solution to a quartic.
+-/
 lemma quartic_solution [field F] (x b c d e sqrt_p sqrt_cubic sqrt_quadratic cubrt: F)
     (one_ne_zero : (1 : F) ≠ 0) (two_ne_zero : (2 : F) ≠ 0) (three_ne_zero : (3 : F) ≠ 0)
     (sqrt_p_ne_zero : sqrt_p ≠ 0) (int_quantity_ne_zero : depressed_cubic_x_term 1 (2 * (depressed_quartic_squ_coefficient b c)) ((depressed_quartic_squ_coefficient b c) * (depressed_quartic_squ_coefficient b c) - 4 * (depressed_quartic_constant b c d e)) ≠ 0) :
@@ -206,6 +238,9 @@ begin
   ring, repeat {assumption},
 end
 
+/--
+The four solutions to a quartic factorise the quartic (thus implicitly proving uniqueness).
+-/
 lemma quartic_to_linear_product [field F] (x b c d e sqrt_p sqrt_cubic sqrt_discrim_a sqrt_discrim_b cubrt: F)
     (one_ne_zero : (1 : F) ≠ 0) (two_ne_zero : (2 : F) ≠ 0) (three_ne_zero : (3 : F) ≠ 0)
     (sqrt_p_ne_zero : sqrt_p ≠ 0) (int_quantity_ne_zero : depressed_cubic_x_term 1 (2 * (depressed_quartic_squ_coefficient b c)) ((depressed_quartic_squ_coefficient b c) * (depressed_quartic_squ_coefficient b c) - 4 * (depressed_quartic_constant b c d e)) ≠ 0)

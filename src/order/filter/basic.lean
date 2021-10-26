@@ -2427,7 +2427,7 @@ end
     (λ ht'e, absurd ht'e (nonempty_of_mem ht').ne_empty)),
   λ h, prod_mem_prod h.1 h.2⟩
 
-lemma filter.mem_prod_top {f : filter α} {s : set (α × β)} :
+lemma mem_prod_top {f : filter α} {s : set (α × β)} :
   s ∈ f ×ᶠ (⊤ : filter β) ↔ {a | ∀ b, (a, b) ∈ s} ∈ f :=
 begin
   rw [← @exists_mem_subset_iff _ f],

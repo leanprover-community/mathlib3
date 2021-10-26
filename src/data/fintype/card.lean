@@ -154,7 +154,7 @@ theorem fin.prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → 
   ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (fin.last n) :=
 by simpa [mul_comm] using fin.prod_univ_succ_above f (fin.last n)
 
-@[to_additive] theorem fin.prod_univ_one [comm_monoid β] (f : fin 1 → β) : 
+@[to_additive] theorem fin.prod_univ_one [comm_monoid β] (f : fin 1 → β) :
   ∏ i, f i = f 0 :=
 by simp
 

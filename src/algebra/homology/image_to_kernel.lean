@@ -253,9 +253,7 @@ def homology.map_iso (α : arrow.mk f₁ ≅ arrow.mk f₂) (β : arrow.mk g₁ 
   homology f₁ g₁ w₁ ≅ homology f₂ g₂ w₂ :=
 { hom := homology.map w₁ w₂ α.hom β.hom p,
   inv := homology.map w₂ w₁ α.inv β.inv
-  (by { haveI : mono α.hom.right := by { refine @is_iso.mono_of_iso _ _ _ _ _ (id _),
-      refine @right_is_iso _ _ _ _ _ _ },
-    rw [← cancel_mono (α.hom.right), ← comma.comp_right, α.inv_hom_id, comma.id_right, p,
+  (by { rw [← cancel_mono (α.hom.right), ← comma.comp_right, α.inv_hom_id, comma.id_right, p,
       ← comma.comp_left, β.inv_hom_id, comma.id_left], refl }),
   hom_inv_id' := by { rw [homology.map_comp], convert homology.map_id _; rw [iso.hom_inv_id] },
   inv_hom_id' := by { rw [homology.map_comp], convert homology.map_id _; rw [iso.inv_hom_id] } }
@@ -269,29 +267,25 @@ variables {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0)
   {f' : A ⟶ B} {g' : B ⟶ C} (w' : f' ≫ g' = 0)
   [has_kernels V] [has_cokernels V] [has_images V] [has_image_maps V]
 
+/-- Custom tactic to golf and speedup boring proofs in `homology.congr`. -/
+private meta def aux_tac : tactic unit :=
+`[ dsimp only [auto_param_eq], erw [category.id_comp, category.comp_id], cases pf, cases pg, refl ]
+
 /--
 `homology f g w ≅ homology f' g' w'` if `f = f'` and `g = g'`.
 (Note the objects are not changing here.)
 -/
 @[simps]
 def homology.congr (pf : f = f') (pg : g = g') : homology f g w ≅ homology f' g' w' :=
-{ hom := homology.map w w' { left := 𝟙 _, right := 𝟙 _, } { left := 𝟙 _, right := 𝟙 _, } rfl,
-  inv := homology.map w' w { left := 𝟙 _, right := 𝟙 _, } { left := 𝟙 _, right := 𝟙 _, } rfl,
+{ hom := homology.map w w' ⟨𝟙 _, 𝟙 _, by aux_tac⟩ ⟨𝟙 _, 𝟙 _, by aux_tac⟩ rfl,
+  inv := homology.map w' w ⟨𝟙 _, 𝟙 _, by aux_tac⟩ ⟨𝟙 _, 𝟙 _, by aux_tac⟩ rfl,
   hom_inv_id' := begin
-    ext,
-    simp_rw [category.comp_id, homology.π_map_assoc, homology.π_map,
-      ←category.assoc, ←kernel_subobject_map_comp],
-    convert category.id_comp _,
-    convert kernel_subobject_map_id,
-    ext; simp,
+    cases pf, cases pg, rw [homology.map_comp, ← homology.map_id],
+    congr' 1; exact category.comp_id _,
   end,
   inv_hom_id' := begin
-    ext,
-    simp_rw [category.comp_id, homology.π_map_assoc, homology.π_map,
-      ←category.assoc, ←kernel_subobject_map_comp],
-    convert category.id_comp _,
-    convert kernel_subobject_map_id,
-    ext; simp,
+    cases pf, cases pg, rw [homology.map_comp, ← homology.map_id],
+    congr' 1; exact category.comp_id _,
   end, }
 
 end

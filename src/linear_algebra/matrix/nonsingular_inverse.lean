@@ -5,6 +5,7 @@ Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
 import algebra.regular.smul
+import data.matrix.notation
 import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
@@ -29,7 +30,7 @@ replace the `i`th row of `A` with the `j`th basis vector; this has the same
 determinant as the minor but more importantly equals Cramer's rule applied
 to `A` and the `j`th basis vector, simplifying the subsequent proofs.
 We prove the adjugate behaves like `det A • A⁻¹`. Finally, we show that dividing
-the adjugate by `det A` (if possible), giving a matrix `nonsing_inv A`, will
+the adjugate by `det A` (if possible), giving a matrix `A⁻¹` (`nonsing_inv`), will
 result in a multiplicative inverse to `A`.
 
 ## References
@@ -120,6 +121,10 @@ begin
   { intros j, rw [matrix.one_eq_pi_single, pi.single_comm] }
 end
 
+lemma cramer_smul (r : α) (A : matrix n n α) :
+  cramer (r • A) = r ^ (fintype.card n - 1) • cramer A :=
+linear_map.ext $ λ b, funext $ λ _, det_update_column_smul' _ _ _ _
+
 @[simp] lemma cramer_subsingleton_apply [subsingleton n] (A : matrix n n α) (b : n → α) (i : n) :
   cramer A b i = b i :=
 by rw [cramer_apply, det_eq_elem_of_subsingleton _ i, update_column_self]
@@ -165,13 +170,13 @@ while the `inv` section is specifically for invertible matrices.
   minor as replacing a column with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
-def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer Aᵀ (λ j, if i = j then 1 else 0)
+def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer Aᵀ (pi.single i 1)
 
 lemma adjugate_def (A : matrix n n α) :
-  adjugate A = λ i, cramer Aᵀ (λ j, if i = j then 1 else 0) := rfl
+  adjugate A = λ i, cramer Aᵀ (pi.single i 1) := rfl
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
-  adjugate A i j = (A.update_row j (λ j, if i = j then 1 else 0)).det :=
+  adjugate A i j = (A.update_row j (pi.single i 1)).det :=
 by { rw adjugate_def, simp only, rw [cramer_apply, update_column_transpose, det_transpose], }
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
@@ -186,20 +191,23 @@ begin
   by_cases i = σ j,
   { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
-    have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
+    subst h,
+    have : σ j' = σ j ↔ j' = j := σ.injective.eq_iff,
     rw [update_row_apply, update_column_apply],
-    finish },
+    simp_rw this,
+    rw [←dite_eq_ite, ←dite_eq_ite],
+    congr' 1 with rfl,
+    rw [pi.single_eq_same, pi.single_eq_same], },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
-    have : (∏ j' : n, update_column A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
+    have : (∏ j' : n, update_column A j (pi.single i 1) (σ j') j') = 0,
     { apply prod_eq_zero (mem_univ j),
-      rw [update_column_self],
-      exact if_neg h },
+      rw [update_column_self, pi.single_eq_of_ne' h], },
     rw this,
     apply prod_eq_zero (mem_univ (σ⁻¹ i)),
     erw [apply_symm_apply σ i, update_row_self],
-    apply if_neg,
+    apply pi.single_eq_of_ne,
     intro h',
-    exact h ((symm_apply_eq σ).mp h'.symm) }
+    exact h ((symm_apply_eq σ).mp h') }
 end
 
 /-- Since the map `b ↦ cramer A b` is linear in `b`, it must be multiplication by some matrix. This
@@ -209,17 +217,16 @@ lemma cramer_eq_adjugate_mul_vec (A : matrix n n α) (b : n → α) :
 begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
-  have : b = ∑ i, (b i) • (λ j, if i = j then 1 else 0), { ext i, simp, },
-  rw this, ext k,
+  have : b = ∑ i, (b i) • (pi.single i 1),
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm], congr, },
+  nth_rewrite 0 this, ext k,
   simp [mul_vec, dot_product, mul_comm],
 end
 
 lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
-  A i k * adjugate A k j = cramer Aᵀ (λ j, if k = j then A i k else 0) j :=
+  A i k * adjugate A k j = cramer Aᵀ (pi.single k (A i k)) j :=
 begin
-  erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
-  congr' with l,
-  rw [pi.smul_apply, smul_eq_mul, mul_boole],
+  erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul, ←pi.single_smul', smul_eq_mul, mul_one],
 end
 
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
@@ -233,6 +240,13 @@ lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
 calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
+
+lemma adjugate_smul (r : α) (A : matrix n n α) :
+  adjugate (r • A) = r ^ (fintype.card n - 1) • adjugate A :=
+begin
+  rw [adjugate, adjugate, transpose_smul, cramer_smul],
+  refl,
+end
 
 /-- `det_adjugate_of_cancel` is an auxiliary lemma for computing `(adjugate A).det`,
   used in `det_adjugate_eq_one` and `det_adjugate_of_is_unit`.
@@ -260,17 +274,17 @@ begin
   exact adjugate_subsingleton _
 end
 
-@[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
+@[simp] lemma adjugate_zero [nontrivial n] : adjugate (0 : matrix n n α) = 0 :=
 begin
   ext i j,
-  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := fintype.exists_ne_of_one_lt_card h j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
   apply det_eq_zero_of_column_eq_zero j',
   intro j'',
   simp [update_column_ne hj'],
 end
 
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
-by { ext, simp [adjugate_def, matrix.one_apply] }
+by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
 lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
 calc (adjugate A).det
@@ -298,15 +312,36 @@ begin
     simp [h, adjugate_eq_one_of_card_eq_one h] },
   have one_lt_card : 1 < fintype.card n := by linarith,
   have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
-    (sub_lt_sub_iff_right' (refl 1)).mpr one_lt_card,
+    (tsub_lt_tsub_iff_right (refl 1)).mpr one_lt_card,
 
   apply det_adjugate_of_cancel,
   intros b hb,
   calc b = a * (det A ^ (fintype.card n - 1 + 1)) :
-       by rw [←one_mul b, ←ha, mul_assoc, hb, nat.sub_add_cancel zero_lt_card]
+       by rw [←one_mul b, ←ha, mul_assoc, hb, tsub_add_cancel_of_le zero_lt_card.nat_succ_le]
      ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
      ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
 end
+
+@[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
+@subsingleton.elim _ matrix.subsingleton_of_empty_left _ _
+
+@[simp] lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
+adjugate_subsingleton A
+
+lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
+  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+begin
+  ext i j,
+  rw [adjugate_apply, det_fin_two],
+  fin_cases i with [0, 1]; fin_cases j with [0, 1];
+  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
+    fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
+    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
+end
+
+@[simp] lemma adjugate_fin_two' (a b c d : α) :
+  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+adjugate_fin_two _
 
 end adjugate
 
@@ -314,7 +349,7 @@ section inv
 /-!
 ### `inv` section
 
-Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
+Defines the matrix `A⁻¹` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.
 -/
 
@@ -325,40 +360,35 @@ open_locale classical
 lemma is_unit_det_transpose (h : is_unit A.det) : is_unit Aᵀ.det :=
 by { rw det_transpose, exact h, }
 
+
 /-- The inverse of a square matrix, when it is invertible (and zero otherwise).-/
-noncomputable def nonsing_inv : matrix n n α :=
-if h : is_unit A.det then h.unit⁻¹ • A.adjugate else 0
+noncomputable instance : has_inv (matrix n n α) := ⟨λ A, ring.inverse A.det • A.adjugate⟩
 
-noncomputable instance : has_inv (matrix n n α) := ⟨matrix.nonsing_inv⟩
-
-lemma inv_def (A : matrix n n α) : A⁻¹ = A.nonsing_inv := rfl
+lemma inv_def (A : matrix n n α) : A⁻¹ = ring.inverse A.det • A.adjugate := rfl
 
 lemma nonsing_inv_apply_not_is_unit (h : ¬ is_unit A.det) :
   A⁻¹ = 0 :=
-by rw [inv_def, nonsing_inv, dif_neg h]
+by rw [inv_def, ring.inverse_non_unit _ h, zero_smul]
 
 lemma nonsing_inv_apply (h : is_unit A.det) :
-  A⁻¹ = h.unit⁻¹ • A.adjugate :=
-by rw [inv_def, nonsing_inv, dif_pos h]
-
-lemma transpose_nonsing_inv (h : is_unit A.det) :
-  (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
+  A⁻¹ = (↑h.unit⁻¹ : α) • A.adjugate :=
 begin
-  have h' := A.is_unit_det_transpose h,
-  have dets_eq : h.unit = h'.unit := units.ext (by rw [h.unit_spec, h'.unit_spec, det_transpose]),
-  rw [A.nonsing_inv_apply h, Aᵀ.nonsing_inv_apply h', dets_eq, A.adjugate_transpose.symm],
+  rw [inv_def, ←ring.inverse_unit h.unit],
   refl,
 end
 
+lemma transpose_nonsing_inv : (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
+by rw [inv_def, inv_def, transpose_smul, det_transpose, adjugate_transpose]
+
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 @[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A⁻¹ = 1 :=
-by rw [A.nonsing_inv_apply h, units.smul_def, mul_smul, mul_adjugate, smul_smul,
+by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul,
        units.inv_mul_of_eq h.unit_spec, one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 @[simp] lemma nonsing_inv_mul (h : is_unit A.det) : A⁻¹ ⬝ A = 1 :=
 calc A⁻¹ ⬝ A = (Aᵀ ⬝ (Aᵀ)⁻¹)ᵀ : by { rw [transpose_mul,
-                                    Aᵀ.transpose_nonsing_inv (A.is_unit_det_transpose h),
+                                    Aᵀ.transpose_nonsing_inv,
                                     transpose_transpose], }
          ... = 1ᵀ             : by { rw Aᵀ.mul_nonsing_inv, exact A.is_unit_det_transpose h, }
          ... = 1              : transpose_one
@@ -593,32 +623,23 @@ begin
   { simp [nonsing_inv_apply_not_is_unit _ h] }
 end
 
-lemma mul_inv_rev (A B : matrix n n α) : (A ⬝ B)⁻¹ = B⁻¹ ⬝ A⁻¹ :=
-begin
-  by_cases h : is_unit (A ⬝ B).det,
-  { refine inv_eq_left_inv _,
-    rw det_mul at h,
-    rw [←matrix.mul_assoc, matrix.mul_assoc _ _ A,
-        nonsing_inv_mul _ (is_unit_of_mul_is_unit_left h),
-        matrix.mul_one, nonsing_inv_mul _ (is_unit_of_mul_is_unit_right h)] },
-  { rw nonsing_inv_apply_not_is_unit _ h,
-    rw det_mul at h,
-    have : ¬ is_unit A.det ∨ ¬ is_unit B.det,
-    { contrapose! h,
-      exact h.left.mul h.right },
-    cases this with h' h';
-    simp [nonsing_inv_apply_not_is_unit _ h'] }
-end
-
-lemma ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
+lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
 begin
   ext i k,
-  have : (λ (j : n), ite (i = j) (1 : S) 0) = f ∘ (λ (j : n), ite (i = j) 1 0),
-  { ext,
-    simp [apply_ite f] },
+  have : pi.single i (1 : S) = f ∘ pi.single i 1,
+  { rw ←f.map_one,
+    exact pi.single_op (λ i, f) (λ i, f.map_zero) i (1 : R) },
   rw [adjugate_apply, ring_hom.map_matrix_apply, map_apply, ring_hom.map_matrix_apply,
       this, ←map_update_row, ←ring_hom.map_matrix_apply, ←ring_hom.map_det, ←adjugate_apply]
+end
+
+lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=
+begin
+  dsimp only [conj_transpose],
+  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) :=
+    ((star_ring_aut : α ≃+* α).to_ring_hom.map_adjugate Aᵀ),
+  rw [A.adjugate_transpose, this],
 end
 
 lemma is_regular_of_is_left_regular_det {A : matrix n n α} (hA : is_left_regular A.det) :
@@ -678,6 +699,13 @@ begin
       ring_hom.map_adjugate, f'_inv, f'_g_mul]
 end
 
+lemma mul_inv_rev (A B : matrix n n α) : (A ⬝ B)⁻¹ = B⁻¹ ⬝ A⁻¹ :=
+begin
+  simp only [inv_def],
+  rw [matrix.smul_mul, matrix.mul_smul, smul_smul, det_mul, adjugate_mul_distrib,
+    ring.mul_inverse_rev],
+end
+
 @[simp] lemma adjugate_pow (A : matrix n n α) (k : ℕ) :
   adjugate (A ^ k) = (adjugate A) ^ k :=
 begin
@@ -692,7 +720,7 @@ end inv
 @[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
   A.det • A⁻¹.mul_vec b = cramer A b :=
 begin
-  rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc, units.smul_def,
+  rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc,
       smul_smul, h.mul_coe_inv, one_smul]
 end
 
@@ -705,7 +733,7 @@ by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_a
 
 section nondegenerate
 
-variables {m R A : Type*} [fintype m] [comm_ring R] [comm_ring A] [integral_domain A]
+variables {m R A : Type*} [fintype m] [comm_ring R]
 
 /-- A matrix `M` is nondegenerate if for all `v ≠ 0`, there is a `w ≠ 0` with `w ⬝ M ⬝ v ≠ 0`. -/
 def nondegenerate (M : matrix m m R) :=
@@ -720,6 +748,8 @@ hM v hv
 lemma nondegenerate.exists_not_ortho_of_ne_zero {M : matrix m m R} (hM : nondegenerate M)
   {v : m → R} (hv : v ≠ 0) : ∃ w, matrix.dot_product v (mul_vec M w) ≠ 0 :=
 not_forall.mp (mt hM.eq_zero_of_ortho hv)
+
+variables [comm_ring A] [is_domain A]
 
 /-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
 

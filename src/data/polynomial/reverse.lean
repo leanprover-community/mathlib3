@@ -34,7 +34,7 @@ lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
 begin
   unfold rev_at_fun,
   split_ifs with h j,
-  { exact nat.sub_sub_self h, },
+  { exact tsub_tsub_cancel_of_le h, },
   { exfalso,
     apply j,
     exact nat.sub_le N i, },
@@ -71,7 +71,7 @@ begin
   rcases nat.le.dest ho with ⟨o', rfl⟩,
   repeat { rw rev_at_le (le_add_right rfl.le) },
   rw [add_assoc, add_left_comm n' o, ← add_assoc, rev_at_le (le_add_right rfl.le)],
-  repeat {rw nat.add_sub_cancel_left},
+  repeat {rw add_tsub_cancel_left},
 end
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
@@ -183,7 +183,7 @@ lemma coeff_reverse (f : polynomial R) (n : ℕ) :
 by rw [reverse, coeff_reflect]
 
 @[simp] lemma coeff_zero_reverse (f : polynomial R) : coeff (reverse f) 0 = leading_coeff f :=
-by rw [coeff_reverse, rev_at_le (zero_le f.nat_degree), nat.sub_zero, leading_coeff]
+by rw [coeff_reverse, rev_at_le (zero_le f.nat_degree), tsub_zero, leading_coeff]
 
 @[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
 
@@ -205,11 +205,11 @@ begin
   by_cases hf : f = 0,
   { rw [hf, reverse_zero, nat_degree_zero, nat_trailing_degree_zero] },
   apply le_antisymm,
-  { refine sub_le_iff_right.mp _,
+  { refine tsub_le_iff_right.mp _,
     apply le_nat_degree_of_ne_zero,
     rw [reverse, coeff_reflect, ←rev_at_le f.nat_trailing_degree_le_nat_degree, rev_at_invol],
     exact trailing_coeff_nonzero_iff_nonzero.mpr hf },
-  { rw ← le_sub_iff_left f.reverse_nat_degree_le,
+  { rw ← le_tsub_iff_left f.reverse_nat_degree_le,
     apply nat_trailing_degree_le_of_ne_zero,
     have key := mt leading_coeff_eq_zero.mp (mt reverse_eq_zero.mp hf),
     rwa [leading_coeff, coeff_reverse, rev_at_le f.reverse_nat_degree_le] at key },
@@ -217,7 +217,7 @@ end
 
 lemma reverse_nat_degree (f : polynomial R) :
   f.reverse.nat_degree = f.nat_degree - f.nat_trailing_degree :=
-by rw [f.nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree, nat.add_sub_cancel]
+by rw [f.nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree, add_tsub_cancel_right]
 
 lemma reverse_leading_coeff (f : polynomial R) : f.reverse.leading_coeff = f.trailing_coeff :=
 by rw [leading_coeff, reverse_nat_degree, ←rev_at_le f.nat_trailing_degree_le_nat_degree,
@@ -243,7 +243,7 @@ begin
   rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
 end
 
-@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [domain R] (f g : polynomial R) :
+@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [is_domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
@@ -253,7 +253,7 @@ begin
   simp [reverse_mul, *],
 end
 
-lemma trailing_coeff_mul {R : Type*} [comm_ring R] [integral_domain R] (p q : polynomial R) :
+lemma trailing_coeff_mul {R : Type*} [ring R] [is_domain R] (p q : polynomial R) :
   (p * q).trailing_coeff = p.trailing_coeff * q.trailing_coeff :=
 by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
   reverse_leading_coeff, reverse_leading_coeff]

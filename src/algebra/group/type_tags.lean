@@ -293,9 +293,9 @@ then `additive α` should also coerce to the same function.
 This allows `additive` to be used on bundled function types with a multiplicative structure, which
 is often used for composition, without affecting the behavior of the function itself.
 -/
-instance additive.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
-  has_coe_to_fun (additive α) :=
-⟨λ a, has_coe_to_fun.F a.to_mul, λ a, coe_fn a.to_mul⟩
+instance additive.has_coe_to_fun {α : Type*} {β : α → Sort*} [has_coe_to_fun α β] :
+  has_coe_to_fun (additive α) (λ a, β a.to_mul) :=
+⟨λ a, coe_fn a.to_mul⟩
 
 /-- If `α` has some additive structure and coerces to a function,
 then `multiplicative α` should also coerce to the same function.
@@ -303,6 +303,6 @@ then `multiplicative α` should also coerce to the same function.
 This allows `multiplicative` to be used on bundled function types with an additive structure, which
 is often used for composition, without affecting the behavior of the function itself.
 -/
-instance multiplicative.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
-  has_coe_to_fun (multiplicative α) :=
-⟨λ a, has_coe_to_fun.F a.to_add, λ a, coe_fn a.to_add⟩
+instance multiplicative.has_coe_to_fun {α : Type*} {β : α → Sort*} [has_coe_to_fun α β] :
+  has_coe_to_fun (multiplicative α) (λ a, β a.to_add) :=
+⟨λ a, coe_fn a.to_add⟩

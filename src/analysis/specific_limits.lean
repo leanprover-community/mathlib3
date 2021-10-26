@@ -65,8 +65,8 @@ sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
 
 lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
   tendsto (λn:ℕ, m ^ n) at_top at_top :=
-nat.sub_add_cancel (le_of_lt h) ▸
-  tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
+tsub_add_cancel_of_le (le_of_lt h) ▸
+  tendsto_add_one_pow_at_top_at_top_of_pos (tsub_pos_of_lt h)
 
 lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
@@ -400,8 +400,8 @@ begin
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
     norm_cast at *,
     convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
-    rw [ennreal.coe_inv $ ne_of_gt $ sub_pos_iff_lt.2 hr] },
-  { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
+    rw [ennreal.coe_inv $ ne_of_gt $ tsub_pos_iff_lt.2 hr] },
+  { rw [tsub_eq_zero_iff_le.mpr hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
     calc (n:ℝ≥0∞) = ∑ i in range n, 1     : by rw [sum_const, nsmul_one, card_range]
@@ -515,7 +515,7 @@ begin
   refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
   rw [ennreal.tsum_mul_left, ennreal.tsum_geometric],
   refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
-  exact (ennreal.sub_pos.2 hr).ne'
+  exact (tsub_pos_iff_lt.2 hr).ne'
 end
 
 omit hr hC

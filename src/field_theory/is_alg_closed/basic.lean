@@ -120,7 +120,7 @@ lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : 
   p.degree = 1 :=
 degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _)
 
-lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [domain K]
+lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
   function.surjective (algebra_map k K) :=
 begin
@@ -135,11 +135,11 @@ begin
 end
 
 lemma algebra_map_surjective_of_is_integral'
-  {k K : Type*} [field k] [comm_ring K] [integral_domain K]
+  {k K : Type*} [field k] [comm_ring K] [is_domain K]
   [hk : is_alg_closed k] (f : k →+* K) (hf : f.is_integral) : function.surjective f :=
 @algebra_map_surjective_of_is_integral k K _ _ _ _ f.to_algebra hf
 
-lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [domain K]
+lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
 algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
@@ -166,7 +166,7 @@ lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [fie
   {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
   ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
 begin
-  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian I f,
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) f,
   have nu : ¬ is_unit (aeval f p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
   rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p),
     ←multiset.prod_to_list, alg_hom.map_list_prod] at nu,

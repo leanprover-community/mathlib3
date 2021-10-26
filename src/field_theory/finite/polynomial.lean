@@ -61,7 +61,7 @@ lemma eval_indicator_apply_eq_one (a : σ → K) :
   eval a (indicator a) = 1 :=
 have 0 < fintype.card K - 1,
 begin
-  rw [← finite_field.card_units, fintype.card_pos_iff],
+  rw [← fintype.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
 by { simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
@@ -163,7 +163,7 @@ calc module.rank K (R σ K) =
   ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
     refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
-    refine forall_congr (assume n, le_sub_iff_right _),
+    refine forall_congr (assume n, le_tsub_iff_right _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
   ... = #(σ → {n // n < fintype.card K}) :
@@ -175,7 +175,7 @@ calc module.rank K (R σ K) =
   ... = fintype.card (σ → K) : cardinal.fintype_card _
 
 instance : finite_dimensional K (R σ K) :=
-is_noetherian.iff_dim_lt_omega.mpr
+is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.mpr
   (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
 
 lemma finrank_R : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=

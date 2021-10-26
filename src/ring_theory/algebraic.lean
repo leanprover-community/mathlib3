@@ -17,7 +17,7 @@ The main result in this file proves transitivity of algebraicity:
 a tower of algebraic field extensions is algebraic.
 -/
 
-universe variables u v
+universes u v
 
 open_locale classical
 open polynomial
@@ -141,11 +141,11 @@ variables {R S K L}
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
 λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
-  (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
+  (is_noetherian.iff_fg.2 infer_instance) x algebra.mem_top)
 
 end algebra
 
-variables {R S : Type*} [comm_ring R] [integral_domain R] [comm_ring S]
+variables {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S]
 
 lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
   (inj : ∀ x, algebra_map R S x = 0 → x = 0) :

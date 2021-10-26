@@ -253,7 +253,7 @@ begin
 end
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=
-is_noetherian.iff_dim_lt_omega.2 $
+is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
 lemma finrank_le_card : finrank (fixed_points.subfield G F) F ≤ fintype.card G :=
@@ -265,8 +265,8 @@ end
 end fixed_points
 
 lemma linear_independent_to_linear_map (R : Type u) (A : Type v) (B : Type w)
-  [comm_semiring R] [comm_ring A] [algebra R A]
-  [comm_ring B] [integral_domain B] [algebra R B] :
+  [comm_semiring R] [ring A] [algebra R A]
+  [comm_ring B] [is_domain B] [algebra R B] :
   linear_independent B (alg_hom.to_linear_map : (A →ₐ[R] B) → (A →ₗ[R] B)) :=
 have linear_independent B (linear_map.lto_fun R A B ∘ alg_hom.to_linear_map),
 from ((linear_independent_monoid_hom A B).comp

@@ -28,7 +28,7 @@ section trace
 
 universes u v w
 
-variables {m : Type*} (n : Type*)
+variables {m : Type*} (n : Type*) {p : Type*}
 variables (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [module R M]
 
 /--
@@ -48,6 +48,9 @@ variables {n} {R} {M}
 
 @[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
 
+@[simp] lemma diag_col_mul_row (a b : n → R) : diag n R R (col a ⬝ row b) = a * b :=
+by { ext, simp [matrix.mul_apply] }
+
 variables (n) (R) (M)
 
 /--
@@ -58,7 +61,7 @@ def trace [fintype n] : (matrix n n M) →ₗ[R] M :=
   map_add'  := by { intros, apply finset.sum_add_distrib, },
   map_smul' := by { intros, simp [finset.smul_sum], } }
 
-variables {n} {R} {M} [fintype n] [fintype m]
+variables {n} {R} {M} [fintype n] [fintype m] [fintype p]
 
 @[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl
 
@@ -75,8 +78,39 @@ by simp_rw [h, diag_one, finset.sum_const, nsmul_one]; refl
   trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm
 
 lemma trace_mul_comm {S : Type v} [comm_semiring S] (A : matrix m n S) (B : matrix n m S) :
-  trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
+  trace m S S (A ⬝ B) = trace n S S (B ⬝ A) :=
 by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
+
+lemma trace_mul_cycle {S : Type v} [comm_semiring S]
+  (A : matrix m n S) (B : matrix n p S) (C : matrix p m S) :
+  trace _ S S (A ⬝ B ⬝ C) = trace p S S (C ⬝ A ⬝ B) :=
+by rw [trace_mul_comm, matrix.mul_assoc]
+
+lemma trace_mul_cycle' {S : Type v} [comm_semiring S]
+  (A : matrix m n S) (B : matrix n p S) (C : matrix p m S) :
+  trace _ S S (A ⬝ (B ⬝ C)) = trace p S S (C ⬝ (A ⬝ B)) :=
+by rw [←matrix.mul_assoc, trace_mul_comm]
+
+@[simp] lemma trace_col_mul_row (a b : n → R) : trace n R R (col a ⬝ row b) = dot_product a b :=
+by simp [dot_product]
+
+/-! ### Special cases for `fin n`
+
+While `simp [fin.sum_univ_succ]` can prove these, we include them for convenience and consistency
+with `matrix.det_fin_two` etc.
+-/
+
+@[simp] lemma trace_fin_zero (A : matrix (fin 0) (fin 0) R) : trace _ R R A = 0 :=
+rfl
+
+lemma trace_fin_one (A : matrix (fin 1) (fin 1) R) : trace _ R R A = A 0 0 :=
+add_zero _
+
+lemma trace_fin_two (A : matrix (fin 2) (fin 2) R) : trace _ R R A = A 0 0 + A 1 1 :=
+congr_arg ((+) _) (add_zero (A 1 1))
+
+lemma trace_fin_three (A : matrix (fin 3) (fin 3) R) : trace _ R R A = A 0 0 + A 1 1 + A 2 2 :=
+by { rw [← add_zero (A 2 2), add_assoc], refl }
 
 end trace
 

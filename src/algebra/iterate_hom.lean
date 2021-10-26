@@ -62,8 +62,8 @@ commute.iterate_left f.map_inv n x
 theorem iterate_map_pow (f : M →* M) (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 commute.iterate_left (λ x, f.map_pow x m) n a
 
-theorem iterate_map_gpow (f : G →* G) (a) (n : ℕ) (m : ℤ) : f^[n] (a^m) = (f^[n] a)^m :=
-commute.iterate_left (λ x, f.map_gpow x m) n a
+theorem iterate_map_zpow (f : G →* G) (a) (n : ℕ) (m : ℤ) : f^[n] (a^m) = (f^[n] a)^m :=
+commute.iterate_left (λ x, f.map_zpow x m) n a
 
 lemma coe_pow {M} [comm_monoid M] (f : monoid.End M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 hom_coe_pow _ rfl (λ f g, rfl) _ _
@@ -85,7 +85,7 @@ f.to_multiplicative.iterate_map_pow x n m
 
 theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
   f^[n] (m • x) = m • (f^[n] x) :=
-f.to_multiplicative.iterate_map_gpow x n m
+f.to_multiplicative.iterate_map_zpow x n m
 
 end add_monoid_hom
 

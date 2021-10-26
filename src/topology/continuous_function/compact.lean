@@ -110,7 +110,7 @@ by simp only [← dist_mk_of_compact, dist_lt_iff_of_compact C0, mk_of_compact_a
 end
 
 instance [complete_space β] : complete_space (C(α, β)) :=
-(isometric_bounded_of_compact α β).complete_space infer_instance
+(isometric_bounded_of_compact α β).complete_space
 
 @[continuity] lemma continuous_eval : continuous (λ p : C(α, β) × α, p.1 p.2) :=
 continuous_eval.comp ((isometric_bounded_of_compact α β).continuous.prod_map continuous_id)

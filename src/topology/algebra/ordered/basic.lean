@@ -2210,6 +2210,11 @@ lemma nhds_within_Ioi_self_ne_bot [no_top_order α] (a : α) :
   ne_bot (𝓝[Ioi a] a) :=
 nhds_within_Ioi_ne_bot (le_refl a)
 
+lemma filter.eventually.exists_gt [no_top_order α] {a : α} {p : α → Prop} (h : ∀ᶠ x in 𝓝 a, p x) :
+  ∃ b > a, p b :=
+by simpa only [exists_prop, gt_iff_lt, and_comm]
+  using ((h.filter_mono (@nhds_within_le_nhds _ _ a (Ioi a))).and self_mem_nhds_within).exists
+
 lemma nhds_within_Iio_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : b ≤ c) :
   ne_bot (𝓝[Iio c] b) :=
 mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Iio' H₁], exact H₂ }
@@ -2226,6 +2231,10 @@ nhds_within_Iio_ne_bot' H (le_refl b)
 lemma nhds_within_Iio_self_ne_bot [no_bot_order α] (a : α) :
   ne_bot (𝓝[Iio a] a) :=
 nhds_within_Iio_ne_bot (le_refl a)
+
+lemma filter.eventually.exists_lt [no_bot_order α] {a : α} {p : α → Prop} (h : ∀ᶠ x in 𝓝 a, p x) :
+  ∃ b < a, p b :=
+@filter.eventually.exists_gt (order_dual α) _ _ _ _ _ _ _ h
 
 lemma right_nhds_within_Ico_ne_bot {a b : α} (H : a < b) : ne_bot (𝓝[Ico a b] b) :=
 (is_lub_Ico H).nhds_within_ne_bot (nonempty_Ico.2 H)

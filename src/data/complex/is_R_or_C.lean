@@ -612,7 +612,7 @@ library_note "is_R_or_C instance"
 
 /-- An `is_R_or_C` field is finite-dimensional over `ℝ`, since it is spanned by `{1, I}`. -/
 @[nolint dangerous_instance] instance is_R_or_C_to_real : finite_dimensional ℝ K :=
-is_noetherian.iff_fg.mpr ⟨⟨{1, I},
+⟨⟨{1, I},
   begin
     rw eq_top_iff,
     intros a _,

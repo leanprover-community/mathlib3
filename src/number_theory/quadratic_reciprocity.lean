@@ -341,7 +341,7 @@ begin
     simp only [mem_union, mem_filter, mem_Ico, mem_product]; tauto),
   rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product],
-  simp only [card_Ico, nat.sub_zero, succ_sub_succ_eq_sub]
+  simp only [card_Ico, tsub_zero, succ_sub_succ_eq_sub]
 end
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]

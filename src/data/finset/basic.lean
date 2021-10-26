@@ -1630,7 +1630,7 @@ lemma mem_range_le {n x : ℕ} (hx : x ∈ range n) : x ≤ n :=
 (mem_range.1 hx).le
 
 lemma mem_range_sub_ne_zero {n x : ℕ} (hx : x ∈ range n) : n - x ≠ 0 :=
-ne_of_gt $ nat.sub_pos_of_lt $ mem_range.1 hx
+ne_of_gt $ tsub_pos_of_lt $ mem_range.1 hx
 
 @[simp] lemma nonempty_range_iff : (range n).nonempty ↔ n ≠ 0 :=
 ⟨λ ⟨k, hk⟩, ((zero_le k).trans_lt $ mem_range.1 hk).ne',
@@ -1671,10 +1671,10 @@ def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
   begin
     assume j,
     rw subtype.ext_iff_val,
-    apply nat.sub_add_cancel,
+    apply tsub_add_cancel_of_le,
     simpa using j.2
   end,
-  right_inv := λ j, nat.add_sub_cancel _ _ }
+  right_inv := λ j, add_tsub_cancel_right _ _ }
 
 @[simp] lemma coe_not_mem_range_equiv (k : ℕ) :
   (not_mem_range_equiv k : {n // n ∉ range k} → ℕ) = (λ i, i - k) := rfl
@@ -2921,7 +2921,7 @@ by rw [← card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empt
 
 theorem card_sdiff {s t : finset α} (h : s ⊆ t) : card (t \ s) = card t - card s :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_subset h at this,
-by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
+by rw [card_disjoint_union sdiff_disjoint, add_tsub_cancel_right]
 
 lemma card_sdiff_add_card {s t : finset α} : (s \ t).card + t.card = (s ∪ t).card :=
 by rw [← card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]
@@ -2994,7 +2994,7 @@ begin
   { exact ⟨A, h₂, subset.refl _, h.symm⟩ },
   { have : (A \ B).nonempty,
     { rw [← card_pos, card_sdiff h₂, ← h, nat.add_right_comm,
-          nat.add_sub_cancel, nat.add_succ],
+          add_tsub_cancel_right, nat.add_succ],
       apply nat.succ_pos },
     rcases this with ⟨a, ha⟩,
     have z : i + card B + k = card (erase A a),

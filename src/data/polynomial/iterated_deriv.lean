@@ -153,7 +153,7 @@ begin
   ... = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * ↑(m + 1) :
     by push_cast
   ... = f.coeff (m + k.succ) * (∏ i in range k.succ, ↑(m + k.succ - i)) :
-    by rw [prod_range_succ, nat.add_sub_assoc k.le_succ, succ_sub le_rfl, nat.sub_self, mul_assoc]
+    by rw [prod_range_succ, add_tsub_assoc_of_le k.le_succ, succ_sub le_rfl, tsub_self, mul_assoc]
 end
 
 lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=
@@ -198,7 +198,7 @@ begin
     by simp_rw [choose_succ_succ, succ_sub_succ, cast_add, C.map_add, add_mul, sum_add_distrib]
   ... = ∑ (k : ℕ) in range n.succ.succ,
           C ↑(n.succ.choose k) * p.iterated_deriv (n.succ - k) * q.iterated_deriv k :
-    by rw [sum_range_succ' _ n.succ, choose_zero_right, nat.sub_zero],
+    by rw [sum_range_succ' _ n.succ, choose_zero_right, tsub_zero],
 
   congr,
   refine (sum_range_succ' _ _).trans (congr_arg2 (+) _ _),
@@ -206,8 +206,8 @@ begin
     refine sum_congr rfl (λ k hk, _),
     rw mem_range at hk,
     congr,
-    rw [← nat.sub_add_comm (nat.succ_le_of_lt hk), nat.succ_sub_succ] },
-  { rw [choose_zero_right, nat.sub_zero] },
+    rw [tsub_add_eq_add_tsub (nat.succ_le_of_lt hk), nat.succ_sub_succ] },
+  { rw [choose_zero_right, tsub_zero] },
 end
 
 end comm_semiring

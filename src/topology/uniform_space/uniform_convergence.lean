@@ -113,7 +113,7 @@ calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
 ... ↔ map j (map ↿F (p ×ᶠ ⊤)) ≤ 𝓤 β : map_le_iff_le_comap.symm
 ... ↔ map (j ∘ ↿F) (p ×ᶠ ⊤) ≤ 𝓤 β : by rw map_map
 ... ↔ ∀ V ∈ 𝓤 β, {x | (c, ↿F x) ∈ V} ∈ p ×ᶠ (⊤ : filter α) : iff.rfl
-... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [filter.mem_prod_top]
+... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [mem_prod_top]
 
 lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
   {x : α} {U : set α} (hU : U ∈ 𝓝 x)

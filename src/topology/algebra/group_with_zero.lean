@@ -172,8 +172,7 @@ However, under appropriate conditions, `h x (f x / g x)` is still continuous.
 The condition is that if `g a = 0` then `h x y` must tend to `h a 0` when `x` tends to `a`,
 with no information about `y`. This is represented by the `⊤` filter.
 Note: `filter.tendsto_prod_top_iff` characterizes this convergence in uniform spaces. -/
-lemma continuous_at.comp_div_cases {a : α}
-  {f g : α → G₀} (h : α → G₀ → β)
+lemma continuous_at.comp_div_cases {f g : α → G₀} (h : α → G₀ → β)
   (hf : continuous_at f a) (hg : continuous_at g a)
   (hh : g a ≠ 0 → continuous_at ↿h (a, f a / g a))
   (h2h : g a = 0 → tendsto ↿h (𝓝 a ×ᶠ ⊤) (𝓝 (h a 0))) :
@@ -185,6 +184,16 @@ begin
     exact (h2h hga).comp (continuous_at_id.prod_mk tendsto_top) },
   { exact continuous_at.comp (hh hga) (continuous_at_id.prod (hf.div hg hga)) }
 end
+
+/-- `h x (f x / g x)` is continuous under certain conditions, even if the denominator is sometimes
+  `0`. See docstring of `continuous_at.comp_div_cases`. -/
+lemma continuous.comp_div_cases {f g : α → G₀} (h : α → G₀ → β)
+  (hf : continuous f) (hg : continuous g)
+  (hh : ∀ a, g a ≠ 0 → continuous_at ↿h (a, f a / g a))
+  (h2h : ∀ a, g a = 0 → tendsto ↿h (𝓝 a ×ᶠ ⊤) (𝓝 (h a 0))) :
+  continuous (λ x, h x (f x / g x)) :=
+continuous_iff_continuous_at.mpr $
+  λ a, hf.continuous_at.comp_div_cases _ hg.continuous_at (hh a) (h2h a)
 
 end div
 

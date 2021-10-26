@@ -3,7 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import linear_algebra.free_module.strong_rank_condition
+
 import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
@@ -55,26 +55,7 @@ section ring
 variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
 variables {ι : Type*} (b : basis ι R M)
 
-open submodule.is_principal
-
-lemma eq_bot_of_rank_eq_zero [no_zero_divisors R] (b : basis ι R M) (N : submodule R M)
-  (rank_eq : ∀ {m : ℕ} (v : fin m → N),
-    linear_independent R (coe ∘ v : fin m → M) → m = 0) :
-  N = ⊥ :=
-begin
-  rw submodule.eq_bot_iff,
-  intros x hx,
-  contrapose! rank_eq with x_ne,
-  refine ⟨1, λ _, ⟨x, hx⟩, _, one_ne_zero⟩,
-  rw fintype.linear_independent_iff,
-  rintros g sum_eq i,
-  fin_cases i,
-  simp only [function.const_apply, fin.default_eq_zero, submodule.coe_mk, univ_unique,
-             function.comp_const, finset.sum_singleton] at sum_eq,
-  exact (b.smul_eq_zero.mp sum_eq).resolve_right x_ne
-end
-
-open submodule
+open submodule.is_principal submodule
 
 lemma eq_bot_of_generator_maximal_map_eq_zero (b : basis ι R M) {N : submodule R M}
   {ϕ : M →ₗ[R] R} (hϕ : ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ)
@@ -87,38 +68,6 @@ begin
   rw [linear_equiv.map_zero, finsupp.zero_apply],
   exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ ⟨x, hx, rfl⟩
 end
-
-/-- `(ϕ : O →ₗ M').submodule_image N` is `ϕ(N)` as a submodule of `M'` -/
-def linear_map.submodule_image {M' : Type*} [add_comm_group M'] [module R M']
-  {O : submodule R M} (ϕ : O →ₗ[R] M') (N : submodule R M) : submodule R M' :=
-(N.comap O.subtype).map ϕ
-
-@[simp] lemma linear_map.mem_submodule_image {M' : Type*} [add_comm_group M'] [module R M']
-  {O : submodule R M} {ϕ : O →ₗ[R] M'} {N : submodule R M} {x : M'} :
-  x ∈ ϕ.submodule_image N ↔ ∃ y (yO : y ∈ O) (yN : y ∈ N), ϕ ⟨y, yO⟩ = x :=
-begin
-  refine submodule.mem_map.trans ⟨_, _⟩; simp_rw submodule.mem_comap,
-  { rintro ⟨⟨y, yO⟩, (yN : y ∈ N), h⟩,
-    exact ⟨y, yO, yN, h⟩ },
-  { rintro ⟨y, yO, yN, h⟩,
-    exact ⟨⟨y, yO⟩, yN, h⟩ }
-end
-
-lemma linear_map.mem_submodule_image_of_le {M' : Type*} [add_comm_group M'] [module R M']
-  {O : submodule R M} {ϕ : O →ₗ[R] M'} {N : submodule R M} (hNO : N ≤ O) {x : M'} :
-  x ∈ ϕ.submodule_image N ↔ ∃ y (yN : y ∈ N), ϕ ⟨y, hNO yN⟩ = x :=
-begin
-  refine linear_map.mem_submodule_image.trans ⟨_, _⟩,
-  { rintro ⟨y, yO, yN, h⟩,
-    exact ⟨y, yN, h⟩ },
-  { rintro ⟨y, yN, h⟩,
-    exact ⟨y, hNO yN, yN, h⟩ }
-end
-
-lemma linear_map.submodule_image_apply_of_le {M' : Type*} [add_comm_group M'] [module R M']
-  {O : submodule R M} (ϕ : O →ₗ[R] M') (N : submodule R M) (hNO : N ≤ O) :
-  ϕ.submodule_image N = (ϕ.comp (of_le hNO)).range :=
-by rw [linear_map.submodule_image, linear_map.range_comp, range_of_le]
 
 lemma eq_bot_of_generator_maximal_submodule_image_eq_zero {N O : submodule R M} (b : basis ι R O)
   (hNO : N ≤ O)
@@ -138,130 +87,10 @@ end
 
 end ring
 
-section comm_ring
-
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
-variables {ι : Type*} (b : basis ι R M)
-
-open submodule.is_principal
-
--- Note that the converse may not hold if `ϕ` is not injective.
-lemma generator_map_dvd_of_mem {N : submodule R M}
-  (ϕ : M →ₗ[R] R) [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
-  generator (N.map ϕ) ∣ ϕ x :=
-by { rw [← mem_iff_generator_dvd, submodule.mem_map], exact ⟨x, hx, rfl⟩ }
-
--- Note that the converse may not hold if `ϕ` is not injective.
-lemma generator_submodule_image_dvd_of_mem {N O : submodule R M} (hNO : N ≤ O)
-  (ϕ : O →ₗ[R] R) [(ϕ.submodule_image N).is_principal] {x : M} (hx : x ∈ N) :
-  generator (ϕ.submodule_image N) ∣ ϕ ⟨x, hNO hx⟩ :=
-by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], exact ⟨x, hx, rfl⟩ }
-
-end comm_ring
-
-section is_domain
-
-variables {ι : Type*} {R : Type*} [ring R] [is_domain R]
-variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
-
-lemma not_mem_of_ortho {x : M} {N : submodule R M}
-  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
-  x ∉ N :=
-by { intro hx, simpa using ortho (-1) x hx }
-
-lemma ne_zero_of_ortho {x : M} {N : submodule R M}
-  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
-  x ≠ 0 :=
-mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
-
-/-- If `N` is a submodule with finite rank, do induction on adjoining a linear independent
-element to a submodule. -/
-def submodule.induction_on_rank_aux (b : basis ι R M) (P : submodule R M → Sort*)
-  (ih : ∀ (N : submodule R M),
-    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
-  (n : ℕ) (N : submodule R M)
-  (rank_le : ∀ {m : ℕ} (v : fin m → N),
-    linear_independent R (coe ∘ v : fin m → M) → m ≤ n) :
-  P N :=
-begin
-  haveI : decidable_eq M := classical.dec_eq M,
-  have Pbot : P ⊥,
-  { apply ih,
-    intros N N_le x x_mem x_ortho,
-    exfalso,
-    simpa using x_ortho 1 0 N.zero_mem },
-
-  induction n with n rank_ih generalizing N,
-  { suffices : N = ⊥,
-    { rwa this },
-    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, nat.le_zero_iff.mp (rank_le v hv)) },
-  apply ih,
-  intros N' N'_le x x_mem x_ortho,
-  apply rank_ih,
-  intros m v hli,
-  refine nat.succ_le_succ_iff.mp (rank_le (fin.cons ⟨x, x_mem⟩ (λ i, ⟨v i, N'_le (v i).2⟩)) _),
-  convert hli.fin_cons' x _ _,
-  { ext i, refine fin.cases _ _ i; simp },
-  { intros c y hcy,
-    refine x_ortho c y (submodule.span_le.mpr _ y.2) hcy,
-    rintros _ ⟨z, rfl⟩,
-    exact (v z).2 }
-end
-
-/-- In an `n`-dimensional space, the rank is at most `m`. -/
-lemma basis.card_le_card_of_linear_independent_aux
-  {R : Type*} [comm_ring R] [is_domain R]
-  (n : ℕ) {m : ℕ} (v : fin m → fin n → R) :
-  linear_independent R v → m ≤ n :=
-λ h, by simpa using (linear_independent_le_basis (pi.basis_fun R (fin n)) v h)
-
-lemma basis.card_le_card_of_linear_independent
-  {R : Type*} [comm_ring R] [is_domain R] [module R M]
-  {ι : Type*} [fintype ι] (b : basis ι R M)
-  {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
-  fintype.card ι' ≤ fintype.card ι :=
-begin
-  haveI := classical.dec_eq ι,
-  haveI := classical.dec_eq ι',
-  let e := fintype.equiv_fin ι,
-  let e' := fintype.equiv_fin ι',
-  let b := b.reindex e,
-  have hv := (linear_independent_equiv e'.symm).mpr hv,
-  have hv := hv.map' _ b.equiv_fun.ker,
-  exact basis.card_le_card_of_linear_independent_aux (fintype.card ι) _ hv,
-end
-
-lemma basis.card_le_card_of_submodule
-  {R : Type*} [comm_ring R] [is_domain R] [module R M] (N : submodule R M)
-  {ι : Type*} [fintype ι] (b : basis ι R M)
-  {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
-  fintype.card ι' ≤ fintype.card ι :=
-b.card_le_card_of_linear_independent (b'.linear_independent.map' N.subtype N.ker_subtype)
-
-lemma basis.card_le_card_of_le
-  {R : Type*} [comm_ring R] [is_domain R] [module R M] {N O : submodule R M} (hNO : N ≤ O)
-  {ι : Type*} [fintype ι] (b : basis ι R O)
-  {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
-  fintype.card ι' ≤ fintype.card ι :=
-b.card_le_card_of_linear_independent
-  (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
-
-end is_domain
-
 section is_domain
 
 variables {ι : Type*} {R : Type*} [comm_ring R] [is_domain R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
-
-/-- If `N` is a submodule in a free, finitely generated module,
-do induction on adjoining a linear independent element to a submodule. -/
-def submodule.induction_on_rank [fintype ι] (b : basis ι R M) (P : submodule R M → Sort*)
-  (ih : ∀ (N : submodule R M),
-    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') →
-    P N)
-  (N : submodule R M) : P N :=
-submodule.induction_on_rank_aux b P ih (fintype.card ι) N (λ s hs hli,
-  by simpa using b.card_le_card_of_linear_independent hli)
 
 open submodule.is_principal set submodule
 
@@ -271,28 +100,6 @@ begin
   conv_rhs { rw [← span_singleton_generator I] },
   erw [ideal.span_singleton_eq_span_singleton, ← dvd_dvd_iff_associated, ← mem_iff_generator_dvd],
   exact ⟨λ h, ⟨hx, h⟩, λ h, h.2⟩
-end
-
-/-- If `S` a finite-dimensional ring extension of `R` which is free as an `R`-module,
-then the rank of an ideal `I` of `S` over `R` is the same as the rank of `S`.
--/
-lemma ideal.rank_eq {S : Type*} [ring S] [is_domain S] [algebra R S]
-  {n m : Type*} [fintype n] [fintype m]
-  (b : basis n R S) {I : ideal S} (hI : I ≠ ⊥) (c : basis m R I) :
-  fintype.card m = fintype.card n :=
-begin
-  obtain ⟨a, ha⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr hI),
-  have : linear_independent R (λ i, b i • a),
-  { have hb := b.linear_independent,
-    rw fintype.linear_independent_iff at ⊢ hb,
-    intros g hg,
-    apply hb g,
-    simp only [← smul_assoc, ← finset.sum_smul, smul_eq_zero] at hg,
-    exact hg.resolve_right ha },
-  exact le_antisymm
-    (b.card_le_card_of_linear_independent (c.linear_independent.map' (submodule.subtype I)
-      (linear_map.ker_eq_bot.mpr subtype.coe_injective)))
-    (c.card_le_card_of_linear_independent this),
 end
 
 end is_domain

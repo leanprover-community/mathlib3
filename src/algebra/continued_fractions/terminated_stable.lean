@@ -40,8 +40,8 @@ begin
       have stable_step : g.continuants_aux (m - 1 + 2) = g.continuants_aux (m - 1 + 1), from
         continuants_aux_stable_step_of_terminated this,
       have one_le_m : 1 ≤ m, from nat.one_le_of_lt succ_n_le_m,
-      have : m - 1 + 2 = m + 2 - 1, from (nat.sub_add_comm one_le_m).symm,
-      have : m - 1 + 1 = m + 1 - 1, from (nat.sub_add_comm one_le_m).symm,
+      have : m - 1 + 2 = m + 2 - 1, from tsub_add_eq_add_tsub one_le_m,
+      have : m - 1 + 1 = m + 1 - 1, from tsub_add_eq_add_tsub one_le_m,
       simpa [*] using stable_step },
     exact (eq.trans this IH) }
 end

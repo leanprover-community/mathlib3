@@ -1306,14 +1306,14 @@ begin
     rwa ← ae_measurable_map_equiv_iff }
 end
 
-lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
+@[simp] lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac' hfm
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
-lemma integral_dirac [measurable_space α] [measurable_singleton_class α] (f : α → E) (a : α) :
-  ∫ x, f x ∂(measure.dirac a) = f a :=
+@[simp] lemma integral_dirac [measurable_space α] [measurable_singleton_class α]
+  (f : α → E) (a : α) : ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]

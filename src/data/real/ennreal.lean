@@ -737,22 +737,6 @@ by simp
 lemma sub_top : a - ∞ = 0 :=
 by simp
 
--- todo: make this a `@[simp]` lemma in general
-@[simp] lemma sub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
-tsub_eq_zero_iff_le.mpr h
-
--- todo: make `add_tsub_cancel_of_le` a `@[simp]` lemma
-@[simp] protected lemma add_sub_cancel_of_le (h : b ≤ a) : b + (a - b) = a :=
-add_tsub_cancel_of_le h
-
--- todo: make `tsub_eq_zero_iff_le` a `@[simp]` lemma
-@[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
-tsub_eq_zero_iff_le
-
--- todo: make `tsub_pos_iff_lt` a `@[simp]` lemma
-@[simp] protected lemma sub_pos : 0 < a - b ↔ b < a :=
-tsub_pos_iff_lt
-
 lemma sub_eq_top_iff : a - b = ∞ ↔ a = ∞ ∧ b ≠ ∞ :=
 by { cases a; cases b; simp [← with_top.coe_sub] }
 
@@ -803,7 +787,7 @@ lemma sub_mul (h : 0 < b → b < a → c ≠ ∞) : (a - b) * c = a * c - b * c 
 begin
   cases le_or_lt a b with hab hab, { simp [hab, mul_right_mono hab] },
   rcases eq_or_lt_of_le (zero_le b) with rfl|hb, { simp },
-  exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).sub_mul
+  exact (cancel_of_ne $ mul_ne_top hab.ne_top (h hb hab)).tsub_mul
 end
 
 lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) : a * (b - c) = a * b - a * c :=

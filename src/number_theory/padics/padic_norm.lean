@@ -469,7 +469,7 @@ begin
       cc },
   { rw [←h, padic_val_nat.div],
     { have: 1 ≤ padic_val_nat p n := one_le_padic_val_nat_of_dvd (by linarith) p_dvd_n,
-      exact (nat.sub_eq_iff_eq_add this).mp rfl, },
+      exact (tsub_eq_iff_eq_add_of_le this).mp rfl, },
     { exact p_dvd_n, }, },
   { suffices : p.coprime q,
     { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },

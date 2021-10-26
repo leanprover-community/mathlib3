@@ -31,131 +31,144 @@ open bounded_continuous_function
 
 namespace continuous_map
 
-variables (α β μ : Type*) [topological_space α] [compact_space α] [normed_group β] [metric_space μ]
+variables {α β E : Type*} [topological_space α] [compact_space α] [metric_space β] [normed_group E]
+
+section
+
+variables (α β)
 
 /--
-When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
-equivalent to `C(α, 𝕜)`.
+When `α` is compact, the bounded continuous maps `α →ᵇ β` are
+equivalent to `C(α, β)`.
 -/
-@[simps]
-def equiv_bounded_of_compact : C(α, μ) ≃ (α →ᵇ μ) :=
-⟨mk_of_compact, forget_boundedness α μ, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+@[simps { fully_applied := ff }]
+def equiv_bounded_of_compact : C(α, β) ≃ (α →ᵇ β) :=
+⟨mk_of_compact, forget_boundedness α β, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
 
 /--
 When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
 additively equivalent to `C(α, 𝕜)`.
 -/
-@[simps]
-def add_equiv_bounded_of_compact : C(α, β) ≃+ (α →ᵇ β) :=
-({ ..forget_boundedness_add_hom α β,
-  ..(equiv_bounded_of_compact α β).symm, } : (α →ᵇ β) ≃+ C(α, β)).symm
+@[simps apply symm_apply { fully_applied := ff }]
+def add_equiv_bounded_of_compact [add_monoid β] [has_lipschitz_add β] :
+  C(α, β) ≃+ (α →ᵇ β) :=
+({ .. forget_boundedness_add_hom α β,
+   .. (equiv_bounded_of_compact α β).symm, } : (α →ᵇ β) ≃+ C(α, β)).symm
 
--- It would be nice if `@[simps]` produced this directly,
--- instead of the unhelpful `add_equiv_bounded_of_compact_apply_to_continuous_map`.
-@[simp]
-lemma add_equiv_bounded_of_compact_apply_apply (f : C(α, β)) (a : α) :
-  add_equiv_bounded_of_compact α β f a = f a :=
-rfl
-
-@[simp]
-lemma add_equiv_bounded_of_compact_to_equiv :
-  (add_equiv_bounded_of_compact α β).to_equiv = equiv_bounded_of_compact α β :=
-rfl
-
-instance : metric_space C(α,μ) :=
+instance : metric_space C(α, β) :=
 metric_space.induced
-  (equiv_bounded_of_compact α μ)
-  (equiv_bounded_of_compact α μ).injective
+  (equiv_bounded_of_compact α β)
+  (equiv_bounded_of_compact α β).injective
   (by apply_instance)
-
-section
-variables {α β} (f g : C(α, β)) {C : ℝ}
-
-/-- The distance between two functions is controlled by the supremum of the pointwise distances -/
-lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
-@bounded_continuous_function.dist_le  _ _ _ _
-  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ C0
-
-lemma dist_le_iff_of_nonempty [nonempty α] :
-  dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
-@bounded_continuous_function.dist_le_iff_of_nonempty  _ _ _ _
-  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _
-
-lemma dist_lt_of_nonempty [nonempty α]
-  (w : ∀x:α, dist (f x) (g x) < C) : dist f g < C :=
-@bounded_continuous_function.dist_lt_of_nonempty_compact  _ _ _ _
-  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ _ w
-
-lemma dist_lt_iff (C0 : (0 : ℝ) < C) :
-  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
-@bounded_continuous_function.dist_lt_iff_of_compact  _ _ _ _
-  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ C0
-
-lemma dist_lt_iff_of_nonempty [nonempty α] :
-  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
-@bounded_continuous_function.dist_lt_iff_of_nonempty_compact  _ _ _ _
-  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ _
-
-end
-
-variables (α β)
 
 /--
 When `α` is compact, and `β` is a metric space, the bounded continuous maps `α →ᵇ β` are
 isometric to `C(α, β)`.
 -/
-@[simps]
+@[simps to_equiv apply symm_apply { fully_applied := ff }]
 def isometric_bounded_of_compact :
-  C(α, μ) ≃ᵢ (α →ᵇ μ) :=
+  C(α, β) ≃ᵢ (α →ᵇ β) :=
 { isometry_to_fun := λ x y, rfl,
-  to_equiv := equiv_bounded_of_compact α μ }
+  to_equiv := equiv_bounded_of_compact α β }
+
+end
+
+@[simp] lemma _root_.bounded_continuous_function.dist_mk_of_compact (f g : C(α, β)) :
+  dist (mk_of_compact f) (mk_of_compact g) = dist f g := rfl
+
+@[simp] lemma _root_.bounded_continuous_function.dist_forget_boundedness (f g : α →ᵇ β) :
+  dist (f.forget_boundedness _ _) (g.forget_boundedness _ _) = dist f g := rfl
+
+open bounded_continuous_function
+
+section
+variables {α β} {f g : C(α, β)} {C : ℝ}
+
+/-- The pointwise distance is controlled by the distance between functions, by definition. -/
+lemma dist_apply_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
+by simp only [← dist_mk_of_compact, dist_coe_le_dist, ← mk_of_compact_apply]
+
+/-- The distance between two functions is controlled by the supremum of the pointwise distances -/
+lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
+by simp only [← dist_mk_of_compact, dist_le C0, mk_of_compact_apply]
+
+lemma dist_le_iff_of_nonempty [nonempty α] :
+  dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
+by simp only [← dist_mk_of_compact, dist_le_iff_of_nonempty, mk_of_compact_apply]
+
+lemma dist_lt_iff_of_nonempty [nonempty α] :
+  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
+by simp only [← dist_mk_of_compact, dist_lt_iff_of_nonempty_compact, mk_of_compact_apply]
+
+lemma dist_lt_of_nonempty [nonempty α] (w : ∀x:α, dist (f x) (g x) < C) : dist f g < C :=
+(dist_lt_iff_of_nonempty).2 w
+
+lemma dist_lt_iff (C0 : (0 : ℝ) < C) :
+  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
+by simp only [← dist_mk_of_compact, dist_lt_iff_of_compact C0, mk_of_compact_apply]
+
+end
+
+instance [complete_space β] : complete_space (C(α, β)) :=
+(isometric_bounded_of_compact α β).complete_space
+
+@[continuity] lemma continuous_eval : continuous (λ p : C(α, β) × α, p.1 p.2) :=
+continuous_eval.comp ((isometric_bounded_of_compact α β).continuous.prod_map continuous_id)
+
+@[continuity] lemma continuous_evalx (x : α) : continuous (λ f : C(α, β), f x) :=
+continuous_eval.comp (continuous_id.prod_mk continuous_const)
+
+lemma continuous_coe : @continuous (C(α, β)) (α → β) _ _ coe_fn :=
+continuous_pi continuous_evalx
 
 -- TODO at some point we will need lemmas characterising this norm!
--- At the moment the only way to reason about it is to transfer `f : C(α,β)` back to `α →ᵇ β`.
-instance : has_norm C(α,β) :=
+-- At the moment the only way to reason about it is to transfer `f : C(α,E)` back to `α →ᵇ E`.
+instance : has_norm C(α, E) :=
 { norm := λ x, dist x 0 }
 
-instance : normed_group C(α,β) :=
+@[simp] lemma _root_.bounded_continuous_function.norm_mk_of_compact (f : C(α, E)) :
+  ∥mk_of_compact f∥ = ∥f∥ := rfl
+
+@[simp] lemma _root_.bounded_continuous_function.norm_forget_boundedness_eq (f : α →ᵇ E) :
+  ∥forget_boundedness α E f∥ = ∥f∥ :=
+rfl
+
+open bounded_continuous_function
+
+instance : normed_group C(α, E) :=
 { dist_eq := λ x y,
   begin
-    change dist x y = dist (x-y) 0,
-     -- it would be nice if `equiv_rw` could rewrite in multiple places at once
-    equiv_rw (equiv_bounded_of_compact α β) at x,
-    equiv_rw (equiv_bounded_of_compact α β) at y,
-    have p : dist x y = dist (x-y) 0, { rw dist_eq_norm, rw dist_zero_right, },
-    convert p,
-    exact ((add_equiv_bounded_of_compact α β).symm.map_sub _ _).symm,
+    rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm],
+    congr' 1,
+    exact ((add_equiv_bounded_of_compact α E).map_sub _ _).symm
   end, }
 
 section
-variables {α β} (f : C(α, β))
+variables (f : C(α, E))
 -- The corresponding lemmas for `bounded_continuous_function` are stated with `{f}`,
 -- and so can not be used in dot notation.
 
 lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ :=
-((equiv_bounded_of_compact α β) f).norm_coe_le_norm x
+(mk_of_compact f).norm_coe_le_norm x
 
 /-- Distance between the images of any two points is at most twice the norm of the function. -/
 lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
-((equiv_bounded_of_compact α β) f).dist_le_two_norm x y
+(mk_of_compact f).dist_le_two_norm x y
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le {C : ℝ} (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
 @bounded_continuous_function.norm_le _ _ _ _
-  ((equiv_bounded_of_compact α β) f) _ C0
+  (mk_of_compact f) _ C0
 
 lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
-@bounded_continuous_function.norm_le_of_nonempty _ _ _ _ _
-  ((equiv_bounded_of_compact α β) f) _
+@bounded_continuous_function.norm_le_of_nonempty _ _ _ _ _ (mk_of_compact f) _
 
 lemma norm_lt_iff {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
-@bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _
-  ((equiv_bounded_of_compact α β) f) _ M0
+@bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _ (mk_of_compact f) _ M0
 
 lemma norm_lt_iff_of_nonempty [nonempty α] {M : ℝ} :
   ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
-@bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _
-  ((equiv_bounded_of_compact α β) f) _
+@bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _ (mk_of_compact f) _
 
 lemma apply_le_norm (f : C(α, ℝ)) (x : α) : f x ≤ ∥f∥ :=
 le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
@@ -163,16 +176,8 @@ le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
 lemma neg_norm_le_apply (f : C(α, ℝ)) (x : α) : -∥f∥ ≤ f x :=
 le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
-@[simp] lemma _root_.bounded_continuous_function.norm_forget_boundedness_eq (f : α →ᵇ β) :
-  ∥forget_boundedness α β f∥ = ∥f∥ :=
-rfl
-
 lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
-begin
-  equiv_rw equiv_bounded_of_compact α β at f,
-  rw [equiv_bounded_of_compact_symm_apply, forget_boundedness_coe, f.norm_forget_boundedness_eq,
-    f.norm_eq_supr_norm],
-end
+(mk_of_compact f).norm_eq_supr_norm
 
 end
 
@@ -180,27 +185,19 @@ section
 variables {R : Type*} [normed_ring R]
 
 instance : normed_ring C(α,R) :=
-{ norm_mul := λ f g,
-  begin
-    equiv_rw (equiv_bounded_of_compact α R) at f,
-    equiv_rw (equiv_bounded_of_compact α R) at g,
-    exact norm_mul_le f g,
-  end,
+{ norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
   ..(infer_instance : normed_group C(α,R)) }
 
 end
 
 section
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
-instance : normed_space 𝕜 C(α,β) :=
-{ norm_smul_le := λ c f,
-  begin
-    equiv_rw (equiv_bounded_of_compact α β) at f,
-    exact le_of_eq (norm_smul c f),
-  end }
+instance : normed_space 𝕜 C(α,E) :=
+{ norm_smul_le := λ c f, le_of_eq (norm_smul c (mk_of_compact f)) }
 
-variables (α 𝕜)
+section
+variables (α 𝕜 E)
 
 /--
 When `α` is compact and `𝕜` is a normed field,
@@ -208,38 +205,39 @@ the `𝕜`-algebra of bounded continuous maps `α →ᵇ β` is
 `𝕜`-linearly isometric to `C(α, β)`.
 -/
 def linear_isometry_bounded_of_compact :
-  C(α, β) ≃ₗᵢ[𝕜] (α →ᵇ β) :=
+  C(α, E) ≃ₗᵢ[𝕜] (α →ᵇ E) :=
 { map_smul' := λ c f, by { ext, simp, },
   norm_map' := λ f, rfl,
-  ..add_equiv_bounded_of_compact α β }
+  .. add_equiv_bounded_of_compact α E }
+
+end
 
 -- this lemma and the next are the analogues of those autogenerated by `@[simps]` for
 -- `equiv_bounded_of_compact`, `add_equiv_bounded_of_compact`
-@[simp] lemma linear_isometry_bounded_of_compact_symm_apply (f : α →ᵇ β) :
-  (linear_isometry_bounded_of_compact α β 𝕜).symm f = f.forget_boundedness α β :=
+@[simp] lemma linear_isometry_bounded_of_compact_symm_apply (f : α →ᵇ E) :
+  (linear_isometry_bounded_of_compact α E 𝕜).symm f = f.forget_boundedness α E :=
 rfl
 
-@[simp] lemma linear_isometry_bounded_of_compact_apply_apply (f : C(α, β)) (a : α) :
-  ((linear_isometry_bounded_of_compact α β 𝕜) f) a = f a :=
+@[simp] lemma linear_isometry_bounded_of_compact_apply_apply (f : C(α, E)) (a : α) :
+  (linear_isometry_bounded_of_compact α E 𝕜 f) a = f a :=
 rfl
 
 
 @[simp]
 lemma linear_isometry_bounded_of_compact_to_isometric :
-  (linear_isometry_bounded_of_compact α β 𝕜).to_isometric =
-    isometric_bounded_of_compact α β :=
+  (linear_isometry_bounded_of_compact α E 𝕜).to_isometric = (isometric_bounded_of_compact α E) :=
 rfl
 
 @[simp]
 lemma linear_isometry_bounded_of_compact_to_add_equiv :
-  (linear_isometry_bounded_of_compact α β 𝕜).to_linear_equiv.to_add_equiv =
-    add_equiv_bounded_of_compact α β :=
+  (linear_isometry_bounded_of_compact α E 𝕜).to_linear_equiv.to_add_equiv =
+    (add_equiv_bounded_of_compact α E) :=
 rfl
 
 @[simp]
 lemma linear_isometry_bounded_of_compact_of_compact_to_equiv :
-  (linear_isometry_bounded_of_compact α β 𝕜).to_linear_equiv.to_equiv =
-    equiv_bounded_of_compact α β :=
+  (linear_isometry_bounded_of_compact α E 𝕜).to_linear_equiv.to_equiv =
+    (equiv_bounded_of_compact α E) :=
 rfl
 
 end
@@ -280,12 +278,12 @@ def modulus (f : C(α, β)) (ε : ℝ) (h : 0 < ε) : ℝ :=
 classical.some (uniform_continuity f ε h)
 
 lemma modulus_pos (f : C(α, β)) {ε : ℝ} {h : 0 < ε} : 0 < f.modulus ε h :=
-classical.some (classical.some_spec (uniform_continuity f ε h))
+(classical.some_spec (uniform_continuity f ε h)).fst
 
 lemma dist_lt_of_dist_lt_modulus
   (f : C(α, β)) (ε : ℝ) (h : 0 < ε) {a b : α} (w : dist a b < f.modulus ε h) :
   dist (f a) (f b) < ε :=
-classical.some_spec (classical.some_spec (uniform_continuity f ε h)) w
+(classical.some_spec (uniform_continuity f ε h)).snd w
 
 end uniform_continuity
 
@@ -312,7 +310,7 @@ protected def continuous_linear_map.comp_left_continuous_compact (g : β →L[�
 
 @[simp] lemma continuous_linear_map.to_linear_comp_left_continuous_compact (g : β →L[𝕜] γ) :
   (g.comp_left_continuous_compact X : C(X, β) →ₗ[𝕜] C(X, γ)) = g.comp_left_continuous 𝕜 X :=
-by { ext f, simp [continuous_linear_map.comp_left_continuous_compact] }
+by { ext f, refl }
 
 @[simp] lemma continuous_linear_map.comp_left_continuous_compact_apply (g : β →L[𝕜] γ)
   (f : C(X, β)) (x : X) :
@@ -346,7 +344,7 @@ def comp_right_continuous_map {X Y : Type*} (T : Type*)
     refine metric.continuous_iff.mpr _,
     intros g ε ε_pos,
     refine ⟨ε, ε_pos, λ g' h, _⟩,
-    rw continuous_map.dist_lt_iff _ _ ε_pos at h ⊢,
+    rw continuous_map.dist_lt_iff ε_pos at h ⊢,
     { exact λ x, h (f x), },
   end }
 

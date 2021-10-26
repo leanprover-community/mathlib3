@@ -166,7 +166,7 @@ begin
   all_goals
   { rcases x with ⟨x, hx⟩, rw [mem_nth_roots k.pos] at hx,
     simp only [subtype.coe_mk, ← pow_succ, ← pow_succ', hx,
-      nat.sub_add_cancel (show 1 ≤ (k : ℕ), from k.one_le)] },
+      tsub_add_cancel_of_le (show 1 ≤ (k : ℕ), from k.one_le)] },
   { show (_ : units R) ^ (k : ℕ) = 1,
     simp only [units.ext_iff, hx, units.coe_mk, units.coe_one, subtype.coe_mk, units.coe_pow] }
 end
@@ -269,7 +269,7 @@ by { rintro ⟨i, rfl⟩, simp only [pow_mul, h.pow_eq_one, one_pow, pnat.mul_co
 lemma is_unit (h : is_primitive_root ζ k) (h0 : 0 < k) : is_unit ζ :=
 begin
   apply is_unit_of_mul_eq_one ζ (ζ ^ (k - 1)),
-  rw [← pow_succ, nat.sub_add_cancel h0, h.pow_eq_one]
+  rw [← pow_succ, tsub_add_cancel_of_le h0.nat_succ_le, h.pow_eq_one]
 end
 
 lemma pow_ne_one_of_pos_of_lt (h0 : 0 < l) (hl : l < k) : ζ ^ l ≠ 1 :=
@@ -280,11 +280,11 @@ lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j 
 begin
   wlog hij : i ≤ j,
   apply le_antisymm hij,
-  rw ← nat.sub_eq_zero_iff_le,
+  rw ← tsub_eq_zero_iff_le,
   apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt tsub_le_self hj),
   apply h.dvd_of_pow_eq_one,
   rw [← ((h.is_unit (lt_of_le_of_lt (nat.zero_le _) hi)).pow i).mul_left_inj,
-      ← pow_add, nat.sub_add_cancel hij, H, one_mul]
+      ← pow_add, tsub_add_cancel_of_le hij, H, one_mul]
 end
 
 lemma one : is_primitive_root (1 : M) 1 :=

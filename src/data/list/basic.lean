@@ -1176,7 +1176,8 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
 | (a :: l) _ (n+1) h₁ h₂ :=
   begin
     dsimp,
-    conv { to_rhs, congr, skip, rw [←nat.sub_sub, nat.sub.right_comm, nat.add_sub_cancel], },
+    conv { to_rhs, congr, skip,
+      rw [tsub_add_eq_tsub_tsub, tsub_right_comm, add_tsub_cancel_right], },
     rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
   end
 
@@ -1269,7 +1270,7 @@ theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
     have aux := nth_le_reverse_aux2 l (a :: r) i,
     have heq := calc length (a :: l) - 1 - (i + 1)
           = length l - (1 + i) : by rw add_comm; refl
-      ... = length l - 1 - i   : by rw nat.sub_sub,
+      ... = length l - 1 - i   : by rw ← tsub_add_eq_tsub_tsub,
     rw [← heq] at aux,
     apply aux
   end
@@ -1309,12 +1310,12 @@ lemma modify_nth_tail_modify_nth_tail_le
     l.modify_nth_tail (λl, (f l).modify_nth_tail g (m - n)) n :=
 begin
   rcases le_iff_exists_add.1 h with ⟨m, rfl⟩,
-  rw [nat.add_sub_cancel_left, add_comm, modify_nth_tail_modify_nth_tail]
+  rw [add_tsub_cancel_left, add_comm, modify_nth_tail_modify_nth_tail]
 end
 
 lemma modify_nth_tail_modify_nth_tail_same {f g : list α → list α} (n : ℕ) (l:list α) :
   (l.modify_nth_tail f n).modify_nth_tail g n = l.modify_nth_tail (g ∘ f) n :=
-by rw [modify_nth_tail_modify_nth_tail_le n n l (le_refl n), nat.sub_self]; refl
+by rw [modify_nth_tail_modify_nth_tail_le n n l (le_refl n), tsub_self]; refl
 
 lemma modify_nth_tail_id :
   ∀n (l:list α), l.modify_nth_tail id n = l
@@ -1716,8 +1717,8 @@ theorem take_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
 by rw ← h; apply take_left
 
 theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) l
-| n         0        l      := by rw [nat.min_zero, take_zero, take_nil]
-| 0         m        l      := by rw [nat.zero_min, take_zero, take_zero]
+| n         0        l      := by rw [min_zero, take_zero, take_nil]
+| 0         m        l      := by rw [zero_min, take_zero, take_zero]
 | (succ n)  (succ m) nil    := by simp only [take_nil]
 | (succ n)  (succ m) (a::l) := by simp only [take, min_succ_succ, take_take n m l]; split; refl
 
@@ -1809,7 +1810,7 @@ by simp [init_eq_take, min_eq_left_of_lt h, take_take, pred_le]
 
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
-by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
+by simpa [←length_eq_zero] using tsub_eq_zero_iff_le.mpr h
 
 lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
   l.drop k = [] ↔ l.length ≤ k :=
@@ -1980,14 +1981,14 @@ lemma reverse_take {α} {xs : list α} (n : ℕ)
   xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
 begin
   induction xs generalizing n;
-    simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
+    simp only [reverse_cons, drop, reverse_nil, zero_tsub, length, take_nil],
   cases h.lt_or_eq_dec with h' h',
   { replace h' := le_of_succ_le_succ h',
     rwa [take_append_of_le_length, xs_ih _ h'],
     rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n), from _, drop],
-    { rwa [succ_eq_add_one, nat.sub_add_comm] },
+    { rwa [succ_eq_add_one, ← tsub_add_eq_add_tsub] },
     { rwa length_reverse } },
-  { subst h', rw [length, nat.sub_self, drop],
+  { subst h', rw [length, tsub_self, drop],
     suffices : xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length,
       by rw [this, take_length, reverse_cons],
     rw [length_append, length_reverse], refl }
@@ -2401,6 +2402,10 @@ theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list.prod]
   ... = l₁.prod * l₂.prod : foldl_assoc
 
+@[to_additive]
+theorem prod_concat : (l.concat a).prod = l.prod * a :=
+by rw [concat_eq_append, prod_append, prod_cons, prod_nil, mul_one]
+
 @[simp, to_additive]
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
@@ -2483,6 +2488,18 @@ lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
 | (x::xs) 0     a := by simp [update_nth]
 | (x::xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
 | []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
+
+open opposite
+
+lemma _root_.opposite.op_list_prod : ∀ (l : list α), op (l.prod) = (l.map op).reverse.prod
+| [] := rfl
+| (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, op_mul,
+                      _root_.opposite.op_list_prod]
+
+lemma _root_.opposite.unop_list_prod : ∀ (l : list αᵒᵖ), (l.prod).unop = (l.map unop).reverse.prod
+| [] := rfl
+| (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, unop_mul,
+                      _root_.opposite.unop_list_prod]
 
 end monoid
 
@@ -2707,7 +2724,7 @@ lemma head_le_sum (L : list ℕ) : L.head ≤ L.sum :=
 nat.le.intro (head_add_tail_sum L)
 
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
-by rw [← head_add_tail_sum L, add_comm, nat.add_sub_cancel]
+by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 
 section
 variables {G : Type*} [comm_group G]
@@ -3735,7 +3752,7 @@ theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ d
 
 theorem suffix_iff_eq_append {l₁ l₂ : list α} :
   l₁ <:+ l₂ ↔ take (length l₂ - length l₁) l₂ ++ l₁ = l₂ :=
-⟨by rintros ⟨r, rfl⟩; simp only [length_append, nat.add_sub_cancel, take_left], λ e, ⟨_, e⟩⟩
+⟨by rintros ⟨r, rfl⟩; simp only [length_append, add_tsub_cancel_right, take_left], λ e, ⟨_, e⟩⟩
 
 theorem prefix_iff_eq_take {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ = take (length l₁) l₂ :=
 ⟨λ h, append_right_cancel $
@@ -4669,6 +4686,15 @@ end list
 theorem monoid_hom.map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* β) (l : list α) :
   f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
+
+open opposite
+
+/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements -/
+lemma monoid_hom.unop_map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* βᵒᵖ) (l : list α):
+  unop (f l.prod) = (l.map (unop ∘ f)).reverse.prod :=
+begin
+  rw [f.map_list_prod l, opposite.unop_list_prod, list.map_map],
+end
 
 namespace list
 

@@ -124,6 +124,11 @@ lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   f l.sum = (l.map f).sum :=
 f.to_add_monoid_hom.map_list_sum l
 
+/-- A morphism into the opposite ring acts on the product by acting on the reversed elements -/
+lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵒᵖ) (l : list β) :
+  opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
+f.to_monoid_hom.unop_map_list_prod l
+
 lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
   (s : multiset β) :
   f s.prod = (s.map f).prod :=
@@ -928,10 +933,10 @@ when the function we are summing is monotone.
 lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
-  refine sum_range_induction _ _ (nat.sub_self _) (λ n, _) _,
+  refine sum_range_induction _ _ (tsub_self _) (λ n, _) _,
   have h₁ : f n ≤ f (n+1) := h (nat.le_succ _),
   have h₂ : f 0 ≤ f n := h (nat.zero_le _),
-  rw [←nat.sub_add_comm h₂, add_tsub_cancel_of_le h₁],
+  rw [tsub_add_eq_add_tsub h₂, add_tsub_cancel_of_le h₁],
 end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=

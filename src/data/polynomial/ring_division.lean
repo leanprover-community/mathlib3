@@ -141,8 +141,9 @@ lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
 begin
   simp only [←tsub_eq_of_eq_add_rev (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
   rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
-    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, ←nat.sub_sub, nat.add_comm,
-    nat.add_sub_assoc (nat.sub_le _ _), add_comm, nat.add_sub_assoc (nat.sub_le _ _)],
+    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, tsub_add_eq_tsub_tsub,
+    nat.add_comm, add_tsub_assoc_of_le (nat.sub_le _ _), add_comm,
+    add_tsub_assoc_of_le (nat.sub_le _ _)],
 end
 
 end ring

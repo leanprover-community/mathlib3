@@ -256,7 +256,7 @@ hF.lift_fac _
 -- and show that an `image_of f` gives an initial object there
 -- (uniqueness of the lift comes for free).
 
-instance lift_mono (F' : mono_factorisation f) : mono (image.lift F') :=
+instance image.lift_mono (F' : mono_factorisation f) : mono (image.lift F') :=
 by { apply mono_of_mono _ F'.m, simpa using mono_factorisation.m_mono _ }
 
 lemma has_image.uniq
@@ -274,6 +274,17 @@ instance {X Y Z : C} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) [has_image g] : has_
   is_image := { lift := λ F', image.lift { I := F'.I, m := F'.m, e := inv f ≫ F'.e, }, }, }⟩ }
 
 end
+
+/-- If `sq : f ⟶ g` is an isomorphism between two arrows
+then the image of `g` provides a mono factorisation for `f`. -/
+@[simps] def mono_factorisation.of_arrow_iso {f g : arrow C} [has_image g.hom]
+  (sq : f ⟶ g) [is_iso sq] : mono_factorisation f.hom :=
+{ I := image g.hom,
+  m := image.ι _ ≫ (inv sq).right,
+  m_mono := mono_comp _ _,
+  e := sq.left ≫ factor_thru_image _,
+  fac' := by erw [category.assoc, image.fac_assoc, arrow.w_assoc, ← comma.comp_right,
+    is_iso.hom_inv_id, comma.id_right, category.comp_id] }
 
 section
 variables (C)
@@ -533,24 +544,15 @@ def has_image_map.image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] 
   [has_image_map sq] : image_map sq :=
 classical.choice $ @has_image_map.has_image_map _ _ _ _ _ _ sq _
 
-@[simps]
-def mono_factorisation_hom {f g : arrow C} [has_image f.hom] [has_image g.hom]
-  (sq : f ⟶ g) [is_iso sq] : mono_factorisation f.hom :=
-{ I := image g.hom,
-  m := image.ι _ ≫ (inv sq).right,
-  m_mono := mono_comp _ _,
-  e := sq.left ≫ factor_thru_image _,
-  fac' := by erw [category.assoc, image.fac_assoc, arrow.w_assoc, ← comma.comp_right,
-    is_iso.hom_inv_id, comma.id_right, category.comp_id] }
-
+@[priority 100] -- see Note [lower instance priority]
 instance has_image_map_of_is_iso {f g : arrow C} [has_image f.hom] [has_image g.hom]
   (sq : f ⟶ g) [is_iso sq] :
   has_image_map sq :=
 has_image_map.mk
-{ map := image.lift (mono_factorisation_hom sq),
+{ map := image.lift (mono_factorisation.of_arrow_iso sq),
   map_ι' :=
   begin
-    erw [← cancel_mono (inv sq).right, category.assoc, ← mono_factorisation_hom_m,
+    erw [← cancel_mono (inv sq).right, category.assoc, ← mono_factorisation.of_arrow_iso_m,
       image.lift_fac, category.assoc, ← comma.comp_right, is_iso.hom_inv_id,
       comma.id_right, category.comp_id],
   end }

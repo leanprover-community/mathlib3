@@ -1802,7 +1802,8 @@ by rw [ker_comp, hg, submodule.comap_bot]
 
 section image
 
-/-- `(ϕ : O →ₗ M').submodule_image N` is `ϕ(N)` as a submodule of `M'` -/
+/-- If `O` is a submodule of `M`, and `Φ : O →ₗ M'` is a linear map,
+then `(ϕ : O →ₗ M').submodule_image N` is `ϕ(N)` as a submodule of `M'` -/
 def submodule_image {M' : Type*} [add_comm_monoid M'] [module R M']
   {O : submodule R M} (ϕ : O →ₗ[R] M') (N : submodule R M) : submodule R M' :=
 (N.comap O.subtype).map ϕ

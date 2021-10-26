@@ -9,13 +9,13 @@ import tactic.wlog
 /-!
 # Relations holding pairwise
 
-This file defines pairwise relations and pairwise disjoint sets.
+This file defines pairwise relations and pairwise disjoint indexed sets.
 
 ## Main declarations
 
 * `pairwise p`: States that `p i j` for all `i ≠ j`.
-* `pairwise_disjoint`: `pairwise_disjoint s` states that all elements in `s` are either equal or
-  `disjoint`.
+* `set.pairwise_disjoint`: `s.pairwise_disjoint f` states that images under `f` of distinct elements
+  of `s` are either equal or `disjoint`.
 -/
 
 open set
@@ -74,9 +74,9 @@ namespace set
 section semilattice_inf_bot
 variables [semilattice_inf_bot α] {s t : set ι} {f g : ι → α}
 
-/-- Elements of a set is `pairwise_disjoint`, if any distinct two are disjoint. -/
-def pairwise_disjoint (s : set ι) (f : ι → α) : Prop :=
-pairwise_on s (disjoint on f)
+/-- A set are `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
+are disjoint. -/
+def pairwise_disjoint (s : set ι) (f : ι → α) : Prop := s.pairwise_on (disjoint on f)
 
 lemma pairwise_disjoint.subset (ht : t.pairwise_disjoint f) (h : s ⊆ t) : s.pairwise_disjoint f :=
 pairwise_on.mono h ht

@@ -106,31 +106,31 @@ calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_sel
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
 lemma multiplicity_central_binom_le
-  (p : ℕ)
-  [hp : fact p.prime]
-  (n : ℕ)
+  {p : ℕ}
+  (hp : p.prime)
+  {n : ℕ}
   (n_pos : 0 < n)
   : padic_val_nat p (central_binom n) ≤ log p (2 * n)
   :=
 begin
-  rw @padic_val_nat_def p hp (central_binom n) (central_binom_ne_zero n),
+  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only
     [
-      nat.prime.multiplicity_choose hp.out (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
+      nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
       two_n_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable
     ],
-  have p_pow : p ^ log p (2 * n) ≤ 2 * n := nat.pow_log_le_self hp.out.one_lt (by linarith),
-  have one_le_p : 1 ≤ p := trans one_le_two hp.out.two_le,
+  have p_pow : p ^ log p (2 * n) ≤ 2 * n := nat.pow_log_le_self hp.one_lt (by linarith),
+  have one_le_p : 1 ≤ p := trans one_le_two hp.two_le,
   calc _  ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
 end
 
 lemma multiplicity_central_binom_of_large_le_one
-  (p : nat)
-  [hp : fact p.prime]
-  (n : nat)
+  {p : nat}
+  (hp : p.prime)
+  {n : nat}
   (n_pos : 0 < n)
   (p_large : 2 * n < p ^ 2)
   : (padic_val_nat p (central_binom n)) ≤ 1
@@ -138,7 +138,7 @@ lemma multiplicity_central_binom_of_large_le_one
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
     { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
-      ... = 2 : log_pow hp.out.one_lt 2, },
+      ... = 2 : log_pow hp.one_lt 2, },
 
   have log_bound : log p (2 * n) ≤ 1,
     { cases le_or_lt (log p (2 * n)) 1 with log_le lt_log,
@@ -146,15 +146,15 @@ begin
       { have v : log p (2 * n) = 2 := by linarith,
         cases le_or_lt p (2 * n) with h h,
         { exfalso,
-          rw [log_of_one_lt_of_le hp.out.one_lt h, succ_inj', log_eq_one_iff] at v,
+          rw [log_of_one_lt_of_le hp.one_lt h, succ_inj', log_eq_one_iff] at v,
           have bad : p ^ 2 ≤ 2 * n,
             { rw pow_two,
-              exact (nat.le_div_iff_mul_le _ _ (prime.pos hp.out)).1 v.2.2, },
+              exact (nat.le_div_iff_mul_le _ _ (prime.pos hp)).1 v.2.2, },
           exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
         { rw log_eq_zero (or.inl h),
           exact zero_le 1, }, }, },
 
-  exact le_trans (multiplicity_central_binom_le p n n_pos) log_bound,
+  exact le_trans (multiplicity_central_binom_le hp n_pos) log_bound,
 end
 
 lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p = 2
@@ -164,19 +164,20 @@ lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p 
 | (n + 3) _ big := by linarith
 
 lemma multiplicity_central_binom_of_large_eq_zero
-  (p : nat)
-  [hp : fact p.prime]
-  (n : nat)
+  {p : nat}
+  (hp : p.prime)
+  {n : nat}
   (n_big : 2 < n)
+  (small : p ≤ n)
   (big : 2 * n < 3 * p)
   : padic_val_nat p (central_binom n) = 0
   :=
 begin
-  rw @padic_val_nat_def p hp (central_binom n) (central_binom_ne_zero n),
+  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [
-    nat.prime.multiplicity_choose hp.out (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
+    nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
     two_n_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable
   ],
   clear two_n_sub,
@@ -184,9 +185,9 @@ begin
   have three_lt_p : 3 ≤ p ,
   { rcases le_or_lt 3 p with H|H,
     { exact H, },
-    { have p_two : p = 2 := prime_le_three_is_two hp.out H,
+    { have p_two : p = 2 := prime_le_three_is_two hp H,
       linarith, }, },
-  have p_pos : 0 < p := nat.prime.pos hp.out,
+  have p_pos : 0 < p := nat.prime.pos hp,
 
   apply finset.filter_false_of_mem,
   intros i i_in_interval,

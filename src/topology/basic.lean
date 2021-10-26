@@ -1483,27 +1483,28 @@ in different definitionally equal ways (omitting some typing information)
 * `continuous ↿(+)`. (`↿` is notation for recursively uncurrying a function)
 
 However, lemmas with this conclusion are not nice to use in practice because
-(1) They confuse the elaborator. The following two examples fail, because of limitations in the
-elaboration process.
-```
-variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
-example : continuous (λ x : M, x + x) :=
-continuous_add.comp _
+1. They confuse the elaborator. The following two examples fail, because of limitations in the
+  elaboration process.
+  ```
+  variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
+  example : continuous (λ x : M, x + x) :=
+  continuous_add.comp _
 
-example : continuous (λ x : M, x + x) :=
-continuous_add.comp (continuous_id.prod_mk continuous_id)
-```
-The second is a valid proof, which is accepted if you write it as
-`continuous_add.comp (continuous_id.prod_mk continuous_id : _)`
+  example : continuous (λ x : M, x + x) :=
+  continuous_add.comp (continuous_id.prod_mk continuous_id)
+  ```
+  The second is a valid proof, which is accepted if you write it as
+  `continuous_add.comp (continuous_id.prod_mk continuous_id : _)`
 
-(2) If the operation has more than 2 arguments, they are impractical to use, because in your
-application the arguments in the domain might be in a different order or associated differently.
+2. If the operation has more than 2 arguments, they are impractical to use, because in your
+  application the arguments in the domain might be in a different order or associated differently.
 
 ### The convenient way
 A much more convenient way to write continuity lemmas is like `continuous.add`:
 ```
 continuous.add {f g : X → M} (hf : continuous f) (hg : continuous g) : continuous (λ x, f x + g x)
 ```
+The conclusion can be `continuous (f + g)`, which is definitionally equal.
 This has the following advantages
 * It supports projection notation, so is shorter to write.
 * `continuous.add _ _` is recognized correctly by the elaborator and gives useful new goals.

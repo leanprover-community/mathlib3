@@ -90,7 +90,7 @@ lemma is_least.dual (h : is_least s a) : is_greatest (of_dual ⁻¹' s) (to_dual
 
 lemma is_greatest.dual (h : is_greatest s a) : is_least (of_dual ⁻¹' s) (to_dual a) := h
 
-lemma is_lub.dual (h : is_lub s a) : is_glb (of_dual ⁻¹' _) (to_dual a) := h
+lemma is_lub.dual (h : is_lub s a) : is_glb (of_dual ⁻¹' s) (to_dual a) := h
 
 lemma is_glb.dual (h : is_glb s a) : is_lub (of_dual ⁻¹' s) (to_dual a) := h
 

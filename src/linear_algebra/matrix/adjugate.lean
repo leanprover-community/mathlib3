@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2019 Tim Baanen. All rights reserved.
+Copyright (c) 2019 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Tim Baanen
+Authors: Anne Baanen
 -/
 import algebra.associated
 import algebra.regular.basic

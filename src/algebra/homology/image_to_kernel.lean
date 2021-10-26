@@ -189,6 +189,11 @@ section
 variables {f g} (w : f ≫ g = 0)
   {A' B' C' : V} {f' : A' ⟶ B'} [has_image f'] {g' : B' ⟶ C'} [has_kernel g'] (w' : f' ≫ g' = 0)
   (α : arrow.mk f ⟶ arrow.mk f') [has_image_map α] (β : arrow.mk g ⟶ arrow.mk g')
+  {A₁ B₁ C₁ : V} {f₁ : A₁ ⟶ B₁} [has_image f₁] {g₁ : B₁ ⟶ C₁} [has_kernel g₁] (w₁ : f₁ ≫ g₁ = 0)
+  {A₂ B₂ C₂ : V} {f₂ : A₂ ⟶ B₂} [has_image f₂] {g₂ : B₂ ⟶ C₂} [has_kernel g₂] (w₂ : f₂ ≫ g₂ = 0)
+  {A₃ B₃ C₃ : V} {f₃ : A₃ ⟶ B₃} [has_image f₃] {g₃ : B₃ ⟶ C₃} [has_kernel g₃] (w₃ : f₃ ≫ g₃ = 0)
+  (α₁ : arrow.mk f₁ ⟶ arrow.mk f₂) [has_image_map α₁] (β₁ : arrow.mk g₁ ⟶ arrow.mk g₂)
+  (α₂ : arrow.mk f₂ ⟶ arrow.mk f₃) [has_image_map α₂] (β₂ : arrow.mk g₂ ⟶ arrow.mk g₃)
 
 /--
 Given compatible commutative squares between
@@ -202,6 +207,9 @@ lemma image_subobject_map_comp_image_to_kernel (p : α.right = β.left) :
 by { ext, simp [p], }
 
 variables [has_cokernel (image_to_kernel f g w)] [has_cokernel (image_to_kernel f' g' w')]
+variables [has_cokernel (image_to_kernel f₁ g₁ w₁)]
+variables [has_cokernel (image_to_kernel f₂ g₂ w₂)]
+variables [has_cokernel (image_to_kernel f₃ g₃ w₃)]
 
 /--
 Given compatible commutative squares between
@@ -213,21 +221,44 @@ def homology.map (p : α.right = β.left) :
 cokernel.desc _ (kernel_subobject_map β ≫ cokernel.π _)
   begin
     rw [image_subobject_map_comp_image_to_kernel_assoc w w' α β p],
-    simp,
+    simp only [cokernel.condition, comp_zero],
   end
 
 @[simp, reassoc]
 lemma homology.π_map (p : α.right = β.left) :
   homology.π f g w ≫ homology.map w w' α β p = kernel_subobject_map β ≫ homology.π f' g' w' :=
-by { simp [homology.π, homology.map], }
+by simp only [homology.π, homology.map, cokernel.π_desc]
 
 @[simp, reassoc]
 lemma homology.map_desc (p : α.right = β.left)
   {D : V} (k : (kernel_subobject g' : V) ⟶ D) (z : image_to_kernel f' g' w' ≫ k = 0) :
   homology.map w w' α β p ≫ homology.desc f' g' w' k z =
     homology.desc f g w (kernel_subobject_map β ≫ k)
-      (by simp [image_subobject_map_comp_image_to_kernel_assoc w w' α β p, z]) :=
-by { ext, simp, }
+      (by simp only [image_subobject_map_comp_image_to_kernel_assoc w w' α β p, z, comp_zero]) :=
+by ext; simp only [homology.π_desc, homology.π_map_assoc]
+
+@[simp]
+lemma homology.map_id : homology.map w w (𝟙 _) (𝟙 _) rfl = 𝟙 _ :=
+by ext; simp only [homology.π_map, kernel_subobject_map_id, category.id_comp, category.comp_id]
+
+@[reassoc]
+lemma homology.map_comp (p₁ : α₁.right = β₁.left) (p₂ : α₂.right = β₂.left) :
+  homology.map w₁ w₂ α₁ β₁ p₁ ≫ homology.map w₂ w₃ α₂ β₂ p₂ =
+    homology.map w₁ w₃ (α₁ ≫ α₂) (β₁ ≫ β₂)
+      (by simp only [comma.comp_left, comma.comp_right, p₁, p₂]) :=
+by ext; simp only [kernel_subobject_map_comp, homology.π_map_assoc, homology.π_map, category.assoc]
+
+def homology.map_iso (α : arrow.mk f₁ ≅ arrow.mk f₂) (β : arrow.mk g₁ ≅ arrow.mk g₂)
+  (p : α.hom.right = β.hom.left) :
+  homology f₁ g₁ w₁ ≅ homology f₂ g₂ w₂ :=
+{ hom := homology.map w₁ w₂ α.hom β.hom p,
+  inv := homology.map w₂ w₁ α.inv β.inv
+  (by { haveI : mono α.hom.right := by { refine @is_iso.mono_of_iso _ _ _ _ _ (id _),
+      refine @right_is_iso _ _ _ _ _ _ },
+    rw [← cancel_mono (α.hom.right), ← comma.comp_right, α.inv_hom_id, comma.id_right, p,
+      ← comma.comp_left, β.inv_hom_id, comma.id_left], refl }),
+  hom_inv_id' := by { rw [homology.map_comp], convert homology.map_id _; rw [iso.hom_inv_id] },
+  inv_hom_id' := by { rw [homology.map_comp], convert homology.map_id _; rw [iso.inv_hom_id] } }
 
 end
 

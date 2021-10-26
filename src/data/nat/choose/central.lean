@@ -121,8 +121,6 @@ begin
       nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
       two_n_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable
     ],
-  have p_pow : p ^ log p (2 * n) ≤ 2 * n := nat.pow_log_le_self hp.one_lt (by linarith),
-  have one_le_p : 1 ≤ p := trans one_le_two hp.two_le,
   calc _  ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
 end
@@ -182,11 +180,10 @@ begin
   ],
   clear two_n_sub,
 
-  have three_lt_p : 3 ≤ p ,
+  have three_lt_p : 3 ≤ p,
   { rcases le_or_lt 3 p with H|H,
     { exact H, },
-    { have p_two : p = 2 := prime_le_three_is_two hp H,
-      linarith, }, },
+    { linarith [prime_le_three_is_two hp H], }, },
   have p_pos : 0 < p := nat.prime.pos hp,
 
   apply finset.filter_false_of_mem,
@@ -202,10 +199,10 @@ begin
              ... = p ^ 2 : (sq _).symm
              ... ≤ p ^ i : nat.pow_le_pow_of_le_right p_pos two_le_i, },
     have n_mod : n % p ^ i = n,
-    { apply nat.mod_eq_of_lt,
-      calc n ≤ n + n : nat.le.intro rfl
-         ... = 2 * n : (two_mul n).symm
-         ... < p ^ i : two_n_lt_pow_p_i, },
+      { apply nat.mod_eq_of_lt,
+        calc n ≤ n + n : nat.le.intro rfl
+          ... = 2 * n : (two_mul n).symm
+          ... < p ^ i : two_n_lt_pow_p_i, },
     rw n_mod,
     exact two_n_lt_pow_p_i, },
 

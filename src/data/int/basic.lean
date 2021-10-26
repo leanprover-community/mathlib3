@@ -1024,7 +1024,7 @@ theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ}
 begin
   change sub_nat_nat _ _ = _,
   have h' : n.succ - m = 0,
-  apply nat.sub_eq_zero_of_le h,
+  apply tsub_eq_zero_iff_le.mpr h,
   simp [*, sub_nat_nat]
 end
 
@@ -1346,15 +1346,15 @@ lemma shiftl_add : ∀ (m : ℤ) (n : ℕ) (k : ℤ), shiftl m (n + k) = shiftl 
 | (m : ℕ) n -[1+k] := sub_nat_nat_elim n k.succ
     (λ n k i, shiftl ↑m i = nat.shiftr (nat.shiftl m n) k)
     (λ i n, congr_arg coe $
-      by rw [← nat.shiftl_sub, nat.add_sub_cancel_left]; apply nat.le_add_right)
+      by rw [← nat.shiftl_sub, add_tsub_cancel_left]; apply nat.le_add_right)
     (λ i n, congr_arg coe $
-      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl_sub, nat.sub_self]; refl)
+      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl_sub, tsub_self]; refl)
 | -[1+ m] n -[1+k] := sub_nat_nat_elim n k.succ
     (λ n k i, shiftl -[1+ m] i = -[1+ nat.shiftr (nat.shiftl' tt m n) k])
     (λ i n, congr_arg neg_succ_of_nat $
-      by rw [← nat.shiftl'_sub, nat.add_sub_cancel_left]; apply nat.le_add_right)
+      by rw [← nat.shiftl'_sub, add_tsub_cancel_left]; apply nat.le_add_right)
     (λ i n, congr_arg neg_succ_of_nat $
-      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl'_sub, nat.sub_self]; refl)
+      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl'_sub, tsub_self]; refl)
 
 lemma shiftl_sub (m : ℤ) (n : ℕ) (k : ℤ) : shiftl m (n - k) = shiftr (shiftl m n) k :=
 shiftl_add _ _ _

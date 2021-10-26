@@ -1037,12 +1037,14 @@ begin
     exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
 end
 
-lemma to_nat_add_of_lt_omega {a b : cardinal} (ha : a < ω) (hb : b < ω) :
-  (a + b).to_nat = a.to_nat + b.to_nat :=
+lemma to_nat_add_of_lt_omega {a : cardinal.{u}} {b : cardinal.{v}} (ha : a < ω) (hb : b < ω) :
+  ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
 begin
   apply cardinal.nat_cast_injective,
-  rw [nat.cast_add, cast_to_nat_of_lt_omega ha, cast_to_nat_of_lt_omega hb,
-    cast_to_nat_of_lt_omega (add_lt_omega ha hb)]
+  replace ha : (lift.{v u} a) < ω := by { rw [← lift_omega], exact lift_lt.2 ha },
+  replace hb : (lift.{u v} b) < ω := by { rw [← lift_omega], exact lift_lt.2 hb },
+  rw [nat.cast_add, ← to_nat_lift.{v u} a, ← to_nat_lift.{u v} b, cast_to_nat_of_lt_omega ha,
+    cast_to_nat_of_lt_omega hb, cast_to_nat_of_lt_omega (add_lt_omega ha hb)]
 end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals

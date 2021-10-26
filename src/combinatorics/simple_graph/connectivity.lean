@@ -203,7 +203,8 @@ by cases p; simp
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp *
 
-lemma support_chain_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w), list.chain G.adj u p.support
+lemma support_chain_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+  list.chain G.adj u p.support
 | _ _ _ h nil := list.chain.cons h list.chain.nil
 | _ _ _ h (cons h' p) := list.chain.cons h (support_chain_aux h' p)
 

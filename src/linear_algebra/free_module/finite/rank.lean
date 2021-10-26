@@ -40,7 +40,7 @@ begin
 end
 
 /-- If `M` is finite and free, `finrank M = rank M`. -/
-lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
+@[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
 by { rw [finrank, cast_to_nat_of_lt_omega (rank_lt_omega R M)] }
 
 /-- The finrank of `(ι →₀ R)` is `fintype.card ι`. -/

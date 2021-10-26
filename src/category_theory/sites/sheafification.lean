@@ -1,4 +1,5 @@
 import category_theory.sites.sheaf
+import category_theory.limits.preserves.filtered
 
 namespace category_theory.presheaf
 
@@ -237,5 +238,148 @@ def plus [has_limits D] [has_colimits D] (P : Cᵒᵖ ⥤ D) : Cᵒᵖ ⥤ D :=
     simp_rw ← category.assoc,
     rw matching_diagram.pullback_comp_app,
   end }
+
+section end
+
+variables {E : Type*} [category.{max u v} E] [has_products D] [has_products E]
+variables (P : Cᵒᵖ ⥤ D) (F : D ⥤ E) [preserves_limits F]
+
+@[simps]
+def first_obj_comp_preserves_limit {B : C} (R : presieve B) :
+  F.obj (first_obj R P) ≅ (first_obj R (P ⋙ F) : _) :=
+preserves_limit_iso F _ ≪≫ lim.map_iso
+  (nat_iso.of_components (λ _, iso.refl _)
+    (by { rintros ⟨_,_,_⟩ ⟨_,_,_⟩ ⟨⟨h⟩⟩, injection h with h₁ h₂,
+          cases h₁, cases heq_iff_eq.mp h₂, simp }))
+
+@[simps]
+def second_obj'_comp_preserves_limit {B : C} (R : presieve B) :
+  F.obj (second_obj' R P) ≅ (second_obj' R (P ⋙ F) : _) :=
+preserves_limit_iso F _ ≪≫ lim.map_iso
+  (nat_iso.of_components (λ _, iso.refl _)
+    (by { rintros ⟨_,_,_⟩ ⟨_,_,_⟩ ⟨⟨h⟩⟩, injection h, subst_vars, simp }))
+
+-- @[simps]
+def matching_comp_preserves_limit {B : C} (R : presieve B) [has_limits D] [has_limits E] :
+  F.obj (matching R P) ≅ (matching R (P ⋙ F) : _) :=
+preserves_limit_iso F _ ≪≫ lim.map_iso
+  (nat_iso.of_components (λ X, by { cases X,
+    exacts [first_obj_comp_preserves_limit P F R, second_obj'_comp_preserves_limit P F R] })
+    (λ X Y f,
+    begin
+      cases f,
+      swap 3,
+      simpa[-category.id_comp] using category.id_comp _,
+      all_goals
+      { ext,
+        delta second_map'
+          first_map' first_obj_comp_preserves_limit second_obj'_comp_preserves_limit,
+        simp }
+    end))
+
+section end
+
+def matching_diagram_comp_preserves_limit (B : C) [has_limits D] [has_limits E] :
+  matching_diagram J B P ⋙ F ≅ matching_diagram J B (P ⋙ F) :=
+begin
+  fapply nat_iso.of_components,
+  intro X, exact matching_comp_preserves_limit _ _ _,
+  intros X Y f,
+  delta matching_diagram,
+  ext,
+  unfold matching_comp_preserves_limit,
+  simp[matching.map],
+  erw lim_map_π,
+  erw limit.lift_π,
+  simpa
+end
+
+section end
+
+@[simp]
+lemma matching_diagram_comp_preserves_limit_hom_app (B : C) [has_limits D] [has_limits E] (A) :
+  (matching_diagram_comp_preserves_limit J P F B).hom.app A =
+    (matching_comp_preserves_limit P F _).hom := rfl
+
+@[simp, reassoc]
+lemma matching_comp_preserves_limit_hom_comp_pullback
+ (X Y) (j : matching_diagram_index J Y) (f : X ⟶ Y) [has_limits D] [has_limits E] :
+  (matching_comp_preserves_limit P F j.1).hom ≫
+    matching.pullback j.val f (P ⋙ F) =
+    F.map (matching.pullback j.val f P) ≫ (matching_comp_preserves_limit P F _).hom :=
+begin
+  unfold matching_comp_preserves_limit,
+  erw ←iso.eq_inv_comp,
+  ext,
+  simp only [functor.map_iso_inv, iso.trans_inv, first_obj_comp_preserves_limit_hom,
+    nat_iso.of_components.hom_app, lim_map_π, category.assoc, preserves_limits_iso_hom_π_assoc,
+    lim_map_eq_lim_map, iso.trans_hom, functor.map_iso_hom, ←F.map_comp_assoc],
+  erw [lim_map_π, limit.lift_π],
+  simp only [nat_iso.of_components.hom_app, preserves_limits_iso_hom_π_assoc,
+    fork.of_ι_π_app, ←F.map_comp_assoc, limit.lift_π],
+  simp only [fan.mk_π_app, nat_iso.of_components.inv_app, preserves_limits_iso_inv_π_assoc,
+    lim_map_π_assoc, first_obj_comp_preserves_limit_inv, category.assoc, functor.map_comp],
+  erw [limit.lift_π_assoc, category.comp_id, category.comp_id, limit.lift_π],
+  dsimp,
+  congr
+end
+
+
+instance matching_diagram_index_is_cofiltered (B : C) :
+  is_cofiltered (matching_diagram_index J B) :=
+{ nonempty := ⟨⟨⊤, J.top_mem _⟩⟩,
+  cocone_objs := λ X Y, ⟨⟨X.1 ⊓ Y.1, J.intersection_covering X.2 Y.2⟩,
+    (hom_of_le inf_le_left : _ ⟶ X.1), (hom_of_le inf_le_right : _ ⟶ Y.1), trivial⟩,
+  cocone_maps := λ _ _ _ _, ⟨_,𝟙 _, by tidy⟩ }
+
+-- set_option trace.class_instances true
+variables [has_limits D] [has_colimits D] [has_colimits E] [has_limits E] [preserves_filtered_colimits F]
+
+def plus_obj_comp_preserves_limit_filtered_colimit (B : C) :
+  F.obj (plus_obj J B P) ≅ plus_obj J B (P ⋙ F) :=
+preserves_colimit_iso F _ ≪≫ colim.map_iso (matching_diagram_comp_preserves_limit J P F B)
+
+set_option timeout 1000000
+
+@[simp] lemma colimit_ι_plus_map (X Y : C) (j : (matching_diagram_index J Y)ᵒᵖ) (f : (op Y) ⟶ (op X)) :
+  colimit.ι (matching_diagram J Y P) j ≫ (plus J P).map f =
+    matching.pullback (unop j).1 f.unop P ≫ colimit.ι (matching_diagram J X P)
+      (op ⟨(unop j).1.pullback f.unop, J.pullback_stable f.unop (unop j).2⟩) :=
+begin
+  delta plus plus_map matching.pullback matching_diagram.pullback,
+  dsimp,
+  simp,
+  congr,
+end
+
+lemma plus_comp_preserves_limit_filtered_colimit [has_limits D] [has_colimits D] (P : Cᵒᵖ ⥤ D) :
+  plus J P ⋙ F ≅ plus J (P ⋙ F) :=
+begin
+  fapply nat_iso.of_components,
+  intro B, exact plus_obj_comp_preserves_limit_filtered_colimit J P F (unop B),
+  intros X Y f,
+  induction X using opposite.rec,
+  induction Y using opposite.rec,
+  rw functor.comp_map,
+  erw category.assoc,
+  rw ←iso.inv_comp_eq,
+  ext j,
+  induction j using opposite.rec,
+  erw colimit.ι_map_assoc,
+  rw colimit_ι_plus_map J,
+  rw ι_preserves_colimits_iso_inv_assoc,
+  rw ←F.map_comp_assoc,
+  rw colimit_ι_plus_map J,
+  delta plus_obj_comp_preserves_limit_filtered_colimit,
+  simp only [category.assoc, functor.map_comp],
+  erw ι_preserves_colimits_iso_hom_assoc,
+  erw colimit.ι_map,
+  rw matching_diagram_comp_preserves_limit_hom_app,
+  rw matching_diagram_comp_preserves_limit_hom_app,
+  dsimp only [unop_op],
+  rw matching_comp_preserves_limit_hom_comp_pullback_assoc,
+  apply_instance,
+  apply_instance,
+end
 
 end category_theory.presheaf

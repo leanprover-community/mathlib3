@@ -627,7 +627,7 @@ lemma lift_sub_val_mem_span (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
 begin
   obtain ⟨k, hk⟩ := lim_nth_hom_spec f_compat r _
-    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.fzpow_pos_of_pos hp_prime.1.pos _),
+    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.zpow_pos_of_pos hp_prime.1.pos _),
   have := le_of_lt (hk (max n k) (le_max_right _ _)),
   rw norm_le_pow_iff_mem_span_pow at this,
   dsimp [lift],

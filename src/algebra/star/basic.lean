@@ -237,10 +237,10 @@ alias star_ring_aut_self_apply ← is_R_or_C.conj_conj
 op_injective $
   ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_fzpow [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+@[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_fzpow x z).trans (op_zpow (star x) z).symm
+  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=

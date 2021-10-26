@@ -397,10 +397,10 @@ section comm_group_with_zero
 
 variables {ζ : G₀}
 
-lemma fzpow_eq_one (h : is_primitive_root ζ k) : ζ ^ (k : ℤ) = 1 :=
+lemma zpow_eq_one₀ (h : is_primitive_root ζ k) : ζ ^ (k : ℤ) = 1 :=
 by { rw zpow_coe_nat, exact h.pow_eq_one }
 
-lemma fzpow_eq_one_iff_dvd (h : is_primitive_root ζ k) (l : ℤ) :
+lemma zpow_eq_one_iff_dvd₀ (h : is_primitive_root ζ k) (l : ℤ) :
   ζ ^ l = 1 ↔ (k : ℤ) ∣ l :=
 begin
   by_cases h0 : 0 ≤ l,
@@ -409,7 +409,7 @@ begin
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj₀, ← fzpow_neg, ← hl', zpow_coe_nat, inv_one] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj₀, ← zpow_neg₀, ← hl', zpow_coe_nat, inv_one] }
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
@@ -424,7 +424,7 @@ lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
 @[simp] lemma inv_iff' : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
 by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv₀ ζ], exact inv' h }
 
-lemma fzpow_of_gcd_eq_one (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 1) :
+lemma zpow_of_gcd_eq_one₀ (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 1) :
   is_primitive_root (ζ ^ i) k :=
 begin
   by_cases h0 : 0 ≤ i,
@@ -433,7 +433,7 @@ begin
     exact h.pow_of_coprime i hi },
   have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
-  rw [← inv_iff', ← fzpow_neg, ← hi', zpow_coe_nat],
+  rw [← inv_iff', ← zpow_neg₀, ← hi', zpow_coe_nat],
   apply h.pow_of_coprime,
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi

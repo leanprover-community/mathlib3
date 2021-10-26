@@ -958,7 +958,7 @@ instance : lattice (finset α) :=
 instance {α : Type u} : order_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset }
 
-@[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl
+@[simp] lemma bot_eq_empty {α : Type u} : (⊥ : finset α) = ∅ := rfl
 
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,

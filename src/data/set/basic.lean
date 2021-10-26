@@ -935,7 +935,7 @@ theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : 
 sup_sdiff_cancel' h₁ h₂
 
 theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
-sup_sdiff_of_le h
+sup_sdiff_cancel_right h
 
 theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
 disjoint.sup_sdiff_cancel_left h

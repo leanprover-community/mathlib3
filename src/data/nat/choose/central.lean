@@ -168,7 +168,6 @@ lemma multiplicity_central_binom_of_large_eq_zero
   [hp : fact p.prime]
   (n : nat)
   (n_big : 2 < n)
-  (small : p ≤ n)
   (big : 2 * n < 3 * p)
   : padic_val_nat p (central_binom n) = 0
   :=

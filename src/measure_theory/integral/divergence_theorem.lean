@@ -58,11 +58,13 @@ variables {n : ℕ}
 local notation `ℝⁿ` := fin n → ℝ
 local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 local notation `Eⁿ⁺¹` := fin (n + 1) → E
+local notation `e` i := pi.single i 1
+
+section
 
 variables (a b : ℝⁿ⁺¹)
 
 local notation `face` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_above i)
-local notation `e` i := pi.single i 1
 local notation `front_face` i:2000 := fin.insert_nth i (b i)
 local notation `back_face` i:2000 := fin.insert_nth i (a i)
 
@@ -85,7 +87,7 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable (hle : a ≤ b) 
   (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
   (Hc : ∀ x ∈ s, continuous_within_at f (Icc a b) x)
   (Hd : ∀ x ∈ Icc a b \ s, has_fderiv_within_at f (f' x) (Icc a b) x)
-  (Hi : integrable_on (λ x, ∑ i, f' x (pi.single i 1) i) (Icc a b)) :
+  (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) (Icc a b)) :
   ∫ x in Icc a b, ∑ i, f' x (e i) i =
     ∑ i : fin (n + 1),
       ((∫ x in face i, f (front_face i x) i) - ∫ x in face i, f (back_face i x) i) :=
@@ -124,6 +126,55 @@ begin
       exact (this.has_box_integral ⊥ rfl).integral_eq, apply_instance } }
 end
 
+/-- A version of `integral_divergence_of_has_fderiv_within_at_off_countable'` that uses a family of
+functions `f : fin (n + 1) → ℝⁿ⁺¹ → E` instead of a vector-valued function `f : ℝⁿ⁺¹ → Eⁿ⁺¹`. -/
+lemma integral_divergence_of_has_fderiv_within_at_off_countable' (hle : a ≤ b)
+  (f : fin (n + 1) → ℝⁿ⁺¹ → E) (f' : fin (n + 1) → ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E)
+  (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ (x ∈ s) i, continuous_within_at (f i) (Icc a b) x)
+  (Hd : ∀ (x ∈ Icc a b \ s) i, has_fderiv_within_at (f i) (f' i x) (Icc a b) x)
+  (Hi : integrable_on (λ x, ∑ i, f' i x (pi.single i 1)) (Icc a b)) :
+  ∫ x in Icc a b, ∑ i, f' i x (e i) =
+    ∑ i : fin (n + 1),
+      ((∫ x in face i, f i (front_face i x)) - ∫ x in face i, f i (back_face i x)) := integral_divergence_of_has_fderiv_within_at_off_countable a b hle (λ x i, f i x)
+  (λ x, continuous_linear_map.pi (λ i, f' i x)) s hs
+  (λ x hx, continuous_within_at_pi.2 (Hc x hx)) (λ x hx, has_fderiv_within_at_pi.2 (Hd x hx)) Hi
+
+end
+
+lemma integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv
+  {F : Type*} [normed_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
+  [borel_space F] (eL : F ≃L[ℝ] ℝⁿ⁺¹) (he_ord : ∀ x y, eL x ≤ eL y ↔ x ≤ y)
+  (he_vol : measure.map eL volume = volume) (f : fin (n + 1) → F → E)
+  (f' : fin (n + 1) → F → F →L[ℝ] E) (s : set F) (hs : countable s)
+  (a b : F) (hle : a ≤ b) (Hc : ∀ (x ∈ s) i, continuous_within_at (f i) (Icc a b) x)
+  (Hd : ∀ (x ∈ Icc a b \ s) i, has_fderiv_within_at (f i) (f' i x) (Icc a b) x)
+  (DF : F → E) (hDF : ∀ x, DF x = ∑ i, f' i x (eL.symm $ e i)) (Hi : integrable_on DF (Icc a b)) :
+  ∫ x in Icc a b, DF x =
+    ∑ i : fin (n + 1), ((∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f i (eL.symm $ i.insert_nth (eL b i) x)) -
+      (∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f i (eL.symm $ i.insert_nth (eL a i) x))) :=
+have he_vol' : measure_preserving eL.to_homeomorph.to_measurable_equiv volume volume :=
+  ⟨eL.continuous.measurable, he_vol⟩,
+have hIcc : eL ⁻¹' (Icc (eL a) (eL b)) = Icc a b,
+  by { ext1 x, simp only [set.mem_preimage, set.mem_Icc, he_ord] },
+calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : by simp only [hDF]
+... = ∫ x in Icc (eL a) (eL b), ∑ i, f' i (eL.symm x) (eL.symm $ e i) :
+  begin
+    rw [← he_vol'.map_eq, set_integral_map_equiv],
+    simp only [hIcc, homeomorph.to_measurable_equiv_coe, continuous_linear_equiv.coe_to_homeomorph,
+      eL.symm_apply_apply]
+  end
+... = ∑ i : fin (n + 1), ((∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f i (eL.symm $ i.insert_nth (eL b i) x)) -
+      (∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f i (eL.symm $ i.insert_nth (eL a i) x))) :
+  begin
+    convert integral_divergence_of_has_fderiv_within_at_off_countable' (eL a) (eL b)
+      ((he_ord _ _).2 hle) (λ i x, f i (eL.symm x)) _
+      (eL '' s) (hs.image _) _ _ _
+  end
+
 end
 
 open_locale interval
@@ -142,33 +193,30 @@ theorem integral_eq_of_has_deriv_within_at_off_countable_of_le (f f' : ℝ → E
   ∫ x in a..b, f' x = f b - f a :=
 begin
   set eL : ℝ¹ →L[ℝ] ℝ := continuous_linear_map.proj 0,
-  set eE : E →L[ℝ] E¹ := continuous_linear_map.pi (λ _, continuous_linear_map.id _ _),
   set eo : ℝ¹ ≃o ℝ := order_iso.fun_unique _ _,
   set e : ℝ¹ ≃ᵐ ℝ := measurable_equiv.fun_unique _ _,
   have he : measure_preserving e volume volume, from ⟨e.measurable, measure.map_fun_unique volume⟩,
-  set F : ℝ¹ → E¹ := λ x i, f (x 0),
-  set F' : ℝ¹ → ℝ¹ →L[ℝ] E¹ := λ x, eE ∘L ((1 : ℝ →L[ℝ] ℝ).smul_right (f' (x 0))) ∘L eL,
-  have hF' : ∀ x, ∑ i, F' (λ _, x) (pi.single i 1) i = f' x,
-  { intro x, dsimp *,
-    erw [sum_singleton, pi.single_eq_same, one_smul] },
+  set F : fin 1 → ℝ¹ → E := λ i x, f (x 0),
+  set F' : fin 1 → ℝ¹ → ℝ¹ →L[ℝ] E := λ i x, ((1 : ℝ →L[ℝ] ℝ).smul_right (f' (x 0))) ∘L eL,
+  have hF' : ∀ x, ∑ i, F' i (λ _, x) (pi.single i 1) = f' x,
+  { intro x, rw [fin.sum_univ_one], simp },
   calc ∫ x in a..b, f' x
-      = ∫ x : ℝ¹ in Icc (eo.symm a) (eo.symm b), ∑ i : fin 1, F' x (pi.single i 1) i :
+      = ∫ x : ℝ¹ in Icc (eo.symm a) (eo.symm b), ∑ i : fin 1, F' i x (pi.single i 1) :
     begin
       simp only [volume_pi, set_integral_fun_unique_pi, interval_integral.integral_of_le hle,
         set_integral_congr_set_ae Ioc_ae_eq_Icc, ← eo.preimage_Icc, hF'],
       refl
     end
-  ... = ∑ i : fin 1, ((∫ x in Icc (const _ a) (const _ b), F (i.insert_nth b x) i) -
-                     ∫ x in Icc (const _ a) (const _ b), F (i.insert_nth a x) i) :
+  ... = ∑ i : fin 1, ((∫ x in Icc (const _ a) (const _ b), F i (i.insert_nth b x)) -
+                     ∫ x in Icc (const _ a) (const _ b), F i (i.insert_nth a x)) :
     begin
-      refine integral_divergence_of_has_fderiv_within_at_off_countable (const _ a) (const _ b)
-        (λ _, hle) F F' (eo.symm '' s) (hs.image _) (ball_image_iff.2 $ λ x hx, _) _ _,
-      { refine continuous_within_at_pi.2 (λ i, _), rw [← eo.preimage_Icc],
+      refine integral_divergence_of_has_fderiv_within_at_off_countable' (const _ a) (const _ b)
+        (λ _, hle) F F' (eo.symm '' s) (hs.image _) (ball_image_iff.2 $ λ x hx i, _) _ _,
+      { rw [← eo.preimage_Icc],
         refine continuous_within_at.comp _ eL.continuous.continuous_within_at subset.rfl,
         exact Hc x hx },
       { rw [eo.symm.image_eq_preimage, eo.symm_symm, ← eo.preimage_Icc, ← preimage_diff],
-        intros x hx,
-        refine eE.has_fderiv_at.comp_has_fderiv_within_at x _,
+        intros x hx i,
         refine has_fderiv_within_at.comp x _ eL.has_fderiv_within_at subset.rfl,
         exact Hd (x 0) hx },
       { rw [← eo.preimage_Icc, ← he.symm.map_eq, integrable_on_map_equiv],
@@ -176,13 +224,11 @@ begin
         convert Hi.congr_set_ae Ioc_ae_eq_Icc.symm using 1,
         exact funext hF' }
     end
-  ... = (∫ x in Icc (const _ a) (const _ b), F ((0 : fin 1).insert_nth b x) 0) -
-         ∫ x in Icc (const _ a) (const _ b), F ((0 : fin 1).insert_nth a x) 0 :
-    finset.sum_singleton
   ... = f b - f a :
     begin
+      rw fin.sum_univ_one,
       have : ∀ c : ℝ, const (fin 0) c = is_empty_elim := λ c, subsingleton.elim _ _,
-      simp [F, this, volume_pi, measure.pi_of_empty _ _ (λ _, volume)],
+      simp [F, this, volume_pi, measure.pi_of_empty (λ _, volume)],
     end
 end
 

@@ -1052,11 +1052,81 @@ have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH.conj_mem (a * b) h a⁻¹, by
 
 end normal
 
-@[priority 100, to_additive]
-instance bot_normal : normal (⊥ : subgroup G) := ⟨by simp⟩
+variables (H)
 
-@[priority 100, to_additive]
-instance top_normal : normal (⊤ : subgroup G) := ⟨λ _ _, mem_top⟩
+/-- A subgroup is characteristic if it is fixed by all automorphisms.
+  Several equivalent conditions are provided by lemmas of the form `characteristic.iff...` -/
+structure characteristic : Prop :=
+(fixed : ∀ ϕ : G ≃* G, H.comap ϕ.to_monoid_hom = H)
+
+attribute [class] characteristic
+
+@[priority 100] instance normal_of_characteristic [h : H.characteristic] : H.normal :=
+⟨λ a ha b, (set_like.ext_iff.mp (h.fixed (mul_aut.conj b)) a).mpr ha⟩
+
+end subgroup
+
+namespace add_subgroup
+
+variables (H : add_subgroup A)
+
+/-- A add_subgroup is characteristic if it is fixed by all automorphisms.
+  Several equivalent conditions are provided by lemmas of the form `characteristic.iff...` -/
+structure characteristic  : Prop :=
+(fixed : ∀ ϕ : A ≃+ A, H.comap ϕ.to_add_monoid_hom = H)
+
+attribute [to_additive add_subgroup.characteristic] subgroup.characteristic
+attribute [class] characteristic
+
+@[priority 100] instance normal_of_characteristic [h : H.characteristic] : H.normal :=
+⟨λ a ha b, (set_like.ext_iff.mp (h.fixed (add_aut.conj b)) a).mpr ha⟩
+
+end add_subgroup
+
+namespace subgroup
+
+variables {H K : subgroup G}
+
+@[to_additive] lemma characteristic_iff_comap_eq :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.comap ϕ.to_monoid_hom = H :=
+⟨characteristic.fixed, characteristic.mk⟩
+
+@[to_additive] lemma characteristic_iff_comap_le :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.comap ϕ.to_monoid_hom ≤ H :=
+characteristic_iff_comap_eq.trans ⟨λ h ϕ, le_of_eq (h ϕ),
+  λ h ϕ, le_antisymm (h ϕ) (λ g hg, h ϕ.symm ((congr_arg (∈ H) (ϕ.symm_apply_apply g)).mpr hg))⟩
+
+@[to_additive] lemma characteristic_iff_le_comap :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H ≤ H.comap ϕ.to_monoid_hom :=
+characteristic_iff_comap_eq.trans ⟨λ h ϕ, ge_of_eq (h ϕ),
+  λ h ϕ, le_antisymm (λ g hg, (congr_arg (∈ H) (ϕ.symm_apply_apply g)).mp (h ϕ.symm hg)) (h ϕ)⟩
+
+@[to_additive] lemma characteristic_iff_map_eq :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.map ϕ.to_monoid_hom = H :=
+begin
+  simp_rw map_equiv_eq_comap_symm,
+  exact characteristic_iff_comap_eq.trans ⟨λ h ϕ, h ϕ.symm, λ h ϕ, h ϕ.symm⟩,
+end
+
+@[to_additive] lemma characteristic_iff_map_le :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H.map ϕ.to_monoid_hom ≤ H :=
+begin
+  simp_rw map_equiv_eq_comap_symm,
+  exact characteristic_iff_comap_le.trans ⟨λ h ϕ, h ϕ.symm, λ h ϕ, h ϕ.symm⟩,
+end
+
+@[to_additive] lemma characteristic_iff_le_map :
+  H.characteristic ↔ ∀ ϕ : G ≃* G, H ≤ H.map ϕ.to_monoid_hom :=
+begin
+  simp_rw map_equiv_eq_comap_symm,
+  exact characteristic_iff_le_comap.trans ⟨λ h ϕ, h ϕ.symm, λ h ϕ, h ϕ.symm⟩,
+end
+
+@[to_additive] instance bot_characteristic : characteristic (⊥ : subgroup G) :=
+characteristic_iff_le_map.mpr (λ ϕ, bot_le)
+
+@[to_additive] instance top_characteristic : characteristic (⊤ : subgroup G) :=
+characteristic_iff_map_le.mpr (λ ϕ, le_top)
 
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
@@ -1080,13 +1150,12 @@ variable {G}
 instance decidable_mem_center [decidable_eq G] [fintype G] : decidable_pred (∈ center G) :=
 λ _, decidable_of_iff' _ mem_center_iff
 
-@[priority 100, to_additive]
-instance center_normal : (center G).normal :=
-⟨begin
-  assume n hn g h,
-  assoc_rw [hn (h * g), hn g],
-  simp
-end⟩
+@[to_additive] instance center_characteristic : (center G).characteristic :=
+begin
+  refine characteristic_iff_comap_le.mpr (λ ϕ g hg h, _),
+  rw [←ϕ.injective.eq_iff, ϕ.map_mul, ϕ.map_mul],
+  exact hg (ϕ h),
+end
 
 variables {G} (H)
 /-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/

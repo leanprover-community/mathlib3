@@ -60,7 +60,7 @@ def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
 
-def pushforward_eq' {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
+lemma pushforward_eq' {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ = g _* ℱ :=
 by rw h
 
@@ -133,6 +133,9 @@ def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α 
 { app := λ U, α.app _,
   naturality' := λ U V i, by { erw α.naturality, refl, } }
 
+/--
+The pushforward functor.
+-/
 def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
 { obj := pushforward_obj f,
   map := @pushforward_map _ _ X Y f }

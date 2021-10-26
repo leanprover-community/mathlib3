@@ -117,6 +117,9 @@ def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
 lemma open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
 is_open.open_embedding_subtype_coe U.2
 
+/--
+The inclusion of the top open subset (i.e. the whole space) is an isomorphism.
+-/
 def inclusion_top_iso (X : Top.{u}) : (to_Top X).obj ⊤ ≅ X :=
 { hom := inclusion ⊤,
   inv := ⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ }

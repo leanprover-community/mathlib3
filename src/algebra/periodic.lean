@@ -249,11 +249,27 @@ lemma periodic.int_mul_eq [ring α]
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
   `y ∈ Ico 0 c` such that `f x = f y`. -/
-lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α]
+lemma periodic.exists_mem_Ico₀ [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x) :
   ∃ y ∈ set.Ico 0 c, f x = f y :=
-let ⟨n, H⟩ := linear_ordered_add_comm_group.exists_int_smul_near_of_pos' hc x in
+let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
 ⟨x - n • c, H, (h.sub_gsmul_eq n).symm⟩
+
+/-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
+  `y ∈ Ico a (a + c)` such that `f x = f y`. -/
+lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α]
+  (h : periodic f c) (hc : 0 < c) (x a) :
+  ∃ y ∈ set.Ico a (a + c), f x = f y :=
+let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
+⟨x + n • c, H, (h.gsmul n x).symm⟩
+
+/-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
+  `y ∈ Ioc a (a + c)` such that `f x = f y`. -/
+lemma periodic.exists_mem_Ioc [linear_ordered_add_comm_group α] [archimedean α]
+  (h : periodic f c) (hc : 0 < c) (x a) :
+  ∃ y ∈ set.Ioc a (a + c), f x = f y :=
+let ⟨n, H⟩ := exists_add_int_smul_mem_Ioc hc x a in
+⟨x + n • c, H, (h.gsmul n x).symm⟩
 
 lemma periodic_with_period_zero [add_zero_class α]
   (f : α → β) :

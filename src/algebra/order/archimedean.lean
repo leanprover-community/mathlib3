@@ -42,7 +42,7 @@ instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] :
 ⟨λ x y hy, let ⟨n, hn⟩ := archimedean.arch (-x : α) (neg_pos.2 hy) in
   ⟨n, by rwa [neg_nsmul, neg_le_neg_iff] at hn⟩⟩
 
-namespace linear_ordered_add_comm_group
+section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] [archimedean α]
 
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
@@ -69,9 +69,25 @@ lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
   ∃ (k : ℤ), 0 ≤ g - k • a ∧ g - k • a < a :=
 begin
   obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
-  rw add_gsmul at h2,
   refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  simpa [sub_lt_iff_lt_add'] using h2
+  simpa only [sub_lt_iff_lt_add', add_gsmul, one_gsmul] using h2
+end
+
+lemma exists_add_int_smul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
+  ∃ m : ℤ, b + m • a ∈ set.Ico c (c + a) :=
+begin
+  rcases exists_int_smul_near_of_pos' ha (b - c) with ⟨m, hle, hlt⟩,
+  refine ⟨-m, _, _⟩,
+  { rwa [neg_gsmul, ← sub_eq_add_neg, le_sub, ← sub_nonneg] },
+  { rwa [sub_right_comm, sub_lt_iff_lt_add', sub_eq_add_neg, ← neg_gsmul] at hlt }
+end
+
+lemma exists_add_int_smul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
+  ∃ m : ℤ, b + m • a ∈ set.Ioc c (c + a) :=
+begin
+  rcases exists_int_smul_near_of_pos ha (c - b) with ⟨m, hle, hlt⟩,
+  refine ⟨m + 1, sub_lt_iff_lt_add'.1 hlt, _⟩,
+  rwa [add_gsmul, one_gsmul, ← add_assoc, add_le_add_iff_right, ← le_sub_iff_add_le']
 end
 
 end linear_ordered_add_comm_group

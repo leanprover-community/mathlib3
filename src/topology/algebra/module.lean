@@ -1346,6 +1346,25 @@ instance automorphism_group : group (M₁ ≃L[R₁] M₁) :=
   one_mul      := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
+variables {M₁} {R₄ : Type*} [semiring R₄] [module R₄ M₄]
+  {σ₃₄ : R₃ →+* R₄} {σ₄₃ : R₄ →+* R₃} [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
+  {σ₂₄ : R₂ →+* R₄} {σ₁₄ : R₁ →+* R₄}
+  [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+  [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+
+include σ₂₁ σ₃₄ σ₂₃ σ₂₄ σ₁₃
+
+/-- A pair of continuous (semi)linear equivalences generates an equivalence between the spaces of
+continuous linear maps. -/
+@[simps] def arrow_congr_equiv (e₁₂ : M₁ ≃SL[σ₁₂] M₂) (e₄₃ : M₄ ≃SL[σ₄₃] M₃) :
+  (M₁ →SL[σ₁₄] M₄) ≃ (M₂ →SL[σ₂₃] M₃) :=
+{ to_fun := λ f, (e₄₃ : M₄ →SL[σ₄₃] M₃).comp (f.comp (e₁₂.symm : M₂ →SL[σ₂₁] M₁)),
+  inv_fun := λ f, (e₄₃.symm : M₃ →SL[σ₃₄] M₄).comp (f.comp (e₁₂ : M₁ →SL[σ₁₂] M₂)),
+  left_inv := λ f, continuous_linear_map.ext $ λ x,
+    by simp only [continuous_linear_map.comp_apply, symm_apply_apply, coe_coe],
+  right_inv := λ f, continuous_linear_map.ext $ λ x,
+    by simp only [continuous_linear_map.comp_apply, apply_symm_apply, coe_coe] }
+
 end add_comm_monoid
 
 section add_comm_group

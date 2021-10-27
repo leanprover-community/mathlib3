@@ -1037,4 +1037,3 @@ lemma has_pushouts_of_has_colimit_span
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
 
 end category_theory.limits
-#lint

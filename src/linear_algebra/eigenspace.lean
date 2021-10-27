@@ -64,6 +64,11 @@ x ∈ eigenspace f μ ∧ x ≠ 0
 def has_eigenvalue (f : End R M) (a : R) : Prop :=
 eigenspace f a ≠ ⊥
 
+/-- The eigenvalues of the operator `f`, as a subtype of `R`. -/
+def eigenvalues (f : End R M) := {μ : R // has_eigenvalue f μ}
+
+instance (f : End R M) : has_coe f.eigenvalues R := coe_subtype
+
 lemma has_eigenvalue_of_has_eigenvector {f : End R M} {μ : R} {x : M} (h : has_eigenvector f μ x) :
   has_eigenvalue f μ :=
 begin
@@ -171,7 +176,9 @@ begin
   exact has_eigenvalue_of_has_eigenvector (exists_mem_ne_zero_of_ne_bot nu).some_spec,
 end
 
-lemma eigenspaces_independent (f : End K V) : complete_lattice.independent (λ μ, eigenspace f μ) :=
+/-- The eigenspaces of a linear operator form an independent family of subspaces of `V`.  That is,
+any eigenspace has trivial intersection with the span of all the other eigenspaces. -/
+lemma eigenspaces_independent (f : End K V) : complete_lattice.independent f.eigenspace :=
 begin
   classical,
   -- Define an operation from `Π₀ μ : K, f.eigenspace μ`, the vector space of of finitely-supported
@@ -273,6 +280,9 @@ begin
         exact_mod_cast this },
       exact congr_arg (coe : _ → V) (h_lμ_eq_0 μ h_cases) }}
 end
+
+noncomputable instance [finite_dimensional K V] (f : End K V) : fintype f.eigenvalues :=
+f.eigenspaces_independent.fintype_ne_bot_of_finite_dimensional
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
     independent. (Lemma 5.10 of [axler2015])

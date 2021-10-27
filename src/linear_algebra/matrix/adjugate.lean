@@ -312,7 +312,7 @@ begin
   { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_det,
       ←alg_hom.map_det, ←alg_hom.map_pow, this] },
 
-  apply mul_left_cancel₀ (det_mv_polynomial_X_ne_zero n ℤ),
+  apply mul_left_cancel₀ (show A'.det ≠ 0, from det_mv_polynomial_X_ne_zero n ℤ),
   calc  A'.det * A'.adjugate.det
       = (A' ⬝ adjugate A').det                 : (det_mul _ _).symm
   ... = A'.det ^ fintype.card n                : by rw [mul_adjugate, det_smul, det_one, mul_one]
@@ -413,6 +413,15 @@ begin
   { rw [pow_succ', mul_eq_mul, adjugate_mul_distrib, IH, ←mul_eq_mul, pow_succ] }
 end
 
+lemma det_smul_adjugate_adjugate (A : matrix n n α) :
+  det A • adjugate (adjugate A) = det A ^ (fintype.card n - 1) • A :=
+begin
+  have : A ⬝ (A.adjugate ⬝ A.adjugate.adjugate) = A ⬝ (A.det ^ (fintype.card n - 1) • 1),
+  { rw [←adjugate_mul_distrib, adjugate_mul, adjugate_smul, adjugate_one], },
+  rwa [←matrix.mul_assoc, mul_adjugate, matrix.mul_smul, matrix.mul_one, matrix.smul_mul,
+    matrix.one_mul] at this,
+end
+
 /-- Note that this is not true for `fintype.card n = 1` since `1 - 2 = 0` and not `-1`. -/
 lemma adjugate_adjugate (A : matrix n n α) (h : fintype.card n ≠ 1) :
   adjugate (adjugate A) = det A ^ (fintype.card n - 2) • A :=
@@ -441,17 +450,7 @@ begin
   have is_reg : is_smul_regular (mv_polynomial (n × n) ℤ) (det A') :=
     λ x y, mul_left_cancel₀ (det_mv_polynomial_X_ne_zero n ℤ),
   apply is_reg.matrix,
-  rw [smul_smul, ←pow_succ, h_card'],
-
-  -- lean gets stuck finding this instance
-  letI :
-    is_scalar_tower (mv_polynomial (n × n) ℤ) (mv_polynomial (n × n) ℤ) (mv_polynomial (n × n) ℤ) :=
-      semigroup.is_scalar_tower,
-
-  have : A' ⬝ (A'.adjugate ⬝ A'.adjugate.adjugate) = A' ⬝ (A'.det ^ (fintype.card n - 1) • 1),
-  { rw [←adjugate_mul_distrib, adjugate_mul, adjugate_smul, adjugate_one], },
-  rwa [←matrix.mul_assoc, mul_adjugate, matrix.mul_smul, matrix.mul_one, matrix.smul_mul,
-    matrix.one_mul] at this,
+  rw [smul_smul, ←pow_succ, h_card', det_smul_adjugate_adjugate],
 end
 
 end adjugate

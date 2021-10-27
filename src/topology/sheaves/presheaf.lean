@@ -150,8 +150,6 @@ This is defined in terms of left kan extensions, which is just a fancy way of sa
 def pullback_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : Y.presheaf C) : X.presheaf C :=
 (Lan (opens.map f).op).obj ℱ
 
-end presheaf
-
 /-- Pulling back along continuous maps is functorial. -/
 def pullback_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : Y.presheaf C} (α : ℱ ⟶ 𝒢) :
   pullback_obj f ℱ ⟶ pullback_obj f 𝒢 :=
@@ -194,7 +192,7 @@ nat_iso.of_components
       erw colimit.ι_desc_assoc,
       dsimp, simp only [←ℱ.map_comp], congr })
 
-lemma heq_of_subsingleton (α β : Type*) [subsingleton α] (x : α) (y : β)
+private lemma heq_of_subsingleton (α β : Type*) [subsingleton α] (x : α) (y : β)
   (H : α = β) : x == y := by { cases H, simp, }
 
 lemma id_inv_app (U : opens Y) :
@@ -221,7 +219,7 @@ def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
 { obj := pushforward_obj f,
   map := @pushforward_map _ _ X Y f }
 
-lemma id_pushforward {X : Top.{v}} : pushforward (𝟙 X) = 𝟭 (X.presheaf C) :=
+lemma id_pushforward {X : Top.{v}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
 begin
   apply category_theory.functor.ext,
   { intros, ext U, have h := f.congr,

@@ -237,7 +237,7 @@ begin
         simp only [S, a, dfinsupp.sum_map_range_index.linear_map, linear_map.id_comp] } },
     -- Therefore, by the induction hypothesis, all entries of `l'` are zero.
     have l'_eq_0 := ih l' total_l' h_l_support',
-    -- By the defintion of `l'`, this means that `(μ - μ₀) • l μ = 0` for all `μ`.
+    -- By the definition of `l'`, this means that `(μ - μ₀) • l μ = 0` for all `μ`.
     have h_smul_eq_0 : ∀ μ, (μ - μ₀) • l μ = 0,
     { intro μ,
       calc (μ - μ₀) • l μ = l' μ : by simp only [l', linear_map.id_coe, id.def,
@@ -249,15 +249,15 @@ begin
       apply or_iff_not_imp_left.1 (smul_eq_zero.1 (h_smul_eq_0 μ)),
       rwa [sub_eq_zero] },
     -- So if we sum over all these representatives, we obtain `0`.
-    -- have h_sum_l_support'_eq_0 : finset.sum l_support' (λ (μ : ↥μs), l μ • xs μ) = 0,
-    -- { rw ←finset.sum_const_zero,
-    --   apply finset.sum_congr rfl,
-    --   intros μ hμ,
-    --   rw h_lμ_eq_0,
-    --   apply zero_smul,
-    --   intro h,
-    --   rw h at hμ,
-    --   contradiction },
+    have h_sum_l_support'_eq_0 : finset.sum l_support' (λ μ, (l μ : V)) = 0,
+    { rw ←finset.sum_const_zero,
+      apply finset.sum_congr rfl,
+      intros μ hμ,
+      norm_cast,
+      rw h_lμ_eq_0,
+      intro h,
+      rw h at hμ,
+      contradiction },
     -- -- The only potentially nonzero eigenspace-representative in `l` is the one corresponding to
     -- -- `μ₀`. But since the overall sum is `0` by assumption, this representative must also be `0`.
     -- have : l μ₀ = 0,

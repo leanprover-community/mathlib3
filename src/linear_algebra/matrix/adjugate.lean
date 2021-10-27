@@ -431,8 +431,9 @@ begin
   suffices : adjugate (adjugate A') = det A' ^ (fintype.card n - 2) • A',
   { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
       ←alg_hom.map_det, ← alg_hom.map_pow],
+    -- TODO: missing an `alg_hom.map_smul_of_tower` here.
     ext i j,
-    dsimp,
+    dsimp [-mv_polynomial_X],
     rw [←alg_hom.map_mul] },
   have h_card' : fintype.card n - 2 + 1 = fintype.card n - 1,
   { simp [h_card] },

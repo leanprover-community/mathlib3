@@ -171,7 +171,7 @@ theorem has_eigenvalue_iff_is_root :
 ⟨is_root_of_has_eigenvalue, has_eigenvalue_of_is_root⟩
 
 /-- An endomorphism of a finite-dimensional vector space has finitely many eigenvalues. -/
-noncomputable instance [finite_dimensional K V] (f : End K V) : fintype (eigenvalues f) :=
+noncomputable instance (f : End K V) : fintype f.eigenvalues :=
 set.finite.fintype
 begin
   have h : minpoly K f ≠ 0 := minpoly.ne_zero f.is_integral,
@@ -195,6 +195,10 @@ begin
   rw linear_map.is_unit_iff at nu,
   exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
 end
+
+noncomputable instance [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
+  inhabited f.eigenvalues :=
+⟨⟨f.exists_eigenvalue.some, f.exists_eigenvalue.some_spec⟩⟩
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
     independent. (Lemma 5.10 of [axler2015])

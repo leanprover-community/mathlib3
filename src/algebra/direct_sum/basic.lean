@@ -172,13 +172,18 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
 
+/-- The canonical embedding from `⨁ i, A i` to `M`-/
+def direct_sum.add_submonoid_coe {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (A : ι → add_submonoid M) : (⨁ i, A i) →+ M :=
+direct_sum.to_add_monoid (λ i, (A i).subtype)
+
 /-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.
 
 See `direct_sum.add_subgroup_is_internal` for the same statement about `add_subgroup`s. -/
 def add_submonoid_is_internal {M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (A : ι → add_submonoid M) : Prop :=
-function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+function.bijective (direct_sum.add_submonoid_coe A)
 
 lemma add_submonoid_is_internal.supr_eq_top {M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (A : ι → add_submonoid M)
@@ -192,6 +197,14 @@ end
 def direct_sum.add_subgroup_coe {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) : (⨁ i, A i) →+ M :=
 direct_sum.to_add_monoid (λ i, (A i).subtype)
+
+@[simp] lemma add_group_coe_of {M : Type*} [decidable_eq ι] [add_comm_group M]
+  (A : ι → add_subgroup M) (i : ι) (x : A i) :
+direct_sum.add_subgroup_coe A (direct_sum.of (λ i, A i) i x) = x :=
+begin
+  rw [direct_sum.add_subgroup_coe, direct_sum.to_add_monoid_of],
+  simp only [add_subgroup.coe_subtype],
+end
 
 /-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.

@@ -515,7 +515,7 @@ by { ext, simp [le_floor] }
 end int
 
 /-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
-lemma floor_ring_unique {α} [linear_ordered_ring α] :
+lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :
   subsingleton (floor_ring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,

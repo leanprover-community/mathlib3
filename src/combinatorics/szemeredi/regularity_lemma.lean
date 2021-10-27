@@ -117,7 +117,7 @@ begin
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
   have hsize : P.parts.card ≤ (exp_bound^[⌊4 / ε^5⌋₊] t) :=
-    hP₃.trans (iterate_le_iterate_of_id_le le_exp_bound (nat.le_floor hi) _),
+    hP₃.trans (monotone_iterate_of_id_le le_exp_bound (nat.le_floor hi) _),
   have hPα : P.parts.card * 16^P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨hP₁.increment G ε, increment_is_equipartition hP₁ G ε, _, _,

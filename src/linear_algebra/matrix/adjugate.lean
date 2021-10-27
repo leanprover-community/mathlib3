@@ -7,6 +7,7 @@ import algebra.associated
 import algebra.regular.basic
 import data.matrix.notation
 import linear_algebra.matrix.polynomial
+import linear_algebra.matrix.mv_polynomial
 import tactic.linarith
 import tactic.ring_exp
 import ring_theory.polynomial.basic
@@ -295,35 +296,6 @@ lemma _root_.alg_hom.map_adjugate {R A B : Type*} [comm_semiring R] [comm_ring A
   (M : matrix n n A) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
 f.to_ring_hom.map_adjugate _
 
-section
-/-- The matrix with with a different variable at each location. -/
-noncomputable def mv_polynomial_X (m n : Type*) (R : Type*) [comm_semiring R] :
-  matrix m n (mv_polynomial (m × n) R) :=
-matrix.map prod.mk mv_polynomial.X
-
-
-variables {R S : Type*}
-
-lemma mv_polynomial_X_map_eval₂ {m n : Type*} {R S : Type*} [comm_semiring R] [comm_semiring S]
-  (f : R →+* S) (A : matrix m n S) :
-  (mv_polynomial_X m n R).map (mv_polynomial.eval₂ f $ λ p : m × n, A p.1 p.2) = A :=
-ext $ λ i j, mv_polynomial.eval₂_X _ (λ p : m × n, A p.1 p.2) (i, j)
-
-lemma det_mv_polynomial_X_ne_zero (m : Type*) (R : Type*) [decidable_eq m] [fintype m] [comm_ring R]
-  [nontrivial R] :
-  det (mv_polynomial_X m m R) ≠ 0 :=
-begin
-  have one_eq :
-    has_one.one = (mv_polynomial.eval $ λ p : m × m, (1 : matrix m m R) p.1 p.2).map_matrix
-      (mv_polynomial_X m m R),
-  { exact (mv_polynomial_X_map_eval₂ _ (1 : matrix m m R)).symm },
-  intro h_det,
-  have := congr_arg matrix.det one_eq,
-  rw [det_one, ←ring_hom.map_det, h_det, ring_hom.map_zero] at this,
-  exact one_ne_zero this,
-end
-
-end
 
 lemma det_adjugate (A : matrix n n α) : (adjugate A).det = A.det ^ (fintype.card n - 1) :=
 begin
@@ -333,15 +305,12 @@ begin
     rw [h_card, nat.zero_sub, pow_zero, adjugate_subsingleton, det_one] },
   replace h_card := tsub_add_cancel_of_le h_card.nat_succ_le,
 
-  -- express `A` as an evaluation of a polynomial in n^2 variables
+  -- express `A` as an evaluation of a polynomial in n^2 variables, and solve in the polynomial ring
+  -- where `A'.det` is non-zero.
   let A' := mv_polynomial_X n n ℤ,
-  have A_eq : A = (mv_polynomial.aeval (λ p : n × n, A p.1 p.2)).to_ring_hom.map_matrix A',
-  from (mv_polynomial_X_map_eval₂ _ _).symm,
-
-  -- and solve in the polynomial ring where `A'.det` is non-zero
   suffices : A'.adjugate.det = A'.det ^ (fintype.card n - 1),
-  { rw [A_eq, ←ring_hom.map_adjugate, ←ring_hom.map_det, ←ring_hom.map_det, ←ring_hom.map_pow,
-      this] },
+  { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_det,
+      ←alg_hom.map_det, ←alg_hom.map_pow, this] },
 
   apply mul_left_cancel₀ (det_mv_polynomial_X_ne_zero n ℤ),
   calc  A'.det * A'.adjugate.det
@@ -456,14 +425,11 @@ begin
   { exact (h h_card).elim },
   rw ←h_card,
 
-  -- express `A` as an evaluation of a polynomial in n^2 variables
+  -- express `A` as an evaluation of a polynomial in n^2 variables, and solve in the polynomial ring
+  -- where `A'.det` is non-zero.
   let A' := mv_polynomial_X n n ℤ,
-  have A_eq : A = (mv_polynomial.aeval (λ p : n × n, A p.1 p.2)).map_matrix A',
-  from (mv_polynomial_X_map_eval₂ _ _).symm,
-
-  -- and solve in the polynomial ring where `A'.det` is non-zero
   suffices : adjugate (adjugate A') = det A' ^ (fintype.card n - 2) • A',
-  { rw [A_eq, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
+  { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
       ←alg_hom.map_det, ← alg_hom.map_pow],
     ext i j,
     dsimp,

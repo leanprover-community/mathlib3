@@ -61,33 +61,91 @@ namespace algebraic_geometry
 
 universes v u
 
-variables (C : Type u) [category.{v} C]
+variables {C : Type u} [category.{v} C]
 
--- instance has_lift_to_open (U : Top) (V : opens U) :
---   has_lift ((opens.to_Top U).obj V) U := ⟨λ x, x.val⟩
-def restrict_comp {X Y : Top} {Z : PresheafedSpace C} {f : X ⟶ Y} {g : Y ⟶ Z.1}
-  (hf : open_embedding f) (hg : open_embedding g) :
-  Z.restrict (f ≫ g) (hg.comp hf) ≅ ((Z.restrict _ hg).restrict _ hf) :=
-{ hom := { base := 𝟙 _, c :=
-  { app := λ U, Z.presheaf.map (eq_to_hom (sorry /-by simp [is_open_map.functor, ←set.image_comp]-/)),
-    naturality' := λ X Y f,
-    begin sorry
-      -- dsimp only [PresheafedSpace.restrict],
-      -- simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map,
-      --   functor.comp_map, functor.op_map, ←functor.map_comp],
-      -- congr
-    end } },
-  inv := { base := 𝟙 _, c :=
-  { app := λ U, Z.presheaf.map (eq_to_hom (sorry /-by simp [is_open_map.functor, ←set.image_comp]-/)),
-    naturality' := λ X Y f,
-    begin sorry
-      -- dsimp only [PresheafedSpace.restrict],
-      -- simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map,
-      --   functor.comp_map, functor.op_map, ←functor.map_comp],
-      -- congr
-    end } },
-  hom_inv_id' := by { unfold category_struct.comp PresheafedSpace.comp, simp, congr, },
-  inv_hom_id' := _ }
+-- def is_open_map.functor_comp {X Y Z: Top.{u}} (f : X ⟶ Y)
+--   (hf : is_open_map f) (g : Y ⟶ Z) (hg : is_open_map g) :
+--   hf.functor ⋙ hg.functor = @is_open_map.functor _ _ (f ≫ g) (hg.comp hf) :=
+-- begin
+--   fapply category_theory.functor.ext,
+--   intro U, ext, simp,
+--   intros U V i, delta is_open_map.functor, simp
+-- end
+
+lemma heq_id_of_eq {X Y : C} (H : X = Y) (f : Y ⟶ Y) (h₁ : f = 𝟙 _) :
+  f == 𝟙 X := by { cases H, simp[h₁], }
+
+section end
+
+attribute[simps] Top.presheaf.pushforward
+open opposite Top.presheaf
+
+@[simps]
+def inv_of_iso_pushforward {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1) (H₂ : H₁.hom _* X.2 ≅ Y.2) :
+   X.presheaf ⟶ H₁.inv _* Y.presheaf :=
+({ app := λ U, X.presheaf.map (eq_to_hom
+    (begin
+      op_induction U,
+      simp only [unop_op, op_inj_iff, functor.op_obj, opens.map],
+      ext,
+      simp only [coe_hom_inv_id, set.mem_preimage, topological_space.opens.mem_coe,
+        iff_self, subtype.coe_mk, subtype.val_eq_coe]
+    end)),
+    naturality' := λ _ _ f,
+    begin
+      delta pushforward_obj,
+      simp only [quiver.hom.unop_op, functor.comp_map, functor.op_map, ←functor.map_comp],
+      congr
+    end } : X.presheaf ⟶ H₁.inv _* (H₁.hom _* X.presheaf)) ≫
+((Top.presheaf.pushforward H₁.inv).map_iso H₂).hom
+
+@[simps]
+def PresheafedSpace.iso_of_components {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1)
+  (H₂ : H₁.hom _* X.2 ≅ Y.2) : X ≅ Y :=
+{ hom := { base := H₁.hom, c := H₂.inv },
+  inv := { base := H₁.inv,
+    c := inv_of_iso_pushforward H₁ H₂ },
+  hom_inv_id' := by { ext, simp, dsimp only [functor.op], erw category.id_comp, simpa, simp },
+  inv_hom_id' :=
+  begin
+    ext x,
+    op_induction x,
+    change (H₂.inv.app (op x) ≫ (X.presheaf.map (eq_to_hom _) ≫
+      H₂.hom.app _) ≫ _) ≫ Y.presheaf.map _ = _,
+    simp only [algebraic_geometry.PresheafedSpace.id_c_app,
+      category.assoc, pushforward.comp_inv_app],
+    erw [category.id_comp, ←H₂.hom.naturality],
+    have := congr_app (H₂.inv_hom_id) (op x),
+    cases x,
+    rw nat_trans.comp_app at this,
+    convert this,
+    dsimp, simp,
+    simp
+  end }
+
+section end
+
+@[simps]
+def restrict_comp {X Y : Top} (Z : PresheafedSpace C) (f : X ⟶ Y)
+  (hf : open_embedding f) (g : Y ⟶ Z.1) (hg : open_embedding g) (h : X ⟶ Z.1) (eq : h = f ≫ g) :
+  Z.restrict h (by simpa[eq] using hg.comp hf) ≅ ((Z.restrict _ hg).restrict _ hf) :=
+PresheafedSpace.iso_of_components (iso.refl X)
+begin
+  refine (functor.associator _ _ _).symm.trans
+  ((iso_whisker_right _ Z.presheaf).trans (functor.associator _ _ _)),
+  change (opens.map _ ⋙ is_open_map.functor _).op ≅
+    (is_open_map.functor _ ⋙ is_open_map.functor _).op,
+  apply nat_iso.op,
+  fapply nat_iso.of_components,
+  intro U,
+  apply eq_to_iso,
+  ext1,
+  simp only [set.image_congr, is_open_map.functor, Top.comp_app,
+    functor.comp_obj, subtype.coe_mk, eq, ←set.image_comp],
+  congr,
+  intros _ _ _,
+  simp[is_open_map.functor],
+end
 
 structure open_immersion {C : Type*} [category C] {X Y : PresheafedSpace C} (f : X ⟶ Y) :=
 (base_open : open_embedding f.base)
@@ -99,6 +157,9 @@ def has_pullback_of_open_immersion {C : Type*} [category C] {X Y Z : PresheafedS
 begin
  fapply pullback_cone.mk,
  exact Z.restrict _ (Top.open_embedding_of_pullback_open_embeddings hf.base_open hg.base_open),
+ have := Top.fst_open_embedding_of_right_open_embedding f.base hg.base_open,
+ have := restrict_comp Z _
+  (Top.fst_open_embedding_of_right_open_embedding f.base hg.base_open) g.base hg.base_open,
   -- split,split,split,swap,split,swap,
 end
 

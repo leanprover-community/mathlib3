@@ -89,3 +89,18 @@ begin
 end
 
 end finset
+
+lemma complete_lattice.independent_iff_sup_indep [complete_distrib_lattice α] [decidable_eq ι]
+  {s : finset ι} {f : ι → α} :
+  complete_lattice.independent (f ∘ (coe : s → ι)) ↔ s.sup_indep f :=
+begin
+  refine subtype.forall.trans (forall_congr $ λ a, forall_congr $ λ b, _),
+  rw finset.sup_eq_supr,
+  congr' 2,
+  refine supr_subtype.trans _,
+  congr' 1 with x,
+  simp [supr_and, @supr_comm _ (x ∈ s)],
+end
+
+alias complete_lattice.independent_iff_sup_indep ↔ complete_lattice.independent.sup_indep
+  finset.sup_indep.independent

@@ -6,6 +6,7 @@ Authors: Kyle Miller
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
 import combinatorics.simple_graph.move_somewhere
+import data.nat.basic
 /-!
 
 # Graph connectivity
@@ -1219,6 +1220,42 @@ begin
   split,
   { apply unique_path_if_is_acyclic, },
   { apply is_acyclic_if_unique_path, },
+end
+
+open fintype
+
+lemma is_tree_then_card_edges_le_card_vertices
+  [fintype G.edge_set] [fintype V] : G.is_tree → card G.edge_set < card V :=
+begin
+  sorry
+end
+
+lemma is_tree_then_not_card_edges_le_card_vertices_minus_one
+  [fintype G.edge_set] [fintype V] [nonempty V]: G.is_tree → ¬ card G.edge_set < card V - 1 :=
+begin
+  sorry
+end
+
+/-
+the strategy is to use the lemmas above and nat.eq_of_lt_succ_of_not_lt in order to
+achieve equality
+-/
+lemma is_tree_then_card_edges_eq_card_vertices_minus_one
+  [fintype G.edge_set] [fintype V] [nonempty V] : G.is_tree → card G.edge_set = card V - 1 :=
+begin
+  intro h,
+  have hle := is_tree_then_card_edges_le_card_vertices _ h,
+  have hnle := is_tree_then_not_card_edges_le_card_vertices_minus_one _ h,
+  sorry
+end
+
+lemma is_tree_then_card_edges_eq_card_vertices_minus_one'
+  [fintype G.edge_set] [fintype V] [nonempty V] : G.is_tree → card G.edge_set = card V - 1 :=
+begin
+  intro h,
+  induction card V with n' hn',
+  {sorry},
+  {sorry},
 end
 
 lemma is_tree_iff : G.is_tree ↔ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=

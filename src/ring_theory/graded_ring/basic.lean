@@ -83,7 +83,6 @@ begin
   { rw [h, of_eq_same] },
   { rw of_eq_of_ne, refl, intro rid, exact h rid.symm },
   { simp only [mem_homogeneous_submodule], apply (x j).2 },
-  apply_instance,
 end
 
 noncomputable instance mv_polynomial_is_graded : graded_ring (mv_polynomial σ R)

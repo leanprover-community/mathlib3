@@ -348,16 +348,6 @@ begin
   { exact hd.mono_comp _ (λ _ _, diff_subset_diff_right) }
 end
 
-lemma measure_eq_inter_diff (hs : measurable_set s) (ht : measurable_set t) :
-  μ s = μ (s ∩ t) + μ (s \ t) :=
-have hd : disjoint (s ∩ t) (s \ t) := assume a ⟨⟨_, hs⟩, _, hns⟩, hns hs ,
-by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
-
-lemma measure_union_add_inter (hs : measurable_set s) (ht : measurable_set t) :
-  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
-by { rw [measure_eq_inter_diff (hs.union ht) ht, set.union_inter_cancel_right,
-  union_diff_right, measure_eq_inter_diff hs ht], ac_refl }
-
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
 is the limit of the measures. -/
 lemma tendsto_measure_Union [semilattice_sup ι] [encodable ι] {s : ι → set α}
@@ -458,11 +448,16 @@ end outer_measure
 variables {m0 : measurable_space α} [measurable_space β] [measurable_space γ]
 variables {μ μ₁ μ₂ μ₃ ν ν' ν₁ ν₂ : measure α} {s s' t : set α}
 
-namespace measure
+lemma measure_inter_add_diff (s : set α) (ht : measurable_set t) :
+  μ (s ∩ t) + μ (s \ t) = μ s :=
+(le_to_outer_measure_caratheodory μ _ ht _).symm
 
-protected lemma caratheodory {m : measurable_space α} (μ : measure α) (hs : measurable_set s) :
-  μ (t ∩ s) + μ (t \ s) = μ t :=
-(le_to_outer_measure_caratheodory μ s hs t).symm
+lemma measure_union_add_inter (s : set α) (ht : measurable_set t) :
+  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
+by { rw [← measure_inter_add_diff (s ∪ t) ht, set.union_inter_cancel_right,
+  union_diff_right, ← measure_inter_add_diff s ht], ac_refl }
+
+namespace measure
 
 /-! ### The `ℝ≥0∞`-module of measures -/
 
@@ -824,12 +819,12 @@ lemma restrict_union (h : disjoint s t) (hs : measurable_set s) (ht : measurable
   μ.restrict (s ∪ t) = μ.restrict s + μ.restrict t :=
 ext $ λ t' ht', restrict_union_apply (h.mono inf_le_right inf_le_right) hs ht ht'
 
-lemma restrict_union_add_inter (hs : measurable_set s) (ht : measurable_set t) :
+lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
   μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
 begin
   ext1 u hu,
   simp only [add_apply, restrict_apply hu, inter_union_distrib_left],
-  convert measure_union_add_inter (hu.inter hs) (hu.inter ht) using 3,
+  convert measure_union_add_inter (u ∩ s) (hu.inter ht) using 3,
   rw [set.inter_left_comm (u ∩ s), set.inter_assoc, ← set.inter_assoc u u, set.inter_self]
 end
 
@@ -1685,10 +1680,14 @@ lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν �
   is_finite_measure ν :=
 { measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
 
-lemma measure.is_finite_measure_map {m : measurable_space α}
-  (μ : measure α) [is_finite_measure μ] {f : α → β} (hf : measurable f) :
+@[instance] lemma measure.is_finite_measure_map {m : measurable_space α}
+  (μ : measure α) [is_finite_measure μ] (f : α → β) :
   is_finite_measure (map f μ) :=
-⟨by { rw map_apply hf measurable_set.univ, exact measure_lt_top μ _ }⟩
+begin
+  by_cases hf : measurable f,
+  { constructor, rw map_apply hf measurable_set.univ, exact measure_lt_top μ _ },
+  { rw map_of_not_measurable hf, exact measure_theory.is_finite_measure_zero }
+end
 
 @[simp] lemma measure_univ_nnreal_eq_zero [is_finite_measure μ] :
   measure_univ_nnreal μ = 0 ↔ μ = 0 :=

@@ -914,7 +914,7 @@ end
 
 variables (R)
 
-lemma dim_self : module.rank R R = 1 :=
+@[simp] lemma dim_self : module.rank R R = 1 :=
 by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.mk_punit]
 
 end strong_rank_condition

@@ -54,25 +54,6 @@ apply_nolint mzip_with' doc_blame
 apply_nolint succeeds doc_blame
 apply_nolint sum.bind doc_blame
 
--- control/bifunctor.lean
-apply_nolint bifunctor doc_blame
-apply_nolint bifunctor.fst doc_blame
-apply_nolint bifunctor.snd doc_blame
-apply_nolint is_lawful_bifunctor doc_blame
-
--- control/bitraversable/basic.lean
-apply_nolint bisequence doc_blame
-apply_nolint bitraversable doc_blame
-apply_nolint is_lawful_bitraversable doc_blame
-
--- control/bitraversable/instances.lean
-apply_nolint bicompl.bitraverse doc_blame
-apply_nolint bicompr.bitraverse doc_blame
-apply_nolint const.bitraverse doc_blame unused_arguments
-apply_nolint flip.bitraverse doc_blame
-apply_nolint prod.bitraverse doc_blame
-apply_nolint sum.bitraverse doc_blame
-
 -- control/fold.lean
 apply_nolint monoid.foldl.get doc_blame
 apply_nolint monoid.foldl.mk doc_blame
@@ -232,11 +213,6 @@ apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
-
--- data/list/sigma.lean
-apply_nolint list.kextract doc_blame
-apply_nolint list.kreplace doc_blame
-apply_nolint list.nodupkeys doc_blame
 
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame

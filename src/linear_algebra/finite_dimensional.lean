@@ -22,16 +22,12 @@ finite-dimensionality of `V`:
 - it is noetherian, i.e., every subspace is finitely generated.
 
 We introduce a typeclass `finite_dimensional K V` capturing this property. For ease of transfer of
-proof, it is defined using the third point of view, i.e., as `is_noetherian`. However, we prove
+proof, it is defined using the second point of view, i.e., as `finite`. However, we prove
 that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
-- `basis.of_vector_space_index.fintype` states that a finite-dimensional
+- `fintype_basis_index` states that a finite-dimensional
   vector space has a finite basis
-- `finite_dimensional.fintype_basis_index` states that a basis of a
-  finite-dimensional vector space contains finitely many basis vectors
-- `finite_dimensional.finset_basis` states that a finite-dimensional
-  vector space has a basis indexed by a `finset`
 - `finite_dimensional.fin_basis` and `finite_dimensional.fin_basis_of_finrank_eq`
   are bases for finite dimensional vector spaces, where the index type
   is `fin`
@@ -41,8 +37,8 @@ that all these points of view are equivalent, with the following lemmas
   `finset` implies finite-dimensionality
 - `of_finite_basis` states that the existence of a basis indexed by a
   finite set implies finite-dimensionality
-- `iff_fg` states that the space is finite-dimensional if and only if
-  it is finitely generated
+- `is_noetherian.iff_fg` states that the space is finite-dimensional if and only if
+  it is noetherian
 
 Also defined is `finrank`, the dimension of a finite dimensional space, returning a `nat`,
 as opposed to `module.rank`, which returns a `cardinal`. When the space has infinite dimension, its
@@ -56,8 +52,8 @@ Preservation of finite-dimensionality and formulas for the dimension are given f
 
 Basic properties of linear maps of a finite-dimensional vector space are given. Notably, the
 equivalence of injectivity and surjectivity is proved in `linear_map.injective_iff_surjective`,
-and the equivalence between left-inverse and right-inverse in `mul_eq_one_comm` and
-`comp_eq_id_comm`.
+and the equivalence between left-inverse and right-inverse in `linear_map.mul_eq_one_comm`
+and `linear_map.comp_eq_id_comm`.
 
 ## Implementation notes
 
@@ -83,9 +79,9 @@ open cardinal submodule module function
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
 Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
-from a conventional definition. -/
+from another definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [division_ring K]
-  [add_comm_group V] [module K V] := is_noetherian K V
+  [add_comm_group V] [module K V] := module.finite K V
 
 namespace finite_dimensional
 
@@ -101,18 +97,34 @@ variables (K V)
 -- Without this apparently redundant instance we get typeclass search errors
 -- in `analysis.normed_space.finite_dimension`.
 instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
-is_noetherian_pi
+iff_fg.1 is_noetherian_pi
 
 /-- A finite dimensional vector space over a finite field is finite -/
-noncomputable def fintype_of_fintype [fintype K] [is_noetherian K V] : fintype V :=
-module.fintype_of_fintype (finset_basis K V)
+noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=
+module.fintype_of_fintype (@finset_basis K V _ _ _ _ (iff_fg.2 infer_instance))
 
 variables {K V}
 
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
 lemma of_fintype_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
   finite_dimensional K V :=
-iff_fg.2 $ ⟨⟨finset.univ.image h, by { convert h.span_eq, simp } ⟩⟩
+⟨⟨finset.univ.image h, by { convert h.span_eq, simp } ⟩⟩
+
+/-- If a vector space is `finite_dimensional`, all bases are indexed by a finite type -/
+noncomputable
+def fintype_basis_index {ι : Type*} [finite_dimensional K V] (b : basis ι K V) : fintype ι :=
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact is_noetherian.fintype_basis_index b,
+end
+
+/-- If a vector space is `finite_dimensional`, `basis.of_vector_space` is indexed by
+  a finite type.-/
+noncomputable instance [finite_dimensional K V] : fintype (basis.of_vector_space_index K V) :=
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  apply_instance
+end
 
 /-- If a vector space has a basis indexed by elements of a finite set, then it is
 finite-dimensional. -/
@@ -128,12 +140,17 @@ of_finite_basis h s.finite_to_set
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K S :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))
+begin
+  letI : is_noetherian K V := iff_fg.2 _,
+  exact iff_fg.1
+    (is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))),
+  apply_instance,
+end
 
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K (quotient S) :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_lt_omega K V))
+finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 /-- The rank of a module as a natural number.
 
@@ -151,7 +168,10 @@ noncomputable def finrank (K V : Type*) [division_ring K]
 lemma finrank_eq_dim (K : Type u) (V : Type v) [division_ring K]
   [add_comm_group V] [module K V] [finite_dimensional K V] :
   (finrank K V : cardinal.{v}) = module.rank K V :=
-by rw [finrank, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
+begin
+  letI : is_noetherian K V := iff_fg.2 infer_instance,
+  rw [finrank, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
+end
 
 lemma finrank_eq_of_dim_eq {n : ℕ} (h : module.rank K V = ↑ n) : finrank K V = n :=
 begin
@@ -163,7 +183,7 @@ end
 lemma finrank_of_infinite_dimensional
   {K V : Type*} [division_ring K] [add_comm_group V] [module K V]
   (h : ¬finite_dimensional K V) : finrank K V = 0 :=
-dif_neg $ mt is_noetherian.iff_dim_lt_omega.2 h
+dif_neg $ mt is_noetherian.iff_dim_lt_omega.2 $ (not_iff_not.2 iff_fg).2 h
 
 lemma finite_dimensional_of_finrank {K V : Type*} [division_ring K] [add_comm_group V] [module K V]
   (h : 0 < finrank K V) : finite_dimensional K V :=
@@ -196,6 +216,7 @@ end
 lemma finrank_eq_card_basis' [finite_dimensional K V] {ι : Type w} (h : basis ι K V) :
   (finrank K V : cardinal.{w}) = #ι :=
 begin
+  haveI : is_noetherian K V := iff_fg.2 infer_instance,
   haveI : fintype ι := fintype_basis_index h,
   rw [cardinal.fintype_card, finrank_eq_card_basis h]
 end
@@ -211,9 +232,9 @@ variables (K V)
 
 /-- A finite dimensional vector space has a basis indexed by `fin (finrank K V)`. -/
 noncomputable def fin_basis [finite_dimensional K V] : basis (fin (finrank K V)) K V :=
-have h : fintype.card (finset_basis_index K V) = finrank K V,
-from (finrank_eq_card_basis (finset_basis K V)).symm,
-(finset_basis K V).reindex (fintype.equiv_fin_of_card_eq h)
+have h : fintype.card (@finset_basis_index K V _ _ _ _ (iff_fg.2 infer_instance)) = finrank K V,
+from (finrank_eq_card_basis (@finset_basis K V _ _ _ _ (iff_fg.2 infer_instance))).symm,
+(@finset_basis K V _ _ _ _ (iff_fg.2 infer_instance)).reindex (fintype.equiv_fin_of_card_eq h)
 
 /-- An `n`-dimensional vector space has a basis indexed by `fin n`. -/
 noncomputable def fin_basis_of_finrank_eq [finite_dimensional K V] {n : ℕ} (hn : finrank K V = n) :
@@ -322,6 +343,7 @@ whole space. -/
 lemma eq_top_of_finrank_eq [finite_dimensional K V] {S : submodule K V}
   (h : finrank K S = finrank K V) : S = ⊤ :=
 begin
+  haveI : is_noetherian K V := iff_fg.2 infer_instance,
   set bS := basis.of_vector_space K S with bS_eq,
   have : linear_independent K (coe : (coe '' basis.of_vector_space_index K S : set V) → V),
     from @linear_independent.image_subtype _ _ _ _ _ _ _ _ _
@@ -370,7 +392,7 @@ by simp
 /-- The submodule generated by a finite set is finite-dimensional. -/
 theorem span_of_finite {A : set V} (hA : set.finite A) :
   finite_dimensional K (submodule.span K A) :=
-is_noetherian_span_of_finite K hA
+iff_fg.1 $ is_noetherian_span_of_finite K hA
 
 /-- The submodule generated by a single element is finite-dimensional. -/
 instance (x : V) : finite_dimensional K (K ∙ x) := by {apply span_of_finite, simp}
@@ -379,7 +401,7 @@ instance (x : V) : finite_dimensional K (K ∙ x) := by {apply span_of_finite, s
 instance (f : V →ₗ[K] V₂) (p : submodule K V) [h : finite_dimensional K p] :
   finite_dimensional K (p.map f) :=
 begin
-  unfreezingI { rw [finite_dimensional, is_noetherian.iff_dim_lt_omega ] at h ⊢ },
+  unfreezingI { rw [finite_dimensional, ← iff_fg, is_noetherian.iff_dim_lt_omega] at h ⊢ },
   rw [← cardinal.lift_lt.{v' v}],
   rw [← cardinal.lift_lt.{v v'}] at h,
   rw [cardinal.lift_omega] at h ⊢,
@@ -602,14 +624,14 @@ open finite_dimensional
 lemma finite_dimensional_of_dim_eq_zero (h : module.rank K V = 0) : finite_dimensional K V :=
 begin
   dsimp [finite_dimensional],
-  rw [is_noetherian.iff_dim_lt_omega, h],
+  rw [← is_noetherian.iff_fg, is_noetherian.iff_dim_lt_omega, h],
   exact cardinal.omega_pos
 end
 
 lemma finite_dimensional_of_dim_eq_one (h : module.rank K V = 1) : finite_dimensional K V :=
 begin
   dsimp [finite_dimensional],
-  rw [is_noetherian.iff_dim_lt_omega, h],
+  rw [← is_noetherian.iff_fg, is_noetherian.iff_dim_lt_omega, h],
   exact one_lt_omega
 end
 
@@ -678,14 +700,17 @@ open is_noetherian finite_dimensional
 /-- A submodule is finitely generated if and only if it is finite-dimensional -/
 theorem fg_iff_finite_dimensional (s : submodule K V) :
   s.fg ↔ finite_dimensional K s :=
-⟨λh, is_noetherian_of_fg_of_noetherian s h,
- λh, by { rw ← map_subtype_top s, exact fg_map (iff_fg.1 h).out }⟩
+⟨λ h, module.finite_def.2 $ (fg_top s).2 h, λ h, (fg_top s).1 $ module.finite_def.1 h⟩
 
 /-- A submodule contained in a finite-dimensional submodule is
 finite-dimensional. -/
 lemma finite_dimensional_of_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (h : S₁ ≤ S₂) :
   finite_dimensional K S₁ :=
-is_noetherian.iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_le_of_submodule _ _ h) (dim_lt_omega K S₂))
+begin
+  haveI : is_noetherian K S₂ := iff_fg.2 infer_instance,
+  exact iff_fg.1 (is_noetherian.iff_dim_lt_omega.2
+    (lt_of_le_of_lt (dim_le_of_submodule _ _ h) (dim_lt_omega K S₂))),
+end
 
 /-- The inf of two submodules, the first finite-dimensional, is
 finite-dimensional. -/
@@ -704,8 +729,9 @@ finite-dimensional. -/
 instance finite_dimensional_sup (S₁ S₂ : submodule K V) [h₁ : finite_dimensional K S₁]
   [h₂ : finite_dimensional K S₂] : finite_dimensional K (S₁ ⊔ S₂ : submodule K V) :=
 begin
-  rw ←submodule.fg_iff_finite_dimensional at *,
-  exact submodule.fg_sup h₁ h₂
+  unfold finite_dimensional at *,
+  rw [finite_def] at *,
+  exact (fg_top _).2 (submodule.fg_sup ((fg_top S₁).1 h₁) ((fg_top S₂).1 h₂)),
 end
 
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
@@ -770,7 +796,7 @@ open finite_dimensional
 /-- Finite dimensionality is preserved under linear equivalence. -/
 protected theorem finite_dimensional (f : V ≃ₗ[K] V₂) [finite_dimensional K V] :
   finite_dimensional K V₂ :=
-is_noetherian_of_linear_equiv f
+module.finite.equiv f
 
 /-- The dimension of a finite dimensional space is preserved under linear equivalence. -/
 theorem finrank_eq (f : V ≃ₗ[K] V₂) [finite_dimensional K V] :
@@ -787,9 +813,12 @@ lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) [finite_dimensio
 
 end linear_equiv
 
-instance finite_dimensional_finsupp {ι : Type*} [fintype ι] [finite_dimensional K V] :
+instance finite_dimensional_finsupp {ι : Type*} [fintype ι] [h : finite_dimensional K V] :
   finite_dimensional K (ι →₀ V) :=
-(finsupp.linear_equiv_fun_on_fintype K V ι).symm.finite_dimensional
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact (finsupp.linear_equiv_fun_on_fintype K V ι).symm.finite_dimensional
+end
 
 namespace finite_dimensional
 
@@ -914,7 +943,7 @@ mul_eq_one_comm
 /-- The image under an onto linear map of a finite-dimensional space is also finite-dimensional. -/
 lemma finite_dimensional_of_surjective [h : finite_dimensional K V]
   (f : V →ₗ[K] V₂) (hf : f.range = ⊤) : finite_dimensional K V₂ :=
-is_noetherian_of_surjective V f hf
+module.finite.of_surjective f $ range_eq_top.1 hf
 
 /-- The range of a linear map defined on a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_range [h : finite_dimensional K V] (f : V →ₗ[K] V₂) :
@@ -1295,6 +1324,7 @@ begin
   { exfalso,
     apply ne_of_lt (fintype.card_pos_iff.mpr hι),
     symmetry,
+    replace fin := (not_iff_not.2 is_noetherian.iff_fg).2 fin,
     calc fintype.card ι = finrank K V : card_eq
                     ... = 0 : dif_neg (mt is_noetherian.iff_dim_lt_omega.mpr fin) }
 end
@@ -1590,17 +1620,17 @@ begin
     ∃ k, k ≤ finrank K V ∧ linear_map.ker (f ^ k) = linear_map.ker (f ^ k.succ) :=
     exists_ker_pow_eq_ker_pow_succ f,
   calc (f ^ m).ker = (f ^ (k + (m - k))).ker :
-      by rw nat.add_sub_of_le (h_k_le.trans hm)
+      by rw add_tsub_cancel_of_le (h_k_le.trans hm)
     ...  = (f ^ k).ker : by rw ker_pow_constant hk _
     ...  = (f ^ (k + (finrank K V - k))).ker : ker_pow_constant hk (finrank K V - k)
-    ...  = (f ^ finrank K V).ker : by rw nat.add_sub_of_le h_k_le
+    ...  = (f ^ finrank K V).ker : by rw add_tsub_cancel_of_le h_k_le
 end
 
 lemma ker_pow_le_ker_pow_finrank [finite_dimensional K V] (f : End K V) (m : ℕ) :
   (f ^ m).ker ≤ (f ^ finrank K V).ker :=
 begin
   by_cases h_cases: m < finrank K V,
-  { rw [←nat.add_sub_of_le (nat.le_of_lt h_cases), add_comm, pow_add],
+  { rw [←add_tsub_cancel_of_le (nat.le_of_lt h_cases), add_comm, pow_add],
     apply linear_map.ker_le_ker_comp },
   { rw [ker_pow_eq_ker_pow_finrank_of_le (le_of_not_lt h_cases)],
     exact le_refl _ }

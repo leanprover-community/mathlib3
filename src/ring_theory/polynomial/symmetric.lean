@@ -193,7 +193,7 @@ lemma support_esymm'' (n : ℕ) [decidable_eq σ] [nontrivial R] :
     (λ t, (finsupp.single (∑ (i : σ) in t, finsupp.single i 1) (1:R)).support) :=
 begin
   rw esymm_eq_sum_monomial,
-  simp only [monomial],
+  simp only [← single_eq_monomial],
   convert finsupp.support_sum_eq_bUnion (powerset_len n (univ : finset σ)) _,
   intros s t hst d,
   simp only [finsupp.support_single_ne_zero one_ne_zero, and_imp, inf_eq_inter, mem_inter,

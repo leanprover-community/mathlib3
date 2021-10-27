@@ -1074,6 +1074,18 @@ by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
 lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
 by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
 
+lemma mul_inverse_rev {M₀ : Type*} [comm_monoid_with_zero M₀] (a b : M₀) :
+  ring.inverse (a * b) = ring.inverse b * ring.inverse a :=
+begin
+  by_cases hab : is_unit (a * b),
+  { obtain ⟨⟨a, rfl⟩, b, rfl⟩ := is_unit.mul_iff.mp hab,
+    rw [←units.coe_mul, ring.inverse_unit, ring.inverse_unit, ring.inverse_unit, ←units.coe_mul,
+      mul_inv_rev], },
+  obtain ha | hb := not_and_distrib.mp (mt is_unit.mul_iff.mpr hab),
+  { rw [ring.inverse_non_unit _ hab, ring.inverse_non_unit _ ha, mul_zero]},
+  { rw [ring.inverse_non_unit _ hab, ring.inverse_non_unit _ hb, zero_mul]},
+end
+
 end ring
 
 namespace semiconj_by

@@ -1103,7 +1103,9 @@ local attribute [instance] subset_has_Inf
 
 /-- For a nonempty subset of a conditionally complete linear order to be a conditionally complete
 linear order, it suffices that it contain the `Sup` of all its nonempty bounded-above subsets, and
-the `Inf` of all its nonempty bounded-below subsets. -/
+the `Inf` of all its nonempty bounded-below subsets.
+See note [reducible non-instances]. -/
+@[reducible]
 noncomputable def subset_conditionally_complete_linear_order [inhabited s]
   (h_Sup : ∀ {t : set s} (ht : t.nonempty) (h_bdd : bdd_above t), Sup (coe '' t : set α) ∈ s)
   (h_Inf : ∀ {t : set s} (ht : t.nonempty) (h_bdd : bdd_below t), Inf (coe '' t : set α) ∈ s) :

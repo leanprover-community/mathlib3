@@ -15,6 +15,9 @@ This is a basic API for the rank of finite free modules.
 
 -/
 
+--TODO: `linear_algebra/finite_dimensional` should import this file, and a lot of results should
+--be moved here.
+
 universes u v w
 
 variables (R : Type u) (M : Type v) (N : Type w)

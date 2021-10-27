@@ -113,7 +113,9 @@ begin
 end
 
 /-- The finrank of `M ⊗[R] N` is `(finrank R M) * (finrank R N)`. -/
-@[simp] lemma finrank_tensor_product : finrank R (M ⊗[R] N) = (finrank R M) * (finrank R N) :=
+@[simp] lemma finrank_tensor_product (M : Type v) (N : Type w) [add_comm_group M] [module R M]
+  [module.free R M] [add_comm_group N] [module R N] [module.free R N] :
+finrank R (M ⊗[R] N) = (finrank R M) * (finrank R N) :=
 by { simp [finrank] }
 
 end comm_ring

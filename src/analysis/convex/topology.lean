@@ -173,6 +173,21 @@ begin
          mem_image_of_mem ⇑(homothety x t) hU₃⟩,
 end
 
+lemma convex.is_path_connected {s : set E} (hconv : convex ℝ s) (hne : s.nonempty) :
+  is_path_connected s :=
+begin
+  refine is_path_connected_iff.mpr ⟨hne, _⟩,
+  intros x y x_in y_in,
+  have H := hconv.segment_subset x_in y_in,
+  rw segment_eq_image_line_map at H,
+  exact joined_in.of_line affine_map.line_map_continuous.continuous_on (line_map_apply_zero _ _)
+    (line_map_apply_one _ _) H
+end
+
+@[priority 100]
+instance topological_add_group.path_connected : path_connected_space E :=
+path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
+
 end has_continuous_smul
 
 /-! ### Normed vector space -/
@@ -240,24 +255,6 @@ by simp only [metric.diam, convex_hull_ediam]
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull ℝ s) ↔ metric.bounded s :=
 by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
-
-lemma convex.is_path_connected {s : set E} (hconv : convex ℝ s) (hne : s.nonempty) :
-  is_path_connected s :=
-begin
-  refine is_path_connected_iff.mpr ⟨hne, _⟩,
-  intros x y x_in y_in,
-  let f := λ θ : ℝ, x + θ • (y - x),
-  have hf : continuous f, by continuity,
-  have h₀ : f 0 = x, by simp [f],
-  have h₁ : f 1 = y, by { dsimp [f], rw one_smul, abel },
-  have H := hconv.segment_subset x_in y_in,
-  rw segment_eq_image' at H,
-  exact joined_in.of_line hf.continuous_on h₀ h₁ H
-end
-
-@[priority 100]
-instance normed_space.path_connected : path_connected_space E :=
-path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
 
 @[priority 100]
 instance normed_space.loc_path_connected : loc_path_connected_space E :=

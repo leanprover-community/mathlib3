@@ -74,7 +74,7 @@ by { simp [finrank, rank_lt_omega R M, rank_lt_omega R N] }
 
 /-- The finrank of a finite product is the sum of the finranks. -/
 --TODO: this should follow from `linear_equiv.finrank_eq`, that is over a field.
-@[simp] lemma finrank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
+lemma finrank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
   [Π (i : ι), add_comm_group (M i)] [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)]
   [Π (i : ι), module.finite R (M i)] : finrank R (Π i, M i) = ∑ i, finrank R (M i) :=
 begin
@@ -84,7 +84,7 @@ end
 
 /-- If `n` and `m` are `fintype`, the finrank of `n × m` matrices is
   `(fintype.card n) * (fintype.card m)`. -/
-@[simp] lemma finrank_matrix (n : Type v) [fintype n] (m : Type w) [fintype m] :
+lemma finrank_matrix (n : Type v) [fintype n] (m : Type w) [fintype m] :
   finrank R (matrix n m R) = (card n) * (card m) :=
 by { simp [finrank] }
 

@@ -291,7 +291,7 @@ begin
   exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm
 end
 
-lemma homogeneous_component_homogeneous_polynomial [comm_semiring R] (m n : ℕ)
+lemma homogeneous_component_homogeneous_polynomial (m n : ℕ)
   (p : mv_polynomial σ R) (h : p ∈ homogeneous_submodule σ R n) :
   homogeneous_component m p = if m = n then p else 0 :=
 begin

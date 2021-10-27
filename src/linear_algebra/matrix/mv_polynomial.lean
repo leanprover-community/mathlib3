@@ -32,7 +32,7 @@ variables {m n R S}
 
 /-- Any matrix `A` can be expressed as the evaluation of `matrix.mv_polynomial_X`.
 
-This is of particular use when `mv_polynomial (m × n) R` is an integral domain (and ) but `S` is
+This is of particular use when `mv_polynomial (m × n) R` is an integral domain but `S` is
 not, as if the `mv_polynomial.eval₂` can be pulled to the outside of a goal, it can be solved in
 under cancellative assumptions. -/
 lemma mv_polynomial_X_map_eval₂ [comm_semiring R] [comm_semiring S]

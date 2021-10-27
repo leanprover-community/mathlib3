@@ -3,11 +3,11 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
-import topology.category.Top.basic
-import category_theory.limits.types
+import topology.category.Top.epi_mono
 import category_theory.limits.preserves.limits
 import category_theory.category.ulift
 import category_theory.limits.shapes.types
+import category_theory.limits.concrete_category
 
 /-!
 # The category of topological spaces has all limits and colimits
@@ -126,8 +126,303 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
 
+instance mono_pullback_to_prod {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_binary_product X Y] :
+  mono (prod.lift pullback.fst pullback.snd : pullback f g ⟶ _) :=
+⟨λ W i₁ i₂ h, by { ext,
+                   simpa using congr_arg (λ f, f ≫ limits.prod.fst) h,
+                   simpa using congr_arg (λ f, f ≫ limits.prod.snd) h }⟩
+
+instance map_mono {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [mono f]
+  [mono g] [has_binary_product W X] [has_binary_product Y Z] : mono (limits.prod.map f g) :=
+⟨λ A i₁ i₂ h, by { ext,
+                   rw ←cancel_mono f, simpa using congr_arg (λ f, f ≫ limits.prod.fst) h,
+                   rw ←cancel_mono g, simpa using congr_arg (λ f, f ≫ limits.prod.snd) h }⟩
+
+
+lemma limit_induced (F : J ⥤ Top.{u}) :
+  (limit F).str = ⨅ j, (F.obj j).str.induced (limit.π F j) :=
+begin
+  let homeo := homeo_of_iso (limit.iso_limit_cone ⟨_, limit_cone_is_limit F⟩),
+  refine homeo.inducing.induced.trans _,
+  dsimp only [is_open, limit_cone, of, Top.topological_space, subtype.topological_space,
+    Pi.topological_space],
+  simp only [induced_infi, induced_compose],
+  congr
+end
+
+section prod
+
+lemma prod_topology {X Y : Top} :
+  (X ⨯ Y).topological_space =
+    induced (limits.prod.fst : X ⨯ Y ⟶ _) X.topological_space ⊓
+      induced (limits.prod.snd : X ⨯ Y ⟶ _) Y.topological_space :=
+begin
+  change (X ⨯ Y).str = _,
+  conv_lhs { rw Top.limit_induced },
+  apply le_antisymm,
+  rw le_inf_iff,
+  exact ⟨infi_le _ walking_pair.left, infi_le _ walking_pair.right⟩,
+  rw le_infi_iff,
+  rintro (_|_),
+  exacts [inf_le_left, inf_le_right]
+end
+
+def prod_iso_prod (X Y : Top.{u}) : ↥(X ⨯ Y) ≅ X × Y :=
+begin
+  refine preserves_limit_iso forget (pair X Y) ≪≫
+    limits.lim.map_iso (nat_iso.of_components _ _) ≪≫
+    limit.iso_limit_cone (limits.types.binary_product_limit_cone _ _),
+  intro j, apply eq_to_iso, cases j; simp,
+  tidy,
+end
+
+@[simp, reassoc] lemma prod_iso_prod_hom_fst (X Y : Top) :
+  (prod_iso_prod X Y).hom ≫ prod.fst = (limits.prod.fst : X ⨯ Y ⟶ _) :=
+begin
+  simp only [category.assoc, prod_iso_prod, lim_map_eq_lim_map, iso.trans_hom,
+    functor.map_iso_hom],
+  erw limit.iso_limit_cone_hom_π (types.binary_product_limit_cone ↥X ↥Y) walking_pair.left,
+  simp
+end
+
+@[simp, reassoc] lemma prod_iso_prod_hom_snd (X Y : Top) :
+  (prod_iso_prod X Y).hom ≫ prod.snd = (limits.prod.snd : X ⨯ Y ⟶ _) :=
+begin
+  simp only [category.assoc, prod_iso_prod, lim_map_eq_lim_map, iso.trans_hom,
+    functor.map_iso_hom],
+  erw limit.iso_limit_cone_hom_π (types.binary_product_limit_cone ↥X ↥Y) walking_pair.right,
+  simp
+end
+
+@[simp] lemma prod_iso_prod_hom_apply {X Y : Top} (x : X ⨯ Y) :
+  (prod_iso_prod X Y).hom x =
+    ((limits.prod.fst : X ⨯ Y ⟶ _) x, (limits.prod.snd : X ⨯ Y ⟶ _) x) :=
+begin
+  ext,
+  { refine congr_fun _ x,
+    change ((prod_iso_prod X Y).hom ≫ prod.fst) = _,
+    simp },
+  { refine congr_fun _ x,
+    change ((prod_iso_prod X Y).hom ≫ prod.snd) = _,
+    simp }
+end
+
+@[simp, reassoc, elementwise] lemma prod_iso_prod_inv_fst (X Y : Top) :
+  (prod_iso_prod X Y).inv ≫ (limits.prod.fst : X ⨯ Y ⟶ _) = prod.fst :=
+by simp [iso.inv_comp_eq]
+
+@[simp, reassoc, elementwise] lemma prod_iso_prod_inv_snd (X Y : Top) :
+  (prod_iso_prod X Y).inv ≫ (limits.prod.snd : X ⨯ Y ⟶ _) = prod.snd :=
+by simp [iso.inv_comp_eq]
+
+lemma range_prod_map {W X Y Z : Top.{u}} (f : W ⟶ Y) (g : X ⟶ Z) :
+  set.range (limits.prod.map f g) =
+    (limits.prod.fst : Y ⨯ Z ⟶ _) ⁻¹' (set.range f) ∩
+      (limits.prod.snd : Y ⨯ Z ⟶ _) ⁻¹' (set.range g) :=
+begin
+  ext,
+  split,
+  rintros ⟨y, rfl⟩,
+  simp only [set.mem_preimage, set.mem_range, set.mem_inter_eq, ←comp_apply],
+  simp only [limits.prod.map_fst, limits.prod.map_snd,
+    exists_apply_eq_apply, comp_apply, and_self],
+  rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
+  use (prod_iso_prod W X).inv (x₁, x₂),
+  apply concrete.limit_ext,
+  rintro ⟨⟩,
+  all_goals { simp only [←comp_apply], erw lim_map_π, simpa }
+end
+
+def inducing_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
+  (hf : inducing f) (hg : inducing g) : inducing (limits.prod.map f g) :=
+begin
+  split,
+  simp only [prod_topology, induced_compose, ←coe_comp, limits.prod.map_fst, limits.prod.map_snd,
+    induced_inf],
+  simp only [coe_comp],
+  rw [←@induced_compose _ _ _ _ _ f, ←@induced_compose _ _ _ _ _ g, ←hf.induced, ←hg.induced]
+end
+
+def embedding_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
+  (hf : embedding f) (hg : embedding g) : embedding (limits.prod.map f g) :=
+⟨inducing_prod_map hf.to_inducing hg.to_inducing,
+begin
+  haveI := (Top.mono_iff_injective _).mpr hf.inj,
+  haveI := (Top.mono_iff_injective _).mpr hg.inj,
+  exact (Top.mono_iff_injective _).mp infer_instance
+end⟩
+
+end prod
+
+section pullback
+
+lemma pullback_topology {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  (pullback f g).topological_space =
+    induced (pullback.fst : pullback f g ⟶ _) X.topological_space ⊓
+      induced (pullback.snd : pullback f g ⟶ _) Y.topological_space :=
+begin
+  change (pullback f g).str = _,
+  conv_lhs { rw Top.limit_induced },
+  apply le_antisymm,
+  rw le_inf_iff,
+  exact ⟨infi_le _ walking_cospan.left, infi_le _ walking_cospan.right⟩,
+  rw le_infi_iff,
+  rintro (_|_|_),
+  rw ← limit.w _ walking_cospan.hom.inl,
+  conv_rhs { rw [coe_comp, ←induced_compose] },
+  exact inf_le_left.trans (induced_mono (continuous.le_induced (by continuity))),
+  exacts [inf_le_left, inf_le_right]
+end
+
+/--
+Given two continuous maps `f : X ⟶ Z`, `g : Y ⟶ Z`, and two elements `x : X`, `y : Y` such
+that `f x = g y`, we may obtain an element in `X ×[Z] Y` whose projection onto `X` and `Y` are
+`x` and `y`, respectively.
+-/
+def pullback_preimage {X Y Z : Top.{v}} (f : X ⟶ Z) (g : Y ⟶ Z) (x : X) (y : Y)
+  (h : f x = g y) : (pullback f g : Top) :=
+(limit.is_limit (cospan _ _)).lift
+  (@pullback_cone.mk Top _ _ _ _ f g ⟨punit⟩
+    ⟨λ _, x, by continuity⟩ ⟨λ _, y, by continuity⟩
+    (by { ext a, cases a, simp[h] })) punit.star
+
+@[simp] lemma pullback_preimage_fst {X Y Z : Top.{v}} (f : X ⟶ Z) (g : Y ⟶ Z) (x : X) (y : Y)
+  (h : f x = g y) :
+  (pullback.fst : pullback f g ⟶ _) (pullback_preimage f g x y h) = x :=
+by { unfold pullback_preimage, simp }
+
+@[simp] lemma pullback_preimage_snd {X Y Z : Top.{v}} (f : X ⟶ Z) (g : Y ⟶ Z) (x : X) (y : Y)
+  (h : f x = g y) :
+  (pullback.snd : pullback f g ⟶ _) (pullback_preimage f g x y h) = y :=
+by { unfold pullback_preimage, simp }
+
+lemma range_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  set.range (prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) =
+  { x | (limits.prod.fst ≫ f) x = (limits.prod.snd ≫ g) x } :=
+begin
+  ext x,
+  split,
+  rintros ⟨y, rfl⟩,
+  simp only [←comp_apply, set.mem_set_of_eq],
+  congr' 1,
+  simp [pullback.condition],
+  intro h,
+  use pullback_preimage f g _ _ h,
+  apply concrete.limit_ext,
+  rintro ⟨⟩; simp,
+end
+
+lemma inducing_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  @inducing (pullback f g : Top) (X ⨯ Y : Top) _ _
+    (prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
+⟨by simp [prod_topology, pullback_topology, induced_compose, ←coe_comp]⟩
+
+lemma embedding_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  @embedding (pullback f g : Top) (X ⨯ Y : Top) _ _
+    (prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
+⟨inducing_pullback_to_prod f g, (Top.mono_iff_injective _).mp infer_instance⟩
+
+/--
+Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`.
+
+  W  ⟶  Y
+    ↘      ↘
+      S  ⟶  T
+    ↗       ↗
+  X  ⟶  Z
+
+-/
+@[simp] def pullback_map {W X Y Z S T : Top} (f₁ : W ⟶ S) (f₂ : X ⟶ S)
+  (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
+  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) : pullback f₁ f₂ ⟶ pullback g₁ g₂ :=
+pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
+  (by simp [←eq₁, ←eq₂, pullback.condition_assoc])
+
+/-- If the map `S ⟶ T` is mono, then there is a description of the image of `W ×ₛ X ⟶ Y ×ₜ Z`. -/
+lemma range_pullback_map {W X Y Z S T : Top} (f₁ : W ⟶ S) (f₂ : X ⟶ S)
+  (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T) [H₃ : mono i₃]
+  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
+  set.range (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) =
+    (pullback.fst : pullback g₁ g₂ ⟶ _) ⁻¹' (set.range i₁) ∩
+      (pullback.snd : pullback g₁ g₂ ⟶ _) ⁻¹' (set.range i₂) :=
+begin
+  ext,
+  split,
+  { rintro ⟨y, rfl⟩, simp, },
+  rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
+  have : f₁ x₁ = f₂ x₂,
+  { apply (Top.mono_iff_injective _).mp H₃,
+    simp only [←comp_apply, eq₁, eq₂],
+    simp only [comp_apply, hx₁, hx₂],
+    simp only [←comp_apply, pullback.condition] },
+  use pullback_preimage f₁ f₂ x₁ x₂ this,
+  apply concrete.limit_ext,
+  rintros (_|_|_),
+  { simp only [Top.comp_app, limit.lift_π_apply, pullback_preimage_fst, category.assoc,
+    pullback_cone.mk_π_app_one, hx₁, pullback_map],
+    simp only[← comp_apply],
+    congr,
+    apply limit.w _ walking_cospan.hom.inl },
+  { simp[hx₁] },
+  { simp[hx₂] },
+end
+
+/--
+If there is a diagram where the morphisms `W ⟶ Y` and `X ⟶ Z` are embeddings,
+then the induced morphism `W ×ₛ X ⟶ Y ×ₜ Z` is also an embedding.
+
+  W  ⟶  Y
+    ↘      ↘
+      S  ⟶  T
+    ↗       ↗
+  X  ⟶  Z
+-/
+lemma pullback_map_embedding_of_embedding_of_emedding {W X Y Z S T : Top}
+  (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
+  (i₃ : S ⟶ T) (H₁ : embedding i₁) (H₂ : embedding i₂)
+  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
+  embedding (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
+begin
+  refine embedding_of_embedding_compose (continuous_map.continuous_to_fun _)
+    (show continuous (prod.lift pullback.fst pullback.snd : pullback g₁ g₂ ⟶ Y ⨯ Z), from
+      continuous_map.continuous_to_fun _) _,
+  suffices : embedding
+    (prod.lift pullback.fst pullback.snd ≫ limits.prod.map i₁ i₂ : pullback f₁ f₂ ⟶ _),
+  { simpa[←coe_comp] using this },
+  rw coe_comp,
+  refine embedding.comp (embedding_prod_map H₁ H₂)
+    (embedding_pullback_to_prod _ _)
+end
+
+/--
+If there is a diagram where the morphisms `W ⟶ Y` and `X ⟶ Z` are open embeddings, and `S ⟶ T`
+is mono, then the induced morphism `W ×ₛ X ⟶ Y ×ₜ Z` is also an open embedding.
+  W  ⟶  Y
+    ↘      ↘
+      S  ⟶  T
+    ↗       ↗
+  X  ⟶  Z
+-/
+lemma open_embedding_of_pullback_open_embedding_open_emedding {W X Y Z S T : Top}
+  (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
+  (i₃ : S ⟶ T) (H₁ : open_embedding i₁) (H₂ : open_embedding i₂) [H₃ : mono i₃]
+  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
+  open_embedding (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
+begin
+  split,
+  apply pullback_map_embedding_of_embedding_of_emedding
+    f₁ f₂ g₁ g₂ i₃ H₁.to_embedding H₂.to_embedding eq₁ eq₂,
+  rw range_pullback_map,
+  apply is_open.inter; apply continuous.is_open_preimage,
+  continuity,
+  exacts [H₁.open_range, H₂.open_range]
+end
+
+end pullback
+
 lemma colimit_coinduced (F : J ⥤ Top.{u}) :
-  (colimit F).str = ⨆ j, (F.obj j).str.coinduced (colimit.ι F j) :=
+  (colimit F).topological_space = ⨆ j, (F.obj j).topological_space.coinduced (colimit.ι F j) :=
 begin
   let homeo := homeo_of_iso (colimit.iso_colimit_cocone ⟨_, colimit_cocone_is_colimit F⟩),
   ext,
@@ -138,7 +433,6 @@ end
 lemma colimit_is_open_iff (F : J ⥤ Top.{u}) (U : set ((colimit F : _) : Type u)) :
   is_open U ↔ ∀ j, is_open (colimit.ι F j ⁻¹' U) :=
 begin
-  change (colimit F).str.is_open U ↔ _,
   conv_lhs { rw colimit_coinduced F },
   exact is_open_supr_iff
 end
@@ -158,7 +452,7 @@ begin
 end
 
 /-- The isomorphism `∐ α ≅ Σ i, α i` as types. -/
-def coprod_iso_sigma {ι : Type u} (α : ι → Top) : ((∐ α : Top) : Type*) ≅ Σ i, α i :=
+def sigma_iso_sigma {ι : Type u} (α : ι → Top) : ((∐ α : Top) : Type*) ≅ Σ i, α i :=
 begin
   refine preserves_colimit_iso forget _ ≪≫
     colim.map_iso (nat_iso.of_components _ _) ≪≫
@@ -168,12 +462,12 @@ begin
 end
 
 @[simp]
-lemma coprod_iso_sigma_hom_app {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
-  (coprod_iso_sigma α).hom ((sigma.ι α i : _) x) = ⟨i, x⟩ :=
+lemma sigma_iso_sigma_hom_app {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
+  (sigma_iso_sigma α).hom ((sigma.ι α i : _) x) = ⟨i, x⟩ :=
 begin
   change (@category_struct.comp (Type u) _ _ _ _ (sigma.ι α i : _ ⟶ ↥∐ α)
-    (coprod_iso_sigma α).hom) x = _,
-  delta coprod_iso_sigma sigma.ι,
+    (sigma_iso_sigma α).hom) x = _,
+  delta sigma_iso_sigma sigma.ι,
   simp only [iso.trans_hom, functor.map_iso_hom, ←category.assoc],
   erw ι_preserves_colimits_iso_hom forget (discrete.functor α) i,
   simpa only [colimit.ι_map, nat_iso.of_components.hom_app, category.assoc,
@@ -181,9 +475,9 @@ begin
 end
 
 @[simp]
-lemma coprod_iso_sigma_inv_app {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
-  (coprod_iso_sigma α).inv ⟨i, x⟩ = (sigma.ι α i : _) x :=
-by rw [← coprod_iso_sigma_hom_app, hom_inv_id_apply]
+lemma sigma_iso_sigma_inv_app {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
+  (sigma_iso_sigma α).inv ⟨i, x⟩ = (sigma.ι α i : _) x :=
+by rw [←sigma_iso_sigma_hom_app, hom_inv_id_apply]
 
 end Top
 

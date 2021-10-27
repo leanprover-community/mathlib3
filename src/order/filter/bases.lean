@@ -676,8 +676,8 @@ namespace filter
 variables {α β γ ι ι' : Type*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
-def is_countably_generated (f : filter α) : Prop :=
-∃ s : set (set α), countable s ∧ f = generate s
+class is_countably_generated (f : filter α) : Prop :=
+(out [] : ∃ s : set (set α), countable s ∧ f = generate s)
 
 /-- `is_countable_basis p s` means the image of `s` bounded by `p` is a countable filter basis. -/
 structure is_countable_basis (p : ι → Prop) (s : ι → set α) extends is_basis p s : Prop :=
@@ -700,6 +700,11 @@ structure countable_filter_basis (α : Type*) extends filter_basis α :=
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
 ⟨{ countable := countable_range (λ n, Ici n),
    ..(default $ filter_basis ℕ),}⟩
+
+lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Prop} {s : ι → set α}
+  (h : f.has_countable_basis p s) :
+  f.is_countably_generated :=
+⟨⟨{t | ∃ i, p i ∧ s i = t}, h.countable.image s, h.to_has_basis.eq_generate⟩⟩
 
 lemma antitone_seq_of_seq (s : ℕ → set α) :
   ∃ t : ℕ → set α, (∀ i j, i ≤ j → t j ⊆ t i) ∧ (⨅ i, 𝓟 $ s i) = ⨅ i, 𝓟 (t i) :=
@@ -739,72 +744,26 @@ lemma countable_binfi_principal_eq_seq_infi {B : set (set α)} (Bcbl : countable
   ∃ (x : ℕ → set α), (⨅ t ∈ B, 𝓟 t) = ⨅ i, 𝓟 (x i) :=
 countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
-namespace is_countably_generated
-
-/-- A set generating a countably generated filter. -/
-def generating_set {f : filter α} (h : is_countably_generated f) :=
-classical.some h
-
-lemma countable_generating_set {f : filter α} (h : is_countably_generated f) :
-  countable h.generating_set :=
-(classical.some_spec h).1
-
-lemma eq_generate {f : filter α} (h : is_countably_generated f) :
-  f = generate h.generating_set :=
-(classical.some_spec h).2
-
-/-- A countable filter basis for a countably generated filter. -/
-def countable_filter_basis {l : filter α} (h : is_countably_generated l) :
-  countable_filter_basis α :=
-{ countable := (countable_set_of_finite_subset h.countable_generating_set).image _,
-  ..filter_basis.of_sets (h.generating_set) }
-
-lemma filter_basis_filter {l : filter α} (h : is_countably_generated l) :
-h.countable_filter_basis.to_filter_basis.filter = l :=
-begin
-  conv_rhs { rw h.eq_generate },
-  apply of_sets_filter_eq_generate,
-end
-
-lemma has_countable_basis {l : filter α} (h : is_countably_generated l) :
-  l.has_countable_basis (λ t, finite t ∧ t ⊆ h.generating_set) (λ t, ⋂₀ t) :=
-⟨by convert has_basis_generate _ ; exact h.eq_generate,
- countable_set_of_finite_subset h.countable_generating_set⟩
-
-lemma exists_countable_infi_principal {f : filter α} (h : f.is_countably_generated) :
-  ∃ s : set (set α), countable s ∧ f = ⨅ t ∈ s, 𝓟 t :=
-begin
-  let B := h.countable_filter_basis,
-  use [B.sets, B.countable],
-  rw ← h.filter_basis_filter,
-  rw B.to_filter_basis.eq_infi_principal,
-  rw infi_subtype''
-end
-
-lemma exists_seq {f : filter α} (cblb : f.is_countably_generated) :
-  ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i) :=
-begin
-  rcases cblb.exists_countable_infi_principal with ⟨B, Bcbl, rfl⟩,
-  exact countable_binfi_principal_eq_seq_infi Bcbl,
-end
+section is_countably_generated
 
 /-- If `f` is countably generated and `f.has_basis p s`, then `f` admits a decreasing basis
 enumerated by natural numbers such that all sets have the form `s i`. More precisely, there is a
 sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing sequence of sets which
 forms a basis of `f`-/
-lemma exists_antitone_subbasis {f : filter α} (cblb : f.is_countably_generated)
+lemma has_basis.exists_antitone_subbasis {f : filter α} [h : f.is_countably_generated]
   {p : ι → Prop} {s : ι → set α} (hs : f.has_basis p s) :
   ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antitone_basis (λ _, true) (λ i, s (x i)) :=
 begin
-  rcases cblb.exists_seq with ⟨x', hx'⟩,
+  obtain ⟨x', hx'⟩ : ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i),
+  { unfreezingI { rcases h with ⟨s, hsc, rfl⟩ },
+    rw generate_eq_binfi,
+    exact countable_binfi_principal_eq_seq_infi hsc },
   have : ∀ i, x' i ∈ f := λ i, hx'.symm ▸ (infi_le (λ i, 𝓟 (x' i)) i) (mem_principal_self _),
   let x : ℕ → {i : ι // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
     (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.coe_prop))),
-  have x_mono : ∀ n : ℕ, s (x n.succ) ⊆ s (x n) :=
-    λ n, subset.trans (hs.set_index_subset _) (inter_subset_right _ _),
-  replace x_mono : ∀ ⦃i j⦄, i ≤ j → s (x j) ≤ s (x i),
-  { refine @monotone_nat_of_le_succ (order_dual $ set α) _ _ _,
-    exact x_mono },
+  have x_mono : antitone (λ i, s (x i)),
+  { refine antitone_nat_of_succ_le (λ i, _),
+    exact (hs.set_index_subset _).trans (inter_subset_right _ _) },
   have x_subset : ∀ i, s (x i) ⊆ x' i,
   { rintro (_|i),
     exacts [hs.set_index_subset _, subset.trans (hs.set_index_subset _) (inter_subset_left _ _)] },
@@ -818,26 +777,52 @@ begin
 end
 
 /-- A countably generated filter admits a basis formed by an antitone sequence of sets. -/
-lemma exists_antitone_basis {f : filter α} (cblb : f.is_countably_generated) :
+lemma exists_antitone_basis (f : filter α) [f.is_countably_generated] :
   ∃ x : ℕ → set α, f.has_antitone_basis (λ _, true) x :=
-let ⟨x, hxf, hx⟩ := cblb.exists_antitone_subbasis f.basis_sets in ⟨x, hx⟩
+let ⟨x, hxf, hx⟩ := f.basis_sets.exists_antitone_subbasis in ⟨x, hx⟩
+
+lemma exists_antitone_eq_infi_principal (f : filter α) [f.is_countably_generated] :
+  ∃ x : ℕ → set α, antitone x ∧ f = ⨅ n, 𝓟 (x n) :=
+let ⟨x, hxf⟩ := f.exists_antitone_basis
+in ⟨x, λ i j, hxf.decreasing trivial trivial, hxf.to_has_basis.eq_infi⟩
+
+lemma exists_antitone_seq (f : filter α) [f.is_countably_generated] :
+  ∃ x : ℕ → set α, antitone x ∧ ∀ {s}, (s ∈ f ↔ ∃ i, x i ⊆ s) :=
+let ⟨x, hx⟩ := f.exists_antitone_basis in
+⟨x, λ i j, hx.decreasing trivial trivial, λ s, by simp [hx.to_has_basis.mem_iff]⟩
+
+instance inf.is_countably_generated (f g : filter α) [is_countably_generated f]
+  [is_countably_generated g] :
+  is_countably_generated (f ⊓ g) :=
+begin
+  rcases f.exists_antitone_basis with ⟨s, hs⟩,
+  rcases g.exists_antitone_basis with ⟨t, ht⟩,
+  exact has_countable_basis.is_countably_generated
+    ⟨hs.to_has_basis.inf ht.to_has_basis, set.countable_encodable _⟩
+end
+
+instance comap.is_countably_generated (l : filter β) [l.is_countably_generated] (f : α → β) :
+  (comap f l).is_countably_generated :=
+let ⟨x, hxl⟩ := l.exists_antitone_basis in
+has_countable_basis.is_countably_generated ⟨hxl.to_has_basis.comap _, countable_encodable _⟩
+
+instance sup.is_countably_generated (f g : filter α) [is_countably_generated f]
+  [is_countably_generated g] :
+  is_countably_generated (f ⊔ g) :=
+begin
+  rcases f.exists_antitone_basis with ⟨s, hs⟩,
+  rcases g.exists_antitone_basis with ⟨t, ht⟩,
+  exact has_countable_basis.is_countably_generated
+    ⟨hs.to_has_basis.sup ht.to_has_basis, set.countable_encodable _⟩
+end
 
 end is_countably_generated
 
-lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Prop} {s : ι → set α}
-  (h : f.has_countable_basis p s) :
-  f.is_countably_generated :=
-⟨{t | ∃ i, p i ∧ s i = t}, h.countable.image s, h.to_has_basis.eq_generate⟩
-
-lemma is_countably_generated_seq (x : ℕ → set α) : is_countably_generated (⨅ i, 𝓟 $ x i) :=
+@[instance] lemma is_countably_generated_seq [encodable β] (x : β → set α) :
+  is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
-  obtain ⟨y, am, h⟩ := antitone_seq_of_seq x,
-  rw h,
-  use [range y, countable_range _],
-  rw (has_basis_infi_principal _).eq_generate,
-  { simp [range] },
-  { exact directed_of_sup am },
-  { use 0 },
+  use [range x, countable_range x],
+  rw [generate_eq_binfi, infi_range]
 end
 
 lemma is_countably_generated_of_seq {f : filter α} (h : ∃ x : ℕ → set α, f = ⨅ i, 𝓟 $ x i) :
@@ -852,44 +837,19 @@ lemma is_countably_generated_iff_exists_antitone_basis {f : filter α} :
   is_countably_generated f ↔ ∃ x : ℕ → set α, f.has_antitone_basis (λ _, true) x :=
 begin
   split,
-  { exact λ h, h.exists_antitone_basis },
+  { introI h, exact f.exists_antitone_basis },
   { rintros ⟨x, h⟩,
     rw h.to_has_basis.eq_infi,
     exact is_countably_generated_seq x },
 end
 
-lemma is_countably_generated_principal (s : set α) : is_countably_generated (𝓟 s) :=
-begin
-  rw show 𝓟 s = ⨅ i : ℕ, 𝓟 s, by simp,
-  apply is_countably_generated_seq
-end
+@[instance] lemma is_countably_generated_principal (s : set α) : is_countably_generated (𝓟 s) :=
+is_countably_generated_of_seq ⟨λ _, s, infi_const.symm⟩
 
-namespace is_countably_generated
+@[instance] lemma is_countably_generated_bot : is_countably_generated (⊥ : filter α) :=
+@principal_empty α ▸ is_countably_generated_principal _
 
-lemma inf {f g : filter α} (hf : is_countably_generated f) (hg : is_countably_generated g) :
-  is_countably_generated (f ⊓ g) :=
-begin
-  rw is_countably_generated_iff_exists_antitone_basis at hf hg,
-  rcases hf with ⟨s, hs⟩,
-  rcases hg with ⟨t, ht⟩,
-  exact has_countable_basis.is_countably_generated
-    ⟨hs.to_has_basis.inf ht.to_has_basis, set.countable_encodable _⟩
-end
-
-lemma inf_principal {f : filter α} (h : is_countably_generated f) (s : set α) :
-  is_countably_generated (f ⊓ 𝓟 s) :=
-h.inf (filter.is_countably_generated_principal s)
-
-lemma exists_antitone_seq' {f : filter α} (cblb : f.is_countably_generated) :
-  ∃ x : ℕ → set α, (∀ i j, i ≤ j → x j ⊆ x i) ∧ ∀ {s}, (s ∈ f ↔ ∃ i, x i ⊆ s) :=
-let ⟨x, hx⟩ := is_countably_generated_iff_exists_antitone_basis.mp cblb in
-⟨x, λ i j, hx.decreasing trivial trivial, λ s, by simp [hx.to_has_basis.mem_iff]⟩
-
-protected lemma comap {l : filter β} (h : l.is_countably_generated) (f : α → β) :
-  (comap f l).is_countably_generated :=
-let ⟨x, hx_mono⟩ := h.exists_antitone_basis in
-is_countably_generated_of_seq ⟨_, (hx_mono.to_has_basis.comap _).eq_infi⟩
-
-end is_countably_generated
+@[instance] lemma is_countably_generated_top : is_countably_generated (⊤ : filter α) :=
+@principal_univ α ▸ is_countably_generated_principal _
 
 end filter

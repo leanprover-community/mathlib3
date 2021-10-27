@@ -3,9 +3,9 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import algebra.order.archimedean
 import algebra.order.sub
 import algebra.order.with_zero
-import algebra.archimedean
 import order.lattice_intervals
 import order.conditionally_complete_lattice
 
@@ -41,20 +41,30 @@ variables {α : Type*}
 
 namespace nonneg
 
+/-- This instance uses data fields from `subtype.partial_order` to help type-class inference.
+The `set.Ici` data fields are definitionally equal, but that requires unfolding semireducible
+definitions, so type-class inference won't see this. -/
 instance order_bot [partial_order α] {a : α} : order_bot {x : α // a ≤ x} :=
-set.Ici.order_bot
+{ ..subtype.partial_order _, ..set.Ici.order_bot }
 
 instance no_top_order [partial_order α] [no_top_order α] {a : α} : no_top_order {x : α // a ≤ x} :=
 set.Ici.no_top_order
 
+/-- This instance uses data fields from `subtype.partial_order` to help type-class inference.
+The `set.Ici` data fields are definitionally equal, but that requires unfolding semireducible
+definitions, so type-class inference won't see this. -/
 instance semilattice_inf_bot [semilattice_inf α] {a : α} : semilattice_inf_bot {x : α // a ≤ x} :=
-set.Ici.semilattice_inf_bot
+{ ..nonneg.order_bot, ..set.Ici.semilattice_inf_bot }
 
 instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
 show densely_ordered (Ici a), from set.densely_ordered
 
-/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`. -/
+/-- If `Sup ∅ ≤ a` then `{x : α // a ≤ x}` is a `conditionally_complete_linear_order_bot`.
+
+This instance uses data fields from `subtype.linear_order` to help type-class inference.
+The `set.Ici` data fields are definitionally equal, but that requires unfolding semireducible
+definitions, so type-class inference won't see this. -/
 @[reducible]
 protected noncomputable def conditionally_complete_linear_order_bot
   [conditionally_complete_linear_order α] {a : α} (h : Sup ∅ ≤ a) :
@@ -63,6 +73,7 @@ protected noncomputable def conditionally_complete_linear_order_bot
     (@subset_Sup_def α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩) ∅).trans $ subtype.eq $
       by { cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
   ..nonneg.order_bot,
+  ..(by apply_instance : linear_order {x : α // a ≤ x}),
   .. @ord_connected_subset_conditionally_complete_linear_order α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩ _ }
 
 instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
@@ -149,6 +160,14 @@ subtype.coe_injective.ordered_semiring
 instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_comm_semiring
   (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
+
+-- These prevent noncomputable instances being found, as it does not require `linear_order` which
+-- is frequently non-computable.
+instance monoid_with_zero [ordered_semiring α] : monoid_with_zero {x : α // 0 ≤ x} :=
+by apply_instance
+
+instance comm_monoid_with_zero [ordered_comm_semiring α] : comm_monoid_with_zero {x : α // 0 ≤ x} :=
+by apply_instance
 
 instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x} :=
 ⟨ ⟨0, 1, λ h, zero_ne_one (congr_arg subtype.val h)⟩ ⟩

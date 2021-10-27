@@ -46,8 +46,8 @@ end
 theorem pow_sub' (A : M) {m n : ℕ} (ha : is_unit A.det) (h : n ≤ m) :
   A ^ (m - n) = A ^ m ⬝ (A ^ n)⁻¹ :=
 begin
-  rw [←nat.sub_add_cancel h, pow_add, mul_eq_mul, matrix.mul_assoc, mul_nonsing_inv,
-      nat.sub_add_cancel h, matrix.mul_one],
+  rw [←tsub_add_cancel_of_le h, pow_add, mul_eq_mul, matrix.mul_assoc, mul_nonsing_inv,
+      tsub_add_cancel_of_le h, matrix.mul_one],
   simpa using ha.pow n
 end
 
@@ -205,9 +205,9 @@ theorem semiconj_by.fpow_right {A X Y : M} (hx : is_unit X.det) (hy : is_unit Y.
       semiconj_by],
   refine (is_regular_of_is_left_regular_det hy'.is_regular.left).left _,
   rw [←mul_assoc, ←(h.pow_right n.succ).eq, mul_assoc, mul_eq_mul (X ^ _), mul_smul, mul_adjugate,
-      mul_eq_mul, mul_eq_mul, mul_eq_mul, ←matrix.mul_assoc, mul_smul (Y ^ _) (hy'.unit)⁻¹,
-      mul_adjugate, units.smul_def, units.smul_def, smul_smul, smul_smul, hx'.coe_inv_mul,
-      hy'.coe_inv_mul, one_smul, matrix.mul_one, matrix.one_mul]
+      mul_eq_mul, mul_eq_mul, mul_eq_mul, ←matrix.mul_assoc, mul_smul (Y ^ _) (↑(hy'.unit)⁻¹ : R),
+      mul_adjugate, smul_smul, smul_smul, hx'.coe_inv_mul,
+      hy'.coe_inv_mul, one_smul, matrix.mul_one, matrix.one_mul],
 end
 
 theorem commute.fpow_right {A B : M} (h : commute A B) (m : ℤ) : commute A (B^m) :=

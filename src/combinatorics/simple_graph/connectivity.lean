@@ -6,7 +6,6 @@ Authors: Kyle Miller
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
 import combinatorics.simple_graph.move_somewhere
-import data.nat.basic
 /-!
 
 # Graph connectivity
@@ -1224,38 +1223,52 @@ end
 
 open fintype
 
-lemma is_tree_then_card_edges_le_card_vertices
-  [fintype G.edge_set] [fintype V] : G.is_tree → card G.edge_set < card V :=
-begin
-  sorry
-end
-
-lemma is_tree_then_not_card_edges_le_card_vertices_minus_one
-  [fintype G.edge_set] [fintype V] [nonempty V]: G.is_tree → ¬ card G.edge_set < card V - 1 :=
-begin
-  sorry
-end
+def next_edge : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
+| v w h walk.nil := (h rfl).elim
+| v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mk_has_mem _ _⟩
 
 /-
-the strategy is to use the lemmas above and nat.eq_of_lt_succ_of_not_lt in order to
-achieve equality
+Another option is more direct. Given a tree, choose an arbitrary root r. Let W = V ∖ r.
+For every w \in W, there is a unique path from w to r (see tree_path); let e(w) denote the
+first edge in this path. This function e is surjective (given an edge, you should be able to use
+is_rootward_antisymm to show it's the image of one of its endpoints) and it is injective (same
+lemma or thereabouts). Since this is a bijection, we get an equality of the cardinalities of the
+edge set and of W.
 -/
-lemma is_tree_then_card_edges_eq_card_vertices_minus_one
-  [fintype G.edge_set] [fintype V] [nonempty V] : G.is_tree → card G.edge_set = card V - 1 :=
-begin
-  intro h,
-  have hle := is_tree_then_card_edges_le_card_vertices _ h,
-  have hnle := is_tree_then_not_card_edges_le_card_vertices_minus_one _ h,
-  sorry
-end
 
-lemma is_tree_then_card_edges_eq_card_vertices_minus_one'
-  [fintype G.edge_set] [fintype V] [nonempty V] : G.is_tree → card G.edge_set = card V - 1 :=
+-- lemma is_tree.card_edges_eq_card_vertices_sub_one
+--   [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :
+--   card G.edge_set = card V - 1 :=
+-- begin
+--   have root := classical.arbitrary V,
+--   rw ←set.card_ne_eq root,
+--   let f : {v : V | v ≠ root} → G.edge_set,
+--   { intro v,
+--     },
+--   {sorry}
+-- end
+
+lemma is_tree.card_edges_eq_card_vertices_sub_one'
+  [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :
+  card G.edge_set = card V - 1 :=
 begin
-  intro h,
-  induction card V with n' hn',
-  {sorry},
-  {sorry},
+  have root := classical.arbitrary V,
+  rw ←set.card_ne_eq root,
+  let f : {v | v ≠ root} → G.edge_set,
+  { intro v,
+    let a := next_edge (v : V) root v.property (G.tree_path h v root : G.walk v root),
+    -- convert the term of incidence_set to an edge_set; there's probably a nicer way
+    exact ⟨_, a.property.1⟩, },
+  have fprop : ∀ (v : V) (hv : v ≠ root), ↑(f ⟨v, hv⟩) ∈ G.incidence_set v,
+  { intros v hv,
+    dsimp [f],
+    generalize : next_edge _ _ _ _ = e,
+    exact e.property, },
+  have finj : function.injective f,
+  { sorry, },
+  have fsurj : function.surjective f,
+  { sorry, },
+  exact (card_of_bijective ⟨finj, fsurj⟩).symm,
 end
 
 lemma is_tree_iff : G.is_tree ↔ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=

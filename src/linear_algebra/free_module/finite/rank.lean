@@ -59,7 +59,7 @@ end
 by { rw [finrank, rank_finsupp, ← mk_to_nat_eq_card, to_nat_lift] }
 
 /-- The finrank of `(ι → R)` is `fintype.card ι`. -/
-@[simp] lemma finrank_pi {ι : Type v} [fintype ι] : finrank R (ι → R) = card ι :=
+lemma finrank_pi {ι : Type v} [fintype ι] : finrank R (ι → R) = card ι :=
 by { simp [finrank, sum_const_eq_lift_mul] }
 
 /-- The finrank of the direct sum is the sum of the finranks. -/
@@ -101,7 +101,7 @@ variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 
 /-- The finrank of `M →ₗ[R] N` is `(finrank R M) * (finrank R N)`. -/
 --TODO: this should follow from `linear_equiv.finrank_eq`, that is over a field.
-@[simp] lemma finrank_linear_hom : finrank R (M →ₗ[R] N) = (finrank R M) * (finrank R N) :=
+lemma finrank_linear_hom : finrank R (M →ₗ[R] N) = (finrank R M) * (finrank R N) :=
 begin
   classical,
   letI := nontrivial_of_invariant_basis_number R,

@@ -10,6 +10,7 @@ import topology.G_delta
 import measure_theory.group.arithmetic
 import topology.semicontinuous
 import topology.instances.ereal
+import topology.continuous_function.basic
 
 /-!
 # Borel (measurable) space
@@ -507,11 +508,14 @@ instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
 
 section homeomorph
 
+@[measurability] protected lemma homeomorph.measurable (h : α ≃ₜ γ) : measurable h :=
+h.continuous.measurable
+
 /-- A homeomorphism between two Borel spaces is a measurable equivalence.-/
 def homeomorph.to_measurable_equiv (h : γ ≃ₜ γ₂) : γ ≃ᵐ γ₂ :=
-{ measurable_to_fun := h.continuous_to_fun.measurable,
-  measurable_inv_fun := h.continuous_inv_fun.measurable,
-  .. h }
+{ measurable_to_fun := h.measurable,
+  measurable_inv_fun := h.symm.measurable,
+  to_equiv := h.to_equiv }
 
 @[simp]
 lemma homeomorph.to_measurable_equiv_coe (h : γ ≃ₜ γ₂) : (h.to_measurable_equiv : γ → γ₂) = h :=
@@ -521,11 +525,10 @@ rfl
   (h.to_measurable_equiv.symm : γ₂ → γ) = h.symm :=
 rfl
 
-@[measurability]
-lemma homeomorph.measurable (h : α ≃ₜ γ) : measurable h :=
-h.continuous.measurable
-
 end homeomorph
+
+@[measurability] lemma continuous_map.measurable (f : C(α, γ)) : measurable f :=
+f.continuous.measurable
 
 lemma measurable_of_continuous_on_compl_singleton [t1_space α] {f : α → γ} (a : α)
   (hf : continuous_on f {a}ᶜ) :

@@ -57,10 +57,11 @@ let f : (⨁ i, A i) →+* R :=
 end graded_ring
 
 section mv_polynomial
-variables (R : Type*) [comm_ring R] (σ : Type*)
-
 open mv_polynomial direct_sum
-open_locale classical
+
+variables (R : Type*) [comm_ring R] (σ : Type*)
+  [Π (i : ℕ) (x : (λ i, ((homogeneous_submodule σ R i).to_add_subgroup)) i), decidable (x ≠ 0)]
+
 
 private noncomputable def decompose (p : mv_polynomial σ R) :
   ⨁ i, (homogeneous_submodule σ R i).to_add_subgroup :=
@@ -73,20 +74,15 @@ private lemma homogeneous_component_of_direct_sum
   (i : ℕ) (x : ⨁ i, (homogeneous_submodule σ R i).to_add_subgroup) :
 homogeneous_component i (add_subgroup_coe _ x) = x i :=
 begin
-  rw eq_sum_of _ x,
-  rw add_monoid_hom.map_sum,
-  rw linear_map.map_sum,
-  rw add_subgroup_coe,
+  rw [eq_sum_of _ x, add_monoid_hom.map_sum, linear_map.map_sum, add_subgroup_coe],
   simp_rw to_add_monoid_of,
   simp only [add_subgroup.coe_subtype, submodule.coe_sum, dfinsupp.finset_sum_apply],
   apply finset.sum_congr rfl, intros j hj,
   rw homogeneous_component_homogeneous_polynomial i j,
   split_ifs,
-  rw h,
-  rw of_eq_same,
-  rw of_eq_of_ne, refl, intro rid, exact h rid.symm,
-  simp only [mem_homogeneous_submodule],
-  apply (x j).2,
+  { rw [h, of_eq_same] },
+  { rw of_eq_of_ne, refl, intro rid, exact h rid.symm },
+  { simp only [mem_homogeneous_submodule], apply (x j).2 },
   apply_instance,
 end
 
@@ -94,14 +90,14 @@ noncomputable instance mv_polynomial_is_graded : graded_ring (mv_polynomial σ R
   (λ i : ℕ, (homogeneous_submodule σ R i).to_add_subgroup) :=
 { decompose := decompose R σ,
   left_inv := λ x, begin
-    rw [decompose],
+    rw decompose,
     simp_rw [homogeneous_component_of_direct_sum],
     conv_rhs { rw direct_sum.eq_sum_of _ x },
     have set_eq :
-      finset.range ((add_subgroup_coe
-        (λ (i : ℕ), (homogeneous_submodule σ R i).to_add_subgroup) x).total_degree + 1) =
-      x.support ∪ (finset.range ((add_subgroup_coe
-        (λ (i : ℕ), (homogeneous_submodule σ R i).to_add_subgroup) x).total_degree + 1) \ x.support),
+      finset.range
+        ((add_subgroup_coe (λ i, (homogeneous_submodule σ R i).to_add_subgroup) x).total_degree + 1)
+      = x.support ∪ (finset.range ((add_subgroup_coe
+          (λ i, (homogeneous_submodule σ R i).to_add_subgroup) x).total_degree + 1) \ x.support),
     { rw finset.union_sdiff_of_subset,
       intros a ha, simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_range] at ha ⊢,
       rw lt_iff_not_ge, intro rid, rw ge_iff_le at rid,
@@ -109,13 +105,14 @@ noncomputable instance mv_polynomial_is_graded : graded_ring (mv_polynomial σ R
       rw homogeneous_component_of_direct_sum at this, apply ha,
       simp only [submodule.coe_eq_zero] at this, exact this, },
     rw [set_eq, finset.sum_union],
-    have : ∑ (x_1 : ℕ) in finset.range
-      (((add_subgroup_coe (λ (i : ℕ), (homogeneous_submodule σ R i).to_add_subgroup)) x).total_degree + 1) \
-    dfinsupp.support x,
-  (of (λ (i : ℕ), ↥((homogeneous_submodule σ R i).to_add_subgroup)) x_1) ⟨↑(x x_1), _⟩ = 0,
-  { rw ←finset.sum_const_zero, apply finset.sum_congr rfl, intros i hi,
-    simp only [set_like.eta, not_not, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_range] at hi ⊢,
-    rw hi.2, simp only [add_monoid_hom.map_zero], },
+    have :
+      ∑ k in finset.range
+        ((add_subgroup_coe
+          (λ i, (homogeneous_submodule σ R i).to_add_subgroup) x).total_degree + 1) \ x.support,
+        (of (λ i, ↥((homogeneous_submodule σ R i).to_add_subgroup)) k) ⟨↑(x k), _⟩ = 0,
+    { rw ←finset.sum_const_zero, apply finset.sum_congr rfl, intros i hi,
+      simp only [set_like.eta, not_not, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_range] at hi ⊢,
+      rw hi.2, simp only [add_monoid_hom.map_zero], },
     rw [this, add_zero],
     apply finset.sum_congr, ext, simp only [dfinsupp.mem_support_to_fun],
     intros i hi, congr, simp only [set_like.eta],
@@ -123,16 +120,16 @@ noncomputable instance mv_polynomial_is_graded : graded_ring (mv_polynomial σ R
   end,
   right_inv := λ p, begin
     rw [decompose, add_monoid_hom.map_sum],
-    have : ∑ (x : ℕ) in finset.range (p.total_degree + 1),
-      (add_subgroup_coe _)
-      ((of (λ (i : ℕ), ↥((homogeneous_submodule σ R i).to_add_subgroup)) x)
+    have :
+      ∑ (x : ℕ) in finset.range (p.total_degree + 1),
+        add_subgroup_coe _ ((of (λ i, ↥((homogeneous_submodule σ R i).to_add_subgroup)) x)
        ⟨(homogeneous_component x) p, _⟩) =
       ∑ x in finset.range (p.total_degree + 1),
-        direct_sum.to_add_monoid _ ((of (λ (i : ℕ), ↥((homogeneous_submodule σ R i).to_add_subgroup)) x)
+        direct_sum.to_add_monoid _ ((of (λ i, ↥((homogeneous_submodule σ R i).to_add_subgroup)) x)
        ⟨(homogeneous_component x) p, _⟩) := rfl,
-    rw [this], simp_rw [to_add_monoid_of],
+    rw this, simp_rw [to_add_monoid_of],
     conv_rhs { rw ←sum_homogeneous_component p }, apply finset.sum_congr rfl,
-    intros i hi, refl,
+    intros, refl,
   end,
   one_degree_zero := begin
     simp only [mem_homogeneous_submodule, submodule.mem_to_add_subgroup],

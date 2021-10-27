@@ -490,6 +490,12 @@ lemma finpartition.is_equipartition.average_le_card_part [decidable_eq α] [fint
 (finpartition.is_equipartition_iff_card_parts_eq_average'.1 hP a ha).elim ge_of_eq
   (λ h, (nat.le_succ _).trans h.ge)
 
+lemma finpartition.is_equipartition.card_part_le_average_add_one [decidable_eq α] [fintype α]
+  {P : finpartition (univ : finset α)} (hP : P.is_equipartition) {a : finset α} (ha : a ∈ P.parts) :
+  a.card ≤ card α/P.parts.card + 1 :=
+(finpartition.is_equipartition_iff_card_parts_eq_average'.1 hP a ha).elim
+  (λ i, by simp [i]) le_of_eq
+
 /-! ### Discrete and indiscrete finpartition -/
 
 namespace finpartition

@@ -97,6 +97,7 @@ variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
 variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 
 /-- The finrank of `M →ₗ[R] N` is `(finrank R M) * (finrank R N)`. -/
+--TODO: this should follow from `linear_equiv.finrank_eq`, that is over a field.
 @[simp] lemma finrank_linear_hom : finrank R (M →ₗ[R] N) = (finrank R M) * (finrank R N) :=
 begin
   classical,

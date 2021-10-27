@@ -303,13 +303,11 @@ begin
 end
 
 lemma inducing_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  @inducing (pullback f g : Top) (X ⨯ Y : Top) _ _
-    (prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
+  inducing ⇑(prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
 ⟨by simp [prod_topology, pullback_topology, induced_compose, ←coe_comp]⟩
 
 lemma embedding_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  @embedding (pullback f g : Top) (X ⨯ Y : Top) _ _
-    (prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
+  embedding ⇑(prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
 ⟨inducing_pullback_to_prod f g, (Top.mono_iff_injective _).mp infer_instance⟩
 
 /-- If the map `S ⟶ T` is mono, then there is a description of the image of `W ×ₛ X ⟶ Y ×ₜ Z`. -/
@@ -351,9 +349,9 @@ then the induced morphism `W ×ₛ X ⟶ Y ×ₜ Z` is also an embedding.
     ↗       ↗
   X  ⟶  Z
 -/
-lemma pullback_map_embedding_of_embedding_of_emedding {W X Y Z S T : Top}
+lemma pullback_map_embedding_of_embeddings {W X Y Z S T : Top}
   (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
-  (i₃ : S ⟶ T) (H₁ : embedding i₁) (H₂ : embedding i₂)
+  (H₁ : embedding i₁) (H₂ : embedding i₂) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
   embedding (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
 begin
@@ -377,19 +375,83 @@ is mono, then the induced morphism `W ×ₛ X ⟶ Y ×ₜ Z` is also an open emb
     ↗       ↗
   X  ⟶  Z
 -/
-lemma open_embedding_of_pullback_open_embedding_open_emedding {W X Y Z S T : Top}
+lemma pullback_map_open_embedding_of_open_embeddings {W X Y Z S T : Top}
   (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
-  (i₃ : S ⟶ T) (H₁ : open_embedding i₁) (H₂ : open_embedding i₂) [H₃ : mono i₃]
+  (H₁ : open_embedding i₁) (H₂ : open_embedding i₂) (i₃ : S ⟶ T) [H₃ : mono i₃]
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
   open_embedding (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
 begin
   split,
-  apply pullback_map_embedding_of_embedding_of_emedding
-    f₁ f₂ g₁ g₂ i₃ H₁.to_embedding H₂.to_embedding eq₁ eq₂,
+  apply pullback_map_embedding_of_embeddings
+    f₁ f₂ g₁ g₂ H₁.to_embedding H₂.to_embedding i₃ eq₁ eq₂,
   rw range_pullback_map,
   apply is_open.inter; apply continuous.is_open_preimage,
   continuity,
   exacts [H₁.open_range, H₂.open_range]
+end
+
+lemma snd_embedding_of_left_embedding {X Y S : Top}
+  {f : X ⟶ S} (H : embedding f) (g : Y ⟶ S) :
+  embedding ⇑(pullback.snd : pullback f g ⟶ Y) :=
+begin
+  convert (homeo_of_iso (as_iso (pullback.snd : pullback (𝟙 S) g ⟶ _))).embedding.comp
+    (pullback_map_embedding_of_embeddings f g (𝟙 _) g H
+      (homeo_of_iso (iso.refl _)).embedding (𝟙 _) rfl (by simp)),
+  erw ←coe_comp,
+  simp
+end
+
+lemma fst_embedding_of_right_embedding {X Y S : Top}
+  (f : X ⟶ S) {g : Y ⟶ S} (H : embedding g) :
+  embedding ⇑(pullback.fst : pullback f g ⟶ X) :=
+begin
+  convert (homeo_of_iso (as_iso (pullback.fst : pullback f (𝟙 S) ⟶ _))).embedding.comp
+    (pullback_map_embedding_of_embeddings f g f (𝟙 _)
+      (homeo_of_iso (iso.refl _)).embedding H (𝟙 _) rfl (by simp)),
+  erw ←coe_comp,
+  simp
+end
+
+lemma embedding_of_pullback_embeddings {X Y S : Top}
+  {f : X ⟶ S} {g : Y ⟶ S} (H₁ : embedding f) (H₂ : embedding g) :
+  embedding (limit.π (cospan f g) walking_cospan.one) :=
+begin
+  convert H₂.comp (snd_embedding_of_left_embedding H₁ g),
+  erw ←coe_comp,
+  congr,
+  exact (limit.w _ walking_cospan.hom.inr).symm
+end
+
+lemma snd_open_embedding_of_left_open_embedding {X Y S : Top}
+  {f : X ⟶ S} (H : open_embedding f) (g : Y ⟶ S) :
+  open_embedding ⇑(pullback.snd : pullback f g ⟶ Y) :=
+begin
+  convert (homeo_of_iso (as_iso (pullback.snd : pullback (𝟙 S) g ⟶ _))).open_embedding.comp
+    (pullback_map_open_embedding_of_open_embeddings f g (𝟙 _) g H
+      (homeo_of_iso (iso.refl _)).open_embedding (𝟙 _) rfl (by simp)),
+  erw ←coe_comp,
+  simp
+end
+
+lemma fst_open_embedding_of_right_open_embedding {X Y S : Top}
+  (f : X ⟶ S) {g : Y ⟶ S} (H : open_embedding g) :
+  open_embedding ⇑(pullback.fst : pullback f g ⟶ X) :=
+begin
+  convert (homeo_of_iso (as_iso (pullback.fst : pullback f (𝟙 S) ⟶ _))).open_embedding.comp
+    (pullback_map_open_embedding_of_open_embeddings f g f (𝟙 _)
+      (homeo_of_iso (iso.refl _)).open_embedding H (𝟙 _) rfl (by simp)),
+  erw ←coe_comp,
+  simp
+end
+
+lemma open_embedding_of_pullback_open_embeddings {X Y S : Top}
+  {f : X ⟶ S} {g : Y ⟶ S} (H₁ : open_embedding f) (H₂ : open_embedding g) :
+  open_embedding (limit.π (cospan f g) walking_cospan.one) :=
+begin
+  convert H₂.comp (snd_open_embedding_of_left_open_embedding H₁ g),
+  erw ←coe_comp,
+  congr,
+  exact (limit.w _ walking_cospan.hom.inr).symm
 end
 
 end pullback

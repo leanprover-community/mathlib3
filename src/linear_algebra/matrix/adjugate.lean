@@ -453,6 +453,11 @@ begin
   rw [smul_smul, ←pow_succ, h_card', det_smul_adjugate_adjugate],
 end
 
+/-- A weaker version of `matrix.adjugate_adjugate` that uses `nontrivial`. -/
+lemma adjugate_adjugate' (A : matrix n n α) [nontrivial n] :
+  adjugate (adjugate A) = det A ^ (fintype.card n - 2) • A :=
+adjugate_adjugate _ $ fintype.one_lt_card.ne'
+
 end adjugate
 
 end matrix

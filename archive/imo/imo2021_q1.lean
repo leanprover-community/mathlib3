@@ -123,7 +123,6 @@ begin
   { refine ⟨126, 163, 198, p.le.trans _, _, _, _, ⟨17, _⟩, ⟨18, _⟩, 19, _⟩,
     swap 4, { linarith },
     all_goals { norm_num } },
-  { refine ⟨126, 163, 198, _, _, _, _, ⟨17, _⟩, ⟨18, _⟩, 19, _⟩; linarith },
 end
 
 -- Since it will be more convenient to work with sets later on, we will translate the above claim

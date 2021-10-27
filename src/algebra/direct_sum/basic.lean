@@ -203,7 +203,7 @@ def add_subgroup_coe {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) : (⨁ i, A i) →+ M :=
 direct_sum.to_add_monoid (λ i, (A i).subtype)
 
-@[simp] lemma add_group_coe_of {M : Type*} [decidable_eq ι] [add_comm_group M]
+@[simp] lemma add_subgroup_coe_of {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) (i : ι) (x : A i) :
 direct_sum.add_subgroup_coe A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_add_monoid_of _ _ _

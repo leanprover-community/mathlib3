@@ -24,7 +24,7 @@ direct_sum.to_add_monoid (λ i, (A i).subtype)
 variables (R) [add_comm_monoid ι]
 
 /-- A graded ring is a `ring R` such that `R` can be decomposed into a collection of
-  `add_subsgroup R` indexed by `ι` such that the connonical map `R → ⨁ i, A i` is a bijective map
+  `add_subgroups R` indexed by `ι` such that the connonical map `R → ⨁ i, A i` is a bijective map
   respecting multiplication, i.e. product of an element of degree `i` and an element of degree `j`
   is an element of degree `i + j`.
 -/

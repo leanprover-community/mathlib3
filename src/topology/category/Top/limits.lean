@@ -126,20 +126,6 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
 
-instance mono_pullback_to_prod {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
-  [has_pullback f g] [has_binary_product X Y] :
-  mono (prod.lift pullback.fst pullback.snd : pullback f g ⟶ _) :=
-⟨λ W i₁ i₂ h, by { ext,
-                   simpa using congr_arg (λ f, f ≫ limits.prod.fst) h,
-                   simpa using congr_arg (λ f, f ≫ limits.prod.snd) h }⟩
-
-instance map_mono {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [mono f]
-  [mono g] [has_binary_product W X] [has_binary_product Y Z] : mono (limits.prod.map f g) :=
-⟨λ A i₁ i₂ h, by { ext,
-                   rw ←cancel_mono f, simpa using congr_arg (λ f, f ≫ limits.prod.fst) h,
-                   rw ←cancel_mono g, simpa using congr_arg (λ f, f ≫ limits.prod.snd) h }⟩
-
-
 lemma limit_induced (F : J ⥤ Top.{u}) :
   (limit F).str = ⨅ j, (F.obj j).str.induced (limit.π F j) :=
 begin
@@ -168,6 +154,9 @@ begin
   exacts [inf_le_left, inf_le_right]
 end
 
+/--
+The isomorphsim between the underlying set of `X ⨯ Y` and the set-theoretic product of `X` and `Y`.
+-/
 def prod_iso_prod (X Y : Top.{u}) : ↥(X ⨯ Y) ≅ X × Y :=
 begin
   refine preserves_limit_iso forget (pair X Y) ≪≫
@@ -234,7 +223,7 @@ begin
   all_goals { simp only [←comp_apply], erw lim_map_π, simpa }
 end
 
-def inducing_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
+lemma inducing_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
   (hf : inducing f) (hg : inducing g) : inducing (limits.prod.map f g) :=
 begin
   split,
@@ -244,7 +233,7 @@ begin
   rw [←@induced_compose _ _ _ _ _ f, ←@induced_compose _ _ _ _ _ g, ←hf.induced, ←hg.induced]
 end
 
-def embedding_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
+lemma embedding_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
   (hf : embedding f) (hg : embedding g) : embedding (limits.prod.map f g) :=
 ⟨inducing_prod_map hf.to_inducing hg.to_inducing,
 begin
@@ -322,22 +311,6 @@ lemma embedding_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
   @embedding (pullback f g : Top) (X ⨯ Y : Top) _ _
     (prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
 ⟨inducing_pullback_to_prod f g, (Top.mono_iff_injective _).mp infer_instance⟩
-
-/--
-Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`.
-
-  W  ⟶  Y
-    ↘      ↘
-      S  ⟶  T
-    ↗       ↗
-  X  ⟶  Z
-
--/
-@[simp] def pullback_map {W X Y Z S T : Top} (f₁ : W ⟶ S) (f₂ : X ⟶ S)
-  (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
-  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) : pullback f₁ f₂ ⟶ pullback g₁ g₂ :=
-pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
-  (by simp [←eq₁, ←eq₂, pullback.condition_assoc])
 
 /-- If the map `S ⟶ T` is mono, then there is a description of the image of `W ×ₛ X ⟶ Y ×ₜ Z`. -/
 lemma range_pullback_map {W X Y Z S T : Top} (f₁ : W ⟶ S) (f₂ : X ⟶ S)

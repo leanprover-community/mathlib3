@@ -584,6 +584,40 @@ lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g
   f ≫ (pushout.inl : Y ⟶ pushout f g) = g ≫ pushout.inr :=
 pushout_cocone.condition _
 
+/--
+Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`.
+
+  W  ⟶  Y
+    ↘      ↘
+      S  ⟶  T
+    ↗       ↗
+  X  ⟶  Z
+
+-/
+@[simp] def pullback_map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
+  (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) [has_pullback g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
+  (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) : pullback f₁ f₂ ⟶ pullback g₁ g₂ :=
+pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
+  (by simp [←eq₁, ←eq₂, pullback.condition_assoc])
+
+
+/--
+Given such a diagram, then there is a natural morphism `W ⨿ₛ X ⟶ Y ⨿ₜ Z`.
+
+      W  ⟶  Y
+    ↗      ↗
+  S  ⟶  T
+    ↘       ↘
+      X  ⟶  Z
+
+-/
+@[simp] def pushout_map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
+  (g₁ : T ⟶ Y) (g₂ : T ⟶ Z) [has_pushout g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
+  (eq₁ : f₁ ≫ i₁ = i₃ ≫ g₁) (eq₂ : f₂ ≫ i₂ = i₃ ≫ g₂) : pushout f₁ f₂ ⟶ pushout g₁ g₂ :=
+pushout.desc (i₁ ≫ pushout.inl) (i₂ ≫ pushout.inr)
+  (by { simp only [←category.assoc, eq₁, eq₂], simp [pushout.condition] })
+
+
 /-- Two morphisms into a pullback are equal if their compositions with the pullback morphisms are
     equal -/
 @[ext] lemma pullback.hom_ext {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
@@ -607,6 +641,14 @@ instance pullback.snd_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullb
   [mono f] : mono (pullback.snd : pullback f g ⟶ Y) :=
 pullback_cone.mono_snd_of_is_pullback_of_mono (limit.is_limit _)
 
+/-- The map `X ×[Z] Y ⟶ X × Y` is mono. -/
+instance mono_pullback_to_prod {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_binary_product X Y] :
+  mono (prod.lift pullback.fst pullback.snd : pullback f g ⟶ _) :=
+⟨λ W i₁ i₂ h, by { ext,
+                   simpa using congr_arg (λ f, f ≫ prod.fst) h,
+                   simpa using congr_arg (λ f, f ≫ prod.snd) h }⟩
+
 /-- Two morphisms out of a pushout are equal if their compositions with the pushout morphisms are
     equal -/
 @[ext] lemma pushout.hom_ext {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g]
@@ -623,6 +665,14 @@ pushout_cocone.epi_inl_of_is_pushout_of_epi (colimit.is_colimit _)
 instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi f] :
   epi (pushout.inr : Z ⟶ pushout f g) :=
 pushout_cocone.epi_inr_of_is_pushout_of_epi (colimit.is_colimit _)
+
+/-- The map ` X ⨿ Y ⟶ X ⨿[Z] Y ⟶` is epi. -/
+instance epi_coprod_to_pushout {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+  [has_pushout f g] [has_binary_coproduct Y Z] :
+  epi (coprod.desc pushout.inl pushout.inr : _ ⟶ pushout f g) :=
+⟨λ W i₁ i₂ h, by { ext,
+                   simpa using congr_arg (λ f, coprod.inl ≫ f) h,
+                   simpa using congr_arg (λ f, coprod.inr ≫ f) h }⟩
 
 section
 
@@ -658,185 +708,6 @@ lemma map_lift_pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
     G.map (pullback.lift _ _ w) ≫ pullback_comparison G f g =
       pullback.lift (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
 by { ext; simp [← G.map_comp] }
-
-end
-
-section symmetry
-open walking_cospan
-variables (f : X ⟶ Z) (g : Y ⟶ Z)
-
-lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
-⟨⟨⟨pullback_cone.mk _ _ pullback.condition.symm,
-  pullback_cone.flip_is_limit (pullback_is_pullback _ _)⟩⟩⟩
-
-local attribute[instance] has_pullback_symmetry
-
-/-- The isomorphism `X ×[Z] Y ≅ Y ×[Z] X`. -/
-@[simps] def pullback_symmetry [has_pullback f g] :
-  pullback f g ≅ pullback g f :=
-is_limit.cone_point_unique_up_to_iso
-  (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
-    (pullback_is_pullback f g))
-  (@@limit.is_limit _ _ _ (has_pullback_symmetry f g))
-
-lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
-  (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simp
-
-lemma pullback_symmetry_hom_comp_snd [has_pullback f g] :
-  (pullback_symmetry f g).hom ≫ pullback.snd = pullback.fst := by simp
-
-lemma pullback_symmetry_inv_comp_fst [has_pullback f g] :
-  (pullback_symmetry f g).inv ≫ pullback.fst = pullback.snd := by { rw iso.inv_comp_eq, simp }
-
-lemma pullback_symmetry_inv_comp_snd [has_pullback f g] :
-  (pullback_symmetry f g).inv ≫ pullback.snd = pullback.fst := by { rw iso.inv_comp_eq, simp }
-
-@[simp] lemma flip_is_limit_lift_pullback_comp_fst [has_pullback f g] :
-  (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
-    (pullback_is_pullback f g)).lift
-    (limit.cone (cospan g f)) ≫ pullback.fst = pullback.snd :=
-by simpa using pullback_symmetry_inv_comp_fst f g
-
-@[simp] lemma flip_is_limit_lift_pullback_comp_snd [has_pullback f g] :
-  (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
-    (pullback_is_pullback f g)).lift
-    (limit.cone (cospan g f)) ≫ pullback.snd = pullback.fst :=
-by simpa using pullback_symmetry_inv_comp_snd f g
-
-end symmetry
-
-section left_iso
-open walking_cospan
-variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso f]
-
-/-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
-def pullback_cone_of_left_iso : pullback_cone f g :=
-{ X := Y, π := { app := by { rintro (_|_|_), exacts [g, g ≫ inv f, 𝟙 _] }, naturality' := λ A B i,
-  begin
-    cases i, rcases A with (_|_|_); simp [category.id_comp g], refl,
-    cases i_1; simp [category.id_comp g]
-  end } }
-
-@[simp] lemma pullback_cone_of_left_iso_X :
-  (pullback_cone_of_left_iso f g).X = Y := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_fst :
-  (pullback_cone_of_left_iso f g).fst = g ≫ inv f := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_snd :
-  (pullback_cone_of_left_iso f g).snd = 𝟙 _ := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_π_app_none :
-  (pullback_cone_of_left_iso f g).π.app none = g := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_π_app_left :
-  (pullback_cone_of_left_iso f g).π.app left = g ≫ inv f := rfl
-
-@[simp] lemma pullback_cone_of_left_iso_π_app_right :
-  (pullback_cone_of_left_iso f g).π.app right = 𝟙 _ := rfl
-
-/-- Verify that the constructed limit cone is indeed a limit. -/
-def pullback_cone_of_left_iso_is_limit :
-  is_limit (pullback_cone_of_left_iso f g) :=
-pullback_cone.is_limit_aux' _ (λ s, ⟨s.snd, by simp [← s.condition_assoc]⟩)
-
-lemma has_pullback_of_left_iso : has_pullback f g :=
-⟨⟨⟨_, pullback_cone_of_left_iso_is_limit f g⟩⟩⟩
-
-local attribute [instance] has_pullback_of_left_iso
-
-instance pullback_snd_iso_of_left_iso : is_iso (pullback.snd : pullback f g ⟶ _) :=
-begin
-  have := (pullback_cone_of_left_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f g)) right,
-  have : pullback.snd = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
-end
-
-end left_iso
-
-section right_iso
-open walking_cospan
-variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso g]
-
-/-- If `g : Y ⟶ Z` is iso, then `X ×[Z] Y ≅ X`. This is the explicit limit cone. -/
-def pullback_cone_of_right_iso : pullback_cone f g :=
-{ X := X, π := { app := by { rintro (_|_|_), exacts [f, 𝟙 _, f ≫ inv g] }, naturality' := λ A B i,
-  begin
-    cases i, rcases A with (_|_|_); simp [category.id_comp f], refl,
-    cases i_1; simp [category.id_comp f]
-  end } }
-
-@[simp] lemma pullback_cone_of_right_iso_X :
-  (pullback_cone_of_right_iso f g).X = X := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_fst :
-  (pullback_cone_of_right_iso f g).fst = 𝟙 _ := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_snd :
-  (pullback_cone_of_right_iso f g).snd = f ≫ inv g := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_π_app_none :
-  (pullback_cone_of_right_iso f g).π.app none = f := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_π_app_left :
-  (pullback_cone_of_right_iso f g).π.app left = 𝟙 _ := rfl
-
-@[simp] lemma pullback_cone_of_right_iso_π_app_right :
-  (pullback_cone_of_right_iso f g).π.app right = f ≫ inv g := rfl
-
-/-- Verify that the constructed limit cone is indeed a limit. -/
-def pullback_cone_of_right_iso_is_limit :
-  is_limit (pullback_cone_of_right_iso f g) :=
-pullback_cone.is_limit_aux' _ (λ s, ⟨s.fst, by simp [s.condition_assoc]⟩)
-
-lemma has_pullback_of_right_iso : has_pullback f g :=
-⟨⟨⟨_, pullback_cone_of_right_iso_is_limit f g⟩⟩⟩
-
-local attribute [instance] has_pullback_of_right_iso
-
-instance pullback_snd_iso_of_right_iso : is_iso (pullback.fst : pullback f g ⟶ _) :=
-begin
-  have := (pullback_cone_of_right_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f g)) left,
-  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
-end
-
-end right_iso
-
-section
-open walking_cospan
-variable (f : X ⟶ Y)
-
-instance has_kernel_pair_of_mono [mono f] : has_pullback f f :=
-⟨⟨⟨_, pullback_cone.is_limit_mk_id_id f⟩⟩⟩
-
-lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pullback.snd :=
-((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone left).symm.trans
-  ((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone right : _)
-
-@[simp] lemma pullback_symmetry_hom_of_mono_eq [mono f] :
-(@pullback_symmetry _ _ _ _ _ f f _).hom = 𝟙 _ :=
-begin
-  have : (pullback_symmetry f f).hom ≫ pullback.fst = 𝟙 _ ≫ pullback.snd := by simp,
-  rw fst_eq_snd_of_mono_eq at this,
-  exact mono.right_cancellation _ _ this,
-end
-
-instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
-begin
-  have := (pullback_cone.is_limit_mk_id_id f).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f f)) left,
-  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
-end
-
-instance snd_iso_of_mono_eq [mono f] : is_iso (pullback.snd : pullback f f ⟶ _) :=
-by {rw ←fst_eq_snd_of_mono_eq, apply_instance }
 
 end
 

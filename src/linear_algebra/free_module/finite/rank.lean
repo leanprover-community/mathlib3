@@ -43,6 +43,14 @@ end
 @[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
 by { rw [finrank, cast_to_nat_of_lt_omega (rank_lt_omega R M)] }
 
+/-- The finrank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
+lemma finrank_eq_card_choose_basis_index : finrank R M = @card (choose_basis_index R M)
+  (@choose_basis_index.fintype R M _ _ _ _ (nontrivial_of_invariant_basis_number R) _) :=
+begin
+  letI := nontrivial_of_invariant_basis_number R,
+  simp [finrank, rank_eq_card_choose_basis_index]
+end
+
 /-- The finrank of `(ι →₀ R)` is `fintype.card ι`. -/
 @[simp] lemma finrank_finsupp {ι : Type v} [fintype ι] : finrank R (ι →₀ R) = card ι :=
 by { rw [finrank, rank_finsupp, ← mk_to_nat_eq_card, to_nat_lift] }

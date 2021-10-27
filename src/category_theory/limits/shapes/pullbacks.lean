@@ -667,6 +667,7 @@ open walking_cospan
 
 variables (f : X ⟶ Z) (g : Y ⟶ Z)
 
+/-- Making this a global instance would make the typeclass seach go in an infinite loop. -/
 lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
 ⟨⟨⟨pullback_cone.mk _ _ pullback.condition.symm,
   pullback_cone.flip_is_limit (pullback_is_pullback _ _)⟩⟩⟩
@@ -674,36 +675,24 @@ lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
 local attribute [instance] has_pullback_symmetry
 
 /-- The isomorphism `X ×[Z] Y ≅ Y ×[Z] X`. -/
-@[simps] def pullback_symmetry [has_pullback f g] :
+def pullback_symmetry [has_pullback f g] :
   pullback f g ≅ pullback g f :=
 is_limit.cone_point_unique_up_to_iso
   (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
     (pullback_is_pullback f g))
   (limit.is_limit _)
 
-lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
-  (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simp
+@[simp, reassoc] lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
+  (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simp [pullback_symmetry]
 
-lemma pullback_symmetry_hom_comp_snd [has_pullback f g] :
-  (pullback_symmetry f g).hom ≫ pullback.snd = pullback.fst := by simp
+@[simp, reassoc] lemma pullback_symmetry_hom_comp_snd [has_pullback f g] :
+  (pullback_symmetry f g).hom ≫ pullback.snd = pullback.fst := by simp [pullback_symmetry]
 
-lemma pullback_symmetry_inv_comp_fst [has_pullback f g] :
+@[simp, reassoc] lemma pullback_symmetry_inv_comp_fst [has_pullback f g] :
   (pullback_symmetry f g).inv ≫ pullback.fst = pullback.snd := by { rw iso.inv_comp_eq, simp }
 
-lemma pullback_symmetry_inv_comp_snd [has_pullback f g] :
+@[simp, reassoc] lemma pullback_symmetry_inv_comp_snd [has_pullback f g] :
   (pullback_symmetry f g).inv ≫ pullback.snd = pullback.fst := by { rw iso.inv_comp_eq, simp }
-
-@[simp] lemma flip_is_limit_lift_pullback_comp_fst [has_pullback f g] :
-  (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
-    (pullback_is_pullback f g)).lift
-    (limit.cone (cospan g f)) ≫ pullback.fst = pullback.snd :=
-by simpa using pullback_symmetry_inv_comp_fst f g
-
-@[simp] lemma flip_is_limit_lift_pullback_comp_snd [has_pullback f g] :
-  (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
-    (pullback_is_pullback f g)).lift
-    (limit.cone (cospan g f)) ≫ pullback.snd = pullback.fst :=
-by simpa using pullback_symmetry_inv_comp_snd f g
 
 end symmetry
 
@@ -792,11 +781,11 @@ local attribute [instance] has_pullback_of_right_iso
 
 instance pullback_snd_iso_of_right_iso : is_iso (pullback.fst : pullback f g ⟶ _) :=
 begin
-  have := (pullback_cone_of_right_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f g)) left,
-  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
+  constructor,
+  refine ⟨pullback.lift (𝟙 _) (f ≫ inv g) (by simp), _, by simp⟩,
+  ext,
+  { simp },
+  { simp [pullback.condition_assoc] },
 end
 
 end right_iso
@@ -813,11 +802,7 @@ lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pul
   ((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone right : _)
 
 @[simp] lemma pullback_symmetry_hom_of_mono_eq [mono f] :
-  (pullback_symmetry f f).hom = 𝟙 _ :=
-begin
-  ext, 
-  all_goals { simp [fst_eq_snd_of_mono_eq] },
-end
+  (pullback_symmetry f f).hom = 𝟙 _ := by ext; simp [fst_eq_snd_of_mono_eq]
 
 instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
 begin
@@ -858,3 +843,4 @@ lemma has_pushouts_of_has_colimit_span
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
 
 end category_theory.limits
+#lint

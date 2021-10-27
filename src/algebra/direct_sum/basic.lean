@@ -173,7 +173,7 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
 
 /-- The canonical embedding from `⨁ i, A i` to `M`-/
-def direct_sum.add_submonoid_coe {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+def add_submonoid_coe {M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (A : ι → add_submonoid M) : (⨁ i, A i) →+ M :=
 direct_sum.to_add_monoid (λ i, (A i).subtype)
 
@@ -194,7 +194,7 @@ begin
 end
 
 /-- The canonical embedding from `⨁ i, A i` to `M`-/
-def direct_sum.add_subgroup_coe {M : Type*} [decidable_eq ι] [add_comm_group M]
+def add_subgroup_coe {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) : (⨁ i, A i) →+ M :=
 direct_sum.to_add_monoid (λ i, (A i).subtype)
 

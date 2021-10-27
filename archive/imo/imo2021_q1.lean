@@ -46,52 +46,44 @@ open real
 lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
   n + 4 * l ≤ 2 * l * l :=
 begin
-  have h₁ : sqrt (4 + 2 * n) ≤ 2 * l - 2 := le_sub_iff_add_le'.mpr hl,
-  replace h₁ := (sqrt_le_iff.1 h₁).2,
-  ring_exp at h₁,
-  norm_num at h₁,
-  norm_cast at h₁,
-  linarith,
+  suffices : 2 * ((n : ℝ) + 4 * l) - 8 * l + 4 ≤ 2 * (2 * l * l) - 8 * l + 4,
+  { simp only [mul_le_mul_left, sub_le_sub_iff_right, add_le_add_iff_right, zero_lt_two] at this,
+    exact_mod_cast this, },
+  rw [← le_sub_iff_add_le', sqrt_le_iff, pow_two] at hl,
+  convert hl.2 using 1; ring,
 end
 
-lemma upper_bound (n l : ℕ) (hl₂ : (l : ℝ) ≤ sqrt (1 + n) - 1) :
+lemma upper_bound (n l : ℕ) (hl : (l : ℝ) ≤ sqrt (1 + n) - 1) :
   2 * l * l + 4 * l ≤ 2 * n :=
 begin
-  have h₁ : (l : ℝ) + 1 ≤ sqrt (1 + n) := le_sub_iff_add_le.mp hl₂,
-  rw le_sqrt at h₁,
-  ring_exp at h₁, norm_num at h₁,
-  norm_cast at h₁,
-  linarith,
-  all_goals { norm_cast, linarith },
+  have h1 : ∀ n : ℕ, 0 ≤ 1 + (n : ℝ), by { intro n, exact_mod_cast nat.zero_le (1 + n) },
+  rw [le_sub_iff_add_le', le_sqrt (h1 l) (h1 n), pow_two] at hl,
+  rw [← add_le_add_iff_right 2, ← @nat.cast_le ℝ],
+  simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul],
+  convert (mul_le_mul_left zero_lt_two).mpr hl using 1; ring,
 end
 
 
 lemma radical_inequality {n : ℕ} (h : 107 ≤ n) : sqrt (4 + 2 * n) ≤ 2 * (sqrt (1 + n) - 3) :=
 begin
+  have h1n : 0 ≤ 1 + (n : ℝ), by { norm_cast, exact nat.zero_le _ },
   rw sqrt_le_iff,
   split,
-  { norm_num,
-    rw le_sqrt,
-    all_goals { norm_cast, linarith } },
-  { ring_exp,
-    rw [pow_two, ← sqrt_mul, sqrt_mul_self],
-    suffices : 24 * sqrt (1 + n) ≤ 2 * n + 36,
-    { linarith },
-    rw mul_self_le_mul_self_iff,
-    ring_exp,
-    rw [pow_two, ← sqrt_mul, sqrt_mul_self],
-    -- Not splitting into cases lead to a deterministic timeout on my machine
-    by_cases p: n ≥ 108,
-    { norm_cast,
-      nlinarith },
-    { simp only [not_le] at p,
-      have : n = 107 := nat.eq_of_le_of_lt_succ h p,
-      subst this,
-      norm_num },
-    swap 3,
-    { norm_num,
-      apply sqrt_nonneg },
-      all_goals { norm_cast, linarith } },
+  { simp only [sub_nonneg, zero_le_mul_left, zero_lt_two, le_sqrt zero_lt_three.le h1n],
+    norm_cast, linarith only [h] },
+  ring_exp,
+  rw [pow_two, ← sqrt_mul h1n, sqrt_mul_self h1n],
+  suffices : 24 * sqrt (1 + n) ≤ 2 * n + 36, by linarith,
+  rw mul_self_le_mul_self_iff,
+  swap, { norm_num, apply sqrt_nonneg },
+  swap, { norm_cast, linarith },
+  ring_exp,
+  rw [pow_two, ← sqrt_mul h1n, sqrt_mul_self h1n],
+  -- Not splitting into cases lead to a deterministic timeout on my machine
+  obtain ⟨rfl, h'⟩ : 107 = n ∨ 107 < n := eq_or_lt_of_le h,
+  { norm_num },
+  { norm_cast,
+    nlinarith },
 end
 
 -- We will later make use of the fact that there exists (l : ℕ) such that
@@ -101,33 +93,14 @@ lemma exists_numbers_in_interval (n : ℕ) (hn : 107 ≤ n) :
 begin
   suffices : ∃ (l : ℕ), 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ) ∧ (l : ℝ) ≤ sqrt (1 + n) - 1,
   { cases this with l t,
-    use l,
-    exact ⟨lower_bound n l t.1, upper_bound n l t.2⟩ },
-  lift int.floor (sqrt (1 + n) - 1) to ℕ with x,
-  have hx : (x : ℝ) = ⌊sqrt (1 + ↑n) - 1⌋,
-  { norm_cast,
-    convert h,
-    push_cast,
-    norm_num },
-  refine ⟨x, _, _⟩,
-  { suffices : 2 + sqrt (4 + 2 * n) ≤ 2 * (sqrt (1 + n) - 2),
-    { apply this.trans _,
-      simp only [mul_le_mul_left, zero_lt_bit0, zero_lt_one],
-      rw hx,
-      suffices : sqrt (1 + n) - 1 ≤ ⌊sqrt (1 + n) - 1⌋ + 1,
-      { linarith },
-      have t :  (⌈sqrt (1 + n) - 1⌉:ℝ) ≤ ⌊sqrt (1 + n) - 1⌋ + 1,
-      { norm_cast,
-        exact int.ceil_le_floor_add_one _ },
-      apply le_trans _ t,
-      exact int.le_ceil (sqrt (1 + n) - 1) },
-      suffices : sqrt (4 + 2 * n) ≤ 2 * (sqrt (1 + n) - 3),
-      { linarith },
-    exact radical_inequality hn },
-  { rw hx,
-    exact int.floor_le _ },
-  { rw [int.floor_nonneg, le_sub, sub_zero, le_sqrt];
-    { norm_cast, linarith } },
+    exact ⟨l, lower_bound n l t.1, upper_bound n l t.2⟩ },
+  let x := sqrt (1 + n) - 1,
+  refine ⟨⌊x⌋₊, _, _⟩,
+  { transitivity 2 * (x - 1),
+    { dsimp only [x], linarith only [radical_inequality hn] },
+    { simp only [mul_le_mul_left, zero_lt_two], linarith only [(nat.lt_floor_add_one x).le], } },
+  { apply nat.floor_le, rw [sub_nonneg, le_sqrt],
+    all_goals { norm_cast, simp only [one_pow, le_add_iff_nonneg_right, zero_le'], } },
 end
 
 lemma exists_triplet_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
@@ -136,74 +109,47 @@ lemma exists_triplet_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
 begin
   -- If n ≥ 107, we do not explicitly construct the triplet but use an existence
   -- argument from lemma above.
-  by_cases p : 107 ≤ n,
-  { have h := exists_numbers_in_interval n p,
-    cases h with l hl,
-    by_cases p : 1 < l,
-    { have h₁ : 4 * l ≤ 2 * l * l, { linarith },
-      have h₂ : 1 ≤ 2 * l, { linarith },
-      refine ⟨2 * l * l - 4 * l, 2 * l * l + 1, 2 * l * l + 4 * l,
-      _,_,_,⟨_,⟨2 * l - 1, _⟩,⟨2 * l, _⟩,2 * l + 1, _⟩⟩,
-      all_goals { zify [h₁, h₂], linarith } },
-    { exfalso,
-      simp only [not_lt] at p,
-      interval_cases l; linarith }},
+  obtain p|p : 107 ≤ n ∨ n < 107 := le_or_lt 107 n,
+  { obtain ⟨l, hl1, hl2⟩ := exists_numbers_in_interval n p,
+    have p : 1 < l, { contrapose! hl1, interval_cases l; linarith },
+    have h₁ : 4 * l ≤ 2 * l * l, { linarith },
+    have h₂ : 1 ≤ 2 * l, { linarith },
+    refine ⟨2 * l * l - 4 * l, 2 * l * l + 1, 2 * l * l + 4 * l,
+      _, _, _, ⟨_, ⟨2 * l - 1, _⟩, ⟨2 * l, _⟩, 2 * l + 1, _⟩⟩,
+    all_goals { zify [h₁, h₂], linarith } },
   -- Otherwise, if 100 ≤ n < 107, then it suffices to consider explicit
   -- construction of a triplet {a, b, c}, which is constructed by setting l=9
   -- in the argument at the start of the file.
+  { refine ⟨126, 163, 198, p.le.trans _, _, _, _, ⟨17, _⟩, ⟨18, _⟩, 19, _⟩,
+    swap 4, { linarith },
+    all_goals { norm_num } },
   { refine ⟨126, 163, 198, _, _, _, _, ⟨17, _⟩, ⟨18, _⟩, 19, _⟩; linarith },
 end
 
 -- Since it will be more convenient to work with sets later on, we will translate the above claim
 -- to state that there always exists a set B ⊆ [n, 2n] of cardinality at least 3, such that each
 -- pair of pairwise unequal elements of B sums to a perfect square.
-lemma exists_finset_of_3_leq_card_with_pairs_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
-  ∃ (B : finset ℕ), 2 * 1 + 1 ≤ B.card ∧
-  (∀ (a b ∈ B), a ≠ b → ∃ k, a + b = k * k) ∧
-  ∀ (c ∈ B), n ≤ c ∧ c ≤ 2 * n :=
+lemma exists_finset_3_le_card_with_pairs_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
+  ∃ B : finset ℕ,
+    (2 * 1 + 1 ≤ B.card) ∧
+    (∀ (a b ∈ B), a ≠ b → ∃ k, a + b = k * k) ∧
+    (∀ (c ∈ B), n ≤ c ∧ c ≤ 2 * n) :=
 begin
   obtain ⟨a, b, c, hna, hab, hbc, hcn, h₁, h₂, h₃⟩ := exists_triplet_summing_to_squares n hn,
   refine ⟨{a, b, c}, _, _, _⟩,
-  { suffices : ({a, b, c} : finset ℕ).card = 3,
-    { linarith },
-    rw [finset.card_insert_of_not_mem, finset.card_insert_of_not_mem, finset.card_singleton],
-    { rw finset.mem_singleton,
-      exact hbc.ne },
-    { simp only [finset.mem_insert, finset.mem_singleton],
+  { suffices : ({a, b, c} : finset ℕ).card = 3, { rw this, exact le_rfl },
+    suffices : a ∉ {b, c} ∧ b ∉ {c},
+    { rw [finset.card_insert_of_not_mem this.1, finset.card_insert_of_not_mem this.2,
+        finset.card_singleton], },
+    { rw [finset.mem_insert, finset.mem_singleton, finset.mem_singleton],
       push_neg,
-      exact ⟨hab.ne, (hab.trans hbc).ne⟩ }},
+      exact ⟨⟨hab.ne, (hab.trans hbc).ne⟩, hbc.ne⟩ } },
   { intros x y hx hy hxy,
-    simp only [finset.mem_insert, finset.mem_singleton] at hx,
-    simp only [finset.mem_insert, finset.mem_singleton] at hy,
-    rcases hx with (hxa | hxb | hxc),
-    { rcases hy with (hya | hyb | hyc),
-      { rw ← hya at hxa,
-        contradiction },
-      { convert h₁,
-        rw [hxa, hyb] },
-      { convert h₂,
-        rw [hxa, hyc, add_comm] }},
-    { rcases hy with (hya | hyb | hyc),
-      { convert h₁,
-        rw [hxb, hya, add_comm] },
-      { rw ← hyb at hxb,
-        contradiction },
-      { convert h₃,
-        rw [hxb, hyc] }},
-    { rcases hy with (hya | hyb | hyc),
-      { convert h₂,
-        rw [hxc, hya] },
-      { convert h₃,
-        rw [hxc, hyb, add_comm] },
-      { rw ← hyc at hxc,
-        contradiction }}},
-  { intros d hd,
-    simp only [finset.mem_insert, finset.mem_singleton] at hd,
-    split,
-    { rcases hd with (hd | hd | hd);
-      { linarith }},
-    { rcases hd with (hd | hd | hd);
-      { linarith }}},
+    simp only [finset.mem_insert, finset.mem_singleton] at hx hy,
+    rcases hx with rfl|rfl|rfl; rcases hy with rfl|rfl|rfl,
+    all_goals { contradiction <|> assumption <|> simpa only [add_comm x y], } },
+  { simp only [finset.mem_insert, finset.mem_singleton],
+    rintros d (rfl|rfl|rfl); split; linarith only [hna, hab, hbc, hcn], },
 end
 
 theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
@@ -216,41 +162,21 @@ begin
   -- a finite set B ⊆ [n, 2n] such that all pairwise unequal pairs of B sum to a perfect square
   -- noting that B has cardinality greater or equal to 3, by the explicit construction of the
   -- triplet {a, b, c} before.
-  obtain ⟨B, hB, h₁, h₂⟩ := exists_finset_of_3_leq_card_with_pairs_summing_to_squares n hn,
-  have hB : 2 * 1 < ((B ∩ (finset.Icc n (2 * n) \ A)) ∪ (B ∩ A)).card,
-  { rw ← finset.inter_distrib_left,
-    have hBinter : B ∩ ((finset.Icc n (2 * n) \ A) ∪ A) = B,
-    { rw finset.inter_eq_left_iff_subset,
-      simp only [finset.sdiff_union_self_eq_union],
-      rw finset.union_eq_left_iff_subset.mpr hA,
-      intros c hcB,
-      simp only [finset.mem_Icc],
-      exact h₂ c hcB },
-    rw hBinter,
+  obtain ⟨B, hB, h₁, h₂⟩ := exists_finset_3_le_card_with_pairs_summing_to_squares n hn,
+  have hBsub : B ⊆ finset.Icc n (2 * n),
+  { intros c hcB, simpa only [finset.mem_Icc] using h₂ c hcB },
+  have hB' : 2 * 1 < ((B ∩ (finset.Icc n (2 * n) \ A)) ∪ (B ∩ A)).card,
+  { rw [← finset.inter_distrib_left, finset.sdiff_union_self_eq_union,
+      finset.union_eq_left_iff_subset.mpr hA, (finset.inter_eq_left_iff_subset _ _).mpr hBsub],
     exact nat.succ_le_iff.mp hB },
   -- Since B has cardinality greater or equal to 3, there must exist a subset C ⊆ B such that
   -- for any A ⊆ [n, 2n], either C ⊆ A or C ⊆ [n, 2n] \ A and C has cardinality greater
   -- or equal to 2.
-  have hp₂ := finset.exists_subset_or_subset_of_two_mul_lt_card hB,
-  rcases hp₂ with (⟨C, hC, (hCA | hCA)⟩),
-  -- First, we deal with the case when C ⊆ [n, 2n] \ A.
-  { right,
-    replace hC := nat.succ_le_iff.mp hC,
-    rw finset.one_lt_card at hC,
-    rcases hC with ⟨a, ha, b, hb, hab⟩,
-    refine ⟨a, b, _, _, hab, h₁ a b _ _ hab⟩,
-    { exact finset.mem_of_mem_inter_right (hCA ha) },
-    { exact finset.mem_of_mem_inter_right (hCA hb) },
-    { exact finset.mem_of_mem_inter_left (hCA ha) },
-    { exact finset.mem_of_mem_inter_left (hCA hb) }},
-  -- Then, we finish the proof in the case when C ⊆ A.
-  { left,
-    replace hC := nat.succ_le_iff.mp hC,
-    rw finset.one_lt_card at hC,
-    rcases hC with ⟨a, ha, b, hb, hab⟩,
-    refine ⟨a, b, _, _, hab, h₁ a b _ _ hab⟩,
-    { exact finset.mem_of_mem_inter_right (hCA ha) },
-    { exact finset.mem_of_mem_inter_right (hCA hb) },
-    { exact finset.mem_of_mem_inter_left (hCA ha) },
-    { exact finset.mem_of_mem_inter_left (hCA hb) }},
+  obtain ⟨C, hC, hCA⟩ := finset.exists_subset_or_subset_of_two_mul_lt_card hB',
+  rw finset.one_lt_card at hC,
+  rcases hC with ⟨a, ha, b, hb, hab⟩,
+  simp only [finset.subset_iff, finset.mem_inter] at hCA,
+  -- Now we split into the two cases C ⊆ [n, 2n] \ A and C ⊆ A, which can be dealt with identically.
+  cases hCA; [right, left];
+  exact ⟨a, b, (hCA ha).2, (hCA hb).2, hab, h₁ a b (hCA ha).1 (hCA hb).1 hab⟩,
 end

@@ -887,12 +887,7 @@ section linear_ordered_cancel_add_comm_monoid
 variables [linear_ordered_cancel_add_comm_monoid α]
 
 lemma lt_or_lt_of_add_lt_add {a b m n : α} (h : m + n < a + b) : m < a ∨ n < b :=
-begin
-  simp_rw [← not_le],
-  by_contra h₁,
-  rw ← and_iff_not_or_not at h₁,
-  exact (not_le.mpr h) (add_le_add h₁.1 h₁.2)
-end
+by { contrapose! h, exact add_le_add h.1 h.2 }
 
 end linear_ordered_cancel_add_comm_monoid
 

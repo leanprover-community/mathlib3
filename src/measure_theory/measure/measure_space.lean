@@ -578,7 +578,7 @@ begin
     refine infi_le_of_le (μ.to_outer_measure) (infi_le_of_le (mem_image_of_mem _ hμ) _),
     rw [to_outer_measure_apply],
     refine measure_mono hst },
-  rw [measure_eq_inter_diff hu hs],
+  rw [← measure_inter_add_diff u hs],
   refine add_le_add (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
 end
 
@@ -917,7 +917,7 @@ begin
     restrict_congr_mono (subset_union_right _ _) htm h⟩, _⟩,
   simp only [restrict_congr_meas, hsm, htm, hsm.union htm],
   rintros ⟨hs, ht⟩ u hu hum,
-  rw [measure_eq_inter_diff hum hsm, measure_eq_inter_diff hum hsm,
+  rw [← measure_inter_add_diff u hsm, ← measure_inter_add_diff u hsm,
     hs _ (inter_subset_right _ _) (hum.inter hsm),
     ht _ (diff_subset_iff.2 hu) (hum.diff hsm)]
 end
@@ -1036,7 +1036,7 @@ begin
   { intros v hv hvt,
     have := T_eq t ht,
     rw [set.inter_comm] at hvt ⊢,
-    rwa [measure_eq_inter_diff (hm _ ht) hv, measure_eq_inter_diff (hm _ ht) hv, ← hvt,
+    rwa [← measure_inter_add_diff t hv, ← measure_inter_add_diff t hv, ← hvt,
       ennreal.add_right_inj] at this,
     exact ne_top_of_le_ne_top (htop t ht) (measure_mono $ set.inter_subset_left _ _) },
   { intros f hfd hfm h_eq,
@@ -2324,7 +2324,7 @@ begin
         { intro t', rw set.inter_eq_self_of_subset_left, apply set.inter_subset_right t t' },
         have h_meas_t_inter_s : measurable_set (t ∩ s) :=
            h_meas_t.inter h_meas_s,
-        repeat {rw measure_eq_inter_diff h_meas_t h_meas_s, rw set.diff_eq},
+        repeat { rw ← measure_inter_add_diff t h_meas_s, rw set.diff_eq },
         refine add_le_add _ _,
         { rw add_apply,
           apply le_add_right _,

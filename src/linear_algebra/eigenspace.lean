@@ -258,21 +258,20 @@ begin
       intro h,
       rw h at hμ,
       contradiction },
-    -- -- The only potentially nonzero eigenspace-representative in `l` is the one corresponding to
-    -- -- `μ₀`. But since the overall sum is `0` by assumption, this representative must also be `0`.
-    -- have : l μ₀ = 0,
-    -- { rw [finsupp.total_apply, finsupp.sum, h_l_support,
-    --       finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
-    --   by_contra h,
-    --   exact (h_eigenvec μ₀).2 ((smul_eq_zero.1 hl).resolve_left h) },
-    -- -- Thus, all coefficients in `l` are `0`.
-    -- show l = 0,
-    -- { ext μ,
-    --   by_cases h_cases : μ = μ₀,
-    --   { rw h_cases,
-    --     assumption },
-    --   exact h_lμ_eq_0 μ h_cases } }
-    sorry }
+    -- The only potentially nonzero eigenspace-representative in `l` is the one corresponding to
+    -- `μ₀`. But since the overall sum is `0` by assumption, this representative must also be `0`.
+    have : l μ₀ = 0,
+    { simp only [S, dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply,
+        linear_map.to_add_monoid_hom_coe, dfinsupp.sum, h_l_support, submodule.subtype_apply,
+        submodule.coe_eq_zero, finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
+      exact_mod_cast hl },
+    -- Thus, all coefficients in `l` are `0`.
+    show l = 0,
+    { ext μ,
+      by_cases h_cases : μ = μ₀,
+      { rw h_cases,
+        exact_mod_cast this },
+      exact congr_arg (coe : _ → V) (h_lμ_eq_0 μ h_cases) }}
 end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly

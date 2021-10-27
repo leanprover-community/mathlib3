@@ -17,9 +17,13 @@ We define
 * `pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C`
 with notation `f _* ℱ`
 and for `ℱ : X.presheaf C` provide the natural isomorphisms
-* `pushforward.id : (𝟙 X) _* ℱ ≅ ℱ``
+* `pushforward.id : (𝟙 X) _* ℱ ≅ ℱ`
 * `pushforward.comp : (f ≫ g) _* ℱ ≅ g _* (f _* ℱ)`
 along with their `@[simp]` lemmas.
+
+We also defined the functors `pushforward` and `pullback` between the categories
+`X.presheaf C` and `Y.presheaf C`, and provided their adjunction at
+`pushforward_pullback_adjunction`.
 -/
 
 universes v u

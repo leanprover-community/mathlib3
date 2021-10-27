@@ -677,7 +677,7 @@ local attribute[instance] has_pullback_symmetry
 is_limit.cone_point_unique_up_to_iso
   (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
     (pullback_is_pullback f g))
-  (@@limit.is_limit _ _ _ (has_pullback_symmetry f g))
+  (limit.is_limit _)
 
 lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
   (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simp
@@ -711,11 +711,7 @@ variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso f]
 
 /-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
 def pullback_cone_of_left_iso : pullback_cone f g :=
-{ X := Y, π := { app := by { rintro (_|_|_), exacts [g, g ≫ inv f, 𝟙 _] }, naturality' := λ A B i,
-  begin
-    cases i, rcases A with (_|_|_); simp [category.id_comp g], refl,
-    cases i_1; simp [category.id_comp g]
-  end } }
+pullback_cone.mk (g ≫ inv f) (𝟙 _) $ by simp
 
 @[simp] lemma pullback_cone_of_left_iso_X :
   (pullback_cone_of_left_iso f g).X = Y := rfl
@@ -727,7 +723,7 @@ def pullback_cone_of_left_iso : pullback_cone f g :=
   (pullback_cone_of_left_iso f g).snd = 𝟙 _ := rfl
 
 @[simp] lemma pullback_cone_of_left_iso_π_app_none :
-  (pullback_cone_of_left_iso f g).π.app none = g := rfl
+  (pullback_cone_of_left_iso f g).π.app none = g := by { delta pullback_cone_of_left_iso, simp }
 
 @[simp] lemma pullback_cone_of_left_iso_π_app_left :
   (pullback_cone_of_left_iso f g).π.app left = g ≫ inv f := rfl
@@ -762,11 +758,7 @@ variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso g]
 
 /-- If `g : Y ⟶ Z` is iso, then `X ×[Z] Y ≅ X`. This is the explicit limit cone. -/
 def pullback_cone_of_right_iso : pullback_cone f g :=
-{ X := X, π := { app := by { rintro (_|_|_), exacts [f, 𝟙 _, f ≫ inv g] }, naturality' := λ A B i,
-  begin
-    cases i, rcases A with (_|_|_); simp [category.id_comp f], refl,
-    cases i_1; simp [category.id_comp f]
-  end } }
+pullback_cone.mk (𝟙 _) (f ≫ inv g) $ by simp
 
 @[simp] lemma pullback_cone_of_right_iso_X :
   (pullback_cone_of_right_iso f g).X = X := rfl
@@ -778,7 +770,7 @@ def pullback_cone_of_right_iso : pullback_cone f g :=
   (pullback_cone_of_right_iso f g).snd = f ≫ inv g := rfl
 
 @[simp] lemma pullback_cone_of_right_iso_π_app_none :
-  (pullback_cone_of_right_iso f g).π.app none = f := rfl
+  (pullback_cone_of_right_iso f g).π.app none = f := category.id_comp _
 
 @[simp] lemma pullback_cone_of_right_iso_π_app_left :
   (pullback_cone_of_right_iso f g).π.app left = 𝟙 _ := rfl
@@ -819,7 +811,7 @@ lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pul
   ((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone right : _)
 
 @[simp] lemma pullback_symmetry_hom_of_mono_eq [mono f] :
-(@pullback_symmetry _ _ _ _ _ f f _).hom = 𝟙 _ :=
+  (pullback_symmetry f f).hom = 𝟙 _ :=
 begin
   have : (pullback_symmetry f f).hom ≫ pullback.fst = 𝟙 _ ≫ pullback.snd := by simp,
   rw fst_eq_snd_of_mono_eq at this,

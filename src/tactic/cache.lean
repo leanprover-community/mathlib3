@@ -13,6 +13,7 @@ helps to force such updates.
 
 -/
 open lean.parser
+open interactive interactive.types
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
@@ -36,7 +37,6 @@ do frozen ← frozen_local_instances,
    if h ∈ frozen.get_or_else [] then unfreezing tac else tac
 
 namespace interactive
-open interactive interactive.types
 
 /--
 `unfreezingI { tac }` executes tac while temporarily unfreezing the instance cache.

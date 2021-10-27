@@ -81,7 +81,7 @@ variables [semiring R]
 [module R M']
 (f f' : multilinear_map R M₁ M₂)
 
-instance : has_coe_to_fun (multilinear_map R M₁ M₂) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (multilinear_map R M₁ M₂) (λ f, (Πi, M₁ i) → M₂) := ⟨to_fun⟩
 
 initialize_simps_projections multilinear_map (to_fun → apply)
 
@@ -96,11 +96,15 @@ congr_arg (λ h : multilinear_map R M₁ M₂, h x) h
 theorem congr_arg (f : multilinear_map R M₁ M₂) {x y : Π i, M₁ i} (h : x = y) : f x = f y :=
 congr_arg (λ x : Π i, M₁ i, f x) h
 
-theorem coe_inj ⦃f g : multilinear_map R M₁ M₂⦄ (h : ⇑f = g) : f = g :=
-by cases f; cases g; cases h; refl
+theorem coe_injective : injective  (coe_fn : multilinear_map R M₁ M₂ → ((Π i, M₁ i) → M₂)) :=
+by { intros f g h, cases f, cases g, cases h, refl }
+
+@[simp, norm_cast] theorem coe_inj {f g : multilinear_map R M₁ M₂} :
+  (f : (Π i, M₁ i) → M₂) = g ↔ f = g :=
+coe_injective.eq_iff
 
 @[ext] theorem ext {f f' : multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
-coe_inj (funext H)
+coe_injective (funext H)
 
 theorem ext_iff {f g : multilinear_map R M₁ M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -328,13 +332,13 @@ begin
   -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,
   { rcases Ai_empty with ⟨i, hi⟩,
-    have : ∑ j in A i, g i j = 0, by convert sum_empty,
+    have : ∑ j in A i, g i j = 0, by rw [hi, finset.sum_empty],
     rw f.map_coord_zero i this,
     have : pi_finset A = ∅,
     { apply finset.eq_empty_of_forall_not_mem (λ r hr, _),
       have : r i ∈ A i := mem_pi_finset.mp hr i,
       rwa hi at this },
-    convert sum_empty.symm },
+    rw [this, finset.sum_empty] },
   push_neg at Ai_empty,
   -- Otherwise, if all sets are at most singletons, then they are exactly singletons and the result
   -- is again straightforward
@@ -595,6 +599,15 @@ writing `f (λi, c i • m i)` as `(∏ i, c i) • f m`. -/
 lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = (∏ i, c i) • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
+
+@[simp] lemma map_update_smul [fintype ι] (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+  f (update (c • m) i x) = c^(fintype.card ι - 1) • f (update m i x) :=
+begin
+  have : f ((finset.univ.erase i).piecewise (c • update m i x) (update m i x))
+       = (∏ i in finset.univ.erase i, c) • f (update m i x) :=
+    map_piecewise_smul f _ _ _,
+  simpa [←function.update_smul c m] using this,
+end
 
 section distrib_mul_action
 

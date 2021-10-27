@@ -167,6 +167,25 @@ begin
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
 end
 
+lemma is_topological_basis.is_open_map_iff {β} [topological_space β] {B : set (set α)}
+  (hB : is_topological_basis B) {f : α → β} :
+  is_open_map f ↔ ∀ s ∈ B, is_open (f '' s) :=
+begin
+  refine ⟨λ H o ho, H _ (hB.is_open ho), λ hf o ho, _⟩,
+  rw [hB.open_eq_sUnion' ho, sUnion_eq_Union, image_Union],
+  exact is_open_Union (λ s, hf s s.2.1)
+end
+
+lemma is_topological_basis.exists_nonempty_subset {B : set (set α)}
+  (hb : is_topological_basis B) {u : set α} (hu : u.nonempty) (ou : is_open u) :
+  ∃ v ∈ B, set.nonempty v ∧ v ⊆ u :=
+begin
+  cases hu with x hx,
+  rw [hb.open_eq_sUnion' ou, mem_sUnion] at hx,
+  rcases hx with ⟨v, hv, hxv⟩,
+  exact ⟨v, hv.1, ⟨x, hxv⟩, hv.2⟩
+end
+
 lemma is_topological_basis_opens : is_topological_basis { U : set α | is_open U } :=
 is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
 
@@ -261,6 +280,47 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 @[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
   dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
 
+variable {α}
+
+/-- In a separable space, a family of nonempty disjoint open sets is countable. -/
+lemma countable_of_is_open_of_disjoint [separable_space α] {β : Type*}
+  (s : β → set α) {a : set β} (ha : ∀ i ∈ a, is_open (s i)) (h'a : ∀ i ∈ a, (s i).nonempty)
+  (h : a.pairwise_on (disjoint on s)) :
+  countable a :=
+begin
+  rcases eq_empty_or_nonempty a with rfl|H, { exact countable_empty },
+  haveI : inhabited α,
+  { choose i ia using H,
+    choose y hy using h'a i ia,
+    exact ⟨y⟩ },
+  rcases exists_countable_dense α with ⟨u, u_count, u_dense⟩,
+  have : ∀ i, i ∈ a → ∃ y, y ∈ s i ∩ u :=
+    λ i hi, dense_iff_inter_open.1 u_dense (s i) (ha i hi) (h'a i hi),
+  choose! f hf using this,
+  have f_inj : inj_on f a,
+  { assume i hi j hj hij,
+    have : ¬disjoint (s i) (s j),
+    { rw not_disjoint_iff_nonempty_inter,
+      refine ⟨f i, (hf i hi).1, _⟩,
+      rw hij,
+      exact (hf j hj).1 },
+    contrapose! this,
+    exact h i hi j hj this },
+  apply countable_of_injective_of_countable_image f_inj,
+  apply u_count.mono _,
+  exact image_subset_iff.2 (λ i hi, (hf i hi).2)
+end
+
+/-- In a separable space, a family of disjoint sets with nonempty interiors is countable. -/
+lemma countable_of_nonempty_interior_of_disjoint [separable_space α] {β : Type*} (s : β → set α)
+  {a : set β} (ha : ∀ i ∈ a, (interior (s i)).nonempty) (h : a.pairwise_on (disjoint on s)) :
+  countable a :=
+begin
+  have : a.pairwise_on (disjoint on (λ i, interior (s i))) :=
+    pairwise_on_disjoint_on_mono h (λ i hi, interior_subset),
+  exact countable_of_is_open_of_disjoint (λ i, interior (s i)) (λ i hi, is_open_interior) ha this
+end
+
 end topological_space
 
 open topological_space
@@ -347,6 +407,13 @@ protected lemma dense_range.separable_space {α β : Type*} [topological_space �
 let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
 ⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
 
+lemma dense.exists_countable_dense_subset {α : Type*} [topological_space α]
+  {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t :=
+let ⟨t, htc, htd⟩ := exists_countable_dense s
+in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _, htc.image coe,
+  hs.dense_range_coe.dense_image continuous_subtype_val htd⟩
+
 namespace topological_space
 universe u
 variables (α : Type u) [t : topological_space α]
@@ -358,6 +425,8 @@ include t
 class first_countable_topology : Prop :=
 (nhds_generated_countable : ∀a:α, (𝓝 a).is_countably_generated)
 
+attribute [instance] first_countable_topology.nhds_generated_countable
+
 namespace first_countable_topology
 variable {α}
 
@@ -366,19 +435,15 @@ is the limit of some subsequence. -/
 lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α}
   (hx : map_cluster_pt x at_top u) :
   ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
-(nhds_generated_countable x).subseq_tendsto hx
+subseq_tendsto_of_ne_bot hx
 
 end first_countable_topology
 
 variables {α}
 
-lemma is_countably_generated_nhds [first_countable_topology α] (x : α) :
-  is_countably_generated (𝓝 x) :=
-first_countable_topology.nhds_generated_countable x
-
-lemma is_countably_generated_nhds_within [first_countable_topology α] (x : α) (s : set α) :
+instance is_countably_generated_nhds_within (x : α) [is_countably_generated (𝓝 x)] (s : set α) :
   is_countably_generated (𝓝[s] x) :=
-(is_countably_generated_nhds x).inf_principal s
+inf.is_countably_generated _ _
 
 variable (α)
 

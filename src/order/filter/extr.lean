@@ -156,22 +156,24 @@ lemma is_extr_on_const {b : β} : is_extr_on (λ _, b) s a := is_extr_filter_con
 
 /-! ### Order dual -/
 
-lemma is_min_filter_dual_iff : @is_min_filter α (order_dual β) _ f l a ↔ is_max_filter f l a :=
+open order_dual (to_dual)
+
+lemma is_min_filter_dual_iff : is_min_filter (to_dual ∘ f) l a ↔ is_max_filter f l a :=
 iff.rfl
 
-lemma is_max_filter_dual_iff : @is_max_filter α (order_dual β) _ f l a ↔ is_min_filter f l a :=
+lemma is_max_filter_dual_iff : is_max_filter (to_dual ∘ f) l a ↔ is_min_filter f l a :=
 iff.rfl
 
-lemma is_extr_filter_dual_iff : @is_extr_filter α (order_dual β) _ f l a ↔ is_extr_filter f l a :=
+lemma is_extr_filter_dual_iff : is_extr_filter (to_dual ∘ f) l a ↔ is_extr_filter f l a :=
 or_comm _ _
 
 alias is_min_filter_dual_iff ↔ is_min_filter.undual is_max_filter.dual
 alias is_max_filter_dual_iff ↔ is_max_filter.undual is_min_filter.dual
 alias is_extr_filter_dual_iff ↔ is_extr_filter.undual is_extr_filter.dual
 
-lemma is_min_on_dual_iff : @is_min_on α (order_dual β) _ f s a ↔ is_max_on f s a := iff.rfl
-lemma is_max_on_dual_iff : @is_max_on α (order_dual β) _ f s a ↔ is_min_on f s a := iff.rfl
-lemma is_extr_on_dual_iff : @is_extr_on α (order_dual β) _ f s a ↔ is_extr_on f s a := or_comm _ _
+lemma is_min_on_dual_iff : is_min_on (to_dual ∘ f) s a ↔ is_max_on f s a := iff.rfl
+lemma is_max_on_dual_iff : is_max_on (to_dual ∘ f) s a ↔ is_min_on f s a := iff.rfl
+lemma is_extr_on_dual_iff : is_extr_on (to_dual ∘ f) s a ↔ is_extr_on f s a := or_comm _ _
 
 alias is_min_on_dual_iff ↔ is_min_on.undual is_max_on.dual
 alias is_max_on_dual_iff ↔ is_max_on.undual is_min_on.dual
@@ -231,17 +233,17 @@ lemma is_extr_filter.comp_mono (hf : is_extr_filter f l a) {g : β → γ} (hg :
 hf.elim (λ hf, (hf.comp_mono hg).is_extr)  (λ hf, (hf.comp_mono hg).is_extr)
 
 lemma is_min_filter.comp_antitone (hf : is_min_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_max_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
 lemma is_max_filter.comp_antitone (hf : is_max_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_min_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
 lemma is_extr_filter.comp_antitone (hf : is_extr_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_extr_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
@@ -258,17 +260,17 @@ lemma is_extr_on.comp_mono (hf : is_extr_on f s a) {g : β → γ} (hg : monoton
 hf.comp_mono hg
 
 lemma is_min_on.comp_antitone (hf : is_min_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_max_on (g ∘ f) s a :=
 hf.comp_antitone hg
 
 lemma is_max_on.comp_antitone (hf : is_max_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_min_on (g ∘ f) s a :=
 hf.comp_antitone hg
 
 lemma is_extr_on.comp_antitone (hf : is_extr_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_extr_on (g ∘ f) s a :=
 hf.comp_antitone hg
 

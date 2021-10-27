@@ -205,9 +205,7 @@ end
 lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p)
   (hp' : fact (0 < p) := ⟨zero_lt_one.trans hp⟩):
   fintype.card (units (zmod p)) ≤ p - 1 :=
-by {
-  rw @zmod.card_units_eq_totient p hp',
-  exact nat.le_pred_of_lt (nat.totient_lt p hp), }
+by { rw @zmod.card_units_eq_totient p hp', exact nat.le_pred_of_lt (nat.totient_lt p hp), }
 
 lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
   p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=

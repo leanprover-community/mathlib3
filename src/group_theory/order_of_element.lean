@@ -208,7 +208,7 @@ end
 If `x^n = 1`, but `x^(n/p) ≠ 1` for all prime factors `p` of `r`,
 then `x` has order `n` in `G`.
 -/
-theorem order_from_pows
+theorem order_of_eq_of_pow_and_pow_div_prime
   (hn : 0 < n) (hx : x^n = 1) (hd : ∀ p : ℕ, p.prime → p ∣ n → x^(n/p) ≠ 1) :
   order_of x = n :=
 begin

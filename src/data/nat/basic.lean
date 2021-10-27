@@ -513,6 +513,7 @@ begin
     exact nat.le_of_pred_lt h', },
 end
 
+/-- A version of `nat.sub_succ` in the form `_ - 1` instead of `nat.pred _`. -/
 lemma sub_succ' (a b : ℕ) : a - b.succ = a - b - 1 := rfl
 
 /-! ### `mul` -/

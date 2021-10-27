@@ -5,30 +5,24 @@ Authors: Scott Morrison, Reid Barton
 -/
 import category_theory.fully_faithful
 
-namespace category_theory
+/-!
+# Induced categories and full subcategories
 
-universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+Given a category `D` and a function `F : C → D `from a type `C` to the
+objects of `D`, there is an essentially unique way to give `C` a
+category structure such that `F` becomes a fully faithful functor,
+namely by taking $$ Hom_C(X, Y) = Hom_D(FX, FY) $$. We call this the
+category induced from `D` along `F`.
 
-section induced
+As a special case, if `C` is a subtype of `D`,
+this produces the full subcategory of `D` on the objects belonging to `C`.
+In general the induced category is equivalent to the full subcategory of `D` on the
+image of `F`.
 
-/- Induced categories.
+## Implementation notes
 
-  Given a category D and a function F : C → D from a type C to the
-  objects of D, there is an essentially unique way to give C a
-  category structure such that F becomes a fully faithful functor,
-  namely by taking Hom_C(X, Y) = Hom_D(FX, FY). We call this the
-  category induced from D along F.
-
-  As a special case, if C is a subtype of D, this produces the full
-  subcategory of D on the objects belonging to C. In general the
-  induced category is equivalent to the full subcategory of D on the
-  image of F.
-
--/
-
-/-
-It looks odd to make D an explicit argument of `induced_category`,
-when it is determined by the argument F anyways. The reason to make D
+It looks odd to make `D` an explicit argument of `induced_category`,
+when it is determined by the argument `F` anyways. The reason to make `D`
 explicit is in order to control its syntactic form, so that instances
 like `induced_category.has_forget₂` (elsewhere) refer to the correct
 form of D. This is used to set up several algebraic categories like
@@ -37,6 +31,12 @@ form of D. This is used to set up several algebraic categories like
   -- not `induced_category (bundled monoid) (bundled.map @comm_monoid.to_monoid)`,
   -- even though `Mon = bundled monoid`!
 -/
+
+namespace category_theory
+
+universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+
+section induced
 
 variables {C : Type u₁} (D : Type u₂) [category.{v} D]
 variables (F : C → D)
@@ -73,7 +73,6 @@ instance induced_category.full : full (induced_functor F) :=
 instance induced_category.faithful : faithful (induced_functor F) := {}
 
 end induced
-
 
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/

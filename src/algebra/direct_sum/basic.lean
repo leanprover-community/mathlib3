@@ -177,6 +177,11 @@ def add_submonoid_coe {M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (A : ι → add_submonoid M) : (⨁ i, A i) →+ M :=
 direct_sum.to_add_monoid (λ i, (A i).subtype)
 
+@[simp] lemma add_submonoid_coe_of {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (A : ι → add_submonoid M) (i : ι) (x : A i) :
+direct_sum.add_submonoid_coe A (direct_sum.of (λ i, A i) i x) = x :=
+direct_sum.to_add_monoid_of _ _ _
+
 /-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.
 
@@ -201,10 +206,7 @@ direct_sum.to_add_monoid (λ i, (A i).subtype)
 @[simp] lemma add_group_coe_of {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) (i : ι) (x : A i) :
 direct_sum.add_subgroup_coe A (direct_sum.of (λ i, A i) i x) = x :=
-begin
-  rw [direct_sum.add_subgroup_coe, direct_sum.to_add_monoid_of],
-  simp only [add_subgroup.coe_subtype],
-end
+direct_sum.to_add_monoid_of _ _ _
 
 /-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.

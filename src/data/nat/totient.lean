@@ -48,7 +48,11 @@ calc totient n ≤ ((range n).filter (≠ 0)).card :
   end
 ... = n - 1 : by simp only [filter_ne' (range n) 0, card_erase_of_mem, n.pred_eq_sub_one,
                 card_range, pos_of_gt hn, mem_range]
-... < n : nat.pred_lt hn.le
+... < n : begin
+  apply nat.pred_lt,
+  rw nat.sub,
+  linarith,
+end
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
@@ -198,9 +202,12 @@ begin
   rwa [succ_le_iff, pos_iff_ne_zero],
 end
 
-lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fintype (units (zmod p))] :
+lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p)
+  (hp' : fact (0 < p) := ⟨zero_lt_one.trans hp⟩):
   fintype.card (units (zmod p)) ≤ p - 1 :=
-by { rw zmod.card_units_eq_totient p, exact nat.le_pred_of_lt (nat.totient_lt p hp), }
+by {
+  rw @zmod.card_units_eq_totient p hp',
+  exact nat.le_pred_of_lt (nat.totient_lt p hp), }
 
 lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
   p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=

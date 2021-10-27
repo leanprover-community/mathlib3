@@ -55,6 +55,10 @@ end
 @[simp] lemma finrank_finsupp {ι : Type v} [fintype ι] : finrank R (ι →₀ R) = card ι :=
 by { rw [finrank, rank_finsupp, ← mk_to_nat_eq_card, to_nat_lift] }
 
+/-- The finrank of `(ι → R)` is `fintype.card ι`. -/
+@[simp] lemma finrank_pi {ι : Type v} [fintype ι] : finrank R (ι → R) = card ι :=
+by { simp [finrank, dim_self, sum_const_eq_lift_mul] }
+
 /-- The finrank of the direct sum is the sum of the finranks. -/
 @[simp] lemma finrank_direct_sum  {ι : Type v} [fintype ι] (M : ι → Type w)
   [Π (i : ι), add_comm_group (M i)] [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)]

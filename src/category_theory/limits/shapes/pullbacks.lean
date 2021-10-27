@@ -662,14 +662,16 @@ by { ext; simp [← G.map_comp] }
 end
 
 section symmetry
+
 open walking_cospan
+
 variables (f : X ⟶ Z) (g : Y ⟶ Z)
 
 lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
 ⟨⟨⟨pullback_cone.mk _ _ pullback.condition.symm,
   pullback_cone.flip_is_limit (pullback_is_pullback _ _)⟩⟩⟩
 
-local attribute[instance] has_pullback_symmetry
+local attribute [instance] has_pullback_symmetry
 
 /-- The isomorphism `X ×[Z] Y ≅ Y ×[Z] X`. -/
 @[simps] def pullback_symmetry [has_pullback f g] :
@@ -743,11 +745,11 @@ local attribute [instance] has_pullback_of_left_iso
 
 instance pullback_snd_iso_of_left_iso : is_iso (pullback.snd : pullback f g ⟶ _) :=
 begin
-  have := (pullback_cone_of_left_iso_is_limit f g).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f g)) right,
-  have : pullback.snd = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
+  constructor,
+  refine ⟨pullback.lift (g ≫ inv f) (𝟙 _) (by simp), _, by simp⟩,
+  ext,
+  { simp [← pullback.condition_assoc] },
+  { simp [pullback.condition_assoc] },
 end
 
 end left_iso
@@ -813,22 +815,21 @@ lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pul
 @[simp] lemma pullback_symmetry_hom_of_mono_eq [mono f] :
   (pullback_symmetry f f).hom = 𝟙 _ :=
 begin
-  have : (pullback_symmetry f f).hom ≫ pullback.fst = 𝟙 _ ≫ pullback.snd := by simp,
-  rw fst_eq_snd_of_mono_eq at this,
-  exact mono.right_cancellation _ _ this,
+  ext, 
+  all_goals { simp [fst_eq_snd_of_mono_eq] },
 end
 
 instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
 begin
-  have := (pullback_cone.is_limit_mk_id_id f).cone_point_unique_up_to_iso_hom_comp
-    (limit.is_limit (cospan f f)) left,
-  have : pullback.fst = _ := (iso.hom_comp_eq_id _).mp this,
-  rw this,
-  apply_instance
+  constructor,
+  refine ⟨pullback.lift (𝟙 _) (𝟙 _) (by simp), _, by simp⟩,
+  ext,
+  { simp },
+  { simp [fst_eq_snd_of_mono_eq] }
 end
 
 instance snd_iso_of_mono_eq [mono f] : is_iso (pullback.snd : pullback f f ⟶ _) :=
-by {rw ←fst_eq_snd_of_mono_eq, apply_instance }
+by { rw ←fst_eq_snd_of_mono_eq, apply_instance }
 
 end
 

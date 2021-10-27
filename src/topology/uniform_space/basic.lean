@@ -397,6 +397,7 @@ calc (𝓤 α).lift' (λd, d ○ (d ○ d)) =
       (assume s, monotone_comp_rel monotone_id monotone_const)
   ... ≤ (𝓤 α) : comp_le_uniformity
 
+/-- See also `comp_open_symm_mem_uniformity_sets`. -/
 lemma comp_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
   ∃ t ∈ 𝓤 α, symmetric_rel t ∧ t ○ t ⊆ s :=
 begin
@@ -849,6 +850,14 @@ begin
   refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
   exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open.inter hs.2 (hs.2.preimage continuous_swap)⟩,
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
+end
+
+lemma comp_open_symm_mem_uniformity_sets {s : set (α × α)} (hs : s ∈ 𝓤 α) :
+  ∃ t ∈ 𝓤 α, is_open t ∧ symmetric_rel t ∧ t ○ t ⊆ s :=
+begin
+  obtain ⟨t, ht₁, ht₂⟩ := comp_mem_uniformity_sets hs,
+  obtain ⟨u, ⟨hu₁, hu₂, hu₃⟩, hu₄ : u ⊆ t⟩ := uniformity_has_basis_open_symmetric.mem_iff.mp ht₁,
+  exact ⟨u, hu₁, hu₂, hu₃, (comp_rel_mono hu₄ hu₄).trans ht₂⟩,
 end
 
 section

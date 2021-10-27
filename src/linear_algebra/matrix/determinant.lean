@@ -273,12 +273,12 @@ f.to_ring_hom.map_det _
 
 lemma _root_.alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
   (f : S →ₐ[R] T) (M : matrix n n S) :
-  f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
+  f M.det = matrix.det (f.map_matrix M) :=
 f.to_ring_hom.map_det _
 
 lemma _root_.alg_equiv.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
   (f : S ≃ₐ[R] T) (M : matrix n n S) :
-  f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
+  f M.det = matrix.det (f.map_matrix M) :=
 f.to_alg_hom.map_det _
 
 end hom_map

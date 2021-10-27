@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.interval
+import data.finset.locally_finite
 
 /-!
 # Finite intervals of naturals
@@ -14,7 +14,7 @@ intervals as finsets and fintypes.
 ## TODO
 
 Some lemmas can be generalized using `ordered_group`, `canonically_ordered_monoid` or `succ_order`
-and subsequently be moved upstream to `data.finset.interval`.
+and subsequently be moved upstream to `data.finset.locally_finite`.
 -/
 
 open finset nat

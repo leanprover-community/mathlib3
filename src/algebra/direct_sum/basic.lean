@@ -85,11 +85,9 @@ dfinsupp.single_eq_of_ne h
 
 section classical
 
-open_locale classical
+@[simp] lemma support_zero [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] : (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
 
-@[simp] lemma support_zero : (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
-
-@[simp] lemma support_of (i : ι) (x : β i) (h : x ≠ 0) :
+@[simp] lemma support_of [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] (i : ι) (x : β i) (h : x ≠ 0) :
   (of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
 
 lemma eq_sum_of (x : ⨁ i, β i) :

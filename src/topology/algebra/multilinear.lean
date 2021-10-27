@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.algebra.module
-import linear_algebra.multilinear
+import linear_algebra.multilinear.basic
 
 /-!
 # Continuous multilinear maps
@@ -63,8 +63,8 @@ variables [semiring R]
   [topological_space M₂] [topological_space M₃] [topological_space M₄]
 (f f' : continuous_multilinear_map R M₁ M₂)
 
-instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=
-⟨_, λ f, f.to_multilinear_map.to_fun⟩
+instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) (λ _, (Π i, M₁ i) → M₂) :=
+⟨λ f, f.to_fun⟩
 
 @[continuity] lemma coe_continuous : continuous (f : (Π i, M₁ i) → M₂) := f.cont
 

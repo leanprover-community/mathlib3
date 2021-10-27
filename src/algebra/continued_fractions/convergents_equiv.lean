@@ -68,8 +68,8 @@ fractions, recurrence, equivalence
 
 variables {K : Type*} {n : ℕ}
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
-variables {g : gcf K} {s : seq $ gcf.pair K}
+
+variables {g : generalized_continued_fraction K} {s : seq $ pair K}
 
 section squash
 /-!
@@ -87,7 +87,7 @@ combines `⟨aₙ, bₙ⟩` and `⟨aₙ₊₁, bₙ₊₁⟩` at position `n` t
 `squash_seq s 0 = [(a₀, bₒ + a₁ / b₁), (a₁, b₁),...]`.
 If `s.terminated_at (n + 1)`, then `squash_seq s n = s`.
 -/
-def squash_seq (s : seq $ gcf.pair K) (n : ℕ) : seq (gcf.pair K) :=
+def squash_seq (s : seq $ pair K) (n : ℕ) : seq (pair K) :=
 match prod.mk (s.nth n) (s.nth (n + 1)) with
 | ⟨some gp_n, some gp_succ_n⟩ := seq.nats.zip_with
     -- return the squashed value at position `n`; otherwise, do nothing.
@@ -108,7 +108,7 @@ end
 
 /-- If the sequence has not terminated before position `n + 1`, the value at `n + 1` gets
 squashed into position `n`. -/
-lemma squash_seq_nth_of_not_terminated {gp_n gp_succ_n : gcf.pair K}
+lemma squash_seq_nth_of_not_terminated {gp_n gp_succ_n : pair K}
   (s_nth_eq : s.nth n = some gp_n) (s_succ_nth_eq : s.nth (n + 1) = some gp_succ_n) :
   (squash_seq s n).nth n = some ⟨gp_n.a, gp_n.b + gp_succ_n.a / gp_succ_n.b⟩ :=
 by simp [*, squash_seq, (seq.zip_with_nth_some (seq.nats_nth n) s_nth_eq _)]
@@ -194,7 +194,7 @@ Given a gcf `g = [h; (a₀, bₒ), (a₁, b₁), ...]`, we have
 - `squash_nth.gcf g 0 = [h + a₀ / b₀); (a₀, bₒ), ...]`,
 - `squash_nth.gcf g (n + 1) = ⟨g.h, squash_seq g.s n⟩`
 -/
-def squash_gcf (g : gcf K) : ℕ → gcf K
+def squash_gcf (g : generalized_continued_fraction K) : ℕ → generalized_continued_fraction K
 | 0 := match g.s.nth 0 with
   | none := g
   | some gp := ⟨g.h + gp.a / gp.b, g.s⟩
@@ -336,7 +336,7 @@ positivity criterion required here. The analogous result for them
 (see `continued_fractions.convergents_eq_convergents`) hence follows directly from this theorem.
 -/
 theorem convergents_eq_convergents' [linear_ordered_field K]
-  (s_pos : ∀ {gp : gcf.pair K} {m : ℕ}, m < n → g.s.nth m = some gp → 0 < gp.a ∧ 0 < gp.b) :
+  (s_pos : ∀ {gp : pair K} {m : ℕ}, m < n → g.s.nth m = some gp → 0 < gp.a ∧ 0 < gp.b) :
   g.convergents n = g.convergents' n :=
 begin
   induction n with n IH generalizing g,
@@ -385,21 +385,22 @@ end
 
 end generalized_continued_fraction
 
+open generalized_continued_fraction
+
 namespace continued_fraction
-open generalized_continued_fraction as gcf
-open simple_continued_fraction as scf
-open continued_fraction as cf
 
 /-- Shows that the recurrence relation (`convergents`) and direct evaluation (`convergents'`) of a
 (regular) continued fraction coincide. -/
-theorem convergents_eq_convergents' [linear_ordered_field K] {c : cf K} :
-  (↑c : gcf K).convergents = (↑c : gcf K).convergents' :=
+theorem convergents_eq_convergents' [linear_ordered_field K] {c : continued_fraction K} :
+  (↑c : generalized_continued_fraction K).convergents =
+    (↑c : generalized_continued_fraction K).convergents' :=
 begin
   ext n,
-  apply gcf.convergents_eq_convergents',
+  apply convergents_eq_convergents',
   assume gp m m_lt_n s_nth_eq,
-  exact ⟨zero_lt_one.trans_le ((c : scf K).property m gp.a (gcf.part_num_eq_s_a s_nth_eq)).symm.le,
-    c.property m gp.b $ gcf.part_denom_eq_s_b s_nth_eq⟩
+  exact ⟨zero_lt_one.trans_le ((c : simple_continued_fraction K).property m gp.a
+      (part_num_eq_s_a s_nth_eq)).symm.le,
+    c.property m gp.b $ part_denom_eq_s_b s_nth_eq⟩
 end
 
 end continued_fraction

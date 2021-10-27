@@ -141,6 +141,11 @@ variable [fintype ι]
 (matrix.to_lin b c').injective
   (by rw [to_lin_to_matrix, to_lin_mul b b' c', to_lin_to_matrix, b'.to_lin_to_matrix, comp_id])
 
+lemma basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix
+  [decidable_eq ι] [decidable_eq ι'] :
+  c.to_matrix c' ⬝ linear_map.to_matrix b' c' f ⬝ b'.to_matrix b = linear_map.to_matrix b c f :=
+by rw [basis_to_matrix_mul_linear_map_to_matrix, linear_map_to_matrix_mul_basis_to_matrix]
+
 /-- A generalization of `linear_map.to_matrix_id`. -/
 @[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :
   linear_map.to_matrix b b' id = b'.to_matrix b :=
@@ -166,6 +171,11 @@ begin
   ext i j,
   simp only [matrix.mul_apply, basis.to_matrix_apply, basis.sum_repr_mul_repr],
 end
+
+/-- `b.to_matrix b'` and `b'.to_matrix b` are inverses. -/
+lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] [fintype ι'] :
+  b.to_matrix b' ⬝ b'.to_matrix b = 1 :=
+by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
 @[simp]
 lemma basis.to_matrix_reindex

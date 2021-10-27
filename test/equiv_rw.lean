@@ -254,8 +254,6 @@ begin
 end :=
 rfl
 
-attribute [ext] semigroup
-
 lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }
 

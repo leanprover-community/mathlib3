@@ -105,7 +105,7 @@ list.reverse $ rb_lmap.values $ rb_lmap.of_list $
 
 /-- Formats a linter warning as `#print` command with comment. -/
 meta def print_warning (decl_name : name) (warning : string) : format :=
-"#print " ++ to_fmt decl_name ++ " /- " ++ warning ++ " -/"
+"#check @" ++ to_fmt decl_name ++ " /- " ++ warning ++ " -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
 meta def print_warnings (env : environment) (results : rb_map name string) : format :=
@@ -134,8 +134,8 @@ meta def format_linter_results
   (env : environment)
   (results : list (name × linter × rb_map name string))
   (decls non_auto_decls : list declaration)
-  (group_by_filename : option nat)
-  (where_desc : string) (slow : bool) (verbose : lint_verbosity) :
+  (group_by_filename : option ℕ)
+  (where_desc : string) (slow : bool) (verbose : lint_verbosity) (num_linters : ℕ) :
   format := do
 let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
   let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
@@ -151,7 +151,8 @@ let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
 let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
 let s := if verbose = lint_verbosity.low then s else
   format!("/- Checking {non_auto_decls.length} declarations (plus " ++
-  "{decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n") ++ s,
+  "{decls.length - non_auto_decls.length} automatically generated ones) {where_desc} " ++
+  "with {num_linters} linters -/\n\n") ++ s,
 let s := if slow then s else s ++ "/- (slow tests skipped) -/\n",
 s
 
@@ -164,14 +165,14 @@ By setting `checks` you can customize which checks are performed.
 
 Returns a `name_set` containing the names of all declarations that fail any check in `check`,
 and a `format` object describing the failures. -/
-meta def lint_aux (decls : list declaration) (group_by_filename : option nat)
+meta def lint_aux (decls : list declaration) (group_by_filename : option ℕ)
     (where_desc : string) (slow : bool) (verbose : lint_verbosity) (checks : list (name × linter)) :
   tactic (name_set × format) := do
 e ← get_env,
 let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal e),
 results ← lint_core decls non_auto_decls checks,
 let s := format_linter_results e results decls non_auto_decls
-  group_by_filename where_desc slow verbose,
+  group_by_filename where_desc slow verbose checks.length,
 let ns := name_set.of_list (do (_,_,rs) ← results, rs.keys),
 pure (ns, s)
 

@@ -11,6 +11,14 @@ import ring_theory.power_series.basic
 
 /-!
 # Hahn Series
+If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of formal series over `Γ` with
+coefficients in `R`, whose supports are partially well-ordered. With further structure on `R` and
+`Γ`, we can add further structure on `hahn_series Γ R`, with the most studied case being when `Γ` is
+a linearly ordered abelian group and `R` is a field, in which case `hahn_series Γ R` is a
+valued field, with value group `Γ`.
+
+These generalize Laurent series (with value group `ℤ`), and Laurent series are implemented that way
+in the file `ring_theory/laurent_series`.
 
 ## Main Definitions
   * If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of
@@ -26,11 +34,15 @@ import ring_theory.power_series.basic
   topology, because there are topologically summable families that do not satisfy the axioms of
   `hahn_series.summable_family`, and formally summable families whose sums do not converge
   topologically.
+  * Laurent series over `R` are implemented as `hahn_series ℤ R` in the file
+    `ring_theory/laurent_series`.
 
 ## TODO
-  * Given `[linear_ordered_add_comm_group Γ]` and `[field R]`, define `field (hahn_series Γ R)`.
-  * Build an API for the variable `X`
-  * Define Laurent series
+  * Build an API for the variable `X` (defined to be `single 1 1 : hahn_series Γ R`) in analogy to
+    `X : polynomial R` and `X : power_series R`
+
+## References
+- [J. van der Hoeven, *Operators on Generalized Power Series*][van_der_hoeven]
 
 -/
 
@@ -726,8 +738,8 @@ instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 
-instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R] :
-  integral_domain (hahn_series Γ R) :=
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] :
+  is_domain (hahn_series Γ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y xy, begin
     by_cases hx : x = 0,
     { left, exact hx },
@@ -739,10 +751,10 @@ instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R] :
     simp [coeff_order_ne_zero, hx, xy],
   end,
   .. hahn_series.nontrivial,
-  .. hahn_series.comm_ring }
+  .. hahn_series.ring }
 
 @[simp]
-lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R]
+lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R]
   {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (x * y).order = x.order + y.order :=
 begin
@@ -1014,7 +1026,7 @@ end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [integral_domain R]
+variables [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
 
 instance : linear_ordered_comm_group (multiplicative Γ) :=
 { .. (infer_instance : linear_order (multiplicative Γ)),
@@ -1074,7 +1086,8 @@ end
 
 end valuation
 
-lemma is_pwo_Union_support_powers [linear_ordered_add_comm_group Γ] [integral_domain R]
+lemma is_pwo_Union_support_powers
+  [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
   {x : hahn_series Γ R} (hx : 0 < add_val Γ R x) :
   (⋃ n : ℕ, (x ^ n).support).is_pwo :=
 begin
@@ -1110,8 +1123,8 @@ section add_comm_monoid
 
 variables [partial_order Γ] [add_comm_monoid R] {α : Type*}
 
-instance : has_coe_to_fun (summable_family Γ R α) :=
-⟨λ _, (α → hahn_series Γ R), to_fun⟩
+instance : has_coe_to_fun (summable_family Γ R α) (λ _, α → hahn_series Γ R):=
+⟨to_fun⟩
 
 lemma is_pwo_Union_support (s : summable_family Γ R α) : set.is_pwo (⋃ (a : α), (s a).support) :=
 s.is_pwo_Union_support'
@@ -1401,7 +1414,7 @@ end emb_domain
 
 section powers
 
-variables [linear_ordered_add_comm_group Γ] [integral_domain R]
+variables [linear_ordered_add_comm_group Γ] [comm_ring R] [is_domain R]
 
 /-- The powers of an element of positive valuation form a summable family. -/
 def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :
@@ -1467,8 +1480,8 @@ section inversion
 
 variables [linear_ordered_add_comm_group Γ]
 
-section integral_domain
-variable [integral_domain R]
+section is_domain
+variables [comm_ring R] [is_domain R]
 
 lemma unit_aux (x : hahn_series Γ R) {r : R} (hr : r * x.coeff x.order = 1) :
   0 < add_val Γ R (1 - C r * (single (- x.order) 1) * x) :=
@@ -1511,7 +1524,7 @@ begin
     exact is_unit_of_mul_is_unit_right (is_unit_of_mul_eq_one _ _ h) },
 end
 
-end integral_domain
+end is_domain
 
 instance [field R] : field (hahn_series Γ R) :=
 { inv := λ x, if x0 : x = 0 then 0 else (C (x.coeff x.order)⁻¹ * (single (-x.order)) 1 *
@@ -1524,7 +1537,8 @@ instance [field R] : field (hahn_series Γ R) :=
     rw [sub_sub_cancel] at h,
     rw [← mul_assoc, mul_comm x, h],
   end,
-  .. hahn_series.integral_domain }
+  .. hahn_series.is_domain,
+  .. hahn_series.comm_ring }
 
 end inversion
 

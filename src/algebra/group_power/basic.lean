@@ -3,7 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.ordered_ring
+import data.nat.basic
 import tactic.monotonicity.basic
 import group_theory.group_action.defs
 
@@ -162,17 +162,21 @@ begin
   { rw [nat.mul_succ, pow_add, pow_succ', ih] }
 end
 
+@[to_additive nsmul_left_comm]
+lemma pow_right_comm (a : M) (m n : ℕ) : (a^m)^n = (a^n)^m :=
+by rw [←pow_mul, nat.mul_comm, pow_mul]
+
 @[to_additive mul_nsmul]
 theorem pow_mul' (a : M) (m n : ℕ) : a^(m * n) = (a^n)^m :=
 by rw [nat.mul_comm, pow_mul]
 
 @[to_additive nsmul_add_sub_nsmul]
 theorem pow_mul_pow_sub (a : M) {m n : ℕ} (h : m ≤ n) : a ^ m * a ^ (n - m) = a ^ n :=
-by rw [←pow_add, nat.add_comm, nat.sub_add_cancel h]
+by rw [←pow_add, nat.add_comm, tsub_add_cancel_of_le h]
 
 @[to_additive sub_nsmul_nsmul_add]
 theorem pow_sub_mul_pow (a : M) {m n : ℕ} (h : m ≤ n) : a ^ (n - m) * a ^ m = a ^ n :=
-by rw [←pow_add, nat.sub_add_cancel h]
+by rw [←pow_add, tsub_add_cancel_of_le h]
 
 @[to_additive bit0_nsmul]
 theorem pow_bit0 (a : M) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
@@ -233,15 +237,20 @@ monoid, considered as a morphism of additive monoids.", simps]
 def pow_monoid_hom (n : ℕ) : M →* M :=
 { to_fun := (^ n),
   map_one' := one_pow _,
-  map_mul' := λ a b ,mul_pow a b n }
+  map_mul' := λ a b, mul_pow a b n }
 
 -- the below line causes the linter to complain :-/
 -- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
 
-lemma dvd_pow {x y : M} :
-  ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
-| 0     hxy hn := (hn rfl).elim
-| (n+1) hxy hn := by { rw [pow_succ], exact dvd_mul_of_dvd_left hxy _ }
+lemma dvd_pow {x y : M} (hxy : x ∣ y) :
+  ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
+| 0       hn := (hn rfl).elim
+| (n + 1) hn := by { rw pow_succ, exact hxy.mul_right _ }
+
+alias dvd_pow ← has_dvd.dvd.pow
+
+lemma dvd_pow_self (a : M) {n : ℕ} (hn : n ≠ 0) : a ∣ a^n :=
+dvd_rfl.pow hn
 
 end comm_monoid
 
@@ -294,7 +303,7 @@ end
 
 @[to_additive nsmul_sub] -- rename to sub_nsmul?
 theorem pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
-have h1 : m - n + n = m, from nat.sub_add_cancel h,
+have h1 : m - n + n = m, from tsub_add_cancel_of_le h,
 have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq h2
 
@@ -367,7 +376,7 @@ end
 
 lemma pow_eq_zero_of_le [monoid_with_zero M] {x : M} {n m : ℕ}
   (hn : n ≤ m) (hx : x^n = 0) : x^m = 0 :=
-by rw [← nat.sub_add_cancel hn, pow_add, hx, mul_zero]
+by rw [← tsub_add_cancel_of_le hn, pow_add, hx, mul_zero]
 
 namespace ring_hom
 
@@ -399,7 +408,7 @@ lemma mul_neg_one_pow_eq_zero_iff [ring R] {n : ℕ} {r : R} : r * (-1)^n = 0 �
 by rcases neg_one_pow_eq_or R n; simp [h]
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
-  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, nat.sub_add_cancel h]⟩
+  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, tsub_add_cancel_of_le h]⟩
 
 theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
 | 0     := by rw [pow_zero, pow_zero]
@@ -411,7 +420,7 @@ by rw [sq, sq, mul_self_sub_mul_self]
 
 alias sq_sub_sq ← pow_two_sub_pow_two
 
-lemma eq_or_eq_neg_of_sq_eq_sq [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+lemma eq_or_eq_neg_of_sq_eq_sq [comm_ring R] [is_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
   a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
         ← sq_sub_sq a b, sub_eq_zero]

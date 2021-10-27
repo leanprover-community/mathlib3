@@ -19,7 +19,7 @@ This file contains basic technical results for a development of Fourier series.
 ## Main definitions
 
 * `haar_circle`, Haar measure on the circle, normalized to have total measure `1`
-* instances `measure_space`, `probability_measure` for the circle with respect to this measure
+* instances `measure_space`, `is_probability_measure` for the circle with respect to this measure
 * for `n : ℤ`, `fourier n` is the monomial `λ z, z ^ n`, bundled as a continuous map from `circle`
   to `ℂ`
 * for `n : ℤ` and `p : ℝ≥0∞`, `fourier_Lp p n` is an abbreviation for the monomial `fourier n`
@@ -54,7 +54,7 @@ as Parseval's formula.
 -/
 
 noncomputable theory
-open_locale ennreal
+open_locale ennreal complex_conjugate
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
 local attribute [instance] fact_one_le_two_ennreal
@@ -71,7 +71,7 @@ instance : borel_space circle := ⟨rfl⟩
 /-- Haar measure on the circle, normalized to have total measure 1. -/
 def haar_circle : measure circle := haar_measure positive_compacts_univ
 
-instance : probability_measure haar_circle := ⟨haar_measure_self⟩
+instance : is_probability_measure haar_circle := ⟨haar_measure_self⟩
 
 instance : measure_space circle :=
 { volume := haar_circle,
@@ -91,7 +91,7 @@ continuous maps from `circle` to `ℂ`. -/
 
 @[simp] lemma fourier_zero {z : circle} : fourier 0 z = 1 := rfl
 
-@[simp] lemma fourier_neg {n : ℤ} {z : circle} : fourier (-n) z = complex.conj (fourier n z) :=
+@[simp] lemma fourier_neg {n : ℤ} {z : circle} : fourier (-n) z = conj (fourier n z) :=
 by simp [← coe_inv_circle_eq_conj z]
 
 @[simp] lemma fourier_add {m n : ℤ} {z : circle} :
@@ -141,7 +141,7 @@ begin
       simp },
     exact subset_adjoin ⟨-n, rfl⟩ },
   { intros c,
-    exact fourier_subalgebra.algebra_map_mem (complex.conj c) },
+    exact fourier_subalgebra.algebra_map_mem (conj c) },
   { intros f g hf hg,
     convert fourier_subalgebra.add_mem hf hg,
     exact alg_hom.map_add _ f g, },
@@ -198,8 +198,8 @@ begin
   intros i j,
   rw continuous_map.inner_to_Lp haar_circle (fourier i) (fourier j),
   split_ifs,
-  { simp [h, probability_measure.measure_univ, ← fourier_neg, ← fourier_add, -fourier_to_fun] },
-  simp only [← fourier_add, ← fourier_neg, is_R_or_C.conj_to_complex],
+  { simp [h, is_probability_measure.measure_univ, ← fourier_neg, ← fourier_add, -fourier_to_fun] },
+  simp only [← fourier_add, ← fourier_neg],
   have hij : -i + j ≠ 0,
   { rw add_comm,
     exact sub_ne_zero.mpr (ne.symm h) },

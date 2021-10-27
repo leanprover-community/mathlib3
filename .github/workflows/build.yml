@@ -38,12 +38,12 @@ jobs:
   style_lint:
     if: github.repository == 'leanprover-community/mathlib'
     name: Lint style
-    runs-on: pr
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ${{ ! 1 }}
+        if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
@@ -88,8 +88,8 @@ jobs:
         run: |
           leanpkg configure
           echo "::set-output name=started::true"
-          lean --json -T100000 --make src | python scripts/detect_errors.py
-          lean --json -T100000 --make src | python scripts/detect_errors.py
+          lean --json -T100000 --make src | python3 scripts/detect_errors.py
+          lean --json -T100000 --make src | python3 scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
@@ -109,6 +109,7 @@ jobs:
           tar -cf workspace.tar --exclude=*.tar* .
           git_hash="$(git log -1 --pretty=format:%h)"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+
       - name: upload precompiled mathlib zip file
         if: always() && steps.build.outputs.started == 'true'
         uses: actions/upload-artifact@v2
@@ -185,12 +186,12 @@ jobs:
 
       - name: install Python dependencies
         if: ${{ ! 1 }}
-        run: python -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml
 
       - name: tests
         run: |
           set -o pipefail
-          lean --json -T100000 --make docs archive roadmap test counterexamples | python scripts/detect_errors.py
+          lean --json -T100000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
         if: ${{ ! 1 }}
@@ -213,6 +214,32 @@ jobs:
 
       - name: check declarations in db files
         run: |
-          python scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
+          python3 scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
+
+  final:
+    name: Post-CI job
+    if: github.repository == 'leanprover-community/mathlib'
+    needs: [style_lint, build, lint, tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - id: PR
+        uses: 8BitJonny/gh-get-current-pr@1.2.0
+        # TODO: this may not work properly if the same commit is pushed to multiple branches:
+        # https://github.com/8BitJonny/gh-get-current-pr/issues/8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Only return if PR is still open
+          filterOutClosed: true
+
+      - id: remove_labels
+        name: Remove "awaiting-CI"
+        # we use curl rather than octokit/request-action so that the job won't fail
+        # (and send an annoying email) if the labels don't exist
+        run: |
+          curl --request DELETE \
+            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ steps.PR.outputs.number }}/labels/awaiting-CI \
+            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'

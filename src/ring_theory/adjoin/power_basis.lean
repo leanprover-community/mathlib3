@@ -45,7 +45,7 @@ begin
     have := hx'.mem_span_pow,
     rw minpoly_eq at this,
     apply this,
-    { rw [adjoin_singleton_eq_range] at hy,
+    { rw [adjoin_singleton_eq_range_aeval] at hy,
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,

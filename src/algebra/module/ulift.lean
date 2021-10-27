@@ -74,6 +74,18 @@ instance distrib_mul_action' [monoid R] [add_monoid M] [distrib_mul_action R M] 
   smul_add := λ c f g, by { ext, simp [smul_add], },
   ..ulift.mul_action' }
 
+instance mul_distrib_mul_action [monoid R] [monoid M] [mul_distrib_mul_action R M] :
+  mul_distrib_mul_action (ulift R) M :=
+{ smul_one := λ c, by { cases c, simp [smul_one], },
+  smul_mul := λ c f g, by { cases c, simp [smul_mul'], },
+  ..ulift.mul_action }
+
+instance mul_distrib_mul_action' [monoid R] [monoid M] [mul_distrib_mul_action R M] :
+  mul_distrib_mul_action R (ulift M) :=
+{ smul_one := λ c, by { ext, simp [smul_one], },
+  smul_mul := λ c f g, by { ext, simp [smul_mul'], },
+  ..ulift.mul_action' }
+
 instance module [semiring R] [add_comm_monoid M] [module R M] :
   module (ulift R) M :=
 { add_smul := λ c f g, by { cases c, simp [add_smul], },

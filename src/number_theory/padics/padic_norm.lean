@@ -3,12 +3,11 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import ring_theory.int.basic
+import algebra.order.absolute_value
 import algebra.field_power
-import ring_theory.multiplicity
-import data.real.cau_seq
-import tactic.ring_exp
+import ring_theory.int.basic
 import tactic.basic
+import tactic.ring_exp
 
 /-!
 # p-adic norm
@@ -169,7 +168,7 @@ begin
   rw @padic_val_nat_def _ prime _ nonzero,
   let one_le_mul : _ ≤ multiplicity p n :=
     @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact div end),
-  simp only [enat.coe_one] at one_le_mul,
+  simp only [nat.cast_one] at one_le_mul,
   rcases one_le_mul with ⟨_, q⟩,
   dsimp at q,
   solve_by_elim,
@@ -226,7 +225,7 @@ begin
 end
 
 /--
-A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
+A rewrite lemma for `padic_val_rat p (q^k)` with condition `q ≠ 0`.
 -/
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
@@ -422,8 +421,8 @@ lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn :
 begin
   { rw multiplicity.pow_dvd_iff_le_multiplicity,
     rw padic_val_nat_def (ne_of_gt hn),
-    { rw [enat.coe_add, enat.coe_get],
-      simp only [enat.coe_one, not_le],
+    { rw [nat.cast_add, enat.coe_get],
+      simp only [nat.cast_one, not_le],
       apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
     { apply_instance } }
 end
@@ -470,7 +469,7 @@ begin
       cc },
   { rw [←h, padic_val_nat.div],
     { have: 1 ≤ padic_val_nat p n := one_le_padic_val_nat_of_dvd (by linarith) p_dvd_n,
-      exact (nat.sub_eq_iff_eq_add this).mp rfl, },
+      exact (tsub_eq_iff_eq_add_of_le this).mp rfl, },
     { exact p_dvd_n, }, },
   { suffices : p.coprime q,
     { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },

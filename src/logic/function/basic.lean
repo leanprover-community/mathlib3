@@ -443,6 +443,15 @@ begin
   { simp [h] }
 end
 
+lemma apply_update₂ {ι : Sort*} [decidable_eq ι] {α β γ : ι → Sort*}
+  (f : Π i, α i → β i → γ i) (g : Π i, α i) (h : Π i, β i) (i : ι) (v : α i) (w : β i) (j : ι) :
+  f j (update g i v j) (update h i w j) = update (λ k, f k (g k) (h k)) i (f i v w) j :=
+begin
+  by_cases h : j = i,
+  { subst j, simp },
+  { simp [h] }
+end
+
 lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
   f ∘ (update g i v) = update (f ∘ g) i (f v) :=
 funext $ apply_update _ _ _ _

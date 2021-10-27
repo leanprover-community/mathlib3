@@ -104,11 +104,11 @@ section group
 variables [group G] [preorder G] [covariant_class G G (*) (≤)]
 
 @[to_additive gsmul_nonneg]
-theorem one_le_gpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
+theorem one_le_zpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
   1 ≤ x ^ n :=
 begin
   lift n to ℕ using hn,
-  rw gpow_coe_nat,
+  rw zpow_coe_nat,
   apply one_le_pow_of_one_le' H,
 end
 
@@ -156,7 +156,7 @@ theorem pow_lt_pow_of_lt_left {x y : R} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x
   x ^ n < y ^ n :=
 begin
   cases lt_or_eq_of_le Hxpos,
-  { rw ←nat.sub_add_cancel Hnpos,
+  { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt Hnpos),
     induction (n - 1), { simpa only [pow_one] },
     rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
     apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },

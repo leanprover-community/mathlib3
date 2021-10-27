@@ -379,9 +379,9 @@ begin
   rw ←nth_le_pmap l.reverse.prev (λ _ h, h),
   { simp_rw [pmap_prev_eq_rotate_length_sub_one _ (nodup_reverse.mpr h), rotate_reverse,
              length_reverse, nat.mod_eq_of_lt (tsub_lt_self lpos nat.succ_pos'),
-             nat.sub_sub_self (nat.succ_le_of_lt lpos)],
+             tsub_tsub_cancel_of_le (nat.succ_le_of_lt lpos)],
     rw ←nth_le_reverse,
-    { simp [nat.sub_sub_self (nat.le_pred_of_lt hk)] },
+    { simp [tsub_tsub_cancel_of_le (nat.le_pred_of_lt hk)] },
     { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') } },
   { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') }
 end

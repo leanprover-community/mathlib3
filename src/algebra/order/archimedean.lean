@@ -42,7 +42,7 @@ instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] :
 ⟨λ x y hy, let ⟨n, hn⟩ := archimedean.arch (-x : α) (neg_pos.2 hy) in
   ⟨n, by rwa [neg_nsmul, neg_le_neg_iff] at hn⟩⟩
 
-namespace linear_ordered_add_comm_group
+section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] [archimedean α]
 
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
@@ -69,9 +69,25 @@ lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
   ∃ (k : ℤ), 0 ≤ g - k • a ∧ g - k • a < a :=
 begin
   obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
-  rw add_gsmul at h2,
   refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  simpa [sub_lt_iff_lt_add'] using h2
+  simpa only [sub_lt_iff_lt_add', add_gsmul, one_gsmul] using h2
+end
+
+lemma exists_add_int_smul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
+  ∃ m : ℤ, b + m • a ∈ set.Ico c (c + a) :=
+begin
+  rcases exists_int_smul_near_of_pos' ha (b - c) with ⟨m, hle, hlt⟩,
+  refine ⟨-m, _, _⟩,
+  { rwa [neg_gsmul, ← sub_eq_add_neg, le_sub, ← sub_nonneg] },
+  { rwa [sub_right_comm, sub_lt_iff_lt_add', sub_eq_add_neg, ← neg_gsmul] at hlt }
+end
+
+lemma exists_add_int_smul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
+  ∃ m : ℤ, b + m • a ∈ set.Ioc c (c + a) :=
+begin
+  rcases exists_int_smul_near_of_pos ha (c - b) with ⟨m, hle, hlt⟩,
+  refine ⟨m + 1, sub_lt_iff_lt_add'.1 hlt, _⟩,
+  rwa [add_gsmul, one_gsmul, ← add_assoc, add_le_add_iff_right, ← le_sub_iff_add_le']
 end
 
 end linear_ordered_add_comm_group
@@ -156,13 +172,13 @@ lemma exists_int_pow_near [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by { rw [fpow_neg y (↑N), gpow_coe_nat],
+    ⟨-N, le_of_lt (by { rw [zpow_neg₀ y (↑N), zpow_coe_nat],
     exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN })⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
-  (fpow_le_of_le hy.le hlt.le)
-    (lt_of_le_of_lt hm (by rwa ← gpow_coe_nat at hM)))⟩,
+  (zpow_le_of_le hy.le hlt.le)
+    (lt_of_le_of_lt hm (by rwa ← zpow_coe_nat at hM)))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
@@ -175,9 +191,9 @@ lemma exists_int_pow_near' [archimedean α]
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
-by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, fpow_neg,
-        le_inv hx (fpow_pos_of_pos hyp _)]⟩
+by rwa [zpow_neg₀, inv_lt (zpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, zpow_neg₀,
+        le_inv hx (zpow_pos_of_pos hyp _)]⟩
 
 /-- For any `y < 1` and any positive `x`, there exists `n : ℕ` with `y ^ n < x`. -/
 lemma exists_pow_lt_of_lt_one [archimedean α] {x y : α} (hx : 0 < x) (hy : y < 1) :

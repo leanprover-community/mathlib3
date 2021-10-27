@@ -312,6 +312,9 @@ begin
     exact pi'_pi_le μ }
 end
 
+lemma pi_univ [∀ i, sigma_finite (μ i)] : measure.pi μ univ = ∏ i, μ i univ :=
+by rw [← pi_univ, pi_pi μ _ (λ i, measurable_set.univ)]
+
 lemma pi_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
   (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
   measure.pi μ (metric.ball x r) = ∏ i, μ i (metric.ball (x i) r) :=
@@ -358,7 +361,7 @@ begin
   { simp_rw [pi_pi μ (λ i, (hμ i).set (e n i)) (λ i, hC i _ ((hμ i).set_mem _))],
     exact ennreal.prod_lt_top (λ i _, ((hμ i).finite _).ne) },
   { simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, (hμ i).set (x i))),
-      Union_univ_pi (λ i, (hμ i).set), (hμ _).spanning, pi_univ] }
+      Union_univ_pi (λ i, (hμ i).set), (hμ _).spanning, set.pi_univ] }
 end
 
 /-- A measure on a finite product space equals the product measure if they are equal on rectangles
@@ -397,6 +400,16 @@ variable (μ)
 
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
 (finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).sigma_finite
+
+lemma pi_of_empty {α : Type*} [is_empty α] {β : α → Type*} {m : Π a, measurable_space (β a)}
+  (μ : Π a : α, measure (β a)) (x : Π a, β a := is_empty_elim) :
+  measure.pi μ = dirac x :=
+begin
+  haveI : ∀ a, sigma_finite (μ a) := is_empty_elim,
+  refine pi_eq (λ s hs, _),
+  rw [fintype.prod_empty, dirac_apply_of_mem],
+  exact is_empty_elim
+end
 
 lemma {u} pi_fin_two_eq_map {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
   (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :

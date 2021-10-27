@@ -332,13 +332,13 @@ begin
   -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,
   { rcases Ai_empty with ⟨i, hi⟩,
-    have : ∑ j in A i, g i j = 0, by convert sum_empty,
+    have : ∑ j in A i, g i j = 0, by rw [hi, finset.sum_empty],
     rw f.map_coord_zero i this,
     have : pi_finset A = ∅,
     { apply finset.eq_empty_of_forall_not_mem (λ r hr, _),
       have : r i ∈ A i := mem_pi_finset.mp hr i,
       rwa hi at this },
-    convert sum_empty.symm },
+    rw [this, finset.sum_empty] },
   push_neg at Ai_empty,
   -- Otherwise, if all sets are at most singletons, then they are exactly singletons and the result
   -- is again straightforward
@@ -599,6 +599,15 @@ writing `f (λi, c i • m i)` as `(∏ i, c i) • f m`. -/
 lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = (∏ i, c i) • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
+
+@[simp] lemma map_update_smul [fintype ι] (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+  f (update (c • m) i x) = c^(fintype.card ι - 1) • f (update m i x) :=
+begin
+  have : f ((finset.univ.erase i).piecewise (c • update m i x) (update m i x))
+       = (∏ i in finset.univ.erase i, c) • f (update m i x) :=
+    map_piecewise_smul f _ _ _,
+  simpa [←function.update_smul c m] using this,
+end
 
 section distrib_mul_action
 

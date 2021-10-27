@@ -324,8 +324,8 @@ variables [add_left_cancel_monoid A] (a)
 lemma pow_injective_aux (h : n ≤ m)
   (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
 by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
-  have h₂ : m = n + (m - n) := (nat.add_sub_of_le h).symm,
+  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [tsub_eq_iff_eq_add_of_le h, ne.symm]),
+  have h₂ : m = n + (m - n) := (add_tsub_cancel_of_le h).symm,
   have h₃ : x ^ (m - n) = 1,
     by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
   have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
@@ -365,11 +365,11 @@ section group
 variables [group G] [add_group A] {x a} {i : ℤ}
 
 @[to_additive add_order_of_dvd_iff_gsmul_eq_zero]
-lemma order_of_dvd_iff_gpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
+lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
 begin
   rcases int.eq_coe_or_neg i with ⟨i, rfl|rfl⟩,
-  { rw [int.coe_nat_dvd, order_of_dvd_iff_pow_eq_one, gpow_coe_nat] },
-  { rw [dvd_neg, int.coe_nat_dvd, gpow_neg, inv_eq_one, gpow_coe_nat,
+  { rw [int.coe_nat_dvd, order_of_dvd_iff_pow_eq_one, zpow_coe_nat] },
+  { rw [dvd_neg, int.coe_nat_dvd, zpow_neg, inv_eq_one, zpow_coe_nat,
       order_of_dvd_iff_pow_eq_one] }
 end
 
@@ -377,19 +377,19 @@ end
   (y: H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
 
-lemma gpow_eq_mod_order_of : x ^ i = x ^ (i % order_of x) :=
+lemma zpow_eq_mod_order_of : x ^ i = x ^ (i % order_of x) :=
 calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
     by rw [int.mod_add_div]
        ... = x ^ (i % order_of x) :
-    by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
+    by simp [zpow_add, zpow_mul, pow_order_of_eq_one]
 
 lemma gsmul_eq_mod_add_order_of : i • a = (i % add_order_of a) • a :=
 begin
   apply multiplicative.of_add.injective,
-  simp [of_add_gsmul, gpow_eq_mod_order_of],
+  simp [of_add_gsmul, zpow_eq_mod_order_of],
 end
 
-attribute [to_additive gsmul_eq_mod_add_order_of] gpow_eq_mod_order_of
+attribute [to_additive gsmul_eq_mod_add_order_of] zpow_eq_mod_order_of
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
@@ -482,7 +482,7 @@ begin
     by simpa only [not_forall, exists_prop, injective]
       using (not_injective_infinite_fintype (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
-  refine ⟨i - j, nat.sub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
+  refine ⟨i - j, tsub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
   rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
 end
 
@@ -642,19 +642,19 @@ end finite_cancel_monoid
 section finite_group
 variables [group G] [add_group A]
 
-lemma exists_gpow_eq_one (x : G) : ∃ (i : ℤ) (H : i ≠ 0), x ^ (i : ℤ) = 1 :=
---lemma exists_gpow_eq_one (a : α) : ∃ (i : ℤ) (H : i ≠ 0), a ^ (i : ℤ) = 1 :=
+lemma exists_zpow_eq_one (x : G) : ∃ (i : ℤ) (H : i ≠ 0), x ^ (i : ℤ) = 1 :=
+--lemma exists_zpow_eq_one (a : α) : ∃ (i : ℤ) (H : i ≠ 0), a ^ (i : ℤ) = 1 :=
 begin
   rcases exists_pow_eq_one x with ⟨w, hw1, hw2⟩,
   refine ⟨w, int.coe_nat_ne_zero.mpr (ne_of_gt hw1), _⟩,
-  rw gpow_coe_nat,
+  rw zpow_coe_nat,
   exact (is_periodic_pt_mul_iff_pow_eq_one _).mp hw2,
 end
 
 lemma exists_gsmul_eq_zero (a : A) : ∃ (i : ℤ) (H : i ≠ 0), i • a = 0 :=
-@exists_gpow_eq_one (multiplicative A) _ _ a
+@exists_zpow_eq_one (multiplicative A) _ _ a
 
-attribute [to_additive] exists_gpow_eq_one
+attribute [to_additive] exists_zpow_eq_one
 
 lemma mem_multiples_iff_mem_gmultiples :
   b ∈ add_submonoid.multiples a ↔ b ∈ add_subgroup.gmultiples a :=
@@ -667,29 +667,29 @@ lemma mem_multiples_iff_mem_gmultiples :
 open subgroup
 
 @[to_additive mem_multiples_iff_mem_gmultiples]
-lemma mem_powers_iff_mem_gpowers : y ∈ submonoid.powers x ↔ y ∈ gpowers x :=
+lemma mem_powers_iff_mem_zpowers : y ∈ submonoid.powers x ↔ y ∈ zpowers x :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of x).nat_abs,
-  by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+  by rwa [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
     (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos x))),
-    ← gpow_eq_mod_order_of]⟩⟩
+    ← zpow_eq_mod_order_of]⟩⟩
 
 lemma multiples_eq_gmultiples (a : A) :
   (add_submonoid.multiples a : set A) = add_subgroup.gmultiples a :=
 set.ext $ λ y, mem_multiples_iff_mem_gmultiples
 
 @[to_additive multiples_eq_gmultiples]
-lemma powers_eq_gpowers (x : G) : (submonoid.powers x : set G) = gpowers x :=
-set.ext $ λ x, mem_powers_iff_mem_gpowers
+lemma powers_eq_zpowers (x : G) : (submonoid.powers x : set G) = zpowers x :=
+set.ext $ λ x, mem_powers_iff_mem_zpowers
 
 lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq A] :
   b ∈ add_subgroup.gmultiples a ↔ b ∈ (finset.range (add_order_of a)).image (• a) :=
 by rw [← mem_multiples_iff_mem_gmultiples, mem_multiples_iff_mem_range_add_order_of]
 
 @[to_additive mem_gmultiples_iff_mem_range_add_order_of]
-lemma mem_gpowers_iff_mem_range_order_of [decidable_eq G] :
-  y ∈ subgroup.gpowers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
-by rw [← mem_powers_iff_mem_gpowers, mem_powers_iff_mem_range_order_of]
+lemma mem_zpowers_iff_mem_range_order_of [decidable_eq G] :
+  y ∈ subgroup.zpowers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
+by rw [← mem_powers_iff_mem_zpowers, mem_powers_iff_mem_range_order_of]
 
 noncomputable instance decidable_gmultiples [decidable_eq A] :
   decidable_pred (∈ add_subgroup.gmultiples a) :=
@@ -700,55 +700,55 @@ begin
 end
 
 @[to_additive decidable_gmultiples]
-noncomputable instance decidable_gpowers [decidable_eq G] :
-  decidable_pred (∈ subgroup.gpowers x) :=
+noncomputable instance decidable_zpowers [decidable_eq G] :
+  decidable_pred (∈ subgroup.zpowers x) :=
 begin
   simp_rw ←set_like.mem_coe,
-  rw ← powers_eq_gpowers,
+  rw ← powers_eq_zpowers,
   exact decidable_powers,
 end
 
-/-- The equivalence between `fin (order_of x)` and `subgroup.gpowers x`, sending `i` to `x ^ i`. -/
-noncomputable def fin_equiv_gpowers (x : G) :
-  fin (order_of x) ≃ (subgroup.gpowers x : set G) :=
-(fin_equiv_powers x).trans (equiv.set.of_eq (powers_eq_gpowers x))
+/-- The equivalence between `fin (order_of x)` and `subgroup.zpowers x`, sending `i` to `x ^ i`. -/
+noncomputable def fin_equiv_zpowers (x : G) :
+  fin (order_of x) ≃ (subgroup.zpowers x : set G) :=
+(fin_equiv_powers x).trans (equiv.set.of_eq (powers_eq_zpowers x))
 
 /-- The equivalence between `fin (add_order_of a)` and `subgroup.gmultiples a`,
   sending `i` to `i • a`. -/
 noncomputable def fin_equiv_gmultiples (a : A) :
   fin (add_order_of a) ≃ (add_subgroup.gmultiples a : set A) :=
-fin_equiv_gpowers (multiplicative.of_add a)
+fin_equiv_zpowers (multiplicative.of_add a)
 
-attribute [to_additive fin_equiv_gmultiples] fin_equiv_gpowers
+attribute [to_additive fin_equiv_gmultiples] fin_equiv_zpowers
 
-@[simp] lemma fin_equiv_gpowers_apply {n : fin (order_of x)} :
-  fin_equiv_gpowers x n = ⟨x ^ (n : ℕ), n, gpow_coe_nat x n⟩ := rfl
+@[simp] lemma fin_equiv_zpowers_apply {n : fin (order_of x)} :
+  fin_equiv_zpowers x n = ⟨x ^ (n : ℕ), n, zpow_coe_nat x n⟩ := rfl
 
 @[simp] lemma fin_equiv_gmultiples_apply {n : fin (add_order_of a)} :
   fin_equiv_gmultiples a n = ⟨(n : ℕ) • a, n, gsmul_coe_nat a n⟩ :=
-fin_equiv_gpowers_apply
+fin_equiv_zpowers_apply
 
-attribute [to_additive fin_equiv_gmultiples_apply] fin_equiv_gpowers_apply
+attribute [to_additive fin_equiv_gmultiples_apply] fin_equiv_zpowers_apply
 
-@[simp] lemma fin_equiv_gpowers_symm_apply (x : G) (n : ℕ)
+@[simp] lemma fin_equiv_zpowers_symm_apply (x : G) (n : ℕ)
   {hn : ∃ (m : ℤ), x ^ m = x ^ n} :
-  ((fin_equiv_gpowers x).symm ⟨x ^ n, hn⟩) = ⟨n % order_of x, nat.mod_lt _ (order_of_pos x)⟩ :=
-by { rw [fin_equiv_gpowers, equiv.symm_trans_apply, equiv.set.of_eq_symm_apply],
+  ((fin_equiv_zpowers x).symm ⟨x ^ n, hn⟩) = ⟨n % order_of x, nat.mod_lt _ (order_of_pos x)⟩ :=
+by { rw [fin_equiv_zpowers, equiv.symm_trans_apply, equiv.set.of_eq_symm_apply],
   exact fin_equiv_powers_symm_apply x n }
 
 @[simp] lemma fin_equiv_gmultiples_symm_apply (a : A) (n : ℕ)
   {hn : ∃ (m : ℤ), m • a = n • a} :
   ((fin_equiv_gmultiples a).symm ⟨n • a, hn⟩) =
     ⟨n % add_order_of a, nat.mod_lt _ (add_order_of_pos a)⟩ :=
-fin_equiv_gpowers_symm_apply (multiplicative.of_add a) n
+fin_equiv_zpowers_symm_apply (multiplicative.of_add a) n
 
-attribute [to_additive fin_equiv_gmultiples_symm_apply] fin_equiv_gpowers_symm_apply
+attribute [to_additive fin_equiv_gmultiples_symm_apply] fin_equiv_zpowers_symm_apply
 
-/-- The equivalence between `subgroup.gpowers` of two elements `x, y` of the same order, mapping
+/-- The equivalence between `subgroup.zpowers` of two elements `x, y` of the same order, mapping
   `x ^ i` to `y ^ i`. -/
-noncomputable def gpowers_equiv_gpowers (h : order_of x = order_of y) :
-  (subgroup.gpowers x : set G) ≃ (subgroup.gpowers y : set G) :=
-(fin_equiv_gpowers x).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_gpowers y))
+noncomputable def zpowers_equiv_zpowers (h : order_of x = order_of y) :
+  (subgroup.zpowers x : set G) ≃ (subgroup.zpowers y : set G) :=
+(fin_equiv_zpowers x).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_zpowers y))
 
 /-- The equivalence between `subgroup.gmultiples` of two elements `a, b` of the same additive order,
   mapping `i • a` to `i • b`. -/
@@ -756,33 +756,33 @@ noncomputable def gmultiples_equiv_gmultiples (h : add_order_of a = add_order_of
   (add_subgroup.gmultiples a : set A) ≃ (add_subgroup.gmultiples b : set A) :=
 (fin_equiv_gmultiples a).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_gmultiples b))
 
-attribute [to_additive gmultiples_equiv_gmultiples] gpowers_equiv_gpowers
+attribute [to_additive gmultiples_equiv_gmultiples] zpowers_equiv_zpowers
 
 @[simp]
-lemma gpowers_equiv_gpowers_apply (h : order_of x = order_of y)
-  (n : ℕ) : gpowers_equiv_gpowers h ⟨x ^ n, n, gpow_coe_nat x n⟩ = ⟨y ^ n, n, gpow_coe_nat y n⟩ :=
+lemma zpowers_equiv_zpowers_apply (h : order_of x = order_of y)
+  (n : ℕ) : zpowers_equiv_zpowers h ⟨x ^ n, n, zpow_coe_nat x n⟩ = ⟨y ^ n, n, zpow_coe_nat y n⟩ :=
 begin
-  rw [gpowers_equiv_gpowers, equiv.trans_apply, equiv.trans_apply,
-    fin_equiv_gpowers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_gpowers_symm_apply],
+  rw [zpowers_equiv_zpowers, equiv.trans_apply, equiv.trans_apply,
+    fin_equiv_zpowers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_zpowers_symm_apply],
   simp [h]
 end
 
 @[simp]
 lemma gmultiples_equiv_gmultiples_apply (h : add_order_of a = add_order_of b) (n : ℕ) :
   gmultiples_equiv_gmultiples h ⟨n • a, n, gsmul_coe_nat a n⟩ = ⟨n • b, n, gsmul_coe_nat b n⟩ :=
-gpowers_equiv_gpowers_apply h n
+zpowers_equiv_zpowers_apply h n
 
-attribute [to_additive gmultiples_equiv_gmultiples_apply] gpowers_equiv_gpowers_apply
+attribute [to_additive gmultiples_equiv_gmultiples_apply] zpowers_equiv_zpowers_apply
 
-lemma order_eq_card_gpowers [decidable_eq G] :
-  order_of x = fintype.card (subgroup.gpowers x : set G) :=
-(fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_gpowers x⟩)
+lemma order_eq_card_zpowers [decidable_eq G] :
+  order_of x = fintype.card (subgroup.zpowers x : set G) :=
+(fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_zpowers x⟩)
 
 lemma add_order_eq_card_gmultiples [decidable_eq A] :
   add_order_of a = fintype.card (add_subgroup.gmultiples a : set A) :=
 (fintype.card_fin (add_order_of a)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_gmultiples a⟩)
 
-attribute [to_additive add_order_eq_card_gmultiples] order_eq_card_gpowers
+attribute [to_additive add_order_eq_card_gmultiples] order_eq_card_zpowers
 
 open quotient_group
 
@@ -790,12 +790,12 @@ open quotient_group
 lemma order_of_dvd_card_univ : order_of x ∣ fintype.card G :=
 begin
   classical,
-  have ft_prod : fintype (quotient (gpowers x) × (gpowers x)),
+  have ft_prod : fintype (quotient (zpowers x) × (zpowers x)),
     from fintype.of_equiv G group_equiv_quotient_times_subgroup,
-  have ft_s : fintype (gpowers x),
+  have ft_s : fintype (zpowers x),
     from @fintype.prod_right _ _ _ ft_prod _,
-  have ft_cosets : fintype (quotient (gpowers x)),
-    from @fintype.prod_left _ _ _ ft_prod ⟨⟨1, (gpowers x).one_mem⟩⟩,
+  have ft_cosets : fintype (quotient (zpowers x)),
+    from @fintype.prod_left _ _ _ ft_prod ⟨⟨1, (zpowers x).one_mem⟩⟩,
   have eq₁ : fintype.card G = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     from calc fintype.card G = @fintype.card _ ft_prod :
         @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup
@@ -804,9 +804,9 @@ begin
       ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
         @fintype.card_prod _ _ ft_cosets ft_s,
   have eq₂ : order_of x = @fintype.card _ ft_s,
-    from calc order_of x = _ : order_eq_card_gpowers
+    from calc order_of x = _ : order_eq_card_zpowers
       ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-  exact dvd.intro (@fintype.card (quotient (subgroup.gpowers x)) ft_cosets)
+  exact dvd.intro (@fintype.card (quotient (subgroup.zpowers x)) ft_cosets)
           (by rw [eq₁, eq₂, mul_comm])
 end
 
@@ -834,10 +834,10 @@ end
 by rw [pow_eq_mod_order_of, ←nat.mod_mod_of_dvd n order_of_dvd_card_univ,
   ← pow_eq_mod_order_of]
 
-@[to_additive] lemma gpow_eq_mod_card (n : ℤ) :
+@[to_additive] lemma zpow_eq_mod_card (n : ℤ) :
   x ^ n = x ^ (n % fintype.card G) :=
-by rw [gpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
-  ← gpow_eq_mod_order_of]
+by rw [zpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
+  ← zpow_eq_mod_order_of]
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 
@@ -847,12 +847,12 @@ attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
   inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) n),
   left_inv := λ g, by
   { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
-    rwa [gpow_add, gpow_mul, gpow_mul, gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key },
+    rwa [zpow_add, zpow_mul, zpow_mul, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key },
   right_inv := λ g, by
   { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
-    rwa [gpow_add, gpow_mul, gpow_mul', gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key } }
+    rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key } }
 
 @[simp] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) : pow_coprime h 1 = 1 :=
 one_pow n
@@ -880,8 +880,8 @@ by {ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gmultiples_iff_mem_range
 /-- TODO: Generalise to `submonoid.powers`.-/
 @[to_additive image_range_add_order_of]
 lemma image_range_order_of [decidable_eq G] :
-  finset.image (λ i, x ^ i) (finset.range (order_of x)) = (gpowers x : set G).to_finset :=
-by { ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gpowers_iff_mem_range_order_of] }
+  finset.image (λ i, x ^ i) (finset.range (order_of x)) = (zpowers x : set G).to_finset :=
+by { ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_zpowers_iff_mem_range_order_of] }
 
 lemma gcd_nsmul_card_eq_zero_iff : n • a = 0 ↔ (gcd n (fintype.card A)) • a = 0 :=
 ⟨λ h, gcd_nsmul_eq_zero _ h $ card_nsmul_eq_zero,
@@ -910,7 +910,7 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
 { carrier := S,
   one_mem' := by {
     obtain ⟨a, ha⟩ := hS1,
-    rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
+    rw [←pow_order_of_eq_one a, ← tsub_add_cancel_of_le (succ_le_of_lt (order_of_pos a))],
     exact pow_mem a ha (order_of a - 1) },
   mul_mem' := λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb) }
 

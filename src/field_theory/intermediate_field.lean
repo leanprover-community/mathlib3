@@ -146,8 +146,8 @@ lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c 
 S.to_subfield.sum_mem h
 
 lemma pow_mem {x : L} (hx : x ∈ S) : ∀ (n : ℤ), x^n ∈ S
-| (n : ℕ) := by { rw gpow_coe_nat, exact S.to_subfield.pow_mem hx _, }
-| -[1+ n] := by { rw [gpow_neg_succ_of_nat],
+| (n : ℕ) := by { rw zpow_coe_nat, exact S.to_subfield.pow_mem hx _, }
+| -[1+ n] := by { rw [zpow_neg_succ_of_nat],
     exact S.to_subfield.inv_mem (S.to_subfield.pow_mem hx _) }
 
 lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :

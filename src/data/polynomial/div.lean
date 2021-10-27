@@ -79,7 +79,7 @@ else
     exact h.1),
   degree_sub_lt
   (by rw [hq.degree_mul, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
-      degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
+      degree_eq_nat_degree hq0, ← with_bot.coe_add, tsub_add_cancel_of_le hlt])
   h.2
   (by rw [leading_coeff_mul_monic hq, leading_coeff_mul_X_pow, leading_coeff_C])
 
@@ -265,13 +265,13 @@ begin
   haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg at hfg,
-    rw nat.sub_eq_zero_of_le (nat_degree_le_nat_degree $ le_of_lt hfg) },
+    rw tsub_eq_zero_iff_le.mpr (nat_degree_le_nat_degree $ le_of_lt hfg) },
   have hgf := hfg, rw div_by_monic_eq_zero_iff hg at hgf, push_neg at hgf,
   have := degree_add_div_by_monic hg hgf,
   have hf : f ≠ 0, { intro hf, apply hfg, rw [hf, zero_div_by_monic] },
   rw [degree_eq_nat_degree hf, degree_eq_nat_degree hg.ne_zero, degree_eq_nat_degree hfg,
       ← with_bot.coe_add, with_bot.coe_eq_coe] at this,
-  rw [← this, nat.add_sub_cancel_left]
+  rw [← this, add_tsub_cancel_left]
 end
 
 lemma div_mod_by_monic_unique {f g} (q r : polynomial R) (hg : monic g)
@@ -395,6 +395,28 @@ lemma eval₂_mod_by_monic_eq_self_of_root [comm_ring S] {f : R →+* S}
   {p q : polynomial R} (hq : q.monic) {x : S} (hx : q.eval₂ f x = 0) :
   (p %ₘ q).eval₂ f x = p.eval₂ f x :=
 by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
+
+lemma sum_fin [add_comm_monoid S] (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0)
+  {n : ℕ} (hn : p.degree < n) :
+  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
+  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
+  calc  ∑ (i : fin n), f i (p.coeff i)
+      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
+  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
+    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
+    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
+  ... = p.sum f : p.sum_def _
+end
+
+lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
+  {n : ℕ} (hn : q.degree ≤ n) :
+  ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
+(sum_fin (λ i c, monomial i c) (by simp)
+  ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
+  (sum_monomial_eq _)
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.

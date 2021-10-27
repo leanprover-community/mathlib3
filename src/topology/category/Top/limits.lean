@@ -157,7 +157,7 @@ end
 /--
 The isomorphsim between the underlying set of `X ⨯ Y` and the set-theoretic product of `X` and `Y`.
 -/
-def prod_iso_prod (X Y : Top.{u}) : ↥(X ⨯ Y) ≅ X × Y :=
+def prod_iso_prod (X Y : Top.{u}) : ((X ⨯ Y : Top) : Type*) ≅ X × Y :=
 begin
   refine preserves_limit_iso forget (pair X Y) ≪≫
     limits.lim.map_iso (nat_iso.of_components _ _) ≪≫

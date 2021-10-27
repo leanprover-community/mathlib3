@@ -539,6 +539,10 @@ lemma mem_sup_right {S T : subgroup G} : ∀ {x : G}, x ∈ T → x ∈ S ⊔ T 
 show T ≤ S ⊔ T, from le_sup_right
 
 @[to_additive]
+lemma mul_mem_sup {S T : subgroup G} {x y : G} (hx : x ∈ S) (hy : y ∈ T) : x * y ∈ S ⊔ T :=
+(S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
+
+@[to_additive]
 lemma mem_supr_of_mem {ι : Type*} {S : ι → subgroup G} (i : ι) :
   ∀ {x : G}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
@@ -1764,9 +1768,8 @@ begin
   refine le_antisymm _ (sup_le (le_comap_map _ _) (ker_le_comap _ _)),
   intros x hx, simp only [exists_prop, mem_map, mem_comap] at hx,
   rcases hx with ⟨y, hy, hy'⟩,
-  have : y⁻¹ * x ∈ f.ker, { rw mem_ker, simp [hy'] },
-  convert mul_mem _ (mem_sup_left hy) (mem_sup_right this),
-  simp,
+  rw ← mul_inv_cancel_left y x,
+  exact mul_mem_sup hy (by simp [mem_ker, hy']),
 end
 
 @[to_additive]
@@ -2142,10 +2145,7 @@ lemma mem_sup : x ∈ s ⊔ t ↔ ∃ (y ∈ s) (z ∈ t), y * z = x :=
     exact ⟨_, mul_mem _ hy₁ hy₂, _, mul_mem _ hz₁ hz₂, by simp [mul_assoc]; cc⟩ },
   { rintro _ ⟨y, hy, z, hz, rfl⟩,
     exact ⟨_, inv_mem _ hy, _, inv_mem _ hz, mul_comm z y ▸ (mul_inv_rev z y).symm⟩ }
-end,
-by rintro ⟨y, hy, z, hz, rfl⟩; exact mul_mem _
-  ((le_sup_left : s ≤ s ⊔ t) hy)
-  ((le_sup_right : t ≤ s ⊔ t) hz)⟩
+end, by rintro ⟨y, hy, z, hz, rfl⟩; exact mul_mem_sup hy hz⟩
 
 @[to_additive]
 lemma mem_sup' : x ∈ s ⊔ t ↔ ∃ (y : s) (z : t), (y:C) * z = x :=

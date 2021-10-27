@@ -89,7 +89,7 @@ dfinsupp.single_eq_of_ne h
   (of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
 
 lemma support_of_subset [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] {i : ι} {b : β i} : (of _ i b).support ⊆ {i} :=
-dfinsupp.support_mk_subset
+dfinsupp.support_single_subset
 
 lemma sum_support_of [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] (x : ⨁ i, β i) : ∑ i in x.support, of β i (x i) = x :=
   dfinsupp.sum_single

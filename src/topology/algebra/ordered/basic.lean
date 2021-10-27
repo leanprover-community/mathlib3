@@ -1751,10 +1751,10 @@ tendsto_inv_zero_at_top.comp h
 /-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (fpow_neg x n).symm)
-  (filter.tendsto.inv_tendsto_at_top (by simpa [gpow_coe_nat] using tendsto_pow_at_top hn))
+tendsto.congr (λ x, (zpow_neg₀ x n).symm)
+  (filter.tendsto.inv_tendsto_at_top (by simpa [zpow_coe_nat] using tendsto_pow_at_top hn))
 
-lemma tendsto_fpow_at_top_zero {n : ℤ} (hn : n < 0) :
+lemma tendsto_zpow_at_top_zero {n : ℤ} (hn : n < 0) :
   tendsto (λ x : α, x^n) at_top (𝓝 0) :=
 begin
   have : 1 ≤ -n := le_neg.mp (int.le_of_lt_add_one (hn.trans_le (neg_add_self 1).symm.le)),
@@ -1763,9 +1763,9 @@ begin
   exact tendsto_pow_neg_at_top (by exact_mod_cast this)
 end
 
-lemma tendsto_const_mul_fpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
+lemma tendsto_const_mul_zpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
   tendsto (λ x, c * x ^ n) at_top (𝓝 0) :=
-(mul_zero c) ▸ (filter.tendsto.const_mul c (tendsto_fpow_at_top_zero hn))
+(mul_zero c) ▸ (filter.tendsto.const_mul c (tendsto_zpow_at_top_zero hn))
 
 lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
   tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
@@ -1786,22 +1786,22 @@ begin
     simpa [hn, hcd] using tendsto_const_nhds }
 end
 
-lemma tendsto_const_mul_fpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
+lemma tendsto_const_mul_zpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
   tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔
     (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { by_cases hn : 0 ≤ n,
     { lift n to ℕ using hn,
-      simp only [gpow_coe_nat] at h,
+      simp only [zpow_coe_nat] at h,
       rw [tendsto_const_mul_pow_nhds_iff hc, ← int.coe_nat_eq_zero] at h,
       exact or.inl h },
     { rw not_le at hn,
-      refine or.inr ⟨hn, tendsto_nhds_unique h (tendsto_const_mul_fpow_at_top_zero hn)⟩ } },
+      refine or.inr ⟨hn, tendsto_nhds_unique h (tendsto_const_mul_zpow_at_top_zero hn)⟩ } },
   { cases h,
-    { simp only [h.left, h.right, gpow_zero, mul_one],
+    { simp only [h.left, h.right, zpow_zero, mul_one],
       exact tendsto_const_nhds },
-    { exact h.2.symm ▸ tendsto_const_mul_fpow_at_top_zero h.1} }
+    { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
 end
 
 end linear_ordered_field

@@ -106,9 +106,9 @@ op_injective $
 op_injective $
   ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_gpow [group R] [star_monoid R] (x : R) (z : ℤ) : star (x ^ z) = star x ^ z :=
+@[simp] lemma star_zpow [group R] [star_monoid R] (x : R) (z : ℤ) : star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_gpow x z).trans (op_gpow (star x) z).symm
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div [comm_group R] [star_monoid R] (x y : R) : star (x / y) = star x / star y :=
@@ -237,10 +237,10 @@ alias star_ring_aut_self_apply ← is_R_or_C.conj_conj
 op_injective $
   ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_fpow [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+@[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_fpow x z).trans (op_gpow (star x) z).symm
+  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=

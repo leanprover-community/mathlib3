@@ -327,11 +327,11 @@ noncomputable instance : field ℂ :=
   inv_zero := complex.inv_zero,
   ..complex.comm_ring }
 
-@[simp] lemma I_fpow_bit0 (n : ℤ) : I ^ (bit0 n) = (-1) ^ n :=
-by rw [fpow_bit0', I_mul_I]
+@[simp] lemma I_zpow_bit0 (n : ℤ) : I ^ (bit0 n) = (-1) ^ n :=
+by rw [zpow_bit0', I_mul_I]
 
-@[simp] lemma I_fpow_bit1 (n : ℤ) : I ^ (bit1 n) = (-1) ^ n * I :=
-by rw [fpow_bit1', I_mul_I]
+@[simp] lemma I_zpow_bit1 (n : ℤ) : I ^ (bit1 n) = (-1) ^ n * I :=
+by rw [zpow_bit1', I_mul_I]
 
 lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
@@ -341,8 +341,8 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
 of_real.map_div r s
 
-@[simp, norm_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-of_real.map_fpow r n
+@[simp, norm_cast] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
+of_real.map_zpow r n
 
 @[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
 (div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]

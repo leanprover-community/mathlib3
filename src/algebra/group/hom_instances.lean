@@ -61,12 +61,12 @@ instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
   div := has_div.div,
   div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
   mul_left_inv := by intros; ext; apply mul_left_inv,
-  gpow := λ n f, { to_fun := λ x, gpow n (f x),
+  zpow := λ n f, { to_fun := λ x, zpow n (f x),
     map_one' := by simp,
-    map_mul' := λ x y, by simp [mul_gpow] },
-  gpow_zero' := λ f, by { ext x, simp },
-  gpow_succ' := λ n f, by { ext x, simp [gpow_of_nat, pow_succ] },
-  gpow_neg'  := λ n f, by { ext x, simp },
+    map_mul' := λ x y, by simp [mul_zpow] },
+  zpow_zero' := λ f, by { ext x, simp },
+  zpow_succ' := λ n f, by { ext x, simp [zpow_of_nat, pow_succ] },
+  zpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
 
 /-- If `G` is an additive commutative group, then `M →+ G` is an additive commutative group too. -/

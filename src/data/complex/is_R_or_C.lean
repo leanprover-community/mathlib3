@@ -330,8 +330,8 @@ begin
     simp [norm_sq, div_mul_eq_div_mul_one_div, div_self h] }
 end
 
-@[simp, norm_cast, priority 900] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
-(@is_R_or_C.coe_hom K _).map_fpow r n
+@[simp, norm_cast, priority 900] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
+(@is_R_or_C.coe_hom K _).map_zpow r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
 by { have := I_mul_I_ax, tauto }

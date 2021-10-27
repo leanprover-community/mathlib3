@@ -313,8 +313,8 @@ lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) :
 begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
-  rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv₀, gpow_coe_nat],
+  rw ← inv_lt_inv hε (_root_.zpow_pos_of_pos _ _),
+  { rw [zpow_neg₀, inv_inv₀, zpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,
@@ -369,7 +369,7 @@ begin
   by_cases hx : x = 0,
   { simp [hx] },
   have h : (1 : ℝ) < p := by exact_mod_cast hp_prime.1.one_lt,
-  rw [← neg_nonpos, ← (fpow_strict_mono h).le_iff_le],
+  rw [← neg_nonpos, ← (zpow_strict_mono h).le_iff_le],
   show (p : ℝ) ^ -valuation x ≤ p ^ 0,
   rw [← norm_eq_pow_val hx],
   simpa using x.property,
@@ -386,7 +386,7 @@ begin
       exact_mod_cast (pow_eq_zero hc) },
     { exact hc } },
   rwa [norm_eq_pow_val aux, norm_p_pow, norm_eq_pow_val hc,
-      ← fpow_add, ← neg_add, fpow_inj, neg_inj] at this,
+      ← zpow_add₀, ← neg_add, zpow_inj, neg_inj] at this,
   { exact_mod_cast hp_prime.1.pos },
   { exact_mod_cast hp_prime.1.ne_one },
   { exact_mod_cast hp_prime.1.ne_zero },
@@ -444,8 +444,8 @@ See `unit_coeff_spec`. -/
 def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : units ℤ_[p] :=
 let u : ℚ_[p] := x*p^(-x.valuation) in
 have hu : ∥u∥ = 1,
-by simp [hx, nat.fpow_ne_zero_of_pos (by exact_mod_cast hp_prime.1.pos) x.valuation,
-         norm_eq_pow_val, fpow_neg, inv_mul_cancel, -cast_eq_of_rat_of_nat],
+by simp [hx, nat.zpow_ne_zero_of_pos (by exact_mod_cast hp_prime.1.pos) x.valuation,
+         norm_eq_pow_val, zpow_neg, inv_mul_cancel, -cast_eq_of_rat_of_nat],
 mk_units hu
 
 @[simp] lemma unit_coeff_coe {x : ℤ_[p]} (hx : x ≠ 0) :
@@ -457,11 +457,11 @@ begin
   apply subtype.coe_injective,
   push_cast,
   have repr : (x : ℚ_[p]) = (unit_coeff hx) * p ^ x.valuation,
-  { rw [unit_coeff_coe, mul_assoc, ← fpow_add],
+  { rw [unit_coeff_coe, mul_assoc, ← zpow_add₀],
     { simp },
     { exact_mod_cast hp_prime.1.ne_zero } },
   convert repr using 2,
-  rw [← gpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
+  rw [← zpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
 end
 
 end units
@@ -474,7 +474,7 @@ lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
 begin
   rw norm_eq_pow_val hx,
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-  simp only [int.coe_nat_le, fpow_neg, gpow_coe_nat],
+  simp only [int.coe_nat_le, zpow_neg₀, zpow_coe_nat],
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
@@ -505,7 +505,7 @@ lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
 begin
   by_cases hx : x = 0,
   { subst hx,
-    simp only [norm_zero, fpow_neg, gpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
+    simp only [norm_zero, zpow_neg₀, zpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
     exact_mod_cast nat.zero_le _ },
   rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
 end
@@ -525,7 +525,7 @@ begin
   have := norm_le_pow_iff_mem_span_pow x 1,
   rw [ideal.mem_span_singleton, pow_one] at this,
   rw [← this, norm_le_pow_iff_norm_lt_pow_add_one],
-  simp only [gpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
+  simp only [zpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
 end
 
 @[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
@@ -583,7 +583,7 @@ instance : is_adic_complete (maximal_ideal ℤ_[p]) ℤ_[p] :=
     { intros ε hε, obtain ⟨m, hm⟩ := exists_pow_neg_lt p hε,
       refine ⟨m, λ n hn, lt_of_le_of_lt _ hm⟩, rw [← neg_sub, norm_neg], exact hx hn },
     { refine ⟨x'.lim, λ n, _⟩,
-      have : (0:ℝ) < p ^ (-n : ℤ), { apply fpow_pos_of_pos, exact_mod_cast hp_prime.1.pos },
+      have : (0:ℝ) < p ^ (-n : ℤ), { apply zpow_pos_of_pos, exact_mod_cast hp_prime.1.pos },
       obtain ⟨i, hi⟩ := equiv_def₃ (equiv_lim x') this,
       by_cases hin : i ≤ n,
       { exact (hi i le_rfl n hin).le, },

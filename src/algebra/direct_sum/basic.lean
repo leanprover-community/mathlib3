@@ -188,13 +188,18 @@ begin
   exact function.bijective.surjective h,
 end
 
+/-- The canonical embedding from `⨁ i, A i` to `M`-/
+def direct_sum.add_subgroup_coe {M : Type*} [decidable_eq ι] [add_comm_group M]
+  (A : ι → add_subgroup M) : (⨁ i, A i) →+ M :=
+direct_sum.to_add_monoid (λ i, (A i).subtype)
+
 /-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.
 
 See `direct_sum.submodule_is_internal` for the same statement about `submodules`s. -/
 def add_subgroup_is_internal {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) : Prop :=
-function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+function.bijective (direct_sum.add_subgroup_coe A)
 
 lemma add_subgroup_is_internal.to_add_submonoid
   {M : Type*} [decidable_eq ι] [add_comm_group M] (A : ι → add_subgroup M) :

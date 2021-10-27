@@ -194,6 +194,10 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
+def direct_sum.submodule_coe {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
+  (A : ι → submodule R M) : (⨁ i, A i) →ₗ[R] M :=
+direct_sum.to_module R ι M (λ i, (A i).subtype)
+
 /-- The `direct_sum` formed by a collection of `submodule`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →ₗ[R] M` is bijective.
 
@@ -202,7 +206,7 @@ For the alternate statement in terms of independence and spanning, see
 def submodule_is_internal {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M]
   (A : ι → submodule R M) : Prop :=
-function.bijective (to_module R ι M (λ i, (A i).subtype))
+function.bijective (direct_sum.submodule_coe A)
 
 lemma submodule_is_internal.to_add_submonoid {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M) :

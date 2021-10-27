@@ -212,22 +212,22 @@ theorem order_from_pows
   (hn : 0 < n) (hx : x^n = 1) (hd : ∀ p : ℕ, p.prime → p ∣ n → x^(n/p) ≠ 1) :
   order_of x = n :=
 begin
-  -- Let `b` be `m/(order_of x)`, and show `b = 1`
-  cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one hx) with b hb,
-  suffices : b = 1, by simp [this, hb],
-  -- Assume `b` is not one...
+  -- Let `a` be `n/(order_of x)`, and show `a = 1`
+  cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one hx) with a ha,
+  suffices : a = 1, by simp [this, ha],
+  -- Assume `a` is not one...
   by_contra,
-  have b_min_fac_dvd_p_sub_one : b.min_fac ∣ n,
-    { have c_dvd_factor : ∃ (c : ℕ), b = c * b.min_fac,
-        exact exists_eq_mul_left_of_dvd b.min_fac_dvd,
-      cases c_dvd_factor with c hc,
-      rw [hc, ←mul_assoc] at hb,
-      exact dvd.intro_left (order_of x * c) (eq.symm hb), },
-  -- Use the minimum prime factor of `b` as `p`.
-  refine hd b.min_fac (nat.min_fac_prime h) b_min_fac_dvd_p_sub_one _,
-  rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff (b_min_fac_dvd_p_sub_one),
-      hb, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
-  { exact nat.min_fac_dvd b, },
+  have a_min_fac_dvd_p_sub_one : a.min_fac ∣ n,
+    { have b_dvd_factor : ∃ (b : ℕ), a = b * a.min_fac,
+        exact exists_eq_mul_left_of_dvd a.min_fac_dvd,
+      cases b_dvd_factor with b hb,
+      rw [hb, ←mul_assoc] at ha,
+      exact dvd.intro_left (order_of x * b) (eq.symm ha), },
+  -- Use the minimum prime factor of `a` as `p`.
+  refine hd a.min_fac (nat.min_fac_prime h) a_min_fac_dvd_p_sub_one _,
+  rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff (a_min_fac_dvd_p_sub_one),
+      ha, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
+  { exact nat.min_fac_dvd a, },
   { rw is_of_fin_order_iff_pow_eq_one,
     exact Exists.intro n (id ⟨hn, hx⟩)},
 end

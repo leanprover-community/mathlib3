@@ -351,7 +351,7 @@ then the induced morphism `W ×ₛ X ⟶ Y ×ₜ Z` is also an embedding.
     ↗       ↗
   X  ⟶  Z
 -/
-lemma pullback_map_embedding_of_embedding_of_emedding {W X Y Z S T : Top}
+lemma pullback_map_embedding_of_embeddings {W X Y Z S T : Top}
   (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
   (i₃ : S ⟶ T) (H₁ : embedding i₁) (H₂ : embedding i₂)
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
@@ -377,12 +377,28 @@ is mono, then the induced morphism `W ×ₛ X ⟶ Y ×ₜ Z` is also an open emb
     ↗       ↗
   X  ⟶  Z
 -/
-lemma open_embedding_of_pullback_open_embedding_open_emedding {W X Y Z S T : Top}
+lemma pullback_map_open_embedding_of_open_embeddings {W X Y Z S T : Top}
   (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
   (i₃ : S ⟶ T) (H₁ : open_embedding i₁) (H₂ : open_embedding i₂) [H₃ : mono i₃]
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
   open_embedding (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
 begin
+  split,
+  apply pullback_map_embedding_of_embeddings
+    f₁ f₂ g₁ g₂ i₃ H₁.to_embedding H₂.to_embedding eq₁ eq₂,
+  rw range_pullback_map,
+  apply is_open.inter; apply continuous.is_open_preimage,
+  continuity,
+  exacts [H₁.open_range, H₂.open_range]
+end
+
+lemma snd_embedding_of_left_embedding {X Y S : Top}
+  (f : X ⟶ S) (g : Y ⟶ S) (H : embedding f) :
+  embedding ⇑(pullback.snd : pullback f g ⟶ Y) :=
+begin
+  have := pullback_map_embedding_of_embeddings f g (𝟙 _) g (𝟙 _) H
+    (homeo_of_iso (iso.refl _)).embedding rfl (by simp),
+  -- have
   split,
   apply pullback_map_embedding_of_embedding_of_emedding
     f₁ f₂ g₁ g₂ i₃ H₁.to_embedding H₂.to_embedding eq₁ eq₂,

@@ -209,6 +209,11 @@ instance module' {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower
 S.to_subalgebra.module'
 instance module : module K S := S.to_subalgebra.module
 
+instance is_scalar_tower {R} [semiring R] [has_scalar R K] [module R L]
+  [is_scalar_tower R K L] :
+  is_scalar_tower R K S :=
+S.to_subalgebra.is_scalar_tower
+
 @[simp] lemma coe_smul {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L]
   (r : R) (x : S) :
   ↑(r • x) = (r • x : L) := rfl
@@ -218,11 +223,6 @@ instance algebra' {K'} [comm_semiring K'] [has_scalar K' K] [algebra K' L]
   algebra K' S :=
 S.to_subalgebra.algebra'
 instance algebra : algebra K S := S.to_subalgebra.algebra
-
-instance is_scalar_tower {K'} [comm_semiring K'] [has_scalar K' K] [algebra K' L]
-  [is_scalar_tower K' K L] :
-  is_scalar_tower K' K S :=
-S.to_subalgebra.is_scalar_tower
 
 instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
 S.to_subalgebra.to_algebra

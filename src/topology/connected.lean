@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import topology.subset_properties
+import data.set.increasing_union
+
 
 /-!
 # Connected subsets of topological spaces
@@ -131,6 +133,167 @@ begin
   exact is_preconnected.union x (mem_of_mem_inter_left hx) (mem_of_mem_inter_right hx)
     Hs.is_preconnected Ht.is_preconnected
 end
+
+/-- 
+The union Union s of an increasing mapping s of preconnected sets 
+is preconnected
+-/
+variable ι : Type _
+variables [ linear_order ι ]
+
+theorem is_preconnected.Union_of_directed   { s : ι → set α }  
+  (H : ∀ n: ι, is_preconnected (s n))
+  (K : ∀ m n: ι, m ≤ n → s m ⊆ s n) : 
+  is_preconnected ( Union s ) :=
+begin
+  /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
+  rw is_preconnected,
+  intros u v hu hv Huv Ku Kv ,
+  obtain ⟨ a, Kua ⟩ : ∃ a, a ∈ Union s ∩ u, from Ku,
+  obtain ⟨ b, Kvb ⟩ : ∃ b, b ∈ Union s ∩ v, from Kv,
+  obtain ⟨ m, Kam ⟩ : ∃ m, a ∈ s m , from mem_Union.1 Kua.left,
+  obtain ⟨ n, Kbn ⟩ : ∃ n, b ∈ s n , from mem_Union.1 Kvb.left,
+  
+  revert a b u v,
+  /- WLOG, it suffices to treat the case where m ≤ n -/
+  wlog hmn : m ≤ n := le_total m n using [m n, n m] tactic.skip,
+
+  intros a b u v hu hv , intro Huv, intros Ku Kv, intros Kua Kvb,
+  intros Kam Kbn,
+
+  have Kan : a ∈ s n := mem_of_mem_of_subset Kam ((K m n) hmn), 
+
+  have Hnuv : ((s n) ∩ (u ∩ v)).nonempty :=
+  begin
+      apply (H n), apply hu, apply hv,
+      apply has_subset.subset.trans (subset_Union s n) Huv,
+      apply nonempty_of_mem  (mem_inter Kan Kua.right),
+      apply nonempty_of_mem (mem_inter Kbn Kvb.right),
+  end,
+  have Knuv : ((s n) ∩ (u ∩ v)) ⊆ Union s ∩ (u ∩ v) :=
+  begin
+  apply inter_subset_inter,
+  apply subset_Union,
+  apply eq.subset, refl,
+  end,
+  exact nonempty.mono Knuv Hnuv,
+
+  /- The case n ≤ m is done by symmetry, using wlog -/
+  intros a b u v hu hv Huv Ku Kv Kau Kbv Kam Kbn,
+  rw union_comm at Huv,
+  rw inter_comm u v,
+  exact this b a v u hv hu Huv Kv Ku Kbv Kau Kbn Kam, 
+end
+
+/- I would like to define filtered, more or less as in 
+ filtered (S : set (set Type*)) (s t) := s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s
+ so that the argument K of the next theorem comes out as something like K: filtered S,
+ but I don't know how to do it… (nor whether this is worth being done) -/
+
+/-- The filtered sUnion of a set S of preconnected subsets is preconnected -/
+theorem is_preconnected.filtered_sUnion_of { S : set (set α) }  
+  (H : ∀ s, s ∈  S →  is_preconnected s )
+  (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s) : 
+  is_preconnected ( sUnion S ) :=
+begin
+  /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
+  rw is_preconnected,
+  intros u v hu hv Huv Ku Kv ,
+  
+  obtain ⟨ a, KaS, hau ⟩ := Ku, 
+  simp at KaS,
+  obtain ⟨ s, hsS, has⟩ := KaS,
+
+  obtain ⟨ b, KbS, hbv ⟩ := Kv,
+  simp at KbS, 
+  obtain ⟨ t, htS, hbt ⟩ := KbS,
+  
+  revert a b u v,
+  /- WLOG, we will only prove the case where s ⊆ t -/
+  wlog Hst: s ⊆ t := K s t hsS htS using [s t, t s] tactic.skip,
+
+  intros a b u v hu hv, intro Huv,
+  intros hau has hbv hbt,
+  
+  have hat : a ∈ t := mem_of_mem_of_subset has Hst,
+
+  have Hnuv : (t ∩ (u ∩ v)).nonempty :=
+  begin
+      
+      apply (H t htS), apply hu, apply hv,
+      exact has_subset.subset.trans (subset_sUnion_of_mem htS) Huv,
+      exact nonempty_of_mem (mem_inter hat hau),
+      exact nonempty_of_mem (mem_inter hbt hbv),
+  end,
+  have Ktuv : ( t ∩ (u ∩ v)) ⊆ sUnion S ∩ (u ∩ v) :=
+  begin
+  apply inter_subset_inter,
+  apply subset_sUnion_of_mem htS,
+  apply eq.subset, refl,
+  end,
+  exact nonempty.mono Ktuv Hnuv,
+
+
+  /- We now prove t ⊆ s by symmetry -/
+  intros s t a b u v hu hv Huv hau has hbv hbt,
+  rw union_comm at Huv,
+  rw inter_comm u v,
+  exact this t s b a v u hv hu Huv hbv hbt hau has,
+end
+
+
+
+/-- 
+If s = (s_j)_(j ∈ ℕ) is a family of (pre)connected sets
+such that sj meets s(j+1) for all j, then union s is (pre)connected. -/
+
+/- I would have liked to define the analogue for finite sequences,
+but I can't guess the type of the theorem,
+because j ∈ { j:ℕ | j ≤ n} ∧ j < n does'nt immediately
+imply that j.succ ∈ { j: ℕ | j ≤ n} 
+-/
+theorem is_preconnected.union_of_chain { s : ℕ → set α }  
+  (H : ∀ n: ℕ, is_preconnected (s n))
+  (K : ∀ n: ℕ, (s n ∩ s(n.succ)).nonempty) : 
+  is_preconnected ( Union s ) :=
+begin
+  set Us : ℕ → set α := λ n, Union (set.restrict s { j : ℕ | j ≤ n} ),
+  
+  /- Each member of the increasing union is preconnected -/
+  have Pn : ∀ n : ℕ, is_preconnected (Us n) :=
+  begin
+    /- proof by induction -/
+    intro n, induction n with n hn,
+    /- initialization -/
+    have  : Us 0 = s 0 := increasing_Union.init s,
+    rwa this,
+    exact (H 0),
+
+    /- inductive step -/
+    have :  Us n ∪ (s n.succ)  = Us n.succ := increasing_Union.ind s n,
+    rw ← this,
+    have : ((Us n) ∩ (s n.succ)).nonempty :=
+    begin
+      obtain ⟨ x, hx ⟩ := K n,
+      apply exists.intro x,
+      split,
+      apply increasing_Union.subset_of s n n rfl.ge hx.left,
+      exact hx.right,
+    end,
+    obtain ⟨ x, hx ⟩ := K n,
+    exact is_preconnected.union x
+      (increasing_Union.subset_of s n n rfl.ge hx.left)
+      hx.right hn (H n.succ),
+  end,
+
+  have Us_eq_Us : Union Us = Union s := 
+  begin apply increasing_Union.Union_of  , end,
+  rw ←Us_eq_Us,
+
+  exact is_preconnected.Union_of_directed ℕ Pn 
+    (increasing_Union.is_increasing s),
+end
+
 
 /-- Theorem of bark and tree :
 if a set is within a (pre)connected set and its closure,

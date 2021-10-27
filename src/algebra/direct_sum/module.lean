@@ -194,7 +194,7 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
-def direct_sum.submodule_coe {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
+def submodule_coe {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
   (A : ι → submodule R M) : (⨁ i, A i) →ₗ[R] M :=
 direct_sum.to_module R ι M (λ i, (A i).subtype)
 

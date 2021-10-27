@@ -429,6 +429,9 @@ by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_real, real.norm_eq_abs] }
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
+lemma norm_of_nonneg {r : ℝ} (r_nn : 0 ≤ r) : ∥(r : K)∥ = r :=
+by { rw norm_of_real, exact abs_eq_self.mpr r_nn, }
+
 lemma abs_of_nat (n : ℕ) : absK n = n :=
 by { rw [← of_real_nat_cast], exact abs_of_nonneg (nat.cast_nonneg n) }
 

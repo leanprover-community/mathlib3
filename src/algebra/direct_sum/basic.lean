@@ -90,9 +90,8 @@ section classical
 @[simp] lemma support_of [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] (i : ι) (x : β i) (h : x ≠ 0) :
   (of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
 
-lemma eq_sum_of (x : ⨁ i, β i) :
-  x = ∑ i in x.support, of β i (x i) :=
-dfinsupp.sum_single.symm
+lemma sum_support_of (x : ⨁ i, β i) : ∑ i in x.support, of β i (x i) = x :=
+dfinsupp.sum_single
 
 variables {β}
 

@@ -205,31 +205,31 @@ begin
 end
 
 /--
-If `a^r = 1`, but `a^(r/q) ≠ 1` for all prime factors `q` of `r`, then `a` has
-order `r` in `G`.
+If `x^n = 1`, but `x^(n/p) ≠ 1` for all prime factors `p` of `r`,
+then `x` has order `n` in `G`.
 -/
-theorem order_from_pows (n r : ℕ) (a : G)
-  (hr : 0 < r) (ha : a^r = 1) (hd : ∀ q : ℕ, q.prime → q ∣ r → a^(r/q) ≠ 1) :
-  order_of a = r :=
+theorem order_from_pows
+  (hn : 0 < n) (hx : x^n = 1) (hd : ∀ p : ℕ, p.prime → p ∣ n → x^(n/p) ≠ 1) :
+  order_of x = n :=
 begin
-  -- Let `b` be `r/(order_of a)`, and show `b = 1`
-  cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one ha) with b hb,
+  -- Let `b` be `m/(order_of x)`, and show `b = 1`
+  cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one hx) with b hb,
   suffices : b = 1, by simp [this, hb],
   -- Assume `b` is not one...
   by_contra,
-  have b_min_fac_dvd_p_sub_one : b.min_fac ∣ r,
+  have b_min_fac_dvd_p_sub_one : b.min_fac ∣ n,
     { have c_dvd_factor : ∃ (c : ℕ), b = c * b.min_fac,
         exact exists_eq_mul_left_of_dvd b.min_fac_dvd,
       cases c_dvd_factor with c hc,
       rw [hc, ←mul_assoc] at hb,
-      exact dvd.intro_left (order_of a * c) (eq.symm hb), },
-  -- Use the minimum prime factor of `b` as `q`.
+      exact dvd.intro_left (order_of x * c) (eq.symm hb), },
+  -- Use the minimum prime factor of `b` as `p`.
   refine hd b.min_fac (nat.min_fac_prime h) b_min_fac_dvd_p_sub_one _,
   rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff (b_min_fac_dvd_p_sub_one),
       hb, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
   { exact nat.min_fac_dvd b, },
   { rw is_of_fin_order_iff_pow_eq_one,
-    exact Exists.intro r (id ⟨hr, ha⟩)},
+    exact Exists.intro n (id ⟨hn, hx⟩)},
 end
 
 lemma exists_nsmul_eq_self_of_coprime (a : A)

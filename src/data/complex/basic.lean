@@ -155,7 +155,7 @@ by refine_struct
     add_zero := λ z, by { apply ext_iff.2, simp },
     nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
     npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
-    gsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
+    zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`

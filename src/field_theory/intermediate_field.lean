@@ -150,11 +150,11 @@ lemma pow_mem {x : L} (hx : x ∈ S) : ∀ (n : ℤ), x^n ∈ S
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat],
     exact S.to_subfield.inv_mem (S.to_subfield.pow_mem hx _) }
 
-lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
-  n • x ∈ S := S.to_subfield.gsmul_mem hx n
+lemma zsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
+  n • x ∈ S := S.to_subfield.zsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+by simp only [← zsmul_one, zsmul_mem, one_mem]
 
 end intermediate_field
 

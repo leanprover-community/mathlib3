@@ -83,7 +83,7 @@ theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
   f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_pow x n m
 
-theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
+theorem iterate_map_zsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
   f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_zpow x n m
 
@@ -125,9 +125,9 @@ f.to_add_monoid_hom.iterate_map_sub n x y
 theorem iterate_map_neg : f^[n] (-x) = -(f^[n] x) :=
 f.to_add_monoid_hom.iterate_map_neg n x
 
-theorem iterate_map_gsmul (n : ℕ) (m : ℤ) (x : R) :
+theorem iterate_map_zsmul (n : ℕ) (m : ℤ) (x : R) :
   f^[n] (m • x) = m • (f^[n] x) :=
-f.to_add_monoid_hom.iterate_map_gsmul n m x
+f.to_add_monoid_hom.iterate_map_zsmul n m x
 
 end ring_hom
 

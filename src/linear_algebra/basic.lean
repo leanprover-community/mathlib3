@@ -859,7 +859,7 @@ lemma span_int_eq_add_subgroup_closure {M : Type*} [add_comm_group M] (s : set M
   (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
 eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
   (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)
-  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.gsmul_mem _ ‹_› _)
+  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.zsmul_mem _ ‹_› _)
 
 @[simp] lemma span_int_eq {M : Type*} [add_comm_group M] (s : add_subgroup M) :
   (span ℤ (s : set M)).to_add_subgroup = s :=

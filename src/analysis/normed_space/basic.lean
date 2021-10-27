@@ -489,7 +489,7 @@ instance : nondiscrete_normed_field ℚ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 -- Now that we've installed the norm on `ℤ`,
--- we can state some lemmas about `nsmul` and `gsmul`.
+-- we can state some lemmas about `nsmul` and `zsmul`.
 section
 variables [semi_normed_group α]
 
@@ -502,13 +502,13 @@ begin
   exact norm_add_le_of_le ih le_rfl
 end
 
-lemma norm_gsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
+lemma norm_zsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
 begin
   induction n with n n,
-  { simp only [int.of_nat_eq_coe, gsmul_coe_nat],
+  { simp only [int.of_nat_eq_coe, zsmul_coe_nat],
     convert norm_nsmul_le n a,
     exact nat.abs_cast n },
-  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, gsmul_coe_nat],
+  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, zsmul_coe_nat],
     convert norm_nsmul_le n.succ a,
     exact nat.abs_cast n.succ, }
 end
@@ -517,8 +517,8 @@ lemma nnnorm_nsmul_le (n : ℕ) (a : α) : ∥n • a∥₊ ≤ n * ∥a∥₊ :
 by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
   using norm_nsmul_le n a
 
-lemma nnnorm_gsmul_le (n : ℤ) (a : α) : ∥n • a∥₊ ≤ ∥n∥₊ * ∥a∥₊ :=
-by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_gsmul_le n a
+lemma nnnorm_zsmul_le (n : ℤ) (a : α) : ∥n • a∥₊ ≤ ∥n∥₊ * ∥a∥₊ :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_zsmul_le n a
 
 end
 

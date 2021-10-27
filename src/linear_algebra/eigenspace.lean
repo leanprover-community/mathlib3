@@ -170,6 +170,18 @@ theorem has_eigenvalue_iff_is_root :
   f.has_eigenvalue μ ↔ (minpoly K f).is_root μ :=
 ⟨is_root_of_has_eigenvalue, has_eigenvalue_of_is_root⟩
 
+/-- An endomorphism of a finite-dimensional vector space has finitely many eigenvalues. -/
+noncomputable instance [finite_dimensional K V] (f : End K V) : fintype (eigenvalues f) :=
+set.finite.fintype
+begin
+  have h : minpoly K f ≠ 0 := minpoly.ne_zero f.is_integral,
+  convert (minpoly K f).root_set_finite K,
+  ext μ,
+  have : (μ ∈ {μ : K | f.eigenspace μ = ⊥ → false}) ↔ ¬f.eigenspace μ = ⊥ := by tauto,
+  convert rfl.mpr this,
+  simp [polynomial.root_set, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root, has_eigenvalue]
+end
+
 end minpoly
 
 /-- Every linear operator on a vector space over an algebraically closed field has
@@ -281,12 +293,6 @@ begin
         assumption },
       exact h_lμ_eq_0 μ h_cases } }
 end
-
-lemma eigenspaces_independent (f : End K V) : complete_lattice.independent (λ μ, eigenspace f μ) :=
-sorry
-
-noncomputable instance [finite_dimensional K V] (f : End K V) : fintype (eigenvalues f) :=
-(eigenspaces_independent f).fintype_ne_bot_of_finite_dimensional
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
 kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for

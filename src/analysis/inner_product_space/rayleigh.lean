@@ -119,7 +119,7 @@ begin
     simp only [prod.mk_eq_zero] at ⊢ h₁,
     refine ⟨linear_map.ext (λ x, _), h₁.2⟩,
     simpa [h₁.1] using Λ.map_smul x 1 },
-  { apply (inner_product_space.to_dual_map F).injective,
+  { apply (inner_product_space.to_dual_map ℝ F).injective,
     ext x,
     have : (Λ ⟪x₀, x⟫_ℝ + Λ ⟪x₀, x⟫_ℝ) + (b * ⟪T x₀, x⟫_ℝ + b * ⟪T x₀, x⟫_ℝ) = 0,
     { simpa only [φ', bit0, inner_right_apply, algebra.id.smul_eq_mul,

@@ -49,12 +49,6 @@ namespace self_adjoint
 variables {T : E →ₗ[𝕜] E} (hT : self_adjoint T)
 include hT
 
-/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
-self-adjoint. -/
-lemma restrict_invariant {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
-  self_adjoint (T.restrict hV) :=
-λ v w, hT v w
-
 /-- A self-adjoint operator preserves orthogonal complements of its eigenspaces. -/
 lemma invariant_orthogonal_eigenspace (μ : 𝕜) : ∀ v ∈ (eigenspace T μ)ᗮ, T v ∈ (eigenspace T μ)ᗮ :=
 begin

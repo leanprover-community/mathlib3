@@ -373,7 +373,7 @@ begin
       apply to_zmod_spec },
     obtain ⟨c, rfl⟩ : is_unit c, -- TODO: write a can_lift instance for units
     { rw int.nat_abs_eq_zero at hc0,
-      rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, gpow_zero], },
+      rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, zpow_zero], },
     rw discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
     exact irreducible_p },
   { rw zero_pow hc0,
@@ -627,7 +627,7 @@ lemma lift_sub_val_mem_span (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
 begin
   obtain ⟨k, hk⟩ := lim_nth_hom_spec f_compat r _
-    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.fpow_pos_of_pos hp_prime.1.pos _),
+    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.zpow_pos_of_pos hp_prime.1.pos _),
   have := le_of_lt (hk (max n k) (le_max_right _ _)),
   rw norm_le_pow_iff_mem_span_pow at this,
   dsimp [lift],

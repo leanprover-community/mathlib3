@@ -55,7 +55,7 @@ lemma rank_prod' (N : Type v) [add_comm_group N] [module R N] [module.free R N] 
   module.rank R (M × N) = (module.rank R M) + (module.rank R N) := by simp
 
 /-- The rank of the direct sum is the sum of the ranks. -/
-@[simp] lemma rank_direct_sum  {ι : Type u} (M : ι → Type v) [Π (i : ι), add_comm_group (M i)]
+@[simp] lemma rank_direct_sum  {ι : Type v} (M : ι → Type w) [Π (i : ι), add_comm_group (M i)]
   [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] :
   module.rank R (⨁ i, M i) = cardinal.sum (λ i, module.rank R (M i)) :=
 begin
@@ -63,6 +63,32 @@ begin
   let b : basis _ R (⨁ i, M i) := dfinsupp.basis (λ i, B i),
   simp [b.mk_eq_dim''.symm, ← cardinal.sum_mk, λ i, (B i).mk_eq_dim''],
 end
+
+/-- The rank of a finite product is the sum of the ranks. -/
+@[simp] lemma rank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
+  [Π (i : ι), add_comm_group (M i)] [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] :
+  module.rank R (Π i, M i) = cardinal.sum (λ i, module.rank R (M i)) :=
+by { rw [← (direct_sum.linear_equiv_fun_on_fintype _ _ M).dim_eq, rank_direct_sum] }
+
+/-- If `n` and `m` are `fintype`, the rank of `n × m` matrices is `(# n).lift * (# m).lift`. -/
+@[simp] lemma rank_matrix (n : Type v) [fintype n] (m : Type w) [fintype m] :
+  module.rank R (matrix n m R) = (lift.{(max v w u) v} (# n)) * (lift.{(max v w u) w} (# m)) :=
+begin
+  have h := (matrix.std_basis R n m).mk_eq_dim,
+  rw [← lift_lift.{(max v w u) (max v w)}, lift_inj, mul] at h,
+  simpa using h.symm,
+end
+
+/-- If `n` and `m` are `fintype` that lie in the same universe, the rank of `n × m` matrices is
+  `(# n * # m).lift`. -/
+@[simp] lemma rank_matrix' (n : Type v) [fintype n] (m : Type v) [fintype m] :
+  module.rank R (matrix n m R) =  (# n * # m).lift :=
+by rw [rank_matrix, lift_mul, lift_umax]
+
+/-- If `n` and `m` are `fintype` that lie in the same universe as `R`, the rank of `n × m` matrices
+  is `# n * # m`. -/
+@[simp] lemma rank_matrix'' (n : Type u) [fintype n] (m : Type u) [fintype m] :
+  module.rank R (matrix n m R) =  # n * # m := by simp
 
 end ring
 

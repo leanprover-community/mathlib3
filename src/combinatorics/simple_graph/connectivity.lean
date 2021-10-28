@@ -1390,7 +1390,7 @@ begin
     have has_cycle : ¬G.is_acyclic,
     sorry, -- prove that `G` has a cycle because it has a circuit `circuit`
     have not_is_tree : ¬G.is_tree,
-    sorry,  -- prove that `G` is not a tree because it `has_cycle`
+    simp [is_tree, has_cycle],
     simpa [not_is_tree, h]},
   have fsurj : function.surjective f,
   { intro e,

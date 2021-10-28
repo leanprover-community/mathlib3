@@ -69,7 +69,7 @@ lemma fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
-variables (p : ℝ) [_i : fact (1 ≤ p)] (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -92,7 +92,7 @@ explaining why having definitionally the right uniformity is often important.
 -/
 
 variables [∀ i, emetric_space (α i)] [∀ i, pseudo_emetric_space (β i)] [fintype ι]
-include _i
+include fact_one_le_p
 
 /-- Endowing the space `pi_Lp p β` with the `L^p` pseudoedistance. This definition is not
 satisfactory, as it does not register the fact that the topology and the uniform structure coincide
@@ -101,7 +101,7 @@ pseudoemetric space instance, we will show that the uniform structure is equal (
 the product one, and then register an instance in which we replace the uniform structure by the
 product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
 def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
-have pos : 0 < p := lt_of_lt_of_le zero_lt_one (fact.out _),
+have pos : 0 < p := lt_of_lt_of_le zero_lt_one fact_one_le_p.out,
 { edist          := λ f g, (∑ (i : ι), (edist (f i) (g i)) ^ p) ^ (1/p),
   edist_self     := λ f, by simp [edist, ennreal.zero_rpow_of_pos pos,
                                   ennreal.zero_rpow_of_pos (inv_pos.2 pos)],
@@ -112,22 +112,22 @@ have pos : 0 < p := lt_of_lt_of_le zero_lt_one (fact.out _),
     begin
       apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
       refine finset.sum_le_sum (λ i hi, _),
-      exact ennreal.rpow_le_rpow (edist_triangle _ _ _) (le_trans zero_le_one (fact.out _))
+      exact ennreal.rpow_le_rpow (edist_triangle _ _ _) (le_trans zero_le_one fact_one_le_p.out)
     end
     ... ≤
     (∑ (i : ι), edist (f i) (g i) ^ p) ^ (1 / p) + (∑ (i : ι), edist (g i) (h i) ^ p) ^ (1 / p) :
-      ennreal.Lp_add_le _ _ _ (fact.out _) }
+      ennreal.Lp_add_le _ _ _ fact_one_le_p.out }
 
 /-- Endowing the space `pi_Lp p α` with the `L^p` edistance. This definition is not satisfactory,
 as it does not register the fact that the topology and the uniform structure coincide with the
 product one. Therefore, we do not register it as an instance. Using this as a temporary emetric
-space instance, we will show that the uniform structure is equal (but not defeq) to the product one,
-and then register an instance in which we replace the uniform structure by the product one using
-this emetric space and `emetric_space.replace_uniformity`. -/
+space instance, we will show that the uniform structure is equal (but not defeq) to the product
+one, and then register an instance in which we replace the uniform structure by the product one
+using this emetric space and `emetric_space.replace_uniformity`. -/
 def emetric_aux : emetric_space (pi_Lp p α) :=
 { eq_of_edist_eq_zero := λ f g hfg,
   begin
-    have pos : 0 < p := lt_of_lt_of_le zero_lt_one (fact.out _),
+    have pos : 0 < p := lt_of_lt_of_le zero_lt_one fact_one_le_p.out,
     letI h := pseudo_emetric_aux p α,
     have h : edist f g = (∑ (i : ι), (edist (f i) (g i)) ^ p) ^ (1/p) := rfl,
     simp [h, ennreal.rpow_eq_zero_iff, pos, asymm pos, finset.sum_eq_zero_iff_of_nonneg] at hfg,
@@ -139,7 +139,7 @@ local attribute [instance] pi_Lp.emetric_aux pi_Lp.pseudo_emetric_aux
 
 lemma lipschitz_with_equiv : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
-  have pos : 0 < p := lt_of_lt_of_le zero_lt_one (fact.out _),
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one fact_one_le_p.out,
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
   assume x y,
   simp only [edist, forall_prop_of_true, one_mul, finset.mem_univ, finset.sup_le_iff,
@@ -158,7 +158,7 @@ end
 lemma antilipschitz_with_equiv :
   antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1/p)) (pi_Lp.equiv p β) :=
 begin
-  have pos : 0 < p := lt_of_lt_of_le zero_lt_one (fact.out _),
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one fact_one_le_p.out,
   have nonneg : 0 ≤ 1 / p := one_div_nonneg.2 (le_of_lt pos),
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
   assume x y,
@@ -202,7 +202,7 @@ instance uniform_space [∀ i, uniform_space (β i)] : uniform_space (pi_Lp p β
 Pi.uniform_space _
 
 variable [fintype ι]
-include _i
+include fact_one_le_p
 
 /-- pseudoemetric space instance on the product of finitely many pseudoemetric spaces, using the
 `L^p` pseudoedistance, and having as uniformity the product uniformity. -/
@@ -214,11 +214,11 @@ edistance, and having as uniformity the product uniformity. -/
 instance [∀ i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
 (emetric_aux p α).replace_uniformity (aux_uniformity_eq p α).symm
 
-omit _i
+omit fact_one_le_p
 protected lemma edist {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀ i, pseudo_emetric_space (β i)] (x y : pi_Lp p β) :
   edist x y = (∑ (i : ι), (edist (x i) (y i)) ^ p) ^ (1/p) := rfl
-include _i
+include fact_one_le_p
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
@@ -227,7 +227,7 @@ begin
   /- we construct the instance from the pseudo emetric space instance to avoid checking again that
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
-  have pos : 0 < p := lt_of_lt_of_le zero_lt_one (fact.out _),
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one fact_one_le_p.out,
   refine pseudo_emetric_space.to_pseudo_metric_space_of_dist
     (λf g, (∑ (i : ι), (dist (f i) (g i)) ^ p) ^ (1/p)) (λ f g, _) (λ f g, _),
   { simp [pi_Lp.edist, ennreal.rpow_eq_top_iff, asymm pos, pos,
@@ -245,7 +245,7 @@ begin
   /- we construct the instance from the emetric space instance to avoid checking again that the
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
-  have pos : 0 < p := lt_of_lt_of_le zero_lt_one (fact.out _),
+  have pos : 0 < p := lt_of_lt_of_le zero_lt_one fact_one_le_p.out,
   refine emetric_space.to_metric_space_of_dist
     (λf g, (∑ (i : ι), (dist (f i) (g i)) ^ p) ^ (1/p)) (λ f g, _) (λ f g, _),
   { simp [pi_Lp.edist, ennreal.rpow_eq_top_iff, asymm pos, pos,
@@ -256,11 +256,11 @@ begin
           ennreal.to_real_sum A, dist_edist] }
 end
 
-omit _i
+omit fact_one_le_p
 protected lemma dist {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀ i, pseudo_metric_space (β i)] (x y : pi_Lp p β) :
   dist x y = (∑ (i : ι), (dist (x i) (y i)) ^ p) ^ (1/p) := rfl
-include _i
+include fact_one_le_p
 
 /-- seminormed group instance on the product of finitely many normed groups, using the `L^p`
 norm. -/
@@ -273,7 +273,7 @@ instance semi_normed_group [∀i, semi_normed_group (β i)] : semi_normed_group 
 instance normed_group [∀i, normed_group (α i)] : normed_group (pi_Lp p α) :=
 { ..pi_Lp.semi_normed_group p α }
 
-omit _i
+omit fact_one_le_p
 lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
@@ -282,7 +282,7 @@ lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
 by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
-include _i
+include fact_one_le_p
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 
@@ -292,7 +292,7 @@ instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_s
 { norm_smul_le :=
   begin
     assume c f,
-    have : p * (1 / p) = 1 := mul_div_cancel' 1 (lt_of_lt_of_le zero_lt_one (fact.out _)).ne',
+    have : p * (1 / p) = 1 := mul_div_cancel' 1 (lt_of_lt_of_le zero_lt_one fact_one_le_p.out).ne',
     simp only [pi_Lp.norm_eq, norm_smul, mul_rpow, norm_nonneg, ←finset.mul_sum, pi.smul_apply],
     rw [mul_rpow (rpow_nonneg_of_nonneg (norm_nonneg _) _), ← rpow_mul (norm_nonneg _),
         this, rpow_one],

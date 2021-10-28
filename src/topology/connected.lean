@@ -1169,5 +1169,3 @@ continuous.connected_components_lift_continuous (continuous_quotient_mk.comp h)
 
 end connected_component_setoid
 
-
-#lint

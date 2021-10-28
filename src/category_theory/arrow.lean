@@ -110,8 +110,7 @@ instance is_iso_right [is_iso sq] : is_iso sq.right :=
     arrow.id_right, eq_self_iff_true, and_self]⟩ }
 
 instance mono_left [mono sq] : mono sq.left :=
-{ right_cancellation := λ Z φ ψ h,
-  begin
+{ right_cancellation := λ Z φ ψ h, begin
     let aux : (Z ⟶ f.left) → (arrow.mk (𝟙 Z) ⟶ f) := λ φ, { left := φ, right := φ ≫ f.hom },
     show (aux φ).left = (aux ψ).left,
     congr' 1,
@@ -123,8 +122,7 @@ instance mono_left [mono sq] : mono sq.left :=
   end }
 
 instance epi_right [epi sq] : epi sq.right :=
-{ left_cancellation := λ Z φ ψ h,
-  begin
+{ left_cancellation := λ Z φ ψ h, begin
     let aux : (g.right ⟶ Z) → (g ⟶ arrow.mk (𝟙 Z)) := λ φ, { right := φ, left := g.hom ≫ φ },
     show (aux φ).right = (aux ψ).right,
     congr' 1,

@@ -98,8 +98,8 @@ namespace is_self_adjoint
 section real
 variables {F : Type*} [inner_product_space ℝ F]
 
-lemma has_strict_fderiv_at_re_apply_inner_self {T : F →L[ℝ] F} (hT : is_self_adjoint (T : F →ₗ[ℝ] F))
-  (x₀ : F) :
+lemma has_strict_fderiv_at_re_apply_inner_self
+  {T : F →L[ℝ] F} (hT : is_self_adjoint (T : F →ₗ[ℝ] F)) (x₀ : F) :
   has_strict_fderiv_at T.re_apply_inner_self (bit0 (inner_right (T x₀))) x₀ :=
 begin
   convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
@@ -107,7 +107,7 @@ begin
   simp [bit0, hT.apply_clm x₀ y, real_inner_comm x₀]
 end
 
-variables  [complete_space F] {T : F →L[ℝ] F}
+variables [complete_space F] {T : F →L[ℝ] F}
 
 lemma linearly_dependent_of_is_local_extr_on (hT : is_self_adjoint (T : F →ₗ[ℝ] F))
   {x₀ : F} (hextr : is_local_extr_on T.re_apply_inner_self (sphere (0:F) ∥x₀∥) x₀) :

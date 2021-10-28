@@ -22,13 +22,14 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] {X : Top.{v}}
+variables {C : Type u} [category.{v} C] (X : Top.{v})
 
 structure opens_index_struct :=
 (ι : Type v)
 (f : ι → opens X)
--- if ι and B are separated then Lean cannot infer induced category instance on ι
-variables (B : @opens_index_struct X) (U : opens X) (F G : presheaf C X)
+-- if ι and B are separate then Lean cannot infer induced category instance on ι
+
+variables {X} (B : X.opens_index_struct) (U : opens X) (F G : presheaf C X)
 
 def is_basis_range := is_basis (set.range (B.f))
 
@@ -59,13 +60,13 @@ def basis_le_cone' : cone (bli B U) :=
   π := { app := λ i, (opens.le_supr _ i).op } }
 
 @[ext]
-lemma cone_ext {J : Type _} [category J] {f : J ⥤ (opens X)ᵒᵖ}
+lemma cone_ext {J : Type*} [category J] {f : J ⥤ (opens X)ᵒᵖ}
   {c1 c2 : cone f} (h : c1.X = c2.X) : c1 = c2 :=
 -- or any category with subsingleton hom sets in place of (opens X)ᵒᵖ
 by { cases c1, cases c2, congr, exact h,
      convert cast_heq _ _, dsimp at h, rw h }
 
-lemma self_eq_supr_basis_le (hB : is_basis_range B) :
+lemma self_eq_supr_basis_le {B} (hB : is_basis_range B) :
   supr (basis_le_fam B U) = U :=
 begin
   apply subtype.eq, rw [hB.open_eq_sUnion' U.2, ←set.range_comp],
@@ -73,9 +74,9 @@ begin
               λ ⟨_,⟨⟨⟨i,rfl⟩,hi⟩,hx⟩⟩, ⟨_,⟨_,⟨⟨i,hi⟩,rfl⟩,rfl⟩,hx⟩⟩,
 end
 
-lemma basis_le_cone_eq (hB : is_basis_range B) :
+lemma basis_le_cone_eq {B} (hB : is_basis_range B) :
   basis_le_cone B U = basis_le_cone' B U :=
-let h := congr_arg op (self_eq_supr_basis_le B U hB).symm in cone_ext h
+let h := congr_arg op (self_eq_supr_basis_le U hB).symm in cone_ext h
 
 def basis_le_presheaf_cone := F.map_cone (basis_le_cone B U)
 
@@ -91,8 +92,8 @@ def lim_basis_le : Type (max u v) :=
   Π (U : opens X), is_limit (basis_le_presheaf_cone B U F)
 
 
-lemma mono_to_cover_of_sheaf (hF : F.is_sheaf_opens_le_cover)
-   (hU : supr B.f = U) (A : C) (f g : A ⟶ F.obj (op U))
+lemma mono_to_cover_of_sheaf {U F} (hF : is_sheaf_opens_le_cover F)
+   (hU : supr B.f = U) {A : C} {f g : A ⟶ F.obj (op U)}
    -- hU is a hack to get rid of "motive not type correct" in mono_to_basis_le_of_sheaf below
    (h : ∀ i, f ≫ F.map (hU.rec (opens.le_supr B.f i)).op
            = g ≫ F.map (hU.rec (opens.le_supr B.f i)).op) :
@@ -105,12 +106,12 @@ begin
   rw [this, op_comp, F.map_comp, ←category.assoc, h i, category.assoc],
 end
 
-lemma mono_to_basis_le_of_sheaf (hB : is_basis_range B)
-  (hF : F.is_sheaf_opens_le_cover) (A : C) (f g : A ⟶ F.obj (op U))
+lemma mono_to_basis_le_of_sheaf {B F} (hB : is_basis_range B)
+  (hF : is_sheaf_opens_le_cover F) {A : C} {f g : A ⟶ F.obj (op U)}
   (h : ∀ i : basis_le B U, f ≫ F.map i.2.hom.op = g ≫ F.map i.2.hom.op) :
   f = g :=
-mono_to_cover_of_sheaf ⟨basis_le B U, _⟩ _ F hF
-  (self_eq_supr_basis_le _ U hB) _ _ _ (λ V, by convert h V)
+mono_to_cover_of_sheaf ⟨basis_le B U, _⟩ hF
+  (self_eq_supr_basis_le U hB) (λ V, by convert h V)
 
 lemma cone_opens_w (c : cone (bli B U ⋙ F))
   {i : basis_le B U} {j : B.ι} {h : B.f j ≤ U}
@@ -118,32 +119,32 @@ lemma cone_opens_w (c : cone (bli B U ⋙ F))
   c.π.app i ≫ F.map f = c.π.app ⟨j,h⟩ :=
 let f' : i ⟶ (⟨j,h⟩ : basis_le B U) := f  in  c.w f'
 
-def cone_opens_le_cover_of_cone_basis_le (hB : is_basis_range B)
+def cone_opens_le_cover_of_cone_basis_le {B} (hB : is_basis_range B)
   (hF : F.is_sheaf_opens_le_cover) (c : cone (bli B U ⋙ F)) :
   cone ((full_subcategory_inclusion _ : opens_le_cover (basis_le_fam B U) ⥤ opens X).op ⋙ F) :=
 begin
   use c.X, refine ⟨λW, c.π.app (W.unop.2.some) ≫ F.map W.unop.2.some_spec.hom.op, _⟩,
-  intros W₁ W₂ _, apply mono_to_basis_le_of_sheaf B W₂.unop.1 F hB hF,
+  intros W₁ W₂ _, apply mono_to_basis_le_of_sheaf W₂.unop.1 hB hF,
   intro i, dsimp, simp only [category.id_comp, category.assoc, ←F.map_comp, ←op_comp],
   iterate 2 {rw cone_opens_w},
   exact i.2.trans (W₂.unop.2.some_spec.trans W₂.unop.2.some.2),
 end
 
-theorem lim_basis_le_of_sheaf (hB : is_basis_range B)
+theorem lim_basis_le_of_sheaf {B} (hB : is_basis_range B)
   (hF : F.is_sheaf_opens_le_cover) : lim_basis_le B F :=
 begin
-  intro U, unfold basis_le_presheaf_cone, rw basis_le_cone_eq B U hB,
-  let f := cone_opens_le_cover_of_cone_basis_le B U F hB hF,
+  intro U, unfold basis_le_presheaf_cone, rw basis_le_cone_eq U hB,
+  let f := cone_opens_le_cover_of_cone_basis_le U F hB hF,
   have hU := hF (basis_le_fam B U), fsplit,
     exact λ c, hU.some.lift (f c),
-    intros c i, abstract fac
-    { dsimp, let hi : ∃ j, B.f i ≤ basis_le_fam B U j := ⟨i, le_of_eq rfl⟩,
+    intros c i, abstract fac { dsimp,
+      let hi : ∃ j, B.f i ≤ basis_le_fam B U j := ⟨i, le_of_eq rfl⟩,
       convert hU.some.fac (f c) (op ⟨B.f i,hi⟩) using 1,
       exact (c.w hi.some_spec.hom.op).symm },
     intros c ι h,
-    apply mono_to_cover_of_sheaf ⟨basis_le B U, _⟩ _ F hF rfl,
+    apply mono_to_cover_of_sheaf ⟨basis_le B U, _⟩ hF rfl,
     intro i, specialize h i,
-    rwa ← lim_basis_le_of_sheaf.fac B F hB hF U hU c i at h,
+    rwa ← lim_basis_le_of_sheaf.fac F hB hF U hU c i at h,
 end
 
 namespace sheaf_hom
@@ -158,7 +159,7 @@ theorem uniq_extn_from_basis (hG : G.is_sheaf_opens_le_cover)
   (hB : is_basis_range B) (α : idf B ⋙ F ⟶ idf B ⋙ G) :
   uniq_extn_struct α :=
 begin
-  have hl := lim_basis_le_of_sheaf B G hB hG,
+  have hl := lim_basis_le_of_sheaf G hB hG,
   let c : Π U, cone (bli B U ⋙ G) :=
     λ U, let α' := whisker_left (bl2b B U) α in
     ⟨F.obj (op U), (basis_le_presheaf_cone B U F).π ≫ α'⟩,
@@ -167,7 +168,7 @@ begin
            but is expected to have type {X_1 // B.f X_1 ≤ U}ᵒᵖ ⥤ (opens ↥X)ᵒᵖ -/
   fsplit, fsplit, exact λ U, (hl U.unop).lift (c U.unop),
   { intros U V f,
-    apply mono_to_basis_le_of_sheaf B V.unop G hB hG,
+    apply mono_to_basis_le_of_sheaf V.unop hB hG,
     cases f.unop, cases down, intro i, rw category.assoc,
     convert whisker_eq (F.map f) ((hl V.unop).fac (c V.unop) i) using 1,
     convert (hl U.unop).fac (c U.unop) ⟨i.1,i.2.trans down⟩ using 1,
@@ -201,7 +202,7 @@ namespace sheaf
 
 open presheaf.sheaf_condition.basis_le
 
-variable [has_products C]
+variables [has_products C]
 
 private abbreviation idf := induced_functor (op ∘ B.f)
 

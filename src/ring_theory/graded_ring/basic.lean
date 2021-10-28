@@ -35,16 +35,18 @@ class graded_ring :=
 ( one_degree_zero : (1 : R) ∈ A 0 )
 ( mul_respect_grading : ∀ {i j : ι} {a b : R}, a ∈ A i → b ∈ A j → a * b ∈ A (i + j))
 
-lemma graded_ring.is_internal  [graded_ring R A] : direct_sum.add_subgroup_is_internal A :=
+variable [graded_ring R A]
+
+lemma graded_ring.is_internal : direct_sum.add_subgroup_is_internal A :=
 ⟨graded_ring.left_inv.injective, graded_ring.right_inv.surjective⟩
 
-instance gsemiring.of_ring_is_internally_graded [graded_ring R A] :
+instance gsemiring.of_ring_is_internally_graded :
   direct_sum.gsemiring (λ i, A i) :=
 direct_sum.gsemiring.of_add_subgroups A
   (graded_ring.one_degree_zero) (λ i j ai aj, graded_ring.mul_respect_grading ai.2 aj.2)
 
 /--If `R` is graded by `ι` with degree `i` component `A i`, then `(⨁ i, A i ≃+* R)`-/
-def recompose [graded_ring R A] : (⨁ i, A i) ≃+* R :=
+def graded_ring.recompose : (⨁ i, A i) ≃+* R :=
 let f : (⨁ i, A i) →+* R :=
   direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) in
 { to_fun := f,
@@ -55,19 +57,21 @@ let f : (⨁ i, A i) →+* R :=
   map_add' := ring_hom.map_add _, }
 
 /-- The projection maps of graded ring-/
-def graded_ring.proj [graded_ring R A] (i : ι) (r : R) : R :=
+def graded_ring.proj (i : ι) (r : R) : R :=
   (@graded_ring.decompose R _  ι _ A _  _ r i).val
 
-lemma graded_ring.proj_mem [graded_ring R A] (i : ι) (r : R) :
+lemma graded_ring.proj_mem (i : ι) (r : R) :
   graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _  ι _ A _  _ r i).2
 
 /-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
-def graded_ring.support [graded_ring R A] [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
+def graded_ring.support [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
   (r : R) : finset ι :=
 (@graded_ring.decompose R _ ι _ A _ _ r).support
 
-lemma graded_ring.mem_support_iff [graded_ring R A]
-  [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]  (r : R) (i : ι) :
+variable [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
+
+lemma graded_ring.mem_support_iff
+  (r : R) (i : ι) :
 i ∈ graded_ring.support R A r ↔ (graded_ring.proj R A i r ≠ 0) :=
 ⟨λ hi, begin
   contrapose! hi,
@@ -85,6 +89,20 @@ end, λ hi, begin
   simp only [eq_self_iff_true, not_true, ne.def, add_subgroup.coe_zero, subtype.val_eq_coe] at hi,
   exact hi,
 end⟩
+
+lemma graded_ring.as_sum (r : R) :
+  r = ∑ i in graded_ring.support R A r, graded_ring.proj R A i r :=
+begin
+  conv_lhs { rw [←@graded_ring.right_inv R  _ ι _ A _ _ r,
+    direct_sum.eq_sum_of _ (@graded_ring.decompose R _ ι _ A _ _ r),
+    add_monoid_hom.map_sum], },
+  unfold graded_ring.support,
+  unfold graded_ring.proj,
+  apply finset.sum_congr, ext, simp only [dfinsupp.mem_support_to_fun],
+  intros i hi, simp only [ne.def, dfinsupp.mem_support_to_fun, subtype.val_eq_coe] at hi ⊢,
+  unfold direct_sum.add_subgroup_coe,
+  rw direct_sum.to_add_monoid_of, refl,
+end
 
 end graded_ring
 

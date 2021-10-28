@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.list.sublists
 import data.list.lex
+import data.set.pairwise
 
 /-!
 # Pairwise relations on a list

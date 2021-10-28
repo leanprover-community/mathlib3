@@ -139,7 +139,7 @@ is preconnected
 -/
 variables {ι : Type*} [linear_order ι]
 
-theorem is_preconnected.Union_of_monotone   { s : ι → set α }  (K : monotone s)
+theorem is_preconnected.Union_of_monotone {s : ι → set α} (K : monotone s)
   (H : ∀ n: ι, is_preconnected (s n)) :
   is_preconnected ( Union s ) :=
 begin

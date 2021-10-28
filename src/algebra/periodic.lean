@@ -183,34 +183,34 @@ lemma periodic.nat_mul_sub_eq [ring α]
   f (n * c - x) = f (-x) :=
 by simpa only [sub_eq_neg_add] using h.nat_mul n (-x)
 
-lemma periodic.gsmul [add_group α]
+lemma periodic.zsmul [add_group α]
   (h : periodic f c) (n : ℤ) :
   periodic f (n • c) :=
 begin
   cases n,
-  { simpa only [int.of_nat_eq_coe, gsmul_coe_nat] using h.nsmul n },
-  { simpa only [gsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg },
+  { simpa only [int.of_nat_eq_coe, zsmul_coe_nat] using h.nsmul n },
+  { simpa only [zsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg },
 end
 
 lemma periodic.int_mul [ring α]
   (h : periodic f c) (n : ℤ) :
   periodic f (n * c) :=
-by simpa only [gsmul_eq_mul] using h.gsmul n
+by simpa only [zsmul_eq_mul] using h.zsmul n
 
-lemma periodic.sub_gsmul_eq [add_group α]
+lemma periodic.sub_zsmul_eq [add_group α]
   (h : periodic f c) (n : ℤ) :
   f (x - n • c) = f x :=
-(h.gsmul n).sub_eq x
+(h.zsmul n).sub_eq x
 
 lemma periodic.sub_int_mul_eq [ring α]
   (h : periodic f c) (n : ℤ) :
   f (x - n * c) = f x :=
 (h.int_mul n).sub_eq x
 
-lemma periodic.gsmul_sub_eq [add_comm_group α]
+lemma periodic.zsmul_sub_eq [add_comm_group α]
   (h : periodic f c) (n : ℤ) :
   f (n • c - x) = f (-x) :=
-by simpa only [sub_eq_neg_add] using h.gsmul n (-x)
+by simpa only [sub_eq_neg_add] using h.zsmul n (-x)
 
 lemma periodic.int_mul_sub_eq [ring α]
   (h : periodic f c) (n : ℤ) :
@@ -237,10 +237,10 @@ lemma periodic.nat_mul_eq [semiring α]
   f (n * c) = f 0 :=
 (h.nat_mul n).eq
 
-lemma periodic.gsmul_eq [add_group α]
+lemma periodic.zsmul_eq [add_group α]
   (h : periodic f c) (n : ℤ) :
   f (n • c) = f 0 :=
-(h.gsmul n).eq
+(h.zsmul n).eq
 
 lemma periodic.int_mul_eq [ring α]
   (h : periodic f c) (n : ℤ) :
@@ -253,7 +253,7 @@ lemma periodic.exists_mem_Ico₀ [linear_ordered_add_comm_group α] [archimedean
   (h : periodic f c) (hc : 0 < c) (x) :
   ∃ y ∈ set.Ico 0 c, f x = f y :=
 let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
-⟨x - n • c, H, (h.sub_gsmul_eq n).symm⟩
+⟨x - n • c, H, (h.sub_zsmul_eq n).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
   `y ∈ Ico a (a + c)` such that `f x = f y`. -/
@@ -261,7 +261,7 @@ lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ico a (a + c), f x = f y :=
 let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
-⟨x + n • c, H, (h.gsmul n x).symm⟩
+⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
   `y ∈ Ioc a (a + c)` such that `f x = f y`. -/
@@ -269,7 +269,7 @@ lemma periodic.exists_mem_Ioc [linear_ordered_add_comm_group α] [archimedean α
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ioc a (a + c), f x = f y :=
 let ⟨n, H⟩ := exists_add_int_smul_mem_Ioc hc x a in
-⟨x + n • c, H, (h.gsmul n x).symm⟩
+⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 lemma periodic_with_period_zero [add_zero_class α]
   (f : α → β) :

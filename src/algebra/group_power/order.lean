@@ -103,7 +103,7 @@ section group
 
 variables [group G] [preorder G] [covariant_class G G (*) (≤)]
 
-@[to_additive gsmul_nonneg]
+@[to_additive zsmul_nonneg]
 theorem one_le_zpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
   1 ≤ x ^ n :=
 begin

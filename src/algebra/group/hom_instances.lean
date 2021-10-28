@@ -75,12 +75,12 @@ instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G)
   sub := has_sub.sub,
   sub_eq_add_neg := by { intros, ext, apply sub_eq_add_neg },
   add_left_neg := by intros; ext; apply add_left_neg,
-  gsmul := λ n f, { to_fun := λ x, gsmul n (f x),
+  zsmul := λ n f, { to_fun := λ x, zsmul n (f x),
     map_zero' := by simp,
-    map_add' := λ x y, by simp [gsmul_add] },
-  gsmul_zero' := λ f, by { ext x, simp },
-  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_add_one, add_comm, add_nsmul] },
-  gsmul_neg'  := λ n f, by { ext x, simp },
+    map_add' := λ x y, by simp [zsmul_add] },
+  zsmul_zero' := λ f, by { ext x, simp },
+  zsmul_succ' := λ n f, by { ext x, simp [zsmul_of_nat, nat.succ_eq_add_one, add_comm, add_nsmul] },
+  zsmul_neg'  := λ n f, by { ext x, simp },
   ..add_monoid_hom.add_comm_monoid }
 
 attribute [to_additive] monoid_hom.comm_group

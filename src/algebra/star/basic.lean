@@ -178,9 +178,9 @@ variables {R}
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
 
-@[simp] lemma star_gsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+@[simp] lemma star_zsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
   star (n • x) = n • star x :=
-(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_gsmul _ _
+(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
 section
 open_locale big_operators

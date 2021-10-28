@@ -269,12 +269,12 @@ def of_finset (f : α → ℝ≥0) (s : finset α) (h : ∑ x in s, f x = 1)
 ⟨f, h ▸ has_sum_sum_of_ne_finset_zero h'⟩
 
 @[simp]
-lemma of_finset_apply (f : α → ℝ≥0) (s : finset α) (h : ∑ x in s, f x = 1)
+lemma of_finset_apply {f : α → ℝ≥0} {s : finset α} (h : ∑ x in s, f x = 1)
   (h' : ∀ x ∉ s, f x = 0) (a : α) : of_finset f s h h' a = f a :=
 rfl
 
-lemma of_finset_apply_of_not_mem (f : α → ℝ≥0) (s : finset α) (h : ∑ x in s, f x = 1)
-  (h' : ∀ x ∉ s, f x = 0) (a : α) (ha : a ∉ s) : of_finset f s h h' a = 0 :=
+lemma of_finset_apply_of_not_mem {f : α → ℝ≥0} {s : finset α} (h : ∑ x in s, f x = 1)
+  (h' : ∀ x ∉ s, f x = 0) {a : α} (ha : a ∉ s) : of_finset f s h h' a = 0 :=
 h' a ha
 
 /-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
@@ -282,7 +282,7 @@ def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :
 of_finset f finset.univ h (λ x hx, absurd (finset.mem_univ x) hx)
 
 @[simp]
-lemma of_fintype_apply [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1)
+lemma of_fintype_apply [fintype α] {f : α → ℝ≥0} (h : ∑ x, f x = 1)
   (a : α) : of_fintype f h a = f a :=
 rfl
 
@@ -301,12 +301,12 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
   end⟩
 
 @[simp]
-lemma of_multiset_apply (s : multiset α) (hs : s ≠ 0) (a : α) :
+lemma of_multiset_apply {s : multiset α} (hs : s ≠ 0) (a : α) :
   of_multiset s hs a = s.count a / s.card :=
 rfl
 
-lemma of_multiset_apply_of_not_mem (s : multiset α) (hs : s ≠ 0)
-  (a : α) (ha : a ∉ s) : of_multiset s hs a = 0 :=
+lemma of_multiset_apply_of_not_mem {s : multiset α} (hs : s ≠ 0)
+  {a : α} (ha : a ∉ s) : of_multiset s hs a = 0 :=
 div_eq_zero_iff.2 (or.inl $ nat.cast_eq_zero.2 $ multiset.count_eq_zero_of_not_mem ha)
 
 end of_finite
@@ -324,15 +324,15 @@ of_finset (λ a, if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0) s (Exists.rec_o
   )) (λ x hx, by simp only [hx, if_false])
 
 @[simp]
-lemma uniform_of_finset_apply (s : finset α) (hs : s.nonempty) (a : α) :
+lemma uniform_of_finset_apply {s : finset α} (hs : s.nonempty) (a : α) :
   uniform_of_finset s hs a = if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0 :=
 rfl
 
-lemma uniform_of_finset_apply_of_mem {s : finset α} (hs : s.nonempty) (a : α) (ha : a ∈ s) :
+lemma uniform_of_finset_apply_of_mem {s : finset α} (hs : s.nonempty) {a : α} (ha : a ∈ s) :
   uniform_of_finset s hs a = (s.card)⁻¹ :=
 by simp [ha]
 
-lemma uniform_of_finset_apply_of_not_mem {s : finset α} (hs : s.nonempty) (a : α) (ha : a ∉ s) :
+lemma uniform_of_finset_apply_of_not_mem {s : finset α} (hs : s.nonempty) {a : α} (ha : a ∉ s) :
   uniform_of_finset s hs a = 0 :=
 by simp [ha]
 
@@ -395,7 +395,7 @@ def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])
 
 @[simp]
-lemma bernuolli_apply (p : ℝ≥0) (h : p ≤ 1) (b : bool) :
+lemma bernuolli_apply {p : ℝ≥0} (h : p ≤ 1) (b : bool) :
   bernoulli p h b = cond b p (1 - p) :=
 rfl
 

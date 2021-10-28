@@ -576,50 +576,54 @@ nat.rec_on n (λ K _ _ _, ‹field K›) $ λ n ih K _ f hf, ih _
 instance inhabited {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n) :
   inhabited (splitting_field_aux n f hfn) := ⟨37⟩
 
-instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_ring R] [field K],
+instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [field K],
   by exactI Π [algebra R K] {f : polynomial K} (hfn : f.nat_degree = n),
     algebra R (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $ λ n ih R K Rr Kf RKa f hfn,
-by exactI ih R (nat_degree_remove_factor' hfn)
+nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
+         λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
 
-
-instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f hfn) :=
-by exact (splitting_field_aux.algebra n (adjoin_root (factor f)) _ : _)
-
-variables {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1)
-
-def bad_type : Type v :=
-algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn))
-
-instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) : bad_type hfn :=
-begin
-  dunfold bad_type,  --timeout!
-  sorry,
-end
-
-#exit
+instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
+  [comm_ring R₁] [comm_ring R₂] [has_scalar R₁ R₂] [field K],
+  by exactI Π [algebra R₁ K] [algebra R₂ K],
+  by exactI Π [is_scalar_tower R₁ R₂ K] {f : polynomial K} (hfn : f.nat_degree = n),
+    is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=
+nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
+         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f hfn, by exactI ih R₁ R₂ (nat_degree_remove_factor' hfn)
 
 instance algebra''' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   algebra (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra n _
+splitting_field_aux.algebra n _ _
 
-instance scalar_tower {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-is_scalar_tower.of_algebra_map_eq $ λ x, rfl
+instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f hfn) :=
+splitting_field_aux.algebra''' _
+
+instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
+splitting_field_aux.algebra n K _
 
 instance scalar_tower' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   is_scalar_tower K (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-is_scalar_tower.of_algebra_map_eq $ λ x, rfl
+begin
+  -- finding this instance ourselves makes things faster
+  haveI : is_scalar_tower K (adjoin_root f.factor) (adjoin_root f.factor) :=
+    is_scalar_tower.right,
+  exact
+    splitting_field_aux.is_scalar_tower n K (adjoin_root f.factor) (nat_degree_remove_factor' hfn),
+end
+
+instance scalar_tower {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
+  is_scalar_tower K (adjoin_root f.factor) (splitting_field_aux _ f hfn) :=
+splitting_field_aux.scalar_tower' _
 
 theorem algebra_map_succ (n : ℕ) (f : polynomial K) (hfn : f.nat_degree = n + 1) :
   by exact algebra_map K (splitting_field_aux _ _ hfn) =
     (algebra_map (adjoin_root f.factor)
         (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn))).comp
       (adjoin_root.of f.factor) :=
-rfl
+is_scalar_tower.algebra_map_eq _ _ _
 
 protected theorem splits (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : polynomial K) (hfn : f.nat_degree = n),
@@ -683,8 +687,13 @@ splitting_field_aux.field _ _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
-instance : algebra K (splitting_field f) :=
-splitting_field_aux.algebra _ _
+instance {R} [comm_ring R] [algebra R K] : algebra R (splitting_field f) :=
+splitting_field_aux.algebra _ _ _
+
+example : (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
+  @algebra.to_module _ _ _ _ (splitting_field.algebra f) :=
+rfl
+#exit
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
 splitting_field_aux.splits _ _ _

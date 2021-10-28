@@ -743,7 +743,28 @@ begin
   { rw restrict_extend_compl_range, exact hg'.comp measurable_subtype_coe }
 end
 
+lemma exists_measurable_extend (hf : measurable_embedding f) {g : α → γ} (hg : measurable g)
+  (hne : β → nonempty γ) :
+  ∃ g' : β → γ, measurable g' ∧ g' ∘ f = g :=
+⟨extend f g (λ x, classical.choice (hne x)),
+  hf.measurable_extend hg (measurable_const' $ λ _ _, rfl),
+  funext $ λ x, extend_apply hf.injective _ _ _⟩
+
+lemma measurable_comp_iff (hg : measurable_embedding g) : measurable (g ∘ f) ↔ measurable f :=
+begin
+  refine ⟨λ H, _, hg.measurable.comp⟩,
+  suffices : measurable ((range_splitting g ∘ range_factorization g) ∘ f),
+    by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
+  exact hg.measurable_range_splitting.comp H.subtype_mk
+end
+
 end measurable_embedding
+
+lemma measurable_set.exists_measurable_proj [measurable_space α] {s : set α}
+  (hs : measurable_set s) (hne : s.nonempty) : ∃ f : α → s, measurable f ∧ ∀ x : s, f x = x :=
+let ⟨f, hfm, hf⟩ := (measurable_embedding.subtype_coe hs).exists_measurable_extend
+  measurable_id (λ _, hne.to_subtype)
+in ⟨f, hfm, congr_fun hf⟩
 
 /-- Equivalences between measurable spaces. Main application is the simplification of measurability
 statements along measurable equivalences. -/

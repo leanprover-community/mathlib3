@@ -87,6 +87,23 @@ by convert restrict_dite _ _
   restrict (extend f g g') (range f)ᶜ = g' ∘ coe :=
 by convert restrict_dite_compl _ _
 
+lemma range_extend_subset (f : α → β) (g : α → γ) (g' : β → γ) :
+  range (extend f g g') ⊆ range g ∪ g' '' (range f)ᶜ :=
+begin
+  classical,
+  rintro _ ⟨y, rfl⟩,
+  rw extend_def, split_ifs,
+  exacts [or.inl (mem_range_self _), or.inr (mem_image_of_mem _ h)]
+end
+
+lemma range_extend {f : α → β} (hf : injective f) (g : α → γ) (g' : β → γ) :
+  range (extend f g g') = range g ∪ g' '' (range f)ᶜ :=
+begin
+  refine (range_extend_subset _ _ _).antisymm _,
+  rintro z (⟨x, rfl⟩|⟨y, hy, rfl⟩),
+  exacts [⟨f x, extend_apply hf _ _ _⟩, ⟨y, extend_apply' _ _ _ hy⟩]
+end
+
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/
 def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=

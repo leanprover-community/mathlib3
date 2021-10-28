@@ -2391,6 +2391,9 @@ calc comap f μ s = comap f μ (f ⁻¹' (f '' s)) : by rw hf.injective.preimage
 lemma ae_map_iff {p : β → Prop} {μ : measure α} : (∀ᵐ x ∂(map f μ), p x) ↔ ∀ᵐ x ∂μ, p (f x) :=
 by simp only [ae_iff, hf.map_apply, preimage_set_of_eq]
 
+lemma restrict_map (μ : measure α) (s : set β) : (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
+measure.ext $ λ t ht, by simp [hf.map_apply, ht, hf.measurable ht]
+
 end measurable_embedding
 
 section subtype
@@ -2457,7 +2460,7 @@ lemma map_apply_eq_iff_map_symm_apply_eq (e : α ≃ᵐ β) : map e μ = ν ↔ 
 by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
 
 lemma restrict_map (e : α ≃ᵐ β) (s : set β) : (map e μ).restrict s = map e (μ.restrict $ e ⁻¹' s) :=
-measure.ext $ λ t ht, by simp [e.map_apply, ht, e.measurable ht]
+e.measurable_embedding.restrict_map _ _
 
 end measurable_equiv
 
@@ -2866,6 +2869,16 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
 ⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
 
+lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} (hs : measurable_set s) :
+  ae_measurable (cod_restrict f s hfs) μ :=
+begin
+  casesI is_empty_or_nonempty α, { exact (measurable_of_empty _).ae_measurable }, inhabit α,
+  rcases h with ⟨g, hgm, hg⟩,
+  rcases hs.exists_measurable_proj ⟨f (default α), hfs _⟩ with ⟨π, hπm, hπ⟩,
+  refine ⟨π ∘ g, hπm.comp hgm, hg.mono $ λ x hx, _⟩,
+  rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
+end
+
 protected lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   null_measurable_set μ (f ⁻¹' s) :=
 begin
@@ -2884,10 +2897,20 @@ lemma measurable_embedding.ae_measurable_map_iff {m0 : measurable_space α} {m1 
   ae_measurable g (map f μ) ↔ ae_measurable (g ∘ f) μ :=
 begin
   refine ⟨λ H, H.comp_measurable hf.measurable, _⟩,
-  rintro ⟨g', hg'm, heq⟩,
-  refine ⟨extend f g' (λ x, classical.choice ⟨g x⟩),
-    hf.measurable_extend hg'm (measurable_const' $ λ _ _, rfl), hf.ae_map_iff.2 _⟩,
-  simpa [hf.injective]
+  rintro ⟨g₁, hgm₁, heq⟩,
+  rcases hf.exists_measurable_extend hgm₁ (λ x, ⟨g x⟩) with ⟨g₂, hgm₂, rfl⟩,
+  exact ⟨g₂, hgm₂, hf.ae_map_iff.2 heq⟩
+end
+
+lemma measurable_embedding.ae_measurable_comp_iff {m0 : measurable_space α}
+  {m1 : measurable_space β} {m3 : measurable_space γ} {g : β → γ} (hg : measurable_embedding g)
+  {μ : measure α} {f : α → β} :
+  ae_measurable (g ∘ f) μ ↔ ae_measurable f μ :=
+begin
+  refine ⟨λ H, _, hg.measurable.comp_ae_measurable⟩,
+  suffices : ae_measurable ((range_splitting g ∘ range_factorization g) ∘ f) μ,
+    by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
+  exact hg.measurable_range_splitting.comp_ae_measurable (H.subtype_mk hg.measurable_set_range)
 end
 
 lemma ae_measurable_restrict_iff_comap_subtype {m0 : measurable_space α}

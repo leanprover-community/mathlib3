@@ -194,7 +194,8 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
-/-- The canonical embedding from `⨁ i, A i` to `M`-/
+/-- The canonical embedding from `⨁ i, A i` to `M`  where `A` is a collection of `submodule R M`
+indexed by `ι`-/
 def submodule_coe {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
   (A : ι → submodule R M) : (⨁ i, A i) →ₗ[R] M :=
 direct_sum.to_module R ι M (λ i, (A i).subtype)

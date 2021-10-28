@@ -81,8 +81,7 @@ instance [comm_ring S] [comm_ring K] [has_scalar S K] [algebra S R] [algebra K R
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
 
-instance [comm_ring S] [comm_ring K] [has_scalar S K] [algebra S R] [algebra K R]
-  [smul_comm_class S K R] :
+instance [comm_ring S] [comm_ring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
   smul_comm_class S K (adjoin_root f) :=
 submodule.quotient.smul_comm_class _ _
 

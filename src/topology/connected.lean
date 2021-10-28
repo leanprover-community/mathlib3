@@ -137,10 +137,9 @@ end
 The union Union s of an increasing mapping s of preconnected sets
 is preconnected
 -/
-variable ι : Type _
-variables [ linear_order ι ]
+variables {ι : Type*} [linear_order ι]
 
-theorem is_preconnected.Union_of_monotone   { s : ι → set α }  (K : monotone s)
+theorem is_preconnected.Union_of_monotone {s : ι → set α} (K : monotone s)
   (H : ∀ n: ι, is_preconnected (s n)) :
   is_preconnected ( Union s ) :=
 begin
@@ -161,19 +160,15 @@ begin
 
   have Kan : a ∈ s n := mem_of_mem_of_subset Kam (K hmn),
 
-  have Hnuv : ((s n) ∩ (u ∩ v)).nonempty :=
-  begin
-      apply (H n), apply hu, apply hv,
-      apply has_subset.subset.trans (subset_Union s n) Huv,
-      apply nonempty_of_mem  (mem_inter Kan Kua.right),
-      apply nonempty_of_mem (mem_inter Kbn Kvb.right),
-  end,
-  have Knuv : ((s n) ∩ (u ∩ v)) ⊆ Union s ∩ (u ∩ v) :=
-  begin
-  apply inter_subset_inter,
-  apply subset_Union,
-  apply eq.subset, refl,
-  end,
+  have Hnuv : ((s n) ∩ (u ∩ v)).nonempty,
+  { apply (H n), apply hu, apply hv,
+    apply has_subset.subset.trans (subset_Union s n) Huv,
+    apply nonempty_of_mem  (mem_inter Kan Kua.right),
+    apply nonempty_of_mem (mem_inter Kbn Kvb.right), },
+  have Knuv : ((s n) ∩ (u ∩ v)) ⊆ Union s ∩ (u ∩ v),
+  { apply inter_subset_inter,
+    apply subset_Union,
+    apply eq.subset, refl, },
   exact nonempty.mono Knuv Hnuv,
 
   /- The case n ≤ m is done by symmetry, using wlog -/
@@ -189,9 +184,9 @@ end
  but I don't know how to do it… (nor whether this is worth being done) -/
 
 /-- The filtered sUnion of a set S of preconnected subsets is preconnected -/
-theorem is_preconnected.filtered_sUnion_of { S : set (set α) }
+theorem is_preconnected.filtered_sUnion_of {S : set (set α)}
   (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s)
-  (H : ∀ s, s ∈  S →  is_preconnected s ) :
+  (H : ∀ s, s ∈ S → is_preconnected s ) :
   is_preconnected ( sUnion S ) :=
 begin
   /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
@@ -215,22 +210,16 @@ begin
 
   have hat : a ∈ t := mem_of_mem_of_subset has Hst,
 
-  have Hnuv : (t ∩ (u ∩ v)).nonempty :=
-  begin
-
-      apply (H t htS), apply hu, apply hv,
-      exact has_subset.subset.trans (subset_sUnion_of_mem htS) Huv,
-      exact nonempty_of_mem (mem_inter hat hau),
-      exact nonempty_of_mem (mem_inter hbt hbv),
-  end,
-  have Ktuv : ( t ∩ (u ∩ v)) ⊆ sUnion S ∩ (u ∩ v) :=
-  begin
-  apply inter_subset_inter,
-  apply subset_sUnion_of_mem htS,
-  apply eq.subset, refl,
-  end,
+  have Hnuv : (t ∩ (u ∩ v)).nonempty,
+  {  apply (H t htS), apply hu, apply hv,
+    exact has_subset.subset.trans (subset_sUnion_of_mem htS) Huv,
+    exact nonempty_of_mem (mem_inter hat hau),
+    exact nonempty_of_mem (mem_inter hbt hbv), },
+  have Ktuv : ( t ∩ (u ∩ v)) ⊆ sUnion S ∩ (u ∩ v),
+  { apply inter_subset_inter,
+    apply subset_sUnion_of_mem htS,
+    apply eq.subset, refl, },
   exact nonempty.mono Ktuv Hnuv,
-
 
   /- We now prove t ⊆ s by symmetry -/
   intros s t a b u v hu hv Huv hau has hbv hbt,
@@ -258,37 +247,33 @@ begin
   set Us : ℕ → set α := λ n, partial_sups s n,
 
   /- Each member of the increasing union is preconnected -/
-  have Pn : ∀ n : ℕ, is_preconnected (Us n) :=
-  begin
-    /- proof by induction -/
+  have Pn : ∀ n : ℕ, is_preconnected (Us n),
+  { /- proof by induction -/
     intro n, induction n with n hn,
     /- initialization -/
-    have  : Us 0 = s 0 := partial_sups_zero s,
+    have : Us 0 = s 0 := partial_sups_zero s,
     rw this,
     exact (H 0),
 
     /- inductive step -/
-    have :  Us n ∪ (s n.succ)  = Us n.succ := partial_sups_succ s n,
+    have : Us n ∪ (s n.succ) = Us n.succ := partial_sups_succ s n,
     rw ← this,
-    have : ((Us n) ∩ (s n.succ)).nonempty :=
-    begin
-      obtain ⟨ x, hx ⟩ := K n,
+    have : ((Us n) ∩ (s n.succ)).nonempty,
+    { obtain ⟨ x, hx ⟩ := K n,
       apply exists.intro x,
       split,
       apply le_partial_sups s,
-      exact hx.left, exact hx.right,
-    end,
+      exact hx.left, exact hx.right, },
     obtain ⟨ x, hx ⟩ := K n,
     apply is_preconnected.union x,
     apply le_partial_sups s n, exact hx.left,
     exact hx.right,
-    exact hn, exact (H n.succ),
-  end,
+    exact hn, exact (H n.succ), },
 
   have Us_eq_Us : Union Us = Union s := supr_partial_sups_eq s,
   rw ←Us_eq_Us,
 
-  exact is_preconnected.Union_of_monotone ℕ ((partial_sups s).mono) Pn ,
+  exact is_preconnected.Union_of_monotone ((partial_sups s).mono) Pn ,
 end
 
 
@@ -304,7 +289,7 @@ let ⟨p, hpu, hps⟩ := mem_closure_iff.1 (Ktcs hyt) u hu hyu,
     ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans Kst htuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
   ⟨r, Kst hrs, hruv⟩
 
-theorem is_connected.subset_closure {s : set α}  {t : set α}
+theorem is_connected.subset_closure {s : set α} {t : set α}
   (H : is_connected s) (Kst : s ⊆ t) (Ktcs : t ⊆ closure s): is_connected t :=
 let hsne := H.left,
     ht := Kst,
@@ -1168,4 +1153,3 @@ lemma continuous.connected_components_map_continuous {β : Type*} [topological_s
 continuous.connected_components_lift_continuous (continuous_quotient_mk.comp h)
 
 end connected_component_setoid
-

@@ -705,8 +705,8 @@ local attribute [instance] has_pullback_symmetry
 def pullback_symmetry [has_pullback f g] :
   pullback f g ≅ pullback g f :=
 is_limit.cone_point_unique_up_to_iso
-  (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ pullback.condition.symm
-    (pullback_is_pullback f g))
+  (pullback_cone.flip_is_limit (pullback_is_pullback f g) :
+    is_limit (pullback_cone.mk _ _ pullback.condition.symm))
   (limit.is_limit _)
 
 @[simp, reassoc] lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
@@ -716,10 +716,10 @@ is_limit.cone_point_unique_up_to_iso
   (pullback_symmetry f g).hom ≫ pullback.snd = pullback.fst := by simp [pullback_symmetry]
 
 @[simp, reassoc] lemma pullback_symmetry_inv_comp_fst [has_pullback f g] :
-  (pullback_symmetry f g).inv ≫ pullback.fst = pullback.snd := by { rw iso.inv_comp_eq, simp }
+  (pullback_symmetry f g).inv ≫ pullback.fst = pullback.snd := by simp [iso.inv_comp_eq]
 
 @[simp, reassoc] lemma pullback_symmetry_inv_comp_snd [has_pullback f g] :
-  (pullback_symmetry f g).inv ≫ pullback.snd = pullback.fst := by { rw iso.inv_comp_eq, simp }
+  (pullback_symmetry f g).inv ≫ pullback.snd = pullback.fst := by simp [iso.inv_comp_eq]
 
 end pullback_symmetry
 
@@ -736,12 +736,12 @@ lemma has_pushout_symmetry [has_pushout f g] : has_pushout g f :=
 
 local attribute [instance] has_pushout_symmetry
 
-/-- The isomorphism `X ×[Z] Y ≅ Y ×[Z] X`. -/
+/-- The isomorphism `Y ⨿[X] Z ≅ Z ⨿[X] Y`. -/
 def pushout_symmetry [has_pushout f g] :
   pushout f g ≅ pushout g f :=
 is_colimit.cocone_point_unique_up_to_iso
-  (@pushout_cocone.flip_is_colimit _ _ _ _ _ _ _ _ _ _ pushout.condition.symm
-    (pushout_is_pushout f g))
+  (pushout_cocone.flip_is_colimit (pushout_is_pushout f g) :
+    is_colimit (pushout_cocone.mk _ _ pushout.condition.symm))
   (colimit.is_colimit _)
 
 @[simp, reassoc] lemma inl_comp_pushout_symmetry_hom [has_pushout f g] :
@@ -751,17 +751,14 @@ is_colimit.cocone_point_unique_up_to_iso
 
 @[simp, reassoc] lemma inr_comp_pushout_symmetry_hom [has_pushout f g] :
   pushout.inr ≫ (pushout_symmetry f g).hom = pushout.inl :=
-begin
-  apply is_colimit.comp_cocone_point_unique_up_to_iso_hom,
-  apply pushout_cocone.flip_is_colimit,
-  exact pushout_is_pushout _ _
-end
+(colimit.is_colimit (span f g)).comp_cocone_point_unique_up_to_iso_hom
+  (pushout_cocone.flip_is_colimit (pushout_is_pushout g f)) _
 
 @[simp, reassoc] lemma inl_comp_pushout_symmetry_inv [has_pushout f g] :
   pushout.inl ≫ (pushout_symmetry f g).inv = pushout.inr := by simp [iso.comp_inv_eq]
 
 @[simp, reassoc] lemma inr_comp_pushout_symmetry_inv [has_pushout f g] :
-  pushout.inr ≫ (pushout_symmetry f g).inv = pushout.inl := by { rw iso.comp_inv_eq, simp }
+  pushout.inr ≫ (pushout_symmetry f g).inv = pushout.inl := by simp [iso.comp_inv_eq]
 
 end pushout_symmetry
 
@@ -869,7 +866,7 @@ open walking_span
 
 variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso f]
 
-/-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
+/-- If `f : X ⟶ Y` is iso, then `Y ⨿[X] Z ≅ Z`. This is the explicit colimit cocone. -/
 def pushout_cocone_of_left_iso : pushout_cocone f g :=
 pushout_cocone.mk (inv f ≫ g) (𝟙 _) $ by simp
 
@@ -891,7 +888,7 @@ pushout_cocone.mk (inv f ≫ g) (𝟙 _) $ by simp
 @[simp] lemma pushout_cocone_of_left_iso_ι_app_right :
   (pushout_cocone_of_left_iso f g).ι.app right = 𝟙 _ := rfl
 
-/-- Verify that the constructed limit cocone is indeed a colimit. -/
+/-- Verify that the constructed cocone is indeed a colimit. -/
 def pushout_cocone_of_left_iso_is_limit :
   is_colimit (pushout_cocone_of_left_iso f g) :=
 pushout_cocone.is_colimit_aux' _ (λ s, ⟨s.inr, by simp [← s.condition]⟩)
@@ -918,7 +915,7 @@ open walking_span
 
 variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso g]
 
-/-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
+/-- If `f : X ⟶ Z` is iso, then `Y ⨿[X] Z ≅ Y`. This is the explicit colimit cocone. -/
 def pushout_cocone_of_right_iso : pushout_cocone f g :=
 pushout_cocone.mk (𝟙 _) (inv g ≫ f)  $ by simp
 
@@ -940,7 +937,7 @@ pushout_cocone.mk (𝟙 _) (inv g ≫ f)  $ by simp
 @[simp] lemma pushout_cocone_of_right_iso_ι_app_right :
   (pushout_cocone_of_right_iso f g).ι.app right = inv g ≫ f := rfl
 
-/-- Verify that the constructed limit cocone is indeed a colimit. -/
+/-- Verify that the constructed cocone is indeed a colimit. -/
 def pushout_cocone_of_right_iso_is_limit :
   is_colimit (pushout_cocone_of_right_iso f g) :=
 pushout_cocone.is_colimit_aux' _ (λ s, ⟨s.inl, by simp [←s.condition]⟩)

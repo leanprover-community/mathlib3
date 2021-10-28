@@ -736,7 +736,7 @@ theorem mem_last'_eq_last : ∀ {l : list α} {x : α}, x ∈ l.last' → ∃ h,
 
 theorem last'_eq_last_of_ne_nil : ∀ {l : list α} (h : l ≠ []), l.last' = some (l.last h)
 | [] h := (h rfl).elim
-| [a] _ := refl
+| [a] _ := by {unfold last, unfold last'}
 | (a::b::l) _ := @last'_eq_last_of_ne_nil (b::l) (cons_ne_nil _ _)
 
 theorem mem_last'_cons {x y : α} : ∀ {l : list α} (h : x ∈ l.last'), x ∈ (y :: l).last'

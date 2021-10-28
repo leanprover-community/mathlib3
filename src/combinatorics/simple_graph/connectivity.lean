@@ -1368,7 +1368,7 @@ begin
   have root := classical.arbitrary V,
   rw ←set.card_ne_eq root,
   let f : {v | v ≠ root} → G.edge_set := λ v,
-    ⟨G.next_edge (v : V) root v.property (G.tree_path h v root : G.walk v root),
+    ⟨G.next_edge v root v.property (G.tree_path h v root),
      G.incidence_set_subset _ (subtype.mem _)⟩,
   -- have fprop : ∀ (v : V) (hv : v ≠ root), ↑(f ⟨v, hv⟩) ∈ G.incidence_set v,
   -- { intros v hv,

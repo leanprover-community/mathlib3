@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import topology.subset_properties
+import order.partial_sups
 
 /-!
 # Connected subsets of topological spaces
@@ -1167,3 +1168,6 @@ lemma continuous.connected_components_map_continuous {β : Type*} [topological_s
 continuous.connected_components_lift_continuous (continuous_quotient_mk.comp h)
 
 end connected_component_setoid
+
+
+#lint

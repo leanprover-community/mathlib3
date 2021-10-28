@@ -457,6 +457,9 @@ lemma measure_union_add_inter (s : set α) (ht : measurable_set t) :
 by { rw [← measure_inter_add_diff (s ∪ t) ht, set.union_inter_cancel_right,
   union_diff_right, ← measure_inter_add_diff s ht], ac_refl }
 
+lemma measure_union_add_inter' (hs : measurable_set s) (t : set α) :
+  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
+by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 namespace measure
 
 /-! ### The `ℝ≥0∞`-module of measures -/

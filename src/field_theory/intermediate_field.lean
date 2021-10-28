@@ -308,7 +308,7 @@ instance has_lift2 {F : intermediate_field K L} :
 example {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
 by apply_instance
 
-lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} (k : K) (e : E) :
+lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} :
   algebra_map K E = (algebra_map F E).comp (algebra_map K F) := rfl
 
 instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :

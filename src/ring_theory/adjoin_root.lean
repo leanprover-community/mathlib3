@@ -76,10 +76,12 @@ def of : R →+* adjoin_root f := (mk f).comp C
 instance [comm_ring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
+@[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
+
 variables (S)
 
-@[simp] lemma algebra_map_eq [comm_ring S] [algebra S R] :
-  algebra_map R (adjoin_root f) = of f := rfl
+lemma algebra_map_eq' [comm_ring S] [algebra S R] :
+  algebra_map S (adjoin_root f) = (of f).comp (algebra_map S R) := rfl
 
 variables {S}
 
@@ -111,7 +113,7 @@ algebra.eq_top_iff.2 $ λ x, induction_on f x $ λ p,
 (algebra.adjoin_singleton_eq_range_aeval R (root f)).symm ▸ ⟨p, aeval_eq p⟩
 
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
-by rw [← algebra_map_eq R, ← aeval_def, aeval_eq, mk_self]
+by rw [← algebra_map_eq, ← aeval_def, aeval_eq, mk_self]
 
 lemma is_root_root (f : polynomial R) : is_root (f.map (of f)) (root f) :=
 by rw [is_root, eval_map, eval₂_root]

@@ -38,7 +38,9 @@ variables {G : Type*} [group G] (H K : subgroup G) (S T : set G)
 @[to_additive "`S` and `T` are complements if `(*) : S × T → G` is a bijection"]
 def is_complement : Prop := function.bijective (λ x : S × T, x.1.1 * x.2.1)
 
-@[to_additive] abbreviation is_complement' := is_complement (H : set G) (K : set G)
+/-- `H` and `K` are complements if `(*) : H × K → G` is a bijection -/
+@[to_additive "`H` and `K` are complements if `(*) : H × K → G` is a bijection"]
+abbreviation is_complement' := is_complement (H : set G) (K : set G)
 
 /-- The set of left-complements of `T : set G` -/
 @[to_additive "The set of left-complements of `T : set G`"]

@@ -104,17 +104,9 @@ begin
   rw direct_sum.to_add_monoid_of, refl,
 end
 
-/--If `R` is a ring graded by `A`, then define `set_of_homogeneous_element` to be the set of homogeneous
-element of `R` with respect to `A`-grading. -/
-def graded_ring.set_of_homogeneous_element [graded_ring R A] : set R := ⋃ i, A i
-
-@[simp] lemma graded_ring.mem_set_of_homogeneous_element [graded_ring R A] :
-  ∀ x, x ∈ graded_ring.set_of_homogeneous_element R A ↔ ∃ i, x ∈ A i :=
-λ x, ⟨λ h, begin
-  unfold graded_ring.set_of_homogeneous_element at h, simpa [set.mem_Union] using h,
-end, λ h, begin
-  unfold graded_ring.set_of_homogeneous_element, simpa [set.mem_Union] using h,
-end⟩
+/--If `R` is a ring graded by `A`, then for all `i : ι`, `x ∈ A i` is a homogeneous element.
+We collect such elements into a subtype `homogeneous_element` -/
+def homogeneous_element : Type* := {x // ∃ i, x ∈ A i}
 
 end graded_ring
 

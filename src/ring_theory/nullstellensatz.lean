@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import ring_theory.jacobson
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.basic
 import field_theory.mv_polynomial
-import algebraic_geometry.prime_spectrum
+import algebraic_geometry.prime_spectrum.basic
 
 /-!
 # Nullstellensatz

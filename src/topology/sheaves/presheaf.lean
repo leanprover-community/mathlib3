@@ -30,6 +30,7 @@ variables (C : Type u) [category.{v} C]
 
 namespace Top
 
+/-- The category of `C`-valued presheaves on a (bundled) topological space `X`. -/
 @[derive category]
 def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
 
@@ -51,9 +52,17 @@ infix ` _* `: 80 := pushforward_obj
   {U V : (opens Y)ᵒᵖ} (i : U ⟶ V) :
   (f _* ℱ).map i = ℱ.map ((opens.map f).op.map i) := rfl
 
+/--
+An equality of continuous maps induces a natural isomorphism between the pushforwards of a presheaf
+along those maps.
+-/
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
+
+lemma pushforward_eq' {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
+  f _* ℱ = g _* ℱ :=
+by rw h
 
 @[simp] lemma pushforward_eq_hom_app
   {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
@@ -76,8 +85,13 @@ rfl
 namespace pushforward
 variables {X : Top.{v}} (ℱ : X.presheaf C)
 
+/-- The natural isomorphism between the pushforward of a presheaf along the identity continuous map
+and the original presheaf. -/
 def id : (𝟙 X) _* ℱ ≅ ℱ :=
 (iso_whisker_right (nat_iso.op (opens.map_id X).symm) ℱ) ≪≫ functor.left_unitor _
+
+lemma id_eq : (𝟙 X) _* ℱ = ℱ :=
+by { unfold pushforward_obj, rw opens.map_id_eq, erw functor.id_comp }
 
 @[simp] lemma id_hom_app' (U) (p) :
   (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
@@ -91,8 +105,14 @@ local attribute [tidy] tactic.op_induction'
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }
 
+/-- The natural isomorphism between
+the pushforward of a presheaf along the composition of two continuous maps and
+the corresponding pushforward of a pushforward. -/
 def comp {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g) _* ℱ ≅ g _* (f _* ℱ) :=
 iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
+
+lemma comp_eq {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g) _* ℱ = g _* (f _* ℱ) :=
+rfl
 
 @[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (comp ℱ f g).hom.app U = 𝟙 _ :=
@@ -112,6 +132,21 @@ def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α 
   f _* ℱ ⟶ f _* 𝒢 :=
 { app := λ U, α.app _,
   naturality' := λ U V i, by { erw α.naturality, refl, } }
+
+/--
+The pushforward functor.
+-/
+def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
+{ obj := pushforward_obj f,
+  map := @pushforward_map _ _ X Y f }
+
+lemma id_pushforward {X : Top.{v}} : pushforward (𝟙 X) = 𝟭 (X.presheaf C) :=
+begin
+  apply category_theory.functor.ext,
+  { intros, ext U, have h := f.congr,
+    erw h (opens.op_map_id_obj U), simpa },
+  { intros, apply pushforward.id_eq },
+end
 
 end presheaf
 

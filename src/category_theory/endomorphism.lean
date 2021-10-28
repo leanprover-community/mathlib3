@@ -2,11 +2,18 @@
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
-
-Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
 import category_theory.groupoid
 import data.equiv.mul_add
+
+/-!
+# Endomorphisms
+
+Definition and basic properties of endomorphisms and automorphisms of an object in a category.
+
+For each `X : C`, we provide `End X := X ⟶ X` with a monoid structure,
+and `Aut X := X ≅ X ` with a group structure.
+-/
 
 universes v v' u u'
 
@@ -57,9 +64,7 @@ end End
 
 lemma is_unit_iff_is_iso {C : Type u} [category.{v} C] {X : C} (f : End X) :
   is_unit (f : End X) ↔ is_iso f :=
-⟨λ h, { out := ⟨h.unit.inv,
-  ⟨by { convert h.unit.inv_val, exact h.unit_spec.symm, },
-    by { convert h.unit.val_inv, exact h.unit_spec.symm, }⟩⟩ },
+⟨λ h, { out := ⟨h.unit.inv, ⟨h.unit.inv_val, h.unit.val_inv⟩⟩ },
   λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩⟩
 
 variables {C : Type u} [category.{v} C] (X : C)
@@ -85,7 +90,7 @@ by refine_struct
   mul := flip iso.trans,
   div := _,
   npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩,
-  gpow := @gpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
+  zpow := @zpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
 intros; try { refl }; ext;
 simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
   has_inv.inv]

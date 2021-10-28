@@ -22,7 +22,7 @@ This is used by the CI script for mathlib.
 Usage: `lean --run scripts/lint_mathlib.lean`
 -/
 
-open native
+open native tactic
 
 /--
 Returns the contents of the `nolints.txt` file.
@@ -76,10 +76,10 @@ close h
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit := do
-env ← tactic.get_env,
-decls ← lint_mathlib_decls,
+env ← get_env,
+mathlib_path ← get_mathlib_dir,
+decls ← lint_project_decls mathlib_path,
 linters ← get_linters mathlib_linters,
-mathlib_path_len ← string.length <$> tactic.get_mathlib_dir,
 let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal env),
 results₀ ← lint_core decls non_auto_decls linters,
 nolint_file ← read_nolints_file,
@@ -87,6 +87,6 @@ let results := (do
   (linter_name, linter, decls) ← results₀,
   [(linter_name, linter, (nolint_file.find linter_name).foldl rb_map.erase decls)]),
 io.print $ to_string $ format_linter_results env results decls non_auto_decls
-  mathlib_path_len "in mathlib" tt lint_verbosity.medium linters.length,
-io.write_file "nolints.txt" $ to_string $ mk_nolint_file env mathlib_path_len results₀,
+  mathlib_path.length "in mathlib" tt lint_verbosity.medium linters.length,
+io.write_file "nolints.txt" $ to_string $ mk_nolint_file env mathlib_path.length results₀,
 if results.all (λ r, r.2.2.empty) then pure () else io.fail ""

@@ -144,6 +144,14 @@ lemma degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* 
   0 < degree p :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_eval₂_root hp f hz inj)
 
+@[simp] lemma coe_lt_degree {p : polynomial R} {n : ℕ} :
+  ((n : with_bot ℕ) < degree p) ↔ n < nat_degree p :=
+begin
+  by_cases h : p = 0,
+  { simp [h] },
+  rw [degree_eq_nat_degree h, with_bot.coe_lt_coe],
+end
+
 end degree
 end semiring
 

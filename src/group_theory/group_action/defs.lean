@@ -155,8 +155,7 @@ variables [has_scalar M α]
 
 /-- Auxiliary definition for `has_scalar.comp`, `mul_action.comp_hom`,
 `distrib_mul_action.comp_hom`, `module.comp_hom`, etc. -/
-@[simp, to_additive
-/-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
+@[simp, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
 def comp.smul (g : N → M) (n : N) (a : α) : α :=
 g n • a
 
@@ -173,9 +172,15 @@ def comp (g : N → M) : has_scalar N α :=
 
 variables {α}
 
-/-- If an action forms a scalar tower then so does the action formed by `has_scalar.comp`. -/
+/-- Given a tower of scalar actions `M → α → β`, if we use `has_scalar.comp`
+to pull back both of `M`'s actions by a map `g : N → M`, then we obtain a new
+tower of scalar actions `N → α → β`.
+
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
+lemma comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
   (g : N → M) :
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
@@ -191,6 +196,17 @@ instance comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α] (g :
 by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 
 end has_scalar
+
+section ite
+variables [has_scalar M α] (p : Prop) [decidable p]
+
+@[to_additive] lemma ite_smul (a₁ a₂ : M) (b : α) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
+by split_ifs; refl
+
+@[to_additive] lemma smul_ite (a : M) (b₁ b₂ : α) : a • (ite p b₁ b₂) = ite p (a • b₁) (a • b₂) :=
+by split_ifs; refl
+
+end ite
 
 section
 variables [monoid M] [mul_action M α]
@@ -222,18 +238,6 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
 { smul := (•),
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
-
-section ite
-
-variables (p : Prop) [decidable p]
-
-@[to_additive] lemma ite_smul (a₁ a₂ : M) (b : α) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
-by split_ifs; refl
-
-@[to_additive] lemma smul_ite (a : M) (b₁ b₂ : α) : a • (ite p b₁ b₂) = ite p (a • b₁) (a • b₂) :=
-by split_ifs; refl
-
-end ite
 
 section
 
@@ -325,6 +329,24 @@ section compatible_scalar
   (x • (1 : N)) • y = x • y :=
 by rw [smul_assoc, one_smul]
 
+@[simp] lemma smul_one_mul {M N} [monoid N] [has_scalar M N] [is_scalar_tower M N N] (x : M)
+  (y : N) : (x • 1) * y = x • y :=
+smul_one_smul N x y
+
+@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
+  (x : M) (y : N) :
+  y * (x • 1) = x • y :=
+by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
+
+lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
+  (h : ∀ (x : M) (y : N), (x • (1 : N)) * y = x • y) :
+  is_scalar_tower M N N :=
+⟨λ x y z, by rw [← h, smul_eq_mul, mul_assoc, h, smul_eq_mul]⟩
+
+@[to_additive] lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_scalar M N]
+  (H : ∀ (x : M) (y : N), y * (x • (1 : N)) = x • y) : smul_comm_class M N N :=
+⟨λ x y z, by rw [← H x z, smul_eq_mul, ← H, smul_eq_mul, mul_assoc]⟩
+
 end compatible_scalar
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
@@ -407,6 +429,90 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
 
 end
 
+/-- Typeclass for multiplicative actions on multiplicative structures. This generalizes
+conjugation actions. -/
+class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
+  extends mul_action M A :=
+(smul_mul : ∀ (r : M) (x y : A), r • (x * y) = (r • x) * (r • y))
+(smul_one : ∀ (r : M), r • (1 : A) = 1)
+
+export mul_distrib_mul_action (smul_one)
+
+section
+variables [monoid M] [monoid A] [mul_distrib_mul_action M A]
+
+theorem smul_mul' (a : M) (b₁ b₂ : A) : a • (b₁ * b₂) = (a • b₁) * (a • b₂) :=
+mul_distrib_mul_action.smul_mul _ _ _
+
+/-- Pullback a multiplicative distributive multiplicative action along an injective monoid
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.mul_distrib_mul_action [monoid B] [has_scalar M B] (f : B →* A)
+  (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  mul_distrib_mul_action M B :=
+{ smul := (•),
+  smul_mul := λ c x y, hf $ by simp only [smul, f.map_mul, smul_mul'],
+  smul_one := λ c, hf $ by simp only [smul, f.map_one, smul_one],
+  .. hf.mul_action f smul }
+
+/-- Pushforward a multiplicative distributive multiplicative action along a surjective monoid
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.mul_distrib_mul_action [monoid B] [has_scalar M B] (f : A →* B)
+  (hf : surjective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  mul_distrib_mul_action M B :=
+{ smul := (•),
+  smul_mul := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
+    simp only [smul_mul', ← smul, ← f.map_mul] },
+  smul_one := λ c, by simp only [← f.map_one, ← smul, smul_one],
+  .. hf.mul_action f smul }
+
+variable (A)
+
+/-- Compose a `mul_distrib_mul_action` with a `monoid_hom`, with action `f r' • m`.
+See note [reducible non-instances]. -/
+@[reducible] def mul_distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
+  mul_distrib_mul_action N A :=
+{ smul := has_scalar.comp.smul f,
+  smul_one := λ x, smul_one (f x),
+  smul_mul := λ x, smul_mul' (f x),
+  .. mul_action.comp_hom A f }
+
+/-- Scalar multiplication by `r` as a `monoid_hom`. -/
+def mul_distrib_mul_action.to_monoid_hom (r : M) : A →* A :=
+{ to_fun := (•) r,
+  map_one' := smul_one r,
+  map_mul' := smul_mul' r }
+
+variable {A}
+
+@[simp] lemma mul_distrib_mul_action.to_monoid_hom_apply (r : M) (x : A) :
+  mul_distrib_mul_action.to_monoid_hom A r x = r • x := rfl
+
+variables (M A)
+
+/-- Each element of the monoid defines a monoid homomorphism. -/
+@[simps]
+def mul_distrib_mul_action.to_monoid_End : M →* monoid.End A :=
+{ to_fun := mul_distrib_mul_action.to_monoid_hom A,
+  map_one' := monoid_hom.ext $ one_smul M,
+  map_mul' := λ x y, monoid_hom.ext $ mul_smul x y }
+
+end
+
+section
+variables [monoid M] [group A] [mul_distrib_mul_action M A]
+
+@[simp] theorem smul_inv' (r : M) (x : A) : r • (x⁻¹) = (r • x)⁻¹ :=
+(mul_distrib_mul_action.to_monoid_hom A r).map_inv x
+
+theorem smul_div' (r : M) (x y : A) : r • (x / y) = (r • x) / (r • y) :=
+(mul_distrib_mul_action.to_monoid_hom A r).map_div x y
+
+end
+
 variable (α)
 
 /-- The monoid of endomorphisms.
@@ -431,6 +537,7 @@ This is generalized to bundled endomorphisms by:
 * `equiv.perm.apply_mul_action`
 * `add_monoid.End.apply_distrib_mul_action`
 * `add_aut.apply_distrib_mul_action`
+* `mul_aut.apply_mul_distrib_mul_action`
 * `ring_hom.apply_distrib_mul_action`
 * `linear_equiv.apply_distrib_mul_action`
 * `linear_map.apply_module`

@@ -7,7 +7,6 @@ A tactic pushing negations into an expression
 -/
 
 import logic.basic
-import algebra.order
 
 open tactic expr
 

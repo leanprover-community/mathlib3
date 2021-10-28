@@ -11,8 +11,8 @@ import data.set.lattice
 
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
 interval `[x, y]`. If `α` is a `densely_ordered` `conditionally_complete_linear_order` with
-the `order_topology`, then this condition is equivalent to `is_preconnected s`. If `α = ℝ`, then
-this condition is also equivalent to `convex s`.
+the `order_topology`, then this condition is equivalent to `is_preconnected s`. If `α` is a
+`linear_ordered_field`, then this condition is also equivalent to `convex α s`.
 
 In this file we prove that intersection of a family of `ord_connected` sets is `ord_connected` and
 that all standard intervals are `ord_connected`.
@@ -25,8 +25,8 @@ variables {α : Type*} [preorder α] {s t : set α}
 /--
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
 interval `[x, y]`. If `α` is a `densely_ordered` `conditionally_complete_linear_order` with
-the `order_topology`, then this condition is equivalent to `is_preconnected s`. If `α = ℝ`, then
-this condition is also equivalent to `convex s`.
+the `order_topology`, then this condition is equivalent to `is_preconnected s`. If `α` is a
+`linear_ordered_field`, then this condition is also equivalent to `convex α s`.
 -/
 class ord_connected (s : set α) : Prop :=
 (out' ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) : Icc x y ⊆ s)
@@ -65,10 +65,11 @@ instance ord_connected.inter' {s t : set α} [ord_connected s] [ord_connected t]
   ord_connected (s ∩ t) :=
 ord_connected.inter ‹_› ‹_›
 
-lemma ord_connected.dual {s : set α} (hs : ord_connected s) : @ord_connected (order_dual α) _ s :=
+lemma ord_connected.dual {s : set α} (hs : ord_connected s) :
+  ord_connected (order_dual.of_dual ⁻¹' s) :=
 ⟨λ x hx y hy z hz, hs.out hy hx ⟨hz.2, hz.1⟩⟩
 
-lemma ord_connected_dual {s : set α} : @ord_connected (order_dual α) _ s ↔ ord_connected s :=
+lemma ord_connected_dual {s : set α} : ord_connected (order_dual.of_dual ⁻¹' s) ↔ ord_connected s :=
 ⟨λ h, by simpa only [ord_connected_def] using h.dual, λ h, h.dual⟩
 
 lemma ord_connected_sInter {S : set (set α)} (hS : ∀ s ∈ S, ord_connected s) :

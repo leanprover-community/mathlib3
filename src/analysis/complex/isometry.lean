@@ -25,6 +25,7 @@ The proof of `linear_isometry_complex_aux` is separated in the following parts:
 noncomputable theory
 
 open complex
+open_locale complex_conjugate
 
 local notation `|` x `|` := complex.abs x
 
@@ -34,7 +35,7 @@ preference. -/
 def rotation_aux (a : circle) : ℂ ≃ₗᵢ[ℝ] ℂ :=
 { to_fun := λ z, a * z,
   map_add' := mul_add ↑a,
-  map_smul' := λ t z, by { simp only [smul_coe], ring },
+  map_smul' := λ t z, by { simp only [real_smul, ring_hom.id_apply], ring },
   inv_fun := λ z, a⁻¹ * z,
   left_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
   right_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
@@ -59,7 +60,7 @@ begin
   intro h,
   have h1 : rotation a 1 = conj 1 := linear_isometry_equiv.congr_fun h 1,
   have hI : rotation a I = conj I := linear_isometry_equiv.congr_fun h I,
-  rw [rotation_apply, ring_hom.map_one, mul_one] at h1,
+  rw [rotation_apply, ring_equiv.map_one, mul_one] at h1,
   rw [rotation_apply, conj_I, ← neg_one_mul, mul_left_inj' I_ne_zero, h1, eq_neg_self_iff] at hI,
   exact one_ne_zero hI,
 end
@@ -99,11 +100,11 @@ begin
   apply_fun λ x, x ^ 2 at this,
   simp only [norm_eq_abs, ←norm_sq_eq_abs] at this,
   rw [←of_real_inj, ←mul_conj, ←mul_conj] at this,
-  rw [conj.map_sub, conj.map_sub] at this,
+  rw [ring_equiv.map_sub, ring_equiv.map_sub] at this,
   simp only [sub_mul, mul_sub, one_mul, mul_one] at this,
   rw [mul_conj, norm_sq_eq_abs, ←norm_eq_abs, linear_isometry.norm_map] at this,
   rw [mul_conj, norm_sq_eq_abs, ←norm_eq_abs] at this,
-  simp only [sub_sub, sub_right_inj, mul_one, of_real_pow, ring_hom.map_one, norm_eq_abs] at this,
+  simp only [sub_sub, sub_right_inj, mul_one, of_real_pow, ring_equiv.map_one, norm_eq_abs] at this,
   simp only [add_sub, sub_left_inj] at this,
   rw [add_comm, ←this, add_comm],
 end

@@ -53,7 +53,7 @@ namespace dual
 
 instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
-instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
+instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and
 `module.eval_equiv`. -/
@@ -183,7 +183,8 @@ variables (b : basis ι R M)
 /-- A vector space is linearly equivalent to its dual space. -/
 @[simps]
 def to_dual_equiv [fintype ι] : M ≃ₗ[R] (dual R M) :=
-linear_equiv.of_bijective b.to_dual b.to_dual_ker b.to_dual_range
+linear_equiv.of_bijective b.to_dual
+  (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis [fintype ι] : basis ι R (dual R M) :=
@@ -245,7 +246,8 @@ end
 
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
 def eval_equiv  {ι : Type*} [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
-linear_equiv.of_bijective (eval R M) b.eval_ker b.eval_range
+linear_equiv.of_bijective (eval R M)
+  (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
 
 @[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
@@ -286,13 +288,17 @@ theorem dual_dim_eq [finite_dimensional K V] :
 (basis.of_vector_space K V).dual_dim_eq
 
 lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
-by { classical, exact (basis.of_vector_space K V).eval_range }
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact (basis.of_vector_space K V).eval_range
+end
 
 variables (K V)
 
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
-linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
+linear_equiv.of_bijective (eval K V)
+  (ker_eq_bot.mp eval_ker) (range_eq_top.mp erange_coe)
 
 variables {K V}
 
@@ -517,7 +523,7 @@ noncomputable def quot_annihilator_equiv (W : subspace K V) :
 /-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_equiv_dual (W : subspace K V) :
   module.dual K W ≃ₗ[K] W.dual_lift.range :=
-linear_equiv.of_injective _ $ ker_eq_bot.2 dual_lift_injective
+linear_equiv.of_injective _ dual_lift_injective
 
 lemma dual_equiv_dual_def (W : subspace K V) :
   W.dual_equiv_dual.to_linear_map = W.dual_lift.range_restrict := rfl

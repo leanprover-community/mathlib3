@@ -37,7 +37,7 @@ variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 ## Interval-based versions
 
 We start by proving statements where all conditions (derivability, `g' ≠ 0`) have
-to be satisfied on an explicitely-provided interval.
+to be satisfied on an explicitly-provided interval.
 -/
 
 namespace has_deriv_at
@@ -182,7 +182,7 @@ begin
           refine neg_ne_zero.mpr (inv_ne_zero $ pow_ne_zero _ $ ne_of_gt hx) }),
   have := this.comp tendsto_inv_at_top_zero',
   unfold function.comp at this,
-  simpa only [inv_inv'],
+  simpa only [inv_inv₀],
 end
 
 theorem lhopital_zero_at_bot_on_Iio

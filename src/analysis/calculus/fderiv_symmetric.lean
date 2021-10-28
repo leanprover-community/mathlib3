@@ -52,7 +52,7 @@ open_locale topological_space
 
 variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 [normed_group F] [normed_space ℝ F]
-{s : set E} (s_conv : convex s)
+{s : set E} (s_conv : convex ℝ s)
 {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
 (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
 {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x)
@@ -234,7 +234,7 @@ begin
     abel },
   have hvww : x + (v + w) + w ∈ interior s,
   { convert s_conv.interior.add_smul_sub_mem h2w h2v2w B using 1,
-    simp only [one_div, add_sub_cancel', inv_smul_smul', add_sub_add_right_eq_sub, ne.def,
+    simp only [one_div, add_sub_cancel', inv_smul_smul₀, add_sub_add_right_eq_sub, ne.def,
       not_false_iff, bit0_eq_zero, one_ne_zero],
     rw two_smul,
     abel },
@@ -283,7 +283,7 @@ omit s_conv xs hx hf
 /-- If a function is differentiable inside a convex set with nonempty interior, and has a second
 derivative at a point of this convex set, then this second derivative is symmetric. -/
 theorem convex.second_derivative_within_at_symmetric
-  {s : set E} (s_conv : convex s) (hne : (interior s).nonempty)
+  {s : set E} (s_conv : convex ℝ s) (hne : (interior s).nonempty)
   {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
   (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
   {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x) (v w : E) :
@@ -331,7 +331,7 @@ begin
     continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', C] at this,
   rw ← sub_eq_zero at this,
   abel at this,
-  simp only [one_gsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
+  simp only [one_zsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
   apply smul_right_injective F _ this,
   simp [(tpos v).ne', (tpos w).ne']
 end

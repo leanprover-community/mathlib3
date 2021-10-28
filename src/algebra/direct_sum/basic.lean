@@ -2,11 +2,10 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
 -/
 import data.dfinsupp
 import group_theory.submonoid.operations
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Direct sum
@@ -32,8 +31,11 @@ variables (ι : Type v) [dec_ι : decidable_eq ι] (β : ι → Type w)
 /-- `direct_sum β` is the direct sum of a family of additive commutative monoids `β i`.
 
 Note: `open_locale direct_sum` will enable the notation `⨁ i, β i` for `direct_sum β`. -/
-@[derive [has_coe_to_fun, add_comm_monoid, inhabited]]
+@[derive [add_comm_monoid, inhabited]]
 def direct_sum [Π i, add_comm_monoid (β i)] : Type* := Π₀ i, β i
+
+instance [Π i, add_comm_monoid (β i)] : has_coe_to_fun (direct_sum ι β) (λ _, Π i : ι, β i) :=
+dfinsupp.has_coe_to_fun
 
 localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 

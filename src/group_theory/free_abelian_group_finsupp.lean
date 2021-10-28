@@ -53,16 +53,16 @@ begin
   rw [add_monoid_hom.comp_assoc, finsupp.to_free_abelian_group_comp_single_add_hom],
   simp only [to_finsupp, add_monoid_hom.coe_comp, finsupp.single_add_hom_apply,
     function.comp_app, one_smul, lift.of, add_monoid_hom.flip_apply,
-    smul_add_hom_one, add_monoid_hom.id_apply],
+    smul_add_hom_apply, add_monoid_hom.id_apply],
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_comp_to_finsupp :
   to_free_abelian_group.comp to_finsupp = add_monoid_hom.id (free_abelian_group X) :=
 begin
   ext,
-  simp only [to_free_abelian_group, to_finsupp, finsupp.lift_add_hom_apply_single,
-    add_monoid_hom.coe_comp, function.comp_app, one_smul, add_monoid_hom.id_apply, lift.of,
-    add_monoid_hom.flip_apply, smul_add_hom_one],
+  rw [to_free_abelian_group, to_finsupp, add_monoid_hom.comp_apply, lift.of,
+    lift_add_hom_apply_single, add_monoid_hom.flip_apply, smul_add_hom_apply, one_smul,
+    add_monoid_hom.id_apply],
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_to_finsupp {X} (x : free_abelian_group X) :
@@ -123,17 +123,17 @@ by simp only [support, to_finsupp_of, finsupp.support_single_ne_zero (one_ne_zer
 @[simp] lemma support_neg (a : free_abelian_group X) : support (-a) = support a :=
 by simp only [support, add_monoid_hom.map_neg, finsupp.support_neg]
 
-@[simp] lemma support_gsmul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
+@[simp] lemma support_zsmul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
 begin
   ext x,
-  simp only [mem_support_iff, add_monoid_hom.map_gsmul],
-  simp only [h, gsmul_int_int, false_or, ne.def, mul_eq_zero]
+  simp only [mem_support_iff, add_monoid_hom.map_zsmul],
+  simp only [h, zsmul_int_int, false_or, ne.def, mul_eq_zero]
 end
 
 @[simp] lemma support_nsmul (k : ℕ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
-by { apply support_gsmul k _ a, exact_mod_cast h }
+by { apply support_zsmul k _ a, exact_mod_cast h }
 
 open_locale classical
 

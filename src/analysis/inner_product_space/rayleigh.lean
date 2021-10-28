@@ -122,7 +122,7 @@ begin
   obtain ⟨a, b, h₁, h₂⟩ := is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at_1d H
     (has_strict_fderiv_at_norm_sq x₀) (hT.has_strict_fderiv_at_re_apply_inner_self x₀),
   refine ⟨a, b, h₁, _⟩,
-  apply (inner_product_space.to_dual_map F).injective,
+  apply (inner_product_space.to_dual_map ℝ F).injective,
   simp only [linear_isometry.map_add, linear_isometry.map_smul, linear_isometry.map_zero],
   change a • inner_right x₀ + b • inner_right (T x₀) = 0,
   apply smul_right_injective (F →L[ℝ] ℝ) (two_ne_zero : (2:ℝ) ≠ 0),

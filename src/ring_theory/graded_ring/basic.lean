@@ -61,6 +61,31 @@ def graded_ring.proj [graded_ring R A] (i : ι) (r : R) : R :=
 lemma graded_ring.proj_mem [graded_ring R A] (i : ι) (r : R) :
   graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _  ι _ A _  _ r i).2
 
+/-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
+def graded_ring.support [graded_ring R A] [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
+  (r : R) : finset ι :=
+(@graded_ring.decompose R _ ι _ A _ _ r).support
+
+lemma graded_ring.mem_support_iff [graded_ring R A]
+  [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]  (r : R) (i : ι) :
+i ∈ graded_ring.support R A r ↔ (graded_ring.proj R A i r ≠ 0) :=
+⟨λ hi, begin
+  contrapose! hi,
+  unfold graded_ring.support,
+  unfold graded_ring.proj at hi,
+  simp only [not_not, ne.def, dfinsupp.mem_support_to_fun, subtype.val_eq_coe] at hi ⊢,
+  have : ↑((graded_ring.decompose r) i) = ↑(⟨0, add_subgroup.zero_mem (A i)⟩ : A i),
+  exact hi,
+  exact subtype.coe_injective this,
+end, λ hi, begin
+  unfold graded_ring.proj at hi,
+  unfold graded_ring.support,
+  simp only [ne.def, dfinsupp.mem_support_to_fun],
+  intro rid, rw rid at hi,
+  simp only [eq_self_iff_true, not_true, ne.def, add_subgroup.coe_zero, subtype.val_eq_coe] at hi,
+  exact hi,
+end⟩
+
 end graded_ring
 
 section mv_polynomial

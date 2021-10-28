@@ -137,8 +137,7 @@ end
 The union Union s of an increasing mapping s of preconnected sets
 is preconnected
 -/
-variable ι : Type _
-variables [ linear_order ι ]
+variables {ι : Type*} [linear_order ι]
 
 theorem is_preconnected.Union_of_monotone   { s : ι → set α }  (K : monotone s)
   (H : ∀ n: ι, is_preconnected (s n)) :

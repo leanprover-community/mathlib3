@@ -54,6 +54,13 @@ let f : (⨁ i, A i) →+* R :=
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _, }
 
+/-- The projection maps of graded ring-/
+def graded_ring.proj [graded_ring R A] (i : ι) (r : R) : R :=
+  (@graded_ring.decompose R _  ι _ A _  _ r i).val
+
+lemma graded_ring.proj_mem [graded_ring R A] (i : ι) (r : R) :
+  graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _  ι _ A _  _ r i).2
+
 end graded_ring
 
 section mv_polynomial
@@ -61,7 +68,6 @@ open mv_polynomial direct_sum
 
 variables (R : Type*) [comm_ring R] (σ : Type*)
   [Π (i : ℕ) (x : (λ i, ((homogeneous_submodule σ R i).to_add_subgroup)) i), decidable (x ≠ 0)]
-
 
 private noncomputable def decompose (p : mv_polynomial σ R) :
   ⨁ i, (homogeneous_submodule σ R i).to_add_subgroup :=
@@ -128,8 +134,7 @@ noncomputable instance mv_polynomial_is_graded : graded_ring (mv_polynomial σ R
         direct_sum.to_add_monoid _ ((of (λ i, ↥((homogeneous_submodule σ R i).to_add_subgroup)) x)
        ⟨(homogeneous_component x) p, _⟩) := rfl,
     rw this, simp_rw [to_add_monoid_of],
-    conv_rhs { rw ←sum_homogeneous_component p }, apply finset.sum_congr rfl,
-    intros, refl,
+    conv_rhs { rw ←sum_homogeneous_component p }, apply finset.sum_congr rfl (λ _ _, rfl),
   end,
   one_degree_zero := begin
     simp only [mem_homogeneous_submodule, submodule.mem_to_add_subgroup],

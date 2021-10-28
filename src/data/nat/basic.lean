@@ -108,6 +108,9 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] 
   ..subtype.linear_order s,
   ..lattice_of_linear_order }
 
+lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
+  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
+
 theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
 rfl
 
@@ -509,6 +512,9 @@ begin
     rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
     exact nat.le_of_pred_lt h', },
 end
+
+/-- A version of `nat.sub_succ` in the form `_ - 1` instead of `nat.pred _`. -/
+lemma sub_succ' (a b : ℕ) : a - b.succ = a - b - 1 := rfl
 
 /-! ### `mul` -/
 

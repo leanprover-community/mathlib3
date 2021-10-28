@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import algebraic_geometry.prime_spectrum
+import algebraic_geometry.prime_spectrum.basic
 import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
@@ -970,9 +970,10 @@ begin
   refl,
 end
 
-@[elementwise, reassoc] lemma to_open_comp_comap (f : R →+* S) :
-  to_open R ⊤ ≫ comap f ⊤ ⊤ (λ p hpV, trivial) =
-  @category_theory.category_struct.comp _ _ (CommRing.of R) (CommRing.of S) _ f (to_open S ⊤) :=
+@[elementwise, reassoc] lemma to_open_comp_comap (f : R →+* S)
+  (U : opens (prime_spectrum.Top R)) :
+  to_open R U ≫ comap f U (opens.comap (comap_continuous f) U) (λ _, id) =
+  CommRing.of_hom f ≫ (to_open S _) :=
 ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin
   simp_rw [comp_apply, comap_apply, subtype.val_eq_coe],

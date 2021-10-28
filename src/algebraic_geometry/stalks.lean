@@ -57,8 +57,8 @@ For an open embedding `f : U ⟶ X` and a point `x : U`, we get an isomorphism b
 of `X` at `f x` and the stalk of the restriction of `X` along `f` at t `x`.
 -/
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
-  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
-  (X.restrict f h).stalk x ≅ X.stalk (f x) :=
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) (x : U) :
+  (X.restrict h).stalk x ≅ X.stalk (f x) :=
 begin
   -- As a left adjoint, the functor `h.is_open_map.functor_nhds x` is initial.
   haveI := initial_of_adjunction (h.is_open_map.adjunction_nhds x),
@@ -69,18 +69,18 @@ begin
 end
 
 @[simp, elementwise, reassoc]
-lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace C) {f : U ⟶ (X : Top.{v})}
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
-  (X.restrict f h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X f h x).hom =
+  (X.restrict h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X h x).hom =
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ :=
 colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
   (h.is_open_map.functor_nhds x).op (op ⟨V, hx⟩)
 
 @[simp, elementwise, reassoc]
-lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) {f : U ⟶ (X : Top.{v})}
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
-  (restrict_stalk_iso X f h x).inv = (X.restrict f h).presheaf.germ ⟨x, hx⟩ :=
+  (restrict_stalk_iso X h x).inv = (X.restrict h).presheaf.germ ⟨x, hx⟩ :=
 by rw [← restrict_stalk_iso_hom_eq_germ, category.assoc, iso.hom_inv_id, category.comp_id]
 
 end restrict
@@ -114,7 +114,7 @@ begin
   -- FIXME Why doesn't simp do this:
   erw [category_theory.functor.map_id],
   erw [category_theory.functor.map_id],
-  erw [id_comp, id_comp, id_comp],
+  erw [id_comp, id_comp],
 end
 
 /--

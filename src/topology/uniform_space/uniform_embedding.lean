@@ -414,7 +414,7 @@ end
 variables [separated_space γ]
 
 lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
-dense_inducing.extend_eq_at _ b h_f.continuous.continuous_at
+dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
 
 lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
   (hc : continuous g) :

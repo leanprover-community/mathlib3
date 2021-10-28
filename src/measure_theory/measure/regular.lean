@@ -307,8 +307,8 @@ begin
       λ n, (inter_subset_right _ _).trans (disjointed_subset _ _),
       (disjoint_disjointed s.set).mono (λ k l hkl, hkl.mono inf_le_right inf_le_right), _⟩,
     rw [← inter_Union, Union_disjointed, s.spanning, inter_univ] },
-  rcases ennreal.exists_pos_sum_of_encodable' (ennreal.sub_pos.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
-  rw [ennreal.lt_sub_iff_add_lt, add_comm] at hδε,
+  rcases ennreal.exists_pos_sum_of_encodable' (tsub_pos_iff_lt.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
+  rw [lt_tsub_iff_right, add_comm] at hδε,
   have : ∀ n, ∃ U ⊇ A n, is_open U ∧ μ U < μ (A n) + δ n,
   { intro n,
     have H₁ : ∀ t, μ.restrict (s.set n) t = μ (t ∩ s.set n), from λ t, restrict_apply' (hm n),
@@ -347,7 +347,7 @@ begin
   calc μ s ≤ μ U                   : μ.mono hsU
        ... < μ K + ε               : hKr
        ... ≤ μ (K \ U') + μ U' + ε :
-    add_le_add_right (ennreal.sub_le_iff_le_add.1 le_measure_diff) _
+    add_le_add_right (tsub_le_iff_right.1 le_measure_diff) _
        ... ≤ μ (K \ U') + ε + ε    : by { mono*, exacts [hμU'.le, le_rfl] }
        ... = μ (K \ U') + (ε + ε)  : add_assoc _ _ _
 end
@@ -364,9 +364,9 @@ begin
     ∃ (F ⊆ s) (U ⊇ s), is_closed F ∧ is_open U ∧ μ s ≤ μ F + ε ∧ μ U ≤ μ s + ε,
   { refine { outer_regular := λ s hs r hr, _, inner_regular := H },
     rcases exists_between hr with ⟨r', hsr', hr'r⟩,
-    rcases this s hs _ (ennreal.sub_pos.2 hsr').ne' with ⟨-, -, U, hsU, -, hUo, -, H⟩,
+    rcases this s hs _ (tsub_pos_iff_lt.2 hsr').ne' with ⟨-, -, U, hsU, -, hUo, -, H⟩,
     refine ⟨U, hsU, hUo, _⟩,
-    rw [ennreal.add_sub_cancel_of_le hsr'.le] at H, exact H.trans_lt hr'r },
+    rw [add_tsub_cancel_of_le hsr'.le] at H, exact H.trans_lt hr'r },
   refine measurable_set.induction_on_open _ _ _,
   /- The proof is by measurable induction: we should check that the property is true for the empty
   set, for open sets, and is stable by taking the complement and by taking countable disjoint

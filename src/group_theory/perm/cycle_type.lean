@@ -190,7 +190,7 @@ begin
   rw eq_repeat_of_mem (λ n hn, or_iff_not_imp_left.mp
     (hσ.2 n (dvd_of_mem_cycle_type hn)) (ne_of_gt (one_lt_of_mem_cycle_type hn))),
   use σ.cycle_type.card - 1,
-  rw nat.sub_add_cancel,
+  rw tsub_add_cancel_of_le,
   rw [nat.succ_le_iff, pos_iff_ne_zero, ne, card_cycle_type_eq_zero],
   rintro rfl,
   rw order_of_one at hσ,
@@ -412,7 +412,7 @@ by deleting the last entry of `v`. -/
 def equiv_vector : vectors_prod_eq_one G n ≃ vector G (n - 1) :=
 ((vector_equiv G (n - 1)).trans (if hn : n = 0 then (show vectors_prod_eq_one G (n - 1 + 1) ≃
   vectors_prod_eq_one G n, by { rw hn, exact equiv_of_unique_of_unique })
-  else by rw nat.sub_add_cancel (nat.pos_of_ne_zero hn))).symm
+  else by rw tsub_add_cancel_of_le (nat.pos_of_ne_zero hn).nat_succ_le)).symm
 
 instance [fintype G] : fintype (vectors_prod_eq_one G n) :=
 fintype.of_equiv (vector G (n - 1)) (equiv_vector G n).symm
@@ -441,7 +441,7 @@ end vectors_prod_eq_one
 lemma exists_prime_order_of_dvd_card {G : Type*} [group G] [fintype G] (p : ℕ) [hp : fact p.prime]
   (hdvd : p ∣ fintype.card G) : ∃ x : G, order_of x = p :=
 begin
-  have hp' : p - 1 ≠ 0 := mt nat.sub_eq_zero_iff_le.mp (not_le_of_lt hp.out.one_lt),
+  have hp' : p - 1 ≠ 0 := mt tsub_eq_zero_iff_le.mp (not_le_of_lt hp.out.one_lt),
   have Scard := calc p ∣ fintype.card G ^ (p - 1) : hdvd.trans (dvd_pow (dvd_refl _) hp')
   ... = fintype.card (vectors_prod_eq_one G p) : (vectors_prod_eq_one.card G p).symm,
   let f : ℕ → vectors_prod_eq_one G p → vectors_prod_eq_one G p :=
@@ -452,7 +452,7 @@ begin
   have hf3 : ∀ v, f p v = v := vectors_prod_eq_one.rotate_length,
   let σ := equiv.mk (f 1) (f (p - 1))
     (λ s, by rw [hf2, add_tsub_cancel_of_le hp.out.one_lt.le, hf3])
-    (λ s, by rw [hf2, nat.sub_add_cancel hp.out.pos, hf3]),
+    (λ s, by rw [hf2, tsub_add_cancel_of_le hp.out.one_lt.le, hf3]),
   have hσ : ∀ k v, (σ ^ k) v = f k v :=
   λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,
   replace hσ : σ ^ (p ^ 1) = 1 := perm.ext (λ v, by rw [pow_one, hσ, hf3, one_apply]),

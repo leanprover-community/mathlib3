@@ -342,7 +342,7 @@ begin
   refine find_exists_one_div_lt_min (hn' k)
     (buffer.lt_aux_2 hk₁) ⟨E, set.subset.trans hE₂ hA', hE₁, _⟩,
   convert hk₂, norm_cast,
-  exact nat.sub_add_cancel hk₁
+  exact tsub_add_cancel_of_le hk₁
 end
 
 end exists_subset_restrict_nonpos

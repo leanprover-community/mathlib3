@@ -689,11 +689,10 @@ else by simp only [map_of_not_measurable hf, le_rfl]
 /-- Even if `s` is not measurable, we can bound `map f μ s` from below.
   See also `measurable_equiv.map_apply`. -/
 theorem le_map_apply {f : α → β} (hf : measurable f) (s : set β) : μ (f ⁻¹' s) ≤ map f μ s :=
-begin
-  rw [measure_eq_infi' (map f μ)], refine le_infi _, rintro ⟨t, hst, ht⟩,
-  convert measure_mono (preimage_mono hst),
-  exact map_apply hf ht
-end
+calc μ (f ⁻¹' s) ≤ μ (f ⁻¹' (to_measurable (map f μ) s)) :
+  measure_mono $ preimage_mono $ subset_to_measurable _ _
+... = map f μ (to_measurable (map f μ) s) : (map_apply hf $ measurable_set_to_measurable _ _).symm
+... = map f μ s : measure_to_measurable _
 
 /-- Even if `s` is not measurable, `map f μ s = 0` implies that `μ (f ⁻¹' s) = 0`. -/
 lemma preimage_null_of_map_null {f : α → β} (hf : measurable f) {s : set β}
@@ -742,11 +741,29 @@ def restrict {m0 : measurable_space α} (μ : measure α) (s : set α) : measure
   restrictₗ s μ = μ.restrict s :=
 rfl
 
+/-- This lemma shows that `restrict` and `to_outer_measure` commute. Note that the LHS has a
+restrict on measures and the RHS has a restrict on outer measures. -/
+lemma restrict_to_outer_measure_eq_to_outer_measure_restrict (h : measurable_set s) :
+    (μ.restrict s).to_outer_measure = outer_measure.restrict s μ.to_outer_measure :=
+by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
+  outer_measure.restrict_trim h, μ.trimmed]
+
 /-- If `t` is a measurable set, then the measure of `t` with respect to the restriction of
   the measure to `s` equals the outer measure of `t ∩ s`. An alternate version requiring that `s`
   be measurable instead of `t` exists as `measure.restrict_apply'`. -/
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
 by simp [← restrictₗ_apply, restrictₗ, ht]
+
+/-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
+the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
+`measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
+@[simp] lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
+by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
+      outer_measure.restrict_apply s t _, coe_to_outer_measure]
+
+lemma restrict_eq_self' (hs : measurable_set s) (t_subset : t ⊆ s) :
+  μ.restrict s t = μ t :=
+by rw [restrict_apply' hs, set.inter_eq_self_of_subset_left t_subset]
 
 lemma restrict_eq_self (h_meas_t : measurable_set t) (h : t ⊆ s) : μ.restrict s t = μ t :=
 by rw [restrict_apply h_meas_t, inter_eq_left_iff_subset.mpr h]
@@ -788,14 +805,7 @@ lemma measure_inter_eq_zero_of_restrict (h : μ.restrict s t = 0) : μ (t ∩ s)
 nonpos_iff_eq_zero.1 (h ▸ le_restrict_apply _ _)
 
 lemma restrict_apply_eq_zero' (hs : measurable_set s) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
-begin
-  refine ⟨measure_inter_eq_zero_of_restrict, λ h, _⟩,
-  rcases exists_measurable_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
-  apply measure_mono_null ((inter_subset _ _ _).1 htt'),
-  rw [restrict_apply (hs.compl.union ht'), union_inter_distrib_right, compl_inter_self,
-    set.empty_union],
-  exact measure_mono_null (inter_subset_left _ _) ht'0
-end
+by rw [restrict_apply' hs]
 
 @[simp] lemma restrict_eq_zero : μ.restrict s = 0 ↔ μ s = 0 :=
 by rw [← measure_univ_eq_zero, restrict_apply_univ]
@@ -804,13 +814,9 @@ lemma restrict_zero_set {s : set α} (h : μ s = 0) :
   μ.restrict s = 0 :=
 by simp only [measure.restrict_eq_zero, h]
 
-@[simp] lemma restrict_empty : μ.restrict ∅ = 0 := ext $ λ s hs, by simp [hs]
+@[simp] lemma restrict_empty : μ.restrict ∅ = 0 := restrict_zero_set measure_empty
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
-
-lemma restrict_eq_self_of_measurable_subset (ht : measurable_set t) (t_subset : t ⊆ s) :
-  μ.restrict s t = μ t :=
-by rw [measure.restrict_apply ht, set.inter_eq_self_of_subset_left t_subset]
 
 lemma restrict_union_apply (h : disjoint (t ∩ s) (t ∩ s')) (hs : measurable_set s)
   (hs' : measurable_set s') (ht : measurable_set t) :
@@ -967,13 +973,6 @@ lemma restrict_sUnion_congr {S : set (set α)} (hc : countable S) (hm : ∀ s �
   μ.restrict (⋃₀ S) = ν.restrict (⋃₀ S) ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 by rw [sUnion_eq_bUnion, restrict_bUnion_congr hc hm]
 
-/-- This lemma shows that `restrict` and `to_outer_measure` commute. Note that the LHS has a
-restrict on measures and the RHS has a restrict on outer measures. -/
-lemma restrict_to_outer_measure_eq_to_outer_measure_restrict (h : measurable_set s) :
-    (μ.restrict s).to_outer_measure = outer_measure.restrict s μ.to_outer_measure :=
-by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
-  outer_measure.restrict_trim h, μ.trimmed]
-
 /-- This lemma shows that `Inf` and `restrict` commute for measures. -/
 lemma restrict_Inf_eq_Inf_restrict {m0 : measurable_space α} {m : set (measure α)}
   (hm : m.nonempty) (ht : measurable_set t) :
@@ -985,17 +984,6 @@ begin
     ← outer_measure.restrict_Inf_eq_Inf_restrict _ (hm.image _),
     outer_measure.restrict_apply]
 end
-
-/-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
-the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
-`measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
-lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
-by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
-      outer_measure.restrict_apply s t _, coe_to_outer_measure]
-
-lemma restrict_eq_self_of_subset_of_measurable (hs : measurable_set s) (t_subset : t ⊆ s) :
-  μ.restrict s t = μ t :=
-by rw [restrict_apply' hs, set.inter_eq_self_of_subset_left t_subset]
 
 /-! ### Extensionality results -/
 
@@ -1448,11 +1436,7 @@ by simp only [mem_ae_iff, map_apply hf hs.compl, preimage_compl]
 
 lemma mem_ae_of_mem_ae_map {f : α → β} (hf : measurable f) {s : set β} (hs : s ∈ (map f μ).ae) :
   f ⁻¹' s ∈ μ.ae :=
-begin
-  apply le_antisymm _ bot_le,
-  calc μ (f ⁻¹' sᶜ) ≤ (map f μ) sᶜ : le_map_apply hf sᶜ
-  ... = 0 : hs
-end
+(tendsto_ae_map hf).eventually hs
 
 lemma ae_map_iff {f : α → β} (hf : measurable f) {p : β → Prop} (hp : measurable_set {x | p x}) :
   (∀ᵐ y ∂ (map f μ), p y) ↔ ∀ᵐ x ∂ μ, p (f x) :=
@@ -1508,17 +1492,16 @@ lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst
   (∀ᵐ x ∂(μ.restrict s), p x) :=
 h.filter_mono (ae_mono $ measure.restrict_mono hst (le_refl μ))
 
-lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} (ht_meas : measurable_set t) {p : α → Prop}
+lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} {p : α → Prop}
   (ht : ∀ᵐ x ∂(μ.restrict t), p x) (htc : ∀ᵐ x ∂(μ.restrict tᶜ), p x) :
   ∀ᵐ x ∂μ, p x :=
-begin
-  rw ae_restrict_iff' ht_meas at ht,
-  rw ae_restrict_iff' ht_meas.compl at htc,
-  refine ht.mp (htc.mono (λ x hx1 hx2, _)),
-  by_cases hxt : x ∈ t,
-  { exact hx2 hxt, },
-  { exact hx1 hxt, },
-end
+nonpos_iff_eq_zero.1 $
+calc μ {x | ¬p x} = μ ({x | ¬p x} ∩ t ∪ {x | ¬p x} ∩ tᶜ) :
+  by rw [← inter_union_distrib_left, union_compl_self, inter_univ]
+... ≤ μ ({x | ¬p x} ∩ t) + μ ({x | ¬p x} ∩ tᶜ) : measure_union_le _ _
+... ≤ μ.restrict t {x | ¬p x} + μ.restrict tᶜ {x | ¬p x} :
+  add_le_add (le_restrict_apply _ _) (le_restrict_apply _ _)
+... = 0 : by rw [ae_iff.1 ht, ae_iff.1 htc, zero_add]
 
 lemma mem_map_restrict_ae_iff {β} {s : set α} {t : set β} {f : α → β} (hs : measurable_set s) :
   t ∈ filter.map f (μ.restrict s).ae ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0 :=
@@ -3062,9 +3045,7 @@ begin
       (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
     have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
       (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
-    have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
-      ae_add_measure_iff.2 ⟨A, B⟩,
-    simpa only [hs, measure.restrict_add_restrict_compl] using this },
+    exact ae_of_ae_restrict_of_ae_restrict_compl A B },
 end
 
 @[measurability]

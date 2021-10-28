@@ -358,7 +358,7 @@ begin
       subtype.range_coe, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
 end
 
-lemma measurable_of_measurable_restrict_of_measurable_restrict_compl {f : α → β} {s : set α}
+lemma measurable_of_restrict_of_restrict_compl {f : α → β} {s : set α}
   (hs : measurable_set s) (h₁ : measurable (restrict f s)) (h₂ : measurable (restrict f sᶜ)) :
   measurable f :=
 measurable_of_measurable_union_cover s sᶜ hs hs.compl (union_compl_self s).ge h₁ h₂
@@ -366,7 +366,7 @@ measurable_of_measurable_union_cover s sᶜ hs hs.compl (union_compl_self s).ge 
 lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurable f)
   {g : sᶜ → β} (hg : measurable g) (hs : measurable_set s) :
   measurable (λ x, if hx : x ∈ s then f ⟨x, hx⟩ else g ⟨x, hx⟩) :=
-measurable_of_measurable_restrict_of_measurable_restrict_compl hs (by simpa) (by simpa)
+measurable_of_restrict_of_restrict_compl hs (by simpa) (by simpa)
 
 instance {α} {p : α → Prop} [measurable_space α] [measurable_singleton_class α] :
   measurable_singleton_class (subtype p) :=
@@ -383,7 +383,7 @@ lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
   measurable f :=
 begin
   letI : fintype s := finite.fintype hs,
-  exact measurable_of_measurable_restrict_of_measurable_restrict_compl hs.measurable_set
+  exact measurable_of_restrict_of_restrict_compl hs.measurable_set
     (measurable_of_fintype _) hf
 end
 
@@ -737,7 +737,7 @@ lemma measurable_extend (hf : measurable_embedding f) {g : α → γ} {g' : β �
   (hg : measurable g) (hg' : measurable g') :
   measurable (extend f g g') :=
 begin
-  refine measurable_of_measurable_restrict_of_measurable_restrict_compl hf.measurable_set_range _ _,
+  refine measurable_of_restrict_of_restrict_compl hf.measurable_set_range _ _,
   { rw restrict_extend_range,
     simpa only [range_splitting] using hg.comp hf.measurable_range_splitting },
   { rw restrict_extend_compl_range, exact hg'.comp measurable_subtype_coe }

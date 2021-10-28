@@ -2391,7 +2391,8 @@ calc comap f μ s = comap f μ (f ⁻¹' (f '' s)) : by rw hf.injective.preimage
 lemma ae_map_iff {p : β → Prop} {μ : measure α} : (∀ᵐ x ∂(map f μ), p x) ↔ ∀ᵐ x ∂μ, p (f x) :=
 by simp only [ae_iff, hf.map_apply, preimage_set_of_eq]
 
-lemma restrict_map (μ : measure α) (s : set β) : (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
+lemma restrict_map (μ : measure α) (s : set β) :
+  (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
 measure.ext $ λ t ht, by simp [hf.map_apply, ht, hf.measurable ht]
 
 end measurable_embedding

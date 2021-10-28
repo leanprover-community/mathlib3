@@ -1819,6 +1819,12 @@ section is_self_adjoint
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
 def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
 
+/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
+`bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
+lemma is_self_adjoint_iff_bilin_form (T : F →ₗ[ℝ] F) :
+  is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
+by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
+
 lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
 by rw [hT x y, inner_conj_sym]

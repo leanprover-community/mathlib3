@@ -22,8 +22,8 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C]
-variables {X : Top.{v}}
+variables {C : Type u} [category.{v} C] {X : Top.{v}}
+
 structure opens_index_struct :=
 (ι : Type v)
 (f : ι → opens X)
@@ -35,6 +35,8 @@ def is_basis_range := is_basis (set.range (B.f))
 namespace presheaf
 
 namespace sheaf_condition
+
+namespace basis_le
 
 def basis_le : Type v := { i // B.f i ≤ U }
 
@@ -123,7 +125,7 @@ begin
   use c.X, refine ⟨λW, c.π.app (W.unop.2.some) ≫ F.map W.unop.2.some_spec.hom.op, _⟩,
   intros W₁ W₂ _, apply mono_to_basis_le_of_sheaf B W₂.unop.1 F hB hF,
   intro i, dsimp, simp only [category.id_comp, category.assoc, ←F.map_comp, ←op_comp],
-  rw [cone_opens_w, cone_opens_w],
+  iterate 2 {rw cone_opens_w},
   exact i.2.trans (W₂.unop.2.some_spec.trans W₂.unop.2.some.2),
 end
 
@@ -144,23 +146,25 @@ begin
     rwa ← lim_basis_le_of_sheaf.fac B F hB hF U hU c i at h,
 end
 
+namespace sheaf_hom
+
 variables {B F G}
-structure sheaf_hom.uniq_extn_struct (α : idf B ⋙ F ⟶ idf B ⋙ G) :=
+structure uniq_extn_struct (α : idf B ⋙ F ⟶ idf B ⋙ G) :=
   (lift : F ⟶ G)
   (fac : whisker_left (idf B) lift = α)
-  (uniq : ∀ β, whisker_left (idf B) β = α → β = lift)
+  (uniq : ∀ {β}, whisker_left (idf B) β = α → β = lift)
 
-theorem sheaf_hom.uniq_extn_from_basis (hG : G.is_sheaf_opens_le_cover)
+theorem uniq_extn_from_basis (hG : G.is_sheaf_opens_le_cover)
   (hB : is_basis_range B) (α : idf B ⋙ F ⟶ idf B ⋙ G) :
-  sheaf_hom.uniq_extn_struct α :=
+  uniq_extn_struct α :=
 begin
   have hl := lim_basis_le_of_sheaf B G hB hG,
   let c : Π U, cone (bli B U ⋙ G) :=
     λ U, let α' := whisker_left (bl2b B U) α in
     ⟨F.obj (op U), (basis_le_presheaf_cone B U F).π ≫ α'⟩,
-    /- strange error when α' is inlined: type mismatch at application
-       whisker_left (bl2b B U).op, term (bl2b B U).op has type ... ⥤ (B.ι)ᵒᵖ
-               but is expected to have type {X_1 // B.f X_1 ≤ U}ᵒᵖ ⥤ (opens ↥X)ᵒᵖ -/
+/- strange error when α' is inlined: type mismatch at application
+   whisker_left (bl2b B U).op, term (bl2b B U).op has type ... ⥤ (B.ι)ᵒᵖ
+           but is expected to have type {X_1 // B.f X_1 ≤ U}ᵒᵖ ⥤ (opens ↥X)ᵒᵖ -/
   fsplit, fsplit, exact λ U, (hl U.unop).lift (c U.unop),
   { intros U V f,
     apply mono_to_basis_le_of_sheaf B V.unop G hB hG,
@@ -179,8 +183,37 @@ begin
     dsimp, rw ← h, dsimp, refl },
 end
 
+theorem ext (hG : G.is_sheaf_opens_le_cover) (hB : is_basis_range B) {β γ : F ⟶ G}
+  (h : whisker_left (idf B) β = whisker_left (idf B) γ) : β = γ :=
+by { rw (uniq_extn_from_basis hG hB _).uniq h,
+  exact ((uniq_extn_from_basis hG hB _).uniq rfl).symm }
+
+end sheaf_hom
+
+end basis_le
+
 end sheaf_condition
 
 end presheaf
+
+
+namespace sheaf
+
+open presheaf.sheaf_condition.basis_le
+
+variable [has_products C]
+
+private abbreviation idf := induced_functor (op ∘ B.f)
+
+theorem uniq_hom_extn_from_basis (hG : G.is_sheaf) (hB : is_basis_range B)
+  (α : idf B ⋙ F ⟶ idf B ⋙ G) : sheaf_hom.uniq_extn_struct α :=
+sheaf_hom.uniq_extn_from_basis
+  ((presheaf.is_sheaf_iff_is_sheaf_opens_le_cover _).1 hG) hB α
+
+theorem hom_ext (hG : G.is_sheaf) (hB : is_basis_range B) (β γ : F ⟶ G)
+  (h : whisker_left (idf B) β = whisker_left (idf B) γ) : β = γ :=
+sheaf_hom.ext ((presheaf.is_sheaf_iff_is_sheaf_opens_le_cover _).1 hG) hB h
+
+end sheaf
 
 end Top

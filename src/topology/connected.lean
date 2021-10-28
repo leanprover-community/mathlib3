@@ -134,16 +134,15 @@ begin
     Hs.is_preconnected Ht.is_preconnected
 end
 
-/-- 
-The union Union s of an increasing mapping s of preconnected sets 
+/--
+The union Union s of an increasing mapping s of preconnected sets
 is preconnected
 -/
 variable ι : Type _
 variables [ linear_order ι ]
 
-theorem is_preconnected.Union_of_directed   { s : ι → set α }  
-  (H : ∀ n: ι, is_preconnected (s n))
-  (K : ∀ m n: ι, m ≤ n → s m ⊆ s n) : 
+theorem is_preconnected.Union_of_monotone   { s : ι → set α }  (K : monotone s)
+  (H : ∀ n: ι, is_preconnected (s n)) :
   is_preconnected ( Union s ) :=
 begin
   /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
@@ -153,7 +152,7 @@ begin
   obtain ⟨ b, Kvb ⟩ : ∃ b, b ∈ Union s ∩ v, from Kv,
   obtain ⟨ m, Kam ⟩ : ∃ m, a ∈ s m , from mem_Union.1 Kua.left,
   obtain ⟨ n, Kbn ⟩ : ∃ n, b ∈ s n , from mem_Union.1 Kvb.left,
-  
+
   revert a b u v,
   /- WLOG, it suffices to treat the case where m ≤ n -/
   wlog hmn : m ≤ n := le_total m n using [m n, n m] tactic.skip,
@@ -161,7 +160,7 @@ begin
   intros a b u v hu hv , intro Huv, intros Ku Kv, intros Kua Kvb,
   intros Kam Kbn,
 
-  have Kan : a ∈ s n := mem_of_mem_of_subset Kam ((K m n) hmn), 
+  have Kan : a ∈ s n := mem_of_mem_of_subset Kam (K hmn),
 
   have Hnuv : ((s n) ∩ (u ∩ v)).nonempty :=
   begin
@@ -182,44 +181,44 @@ begin
   intros a b u v hu hv Huv Ku Kv Kau Kbv Kam Kbn,
   rw union_comm at Huv,
   rw inter_comm u v,
-  exact this b a v u hv hu Huv Kv Ku Kbv Kau Kbn Kam, 
+  exact this b a v u hv hu Huv Kv Ku Kbv Kau Kbn Kam,
 end
 
-/- I would like to define filtered, more or less as in 
+/- I would like to define filtered, more or less as in
  filtered (S : set (set Type*)) (s t) := s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s
  so that the argument K of the next theorem comes out as something like K: filtered S,
  but I don't know how to do it… (nor whether this is worth being done) -/
 
 /-- The filtered sUnion of a set S of preconnected subsets is preconnected -/
-theorem is_preconnected.filtered_sUnion_of { S : set (set α) }  
-  (H : ∀ s, s ∈  S →  is_preconnected s )
-  (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s) : 
+theorem is_preconnected.filtered_sUnion_of { S : set (set α) }
+  (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s)
+  (H : ∀ s, s ∈  S →  is_preconnected s ) :
   is_preconnected ( sUnion S ) :=
 begin
   /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
   rw is_preconnected,
   intros u v hu hv Huv Ku Kv ,
-  
-  obtain ⟨ a, KaS, hau ⟩ := Ku, 
+
+  obtain ⟨ a, KaS, hau ⟩ := Ku,
   simp at KaS,
   obtain ⟨ s, hsS, has⟩ := KaS,
 
   obtain ⟨ b, KbS, hbv ⟩ := Kv,
-  simp at KbS, 
+  simp at KbS,
   obtain ⟨ t, htS, hbt ⟩ := KbS,
-  
+
   revert a b u v,
   /- WLOG, we will only prove the case where s ⊆ t -/
   wlog Hst: s ⊆ t := K s t hsS htS using [s t, t s] tactic.skip,
 
   intros a b u v hu hv, intro Huv,
   intros hau has hbv hbt,
-  
+
   have hat : a ∈ t := mem_of_mem_of_subset has Hst,
 
   have Hnuv : (t ∩ (u ∩ v)).nonempty :=
   begin
-      
+
       apply (H t htS), apply hu, apply hv,
       exact has_subset.subset.trans (subset_sUnion_of_mem htS) Huv,
       exact nonempty_of_mem (mem_inter hat hau),
@@ -242,56 +241,55 @@ begin
 end
 
 
-
-/-- 
+/--
 If s = (s_j)_(j ∈ ℕ) is a family of (pre)connected sets
 such that sj meets s(j+1) for all j, then union s is (pre)connected. -/
 
 /- I would have liked to define the analogue for finite sequences,
 but I can't guess the type of the theorem,
 because j ∈ { j:ℕ | j ≤ n} ∧ j < n does'nt immediately
-imply that j.succ ∈ { j: ℕ | j ≤ n} 
+imply that j.succ ∈ { j: ℕ | j ≤ n}
 -/
-theorem is_preconnected.union_of_chain { s : ℕ → set α }  
+
+theorem is_preconnected.union_of_chain { s : ℕ → set α }
   (H : ∀ n: ℕ, is_preconnected (s n))
-  (K : ∀ n: ℕ, (s n ∩ s(n.succ)).nonempty) : 
+  (K : ∀ n: ℕ, (s n ∩ s(n.succ)).nonempty) :
   is_preconnected ( Union s ) :=
 begin
-  set Us : ℕ → set α := λ n, Union (set.restrict s { j : ℕ | j ≤ n} ),
-  
+  set Us : ℕ → set α := λ n, partial_sups s n,
+
   /- Each member of the increasing union is preconnected -/
   have Pn : ∀ n : ℕ, is_preconnected (Us n) :=
   begin
     /- proof by induction -/
     intro n, induction n with n hn,
     /- initialization -/
-    have  : Us 0 = s 0 := increasing_Union.init s,
-    rwa this,
+    have  : Us 0 = s 0 := partial_sups_zero s,
+    rw this,
     exact (H 0),
 
     /- inductive step -/
-    have :  Us n ∪ (s n.succ)  = Us n.succ := increasing_Union.ind s n,
+    have :  Us n ∪ (s n.succ)  = Us n.succ := partial_sups_succ s n,
     rw ← this,
     have : ((Us n) ∩ (s n.succ)).nonempty :=
     begin
       obtain ⟨ x, hx ⟩ := K n,
       apply exists.intro x,
       split,
-      apply increasing_Union.subset_of s n n rfl.ge hx.left,
-      exact hx.right,
+      apply le_partial_sups s,
+      exact hx.left, exact hx.right,
     end,
     obtain ⟨ x, hx ⟩ := K n,
-    exact is_preconnected.union x
-      (increasing_Union.subset_of s n n rfl.ge hx.left)
-      hx.right hn (H n.succ),
+    apply is_preconnected.union x,
+    apply le_partial_sups s n, exact hx.left,
+    exact hx.right,
+    exact hn, exact (H n.succ),
   end,
 
-  have Us_eq_Us : Union Us = Union s := 
-  begin apply increasing_Union.Union_of  , end,
+  have Us_eq_Us : Union Us = Union s := supr_partial_sups_eq s,
   rw ←Us_eq_Us,
 
-  exact is_preconnected.Union_of_directed ℕ Pn 
-    (increasing_Union.is_increasing s),
+  exact is_preconnected.Union_of_monotone ℕ ((partial_sups s).mono) Pn ,
 end
 
 

@@ -427,7 +427,7 @@ begin
 end
 
 /--
-The pushout cocone `(𝟙 X, 𝟙 X)` for the pair `(f, f)` is a limit if `f` is an epi. The converse is
+The pushout cocone `(𝟙 X, 𝟙 X)` for the pair `(f, f)` is a colimit if `f` is an epi. The converse is
 shown in `epi_of_is_colimit_mk_id_id`.
 -/
 def is_colimit_mk_id_id (f : X ⟶ Y) [epi f] :
@@ -746,11 +746,8 @@ is_colimit.cocone_point_unique_up_to_iso
 
 @[simp, reassoc] lemma inl_comp_pushout_symmetry_hom [has_pushout f g] :
   pushout.inl ≫ (pushout_symmetry f g).hom = pushout.inr :=
-begin
-  apply is_colimit.comp_cocone_point_unique_up_to_iso_hom,
-  apply pushout_cocone.flip_is_colimit,
-  exact pushout_is_pushout _ _
-end
+(colimit.is_colimit (span f g)).comp_cocone_point_unique_up_to_iso_hom
+  (pushout_cocone.flip_is_colimit (pushout_is_pushout g f)) _
 
 @[simp, reassoc] lemma inr_comp_pushout_symmetry_hom [has_pushout f g] :
   pushout.inr ≫ (pushout_symmetry f g).hom = pushout.inl :=
@@ -761,7 +758,7 @@ begin
 end
 
 @[simp, reassoc] lemma inl_comp_pushout_symmetry_inv [has_pushout f g] :
-  pushout.inl ≫ (pushout_symmetry f g).inv = pushout.inr := by { rw iso.comp_inv_eq, simp }
+  pushout.inl ≫ (pushout_symmetry f g).inv = pushout.inr := by simp [iso.comp_inv_eq]
 
 @[simp, reassoc] lemma inr_comp_pushout_symmetry_inv [has_pushout f g] :
   pushout.inr ≫ (pushout_symmetry f g).inv = pushout.inl := by { rw iso.comp_inv_eq, simp }
@@ -769,7 +766,9 @@ end
 end pushout_symmetry
 
 section pullback_left_iso
+
 open walking_cospan
+
 variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso f]
 
 /-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
@@ -816,7 +815,9 @@ end
 end pullback_left_iso
 
 section pullback_right_iso
+
 open walking_cospan
+
 variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso g]
 
 /-- If `g : Y ⟶ Z` is iso, then `X ×[Z] Y ≅ X`. This is the explicit limit cone. -/
@@ -863,7 +864,9 @@ end
 end pullback_right_iso
 
 section pushout_left_iso
+
 open walking_span
+
 variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso f]
 
 /-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
@@ -888,10 +891,10 @@ pushout_cocone.mk (inv f ≫ g) (𝟙 _) $ by simp
 @[simp] lemma pushout_cocone_of_left_iso_ι_app_right :
   (pushout_cocone_of_left_iso f g).ι.app right = 𝟙 _ := rfl
 
-/-- Verify that the constructed limit cocone is indeed a limit. -/
+/-- Verify that the constructed limit cocone is indeed a colimit. -/
 def pushout_cocone_of_left_iso_is_limit :
   is_colimit (pushout_cocone_of_left_iso f g) :=
-pushout_cocone.is_colimit_aux' _ (λ s, ⟨s.inr, by simp [←s.condition]⟩)
+pushout_cocone.is_colimit_aux' _ (λ s, ⟨s.inr, by simp [← s.condition]⟩)
 
 lemma has_pushout_of_left_iso : has_pushout f g :=
 ⟨⟨⟨_, pushout_cocone_of_left_iso_is_limit f g⟩⟩⟩
@@ -910,7 +913,9 @@ end
 end pushout_left_iso
 
 section pushout_right_iso
+
 open walking_span
+
 variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso g]
 
 /-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
@@ -935,7 +940,7 @@ pushout_cocone.mk (𝟙 _) (inv g ≫ f)  $ by simp
 @[simp] lemma pushout_cocone_of_right_iso_ι_app_right :
   (pushout_cocone_of_right_iso f g).ι.app right = inv g ≫ f := rfl
 
-/-- Verify that the constructed limit cocone is indeed a limit. -/
+/-- Verify that the constructed limit cocone is indeed a colimit. -/
 def pushout_cocone_of_right_iso_is_limit :
   is_colimit (pushout_cocone_of_right_iso f g) :=
 pushout_cocone.is_colimit_aux' _ (λ s, ⟨s.inl, by simp [←s.condition]⟩)
@@ -957,7 +962,9 @@ end
 end pushout_right_iso
 
 section
+
 open walking_cospan
+
 variable (f : X ⟶ Y)
 
 instance has_kernel_pair_of_mono [mono f] : has_pullback f f :=
@@ -980,12 +987,14 @@ begin
 end
 
 instance snd_iso_of_mono_eq [mono f] : is_iso (pullback.snd : pullback f f ⟶ _) :=
-by { rw ←fst_eq_snd_of_mono_eq, apply_instance }
+by { rw ← fst_eq_snd_of_mono_eq, apply_instance }
 
 end
 
 section
+
 open walking_span
+
 variable (f : X ⟶ Y)
 
 instance has_cokernel_pair_of_epi [epi f] : has_pushout f f :=
@@ -1008,7 +1017,7 @@ begin
 end
 
 instance inr_iso_of_epi_eq [epi f] : is_iso (pushout.inr : _ ⟶ pushout f f) :=
-by { rw ←inl_eq_inr_of_epi_eq, apply_instance }
+by { rw ← inl_eq_inr_of_epi_eq, apply_instance }
 
 end
 

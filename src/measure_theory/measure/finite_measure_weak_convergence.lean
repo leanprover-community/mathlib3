@@ -165,6 +165,7 @@ probability measures (i.e., their total mass is one). -/
 def probability_measure (α : Type*) [measurable_space α] : Type* :=
 {μ : finite_measure α // μ univ = 1}
 
+/-- Get a `probability_measure` from a measure which has the property `is_probability_measure`. -/
 def measure.to_probability_measure {m : measurable_space α} (μ : measure α)
   [is_probability_measure μ] :
   probability_measure α :=
@@ -190,8 +191,6 @@ include m
 
 instance : has_coe_to_fun (probability_measure α) (λ _, set α → ℝ≥0) :=
 ⟨λ μ s, (μ : finite_measure α) s⟩
-
-lemma coe_fn_to_finite_measure (ν : probability_measure α) : ⇑(ν : finite_measure α) = ⇑ν := rfl
 
 lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : probability_measure α) :
   ⇑ν = λ s, ((ν : measure α) s).to_nnreal := rfl

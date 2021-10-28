@@ -376,6 +376,8 @@ begin
     refine ⟨λ _ h, h, λ y hy, prime_spectrum.ext.2 (h.eq_of_le y.2.ne_top hy).symm⟩ }
 end
 
+-- TODO: minimal primes are generic points of irreducible components
+
 lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
   zero_locus (vanishing_ideal t : set R) = closure t :=
 begin
@@ -577,9 +579,6 @@ by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
     mem_zero_locus, vanishing_ideal_singleton, set_like.coe_subset_coe]
 
 end order
-
--- TODO : maximal ideals are closed points in the prime spectrum of any ring
--- minimal primes are generic points of irreducible components
 
 end prime_spectrum
 

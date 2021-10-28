@@ -1846,6 +1846,8 @@ funext $ λ i, rfl
 @[simp] lemma range_factorization_coe (f : ι → β) (a : ι) :
   (range_factorization f a : β) = f a := rfl
 
+@[simp] lemma coe_comp_range_factorization (f : ι → β) : coe ∘ range_factorization f = f := rfl
+
 lemma surjective_onto_range : surjective (range_factorization f) :=
 λ ⟨_, ⟨i, rfl⟩⟩, ⟨i, rfl⟩
 
@@ -1915,6 +1917,16 @@ lemma left_inverse_range_splitting (f : α → β) :
 
 lemma range_splitting_injective (f : α → β) : injective (range_splitting f) :=
 (left_inverse_range_splitting f).injective
+
+lemma right_inverse_range_splitting {f : α → β} (h : injective f) :
+  right_inverse (range_factorization f) (range_splitting f) :=
+(left_inverse_range_splitting f).right_inverse_of_injective $
+  λ x y hxy, h $ subtype.ext_iff.1 hxy
+
+lemma preimage_range_splitting {f : α → β} (hf : injective f) :
+  preimage (range_splitting f) = image (range_factorization f) :=
+(image_eq_preimage_of_inverse (right_inverse_range_splitting hf)
+  (left_inverse_range_splitting f)).symm
 
 lemma is_compl_range_some_none (α : Type*) :
   is_compl (range (some : α → option α)) {none} :=

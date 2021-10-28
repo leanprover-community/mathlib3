@@ -202,7 +202,7 @@ namespace sheaf
 
 open presheaf.sheaf_condition.basis_le
 
-variables [has_products C]
+variables {F G} [has_products C]
 
 private abbreviation idf := induced_functor (op ∘ B.f)
 

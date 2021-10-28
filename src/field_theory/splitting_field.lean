@@ -576,18 +576,29 @@ nat.rec_on n (λ K _ _ _, ‹field K›) $ λ n ih K _ f hf, ih _
 instance inhabited {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n) :
   inhabited (splitting_field_aux n f hfn) := ⟨37⟩
 
-instance algebra (n : ℕ) : Π {K : Type u} [field K], by exactI
-  Π {f : polynomial K} (hfn : f.nat_degree = n), algebra K (splitting_field_aux n f hfn) :=
-nat.rec_on n (λ K _ _ _, by exactI algebra.id K) $ λ n ih K _ f hfn,
-by exactI @@restrict_scalars.algebra _ _ _ _ _ (ih _) _ _
+instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_ring R] [field K],
+  by exactI Π [algebra R K] {f : polynomial K} (hfn : f.nat_degree = n),
+    algebra R (splitting_field_aux n f hfn) :=
+nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $ λ n ih R K Rr Kf RKa f hfn,
+by exactI ih R (nat_degree_remove_factor' hfn)
+
 
 instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  algebra (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-splitting_field_aux.algebra n _
+  algebra (adjoin_root f.factor) (splitting_field_aux n.succ f hfn) :=
+by exact (splitting_field_aux.algebra n (adjoin_root (factor f)) _ : _)
 
-instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
-  algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-splitting_field_aux.algebra (n+1) hfn
+variables {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1)
+
+def bad_type : Type v :=
+algebra K (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn))
+
+instance algebra'' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) : bad_type hfn :=
+begin
+  dunfold bad_type,  --timeout!
+  sorry,
+end
+
+#exit
 
 instance algebra''' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   algebra (adjoin_root f.factor)

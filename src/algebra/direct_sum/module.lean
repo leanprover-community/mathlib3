@@ -201,7 +201,7 @@ direct_sum.to_module R ι M (λ i, (A i).subtype)
 
 @[simp] lemma submodule_coe_of {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
   (A : ι → submodule R M) (i : ι) (x : A i) :
-direct_sum.submodule_coe A (direct_sum.of (λ i, A i) i x) = x :=
+  direct_sum.submodule_coe A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_add_monoid_of _ _ _
 
 

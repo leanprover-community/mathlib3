@@ -738,6 +738,12 @@ ext $ λ _, mem_union.trans $ or_self _
 
 instance : is_idempotent (finset α) (∪) := ⟨union_idempotent⟩
 
+theorem union_subset_left {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₁ ⊆ s₃ :=
+finset.subset.trans (finset.subset_union_left _ _) h
+
+theorem union_subset_right {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₂ ⊆ s₃ :=
+finset.subset.trans (finset.subset_union_right _ _) h
+
 theorem union_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
 ext $ λ _, by simp only [mem_union, or.left_comm]
 

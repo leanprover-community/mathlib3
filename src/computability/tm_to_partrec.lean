@@ -1547,24 +1547,20 @@ begin
   exact supports_union.2 ⟨tr_stmts₁_supports H₁ H₂.1, H₃ H₂.2⟩,
 end
 
-theorem subset_left {α} [decidable_eq α] {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₁ ⊆ s₃ :=
-finset.subset.trans (finset.subset_union_left _ _) h
-
-theorem subset_right {α} [decidable_eq α] {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₂ ⊆ s₃ :=
-finset.subset.trans (finset.subset_union_right _ _) h
-
 theorem tr_normal_supports {S c k} (Hk : code_supp c k ⊆ S) : (tr_normal c k).supports S :=
 begin
   induction c generalizing k; simp [Λ'.supports, head],
-  case zero' { exact subset_right Hk },
-  case succ { intro, split_ifs; exact subset_right Hk },
-  case tail { exact subset_right Hk },
-  case cons : f fs IHf IHfs { apply IHf, rw code_supp_cons at Hk, exact subset_right Hk },
-  case comp : f g IHf IHg { apply IHg, rw code_supp_comp at Hk, exact subset_right Hk },
+  case zero' { exact finset.union_subset_right Hk },
+  case succ { intro, split_ifs; exact finset.union_subset_right Hk },
+  case tail { exact finset.union_subset_right Hk },
+  case cons : f fs IHf IHfs {
+    apply IHf, rw code_supp_cons at Hk, exact finset.union_subset_right Hk },
+  case comp : f g IHf IHg {
+    apply IHg, rw code_supp_comp at Hk, exact finset.union_subset_right Hk },
   case case : f g IHf IHg {
     simp only [code_supp_case, finset.union_subset_iff] at Hk,
     exact ⟨IHf Hk.2.1, IHg Hk.2.2⟩ },
-  case fix : f IHf { apply IHf, rw code_supp_fix at Hk, exact subset_right Hk },
+  case fix : f IHf { apply IHf, rw code_supp_fix at Hk, exact finset.union_subset_right Hk },
 end
 
 theorem code_supp'_supports {S c k}
@@ -1576,36 +1572,37 @@ begin
       (finset.subset.trans (code_supp_self _ _) H) },
   case cons : f fs IHf IHfs {
     have H' := H, simp only [code_supp_cons, finset.union_subset_iff] at H',
-    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    refine tr_stmts₁_supports' (tr_normal_supports H) (finset.union_subset_left H) (λ h, _),
     refine supports_union.2 ⟨IHf H'.2, _⟩,
-    refine tr_stmts₁_supports' (tr_normal_supports _) (subset_right h) (λ h, _),
+    refine tr_stmts₁_supports' (tr_normal_supports _) (finset.union_subset_right h) (λ h, _),
     { simp only [code_supp, finset.union_subset_iff, cont_supp] at h H ⊢,
       exact ⟨h.2.2.1, h.2.2.2, H.2⟩ },
     refine supports_union.2 ⟨IHfs _, _⟩,
     { rw [code_supp, cont_supp_cons₁] at H',
-      exact subset_right (subset_right H'.2) },
-    exact tr_stmts₁_supports (head_supports $ subset_right H) (subset_right h) },
+      exact finset.union_subset_right (finset.union_subset_right H'.2) },
+    exact tr_stmts₁_supports (head_supports $ finset.union_subset_right H)
+      (finset.union_subset_right h) },
   case comp : f g IHf IHg {
-    have H' := H, rw [code_supp_comp] at H', have H' := subset_right H',
-    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    have H' := H, rw [code_supp_comp] at H', have H' := finset.union_subset_right H',
+    refine tr_stmts₁_supports' (tr_normal_supports H) (finset.union_subset_left H) (λ h, _),
     refine supports_union.2 ⟨IHg H', _⟩,
-    refine tr_stmts₁_supports' (tr_normal_supports _) (subset_right h) (λ h, _),
+    refine tr_stmts₁_supports' (tr_normal_supports _) (finset.union_subset_right h) (λ h, _),
     { simp only [code_supp', code_supp, finset.union_subset_iff, cont_supp] at h H ⊢,
       exact ⟨h.2.2, H.2⟩ },
-    exact IHf (subset_right H') },
+    exact IHf (finset.union_subset_right H') },
   case case : f g IHf IHg {
     have H' := H, simp only [code_supp_case, finset.union_subset_iff] at H',
-    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    refine tr_stmts₁_supports' (tr_normal_supports H) (finset.union_subset_left H) (λ h, _),
     exact supports_union.2 ⟨IHf H'.2.1, IHg H'.2.2⟩ },
   case fix : f IHf {
     have H' := H, simp only [code_supp_fix, finset.union_subset_iff] at H',
-    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    refine tr_stmts₁_supports' (tr_normal_supports H) (finset.union_subset_left H) (λ h, _),
     refine supports_union.2 ⟨IHf H'.2, _⟩,
-    refine tr_stmts₁_supports' (tr_normal_supports _) (subset_right h) (λ h, _),
+    refine tr_stmts₁_supports' (tr_normal_supports _) (finset.union_subset_right h) (λ h, _),
     { simp only [code_supp', code_supp, finset.union_subset_iff, cont_supp,
         tr_stmts₁, finset.insert_subset] at h H ⊢,
       exact ⟨h.1, ⟨H.1.1, h⟩, H.2⟩ },
-    exact supports_singleton.2 (ret_supports $ subset_right H) },
+    exact supports_singleton.2 (ret_supports $ finset.union_subset_right H) },
 end
 
 theorem cont_supp_supports {S k}
@@ -1614,25 +1611,25 @@ begin
   induction k,
   { simp [cont_supp_halt, supports] },
   case cons₁ : f k IH {
-    have H₁ := H, rw [cont_supp_cons₁] at H₁, have H₂ := subset_right H₁,
+    have H₁ := H, rw [cont_supp_cons₁] at H₁, have H₂ := finset.union_subset_right H₁,
     refine tr_stmts₁_supports' (tr_normal_supports H₂) H₁ (λ h, _),
     refine supports_union.2 ⟨code_supp'_supports H₂, _⟩,
     simp only [code_supp, cont_supp_cons₂, finset.union_subset_iff] at H₂,
-    exact tr_stmts₁_supports' (head_supports H₂.2.2) (subset_right h) IH },
+    exact tr_stmts₁_supports' (head_supports H₂.2.2) (finset.union_subset_right h) IH },
   case cons₂ : k IH {
     have H' := H, rw [cont_supp_cons₂] at H',
-    exact tr_stmts₁_supports' (head_supports $ subset_right H') H' IH },
+    exact tr_stmts₁_supports' (head_supports $ finset.union_subset_right H') H' IH },
   case comp : f k IH {
-    have H' := H, rw [cont_supp_comp] at H', have H₂ := subset_right H',
+    have H' := H, rw [cont_supp_comp] at H', have H₂ := finset.union_subset_right H',
     exact supports_union.2 ⟨code_supp'_supports H', IH H₂⟩ },
   case fix : f k IH {
     rw cont_supp at H,
-    exact supports_union.2 ⟨code_supp'_supports H, IH (subset_right H)⟩ }
+    exact supports_union.2 ⟨code_supp'_supports H, IH (finset.union_subset_right H)⟩ }
 end
 
 theorem code_supp_supports {S c k}
   (H : code_supp c k ⊆ S) : supports (code_supp c k) S :=
-supports_union.2 ⟨code_supp'_supports H, cont_supp_supports (subset_right H)⟩
+supports_union.2 ⟨code_supp'_supports H, cont_supp_supports (finset.union_subset_right H)⟩
 
 /-- The set `code_supp c k` is a finite set that witnesses the effective finiteness of the `tr`
 Turing machine. Starting from the initial state `tr_normal c k`, forward simulation uses only

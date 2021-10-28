@@ -527,7 +527,7 @@ begin
   { intros x hx,
     obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
     have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
-    simp [inner_sub_left, inner_smul_left, inner_smul_right, is_R_or_C.conj_div, mul_comm, hv,
+    simp [inner_sub_left, inner_smul_left, inner_smul_right, ring_equiv.map_div, mul_comm, hv,
       inner_product_space.conj_sym, hv] }
 end
 
@@ -1022,7 +1022,8 @@ lemma orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] :
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance [finite_dimensional 𝕜 E] : fintype (orthonormal_basis_index 𝕜 E) :=
-is_noetherian.fintype_basis_index (orthonormal_basis 𝕜 E)
+@is_noetherian.fintype_basis_index _ _ _ _ _ _ _
+  (is_noetherian.iff_fg.2 infer_instance) (orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}
 

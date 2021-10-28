@@ -167,6 +167,25 @@ begin
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
 end
 
+lemma is_topological_basis.is_open_map_iff {β} [topological_space β] {B : set (set α)}
+  (hB : is_topological_basis B) {f : α → β} :
+  is_open_map f ↔ ∀ s ∈ B, is_open (f '' s) :=
+begin
+  refine ⟨λ H o ho, H _ (hB.is_open ho), λ hf o ho, _⟩,
+  rw [hB.open_eq_sUnion' ho, sUnion_eq_Union, image_Union],
+  exact is_open_Union (λ s, hf s s.2.1)
+end
+
+lemma is_topological_basis.exists_nonempty_subset {B : set (set α)}
+  (hb : is_topological_basis B) {u : set α} (hu : u.nonempty) (ou : is_open u) :
+  ∃ v ∈ B, set.nonempty v ∧ v ⊆ u :=
+begin
+  cases hu with x hx,
+  rw [hb.open_eq_sUnion' ou, mem_sUnion] at hx,
+  rcases hx with ⟨v, hv, hxv⟩,
+  exact ⟨v, hv.1, ⟨x, hxv⟩, hv.2⟩
+end
+
 lemma is_topological_basis_opens : is_topological_basis { U : set α | is_open U } :=
 is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
 
@@ -395,6 +414,36 @@ let ⟨t, htc, htd⟩ := exists_countable_dense s
 in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _, htc.image coe,
   hs.dense_range_coe.dense_image continuous_subtype_val htd⟩
 
+/-- Let `s` be a dense set in a topological space `α` with partial order structure. If `s` is a
+separable space (e.g., if `α` has a second countable topology), then there exists a countable
+dense subset `t ⊆ s` such that `t` contains bottom/top element of `α` when they exist and belong
+to `s`. -/
+lemma dense.exists_countable_dense_subset_bot_top {α : Type*} [topological_space α]
+  [partial_order α] {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∈ s → x ∈ t) ∧
+    (∀ x, is_top x → x ∈ s → x ∈ t) :=
+begin
+  rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
+  refine ⟨(t ∪ ({x | is_bot x} ∪ {x | is_top x})) ∩ s, _, _, _, _, _⟩,
+  exacts [inter_subset_right _ _,
+    (htc.union ((countable_is_bot α).union (countable_is_top α))).mono (inter_subset_left _ _),
+    htd.mono (subset_inter (subset_union_left _ _) hts),
+    λ x hx hxs, ⟨or.inr $ or.inl hx, hxs⟩, λ x hx hxs, ⟨or.inr $ or.inr hx, hxs⟩]
+end
+
+instance separable_space_univ {α : Type*} [topological_space α] [separable_space α] :
+  separable_space (univ : set α) :=
+(equiv.set.univ α).symm.surjective.dense_range.separable_space
+  (continuous_subtype_mk _ continuous_id)
+
+/-- If `α` is a separable topological space with a partial order, then there exists a countable
+dense set `s : set α` that contains those of both bottom and top elements of `α` that actually
+exist. -/
+lemma exists_countable_dense_bot_top (α : Type*) [topological_space α] [separable_space α]
+  [partial_order α] :
+  ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∈ s) ∧ (∀ x, is_top x → x ∈ s) :=
+by simpa using dense_univ.exists_countable_dense_subset_bot_top
+
 namespace topological_space
 universe u
 variables (α : Type u) [t : topological_space α]
@@ -406,6 +455,8 @@ include t
 class first_countable_topology : Prop :=
 (nhds_generated_countable : ∀a:α, (𝓝 a).is_countably_generated)
 
+attribute [instance] first_countable_topology.nhds_generated_countable
+
 namespace first_countable_topology
 variable {α}
 
@@ -414,19 +465,15 @@ is the limit of some subsequence. -/
 lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α}
   (hx : map_cluster_pt x at_top u) :
   ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
-(nhds_generated_countable x).subseq_tendsto hx
+subseq_tendsto_of_ne_bot hx
 
 end first_countable_topology
 
 variables {α}
 
-lemma is_countably_generated_nhds [first_countable_topology α] (x : α) :
-  is_countably_generated (𝓝 x) :=
-first_countable_topology.nhds_generated_countable x
-
-lemma is_countably_generated_nhds_within [first_countable_topology α] (x : α) (s : set α) :
+instance is_countably_generated_nhds_within (x : α) [is_countably_generated (𝓝 x)] (s : set α) :
   is_countably_generated (𝓝[s] x) :=
-(is_countably_generated_nhds x).inf_principal s
+inf.is_countably_generated _ _
 
 variable (α)
 

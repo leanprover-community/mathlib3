@@ -762,7 +762,7 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finite_dimensional K L :=
-is_noetherian.iff_fg.2 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
+⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }

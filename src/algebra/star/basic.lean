@@ -106,9 +106,9 @@ op_injective $
 op_injective $
   ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_gpow [group R] [star_monoid R] (x : R) (z : ℤ) : star (x ^ z) = star x ^ z :=
+@[simp] lemma star_zpow [group R] [star_monoid R] (x : R) (z : ℤ) : star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_gpow x z).trans (op_gpow (star x) z).symm
+  ((star_mul_equiv : R ≃* Rᵒᵖ).to_monoid_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div [comm_group R] [star_monoid R] (x y : R) : star (x / y) = star x / star y :=
@@ -178,9 +178,9 @@ variables {R}
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
 
-@[simp] lemma star_gsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+@[simp] lemma star_zsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
   star (n • x) = n • star x :=
-(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_gsmul _ _
+(star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
 section
 open_locale big_operators
@@ -211,21 +211,36 @@ def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵒᵖ :=
   ..star_add_equiv.trans (opposite.op_add_equiv : R ≃+ Rᵒᵖ),
   ..star_mul_equiv}
 
-/-- `star` as a `ring_aut` for commutative `R`. -/
-@[simps apply]
+/-- `star` as a `ring_aut` for commutative `R`. This is used to denote complex
+conjugation, and is available under the notation `conj` in the locale `complex_conjugate` -/
 def star_ring_aut [comm_semiring R] [star_ring R] : ring_aut R :=
 { to_fun := star,
   ..star_add_equiv,
   ..star_mul_aut }
 
+localized "notation `conj` := star_ring_aut" in complex_conjugate
+
+/-- This is not a simp lemma, since we usually want simp to keep `star_ring_aut` bundled.
+ For example, for complex conjugation, we don't want simp to turn `conj x`
+ into the bare function `star x` automatically since most lemmas are about `conj x`. -/
+lemma star_ring_aut_apply [comm_semiring R] [star_ring R] {x : R} :
+  star_ring_aut x = star x := rfl
+
+@[simp] lemma star_ring_aut_self_apply [comm_semiring R] [star_ring R] (x : R) :
+  star_ring_aut (star_ring_aut x) = x := star_star x
+
+-- A more convenient name for complex conjugation
+alias star_ring_aut_self_apply ← complex.conj_conj
+alias star_ring_aut_self_apply ← is_R_or_C.conj_conj
+
 @[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
   ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_fpow [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+@[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_fpow x z).trans (op_gpow (star x) z).symm
+  ((star_ring_equiv : R ≃+* Rᵒᵖ).to_ring_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=

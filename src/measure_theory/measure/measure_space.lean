@@ -177,7 +177,7 @@ begin
 end
 
 lemma le_measure_diff : μ s₁ - μ s₂ ≤ μ (s₁ \ s₂) :=
-ennreal.sub_le_iff_le_add'.2 $
+tsub_le_iff_left.2 $
 calc μ s₁ ≤ μ (s₂ ∪ s₁)        : measure_mono (subset_union_right _ _)
       ... = μ (s₂ ∪ s₁ \ s₂)   : congr_arg μ union_diff_self.symm
       ... ≤ μ s₂ + μ (s₁ \ s₂) : measure_union_le _ _
@@ -191,7 +191,7 @@ end
 
 lemma measure_diff_le_iff_le_add (hs : measurable_set s) (ht : measurable_set t) (hst : s ⊆ t)
   (hs' : μ s ≠ ∞) {ε : ℝ≥0∞} : μ (t \ s) ≤ ε ↔ μ t ≤ μ s + ε :=
-by rwa [measure_diff hst ht hs hs', ennreal.sub_le_iff_le_add']
+by rwa [measure_diff hst ht hs hs', tsub_le_iff_left]
 
 lemma measure_eq_measure_of_null_diff {s t : set α}
   (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
@@ -341,7 +341,7 @@ begin
       use j,
       rw [← measure_diff hjk (h _) (h _) (this _ hjk)],
       exact measure_mono (diff_subset_diff_right hji) },
-    { rw [ennreal.sub_le_iff_le_add, ← measure_union disjoint_diff.symm ((h k).diff (h i)) (h i),
+    { rw [tsub_le_iff_right, ← measure_union disjoint_diff.symm ((h k).diff (h i)) (h i),
         set.union_comm],
       exact measure_mono (diff_subset_iff.1 $ subset.refl _) } },
   { exact λ i, (h k).diff (h i) },
@@ -401,7 +401,7 @@ begin
     (ennreal.tendsto_sum_nat_add (μ ∘ t) ht) (λ n, measure_Union_le _),
   intros n m hnm x,
   simp only [set.mem_Union],
-  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩
+  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, tsub_add_cancel_of_le hnm] using hi⟩
 end
 
 lemma measure_if {x : β} {t : set β} {s : set α} :
@@ -1117,6 +1117,16 @@ lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
   map f (dirac a) = dirac (f a) :=
 ext $ assume s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
 
+@[simp] lemma restrict_singleton (μ : measure α) (a : α) : μ.restrict {a} = μ {a} • dirac a :=
+begin
+  ext1 s hs,
+  by_cases ha : a ∈ s,
+  { have : s ∩ {a} = {a}, by simpa,
+    simp * },
+  { have : s ∩ {a} = ∅, from inter_singleton_eq_empty.2 ha,
+    simp * }
+end
+
 end dirac
 
 section sum
@@ -1629,9 +1639,9 @@ lemma measure_compl_le_add_of_le_add [is_finite_measure μ] (hs : measurable_set
   μ tᶜ ≤ μ sᶜ + ε :=
 begin
   rw [measure_compl ht (measure_ne_top μ _), measure_compl hs (measure_ne_top μ _),
-    ennreal.sub_le_iff_le_add],
+    tsub_le_iff_right],
   calc μ univ = μ univ - μ s + μ s :
-    (ennreal.sub_add_cancel_of_le $ measure_mono s.subset_univ).symm
+    (tsub_add_cancel_of_le $ measure_mono s.subset_univ).symm
   ... ≤ μ univ - μ s + (μ t + ε) : add_le_add_left h _
   ... = _ : by rw [add_right_comm, add_assoc]
 end
@@ -1761,7 +1771,7 @@ lemma _root_.set.subsingleton.measure_zero {α : Type*} {m : measurable_space α
   μ s = 0 :=
 hs.induction_on measure_empty measure_singleton
 
-@[simp] lemma measure.restrict_singleton' {a : α} :
+lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
 by simp only [measure_singleton, measure.restrict_eq_zero]
 
@@ -2270,7 +2280,7 @@ begin
     { ext t h_t_measurable_set,
       simp only [pi.add_apply, coe_add],
       rw [measure_theory.measure.of_measurable_apply _ h_t_measurable_set, add_comm,
-        ennreal.sub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
+        tsub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
       { apply @Inf_le (measure α) measure.complete_semilattice_Inf,
@@ -2286,7 +2296,7 @@ end
 lemma sub_add_cancel_of_le [is_finite_measure ν] (h₁ : ν ≤ μ) : μ - ν + ν = μ :=
 begin
   ext s h_s_meas,
-  rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],
+  rw [add_apply, sub_apply h_s_meas h₁, tsub_add_cancel_of_le (h₁ s h_s_meas)],
 end
 
 lemma sub_le : μ - ν ≤ μ :=

@@ -1412,7 +1412,7 @@ variables [has_sub α] [has_ordered_sub α]
 variables [is_total α (≤)]
 
 namespace add_le_cancellable
-protected lemma mul_sub (h : add_le_cancellable (a * c)) :
+protected lemma mul_tsub (h : add_le_cancellable (a * c)) :
   a * (b - c) = a * b - a * c :=
 begin
   cases total_of (≤) b c with hbc hcb,
@@ -1420,18 +1420,18 @@ begin
   { apply h.eq_tsub_of_add_eq, rw [← mul_add, tsub_add_cancel_of_le hcb] }
 end
 
-protected lemma sub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=
-by { simp only [mul_comm _ c] at *, exact h.mul_sub }
+protected lemma tsub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=
+by { simp only [mul_comm _ c] at *, exact h.mul_tsub }
 
 end add_le_cancellable
 
 variables [contravariant_class α α (+) (≤)]
 
-lemma mul_sub' (a b c : α) : a * (b - c) = a * b - a * c :=
-contravariant.add_le_cancellable.mul_sub
+lemma mul_tsub (a b c : α) : a * (b - c) = a * b - a * c :=
+contravariant.add_le_cancellable.mul_tsub
 
-lemma sub_mul' (a b c : α) : (a - b) * c = a * c - b * c :=
-contravariant.add_le_cancellable.sub_mul
+lemma tsub_mul (a b c : α) : (a - b) * c = a * c - b * c :=
+contravariant.add_le_cancellable.tsub_mul
 
 end sub
 

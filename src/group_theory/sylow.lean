@@ -340,17 +340,17 @@ have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* 
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
 ⟨subgroup.map ((normalizer H).subtype) (subgroup.comap
-  (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
+  (quotient_group.mk' (comap H.normalizer.subtype H)) (zpowers x)),
 begin
   show card ↥(map H.normalizer.subtype
-    (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) = p ^ (n + 1),
+    (comap (mk' (comap H.normalizer.subtype H)) (subgroup.zpowers x))) = p ^ (n + 1),
   suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (comap H.normalizer.subtype H))
-    (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
+    (zpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
   { convert this using 2 },
   rw [set.card_image_of_injective
-        (subgroup.comap (mk' (comap H.normalizer.subtype H)) (gpowers x) : set (H.normalizer))
+        (subgroup.comap (mk' (comap H.normalizer.subtype H)) (zpowers x) : set (H.normalizer))
         subtype.val_injective,
-      pow_succ', ← hH, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
+      pow_succ', ← hH, fintype.card_congr hequiv, ← hx, order_eq_card_zpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
 end,
@@ -358,7 +358,7 @@ begin
   assume y hy,
   simp only [exists_prop, subgroup.coe_subtype, mk'_apply, subgroup.mem_map, subgroup.mem_comap],
   refine ⟨⟨y, le_normalizer hy⟩, ⟨0, _⟩, rfl⟩,
-  rw [gpow_zero, eq_comm, quotient_group.eq_one_iff],
+  rw [zpow_zero, eq_comm, quotient_group.eq_one_iff],
   simpa using hy
 end⟩
 
@@ -376,9 +376,9 @@ theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ
       have hnm1 : n ≤ m - 1, from le_tsub_of_add_le_right hnm,
       let ⟨K, hK⟩ := @exists_subgroup_card_pow_prime_le n (m - 1) hp
         (nat.pow_dvd_of_le_of_pow_dvd tsub_le_self hdvd) H hH hnm1 in
-      have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [nat.sub_add_cancel h0m],
+      have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [tsub_add_cancel_of_le h0m.nat_succ_le],
       let ⟨K', hK'⟩ := @exists_subgroup_card_pow_succ _ _ _ _ _ hp hdvd' K hK.1 in
-      ⟨K', by rw [hK'.1, nat.sub_add_cancel h0m], le_trans hK.2 hK'.2⟩)
+      ⟨K', by rw [hK'.1, tsub_add_cancel_of_le h0m.nat_succ_le], le_trans hK.2 hK'.2⟩)
     (λ hnm : n = m, ⟨H, by simp [hH, hnm]⟩)
 
 /-- A generalisation of **Sylow's first theorem**. If `p ^ n` divides

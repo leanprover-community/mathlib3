@@ -331,7 +331,7 @@ begin
     continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', C] at this,
   rw ← sub_eq_zero at this,
   abel at this,
-  simp only [one_gsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
+  simp only [one_zsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
   apply smul_right_injective F _ this,
   simp [(tpos v).ne', (tpos w).ne']
 end

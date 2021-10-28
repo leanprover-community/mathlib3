@@ -42,7 +42,7 @@ variables {m n : ℕ}
 @[simp] theorem factorial_two : 2! = 2 := rfl
 
 theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
-nat.sub_add_cancel hn ▸ rfl
+tsub_add_cancel_of_le (nat.succ_le_of_lt hn) ▸ rfl
 
 theorem factorial_pos : ∀ n, 0 < n!
 | 0        := zero_lt_one
@@ -169,7 +169,7 @@ begin
     apply pow_le_pow_of_le_left (zero_le n) (le_succ n),
     exact factorial_pos n,},
   convert nat.factorial_mul_pow_le_factorial,
-  exact (nat.add_sub_of_le hnm).symm,
+  exact (add_tsub_cancel_of_le hnm).symm,
 end
 
 
@@ -282,11 +282,11 @@ def desc_factorial (n : ℕ) : ℕ → ℕ
 
 lemma zero_desc_factorial_succ (k : ℕ) :
   (0 : ℕ).desc_factorial k.succ = 0 :=
-by rw [desc_factorial_succ, nat.zero_sub, zero_mul]
+by rw [desc_factorial_succ, zero_tsub, zero_mul]
 
 @[simp] lemma desc_factorial_one (n : ℕ) :
   n.desc_factorial 1 = n :=
-by rw [desc_factorial_succ, desc_factorial_zero, mul_one, nat.sub_zero]
+by rw [desc_factorial_succ, desc_factorial_zero, mul_one, tsub_zero]
 
 @[simp] lemma succ_desc_factorial_succ (n : ℕ) :
   ∀ k : ℕ, (n + 1).desc_factorial (k + 1) = (n + 1) * n.desc_factorial k
@@ -296,7 +296,7 @@ by rw [desc_factorial_succ, desc_factorial_zero, mul_one, nat.sub_zero]
 
 lemma succ_desc_factorial (n : ℕ) :
   ∀ k, (n + 1 - k) * (n + 1).desc_factorial k = (n + 1) * n.desc_factorial k
-| 0 := by rw [nat.sub_zero, desc_factorial_zero, desc_factorial_zero]
+| 0 := by rw [tsub_zero, desc_factorial_zero, desc_factorial_zero]
 | (k + 1) := by rw [desc_factorial, succ_desc_factorial, desc_factorial_succ, succ_sub_succ,
   mul_left_comm]
 
@@ -308,7 +308,7 @@ lemma desc_factorial_self : ∀ n : ℕ, n.desc_factorial n = n!
 | 0        := by simp only [desc_factorial_zero, nat.one_ne_zero, nat.not_lt_zero]
 | (succ k) := begin
   rw [desc_factorial_succ, mul_eq_zero, desc_factorial_eq_zero_iff_lt, lt_succ_iff,
-    nat.sub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
+    tsub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
   exact λ h _, h,
 end
 
@@ -323,7 +323,7 @@ lemma add_desc_factorial_eq_asc_factorial (n : ℕ) :
 /-- `n.desc_factorial k = n! / (n - k)!` but without ℕ-division. See `nat.desc_factorial_eq_div`
 for the version using ℕ-division. -/
 theorem factorial_mul_desc_factorial : ∀ {n k : ℕ}, k ≤ n → (n - k)! * n.desc_factorial k = n!
-| n        0        := λ _, by rw [desc_factorial_zero, mul_one, nat.sub_zero]
+| n        0        := λ _, by rw [desc_factorial_zero, mul_one, tsub_zero]
 | 0        (succ k) := λ h, by { exfalso, exact not_succ_le_zero k h }
 | (succ n) (succ k) := λ h, by rw [succ_desc_factorial_succ, succ_sub_succ, ←mul_assoc,
   mul_comm (n - k)!, mul_assoc, factorial_mul_desc_factorial (nat.succ_le_succ_iff.1 h),
@@ -342,7 +342,7 @@ lemma pow_sub_le_desc_factorial (n : ℕ) : ∀ (k : ℕ), (n + 1 - k)^k ≤ n.d
 | (k + 1) := begin
   rw [desc_factorial_succ, pow_succ, succ_sub_succ],
   exact nat.mul_le_mul_of_nonneg_left (le_trans (nat.pow_le_pow_of_le_left
-    (nat.sub_le_sub_right (le_succ _) _) k) (pow_sub_le_desc_factorial k)),
+    (tsub_le_tsub_right (le_succ _) _) k) (pow_sub_le_desc_factorial k)),
 end
 
 lemma pow_sub_lt_desc_factorial' {n : ℕ} :
@@ -350,12 +350,12 @@ lemma pow_sub_lt_desc_factorial' {n : ℕ} :
 | 0 := λ h, begin
   rw [desc_factorial_succ, pow_succ, pow_one, desc_factorial_one],
   exact nat.mul_lt_mul_of_pos_left (tsub_lt_self (lt_of_lt_of_le zero_lt_two h) zero_lt_one)
-    (nat.sub_pos_of_lt h),
+    (tsub_pos_of_lt h),
 end
 | (k + 1) := λ h, begin
   rw [desc_factorial_succ, pow_succ],
-  refine nat.mul_lt_mul_of_pos_left ((nat.pow_le_pow_of_le_left (nat.sub_le_sub_right
-    (le_succ n) _) _).trans_lt _) (nat.sub_pos_of_lt h),
+  refine nat.mul_lt_mul_of_pos_left ((nat.pow_le_pow_of_le_left (tsub_le_tsub_right
+    (le_succ n) _) _).trans_lt _) (tsub_pos_of_lt h),
   rw succ_sub_succ,
   exact (pow_sub_lt_desc_factorial' ((le_succ _).trans h)),
 end

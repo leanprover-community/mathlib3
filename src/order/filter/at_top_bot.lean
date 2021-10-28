@@ -1090,13 +1090,13 @@ lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k
   (assume a b h, add_le_add_right h k)
   (assume a b h, (le_tsub_iff_right h).symm)
-  (assume a h, by rw [nat.sub_add_cancel h])
+  (assume a h, by rw [tsub_add_cancel_of_le h])
 
 lemma map_sub_at_top_eq_nat (k : ℕ) : map (λa, a - k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a + k) 0
-  (assume a b h, nat.sub_le_sub_right h _)
+  (assume a b h, tsub_le_tsub_right h _)
   (assume a b _, tsub_le_iff_right)
-  (assume b _, by rw [nat.add_sub_cancel])
+  (assume b _, by rw [add_tsub_cancel_right])
 
 lemma tendsto_add_at_top_nat (k : ℕ) : tendsto (λa, a + k) at_top at_top :=
 le_of_eq (map_add_at_top_eq_nat k)
@@ -1120,7 +1120,7 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
         cases k,
         exact (lt_irrefl _ hk).elim,
         rw [add_mul, one_mul, nat.succ_sub_succ_eq_sub,
-          nat.sub_zero, nat.add_succ, nat.lt_succ_iff],
+          tsub_zero, nat.add_succ, nat.lt_succ_iff],
       end)
   (assume b _,
     calc b = (b * k) / k : by rw [nat.mul_div_cancel b hk]

@@ -179,7 +179,7 @@ begin
   -- so we get that out of the way here.
   by_cases nX : nonempty X,
   swap,
-  exact ⟨nA.some, (dist_lt_iff _ _ pos).mpr (λ x, false.elim (nX ⟨x⟩)), nA.some_spec⟩,
+  exact ⟨nA.some, (dist_lt_iff pos).mpr (λ x, false.elim (nX ⟨x⟩)), nA.some_spec⟩,
 
   /-
   The strategy now is to pick a family of continuous functions `g x y` in `A`
@@ -262,7 +262,7 @@ begin
   refine ⟨k.1, _, k.2⟩,
 
   -- We just need to verify the bound, which we do pointwise.
-  rw dist_lt_iff _ _ pos,
+  rw dist_lt_iff pos,
   intro z,
 
   -- We rewrite into this particular form,

@@ -522,11 +522,8 @@ end
 
 theorem bInter_mono' {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋂ x ∈ s', t x) ⊆ (⋂ x ∈ s, t' x) :=
-begin
-  intros x x_in,
-  simp only [mem_Inter] at *,
-  exact λ a a_in, h a a_in $ x_in _ (hs a_in)
-end
+(bInter_subset_bInter_left hs).trans $
+  subset_bInter (λ x xs, subset.trans (bInter_subset_of_mem xs) (h x xs))
 
 theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=

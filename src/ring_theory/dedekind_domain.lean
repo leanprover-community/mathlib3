@@ -10,6 +10,7 @@ import ring_theory.integrally_closed
 import ring_theory.polynomial.rational_root
 import ring_theory.trace
 import algebra.associated
+import algebraic_geometry.prime_spectrum.noetherian
 
 /-!
 # Dedekind domains
@@ -406,7 +407,7 @@ lemma exists_multiset_prod_cons_le_and_prod_not_le [is_dedekind_domain A]
     ¬ (multiset.prod (Z.map prime_spectrum.as_ideal) ≤ I) :=
 begin
   -- Let `Z` be a minimal set of prime ideals such that their product is contained in `J`.
-  obtain ⟨Z₀, hZ₀⟩ := exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF hI0,
+  obtain ⟨Z₀, hZ₀⟩ := prime_spectrum.exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF hI0,
   obtain ⟨Z, ⟨hZI, hprodZ⟩, h_eraseZ⟩ := multiset.well_founded_lt.has_min
     (λ Z, (Z.map prime_spectrum.as_ideal).prod ≤ I ∧ (Z.map prime_spectrum.as_ideal).prod ≠ ⊥)
     ⟨Z₀, hZ₀⟩,
@@ -843,6 +844,7 @@ lemma finite_dimensional.exists_is_basis_integral :
   ∃ (s : finset L) (b : basis s K L), (∀ x, is_integral A (b x)) :=
 begin
   letI := classical.dec_eq L,
+  letI : is_noetherian K L := is_noetherian.iff_fg.2 infer_instance,
   let s' := is_noetherian.finset_basis_index K L,
   let bs' := is_noetherian.finset_basis K L,
   obtain ⟨y, hy, his'⟩ := exists_integral_multiples A K (finset.univ.image bs'),

@@ -397,7 +397,7 @@ def radical (I : ideal R) : ideal R :=
       x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right _ $ I.mul_mem_left _ $ nat.add_comm n m ▸
-        (nat.add_sub_assoc hcm n).symm ▸
+        (add_tsub_assoc_of_le hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right _ hyni)
       (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ add_tsub_cancel_of_le hmc ▸
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
@@ -792,7 +792,7 @@ lemma comap_comap {T : Type*} [ring T] {I : ideal T} (f : R →+* S)
 
 lemma map_map {T : Type*} [ring T] {I : ideal R} (f : R →+* S)
   (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
-((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique
+((gc_map_comap f).compose (gc_map_comap g)).l_unique
   (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
 
 lemma map_span (f : R →+* S) (s : set R) :
@@ -828,10 +828,10 @@ lemma map_comap_le : (K.comap f).map f ≤ K :=
 variables (f I J K L)
 
 @[simp] lemma map_comap_map : ((I.map f).comap f).map f = I.map f :=
-congr_fun (gc_map_comap f).l_u_l_eq_l I
+(gc_map_comap f).l_u_l_eq_l I
 
 @[simp] lemma comap_map_comap : ((K.comap f).map f).comap f = K.comap f :=
-congr_fun (gc_map_comap f).u_l_u_eq_u K
+(gc_map_comap f).u_l_u_eq_u K
 
 lemma map_sup : (I ⊔ J).map f = I.map f ⊔ J.map f :=
 (gc_map_comap f).l_sup

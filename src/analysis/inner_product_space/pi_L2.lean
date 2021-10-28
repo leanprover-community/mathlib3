@@ -36,6 +36,8 @@ open_locale big_operators uniformity topological_space nnreal ennreal direct_sum
 
 local attribute [instance] fact_one_le_two_real
 
+local attribute [instance] fact_one_le_two_real
+
 noncomputable theory
 
 variables {ι : Type*}

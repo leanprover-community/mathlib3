@@ -391,11 +391,11 @@ end
 
 namespace int
 
-lemma gmultiples_nat_abs (a : ℤ) :
-  add_subgroup.gmultiples (a.nat_abs : ℤ) = add_subgroup.gmultiples a :=
+lemma zmultiples_nat_abs (a : ℤ) :
+  add_subgroup.zmultiples (a.nat_abs : ℤ) = add_subgroup.zmultiples a :=
 le_antisymm
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
 
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }

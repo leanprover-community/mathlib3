@@ -47,7 +47,7 @@ end
 lemma measurable_set_Icc [fintype ι] (I : box ι) : measurable_set I.Icc := measurable_set_Icc
 
 lemma measure_Icc_lt_top (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] : μ I.Icc < ∞ :=
-show μ (Icc I.lower I.upper) < ∞, from (is_compact_pi_Icc I.lower I.upper).measure_lt_top
+show μ (Icc I.lower I.upper) < ∞, from I.is_compact_Icc.measure_lt_top
 
 lemma measure_coe_lt_top (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] : μ I < ∞ :=
 (measure_mono $ coe_subset_Icc).trans_lt (I.measure_Icc_lt_top μ)

@@ -71,7 +71,7 @@ begin
                   sub   := λ a b, a + (-b),
                   npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
                   nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
+                  zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
@@ -87,6 +87,8 @@ end
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance
+instance : comm_monoid_with_zero ℝ := by apply_instance
+instance : monoid_with_zero ℝ   := by apply_instance
 instance : add_comm_group ℝ     := by apply_instance
 instance : add_group ℝ          := by apply_instance
 instance : add_comm_monoid ℝ    := by apply_instance
@@ -198,7 +200,7 @@ begin
   simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
 end
 
-instance : ordered_ring ℝ :=
+instance : ordered_comm_ring ℝ :=
 { add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
@@ -210,6 +212,7 @@ instance : ordered_ring ℝ :=
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
+instance : ordered_ring ℝ               := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_add_comm_group ℝ     := by apply_instance
 instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance

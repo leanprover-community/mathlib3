@@ -1813,24 +1813,24 @@ end orthogonal
 
 /-! ### Self-adjoint operators -/
 
-section self_adjoint
+section is_self_adjoint
 
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
-def self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
+def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
 
-lemma self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : self_adjoint T) (x y : E) :
+lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
 by rw [hT x y, inner_conj_sym]
 
-@[simp] lemma self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : self_adjoint (T : E →ₗ[𝕜] E))
+@[simp] lemma is_self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
   (x y : E) :
   ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
 /-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
-@[simp] lemma self_adjoint.coe_re_apply_inner_self_apply
-  {T : E →L[𝕜] E} (hT : self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
+@[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply
+  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
   (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
 begin
   suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
@@ -1840,4 +1840,4 @@ begin
   exact hT.conj_inner_sym x x
 end
 
-end self_adjoint
+end is_self_adjoint

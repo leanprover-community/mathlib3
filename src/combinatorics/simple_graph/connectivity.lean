@@ -1328,9 +1328,38 @@ end
 
 open fintype
 
-def next_edge : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
+def next_edge (G : simple_graph V) : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
 | v w h walk.nil := (h rfl).elim
 | v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mk_has_mem _ _⟩
+
+lemma nonempty_path_not_loop {v : V} {e : sym2 V} (p : G.path v v)
+  (h : e ∈ walk.edges (p : G.walk v v)) : false :=
+begin
+  cases p with p hp,
+  cases p,
+  { exact h, },
+  { cases hp,
+    simpa using hp_support_nodup, },
+end
+
+lemma eq_next_edge_if_mem_path {u v w : V}
+  (hne : u ≠ v) (hinc : ⟦(u, w)⟧ ∈ G.incidence_set u)
+  (p : G.path u v) (h : ⟦(u, w)⟧ ∈ (p : G.walk u v).edges) :
+  G.next_edge u v hne p = ⟨⟦(u, w)⟧, hinc⟩ :=
+begin
+  cases p with p hp,
+  cases p,
+  { exact (hne rfl).elim },
+  { cases hp,
+    simp at hp_support_nodup,
+    simp only [next_edge, subtype.mk_eq_mk, subtype.coe_mk],
+    congr,
+    simp only [list.mem_cons_iff, subtype.coe_mk, simple_graph.walk.cons_edges, sym2.eq_iff] at h,
+    cases h,
+    { obtain (⟨_,rfl⟩|⟨rfl,rfl⟩) := h; refl, },
+    { have h := walk.mem_support_of_mem_edges _ h,
+      exact (hp_support_nodup.1 h).elim, }, },
+end
 
 lemma is_tree.card_edges_eq_card_vertices_sub_one
   [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :
@@ -1339,18 +1368,56 @@ begin
   have root := classical.arbitrary V,
   rw ←set.card_ne_eq root,
   let f : {v | v ≠ root} → G.edge_set := λ v,
-    ⟨next_edge (v : V) root v.property (G.tree_path h v root : G.walk v root),
+    ⟨G.next_edge (v : V) root v.property (G.tree_path h v root : G.walk v root),
      G.incidence_set_subset _ (subtype.mem _)⟩,
   have fprop : ∀ (v : V) (hv : v ≠ root), ↑(f ⟨v, hv⟩) ∈ G.incidence_set v,
   { intros v hv,
     dsimp only [f, subtype.coe_mk],
     apply subtype.mem, },
   have finj : function.injective f,
-  { intros v₁ v₂,
+  { intros v₁ v₂ hv,
+
     sorry, },
   have fsurj : function.surjective f,
   { intro e,
-    sorry, },
+    cases e with e he,
+    induction e using quotient.ind,
+    cases e with u₁ u₂,
+    cases is_rootward_or_reverse h root he with hr hr,
+    { use u₁,
+      rintro rfl, -- goal is equivalently v ≠ root; substitute v for root
+      dsimp only [is_rootward] at hr,
+      exact nonempty_path_not_loop _ hr.2,
+      cases hr,
+      simp only [f],
+      erw eq_next_edge_if_mem_path _ ⟨he, _⟩ _ hr_right; simp, },
+      -- rintro rfl,
+      -- dsimp only [is_rootward] at hr,
+      -- exact nonempty_path_not_loop _ hr.2,
+      -- cases hr,
+      -- have key := eq_next_edge_if_mem_path _ _ _ hr_right,
+      -- { simp only [f],
+      --   erw key,
+      --   simpa only [sym2.eq_swap]},
+      -- { simpa [sym2.eq_swap]}, },
+    { use u₂,
+      rintro rfl, -- goal is equivalently v ≠ root; substitute v for root
+      dsimp only [is_rootward] at hr,
+      exact nonempty_path_not_loop _ hr.2,
+      cases hr,
+      simp [f],
+      erw eq_next_edge_if_mem_path _ ⟨he, _⟩ _ hr_right; simp,
+      -- rintro rfl,
+      -- dsimp only [is_rootward] at hr,
+      -- exact nonempty_path_not_loop _ hr.2,
+      -- cases hr,
+      -- have key := eq_next_edge_if_mem_path _ _ _ hr_right,
+      -- { simp only [f],
+      --   erw key,
+      --   simpa only [sym2.eq_swap], },
+      -- { simpa [he]},
+      },
+      },
   exact (card_of_bijective ⟨finj, fsurj⟩).symm,
 end
 

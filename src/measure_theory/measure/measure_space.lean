@@ -1471,14 +1471,6 @@ begin
   congr' with x, simp [and_comm]
 end
 
-lemma ae_restrict_iff_subtype {s : set α} (hs : measurable_set s) {p : α → Prop} :
-  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂(comap (coe : s → α) μ), p ↑x :=
-begin
-  rw [ae_restrict_iff' hs, ae_iff, ae_iff, comap_subtype_coe_apply hs],
-  congr' 3, change {a | ¬(a ∈ s → p a)} = (coe : s → α) '' (coe ⁻¹' {a | ¬p a}),
-  simp only [subtype.image_preimage_coe, not_imp, set_of_and, set_of_mem_eq, inter_comm]
-end
-
 lemma ae_restrict_mem {s : set α} (hs : measurable_set s) :
   ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
 (ae_restrict_iff' hs).2 (filter.eventually_of_forall (λ x, id))
@@ -2396,9 +2388,26 @@ calc comap f μ s = comap f μ (f ⁻¹' (f '' s)) : by rw hf.injective.preimage
 ... = μ (f '' s) : by rw [hf.map_comap, restrict_apply' hf.measurable_set_range,
   inter_eq_self_of_subset_left (image_subset_range _ _)]
 
+lemma ae_map_iff {p : β → Prop} {μ : measure α} : (∀ᵐ x ∂(map f μ), p x) ↔ ∀ᵐ x ∂μ, p (f x) :=
+by simp only [ae_iff, hf.map_apply, preimage_set_of_eq]
+
 end measurable_embedding
 
 section subtype
+
+lemma comap_subtype_coe_apply {m0 : measurable_space α} {s : set α} (hs : measurable_set s)
+  (μ : measure α) (t : set s) :
+  comap coe μ t = μ (coe '' t) :=
+(measurable_embedding.subtype_coe hs).comap_apply _ _
+
+lemma map_comap_subtype_coe {m0 : measurable_space α} {s : set α} (hs : measurable_set s)
+  (μ : measure α) : map (coe : s → α) (comap coe μ) = μ.restrict s :=
+by rw [(measurable_embedding.subtype_coe hs).map_comap, subtype.range_coe]
+
+lemma ae_restrict_iff_subtype {m0 : measurable_space α} {μ : measure α} {s : set α}
+  (hs : measurable_set s) {p : α → Prop} :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂(comap (coe : s → α) μ), p ↑x :=
+by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_map_iff]
 
 variables [measure_space α]
 
@@ -2418,7 +2427,7 @@ by rw [volume_set_coe_def, (measurable_embedding.subtype_coe hs).map_comap volum
 
 lemma volume_image_subtype_coe {s : set α} (hs : measurable_set s) (t : set s) :
   volume (coe '' t : set α) = volume t :=
-((measurable_embedding.subtype_coe hs).comap_apply volume t).symm
+(comap_subtype_coe_apply hs volume t).symm
 
 end subtype
 
@@ -2870,22 +2879,21 @@ end
 
 end ae_measurable
 
+lemma measurable_embedding.ae_measurable_map_iff {m0 : measurable_space α} {m1 : measurable_space β}
+  {m3 : measurable_space γ} {f : α → β} (hf : measurable_embedding f) {μ : measure α} {g : β → γ} :
+  ae_measurable g (map f μ) ↔ ae_measurable (g ∘ f) μ :=
+begin
+  refine ⟨λ H, H.comp_measurable hf.measurable, _⟩,
+  rintro ⟨g', hg'm, heq⟩,
+  refine ⟨extend f g' (λ x, classical.choice ⟨g x⟩),
+    hf.measurable_extend hg'm (measurable_const' $ λ _ _, rfl), hf.ae_map_iff.2 _⟩,
+  simpa [hf.injective]
+end
+
 lemma ae_measurable_restrict_iff_comap_subtype {m0 : measurable_space α}
   {s : set α} (hs : measurable_set s) {μ : measure α} {f : α → β} :
   ae_measurable f (μ.restrict s) ↔ ae_measurable (f ∘ coe : s → β) (comap coe μ) :=
-begin
-  casesI is_empty_or_nonempty β,
-  { simp only [(measurable_of_empty_codomain f).ae_measurable,
-     (measurable_of_empty_codomain (f ∘ coe)).ae_measurable] },
-  inhabit β,
-  split,
-  { rw ← map_comap_subtype_coe_apply hs μ,
-    exact λ H, H.comp_measurable measurable_subtype_coe },
-  { rintro ⟨g, hgm, hfg⟩,
-    refine ⟨λ x, if h : x ∈ s then g ⟨x, h⟩ else default β, hgm.dite measurable_const hs, _⟩,
-    refine (ae_restrict_iff_subtype hs).2 (hfg.mono $ λ x (hx : f x = g x), _),
-    simp_rw [dif_pos x.coe_prop, hx, subtype.coe_eta] }
-end
+by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_measurable_map_iff]
 
 @[simp] lemma ae_measurable_add_measure_iff :
   ae_measurable f (μ + ν) ↔ ae_measurable f μ ∧ ae_measurable f ν :=
@@ -2912,12 +2920,7 @@ lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
 
 lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
   ae_measurable f (map e μ) ↔ ae_measurable (f ∘ e) μ :=
-begin
-  refine ⟨λ h, h.comp_measurable e.measurable, λ h, _⟩,
-  rw [← (e.map_symm_map : _ = μ)] at h,
-  convert h.comp_measurable e.symm.measurable,
-  simp [(∘)]
-end
+e.measurable_embedding.ae_measurable_map_iff
 
 end
 

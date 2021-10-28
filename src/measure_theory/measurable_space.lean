@@ -775,13 +775,20 @@ protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space
   measurable_to_fun  := by { substI h, substI hi, exact measurable_id },
   measurable_inv_fun := by { substI h, substI hi, exact measurable_id }}
 
-protected lemma measurable_coe_iff {f : β → γ} (e : α ≃ᵐ β) :
+protected lemma measurable_comp_iff {f : β → γ} (e : α ≃ᵐ β) :
   measurable (f ∘ e) ↔ measurable f :=
 iff.intro
   (assume hfe,
     have measurable (f ∘ (e.symm.trans e).to_equiv) := hfe.comp e.symm.measurable,
     by rwa [coe_to_equiv, symm_trans_self] at this)
   (λ h, h.comp e.measurable)
+
+/-- Any two types with unique elements are measurably equivalent. -/
+def of_unique_of_unique (α β : Type*) [measurable_space α] [measurable_space β]
+  [unique α] [unique β] : α ≃ᵐ β :=
+{ to_equiv := equiv_of_unique_of_unique,
+  measurable_to_fun := subsingleton.measurable,
+  measurable_inv_fun := subsingleton.measurable }
 
 /-- Products of equivalent measurable spaces are equivalent. -/
 def prod_congr (ab : α ≃ᵐ β) (cd : γ ≃ᵐ δ) : α × γ ≃ᵐ β × δ :=
@@ -906,13 +913,13 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       (by { rintro ⟨a|b, c⟩; simp [set.prod_eq] })
       _
       _,
-    { refine (set.prod (range sum.inl) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inl) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inl,
       ext ⟨a, c⟩, refl },
-    { refine (set.prod (range sum.inr) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inr) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inr,
       ext ⟨b, c⟩, refl }

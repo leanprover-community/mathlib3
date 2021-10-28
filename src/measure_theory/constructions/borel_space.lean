@@ -1394,7 +1394,7 @@ namespace ennreal
 lemma measurable_of_measurable_nnreal {f : ℝ≥0∞ → α}
   (h : measurable (λ p : ℝ≥0, f p)) : measurable f :=
 measurable_of_measurable_on_compl_singleton ∞
-  (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
+  (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_comp_iff.1 h)
 
 /-- `ℝ≥0∞` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
 def ennreal_equiv_sum : ℝ≥0∞ ≃ᵐ ℝ≥0 ⊕ unit :=
@@ -1412,7 +1412,7 @@ lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_spa
 let e : ℝ≥0∞ × β ≃ᵐ ℝ≥0 × β ⊕ unit × β :=
   (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
     (measurable_equiv.sum_prod_distrib _ _ _) in
-e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
+e.symm.measurable_comp_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
 
 lemma measurable_of_measurable_nnreal_nnreal [measurable_space β]
   {f : ℝ≥0∞ × ℝ≥0∞ → β} (h₁ : measurable (λ p : ℝ≥0 × ℝ≥0, f (p.1, p.2)))
@@ -1528,7 +1528,7 @@ ereal.ne_bot_top_homeomorph_real.to_measurable_equiv
 lemma ereal.measurable_of_measurable_real {f : ereal → α}
   (h : measurable (λ p : ℝ, f p)) : measurable f :=
 measurable_of_measurable_on_compl_finite {⊥, ⊤} (by simp)
-  (measurable_equiv.ereal_equiv_real.symm.measurable_coe_iff.1 h)
+  (measurable_equiv.ereal_equiv_real.symm.measurable_comp_iff.1 h)
 
 @[measurability]
 lemma measurable_ereal_to_real : measurable ereal.to_real :=

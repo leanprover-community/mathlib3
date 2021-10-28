@@ -819,14 +819,14 @@ rfl
 
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
-lemma continuous_gsmul : ∀ (n : ℤ), continuous (λ (x : M₂), n • x)
-| (n : ℕ) := by { simp only [gsmul_coe_nat], exact continuous_nsmul _ }
-| -[1+ n] := by { simp only [gsmul_neg_succ_of_nat], exact (continuous_nsmul _).neg }
+lemma continuous_zsmul : ∀ (n : ℤ), continuous (λ (x : M₂), n • x)
+| (n : ℕ) := by { simp only [zsmul_coe_nat], exact continuous_nsmul _ }
+| -[1+ n] := by { simp only [zsmul_neg_succ_of_nat], exact (continuous_nsmul _).neg }
 
 @[continuity]
-lemma continuous.gsmul {α : Type*} [topological_space α] {n : ℤ} {f : α → M₂} (hf : continuous f) :
+lemma continuous.zsmul {α : Type*} [topological_space α] {n : ℤ} {f : α → M₂} (hf : continuous f) :
   continuous (λ (x : α), n • (f x)) :=
-(continuous_gsmul n).comp hf
+(continuous_zsmul n).comp hf
 
 instance : add_comm_group (M →SL[σ₁₂] M₂) :=
 by refine
@@ -839,13 +839,13 @@ by refine
     { to_fun := λ x, n • (f x),
       map_add' := by simp,
       map_smul' := by simp [smul_comm n] },
-  gsmul := λ n f,
+  zsmul := λ n f,
     { to_fun := λ x, n • (f x),
       map_add' := by simp,
       map_smul' := by simp [smul_comm n] },
-  gsmul_zero' := λ f, by { ext, simp },
-  gsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
-  gsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
+  zsmul_zero' := λ f, by { ext, simp },
+  zsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
+  zsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
   .. continuous_linear_map.add_comm_monoid, .. };
 intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
@@ -1345,6 +1345,25 @@ instance automorphism_group : group (M₁ ≃L[R₁] M₁) :=
   mul_one      := λ f, by {ext, refl},
   one_mul      := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
+
+variables {M₁} {R₄ : Type*} [semiring R₄] [module R₄ M₄]
+  {σ₃₄ : R₃ →+* R₄} {σ₄₃ : R₄ →+* R₃} [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
+  {σ₂₄ : R₂ →+* R₄} {σ₁₄ : R₁ →+* R₄}
+  [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+  [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+
+include σ₂₁ σ₃₄ σ₂₃ σ₂₄ σ₁₃
+
+/-- A pair of continuous (semi)linear equivalences generates an equivalence between the spaces of
+continuous linear maps. -/
+@[simps] def arrow_congr_equiv (e₁₂ : M₁ ≃SL[σ₁₂] M₂) (e₄₃ : M₄ ≃SL[σ₄₃] M₃) :
+  (M₁ →SL[σ₁₄] M₄) ≃ (M₂ →SL[σ₂₃] M₃) :=
+{ to_fun := λ f, (e₄₃ : M₄ →SL[σ₄₃] M₃).comp (f.comp (e₁₂.symm : M₂ →SL[σ₂₁] M₁)),
+  inv_fun := λ f, (e₄₃.symm : M₃ →SL[σ₃₄] M₄).comp (f.comp (e₁₂ : M₁ →SL[σ₁₂] M₂)),
+  left_inv := λ f, continuous_linear_map.ext $ λ x,
+    by simp only [continuous_linear_map.comp_apply, symm_apply_apply, coe_coe],
+  right_inv := λ f, continuous_linear_map.ext $ λ x,
+    by simp only [continuous_linear_map.comp_apply, apply_symm_apply, coe_coe] }
 
 end add_comm_monoid
 

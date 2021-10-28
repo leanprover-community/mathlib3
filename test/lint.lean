@@ -1,6 +1,8 @@
 import tactic.lint
 import algebra.ring.basic
 
+open tactic
+
 def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
 lemma foo3 (n m : ℕ) : ℕ := n - m
@@ -9,12 +11,6 @@ instance bar.bar : has_add ℕ := by apply_instance  -- we don't check the name 
 lemma foo.bar (ε > 0) : ε = ε := rfl -- >/≥ is allowed in binders (and in fact, in all hypotheses)
 /-- Test exception in `def_lemma` linter. -/
 @[pattern] def my_exists_intro := @Exists.intro
--- section
--- local attribute [instance, priority 1001] classical.prop_decidable
--- lemma foo4 : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
--- end
-
-open tactic
 
 meta def fold_over_with_cond {α} (l : list declaration) (tac : declaration → tactic (option α)) :
   tactic (list (declaration × α)) :=
@@ -25,12 +21,12 @@ run_cmd do
   e ← get_env,
   let l := e.filter (λ d, e.in_current_file d.to_name ∧ ¬ d.is_auto_or_internal e),
   l2 ← fold_over_with_cond l (return ∘ check_unused_arguments),
-  guard $ l2.length = 4,
-  let l2 : list t := l2.map $ λ x, ⟨x.1.to_name, x.2⟩,
-  guard $ (⟨`foo1, [2]⟩ : t) ∈ l2,
-  guard $ (⟨`foo2, [1]⟩ : t) ∈ l2,
-  guard $ (⟨`foo.foo, [2]⟩ : t) ∈ l2,
-  guard $ (⟨`foo.bar, [2]⟩ : t) ∈ l2,
+  guard (l2.length = 4) <|> fail "wrong length",
+  let l2 : list (name × list ℕ) := l2.map (λ x, ⟨x.1.to_name, x.2⟩),
+  guard ((⟨`foo1, [2]⟩ : t) ∈ l2) <|> fail "foo1",
+  guard ((⟨`foo2, [1]⟩ : t) ∈ l2) <|> fail "foo2",
+  guard ((⟨`foo.foo, [2]⟩ : t) ∈ l2) <|> fail "foofoo",
+  guard ((⟨`foo.bar, [2]⟩ : t) ∈ l2) <|> fail "foobar",
   l2 ← fold_over_with_cond l linter.def_lemma.test,
   guard $ l2.length = 2,
   let l2 : list (name × _) := l2.map $ λ x, ⟨x.1.to_name, x.2⟩,

@@ -60,6 +60,10 @@ def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
 
+lemma pushforward_eq' {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
+  f _* ℱ = g _* ℱ :=
+by rw h
+
 @[simp] lemma pushforward_eq_hom_app
   {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
   (pushforward_eq h ℱ).hom.app U =
@@ -86,6 +90,9 @@ and the original presheaf. -/
 def id : (𝟙 X) _* ℱ ≅ ℱ :=
 (iso_whisker_right (nat_iso.op (opens.map_id X).symm) ℱ) ≪≫ functor.left_unitor _
 
+lemma id_eq : (𝟙 X) _* ℱ = ℱ :=
+by { unfold pushforward_obj, rw opens.map_id_eq, erw functor.id_comp }
+
 @[simp] lemma id_hom_app' (U) (p) :
   (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }
@@ -103,6 +110,9 @@ the pushforward of a presheaf along the composition of two continuous maps and
 the corresponding pushforward of a pushforward. -/
 def comp {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g) _* ℱ ≅ g _* (f _* ℱ) :=
 iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
+
+lemma comp_eq {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g) _* ℱ = g _* (f _* ℱ) :=
+rfl
 
 @[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (comp ℱ f g).hom.app U = 𝟙 _ :=
@@ -122,6 +132,21 @@ def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α 
   f _* ℱ ⟶ f _* 𝒢 :=
 { app := λ U, α.app _,
   naturality' := λ U V i, by { erw α.naturality, refl, } }
+
+/--
+The pushforward functor.
+-/
+def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
+{ obj := pushforward_obj f,
+  map := @pushforward_map _ _ X Y f }
+
+lemma id_pushforward {X : Top.{v}} : pushforward (𝟙 X) = 𝟭 (X.presheaf C) :=
+begin
+  apply category_theory.functor.ext,
+  { intros, ext U, have h := f.congr,
+    erw h (opens.op_map_id_obj U), simpa },
+  { intros, apply pushforward.id_eq },
+end
 
 end presheaf
 

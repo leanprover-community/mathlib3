@@ -77,12 +77,12 @@ tactic.pi_instance_derive_field
 @[to_additive]
 instance group [group α] : group (ulift α) :=
 by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n f, ⟨npow n f.down⟩, gpow := λ n f, ⟨gpow n f.down⟩ }; tactic.pi_instance_derive_field
+  npow := λ n f, ⟨npow n f.down⟩, zpow := λ n f, ⟨zpow n f.down⟩ }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=
 by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n f, ⟨npow n f.down⟩, gpow := λ n f, ⟨gpow n f.down⟩ }; tactic.pi_instance_derive_field
+  npow := λ n f, ⟨npow n f.down⟩, zpow := λ n f, ⟨zpow n f.down⟩ }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [left_cancel_semigroup α] :

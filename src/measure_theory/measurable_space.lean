@@ -126,7 +126,7 @@ lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 
-lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :
+@[mono] lemma generate_from_mono {s t : set (set α)} (h : s ⊆ t) :
   generate_from s ≤ generate_from t :=
 gi_generate_from.gc.monotone_l h
 

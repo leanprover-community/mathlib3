@@ -81,7 +81,7 @@ def pairwise_disjoint (s : set ι) (f : ι → α) : Prop := s.pairwise_on (disj
 lemma pairwise_disjoint.subset (ht : t.pairwise_disjoint f) (h : s ⊆ t) : s.pairwise_disjoint f :=
 pairwise_on.mono h ht
 
-lemma pairwise_disjoint.mono (hs : s.pairwise_disjoint f) (h : g ≤ f) :  s.pairwise_disjoint g :=
+lemma pairwise_disjoint.mono (hs : s.pairwise_disjoint f) (h : g ≤ f) : s.pairwise_disjoint g :=
 λ a ha b hb hab, (hs a ha b hb hab).mono (h a) (h b)
 
 lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_on_empty _

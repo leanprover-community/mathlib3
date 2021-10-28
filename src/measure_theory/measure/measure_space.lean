@@ -689,11 +689,10 @@ else by simp only [map_of_not_measurable hf, le_rfl]
 /-- Even if `s` is not measurable, we can bound `map f μ s` from below.
   See also `measurable_equiv.map_apply`. -/
 theorem le_map_apply {f : α → β} (hf : measurable f) (s : set β) : μ (f ⁻¹' s) ≤ map f μ s :=
-begin
-  rw [measure_eq_infi' (map f μ)], refine le_infi _, rintro ⟨t, hst, ht⟩,
-  convert measure_mono (preimage_mono hst),
-  exact map_apply hf ht
-end
+calc μ (f ⁻¹' s) ≤ μ (f ⁻¹' (to_measurable (map f μ) s)) :
+  measure_mono $ preimage_mono $ subset_to_measurable _ _
+... = map f μ (to_measurable (map f μ) s) : (map_apply hf $ measurable_set_to_measurable _ _).symm
+... = map f μ s : measure_to_measurable _
 
 /-- Even if `s` is not measurable, `map f μ s = 0` implies that `μ (f ⁻¹' s) = 0`. -/
 lemma preimage_null_of_map_null {f : α → β} (hf : measurable f) {s : set β}
@@ -742,11 +741,29 @@ def restrict {m0 : measurable_space α} (μ : measure α) (s : set α) : measure
   restrictₗ s μ = μ.restrict s :=
 rfl
 
+/-- This lemma shows that `restrict` and `to_outer_measure` commute. Note that the LHS has a
+restrict on measures and the RHS has a restrict on outer measures. -/
+lemma restrict_to_outer_measure_eq_to_outer_measure_restrict (h : measurable_set s) :
+    (μ.restrict s).to_outer_measure = outer_measure.restrict s μ.to_outer_measure :=
+by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
+  outer_measure.restrict_trim h, μ.trimmed]
+
 /-- If `t` is a measurable set, then the measure of `t` with respect to the restriction of
   the measure to `s` equals the outer measure of `t ∩ s`. An alternate version requiring that `s`
   be measurable instead of `t` exists as `measure.restrict_apply'`. -/
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
 by simp [← restrictₗ_apply, restrictₗ, ht]
+
+/-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
+the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
+`measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
+@[simp] lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
+by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
+      outer_measure.restrict_apply s t _, coe_to_outer_measure]
+
+lemma restrict_eq_self' (hs : measurable_set s) (t_subset : t ⊆ s) :
+  μ.restrict s t = μ t :=
+by rw [restrict_apply' hs, set.inter_eq_self_of_subset_left t_subset]
 
 lemma restrict_eq_self (h_meas_t : measurable_set t) (h : t ⊆ s) : μ.restrict s t = μ t :=
 by rw [restrict_apply h_meas_t, inter_eq_left_iff_subset.mpr h]
@@ -788,14 +805,7 @@ lemma measure_inter_eq_zero_of_restrict (h : μ.restrict s t = 0) : μ (t ∩ s)
 nonpos_iff_eq_zero.1 (h ▸ le_restrict_apply _ _)
 
 lemma restrict_apply_eq_zero' (hs : measurable_set s) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
-begin
-  refine ⟨measure_inter_eq_zero_of_restrict, λ h, _⟩,
-  rcases exists_measurable_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
-  apply measure_mono_null ((inter_subset _ _ _).1 htt'),
-  rw [restrict_apply (hs.compl.union ht'), union_inter_distrib_right, compl_inter_self,
-    set.empty_union],
-  exact measure_mono_null (inter_subset_left _ _) ht'0
-end
+by rw [restrict_apply' hs]
 
 @[simp] lemma restrict_eq_zero : μ.restrict s = 0 ↔ μ s = 0 :=
 by rw [← measure_univ_eq_zero, restrict_apply_univ]
@@ -804,13 +814,9 @@ lemma restrict_zero_set {s : set α} (h : μ s = 0) :
   μ.restrict s = 0 :=
 by simp only [measure.restrict_eq_zero, h]
 
-@[simp] lemma restrict_empty : μ.restrict ∅ = 0 := ext $ λ s hs, by simp [hs]
+@[simp] lemma restrict_empty : μ.restrict ∅ = 0 := restrict_zero_set measure_empty
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
-
-lemma restrict_eq_self_of_measurable_subset (ht : measurable_set t) (t_subset : t ⊆ s) :
-  μ.restrict s t = μ t :=
-by rw [measure.restrict_apply ht, set.inter_eq_self_of_subset_left t_subset]
 
 lemma restrict_union_apply (h : disjoint (t ∩ s) (t ∩ s')) (hs : measurable_set s)
   (hs' : measurable_set s') (ht : measurable_set t) :
@@ -871,14 +877,6 @@ end
 lemma restrict_map {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
 ext $ λ t ht, by simp [*, hf ht]
-
-lemma map_comap_subtype_coe {m0 : measurable_space α} (hs : measurable_set s) :
-  (map (coe : s → α)).comp (comap coe) = restrictₗ s :=
-linear_map.ext $ λ μ, ext $ λ t ht,
-by rw [restrictₗ_apply, restrict_apply ht, linear_map.comp_apply,
-  map_apply measurable_subtype_coe ht,
-  comap_apply (coe : s → α) subtype.val_injective (λ _, hs.subtype_image) _
-    (measurable_subtype_coe ht), subtype.image_preimage_coe]
 
 /-- Restriction of a measure to a subset is monotone both in set and in measure. -/
 lemma restrict_mono' {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ ν : measure α⦄
@@ -967,13 +965,6 @@ lemma restrict_sUnion_congr {S : set (set α)} (hc : countable S) (hm : ∀ s �
   μ.restrict (⋃₀ S) = ν.restrict (⋃₀ S) ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 by rw [sUnion_eq_bUnion, restrict_bUnion_congr hc hm]
 
-/-- This lemma shows that `restrict` and `to_outer_measure` commute. Note that the LHS has a
-restrict on measures and the RHS has a restrict on outer measures. -/
-lemma restrict_to_outer_measure_eq_to_outer_measure_restrict (h : measurable_set s) :
-    (μ.restrict s).to_outer_measure = outer_measure.restrict s μ.to_outer_measure :=
-by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
-  outer_measure.restrict_trim h, μ.trimmed]
-
 /-- This lemma shows that `Inf` and `restrict` commute for measures. -/
 lemma restrict_Inf_eq_Inf_restrict {m0 : measurable_space α} {m : set (measure α)}
   (hm : m.nonempty) (ht : measurable_set t) :
@@ -985,17 +976,6 @@ begin
     ← outer_measure.restrict_Inf_eq_Inf_restrict _ (hm.image _),
     outer_measure.restrict_apply]
 end
-
-/-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
-the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
-`measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
-lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
-by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
-      outer_measure.restrict_apply s t _, coe_to_outer_measure]
-
-lemma restrict_eq_self_of_subset_of_measurable (hs : measurable_set s) (t_subset : t ⊆ s) :
-  μ.restrict s t = μ t :=
-by rw [restrict_apply' hs, set.inter_eq_self_of_subset_left t_subset]
 
 /-! ### Extensionality results -/
 
@@ -1448,11 +1428,7 @@ by simp only [mem_ae_iff, map_apply hf hs.compl, preimage_compl]
 
 lemma mem_ae_of_mem_ae_map {f : α → β} (hf : measurable f) {s : set β} (hs : s ∈ (map f μ).ae) :
   f ⁻¹' s ∈ μ.ae :=
-begin
-  apply le_antisymm _ bot_le,
-  calc μ (f ⁻¹' sᶜ) ≤ (map f μ) sᶜ : le_map_apply hf sᶜ
-  ... = 0 : hs
-end
+(tendsto_ae_map hf).eventually hs
 
 lemma ae_map_iff {f : α → β} (hf : measurable f) {p : β → Prop} (hp : measurable_set {x | p x}) :
   (∀ᵐ y ∂ (map f μ), p y) ↔ ∀ᵐ x ∂ μ, p (f x) :=
@@ -1495,6 +1471,14 @@ begin
   congr' with x, simp [and_comm]
 end
 
+lemma ae_restrict_iff_subtype {s : set α} (hs : measurable_set s) {p : α → Prop} :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂(comap (coe : s → α) μ), p ↑x :=
+begin
+  rw [ae_restrict_iff' hs, ae_iff, ae_iff, comap_subtype_coe_apply hs],
+  congr' 3, change {a | ¬(a ∈ s → p a)} = (coe : s → α) '' (coe ⁻¹' {a | ¬p a}),
+  simp only [subtype.image_preimage_coe, not_imp, set_of_and, set_of_mem_eq, inter_comm]
+end
+
 lemma ae_restrict_mem {s : set α} (hs : measurable_set s) :
   ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
 (ae_restrict_iff' hs).2 (filter.eventually_of_forall (λ x, id))
@@ -1508,17 +1492,16 @@ lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst
   (∀ᵐ x ∂(μ.restrict s), p x) :=
 h.filter_mono (ae_mono $ measure.restrict_mono hst (le_refl μ))
 
-lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} (ht_meas : measurable_set t) {p : α → Prop}
+lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} {p : α → Prop}
   (ht : ∀ᵐ x ∂(μ.restrict t), p x) (htc : ∀ᵐ x ∂(μ.restrict tᶜ), p x) :
   ∀ᵐ x ∂μ, p x :=
-begin
-  rw ae_restrict_iff' ht_meas at ht,
-  rw ae_restrict_iff' ht_meas.compl at htc,
-  refine ht.mp (htc.mono (λ x hx1 hx2, _)),
-  by_cases hxt : x ∈ t,
-  { exact hx2 hxt, },
-  { exact hx1 hxt, },
-end
+nonpos_iff_eq_zero.1 $
+calc μ {x | ¬p x} = μ ({x | ¬p x} ∩ t ∪ {x | ¬p x} ∩ tᶜ) :
+  by rw [← inter_union_distrib_left, union_compl_self, inter_univ]
+... ≤ μ ({x | ¬p x} ∩ t) + μ ({x | ¬p x} ∩ tᶜ) : measure_union_le _ _
+... ≤ μ.restrict t {x | ¬p x} + μ.restrict tᶜ {x | ¬p x} :
+  add_le_add (le_restrict_apply _ _) (le_restrict_apply _ _)
+... = 0 : by rw [ae_iff.1 ht, ae_iff.1 htc, zero_add]
 
 lemma mem_map_restrict_ae_iff {β} {s : set α} {t : set β} {f : α → β} (hs : measurable_set s) :
   t ∈ filter.map f (μ.restrict s).ae ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0 :=
@@ -2376,6 +2359,69 @@ end measure_theory
 
 open measure_theory measure_theory.measure
 
+namespace measurable_embedding
+
+variables {m0 : measurable_space α} {m1 : measurable_space β} {f : α → β}
+  (hf : measurable_embedding f)
+include hf
+
+theorem map_apply (μ : measure α) (s : set β) : map f μ s = μ (f ⁻¹' s) :=
+begin
+  refine le_antisymm _ (le_map_apply hf.measurable s),
+  set t := f '' (to_measurable μ (f ⁻¹' s)) ∪ (range f)ᶜ,
+  have htm : measurable_set t,
+    from (hf.measurable_set_image.2 $ measurable_set_to_measurable _ _).union
+      hf.measurable_set_range.compl,
+  have hst : s ⊆ t,
+  { rw [subset_union_compl_iff_inter_subset, ← image_preimage_eq_inter_range],
+    exact image_subset _ (subset_to_measurable _ _) },
+  have hft : f ⁻¹' t = to_measurable μ (f ⁻¹' s),
+    by rw [preimage_union, preimage_compl, preimage_range, compl_univ, union_empty,
+      hf.injective.preimage_image],
+  calc map f μ s ≤ map f μ t : measure_mono hst
+            ... = μ (f ⁻¹' s) :
+    by rw [map_apply hf.measurable htm, hft, measure_to_measurable]
+end
+
+lemma map_comap (μ : measure β) : map f (comap f μ) = μ.restrict (range f) :=
+begin
+  ext1 t ht,
+  rw [hf.map_apply, comap_apply f hf.injective hf.measurable_set_image' _ (hf.measurable ht),
+    image_preimage_eq_inter_range, restrict_apply ht]
+end
+
+lemma comap_apply (μ : measure β) (s : set α) : comap f μ s = μ (f '' s) :=
+calc comap f μ s = comap f μ (f ⁻¹' (f '' s)) : by rw hf.injective.preimage_image
+... = map f (comap f μ) (f '' s) : (hf.map_apply _ _).symm
+... = μ (f '' s) : by rw [hf.map_comap, restrict_apply' hf.measurable_set_range,
+  inter_eq_self_of_subset_left (image_subset_range _ _)]
+
+end measurable_embedding
+
+section subtype
+
+variables [measure_space α]
+
+/-!
+### Volume on `s : set α`
+-/
+
+instance _root_.set_coe.measure_space (s : set α) : measure_space s :=
+⟨comap (coe : s → α) volume⟩
+
+lemma volume_set_coe_def (s : set α) : (volume : measure s) = comap (coe : s → α) volume := rfl
+
+lemma measurable_set.map_coe_volume {s : set α} (hs : measurable_set s) :
+  map (coe : s → α) volume = restrict volume s :=
+by rw [volume_set_coe_def, (measurable_embedding.subtype_coe hs).map_comap volume,
+  subtype.range_coe]
+
+lemma volume_image_subtype_coe {s : set α} (hs : measurable_set s) (t : set s) :
+  volume (coe '' t : set α) = volume t :=
+((measurable_embedding.subtype_coe hs).comap_apply volume t).symm
+
+end subtype
+
 namespace measurable_equiv
 
 /-! Interactions of measurable equivalences and measures -/
@@ -2387,18 +2433,7 @@ variables [measurable_space α] [measurable_space β] {μ : measure α} {ν : me
 /-- If we map a measure along a measurable equivalence, we can compute the measure on all sets
   (not just the measurable ones). -/
 protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : map f μ s = μ (f ⁻¹' s) :=
-begin
-  refine le_antisymm _ (le_map_apply f.measurable s),
-  rw [measure_eq_infi' μ],
-  refine le_infi _, rintro ⟨t, hst, ht⟩,
-  rw [subtype.coe_mk],
-  have : f.symm '' s = f ⁻¹' s := f.symm.to_equiv.image_eq_preimage s,
-  rw [← this, image_subset_iff] at hst,
-  convert measure_mono hst,
-  rw [map_apply, preimage_preimage],
-  { refine congr_arg μ (eq.symm _), convert preimage_id, exact funext f.left_inv },
-  exacts [f.measurable, f.measurable_inv_fun ht]
-end
+f.measurable_embedding.map_apply _ _
 
 @[simp] lemma map_symm_map (e : α ≃ᵐ β) : map e.symm (map e μ) = μ :=
 by simp [map_map e.symm.measurable e.measurable]
@@ -2835,6 +2870,23 @@ end
 
 end ae_measurable
 
+lemma ae_measurable_restrict_iff_comap_subtype {m0 : measurable_space α}
+  {s : set α} (hs : measurable_set s) {μ : measure α} {f : α → β} :
+  ae_measurable f (μ.restrict s) ↔ ae_measurable (f ∘ coe : s → β) (comap coe μ) :=
+begin
+  casesI is_empty_or_nonempty β,
+  { simp only [(measurable_of_empty_codomain f).ae_measurable,
+     (measurable_of_empty_codomain (f ∘ coe)).ae_measurable] },
+  inhabit β,
+  split,
+  { rw ← map_comap_subtype_coe_apply hs μ,
+    exact λ H, H.comp_measurable measurable_subtype_coe },
+  { rintro ⟨g, hgm, hfg⟩,
+    refine ⟨λ x, if h : x ∈ s then g ⟨x, h⟩ else default β, hgm.dite measurable_const hs, _⟩,
+    refine (ae_restrict_iff_subtype hs).2 (hfg.mono $ λ x (hx : f x = g x), _),
+    simp_rw [dif_pos x.coe_prop, hx, subtype.coe_eta] }
+end
+
 @[simp] lemma ae_measurable_add_measure_iff :
   ae_measurable f (μ + ν) ↔ ae_measurable f μ ∧ ae_measurable f ν :=
 ⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
@@ -2856,17 +2908,7 @@ lemma ae_measurable_of_ae_measurable_trim {α} {m m0 : measurable_space α}
 
 lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
   (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
-begin
-  casesI is_empty_or_nonempty β,
-  { exact (measurable_of_empty_codomain f).ae_measurable },
-  refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
-    (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
-  intros t ht,
-  rw piecewise_preimage,
-  refine measurable_set.union _ ((measurable_const ht).diff hs),
-  rw [← subtype.image_preimage_coe, ← preimage_comp],
-  exact hs.subtype_image (hf ht)
-end
+(ae_measurable_restrict_iff_comap_subtype hs).2 hf.ae_measurable
 
 lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
   ae_measurable f (map e μ) ↔ ae_measurable (f ∘ e) μ :=
@@ -3062,9 +3104,7 @@ begin
       (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
     have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
       (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
-    have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
-      ae_add_measure_iff.2 ⟨A, B⟩,
-    simpa only [hs, measure.restrict_add_restrict_compl] using this },
+    exact ae_of_ae_restrict_of_ae_restrict_compl A B },
 end
 
 @[measurability]

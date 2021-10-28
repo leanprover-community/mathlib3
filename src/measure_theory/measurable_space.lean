@@ -358,6 +358,12 @@ begin
       subtype.range_coe, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
 end
 
+lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurable f)
+  {g : sᶜ → β} (hg : measurable g) (hs : measurable_set s) :
+  measurable (λ x, if hx : x ∈ s then f ⟨x, hx⟩ else g ⟨x, hx⟩) :=
+measurable_of_measurable_union_cover s sᶜ hs hs.compl (union_compl_self s).ge
+  (by simpa) (by simpa [show ∀ x : sᶜ, (x : α) ∉ s, from subtype.property])
+
 instance {α} {p : α → Prop} [measurable_space α] [measurable_singleton_class α] :
   measurable_singleton_class (subtype p) :=
 { measurable_set_singleton := λ x,
@@ -681,6 +687,44 @@ instance {α} {β : α → Type*} [m : Πa, measurable_space (β a)] : measurabl
 
 end constructions
 
+@[protect_proj]
+structure measurable_embedding {α β : Type*} [measurable_space α] [measurable_space β] (f : α → β) :
+  Prop :=
+(injective : injective f)
+(measurable : measurable f)
+(measurable_set_image' : ∀ ⦃s⦄, measurable_set s → measurable_set (f '' s))
+
+namespace measurable_embedding
+
+variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β} {g : β → γ}
+
+lemma measurable_set_image (hf : measurable_embedding f) {s : set α} :
+  measurable_set (f '' s) ↔ measurable_set s :=
+⟨λ h, by simpa only [hf.injective.preimage_image] using hf.measurable h,
+  λ h, hf.measurable_set_image' h⟩
+
+lemma measurable_set_range (hf : measurable_embedding f) : measurable_set (range f) :=
+by { rw ← image_univ, exact hf.measurable_set_image' measurable_set.univ }
+
+lemma measurable_set_preimage (hf : measurable_embedding f) {s : set β} :
+  measurable_set (f ⁻¹' s) ↔ measurable_set (s ∩ range f) :=
+by rw [← image_preimage_eq_inter_range, hf.measurable_set_image]
+
+lemma id : measurable_embedding (id : α → α) :=
+⟨injective_id, measurable_id, λ s hs, by rwa image_id⟩
+
+lemma comp (hg : measurable_embedding g) (hf : measurable_embedding f) :
+  measurable_embedding (g ∘ f) :=
+⟨hg.injective.comp hf.injective, hg.measurable.comp hf.measurable,
+  λ s hs, by rwa [← image_image, hg.measurable_set_image, hf.measurable_set_image]⟩
+
+lemma subtype_coe {s : set α} (hs : measurable_set s) : measurable_embedding (coe : s → α) :=
+{ injective := subtype.coe_injective,
+  measurable := measurable_subtype_coe,
+  measurable_set_image' := λ _, measurable_set.subtype_image hs }
+
+end measurable_embedding
+
 /-- Equivalences between measurable spaces. Main application is the simplification of measurability
 statements along measurable equivalences. -/
 structure measurable_equiv (α β : Type*) [measurable_space α] [measurable_space β] extends α ≃ β :=
@@ -767,6 +811,26 @@ ext e.symm_comp_self
 protected theorem surjective (e : α ≃ᵐ β) : surjective e := e.to_equiv.surjective
 protected theorem bijective (e : α ≃ᵐ β) : bijective e := e.to_equiv.bijective
 protected theorem injective (e : α ≃ᵐ β) : injective e := e.to_equiv.injective
+
+@[simp] theorem symm_preimage_preimage (e : α ≃ᵐ β) (s : set β) : e.symm ⁻¹' (e ⁻¹' s) = s :=
+e.to_equiv.symm_preimage_preimage s
+
+theorem image_eq_preimage (e : α ≃ᵐ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
+e.to_equiv.image_eq_preimage s
+
+@[simp] theorem measurable_set_preimage (e : α ≃ᵐ β) {s : set β} :
+  measurable_set (e ⁻¹' s) ↔ measurable_set s :=
+⟨λ h, by simpa only [symm_preimage_preimage] using e.symm.measurable h, λ h, e.measurable h⟩
+
+@[simp] theorem measurable_set_image (e : α ≃ᵐ β) {s : set α} :
+  measurable_set (e '' s) ↔ measurable_set s :=
+by rw [image_eq_preimage, measurable_set_preimage]
+
+/-- A measurable equivalence is a measurable embedding. -/
+protected lemma measurable_embedding (e : α ≃ᵐ β) : measurable_embedding e :=
+{ injective := e.injective,
+  measurable := e.measurable,
+  measurable_set_image' := λ s, e.measurable_set_image.2 }
 
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]

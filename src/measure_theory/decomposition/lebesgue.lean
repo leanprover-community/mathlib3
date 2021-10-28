@@ -1219,121 +1219,12 @@ def rn_deriv (c : complex_measure α) (μ : measure α) : α → ℂ := λ x,
 
 variable {c : complex_measure α}
 
-section
-
-omit m
-
-lemma complex.norm_re_le_norm (x : ℂ) : ∥x.re∥ ≤ ∥x∥ :=
-begin
-  erw [real.le_sqrt (norm_nonneg _) (complex.norm_sq_nonneg _),
-       pow_bit0_abs, pow_two, le_add_iff_nonneg_right],
-  exact mul_self_nonneg _
-end
-
-lemma complex.norm_im_le_norm (x : ℂ) : ∥x.im∥ ≤ ∥x∥ :=
-begin
-  erw [real.le_sqrt (norm_nonneg _) (complex.norm_sq_nonneg _),
-       pow_bit0_abs, pow_two, le_add_iff_nonneg_left],
-  exact mul_self_nonneg _
-end
-
-end
-
-lemma integrable.re {f : α → ℂ} (hf : integrable f μ) :
-  integrable (λ x, (f x).re) μ :=
-begin
-  refine ⟨complex.measurable_re.comp_ae_measurable hf.1,
-    lt_of_le_of_lt (lintegral_mono (λ x, _)) hf.2⟩,
-  exact ennreal.coe_le_coe.2 (complex.norm_re_le_norm (f x))
-end
-
-lemma integrable.im {f : α → ℂ} (hf : integrable f μ) :
-  integrable (λ x, (f x).im) μ :=
-begin
-  refine ⟨complex.measurable_im.comp_ae_measurable hf.1,
-    lt_of_le_of_lt (lintegral_mono (λ x, _)) hf.2⟩,
-  exact ennreal.coe_le_coe.2 (complex.norm_im_le_norm (f x))
-end
-
-lemma integrable.coe_re_of_integrable {f : α → ℂ} (hf : integrable (λ x, (f x).re) μ) :
-  integrable (λ x, ((f x).re : ℂ)) μ :=
-begin
-  refine ⟨complex.measurable_of_real.comp_ae_measurable hf.1, _⟩,
-  rw has_finite_integral,
-  convert hf.re.2,
-  ext1 x,
-  suffices : ∥((f x).re : ℂ)∥ = ∥(f x).re∥,
-  { exact ennreal.coe_eq_coe.2 (subtype.mk_eq_mk.2 this) },
-  rw complex.norm_real
-end
-
-lemma integrable.coe_im_of_integrable {f : α → ℂ} (hf : integrable (λ x, (f x).im) μ) :
-  integrable (λ x, ((f x).im : ℂ)) μ :=
-begin
-  refine ⟨complex.measurable_of_real.comp_ae_measurable hf.1, _⟩,
-  rw has_finite_integral,
-  convert hf.re.2,
-  ext1 x,
-  suffices : ∥((f x).im : ℂ)∥ = ∥(f x).im∥,
-  { exact ennreal.coe_eq_coe.2 (subtype.mk_eq_mk.2 this) },
-  rw complex.norm_real
-end
-
-lemma integrable.coe_re {f : α → ℂ} (hf : integrable f μ) :
-  integrable (λ x, ((f x).re : ℂ)) μ :=
-integrable.coe_re_of_integrable hf.re
-
-lemma integrable.coe_im {f : α → ℂ} (hf : integrable f μ) :
-  integrable (λ x, ((f x).im : ℂ)) μ :=
-integrable.coe_im_of_integrable hf.im
-
-lemma ae_measurable_of_re_im {f : α → ℂ}
-  (hre : ae_measurable (λ x, (f x).re) μ) (him : ae_measurable (λ x, (f x).im) μ) :
-  ae_measurable f μ :=
-begin
-  convert (complex.measurable_of_real.comp_ae_measurable hre).add
-    ((complex.measurable_of_real.comp_ae_measurable him).mul_const complex.I),
-  ext1 x,
-  simp
-end
-
-lemma complex.integrable_iff (f : α → ℂ) : integrable f μ ↔
-  integrable (λ x, (f x).re) μ ∧ integrable (λ x, (f x).im) μ :=
-begin
-  refine ⟨λ hf, ⟨hf.re, hf.im⟩, _⟩,
-  rintro ⟨hre, him⟩,
-  convert (integrable.coe_re_of_integrable hre).add
-    ((integrable.coe_im_of_integrable him).smul complex.I),
-  ext1 x,
-  simp [mul_comm complex.I (f x).im],
-end
-
-lemma integrable.integral_eq_coe_re_add_coe_im {f : α → ℂ} (hf : integrable f μ) :
-  ∫ x, f x ∂μ = ∫ x, (f x).re ∂μ + ∫ x, (f x).im ∂μ * complex.I :=
-begin
-  rw [mul_comm, ← smul_eq_mul, ← integral_smul,
-      ← integral_add (integrable.coe_re hf)], -- use dot notation after move
-  { congr,
-    ext1 x,
-    rw [smul_eq_mul, mul_comm],
-    simp },
-  { exact ((integrable.coe_im hf).smul _) }
-end
-
-lemma integrable.integral_eq_re_add_im {f : α → ℂ} (hf : integrable f μ) :
-  ∫ x, f x ∂μ = (∫ x, (f x).re ∂μ : ℝ) + (∫ x, (f x).im ∂μ : ℝ) * complex.I :=
-by { rw [integrable.integral_eq_coe_re_add_coe_im hf, integral_of_real, integral_of_real] }
-
-lemma integrable.set_integral_eq_re_add_im
-  {f : α → ℂ} (hf : integrable f μ) {i : set α} :
-  ∫ x in i, f x ∂μ = (∫ x in i, (f x).re ∂μ : ℝ) + (∫ x in i, (f x).im ∂μ : ℝ) * complex.I :=
-integrable.integral_eq_re_add_im hf.integrable_on
-
 lemma integrable_rn_deriv (c : complex_measure α) (μ : measure α) :
   integrable (c.rn_deriv μ) μ :=
 begin
-  rw complex.integrable_iff,
-  exact ⟨signed_measure.integrable_rn_deriv _ _, signed_measure.integrable_rn_deriv _ _⟩
+  rw [← mem_ℒp_one_iff_integrable, ← mem_ℒp_re_im_iff],
+  exact ⟨mem_ℒp_one_iff_integrable.2 (signed_measure.integrable_rn_deriv _ _),
+         mem_ℒp_one_iff_integrable.2 (signed_measure.integrable_rn_deriv _ _)⟩
 end
 
 theorem singular_part_add_with_density_rn_deriv_eq [c.have_lebesgue_decomposition μ] :
@@ -1343,9 +1234,9 @@ begin
   ext i hi,
   { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
         complex.add_re, re_part_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
-        integrable.set_integral_eq_re_add_im (c.integrable_rn_deriv μ),
-        ← complex.mk_eq_add_mul_I],
-    simp only,
+        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
+    suffices : (c.singular_part μ i).re + ∫ x in i, (c.rn_deriv μ x).re ∂μ = (c i).re,
+    { simpa },
     rw [← with_densityᵥ_apply _ hi],
     { change (c.re_part.singular_part μ + μ.with_densityᵥ (c.re_part.rn_deriv μ)) i = _,
       rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ (re_part c) _,
@@ -1353,9 +1244,9 @@ begin
     { exact (signed_measure.integrable_rn_deriv _ _) } },
   { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
         complex.add_im, im_part_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
-        integrable.set_integral_eq_re_add_im (c.integrable_rn_deriv μ),
-        ← complex.mk_eq_add_mul_I],
-    simp only,
+        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
+    suffices : (c.singular_part μ i).im + ∫ x in i, (c.rn_deriv μ x).im ∂μ = (c i).im,
+    { simpa },
     rw [← with_densityᵥ_apply _ hi],
     { change (c.im_part.singular_part μ + μ.with_densityᵥ (c.im_part.rn_deriv μ)) i = _,
       rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ (im_part c) _,

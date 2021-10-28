@@ -578,4 +578,23 @@ by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
 
 end order
 
+-- TODO : maximal ideals are closed points in the prime spectrum of any ring
+-- minimal primes are generic points of irreducible components
+
 end prime_spectrum
+
+
+namespace local_ring
+
+variables (R) [comm_ring R] [local_ring R]
+
+def closed_point : prime_spectrum R :=
+⟨maximal_ideal R, (maximal_ideal.is_maximal R).is_prime⟩
+
+variable {R}
+
+lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
+  {f : R →+* S} : is_local_ring_hom f ↔ (closed_point S).comap f = closed_point R :=
+by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
+
+end local_ring

@@ -225,6 +225,28 @@ end
 namespace local_ring
 variables [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
 
+/--
+A ring homomorphism between local rings is a local ring hom iff it reflects units,
+i.e. any preimage of a unit is still a unit. https://stacks.math.columbia.edu/tag/07BJ
+-/
+theorem local_hom_tfae (f : R →+* S) :
+  tfae [is_local_ring_hom f,
+        f '' (maximal_ideal R).1 ⊆ maximal_ideal S,
+        (maximal_ideal R).map f ≤ maximal_ideal S,
+        maximal_ideal R ≤ (maximal_ideal S).comap f,
+        (maximal_ideal S).comap f = maximal_ideal R] :=
+begin
+  tfae_have : 1 → 2, rintros _ _ ⟨a,ha,rfl⟩,
+    resetI, exact map_nonunit f a ha,
+  tfae_have : 2 → 4, exact set.image_subset_iff.1,
+  tfae_have : 3 ↔ 4, exact ideal.map_le_iff_le_comap,
+  tfae_have : 4 → 1, intro h, fsplit, exact λ x, not_imp_not.1 (@h x),
+  tfae_have : 1 → 5, intro, resetI, ext,
+    exact not_iff_not.2 (is_unit_map_iff f x),
+  tfae_have : 5 → 4, exact λ h, le_of_eq h.symm,
+  tfae_finish,
+end
+
 variable (R)
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
 def residue_field := (maximal_ideal R).quotient

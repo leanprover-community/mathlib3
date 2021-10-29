@@ -6,6 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébasti
 -/
 import analysis.special_functions.complex.log
 import analysis.calculus.extend_deriv
+import analysis.special_functions.log_deriv
 
 /-!
 # Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
@@ -57,6 +58,22 @@ by { simp only [cpow_def], split_ifs; simp [*, exp_ne_zero] }
 @[simp] lemma zero_cpow {x : ℂ} (h : x ≠ 0) : (0 : ℂ) ^ x = 0 :=
 by simp [cpow_def, *]
 
+lemma zero_cpow_eq_iff {x : ℂ} {a : ℂ} : 0 ^ x = a ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+begin
+  split,
+  { intros hyp,
+    simp [cpow_def] at hyp,
+    by_cases x = 0,
+    { subst h, simp only [if_true, eq_self_iff_true] at hyp, right, exact ⟨rfl, hyp.symm⟩},
+    { rw if_neg h at hyp, left, exact ⟨h, hyp.symm⟩, }, },
+  { rintro (⟨h, rfl⟩|⟨rfl,rfl⟩),
+    { exact zero_cpow h, },
+    { exact cpow_zero _, }, },
+end
+
+lemma eq_zero_cpow_iff {x : ℂ} {a : ℂ} : a = 0 ^ x ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+by rw [←zero_cpow_eq_iff, eq_comm]
+
 @[simp] lemma cpow_one (x : ℂ) : x ^ (1 : ℂ) = x :=
 if hx : x = 0 then by simp [hx, cpow_def]
 else by rw [cpow_def, if_neg (one_ne_zero : (1 : ℂ) ≠ 0), if_neg hx, mul_one, exp_log hx]
@@ -92,7 +109,7 @@ by simpa using cpow_neg x 1
 
 @[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
-| -[1+ n] := by rw gpow_neg_succ_of_nat;
+| -[1+ n] := by rw zpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
@@ -404,6 +421,25 @@ by rw rpow_def_of_pos hx; apply exp_pos
 @[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
 by simp [rpow_def, *]
 
+lemma zero_rpow_eq_iff {x : ℝ} {a : ℝ} : 0 ^ x = a ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+begin
+  split,
+  { intros hyp,
+    simp [rpow_def] at hyp,
+    by_cases x = 0,
+    { subst h,
+      simp only [complex.one_re, complex.of_real_zero, complex.cpow_zero] at hyp,
+      exact or.inr ⟨rfl, hyp.symm⟩},
+    { rw complex.zero_cpow (complex.of_real_ne_zero.mpr h) at hyp,
+      exact or.inl ⟨h, hyp.symm⟩, }, },
+  { rintro (⟨h,rfl⟩|⟨rfl,rfl⟩),
+    { exact zero_rpow h, },
+    { exact rpow_zero _, }, },
+end
+
+lemma eq_zero_rpow_iff {x : ℝ} {a : ℝ} : a = 0 ^ x ↔ (x ≠ 0 ∧ a = 0) ∨ (x = 0 ∧ a = 1) :=
+by rw [←zero_rpow_eq_iff, eq_comm]
+
 @[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
@@ -515,7 +551,7 @@ by { simp only [sub_eq_add_neg] at h ⊢, simp only [rpow_add' hx h, rpow_neg hx
 
 lemma rpow_add_int {x : ℝ} (hx : x ≠ 0) (y : ℝ) (n : ℤ) : x ^ (y + n) = x ^ y * x ^ n :=
 by rw [rpow_def, complex.of_real_add, complex.cpow_add _ _ (complex.of_real_ne_zero.mpr hx),
-  complex.of_real_int_cast, complex.cpow_int_cast, ← complex.of_real_fpow, mul_comm,
+  complex.of_real_int_cast, complex.cpow_int_cast, ← complex.of_real_zpow, mul_comm,
   complex.of_real_mul_re, ← rpow_def, mul_comm]
 
 lemma rpow_add_nat {x : ℝ} (hx : x ≠ 0) (y : ℝ) (n : ℕ) : x ^ (y + n) = x ^ y * x ^ n :=
@@ -534,7 +570,7 @@ lemma rpow_sub_one {x : ℝ} (hx : x ≠ 0) (y : ℝ) : x ^ (y - 1) = x ^ y / x 
 by simpa using rpow_sub_nat hx y 1
 
 @[simp] lemma rpow_int_cast (x : ℝ) (n : ℤ) : x ^ (n : ℝ) = x ^ n :=
-by simp only [rpow_def, ← complex.of_real_fpow, complex.cpow_int_cast,
+by simp only [rpow_def, ← complex.of_real_zpow, complex.cpow_int_cast,
   complex.of_real_int_cast, complex.of_real_re]
 
 @[simp] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
@@ -543,7 +579,7 @@ rpow_int_cast x n
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, gpow_one, fpow_neg],
+  simp only [rpow_int_cast, zpow_one, zpow_neg₀],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=

@@ -431,9 +431,9 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
       { simp [en], rwa [add_sub_add_cancel] },
       { simp [en, -repr],
         exact (ordinal.sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
-          lt_of_le_of_ne (nat.sub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
+          lt_of_le_of_ne (tsub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
     { simp [nat.succ_pnat, -nat.cast_succ],
-      rw [(nat.sub_eq_iff_eq_add $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,
+      rw [(tsub_eq_iff_eq_add_of_le $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,
           add_comm, nat.cast_add, ordinal.mul_add, add_assoc, add_sub_add_cancel],
       refine (ordinal.sub_eq_of_add_eq $ add_absorp h₂.snd'.repr_lt $
         le_trans _ (le_add_right _ _)).symm,

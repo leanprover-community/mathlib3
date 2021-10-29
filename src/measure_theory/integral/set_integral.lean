@@ -837,6 +837,27 @@ lemma integral_im {f : α → 𝕜} (hf : integrable f μ) :
 lemma integral_conj {f : α → 𝕜} : ∫ a, conj (f a) ∂μ = conj ∫ a, f a ∂μ :=
 (@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
 
+lemma integral_coe_re_add_coe_im {f : α → 𝕜} (hf : integrable f μ) :
+  ∫ x, (is_R_or_C.re (f x) : 𝕜) ∂μ + ∫ x, is_R_or_C.im (f x) ∂μ * is_R_or_C.I = ∫ x, f x ∂μ :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← integral_smul, ← integral_add],
+  { congr,
+    ext1 x,
+    rw [smul_eq_mul, mul_comm, is_R_or_C.re_add_im] },
+  { exact hf.re.of_real },
+  { exact hf.im.of_real.smul is_R_or_C.I }
+end
+
+lemma integral_re_add_im {f : α → 𝕜} (hf : integrable f μ) :
+  ((∫ x, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) + (∫ x, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I =
+  ∫ x, f x ∂μ :=
+by { rw [← integral_of_real, ← integral_of_real, integral_coe_re_add_coe_im hf] }
+
+lemma set_integral_re_add_im {f : α → 𝕜} {i : set α} (hf : integrable_on f i μ) :
+  ((∫ x in i, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) +
+  (∫ x in i, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I = ∫ x in i, f x ∂μ :=
+integral_re_add_im hf
+
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=
 ((continuous_linear_map.fst ℝ E F).integral_comp_comm hf).symm

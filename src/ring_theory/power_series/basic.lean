@@ -6,7 +6,6 @@ Authors: Johan Commelin, Kenny Lau
 import data.mv_polynomial
 import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
-import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
 import tactic.linarith
@@ -542,7 +541,7 @@ begin
       { rintros ⟨i,j⟩ hij hne, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply hne, rw [← hij, ← hi, prod.mk.inj_iff], refine ⟨rfl, _⟩,
-          ext t, simp only [nat.add_sub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
+          ext t, simp only [add_tsub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
         { exact zero_mul _ } },
         { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
     { rw [h, coeff_mul, finset.sum_eq_zero],
@@ -553,7 +552,7 @@ begin
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
-        { subst t, simpa using nat.sub_add_cancel H },
+        { subst t, simpa using tsub_add_cancel_of_le H },
         { simp [finsupp.single_apply, hst] } } } }
 end
 

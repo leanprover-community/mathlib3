@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.measure.giry_monad
+import dynamics.ergodic.measure_preserving
 import measure_theory.integral.set_integral
 
 /-!
@@ -335,34 +336,14 @@ by simp_rw [prod_apply (hs.prod ht), mk_preimage_prod_right_eq_if, measure_if,
   lintegral_indicator _ hs, lintegral_const, restrict_apply measurable_set.univ,
   univ_inter, mul_comm]
 
-local attribute [instance] nonempty_measurable_superset
 /-- If we don't assume measurability of `s` and `t`, we can bound the measure of their product. -/
 lemma prod_prod_le (s : set α) (t : set β) : μ.prod ν (s.prod t) ≤ μ s * ν t :=
-begin
-  by_cases hs0 : μ s = 0,
-  { rcases (exists_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
-    convert measure_mono (prod_mono hs' (subset_univ _)),
-    simp_rw [hs0, prod_prod h2s' measurable_set.univ, h3s', zero_mul] },
-  by_cases hti : ν t = ∞,
-  { convert le_top, simp_rw [hti, ennreal.mul_top, hs0, if_false] },
-  rw [measure_eq_infi' μ],
-  simp_rw [ennreal.infi_mul hti],
-  refine le_infi _,
-  rintro ⟨s', h1s', h2s'⟩,
-  rw [subtype.coe_mk],
-  by_cases ht0 : ν t = 0,
-  { rcases (exists_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
-    convert measure_mono (prod_mono (subset_univ _) ht'),
-    simp_rw [ht0, prod_prod measurable_set.univ h2t', h3t', mul_zero] },
-  by_cases hsi : μ s' = ∞,
-  { convert le_top, simp_rw [hsi, ennreal.top_mul, ht0, if_false] },
-  rw [measure_eq_infi' ν],
-  simp_rw [ennreal.mul_infi hsi],
-  refine le_infi _,
-  rintro ⟨t', h1t', h2t'⟩,
-  convert measure_mono (prod_mono h1s' h1t'),
-  simp [prod_prod h2s' h2t'],
-end
+calc μ.prod ν (s.prod t) ≤ μ.prod ν ((to_measurable μ s).prod (to_measurable ν t)) :
+  measure_mono $ set.prod_mono (subset_to_measurable _ _) (subset_to_measurable _ _)
+... = μ (to_measurable μ s) * ν (to_measurable ν t) :
+  prod_prod (measurable_set_to_measurable _ _) (measurable_set_to_measurable _ _)
+... = μ s * ν t :
+  by rw [measure_to_measurable, measure_to_measurable]
 
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
   (h2s : (μ.prod ν) s ≠ ∞) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ∞ :=
@@ -561,6 +542,53 @@ begin
 end
 
 end measure
+
+namespace measure_preserving
+
+open measure
+
+variables {δ : Type*} [measurable_space δ] {μa : measure α} {μb : measure β}
+  {μc : measure γ} {μd : measure δ}
+
+lemma skew_product [sigma_finite μb] [sigma_finite μd]
+  {f : α → β} (hf : measure_preserving f μa μb) {g : α → γ → δ}
+  (hgm : measurable (uncurry g)) (hg : ∀ᵐ x ∂μa, map (g x) μc = μd) :
+  measure_preserving (λ p : α × γ, (f p.1, g p.1 p.2)) (μa.prod μc) (μb.prod μd) :=
+begin
+  classical,
+  have : measurable (λ p : α × γ, (f p.1, g p.1 p.2)) := (hf.1.comp measurable_fst).prod_mk hgm,
+  /- if `μa = 0`, then the lemma is trivial, otherwise we can use `hg`
+  to deduce `sigma_finite μc`. -/
+  rcases eq_or_ne μa 0 with (rfl|ha),
+  { rw [← hf.map_eq, zero_prod, (map f).map_zero, zero_prod],
+    exact ⟨this, (map _).map_zero⟩ },
+  haveI : sigma_finite μc,
+  { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
+    exact sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx) },
+  -- Thus we can apply `measure.prod_eq` to prove equality of measures.
+  refine ⟨this, (prod_eq $ λ s t hs ht, _).symm⟩,
+  rw [map_apply this (hs.prod ht)],
+  refine (prod_apply (this $ hs.prod ht)).trans _,
+  have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' s.prod t) = indicator (f ⁻¹' s) (λ y, μd t) x,
+  { refine hg.mono (λ x hx, _), unfreezingI { subst hx },
+    simp only [mk_preimage_prod_right_fn_eq_if, indicator_apply, mem_preimage],
+    split_ifs,
+    exacts [(map_apply hgm.of_uncurry_left ht).symm, measure_empty] },
+  simp only [preimage_preimage],
+  rw [lintegral_congr_ae this, lintegral_indicator _ (hf.1 hs),
+    set_lintegral_const, hf.measure_preimage hs, mul_comm]
+end
+
+/-- If `f : α → β` sends the measure `μa` to `μb` and `g : γ → δ` sends the measure `μc` to `μd`,
+then `prod.map f g` sends `μa.prod μc` to `μb.prod μd`. -/
+protected lemma prod [sigma_finite μb] [sigma_finite μd] {f : α → β} {g : γ → δ}
+  (hf : measure_preserving f μa μb) (hg : measure_preserving g μc μd) :
+  measure_preserving (prod.map f g) (μa.prod μc) (μb.prod μd) :=
+have measurable (uncurry $ λ _ : α, g), from (hg.1.comp measurable_snd),
+hf.skew_product this $ filter.eventually_of_forall $ λ _, hg.map_eq
+
+end measure_preserving
+
 end measure_theory
 
 open measure_theory.measure

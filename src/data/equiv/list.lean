@@ -226,13 +226,13 @@ def raise : list ℕ → ℕ → list ℕ
 
 lemma lower_raise : ∀ l n, lower (raise l n) n = l
 | []       n := rfl
-| (m :: l) n := by rw [raise, lower, nat.add_sub_cancel, lower_raise]
+| (m :: l) n := by rw [raise, lower, add_tsub_cancel_right, lower_raise]
 
 lemma raise_lower : ∀ {l n}, list.sorted (≤) (n :: l) → raise (lower l n) n = l
 | []       n h := rfl
 | (m :: l) n h :=
   have n ≤ m, from list.rel_of_sorted_cons h _ (l.mem_cons_self _),
-  by simp [raise, lower, nat.sub_add_cancel this,
+  by simp [raise, lower, tsub_add_cancel_of_le this,
            raise_lower (list.sorted_of_sorted_cons h)]
 
 lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
@@ -273,13 +273,13 @@ def raise' : list ℕ → ℕ → list ℕ
 
 lemma lower_raise' : ∀ l n, lower' (raise' l n) n = l
 | []       n := rfl
-| (m :: l) n := by simp [raise', lower', nat.add_sub_cancel, lower_raise']
+| (m :: l) n := by simp [raise', lower', add_tsub_cancel_right, lower_raise']
 
 lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l → raise' (lower' l n) n = l
 | []       n h₁ h₂ := rfl
 | (m :: l) n h₁ h₂ :=
   have n ≤ m, from h₁ _ (l.mem_cons_self _),
-  by simp [raise', lower', nat.sub_add_cancel this, raise_lower'
+  by simp [raise', lower', tsub_add_cancel_of_le this, raise_lower'
     (list.rel_of_sorted_cons h₂ : ∀ a ∈ l, m < a) (list.sorted_of_sorted_cons h₂)]
 
 lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)

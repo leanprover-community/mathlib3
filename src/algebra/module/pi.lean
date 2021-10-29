@@ -13,11 +13,12 @@ import algebra.ring.pi
 This file defines instances for module, mul_action and related structures on Pi Types
 -/
 
-namespace pi
 universes u v w
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
+
+namespace pi
 
 @[to_additive pi.has_vadd]
 instance has_scalar {α : Type*} [Π i, has_scalar α $ f i] :
@@ -201,6 +202,26 @@ instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
   (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩
 
 end pi
+
+namespace function
+
+@[to_additive]
+lemma update_smul {α : Type*} [Π i, has_scalar α (f i)] [decidable_eq I]
+  (c : α) (f₁ : Π i, f i) (i : I) (x₁ : f i) :
+  update (c • f₁) i (c • x₁) = c • update f₁ i x₁ :=
+funext $ λ j, (apply_update (λ i, (•) c) f₁ i x₁ j).symm
+
+end function
+
+namespace set
+
+@[to_additive]
+lemma piecewise_smul {α : Type*} [Π i, has_scalar α (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (c : α) (f₁ g₁ : Π i, f i) :
+  s.piecewise (c • f₁) (c • g₁) = c • s.piecewise f₁ g₁ :=
+s.piecewise_op _ _ (λ _, (•) c)
+
+end set
 
 section extend
 

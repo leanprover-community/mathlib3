@@ -1852,4 +1852,11 @@ begin
   exact hT.conj_inner_sym x x
 end
 
+/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
+self-adjoint. -/
+lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
+  {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
+  is_self_adjoint (T.restrict hV) :=
+λ v w, hT v w
+
 end is_self_adjoint

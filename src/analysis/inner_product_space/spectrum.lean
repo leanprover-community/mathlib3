@@ -12,15 +12,15 @@ This file covers the spectral theory of self-adjoint operators on an inner produ
 
 The first part of the file covers general properties, true without any condition on boundedness or
 compactness of the operator or finite-dimensionality of the underlying space, notably:
-* `self_adjoint.conj_eigenvalue_eq_self`: the eigenvalues are real
-* `self_adjoint.orthogonal_family_eigenspaces`: the eigenspaces are orthogonal
-* `self_adjoint.orthogonal_supr_eigenspaces`: the restriction of the operator to the mutual
+* `is_self_adjoint.conj_eigenvalue_eq_self`: the eigenvalues are real
+* `is_self_adjoint.orthogonal_family_eigenspaces`: the eigenspaces are orthogonal
+* `is_self_adjoint.orthogonal_supr_eigenspaces`: the restriction of the operator to the mutual
   orthogonal complement of the eigenspaces has, itself, no eigenvectors
 
 The second part of the file covers properties of self-adjoint operators in finite dimension.  The
-definition `self_adjoint.diagonalization` provides a linear isometry equivalence from a space `E`
-to the direct sum of the eigenspaces of a self-adjoint operator `T` on `E`.  The theorem
-`self_adjoint.diagonalization_apply_self_apply` states that, when `T` is transferred via this
+definition `is_self_adjoint.diagonalization` provides a linear isometry equivalence from a space
+`E` to the direct sum of the eigenspaces of a self-adjoint operator `T` on `E`.  The theorem
+`is_self_adjoint.diagonalization_apply_self_apply` states that, when `T` is transferred via this
 equivalence to an operator on the direct sum, it acts diagonally.  This is the *diagonalization
 theorem* for self-adjoint operators on finite-dimensional inner product spaces.
 
@@ -44,9 +44,9 @@ local attribute [instance] fact_one_le_two_real
 open_locale classical big_operators complex_conjugate
 open module.End
 
-namespace self_adjoint
+namespace is_self_adjoint
 
-variables {T : E →ₗ[𝕜] E} (hT : self_adjoint T)
+variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
 include hT
 
 /-- A self-adjoint operator preserves orthogonal complements of its eigenspaces. -/
@@ -108,7 +108,7 @@ variables [finite_dimensional 𝕜 E]
 finite-dimensional inner product space is trivial. -/
 lemma orthogonal_supr_eigenspaces_eq_bot : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
 begin
-  have hT' : self_adjoint _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
+  have hT' : is_self_adjoint _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
   -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue
   haveI := hT'.subsingleton_of_no_eigenvalue_finite_dimensional hT.orthogonal_supr_eigenspaces,
   exact submodule.eq_bot_of_subsingleton _,
@@ -147,7 +147,7 @@ lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
 begin
   suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
-  { simpa [linear_isometry_equiv.symm_apply_apply, -self_adjoint.diagonalization_symm_apply]
+  { simpa [linear_isometry_equiv.symm_apply_apply, -is_self_adjoint.diagonalization_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
   have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
@@ -156,4 +156,4 @@ begin
   simp [hwT],
 end
 
-end self_adjoint
+end is_self_adjoint

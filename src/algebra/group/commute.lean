@@ -121,14 +121,14 @@ begin
   refine ⟨_, λ H, H.1.mul H.2⟩,
   rintro ⟨u, hu⟩,
   have : b * ↑u⁻¹ * a = 1,
-  { have : commute a u, { rw hu, exact (commute.refl _).mul_right h },
+  { have : commute a u := hu.symm ▸ (commute.refl _).mul_right h,
     rw [← this.units_inv_right.right_comm, ← h.eq, ← hu, u.mul_inv] },
   split,
   { refine ⟨⟨a, b * ↑u⁻¹, _, this⟩, rfl⟩,
     rw [← mul_assoc, ← hu, u.mul_inv] },
-  { refine ⟨⟨b, ↑u⁻¹ * a, _, _⟩, rfl⟩,
-    { rwa ← mul_assoc },
-    { rw [mul_assoc, ← hu, u.inv_mul] } }
+  { rw mul_assoc at this,
+    refine ⟨⟨b, ↑u⁻¹ * a, this, _⟩, rfl⟩,
+    rw [mul_assoc, ← hu, u.inv_mul] }
 end
 
 @[simp, to_additive] lemma _root_.is_unit_mul_self_iff {a : M} :

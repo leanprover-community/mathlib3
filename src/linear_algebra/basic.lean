@@ -1736,6 +1736,11 @@ by rw [of_le, ker_cod_restrict, ker_subtype]
 lemma range_of_le (p q : submodule R M) (h : p ≤ q) : (of_le h).range = comap q.subtype p :=
 by rw [← map_top, of_le, linear_map.map_cod_restrict, map_top, range_subtype]
 
+lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
+  disjoint p q ↔ comap p.subtype q = ⊥ :=
+by rw [←(map_injective_of_injective (show injective p.subtype, from subtype.coe_injective)).eq_iff,
+       map_comap_subtype, map_bot, disjoint_iff]
+
 /-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
 def map_subtype.rel_iso : submodule R p ≃o {p' : submodule R M // p' ≤ p} :=
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
@@ -1757,19 +1762,6 @@ def map_subtype.order_embedding : submodule R p ↪o submodule R M :=
   map_subtype.order_embedding p p' = map p.subtype p' := rfl
 
 end add_comm_monoid
-
-section ring
-
-variables [ring R] [add_comm_group M] [module R M]
-variables (p : submodule R M)
-
-open linear_map
-
-lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
-  disjoint p q ↔ comap p.subtype q = ⊥ :=
-by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype, disjoint]
-
-end ring
 
 end submodule
 

@@ -96,9 +96,10 @@ lemma mk_is_antichain (r : α → α → Prop) (s : set α) : is_antichain r (is
 
 lemma mk_subset : is_antichain.mk r s ⊆ s := sep_subset _ _
 
-/-- If -/
+/-- If `is_antichain.mk r s` is included in but *shadows* the antichain `t`, then it is actually
+equal to `t`. -/
 lemma mk_max (ht : is_antichain r t) (h : is_antichain.mk r s ⊆ t)
-  (hs : ∀ a, ∃ b ∈ is_antichain.mk r s, r a b) :
+  (hs : ∀ ⦃a⦄, a ∈ t → ∃ b ∈ is_antichain.mk r s, r a b) :
   t = is_antichain.mk r s :=
 begin
   refine subset.antisymm (λ a ha, _) h,

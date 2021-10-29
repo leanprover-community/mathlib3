@@ -49,14 +49,17 @@ lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
-lemma is_unit_pos_pow_iff {m : M} {n : ℕ} (h : 0 < n) :
-  is_unit (m ^ n) ↔ is_unit m :=
+@[simp] lemma is_unit_pow_succ_iff {m : M} {n : ℕ} :
+  is_unit (m ^ (n + 1)) ↔ is_unit m :=
 begin
   refine ⟨_, λ h, h.pow _⟩,
-  obtain ⟨p, rfl : n = p + 1⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
   rw [pow_succ, ((commute.refl _).pow_right _).is_unit_mul_iff],
   exact and.left
 end
+
+lemma is_unit_pos_pow_iff {m : M} :
+  ∀ {n : ℕ} (h : 0 < n), is_unit (m ^ n) ↔ is_unit m
+| (n + 1) _ := is_unit_pow_succ_iff
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
 def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :

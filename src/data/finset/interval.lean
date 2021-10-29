@@ -10,6 +10,12 @@ import data.finset.locally_finite
 
 This file provides the `locally_finite_order` instance for `finset α` and calculates the cardinality
 of finite intervals of finsets.
+
+If `s t : finset α`, then `finset.Icc s t` is the finset of finsets which include `s` and are
+included in `t`. For example,
+`finset.Icc {0, 1} {0, 1, 2, 3} = {{0, 1}, {0, 1, 2}, {0, 1, 3}, {0, 1, 2, 3}}`
+and
+`finset.Icc {0, 1, 2} {0, 1, 3} = {}`.
 -/
 
 variables {α : Type*}
@@ -28,15 +34,11 @@ instance : locally_finite_order (finset α) :=
   finset_mem_Ioo := λ s t u, by {rw [mem_filter, mem_ssubsets], exact and_comm _ _ } }
 
 lemma Icc_eq_filter_powerset : Icc s t = t.powerset.filter ((⊆) s) := rfl
-
 lemma Ico_eq_filter_ssubsets : Ico s t = t.ssubsets.filter ((⊆) s) := rfl
-
 lemma Ioc_eq_filter_powerset : Ioc s t = t.powerset.filter ((⊂) s) := rfl
-
 lemma Ioo_eq_filter_ssubsets : Ioo s t = t.ssubsets.filter ((⊂) s) := rfl
 
 lemma Iic_eq_powerset : Iic s = s.powerset := filter_true_of_mem $ λ t _, empty_subset t
-
 lemma Iio_eq_ssubsets : Iio s = s.ssubsets := filter_true_of_mem $ λ t _, empty_subset t
 
 variables {s t}

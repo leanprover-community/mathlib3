@@ -32,10 +32,10 @@ def antidiagonal (n : ℕ) : list (ℕ × ℕ) :=
   x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
 begin
   rw [antidiagonal, mem_map], split,
-  { rintros ⟨i, hi, rfl⟩, rw [mem_range, lt_succ_iff] at hi, exact nat.add_sub_of_le hi },
+  { rintros ⟨i, hi, rfl⟩, rw [mem_range, lt_succ_iff] at hi, exact add_tsub_cancel_of_le hi },
   { rintro rfl, refine ⟨x.fst, _, _⟩,
     { rw [mem_range, add_assoc, lt_add_iff_pos_right], exact zero_lt_succ _ },
-    { exact prod.ext rfl (nat.add_sub_cancel_left _ _) } }
+    { exact prod.ext rfl (add_tsub_cancel_left _ _) } }
 end
 
 /-- The length of the antidiagonal of `n` is `n + 1`. -/
@@ -54,7 +54,7 @@ nodup_map (@left_inverse.injective ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ 
   antidiagonal (n + 1) = (0, n + 1) :: ((antidiagonal n).map (prod.map nat.succ id) ) :=
 begin
   simp only [antidiagonal, range_succ_eq_map, map_cons, true_and, nat.add_succ_sub_one, add_zero,
-    id.def, eq_self_iff_true, nat.sub_zero, map_map, prod.map_mk],
+    id.def, eq_self_iff_true, tsub_zero, map_map, prod.map_mk],
   apply congr (congr rfl _) rfl,
   ext; simp,
 end

@@ -203,8 +203,7 @@ instance separated_regular [separated_space α] : regular_space α :=
         h this rfl,
     have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
     have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
-      from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (closure e)ᶜ) (𝓟 (closure e))
-        (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
+      from (is_compl_principal (closure e)).inf_right_eq_bot_iff.2 (le_principal_iff.2 this),
     ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
 

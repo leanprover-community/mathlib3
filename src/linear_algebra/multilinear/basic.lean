@@ -332,13 +332,13 @@ begin
   -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,
   { rcases Ai_empty with ⟨i, hi⟩,
-    have : ∑ j in A i, g i j = 0, by convert sum_empty,
+    have : ∑ j in A i, g i j = 0, by rw [hi, finset.sum_empty],
     rw f.map_coord_zero i this,
     have : pi_finset A = ∅,
     { apply finset.eq_empty_of_forall_not_mem (λ r hr, _),
       have : r i ∈ A i := mem_pi_finset.mp hr i,
       rwa hi at this },
-    convert sum_empty.symm },
+    rw [this, finset.sum_empty] },
   push_neg at Ai_empty,
   -- Otherwise, if all sets are at most singletons, then they are exactly singletons and the result
   -- is again straightforward
@@ -600,6 +600,15 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = (∏ i, c i) • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
 
+@[simp] lemma map_update_smul [fintype ι] (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+  f (update (c • m) i x) = c^(fintype.card ι - 1) • f (update m i x) :=
+begin
+  have : f ((finset.univ.erase i).piecewise (c • update m i x) (update m i x))
+       = (∏ i in finset.univ.erase i, c) • f (update m i x) :=
+    map_piecewise_smul f _ _ _,
+  simpa [←function.update_smul c m] using this,
+end
+
 section distrib_mul_action
 
 variables {R' A : Type*} [monoid R'] [semiring A]
@@ -764,10 +773,10 @@ by refine
   sub := has_sub.sub,
   sub_eq_add_neg := _,
   nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
-  gsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
-  gsmul_zero' := _,
-  gsmul_succ' := _,
-  gsmul_neg' := _,
+  zsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
+  zsmul_zero' := _,
+  zsmul_succ' := _,
+  zsmul_neg' := _,
   .. multilinear_map.add_comm_monoid, .. };
 intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
 

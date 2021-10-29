@@ -30,7 +30,6 @@ normed group
 
 variables {α ι E F : Type*}
 
-noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
@@ -88,7 +87,7 @@ structure semi_normed_group.core (E : Type*) [add_comm_group E] [has_norm E] : P
 pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
 cases this instance creates bad definitional equalities (e.g., it does not take into account
 a possibly existing `uniform_space` instance on `E`). -/
-noncomputable def semi_normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
+def semi_normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   (C : semi_normed_group.core E) : semi_normed_group E :=
 { dist := λ x y, ∥x - y∥,
   dist_eq := assume x y, by refl,
@@ -106,7 +105,7 @@ instance : normed_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-instance : normed_group ℝ :=
+noncomputable instance : normed_group ℝ :=
 { norm := λ x, |x|,
   dist_eq := assume x y, rfl }
 
@@ -675,7 +674,7 @@ rfl
 rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
-instance prod.semi_normed_group : semi_normed_group (E × F) :=
+noncomputable instance prod.semi_normed_group : semi_normed_group (E × F) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : E × F),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
@@ -697,8 +696,8 @@ max_le_iff
 
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
-instance pi.semi_normed_group {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] :
-  semi_normed_group (Πi, π i) :=
+noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
+  [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
@@ -920,7 +919,7 @@ lemma normed_group.core.to_semi_normed_group.core {E : Type*} [add_comm_group E]
 
 /-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
 the metric space structure from the norm properties. -/
-noncomputable def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
+def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   (C : normed_group.core E) : normed_group E :=
 { eq_of_dist_eq_zero := λ x y h,
   begin
@@ -971,7 +970,7 @@ instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { ..submodule.semi_normed_group s }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
-instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }
+noncomputable instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }
 
 lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
@@ -989,7 +988,7 @@ lemma norm_prod_le_iff {x : E × F} {r : ℝ} :
 max_le_iff
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
-instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
+noncomputable instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πi, π i) := { ..pi.semi_normed_group }
 
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each

@@ -1020,7 +1020,7 @@ end
 lemma to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
 by rw [←to_nat_lift, lift_mk_eq.mpr ⟨e⟩, to_nat_lift]
 
-lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
+@[simp] lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin
   by_cases hx1 : x = 0,
   { rw [comm_semiring.mul_comm, hx1, mul_zero, zero_to_nat, nat.zero_mul] },
@@ -1054,6 +1054,16 @@ to_nat_eq_zero_of_ne_zero (mk_ne_zero α)
 theorem to_nat_eq_zero_of_injective [nonempty α] {f : α → β} (hf : injective f)
   (hα : (#α).to_nat = 0) : (#β).to_nat=0 :=
 to_nat_eq_zero.mpr (or.inr ((mk_to_nat_eq_zero_of_nonempty.mp hα).trans (mk_le_of_injective hf)))
+
+@[simp] lemma to_nat_add_of_lt_omega {a : cardinal.{u}} {b : cardinal.{v}}
+  (ha : a < ω) (hb : b < ω) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
+begin
+  apply cardinal.nat_cast_injective,
+  replace ha : (lift.{v u} a) < ω := by { rw [← lift_omega], exact lift_lt.2 ha },
+  replace hb : (lift.{u v} b) < ω := by { rw [← lift_omega], exact lift_lt.2 hb },
+  rw [nat.cast_add, ← to_nat_lift.{v u} a, ← to_nat_lift.{u v} b, cast_to_nat_of_lt_omega ha,
+    cast_to_nat_of_lt_omega hb, cast_to_nat_of_lt_omega (add_lt_omega ha hb)]
+end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/

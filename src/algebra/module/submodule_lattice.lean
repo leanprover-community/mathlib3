@@ -248,8 +248,7 @@ end nat_submodule
 
 end add_comm_monoid
 
-
-section int_module
+section int_submodule
 
 variables [add_comm_group M]
 
@@ -261,7 +260,6 @@ def add_subgroup.to_int_submodule : add_subgroup M ≃o submodule ℤ M := add_c
   left_inv := λ ⟨S, _, _, _⟩, rfl,
   right_inv := λ ⟨S, _, _, _⟩, rfl,
   map_rel_iff' := λ a b, iff.rfl }
-
 
 @[simp]
 lemma add_subgroup.to_int_submodule_symm :
@@ -281,5 +279,4 @@ lemma submodule.to_add_subgroup_to_int_submodule (S : submodule ℤ M) :
   S.to_add_subgroup.to_int_submodule = S :=
 add_subgroup.to_int_submodule.apply_symm_apply S
 
-
-end int_module
+end int_submodule

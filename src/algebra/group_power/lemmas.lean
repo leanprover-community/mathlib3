@@ -49,17 +49,22 @@ lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
-lemma is_unit_pos_pow_iff {M : Type*} [comm_monoid M] {m : M} {n : ℕ} (h : 0 < n) :
-  is_unit (m ^ n) ↔ is_unit m :=
+@[simp] lemma is_unit_pow_succ_iff {m : M} {n : ℕ} : is_unit (m ^ n.succ) ↔ is_unit m :=
+begin
+  refine ⟨λ h, _, is_unit.pow _⟩,
+  obtain ⟨u, hu⟩ := h,
+  have h_comm : ↑u⁻¹ * m ^ n = m ^ n * ↑u⁻¹,
+  { rw [units.inv_mul_eq_iff_eq_mul, ←mul_assoc, units.eq_mul_inv_iff_mul_eq, hu, ←pow_add,
+        ←pow_add, add_comm], },
+  refine ⟨⟨m, ↑u⁻¹ * m ^ n, _, _⟩, rfl⟩,
+  { rw [h_comm, ←mul_assoc, ←pow_succ, ←hu, units.mul_inv], },
+  { rw [mul_assoc, ←pow_succ', ←hu, units.inv_mul], },
+end
+
+lemma is_unit_pos_pow_iff {m : M} {n : ℕ} (h : 0 < n) : is_unit (m ^ n) ↔ is_unit m :=
 begin
   obtain ⟨p, rfl⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
-  refine ⟨λ h, _, is_unit.pow _⟩,
-  obtain ⟨⟨k, k', hk, hk'⟩, h⟩ := h,
-  rw [units.coe_mk] at h,
-  refine ⟨⟨m, m ^ p * k', _, _⟩, _⟩,
-  { rw [←mul_assoc, ←pow_succ, ←h, hk] },
-  { rw [mul_right_comm, ←pow_succ', ←h, hk] },
-  { exact units.coe_mk _ _ _ _ }
+  exact is_unit_pow_succ_iff,
 end
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/

@@ -13,9 +13,9 @@ import ring_theory.polynomial.homogeneous
 open_locale direct_sum big_operators
 
 section graded_ring
+variables {R : Type*} [ring R] {ι : Type*} (A : ι → add_subgroup R)
 
-variables {R : Type*} [ring R] {ι : Type*} [decidable_eq ι]
-  (A : ι → add_subgroup R)
+variable [decidable_eq ι]
 
 /-- The canonical embedding from `⨁ i, A i` to `R`-/
 def direct_sum.add_subgroup_coe : (⨁ i, A i) →+ R :=
@@ -58,15 +58,15 @@ let f : (⨁ i, A i) →+* R :=
 
 /-- The projection maps of graded ring-/
 def graded_ring.proj (i : ι) (r : R) : R :=
-  (@graded_ring.decompose R _  ι _ A _  _ r i).val
+  (@graded_ring.decompose R _ ι A _ _ _ r i).val
 
 lemma graded_ring.proj_mem (i : ι) (r : R) :
-  graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _  ι _ A _  _ r i).2
+  graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _ ι A _ _ _ r i).2
 
 /-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
 def graded_ring.support [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
   (r : R) : finset ι :=
-(@graded_ring.decompose R _ ι _ A _ _ r).support
+(@graded_ring.decompose R _ ι A _ _ _ r).support
 
 variable [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
 
@@ -93,8 +93,8 @@ end⟩
 lemma graded_ring.as_sum (r : R) :
   r = ∑ i in graded_ring.support R A r, graded_ring.proj R A i r :=
 begin
-  conv_lhs { rw [←@graded_ring.right_inv R  _ ι _ A _ _ r,
-    direct_sum.eq_sum_of _ (@graded_ring.decompose R _ ι _ A _ _ r),
+  conv_lhs { rw [←@graded_ring.right_inv R _ ι A _ _ _ r,
+    direct_sum.eq_sum_of _ (@graded_ring.decompose R _ ι A _ _ _ r),
     add_monoid_hom.map_sum], },
   unfold graded_ring.support,
   unfold graded_ring.proj,
@@ -104,6 +104,11 @@ begin
   rw direct_sum.to_add_monoid_of, refl,
 end
 
+end graded_ring
+
+section homogeneous_element
+variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
+
 /--If `R` is a ring graded by `A`, then for all `i : ι`, `x ∈ A i` is a homogeneous element.
 We collect such elements into a subtype `homogeneous_element` -/
 def homogeneous_element : Type* := {x // ∃ i, x ∈ A i}
@@ -111,16 +116,16 @@ def homogeneous_element : Type* := {x // ∃ i, x ∈ A i}
 instance lift_homogeneous_element : has_lift (homogeneous_element R A) R :=
 { lift := λ r, r.1 }
 
-instance coe_homogeneous_element : has_coe (homogeneous_element R A) R :=
-{ coe := λ r, r.1 }
+instance lift_homogeneous_set [decidable_eq R] :
+  has_lift (finset (homogeneous_element R A)) (finset R) :=
+{ lift := λ S, finset.image (lift_homogeneous_element R A).lift S }
 
-instance coe_homogeneous_set [decidable_eq R] : has_coe (finset (homogeneous_element R A)) (finset R) :=
-{ coe := λ S, finset.image (coe_homogeneous_element R A).coe S }
+variables [add_comm_monoid ι] [decidable_eq ι]
 
-instance lift_homogeneous_set [decidable_eq R] : has_lift (finset (homogeneous_element R A)) (finset R) :=
-{ lift := λ S, finset.image (coe_homogeneous_element R A).coe S }
+instance homogeneous_element_inhabited [graded_ring R A] : inhabited (homogeneous_element R A) :=
+⟨⟨1, ⟨0, graded_ring.one_degree_zero⟩⟩⟩
 
-end graded_ring
+end homogeneous_element
 
 section mv_polynomial
 open mv_polynomial direct_sum
@@ -150,6 +155,7 @@ begin
   { simp only [mem_homogeneous_submodule], apply (x j).2 },
 end
 
+@[nolint fails_quickly]
 noncomputable instance mv_polynomial_is_graded : graded_ring (mv_polynomial σ R)
   (λ i : ℕ, (homogeneous_submodule σ R i).to_add_subgroup) :=
 { decompose := decompose R σ,

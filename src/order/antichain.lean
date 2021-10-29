@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.set.pairwise
-import order.basic
 
 /-!
 # Antichains
@@ -22,6 +21,8 @@ relation is `G.adj` for `G : simple_graph α`, this corresponds to independent s
 open function set
 
 variables {α β : Type*} {r r₁ r₂ : α → α → Prop} {r' : β → β → Prop} {s t : set α} {a : α}
+
+protected lemma symmetric.compl (h : symmetric r) : symmetric rᶜ := λ x y hr hr', hr $ h hr'
 
 /-- An antichain is a set such that no two distinct elements are related. -/
 def is_antichain (r : α → α → Prop) (s : set α) : Prop := s.pairwise_on rᶜ

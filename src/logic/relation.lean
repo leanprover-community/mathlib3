@@ -85,13 +85,6 @@ lemma transitive.comap (h : transitive r) (f : α → β) : transitive (r on f) 
 
 end comap
 
-section compl
-variable {r : α → α → Prop}
-
-protected lemma symmetric.compl (h : symmetric r) : symmetric rᶜ := λ x y hr hr', hr $ h hr'
-
-end compl
-
 namespace relation
 
 section comp

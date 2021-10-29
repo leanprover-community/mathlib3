@@ -628,6 +628,16 @@ begin
   exact finprod_mem_congr rfl he₁
 end
 
+/-- The product of `f i` is equal to the product of `g j` if there exists a bijective function
+`e : α → β` such that for all `x` we have `f x = g (e x)`. -/
+@[to_additive] lemma finprod_eq_of_bijective {f : α → M} {g : β → M}
+  (e : α → β) (he₀ : function.bijective e) (he₁ : ∀ x, f x = g (e x)) :
+  ∏ᶠ i, f i = ∏ᶠ j, g j :=
+begin
+  rw [← finprod_mem_univ f, ← finprod_mem_univ g],
+  exact finprod_mem_eq_of_bij_on _ (bijective_iff_bij_on_univ.mp he₀) (λ x _, he₁ x),
+end
+
 @[to_additive] lemma finprod_set_coe_eq_finprod_mem (s : set α) : ∏ᶠ j : s, f j = ∏ᶠ i ∈ s, f i :=
 begin
   rw [← finprod_mem_range, subtype.range_coe],

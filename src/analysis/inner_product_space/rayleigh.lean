@@ -278,7 +278,7 @@ end
 omit _i
 
 lemma subsingleton_of_no_eigenvalue_finite_dimensional
-  (hT : self_adjoint T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
+  (hT : is_self_adjoint T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
   subsingleton E :=
 (subsingleton_or_nontrivial E).resolve_right
   (λ h, by exactI absurd (hT' _) hT.has_eigenvalue_supr_of_finite_dimensional)

@@ -96,7 +96,7 @@ begin
 end
 
 lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
-  (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
+  (hs : ∀ i ∈ t, measurable_set (s i)) (h's : set.pairwise ↑t (disjoint on s))
   (hf : ∀ i ∈ t, integrable_on f (s i) μ) :
   ∫ x in (⋃ i ∈ t, s i), f x ∂ μ = ∑ i in t, ∫ x in s i, f x ∂ μ :=
 begin

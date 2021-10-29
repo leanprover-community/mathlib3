@@ -126,7 +126,7 @@ lemma measure_add_measure_compl (h : measurable_set s) :
 by { rw [← union_compl_self s, measure_union _ h h.compl], exact disjoint_compl_right }
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
-  (hd : pairwise_on s (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
+  (hd : s.pairwise (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
@@ -135,11 +135,11 @@ begin
 end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
-  (hd : pairwise_on S disjoint) (h : ∀ s ∈ S, measurable_set s) :
+  (hd : S.pairwise disjoint) (h : ∀ s ∈ S, measurable_set s) :
   μ (⋃₀ S) = ∑' s : S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
 
-lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_on ↑s (disjoint on f))
+lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : set.pairwise ↑s (disjoint on f))
   (hm : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 begin
@@ -222,7 +222,7 @@ lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ)
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
 lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, measurable_set (t i))
-  (H : pairwise_on ↑s (disjoint on t)) :
+  (H : set.pairwise ↑s (disjoint on t)) :
   ∑ i in s, μ (t i) ≤ μ (univ : set α) :=
 by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
 

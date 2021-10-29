@@ -47,7 +47,7 @@ variables {ι : Type*}
 structure prepartition (I : box ι) :=
 (boxes : finset (box ι))
 (le_of_mem' : ∀ J ∈ boxes, J ≤ I)
-(pairwise_disjoint : pairwise_on ↑boxes (disjoint on (coe : box ι → set (ι → ℝ))))
+(pairwise_disjoint : set.pairwise ↑boxes (disjoint on (coe : box ι → set (ι → ℝ))))
 
 namespace prepartition
 
@@ -308,7 +308,7 @@ end
 the empty one if it exists. -/
 def of_with_bot (boxes : finset (with_bot (box ι)))
   (le_of_mem : ∀ J ∈ boxes, (J : with_bot (box ι)) ≤ I)
-  (pairwise_disjoint : pairwise_on (boxes : set (with_bot (box ι))) disjoint) :
+  (pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint) :
   prepartition I :=
 { boxes := boxes.erase_none,
   le_of_mem' := λ J hJ,
@@ -328,7 +328,7 @@ mem_erase_none
 
 @[simp] lemma Union_of_with_bot (boxes : finset (with_bot (box ι)))
   (le_of_mem : ∀ J ∈ boxes, (J : with_bot (box ι)) ≤ I)
-  (pairwise_disjoint : pairwise_on (boxes : set (with_bot (box ι))) disjoint) :
+  (pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint) :
   (of_with_bot boxes le_of_mem pairwise_disjoint).Union = ⋃ J ∈ boxes, ↑J :=
 begin
   suffices : (⋃ (J : box ι) (hJ : ↑J ∈ boxes), ↑J) = ⋃ J ∈ boxes, ↑J,
@@ -339,7 +339,7 @@ end
 
 lemma of_with_bot_le {boxes : finset (with_bot (box ι))}
   {le_of_mem : ∀ J ∈ boxes, (J : with_bot (box ι)) ≤ I}
-  {pairwise_disjoint : pairwise_on (boxes : set (with_bot (box ι))) disjoint}
+  {pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint}
   (H : ∀ J ∈ boxes, J ≠ ⊥ → ∃ J' ∈ π, J ≤ ↑J') :
   of_with_bot boxes le_of_mem pairwise_disjoint ≤ π :=
 have ∀ (J : box ι), ↑J ∈ boxes → ∃ J' ∈ π, J ≤ J',
@@ -348,7 +348,7 @@ by simpa [of_with_bot, le_def]
 
 lemma le_of_with_bot {boxes : finset (with_bot (box ι))}
   {le_of_mem : ∀ J ∈ boxes, (J : with_bot (box ι)) ≤ I}
-  {pairwise_disjoint : pairwise_on (boxes : set (with_bot (box ι))) disjoint}
+  {pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint}
   (H : ∀ J ∈ π, ∃ J' ∈ boxes, ↑J ≤ J') :
   π ≤ of_with_bot boxes le_of_mem pairwise_disjoint :=
 begin
@@ -360,10 +360,10 @@ end
 
 lemma of_with_bot_mono {boxes₁ : finset (with_bot (box ι))}
   {le_of_mem₁ : ∀ J ∈ boxes₁, (J : with_bot (box ι)) ≤ I}
-  {pairwise_disjoint₁ : pairwise_on (boxes₁ : set (with_bot (box ι))) disjoint}
+  {pairwise_disjoint₁ : set.pairwise (boxes₁ : set (with_bot (box ι))) disjoint}
   {boxes₂ : finset (with_bot (box ι))}
   {le_of_mem₂ : ∀ J ∈ boxes₂, (J : with_bot (box ι)) ≤ I}
-  {pairwise_disjoint₂ : pairwise_on (boxes₂ : set (with_bot (box ι))) disjoint}
+  {pairwise_disjoint₂ : set.pairwise (boxes₂ : set (with_bot (box ι))) disjoint}
   (H : ∀ J ∈ boxes₁, J ≠ ⊥ → ∃ J' ∈ boxes₂, J ≤ J') :
   of_with_bot boxes₁ le_of_mem₁ pairwise_disjoint₁ ≤
     of_with_bot boxes₂ le_of_mem₂ pairwise_disjoint₂ :=
@@ -372,7 +372,7 @@ le_of_with_bot _ $ λ J hJ, H J (mem_of_with_bot.1 hJ) (with_bot.coe_ne_bot _)
 lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (boxes : finset (with_bot (box ι)))
   (le_of_mem : ∀ J ∈ boxes, (J : with_bot (box ι)) ≤ I)
-  (pairwise_disjoint : pairwise_on (boxes : set (with_bot (box ι))) disjoint)
+  (pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint)
   (f : box ι → M) :
   ∑ J in (of_with_bot boxes le_of_mem pairwise_disjoint).boxes, f J =
     ∑ J in boxes, option.elim J 0 f :=

@@ -28,6 +28,11 @@ lemma convex_on_exp : convex_on ℝ univ exp :=
 convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
   (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
 
+/-- `exp` is convex on the whole real line -/
+lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
+convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
+  (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
+
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
 lemma convex_on_pow_of_even {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin

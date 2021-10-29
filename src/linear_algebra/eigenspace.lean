@@ -65,7 +65,7 @@ def has_eigenvalue (f : End R M) (a : R) : Prop :=
 eigenspace f a ≠ ⊥
 
 /-- The eigenvalues of the endomorphism `f`, as a subtype of `R`. -/
-def eigenvalues (f : End R M) := {μ : R // f.has_eigenvalue μ}
+def eigenvalues (f : End R M) : Type* := {μ : R // f.has_eigenvalue μ}
 
 instance (f : End R M) : has_coe f.eigenvalues R := coe_subtype
 

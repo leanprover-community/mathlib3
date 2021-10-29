@@ -41,7 +41,7 @@ lemma find_correct {t : rbnode α} {lt x} [decidable_rel lt] [is_strict_weak_ord
   ∀ {lo hi} (hs : is_searchable lt t lo hi), mem lt x t ↔ ∃ y, find lt t x = some y ∧ x ≈[lt] y :=
 begin
   apply find.induction lt t x; intros; simp only [mem, find, *],
-  { simp, intro h, cases h with _ h, cases h },
+  { simp },
   iterate 2 { -- red and black cases are identical
     {
       cases hs,
@@ -59,7 +59,7 @@ begin
       },
       { intro hc, left, exact iff.mpr (ih hs_hs₁) hc },
     },
-    { simp at h, simp [h, strict_weak_order.equiv], existsi y, split, refl, assumption },
+    { simp at h, simp [h, strict_weak_order.equiv] },
     {
       cases hs,
       apply iff.intro,
@@ -135,7 +135,7 @@ begin
       { intro hc, right, right, exact iff.mpr (ih hs_hs₂) hc } } }
 end
 
-lemma eqv_of_find_some {t : rbnode α} {lt x y} [decidable_rel lt] [is_strict_weak_order α lt] :
+lemma eqv_of_find_some {t : rbnode α} {lt x y} [decidable_rel lt] :
   ∀ {lo hi} (hs : is_searchable lt t lo hi) (he : find lt t x = some y), x ≈[lt] y :=
 begin
   apply find.induction lt t x; intros; simp only [mem, find, *] at *,

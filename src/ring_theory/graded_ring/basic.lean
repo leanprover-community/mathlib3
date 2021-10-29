@@ -108,6 +108,18 @@ end
 We collect such elements into a subtype `homogeneous_element` -/
 def homogeneous_element : Type* := {x // ∃ i, x ∈ A i}
 
+instance lift_homogeneous_element : has_lift (homogeneous_element R A) R :=
+{ lift := λ r, r.1 }
+
+instance coe_homogeneous_element : has_coe (homogeneous_element R A) R :=
+{ coe := λ r, r.1 }
+
+instance coe_homogeneous_set [decidable_eq R] : has_coe (finset (homogeneous_element R A)) (finset R) :=
+{ coe := λ S, finset.image (coe_homogeneous_element R A).coe S }
+
+instance lift_homogeneous_set [decidable_eq R] : has_lift (finset (homogeneous_element R A)) (finset R) :=
+{ lift := λ S, finset.image (coe_homogeneous_element R A).coe S }
+
 end graded_ring
 
 section mv_polynomial

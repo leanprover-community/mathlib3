@@ -167,8 +167,6 @@ begin
   rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
 end
 
-
-
 end graded_ring
 
 section homogeneous_element

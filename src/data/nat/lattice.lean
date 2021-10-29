@@ -45,11 +45,7 @@ begin
 end
 
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
-begin
-  rw Inf_eq_zero,
-  right,
-  refl,
-end
+by { rw Inf_eq_zero, right, refl }
 
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
 by { rw [nat.Inf_def h], exact nat.find_spec h }
@@ -74,19 +70,14 @@ end
 lemma Inf_add {n : ℕ} {p : ℕ → Prop} (h : n ≤ Inf (set_of p)) :
   Inf {m : ℕ | p (m + n)} + n = Inf (set_of p) :=
 begin
-  by_cases hn0: n = 0,
-  { rw hn0,
-    simp only [add_zero]},
-  { rw <- eq_tsub_iff_add_eq_of_le,
-    swap,
-      exact h,
+  by_cases hn0 : n = 0,
+  { simp only [hn0, add_zero]},
+  { rw <- eq_tsub_iff_add_eq_of_le h,
     rw Inf_def,
     { rw nat.find_eq_iff,
       split,
       { rw mem_set_of_eq,
-        rw nat.sub_add_cancel,
-        swap,
-          exact h,
+        rw nat.sub_add_cancel h,
         { apply Inf_mem,
           apply nonempty_of_pos_Inf,
           apply lt_of_lt_of_le (ne.bot_lt hn0) h, }, },
@@ -95,11 +86,11 @@ begin
       rw lt_tsub_iff_right at hk,
       apply not_mem_of_lt_Inf hk, },
     { by_contra he,
-      have hpe: set_of p = ∅,
+      have hpe : set_of p = ∅,
       { ext x,
         simp only [mem_empty_eq, mem_set_of_eq, iff_false],
-        by_cases hnx: n ≤ x,
-        { have hxnn: x = x - n + n := (nat.sub_eq_iff_eq_add hnx).mp rfl,
+        by_cases hnx : n ≤ x,
+        { have hxnn : x = x - n + n := (nat.sub_eq_iff_eq_add hnx).mp rfl,
           rw hxnn,
           rw not_nonempty_iff_eq_empty at he,
           rw eq_empty_iff_forall_not_mem at he,

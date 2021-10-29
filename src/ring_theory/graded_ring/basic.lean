@@ -13,15 +13,8 @@ import ring_theory.polynomial.homogeneous
 open_locale direct_sum big_operators
 
 section graded_ring
-variables {R : Type*} [ring R] {ι : Type*} (A : ι → add_subgroup R)
-
-variable [decidable_eq ι]
-
-/-- The canonical embedding from `⨁ i, A i` to `R`-/
-def direct_sum.add_subgroup_coe : (⨁ i, A i) →+ R :=
-direct_sum.to_add_monoid (λ i, (A i).subtype)
-
-variables (R) [add_comm_monoid ι]
+variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
+  [decidable_eq ι] [add_comm_monoid ι]
 
 /-- A graded ring is a `ring R` such that `R` can be decomposed into a collection of
   `add_subgroups R` indexed by `ι` such that the connonical map `R → ⨁ i, A i` is a bijective map
@@ -144,7 +137,7 @@ private lemma homogeneous_component_of_direct_sum
   (i : ℕ) (x : ⨁ i, (homogeneous_submodule σ R i).to_add_subgroup) :
 homogeneous_component i (add_subgroup_coe _ x) = x i :=
 begin
-  rw [eq_sum_of _ x, add_monoid_hom.map_sum, linear_map.map_sum, add_subgroup_coe],
+  rw [←sum_support_of _ x, add_monoid_hom.map_sum, linear_map.map_sum, add_subgroup_coe],
   simp_rw to_add_monoid_of,
   simp only [add_subgroup.coe_subtype, submodule.coe_sum, dfinsupp.finset_sum_apply],
   apply finset.sum_congr rfl, intros j hj,
@@ -162,7 +155,7 @@ noncomputable instance mv_polynomial_is_graded : graded_ring (mv_polynomial σ R
   left_inv := λ x, begin
     rw decompose,
     simp_rw [homogeneous_component_of_direct_sum],
-    conv_rhs { rw direct_sum.eq_sum_of _ x },
+    conv_rhs { rw ←direct_sum.sum_support_of _ x },
     have set_eq :
       finset.range
         ((add_subgroup_coe (λ i, (homogeneous_submodule σ R i).to_add_subgroup) x).total_degree + 1)

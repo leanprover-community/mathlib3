@@ -1262,7 +1262,7 @@ variables (R : Type*) [ring R]
 /-- Ring ⥤ ℤ-Alg -/
 @[priority 99] instance algebra_int : algebra ℤ R :=
 { commutes' := int.cast_commute,
-  smul_def' := λ _ _, gsmul_eq_mul _ _,
+  smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
 
 variables {R}

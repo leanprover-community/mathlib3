@@ -131,6 +131,10 @@ lemma mem_sup_right {S T : submonoid M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T
 show T ≤ S ⊔ T, from le_sup_right
 
 @[to_additive]
+lemma mul_mem_sup {S T : submonoid M} {x y : M} (hx : x ∈ S) (hy : y ∈ T) : x * y ∈ S ⊔ T :=
+(S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
+
+@[to_additive]
 lemma mem_supr_of_mem {ι : Type*} {S : ι → submonoid M} (i : ι) :
   ∀ {x : M}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _

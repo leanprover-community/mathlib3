@@ -231,6 +231,16 @@ theorem right_inverse.injective {f : α → β} {g : β → α} (h : right_inver
   injective f :=
 h.left_inverse.injective
 
+theorem left_inverse.right_inverse_of_injective {f : α → β} {g : β → α} (h : left_inverse f g)
+  (hf : injective f) :
+  right_inverse f g :=
+λ x, hf $ h (f x)
+
+theorem left_inverse.right_inverse_of_surjective {f : α → β} {g : β → α} (h : left_inverse f g)
+  (hg : surjective g) :
+  right_inverse f g :=
+λ x, let ⟨y, hy⟩ := hg x in hy ▸ congr_arg g (h y)
+
 theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
   (h₂ : right_inverse g₂ f) :
   g₁ = g₂ :=
@@ -316,8 +326,7 @@ lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_in
 end inv_fun
 
 section inv_fun
-variables {α : Type u} [i : nonempty α] {β : Sort v} {f : α → β}
-include i
+variables {α : Type u} [nonempty α] {β : Sort v} {f : α → β}
 
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩

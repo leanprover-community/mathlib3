@@ -111,6 +111,15 @@ lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injectiv
   injective (restrict f p) :=
 h.comp coe_injective
 
+lemma surjective_restrict {α} {β : α → Type*} [ne : Π a, nonempty (β a)] (p : α → Prop) :
+  surjective (λ f : Π x, β x, restrict f p) :=
+begin
+  letI := classical.dec_pred p,
+  refine λ f, ⟨λ x, if h : p x then f ⟨x, h⟩ else nonempty.some (ne x), funext $ _⟩,
+  rintro ⟨x, hx⟩,
+  exact dif_pos hx
+end
+
 /-- Defining a map into a subtype, this can be seen as an "coinduction principle" of `subtype`-/
 @[simps] def coind {α β} (f : α → β) {p : β → Prop} (h : ∀ a, p (f a)) : α → subtype p :=
 λ a, ⟨f a, h a⟩

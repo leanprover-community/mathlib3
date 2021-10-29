@@ -63,14 +63,14 @@ variables (a)
 
 variables {a b c}
 
-@[simp] lemma left_mem_Icc (h : a ≤ b) : a ∈ Icc a b := finset.left_mem_Icc h
-@[simp] lemma left_mem_Ico (h : a < b) : a ∈ Ico a b := finset.left_mem_Ico h
+lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := finset.left_mem_Icc
+lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := finset.left_mem_Ico
+lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b := finset.right_mem_Icc
+lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := finset.right_mem_Ioc
+
 @[simp] lemma left_not_mem_Ioc : a ∉ Ioc a b := finset.left_not_mem_Ioc
 @[simp] lemma left_not_mem_Ioo : a ∉ Ioo a b := finset.left_not_mem_Ioo
-
-@[simp] lemma right_mem_Icc (h : a ≤ b) : b ∈ Icc a b := finset.right_mem_Icc h
 @[simp] lemma right_not_mem_Ico : b ∉ Ico a b := finset.right_not_mem_Ico
-@[simp] lemma right_mem_Ioc (h : a < b) : b ∈ Ioc a b := finset.right_mem_Ioc h
 @[simp] lemma right_not_mem_Ioo : b ∉ Ioo a b := finset.right_not_mem_Ioo
 
 lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] (hca : c ≤ a) :

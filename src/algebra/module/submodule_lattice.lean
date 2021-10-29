@@ -254,7 +254,25 @@ section int_module
 variables [add_comm_group M]
 
 /-- An additive subgroup is equivalent to a ℤ-submodule. -/
-def add_subgroup.to_int_submodule : add_subgroup M ≃o submodule ℤ M := add_comm_group.int_module M
+def add_subgroup.to_int_submodule : add_subgroup M ≃o submodule ℤ M :=
+{ to_fun := λ S,
+  { smul_mem' := λ r s hs, begin
+    by_cases 0 ≤ r,
+    lift r to ℕ using h,
+    have := S.nsmul_mem hs ↑r,
+    simp only [nat.cast_id, add_subgroup.mem_carrier, gsmul_coe_nat] at this ⊢, refine this,
+    simp only [add_subgroup.mem_carrier],
+    suffices : -(r • s) ∈ S,
+    have eq := (add_subgroup.neg_mem_iff _).mp this, exact eq,
+    rw ←neg_smul, lift -r to ℕ,
+    have := S.nsmul_mem hs ↑_x_1, simp only [nat.cast_id, gsmul_coe_nat] at this ⊢,  exact this,
+    linarith,
+  end, ..S},
+  inv_fun := submodule.to_add_subgroup,
+  left_inv := λ ⟨S, _, _, _⟩, rfl,
+  right_inv := λ ⟨S, _, _, _⟩, rfl,
+  map_rel_iff' := λ a b, iff.rfl }
+
 
 @[simp]
 lemma add_subgroup.to_int_submodule_symm :

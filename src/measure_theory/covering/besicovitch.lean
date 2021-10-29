@@ -500,7 +500,7 @@ begin
   { have : μ s = 0 := le_bot_iff.1 hμs,
     refine ⟨∅, by simp only [finset.coe_empty, empty_subset], _, _⟩,
     { simp only [this, diff_empty, Union_false, Union_empty, nonpos_iff_eq_zero, mul_zero] },
-    { simp only [finset.coe_empty, pairwise_on_empty], } },
+    { simp only [finset.coe_empty, pairwise_empty], } },
   casesI is_empty_or_nonempty α,
   { simp only [eq_empty_of_is_empty s, measure_empty] at hμs,
     exact (lt_irrefl _ hμs).elim },
@@ -560,7 +560,7 @@ begin
   { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
     { refl },
-    { exact pairwise_on_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
+    { exact pairwise_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
     { exact λ b hb, omeas.inter measurable_set_closed_ball } },
   -- A large enough finite subfamily of `u i` will also cover a proportion `> 1/(N+1)` of `s`.
   -- Since `s` might not be measurable, we express this in terms of the measurable superset `o`.
@@ -601,7 +601,7 @@ begin
       { have : (w : set (u i)).pairwise
             (disjoint on (λ (b : u i), closed_ball (b : α) (r (b : α)))),
           by { assume k hk l hl hkl, exact hu i k k.2 l l.2 (subtype.coe_injective.ne hkl) },
-        exact pairwise_on_disjoint_on_mono this (λ k hk, inter_subset_right _ _) },
+        exact pairwise_disjoint_on_mono this (λ k hk, inter_subset_right _ _) },
       { assume b hb,
         apply omeas.inter measurable_set_closed_ball }
     end },
@@ -677,7 +677,7 @@ begin
       have rle : ∀ x ∈ s', r x ≤ 1 := λ x hx, (hr x hx).2.1,
       exact exist_finset_disjoint_balls_large_measure μ hτ hN s' r rpos rle },
     refine ⟨t ∪ (finset.image (λ x, (x, r x)) v), finset.subset_union_left _ _, ⟨_, _, _⟩, _⟩,
-    { simp only [finset.coe_union, pairwise_on_union, ht.1, true_and, finset.coe_image],
+    { simp only [finset.coe_union, pairwise_union, ht.1, true_and, finset.coe_image],
       split,
       { assume p hp q hq hpq,
         rcases (mem_image _ _ _).1 hp with ⟨p', p'v, rfl⟩,
@@ -716,7 +716,7 @@ begin
     induction n with n IH,
     { simp only [u, P, prod.forall, id.def, function.iterate_zero],
       simp only [finset.not_mem_empty, forall_false_left, finset.coe_empty, forall_2_true_iff,
-        and_self, pairwise_on_empty] },
+        and_self, pairwise_empty] },
     { rw u_succ,
       exact (hF (u n) IH).2.1 } },
   refine ⟨⋃ n, u n, countable_Union (λ n, (u n).countable_to_set), _, _, _, _⟩,
@@ -755,7 +755,7 @@ begin
     rw zero_mul at C,
     apply le_bot_iff.1,
     exact le_of_tendsto_of_tendsto' tendsto_const_nhds C (λ n, (A n).trans (B n)) },
-  { refine (pairwise_on_Union _).2 (λ n, (Pu n).1),
+  { refine (pairwise_Union _).2 (λ n, (Pu n).1),
     apply (monotone_nat_of_le_succ (λ n, _)).directed_le,
     rw u_succ,
     exact (hF (u n) (Pu n)).1 }

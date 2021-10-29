@@ -90,7 +90,7 @@ if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
 
 lemma chain.mono {c c'} :
   c' ⊆ c → chain c → chain c' :=
-pairwise_on.mono
+set.pairwise.mono
 
 lemma chain_of_trichotomous [is_trichotomous α r] (s : set α) :
   chain s :=

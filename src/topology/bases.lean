@@ -317,7 +317,7 @@ lemma countable_of_nonempty_interior_of_disjoint [separable_space α] {β : Type
   countable a :=
 begin
   have : a.pairwise (disjoint on (λ i, interior (s i))) :=
-    pairwise_on_disjoint_on_mono h (λ i hi, interior_subset),
+    pairwise_disjoint_on_mono h (λ i hi, interior_subset),
   exact countable_of_is_open_of_disjoint (λ i, interior (s i)) (λ i hi, is_open_interior) ha this
 end
 

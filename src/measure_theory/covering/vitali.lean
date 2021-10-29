@@ -72,7 +72,7 @@ begin
     simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
                 set.mem_set_of_eq],
     refine ⟨λ u hu, (UT hu).1, _, λ a hat b u uU hbu hab, _⟩,
-    { rw [pairwise_on_sUnion hU.directed_on],
+    { rw [pairwise_sUnion hU.directed_on],
       assume u hu,
       exact (UT hu).2.1 },
     { obtain ⟨c, cu, ac, hc⟩ : ∃ (c : set α) (H : c ∈ u), (a ∩ c).nonempty ∧ δ a ≤ τ * δ c :=
@@ -119,7 +119,7 @@ begin
     exact ⟨a'A.1, uT.1⟩ },
   -- check that `u ∪ {a'}` is a disjoint family. This follows from the fact that `a'` does not
   -- intersect `u`.
-  { rw pairwise_on_insert_of_symmetric, swap,
+  { rw pairwise_insert_of_symmetric, swap,
     { simp only [function.on_fun, symmetric, disjoint.comm, imp_self, forall_const] },
     exact ⟨uT.2.1, λ b bu ba', a'A.2 b bu⟩ },
   -- check that every element `c` of `t` intersecting `u ∪ {a'}` intersects an element of this
@@ -163,7 +163,7 @@ begin
   rcases eq_or_ne t {∅} with rfl|t_ne_empty,
   { refine ⟨{∅}, subset.refl _, _⟩,
     simp only [true_and, closed_ball_eq_empty, mem_singleton_iff, and_true, empty_subset, forall_eq,
-      pairwise_on_singleton, exists_const],
+      pairwise_singleton, exists_const],
     exact ⟨-1, by simp only [right.neg_neg_iff, zero_lt_one]⟩ },
   -- The real proof starts now. Since the center or the radius of a ball is not uniquely defined
   -- in a general metric space, we just choose one for definiteness.
@@ -255,7 +255,7 @@ begin
   the family is assumed to be fine at every point of `s`).
   -/
   rcases eq_empty_or_nonempty s with rfl|nonempty,
-  { refine ⟨∅, empty_subset _, countable_empty, by simp only [pairwise_on_empty],
+  { refine ⟨∅, empty_subset _, countable_empty, by simp only [pairwise_empty],
       by simp only [measure_empty, Union_false, Union_empty, diff_self]⟩ },
   haveI : inhabited α,
   { choose x hx using nonempty,

@@ -118,7 +118,7 @@ lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
 begin
   convert integral_finset_bUnion finset.univ (λ i hi, hs i) _ (λ i _, hf i),
   { simp },
-  { simp [pairwise_on_univ, h's] }
+  { simp [pairwise_univ, h's] }
 end
 
 lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]

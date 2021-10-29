@@ -224,7 +224,7 @@ function. -/
     end,
   pairwise_disjoint :=
     begin
-      simp only [pairwise_on, finset.mem_coe, finset.mem_bUnion],
+      simp only [set.pairwise, finset.mem_coe, finset.mem_bUnion],
       rintro J₁' ⟨J₁, hJ₁, hJ₁'⟩ J₂' ⟨J₂, hJ₂, hJ₂'⟩ Hne x ⟨hx₁, hx₂⟩, apply Hne,
       obtain rfl : J₁ = J₂,
         from π.eq_of_mem_of_mem hJ₁ hJ₂ ((πi J₁).le_of_mem hJ₁' hx₁)
@@ -384,7 +384,7 @@ def restrict (π : prepartition I) (J : box ι) :
 of_with_bot (π.boxes.image (λ J', J ⊓ J'))
   (λ J' hJ', by { rcases finset.mem_image.1 hJ' with ⟨J', -, rfl⟩, exact inf_le_left })
   begin
-    simp only [pairwise_on, on_fun, finset.mem_coe, finset.mem_image],
+    simp only [set.pairwise, on_fun, finset.mem_coe, finset.mem_image],
     rintro _ ⟨J₁, h₁, rfl⟩ _ ⟨J₂, h₂, rfl⟩ Hne,
     have : J₁ ≠ J₂, by { rintro rfl, exact Hne rfl },
     exact ((box.disjoint_coe.2 $ π.disjoint_coe_of_mem h₁ h₂ this).inf_left' _).inf_right' _
@@ -523,7 +523,7 @@ by convert sum_fiberwise_of_maps_to (λ _, finset.mem_image_of_mem f) g
   le_of_mem' := λ J hJ, (finset.mem_union.1 hJ).elim π₁.le_of_mem π₂.le_of_mem,
   pairwise_disjoint :=
     suffices ∀ (J₁ ∈ π₁) (J₂ ∈ π₂), J₁ ≠ J₂ → disjoint (J₁ : set (ι → ℝ)) J₂,
-      by simpa [pairwise_on_union_of_symmetric (symmetric_disjoint.comap _), pairwise_disjoint],
+      by simpa [pairwise_union_of_symmetric (symmetric_disjoint.comap _), pairwise_disjoint],
     λ J₁ h₁ J₂ h₂ _, h.mono (π₁.subset_Union h₁) (π₂.subset_Union h₂) }
 
 @[simp] lemma mem_disj_union (H : disjoint π₁.Union π₂.Union) :

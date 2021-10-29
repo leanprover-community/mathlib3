@@ -408,6 +408,16 @@ begin
   simp [mul_support_mul]
 end
 
+/-- If the multiplicative supports of `f` and `g` are finite, then the product of `f i * (g i)⁻¹`
+equals the product of `f i` multiplied by the inverse of the product over `g i`. -/
+@[to_additive] lemma finprod_mul_inv_distrib {M' : Type*} [comm_group M'] {f g : α → M'}
+  (hf : (mul_support f).finite) (hg : (mul_support g).finite) :
+  ∏ᶠ i, (f i * (g i)⁻¹) = (∏ᶠ i, f i) * (∏ᶠ i, g i)⁻¹ :=
+begin
+  rw [finprod_mul_distrib hf, mul_right_inj, finprod_inv_distrib],
+  rwa [mul_support_inv],
+end
+
 /-- A more general version of `finprod_mem_mul_distrib` that requires `s ∩ mul_support f` and
 `s ∩ mul_support g` instead of `s` to be finite. -/
 @[to_additive] lemma finprod_mem_mul_distrib' (hf : (s ∩ mul_support f).finite)

@@ -619,7 +619,8 @@ finprod_mem_range' (hg.inj_on _)
 
 /-- The product of `f i` over `s : set α` is equal to the product of `g j` over `t : set β`
 if there exists a function `e : α → β` such that `e` is bijective from `s` to `t` and for all
-`x` in `s` we have `f x = g (e x)`. -/
+`x` in `s` we have `f x = g (e x)`.
+See also `finset.prod_bij`. -/
 @[to_additive] lemma finprod_mem_eq_of_bij_on {s : set α} {t : set β} {f : α → M} {g : β → M}
   (e : α → β) (he₀ : set.bij_on e s t) (he₁ : ∀ x ∈ s, f x = g (e x)) :
   ∏ᶠ i ∈ s, f i = ∏ᶠ j ∈ t, g j :=

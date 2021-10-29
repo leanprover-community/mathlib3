@@ -24,7 +24,7 @@ multiset, gcd
 -/
 
 namespace multiset
-variables {α : Type*} [comm_cancel_monoid_with_zero α] [nontrivial α] [gcd_monoid α]
+variables {α : Type*} [comm_cancel_monoid_with_zero α] [normalized_gcd_monoid α]
 
 /-! ### lcm -/
 section lcm

@@ -16,26 +16,6 @@ universes u v w
 
 namespace tactic
 
-/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
-meta def refl_conv (e : expr) : tactic (expr × expr) :=
-do p ← mk_eq_refl e, return (e, p)
-
-/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
-proof by reflexivity. -/
-meta def or_refl_conv (tac : expr → tactic (expr × expr))
-  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
-
-/-- Transitivity conversion: given two conversions (which take an
-expression `e` and returns `(e', ⊢ e = e')`), produces another
-conversion that combines them with transitivity, treating failures
-as reflexivity conversions. -/
-meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
-  tactic (expr × expr) :=
-(do (e₁, p₁) ← t₁ e,
-  (do (e₂, p₂) ← t₂ e₁,
-    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
-  return (e₁, p₁)) <|> t₂ e
-
 namespace instance_cache
 
 /-- Faster version of `mk_app ``bit0 [e]`. -/
@@ -975,9 +955,9 @@ match match_sign b with
 end
 
 theorem sub_nat_pos (a b c : ℕ) (h : b + c = a) : a - b = c :=
-h ▸ nat.add_sub_cancel_left _ _
+h ▸ add_tsub_cancel_left _ _
 theorem sub_nat_neg (a b c : ℕ) (h : a + c = b) : a - b = 0 :=
-nat.sub_eq_zero_of_le $ h ▸ nat.le_add_right _ _
+tsub_eq_zero_iff_le.mpr $ h ▸ nat.le_add_right _ _
 
 /-- Given `a : nat`,`b : nat` natural numerals, returns `(c, ⊢ a - b = c)`. -/
 meta def prove_sub_nat (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=

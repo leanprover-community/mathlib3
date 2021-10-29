@@ -156,7 +156,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 namespace model_with_corners
 
-instance : has_coe_to_fun (model_with_corners 𝕜 E H) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (model_with_corners 𝕜 E H) (λ _, H → E) := ⟨λ e, e.to_fun⟩
 
 /-- The inverse to a model with corners, only registered as a local equiv. -/
 protected def symm : local_equiv E H := I.to_local_equiv.symm
@@ -532,8 +532,6 @@ end model_with_corners
 section smooth_manifold_with_corners
 
 /-! ### Smooth manifolds with corners -/
-
-set_option old_structure_cmd true
 
 /-- Typeclass defining smooth manifolds with corners with respect to a model with corners, over a
 field `𝕜` and with infinite smoothness to simplify typeclass search and statements later on. -/

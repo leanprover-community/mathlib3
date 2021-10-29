@@ -34,7 +34,7 @@ for some `R : CommRing`.
 -/
 structure Scheme extends X : LocallyRingedSpace :=
 (local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),
-  nonempty (X.restrict _ U.open_embedding ≅ Spec.to_LocallyRingedSpace.obj (op R)))
+  nonempty (X.restrict U.open_embedding ≅ Spec.to_LocallyRingedSpace.obj (op R)))
 
 namespace Scheme
 
@@ -109,10 +109,10 @@ lemma Γ_def : Γ = (induced_functor Scheme.to_LocallyRingedSpace).op ⋙ Locall
 lemma Γ_obj_op (X : Scheme) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 
 @[simp] lemma Γ_map {X Y : Schemeᵒᵖ} (f : X ⟶ Y) :
-  Γ.map f = f.unop.1.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op := rfl
+  Γ.map f = f.unop.1.c.app (op ⊤) := rfl
 
 lemma Γ_map_op {X Y : Scheme} (f : X ⟶ Y) :
-  Γ.map f.op = f.1.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
+  Γ.map f.op = f.1.c.app (op ⊤) := rfl
 
 -- PROJECTS:
 -- 1. Construct `Spec ≫ Γ ≅ functor.id _`.

@@ -9,18 +9,14 @@ import analysis.normed_space.dual
 /-!
 # The Fréchet-Riesz representation theorem
 
-We consider inner product spaces, with base field over `ℝ` (the corresponding results for `ℂ`
-will require the definition of conjugate-linear maps). We define `to_dual_map`, a continuous linear
-map from `E` to its dual, which maps an element `x` of the space to `λ y, ⟪x, y⟫`. We check
-(`to_dual_map_isometry`) that this map is an isometry onto its image, and particular is injective.
-We also define `to_dual'` as the function taking taking a vector to its dual for a base field `𝕜`
-with `[is_R_or_C 𝕜]`; this is a function and not a linear map.
+We consider an inner product space `E` over `𝕜`, which is either `ℝ` or `ℂ`. We define
+`to_dual_map`, a conjugate-linear isometric embedding of `E` into its dual, which maps an element
+`x` of the space to `λ y, ⟪x, y⟫`.
 
-Finally, under the hypothesis of completeness (i.e., for Hilbert spaces), we prove the Fréchet-Riesz
-representation (`to_dual_map_eq_top`), which states the surjectivity: every element of the dual
-of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.  This permits the map
-`to_dual_map` to be upgraded to an (isometric) continuous linear equivalence, `to_dual`, between a
-Hilbert space and its dual.
+Under the hypothesis of completeness (i.e., for Hilbert spaces), we upgrade this to `to_dual`, a
+conjugate-linear isometric *equivalence* of `E` onto its dual; that is, we establish the
+surjectivity of `to_dual_map`.  This is the Fréchet-Riesz representation theorem: every element of
+the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.
 
 ## References
 
@@ -39,55 +35,53 @@ universes u v
 namespace inner_product_space
 open is_R_or_C continuous_linear_map
 
-section is_R_or_C
-
 variables (𝕜 : Type*)
-variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
+local postfix `†`:90 := star_ring_aut
 
 /--
-Given some `x` in an inner product space, we can define its dual as the continuous linear map
-`λ y, ⟪x, y⟫`. Consider using `to_dual` or `to_dual_map` instead in the real case.
+An element `x` of an inner product space `E` induces an element of the dual space `dual 𝕜 E`,
+the map `λ y, ⟪x, y⟫`; moreover this operation is a conjugate-linear isometric embedding of `E`
+into `dual 𝕜 E`.
+If `E` is complete, this operation is surjective, hence a conjugate-linear isometric equivalence;
+see `to_dual`.
 -/
-def to_dual' : E →+ normed_space.dual 𝕜 E :=
+def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
 { to_fun := λ x, linear_map.mk_continuous
-  { to_fun := λ y, ⟪x, y⟫,
-    map_add' := λ _ _, inner_add_right,
-    map_smul' := λ _ _, inner_smul_right }
-  ∥x∥
-  (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ }),
-  map_zero' := by { ext z, simp },
-  map_add' := λ x y, by { ext z, simp [inner_add_left] } }
+    { to_fun := λ y, ⟪x, y⟫,
+      map_add' := λ _ _, inner_add_right,
+      map_smul' := λ _ _, inner_smul_right }
+    ∥x∥
+    (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ }),
+  map_add' := λ x y, by { ext z, simp [inner_add_left] },
+  map_smul' := λ c y, by { ext z, simp [inner_smul_left] },
+  norm_map' := λ x, begin
+    refine le_antisymm _ _,
+    { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
+    { cases eq_or_lt_of_le (norm_nonneg x) with h h,
+      { have : x = 0 := norm_eq_zero.mp (eq.symm h),
+        simp [this] },
+      { refine (mul_le_mul_right h).mp _,
+        calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
+        ... = re ⟪x, x⟫ : norm_sq_eq_inner _
+        ... ≤ abs ⟪x, x⟫ : re_le_abs _
+        ... = ∥linear_map.mk_continuous _ _ _ x∥ : by simp [norm_eq_abs]
+        ... ≤ ∥linear_map.mk_continuous _ _ _∥ * ∥x∥ : le_op_norm _ x } }
+  end }
 
-@[simp] lemma to_dual'_apply {x y : E} : to_dual' 𝕜 x y = ⟪x, y⟫ := rfl
+variables {E}
 
-/-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma norm_to_dual'_apply (x : E) : ∥to_dual' 𝕜 x∥ = ∥x∥ :=
-begin
-  refine le_antisymm _ _,
-  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
-  { cases eq_or_lt_of_le (norm_nonneg x) with h h,
-    { have : x = 0 := norm_eq_zero.mp (eq.symm h),
-      simp [this] },
-    { refine (mul_le_mul_right h).mp _,
-      calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
-      ... = re ⟪x, x⟫ : norm_sq_eq_inner _
-      ... ≤ abs ⟪x, x⟫ : re_le_abs _
-      ... = ∥to_dual' 𝕜 x x∥ : by simp [norm_eq_abs]
-      ... ≤ ∥to_dual' 𝕜 x∥ * ∥x∥ : le_op_norm (to_dual' 𝕜 x) x } }
-end
+@[simp] lemma to_dual_map_apply {x y : E} : to_dual_map 𝕜 E x y = ⟪x, y⟫ := rfl
 
-variables (E)
-
-lemma to_dual'_isometry : isometry (@to_dual' 𝕜 E _ _) :=
-add_monoid_hom.isometry_of_norm _ (norm_to_dual'_apply 𝕜)
+variables (E) [complete_space E]
 
 /--
 Fréchet-Riesz representation: any `ℓ` in the dual of a Hilbert space `E` is of the form
-`λ u, ⟪y, u⟫` for some `y : E`, i.e. `to_dual'` is surjective.
+`λ u, ⟪y, u⟫` for some `y : E`, i.e. `to_dual_map` is surjective.
 -/
-lemma to_dual'_surjective [complete_space E] : function.surjective (@to_dual' 𝕜 E _ _) :=
+def to_dual : E ≃ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
+linear_isometry_equiv.of_surjective (to_dual_map 𝕜 E)
 begin
   intros ℓ,
   set Y := ker ℓ with hY,
@@ -117,7 +111,7 @@ begin
       exact sub_eq_zero.mp (eq.symm h₃) },
     have h₄ := calc
       ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
-            : by simp [inner_smul_left, conj_div, conj_conj]
+            : by simp [inner_smul_left, ring_equiv.map_div, conj_conj]
                             ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
             : by rw [←div_mul_eq_mul_div]
                             ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
@@ -132,94 +126,8 @@ begin
     exact h₄ }
 end
 
-end is_R_or_C
+variables {E}
 
-section real
-
-variables {F : Type*} [inner_product_space ℝ F]
-
-/-- In a real inner product space `F`, the function that takes a vector `x` in `F` to its dual
-`λ y, ⟪x, y⟫` is a continuous linear map. If the space is complete (i.e. is a Hilbert space),
-consider using `to_dual` instead. -/
--- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
-linear_map.mk_continuous
-  { to_fun := to_dual' ℝ,
-    map_add' := λ x y, by { ext, simp [inner_add_left] },
-    map_smul' := λ c x, by { ext, simp [inner_smul_left] } }
-  1
-  (λ x, by simp only [norm_to_dual'_apply, one_mul, linear_map.coe_mk])
-
-@[simp] lemma to_dual_map_apply {x y : F} : to_dual_map x y = ⟪x, y⟫_ℝ := rfl
-
-/-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma norm_to_dual_map_apply (x : F) : ∥to_dual_map x∥ = ∥x∥ := norm_to_dual'_apply _ _
-
-lemma to_dual_map_isometry : isometry (@to_dual_map F _) :=
-add_monoid_hom.isometry_of_norm _ norm_to_dual_map_apply
-
-lemma to_dual_map_injective : function.injective (@to_dual_map F _) :=
-(@to_dual_map_isometry F _).injective
-
-@[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
-linear_map.ker_eq_bot.mpr to_dual_map_injective
-
-@[simp] lemma to_dual_map_eq_iff_eq {x y : F} : to_dual_map x = to_dual_map y ↔ x = y :=
-((linear_map.ker_eq_bot).mp (@ker_to_dual_map F _)).eq_iff
-
-variables [complete_space F]
-
-/--
-Fréchet-Riesz representation: any `ℓ` in the dual of a real Hilbert space `F` is of the form
-`λ u, ⟪y, u⟫` for some `y` in `F`.  See `inner_product_space.to_dual` for the continuous linear
-equivalence thus induced.
--/
--- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
-linear_map.range_eq_top.mpr (to_dual'_surjective ℝ F)
-
-/--
-Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
-its dual is a continuous linear equivalence.  -/
-def to_dual : F ≃L[ℝ] (normed_space.dual ℝ F) :=
-continuous_linear_equiv.of_isometry to_dual_map.to_linear_map to_dual_map_isometry range_to_dual_map
-
-/--
-Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
-its dual is an isometry.  -/
-def isometric.to_dual : F ≃ᵢ normed_space.dual ℝ F :=
-{ to_equiv := to_dual.to_linear_equiv.to_equiv,
-  isometry_to_fun := to_dual'_isometry ℝ F}
-
-@[simp] lemma to_dual_apply {x y : F} : to_dual x y = ⟪x, y⟫_ℝ := rfl
-
-@[simp] lemma to_dual_eq_iff_eq {x y : F} : to_dual x = to_dual y ↔ x = y :=
-(@to_dual F _ _).injective.eq_iff
-
-lemma to_dual_eq_iff_eq' {x x' : F} : (∀ y : F, ⟪x, y⟫_ℝ = ⟪x', y⟫_ℝ) ↔ x = x' :=
-begin
-  split,
-  { intros h,
-    have : to_dual x = to_dual x' → x = x' := to_dual_eq_iff_eq.mp,
-    apply this,
-    simp_rw [←to_dual_apply] at h,
-    ext z,
-    exact h z },
-  { rintros rfl y,
-    refl }
-end
-
-@[simp] lemma norm_to_dual_apply (x : F) : ∥to_dual x∥ = ∥x∥ := norm_to_dual_map_apply x
-
-/-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
-primal vector. -/
-lemma norm_to_dual_symm_apply (ℓ : normed_space.dual ℝ F) : ∥to_dual.symm ℓ∥ = ∥ℓ∥ :=
-begin
-  have : ℓ = to_dual (to_dual.symm ℓ) := by simp only [continuous_linear_equiv.apply_symm_apply],
-  conv_rhs { rw [this] },
-  refine eq.symm (norm_to_dual_apply _),
-end
-
-end real
+@[simp] lemma to_dual_apply {x y : E} : to_dual 𝕜 E x y = ⟪x, y⟫ := rfl
 
 end inner_product_space

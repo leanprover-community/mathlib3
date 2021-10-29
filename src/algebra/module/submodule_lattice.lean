@@ -51,12 +51,6 @@ end
 instance unique_bot : unique (⊥ : submodule R M) :=
 ⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
 
-lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
-begin
-  have h := (set_like.lt_iff_le_and_exists.1 bot_lt).2,
-  tidy,
-end
-
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
@@ -76,6 +70,12 @@ end
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
 
+lemma nonzero_mem_of_bot_lt {p : submodule R M} (bot_lt : ⊥ < p) : ∃ a : p, a ≠ 0 :=
+let ⟨b, hb₁, hb₂⟩ := p.ne_bot_iff.mp bot_lt.ne' in ⟨⟨b, hb₁⟩, hb₂ ∘ (congr_arg coe)⟩
+
+lemma exists_mem_ne_zero_of_ne_bot {p : submodule R M} (h : p ≠ ⊥) : ∃ b : M, b ∈ p ∧ b ≠ 0 :=
+let ⟨b, hb₁, hb₂⟩ := p.ne_bot_iff.mp h in ⟨b, hb₁, hb₂⟩
+
 /-- The bottom submodule is linearly equivalent to punit as an `R`-module. -/
 @[simps] def bot_equiv_punit : (⊥ : submodule R M) ≃ₗ[R] punit :=
 { to_fun := λ x, punit.star,
@@ -84,6 +84,13 @@ by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_foral
   map_smul' := by { intros, ext, },
   left_inv := by { intro x, ext, },
   right_inv := by { intro x, ext, }, }
+
+lemma eq_bot_of_subsingleton (p : submodule R M) [subsingleton p] : p = ⊥ :=
+begin
+  rw eq_bot_iff,
+  intros v hv,
+  exact congr_arg coe (subsingleton.elim (⟨v, hv⟩ : p) 0)
+end
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -155,7 +162,7 @@ instance : complete_lattice (submodule R M) :=
   ..submodule.order_top,
   ..submodule.order_bot }
 
-@[simp] theorem inf_coe : (p ⊓ q : set M) = p ∩ q := rfl
+@[simp] theorem inf_coe : ↑(p ⊓ q) = (p ∩ q : set M) := rfl
 
 @[simp] theorem mem_inf {p q : submodule R M} {x : M} :
   x ∈ p ⊓ q ↔ x ∈ p ∧ x ∈ q := iff.rfl

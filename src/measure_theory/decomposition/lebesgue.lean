@@ -23,7 +23,7 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 * `measure_theory.measure.singular_part` : If a pair of measures `have_lebesgue_decomposition`,
   then `singular_part` chooses the measure from `have_lebesgue_decomposition`, otherwise it
   returns the zero measure.
-* `measure_theory.measure.rn_deriv` : If a pair of measures
+* `measure_theory.measure.rn_deriv`: If a pair of measures
   `have_lebesgue_decomposition`, then `rn_deriv` chooses the measurable function from
   `have_lebesgue_decomposition`, otherwise it returns the zero function.
 * `measure_theory.signed_measure.have_lebesgue_decomposition` : A signed measure `s` and a
@@ -655,7 +655,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
   -- since `ν.with_density ξ ≤ μ`, it is clear that `μ = μ₁ + ν.with_density ξ`
   { rw hμ₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
-        add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
+        add_comm, add_tsub_cancel_of_le (hle A hA)] },
 end⟩
 
 local attribute [instance] have_lebesgue_decomposition_of_finite_measure

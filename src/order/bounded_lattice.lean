@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import data.option.basic
 import logic.nontrivial
 import order.lattice
+import order.order_dual
 import tactic.pi_instances
 
 /-!
@@ -310,17 +311,6 @@ class distrib_lattice_bot α extends distrib_lattice α, semilattice_inf_bot α,
 
 /-- A bounded distributive lattice is exactly what it sounds like. -/
 class bounded_distrib_lattice α extends distrib_lattice_bot α, bounded_lattice α
-
-lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
-  (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
-⟨λ h,
-  calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
-    ... = (a ⊓ b) ⊔ (a ⊓ c) : by simp [inf_sup_left]
-    ... ≤ c : by simp [h, inf_le_right],
-  λ h,
-  bot_unique $
-    calc a ⊓ b ≤ b ⊓ c : by { rw inf_comm, exact inf_le_inf_left _ h }
-      ... = ⊥ : h₂⟩
 
 /-- Propositions form a bounded distributive lattice. -/
 instance Prop.bounded_distrib_lattice : bounded_distrib_lattice Prop :=
@@ -1162,14 +1152,25 @@ lemma inf_eq_bot (h : is_compl x y) : x ⊓ y = ⊥ := h.disjoint.eq_bot
 
 lemma sup_eq_top (h : is_compl x y) : x ⊔ y = ⊤ := top_unique h.top_le_sup
 
-lemma to_order_dual (h : is_compl x y) : @is_compl (order_dual α) _ x y := ⟨h.2, h.1⟩
+open order_dual (to_dual)
+
+lemma to_order_dual (h : is_compl x y) : is_compl (to_dual x) (to_dual y) := ⟨h.2, h.1⟩
 
 end bounded_lattice
 
-variables [bounded_distrib_lattice α] {x y z : α}
+variables [bounded_distrib_lattice α] {a b x y z : α}
+
+lemma inf_left_le_of_le_sup_right (h : is_compl x y) (hle : a ≤ b ⊔ y) : a ⊓ x ≤ b :=
+calc a ⊓ x ≤ (b ⊔ y) ⊓ x : inf_le_inf hle le_rfl
+... = (b ⊓ x) ⊔ (y ⊓ x) : inf_sup_right
+... = b ⊓ x : by rw [h.symm.inf_eq_bot, sup_bot_eq]
+... ≤ b : inf_le_left
+
+lemma le_sup_right_iff_inf_left_le {a b} (h : is_compl x y) : a ≤ b ⊔ y ↔ a ⊓ x ≤ b :=
+⟨h.inf_left_le_of_le_sup_right, h.symm.to_order_dual.inf_left_le_of_le_sup_right⟩
 
 lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
-inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
+by rw [← le_bot_iff, ← h.le_sup_right_iff_inf_left_le, bot_sup_eq]
 
 lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
 h.symm.inf_left_eq_bot_iff

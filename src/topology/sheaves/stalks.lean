@@ -225,8 +225,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
       nat_trans.op_id, Lan_obj_map, pushforward_pullback_adjunction_unit_app_app, category.assoc,
       colimit.ι_pre_assoc],
     erw [colimit.ι_desc, colimit.pre_desc, colimit.ι_desc, category.comp_id],
-    simp,
-    congr
+    simpa
   end,
   inv_hom_id' :=
   begin

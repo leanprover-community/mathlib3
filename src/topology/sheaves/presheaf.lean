@@ -207,9 +207,9 @@ begin
   delta Lan.diagram,
   refine eq.trans _ (category.id_comp _),
   rw ← ℱ.map_id,
-  congr, simp, simp,
-  apply heq_of_subsingleton, simp, simp, simp,
-  apply heq_of_subsingleton, simp,
+  congr,
+  any_goals { apply heq_of_subsingleton },
+  all_goals { simp }
 end
 
 end pullback

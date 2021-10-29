@@ -63,9 +63,6 @@ Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO
 
-`finset.Ico` and `multiset.Ico` haven't been generalized yet. All of `data.finset.intervals` and
-`data.multiset.intervals` should be generalized.
-
 Provide the `locally_finite_order` instance for `lex α β` where `locally_finite_order α` and
 `fintype β`.
 

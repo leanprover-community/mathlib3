@@ -21,7 +21,7 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
 open set
 
 universes u v
-variables {α : Type u} {ι : Type v} {r p q : α → α → Prop}
+variables {α : Type u} {ι ι' : Type v} {r p q : α → α → Prop}
 
 section pairwise
 variables {f : ι → α} {s t u : set α} {a b : α}
@@ -235,24 +235,21 @@ end
 
 lemma pairwise_disjoint_union :
   (s ∪ t).pairwise_disjoint f ↔ s.pairwise_disjoint f ∧ t.pairwise_disjoint f ∧
-    ∀ ⦃i j⦄, i ∈ s → j ∈ t → i ≠ j → disjoint (f i) (f j) :=
-pairwise_on_union.trans $ by simp only [hr.iff, and_self]
+    ∀ ⦃i⦄, i ∈ s → ∀ ⦃j⦄, j ∈ t → i ≠ j → disjoint (f i) (f j) :=
+pairwise_on_union_of_symmetric $ symmetric_disjoint.comap f
 
 lemma pairwise_disjoint.union (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint f)
-  (h : ∀ ⦃i j⦄, i ∈ s → j ∈ t → i ≠ j → disjoint (f i) (f j)) :
+  (h : ∀ ⦃i⦄, i ∈ s → ∀ ⦃j⦄, j ∈ t → i ≠ j → disjoint (f i) (f j)) :
   (s ∪ t).pairwise_disjoint f :=
 pairwise_disjoint_union.2 ⟨hs, ht, h⟩
 
-lemma pairwise_disjoint_Union {g : ι → set α} (h : directed (⊆) g) :
+lemma pairwise_disjoint_Union {g : ι' → set ι} (h : directed (⊆) g) :
   (⋃ n, g n).pairwise_disjoint f ↔ ∀ ⦃n⦄, (g n).pairwise_disjoint f :=
 pairwise_on_Union h
 
-lemma pairwise_disjoint_sUnion {s : set (set α)} (h : directed_on (⊆) s) :
+lemma pairwise_disjoint_sUnion {s : set (set ι)} (h : directed_on (⊆) s) :
   (⋃₀ s).pairwise_disjoint f ↔ ∀ ⦃a⦄, a ∈ s → set.pairwise_disjoint a f :=
 pairwise_on_sUnion h
-
-lemma pairwise_disjoint_fiber (f : ι → α) (s : set α) : s.pairwise_disjoint (λ a, f ⁻¹' {a}) :=
-λ a _ b _ h i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
 
 -- classical
 lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
@@ -277,6 +274,9 @@ begin
   exact disjoint_singleton.2 (ne_of_apply_ne _ h),
 end
 
+lemma pairwise_disjoint_fiber (f : ι → α) (s : set α) : s.pairwise_disjoint (λ a, f ⁻¹' {a}) :=
+λ a _ b _ h i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
+
 -- classical
 lemma pairwise_disjoint.elim_set {s : set ι} {f : ι → set α} (hs : s.pairwise_disjoint f) {i j : ι}
   (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i) (haj : a ∈ f j) : i = j :=
@@ -300,6 +300,5 @@ noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
 
 end set
 
-lemma pairwise_disjoint_fiber [semilattice_inf_bot α] (f : ι → α) :
-  pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
+lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
 set.pairwise_on_univ.1 $ set.pairwise_disjoint_fiber f univ

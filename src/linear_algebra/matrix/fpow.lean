@@ -46,8 +46,8 @@ end
 theorem pow_sub' (A : M) {m n : ℕ} (ha : is_unit A.det) (h : n ≤ m) :
   A ^ (m - n) = A ^ m ⬝ (A ^ n)⁻¹ :=
 begin
-  rw [←nat.sub_add_cancel h, pow_add, mul_eq_mul, matrix.mul_assoc, mul_nonsing_inv,
-      nat.sub_add_cancel h, matrix.mul_one],
+  rw [←tsub_add_cancel_of_le h, pow_add, mul_eq_mul, matrix.mul_assoc, mul_nonsing_inv,
+      tsub_add_cancel_of_le h, matrix.mul_one],
   simpa using ha.pow n
 end
 

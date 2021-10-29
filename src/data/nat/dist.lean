@@ -22,20 +22,20 @@ theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
 by simp [dist.def, add_comm]
 
 @[simp] theorem dist_self (n : ℕ) : dist n n = 0 :=
-by simp [dist.def, nat.sub_self]
+by simp [dist.def, tsub_self]
 
 theorem eq_of_dist_eq_zero {n m : ℕ} (h : dist n m = 0) : n = m :=
 have n - m = 0, from nat.eq_zero_of_add_eq_zero_right h,
-have n ≤ m, from nat.le_of_sub_eq_zero this,
+have n ≤ m, from tsub_eq_zero_iff_le.mp this,
 have m - n = 0, from nat.eq_zero_of_add_eq_zero_left h,
-have m ≤ n, from nat.le_of_sub_eq_zero this,
+have m ≤ n, from tsub_eq_zero_iff_le.mp this,
 le_antisymm ‹n ≤ m› ‹m ≤ n›
 
 theorem dist_eq_zero {n m : ℕ} (h : n = m) : dist n m = 0 :=
 begin rw [h, dist_self] end
 
 theorem dist_eq_sub_of_le {n m : ℕ} (h : n ≤ m) : dist n m = m - n :=
-begin rw [dist.def, nat.sub_eq_zero_of_le h, zero_add] end
+begin rw [dist.def, tsub_eq_zero_iff_le.mpr h, zero_add] end
 
 theorem dist_eq_sub_of_le_right {n m : ℕ} (h : m ≤ n) : dist n m = n - m :=
 begin rw [dist_comm], apply dist_eq_sub_of_le h end
@@ -53,16 +53,16 @@ theorem dist_tri_right' (n m : ℕ) : n ≤ m + dist n m :=
 by rw dist_comm; apply dist_tri_right
 
 theorem dist_zero_right (n : ℕ) : dist n 0 = n :=
-eq.trans (dist_eq_sub_of_le_right (zero_le n)) (nat.sub_zero n)
+eq.trans (dist_eq_sub_of_le_right (zero_le n)) (tsub_zero n)
 
 theorem dist_zero_left (n : ℕ) : dist 0 n = n :=
-eq.trans (dist_eq_sub_of_le (zero_le n)) (nat.sub_zero n)
+eq.trans (dist_eq_sub_of_le (zero_le n)) (tsub_zero n)
 
 theorem dist_add_add_right (n k m : ℕ) : dist (n + k) (m + k) = dist n m :=
 calc
   dist (n + k) (m + k) = ((n + k) - (m + k)) + ((m + k)-(n + k)) : rfl
-                   ... = (n - m) + ((m + k) - (n + k))   : by rw add_tsub_add_right_eq_tsub
-                   ... = (n - m) + (m - n)               : by rw add_tsub_add_right_eq_tsub
+                   ... = (n - m) + ((m + k) - (n + k))   : by rw add_tsub_add_eq_tsub_right
+                   ... = (n - m) + (m - n)               : by rw add_tsub_add_eq_tsub_right
 
 theorem dist_add_add_left (k n m : ℕ) : dist (k + n) (k + m) = dist n m :=
 begin rw [add_comm k n, add_comm k m], apply dist_add_add_right end
@@ -79,7 +79,7 @@ have dist n m + dist m k = (n - m) + (m - k) + ((k - m) + (m - n)),
 by { rw [this, dist.def], exact add_le_add tsub_le_tsub_add_tsub tsub_le_tsub_add_tsub }
 
 theorem dist_mul_right (n k m : ℕ) : dist (n * k) (m * k) = dist n m * k :=
-by rw [dist.def, dist.def, right_distrib, nat.mul_sub_right_distrib, nat.mul_sub_right_distrib]
+by rw [dist.def, dist.def, right_distrib, tsub_mul, tsub_mul]
 
 theorem dist_mul_left (k n m : ℕ) : dist (k * n) (k * m) = k * dist n m :=
 by rw [mul_comm k n, mul_comm k m, dist_mul_right, mul_comm]
@@ -101,9 +101,9 @@ by simp [dist.def, succ_sub_succ]
 theorem dist_pos_of_ne {i j : nat} : i ≠ j → 0 < dist i j :=
 assume hne, nat.lt_by_cases
   (assume : i < j,
-     begin rw [dist_eq_sub_of_le (le_of_lt this)], apply nat.sub_pos_of_lt this end)
+     begin rw [dist_eq_sub_of_le (le_of_lt this)], apply tsub_pos_of_lt this end)
   (assume : i = j, by contradiction)
   (assume : i > j,
-     begin rw [dist_eq_sub_of_le_right (le_of_lt this)], apply nat.sub_pos_of_lt this end)
+     begin rw [dist_eq_sub_of_le_right (le_of_lt this)], apply tsub_pos_of_lt this end)
 
 end nat

@@ -115,6 +115,58 @@ begin
   rw direct_sum.to_add_monoid_of, refl,
 end
 
+lemma graded_ring.proj_recompose (a : ⨁ i, A i) (i : ι) :
+  graded_ring.proj R A i (graded_ring.recompose R A a) =
+  graded_ring.recompose R A (direct_sum.of _ i (a i)) :=
+begin
+  unfold graded_ring.proj, simp only [add_monoid_hom.coe_mk, subtype.val_eq_coe],
+  have : graded_ring.decompose ((graded_ring.recompose R A) a) = a :=
+    (graded_ring.recompose R A).symm_apply_apply a,
+  rw this,
+  unfold graded_ring.recompose,
+  simp only [direct_sum.to_semiring_of, add_subgroup.coe_subtype, ring_equiv.coe_mk],
+end
+
+lemma graded_ring.mul_proj (r r' : R) (i : ι) :
+  graded_ring.proj R A i (r * r') =
+  ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
+    ((graded_ring.support R A r).product (graded_ring.support R A r')),
+    (graded_ring.proj R A ij.1 r) * (graded_ring.proj R A ij.2 r') :=
+begin
+  have set_eq : (graded_ring.support R A r).product (graded_ring.support R A r') =
+  finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) _ ∪
+  finset.filter (λ ij : ι × ι, ij.1 + ij.2 ≠ i) _ := (finset.filter_union_filter_neg_eq _ _).symm,
+  conv_lhs { rw [graded_ring.as_sum R A r, graded_ring.as_sum R A r', finset.sum_mul_sum,
+    add_monoid_hom.map_sum, set_eq] },
+  rw finset.sum_union,
+  suffices : ∑ (x : ι × ι) in finset.filter (λ (ij : ι × ι), ij.fst + ij.snd ≠ i)
+    ((graded_ring.support R A r).product (graded_ring.support R A r')),
+  (graded_ring.proj R A i) ((graded_ring.proj R A x.fst) r * (graded_ring.proj R A x.snd) r') = 0,
+  rw [this, add_zero], apply finset.sum_congr rfl,
+  rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
+  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
+  rw ←h₃,
+  obtain ⟨a, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r,
+  obtain ⟨b, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r',
+  rw [graded_ring.proj_recompose, graded_ring.proj_recompose, ←ring_equiv.map_mul,
+    direct_sum.of_mul_of, graded_ring.proj_recompose],
+  congr, rw [direct_sum.of_eq_same],
+
+  apply finset.sum_eq_zero, rintros ⟨j, k⟩ h,
+  simp only [ne.def, finset.mem_filter, finset.mem_product] at h ⊢,
+  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
+  obtain ⟨a, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r,
+  obtain ⟨b, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r',
+  rw [graded_ring.proj_recompose, graded_ring.proj_recompose, ←ring_equiv.map_mul,
+    direct_sum.of_mul_of, graded_ring.proj_recompose, direct_sum.of_eq_of_ne],
+  simp only [ring_equiv.map_zero, add_monoid_hom.map_zero], intro rid, exact h₃ rid,
+
+  rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
+  rintros ⟨j, k⟩ rid,
+  simp only [ne.def, finset.mem_filter, finset.mem_inter, finset.mem_product] at rid,
+  rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
+end
+
 end graded_ring
 
 section homogeneous_element

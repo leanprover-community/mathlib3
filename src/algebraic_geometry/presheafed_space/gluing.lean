@@ -6,6 +6,8 @@ Authors: Andrew Yang
 import topology.gluing
 import algebraic_geometry.presheafed_space.has_colimits
 import category_theory.limits.shapes.binary_products
+import algebraic_geometry.stalks
+import category_theory.adjunction.fully_faithful
 
 /-!
 # Gluing Topological spaces
@@ -81,11 +83,11 @@ attribute[simps] Top.presheaf.pushforward
 open opposite Top.presheaf
 
 @[simps]
-def inv_of_iso_pushforward {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1) (H₂ : H₁.hom _* X.2 ≅ Y.2) :
+def inv_of_iso_pushforward {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1) (H₂ : H₁.hom _* X.2 ⟶ Y.2) :
    X.presheaf ⟶ H₁.inv _* Y.presheaf :=
 ({ app := λ U, X.presheaf.map (eq_to_hom
     (begin
-      op_induction U,
+      induction U using opposite.rec,
       simp only [unop_op, op_inj_iff, functor.op_obj, opens.map],
       ext,
       simp only [coe_hom_inv_id, set.mem_preimage, topological_space.opens.mem_coe,
@@ -97,38 +99,81 @@ def inv_of_iso_pushforward {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1) (H₂ 
       simp only [quiver.hom.unop_op, functor.comp_map, functor.op_map, ←functor.map_comp],
       congr
     end } : X.presheaf ⟶ H₁.inv _* (H₁.hom _* X.presheaf)) ≫
-((Top.presheaf.pushforward H₁.inv).map_iso H₂).hom
+(Top.presheaf.pushforward H₁.inv).map H₂
 
-@[simps]
+
+def hom_of_iso_pushforward {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1) (H₂ : Y.2 ⟶ H₁.hom _* X.2) :
+   H₁.inv _* Y.presheaf ⟶ X.presheaf :=
+(Top.presheaf.pushforward H₁.inv).map H₂ ≫
+  ({ app := λ U, X.presheaf.map (eq_to_hom
+    (begin
+      induction U using opposite.rec,
+      simp only [unop_op, op_inj_iff, functor.op_obj, opens.map],
+      ext,
+      simp only [coe_hom_inv_id, set.mem_preimage, topological_space.opens.mem_coe,
+        iff_self, subtype.coe_mk, subtype.val_eq_coe]
+    end)),
+    naturality' := λ _ _ f,
+    begin
+      delta pushforward_obj,
+      simp only [quiver.hom.unop_op, functor.comp_map, functor.op_map, ←functor.map_comp],
+      congr
+    end } : H₁.inv _* (H₁.hom _* X.presheaf) ⟶ X.presheaf)
+
+@[simps hom inv]
 def PresheafedSpace.iso_of_components {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1)
   (H₂ : H₁.hom _* X.2 ≅ Y.2) : X ≅ Y :=
 { hom := { base := H₁.hom, c := H₂.inv },
   inv := { base := H₁.inv,
-    c := inv_of_iso_pushforward H₁ H₂ },
+    c := inv_of_iso_pushforward H₁ H₂.hom },
   hom_inv_id' := by { ext, simp, dsimp only [functor.op], erw category.id_comp, simpa, simp },
   inv_hom_id' :=
   begin
     ext x,
-    op_induction x,
+    induction x using opposite.rec,
     change (H₂.inv.app (op x) ≫ (X.presheaf.map (eq_to_hom _) ≫
-      H₂.hom.app _) ≫ _) ≫ Y.presheaf.map _ = _,
+      H₂.hom.app _)) ≫ Y.presheaf.map _ = _,
     simp only [algebraic_geometry.PresheafedSpace.id_c_app,
       category.assoc, pushforward.comp_inv_app],
-    erw [category.id_comp, ←H₂.hom.naturality],
+    erw [←H₂.hom.naturality],
     have := congr_app (H₂.inv_hom_id) (op x),
     cases x,
     rw nat_trans.comp_app at this,
     convert this,
-    dsimp, simp,
-    simp
+    { dsimp, simp },
+    { simp },
+    { simp }
   end }
 
 section end
 
-@[simps]
+@[simps hom_base inv_base hom_c_app inv_c_app { attrs := [] }]
+def restrict_eq {X : Top} (Y : PresheafedSpace C) (f g : X ⟶ Y.1)
+  (hf : open_embedding f) (hg : open_embedding g) (eq : f = g) :
+  Y.restrict hf ≅ Y.restrict hg :=
+PresheafedSpace.iso_of_components (iso.refl X)
+begin
+  refine (functor.associator _ _ _).symm.trans _,
+  refine iso_whisker_right _ Y.presheaf,
+  change (opens.map _ ⋙ is_open_map.functor _).op ≅ _,
+  apply nat_iso.op,
+  fapply nat_iso.of_components,
+  { intro U,
+    apply eq_to_iso,
+    cases U,
+    ext,
+    simp only [is_open_map.functor_obj_coe, opens.map, functor.comp_obj, subtype.coe_mk, eq],
+    erw iso.refl_hom,
+    simp },
+  { intros _ _ _,
+    simp[is_open_map.functor] },
+end
+
+@[simps hom_base inv_base hom_c_app inv_c_app { attrs := [] }]
 def restrict_comp {X Y : Top} (Z : PresheafedSpace C) (f : X ⟶ Y)
   (hf : open_embedding f) (g : Y ⟶ Z.1) (hg : open_embedding g) (h : X ⟶ Z.1) (eq : h = f ≫ g) :
-  Z.restrict h (by simpa[eq] using hg.comp hf) ≅ ((Z.restrict _ hg).restrict _ hf) :=
+  Z.restrict (show open_embedding h, by simpa[eq] using hg.comp hf) ≅
+    ((Z.restrict hg).restrict hf) :=
 PresheafedSpace.iso_of_components (iso.refl X)
 begin
   refine (functor.associator _ _ _).symm.trans
@@ -147,21 +192,506 @@ begin
   simp[is_open_map.functor],
 end
 
-structure open_immersion {C : Type*} [category C] {X Y : PresheafedSpace C} (f : X ⟶ Y) :=
-(base_open : open_embedding f.base)
-(c_iso : X ≅ Y.restrict _ base_open)
-(fac : c_iso.hom ≫ Y.of_restrict _ _ = f)
+attribute [simp]  algebraic_geometry.restrict_eq_hom_base
+                  algebraic_geometry.restrict_eq_inv_base
+                  algebraic_geometry.restrict_comp_hom_base
+                  algebraic_geometry.restrict_comp_inv_base
 
-def has_pullback_of_open_immersion {C : Type*} [category C] {X Y Z : PresheafedSpace C}
+#check algebraic_geometry.restrict_comp
+
+section end
+
+@[simp]
+lemma restrict_eq_hom_c_app' {X : Top} (Y : PresheafedSpace C) (f g : X ⟶ Y.1)
+  (hf : open_embedding f) (hg : open_embedding g) (eq : f = g) (U) :
+  (restrict_eq Y f g hf hg eq).hom.c.app U = Y.presheaf.map
+    (eq_to_hom (begin
+      tactic.op_induction',
+      cases U,
+      cases eq,
+      dsimp only [is_open_map.functor, opens.map, functor.op],
+      congr
+    end)) := by simpa [restrict_eq_hom_c_app]
+
+@[simp]
+lemma restrict_comp_hom_c_app' {X Y : Top} (Z : PresheafedSpace C) (f : X ⟶ Y) (hf : open_embedding f)
+  (g : Y ⟶ Z.1) (hg : open_embedding g) (h : X ⟶ Z.1) (feq : h = f ≫ g) (U) :
+  (restrict_comp Z f hf g hg h feq).hom.c.app U = Z.presheaf.map
+    (eq_to_hom (begin
+      tactic.op_induction',
+      cases U,
+      cases feq,
+      dsimp only [is_open_map.functor, opens.map, functor.op],
+      congr' 2,
+      erw set.image_image,
+      congr
+    end)) := by simpa [restrict_comp_hom_c_app]
+
+@[simp] lemma restrict_comp_hom_of_restrict_of_restrict {X Y : Top} (Z : PresheafedSpace C)
+  (f : X ⟶ Y) (hf : open_embedding f) (g : Y ⟶ Z.1) (hg : open_embedding g) (h : X ⟶ Z.1)
+  (eq : h = f ≫ g) :
+  (restrict_comp Z f hf g hg h eq).hom ≫ (Z.restrict hg).of_restrict hf ≫ Z.of_restrict hg =
+  Z.of_restrict (show open_embedding h, by simpa[eq] using hg.comp hf) :=
+begin
+  ext,
+  { change ((_ ≫ _) ≫ (_ ≫ _) ≫ _) ≫ _ = Z.presheaf.map _,
+    erw category.comp_id,
+    erw category.id_comp,
+    erw ←Z.presheaf.map_comp,
+    erw ←Z.presheaf.map_comp,
+    erw ←Z.presheaf.map_comp,
+    congr },
+  simp[PresheafedSpace.of_restrict, ←eq],
+end
+
+variables {X Y : PresheafedSpace C} (f : X ⟶ Y)
+
+def PresheafedSpace.base_iso_of_iso (H : X ≅ Y) : X.1 ≅ Y.1 :=
+{ hom := H.hom.base,
+  inv := H.inv.base,
+  hom_inv_id' := congr_arg PresheafedSpace.hom.base H.hom_inv_id,
+  inv_hom_id' := congr_arg PresheafedSpace.hom.base H.inv_hom_id }
+
+def PresheafedSpace.sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
+{ hom := H.hom.c,
+  inv := hom_of_iso_pushforward (PresheafedSpace.base_iso_of_iso H).symm H.inv.c,
+  hom_inv_id' :=
+  begin
+    ext U,
+    have := PresheafedSpace.congr_app H.inv_hom_id U,
+    simp only [PresheafedSpace.comp_c_app, PresheafedSpace.id_c_app,
+      eq_to_hom_map, eq_to_hom_trans] at this,
+    generalize_proofs h at this,
+    have := (congr_arg (λ f, f ≫ eq_to_hom h.symm) this : _),
+    simp [hom_of_iso_pushforward] at this ⊢,
+    simpa using this
+  end,
+  inv_hom_id' :=
+  begin
+    ext U,
+    have := PresheafedSpace.congr_app H.hom_inv_id ((opens.map H.hom.base).op.obj U),
+    generalize_proofs h at this,
+    have := (congr_arg (λ f, f ≫X.presheaf.map (eq_to_hom h.symm)) this : _),
+    simp only [nat_trans.comp_app, hom_of_iso_pushforward, category.assoc, nat_trans.id_app,
+      H.hom.c.naturality],
+    simpa using this
+  end }
+
+
+section end
+
+instance PresheafedSpace.base_is_iso_of_iso [is_iso f] : is_iso f.base :=
+is_iso.of_iso (PresheafedSpace.base_iso_of_iso (as_iso f))
+
+instance PresheafedSpace.c_is_iso_of_iso [is_iso f] : is_iso f.c :=
+is_iso.of_iso (PresheafedSpace.sheaf_iso_of_iso (as_iso f))
+
+structure open_immersion :=
+(base_open : open_embedding f.base)
+(iso_restrict : X ≅ Y.restrict base_open)
+(fac : iso_restrict.hom ≫ Y.of_restrict _ = f)
+
+attribute [simp] open_immersion.fac
+
+
+@[simp] lemma open_immersion.inv_fac {C : Type*} [category C] {X Y : PresheafedSpace C} {f : X ⟶ Y}
+  (H : open_immersion f) : H.iso_restrict.inv ≫ f = Y.of_restrict _ := by { rw iso.inv_comp_eq, simp }
+
+@[simp, elementwise] lemma open_immersion.fac_base {C : Type*} [category C] {X Y : PresheafedSpace C} {f : X ⟶ Y}
+  (H : open_immersion f) : H.iso_restrict.hom.base ≫ (Y.of_restrict _).base = f.base :=
+congr_arg PresheafedSpace.hom.base H.fac
+
+@[simp] lemma open_immersion.inv_fac_base {C : Type*} [category C] {X Y : PresheafedSpace C} {f : X ⟶ Y}
+  (H : open_immersion f) : H.iso_restrict.inv.base ≫ f.base = (Y.of_restrict _).base :=
+congr_arg PresheafedSpace.hom.base H.inv_fac
+
+@[simp, elementwise]
+lemma open_immersion.iso_restrict_hom_base {C : Type*} [category C] {X Y : PresheafedSpace C} {f : X ⟶ Y}
+  (H : open_immersion f) : H.iso_restrict.hom.base = 𝟙 _ :=
+begin
+  haveI := (Top.mono_iff_injective f.base).mpr H.base_open.inj,
+  rw ←cancel_mono f.base,
+  refine (congr_arg PresheafedSpace.hom.base H.fac).trans (category.id_comp _).symm,
+end
+
+@[simp, elementwise]
+lemma open_immersion.iso_restrict_inv_base {C : Type*} [category C] {X Y : PresheafedSpace C} {f : X ⟶ Y}
+  (H : open_immersion f) : H.iso_restrict.inv.base = 𝟙 _ :=
+begin
+  convert congr_arg PresheafedSpace.hom.base H.iso_restrict.hom_inv_id using 1,
+  simp only [PresheafedSpace.comp_base, open_immersion.iso_restrict_hom_base, category.id_comp]
+end
+
+
+def open_immersion.c_iso (H : open_immersion f) : X.presheaf ≅ (Y.restrict H.base_open).presheaf :=
+PresheafedSpace.sheaf_iso_of_iso H.iso_restrict.symm ≪≫
+iso_whisker_right (eq_to_iso
+  (by { rw [open_immersion.iso_restrict_inv_base], apply functor.hext; simp }) :
+    (opens.map H.iso_restrict.inv.base).op ⋙
+      (is_open_map.functor _).op ≅ (is_open_map.functor _).op) (Y.presheaf)
+
+@[simp, elementwise, reassoc]
+lemma open_immersion.map_iso_restrict_hom_c_app {C : Type*} [category C] {X Y : PresheafedSpace C} {f : X ⟶ Y}
+(H : open_immersion f) (U : opens (X.carrier)) :
+  H.iso_restrict.hom.c.app (op U) =
+  f.c.app (op (H.base_open.is_open_map.functor.obj U)) ≫ X.presheaf.map
+    (eq_to_hom (by { dsimp only [opens.map, functor.op], congr' 2,
+      erw set.preimage_image_eq _ H.base_open.inj, simpa })) :=
+begin
+  have := PresheafedSpace.congr_app H.fac (op (H.base_open.is_open_map.functor.obj U)),
+  generalize_proofs _ _ h at this,
+  have := congr_arg (λ x, x ≫ X.presheaf.map (eq_to_hom h.symm)) this,
+  simp only [eq_to_hom_refl, category.assoc, ← X.presheaf.map_comp,
+    eq_to_hom_trans, X.presheaf.map_id] at this,
+  erw category.comp_id at this,
+  rw [←this, category.assoc, ←functor.map_comp, eq_to_hom_trans, ←is_iso.comp_inv_eq],
+  simp only [PresheafedSpace.comp_c_app, PresheafedSpace.of_restrict_c_app, inv_eq_to_hom,
+    ←functor.map_inv],
+  have h' := H.iso_restrict.hom.c.naturality,
+  dsimp [-forall_3_true_iff] at h',
+  convert (h' _).symm using 2,
+  swap 4,
+  { dsimp only [functor.op],
+    apply quiver.hom.op, apply hom_of_le,
+    rintros _ ⟨_, hx, eq⟩,
+    cases H.base_open.inj eq,
+    exact hx },
+  { congr },
+  { congr },
+  { congr, simp }
+end
+
+@[simp, elementwise, reassoc]
+lemma open_immersion_map_iso_restrict_inv_c_app {C : Type*} [category C] {X Y : PresheafedSpace C} {f : X ⟶ Y}
+(H : open_immersion f) (U : opens (Y.carrier)) :
+f.c.app (op U) ≫ H.iso_restrict.inv.c.app (op ((opens.map f.base).obj (unop (op U)))) =
+  Y.presheaf.map ((@hom_of_le (opens Y.1) _ ⟨_, _⟩ U
+  (by { rintros _ ⟨x, hx₂, rfl⟩, simpa using hx₂ })).op) :=
+begin
+have := PresheafedSpace.congr_app H.inv_fac (op U),
+-- unfold PresheafedSpace.restrict at this,
+simp only [PresheafedSpace.restrict, PresheafedSpace.comp_c_app,
+  PresheafedSpace.of_restrict_c_app] at this,
+erw ←functor.map_comp at this,
+convert this,
+end
+
+section end
+
+lemma eq_to_hom_heq_id {C : Type*} [category C] {X Y Z : C} (H : X = Y) (H' : Y = Z) :
+  eq_to_hom H == 𝟙 Z := by { cases H, cases H', refl }
+
+lemma heq_of_subsingleton (α β : Type*) [subsingleton α] (x : α) (y : β)
+   (H : α = β) : x == y := by { cases H, simp, }
+
+lemma open_immersion_map_iso_restrict_inv_c_app'
+(H : open_immersion f) (U : opens X) :
+  f.c.app (op (H.base_open.is_open_map.functor.obj U)) ≫
+  X.presheaf.map
+    (eq_to_hom (by { cases U, simp [opens.map, set.preimage_image_eq U_val H.base_open.inj] })) ≫
+  H.iso_restrict.inv.c.app (op U) =
+  Y.presheaf.map ((@eq_to_hom (opens Y.1) _ ⟨_, _⟩ (H.base_open.is_open_map.functor.obj U)
+  (by simpa)).op) :=
+begin
+  have : op U = (opens.map f.base).op.obj (op (H.base_open.is_open_map.functor.obj U)),
+  { cases U, simp [opens.map, set.preimage_image_eq U_val H.base_open.inj] },
+  convert open_immersion_map_iso_restrict_inv_c_app H (H.base_open.is_open_map.functor.obj U),
+  rw H.iso_restrict.inv.c.naturality (eq_to_hom _),
+  refine heq.trans _ (heq_iff_eq.mpr (category.comp_id _)),
+  congr,
+  exact this,
+  { rw eq_to_hom_map, apply eq_to_hom_heq_id, simp[this] },
+  { apply heq_of_subsingleton, simp[this] }
+end
+
+variable {f}
+
+lemma open_immersion.app_is_iso (H : open_immersion f) (U : opens X) :
+  is_iso (f.c.app (op (H.base_open.is_open_map.functor.obj U))) :=
+begin
+  have :=  open_immersion_map_iso_restrict_inv_c_app' f H U,
+  rw [←is_iso.eq_comp_inv] at this,
+  rw this,
+  apply_instance
+end
+
+abbreviation open_immersion.inv_c_app (H : open_immersion f) (U : opens X) :=
+@@inv _ (f.c.app (op (H.base_open.is_open_map.functor.obj U))) (H.app_is_iso U)
+
+lemma open_immersion.iso_restrict_inv_c_app_eq_inv_f_app
+(H : open_immersion f) (U : opens X) :
+  H.iso_restrict.inv.c.app (op U) =
+  X.presheaf.map
+    (eq_to_hom (by { cases U, simp [opens.map, set.preimage_image_eq U_val H.base_open.inj] })) ≫
+  H.inv_c_app U ≫
+  Y.presheaf.map ((@eq_to_hom (opens Y.1) _ ⟨_, _⟩ (H.base_open.is_open_map.functor.obj U)
+  (by simpa)).op) :=
+begin
+  rw ← open_immersion_map_iso_restrict_inv_c_app' f H U,
+  simp,
+end
+
+section end
+
+@[simp, reassoc]
+lemma open_immersion.iso_restrict_inv_comp_c_app
+(H : open_immersion f) (U : opens X) :
+  H.iso_restrict.inv.c.app (op U) ≫ f.c.app _ =
+  X.presheaf.map
+    (eq_to_hom (by { cases U, simpa [opens.map, set.preimage_image_eq _ H.base_open.inj] })) :=
+begin
+  rw open_immersion.iso_restrict_inv_c_app_eq_inv_f_app H U,
+  simp only [category.assoc],
+  rw f.c.naturality,
+  simpa
+end
+
+section end
+
+instance is_open_map.functor_full_of_mono {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f)
+  [H : mono f] : full hf.functor :=
+{ preimage := λ U V i, hom_of_le (λ x hx, by
+  { obtain ⟨y, hy, eq⟩ := i.le ⟨x, hx, rfl⟩, exact (Top.mono_iff_injective f).mp H eq ▸ hy }) }
+
+instance is_open_map.functor_faithful {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
+  faithful hf.functor := { }
+
+lemma is_open_map.functor_faithfuly {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f)
+[H : mono f] : is_iso (hf.adjunction.unit) := infer_instance
+
+instance whisker_left_counit_iso {C D : Type*} [category C] [category D] {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
+  [full F] [faithful F] : is_iso (whisker_left F adj.counit) :=
+begin
+  have := adj.left_triangle,
+  rw ←is_iso.eq_inv_comp at this,
+  rw this,
+  apply_instance
+end
+
+instance of_restrict_mono {U : Top} {f : U ⟶ X.1} (hf : open_embedding f) :
+  mono (X.of_restrict hf) :=
+begin
+  haveI : mono f := (Top.mono_iff_injective _).mpr hf.inj,
+  constructor,
+  intros Z g₁ g₂ eq,
+  ext V,
+  { induction V using opposite.rec,
+    have hV : (opens.map (X.of_restrict hf).base).obj (hf.is_open_map.functor.obj V) = V,
+    { cases V, simp[opens.map, set.preimage_image_eq _ hf.inj] },
+    haveI : is_iso (hf.is_open_map.adjunction.counit.app
+              (unop (op (hf.is_open_map.functor.obj V)))) :=
+      (nat_iso.is_iso_app_of_is_iso (whisker_left
+        hf.is_open_map.functor hf.is_open_map.adjunction.counit) V : _),
+    have := PresheafedSpace.congr_app eq (op (hf.is_open_map.functor.obj V)),
+    simp only [PresheafedSpace.comp_c_app, PresheafedSpace.of_restrict_c_app, category.assoc,
+      cancel_epi] at this,
+    have h : _ ≫ _ = _ ≫ _ ≫ _ :=
+      congr_arg (λ f, (X.restrict hf).presheaf.map (eq_to_hom hV).op ≫ f) this,
+    erw [g₁.c.naturality, g₂.c.naturality_assoc] at h,
+    simp only [pushforward_obj_map, eq_to_hom_op,
+      category.assoc, eq_to_hom_map, eq_to_hom_trans] at h,
+    rw ←is_iso.comp_inv_eq at h,
+    simpa using h },
+  { have := congr_arg PresheafedSpace.hom.base eq,
+    simp only [PresheafedSpace.comp_base, PresheafedSpace.of_restrict_base] at this,
+    rw cancel_mono at this,
+    exact this }
+end
+
+lemma open_immersion.mono (H : open_immersion f) : mono f :=
+by { rw ← H.fac, apply mono_comp }
+
+
+def pullback_cone_of_open_immersion {C : Type*} [category C] {X Y Z : PresheafedSpace C}
   {f : X ⟶ Z} (hf : open_immersion f) {g : Y ⟶ Z} (hg : open_immersion g) : pullback_cone f g :=
 begin
  fapply pullback_cone.mk,
- exact Z.restrict _ (Top.open_embedding_of_pullback_open_embeddings hf.base_open hg.base_open),
- have := Top.fst_open_embedding_of_right_open_embedding f.base hg.base_open,
- have := restrict_comp Z _
-  (Top.fst_open_embedding_of_right_open_embedding f.base hg.base_open) g.base hg.base_open,
-  -- split,split,split,swap,split,swap,
+ exact Z.restrict (Top.open_embedding_of_pullback_open_embeddings hf.base_open hg.base_open),
+ exact (restrict_comp Z _
+  (Top.fst_open_embedding_of_right_open_embedding f.base hg.base_open) f.base hf.base_open
+  (limit.π (cospan f.base g.base) walking_cospan.one) (limit.w _ walking_cospan.hom.inl).symm).hom
+    ≫ PresheafedSpace.of_restrict _ _ ≫ (hf.iso_restrict).inv,
+ exact (restrict_comp Z _
+  (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base) g.base hg.base_open
+  (limit.π (cospan f.base g.base) walking_cospan.one) (limit.w _ walking_cospan.hom.inr).symm).hom
+    ≫ PresheafedSpace.of_restrict _ _ ≫ (hg.iso_restrict).inv,
+  simp,
 end
+
+def pullback_cone_of_open_immersion_lift {C : Type u} [category.{v} C] {X Y Z : PresheafedSpace C}
+  {f : X ⟶ Z} (hf : open_immersion f) {g : Y ⟶ Z} (hg : open_immersion g)
+  (s : pullback_cone f g) : s.X ⟶ (pullback_cone_of_open_immersion hf hg).X :=
+{ base := pullback.lift s.fst.base s.snd.base
+  (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
+  c := whisker_left _ (s.π.app walking_cospan.one).c ≫
+    (whisker_right (nat_trans.op
+    { app := λ U, hom_of_le
+      (λ x (hx : x ∈ (opens.map (pullback.lift s.fst.base s.snd.base _)).obj U),
+        ⟨pullback.lift s.fst.base s.snd.base
+            (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition) x, hx,
+          show limit.π (cospan f.base g.base) walking_cospan.one
+            (pullback.lift s.fst.base s.snd.base _ x) = (s.π.app walking_cospan.one).base x,
+          by  { have := s.π.naturality walking_cospan.hom.inl,
+                erw category.id_comp at this,
+                simp [this] } ⟩),
+      naturality' := λ _ _ _, refl _ }) s.X.presheaf
+      : (is_open_map.functor _ ⋙ opens.map _).op ⋙ s.X.presheaf ⟶ _ ⋙ s.X.presheaf)}
+
+section end
+
+lemma pullback_cone_of_open_immersion_lift_comp_fst {C : Type u} [category.{v} C]
+  {X Y Z : PresheafedSpace C}
+  {f : X ⟶ Z} (hf : open_immersion f) {g : Y ⟶ Z} (hg : open_immersion g)
+  (s : pullback_cone f g) :
+pullback_cone_of_open_immersion_lift hf hg s ≫ (pullback_cone_of_open_immersion hf hg).fst = s.fst :=
+begin
+  delta pullback_cone_of_open_immersion_lift pullback_cone_of_open_immersion,
+  ext x,
+  { induction x using opposite.rec,
+    let fx : ((opens.map f.base).op.obj
+      (op (hf.base_open.is_open_map.functor.obj ((opens.map hf.iso_restrict.inv.base).obj x)))) ⟶
+        op x,
+    { apply eq_to_hom, cases x, simpa[opens.map, set.preimage_image_eq _ hf.base_open.inj] },
+    have := λ x, PresheafedSpace.congr_app
+      ((category.id_comp _).symm.trans (s.π.naturality walking_cospan.hom.inl : _)) x,
+    dsimp only [PresheafedSpace.comp_c_app, whisker_right_app,
+      nat_trans.comp_app],
+    erw this,
+    dsimp only [pullback_cone.mk_fst, PresheafedSpace.comp_c_app],
+    erw restrict_comp_hom_c_app',
+    simp only [category.assoc],
+    erw ←Z.presheaf.map_comp_assoc,
+    erw f.c.naturality_assoc,
+    erw s.fst.c.naturality_assoc,
+    rw [pushforward_obj_map],
+    iterate 3 { erw [←s.X.presheaf.map_comp] },
+    erw ← s.fst.c.naturality fx,
+    erw hf.iso_restrict_inv_comp_c_app_assoc,
+    rw [←functor.map_comp_assoc, eq_to_hom_trans, eq_to_hom_refl,
+      X.presheaf.map_id, category.id_comp] },
+  { change pullback.lift _ _ _ ≫ 𝟙 _ ≫ pullback.fst ≫ hf.iso_restrict.inv.base = _,
+    simp only [category.comp_id, hf.iso_restrict_inv_base, category.id_comp,
+      pullback.lift_fst] }
+end
+
+section end
+
+-- set_option trace.dsimplify true
+-- #help options
+
+lemma pullback_cone_of_open_immersion_lift_comp_snd {C : Type u} [category.{v} C]
+  {X Y Z : PresheafedSpace C}
+  {f : X ⟶ Z} (hf : open_immersion f) {g : Y ⟶ Z} (hg : open_immersion g)
+  (s : pullback_cone f g) :
+pullback_cone_of_open_immersion_lift hf hg s ≫
+  (pullback_cone_of_open_immersion hf hg).snd = s.snd :=
+begin
+  delta pullback_cone_of_open_immersion_lift pullback_cone_of_open_immersion,
+  ext x,
+  { induction x using opposite.rec,
+    let gx : ((opens.map g.base).op.obj
+      (op (hg.base_open.is_open_map.functor.obj ((opens.map hg.iso_restrict.inv.base).obj x)))) ⟶
+        op x,
+    { apply eq_to_hom, cases x, simpa[opens.map, set.preimage_image_eq _ hg.base_open.inj] },
+    have := λ x, PresheafedSpace.congr_app
+      ((category.id_comp _).symm.trans (s.π.naturality walking_cospan.hom.inr : _)) x,
+    dsimp only [PresheafedSpace.comp_c_app, whisker_right_app,
+      nat_trans.comp_app],
+    erw this,
+    dsimp only [pullback_cone.mk_snd, PresheafedSpace.comp_c_app],
+    erw restrict_comp_hom_c_app',
+    simp only [category.assoc],
+    erw ←Z.presheaf.map_comp_assoc,
+    erw g.c.naturality_assoc,
+    erw s.snd.c.naturality_assoc,
+    rw [pushforward_obj_map],
+    iterate 3 { erw [←s.X.presheaf.map_comp] },
+    erw ← s.snd.c.naturality gx,
+    erw hg.iso_restrict_inv_comp_c_app_assoc,
+    rw [←functor.map_comp_assoc, eq_to_hom_trans, eq_to_hom_refl,
+      Y.presheaf.map_id, category.id_comp] },
+  { change pullback.lift _ _ _ ≫ 𝟙 _ ≫ pullback.snd ≫ hg.iso_restrict.inv.base = _,
+    simp only [category.comp_id, hg.iso_restrict_inv_base, category.id_comp,
+      pullback.lift_snd] }
+end
+
+section end
+
+lemma pullback_cone_π_app_one_base {X Y Z : PresheafedSpace C}
+  {f : X ⟶ Z} (hf : open_immersion f) {g : Y ⟶ Z} (hg : open_immersion g) :
+  ((pullback_cone_of_open_immersion hf hg).π.app walking_cospan.one).base =
+    limit.π (cospan f.base g.base) walking_cospan.one :=
+begin
+  delta pullback_cone_of_open_immersion,
+  simp only [open_immersion.inv_fac, restrict_comp_hom_base, cospan_map_inl,
+    category.assoc, PresheafedSpace.comp_base, pullback_cone.mk_π_app_one,
+    PresheafedSpace.of_restrict_base, ← limit.w (cospan f.base g.base) walking_cospan.hom.inl],
+  erw category.id_comp
+end
+
+def pullback_cone_open_immersion {X Y Z : PresheafedSpace C}
+  {f : X ⟶ Z} (hf : open_immersion f) {g : Y ⟶ Z} (hg : open_immersion g) :
+  open_immersion ((pullback_cone_of_open_immersion hf hg).π.app walking_cospan.one) :=
+{ base_open :=
+  begin
+    convert Top.open_embedding_of_pullback_open_embeddings hf.base_open hg.base_open,
+    apply pullback_cone_π_app_one_base
+  end,
+  iso_restrict :=
+  begin
+    refine restrict_eq Z _ _ _ _ _,
+    symmetry,
+    apply pullback_cone_π_app_one_base,
+  end,
+  fac :=
+  begin
+    ext U,
+    { dsimp only [nat_trans.comp_app, PresheafedSpace.comp_c_app, whisker_right_app],
+      rw restrict_eq_hom_c_app',
+      erw category_theory.functor.map_id,
+      erw category.comp_id,
+      dsimp only [pullback_cone_of_open_immersion, pullback_cone.mk_π_app_one,
+        PresheafedSpace.comp_c_app],
+      simp only [category.assoc],
+      induction U using opposite.rec,
+      rw open_immersion_map_iso_restrict_inv_c_app_assoc,
+      rw restrict_comp_hom_c_app',
+      dsimp only [PresheafedSpace.of_restrict_c_app, cospan_one, PresheafedSpace.restrict_presheaf,
+        functor.comp_map],
+      simp only [←functor.map_comp],
+      congr },
+    { simp only [restrict_eq_hom_base, PresheafedSpace.comp_base,
+        PresheafedSpace.of_restrict_base],
+      erw category.id_comp },
+  end }
+
+lemma pullback_cone_of_open_immersion_is_limit {X Y Z : PresheafedSpace C}
+  {f : X ⟶ Z} (hf : open_immersion f) {g : Y ⟶ Z} (hg : open_immersion g) :
+  is_limit (pullback_cone_of_open_immersion hf hg) :=
+begin
+  apply pullback_cone.is_limit_aux',
+  intro s,
+  split,
+  swap,
+  exact pullback_cone_of_open_immersion_lift hf hg s,
+  split,
+  apply pullback_cone_of_open_immersion_lift_comp_fst,
+  split,
+  apply pullback_cone_of_open_immersion_lift_comp_snd,
+  intros m h₁ h₂,
+  haveI := (pullback_cone_open_immersion hf hg).mono,
+  have := congr_arg (λ i, i ≫ f)
+    (h₁.trans (pullback_cone_of_open_immersion_lift_comp_fst hf hg s).symm),
+  simp only [category.assoc] at this,
+  erw ← (pullback_cone_of_open_immersion hf hg).π.naturality walking_cospan.hom.inl at this,
+  simp only [←category.assoc] at this,
+  rw cancel_mono at this,
+  erw cancel_mono (𝟙 _) at this,
+  exact this,
+  apply_instance
+end
+
+
 
 /--
 A family of gluing data consists of

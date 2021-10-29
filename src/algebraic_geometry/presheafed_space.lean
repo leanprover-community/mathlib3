@@ -67,7 +67,7 @@ structure hom (X Y : PresheafedSpace C) :=
 
 @[ext] lemma ext {X Y : PresheafedSpace C} (α β : hom X Y)
   (w : α.base = β.base)
-  (h : α.c ≫ eq_to_hom (by rw w) = β.c) :
+  (h : α.c ≫ (whisker_right (eq_to_hom (by rw w)) _) = β.c) :
   α = β :=
 begin
   cases α, cases β,
@@ -113,12 +113,12 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   id := id,
   comp := λ X Y Z f g, comp f g,
   id_comp' := λ X Y f, by { ext1,
-    { rw comp_c, erw eq_to_hom_map, simp, apply comp_id }, apply id_comp },
+    { rw comp_c, erw eq_to_hom_map, simp, erw comp_id, erw comp_id }, apply id_comp },
   comp_id' := λ X Y f, by { ext1,
     { rw comp_c, erw congr_hom (presheaf.id_pushforward) f.c,
-      simp, erw eq_to_hom_trans_assoc, simp }, apply comp_id },
+      simp, erw eq_to_hom_trans_assoc, simp, erw comp_id }, apply comp_id },
   assoc' := λ W X Y Z f g h, by { ext1,
-    repeat {rw comp_c}, simpa, refl } }
+    repeat {rw comp_c}, simp, erw comp_id, congr, refl } }
 
 end
 
@@ -131,7 +131,8 @@ lemma id_c (X : PresheafedSpace C) :
   ((𝟙 X) : X ⟶ X).c = eq_to_hom (presheaf.pushforward.id_eq X.presheaf).symm := rfl
 
 @[simp] lemma id_c_app (X : PresheafedSpace C) (U) :
-  ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { induction U using opposite.rec, cases U, refl }) :=
+  ((𝟙 X) : X ⟶ X).c.app U = X.presheaf.map
+    (eq_to_hom (by { induction U using opposite.rec, cases U, refl })) :=
 by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 
 @[simp] lemma comp_base {X Y Z : PresheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
@@ -167,6 +168,7 @@ def restrict {U : Top} (X : PresheafedSpace C)
 /--
 The map from the restriction of a presheafed space.
 -/
+@[simps]
 def of_restrict {U : Top} (X : PresheafedSpace C)
   {f : U ⟶ (X : Top.{v})} (h : open_embedding f) :
   X.restrict h ⟶ X :=
@@ -215,9 +217,9 @@ def restrict_top_iso (X : PresheafedSpace C) :
 { hom := X.of_restrict _,
   inv := X.to_restrict_top,
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
-    by { erw comp_c, rw X.of_restrict_top_c, simpa },
+    by { erw comp_c, rw X.of_restrict_top_c, ext, simp },
   inv_hom_id' := ext _ _ rfl $
-    by { erw comp_c, rw X.of_restrict_top_c, simpa } }
+    by { erw comp_c, rw X.of_restrict_top_c, ext, simp, erw comp_id, refl } }
 
 /--
 The global sections, notated Gamma.

@@ -69,7 +69,7 @@ end
   ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
 begin
   unfold sub_nat_nat, cases e : n - m,
-  { simp [sub_nat_nat, e, nat.le_of_sub_eq_zero e] },
+  { simp [sub_nat_nat, e, tsub_eq_zero_iff_le.mp e] },
   { rw [sub_nat_nat, cast_neg_succ_of_nat, ← nat.cast_succ, ← e,
         nat.cast_sub $ _root_.le_of_lt $ nat.lt_of_sub_eq_succ e, neg_sub] },
 end

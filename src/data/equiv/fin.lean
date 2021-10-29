@@ -11,7 +11,7 @@ import tactic.norm_num
 # Equivalences for `fin n`
 -/
 
-universe variables u
+universes u
 
 variables {m n : ℕ}
 
@@ -235,10 +235,10 @@ by simp [fin_add_flip]
 by convert fin_add_flip_apply_cast_add ⟨k, h⟩ n
 
 @[simp] lemma fin_add_flip_apply_mk_right {k : ℕ} (h₁ : m ≤ k) (h₂ : k < m + n) :
-  fin_add_flip (⟨k, h₂⟩ : fin (m + n)) = ⟨k - m, sub_le_self'.trans_lt $ add_comm m n ▸ h₂⟩ :=
+  fin_add_flip (⟨k, h₂⟩ : fin (m + n)) = ⟨k - m, tsub_le_self.trans_lt $ add_comm m n ▸ h₂⟩ :=
 begin
-  convert fin_add_flip_apply_nat_add ⟨k - m, (sub_lt_iff_right h₁).2 _⟩ m,
-  { simp [add_sub_cancel_of_le h₁] },
+  convert fin_add_flip_apply_nat_add ⟨k - m, (tsub_lt_iff_right h₁).2 _⟩ m,
+  { simp [add_tsub_cancel_of_le h₁] },
   { rwa add_comm }
 end
 

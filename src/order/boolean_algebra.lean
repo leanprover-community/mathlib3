@@ -688,7 +688,34 @@ boolean_algebra.of_core
   top_le_sup_compl := λ p H, classical.em p,
   .. Prop.bounded_distrib_lattice }
 
+instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] : has_sdiff (Π i, α i) :=
+⟨λ x y i, x i \ y i⟩
+
+lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
+  (x \ y) = λ i, x i \ y i := rfl
+
+@[simp]
+lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
+  (x \ y) i = x i \ y i := rfl
+
+instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] : has_compl (Π i, α i) :=
+⟨λ x i, (x i)ᶜ⟩
+
+lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
+  xᶜ = λ i, (x i)ᶜ := rfl
+
+@[simp]
+lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι) :
+  xᶜ i = (x i)ᶜ := rfl
+
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=
-by refine_struct { sdiff := λ x y i, x i \ y i, compl := λ x i, (x i)ᶜ, .. pi.bounded_lattice };
-  tactic.pi_instance_derive_field
+{ sdiff_eq := λ x y, funext $ λ i, sdiff_eq,
+  sup_inf_sdiff := λ x y, funext $ λ i, sup_inf_sdiff (x i) (y i),
+  inf_inf_sdiff := λ x y, funext $ λ i, inf_inf_sdiff (x i) (y i),
+  inf_compl_le_bot := λ _ _, boolean_algebra.inf_compl_le_bot _,
+  top_le_sup_compl := λ _ _, boolean_algebra.top_le_sup_compl _,
+  .. pi.has_sdiff,
+  .. pi.has_compl,
+  .. pi.bounded_lattice,
+  .. pi.distrib_lattice }

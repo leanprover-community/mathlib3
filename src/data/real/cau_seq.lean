@@ -122,10 +122,10 @@ variables {α : Type*} [linear_ordered_field α]
 section ring
 variables {β : Type*} [ring β] {abv : β → α}
 
-instance : has_coe_to_fun (cau_seq β abv) := ⟨_, subtype.val⟩
+instance : has_coe_to_fun (cau_seq β abv) (λ _, ℕ → β) := ⟨subtype.val⟩
 
 @[simp] theorem mk_to_fun (f) (hf : is_cau_seq abv f) :
-  @coe_fn (cau_seq β abv) _ ⟨f, hf⟩ = f := rfl
+  @coe_fn (cau_seq β abv) _ _ ⟨f, hf⟩ = f := rfl
 
 theorem ext {f g : cau_seq β abv} (h : ∀ i, f i = g i) : f = g :=
 subtype.eq (funext h)
@@ -242,9 +242,9 @@ by refine_struct
        mul := (*),
        one := 1,
        sub := has_sub.sub,
-       npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-       nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-       gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+       npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
+       nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩,
+       gsmul := @gsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 
@@ -402,8 +402,8 @@ by rw mul_comm; apply mul_equiv_zero _ hf
 
 end comm_ring
 
-section integral_domain
-variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value abv]
+section is_domain
+variables {β : Type*} [ring β] [is_domain β] (abv : β → α) [is_absolute_value abv]
 
 lemma one_not_equiv_zero : ¬ (const abv 1) ≈ (const abv 0) :=
 assume h,
@@ -417,7 +417,7 @@ have abv 1 = 0, from le_antisymm h1 h2,
 have (1 : β) = 0, from (is_absolute_value.abv_eq_zero abv).1 this,
 absurd this one_ne_zero
 
-end integral_domain
+end is_domain
 
 section field
 variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]

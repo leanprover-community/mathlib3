@@ -278,9 +278,9 @@ end
 
 end comm_ring
 
-section integral_domain
+section is_domain
 
-variables (R : Type u) [integral_domain R]
+variables (R : Type u) [comm_ring R] [is_domain R]
 
 theorem is_local_ring_hom_expand {p : ℕ} (hp : 0 < p) :
   is_local_ring_hom (↑(expand R p) : polynomial R →+* polynomial R) :=
@@ -291,7 +291,7 @@ begin
   rw [hf2, is_unit_C] at hf1, rw expand_eq_C hp at hf2, rwa [hf2, is_unit_C]
 end
 
-end integral_domain
+end is_domain
 
 section field
 

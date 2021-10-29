@@ -467,6 +467,12 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 def is_regular (c : cardinal) : Prop :=
 ω ≤ c ∧ c.ord.cof = c
 
+lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
+omega_pos.trans_le H.left
+
+lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
+by { rw cardinal.lt_ord, exact H.pos }
+
 theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 

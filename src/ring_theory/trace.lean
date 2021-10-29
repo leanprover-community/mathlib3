@@ -359,7 +359,7 @@ begin
     vandermonde (λ i, e.symm i pb.gen),
   calc algebra_map K (algebraic_closure _) (bilin_form.to_matrix pb.basis (trace_form K L)).det
       = det ((algebra_map K _).map_matrix $
-              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det
+              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det _ _
   ... = det (Mᵀ ⬝ M) : _
   ... = det M * det M : by rw [det_mul, det_transpose]
   ... ≠ 0 : mt mul_self_eq_zero.mp _,

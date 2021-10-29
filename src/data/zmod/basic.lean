@@ -651,15 +651,15 @@ begin
     ((lt_mul_iff_one_lt_left npos.1).2 dec_trivial),
   have hn2' : (n : ℕ) - n / 2 = n / 2 + 1,
   { conv {to_lhs, congr, rw [← nat.succ_sub_one n, nat.succ_sub npos.1]},
-    rw [← nat.two_mul_odd_div_two hn.1, two_mul, ← nat.succ_add, nat.add_sub_cancel], },
+    rw [← nat.two_mul_odd_div_two hn.1, two_mul, ← nat.succ_add, add_tsub_cancel_right], },
   have hxn : (n : ℕ) - x.val < n,
-  { rw [sub_lt_iff_sub_lt x.val_le le_rfl, nat.sub_self],
+  { rw [tsub_lt_iff_tsub_lt x.val_le le_rfl, tsub_self],
     rw ← zmod.nat_cast_zmod_val x at hx0,
     exact nat.pos_of_ne_zero (λ h, by simpa [h] using hx0) },
   by conv {to_rhs, rw [← nat.succ_le_iff, nat.succ_eq_add_one, ← hn2', ← zero_add (- x),
     ← zmod.nat_cast_self, ← sub_eq_add_neg, ← zmod.nat_cast_zmod_val x,
     ← nat.cast_sub x.val_le,
-    zmod.val_nat_cast, nat.mod_eq_of_lt hxn, sub_le_sub_iff_left' x.val_le] }
+    zmod.val_nat_cast, nat.mod_eq_of_lt hxn, tsub_le_tsub_iff_left x.val_le] }
 end
 
 lemma ne_neg_self (n : ℕ) [hn : fact ((n : ℕ) % 2 = 1)] {a : zmod n} (ha : a ≠ 0) : a ≠ -a :=
@@ -690,12 +690,12 @@ by rw [val_nat_cast, nat.mod_eq_of_lt h]
 lemma neg_val' {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = (n - a.val) % n :=
 calc (-a).val = val (-a)    % n : by rw nat.mod_eq_of_lt ((-a).val_lt)
           ... = (n - val a) % n : nat.modeq.add_right_cancel' _ (by rw [nat.modeq, ←val_add,
-                  add_left_neg, nat.sub_add_cancel a.val_le, nat.mod_self, val_zero])
+                  add_left_neg, tsub_add_cancel_of_le a.val_le, nat.mod_self, val_zero])
 
 lemma neg_val {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = if a = 0 then 0 else n - a.val :=
 begin
   rw neg_val',
-  by_cases h : a = 0, { rw [if_pos h, h, val_zero, nat.sub_zero, nat.mod_self] },
+  by_cases h : a = 0, { rw [if_pos h, h, val_zero, tsub_zero, nat.mod_self] },
   rw if_neg h,
   apply nat.mod_eq_of_lt,
   apply nat.sub_lt (fact.out (0 < n)),
@@ -791,7 +791,7 @@ begin
   suffices : (((n+1 : ℕ) % 2) + 2 * ((n + 1) / 2)) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
   by rwa [nat.mod_add_div] at this,
   suffices : (n + 1) % 2 + (n + 1) / 2 ≤ val a ↔ (n + 1) / 2 < val a,
-  by rw [sub_le_iff_sub_le, two_mul, ← add_assoc, nat.add_sub_cancel, this],
+  by rw [tsub_le_iff_tsub_le, two_mul, ← add_assoc, add_tsub_cancel_right, this],
   cases (n + 1 : ℕ).mod_two_eq_zero_or_one with hn0 hn1,
   { split,
     { assume h,
@@ -834,6 +834,14 @@ instance : field (zmod p) :=
   .. zmod.comm_ring p,
   .. zmod.has_inv p,
   .. zmod.nontrivial p }
+
+/-- `zmod p` is an integral domain when `p` is prime. -/
+instance (p : ℕ) [hp : fact p.prime] : is_domain (zmod p) :=
+begin
+  -- We need `cases p` here in order to resolve which `comm_ring` instance is being used.
+  unfreezingI { cases p, { exfalso, rcases hp with ⟨⟨⟨⟩⟩⟩, }, },
+  exact @field.is_domain (zmod _) (zmod.field _)
+end
 
 end zmod
 

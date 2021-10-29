@@ -65,8 +65,8 @@ sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
 
 lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
   tendsto (λn:ℕ, m ^ n) at_top at_top :=
-nat.sub_add_cancel (le_of_lt h) ▸
-  tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
+tsub_add_cancel_of_le (le_of_lt h) ▸
+  tendsto_add_one_pow_at_top_at_top_of_pos (tsub_pos_of_lt h)
 
 lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
@@ -400,8 +400,8 @@ begin
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
     norm_cast at *,
     convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
-    rw [ennreal.coe_inv $ ne_of_gt $ sub_pos_iff_lt.2 hr] },
-  { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
+    rw [ennreal.coe_inv $ ne_of_gt $ tsub_pos_iff_lt.2 hr] },
+  { rw [tsub_eq_zero_iff_le.mpr hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
     calc (n:ℝ≥0∞) = ∑ i in range n, 1     : by rw [sum_const, nsmul_one, card_range]
@@ -515,7 +515,7 @@ begin
   refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
   rw [ennreal.tsum_mul_left, ennreal.tsum_geometric],
   refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
-  exact (ennreal.sub_pos.2 hr).ne'
+  exact (tsub_pos_iff_lt.2 hr).ne'
 end
 
 omit hr hC
@@ -992,6 +992,31 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end
 
+/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_field_summable`
+for a version that also works in `ℂ`, and `exp_series_summable'` for a version that works in
+any normed algebra over `ℝ` or `ℂ`. -/
+lemma real.summable_pow_div_factorial (x : ℝ) :
+  summable (λ n, x ^ n / n! : ℕ → ℝ) :=
+begin
+  -- We start with trivial extimates
+  have A : (0 : ℝ) < ⌊∥x∥⌋₊ + 1, from zero_lt_one.trans_le (by simp),
+  have B : ∥x∥ / (⌊∥x∥⌋₊ + 1) < 1, from (div_lt_one A).2 (nat.lt_floor_add_one _),
+  -- Then we apply the ratio test. The estimate works for `n ≥ ⌊∥x∥⌋₊`.
+  suffices : ∀ n ≥ ⌊∥x∥⌋₊, ∥x ^ (n + 1) / (n + 1)!∥ ≤ ∥x∥ / (⌊∥x∥⌋₊ + 1) * ∥x ^ n / ↑n!∥,
+    from summable_of_ratio_norm_eventually_le B (eventually_at_top.2 ⟨⌊∥x∥⌋₊, this⟩),
+  -- Finally, we prove the upper estimate
+  intros n hn,
+  calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
+    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div,
+      normed_field.norm_mul, normed_field.norm_div, real.norm_coe_nat, nat.cast_succ]
+  ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
+    by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg
+end
+
+lemma real.tendsto_pow_div_factorial_at_top (x : ℝ) :
+  tendsto (λ n, x ^ n / n! : ℕ → ℝ) at_top (𝓝 0) :=
+(real.summable_pow_div_factorial x).tendsto_at_top_zero
+
 /-!
 ### Ceil and floor
 -/
@@ -1011,11 +1036,11 @@ begin
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     simp only [le_div_iff (zero_lt_one.trans_le hx), sub_mul,
       inv_mul_cancel (zero_lt_one.trans_le hx).ne'],
-    have := lt_nat_floor_add_one (a * x),
+    have := nat.lt_floor_add_one (a * x),
     linarith },
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     rw div_le_iff (zero_lt_one.trans_le hx),
-    simp [nat_floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
+    simp [nat.floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
 end
 
 lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
@@ -1027,10 +1052,10 @@ begin
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds A,
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     rw le_div_iff (zero_lt_one.trans_le hx),
-    exact le_nat_ceil _ },
+    exact nat.le_ceil _ },
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     simp [div_le_iff (zero_lt_one.trans_le hx), inv_mul_cancel (zero_lt_one.trans_le hx).ne',
-      (nat_ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
+      (nat.ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
 end
 
 end

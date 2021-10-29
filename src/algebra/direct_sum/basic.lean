@@ -31,8 +31,11 @@ variables (ι : Type v) [dec_ι : decidable_eq ι] (β : ι → Type w)
 /-- `direct_sum β` is the direct sum of a family of additive commutative monoids `β i`.
 
 Note: `open_locale direct_sum` will enable the notation `⨁ i, β i` for `direct_sum β`. -/
-@[derive [has_coe_to_fun, add_comm_monoid, inhabited]]
+@[derive [add_comm_monoid, inhabited]]
 def direct_sum [Π i, add_comm_monoid (β i)] : Type* := Π₀ i, β i
+
+instance [Π i, add_comm_monoid (β i)] : has_coe_to_fun (direct_sum ι β) (λ _, Π i : ι, β i) :=
+dfinsupp.has_coe_to_fun
 
 localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
@@ -80,20 +83,18 @@ dfinsupp.single_eq_same
 lemma of_eq_of_ne (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
 dfinsupp.single_eq_of_ne h
 
-section classical
+@[simp] lemma support_zero [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] :
+(0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
 
-open_locale classical
+@[simp] lemma support_of [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)]
+  (i : ι) (x : β i) (h : x ≠ 0) :
+(of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
 
-@[simp] lemma support_zero : (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
+lemma support_of_subset [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] {i : ι} {b : β i} :
+(of _ i b).support ⊆ {i} := dfinsupp.support_single_subset
 
-@[simp] lemma support_of (i : ι) (x : β i) (h : x ≠ 0) :
-  (of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
-
-lemma eq_sum_of (x : ⨁ i, β i) :
-  x = ∑ i in x.support, of β i (x i) :=
-dfinsupp.sum_single.symm
-
-end classical
+lemma sum_support_of [Π (i : ι) (x : (λ (i : ι), β i) i), decidable (x ≠ 0)] (x : ⨁ i, β i) :
+∑ i in x.support, of β i (x i) = x := dfinsupp.sum_single
 
 variables {β}
 

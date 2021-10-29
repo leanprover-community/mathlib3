@@ -8,6 +8,7 @@ import linear_algebra.tensor_product
 import linear_algebra.prod
 import linear_algebra.pi
 import data.set.intervals.unordered_interval
+import tactic.abel
 
 /-!
 # Affine maps
@@ -60,7 +61,7 @@ instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
     [ring k]
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
     [add_comm_group V2] [module k V2] [affine_space V2 P2]:
-    has_coe_to_fun (P1 →ᵃ[k] P2) := ⟨_, affine_map.to_fun⟩
+    has_coe_to_fun (P1 →ᵃ[k] P2) (λ _, P1 → P2) := ⟨affine_map.to_fun⟩
 
 namespace linear_map
 
@@ -306,6 +307,19 @@ begin
   have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
   { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
   rw [h, equiv.comp_surjective, equiv.surjective_comp],
+end
+
+lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
+  (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
+begin
+  ext v,
+  simp only [set.mem_vsub, set.mem_image, exists_exists_and_eq_and, exists_and_distrib_left,
+    ← f.linear_map_vsub],
+  split,
+  { rintros ⟨x, hx, y, hy, hv⟩,
+    exact ⟨x -ᵥ y, ⟨x, hx, y, hy, rfl⟩, hv⟩, },
+  { rintros ⟨-, ⟨x, hx, y, hy, rfl⟩, rfl⟩,
+    exact ⟨x, hx, y, hy, rfl⟩, },
 end
 
 omit V2

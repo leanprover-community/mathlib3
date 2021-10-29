@@ -246,18 +246,18 @@ section walks
 variables (G) [decidable_eq α]
 
 /-- The `finset` of length-`n` walks from `u` to `v`. -/
-def walk_len : Π (n : ℕ) (u v : α), finset (G.walk u v)
+def walk_len : Π (n : ℕ) (u v : V), finset (G.walk u v)
 | 0 u v := if h : u = v
            then by { subst u, exact {walk.nil}, }
            else ∅
-| (n+1) u v := finset.univ.bUnion (λ (w : α),
+| (n+1) u v := finset.univ.bUnion (λ (w : V),
                  if h : G.adj u w
                  then (walk_len n w v).map ⟨λ p, walk.cons h p, begin
                      intros p q, simp,
                    end⟩
                  else ∅)
 
-lemma walk_len_eq (n : ℕ) (u v : α) :
+lemma walk_len_eq (n : ℕ) (u v : V) :
   ↑(G.walk_len n u v) = {p : G.walk u v | p.length = n} :=
 begin
   induction n generalizing u v,
@@ -292,7 +292,7 @@ begin
         injection hp, }, }, },
 end
 
-instance walk_of_len_fintype {u v : α} (n : ℕ) : fintype {p : G.walk u v // p.length = n} :=
+instance walk_of_len_fintype {u v : V} (n : ℕ) : fintype {p : G.walk u v // p.length = n} :=
 begin
   apply fintype.subtype (G.walk_len n u v),
   intro p,
@@ -301,7 +301,7 @@ begin
   simp,
 end
 
-lemma fintype_card_walk_eq (u v : α) (n : ℕ) :
+lemma fintype_card_walk_eq (u v : V) (n : ℕ) :
   (G.walk_len n u v).card = fintype.card {p : G.walk u v // p.length = n} :=
 begin
   rw fintype.card_of_subtype (G.walk_len n u v),
@@ -311,7 +311,7 @@ begin
   simp,
 end
 
-theorem adj_matrix_pow_apply_eq_card_walk (n : ℕ) (u v : α) :
+theorem adj_matrix_pow_apply_eq_card_walk (n : ℕ) (u v : V) :
   (G.adj_matrix R ^ n) u v = fintype.card {p : G.walk u v // p.length = n} :=
 begin
   rw ←fintype_card_walk_eq,

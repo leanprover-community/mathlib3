@@ -60,23 +60,19 @@ begin
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end
 
---TODO: Rename and put in `data/nat/modeq.lean`
-lemma key_lemma {a b m : ℕ} (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
-(le_total a b).elim id (λ h3, nat.le_of_sub_eq_zero
-  (eq_zero_of_dvd_of_lt ((modeq_iff_dvd' h3).mp h1.symm) ((sub_lt_iff_left h3).mpr h2)))
-
 lemma chicken_mcnugget_construction (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   ∀ k, m * n - m - n < k → ∃ (a b : ℕ), a * m + b * n = k :=
 begin
   intros k hk,
   let x := chinese_remainder cop 0 k,
   have key : x.1 < m * n := chinese_remainder_lt_mul cop 0 k (pos_of_gt hm).ne' (pos_of_gt hn).ne',
-  replace key : x.1 < m * n - m + m := lt_of_lt_of_le key le_sub_add,
+  replace key : x.1 < m * n - m + m := lt_of_lt_of_le key le_tsub_add,
   replace key : x.1 ≤ m * n - m :=
-  key_lemma
+  modeq.le_of_lt_add
     (x.2.1.trans (modeq_zero_iff_dvd.mpr (nat.dvd_sub' (dvd_mul_right m n) dvd_rfl)).symm) key,
-  replace key : x.1 ≤ k := key_lemma x.2.2 (calc x.1 ≤ m * n - m : key
-  ... = m * n - m - n + n : (nat.sub_add_cancel (le_sub_of_add_le_left' (add_le_mul hm hn))).symm
+  replace key : x.1 ≤ k := modeq.le_of_lt_add x.2.2 (calc x.1 ≤ m * n - m : key
+  ... = m * n - m - n + n : (nat.sub_add_cancel (le_tsub_of_add_le_left (add_le_mul
+    (nat.succ_le_iff.2 hm) (nat.succ_le_iff.2 hn)))).symm
   ... < k + n : add_lt_add_right hk n),
   obtain ⟨a, ha⟩ := modeq_zero_iff_dvd.mp x.2.1,
   obtain ⟨b, hb⟩ := (modeq_iff_dvd' key).mp x.2.2,

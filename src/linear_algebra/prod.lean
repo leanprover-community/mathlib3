@@ -125,8 +125,11 @@ eq.symm $ range_inr R M M₂
 
 end
 
-@[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
-@[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
+@[simp] theorem coe_inl : (inl R M M₂ : M → M × M₂) = λ x, (x, 0) := rfl
+theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
+
+@[simp] theorem coe_inr : (inr R M M₂ : M₂ → M × M₂) = prod.mk 0 := rfl
+theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
 
 theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
 

@@ -67,7 +67,7 @@ protected def linear_isometry : V →ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 omit V V₂
 
 @[simp] lemma coe_to_affine_map : ⇑f.to_affine_map = f := rfl
@@ -193,7 +193,7 @@ instance : monoid (P →ᵃⁱ[𝕜] P) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : P →ᵃⁱ[𝕜] P) : ⇑(f * g) = f ∘ g := rfl
 
 end affine_isometry
@@ -228,7 +228,7 @@ protected def linear_isometry_equiv : V ≃ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ∥e.linear x∥ = ∥x∥) :
   ⇑(mk e he) = e :=
@@ -539,6 +539,7 @@ end constructions
 end affine_isometry_equiv
 
 include V V₂
+
 /-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/
 lemma affine_map.continuous_linear_iff {f : P →ᵃ[𝕜] P₂} :
   continuous f.linear ↔ continuous f :=
@@ -550,4 +551,17 @@ begin
   { ext v, simp },
   rw this,
   simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
+end
+
+/-- If `f` is an affine map, then its linear part is an open map iff `f` is an open map. -/
+lemma affine_map.is_open_map_linear_iff {f : P →ᵃ[𝕜] P₂} :
+  is_open_map f.linear ↔ is_open_map f :=
+begin
+  inhabit P,
+  have : (f.linear : V → V₂) =
+    (affine_isometry_equiv.vadd_const 𝕜 $ f $ default P).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 $ default P).to_homeomorph,
+  { ext v, simp },
+  rw this,
+  simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
 end

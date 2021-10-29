@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.list.sublists
 import data.list.lex
+import data.set.pairwise
 
 /-!
 # Pairwise relations on a list
@@ -43,6 +44,11 @@ theorem pairwise_of_pairwise_cons {a : α} {l : list α}
 theorem pairwise.tail : ∀ {l : list α} (p : pairwise R l), pairwise R l.tail
 | [] h := h
 | (a :: l) h := pairwise_of_pairwise_cons h
+
+theorem pairwise.drop : ∀ {l : list α} {n : ℕ}, list.pairwise R l → list.pairwise R (l.drop n)
+| _ 0 h := h
+| [] (n + 1) h := list.pairwise.nil
+| (a :: l) (n + 1) h := pairwise.drop (pairwise_cons.mp h).right
 
 theorem pairwise.imp_of_mem {S : α → α → Prop} {l : list α}
   (H : ∀ {a b}, a ∈ l → b ∈ l → R a b → S a b) (p : pairwise R l) : pairwise S l :=

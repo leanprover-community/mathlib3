@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.bounds
 import data.set.bool
+import data.nat.basic
 
 /-!
 # Theory of complete lattices
@@ -350,7 +351,6 @@ See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally
 lattices. -/
 theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (_ : ∀a∈s, a ≤ b)
   (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
-have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
 have ¬(Sup s < b) :=
   assume: Sup s < b,
@@ -1053,6 +1053,14 @@ theorem infi_option (f : option β → α) :
   (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
 @supr_option (order_dual α) _ _ _
 
+/-- A version of `supr_option` useful for rewriting right-to-left. -/
+lemma supr_option_elim (a : α) (f : β → α) : (⨆ o : option β, o.elim a f) = a ⊔ ⨆ b, f b :=
+by simp [supr_option]
+
+/-- A version of `infi_option` useful for rewriting right-to-left. -/
+lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
+@supr_option_elim (order_dual α) _ _ _ _
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/
@@ -1061,7 +1069,7 @@ lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = 
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
-  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw nat.sub_add_cancel hi }⟩ },
+  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw tsub_add_cancel_of_le hi }⟩ },
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 

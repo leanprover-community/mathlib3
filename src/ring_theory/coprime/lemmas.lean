@@ -70,7 +70,7 @@ end
 
 theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
-finset.prod_dvd_of_coprime (Hs.pairwise _) (λ i _, Hs1 i)
+finset.prod_dvd_of_coprime (Hs.set_pairwise _) (λ i _, Hs1 i)
 
 variables {m n : ℕ}
 

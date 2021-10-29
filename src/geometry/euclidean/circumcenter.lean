@@ -362,7 +362,7 @@ end
 lemma circumcenter_eq_centroid (s : simplex ℝ P 1) :
   s.circumcenter = finset.univ.centroid ℝ s.points :=
 begin
-  have hr : set.univ.pairwise
+  have hr : set.pairwise set.univ
     (λ i j : fin 2, dist (s.points i) (finset.univ.centroid ℝ s.points) =
                     dist (s.points j) (finset.univ.centroid ℝ s.points)),
   { intros i hi j hj hij,

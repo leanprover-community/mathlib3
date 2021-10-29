@@ -484,11 +484,7 @@ lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
 
 @[to_additive]
-lemma mul_left_bijective (a : G) : function.bijective ((*) a) :=
-begin
-  rw ← coe_mul_left,
-  exact (equiv.mul_left a).bijective,
-end
+lemma mul_left_bijective (a : G) : function.bijective ((*) a) := (equiv.mul_left a).bijective
 
 /-- Right multiplication in a `group` is a permutation of the underlying type. -/
 @[to_additive "Right addition in an `add_group` is a permutation of the underlying type."]
@@ -506,11 +502,7 @@ ext $ λ x, rfl
 lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
 
 @[to_additive]
-lemma mul_right_bijective (a : G) : function.bijective (* a) :=
-begin
-  rw ← coe_mul_right,
-  exact (equiv.mul_right a).bijective,
-end
+lemma mul_right_bijective (a : G) : function.bijective (* a) := (equiv.mul_right a).bijective
 
 variable (G)
 

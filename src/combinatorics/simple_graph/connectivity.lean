@@ -1361,6 +1361,85 @@ begin
       exact (hp_support_nodup.1 h).elim, }, },
 end
 
+lemma next_edge_mem_edges (G : simple_graph V) (v w : V) (h : v ≠ w) (p : G.walk v w) :
+  (G.next_edge v w h p : sym2 V) ∈ p.edges :=
+begin
+  cases p with p hp,
+  { exact (h rfl).elim },
+  { simp only [next_edge, list.mem_cons_iff, walk.cons_edges, subtype.coe_mk],
+    left,
+    refl,},
+end
+
+lemma is_tree.card_edges_eq_card_vertices_sub_one'
+  [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :
+  card G.edge_set = card V - 1 :=
+begin
+  have root := classical.arbitrary V,
+  rw ←set.card_ne_eq root,
+  let f : {v | v ≠ root} → G.edge_set := λ v,
+    ⟨G.next_edge v root v.property (G.tree_path h v root),
+     G.incidence_set_subset _ (subtype.mem _)⟩,
+  -- have fprop : ∀ (v : V) (hv : v ≠ root), ↑(f ⟨v, hv⟩) ∈ G.incidence_set v,
+  -- { intros v hv,
+  --   dsimp only [f, subtype.coe_mk],
+  --   apply subtype.mem, },
+  have finj : function.injective f,
+  { rintros ⟨u₁, h₁⟩ ⟨u₂, h₂⟩,
+    by_cases hne : u₁ = u₂,
+    { subst u₂,
+      simp, },
+    simp only [subtype.mk_eq_mk, subtype.coe_mk],
+    generalize he₁ : G.next_edge _ _ _ _ = e₁,
+    generalize he₂ : G.next_edge _ _ _ _ = e₂,
+    cases e₁ with e₁ heu₁,
+    cases e₂ with e₂ heu₂,
+    simp only [subtype.coe_mk],
+    rintro rfl,
+    cases heu₁ with heu₁_edge heu₁_adj,
+    cases heu₂ with heu₂_edge heu₂_adj,
+    simp only [subtype.coe_mk] at heu₁_adj heu₂_adj,
+    have e_is : e₁ = ⟦(u₁, u₂)⟧,
+    { induction e₁ using quotient.ind,
+      cases e₁ with v₁ w₁,
+      simp only [sym2.mem_iff] at heu₁_adj heu₂_adj,
+      obtain (rfl|rfl) := heu₁_adj;
+      obtain (rfl|rfl) := heu₂_adj;
+      try { exact (hne rfl).elim };
+      simp [sym2.eq_swap], },
+    subst e₁,
+    apply is_rootward_antisymm h root,
+    { split,
+      exact heu₂_edge,
+      convert G.next_edge_mem_edges _ _ h₁ _,
+      simp, erw he₁, refl, },
+    { split,
+      exact G.symm heu₂_edge,
+      convert G.next_edge_mem_edges _ _ h₂ _,
+      simp, erw he₂, simp [sym2.eq_swap], }, },
+  have fsurj : function.surjective f,
+  { intro e,
+    cases e with e he,
+    induction e using quotient.ind,
+    cases e with u₁ u₂,
+    cases is_rootward_or_reverse h root he with hr hr,
+    { use u₁,
+      rintro rfl,
+      dsimp only [is_rootward] at hr,
+      exact nonempty_path_not_loop _ hr.2,
+      cases hr,
+      simp only [f],
+      erw eq_next_edge_if_mem_path _ ⟨he, _⟩ _ hr_right; simp [he]},
+    { use u₂,
+      rintro rfl,
+      dsimp only [is_rootward] at hr,
+      exact nonempty_path_not_loop _ hr.2,
+      cases hr,
+      simp only [f],
+      erw eq_next_edge_if_mem_path _ ⟨_ , _⟩ _ hr_right; simp [he, sym2.eq_swap], }, },
+  exact (card_of_bijective ⟨finj, fsurj⟩).symm,
+end
+
 lemma is_tree.card_edges_eq_card_vertices_sub_one
   [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :
   card G.edge_set = card V - 1 :=
@@ -1385,9 +1464,14 @@ begin
     let u₁_root_u₂ := (G.tree_path h u₁ root : G.walk u₁ root).append
                       (G.tree_path h u₂ root : G.walk u₂ root).reverse,
     let u₂_u₁ := (path.singleton e_prop_swap),
+    let u₁_u₂ := (path.singleton e_prop),
     simp at u₂_u₁,
     let circuit := u₁_root_u₂.append (u₂_u₁ : G.walk u₂ u₁),
     have has_cycle : ¬G.is_acyclic,
+    intro g,
+    rw is_acyclic_iff at g,
+    specialize g u₁ u₂ (u₁_root_u₂.to_path) (u₁_u₂),
+
     sorry, -- prove that `G` has a cycle because it has a circuit `circuit`
     have not_is_tree : ¬G.is_tree,
     simp [is_tree, has_cycle],

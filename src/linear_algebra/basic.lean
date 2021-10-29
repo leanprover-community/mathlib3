@@ -1405,8 +1405,7 @@ end
 The decreasing sequence of submodules consisting of the ranges of the iterates of a linear map.
 -/
 @[simps]
-def iterate_range {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
-  ℕ →ₘ order_dual (submodule R M) :=
+def iterate_range (f : M →ₗ[R] M) : ℕ →ₘ order_dual (submodule R M) :=
 ⟨λ n, (f ^ n).range, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_range at h,
@@ -1547,8 +1546,7 @@ end
 The increasing sequence of submodules consisting of the kernels of the iterates of a linear map.
 -/
 @[simps]
-def iterate_ker {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
-  ℕ →ₘ submodule R M :=
+def iterate_ker (f : M →ₗ[R] M) : ℕ →ₘ submodule R M :=
 ⟨λ n, (f ^ n).ker, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_ker at h,
@@ -1742,9 +1740,8 @@ end add_comm_monoid
 
 section ring
 
-variables [ring R] [ring R₂] [add_comm_group M] [add_comm_group M₂] [module R M] [module R₂ M₂]
-variables (p p' : submodule R M) (q : submodule R₂ M₂)
-variables {τ₁₂ : R →+* R₂}
+variables [ring R] [add_comm_group M] [module R M]
+variables (p : submodule R M)
 
 open linear_map
 
@@ -2387,9 +2384,9 @@ end submodule
 
 namespace submodule
 
-variables [comm_ring R] [comm_ring R₂]
-variables [add_comm_group M] [add_comm_group M₂] [module R M] [module R₂ M₂]
-variables [add_comm_group N] [add_comm_group N₂] [module R N] [module R N₂]
+variables [comm_semiring R] [comm_semiring R₂]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R₂ M₂]
+variables [add_comm_monoid N] [add_comm_monoid N₂] [module R N] [module R N₂]
 variables {τ₁₂ : R →+* R₂} {τ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair τ₁₂ τ₂₁] [ring_hom_inv_pair τ₂₁ τ₁₂]
 variables (p : submodule R M) (q : submodule R₂ M₂)

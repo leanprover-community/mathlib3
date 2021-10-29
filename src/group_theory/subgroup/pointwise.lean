@@ -114,6 +114,11 @@ subset_set_smul_iff₀ ha
 end group_with_zero
 
 section conjugate_subgroup
+/-
+* `conj_subgroup`: defines the conjugate subgroup of a subgroup `H` by an element `g : G`,
+ i.e. `g H g⁻¹`.
+-/
+
 open_locale pointwise
 
 /--The conjugate of a subgroup `H` of `G` by `g`  -/
@@ -137,8 +142,7 @@ begin
   apply monoid_hom.img_mul_equiv,
 end
 
-@[simp]
-lemma cong_subgroup_id_eq_self (H : subgroup G) : conj_subgroup 1 H = H :=
+@[simp] lemma cong_subgroup_one (H : subgroup G) : conj_subgroup 1 H = H :=
 begin
   rw conj_subgroup,
   simp only [one_smul, monoid_hom.map_one],

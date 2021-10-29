@@ -17,12 +17,10 @@ of `G`.
 ## Main definitions
 
 * `commensurable`: defines commensurability for two subgroups `H`, `K` of  `G`
-* `commensurator`: defines the commensurator of a a subgroup `H` of `G`
-* `conj_subgroup`: defined the conjugate subgroup of a subgroup `H` by an element `g : G`,
- i.e. `g H g⁻¹` --maybe this should be moved somewhere else?
+* `commensurator`: defines the commensurator of a a subgroup `H` of `G`.
 -/
 
-variables {G G' : Type*} [group G] [group G']
+variables {G : Type*} [group G]
 
 /--Two subgroups `H K` of `G` are commensurable if `H ⊓ K` has finite index in both `H` and `K` -/
 def commensurable (H K : subgroup G) : Prop :=
@@ -30,46 +28,19 @@ H.relindex K ≠ 0 ∧ K.relindex H ≠ 0
 
 namespace commensurable
 
-@[refl] protected lemma refl (H : subgroup G) : commensurable H H :=
-begin
-  rw commensurable,
-  simp [subgroup.relindex_self H],
-end
+@[refl] protected lemma refl (H : subgroup G) : commensurable H H := by simp [commensurable]
 
-lemma comm (H K : subgroup G) : commensurable H K ↔ commensurable K H :=
-begin
-  simp_rw commensurable,
-  rw and_comm,
-end
+lemma comm (H K : subgroup G) : commensurable H K ↔ commensurable K H := and.comm
 
-@[symm]
-lemma symm {H K : subgroup G}  : commensurable H K →  commensurable K H :=
-begin
-  simp_rw comm,
-  simp only [imp_self],
-end
+@[symm] lemma symm {H K : subgroup G} : commensurable H K → commensurable K H := and.symm
 
-@[trans]
-lemma trans {H K L : subgroup G} (hhk : commensurable H K ) (hkl : commensurable K L) :
+@[trans] lemma trans {H K L : subgroup G} (hhk : commensurable H K ) (hkl : commensurable K L) :
   commensurable H L :=
-begin
-  simp_rw commensurable at *,
-  simp_rw subgroup.relindex at *,
-  split,
-  apply subgroup.relindex_ne_zero_trans H K L hhk.1 hkl.1,
-  apply subgroup.relindex_ne_zero_trans L K H hkl.2 hhk.2,
-end
+⟨subgroup.relindex_ne_zero_trans H K L hhk.1 hkl.1,
+  subgroup.relindex_ne_zero_trans L K H hkl.2 hhk.2⟩
 
 lemma equivalence : equivalence (@commensurable G _) :=
-begin
-  rw equivalence,
-  split,
-  apply commensurable.refl,
-  split,
-  rw symmetric,
-  simp only [comm, imp_self, forall_const],
-  apply trans,
-end
+⟨commensurable.refl, λ _ _, commensurable.symm, λ _ _ _, commensurable.trans⟩
 
 /--Equivalence of `K/H ⊓ K` with `gKg⁻¹/gHg⁻¹ ⊓ gKg⁻¹`-/
 noncomputable def  quot_conj_equiv (H K : subgroup G) (g : G) :
@@ -88,21 +59,15 @@ begin
 end
 
 lemma commensurable_conj {H K : subgroup G} (g : G) :
-  commensurable H K  ↔ commensurable (subgroup.conj_subgroup g H) (subgroup.conj_subgroup g K) :=
-begin
-  simp_rw [commensurable, subgroup.relindex, subgroup.index],
-  have h1 := quot_conj_equiv H K g,
-  have h11 := cardinal.mk_congr h1,
-  have h2 := quot_conj_equiv K H g,
-  have h22 := cardinal.mk_congr h2,
-  simp_rw [nat.card, h11, h22],
-end
+   commensurable H K ↔ commensurable (H.conj_subgroup g) (K.conj_subgroup g) :=
+and_congr (not_iff_not.mpr (eq.congr_left (cardinal.to_nat_congr (quot_conj_equiv H K g))))
+  (not_iff_not.mpr (eq.congr_left (cardinal.to_nat_congr (quot_conj_equiv K H g))))
 
 lemma commensurable_inv (H : subgroup G) (g : G) :
   commensurable (subgroup.conj_subgroup g H) H ↔ commensurable H (subgroup.conj_subgroup g⁻¹ H)  :=
 begin
   rw [commensurable_conj g⁻¹ ,← subgroup.conj_subgroup_mul g⁻¹ g],
-  simp only [mul_left_inv, subgroup.cong_subgroup_id_eq_self],
+  simp only [mul_left_inv, subgroup.cong_subgroup_one],
 end
 
 /--For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
@@ -110,7 +75,7 @@ such that `commensurable (conj_subgroup g H) H`   -/
 
 def commensurator (H : subgroup G) : subgroup G :=
 { carrier := {g : G | commensurable (subgroup.conj_subgroup g H) H },
-  one_mem' := by {simp only [set.mem_set_of_eq, subgroup.cong_subgroup_id_eq_self], },
+  one_mem' := by {simp only [set.mem_set_of_eq, subgroup.cong_subgroup_one], },
   mul_mem' := by {intros a b ha hb,
       simp only [set.mem_set_of_eq] at *,
       rw subgroup.conj_subgroup_mul,
@@ -119,7 +84,7 @@ def commensurator (H : subgroup G) : subgroup G :=
       { have hab := trans ha ((comm _ _).1 hb),
         rw (commensurable_conj a⁻¹) at hab,
         rw ← subgroup.conj_subgroup_mul at hab,
-        simp only [mul_left_inv, subgroup.cong_subgroup_id_eq_self] at hab,
+        simp only [mul_left_inv, subgroup.cong_subgroup_one] at hab,
         have r1 := commensurable_inv (subgroup.conj_subgroup b H) a,
         have hab2 := trans hb hab,
         have r2 := r1.2 hab2,

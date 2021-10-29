@@ -51,7 +51,8 @@ begin
     all_goals { have := t_ih_rchild h, contradiction } }
 end
 
-lemma min_is_minimal {a : α} {t : rbnode α} : ∀ {lo hi}, is_searchable lt t lo hi → t.min = some a → ∀ {b}, mem lt b t → a ≈[lt] b ∨ lt a b :=
+lemma min_is_minimal {a : α} {t : rbnode α} :
+  ∀ {lo hi}, is_searchable lt t lo hi → t.min = some a → ∀ {b}, mem lt b t → a ≈[lt] b ∨ lt a b :=
 begin
   induction t,
   { simp [strict_weak_order.equiv], intros _ _ hs hmin b, contradiction },
@@ -76,7 +77,8 @@ begin
         right, assumption } } }
 end
 
-lemma max_is_maximal {a : α} {t : rbnode α} : ∀ {lo hi}, is_searchable lt t lo hi → t.max = some a → ∀ {b}, mem lt b t → a ≈[lt] b ∨ lt b a :=
+lemma max_is_maximal {a : α} {t : rbnode α} :
+  ∀ {lo hi}, is_searchable lt t lo hi → t.max = some a → ∀ {b}, mem lt b t → a ≈[lt] b ∨ lt b a :=
 begin
   induction t,
   { simp [strict_weak_order.equiv], intros _ _ hs hmax b, contradiction },

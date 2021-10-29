@@ -12,12 +12,14 @@ namespace rbmap
 variables {α : Type u} {β : Type v} {lt : α → α → Prop}
 
 /- Auxiliary instances -/
-private def rbmap_lt_is_swo {α : Type u} {β : Type v} {lt : α → α → Prop} [is_strict_weak_order α lt] : is_strict_weak_order (α × β) (rbmap_lt lt) :=
+private def rbmap_lt_is_swo {α : Type u} {β : Type v} {lt : α → α → Prop}
+  [is_strict_weak_order α lt] : is_strict_weak_order (α × β) (rbmap_lt lt) :=
 { irrefl       := λ _, irrefl_of lt _,
   trans        := λ _ _ _ h₁ h₂, trans_of lt h₁ h₂,
   incomp_trans := λ _ _ _ h₁ h₂, incomp_trans_of lt h₁ h₂ }
 
-private def rbmap_lt_dec {α : Type u} {β : Type v} {lt : α → α → Prop} [h : decidable_rel lt] : decidable_rel (@rbmap_lt α β lt) :=
+private def rbmap_lt_dec {α : Type u} {β : Type v} {lt : α → α → Prop} [h : decidable_rel lt] :
+  decidable_rel (@rbmap_lt α β lt) :=
 λ a b, h a.1 b.1
 
 local attribute [instance] rbmap_lt_is_swo rbmap_lt_dec
@@ -31,26 +33,32 @@ begin
   all_goals { existsi n_val.2, exact h }
 end
 
-private lemma eqv_entries_of_eqv_keys {k₁ k₂ : α} (v₁ v₂ : β) : k₁ ≈[lt] k₂ → (k₁, v₁) ≈[rbmap_lt lt] (k₂, v₂) :=
+private lemma eqv_entries_of_eqv_keys {k₁ k₂ : α} (v₁ v₂ : β) :
+  k₁ ≈[lt] k₂ → (k₁, v₁) ≈[rbmap_lt lt] (k₂, v₂) :=
 id
 
-private lemma eqv_keys_of_eqv_entries {k₁ k₂ : α} {v₁ v₂ : β} : (k₁, v₁) ≈[rbmap_lt lt] (k₂, v₂) → k₁ ≈[lt] k₂ :=
+private lemma eqv_keys_of_eqv_entries {k₁ k₂ : α} {v₁ v₂ : β} :
+  (k₁, v₁) ≈[rbmap_lt lt] (k₂, v₂) → k₁ ≈[lt] k₂ :=
 id
 
 private lemma eqv_entries [is_irrefl α lt] (k : α) (v₁ v₂ : β) : (k, v₁) ≈[rbmap_lt lt] (k, v₂) :=
 and.intro (irrefl_of lt k) (irrefl_of lt k)
 
-private lemma to_rbmap_mem [is_strict_weak_order α lt] {k : α} {v : β} {m : rbmap α β lt} : rbtree.mem (k, v) m → k ∈ m :=
+private lemma to_rbmap_mem [is_strict_weak_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
+  rbtree.mem (k, v) m → k ∈ m :=
 begin
   cases m with n p; cases n; intros h,
   { exact false.elim h },
   { simp [has_mem.mem, rbmap.mem],
-    exact @rbtree.mem_of_mem_of_eqv _ _ _ ⟨rbnode.red_node n_lchild n_val n_rchild, p⟩ _ _ h (eqv_entries _ _ _) },
+    exact @rbtree.mem_of_mem_of_eqv _ _ _ ⟨rbnode.red_node n_lchild n_val n_rchild, p⟩ _ _ h
+      (eqv_entries _ _ _) },
   { simp [has_mem.mem, rbmap.mem],
-    exact @rbtree.mem_of_mem_of_eqv _ _ _ ⟨rbnode.black_node n_lchild n_val n_rchild, p⟩ _ _ h (eqv_entries _ _ _) }
+    exact @rbtree.mem_of_mem_of_eqv _ _ _ ⟨rbnode.black_node n_lchild n_val n_rchild, p⟩ _ _ h
+      (eqv_entries _ _ _) }
 end
 
-private lemma to_rbtree_mem' [is_strict_weak_order α lt] {k : α} {m : rbmap α β lt} (v : β) : k ∈ m → rbtree.mem (k, v) m :=
+private lemma to_rbtree_mem' [is_strict_weak_order α lt] {k : α} {m : rbmap α β lt} (v : β) :
+  k ∈ m → rbtree.mem (k, v) m :=
 begin
   intro h,
   cases to_rbtree_mem h with v' hm,
@@ -192,63 +200,78 @@ begin
        { exact mem_of_find_entry_some he } }
 end
 
-lemma mem_of_mem_of_eqv [is_strict_weak_order α lt] {m : rbmap α β lt} {k₁ k₂ : α} : k₁ ∈ m → k₁ ≈[lt] k₂ → k₂ ∈ m :=
+lemma mem_of_mem_of_eqv [is_strict_weak_order α lt] {m : rbmap α β lt} {k₁ k₂ : α} :
+  k₁ ∈ m → k₁ ≈[lt] k₂ → k₂ ∈ m :=
 begin
   intros h₁ h₂,
   have h₁ := to_rbtree_mem h₁, cases h₁ with v h₁,
   exact to_rbmap_mem (rbtree.mem_of_mem_of_eqv h₁ (eqv_entries_of_eqv_keys v v h₂))
 end
 
-lemma mem_insert_of_incomp [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : (¬ lt k₁ k₂ ∧ ¬ lt k₂ k₁) → k₁ ∈ m.insert k₂ v :=
+lemma mem_insert_of_incomp [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
+  (¬ lt k₁ k₂ ∧ ¬ lt k₂ k₁) → k₁ ∈ m.insert k₂ v :=
 λ h, to_rbmap_mem (rbtree.mem_insert_of_incomp m (eqv_entries_of_eqv_keys v v h))
 
-lemma mem_insert [is_strict_weak_order α lt] (k : α) (m : rbmap α β lt) (v : β) : k ∈ m.insert k v :=
+lemma mem_insert [is_strict_weak_order α lt] (k : α) (m : rbmap α β lt) (v : β) :
+  k ∈ m.insert k v :=
 to_rbmap_mem (rbtree.mem_insert (k, v) m)
 
-lemma mem_insert_of_equiv [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : k₁ ≈[lt] k₂ → k₁ ∈ m.insert k₂ v :=
+lemma mem_insert_of_equiv [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
+  k₁ ≈[lt] k₂ → k₁ ∈ m.insert k₂ v :=
 mem_insert_of_incomp m v
 
-lemma mem_insert_of_mem [is_strict_weak_order α lt] {k₁ : α} {m : rbmap α β lt} (k₂ : α) (v : β) : k₁ ∈ m → k₁ ∈ m.insert k₂ v :=
+lemma mem_insert_of_mem [is_strict_weak_order α lt] {k₁ : α} {m : rbmap α β lt} (k₂ : α) (v : β) :
+  k₁ ∈ m → k₁ ∈ m.insert k₂ v :=
 λ h, to_rbmap_mem (rbtree.mem_insert_of_mem (k₂, v) (to_rbtree_mem' v h))
 
-lemma equiv_or_mem_of_mem_insert [is_strict_weak_order α lt] {k₁ k₂ : α} {v : β} {m : rbmap α β lt} : k₁ ∈ m.insert k₂ v → k₁ ≈[lt] k₂ ∨ k₁ ∈ m :=
+lemma equiv_or_mem_of_mem_insert [is_strict_weak_order α lt] {k₁ k₂ : α} {v : β}
+  {m : rbmap α β lt} : k₁ ∈ m.insert k₂ v → k₁ ≈[lt] k₂ ∨ k₁ ∈ m :=
 λ h, or.elim (rbtree.equiv_or_mem_of_mem_insert (to_rbtree_mem' v h))
   (λ h, or.inl (eqv_keys_of_eqv_entries h))
   (λ h, or.inr (to_rbmap_mem h))
 
-lemma incomp_or_mem_of_mem_ins [is_strict_weak_order α lt] {k₁ k₂ : α} {v : β} {m : rbmap α β lt} : k₁ ∈ m.insert k₂ v → (¬ lt k₁ k₂ ∧ ¬ lt k₂ k₁) ∨ k₁ ∈ m :=
+lemma incomp_or_mem_of_mem_ins [is_strict_weak_order α lt] {k₁ k₂ : α} {v : β} {m : rbmap α β lt} :
+  k₁ ∈ m.insert k₂ v → (¬ lt k₁ k₂ ∧ ¬ lt k₂ k₁) ∨ k₁ ∈ m :=
 equiv_or_mem_of_mem_insert
 
-lemma eq_or_mem_of_mem_ins [is_strict_total_order α lt] {k₁ k₂ : α} {v : β} {m : rbmap α β lt} : k₁ ∈ m.insert k₂ v → k₁ = k₂ ∨ k₁ ∈ m :=
+lemma eq_or_mem_of_mem_ins [is_strict_total_order α lt] {k₁ k₂ : α} {v : β} {m : rbmap α β lt} :
+  k₁ ∈ m.insert k₂ v → k₁ = k₂ ∨ k₁ ∈ m :=
 λ h, suffices k₁ ≈[lt] k₂ ∨ k₁ ∈ m, by simp [eqv_lt_iff_eq] at this; assumption,
   incomp_or_mem_of_mem_ins h
 
-lemma find_entry_insert_of_eqv [is_strict_weak_order α lt] (m : rbmap α β lt) {k₁ k₂ : α} (v : β) : k₁ ≈[lt] k₂ → (m.insert k₁ v).find_entry k₂ = some (k₁, v) :=
+lemma find_entry_insert_of_eqv [is_strict_weak_order α lt] (m : rbmap α β lt) {k₁ k₂ : α} (v : β) :
+  k₁ ≈[lt] k₂ → (m.insert k₁ v).find_entry k₂ = some (k₁, v) :=
 begin
   intro h,
   generalize h₁ : m.insert k₁ v = m',
   cases m' with t p, cases t,
   { have := mem_insert k₁ m v, rw [h₁] at this, apply absurd this, apply not_mem_mk_rbmap },
-  all_goals { simp [find_entry], rw [←h₁, insert], apply rbtree.find_insert_of_eqv, apply eqv_entries_of_eqv_keys _ _ h }
+  all_goals { simp [find_entry], rw [←h₁, insert], apply rbtree.find_insert_of_eqv,
+    apply eqv_entries_of_eqv_keys _ _ h }
 end
 
-lemma find_entry_insert [is_strict_weak_order α lt] (m : rbmap α β lt) (k : α) (v : β) : (m.insert k v).find_entry k = some (k, v) :=
+lemma find_entry_insert [is_strict_weak_order α lt] (m : rbmap α β lt) (k : α) (v : β) :
+  (m.insert k v).find_entry k = some (k, v) :=
 find_entry_insert_of_eqv m v (refl k)
 
-lemma find_insert_of_eqv [is_strict_weak_order α lt] (m : rbmap α β lt) {k₁ k₂ : α} (v : β) : k₁ ≈[lt] k₂ → (m.insert k₁ v).find k₂ = some v :=
+lemma find_insert_of_eqv [is_strict_weak_order α lt] (m : rbmap α β lt) {k₁ k₂ : α} (v : β) :
+  k₁ ≈[lt] k₂ → (m.insert k₁ v).find k₂ = some v :=
 begin
   intro h,
   have := find_entry_insert_of_eqv m v h,
   simp [find, this, to_value]
 end
 
-lemma find_insert [is_strict_weak_order α lt] (m : rbmap α β lt) (k : α) (v : β) : (m.insert k v).find k = some v :=
+lemma find_insert [is_strict_weak_order α lt] (m : rbmap α β lt) (k : α) (v : β) :
+  (m.insert k v).find k = some v :=
 find_insert_of_eqv m v (refl k)
 
-lemma find_entry_insert_of_disj [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : lt k₁ k₂ ∨ lt k₂ k₁ → (m.insert k₁ v).find_entry k₂ = m.find_entry k₂ :=
+lemma find_entry_insert_of_disj [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
+  lt k₁ k₂ ∨ lt k₂ k₁ → (m.insert k₁ v).find_entry k₂ = m.find_entry k₂ :=
 begin
   intro h,
-  have h' : ∀ {v₁ v₂ : β}, (rbmap_lt lt) (k₁, v₁) (k₂, v₂) ∨ (rbmap_lt lt) (k₂, v₂) (k₁, v₁) := λ _ _, h,
+  have h' : ∀ {v₁ v₂ : β}, (rbmap_lt lt) (k₁, v₁) (k₂, v₂) ∨ (rbmap_lt lt) (k₂, v₂) (k₁, v₁) :=
+    λ _ _, h,
   generalize h₁ : m = m₁,
   generalize h₂ : insert m₁ k₁ v = m₂,
   rw [←h₁] at h₂ ⊢, rw [←h₂],
@@ -266,7 +289,8 @@ begin
     apply rbtree.find_eq_find_of_eqv, apply eqv_entries }
 end
 
-lemma find_entry_insert_of_not_eqv [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : ¬ k₁ ≈[lt] k₂ → (m.insert k₁ v).find_entry k₂ = m.find_entry k₂ :=
+lemma find_entry_insert_of_not_eqv [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt)
+  (v : β) : ¬ k₁ ≈[lt] k₂ → (m.insert k₁ v).find_entry k₂ = m.find_entry k₂ :=
 begin
   intro hn,
   have he : lt k₁ k₂ ∨ lt k₂ k₁, {
@@ -275,52 +299,64 @@ begin
   apply find_entry_insert_of_disj _ _ he
 end
 
-lemma find_entry_insert_of_ne [is_strict_total_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : k₁ ≠ k₂ → (m.insert k₁ v).find_entry k₂ = m.find_entry k₂ :=
+lemma find_entry_insert_of_ne [is_strict_total_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
+  k₁ ≠ k₂ → (m.insert k₁ v).find_entry k₂ = m.find_entry k₂ :=
 begin
   intro h,
   have : ¬ k₁ ≈[lt] k₂ := λ h', h (eq_of_eqv_lt h'),
   apply find_entry_insert_of_not_eqv _ _ this
 end
 
-lemma find_insert_of_disj [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : lt k₁ k₂ ∨ lt k₂ k₁ → (m.insert k₁ v).find k₂ = m.find k₂ :=
+lemma find_insert_of_disj [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
+  lt k₁ k₂ ∨ lt k₂ k₁ → (m.insert k₁ v).find k₂ = m.find k₂ :=
 begin intro h, have := find_entry_insert_of_disj m v h, simp [find, this] end
 
-lemma find_insert_of_not_eqv [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : ¬ k₁ ≈[lt] k₂ → (m.insert k₁ v).find k₂ = m.find k₂ :=
+lemma find_insert_of_not_eqv [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
+  ¬ k₁ ≈[lt] k₂ → (m.insert k₁ v).find k₂ = m.find k₂ :=
 begin intro h, have := find_entry_insert_of_not_eqv m v h, simp [find, this] end
 
-lemma find_insert_of_ne [is_strict_total_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) : k₁ ≠ k₂ → (m.insert k₁ v).find k₂ = m.find k₂ :=
+lemma find_insert_of_ne [is_strict_total_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
+  k₁ ≠ k₂ → (m.insert k₁ v).find k₂ = m.find k₂ :=
 begin intro h, have := find_entry_insert_of_ne m v h, simp [find, this] end
 
-lemma mem_of_min_eq [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} : m.min = some (k, v) → k ∈ m :=
+lemma mem_of_min_eq [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
+  m.min = some (k, v) → k ∈ m :=
 λ h, to_rbmap_mem (rbtree.mem_of_min_eq h)
 
-lemma mem_of_max_eq [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} : m.max = some (k, v) → k ∈ m :=
+lemma mem_of_max_eq [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
+  m.max = some (k, v) → k ∈ m :=
 λ h, to_rbmap_mem (rbtree.mem_of_max_eq h)
 
-lemma eq_leaf_of_min_eq_none [is_strict_weak_order α lt] {m : rbmap α β lt} : m.min = none → m = mk_rbmap α β lt :=
+lemma eq_leaf_of_min_eq_none [is_strict_weak_order α lt] {m : rbmap α β lt} :
+  m.min = none → m = mk_rbmap α β lt :=
 rbtree.eq_leaf_of_min_eq_none
 
-lemma eq_leaf_of_max_eq_none [is_strict_weak_order α lt] {m : rbmap α β lt} : m.max = none → m = mk_rbmap α β lt :=
+lemma eq_leaf_of_max_eq_none [is_strict_weak_order α lt] {m : rbmap α β lt} :
+  m.max = none → m = mk_rbmap α β lt :=
 rbtree.eq_leaf_of_max_eq_none
 
-lemma min_is_minimal [is_strict_weak_order α lt] {k : α} {v : β} {m : rbmap α β lt} : m.min = some (k, v) → ∀ {k'}, k' ∈ m → k ≈[lt] k' ∨ lt k k' :=
+lemma min_is_minimal [is_strict_weak_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
+  m.min = some (k, v) → ∀ {k'}, k' ∈ m → k ≈[lt] k' ∨ lt k k' :=
 λ h k' hm, or.elim (rbtree.min_is_minimal h (to_rbtree_mem' v hm))
   (λ h, or.inl (eqv_keys_of_eqv_entries h))
   (λ h, or.inr h)
 
-lemma max_is_maximal [is_strict_weak_order α lt] {k : α} {v : β} {m : rbmap α β lt} : m.max = some (k, v) → ∀ {k'}, k' ∈ m → k ≈[lt] k' ∨ lt k' k :=
+lemma max_is_maximal [is_strict_weak_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
+  m.max = some (k, v) → ∀ {k'}, k' ∈ m → k ≈[lt] k' ∨ lt k' k :=
 λ h k' hm, or.elim (rbtree.max_is_maximal h (to_rbtree_mem' v hm))
   (λ h, or.inl (eqv_keys_of_eqv_entries h))
   (λ h, or.inr h)
 
-lemma min_is_minimal_of_total [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} : m.min = some (k, v) → ∀ {k'}, k' ∈ m → k = k' ∨ lt k k' :=
+lemma min_is_minimal_of_total [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
+  m.min = some (k, v) → ∀ {k'}, k' ∈ m → k = k' ∨ lt k k' :=
 λ h k' hm,
   match min_is_minimal h hm with
   | or.inl h := or.inl (eq_of_eqv_lt h)
   | or.inr h := or.inr h
   end
 
-lemma max_is_maximal_of_total [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} : m.max = some (k, v) → ∀ {k'}, k' ∈ m → k = k' ∨ lt k' k :=
+lemma max_is_maximal_of_total [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
+  m.max = some (k, v) → ∀ {k'}, k' ∈ m → k = k' ∨ lt k' k :=
 λ h k' hm,
   match max_is_maximal h hm with
   | or.inl h := or.inl (eq_of_eqv_lt h)

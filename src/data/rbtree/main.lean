@@ -9,7 +9,8 @@ universes u
 namespace rbnode
 variables {α : Type u} {lt : α → α → Prop}
 
-lemma is_searchable_of_well_formed {t : rbnode α} [is_strict_weak_order α lt] : t.well_formed lt → is_searchable lt t none none :=
+lemma is_searchable_of_well_formed {t : rbnode α} [is_strict_weak_order α lt] :
+  t.well_formed lt → is_searchable lt t none none :=
 begin
   intro h, induction h,
   { constructor, simp [lift] },
@@ -88,13 +89,15 @@ begin
   assumption
 end
 
-lemma find_insert [is_strict_weak_order α lt] (t : rbtree α lt) (x) : (t.insert x).find x = some x :=
+lemma find_insert [is_strict_weak_order α lt] (t : rbtree α lt) (x) :
+  (t.insert x).find x = some x :=
 find_insert_of_eqv t (refl x)
 
 lemma find_insert_of_disj [is_strict_weak_order α lt] {x y : α} (t : rbtree α lt) :
   lt x y ∨ lt y x → (t.insert x).find y = t.find y :=
 begin
-  cases t, intro h, apply rbnode.find_insert_of_disj lt h, apply rbnode.is_searchable_of_well_formed,
+  cases t, intro h, apply rbnode.find_insert_of_disj lt h,
+  apply rbnode.is_searchable_of_well_formed,
   assumption
 end
 

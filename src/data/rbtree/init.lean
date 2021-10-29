@@ -144,7 +144,8 @@ end membership
 
 inductive well_formed (lt : α → α → Prop) : rbnode α → Prop
 | leaf_wff : well_formed leaf
-| insert_wff {n n' : rbnode α} {x : α} [decidable_rel lt] : well_formed n → n' = insert lt n x → well_formed n'
+| insert_wff {n n' : rbnode α} {x : α} [decidable_rel lt] :
+  well_formed n → n' = insert lt n x → well_formed n'
 
 end rbnode
 
@@ -206,10 +207,12 @@ def find : rbtree α lt → α → option α
 def contains (t : rbtree α lt) (a : α) : bool :=
 (t.find a).is_some
 
-def from_list (l : list α) (lt : α → α → Prop . rbtree.default_lt) [decidable_rel lt] : rbtree α lt :=
+def from_list (l : list α) (lt : α → α → Prop . rbtree.default_lt) [decidable_rel lt] :
+  rbtree α lt :=
 l.foldl insert (mk_rbtree α lt)
 
 end rbtree
 
-def rbtree_of {α : Type u} (l : list α) (lt : α → α → Prop . rbtree.default_lt) [decidable_rel lt] : rbtree α lt :=
+def rbtree_of {α : Type u} (l : list α) (lt : α → α → Prop . rbtree.default_lt) [decidable_rel lt] :
+  rbtree α lt :=
 rbtree.from_list l lt

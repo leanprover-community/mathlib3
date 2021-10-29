@@ -84,10 +84,12 @@ to_value (m.find_entry k)
 def contains (m : rbmap α β lt) (k : α) : bool :=
 (find_entry m k).is_some
 
-def from_list (l : list (α × β)) (lt : α → α → Prop . rbtree.default_lt) [decidable_rel lt] : rbmap α β lt :=
+def from_list (l : list (α × β)) (lt : α → α → Prop . rbtree.default_lt) [decidable_rel lt] :
+  rbmap α β lt :=
 l.foldl (λ m p, insert m p.1 p.2)  (mk_rbmap α β lt)
 
 end rbmap
 
-def rbmap_of {α : Type u} {β : Type v} (l : list (α × β)) (lt : α → α → Prop . rbtree.default_lt) [decidable_rel lt] : rbmap α β lt :=
+def rbmap_of {α : Type u} {β : Type v} (l : list (α × β)) (lt : α → α → Prop . rbtree.default_lt)
+  [decidable_rel lt] : rbmap α β lt :=
 rbmap.from_list l lt

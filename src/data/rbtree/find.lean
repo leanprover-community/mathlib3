@@ -37,7 +37,8 @@ begin
   }
 end
 
-lemma find_correct {t : rbnode α} {lt x} [decidable_rel lt] [is_strict_weak_order α lt] : ∀ {lo hi} (hs : is_searchable lt t lo hi), mem lt x t ↔ ∃ y, find lt t x = some y ∧ x ≈[lt] y :=
+lemma find_correct {t : rbnode α} {lt x} [decidable_rel lt] [is_strict_weak_order α lt] :
+  ∀ {lo hi} (hs : is_searchable lt t lo hi), mem lt x t ↔ ∃ y, find lt t x = some y ∧ x ≈[lt] y :=
 begin
   apply find.induction lt t x; intros; simp only [mem, find, *],
   { simp, intro h, cases h with _ h, cases h },
@@ -80,10 +81,12 @@ end
 lemma mem_of_mem_exact {lt} [is_irrefl α lt] {x t} : mem_exact x t → mem lt x t :=
 begin
   induction t; simp [mem_exact, mem, false_implies_iff]; intro h,
-  all_goals { blast_disjs, simp [t_ih_lchild h], simp [h, irrefl_of lt t_val], simp [t_ih_rchild h] }
+  all_goals { blast_disjs, simp [t_ih_lchild h], simp [h, irrefl_of lt t_val],
+    simp [t_ih_rchild h] }
 end
 
-lemma find_correct_exact {t : rbnode α} {lt x} [decidable_rel lt] [is_strict_weak_order α lt] : ∀ {lo hi} (hs : is_searchable lt t lo hi), mem_exact x t ↔ find lt t x = some x :=
+lemma find_correct_exact {t : rbnode α} {lt x} [decidable_rel lt] [is_strict_weak_order α lt] :
+  ∀ {lo hi} (hs : is_searchable lt t lo hi), mem_exact x t ↔ find lt t x = some x :=
 begin
   apply find.induction lt t x; intros; simp only [mem_exact, find, *],
   iterate 2 {
@@ -132,7 +135,8 @@ begin
       { intro hc, right, right, exact iff.mpr (ih hs_hs₂) hc } } }
 end
 
-lemma eqv_of_find_some {t : rbnode α} {lt x y} [decidable_rel lt] [is_strict_weak_order α lt] : ∀ {lo hi} (hs : is_searchable lt t lo hi) (he : find lt t x = some y), x ≈[lt] y :=
+lemma eqv_of_find_some {t : rbnode α} {lt x y} [decidable_rel lt] [is_strict_weak_order α lt] :
+  ∀ {lo hi} (hs : is_searchable lt t lo hi) (he : find lt t x = some y), x ≈[lt] y :=
 begin
   apply find.induction lt t x; intros; simp only [mem, find, *] at *,
   iterate 2 {
@@ -141,7 +145,8 @@ begin
     { cases hs, exact ih hs_hs₂ rfl } }
 end
 
-lemma find_eq_find_of_eqv {lt a b} [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode α} : ∀ {lo hi} (hs : is_searchable lt t lo hi) (heqv : a ≈[lt] b), find lt t a = find lt t b :=
+lemma find_eq_find_of_eqv {lt a b} [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode α} :
+  ∀ {lo hi} (hs : is_searchable lt t lo hi) (heqv : a ≈[lt] b), find lt t a = find lt t b :=
 begin
   apply find.induction lt t a; intros;
     simp [mem, find, strict_weak_order.equiv, *, true_implies_iff] at *,

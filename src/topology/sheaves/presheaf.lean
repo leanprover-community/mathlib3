@@ -21,8 +21,8 @@ and for `ℱ : X.presheaf C` provide the natural isomorphisms
 * `pushforward.comp : (f ≫ g) _* ℱ ≅ g _* (f _* ℱ)`
 along with their `@[simp]` lemmas.
 
-We also defined the functors `pushforward` and `pullback` between the categories
-`X.presheaf C` and `Y.presheaf C`, and provided their adjunction at
+We also define the functors `pushforward` and `pullback` between the categories
+`X.presheaf C` and `Y.presheaf C`, and provide their adjunction at
 `pushforward_pullback_adjunction`.
 -/
 
@@ -147,7 +147,7 @@ noncomputable theory
 /--
 Pullback a presheaf on `Y` along a continuous map `f : X ⟶ Y`, obtaining a presheaf on `X`.
 
-This is defined in terms of left kan extensions, which is just a fancy way of saying
+This is defined in terms of left Kan extensions, which is just a fancy way of saying
 "take the colimits over the open sets whose preimage contains U".
 -/
 @[simps]

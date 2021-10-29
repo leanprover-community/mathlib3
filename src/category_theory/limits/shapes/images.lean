@@ -584,8 +584,7 @@ instance has_image_map_of_is_iso {f g : arrow C} [has_image f.hom] [has_image g.
   has_image_map sq :=
 has_image_map.mk
 { map := image.lift ((image.mono_factorisation g.hom).of_arrow_iso (inv sq)),
-  map_ι' :=
-  begin
+  map_ι' := begin
     erw [← cancel_mono (inv sq).right, category.assoc, ← mono_factorisation.of_arrow_iso_m,
       image.lift_fac, category.assoc, ← comma.comp_right, is_iso.hom_inv_id,
       comma.id_right, category.comp_id],

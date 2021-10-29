@@ -673,7 +673,7 @@ by haveI := subsingleton_of_zero_eq_one h01;
    haveI := fintype.of_subsingleton (0:R);
    exact is_noetherian_ring_iff.2 (ring.is_noetherian_of_fintype R R)
 
-theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_group M] [module R M]
+theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
@@ -689,8 +689,8 @@ end
 
 /-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
 also noetherian. -/
-theorem is_noetherian_of_tower (R) {S M} [comm_ring R] [ring S]
-  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+theorem is_noetherian_of_tower (R) {S M} [semiring R] [semiring S]
+  [add_comm_monoid M] [has_scalar R S] [module S M] [module R M] [is_scalar_tower R S M]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
@@ -761,7 +761,7 @@ theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
 is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
 namespace submodule
-variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 variables (M N : submodule R A)
 
 theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=

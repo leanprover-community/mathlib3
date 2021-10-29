@@ -150,11 +150,6 @@ by simp [pairwise_on_insert]
 lemma pairwise_on_pair_of_symmetric (hr : symmetric r) : pairwise_on {a, b} r ↔ (a ≠ b → r a b) :=
 by simp [pairwise_on_insert_of_symmetric hr]
 
-lemma pairwise_on_disjoint_on_mono {s : set ι} {f g : ι → set α} (h : s.pairwise_on (disjoint on f))
-  (h' : ∀ x ∈ s, g x ⊆ f x) :
-  s.pairwise_on (disjoint on g) :=
-λ i hi j hj hij, disjoint.mono (h' i hi) (h' j hj) (h i hi j hj hij)
-
 lemma pairwise_on_univ : (univ : set α).pairwise_on r ↔ pairwise r :=
 by simp only [pairwise_on, pairwise, mem_univ, forall_const]
 
@@ -166,10 +161,6 @@ lemma pairwise_on.on_injective (hs : s.pairwise_on r) (hf : function.injective f
 lemma inj_on.pairwise_on_image {s : set ι} (h : s.inj_on f) :
   (f '' s).pairwise_on r ↔ s.pairwise_on (r on f) :=
 by simp [h.eq_iff, pairwise_on] {contextual := tt}
-
-lemma pairwise_on_disjoint_fiber (f : ι → α) (s : set α) :
-  s.pairwise_on (disjoint on (λ a, f ⁻¹' {a})) :=
-λ a _ b _ h i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
 
 lemma pairwise_on_Union {f : ι → set α} (h : directed (⊆) f) :
   (⋃ n, f n).pairwise_on r ↔ ∀ n, (f n).pairwise_on r :=
@@ -192,9 +183,6 @@ end set
 
 lemma pairwise.pairwise_on (h : pairwise r) (s : set α) : s.pairwise_on r := λ x hx y hy, h x y
 
-lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
-set.pairwise_on_univ.1 $ set.pairwise_on_disjoint_fiber f univ
-
 end pairwise
 
 namespace set
@@ -208,8 +196,12 @@ def pairwise_disjoint (s : set ι) (f : ι → α) : Prop := s.pairwise_on (disj
 lemma pairwise_disjoint.subset (ht : t.pairwise_disjoint f) (h : s ⊆ t) : s.pairwise_disjoint f :=
 pairwise_on.mono h ht
 
+lemma pairwise_disjoint.mono_on (hs : s.pairwise_disjoint f) (h : ∀ ⦃i⦄, i ∈ s → g i ≤ f i) :
+  s.pairwise_disjoint g :=
+λ a ha b hb hab, (hs a ha b hb hab).mono (h ha) (h hb)
+
 lemma pairwise_disjoint.mono (hs : s.pairwise_disjoint f) (h : g ≤ f) : s.pairwise_disjoint g :=
-λ a ha b hb hab, (hs a ha b hb hab).mono (h a) (h b)
+hs.mono_on (λ i _, h i)
 
 lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_on_empty _
 
@@ -241,6 +233,27 @@ begin
   exact (ht _ x.2 _ y.2 $ λ h, hxy $ congr_arg g $ subtype.ext h).mono (hg x) (hg y),
 end
 
+lemma pairwise_disjoint_union :
+  (s ∪ t).pairwise_disjoint f ↔ s.pairwise_disjoint f ∧ t.pairwise_disjoint f ∧
+    ∀ ⦃i j⦄, i ∈ s → j ∈ t → i ≠ j → disjoint (f i) (f j) :=
+pairwise_on_union.trans $ by simp only [hr.iff, and_self]
+
+lemma pairwise_disjoint.union (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint f)
+  (h : ∀ ⦃i j⦄, i ∈ s → j ∈ t → i ≠ j → disjoint (f i) (f j)) :
+  (s ∪ t).pairwise_disjoint f :=
+pairwise_disjoint_union.2 ⟨hs, ht, h⟩
+
+lemma pairwise_disjoint_Union {g : ι → set α} (h : directed (⊆) g) :
+  (⋃ n, g n).pairwise_disjoint f ↔ ∀ ⦃n⦄, (g n).pairwise_disjoint f :=
+pairwise_on_Union h
+
+lemma pairwise_disjoint_sUnion {s : set (set α)} (h : directed_on (⊆) s) :
+  (⋃₀ s).pairwise_disjoint f ↔ ∀ ⦃a⦄, a ∈ s → set.pairwise_disjoint a f :=
+pairwise_on_sUnion h
+
+lemma pairwise_disjoint_fiber (f : ι → α) (s : set α) : s.pairwise_disjoint (λ a, f ⁻¹' {a}) :=
+λ a _ b _ h i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
+
 -- classical
 lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (h : ¬ disjoint (f i) (f j)) :
@@ -269,8 +282,7 @@ lemma pairwise_disjoint.elim_set {s : set ι} {f : ι → set α} (hs : s.pairwi
   (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i) (haj : a ∈ f j) : i = j :=
 hs.elim hi hj $ not_disjoint_iff.2 ⟨a, hai, haj⟩
 
-lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α}
-  (h : (s ∪ t).pairwise_on (disjoint on f)) :
+lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pairwise_disjoint f) :
   (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=
 begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
@@ -287,3 +299,7 @@ noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h _ hi _ hj $ λ eq, ne $ subtype.eq eq
 
 end set
+
+lemma pairwise_disjoint_fiber [semilattice_inf_bot α] (f : ι → α) :
+  pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
+set.pairwise_on_univ.1 $ set.pairwise_disjoint_fiber f univ

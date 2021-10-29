@@ -253,7 +253,6 @@ section int_module
 
 variables [add_comm_group M]
 
-instance M_int_module : module ℤ M := add_comm_group.int_module M
 /-- An additive subgroup is equivalent to a ℤ-submodule. -/
 def add_subgroup.to_int_submodule : add_subgroup M ≃o submodule ℤ M :=
 { to_fun := λ S,

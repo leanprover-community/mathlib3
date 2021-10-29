@@ -2895,8 +2895,8 @@ end
 
 end ae_measurable
 
-lemma measurable_embedding.ae_measurable_map_iff {m0 : measurable_space α} {m1 : measurable_space β}
-  {m3 : measurable_space γ} {f : α → β} (hf : measurable_embedding f) {μ : measure α} {g : β → γ} :
+lemma measurable_embedding.ae_measurable_map_iff [measurable_space γ] {f : α → β}
+  (hf : measurable_embedding f) {μ : measure α} {g : β → γ} :
   ae_measurable g (map f μ) ↔ ae_measurable (g ∘ f) μ :=
 begin
   refine ⟨λ H, H.comp_measurable hf.measurable, _⟩,
@@ -2905,9 +2905,8 @@ begin
   exact ⟨g₂, hgm₂, hf.ae_map_iff.2 heq⟩
 end
 
-lemma measurable_embedding.ae_measurable_comp_iff {m0 : measurable_space α}
-  {m1 : measurable_space β} {m3 : measurable_space γ} {g : β → γ} (hg : measurable_embedding g)
-  {μ : measure α} {f : α → β} :
+lemma measurable_embedding.ae_measurable_comp_iff [measurable_space γ] {g : β → γ}
+  (hg : measurable_embedding g) {μ : measure α} {f : α → β} :
   ae_measurable (g ∘ f) μ ↔ ae_measurable f μ :=
 begin
   refine ⟨λ H, _, hg.measurable.comp_ae_measurable⟩,
@@ -2916,8 +2915,8 @@ begin
   exact hg.measurable_range_splitting.comp_ae_measurable (H.subtype_mk hg.measurable_set_range)
 end
 
-lemma ae_measurable_restrict_iff_comap_subtype {m0 : measurable_space α}
-  {s : set α} (hs : measurable_set s) {μ : measure α} {f : α → β} :
+lemma ae_measurable_restrict_iff_comap_subtype {s : set α} (hs : measurable_set s)
+  {μ : measure α} {f : α → β} :
   ae_measurable f (μ.restrict s) ↔ ae_measurable (f ∘ coe : s → β) (comap coe μ) :=
 by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_measurable_map_iff]
 

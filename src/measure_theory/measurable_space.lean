@@ -691,6 +691,9 @@ instance {α} {β : α → Type*} [m : Πa, measurable_space (β a)] : measurabl
 
 end constructions
 
+/-- A map `f : α → β` is called a *measurable embedding* if it is injective, measurable, and sends
+measurable sets to measurable sets. The latter assumption can be replaced with “`f` has measurable
+inverge `g : range f → α`”. -/
 @[protect_proj]
 structure measurable_embedding {α β : Type*} [measurable_space α] [measurable_space β] (f : α → β) :
   Prop :=

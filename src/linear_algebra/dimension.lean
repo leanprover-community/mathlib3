@@ -1009,18 +1009,18 @@ lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ 
 begin
   let b := assume i, basis.of_vector_space K (φ i),
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
-  rw [←cardinal.lift_inj, ← this.mk_eq_dim],
-  simp [λ i, (b i).mk_range_eq_dim.symm, cardinal.sum_mk]
+  rw [← cardinal.lift_inj, ← this.mk_eq_dim],
+  simp [← (b _).mk_range_eq_dim]
 end
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
-by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
+by rw [dim_pi, cardinal.sum_const', cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
   module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
     cardinal.lift.{u₁'} (module.rank K V) :=
-by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
+by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card, cardinal.lift_nat_cast]
 
 lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_self, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]

@@ -854,7 +854,7 @@ by simp only [div_eq_mul_inv, mul_inv_rev₀, mul_assoc, mul_inv_cancel_left₀ 
 lemma mul_mul_div (a : G₀) {b : G₀} (hb : b ≠ 0) : a = a * b * (1 / b) :=
 by simp [hb]
 
-@[simp] lemma ring.inverse_eq_inv (a : G₀) : ring.inverse a = a⁻¹ :=
+lemma ring.inverse_eq_inv (a : G₀) : ring.inverse a = a⁻¹ :=
 begin
   obtain rfl | ha := eq_or_ne a 0,
   { simp },

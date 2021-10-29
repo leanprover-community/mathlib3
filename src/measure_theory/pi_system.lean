@@ -73,6 +73,76 @@ begin
       set.mem_singleton_iff],
 end
 
+section order
+
+variables {α : Type*} {ι ι' : Sort*} [linear_order α]
+
+lemma is_pi_system_image_Iio (s : set α) : is_pi_system (Iio '' s) :=
+begin
+  rintro _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ -,
+  exact ⟨a ⊓ b, inf_ind a b ha hb, Iio_inter_Iio.symm⟩
+end
+
+lemma is_pi_system_Iio : is_pi_system (range Iio : set (set α)) :=
+@image_univ α _ Iio ▸ is_pi_system_image_Iio univ
+
+lemma is_pi_system_image_Ioi (s : set α) : is_pi_system (Ioi '' s) :=
+@is_pi_system_image_Iio (order_dual α) _ s
+
+lemma is_pi_system_Ioi : is_pi_system (range Ioi : set (set α)) :=
+@image_univ α _ Ioi ▸ is_pi_system_image_Ioi univ
+
+lemma is_pi_system_Ixx_mem {Ixx : α → α → set α} {p : α → α → Prop}
+  (Hne : ∀ {a b}, (Ixx a b).nonempty → p a b)
+  (Hi : ∀ {a₁ b₁ a₂ b₂}, Ixx a₁ b₁ ∩ Ixx a₂ b₂ = Ixx (max a₁ a₂) (min b₁ b₂)) (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (hlu : p l u), Ixx l u = S} :=
+begin
+  rintro _ _ ⟨l₁, hls₁, u₁, hut₁, hlu₁, rfl⟩ ⟨l₂, hls₂, u₂, hut₂, hlu₂, rfl⟩,
+  simp only [Hi, ← sup_eq_max, ← inf_eq_min],
+  exact λ H, ⟨l₁ ⊔ l₂, sup_ind l₁ l₂ hls₁ hls₂, u₁ ⊓ u₂, inf_ind u₁ u₂ hut₁ hut₂, Hne H, rfl⟩
+end
+
+lemma is_pi_system_Ixx {Ixx : α → α → set α} {p : α → α → Prop}
+  (Hne : ∀ {a b}, (Ixx a b).nonempty → p a b)
+  (Hi : ∀ {a₁ b₁ a₂ b₂}, Ixx a₁ b₁ ∩ Ixx a₂ b₂ = Ixx (max a₁ a₂) (min b₁ b₂))
+  (f : ι → α) (g : ι' → α) :
+  @is_pi_system α ({S | ∃ i j (h : p (f i) (g j)), Ixx (f i) (g j) = S}) :=
+by simpa only [exists_range_iff] using is_pi_system_Ixx_mem @Hne @Hi (range f) (range g)
+
+lemma is_pi_system_Ioo_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ioo l u = S} :=
+is_pi_system_Ixx_mem (λ a b ⟨x, hax, hxb⟩, hax.trans hxb) (λ _ _ _ _, Ioo_inter_Ioo) s t
+
+lemma is_pi_system_Ioo (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ l u (h : f l < g u), Ioo (f l) (g u) = S} :=
+is_pi_system_Ixx (λ a b ⟨x, hax, hxb⟩, hax.trans hxb) (λ _ _ _ _, Ioo_inter_Ioo) f g
+
+lemma is_pi_system_Ioc_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ioc l u = S} :=
+is_pi_system_Ixx_mem (λ a b ⟨x, hax, hxb⟩, hax.trans_le hxb) (λ _ _ _ _, Ioc_inter_Ioc) s t
+
+lemma is_pi_system_Ioc (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ i j (h : f i < g j), Ioc (f i) (g j) = S} :=
+is_pi_system_Ixx (λ a b ⟨x, hax, hxb⟩, hax.trans_le hxb) (λ _ _ _ _, Ioc_inter_Ioc) f g
+
+lemma is_pi_system_Ico_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ico l u = S} :=
+is_pi_system_Ixx_mem (λ a b ⟨x, hax, hxb⟩, hax.trans_lt hxb) (λ _ _ _ _, Ico_inter_Ico) s t
+
+lemma is_pi_system_Ico (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ i j (h : f i < g j), Ico (f i) (g j) = S} :=
+is_pi_system_Ixx (λ a b ⟨x, hax, hxb⟩, hax.trans_lt hxb) (λ _ _ _ _, Ico_inter_Ico) f g
+
+lemma is_pi_system_Icc_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l ≤ u), Icc l u = S} :=
+is_pi_system_Ixx_mem (λ a b, nonempty_Icc.1) (λ _ _ _ _, Icc_inter_Icc) s t
+
+lemma is_pi_system_Icc (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ i j (h : f i ≤ g j), Icc (f i) (g j) = S} :=
+is_pi_system_Ixx (λ a b, nonempty_Icc.1) (λ _ _ _ _, Icc_inter_Icc) f g
+
+end order
+
 /-- Given a collection `S` of subsets of `α`, then `generate_pi_system S` is the smallest
 π-system containing `S`. -/
 inductive generate_pi_system {α} (S : set (set α)) : set (set α)

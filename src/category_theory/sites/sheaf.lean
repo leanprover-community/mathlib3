@@ -79,6 +79,10 @@ def Sheaf : Type* :=
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 full_subcategory_inclusion (presheaf.is_sheaf J)
 
+/-- The sheaf of sections guaranteed by the sheaf condition. -/
+@[simps] abbreviation sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
+  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.property X⟩
+
 lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type w) :
   presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
 begin

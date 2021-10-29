@@ -295,20 +295,31 @@ by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
   {a : M} : is_unit a ↔ ∃ b, b * a = 1 :=
 by simp [is_unit_iff_exists_inv, mul_comm]
 
-/-- Multiplication by a `u : units M` doesn't affect `is_unit`. -/
-@[simp, to_additive is_add_unit_add_add_units "Addition of a `u : add_units M` doesn't affect
-`is_add_unit`."]
+@[to_additive]
+lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x * y) :=
+by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
+
+/-- Multiplication by a `u : units M` on the right doesn't affect `is_unit`. -/
+@[simp, to_additive is_add_unit_add_add_units "Addition of a `u : add_units M` on the right doesn't
+affect `is_add_unit`."]
 theorem units.is_unit_mul_units [monoid M] (a : M) (u : units M) :
   is_unit (a * u) ↔ is_unit a :=
 iff.intro
   (assume ⟨v, hv⟩,
     have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [←hv, units.coe_mul],
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
-  (assume ⟨v, hv⟩, hv ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
+  (λ v, v.mul u.is_unit)
 
-@[to_additive]
-lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x * y) :=
-by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
+/-- Multiplication by a `u : units M` on the left doesn't affect `is_unit`. -/
+@[simp, to_additive is_add_unit_add_units_add "Addition of a `u : add_units M` on the left doesn't
+affect `is_add_unit`."]
+theorem units.is_unit_units_mul {M : Type*} [monoid M] (u : units M) (a : M) :
+  is_unit (↑u * a) ↔ is_unit a :=
+iff.intro
+  (assume ⟨v, hv⟩,
+    have is_unit (↑u⁻¹ * (↑u * a)), by existsi u⁻¹ * v; rw [←hv, units.coe_mul],
+    by rwa [←mul_assoc, units.inv_mul, one_mul] at this)
+  u.is_unit.mul
 
 @[to_additive is_add_unit_of_add_is_add_unit_left]
 theorem is_unit_of_mul_is_unit_left [comm_monoid M] {x y : M}

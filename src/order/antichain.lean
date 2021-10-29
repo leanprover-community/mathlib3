@@ -103,7 +103,7 @@ lemma mk_max (ht : is_antichain r t) (h : is_antichain.mk r s ⊆ t)
   t = is_antichain.mk r s :=
 begin
   refine subset.antisymm (λ a ha, _) h,
-  obtain ⟨b, hb, hr⟩ := hs a,
+  obtain ⟨b, hb, hr⟩ := hs ha,
   rwa of_not_not (λ hab, ht _ ha _ (h hb) hab hr),
 end
 

@@ -282,7 +282,7 @@ instance edge_subgraph_coe : has_coe G.edge_set G.subgraph :=
         adj := λ a b, ⟦(a, b)⟧ = e,
         adj_sub := λ a b h', by { rw [←G.mem_edge_set, h'], exact e.property },
         edge_vert := λ a b h', by simp [←h'],
-        sym := λ a b, by simp only [sym2.eq_swap, imp_self]}⟩
+        symm := λ a b, by simp only [sym2.eq_swap, imp_self]}⟩
 
 /-- We can think of adjacencies `G.adj v w` as being single-edge subgraphs. --/
 @[simps]
@@ -297,7 +297,7 @@ def delete_edges (G' : G.subgraph) (s : set (sym2 V)) : G.subgraph :=
   adj := λ a b, G'.adj a b ∧ ¬ ⟦(a, b)⟧ ∈ s,
   adj_sub := λ a b h', G'.adj_sub h'.1,
   edge_vert := λ a b h', G'.edge_vert h'.1,
-  sym := λ a b h, begin
+  symm := λ a b h, begin
     rw [G'.adj_comm, sym2.eq_swap],
     exact h,
   end }

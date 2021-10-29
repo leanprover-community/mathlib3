@@ -360,17 +360,17 @@ attribute [measurability] measurable.neg ae_measurable.neg
 end inv
 
 /- There is something extremely strange here: copy-pasting the proof of this lemma in the proof
-of `has_measurable_gpow` fails, while `pp.all` does not show any difference in the goal.
+of `has_measurable_zpow` fails, while `pp.all` does not show any difference in the goal.
 Keep it as a separate lemmas as a workaround. -/
-private lemma has_measurable_gpow_aux (G : Type u) [div_inv_monoid G] [measurable_space G]
+private lemma has_measurable_zpow_aux (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] (k : ℕ) :
   measurable (λ (x : G), x ^(-[1+ k])) :=
 begin
-  simp_rw [gpow_neg_succ_of_nat],
+  simp_rw [zpow_neg_succ_of_nat],
   exact (measurable_id.pow_const (k + 1)).inv
 end
 
-instance has_measurable_gpow (G : Type u) [div_inv_monoid G] [measurable_space G]
+instance has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
 begin
@@ -380,7 +380,7 @@ begin
   dsimp,
   apply int.cases_on n,
   { simpa using measurable_id.pow_const },
-  { exact has_measurable_gpow_aux G }
+  { exact has_measurable_zpow_aux G }
 end
 
 @[priority 100, to_additive]

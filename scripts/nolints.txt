@@ -54,19 +54,6 @@ apply_nolint mzip_with' doc_blame
 apply_nolint succeeds doc_blame
 apply_nolint sum.bind doc_blame
 
--- control/bitraversable/basic.lean
-apply_nolint bisequence doc_blame
-apply_nolint bitraversable doc_blame
-apply_nolint is_lawful_bitraversable doc_blame
-
--- control/bitraversable/instances.lean
-apply_nolint bicompl.bitraverse doc_blame
-apply_nolint bicompr.bitraverse doc_blame
-apply_nolint const.bitraverse doc_blame unused_arguments
-apply_nolint flip.bitraverse doc_blame
-apply_nolint prod.bitraverse doc_blame
-apply_nolint sum.bitraverse doc_blame
-
 -- control/fold.lean
 apply_nolint monoid.foldl.get doc_blame
 apply_nolint monoid.foldl.mk doc_blame

@@ -729,6 +729,15 @@ theorem mem_last'_eq_last : ∀ {l : list α} {x : α}, x ∈ l.last' → ∃ h,
     rwa [last_cons]
   end
 
+theorem last'_eq_last_of_ne_nil : ∀ {l : list α} (h : l ≠ []), l.last' = some (l.last h)
+| [] h := (h rfl).elim
+| [a] _ := by {unfold last, unfold last'}
+| (a::b::l) _ := @last'_eq_last_of_ne_nil (b::l) (cons_ne_nil _ _)
+
+theorem mem_last'_cons {x y : α} : ∀ {l : list α} (h : x ∈ l.last'), x ∈ (y :: l).last'
+| [] _ := by contradiction
+| (a::l) h := h
+
 theorem mem_of_mem_last' {l : list α} {a : α} (ha : a ∈ l.last') : a ∈ l :=
 let ⟨h₁, h₂⟩ := mem_last'_eq_last ha in h₂.symm ▸ last_mem _
 
@@ -749,6 +758,9 @@ theorem ilast_eq_last' [inhabited α] : ∀ l : list α, l.ilast = l.last'.iget
 | [] a l₂ := rfl
 | [b] a l₂ := rfl
 | (b::c::l₁) a l₂ := by rw [cons_append, cons_append, last', ← cons_append, last'_append_cons]
+
+@[simp] theorem last'_cons_cons (x y : α) (l : list α) :
+  last' (x :: y :: l) = last' (y :: l) := rfl
 
 theorem last'_append_of_ne_nil (l₁ : list α) : ∀ {l₂ : list α} (hl₂ : l₂ ≠ []),
   last' (l₁ ++ l₂) = last' l₂
@@ -773,6 +785,10 @@ theorem mem_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → x ∈ l
 @[simp] theorem head_append [inhabited α] (t : list α) {s : list α} (h : s ≠ []) :
   head (s ++ t) = head s :=
 by {induction s, contradiction, refl}
+
+theorem head'_append {s t : list α} {x : α} (h : x ∈ s.head') :
+  x ∈ (s ++ t).head' :=
+by { cases s, contradiction, exact h }
 
 theorem tail_append_singleton_of_ne_nil {a : α} {l : list α} (h : l ≠ nil) :
   tail (l ++ [a]) = tail l ++ [a] :=

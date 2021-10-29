@@ -78,28 +78,28 @@ lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field �
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{0}ᶜ] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
-lemma tendsto_norm_fpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
+lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
   (hm : m < 0) :
   tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[{0}ᶜ] 0) at_top :=
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [normed_field.norm_pow, fpow_neg, gpow_coe_nat, ← inv_pow₀],
+  simp only [normed_field.norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
-@[simp] lemma continuous_at_fpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
-  refine ⟨_, continuous_at_fpow _ _⟩,
+  refine ⟨_, continuous_at_zpow _ _⟩,
   contrapose!, rintro ⟨rfl, hm⟩ hc,
   exact not_tendsto_at_top_of_tendsto_nhds (hc.tendsto.mono_left nhds_within_le_nhds).norm
-      (tendsto_norm_fpow_nhds_within_0_at_top hm)
+      (tendsto_norm_zpow_nhds_within_0_at_top hm)
 end
 
 @[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
-by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_fpow _ _ (-1) x
+by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
 
 end normed_field
 

@@ -33,7 +33,6 @@ src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/sigma/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -45,7 +44,7 @@ src/tactic/chain.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/converter/binders.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/converter/interactive.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/converter/old_conv.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/core.lean : line 17 : ERR_MOD : Module docstring missing, or too late
+src/tactic/core.lean : line 18 : ERR_MOD : Module docstring missing, or too late
 src/tactic/delta_instance.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/elide.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/ext.lean : line 10 : ERR_MOD : Module docstring missing, or too late

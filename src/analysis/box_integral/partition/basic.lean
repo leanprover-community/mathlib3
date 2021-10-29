@@ -507,7 +507,7 @@ by { ext J, simpa using hp J }
   (π.filter (λ J, ¬p J)).Union = π.Union \ (π.filter p).Union :=
 begin
   simp only [prepartition.Union],
-  convert (@set.bUnion_diff_bUnion_eq (box ι) _ coe π.boxes (π.filter p).boxes _).symm,
+  convert (@set.bUnion_diff_bUnion_eq _ (box ι) π.boxes (π.filter p).boxes coe _).symm,
   { ext J x, simp { contextual := tt } },
   { convert π.pairwise_disjoint, simp }
 end

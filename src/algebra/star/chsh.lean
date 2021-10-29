@@ -133,7 +133,7 @@ begin
         mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
       abel,
       simp only [neg_mul_eq_neg_mul_symm, mul_one, int.cast_bit0, one_mul, int.cast_one,
-        gsmul_eq_mul, int.cast_neg],
+        zsmul_eq_mul, int.cast_neg],
       simp only [←mul_assoc, ←add_assoc],
       norm_num, },
     have idem' : P = (1 / 4 : ℝ) • (P * P),
@@ -205,7 +205,7 @@ lemma tsirelson_inequality
 begin
   -- abel will create `ℤ` multiplication. We will `simp` them away to `ℝ` multiplication.
   have M : ∀ (m : ℤ) (a : ℝ) (x : R), m • a • x = ((m : ℝ) * a) • x :=
-    λ m a x, by rw [gsmul_eq_smul_cast ℝ, ← mul_smul],
+    λ m a x, by rw [zsmul_eq_smul_cast ℝ, ← mul_smul],
   let P := √2⁻¹ • (A₁ + A₀) - B₀,
   let Q := √2⁻¹ • (A₁ - A₀) + B₁,
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),

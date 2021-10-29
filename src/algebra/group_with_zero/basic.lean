@@ -379,6 +379,16 @@ by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
 lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
 by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
 
+variables (M₀)
+
+@[simp] lemma inverse_one : ring.inverse (1 : M₀) = 1 :=
+inverse_unit 1
+
+@[simp] lemma inverse_zero : ring.inverse (0 : M₀) = 0 :=
+by { nontriviality, exact inverse_non_unit _ not_is_unit_zero }
+
+variables {M₀}
+
 lemma mul_inverse_rev {M₀ : Type*} [comm_monoid_with_zero M₀] (a b : M₀) :
   ring.inverse (a * b) = ring.inverse b * ring.inverse a :=
 begin

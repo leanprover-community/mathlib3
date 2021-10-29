@@ -87,7 +87,7 @@ lemma graded_ring.as_sum (r : R) :
   r = ∑ i in graded_ring.support R A r, graded_ring.proj R A i r :=
 begin
   conv_lhs { rw [←@graded_ring.right_inv R _ ι A _ _ _ r,
-    direct_sum.eq_sum_of _ (@graded_ring.decompose R _ ι A _ _ _ r),
+    ←direct_sum.sum_support_of _ (@graded_ring.decompose R _ ι A _ _ _ r),
     add_monoid_hom.map_sum], },
   unfold graded_ring.support,
   unfold graded_ring.proj,
@@ -102,16 +102,19 @@ end graded_ring
 section homogeneous_element
 variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
 
-/--If `R` is a ring graded by `A`, then for all `i : ι`, `x ∈ A i` is a homogeneous element.
-We collect such elements into a subtype `homogeneous_element` -/
-def homogeneous_element : Type* := {x // ∃ i, x ∈ A i}
+/-- An element `r : R` is said to be homogeneous if there is some
+`i : ι` such that `r ∈ A i`-/
+def is_homogeneous (r : R) : Prop := ∃ i, r ∈ A i
+
+/--We collect all homogeneneous elements into a subtype `homogeneous_element` -/
+def homogeneous_element : Type* := {r // is_homogeneous R A r}
 
 instance lift_homogeneous_element : has_lift (homogeneous_element R A) R :=
 { lift := λ r, r.1 }
 
 instance lift_homogeneous_set [decidable_eq R] :
-  has_lift (finset (homogeneous_element R A)) (finset R) :=
-{ lift := λ S, finset.image (lift_homogeneous_element R A).lift S }
+  has_lift (set (homogeneous_element R A)) (set R) :=
+{ lift := λ S, set.image (lift_homogeneous_element R A).lift S }
 
 variables [add_comm_monoid ι] [decidable_eq ι]
 

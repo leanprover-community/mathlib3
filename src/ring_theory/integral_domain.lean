@@ -32,7 +32,7 @@ open_locale big_operators nat
 
 section cancel_monoid_with_zero
 -- There doesn't seem to be a better home for these right now
-variables {M : Type*} [cancel_monoid_with_zero M]
+variables {M : Type*} [cancel_monoid_with_zero M] [fintype M]
 
 lemma mul_right_bijective_of_fintype₀ (a : M) (ha : a ≠ 0) : bijective (λ b, a * b) :=
 fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha

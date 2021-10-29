@@ -955,10 +955,10 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
   (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
-@[simp] theorem exists_apply_eq_apply {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a = f a' :=
+@[simp] theorem exists_apply_eq_apply {α β : Sort*} (f : α → β) (a' : α) : ∃ a, f a = f a' :=
 ⟨a', rfl⟩
 
-@[simp] theorem exists_apply_eq_apply' {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a' = f a :=
+@[simp] theorem exists_apply_eq_apply' {α β : Sort*} (f : α → β) (a' : α) : ∃ a, f a' = f a :=
 ⟨a', rfl⟩
 
 @[simp] theorem exists_exists_and_eq_and {f : α → β} {p : α → Prop} {q : β → Prop} :

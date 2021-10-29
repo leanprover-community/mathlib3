@@ -303,18 +303,18 @@ begin
 end
 
 @[to_additive]
-lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α} :
-  (set.pairwise_disjoint ↑s t) →
+lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
+  (hs : set.pairwise_disjoint ↑s t) :
   (∏ x in (s.bUnion t), f x) = ∏ x in s, ∏ i in t x, f i :=
-by haveI := classical.dec_eq γ; exact
-finset.induction_on s (λ _, by simp only [bUnion_empty, prod_empty])
-  (λ x s hxs ih hd,
-  begin
-    simp_rw [coe_insert, set.pairwise_disjoint_insert, mem_coe] at hd,
+begin
+  haveI := classical.dec_eq γ,
+  induction s using finset.induction_on with x s hxs ih hd,
+  { simp_rw [bUnion_empty, prod_empty] },
+  { simp_rw [coe_insert, set.pairwise_disjoint_insert, mem_coe] at hs,
     have : disjoint (t x) (finset.bUnion s t),
-    { exact (disjoint_bUnion_right _ _ _).mpr (λ y hy, hd.2 y hy $ λ H, hxs $ H.substr hy) },
-    rw [bUnion_insert, prod_insert hxs, prod_union this, ih hd.1],
-  end)
+    { exact (disjoint_bUnion_right _ _ _).mpr (λ y hy, hs.2 y hy $ λ H, hxs $ H.substr hy) },
+    rw [bUnion_insert, prod_insert hxs, prod_union this, ih hs.1] }
+end
 
 @[to_additive]
 lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :

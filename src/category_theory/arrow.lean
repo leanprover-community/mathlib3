@@ -83,8 +83,8 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
   sq.left ≫ g = f.hom ≫ sq.right :=
 sq.w
 
-instance {f g : arrow T} (ff : f ⟶ g) [is_iso ff.left] [is_iso ff.right] :
-  is_iso ff :=
+lemma is_iso_of_iso_left_of_is_iso_right
+  {f g : arrow T} (ff : f ⟶ g) [is_iso ff.left] [is_iso ff.right] : is_iso ff :=
 { out := ⟨⟨inv ff.left, inv ff.right⟩,
           by { ext; dsimp; simp only [is_iso.hom_inv_id] },
           by { ext; dsimp; simp only [is_iso.inv_hom_id] }⟩ }
@@ -96,6 +96,43 @@ and a proof that the square commutes. -/
   (l : f.left ≅ g.left) (r : f.right ≅ g.right) (h : l.hom ≫ g.hom = f.hom ≫ r.hom) :
   f ≅ g :=
 comma.iso_mk l r h
+
+section
+
+variables {f g : arrow T} (sq : f ⟶ g)
+
+instance is_iso_left [is_iso sq] : is_iso sq.left :=
+{ out := ⟨(inv sq).left, by simp only [← comma.comp_left, is_iso.hom_inv_id, is_iso.inv_hom_id,
+    arrow.id_left, eq_self_iff_true, and_self]⟩ }
+
+instance is_iso_right [is_iso sq] : is_iso sq.right :=
+{ out := ⟨(inv sq).right, by simp only [← comma.comp_right, is_iso.hom_inv_id, is_iso.inv_hom_id,
+    arrow.id_right, eq_self_iff_true, and_self]⟩ }
+
+instance mono_left [mono sq] : mono sq.left :=
+{ right_cancellation := λ Z φ ψ h, begin
+    let aux : (Z ⟶ f.left) → (arrow.mk (𝟙 Z) ⟶ f) := λ φ, { left := φ, right := φ ≫ f.hom },
+    show (aux φ).left = (aux ψ).left,
+    congr' 1,
+    rw ← cancel_mono sq,
+    ext,
+    { exact h },
+    { simp only [comma.comp_right, category.assoc, ← arrow.w],
+      simp only [← category.assoc, h], },
+  end }
+
+instance epi_right [epi sq] : epi sq.right :=
+{ left_cancellation := λ Z φ ψ h, begin
+    let aux : (g.right ⟶ Z) → (g ⟶ arrow.mk (𝟙 Z)) := λ φ, { right := φ, left := g.hom ≫ φ },
+    show (aux φ).right = (aux ψ).right,
+    congr' 1,
+    rw ← cancel_epi sq,
+    ext,
+    { simp only [comma.comp_left, category.assoc, arrow.w_assoc, h], },
+    { exact h },
+  end }
+
+end
 
 /-- Given a square from an arrow `i` to an isomorphism `p`, express the source part of `sq`
 in terms of the inverse of `p`. -/

@@ -43,7 +43,7 @@ by refine_struct
   inv := ring_equiv.symm,
   div := _,
   npow := @npow_rec _ ⟨ring_equiv.refl R⟩ ⟨λ g h, ring_equiv.trans h g⟩,
-  gpow := @gpow_rec _ ⟨ring_equiv.refl R⟩ ⟨λ g h, ring_equiv.trans h g⟩ ⟨ring_equiv.symm⟩ };
+  zpow := @zpow_rec _ ⟨ring_equiv.refl R⟩ ⟨λ g h, ring_equiv.trans h g⟩ ⟨ring_equiv.symm⟩ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (ring_aut R) := ⟨1⟩

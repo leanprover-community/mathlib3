@@ -41,13 +41,13 @@ begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
-  obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_gpowers, apply hg },
+  obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
   split,
   { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
   { subst x, assume h,
     have key : 2 * (p / 2) ∣ n * (p / 2),
     { rw [← pow_mul] at h,
-      rw [two_mul_odd_div_two hp_odd, ← card_units, ← order_of_eq_card_of_forall_mem_gpowers hg],
+      rw [two_mul_odd_div_two hp_odd, ← card_units, ← order_of_eq_card_of_forall_mem_zpowers hg],
       apply order_of_dvd_of_pow_eq_one h },
     have : 0 < p / 2 := nat.div_pos (fact.out (1 < p)) dec_trivial,
     obtain ⟨m, rfl⟩ := dvd_of_mul_dvd_mul_right this key,
@@ -341,7 +341,7 @@ begin
     simp only [mem_union, mem_filter, mem_Ico, mem_product]; tauto),
   rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product],
-  simp only [card_Ico, nat.sub_zero, succ_sub_succ_eq_sub]
+  simp only [card_Ico, tsub_zero, succ_sub_succ_eq_sub]
 end
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]

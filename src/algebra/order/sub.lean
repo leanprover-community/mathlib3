@@ -33,6 +33,8 @@ second version we replace this type-class assumption by explicit `add_le_cancell
 TODO: maybe we should make a multiplicative version of this, so that we can replace some identical
 lemmas about subtraction/division in `ordered_[add_]comm_group` with these.
 
+TODO: generalize `nat.le_of_le_of_sub_le_sub_right`, `nat.sub_le_sub_right_iff`,
+  `nat.mul_self_sub_mul_self_eq`
 -/
 
 variables {α β : Type*}
@@ -141,7 +143,7 @@ tsub_le_iff_left.mpr $ le_add_tsub.trans $ add_le_add_right h _
 lemma tsub_le_tsub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 (tsub_le_tsub_right hab _).trans $ tsub_le_tsub_left hcd _
 
-lemma tsub_add_eq_tsub_tsub : a - (b + c) = a - b - c :=
+lemma tsub_add_eq_tsub_tsub (a b c : α) : a - (b + c) = a - b - c :=
 begin
   refine le_antisymm (tsub_le_iff_left.mpr _)
     (tsub_le_iff_left.mpr $ tsub_le_iff_left.mpr _),
@@ -149,8 +151,8 @@ begin
   { rw [← add_assoc], apply le_add_tsub }
 end
 
-lemma tsub_add_eq_tsub_tsub_swap : a - (b + c) = a - c - b :=
-by { rw [add_comm], exact tsub_add_eq_tsub_tsub }
+lemma tsub_add_eq_tsub_tsub_swap (a b c : α) : a - (b + c) = a - c - b :=
+by { rw [add_comm], apply tsub_add_eq_tsub_tsub }
 
 lemma add_le_add_add_tsub : a + b ≤ (a + c) + (b - c) :=
 by { rw [add_assoc], exact add_le_add_left le_add_tsub a }
@@ -275,7 +277,7 @@ end contra
 section both
 variables [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
 
-lemma add_tsub_add_right_eq_tsub (a c b : α) : (a + c) - (b + c) = a - b :=
+lemma add_tsub_add_eq_tsub_right (a c b : α) : (a + c) - (b + c) = a - b :=
 begin
   apply le_antisymm,
   { rw [tsub_le_iff_left, add_right_comm], exact add_le_add_right le_add_tsub c },
@@ -286,7 +288,7 @@ begin
 end
 
 lemma add_tsub_add_eq_tsub_left (a b c : α) : (a + b) - (a + c) = b - c :=
-by rw [add_comm a b, add_comm a c, add_tsub_add_right_eq_tsub]
+by rw [add_comm a b, add_comm a c, add_tsub_add_eq_tsub_right]
 
 end both
 
@@ -311,6 +313,8 @@ lt_iff_lt_of_le_iff_le tsub_le_iff_left
 lemma lt_tsub_comm : a < b - c ↔ c < b - a :=
 lt_tsub_iff_left.trans lt_tsub_iff_right.symm
 
+
+
 section cov
 variable [covariant_class α α (+) (≤)]
 
@@ -327,7 +331,7 @@ end linear_order
 section canonically_ordered_add_monoid
 variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
-lemma add_tsub_cancel_of_le (h : a ≤ b) : a + (b - a) = b :=
+@[simp] lemma add_tsub_cancel_of_le (h : a ≤ b) : a + (b - a) = b :=
 begin
   refine le_antisymm _ le_add_tsub,
   obtain ⟨c, rfl⟩ := le_iff_exists_add.1 h,
@@ -359,8 +363,12 @@ by simp_rw [le_antisymm_iff, tsub_le_tsub_iff_right h1, tsub_le_tsub_iff_right h
 lemma lt_of_tsub_lt_tsub_right_of_le (h : c ≤ b) (h2 : a - c < b - c) : a < b :=
 by { refine ((tsub_le_tsub_iff_right h).mp h2.le).lt_of_ne _, rintro rfl, exact h2.false }
 
-lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
+@[simp] lemma tsub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by rw [← nonpos_iff_eq_zero, tsub_le_iff_left, add_zero]
+
+/-- One direction of `tsub_eq_zero_iff_le`, as a `@[simp]`-lemma. -/
+@[simp] lemma tsub_eq_zero_of_le (h : a ≤ b) : a - b = 0 :=
+tsub_eq_zero_iff_le.mpr h
 
 @[simp] lemma tsub_self (a : α) : a - a = 0 :=
 tsub_eq_zero_iff_le.mpr le_rfl
@@ -620,7 +628,7 @@ end canonically_ordered_add_monoid
 section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
-lemma tsub_pos_iff_lt : 0 < a - b ↔ b < a :=
+@[simp] lemma tsub_pos_iff_lt : 0 < a - b ↔ b < a :=
 by rw [tsub_pos_iff_not_le, not_le]
 
 lemma tsub_eq_tsub_min (a b : α) : a - b = a - min a b :=

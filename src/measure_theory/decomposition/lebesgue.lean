@@ -655,7 +655,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
   -- since `ν.with_density ξ ≤ μ`, it is clear that `μ = μ₁ + ν.with_density ξ`
   { rw hμ₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
-        add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
+        add_comm, add_tsub_cancel_of_le (hle A hA)] },
 end⟩
 
 local attribute [instance] have_lebesgue_decomposition_of_finite_measure

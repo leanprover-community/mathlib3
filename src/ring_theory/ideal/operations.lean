@@ -397,7 +397,7 @@ def radical (I : ideal R) : ideal R :=
       x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right _ $ I.mul_mem_left _ $ nat.add_comm n m ▸
-        (nat.add_sub_assoc hcm n).symm ▸
+        (add_tsub_assoc_of_le hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right _ hyni)
       (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ add_tsub_cancel_of_le hmc ▸
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,

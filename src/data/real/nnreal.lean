@@ -19,16 +19,17 @@ a.k.a. the interval `[0, ∞)`. We also define the following operations and stru
   complete linear order with a bottom element, `conditionally_complete_linear_order_bot`;
 
 * `a + b` and `a * b` are the restrictions of addition and multiplication of real numbers to `ℝ≥0`;
-  these operations together with `0 = ⟨0, _⟩` and `1 = ⟨1, _⟩` turn `ℝ≥0` into a linear ordered
-  archimedean commutative semifield; we have no typeclass for this in `mathlib` yet, so we define
-  the following instances instead:
+  these operations together with `0 = ⟨0, _⟩` and `1 = ⟨1, _⟩` turn `ℝ≥0` into a conditionally
+  complete linear ordered archimedean commutative semifield; we have no typeclass for this in
+  `mathlib` yet, so we define the following instances instead:
 
   - `linear_ordered_semiring ℝ≥0`;
   - `ordered_comm_semiring ℝ≥0`;
   - `canonically_ordered_comm_semiring ℝ≥0`;
   - `linear_ordered_comm_group_with_zero ℝ≥0`;
-  - `canonically_linear_ordered_add_monoid ℝ≥0`
-  - `archimedean ℝ≥0`.
+  - `canonically_linear_ordered_add_monoid ℝ≥0`;
+  - `archimedean ℝ≥0`;
+  - `conditionally_complete_linear_order_bot ℝ≥0`.
 
   These instances are derived from corresponding instances about the type `{x : α // 0 ≤ x}` in an
   appropriate ordered field/ring/group/monoid `α`. See `algebra/order/nonneg`.
@@ -288,10 +289,7 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s)
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
 noncomputable instance : conditionally_complete_linear_order_bot ℝ≥0 :=
-{ cSup_empty := (function.funext_iff.1
-    (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
-  .. (by apply_instance : order_bot ℝ≥0),
-  .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
+nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
 
 lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Sup_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
@@ -492,7 +490,7 @@ section sub
 
 In this section we provide a few lemmas about subtraction that do not fit well into any other
 typeclass. For lemmas about subtraction and addition see lemmas
-about `has_ordered_sub` in the file `algebra.order.sub`. See also `mul_sub'` and `sub_mul'`. -/
+about `has_ordered_sub` in the file `algebra.order.sub`. See also `mul_tsub` and `tsub_mul`. -/
 
 lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
@@ -501,7 +499,7 @@ lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 noncomputable example : has_ordered_sub ℝ≥0 := by apply_instance
 
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c :=
-by simp only [div_eq_mul_inv, sub_mul']
+by simp only [div_eq_mul_inv, tsub_mul]
 
 end sub
 

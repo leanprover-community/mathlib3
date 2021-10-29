@@ -311,6 +311,23 @@ instance : add_comm_group p :=
 
 end add_comm_group
 
+section is_domain
+
+variables [ring R] [is_domain R]
+variables [add_comm_group M] [module R M] {b : ι → M}
+
+lemma not_mem_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ∉ N :=
+by { intro hx, simpa using ortho (-1) x hx }
+
+lemma ne_zero_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ≠ 0 :=
+mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
+
+end is_domain
+
 section ordered_monoid
 
 variables [semiring R]

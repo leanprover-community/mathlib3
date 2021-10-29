@@ -61,6 +61,10 @@ end
 lemma transpose_nonsing_inv : (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
 by rw [inv_def, inv_def, transpose_smul, det_transpose, adjugate_transpose]
 
+lemma conj_transpose_nonsing_inv [star_ring α] : (A⁻¹)ᴴ = (Aᴴ)⁻¹ :=
+by rw [inv_def, inv_def, conj_transpose_smul, det_conj_transpose, adjugate_conj_transpose,
+       ring.inverse_star]
+
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 @[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A⁻¹ = 1 :=
 by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul,
@@ -82,11 +86,35 @@ begin
   { exact or.inr (nonsing_inv_apply_not_is_unit _ h) }
 end
 
-@[simp] lemma nonsing_inv_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
+@[simp] lemma det_nonsing_inv_mul_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
 by rw [←det_mul, A.nonsing_inv_mul h, det_one]
 
+lemma _root_.ring.inverse_one {R} [monoid_with_zero R] :
+  ring.inverse (1 : R) = 1 := ring.inverse_unit 1
+
+lemma _root_.ring.inverse_pow {R} [comm_semiring R] (r : R) :
+  ∀ (n : ℕ), ring.inverse (r ^ n) = ring.inverse r ^ n
+| 0 := by rw [pow_zero, pow_zero, ring.inverse_one]
+| (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev, _root_.ring.inverse_pow]
+
+@[simp] lemma det_nonsing_inv : A⁻¹.det = ring.inverse A.det :=
+begin
+  rw [inv_def, det_smul, det_adjugate],
+  cases (fintype.card n).zero_le.eq_or_lt with hc0 hc_pos,
+  { haveI : is_empty n := fintype.card_eq_zero_iff.mp hc0.symm,
+    rw [←hc0, zero_tsub, pow_zero, det_is_empty, pow_zero, ring.inverse_one, one_mul] },
+  by_cases h : is_unit A.det,
+  { obtain ⟨u, hu⟩ := h,
+    rw [←hu, ring.inverse_unit, ←units.coe_pow, ←units.coe_pow, ←units.coe_mul],
+    congr,
+    apply @mul_right_cancel _ _ _ u,
+    rw [mul_assoc, ←pow_succ', inv_mul_self, tsub_add_cancel_of_le hc_pos.nat_succ_le, inv_pow,
+      inv_mul_self] },
+  rw [ring.inverse_non_unit _ h, zero_pow hc_pos, zero_mul],
+end
+
 lemma is_unit_nonsing_inv_det (h : is_unit A.det) : is_unit A⁻¹.det :=
-is_unit_of_mul_eq_one _ _ (A.nonsing_inv_det h)
+is_unit_of_mul_eq_one _ _ (A.det_nonsing_inv_mul_det h)
 
 @[simp] lemma nonsing_inv_nonsing_inv (h : is_unit A.det) : (A⁻¹)⁻¹ = A :=
 calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul

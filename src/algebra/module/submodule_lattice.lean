@@ -274,4 +274,24 @@ def add_subgroup.to_int_submodule : add_subgroup M ≃o submodule ℤ M :=
   right_inv := λ ⟨S, _, _, _⟩, rfl,
   map_rel_iff' := λ a b, iff.rfl }
 
+
+@[simp]
+lemma add_subgroup.to_int_submodule_symm :
+  ⇑(add_subgroup.to_int_submodule.symm : _ ≃o add_subgroup M) = submodule.to_add_subgroup := rfl
+
+@[simp]
+lemma add_subgroup.coe_to_int_submodule (S : add_subgroup M) :
+  (S.to_int_submodule : set M) = S := rfl
+
+@[simp]
+lemma add_subgroup.to_int_submodule_to_add_subgroup (S : add_subgroup M) :
+  S.to_int_submodule.to_add_subgroup = S :=
+add_subgroup.to_int_submodule.symm_apply_apply S
+
+@[simp]
+lemma submodule.to_add_subgroup_to_int_submodule (S : submodule ℤ M) :
+  S.to_add_subgroup.to_int_submodule = S :=
+add_subgroup.to_int_submodule.apply_symm_apply S
+
+
 end int_module

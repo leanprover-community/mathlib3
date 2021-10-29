@@ -102,7 +102,7 @@ lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
 begin
   induction t using finset.induction_on with a t hat IH hs h's,
   { simp },
-  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_on_insert,
+  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_insert,
       finset.set_bUnion_insert] at hs hf h's ⊢,
     rw [integral_union _ hs.1 _ hf.1 (integrable_on_finset_Union.2 hf.2)],
     { rw [finset.sum_insert hat, IH hs.2 h's.1 hf.2] },
@@ -180,7 +180,7 @@ lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f 
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 begin
   have hfi' : ∀ i, integrable_on f (s i) μ, from λ i, hfi.mono_set (subset_Union _ _),
-  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.pairwise_on _) (λ i _, hfi' i)],
+  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.set_pairwise _) (λ i _, hfi' i)],
   rw Union_eq_Union_finset at hfi ⊢,
   exact tendsto_set_integral_of_monotone (λ t, t.measurable_set_bUnion (λ i _, hm i))
     (λ t₁ t₂ h, bUnion_subset_bUnion_left h) hfi

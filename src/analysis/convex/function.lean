@@ -231,7 +231,7 @@ lemma concave_on_iff_forall_pos {s : set E} {f : E → β} :
 
 lemma convex_on_iff_pairwise_on_pos {s : set E} {f : E → β} :
   convex_on 𝕜 s f ↔ convex 𝕜 s ∧
-    s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → f (a • x + b • y) ≤ a • f x + b • f y) :=
 begin
   rw convex_on_iff_forall_pos,
@@ -244,7 +244,7 @@ end
 
 lemma concave_on_iff_pairwise_on_pos {s : set E} {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧
-   s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+   s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → a • f x + b • f y ≤ f (a • x + b • y)) :=
 @convex_on_iff_pairwise_on_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
 

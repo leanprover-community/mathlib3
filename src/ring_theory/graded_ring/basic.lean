@@ -167,6 +167,23 @@ begin
   rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
 end
 
+lemma graded_ring.proj_homogeneous_element {x : R} {i : ι} (hx : x ∈ A i) :
+  graded_ring.proj R A i x = x :=
+begin
+  type_check add_comm_group.int_module (A i),
+  obtain ⟨a, ha⟩ := (graded_ring.recompose R A).bijective.surjective x,
+  rw [←ha, graded_ring.proj_recompose],
+  conv_rhs { rw [←direct_sum.sum_support_of _ a, ring_equiv.map_sum], },
+  simp_rw [←graded_ring.proj_recompose],
+  conv_lhs { rw [←direct_sum.sum_support_of _ a, ring_equiv.map_sum, add_monoid_hom.map_sum], },
+  simp_rw [←graded_ring.proj_recompose], apply finset.sum_congr rfl,
+  intros j hj,
+  rw [graded_ring.proj_recompose, graded_ring.proj_recompose],
+  by_cases i = j, rw [←h, direct_sum.of_eq_same],
+  rw [direct_sum.of_eq_of_ne], simp only [ring_equiv.map_zero, add_monoid_hom.map_zero],
+  sorry,
+end
+
 end graded_ring
 
 section homogeneous_element

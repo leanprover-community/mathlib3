@@ -67,6 +67,9 @@ begin
   exact is_unit_pow_succ_iff,
 end
 
+lemma is_unit_mul_self_iff {m : M} : is_unit (m * m) ↔ is_unit m :=
+by rw [←pow_two, is_unit_pow_succ_iff]
+
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
 def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
   invertible x :=

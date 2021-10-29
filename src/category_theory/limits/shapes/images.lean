@@ -539,6 +539,11 @@ lemma has_image_map.mk {f g : arrow C} [has_image f.hom] [has_image g.hom] {sq :
   (m : image_map sq) : has_image_map sq :=
 ⟨nonempty.intro m⟩
 
+lemma has_image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
+  (F : mono_factorisation f.hom) {F' : mono_factorisation g.hom} (hF' : is_image F')
+  (map : F.I ⟶ F'.I) (map_ι : map ≫ F'.m = F.m ≫ sq.right) : has_image_map sq :=
+has_image_map.mk $ image_map.transport sq F hF' map_ι
+
 /-- Obtain an `image_map` from a `has_image_map` instance. -/
 def has_image_map.image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
   [has_image_map sq] : image_map sq :=
@@ -557,11 +562,6 @@ has_image_map.mk
       comma.id_right, category.comp_id],
   end }
 
-instance has_image_map.id (f : arrow C) [has_image f.hom] : has_image_map (𝟙 f) :=
-has_image_map.mk
-{ map := 𝟙 _,
-  map_ι' := by erw [arrow.id_right, category.id_comp, category.comp_id] }
-
 instance has_image_map.comp {f g h : arrow C} [has_image f.hom] [has_image g.hom] [has_image h.hom]
   (sq1 : f ⟶ g) (sq2 : g ⟶ h) [has_image_map sq1] [has_image_map sq2] :
   has_image_map (sq1 ≫ sq2) :=
@@ -569,11 +569,6 @@ has_image_map.mk
 { map := (has_image_map.image_map sq1).map ≫ (has_image_map.image_map sq2).map,
   map_ι' :=
   by simp only [image_map.map_ι, image_map.map_ι_assoc, comma.comp_right, category.assoc] }
-
-lemma has_image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
-  (F : mono_factorisation f.hom) {F' : mono_factorisation g.hom} (hF' : is_image F')
-  (map : F.I ⟶ F'.I) (map_ι : map ≫ F'.m = F.m ≫ sq.right) : has_image_map sq :=
-has_image_map.mk $ image_map.transport sq F hF' map_ι
 
 variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 

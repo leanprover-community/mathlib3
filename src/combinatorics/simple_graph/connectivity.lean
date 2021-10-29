@@ -989,7 +989,7 @@ A characterization: `simple_graph.is_acyclic_iff`.-/
 def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 
 /-- A *tree* is a connected acyclic graph. -/
-def is_tree : Prop := G.connected ∧ G.is_acyclic
+def is_tree : Prop := G.connected ∧ G.is_acyclic ∧ nonempty V
 
 end
 
@@ -1220,11 +1220,14 @@ begin
   { apply is_acyclic_if_unique_path, },
 end
 
-lemma is_tree_iff : G.is_tree ↔ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
+lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin
   simp only [is_tree, is_acyclic_iff],
   split,
-  { rintro ⟨hc, hu⟩ v w,
+  { intro h,
+    split,
+    simp only [h.2],
+    rintro ⟨hc, hu⟩ v w,
     let q := (hc v w).some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
@@ -1276,7 +1279,7 @@ begin
   by_contra hne,
   rw sym2.eq_swap at hwv,
   have hv := walk.mem_support_of_mem_edges _ hwv,
-  have h' := h.2,
+  have h' := h.2.1,
   rw is_acyclic_iff at h',
   specialize h' _ _
     (G.tree_path h v root)
@@ -1306,7 +1309,7 @@ end
 lemma is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (hvw : G.adj v w) :
   is_rootward h root v w ∨ is_rootward h root w v :=
 begin
-  have h' := h.2,
+  have h' := h.2.1,
   rw is_acyclic_iff at h',
   by_contra hr,
   simp only [is_rootward] at hr,
@@ -1371,9 +1374,11 @@ begin
 end
 
 lemma is_tree.card_edges_eq_card_vertices_sub_one
-  [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :
+  [fintype G.edge_set] [fintype V] (h : G.is_tree) :
   card G.edge_set = card V - 1 :=
 begin
+  cases h with _ h,
+  cases h with _ h,
   have root := classical.arbitrary V,
   rw ←set.card_ne_eq root,
   let f : {v | v ≠ root} → G.edge_set := λ v,

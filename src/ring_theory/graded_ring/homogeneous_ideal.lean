@@ -68,14 +68,22 @@ end⟩
 lemma is_homogeneous_ideal.mem_iff (I : ideal R) (hI : is_homogeneous_ideal R A I) (r : R) :
   r ∈ I ↔ ∀ i : ι, graded_ring.proj R A i r ∈ I :=
 ⟨λ hr i, begin
+  have hI' := hI,
   rw [is_homogeneous_ideal_iff_is_homogeneous_ideal', is_homogeneous_ideal', ideal.span,
-    finsupp.span_eq_range_total] at hI, rw hI at hr,
+    finsupp.span_eq_range_total] at hI', rw hI' at hr,
   obtain ⟨s, rfl⟩ := hr,
-  rw [finsupp.total_apply, finsupp.sum],
-  type_check ideal.subset_span,
+  rw [finsupp.total_apply, finsupp.sum, add_monoid_hom.map_sum],
+  apply ideal.sum_mem, rintros ⟨a, ha₁, ⟨j, ha₂⟩⟩ ha₃,
+  rw [smul_eq_mul, graded_ring.mul_proj R A _ _ i],
+  apply ideal.sum_mem, rintros ⟨j, k⟩ hjk,
+  apply ideal.mul_mem_left,
+  simp only [subtype.coe_mk],
 
   sorry
-end, sorry⟩
+end, λ hr, begin
+  rw graded_ring.as_sum R A r,
+  apply ideal.sum_mem, intros c _, apply hr,
+end⟩
 
 -- section defs
 

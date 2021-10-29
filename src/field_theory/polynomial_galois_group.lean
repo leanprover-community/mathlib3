@@ -50,10 +50,13 @@ namespace polynomial
 variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
 
 /-- The Galois group of a polynomial. -/
-@[derive [has_coe_to_fun, group, fintype]]
+@[derive [group, fintype]]
 def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
+
+instance : has_coe_to_fun p.gal (λ _, p.splitting_field → p.splitting_field) :=
+alg_equiv.has_coe_to_fun
 
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin

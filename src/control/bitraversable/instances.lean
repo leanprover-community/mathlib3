@@ -7,25 +7,23 @@ import control.bitraversable.lemmas
 import control.traversable.lemmas
 
 /-!
-# bitraversable instances
+# Bitraversable instances
 
-## Instances
-
- * prod
- * sum
- * const
- * flip
- * bicompl
- * bicompr
+This file provides `bitraversable` instances for concrete bifunctors:
+* `prod`
+* `sum`
+* `functor.const`
+* `flip`
+* `function.bicompl`
+* `function.bicompr`
 
 ## References
 
- * Hackage: <https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html>
+* Hackage: <https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html>
 
 ## Tags
 
 traversable bitraversable functor bifunctor applicative
-
 -/
 
 universes u v w
@@ -35,8 +33,9 @@ variables {t : Type u → Type u → Type u} [bitraversable t]
 section
 variables {F : Type u → Type u} [applicative F]
 
+/-- The bitraverse function for `α × β`. -/
 def prod.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : α × β → F (α' × β')
-| (x,y) := prod.mk <$> f x <*> f' y
+| (x, y) := prod.mk <$> f x <*> f' y
 
 instance : bitraversable prod :=
 { bitraverse := @prod.bitraverse }
@@ -47,6 +46,7 @@ by constructor; introsI; cases x;
 
 open functor
 
+/-- The bitraverse function for `α ⊕ β`. -/
 def sum.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : α ⊕ β → F (α' ⊕ β')
 | (sum.inl x) := sum.inl <$> f x
 | (sum.inr x) := sum.inr <$> f' x
@@ -56,17 +56,20 @@ instance : bitraversable sum :=
 
 instance : is_lawful_bitraversable sum :=
 by constructor; introsI; cases x;
-     simp [bitraverse,sum.bitraverse] with functor_norm; refl
+     simp [bitraverse, sum.bitraverse] with functor_norm; refl
 
-def const.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : const α β → F (const α' β') := f
+/-- The bitraverse function for `const`. It throws away the second map. -/
+@[nolint unused_arguments] def const.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') :
+  const α β → F (const α' β') := f
 
 instance bitraversable.const : bitraversable const :=
 { bitraverse := @const.bitraverse }
 
-instance is_lawful_bitraversable.const : is_lawful_bitraversable const  :=
+instance is_lawful_bitraversable.const : is_lawful_bitraversable const :=
 by constructor; introsI;
      simp [bitraverse,const.bitraverse] with functor_norm; refl
 
+/-- The bitraverse function for `flip`. -/
 def flip.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : flip t α β → F (flip t α' β') :=
 (bitraverse f' f : t β α → F (t β' α'))
 
@@ -74,8 +77,8 @@ instance bitraversable.flip : bitraversable (flip t) :=
 { bitraverse := @flip.bitraverse t _ }
 
 open is_lawful_bitraversable
-instance is_lawful_bitraversable.flip [is_lawful_bitraversable t]
-  : is_lawful_bitraversable (flip t)  :=
+instance is_lawful_bitraversable.flip [is_lawful_bitraversable t] :
+  is_lawful_bitraversable (flip t)  :=
 by constructor; intros; unfreezingI { casesm is_lawful_bitraversable t }; tactic.apply_assumption
 
 open bitraversable functor
@@ -100,6 +103,7 @@ open function (bicompl bicompr)
 section bicompl
 variables (F G : Type u → Type u) [traversable F] [traversable G]
 
+/-- The bitraverse function for `bicompl`. -/
 def bicompl.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f' : α' → m β') :
   bicompl t F G α α' → m (bicompl t F G β β') :=
 (bitraverse (traverse f) (traverse f') : t (F α) (G α') → m _)
@@ -107,7 +111,7 @@ def bicompl.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f'
 instance : bitraversable (bicompl t F G) :=
 { bitraverse := @bicompl.bitraverse t _ F G _ _ }
 
-instance [is_lawful_traversable F]  [is_lawful_traversable G] [is_lawful_bitraversable t] :
+instance [is_lawful_traversable F] [is_lawful_traversable G] [is_lawful_bitraversable t] :
   is_lawful_bitraversable (bicompl t F G) :=
 begin
   constructor; introsI;
@@ -123,6 +127,7 @@ section bicompr
 
 variables (F : Type u → Type u) [traversable F]
 
+/-- The bitraverse function for `bicompr`. -/
 def bicompr.bitraverse {m} [applicative m] {α β α' β'} (f : α → m β) (f' : α' → m β') :
   bicompr F t α α' → m (bicompr F t β β') :=
 (traverse (bitraverse f f') : F (t α α') → m _)

@@ -462,7 +462,58 @@ noncomputable def order_embedding.locally_finite_order (f : α ↪o β) :
   finset_mem_Ioc := λ a b x, by rw [mem_preimage, mem_Ioc, f.lt_iff_lt, f.le_iff_le],
   finset_mem_Ioo := λ a b x, by rw [mem_preimage, mem_Ioo, f.lt_iff_lt, f.lt_iff_lt] }
 
-variables [locally_finite_order α]
+open order_dual
+
+variables [locally_finite_order α] (a b : α)
+
+/-- Note we define `Icc (to_dual a) (to_dual b)` as `Icc α _ _ b a` (which has type `finset α` not
+`finset (order_dual α)`!) instead of `(Icc b a).map to_dual.to_embedding` as this means the
+following is defeq:
+```
+lemma this : (Icc (to_dual (to_dual a)) (to_dual (to_dual b)) : _) = (Icc a b : _) := rfl
+```
+-/
+instance : locally_finite_order (order_dual α) :=
+{ finset_Icc := λ a b, @Icc α _ _ (of_dual b) (of_dual a),
+  finset_Ico := λ a b, @Ioc α _ _ (of_dual b) (of_dual a),
+  finset_Ioc := λ a b, @Ico α _ _ (of_dual b) (of_dual a),
+  finset_Ioo := λ a b, @Ioo α _ _ (of_dual b) (of_dual a),
+  finset_mem_Icc := λ a b x, mem_Icc.trans (and_comm _ _),
+  finset_mem_Ico := λ a b x, mem_Ioc.trans (and_comm _ _),
+  finset_mem_Ioc := λ a b x, mem_Ico.trans (and_comm _ _),
+  finset_mem_Ioo := λ a b x, mem_Ioo.trans (and_comm _ _) }
+
+lemma Icc_to_dual : Icc (to_dual a) (to_dual b) = (Icc b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Icc, mem_Icc],
+  exact and_comm _ _,
+end
+
+lemma Ico_to_dual : Ico (to_dual a) (to_dual b) = (Ioc b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Ico, mem_Ioc],
+  exact and_comm _ _,
+end
+
+lemma Ioc_to_dual : Ioc (to_dual a) (to_dual b) = (Ico b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Ioc, mem_Ico],
+  exact and_comm _ _,
+end
+
+lemma Ioo_to_dual : Ioo (to_dual a) (to_dual b) = (Ioo b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Ioo, mem_Ioo],
+  exact and_comm _ _,
+end
 
 instance [decidable_rel ((≤) : α × β → α × β → Prop)] : locally_finite_order (α × β) :=
 locally_finite_order.of_Icc' (α × β)

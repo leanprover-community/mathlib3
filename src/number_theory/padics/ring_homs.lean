@@ -37,9 +37,11 @@ which removes some boilerplate code.
 -/
 
 noncomputable theory
+
 open_locale classical
-namespace padic_int
 open nat local_ring padic
+
+namespace padic_int
 
 variables {p : ℕ} [hp_prime : fact (p.prime)]
 include hp_prime
@@ -314,8 +316,8 @@ begin
       apply nat.mul_le_mul_left,
       apply le_pred_of_lt,
       apply zmod.val_lt },
-    { rw [nat.mul_sub_left_distrib, mul_one, ← pow_succ'],
-      apply add_sub_cancel_of_le (le_of_lt hp) } }
+    { rw [mul_tsub, mul_one, ← pow_succ'],
+      apply add_tsub_cancel_of_le (le_of_lt hp) } }
 end
 
 lemma appr_mono (x : ℤ_[p]) : monotone x.appr :=
@@ -332,12 +334,12 @@ lemma dvd_appr_sub_appr (x : ℤ_[p]) (m n : ℕ) (h : m ≤ n) :
 begin
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h, clear h,
   induction k with k ih,
-  { simp only [add_zero, nat.sub_self, dvd_zero], },
+  { simp only [add_zero, tsub_self, dvd_zero], },
   rw [nat.succ_eq_add_one, ← add_assoc],
   dsimp [appr],
   split_ifs with h,
   { exact ih },
-  rw [add_comm, nat.add_sub_assoc (appr_mono _ (nat.le_add_right m k))],
+  rw [add_comm, add_tsub_assoc_of_le (appr_mono _ (nat.le_add_right m k))],
   apply dvd_add _ ih,
   apply dvd_mul_of_dvd_left,
   apply pow_dvd_pow _ (nat.le_add_right m k),
@@ -371,7 +373,7 @@ begin
       apply to_zmod_spec },
     obtain ⟨c, rfl⟩ : is_unit c, -- TODO: write a can_lift instance for units
     { rw int.nat_abs_eq_zero at hc0,
-      rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, gpow_zero], },
+      rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, zpow_zero], },
     rw discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
     exact irreducible_p },
   { rw zero_pow hc0,
@@ -625,7 +627,7 @@ lemma lift_sub_val_mem_span (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
 begin
   obtain ⟨k, hk⟩ := lim_nth_hom_spec f_compat r _
-    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.fpow_pos_of_pos hp_prime.1.pos _),
+    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.zpow_pos_of_pos hp_prime.1.pos _),
   have := le_of_lt (hk (max n k) (le_max_right _ _)),
   rw norm_le_pow_iff_mem_span_pow at this,
   dsimp [lift],

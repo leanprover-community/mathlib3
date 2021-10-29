@@ -189,15 +189,15 @@ instance [cancel_comm_monoid α] : cancel_comm_monoid (opposite α) :=
 { .. opposite.cancel_monoid α, ..opposite.comm_monoid α }
 
 instance [div_inv_monoid α] : div_inv_monoid (opposite α) :=
-{ gpow := λ n x, op $ div_inv_monoid.gpow n x.unop,
-  gpow_zero' := λ x, unop_injective $ div_inv_monoid.gpow_zero' x.unop,
-  gpow_succ' := λ n x, unop_injective $ (div_inv_monoid.gpow_succ' n x.unop).trans begin
+{ zpow := λ n x, op $ div_inv_monoid.zpow n x.unop,
+  zpow_zero' := λ x, unop_injective $ div_inv_monoid.zpow_zero' x.unop,
+  zpow_succ' := λ n x, unop_injective $ (div_inv_monoid.zpow_succ' n x.unop).trans begin
     dsimp,
     induction n with n ih,
-    { rw [int.of_nat_zero, div_inv_monoid.gpow_zero', one_mul, mul_one] },
-    { rw [div_inv_monoid.gpow_succ' n x.unop, mul_assoc, ih], },
+    { rw [int.of_nat_zero, div_inv_monoid.zpow_zero', one_mul, mul_one] },
+    { rw [div_inv_monoid.zpow_succ' n x.unop, mul_assoc, ih], },
   end,
-  gpow_neg' := λ z x, unop_injective $ div_inv_monoid.gpow_neg' z x.unop,
+  zpow_neg' := λ z x, unop_injective $ div_inv_monoid.zpow_neg' z x.unop,
   .. opposite.monoid α, .. opposite.has_inv α }
 
 instance [group α] : group (opposite α) :=
@@ -254,8 +254,8 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (op
     or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_injective H)
       (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx), }
 
-instance [integral_domain α] : integral_domain (opposite α) :=
-{ .. opposite.no_zero_divisors α, .. opposite.comm_ring α, .. opposite.nontrivial α }
+instance [ring α] [is_domain α] : is_domain (opposite α) :=
+{ .. opposite.no_zero_divisors α, .. opposite.ring α, .. opposite.nontrivial α }
 
 instance [group_with_zero α] : group_with_zero (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,

@@ -61,12 +61,12 @@ instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
   div := has_div.div,
   div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
   mul_left_inv := by intros; ext; apply mul_left_inv,
-  gpow := λ n f, { to_fun := λ x, gpow n (f x),
+  zpow := λ n f, { to_fun := λ x, zpow n (f x),
     map_one' := by simp,
-    map_mul' := λ x y, by simp [mul_gpow] },
-  gpow_zero' := λ f, by { ext x, simp },
-  gpow_succ' := λ n f, by { ext x, simp [gpow_of_nat, pow_succ] },
-  gpow_neg'  := λ n f, by { ext x, simp },
+    map_mul' := λ x y, by simp [mul_zpow] },
+  zpow_zero' := λ f, by { ext x, simp },
+  zpow_succ' := λ n f, by { ext x, simp [zpow_of_nat, pow_succ] },
+  zpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
 
 /-- If `G` is an additive commutative group, then `M →+ G` is an additive commutative group too. -/
@@ -75,12 +75,12 @@ instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G)
   sub := has_sub.sub,
   sub_eq_add_neg := by { intros, ext, apply sub_eq_add_neg },
   add_left_neg := by intros; ext; apply add_left_neg,
-  gsmul := λ n f, { to_fun := λ x, gsmul n (f x),
+  zsmul := λ n f, { to_fun := λ x, zsmul n (f x),
     map_zero' := by simp,
-    map_add' := λ x y, by simp [gsmul_add] },
-  gsmul_zero' := λ f, by { ext x, simp },
-  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_add_one, add_comm, add_nsmul] },
-  gsmul_neg'  := λ n f, by { ext x, simp },
+    map_add' := λ x y, by simp [zsmul_add] },
+  zsmul_zero' := λ f, by { ext x, simp },
+  zsmul_succ' := λ n f, by { ext x, simp [zsmul_of_nat, nat.succ_eq_add_one, add_comm, add_nsmul] },
+  zsmul_neg'  := λ n f, by { ext x, simp },
   ..add_monoid_hom.add_comm_monoid }
 
 attribute [to_additive] monoid_hom.comm_group

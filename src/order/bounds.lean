@@ -82,6 +82,18 @@ lemma not_bdd_below_iff {α : Type*} [linear_order α] {s : set α} :
   ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y < x :=
 @not_bdd_above_iff (order_dual α) _ _
 
+lemma bdd_above.dual (h : bdd_above s) : bdd_below (of_dual ⁻¹' s) := h
+
+lemma bdd_below.dual (h : bdd_below s) : bdd_above (of_dual ⁻¹' s) := h
+
+lemma is_least.dual (h : is_least s a) : is_greatest (of_dual ⁻¹' s) (to_dual a) := h
+
+lemma is_greatest.dual (h : is_greatest s a) : is_least (of_dual ⁻¹' s) (to_dual a) := h
+
+lemma is_lub.dual (h : is_lub s a) : is_glb (of_dual ⁻¹' s) (to_dual a) := h
+
+lemma is_glb.dual (h : is_glb s a) : is_lub (of_dual ⁻¹' s) (to_dual a) := h
+
 /-!
 ### Monotonicity
 -/
@@ -126,7 +138,7 @@ lemma is_lub.of_subset_of_superset {s t p : set α} (hs : is_lub s a) (hp : is_l
 set `t`, `s ⊆ t ⊆ p`. -/
 lemma is_glb.of_subset_of_superset {s t p : set α} (hs : is_glb s a) (hp : is_glb p a)
   (hst : s ⊆ t) (htp : t ⊆ p) : is_glb t a :=
-@is_lub.of_subset_of_superset (order_dual α) _ a s t p hs hp hst htp
+hs.dual.of_subset_of_superset hp hst htp
 
 lemma is_least.mono (ha : is_least s a) (hb : is_least t b) (hst : s ⊆ t) : b ≤ a :=
 hb.2 (hst ha.1)
@@ -163,8 +175,7 @@ lemma is_greatest.is_lub (h : is_greatest s a) : is_lub s a := ⟨h.2, λ b hb, 
 lemma is_lub.upper_bounds_eq (h : is_lub s a) : upper_bounds s = Ici a :=
 set.ext $ λ b, ⟨λ hb, h.2 hb, λ hb, upper_bounds_mono_mem hb h.1⟩
 
-lemma is_glb.lower_bounds_eq (h : is_glb s a) : lower_bounds s = Iic a :=
-@is_lub.upper_bounds_eq (order_dual α) _ _ _ h
+lemma is_glb.lower_bounds_eq (h : is_glb s a) : lower_bounds s = Iic a := h.dual.upper_bounds_eq
 
 lemma is_least.lower_bounds_eq (h : is_least s a) : lower_bounds s = Iic a :=
 h.is_glb.lower_bounds_eq
@@ -287,7 +298,7 @@ then `a ⊓ b` is the greatest lower bound of `s ∪ t`. -/
 lemma is_glb.union [semilattice_inf γ] {a₁ a₂ : γ} {s t : set γ}
   (hs : is_glb s a₁) (ht : is_glb t a₂) :
   is_glb (s ∪ t) (a₁ ⊓ a₂) :=
-@is_lub.union (order_dual γ) _ _ _ _ _ hs ht
+hs.dual.union ht
 
 /-- If `a` is the least element of `s` and `b` is the least element of `t`,
 then `min a b` is the least element of `s ∪ t`. -/
@@ -310,7 +321,7 @@ lemma is_lub.inter_Ici_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is
 
 lemma is_glb.inter_Iic_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_glb s a)
   (hb : b ∈ s) : is_glb (s ∩ Iic b) a :=
-@is_lub.inter_Ici_of_mem (order_dual γ) _ _ _ _ ha hb
+ha.dual.inter_Ici_of_mem hb
 
 /-!
 ### Specific sets
@@ -545,8 +556,7 @@ ne_empty_iff_nonempty.1 $ assume h,
 have a ≤ a', from hs.right $ by simp only [h, upper_bounds_empty],
 not_le_of_lt ha' this
 
-lemma is_glb.nonempty [no_top_order α] (hs : is_glb s a) : s.nonempty :=
-@is_lub.nonempty (order_dual α) _ _ _ _ hs
+lemma is_glb.nonempty [no_top_order α] (hs : is_glb s a) : s.nonempty := hs.dual.nonempty
 
 lemma nonempty_of_not_bdd_above [ha : nonempty α] (h : ¬bdd_above s) : s.nonempty :=
 nonempty.elim ha $ λ x, (not_bdd_above_iff'.1 h x).imp $ λ a ha, ha.fst
@@ -653,8 +663,7 @@ lower_bounds_le_upper_bounds ha.1 hb.1 hs
 lemma is_lub_lt_iff (ha : is_lub s a) : a < b ↔ ∃ c ∈ upper_bounds s, c < b :=
 ⟨λ hb, ⟨a, ha.1, hb⟩, λ ⟨c, hcs, hcb⟩, lt_of_le_of_lt (ha.2 hcs) hcb⟩
 
-lemma lt_is_glb_iff (ha : is_glb s a) : b < a ↔ ∃ c ∈ lower_bounds s, b < c :=
-@is_lub_lt_iff (order_dual α) _ s _ _ ha
+lemma lt_is_glb_iff (ha : is_glb s a) : b < a ↔ ∃ c ∈ lower_bounds s, b < c := is_lub_lt_iff ha.dual
 
 lemma le_of_is_lub_le_is_glb {x y} (ha : is_glb s a) (hb : is_lub s b) (hab : b ≤ a)
   (hx : x ∈ s) (hy : y ∈ s) : x ≤ y :=
@@ -705,8 +714,7 @@ variables [linear_order α] {s : set α} {a b : α}
 lemma lt_is_lub_iff (h : is_lub s a) : b < a ↔ ∃ c ∈ s, b < c :=
 by simp only [← not_le, is_lub_le_iff h, mem_upper_bounds, not_forall]
 
-lemma is_glb_lt_iff (h : is_glb s a) : a < b ↔ ∃ c ∈ s, c < b :=
-@lt_is_lub_iff (order_dual α) _ _ _ _ h
+lemma is_glb_lt_iff (h : is_glb s a) : a < b ↔ ∃ c ∈ s, c < b := lt_is_lub_iff h.dual
 
 lemma is_lub.exists_between (h : is_lub s a) (hb : b < a) :
   ∃ c ∈ s, b < c ∧ c ≤ a :=

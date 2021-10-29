@@ -55,34 +55,28 @@ alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
 @[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
 
-@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ :=
-Icc_eq_empty h.not_le
-
-@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ :=
-Ico_eq_empty h.not_lt
-
-@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ :=
-Ioc_eq_empty h.not_lt
-
-@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
-Ioo_eq_empty h.not_lt
+@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ := Icc_eq_empty h.not_le
+@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ := Ico_eq_empty h.not_lt
+@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ := Ioc_eq_empty h.not_lt
+@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ := Ioo_eq_empty h.not_lt
 
 variables (a)
 
-@[simp] lemma Ico_self : Ico a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ico, set.Ico_self]
+@[simp] lemma Ico_self : Ico a a = ∅ := by rw [←coe_eq_empty, coe_Ico, set.Ico_self]
+@[simp] lemma Ioc_self : Ioc a a = ∅ := by rw [←coe_eq_empty, coe_Ioc, set.Ioc_self]
+@[simp] lemma Ioo_self : Ioo a a = ∅ := by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
 
-@[simp] lemma Ioc_self : Ioc a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ioc, set.Ioc_self]
+variables {a b}
 
-@[simp] lemma Ioo_self : Ioo a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
+@[simp] lemma left_mem_Icc (h : a ≤ b) : a ∈ Icc a b := mem_Icc.2 ⟨le_rfl, h⟩
+@[simp] lemma left_mem_Ico (h : a < b) : a ∈ Ico a b := mem_Ico.2 ⟨le_rfl, h⟩
+@[simp] lemma left_not_mem_Ioc : a ∉ Ioc a b := λ h, lt_irrefl _ (mem_Ioc.1 h).1
+@[simp] lemma left_not_mem_Ioo : a ∉ Ioo a b := λ h, lt_irrefl _ (mem_Ioo.1 h).1
 
-@[simp] lemma right_not_mem_Ico {a b : α} : b ∉ Ico a b :=
-by { rw [mem_Ico, not_and], exact λ _, lt_irrefl _ }
-
-@[simp] lemma left_not_mem_Ioo {a b : α} : a ∉ Ioo a b :=
-by { rw [mem_Ioo, not_and], exact λ h _, lt_irrefl _ h }
+@[simp] lemma right_mem_Icc (h : a ≤ b) : b ∈ Icc a b := mem_Icc.2 ⟨h, le_rfl⟩
+@[simp] lemma right_not_mem_Ico : b ∉ Ico a b := λ h, lt_irrefl _ (mem_Ico.1 h).2
+@[simp] lemma right_mem_Ioc (h : a < b) : b ∈ Ioc a b := mem_Ioc.2 ⟨h, le_rfl⟩
+@[simp] lemma right_not_mem_Ioo : b ∉ Ioo a b := λ h, lt_irrefl _ (mem_Ioo.1 h).2
 
 lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hca : c ≤ a) :
   (Ico a b).filter (λ x, x < c) = ∅ :=

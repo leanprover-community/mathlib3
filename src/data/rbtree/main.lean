@@ -208,7 +208,8 @@ begin cases t, intro h, congr, apply rbnode.eq_leaf_of_max_eq_none h end
 
 lemma min_is_minimal [is_strict_weak_order α lt] {a : α} {t : rbtree α lt} :
   t.min = some a → ∀ {b}, b ∈ t → a ≈[lt] b ∨ lt a b :=
-by { classical, cases t, apply rbnode.min_is_minimal, apply rbnode.is_searchable_of_well_formed, assumption }
+by { classical, cases t, apply rbnode.min_is_minimal, apply rbnode.is_searchable_of_well_formed,
+  assumption }
 
 lemma max_is_maximal [is_strict_weak_order α lt] {a : α} {t : rbtree α lt} :
   t.max = some a → ∀ {b}, b ∈ t → a ≈[lt] b ∨ lt b a :=

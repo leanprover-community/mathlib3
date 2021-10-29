@@ -101,12 +101,12 @@ by simp [compl]
 @[simp]
 lemma compl_apply [has_zero α] [has_one α] (i j : V) :
   A.compl i j = 0 ∨ A.compl i j = 1 :=
-by { unfold compl, split_ifs; simp, }
+by { unfold compl, split_ifs; simp }
 
 @[simp]
 lemma is_symm_compl [has_zero α] [has_one α] (h : A.is_symm) :
   A.compl.is_symm :=
-by { ext, simp [compl, h.apply, eq_comm], }
+by { ext, simp [compl, h.apply, eq_comm] }
 
 @[simp]
 lemma is_adj_matrix_compl [has_zero α] [has_one α] (h : A.is_symm) :
@@ -243,21 +243,21 @@ lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
 by simp [hd v]
 
 section walks
-variables (G) [decidable_eq α]
+variables (G) [decidable_eq V]
 
 /-- The `finset` of length-`n` walks from `u` to `v`. -/
-def walk_len : Π (n : ℕ) (u v : α), finset (G.walk u v)
+def walk_len : Π (n : ℕ) (u v : V), finset (G.walk u v)
 | 0 u v := if h : u = v
-           then by { subst u, exact {walk.nil}, }
+           then by { subst u, exact {walk.nil} }
            else ∅
-| (n+1) u v := finset.univ.bUnion (λ (w : α),
+| (n+1) u v := finset.univ.bUnion (λ (w : V),
                  if h : G.adj u w
                  then (walk_len n w v).map ⟨λ p, walk.cons h p, begin
                      intros p q, simp,
                    end⟩
                  else ∅)
 
-lemma walk_len_eq (n : ℕ) (u v : α) :
+lemma walk_len_eq (n : ℕ) (u v : V) :
   ↑(G.walk_len n u v) = {p : G.walk u v | p.length = n} :=
 begin
   induction n generalizing u v,
@@ -265,10 +265,10 @@ begin
     simp only [walk_len, nat.nat_zero_eq_zero, mem_coe, set.mem_set_of_eq],
     by_cases h : u = v,
     { subst h,
-      cases p; simp, },
+      cases p; simp },
     { cases p,
       simp,
-      simp [h], }, },
+      simp [h] } },
   { ext p,
     simp [walk_len],
     split,
@@ -278,21 +278,21 @@ begin
         obtain ⟨q, hq, rfl⟩ := h,
         simp [walk.length],
         rw [←finset.mem_coe, n_ih] at hq,
-        exact hq, },
+        exact hq },
       { simp [huw] at h,
-        exact h.elim, }, },
+        exact h.elim } },
     { intro hp,
       cases p,
       { exfalso,
         simp at hp,
-        injection hp, },
+        injection hp },
       { use p_v,
         simp [p_h],
         rw [←finset.mem_coe, n_ih],
-        injection hp, }, }, },
+        injection hp } } },
 end
 
-instance walk_of_len_fintype {u v : α} (n : ℕ) : fintype {p : G.walk u v // p.length = n} :=
+instance walk_of_len_fintype {u v : V} (n : ℕ) : fintype {p : G.walk u v // p.length = n} :=
 begin
   apply fintype.subtype (G.walk_len n u v),
   intro p,
@@ -301,7 +301,7 @@ begin
   simp,
 end
 
-lemma fintype_card_walk_eq (u v : α) (n : ℕ) :
+lemma fintype_card_walk_eq (u v : V) (n : ℕ) :
   (G.walk_len n u v).card = fintype.card {p : G.walk u v // p.length = n} :=
 begin
   rw fintype.card_of_subtype (G.walk_len n u v),
@@ -311,15 +311,15 @@ begin
   simp,
 end
 
-theorem adj_matrix_pow_apply_eq_card_walk (n : ℕ) (u v : α) :
-  (G.adj_matrix R ^ n) u v = fintype.card {p : G.walk u v // p.length = n} :=
+theorem adj_matrix_pow_apply_eq_card_walk [semiring α] (n : ℕ) (u v : V) :
+  (G.adj_matrix α ^ n) u v = fintype.card {p : G.walk u v // p.length = n} :=
 begin
   rw ←fintype_card_walk_eq,
   induction n generalizing u v,
   { by_cases h : u = v,
     { subst h,
-      simp [walk_len], },
-    { simp [walk_len, h], }, },
+      simp [walk_len] },
+    { simp [walk_len, h] } },
   { rw [nat.succ_eq_add_one, add_comm, pow_add, pow_one],
     simp only [adj_matrix_mul_apply, mul_eq_mul],
     rw set.sum_indicator_subset _ (subset_univ _),
@@ -331,8 +331,8 @@ begin
       congr' 2,
       ext x,
       by_cases hux : G.adj u x,
-      { simp [hux], },
-      { simp [hux], }, },
+      { simp [hux] },
+      { simp [hux] } },
     { intros x hx y hy hxy,
       intros p hp,
       simp at hp,
@@ -343,7 +343,7 @@ begin
       injection hqp,
       injection hqp,
       injection hrp,
-      exact (hxy (h_2.trans h_4.symm)).elim, }, },
+      exact (hxy (h_2.trans h_4.symm)).elim } },
 end
 
 end walks

@@ -475,12 +475,11 @@ lemma append_support' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk
 begin
   rw append_support,
   cases p',
-  { simp only [nil_support, list.tail_cons, list.append_nil],
-    erw multiset.add_sub_cancel, },
-  { simp_rw [cons_support, list.tail_cons, ←multiset.cons_coe, ←multiset.singleton_add],
-    rw [add_comm, add_assoc, add_comm],
-    erw multiset.add_sub_cancel,
-    rw [←multiset.coe_add, add_comm], },
+  { rw [nil_support, list.tail_cons, list.append_nil],
+    exact (add_tsub_cancel_right _ _).symm },
+  { simp_rw cons_support,
+    rw [list.tail_cons, ←multiset.cons_coe, ←multiset.singleton_add, add_comm, add_assoc,
+      add_tsub_cancel_left, add_comm, ←multiset.coe_add] }
 end
 
 @[simp]
@@ -1290,7 +1289,7 @@ begin
   have : multiset.count w {v} = 0,
   { simp only [multiset.singleton_eq_cons, multiset.count_eq_zero, multiset.mem_singleton],
     simpa using ne.symm hne, },
-  rw [multiset.count_sub, this, sub_zero', multiset.count_add] at hs,
+  rw [multiset.count_sub, this, tsub_zero, multiset.count_add] at hs,
   simp_rw [multiset.coe_count] at hs,
   rw [path.support_count_eq_one] at hs,
   swap, { simp, },

@@ -70,8 +70,17 @@ variables (a)
 
 @[simp] lemma Ioo_self : Ioo a a = ∅ := by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
 
-@[simp] lemma right_not_mem_Ico {a b : α} : b ∉ Ico a b :=
-by { rw [mem_Ico, not_and], exact λ _, lt_irrefl _ }
+variables {a b}
+
+@[simp] lemma left_mem_Icc (h : a ≤ b) : a ∈ Icc a b := mem_Icc.2 ⟨le_rfl, h⟩
+@[simp] lemma left_mem_Ico (h : a < b) : a ∈ Ico a b := mem_Ico.2 ⟨le_rfl, h⟩
+@[simp] lemma left_not_mem_Ioc : a ∉ Ioc a b := λ h, lt_irrefl _ (mem_Ioc.1 h).1
+@[simp] lemma left_not_mem_Ioo : a ∉ Ioo a b := λ h, lt_irrefl _ (mem_Ioo.1 h).1
+
+@[simp] lemma right_mem_Icc (h : a ≤ b) : b ∈ Icc a b := mem_Icc.2 ⟨h, le_rfl⟩
+@[simp] lemma right_not_mem_Ico : b ∉ Ico a b := λ h, lt_irrefl _ (mem_Ico.1 h).2
+@[simp] lemma right_mem_Ioc (h : a < b) : b ∈ Ioc a b := mem_Ioc.2 ⟨h, le_rfl⟩
+@[simp] lemma right_not_mem_Ioo : b ∉ Ioo a b := λ h, lt_irrefl _ (mem_Ioo.1 h).2
 
 lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hca : c ≤ a) :
   (Ico a b).filter (λ x, x < c) = ∅ :=

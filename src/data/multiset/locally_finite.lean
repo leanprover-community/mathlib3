@@ -16,7 +16,7 @@ variables {α : Type*}
 
 namespace multiset
 section preorder
-variables [preorder α] [locally_finite_order α] {a b : α}
+variables [preorder α] [locally_finite_order α] {a b c : α}
 
 lemma nodup_Icc : (Icc a b).nodup := finset.nodup _
 
@@ -61,6 +61,42 @@ variables (a)
 
 @[simp] lemma Ioo_self : Ioo a a = 0 := by rw [Ioo, finset.Ioo_self, finset.empty_val]
 
+variables {a b c}
+
+@[simp] lemma left_mem_Icc (h : a ≤ b) : a ∈ Icc a b := finset.left_mem_Icc h
+@[simp] lemma left_mem_Ico (h : a < b) : a ∈ Ico a b := finset.left_mem_Ico h
+@[simp] lemma left_not_mem_Ioc : a ∉ Ioc a b := finset.left_not_mem_Ioc
+@[simp] lemma left_not_mem_Ioo : a ∉ Ioo a b := finset.left_not_mem_Ioo
+
+@[simp] lemma right_mem_Icc (h : a ≤ b) : b ∈ Icc a b := finset.right_mem_Icc h
+@[simp] lemma right_not_mem_Ico : b ∉ Ico a b := finset.right_not_mem_Ico
+@[simp] lemma right_mem_Ioc (h : a < b) : b ∈ Ioc a b := finset.right_mem_Ioc h
+@[simp] lemma right_not_mem_Ioo : b ∉ Ioo a b := finset.right_not_mem_Ioo
+
+lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] (hca : c ≤ a) :
+  (Ico a b).filter (λ x, x < c) = ∅ :=
+by { rw [Ico, ←finset.filter_val, finset.Ico_filter_lt_of_le_left hca], refl }
+
+lemma Ico_filter_lt_of_right_le [decidable_rel ((<) : α → α → Prop)] (hbc : b ≤ c) :
+  (Ico a b).filter (λ x, x < c) = Ico a b :=
+by rw [Ico, ←finset.filter_val, finset.Ico_filter_lt_of_right_le hbc]
+
+lemma Ico_filter_lt_of_le_right [decidable_rel ((<) : α → α → Prop)] (hcb : c ≤ b) :
+  (Ico a b).filter (λ x, x < c) = Ico a c :=
+by { rw [Ico, ←finset.filter_val, finset.Ico_filter_lt_of_le_right hcb], refl }
+
+lemma Ico_filter_le_of_le_left [decidable_rel ((≤) : α → α → Prop)] (hca : c ≤ a) :
+  (Ico a b).filter (λ x, c ≤ x) = Ico a b :=
+by rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_le_left hca]
+
+lemma Ico_filter_le_of_right_le [decidable_rel ((≤) : α → α → Prop)] :
+  (Ico a b).filter (λ x, b ≤ x) = ∅ :=
+by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_right_le], refl }
+
+lemma Ico_filter_le_of_left_le [decidable_rel ((≤) : α → α → Prop)] (hac : a ≤ c) :
+  (Ico a b).filter (λ x, c ≤ x) = Ico c b :=
+by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_left_le hac], refl }
+
 end preorder
 
 section partial_order
@@ -68,7 +104,55 @@ variables [partial_order α] [locally_finite_order α] {a b : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} := by rw [Icc, finset.Icc_self, finset.singleton_val]
 
+lemma Ico_cons_right (h : a ≤ b) : b ::ₘ (Ico a b) = Icc a b :=
+by { classical,
+  rw [Ico, ←finset.insert_val_of_not_mem right_not_mem_Ico, finset.Ico_insert_right h], refl }
+
+lemma Ioo_cons_left (h : a < b) : a ::ₘ (Ioo a b) = Ico a b :=
+by { classical,
+  rw [Ioo, ←finset.insert_val_of_not_mem left_not_mem_Ioo, finset.Ioo_insert_left h], refl }
+
+lemma Ico_disjoint_Ico {a b c d : α} (h : b ≤ c) : (Ico a b).disjoint (Ico c d) :=
+λ x hab hbc, by { rw mem_Ico at hab hbc, exact hab.2.not_le (h.trans hbc.1) }
+
+@[simp] lemma Ico_inter_Ico_of_le [decidable_eq α] {a b c d : α} (h : b ≤ c) :
+  Ico a b ∩ Ico c d = 0 :=
+multiset.inter_eq_zero_iff_disjoint.2 $ Ico_disjoint_Ico h
+
+lemma Ico_filter_le_left [decidable_rel ((≤) : α → α → Prop)] {a b : α} (hab : a < b) :
+  (Ico a b).filter (λ x, x ≤ a) = {a} :=
+by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_left hab], refl }
+
 end partial_order
+
+section linear_order
+variables [linear_order α] [locally_finite_order α] {a b c d : α}
+
+lemma Ico_subset_Ico_iff {a₁ b₁ a₂ b₂ : α} (h : a₁ < b₁) :
+  Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
+finset.Ico_subset_Ico_iff h
+
+lemma Ico_add_Ico_eq_Ico {a b c : α} (hab : a ≤ b) (hbc : b ≤ c) :
+  Ico a b + Ico b c = Ico a c :=
+by rw [add_eq_union_iff_disjoint.2 (Ico_disjoint_Ico le_rfl), Ico, Ico, Ico, ←finset.union_val,
+  finset.Ico_union_Ico_eq_Ico hab hbc]
+
+lemma Ico_inter_Ico : Ico a b ∩ Ico c d = Ico (max a c) (min b d) :=
+by rw [Ico, Ico, Ico, ←finset.inter_val, finset.Ico_inter_Ico]
+
+@[simp] lemma Ico_filter_lt (a b c : α) : (Ico a b).filter (λ x, x < c) = Ico a (min b c) :=
+by rw [Ico, Ico, ←finset.filter_val, finset.Ico_filter_lt]
+
+@[simp] lemma Ico_filter_le (a b c : α) : (Ico a b).filter (λ x, c ≤ x) = Ico (max a c) b :=
+by rw [Ico, Ico, ←finset.filter_val, finset.Ico_filter_le]
+
+@[simp] lemma Ico_sub_Ico_left (a b c : α) : Ico a b - Ico a c = Ico (max a c) b :=
+by rw [Ico, Ico, Ico, ←finset.sdiff_val, finset.Ico_diff_Ico_left]
+
+@[simp] lemma Ico_sub_Ico_right (a b c : α) : Ico a b - Ico c b = Ico a (min b c) :=
+by rw [Ico, Ico, Ico, ←finset.sdiff_val, finset.Ico_diff_Ico_right]
+
+end linear_order
 
 section ordered_cancel_add_comm_monoid
 variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]

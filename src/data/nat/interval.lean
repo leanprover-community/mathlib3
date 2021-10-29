@@ -157,8 +157,7 @@ begin
         tsub_le_iff_right.1 hb⟩ } }
 end
 
-lemma range_image_pred_top_sub (n : ℕ) :
-  (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
+lemma range_image_pred_top_sub (n : ℕ) : (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
 begin
   cases n,
   { rw [range_zero, image_empty] },

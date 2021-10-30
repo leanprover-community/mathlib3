@@ -64,7 +64,6 @@ which shows a finite domain is in fact commutative, hence a field. -/
 def division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R] [fintype R] :
   division_ring R :=
 { ..show group_with_zero R, from group_with_zero_of_fintype R,
-  ..show nontrivial R, by apply_instance,
   ..‹ring R› }
 
 end ring

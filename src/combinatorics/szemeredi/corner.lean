@@ -60,16 +60,19 @@ begin
   sorry
 end
 
-/-- Projects any point onto the simplex domain in one direction. -/
-def simplex_domain.line (n : ℕ) (i : ι) (a : ℕ) : set (simplex_domain ι n) := {g | g.val i = a}
+namespace simplex_domain
 
 /-- Projects any point onto the simplex domain in one direction. -/
-def simplex_domain.mem_line_self (x : simplex_domain ι n) (i : ι) :
-  x ∈ simplex_domain.line n i (x.val i) :=
-rfl
+def line (n : ℕ) (i : ι) (a : ℕ) : set (simplex_domain ι n) := {g | g.val i = a}
+
+instance (n : ℕ) (i : ι) (a : ℕ) (x : simplex_domain ι n) : decidable (x ∈ line n i a) :=
+by { unfold line, apply_instance }
+
+/-- Projects any point onto the simplex domain in one direction. -/
+def mem_line_self (x : simplex_domain ι n) (i : ι) : x ∈ simplex_domain.line n i (x.val i) := rfl
 
 /-- The graph appearing in the simplex corners theorem. -/
-def simplex_corners_graph (s : set (simplex_domain ι n)) :
+def corners_graph (s : set (simplex_domain ι n)) :
   simple_graph (ι × fin (n + 1)) :=
 { adj := λ a b, a ≠ b ∧
     ∃ x, x ∈ s ∧ x ∈ simplex_domain.line n a.1 a.2 ∧ x ∈ simplex_domain.line n b.1 b.2,
@@ -79,21 +82,37 @@ def simplex_corners_graph (s : set (simplex_domain ι n)) :
     end,
   loopless := λ a h, h.1 rfl }
 
-open_locale classical
+/-- The trivial `n`-clique in the corners graph. -/
+def trivial_n_clique (x : simplex_domain ι n) : finset (ι × fin (n + 1)) :=
+(univ.filter $ λ i, x ∈ line n i (x.val i)).image $ λ i, (i, x.apply i)
 
-lemma trivial_triangle_mem_simplex_corners_graph (hx : x ∈ s) :
-  (simplex_corners_graph s).is_n_clique (fintype.card ι)
-    ((univ.filter $ λ i, x ∈ simplex_domain.line n i (x.val i)).image $ λ i, (i, x.apply i)) :=
+lemma card_trivial_n_clique (x : simplex_domain ι n) : x.trivial_n_clique.card = fintype.card ι :=
 begin
+  rw [trivial_n_clique, card_image_of_injective, filter_true_of_mem, card_univ],
+  { exact λ i _, x.mem_line_self i },
+  { exact λ a b h, (prod.mk.inj h).1 }
+end
+
+lemma mem_trivial_n_clique {i : ι} {a : fin (n + 1)} :
+  (i, a) ∈ x.trivial_n_clique ↔ x ∈ line n i (x.val i) ∧ x.apply i = a :=
+begin
+  simp_rw [trivial_n_clique, mem_image, exists_prop, mem_filter, prod.mk.inj_iff],
   split,
-  { rw [card_image_of_injective, filter_true_of_mem, card_univ],
-    { exact λ i _, x.mem_line_self i },
-    { exact λ a b h, (prod.mk.inj h).1 } },
+  { rintro ⟨i, ⟨_, hx⟩, rfl, ha⟩,
+    exact ⟨hx, ha⟩ },
+  { rintro ⟨hx, h⟩,
+    exact ⟨i, ⟨mem_univ i, hx⟩, rfl, h⟩ }
+end
+
+lemma trivial_n_clique_is_n_clique (hx : x ∈ s) :
+  (corners_graph s).is_n_clique (fintype.card ι) x.trivial_n_clique :=
+begin
+  refine ⟨x.card_trivial_n_clique, _⟩,
   rintro ⟨i, a⟩ ha ⟨j, b⟩ hb hab,
-  simp_rw [mem_coe, mem_image, exists_prop, mem_filter, prod.mk.inj_iff] at ha hb,
-  obtain ⟨i, hi, rfl, rfl⟩ := ha,
-  obtain ⟨j, hj, rfl, rfl⟩ := hb,
-  exact ⟨hab, x, hx, hi.2, hj.2⟩,
+  refine ⟨hab, x, hx, _⟩,
+  rw [mem_coe, mem_trivial_n_clique] at ha hb,
+  rw [←ha.2, ←hb.2],
+  exact ⟨ha.1, hb.1⟩,
 end
 
 end simplex_domain

@@ -49,6 +49,10 @@ lemma mem_triangle_finset [decidable_rel G.adj] (s : finset α) :
   s ∈ G.triangle_finset ↔ s.card = 3 ∧ (s : set α).pairwise_on G.adj :=
 by simp [triangle_finset, mem_powerset_len, is_n_clique]
 
+lemma mem_triangle_finset' [decidable_rel G.adj] (s : finset α) :
+  s ∈ G.triangle_finset ↔ G.is_n_clique 3 s :=
+by simp [triangle_finset, mem_powerset_len, is_n_clique]
+
 lemma triangle_finset_empty_iff [decidable_rel G.adj] :
   G.triangle_finset = ∅ ↔ G.no_triangles :=
 by simp only [mem_triangle_finset, eq_empty_iff_forall_not_mem, no_triangles, is_n_clique]

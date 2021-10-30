@@ -1826,15 +1826,13 @@ by simp [init_eq_take, min_eq_left_of_lt h, take_take, pred_le]
 
 @[simp] lemma init_cons_of_ne_nil {α : Type*} {x : α} :
   ∀ {l : list α} (h : l ≠ []), (x :: l).init = x :: l.init
-| []            h := false.elim (h rfl)
-| [a]           _ := by simp [init]
-| (a :: b :: l) _ := by simp [init]
+| []       h := false.elim (h rfl)
+| (a :: l) _ := by simp [init]
 
-@[simp] lemma init_append_of_ne_nil {α : Type*} :
-  ∀ {l₁ l₂ : list α} (h : l₂ ≠ []), (l₁ ++ l₂).init = l₁ ++ l₂.init
-| []        [] h := false.elim (h rfl)
-| []        l₂ _ := by simp only [nil_append]
-| (a :: l₁) l₂ h := by simp [append_ne_nil_of_ne_nil_right l₁ l₂ h, init_append_of_ne_nil h]
+@[simp] lemma init_append_of_ne_nil {α : Type*} {l : list α} :
+  ∀ (l' : list α) (h : l ≠ []), (l' ++ l).init = l' ++ l.init
+| []        _ := by simp only [nil_append]
+| (a :: l') h := by simp [append_ne_nil_of_ne_nil_right l' l h, init_append_of_ne_nil l' h]
 
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=

@@ -66,24 +66,24 @@ end, λ hI, begin
 end⟩
 
 
--- private lemma homogeneous_ideal.mul_homogeneous_element
---   {I : ideal R} (HI : is_homogeneous_ideal R A I) (r x : R)
---   (hx₁ : is_homogeneous R A x) (hx₂ : x ∈ I) (j : ι) :
---   graded_ring.proj R A j (r * x) ∈ I :=
--- begin
---   rw [graded_ring.as_sum R A r, finset.sum_mul, add_monoid_hom.map_sum],
---   apply ideal.sum_mem,
---   intros k hk,
---   obtain ⟨i, hi⟩ := hx₁,
---   -- rw of_mul_of,
---   -- dsimp only,
---   by_cases k + i = j,
---   { subst h,
---     rw [of_eq_same, ←of_mul_of],
---     apply I.mul_mem_left _ hx₂, },
---   { rw [of_eq_of_ne _ _ _ _ h, add_monoid_hom.map_zero],
---     exact I.zero_mem }
--- end
+private lemma is_homogeneous_ideal.mul_homogeneous_element
+  {I : ideal R} (HI : is_homogeneous_ideal R A I) (r x : R)
+  (hx₁ : is_homogeneous R A x) (hx₂ : x ∈ I) (j : ι) :
+  graded_ring.proj R A j (r * x) ∈ I :=
+begin
+  rw [graded_ring.as_sum R A r, finset.sum_mul, add_monoid_hom.map_sum],
+  apply ideal.sum_mem,
+  intros k hk,
+  obtain ⟨i, hi⟩ := hx₁,
+  have mem₁ : (graded_ring.proj R A k) r * x ∈ A (k + i) := graded_ring.mul_respect_grading
+   (graded_ring.proj_mem R A k _) hi,
+  by_cases k + i = j,
+  { rw ←h,
+    rw graded_ring.proj_homogeneous_element,
+    apply I.mul_mem_left _ hx₂, exact mem₁, },
+  { rw [graded_ring.proj_homogeneous_element_of_ne],
+    exact I.zero_mem, exact mem₁, intro rid, apply h rid, }
+end
 
 lemma is_homogeneous_ideal.mem_iff (I : ideal R) (hI : is_homogeneous_ideal R A I) (r : R) :
   r ∈ I ↔ ∀ i : ι, graded_ring.proj R A i r ∈ I :=
@@ -94,18 +94,13 @@ lemma is_homogeneous_ideal.mem_iff (I : ideal R) (hI : is_homogeneous_ideal R A 
   obtain ⟨s, rfl⟩ := hr,
   rw [finsupp.total_apply, finsupp.sum, add_monoid_hom.map_sum],
   apply ideal.sum_mem, rintros ⟨a, ha₁, ⟨j, ha₂⟩⟩ ha₃,
-  rw [smul_eq_mul, graded_ring.mul_proj R A _ _ i],
-  apply ideal.sum_mem, rintros ⟨j, k⟩ hjk,
-  simp only [finset.mem_filter, subtype.coe_mk, finset.mem_product] at hjk,
-  -- apply ideal.mul_mem_left,
-  -- simp only [subtype.coe_mk],
-  -- rw graded_ring.proj_homogeneous_element R A ha₂,
-
-  sorry
+  rw [smul_eq_mul],
+  apply is_homogeneous_ideal.mul_homogeneous_element, exact hI, use j, exact ha₂, exact ha₁,
 end, λ hr, begin
   rw graded_ring.as_sum R A r,
   apply ideal.sum_mem, intros c _, apply hr,
 end⟩
+
 
 -- section defs
 
@@ -122,26 +117,6 @@ end⟩
 -- { to_fun := λ a, of A a.fst a.snd,
 --   map_one' := rfl,
 --   map_mul' := λ x y, (of_mul_of _ _).symm, }
-
-
--- private lemma homogeneous_ideal.mul_homogeneous_element
---   {I : ideal (⨁ i, A i)} (HI : homogeneous_ideal I) (r x : ⨁ i, A i)
---   (hx₁ : is_homogeneous_element x) (hx₂ : x ∈ I) (j : ι) :
---   of A j ((r * x) j) ∈ I :=
--- begin
---   rw [direct_sum.eq_sum_of _ r, finset.sum_mul, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],
---   apply ideal.sum_mem,
---   intros k hk,
---   obtain ⟨⟨i, z⟩, rfl⟩ := hx₁,
---   rw of_mul_of,
---   dsimp only,
---   by_cases k + i = j,
---   { subst h,
---     rw [of_eq_same, ←of_mul_of],
---     apply I.mul_mem_left _ hx₂, },
---   { rw [of_eq_of_ne _ _ _ _ h, add_monoid_hom.map_zero],
---     exact I.zero_mem }
--- end
 
 
 -- private lemma homogeneous_ideal.homogeneous_component
@@ -161,24 +136,6 @@ end⟩
 --   use z, exact y_mem_I,
 -- end
 
-
--- lemma homogeneous_ideal.mem_iff
---   (I : ideal (⨁ i, A i)) (HI : homogeneous_ideal I) (x : ⨁ i, A i) :
---   x ∈ I ↔ ∀ (i : ι), of A i (x i) ∈ I :=
--- ⟨λ hx j, begin
---   have HI' := HI,
---   rw [homogeneous_ideal_iff_homogeneous_ideal', homogeneous_ideal', ideal.span,
---       finsupp.span_eq_range_total] at HI',
---   rw HI' at hx,
---   obtain ⟨s, rfl⟩ := hx,
---   rw [finsupp.total_apply, finsupp.sum, dfinsupp.finset_sum_apply, add_monoid_hom.map_sum],
---   apply ideal.sum_mem,
---   rintros ⟨-, y_mem_I, z, rfl⟩ hy,
---   exact homogeneous_ideal.mul_homogeneous_element HI _ _ ⟨z, rfl⟩ y_mem_I _,
--- end, begin
---   intro H, rw [direct_sum.eq_sum_of _ x], apply ideal.sum_mem, intros j hj,
---   apply H,
--- end⟩
 
 -- /--Another definition of homogeneous ideal-/
 -- def homogeneous_ideal'' (I : ideal (⨁ i, A i)) : Prop :=

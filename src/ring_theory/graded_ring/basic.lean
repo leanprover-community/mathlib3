@@ -269,6 +269,15 @@ begin
   rw dis, simp only [add_monoid_hom.map_zero], exact mem_supp,
 end
 
+lemma graded_ring.proj_homogeneous_element_of_ne {x : R} {i j : ι} (hx : x ∈ A i) (hij : i ≠ j):
+  graded_ring.proj R A j x = 0 :=
+begin
+  rw ←graded_ring.proj_homogeneous_element R A hx,
+  obtain ⟨a, rfl⟩ := (graded_ring.recompose R A).bijective.surjective x,
+  rw [graded_ring.proj_recompose, graded_ring.proj_recompose, direct_sum.of_eq_of_ne,
+    add_monoid_hom.map_zero, ring_equiv.map_zero], exact hij,
+end
+
 end graded_ring
 
 section homogeneous_element

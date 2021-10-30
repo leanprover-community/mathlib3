@@ -14,7 +14,8 @@ This file defines combinatorial corners and proves the two dimensional corners t
 open finset function
 open_locale big_operators
 
-variables {α ι : Type*} [add_comm_monoid α] [decidable_eq ι] [fintype ι] {ε : ℝ}
+variables {α ι ι' : Type*} [add_comm_monoid α] [decidable_eq ι] [fintype ι] [decidable_eq ι']
+  [fintype ι'] {ε : ℝ}
 
 lemma sum_indicator_singleton {ι M : Type*} [add_comm_monoid M] {s : finset ι} {i : ι}
   (hi : i ∈ s)(f : ι → ι  → M) (g : ι → ι) :
@@ -53,29 +54,49 @@ begin
   exact (fin.ext_iff _ _).1 (h i),
 end
 
-/-- Projects any point onto the simplex domain in one direction. -/
-def proj (f : ι → ℕ) (i : ι) (hf : ∑ j in univ.erase i, f j ≤ n) : simplex_domain ι n :=
+-- /-- Projects any point onto the simplex domain in one direction. -/
+-- def proj (f : ι → ℕ) (i : ι) (hf : ∑ j in univ.erase i, f j ≤ n) : simplex_domain ι n :=
+-- begin
+--   refine ⟨finset.piecewise {i} (n - ∑ j in univ.erase i, f j) f,
+--     (sum_piecewise _ _ _ _).trans _⟩,
+--   rw [univ_inter, sum_singleton, sdiff_singleton_eq_erase, pi.sub_apply, sum_apply],
+--   simp only [nat.cast_id, pi.coe_nat],
+--   exact tsub_add_cancel_of_le hf,
+-- end
+
+/-- Projects a point in a simplex domain onto a smaller simplex domain in one direction. -/
+def proj (x : simplex_domain ι' n) (f : ι ↪ ι') (i : ι) : simplex_domain ι n :=
 begin
-  refine ⟨finset.piecewise {i} (n - ∑ j in univ.erase i, f j) f, (sum_piecewise _ _ _ _).trans _⟩,
+  refine ⟨finset.piecewise {i} (n - ∑ j in univ.erase i, x.val (f j)) (x.val ∘ f),
+    (sum_piecewise _ _ _ _).trans _⟩,
   rw [univ_inter, sum_singleton, sdiff_singleton_eq_erase, pi.sub_apply, sum_apply],
   simp only [nat.cast_id, pi.coe_nat],
-  exact tsub_add_cancel_of_le hf,
+  refine tsub_add_cancel_of_le ((sum_le_sum_of_subset $ erase_subset _ _).trans _),
+  simp_rw [←finset.sum_map, ←x.2],
+  exact sum_le_sum_of_subset (subset_univ _),
 end
 
-/-- A corner in `s` a set of `simplex_domain ι n` is a point whose projections all are within `s` -/
-def corners (s : set (simplex_domain ι n)) : set (ι → ℕ) :=
-{f | if h : ∑ i, f i ≤ n
-  then (∀ i, simplex_domain.proj f i ((sum_mono_set f $ erase_subset _ _).trans h) ∈ s) else false }
+-- /-- A corner in `s : set (simplex_domain ι n)` is a point whose projections all are within `s` -/
+-- def corners (s : set (simplex_domain ι n)) : set (ι → ℕ) :=
+-- {f | if h : ∑ i, f i ≤ n
+--   then (∀ i, simplex_domain.proj f i ((sum_mono_set f $ erase_subset _ _).trans h) ∈ s)
+--   else false }
 
-lemma mem_corners_iff {h : ∀ i, ∑ (j : ι) in univ.erase i, f j ≤ n} :
-  f ∈ corners s ↔ ∑ i, f i ≤ n ∧ ∀ i, simplex_domain.proj f i (h i) ∈ s :=
-begin
-  rw corners,
-  sorry
-end
+/-- A corner in `s : set (simplex_domain ι n)` is a point `x : simplex_domain (option ι) n` whose
+projections all are within `s` -/
+def corners (s : set (simplex_domain ι n)) : set (simplex_domain (option ι) n) :=
+{x | ∀ i, x.proj embedding.some i ∈ s}
 
 /-- The set of elements of `simplex_domain ι n` whose `i`-th coordinate is `a`. -/
-def line (n : ℕ) (i : ι) (a : ℕ) : set (simplex_domain ι n) := {g | g.val i = a}
+def line (n : ℕ) (i : ι) (a : ℕ) : set (simplex_domain ι n) := {x | x.val i = a}
+
+/-- The set of elements of `simplex_domain ι n` whose coordinates are the same as `a` except the `i`-th and `j`-th ones. -/
+def line' (n : ℕ) (i j : ι) (a : ι → ℕ) : set (simplex_domain ι n) :=
+{x | ∀ k, k ≠ i → k ≠ j → x.val k = a k}
+
+/-- The set of elements of `simplex_domain ι n` whose coordinates are the same as `a` on `s : set \io `except the `i`-th and `j`-th ones. -/
+def line'' (n : ℕ) (s : set ι) (a : ι → ℕ) : set (simplex_domain ι n) :=
+{x | ∀ ⦃i⦄, i ∈ s → x.val i = a i}
 
 instance (n : ℕ) (i : ι) (a : ℕ) (x : simplex_domain ι n) : decidable (x ∈ line n i a) :=
 by { unfold line, apply_instance }
@@ -84,10 +105,8 @@ by { unfold line, apply_instance }
 def mem_line_self (x : simplex_domain ι n) (i : ι) : x ∈ line n i (x.val i) := rfl
 
 /-- The graph appearing in the simplex corners theorem. -/
-def corners_graph (s : set (simplex_domain ι n)) :
-  simple_graph (ι × fin (n + 1)) :=
-{ adj := λ a b, a ≠ b ∧
-    ∃ x, x ∈ s ∧ x ∈ simplex_domain.line n a.1 a.2 ∧ x ∈ line n b.1 b.2,
+def corners_graph (s : set (simplex_domain ι n)) : simple_graph (ι × fin (n + 1)) :=
+{ adj := λ a b, a ≠ b ∧ ∃ x, x ∈ s ∧ x ∈ line n a.1 a.2 ∧ x ∈ line n b.1 b.2,
   symm := begin
       rintro a b ⟨h, x, hx, hax, hbx⟩,
       exact ⟨h.symm, x, hx, hbx, hax⟩,
@@ -148,18 +167,38 @@ variables {n : ℕ} {s : finset (simplex_domain (fin 3) n)} {x : simplex_domain 
   {f : fin 3 → ℕ}
 
 --  s.pairwise_disjoint (@trivial_n_clique ι _ _ n)
-lemma trivial_n_clique_pairwise_disjoint :
-  (s.image trivial_n_clique : set (finset (fin 3 × fin (n + 1)))).pairwise_disjoint :=
+-- lemma trivial_n_clique_pairwise_disjoint :
+--   (s.image trivial_n_clique : set (finset (fin 3 × fin (n + 1)))).pairwise_disjoint :=
+-- begin
+--   rintro x hx y hy h,
+--   rw [mem_coe, mem_image] at hx hy,
+--   obtain ⟨x, hx, rfl⟩ := hx,
+--   obtain ⟨y, hy, rfl⟩ := hy,
+--   rw trivial_n_clique_injective.ne_iff at h,
+--   rw finset.disjoint_iff,
+--   rintro ⟨i, a⟩ hax hay,
+--   rw mem_trivial_n_clique at hax hay,
+--   sorry -- wrong
+-- end
+
+lemma mem_corners_iff_is_n_clique {s : set (simplex_domain (fin 3) n)}
+  {x : simplex_domain (option (fin 3)) n} :
+  x ∈ corners s ↔ (corners_graph s).is_n_clique 3
+    (univ.map ⟨λ i, (i, x.apply i), λ a b hab, (prod.mk.inj hab).1⟩) :=
 begin
-  rintro x hx y hy h,
-  rw [mem_coe, mem_image] at hx hy,
-  obtain ⟨x, hx, rfl⟩ := hx,
-  obtain ⟨y, hy, rfl⟩ := hy,
-  rw trivial_n_clique_injective.ne_iff at h,
-  rw finset.disjoint_iff,
-  rintro ⟨i, a⟩ hax hay,
-  rw mem_trivial_n_clique at hax hay,
-  sorry -- wrong
+  split,
+  { refine λ hx, ⟨card_map _, _⟩,
+    refine λ a ha b hb hab, ⟨hab, _⟩,
+    rw [mem_coe, mem_map] at ha hb,
+    obtain ⟨i, _, rfl⟩ := ha,
+    obtain ⟨j, _, rfl⟩ := hb,
+    rw (embedding.injective _).ne_iff at hab,
+    refine ⟨x.proj embedding.some i, hx i, _, _⟩; rw [line, proj]; dsimp,
+    { rw piecewise_eq_of_mem _ _ _ (mem_singleton_self i),
+      simp_rw ←x.2,
+      rw sum_erase,
+      sorry },
+    { exact piecewise_eq_of_not_mem _ _ _ (not_mem_singleton.2 hab.symm) } }
 end
 
 lemma card_le_card_triangle_finset_corners_graph :
@@ -182,8 +221,8 @@ begin
 end
 
 lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
-  ∃ n : ℕ, ∀ A : finset (ℕ × ℕ), (∀ x y, (x, y) ∈ A → x + y ≤ n) →  ε * n^2 ≤ A.card →
-    ∃ x y h, h ≠ 0 ∧ is_corner ↑A x y h :=
+  ∃ n : ℕ, ∀ A : finset (simplex_domain (fin 3) n),  ε * n^2 ≤ A.card →
+    ∃ x : simplex_domain (option (fin 3)) n, 0 < x.val none ∧ corners ↑A x :=
 begin
   sorry
 end

@@ -10,10 +10,13 @@ import combinatorics.simple_graph.subgraph
 # Triangle counting lemma
 -/
 
-open finset fintype
+open finset fintype function
 open_locale big_operators
 
 variables {α : Type*} (G : simple_graph α)
+
+lemma finset.nonempty_diff [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
+sorry
 
 namespace simple_graph
 
@@ -89,14 +92,52 @@ begin
   simp only [nat.cast_ne_zero, ←pos_iff_ne_zero, fintype.card_pos],
 end
 
-variables {G} [nonempty α] {ε : ℝ}
+noncomputable def edge_finset_on (s : finset α) : finset (sym2 α) :=
+  ((s.product s).filter $ uncurry G.adj).image quotient.mk
+
+variables [nonempty α] {G} {H : simple_graph α} {ε : ℝ} {s : finset α}
+
+lemma mem_edge_finset_on {x : sym2 α} :
+  x ∈ G.edge_finset_on s ↔ ∃ a b, a ∈ s ∧ b ∈ s ∧ G.adj a b ∧ x = ⟦(a, b)⟧ :=
+begin
+  simp_rw [edge_finset_on, mem_image, exists_prop, mem_filter, mem_product],
+  split,
+  { rintro ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h⟩,
+    exact ⟨a, b, hsa, hsb, hGab, h.symm⟩ },
+  { rintro ⟨a, b, hsa, hsb, hGab, h⟩,
+    exact ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h.symm⟩ }
+end
+
+lemma edge_finset_diff : (G \ H).edge_finset_on s = G.edge_finset_on s \ H.edge_finset_on s :=
+begin
+  sorry
+end
 
 lemma triangle_free_far_of_pairwise_disjoint (hε : ε * (card α)^2 ≤ G.triangle_finset.card)
   (ht : (G.triangle_finset : set (finset α)).pairwise_disjoint) :
   G.triangle_free_far ε :=
 begin
   refine λ H hHG hH, hε.trans _,
-  rw [le_sub_iff_add_le, ←nat.cast_add, nat.cast_le],
+  have : ∀ s, G.is_n_clique 3 s → ∃ a b, a ∈ s ∧ b ∈ s ∧ G.adj a b ∧ ¬H.adj a b,
+  { rintro s hs,
+    by_contra,
+    push_neg at h,
+    exact hH s ⟨hs.1, λ a ha b hb hab, h a b ha hb (hs.2 a ha b hb hab)⟩ },
+  sorry
+end
+
+lemma triangle_free_far_of_pairwise_disjoint' (hε : ε * (card α)^2 ≤ G.triangle_finset.card)
+  (ht : (G.triangle_finset : set (finset α)).pairwise_disjoint) :
+  G.triangle_free_far ε :=
+begin
+  refine λ H hHG hH, hε.trans _,
+  have : ∀ s, G.is_n_clique 3 s → ((G \ H).edge_finset_on s).nonempty,
+  { rintro s hs,
+    rw [edge_finset_diff, finset.nonempty_diff],
+    refine λ h, hH s ⟨hs.1, λ a ha b hb hab, _⟩,
+    have := hs.2 a ha b hb hab,
+    sorry
+  },
   sorry
 end
 

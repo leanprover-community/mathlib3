@@ -23,6 +23,7 @@ import analysis.inner_product_space.dual
 
 noncomputable theory
 open inner_product_space
+open_locale complex_conjugate
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
 variables [complete_space E] [complete_space F]
@@ -49,45 +50,77 @@ linear_map.mk_continuous
 
 @[simp] lemma inner_right'_apply (A : E →L[𝕜] F) (v : F) (w : E) : inner_right' A v w = ⟪v, A w⟫ := rfl
 
-example : E →L⋆[𝕜] E :=
+lemma inner_right'_norm (A : E →L[𝕜] F) (v : F) : ∥inner_right' A v∥ ≤ ∥A∥ * ∥v∥ :=
+begin
+  refine continuous_linear_map.op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  simp only [inner_right'_apply],
+  intro x,
+  have h₁ : ∥A x∥ ≤ ∥A∥ * ∥x∥ := continuous_linear_map.le_op_norm _ _,
+  have h₂ := @norm_inner_le_norm 𝕜 F _ _ v (A x),
+  calc ∥⟪v, A x⟫∥ ≤ ∥v∥ * ∥A x∥       :  h₂
+              ... ≤ ∥v∥ * (∥A∥ * ∥x∥)  : by { mono, exact norm_nonneg _, exact norm_nonneg _ }
+              ... = ∥A∥ * ∥v∥ * ∥x∥    : by ring,
+end
+
+
+@[simps] def inner_right'ₛₗ (A : E →L[𝕜] F) : F →ₗ⋆[𝕜] E →L[𝕜] 𝕜 :=
+{ to_fun := λ v, inner_right' A v,
+  map_add' := λ x y, by { ext w, simp only [inner_add_left, inner_right'_apply,
+                                            continuous_linear_map.add_apply] },
+  map_smul' := λ r x, by { ext z, simp only [inner_smul_left, algebra.id.smul_eq_mul,
+                                    inner_right'_apply, pi.smul_apply, ring_equiv.coe_to_ring_hom,
+                                    continuous_linear_map.coe_smul'] } }
+
+lemma inner_right'ₛₗ_map_smul {r : 𝕜} {A : E →L[𝕜] F} {v : F} :
+  inner_right'ₛₗ (r • A) v = r • inner_right'ₛₗ A v :=
+begin
+  ext w,
+  simp only [inner_smul_right, inner_right'ₛₗ_apply, algebra.id.smul_eq_mul,
+    inner_right'_apply, pi.smul_apply, continuous_linear_map.coe_smul'],
+end
+
+@[simps] def adjoint' (A : E →L[𝕜] F) : F →L[𝕜] E :=
 linear_map.mk_continuous
-{ to_fun := id,
-  map_add' := sorry,
-  map_smul' := begin
-    sorry --can't figure out 𝕜 here
-  end }
-1
-sorry
+{ to_fun := λ v : F, (to_dual 𝕜 E).symm (inner_right'ₛₗ A v),
+  map_add' := λ x y, by simp only [linear_isometry_equiv.map_add, linear_map.map_add],
+  map_smul' := λ r x, by simp only [linear_map.map_smulₛₗ, linear_isometry_equiv.map_smulₛₗ,
+                                    star_ring_aut_self_apply r, ring_hom.id_apply,
+                                    ring_equiv.coe_to_ring_hom] }
+∥A∥
+(λ x, by simp only [linear_isometry_equiv.norm_map, inner_right'_norm,
+                    inner_right'ₛₗ_apply, linear_map.coe_mk])
 
+@[simp] lemma adjoint'_apply {A : E →L[𝕜] F} {v : F} :
+  adjoint' A v = (to_dual 𝕜 E).symm (inner_right'ₛₗ A v) := rfl
 
-def inner_right_cl (A : E →L[𝕜] F) : F →L⋆[𝕜] E →L[𝕜] 𝕜 :=
-linear_map.mk_continuous
-{
-  to_fun := λ v, inner_right' A v,
-  map_add' := λ x y, by { ext w, simp only [inner_add_left, inner_right'_apply, continuous_linear_map.add_apply] },
-  map_smul' := λ r x, begin
-
-  end
-}
-1
+lemma adjoint'_adjoint' (A : E →L[𝕜] F) : adjoint' (adjoint' A) = A :=
 begin
   sorry
 end
 
---set_option trace.class_instances true
-def adjoint' (A : E →L[𝕜] F) : F →L[𝕜] E :=
-linear_map.mk_continuous
-{ to_fun := λ v : F, (to_dual 𝕜 E).symm (inner_right' A v),
-  map_add' := λ x y, begin
-    simp [continuous_linear_map.map_add],
+--set_option trace.simplify.rewrite true
+def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
+linear_isometry_equiv.of_surjective
+{ to_fun := adjoint',
+  map_add' := λ A B,
+  begin
+    ext v,
+    simp only [adjoint'_apply, inner_right'ₛₗ_apply, continuous_linear_map.add_apply,
+              ←linear_isometry_equiv.map_add, linear_isometry_equiv.map_eq_iff],
+    ext w,
+    simp only [inner_add_right, inner_right'_apply, continuous_linear_map.add_apply],
   end,
-  map_smul' := sorry }
-1
-begin
-  sorry
+  map_smul' := λ r A,
+  begin
+    ext v,
+    simp only [adjoint'_apply, inner_right'ₛₗ_map_smul, linear_isometry_equiv.map_smulₛₗ,
+               ring_equiv.coe_to_ring_hom, continuous_linear_map.coe_smul', pi.smul_apply],
+  end,
+  norm_map' := λ A, begin
+    sorry
+  end }
+begin  -- prove surjectivity
+  intro A,
+  refine ⟨adjoint' A, _⟩,
+  sorry,
 end
-
-
---def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
---{ to_fun := λ A, λ v, (to_dual 𝕜 E).symm (inner_right' v A),
---}

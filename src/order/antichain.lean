@@ -25,7 +25,7 @@ variables {α β : Type*} {r r₁ r₂ : α → α → Prop} {r' : β → β →
 protected lemma symmetric.compl (h : symmetric r) : symmetric rᶜ := λ x y hr hr', hr $ h hr'
 
 /-- An antichain is a set such that no two distinct elements are related. -/
-def is_antichain (r : α → α → Prop) (s : set α) : Prop := s.pairwise_on rᶜ
+def is_antichain (r : α → α → Prop) (s : set α) : Prop := s.pairwise rᶜ
 
 namespace is_antichain
 
@@ -33,7 +33,7 @@ protected lemma subset (hs : is_antichain r s) (h : t ⊆ s) : is_antichain r t 
 
 lemma mono (hs : is_antichain r₁ s) (h : r₂ ≤ r₁) : is_antichain r₂ s := hs.mono' $ compl_le_compl h
 
-lemma mono_on (hs : is_antichain r₁ s) (h : s.pairwise_on (λ ⦃a b⦄, r₂ a b → r₁ a b)) :
+lemma mono_on (hs : is_antichain r₁ s) (h : s.pairwise (λ ⦃a b⦄, r₂ a b → r₁ a b)) :
   is_antichain r₂ s :=
 hs.imp_on $ h.imp $ λ a b h h₁ h₂, h₁ $ h h₂
 
@@ -72,7 +72,7 @@ lemma preimage (hs : is_antichain r s) {f : β → α} (hf : injective f)
 
 lemma _root_.is_antichain_insert :
   is_antichain r (insert a s) ↔ is_antichain r s ∧ ∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ r a b ∧ ¬ r b a :=
-set.pairwise_on_insert
+set.pairwise_insert
 
 protected lemma insert (hs : is_antichain r s) (hl : ∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ r b a)
   (hr : ∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ r a b) :
@@ -81,7 +81,7 @@ is_antichain_insert.2 ⟨hs, λ b hb hab, ⟨hr hb hab, hl hb hab⟩⟩
 
 lemma _root_.is_antichain_insert_of_symmetric (hr : symmetric r) :
   is_antichain r (insert a s) ↔ is_antichain r s ∧ ∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ r a b :=
-pairwise_on_insert_of_symmetric hr.compl
+pairwise_insert_of_symmetric hr.compl
 
 lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
   (h : ∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ r a b) :
@@ -110,4 +110,4 @@ end
 end is_antichain
 
 lemma set.subsingleton.is_antichain (hs : s.subsingleton) (r : α → α → Prop): is_antichain r s :=
-hs.pairwise_on _
+hs.pairwise _

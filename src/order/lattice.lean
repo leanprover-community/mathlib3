@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import order.monotone
 import order.rel_classes
 import tactic.simps
 import tactic.pi_instances
@@ -233,17 +234,19 @@ by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
 lemma sup_right_comm (a b c : α) : a ⊔ b ⊔ c = a ⊔ c ⊔ b :=
 by rw [sup_assoc, sup_assoc, @sup_comm _ _ b]
 
+lemma sup_sup_sup_comm (a b c d : α) : a ⊔ b ⊔ (c ⊔ d) = a ⊔ c ⊔ (b ⊔ d) :=
+by rw [sup_assoc, sup_left_comm b, ←sup_assoc]
+
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [or_iff_not_imp_left, not_forall],
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
-/-- If `f` is monotone, `g` is antitone, and `f a ≤ g a` for all `a`, then for all `a`, `b` we have
-`f a ≤ g b`. -/
-theorem forall_le_of_monotone_of_antitone {β : Type*} [preorder β]
-  {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
-  (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=
+/-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
+theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
+  (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
+  f m ≤ g n :=
 calc f m ≤ f (m ⊔ n) : hf le_sup_left
      ... ≤ g (m ⊔ n) : h _
      ... ≤ g n       : hg le_sup_right
@@ -388,6 +391,9 @@ lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
 
 lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b :=
 @sup_right_comm (order_dual α) _ a b c
+
+lemma inf_inf_inf_comm (a b c d : α) : a ⊓ b ⊓ (c ⊓ d) = a ⊓ c ⊓ (b ⊓ d) :=
+@sup_sup_sup_comm (order_dual α) _ _ _ _ _
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a
@@ -720,7 +726,7 @@ le_inf (h inf_le_left) (h inf_le_right)
 lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
   (hf : monotone f) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
-@monotone.map_sup (order_dual α) _ _ _ _ _ hf.order_dual x y
+@monotone.map_sup (order_dual α) _ _ _ _ _ hf.dual x y
 
 end monotone
 

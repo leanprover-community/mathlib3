@@ -123,17 +123,17 @@ by simp only [support, to_finsupp_of, finsupp.support_single_ne_zero (one_ne_zer
 @[simp] lemma support_neg (a : free_abelian_group X) : support (-a) = support a :=
 by simp only [support, add_monoid_hom.map_neg, finsupp.support_neg]
 
-@[simp] lemma support_gsmul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
+@[simp] lemma support_zsmul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
 begin
   ext x,
-  simp only [mem_support_iff, add_monoid_hom.map_gsmul],
-  simp only [h, gsmul_int_int, false_or, ne.def, mul_eq_zero]
+  simp only [mem_support_iff, add_monoid_hom.map_zsmul],
+  simp only [h, zsmul_int_int, false_or, ne.def, mul_eq_zero]
 end
 
 @[simp] lemma support_nsmul (k : ℕ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
-by { apply support_gsmul k _ a, exact_mod_cast h }
+by { apply support_zsmul k _ a, exact_mod_cast h }
 
 open_locale classical
 

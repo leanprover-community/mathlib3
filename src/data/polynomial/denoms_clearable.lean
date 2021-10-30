@@ -43,7 +43,7 @@ begin
   refine ⟨r * a ^ n * b ^ (N - n), bi, bu, _⟩,
   rw [C_mul_X_pow_eq_monomial, map_monomial, ← C_mul_X_pow_eq_monomial, eval_mul, eval_pow, eval_C],
   rw [ring_hom.map_mul, ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_pow, eval_X, mul_comm],
-  rw [← nat.sub_add_cancel nN] {occs := occurrences.pos [2]},
+  rw [← tsub_add_cancel_of_le nN] {occs := occurrences.pos [2]},
   rw [pow_add, mul_assoc, mul_comm (i b ^ n), mul_pow, mul_assoc, mul_assoc (i a ^ n), ← mul_pow],
   rw [bu, one_pow, mul_one],
 end
@@ -84,7 +84,7 @@ The assumption on `K` could be weakened to `linear_ordered_comm_ring` assuming t
 image of the denominator is invertible in `K`. -/
 lemma one_le_pow_mul_abs_eval_div {K : Type*} [linear_ordered_field K] {f : polynomial ℤ}
   {a b : ℤ} (b0 : 0 < b) (fab : eval ((a : K) / b) (f.map (algebra_map ℤ K)) ≠ 0) :
-  (1 : K) ≤ b ^ f.nat_degree * abs (eval ((a : K) / b) (f.map (algebra_map ℤ K))) :=
+  (1 : K) ≤ b ^ f.nat_degree * |eval ((a : K) / b) (f.map (algebra_map ℤ K))| :=
 begin
   obtain ⟨ev, bi, bu, hF⟩ := @denoms_clearable_nat_degree _ _ _ _ b _ (algebra_map ℤ K)
     f a (by { rw [eq_int_cast, one_div_mul_cancel], rw [int.cast_ne_zero], exact (b0.ne.symm) }),

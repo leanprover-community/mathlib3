@@ -41,7 +41,6 @@ open_locale classical
 /-! We also want to use the notation `∑` for sums. -/
 open_locale big_operators
 
-notation `|`x`|` := abs x
 notation `√` := real.sqrt
 
 open function bool linear_map fintype finite_dimensional dual_pair

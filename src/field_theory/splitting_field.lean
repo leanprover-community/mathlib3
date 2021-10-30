@@ -327,9 +327,9 @@ if hf0 : f = 0 then or.inl hf0
 else
   or.inr $ λ p hp hdp,
     have ht : multiset.rel associated
-      (factors (f.map i)) (s.map (λ a : L, (X : polynomial L) - C a)) :=
+      (normalized_factors (f.map i)) (s.map (λ a : L, (X : polynomial L) - C a)) :=
     factors_unique
-      (λ p hp, irreducible_of_factor _ hp)
+      (λ p hp, irreducible_of_normalized_factor _ hp)
       (λ p' m, begin
           obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
@@ -339,8 +339,8 @@ else
           (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
-        ... ~ᵤ _ : associated.symm (unique_factorization_monoid.factors_prod (by simpa using hf0))),
-  let ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd (by simpa) hp hdp in
+        ... ~ᵤ _ : (unique_factorization_monoid.normalized_factors_prod (by simpa using hf0)).symm),
+  let ⟨q, hq, hpq⟩ := exists_mem_normalized_factors_of_dvd (by simpa) hp hdp in
   let ⟨q', hq', hqq'⟩ := multiset.exists_mem_of_rel_of_mem ht hq in
   let ⟨a, ha⟩ := multiset.mem_map.1 hq' in
   by rw [← degree_X_sub_C a, ha.2];
@@ -762,7 +762,7 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finite_dimensional K L :=
-is_noetherian.iff_fg.2 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
+⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }

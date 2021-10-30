@@ -2,15 +2,17 @@
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
-
-Facts about epimorphisms and monomorphisms.
-
-The definitions of `epi` and `mono` are in `category_theory.category`,
-since they are used by some lemmas for `iso`, which is used everywhere.
 -/
 import category_theory.adjunction.basic
 import category_theory.opposites
 import category_theory.groupoid
+
+/-!
+# Facts about epimorphisms and monomorphisms.
+
+The definitions of `epi` and `mono` are in `category_theory.category`,
+since they are used by some lemmas for `iso`, which is used everywhere.
+-/
 
 universes v₁ v₂ u₁ u₂
 

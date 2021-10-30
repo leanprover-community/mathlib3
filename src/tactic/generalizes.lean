@@ -175,8 +175,7 @@ meta def generalizes_intro (args : list (name × option name × expr))
 
 namespace interactive
 
-open interactive
-open lean.parser
+setup_tactic_parser
 
 private meta def generalizes_arg_parser_eq : pexpr → lean.parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ])  e) (local_const x _ _ _)) := pure (e, x)

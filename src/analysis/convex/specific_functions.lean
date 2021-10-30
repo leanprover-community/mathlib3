@@ -15,7 +15,7 @@ In this file we prove that the following functions are convex:
 * `convex_on_pow_of_even` : given an even natural number $n$, the function $f(x)=x^n$
   is convex on $(-∞, +∞)$;
 * `convex_on_pow` : for a natural $n$, the function $f(x)=x^n$ is convex on $[0, +∞)$;
-* `convex_on_fpow` : for an integer $m$, the function $f(x)=x^m$ is convex on $(0, +∞)$.
+* `convex_on_zpow` : for an integer $m$, the function $f(x)=x^m$ is convex on $(0, +∞)$.
 * `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on ℝ (Ici 0) (λ x, x ^ p)`
 * `concave_on_log_Ioi` and `concave_on_log_Iio`: log is concave on `Ioi 0` and `Iio 0` respectively.
 -/
@@ -76,18 +76,18 @@ begin
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
-lemma convex_on_fpow (m : ℤ) : convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
+lemma convex_on_zpow (m : ℤ) : convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
 begin
   have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
-    from λ n, differentiable_on_fpow _ _ (or.inl $ lt_irrefl _),
+    from λ n, differentiable_on_zpow _ _ (or.inl $ lt_irrefl _),
   apply convex_on_of_deriv2_nonneg (convex_Ioi 0);
-    try { simp only [interior_Ioi, deriv_fpow'] },
+    try { simp only [interior_Ioi, deriv_zpow'] },
   { exact (this _).continuous_on },
   { exact this _ },
   { exact (this _).const_mul _ },
   { intros x hx,
-    simp only [iter_deriv_fpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-    refine mul_nonneg (int.cast_nonneg.2 _) (fpow_nonneg (le_of_lt hx) _),
+    simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
+    refine mul_nonneg (int.cast_nonneg.2 _) (zpow_nonneg (le_of_lt hx) _),
     exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
 end
 

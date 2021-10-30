@@ -16,4 +16,4 @@ universes w v
 
 @[priority 100]
 instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
-small_of_injective _ (encodable.encode_injective)
+small_of_injective _ encodable.encode_injective

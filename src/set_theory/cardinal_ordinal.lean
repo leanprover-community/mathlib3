@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 
 import set_theory.ordinal_arithmetic
 import tactic.linarith
+import logic.small
 
 /-!
 # Cardinals and ordinals
@@ -222,11 +223,11 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+theorem succ_omega : succ ω = aleph 1 :=
+by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
+
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
-begin
-  have : aleph 1 = (aleph 0).succ, by simp only [← aleph_succ, ordinal.succ_zero],
-  rw [countable_iff, ← aleph_zero, this, lt_succ],
-end
+by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
 /-! ### Properties of `mul` -/
 
@@ -458,7 +459,7 @@ by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left 
 
 /-! ### Properties about power -/
 
-theorem pow_le {κ μ : cardinal.{u}} (H1 : omega ≤ κ) (H2 : μ < omega) : κ ^ μ ≤ κ :=
+theorem pow_le {κ μ : cardinal.{u}} (H1 : ω ≤ κ) (H2 : μ < ω) : κ ^ μ ≤ κ :=
 let ⟨n, H3⟩ := lt_omega.1 H2 in
 H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
   (le_of_lt $ lt_of_lt_of_le (by rw [nat.cast_zero, power_zero];
@@ -468,19 +469,36 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
       exact mul_le_mul_right' ih _ })
     (mul_eq_self H1))) H1)
 
-lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
+lemma power_self_eq {c : cardinal} (h : ω ≤ c) : c ^ c = 2 ^ c :=
 begin
   apply le_antisymm,
   { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [← power_mul, mul_eq_self h] },
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
-lemma nat_power_eq {c : cardinal.{u}} (h : omega ≤ c) {n : ℕ} (hn : 2 ≤ n) :
-  (n : cardinal.{u}) ^ c = 2 ^ c :=
-le_antisymm (power_self_eq h ▸ power_le_power_right ((nat_lt_omega n).le.trans h))
-  (power_le_power_right $ by assumption_mod_cast)
+lemma prod_eq_two_power {ι : Type u} [infinite ι] {c : ι → cardinal.{v}} (h₁ : ∀ i, 2 ≤ c i)
+  (h₂ : ∀ i, lift.{u} (c i) ≤ lift.{v} (#ι)) :
+  prod c = 2 ^ lift.{v} (#ι) :=
+begin
+  rw [← lift_id' (prod c), lift_prod, ← lift_two_power],
+  apply le_antisymm,
+  { refine (prod_le_prod _ _ h₂).trans_eq _,
+    rw [← lift_prod, prod_const, power_self_eq (omega_le_mk ι)] },
+  { rw [← prod_const, lift_prod],
+    refine prod_le_prod _ _ (λ i, _),
+    rw [lift_two, ← lift_two.{u v}, lift_le],
+    exact h₁ i }
+end
 
-lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : omega ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
+lemma power_eq_two_power {c₁ c₂ : cardinal} (h₁ : ω ≤ c₁) (h₂ : 2 ≤ c₂) (h₂' : c₂ ≤ c₁) :
+  c₂ ^ c₁ = 2 ^ c₁ :=
+le_antisymm (power_self_eq h₁ ▸ power_le_power_right h₂') (power_le_power_right h₂)
+
+lemma nat_power_eq {c : cardinal.{u}} (h : ω ≤ c) {n : ℕ} (hn : 2 ≤ n) :
+  (n : cardinal.{u}) ^ c = 2 ^ c :=
+power_eq_two_power h (by assumption_mod_cast) ((nat_lt_omega n).le.trans h)
+
+lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : ω ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
 pow_le h (nat_lt_omega n)
 
 lemma power_nat_le_max {c : cardinal.{u}} {n : ℕ} : c ^ (n : cardinal.{u}) ≤ max c ω :=
@@ -905,3 +923,25 @@ le_refl _
 end bit
 
 end cardinal
+
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+begin
+  let g : ordinal.{u} → ulift.{u+1} α := λ o, ulift.up (f o),
+  suffices : ¬ function.injective g,
+  { intro hf, exact this (equiv.ulift.symm.injective.comp hf) },
+  intro hg,
+  replace hg := cardinal.mk_le_of_injective hg,
+  rw cardinal.mk_ulift at hg,
+  have := hg.trans_lt (cardinal.lift_lt_univ _),
+  rw cardinal.univ_id at this,
+  exact lt_irrefl _ this
+end
+
+lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+begin
+  intro hf,
+  apply not_injective_of_ordinal (equiv_shrink α ∘ f),
+  exact (equiv_shrink _).injective.comp hf,
+end

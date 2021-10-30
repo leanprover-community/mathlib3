@@ -170,7 +170,7 @@ begin
     ← coe_nnnorm, nnreal.coe_le_coe, ← ennreal.coe_le_coe],
   refine (ennnorm_integral_le_lintegral_ennnorm _).trans _,
   rw [← with_density_apply _ (hSm.diff (hsm _)), ← hν, measure_diff hsub hSm (hsm _)],
-  exacts [ennreal.sub_le_of_sub_le hi.1,
+  exacts [tsub_le_iff_tsub_le.mp hi.1,
     (hi.2.trans_lt $ ennreal.add_lt_top.2 ⟨hfi', ennreal.coe_lt_top⟩).ne]
 end
 
@@ -480,8 +480,8 @@ variables {μ : measure α}
   [measurable_space E] [normed_group E] [borel_space E] [complete_space E] [normed_space ℝ E]
   [second_countable_topology E] {s : ℕ → set α} {f : α → E}
 
-lemma tendsto_set_integral_of_antitone (hsm : ∀ i, measurable_set (s i))
-  (h_mono : ∀ i j, i ≤ j → s j ⊆ s i) (hfi : integrable_on f (s 0) μ) :
+lemma _root_.antitone.tendsto_set_integral (hsm : ∀ i, measurable_set (s i))
+  (h_anti : antitone s) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 begin
   let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥),
@@ -492,24 +492,24 @@ begin
   refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
   { intro n,
     rw ae_measurable_indicator_iff (hsm n),
-    exact (integrable_on.mono_set hfi (h_mono 0 n (zero_le n))).1, },
+    exact (integrable_on.mono_set hfi (h_anti (zero_le n))).1 },
   { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
     exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
   { rw integrable_indicator_iff (hsm 0),
     exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,
     refine λ n, eventually_of_forall (λ x, _),
-    exact indicator_le_indicator_of_subset (h_mono 0 n (zero_le n)) (λ a, norm_nonneg _) _, },
-  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antitone _ h_mono _ _) (pure_le_nhds _), },
+    exact indicator_le_indicator_of_subset (h_anti (zero_le n)) (λ a, norm_nonneg _) _ },
+  { filter_upwards [] λ a, le_trans (h_anti.tendsto_indicator _ _ _) (pure_le_nhds _) }
 end
 
 end tendsto_mono
 
-section continuous_set_integral
 /-! ### Continuity of the set integral
 
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
+section continuous_set_integral
 variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜]
   [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]
@@ -678,8 +678,9 @@ lemma continuous_at.integral_sub_linear_is_o_ae
 /-- If a function is continuous on an open set `s`, then it is measurable at the filter `𝓝 x` for
   all `x ∈ s`. -/
 lemma continuous_on.measurable_at_filter
-  [topological_space α] [opens_measurable_space α] [borel_space E]
-  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
+  [topological_space α] [opens_measurable_space α] [measurable_space β] [topological_space β]
+  [borel_space β]
+  {f : α → β} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 λ x hx, ⟨s, is_open.mem_nhds hs hx, hf.ae_measurable hs.measurable_set⟩
 
@@ -689,11 +690,17 @@ lemma continuous_at.measurable_at_filter
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
 continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
 
+lemma continuous.measurable_at_filter [topological_space α] [opens_measurable_space α]
+  [measurable_space β] [topological_space β] [borel_space β] {f : α → β} (hf : continuous f)
+  (μ : measure α) (l : filter α) :
+  measurable_at_filter f l μ :=
+hf.measurable.measurable_at_filter
+
 /-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
   `𝓝[s] x` for all `x`. -/
-lemma continuous_on.measurable_at_filter_nhds_within {α E : Type*} [measurable_space α]
-  [measurable_space E] [normed_group E] [topological_space α] [opens_measurable_space α]
-  [borel_space E] {f : α → E} {s : set α} {μ : measure α}
+lemma continuous_on.measurable_at_filter_nhds_within {α β : Type*} [measurable_space α]
+  [topological_space α] [opens_measurable_space α] [measurable_space β] [topological_space β]
+  [borel_space β] {f : α → β} {s : set α} {μ : measure α}
   (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
   measurable_at_filter f (𝓝[s] x) μ :=
 ⟨s, self_mem_nhds_within, hf.ae_measurable hs⟩
@@ -726,6 +733,8 @@ operations on the space `L¹`. Note that composition by a continuous linear map 
 the composition, as we are dealing with classes of functions, but it has already been defined
 as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 -/
+
+open_locale complex_conjugate
 
 variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   [normed_group F] [normed_space 𝕜 F]
@@ -825,8 +834,29 @@ lemma integral_im {f : α → 𝕜} (hf : integrable f μ) :
   ∫ a, is_R_or_C.im (f a) ∂μ = is_R_or_C.im ∫ a, f a ∂μ :=
 (@is_R_or_C.im_clm 𝕜 _).integral_comp_comm hf
 
-lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+lemma integral_conj {f : α → 𝕜} : ∫ a, conj (f a) ∂μ = conj ∫ a, f a ∂μ :=
 (@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
+
+lemma integral_coe_re_add_coe_im {f : α → 𝕜} (hf : integrable f μ) :
+  ∫ x, (is_R_or_C.re (f x) : 𝕜) ∂μ + ∫ x, is_R_or_C.im (f x) ∂μ * is_R_or_C.I = ∫ x, f x ∂μ :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← integral_smul, ← integral_add],
+  { congr,
+    ext1 x,
+    rw [smul_eq_mul, mul_comm, is_R_or_C.re_add_im] },
+  { exact hf.re.of_real },
+  { exact hf.im.of_real.smul is_R_or_C.I }
+end
+
+lemma integral_re_add_im {f : α → 𝕜} (hf : integrable f μ) :
+  ((∫ x, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) + (∫ x, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I =
+  ∫ x, f x ∂μ :=
+by { rw [← integral_of_real, ← integral_of_real, integral_coe_re_add_coe_im hf] }
+
+lemma set_integral_re_add_im {f : α → 𝕜} {i : set α} (hf : integrable_on f i μ) :
+  ((∫ x in i, is_R_or_C.re (f x) ∂μ : ℝ) : 𝕜) +
+  (∫ x in i, is_R_or_C.im (f x) ∂μ : ℝ) * is_R_or_C.I = ∫ x in i, f x ∂μ :=
+integral_re_add_im hf
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

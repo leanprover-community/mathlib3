@@ -65,14 +65,6 @@ instance division_ring.to_group_with_zero :
 { .. ‹division_ring K›,
   .. (infer_instance : semiring K) }
 
-lemma inverse_eq_has_inv : (ring.inverse : K → K) = has_inv.inv :=
-begin
-  ext x,
-  by_cases hx : x = 0,
-  { simp [hx] },
-  { exact ring.inverse_unit (units.mk0 x hx) }
-end
-
 attribute [field_simps] inv_eq_one_div
 
 local attribute [simp]
@@ -100,7 +92,7 @@ calc
 lemma neg_div (a b : K) : (-b) / a = - (b / a) :=
 by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
 
-@[field_simps] lemma neg_div' {K : Type*} [division_ring K] (a b : K) : - (b / a) = (-b) / a :=
+@[field_simps] lemma neg_div' (a b : K) : - (b / a) = (-b) / a :=
 by simp [neg_div]
 
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
@@ -161,8 +153,8 @@ lemma add_div_eq_mul_add_div (a b : K) {c : K} (hc : c ≠ 0) : a + b / c = (a *
 (eq_div_iff_mul_eq hc).2 $ by rw [right_distrib, (div_mul_cancel _ hc)]
 
 @[priority 100] -- see Note [lower instance priority]
-instance division_ring.to_domain : domain K :=
-{ ..‹division_ring K›, ..(by apply_instance : semiring K),
+instance division_ring.is_domain : is_domain K :=
+{ ..‹division_ring K›,
   ..(by apply_instance : no_zero_divisors K) }
 
 end division_ring
@@ -223,8 +215,8 @@ by rwa [add_comm, add_div', add_comm]
 by simpa using div_sub_div a b hc one_ne_zero
 
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_integral_domain : integral_domain K :=
-{ ..‹field K›, ..division_ring.to_domain }
+instance field.is_domain : is_domain K :=
+{ ..division_ring.is_domain }
 
 end field
 
@@ -300,7 +292,7 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_ze
 
 variables (x y)
 
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv x
 
 lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 

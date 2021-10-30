@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.equiv.basic
+import data.set.function
 
 /-!
 # Local equivalences
@@ -157,7 +158,7 @@ protected def symm : local_equiv β α :=
   left_inv'   := e.right_inv',
   right_inv'  := e.left_inv' }
 
-instance : has_coe_to_fun (local_equiv α β) := ⟨_, local_equiv.to_fun⟩
+instance : has_coe_to_fun (local_equiv α β) (λ _, α → β) := ⟨local_equiv.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (e : local_equiv α β) : β → α := e.symm

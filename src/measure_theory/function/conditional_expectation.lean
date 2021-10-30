@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
+import analysis.inner_product_space.projection
 import measure_theory.function.l2_space
-import measure_theory.function.ae_eq_of_integral
+import measure_theory.decomposition.radon_nikodym
 
 /-! # Conditional expectation
 
@@ -549,7 +550,7 @@ lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero'
   f =ᵐ[μ] 0 :=
 begin
   let f_meas : Lp_meas E' 𝕜 m p μ := ⟨f, hf_meas⟩,
-  have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base, subtype.coe_mk],
+  have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base', subtype.coe_mk],
   refine hf_f_meas.trans _,
   refine Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero hm f_meas hp_ne_zero hp_ne_top _ _,
   { intros s hs hμs,
@@ -1794,6 +1795,27 @@ begin
   simp_rw sub_eq_add_neg,
   exact (condexp_add hf hg.neg).trans (eventually_eq.rfl.add (condexp_neg g)),
 end
+
+section real
+
+lemma rn_deriv_ae_eq_condexp {f : α → ℝ} (hf : integrable f μ) :
+  signed_measure.rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | hm] :=
+begin
+  refine ae_eq_condexp_of_forall_set_integral_eq hm hf _ _ _,
+  { exact λ _ _ _, (integrable_of_integrable_trim hm (signed_measure.integrable_rn_deriv
+      ((μ.with_densityᵥ f).trim hm) (μ.trim hm))).integrable_on },
+  { intros s hs hlt,
+    conv_rhs { rw [← hf.with_densityᵥ_trim_eq_integral hm hs,
+      ← signed_measure.with_densityᵥ_rn_deriv_eq ((μ.with_densityᵥ f).trim hm) (μ.trim hm)
+        (hf.with_densityᵥ_trim_absolutely_continuous hm)], },
+    rw [with_densityᵥ_apply
+        (signed_measure.integrable_rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm)) hs,
+      ← set_integral_trim hm _ hs],
+    exact signed_measure.measurable_rn_deriv _ _ },
+  { exact measurable.ae_measurable' (signed_measure.measurable_rn_deriv _ _) },
+end
+
+end real
 
 end condexp
 

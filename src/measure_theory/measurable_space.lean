@@ -7,7 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import measure_theory.measurable_space_def
 import measure_theory.tactic
 import data.tprod
-
+import data.equiv.fin
 
 /-!
 # Measurable spaces and measurable functions
@@ -126,7 +126,7 @@ lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 
-lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :
+@[mono] lemma generate_from_mono {s t : set (set α)} (h : s ⊆ t) :
   generate_from s ≤ generate_from t :=
 gi_generate_from.gc.monotone_l h
 
@@ -693,8 +693,7 @@ namespace measurable_equiv
 
 variables (α β) [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
 
-instance : has_coe_to_fun (α ≃ᵐ β) :=
-⟨λ _, α → β, λ e, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ᵐ β) (λ _, α → β) := ⟨λ e, e.to_fun⟩
 
 variables {α β}
 
@@ -776,13 +775,20 @@ protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space
   measurable_to_fun  := by { substI h, substI hi, exact measurable_id },
   measurable_inv_fun := by { substI h, substI hi, exact measurable_id }}
 
-protected lemma measurable_coe_iff {f : β → γ} (e : α ≃ᵐ β) :
+protected lemma measurable_comp_iff {f : β → γ} (e : α ≃ᵐ β) :
   measurable (f ∘ e) ↔ measurable f :=
 iff.intro
   (assume hfe,
     have measurable (f ∘ (e.symm.trans e).to_equiv) := hfe.comp e.symm.measurable,
     by rwa [coe_to_equiv, symm_trans_self] at this)
   (λ h, h.comp e.measurable)
+
+/-- Any two types with unique elements are measurably equivalent. -/
+def of_unique_of_unique (α β : Type*) [measurable_space α] [measurable_space β]
+  [unique α] [unique β] : α ≃ᵐ β :=
+{ to_equiv := equiv_of_unique_of_unique,
+  measurable_to_fun := subsingleton.measurable,
+  measurable_inv_fun := subsingleton.measurable }
 
 /-- Products of equivalent measurable spaces are equivalent. -/
 def prod_congr (ab : α ≃ᵐ β) (cd : γ ≃ᵐ δ) : α × γ ≃ᵐ β × δ :=
@@ -907,13 +913,13 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       (by { rintro ⟨a|b, c⟩; simp [set.prod_eq] })
       _
       _,
-    { refine (set.prod (range sum.inl) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inl) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inl,
       ext ⟨a, c⟩, refl },
-    { refine (set.prod (range sum.inr) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inr) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inr,
       ext ⟨b, c⟩, refl }
@@ -959,6 +965,17 @@ noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : 
 { to_equiv := equiv.fun_unique α β,
   measurable_to_fun := measurable_pi_apply _,
   measurable_inv_fun := measurable_pi_iff.2 $ λ b, measurable_id }
+
+/-- The space `Π i : fin 2, α i` is measurably equivalent to `α 0 × α 1`. -/
+@[simps {fully_applied := ff}] def pi_fin_two (α : fin 2 → Type*) [∀ i, measurable_space (α i)] :
+  (Π i, α i) ≃ᵐ α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  measurable_to_fun := measurable.prod (measurable_pi_apply _) (measurable_pi_apply _),
+  measurable_inv_fun := measurable_pi_iff.2 $
+    fin.forall_fin_two.2 ⟨measurable_fst, measurable_snd⟩ }
+
+/-- The space `fin 2 → α` is measurably equivalent to `α × α`. -/
+@[simps {fully_applied := ff}] def fin_two_arrow : (fin 2 → α) ≃ᵐ α × α := pi_fin_two (λ _, α)
 
 end measurable_equiv
 

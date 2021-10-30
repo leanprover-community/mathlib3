@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
 import logic.basic
+import data.rbmap.basic
 
 /-!
 # Derive handler for `inhabited` instances

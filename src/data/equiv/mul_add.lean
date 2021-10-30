@@ -484,7 +484,8 @@ lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
 
 @[to_additive]
-lemma mul_left_bijective (a : G) : function.bijective ((*) a) := (equiv.mul_left a).bijective
+lemma _root_.group.mul_left_bijective (a : G) : function.bijective ((*) a) :=
+(equiv.mul_left a).bijective
 
 /-- Right multiplication in a `group` is a permutation of the underlying type. -/
 @[to_additive "Right addition in an `add_group` is a permutation of the underlying type."]
@@ -502,7 +503,8 @@ ext $ λ x, rfl
 lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
 
 @[to_additive]
-lemma mul_right_bijective (a : G) : function.bijective (* a) := (equiv.mul_right a).bijective
+lemma _root_.group.mul_right_bijective (a : G) : function.bijective (* a) :=
+(equiv.mul_right a).bijective
 
 variable (G)
 
@@ -559,7 +561,8 @@ protected def mul_left₀ (a : G) (ha : a ≠ 0) : perm G :=
   left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
   right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
 
-lemma mul_left_bijective₀ (a : G) (ha : a ≠ 0) : function.bijective ((*) a : G → G) :=
+lemma _root_.group_with_zero.mul_left_bijective₀ (a : G) (ha : a ≠ 0) :
+  function.bijective ((*) a : G → G) :=
 (equiv.mul_left₀ a ha).bijective
 
 /-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
@@ -571,7 +574,8 @@ protected def mul_right₀ (a : G) (ha : a ≠ 0) : perm G :=
   left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
   right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
 
-lemma mul_right_bijective₀ (a : G) (ha : a ≠ 0) : function.bijective ((* a) : G → G) :=
+lemma _root_.group_with_zero.mul_right_bijective₀ (a : G) (ha : a ≠ 0) :
+  function.bijective ((* a) : G → G) :=
 (equiv.mul_right₀ a ha).bijective
 
 end group_with_zero

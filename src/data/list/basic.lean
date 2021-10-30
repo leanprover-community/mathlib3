@@ -1710,6 +1710,19 @@ by cases l; refl
 
 theorem take_cons (n) (a : α) (l : list α) : take (succ n) (a::l) = a :: take n l := rfl
 
+theorem mem_of_mem_take {α : Type*} {x : α} :
+  ∀ {l : list α} {n : ℕ}, x ∈ take n l → x ∈ l
+| _         0       h := by {rw [take_zero] at h, exact false.elim h}
+| []        _       h := by {rw [take_nil] at h, exact false.elim h}
+| [a]       (n+1) h := by {simp [take] at h, exact mem_singleton.mpr h}
+| (a::b::l) (n+1) h :=
+  begin
+    simp [take] at h,
+    cases h,
+    {rw h, exact mem_cons_self a (b :: l)},
+    refine mem_cons_of_mem _ (mem_of_mem_take h),
+  end
+
 @[simp] theorem take_length : ∀ (l : list α), take (length l) l = l
 | []     := rfl
 | (a::l) := begin change a :: (take (length l) l) = a :: l, rw take_length end

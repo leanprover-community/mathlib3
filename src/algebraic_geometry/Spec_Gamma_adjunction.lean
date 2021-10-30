@@ -84,11 +84,11 @@ begin
   exact (X.to_RingedSpace.basic_open r).2,
 end
 
-def to_Γ_Spec_Top : continuous_map X (Spec' (Γ' X)) :=
+def to_Γ_Spec_base : continuous_map X (Spec' (Γ' X)) :=
 { to_fun := X.to_Γ_Spec_fun,
   continuous_to_fun := X.to_Γ_Spec_continuous }
 
-def opens_map_basic_open (r : Γ' X) := (opens.map X.to_Γ_Spec_Top).obj (basic_open r)
+def opens_map_basic_open (r : Γ' X) := (opens.map X.to_Γ_Spec_base).obj (basic_open r)
 
 lemma to_Γ_Spec_opens_map_obj_basic_open_eq (r : Γ' X) :
   X.opens_map_basic_open r = X.to_RingedSpace.basic_open r :=
@@ -122,7 +122,7 @@ end
 
 
 def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
-                          ⟶ idfb _ ⋙ X.to_Γ_Spec_Top _* X.presheaf :=
+                          ⟶ idfb _ ⋙ X.to_Γ_Spec_base _* X.presheaf :=
 { app := X.to_Γ_Spec_c_app,
   naturality' := λ r s f, by {
     apply (to_basic_open_epi (Γ' X) r).1,
@@ -136,13 +136,13 @@ def to_Γ_Spec_c := Top.sheaf.uniq_hom_extn_from_basis _
   basic_opens_is_basis X.to_Γ_Spec_c_basic_opens
 
 def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ (Spec' (Γ' X)).to_SheafedSpace :=
-{ base := X.to_Γ_Spec_Top,
+{ base := X.to_Γ_Spec_base,
   c := X.to_Γ_Spec_c.lift }
 
 lemma to_Γ_Spec_SheafedSpace_app_eq (r : Γ' X) :
   X.to_Γ_Spec_SheafedSpace.c.app (op (basic_open r)) = X.to_Γ_Spec_c_app r :=
 by { change _ = X.to_Γ_Spec_c_basic_opens.app r, rw ← X.to_Γ_Spec_c.fac, refl }
-/- once worked but no longer works:
+/- once worked but now timeouts:
 by change (whisker_left (idfb _) _).app r = _; erw X.to_Γ_Spec_c.fac; refl -/
 
 -- write down the lemma explicitly ...
@@ -150,6 +150,7 @@ def to_Γ_Spec_SheafedSpace_app_prop (r : Γ' X) := by {
   have h := X.to_Γ_Spec_c_app_prop r,
   rw ← to_Γ_Spec_SheafedSpace_app_eq at h,
   exact h }
+--#check to_Γ_Spec_SheafedSpace_app_prop
 
 lemma to_stalk_comm (x : X) : to_stalk _ _ ≫
   PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x = X.Γ_to_stalk x :=
@@ -160,8 +161,8 @@ begin
   rw [←category.assoc, category.assoc (to_open _ _)],
   erw stalk_functor_map_germ,
   rw [←category.assoc (to_open _ _), (X.to_Γ_Spec_SheafedSpace_app_prop 1 _).2 rfl],
-  unfold Γ_to_stalk, rw ← stalk_pushforward_germ _ X.to_Γ_Spec_Top X.presheaf ⊤,
-  congr' 1, change (X.to_Γ_Spec_Top _* X.presheaf).map le_top.hom.op ≫ _ = _,
+  unfold Γ_to_stalk, rw ← stalk_pushforward_germ _ X.to_Γ_Spec_base X.presheaf ⊤,
+  congr' 1, change (X.to_Γ_Spec_base _* X.presheaf).map le_top.hom.op ≫ _ = _,
   apply germ_res,
 end
 
@@ -169,10 +170,10 @@ def to_Γ_Spec : X ⟶ Spec' (Γ' X) :=
 begin
   fsplit, exact X.to_Γ_Spec_SheafedSpace,
   intro x, let p : prime_spectrum (Γ' X) := X.to_Γ_Spec_fun x,
-  fsplit, intros t ht,
+  fsplit, /- show stalk map is local hom ↓ -/
   have h := is_localization.to_stalk (Γ' X) p,
-  letI := (to_stalk _ p).to_algebra,
-  have he' := h.surj, rcases he' t with ⟨⟨r,s⟩,he⟩,
+  letI := (to_stalk _ p).to_algebra, have he' := h.surj,
+  intros t ht, rcases he' t with ⟨⟨r,s⟩,he⟩,
   have hu := h.map_units,
   let sm := PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x,
   have hr : is_unit (X.Γ_to_stalk x r),
@@ -188,43 +189,45 @@ end
 
 variables {Y : LocallyRingedSpace.{v}} (f : X ⟶ Y)
 
--- lemma Γ_map_eq : Γ.map f.op = f.1.c.app (op ⊤) := rfl
-
-lemma to_Γ_Spec_fun_naturality : f.1.1 ≫ Y.to_Γ_Spec.1.1 =
-  X.to_Γ_Spec.1.1 ≫ ((Γ.right_op ⋙ Spec.to_LocallyRingedSpace).map f).1.1 :=
+lemma to_Γ_Spec_base_naturality : (f ≫ Y.to_Γ_Spec).1.1 =
+  (X.to_Γ_Spec ≫ (Γ.right_op ⋙ Spec.to_LocallyRingedSpace).map f).1.1 :=
 begin
   ext1 x, convert congr_fun (congr_arg comap
     (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩))
     (@local_ring.closed_point _ _ _ (X.local_ring x)),
   erw prime_spectrum.comap_comp, rw function.comp_apply,
   erw (@local_ring.local_hom_iff_comap_closed_point
-    _ _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl,
+        _ _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl,
 end
 
-/-
-lemma to_Γ_Spec_sheaf_naturality (r : Γ' Y) :
-  Y.to_Γ_Spec_sheaf_app r ≫ f.1.c.app (op (Y.opens_map_basic_open r)) =
-  comap_opens_map (Γ.map f.op) (basic_open r) ≫ X.to_Γ_Spec_sheaf_app (Γ.map f.op r) :=
+private def eha := nat_trans.app $ eq_to_hom $
+  congr_arg (λ g, g _* X.presheaf) (X.to_Γ_Spec_base_naturality f)
 
-lemma to_Γ_Spec_sheaf_naturality (r : Γ' Y) : let f' := Γ.map f.op in
-  Y.to_Γ_Spec_sheaf_app r ≫ f.1.c.app (op (Y.opens_map_basic_open r)) =
-  comap f' (basic_open r) (basic_open $ f' r) (λ _ h, h) ≫ X.to_Γ_Spec_sheaf_app (f' r) :=
+lemma to_Γ_Spec_c_naturality (r : Γ' Y) : let f' := Γ.map f.op in
+  (Y.to_Γ_Spec_SheafedSpace.c.app (op (basic_open r)) ≫
+    f.1.c.app (op $ Y.opens_map_basic_open r)) ≫ eha X f (op (basic_open r)) =
+  comap f' (basic_open r) (basic_open $ f' r) (λ _ h, h)
+    ≫ X.to_Γ_Spec_SheafedSpace.c.app (op (basic_open (f' r))) :=
 begin
-
-end-/
-
--- algebraic_geometry.stalk_map_to_stalk
--- to_open_comp_comap
+  apply (to_basic_open_epi (Γ' Y) r).1, erw to_open_comp_comap_assoc,
+  erw (X.to_Γ_Spec_SheafedSpace_app_prop (Γ.map f.op r) _).2 rfl,
+  iterate 2 {rw ← category.assoc},
+  rw (Y.to_Γ_Spec_SheafedSpace_app_prop r _).2 rfl,
+  erw [f.1.c.naturality, category.assoc], congr, rw eha,
+  rw [pushforward_eq'_hom_app, pushforward_obj_map, ←functor.map_comp],
+  congr, exact X.to_Γ_Spec_base_naturality f,
+end
 
 def identity_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
-begin
-  fsplit, exact to_Γ_Spec, intros X Y f, ext1, ext1, swap,
-  exact X.to_Γ_Spec_fun_naturality f,
-  apply Top.sheaf.hom_ext (basic_open_B (Γ' Y)) ((Top.sheaf.pushforward _).obj X.𝒪).2,
-  exact basic_opens_is_basis,
-  ext1, ext1 r, sorry, -- dsimp,--apply (to_basic_open_epi _ r).1,
-  --erw ← category.assoc, rw (Y.to_Γ_Spec_sheaf_app_prop r _).2 rfl,
-end
+{ app := to_Γ_Spec,
+  naturality' := λ X Y f, begin
+    ext1, ext1, swap, exact X.to_Γ_Spec_base_naturality f,
+    apply Top.sheaf.hom_ext (basic_open_B (Γ' Y)) ((Top.sheaf.pushforward _).obj X.𝒪).2,
+    exact basic_opens_is_basis, intro r,
+    rw nat_trans.comp_app,
+    iterate 2 {rw LocallyRingedSpace.comp_val_c_app'},
+    convert X.to_Γ_Spec_c_naturality f r using 1,
+  end }
 
 
 end LocallyRingedSpace

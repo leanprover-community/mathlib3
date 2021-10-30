@@ -184,10 +184,14 @@ begin
     dsimp, rw ← h, dsimp, refl },
 end
 
-theorem ext (hG : G.is_sheaf_opens_le_cover) (hB : is_basis_range B) {β γ : F ⟶ G}
+lemma ext' (hG : G.is_sheaf_opens_le_cover) (hB : is_basis_range B) {β γ : F ⟶ G}
   (h : whisker_left (idf B) β = whisker_left (idf B) γ) : β = γ :=
 by { rw (uniq_extn_from_basis hG hB _).uniq h,
   exact ((uniq_extn_from_basis hG hB _).uniq rfl).symm }
+
+theorem ext (hG : G.is_sheaf_opens_le_cover) (hB : is_basis_range B) {β γ : F ⟶ G}
+  (h : ∀ i, β.app (op $ B.f i) = γ.app (op $ B.f i)) : β = γ :=
+by { apply ext' hG hB, ext, exact h x }
 
 end sheaf_hom
 
@@ -212,7 +216,7 @@ sheaf_hom.uniq_extn_from_basis
   ((presheaf.is_sheaf_iff_is_sheaf_opens_le_cover _).1 hG) hB α
 
 theorem hom_ext (hG : G.is_sheaf) (hB : is_basis_range B) (β γ : F ⟶ G)
-  (h : whisker_left (idf B) β = whisker_left (idf B) γ) : β = γ :=
+  (h : ∀ i, β.app (op $ B.f i) = γ.app (op $ B.f i)) : β = γ :=
 sheaf_hom.ext ((presheaf.is_sheaf_iff_is_sheaf_opens_le_cover _).1 hG) hB h
 
 end sheaf

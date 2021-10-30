@@ -593,8 +593,11 @@ end prime_spectrum
 
 namespace local_ring
 
-variables (R) [comm_ring R] [local_ring R]
+variables (R) [local_ring R]
 
+/--
+The closed point in the prime spectrum of a local ring.
+-/
 def closed_point : prime_spectrum R :=
 ⟨maximal_ideal R, (maximal_ideal.is_maximal R).is_prime⟩
 

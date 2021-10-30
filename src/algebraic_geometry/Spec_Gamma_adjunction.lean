@@ -41,42 +41,33 @@ private def idfb := induced_functor (op ∘ (basic_open_B R).f)
 lemma basic_opens_is_basis {R} : Top.is_basis_range (basic_open_B R) := is_basis_basic_opens
 
 
-/-
-def comap_opens_map {R S : CommRing} (f : R ⟶ S) (U : opens (Spec' R)) :=
-  comap f U ((opens.map $ Spec.Top_map f).obj U) (λ _, id)
-
-lemma to_basic_open_comp_comap {S : CommRing} (f : R ⟶ S) (r : R) :
-  to_open R (basic_open r) ≫ comap_opens_map f (basic_open r) =
-  f ≫ to_open S (basic_open $ f r) := to_open_comp_comap' R f (basic_open r)
--/
-
 namespace LocallyRingedSpace
 
 variable (X : LocallyRingedSpace.{v})
 
 abbreviation Γ' := Γ.obj (op X)
 
-/- map from the global sections to a stalk -/
+/-- Map from the global sections to a stalk. -/
 def Γ_to_stalk (x : X) : Γ' X ⟶ X.presheaf.stalk x :=
   X.presheaf.germ (⟨x,trivial⟩ : (⊤ : opens X))
 -- or @Top.presheaf.germ _ _ _ _ _ ⊤ ⟨x,trivial⟩
 
-/- counit on the underlying set -/
+/- Counit on the underlying set. -/
 def to_Γ_Spec_fun : X → Spec' (Γ' X) := λ x,
-  comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ _ (X.local_ring x))
+  comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
 -- or Spec.to_Top.map (X.Γ_to_stalk x).op (@local_ring.closed_point ...)
 
 lemma mem_ideal_Γ_to_stalk_iff (r : Γ' X) (x : X) :
   r ∉ (X.to_Γ_Spec_fun x).as_ideal ↔ is_unit (X.Γ_to_stalk x r) :=
 by erw [local_ring.mem_maximal_ideal, not_not]; refl
 
-/- preimage of a basic open under the counit is a basic open -/
+/-- Preimage of a basic open under the counit is a basic open. -/
 lemma to_Γ_Spec_preim_basic_open_eq (r : Γ' X) :
   X.to_Γ_Spec_fun⁻¹' (basic_open r).1
   = (X.to_RingedSpace.basic_open r).1 :=
 by ext; erw X.to_RingedSpace.mem_basic_open; apply mem_ideal_Γ_to_stalk_iff
 
-/- counit is continuous -/
+/-- Counit is continuous. -/
 lemma to_Γ_Spec_continuous : continuous X.to_Γ_Spec_fun :=
 begin
   apply is_topological_basis_basic_opens.continuous,
@@ -84,30 +75,33 @@ begin
   exact (X.to_RingedSpace.basic_open r).2,
 end
 
+/-- Counit on the topological space. -/
 def to_Γ_Spec_base : continuous_map X (Spec' (Γ' X)) :=
 { to_fun := X.to_Γ_Spec_fun,
   continuous_to_fun := X.to_Γ_Spec_continuous }
 
-def opens_map_basic_open (r : Γ' X) := (opens.map X.to_Γ_Spec_base).obj (basic_open r)
+abbreviation opens_map_basic_open (r : Γ' X) :=
+  (opens.map X.to_Γ_Spec_base).obj (basic_open r)
 
 lemma to_Γ_Spec_opens_map_obj_basic_open_eq (r : Γ' X) :
   X.opens_map_basic_open r = X.to_RingedSpace.basic_open r :=
 subtype.eq (X.to_Γ_Spec_preim_basic_open_eq r)
 
-def to_opens_map_basic_open (r : Γ' X) :=
+abbreviation to_opens_map_basic_open (r : Γ' X) :=
   X.presheaf.map (X.opens_map_basic_open r).le_top.op
 
 def is_unit_res_opens_map_basic_open (r : Γ' X) :=
   by { have h := X.to_RingedSpace.is_unit_res_basic_open r,
   rw ← to_Γ_Spec_opens_map_obj_basic_open_eq at h, exact h }
 
+/-- Counit on the sheaf on a basic open. -/
 def to_Γ_Spec_c_app (r : Γ' X) := CommRing.of_hom
 (by { refine is_localization.away.lift r (is_unit_res_opens_map_basic_open _ r),
       swap 4, exact is_localization.to_basic_open _ r })
 
-/- characterization of the sheaf morphism on basic opens,
-   direction → used in proving naturality of the morphism,
-   direction ← ... May be only ← direction is useful ... -/
+/-- Characterization of the sheaf morphism on basic opens,
+    direction ← used in various places, direction ← ...
+    Maybe only ← direction is useful ... -/
 lemma to_Γ_Spec_c_app_prop (r : Γ' X) :
   ∀ f, to_open _ (basic_open r) ≫ f = X.to_opens_map_basic_open r
   ↔ f = X.to_Γ_Spec_c_app r :=
@@ -120,7 +114,7 @@ lemma to_Γ_Spec_c_app_prop (r : Γ' X) :
   apply congr_arg,
 end
 
-
+/-- Counit on the sheaf on all basic opens, commuting with restrictions. -/
 def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
                           ⟶ idfb _ ⋙ X.to_Γ_Spec_base _* X.presheaf :=
 { app := X.to_Γ_Spec_c_app,
@@ -131,10 +125,12 @@ def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
     convert (X.to_Γ_Spec_c_app_prop s _).2 rfl,
     apply eq.symm, apply X.presheaf.map_comp } }
 
+/-- Counit on the sheaf. -/
 def to_Γ_Spec_c := Top.sheaf.uniq_hom_extn_from_basis _
   ((Top.sheaf.pushforward _).obj X.𝒪).2
   basic_opens_is_basis X.to_Γ_Spec_c_basic_opens
 
+/-- Counit on the sheafed space. -/
 def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ (Spec' (Γ' X)).to_SheafedSpace :=
 { base := X.to_Γ_Spec_base,
   c := X.to_Γ_Spec_c.lift }
@@ -145,7 +141,7 @@ by { change _ = X.to_Γ_Spec_c_basic_opens.app r, rw ← X.to_Γ_Spec_c.fac, ref
 /- once worked but now timeouts:
 by change (whisker_left (idfb _) _).app r = _; erw X.to_Γ_Spec_c.fac; refl -/
 
--- write down the lemma explicitly ...
+-- write down the lemma explicitly ... and change to lemma
 def to_Γ_Spec_SheafedSpace_app_prop (r : Γ' X) := by {
   have h := X.to_Γ_Spec_c_app_prop r,
   rw ← to_Γ_Spec_SheafedSpace_app_eq at h,
@@ -166,6 +162,7 @@ begin
   apply germ_res,
 end
 
+/-- Counit on the locally ringed space. -/
 def to_Γ_Spec : X ⟶ Spec' (Γ' X) :=
 begin
   fsplit, exact X.to_Γ_Spec_SheafedSpace,
@@ -194,10 +191,10 @@ lemma to_Γ_Spec_base_naturality : (f ≫ Y.to_Γ_Spec).1.1 =
 begin
   ext1 x, convert congr_fun (congr_arg comap
     (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩))
-    (@local_ring.closed_point _ _ _ (X.local_ring x)),
+    (@local_ring.closed_point _ _ (X.local_ring x)),
   erw prime_spectrum.comap_comp, rw function.comp_apply,
   erw (@local_ring.local_hom_iff_comap_closed_point
-        _ _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl,
+        _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl,
 end
 
 private def eha := nat_trans.app $ eq_to_hom $
@@ -213,11 +210,12 @@ begin
   erw (X.to_Γ_Spec_SheafedSpace_app_prop (Γ.map f.op r) _).2 rfl,
   iterate 2 {rw ← category.assoc},
   rw (Y.to_Γ_Spec_SheafedSpace_app_prop r _).2 rfl,
-  erw [f.1.c.naturality, category.assoc], congr, rw eha,
-  rw [pushforward_eq'_hom_app, pushforward_obj_map, ←functor.map_comp],
+  erw [f.1.c.naturality, category.assoc], congr,
+  rw [eha, pushforward_eq'_hom_app, pushforward_obj_map, ←functor.map_comp],
   congr, exact X.to_Γ_Spec_base_naturality f,
 end
 
+/-- Counit as a natural transformation. -/
 def identity_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
 { app := to_Γ_Spec,
   naturality' := λ X Y f, begin
@@ -226,8 +224,9 @@ def identity_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_Local
     exact basic_opens_is_basis, intro r,
     rw nat_trans.comp_app,
     iterate 2 {rw LocallyRingedSpace.comp_val_c_app'},
-    convert X.to_Γ_Spec_c_naturality f r using 1,
+    convert X.to_Γ_Spec_c_naturality f r using 1, -- slow!
   end }
+
 
 
 end LocallyRingedSpace

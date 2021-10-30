@@ -6,7 +6,9 @@ Authors: Leonardo de Moura
 
 /-!
 # Streams a.k.a. infinite lists a.k.a. infinite sequences
--/
+
+This file used to be in the core library. It was moved to `mathlib` and renamed to `init` to avoid
+name clashes.  -/
 
 open nat function option
 universes u v w

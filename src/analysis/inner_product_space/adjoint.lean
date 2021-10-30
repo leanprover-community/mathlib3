@@ -30,12 +30,14 @@ variables [complete_space E] [complete_space F]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 F _ x y
 
+/-- Find a better name -/
 def inner_right' (A : E →L[𝕜] F) (v : F) : E →L[𝕜] 𝕜 :=
 linear_map.mk_continuous
   { to_fun := λ w, ⟪v, A w⟫,
     map_add' := λ x y, by { rw [continuous_linear_map.map_add], exact inner_add_right },
     map_smul' := λ c x, by
-      simp only [inner_smul_right, algebra.id.smul_eq_mul, ring_hom.id_apply, continuous_linear_map.map_smul] }
+      simp only [inner_smul_right, algebra.id.smul_eq_mul, ring_hom.id_apply,
+                 continuous_linear_map.map_smul] }
   (∥A∥ * ∥v∥)
   begin
     intro x,
@@ -48,7 +50,8 @@ linear_map.mk_continuous
     simp only [h₃, linear_map.coe_mk],
   end
 
-@[simp] lemma inner_right'_apply (A : E →L[𝕜] F) (v : F) (w : E) : inner_right' A v w = ⟪v, A w⟫ := rfl
+@[simp] lemma inner_right'_apply (A : E →L[𝕜] F) (v : F) (w : E) :
+  inner_right' A v w = ⟪v, A w⟫ := rfl
 
 lemma inner_right'_norm (A : E →L[𝕜] F) (v : F) : ∥inner_right' A v∥ ≤ ∥A∥ * ∥v∥ :=
 begin
@@ -62,7 +65,7 @@ begin
               ... = ∥A∥ * ∥v∥ * ∥x∥    : by ring,
 end
 
-
+/-- Find a better name -/
 @[simps] def inner_right'ₛₗ (A : E →L[𝕜] F) : F →ₗ⋆[𝕜] E →L[𝕜] 𝕜 :=
 { to_fun := λ v, inner_right' A v,
   map_add' := λ x y, by { ext w, simp only [inner_add_left, inner_right'_apply,
@@ -79,6 +82,7 @@ begin
     inner_right'_apply, pi.smul_apply, continuous_linear_map.coe_smul'],
 end
 
+/-- The adjoint, as a bare function -/
 @[simps] def adjoint' (A : E →L[𝕜] F) : F →L[𝕜] E :=
 linear_map.mk_continuous
 { to_fun := λ v : F, (to_dual 𝕜 E).symm (inner_right'ₛₗ A v),
@@ -99,6 +103,8 @@ begin
 end
 
 --set_option trace.simplify.rewrite true
+
+/-- The adjoint -/
 def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
 linear_isometry_equiv.of_surjective
 { to_fun := adjoint',

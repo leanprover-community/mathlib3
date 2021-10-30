@@ -173,6 +173,19 @@ end
 
 variables {p} {G}
 
+/-- Sylow subgroups are isomorphic -/
+noncomputable def sylow.mul_equiv [fact p.prime] [fintype (sylow p G)] (P Q : sylow p G) :
+  P ≃* Q :=
+let ϕ := mul_aut.conj (classical.some (exists_smul_eq G P Q)),
+hϕ1 : ∀ g : G, g ∈ P ↔ ϕ g ∈ Q := λ g, by { rw ← classical.some_spec (exists_smul_eq G P Q),
+  exact (mem_map_iff_mem (show function.injective ϕ.to_monoid_hom, from ϕ.injective)).symm },
+hϕ2 : ∀ g : G, g ∈ Q ↔ ϕ.symm g ∈ P := λ g, by rw [hϕ1, ϕ.apply_symm_apply] in
+{ to_fun := λ g, ⟨_, (hϕ1 g).mp g.2⟩,
+  inv_fun := λ g, ⟨_, (hϕ2 g).mp g.2⟩,
+  left_inv := λ g, subtype.ext (ϕ.symm_apply_apply g),
+  right_inv := λ g, subtype.ext (ϕ.apply_symm_apply g),
+  map_mul' := λ g h, subtype.ext (ϕ.map_mul g h) }
+
 @[simp] lemma sylow.orbit_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   orbit G P = ⊤ :=
 top_le_iff.mp (λ Q hQ, exists_smul_eq G P Q)

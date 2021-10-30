@@ -1511,7 +1511,7 @@ begin
 end
 
 /-- Computable alternative to `monoid_hom.of_injective`. -/
-@[to_additive]
+@[to_additive /-"Computable alternative to `add_monoid_hom.of_injective`."-/]
 def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
 { to_fun := f.range_restrict,
   inv_fun := g ∘ f.range.subtype,
@@ -1531,7 +1531,8 @@ def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f
   (of_left_inverse h).symm x = g x := rfl
 
 /-- The range of an injective group homomorphism is isomorphic to its domain. -/
-@[to_additive]
+@[to_additive /-"The range of an injective additive group homomorphism is isomorphic to its
+domain."-/ ]
 noncomputable def of_injective {f : G →* N} (hf : function.injective f) : G ≃* f.range :=
 (mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
   ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩)

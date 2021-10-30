@@ -130,7 +130,8 @@ is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 @[simp, to_additive] lemma order_of_one : order_of (1 : G) = 1 :=
 by rw [order_of, one_mul_eq_id, minimal_period_id]
 
-@[simp, to_additive] lemma order_of_eq_one_iff : order_of x = 1 ↔ x = 1 :=
+@[simp, to_additive add_monoid.order_of_eq_one_iff] lemma order_of_eq_one_iff :
+  order_of x = 1 ↔ x = 1 :=
 by rw [order_of, is_fixed_point_iff_minimal_period_eq_one, is_fixed_pt, mul_one]
 
 @[to_additive nsmul_eq_mod_add_order_of]
@@ -146,6 +147,7 @@ is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of x ∣ n ↔ x ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
 
+@[to_additive exists_nsmul_eq_self_of_coprime]
 lemma exists_pow_eq_self_of_coprime (h : n.coprime (order_of x)) :
   ∃ m : ℕ, (x ^ n) ^ m = x :=
 begin
@@ -158,16 +160,6 @@ begin
     exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
   exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
 end
-
-lemma exists_nsmul_eq_self_of_coprime (a : A)
-  (h : coprime n (add_order_of a)) : ∃ m : ℕ, m • (n • a) = a :=
-begin
-  change n.coprime (order_of (multiplicative.of_add a)) at h,
-  exact exists_pow_eq_self_of_coprime h,
-end
-
---TODO
-attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
 
 @[to_additive add_order_of_eq_add_order_of_iff]
 lemma order_of_eq_order_of_iff {H : Type*} [monoid H] {y : H} :
@@ -292,8 +284,7 @@ calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
     by simp [zpow_add, zpow_mul, pow_order_of_eq_one]
     set_option pp.all true
 
--- TODO
--- @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
+@[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
   x ^ n = x ^ m ↔ n = m :=
 begin
@@ -311,7 +302,7 @@ begin
     { simp [pow_succ, IH] } }
 end
 
--- @[to_additive nsmul_inj_mod]
+@[to_additive nsmul_inj_mod]
 lemma pow_inj_mod {n m : ℕ} :
   x ^ n = x ^ m ↔ n % order_of x = m % order_of x :=
 begin

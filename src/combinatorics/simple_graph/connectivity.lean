@@ -1251,8 +1251,6 @@ begin
       exact unique_of_exists_unique (h v w) hp hq, }, },
 end
 
-#check G.is_tree_iff.mp
-
 /-- Get the unique path between two vertices in the tree. -/
 noncomputable abbreviation tree_path (h : G.is_tree) (v w : V): G.path v w :=
 ⟨((G.is_tree_iff.mp h).2 v w).some, ((G.is_tree_iff.mp h).2 v w).some_spec.1⟩

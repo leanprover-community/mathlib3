@@ -192,6 +192,17 @@ lemma pairwise.pairwise_on (h : pairwise r) (s : set α) : s.pairwise_on r := λ
 lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
 set.pairwise_on_univ.1 $ set.pairwise_on_disjoint_fiber f univ
 
+lemma pairwise_subtype_iff_pairwise_on {α : Type*} (s : set α) (r : α → α → Prop) :
+  pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise_on r :=
+begin
+  split,
+  { assume h x hx y hy hxy,
+    exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
+  { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    simp only [subtype.mk_eq_mk, ne.def] at hxy,
+    exact h x hx y hy hxy }
+end
+
 namespace set
 section semilattice_inf_bot
 variables [semilattice_inf_bot α]

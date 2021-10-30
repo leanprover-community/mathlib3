@@ -134,7 +134,7 @@ by refine_struct
     mul := (*),
     one := 1,
     nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩,
-    gsmul := @gsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+    zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
     npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩ };
   intros; try { refl }; ext; simp; ring_exp
 

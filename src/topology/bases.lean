@@ -414,6 +414,36 @@ let ⟨t, htc, htd⟩ := exists_countable_dense s
 in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _, htc.image coe,
   hs.dense_range_coe.dense_image continuous_subtype_val htd⟩
 
+/-- Let `s` be a dense set in a topological space `α` with partial order structure. If `s` is a
+separable space (e.g., if `α` has a second countable topology), then there exists a countable
+dense subset `t ⊆ s` such that `t` contains bottom/top element of `α` when they exist and belong
+to `s`. -/
+lemma dense.exists_countable_dense_subset_bot_top {α : Type*} [topological_space α]
+  [partial_order α] {s : set α} [separable_space s] (hs : dense s) :
+  ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∈ s → x ∈ t) ∧
+    (∀ x, is_top x → x ∈ s → x ∈ t) :=
+begin
+  rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
+  refine ⟨(t ∪ ({x | is_bot x} ∪ {x | is_top x})) ∩ s, _, _, _, _, _⟩,
+  exacts [inter_subset_right _ _,
+    (htc.union ((countable_is_bot α).union (countable_is_top α))).mono (inter_subset_left _ _),
+    htd.mono (subset_inter (subset_union_left _ _) hts),
+    λ x hx hxs, ⟨or.inr $ or.inl hx, hxs⟩, λ x hx hxs, ⟨or.inr $ or.inr hx, hxs⟩]
+end
+
+instance separable_space_univ {α : Type*} [topological_space α] [separable_space α] :
+  separable_space (univ : set α) :=
+(equiv.set.univ α).symm.surjective.dense_range.separable_space
+  (continuous_subtype_mk _ continuous_id)
+
+/-- If `α` is a separable topological space with a partial order, then there exists a countable
+dense set `s : set α` that contains those of both bottom and top elements of `α` that actually
+exist. -/
+lemma exists_countable_dense_bot_top (α : Type*) [topological_space α] [separable_space α]
+  [partial_order α] :
+  ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∈ s) ∧ (∀ x, is_top x → x ∈ s) :=
+by simpa using dense_univ.exists_countable_dense_subset_bot_top
+
 namespace topological_space
 universe u
 variables (α : Type u) [t : topological_space α]
@@ -533,21 +563,33 @@ instance {β : Type*} [topological_space β]
 ((is_basis_countable_basis α).prod (is_basis_countable_basis β)).second_countable_topology $
   (countable_countable_basis α).image2 (countable_countable_basis β) _
 
-instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
-  [fintype ι] [t : ∀a, topological_space (π a)] [sc : ∀a, second_countable_topology (π a)] :
+instance second_countable_topology_encodable {ι : Type*} {π : ι → Type*}
+  [encodable ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
   second_countable_topology (∀a, π a) :=
 begin
   have : t = (λa, generate_from (countable_basis (π a))),
     from funext (assume a, (is_basis_countable_basis (π a)).eq_generate_from),
-  rw this,
-  constructor,
-  refine ⟨pi univ '' pi univ (λ a, countable_basis (π a)), countable.image _ _, _⟩,
-  { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ countable_basis (π a)}, { simpa [pi] },
-    exact countable_pi (assume i, (countable_countable_basis _)), },
-  rw [pi_generate_from_eq_fintype],
-  { congr' 1 with f, simp [pi, eq_comm] },
-  exact assume a, (is_basis_countable_basis (π a)).sUnion_eq
+  rw [this, pi_generate_from_eq],
+  constructor, refine ⟨_, _, rfl⟩,
+  have : countable {T : set (Π i, π i) | ∃ (I : finset ι) (s : Π i : I, set (π i)),
+    (∀ i, s i ∈ countable_basis (π i)) ∧ T = {f | ∀ i : I, f i ∈ s i}},
+  { simp only [set_of_exists, ← exists_prop],
+    refine countable_Union (λ I, countable.bUnion _ (λ _ _, countable_singleton _)),
+    change countable {s : Π i : I, set (π i) | ∀ i, s i ∈ countable_basis (π i)},
+    exact countable_pi (λ i, countable_countable_basis _) },
+  convert this using 1, ext1 T, split,
+  { rintro ⟨s, I, hs, rfl⟩,
+    refine ⟨I, λ i, s i, λ i, hs i i.2, _⟩,
+    simp only [set.pi, set_coe.forall'], refl },
+  { rintro ⟨I, s, hs, rfl⟩,
+    rcases @subtype.surjective_restrict ι (λ i, set (π i)) _ (λ i, i ∈ I) s with ⟨s, rfl⟩,
+    exact ⟨s, I, λ i hi, hs ⟨i, hi⟩, set.ext $ λ f, subtype.forall⟩ }
 end
+
+instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
+  [fintype ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
+  second_countable_topology (∀a, π a) :=
+by { letI := fintype.encodable ι, exact topological_space.second_countable_topology_encodable }
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space

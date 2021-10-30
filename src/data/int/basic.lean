@@ -140,6 +140,20 @@ not_congr coe_nat_eq_zero
 
 @[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
+@[simp] lemma coe_sub_ge (m n : ℕ):
+  (m : ℤ)-(n : ℤ) ≤ (((m-n) : ℕ):ℤ) :=
+begin
+  by_cases h: m ≥ n,
+  have coe_sub_eq := int.coe_nat_sub h,
+  exact (le_of_eq coe_sub_eq.symm),
+
+  push_neg at h,
+  have sub_zero_le := int.coe_nat_le.2 (nat.zero_le (m-n)),
+  have le_zero := int.sub_le_sub_right (le_of_lt (int.coe_nat_lt.2 h)) (n:ℤ),
+  rw sub_self at le_zero,
+  exact le_trans le_zero sub_zero_le,
+end
+
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
 λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩

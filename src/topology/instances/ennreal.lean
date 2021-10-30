@@ -215,14 +215,14 @@ begin
   rw nhds_generate_from, refine le_infi (assume s, le_infi $ assume hs, _),
   rcases hs with ⟨xs, ⟨a, (rfl : s = Ioi a)|(rfl : s = Iio a)⟩⟩,
   { rcases exists_between xs with ⟨b, ab, bx⟩,
-    have xb_pos : 0 < x - b := ennreal.sub_pos.2 bx,
+    have xb_pos : 0 < x - b := tsub_pos_iff_lt.2 bx,
     have xxb : x - (x - b) = b := sub_sub_cancel xt bx.le,
     refine infi_le_of_le (x - b) (infi_le_of_le xb_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
   { rcases exists_between xs with ⟨b, xb, ba⟩,
-    have bx_pos : 0 < b - x := ennreal.sub_pos.2 xb,
-    have xbx : x + (b - x) = b := add_sub_cancel_of_le xb.le,
+    have bx_pos : 0 < b - x := tsub_pos_iff_lt.2 xb,
+    have xbx : x + (b - x) = b := add_tsub_cancel_of_le xb.le,
     refine infi_le_of_le (b - x) (infi_le_of_le bx_pos _),
     simp only [mem_principal, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },
@@ -253,7 +253,7 @@ protected lemma tendsto_at_top_zero [hβ : nonempty β] [semilattice_sup β] {f 
   filter.at_top.tendsto f (𝓝 0) ↔ ∀ ε > 0, ∃ N, ∀ n ≥ N, f n ≤ ε :=
 begin
   rw ennreal.tendsto_at_top zero_ne_top,
-  { simp_rw [set.mem_Icc, zero_add, zero_sub, zero_le _, true_and], },
+  { simp_rw [set.mem_Icc, zero_add, zero_tsub, zero_le _, true_and], },
   { exact hβ, },
 end
 
@@ -495,10 +495,10 @@ lemma sub_supr {ι : Sort*} [nonempty ι] {b : ι → ℝ≥0∞} (hr : a < ⊤)
 let ⟨r, eq, _⟩ := lt_iff_exists_coe.mp hr in
 have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
   from is_glb.Inf_eq $ is_lub_supr.is_glb_of_tendsto
-    (assume x _ y _, sub_le_sub (le_refl _))
+    (assume x _ y _, tsub_le_tsub (le_refl (r : ℝ≥0∞)))
     (range_nonempty _)
     (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
-by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
+by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_rfl
 
 end topological_space
 
@@ -701,7 +701,7 @@ begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
   { rw [ennreal.tsum_add, add_sub_self h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
-  { ext n, rw ennreal.sub_add_cancel_of_le (h₂ n)},
+  { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,
 end
 
@@ -1067,7 +1067,7 @@ begin
     { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
       filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],
       have hεC : C * (ε / C) = ε := ennreal.mul_div_cancel' C0 hC,
-      refine λ y (hy : edist y x ≤ ε / C), ⟨sub_le_iff_right.2 _, _⟩,
+      refine λ y (hy : edist y x ≤ ε / C), ⟨tsub_le_iff_right.2 _, _⟩,
       { rw edist_comm at hy,
         calc f x ≤ f y + C * edist x y : h x y
         ... ≤ f y + C * (ε / C) : add_le_add_left (mul_le_mul_left' hy C) (f y)

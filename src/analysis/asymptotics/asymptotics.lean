@@ -1302,12 +1302,12 @@ theorem is_o_pow_pow {m n : ℕ} (h : m < n) :
   is_o (λ(x : 𝕜), x^n) (λx, x^m) (𝓝 0) :=
 begin
   let p := n - m,
-  have nmp : n = m + p := (add_sub_cancel_of_le (le_of_lt h)).symm,
+  have nmp : n = m + p := (add_tsub_cancel_of_le (le_of_lt h)).symm,
   have : (λ(x : 𝕜), x^m) = (λx, x^m * 1), by simp only [mul_one],
   simp only [this, pow_add, nmp],
   refine is_O.mul_is_o (is_O_refl _ _) ((is_o_one_iff _).2 _),
   convert (continuous_pow p).tendsto (0 : 𝕜),
-  exact (zero_pow (nat.sub_pos_of_lt h)).symm
+  exact (zero_pow (tsub_pos_of_lt h)).symm
 end
 
 theorem is_o_norm_pow_norm_pow {m n : ℕ} (h : m < n) :

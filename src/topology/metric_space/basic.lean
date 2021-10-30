@@ -47,7 +47,6 @@ metric, pseudo_metric, dist
 -/
 
 open set filter topological_space
-noncomputable theory
 
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
@@ -93,6 +92,21 @@ export has_dist (dist)
 -- the uniform structure and the emetric space structure are embedded in the metric space structure
 -- to avoid instance diamond issues. See Note [forgetful inheritance].
 
+/-- This is an internal lemma used inside the default of `pseudo_metric_space.edist`. -/
+private theorem pseudo_metric_space.dist_nonneg' {α} {x y : α} (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z): 0 ≤ dist x y :=
+have 2 * dist x y ≥ 0,
+  from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
+    ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
+nonneg_of_mul_nonneg_left this zero_lt_two
+
+/-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is
+used. -/
+protected meta def pseudo_metric_space.edist_dist_tac : tactic unit :=
+tactic.intros >> `[exact (ennreal.of_real_eq_coe_nnreal _).symm <|> control_laws_tac]
+
 /-- Metric space
 
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
@@ -105,8 +119,10 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
-(edist : α → α → ℝ≥0∞ := λx y, ennreal.of_real (dist x y))
-(edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
+(edist : α → α → ℝ≥0∞ := λ x y,
+  @coe (ℝ≥0) _ _ ⟨dist x y, pseudo_metric_space.dist_nonneg' _ ‹_› ‹_› ‹_›⟩)
+(edist_dist : ∀ x y : α,
+  edist x y = ennreal.of_real (dist x y) . pseudo_metric_space.edist_dist_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
@@ -228,10 +244,7 @@ abs_sub_le_iff.2
   sub_le_iff_le_add.2 (dist_triangle_left _ _ _)⟩
 
 theorem dist_nonneg {x y : α} : 0 ≤ dist x y :=
-have 2 * dist x y ≥ 0,
-  from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
-    ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
-nonneg_of_mul_nonneg_left this zero_lt_two
+pseudo_metric_space.dist_nonneg' dist dist_self dist_comm dist_triangle
 
 @[simp] theorem abs_dist {a b : α} : |dist a b| = dist a b :=
 abs_of_nonneg dist_nonneg
@@ -967,7 +980,7 @@ emetric.complete_of_cauchy_seq_tendsto
 section real
 
 /-- Instantiate the reals as a pseudometric space. -/
-instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
+noncomputable instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
 { dist               := λx y, |x - y|,
   dist_self          := by simp [abs_zero],
   dist_comm          := assume x y, abs_sub_comm _ _,
@@ -1189,7 +1202,7 @@ theorem subtype.pseudo_dist_eq {p : α → Prop} (x y : subtype p) : dist x y = 
 
 section nnreal
 
-instance : pseudo_metric_space ℝ≥0 := by unfold nnreal; apply_instance
+noncomputable instance : pseudo_metric_space ℝ≥0 := by unfold nnreal; apply_instance
 
 lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 
@@ -1198,7 +1211,7 @@ lemma nnreal.nndist_eq (a b : ℝ≥0) :
 begin
   wlog h : a ≤ b,
   { apply nnreal.coe_eq.1,
-    rw [sub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
+    rw [tsub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
       nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
     apply max_eq_right,
     linarith [nnreal.coe_le_coe.2 h] },
@@ -1208,7 +1221,8 @@ end nnreal
 
 section prod
 
-instance prod.pseudo_metric_space_max [pseudo_metric_space β] : pseudo_metric_space (α × β) :=
+noncomputable instance prod.pseudo_metric_space_max [pseudo_metric_space β] :
+  pseudo_metric_space (α × β) :=
 { dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
   dist_self := λ x, by simp,
   dist_comm := λ x y, by simp [dist_comm],
@@ -1357,7 +1371,7 @@ open finset
 variables {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
 
 /-- A finite product of pseudometric spaces is a pseudometric space, with the sup distance. -/
-instance pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
+noncomputable instance pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
 begin
   /- we construct the instance from the pseudoemetric space instance to avoid checking again that
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
@@ -1788,7 +1802,7 @@ variables {s : set α} {x y z : α}
 
 /-- The diameter of a set in a metric space. To get controllable behavior even when the diameter
 should be infinite, we express it in terms of the emetric.diameter -/
-def diam (s : set α) : ℝ := ennreal.to_real (emetric.diam s)
+noncomputable def diam (s : set α) : ℝ := ennreal.to_real (emetric.diam s)
 
 /-- The diameter of a set is always nonnegative -/
 lemma diam_nonneg : 0 ≤ diam s := ennreal.to_real_nonneg
@@ -1855,6 +1869,18 @@ iff.intro
 
 lemma bounded.ediam_ne_top (h : bounded s) : emetric.diam s ≠ ⊤ :=
 bounded_iff_ediam_ne_top.1 h
+
+lemma ediam_univ_eq_top_iff_noncompact [proper_space α] :
+  emetric.diam (univ : set α) = ∞ ↔ noncompact_space α :=
+by rw [← not_compact_space_iff, compact_space_iff_bounded_univ, bounded_iff_ediam_ne_top, not_not]
+
+@[simp] lemma ediam_univ_of_noncompact [proper_space α] [noncompact_space α] :
+  emetric.diam (univ : set α) = ∞ :=
+ediam_univ_eq_top_iff_noncompact.mpr ‹_›
+
+@[simp] lemma diam_univ_of_noncompact [proper_space α] [noncompact_space α] :
+  diam (univ : set α) = 0 :=
+by simp [diam]
 
 /-- The distance between two points in a set is controlled by the diameter of the set. -/
 lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
@@ -2139,7 +2165,7 @@ instance : metric_space punit :=
 section real
 
 /-- Instantiate the reals as a metric space. -/
-instance real.metric_space : metric_space ℝ :=
+noncomputable instance real.metric_space : metric_space ℝ :=
 { eq_of_dist_eq_zero := λ x y h, by simpa [dist, sub_eq_zero] using h,
   ..real.pseudo_metric_space }
 
@@ -2147,13 +2173,13 @@ end real
 
 section nnreal
 
-instance : metric_space ℝ≥0 := subtype.metric_space
+noncomputable instance : metric_space ℝ≥0 := subtype.metric_space
 
 end nnreal
 
 section prod
 
-instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
+noncomputable instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
 { eq_of_dist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
     exact prod.ext_iff.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
@@ -2167,7 +2193,7 @@ open finset
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/
-instance metric_space_pi : metric_space (Πb, π b) :=
+noncomputable instance metric_space_pi : metric_space (Πb, π b) :=
   /- we construct the instance from the emetric space instance to avoid checking again that the
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/

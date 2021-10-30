@@ -105,10 +105,10 @@ by simpa only [sub_eq_add_neg] using S.add_mem hx (S.neg_mem hy)
 theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n
 
-theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
+theorem zsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : ∀ (n : ℤ), n • x ∈ S
-| (n : ℕ) := by { rw [gsmul_coe_nat], exact S.nsmul_mem hx n }
-| -[1+ n] := by { rw [gsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
+| (n : ℕ) := by { rw [zsmul_coe_nat], exact S.nsmul_mem hx n }
+| -[1+ n] := by { rw [zsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
 S.to_subsemiring.coe_nat_mem n
@@ -372,9 +372,9 @@ instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divi
   [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
 S.to_subsemiring.no_zero_divisors
 
-instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
-  (S : subalgebra R A) : integral_domain S :=
-subring.integral_domain S.to_subring
+instance is_domain {R A : Type*} [comm_ring R] [ring A] [is_domain A] [algebra R A]
+  (S : subalgebra R A) : is_domain S :=
+subring.is_domain S.to_subring
 
 end subalgebra
 

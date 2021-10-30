@@ -93,8 +93,7 @@ namespace chain
 variables {α : Type u} {β : Type v} {γ : Type*}
 variables [preorder α] [preorder β] [preorder γ]
 
-instance : has_coe_to_fun (chain α) :=
-@infer_instance (has_coe_to_fun $ ℕ →ₘ α) _
+instance : has_coe_to_fun (chain α) (λ _, ℕ → α) := preorder_hom.has_coe_to_fun
 
 instance [inhabited α] : inhabited (chain α) :=
 ⟨ ⟨ λ _, default _, λ _ _ _, le_refl _ ⟩ ⟩
@@ -502,9 +501,7 @@ attribute [nolint doc_blame] continuous_hom.to_preorder_hom
 
 infixr ` →𝒄 `:25 := continuous_hom -- Input: \r\MIc
 
-instance : has_coe_to_fun (α →𝒄 β) :=
-{ F := λ _, α → β,
-  coe :=  λ f, f.to_preorder_hom.to_fun }
+instance : has_coe_to_fun (α →𝒄 β) (λ _, α → β) := ⟨λ f, f.to_preorder_hom.to_fun⟩
 
 instance : has_coe (α →𝒄 β) (α →ₘ β) :=
 { coe :=  continuous_hom.to_preorder_hom }

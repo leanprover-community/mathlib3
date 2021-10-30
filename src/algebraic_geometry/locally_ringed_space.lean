@@ -32,7 +32,7 @@ namespace algebraic_geometry
 such that all the stalks are local rings.
 
 A morphism of locally ringed spaces is a morphism of ringed spaces
-such that the morphims induced on stalks are local ring homomorphisms. -/
+such that the morphisms induced on stalks are local ring homomorphisms. -/
 @[nolint has_inhabited_instance]
 structure LocallyRingedSpace extends SheafedSpace CommRing :=
 (local_ring : ∀ x, local_ring (presheaf.stalk x))
@@ -52,9 +52,8 @@ def to_RingedSpace : RingedSpace := X.to_SheafedSpace
 /-- The underlying topological space of a locally ringed space. -/
 def to_Top : Top := X.1.carrier
 
-instance : has_coe_to_sort LocallyRingedSpace :=
-{ S := Type u,
-  coe := λ X : LocallyRingedSpace, (X.to_Top : Type u), }
+instance : has_coe_to_sort LocallyRingedSpace (Type u) :=
+⟨λ X : LocallyRingedSpace, (X.to_Top : Type u)⟩
 
 -- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
@@ -167,7 +166,7 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
 The restriction of a locally ringed space along an open embedding.
 -/
 @[simps]
-def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_Top)
+def restrict {U : Top} (X : LocallyRingedSpace) {f : U ⟶ X.to_Top}
   (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
   begin
@@ -175,16 +174,16 @@ def restrict {U : Top} (X : LocallyRingedSpace) (f : U ⟶ X.to_Top)
     dsimp at *,
     -- We show that the stalk of the restriction is isomorphic to the original stalk,
     apply @ring_equiv.local_ring _ _ _ (X.local_ring (f x)),
-    exact (X.to_PresheafedSpace.restrict_stalk_iso f h x).symm.CommRing_iso_to_ring_equiv,
+    exact (X.to_PresheafedSpace.restrict_stalk_iso h x).symm.CommRing_iso_to_ring_equiv,
   end,
-  .. X.to_SheafedSpace.restrict f h }
+  .. X.to_SheafedSpace.restrict h }
 
 /--
 The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
 -/
 def restrict_top_iso (X : LocallyRingedSpace) :
-  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
-@iso_of_SheafedSpace_iso (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) X
+  X.restrict (opens.open_embedding ⊤) ≅ X :=
+@iso_of_SheafedSpace_iso (X.restrict (opens.open_embedding ⊤)) X
   X.to_SheafedSpace.restrict_top_iso
 
 /--
@@ -200,10 +199,10 @@ lemma Γ_def : Γ = forget_to_SheafedSpace.op ⋙ SheafedSpace.Γ := rfl
 lemma Γ_obj_op (X : LocallyRingedSpace) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 
 @[simp] lemma Γ_map {X Y : LocallyRingedSpaceᵒᵖ} (f : X ⟶ Y) :
-  Γ.map f = f.unop.1.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op := rfl
+  Γ.map f = f.unop.1.c.app (op ⊤) := rfl
 
 lemma Γ_map_op {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
-  Γ.map f.op = f.1.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
+  Γ.map f.op = f.1.c.app (op ⊤) := rfl
 
 end LocallyRingedSpace
 

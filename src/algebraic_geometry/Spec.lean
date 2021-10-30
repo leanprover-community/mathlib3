@@ -35,7 +35,7 @@ TODO: provide the unit, and prove the triangle identities.
 -/
 
 noncomputable theory
-universe variables u v
+universes u v
 
 namespace algebraic_geometry
 open opposite
@@ -103,19 +103,13 @@ begin
   dsimp,
   erw [PresheafedSpace.id_c_app, comap_id], swap,
     { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
-  rw [eq_to_hom_op, eq_to_hom_map, eq_to_hom_trans],
-  refl,
+  simpa,
 end
 
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
-begin
-  dsimp,
-  erw [Top.presheaf.pushforward.comp_inv_app, ← category.assoc, category.comp_id,
-    (structure_sheaf T).1.map_id, category.comp_id, comap_comp],
-  refl,
-end
+by { dsimp, rw category.comp_id, erw comap_comp f g, refl }
 
 /--
 Spec, as a contravariant functor from commutative rings to sheafed spaces.

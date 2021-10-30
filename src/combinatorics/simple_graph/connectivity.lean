@@ -1226,8 +1226,10 @@ begin
   split,
   { intro h,
     split,
-    simp only [h.2],
-    rintro ⟨hc, hu⟩ v w,
+    simp only [h],
+    cases h with hc h,
+    cases h with hu hmpty,
+    rintro v w,
     let q := (hc v w).some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
@@ -1238,21 +1240,27 @@ begin
   { intro h,
     split,
     { intros v w,
-      obtain ⟨p, hp⟩ := h v w,
+      obtain ⟨p, hp⟩ := h.2 v w,
       use p, },
-    { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
-      simp only,
+    { cases h with hmpty h,
+      split,
+      swap,
+      simp [hmpty],
+      rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
+      simp only [p, hp, q, hq],
       exact unique_of_exists_unique (h v w) hp hq, }, },
 end
 
+#check G.is_tree_iff.mp
+
 /-- Get the unique path between two vertices in the tree. -/
-noncomputable abbreviation tree_path (h : G.is_tree) (v w : V) : G.path v w :=
-⟨((G.is_tree_iff.mp h) v w).some, ((G.is_tree_iff.mp h) v w).some_spec.1⟩
+noncomputable abbreviation tree_path (h : G.is_tree) (v w : V): G.path v w :=
+⟨((G.is_tree_iff.mp h).2 v w).some, ((G.is_tree_iff.mp h).2 v w).some_spec.1⟩
 
 lemma tree_path_spec {h : G.is_tree} {v w : V} (p : G.path v w) : p = G.tree_path h v w :=
 begin
   cases p,
-  have := ((G.is_tree_iff.mp h) v w).some_spec,
+  have := ((G.is_tree_iff.mp h).2 v w).some_spec,
   simp only [this.2 p_val p_property],
 end
 
@@ -1330,6 +1338,7 @@ end
 
 open fintype
 
+/-- Get the next edge after vertext `v` on a path `p` from `v` to vertex `w`. -/
 def next_edge (G : simple_graph V) : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
 | v w h walk.nil := (h rfl).elim
 | v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mk_has_mem _ _⟩
@@ -1377,9 +1386,7 @@ lemma is_tree.card_edges_eq_card_vertices_sub_one
   [fintype G.edge_set] [fintype V] (h : G.is_tree) :
   card G.edge_set = card V - 1 :=
 begin
-  cases h with _ h,
-  cases h with _ h,
-  have root := classical.arbitrary V,
+  have root := classical.choice h.2.2,
   rw ←set.card_ne_eq root,
   let f : {v | v ≠ root} → G.edge_set := λ v,
     ⟨G.next_edge v root v.property (G.tree_path h v root),

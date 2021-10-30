@@ -175,21 +175,47 @@ instance [topological_space α] [is_locally_finite_measure μ] :
   is_locally_finite_measure (ν.with_density $ rn_deriv μ ν) :=
 is_locally_finite_measure_of_le $ with_density_rn_deriv_le μ ν
 
-lemma lintegral_rn_deriv_lt_top
-  (μ ν : measure α) [is_finite_measure μ] :
-  ∫⁻ x, μ.rn_deriv ν x ∂ν < ∞ :=
+lemma lintegral_rn_deriv_lt_top_of_measure_ne_top
+  {μ : measure α} (ν : measure α) {s : set α} (hs : μ s ≠ ∞) :
+  ∫⁻ x in s, μ.rn_deriv ν x ∂ν < ∞ :=
 begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { haveI := hl,
     obtain ⟨-, -, hadd⟩ := have_lebesgue_decomposition_spec μ ν,
-    rw [← set_lintegral_univ, ← with_density_apply _ measurable_set.univ],
+    suffices : ∫⁻ x in to_measurable μ s, μ.rn_deriv ν x ∂ν < ∞,
+      from lt_of_le_of_lt (lintegral_mono_set (subset_to_measurable _ _)) this,
+    rw [← with_density_apply _ (measurable_set_to_measurable _ _)],
     refine lt_of_le_of_lt
-      (le_add_left (le_refl _) : _ ≤ μ.singular_part ν set.univ +
-        ν.with_density (μ.rn_deriv ν) set.univ) _,
-    rw [← measure.add_apply, ← hadd],
-    exact measure_lt_top _ _ },
+      (le_add_left (le_refl _) : _ ≤ μ.singular_part ν (to_measurable μ s) +
+        ν.with_density (μ.rn_deriv ν) (to_measurable μ s)) _,
+    rw [← measure.add_apply, ← hadd, measure_to_measurable],
+    exact hs.lt_top },
   { erw [measure.rn_deriv, dif_neg hl, lintegral_zero],
     exact with_top.zero_lt_top },
+end
+
+lemma lintegral_rn_deriv_lt_top
+  (μ ν : measure α) [is_finite_measure μ] :
+  ∫⁻ x, μ.rn_deriv ν x ∂ν < ∞ :=
+begin
+  rw [← set_lintegral_univ],
+  exact lintegral_rn_deriv_lt_top_of_measure_ne_top _ (measure_lt_top _ _).ne,
+end
+
+/-- The Radon-Nikodym derivative of a sigma-finite measure `μ` with respect to another
+measure `ν` is `ν`-almost everywhere finite. -/
+theorem rn_deriv_lt_top (μ ν : measure α) [sigma_finite μ] :
+  ∀ᵐ x ∂ν, μ.rn_deriv ν x < ∞ :=
+begin
+  suffices : ∀ n, ∀ᵐ x ∂ν, x ∈ spanning_sets μ n → μ.rn_deriv ν x < ∞,
+  { filter_upwards [ae_all_iff.2 this],
+    assume x hx,
+    exact hx _ (mem_spanning_sets_index _ _) },
+  assume n,
+  rw ← ae_restrict_iff' (measurable_spanning_sets _ _),
+  apply ae_lt_top (measurable_rn_deriv _ _),
+  refine (lintegral_rn_deriv_lt_top_of_measure_ne_top _ _).ne,
+  exact (measure_spanning_sets_lt_top _ _).ne
 end
 
 /-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a

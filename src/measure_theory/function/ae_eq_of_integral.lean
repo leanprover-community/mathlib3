@@ -17,7 +17,7 @@ possible finiteness of the measure.
 
 ## Main statements
 
-All results listed below apply to two functions `f,g`, together with two main hypotheses,
+All results listed below apply to two functions `f, g`, together with two main hypotheses,
 * `f` and `g` are integrable on all measurable sets with finite measure,
 * for all measurable sets `s` with finite measure, `∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ`.
 The conclusion is then `f =ᵐ[μ] g`. The main lemmas are:
@@ -287,26 +287,18 @@ begin
   exact hf_zero s hs,
 end
 
-lemma ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite [sigma_finite μ]
-  {f : α → ℝ}
+lemma ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite [sigma_finite μ] {f : α → ℝ}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
 begin
-  let S := spanning_sets μ,
-  rw [← @measure.restrict_univ _ _ μ, ← Union_spanning_sets μ, eventually_le, ae_iff,
-    measure.restrict_apply'],
-  swap,
-  { exact measurable_set.Union (measurable_spanning_sets μ), },
-  rw [set.inter_Union, measure_Union_null_iff],
-  intro n,
-  have h_meas_n : measurable_set (S n), from (measurable_spanning_sets μ n),
-  have hμn : μ (S n) < ∞, from measure_spanning_sets_lt_top μ n,
-  rw ← measure.restrict_apply' h_meas_n,
-  refine ae_nonneg_restrict_of_forall_set_integral_nonneg_inter hμn.ne
-    (hf_int_finite (S n) h_meas_n hμn) (λ s hs, _),
-  exact hf_zero (s ∩ S n) (hs.inter h_meas_n)
-    ((measure_mono (set.inter_subset_right _ _)).trans_lt hμn),
+  apply ae_of_forall_measure_lt_top_ae_restrict,
+  assume t t_meas t_lt_top,
+  apply ae_nonneg_restrict_of_forall_set_integral_nonneg_inter t_lt_top.ne
+    (hf_int_finite t t_meas t_lt_top),
+  assume s s_meas,
+  exact hf_zero _ (s_meas.inter t_meas)
+    (lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) t_lt_top)
 end
 
 lemma ae_fin_strongly_measurable.ae_nonneg_of_forall_set_integral_nonneg {f : α → ℝ}

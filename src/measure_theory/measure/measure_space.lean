@@ -1960,6 +1960,19 @@ lemma eventually_mem_spanning_sets (μ : measure α) [sigma_finite μ] (x : α) 
   ∀ᶠ n in at_top, x ∈ spanning_sets μ n :=
 eventually_at_top.2 ⟨spanning_sets_index μ x, λ b, mem_spanning_sets_of_index_le μ x⟩
 
+lemma ae_of_forall_measure_lt_top_ae_restrict {μ : measure α} [sigma_finite μ] (P : α → Prop)
+  (h : ∀ s, measurable_set s → μ s < ∞ → ∀ᵐ x ∂(μ.restrict s), P x) :
+  ∀ᵐ x ∂μ, P x :=
+begin
+  have : ∀ n, ∀ᵐ x ∂μ, x ∈ spanning_sets μ n → P x,
+  { assume n,
+    have := h (spanning_sets μ n) (measurable_spanning_sets _ _) (measure_spanning_sets_lt_top _ _),
+    rwa ae_restrict_iff' (measurable_spanning_sets _ _) at this },
+  filter_upwards [ae_all_iff.2 this],
+  assume x hx,
+  exact hx _ (mem_spanning_sets_index _ _),
+end
+
 omit m0
 
 namespace measure

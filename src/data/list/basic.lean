@@ -4020,6 +4020,12 @@ end
 @[simp] theorem suffix_insert (a : α) (l : list α) : l <:+ insert a l :=
 by by_cases a ∈ l; [simp only [insert_of_mem h], simp only [insert_of_not_mem h, suffix_cons]]
 
+theorem infix_insert (a : α) (l : list α) : l <:+: insert a l := (suffix_insert a l).is_infix
+
+theorem sublist_insert (a : α) (l : list α) : l <+ insert a l := (suffix_insert a l).sublist
+
+theorem subset_insert (a : α) (l : list α) : l ⊆ insert a l := (sublist_insert a l).subset
+
 @[simp] theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
 mem_insert_iff.2 (or.inl rfl)
 

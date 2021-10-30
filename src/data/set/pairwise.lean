@@ -20,8 +20,7 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
 
 open set
 
-universes u v
-variables {α : Type u} {ι ι' : Type v} {r p q : α → α → Prop}
+variables {α ι ι' : Type*} {r p q : α → α → Prop}
 
 section pairwise
 variables {f : ι → α} {s t u : set α} {a b : α}

@@ -424,7 +424,7 @@ begin
   -- first exclude the trivial case where `β` is empty (we need non-emptiness for the transfinite
   -- induction, to be able to choose garbage when there is no point left).
   casesI is_empty_or_nonempty β,
-  { refine ⟨λ i, ∅, λ i, by simp, _⟩,
+  { refine ⟨λ i, ∅, λ i, pairwise_disjoint_empty, _⟩,
     rw [← image_univ, eq_empty_of_is_empty (univ : set β)],
     simp },
   -- Now, assume `β` is nonempty.
@@ -434,7 +434,6 @@ begin
     ⋃ (k : ordinal.{u}) (hk : k < p.last_step) (h'k : p.color k = i), ({p.index k} : set β),
   refine ⟨s, λ i, _, _⟩,
   { -- show that balls of the same color are disjoint
-    simp only [function.on_fun],
     assume x hx y hy x_ne_y,
     obtain ⟨jx, jx_lt, jxi, rfl⟩ :
       ∃ (jx : ordinal), jx < p.last_step ∧ p.color jx = i ∧ x = p.index jx,
@@ -445,7 +444,7 @@ begin
     wlog jxy : jx ≤ jy := le_total jx jy using [jx jy, jy jx] tactic.skip,
     swap,
     { assume h1 h2 h3 h4 h5 h6 h7,
-      rw disjoint.comm,
+      rw [function.on_fun, disjoint.comm],
       exact this h4 h5 h6 h1 h2 h3 h7.symm },
     replace jxy : jx < jy,
       by { rcases lt_or_eq_of_le jxy with H|rfl, { exact H }, { exact (x_ne_y rfl).elim } },
@@ -684,8 +683,7 @@ begin
         refine hv p' p'v q' q'v (λ hp'q', _),
         rw [hp'q'] at hpq,
         exact hpq rfl },
-      { simp only [function.on_fun, disjoint.comm, and_self],
-        assume p hp q hq hpq,
+      { assume p hp q hq hpq,
         rcases (mem_image _ _ _).1 hq with ⟨q', q'v, rfl⟩,
         apply disjoint_of_subset_left _ (hr q' (vs' q'v)).2.2,
         rw [hB, ← finset.set_bUnion_coe],

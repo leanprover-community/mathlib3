@@ -845,7 +845,7 @@ begin
     exact μv },
   { have A : inj_on (λ x : α, (x, r x)) t,
       by simp only [inj_on, prod.mk.inj_iff, implies_true_iff, eq_self_iff_true] {contextual := tt},
-    rwa [← im_t, A.pairwise_on_image] at v_disj }
+    rwa [← im_t, A.pairwise_disjoint_image] at v_disj }
 end
 
 end besicovitch

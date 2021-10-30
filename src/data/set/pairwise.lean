@@ -224,6 +224,10 @@ begin
   exact (hs a ha b hb $ ne_of_apply_ne _ h).mono (hg a) (hg b),
 end
 
+lemma inj_on.pairwise_disjoint_image {g : ι' → ι} {s : set ι'} (h : s.inj_on g) :
+  (g '' s).pairwise_disjoint f ↔ s.pairwise_disjoint (f ∘ g) :=
+h.pairwise_on_image
+
 lemma pairwise_disjoint.range (g : s → ι) (hg : ∀ (i : s), f (g i) ≤ f i)
   (ht : s.pairwise_disjoint f) :
   (range g).pairwise_disjoint f :=

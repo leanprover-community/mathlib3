@@ -1710,19 +1710,6 @@ by cases l; refl
 
 theorem take_cons (n) (a : α) (l : list α) : take (succ n) (a::l) = a :: take n l := rfl
 
-theorem mem_of_mem_take {α : Type*} {x : α} :
-  ∀ {l : list α} {n : ℕ}, x ∈ take n l → x ∈ l
-| _         0       h := by {rw [take_zero] at h, exact false.elim h}
-| []        _       h := by {rw [take_nil] at h, exact false.elim h}
-| [a]       (n+1) h := by {simp [take] at h, exact mem_singleton.mpr h}
-| (a::b::l) (n+1) h :=
-  begin
-    simp [take] at h,
-    cases h,
-    {rw h, exact mem_cons_self a (b :: l)},
-    refine mem_cons_of_mem _ (mem_of_mem_take h),
-  end
-
 @[simp] theorem take_length : ∀ (l : list α), take (length l) l = l
 | []     := rfl
 | (a::l) := begin change a :: (take (length l) l) = a :: l, rw take_length end
@@ -1876,19 +1863,6 @@ end
 
 theorem drop_nil : ∀ n, drop n [] = ([] : list α) :=
 λ _, drop_eq_nil_of_le (nat.zero_le _)
-
-lemma mem_of_mem_drop {α} {n : ℕ} {l : list α} {x : α}
-  (h : x ∈ l.drop n) :
-  x ∈ l :=
-begin
-  induction l generalizing n,
-  case list.nil : n h
-  { simpa using h },
-  case list.cons : l_hd l_tl l_ih n h
-  { cases n; simp only [mem_cons_iff, drop] at h ⊢,
-    { exact h },
-    right, apply l_ih h },
-end
 
 @[simp] theorem drop_one : ∀ l : list α, drop 1 l = tail l
 | []       := rfl
@@ -3765,15 +3739,38 @@ prefix_append_right_inj [a]
 
 theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
 
+theorem take_sublist (n) (l : list α) : take n l <+ l := sublist_of_prefix (take_prefix n l)
+
+theorem take_subset (n) (l : list α) : take n l ⊆ l := (take_sublist n l).subset
+
+theorem mem_of_mem_take {n} {l : list α} {x : α} (h : x ∈ l.take n) : x ∈ l := take_subset n l h
+
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
+
+theorem drop_sublist (n) (l : list α) : drop n l <+ l := sublist_of_suffix (drop_suffix n l)
+
+theorem drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subset
+
+theorem mem_of_mem_drop {n} {l : list α} {x : α} (h : x ∈ l.drop n) : x ∈ l := drop_subset n l h
+
+theorem init_prefix : ∀ (l : list α), l.init <+: l
+| [] := ⟨nil, by rw [init, list.append_nil]⟩
+| (a :: l) := ⟨_, init_append_last (cons_ne_nil a l)⟩
+
+theorem init_sublist (l : list α) : l.init <+ l := sublist_of_prefix (init_prefix l)
+
+theorem init_subset (l : list α) : l.init ⊆ l := (init_sublist l).subset
+
+theorem mem_of_mem_init {l : list α} {a : α} (h : a ∈ l.init) : a ∈ l :=
+init_subset l h
 
 theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
 
-lemma tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
+theorem tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
 
-lemma mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
+theorem mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
 tail_subset l h
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=

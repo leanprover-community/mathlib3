@@ -49,25 +49,47 @@ let f : (⨁ i, A i) →+* R :=
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _, }
 
-lemma graded_ring.trivial_inter {i j : ι} (h : i ≠ j) [graded_ring R A] : A i ⊓ A j = ⊥ :=
+lemma graded_ring.trivial_inter (i : ι) [graded_ring R A] :
+   disjoint (A i) (Sup {a | ∃ j ≠ i, A j = a}) :=
 begin
-  set A₁ := add_subgroup.to_int_submodule (A i) with A₁_eq,
-  set A₂ := add_subgroup.to_int_submodule (A j) with A₂_eq,
-  suffices : A₁ ⊓ A₂ = ⊥,
-  rw add_subgroup.eq_bot_iff_forall, intros r hr,
-  simp only [add_subgroup.mem_inf] at hr,
-  have mem₁ : r ∈ A₁, rw A₁_eq, refine hr.1,
-  have mem₂ : r ∈ A₂, rw A₂_eq, refine hr.2,
-  rw submodule.eq_bot_iff at this, apply this, refine ⟨mem₁, mem₂⟩,
-  have dis := (@direct_sum.submodule_is_internal.independent ι _ ℤ R _ _ _
-    (λ i, add_subgroup.to_int_submodule (A i)) _).disjoint h,
-  rw [disjoint_iff] at dis, dsimp only at dis,
-  rw [←A₁_eq, ←A₂_eq] at dis, exact dis,
+  by_cases empty_iota : {a | ∃ j ≠ i, A j = a}.nonempty,
+  have := complete_lattice.independent_def''.mp
+    (@direct_sum.submodule_is_internal.independent ι _ ℤ R _ _ _
+      (λ i, add_subgroup.to_int_submodule (A i)) _) i,
+  rw [disjoint_iff] at this ⊢, dsimp at this,
+  rw add_subgroup.eq_bot_iff_forall,
+  rw submodule.eq_bot_iff at this,
+  intros x hx,
+  obtain ⟨hx₁, hx₂⟩ := hx,
+  apply this, split, exact hx₁,
+  simp only [set_like.mem_coe, add_subgroup.coe_to_add_submonoid, ne.def] at hx₂ ⊢,
 
-  rw direct_sum.submodule_is_internal.to_add_subgroup,
+  have eq₁ : Sup {a | ∃ (j : ι) (H : ¬j = i), add_subgroup.to_int_submodule (A j) = a} =
+    add_subgroup.to_int_submodule (Sup {a : add_subgroup R | ∃ (j : ι) (H : ¬j = i), A j = a}),
+  { rw order_iso.map_cSup', congr, ext C, split; intros H,
+    obtain ⟨j, hj₁, hj₂⟩ := H,
+    use add_subgroup.to_int_submodule.symm C,
+    split, refine ⟨j, hj₁, _⟩, rw ←hj₂,
+    simp only [add_subgroup.to_int_submodule_to_add_subgroup, add_subgroup.to_int_submodule_symm],
+    simp only [submodule.to_add_subgroup_to_int_submodule, add_subgroup.to_int_submodule_symm],
+
+    obtain ⟨B, hB⟩ := H,
+    obtain ⟨⟨j, hj₁, hj₂⟩, hB₂⟩ := hB,
+    use j, use hj₁, rw [hj₂, hB₂],
+    exact empty_iota,
+    simp only [order_top.bdd_above], },
+
+  rw eq₁,refine hx₂, rw direct_sum.submodule_is_internal.to_add_subgroup,
   simp_rw [add_subgroup.to_int_submodule_to_add_subgroup],
   exact graded_ring.is_internal R A,
+
+  rw [set.not_nonempty_iff_eq_empty] at empty_iota,
+  rw [empty_iota, Sup_empty], simp only [disjoint_bot_right],
 end
+
+lemma graded_ring.complete_lattice.independent [graded_ring R A] :
+  complete_lattice.independent (λ i, A i) :=
+  complete_lattice.independent_def''.mpr (λ i, graded_ring.trivial_inter R A i)
 
 /-- The projection maps of graded ring-/
 def graded_ring.proj (i : ι) : R →+ R :=

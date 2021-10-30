@@ -413,10 +413,7 @@ equals the product of `f i` multiplied by the inverse of the product over `g i`.
 @[to_additive] lemma finprod_mul_inv_distrib {M' : Type*} [comm_group M'] {f g : α → M'}
   (hf : (mul_support f).finite) (hg : (mul_support g).finite) :
   ∏ᶠ i, (f i * (g i)⁻¹) = (∏ᶠ i, f i) * (∏ᶠ i, g i)⁻¹ :=
-begin
-  rw [finprod_mul_distrib hf, mul_right_inj, finprod_inv_distrib],
-  rwa [mul_support_inv],
-end
+by rw [finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg), finprod_inv_distrib]
 
 /-- A more general version of `finprod_mem_mul_distrib` that requires `s ∩ mul_support f` and
 `s ∩ mul_support g` instead of `s` to be finite. -/

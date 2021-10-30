@@ -65,6 +65,26 @@ end, λ hI, begin
     rw ←hr₂, rw ←hI at hr₁, refine ⟨hr₁, hr'⟩, }
 end⟩
 
+
+-- private lemma homogeneous_ideal.mul_homogeneous_element
+--   {I : ideal R} (HI : is_homogeneous_ideal R A I) (r x : R)
+--   (hx₁ : is_homogeneous R A x) (hx₂ : x ∈ I) (j : ι) :
+--   graded_ring.proj R A j (r * x) ∈ I :=
+-- begin
+--   rw [graded_ring.as_sum R A r, finset.sum_mul, add_monoid_hom.map_sum],
+--   apply ideal.sum_mem,
+--   intros k hk,
+--   obtain ⟨i, hi⟩ := hx₁,
+--   -- rw of_mul_of,
+--   -- dsimp only,
+--   by_cases k + i = j,
+--   { subst h,
+--     rw [of_eq_same, ←of_mul_of],
+--     apply I.mul_mem_left _ hx₂, },
+--   { rw [of_eq_of_ne _ _ _ _ h, add_monoid_hom.map_zero],
+--     exact I.zero_mem }
+-- end
+
 lemma is_homogeneous_ideal.mem_iff (I : ideal R) (hI : is_homogeneous_ideal R A I) (r : R) :
   r ∈ I ↔ ∀ i : ι, graded_ring.proj R A i r ∈ I :=
 ⟨λ hr i, begin
@@ -76,8 +96,10 @@ lemma is_homogeneous_ideal.mem_iff (I : ideal R) (hI : is_homogeneous_ideal R A 
   apply ideal.sum_mem, rintros ⟨a, ha₁, ⟨j, ha₂⟩⟩ ha₃,
   rw [smul_eq_mul, graded_ring.mul_proj R A _ _ i],
   apply ideal.sum_mem, rintros ⟨j, k⟩ hjk,
-  apply ideal.mul_mem_left,
-  simp only [subtype.coe_mk],
+  simp only [finset.mem_filter, subtype.coe_mk, finset.mem_product] at hjk,
+  -- apply ideal.mul_mem_left,
+  -- simp only [subtype.coe_mk],
+  -- rw graded_ring.proj_homogeneous_element R A ha₂,
 
   sorry
 end, λ hr, begin

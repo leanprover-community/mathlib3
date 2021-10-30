@@ -34,7 +34,8 @@ add_monoid_hom.eq_nat_cast
   ⟨λ n, n • (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩
   (one_nsmul _)
 
-@[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
+@[simp, norm_cast, to_additive]
+lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
@@ -799,7 +800,7 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp] lemma units_zpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {x y : units M} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
 | (n : ℕ) := by simp only [zpow_coe_nat, units.coe_pow, h, pow_right]
 | -[1+n] := by simp only [zpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
@@ -848,11 +849,11 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp] lemma units_zpow_right {a : M} {u : units M} (h : commute a u) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {u : units M} (h : commute a u) (m : ℤ) :
   commute a (↑(u^m)) :=
 h.units_zpow_right m
 
-@[simp] lemma units_zpow_left {u : units M} {a : M} (h : commute ↑u a) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_left {u : units M} {a : M} (h : commute ↑u a) (m : ℤ) :
   commute (↑(u^m)) a :=
 (h.symm.units_zpow_right m).symm
 

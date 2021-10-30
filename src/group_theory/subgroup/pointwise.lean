@@ -82,9 +82,8 @@ lemma subset_pointwise_smul_iff {a : α} {S T : subgroup G} : S ≤ a • T ↔ 
 subset_set_smul_iff
 
 /-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
-noncomputable def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
-H.equiv_map_of_injective (mul_distrib_mul_action.to_monoid_hom G a)
-  (mul_distrib_mul_action.to_mul_equiv G a).injective
+def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
+(mul_distrib_mul_action.to_mul_equiv G a).subgroup_equiv_map H
 
 end group
 

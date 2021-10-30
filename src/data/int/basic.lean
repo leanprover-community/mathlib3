@@ -132,20 +132,6 @@ theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
 
-theorem coe_sub_ge (m n : ℕ):
-  (m : ℤ)-(n : ℤ) ≤ (((m-n) : ℕ):ℤ) :=
-begin
-  by_cases h: m ≥ n,
-  have coe_sub_eq := int.coe_nat_sub h,
-  exact (le_of_eq coe_sub_eq.symm),
-
-  push_neg at h,
-  have sub_zero_le := int.coe_nat_le.2 (nat.zero_le (m-n)),
-  have le_zero := int.sub_le_sub_right (le_of_lt (int.coe_nat_lt.2 h)) (n:ℤ),
-  rw sub_self at le_zero,
-  exact le_trans le_zero sub_zero_le,
-end
-
 @[simp] theorem coe_nat_eq_zero {n : ℕ} : (n : ℤ) = 0 ↔ n = 0 :=
 by rw [← int.coe_nat_zero, coe_nat_inj']
 

@@ -19,6 +19,7 @@ namespace simple_graph
 
 -- def is_triangle (a b c : α) : Prop := G.adj a b ∧ G.adj b c ∧ G.adj c a
 
+/-- A `n`-clique in a graph is a set of `n` vertices which are pairwise connected. -/
 def is_n_clique (n : ℕ) (s : finset α) : Prop := s.card = n ∧ (s : set α).pairwise_on G.adj
 
 instance [decidable_eq α] [decidable_rel G.adj] {n} {s : finset α} :
@@ -54,6 +55,23 @@ by simp only [mem_triangle_finset, eq_empty_iff_forall_not_mem, no_triangles, is
 
 open_locale classical
 
+/-- Removes one edge from each victim to kill them. -/
+def kill_finsets (G : simple_graph α) (victims : finset (finset α)) : simple_graph α :=
+begin
+  sorry
+end
+
+lemma kill_finsets_le {G : simple_graph α} {victims : finset (finset α)} :
+  G.kill_finsets victims ≤ G :=
+sorry
+
+lemma card_kill_finsets (G : simple_graph α) {victims : finset (finset α)}
+  (yet_alive : ∀ ⦃s : finset α⦄, s ∈ victims → 2 ≤ s.card) :
+  (G.kill_finsets victims).edge_finset.card = G.edge_finset.card - victims.card :=
+begin
+  sorry
+end
+
 def triangle_free_far (G : simple_graph α) (ε : ℝ) : Prop :=
   ∀ (G' ≤ G), G'.no_triangles → ε * (card α)^2 ≤ (G.edge_finset.card - G'.edge_finset.card : ℝ)
 
@@ -65,6 +83,37 @@ begin
   simp only [sub_self] at this,
   apply (nonpos_of_mul_nonpos_right this (sq_pos_of_ne_zero _ _)).antisymm hε,
   simp only [nat.cast_ne_zero, ←pos_iff_ne_zero, fintype.card_pos],
+end
+
+variables {G} [nonempty α] {ε : ℝ}
+
+lemma triangle_free_far_of_pairwise_disjoint (hε : ε * (card α)^2 ≤ G.triangle_finset.card)
+  (ht : (G.triangle_finset : set (finset α)).pairwise_disjoint) :
+  G.triangle_free_far ε :=
+begin
+  refine λ H hHG hH, hε.trans _,
+  rw [le_sub_iff_add_le, ←nat.cast_add, nat.cast_le],
+  sorry
+end
+
+
+lemma triangle_free_far.le_card_triangle_finset (hG : G.triangle_free_far ε) :
+  ε * (card α)^2 ≤ G.triangle_finset.card :=
+begin
+  refine (hG (G.kill_finsets G.triangle_finset) kill_finsets_le _).trans _,
+  sorry,
+  sorry
+end
+
+lemma triangle_free_far.not_no_triangles (hG : G.triangle_free_far ε) (hε : 0 < ε) :
+  ¬ G.no_triangles :=
+λ hG', hε.ne' (eps_eq_zero_of_no_triangles G hε.le hG hG')
+
+lemma triangle_free_far.triangle_finset_card_pos (hG : G.triangle_free_far ε) (hε : 0 < ε) :
+  0 < G.triangle_finset.card :=
+begin
+  rw [finset.card_pos, nonempty_iff_ne_empty, ne.def, triangle_finset_empty_iff],
+  apply hG.not_no_triangles hε,
 end
 
 end simple_graph

@@ -162,17 +162,6 @@ begin
   -- let i : (reduced_graph G ε P).edge_finset ≤ _ := edge_finset_subset_of_le reduced_graph_le,
 end
 
-lemma triangle_free_far.not_no_triangles [nonempty α] {ε : ℝ} (hG : G.triangle_free_far ε)
-  (hε : 0 < ε) : ¬ G.no_triangles :=
-λ hG', hε.ne' (eps_eq_zero_of_no_triangles G hε.le hG hG')
-
-lemma triangle_free_far.triangle_finset_card_pos [nonempty α] {ε : ℝ} (hG : G.triangle_free_far ε)
-  (hε : 0 < ε) : 0 < G.triangle_finset.card :=
-begin
-  rw [finset.card_pos, nonempty_iff_ne_empty, ne.def, triangle_finset_empty_iff],
-  apply hG.not_no_triangles hε,
-end
-
 -- lemma triangle_removal (ε : ℝ)
 --   (hG : (G.edge_finset.card : ℝ) ≤ (card α)^3 * triangle_removal_bound ε) :
 --   ∃ (G' ≤ G),

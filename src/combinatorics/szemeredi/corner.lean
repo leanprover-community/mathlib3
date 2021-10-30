@@ -15,7 +15,6 @@ open finset
 open_locale big_operators
 
 variables {α ι : Type*} [add_comm_monoid α] [decidable_eq ι] [fintype ι] {ε : ℝ} {A : set (ℕ × ℕ)}
-  {x y : ℕ × ℕ} {a b n : ℕ}
 
 lemma sum_indicator_singleton {ι M : Type*} [add_comm_monoid M] {s : finset ι} {i : ι}
   (hi : i ∈ s)(f : ι → ι  → M) (g : ι → ι) :
@@ -26,10 +25,18 @@ end
 
 /-! ### Simplex domain -/
 
+section simplex_domain
+
 /-- The `ι`-th combinatorial simplex domain of size `n + 1`. -/
 def simplex_domain (ι : Type*) [fintype ι] (n : ℕ) : Type* := {f : ι → ℕ // ∑ i, f i = n}
 
-variables {s : set (simplex_domain ι n)} {f : ι → ℕ}
+variables {n : ℕ} {s : set (simplex_domain ι n)} {f : ι → ℕ} {x : simplex_domain ι n}
+
+def simplex_domain.apply (x : simplex_domain ι n) (i : ι) : fin (n + 1) :=
+⟨x.val i, begin
+  simp_rw [nat.lt_succ_iff, ←x.2],
+  exact single_le_sum (λ i _, nat.zero_le _) (mem_univ _),
+end⟩
 
 /-- Projects any point onto the simplex domain in one direction. -/
 def simplex_domain.proj (f : ι → ℕ) (i : ι) (hf : ∑ j in univ.erase i, f j ≤ n) :
@@ -47,26 +54,62 @@ def simplex_corners (s : set (simplex_domain ι n)) : set (ι → ℕ) :=
   then (∀ i, simplex_domain.proj f i ((sum_mono_set f $ erase_subset _ _).trans h) ∈ s) else false }
 
 lemma mem_simplex_corners_iff {h : ∀ i, ∑ (j : ι) in univ.erase i, f j ≤ n} :
-  f ∈ simplex_corners s ↔ ∑ i, f i ≤ n ∧
-    ∀ i, simplex_domain.proj f i (h i) ∈ s :=
+  f ∈ simplex_corners s ↔ ∑ i, f i ≤ n ∧ ∀ i, simplex_domain.proj f i (h i) ∈ s :=
 begin
   rw simplex_corners,
   sorry
 end
 
 /-- Projects any point onto the simplex domain in one direction. -/
-def simplex_domain.line (i : ι) (a : ℕ) : set (simplex_domain ι n) := {g | g.val i = a}
+def simplex_domain.line (n : ℕ) (i : ι) (a : ℕ) : set (simplex_domain ι n) := {g | g.val i = a}
+
+/-- Projects any point onto the simplex domain in one direction. -/
+def simplex_domain.mem_line_self (x : simplex_domain ι n) (i : ι) :
+  x ∈ simplex_domain.line n i (x.val i) :=
+rfl
+
+/-- The graph appearing in the simplex corners theorem. -/
+def simplex_corners_graph (s : set (simplex_domain ι n)) :
+  simple_graph (ι × fin (n + 1)) :=
+{ adj := λ a b, a ≠ b ∧
+    ∃ x, x ∈ s ∧ x ∈ simplex_domain.line n a.1 a.2 ∧ x ∈ simplex_domain.line n b.1 b.2,
+  symm := begin
+      rintro a b ⟨h, x, hx, hax, hbx⟩,
+      exact ⟨h.symm, x, hx, hbx, hax⟩,
+    end,
+  loopless := λ a h, h.1 rfl }
+
+open_locale classical
+
+lemma trivial_triangle_mem_simplex_corners_graph (hx : x ∈ s) :
+  (simplex_corners_graph s).is_n_clique (fintype.card ι)
+    ((univ.filter $ λ i, x ∈ simplex_domain.line n i (x.val i)).image $ λ i, (i, x.apply i)) :=
+begin
+  split,
+  { rw [card_image_of_injective, filter_true_of_mem, card_univ],
+    { exact λ i _, x.mem_line_self i },
+    { exact λ a b h, (prod.mk.inj h).1 } },
+  rintro ⟨i, a⟩ ha ⟨j, b⟩ hb hab,
+  simp_rw [mem_coe, mem_image, exists_prop, mem_filter, prod.mk.inj_iff] at ha hb,
+  obtain ⟨i, hi, rfl, rfl⟩ := ha,
+  obtain ⟨j, hj, rfl, rfl⟩ := hb,
+  exact ⟨hab, x, hx, hi.2, hj.2⟩,
+end
+
+end simplex_domain
 
 /-! ### Simplex corners theorem -/
 
-/-- The graph appearing in the simplex corners theorem. -/
-def simplex_corners_graph (s : set (simplex_domain (fin 3) n)) : simple_graph (fin 3 × fin n) :=
-simple_graph.from_rel (λ a b, simplex_domain.line a.1 a.2 ∩ simplex_domain.line b.1 b.2 ⊆ s)
+section simplex_corner
 
--- lemma trivial_triangle_mem_simplex_corners_graph (hx : x ∈ A) {a b : fin n) :
---   half_corners_graph.adj n A (a, k) (b, k)
+variables {d n : ℕ} {s : set (simplex_domain (fin d) n)} {f : ι → ℕ} {x : simplex_domain ι n}
 
-lemma corners_graph_triangle_free_far : (simplex_corners_graph s n).triangle_free_far ε :=
+lemma le_card_triangle_finset_simplex_corners_graph :
+
+lemma corners_graph_triangle_free_far : (simplex_corners_graph s).triangle_free_far ε :=
+begin
+
+end
 
 lemma half_corners_theorem {ε : ℝ} (hε : 0 < ε) :
   ∃ n : ℕ, ∀ A : finset (ℕ × ℕ), (∀ x y, (x, y) ∈ A → x + y ≤ n) →  ε * n^2 ≤ A.card →
@@ -74,6 +117,8 @@ lemma half_corners_theorem {ε : ℝ} (hε : 0 < ε) :
 begin
   sorry
 end
+
+end simplex_corner
 
 /-! ### Usual corners -/
 

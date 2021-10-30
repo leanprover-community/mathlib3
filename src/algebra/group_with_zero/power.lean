@@ -55,7 +55,7 @@ end nat_pow
 
 end group_with_zero
 
-section int_pow
+section zpow
 open int
 variables {G₀ : Type*} [group_with_zero G₀]
 
@@ -222,7 +222,7 @@ by simp only [one_div, inv_fpow]
   (a ⁻¹) ^ n = a ^ (-n) :=
 by { rw [inv_fpow, ← fpow_neg_one, ← fpow_mul], simp }
 
-end int_pow
+end zpow
 
 section
 variables {G₀ : Type*} [comm_group_with_zero G₀]

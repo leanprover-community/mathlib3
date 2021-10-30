@@ -174,7 +174,7 @@ end
 variables {p} {G}
 
 /-- Sylow subgroups are isomorphic -/
-noncomputable def sylow.equiv_smul (P : sylow p G) (g : G) : P ≃* (g • P : sylow p G) :=
+def sylow.equiv_smul (P : sylow p G) (g : G) : P ≃* (g • P : sylow p G) :=
 equiv_smul (mul_aut.conj g) P.1
 
 /-- Sylow subgroups are isomorphic -/

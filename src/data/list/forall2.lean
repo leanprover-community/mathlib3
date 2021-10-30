@@ -249,7 +249,7 @@ begin
   { induction h with _ a b l1 l2 rab rll ih b l1 l2 hl ih,
     { exact ⟨nil, forall₂.nil, nil_sublist _⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
-      refine ⟨b :: l, forall₂.cons rab hl1, cons_sublist_cons b hl2⟩ },
+      refine ⟨b :: l, forall₂.cons rab hl1, hl2.cons_cons b⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
       exact ⟨l, hl1, hl2.trans (sublist.cons _ _ _ (sublist.refl _))⟩ } },
   { obtain ⟨l, hl1, hl2⟩ := h,

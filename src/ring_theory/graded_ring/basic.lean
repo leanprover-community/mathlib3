@@ -7,7 +7,21 @@ import algebra.direct_sum.algebra
 import data.mv_polynomial
 import ring_theory.polynomial.homogeneous
 
-/-! # Typeclass for commutative graded ring
+/-! # Typeclass for graded ring
+For a ring `R` begin graded by `A : ι → add_subgroup R`, see doc string of `graded_ring`.
+
+- `graded_ring.decompose : R → ⨁ i, A i` and `graded_ring.recompose : ⨁ i, A i → R` are the ring
+isomorphism between `R` and `⨁ i, A i` if `R` is graded by `A`.
+- `graded_ring.complete_lattice.independent` states that the `A` is independent in the sense that
+for any `i : ι`, `A i` and `⨆ (j ≠ i), A j` intersect trivially. The most noticable consequence of
+this is that `A i` and `A j` intersects trivally for distinct `i` and `j`.
+- `graded_ring.proj R A i r` is the degree `i : ι` component of `r : R`.
+- `graded_ring.support R A r` is the `finset ι` containing the `i : ι` such that the degree `i`
+component of `r` is not zero.
+- `is_homogeneous R A x` states that `x ∈ A i` for some `i : ι`.
+- `homogeneous_element R A` is the subtype of `R` of all `x` such that `is_homogeneous R A x`.
+- `mv_polynomial_is_graded` provides an instance saying that `mv_polynomial R σ` is ring graded by
+its homogeneous components.
 -/
 
 open_locale direct_sum big_operators
@@ -207,6 +221,52 @@ begin
   rintros ⟨j, k⟩ rid,
   simp only [ne.def, finset.mem_filter, finset.mem_inter, finset.mem_product] at rid,
   rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
+end
+
+lemma graded_ring.proj_homogeneous_element {x : R} {i : ι} (hx : x ∈ A i) :
+  graded_ring.proj R A i x = x :=
+begin
+  have dis := graded_ring.complete_lattice.independent R A i,
+  rw [disjoint_iff, add_subgroup.eq_bot_iff_forall] at dis,
+
+  by_cases mem_supp : i ∈ graded_ring.support R A x,
+
+  have := calc
+      x = ∑ i in graded_ring.support R A x, (graded_ring.proj R A i) x
+        : graded_ring.as_sum R A x
+    ... = (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x)
+        + graded_ring.proj R A i x
+        : _,
+  have eq₁ : (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j x))
+      =  x - (graded_ring.proj R A i x), symmetry, rw sub_eq_iff_eq_add, exact this,
+
+  have mem₁ : ∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x ∈ A i,
+  { rw eq₁, apply add_subgroup.sub_mem, exact hx, apply graded_ring.proj_mem, },
+
+  have mem₂ : (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x)
+    ∈ (⨆ (j ≠ i), A j : add_subgroup R),
+  { refine add_subgroup.sum_mem _ _,
+    intros k hk, simp only [ne.def, finset.mem_erase] at hk,
+    apply add_subgroup.mem_supr_of_mem k,
+    refine @add_subgroup.mem_Sup_of_mem R _ _ (A k) _ (graded_ring.proj R A k x)
+      (graded_ring.proj_mem R A k x),
+    rw set.mem_range, use hk.1, },
+
+  specialize dis _ (add_subgroup.mem_inf.mpr ⟨mem₁, mem₂⟩),
+  rw [dis, zero_add] at this, exact this.symm,
+  rw finset.sum_erase_add, exact mem_supp,
+
+  have h : (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x)
+    ∈ (⨆ (j ≠ i), A j : add_subgroup R),
+  { refine add_subgroup.sum_mem _ _,
+    intros k hk, simp only [ne.def, finset.mem_erase] at hk,
+    apply add_subgroup.mem_supr_of_mem k,
+    refine @add_subgroup.mem_Sup_of_mem R _ _ (A k) _ (graded_ring.proj R A k x)
+      (graded_ring.proj_mem R A k x),
+    rw set.mem_range, use hk.1, },
+  rw [finset.erase_eq_of_not_mem, ←graded_ring.as_sum R A x] at h,
+  specialize dis _ (add_subgroup.mem_inf.mpr ⟨hx, h⟩),
+  rw dis, simp only [add_monoid_hom.map_zero], exact mem_supp,
 end
 
 end graded_ring

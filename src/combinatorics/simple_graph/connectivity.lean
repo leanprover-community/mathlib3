@@ -988,8 +988,11 @@ variables [decidable_eq V]
 A characterization: `simple_graph.is_acyclic_iff`.-/
 def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 
-/-- A *tree* is a connected acyclic graph. -/
-def is_tree : Prop := G.connected ∧ G.is_acyclic ∧ nonempty V
+/-- A *tree* is a connected acyclic non-empty graph. -/
+@[protect_proj] structure is_tree : Prop :=
+(connected : G.connected)
+(is_acyclic : G.is_acyclic)
+(nonempty : nonempty V)
 
 end
 
@@ -1222,14 +1225,10 @@ end
 
 lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin
-  simp only [is_tree, is_acyclic_iff],
   split,
-  { intro h,
-    split,
-    simp only [h],
-    cases h with hc h,
-    cases h with hu hmpty,
-    rintro v w,
+  { rintro ⟨hc, hu, hne⟩,
+    rw is_acyclic_iff at hu,
+    refine ⟨hne, λ v w, _⟩,
     let q := (hc v w).some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
@@ -1237,15 +1236,12 @@ begin
     specialize hu v w ⟨p, hp⟩ q,
     rw ←hu,
     refl, },
-  { intro h,
-    split,
+  { rintro ⟨hne, h⟩,
+    refine ⟨_, _, hne⟩,
     { intros v w,
-      obtain ⟨p, hp⟩ := h.2 v w,
+      obtain ⟨p, hp⟩ := h v w,
       use p, },
-    { cases h with hmpty h,
-      split,
-      swap,
-      simp [hmpty],
+    { rw is_acyclic_iff,
       rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only [p, hp, q, hq],
       exact unique_of_exists_unique (h v w) hp hq, }, },
@@ -1285,7 +1281,7 @@ begin
   by_contra hne,
   rw sym2.eq_swap at hwv,
   have hv := walk.mem_support_of_mem_edges _ hwv,
-  have h' := h.2.1,
+  have h' := h.2,
   rw is_acyclic_iff at h',
   specialize h' _ _
     (G.tree_path h v root)
@@ -1315,7 +1311,7 @@ end
 lemma is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (hvw : G.adj v w) :
   is_rootward h root v w ∨ is_rootward h root w v :=
 begin
-  have h' := h.2.1,
+  have h' := h.2,
   rw is_acyclic_iff at h',
   by_contra hr,
   simp only [is_rootward] at hr,
@@ -1384,7 +1380,7 @@ lemma is_tree.card_edges_eq_card_vertices_sub_one
   [fintype G.edge_set] [fintype V] (h : G.is_tree) :
   card G.edge_set = card V - 1 :=
 begin
-  have root := classical.choice h.2.2,
+  have root := classical.choice h.3,
   rw ←set.card_ne_eq root,
   let f : {v | v ≠ root} → G.edge_set := λ v,
     ⟨G.next_edge v root v.property (G.tree_path h v root),

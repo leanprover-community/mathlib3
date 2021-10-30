@@ -29,6 +29,11 @@ begin
   sorry
 end
 
+lemma exists_ne_ne_fin {n : ℕ} (hn : 3 ≤ n) (a b : fin n) : ∃ c, a ≠ c ∧ b ≠ c :=
+begin
+  sorry
+end
+
 /-! ### Simplex domain -/
 
 section simplex_domain
@@ -103,6 +108,21 @@ by { unfold line, apply_instance }
 
 /-- Projects any point onto the simplex domain in one direction. -/
 def mem_line_self (x : simplex_domain ι n) (i : ι) : x ∈ line n i (x.val i) := rfl
+
+/-- The lines of `simplex_domain ι n` a point of `simplex_domain ι' n` belongs to. -/
+def lines (x : simplex_domain ι' n) (f : ι → ι') : finset (ι × fin (n + 1)) :=
+  univ.map ⟨λ i, (i, x.apply (f i)), λ a b hab, (prod.mk.inj hab).1⟩
+
+lemma mem_lines {x : simplex_domain ι' n} {ia : ι × fin (n + 1)} {f : ι → ι'} :
+  ia ∈ x.lines f ↔ ∃ i, ia = (i, x.apply (f i)) :=
+begin
+  unfold lines,
+  simp_rw @eq_comm _ ia,
+  simp,
+end
+
+lemma card_lines {x : simplex_domain ι' n} {f : ι → ι'} : (x.lines f).card = fintype.card ι :=
+card_map _
 
 /-- The graph appearing in the simplex corners theorem. -/
 def corners_graph (s : set (simplex_domain ι n)) : simple_graph (ι × fin (n + 1)) :=
@@ -181,26 +201,26 @@ variables {n : ℕ} {s : finset (simplex_domain (fin 3) n)} {x : simplex_domain 
 --   sorry -- wrong
 -- end
 
-lemma mem_corners_iff_is_n_clique {s : set (simplex_domain (fin 3) n)}
+lemma mem_corners_iff_lines_is_n_clique {s : set (simplex_domain (fin 3) n)}
   {x : simplex_domain (option (fin 3)) n} :
-  x ∈ corners s ↔ (corners_graph s).is_n_clique 3
-    (univ.map ⟨λ i, (i, x.apply i), λ a b hab, (prod.mk.inj hab).1⟩) :=
+  x ∈ corners s ↔ (corners_graph s).is_n_clique 3 (x.lines some) :=
 begin
   split,
   { refine λ hx, ⟨card_map _, _⟩,
     refine λ a ha b hb hab, ⟨hab, _⟩,
-    rw [mem_coe, mem_map] at ha hb,
-    obtain ⟨i, _, rfl⟩ := ha,
-    obtain ⟨j, _, rfl⟩ := hb,
-    rw (embedding.injective _).ne_iff at hab,
-    refine ⟨x.proj embedding.some i, hx i, _, _⟩; rw [line, proj]; dsimp,
-    { rw piecewise_eq_of_mem _ _ _ (mem_singleton_self i),
-      simp_rw ←x.2,
-      rw sum_erase,
-      sorry },
-    { exact piecewise_eq_of_not_mem _ _ _ (not_mem_singleton.2 hab.symm) } }
+    rw [mem_coe, mem_lines] at ha hb,
+    obtain ⟨i, rfl⟩ := ha,
+    obtain ⟨j, rfl⟩ := hb,
+    obtain ⟨k, hik, hjk⟩ := exists_ne_ne_fin le_rfl i j,
+    refine ⟨x.proj embedding.some k, hx k, _, _⟩; rw [line, proj]; dsimp,
+    { exact piecewise_eq_of_not_mem _ _ _ (not_mem_singleton.2 hik) },
+    { exact piecewise_eq_of_not_mem _ _ _ (not_mem_singleton.2 hjk) } },
+  {
+    rintro ⟨h, h⟩ i,
+    sorry
+  }
 end
-
+#exit
 lemma card_le_card_triangle_finset_corners_graph :
   s.card ≤ (corners_graph (s : set (simplex_domain (fin 3) n))).triangle_finset.card :=
 begin
@@ -221,7 +241,7 @@ begin
 end
 
 lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
-  ∃ n : ℕ, ∀ A : finset (simplex_domain (fin 3) n),  ε * n^2 ≤ A.card →
+  ∃ n : ℕ, ∀ A : finset (simplex_domain (fin 3) n), ε * n^2 ≤ A.card →
     ∃ x : simplex_domain (option (fin 3)) n, 0 < x.val none ∧ corners ↑A x :=
 begin
   sorry

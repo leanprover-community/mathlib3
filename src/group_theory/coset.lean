@@ -245,11 +245,6 @@ instance right_rel_decidable [decidable_pred (∈ s)] :
 
 end quotient_group
 
--- Workaround for
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/can't.20open.20namespace.20AddMon/near/252923064
-namespace quotient_add_group
-end quotient_add_group
-
 namespace quotient_group
 
 variables [group α] {s : subgroup α}

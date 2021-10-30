@@ -145,8 +145,10 @@ map ulift (λ α β e, equiv.ulift.trans $ e.trans equiv.ulift.symm) c
 theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α, (equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
+theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
+
 theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
-induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
+induction_on a $ λ α, mk_congr equiv.ulift
 
 @[simp] theorem lift_id (a : cardinal) : lift.{u u} a = a := lift_id'.{u u} a
 @[simp] theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a

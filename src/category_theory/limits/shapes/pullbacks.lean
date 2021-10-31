@@ -802,8 +802,7 @@ local attribute [instance] has_pullback_of_left_iso
 
 instance pullback_snd_iso_of_left_iso : is_iso (pullback.snd : pullback f g ⟶ _) :=
 begin
-  constructor,
-  refine ⟨pullback.lift (g ≫ inv f) (𝟙 _) (by simp), _, by simp⟩,
+  refine ⟨⟨pullback.lift (g ≫ inv f) (𝟙 _) (by simp), _, by simp⟩⟩,
   ext,
   { simp [← pullback.condition_assoc] },
   { simp [pullback.condition_assoc] },

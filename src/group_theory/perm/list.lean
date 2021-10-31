@@ -420,14 +420,14 @@ begin
     { simp [-form_perm_cons_cons, form_perm_ext_iff hl hl'] } }
 end
 
-lemma form_perm_gpow_apply_mem_imp_mem (l : list α) (x : α) (hx : x ∈ l) (n : ℤ) :
+lemma form_perm_zpow_apply_mem_imp_mem (l : list α) (x : α) (hx : x ∈ l) (n : ℤ) :
   ((form_perm l) ^ n) x ∈ l :=
 begin
   by_cases h : (l.form_perm ^ n) x = x,
   { simpa [h] using hx },
   { have : x ∈ {x | (l.form_perm ^ n) x ≠ x} := h,
     rw ←set_support_apply_mem at this,
-    replace this := set_support_gpow_subset _ _ this,
+    replace this := set_support_zpow_subset _ _ this,
     simpa using support_form_perm_le' _ this }
 end
 
@@ -441,7 +441,7 @@ begin
   { have : x ∉ {x | (l.form_perm ^ l.length) x ≠ x},
     { intros H,
       refine hx _,
-      replace H := set_support_gpow_subset l.form_perm l.length H,
+      replace H := set_support_zpow_subset l.form_perm l.length H,
       simpa using support_form_perm_le' _ H },
     simpa }
 end

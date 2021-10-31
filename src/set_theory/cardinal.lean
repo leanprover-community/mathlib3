@@ -442,7 +442,7 @@ by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
   let ⟨a⟩ := mk_ne_zero_iff.1 hα in
-  ⟨@embedding.arrow_congr_right _ _ _ ⟨a⟩ e⟩
+  ⟨@embedding.arrow_congr_left _ _ _ ⟨a⟩ e⟩
 
 theorem power_le_max_power_one {a b c : cardinal} (h : b ≤ c) : a ^ b ≤ max (a ^ c) 1 :=
 begin
@@ -452,7 +452,7 @@ begin
 end
 
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
-induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_left e⟩
+induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
 
 end order_properties
 
@@ -1020,7 +1020,7 @@ end
 lemma to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
 by rw [←to_nat_lift, lift_mk_eq.mpr ⟨e⟩, to_nat_lift]
 
-lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
+@[simp] lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin
   by_cases hx1 : x = 0,
   { rw [comm_semiring.mul_comm, hx1, mul_zero, zero_to_nat, nat.zero_mul] },
@@ -1035,6 +1035,16 @@ begin
       exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hy2 h.2)) } },
   { rw [cast_to_nat_of_omega_le hx2, zero_mul, cast_to_nat_of_omega_le],
     exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
+end
+
+@[simp] lemma to_nat_add_of_lt_omega {a : cardinal.{u}} {b : cardinal.{v}}
+  (ha : a < ω) (hb : b < ω) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
+begin
+  apply cardinal.nat_cast_injective,
+  replace ha : (lift.{v u} a) < ω := by { rw [← lift_omega], exact lift_lt.2 ha },
+  replace hb : (lift.{u v} b) < ω := by { rw [← lift_omega], exact lift_lt.2 hb },
+  rw [nat.cast_add, ← to_nat_lift.{v u} a, ← to_nat_lift.{u v} b, cast_to_nat_of_lt_omega ha,
+    cast_to_nat_of_lt_omega hb, cast_to_nat_of_lt_omega (add_lt_omega ha hb)]
 end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals

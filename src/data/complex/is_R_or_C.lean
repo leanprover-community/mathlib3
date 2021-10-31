@@ -330,8 +330,8 @@ begin
     simp [norm_sq, div_mul_eq_div_mul_one_div, div_self h] }
 end
 
-@[simp, norm_cast, priority 900] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
-(@is_R_or_C.coe_hom K _).map_fpow r n
+@[simp, norm_cast, priority 900] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
+(@is_R_or_C.coe_hom K _).map_zpow r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
 by { have := I_mul_I_ax, tauto }
@@ -428,6 +428,9 @@ by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_real, real.norm_eq_abs] }
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
+
+lemma norm_of_nonneg {r : ℝ} (r_nn : 0 ≤ r) : ∥(r : K)∥ = r :=
+by { rw norm_of_real, exact abs_eq_self.mpr r_nn, }
 
 lemma abs_of_nat (n : ℕ) : absK n = n :=
 by { rw [← of_real_nat_cast], exact abs_of_nonneg (nat.cast_nonneg n) }

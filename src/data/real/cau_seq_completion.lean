@@ -89,7 +89,7 @@ private lemma one_def : 1 = mk 1 := rfl
 instance : comm_ring Cauchy :=
 by refine { neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
     add := (+), zero := (0 : Cauchy), mul := (*), one := 1, nsmul := nsmul_rec, npow := npow_rec,
-    gsmul := gsmul_rec, .. }; try { intros; refl };
+    zsmul := zsmul_rec, .. }; try { intros; refl };
 { repeat {refine λ a, quotient.induction_on a (λ _, _)},
   simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
           sub_eq_add_neg] }

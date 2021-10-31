@@ -256,6 +256,135 @@ apply_nolint pnat.xgcd_type.v doc_blame
 apply_nolint pnat.xgcd_type.w doc_blame
 apply_nolint pnat.xgcd_type.z doc_blame
 
+-- data/rbmap/basic.lean
+apply_nolint mk_rbmap doc_blame
+apply_nolint rbmap doc_blame
+apply_nolint rbmap.contains doc_blame
+apply_nolint rbmap.empty doc_blame
+apply_nolint rbmap.find doc_blame
+apply_nolint rbmap.find_entry doc_blame
+apply_nolint rbmap.fold doc_blame
+apply_nolint rbmap.from_list doc_blame
+apply_nolint rbmap.insert doc_blame
+apply_nolint rbmap.max doc_blame
+apply_nolint rbmap.mem doc_blame
+apply_nolint rbmap.min doc_blame
+apply_nolint rbmap.rbmap_lt_dec doc_blame
+apply_nolint rbmap.rev_fold doc_blame
+apply_nolint rbmap.to_list doc_blame
+apply_nolint rbmap.to_value doc_blame
+apply_nolint rbmap_lt doc_blame
+apply_nolint rbmap_of doc_blame
+
+-- data/rbmap/default.lean
+apply_nolint rbmap.eq_leaf_of_max_eq_none decidable_classical
+apply_nolint rbmap.eq_leaf_of_min_eq_none decidable_classical
+apply_nolint rbmap.max_is_maximal decidable_classical
+apply_nolint rbmap.max_is_maximal_of_total decidable_classical
+apply_nolint rbmap.mem_of_max_eq decidable_classical
+apply_nolint rbmap.mem_of_mem_of_eqv unused_arguments decidable_classical
+apply_nolint rbmap.mem_of_min_eq decidable_classical
+apply_nolint rbmap.min_is_minimal decidable_classical
+apply_nolint rbmap.min_is_minimal_of_total decidable_classical
+
+-- data/rbtree/basic.lean
+apply_nolint rbnode.balanced ge_or_gt
+apply_nolint rbnode.depth_min ge_or_gt
+apply_nolint rbnode.is_node_of doc_blame
+apply_nolint rbnode.is_red_black doc_blame
+apply_nolint rbnode.is_searchable doc_blame
+apply_nolint rbnode.is_searchable_none_high_of_is_searchable_some_high unused_arguments decidable_classical
+apply_nolint rbnode.is_searchable_none_low_of_is_searchable_some_low unused_arguments decidable_classical
+apply_nolint rbnode.is_searchable_of_incomp_of_is_searchable decidable_classical
+apply_nolint rbnode.is_searchable_of_is_searchable_of_incomp decidable_classical
+apply_nolint rbnode.is_searchable_some_high_of_is_searchable_of_lt unused_arguments decidable_classical
+apply_nolint rbnode.is_searchable_some_low_of_is_searchable_of_lt unused_arguments decidable_classical
+apply_nolint rbnode.is_searchable_tactic doc_blame
+apply_nolint rbnode.lift doc_blame
+apply_nolint rbnode.lt_of_mem_left decidable_classical
+apply_nolint rbnode.lt_of_mem_left_right decidable_classical
+apply_nolint rbnode.lt_of_mem_right decidable_classical
+apply_nolint rbnode.range decidable_classical
+apply_nolint tactic.interactive.blast_disjs doc_blame
+
+-- data/rbtree/default_lt.lean
+apply_nolint rbtree.default_lt doc_blame
+
+-- data/rbtree/find.lean
+apply_nolint rbnode.eqv_of_find_some unused_arguments
+
+-- data/rbtree/init.lean
+apply_nolint mk_rbtree doc_blame
+apply_nolint rbnode doc_blame
+apply_nolint rbnode.balance1 doc_blame
+apply_nolint rbnode.balance1_node doc_blame
+apply_nolint rbnode.balance2 doc_blame
+apply_nolint rbnode.balance2_node doc_blame
+apply_nolint rbnode.color doc_blame
+apply_nolint rbnode.depth doc_blame
+apply_nolint rbnode.find doc_blame
+apply_nolint rbnode.fold doc_blame
+apply_nolint rbnode.get_color doc_blame
+apply_nolint rbnode.ins doc_blame
+apply_nolint rbnode.insert doc_blame
+apply_nolint rbnode.max doc_blame
+apply_nolint rbnode.mem doc_blame
+apply_nolint rbnode.mem_exact doc_blame
+apply_nolint rbnode.min doc_blame
+apply_nolint rbnode.mk_insert_result doc_blame
+apply_nolint rbnode.rev_fold doc_blame
+apply_nolint rbnode.well_formed doc_blame
+apply_nolint rbtree doc_blame
+apply_nolint rbtree.contains doc_blame
+apply_nolint rbtree.depth doc_blame
+apply_nolint rbtree.empty doc_blame
+apply_nolint rbtree.find doc_blame
+apply_nolint rbtree.fold doc_blame
+apply_nolint rbtree.from_list doc_blame
+apply_nolint rbtree.insert doc_blame
+apply_nolint rbtree.max doc_blame
+apply_nolint rbtree.mem doc_blame
+apply_nolint rbtree.mem_exact doc_blame
+apply_nolint rbtree.min doc_blame
+apply_nolint rbtree.rev_fold doc_blame
+apply_nolint rbtree.to_list doc_blame
+apply_nolint rbtree_of doc_blame
+
+-- data/rbtree/insert.lean
+apply_nolint rbnode.ins_ne_leaf_tac doc_blame
+apply_nolint rbnode.ins_rb_result doc_blame
+apply_nolint rbnode.insert_rb_result doc_blame
+apply_nolint rbnode.is_bad_red_black doc_blame
+apply_nolint rbnode.is_searchable_balance1 unused_arguments decidable_classical
+apply_nolint rbnode.is_searchable_balance1_node decidable_classical
+apply_nolint rbnode.is_searchable_balance2 unused_arguments decidable_classical
+apply_nolint rbnode.is_searchable_balance2_node decidable_classical
+apply_nolint rbnode.is_searchable_mk_insert_result unused_arguments decidable_classical
+apply_nolint rbnode.mem_balance1_node_of_incomp unused_arguments decidable_classical
+apply_nolint rbnode.mem_balance1_node_of_mem_left unused_arguments decidable_classical
+apply_nolint rbnode.mem_balance1_node_of_mem_right unused_arguments decidable_classical
+apply_nolint rbnode.mem_balance2_node_of_incomp unused_arguments decidable_classical
+apply_nolint rbnode.mem_balance2_node_of_mem_left unused_arguments decidable_classical
+apply_nolint rbnode.mem_balance2_node_of_mem_right unused_arguments decidable_classical
+apply_nolint rbnode.mem_mk_insert_result unused_arguments decidable_classical
+apply_nolint rbnode.mem_of_mem_mk_insert_result unused_arguments decidable_classical
+apply_nolint rbnode.of_mem_balance1_node unused_arguments decidable_classical
+apply_nolint rbnode.of_mem_balance2_node unused_arguments decidable_classical
+apply_nolint rbnode.weak_trichotomous decidable_classical
+
+-- data/rbtree/main.lean
+apply_nolint rbtree.balanced ge_or_gt
+apply_nolint rbtree.eq_leaf_of_max_eq_none unused_arguments decidable_classical
+apply_nolint rbtree.eq_leaf_of_min_eq_none unused_arguments decidable_classical
+apply_nolint rbtree.max_is_maximal decidable_classical
+apply_nolint rbtree.mem_of_max_eq unused_arguments decidable_classical
+apply_nolint rbtree.mem_of_min_eq unused_arguments decidable_classical
+apply_nolint rbtree.min_is_minimal decidable_classical
+
+-- data/rbtree/min_max.lean
+apply_nolint rbnode.max_is_maximal decidable_classical
+apply_nolint rbnode.min_is_minimal decidable_classical
+
 -- data/seq/computation.lean
 apply_nolint computation.bind.F doc_blame
 apply_nolint computation.bind.G doc_blame
@@ -291,6 +420,38 @@ apply_nolint wseq.lift_rel_o doc_blame
 apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
+
+-- data/stream/init.lean
+apply_nolint stream doc_blame
+apply_nolint stream.all doc_blame
+apply_nolint stream.any doc_blame
+apply_nolint stream.append_stream doc_blame
+apply_nolint stream.apply doc_blame
+apply_nolint stream.approx doc_blame
+apply_nolint stream.cons doc_blame
+apply_nolint stream.const doc_blame
+apply_nolint stream.corec doc_blame
+apply_nolint stream.corec' doc_blame
+apply_nolint stream.corec_on doc_blame
+apply_nolint stream.cycle doc_blame
+apply_nolint stream.drop doc_blame
+apply_nolint stream.even doc_blame
+apply_nolint stream.head doc_blame
+apply_nolint stream.inits doc_blame
+apply_nolint stream.inits_core doc_blame
+apply_nolint stream.interleave doc_blame
+apply_nolint stream.is_bisimulation doc_blame
+apply_nolint stream.iterate doc_blame
+apply_nolint stream.map doc_blame
+apply_nolint stream.mem doc_blame
+apply_nolint stream.nats doc_blame
+apply_nolint stream.nth doc_blame
+apply_nolint stream.odd doc_blame
+apply_nolint stream.pure doc_blame
+apply_nolint stream.tail doc_blame
+apply_nolint stream.tails doc_blame
+apply_nolint stream.unfolds doc_blame
+apply_nolint stream.zip doc_blame
 
 -- data/vector3.lean
 apply_nolint vector3 has_inhabited_instance

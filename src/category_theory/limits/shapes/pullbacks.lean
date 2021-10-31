@@ -850,8 +850,7 @@ local attribute [instance] has_pullback_of_right_iso
 
 instance pullback_snd_iso_of_right_iso : is_iso (pullback.fst : pullback f g ⟶ _) :=
 begin
-  constructor,
-  refine ⟨pullback.lift (𝟙 _) (f ≫ inv g) (by simp), _, by simp⟩,
+  refine ⟨⟨pullback.lift (𝟙 _) (f ≫ inv g) (by simp), _, by simp⟩⟩,
   ext,
   { simp },
   { simp [pullback.condition_assoc] },
@@ -899,8 +898,7 @@ local attribute [instance] has_pushout_of_left_iso
 
 instance pushout_inr_iso_of_left_iso : is_iso (pushout.inr : _ ⟶ pushout f g) :=
 begin
-  constructor,
-  refine ⟨pushout.desc (inv f ≫ g) (𝟙 _) (by simp), (by simp), _⟩,
+  refine ⟨⟨pushout.desc (inv f ≫ g) (𝟙 _) (by simp), (by simp), _⟩⟩,
   ext,
   { simp [← pushout.condition] },
   { simp [pushout.condition_assoc] },
@@ -948,8 +946,7 @@ local attribute [instance] has_pushout_of_right_iso
 
 instance pushout_inl_iso_of_right_iso : is_iso (pushout.inl : _ ⟶ pushout f g) :=
 begin
-  constructor,
-  refine ⟨pushout.desc (𝟙 _) (inv g ≫ f) (by simp), (by simp), _⟩,
+  refine ⟨⟨pushout.desc (𝟙 _) (inv g ≫ f) (by simp), (by simp), _⟩⟩,
   ext,
   { simp [←pushout.condition] },
   { simp [pushout.condition] },
@@ -975,8 +972,7 @@ lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pul
 
 instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
 begin
-  constructor,
-  refine ⟨pullback.lift (𝟙 _) (𝟙 _) (by simp), _, by simp⟩,
+  refine ⟨⟨pullback.lift (𝟙 _) (𝟙 _) (by simp), _, by simp⟩⟩,
   ext,
   { simp },
   { simp [fst_eq_snd_of_mono_eq] }
@@ -1005,8 +1001,7 @@ lemma inl_eq_inr_of_epi_eq [epi f] : (pushout.inl : _ ⟶ pushout f f) = pushout
 
 instance inl_iso_of_epi_eq [epi f] : is_iso (pushout.inl : _ ⟶ pushout f f) :=
 begin
-  constructor,
-  refine ⟨pushout.desc (𝟙 _) (𝟙 _) (by simp), by simp, _⟩,
+  refine ⟨⟨pushout.desc (𝟙 _) (𝟙 _) (by simp), by simp, _⟩⟩,
   ext,
   { simp },
   { simp [inl_eq_inr_of_epi_eq] }

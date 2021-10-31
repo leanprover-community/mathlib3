@@ -294,6 +294,12 @@ max_le
   (by simpa only [one_mul] using
     mul_le_mul_right' (one_lt_omega.le.trans ha) b)
 
+@[simp] theorem omega_mul_eq {a : cardinal} (ha : ω ≤ a) : ω * a = a :=
+(mul_eq_max le_rfl ha).trans (max_eq_right ha)
+
+@[simp] theorem mul_omega_eq {a : cardinal} (ha : ω ≤ a) : a * ω = a :=
+(mul_eq_max ha le_rfl).trans (max_eq_left ha)
+
 theorem mul_lt_of_lt {a b c : cardinal} (hc : omega ≤ c)
   (h1 : a < c) (h2 : b < c) : a * b < c :=
 lt_of_le_of_lt (mul_le_mul' (le_max_left a b) (le_max_right a b)) $
@@ -483,8 +489,8 @@ begin
   rw [← lift_id' (prod c), lift_prod, ← lift_two_power],
   apply le_antisymm,
   { refine (prod_le_prod _ _ h₂).trans_eq _,
-    rw [← lift_prod, prod_const, power_self_eq (omega_le_mk ι)] },
-  { rw [← prod_const, lift_prod],
+    rw [prod_const, lift_lift, ← lift_power, power_self_eq (omega_le_mk ι), lift_umax.{u v}] },
+  { rw [← prod_const', lift_prod],
     refine prod_le_prod _ _ (λ i, _),
     rw [lift_two, ← lift_two.{u v}, lift_le],
     exact h₁ i }
@@ -524,21 +530,18 @@ end
 
 /-! ### Computing cardinality of various types -/
 
-theorem mk_list_eq_mk {α : Type u} (H1 : ω ≤ #α) : #(list α) = #α :=
+theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
+have H1 : ω ≤ #α := omega_le_mk α,
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
 calc  #(list α)
     = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
-... = sum (λ n : ulift.{u} ℕ, #α) : quotient.sound
-  ⟨@sigma_congr_left _ _ (λ _, quotient.out (#α)) equiv.ulift.symm⟩
-... = omega * #α : sum_const _ _
-... = max ω (#α) : mul_eq_max (le_refl _) H1
-... = #α : max_eq_right H1
+... = #α : by simp [H1]
 
-theorem mk_finset_eq_mk {α : Type u} (h : omega ≤ #α) : #(finset α) = #α :=
+theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
-... = #α : mk_list_eq_mk h
+... = #α : mk_list_eq_mk α
 
 lemma mk_bounded_set_le_of_omega_le (α : Type u) (c : cardinal) (hα : omega ≤ #α) :
   #{t : set α // mk t ≤ c} ≤ #α ^ c :=

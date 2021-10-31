@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import data.option.basic
 import logic.nontrivial
 import order.lattice
+import order.order_dual
 import tactic.pi_instances
 
 /-!
@@ -83,6 +84,9 @@ theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
 @[simp] theorem not_top_lt : ¬ ⊤ < a :=
 λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
 
+@[simp] theorem is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
+⟨λ h, h.unique le_top, λ h b, h.symm ▸ le_top⟩
+
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
 
@@ -105,10 +109,10 @@ lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
 
 end order_top
 
-lemma strict_mono.top_preimage_top' [linear_order α] [order_top β]
+lemma strict_mono.maximal_preimage_top [linear_order α] [order_top β]
   {f : α → β} (H : strict_mono f) {a} (h_top : f a = ⊤) (x : α) :
   x ≤ a :=
-H.top_preimage_top (λ p, by { rw h_top, exact le_top }) x
+H.maximal_of_maximal_image (λ p, by { rw h_top, exact le_top }) x
 
 theorem order_top.ext_top {α} {A B : order_top α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
@@ -148,6 +152,9 @@ theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
 @[simp] theorem not_lt_bot : ¬ a < ⊥ :=
 λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)
 
+@[simp] theorem is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
+⟨λ h, h.unique bot_le, λ h b, h.symm ▸ bot_le⟩
+
 theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 λ ha, hb $ bot_unique $ ha ▸ hab
 
@@ -175,10 +182,10 @@ lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 
 end order_bot
 
-lemma strict_mono.bot_preimage_bot' [linear_order α] [order_bot β]
+lemma strict_mono.minimal_preimage_bot [linear_order α] [order_bot β]
   {f : α → β} (H : strict_mono f) {a} (h_bot : f a = ⊥) (x : α) :
   a ≤ x :=
-H.bot_preimage_bot (λ p, by { rw h_bot, exact bot_le }) x
+H.minimal_of_minimal_image (λ p, by { rw h_bot, exact bot_le }) x
 
 theorem order_bot.ext_bot {α} {A B : order_bot α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
@@ -304,17 +311,6 @@ class distrib_lattice_bot α extends distrib_lattice α, semilattice_inf_bot α,
 
 /-- A bounded distributive lattice is exactly what it sounds like. -/
 class bounded_distrib_lattice α extends distrib_lattice_bot α, bounded_lattice α
-
-lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
-  (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
-⟨λ h,
-  calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
-    ... = (a ⊓ b) ⊔ (a ⊓ c) : by simp [inf_sup_left]
-    ... ≤ c : by simp [h, inf_le_right],
-  λ h,
-  bot_unique $
-    calc a ⊓ b ≤ b ⊓ c : by { rw inf_comm, exact inf_le_inf_left _ h }
-      ... = ⊥ : h₂⟩
 
 /-- Propositions form a bounded distributive lattice. -/
 instance Prop.bounded_distrib_lattice : bounded_distrib_lattice Prop :=
@@ -1156,14 +1152,25 @@ lemma inf_eq_bot (h : is_compl x y) : x ⊓ y = ⊥ := h.disjoint.eq_bot
 
 lemma sup_eq_top (h : is_compl x y) : x ⊔ y = ⊤ := top_unique h.top_le_sup
 
-lemma to_order_dual (h : is_compl x y) : @is_compl (order_dual α) _ x y := ⟨h.2, h.1⟩
+open order_dual (to_dual)
+
+lemma to_order_dual (h : is_compl x y) : is_compl (to_dual x) (to_dual y) := ⟨h.2, h.1⟩
 
 end bounded_lattice
 
-variables [bounded_distrib_lattice α] {x y z : α}
+variables [bounded_distrib_lattice α] {a b x y z : α}
+
+lemma inf_left_le_of_le_sup_right (h : is_compl x y) (hle : a ≤ b ⊔ y) : a ⊓ x ≤ b :=
+calc a ⊓ x ≤ (b ⊔ y) ⊓ x : inf_le_inf hle le_rfl
+... = (b ⊓ x) ⊔ (y ⊓ x) : inf_sup_right
+... = b ⊓ x : by rw [h.symm.inf_eq_bot, sup_bot_eq]
+... ≤ b : inf_le_left
+
+lemma le_sup_right_iff_inf_left_le {a b} (h : is_compl x y) : a ≤ b ⊔ y ↔ a ⊓ x ≤ b :=
+⟨h.inf_left_le_of_le_sup_right, h.symm.to_order_dual.inf_left_le_of_le_sup_right⟩
 
 lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
-inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
+by rw [← le_bot_iff, ← h.le_sup_right_iff_inf_left_le, bot_sup_eq]
 
 lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
 h.symm.inf_left_eq_bot_iff
@@ -1186,7 +1193,7 @@ h.to_order_dual.le_left_iff
 lemma right_le_iff (h : is_compl x y) : y ≤ z ↔ ⊤ ≤ z ⊔ x :=
 h.symm.left_le_iff
 
-lemma antitone {x' y'} (h : is_compl x y) (h' : is_compl x' y') (hx : x ≤ x') :
+protected lemma antitone {x' y'} (h : is_compl x y) (h' : is_compl x' y') (hx : x ≤ x') :
   y' ≤ y :=
 h'.right_le_iff.2 $ le_trans h.symm.top_le_sup (sup_le_sup_left hx _)
 

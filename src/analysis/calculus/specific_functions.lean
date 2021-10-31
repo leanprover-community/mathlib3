@@ -83,7 +83,7 @@ lemma f_aux_deriv (n : ℕ) (x : ℝ) (hx : x ≠ 0) :
 begin
   have A : ∀k:ℕ, 2 * (k + 1) - 1 = 2 * k + 1,
   { assume k,
-    rw nat.sub_eq_iff_eq_add,
+    rw tsub_eq_iff_eq_add_of_le,
     { ring },
     { simpa [mul_add] using add_le_add (zero_le (2 * k)) one_le_two } },
   convert (((P_aux n).has_deriv_at x).mul
@@ -291,7 +291,7 @@ function instead. -/
 def to_fun (f : times_cont_diff_bump_of_inner c) : E → ℝ :=
 λ x, real.smooth_transition ((f.R - dist x c) / (f.R - f.r))
 
-instance : has_coe_to_fun (times_cont_diff_bump_of_inner c) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (times_cont_diff_bump_of_inner c) (λ _, E → ℝ) := ⟨to_fun⟩
 
 open real (smooth_transition) real.smooth_transition metric
 
@@ -312,7 +312,7 @@ lt_one_of_lt_one $ (div_lt_one (sub_pos.2 f.r_lt_R)).2 $ sub_lt_sub_left h _
 lemma zero_of_le_dist (hx : f.R ≤ dist x c) : f x = 0 :=
 zero_of_nonpos $ div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 hx) (sub_nonneg.2 f.r_lt_R.le)
 
-lemma support_eq : support ⇑f = metric.ball c f.R :=
+lemma support_eq : support (f : E → ℝ) = metric.ball c f.R :=
 begin
   ext x,
   suffices : f x ≠ 0 ↔ dist x c < f.R, by simpa [mem_support],
@@ -372,8 +372,7 @@ variables [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] {c x 
 instead. -/
 def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump_of_inner ∘ to_euclidean
 
-instance : has_coe_to_fun (times_cont_diff_bump c) :=
-⟨λ f, E → ℝ, to_fun⟩
+instance : has_coe_to_fun (times_cont_diff_bump c) (λ _, E → ℝ) := ⟨to_fun⟩
 
 instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
 
@@ -398,7 +397,7 @@ f.to_times_cont_diff_bump_of_inner.lt_one_of_lt_dist h
 lemma zero_of_le_dist (hx : f.R ≤ euclidean.dist x c) : f x = 0 :=
 f.to_times_cont_diff_bump_of_inner.zero_of_le_dist hx
 
-lemma support_eq : support ⇑f = euclidean.ball c f.R :=
+lemma support_eq : support (f : E → ℝ) = euclidean.ball c f.R :=
 by rw [euclidean.ball_eq_preimage, ← f.to_times_cont_diff_bump_of_inner.support_eq,
   ← support_comp_eq_preimage, coe_eq_comp]
 

@@ -56,7 +56,7 @@ lemma edist_inequality (hf : contracting_with K f) {x y} (h : edist x y ≠ ∞)
   edist x y ≤ (edist x (f x) + edist y (f y)) / (1 - K) :=
 suffices edist x y ≤ edist x (f x) + edist y (f y) + K * edist x y,
   by rwa [ennreal.le_div_iff_mul_le (or.inl hf.one_sub_K_ne_zero) (or.inl one_sub_K_ne_top),
-    mul_comm, ennreal.sub_mul (λ _ _, h), one_mul, ennreal.sub_le_iff_le_add],
+    mul_comm, ennreal.sub_mul (λ _ _, h), one_mul, tsub_le_iff_right],
 calc edist x y ≤ edist x (f x) + edist (f x) (f y) + edist (f y) y : edist_triangle4 _ _ _ _
   ... = edist x (f x) + edist y (f y) + edist (f x) (f y) : by rw [edist_comm y, add_right_comm]
   ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add (le_refl _) (hf.2 _ _)
@@ -310,5 +310,21 @@ lemma fixed_point_lipschitz_in_map {g : α → α} (hg : contracting_with K g)
   dist (fixed_point f hf) (fixed_point g hg) ≤ C / (1 - K) :=
 hf.dist_fixed_point_fixed_point_of_dist_le' g hf.fixed_point_is_fixed_pt
   hg.fixed_point_is_fixed_pt hfg
+
+omit hf
+
+/-- If a map `f` has a contracting iterate `f^[n]`, then the fixed point of `f^[n]` is also a fixed
+point of `f`. -/
+lemma is_fixed_pt_fixed_point_iterate {n : ℕ} (hf : contracting_with K (f^[n])) :
+  is_fixed_pt f (hf.fixed_point (f^[n])) :=
+begin
+  set x := hf.fixed_point (f^[n]),
+  have hx : (f^[n] x) = x := hf.fixed_point_is_fixed_pt,
+  have := hf.to_lipschitz_with.dist_le_mul x (f x),
+  rw [← iterate_succ_apply, iterate_succ_apply', hx] at this,
+  contrapose! this,
+  have := dist_pos.2 (ne.symm this),
+  simpa only [nnreal.coe_one, one_mul] using (mul_lt_mul_right this).2 hf.1
+end
 
 end contracting_with

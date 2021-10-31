@@ -138,7 +138,7 @@ begin
   push_neg at H h,
   obtain ⟨u, u_mono, u_lt, u_lim, -⟩ : ∃ (u : ℕ → β), strict_mono u ∧ (∀ (n : ℕ), u n < c)
       ∧ tendsto u at_top (nhds c) ∧ ∀ (n : ℕ), u n ∈ set.Iio c :=
-    H.exists_seq_strict_mono_tendsto_of_not_mem h (lt_irrefl c),
+    H.exists_seq_strict_mono_tendsto_of_not_mem (lt_irrefl c) h,
   have h_Union : {x | f x < c} = ⋃ (n : ℕ), {x | f x ≤ u n},
   { ext1 x,
     simp_rw [set.mem_Union, set.mem_set_of_eq],
@@ -239,7 +239,7 @@ lemma ae_fin_strongly_measurable.ae_nonneg_of_forall_set_integral_nonneg {f : α
 begin
   let t := hf.sigma_finite_set,
   suffices : 0 ≤ᵐ[μ.restrict t] f,
-    from ae_of_ae_restrict_of_ae_restrict_compl hf.measurable_set this hf.ae_eq_zero_compl.symm.le,
+    from ae_of_ae_restrict_of_ae_restrict_compl this hf.ae_eq_zero_compl.symm.le,
   haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite (λ s hs hμts, _)
     (λ s hs hμts, _),
@@ -364,7 +364,7 @@ lemma ae_fin_strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero {f : 
 begin
   let t := hf.sigma_finite_set,
   suffices : f =ᵐ[μ.restrict t] 0,
-    from ae_of_ae_restrict_of_ae_restrict_compl hf.measurable_set this hf.ae_eq_zero_compl,
+    from ae_of_ae_restrict_of_ae_restrict_compl this hf.ae_eq_zero_compl,
   haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite _ _,
   { intros s hs hμs,
@@ -424,7 +424,7 @@ begin
     exact eventually_of_forall htf_zero, },
   have hf_meas_m : @measurable _ _ m _ f, from hf.measurable,
   suffices : f =ᵐ[μ.restrict t] 0,
-    from ae_of_ae_restrict_of_ae_restrict_compl (hm t ht_meas) this htf_zero,
+    from ae_of_ae_restrict_of_ae_restrict_compl this htf_zero,
   refine measure_eq_zero_of_trim_eq_zero hm _,
   refine ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite _ _,
   { intros s hs hμs,
@@ -470,5 +470,34 @@ begin
 end
 
 end ae_eq_of_forall_set_integral_eq
+
+section lintegral
+
+lemma ae_measurable.ae_eq_of_forall_set_lintegral_eq {f g : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ)
+  (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (hgi : ∫⁻ x, g x ∂μ ≠ ∞)
+  (hfg : ∀ ⦃s⦄, measurable_set s → μ s < ∞ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
+  f =ᵐ[μ] g :=
+begin
+  refine ennreal.eventually_eq_of_to_real_eventually_eq
+    (ae_lt_top' hf hfi).ne_of_lt (ae_lt_top' hg hgi).ne_of_lt
+    (integrable.ae_eq_of_forall_set_integral_eq _ _
+      (integrable_to_real_of_lintegral_ne_top hf hfi)
+      (integrable_to_real_of_lintegral_ne_top hg hgi) (λ s hs hs', _)),
+  rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
+  { congr' 1,
+    rw [lintegral_congr_ae (of_real_to_real_ae_eq _),
+        lintegral_congr_ae (of_real_to_real_ae_eq _)],
+    { exact hfg hs hs' },
+    { refine (ae_lt_top' hg.restrict (ne_of_lt (lt_of_le_of_lt _ hgi.lt_top))),
+      exact @set_lintegral_univ α _ μ g ▸ lintegral_mono_set (set.subset_univ _) },
+    { refine (ae_lt_top' hf.restrict (ne_of_lt (lt_of_le_of_lt _ hfi.lt_top))),
+      exact @set_lintegral_univ α _ μ f ▸ lintegral_mono_set (set.subset_univ _) } },
+  -- putting the proofs where they are used is extremely slow
+  exacts [ae_of_all _ (λ x, ennreal.to_real_nonneg), hg.ennreal_to_real.restrict,
+          ae_of_all _ (λ x, ennreal.to_real_nonneg), hf.ennreal_to_real.restrict]
+end
+
+end lintegral
 
 end measure_theory

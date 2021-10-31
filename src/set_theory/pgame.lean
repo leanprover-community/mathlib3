@@ -3,9 +3,9 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
-import logic.embedding
+import data.fin.basic
 import data.nat.cast
-import data.fin
+import logic.embedding
 
 /-!
 # Combinatorial (pre-)games.
@@ -17,7 +17,7 @@ operations descend to "games", defined via the equivalence relation `p ≈ q ↔
 The surreal numbers will be built as a quotient of a subtype of pregames.
 
 A pregame (`pgame` below) is axiomatised via an inductive type, whose sole constructor takes two
-types (thought of as indexing the the possible moves for the players Left and Right), and a pair of
+types (thought of as indexing the possible moves for the players Left and Right), and a pair of
 functions out of these types to `pgame` (thought of as describing the resulting game after making a
 move).
 
@@ -338,11 +338,11 @@ theorem lt_of_mk_le {x : pgame} {yl yr yL yR i} :
 by { cases x, rw mk_le_mk, tauto }
 
 theorem mk_lt_of_le {xl xr xL xR y i} :
-  (by exact xR i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
+  ((xR : xr → pgame) i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
 by { cases y, rw mk_lt_mk, tauto }
 
-theorem lt_mk_of_le {x : pgame} {yl yr yL yR i} :
-  (by exact x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
+theorem lt_mk_of_le {x : pgame} {yl yr : Type*} {yL : yl → pgame} {yR i} :
+  (x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
 by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
 
 theorem not_le_lt {x y : pgame} :

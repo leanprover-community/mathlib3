@@ -31,7 +31,7 @@ attribute [continuity] continuous_map.continuous_to_fun
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
+instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := ⟨continuous_map.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 
@@ -39,7 +39,7 @@ variables {α β} {f g : continuous_map α β}
 
 @[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 @[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f :=
-by { cases f, dsimp, continuity, }
+by { cases f, rw @coe_fn_coe_base', continuity }
 
 protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
 f.continuous.continuous_at
@@ -112,9 +112,12 @@ variables [linear_ordered_add_comm_group β] [order_topology β]
 
 /-- The pointwise absolute value of a continuous function as a continuous function. -/
 def abs (f : C(α, β)) : C(α, β) :=
-{ to_fun := λ x, abs (f x), }
+{ to_fun := λ x, |f x|, }
 
-@[simp] lemma abs_apply (f : C(α, β)) (x : α) : f.abs x = _root_.abs (f x) :=
+@[priority 100] -- see Note [lower instance priority]
+instance : has_abs C(α, β) := ⟨λf, abs f⟩
+
+@[simp] lemma abs_apply (f : C(α, β)) (x : α) : |f| x = |f x| :=
 rfl
 
 end

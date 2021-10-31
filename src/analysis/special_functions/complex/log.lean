@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.complex.arg
+import analysis.special_functions.log
 
 /-!
 # The complex `log` function
@@ -70,21 +71,6 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
-
-lemma exists_pow_nat_eq (x : ℂ) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
-begin
-  by_cases hx : x = 0,
-  { use 0, simp only [hx, zero_pow_eq_zero, hn] },
-  { use exp (log x / n),
-    rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
-    exact_mod_cast (pos_iff_ne_zero.mp hn) }
-end
-
-lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=
-begin
-  obtain ⟨z, rfl⟩ := exists_pow_nat_eq x zero_lt_two,
-  exact ⟨z, sq z⟩
-end
 
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
@@ -166,6 +152,10 @@ lemma has_strict_deriv_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
 have h0 :  x ≠ 0, by { rintro rfl, simpa [lt_irrefl] using h },
 exp_local_homeomorph.has_strict_deriv_at_symm h h0 $
   by simpa [exp_log h0] using has_strict_deriv_at_exp (log x)
+
+lemma has_strict_fderiv_at_log_real {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
+  has_strict_fderiv_at log (x⁻¹ • (1 : ℂ →L[ℝ] ℂ)) x :=
+(has_strict_deriv_at_log h).complex_to_real_fderiv
 
 lemma times_cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_top ℕ} :
   times_cont_diff_at ℂ n log x :=
@@ -250,6 +240,12 @@ lemma has_strict_deriv_at.clog {f : ℂ → ℂ} {f' x : ℂ} (h₁ : has_strict
   has_strict_deriv_at (λ t, log (f t)) (f' / f x) x :=
 by { rw div_eq_inv_mul, exact (has_strict_deriv_at_log h₂).comp x h₁ }
 
+lemma has_strict_deriv_at.clog_real {f : ℝ → ℂ} {x : ℝ} {f' : ℂ} (h₁ : has_strict_deriv_at f f' x)
+  (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_strict_deriv_at (λ t, log (f t)) (f' / f x) x :=
+by simpa only [div_eq_inv_mul]
+  using (has_strict_fderiv_at_log_real h₂).comp_has_strict_deriv_at x h₁
+
 lemma has_fderiv_at.clog {f : E → ℂ} {f' : E →L[ℂ] ℂ} {x : E}
   (h₁ : has_fderiv_at f f' x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
   has_fderiv_at (λ t, log (f t)) ((f x)⁻¹ • f') x :=
@@ -259,6 +255,12 @@ lemma has_deriv_at.clog {f : ℂ → ℂ} {f' x : ℂ} (h₁ : has_deriv_at f f'
   (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
   has_deriv_at (λ t, log (f t)) (f' / f x) x :=
 by { rw div_eq_inv_mul, exact (has_strict_deriv_at_log h₂).has_deriv_at.comp x h₁ }
+
+lemma has_deriv_at.clog_real {f : ℝ → ℂ} {x : ℝ} {f' : ℂ} (h₁ : has_deriv_at f f' x)
+  (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_deriv_at (λ t, log (f t)) (f' / f x) x :=
+by simpa only [div_eq_inv_mul]
+  using (has_strict_fderiv_at_log_real h₂).has_fderiv_at.comp_has_deriv_at x h₁
 
 lemma differentiable_at.clog {f : E → ℂ} {x : E} (h₁ : differentiable_at ℂ f x)
   (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
@@ -275,6 +277,12 @@ lemma has_deriv_within_at.clog {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
   has_deriv_within_at (λ t, log (f t)) (f' / f x) s x :=
 by { rw div_eq_inv_mul,
      exact (has_strict_deriv_at_log h₂).has_deriv_at.comp_has_deriv_within_at x h₁ }
+
+lemma has_deriv_within_at.clog_real {f : ℝ → ℂ} {s : set ℝ} {x : ℝ} {f' : ℂ}
+  (h₁ : has_deriv_within_at f f' s x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_deriv_within_at (λ t, log (f t)) (f' / f x) s x :=
+by simpa only [div_eq_inv_mul]
+  using (has_strict_fderiv_at_log_real h₂).has_fderiv_at.comp_has_deriv_within_at x h₁
 
 lemma differentiable_within_at.clog {f : E → ℂ} {s : set E} {x : E}
   (h₁ : differentiable_within_at ℂ f s x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :

@@ -60,9 +60,7 @@ use the colex ordering rather than the subset ordering.
 -/
 def finset.to_colex {α} (s : finset α) : finset.colex α := s
 
-@[simp]
-lemma colex.eq_iff (A B : finset α) :
-  A.to_colex = B.to_colex ↔ A = B := iff.rfl
+@[simp] lemma colex.eq_iff {A B : finset α} : A.to_colex = B.to_colex ↔ A = B := iff.rfl
 
 /--
 `A` is less than `B` in the colex ordering if the largest thing that's not in both sets is in B.
@@ -370,7 +368,7 @@ instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
   ..(by apply_instance : semilattice_inf_bot (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
-lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :
+lemma sum_two_pow_lt_iff_colex_le (A B : finset ℕ) :
   ∑ i in A, 2^i < ∑ i in B, 2^i ↔ A.to_colex < B.to_colex :=
 begin
   have z : ∀ (A B : finset ℕ), A.to_colex < B.to_colex → ∑ i in A, 2^i < ∑ i in B, 2^i,
@@ -395,7 +393,7 @@ begin
 end
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
-lemma sum_two_pow_le_iff_lt (A B : finset ℕ) :
+lemma sum_two_pow_le_iff_colex_le (A B : finset ℕ) :
   ∑ i in A, 2^i ≤ ∑ i in B, 2^i ↔ A.to_colex ≤ B.to_colex :=
 by rw [le_iff_le_iff_lt_iff_lt, sum_two_pow_lt_iff_lt]
 

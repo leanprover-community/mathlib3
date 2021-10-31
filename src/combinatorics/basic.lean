@@ -3,25 +3,18 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-
 import data.finset
 import data.fintype.basic
+
+/-!
+# Basic definitions for finite sets which are useful for combinatorics.
+We define a proposition asserting that a set is a set of r-sets.
+-/
 
 open finset
 
 variable {α : Type*}
 variable {r : ℕ}
-
-/-!
-Basic definitions for finite sets which are useful for combinatorics.
-We define antichains, and a proposition asserting that a set is a set of r-sets.
--/
-
-/--
-A family of sets is an antichain if no set is a subset of another. For example,
-{{1}, {4,6,7}, {2,4,5,6}} is an antichain.
--/
-def antichain (𝒜 : finset (finset α)) : Prop := ∀ A ∈ 𝒜, ∀ B ∈ 𝒜, A ≠ B → ¬(A ⊆ B)
 
 /-- `all_sized A r` states that every set in A has size r. -/
 @[reducible]

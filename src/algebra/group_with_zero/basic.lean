@@ -882,7 +882,7 @@ end
 funext ring.inverse_eq_inv
 
 @[field_simps] lemma div_div_eq_mul_div (a b c : G₀) :
-      a / (b / c) = (a * c) / b :=
+  a / (b / c) = (a * c) / b :=
 by rw [div_eq_mul_one_div, one_div_div, ← mul_div_assoc]
 
 /-- Dividing `a` by the result of dividing `a` by itself results in

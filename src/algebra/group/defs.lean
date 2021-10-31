@@ -384,15 +384,10 @@ by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 
 end monoid
 
+@[to_additive nsmul_one']
 lemma npow_one {M : Type u} [monoid M] (x : M) :
   npow 1 x = x :=
 by simp [monoid.npow_succ', monoid.npow_zero']
-
-lemma nsmul_one' {M : Type u} [add_monoid M] (x : M) :
-  nsmul 1 x = x :=
-by simp [add_monoid.nsmul_succ', add_monoid.nsmul_zero']
-
-attribute [to_additive nsmul_one'] npow_one
 
 @[to_additive nsmul_add']
 lemma npow_add {M : Type u} [monoid M] (m n : ℕ) (x : M) :

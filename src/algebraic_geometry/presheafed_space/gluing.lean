@@ -65,6 +65,17 @@ universes v u
 
 variables {C : Type u} [category.{v} C]
 
+-- @[simps]
+-- def _root_.topological_space.opens.map_map_iso {X Y : Top.{v}} (H : X ≅ Y) : opens Y ≌ opens X :=
+-- { functor := opens.map H.hom,
+--   inverse := opens.map H.inv,
+--   unit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp[opens.map, set.preimage_preimage]))
+--     (by { intros _ _ _, simp }),
+--   counit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp[opens.map, set.preimage_preimage]))
+--     (by { intros _ _ _, simp }) }
+
+open topological_space
+
 -- def is_open_map.functor_comp {X Y Z: Top.{u}} (f : X ⟶ Y)
 --   (hf : is_open_map f) (g : Y ⟶ Z) (hg : is_open_map g) :
 --   hf.functor ⋙ hg.functor = @is_open_map.functor _ _ (f ≫ g) (hg.comp hf) :=
@@ -74,67 +85,83 @@ variables {C : Type u} [category.{v} C]
 --   intros U V i, delta is_open_map.functor, simp
 -- end
 
-lemma heq_id_of_eq {X Y : C} (H : X = Y) (f : Y ⟶ Y) (h₁ : f = 𝟙 _) :
-  f == 𝟙 X := by { cases H, simp[h₁], }
-
 section end
 
 attribute[simps] Top.presheaf.pushforward
 open opposite Top.presheaf
 
-@[simps]
-def inv_of_iso_pushforward {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1) (H₂ : H₁.hom _* X.2 ⟶ Y.2) :
-   X.presheaf ⟶ H₁.inv _* Y.presheaf :=
-({ app := λ U, X.presheaf.map (eq_to_hom
-    (begin
-      induction U using opposite.rec,
-      simp only [unop_op, op_inj_iff, functor.op_obj, opens.map],
-      ext,
-      simp only [coe_hom_inv_id, set.mem_preimage, topological_space.opens.mem_coe,
-        iff_self, subtype.coe_mk, subtype.val_eq_coe]
-    end)),
-    naturality' := λ _ _ f,
-    begin
-      delta pushforward_obj,
-      simp only [quiver.hom.unop_op, functor.comp_map, functor.op_map, ←functor.map_comp],
-      congr
-    end } : X.presheaf ⟶ H₁.inv _* (H₁.hom _* X.presheaf)) ≫
-(Top.presheaf.pushforward H₁.inv).map H₂
+-- local attribute [reducible] equivalence.to_adjunction
 
+section iso
+/-- A homeomorphism of spaces gives an equivalence of categories of presheaves. -/
+@[simps] def iso_pushforward_equiv {X Y : Top} (H : X ≅ Y) :
+  X.presheaf C ≌ Y.presheaf C :=
+equivalence.congr_left (opens.map_map_iso H).symm.op
 
-def hom_of_iso_pushforward {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1) (H₂ : Y.2 ⟶ H₁.hom _* X.2) :
-   H₁.inv _* Y.presheaf ⟶ X.presheaf :=
-(Top.presheaf.pushforward H₁.inv).map H₂ ≫
-  ({ app := λ U, X.presheaf.map (eq_to_hom
-    (begin
-      induction U using opposite.rec,
-      simp only [unop_op, op_inj_iff, functor.op_obj, opens.map],
-      ext,
-      simp only [coe_hom_inv_id, set.mem_preimage, topological_space.opens.mem_coe,
-        iff_self, subtype.coe_mk, subtype.val_eq_coe]
-    end)),
-    naturality' := λ _ _ f,
-    begin
-      delta pushforward_obj,
-      simp only [quiver.hom.unop_op, functor.comp_map, functor.op_map, ←functor.map_comp],
-      congr
-    end } : H₁.inv _* (H₁.hom _* X.presheaf) ⟶ X.presheaf)
+/--
+If `H : X ≅ Y` is a homeomorphism,
+then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
+-/
+def to_pushforward_of_iso {X Y : Top} (H : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
+  (α : H.hom _* ℱ ⟶ 𝒢) : ℱ ⟶ H.inv _* 𝒢 :=
+(iso_pushforward_equiv H).to_adjunction.hom_equiv ℱ 𝒢 α
 
+@[simp]
+lemma to_pushforward_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
+  (H₂ : H₁.hom _* ℱ ⟶ 𝒢) (U : (opens X)ᵒᵖ) :
+(to_pushforward_of_iso H₁ H₂).app U =
+  ℱ.map (eq_to_hom (by simp[opens.map, set.preimage_preimage])) ≫
+  H₂.app (op ((opens.map H₁.inv).obj (unop U))) :=
+begin
+  delta to_pushforward_of_iso,
+  simp only [equiv.to_fun_as_coe, nat_trans.comp_app, equivalence.equivalence_mk'_unit,
+    eq_to_hom_map, iso_pushforward_equiv_unit_iso_hom_app_app, equivalence.to_adjunction,
+    equivalence.equivalence_mk'_counit, iso_pushforward_equiv_inverse_map_app,
+    adjunction.mk_of_unit_counit_hom_equiv_apply],
+  congr
+end
+
+/--
+If `H : X ≅ Y` is a homeomorphism,
+then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
+-/
+def pushforward_to_of_iso {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}
+  (H₂ : ℱ ⟶ H₁.hom _* 𝒢) : H₁.inv _* ℱ ⟶ 𝒢 :=
+((iso_pushforward_equiv H₁.symm).to_adjunction.hom_equiv ℱ 𝒢).symm H₂
+
+@[simp]
+lemma pushforward_to_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}
+  (H₂ : ℱ ⟶ H₁.hom _* 𝒢) (U : (opens X)ᵒᵖ) :
+(pushforward_to_of_iso H₁ H₂).app U =
+  H₂.app (op ((opens.map H₁.inv).obj (unop U))) ≫
+  𝒢.map (eq_to_hom (by simp[opens.map, set.preimage_preimage])) :=
+begin
+  delta pushforward_to_of_iso,
+  simp only [adjunction.mk_of_unit_counit_hom_equiv_symm_apply, nat_trans.comp_app,
+    iso_pushforward_equiv_counit_iso_hom_app_app, equivalence.equivalence_mk'_unit,
+    equivalence.to_adjunction, equivalence.equivalence_mk'_counit,
+    eq_to_hom_map, iso_pushforward_equiv_functor_map_app, equiv.inv_fun_as_coe],
+  congr
+end
+
+variables {X Y : PresheafedSpace C}
+
+/--
+An isomorphism of PresheafedSpaces is a homeomorphism of the underlying space, and a
+natural transformation between the sheaves.
+-/
 @[simps hom inv]
-def PresheafedSpace.iso_of_components {X Y : PresheafedSpace C} (H₁ : X.1 ≅ Y.1)
-  (H₂ : H₁.hom _* X.2 ≅ Y.2) : X ≅ Y :=
-{ hom := { base := H₁.hom, c := H₂.inv },
-  inv := { base := H₁.inv,
-    c := inv_of_iso_pushforward H₁ H₂.hom },
-  hom_inv_id' := by { ext, simp, dsimp only [functor.op], erw category.id_comp, simpa, simp },
+def PresheafedSpace.iso_of_components (H : X.1 ≅ Y.1) (α : H.hom _* X.2 ≅ Y.2) : X ≅ Y :=
+{ hom := { base := H.hom, c := α.inv },
+  inv := { base := H.inv,
+    c := to_pushforward_of_iso H α.hom },
+  hom_inv_id' := by { ext, { simp, erw category.id_comp, simpa }, simp },
   inv_hom_id' :=
   begin
     ext x,
     induction x using opposite.rec,
-    change (H₂.inv.app (op x) ≫ (X.presheaf.map (eq_to_hom _) ≫
-      H₂.hom.app _)) ≫ Y.presheaf.map _ = _,
-    simp only [algebraic_geometry.PresheafedSpace.id_c_app,
-      category.assoc, pushforward.comp_inv_app],
+    simp only [PresheafedSpace.comp_c_app, whisker_right_app, to_pushforward_of_iso_app,
+      nat_trans.comp_app, eq_to_hom_app, PresheafedSpace.id_c_app, category.assoc],
     erw [←H₂.hom.naturality],
     have := congr_app (H₂.inv_hom_id) (op x),
     cases x,
@@ -144,6 +171,44 @@ def PresheafedSpace.iso_of_components {X Y : PresheafedSpace C} (H₁ : X.1 ≅ 
     { simp },
     { simp }
   end }
+
+/-- Isomorphic PresheafedSpaces have homeomorphic topological spaces. -/
+def PresheafedSpace.base_iso_of_iso (H : X ≅ Y) : X.1 ≅ Y.1 :=
+{ hom := H.hom.base,
+  inv := H.inv.base,
+  hom_inv_id' := congr_arg PresheafedSpace.hom.base H.hom_inv_id,
+  inv_hom_id' := congr_arg PresheafedSpace.hom.base H.inv_hom_id }
+
+/-- Isomorphic PresheafedSpaces have natural isomorphic presheaves. -/
+def PresheafedSpace.sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
+{ hom := H.hom.c,
+  inv := pushforward_to_of_iso (PresheafedSpace.base_iso_of_iso H).symm H.inv.c,
+  hom_inv_id' :=
+  begin
+    ext U,
+    have := PresheafedSpace.congr_app H.inv_hom_id U,
+    simp only [PresheafedSpace.comp_c_app, PresheafedSpace.id_c_app,
+      eq_to_hom_map, eq_to_hom_trans] at this,
+    generalize_proofs h at this,
+    simpa using congr_arg (λ f, f ≫ eq_to_hom h.symm) this,
+  end,
+  inv_hom_id' :=
+  begin
+    ext U,
+    simp only [pushforward_to_of_iso_app, nat_trans.comp_app, category.assoc,
+      nat_trans.id_app, H.hom.c.naturality],
+    have := PresheafedSpace.congr_app H.hom_inv_id ((opens.map H.hom.base).op.obj U),
+    generalize_proofs h at this,
+    simpa using congr_arg (λ f, f ≫X.presheaf.map (eq_to_hom h.symm)) this
+  end }
+
+instance PresheafedSpace.base_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.base :=
+is_iso.of_iso (PresheafedSpace.base_iso_of_iso (as_iso f))
+
+instance PresheafedSpace.c_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.c :=
+is_iso.of_iso (PresheafedSpace.sheaf_iso_of_iso (as_iso f))
+
+end iso
 
 section end
 
@@ -197,10 +262,6 @@ attribute [simp]  algebraic_geometry.restrict_eq_hom_base
                   algebraic_geometry.restrict_comp_hom_base
                   algebraic_geometry.restrict_comp_inv_base
 
-#check algebraic_geometry.restrict_comp
-
-section end
-
 @[simp]
 lemma restrict_eq_hom_c_app' {X : Top} (Y : PresheafedSpace C) (f g : X ⟶ Y.1)
   (hf : open_embedding f) (hg : open_embedding g) (eq : f = g) (U) :
@@ -244,47 +305,10 @@ begin
   simp[PresheafedSpace.of_restrict, ←eq],
 end
 
-variables {X Y : PresheafedSpace C} (f : X ⟶ Y)
-
-def PresheafedSpace.base_iso_of_iso (H : X ≅ Y) : X.1 ≅ Y.1 :=
-{ hom := H.hom.base,
-  inv := H.inv.base,
-  hom_inv_id' := congr_arg PresheafedSpace.hom.base H.hom_inv_id,
-  inv_hom_id' := congr_arg PresheafedSpace.hom.base H.inv_hom_id }
-
-def PresheafedSpace.sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
-{ hom := H.hom.c,
-  inv := hom_of_iso_pushforward (PresheafedSpace.base_iso_of_iso H).symm H.inv.c,
-  hom_inv_id' :=
-  begin
-    ext U,
-    have := PresheafedSpace.congr_app H.inv_hom_id U,
-    simp only [PresheafedSpace.comp_c_app, PresheafedSpace.id_c_app,
-      eq_to_hom_map, eq_to_hom_trans] at this,
-    generalize_proofs h at this,
-    have := (congr_arg (λ f, f ≫ eq_to_hom h.symm) this : _),
-    simp [hom_of_iso_pushforward] at this ⊢,
-    simpa using this
-  end,
-  inv_hom_id' :=
-  begin
-    ext U,
-    have := PresheafedSpace.congr_app H.hom_inv_id ((opens.map H.hom.base).op.obj U),
-    generalize_proofs h at this,
-    have := (congr_arg (λ f, f ≫X.presheaf.map (eq_to_hom h.symm)) this : _),
-    simp only [nat_trans.comp_app, hom_of_iso_pushforward, category.assoc, nat_trans.id_app,
-      H.hom.c.naturality],
-    simpa using this
-  end }
-
 
 section end
 
-instance PresheafedSpace.base_is_iso_of_iso [is_iso f] : is_iso f.base :=
-is_iso.of_iso (PresheafedSpace.base_iso_of_iso (as_iso f))
-
-instance PresheafedSpace.c_is_iso_of_iso [is_iso f] : is_iso f.c :=
-is_iso.of_iso (PresheafedSpace.sheaf_iso_of_iso (as_iso f))
+variables {X Y : PresheafedSpace C} (f : X ⟶ Y)
 
 structure open_immersion :=
 (base_open : open_embedding f.base)

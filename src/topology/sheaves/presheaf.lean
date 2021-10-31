@@ -150,4 +150,59 @@ end
 
 end presheaf
 
+section iso
+
+/-- A homeomorphism of spaces gives an equivalence of categories of presheaves. -/
+@[simps] def iso_pushforward_equiv {X Y : Top} (H : X ≅ Y) :
+  X.presheaf C ≌ Y.presheaf C :=
+equivalence.congr_left (opens.map_map_iso H).symm.op
+
+/--
+If `H : X ≅ Y` is a homeomorphism,
+then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
+-/
+def to_pushforward_of_iso {X Y : Top} (H : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
+  (α : H.hom _* ℱ ⟶ 𝒢) : ℱ ⟶ H.inv _* 𝒢 :=
+(iso_pushforward_equiv H).to_adjunction.hom_equiv ℱ 𝒢 α
+
+@[simp]
+lemma to_pushforward_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
+  (H₂ : H₁.hom _* ℱ ⟶ 𝒢) (U : (opens X)ᵒᵖ) :
+(to_pushforward_of_iso H₁ H₂).app U =
+  ℱ.map (eq_to_hom (by simp[opens.map, set.preimage_preimage])) ≫
+  H₂.app (op ((opens.map H₁.inv).obj (unop U))) :=
+begin
+  delta to_pushforward_of_iso,
+  simp only [equiv.to_fun_as_coe, nat_trans.comp_app, equivalence.equivalence_mk'_unit,
+    eq_to_hom_map, iso_pushforward_equiv_unit_iso_hom_app_app, equivalence.to_adjunction,
+    equivalence.equivalence_mk'_counit, iso_pushforward_equiv_inverse_map_app,
+    adjunction.mk_of_unit_counit_hom_equiv_apply],
+  congr
+end
+
+/--
+If `H : X ≅ Y` is a homeomorphism,
+then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
+-/
+def pushforward_to_of_iso {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}
+  (H₂ : ℱ ⟶ H₁.hom _* 𝒢) : H₁.inv _* ℱ ⟶ 𝒢 :=
+((iso_pushforward_equiv H₁.symm).to_adjunction.hom_equiv ℱ 𝒢).symm H₂
+
+@[simp]
+lemma pushforward_to_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}
+  (H₂ : ℱ ⟶ H₁.hom _* 𝒢) (U : (opens X)ᵒᵖ) :
+(pushforward_to_of_iso H₁ H₂).app U =
+  H₂.app (op ((opens.map H₁.inv).obj (unop U))) ≫
+  𝒢.map (eq_to_hom (by simp[opens.map, set.preimage_preimage])) :=
+begin
+  delta pushforward_to_of_iso,
+  simp only [adjunction.mk_of_unit_counit_hom_equiv_symm_apply, nat_trans.comp_app,
+    iso_pushforward_equiv_counit_iso_hom_app_app, equivalence.equivalence_mk'_unit,
+    equivalence.to_adjunction, equivalence.equivalence_mk'_counit,
+    eq_to_hom_map, iso_pushforward_equiv_functor_map_app, equiv.inv_fun_as_coe],
+  congr
+end
+
+end iso
+
 end Top

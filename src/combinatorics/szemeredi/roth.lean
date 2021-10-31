@@ -13,18 +13,67 @@ This file proves Roth's theorem
 
 open finset
 
+variables {N : ℕ} (A : finset (fin (2 * N + 1)))
+
+inductive roth_mod_graph :
+  fin 3 × fin (2 * N + 1) → fin 3 × fin (2 * N + 1) → Prop
+| xy {x y} : y - x ∈ A → roth_mod_graph (0, x) (1, y)
+| yz {y z} : z - y ∈ A → roth_mod_graph (1, y) (2, z)
+| xz {x z} : (z - x) * (N + 1 : fin (2 * N + 1)) ∈ A → roth_mod_graph (0, x) (2, z)
+
 /-- The graph used in the proof of Roth's theorem. -/
-def roth_graph (n : ℕ) : simple_graph (fin 3 × fin (2 * n + 1)) :=
-simple_graph.from_rel (λ a b, begin
-    refine if a = 0 then
-  end)
+def roth_graph : simple_graph (fin 3 × fin (2 * N + 1)) :=
+simple_graph.from_rel (roth_mod_graph A)
 
-lemma roth_triangle_free_far (n : ℕ) (ε : ℝ) : (roth_graph n).triangle_free_far ε :=
+open_locale classical
+
+def three_aps :
+  finset (finset (fin (2 * N + 1))) :=
+A.powerset.filter (λ i, ∃ (a d : fin (2 * N + 1)), i = {a,a+d,a+2*d})
+
+def nontrivial_three_aps :
+  finset (finset (fin (2 * N + 1))) :=
+A.powerset.filter (λ i, ∃ (a d : fin (2 * N + 1)), d ≠ 0 ∧ i = {a,a+d,a+2*d})
+
+lemma nontrivial_three_aps_subset_three_aps :
+  nontrivial_three_aps A ⊆ three_aps A :=
 begin
-  sorry
+  rintro t ht,
+  simp only [nontrivial_three_aps, three_aps, mem_powerset, mem_filter] at ht ⊢,
+  tauto
 end
 
-lemma roth (N : ℕ) : ∃ δ : ℝ, 0 < δ ∧ ∀ n, N ≤ n → ∀ A ⊆ range n, δ * n ≤ A.card → ∃ a d,
-  a ∈ A ∧ a + d ∈ A ∧ a + 2 * d ∈ A :=
+lemma m_le_card_three_aps : A.card ≤ (three_aps A).card :=
 begin
+  refine card_le_card_of_inj_on (λ i, {i}) _ _,
+  { intros i hi,
+    simp only [three_aps, mem_filter, mem_powerset, singleton_subset_iff, hi, true_and],
+    refine ⟨i, 0, _⟩,
+    simp },
+  { intros a₁ ha₁ a₂ ha₂,
+    apply singleton_injective }
 end
+
+-- lemma roth_triangle_free_far (ε : ℝ) (hA : ε * (2 * N + 1) ≤ A.card) :
+--   (roth_graph A).triangle_free_far ε :=
+-- begin
+--   intros H hH hH',
+--   sorry
+-- end
+
+-- lemma roth_mod (N : ℕ) :
+--   ∃ δ : ℝ, 0 < δ ∧
+--     ∀ (A : finset (fin (2 * N + 1))),
+--       δ * (2 * N + 1) ≤ A.card →
+--         ∃ (a d : fin (2 * N + 1)), d ≠ 0 ∧ a ∈ A ∧ a + d ∈ A ∧ a + 2 * d ∈ A :=
+-- begin
+--   refine ⟨sorry, sorry, λ A hA, _⟩,
+
+-- end
+
+-- lemma roth (N : ℕ) :
+--   ∃ δ : ℝ, 0 < δ ∧
+--     ∀ A ⊆ range N, δ * N ≤ A.card → ∃ a d, 0 < d ∧ a ∈ A ∧ a + d ∈ A ∧ a + 2 * d ∈ A :=
+-- begin
+
+-- end

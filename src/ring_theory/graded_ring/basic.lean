@@ -316,7 +316,7 @@ instance lift_homogeneous_element [decidable_eq ι] [add_comm_monoid ι] [graded
 { lift := homogeneous_element.coe_mul_hom R A }
 
 
-instance lift_homogeneous_set [decidable_eq R] [decidable_eq ι] [add_comm_monoid ι]
+instance lift_homogeneous_set [decidable_eq ι] [add_comm_monoid ι]
   [graded_ring R A] :
   has_lift (set (homogeneous_element R A)) (set R) :=
 { lift := λ S, (homogeneous_element.coe_mul_hom R A) '' S }

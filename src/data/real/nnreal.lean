@@ -485,22 +485,22 @@ begin
   exact pow_nonneg (zero_le _) _,
 end
 
-lemma exists_zpow_near
+lemma exists_mem_Ico_zpow
   {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+  ∃ n : ℤ, x ∈ set.Ico (y ^ n) (y ^ (n + 1)) :=
 begin
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, (y : ℝ) ^ n ≤ x ∧ (x : ℝ) < y ^ (n + 1) :=
-    exists_zpow_near (bot_lt_iff_ne_bot.mpr hx) hy,
+    exists_mem_Ico_zpow (bot_lt_iff_ne_bot.mpr hx) hy,
   rw ← nnreal.coe_zpow at hn h'n,
   exact ⟨n, hn, h'n⟩,
 end
 
-lemma exists_zpow_near'
+lemma exists_mem_Ioc_zpow
   {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
+  ∃ n : ℤ, x ∈ set.Ioc (y ^ n) (y ^ (n + 1)) :=
 begin
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, (y : ℝ) ^ n < x ∧ (x : ℝ) ≤ y ^ (n + 1) :=
-    exists_zpow_near' (bot_lt_iff_ne_bot.mpr hx) hy,
+    exists_mem_Ioc_zpow (bot_lt_iff_ne_bot.mpr hx) hy,
   rw ← nnreal.coe_zpow at hn h'n,
   exact ⟨n, hn, h'n⟩,
 end

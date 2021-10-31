@@ -1296,30 +1296,30 @@ begin
   { simp only [ennreal.pow_pos ha.bot_lt (n + 1), zpow_neg_succ_of_nat, inv_lt_top] }
 end
 
-lemma exists_zpow_near
+lemma exists_mem_Ico_zpow
   {x y : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (hy : 1 < y) (h'y : y ≠ ⊤) :
-  ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+  ∃ n : ℤ, x ∈ Ico (y ^ n) (y ^ (n + 1)) :=
 begin
   lift x to ℝ≥0 using h'x,
   lift y to ℝ≥0 using h'y,
   have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1),
-  { refine nnreal.exists_zpow_near _  (one_lt_coe_iff.1 hy),
+  { refine nnreal.exists_mem_Ico_zpow _  (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
   refine ⟨n, _, _⟩,
   { rwa [← ennreal.coe_zpow A, ennreal.coe_le_coe] },
   { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] }
 end
 
-lemma exists_zpow_near'
+lemma exists_mem_Ioc_zpow
   {x y : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (hy : 1 < y) (h'y : y ≠ ⊤) :
-  ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
+  ∃ n : ℤ, x ∈ Ioc (y ^ n) (y ^ (n + 1)) :=
 begin
   lift x to ℝ≥0 using h'x,
   lift y to ℝ≥0 using h'y,
   have A : y ≠ 0, by simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne',
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1),
-  { refine nnreal.exists_zpow_near' _  (one_lt_coe_iff.1 hy),
+  { refine nnreal.exists_mem_Ioc_zpow _  (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
   refine ⟨n, _, _⟩,
   { rwa [← ennreal.coe_zpow A, ennreal.coe_lt_coe] },
@@ -1333,7 +1333,7 @@ begin
   simp only [mem_Union, mem_Ioo, mem_Ico],
   split,
   { rintros ⟨hx, h'x⟩,
-    exact exists_zpow_near hx.ne' h'x.ne hy h'y },
+    exact exists_mem_Ico_zpow hx.ne' h'x.ne hy h'y },
   { rintros ⟨n, hn, h'n⟩,
     split,
     { apply lt_of_lt_of_le _ hn,
@@ -1362,6 +1362,9 @@ begin
       apply int.le_of_coe_nat_le_coe_nat h' },
     repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
 end
+
+lemma monotone_zpow {x : ℝ≥0∞} (hx : 1 ≤ x) : monotone (λ (a : ℤ), x ^ a) :=
+λ a b h, zpow_le_of_le hx h
 
 lemma zpow_add {x : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (m n : ℤ) :
   x ^ (m + n) = x ^ m * x ^ n :=

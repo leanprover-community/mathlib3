@@ -281,6 +281,8 @@ end
 end graded_ring
 
 section homogeneous_element
+open_locale pointwise
+
 variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
 
 /-- An element `r : R` is said to be homogeneous if there is some
@@ -290,12 +292,34 @@ def is_homogeneous (r : R) : Prop := ∃ i, r ∈ A i
 /--We collect all homogeneneous elements into a subtype `homogeneous_element` -/
 def homogeneous_element : Type* := {r // is_homogeneous R A r}
 
-instance lift_homogeneous_element : has_lift (homogeneous_element R A) R :=
-{ lift := λ r, r.1 }
+instance homogeneous_element.has_mul [add_comm_monoid ι] [decidable_eq ι] [graded_ring R A] :
+  has_mul (homogeneous_element R A) :=
+{ mul := λ x y, ⟨x.1 * y.1, begin
+  obtain ⟨i, hi⟩ := x.2,
+  obtain ⟨j, hj⟩ := y.2,
+  use (i + j), exact graded_ring.mul_respect_grading hi hj,
+end ⟩ }
 
-instance lift_homogeneous_set [decidable_eq R] :
+instance homogenous_element_set.has_mul [add_comm_monoid ι] [decidable_eq ι] [graded_ring R A] :
+  has_mul (set (homogeneous_element R A)) := by apply_instance
+
+/--lifting is a `mul_hom`-/
+def homogeneous_element.coe_mul_hom [decidable_eq ι] [add_comm_monoid ι] [graded_ring R A] :
+  mul_hom (homogeneous_element R A) R :=
+{ to_fun := λ r, r.1,
+  map_mul' := λ x y, begin
+    cases x, cases y, simp only [subtype.val_eq_coe], refl,
+  end }
+
+instance lift_homogeneous_element [decidable_eq ι] [add_comm_monoid ι] [graded_ring R A]
+  : has_lift (homogeneous_element R A) R :=
+{ lift := homogeneous_element.coe_mul_hom R A }
+
+
+instance lift_homogeneous_set [decidable_eq R] [decidable_eq ι] [add_comm_monoid ι]
+  [graded_ring R A] :
   has_lift (set (homogeneous_element R A)) (set R) :=
-{ lift := λ S, set.image (lift_homogeneous_element R A).lift S }
+{ lift := λ S, (homogeneous_element.coe_mul_hom R A) '' S }
 
 variables [add_comm_monoid ι] [decidable_eq ι]
 

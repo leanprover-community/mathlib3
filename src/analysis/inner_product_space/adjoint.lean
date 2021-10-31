@@ -9,15 +9,19 @@ import analysis.inner_product_space.dual
 /-!
 # Adjoint of operators on Hilbert spaces
 
-## Main results
-
-## Notation
+Given an operator `A : E →L[𝕜] F`, where `E` and `F` are Hilbert spaces, its adjoint
+`adjoint A : F →L[𝕜] E` is the unique operator such that `⟪x, A y⟫ = ⟪adjoint A x, y⟫` for all
+`x` and `y`.
 
 ## Implementation notes
 
+* The adjoint is defined as a conjugate-linear isometric equivalence between `E →L[𝕜] F` and
+  `F →L[𝕜] E`. The bare function `adjoint'` is only an intermediate definition and is not meant
+  to be used outside this file.
+
 ## Tags
 
-## References
+adjoint
 
 -/
 
@@ -30,24 +34,7 @@ variables [complete_space E] [complete_space F]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-variable (𝕜)
-include 𝕜
--- move this to dual.lean. Depends on Fréchet-Riesz
-lemma inner_product_space.ext_inner_left {x y : E} : x = y ↔ ∀ v, ⟪v, x⟫ = ⟪v, y⟫ :=
-begin
-  refine ⟨by { rintros rfl _, refl }, λ h, _⟩,
-  apply (to_dual 𝕜 E).map_eq_iff.mp,
-  ext v,
-  rw [to_dual_apply, to_dual_apply, ←inner_conj_sym],
-  nth_rewrite_rhs 0 [←inner_conj_sym],
-  exact congr_arg conj (h v)
-end
-omit 𝕜
-variable {𝕜}
-
--- move this to dual.lean
-lemma to_dual_symm_inner {ℓ : normed_space.dual 𝕜 E} {x : E} : ⟪(to_dual 𝕜 E).symm ℓ, x⟫ = ℓ x :=
-by simp only [←to_dual_apply, linear_isometry_equiv.apply_symm_apply]
+namespace inner_product_space
 
 /-- Find a better name? -/
 def inner_left_right' (A : E →L[𝕜] F) (v : F) : E →L[𝕜] 𝕜 :=
@@ -84,20 +71,24 @@ begin
               ... = ∥A∥ * ∥v∥ * ∥x∥    : by ring,
 end
 
-/-- FIXME: Upgrade to continuous in both arguments -/
-@[simps] def inner_left_right'ₛₗ (A : E →L[𝕜] F) : F →ₗ⋆[𝕜] E →L[𝕜] 𝕜 :=
+@[simps] def inner_left_right (A : E →L[𝕜] F) : F →L⋆[𝕜] E →L[𝕜] 𝕜 :=
+linear_map.mk_continuous
 { to_fun := λ v, inner_left_right' A v,
   map_add' := λ x y, by { ext w, simp only [inner_add_left, inner_left_right'_apply,
                                             continuous_linear_map.add_apply] },
   map_smul' := λ r x, by { ext z, simp only [inner_smul_left, algebra.id.smul_eq_mul,
                                     inner_left_right'_apply, pi.smul_apply,
                                     ring_equiv.coe_to_ring_hom, continuous_linear_map.coe_smul'] } }
+∥A∥
+(λ x, inner_left_right'_norm A x)
+
+lemma inner_left_right_apply {A : E →L[𝕜] F} {x : F} : inner_left_right A x = inner_left_right' A x := rfl
 
 lemma inner_left_right'ₛₗ_map_smul {r : 𝕜} {A : E →L[𝕜] F} {v : F} :
-  inner_left_right'ₛₗ (r • A) v = r • inner_left_right'ₛₗ A v :=
+  inner_left_right (r • A) v = r • inner_left_right A v :=
 begin
   ext w,
-  simp only [inner_smul_right, inner_left_right'ₛₗ_apply, algebra.id.smul_eq_mul,
+  simp only [inner_smul_right, inner_left_right_apply, algebra.id.smul_eq_mul,
     inner_left_right'_apply, pi.smul_apply, continuous_linear_map.coe_smul'],
 end
 
@@ -105,17 +96,17 @@ end
 the main definition `adjoint`, where this is bundled as a conjugate-linear isometric equivalence. -/
 @[simps] def adjoint' (A : E →L[𝕜] F) : F →L[𝕜] E :=
 linear_map.mk_continuous
-{ to_fun := λ v : F, (to_dual 𝕜 E).symm (inner_left_right'ₛₗ A v),
-  map_add' := λ x y, by simp only [linear_isometry_equiv.map_add, linear_map.map_add],
-  map_smul' := λ r x, by simp only [linear_map.map_smulₛₗ, linear_isometry_equiv.map_smulₛₗ,
+{ to_fun := λ v : F, (to_dual 𝕜 E).symm (inner_left_right A v),
+  map_add' := λ x y, by simp only [linear_isometry_equiv.map_add, continuous_linear_map.map_add],
+  map_smul' := λ r x, by simp only [continuous_linear_map.map_smulₛₗ, linear_isometry_equiv.map_smulₛₗ,
                                     star_ring_aut_self_apply r, ring_hom.id_apply,
                                     ring_equiv.coe_to_ring_hom] }
 ∥A∥
 (λ x, by simp only [linear_isometry_equiv.norm_map, inner_left_right'_norm,
-                    inner_left_right'ₛₗ_apply, linear_map.coe_mk])
+                    inner_left_right_apply, linear_map.coe_mk])
 
 @[simp] lemma adjoint'_apply {A : E →L[𝕜] F} {v : F} :
-  adjoint' A v = (to_dual 𝕜 E).symm (inner_left_right'ₛₗ A v) := rfl
+  adjoint' A v = (to_dual 𝕜 E).symm (inner_left_right A v) := rfl
 
 lemma adjoint'_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪adjoint' A y, x⟫ = ⟪y, A x⟫ :=
 by { simp only [adjoint'_apply, to_dual_symm_inner], refl }
@@ -126,7 +117,7 @@ by rw [←inner_conj_sym, adjoint'_inner_left, inner_conj_sym]
 lemma adjoint'_adjoint'_apply (A : E →L[𝕜] F) : adjoint' (adjoint' A) = A :=
 begin
   ext v,
-  refine (inner_product_space.ext_inner_left 𝕜).mpr (λ w, _),
+  refine ext_inner_left 𝕜 (λ w, _),
   rw [adjoint'_inner_right, adjoint'_inner_left],
 end
 
@@ -134,11 +125,11 @@ lemma adjoint'_norm {A : E →L[𝕜] F} : ∥adjoint' A∥ = ∥A∥ :=
 begin
   refine le_antisymm _ _,
   { refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),
-    rw [adjoint'_apply, linear_isometry_equiv.norm_map, inner_left_right'ₛₗ_apply],
+    rw [adjoint'_apply, linear_isometry_equiv.norm_map, inner_left_right_apply],
     exact inner_left_right'_norm _ _ },
   { nth_rewrite_lhs 0 [←adjoint'_adjoint'_apply A],
     refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),
-    rw [adjoint'_apply, linear_isometry_equiv.norm_map, inner_left_right'ₛₗ_apply],
+    rw [adjoint'_apply, linear_isometry_equiv.norm_map, inner_left_right_apply],
     exact inner_left_right'_norm _ _ }
 end
 
@@ -149,7 +140,7 @@ linear_isometry_equiv.of_surjective
   map_add' := λ A B,
   begin
     ext v,
-    simp only [adjoint'_apply, inner_left_right'ₛₗ_apply, continuous_linear_map.add_apply,
+    simp only [adjoint'_apply, inner_left_right_apply, continuous_linear_map.add_apply,
               ←linear_isometry_equiv.map_add, linear_isometry_equiv.map_eq_iff],
     ext w,
     simp only [inner_add_right, inner_left_right'_apply, continuous_linear_map.add_apply],
@@ -174,3 +165,5 @@ adjoint'_inner_right
 /-- The adjoint is involutive -/
 @[simp] lemma adjoint_adjoint_apply {A : E →L[𝕜] F} : adjoint (adjoint A) = A :=
 adjoint'_adjoint'_apply A
+
+end inner_product_space

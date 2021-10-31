@@ -29,7 +29,7 @@ dual, Fréchet-Riesz
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical complex_conjugate
 universes u v
 
 namespace inner_product_space
@@ -129,5 +129,23 @@ end
 variables {E}
 
 @[simp] lemma to_dual_apply {x y : E} : to_dual 𝕜 E x y = ⟪x, y⟫ := rfl
+
+@[simp] lemma to_dual_symm_inner {ℓ : normed_space.dual 𝕜 E} {x : E} :
+  ⟪(to_dual 𝕜 E).symm ℓ, x⟫ = ℓ x :=
+by simp only [←to_dual_apply, linear_isometry_equiv.apply_symm_apply]
+
+variable (𝕜)
+include 𝕜
+lemma ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y :=
+begin
+  apply (to_dual 𝕜 E).map_eq_iff.mp,
+  ext v,
+  rw [to_dual_apply, to_dual_apply, ←inner_conj_sym],
+  nth_rewrite_rhs 0 [←inner_conj_sym],
+  exact congr_arg conj (h v)
+end
+omit 𝕜
+variable {𝕜}
+
 
 end inner_product_space

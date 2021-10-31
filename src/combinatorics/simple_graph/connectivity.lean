@@ -1035,7 +1035,9 @@ begin
     simpa [subgraph.spanning_coe] using this, },
 end
 
-variables [decidable_eq V]
+variables [dec_eq_V :decidable_eq V]
+
+include dec_eq_V
 
 lemma is_bridge_iff_no_cycle_contains.aux1
   {u v w : V}
@@ -1327,6 +1329,9 @@ end
 
 open fintype
 
+omit dec_eq_V
+
+/-- Get the next edge after vertext `v` on a path `p` from `v` to vertex `w`. -/
 def next_edge (G : simple_graph V) : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
 | v w h walk.nil := (h rfl).elim
 | v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mk_has_mem _ _⟩
@@ -1369,6 +1374,8 @@ begin
     left,
     refl,},
 end
+
+include dec_eq_V
 
 lemma is_tree.card_edges_eq_card_vertices_sub_one
   [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :

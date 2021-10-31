@@ -481,7 +481,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
       exact ⟨x, (fsubset x xs xa).1, (fsubset x xs xa).2.2.2⟩ },
     obtain ⟨u, ut, u_count, u_disj, μu⟩ :
-      ∃ u ⊆ t, u.countable ∧ u.pairwise_on (disjoint on id) ∧ μ (s \ ⋃ a ∈ u, a) = 0 :=
+      ∃ u ⊆ t, u.countable ∧ u.pairwise disjoint ∧ μ (s \ ⋃ a ∈ u, a) = 0 :=
         exists_disjoint_covering_ae μ s t A₁ A₂ A₃ C A₄,
     have : ∀ a ∈ u, ∃ x ∈ s, a ∈ f x := λ a ha, mem_bUnion_iff.1 (ut ha),
     choose! x hx using this,
@@ -498,7 +498,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
     { assume y hy,
       rcases (mem_image _ _ _).1 hy with ⟨a, au, rfl⟩,
       exact (hx a au).1 },
-    { rw [inj_on_x.pairwise_on_image],
+    { rw [inj_on_x.pairwise_image],
       assume a ha b hb hab,
       simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb],
       exact u_disj a ha b hb hab },

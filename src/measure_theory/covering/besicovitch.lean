@@ -901,8 +901,8 @@ protected def vitali_family [second_countable_topology α] [has_besicovitch_cove
     obtain ⟨t, r, t_count, ts, tg, μt, tdisj⟩ : ∃ (t : set α) (r : α → ℝ), countable t
       ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ g x)
       ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
-      ∧ t.pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
-    exists_disjoint_closed_ball_covering_ae μ g s A B C,
+      ∧ t.pairwise (disjoint on (λ x, closed_ball x (r x))) :=
+        exists_disjoint_closed_ball_covering_ae μ g s A B C,
     exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).2, μt⟩,
   end }
 

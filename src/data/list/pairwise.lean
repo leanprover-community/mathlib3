@@ -246,8 +246,8 @@ from λ R l, ⟨λ p, reverse_reverse l ▸ this p, this⟩,
     pairwise_cons, forall_prop_of_false (not_mem_nil _), forall_true_iff,
     pairwise.nil, mem_reverse, mem_singleton, forall_eq, true_and] using h]
 
-lemma pairwise.set_pairwise_on {l : list α} (h : pairwise R l) (hr : symmetric R) :
-  set.pairwise_on {x | x ∈ l} R :=
+lemma pairwise.set_pairwise {l : list α} (h : pairwise R l) (hr : symmetric R) :
+  set.pairwise {x | x ∈ l} R :=
 begin
   induction h with hd tl imp h IH,
   { simp },

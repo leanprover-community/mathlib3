@@ -2494,6 +2494,7 @@ lemma prod_take_succ :
 | (h :: t) (n+1) _ := by { dsimp, rw [prod_cons, prod_cons, prod_take_succ, mul_assoc], }
 
 /-- A list with product not one must have positive length. -/
+@[to_additive]
 lemma length_pos_of_prod_ne_one (L : list α) (h : L.prod ≠ 1) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
@@ -2628,10 +2629,6 @@ begin
     exact ⟨h.1, l_ih h.2⟩ },
 end⟩
 
-/-- A list with sum not zero must have positive length. -/
-lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
-by { cases L, { simp at h, cases h, }, { simp, }, }
-
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/
 lemma length_le_sum_of_one_le (L : list ℕ) (h : ∀ i ∈ L, 1 ≤ i) : L.length ≤ L.sum :=
@@ -2640,9 +2637,6 @@ begin
   rw [sum_cons, length, add_comm],
   exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
 end
-
--- Now we tie those lemmas back to their multiplicative versions.
-attribute [to_additive] prod_take_mul_prod_drop prod_take_succ length_pos_of_prod_ne_one
 
 /-- A list with positive sum must have positive length. -/
 -- This is an easy consequence of `length_pos_of_sum_ne_zero`, but often useful in applications.

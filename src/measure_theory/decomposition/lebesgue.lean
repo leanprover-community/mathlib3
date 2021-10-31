@@ -286,7 +286,7 @@ begin
   { rw [hr, zero_smul, zero_smul, singular_part_zero] },
   by_cases hl : have_lebesgue_decomposition μ ν,
   { haveI := hl,
-    refine (eq_singular_part ((measurable_μ.rn_deriv ν).const_smul (r : ℝ≥0∞))
+    refine (eq_singular_part ((measurable_rn_deriv μ ν).const_smul (r : ℝ≥0∞))
       (mutually_singular.smul r (have_lebesgue_decomposition_spec _ _).2.1) _).symm,
     rw with_density_smul _ (measurable_rn_deriv _ _),
     change _ = _ + r • _,
@@ -388,7 +388,8 @@ theorem eq_rn_deriv [sigma_finite ν] {s : measure α} {f : α → ℝ≥0∞} (
   (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   f =ᵐ[ν] μ.rn_deriv ν :=
 begin
-  refine ae_eq_of_forall_set_lintegral_eq_of_sigma_finite hf (measurable_μ.rn_deriv ν) (λ a ha, _),
+  refine ae_eq_of_forall_set_lintegral_eq_of_sigma_finite hf (measurable_rn_deriv μ ν) _,
+  assume a ha h'a,
   calc ∫⁻ (x : α) in a, f x ∂ν = ν.with_density f a : (with_density_apply f ha).symm
   ... = ν.with_density (μ.rn_deriv ν) a : by rw eq_with_density_rn_deriv hf hs hadd
   ... = ∫⁻ (x : α) in a, μ.rn_deriv ν x ∂ν : with_density_apply _ ha

@@ -159,7 +159,7 @@ open_locale topological_space
 
 lemma ae_le_of_forall_set_lintegral_le_of_sigma_finite [sigma_finite μ]
   {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g)
-  (h : ∀ s, measurable_set s → ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ) :
   f ≤ᵐ[μ] g :=
 begin
   have A : ∀ (ε N : ℝ≥0) (p : ℕ), 0 < ε →
@@ -170,21 +170,21 @@ begin
     { have A : measurable_set {x | g x + ε ≤ f x} := measurable_set_le (hg.add measurable_const) hf,
       have B : measurable_set {x | g x ≤ N} := measurable_set_le hg measurable_const,
       exact (A.inter B).inter (measurable_spanning_sets μ p) },
+    have s_lt_top : μ s < ∞ :=
+      (measure_mono (set.inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top μ p),
     have A : ∫⁻ x in s, g x ∂μ + ε * μ s ≤ ∫⁻ x in s, g x ∂μ + 0 := calc
       ∫⁻ x in s, g x ∂μ + ε * μ s = ∫⁻ x in s, g x ∂μ + ∫⁻ x in s, ε ∂μ :
         by simp only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
       ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add hg measurable_const).symm
       ... ≤ ∫⁻ x in s, f x ∂μ : set_lintegral_mono (hg.add measurable_const) hf (λ x hx, hx.1.1)
-      ... ≤ ∫⁻ x in s, g x ∂μ + 0 : by { rw [add_zero], exact h s s_meas },
+      ... ≤ ∫⁻ x in s, g x ∂μ + 0 : by { rw [add_zero], exact h s s_meas s_lt_top },
     have B : ∫⁻ x in s, g x ∂μ ≠ ∞,
     { apply ne_of_lt,
       calc ∫⁻ x in s, g x ∂μ ≤ ∫⁻ x in s, N ∂μ :
         set_lintegral_mono hg measurable_const (λ x hx, hx.1.2)
       ... = N * μ s :
         by simp only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
-      ... ≤ N * μ (spanning_sets μ p) :
-        ennreal.mul_le_mul le_rfl (measure_mono (set.inter_subset_right _ _))
-      ... < ∞ : by simp only [lt_top_iff_ne_top, (measure_spanning_sets_lt_top μ p).ne, and_false,
+      ... < ∞ : by simp only [lt_top_iff_ne_top, s_lt_top.ne, and_false,
         ennreal.coe_ne_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, false_and, or_self] },
     have : (ε : ℝ≥0∞) * μ s ≤ 0 := ennreal.le_of_add_le_add_left B A,
     simpa only [ennreal.coe_eq_zero, nonpos_iff_eq_zero, mul_eq_zero, εpos.ne', false_or] },
@@ -215,13 +215,13 @@ end
 
 lemma ae_eq_of_forall_set_lintegral_eq_of_sigma_finite [sigma_finite μ]
   {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g)
-  (h : ∀ s, measurable_set s → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
+  (h : ∀ s, measurable_set s → μ s < ∞ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
   f =ᵐ[μ] g :=
 begin
   have A : f ≤ᵐ[μ] g :=
-    ae_le_of_forall_set_lintegral_le_of_sigma_finite hf hg (λ s hs, le_of_eq (h s hs)),
+    ae_le_of_forall_set_lintegral_le_of_sigma_finite hf hg (λ s hs h's, le_of_eq (h s hs h's)),
   have B : g ≤ᵐ[μ] f :=
-    ae_le_of_forall_set_lintegral_le_of_sigma_finite hg hf (λ s hs, ge_of_eq (h s hs)),
+    ae_le_of_forall_set_lintegral_le_of_sigma_finite hg hf (λ s hs h's, ge_of_eq (h s hs h's)),
   filter_upwards [A, B],
   exact λ x, le_antisymm
 end

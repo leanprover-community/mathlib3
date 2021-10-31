@@ -229,9 +229,9 @@ lemma concave_on_iff_forall_pos {s : set E} {f : E → β} :
     → a • f x + b • f y ≤ f (a • x + b • y) :=
 @convex_on_iff_forall_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
 
-lemma convex_on_iff_pairwise_on_pos {s : set E} {f : E → β} :
+lemma convex_on_iff_pairwise_pos {s : set E} {f : E → β} :
   convex_on 𝕜 s f ↔ convex 𝕜 s ∧
-    s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → f (a • x + b • y) ≤ a • f x + b • f y) :=
 begin
   rw convex_on_iff_forall_pos,
@@ -242,11 +242,11 @@ begin
   exact h x hx y hy hxy ha hb hab,
 end
 
-lemma concave_on_iff_pairwise_on_pos {s : set E} {f : E → β} :
+lemma concave_on_iff_pairwise_pos {s : set E} {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧
-   s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+   s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → a • f x + b • f y ≤ f (a • x + b • y)) :=
-@convex_on_iff_pairwise_on_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
+@convex_on_iff_pairwise_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
 
 /-- A linear map is convex. -/
 lemma linear_map.convex_on (f : E →ₗ[𝕜] β) {s : set E} (hs : convex 𝕜 s) : convex_on 𝕜 s f :=
@@ -279,7 +279,7 @@ variables [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
 lemma strict_convex_on.convex_lt (hf : strict_convex_on 𝕜 s f) (r : β) :
   convex 𝕜 {x ∈ s | f x < r} :=
-convex_iff_pairwise_on_pos.2 $ λ x hx y hy hxy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb.le hab,
+convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb.le hab,
   calc
     f (a • x + b • y) < a • f x + b • f y : hf.2 hx.1 hy.1 hxy ha hb hab
                   ... ≤ a • r + b • r     : add_le_add (smul_lt_smul_of_pos hx.2 ha).le
@@ -304,7 +304,7 @@ lemma linear_order.convex_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y) : convex_on 𝕜 s f :=
 begin
-  refine convex_on_iff_pairwise_on_pos.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
+  refine convex_on_iff_pairwise_pos.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
   wlog h : x ≤ y using [x y a b, y x b a],
   { exact le_total _ _ },
   exact hf hx hy (h.lt_of_ne hxy) ha hb hab,

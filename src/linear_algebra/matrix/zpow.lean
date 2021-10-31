@@ -72,7 +72,7 @@ end
 
 end nat_pow
 
-section int_pow
+section zpow
 open int
 
 @[simp] theorem one_zpow : ∀ (n : ℤ), (1 : M) ^ n = 1
@@ -323,6 +323,6 @@ theorem one_div_zpow {A : M} (n : ℤ) :
   (1 / A) ^ n = 1 / A ^ n :=
 by simp only [one_div, inv_zpow]
 
-end int_pow
+end zpow
 
 end matrix

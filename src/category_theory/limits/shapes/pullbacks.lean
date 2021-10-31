@@ -426,6 +426,27 @@ begin
   { rwa (is_colimit.desc' t _ _ _).2.2 },
 end
 
+/--
+The pushout cocone `(𝟙 X, 𝟙 X)` for the pair `(f, f)` is a colimit if `f` is an epi. The converse is
+shown in `epi_of_is_colimit_mk_id_id`.
+-/
+def is_colimit_mk_id_id (f : X ⟶ Y) [epi f] :
+  is_colimit (mk (𝟙 Y) (𝟙 Y) rfl : pushout_cocone f f) :=
+is_colimit.mk _
+  (λ s, s.inl)
+  (λ s, category.id_comp _)
+  (λ s, by rw [←cancel_epi f, category.id_comp, s.condition])
+  (λ s m m₁ m₂, by simpa using m₁)
+
+/--
+`f` is an epi if the pushout cocone `(𝟙 X, 𝟙 X)` is a colimit for the pair `(f, f)`.
+The converse is given in `pushout_cocone.is_colimit_mk_id_id`.
+-/
+lemma epi_of_is_colimit_mk_id_id (f : X ⟶ Y)
+  (t : is_colimit (mk (𝟙 Y) (𝟙 Y) rfl : pushout_cocone f f)) :
+  epi f :=
+⟨λ Z g h eq, by { rcases pushout_cocone.is_colimit.desc' t _ _ eq with ⟨_, rfl, rfl⟩, refl }⟩
+
 /-- Suppose `f` and `g` are two morphisms with a common domain and `s` is a colimit cocone over the
     diagram formed by `f` and `g`. Suppose `f` and `g` both factor through an epimorphism `h` via
     `x` and `y`, respectively. Then `s` is also a colimit cocone over the diagram formed by `x` and
@@ -614,6 +635,12 @@ pullback_cone.mono_snd_of_is_pullback_of_mono (limit.is_limit _)
   (h₁ : pushout.inr ≫ k = pushout.inr ≫ l) : k = l :=
 colimit.hom_ext $ pushout_cocone.coequalizer_ext _ h₀ h₁
 
+/-- The pushout cocone built from the pushout coprojections is a pushout. -/
+def pushout_is_pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_pushout f g] :
+  is_colimit (pushout_cocone.mk (pushout.inl : _ ⟶ pushout f g) pushout.inr pushout.condition) :=
+pushout_cocone.is_colimit.mk _ (λ s, pushout.desc s.inl s.inr s.condition)
+  (by simp) (by simp) (by tidy)
+
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inl_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi g] :
   epi (pushout.inl : Y ⟶ pushout f g) :=
@@ -658,6 +685,330 @@ lemma map_lift_pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
     G.map (pullback.lift _ _ w) ≫ pullback_comparison G f g =
       pullback.lift (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
 by { ext; simp [← G.map_comp] }
+
+end
+
+section pullback_symmetry
+
+open walking_cospan
+
+variables (f : X ⟶ Z) (g : Y ⟶ Z)
+
+/-- Making this a global instance would make the typeclass seach go in an infinite loop. -/
+lemma has_pullback_symmetry [has_pullback f g] : has_pullback g f :=
+⟨⟨⟨pullback_cone.mk _ _ pullback.condition.symm,
+  pullback_cone.flip_is_limit (pullback_is_pullback _ _)⟩⟩⟩
+
+local attribute [instance] has_pullback_symmetry
+
+/-- The isomorphism `X ×[Z] Y ≅ Y ×[Z] X`. -/
+def pullback_symmetry [has_pullback f g] :
+  pullback f g ≅ pullback g f :=
+is_limit.cone_point_unique_up_to_iso
+  (pullback_cone.flip_is_limit (pullback_is_pullback f g) :
+    is_limit (pullback_cone.mk _ _ pullback.condition.symm))
+  (limit.is_limit _)
+
+@[simp, reassoc] lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
+  (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simp [pullback_symmetry]
+
+@[simp, reassoc] lemma pullback_symmetry_hom_comp_snd [has_pullback f g] :
+  (pullback_symmetry f g).hom ≫ pullback.snd = pullback.fst := by simp [pullback_symmetry]
+
+@[simp, reassoc] lemma pullback_symmetry_inv_comp_fst [has_pullback f g] :
+  (pullback_symmetry f g).inv ≫ pullback.fst = pullback.snd := by simp [iso.inv_comp_eq]
+
+@[simp, reassoc] lemma pullback_symmetry_inv_comp_snd [has_pullback f g] :
+  (pullback_symmetry f g).inv ≫ pullback.snd = pullback.fst := by simp [iso.inv_comp_eq]
+
+end pullback_symmetry
+
+section pushout_symmetry
+
+open walking_cospan
+
+variables (f : X ⟶ Y) (g : X ⟶ Z)
+
+/-- Making this a global instance would make the typeclass seach go in an infinite loop. -/
+lemma has_pushout_symmetry [has_pushout f g] : has_pushout g f :=
+⟨⟨⟨pushout_cocone.mk _ _ pushout.condition.symm,
+  pushout_cocone.flip_is_colimit (pushout_is_pushout _ _)⟩⟩⟩
+
+local attribute [instance] has_pushout_symmetry
+
+/-- The isomorphism `Y ⨿[X] Z ≅ Z ⨿[X] Y`. -/
+def pushout_symmetry [has_pushout f g] :
+  pushout f g ≅ pushout g f :=
+is_colimit.cocone_point_unique_up_to_iso
+  (pushout_cocone.flip_is_colimit (pushout_is_pushout f g) :
+    is_colimit (pushout_cocone.mk _ _ pushout.condition.symm))
+  (colimit.is_colimit _)
+
+@[simp, reassoc] lemma inl_comp_pushout_symmetry_hom [has_pushout f g] :
+  pushout.inl ≫ (pushout_symmetry f g).hom = pushout.inr :=
+(colimit.is_colimit (span f g)).comp_cocone_point_unique_up_to_iso_hom
+  (pushout_cocone.flip_is_colimit (pushout_is_pushout g f)) _
+
+@[simp, reassoc] lemma inr_comp_pushout_symmetry_hom [has_pushout f g] :
+  pushout.inr ≫ (pushout_symmetry f g).hom = pushout.inl :=
+(colimit.is_colimit (span f g)).comp_cocone_point_unique_up_to_iso_hom
+  (pushout_cocone.flip_is_colimit (pushout_is_pushout g f)) _
+
+@[simp, reassoc] lemma inl_comp_pushout_symmetry_inv [has_pushout f g] :
+  pushout.inl ≫ (pushout_symmetry f g).inv = pushout.inr := by simp [iso.comp_inv_eq]
+
+@[simp, reassoc] lemma inr_comp_pushout_symmetry_inv [has_pushout f g] :
+  pushout.inr ≫ (pushout_symmetry f g).inv = pushout.inl := by simp [iso.comp_inv_eq]
+
+end pushout_symmetry
+
+section pullback_left_iso
+
+open walking_cospan
+
+variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso f]
+
+/-- If `f : X ⟶ Z` is iso, then `X ×[Z] Y ≅ Y`. This is the explicit limit cone. -/
+def pullback_cone_of_left_iso : pullback_cone f g :=
+pullback_cone.mk (g ≫ inv f) (𝟙 _) $ by simp
+
+@[simp] lemma pullback_cone_of_left_iso_X :
+  (pullback_cone_of_left_iso f g).X = Y := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_fst :
+  (pullback_cone_of_left_iso f g).fst = g ≫ inv f := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_snd :
+  (pullback_cone_of_left_iso f g).snd = 𝟙 _ := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_π_app_none :
+  (pullback_cone_of_left_iso f g).π.app none = g := by { delta pullback_cone_of_left_iso, simp }
+
+@[simp] lemma pullback_cone_of_left_iso_π_app_left :
+  (pullback_cone_of_left_iso f g).π.app left = g ≫ inv f := rfl
+
+@[simp] lemma pullback_cone_of_left_iso_π_app_right :
+  (pullback_cone_of_left_iso f g).π.app right = 𝟙 _ := rfl
+
+/-- Verify that the constructed limit cone is indeed a limit. -/
+def pullback_cone_of_left_iso_is_limit :
+  is_limit (pullback_cone_of_left_iso f g) :=
+pullback_cone.is_limit_aux' _ (λ s, ⟨s.snd, by simp [← s.condition_assoc]⟩)
+
+lemma has_pullback_of_left_iso : has_pullback f g :=
+⟨⟨⟨_, pullback_cone_of_left_iso_is_limit f g⟩⟩⟩
+
+local attribute [instance] has_pullback_of_left_iso
+
+instance pullback_snd_iso_of_left_iso : is_iso (pullback.snd : pullback f g ⟶ _) :=
+begin
+  refine ⟨⟨pullback.lift (g ≫ inv f) (𝟙 _) (by simp), _, by simp⟩⟩,
+  ext,
+  { simp [← pullback.condition_assoc] },
+  { simp [pullback.condition_assoc] },
+end
+
+end pullback_left_iso
+
+section pullback_right_iso
+
+open walking_cospan
+
+variables (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso g]
+
+/-- If `g : Y ⟶ Z` is iso, then `X ×[Z] Y ≅ X`. This is the explicit limit cone. -/
+def pullback_cone_of_right_iso : pullback_cone f g :=
+pullback_cone.mk (𝟙 _) (f ≫ inv g) $ by simp
+
+@[simp] lemma pullback_cone_of_right_iso_X :
+  (pullback_cone_of_right_iso f g).X = X := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_fst :
+  (pullback_cone_of_right_iso f g).fst = 𝟙 _ := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_snd :
+  (pullback_cone_of_right_iso f g).snd = f ≫ inv g := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_π_app_none :
+  (pullback_cone_of_right_iso f g).π.app none = f := category.id_comp _
+
+@[simp] lemma pullback_cone_of_right_iso_π_app_left :
+  (pullback_cone_of_right_iso f g).π.app left = 𝟙 _ := rfl
+
+@[simp] lemma pullback_cone_of_right_iso_π_app_right :
+  (pullback_cone_of_right_iso f g).π.app right = f ≫ inv g := rfl
+
+/-- Verify that the constructed limit cone is indeed a limit. -/
+def pullback_cone_of_right_iso_is_limit :
+  is_limit (pullback_cone_of_right_iso f g) :=
+pullback_cone.is_limit_aux' _ (λ s, ⟨s.fst, by simp [s.condition_assoc]⟩)
+
+lemma has_pullback_of_right_iso : has_pullback f g :=
+⟨⟨⟨_, pullback_cone_of_right_iso_is_limit f g⟩⟩⟩
+
+local attribute [instance] has_pullback_of_right_iso
+
+instance pullback_snd_iso_of_right_iso : is_iso (pullback.fst : pullback f g ⟶ _) :=
+begin
+  refine ⟨⟨pullback.lift (𝟙 _) (f ≫ inv g) (by simp), _, by simp⟩⟩,
+  ext,
+  { simp },
+  { simp [pullback.condition_assoc] },
+end
+
+end pullback_right_iso
+
+section pushout_left_iso
+
+open walking_span
+
+variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso f]
+
+/-- If `f : X ⟶ Y` is iso, then `Y ⨿[X] Z ≅ Z`. This is the explicit colimit cocone. -/
+def pushout_cocone_of_left_iso : pushout_cocone f g :=
+pushout_cocone.mk (inv f ≫ g) (𝟙 _) $ by simp
+
+@[simp] lemma pushout_cocone_of_left_iso_X :
+  (pushout_cocone_of_left_iso f g).X = Z := rfl
+
+@[simp] lemma pushout_cocone_of_left_iso_inl :
+  (pushout_cocone_of_left_iso f g).inl = inv f ≫ g := rfl
+
+@[simp] lemma pushout_cocone_of_left_iso_inr :
+  (pushout_cocone_of_left_iso f g).inr = 𝟙 _ := rfl
+
+@[simp] lemma pushout_cocone_of_left_iso_ι_app_none :
+  (pushout_cocone_of_left_iso f g).ι.app none = g := by { delta pushout_cocone_of_left_iso, simp }
+
+@[simp] lemma pushout_cocone_of_left_iso_ι_app_left :
+  (pushout_cocone_of_left_iso f g).ι.app left = inv f ≫ g := rfl
+
+@[simp] lemma pushout_cocone_of_left_iso_ι_app_right :
+  (pushout_cocone_of_left_iso f g).ι.app right = 𝟙 _ := rfl
+
+/-- Verify that the constructed cocone is indeed a colimit. -/
+def pushout_cocone_of_left_iso_is_limit :
+  is_colimit (pushout_cocone_of_left_iso f g) :=
+pushout_cocone.is_colimit_aux' _ (λ s, ⟨s.inr, by simp [← s.condition]⟩)
+
+lemma has_pushout_of_left_iso : has_pushout f g :=
+⟨⟨⟨_, pushout_cocone_of_left_iso_is_limit f g⟩⟩⟩
+
+local attribute [instance] has_pushout_of_left_iso
+
+instance pushout_inr_iso_of_left_iso : is_iso (pushout.inr : _ ⟶ pushout f g) :=
+begin
+  refine ⟨⟨pushout.desc (inv f ≫ g) (𝟙 _) (by simp), (by simp), _⟩⟩,
+  ext,
+  { simp [← pushout.condition] },
+  { simp [pushout.condition_assoc] },
+end
+
+end pushout_left_iso
+
+section pushout_right_iso
+
+open walking_span
+
+variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso g]
+
+/-- If `f : X ⟶ Z` is iso, then `Y ⨿[X] Z ≅ Y`. This is the explicit colimit cocone. -/
+def pushout_cocone_of_right_iso : pushout_cocone f g :=
+pushout_cocone.mk (𝟙 _) (inv g ≫ f) $ by simp
+
+@[simp] lemma pushout_cocone_of_right_iso_X :
+  (pushout_cocone_of_right_iso f g).X = Y := rfl
+
+@[simp] lemma pushout_cocone_of_right_iso_inl :
+  (pushout_cocone_of_right_iso f g).inl = 𝟙 _ := rfl
+
+@[simp] lemma pushout_cocone_of_right_iso_inr :
+  (pushout_cocone_of_right_iso f g).inr = inv g ≫ f := rfl
+
+@[simp] lemma pushout_cocone_of_right_iso_ι_app_none :
+  (pushout_cocone_of_right_iso f g).ι.app none = f := by { delta pushout_cocone_of_right_iso, simp }
+
+@[simp] lemma pushout_cocone_of_right_iso_ι_app_left :
+  (pushout_cocone_of_right_iso f g).ι.app left = 𝟙 _ := rfl
+
+@[simp] lemma pushout_cocone_of_right_iso_ι_app_right :
+  (pushout_cocone_of_right_iso f g).ι.app right = inv g ≫ f := rfl
+
+/-- Verify that the constructed cocone is indeed a colimit. -/
+def pushout_cocone_of_right_iso_is_limit :
+  is_colimit (pushout_cocone_of_right_iso f g) :=
+pushout_cocone.is_colimit_aux' _ (λ s, ⟨s.inl, by simp [←s.condition]⟩)
+
+lemma has_pushout_of_right_iso : has_pushout f g :=
+⟨⟨⟨_, pushout_cocone_of_right_iso_is_limit f g⟩⟩⟩
+
+local attribute [instance] has_pushout_of_right_iso
+
+instance pushout_inl_iso_of_right_iso : is_iso (pushout.inl : _ ⟶ pushout f g) :=
+begin
+  refine ⟨⟨pushout.desc (𝟙 _) (inv g ≫ f) (by simp), (by simp), _⟩⟩,
+  ext,
+  { simp [←pushout.condition] },
+  { simp [pushout.condition] },
+end
+
+end pushout_right_iso
+
+section
+
+open walking_cospan
+
+variable (f : X ⟶ Y)
+
+instance has_kernel_pair_of_mono [mono f] : has_pullback f f :=
+⟨⟨⟨_, pullback_cone.is_limit_mk_id_id f⟩⟩⟩
+
+lemma fst_eq_snd_of_mono_eq [mono f] : (pullback.fst : pullback f f ⟶ _) = pullback.snd :=
+((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone left).symm.trans
+  ((pullback_cone.is_limit_mk_id_id f).fac (get_limit_cone (cospan f f)).cone right : _)
+
+@[simp] lemma pullback_symmetry_hom_of_mono_eq [mono f] :
+  (pullback_symmetry f f).hom = 𝟙 _ := by ext; simp [fst_eq_snd_of_mono_eq]
+
+instance fst_iso_of_mono_eq [mono f] : is_iso (pullback.fst : pullback f f ⟶ _) :=
+begin
+  refine ⟨⟨pullback.lift (𝟙 _) (𝟙 _) (by simp), _, by simp⟩⟩,
+  ext,
+  { simp },
+  { simp [fst_eq_snd_of_mono_eq] }
+end
+
+instance snd_iso_of_mono_eq [mono f] : is_iso (pullback.snd : pullback f f ⟶ _) :=
+by { rw ← fst_eq_snd_of_mono_eq, apply_instance }
+
+end
+
+section
+
+open walking_span
+
+variable (f : X ⟶ Y)
+
+instance has_cokernel_pair_of_epi [epi f] : has_pushout f f :=
+⟨⟨⟨_, pushout_cocone.is_colimit_mk_id_id f⟩⟩⟩
+
+lemma inl_eq_inr_of_epi_eq [epi f] : (pushout.inl : _ ⟶ pushout f f) = pushout.inr :=
+((pushout_cocone.is_colimit_mk_id_id f).fac (get_colimit_cocone (span f f)).cocone left).symm.trans
+  ((pushout_cocone.is_colimit_mk_id_id f).fac (get_colimit_cocone (span f f)).cocone right : _)
+
+@[simp] lemma pullback_symmetry_hom_of_epi_eq [epi f] :
+  (pushout_symmetry f f).hom = 𝟙 _ := by ext; simp [inl_eq_inr_of_epi_eq]
+
+instance inl_iso_of_epi_eq [epi f] : is_iso (pushout.inl : _ ⟶ pushout f f) :=
+begin
+  refine ⟨⟨pushout.desc (𝟙 _) (𝟙 _) (by simp), by simp, _⟩⟩,
+  ext,
+  { simp },
+  { simp [inl_eq_inr_of_epi_eq] }
+end
+
+instance inr_iso_of_epi_eq [epi f] : is_iso (pushout.inr : _ ⟶ pushout f f) :=
+by { rw ← inl_eq_inr_of_epi_eq, apply_instance }
 
 end
 

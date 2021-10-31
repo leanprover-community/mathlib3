@@ -122,7 +122,7 @@ lemma u_disjoint : pairwise_on h.t (disjoint on h.u) :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.1
 
 lemma u_disjoint_subtype : pairwise (disjoint on (λ x : h.t, h.u x)) :=
-(pairwise_subtype_iff_pairwise_on _ _).2 h.u_disjoint
+(pairwise_subtype_iff_pairwise_set _ _).2 h.u_disjoint
 
 lemma u_mem_f {x : α} (hx : x ∈ h.t) : h.u x ∈ f x :=
 (h.exists_disjoint_covering_ae.some_spec.some_spec.2.2.1 x hx).2

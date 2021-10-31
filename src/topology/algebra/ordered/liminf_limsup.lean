@@ -143,8 +143,8 @@ else by haveI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
   (le_antisymm hsup (le_trans hinf (liminf_le_limsup h h'))) h h'
 
 /-- Assume that, for any `a < b`, a sequence can not be infinitely many times below `a` and
-above `b`. If it also ultimately bounded above and below, then it has to converge. This even works
-if `a` and `b` are restricted to a dense subset.
+above `b`. If it is also ultimately bounded above and below, then it has to converge. This even
+works if `a` and `b` are restricted to a dense subset.
 -/
 lemma tendsto_of_no_upcrossings [densely_ordered α]
   {f : filter β} {u : β → α} {s : set α} (hs : dense s)

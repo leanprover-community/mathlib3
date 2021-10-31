@@ -85,7 +85,7 @@ subtype.ext_iff.trans matrix.ext_iff.symm
 (special_linear_group.ext_iff A B).mpr
 
 instance has_inv : has_inv (special_linear_group n R) :=
-⟨λ A, ⟨adjugate A, det_adjugate_eq_one A.2⟩⟩
+⟨λ A, ⟨adjugate A, by rw [det_adjugate, A.prop, one_pow]⟩⟩
 
 instance has_mul : has_mul (special_linear_group n R) :=
 ⟨λ A B, ⟨A.1 ⬝ B.1, by erw [det_mul, A.2, B.2, one_mul]⟩⟩

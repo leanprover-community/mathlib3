@@ -408,7 +408,7 @@ begin
     pairwise_coprime_X_sub function.injective_id,
   have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
   { intros a b hdiff, exact (hcoprime a b hdiff).pow },
-  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on H (↑(multiset.to_finset p.roots) : set R)),
+  apply finset.prod_dvd_of_coprime (H.set_pairwise (↑(multiset.to_finset p.roots) : set R)),
   intros a h,
   rw multiset.mem_to_finset at h,
   exact pow_root_multiplicity_dvd p a

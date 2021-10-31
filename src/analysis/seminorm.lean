@@ -1,29 +1,46 @@
 /-
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jean Lo, Bhavik Mehta
+Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.basic
-import analysis.normed_space.basic
+import analysis.normed_space.ordered
 import data.real.pointwise
 import data.set.intervals
 
 /-!
 # Seminorms and Local Convexity
 
-This file introduces the following notions, defined for a vector space
-over a normed field:
+This file defines absorbent sets, balanced sets, seminorms and the Minkowski functional.
+
+An absorbent set is one that "surrounds" the origin. The idea is made precise by requiring that any
+point belongs to all large enough scalings of the set. This is the vector world analog of a
+topological neighborhood of the origin.
+
+A balanced set is one that is everywhere around the origin. This means that `a • s ⊆ s` for all `a`
+of unit norm.
+
+A seminorm is a function to the reals which is positive-semidefinite, absolutely homogeneous, and
+subadditive. They are closely related to convex sets and a topological vector space is locally
+convex if and only if its topology is induced by a family of seminorms.
+
+The Minkowski functional of a set `s` is the function which associates each point to how much you
+need to scale `s` for `x` to be inside it. When `s` is symmetric, convex and absorbent, its gauge is
+a seminorm. Reciprocally, any seminorm arises as the gauge of some set, namely its unit ball. This
+induces the equivalence of seminorms and locally convex topological vector spaces.
+
+## Main declarations
+
+For a vector space over a normed field:
 * `absorbent`: A set `s` is absorbent if every point eventually belongs to all large scalings of
   `s`.
 * `balanced`: A set `s` is balanced if `a • s ⊆ s` for all `a` of norm less than `1`.
 * `seminorm`: A function to the reals that is positive-semidefinite, absolutely homogeneous, and
   subadditive.
-* `gauge`: Aka Minkowksi functional. `gauge s x` is the smallest (actually, an infimum) `θ` such
-  that `x ∈ θ • s`.
+* `gauge`: Aka Minkowksi functional. `gauge s x` is the least (actually, an infimum) `r` such
+  that `x ∈ r • s`.
 * `gauge_seminorm`: The Minkowski functional as a seminorm, when `s` is symmetric, convex and
   absorbent.
-
-We prove related properties.
 
 ## References
 
@@ -53,10 +70,10 @@ nondiscrete normed field.
 open normed_field set
 open_locale pointwise topological_space
 
-section
-variables
-(𝕜 : Type*) [normed_field 𝕜]
-{E : Type*} [add_comm_group E] [module 𝕜 E]
+variables {𝕜 E : Type*}
+
+section normed_field
+variables (𝕜) [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 /-- A set `A` absorbs another set `B` if `B` is contained in all scalings of
 `A` by elements of sufficiently large norms. -/
@@ -115,9 +132,28 @@ begin
   exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
 end
 
+lemma balanced.subset_smul (hA : balanced 𝕜 A) {a : 𝕜} (ha₀ : a ≠ 0) (ha₁ : 1 ≤ ∥a∥) : A ⊆ a • A :=
+begin
+  refine (subset_set_smul_iff₀ ha₀).2 (hA (a⁻¹) _),
+  rw norm_inv,
+  exact inv_le_one ha₁,
+end
+
 lemma absorbent_iff_forall_absorbs_singleton :
   absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
 by simp [absorbs, absorbent]
+
+lemma absorbent_iff_nonneg_pos : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ ∀ a : 𝕜, r < ∥a∥ → x ∈ a • A :=
+begin
+  split,
+  { rintro hA x,
+    obtain ⟨r, hr, hx⟩ := hA x,
+    exact ⟨r, hr.le, λ a ha, hx a ha.le⟩ },
+  { rintro hA x,
+    obtain ⟨r, hr, hx⟩ := hA x,
+    exact ⟨r + 1, add_pos_of_nonneg_of_pos hr zero_lt_one,
+      λ a ha, hx a ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩ }
+end
 
 /-!
 Properties of balanced and absorbent sets in a topological vector space:
@@ -175,7 +211,15 @@ assume a ha,
 calc _ ⊆ closure (a • A) : image_closure_subset_closure_image (continuous_id.const_smul _)
 ...    ⊆ _ : closure_mono (hA _ ha)
 
+lemma balanced.smul_eq (hA : balanced 𝕜 A) {a : 𝕜} (ha : ∥a∥ = 1) : a • A = A :=
+begin
+  refine (hA _ ha.le).antisymm (hA.subset_smul _ ha.ge),
+  rintro rfl,
+  rw norm_zero at ha,
+  exact zero_ne_one ha,
 end
+
+end normed_field
 
 /-!
 ### Seminorms
@@ -191,9 +235,8 @@ structure seminorm (𝕜 : Type*) (E : Type*)
 (triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
 namespace seminorm
-variables
-{𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [add_comm_group E] [module 𝕜 E]
+section normed_field
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 instance : inhabited (seminorm 𝕜 E) :=
 ⟨{ to_fun     := λ _, 0,
@@ -201,6 +244,14 @@ instance : inhabited (seminorm 𝕜 E) :=
    triangle' := λ x y, by rw add_zero }⟩
 
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
+
+@[ext] lemma ext {p q : seminorm 𝕜 E} (h : (p : E → ℝ) = q) : p = q :=
+begin
+  cases p,
+  cases q,
+  have : p_to_fun = q_to_fun := h,
+  simp_rw this,
+end
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
@@ -249,43 +300,84 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
+-- Can be generalized to `p x < r → absorbent 𝕜 (ball p x r)` but not sure it's useful
+/-- Seminorm-balls at the origin are absorbent. -/
+lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
+begin
+  rw absorbent_iff_nonneg_pos,
+  rintro x,
+  have hxr : 0 ≤ p x/r := div_nonneg (p.nonneg _) hr.le,
+  refine ⟨p x/r, hxr, λ a ha, _⟩,
+  have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
+  refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
+  rwa [mem_ball_zero, p.smul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
+end
+
+end normed_field
+
+section normed_linear_ordered_field
+variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [module ℝ E] [semi_normed_space ℝ 𝕜]
+  [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
+
+/-- Seminorm-balls are convex. -/
+lemma convex_ball : convex ℝ (ball p x r) :=
+begin
+  rw convex_iff_forall_pos,
+  rintro y z hy hz a b ha hb hab,
+  rw mem_ball at ⊢ hy hz,
+  calc p (a • y + b • z - x)
+        = p (a • (y - x) + b • (z - x))
+        : by rw [smul_sub, smul_sub, sub_add_comm, convex.combo_self hab x]
+    ... ≤ p (a • (y - x)) + p (b • (z - x)) : p.triangle _ _
+    ... = ∥a • (1 : 𝕜)∥ * p (y - x) + ∥b • (1 : 𝕜)∥ * p (z - x)
+        : by rw [←p.smul, ←p.smul, smul_one_smul, smul_one_smul]
+    ... = a * p (y - x) + b * p (z - x)
+        : by rw [norm_smul, norm_smul, norm_one, mul_one, mul_one, real.norm_eq_abs,
+            real.norm_eq_abs, abs_of_pos ha, abs_of_pos hb]
+    ... < a * r + b * r
+        : add_lt_add (mul_lt_mul_of_pos_left hy ha) (mul_lt_mul_of_pos_left hz hb)
+    ... = r
+        : by rw [←smul_eq_mul, ←smul_eq_mul, convex.combo_self hab _]
+end
+
+lemma symmetric_ball_zero {x : E} (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
+balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
+
+end normed_linear_ordered_field
+
 -- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ
 
 end seminorm
 
 section gauge
 noncomputable theory
-variables {E : Type*} [add_comm_group E] [module ℝ E]
+variables [add_comm_group E] [module ℝ E]
 
-/-- Given a subset `s` of a real vector space, we have a functional (sometimes called the Minkowski
-functional) which sends `x : E` to `Inf {y ∈ set.Ioi 0 | x ∈ y • s}`, essentially the smallest
-`y` such that `x` is in `s` expanded by `y`. -/
-def gauge (s : set E) (x : E) : ℝ := Inf {y : ℝ | 0 < y ∧ x ∈ y • s}
+/--The Minkowski functional. Given a set `s` in a real vector space, `gauge s` is the functional
+which sends `x : E` to the smallest `r : ℝ` such that `x` is in `s` scaled by `r`. -/
+def gauge (s : set E) (x : E) : ℝ := Inf {r : ℝ | 0 < r ∧ x ∈ r • s}
 
 variables {s : set E} {x : E}
 
-lemma gauge_def : gauge s x = Inf {y ∈ set.Ioi 0 | x ∈ y • s} := rfl
+lemma gauge_def : gauge s x = Inf {r ∈ set.Ioi 0 | x ∈ r • s} := rfl
 
 /-- An alternative definition of the gauge using scalar multiplication on the element rather than on
 the set. -/
-lemma gauge_def' : gauge s x = Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ s} :=
+lemma gauge_def' : gauge s x = Inf {r ∈ set.Ioi 0 | r⁻¹ • x ∈ s} :=
 begin
   unfold gauge,
   congr' 1,
-  ext y,
-  exact and_congr_right (λ hy, mem_smul_set_iff_inv_smul_mem₀ hy.ne' _ _),
+  ext r,
+  exact and_congr_right (λ hr, mem_smul_set_iff_inv_smul_mem₀ hr.ne' _ _),
 end
 
-private lemma gauge_set_bdd_below : bdd_below {y : ℝ | 0 < y ∧ x ∈ y • s} := ⟨0, λ y hy, hy.1.le⟩
-
-lemma gauge_le_of_mem {θ : ℝ} (hθ : 0 < θ) {x : E} (hx : x ∈ θ • s) : gauge s x ≤ θ :=
-cInf_le gauge_set_bdd_below ⟨hθ, hx⟩
+private lemma gauge_set_bdd_below : bdd_below {r : ℝ | 0 < r ∧ x ∈ r • s} := ⟨0, λ r hr, hr.1.le⟩
 
 /-- If the given subset is `absorbent` then the set we take an infimum over in `gauge` is nonempty,
 which is useful for proving many properties about the gauge.  -/
 lemma absorbent.gauge_set_nonempty (absorbs : absorbent ℝ s) :
-  {y : ℝ | 0 < y ∧ x ∈ y • s}.nonempty :=
-let ⟨θ, hθ₁, hθ₂⟩ := absorbs x in ⟨θ, hθ₁, hθ₂ θ (real.norm_of_nonneg hθ₁.le).ge⟩
+  {r : ℝ | 0 < r ∧ x ∈ r • s}.nonempty :=
+let ⟨r, hr₁, hr₂⟩ := absorbs x in ⟨r, hr₁, hr₂ r (real.norm_of_nonneg hr₁.le).ge⟩
 
 lemma exists_lt_of_gauge_lt (absorbs : absorbent ℝ s) {x : E} {a : ℝ} (h : gauge s x < a) :
   ∃ b, 0 < b ∧ b < a ∧ x ∈ b • s :=
@@ -294,9 +386,8 @@ begin
   exact ⟨b, hb, hba, hx⟩,
 end
 
-/-- The gauge evaluated at `0` is always zero (mathematically this requires that `0` is in the
-subset `s`, but as the real infimum of the empty set in Lean is defined to be `0`, it holds
-unconditionally). -/
+/-- The gauge evaluated at `0` is always zero (mathematically this requires `0` to be in the set `s`
+but, the real infimum of the empty set in Lean being defined as `0`, it holds unconditionally). -/
 @[simp] lemma gauge_zero : gauge s 0 = 0 :=
 begin
   rw gauge_def',
@@ -315,23 +406,32 @@ begin
   simp_rw [smul_neg, this],
 end
 
+lemma gauge_le_of_mem {r : ℝ} (hr : 0 ≤ r) {x : E} (hx : x ∈ r • s) : gauge s x ≤ r :=
+begin
+  obtain rfl | hr' := hr.eq_or_lt,
+  {
+    have := zero_smul_subset hx,
+  },
+  exact cInf_le gauge_set_bdd_below ⟨hr', hx⟩,
+end
+
 lemma gauge_le_one_eq' (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
-  {x | gauge s x ≤ 1} = ⋂ (θ : ℝ) (H : 1 < θ), θ • s :=
+  {x | gauge s x ≤ 1} = ⋂ (r : ℝ) (H : 1 < r), r • s :=
 begin
   ext,
   simp_rw [set.mem_Inter, set.mem_set_of_eq],
   split,
-  { intros h θ hθ,
-    have hθ' := zero_lt_one.trans hθ,
-    rw mem_smul_set_iff_inv_smul_mem₀ hθ'.ne',
-    obtain ⟨δ, δ_pos, hδθ, hδ⟩ := exists_lt_of_gauge_lt absorbs (h.trans_lt hθ),
-    suffices : (θ⁻¹ * δ) • δ⁻¹ • x ∈ s,
+  { intros h r hr,
+    have hr' := zero_lt_one.trans hr,
+    rw mem_smul_set_iff_inv_smul_mem₀ hr'.ne',
+    obtain ⟨δ, δ_pos, hδr, hδ⟩ := exists_lt_of_gauge_lt absorbs (h.trans_lt hr),
+    suffices : (r⁻¹ * δ) • δ⁻¹ • x ∈ s,
     { rwa [smul_smul, mul_inv_cancel_right₀ δ_pos.ne'] at this },
     rw mem_smul_set_iff_inv_smul_mem₀ δ_pos.ne' at hδ,
     refine hs.smul_mem_of_zero_mem zero_mem hδ
-      ⟨mul_nonneg (inv_nonneg.2 hθ'.le) δ_pos.le, _⟩,
-    rw [inv_mul_le_iff hθ', mul_one],
-    exact hδθ.le },
+      ⟨mul_nonneg (inv_nonneg.2 hr'.le) δ_pos.le, _⟩,
+    rw [inv_mul_le_iff hr', mul_one],
+    exact hδr.le },
   { refine λ h, le_of_forall_pos_lt_add (λ ε hε, _),
     have hε' := (lt_add_iff_pos_right 1).2 (half_pos hε),
     exact (gauge_le_of_mem (zero_lt_one.trans hε') $ h _ hε').trans_lt
@@ -339,31 +439,31 @@ begin
 end
 
 lemma gauge_le_one_eq (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
-  {x | gauge s x ≤ 1} = ⋂ (θ ∈ set.Ioi (1 : ℝ)), θ • s :=
+  {x | gauge s x ≤ 1} = ⋂ (r ∈ set.Ioi (1 : ℝ)), r • s :=
 gauge_le_one_eq' hs zero_mem absorbs
 
 lemma gauge_lt_one_eq' (absorbs : absorbent ℝ s) :
-  {x | gauge s x < 1} = ⋃ (θ : ℝ) (H : 0 < θ) (H : θ < 1), θ • s :=
+  {x | gauge s x < 1} = ⋃ (r : ℝ) (H : 0 < r) (H : r < 1), r • s :=
 begin
   ext,
   simp_rw [set.mem_set_of_eq, set.mem_Union],
   split,
   { intro h,
-    obtain ⟨θ, hθ₀, hθ₁, hx⟩ := exists_lt_of_gauge_lt absorbs h,
-    exact ⟨θ, hθ₀, hθ₁, hx⟩ },
-  { exact λ ⟨θ, hθ₀, hθ₁, hx⟩, (gauge_le_of_mem hθ₀ hx).trans_lt hθ₁ }
+    obtain ⟨r, hr₀, hr₁, hx⟩ := exists_lt_of_gauge_lt absorbs h,
+    exact ⟨r, hr₀, hr₁, hx⟩ },
+  { exact λ ⟨r, hr₀, hr₁, hx⟩, (gauge_le_of_mem hr₀ hx).trans_lt hr₁ }
 end
 
 lemma gauge_lt_one_eq (absorbs : absorbent ℝ s) :
-  {x | gauge s x < 1} = ⋃ (θ ∈ set.Ioo 0 (1 : ℝ)), θ • s :=
+  {x | gauge s x < 1} = ⋃ (r ∈ set.Ioo 0 (1 : ℝ)), r • s :=
 begin
   ext,
   simp_rw [set.mem_set_of_eq, set.mem_Union],
   split,
   { intro h,
-    obtain ⟨θ, hθ₀, hθ₁, hx⟩ := exists_lt_of_gauge_lt absorbs h,
-    exact ⟨θ, ⟨hθ₀, hθ₁⟩, hx⟩ },
-  { exact λ ⟨θ, ⟨hθ₀, hθ₁⟩, hx⟩, (gauge_le_of_mem hθ₀ hx).trans_lt hθ₁ }
+    obtain ⟨r, hr₀, hr₁, hx⟩ := exists_lt_of_gauge_lt absorbs h,
+    exact ⟨r, ⟨hr₀, hr₁⟩, hx⟩ },
+  { exact λ ⟨r, ⟨hr₀, hr₁⟩, hx⟩, (gauge_le_of_mem hr₀ hx).trans_lt hr₁ }
 end
 
 lemma gauge_lt_one_subset_self (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
@@ -371,8 +471,8 @@ lemma gauge_lt_one_subset_self (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absor
 begin
   rw gauge_lt_one_eq absorbs,
   apply set.bUnion_subset,
-  rintro θ hθ _ ⟨y, hy, rfl⟩,
-  exact hs.smul_mem_of_zero_mem h₀ hy (Ioo_subset_Icc_self hθ),
+  rintro r hr _ ⟨y, hy, rfl⟩,
+  exact hs.smul_mem_of_zero_mem h₀ hy (Ioo_subset_Icc_self hr),
 end
 
 lemma gauge_le_one_of_mem {x : E} (hx : x ∈ s) : gauge s x ≤ 1 :=
@@ -440,28 +540,28 @@ end topological_space
 
 variables {α : Type*} [linear_ordered_field α] [mul_action_with_zero α ℝ] [ordered_smul α ℝ]
 
-lemma gauge_smul [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E} {θ : α}
-  (hθ : 0 ≤ θ) (x : E) :
-  gauge s (θ • x) = θ • gauge s x :=
+lemma gauge_smul [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E} {r : α}
+  (hr : 0 ≤ r) (x : E) :
+  gauge s (r • x) = r • gauge s x :=
 begin
-  obtain rfl | hθ' := hθ.eq_or_lt,
+  obtain rfl | hr' := hr.eq_or_lt,
   { rw [zero_smul, gauge_zero, zero_smul] },
-  rw [gauge_def', gauge_def', ←real.Inf_smul_of_nonneg hθ],
+  rw [gauge_def', gauge_def', ←real.Inf_smul_of_nonneg hr],
   congr' 1,
   ext β,
   simp_rw [set.mem_smul_set, set.mem_sep_eq],
   split,
   { rintro ⟨hβ, hx⟩,
     simp_rw [mem_Ioi] at ⊢ hβ,
-    have := smul_pos (inv_pos.2 hθ') hβ,
-    refine ⟨θ⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hθ'.ne' _⟩,
+    have := smul_pos (inv_pos.2 hr') hβ,
+    refine ⟨r⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hr'.ne' _⟩,
     rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
-    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hθ'.ne'), inv_inv₀],
+    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv₀],
     { exact this.ne' },
     { exact hβ.ne' } },
   { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
     rw mem_Ioi at ⊢ hβ,
-    have := smul_pos hθ' hβ,
+    have := smul_pos hr' hβ,
     refine ⟨this, _⟩,
     rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
     rw smul_assoc,
@@ -471,11 +571,11 @@ begin
 end
 
 lemma gauge_homogeneous [module α E] [is_scalar_tower α ℝ (set E)] {s : set E}
-  (symmetric : ∀ x ∈ s, -x ∈ s) (θ : α) (x : E) :
-  gauge s (θ • x) = abs θ • gauge s x :=
+  (symmetric : ∀ x ∈ s, -x ∈ s) (r : α) (x : E) :
+  gauge s (r • x) = abs r • gauge s x :=
 begin
-  rw ←gauge_smul (abs_nonneg θ),
-  obtain h | h := abs_choice θ,
+  rw ←gauge_smul (abs_nonneg r),
+  obtain h | h := abs_choice r,
   { rw h },
   { rw [h, neg_smul, gauge_neg symmetric] },
   { apply_instance }
@@ -505,9 +605,22 @@ end
 @[simps] def gauge_seminorm (symmetric : ∀ x ∈ s, -x ∈ s) (hs : convex ℝ s) (hs' : absorbent ℝ s) :
   seminorm ℝ E :=
 { to_fun := gauge s,
-  smul' := λ θ x, by rw [gauge_homogeneous symmetric, real.norm_eq_abs, smul_eq_mul];
+  smul' := λ r x, by rw [gauge_homogeneous symmetric, real.norm_eq_abs, smul_eq_mul];
     apply_instance,
   triangle' := gauge_subadditive hs hs' }
+
+/-- Any seminorm arises a the gauge of its unit ball. -/
+lemma seminorm.gauge_ball (p : seminorm ℝ E) : gauge (p.ball 0 1) = p :=
+begin
+  ext,
+  refine le_antisymm _ _,
+  refine gauge_le_of_mem _ _,
+end
+
+lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
+  gauge_seminorm (λ x, p.symmetric_ball_zero 1) (p.convex_ball 0 1)
+    (p.absorbent_ball_zero 1 zero_lt_one) = p :=
+seminorm.ext p.gauge_ball
 
 end gauge
 

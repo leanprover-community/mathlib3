@@ -192,8 +192,8 @@ lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x
 lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
 set.pairwise_univ.1 $ set.pairwise_disjoint_fiber f univ
 
-lemma pairwise_subtype_iff_pairwise_on {α : Type*} (s : set α) (r : α → α → Prop) :
-  pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise_on r :=
+lemma pairwise_subtype_iff_pairwise_set {α : Type*} (s : set α) (r : α → α → Prop) :
+  pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise r :=
 begin
   split,
   { assume h x hx y hy hxy,
@@ -202,6 +202,8 @@ begin
     simp only [subtype.mk_eq_mk, ne.def] at hxy,
     exact h x hx y hy hxy }
 end
+
+alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
 
 namespace set
 section semilattice_inf_bot

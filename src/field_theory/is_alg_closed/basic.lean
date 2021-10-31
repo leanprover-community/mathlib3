@@ -278,12 +278,12 @@ begin
   let O : subalgebra N L := algebra.adjoin N {(x : L)},
   let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
      (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
-  have hNO : N ≤ N.under O,
+  have hNO : N ≤ O.restrict_scalars K,
   { intros z hz,
     show algebra_map N L ⟨z, hz⟩ ∈ O,
     exact O.algebra_map_mem _ },
   let O' : subfield_with_hom K L M hL :=
-  { carrier := N.under O,
+  { carrier := O.restrict_scalars K,
     emb := larger_emb.restrict_scalars K },
   have hO' : maximal_subfield_with_hom M hL ≤ O',
   { refine ⟨hNO, _⟩,

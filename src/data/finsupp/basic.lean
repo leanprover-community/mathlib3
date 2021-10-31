@@ -94,7 +94,7 @@ namespace finsupp
 section basic
 variable [has_zero M]
 
-instance : has_coe_to_fun (α →₀ M) := ⟨λ _, α → M, to_fun⟩
+instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := ⟨to_fun⟩
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
@@ -345,6 +345,23 @@ by simp only [card_eq_one, support_eq_singleton]
 
 lemma card_support_eq_one' {f : α →₀ M} : card f.support = 1 ↔ ∃ a (b ≠ 0), f = single a b :=
 by simp only [card_eq_one, support_eq_singleton']
+
+lemma support_subset_singleton {f : α →₀ M} {a : α} :
+  f.support ⊆ {a} ↔ f = single a (f a) :=
+⟨λ h, eq_single_iff.mpr ⟨h, rfl⟩, λ h, (eq_single_iff.mp h).left⟩
+
+lemma support_subset_singleton' {f : α →₀ M} {a : α} :
+  f.support ⊆ {a} ↔ ∃ b, f = single a b :=
+⟨λ h, ⟨f a, support_subset_singleton.mp h⟩,
+  λ ⟨b, hb⟩, by rw [hb, support_subset_singleton, single_eq_same]⟩
+
+lemma card_support_le_one [nonempty α] {f : α →₀ M} :
+  card f.support ≤ 1 ↔ ∃ a, f = single a (f a) :=
+by simp only [card_le_one_iff_subset_singleton, support_subset_singleton]
+
+lemma card_support_le_one' [nonempty α] {f : α →₀ M} :
+  card f.support ≤ 1 ↔ ∃ a b, f = single a b :=
+by simp only [card_le_one_iff_subset_singleton, support_subset_singleton']
 
 @[simp] lemma equiv_fun_on_fintype_single [fintype α] (x : α) (m : M) :
   (@finsupp.equiv_fun_on_fintype α M _ _) (finsupp.single x m) = pi.single x m :=
@@ -1008,12 +1025,12 @@ instance [add_group G] : add_group (α →₀ G) :=
   sub            := has_sub.sub,
   sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
   add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
-  gsmul := λ n v, v.map_range ((•) n) (gsmul_zero _),
-  gsmul_zero' := λ v, by { ext i, simp },
-  gsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_gsmul] },
-  gsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
-    gsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
-    add_gsmul, add_nsmul, one_gsmul, gsmul_coe_nat, one_nsmul] },
+  zsmul := λ n v, v.map_range ((•) n) (zsmul_zero _),
+  zsmul_zero' := λ v, by { ext i, simp },
+  zsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_zsmul] },
+  zsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
+    zsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
+    add_zsmul, add_nsmul, one_zsmul, zsmul_coe_nat, one_nsmul] },
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
@@ -2684,7 +2701,7 @@ variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 /-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
 additive group. -/
 instance tsub : has_sub (α →₀ M) :=
-⟨zip_with (λ m n, m - n) (sub_self' 0)⟩
+⟨zip_with (λ m n, m - n) (tsub_self 0)⟩
 
 @[simp] lemma coe_tsub (g₁ g₂ : α →₀ M) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 
@@ -2696,20 +2713,20 @@ instance : canonically_ordered_add_monoid (α →₀ M) :=
   le_iff_exists_add := begin
       intros f g,
       split,
-      { intro H, use g - f, ext x, symmetry, exact add_sub_cancel_of_le (H x) },
+      { intro H, use g - f, ext x, symmetry, exact add_tsub_cancel_of_le (H x) },
       { rintro ⟨g, rfl⟩ x, exact self_le_add_right (f x) (g x) }
     end,
  ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
 
 instance : has_ordered_sub (α →₀ M) :=
-⟨λ n m k, forall_congr $ λ x, sub_le_iff_right⟩
+⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
 
 @[simp] lemma single_tsub {a : α} {n₁ n₂ : M} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin
   ext f,
   by_cases h : (a = f),
   { rw [h, tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
-  rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, sub_self']
+  rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self]
 end
 
 end canonically_ordered_monoid
@@ -2718,11 +2735,11 @@ end canonically_ordered_monoid
 
 lemma sub_single_one_add {a : α} {u u' : α →₀ ℕ} (h : u a ≠ 0) :
   u - single a 1 + u' = u + u' - single a 1 :=
-sub_add_eq_add_sub' $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
+tsub_add_eq_add_tsub $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
 
 lemma add_sub_single_one {a : α} {u u' : α →₀ ℕ} (h : u' a ≠ 0) :
   u + (u' - single a 1) = u + u' - single a 1 :=
-(add_sub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
+(add_tsub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
 
 end nat_sub
 

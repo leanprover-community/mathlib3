@@ -91,7 +91,7 @@ instance : group (quaternion_group n) :=
       rintros (i | i) (j | j) (k | k);
       simp only [mul];
       abel,
-      simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, gsmul_eq_mul, int.cast_neg,
+      simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, zsmul_eq_mul, int.cast_neg,
                  add_right_inj],
       calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub
         ... = 2 * n - n : by { norm_cast, simp, }

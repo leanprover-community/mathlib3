@@ -93,14 +93,14 @@ submonoid.to_add_submonoid.symm
 lemma submonoid.to_add_submonoid_closure (S : set M) :
   (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.to_mul ⁻¹' S) :=
 le_antisymm
-  (submonoid.to_add_submonoid.to_galois_connection.l_le $
+  (submonoid.to_add_submonoid.le_symm_apply.1 $
     submonoid.closure_le.2 add_submonoid.subset_closure)
   (add_submonoid.closure_le.2 submonoid.subset_closure)
 
 lemma add_submonoid.to_submonoid'_closure (S : set (additive M)) :
   (add_submonoid.closure S).to_submonoid' = submonoid.closure (multiplicative.of_add ⁻¹' S) :=
 le_antisymm
-  (add_submonoid.to_submonoid'.to_galois_connection.l_le $
+  (add_submonoid.to_submonoid'.le_symm_apply.1 $
     add_submonoid.closure_le.2 submonoid.subset_closure)
   (submonoid.closure_le.2 add_submonoid.subset_closure)
 
@@ -248,11 +248,11 @@ lemma monotone_comap {f : M →* N} : monotone (comap f) :=
 
 @[simp, to_additive]
 lemma map_comap_map {f : M →* N} : ((S.map f).comap f).map f = S.map f :=
-congr_fun ((gc_map_comap f).l_u_l_eq_l) _
+(gc_map_comap f).l_u_l_eq_l _
 
 @[simp, to_additive]
 lemma comap_map_comap {S : submonoid N} {f : M →* N} : ((S.comap f).map f).comap f = S.comap f :=
-congr_fun ((gc_map_comap f).u_l_u_eq_u) _
+(gc_map_comap f).u_l_u_eq_u _
 
 @[to_additive]
 lemma map_sup (S T : submonoid M) (f : M →* N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
@@ -391,6 +391,12 @@ instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
+
+@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
+  (⟨x, hx⟩ : S) * ⟨y, hy⟩ = ⟨x * y, S.mul_mem hx hy⟩ := rfl
+
+@[to_additive] lemma mul_def (x y : S) : x * y = ⟨x * y, S.mul_mem x.2 y.2⟩ := rfl
+@[to_additive] lemma one_def : (1 : S) = ⟨1, S.one_mem⟩ := rfl
 
 /-- A submonoid of a unital magma inherits a unital magma structure. -/
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
@@ -614,7 +620,7 @@ rfl
 iff.rfl
 
 @[to_additive] lemma mrange_eq_map (f : M →* N) : f.mrange = (⊤ : submonoid M).map f :=
-by ext; simp
+copy_eq _
 
 @[to_additive]
 lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mrange :=
@@ -762,51 +768,21 @@ set_like.coe_injective $ (coe_mrange _).trans $ subtype.range_coe
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
 
 @[to_additive] lemma eq_bot_iff_forall : S = ⊥ ↔ ∀ x ∈ S, x = (1 : M) :=
-begin
-  split,
-  { intros h x x_in,
-    rwa [h, mem_bot] at x_in },
-  { intros h,
-    ext x,
-    rw mem_bot,
-    exact ⟨h x, by { rintros rfl, exact S.one_mem }⟩ },
-end
+set_like.ext_iff.trans $ by simp [iff_def, S.one_mem] { contextual := tt }
 
 @[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) :
   nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
-begin
-  split,
-  { introI h,
-    rcases exists_ne (1 : S) with ⟨⟨h, h_in⟩, h_ne⟩,
-    use [h, h_in],
-    intro hyp,
-    apply  h_ne,
-    simpa [hyp] },
-  { rintros ⟨x, x_in, hx⟩,
-    apply nontrivial_of_ne (⟨x, x_in⟩ : S) 1,
-    intro hyp,
-    apply hx,
-    simpa [has_one.one] using hyp },
-end
+calc nontrivial S ↔ ∃ x : S, x ≠ 1                                   : nontrivial_iff_exists_ne 1
+              ... ↔ ∃ x (hx : x ∈ S), (⟨x, hx⟩ : S) ≠ ⟨1, S.one_mem⟩ : subtype.exists
+              ... ↔ ∃ x ∈ S, x ≠ (1 : M)                             : by simp only [ne.def]
 
 /-- A submonoid is either the trivial submonoid or nontrivial. -/
 @[to_additive] lemma bot_or_nontrivial (S : submonoid M) : S = ⊥ ∨ nontrivial S :=
-begin
-  classical,
-  by_cases h : ∀ x ∈ S, x = (1 : M),
-  { left,
-    exact S.eq_bot_iff_forall.mpr h },
-  { right,
-    push_neg at h,
-    simpa [nontrivial_iff_exists_ne_one] using h },
-end
+by simp only [eq_bot_iff_forall, nontrivial_iff_exists_ne_one, ← not_forall, classical.em]
 
 /-- A submonoid is either the trivial submonoid or contains a nonzero element. -/
 @[to_additive] lemma bot_or_exists_ne_one (S : submonoid M) : S = ⊥ ∨ ∃ x ∈ S, x ≠ (1:M) :=
-begin
-  convert S.bot_or_nontrivial,
-  rw nontrivial_iff_exists_ne_one
-end
+S.bot_or_nontrivial.imp_right S.nontrivial_iff_exists_ne_one.mp
 
 end submonoid
 

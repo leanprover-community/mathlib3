@@ -1363,7 +1363,7 @@ begin
     repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
 end
 
-lemma monotone_zpow {x : ℝ≥0∞} (hx : 1 ≤ x) : monotone (λ (a : ℤ), x ^ a) :=
+lemma monotone_zpow {x : ℝ≥0∞} (hx : 1 ≤ x) : monotone ((^) x : ℤ → ℝ≥0∞) :=
 λ a b h, zpow_le_of_le hx h
 
 lemma zpow_add {x : ℝ≥0∞} (hx : x ≠ 0) (h'x : x ≠ ∞) (m n : ℤ) :

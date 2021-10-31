@@ -389,8 +389,7 @@ by { nontriviality, exact inverse_non_unit _ not_is_unit_zero }
 
 variables {M₀}
 
-lemma mul_inverse_rev' (a b : M₀) (h : commute a b) :
-  ring.inverse (a * b) = inverse b * inverse a :=
+lemma mul_inverse_rev' {a b : M₀} (h : commute a b) : inverse (a * b) = inverse b * inverse a :=
 begin
   by_cases hab : is_unit (a * b),
   { obtain ⟨⟨a, rfl⟩, b, rfl⟩ := h.is_unit_mul_iff.mp hab,
@@ -403,15 +402,13 @@ end
 
 lemma mul_inverse_rev {M₀} [comm_monoid_with_zero M₀] (a b : M₀) :
   ring.inverse (a * b) = inverse b * inverse a :=
-mul_inverse_rev' _ _ (commute.all _ _)
+mul_inverse_rev' (commute.all _ _)
 
 end ring
 
 lemma commute.ring_inverse_ring_inverse {a b : M₀} (h : commute a b) :
   commute (ring.inverse a) (ring.inverse b) :=
-(ring.mul_inverse_rev' _ _ h.symm).symm.trans
-  $ (congr_arg _ h.symm.eq).trans
-  $ ring.mul_inverse_rev' _ _ h
+(ring.mul_inverse_rev' h.symm).symm.trans $ (congr_arg _ h.symm.eq).trans $ ring.mul_inverse_rev' h
 
 variable (M₀)
 

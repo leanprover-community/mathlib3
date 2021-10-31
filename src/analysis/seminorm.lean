@@ -139,6 +139,14 @@ begin
   exact inv_le_one ha₁,
 end
 
+lemma balanced.smul_eq (hA : balanced 𝕜 A) {a : 𝕜} (ha : ∥a∥ = 1) : a • A = A :=
+begin
+  refine (hA _ ha.le).antisymm (hA.subset_smul _ ha.ge),
+  rintro rfl,
+  rw norm_zero at ha,
+  exact zero_ne_one ha,
+end
+
 lemma absorbent_iff_forall_absorbs_singleton :
   absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
 by simp [absorbs, absorbent]
@@ -210,14 +218,6 @@ lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 assume a ha,
 calc _ ⊆ closure (a • A) : image_closure_subset_closure_image (continuous_id.const_smul _)
 ...    ⊆ _ : closure_mono (hA _ ha)
-
-lemma balanced.smul_eq (hA : balanced 𝕜 A) {a : 𝕜} (ha : ∥a∥ = 1) : a • A = A :=
-begin
-  refine (hA _ ha.le).antisymm (hA.subset_smul _ ha.ge),
-  rintro rfl,
-  rw norm_zero at ha,
-  exact zero_ne_one ha,
-end
 
 end normed_field
 
@@ -313,6 +313,9 @@ begin
   rwa [mem_ball_zero, p.smul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
 end
 
+lemma symmetric_ball_zero {x : E} (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
+balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
+
 end normed_field
 
 section normed_linear_ordered_field
@@ -339,9 +342,6 @@ begin
     ... = r
         : by rw [←smul_eq_mul, ←smul_eq_mul, convex.combo_self hab _]
 end
-
-lemma symmetric_ball_zero {x : E} (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
-balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_smul, one_smul]⟩
 
 end normed_linear_ordered_field
 
@@ -409,10 +409,8 @@ end
 lemma gauge_le_of_mem {r : ℝ} (hr : 0 ≤ r) {x : E} (hx : x ∈ r • s) : gauge s x ≤ r :=
 begin
   obtain rfl | hr' := hr.eq_or_lt,
-  {
-    have := zero_smul_subset hx,
-  },
-  exact cInf_le gauge_set_bdd_below ⟨hr', hx⟩,
+  { rw [mem_singleton_iff.1 (zero_smul_subset _ hx), gauge_zero] },
+  { exact cInf_le gauge_set_bdd_below ⟨hr', hx⟩ }
 end
 
 lemma gauge_le_one_eq' (hs : convex ℝ s) (zero_mem : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
@@ -434,7 +432,7 @@ begin
     exact hδr.le },
   { refine λ h, le_of_forall_pos_lt_add (λ ε hε, _),
     have hε' := (lt_add_iff_pos_right 1).2 (half_pos hε),
-    exact (gauge_le_of_mem (zero_lt_one.trans hε') $ h _ hε').trans_lt
+    exact (gauge_le_of_mem (zero_le_one.trans hε'.le) $ h _ hε').trans_lt
       (add_lt_add_left (half_lt_self hε) _) }
 end
 
@@ -451,7 +449,7 @@ begin
   { intro h,
     obtain ⟨r, hr₀, hr₁, hx⟩ := exists_lt_of_gauge_lt absorbs h,
     exact ⟨r, hr₀, hr₁, hx⟩ },
-  { exact λ ⟨r, hr₀, hr₁, hx⟩, (gauge_le_of_mem hr₀ hx).trans_lt hr₁ }
+  { exact λ ⟨r, hr₀, hr₁, hx⟩, (gauge_le_of_mem hr₀.le hx).trans_lt hr₁ }
 end
 
 lemma gauge_lt_one_eq (absorbs : absorbent ℝ s) :
@@ -463,7 +461,7 @@ begin
   { intro h,
     obtain ⟨r, hr₀, hr₁, hx⟩ := exists_lt_of_gauge_lt absorbs h,
     exact ⟨r, ⟨hr₀, hr₁⟩, hx⟩ },
-  { exact λ ⟨r, ⟨hr₀, hr₁⟩, hx⟩, (gauge_le_of_mem hr₀ hx).trans_lt hr₁ }
+  { exact λ ⟨r, ⟨hr₀, hr₁⟩, hx⟩, (gauge_le_of_mem hr₀.le hx).trans_lt hr₁ }
 end
 
 lemma gauge_lt_one_subset_self (hs : convex ℝ s) (h₀ : (0 : E) ∈ s) (absorbs : absorbent ℝ s) :
@@ -476,7 +474,7 @@ begin
 end
 
 lemma gauge_le_one_of_mem {x : E} (hx : x ∈ s) : gauge s x ≤ 1 :=
-gauge_le_of_mem zero_lt_one $ by rwa one_smul
+gauge_le_of_mem zero_le_one $ by rwa one_smul
 
 lemma self_subset_gauge_le_one : s ⊆ {x | gauge s x ≤ 1} := λ x, gauge_le_one_of_mem
 
@@ -508,7 +506,7 @@ begin
   { rw inv_lt_one_iff,
     right,
     linarith },
-  refine (gauge_le_of_mem (inv_pos.2 hε₁) _).trans_lt this,
+  refine (gauge_le_of_mem (inv_nonneg.2 hε₁.le) _).trans_lt this,
   rw mem_inv_smul_set_iff₀ hε₁.ne',
   exact interior_subset
     (hε ⟨(sub_le_self _ hε₀.le).trans ((le_add_iff_nonneg_right _).2 hε₀.le), le_rfl⟩),
@@ -594,7 +592,7 @@ begin
   suffices : gauge s (x + y) ≤ a + b,
   { linarith },
   have hab : 0 < a + b := add_pos ha hb,
-  apply gauge_le_of_mem hab,
+  apply gauge_le_of_mem hab.le,
   have := convex_iff_div.1 hs hx hy ha.le hb.le hab,
   rwa [smul_smul, smul_smul, mul_comm_div', mul_comm_div', ←mul_div_assoc, ←mul_div_assoc,
     mul_inv_cancel ha.ne', mul_inv_cancel hb.ne', ←smul_add, one_div,
@@ -613,8 +611,25 @@ end
 lemma seminorm.gauge_ball (p : seminorm ℝ E) : gauge (p.ball 0 1) = p :=
 begin
   ext,
-  refine le_antisymm _ _,
-  refine gauge_le_of_mem _ _,
+  obtain hp | hp := {r : ℝ | 0 < r ∧ x ∈ r • p.ball 0 1}.eq_empty_or_nonempty,
+  { rw [gauge, hp, real.Inf_empty],
+    by_contra,
+    have hpx : 0 < p x := (p.nonneg x).lt_of_ne h,
+    have hpx₂ : 0 < 2 * p x := mul_pos zero_lt_two hpx,
+    refine hp.subset ⟨hpx₂, (2 * p x)⁻¹ • x, _, smul_inv_smul₀ hpx₂.ne' _⟩,
+    rw [p.mem_ball_zero, p.smul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpx₂), inv_mul_lt_iff hpx₂,
+      mul_one],
+    exact lt_mul_of_one_lt_left hpx one_lt_two },
+  refine is_glb.cInf_eq ⟨λ r, _, λ r hr, le_of_forall_pos_le_add $ λ ε hε, _⟩ hp,
+  { rintro ⟨hr, y, hy, rfl⟩,
+    rw p.mem_ball_zero at hy,
+    rw [p.smul, real.norm_eq_abs, abs_of_pos hr],
+    exact mul_le_of_le_one_right hr.le hy.le },
+  { have hpε : 0 < p x + ε := add_pos_of_nonneg_of_pos (p.nonneg _) hε,
+    refine hr ⟨hpε, (p x + ε)⁻¹ • x, _, smul_inv_smul₀ hpε.ne' _⟩,
+    rw [p.mem_ball_zero, p.smul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpε), inv_mul_lt_iff hpε,
+      mul_one],
+    exact lt_add_of_pos_right _ hε }
 end
 
 lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :

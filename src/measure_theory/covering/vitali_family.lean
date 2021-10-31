@@ -67,7 +67,7 @@ structure vitali_family {m : measurable_space α} (μ : measure α) :=
 (nontrivial : ∀ (x : α) (ε > (0 : ℝ)), ∃ y ∈ sets_at x, y ⊆ closed_ball x ε)
 (covering : ∀ (s : set α) (f : Π (x : α), set (set α)), (∀ x ∈ s, f x ⊆ sets_at x) →
   (∀ (x ∈ s) (ε > (0 : ℝ)), ∃ a ∈ f x, a ⊆ closed_ball x ε) →
-  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ pairwise_on t (disjoint on u) ∧ (∀ x ∈ t, u x ∈ f x)
+  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ t.pairwise (disjoint on u) ∧ (∀ x ∈ t, u x ∈ f x)
   ∧ μ (s \ ⋃ x ∈ t, u x) = 0)
 
 namespace vitali_family
@@ -101,7 +101,7 @@ variables {v : vitali_family μ} {f : α → set (set α)} {s : set α} (h : v.f
 include h
 
 theorem exists_disjoint_covering_ae :
-  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ pairwise_on t (disjoint on u) ∧
+  ∃ (t : set α) (u : α → set α), t ⊆ s ∧ t.pairwise (disjoint on u) ∧
     (∀ x ∈ t, u x ∈ v.sets_at x ∩ f x) ∧ μ (s \ ⋃ x ∈ t, u x) = 0 :=
 v.covering s (λ x, v.sets_at x ∩ f x) (λ x hx, inter_subset_left _ _) h
 
@@ -118,7 +118,7 @@ h.exists_disjoint_covering_ae.some_spec.some
 lemma t_subset_s : h.t ⊆ s :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.1
 
-lemma u_disjoint : pairwise_on h.t (disjoint on h.u) :=
+lemma u_disjoint : h.t.pairwise (disjoint on h.u) :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.1
 
 lemma u_disjoint_subtype : pairwise (disjoint on (λ x : h.t, h.u x)) :=

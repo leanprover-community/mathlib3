@@ -1824,6 +1824,16 @@ lemma init_take {n : ℕ} {l : list α} (h : n < l.length) :
   (l.take n).init = l.take n.pred :=
 by simp [init_eq_take, min_eq_left_of_lt h, take_take, pred_le]
 
+@[simp] lemma init_cons_of_ne_nil {α : Type*} {x : α} :
+  ∀ {l : list α} (h : l ≠ []), (x :: l).init = x :: l.init
+| []       h := false.elim (h rfl)
+| (a :: l) _ := by simp [init]
+
+@[simp] lemma init_append_of_ne_nil {α : Type*} {l : list α} :
+  ∀ (l' : list α) (h : l ≠ []), (l' ++ l).init = l' ++ l.init
+| []        _ := by simp only [nil_append]
+| (a :: l') h := by simp [append_ne_nil_of_ne_nil_right l' l h, init_append_of_ne_nil l' h]
+
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
 by simpa [←length_eq_zero] using tsub_eq_zero_iff_le.mpr h

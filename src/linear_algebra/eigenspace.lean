@@ -64,10 +64,10 @@ x ∈ eigenspace f μ ∧ x ≠ 0
 def has_eigenvalue (f : End R M) (a : R) : Prop :=
 eigenspace f a ≠ ⊥
 
-/-- The eigenvalues of the operator `f`, as a subtype of `R`. -/
-def eigenvalues (f : End R M) := {μ : R // has_eigenvalue f μ}
+/-- The eigenvalues of the endomorphism `f`, as a subtype of `R`. -/
+def eigenvalues (f : End R M) : Type* := {μ : R // f.has_eigenvalue μ}
 
-instance (f : End R M) : has_coe (eigenvalues f) R := coe_subtype
+instance (f : End R M) : has_coe f.eigenvalues R := coe_subtype
 
 lemma has_eigenvalue_of_has_eigenvector {f : End R M} {μ : R} {x : M} (h : has_eigenvector f μ x) :
   has_eigenvalue f μ :=
@@ -80,13 +80,9 @@ lemma mem_eigenspace_iff {f : End R M} {μ : R} {x : M} : x ∈ eigenspace f μ 
 by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_apply,
   sub_eq_zero]
 
-lemma has_eigenvalue.exists_has_eigenvector (f : End R M) {μ : R} (hμ : has_eigenvalue f μ) :
-  ∃ v, has_eigenvector f μ v :=
-begin
-  have : ⊥ < eigenspace f μ := ne.bot_lt hμ,
-  obtain ⟨⟨v₁, hv₁⟩, hv⟩ := submodule.nonzero_mem_of_bot_lt this,
-  exact ⟨v₁, hv₁, by simpa using hv⟩,
-end
+lemma has_eigenvalue.exists_has_eigenvector {f : End R M} {μ : R} (hμ : f.has_eigenvalue μ) :
+  ∃ v, f.has_eigenvector μ v :=
+submodule.exists_mem_ne_zero_of_ne_bot hμ
 
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
@@ -179,7 +175,8 @@ begin
   ext μ,
   have : (μ ∈ {μ : K | f.eigenspace μ = ⊥ → false}) ↔ ¬f.eigenspace μ = ⊥ := by tauto,
   convert rfl.mpr this,
-  simp [polynomial.root_set, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root, has_eigenvalue]
+  simp [polynomial.root_set_def, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root,
+    has_eigenvalue]
 end
 
 end minpoly
@@ -437,11 +434,11 @@ begin
       ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
-/-- If `p` is an invariant submodule of an operator `f`, then the `μ`-eigenspace of the restriction
-of `f` to `p` is a submodule of the `μ`-eigenspace of `f`. -/
+/-- If `p` is an invariant submodule of an endomorphism `f`, then the `μ`-eigenspace of the
+restriction of `f` to `p` is a submodule of the `μ`-eigenspace of `f`. -/
 lemma eigenspace_restrict_le_eigenspace (f : End R M) {p : submodule R M}
   (hfp : ∀ x ∈ p, f x ∈ p) (μ : R) :
-  (eigenspace (linear_map.restrict f hfp) μ).map p.subtype ≤ eigenspace f μ :=
+  (eigenspace (f.restrict hfp) μ).map p.subtype ≤ f.eigenspace μ :=
 begin
   rintros a ⟨x, hx, rfl⟩,
   simp only [set_like.mem_coe, mem_eigenspace_iff, linear_map.restrict_apply] at hx ⊢,
@@ -467,11 +464,11 @@ begin
   apply submodule.map_comap_le
 end
 
-/-- If an invariant subspace `V` of an operator `T` is disjoint from the `μ`-eigenspace of `T`,
-then the restriction of `T` to `V` has trivial `μ`-eigenspace. -/
+/-- If an invariant subspace `p` of an endomorphism `f` is disjoint from the `μ`-eigenspace of `f`,
+then the restriction of `f` to `p` has trivial `μ`-eigenspace. -/
 lemma eigenspace_restrict_eq_bot {f : End R M} {p : submodule R M}
-  (hfp : ∀ x ∈ p, f x ∈ p) {μ : R} (hμp : disjoint (eigenspace f μ) p) :
-  eigenspace (linear_map.restrict f hfp) μ = ⊥ :=
+  (hfp : ∀ x ∈ p, f x ∈ p) {μ : R} (hμp : disjoint (f.eigenspace μ) p) :
+  eigenspace (f.restrict hfp) μ = ⊥ :=
 begin
   rw eq_bot_iff,
   intros x hx,

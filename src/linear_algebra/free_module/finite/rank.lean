@@ -60,7 +60,7 @@ by { rw [finrank, rank_finsupp, ← mk_to_nat_eq_card, to_nat_lift] }
 
 /-- The finrank of `(ι → R)` is `fintype.card ι`. -/
 lemma finrank_pi {ι : Type v} [fintype ι] : finrank R (ι → R) = card ι :=
-by { simp [finrank, sum_const_eq_lift_mul] }
+by simp [finrank]
 
 /-- The finrank of the direct sum is the sum of the finranks. -/
 @[simp] lemma finrank_direct_sum  {ι : Type v} [fintype ι] (M : ι → Type w)
@@ -68,7 +68,8 @@ by { simp [finrank, sum_const_eq_lift_mul] }
   [Π (i : ι), module.finite R (M i)] : finrank R (⨁ i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp [finrank, λ i, rank_eq_card_choose_basis_index R (M i)],
+  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_direct_sum,
+    ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 
 /-- The finrank of `M × N` is `(finrank R M) + (finrank R N)`. -/
@@ -82,7 +83,8 @@ lemma finrank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
   [Π (i : ι), module.finite R (M i)] : finrank R (Π i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp [finrank, λ i, rank_eq_card_choose_basis_index R (M i)]
+  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi_fintype,
+    ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 
 /-- If `n` and `m` are `fintype`, the finrank of `n × m` matrices is

@@ -82,7 +82,8 @@ linear_map.mk_continuous
 ∥A∥
 (λ x, inner_left_right'_norm A x)
 
-lemma inner_left_right_apply {A : E →L[𝕜] F} {x : F} : inner_left_right A x = inner_left_right' A x := rfl
+lemma inner_left_right_apply {A : E →L[𝕜] F} {x : F} :
+  inner_left_right A x = inner_left_right' A x := rfl
 
 lemma inner_left_right'ₛₗ_map_smul {r : 𝕜} {A : E →L[𝕜] F} {v : F} :
   inner_left_right (r • A) v = r • inner_left_right A v :=
@@ -98,7 +99,8 @@ the main definition `adjoint`, where this is bundled as a conjugate-linear isome
 linear_map.mk_continuous
 { to_fun := λ v : F, (to_dual 𝕜 E).symm (inner_left_right A v),
   map_add' := λ x y, by simp only [linear_isometry_equiv.map_add, continuous_linear_map.map_add],
-  map_smul' := λ r x, by simp only [continuous_linear_map.map_smulₛₗ, linear_isometry_equiv.map_smulₛₗ,
+  map_smul' := λ r x, by simp only [continuous_linear_map.map_smulₛₗ,
+                                    linear_isometry_equiv.map_smulₛₗ,
                                     star_ring_aut_self_apply r, ring_hom.id_apply,
                                     ring_equiv.coe_to_ring_hom] }
 ∥A∥

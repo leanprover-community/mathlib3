@@ -280,7 +280,7 @@ variables [has_inv M₂] [has_div M₂]
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`,
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` from a `div_inv_monoid`
 See note [reducible non-instances]. -/
-@[reducible, to_additive
+@[reducible, to_additive sub_neg_monoid
 "A type endowed with `0`, `+`, and `-` (unary and binary) is an additive group,
 if it admits a surjective map that preserves `0`, `+`, and `-` from a `sub_neg_monoid`"]
 protected def div_inv_monoid [div_inv_monoid M₁] (f : M₁ → M₂) (hf : surjective f)

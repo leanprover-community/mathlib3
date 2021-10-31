@@ -76,8 +76,9 @@ For measurable sets this returns the measure assigned by the `measure_of` field 
 But we can extend this to _all_ sets, but using the outer measure. This gives us monotonicity and
 subadditivity for all sets.
 -/
-instance measure.has_coe_to_fun [measurable_space α] : has_coe_to_fun (measure α) :=
-⟨λ _, set α → ℝ≥0∞, λ m, m.to_outer_measure⟩
+instance measure.has_coe_to_fun [measurable_space α] :
+  has_coe_to_fun (measure α) (λ _, set α → ℝ≥0∞) :=
+⟨λ m, m.to_outer_measure⟩
 
 section
 
@@ -219,6 +220,10 @@ begin
   exact measure_bUnion_le s.countable_to_set f
 end
 
+lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
+  μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
+by { convert measure_bUnion_finset_le finset.univ f, simp }
+
 lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
   (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
@@ -237,7 +242,7 @@ lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
 
 lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
-by { haveI := hs.to_encodable, rw [← Union_subtype, measure_Union_null_iff, set_coe.forall], refl }
+by { haveI := hs.to_encodable, rw [bUnion_eq_Union, measure_Union_null_iff, set_coe.forall], refl }
 
 theorem measure_union_le (s₁ s₂ : set α) : μ (s₁ ∪ s₂) ≤ μ s₁ + μ s₂ :=
 μ.to_outer_measure.union _ _
@@ -347,6 +352,14 @@ lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h)
   f =ᵐ[μ] h :=
 h₁.trans h₂
 
+lemma ae_le_of_ae_lt {f g : α → ℝ≥0∞} (h : ∀ᵐ x ∂μ, f x < g x) : f ≤ᵐ[μ] g :=
+begin
+  rw [filter.eventually_le, ae_iff],
+  rw ae_iff at h,
+  refine measure_mono_null (λ x hx, _) h,
+  exact not_lt.2 (le_of_lt (not_le.1 hx)),
+end
+
 @[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
 eventually_eq_empty.trans $ by simp [ae_iff]
 
@@ -365,6 +378,17 @@ by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
+
+@[to_additive]
+lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
+  (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
+begin
+  rw [filter.eventually_eq, ae_iff] at h,
+  convert h,
+  ext a,
+  rw ← set.mul_indicator_eq_one_iff,
+  refl
+end
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

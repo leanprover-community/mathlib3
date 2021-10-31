@@ -104,6 +104,11 @@ begin
   simp only [mul_one, set.preimage_mul_left_singleton, eq_self_iff_true,
     inv_inv, set.singleton_eq_singleton_iff],
 end
+
+@[to_additive]
+lemma discrete_topology_iff_open_singleton_one : discrete_topology G ↔ is_open ({1} : set G) :=
+⟨λ h, forall_open_iff_discrete.mpr h {1}, discrete_topology_of_open_singleton_one⟩
+
 end continuous_mul_group
 
 section topological_group
@@ -164,7 +169,9 @@ variables [topological_space α] {f : α → G} {s : set α} {x : α}
 lemma continuous.inv (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
 
-attribute [continuity] continuous.neg -- TODO
+@[to_additive]
+lemma continuous_at.inv (hf : continuous_at f x) : continuous_at (λ x, (f x)⁻¹) x :=
+continuous_at_inv.comp hf
 
 @[to_additive]
 lemma continuous_on.inv (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
@@ -174,6 +181,44 @@ continuous_inv.comp_continuous_on hf
 lemma continuous_within_at.inv (hf : continuous_within_at f s x) :
   continuous_within_at (λ x, (f x)⁻¹) s x :=
 hf.inv
+
+section ordered_comm_group
+
+variables [topological_space H] [ordered_comm_group H] [topological_group H]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi {a : H} :
+  tendsto has_inv.inv (𝓝[Ioi a] a) (𝓝[Iio (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iio {a : H} :
+  tendsto has_inv.inv (𝓝[Iio a] a) (𝓝[Ioi (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Ioi (a⁻¹)] (a⁻¹)) (𝓝[Iio a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iio_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Iio (a⁻¹)] (a⁻¹)) (𝓝[Ioi a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ici {a : H} :
+  tendsto has_inv.inv (𝓝[Ici a] a) (𝓝[Iic (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic {a : H} :
+  tendsto has_inv.inv (𝓝[Iic a] a) (𝓝[Ici (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ici_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Ici (a⁻¹)] (a⁻¹)) (𝓝[Iic a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ici _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic_inv {a : H} :
+  tendsto has_inv.inv (𝓝[Iic (a⁻¹)] (a⁻¹)) (𝓝[Ici a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iic _ _ _ _ (a⁻¹)
+
+end ordered_comm_group
 
 @[instance, to_additive]
 instance [topological_space H] [group H] [topological_group H] :
@@ -408,8 +453,6 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
     convert continuous_quotient_lift _ this,
   end }
 
-attribute [instance] topological_add_group_quotient
-
 end quotient_topological_group
 
 /-- A typeclass saying that `λ p : G × G, p.1 - p.2` is a continuous function. This property
@@ -417,42 +460,76 @@ automatically holds for topological additive groups but it also holds, e.g., for
 class has_continuous_sub (G : Type*) [topological_space G] [has_sub G] : Prop :=
 (continuous_sub : continuous (λ p : G × G, p.1 - p.2))
 
-@[priority 100] -- see Note [lower instance priority]
-instance topological_add_group.to_has_continuous_sub [topological_space G] [add_group G]
-  [topological_add_group G] :
-  has_continuous_sub G :=
-⟨by { simp only [sub_eq_add_neg], exact continuous_fst.add continuous_snd.neg }⟩
+/-- A typeclass saying that `λ p : G × G, p.1 / p.2` is a continuous function. This property
+automatically holds for topological groups. Lemmas using this class have primes.
+The unprimed version is for `group_with_zero`. -/
+@[to_additive]
+class has_continuous_div (G : Type*) [topological_space G] [has_div G] : Prop :=
+(continuous_div' : continuous (λ p : G × G, p.1 / p.2))
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance topological_group.to_has_continuous_div [topological_space G] [group G]
+  [topological_group G] : has_continuous_div G :=
+⟨by { simp only [div_eq_mul_inv], exact continuous_fst.mul continuous_snd.inv }⟩
 
 export has_continuous_sub (continuous_sub)
+export has_continuous_div (continuous_div')
 
-section has_continuous_sub
+section has_continuous_div
 
-variables [topological_space G] [has_sub G] [has_continuous_sub G]
+variables [topological_space G] [has_div G] [has_continuous_div G]
 
-lemma filter.tendsto.sub {f g : α → G} {l : filter α} {a b : G} (hf : tendsto f l (𝓝 a))
-  (hg : tendsto g l (𝓝 b)) :
-  tendsto (λx, f x - g x) l (𝓝 (a - b)) :=
-(continuous_sub.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
+@[to_additive sub]
+lemma filter.tendsto.div' {f g : α → G} {l : filter α} {a b : G} (hf : tendsto f l (𝓝 a))
+  (hg : tendsto g l (𝓝 b)) : tendsto (λ x, f x / g x) l (𝓝 (a / b)) :=
+(continuous_div'.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
+
+@[to_additive const_sub]
+lemma filter.tendsto.const_div' (b : G) {c : G} {f : α → G} {l : filter α}
+  (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, b / f k) l (𝓝 (b / c)) :=
+tendsto_const_nhds.div' h
+
+@[to_additive sub_const]
+lemma filter.tendsto.div_const' (b : G) {c : G} {f : α → G} {l : filter α}
+  (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, f k / b) l (𝓝 (c / b)) :=
+h.div' tendsto_const_nhds
 
 variables [topological_space α] {f g : α → G} {s : set α} {x : α}
 
-@[continuity] lemma continuous.sub (hf : continuous f) (hg : continuous g) :
-  continuous (λ x, f x - g x) :=
-continuous_sub.comp (hf.prod_mk hg : _)
+@[continuity, to_additive sub] lemma continuous.div' (hf : continuous f) (hg : continuous g) :
+  continuous (λ x, f x / g x) :=
+continuous_div'.comp (hf.prod_mk hg : _)
 
-lemma continuous_within_at.sub (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
-  continuous_within_at (λ x, f x - g x) s x :=
-hf.sub hg
+@[to_additive continuous_sub_left]
+lemma continuous_div_left' (a : G) : continuous (λ b : G, a / b) :=
+continuous_const.div' continuous_id
 
-lemma continuous_on.sub (hf : continuous_on f s) (hg : continuous_on g s) :
-  continuous_on (λx, f x - g x) s :=
-λ x hx, (hf x hx).sub (hg x hx)
+@[to_additive continuous_sub_right]
+lemma continuous_div_right' (a : G) : continuous (λ b : G, b / a) :=
+continuous_id.div' continuous_const
 
-end has_continuous_sub
+@[to_additive sub]
+lemma continuous_at.div' {f g : α → G} {x : α} (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λx, f x / g x) x :=
+hf.div' hg
 
-lemma nhds_translation [topological_space G] [add_group G] [topological_add_group G] (x : G) :
-  comap (λy:G, y - x) (𝓝 0) = 𝓝 x :=
-by simpa only [sub_eq_add_neg] using nhds_translation_add_neg x
+@[to_additive sub]
+lemma continuous_within_at.div' (hf : continuous_within_at f s x)
+  (hg : continuous_within_at g s x) :
+  continuous_within_at (λ x, f x / g x) s x :=
+hf.div' hg
+
+@[to_additive sub]
+lemma continuous_on.div' (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λx, f x / g x) s :=
+λ x hx, (hf x hx).div' (hg x hx)
+
+end has_continuous_div
+
+@[to_additive]
+lemma nhds_translation_div [topological_space G] [group G] [topological_group G] (x : G) :
+  comap (λy:G, y / x) (𝓝 1) = 𝓝 x :=
+by simpa only [div_eq_mul_inv] using nhds_translation_mul_inv x
 
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.
@@ -464,78 +541,6 @@ class add_group_with_zero_nhd (G : Type u) extends add_comm_group G :=
 (Z [] : filter G)
 (zero_Z : pure 0 ≤ Z)
 (sub_Z : tendsto (λp:G×G, p.1 - p.2) (Z ×ᶠ Z) Z)
-
-namespace add_group_with_zero_nhd
-variables (G) [add_group_with_zero_nhd G]
-
-local notation `Z` := add_group_with_zero_nhd.Z
-
-@[priority 100] -- see Note [lower instance priority]
-instance : topological_space G :=
-topological_space.mk_of_nhds $ λa, map (λx, x + a) (Z G)
-
-variables {G}
-
-lemma neg_Z : tendsto (λa:G, - a) (Z G) (Z G) :=
-have tendsto (λa, (0:G)) (Z G) (Z G),
-  by refine le_trans (assume h, _) zero_Z; simp [univ_mem'] {contextual := tt},
-have tendsto (λa:G, 0 - a) (Z G) (Z G), from
-  sub_Z.comp (tendsto.prod_mk this tendsto_id),
-by simpa
-
-lemma add_Z : tendsto (λp:G×G, p.1 + p.2) (Z G ×ᶠ Z G) (Z G) :=
-suffices tendsto (λp:G×G, p.1 - -p.2) (Z G ×ᶠ Z G) (Z G),
-  by simpa [sub_eq_add_neg],
-sub_Z.comp (tendsto.prod_mk tendsto_fst (neg_Z.comp tendsto_snd))
-
-lemma exists_Z_half {s : set G} (hs : s ∈ Z G) : ∃ V ∈ Z G, ∀ (v ∈ V) (w ∈ V), v + w ∈ s :=
-begin
-  have : ((λa:G×G, a.1 + a.2) ⁻¹' s) ∈ Z G ×ᶠ Z G := add_Z (by simpa using hs),
-  rcases mem_prod_self_iff.1 this with ⟨V, H, H'⟩,
-  exact ⟨V, H, prod_subset_iff.1 H'⟩
-end
-
-lemma nhds_eq (a : G) : 𝓝 a = map (λx, x + a) (Z G) :=
-topological_space.nhds_mk_of_nhds _ _
-  (assume a, calc pure a = map (λx, x + a) (pure 0) : by simp
-    ... ≤ _ : map_mono zero_Z)
-  (assume b s hs,
-    let ⟨t, ht, eqt⟩ := exists_Z_half hs in
-    have t0 : (0:G) ∈ t, by simpa using zero_Z ht,
-    begin
-      refine ⟨(λx:G, x + b) '' t, image_mem_map ht, _, _⟩,
-      { refine set.image_subset_iff.2 (assume b hbt, _),
-        simpa using eqt 0 t0 b hbt },
-      { rintros _ ⟨c, hb, rfl⟩,
-        refine (Z G).sets_of_superset ht (assume x hxt, _),
-        simpa [add_assoc] using eqt _ hxt _ hb }
-    end)
-
-lemma nhds_zero_eq_Z : 𝓝 0 = Z G := by simp [nhds_eq]; exact filter.map_id
-
-@[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_add G :=
-⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
-  begin
-    rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
-      tendsto_map'_iff],
-    suffices :  tendsto ((λx:G, (a + b) + x) ∘ (λp:G×G,p.1 + p.2)) (Z G ×ᶠ Z G)
-      (map (λx:G, (a + b) + x) (Z G)),
-    { simpa [(∘), add_comm, add_left_comm] },
-    exact tendsto_map.comp add_Z
-  end ⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance : topological_add_group G :=
-⟨continuous_iff_continuous_at.2 $ assume a,
-  begin
-    rw [continuous_at, nhds_eq, nhds_eq, tendsto_map'_iff],
-    suffices : tendsto ((λx:G, x - a) ∘ (λx:G, -x)) (Z G) (map (λx:G, x - a) (Z G)),
-    { simpa [(∘), add_comm, sub_eq_add_neg] using this },
-    exact tendsto_map.comp neg_Z
-  end⟩
-
-end add_group_with_zero_nhd
 
 section filter_mul
 
@@ -562,9 +567,11 @@ end
 
 variables (G)
 
+@[to_additive]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
 
+@[to_additive]
 lemma topological_group.regular_space [t1_space G] : regular_space G :=
 ⟨assume s a hs ha,
  let f := λ p : G × G, p.1 * (p.2)⁻¹ in
@@ -585,6 +592,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
 
 local attribute [instance] topological_group.regular_space
 
+@[to_additive]
 lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
 
 end
@@ -632,7 +640,7 @@ begin
     refine λ g hg, mem_Union.2 ⟨g₀ * g⁻¹, _⟩,
     refine preimage_interior_subset_interior_preimage (continuous_const.mul continuous_id) _,
     rwa [mem_preimage, inv_mul_cancel_right] },
-  exact ⟨t, subset.trans ht $ bUnion_subset_bUnion_right $ λ g hg, interior_subset⟩
+  exact ⟨t, subset.trans ht $ bUnion_mono $ λ g hg, interior_subset⟩
 end
 
 /-- Every locally compact separable topological group is σ-compact.

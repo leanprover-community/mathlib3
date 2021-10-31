@@ -231,6 +231,16 @@ theorem right_inverse.injective {f : α → β} {g : β → α} (h : right_inver
   injective f :=
 h.left_inverse.injective
 
+theorem left_inverse.right_inverse_of_injective {f : α → β} {g : β → α} (h : left_inverse f g)
+  (hf : injective f) :
+  right_inverse f g :=
+λ x, hf $ h (f x)
+
+theorem left_inverse.right_inverse_of_surjective {f : α → β} {g : β → α} (h : left_inverse f g)
+  (hg : surjective g) :
+  right_inverse f g :=
+λ x, let ⟨y, hy⟩ := hg x in hy ▸ congr_arg g (h y)
+
 theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
   (h₂ : right_inverse g₂ f) :
   g₁ = g₂ :=
@@ -316,8 +326,7 @@ lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_in
 end inv_fun
 
 section inv_fun
-variables {α : Type u} [i : nonempty α] {β : Sort v} {f : α → β}
-include i
+variables {α : Type u} [nonempty α] {β : Sort v} {f : α → β}
 
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
@@ -397,6 +406,10 @@ lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a →
   (∀ x, p x (update f a b x)) ↔ p a b ∧ ∀ x ≠ a, p x (f x) :=
 by { rw [← and_forall_ne a, update_same], simp { contextual := tt } }
 
+lemma exists_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
+  (∃ x, p x (update f a b x)) ↔ p a b ∨ ∃ x ≠ a, p x (f x) :=
+by { rw [← not_forall_not, forall_update_iff f (λ a b, ¬p a b)], simp [not_and_distrib] }
+
 lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
   update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=
 funext_iff.trans $ forall_update_iff _ (λ x y, y = g x)
@@ -439,6 +452,15 @@ begin
   { simp [h] }
 end
 
+lemma apply_update₂ {ι : Sort*} [decidable_eq ι] {α β γ : ι → Sort*}
+  (f : Π i, α i → β i → γ i) (g : Π i, α i) (h : Π i, β i) (i : ι) (v : α i) (w : β i) (j : ι) :
+  f j (update g i v j) (update h i w j) = update (λ k, f k (g k) (h k)) i (f i v w) j :=
+begin
+  by_cases h : j = i,
+  { subst j, simp },
+  { simp [h] }
+end
+
 lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
   f ∘ (update g i v) = update (f ∘ g) i (f v) :=
 funext $ apply_update _ _ _ _
@@ -463,7 +485,7 @@ section extend
 noncomputable theory
 local attribute [instance, priority 10] classical.prop_decidable
 
-variables {α β γ : Type*} {f : α → β}
+variables {α β γ : Sort*} {f : α → β}
 
 /-- `extend f g e'` extends a function `g : α → γ`
 along a function `f : α → β` to a function `β → γ`,

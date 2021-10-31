@@ -239,22 +239,22 @@ begin
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le lim₁ lim₂ le₁ le₂
 end
 
-lemma ae_cover.lintegral_tendsto_of_countably_generated {φ : ι → set α}
-  (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → ℝ≥0∞}
+lemma ae_cover.lintegral_tendsto_of_countably_generated [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → ℝ≥0∞}
   (hfm : ae_measurable f μ) : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) l (𝓝 $ ∫⁻ x, f x ∂μ) :=
-hcg.tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto hu).lintegral_tendsto_of_nat hfm)
+tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto hu).lintegral_tendsto_of_nat hfm)
 
-lemma ae_cover.lintegral_eq_of_tendsto [l.ne_bot] {φ : ι → set α} (hφ : ae_cover μ l φ)
-  (hcg : l.is_countably_generated) {f : α → ℝ≥0∞} (I : ℝ≥0∞)
+lemma ae_cover.lintegral_eq_of_tendsto [l.ne_bot] [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → ℝ≥0∞} (I : ℝ≥0∞)
   (hfm : ae_measurable f μ) (htendsto : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) l (𝓝 I)) :
   ∫⁻ x, f x ∂μ = I :=
-tendsto_nhds_unique (hφ.lintegral_tendsto_of_countably_generated hcg hfm) htendsto
+tendsto_nhds_unique (hφ.lintegral_tendsto_of_countably_generated hfm) htendsto
 
-lemma ae_cover.supr_lintegral_eq_of_countably_generated [nonempty ι] [l.ne_bot] {φ : ι → set α}
-  (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → ℝ≥0∞}
+lemma ae_cover.supr_lintegral_eq_of_countably_generated [nonempty ι] [l.ne_bot]
+  [l.is_countably_generated] {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → ℝ≥0∞}
   (hfm : ae_measurable f μ) : (⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) = ∫⁻ x, f x ∂μ :=
 begin
-  have := hφ.lintegral_tendsto_of_countably_generated hcg hfm,
+  have := hφ.lintegral_tendsto_of_countably_generated hfm,
   refine csupr_eq_of_forall_le_of_forall_lt_exists_gt
     (λ i, lintegral_mono' measure.restrict_le_self (le_refl _)) (λ w hw, _),
   rcases exists_between hw with ⟨m, hm₁, hm₂⟩,
@@ -269,33 +269,33 @@ section integrable
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
   [normed_group E] [measurable_space E] [opens_measurable_space E]
 
-lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto [l.ne_bot] {φ : ι → set α}
-  (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → E} (I : ℝ)
+lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto [l.ne_bot] [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ)
   (hfm : ae_measurable f μ)
   (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) l (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 begin
   refine ⟨hfm, _⟩,
   unfold has_finite_integral,
-  rw hφ.lintegral_eq_of_tendsto hcg _ (measurable_nnnorm.comp_ae_measurable hfm).coe_nnreal_ennreal
+  rw hφ.lintegral_eq_of_tendsto _ (measurable_nnnorm.comp_ae_measurable hfm).coe_nnreal_ennreal
     htendsto,
   exact ennreal.of_real_lt_top
 end
 
-lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [l.ne_bot] {φ : ι → set α}
-  (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → E} (I : ℝ≥0)
+lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [l.ne_bot] [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0)
   (hfm : ae_measurable f μ)
   (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) l (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
-hφ.integrable_of_lintegral_nnnorm_tendsto hcg I hfm htendsto
+hφ.integrable_of_lintegral_nnnorm_tendsto I hfm htendsto
 
-lemma ae_cover.integrable_of_integral_norm_tendsto [l.ne_bot] {φ : ι → set α}
-  (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → E}
+lemma ae_cover.integrable_of_integral_norm_tendsto [l.ne_bot] [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E}
   (I : ℝ) (hfm : ae_measurable f μ) (hfi : ∀ i, integrable_on f (φ i) μ)
   (htendsto : tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 begin
-  refine hφ.integrable_of_lintegral_nnnorm_tendsto hcg I hfm _,
+  refine hφ.integrable_of_lintegral_nnnorm_tendsto I hfm _,
   conv at htendsto in (integral _ _)
   { rw integral_eq_lintegral_of_nonneg_ae (ae_of_all _ (λ x, @norm_nonneg E _ (f x)))
     hfm.norm.restrict },
@@ -306,12 +306,12 @@ begin
   exact ne_top_of_lt (hfi i).2
 end
 
-lemma ae_cover.integrable_of_integral_tendsto_of_nonneg_ae [l.ne_bot] {φ : ι → set α}
-  (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → ℝ} (I : ℝ)
+lemma ae_cover.integrable_of_integral_tendsto_of_nonneg_ae [l.ne_bot] [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → ℝ} (I : ℝ)
   (hfm : ae_measurable f μ) (hfi : ∀ i, integrable_on f (φ i) μ) (hnng : ∀ᵐ x ∂μ, 0 ≤ f x)
   (htendsto : tendsto (λ i, ∫ x in φ i, f x ∂μ) l (𝓝 I)) :
   integrable f μ :=
-hφ.integrable_of_integral_norm_tendsto hcg I hfm hfi
+hφ.integrable_of_integral_norm_tendsto I hfm hfi
   (htendsto.congr $ λ i, integral_congr_ae $ ae_restrict_of_ae $ hnng.mono $
     λ x hx, (real.norm_of_nonneg hx).symm)
 
@@ -323,34 +323,34 @@ variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter 
   [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [complete_space E] [second_countable_topology E]
 
-lemma ae_cover.integral_tendsto_of_countably_generated {φ : ι → set α} (hφ : ae_cover μ l φ)
-  (hcg : l.is_countably_generated) {f : α → E} (hfm : ae_measurable f μ)
+lemma ae_cover.integral_tendsto_of_countably_generated [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (hfm : ae_measurable f μ)
   (hfi : integrable f μ) :
   tendsto (λ i, ∫ x in φ i, f x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
 suffices h : tendsto (λ i, ∫ (x : α), (φ i).indicator f x ∂μ) l (𝓝 (∫ (x : α), f x ∂μ)),
 by { convert h, ext n, rw integral_indicator (hφ.measurable n) },
-tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥) hcg
+tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥)
   (eventually_of_forall $ λ i, hfm.indicator $ hφ.measurable i) hfm
   (eventually_of_forall $ λ i, ae_of_all _ $ λ x, norm_indicator_le_norm_self _ _)
   hfi.norm hφ.ae_tendsto_indicator
 
 /-- Slight reformulation of
     `measure_theory.ae_cover.integral_tendsto_of_countably_generated`. -/
-lemma ae_cover.integral_eq_of_tendsto [l.ne_bot] {φ : ι → set α} (hφ : ae_cover μ l φ)
-  (hcg : l.is_countably_generated) {f : α → E}
+lemma ae_cover.integral_eq_of_tendsto [l.ne_bot] [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E}
   (I : E) (hfm : ae_measurable f μ) (hfi : integrable f μ)
   (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) l (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
-tendsto_nhds_unique (hφ.integral_tendsto_of_countably_generated hcg hfm hfi) h
+tendsto_nhds_unique (hφ.integral_tendsto_of_countably_generated hfm hfi) h
 
-lemma ae_cover.integral_eq_of_tendsto_of_nonneg_ae [l.ne_bot] {φ : ι → set α}
-  (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → ℝ} (I : ℝ)
+lemma ae_cover.integral_eq_of_tendsto_of_nonneg_ae [l.ne_bot] [l.is_countably_generated]
+  {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → ℝ} (I : ℝ)
   (hnng : 0 ≤ᵐ[μ] f) (hfm : ae_measurable f μ) (hfi : ∀ n, integrable_on f (φ n) μ)
   (htendsto : tendsto (λ n, ∫ x in φ n, f x ∂μ) l (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 have hfi' : integrable f μ,
-  from hφ.integrable_of_integral_tendsto_of_nonneg_ae hcg I hfm hfi hnng htendsto,
-hφ.integral_eq_of_tendsto hcg I hfm hfi' htendsto
+  from hφ.integrable_of_integral_tendsto_of_nonneg_ae I hfm hfi hnng htendsto,
+hφ.integral_eq_of_tendsto I hfm hfi' htendsto
 
 end integral
 
@@ -359,11 +359,11 @@ section integrable_of_interval_integral
 variables {α ι E : Type*}
           [topological_space α] [linear_order α] [order_closed_topology α]
           [measurable_space α] [opens_measurable_space α] {μ : measure α}
-          {l : filter ι} [filter.ne_bot l] (hcg : l.is_countably_generated)
+          {l : filter ι} [filter.ne_bot l] [is_countably_generated l]
           [measurable_space E] [normed_group E] [borel_space E]
           {a b : ι → α} {f : α → E} (hfm : ae_measurable f μ)
 
-include hcg hfm
+include hfm
 
 lemma integrable_of_interval_integral_norm_tendsto [no_bot_order α] [nonempty α]
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
@@ -374,7 +374,7 @@ begin
   let φ := λ n, Ioc (a n) (b n),
   let c : α := classical.choice ‹_›,
   have hφ : ae_cover μ l φ := ae_cover_Ioc ha hb,
-  refine hφ.integrable_of_integral_norm_tendsto hcg _ hfm hfi (h.congr' _),
+  refine hφ.integrable_of_integral_norm_tendsto _ hfm hfi (h.congr' _),
   filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)],
   intros i hai hbi,
   exact interval_integral.integral_of_le (hai.trans hbi)
@@ -391,7 +391,7 @@ begin
   { intro i,
     rw [integrable_on, measure.restrict_restrict (hφ.measurable i)],
     exact hfi i },
-  refine hφ.integrable_of_integral_norm_tendsto hcg _ hfm.restrict hfi (h.congr' _),
+  refine hφ.integrable_of_integral_norm_tendsto _ hfm.restrict hfi (h.congr' _),
   filter_upwards [ha.eventually (eventually_le_at_bot b)],
   intros i hai,
   rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
@@ -409,7 +409,7 @@ begin
   { intro i,
     rw [integrable_on, measure.restrict_restrict (hφ.measurable i), inter_comm],
     exact hfi i },
-  refine hφ.integrable_of_integral_norm_tendsto hcg _ hfm.restrict hfi (h.congr' _),
+  refine hφ.integrable_of_integral_norm_tendsto _ hfm.restrict hfi (h.congr' _),
   filter_upwards [hb.eventually (eventually_ge_at_top $ a)],
   intros i hbi,
   rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
@@ -424,12 +424,12 @@ section integral_of_interval_integral
 variables {α ι E : Type*}
           [topological_space α] [linear_order α] [order_closed_topology α]
           [measurable_space α] [opens_measurable_space α] {μ : measure α}
-          {l : filter ι} (hcg : l.is_countably_generated)
+          {l : filter ι} [is_countably_generated l]
           [measurable_space E] [normed_group E] [normed_space ℝ E] [borel_space E]
           [complete_space E] [second_countable_topology E]
           {a b : ι → α} {f : α → E} (hfm : ae_measurable f μ)
 
-include hcg hfm
+include hfm
 
 lemma interval_integral_tendsto_integral [no_bot_order α] [nonempty α]
   (hfi : integrable f μ) (ha : tendsto a l at_bot) (hb : tendsto b l at_top) :
@@ -438,7 +438,7 @@ begin
   let φ := λ i, Ioc (a i) (b i),
   let c : α := classical.choice ‹_›,
   have hφ : ae_cover μ l φ := ae_cover_Ioc ha hb,
-  refine (hφ.integral_tendsto_of_countably_generated hcg hfm hfi).congr' _,
+  refine (hφ.integral_tendsto_of_countably_generated hfm hfi).congr' _,
   filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)],
   intros i hai hbi,
   exact (interval_integral.integral_of_le (hai.trans hbi)).symm
@@ -450,7 +450,7 @@ lemma interval_integral_tendsto_integral_Iic [no_bot_order α] (b : α)
 begin
   let φ := λ i, Ioi (a i),
   have hφ : ae_cover (μ.restrict $ Iic b) l φ := ae_cover_Ioi ha,
-  refine (hφ.integral_tendsto_of_countably_generated hcg hfm.restrict hfi).congr' _,
+  refine (hφ.integral_tendsto_of_countably_generated hfm.restrict hfi).congr' _,
   filter_upwards [ha.eventually (eventually_le_at_bot $ b)],
   intros i hai,
   rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
@@ -463,7 +463,7 @@ lemma interval_integral_tendsto_integral_Ioi (a : α)
 begin
   let φ := λ i, Iic (b i),
   have hφ : ae_cover (μ.restrict $ Ioi a) l φ := ae_cover_Iic hb,
-  refine (hφ.integral_tendsto_of_countably_generated hcg hfm.restrict hfi).congr' _,
+  refine (hφ.integral_tendsto_of_countably_generated hfm.restrict hfi).congr' _,
   filter_upwards [hb.eventually (eventually_ge_at_top $ a)],
   intros i hbi,
   rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),

@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
 import ring_theory.localization
@@ -123,7 +124,8 @@ begin
     exact matrix.det_ne_zero_of_right_inverse this }
 end
 
-lemma exists_mul_vec_eq_zero_iff' {A : Type*} (K : Type*) [decidable_eq n] [integral_domain A]
+lemma exists_mul_vec_eq_zero_iff' {A : Type*} (K : Type*) [decidable_eq n]
+  [comm_ring A] [is_domain A]
   [field K] [algebra A K] [is_fraction_ring A K]
   {M : matrix n n A} :
   (∃ (v ≠ 0), M.mul_vec v = 0) ↔ M.det = 0 :=
@@ -160,17 +162,17 @@ begin
       { rw [mul_vec_smul, mul_eq, pi.smul_apply, pi.zero_apply, smul_zero] } } },
 end
 
-lemma exists_mul_vec_eq_zero_iff {A : Type*} [decidable_eq n] [integral_domain A]
+lemma exists_mul_vec_eq_zero_iff {A : Type*} [decidable_eq n] [comm_ring A] [is_domain A]
   {M : matrix n n A} :
   (∃ (v ≠ 0), M.mul_vec v = 0) ↔ M.det = 0 :=
 exists_mul_vec_eq_zero_iff' (fraction_ring A)
 
-lemma exists_vec_mul_eq_zero_iff {A : Type*} [decidable_eq n] [integral_domain A]
+lemma exists_vec_mul_eq_zero_iff {A : Type*} [decidable_eq n] [comm_ring A] [is_domain A]
   {M : matrix n n A} :
   (∃ (v ≠ 0), M.vec_mul v = 0) ↔ M.det = 0 :=
 by simpa only [← M.det_transpose, ← mul_vec_transpose] using exists_mul_vec_eq_zero_iff
 
-theorem nondegenerate_iff_det_ne_zero {A : Type*} [decidable_eq n] [integral_domain A]
+theorem nondegenerate_iff_det_ne_zero {A : Type*} [decidable_eq n] [comm_ring A] [is_domain A]
   {M : matrix n n A} :
   nondegenerate M ↔ M.det ≠ 0 :=
 begin

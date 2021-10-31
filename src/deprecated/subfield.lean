@@ -35,8 +35,8 @@ lemma is_subfield.pow_mem {a : F} {n : ℤ} {s : set F} (hs : is_subfield s) (h 
   a ^ n ∈ s :=
 begin
   cases n,
-  { rw gpow_of_nat, exact hs.to_is_subring.to_is_submonoid.pow_mem h },
-  { rw gpow_neg_succ_of_nat, exact hs.inv_mem (hs.to_is_subring.to_is_submonoid.pow_mem h) },
+  { rw zpow_of_nat, exact hs.to_is_subring.to_is_submonoid.pow_mem h },
+  { rw zpow_neg_succ_of_nat, exact hs.inv_mem (hs.to_is_subring.to_is_submonoid.pow_mem h) },
 end
 
 lemma univ.is_subfield : is_subfield (@set.univ F) :=

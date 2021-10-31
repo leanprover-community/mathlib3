@@ -619,7 +619,7 @@ begin
     exact λ n, hf1.1 (set.mem_range_self n) _ (list.head_mem_self (hnil n)) },
   have hf' := hf2 (g 0) (λ n, if n < g 0 then f n else list.tail (f (g (n - g 0))))
     (λ m hm, (if_pos hm).symm) _,
-  swap, { simp only [if_neg (lt_irrefl (g 0)), nat.sub_self],
+  swap, { simp only [if_neg (lt_irrefl (g 0)), tsub_self],
     rw [list.length_tail, ← nat.pred_eq_sub_one],
     exact nat.pred_lt (λ con, hnil _ (list.length_eq_zero.1 con)) },
   rw [is_bad_seq] at hf',
@@ -634,11 +634,11 @@ begin
   { apply hf1.2 m n mn,
     rwa [if_pos hn, if_pos (mn.trans hn)] at hmn },
   { obtain ⟨n', rfl⟩ := le_iff_exists_add.1 (not_lt.1 hn),
-    rw [if_neg hn, add_comm (g 0) n', nat.add_sub_cancel] at hmn,
+    rw [if_neg hn, add_comm (g 0) n', add_tsub_cancel_right] at hmn,
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),
       exact trans hmn (list.tail_sublist_forall₂_self _) },
-    { rw [← (sub_lt_iff_left (le_of_not_lt hm))] at mn,
+    { rw [← (tsub_lt_iff_left (le_of_not_lt hm))] at mn,
       apply hf1.2 _ _ (g.lt_iff_lt.2 mn),
       rw [← list.cons_head_tail (hnil (g (m - g 0))), ← list.cons_head_tail (hnil (g n'))],
       exact list.sublist_forall₂.cons (hg _ _ (le_of_lt mn)) hmn, } }

@@ -629,12 +629,12 @@ def free_group_unit_equiv_int : free_group unit ≃ ℤ :=
   begin
     rintros ⟨L⟩,
     refine list.rec_on L rfl _,
-    exact (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl),
+    exact (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [zpow_add] at ih ⊢; rw ih; refl),
   end,
   right_inv :=
     λ x, int.induction_on x (by simp)
-    (λ i ih, by simp at ih; simp [gpow_add, ih])
-    (λ i ih, by simp at ih; simp [gpow_add, ih, sub_eq_add_neg, -int.add_neg_one])
+    (λ i ih, by simp at ih; simp [zpow_add, ih])
+    (λ i ih, by simp at ih; simp [zpow_add, ih, sub_eq_add_neg, -int.add_neg_one])
 }
 
 section category

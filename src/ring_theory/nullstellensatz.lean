@@ -6,7 +6,7 @@ Authors: Devon Tuma
 import ring_theory.jacobson
 import field_theory.is_alg_closed.basic
 import field_theory.mv_polynomial
-import algebraic_geometry.prime_spectrum
+import algebraic_geometry.prime_spectrum.basic
 
 /-!
 # Nullstellensatz

@@ -220,7 +220,7 @@ end
 lemma val_eq_iff_norm_eq {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) :
   f.valuation = g.valuation ↔ f.norm = g.norm :=
 begin
-  rw [norm_eq_pow_val hf, norm_eq_pow_val hg, ← neg_inj, fpow_inj],
+  rw [norm_eq_pow_val hf, norm_eq_pow_val hg, ← neg_inj, zpow_inj],
   { exact_mod_cast (fact.out p.prime).pos },
   { exact_mod_cast (fact.out p.prime).ne_one },
 end
@@ -816,7 +816,7 @@ end
 begin
   have p₀ : p ≠ 0 := hp.1.ne_zero,
   have p₁ : p ≠ 1 := hp.1.ne_one,
-  simp [p₀, p₁, norm, padic_norm, padic_val_rat, fpow_neg, padic.cast_eq_of_rat_of_nat],
+  simp [p₀, p₁, norm, padic_norm, padic_val_rat, zpow_neg, padic.cast_eq_of_rat_of_nat],
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
@@ -827,7 +827,7 @@ begin
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
-by rw [normed_field.norm_fpow, norm_p]; field_simp
+by rw [normed_field.norm_zpow, norm_p]; field_simp
 
 instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
@@ -864,11 +864,11 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
         from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
-      rw [padic_norm.eq_fpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
+      rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
       have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
       simp only, norm_cast,
       rw_mod_cast [h, sub_zero],
-      apply fpow_le_one_of_nonpos,
+      apply zpow_le_one_of_nonpos,
       { exact_mod_cast le_of_lt hp.1.one_lt, },
       { apply neg_nonpos_of_nonneg, norm_cast, simp, }
     end
@@ -895,7 +895,7 @@ begin
       rw H,
       apply dvd_zero },
     { norm_cast at H ⊢,
-      convert gpow_zero _,
+      convert zpow_zero _,
       simp only [neg_eq_zero],
       rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
       norm_cast,
@@ -1003,7 +1003,7 @@ begin
   change (padic_seq.norm _ : ℝ) = (p : ℝ) ^ -padic_seq.valuation _,
   rw padic_seq.norm_eq_pow_val,
   change ↑((p : ℚ) ^ -padic_seq.valuation f) = (p : ℝ) ^ -padic_seq.valuation f,
-  { rw rat.cast_fpow,
+  { rw rat.cast_zpow,
     congr' 1,
     norm_cast },
   { apply cau_seq.not_lim_zero_of_not_congr_zero,
@@ -1016,7 +1016,7 @@ end
 begin
   have h : (1 : ℝ) < p := by exact_mod_cast (fact.out p.prime).one_lt,
   rw ← neg_inj,
-  apply (fpow_strict_mono h).injective,
+  apply (zpow_strict_mono h).injective,
   dsimp only,
   rw ← norm_eq_pow_val,
   { simp },
@@ -1029,11 +1029,11 @@ lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℚ_[p]) (n : ℤ) :
   ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
   have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
-  { apply nat.fpow_pos_of_pos, exact hp_prime.1.pos },
+  { apply nat.zpow_pos_of_pos, exact hp_prime.1.pos },
   by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
   rw norm_eq_pow_val hx0,
   have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
-  have H := fpow_strict_mono h1p,
+  have H := zpow_strict_mono h1p,
   rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
 end
 

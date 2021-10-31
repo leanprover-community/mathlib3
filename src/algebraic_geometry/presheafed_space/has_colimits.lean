@@ -96,7 +96,7 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
   begin
     apply (op_equiv _ _).injective,
     ext U,
-    op_induction U,
+    induction U using opposite.rec,
     cases U,
     dsimp, simp, dsimp, simp,
   end,
@@ -153,7 +153,7 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
       { ext x,
         exact colimit.w_apply (F ⋙ PresheafedSpace.forget C) f x, },
       { ext U,
-        op_induction U,
+        induction U using opposite.rec,
         cases U,
         dsimp,
         simp only [PresheafedSpace.id_c_app, eq_to_hom_op, eq_to_hom_map, assoc,
@@ -164,8 +164,7 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
         congr,
         dsimp,
         simp only [id_comp],
-        rw ←is_iso.inv_comp_eq,
-        simp, refl, }
+        simpa, }
     end, }, }
 
 namespace colimit_cocone_is_colimit
@@ -196,7 +195,7 @@ begin
     replace w := congr_arg op w,
     have w' := nat_trans.congr (F.map f.unop).c w,
     rw w',
-    dsimp, simp, dsimp, simp, refl, },
+    dsimp, simp, dsimp, simp, },
 end
 
 lemma desc_c_naturality (F : J ⥤ PresheafedSpace C) (s : cocone F)
@@ -265,7 +264,7 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
       dsimp,
       have w := congr_arg op (functor.congr_obj (congr_arg opens.map t) (unop U)),
       rw nat_trans.congr (limit.π (pushforward_diagram_to_colimit F).left_op j) w,
-      simp, dsimp, simp, }
+      simpa }
   end, }
 
 /--

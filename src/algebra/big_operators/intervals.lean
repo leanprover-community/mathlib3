@@ -20,17 +20,25 @@ open_locale big_operators nat
 
 namespace finset
 
-variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α} {g f : α → β}
-  [comm_monoid β]
+variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α}
+  {g f : α → β}
 
-lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
-  (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=
-image_add_const_Ico m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
+lemma sum_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
+  [locally_finite_order α] [add_comm_monoid β] (f : α → β) (a b c : α) :
+  (∑ x in Ico a b, f (c + x)) = (∑ x in Ico (a + c) (b + c), f x) :=
+begin
+  classical,
+  rw [←image_add_right_Ico, sum_image (λ x hx y hy h, add_right_cancel h)],
+  simp_rw add_comm,
+end
 
 @[to_additive]
-lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
-  (∏ l in Ico m n, f (k + l)) = (∏ l in Ico (m + k) (n + k), f l) :=
-@sum_Ico_add (additive β) _ f m n k
+lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
+  [locally_finite_order α] [comm_monoid β] (f : α → β) (a b c : α) :
+  (∏ x in Ico a b, f (c + x)) = (∏ x in Ico (a + c) (b + c), f x) :=
+@sum_Ico_add _ (additive β) _ _ _ _ f a b c
+
+variables [comm_monoid β]
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
@@ -90,9 +98,9 @@ lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :
   (∏ k in Ico m n, f k) = (∏ k in range (n - m), f (m + k)) :=
 begin
   by_cases h : m ≤ n,
-  { rw [←nat.Ico_zero_eq_range, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
+  { rw [←nat.Ico_zero_eq_range, prod_Ico_add, zero_add, tsub_add_cancel_of_le h] },
   { replace h : n ≤ m :=  le_of_not_ge h,
-     rw [Ico_eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
+     rw [Ico_eq_empty_of_le h, tsub_eq_zero_iff_le.mpr h, range_zero, prod_empty, prod_empty] }
 end
 
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
@@ -106,8 +114,8 @@ begin
     refine (prod_image _).symm,
     simp only [mem_Ico],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
-    rw [← nat.sub_sub_self (this _ im), Hij, nat.sub_sub_self (this _ jm)] },
-  { simp [Ico_eq_empty_of_le, nat.sub_le_sub_left, hkm] }
+    rw [← tsub_tsub_cancel_of_le (this _ im), Hij, tsub_tsub_cancel_of_le (this _ jm)] },
+  { simp [Ico_eq_empty_of_le, tsub_le_tsub_left, hkm] }
 end
 
 lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
@@ -120,7 +128,7 @@ lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
 begin
   cases n,
   { simp },
-  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, nat.sub_zero],
+  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, tsub_zero],
     rw prod_Ico_reflect _ _ le_rfl,
     simp }
 end
@@ -146,7 +154,7 @@ lemma sum_range_id_mul_two (n : ℕ) :
 calc (∑ i in range n, i) * 2 = (∑ i in range n, i) + (∑ i in range n, (n - 1 - i)) :
   by rw [sum_range_reflect (λ i, i) n, mul_two]
 ... = ∑ i in range n, (i + (n - 1 - i)) : sum_add_distrib.symm
-... = ∑ i in range n, (n - 1) : sum_congr rfl $ λ i hi, add_sub_cancel_of_le $
+... = ∑ i in range n, (n - 1) : sum_congr rfl $ λ i hi, add_tsub_cancel_of_le $
   nat.le_pred_of_lt $ mem_range.1 hi
 ... = n * (n - 1) : by rw [sum_const, card_range, nat.nsmul_eq_mul]
 

@@ -30,7 +30,6 @@ normed group
 
 variables {α ι E F : Type*}
 
-noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
@@ -88,7 +87,7 @@ structure semi_normed_group.core (E : Type*) [add_comm_group E] [has_norm E] : P
 pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
 cases this instance creates bad definitional equalities (e.g., it does not take into account
 a possibly existing `uniform_space` instance on `E`). -/
-noncomputable def semi_normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
+def semi_normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   (C : semi_normed_group.core E) : semi_normed_group E :=
 { dist := λ x y, ∥x - y∥,
   dist_eq := assume x y, by refl,
@@ -106,7 +105,7 @@ instance : normed_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-instance : normed_group ℝ :=
+noncomputable instance : normed_group ℝ :=
 { norm := λ x, |x|,
   dist_eq := assume x y, rfl }
 
@@ -417,39 +416,7 @@ lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α →
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
 
-lemma cauchy_seq.add {u v : ℕ → E} (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u + v) :=
-begin
-  rw normed_group.cauchy_seq_iff at *,
-  intros ε ε_pos,
-  rcases hu (ε/2) (half_pos ε_pos) with ⟨Nu, hNu⟩,
-  rcases hv (ε/2) (half_pos ε_pos) with ⟨Nv, hNv⟩,
-  use max Nu Nv,
-  intros m n hm hn,
-  replace hm := max_le_iff.mp hm,
-  replace hn := max_le_iff.mp hn,
-
-  calc ∥(u + v) m - (u + v) n∥ = ∥u m + v m - (u n + v n)∥ : rfl
-  ... = ∥(u m - u n) + (v m - v n)∥ : by abel
-  ... ≤ ∥u m - u n∥ + ∥v m - v n∥ : norm_add_le _ _
-  ... < ε : by linarith only [hNu m n hm.1 hn.1, hNv m n hm.2 hn.2]
-end
-
 open finset
-
-lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
-  (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
-begin
-  let d : ℕ → E := λ n, ∑ k in range (n + 1), (u k - v k),
-  rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
-    by { ext n, simp [d] },
-  have : ∀ n ≥ N, d n = d N,
-  { intros n hn,
-    dsimp [d],
-    rw eventually_constant_sum _ hn,
-    intros m hm,
-    simp [huv m hm] },
-  exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
-end
 
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
@@ -650,7 +617,7 @@ begin
   letI : pseudo_metric_space α := pseudo_emetric_space.to_pseudo_metric_space hf.edist_ne_top,
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw le_div_iff (nnreal.coe_pos.2 $ sub_pos_iff_lt.2 hK),
+  rw le_div_iff (nnreal.coe_pos.2 $ tsub_pos_iff_lt.2 hK),
   rw [mul_comm, nnreal.coe_sub hK.le, sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
     sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
@@ -707,7 +674,7 @@ rfl
 rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
-instance prod.semi_normed_group : semi_normed_group (E × F) :=
+noncomputable instance prod.semi_normed_group : semi_normed_group (E × F) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : E × F),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
@@ -729,8 +696,8 @@ max_le_iff
 
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
-instance pi.semi_normed_group {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] :
-  semi_normed_group (Πi, π i) :=
+noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
+  [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
@@ -896,22 +863,31 @@ by simp [metric.mem_closure_iff, dist_eq_norm]
 lemma norm_le_zero_iff' [separated_space E] {g : E} :
   ∥g∥ ≤ 0 ↔ g = 0 :=
 begin
-  have : g = 0 ↔ g ∈ closure ({0} : set E),
-  by simpa only [separated_space.out, mem_id_rel, sub_zero] using group_separation_rel g (0 : E),
-  rw [this, semi_normed_group.mem_closure_iff],
-  simp [forall_lt_iff_le']
+  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space ‹_›,
+    .. ‹semi_normed_group E› },
+  rw [← dist_zero_right], exact dist_le_zero
 end
 
 lemma norm_eq_zero_iff' [separated_space E] {g : E} : ∥g∥ = 0 ↔ g = 0 :=
-begin
-  conv_rhs { rw ← norm_le_zero_iff' },
-  split ; intro h,
-  { rw h },
-  { exact le_antisymm h (norm_nonneg g) }
-end
+(norm_nonneg g).le_iff_eq.symm.trans norm_le_zero_iff'
 
 lemma norm_pos_iff' [separated_space E] {g : E} : 0 < ∥g∥ ↔ g ≠ 0 :=
 by rw [← not_le, norm_le_zero_iff']
+
+lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
+  (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
+begin
+  let d : ℕ → E := λ n, ∑ k in range (n + 1), (u k - v k),
+  rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
+    by { ext n, simp [d] },
+  have : ∀ n ≥ N, d n = d N,
+  { intros n hn,
+    dsimp [d],
+    rw eventually_constant_sum _ hn,
+    intros m hm,
+    simp [huv m hm] },
+  exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
+end
 
 end semi_normed_group
 
@@ -943,7 +919,7 @@ lemma normed_group.core.to_semi_normed_group.core {E : Type*} [add_comm_group E]
 
 /-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
 the metric space structure from the norm properties. -/
-noncomputable def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
+def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   (C : normed_group.core E) : normed_group E :=
 { eq_of_dist_eq_zero := λ x y h,
   begin
@@ -954,32 +930,23 @@ noncomputable def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm 
 
 variables [normed_group E] [normed_group F]
 
-@[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 :=
-dist_zero_right g ▸ dist_eq_zero
+@[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 := norm_eq_zero_iff'
 
-@[simp] lemma norm_pos_iff {g : E} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
-dist_zero_right g ▸ dist_pos
+@[simp] lemma norm_pos_iff {g : E} : 0 < ∥ g ∥ ↔ g ≠ 0 := norm_pos_iff'
 
-@[simp] lemma norm_le_zero_iff {g : E} : ∥g∥ ≤ 0 ↔ g = 0 :=
-by { rw [← dist_zero_right], exact dist_le_zero }
+@[simp] lemma norm_le_zero_iff {g : E} : ∥g∥ ≤ 0 ↔ g = 0 := norm_le_zero_iff'
+
+lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
+by rw [norm_eq_zero, sub_eq_zero]
 
 lemma eq_of_norm_sub_le_zero {g h : E} (a : ∥g - h∥ ≤ 0) : g = h :=
 by rwa [← sub_eq_zero, ← norm_le_zero_iff]
 
 lemma eq_of_norm_sub_eq_zero {u v : E} (h : ∥u - v∥ = 0) : u = v :=
-begin
-  apply eq_of_dist_eq_zero,
-  rwa dist_eq_norm
-end
-
-lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
-begin
-  convert dist_eq_zero,
-  rwa dist_eq_norm
-end
+norm_sub_eq_zero_iff.1 h
 
 @[simp] lemma nnnorm_eq_zero {a : E} : ∥a∥₊ = 0 ↔ a = 0 :=
-by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
+by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
 `normed_group` structure on the domain.
@@ -1003,7 +970,7 @@ instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { ..submodule.semi_normed_group s }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
-instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }
+noncomputable instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }
 
 lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
@@ -1021,7 +988,7 @@ lemma norm_prod_le_iff {x : E × F} {r : ℝ} :
 max_le_iff
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
-instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
+noncomputable instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πi, π i) := { ..pi.semi_normed_group }
 
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each

@@ -256,7 +256,7 @@ end
 
 lemma pow_map_zero_of_le
   {f : module.End R M} {m : M} {k l : ℕ} (hk : k ≤ l) (hm : (f^k) m = 0) : (f^l) m = 0 :=
-by rw [← nat.sub_add_cancel hk, pow_add, mul_apply, hm, map_zero]
+by rw [← tsub_add_cancel_of_le hk, pow_add, mul_apply, hm, map_zero]
 
 lemma commute_pow_left_of_commute
   {f : M →ₛₗ[σ₁₂] M₂} {g : module.End R M} {g₂ : module.End R₂ M₂}
@@ -859,7 +859,7 @@ lemma span_int_eq_add_subgroup_closure {M : Type*} [add_comm_group M] (s : set M
   (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
 eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
   (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)
-  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.gsmul_mem _ ‹_› _)
+  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.zsmul_mem _ ‹_› _)
 
 @[simp] lemma span_int_eq {M : Type*} [add_comm_group M] (s : add_subgroup M) :
   (span ℤ (s : set M)).to_add_subgroup = s :=
@@ -1046,6 +1046,9 @@ begin
   rw [exists_comm],
   simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
+
+lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
+by rw [insert_eq, span_union]
 
 lemma span_insert_eq_span (h : x ∈ span R s) : span R (insert x s) = span R s :=
 span_eq_of_le _ (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mono $ subset_insert _ _)
@@ -1800,6 +1803,43 @@ lemma ker_comp_of_ker_eq_bot (f : M →ₛₗ[τ₁₂] M₂) {g : M₂ →ₛ�
   (hg : ker g = ⊥) : ker (g.comp f : M →ₛₗ[τ₁₃] M₃) = ker f :=
 by rw [ker_comp, hg, submodule.comap_bot]
 
+section image
+
+/-- If `O` is a submodule of `M`, and `Φ : O →ₗ M'` is a linear map,
+then `(ϕ : O →ₗ M').submodule_image N` is `ϕ(N)` as a submodule of `M'` -/
+def submodule_image {M' : Type*} [add_comm_monoid M'] [module R M']
+  {O : submodule R M} (ϕ : O →ₗ[R] M') (N : submodule R M) : submodule R M' :=
+(N.comap O.subtype).map ϕ
+
+@[simp] lemma mem_submodule_image {M' : Type*} [add_comm_monoid M'] [module R M']
+  {O : submodule R M} {ϕ : O →ₗ[R] M'} {N : submodule R M} {x : M'} :
+  x ∈ ϕ.submodule_image N ↔ ∃ y (yO : y ∈ O) (yN : y ∈ N), ϕ ⟨y, yO⟩ = x :=
+begin
+  refine submodule.mem_map.trans ⟨_, _⟩; simp_rw submodule.mem_comap,
+  { rintro ⟨⟨y, yO⟩, (yN : y ∈ N), h⟩,
+    exact ⟨y, yO, yN, h⟩ },
+  { rintro ⟨y, yO, yN, h⟩,
+    exact ⟨⟨y, yO⟩, yN, h⟩ }
+end
+
+lemma mem_submodule_image_of_le {M' : Type*} [add_comm_monoid M'] [module R M']
+  {O : submodule R M} {ϕ : O →ₗ[R] M'} {N : submodule R M} (hNO : N ≤ O) {x : M'} :
+  x ∈ ϕ.submodule_image N ↔ ∃ y (yN : y ∈ N), ϕ ⟨y, hNO yN⟩ = x :=
+begin
+  refine mem_submodule_image.trans ⟨_, _⟩,
+  { rintro ⟨y, yO, yN, h⟩,
+    exact ⟨y, yN, h⟩ },
+  { rintro ⟨y, yN, h⟩,
+    exact ⟨y, hNO yN, yN, h⟩ }
+end
+
+lemma submodule_image_apply_of_le {M' : Type*} [add_comm_group M'] [module R M']
+  {O : submodule R M} (ϕ : O →ₗ[R] M') (N : submodule R M) (hNO : N ≤ O) :
+  ϕ.submodule_image N = (ϕ.comp (submodule.of_le hNO)).range :=
+by rw [submodule_image, range_comp, submodule.range_of_le]
+
+end image
+
 end semiring
 
 end linear_map
@@ -2155,7 +2195,7 @@ end neg
 section comm_semiring
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₂] [module R M₃]
-open linear_map
+open _root_.linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
@@ -2239,7 +2279,7 @@ section field
 variables [field K] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [module K M] [module K M₂] [module K M₃]
 variables (K) (M)
-open linear_map
+open _root_.linear_map
 
 /-- Multiplying by a nonzero element `a` of the field `K` is a linear equivalence. -/
 def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
@@ -2478,7 +2518,7 @@ end
 end linear_map
 
 namespace linear_equiv
-open linear_map
+open _root_.linear_map
 
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
@@ -2568,7 +2608,7 @@ variables (R M)
 namespace general_linear_group
 variables {R M}
 
-instance : has_coe_to_fun (general_linear_group R M) := by apply_instance
+instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by apply_instance
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

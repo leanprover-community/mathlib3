@@ -667,7 +667,7 @@ variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra 
 instance : algebra R (matrix n n α) :=
 { commutes' := λ r x, begin
     ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
-  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
+  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def r], end,
   ..((matrix.scalar n).comp (algebra_map R α)) }
 
 lemma algebra_map_matrix_apply {r : R} {i j : n} :
@@ -1137,6 +1137,42 @@ by ext i j; refl
 lemma transpose_map {f : α → β} {M : matrix m n α} : Mᵀ.map f = (M.map f)ᵀ :=
 by { ext, refl }
 
+/-- `matrix.transpose` as an `add_equiv` -/
+@[simps apply]
+def transpose_add_equiv [has_add α] : matrix m n α ≃+ matrix n m α :=
+{ to_fun := transpose,
+  inv_fun := transpose,
+  left_inv := transpose_transpose,
+  right_inv := transpose_transpose,
+  map_add' := transpose_add }
+
+@[simp] lemma transpose_add_equiv_symm [has_add α] :
+  (transpose_add_equiv : matrix m n α ≃+ matrix n m α).symm = transpose_add_equiv := rfl
+
+lemma transpose_list_sum [add_monoid α] (l : list (matrix m n α)) :
+  l.sumᵀ = (l.map transpose).sum :=
+(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_list_sum l
+
+lemma transpose_multiset_sum [add_comm_monoid α] (s : multiset (matrix m n α)) :
+  s.sumᵀ = (s.map transpose).sum :=
+(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_multiset_sum s
+
+lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι → matrix m n α) :
+  (∑ i in s, M i)ᵀ = ∑ i in s, (M i)ᵀ :=
+(transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
+
+/-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
+@[simps]
+def transpose_ring_equiv [comm_semiring α] [fintype m] : matrix m m α ≃+* (matrix m m α)ᵒᵖ :=
+{ to_fun := λ M, opposite.op (Mᵀ),
+  inv_fun := λ M, M.unopᵀ,
+  map_mul' := λ M N, (congr_arg opposite.op (transpose_mul M N)).trans (opposite.op_mul _ _),
+  ..transpose_add_equiv.trans opposite.op_add_equiv }
+
+lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : list (matrix m m α)) :
+  l.prodᵀ = (l.map transpose).reverse.prod :=
+(transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵒᵖ).unop_map_list_prod l
+
 end transpose
 
 section conj_transpose
@@ -1162,11 +1198,10 @@ by ext i j; simp
   (1 : matrix n n α)ᴴ = 1 :=
 by simp [conj_transpose]
 
-@[simp] lemma conj_transpose_add
-[semiring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+@[simp] lemma conj_transpose_add [add_monoid α] [star_add_monoid α] (M N : matrix m n α) :
   (M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
 
-@[simp] lemma conj_transpose_sub [ring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+@[simp] lemma conj_transpose_sub [add_group α] [star_add_monoid α] (M N : matrix m n α) :
   (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
 
 @[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
@@ -1178,6 +1213,46 @@ by ext i j; simp [mul_comm]
 
 @[simp] lemma conj_transpose_neg [ring α] [star_ring α] (M : matrix m n α) :
   (- M)ᴴ = - Mᴴ  := by ext i j; simp
+
+/-- `matrix.conj_transpose` as an `add_equiv` -/
+@[simps apply]
+def conj_transpose_add_equiv [add_monoid α] [star_add_monoid α] : matrix m n α ≃+ matrix n m α :=
+{ to_fun := conj_transpose,
+  inv_fun := conj_transpose,
+  left_inv := conj_transpose_conj_transpose,
+  right_inv := conj_transpose_conj_transpose,
+  map_add' := conj_transpose_add }
+
+@[simp] lemma conj_transpose_add_equiv_symm [add_monoid α] [star_add_monoid α] :
+  (conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).symm = conj_transpose_add_equiv := rfl
+
+lemma conj_transpose_list_sum [add_monoid α] [star_add_monoid α] (l : list (matrix m n α)) :
+  l.sumᴴ = (l.map conj_transpose).sum :=
+(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_list_sum l
+
+lemma conj_transpose_multiset_sum [add_comm_monoid α] [star_add_monoid α]
+  (s : multiset (matrix m n α)) :
+  s.sumᴴ = (s.map conj_transpose).sum :=
+(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_multiset_sum s
+
+lemma conj_transpose_sum [add_comm_monoid α] [star_add_monoid α] {ι : Type*} (s : finset ι)
+  (M : ι → matrix m n α) :
+  (∑ i in s, M i)ᴴ = ∑ i in s, (M i)ᴴ :=
+(conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
+
+/-- `matrix.conj_transpose` as a `ring_equiv` to the opposite ring -/
+@[simps]
+def conj_transpose_ring_equiv [comm_semiring α] [star_ring α] [fintype m] :
+  matrix m m α ≃+* (matrix m m α)ᵒᵖ :=
+{ to_fun := λ M, opposite.op (Mᴴ),
+  inv_fun := λ M, M.unopᴴ,
+  map_mul' := λ M N, (congr_arg opposite.op (conj_transpose_mul M N)).trans (opposite.op_mul _ _),
+  ..conj_transpose_add_equiv.trans opposite.op_add_equiv }
+
+lemma conj_transpose_list_prod [comm_semiring α] [star_ring α] [fintype m] [decidable_eq m]
+  (l : list (matrix m m α)) :
+  l.prodᴴ = (l.map conj_transpose).reverse.prod :=
+(conj_transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵒᵖ).unop_map_list_prod l
 
 end conj_transpose
 
@@ -1194,6 +1269,10 @@ lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ :
 
 instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 { star_involutive := conj_transpose_conj_transpose }
+
+/-- When `α` is a `*`-additive monoid, `matrix.has_star` is also a `*`-additive monoid. -/
+instance [add_monoid α] [star_add_monoid α] : star_add_monoid (matrix n n α) :=
+{ star_add := conj_transpose_add }
 
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
 instance [fintype n] [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=

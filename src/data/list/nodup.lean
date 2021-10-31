@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
+import data.list.lattice
 import data.list.pairwise
 import data.list.forall2
 
@@ -337,8 +338,8 @@ begin
   exact absurd (hl x) hx.not_le
 end
 
-lemma nodup.pairwise_of_set_pairwise_on {l : list α} {r : α → α → Prop}
-  (hl : l.nodup) (h : {x | x ∈ l}.pairwise_on r) : l.pairwise r :=
+lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
 
 end list

@@ -683,7 +683,7 @@ lemma remaining_ne_fail : remaining cb n ≠ fail n' err :=
 by simp [remaining]
 
 lemma eof_eq_done {u : unit} : eof cb n = done n' u ↔ n = n' ∧ cb.size ≤ n :=
-by simp [eof, guard_eq_done, remaining_eq_done, nat.sub_eq_zero_iff_le, and_comm, and_assoc]
+by simp [eof, guard_eq_done, remaining_eq_done, tsub_eq_zero_iff_le, and_comm, and_assoc]
 
 @[simp] lemma foldr_core_zero_eq_done {f : α → β → β} {p : parser α} {b' : β} :
   foldr_core f p b 0 cb n ≠ done n' b' :=
@@ -719,7 +719,7 @@ lemma foldr_eq_fail_iff_mono_at_end {f : α → β → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldr, foldr_core_succ_eq_fail, this, and.left_comm, foldr_core_zero_eq_fail,
              ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
              exists_and_distrib_left],
@@ -773,7 +773,7 @@ lemma foldl_eq_fail_iff_mono_at_end {f : β → α → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldl f b p cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldl, foldl_core_succ_eq_fail, this, and.left_comm, ne_iff_lt_iff_le, exists_eq_left,
              exists_and_distrib_right, and.congr_left_iff, exists_and_distrib_left,
              foldl_core_zero_eq_fail],
@@ -882,7 +882,7 @@ begin
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9],
     rintro ⟨np, c, ⟨hn, ⟨ge0, le9⟩, rfl, rfl⟩, rfl, rfl⟩,
     simpa [hn, ge0, le9, true_and, and_true, eq_self_iff_true, exists_prop_of_true,
-            nat.sub_le_sub_right_iff, l09] using (le_iff_le.mp le9) },
+            tsub_le_tsub_iff_right, l09] using (le_iff_le.mp le9) },
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9,
                le_iff_le],
     rintro ⟨hn, rfl, -, rfl, ge0, le9⟩,
@@ -1851,7 +1851,7 @@ begin
     have hn : n < cb.size := bounded.of_done hp,
     subst this,
     obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
-      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (tsub_pos_of_lt hn)),
     cases k,
     { cases tl;
       simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
@@ -1869,7 +1869,7 @@ begin
     have hn : n < cb.size := bounded.of_done hp,
     subst this,
     obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
-      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (tsub_pos_of_lt hn)),
     cases k,
     { cases tl;
       simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
@@ -2300,11 +2300,11 @@ begin
       { simp [hk, add_assoc] },
     subst this,
     simp only [nat.sub_succ, add_comm, ←nat.pred_sub, buffer.length_to_list, nat.pred_one_add,
-                min_eq_left_iff, list.length_drop, nat.add_sub_cancel_left, list.length_take,
-                nat.sub_zero],
+                min_eq_left_iff, list.length_drop, add_tsub_cancel_left, list.length_take,
+                tsub_zero],
     -- We now have a goal of proving an inequality dealing with `nat` subtraction and `nat.pred`,
     -- both of which require special care to provide positivity hypotheses.
-    rw [nat.sub_le_sub_right_iff, nat.pred_le_iff],
+    rw [tsub_le_tsub_iff_right, nat.pred_le_iff],
     { -- We know that `n' ≤ cb.size` because of the `bounded` property, that a parser will not
       -- produce a `done` result at a position farther than the size of the underlying
       -- `char_buffer`.
@@ -2576,7 +2576,7 @@ begin
       { -- We rewrite the statement to be a statement about characters instead, and split the
         -- inequality into the case that our hypotheses prove, and that `'0' ≤ '9'`, which
         -- is true by computation, handled by `dec_trivial`.
-        rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, nat.sub_le_sub_right_iff],
+        rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, tsub_le_tsub_iff_right],
         { exact ho.right },
         { dec_trivial } },
         -- We rely on the simplifier, mostly powered by `digit_eq_done`, and supply all the
@@ -2622,7 +2622,7 @@ begin
       obtain ⟨m, rfl⟩ : ∃ m, n' = n + m + 1 := nat.exists_eq_add_of_lt hn,
       -- The following rearrangement lemma is to simplify the `list.take (n' - n)` expression we had
       have : n + m + 1 - n = m + 1,
-        { rw [add_assoc, nat.sub_eq_iff_eq_add, add_comm],
+        { rw [add_assoc, tsub_eq_iff_eq_add_of_le, add_comm],
           exact nat.le_add_right _ _ },
       -- We also have to prove what is the `prod.snd` of the result of the fold of a `list (ℕ × ℕ)`
       -- with the function above. We use this lemma to finish our inductive case.
@@ -2642,7 +2642,7 @@ begin
       { -- On the way to proving this, we have to actually show that `m ≤ tl.length`, by showing
         -- that since `tl` was a subsequence in `cb`, and was retrieved from `n + 1` to `n + m + 1`,
         -- then since `n + m + 1 ≤ cb.size`, we have that `tl` must be at least `m` in length.
-        simpa [←H.right, ←nat.add_le_to_le_sub _ (hn''.trans_le hn').le, add_comm, add_assoc,
+        simpa [←H.right, le_tsub_iff_right (hn''.trans_le hn').le, add_comm, add_assoc,
                add_left_comm] using hn' },
       -- Finally, we rely on the simplifier. We already expressions of `nat.of_digits` on both
       -- the LHS and RHS. All that is left to do is to prove that the summand on the LHS is produced
@@ -2666,7 +2666,7 @@ begin
       -- character.
       simp only [many1_eq_done, many_eq_done_nil, digit_eq_fail, natm, and.comm, and.left_comm,
                  hdigit, true_and, mul_one, nat.of_digits_singleton, list.take, exists_eq_left,
-                 exists_and_distrib_right, nat.add_sub_cancel_left, eq_self_iff_true,
+                 exists_and_distrib_right, add_tsub_cancel_left, eq_self_iff_true,
                  list.reverse_singleton, zero_add, list.foldr, list.map],
       -- We take the route of proving that we hit a nonnumeric character, since we already have
       -- a hypothesis that says that characters at `n'` and past it are nonnumeric. (Note, by now

@@ -229,18 +229,18 @@ rfl
 
 instance [div_inv_monoid α] : sub_neg_monoid (additive α) :=
 { sub_eq_add_neg := @div_eq_mul_inv α _,
-  gsmul := @gpow α _,
-  gsmul_zero' := div_inv_monoid.gpow_zero',
-  gsmul_succ' := div_inv_monoid.gpow_succ',
-  gsmul_neg' := div_inv_monoid.gpow_neg',
+  zsmul := @zpow α _,
+  zsmul_zero' := div_inv_monoid.zpow_zero',
+  zsmul_succ' := div_inv_monoid.zpow_succ',
+  zsmul_neg' := div_inv_monoid.zpow_neg',
   .. additive.has_neg, .. additive.has_sub, .. additive.add_monoid }
 
 instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
 { div_eq_mul_inv := @sub_eq_add_neg α _,
-  gpow := @gsmul α _,
-  gpow_zero' := sub_neg_monoid.gsmul_zero',
-  gpow_succ' := sub_neg_monoid.gsmul_succ',
-  gpow_neg' := sub_neg_monoid.gsmul_neg',
+  zpow := @zsmul α _,
+  zpow_zero' := sub_neg_monoid.zsmul_zero',
+  zpow_succ' := sub_neg_monoid.zsmul_succ',
+  zpow_neg' := sub_neg_monoid.zsmul_neg',
   .. multiplicative.has_inv, .. multiplicative.has_div, .. multiplicative.monoid }
 
 instance [group α] : add_group (additive α) :=
@@ -293,9 +293,9 @@ then `additive α` should also coerce to the same function.
 This allows `additive` to be used on bundled function types with a multiplicative structure, which
 is often used for composition, without affecting the behavior of the function itself.
 -/
-instance additive.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
-  has_coe_to_fun (additive α) :=
-⟨λ a, has_coe_to_fun.F a.to_mul, λ a, coe_fn a.to_mul⟩
+instance additive.has_coe_to_fun {α : Type*} {β : α → Sort*} [has_coe_to_fun α β] :
+  has_coe_to_fun (additive α) (λ a, β a.to_mul) :=
+⟨λ a, coe_fn a.to_mul⟩
 
 /-- If `α` has some additive structure and coerces to a function,
 then `multiplicative α` should also coerce to the same function.
@@ -303,6 +303,6 @@ then `multiplicative α` should also coerce to the same function.
 This allows `multiplicative` to be used on bundled function types with an additive structure, which
 is often used for composition, without affecting the behavior of the function itself.
 -/
-instance multiplicative.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
-  has_coe_to_fun (multiplicative α) :=
-⟨λ a, has_coe_to_fun.F a.to_add, λ a, coe_fn a.to_add⟩
+instance multiplicative.has_coe_to_fun {α : Type*} {β : α → Sort*} [has_coe_to_fun α β] :
+  has_coe_to_fun (multiplicative α) (λ a, β a.to_add) :=
+⟨λ a, coe_fn a.to_add⟩

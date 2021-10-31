@@ -1332,9 +1332,9 @@ not_congr nat_cast_eq_zero
 
 @[simp] theorem nat_cast_sub {m n : ℕ} : ((m - n : ℕ) : ordinal) = m - n :=
 (_root_.le_total m n).elim
-  (λ h, by rw [nat.sub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
+  (λ h, by rw [tsub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
-     add_sub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
+     add_tsub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
 
 @[simp] theorem nat_cast_div {m n : ℕ} : ((m / n : ℕ) : ordinal) = m / n :=
 if n0 : n = 0 then by simp only [n0, nat.div_zero, nat.cast_zero, div_zero] else

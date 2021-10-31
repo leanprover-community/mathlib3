@@ -65,7 +65,7 @@ def mk_sol (init : fin E.order → α) : ℕ → α
   ∑ k : fin E.order,
     have n - E.order + k < n :=
     begin
-      rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h), sub_lt_iff_left],
+      rw [add_comm, ← add_tsub_assoc_of_le (not_lt.mp h), tsub_lt_iff_left],
       { exact add_lt_add_right k.is_lt n },
       { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h),
         simp only [zero_add] }
@@ -88,12 +88,12 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
 | n := if h' : n < E.order
   then by rw mk_sol; simp only [h', dif_pos]; exact_mod_cast heq ⟨n, h'⟩
   else begin
-    rw [mk_sol, ← nat.sub_add_cancel (le_of_not_lt h'), h (n-E.order)],
+    rw [mk_sol, ← tsub_add_cancel_of_le (le_of_not_lt h'), h (n-E.order)],
     simp [h'],
     congr' with k,
     exact have wf : n - E.order + k < n :=
       begin
-        rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h'), sub_lt_iff_left],
+        rw [add_comm, ← add_tsub_assoc_of_le (not_lt.mp h'), tsub_lt_iff_left],
         { exact add_lt_add_right k.is_lt n },
         { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h'),
           simp only [zero_add] }

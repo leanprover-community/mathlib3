@@ -93,7 +93,7 @@ meta def normal_expr.e : normal_expr → expr
 | (normal_expr.nterm e _ _ _) := e
 
 meta instance : has_coe normal_expr expr := ⟨normal_expr.e⟩
-meta instance : has_coe_to_fun normal_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
+meta instance : has_coe_to_fun normal_expr (λ _, expr → expr) := ⟨λ e, ⇑(e : expr)⟩
 
 meta def normal_expr.term' (c : context) (n : expr × ℤ) (x : expr) (a : normal_expr) :
   normal_expr :=
@@ -141,7 +141,7 @@ by simp [h₁.symm, h₂.symm, term, add_nsmul]; ac_refl
 theorem term_add_termg {α} [add_comm_group α] (n₁ x a₁ n₂ a₂ n' a')
   (h₁ : n₁ + n₂ = n') (h₂ : a₁ + a₂ = a') :
   @termg α _ n₁ x a₁ + @termg α _ n₂ x a₂ = termg n' x a' :=
-by simp [h₁.symm, h₂.symm, termg, add_gsmul]; ac_refl
+by simp [h₁.symm, h₂.symm, termg, add_zsmul]; ac_refl
 
 theorem zero_term {α} [add_comm_monoid α] (x a) : @term α _ 0 x a = a :=
 by simp [term, zero_nsmul, one_nsmul]
@@ -206,7 +206,7 @@ by simp [h₂.symm, h₁.symm, term, smul, nsmul_add, mul_nsmul]
 theorem term_smulg {α} [add_comm_group α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smulg c a = a') :
   smulg c (@termg α _ n x a) = termg n' x a' :=
-by simp [h₂.symm, h₁.symm, termg, smulg, gsmul_add, mul_gsmul]
+by simp [h₂.symm, h₁.symm, termg, smulg, zsmul_add, mul_zsmul]
 
 meta def eval_smul (c : context) (k : expr × ℤ) :
   normal_expr → tactic (normal_expr × expr)
@@ -237,8 +237,8 @@ theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
 theorem unfold_smulg {α} [add_comm_group α] (n : ℕ) (x y : α)
   (h : smulg (int.of_nat n) x = y) : (n : ℤ) • x = y := h
 
-theorem unfold_gsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
-  (h : smulg n x = y) : gsmul n x = y := h
+theorem unfold_zsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
+  (h : smulg n x = y) : zsmul n x = y := h
 
 lemma subst_into_smul {α} [add_comm_monoid α]
   (l r tl tr t) (prl : l = tl) (prr : r = tr)
@@ -281,10 +281,10 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   n ← if c.is_group then mk_app ``int.of_nat [e₁] else return e₁,
   (e', p) ← eval $ c.iapp ``smul [n, e₂],
   return (e', c.iapp ``unfold_smul [e₁, e₂, e', p])
-| `(gsmul %%e₁ %%e₂) := do
+| `(zsmul %%e₁ %%e₂) := do
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
-  return (e', c.app ``unfold_gsmul c.inst [e₁, e₂, e', p])
+  return (e', c.app ``unfold_zsmul c.inst [e₁, e₂, e', p])
 | `(@has_scalar.smul nat _ add_monoid.has_scalar_nat %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
 | `(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
 | `(smul %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
@@ -304,8 +304,8 @@ meta def normalize (red : transparency) (mode := normalize_mode.term) (e : expr)
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
 | normalize_mode.term :=
-  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_gsmul,
-    ``gsmul_zero]
+  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_zsmul,
+    ``zsmul_zero]
 | _ := []
 end,
 lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
@@ -325,10 +325,9 @@ return (e', pr)
 end abel
 
 namespace interactive
-open interactive interactive.types lean.parser
 open tactic.abel
 
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /-- Tactic for solving equations in the language of
 *additive*, commutative monoids and groups.

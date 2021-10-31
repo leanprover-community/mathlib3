@@ -155,8 +155,7 @@ variables [has_scalar M α]
 
 /-- Auxiliary definition for `has_scalar.comp`, `mul_action.comp_hom`,
 `distrib_mul_action.comp_hom`, `module.comp_hom`, etc. -/
-@[simp, to_additive
-/-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
+@[simp, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
 def comp.smul (g : N → M) (n : N) (a : α) : α :=
 g n • a
 

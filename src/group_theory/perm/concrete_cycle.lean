@@ -81,7 +81,7 @@ begin
       have : w ∈ (x :: y :: l) := mem_of_form_perm_ne_self _ _ hw,
       obtain ⟨k, hk, rfl⟩ := nth_le_of_mem this,
       use k,
-      simp only [gpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
+      simp only [zpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
 end
 
 lemma pairwise_same_cycle_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
@@ -373,7 +373,7 @@ begin
   have hr : l ~r l.rotate k := ⟨k, rfl⟩,
   rw form_perm_eq_of_is_rotated hn hr,
   rw ←nth_le_rotate' l k k,
-  simp only [nat.mod_eq_of_lt hk, nat.sub_add_cancel hk.le, nat.mod_self],
+  simp only [nat.mod_eq_of_lt hk, tsub_add_cancel_of_le hk.le, nat.mod_self],
   rw [to_list_form_perm_nontrivial],
   { simp },
   { simpa using hl },

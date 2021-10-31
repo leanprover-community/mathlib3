@@ -200,7 +200,7 @@ instance : inhabited (seminorm 𝕜 E) :=
    smul'     := λ _ _, (mul_zero _).symm,
    triangle' := λ x y, by rw add_zero }⟩
 
-instance : has_coe_to_fun (seminorm 𝕜 E) := ⟨_, λ p, p.to_fun⟩
+instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 

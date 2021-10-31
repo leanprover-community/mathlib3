@@ -699,7 +699,7 @@ sets `t i`, `i ∈ I`, are finite, if all `t i`, `i ∈ I`, are pairwise disjoin
 the product of `f a` over `a ∈ ⋃ i ∈ I, t i` is equal to the product over `i ∈ I`
 of the products of `f a` over `a ∈ t i`. -/
 @[to_additive] lemma finprod_mem_bUnion {I : set ι} {t : ι → set α}
-  (h : pairwise_on I (disjoint on t)) (hI : I.finite) (ht : ∀ i ∈ I, (t i).finite) :
+  (h : I.pairwise (disjoint on t)) (hI : I.finite) (ht : ∀ i ∈ I, (t i).finite) :
   ∏ᶠ a ∈ ⋃ x ∈ I, t x, f a = ∏ᶠ i ∈ I, ∏ᶠ j ∈ t i, f j :=
 begin
   haveI := hI.fintype,
@@ -709,7 +709,7 @@ end
 
 /-- If `t` is a finite set of pairwise disjoint finite sets, then the product of `f a`
 over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` over `a ∈ s`. -/
-@[to_additive] lemma finprod_mem_sUnion {t : set (set α)} (h : pairwise_on t disjoint)
+@[to_additive] lemma finprod_mem_sUnion {t : set (set α)} (h : t.pairwise disjoint)
   (ht₀ : t.finite) (ht₁ : ∀ x ∈ t, set.finite x):
   ∏ᶠ a ∈ ⋃₀ t, f a = ∏ᶠ s ∈ t, ∏ᶠ a ∈ s, f a :=
 by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]

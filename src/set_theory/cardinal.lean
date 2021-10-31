@@ -442,7 +442,7 @@ by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
   let ⟨a⟩ := mk_ne_zero_iff.1 hα in
-  ⟨@embedding.arrow_congr_right _ _ _ ⟨a⟩ e⟩
+  ⟨@embedding.arrow_congr_left _ _ _ ⟨a⟩ e⟩
 
 theorem power_le_max_power_one {a b c : cardinal} (h : b ≤ c) : a ^ b ≤ max (a ^ c) 1 :=
 begin
@@ -452,7 +452,7 @@ begin
 end
 
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
-induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_left e⟩
+induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
 
 end order_properties
 

@@ -353,7 +353,7 @@ let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
 
 lemma exists_norm_lt {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
 let ⟨w, hw⟩ := exists_one_lt_norm α in
-let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
+let ⟨n, hle, hlt⟩ := exists_zpow_near' hr hw in
 ⟨w^n, by { rw norm_zpow; exact zpow_pos_of_pos (lt_trans zero_lt_one hw) _},
 by rwa norm_zpow⟩
 
@@ -717,7 +717,7 @@ lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos
   (hx : ∥x∥ ≠ 0) : ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
   have xεpos : 0 < ∥x∥/ε := div_pos ((ne.symm hx).le_iff_lt.1 (norm_nonneg x)) εpos,
-  rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
+  rcases exists_zpow_near xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
   refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,

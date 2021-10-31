@@ -13,7 +13,7 @@ This file defines pairwise relations and pairwise disjoint sets.
 ## Main declarations
 
 * `pairwise`: `pairwise r` states that `r i j` for all `i ≠ j`.
-* `set.pairwise_on`: `s.pairwise_on p` states that `p i j` for all `i ≠ j` with `i, j ∈ s`.
+* `set.pairwise`: `s.pairwise p` states that `p i j` for all `i ≠ j` with `i, j ∈ s`.
 * `set.pairwise_disjoint`: `pairwise_disjoint s` states that all elements in `s` are either equal or
   `disjoint`.
 -/
@@ -51,37 +51,37 @@ symmetric.pairwise_on disjoint.symm f
 namespace set
 
 /-- The relation `r` holds pairwise on the set `s` if `r x y` for all *distinct* `x y ∈ s`. -/
-def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
+protected def pairwise (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
 
-lemma pairwise_on_of_forall (s : set α) (r : α → α → Prop) (h : ∀ a b, r a b) : s.pairwise_on r :=
+lemma pairwise_of_forall (s : set α) (r : α → α → Prop) (h : ∀ a b, r a b) : s.pairwise r :=
 λ a _ b _ _, h a b
 
-lemma pairwise_on.imp_on (h : s.pairwise_on r) (hrp : s.pairwise_on (λ ⦃a b : α⦄, r a b → p a b)) :
-  s.pairwise_on p :=
+lemma pairwise.imp_on (h : s.pairwise r) (hrp : s.pairwise (λ ⦃a b : α⦄, r a b → p a b)) :
+  s.pairwise p :=
 λ a ha b hb hab, hrp a ha b hb hab (h a ha b hb hab)
 
-lemma pairwise_on.imp (h : s.pairwise_on r) (hpq : ∀ ⦃a b : α⦄, r a b → p a b) : s.pairwise_on p :=
-h.imp_on $ pairwise_on_of_forall s _ hpq
+lemma pairwise.imp (h : s.pairwise r) (hpq : ∀ ⦃a b : α⦄, r a b → p a b) : s.pairwise p :=
+h.imp_on $ pairwise_of_forall s _ hpq
 
-lemma pairwise_on.mono (h : t ⊆ s) (hs : s.pairwise_on r) : t.pairwise_on r :=
+lemma pairwise.mono (h : t ⊆ s) (hs : s.pairwise r) : t.pairwise r :=
 λ x xt y yt, hs x (h xt) y (h yt)
 
-lemma pairwise_on.mono' (H : r ≤ p) (hr : s.pairwise_on r) : s.pairwise_on p := hr.imp H
+lemma pairwise.mono' (H : r ≤ p) (hr : s.pairwise r) : s.pairwise p := hr.imp H
 
-lemma pairwise_on_top (s : set α) : s.pairwise_on ⊤ := pairwise_on_of_forall s _ (λ a b, trivial)
+lemma pairwise_top (s : set α) : s.pairwise ⊤ := pairwise_of_forall s _ (λ a b, trivial)
 
-protected lemma subsingleton.pairwise_on (h : s.subsingleton) (r : α → α → Prop) :
-  s.pairwise_on r :=
+protected lemma subsingleton.pairwise (h : s.subsingleton) (r : α → α → Prop) :
+  s.pairwise r :=
 λ x hx y hy hne, (hne (h hx hy)).elim
 
-@[simp] lemma pairwise_on_empty (r : α → α → Prop) : (∅ : set α).pairwise_on r :=
-subsingleton_empty.pairwise_on r
+@[simp] lemma pairwise_empty (r : α → α → Prop) : (∅ : set α).pairwise r :=
+subsingleton_empty.pairwise r
 
-@[simp] lemma pairwise_on_singleton (a : α) (r : α → α → Prop) : pairwise_on {a} r :=
-subsingleton_singleton.pairwise_on r
+@[simp] lemma pairwise_singleton (a : α) (r : α → α → Prop) : set.pairwise {a} r :=
+subsingleton_singleton.pairwise r
 
-lemma nonempty.pairwise_on_iff_exists_forall [is_equiv α r] {s : set ι} (hs : s.nonempty) :
-  (s.pairwise_on (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
+lemma nonempty.pairwise_iff_exists_forall [is_equiv α r] {s : set ι} (hs : s.nonempty) :
+  (s.pairwise (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
 begin
   fsplit,
   { rcases hs with ⟨y, hy⟩,
@@ -95,85 +95,85 @@ end
 
 /-- For a nonempty set `s`, a function `f` takes pairwise equal values on `s` if and only if
 for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See also
-`set.pairwise_on_eq_iff_exists_eq` for a version that assumes `[nonempty ι]` instead of
+`set.pairwise_eq_iff_exists_eq` for a version that assumes `[nonempty ι]` instead of
 `set.nonempty s`. -/
-lemma nonempty.pairwise_on_eq_iff_exists_eq {s : set α} (hs : s.nonempty) {f : α → ι} :
-  (s.pairwise_on (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
-hs.pairwise_on_iff_exists_forall
+lemma nonempty.pairwise_eq_iff_exists_eq {s : set α} (hs : s.nonempty) {f : α → ι} :
+  (s.pairwise (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+hs.pairwise_iff_exists_forall
 
-lemma pairwise_on_iff_exists_forall [nonempty ι] (s : set α) (f : α → ι) {r : ι → ι → Prop}
+lemma pairwise_iff_exists_forall [nonempty ι] (s : set α) (f : α → ι) {r : ι → ι → Prop}
   [is_equiv ι r] :
-  (s.pairwise_on (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
+  (s.pairwise (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|hne,
   { simp },
-  { exact hne.pairwise_on_iff_exists_forall }
+  { exact hne.pairwise_iff_exists_forall }
 end
 
 /-- A function `f : α → ι` with nonempty codomain takes pairwise equal values on a set `s` if and
 only if for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See also
-`set.nonempty.pairwise_on_eq_iff_exists_eq` for a version that assumes `set.nonempty s` instead of
+`set.nonempty.pairwise_eq_iff_exists_eq` for a version that assumes `set.nonempty s` instead of
 `[nonempty ι]`. -/
-lemma pairwise_on_eq_iff_exists_eq [nonempty ι] (s : set α) (f : α → ι) :
-  (s.pairwise_on (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
-pairwise_on_iff_exists_forall s f
+lemma pairwise_eq_iff_exists_eq [nonempty ι] (s : set α) (f : α → ι) :
+  (s.pairwise (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+pairwise_iff_exists_forall s f
 
-lemma pairwise_on_union :
-  (s ∪ t).pairwise_on r ↔
-    s.pairwise_on r ∧ t.pairwise_on r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b ∧ r b a :=
+lemma pairwise_union :
+  (s ∪ t).pairwise r ↔
+    s.pairwise r ∧ t.pairwise r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b ∧ r b a :=
 begin
-  simp only [pairwise_on, mem_union_eq, or_imp_distrib, forall_and_distrib],
+  simp only [set.pairwise, mem_union_eq, or_imp_distrib, forall_and_distrib],
   exact ⟨λ H, ⟨H.1.1, H.2.2, H.2.1, λ x hx y hy hne, H.1.2 y hy x hx hne.symm⟩,
     λ H, ⟨⟨H.1, λ x hx y hy hne, H.2.2.2 y hy x hx hne.symm⟩, H.2.2.1, H.2.1⟩⟩
 end
 
-lemma pairwise_on_union_of_symmetric (hr : symmetric r) :
-  (s ∪ t).pairwise_on r ↔
-    s.pairwise_on r ∧ t.pairwise_on r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b :=
-pairwise_on_union.trans $ by simp only [hr.iff, and_self]
+lemma pairwise_union_of_symmetric (hr : symmetric r) :
+  (s ∪ t).pairwise r ↔
+    s.pairwise r ∧ t.pairwise r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b :=
+pairwise_union.trans $ by simp only [hr.iff, and_self]
 
-lemma pairwise_on_insert :
-  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b ∧ r b a :=
-by simp only [insert_eq, pairwise_on_union, pairwise_on_singleton, true_and,
+lemma pairwise_insert :
+  (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b ∧ r b a :=
+by simp only [insert_eq, pairwise_union, pairwise_singleton, true_and,
   mem_singleton_iff, forall_eq]
 
-lemma pairwise_on_insert_of_symmetric (hr : symmetric r) :
-  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
-by simp only [pairwise_on_insert, hr.iff a, and_self]
+lemma pairwise_insert_of_symmetric (hr : symmetric r) :
+  (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b :=
+by simp only [pairwise_insert, hr.iff a, and_self]
 
-lemma pairwise_on_pair : pairwise_on {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
-by simp [pairwise_on_insert]
+lemma pairwise_pair : set.pairwise {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
+by simp [pairwise_insert]
 
-lemma pairwise_on_pair_of_symmetric (hr : symmetric r) : pairwise_on {a, b} r ↔ (a ≠ b → r a b) :=
-by simp [pairwise_on_insert_of_symmetric hr]
+lemma pairwise_pair_of_symmetric (hr : symmetric r) : set.pairwise {a, b} r ↔ (a ≠ b → r a b) :=
+by simp [pairwise_insert_of_symmetric hr]
 
-lemma pairwise_on_disjoint_on_mono {s : set ι} {f g : ι → set α} (h : s.pairwise_on (disjoint on f))
+lemma pairwise_disjoint_on_mono {s : set ι} {f g : ι → set α} (h : s.pairwise (disjoint on f))
   (h' : ∀ x ∈ s, g x ⊆ f x) :
-  s.pairwise_on (disjoint on g) :=
+  s.pairwise (disjoint on g) :=
 λ i hi j hj hij, disjoint.mono (h' i hi) (h' j hj) (h i hi j hj hij)
 
-lemma pairwise_on_univ : (univ : set α).pairwise_on r ↔ pairwise r :=
-by simp only [pairwise_on, pairwise, mem_univ, forall_const]
+lemma pairwise_univ : (univ : set α).pairwise r ↔ pairwise r :=
+by simp only [set.pairwise, pairwise, mem_univ, forall_const]
 
-lemma pairwise_on.on_injective (hs : s.pairwise_on r) (hf : function.injective f)
+lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
   (hfs : ∀ x, f x ∈ s) :
   pairwise (r on f) :=
 λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
 
-lemma inj_on.pairwise_on_image {s : set ι} (h : s.inj_on f) :
-  (f '' s).pairwise_on r ↔ s.pairwise_on (r on f) :=
-by simp [h.eq_iff, pairwise_on] {contextual := tt}
+lemma inj_on.pairwise_image {s : set ι} (h : s.inj_on f) :
+  (f '' s).pairwise r ↔ s.pairwise (r on f) :=
+by simp [h.eq_iff, set.pairwise] {contextual := tt}
 
-lemma pairwise_on_disjoint_fiber (f : ι → α) (s : set α) :
-  s.pairwise_on (disjoint on (λ a, f ⁻¹' {a})) :=
+lemma pairwise_disjoint_fiber (f : ι → α) (s : set α) :
+  s.pairwise (disjoint on (λ a, f ⁻¹' {a})) :=
 λ a _ b _ h i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
 
-lemma pairwise_on_Union {f : ι → set α} (h : directed (⊆) f) :
-  (⋃ n, f n).pairwise_on r ↔ ∀ n, (f n).pairwise_on r :=
+lemma pairwise_Union {f : ι → set α} (h : directed (⊆) f) :
+  (⋃ n, f n).pairwise r ↔ ∀ n, (f n).pairwise r :=
 begin
   split,
   { assume H n,
-    exact pairwise_on.mono (subset_Union _ _) H },
+    exact pairwise.mono (subset_Union _ _) H },
   { assume H i hi j hj hij,
     rcases mem_Union.1 hi with ⟨m, hm⟩,
     rcases mem_Union.1 hj with ⟨n, hn⟩,
@@ -181,16 +181,16 @@ begin
     exact H p i (mp hm) j (np hn) hij }
 end
 
-lemma pairwise_on_sUnion {r : α → α → Prop} {s : set (set α)} (h : directed_on (⊆) s) :
-  (⋃₀ s).pairwise_on r ↔ (∀ a ∈ s, set.pairwise_on a r) :=
-by { rw [sUnion_eq_Union, pairwise_on_Union (h.directed_coe), set_coe.forall], refl }
+lemma pairwise_sUnion {r : α → α → Prop} {s : set (set α)} (h : directed_on (⊆) s) :
+  (⋃₀ s).pairwise r ↔ (∀ a ∈ s, set.pairwise a r) :=
+by { rw [sUnion_eq_Union, pairwise_Union (h.directed_coe), set_coe.forall], refl }
 
 end set
 
-lemma pairwise.pairwise_on (h : pairwise r) (s : set α) : s.pairwise_on r := λ x hx y hy, h x y
+lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy, h x y
 
 lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
-set.pairwise_on_univ.1 $ set.pairwise_on_disjoint_fiber f univ
+set.pairwise_univ.1 $ set.pairwise_disjoint_fiber f univ
 
 namespace set
 section semilattice_inf_bot
@@ -198,20 +198,20 @@ variables [semilattice_inf_bot α]
 
 /-- Elements of a set is `pairwise_disjoint`, if any distinct two are disjoint. -/
 def pairwise_disjoint (s : set α) : Prop :=
-s.pairwise_on disjoint
+s.pairwise disjoint
 
 lemma pairwise_disjoint.subset (ht : pairwise_disjoint t) (h : s ⊆ t) : pairwise_disjoint s :=
-pairwise_on.mono h ht
+pairwise.mono h ht
 
 lemma pairwise_disjoint_empty : (∅ : set α).pairwise_disjoint :=
-pairwise_on_empty _
+pairwise_empty _
 
 lemma pairwise_disjoint_singleton (a : α) : ({a} : set α).pairwise_disjoint :=
-pairwise_on_singleton a _
+pairwise_singleton a _
 
 lemma pairwise_disjoint_insert {a : α} :
   (insert a s).pairwise_disjoint ↔ s.pairwise_disjoint ∧ ∀ b ∈ s, a ≠ b → disjoint a b :=
-set.pairwise_on_insert_of_symmetric symmetric_disjoint
+set.pairwise_insert_of_symmetric symmetric_disjoint
 
 lemma pairwise_disjoint.insert (hs : s.pairwise_disjoint) {a : α}
   (hx : ∀ b ∈ s, a ≠ b → disjoint a b) :
@@ -260,7 +260,7 @@ lemma pairwise_disjoint.elim_set {s : set (set α)} (hs : pairwise_disjoint s) {
 hs.elim hx hy (not_disjoint_iff.2 ⟨z, hzx, hzy⟩)
 
 lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α}
-  (h : (s ∪ t).pairwise_on (disjoint on f)) :
+  (h : (s ∪ t).pairwise (disjoint on f)) :
   (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=
 begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
@@ -271,7 +271,7 @@ end
 
 /-- Equivalence between a disjoint bounded union and a dependent sum. -/
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
-  (h : pairwise_on s (disjoint on f)) :
+  (h : s.pairwise (disjoint on f)) :
   (⋃ i ∈ s, f i) ≃ (Σ i : s, f i) :=
 (equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h _ hi _ hj $ λ eq, ne $ subtype.eq eq

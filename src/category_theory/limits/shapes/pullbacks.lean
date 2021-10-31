@@ -445,7 +445,7 @@ The converse is given in `pushout_cocone.is_colimit_mk_id_id`.
 lemma epi_of_is_colimit_mk_id_id (f : X ⟶ Y)
   (t : is_colimit (mk (𝟙 Y) (𝟙 Y) rfl : pushout_cocone f f)) :
   epi f :=
-⟨λ Z g h eq, by { rcases pushout_cocone.is_colimit.desc' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
+⟨λ Z g h eq, by { rcases pushout_cocone.is_colimit.desc' t _ _ eq with ⟨_, rfl, rfl⟩, refl }⟩
 
 /-- Suppose `f` and `g` are two morphisms with a common domain and `s` is a colimit cocone over the
     diagram formed by `f` and `g`. Suppose `f` and `g` both factor through an epimorphism `h` via

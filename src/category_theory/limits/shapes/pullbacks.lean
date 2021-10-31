@@ -635,7 +635,7 @@ pullback_cone.mono_snd_of_is_pullback_of_mono (limit.is_limit _)
   (h₁ : pushout.inr ≫ k = pushout.inr ≫ l) : k = l :=
 colimit.hom_ext $ pushout_cocone.coequalizer_ext _ h₀ h₁
 
-/-- The pullback cone built from the pullback projections is a pullback. -/
+/-- The pushout cocone built from the pushout coprojections is a pushout. -/
 def pushout_is_pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_pushout f g] :
   is_colimit (pushout_cocone.mk (pushout.inl : _ ⟶ pushout f g) pushout.inr pushout.condition) :=
 pushout_cocone.is_colimit.mk _ (λ s, pushout.desc s.inl s.inr s.condition)

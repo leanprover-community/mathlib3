@@ -101,6 +101,7 @@ lemma basis_le_presheaf_cone_app_id (i : B.ι) :
 := by dunfold basis_le_presheaf_cone; dsimp; rw ← F.map_id; refl
 
 /-- The condition that `F(U)` is the limit of all `F(V)` for `V ∈ B, V ⊆ U`. -/
+@[nolint has_inhabited_instance]
 def lim_basis_le : Type (max u v) :=
   Π (U : opens X), is_limit (basis_le_presheaf_cone B U F)
 
@@ -175,6 +176,7 @@ variables {B F G}
 The condition that the presheaf hom `lift` is the unique extension of `α`,
 a "presheaf hom on the basic opens".
 -/
+@[nolint has_inhabited_instance]
 structure uniq_extn_struct (α : idf B ⋙ F ⟶ idf B ⋙ G) :=
   (lift : F ⟶ G)
   (fac : whisker_left (idf B) lift = α)

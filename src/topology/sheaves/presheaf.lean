@@ -148,8 +148,7 @@ def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
 lemma id_pushforward {X : Top.{v}} : pushforward (𝟙 X) = 𝟭 (X.presheaf C) :=
 begin
   apply category_theory.functor.ext,
-  { intros, ext U, have h := f.congr,
-    erw h (opens.op_map_id_obj U), simpa },
+  { intros, ext U, have h := f.congr, erw h (opens.op_map_id_obj U), simpa },
   { intros, apply pushforward.id_eq },
 end
 

@@ -100,9 +100,8 @@ def to_Γ_Spec_c_app (r : Γ' X) := CommRing.of_hom
       swap 4, exact is_localization.to_basic_open _ r })
 
 /-- Characterization of the sheaf morphism on basic opens,
-    direction ← used in various places, direction ← ...
-    Maybe only ← direction is useful ... -/
-lemma to_Γ_Spec_c_app_prop (r : Γ' X) :
+    direction ← used in various places, but → is not used in this file. -/
+lemma to_Γ_Spec_c_app_iff (r : Γ' X) :
   ∀ f, to_open _ (basic_open r) ≫ f = X.to_opens_map_basic_open r
   ↔ f = X.to_Γ_Spec_c_app r :=
 λ f, begin
@@ -114,6 +113,10 @@ lemma to_Γ_Spec_c_app_prop (r : Γ' X) :
   apply congr_arg,
 end
 
+lemma to_Γ_Spec_c_app_spec (r : Γ' X) :
+  to_open _ (basic_open r) ≫ X.to_Γ_Spec_c_app r = X.to_opens_map_basic_open r :=
+(X.to_Γ_Spec_c_app_iff r _).2 rfl
+
 /-- Unit on the sheaf on all basic opens, commuting with restrictions. -/
 def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
                           ⟶ idfb _ ⋙ X.to_Γ_Spec_base _* X.presheaf :=
@@ -121,8 +124,8 @@ def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
   naturality' := λ r s f, by {
     apply (to_basic_open_epi (Γ' X) r).1,
     simp only [←category.assoc],
-    rw (X.to_Γ_Spec_c_app_prop r _).2 rfl,
-    convert (X.to_Γ_Spec_c_app_prop s _).2 rfl,
+    erw X.to_Γ_Spec_c_app_spec r,
+    convert X.to_Γ_Spec_c_app_spec s,
     apply eq.symm, apply X.presheaf.map_comp } }
 
 /-- Unit on the sheaf. -/
@@ -141,12 +144,10 @@ by { change _ = X.to_Γ_Spec_c_basic_opens.app r, rw ← X.to_Γ_Spec_c.fac, ref
 /- once worked but now timeouts:
 by change (whisker_left (idfb _) _).app r = _; erw X.to_Γ_Spec_c.fac; refl -/
 
--- write down the lemma explicitly ... and change to lemma
-def to_Γ_Spec_SheafedSpace_app_prop (r : Γ' X) := by {
-  have h := X.to_Γ_Spec_c_app_prop r,
-  rw ← to_Γ_Spec_SheafedSpace_app_eq at h,
-  exact h }
---#check to_Γ_Spec_SheafedSpace_app_prop
+lemma to_Γ_Spec_SheafedSpace_app_spec (r : Γ' X) :
+  to_open _ (basic_open r) ≫ X.to_Γ_Spec_SheafedSpace.c.app (op (basic_open r)) =
+  X.to_opens_map_basic_open r :=
+(X.to_Γ_Spec_SheafedSpace_app_eq r).symm ▸ X.to_Γ_Spec_c_app_spec r
 
 lemma to_stalk_comm (x : X) : to_stalk _ _ ≫
   PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x = X.Γ_to_stalk x :=
@@ -156,7 +157,7 @@ begin
     ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
   rw [←category.assoc, category.assoc (to_open _ _)],
   erw stalk_functor_map_germ,
-  rw [←category.assoc (to_open _ _), (X.to_Γ_Spec_SheafedSpace_app_prop 1 _).2 rfl],
+  rw [←category.assoc (to_open _ _), (X.to_Γ_Spec_SheafedSpace_app_spec 1)],
   unfold Γ_to_stalk, rw ← stalk_pushforward_germ _ X.to_Γ_Spec_base X.presheaf ⊤,
   congr' 1, change (X.to_Γ_Spec_base _* X.presheaf).map le_top.hom.op ≫ _ = _,
   apply germ_res,
@@ -198,43 +199,94 @@ begin
 end
 
 private def eha := nat_trans.app $ eq_to_hom $
-  congr_arg (λ g, g _* X.presheaf) (X.to_Γ_Spec_base_naturality f)
+  pushforward_eq' (X.to_Γ_Spec_base_naturality f) X.presheaf
 
 lemma to_Γ_Spec_c_naturality (r : Γ' Y) : let f' := Γ.map f.op in
-  (Y.to_Γ_Spec_SheafedSpace.c.app (op (basic_open r)) ≫
-    f.1.c.app (op $ Y.opens_map_basic_open r)) ≫ eha X f (op (basic_open r)) =
-  comap f' (basic_open r) (basic_open $ f' r) (λ _ h, h)
-    ≫ X.to_Γ_Spec_SheafedSpace.c.app (op (basic_open (f' r))) :=
+  (Y.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open r) ≫
+    f.1.c.app (op $ Y.opens_map_basic_open r)) ≫
+    eha X f (op (basic_open r)) =
+  /- inlining `eha` results in wrong inferred type (mis-unification?) -/
+  comap f' (basic_open r) (basic_open $ f' r) (λ _ h, h) ≫
+    X.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open $ f' r) :=
 begin
   apply (to_basic_open_epi (Γ' Y) r).1, erw to_open_comp_comap_assoc,
-  erw (X.to_Γ_Spec_SheafedSpace_app_prop (Γ.map f.op r) _).2 rfl,
+  erw X.to_Γ_Spec_SheafedSpace_app_spec (Γ.map f.op r),
   iterate 2 {rw ← category.assoc},
-  rw (Y.to_Γ_Spec_SheafedSpace_app_prop r _).2 rfl,
+  rw Y.to_Γ_Spec_SheafedSpace_app_spec r,
   erw [f.1.c.naturality, category.assoc], congr,
   rw [eha, pushforward_eq'_hom_app, pushforward_obj_map, ←functor.map_comp],
   congr, exact X.to_Γ_Spec_base_naturality f,
 end
 
-/-- Unit as a natural transformation. -/
-def identity_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
-{ app := to_Γ_Spec,
-  naturality' := λ X Y f, begin
-    ext1, ext1, swap, exact X.to_Γ_Spec_base_naturality f,
-    apply Top.sheaf.hom_ext (basic_open_B (Γ' Y)) ((Top.sheaf.pushforward _).obj X.𝒪).2,
-    exact basic_opens_is_basis, intro r,
-    rw nat_trans.comp_app,
-    iterate 2 {rw LocallyRingedSpace.comp_val_c_app'},
-    convert X.to_Γ_Spec_c_naturality f r using 1, -- slow!
-  end }
-
-def Spec_Γ_core_unit_counit :
-  adjunction.core_unit_counit Γ.right_op Spec.to_LocallyRingedSpace :=
-{ unit := identity_Γ_Spec,
-  counit := nat_trans.op Spec_Γ_identity.inv,
-  left_triangle' := by sorry,
-  right_triangle' := by sorry,
-}
+/-- Actually two-sided inverses as to_Spec_Γ is invertible. -/
+lemma left_triangle : to_Spec_Γ (Γ' X) ≫ X.to_Γ_Spec.1.c.app (op ⊤) = 𝟙 (Γ' X) :=
+begin
+  unfold to_Spec_Γ,
+  rw ← to_open_res _ (basic_open (1 : Γ' X)) ⊤ (eq_to_hom basic_open_one.symm),
+  erw category.assoc, rw [nat_trans.naturality, ←category.assoc],
+  erw X.to_Γ_Spec_SheafedSpace_app_spec 1,
+  change X.presheaf.map _ ≫ X.presheaf.map _ = _, rw ← functor.map_comp,
+  convert eq_to_hom_map X.presheaf _, refl,
+end
 
 end LocallyRingedSpace
+
+/-- Unit as a natural transformation. -/
+def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_LocallyRingedSpace :=
+{ app := LocallyRingedSpace.to_Γ_Spec,
+  naturality' := λ X Y f, begin
+    ext1, ext1, swap, exact X.to_Γ_Spec_base_naturality f,
+    { apply Top.sheaf.hom_ext (basic_open_B Y.Γ') ((Top.sheaf.pushforward _).obj X.𝒪).2,
+      exact basic_opens_is_basis, intro r, rw nat_trans.comp_app,
+      iterate 2 {rw LocallyRingedSpace.comp_val_c_app'},
+      convert X.to_Γ_Spec_c_naturality f r using 1, /- Slow! `exact` timeouts.
+      In general, `dsimp` and `erw` are slow in this proof, often timeout (loop?).
+      Must mark `uniq_hom_extn_from_basis` as `irreducible` to avoid timeout here
+      (the terminal `convert`). Maybe more `irreducible` at appropriate places can
+      further speed this up. -/ },
+  end }
+
+
+lemma right_triangle_base :
+  ((Spec' R).to_Γ_Spec ≫ Spec.to_LocallyRingedSpace.map (to_Spec_Γ R).op).1.1 = 𝟙 _ :=
+begin
+  ext1 p, ext, erw ← @is_localization.at_prime.to_map_mem_maximal_iff _ _ _ _
+    (to_stalk R p).to_algebra p.1 _ (is_localization.to_stalk R p) x, refl,
+end
+
+lemma right_triangle_c (r : R) : (CommRing.of_hom
+  (structure_sheaf.comap (to_Spec_Γ R) (basic_open r) (basic_open $ to_Spec_Γ R r) (λ _ h, h)) ≫
+    (Spec' R).to_Γ_Spec_SheafedSpace.c.app (op $ basic_open $ to_Spec_Γ R r)) ≫
+    (Spec' R).presheaf.map (by { dsimp, refine (eq_to_hom _).op,
+      change (opens.map $ 𝟙 $ Spec.to_Top.obj $ op R).obj (basic_open r) = _,
+      erw ← right_triangle_base, refl }) = 𝟙 _ :=
+begin
+  apply (to_basic_open_epi R r).1, rw category.assoc,
+  erw to_open_comp_comap_assoc, rw ← category.assoc (to_open _ _),
+  erw (Spec' R).to_Γ_Spec_SheafedSpace_app_spec,
+  erw [←functor.map_comp, category.comp_id, ←op_comp], apply to_open_res,
+end
+
+lemma right_triangle :
+  identity_to_Γ_Spec.app (Spec.LocallyRingedSpace_obj R) ≫
+  Spec.LocallyRingedSpace_map (Spec_Γ_identity.inv.app R) = 𝟙 _ :=
+begin
+  ext1, ext1, swap, exact right_triangle_base R,
+  { apply Top.sheaf.hom_ext (basic_open_B R) ((Top.sheaf.pushforward _).obj (Spec' R).𝒪).2,
+    exact basic_opens_is_basis, intro r,
+    rw [nat_trans.comp_app, LocallyRingedSpace.comp_val_c_app'],
+    convert right_triangle_c R r using 2, simpa },
+end
+
+def Γ_Spec_core_unit_counit :
+  adjunction.core_unit_counit Γ.right_op Spec.to_LocallyRingedSpace :=
+{ unit := identity_to_Γ_Spec,
+  counit := nat_trans.op Spec_Γ_identity.inv,
+  left_triangle' := by { ext X, rw nat_trans.comp_app, erw category.id_comp,
+    convert congr_arg quiver.hom.op X.left_triangle using 1 },
+  right_triangle' := by { ext1, ext1 R, erw category.id_comp, exact right_triangle R.unop } }
+/- left and right triangle identities above are slow. -/
+
+def Γ_Spec_adjunction := adjunction.mk_of_unit_counit Γ_Spec_core_unit_counit
 
 end algebraic_geometry

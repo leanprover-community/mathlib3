@@ -914,7 +914,7 @@ variables (f : X ⟶ Y) (g : X ⟶ Z) [is_iso g]
 
 /-- If `f : X ⟶ Z` is iso, then `Y ⨿[X] Z ≅ Y`. This is the explicit colimit cocone. -/
 def pushout_cocone_of_right_iso : pushout_cocone f g :=
-pushout_cocone.mk (𝟙 _) (inv g ≫ f)  $ by simp
+pushout_cocone.mk (𝟙 _) (inv g ≫ f) $ by simp
 
 @[simp] lemma pushout_cocone_of_right_iso_X :
   (pushout_cocone_of_right_iso f g).X = Y := rfl

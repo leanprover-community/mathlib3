@@ -2,11 +2,18 @@
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
-
-Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
 import category_theory.groupoid
 import data.equiv.mul_add
+
+/-!
+# Endomorphisms
+
+Definition and basic properties of endomorphisms and automorphisms of an object in a category.
+
+For each `X : C`, we provide `End X := X ⟶ X` with a monoid structure,
+and `Aut X := X ≅ X ` with a group structure.
+-/
 
 universes v v' u u'
 

@@ -72,8 +72,8 @@ begin
 end
 
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
-  (hlen : fintype.card (set σ) + 1 ≤ list.length x) :
-  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) + 1 ∧ b ≠ [] ∧
+  (hlen : fintype.card (set σ) ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
   rw ←to_DFA_correct at hx ⊢,

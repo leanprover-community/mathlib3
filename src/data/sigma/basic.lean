@@ -6,6 +6,30 @@ Authors: Johannes Hölzl
 import tactic.lint
 import tactic.ext
 
+/-!
+# Sigma types
+
+This file proves basic results about sigma types.
+
+A sigma type is a dependent pair type. Like `α × β` but where the type of the second component
+depends on the first component. This can be seen as a generalization of the sum type `α ⊕ β`:
+* `α ⊕ β` is made of stuff which is either of type `α` or `β`.
+* Given `α : ι → Type*`, `sigma α` is made of stuff which is of type `α i` for some `i : ι`. One
+  effectively recovers a type isomorphic to `α ⊕ β` by taking a `ι` with exactly two elements. See
+  `equiv.sum_equiv_sigma_bool`.
+
+`Σ x, A x` is notation for `sigma A` (note the difference with the big operator `∑`).
+`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...`. Here we have 
+`α : Type*`, `β : α → Type*`, `γ : Π a : α, β a → Type*`, ...,
+`A : Π (a : α) (b : β a) (c : γ a b) ..., Type*`  with `x : α` `y : β x`, `z : γ x y`, ...
+
+## Notes
+
+The definition of `sigma` takes values in `Type*`. This effectively forbids `Prop`- valued sigma
+types. To that effect, we have `psigma`, which takes value in `Sort*` and carries a more complicated
+universe signature in consequence.
+-/
+
 section sigma
 variables {α α₁ α₂ : Type*} {β : α → Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
 

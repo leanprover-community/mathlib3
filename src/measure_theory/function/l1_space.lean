@@ -344,7 +344,7 @@ hf.mono $ eventually_of_forall $ λ x, by simp [real.norm_eq_abs, abs_le, abs_no
 lemma has_finite_integral.min_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, min (f a) 0) μ :=
 hf.mono $ eventually_of_forall $ λ x,
-  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self]
+  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self, abs_eq_max_neg, le_total]
 
 end pos_part
 
@@ -637,7 +637,7 @@ lemma integrable.smul [borel_space β] (c : 𝕜) {f : α → β}
 
 lemma integrable_smul_iff [borel_space β] {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
-and_congr (ae_measurable_const_smul_iff' hc) (has_finite_integral_smul_iff hc f)
+and_congr (ae_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
 
 lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, c * f x) μ :=
@@ -666,7 +666,18 @@ end
 end normed_space_over_complete_field
 
 section is_R_or_C
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] {f : α → 𝕜}
+
+lemma integrable.of_real [borel_space 𝕜] {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, (f x : 𝕜)) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_real }
+
+lemma integrable.re_im_iff [borel_space 𝕜] :
+  integrable (λ x, is_R_or_C.re (f x)) μ ∧ integrable (λ x, is_R_or_C.im (f x)) μ ↔
+  integrable f μ :=
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_re_im_iff }
+
+variable [opens_measurable_space 𝕜]
 
 lemma integrable.re (hf : integrable f μ) : integrable (λ x, is_R_or_C.re (f x)) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.re, }

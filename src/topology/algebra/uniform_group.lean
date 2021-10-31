@@ -7,7 +7,6 @@ import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
 import topology.algebra.group
 import tactic.abel
-import deprecated.group
 
 /-!
 # Uniform structure on topological groups
@@ -16,9 +15,6 @@ import deprecated.group
   construct a canonical uniformity for a topological add group.
 
 * extension of ℤ-bilinear maps to complete groups (useful for ring completions)
-
-* `add_group_with_zero_nhd`: construct the topological structure from a group with a neighbourhood
-  around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
 
 noncomputable theory
@@ -145,6 +141,10 @@ uniform_continuous_of_tendsto_zero $
   suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa f.map_zero at this,
   h.tendsto 0
 
+lemma cauchy_seq.add {ι : Type*} [semilattice_sup ι] {u v : ι → α} (hu : cauchy_seq u)
+  (hv : cauchy_seq v) : cauchy_seq (u + v) :=
+uniform_continuous_add.comp_cauchy_seq (hu.prod hv)
+
 end uniform_add_group
 
 section topological_add_comm_group
@@ -193,7 +193,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
-    rw [← nhds_translation a, mem_comap, mem_comap],
+    rw [← nhds_translation_sub, mem_comap, mem_comap],
     refine exists_congr (assume t, exists_congr (assume ht, _)),
     show (λ (y : G), y - a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd - p.fst) ⁻¹' t ⊆ S' a,
     split,
@@ -219,6 +219,46 @@ begin
     uniformity_eq_comap_nhds_zero' G, tendsto_comap_iff, prod_comap_comap_eq],
   simpa [(∘), sub_eq_add_neg, add_comm, add_left_comm] using this
 end
+
+local attribute [instance] topological_add_group_is_uniform
+
+open set
+
+lemma topological_add_group.separated_iff_zero_closed :
+  separated_space G ↔ is_closed ({0} : set G) :=
+begin
+  rw [separated_space_iff, ← closure_eq_iff_is_closed],
+  split; intro h,
+  { apply subset.antisymm,
+    { intros x x_in,
+      have := group_separation_rel x 0,
+      rw sub_zero at this,
+      rw [← this, h] at x_in,
+      change x = 0 at x_in,
+      simp [x_in] },
+    { exact subset_closure } },
+  { ext p,
+    cases p with x y,
+    rw [group_separation_rel x, h, mem_singleton_iff, sub_eq_zero],
+    refl }
+end
+
+lemma topological_add_group.separated_of_zero_sep (H : ∀ x : G, x ≠ 0 → ∃ U ∈ nhds (0 : G), x ∉ U) :
+  separated_space G:=
+begin
+  rw [topological_add_group.separated_iff_zero_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
+  intros x x_not,
+  have : x ≠ 0, from mem_compl_singleton_iff.mp x_not,
+  rcases H x this with ⟨U, U_in, xU⟩,
+  rw ← nhds_zero_symm G at U_in,
+  rcases U_in with ⟨W, W_in, UW⟩,
+  rw ← nhds_translation_add_neg,
+  use [W, W_in],
+  rw subset_compl_comm,
+  suffices : -x ∉ W, by simpa,
+  exact λ h, xU (UW h)
+end
+
 end
 
 lemma to_uniform_space_eq {G : Type*} [u : uniform_space G] [add_comm_group G]

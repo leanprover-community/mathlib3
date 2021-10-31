@@ -3,11 +3,11 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order.basic
 import data.fintype.basic
 import data.pfun
-import tactic.apply_fun
 import logic.function.iterate
+import order.basic
+import tactic.apply_fun
 
 /-!
 # Turing machines
@@ -79,7 +79,7 @@ theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
 begin
   rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
   simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
-  simp only [← list.repeat_add, nat.add_sub_cancel' h, list.append_assoc],
+  simp only [← list.repeat_add, add_tsub_cancel_of_le h, list.append_assoc],
 end
 
 /-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
@@ -98,7 +98,7 @@ theorem blank_extends.above_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
 begin
   rintro ⟨i, rfl⟩ ⟨j, e⟩ h, use i - j,
   refine list.append_right_cancel (e.symm.trans _),
-  rw [list.append_assoc, ← list.repeat_add, nat.sub_add_cancel],
+  rw [list.append_assoc, ← list.repeat_add, tsub_add_cancel_of_le],
   apply_fun list.length at e,
   simp only [list.length_append, list.length_repeat] at e,
   rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
@@ -269,7 +269,7 @@ begin
   swap, { exact (this $ λ i, (H i).symm).symm },
   refine quotient.sound' (or.inl ⟨l₂.length - l₁.length, _⟩),
   refine list.ext_le _ (λ i h h₂, eq.symm _),
-  { simp only [nat.add_sub_of_le h, list.length_append, list.length_repeat] },
+  { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_repeat] },
   simp at H,
   cases lt_or_le i l₁.length with h' h',
   { simpa only [list.nth_le_append _ h',
@@ -305,8 +305,8 @@ structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
 ⟨⟨λ _, default _, rfl⟩⟩
 
-instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') :=
-⟨_, pointed_map.f⟩
+instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
+⟨pointed_map.f⟩
 
 @[simp] theorem pointed_map.mk_val {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : Γ → Γ') (pt) : (pointed_map.mk f pt : Γ → Γ') = f := rfl

@@ -14,12 +14,37 @@ import tactic.lean_core_docs
 import tactic.interactive_expr
 import system.io
 
-universe variable u
+universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
+-- Rather than import order.lexicographic here, we can get away with defining the order by hand.
 instance : has_lt pos :=
-{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+{ lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
+
+namespace tactic
+
+/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
+meta def refl_conv (e : expr) : tactic (expr × expr) :=
+do p ← mk_eq_refl e, return (e, p)
+
+/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
+proof by reflexivity. -/
+meta def or_refl_conv (tac : expr → tactic (expr × expr))
+  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
+
+/-- Transitivity conversion: given two conversions (which take an
+expression `e` and returns `(e', ⊢ e = e')`), produces another
+conversion that combines them with transitivity, treating failures
+as reflexivity conversions. -/
+meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
+  tactic (expr × expr) :=
+(do (e₁, p₁) ← t₁ e,
+  (do (e₂, p₂) ← t₂ e₁,
+    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
+  return (e₁, p₁)) <|> t₂ e
+
+end tactic
 
 namespace expr
 open tactic
@@ -1862,9 +1887,9 @@ It does *not* use the `namespace` command, so it will typically be used after
 meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") :
   lean.parser unit :=
 emit_code_here "
-open lean
-open lean.parser
-open interactive interactive.types
+open _root_.lean
+open _root_.lean.parser
+open _root_.interactive _root_.interactive.types
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
@@ -2087,7 +2112,7 @@ See `proof_state`, `goal` and `get_proof_state`.
 meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
 try_core $ retrieve $ tac >> get_proof_state
 
-open lean interactive
+open lean _root_.interactive
 
 /-- A type alias for `tactic format`, standing for "pretty print format". -/
 meta def pformat := tactic format
@@ -2339,7 +2364,7 @@ ns.mfirst (λ nm, do
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
 /-- A tactic to set either a basic attribute or a user attribute.
-  If the the user attribute has a parameter, the default value will be used.
+  If the user attribute has a parameter, the default value will be used.
   This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do

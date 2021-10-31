@@ -165,7 +165,7 @@ begin
     have m0 : (a.nat_abs.gcd b * c.nat_abs.gcd d : ℤ) ≠ 0, {
       refine int.coe_nat_ne_zero.2 (ne_of_gt _),
       apply mul_pos; apply nat.gcd_pos_of_pos_right; assumption },
-    apply mul_right_cancel' m0,
+    apply mul_right_cancel₀ m0,
     simpa [mul_comm, mul_left_comm] using
       congr (congr_arg (*) ha.symm) (congr_arg coe hb) },
   { suffices : ∀ a c, a * d = c * b →
@@ -450,9 +450,8 @@ instance : field ℚ :=
 
 /- Extra instances to short-circuit type class resolution -/
 instance : division_ring ℚ      := by apply_instance
-instance : integral_domain ℚ    := by apply_instance
+instance : is_domain ℚ          := by apply_instance
 -- TODO(Mario): this instance slows down data.real.basic
---instance : domain ℚ           := by apply_instance
 instance : nontrivial ℚ         := by apply_instance
 instance : comm_ring ℚ          := by apply_instance
 --instance : ring ℚ             := by apply_instance

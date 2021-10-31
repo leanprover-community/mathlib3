@@ -37,9 +37,11 @@ which removes some boilerplate code.
 -/
 
 noncomputable theory
+
 open_locale classical
-namespace padic_int
 open nat local_ring padic
+
+namespace padic_int
 
 variables {p : ℕ} [hp_prime : fact (p.prime)]
 include hp_prime
@@ -314,8 +316,8 @@ begin
       apply nat.mul_le_mul_left,
       apply le_pred_of_lt,
       apply zmod.val_lt },
-    { rw [nat.mul_sub_left_distrib, mul_one, ← pow_succ'],
-      apply nat.add_sub_cancel' (le_of_lt hp) } }
+    { rw [mul_tsub, mul_one, ← pow_succ'],
+      apply add_tsub_cancel_of_le (le_of_lt hp) } }
 end
 
 lemma appr_mono (x : ℤ_[p]) : monotone x.appr :=
@@ -332,12 +334,12 @@ lemma dvd_appr_sub_appr (x : ℤ_[p]) (m n : ℕ) (h : m ≤ n) :
 begin
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h, clear h,
   induction k with k ih,
-  { simp only [add_zero, nat.sub_self, dvd_zero], },
+  { simp only [add_zero, tsub_self, dvd_zero], },
   rw [nat.succ_eq_add_one, ← add_assoc],
   dsimp [appr],
   split_ifs with h,
   { exact ih },
-  rw [add_comm, nat.add_sub_assoc (appr_mono _ (nat.le_add_right m k))],
+  rw [add_comm, add_tsub_assoc_of_le (appr_mono _ (nat.le_add_right m k))],
   apply dvd_add _ ih,
   apply dvd_mul_of_dvd_left,
   apply pow_dvd_pow _ (nat.le_add_right m k),

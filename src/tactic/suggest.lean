@@ -355,12 +355,9 @@ meta def library_search (opt : suggest_opt := { }) : tactic string :=
   return a.script)
 
 namespace interactive
-open tactic
-open interactive
-open lean.parser
-open interactive.types
+setup_tactic_parser
+
 open solve_by_elim
-local postfix `?`:9001 := optional
 
 declare_trace silence_suggest -- Turn off `Try this: exact/refine ...` trace messages for `suggest`
 
@@ -460,7 +457,7 @@ of `library_search`.
 Typical usage is:
 ```lean
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
+by library_search -- Try this: exact mul_tsub n m k
 ```
 
 `library_search using h₁ h₂` will only show solutions

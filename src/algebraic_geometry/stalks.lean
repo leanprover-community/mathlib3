@@ -104,7 +104,7 @@ end
 begin
   dsimp [stalk_map, stalk_functor, stalk_pushforward],
   ext U,
-  op_induction U,
+  induction U using opposite.rec,
   cases U,
   simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
     whisker_left_app, whisker_right_app,

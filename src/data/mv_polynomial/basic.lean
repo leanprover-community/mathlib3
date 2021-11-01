@@ -846,6 +846,17 @@ begin
   exact hf (h m),
 end
 
+lemma map_surjective (hf : function.surjective f) :
+  function.surjective (map f : mv_polynomial σ R → mv_polynomial σ S₁) :=
+λ p, begin
+  induction p using mv_polynomial.induction_on' with i fr a b ha hb,
+  { obtain ⟨r, rfl⟩ := hf fr,
+    exact ⟨monomial i r, map_monomial _ _ _⟩, },
+  { obtain ⟨a, rfl⟩ := ha,
+    obtain ⟨b, rfl⟩ := hb,
+    exact ⟨a + b, ring_hom.map_add _ _ _⟩ },
+end
+
 /-- If `f` is a left-inverse of `g` then `map f` is a left-inverse of `map g`. -/
 lemma map_left_inverse {f : R →+* S₁} {g : S₁ →+* R} (hf : function.left_inverse f g) :
   function.left_inverse (map f : mv_polynomial σ R → mv_polynomial σ S₁) (map g) :=

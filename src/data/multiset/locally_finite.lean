@@ -19,11 +19,8 @@ section preorder
 variables [preorder α] [locally_finite_order α] {a b c : α}
 
 lemma nodup_Icc : (Icc a b).nodup := finset.nodup _
-
 lemma nodup_Ico : (Ico a b).nodup := finset.nodup _
-
 lemma nodup_Ioc : (Ioc a b).nodup := finset.nodup _
-
 lemma nodup_Ioo : (Ioo a b).nodup := finset.nodup _
 
 @[simp] lemma Icc_eq_zero_iff : Icc a b = 0 ↔ ¬a ≤ b :=
@@ -46,19 +43,14 @@ alias Ioc_eq_zero_iff ↔ _ multiset.Ioc_eq_zero
 eq_zero_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
 
 @[simp] lemma Icc_eq_zero_of_lt (h : b < a) : Icc a b = 0 := Icc_eq_zero h.not_le
-
 @[simp] lemma Ico_eq_zero_of_le (h : b ≤ a) : Ico a b = 0 := Ico_eq_zero h.not_lt
-
 @[simp] lemma Ioc_eq_zero_of_le (h : b ≤ a) : Ioc a b = 0 := Ioc_eq_zero h.not_lt
-
 @[simp] lemma Ioo_eq_zero_of_le (h : b ≤ a) : Ioo a b = 0 := Ioo_eq_zero h.not_lt
 
 variables (a)
 
 @[simp] lemma Ico_self : Ico a a = 0 := by rw [Ico, finset.Ico_self, finset.empty_val]
-
 @[simp] lemma Ioc_self : Ioc a a = 0 := by rw [Ioc, finset.Ioc_self, finset.empty_val]
-
 @[simp] lemma Ioo_self : Ioo a a = 0 := by rw [Ioo, finset.Ioo_self, finset.empty_val]
 
 variables {a b c}
@@ -155,8 +147,7 @@ by rw [Ico, Ico, Ico, ←finset.sdiff_val, finset.Ico_diff_Ico_right]
 end linear_order
 
 section ordered_cancel_add_comm_monoid
-variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
-  [locally_finite_order α]
+variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [locally_finite_order α]
 
 lemma map_add_left_Icc (a b c : α) : (Icc a b).map ((+) c) = Icc (c + a) (c + b) :=
 by { classical, rw [Icc, Icc, ←finset.image_add_left_Icc, finset.image_val,

@@ -55,19 +55,14 @@ alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
 
 @[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ := Icc_eq_empty h.not_le
-
 @[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ := Ico_eq_empty h.not_lt
-
 @[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ := Ioc_eq_empty h.not_lt
-
 @[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ := Ioo_eq_empty h.not_lt
 
 variables (a)
 
 @[simp] lemma Ico_self : Ico a a = ∅ := by rw [←coe_eq_empty, coe_Ico, set.Ico_self]
-
 @[simp] lemma Ioc_self : Ioc a a = ∅ := by rw [←coe_eq_empty, coe_Ioc, set.Ioc_self]
-
 @[simp] lemma Ioo_self : Ioo a a = ∅ := by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
 
 variables {a b}
@@ -128,8 +123,7 @@ end preorder
 section partial_order
 variables [partial_order α] [locally_finite_order α] {a b : α}
 
-@[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
-by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
+@[simp] lemma Icc_self (a : α) : Icc a a = {a} := by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
 
 lemma Ico_insert_right [decidable_eq α] (h : a ≤ b) : insert b (Ico a b) = Icc a b :=
 by rw [←coe_inj, coe_insert, coe_Icc, coe_Ico, set.insert_eq, set.union_comm, set.Ico_union_right h]

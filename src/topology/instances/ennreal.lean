@@ -324,6 +324,27 @@ continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl h
 protected lemma continuous_mul_const {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
+@[continuity]
+lemma continuous_pow (n : ℕ) : continuous (λ a : ℝ≥0∞, a ^ n) :=
+begin
+  induction n with n IH,
+  { simp [continuous_const] },
+  simp_rw [nat.succ_eq_add_one, pow_add, pow_one, continuous_iff_continuous_at],
+  assume x,
+  refine ennreal.tendsto.mul (IH.tendsto _) _ tendsto_id _;
+  by_cases H : x = 0,
+  { simp only [H, zero_ne_top, ne.def, or_true, not_false_iff]},
+  { exact or.inl (λ h, H (pow_eq_zero h)) },
+  { simp only [H, pow_eq_top_iff, zero_ne_top, false_or, eq_self_iff_true,
+               not_true, ne.def, not_false_iff, false_and], },
+  { simp only [H, true_or, ne.def, not_false_iff] }
+end
+
+protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
+  (hm : tendsto m f (𝓝 a)) :
+  tendsto (λ x, (m x) ^ n) f (𝓝 (a ^ n)) :=
+((continuous_pow n).tendsto a).comp hm
+
 lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0∞} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
 begin
   have : tendsto (* x) (𝓝[Iio 1] 1) (𝓝 (1 * x)) :=

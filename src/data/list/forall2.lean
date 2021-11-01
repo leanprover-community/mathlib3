@@ -211,15 +211,6 @@ lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidab
       simp only [filter_cons_of_neg _ h, filter_cons_of_neg _ this, rel_filter h₂], },
   end
 
-theorem filter_map_cons (f : α → option β) (a : α) (l : list α) :
-  filter_map f (a :: l) = option.cases_on (f a) (filter_map f l) (λb, b :: filter_map f l) :=
-begin
-  generalize eq : f a = b,
-  cases b,
-  { rw filter_map_cons_none _ _ eq },
-  { rw filter_map_cons_some _ _ _ eq },
-end
-
 lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
 | f g hfg _ _ forall₂.nil := forall₂.nil
 | f g hfg (a :: as) (b :: bs) (forall₂.cons h₁ h₂) :=
@@ -249,7 +240,7 @@ begin
   { induction h with _ a b l1 l2 rab rll ih b l1 l2 hl ih,
     { exact ⟨nil, forall₂.nil, nil_sublist _⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
-      refine ⟨b :: l, forall₂.cons rab hl1, cons_sublist_cons b hl2⟩ },
+      refine ⟨b :: l, forall₂.cons rab hl1, hl2.cons_cons b⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
       exact ⟨l, hl1, hl2.trans (sublist.cons _ _ _ (sublist.refl _))⟩ } },
   { obtain ⟨l, hl1, hl2⟩ := h,

@@ -471,6 +471,7 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
 (bot_le : ∀ x : α, ⊥ ≤ x)
 (le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
 
+@[priority 100]  -- see Note [lower instance priority]
 instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
   [h : canonically_ordered_add_monoid α] : order_bot α :=
 { ..h }
@@ -489,6 +490,7 @@ class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, ha
 (bot_le : ∀ x : α, ⊥ ≤ x)
 (le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)
 
+@[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_ordered_monoid.to_order_bot (α : Type u)
   [h : canonically_ordered_monoid α] : order_bot α :=
 { ..h }

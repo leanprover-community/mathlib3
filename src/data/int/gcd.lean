@@ -352,8 +352,8 @@ begin
   obtain ⟨x, rfl⟩ : is_unit x,
   { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
   simp only [← units.coe_pow] at *,
-  rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
-  simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+  rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
+  simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
 end
 
 lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m • x = 0)
@@ -363,6 +363,8 @@ begin
   rw [of_add_nsmul, of_add_zero, pow_gcd_eq_one];
   rwa [←of_add_nsmul, ←of_add_zero, equiv.apply_eq_iff_eq]
 end
+
+attribute [to_additive gcd_nsmul_eq_zero] pow_gcd_eq_one
 
 /-! ### GCD prover -/
 open norm_num

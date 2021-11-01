@@ -773,12 +773,12 @@ instance : comm_ring (localization M) :=
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  gsmul := localization.smul,
-  gsmul_zero' := λ x, localization.induction_on x
-    (λ x, by simp only [smul_mk, zero_gsmul, mk_zero]),
-  gsmul_succ' := λ n x, localization.induction_on x
+  zsmul := localization.smul,
+  zsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
+  zsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
-  gsmul_neg' := λ n x, localization.induction_on x
+  zsmul_neg' := λ n x, localization.induction_on x
     (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
@@ -2031,7 +2031,7 @@ noncomputable instance : field (fraction_ring A) :=
   one := 1,
   zero := 0,
   nsmul := nsmul,
-  gsmul := gsmul,
+  zsmul := zsmul,
   npow := localization.npow _,
   .. localization.comm_ring,
   .. is_fraction_ring.to_field A }

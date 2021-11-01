@@ -148,11 +148,14 @@ meta def unpack_iff_both : list decl_data → list decl_data
 | (⟨d, n, both, l⟩ :: L) := ⟨d, n, mp, l⟩ :: ⟨d, n, mpr, l⟩ :: unpack_iff_both L
 | (⟨d, n, m, l⟩ :: L)    := ⟨d, n, m, l⟩ :: unpack_iff_both L
 
-/-- An extension to the option structure for `solve_by_elim`,
-to specify a list of local hypotheses which must appear in any solution.
-These are useful for constraining the results from `library_search` and `suggest`. -/
+/-- An extension to the option structure for `solve_by_elim`.
+* `compulsory_hyps` specifies a list of local hypotheses which must appear in any solution.
+  These are useful for constraining the results from `library_search` and `suggest`.
+* `try_this` is a flag (default: `tt`) that controls whether a "Try this:"-line should be traced.
+-/
 meta structure suggest_opt extends opt :=
 (compulsory_hyps : list expr := [])
+(try_this : bool := tt)
 
 /--
 Convert a `suggest_opt` structure to a `opt` structure suitable for `solve_by_elim`,
@@ -387,7 +390,7 @@ You can also use `suggest with attr` to include all lemmas with the attribute `a
 -/
 meta def suggest (n : parse (with_desc "n" small_nat)?)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
-  (use : parse $ (tk "using" *> many ident_) <|> return []) (opt : opt := { }) :
+  (use : parse $ (tk "using" *> many ident_) <|> return []) (opt : suggest_opt := { }) :
   tactic unit :=
 do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    use ← use.mmap get_local,
@@ -395,7 +398,7 @@ do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
      { compulsory_hyps := use,
        lemma_thunks := some lemma_thunks,
        ctx_thunk := ctx_thunk, ..opt },
-  if is_trace_enabled_for `silence_suggest then
+  if !opt.try_this || is_trace_enabled_for `silence_suggest then
     skip
   else
     if L.length = 0 then
@@ -482,7 +485,7 @@ You can also use `library_search with attr` to include all lemmas with the attri
 meta def library_search (semireducible : parse $ optional (tk "!"))
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (use : parse $ (tk "using" *> many ident_) <|> return [])
-  (opt : opt := { }) : tactic unit :=
+  (opt : suggest_opt := { }) : tactic unit :=
 do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    use ← use.mmap get_local,
    (tactic.library_search
@@ -493,7 +496,7 @@ do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
        md := if semireducible.is_some then
          tactic.transparency.semireducible else tactic.transparency.reducible,
        ..opt } >>=
-   if is_trace_enabled_for `silence_library_search then
+   if !opt.try_this || is_trace_enabled_for `silence_library_search then
      (λ _, skip)
    else
      trace) <|>

@@ -44,10 +44,10 @@ by simpa [lift_id', lift_umax] using
 lemma rank_finsupp' {ι : Type u} : module.rank R (ι →₀ R) = # ι := by simp
 
 /-- The rank of `M × N` is `(module.rank R M).lift + (module.rank R N).lift`. -/
-@[simp] lemma rank_prod : module.rank R (M × N) = lift.{w v} (module.rank R M) +
-  lift.{v w} (module.rank R N) :=
-by simpa [rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R N, ← add]
-  using ((choose_basis R M).prod (choose_basis R N)).mk_eq_dim.symm
+@[simp] lemma rank_prod :
+  module.rank R (M × N) = lift.{w v} (module.rank R M) + lift.{v w} (module.rank R N) :=
+by simpa [rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R N,
+  lift_umax, lift_umax'] using ((choose_basis R M).prod (choose_basis R N)).mk_eq_dim.symm
 
 /-- If `M` and `N` lie in the same universe, the rank of `M × N` is
   `(module.rank R M) + (module.rank R N)`. -/
@@ -55,14 +55,40 @@ lemma rank_prod' (N : Type v) [add_comm_group N] [module R N] [module.free R N] 
   module.rank R (M × N) = (module.rank R M) + (module.rank R N) := by simp
 
 /-- The rank of the direct sum is the sum of the ranks. -/
-@[simp] lemma rank_direct_sum  {ι : Type u} (M : ι → Type v) [Π (i : ι), add_comm_group (M i)]
+@[simp] lemma rank_direct_sum  {ι : Type v} (M : ι → Type w) [Π (i : ι), add_comm_group (M i)]
   [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] :
   module.rank R (⨁ i, M i) = cardinal.sum (λ i, module.rank R (M i)) :=
 begin
   let B := λ i, choose_basis R (M i),
   let b : basis _ R (⨁ i, M i) := dfinsupp.basis (λ i, B i),
-  simp [b.mk_eq_dim''.symm, ← cardinal.sum_mk, λ i, (B i).mk_eq_dim''],
+  simp [← b.mk_eq_dim'', λ i, (B i).mk_eq_dim''],
 end
+
+/-- The rank of a finite product is the sum of the ranks. -/
+@[simp] lemma rank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
+  [Π (i : ι), add_comm_group (M i)] [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] :
+  module.rank R (Π i, M i) = cardinal.sum (λ i, module.rank R (M i)) :=
+by { rw [← (direct_sum.linear_equiv_fun_on_fintype _ _ M).dim_eq, rank_direct_sum] }
+
+/-- If `n` and `m` are `fintype`, the rank of `n × m` matrices is `(# n).lift * (# m).lift`. -/
+@[simp] lemma rank_matrix (n : Type v) [fintype n] (m : Type w) [fintype m] :
+  module.rank R (matrix n m R) = (lift.{(max v w u) v} (# n)) * (lift.{(max v w u) w} (# m)) :=
+begin
+  have h := (matrix.std_basis R n m).mk_eq_dim,
+  rw [← lift_lift.{(max v w u) (max v w)}, lift_inj] at h,
+  simpa using h.symm,
+end
+
+/-- If `n` and `m` are `fintype` that lie in the same universe, the rank of `n × m` matrices is
+  `(# n * # m).lift`. -/
+@[simp] lemma rank_matrix' (n : Type v) [fintype n] (m : Type v) [fintype m] :
+  module.rank R (matrix n m R) =  (# n * # m).lift :=
+by rw [rank_matrix, lift_mul, lift_umax]
+
+/-- If `n` and `m` are `fintype` that lie in the same universe as `R`, the rank of `n × m` matrices
+  is `# n * # m`. -/
+@[simp] lemma rank_matrix'' (n : Type u) [fintype n] (m : Type u) [fintype m] :
+  module.rank R (matrix n m R) =  # n * # m := by simp
 
 end ring
 
@@ -81,7 +107,7 @@ begin
 
   have h₁ := linear_equiv.lift_dim_eq (tensor_product.congr (repr R M) (repr R N)),
   let b : basis (ιM × ιN) R (_ →₀ R) := finsupp.basis_single_one,
-  rw [linear_equiv.dim_eq (finsupp_tensor_finsupp' R ιM ιN), ← b.mk_eq_dim, mul] at h₁,
+  rw [linear_equiv.dim_eq (finsupp_tensor_finsupp' R ιM ιN), ← b.mk_eq_dim, mk_prod] at h₁,
   rw [lift_inj.1 h₁, rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R N],
 end
 

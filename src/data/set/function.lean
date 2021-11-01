@@ -54,6 +54,39 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 lemma image_restrict (f : α → β) (s t : set α) : s.restrict f '' (coe ⁻¹' t) = f '' (t ∩ s) :=
 by rw [restrict, image_comp, image_preimage_eq_inter_range, subtype.range_coe]
 
+@[simp] lemma restrict_dite {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β) (g : Π a ∉ s, β) :
+  restrict (λ a, if h : a ∈ s then f a h else g a h) s = λ a, f a a.2 :=
+funext $ λ a, dif_pos a.2
+
+@[simp] lemma restrict_dite_compl {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β)
+  (g : Π a ∉ s, β) :
+  restrict (λ a, if h : a ∈ s then f a h else g a h) sᶜ = λ a, g a a.2 :=
+funext $ λ a, dif_neg a.2
+
+@[simp] lemma restrict_ite (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (λ a, if a ∈ s then f a else g a) s = restrict f s :=
+restrict_dite _ _
+
+@[simp] lemma restrict_ite_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (λ a, if a ∈ s then f a else g a) sᶜ = restrict g sᶜ :=
+restrict_dite_compl _ _
+
+@[simp] lemma restrict_piecewise (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (piecewise s f g) s = restrict f s :=
+restrict_ite _ _ _
+
+@[simp] lemma restrict_piecewise_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (piecewise s f g) sᶜ = restrict g sᶜ :=
+restrict_ite_compl _ _ _
+
+lemma restrict_extend_range (f : α → β) (g : α → γ) (g' : β → γ) :
+  restrict (extend f g g') (range f) = λ x, g x.coe_prop.some :=
+by convert restrict_dite _ _
+
+@[simp] lemma restrict_extend_compl_range (f : α → β) (g : α → γ) (g' : β → γ) :
+  restrict (extend f g g') (range f)ᶜ = g' ∘ coe :=
+by convert restrict_dite_compl _ _
+
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/
 def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
@@ -294,10 +327,6 @@ lemma inj_on.mem_image_iff {x} (hf : inj_on f s) (hs : s₁ ⊆ s) (hx : x ∈ s
 lemma inj_on.preimage_image_inter (hf : inj_on f s) (hs : s₁ ⊆ s) :
   f ⁻¹' (f '' s₁) ∩ s = s₁ :=
 ext $ λ x, ⟨λ ⟨h₁, h₂⟩, hf.mem_of_mem_image hs h₂ h₁, λ h, ⟨mem_image_of_mem _ h, hs h⟩⟩
-
-lemma inj_on.pairwise_on_image (h : inj_on f s) {r : β → β → Prop} :
-  pairwise_on (f '' s) r ↔ pairwise_on s (λ x y, r (f x) (f y)) :=
-by simp [h.eq_iff, pairwise_on] {contextual := tt}
 
 /-! ### Surjectivity on a set -/
 

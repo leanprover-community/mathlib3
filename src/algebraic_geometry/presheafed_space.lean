@@ -67,26 +67,37 @@ structure hom (X Y : PresheafedSpace C) :=
 
 @[ext] lemma ext {X Y : PresheafedSpace C} (α β : hom X Y)
   (w : α.base = β.base)
-  (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) X.presheaf) = β.c) :
+  (h : α.c ≫ eq_to_hom (by rw w) = β.c) :
   α = β :=
 begin
   cases α, cases β,
   dsimp [presheaf.pushforward_obj] at *,
   tidy, -- TODO including `injections` would make tidy work earlier.
 end
+
+lemma hext {X Y : PresheafedSpace C} (α β : hom X Y)
+  (w : α.base = β.base)
+  (h : α.c == β.c) :
+  α = β :=
+by { cases α, cases β, congr, exacts [w,h] }
+
 .
 
 /-- The identity morphism of a `PresheafedSpace`. -/
 def id (X : PresheafedSpace C) : hom X X :=
 { base := 𝟙 (X : Top.{v}),
-  c := (functor.left_unitor _).inv ≫ whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ }
+  c := eq_to_hom (presheaf.pushforward.id_eq X.presheaf).symm }
 
 instance hom_inhabited (X : PresheafedSpace C) : inhabited (hom X X) := ⟨id X⟩
 
 /-- Composition of morphisms of `PresheafedSpace`s. -/
 def comp {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { base := α.base ≫ β.base,
-  c := β.c ≫ (whisker_left (opens.map β.base).op α.c) ≫ (Top.presheaf.pushforward.comp _ _ _).inv }
+  c := β.c ≫ (presheaf.pushforward β.base).map α.c }
+
+lemma comp_c {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) :
+  (comp α β).c = β.c ≫ (presheaf.pushforward β.base).map α.c := rfl
+
 
 variables (C)
 
@@ -101,47 +112,23 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
 { hom := hom,
   id := id,
   comp := λ X Y Z f g, comp f g,
-  id_comp' := λ X Y f,
-  begin
-    ext1, swap,
-    { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
-    { ext U, induction U using opposite.rec, cases U,
-      dsimp,
-      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
-      dsimp,
-      simp only [comp_id, comp_id, map_id], },
-  end,
-  comp_id' := λ X Y f,
-  begin
-    ext1, swap,
-    { dsimp, simp only [comp_id] },
-    { ext U, induction U using opposite.rec, cases U,
-      dsimp,
-      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
-      dsimp,
-      simp only [id_comp, comp_id, map_id], }
-  end,
-  assoc' := λ W X Y Z f g h,
-  begin
-     ext1, swap,
-     refl,
-     { ext U, induction U using opposite.rec, cases U,
-       dsimp,
-       simp only [assoc, presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
-       dsimp,
-       simp only [comp_id, id_comp, map_id], }
-  end }
+  id_comp' := λ X Y f, by { ext1,
+    { rw comp_c, erw eq_to_hom_map, simp, apply comp_id }, apply id_comp },
+  comp_id' := λ X Y f, by { ext1,
+    { rw comp_c, erw congr_hom (presheaf.id_pushforward) f.c,
+      simp, erw eq_to_hom_trans_assoc, simp }, apply comp_id },
+  assoc' := λ W X Y Z f g h, by { ext1,
+    repeat {rw comp_c}, simpa, refl } }
 
 end
 
 variables {C}
 
 @[simp] lemma id_base (X : PresheafedSpace C) :
-  ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl
+  ((𝟙 X) : X ⟶ X).base = 𝟙 (X : Top.{v}) := rfl
 
 lemma id_c (X : PresheafedSpace C) :
-  ((𝟙 X) : X ⟶ X).c =
-  (functor.left_unitor _).inv ≫ whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ := rfl
+  ((𝟙 X) : X ⟶ X).c = eq_to_hom (presheaf.pushforward.id_eq X.presheaf).symm := rfl
 
 @[simp] lemma id_c_app (X : PresheafedSpace C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { induction U using opposite.rec, cases U, refl }) :=
@@ -151,8 +138,7 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
   (f ≫ g).base = f.base ≫ g.base := rfl
 
 @[simp] lemma comp_c_app {X Y Z : PresheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
-  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) ≫
-    (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
+  (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) := rfl
 
 lemma congr_app {X Y : PresheafedSpace C} {α β : X ⟶ Y} (h : α = β) (U) :
   α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
@@ -174,7 +160,7 @@ The restriction of a presheafed space along an open embedding into the space.
 -/
 @[simps]
 def restrict {U : Top} (X : PresheafedSpace C)
-  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : PresheafedSpace C :=
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) : PresheafedSpace C :=
 { carrier := U,
   presheaf := h.is_open_map.functor.op ⋙ X.presheaf }
 
@@ -182,13 +168,33 @@ def restrict {U : Top} (X : PresheafedSpace C)
 The map from the restriction of a presheafed space.
 -/
 def of_restrict {U : Top} (X : PresheafedSpace C)
-  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) :
-  X.restrict f h ⟶ X :=
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) :
+  X.restrict h ⟶ X :=
 { base := f,
-  c := { app := λ V, X.presheaf.map $
-      ((h.is_open_map.adjunction.hom_equiv _ _).symm (𝟙 $ (opens.map f).obj $ unop V)).op,
-    naturality':= λ U V f, show _ = _ ≫ X.presheaf.map _,
+  c := { app := λ V, X.presheaf.map (h.is_open_map.adjunction.counit.app V.unop).op,
+    naturality' := λ U V f, show _ = _ ≫ X.presheaf.map _,
       by { rw [← map_comp, ← map_comp], refl } } }
+
+lemma restrict_top_presheaf (X : PresheafedSpace C) :
+  (X.restrict (opens.open_embedding ⊤)).presheaf =
+  (opens.inclusion_top_iso X.carrier).inv _* X.presheaf :=
+by { dsimp, rw opens.inclusion_top_functor X.carrier, refl }
+
+lemma of_restrict_top_c (X : PresheafedSpace C) :
+  (X.of_restrict (opens.open_embedding ⊤)).c = eq_to_hom
+    (by { rw [restrict_top_presheaf, ←presheaf.pushforward.comp_eq],
+          erw iso.inv_hom_id, rw presheaf.pushforward.id_eq }) :=
+  /- another approach would be to prove the left hand side
+     is a natural isoomorphism, but I encountered a universe
+     issue when `apply nat_iso.is_iso_of_is_iso_app`. -/
+begin
+  ext U, change X.presheaf.map _ = _, convert eq_to_hom_map _ _ using 1,
+  congr, simpa,
+  { induction U using opposite.rec, dsimp, congr, ext,
+    exact ⟨ λ h, ⟨⟨x,trivial⟩,h,rfl⟩, λ ⟨⟨_,_⟩,h,rfl⟩, h ⟩ },
+  /- or `rw [opens.inclusion_top_functor, ←comp_obj, ←opens.map_comp_eq],
+         erw iso.inv_hom_id, cases U, refl` after `dsimp` -/
+end
 
 /--
 The map to the restriction of a presheafed space along the canonical inclusion from the top
@@ -196,37 +202,22 @@ subspace.
 -/
 @[simps]
 def to_restrict_top (X : PresheafedSpace C) :
-  X ⟶ X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) :=
-{ base := ⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩,
-  c := { app := λ U, X.presheaf.map $ (hom_of_le $ λ x hxU, ⟨⟨x, trivial⟩, hxU, rfl⟩ :
-      (opens.map (⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ :
-          X.1 ⟶ (opens.to_Top X.1).obj ⊤)).obj (unop U) ⟶
-        (opens.open_embedding ⊤).is_open_map.functor.obj (unop U)).op,
-    naturality':= λ U V f, show X.presheaf.map _ ≫ _ = _ ≫ X.presheaf.map _,
-      by { rw [← map_comp, ← map_comp], refl } } }
+  X ⟶ X.restrict (opens.open_embedding ⊤) :=
+{ base := (opens.inclusion_top_iso X.carrier).inv,
+  c := eq_to_hom (restrict_top_presheaf X) }
 
 /--
 The isomorphism from the restriction to the top subspace.
 -/
 @[simps]
 def restrict_top_iso (X : PresheafedSpace C) :
-  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
-{ hom := X.of_restrict _ _,
+  X.restrict (opens.open_embedding ⊤) ≅ X :=
+{ hom := X.of_restrict _,
   inv := X.to_restrict_top,
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
-    nat_trans.ext _ _ $ funext $ λ U, by { induction U using opposite.rec,
-      dsimp only [nat_trans.comp_app, comp_c_app, to_restrict_top, of_restrict,
-          whisker_right_app, comp_base, nat_trans.op_app, opens.map_iso_inv_app],
-      erw [presheaf.pushforward.comp_inv_app, comp_id, ← X.presheaf.map_comp,
-          ← X.presheaf.map_comp, id_c_app],
-      exact X.presheaf.map_id _ },
-  inv_hom_id' := ext _ _ rfl $ nat_trans.ext _ _ $ funext $ λ U, by {
-    induction U using opposite.rec,
-    dsimp only [nat_trans.comp_app, comp_c_app, of_restrict, to_restrict_top,
-        whisker_right_app, comp_base, nat_trans.op_app, opens.map_iso_inv_app],
-    erw [← X.presheaf.map_comp, ← X.presheaf.map_comp, ← X.presheaf.map_comp, id_c_app],
-    convert eq_to_hom_map X.presheaf _,
-    erw [op_obj, id_base, opens.map_id_obj], refl } }
+    by { erw comp_c, rw X.of_restrict_top_c, simpa },
+  inv_hom_id' := ext _ _ rfl $
+    by { erw comp_c, rw X.of_restrict_top_c, simpa } }
 
 /--
 The global sections, notated Gamma.
@@ -234,24 +225,12 @@ The global sections, notated Gamma.
 @[simps]
 def Γ : (PresheafedSpace C)ᵒᵖ ⥤ C :=
 { obj := λ X, (unop X).presheaf.obj (op ⊤),
-  map := λ X Y f, f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op,
-  map_id' := λ X, begin
-    induction X using opposite.rec,
-    erw [unop_id_op, id_c_app, eq_to_hom_refl, id_comp],
-    exact X.presheaf.map_id _
-  end,
-  map_comp' := λ X Y Z f g, begin
-    rw [unop_comp, comp_c_app],
-    simp_rw category.assoc,
-    erw [nat_trans.naturality_assoc, presheaf.pushforward.comp_inv_app, id_comp,
-        category_theory.functor.comp_map, ← map_comp],
-    refl
-  end }
+  map := λ X Y f, f.unop.c.app (op ⊤) }
 
 lemma Γ_obj_op (X : PresheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 
 lemma Γ_map_op {X Y : PresheafedSpace C} (f : X ⟶ Y) :
-  Γ.map f.op = f.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
+  Γ.map f.op = f.c.app (op ⊤) := rfl
 
 end PresheafedSpace
 
@@ -294,8 +273,7 @@ A natural transformation induces a natural transformation between the `map_presh
 def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { base := 𝟙 _,
-    c := whisker_left X.presheaf α ≫ (functor.left_unitor _).inv ≫
-           whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ }, }
+    c := whisker_left X.presheaf α ≫ eq_to_hom (presheaf.pushforward.id_eq _).symm } }
 
 -- TODO Assemble the last two constructions into a functor
 --   `(C ⥤ D) ⥤ (PresheafedSpace C ⥤ PresheafedSpace D)`

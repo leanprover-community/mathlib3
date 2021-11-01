@@ -384,7 +384,10 @@ the `simple_graph.reachable` relation. -/
 def connected_component := quot G.reachable
 
 /-- A graph is connected is every pair of vertices is reachable from one another. -/
-def connected : Prop := nonempty V ∧ ∀ (u v : V), G.reachable u v
+def preconnected : Prop := ∀ (u v : V), G.reachable u v
+
+/-- A graph is connected is every pair of vertices is reachable from one another. -/
+def connected : Prop := G.preconnected ∧ nonempty V
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
@@ -394,7 +397,7 @@ instance connected_components.inhabited [inhabited V] : inhabited G.connected_co
 
 lemma connected_component.subsingleton_of_connected (h : G.connected) :
   subsingleton G.connected_component :=
-⟨λ c d, quot.ind (λ v d, quot.ind (λ w, (quot.sound (h.2 v w))) d) c d⟩
+⟨λ c d, quot.ind (λ v d, quot.ind (λ w, (quot.sound (h.1 v w))) d) c d⟩
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
@@ -1233,7 +1236,7 @@ begin
       simp [h], },
     intros v w,
     cases h with hc hu,
-    let q := (hc.2 v w).some.to_path,
+    let q := (hc.1 v w).some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
     intros p hp,
@@ -1242,11 +1245,13 @@ begin
     refl, },
   { intro h,
     split,
-    { split,
-      {simp [h], },
+    {
+      simp only [connected, preconnected],
+      split,
       intros v w,
       obtain ⟨p, hp⟩ := h.2 v w,
-      use p, },
+      use p,
+      simp [h]},
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only,
       exact unique_of_exists_unique (h.2 v w) hp hq, }, },

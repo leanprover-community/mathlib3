@@ -584,7 +584,10 @@ theorem basis.le_span {J : set M} (v : basis ι R M)
    (hJ : span R J = ⊤) : #(range v) ≤ #J :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
-  cases le_or_lt ω (#J) with oJ oJ,
+  casesI fintype_or_infinite J,
+  { rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
+    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
+    simp, },
   { have := cardinal.mk_range_eq_of_injective v.injective,
     let S : J → set ι := λ j, ↑(v.repr j).support,
     let S' : J → set M := λ j, v '' S j,
@@ -607,11 +610,7 @@ begin
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ (finset.finite_to_set _).image _) },
-    { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
-  { haveI : fintype J := (cardinal.lt_omega_iff_fintype.mp oJ).some,
-    rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
-    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
-    simp, },
+    { simpa } },
 end
 
 end rank_condition
@@ -721,13 +720,9 @@ lemma linear_independent_le_infinite_basis
   #κ ≤ #ι :=
 begin
   by_contradiction,
-  simp only [not_le] at h,
-  have w : #(finset ι) = #ι :=
-    cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›),
-  rw ←w at h,
+  rw [not_le, ← cardinal.mk_finset_eq_mk ι] at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
-  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h
-    (by { rw [cardinal.infinite_iff, w], exact (cardinal.infinite_iff.mp ‹infinite ι›), }),
+  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (by apply_instance),
   let v' := λ k : Φ ⁻¹' {s}, v k,
   have i' : linear_independent R v' := i.comp _ subtype.val_injective,
   have w' : fintype (Φ ⁻¹' {s}),
@@ -1014,18 +1009,18 @@ lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ 
 begin
   let b := assume i, basis.of_vector_space K (φ i),
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
-  rw [←cardinal.lift_inj, ← this.mk_eq_dim],
-  simp [λ i, (b i).mk_range_eq_dim.symm, cardinal.sum_mk]
+  rw [← cardinal.lift_inj, ← this.mk_eq_dim],
+  simp [← (b _).mk_range_eq_dim]
 end
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
-by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
+by rw [dim_pi, cardinal.sum_const', cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
   module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
     cardinal.lift.{u₁'} (module.rank K V) :=
-by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
+by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card, cardinal.lift_nat_cast]
 
 lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_self, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]

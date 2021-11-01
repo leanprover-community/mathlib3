@@ -360,7 +360,7 @@ theorem pw_filter_sublist : ∀ (l : list α), pw_filter R l <+ l
 | (x :: l) := begin
   by_cases (∀ y ∈ pw_filter R l, R x y),
   { rw [pw_filter_cons_of_pos h],
-    exact cons_sublist_cons _ (pw_filter_sublist l) },
+    exact (pw_filter_sublist l).cons_cons _ },
   { rw [pw_filter_cons_of_neg h],
     exact sublist_cons_of_sublist _ (pw_filter_sublist l) },
 end

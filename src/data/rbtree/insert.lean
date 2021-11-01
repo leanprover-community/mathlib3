@@ -73,10 +73,10 @@ begin
   all_goals { simp [balance2_node], apply balance2_ne_leaf }
 end
 
-variables (lt : α → α → Prop) [decidable_rel lt]
+variables (lt : α → α → Prop)
 
 @[elab_as_eliminator]
-lemma ins.induction {p : rbnode α → Prop}
+lemma ins.induction [decidable_rel lt] {p : rbnode α → Prop}
   (t x)
   (is_leaf : p leaf)
   (is_red_lt : ∀ a y b (hc : cmp_using lt x y = ordering.lt) (ih : p a), p (red_node a y b))
@@ -149,7 +149,7 @@ begin
   all_goals { apply is_searchable_balance2, assumption' }
 end
 
-lemma is_searchable_ins {t x} [is_strict_weak_order α lt] :
+lemma is_searchable_ins [decidable_rel lt] {t x} [is_strict_weak_order α lt] :
   ∀ {lo hi} (h : is_searchable lt t lo hi), lift lt lo (some x) → lift lt (some x) hi →
     is_searchable lt (ins lt t x) lo hi :=
 begin
@@ -172,12 +172,12 @@ end
 lemma is_searchable_mk_insert_result {c t} : is_searchable lt t none none →
   is_searchable lt (mk_insert_result c t) none none :=
 begin
+  classical,
   cases c; cases t; simp [mk_insert_result],
-  any_goals { exact id },
   { intro h, is_searchable_tactic }
 end
 
-lemma is_searchable_insert {t x} [is_strict_weak_order α lt] :
+lemma is_searchable_insert [decidable_rel lt] {t x} [is_strict_weak_order α lt] :
   is_searchable lt t none none → is_searchable lt (insert lt t x) none none :=
 begin
   intro h, simp [insert], apply is_searchable_mk_insert_result, apply is_searchable_ins;
@@ -188,7 +188,7 @@ end rbnode
 
 namespace rbnode
 section membership_lemmas
-parameters {α : Type u} (lt : α → α → Prop) [decidable_rel lt]
+parameters {α : Type u} (lt : α → α → Prop)
 
 local attribute [simp] mem balance1_node balance2_node
 
@@ -236,7 +236,7 @@ begin
   all_goals { apply balance.cases s_lchild s_val s_rchild; intros; simp [*] }
 end
 
-lemma ins_ne_leaf (t : rbnode α) (x : α) : t.ins lt x ≠ leaf :=
+lemma ins_ne_leaf [decidable_rel lt] (t : rbnode α) (x : α) : t.ins lt x ≠ leaf :=
 begin
   apply ins.induction lt t x,
   any_goals { intros, simp [ins, *] },
@@ -244,7 +244,7 @@ begin
   { intros, apply balance2_node_ne_leaf, assumption },
 end
 
-lemma insert_ne_leaf (t : rbnode α) (x : α) : insert lt t x ≠ leaf :=
+lemma insert_ne_leaf [decidable_rel lt] (t : rbnode α) (x : α) : insert lt t x ≠ leaf :=
 begin
   simp [insert],
   cases he : ins lt t x; cases get_color t; simp [mk_insert_result],
@@ -252,14 +252,15 @@ begin
   { exact absurd he (ins_ne_leaf _ _ _) }
 end
 
-lemma mem_ins_of_incomp (t : rbnode α) {x y : α} : ∀ h : ¬ lt x y ∧ ¬ lt y x, x ∈ t.ins lt y :=
+lemma mem_ins_of_incomp [decidable_rel lt] (t : rbnode α) {x y : α} :
+  ∀ h : ¬ lt x y ∧ ¬ lt y x, x ∈ t.ins lt y :=
 begin
   with_cases { apply ins.induction lt t y; intros; simp [ins, *] },
   case is_black_lt_red { have := ih h, apply mem_balance1_node_of_mem_left, assumption },
   case is_black_gt_red { have := ih h, apply mem_balance2_node_of_mem_left, assumption }
 end
 
-lemma mem_ins_of_mem [is_strict_weak_order α lt] {t : rbnode α} (z : α) :
+lemma mem_ins_of_mem [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode α} (z : α) :
   ∀ {x} (h : x ∈ t), x ∈ t.ins lt z :=
 begin
   with_cases { apply ins.induction lt t z; intros; simp [ins, *] at *; try { contradiction };
@@ -292,14 +293,15 @@ by intros; cases c; cases t; simp [mk_insert_result, mem, *] at *
 lemma mem_of_mem_mk_insert_result {a t c} : mem lt a (mk_insert_result c t) → mem lt a t :=
 by cases t; cases c; simp [mk_insert_result, mem]; intros; assumption
 
-lemma mem_insert_of_incomp (t : rbnode α) {x y : α} :
+lemma mem_insert_of_incomp [decidable_rel lt] (t : rbnode α) {x y : α} :
   ∀ h : ¬ lt x y ∧ ¬ lt y x, x ∈ t.insert lt y :=
 by intros; unfold insert; apply mem_mk_insert_result; apply mem_ins_of_incomp; assumption
 
-lemma mem_insert_of_mem [is_strict_weak_order α lt] {t x} (z) : x ∈ t → x ∈ t.insert lt z :=
+lemma mem_insert_of_mem [decidable_rel lt] [is_strict_weak_order α lt] {t x} (z) :
+  x ∈ t → x ∈ t.insert lt z :=
 by intros; apply mem_mk_insert_result; apply mem_ins_of_mem; assumption
 
-lemma of_mem_balance1_node [is_strict_weak_order α lt] {x s v t} :
+lemma of_mem_balance1_node {x s v t} :
   x ∈ balance1_node s v t → x ∈ s ∨ (¬ lt x v ∧ ¬ lt v x) ∨ x ∈ t :=
 begin
   cases s; simp,
@@ -308,7 +310,7 @@ begin
     simp [*] }
 end
 
-lemma of_mem_balance2_node [is_strict_weak_order α lt] {x s v t} :
+lemma of_mem_balance2_node {x s v t} :
   x ∈ balance2_node s v t → x ∈ s ∨ (¬ lt x v ∧ ¬ lt v x) ∨ x ∈ t :=
 begin
   cases s; simp,
@@ -317,7 +319,7 @@ begin
     simp [*] }
 end
 
-lemma equiv_or_mem_of_mem_ins [is_strict_weak_order α lt] {t : rbnode α} {x z} :
+lemma equiv_or_mem_of_mem_ins [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode α} {x z} :
   ∀ (h : x ∈ t.ins lt z), x ≈[lt] z ∨ x ∈ t :=
 begin
   with_cases { apply ins.induction lt t z; intros; simp [ins, strict_weak_order.equiv, *] at *;
@@ -335,7 +337,8 @@ begin
   all_goals { intros, have ih := ih h, cases ih; simp [*], done },
 end
 
-lemma equiv_or_mem_of_mem_insert [is_strict_weak_order α lt] {t : rbnode α} {x z} :
+lemma equiv_or_mem_of_mem_insert [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode α}
+  {x z} :
   ∀ (h : x ∈ t.insert lt z), x ≈[lt] z ∨ x ∈ t :=
 begin
   simp [insert], intros, apply equiv_or_mem_of_mem_ins, exact mem_of_mem_mk_insert_result lt h
@@ -359,7 +362,7 @@ begin
     simp [*] }
 end
 
-lemma find_balance1_node [is_strict_weak_order α lt] {x y z t s} :
+lemma find_balance1_node [decidable_rel lt] [is_strict_weak_order α lt] {x y z t s} :
   ∀ {lo hi}, is_searchable lt t lo (some z) → is_searchable lt s (some z) hi →
     find lt t y = some x → y ≈[lt] x → find lt (balance1_node t z s) y = some x :=
 begin
@@ -372,7 +375,8 @@ begin
   exact eq.trans (find_eq_find_of_eqv hs heqv) this
 end
 
-lemma find_balance2_node [is_strict_weak_order α lt] {x y z s t} [is_trans α lt] :
+lemma find_balance2_node [decidable_rel lt] [is_strict_weak_order α lt] {x y z s t}
+  [is_trans α lt] :
   ∀ {lo hi}, is_searchable lt s lo (some z) → is_searchable lt t (some z) hi →
     find lt t y = some x → y ≈[lt] x → find lt (balance2_node t z s) y = some x :=
 begin
@@ -387,7 +391,8 @@ end
 
 /- Auxiliary lemma -/
 
-lemma ite_eq_of_not_lt [is_strict_order α lt] {a b} {β : Type v} (t s : β) (h : lt b a) :
+lemma ite_eq_of_not_lt [decidable_rel lt] [is_strict_order α lt] {a b} {β : Type v}
+  (t s : β) (h : lt b a) :
   (if lt a b then t else s) = s :=
 begin have := not_lt_of_lt h, simp [*] end
 
@@ -396,7 +401,8 @@ local attribute [simp] ite_eq_of_not_lt
 private meta def simp_fi : tactic unit :=
 `[simp [find, ins, *, cmp_using]]
 
-lemma find_ins_of_eqv [is_strict_weak_order α lt] {x y : α} {t : rbnode α} (he : x ≈[lt] y) :
+lemma find_ins_of_eqv [decidable_rel lt] [is_strict_weak_order α lt] {x y : α} {t : rbnode α}
+  (he : x ≈[lt] y) :
   ∀ {lo hi} (hs : is_searchable lt t lo hi) (hlt₁ : lift lt lo (some x))
     (hlt₂ : lift lt (some x) hi), find lt (ins lt t x) y = some x :=
 begin
@@ -426,14 +432,15 @@ begin
     simp_fi }
 end
 
-lemma find_mk_insert_result (c : color) (t : rbnode α) (x : α) :
+lemma find_mk_insert_result [decidable_rel lt] (c : color) (t : rbnode α) (x : α) :
   find lt (mk_insert_result c t) x = find lt t x :=
 begin
   cases t; cases c; simp [mk_insert_result],
   { simp [find], cases cmp_using lt x t_val; simp [find] }
 end
 
-lemma find_insert_of_eqv [is_strict_weak_order α lt] {x y : α} {t : rbnode α} (he : x ≈[lt] y) :
+lemma find_insert_of_eqv [decidable_rel lt] [is_strict_weak_order α lt] {x y : α}
+  {t : rbnode α} (he : x ≈[lt] y) :
   is_searchable lt t none none → find lt (insert lt t x) y = some x :=
 begin
   intro hs,
@@ -454,18 +461,19 @@ section find_ins_of_not_eqv
 
 section simp_aux_lemmas
 
-lemma find_black_eq_find_red {l y r x} :
+lemma find_black_eq_find_red [decidable_rel lt] {l y r x} :
   find lt (black_node l y r) x = find lt (red_node l y r) x :=
 begin simp [find], all_goals { cases cmp_using lt x y; simp [find] } end
 
-lemma find_red_of_lt {l y r x} (h : lt x y) : find lt (red_node l y r) x = find lt l x :=
+lemma find_red_of_lt [decidable_rel lt] {l y r x} (h : lt x y) :
+  find lt (red_node l y r) x = find lt l x :=
 by simp [find, cmp_using, *]
 
-lemma find_red_of_gt [is_strict_order α lt] {l y r x} (h : lt y x) :
+lemma find_red_of_gt [decidable_rel lt] [is_strict_order α lt] {l y r x} (h : lt y x) :
   find lt (red_node l y r) x = find lt r x :=
 begin have := not_lt_of_lt h, simp [find, cmp_using, *]  end
 
-lemma find_red_of_incomp {l y r x} (h : ¬ lt x y ∧ ¬ lt y x) :
+lemma find_red_of_incomp [decidable_rel lt] {l y r x} (h : ¬ lt x y ∧ ¬ lt y x) :
   find lt (red_node l y r) x = some y :=
 by simp [find, cmp_using, *]
 
@@ -475,7 +483,7 @@ local attribute [simp]
   find_black_eq_find_red find_red_of_lt find_red_of_lt find_red_of_gt
   find_red_of_incomp
 
-variable [is_strict_weak_order α lt]
+variables [is_strict_weak_order α lt] [decidable_rel lt]
 
 lemma find_balance1_lt {l r t v x y lo hi}
                        (h : lt x y)
@@ -704,7 +712,7 @@ end
 
 end find_ins_of_not_eqv
 
-lemma find_insert_of_disj [is_strict_weak_order α lt] {x y : α} {t : rbnode α}
+lemma find_insert_of_disj [decidable_rel lt] [is_strict_weak_order α lt] {x y : α} {t : rbnode α}
   (hd : lt x y ∨ lt y x) : is_searchable lt t none none → find lt (insert lt t x) y = find lt t y :=
 begin
   intro hs,
@@ -712,7 +720,7 @@ begin
   apply find_ins_of_disj lt hd hs; simp
 end
 
-lemma find_insert_of_not_eqv [is_strict_weak_order α lt] {x y : α} {t : rbnode α}
+lemma find_insert_of_not_eqv [decidable_rel lt] [is_strict_weak_order α lt] {x y : α} {t : rbnode α}
   (hn : ¬ x ≈[lt] y) : is_searchable lt t none none → find lt (insert lt t x) y = find lt t y :=
 begin
   intro hs,

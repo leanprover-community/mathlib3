@@ -226,12 +226,6 @@ apply_nolint snum.cadd doc_blame
 -- data/option/defs.lean
 apply_nolint option.traverse doc_blame
 
--- data/pequiv.lean
-apply_nolint pequiv has_inhabited_instance
-apply_nolint pequiv.refl doc_blame
-apply_nolint pequiv.symm doc_blame
-apply_nolint pequiv.trans doc_blame
-
 -- data/pnat/xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame
 apply_nolint pnat.gcd_b' doc_blame
@@ -480,15 +474,6 @@ apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 -- linear_algebra/affine_space/affine_subspace.lean
 apply_nolint affine_span.nonempty fails_quickly
 apply_nolint affine_subspace.to_add_torsor fails_quickly
-
--- logic/embedding.lean
-apply_nolint function.embedding.Pi_congr_right doc_blame
-apply_nolint function.embedding.arrow_congr_left doc_blame
-apply_nolint function.embedding.arrow_congr_right doc_blame
-apply_nolint function.embedding.congr doc_blame
-apply_nolint function.embedding.refl doc_blame
-apply_nolint function.embedding.subtype_map doc_blame
-apply_nolint function.embedding.trans doc_blame
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
@@ -1068,7 +1053,3 @@ apply_nolint uniform_space.completion.completion_separation_quotient_equiv doc_b
 apply_nolint uniform_space.completion.cpkg doc_blame
 apply_nolint uniform_space.completion.extension₂ doc_blame
 apply_nolint uniform_space.completion.map₂ doc_blame
-
--- topology/uniform_space/uniform_embedding.lean
-apply_nolint uniform_embedding doc_blame
-apply_nolint uniform_inducing doc_blame

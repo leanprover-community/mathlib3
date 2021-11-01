@@ -397,7 +397,7 @@ instance connected_components.inhabited [inhabited V] : inhabited G.connected_co
 
 lemma connected_component.subsingleton_of_connected (h : G.connected) :
   subsingleton G.connected_component :=
-⟨λ c d, quot.ind (λ v d, quot.ind (λ w, (quot.sound (h.1 v w))) d) c d⟩
+⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h.1 v w)) d) c d⟩
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected

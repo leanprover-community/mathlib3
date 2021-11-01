@@ -63,7 +63,7 @@ let f : (⨁ i, A i) →+* R :=
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _, }
 
-lemma graded_ring.trivial_inter (i : ι) [graded_ring R A] :
+lemma graded_ring.trivial_inter (i : ι) :
    disjoint (A i) (Sup {a | ∃ j ≠ i, A j = a}) :=
 begin
   by_cases empty_iota : {a | ∃ j ≠ i, A j = a}.nonempty,
@@ -101,7 +101,7 @@ begin
   rw [empty_iota, Sup_empty], simp only [disjoint_bot_right],
 end
 
-lemma graded_ring.complete_lattice.independent [graded_ring R A] :
+lemma graded_ring.complete_lattice.independent :
   complete_lattice.independent (λ i, A i) :=
   complete_lattice.independent_def''.mpr (λ i, graded_ring.trivial_inter R A i)
 
@@ -134,6 +134,18 @@ lemma graded_ring.proj_mem (i : ι) (r : R) :
 def graded_ring.support [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
   (r : R) : finset ι :=
 (@graded_ring.decompose R _ ι A _ _ _ r).support
+
+lemma graded_ring.proj_recompose (a : ⨁ i, A i) (i : ι) :
+  graded_ring.proj R A i (graded_ring.recompose R A a) =
+  graded_ring.recompose R A (direct_sum.of _ i (a i)) :=
+begin
+  unfold graded_ring.proj, simp only [add_monoid_hom.coe_mk, subtype.val_eq_coe],
+  have : graded_ring.decompose ((graded_ring.recompose R A) a) = a :=
+    (graded_ring.recompose R A).symm_apply_apply a,
+  rw this,
+  unfold graded_ring.recompose,
+  simp only [direct_sum.to_semiring_of, add_subgroup.coe_subtype, ring_equiv.coe_mk],
+end
 
 variable [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
 
@@ -169,18 +181,6 @@ begin
   intros i hi, simp only [ne.def, dfinsupp.mem_support_to_fun, subtype.val_eq_coe] at hi ⊢,
   unfold direct_sum.add_subgroup_coe,
   rw direct_sum.to_add_monoid_of, refl,
-end
-
-lemma graded_ring.proj_recompose (a : ⨁ i, A i) (i : ι) :
-  graded_ring.proj R A i (graded_ring.recompose R A a) =
-  graded_ring.recompose R A (direct_sum.of _ i (a i)) :=
-begin
-  unfold graded_ring.proj, simp only [add_monoid_hom.coe_mk, subtype.val_eq_coe],
-  have : graded_ring.decompose ((graded_ring.recompose R A) a) = a :=
-    (graded_ring.recompose R A).symm_apply_apply a,
-  rw this,
-  unfold graded_ring.recompose,
-  simp only [direct_sum.to_semiring_of, add_subgroup.coe_subtype, ring_equiv.coe_mk],
 end
 
 lemma graded_ring.mul_proj (r r' : R) (i : ι) :
@@ -300,9 +300,6 @@ instance homogeneous_element.has_mul [add_comm_monoid ι] [decidable_eq ι] [gra
   use (i + j), exact graded_ring.mul_respect_grading hi hj,
 end ⟩ }
 
-instance homogenous_element_set.has_mul [add_comm_monoid ι] [decidable_eq ι] [graded_ring R A] :
-  has_mul (set (homogeneous_element R A)) := by apply_instance
-
 /--lifting is a `mul_hom`-/
 def homogeneous_element.coe_mul_hom [decidable_eq ι] [add_comm_monoid ι] [graded_ring R A] :
   mul_hom (homogeneous_element R A) R :=
@@ -316,7 +313,7 @@ instance lift_homogeneous_element [decidable_eq ι] [add_comm_monoid ι] [graded
 { lift := homogeneous_element.coe_mul_hom R A }
 
 
-instance lift_homogeneous_set [decidable_eq R] [decidable_eq ι] [add_comm_monoid ι]
+instance lift_homogeneous_set [decidable_eq ι] [add_comm_monoid ι]
   [graded_ring R A] :
   has_lift (set (homogeneous_element R A)) (set R) :=
 { lift := λ S, (homogeneous_element.coe_mul_hom R A) '' S }

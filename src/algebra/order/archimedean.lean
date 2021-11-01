@@ -164,11 +164,11 @@ section linear_ordered_field
 variables [linear_ordered_field α]
 
 /-- Every positive `x` is between two successive integer powers of
-another `y` greater than one. This is the same as `exists_zpow_near'`,
+another `y` greater than one. This is the same as `exists_mem_Ioc_zpow`,
 but with ≤ and < the other way around. -/
-lemma exists_zpow_near [archimedean α]
+lemma exists_mem_Ico_zpow [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+  ∃ n : ℤ, x ∈ set.Ico (y ^ n) (y ^ (n + 1)) :=
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
@@ -183,12 +183,12 @@ let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
 /-- Every positive `x` is between two successive integer powers of
-another `y` greater than one. This is the same as `exists_zpow_near`,
+another `y` greater than one. This is the same as `exists_mem_Ico_zpow`,
 but with ≤ and < the other way around. -/
-lemma exists_zpow_near' [archimedean α]
+lemma exists_mem_Ioc_zpow [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
-let ⟨m, hle, hlt⟩ := exists_zpow_near (inv_pos.2 hx) hy in
+  ∃ n : ℤ, x ∈ set.Ioc (y ^ n) (y ^ (n + 1)) :=
+let ⟨m, hle, hlt⟩ := exists_mem_Ico_zpow (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
 by rwa [zpow_neg₀, inv_lt (zpow_pos_of_pos hyp _) hx],

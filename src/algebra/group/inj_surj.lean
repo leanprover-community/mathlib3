@@ -120,6 +120,28 @@ protected def left_cancel_monoid [left_cancel_monoid M₂] (f : M₁ → M₂) (
   left_cancel_monoid M₁ :=
 { .. hf.left_cancel_semigroup f mul, .. hf.monoid f one mul }
 
+/-- A type endowed with `1` and `*` is a right cancel monoid,
+if it admits an injective map that preserves `1` and `*` to a right cancel monoid.
+See note [reducible non-instances]. -/
+@[reducible, to_additive add_right_cancel_monoid
+"A type endowed with `0` and `+` is an additive left cancel monoid,
+if it admits an injective map that preserves `0` and `+` to an additive left cancel monoid."]
+protected def right_cancel_monoid [right_cancel_monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  right_cancel_monoid M₁ :=
+{ .. hf.right_cancel_semigroup f mul, .. hf.monoid f one mul }
+
+/-- A type endowed with `1` and `*` is a cancel monoid,
+if it admits an injective map that preserves `1` and `*` to a cancel monoid.
+See note [reducible non-instances]. -/
+@[reducible, to_additive add_cancel_monoid
+"A type endowed with `0` and `+` is an additive left cancel monoid,
+if it admits an injective map that preserves `0` and `+` to an additive left cancel monoid."]
+protected def cancel_monoid [cancel_monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  cancel_monoid M₁ :=
+{ .. hf.left_cancel_monoid f one mul, .. hf.right_cancel_monoid f one mul }
+
 /-- A type endowed with `1` and `*` is a commutative monoid,
 if it admits an injective map that preserves `1` and `*` to a commutative monoid.
 See note [reducible non-instances]. -/
@@ -147,7 +169,7 @@ variables [has_inv M₁] [has_div M₁]
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.
 See note [reducible non-instances]. -/
-@[reducible, to_additive
+@[reducible, to_additive sub_neg_monoid
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `sub_neg_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `sub_neg_monoid`."]
@@ -258,7 +280,7 @@ variables [has_inv M₂] [has_div M₂]
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`,
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` from a `div_inv_monoid`
 See note [reducible non-instances]. -/
-@[reducible, to_additive
+@[reducible, to_additive sub_neg_monoid
 "A type endowed with `0`, `+`, and `-` (unary and binary) is an additive group,
 if it admits a surjective map that preserves `0`, `+`, and `-` from a `sub_neg_monoid`"]
 protected def div_inv_monoid [div_inv_monoid M₁] (f : M₁ → M₂) (hf : surjective f)

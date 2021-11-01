@@ -958,8 +958,20 @@ def path.map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path
     exact hp.2 hx, },
 end⟩
 
+lemma preconnected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
+  G.preconnected :=
+begin
+  intros v w,
+  have h' := (h ∅ (by simp) (by simp [hk])).preconnected v w,
+  simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h',
+  cases h',
+  exact ⟨h'.map (subgraph.map_spanning_top _)⟩,
+end
+
 lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) : G.connected :=
-  (h ∅ (by simp) (by simp [hk])).imp_right (by simp) -- breakpoint
+let C' := h ∅ (by simp) (by simp [hk]) in
+{ preconnected := by simpa using C'.preconnected,
+  nonempty := C'.nonempty }
 
 end map
 

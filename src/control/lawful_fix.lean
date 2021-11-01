@@ -51,7 +51,7 @@ variables (f : (Π a, part $ β a) →ₘ (Π a, part $ β a))
 
 lemma approx_mono' {i : ℕ} : fix.approx f i ≤ fix.approx f (succ i) :=
 begin
-  induction i, dsimp [approx], apply @bot_le _ _ (f ⊥),
+  induction i, dsimp [approx], apply @bot_le _ _ _ (f ⊥),
   intro, apply f.monotone, apply i_ih
 end
 

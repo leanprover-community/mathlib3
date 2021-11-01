@@ -304,8 +304,7 @@ end
 
 instance order_bot : order_bot (fractional_ideal S P) :=
 { bot := 0,
-  bot_le := zero_le,
-  ..set_like.partial_order }
+  bot_le := zero_le }
 
 @[simp] lemma bot_eq_zero : (⊥ : fractional_ideal S P) = 0 :=
 rfl
@@ -768,7 +767,8 @@ variables {I J : fractional_ideal R⁰ K} (h : K →ₐ[R] K')
 lemma exists_ne_zero_mem_is_integer [nontrivial R] (hI : I ≠ 0) :
   ∃ x ≠ (0 : R), algebra_map R K x ∈ I :=
 begin
-  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr hI),
+  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt
+    (by simpa only using bot_lt_iff_ne_bot.mpr hI),
   have y_ne_zero : y ≠ 0 := by simpa using y_not_mem,
   obtain ⟨z, ⟨x, hx⟩⟩ := exists_integer_multiple R⁰ y,
   refine ⟨x, _, _⟩,
@@ -845,7 +845,8 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0)
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
-  obtain ⟨y, mem_J, not_mem_zero⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr h),
+  obtain ⟨y, mem_J, not_mem_zero⟩ := set_like.exists_of_lt
+    (by simpa only using bot_lt_iff_ne_bot.mpr h),
   obtain ⟨y', hy'⟩ := hJ y mem_J,
   use (aI * y'),
   split,

@@ -201,8 +201,7 @@ instance order_top {X : C} : order_top (subobject X) :=
   begin
     refine quotient.ind' (λ f, _),
     exact ⟨mono_over.le_top f⟩,
-  end,
-  ..subobject.partial_order X}
+  end }
 
 instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
@@ -266,8 +265,7 @@ instance order_bot {X : C} : order_bot (subobject X) :=
   begin
     refine quotient.ind' (λ f, _),
     exact ⟨mono_over.bot_le f⟩,
-  end,
-  ..subobject.partial_order X }
+  end }
 
 lemma bot_eq_initial_to {B : C} : (⊥ : subobject B) = subobject.mk (initial.to B) := rfl
 
@@ -342,7 +340,8 @@ instance {B : C} : semilattice_inf_top (subobject B) :=
   inf_le_left := inf_le_left,
   inf_le_right := inf_le_right,
   le_inf := le_inf,
-  ..subobject.order_top }
+  ..subobject.order_top,
+  ..subobject.partial_order B }
 
 lemma factors_left_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
   (h : (X ⊓ Y).factors f) : X.factors f :=

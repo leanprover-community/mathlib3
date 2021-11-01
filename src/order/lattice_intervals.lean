@@ -148,10 +148,9 @@ instance [lattice α] : lattice (Ici a) :=
 { .. (Ici.semilattice_inf),
   .. (Ici.semilattice_sup) }
 
-instance [partial_order α] : order_bot (Ici a) :=
+instance [preorder α] : order_bot (Ici a) :=
 { bot := ⟨a, le_refl a⟩,
-  bot_le := λ x, x.prop,
-  .. (subtype.partial_order _) }
+  bot_le := λ x, x.prop }
 
 @[simp] lemma coe_bot [partial_order α] {a : α} : ↑(⊥ : Ici a) = a := rfl
 

@@ -1145,7 +1145,7 @@ by { rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.i
 
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
-  cases (@le_top _ _ (μ univ)).lt_or_eq with hμ hμ,
+  cases (@le_top _ _ _ (μ univ)).lt_or_eq with hμ hμ,
   { haveI : is_finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
       ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm

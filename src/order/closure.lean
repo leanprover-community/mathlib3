@@ -177,7 +177,7 @@ end partial_order
 variable {α}
 
 section order_top
-variables [order_top α] (c : closure_operator α)
+variables [partial_order α] [order_top α] (c : closure_operator α)
 
 @[simp] lemma closure_top : c ⊤ = ⊤ :=
 le_top.antisymm (c.le_closure _)
@@ -329,7 +329,7 @@ l.closure_operator.closure_le_closed_iff_le x hy
 
 end partial_order
 
-lemma closure_top [order_top α] [preorder β] {u : β → α} (l : lower_adjoint u) :
+lemma closure_top [partial_order α] [order_top α] [preorder β] {u : β → α} (l : lower_adjoint u) :
   u (l ⊤) = ⊤ :=
 l.closure_operator.closure_top
 

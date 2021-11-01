@@ -52,7 +52,7 @@ section atoms
 
 section is_atom
 
-variable [order_bot α]
+variables [partial_order α] [order_bot α]
 
 /-- An atom of an `order_bot` is an element with no other element between it and `⊥`,
   which is not `⊥`. -/
@@ -71,7 +71,7 @@ end is_atom
 
 section is_coatom
 
-variable [order_top α]
+variables [partial_order α] [order_top α]
 
 /-- A coatom of an `order_top` is an element with no other element between it and `⊤`,
   which is not `⊤`. -/
@@ -109,7 +109,7 @@ or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
 
 end pairwise
 
-variable {a : α}
+variables [partial_order α] {a : α}
 
 @[simp]
 lemma is_coatom_dual_iff_is_atom [order_bot α] : is_coatom (order_dual.to_dual a) ↔ is_atom a :=
@@ -123,7 +123,7 @@ end atoms
 
 section atomic
 
-variable (α)
+variables [partial_order α] (α)
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
 class is_atomic [order_bot α] : Prop :=
@@ -173,7 +173,7 @@ end is_coatomic
 
 theorem is_atomic_iff_forall_is_atomic_Iic [order_bot α] :
   is_atomic α ↔ ∀ (x : α), is_atomic (set.Iic x) :=
-⟨@is_atomic.set.Iic.is_atomic _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ (h x))
+⟨@is_atomic.set.Iic.is_atomic _ _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ _ (h x))
   (⊤ : set.Iic x)).imp subtype.mk_eq_mk.1 (exists_imp_exists' coe
   (λ ⟨a, ha⟩, and.imp_left (is_atom.of_is_atom_coe_Iic)))⟩⟩
 
@@ -441,7 +441,7 @@ theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
   is_simple_lattice α ↔ is_atom (⊤ : α) :=
 ⟨λ h, @is_atom_top _ _ h, λ h, {
   exists_pair_ne := ⟨⊤, ⊥, h.1⟩,
-  eq_bot_or_eq_top := λ a, ((eq_or_lt_of_le (@le_top _ _ a)).imp_right (h.2 a)).symm }⟩
+  eq_bot_or_eq_top := λ a, ((eq_or_lt_of_le le_top).imp_right (h.2 a)).symm }⟩
 
 theorem is_simple_lattice_iff_is_coatom_bot [bounded_lattice α] :
   is_simple_lattice α ↔ is_coatom (⊥ : α) :=
@@ -465,7 +465,9 @@ end set
 
 namespace order_iso
 
-@[simp] lemma is_atom_iff [order_bot α] {β : Type*} [order_bot β] (f : α ≃o β) (a : α) :
+variables {β : Type*} [partial_order α] [partial_order β]
+
+@[simp] lemma is_atom_iff [order_bot α] [order_bot β] (f : α ≃o β) (a : α) :
   is_atom (f a) ↔ is_atom a :=
 and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bot ▸ (congr rfl h)⟩)
   ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).lt_iff_lt.2 hb)).trans f.map_bot.symm),
@@ -476,21 +478,21 @@ and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bo
     exact (f.symm : β ↪o α).lt_iff_lt.2 hb,
   end⟩
 
-@[simp] lemma is_coatom_iff [order_top α] {β : Type*} [order_top β] (f : α ≃o β) (a : α) :
+@[simp] lemma is_coatom_iff [order_top α] [order_top β] (f : α ≃o β) (a : α) :
   is_coatom (f a) ↔ is_coatom a :=
 f.dual.is_atom_iff a
 
-lemma is_simple_lattice_iff [bounded_lattice α] {β : Type*} [bounded_lattice β] (f : α ≃o β) :
+lemma is_simple_lattice_iff {α β} [bounded_lattice α] [bounded_lattice β] (f : α ≃o β) :
   is_simple_lattice α ↔ is_simple_lattice β :=
 by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
   ← f.is_atom_iff ⊤, f.map_top]
 
-lemma is_simple_lattice [bounded_lattice α] {β : Type*} [bounded_lattice β]
+lemma is_simple_lattice {α β} [bounded_lattice α] [bounded_lattice β]
   [h : is_simple_lattice β] (f : α ≃o β) :
   is_simple_lattice α :=
 f.is_simple_lattice_iff.mpr h
 
-lemma is_atomic_iff [order_bot α] {β : Type*} [order_bot β] (f : α ≃o β) :
+lemma is_atomic_iff [order_bot α] [order_bot β] (f : α ≃o β) :
   is_atomic α ↔ is_atomic β :=
 begin
   suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
@@ -507,7 +509,7 @@ begin
       rwa [←f.le_iff_le, f.apply_symm_apply], }, },
 end
 
-lemma is_coatomic_iff [order_top α] {β : Type*} [order_top β] (f : α ≃o β) :
+lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) :
   is_coatomic α ↔ is_coatomic β :=
 by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
   exact f.dual.is_atomic_iff }

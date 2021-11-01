@@ -97,9 +97,16 @@ To differentiate the statements from the corresponding statements in (unconditio
 complete linear orders, we prefix Inf and Sup by a c everywhere. The same statements should
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
+@[ancestor conditionally_complete_linear_order has_bot]
 class conditionally_complete_linear_order_bot (α : Type*)
-  extends conditionally_complete_linear_order α, order_bot α :=
+  extends conditionally_complete_linear_order α, has_bot α :=
+(bot_le : ∀ x : α, ⊥ ≤ x)
 (cSup_empty : Sup ∅ = ⊥)
+
+@[priority 100] -- see Note [lower instance priority]
+instance conditionally_complete_linear_order_bot.to_order_bot (α : Type*)
+  [h : conditionally_complete_linear_order_bot α] : order_bot α :=
+{ ..h }
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/

@@ -573,6 +573,10 @@ theorem le_mul_right {a b : associates α} : a ≤ a * b := ⟨b, rfl⟩
 theorem le_mul_left {a b : associates α} : a ≤ b * a :=
 by rw [mul_comm]; exact le_mul_right
 
+instance : order_bot (associates α) :=
+{ bot := 1,
+  bot_le := assume a, one_le }
+
 end order
 
 end comm_monoid
@@ -594,6 +598,10 @@ instance : comm_monoid_with_zero (associates α) :=
 { zero_mul := by { rintro ⟨a⟩, show associates.mk (0 * a) = associates.mk 0, rw [zero_mul] },
   mul_zero := by { rintro ⟨a⟩, show associates.mk (a * 0) = associates.mk 0, rw [mul_zero] },
   .. associates.comm_monoid, .. associates.has_zero }
+
+instance : order_top (associates α) :=
+{ top := 0,
+  le_top := assume a, ⟨0, (mul_zero a).symm⟩ }
 
 instance [nontrivial α] : nontrivial (associates α) :=
 ⟨⟨0, 1,
@@ -710,16 +718,6 @@ instance : partial_order (associates α) :=
 { le_antisymm := λ a' b', quotient.induction_on₂ a' b' (λ a b hab hba,
   quot.sound $ associated_of_dvd_dvd (dvd_of_mk_le_mk hab) (dvd_of_mk_le_mk hba))
   .. associates.preorder }
-
-instance : order_bot (associates α) :=
-{ bot := 1,
-  bot_le := assume a, one_le,
-  .. associates.partial_order }
-
-instance : order_top (associates α) :=
-{ top := 0,
-  le_top := assume a, ⟨0, (mul_zero a).symm⟩,
-  .. associates.partial_order }
 
 instance : no_zero_divisors (associates α) :=
 ⟨λ x y,

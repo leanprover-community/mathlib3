@@ -598,7 +598,7 @@ def lifts := Σ (L : intermediate_field F E), (L →ₐ[F] K)
 
 variables {F E K}
 
-noncomputable instance : order_bot (lifts F E K) :=
+instance : partial_order (lifts F E K) :=
 { le := λ x y, x.1 ≤ y.1 ∧ (∀ (s : x.1) (t : y.1), (s : E) = t → x.2 s = y.2 t),
   le_refl := λ x, ⟨le_refl x.1, λ s t hst, congr_arg x.2 (subtype.ext hst)⟩,
   le_trans := λ x y z hxy hyz, ⟨le_trans hxy.1 hyz.1, λ s u hsu, eq.trans
@@ -610,8 +610,10 @@ noncomputable instance : order_bot (lifts F E K) :=
     subst this,
     congr,
     exact alg_hom.ext (λ s, hxy2 s s rfl),
-  end,
-  bot := ⟨⊥, (algebra.of_id F K).comp (bot_equiv F E).to_alg_hom⟩,
+  end }
+
+noncomputable instance : order_bot (lifts F E K) :=
+{ bot := ⟨⊥, (algebra.of_id F K).comp (bot_equiv F E).to_alg_hom⟩,
   bot_le := λ x, ⟨bot_le, λ s t hst,
   begin
     cases intermediate_field.mem_bot.mp s.mem with u hu,

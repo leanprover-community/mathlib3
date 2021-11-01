@@ -7,7 +7,16 @@ Authors: Junyan Xu
 import topology.sheaves.sheaf_condition.opens_le_cover
 
 /-!
-# A consequence of the sheaf condition about cover by open sets in a topological basis
+# Consequences of the sheaf condition about covers by open sets in a topological basis
+
+Let `B` be a basis of a topological space `X`.
+
+This file shows that if `G` is a sheaf on `X`,
+then `G(U)` is the limit of all `G(V)` with `V ∈ B, V ⊆ U`,
+and if `α : F ⟶ G` is a homomorphism of presheaves on `X`
+defined only on open sets in `B`, it uniquely extends to an
+actual homomorphism on all open sets.
+
 -/
 
 universes v u
@@ -93,7 +102,7 @@ lemma basis_le_cone_eq {B} (hB : is_basis_range B) :
 let h := congr_arg op (supr_basis_le_eq_self U hB).symm in cone_ext h
 -- `h` can't be inlined
 
-/-- `F(U)` over all `F(V)` for `V ∈ B, V ⊆ U`. -/
+/-- `F(U)` over all `F(V)` with `V ∈ B, V ⊆ U`. -/
 def basis_le_presheaf_cone := F.map_cone (basis_le_cone B U)
 
 lemma basis_le_presheaf_cone_app (i : basis_le B U) :
@@ -103,7 +112,7 @@ lemma basis_le_presheaf_cone_app_id (i : B.ι) :
   (basis_le_presheaf_cone B (B.f i) F).π.app ⟨i, le_of_eq rfl⟩ = 𝟙 _
 := by dunfold basis_le_presheaf_cone; dsimp; rw ← F.map_id; refl
 
-/-- The condition that `F(U)` is the limit of all `F(V)` for `V ∈ B, V ⊆ U`. -/
+/-- The condition that `F(U)` is the limit of all `F(V)` with `V ∈ B, V ⊆ U`. -/
 @[nolint has_inhabited_instance]
 def lim_basis_le : Type (max u v) :=
   Π (U : opens X), is_limit (basis_le_presheaf_cone B U F)
@@ -153,7 +162,7 @@ begin
   exact i.2.trans (W₂.unop.2.some_spec.trans W₂.unop.2.some.2),
 end
 
-/-- If `F` is the sheaf, `F(U)` is the limit of all `F(V)` for `V ∈ B, V ⊆ U`. -/
+/-- If `F` is the sheaf, `F(U)` is the limit of all `F(V)` with `V ∈ B, V ⊆ U`. -/
 def lim_basis_le_of_sheaf {B} (hB : is_basis_range B)
   (hF : F.is_sheaf_opens_le_cover) : lim_basis_le B F :=
 begin

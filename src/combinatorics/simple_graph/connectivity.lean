@@ -958,11 +958,8 @@ begin
   intros v w, --breaking here
   specialize h ∅ (by simp) (by simp [hk]) v w,
   simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h,
-  cases h with h hne,
   cases h,
-  split,
-  exact ⟨h.map (subgraph.map_spanning_top _)⟩,
-  simp [hne],
+  exact ⟨h.map (subgraph.map_spanning_top _)⟩
 end
 
 end map

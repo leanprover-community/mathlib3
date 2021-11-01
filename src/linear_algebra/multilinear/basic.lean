@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import linear_algebra.basic
+import linear_algebra.basis
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
@@ -533,6 +533,15 @@ def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
   left_inv := λ m, by {ext, simp},
   right_inv := λ m, by {ext, simp},
   map_add' := λ a b, by {ext, simp} }
+
+/-- The results of applying `dom_dom_congr` to two maps are equal if
+and only if those maps are. -/
+@[simp] lemma dom_dom_congr_eq_iff (σ : ι₁ ≃ ι₂) (f g : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  f.dom_dom_congr σ = g.dom_dom_congr σ ↔ f = g :=
+begin
+  change multilinear_map.dom_dom_congr_equiv σ f = multilinear_map.dom_dom_congr_equiv σ g ↔ f = g,
+  exact add_equiv.apply_eq_iff_eq _
+end
 
 end
 
@@ -1177,3 +1186,93 @@ f.map (λ i, ⊤)
 end multilinear_map
 
 end submodule
+
+section basis
+
+open multilinear_map
+
+variables [comm_semiring R] [add_comm_monoid M₂] [add_comm_monoid M₃] [∀i, add_comm_monoid (M i)]
+variables [∀i, module R (M i)] [module R M₂] [module R M₃]
+
+/-- Two multilinear maps indexed by `fin n.succ` are equal if they are equal when all arguments
+are basis vectors. -/
+lemma basis.ext_multilinear_fin {f g : multilinear_map R M M₂} {ι₁ : fin n.succ → Type*}
+  {e : Π i, basis (ι₁ i) R (M i)} (h : ∀ i : Π j, ι₁ j, f (λ x, e x (i x)) = g (λ x, e x (i x))) :
+  f = g :=
+begin
+  unfreezingI { induction n with m hm },
+  { rw [←f.uncurry_curry_left, ←g.uncurry_curry_left],
+    congr' 1,
+    refine basis.ext (e 0) _,
+    intro i,
+    ext v,
+    rw [curry_left_apply, curry_left_apply],
+    convert h (fin.cons i (λ x, fin_zero_elim x)),
+    { ext x,
+      have h0 : x = 0 := subsingleton.elim _ _,
+      rw h0,
+      simp },
+    { ext x,
+      have h0 : x = 0 := subsingleton.elim _ _,
+      rw h0,
+      simp } },
+  { rw [←f.uncurry_curry_left, ←g.uncurry_curry_left],
+    congr' 1,
+    refine basis.ext (e 0) _,
+    intro i,
+    replace hm := @hm _ _ _ (f.curry_left ((e 0) i)) (g.curry_left ((e 0) i)) (fin.tail ι₁)
+                      (fin.tail e),
+    apply hm,
+    intro j,
+    convert h (fin.cons i j),
+    { rw curry_left_apply,
+      congr,
+      ext x,
+      by_cases hx : x = 0,
+      { rw hx,
+        simp },
+      { let x' := x.pred hx,
+        have hx' : x'.succ = x := fin.succ_pred x hx,
+        rw ←hx',
+        simp [fin.tail] } },
+    { rw curry_left_apply,
+      congr,
+      ext x,
+      by_cases hx : x = 0,
+      { rw hx,
+        simp },
+      { let x' := x.pred hx,
+        have hx' : x'.succ = x := fin.succ_pred x hx,
+        rw ←hx',
+        simp [fin.tail] } } }
+end
+
+/-- Two multilinear maps indexed by a `fintype` are equal if they are equal when all arguments
+are basis vectors. Unlike `basis.ext_multilinear_fin`, this only uses a single basis; a
+dependently-typed version would still be true, but the proof would need a dependently-typed
+version of `dom_dom_congr`. -/
+lemma basis.ext_multilinear [fintype ι] {f g : multilinear_map R (λ i : ι, M₂) M₃}
+  {ι₁ : Type*} {e : basis ι₁ R M₂} (h : ∀ i : ι → ι₁, f (λ x, e (i x)) = g (λ x, e (i x))) :
+  f = g :=
+begin
+  generalize' hn : fintype.card ι = n,
+  let f' := f.dom_dom_congr (fintype.equiv_fin_of_card_eq hn),
+  let g' := g.dom_dom_congr (fintype.equiv_fin_of_card_eq hn),
+  rw ←dom_dom_congr_eq_iff (fintype.equiv_fin_of_card_eq hn),
+  change f' = g',
+  cases n with m hm,
+  { ext x,
+    haveI := fintype.card_eq_zero_iff.1 hn,
+    convert h is_empty_elim,
+    { rw dom_dom_congr_apply,
+      congr },
+    { rw dom_dom_congr_apply,
+      congr } },
+  { let ι₂ := λ i : fin m.succ, ι₁,
+    let e' := λ i : fin m.succ, e,
+    have h' : ∀ i : Π j, ι₂ j, f' (λ x, e' x (i x)) = g' (λ x, e' x (i x)) :=
+      λ i, h (i ∘ fintype.equiv_fin_of_card_eq hn),
+    exact basis.ext_multilinear_fin h' }
+end
+
+end basis

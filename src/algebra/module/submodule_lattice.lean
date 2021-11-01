@@ -51,12 +51,6 @@ end
 instance unique_bot : unique (⊥ : submodule R M) :=
 ⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
 
-lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
-begin
-  have h := (set_like.lt_iff_le_and_exists.1 bot_lt).2,
-  tidy,
-end
-
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
@@ -76,6 +70,12 @@ end
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
 
+lemma nonzero_mem_of_bot_lt {p : submodule R M} (bot_lt : ⊥ < p) : ∃ a : p, a ≠ 0 :=
+let ⟨b, hb₁, hb₂⟩ := p.ne_bot_iff.mp bot_lt.ne' in ⟨⟨b, hb₁⟩, hb₂ ∘ (congr_arg coe)⟩
+
+lemma exists_mem_ne_zero_of_ne_bot {p : submodule R M} (h : p ≠ ⊥) : ∃ b : M, b ∈ p ∧ b ≠ 0 :=
+let ⟨b, hb₁, hb₂⟩ := p.ne_bot_iff.mp h in ⟨b, hb₁, hb₂⟩
+
 /-- The bottom submodule is linearly equivalent to punit as an `R`-module. -/
 @[simps] def bot_equiv_punit : (⊥ : submodule R M) ≃ₗ[R] punit :=
 { to_fun := λ x, punit.star,
@@ -84,6 +84,13 @@ by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_foral
   map_smul' := by { intros, ext, },
   left_inv := by { intro x, ext, },
   right_inv := by { intro x, ext, }, }
+
+lemma eq_bot_of_subsingleton (p : submodule R M) [subsingleton p] : p = ⊥ :=
+begin
+  rw eq_bot_iff,
+  intros v hv,
+  exact congr_arg coe (subsingleton.elim (⟨v, hv⟩ : p) 0)
+end
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -240,3 +247,36 @@ add_submonoid.to_nat_submodule.apply_symm_apply S
 end nat_submodule
 
 end add_comm_monoid
+
+section int_submodule
+
+variables [add_comm_group M]
+
+/-- An additive subgroup is equivalent to a ℤ-submodule. -/
+def add_subgroup.to_int_submodule : add_subgroup M ≃o submodule ℤ M :=
+{ to_fun := λ S,
+  { smul_mem' := λ r s hs, S.zsmul_mem hs _, ..S},
+  inv_fun := submodule.to_add_subgroup,
+  left_inv := λ ⟨S, _, _, _⟩, rfl,
+  right_inv := λ ⟨S, _, _, _⟩, rfl,
+  map_rel_iff' := λ a b, iff.rfl }
+
+@[simp]
+lemma add_subgroup.to_int_submodule_symm :
+  ⇑(add_subgroup.to_int_submodule.symm : _ ≃o add_subgroup M) = submodule.to_add_subgroup := rfl
+
+@[simp]
+lemma add_subgroup.coe_to_int_submodule (S : add_subgroup M) :
+  (S.to_int_submodule : set M) = S := rfl
+
+@[simp]
+lemma add_subgroup.to_int_submodule_to_add_subgroup (S : add_subgroup M) :
+  S.to_int_submodule.to_add_subgroup = S :=
+add_subgroup.to_int_submodule.symm_apply_apply S
+
+@[simp]
+lemma submodule.to_add_subgroup_to_int_submodule (S : submodule ℤ M) :
+  S.to_add_subgroup.to_int_submodule = S :=
+add_subgroup.to_int_submodule.apply_symm_apply S
+
+end int_submodule

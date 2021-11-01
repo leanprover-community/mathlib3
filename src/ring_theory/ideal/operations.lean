@@ -397,7 +397,7 @@ def radical (I : ideal R) : ideal R :=
       x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right _ $ I.mul_mem_left _ $ nat.add_comm n m ▸
-        (nat.add_sub_assoc hcm n).symm ▸
+        (add_tsub_assoc_of_le hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right _ hyni)
       (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ add_tsub_cancel_of_le hmc ▸
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
@@ -787,11 +787,11 @@ ideal.ext $ λ _, iff.rfl
 @[simp] lemma map_id : I.map (ring_hom.id R) = I :=
 (gc_map_comap (ring_hom.id R)).l_unique galois_connection.id comap_id
 
-lemma comap_comap {T : Type*} [ring T] {I : ideal T} (f : R →+* S)
-  (g : S →+*T) : (I.comap g).comap f = I.comap (g.comp f) := rfl
+lemma comap_comap {T : Type*} [semiring T] {I : ideal T} (f : R →+* S)
+  (g : S →+* T) : (I.comap g).comap f = I.comap (g.comp f) := rfl
 
-lemma map_map {T : Type*} [ring T] {I : ideal R} (f : R →+* S)
-  (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
+lemma map_map {T : Type*} [semiring T] {I : ideal R} (f : R →+* S)
+  (g : S →+* T) : (I.map f).map g = I.map (g.comp f) :=
 ((gc_map_comap f).compose (gc_map_comap g)).l_unique
   (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
 

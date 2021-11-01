@@ -79,7 +79,7 @@ we do *not* require. This gives `filter X` better formal properties, in particul
 `[ne_bot f]` in a number of lemmas and definitions.
 -/
 
-open set
+open set function
 
 universes u v w x y
 
@@ -586,6 +586,14 @@ lemma compl_not_mem {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ
 lemma filter_eq_bot_of_is_empty [is_empty α] (f : filter α) : f = ⊥ :=
 empty_mem_iff_bot.mp $ univ_mem' is_empty_elim
 
+lemma disjoint_of_disjoint_of_mem {f g : filter α} {s t : set α} (h : disjoint s t)
+  (hs : s ∈ f) (ht : t ∈ g) : disjoint f g :=
+begin
+  refine le_of_eq (empty_mem_iff_bot.1 _),
+  rw [← set.disjoint_iff_inter_eq_empty.1 h],
+  exact inter_mem_inf hs ht
+end
+
 /-- There is exactly one filter on an empty type. --/
 -- TODO[gh-6025]: make this globally an instance once safe to do so
 local attribute [instance]
@@ -730,7 +738,7 @@ begin
   refine ⟨λ h, _, _⟩,
   { rcases (mem_infi_of_fintype _).1 h with ⟨p, hp, rfl⟩,
     refine ⟨λ a, if h : a ∈ s then p ⟨a, h⟩ else univ, λ a ha, by simpa [ha] using hp ⟨a, ha⟩, _⟩,
-    refine Inter_congr id function.surjective_id _,
+    refine Inter_congr id surjective_id _,
     rintro ⟨a, ha⟩, simp [ha] },
   { rintro ⟨p, hpf, rfl⟩,
     exact Inter_mem.2 (λ a, mem_infi_of_mem a (hpf a a.2)) }
@@ -1045,6 +1053,11 @@ begin
   exact λ x hpq hq hp, hpq ⟨hp, hq⟩
 end
 
+lemma eventually.and_frequently {p q : α → Prop} {f : filter α}
+  (hp : ∀ᶠ x in f, p x) (hq : ∃ᶠ x in f, q x) :
+  ∃ᶠ x in f, p x ∧ q x :=
+by simpa only [and.comm] using hq.and_eventually hp
+
 lemma frequently.exists {p : α → Prop} {f : filter α} (hp : ∃ᶠ x in f, p x) : ∃ x, p x :=
 begin
   by_contradiction H,
@@ -1217,7 +1230,7 @@ H.mono $ λ x hx, congr_arg h hx
 lemma eventually_eq.comp₂ {δ} {f f' : α → β} {g g' : α → γ} {l} (Hf : f =ᶠ[l] f') (h : β → γ → δ)
   (Hg : g =ᶠ[l] g') :
   (λ x, h (f x) (g x)) =ᶠ[l] (λ x, h (f' x) (g' x)) :=
-(Hf.prod_mk Hg).fun_comp (function.uncurry h)
+(Hf.prod_mk Hg).fun_comp (uncurry h)
 
 @[to_additive]
 lemma eventually_eq.mul [has_mul β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
@@ -1414,7 +1427,7 @@ lemma mem_map' : t ∈ map m f ↔ {x | m x ∈ t} ∈ f := iff.rfl
 lemma image_mem_map (hs : s ∈ f) : m '' s ∈ map m f :=
 f.sets_of_superset hs $ subset_preimage_image m s
 
-lemma image_mem_map_iff (hf : function.injective m) : m '' s ∈ map m f ↔ s ∈ f :=
+lemma image_mem_map_iff (hf : injective m) : m '' s ∈ map m f ↔ s ∈ f :=
 ⟨λ h, by rwa [← preimage_image_eq s hf], image_mem_map⟩
 
 lemma range_mem_map : range m ∈ map m f :=
@@ -1538,7 +1551,7 @@ protected lemma is_lawful_monad : is_lawful_monad filter :=
   bind_assoc := λ α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := λ α β f x, filter.ext $ λ s,
     by simp only [has_bind.bind, bind, functor.map, mem_map', mem_join, mem_set_of_eq,
-      function.comp, mem_pure] }
+      comp, mem_pure] }
 end
 
 instance : applicative filter := { map := @filter.map, seq := @filter.seq }
@@ -1686,9 +1699,12 @@ lemma comap_le_comap_iff {f g : filter β} {m : α → β} (hf : range m ∈ f) 
   comap m f ≤ comap m g ↔ f ≤ g :=
 ⟨λ h, map_comap_of_mem hf ▸ (map_mono h).trans map_comap_le, λ h, comap_mono h⟩
 
-theorem map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l : filter β) :
+theorem map_comap_of_surjective {f : α → β} (hf : surjective f) (l : filter β) :
   map f (comap f l) = l :=
 map_comap_of_mem $ by simp only [hf.range_eq, univ_mem]
+
+lemma _root_.function.surjective.filter_map_top {f : α → β} (hf : surjective f) : map f ⊤ = ⊤ :=
+(congr_arg _ comap_top).symm.trans $ map_comap_of_surjective hf ⊤
 
 lemma subtype_coe_map_comap (s : set α) (f : filter α) :
   map (coe : s → α) (comap (coe : s → α) f) = f ⊓ 𝓟 s :=
@@ -1710,14 +1726,14 @@ lemma image_coe_mem_of_mem_comap {f : filter α} {U : set α} (h : U ∈ f) {W :
   (W_in : W ∈ comap (coe : U → α) f) : coe '' W ∈ f :=
 image_mem_of_mem_comap (by simp [h]) W_in
 
-lemma comap_map {f : filter α} {m : α → β} (h : function.injective m) :
+lemma comap_map {f : filter α} {m : α → β} (h : injective m) :
   comap m (map m f) = f :=
 le_antisymm
   (λ s hs, mem_of_superset (preimage_mem_comap $ image_mem_map hs) $
     by simp only [preimage_image_eq s h])
   le_comap_map
 
-lemma mem_comap_iff {f : filter β} {m : α → β} (inj : function.injective m)
+lemma mem_comap_iff {f : filter β} {m : α → β} (inj : injective m)
   (large : set.range m ∈ f) {S : set α} : S ∈ comap m f ↔ m '' S ∈ f :=
 by rw [← image_mem_map_iff inj, map_comap_of_mem large]
 
@@ -1740,7 +1756,7 @@ le_antisymm
   (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
   (le_of_map_le_map_inj' hsg hsf hm $ le_of_eq h.symm)
 
-lemma map_inj {f g : filter α} {m : α → β} (hm : function.injective m) (h : map m f = map m g) :
+lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) (h : map m f = map m g) :
   f = g :=
 have comap m (map m f) = comap m (map m g), by rw h,
 by rwa [comap_map hm, comap_map hm] at this
@@ -1793,7 +1809,7 @@ end
 comap_snd_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
 
 lemma comap_eval_ne_bot_iff' {ι : Type*} {α : ι → Type*} {i : ι} {f : filter (α i)} :
-  (comap (function.eval i) f).ne_bot ↔ (∀ j, nonempty (α j)) ∧ ne_bot f :=
+  (comap (eval i) f).ne_bot ↔ (∀ j, nonempty (α j)) ∧ ne_bot f :=
 begin
   casesI is_empty_or_nonempty (Π j, α j) with H H,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [skip, assumption],
@@ -1804,12 +1820,12 @@ end
 
 @[simp] lemma comap_eval_ne_bot_iff {ι : Type*} {α : ι → Type*} [∀ j, nonempty (α j)]
   {i : ι} {f : filter (α i)} :
-  (comap (function.eval i) f).ne_bot ↔ ne_bot f :=
+  (comap (eval i) f).ne_bot ↔ ne_bot f :=
 by simp [comap_eval_ne_bot_iff', *]
 
 @[instance] lemma comap_eval_ne_bot {ι : Type*} {α : ι → Type*} [∀ j, nonempty (α j)]
   (i : ι) (f : filter (α i)) [ne_bot f] :
-  (comap (function.eval i) f).ne_bot :=
+  (comap (eval i) f).ne_bot :=
 comap_eval_ne_bot_iff.2 ‹_›
 
 lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
@@ -1827,7 +1843,7 @@ lemma comap_coe_ne_bot_of_le_principal {s : set γ} {l : filter γ} [h : ne_bot 
 h.comap_of_range_mem $ (@subtype.range_coe γ s).symm ▸ h' (mem_principal_self s)
 
 lemma ne_bot.comap_of_surj {f : filter β} {m : α → β}
-  (hf : ne_bot f) (hm : function.surjective m) :
+  (hf : ne_bot f) (hm : surjective m) :
   ne_bot (comap m f) :=
 hf.comap_of_range_mem $ univ_mem' hm
 
@@ -1907,7 +1923,7 @@ begin
     { exact λ x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy } }
 end
 
-lemma map_inf {f g : filter α} {m : α → β} (h : function.injective m) :
+lemma map_inf {f g : filter α} {m : α → β} (h : injective m) :
   map m (f ⊓ g) = map m f ⊓ map m g :=
 map_inf' univ_mem univ_mem (λ x _ y _ hxy, h hxy)
 
@@ -1951,7 +1967,7 @@ section applicative
 lemma singleton_mem_pure {a : α} : {a} ∈ (pure a : filter α) :=
 mem_singleton a
 
-lemma pure_injective : function.injective (pure : α → filter α) :=
+lemma pure_injective : injective (pure : α → filter α) :=
 λ a b hab, (filter.ext_iff.1 hab {x | a = x}).1 rfl
 
 instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=

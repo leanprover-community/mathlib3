@@ -322,7 +322,7 @@ begin
   ext x,
   refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
   rintros ⟨y, h1⟩,
-  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico hc y,
+  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico₀ hc y,
   exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
 end
 

@@ -17,10 +17,10 @@ counit (`to_Γ_Spec`, in multiple steps in this file) and checking that they sat
 the left and right triangle identities. The constructions and proofs make use of
 maps and lemmas defined and proved in structure_sheaf.lean extensively.
 
-Notice that since the adjunction is between contravariant functors,
-it could equally validly be realized as `Spec ⊣ Γ`
-(`Spec.to_LocallyRingedSpace.right_op ⊣ Γ`), in which case
-the unit and the counit would switch to each other.
+Notice that since the adjunction is between contravariant functors, you get to choose
+one of the two categories to have arrows reversed, and it is equally valid to present
+the adjunction as `Spec ⊣ Γ` (`Spec.to_LocallyRingedSpace.right_op ⊣ Γ`), in which
+case the unit and the counit would switch to each other.
 -/
 
 noncomputable theory

@@ -211,7 +211,7 @@ open is_scalar_tower
 
 section semiring
 
-variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
+variables (R) {S A B} [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 

@@ -140,6 +140,11 @@ begin
     exact inner_left_right_norm _ _ }
 end
 
+end inner_product_space
+
+namespace continuous_linear_map
+open inner_product_space
+
 /-- The adjoint of a bounded operator from Hilbert space E to Hilbert space F. -/
 def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
 linear_isometry_equiv.of_surjective
@@ -190,4 +195,10 @@ instance : star_monoid (E →L[𝕜] E) := ⟨λ _ _, adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
-end inner_product_space
+end continuous_linear_map
+
+namespace continuous_linear_equiv
+
+--def adjoint : (E ≃L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F ≃L[𝕜] E) := sorry
+
+end continuous_linear_equiv

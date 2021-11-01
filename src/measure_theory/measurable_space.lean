@@ -693,7 +693,15 @@ end constructions
 
 /-- A map `f : α → β` is called a *measurable embedding* if it is injective, measurable, and sends
 measurable sets to measurable sets. The latter assumption can be replaced with “`f` has measurable
-inverge `g : range f → α`”. -/
+inverse `g : range f → α`”, see `measurable_embedding.measurable_range_splitting`,
+`measurable_embedding.of_measurable_inverse_range`, and
+`measurable_embedding.of_measurable_inverse`.
+
+One more interpretation: `f` is a measurable embedding if it defines a measurable equivalence to its
+range and the range is a measurable set. One implication is formalized as
+`measurable_embedding.equiv_range`; the other one follows from
+`measurable_equiv.measurable_embedding`, `measurable_embedding.subtype_coe`, and
+`measurable_embedding.comp`. -/
 @[protect_proj]
 structure measurable_embedding {α β : Type*} [measurable_space α] [measurable_space β] (f : α → β) :
   Prop :=
@@ -1087,7 +1095,6 @@ noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : 
 
 end measurable_equiv
 
-
 namespace measurable_embedding
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β}
@@ -1100,6 +1107,21 @@ noncomputable def equiv_range (f : α → β) (hf : measurable_embedding f) :
   measurable_to_fun := hf.measurable.subtype_mk,
   measurable_inv_fun :=
     by { rw coe_of_injective_symm, exact hf.measurable_range_splitting } }
+
+lemma of_measurable_inverse_on_range {g : range f → α} (hf₁ : measurable f)
+  (hf₂ : measurable_set (range f)) (hg : measurable g)
+  (H : left_inverse g (range_factorization f)) : measurable_embedding f :=
+begin
+  set e : α ≃ᵐ range f :=
+    ⟨⟨range_factorization f, g, H, H.right_inverse_of_surjective surjective_onto_range⟩,
+      hf₁.subtype_mk, hg⟩,
+  exact (measurable_embedding.subtype_coe hf₂).comp e.measurable_embedding
+end
+
+lemma of_measurable_inverse {g : β → α} (hf₁ : measurable f)
+  (hf₂ : measurable_set (range f)) (hg : measurable g)
+  (H : left_inverse g f) : measurable_embedding f :=
+of_measurable_inverse_on_range hf₁ hf₂ (hg.comp measurable_subtype_coe) H
 
 end measurable_embedding
 

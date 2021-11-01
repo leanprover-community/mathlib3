@@ -262,21 +262,30 @@ lemma range_comp_subset_range [measurable_space β] (f : β →ₛ γ) {g : α �
   (f.comp g hgm).range ⊆ f.range :=
 finset.coe_subset.1 $ by simp only [coe_range, coe_comp, set.range_comp_subset_range]
 
-/-- Extend a `simple_func` along a measurable embedding. -/
-def extend [measurable_space β] [nonempty γ] (f : α →ₛ γ) (g : α → β)
-  (hg : measurable_embedding g) : β →ₛ γ :=
-{ to_fun := function.extend g f (λ _, classical.choice ‹_›),
-  finite_range' := (f.finite_range.union $ (finite_singleton (classical.choice ‹_›)).subset
-    ((image_subset_range _ _).trans set.range_const_subset)).subset (range_extend_subset _ _ _),
+/-- Extend a `simple_func` along a measurable embedding: `f₁.extend g hg f₂` is the function
+`F : β →ₛ γ` such that `F ∘ g = f₁` and `F y = f₂ y` whenever `y ∉ range g`. -/
+def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) : β →ₛ γ :=
+{ to_fun := function.extend g f₁ f₂,
+  finite_range' := (f₁.finite_range.union $ f₂.finite_range.subset
+    (image_subset_range _ _)).subset (range_extend_subset _ _ _),
   measurable_set_fiber' :=
     begin
       letI : measurable_space γ := ⊤, haveI : measurable_singleton_class γ := ⟨λ _, trivial⟩,
-      exact λ x, hg.measurable_extend f.measurable measurable_const (measurable_set_singleton _)
+      exact λ x, hg.measurable_extend f₁.measurable f₂.measurable (measurable_set_singleton _)
     end }
 
-@[simp] lemma extend_comp_eq [measurable_space β] [nonempty γ] (f : α →ₛ γ) {g : α → β}
-  (hg : measurable_embedding g) : (f.extend g hg).comp g hg.measurable = f :=
-by { ext x, exact function.extend_apply hg.injective _ _ _ }
+@[simp] lemma extend_apply [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) (x : α) : (f₁.extend g hg f₂) (g x) = f₁ x :=
+function.extend_apply hg.injective _ _ _
+
+@[simp] lemma extend_comp_eq' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) : (f₁.extend g hg f₂) ∘ g = f₁ :=
+funext $ λ x, extend_apply _ _ _ _
+
+@[simp] lemma extend_comp_eq [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) : (f₁.extend g hg f₂).comp g hg.measurable = f₁ :=
+coe_injective $ extend_comp_eq' _ _ _
 
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
 with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/
@@ -1896,9 +1905,10 @@ begin
   { rw [simple_func.lintegral_map _ hg.measurable, lintegral],
     have : (f₀.comp g hg.measurable : α → ℝ≥0∞) ≤ f ∘ g, from λ x, hf₀ (g x),
     exact le_supr_of_le (comp f₀ g hg.measurable) (le_supr _ this) },
-  { rw [← f₀.extend_comp_eq hg, ← simple_func.lintegral_map, ← simple_func.lintegral_eq_lintegral],
+  { rw [← f₀.extend_comp_eq hg (const _ 0), ← simple_func.lintegral_map,
+      ← simple_func.lintegral_eq_lintegral],
     refine lintegral_mono_ae (hg.ae_map_iff.2 $ eventually_of_forall $ λ x, _),
-    exact (function.extend_apply hg.injective _ _ _).trans_le (hf₀ _) }
+    exact (extend_apply _ _ _ _).trans_le (hf₀ _) }
 end
 
 /-- The `lintegral` transforms appropriately under a measurable equivalence `g : α ≃ᵐ β`.

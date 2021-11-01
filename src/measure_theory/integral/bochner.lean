@@ -1296,7 +1296,7 @@ begin
     rwa ← hf.ae_measurable_map_iff }
 end
 
-lemma integral_map_of_closed_embedding {β} [topological_space α] [borel_space α]
+lemma _root_.closed_embedding.integral_map {β} [topological_space α] [borel_space α]
   [topological_space β] [measurable_space β] [borel_space β]
   {φ : α → β} (hφ : closed_embedding φ) (f : β → E) :
   ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
@@ -1338,7 +1338,7 @@ begin
   { rw ← map_mul_left_eq_self at hμ,
     exact hμ g },
   have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
-  rw [← integral_map_of_closed_embedding h_mul, hgμ],
+  rw [← h_mul.integral_map, hgμ],
   apply_instance,
 end
 
@@ -1352,7 +1352,7 @@ begin
   { rw ← map_mul_right_eq_self at hμ,
     exact hμ g },
   have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
-  rw [← integral_map_of_closed_embedding h_mul, hgμ],
+  rw [← h_mul.integral_map, hgμ],
   apply_instance,
 end
 

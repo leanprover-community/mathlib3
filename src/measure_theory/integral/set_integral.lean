@@ -311,7 +311,7 @@ lemma _root_.measurable_embedding.set_integral_map {β} {_ : measurable_space β
   ∫ y in s, g y ∂(measure.map f μ) = ∫ x in f ⁻¹' s, g (f x) ∂μ :=
 by rw [hf.restrict_map, hf.integral_map]
 
-lemma set_integral_map_of_closed_embedding [topological_space α] [borel_space α]
+lemma _root_.closed_embedding.set_integral_map [topological_space α] [borel_space α]
   {β} [measurable_space β] [topological_space β] [borel_space β]
   {g : α → β} {f : β → E} (s : set β) (hg : closed_embedding g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=

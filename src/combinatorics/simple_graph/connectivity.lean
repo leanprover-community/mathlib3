@@ -384,7 +384,7 @@ the `simple_graph.reachable` relation. -/
 def connected_component := quot G.reachable
 
 /-- A graph is connected is every pair of vertices is reachable from one another. -/
-def connected : Prop := ∀ (u v : V), G.reachable u v
+def connected : Prop := ∀ (u v : V), G.reachable u v ∧ nonempty V
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
@@ -394,7 +394,7 @@ instance connected_components.inhabited [inhabited V] : inhabited G.connected_co
 
 lemma connected_component.subsingleton_of_connected (h : G.connected) :
   subsingleton G.connected_component :=
-⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
+⟨λ c d, quot.ind (λ v d, quot.ind (λ w, (quot.sound (h v w).1)) d) c d⟩
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
@@ -958,8 +958,11 @@ begin
   intros v w,
   specialize h ∅ (by simp) (by simp [hk]) v w,
   simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h,
+  cases h with h hne,
   cases h,
+  split,
   exact ⟨h.map (subgraph.map_spanning_top _)⟩,
+  simp [hne],
 end
 
 end map
@@ -1227,7 +1230,7 @@ begin
   simp only [is_tree, is_acyclic_iff],
   split,
   { rintro ⟨hc, hu⟩ v w,
-    let q := (hc v w).some.to_path,
+    let q := (hc v w).1.some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
     intros p hp,
@@ -1238,7 +1241,7 @@ begin
     split,
     { intros v w,
       obtain ⟨p, hp⟩ := h v w,
-      use p, },
+      use p, }, -- can't prove this?
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only,
       exact unique_of_exists_unique (h v w) hp hq, }, },

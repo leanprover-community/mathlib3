@@ -957,13 +957,7 @@ end⟩
 
 lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
   G.connected :=
-begin
-  intros v w, --breaking here
-  specialize h ∅ (by simp) (by simp [hk]) v w,
-  simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h,
-  cases h,
-  exact ⟨h.map (subgraph.map_spanning_top _)⟩
-end
+(h ∅ (by simp) (by simp [hk])).imp_left (by simp)
 
 end map
 

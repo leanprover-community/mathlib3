@@ -536,9 +536,6 @@ instance : can_lift (with_bot α) α :=
   cond := λ r, r ≠ ⊥,
   prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
 
-instance [has_le α] : has_le (with_bot α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b }
-
 instance [preorder α] : preorder (with_bot α) :=
 { le          := (≤),
   lt          := (<),

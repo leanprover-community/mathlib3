@@ -25,11 +25,9 @@ a forgetful functor.
 
 ## In progress
 
-Adjunction between `Γ` and `Spec`: Currently, the counit of the adjunction is proven to be a
+Adjunction between `Γ` and `Spec`: the counit of the adjunction is proven to be a
 natural transformation in `Spec_Γ_naturality`, and realized as a natural isomorphism in
-`Spec_Γ_identity`.
-
-TODO: provide the unit, and prove the triangle identities.
+`Spec_Γ_identity`. The unit and the adjunction are defined in Gamma_Spec_adjunction.lean.
 
 
 -/
@@ -215,7 +213,7 @@ Spec, as a contravariant functor from commutative rings to locally ringed spaces
 section Spec_Γ
 open algebraic_geometry.LocallyRingedSpace
 
-/-- The morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
+/-- The counit morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
 @[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
 structure_sheaf.to_open R ⊤
 
@@ -226,7 +224,7 @@ lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
   f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
 by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
-/-- The counit of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
+/-- The counit (`Spec_Γ_identity.inv.op`) of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
 @[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
 iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 

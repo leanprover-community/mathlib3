@@ -37,7 +37,7 @@ variable (R : CommRing)
 /-- `Spec` as a function from CommRing to LocallyRingedSpace. -/
 abbreviation Spec' := Spec.to_LocallyRingedSpace.obj (op R)
 
-/- Basic opens in `Spec R` indexed by elements of `R`. -/
+/-- Basic opens in `Spec R` indexed by elements of `R`. -/
 def basic_open_B : (Spec' R).to_Top.opens_index_struct := ⟨R, λ r, basic_open r⟩
 -- Much nicer to work directly with the indexing function than the range set
 
@@ -58,7 +58,7 @@ def Γ_to_stalk (x : X) : Γ' X ⟶ X.presheaf.stalk x :=
   X.presheaf.germ (⟨x,trivial⟩ : (⊤ : opens X))
 -- or @Top.presheaf.germ _ _ _ _ _ ⊤ ⟨x,trivial⟩
 
-/- Unit on the underlying set. -/
+/-- Unit on the underlying set. -/
 def to_Γ_Spec_fun : X → Spec' (Γ' X) := λ x,
   comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
 -- or Spec.to_Top.map (X.Γ_to_stalk x).op (@local_ring.closed_point ...)

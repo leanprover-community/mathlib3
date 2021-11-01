@@ -199,7 +199,7 @@ end
 end linear_order
 
 section order_top
-variables [order_top α] [locally_finite_order α]
+variables [preorder α] [order_top α] [locally_finite_order α]
 
 lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
 hs.finite_of_bdd_above $ order_top.bdd_above s
@@ -207,7 +207,7 @@ hs.finite_of_bdd_above $ order_top.bdd_above s
 end order_top
 
 section order_bot
-variables [order_bot α] [locally_finite_order α]
+variables [preorder α] [order_bot α] [locally_finite_order α]
 
 lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
 

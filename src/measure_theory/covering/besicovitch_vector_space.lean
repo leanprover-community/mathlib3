@@ -146,7 +146,7 @@ begin
   let ρ : ℝ := (5 : ℝ)/2,
   have ρpos : 0 < ρ := by norm_num [ρ],
   set A := ⋃ (c ∈ s), ball (c : E) δ with hA,
-  have D : set.pairwise_on (s : set E) (disjoint on (λ c, ball (c : E) δ)),
+  have D : set.pairwise (s : set E) (disjoint on (λ c, ball (c : E) δ)),
   { rintros c hc d hd hcd,
     apply ball_disjoint_ball,
     rw dist_eq_norm,

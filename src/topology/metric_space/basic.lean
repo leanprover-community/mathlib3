@@ -2080,8 +2080,8 @@ instance metric_space.to_emetric_space : emetric_space γ :=
 { eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
   ..pseudo_metric_space.to_pseudo_emetric_space, }
 
-lemma is_closed_of_pairwise_on_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
-  (hs : pairwise_on s (λ x y, ε ≤ dist x y)) : is_closed s :=
+lemma is_closed_of_pairwise_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
+  (hs : s.pairwise (λ x y, ε ≤ dist x y)) : is_closed s :=
 is_closed_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hs
 
 lemma closed_embedding_of_pairwise_le_dist {α : Type*} [topological_space α] [discrete_topology α]

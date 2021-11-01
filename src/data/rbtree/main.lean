@@ -3,7 +3,10 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import data.rbtree.find data.rbtree.insert data.rbtree.min_max
+import data.rbtree.find
+import data.rbtree.insert
+import data.rbtree.min_max
+
 universes u
 
 namespace rbnode
@@ -31,7 +34,7 @@ end rbnode
 namespace rbtree
 variables {α : Type u} {lt : α → α → Prop}
 
-lemma balanced (t : rbtree α lt) : 2 * t.depth min + 1 ≥ t.depth max :=
+lemma balanced (t : rbtree α lt) : t.depth max ≤ 2 * t.depth min + 1 :=
 begin
   cases t with n p, simp only [depth],
   have := rbnode.is_red_black_of_well_formed p,
@@ -49,12 +52,14 @@ lemma mem_of_mem_of_eqv [is_strict_weak_order α lt] {t : rbtree α lt} {a b : �
   a ∈ t → a ≈[lt] b → b ∈ t :=
 begin
   cases t with n p; simp [has_mem.mem, rbtree.mem]; clear p; induction n;
-    simp [rbnode.mem, strict_weak_order.equiv, false_implies_iff]; intros h₁ h₂; blast_disjs,
+    simp only [rbnode.mem, strict_weak_order.equiv, false_implies_iff]; intros h₁ h₂; blast_disjs,
   iterate 2 {
     { have : rbnode.mem lt b n_lchild := n_ih_lchild h₁ h₂, simp [this] },
     { simp [incomp_trans_of lt h₂.swap h₁] },
     { have : rbnode.mem lt b n_rchild := n_ih_rchild h₁ h₂, simp [this] } }
 end
+
+section dec
 
 variables [decidable_rel lt]
 
@@ -185,23 +190,26 @@ lemma eq_or_mem_of_mem_ins [is_strict_total_order α lt] {a b : α} {t : rbtree 
 λ h, suffices a ≈[lt] b ∨ a ∈ t, by simp [eqv_lt_iff_eq] at this; assumption,
   incomp_or_mem_of_mem_ins h
 
+end dec
+
 lemma mem_of_min_eq [is_irrefl α lt] {a : α} {t : rbtree α lt} : t.min = some a → a ∈ t :=
 begin cases t, apply rbnode.mem_of_min_eq end
 
 lemma mem_of_max_eq [is_irrefl α lt] {a : α} {t : rbtree α lt} : t.max = some a → a ∈ t :=
 begin cases t, apply rbnode.mem_of_max_eq end
 
-lemma eq_leaf_of_min_eq_none [is_strict_weak_order α lt] {t : rbtree α lt} :
+lemma eq_leaf_of_min_eq_none {t : rbtree α lt} :
   t.min = none → t = mk_rbtree α lt :=
 begin cases t, intro h, congr, apply rbnode.eq_leaf_of_min_eq_none h end
 
-lemma eq_leaf_of_max_eq_none [is_strict_weak_order α lt] {t : rbtree α lt} :
+lemma eq_leaf_of_max_eq_none {t : rbtree α lt} :
   t.max = none → t = mk_rbtree α lt :=
 begin cases t, intro h, congr, apply rbnode.eq_leaf_of_max_eq_none h end
 
 lemma min_is_minimal [is_strict_weak_order α lt] {a : α} {t : rbtree α lt} :
   t.min = some a → ∀ {b}, b ∈ t → a ≈[lt] b ∨ lt a b :=
-by { cases t, apply rbnode.min_is_minimal, apply rbnode.is_searchable_of_well_formed, assumption }
+by { classical, cases t, apply rbnode.min_is_minimal, apply rbnode.is_searchable_of_well_formed,
+  assumption }
 
 lemma max_is_maximal [is_strict_weak_order α lt] {a : α} {t : rbtree α lt} :
   t.max = some a → ∀ {b}, b ∈ t → a ≈[lt] b ∨ lt b a :=

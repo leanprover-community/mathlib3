@@ -285,6 +285,9 @@ by { convert pow_zero a using 1, exact zpow_coe_nat a 0 }
 theorem zpow_one (a : G) : a ^ (1:ℤ) = a :=
 by { convert pow_one a using 1, exact zpow_coe_nat a 1 }
 
+theorem zpow_two (a : G) : a ^ (2 : ℤ) = a * a :=
+by { convert pow_two a using 1, exact zpow_coe_nat a 2 }
+
 end div_inv_monoid
 
 section group

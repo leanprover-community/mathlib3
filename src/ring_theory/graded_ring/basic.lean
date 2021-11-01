@@ -300,10 +300,6 @@ instance homogeneous_element.has_mul [add_comm_monoid ι] [decidable_eq ι] [gra
   use (i + j), exact graded_ring.mul_respect_grading hi hj,
 end ⟩ }
 
-@[reducible]
-instance homogenous_element_set.has_mul [add_comm_monoid ι] [decidable_eq ι] [graded_ring R A] :
-  has_mul (set (homogeneous_element R A)) := by apply_instance
-
 /--lifting is a `mul_hom`-/
 def homogeneous_element.coe_mul_hom [decidable_eq ι] [add_comm_monoid ι] [graded_ring R A] :
   mul_hom (homogeneous_element R A) R :=

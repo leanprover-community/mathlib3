@@ -243,6 +243,8 @@ instance : bounded_lattice (subgraph G) :=
   inf_le_left := λ x y, ⟨set.inter_subset_left x.verts y.verts, (λ v w h, h.1)⟩,
   inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩ }
 
+@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
+
 /-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
 @[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) :
   G.subgraph :=
@@ -274,8 +276,6 @@ def bot_equiv : (⊥ : subgraph G).coe ≃g (⊥ : simple_graph empty) :=
   left_inv := λ ⟨_, h⟩, h.elim,
   right_inv := λ v, v.elim,
   map_rel_iff' := λ a b, iff.rfl }
-
-@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
 
 /-- We can think of edges as being single-edge subgraphs. --/
 @[simps]

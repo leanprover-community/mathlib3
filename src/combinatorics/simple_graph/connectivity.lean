@@ -398,9 +398,9 @@ def connected_component_of (v : V) : G.connected_component := quot.mk G.reachabl
 instance connected_components.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_of (default _)⟩
 
-lemma connected_component.subsingleton_of_connected (h : G.connected) :
+lemma connected_component.subsingleton_of_connected (h : G.preconnected) :
   subsingleton G.connected_component :=
-⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h.1 v w)) d) c d⟩
+⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
@@ -958,9 +958,8 @@ def path.map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path
     exact hp.2 hx, },
 end⟩
 
-lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
-  G.connected :=
-(h ∅ (by simp) (by simp [hk])).imp_left (by simp)
+lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) : G.connected :=
+  (h ∅ (by simp) (by simp [hk])).imp_right (by simp) -- breakpoint
 
 end map
 
@@ -1226,9 +1225,8 @@ begin
   split,
   { intro h,
     split,
-    {cases h with h hne,
-      simp [connected] at h,
-      simp [h], },
+    { cases h with h hne,
+      simp [h.2], },
     intros v w,
     cases h with hc hu,
     let q := (hc.1 v w).some.to_path,
@@ -1240,9 +1238,7 @@ begin
     refl, },
   { intro h,
     split,
-    {
-      simp only [connected, preconnected],
-      split,
+    { split,
       intros v w,
       obtain ⟨p, hp⟩ := h.2 v w,
       use p,

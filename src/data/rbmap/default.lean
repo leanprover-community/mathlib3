@@ -85,6 +85,16 @@ lemma not_mem_of_empty {m : rbmap α β lt} (k : α) : m.empty = tt → k ∉ m 
 by cases m with n p; cases n;
   simp [has_mem.mem, mk_rbmap, mk_rbtree, rbmap.mem, rbmap.empty, rbtree.empty, false_implies_iff]
 
+lemma mem_of_mem_of_eqv [is_strict_weak_order α lt] {m : rbmap α β lt} {k₁ k₂ : α} :
+  k₁ ∈ m → k₁ ≈[lt] k₂ → k₂ ∈ m :=
+begin
+  intros h₁ h₂,
+  have h₁ := to_rbtree_mem h₁, cases h₁ with v h₁,
+  exact to_rbmap_mem (rbtree.mem_of_mem_of_eqv h₁ (eqv_entries_of_eqv_keys v v h₂))
+end
+
+section decidable
+
 variables [decidable_rel lt]
 
 lemma not_mem_of_find_entry_none [is_strict_weak_order α lt] {k : α} {m : rbmap α β lt} :
@@ -200,14 +210,6 @@ begin
        { exact mem_of_find_entry_some he } }
 end
 
-lemma mem_of_mem_of_eqv [is_strict_weak_order α lt] {m : rbmap α β lt} {k₁ k₂ : α} :
-  k₁ ∈ m → k₁ ≈[lt] k₂ → k₂ ∈ m :=
-begin
-  intros h₁ h₂,
-  have h₁ := to_rbtree_mem h₁, cases h₁ with v h₁,
-  exact to_rbmap_mem (rbtree.mem_of_mem_of_eqv h₁ (eqv_entries_of_eqv_keys v v h₂))
-end
-
 lemma mem_insert_of_incomp [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :
   (¬ lt k₁ k₂ ∧ ¬ lt k₂ k₁) → k₁ ∈ m.insert k₂ v :=
 λ h, to_rbmap_mem (rbtree.mem_insert_of_incomp m (eqv_entries_of_eqv_keys v v h))
@@ -319,6 +321,8 @@ lemma find_insert_of_ne [is_strict_total_order α lt] {k₁ k₂ : α} (m : rbma
   k₁ ≠ k₂ → (m.insert k₁ v).find k₂ = m.find k₂ :=
 begin intro h, have := find_entry_insert_of_ne m v h, simp [find, this] end
 
+end decidable
+
 lemma mem_of_min_eq [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap α β lt} :
   m.min = some (k, v) → k ∈ m :=
 λ h, to_rbmap_mem (rbtree.mem_of_min_eq h)
@@ -327,11 +331,11 @@ lemma mem_of_max_eq [is_strict_total_order α lt] {k : α} {v : β} {m : rbmap �
   m.max = some (k, v) → k ∈ m :=
 λ h, to_rbmap_mem (rbtree.mem_of_max_eq h)
 
-lemma eq_leaf_of_min_eq_none [is_strict_weak_order α lt] {m : rbmap α β lt} :
+lemma eq_leaf_of_min_eq_none {m : rbmap α β lt} :
   m.min = none → m = mk_rbmap α β lt :=
 rbtree.eq_leaf_of_min_eq_none
 
-lemma eq_leaf_of_max_eq_none [is_strict_weak_order α lt] {m : rbmap α β lt} :
+lemma eq_leaf_of_max_eq_none {m : rbmap α β lt} :
   m.max = none → m = mk_rbmap α β lt :=
 rbtree.eq_leaf_of_max_eq_none
 

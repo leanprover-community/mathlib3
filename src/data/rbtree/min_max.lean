@@ -31,7 +31,7 @@ begin
      all_goals { rw [mem], simp [t_ih_rchild h] } }
 end
 
-variables [decidable_rel lt] [is_strict_weak_order α lt]
+variables [is_strict_weak_order α lt]
 
 lemma eq_leaf_of_min_eq_none {t : rbnode α} : t.min = none → t = leaf :=
 begin
@@ -54,6 +54,7 @@ end
 lemma min_is_minimal {a : α} {t : rbnode α} :
   ∀ {lo hi}, is_searchable lt t lo hi → t.min = some a → ∀ {b}, mem lt b t → a ≈[lt] b ∨ lt a b :=
 begin
+  classical,
   induction t,
   { simp [strict_weak_order.equiv], intros _ _ hs hmin b, contradiction },
   all_goals {
@@ -80,6 +81,7 @@ end
 lemma max_is_maximal {a : α} {t : rbnode α} :
   ∀ {lo hi}, is_searchable lt t lo hi → t.max = some a → ∀ {b}, mem lt b t → a ≈[lt] b ∨ lt b a :=
 begin
+  classical,
   induction t,
   { simp [strict_weak_order.equiv], intros _ _ hs hmax b, contradiction },
   all_goals {

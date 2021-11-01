@@ -387,7 +387,10 @@ def connected_component := quot G.reachable
 def preconnected : Prop := ∀ (u v : V), G.reachable u v
 
 /-- A graph is connected if it's preconnected and contains at least one vertex. -/
-def connected : Prop := G.preconnected ∧ nonempty V
+@[protect_proj]
+structure connected : Prop :=
+(preconnected : G.preconnected)
+(nonempty : nonempty V)
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v

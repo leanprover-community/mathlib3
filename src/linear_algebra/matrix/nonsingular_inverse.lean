@@ -89,14 +89,6 @@ end
 @[simp] lemma det_nonsing_inv_mul_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
 by rw [←det_mul, A.nonsing_inv_mul h, det_one]
 
-lemma _root_.ring.inverse_one {R} [monoid_with_zero R] :
-  ring.inverse (1 : R) = 1 := ring.inverse_unit 1
-
-lemma _root_.ring.inverse_pow {R} [comm_semiring R] (r : R) :
-  ∀ (n : ℕ), ring.inverse (r ^ n) = ring.inverse r ^ n
-| 0 := by rw [pow_zero, pow_zero, ring.inverse_one]
-| (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev, _root_.ring.inverse_pow]
-
 @[simp] lemma det_nonsing_inv : A⁻¹.det = ring.inverse A.det :=
 begin
   rw [inv_def, det_smul, det_adjugate],

@@ -485,7 +485,7 @@ section extend
 noncomputable theory
 local attribute [instance, priority 10] classical.prop_decidable
 
-variables {α β γ : Type*} {f : α → β}
+variables {α β γ : Sort*} {f : α → β}
 
 /-- `extend f g e'` extends a function `g : α → γ`
 along a function `f : α → β` to a function `β → γ`,

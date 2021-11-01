@@ -93,13 +93,13 @@ instance : add_comm_group (quotient p) :=
   nsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
   nsmul_succ' := by { rintros n ⟨⟩,
     simp only [nat.succ_eq_one_add, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul], refl },
-  gsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
+  zsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
      λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_of_tower_mem p n h,
-  gsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
-  gsmul_succ' := by { rintros n ⟨⟩,
+  zsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
+  zsmul_succ' := by { rintros n ⟨⟩,
     simp [nat.succ_eq_add_one, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul, add_smul, add_comm],
     refl },
-  gsmul_neg' := by { rintros n ⟨x⟩, simp_rw [gsmul_neg_succ_of_nat, gsmul_coe_nat], refl }, }
+  zsmul_neg' := by { rintros n ⟨x⟩, simp_rw [zsmul_neg_succ_of_nat, zsmul_coe_nat], refl }, }
 
 section has_scalar
 

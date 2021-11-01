@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 
 import analysis.normed.group.hom
+import analysis.normed.group.completion
 /-!
 # Completion of normed group homs
 

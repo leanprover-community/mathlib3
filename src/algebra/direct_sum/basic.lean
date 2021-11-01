@@ -77,6 +77,25 @@ def mk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →+ ⨁ i, β i :=
 def of (i : ι) : β i →+ ⨁ i, β i :=
 dfinsupp.single_add_hom β i
 
+@[simp] lemma of_eq_same (i : ι) (x : β i) : (of _ i x) i = x :=
+dfinsupp.single_eq_same
+
+lemma of_eq_of_ne (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
+dfinsupp.single_eq_of_ne h
+
+@[simp] lemma support_zero [Π (i : ι) (x : β i), decidable (x ≠ 0)] :
+  (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
+
+@[simp] lemma support_of [Π (i : ι) (x : β i), decidable (x ≠ 0)]
+  (i : ι) (x : β i) (h : x ≠ 0) :
+  (of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
+
+lemma support_of_subset [Π (i : ι) (x : β i), decidable (x ≠ 0)] {i : ι} {b : β i} :
+  (of _ i b).support ⊆ {i} := dfinsupp.support_single_subset
+
+lemma sum_support_of [Π (i : ι) (x : β i), decidable (x ≠ 0)] (x : ⨁ i, β i) :
+  ∑ i in x.support, of β i (x i) = x := dfinsupp.sum_single
+
 variables {β}
 
 theorem mk_injective (s : finset ι) : function.injective (mk β s) :=

@@ -529,8 +529,8 @@ begin
   exact h hx hy ha hb hab
 end
 
-lemma convex_iff_pairwise_on_pos :
-  convex 𝕜 s ↔ s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
+lemma convex_iff_pairwise_pos :
+  convex 𝕜 s ↔ s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
 begin
   refine ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
   intros h x y hx hy a b ha hb hab,

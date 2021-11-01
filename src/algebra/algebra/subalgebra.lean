@@ -908,18 +908,6 @@ instance no_zero_smul_divisors_top [no_zero_divisors A] (S : subalgebra R A) :
   from eq_zero_or_eq_zero_of_mul_eq_zero h,
   this.imp_left (@subtype.ext_iff _ _ c 0).mpr⟩
 
-/-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
-then `T` is an `R`-subalgebra of `A`. -/
-def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  {i : algebra R A} (S : subalgebra R A)
-  (T : subalgebra S A) : subalgebra R A :=
-{ algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
-  .. T }
-
-@[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} :
-  x ∈ S.under T ↔ x ∈ T := iff.rfl
-
 end actions
 
 section pointwise

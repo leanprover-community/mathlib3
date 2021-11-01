@@ -333,6 +333,21 @@ instance {A : Type*} [has_star A] [has_scalar R A] [star_module R A] : star_modu
 
 end units
 
+lemma is_unit.star [monoid R] [star_monoid R] {a : R} : is_unit a → is_unit (star a)
+| ⟨u, hu⟩ := ⟨star u, hu ▸ rfl⟩
+
+@[simp] lemma is_unit_star [monoid R] [star_monoid R] {a : R} : is_unit (star a) ↔ is_unit a :=
+⟨λ h, star_star a ▸ h.star, is_unit.star⟩
+
+lemma ring.inverse_star [semiring R] [star_ring R] (a : R) :
+  ring.inverse (star a) = star (ring.inverse a) :=
+begin
+  by_cases ha : is_unit a,
+  { obtain ⟨u, rfl⟩ := ha,
+    rw [ring.inverse_unit, ←units.coe_star, ring.inverse_unit, ←units.coe_star_inv], },
+  rw [ring.inverse_non_unit _ ha, ring.inverse_non_unit _ (mt is_unit_star.mp ha), star_zero],
+end
+
 namespace opposite
 
 /-- The opposite type carries the same star operation. -/

@@ -6,6 +6,21 @@ Authors: Scott Morrison
 import category_theory.natural_isomorphism
 import data.equiv.basic
 
+/-!
+# Full and faithful functors
+
+We define typeclasses `full` and `faithful`, decorating functors.
+
+Use `F.map_injective` to retrieve the fact that `F.map` is injective when `[faithful F]`,
+and `F.preimage` to obtain preimages of morphisms when `[full F]`.
+
+We prove some basic "cancellation" lemmas for full and/or faithful functors.
+
+See `category_theory.equivalence` for the fact that a functor is an equivalence if and only if
+it is fully faithful and essentially surjective.
+
+-/
+
 -- declare the `v`'s first; see `category_theory.category` for an explanation
 universes v₁ v₂ v₃ u₁ u₂ u₃
 

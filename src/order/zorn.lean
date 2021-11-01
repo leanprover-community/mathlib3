@@ -80,7 +80,7 @@ parameters {α : Type u} (r : α → α → Prop)
 local infix ` ≺ `:50  := r
 
 /-- A chain is a subset `c` satisfying `x ≺ y ∨ x = y ∨ y ≺ x` for all `x y ∈ c`. -/
-def chain (c : set α) := pairwise_on c (λ x y, x ≺ y ∨ y ≺ x)
+def chain (c : set α) := c.pairwise (λ x y, x ≺ y ∨ y ≺ x)
 parameters {r}
 
 lemma chain.total_of_refl [is_refl α r]
@@ -90,7 +90,7 @@ if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
 
 lemma chain.mono {c c'} :
   c' ⊆ c → chain c → chain c' :=
-pairwise_on.mono
+set.pairwise.mono
 
 lemma chain_of_trichotomous [is_trichotomous α r] (s : set α) :
   chain s :=

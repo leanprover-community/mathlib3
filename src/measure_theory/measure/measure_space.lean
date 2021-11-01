@@ -126,7 +126,7 @@ lemma measure_add_measure_compl (h : measurable_set s) :
 by { rw [← union_compl_self s, measure_union _ h h.compl], exact disjoint_compl_right }
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
-  (hd : pairwise_on s (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
+  (hd : s.pairwise (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
@@ -135,11 +135,11 @@ begin
 end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
-  (hd : pairwise_on S disjoint) (h : ∀ s ∈ S, measurable_set s) :
+  (hd : S.pairwise disjoint) (h : ∀ s ∈ S, measurable_set s) :
   μ (⋃₀ S) = ∑' s : S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
 
-lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_on ↑s (disjoint on f))
+lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : set.pairwise ↑s (disjoint on f))
   (hm : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 begin
@@ -152,14 +152,14 @@ of the fibers `f ⁻¹' {y}`. -/
 lemma tsum_measure_preimage_singleton {s : set β} (hs : countable s) {f : α → β}
   (hf : ∀ y ∈ s, measurable_set (f ⁻¹' {y})) :
   ∑' b : s, μ (f ⁻¹' {↑b}) = μ (f ⁻¹' s) :=
-by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_on_disjoint_fiber _ _) hf]
+by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_disjoint_fiber _ _) hf]
 
 /-- If `s` is a `finset`, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
 lemma sum_measure_preimage_singleton (s : finset β) {f : α → β}
   (hf : ∀ y ∈ s, measurable_set (f ⁻¹' {y})) :
   ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
-by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
+by simp only [← measure_bUnion_finset (pairwise_disjoint_fiber _ _) hf,
   finset.set_bUnion_preimage_singleton]
 
 lemma measure_diff_null' (h : μ (s₁ ∩ s₂) = 0) : μ (s₁ \ s₂) = μ s₁ :=
@@ -222,7 +222,7 @@ lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ)
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
 lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, measurable_set (t i))
-  (H : pairwise_on ↑s (disjoint on t)) :
+  (H : set.pairwise ↑s (disjoint on t)) :
   ∑ i in s, μ (t i) ≤ μ (univ : set α) :=
 by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
 
@@ -303,7 +303,7 @@ begin
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
   rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union (disjoint_disjointed _) this,
     ennreal.tsum_eq_supr_nat],
-  simp only [← measure_bUnion_finset ((disjoint_disjointed _).pairwise_on _) (λ n _, this n)],
+  simp only [← measure_bUnion_finset ((disjoint_disjointed _).set_pairwise _) (λ n _, this n)],
   refine supr_le (λ n, _),
   refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
   exact measure_mono (bUnion_mono (λ k hk, disjointed_subset _ _)),

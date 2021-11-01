@@ -739,10 +739,10 @@ ext $ λ _, mem_union.trans $ or_self _
 instance : is_idempotent (finset α) (∪) := ⟨union_idempotent⟩
 
 theorem union_subset_left {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₁ ⊆ s₃ :=
-finset.subset.trans (finset.subset_union_left _ _) h
+subset.trans (subset_union_left _ _) h
 
 theorem union_subset_right {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₂ ⊆ s₃ :=
-finset.subset.trans (finset.subset_union_right _ _) h
+subset.trans (subset_union_right _ _) h
 
 theorem union_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
 ext $ λ _, by simp only [mem_union, or.left_comm]
@@ -2754,7 +2754,7 @@ end bUnion
 
 /-! ### prod -/
 section prod
-variables {s : finset α} {t : finset β}
+variables {s s' : finset α} {t t' : finset β}
 
 /-- `product s t` is the set of pairs `(a, b)` such that `a ∈ s` and `b ∈ t`. -/
 protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
@@ -2766,6 +2766,15 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 theorem subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
   s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
 λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
+
+lemma product_subset_product (hs : s ⊆ s') (ht : t ⊆ t') : s.product t ⊆ s'.product t' :=
+λ ⟨x,y⟩ h, mem_product.2 ⟨hs (mem_product.1 h).1, ht (mem_product.1 h).2⟩
+
+lemma product_subset_product_left (hs : s ⊆ s') : s.product t ⊆ s'.product t :=
+product_subset_product hs (subset.refl _)
+
+lemma product_subset_product_right (ht : t ⊆ t') : s.product t ⊆ s.product t' :=
+product_subset_product (subset.refl _) ht
 
 theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s.product t = s.bUnion (λa, t.image $ λb, (a, b)) :=
@@ -2994,6 +3003,12 @@ begin
   rw ← card_product,
   apply filter_card_add_filter_neg_card_eq_card,
 end
+
+@[simp] lemma diag_empty : (∅ : finset α).diag = ∅ :=
+eq_empty_of_forall_not_mem (by simp)
+
+@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ :=
+eq_empty_of_forall_not_mem (by simp)
 
 end self_prod
 

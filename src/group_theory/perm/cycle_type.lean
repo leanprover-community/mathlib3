@@ -50,7 +50,7 @@ lemma cycle_type_eq' {σ : perm α} (s : finset (perm α))
   (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : ∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b)
   (h0 : s.noncomm_prod id
     (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-      (set.pairwise_on.mono' (λ _ _, disjoint.commute) h2 a ha b hb)) = σ) :
+      (set.pairwise.mono' (λ _ _, disjoint.commute) h2 a ha b hb)) = σ) :
   σ.cycle_type = s.1.map (finset.card ∘ support) :=
 begin
   rw cycle_type_def,

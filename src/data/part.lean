@@ -251,12 +251,14 @@ by haveI := classical.dec; exact
  λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
 
 /-- We give `part α` the order where everything is greater than `none`. -/
-instance : order_bot (part α) :=
+instance : partial_order (part α) :=
 { le := λ x y, ∀ i, i ∈ x → i ∈ y,
   le_refl := λ x y, id,
   le_trans := λ x y z f g i, g _ ∘ f _,
-  le_antisymm := λ x y f g, part.ext $ λ z, ⟨f _, g _⟩,
-  bot := none,
+  le_antisymm := λ x y f g, part.ext $ λ z, ⟨f _, g _⟩ }
+
+instance : order_bot (part α) :=
+{ bot := none,
   bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
 
 instance : preorder (part α) :=

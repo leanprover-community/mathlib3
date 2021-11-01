@@ -6,7 +6,6 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import algebra.algebra.tower
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
-import data.equiv.transfer_instance
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -1230,7 +1229,7 @@ begin
       g.symm.to_linear_isometry.to_continuous_linear_map,
     { ext,
       simp },
-    haveI := g.symm.to_linear_equiv.to_equiv.nontrivial,
+    haveI := g.symm.surjective.nontrivial,
     simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
 end
 

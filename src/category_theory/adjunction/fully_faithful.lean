@@ -7,6 +7,20 @@ import category_theory.adjunction.basic
 import category_theory.conj
 import category_theory.yoneda
 
+/-!
+# Adjoints of fully faithful functors
+
+A left adjoint is fully faithful, if and only if the unit is an isomorphism
+(and similarly for right adjoints and the counit).
+
+`adjunction.restrict_fully_faithful` shows that an adjunction can be restricted along fully faithful
+inclusions.
+
+## Future work
+
+The statements from Riehl 4.5.13 for adjoints which are either full, or faithful.
+-/
+
 open category_theory
 
 namespace category_theory

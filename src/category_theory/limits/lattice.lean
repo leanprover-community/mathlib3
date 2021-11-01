@@ -7,6 +7,10 @@ import category_theory.category.preorder
 import category_theory.limits.shapes.finite_limits
 import order.complete_lattice
 
+/-!
+# Limits in lattice categories are given by infimums and supremums.
+-/
+
 universes u
 
 open category_theory

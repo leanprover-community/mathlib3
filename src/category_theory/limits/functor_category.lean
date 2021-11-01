@@ -7,6 +7,20 @@ import category_theory.limits.preserves.limits
 import category_theory.currying
 import category_theory.products
 
+/-!
+# (Co)limits in functor categories.
+
+We show that if `D` has limits, then the functor category `C ⥤ D` also has limits
+(`category_theory.limits.functor_category_has_limits`),
+and the evaluation functors preserve limits
+(`category_theory.limits.evaluation_preserves_limits`)
+(and similarly for colimits).
+
+We also show that `F : D ⥤ K ⥤ C` preserves (co)limits if it does so for each `k : K`
+(`category_theory.limits.preserves_limits_of_evaluation` and
+`category_theory.limits.preserves_colimits_of_evaluation`).
+-/
+
 open category_theory category_theory.category
 
 namespace category_theory.limits
@@ -240,7 +254,7 @@ instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-/-- `F : D ⥤ K ⥤ C` preserves limit if it does for each `k : K`. -/
+/-- `F : D ⥤ K ⥤ C` preserves the limit of some `G : J ⥤ D` if it does for each `k : K`. -/
 def preserves_limit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
   (H : Π (k : K), preserves_limit G (F ⋙ (evaluation K C).obj k : D ⥤ C)) :
   preserves_limit G F := ⟨λ c hc,
@@ -269,7 +283,7 @@ instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-/-- `F : D ⥤ K ⥤ C` preserves limit if it does for each `k : K`. -/
+/-- `F : D ⥤ K ⥤ C` preserves the colimit of some `G : J ⥤ D` if it does for each `k : K`. -/
 def preserves_colimit_of_evaluation (F : D ⥤ K ⥤ C) (G : J ⥤ D)
   (H : Π (k), preserves_colimit G (F ⋙ (evaluation K C).obj k)) : preserves_colimit G F := ⟨λ c hc,
 begin

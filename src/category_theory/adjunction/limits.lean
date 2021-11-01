@@ -6,6 +6,25 @@ Authors: Reid Barton, Johan Commelin
 import category_theory.adjunction.basic
 import category_theory.limits.creates
 
+/-!
+# Adjunctions and limits
+
+A left adjoint preserves colimits (`category_theory.adjunction.left_adjoint_preserves_colimits`),
+and a right adjoint preserves limits (`category_theory.adjunction.right_adjoint_preserves_limits`).
+
+Equivalences create and reflect (co)limits.
+(`category_theory.adjunction.is_equivalence_creates_limits`,
+`category_theory.adjunction.is_equivalence_creates_colimits`,
+`category_theory.adjunction.is_equivalence_reflects_limits`,
+`category_theory.adjunction.is_equivalence_reflects_colimits`,)
+
+In `category_theory.adjunction.cocones_iso` we show that
+when `F ⊣ G`,
+the functor associating to each `Y` the cocones over `K ⋙ F` with cone point `Y`
+is naturally isomorphic to
+the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
+-/
+
 open opposite
 
 namespace category_theory.adjunction

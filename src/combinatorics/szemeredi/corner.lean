@@ -17,21 +17,17 @@ open_locale big_operators
 variables {α ι ι' : Type*} [add_comm_monoid α] [decidable_eq ι] [fintype ι] [decidable_eq ι']
   [fintype ι'] {ε : ℝ}
 
-lemma sum_indicator_singleton {ι M : Type*} [add_comm_monoid M] {s : finset ι} {i : ι}
-  (hi : i ∈ s)(f : ι → ι  → M) (g : ι → ι) :
-  ∑ (j : ι) in s, ({i} : set ι).indicator (f j) (g j) = f i (g i) :=
-begin
-  sorry,
-end
-
 lemma finset.disjoint_iff [decidable_eq α] (s t : finset α) : disjoint s t ↔ ∀ ⦃x⦄, x ∈ s → x ∉ t :=
-begin
-  sorry
-end
+disjoint_left
 
 lemma exists_ne_ne_fin {n : ℕ} (hn : 3 ≤ n) (a b : fin n) : ∃ c, a ≠ c ∧ b ≠ c :=
 begin
-  sorry
+  obtain ⟨c, hc⟩ : ({a,b}ᶜ : finset (fin n)).nonempty,
+  { rw [←card_pos, card_compl, fintype.card_fin],
+    apply nat.sub_pos_of_lt ((card_insert_le _ _).trans_lt _),
+    rw card_singleton,
+    linarith },
+  exact ⟨c, by simpa [not_or_distrib, @eq_comm _ c] using hc⟩,
 end
 
 /-! ### Simplex domain -/
@@ -79,6 +75,21 @@ begin
   refine tsub_add_cancel_of_le ((sum_le_sum_of_subset $ erase_subset _ _).trans _),
   simp_rw [←finset.sum_map, ←x.2],
   exact sum_le_sum_of_subset (subset_univ _),
+end
+
+lemma proj_apply_same {x : simplex_domain ι' n} {f : ι ↪ ι'} {i : ι} :
+  (proj x f i).1 i = n - ∑ (c : ι) in univ.erase i, x.1 (f.1 c) :=
+begin
+  dsimp [proj],
+  simp,
+end
+
+lemma proj_apply_diff {x : simplex_domain ι' n} {f : ι ↪ ι'} {i k : ι} (h : k ≠ i) :
+  (proj x f i).1 k = x.1 (f k) :=
+begin
+  dsimp [proj],
+  rw piecewise_singleton,
+  rw update_noteq h,
 end
 
 -- /-- A corner in `s : set (simplex_domain ι n)` is a point whose projections all are within `s` -/
@@ -220,7 +231,7 @@ begin
     sorry
   }
 end
-#exit
+
 lemma card_le_card_triangle_finset_corners_graph :
   s.card ≤ (corners_graph (s : set (simplex_domain (fin 3) n))).triangle_finset.card :=
 begin
@@ -246,6 +257,15 @@ lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
 begin
   sorry
 end
+
+lemma strengthened_corners_theorem {ε : ℝ} (hε : 0 < ε) :
+  ∃ n : ℕ, ∀ n', n ≤ n' → ∀ A : finset (simplex_domain (fin 3) n'), ε * n'^2 ≤ A.card →
+    ∃ x : simplex_domain (option (fin 3)) n', 0 < x.val none ∧ corners ↑A x :=
+begin
+
+end
+
+#exit
 
 end simplex_corner
 

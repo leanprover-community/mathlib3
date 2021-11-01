@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import .triangle
+import .corner
 
 /-!
 # Roth's theorem
@@ -71,9 +71,81 @@ end
 
 -- end
 
--- lemma roth (N : ℕ) :
---   ∃ δ : ℝ, 0 < δ ∧
---     ∀ A ⊆ range N, δ * N ≤ A.card → ∃ a d, 0 < d ∧ a ∈ A ∧ a + d ∈ A ∧ a + 2 * d ∈ A :=
--- begin
+-- def simplex_domain (ι : Type*) [fintype ι] (n : ℕ) : Type* := {f : ι → ℕ // ∑ i, f i = n}
 
--- end
+open_locale big_operators
+
+example (ι : Type*) (s : finset ι) {n : ℕ} (j : ι) (f : ι → ℕ) (hj : j ∈ s) :
+  f j ≤ ∑ i in s, f i :=
+begin
+  apply single_le_sum (λ i hi, nat.zero_le _) hj,
+end
+
+noncomputable instance (ι : Type*) [fintype ι] {n : ℕ} : fintype (simplex_domain ι n) :=
+begin
+  let g : {f : ι → fin (n+1) // ∑ i, (f i).val = n} → simplex_domain ι n,
+  { intro s,
+    exact ⟨coe ∘ s.1, s.2⟩ },
+  apply fintype.of_surjective g,
+  rintro ⟨f, hf⟩,
+  refine ⟨⟨λ i, ⟨f i, _⟩, _⟩, rfl⟩,
+  rw [nat.lt_succ_iff, ←hf],
+  refine single_le_sum (λ _ _, nat.zero_le _) (mem_univ _),
+end
+
+example (f : fin 3 → ℕ) : ∑ i, f i = f 0 + f 1 + f 2 :=
+begin
+  rw [fin.sum_univ_succ, fin.sum_univ_succ, fin.sum_univ_succ, fin.sum_univ_zero],
+  ring
+end
+
+def is_corner (A : set (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
+λ x y h, (x,y) ∈ A ∧ (x+h,y) ∈ A ∧ (x,y+h) ∈ A
+
+lemma convenient_corners {ε : ℝ} (hε : 0 < ε) :
+  ∃ n : ℕ, ∀ n', n ≤ n' →
+    ∀ A ⊆ (range n').product (range n'), ε * n'^2 ≤ A.card →
+      ∃ x y h, 0 < h ∧ is_corner A x y h :=
+begin
+  let ε' : ℝ := sorry,
+  have hε' : 0 < ε' := sorry,
+  obtain ⟨n, hn⟩ := strengthened_corners_theorem hε',
+  refine ⟨n, λ n' hn' A hA hA', _⟩,
+  let B : finset (simplex_domain (fin 3) n') := univ.filter (λ f, (f.1 0, f.1 1) ∈ A),
+  obtain ⟨⟨c, hc₁⟩, hc₂ : 0 < c none, hc₃⟩ := hn n' hn' B _,
+  have := hc₃ 0,
+  simp only [set.sep_univ, coe_filter, set.mem_set_of_eq, coe_univ] at this,
+  rw simplex_domain.proj_apply_same at this,
+  rw simplex_domain.proj_apply_diff at this,
+  dsimp at this,
+  have := hc₃ 1,
+  have := hc₃ 2,
+end
+
+lemma roth (δ : ℝ) (hδ : 0 < δ) :
+  ∃ n : ℕ,
+    ∀ A ⊆ range N, δ * N ≤ A.card → ∃ a d, 0 < d ∧ a ∈ A ∧ a + d ∈ A ∧ a + 2 * d ∈ A :=
+begin
+  let δ' : ℝ := sorry,
+  have hδ' : 0 < δ', sorry,
+  obtain ⟨N, hN⟩ := strengthened_corners_theorem hδ',
+  refine ⟨sorry, _⟩,
+  intros A hA hA',
+  let B : finset (simplex_domain (fin 3) (2 * N)) :=
+    univ.filter (λ f, f.1 1 ≤ f.1 0 ∧ f.1 0 - f.1 1 ∈ A),
+  obtain ⟨⟨c, hc₀⟩, hc₁ : 0 < c _, hc₂⟩ := hN (2 * N) (nat.le_mul_of_pos_left zero_lt_two) B _,
+  { rw simplex_domain.corners at hc₂,
+    let i := c (some 0),
+    let j := c (some 1),
+    let k := c (some 2),
+    have : c none + i + j + k = 2 * N := sorry,
+    have := hc₂ 0,
+    simp only [mem_coe, mem_filter, true_and, mem_univ, subtype.val_eq_coe,
+      simplex_domain.proj_apply_same] at this,
+
+  }
+  -- let ε : ℝ := sorry,
+  -- have hε : 0 < ε := sorry,
+  -- obtain ⟨N, hN⟩ := corners_theorem hε,
+
+end

@@ -87,6 +87,43 @@ lemma mem_triangle_finset' [decidable_eq α] [decidable_rel G.adj] (s : finset �
   s ∈ G.triangle_finset ↔ G.is_n_clique 3 s :=
 by simp [triangle_finset, mem_powerset_len, is_n_clique]
 
+lemma mem_triangle_finset'' [decidable_eq α] [decidable_rel G.adj] (x y z : α) :
+  {x, y, z} ∈ G.triangle_finset ↔ G.adj x y ∧ G.adj x z ∧ G.adj y z :=
+begin
+  rw [mem_triangle_finset],
+  simp only [coe_insert, coe_singleton, set.pairwise_on_insert_of_symmetric G.symm,
+    set.pairwise_on_singleton, true_and, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, forall_eq, ne.def],
+  split,
+  { rintro ⟨h, yz, xy, xz⟩,
+    have : x ≠ y ∧ x ≠ z ∧ y ≠ z,
+    { refine ⟨_, _, _⟩;
+      { rintro rfl,
+        simp only [insert_idem, insert_singleton_comm, insert_singleton_self_eq] at h,
+        apply ne_of_lt _ h,
+        rw nat.lt_succ_iff,
+        apply card_insert_le _ _ } },
+    tauto },
+  rintro ⟨xy, xz, yz⟩,
+  refine ⟨_, λ _, yz, λ _, xy, λ _, xz⟩,
+  rw card_eq_three,
+  exact ⟨_, _, _, G.ne_of_adj xy, G.ne_of_adj xz, G.ne_of_adj yz, rfl⟩,
+end
+
+lemma mem_triangle_finset''' [decidable_eq α] [decidable_rel G.adj] (s : finset α) :
+  s ∈ G.triangle_finset ↔ ∃ x y z, G.adj x y ∧ G.adj x z ∧ G.adj y z ∧ s = {x,y,z} :=
+begin
+  split,
+  { intro h,
+    obtain ⟨x, y, z, -, -, -, rfl⟩ := card_eq_three.1 ((G.mem_triangle_finset s).1 h).1,
+    refine ⟨x, y, z, _⟩,
+    rw mem_triangle_finset'' at h,
+    tauto },
+  rintro ⟨x, y, z, _, _, _, rfl⟩,
+  rw mem_triangle_finset'',
+  tauto
+end
+
 lemma triangle_finset_empty_iff [decidable_eq α]  [decidable_rel G.adj] :
   G.triangle_finset = ∅ ↔ G.no_triangles :=
 by simp only [mem_triangle_finset, eq_empty_iff_forall_not_mem, no_triangles, is_n_clique]
@@ -349,11 +386,10 @@ begin
   rw nat.cast_le,
   refine card_le_card_of_inj_on (λ xyz, {xyz.1, xyz.2.1, xyz.2.2}) _ _,
   { rintro ⟨x, y, z⟩,
-    simp only [and_imp, mem_filter, mem_product, mem_triangle_finset],
+    simp only [and_imp, mem_filter, mem_product],
     intros hx hy hz xy xz yz,
-    refine ⟨card_eq_three.2 ⟨x, y, z, G.ne_of_adj xy, G.ne_of_adj xz, G.ne_of_adj yz, rfl⟩, _⟩,
-    simp [set.pairwise_on_insert_of_symmetric G.symm,
-      set.pairwise_on_pair_of_symmetric G.symm, yz, xy, xz] },
+    rw mem_triangle_finset'',
+    exact ⟨xy, xz, yz⟩ },
   rintro ⟨x₁, y₁, z₁⟩ h₁ ⟨x₂, y₂, z₂⟩ h₂ t,
   simp only [mem_filter, mem_product] at h₁ h₂,
   apply dumb_thing hXY hXZ hYZ t;
@@ -385,6 +421,10 @@ begin
   intros x y h',
   apply h h',
 end
+
+@[mono] lemma edge_finset_subset_of_le {G G' : simple_graph α} (h : G ≤ G') :
+  G.edge_finset ⊆ G'.edge_finset :=
+set.to_finset_mono.2 (edge_set_subset_of_le h)
 
 variables {H : simple_graph α} {ε : ℝ} {s : finset α}
 
@@ -431,6 +471,64 @@ end
 --   },
 --   sorry
 -- end
+
+-- lemma exists_ne_map_eq_of_card_lt_of_maps_to {s : finset α} {t : finset β} (hc : t.card < s.card)
+--   {f : α → β} (hf : ∀ a ∈ s, f a ∈ t) :
+--   ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
+
+lemma triangle_free_far_of_disjoint_triangles_aux
+  (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
+  (pd : set.pairwise_on (tris : set (finset α)) (λ x y, (x ∩ y).card ≤ 1)) :
+  ∀ (G' ≤ G), G'.no_triangles → tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
+begin
+  intros G' hG hG',
+  rw [←card_sdiff (edge_finset_subset_of_le hG), ←card_attach],
+  by_contra,
+  push_neg at h,
+  have : ∀ t ∈ tris, ∃ x y ∈ t, x ≠ y ∧ ⟦(x, y)⟧ ∈ G.edge_finset \ G'.edge_finset,
+  { intros t ht,
+    by_contra i,
+    suffices : t ∈ G'.triangle_finset,
+    { rw ←triangle_finset_empty_iff at hG',
+      simpa [hG'] using this },
+    simp only [not_exists, exists_prop, not_and, mem_sdiff, not_not, mem_edge_finset,
+      exists_and_distrib_left, ne.def, mem_edge_set] at i,
+    have : t ∈ G.triangle_finset := htris ht,
+    rw mem_triangle_finset''' at this,
+    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := this,
+    rw mem_triangle_finset'',
+    refine ⟨i _ _ (G.ne_of_adj xy) xy _ _, i _ _ (G.ne_of_adj xz) xz _ _,
+      i _ _ (G.ne_of_adj yz) yz _ _⟩;
+    simp },
+  choose fx fy hfx hfy hfne fmem using this,
+  let f : {x // x ∈ tris} → sym2 α := λ t, ⟦(fx _ t.2, fy _ t.2)⟧,
+  have hf : ∀ x ∈ tris.attach, f x ∈ G.edge_finset \ G'.edge_finset,
+  { intros x hx,
+    apply fmem },
+  obtain ⟨⟨t₁, ht₁⟩, -, ⟨t₂, ht₂⟩, -, tne, t : ⟦_⟧ = ⟦_⟧⟩ :=
+    exists_ne_map_eq_of_card_lt_of_maps_to h hf,
+  have : t₁ ≠ t₂,
+  { simpa using tne },
+  dsimp at t,
+  have i := pd _ ht₁ _ ht₂ this,
+  simp only [finset.card_le_one_iff, mem_inter, and_imp] at i,
+  rw sym2.eq_iff at t,
+  cases t,
+  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfx t₂ ht₂) (hfy t₁ ht₁) (t.2.symm ▸ hfy t₂ ht₂)) },
+  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) (t.2.symm ▸ hfx t₂ ht₂)) },
+end
+
+lemma triangle_free_far_of_disjoint_triangles
+  (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
+  (pd : set.pairwise_on (tris : set (finset α)) (λ x y, (x ∩ y).card ≤ 1))
+  (tris_big : ε * card α ^ 2 ≤ tris.card) :
+  G.triangle_free_far ε :=
+begin
+  intros G' hG hG',
+  rw ←nat.cast_sub (card_le_of_subset (edge_finset_subset_of_le hG)),
+  apply tris_big.trans
+    (nat.cast_le.2 (triangle_free_far_of_disjoint_triangles_aux tris htris pd G' hG hG')),
+end
 
 lemma reduced_double_edges {ε : ℝ} {P : finpartition (univ : finset α)} :
   univ.filter (λ (xy : α × α), G.adj xy.1 xy.2) \

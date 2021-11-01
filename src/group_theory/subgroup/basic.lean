@@ -2064,7 +2064,6 @@ begin
   function.comp_app, cod_restrict_apply, and_self, coe_comp, subgroup.coe_mk],
 end
 
-
 end monoid_hom
 
 variables {N : Type*} [group N]

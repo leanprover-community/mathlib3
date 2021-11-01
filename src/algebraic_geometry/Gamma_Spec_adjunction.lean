@@ -11,10 +11,16 @@ import topology.sheaves.functors
 /-!
 # Adjunction between `Γ` and `Spec`
 
-Define the adjunction `Γ_Spec_adjunction` by defining unit (done in Spec.lean) and
+Define the adjunction `Γ_Spec_adjunction : Γ ⊣ Spec` (or more technically,
+`Γ.right_op ⊣ Spec.to_LocallyRingedSpace`) by defining the unit (done in Spec.lean) and
 counit (`to_Γ_Spec`, in multiple steps in this file) and checking that they satisfy
 the left and right triangle identities. The constructions and proofs make use of
 maps and lemmas defined and proved in structure_sheaf.lean extensively.
+
+Notice that since the adjunction is between contravariant functors,
+it could equally validly be realized as `Spec ⊣ Γ`
+(`Spec.to_LocallyRingedSpace.right_op ⊣ Γ`), in which case
+the unit and the counit would switch to each other.
 -/
 
 noncomputable theory

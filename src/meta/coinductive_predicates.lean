@@ -221,7 +221,7 @@ open add_coinductive_predicate
   R := λ as, ∃ bs, Λ_i a_i = p_i[bs]
 This relation is user visible, so we compact it by removing each `b_j` where a `p_i = b_j`, and
 hence `a_i = b_j`. We need to take care when there are `p_i` and `p_j` with `p_i = p_j = b_k`. -/
-private meta def compact_relation :
+meta def compact_relation :
   list expr → list (expr × expr) → list expr × list (expr × expr)
 | [] ps      := ([], ps)
 | (list.cons b bs) ps :=

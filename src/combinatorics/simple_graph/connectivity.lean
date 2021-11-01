@@ -384,7 +384,7 @@ the `simple_graph.reachable` relation. -/
 def connected_component := quot G.reachable
 
 /-- A graph is connected is every pair of vertices is reachable from one another. -/
-def connected : Prop := ∀ (u v : V), G.reachable u v ∧ nonempty V
+def connected : Prop := nonempty V ∧ ∀ (u v : V), G.reachable u v
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
@@ -394,7 +394,7 @@ instance connected_components.inhabited [inhabited V] : inhabited G.connected_co
 
 lemma connected_component.subsingleton_of_connected (h : G.connected) :
   subsingleton G.connected_component :=
-⟨λ c d, quot.ind (λ v d, quot.ind (λ w, (quot.sound (h v w).1)) d) c d⟩
+⟨λ c d, quot.ind (λ v d, quot.ind (λ w, (quot.sound (h.2 v w))) d) c d⟩
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
@@ -955,7 +955,7 @@ end⟩
 lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
   G.connected :=
 begin
-  intros v w,
+  intros v w, --breaking here
   specialize h ∅ (by simp) (by simp [hk]) v w,
   simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h,
   cases h with h hne,
@@ -1225,12 +1225,18 @@ begin
   { apply is_acyclic_if_unique_path, },
 end
 
-lemma is_tree_iff : G.is_tree ↔ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
+lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin
   simp only [is_tree, is_acyclic_iff],
   split,
-  { rintro ⟨hc, hu⟩ v w,
-    let q := (hc v w).1.some.to_path,
+  { intro h,
+    split,
+    {cases h with h hne,
+      simp [connected] at h,
+      simp [h], },
+    intros v w,
+    cases h with hc hu,
+    let q := (hc.2 v w).some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
     intros p hp,
@@ -1239,22 +1245,24 @@ begin
     refl, },
   { intro h,
     split,
-    { intros v w,
-      obtain ⟨p, hp⟩ := h v w,
-      use p, }, -- can't prove this?
+    { split,
+      {simp [h], },
+      intros v w,
+      obtain ⟨p, hp⟩ := h.2 v w,
+      use p, },
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only,
-      exact unique_of_exists_unique (h v w) hp hq, }, },
+      exact unique_of_exists_unique (h.2 v w) hp hq, }, },
 end
 
 /-- Get the unique path between two vertices in the tree. -/
 noncomputable abbreviation tree_path (h : G.is_tree) (v w : V) : G.path v w :=
-⟨((G.is_tree_iff.mp h) v w).some, ((G.is_tree_iff.mp h) v w).some_spec.1⟩
+⟨((G.is_tree_iff.mp h).2 v w).some, ((G.is_tree_iff.mp h).2 v w).some_spec.1⟩
 
 lemma tree_path_spec {h : G.is_tree} {v w : V} (p : G.path v w) : p = G.tree_path h v w :=
 begin
   cases p,
-  have := ((G.is_tree_iff.mp h) v w).some_spec,
+  have := ((G.is_tree_iff.mp h).2 v w).some_spec,
   simp only [this.2 p_val p_property],
 end
 

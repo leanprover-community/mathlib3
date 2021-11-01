@@ -285,7 +285,7 @@ variable {α}
 /-- In a separable space, a family of nonempty disjoint open sets is countable. -/
 lemma countable_of_is_open_of_disjoint [separable_space α] {β : Type*}
   (s : β → set α) {a : set β} (ha : ∀ i ∈ a, is_open (s i)) (h'a : ∀ i ∈ a, (s i).nonempty)
-  (h : a.pairwise_on (disjoint on s)) :
+  (h : a.pairwise (disjoint on s)) :
   countable a :=
 begin
   rcases eq_empty_or_nonempty a with rfl|H, { exact countable_empty },
@@ -313,11 +313,11 @@ end
 
 /-- In a separable space, a family of disjoint sets with nonempty interiors is countable. -/
 lemma countable_of_nonempty_interior_of_disjoint [separable_space α] {β : Type*} (s : β → set α)
-  {a : set β} (ha : ∀ i ∈ a, (interior (s i)).nonempty) (h : a.pairwise_on (disjoint on s)) :
+  {a : set β} (ha : ∀ i ∈ a, (interior (s i)).nonempty) (h : a.pairwise (disjoint on s)) :
   countable a :=
 begin
-  have : a.pairwise_on (disjoint on (λ i, interior (s i))) :=
-    pairwise_on_disjoint_on_mono h (λ i hi, interior_subset),
+  have : a.pairwise (disjoint on (λ i, interior (s i))) :=
+    pairwise_disjoint_on_mono h (λ i hi, interior_subset),
   exact countable_of_is_open_of_disjoint (λ i, interior (s i)) (λ i hi, is_open_interior) ha this
 end
 
@@ -563,21 +563,33 @@ instance {β : Type*} [topological_space β]
 ((is_basis_countable_basis α).prod (is_basis_countable_basis β)).second_countable_topology $
   (countable_countable_basis α).image2 (countable_countable_basis β) _
 
-instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
-  [fintype ι] [t : ∀a, topological_space (π a)] [sc : ∀a, second_countable_topology (π a)] :
+instance second_countable_topology_encodable {ι : Type*} {π : ι → Type*}
+  [encodable ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
   second_countable_topology (∀a, π a) :=
 begin
   have : t = (λa, generate_from (countable_basis (π a))),
     from funext (assume a, (is_basis_countable_basis (π a)).eq_generate_from),
-  rw this,
-  constructor,
-  refine ⟨pi univ '' pi univ (λ a, countable_basis (π a)), countable.image _ _, _⟩,
-  { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ countable_basis (π a)}, { simpa [pi] },
-    exact countable_pi (assume i, (countable_countable_basis _)), },
-  rw [pi_generate_from_eq_fintype],
-  { congr' 1 with f, simp [pi, eq_comm] },
-  exact assume a, (is_basis_countable_basis (π a)).sUnion_eq
+  rw [this, pi_generate_from_eq],
+  constructor, refine ⟨_, _, rfl⟩,
+  have : countable {T : set (Π i, π i) | ∃ (I : finset ι) (s : Π i : I, set (π i)),
+    (∀ i, s i ∈ countable_basis (π i)) ∧ T = {f | ∀ i : I, f i ∈ s i}},
+  { simp only [set_of_exists, ← exists_prop],
+    refine countable_Union (λ I, countable.bUnion _ (λ _ _, countable_singleton _)),
+    change countable {s : Π i : I, set (π i) | ∀ i, s i ∈ countable_basis (π i)},
+    exact countable_pi (λ i, countable_countable_basis _) },
+  convert this using 1, ext1 T, split,
+  { rintro ⟨s, I, hs, rfl⟩,
+    refine ⟨I, λ i, s i, λ i, hs i i.2, _⟩,
+    simp only [set.pi, set_coe.forall'], refl },
+  { rintro ⟨I, s, hs, rfl⟩,
+    rcases @subtype.surjective_restrict ι (λ i, set (π i)) _ (λ i, i ∈ I) s with ⟨s, rfl⟩,
+    exact ⟨s, I, λ i hi, hs ⟨i, hi⟩, set.ext $ λ f, subtype.forall⟩ }
 end
+
+instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
+  [fintype ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
+  second_countable_topology (∀a, π a) :=
+by { letI := fintype.encodable ι, exact topological_space.second_countable_topology_encodable }
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space

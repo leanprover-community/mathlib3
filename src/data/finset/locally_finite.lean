@@ -124,8 +124,7 @@ end preorder
 section partial_order
 variables [partial_order α] [locally_finite_order α] {a b : α}
 
-@[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
-by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
+@[simp] lemma Icc_self (a : α) : Icc a a = {a} := by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
 
 section decidable_eq
 variables [decidable_eq α]

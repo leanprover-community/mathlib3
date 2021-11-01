@@ -739,10 +739,10 @@ ext $ λ _, mem_union.trans $ or_self _
 instance : is_idempotent (finset α) (∪) := ⟨union_idempotent⟩
 
 theorem union_subset_left {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₁ ⊆ s₃ :=
-finset.subset.trans (finset.subset_union_left _ _) h
+subset.trans (subset_union_left _ _) h
 
 theorem union_subset_right {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₂ ⊆ s₃ :=
-finset.subset.trans (finset.subset_union_right _ _) h
+subset.trans (subset_union_right _ _) h
 
 theorem union_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
 ext $ λ _, by simp only [mem_union, or.left_comm]
@@ -2754,7 +2754,7 @@ end bUnion
 
 /-! ### prod -/
 section prod
-variables {s : finset α} {t : finset β}
+variables {s s' : finset α} {t t' : finset β}
 
 /-- `product s t` is the set of pairs `(a, b)` such that `a ∈ s` and `b ∈ t`. -/
 protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
@@ -2766,6 +2766,15 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 theorem subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
   s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
 λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
+
+lemma product_subset_product (hs : s ⊆ s') (ht : t ⊆ t') : s.product t ⊆ s'.product t' :=
+λ ⟨x,y⟩ h, mem_product.2 ⟨hs (mem_product.1 h).1, ht (mem_product.1 h).2⟩
+
+lemma product_subset_product_left (hs : s ⊆ s') : s.product t ⊆ s'.product t :=
+product_subset_product hs (subset.refl _)
+
+lemma product_subset_product_right (ht : t ⊆ t') : s.product t ⊆ s.product t' :=
+product_subset_product (subset.refl _) ht
 
 theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s.product t = s.bUnion (λa, t.image $ λb, (a, b)) :=
@@ -2995,6 +3004,12 @@ begin
   apply filter_card_add_filter_neg_card_eq_card,
 end
 
+@[simp] lemma diag_empty : (∅ : finset α).diag = ∅ :=
+eq_empty_of_forall_not_mem (by simp)
+
+@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ :=
+eq_empty_of_forall_not_mem (by simp)
+
 end self_prod
 
 /--
@@ -3031,6 +3046,19 @@ end
 lemma exists_smaller_set (A : finset α) (i : ℕ) (h₁ : i ≤ card A) :
   ∃ (B : finset α), B ⊆ A ∧ card B = i :=
 let ⟨B, _, x₁, x₂⟩ := exists_intermediate_set i (by simpa) (empty_subset A) in ⟨B, x₁, x₂⟩
+
+lemma exists_subset_or_subset_of_two_mul_lt_card [decidable_eq α] {X Y : finset α} {n : ℕ}
+  (hXY : 2 * n < (X ∪ Y).card) :
+  ∃ C : finset α, n < C.card ∧ (C ⊆ X ∨ C ⊆ Y) :=
+begin
+  have h₁ : (X ∩ (Y \ X)).card = 0 := finset.card_eq_zero.mpr (finset.inter_sdiff_self X Y),
+  have h₂ : (X ∪ Y).card = X.card + (Y \ X).card,
+  { rw [← card_union_add_card_inter X (Y \ X), finset.union_sdiff_self_eq_union, h₁, add_zero] },
+  rw [h₂, two_mul] at hXY,
+  rcases lt_or_lt_of_add_lt_add hXY with h|h,
+  { exact ⟨X, h, or.inl (finset.subset.refl X)⟩ },
+  { exact ⟨Y \ X, h, or.inr (finset.sdiff_subset Y X)⟩ }
+end
 
 /-- `finset.fin_range k` is the finset `{0, 1, ..., k-1}`, as a `finset (fin k)`. -/
 def fin_range (k : ℕ) : finset (fin k) :=

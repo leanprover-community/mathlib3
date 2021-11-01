@@ -91,12 +91,8 @@ def map_equiv [comm_semiring S₁] [comm_semiring S₂] (e : S₁ ≃+* S₂) :
   mv_polynomial σ S₁ ≃+* mv_polynomial σ S₂ :=
 { to_fun    := map (e : S₁ →+* S₂),
   inv_fun   := map (e.symm : S₂ →+* S₁),
-  left_inv  := λ p,
-    have (e.symm : S₂ →+* S₁).comp ↑e = ring_hom.id _ := ring_hom.ext e.symm_apply_apply,
-    by rw [map_map, this, map_id],
-  right_inv := assume p,
-    have (e : S₁ →+* S₂).comp ↑e.symm = ring_hom.id _ := ring_hom.ext e.apply_symm_apply,
-    by rw [map_map, this, map_id],
+  left_inv  := map_left_inverse e.left_inv,
+  right_inv := map_right_inverse e.right_inv,
   ..map (e : S₁ →+* S₂) }
 
 @[simp] lemma map_equiv_refl :
@@ -115,19 +111,12 @@ variables {A₁ A₂ A₃ : Type*} [comm_semiring A₁] [comm_semiring A₂] [co
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 
 /-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebras, then so is `map e`. -/
+@[simps apply]
 def map_alg_equiv (e : A₁ ≃ₐ[R] A₂) :
   mv_polynomial σ A₁ ≃ₐ[R] mv_polynomial σ A₂ :=
-{ commutes' := λ r, begin
-    dsimp,
-    have h₁ : algebra_map R (mv_polynomial σ A₁) r = C (algebra_map R A₁ r) := rfl,
-    have h₂ : algebra_map R (mv_polynomial σ A₂) r = C (algebra_map R A₂ r) := rfl,
-    rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply,
-      ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.commutes],
-  end,
-  ..(map_equiv σ ↑e) }
-
-@[simp] lemma map_alg_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : mv_polynomial σ A₁) :
-  map_alg_equiv σ e x = map ↑e x := rfl
+{ to_fun := map (e : A₁ →+* A₂),
+  ..map_alg_hom (e : A₁ →ₐ[R] A₂),
+  ..map_equiv σ (e : A₁ ≃+* A₂) }
 
 @[simp] lemma map_alg_equiv_refl :
   map_alg_equiv σ (alg_equiv.refl : A₁ ≃ₐ[R] A₁) = alg_equiv.refl :=

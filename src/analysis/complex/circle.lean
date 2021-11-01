@@ -108,5 +108,5 @@ def exp_map_circle_hom : ℝ →+ (additive circle) :=
   map_add' := exp_map_circle_add }
 
 @[simp] lemma exp_map_circle_sub (x y : ℝ) :
-  exp_map_circle (x - y) = exp_map_circle x * (exp_map_circle y)⁻¹ :=
-(exp_map_circle_hom.map_sub x y).trans (div_eq_mul_inv _ _)
+  exp_map_circle (x - y) = exp_map_circle x / exp_map_circle y :=
+exp_map_circle_hom.map_sub x y

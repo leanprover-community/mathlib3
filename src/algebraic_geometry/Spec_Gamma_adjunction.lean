@@ -11,6 +11,10 @@ import topology.sheaves.functors
 /-!
 # Adjunction between `Γ` and `Spec`
 
+Define the adjunction `Γ_Spec_adjunction` by defining unit (done in Spec.lean) and
+counit (`to_Γ_Spec`, in multiple steps in this file) and checking that they satisfy
+the left and right triangle identities. The constructions and proofs make use of
+maps and lemmas defined and proved in structure_sheaf.lean extensively.
 -/
 
 noncomputable theory
@@ -30,9 +34,10 @@ open Top.presheaf.sheaf_condition
 
 variable (R : CommRing)
 
+/-- `Spec` as a function from CommRing to LocallyRingedSpace. -/
 abbreviation Spec' := Spec.to_LocallyRingedSpace.obj (op R)
 
-/- basic opens in Spec R -/
+/- Basic opens in `Spec R` indexed by elements of `R`. -/
 def basic_open_B : (Spec' R).to_Top.opens_index_struct := ⟨R, λ r, basic_open r⟩
 -- Much nicer to work directly with the indexing function than the range set
 
@@ -45,6 +50,7 @@ namespace LocallyRingedSpace
 
 variable (X : LocallyRingedSpace.{v})
 
+/-- `Γ` (global sections) as a function from LocallyRingedSpace to CommRing. -/
 abbreviation Γ' := Γ.obj (op X)
 
 /-- Map from the global sections to a stalk. -/
@@ -57,15 +63,15 @@ def to_Γ_Spec_fun : X → Spec' (Γ' X) := λ x,
   comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
 -- or Spec.to_Top.map (X.Γ_to_stalk x).op (@local_ring.closed_point ...)
 
-lemma mem_ideal_Γ_to_stalk_iff (r : Γ' X) (x : X) :
+lemma not_mem_prime_iff_unit_in_stalk (r : Γ' X) (x : X) :
   r ∉ (X.to_Γ_Spec_fun x).as_ideal ↔ is_unit (X.Γ_to_stalk x r) :=
-by erw [local_ring.mem_maximal_ideal, not_not]; refl
+by erw [local_ring.mem_maximal_ideal, not_not]
 
-/-- Preimage of a basic open under the counit is a basic open. -/
+/-- Preimage of a basic open under the unit is a basic open. -/
 lemma to_Γ_Spec_preim_basic_open_eq (r : Γ' X) :
   X.to_Γ_Spec_fun⁻¹' (basic_open r).1
   = (X.to_RingedSpace.basic_open r).1 :=
-by ext; erw X.to_RingedSpace.mem_basic_open; apply mem_ideal_Γ_to_stalk_iff
+by { ext, erw X.to_RingedSpace.mem_basic_open, apply not_mem_prime_iff_unit_in_stalk }
 
 /-- Unit is continuous. -/
 lemma to_Γ_Spec_continuous : continuous X.to_Γ_Spec_fun :=
@@ -75,32 +81,37 @@ begin
   exact (X.to_RingedSpace.basic_open r).2,
 end
 
-/-- Unit on the topological space. -/
+/-- Unit as a continuous map. -/
 def to_Γ_Spec_base : continuous_map X (Spec' (Γ' X)) :=
 { to_fun := X.to_Γ_Spec_fun,
   continuous_to_fun := X.to_Γ_Spec_continuous }
 
+/-- The preimage in `X` of a basic open in `Spec Γ(X)`. -/
 abbreviation opens_map_basic_open (r : Γ' X) :=
   (opens.map X.to_Γ_Spec_base).obj (basic_open r)
 
+/-- The preimage is a basic open in `X` defined by the same element `r`. -/
 lemma to_Γ_Spec_opens_map_obj_basic_open_eq (r : Γ' X) :
   X.opens_map_basic_open r = X.to_RingedSpace.basic_open r :=
 subtype.eq (X.to_Γ_Spec_preim_basic_open_eq r)
 
+/-- The map from the global sections `Γ(X)` to the sections on the (preimage of) a basic open. -/
 abbreviation to_opens_map_basic_open (r : Γ' X) :=
   X.presheaf.map (X.opens_map_basic_open r).le_top.op
 
-def is_unit_res_opens_map_basic_open (r : Γ' X) :=
-  by { have h := X.to_RingedSpace.is_unit_res_basic_open r,
-  rw ← to_Γ_Spec_opens_map_obj_basic_open_eq at h, exact h }
+/-- `r` is a unit in the sections on the basic open defined by `r`. -/
+lemma is_unit_res_opens_map_basic_open (r : Γ' X) :
+  is_unit (X.to_opens_map_basic_open r r) :=
+by { have h := X.to_RingedSpace.is_unit_res_basic_open r,
+     rw ← to_Γ_Spec_opens_map_obj_basic_open_eq at h, exact h }
 
-/-- Unit on the sheaf on a basic open. -/
-def to_Γ_Spec_c_app (r : Γ' X) := CommRing.of_hom
-(by { refine is_localization.away.lift r (is_unit_res_opens_map_basic_open _ r),
-      swap 4, exact is_localization.to_basic_open _ r })
+/-- Define the unit as a sheaf hom on individual basic opens. -/
+def to_Γ_Spec_c_app (r : Γ' X) := CommRing.of_hom $
+  by { refine is_localization.away.lift r (is_unit_res_opens_map_basic_open _ r),
+       swap 4, exact is_localization.to_basic_open _ r }
 
 /-- Characterization of the sheaf morphism on basic opens,
-    direction ← used in various places, but → is not used in this file. -/
+    direction ← is used at various places, but → is not used in this file. -/
 lemma to_Γ_Spec_c_app_iff (r : Γ' X) :
   ∀ f, to_open _ (basic_open r) ≫ f = X.to_opens_map_basic_open r
   ↔ f = X.to_Γ_Spec_c_app r :=
@@ -117,7 +128,7 @@ lemma to_Γ_Spec_c_app_spec (r : Γ' X) :
   to_open _ (basic_open r) ≫ X.to_Γ_Spec_c_app r = X.to_opens_map_basic_open r :=
 (X.to_Γ_Spec_c_app_iff r _).2 rfl
 
-/-- Unit on the sheaf on all basic opens, commuting with restrictions. -/
+/-- Unit as a sheaf hom on all basic opens, commuting with restrictions. -/
 def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
                           ⟶ idfb _ ⋙ X.to_Γ_Spec_base _* X.presheaf :=
 { app := X.to_Γ_Spec_c_app,
@@ -128,12 +139,12 @@ def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
     convert X.to_Γ_Spec_c_app_spec s,
     apply eq.symm, apply X.presheaf.map_comp } }
 
-/-- Unit on the sheaf. -/
+/-- Unit as a sheaf hom. -/
 def to_Γ_Spec_c := Top.sheaf.uniq_hom_extn_from_basis _
   ((Top.sheaf.pushforward _).obj X.𝒪).2
   basic_opens_is_basis X.to_Γ_Spec_c_basic_opens
 
-/-- Unit on the sheafed space. -/
+/-- Unit as a sheafed space hom. -/
 def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ (Spec' (Γ' X)).to_SheafedSpace :=
 { base := X.to_Γ_Spec_base,
   c := X.to_Γ_Spec_c.lift }
@@ -149,6 +160,8 @@ lemma to_Γ_Spec_SheafedSpace_app_spec (r : Γ' X) :
   X.to_opens_map_basic_open r :=
 (X.to_Γ_Spec_SheafedSpace_app_eq r).symm ▸ X.to_Γ_Spec_c_app_spec r
 
+/-- The map on stalks induced by the unit commutes with maps from `Γ(X)` to
+    stalks (in `Spec Γ(X)` and in `X`). -/
 lemma to_stalk_comm (x : X) : to_stalk _ _ ≫
   PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x = X.Γ_to_stalk x :=
 begin
@@ -163,7 +176,7 @@ begin
   apply germ_res,
 end
 
-/-- Unit on the locally ringed space. -/
+/-- Unit as a hom of locally ringed spaces. -/
 def to_Γ_Spec : X ⟶ Spec' (Γ' X) :=
 begin
   fsplit, exact X.to_Γ_Spec_SheafedSpace,
@@ -180,7 +193,7 @@ begin
     erw ← he, rw ring_hom.map_mul,
     apply is_unit.mul ht,
     exact is_unit.map sm.to_monoid_hom (hu s),
-  rw ← mem_ideal_Γ_to_stalk_iff at hr,
+  rw ← not_mem_prime_iff_unit_in_stalk at hr,
   have hr' := hu ⟨r,hr⟩, erw ← he at hr',
   exact is_unit_of_mul_is_unit_left hr',
 end
@@ -205,7 +218,7 @@ lemma to_Γ_Spec_c_naturality (r : Γ' Y) : let f' := Γ.map f.op in
   (Y.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open r) ≫
     f.1.c.app (op $ Y.opens_map_basic_open r)) ≫
     eha X f (op (basic_open r)) =
-  /- inlining `eha` results in wrong inferred type (mis-unification?) -/
+ /- inlining `eha` results in wrong inferred type (mis-unification?) -/
   comap f' (basic_open r) (basic_open $ f' r) (λ _ h, h) ≫
     X.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open $ f' r) :=
 begin
@@ -218,7 +231,7 @@ begin
   congr, exact X.to_Γ_Spec_base_naturality f,
 end
 
-/-- Actually two-sided inverses as to_Spec_Γ is invertible. -/
+/-- `to_Spec_Γ _` is iso so these are mutually two-sided inverses. -/
 lemma left_triangle : to_Spec_Γ (Γ' X) ≫ X.to_Γ_Spec.1.c.app (op ⊤) = 𝟙 (Γ' X) :=
 begin
   unfold to_Spec_Γ,
@@ -246,7 +259,6 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_Lo
       further speed this up. -/ },
   end }
 
-
 lemma right_triangle_base :
   ((Spec' R).to_Γ_Spec ≫ Spec.to_LocallyRingedSpace.map (to_Spec_Γ R).op).1.1 = 𝟙 _ :=
 begin
@@ -267,6 +279,7 @@ begin
   erw [←functor.map_comp, category.comp_id, ←op_comp], apply to_open_res,
 end
 
+/-- `Spec_Γ_identity` is iso so these are mutually two-sided inverses. -/
 lemma right_triangle :
   identity_to_Γ_Spec.app (Spec.LocallyRingedSpace_obj R) ≫
   Spec.LocallyRingedSpace_map (Spec_Γ_identity.inv.app R) = 𝟙 _ :=
@@ -278,6 +291,7 @@ begin
     convert right_triangle_c R r using 2, simpa },
 end
 
+/-- Auxiliary data structure for defining the adjunction. -/
 def Γ_Spec_core_unit_counit :
   adjunction.core_unit_counit Γ.right_op Spec.to_LocallyRingedSpace :=
 { unit := identity_to_Γ_Spec,
@@ -287,6 +301,7 @@ def Γ_Spec_core_unit_counit :
   right_triangle' := by { ext1, ext1 R, erw category.id_comp, exact right_triangle R.unop } }
 /- left and right triangle identities above are slow. -/
 
+/-- The adjunction `Γ ⊣ Spec`. -/
 def Γ_Spec_adjunction := adjunction.mk_of_unit_counit Γ_Spec_core_unit_counit
 
 end algebraic_geometry

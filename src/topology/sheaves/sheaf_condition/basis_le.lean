@@ -30,6 +30,8 @@ structure opens_index_struct :=
 (f : ι → opens X)
 -- if ι and B are separate then Lean cannot infer induced category instance on ι
 
+instance : inhabited (opens_index_struct X) := ⟨⟨ulift empty, empty.elim ∘ ulift.down⟩⟩
+
 variables {X} (B : X.opens_index_struct) (U : opens X) (F G : presheaf C X)
 
 /-- The proposition that the range of the family `B` is a basis. -/
@@ -43,6 +45,7 @@ namespace sheaf_condition
 The subtype of indices `i` of the family `B` (normally an indexed basis) whose
 corresponding open sets `B.f i` are contained in `U`.
 -/
+@[nolint has_inhabited_instance]
 def basis_le : Type v := { i // B.f i ≤ U }
 
 instance : category B.ι := induced_category.category (op ∘ B.f)

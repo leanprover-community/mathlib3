@@ -28,9 +28,10 @@ H.relindex K ≠ 0 ∧ K.relindex H ≠ 0
 
 namespace commensurable
 
-@[refl] protected lemma refl (H : subgroup G) : commensurable H H := by simp [commensurable]
+@[refl] protected lemma refl (H : subgroup G) : commensurable H H := by
+ simp only [commensurable, nat.one_ne_zero, ne.def, not_false_iff, and_self, subgroup.relindex_self]
 
-lemma comm (H K : subgroup G) : commensurable H K ↔ commensurable K H := and.comm
+lemma comm {H K : subgroup G} : commensurable H K ↔ commensurable K H := and.comm
 
 @[symm] lemma symm {H K : subgroup G} : commensurable H K → commensurable K H := and.symm
 
@@ -81,7 +82,7 @@ def commensurator (H : subgroup G) : subgroup G :=
       rw subgroup.conj_subgroup_mul,
       have h1 : commensurable (subgroup.conj_subgroup a (subgroup.conj_subgroup b H))
         (subgroup.conj_subgroup a H),
-      { have hab := trans ha ((comm _ _).1 hb),
+      { have hab := trans ha ((comm ).1 hb),
         rw (commensurable_conj a⁻¹) at hab,
         rw ← subgroup.conj_subgroup_mul at hab,
         simp only [mul_left_inv, subgroup.cong_subgroup_one] at hab,

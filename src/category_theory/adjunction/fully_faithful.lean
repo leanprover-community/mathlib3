@@ -18,7 +18,7 @@ inclusions.
 
 ## Future work
 
-The statements from Riehl 4.5.13 for adjoints with are either full, or faithful.
+The statements from Riehl 4.5.13 for adjoints which are either full, or faithful.
 -/
 
 open category_theory

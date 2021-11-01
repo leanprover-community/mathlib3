@@ -29,8 +29,9 @@ noncomputable theory
 open inner_product_space
 open_locale complex_conjugate
 
-variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
-variables [complete_space E] [complete_space F]
+variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
+variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
+variables [complete_space E] [complete_space F] [complete_space G]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -71,6 +72,7 @@ begin
               ... = ∥A∥ * ∥v∥ * ∥x∥    : by ring,
 end
 
+/-- The function `λ v w, ⟪v, A w⟫` for a given operator `A` -/
 @[simps] def inner_left_right (A : E →L[𝕜] F) : F →L⋆[𝕜] E →L[𝕜] 𝕜 :=
 linear_map.mk_continuous
 { to_fun := λ v, inner_left_right' A v,
@@ -82,16 +84,20 @@ linear_map.mk_continuous
 ∥A∥
 (λ x, inner_left_right'_norm A x)
 
-lemma inner_left_right_apply {A : E →L[𝕜] F} {x : F} :
-  inner_left_right A x = inner_left_right' A x := rfl
+lemma inner_left_right_apply {A : E →L[𝕜] F} {v : F} {w : E} :
+  inner_left_right A v w = ⟪v, A w⟫ := rfl
 
-lemma inner_left_right'ₛₗ_map_smul {r : 𝕜} {A : E →L[𝕜] F} {v : F} :
+
+lemma inner_left_right_map_smul {r : 𝕜} {A : E →L[𝕜] F} {v : F} :
   inner_left_right (r • A) v = r • inner_left_right A v :=
 begin
   ext w,
   simp only [inner_smul_right, inner_left_right_apply, algebra.id.smul_eq_mul,
     inner_left_right'_apply, pi.smul_apply, continuous_linear_map.coe_smul'],
 end
+
+lemma inner_left_right_norm (A : E →L[𝕜] F) (v : F) : ∥inner_left_right A v∥ ≤ ∥A∥ * ∥v∥ :=
+inner_left_right'_norm A v
 
 /-- The adjoint, as a bare function. This is only meant as an auxiliary definition for
 the main definition `adjoint`, where this is bundled as a conjugate-linear isometric equivalence. -/
@@ -104,8 +110,7 @@ linear_map.mk_continuous
                                     star_ring_aut_self_apply r, ring_hom.id_apply,
                                     ring_equiv.coe_to_ring_hom] }
 ∥A∥
-(λ x, by simp only [linear_isometry_equiv.norm_map, inner_left_right'_norm,
-                    inner_left_right_apply, linear_map.coe_mk])
+(λ x, by simp only [linear_isometry_equiv.norm_map, inner_left_right_norm, linear_map.coe_mk])
 
 @[simp] lemma adjoint'_apply {A : E →L[𝕜] F} {v : F} :
   adjoint' A v = (to_dual 𝕜 E).symm (inner_left_right A v) := rfl
@@ -127,30 +132,30 @@ lemma adjoint'_norm {A : E →L[𝕜] F} : ∥adjoint' A∥ = ∥A∥ :=
 begin
   refine le_antisymm _ _,
   { refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),
-    rw [adjoint'_apply, linear_isometry_equiv.norm_map, inner_left_right_apply],
-    exact inner_left_right'_norm _ _ },
+    rw [adjoint'_apply, linear_isometry_equiv.norm_map],
+    exact inner_left_right_norm _ _ },
   { nth_rewrite_lhs 0 [←adjoint'_adjoint'_apply A],
     refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),
-    rw [adjoint'_apply, linear_isometry_equiv.norm_map, inner_left_right_apply],
-    exact inner_left_right'_norm _ _ }
+    rw [adjoint'_apply, linear_isometry_equiv.norm_map],
+    exact inner_left_right_norm _ _ }
 end
 
-/-- The adjoint of an operator from Hilbert space E to Hilbert space F. -/
+/-- The adjoint of a bounded operator from Hilbert space E to Hilbert space F. -/
 def adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] (F →L[𝕜] E) :=
 linear_isometry_equiv.of_surjective
 { to_fun := adjoint',
   map_add' := λ A B,
   begin
     ext v,
-    simp only [adjoint'_apply, inner_left_right_apply, continuous_linear_map.add_apply,
+    simp only [adjoint'_apply, continuous_linear_map.add_apply,
               ←linear_isometry_equiv.map_add, linear_isometry_equiv.map_eq_iff],
     ext w,
-    simp only [inner_add_right, inner_left_right'_apply, continuous_linear_map.add_apply],
+    simp only [inner_add_right, inner_left_right_apply, continuous_linear_map.add_apply],
   end,
   map_smul' := λ r A,
   begin
     ext v,
-    simp only [adjoint'_apply, inner_left_right'ₛₗ_map_smul, linear_isometry_equiv.map_smulₛₗ,
+    simp only [adjoint'_apply, inner_left_right_map_smul, linear_isometry_equiv.map_smulₛₗ,
                ring_equiv.coe_to_ring_hom, continuous_linear_map.coe_smul', pi.smul_apply],
   end,
   norm_map' := λ A, adjoint'_norm }
@@ -167,5 +172,22 @@ adjoint'_inner_right
 /-- The adjoint is involutive -/
 @[simp] lemma adjoint_adjoint_apply {A : E →L[𝕜] F} : adjoint (adjoint A) = A :=
 adjoint'_adjoint'_apply A
+
+/-- The adjoint of the composition of two operators is the composition of the two adjoints
+in reverse order. -/
+@[simp] lemma adjoint_comp {A : F →L[𝕜] G} {B : E →L[𝕜] F} :
+  adjoint (A ∘L B) = (adjoint B) ∘L (adjoint A) :=
+begin
+  ext v,
+  refine ext_inner_left 𝕜 (λ w, _),
+  simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
+end
+
+/-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
+instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
+instance : has_involutive_star (E →L[𝕜] E) := ⟨λ _, adjoint_adjoint_apply⟩
+instance : star_monoid (E →L[𝕜] E) := ⟨λ _ _, adjoint_comp⟩
+instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
+instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
 end inner_product_space

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .triangle
+import tactic.norm_fin
 
 /-!
 # The corners theorem
@@ -29,6 +30,9 @@ begin
     linarith },
   exact ⟨c, by simpa [not_or_distrib, @eq_comm _ c] using hc⟩,
 end
+
+lemma fin3_cases (i j : fin 3) : i = j ∨ i = j + 1 ∨ i = j + 2 :=
+by { fin_cases i; fin_cases j; finish }
 
 /-! ### Simplex domain -/
 
@@ -77,14 +81,14 @@ begin
   exact sum_le_sum_of_subset (subset_univ _),
 end
 
-lemma proj_apply_same {x : simplex_domain ι' n} {f : ι ↪ ι'} {i : ι} :
+lemma proj_apply_self {x : simplex_domain ι' n} {f : ι ↪ ι'} {i : ι} :
   (proj x f i).1 i = n - ∑ (c : ι) in univ.erase i, x.1 (f.1 c) :=
 begin
   dsimp [proj],
   simp,
 end
 
-lemma proj_apply_diff {x : simplex_domain ι' n} {f : ι ↪ ι'} {i k : ι} (h : k ≠ i) :
+lemma proj_apply_ne {x : simplex_domain ι' n} {f : ι ↪ ι'} {i k : ι} (h : k ≠ i) :
   (proj x f i).1 k = x.1 (f k) :=
 begin
   dsimp [proj],
@@ -122,7 +126,7 @@ def mem_line_self (x : simplex_domain ι n) (i : ι) : x ∈ line n i (x.val i) 
 
 /-- The lines of `simplex_domain ι n` a point of `simplex_domain ι' n` belongs to. -/
 def lines (x : simplex_domain ι' n) (f : ι → ι') : finset (ι × fin (n + 1)) :=
-  univ.map ⟨λ i, (i, x.apply (f i)), λ a b hab, (prod.mk.inj hab).1⟩
+univ.map ⟨λ i, (i, x.apply (f i)), λ a b hab, (prod.mk.inj hab).1⟩
 
 lemma mem_lines {x : simplex_domain ι' n} {ia : ι × fin (n + 1)} {f : ι → ι'} :
   ia ∈ x.lines f ↔ ∃ i, ia = (i, x.apply (f i)) :=
@@ -131,6 +135,10 @@ begin
   simp_rw @eq_comm _ ia,
   simp,
 end
+
+lemma mem_lines_self (x : simplex_domain ι' n) (i : ι) (f : ι → ι') :
+  (i, x.apply (f i)) ∈ x.lines f :=
+mem_lines.2 ⟨_, rfl⟩
 
 lemma card_lines {x : simplex_domain ι' n} {f : ι → ι'} : (x.lines f).card = fintype.card ι :=
 card_map _
@@ -195,7 +203,13 @@ open simplex_domain
 section simplex_corner
 
 variables {n : ℕ} {s : finset (simplex_domain (fin 3) n)} {x : simplex_domain (fin 3) n}
-  {f : fin 3 → ℕ}
+  {f : fin 3 → ℕ} {i j k : fin 3} {a b : ℕ}
+
+lemma simplex_domain.line_inter_line (h : i ≠ j) :
+  line n i a ∩ line n j b = ∅ :=
+begin
+  sorry
+end
 
 --  s.pairwise_disjoint (@trivial_n_clique ι _ _ n)
 -- lemma trivial_n_clique_pairwise_disjoint :
@@ -217,19 +231,28 @@ lemma mem_corners_iff_lines_is_n_clique {s : set (simplex_domain (fin 3) n)}
   x ∈ corners s ↔ (corners_graph s).is_n_clique 3 (x.lines some) :=
 begin
   split,
-  { refine λ hx, ⟨card_map _, _⟩,
-    refine λ a ha b hb hab, ⟨hab, _⟩,
+  { refine λ hx, ⟨card_map _, λ a ha b hb hab, ⟨hab, _⟩⟩,
     rw [mem_coe, mem_lines] at ha hb,
     obtain ⟨i, rfl⟩ := ha,
     obtain ⟨j, rfl⟩ := hb,
     obtain ⟨k, hik, hjk⟩ := exists_ne_ne_fin le_rfl i j,
-    refine ⟨x.proj embedding.some k, hx k, _, _⟩; rw [line, proj]; dsimp,
-    { exact piecewise_eq_of_not_mem _ _ _ (not_mem_singleton.2 hik) },
-    { exact piecewise_eq_of_not_mem _ _ _ (not_mem_singleton.2 hjk) } },
-  {
-    rintro ⟨h, h⟩ i,
-    sorry
-  }
+    exact ⟨x.proj embedding.some k, hx k, proj_apply_ne hik, proj_apply_ne hjk⟩ },
+  { rintro ⟨_, h⟩ i,
+    obtain ⟨_, y, hy, hy₁, hy₂⟩ := h _ (x.mem_lines_self (i + 1) _) _ (x.mem_lines_self (i + 2) _) _,
+    suffices : x.proj embedding.some i = y,
+    { rwa this },
+    ext j,
+    rw [coe_apply, coe_apply],
+    obtain rfl | rfl | rfl := fin3_cases j i,
+    { rw proj_apply_self,
+      sorry },
+    { rw proj_apply_ne,
+      exact eq.symm hy₁,
+      norm_num },
+    { rw proj_apply_ne,
+      exact eq.symm hy₂,
+      sorry },
+    norm_num }
 end
 
 lemma card_le_card_triangle_finset_corners_graph :
@@ -264,8 +287,6 @@ lemma strengthened_corners_theorem {ε : ℝ} (hε : 0 < ε) :
 begin
 
 end
-
-#exit
 
 end simplex_corner
 

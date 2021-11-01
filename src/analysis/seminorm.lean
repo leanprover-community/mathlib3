@@ -18,7 +18,7 @@ point belongs to all large enough scalings of the set. This is the vector world 
 topological neighborhood of the origin.
 
 A balanced set is one that is everywhere around the origin. This means that `a • s ⊆ s` for all `a`
-of unit norm.
+of norm less than `1`.
 
 A seminorm is a function to the reals which is positive-semidefinite, absolutely homogeneous, and
 subadditive. They are closely related to convex sets and a topological vector space is locally
@@ -63,8 +63,7 @@ absorbent, balanced, seminorm, Minkowski functional, gauge, locally convex, LCTV
 /-!
 ### Set Properties
 
-Absorbent and balanced sets in a vector space over a
-nondiscrete normed field.
+Absorbent and balanced sets in a vector space over a normed field.
 -/
 
 open normed_field set
@@ -86,7 +85,7 @@ def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥
 has norm less than or equal to one. -/
 def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
-variables {𝕜} (a : 𝕜) {A : set E}
+variables {𝕜} (a : 𝕜) {A B : set E}
 
 /-- A balanced set absorbs itself. -/
 lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
@@ -132,26 +131,33 @@ begin
   exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
 end
 
-lemma balanced.subset_smul (hA : balanced 𝕜 A) {a : 𝕜} (ha₀ : a ≠ 0) (ha₁ : 1 ≤ ∥a∥) : A ⊆ a • A :=
+lemma balanced.subset_smul (hA : balanced 𝕜 A) {a : 𝕜} (ha : 1 ≤ ∥a∥) : A ⊆ a • A :=
 begin
-  refine (subset_set_smul_iff₀ ha₀).2 (hA (a⁻¹) _),
-  rw norm_inv,
-  exact inv_le_one ha₁,
+  refine (subset_set_smul_iff₀ _).2 (hA (a⁻¹) _),
+  { rintro rfl,
+    rw norm_zero at ha,
+    exact zero_lt_one.not_le ha },
+  { rw norm_inv,
+    exact inv_le_one ha }
 end
 
 lemma balanced.smul_eq (hA : balanced 𝕜 A) {a : 𝕜} (ha : ∥a∥ = 1) : a • A = A :=
+(hA _ ha.le).antisymm $ hA.subset_smul ha.ge
+
+lemma absorbent.subset (hA : absorbent 𝕜 A) (hAB : A ⊆ B) : absorbent 𝕜 B :=
 begin
-  refine (hA _ ha.le).antisymm (hA.subset_smul _ ha.ge),
+  rintro x,
+  obtain ⟨r, hr, hx⟩ := hA x,
+  refine ⟨r, hr, λ a ha, (set_smul_subset_set_smul_iff₀ _).2 hAB $ hx a ha⟩,
   rintro rfl,
   rw norm_zero at ha,
-  exact zero_ne_one ha,
+  exact hr.not_le ha,
 end
 
-lemma absorbent_iff_forall_absorbs_singleton :
-  absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
+lemma absorbent_iff_forall_absorbs_singleton : absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
 by simp [absorbs, absorbent]
 
-lemma absorbent_iff_nonneg_pos : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ ∀ a : 𝕜, r < ∥a∥ → x ∈ a • A :=
+lemma absorbent_iff_nonneg_lt : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ ∀ a : 𝕜, r < ∥a∥ → x ∈ a • A :=
 begin
   split,
   { rintro hA x,
@@ -257,6 +263,12 @@ variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
 protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
+protected lemma sub_le : p (x - y) ≤ p x + p y :=
+calc
+  p (x - y)
+      = p (x + -y) : by rw sub_eq_add_neg
+  ... ≤ p x + p (-y) : p.triangle x (-y)
+  ... = p x + p y : by rw [←neg_one_smul 𝕜 y, p.smul, norm_neg, norm_one, one_mul]
 
 @[simp]
 protected lemma zero : p 0 = 0 :=
@@ -300,17 +312,24 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
--- Can be generalized to `p x < r → absorbent 𝕜 (ball p x r)` but not sure it's useful
 /-- Seminorm-balls at the origin are absorbent. -/
-lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
+lemma absorbent_ball_zero {r : ℝ} (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
 begin
-  rw absorbent_iff_nonneg_pos,
+  rw absorbent_iff_nonneg_lt,
   rintro x,
   have hxr : 0 ≤ p x/r := div_nonneg (p.nonneg _) hr.le,
   refine ⟨p x/r, hxr, λ a ha, _⟩,
   have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
   refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
   rwa [mem_ball_zero, p.smul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
+end
+
+/-- Seminorm-balls containing the origin are absorbent. -/
+lemma absorbent_ball (hpr : p x < r) : absorbent 𝕜 (ball p x r) :=
+begin
+  refine (p.absorbent_ball_zero $ sub_pos.2 hpr).subset (λ y hy, _),
+  rw p.mem_ball_zero at hy,
+  exact (p.mem_ball _ _ _).2 ((p.sub_le _ _).trans_lt $ add_lt_of_lt_sub_right hy),
 end
 
 lemma symmetric_ball_zero {x : E} (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=
@@ -538,8 +557,8 @@ end topological_space
 
 variables {α : Type*} [linear_ordered_field α] [mul_action_with_zero α ℝ] [ordered_smul α ℝ]
 
-lemma gauge_smul [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E} {r : α}
-  (hr : 0 ≤ r) (x : E) :
+lemma gauge_smul_of_nonneg [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E}
+  {r : α} (hr : 0 ≤ r) (x : E) :
   gauge s (r • x) = r • gauge s x :=
 begin
   obtain rfl | hr' := hr.eq_or_lt,
@@ -568,18 +587,19 @@ begin
     { exact hβ.ne'} }
 end
 
-lemma gauge_homogeneous [module α E] [is_scalar_tower α ℝ (set E)] {s : set E}
+/-- In textbooks, this is the homogeneity of the Minkowksi functional. -/
+lemma gauge_smul [module α E] [is_scalar_tower α ℝ (set E)] {s : set E}
   (symmetric : ∀ x ∈ s, -x ∈ s) (r : α) (x : E) :
   gauge s (r • x) = abs r • gauge s x :=
 begin
-  rw ←gauge_smul (abs_nonneg r),
+  rw ←gauge_smul_of_nonneg (abs_nonneg r),
   obtain h | h := abs_choice r,
   { rw h },
   { rw [h, neg_smul, gauge_neg symmetric] },
   { apply_instance }
 end
 
-lemma gauge_subadditive (hs : convex ℝ s) (absorbs : absorbent ℝ s) (x y : E) :
+lemma gauge_add_le (hs : convex ℝ s) (absorbs : absorbent ℝ s) (x y : E) :
   gauge s (x + y) ≤ gauge s x + gauge s y :=
 begin
   refine le_of_forall_pos_lt_add (λ ε hε, _),
@@ -603,9 +623,9 @@ end
 @[simps] def gauge_seminorm (symmetric : ∀ x ∈ s, -x ∈ s) (hs : convex ℝ s) (hs' : absorbent ℝ s) :
   seminorm ℝ E :=
 { to_fun := gauge s,
-  smul' := λ r x, by rw [gauge_homogeneous symmetric, real.norm_eq_abs, smul_eq_mul];
+  smul' := λ r x, by rw [gauge_smul symmetric, real.norm_eq_abs, smul_eq_mul];
     apply_instance,
-  triangle' := gauge_subadditive hs hs' }
+  triangle' := gauge_add_le hs hs' }
 
 /-- Any seminorm arises a the gauge of its unit ball. -/
 lemma seminorm.gauge_ball (p : seminorm ℝ E) : gauge (p.ball 0 1) = p :=
@@ -634,7 +654,7 @@ end
 
 lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
   gauge_seminorm (λ x, p.symmetric_ball_zero 1) (p.convex_ball 0 1)
-    (p.absorbent_ball_zero 1 zero_lt_one) = p :=
+    (p.absorbent_ball_zero zero_lt_one) = p :=
 seminorm.ext p.gauge_ball
 
 end gauge

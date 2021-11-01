@@ -335,7 +335,7 @@ def map_spanning_top (x : subgraph G) : x.spanning_coe →g G :=
   map_rel' := λ v w hvw, x.adj_sub hvw }
 
 @[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
-by { ext, simp }
+by { ext, refl }
 
 lemma map_spanning_top.injective {x : subgraph G} : function.injective x.map_top :=
 λ v w h, subtype.ext h

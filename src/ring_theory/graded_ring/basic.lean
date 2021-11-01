@@ -8,7 +8,8 @@ import data.mv_polynomial
 import ring_theory.polynomial.homogeneous
 
 /-! # Typeclass for graded ring
-For a ring `R` begin graded by `A : ι → add_subgroup R`, see doc string of `graded_ring`.
+For definition of a ring `R` being graded by `A : ι → add_subgroup R`, see doc string of 
+`graded_ring`.
 
 - `graded_ring.decompose : R → ⨁ i, A i` and `graded_ring.recompose : ⨁ i, A i → R` are the ring
 isomorphism between `R` and `⨁ i, A i` if `R` is graded by `A`.

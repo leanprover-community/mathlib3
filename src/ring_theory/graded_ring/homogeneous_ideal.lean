@@ -13,8 +13,10 @@ import ring_theory.graded_ring.basic
 
 # Homogeneous ideal of a graded commutative ring
 
-This file defines properties of ideals of `graded_ring R A`
-
+This file defines homogeneous ideals of `graded_ring R A` and operations on them:
+- `mul`, `inf`, `Inf` of homogeneous ideals are homogeneous;
+- `⊤`, `⊥`, i.e. the trivial ring and `R` are homogeneous;
+- `radical` of a homogeneous ideal is homogeneous.
 -/
 
 noncomputable theory

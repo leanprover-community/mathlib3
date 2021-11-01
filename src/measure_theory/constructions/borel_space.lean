@@ -1196,7 +1196,7 @@ instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
 gives a way to compute the measure of a set in terms of sets on which a given function `f` does not
 fluctuate by more than `t`. -/
-lemma measure_eq_measure_preimage_add_measure_tsum_Ico_pow [measurable_space α] (μ : measure α)
+lemma measure_eq_measure_preimage_add_measure_tsum_Ico_zpow [measurable_space α] (μ : measure α)
   {f : α → ℝ≥0∞} (hf : measurable f) {s : set α} (hs : measurable_set s) {t : ℝ≥0} (ht : 1 < t) :
   μ s = μ (s ∩ f⁻¹' {0}) + μ (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :=
 begin

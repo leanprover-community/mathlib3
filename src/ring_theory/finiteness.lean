@@ -367,26 +367,24 @@ lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι :
   [fintype ι] : finite_presentation R (mv_polynomial ι A) :=
 begin
   classical,
-  let n := fintype.card ι,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin ι,
-  replace e := (mv_polynomial.rename_equiv A e).restrict_scalars R,
-  refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
-  refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
+  set ι' := fin m,
+  refine equiv _ (mv_polynomial.map_alg_equiv ι e),
+
+  have : finite_presentation R (mv_polynomial ι (mv_polynomial ι' R)),
+  { let := mv_polynomial.sum_alg_equiv R ι ι',
+    refine (finite_presentation.mv_polynomial R (ι ⊕ ι')).equiv this, },
+
   -- typeclass inference seems to struggle to find this path
-  letI : is_scalar_tower R (mv_polynomial (fin m) R) (mv_polynomial (fin m) R) :=
+  letI : is_scalar_tower R (mv_polynomial ι' R) (mv_polynomial ι' R) :=
       is_scalar_tower.right,
   letI : is_scalar_tower R
-    (mv_polynomial (fin m) R) (mv_polynomial (fin n) (mv_polynomial (fin m) R)) :=
+    (mv_polynomial ι' R) (mv_polynomial ι (mv_polynomial ι' R)) :=
       mv_polynomial.is_scalar_tower,
 
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
-    _ (fin n) _ I).restrict_scalars R).symm,
-  refine finite_presentation.quotient (submodule.map_fg_of_fg I hfg _) _,
-  let := mv_polynomial.sum_alg_equiv R (fin n) (fin m),
-  refine equiv _ this,
-  exact (finite_presentation.mv_polynomial R (fin (n + m))).equiv
-    (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
+    _ ι _ I).restrict_scalars R).symm,
+  refine this.quotient (submodule.map_fg_of_fg I hfg _),
 end
 
 

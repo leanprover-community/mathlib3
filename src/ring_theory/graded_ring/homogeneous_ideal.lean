@@ -218,6 +218,15 @@ end, λ h, begin
   apply subtype.val_injective h',
 end⟩
 
+instance homogeneous_ideal.has_le : has_le (homogeneous_ideal R A) :=
+{ le := λ I J, I.1 ≤ J.1 }
+
+instance homogeneous_ideal.order : preorder (homogeneous_ideal R A) :=
+{ le_refl := λ I, by {unfold has_le.le, exact le_refl I.1, },
+  le_trans := λ I J K HIJ HJK,
+    by {unfold has_le.le at HIJ HJK ⊢, exact @le_trans _ _ I.1 J.1 K.1 HIJ HJK, },
+  ..(homogeneous_ideal.has_le R A)}
+
 instance homogeneous_ideal.has_mem : has_mem R (homogeneous_ideal R A) :=
 { mem := λ r I, r ∈ I.1 }
 
@@ -255,7 +264,6 @@ instance homogeneous_ideal.has_sup : has_sup (homogeneous_ideal R A) :=
 end }
 
 instance homogeneous_ideal.has_add : has_add (homogeneous_ideal R A) := ⟨(⊔)⟩
-
 
 private lemma homogeneous_ideal.subset_inf
   (I : homogeneous_ideal R A) (J : homogeneous_ideal R A) :

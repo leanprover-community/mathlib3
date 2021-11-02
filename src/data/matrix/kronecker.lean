@@ -178,7 +178,7 @@ lemma kronecker_map_bilinear_mul_mul [comm_semiring R]
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
   simp only [kronecker_map_bilinear_apply_apply, mul_apply, ← finset.univ_product_univ,
-    finset.sum_product, kronecker_map],
+    finset.sum_product_left, kronecker_map],
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end
 

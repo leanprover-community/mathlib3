@@ -300,7 +300,7 @@ by simp [sub_eq_add_neg]
   block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
+  simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product_left],
   split_ifs with h; simp [h]
 end
 

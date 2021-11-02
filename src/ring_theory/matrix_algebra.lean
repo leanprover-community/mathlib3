@@ -128,14 +128,14 @@ begin
   simp only [algebra.algebra_map_eq_smul_one, smul_tmul, ←tmul_sum, mul_boole],
   congr,
   conv_rhs {rw matrix_eq_sum_std_basis M},
-  convert finset.sum_product, simp,
+  convert finset.sum_product_left, simp,
 end
 
 lemma right_inv (M : matrix n n A) : (to_fun_alg_hom R A n) (inv_fun R A n M) = M :=
 begin
   simp only [inv_fun, alg_hom.map_sum, std_basis_matrix, apply_ite ⇑(algebra_map R A),
     mul_boole, to_fun_alg_hom_apply, ring_hom.map_zero, ring_hom.map_one],
-  convert finset.sum_product, apply matrix_eq_sum_std_basis,
+  convert finset.sum_product_left, apply matrix_eq_sum_std_basis,
 end
 
 lemma left_inv (M : A ⊗[R] matrix n n R) : inv_fun R A n (to_fun_alg_hom R A n M) = M :=

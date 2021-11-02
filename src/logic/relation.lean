@@ -83,6 +83,9 @@ lemma symmetric.comap (h : symmetric r) (f : α → β) : symmetric (r on f) :=
 lemma transitive.comap (h : transitive r) (f : α → β) : transitive (r on f) :=
 λ a b c hab hbc, h hab hbc
 
+lemma equivalence.comap (h : equivalence r) (f : α → β) : equivalence (r on f) :=
+⟨h.1.comap f, h.2.1.comap f, h.2.2.comap f⟩
+
 end comap
 
 namespace relation

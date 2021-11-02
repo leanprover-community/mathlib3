@@ -103,7 +103,7 @@ begin
   intros x y z,
   simp only [and_imp, exists_prop, forall_exists_index],
   intros a ha b hb hxy c hc d hd hyz,
-  use c*a,
+  use c * a,
   have hac := H.mul_mem hc ha,
   simp only [hac, true_and],
   use b*d,
@@ -152,9 +152,9 @@ begin
   intros a b c d e f,
   split; intro h,
   { assoc_rw h.symm,
-    group, },
+    group,},
   { rw h,
-    group, },
+    group,},
 end
 
 lemma disjoint_sub (H K : subgroup G) (a b : G) (h : ¬ disjoint (doset H.1 K a ) (doset H K b)) :
@@ -330,7 +330,7 @@ begin
   apply congr_arg,
   have hab := right_bot_eq_right_group_rel H,
   ext,
-  simp_rw  ←  hab,
+  simp_rw ← hab,
   refl,
 end
 

@@ -75,14 +75,14 @@ class have_lebesgue_decomposition (μ ν : measure α) : Prop :=
 
 /-- If a pair of measures `have_lebesgue_decomposition`, then `singular_part` chooses the
 measure from `have_lebesgue_decomposition`, otherwise it returns the zero measure. For sigma-finite
-measures, `μ = μ.singular_part ν + ν.with_density (μ.rn_deriv μ)`. -/
+measures, `μ = μ.singular_part ν + ν.with_density (μ.rn_deriv ν)`. -/
 @[irreducible]
 def singular_part (μ ν : measure α) : measure α :=
 if h : have_lebesgue_decomposition μ ν then (classical.some h.lebesgue_decomposition).1 else 0
 
 /-- If a pair of measures `have_lebesgue_decomposition`, then `rn_deriv` chooses the
 measurable function from `have_lebesgue_decomposition`, otherwise it returns the zero function.
-For sigma-finite measures, `μ = μ.singular_part ν + ν.with_density (μ.rn_deriv μ)`.-/
+For sigma-finite measures, `μ = μ.singular_part ν + ν.with_density (μ.rn_deriv ν)`.-/
 @[irreducible]
 def rn_deriv (μ ν : measure α) : α → ℝ≥0∞ :=
 if h : have_lebesgue_decomposition μ ν then (classical.some h.lebesgue_decomposition).2 else 0
@@ -131,7 +131,7 @@ begin
   by_cases h : have_lebesgue_decomposition μ ν,
   { exactI (have_lebesgue_decomposition_spec μ ν).2.1 },
   { rw [singular_part, dif_neg h],
-    exact mutually_singular.zero.symm }
+    exact mutually_singular.zero_left }
 end
 
 lemma singular_part_le (μ ν : measure α) : μ.singular_part ν ≤ μ :=
@@ -275,7 +275,7 @@ end
 
 lemma singular_part_zero (ν : measure α) : (0 : measure α).singular_part ν = 0 :=
 begin
-  refine (eq_singular_part measurable_zero mutually_singular.zero.symm _).symm,
+  refine (eq_singular_part measurable_zero mutually_singular.zero_left _).symm,
   rw [zero_add, with_density_zero],
 end
 
@@ -930,9 +930,9 @@ begin
   { rw not_have_lebesgue_decomposition_iff at hl,
     cases hl with hp hn,
     { rw [measure.singular_part, dif_neg hp],
-      exact mutually_singular.zero.symm },
+      exact mutually_singular.zero_left },
     { rw [measure.singular_part, measure.singular_part, dif_neg hn],
-      exact mutually_singular.zero } }
+      exact mutually_singular.zero_right } }
 end
 
 lemma singular_part_total_variation (s : signed_measure α) (μ : measure α) :

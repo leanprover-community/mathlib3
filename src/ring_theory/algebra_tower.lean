@@ -84,8 +84,8 @@ le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin h
 lemma adjoin_restrict_scalars (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
   [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
 (algebra.adjoin D S).restrict_scalars C =
-  ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
-    (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
+  (algebra.adjoin
+    ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S).restrict_scalars C :=
 begin
   suffices : set.range (algebra_map D E) =
     set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
@@ -104,10 +104,10 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   (hS : algebra.adjoin C S = ⊤) (hT : algebra.adjoin C T = ⊤) :
 (algebra.adjoin E (algebra_map D F '' S)).restrict_scalars C =
   (algebra.adjoin D (algebra_map E F '' T)).restrict_scalars C :=
-by rw [adjoin_restrict_scalars, adjoin_restrict_scalars, ←hS, ←hT, ←algebra.adjoin_image,
+by rw [adjoin_restrict_scalars C E, adjoin_restrict_scalars C D, ←hS, ←hT, ←algebra.adjoin_image,
   ←algebra.adjoin_image, ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom,
-  is_scalar_tower.coe_to_alg_hom, is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under,
-  ←adjoin_union_eq_under, set.union_comm]
+  is_scalar_tower.coe_to_alg_hom, is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_adjoin_adjoin,
+  ←adjoin_union_eq_adjoin_adjoin, set.union_comm]
 
 end algebra
 
@@ -118,8 +118,8 @@ lemma algebra.fg_trans' {R S A : Type*} [comm_semiring R] [comm_semiring S] [com
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
-by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
-  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
+by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_adjoin_adjoin,
+  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ht,
   subalgebra.restrict_scalars_top]⟩
 end
 

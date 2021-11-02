@@ -211,13 +211,20 @@ lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 end linear_ordered_ring
 end nat
 
-lemma floor_semiring_unique {α} [linear_ordered_semiring α] (inst1 inst2 : floor_semiring α) :
-  @nat.floor _ _ inst1 = @nat.floor _ _ inst2 :=
+/-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/
+lemma subsingleton_floor_semiring {α} [linear_ordered_semiring α] :
+  subsingleton (floor_semiring α) :=
 begin
-  ext a,
-  cases le_total a 0,
-  { rw [@nat.floor_of_nonpos α _ inst1 a h, @nat.floor_of_nonpos α _ inst2 a h] },
-  { exact (@nat.floor_eq_iff α _ inst1 a _ h).2 ⟨nat.floor_le h, nat.lt_floor_add_one a⟩ }
+  refine ⟨λ H₁ H₂, _⟩,
+  have : H₁.ceil = H₂.ceil,
+    from funext (λ a, H₁.gc_ceil.l_unique H₂.gc_ceil $ λ n, rfl),
+  have : H₁.floor = H₂.floor,
+  { ext a,
+    cases lt_or_le a 0,
+    { rw [H₁.floor_of_neg, H₂.floor_of_neg]; exact h },
+    { refine eq_of_forall_le_iff (λ n, _),
+      rw [H₁.gc_floor, H₂.gc_floor]; exact h } },
+  cases H₁, cases H₂, congr; assumption
 end
 
 /-! ### Floor rings -/
@@ -507,10 +514,12 @@ by { ext, simp [le_floor] }
 
 end int
 
-lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
-  @int.floor _ _ inst1 = @int.floor _ _ inst2 :=
+/-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
+lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :
+  subsingleton (floor_ring α) :=
 begin
-  ext v,
-  suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [int.floor_eq_iff],
-  exact ⟨int.floor_le v, int.lt_floor_add_one v⟩
+  refine ⟨λ H₁ H₂, _⟩,
+  have : H₁.floor = H₂.floor := funext (λ a, H₁.gc_coe_floor.u_unique H₂.gc_coe_floor $ λ _, rfl),
+  have : H₁.ceil = H₂.ceil := funext (λ a, H₁.gc_ceil_coe.l_unique H₂.gc_ceil_coe $ λ _, rfl),
+  cases H₁, cases H₂, congr; assumption
 end

@@ -787,11 +787,11 @@ ideal.ext $ λ _, iff.rfl
 @[simp] lemma map_id : I.map (ring_hom.id R) = I :=
 (gc_map_comap (ring_hom.id R)).l_unique galois_connection.id comap_id
 
-lemma comap_comap {T : Type*} [ring T] {I : ideal T} (f : R →+* S)
-  (g : S →+*T) : (I.comap g).comap f = I.comap (g.comp f) := rfl
+lemma comap_comap {T : Type*} [semiring T] {I : ideal T} (f : R →+* S)
+  (g : S →+* T) : (I.comap g).comap f = I.comap (g.comp f) := rfl
 
-lemma map_map {T : Type*} [ring T] {I : ideal R} (f : R →+* S)
-  (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
+lemma map_map {T : Type*} [semiring T] {I : ideal R} (f : R →+* S)
+  (g : S →+* T) : (I.map f).map g = I.map (g.comp f) :=
 ((gc_map_comap f).compose (gc_map_comap g)).l_unique
   (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
 

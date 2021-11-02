@@ -111,7 +111,7 @@ begin
   refine ⟨0, dec_trivial, λ x hx', ⟨x, _⟩⟩,
   clear hx',
   cases x with x hx,
-  rw [coe_coe, gpow_coe_nat, fin.ext_iff, fin.coe_mk],
+  rw [coe_coe, zpow_coe_nat, fin.ext_iff, fin.coe_mk],
   induction x with x ih, { refl },
   rw [pow_succ, perm.mul_apply, coe_fin_rotate_of_ne_last, ih (lt_trans x.lt_succ_self hx)],
   rw [ne.def, fin.ext_iff, ih (lt_trans x.lt_succ_self hx), fin.coe_last],

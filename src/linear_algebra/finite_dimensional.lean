@@ -159,9 +159,9 @@ Defined by convention to be `0` if the space has infinite rank.
 For a vector space `V` over a field `K`, this is the same as the finite dimension
 of `V` over `K`.
 -/
-noncomputable def finrank (K V : Type*) [division_ring K]
-  [add_comm_group V] [module K V] : ℕ :=
-(module.rank K V).to_nat
+noncomputable def finrank (R V : Type*) [semiring R]
+  [add_comm_group V] [module R V] : ℕ :=
+(module.rank R V).to_nat
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
 `finrank`. -/

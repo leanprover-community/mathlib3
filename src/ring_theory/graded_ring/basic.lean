@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 import algebra.direct_sum.algebra
-import data.mv_polynomial
-import ring_theory.polynomial.homogeneous
 
 /-! # Typeclass for graded ring
 For definition of a ring `R` being graded by `A : ι → add_subgroup R`, see doc string of
@@ -63,5 +61,17 @@ let f : (⨁ i, A i) →+* R :=
   right_inv := graded_ring.right_inv,
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _, }
+
+@[simp] lemma graded_ring.decompose_def :
+  graded_ring.decompose = (graded_ring.recompose R A).symm := rfl
+
+@[simp] lemma graded_ring.recompose_of {i : ι} (x : A i) :
+  graded_ring.recompose R A (direct_sum.of _ i x) = x :=
+begin
+  unfold graded_ring.recompose,
+  unfold direct_sum.of,
+  simp only [dfinsupp.single_add_hom_apply, direct_sum.to_semiring_apply, ring_equiv.coe_mk],
+  erw dfinsupp.lift_add_hom_apply_single _, refl,
+end
 
 end graded_ring

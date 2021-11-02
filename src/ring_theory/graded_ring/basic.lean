@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 import algebra.direct_sum.algebra
+import algebra.direct_sum.module
 
 /-! # Typeclass for graded ring
 For definition of a ring `R` being graded by `A : ι → add_subgroup R`, see doc string of
@@ -76,6 +77,10 @@ begin
   erw dfinsupp.lift_add_hom_apply_single _, refl,
 end
 
+lemma graded_ring.complete_lattice.independent :
+  complete_lattice.independent (λ i, A i) :=
+direct_sum.add_subgroup_is_internal.independent R A (graded_ring.is_internal R A)
+
 /-- The projection maps of graded ring-/
 def graded_ring.proj (i : ι) : R →+ R :=
 (A i).subtype.comp $
@@ -101,6 +106,137 @@ begin
   simp only [add_monoid_hom.coe_comp, add_subgroup.coe_subtype, function.comp_app,
     graded_ring.recompose_of, set_like.coe_eq_coe],
   erw ring_equiv.symm_apply_apply, refl,
+end
+
+variable [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
+
+lemma graded_ring.mem_support_iff
+  (r : R) (i : ι) :
+i ∈ graded_ring.support R A r ↔ (graded_ring.proj R A i r ≠ 0) :=
+⟨λ hi, begin
+  contrapose! hi,
+  unfold graded_ring.support,
+  unfold graded_ring.proj at hi,
+  simp only [not_not, ne.def, dfinsupp.mem_support_to_fun, subtype.val_eq_coe] at hi ⊢,
+  have : ↑((graded_ring.decompose r) i) = ↑(⟨0, add_subgroup.zero_mem (A i)⟩ : A i),
+  exact hi,
+  exact subtype.coe_injective this,
+end, λ hi, begin
+  unfold graded_ring.proj at hi,
+  unfold graded_ring.support,
+  simp only [ne.def, dfinsupp.mem_support_to_fun],
+  intro rid, simp only [add_monoid_hom.coe_mk, ne.def, subtype.val_eq_coe] at hi, rw rid at hi,
+  simp only [eq_self_iff_true, not_true, ne.def, add_subgroup.coe_zero, subtype.val_eq_coe] at hi,
+  exact hi,
+end⟩
+
+lemma graded_ring.as_sum (r : R) :
+  r = ∑ i in graded_ring.support R A r, graded_ring.proj R A i r :=
+begin
+  conv_lhs { rw [←@graded_ring.right_inv R _ ι A _ _ _ r,
+    ←direct_sum.sum_support_of _ (@graded_ring.decompose R _ ι A _ _ _ r),
+    add_monoid_hom.map_sum], },
+  unfold graded_ring.support,
+  unfold graded_ring.proj,
+  apply finset.sum_congr, ext, simp only [dfinsupp.mem_support_to_fun],
+  intros i hi, simp only [ne.def, dfinsupp.mem_support_to_fun, subtype.val_eq_coe] at hi ⊢,
+  unfold direct_sum.add_subgroup_coe,
+  rw direct_sum.to_add_monoid_of, refl,
+end
+
+lemma graded_ring.mul_proj (r r' : R) (i : ι) :
+  graded_ring.proj R A i (r * r') =
+  ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i)
+    ((graded_ring.support R A r).product (graded_ring.support R A r')),
+    (graded_ring.proj R A ij.1 r) * (graded_ring.proj R A ij.2 r') :=
+begin
+  have set_eq : (graded_ring.support R A r).product (graded_ring.support R A r') =
+  finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) _ ∪
+  finset.filter (λ ij : ι × ι, ij.1 + ij.2 ≠ i) _ := (finset.filter_union_filter_neg_eq _ _).symm,
+  conv_lhs { rw [graded_ring.as_sum R A r, graded_ring.as_sum R A r', finset.sum_mul_sum,
+    add_monoid_hom.map_sum, set_eq] },
+  rw finset.sum_union,
+  suffices : ∑ (x : ι × ι) in finset.filter (λ (ij : ι × ι), ij.fst + ij.snd ≠ i)
+    ((graded_ring.support R A r).product (graded_ring.support R A r')),
+  (graded_ring.proj R A i) ((graded_ring.proj R A x.fst) r * (graded_ring.proj R A x.snd) r') = 0,
+  rw [this, add_zero], apply finset.sum_congr rfl,
+  rintros ⟨j, k⟩ h, simp only [finset.mem_filter, finset.mem_product] at h ⊢,
+  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
+  rw ←h₃,
+  obtain ⟨a, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r,
+  obtain ⟨b, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r',
+  rw [graded_ring.proj_recompose, graded_ring.proj_recompose, ←ring_equiv.map_mul,
+    direct_sum.of_mul_of, graded_ring.proj_recompose],
+  congr, rw [direct_sum.of_eq_same],
+
+  apply finset.sum_eq_zero, rintros ⟨j, k⟩ h,
+  simp only [ne.def, finset.mem_filter, finset.mem_product] at h ⊢,
+  obtain ⟨⟨h₁, h₂⟩, h₃⟩ := h,
+  obtain ⟨a, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r,
+  obtain ⟨b, rfl⟩ := (graded_ring.recompose R A).bijective.surjective r',
+  rw [graded_ring.proj_recompose, graded_ring.proj_recompose, ←ring_equiv.map_mul,
+    direct_sum.of_mul_of, graded_ring.proj_recompose, direct_sum.of_eq_of_ne],
+  simp only [ring_equiv.map_zero, add_monoid_hom.map_zero], intro rid, exact h₃ rid,
+
+  rw [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem],
+  rintros ⟨j, k⟩ rid,
+  simp only [ne.def, finset.mem_filter, finset.mem_inter, finset.mem_product] at rid,
+  rcases rid with ⟨⟨_, h₁⟩, ⟨_, h₂⟩⟩, exact h₂ h₁,
+end
+
+lemma graded_ring.proj_homogeneous_element {x : R} {i : ι} (hx : x ∈ A i) :
+  graded_ring.proj R A i x = x :=
+begin
+  have dis := graded_ring.complete_lattice.independent R A i,
+  rw [disjoint_iff, add_subgroup.eq_bot_iff_forall] at dis,
+
+  by_cases mem_supp : i ∈ graded_ring.support R A x,
+
+  have := calc
+      x = ∑ i in graded_ring.support R A x, (graded_ring.proj R A i) x
+        : graded_ring.as_sum R A x
+    ... = (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x)
+        + graded_ring.proj R A i x
+        : _,
+  have eq₁ : (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j x))
+      =  x - (graded_ring.proj R A i x), symmetry, rw sub_eq_iff_eq_add, exact this,
+
+  have mem₁ : ∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x ∈ A i,
+  { rw eq₁, apply add_subgroup.sub_mem, exact hx, apply graded_ring.proj_mem, },
+
+  have mem₂ : (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x)
+    ∈ (⨆ (j ≠ i), A j : add_subgroup R),
+  { refine add_subgroup.sum_mem _ _,
+    intros k hk, simp only [ne.def, finset.mem_erase] at hk,
+    apply add_subgroup.mem_supr_of_mem k,
+    refine @add_subgroup.mem_Sup_of_mem R _ _ (A k) _ (graded_ring.proj R A k x)
+      (graded_ring.proj_mem R A k x),
+    rw set.mem_range, use hk.1, },
+
+  specialize dis _ (add_subgroup.mem_inf.mpr ⟨mem₁, mem₂⟩),
+  rw [dis, zero_add] at this, exact this.symm,
+  rw finset.sum_erase_add, exact mem_supp,
+
+  have h : (∑ j in (graded_ring.support R A x).erase i, (graded_ring.proj R A j) x)
+    ∈ (⨆ (j ≠ i), A j : add_subgroup R),
+  { refine add_subgroup.sum_mem _ _,
+    intros k hk, simp only [ne.def, finset.mem_erase] at hk,
+    apply add_subgroup.mem_supr_of_mem k,
+    refine @add_subgroup.mem_Sup_of_mem R _ _ (A k) _ (graded_ring.proj R A k x)
+      (graded_ring.proj_mem R A k x),
+    rw set.mem_range, use hk.1, },
+  rw [finset.erase_eq_of_not_mem, ←graded_ring.as_sum R A x] at h,
+  specialize dis _ (add_subgroup.mem_inf.mpr ⟨hx, h⟩),
+  rw dis, simp only [add_monoid_hom.map_zero], exact mem_supp,
+end
+
+lemma graded_ring.proj_homogeneous_element_of_ne {x : R} {i j : ι} (hx : x ∈ A i) (hij : i ≠ j):
+  graded_ring.proj R A j x = 0 :=
+begin
+  rw ←graded_ring.proj_homogeneous_element R A hx,
+  obtain ⟨a, rfl⟩ := (graded_ring.recompose R A).bijective.surjective x,
+  rw [graded_ring.proj_recompose, graded_ring.proj_recompose, direct_sum.of_eq_of_ne,
+    add_monoid_hom.map_zero, ring_equiv.map_zero], exact hij,
 end
 
 end graded_ring

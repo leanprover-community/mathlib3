@@ -2262,7 +2262,7 @@ lemma finite_at_nhds_within [topological_space α] {m0 : measurable_space α} (�
 @[simp] lemma finite_at_principal : μ.finite_at_filter (𝓟 s) ↔ μ s < ∞ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
 
-lemma is_locally_finite_measure_of_le [topological_space α] [measurable_space α] {μ ν: measure α}
+lemma is_locally_finite_measure_of_le [topological_space α] {m : measurable_space α} {μ ν : measure α}
   [H : is_locally_finite_measure μ] (h : ν ≤ μ) :
   is_locally_finite_measure ν :=
 let F := H.finite_at_nhds in ⟨λ x, (F x).measure_mono h⟩

@@ -27,7 +27,8 @@ open set
 open_locale big_operators classical
 
 universes u u'
-variables {R E ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [module R E] {s : set E}
+variables {R E F ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [add_comm_group F]
+  [module R E] [module R F] {s : set E}
 
 /-- Center of mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
@@ -322,6 +323,119 @@ begin
       { simp only [hw₁, zero_lt_one] },
       { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
    { exact Union_subset (λ i, Union_subset convex_hull_mono), },
+end
+
+lemma convex_hull_prod (s : set E) (t : set F) :
+  convex_hull R (s.prod t) = (convex_hull R s).prod (convex_hull R t) :=
+begin
+  refine set.subset.antisymm _ _,
+  { exact convex_hull_min (set.prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _)
+    ((convex_convex_hull _ _).prod $ convex_convex_hull _ _) },
+  rintro ⟨x, y⟩ ⟨hx, hy⟩,
+  rw convex_hull_eq at ⊢ hx hy,
+  obtain ⟨ι, a, w, S, hw, hw', hS, hSp⟩ := hx,
+  obtain ⟨κ, b, v, T, hv, hv', hT, hTp⟩ := hy,
+  have h_sum : ∑ (i : ι × κ) in a.product b, w i.fst * v i.snd = 1,
+  { rw finset.sum_product_left,
+    rw ← hw',
+    congr,
+    ext i,
+    have : ∑ (y : κ) in b, w i * v y = ∑ (y : κ) in b, v y * w i,
+    { congr, ext, simp [mul_comm] },
+    rw this,
+    rw ← finset.sum_mul,
+    rw hv',
+    simp },
+  refine ⟨ι × κ, a.product b, λ p, (w p.1) * (v p.2), λ p, (S p.1, T p.2),
+    λ p hp, _, h_sum, λ p hp, _, _⟩,
+  { rw mem_product at hp,
+    exact mul_nonneg (hw p.1 hp.1) (hv p.2 hp.2) },
+  { rw mem_product at hp,
+    exact ⟨hS p.1 hp.1, hT p.2 hp.2⟩ },
+  { ext,
+    { rw ← hSp,
+      simp only [finset.center_mass],
+      rw [hw', h_sum],
+      simp only [prod.fst_sum, prod.smul_mk, one_smul, inv_one],
+      rw finset.sum_product_left,
+      congr,
+      ext i,
+      have : ∑ (j : κ) in b, (w (i, j).fst * v (i, j).snd) • S (i, j).fst
+        = ∑ (j : κ) in b, (v (i, j).snd) • (w (i, j).fst) • S (i, j).fst,
+      { congr, ext, simp only [← mul_smul], congr' 1, exact mul_comm _ _ },
+      rw this,
+      simp only,
+      rw [←finset.sum_smul, hv', one_smul] },
+    { rw ← hTp,
+      simp only [center_mass],
+      rw [hv', h_sum],
+      simp only [prod.snd_sum, prod.smul_mk, one_smul, inv_one],
+      rw finset.sum_product_right,
+      congr,
+      ext j,
+      have : ∑ (i : ι) in a, (w (i, j).fst * v (i, j).snd) • S (i, j).fst
+        = ∑ (i : ι) in a, (v (i, j).snd) • (w (i, j).fst) • S (i, j).fst,
+      { congr, ext, simp only [← mul_smul], congr' 1, exact mul_comm _ _ },
+      rw this,
+      simp only,
+      rw [←finset.sum_smul, hv', one_smul] } }
+end
+
+lemma convex_hull_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_group (E i)]
+  [Π i, module 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} :
+  convex_hull R (s.pi t) = s.pi (convex_hull R ∘ t) :=
+begin
+  refine set.subset.antisymm _ _,
+  { exact convex_hull_min (set.pi_mono $ λ i _, subset_convex_hull _ _)
+    (convex_pi $ λ i _, convex_convex_hull _ _) },
+  rintro ⟨x, y⟩ ⟨hx, hy⟩,
+  rw convex_hull_eq at ⊢ hx hy,
+  obtain ⟨ι, a, w, S, hw, hw', hS, hSp⟩ := hx,
+  obtain ⟨κ, b, v, T, hv, hv', hT, hTp⟩ := hy,
+  have h_sum : ∑ (i : ι × κ) in a.product b, w i.fst * v i.snd = 1,
+  { rw finset.sum_product_left,
+    rw ← hw',
+    congr,
+    ext i,
+    have : ∑ (y : κ) in b, w i * v y = ∑ (y : κ) in b, v y * w i,
+    { congr, ext, simp [mul_comm] },
+    rw this,
+    rw ← finset.sum_mul,
+    rw hv',
+    simp },
+  refine ⟨ι × κ, a.product b, λ p, (w p.1) * (v p.2), λ p, (S p.1, T p.2),
+    λ p hp, _, h_sum, λ p hp, _, _⟩,
+  { rw mem_product at hp,
+    exact mul_nonneg (hw p.1 hp.1) (hv p.2 hp.2) },
+  { rw mem_product at hp,
+    exact ⟨hS p.1 hp.1, hT p.2 hp.2⟩ },
+  { ext,
+    { rw ← hSp,
+      simp only [finset.center_mass],
+      rw [hw', h_sum],
+      simp only [prod.fst_sum, prod.smul_mk, one_smul, inv_one],
+      rw finset.sum_product_left,
+      congr,
+      ext i,
+      have : ∑ (j : κ) in b, (w (i, j).fst * v (i, j).snd) • S (i, j).fst
+        = ∑ (j : κ) in b, (v (i, j).snd) • (w (i, j).fst) • S (i, j).fst,
+      { congr, ext, simp only [← mul_smul], congr' 1, exact mul_comm _ _ },
+      rw this,
+      simp only,
+      rw [←finset.sum_smul, hv', one_smul] },
+    { rw ← hTp,
+      simp only [center_mass],
+      rw [hv', h_sum],
+      simp only [prod.snd_sum, prod.smul_mk, one_smul, inv_one],
+      rw finset.sum_product_right,
+      congr,
+      ext j,
+      have : ∑ (i : ι) in a, (w (i, j).fst * v (i, j).snd) • S (i, j).fst
+        = ∑ (i : ι) in a, (v (i, j).snd) • (w (i, j).fst) • S (i, j).fst,
+      { congr, ext, simp only [← mul_smul], congr' 1, exact mul_comm _ _ },
+      rw this,
+      simp only,
+      rw [←finset.sum_smul, hv', one_smul] } }
 end
 
 /-! ### `std_simplex` -/

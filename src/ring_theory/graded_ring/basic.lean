@@ -8,7 +8,7 @@ import data.mv_polynomial
 import ring_theory.polynomial.homogeneous
 
 /-! # Typeclass for graded ring
-For definition of a ring `R` being graded by `A : ι → add_subgroup R`, see doc string of 
+For definition of a ring `R` being graded by `A : ι → add_subgroup R`, see doc string of
 `graded_ring`.
 
 - `graded_ring.decompose : R → ⨁ i, A i` and `graded_ring.recompose : ⨁ i, A i → R` are the ring
@@ -111,6 +111,9 @@ def graded_ring.proj (i : ι) : R →+ R :=
 (A i).subtype.comp $
   (dfinsupp.eval_add_monoid_hom i).comp $
   (graded_ring.recompose R A).symm.to_add_monoid_hom
+
+lemma graded_ring.proj_apply (i : ι) (r : R) :
+  graded_ring.proj _ A i r = (graded_ring.decompose r : ⨁ i, A i) i := rfl
 
 lemma graded_ring.proj_mem (i : ι) (r : R) :
   graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _ ι A _ _ _ r i).2

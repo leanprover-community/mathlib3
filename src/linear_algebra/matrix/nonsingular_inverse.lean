@@ -168,6 +168,18 @@ begin
     apply invertible_of_det_invertible, },
 end
 
+/-- The nonsingular inverse is the same as the general `ring.inverse`. -/
+lemma nonsing_inv_eq_ring_inverse : A⁻¹ = ring.inverse A :=
+begin
+  by_cases h_det : is_unit A.det,
+  { change ↑(nonsing_inv_unit A h_det)⁻¹ = _,
+    obtain ⟨u, rfl⟩ := (is_unit_iff_is_unit_det _).mpr h_det,
+    rw [ring.inverse_unit _, units.inv_unique],
+    refl },
+  { have h := mt (is_unit_iff_is_unit_det _).mp h_det,
+    rw [ring.inverse_non_unit _ h, nonsing_inv_apply_not_is_unit A h_det], },
+end
+
 /- `is_unit_of_invertible A`
    converts the "stronger" condition `invertible A` to proposition `is_unit A`. -/
 

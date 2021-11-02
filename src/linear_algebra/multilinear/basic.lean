@@ -1197,7 +1197,7 @@ variables [∀i, module R (M i)] [module R M₂] [module R M₃]
 /-- Two multilinear maps indexed by `fin n.succ` are equal if they are equal when all arguments
 are basis vectors. -/
 lemma basis.ext_multilinear_fin {f g : multilinear_map R M M₂} {ι₁ : fin n.succ → Type*}
-  {e : Π i, basis (ι₁ i) R (M i)} (h : ∀ v : Π i, ι₁ i, f (λ i, e i (v i)) = g (λ i, e i (v i))) :
+  (e : Π i, basis (ι₁ i) R (M i)) (h : ∀ v : Π i, ι₁ i, f (λ i, e i (v i)) = g (λ i, e i (v i))) :
   f = g :=
 begin
   unfreezingI { induction n with m hm },
@@ -1268,11 +1268,8 @@ begin
       congr },
     { rw dom_dom_congr_apply,
       congr } },
-  { let ι₂ := λ i : fin m.succ, ι₁,
-    let e' := λ i : fin m.succ, e,
-    have h' : ∀ i : Π j, ι₂ j, f' (λ x, e' x (i x)) = g' (λ x, e' x (i x)) :=
-      λ i, h (i ∘ fintype.equiv_fin_of_card_eq hn),
-    exact basis.ext_multilinear_fin h' }
+  { exact basis.ext_multilinear_fin (λ i : fin m.succ, e)
+                                    (λ i, h (i ∘ fintype.equiv_fin_of_card_eq hn)) }
 end
 
 end basis

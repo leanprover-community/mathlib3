@@ -275,7 +275,7 @@ end
 
 lemma singular_part_zero (ν : measure α) : (0 : measure α).singular_part ν = 0 :=
 begin
-  refine (eq_singular_part measurable_zero mutually_singular.zeroleft _).symm,
+  refine (eq_singular_part measurable_zero mutually_singular.zero_left _).symm,
   rw [zero_add, with_density_zero],
 end
 

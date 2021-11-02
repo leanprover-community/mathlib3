@@ -64,4 +64,33 @@ let f : (⨁ i, A i) →+* R :=
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _, }
 
+/-- The projection maps of graded ring-/
+def graded_ring.proj (i : ι) : R →+ R :=
+(A i).subtype.comp $
+  (dfinsupp.eval_add_monoid_hom i).comp $
+  (graded_ring.recompose R A).symm.to_add_monoid_hom
+
+lemma graded_ring.proj_apply (i : ι) (r : R) :
+  graded_ring.proj _ A i r = (graded_ring.decompose r : ⨁ i, A i) i := rfl
+
+lemma graded_ring.proj_mem (i : ι) (r : R) :
+  graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _ ι A _ _ _ r i).2
+
+/-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
+def graded_ring.support [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
+  (r : R) : finset ι :=
+(@graded_ring.decompose R _ ι A _ _ _ r).support
+
+lemma graded_ring.proj_recompose (a : ⨁ i, A i) (i : ι) :
+  graded_ring.proj R A i (graded_ring.recompose R A a) =
+  graded_ring.recompose R A (direct_sum.of _ i (a i)) :=
+begin
+  unfold graded_ring.proj, simp only [add_monoid_hom.coe_mk, subtype.val_eq_coe],
+  have : graded_ring.decompose ((graded_ring.recompose R A) a) = a :=
+    (graded_ring.recompose R A).symm_apply_apply a,
+  rw this,
+  unfold graded_ring.recompose,
+  simp only [direct_sum.to_semiring_of, add_subgroup.coe_subtype, ring_equiv.coe_mk],
+end
+
 end graded_ring

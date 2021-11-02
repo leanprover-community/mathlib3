@@ -239,7 +239,7 @@ lemma arg_of_re_nonneg {x : ℂ} (hx : 0 ≤ x.re) : arg x = real.arcsin (x.im /
 if_pos hx
 
 lemma arg_of_re_zero_of_im_pos {x : ℂ} (h_re : x.re = 0) (h_im : 0 < x.im) :
-  arg x = real.pi / 2 :=
+  arg x = π / 2 :=
 begin
   rw arg_of_re_nonneg h_re.symm.le,
   have h_im_eq_abs : x.im = abs x,
@@ -253,7 +253,7 @@ begin
 end
 
 lemma arg_of_re_zero_of_im_neg {x : ℂ} (h_re : x.re = 0) (h_im : x.im < 0) :
-  arg x = - real.pi / 2 :=
+  arg x = - π / 2 :=
 begin
   rw arg_of_re_nonneg h_re.symm.le,
   have h_im_eq_abs : x.im = - abs x,
@@ -269,11 +269,11 @@ begin
 end
 
 lemma arg_of_re_neg_of_im_nonneg {x : ℂ} (hx_re : x.re < 0) (hx_im : 0 ≤ x.im) :
-  arg x = real.arcsin ((-x).im / x.abs) + real.pi :=
+  arg x = real.arcsin ((-x).im / x.abs) + π :=
 by simp only [arg, hx_re.not_le, hx_im, if_true, if_false]
 
 lemma arg_of_re_neg_of_im_neg {x : ℂ} (hx_re : x.re < 0) (hx_im : x.im < 0) :
-  arg x = real.arcsin ((-x).im / x.abs) - real.pi :=
+  arg x = real.arcsin ((-x).im / x.abs) - π :=
 by simp only [arg, hx_re.not_le, hx_im.not_le, if_false]
 
 section continuity
@@ -288,7 +288,7 @@ begin
 end
 
 lemma arg_eq_nhds_of_re_neg_of_im_pos (hx_re : x.re < 0) (hx_im : 0 < x.im) :
-  arg =ᶠ[𝓝 x] λ x, real.arcsin ((-x).im / x.abs) + real.pi :=
+  arg =ᶠ[𝓝 x] λ x, real.arcsin ((-x).im / x.abs) + π :=
 begin
   suffices h_forall_nhds : ∀ᶠ (y : ℂ) in (𝓝 x), y.re < 0 ∧ 0 < y.im,
     from h_forall_nhds.mono (λ y hy, arg_of_re_neg_of_im_nonneg hy.1 hy.2.le),
@@ -298,7 +298,7 @@ begin
 end
 
 lemma arg_eq_nhds_of_re_neg_of_im_neg (hx_re : x.re < 0) (hx_im : x.im < 0) :
-  arg =ᶠ[𝓝 x] λ x, real.arcsin ((-x).im / x.abs) - real.pi :=
+  arg =ᶠ[𝓝 x] λ x, real.arcsin ((-x).im / x.abs) - π :=
 begin
   suffices h_forall_nhds : ∀ᶠ (y : ℂ) in (𝓝 x), y.re < 0 ∧ y.im < 0,
     from h_forall_nhds.mono (λ y hy, arg_of_re_neg_of_im_neg hy.1 hy.2),
@@ -372,16 +372,16 @@ begin
     from continuous_at_arcsin_im_neg_div_abs_add hx_ne_zero,
   have h_cont_3 : continuous_at (λ y : ℂ, real.arcsin ((-y).im / abs y) - real.pi) x,
     by { simp_rw sub_eq_add_neg, exact continuous_at_arcsin_im_neg_div_abs_add hx_ne_zero, },
-  have h_val1_x_pos : 0 < x.im → real.arcsin (x.im / abs x) = real.pi / 2,
+  have h_val1_x_pos : 0 < x.im → real.arcsin (x.im / abs x) = π / 2,
     by { rw ← arg_of_re_nonneg h_re.symm.le, exact arg_of_re_zero_of_im_pos h_re, },
-  have h_val1_x_neg : x.im < 0 → real.arcsin (x.im / abs x) = - real.pi / 2,
+  have h_val1_x_neg : x.im < 0 → real.arcsin (x.im / abs x) = - π / 2,
     by { rw ← arg_of_re_nonneg h_re.symm.le, exact arg_of_re_zero_of_im_neg h_re, },
-  have h_val2_x : 0 < x.im → real.arcsin ((-x).im / abs x) + real.pi = real.pi / 2,
+  have h_val2_x : 0 < x.im → real.arcsin ((-x).im / abs x) + π = π / 2,
   { intro h_im_pos,
     rw [complex.neg_im, neg_div, real.arcsin_neg, ← arg_of_re_nonneg h_re.symm.le,
       arg_of_re_zero_of_im_pos h_re h_im_pos],
     ring, },
-  have h_val3_x : x.im < 0 → real.arcsin ((-x).im / abs x) - real.pi = - real.pi / 2,
+  have h_val3_x : x.im < 0 → real.arcsin ((-x).im / abs x) - π = - π / 2,
   { intro h_im_neg,
     rw [complex.neg_im, neg_div, real.arcsin_neg, ← arg_of_re_nonneg h_re.symm.le,
       arg_of_re_zero_of_im_neg h_re h_im_neg],

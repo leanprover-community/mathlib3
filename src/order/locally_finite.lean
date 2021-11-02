@@ -157,23 +157,19 @@ variables [preorder α] [locally_finite_order α]
 
 /-- The finset of elements `x` such that `a ≤ x` and `x ≤ b`. Basically `set.Icc a b` as a finset.
 -/
-def Icc (a b : α) : finset α :=
-locally_finite_order.finset_Icc a b
+def Icc (a b : α) : finset α := locally_finite_order.finset_Icc a b
 
 /-- The finset of elements `x` such that `a ≤ x` and `x < b`. Basically `set.Ico a b` as a finset.
 -/
-def Ico (a b : α) : finset α :=
-locally_finite_order.finset_Ico a b
+def Ico (a b : α) : finset α := locally_finite_order.finset_Ico a b
 
 /-- The finset of elements `x` such that `a < x` and `x ≤ b`. Basically `set.Ioc a b` as a finset.
 -/
-def Ioc (a b : α) : finset α :=
-locally_finite_order.finset_Ioc a b
+def Ioc (a b : α) : finset α := locally_finite_order.finset_Ioc a b
 
 /-- The finset of elements `x` such that `a < x` and `x < b`. Basically `set.Ioo a b` as a finset.
 -/
-def Ioo (a b : α) : finset α :=
-locally_finite_order.finset_Ioo a b
+def Ioo (a b : α) : finset α := locally_finite_order.finset_Ioo a b
 
 @[simp] lemma mem_Icc {a b x : α} : x ∈ Icc a b ↔ a ≤ x ∧ x ≤ b :=
 locally_finite_order.finset_mem_Icc a b x
@@ -199,8 +195,7 @@ by { ext, rw [mem_coe, mem_Ioc, set.mem_Ioc] }
 @[simp, norm_cast] lemma coe_Ioo (a b : α) : (Ioo a b : set α) = set.Ioo a b :=
 by { ext, rw [mem_coe, mem_Ioo, set.mem_Ioo] }
 
-theorem Ico_subset_Ico {a₁ b₁ a₂ b₂ : α} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) :
-  Ico a₁ b₁ ⊆ Ico a₂ b₂ :=
+theorem Ico_subset_Ico {a₁ b₁ a₂ b₂ : α} (ha : a₂ ≤ a₁) (hb : b₁ ≤ b₂) : Ico a₁ b₁ ⊆ Ico a₂ b₂ :=
 begin
   rintro x hx,
   rw mem_Ico at ⊢ hx,
@@ -227,11 +222,8 @@ by rw [Ici, coe_Icc, set.Icc_top]
 @[simp, norm_cast] lemma coe_Ioi (a : α) : (Ioi a : set α) = set.Ioi a :=
 by rw [Ioi, coe_Ioc, set.Ioc_top]
 
-@[simp] lemma mem_Ici {a x : α} : x ∈ Ici a ↔ a ≤ x :=
-by rw [←set.mem_Ici, ←coe_Ici, mem_coe]
-
-@[simp] lemma mem_Ioi {a x : α} : x ∈ Ioi a ↔ a < x :=
-by rw [←set.mem_Ioi, ←coe_Ioi, mem_coe]
+@[simp] lemma mem_Ici {a x : α} : x ∈ Ici a ↔ a ≤ x := by rw [←set.mem_Ici, ←coe_Ici, mem_coe]
+@[simp] lemma mem_Ioi {a x : α} : x ∈ Ioi a ↔ a < x := by rw [←set.mem_Ioi, ←coe_Ioi, mem_coe]
 
 end order_top
 
@@ -239,12 +231,10 @@ section order_bot
 variables [order_bot α] [locally_finite_order α]
 
 /-- The finset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a finset. -/
-def Iic (b : α) : finset α :=
-Icc ⊥ b
+def Iic (b : α) : finset α := Icc ⊥ b
 
 /-- The finset of elements `x` such that `x < b`. Basically `set.Iio b` as a finset. -/
-def Iio (b : α) : finset α :=
-Ico ⊥ b
+def Iio (b : α) : finset α := Ico ⊥ b
 
 lemma Iic_eq_Icc : Iic = Icc (⊥ : α) := rfl
 lemma Iio_eq_Ico : Iio = Ico (⊥ : α) := rfl
@@ -255,11 +245,8 @@ by rw [Iic, coe_Icc, set.Icc_bot]
 @[simp, norm_cast] lemma coe_Iio (b : α) : (Iio b : set α) = set.Iio b :=
 by rw [Iio, coe_Ico, set.Ico_bot]
 
-@[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b :=
-by rw [←set.mem_Iic, ←coe_Iic, mem_coe]
-
-@[simp] lemma mem_Iio {b x : α} : x ∈ Iio b ↔ x < b :=
-by rw [←set.mem_Iio, ←coe_Iio, mem_coe]
+@[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b := by rw [←set.mem_Iic, ←coe_Iic, mem_coe]
+@[simp] lemma mem_Iio {b x : α} : x ∈ Iio b ↔ x < b := by rw [←set.mem_Iio, ←coe_Iio, mem_coe]
 
 end order_bot
 end finset
@@ -272,20 +259,17 @@ variables [preorder α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `a ≤ x` and `x ≤ b`. Basically `set.Icc a b` as a
 multiset. -/
-def Icc (a b : α) : multiset α :=
-(finset.Icc a b).val
+def Icc (a b : α) : multiset α := (finset.Icc a b).val
 
 -- TODO@Yaël: Nuke `data.multiset.intervals` and redefine `multiset.Ico` here
 
 /-- The multiset of elements `x` such that `a < x` and `x ≤ b`. Basically `set.Ioc a b` as a
 multiset. -/
-def Ioc (a b : α) : multiset α :=
-(finset.Ioc a b).val
+def Ioc (a b : α) : multiset α := (finset.Ioc a b).val
 
 /-- The multiset of elements `x` such that `a < x` and `x < b`. Basically `set.Ioo a b` as a
 multiset. -/
-def Ioo (a b : α) : multiset α :=
-(finset.Ioo a b).val
+def Ioo (a b : α) : multiset α := (finset.Ioo a b).val
 
 @[simp] lemma mem_Icc {a b x : α} : x ∈ Icc a b ↔ a ≤ x ∧ x ≤ b :=
 by rw [Icc, ←finset.mem_def, finset.mem_Icc]
@@ -302,18 +286,13 @@ section order_top
 variables [order_top α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `a ≤ x`. Basically `set.Ici a` as a multiset. -/
-def Ici (a : α) : multiset α :=
-(finset.Ici a).val
+def Ici (a : α) : multiset α := (finset.Ici a).val
 
 /-- The multiset of elements `x` such that `a < x`. Basically `set.Ioi a` as a multiset. -/
-def Ioi (a : α) : multiset α :=
-(finset.Ioi a).val
+def Ioi (a : α) : multiset α := (finset.Ioi a).val
 
-@[simp] lemma mem_Ici {a x : α} : x ∈ Ici a ↔ a ≤ x :=
-by rw [Ici, ←finset.mem_def, finset.mem_Ici]
-
-@[simp] lemma mem_Ioi {a x : α} : x ∈ Ioi a ↔ a < x :=
-by rw [Ioi, ←finset.mem_def, finset.mem_Ioi]
+@[simp] lemma mem_Ici {a x : α} : x ∈ Ici a ↔ a ≤ x := by rw [Ici, ←finset.mem_def, finset.mem_Ici]
+@[simp] lemma mem_Ioi {a x : α} : x ∈ Ioi a ↔ a < x := by rw [Ioi, ←finset.mem_def, finset.mem_Ioi]
 
 end order_top
 
@@ -321,18 +300,14 @@ section order_bot
 variables [order_bot α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a multiset. -/
-def Iic (b : α) : multiset α :=
-(finset.Iic b).val
+def Iic (b : α) : multiset α := (finset.Iic b).val
 
 /-- The multiset of elements `x` such that `x < b`. Basically `set.Iio b` as a multiset. -/
-def Iio (b : α) : multiset α :=
-(finset.Iio b).val
+def Iio (b : α) : multiset α := (finset.Iio b).val
 
-@[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b :=
-by rw [Iic, ←finset.mem_def, finset.mem_Iic]
+@[simp] lemma mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b := by rw [Iic, ←finset.mem_def, finset.mem_Iic]
 
-@[simp] lemma mem_Iio {b x : α} : x ∈ Iio b ↔ x < b :=
-by rw [Iio, ←finset.mem_def, finset.mem_Iio]
+@[simp] lemma mem_Iio {b x : α} : x ∈ Iio b ↔ x < b := by rw [Iio, ←finset.mem_def, finset.mem_Iio]
 
 end order_bot
 end multiset
@@ -378,11 +353,9 @@ fintype.of_finset (finset.Ici a) (λ x, by rw [finset.mem_Ici, mem_Ici])
 instance fintype_Ioi : fintype (Ioi a) :=
 fintype.of_finset (finset.Ioi a) (λ x, by rw [finset.mem_Ioi, mem_Ioi])
 
-lemma finite_Ici : (Ici a).finite :=
-⟨set.fintype_Ici a⟩
+lemma finite_Ici : (Ici a).finite := ⟨set.fintype_Ici a⟩
 
-lemma finite_Ioi : (Ioi a).finite :=
-⟨set.fintype_Ioi a⟩
+lemma finite_Ioi : (Ioi a).finite := ⟨set.fintype_Ioi a⟩
 
 end order_top
 
@@ -395,11 +368,9 @@ fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])
 instance fintype_Iio : fintype (Iio b) :=
 fintype.of_finset (finset.Iio b) (λ x, by rw [finset.mem_Iio, mem_Iio])
 
-lemma finite_Iic : (Iic b).finite :=
-⟨set.fintype_Iic b⟩
+lemma finite_Iic : (Iic b).finite := ⟨set.fintype_Iic b⟩
 
-lemma finite_Iio : (Iio b).finite :=
-⟨set.fintype_Iio b⟩
+lemma finite_Iio : (Iio b).finite := ⟨set.fintype_Iio b⟩
 
 end order_bot
 
@@ -413,8 +384,7 @@ section preorder
 variables [preorder α]
 
 /-- A noncomputable constructor from the finiteness of all closed intervals. -/
-noncomputable def locally_finite_order.of_finite_Icc
-  (h : ∀ a b : α, (set.Icc a b).finite) :
+noncomputable def locally_finite_order.of_finite_Icc (h : ∀ a b : α, (set.Icc a b).finite) :
   locally_finite_order α :=
 @locally_finite_order.of_Icc' α _ (classical.dec_rel _)
   (λ a b, (h a b).to_finset)
@@ -462,7 +432,58 @@ noncomputable def order_embedding.locally_finite_order (f : α ↪o β) :
   finset_mem_Ioc := λ a b x, by rw [mem_preimage, mem_Ioc, f.lt_iff_lt, f.le_iff_le],
   finset_mem_Ioo := λ a b x, by rw [mem_preimage, mem_Ioo, f.lt_iff_lt, f.lt_iff_lt] }
 
-variables [locally_finite_order α]
+open order_dual
+
+variables [locally_finite_order α] (a b : α)
+
+/-- Note we define `Icc (to_dual a) (to_dual b)` as `Icc α _ _ b a` (which has type `finset α` not
+`finset (order_dual α)`!) instead of `(Icc b a).map to_dual.to_embedding` as this means the
+following is defeq:
+```
+lemma this : (Icc (to_dual (to_dual a)) (to_dual (to_dual b)) : _) = (Icc a b : _) := rfl
+```
+-/
+instance : locally_finite_order (order_dual α) :=
+{ finset_Icc := λ a b, @Icc α _ _ (of_dual b) (of_dual a),
+  finset_Ico := λ a b, @Ioc α _ _ (of_dual b) (of_dual a),
+  finset_Ioc := λ a b, @Ico α _ _ (of_dual b) (of_dual a),
+  finset_Ioo := λ a b, @Ioo α _ _ (of_dual b) (of_dual a),
+  finset_mem_Icc := λ a b x, mem_Icc.trans (and_comm _ _),
+  finset_mem_Ico := λ a b x, mem_Ioc.trans (and_comm _ _),
+  finset_mem_Ioc := λ a b x, mem_Ico.trans (and_comm _ _),
+  finset_mem_Ioo := λ a b x, mem_Ioo.trans (and_comm _ _) }
+
+lemma Icc_to_dual : Icc (to_dual a) (to_dual b) = (Icc b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Icc, mem_Icc],
+  exact and_comm _ _,
+end
+
+lemma Ico_to_dual : Ico (to_dual a) (to_dual b) = (Ioc b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Ico, mem_Ioc],
+  exact and_comm _ _,
+end
+
+lemma Ioc_to_dual : Ioc (to_dual a) (to_dual b) = (Ico b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Ioc, mem_Ico],
+  exact and_comm _ _,
+end
+
+lemma Ioo_to_dual : Ioo (to_dual a) (to_dual b) = (Ioo b a).map to_dual.to_embedding :=
+begin
+  refine eq.trans _ map_refl.symm,
+  ext c,
+  rw [mem_Ioo, mem_Ioo],
+  exact and_comm _ _,
+end
 
 instance [decidable_rel ((≤) : α × β → α × β → Prop)] : locally_finite_order (α × β) :=
 locally_finite_order.of_Icc' (α × β)

@@ -239,7 +239,7 @@ lemma ae_fin_strongly_measurable.ae_nonneg_of_forall_set_integral_nonneg {f : α
 begin
   let t := hf.sigma_finite_set,
   suffices : 0 ≤ᵐ[μ.restrict t] f,
-    from ae_of_ae_restrict_of_ae_restrict_compl hf.measurable_set this hf.ae_eq_zero_compl.symm.le,
+    from ae_of_ae_restrict_of_ae_restrict_compl this hf.ae_eq_zero_compl.symm.le,
   haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite (λ s hs hμts, _)
     (λ s hs hμts, _),
@@ -364,7 +364,7 @@ lemma ae_fin_strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero {f : 
 begin
   let t := hf.sigma_finite_set,
   suffices : f =ᵐ[μ.restrict t] 0,
-    from ae_of_ae_restrict_of_ae_restrict_compl hf.measurable_set this hf.ae_eq_zero_compl,
+    from ae_of_ae_restrict_of_ae_restrict_compl this hf.ae_eq_zero_compl,
   haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite _ _,
   { intros s hs hμs,
@@ -424,7 +424,7 @@ begin
     exact eventually_of_forall htf_zero, },
   have hf_meas_m : @measurable _ _ m _ f, from hf.measurable,
   suffices : f =ᵐ[μ.restrict t] 0,
-    from ae_of_ae_restrict_of_ae_restrict_compl (hm t ht_meas) this htf_zero,
+    from ae_of_ae_restrict_of_ae_restrict_compl this htf_zero,
   refine measure_eq_zero_of_trim_eq_zero hm _,
   refine ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite _ _,
   { intros s hs hμs,

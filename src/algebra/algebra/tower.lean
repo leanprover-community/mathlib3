@@ -237,12 +237,22 @@ lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : subalgebra S A → subalgebra R A) :=
 λ U V H, ext $ λ x, by rw [← mem_restrict_scalars R, H, mem_restrict_scalars]
 
+/-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
+then `T` is an `R`-subalgebra of `A`. -/
+def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
+  {i : algebra R A} (S : subalgebra R A)
+  (T : subalgebra S A) : subalgebra R A :=
+T.restrict_scalars R
+
+@[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
+  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} :
+  x ∈ S.under T ↔ x ∈ T := iff.rfl
+
 /-- Produces a map from `subalgebra.under`. -/
 def of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra R A] [algebra R B] (S : subalgebra R A) (U : subalgebra S A)
   [algebra S B] [is_scalar_tower R S B] (f : U →ₐ[S] B) : S.under U →ₐ[R] B :=
-{ commutes' := λ r, (f.commutes (algebra_map R S r)).trans (algebra_map_apply R S B r).symm,
-  .. f }
+f.restrict_scalars R
 
 end semiring
 

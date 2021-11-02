@@ -20,17 +20,25 @@ open_locale big_operators nat
 
 namespace finset
 
-variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α} {g f : α → β}
-  [comm_monoid β]
+variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α}
+  {g f : α → β}
 
-lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
-  (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=
-image_add_const_Ico m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
+lemma sum_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
+  [locally_finite_order α] [add_comm_monoid β] (f : α → β) (a b c : α) :
+  (∑ x in Ico a b, f (c + x)) = (∑ x in Ico (a + c) (b + c), f x) :=
+begin
+  classical,
+  rw [←image_add_right_Ico, sum_image (λ x hx y hy h, add_right_cancel h)],
+  simp_rw add_comm,
+end
 
 @[to_additive]
-lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
-  (∏ l in Ico m n, f (k + l)) = (∏ l in Ico (m + k) (n + k), f l) :=
-@sum_Ico_add (additive β) _ f m n k
+lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
+  [locally_finite_order α] [comm_monoid β] (f : α → β) (a b c : α) :
+  (∏ x in Ico a b, f (c + x)) = (∏ x in Ico (a + c) (b + c), f x) :=
+@sum_Ico_add _ (additive β) _ _ _ _ f a b c
+
+variables [comm_monoid β]
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=

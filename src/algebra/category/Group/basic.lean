@@ -158,7 +158,7 @@ namespace AddCommGroup
 -- so we write this explicitly to be clear.
 -- TODO generalize this, requiring a `ulift_instances.lean` file
 def as_hom {G : AddCommGroup.{0}} (g : G) : (AddCommGroup.of ℤ) ⟶ G :=
-gmultiples_hom G g
+zmultiples_hom G g
 
 @[simp]
 lemma as_hom_apply {G : AddCommGroup.{0}} (g : G) (i : ℤ) : (as_hom g) i = i • g := rfl

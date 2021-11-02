@@ -532,7 +532,7 @@ variables (p : ℕ)
 /--
 Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
 -/
-@[simp] protected lemma eq_fpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
+@[simp] protected lemma eq_zpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
   padic_norm p q = p ^ (-(padic_val_rat p q)) :=
 by simp [hq, padic_norm]
 
@@ -544,7 +544,7 @@ if hq : q = 0 then by simp [hq, padic_norm]
 else
   begin
     unfold padic_norm; split_ifs,
-    apply fpow_nonneg,
+    apply zpow_nonneg,
     exact_mod_cast nat.zero_le _
   end
 
@@ -624,8 +624,8 @@ If `q ≠ 0`, then `padic_norm p q ≠ 0`.
 -/
 protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm p q ≠ 0 :=
 begin
-  rw padic_norm.eq_fpow_of_nonzero p hq,
-  apply fpow_ne_zero_of_ne_zero,
+  rw padic_norm.eq_zpow_of_nonzero p hq,
+  apply zpow_ne_zero_of_ne_zero,
   exact_mod_cast ne_of_gt hp.1.pos
 end
 
@@ -637,7 +637,7 @@ begin
   apply by_contradiction, intro hq,
   unfold padic_norm at h, rw if_neg hq at h,
   apply absurd h,
-  apply fpow_ne_zero_of_ne_zero,
+  apply zpow_ne_zero_of_ne_zero,
   exact_mod_cast hp.1.ne_zero
 end
 
@@ -652,7 +652,7 @@ else if hr : r = 0 then
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
   have (↑p : ℚ) ≠ 0, by simp [hp.1.ne_zero],
-  by simp [padic_norm, *, padic_val_rat.mul, fpow_add this, mul_comm]
+  by simp [padic_norm, *, padic_val_rat.mul, zpow_add₀ this, mul_comm]
 
 /--
 The p-adic norm respects division.
@@ -669,7 +669,7 @@ if hz : z = 0 then by simp [hz, zero_le_one] else
 begin
   unfold padic_norm,
   rw [if_neg _],
-  { refine fpow_le_one_of_nonpos _ _,
+  { refine zpow_le_one_of_nonpos _ _,
     { exact_mod_cast le_of_lt hp.1.one_lt, },
     { rw [padic_val_rat_of_int _ hp.1.ne_one hz, neg_nonpos],
       norm_cast, simp }},
@@ -691,7 +691,7 @@ else
     unfold padic_norm, split_ifs,
     apply le_max_iff.2,
     left,
-    apply fpow_le_of_le,
+    apply zpow_le_of_le,
     { exact_mod_cast le_of_lt hp.1.one_lt },
     { apply neg_le_neg,
       have : padic_val_rat p q =
@@ -778,7 +778,7 @@ begin
   { norm_cast at hz,
     have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
     simp [hz, this] },
-  { rw [fpow_le_iff_le, neg_le_neg_iff, padic_val_rat_of_int _ hp.1.ne_one _],
+  { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat_of_int _ hp.1.ne_one _],
     { norm_cast,
       rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
       simp },

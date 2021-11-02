@@ -108,25 +108,9 @@ lemma graded_ring.complete_lattice.independent :
 
 /-- The projection maps of graded ring-/
 def graded_ring.proj (i : ι) : R →+ R :=
-{ to_fun := λ r, (@graded_ring.decompose R _ ι A _ _ _ r i).val,
-  map_zero' := begin
-    suffices : graded_ring.decompose (0 : R) = (0 : ⨁ i, A i),
-    rw this, simp only [add_subgroup.coe_zero, direct_sum.zero_apply, subtype.val_eq_coe],
-    have : graded_ring.recompose R A (graded_ring.decompose 0) =
-      graded_ring.recompose R A (0 : ⨁ i, A i),
-    exact (graded_ring.recompose R A).apply_symm_apply 0,
-    exact (graded_ring.recompose R A).bijective.injective this,
-  end,
-  map_add' := λ r₁ r₂, begin
-    suffices : graded_ring.decompose (r₁ + r₂) =
-      graded_ring.decompose r₁ + graded_ring.decompose r₂,
-    rw this, rw direct_sum.add_apply, refl,
-    have : graded_ring.recompose R A (graded_ring.decompose (r₁ + r₂)) =
-      graded_ring.recompose R A (graded_ring.decompose r₁ + graded_ring.decompose r₂),
-      erw [(graded_ring.recompose R A).map_add, (graded_ring.recompose R A).apply_symm_apply,
-        (graded_ring.recompose R A).apply_symm_apply, (graded_ring.recompose R A).apply_symm_apply],
-    exact (graded_ring.recompose R A).bijective.injective this,
-  end }
+(A i).subtype.comp $
+  (dfinsupp.eval_add_monoid_hom i).comp $
+  (graded_ring.recompose R A).symm.to_add_monoid_hom
 
 lemma graded_ring.proj_mem (i : ι) (r : R) :
   graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _ ι A _ _ _ r i).2

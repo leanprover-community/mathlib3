@@ -202,44 +202,44 @@ protected def mul_right₀ (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
 
 end homeomorph
 
-section fpow
+section zpow
 
 variables [group_with_zero G₀] [topological_space G₀] [has_continuous_inv₀ G₀]
   [has_continuous_mul G₀]
 
-lemma continuous_at_fpow (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : continuous_at (λ x, x ^ m) x :=
+lemma continuous_at_zpow (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : continuous_at (λ x, x ^ m) x :=
 begin
   cases m,
-  { simpa only [gpow_of_nat] using continuous_at_pow x m },
-  { simp only [gpow_neg_succ_of_nat],
+  { simpa only [zpow_of_nat] using continuous_at_pow x m },
+  { simp only [zpow_neg_succ_of_nat],
     have hx : x ≠ 0, from h.resolve_right (int.neg_succ_of_nat_lt_zero m).not_le,
     exact (continuous_at_pow x (m + 1)).inv₀ (pow_ne_zero _ hx) }
 end
 
-lemma continuous_on_fpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
-λ x hx, (continuous_at_fpow _ _ (or.inl hx)).continuous_within_at
+lemma continuous_on_zpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
+λ x hx, (continuous_at_zpow _ _ (or.inl hx)).continuous_within_at
 
-lemma filter.tendsto.fpow {f : α → G₀} {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (m : ℤ)
+lemma filter.tendsto.zpow {f : α → G₀} {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (m : ℤ)
   (h : a ≠ 0 ∨ 0 ≤ m) :
   tendsto (λ x, (f x) ^ m) l (𝓝 (a ^ m)) :=
-(continuous_at_fpow _ m h).tendsto.comp hf
+(continuous_at_zpow _ m h).tendsto.comp hf
 
 variables {X : Type*} [topological_space X] {a : X} {s : set X} {f : X → G₀}
 
-lemma continuous_at.fpow (hf : continuous_at f a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_at.zpow (hf : continuous_at f a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
   continuous_at (λ x, (f x) ^ m) a :=
-hf.fpow m h
+hf.zpow m h
 
-lemma continuous_within_at.fpow (hf : continuous_within_at f s a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_within_at.zpow (hf : continuous_within_at f s a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
   continuous_within_at (λ x, f x ^ m) s a :=
-hf.fpow m h
+hf.zpow m h
 
-lemma continuous_on.fpow (hf : continuous_on f s) (m : ℤ) (h : ∀ a ∈ s, f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_on.zpow (hf : continuous_on f s) (m : ℤ) (h : ∀ a ∈ s, f a ≠ 0 ∨ 0 ≤ m) :
   continuous_on (λ x, f x ^ m) s :=
-λ a ha, (hf a ha).fpow m (h a ha)
+λ a ha, (hf a ha).zpow m (h a ha)
 
-@[continuity] lemma continuous.fpow (hf : continuous f) (m : ℤ) (h0 : ∀ a, f a ≠ 0 ∨ 0 ≤ m) :
+@[continuity] lemma continuous.zpow (hf : continuous f) (m : ℤ) (h0 : ∀ a, f a ≠ 0 ∨ 0 ≤ m) :
   continuous (λ x, (f x) ^ m) :=
-continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow m (h0 x)
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).zpow m (h0 x)
 
-end fpow
+end zpow

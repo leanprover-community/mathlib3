@@ -223,8 +223,8 @@ begin
   have b_pos : 0 < b := zero_lt_two.trans_le hb,
   rw clog, split_ifs,
   { rw [succ_eq_add_one, add_le_add_iff_right, ←ih ((x + b - 1)/b) (add_pred_div_lt hb h.2),
-      nat.div_le_iff_le_mul_add_pred b_pos, ←pow_succ, nat.add_sub_assoc b_pos,
-      add_le_add_iff_right] },
+      nat.div_le_iff_le_mul_add_pred b_pos,
+      ← pow_succ, add_tsub_assoc_of_le (nat.succ_le_of_lt b_pos), add_le_add_iff_right] },
   { exact iff_of_true ((not_lt.1 (not_and.1 h hb)).trans $ succ_le_of_lt $ pow_pos b_pos _)
     (zero_le _) }
 end

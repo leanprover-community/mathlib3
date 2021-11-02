@@ -24,12 +24,12 @@ open real set
 open_locale big_operators
 
 /-- `exp` is convex on the whole real line -/
-lemma convex_on_exp : convex_on ℝ univ exp :=
-convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
-  (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
+lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
+strict_convex_on_univ_of_deriv2_pos differentiable_exp (by simp)
+  (assume x, (iter_deriv_exp 2).symm ▸ exp_pos x)
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
-lemma convex_on_pow_of_even {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
+lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
@@ -37,6 +37,16 @@ begin
     rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
+end
+
+/-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n ≠ 0` is even -/
+lemma even.strict_convex_on_pow {n : ℕ} (hn : even n) (h : n ≠ 0) :
+  strict_convex_on ℝ set.univ (λ x : ℝ, x^n) :=
+begin
+  apply strict_mono.strict_convex_on_univ_of_deriv differentiable_pow,
+  rw deriv_pow',
+  refine strict_mono.const_mul _ _,
+  library_search,
 end
 
 /-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
@@ -48,6 +58,15 @@ begin
   { intros x hx,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
     exact mul_nonneg (nat.cast_nonneg _) (pow_nonneg (interior_subset hx) _) }
+end
+
+/-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
+lemma strict_convex_on_pow {n : ℕ} (h : n ≠ 0) : strict_convex_on (Ici 0) set.univ (λ x : ℝ, x^n) :=
+begin
+  apply strict_mono_on.strict_convex_on_of_deriv differentiable_pow,
+  rw deriv_pow',
+  refine strict_mono.const_mul _ _,
+  library_search,
 end
 
 lemma finset.prod_nonneg_of_card_nonpos_even

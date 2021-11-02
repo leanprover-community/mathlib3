@@ -68,12 +68,6 @@ let f : (⨁ i, A i) →+* R :=
   graded_ring.core.decompose = (graded_ring.recompose R A).symm := rfl
 
 @[simp] lemma graded_ring.recompose_of {i : ι} (x : A i) :
-  graded_ring.recompose R A (direct_sum.of _ i x) = x :=
-begin
-  unfold graded_ring.recompose,
-  unfold direct_sum.of,
-  simp only [dfinsupp.single_add_hom_apply, direct_sum.to_semiring_apply, ring_equiv.coe_mk],
-  erw dfinsupp.lift_add_hom_apply_single _, refl,
-end
+  graded_ring.recompose R A (direct_sum.of _ i x) = x := dfinsupp.lift_add_hom_apply_single _ _ _
 
 end graded_ring

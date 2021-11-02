@@ -248,6 +248,7 @@ lemma homology.map_comp (p₁ : α₁.right = β₁.left) (p₂ : α₂.right = 
       (by simp only [comma.comp_left, comma.comp_right, p₁, p₂]) :=
 by ext; simp only [kernel_subobject_map_comp, homology.π_map_assoc, homology.π_map, category.assoc]
 
+/-- An isomorphism between two three-term complexes induces an isomorphism on homology. -/
 def homology.map_iso (α : arrow.mk f₁ ≅ arrow.mk f₂) (β : arrow.mk g₁ ≅ arrow.mk g₂)
   (p : α.hom.right = β.hom.left) :
   homology f₁ g₁ w₁ ≅ homology f₂ g₂ w₂ :=

@@ -62,7 +62,7 @@ welcomed.
 * Markus Himmel (@TwoFX): category theory
 * Simon Hudon (@cipher1024): tactics
 * Chris Hughes (@ChrisHughes24): algebra
-* Yury G. Kudryashov (@urkud): analysis, topology
+* Yury G. Kudryashov (@urkud): analysis, topology, measure theory
 * Robert Y. Lewis (@robertylewis): tactics, documentation
 * Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology, geometry

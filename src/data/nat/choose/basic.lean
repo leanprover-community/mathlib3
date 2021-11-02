@@ -279,7 +279,9 @@ begin
   exact le_trans b_ih (choose_le_add_one (a + b_n) c),
 end
 
-lemma choose_mono {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choose b c :=
+lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choose b c :=
 (add_tsub_cancel_of_le h) ▸ choose_le_add a (b - a) c
+
+lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_choose b
 
 end nat

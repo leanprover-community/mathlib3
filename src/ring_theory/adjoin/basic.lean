@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.subalgebra
+import algebra.algebra.tower
 import linear_algebra.prod
 
 /-!
@@ -55,7 +55,7 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
-@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) 
+@[elab_as_eliminator] theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s)
   (Hs : ∀ x ∈ s, p x)
   (Halg : ∀ r, p (algebra_map R A r))
   (Hadd : ∀ x y, p x → p y → p (x + y))

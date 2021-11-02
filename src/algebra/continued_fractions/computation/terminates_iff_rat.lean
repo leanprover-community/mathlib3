@@ -224,10 +224,9 @@ by { ext n, rw ←(coe_of_s_nth_rat_eq v_eq_q), refl }
 lemma coe_of_rat_eq :
   (⟨(of q).h, (of q).s.map (pair.map coe)⟩ : generalized_continued_fraction K) = of v :=
 begin
-  cases gcf_v_eq : (of v) with h s,
-  have : ↑⌊↑q⌋ = h, by { rw v_eq_q at gcf_v_eq, injection gcf_v_eq },
-  simp [(coe_of_h_rat_eq v_eq_q), (coe_of_s_rat_eq v_eq_q), gcf_v_eq],
-  rwa [←(@rat.cast_floor K _ _ q), floor_ring_unique]
+  cases gcf_v_eq : (of v) with h s, subst v,
+  obtain rfl : ↑⌊↑q⌋ = h, by { injection gcf_v_eq },
+  simp [coe_of_h_rat_eq rfl, coe_of_s_rat_eq rfl, gcf_v_eq]
 end
 
 lemma of_terminates_iff_of_rat_terminates {v : K} {q : ℚ} (v_eq_q : v = (q : K)) :

@@ -243,9 +243,7 @@ lemma trace_eq_trace_adjoin [finite_dimensional K L] (x : L) :
 begin
   rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
   conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
-  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
-      smul_eq_mul, algebra.smul_def],
-  apply_instance
+  rw [trace_algebra_map, linear_map.map_smul_of_tower],
 end
 
 variables {K}

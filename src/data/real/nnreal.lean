@@ -190,6 +190,9 @@ noncomputable example : comm_group_with_zero ℝ≥0 := by apply_instance
 @[simp, norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
+@[simp, norm_cast] lemma coe_zpow (r : ℝ≥0) (n : ℤ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
+by cases n; simp
+
 @[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
   ((l.sum : ℝ≥0) : ℝ) = (l.map coe).sum :=
 to_real_hom.map_list_sum l
@@ -482,6 +485,26 @@ begin
   exact pow_nonneg (zero_le _) _,
 end
 
+lemma exists_mem_Ico_zpow
+  {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
+  ∃ n : ℤ, x ∈ set.Ico (y ^ n) (y ^ (n + 1)) :=
+begin
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, (y : ℝ) ^ n ≤ x ∧ (x : ℝ) < y ^ (n + 1) :=
+    exists_mem_Ico_zpow (bot_lt_iff_ne_bot.mpr hx) hy,
+  rw ← nnreal.coe_zpow at hn h'n,
+  exact ⟨n, hn, h'n⟩,
+end
+
+lemma exists_mem_Ioc_zpow
+  {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
+  ∃ n : ℤ, x ∈ set.Ioc (y ^ n) (y ^ (n + 1)) :=
+begin
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, (y : ℝ) ^ n < x ∧ (x : ℝ) ≤ y ^ (n + 1) :=
+    exists_mem_Ioc_zpow (bot_lt_iff_ne_bot.mpr hx) hy,
+  rw ← nnreal.coe_zpow at hn h'n,
+  exact ⟨n, hn, h'n⟩,
+end
+
 end pow
 
 section sub
@@ -652,6 +675,19 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, ← real.to_nnreal_inv, ← real.to_nnrea
 lemma _root_.real.to_nnreal_div' {x y : ℝ} (hy : 0 ≤ y) :
   real.to_nnreal (x / y) = real.to_nnreal x / real.to_nnreal y :=
 by rw [div_eq_inv_mul, div_eq_inv_mul, real.to_nnreal_mul (inv_nonneg.2 hy), real.to_nnreal_inv]
+
+lemma inv_lt_one_iff {x : ℝ≥0} (hx : x ≠ 0) : x⁻¹ < 1 ↔ 1 < x :=
+by rwa [← one_div, div_lt_iff hx, one_mul]
+
+lemma inv_lt_one {x : ℝ≥0} (hx : 1 < x) : x⁻¹ < 1 :=
+(inv_lt_one_iff (zero_lt_one.trans hx).ne').2 hx
+
+lemma zpow_pos {x : ℝ≥0} (hx : x ≠ 0) (n : ℤ) : 0 < x ^ n :=
+begin
+  cases n,
+  { exact pow_pos hx.bot_lt _ },
+  { simp [pow_pos hx.bot_lt _] }
+end
 
 end inv
 

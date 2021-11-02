@@ -379,10 +379,10 @@ end mul_equiv
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
-@[to_additive "Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id` and
-`f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
+@[to_additive /-"Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id`
+and `f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
 constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
-monoid homomorphisms.", simps {fully_applied := ff}]
+monoid homomorphisms."-/, simps {fully_applied := ff}]
 def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (g : N →* M)
   (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
   M ≃* N :=

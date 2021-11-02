@@ -950,18 +950,7 @@ variables [topological_space α] [normed_lattice_add_comm_group β]
 -- Can we infer this from https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114 ?
 instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
 
-
-lemma test : (α →ᵇ order_dual β) = order_dual (α →ᵇ β) :=
-begin
-  finish,
-end
-
-lemma test2  (f g : α →ᵇ order_dual β) : f ≤ g ↔ (f : order_dual (α →ᵇ β)) ≤ (g : order_dual (α →ᵇ β)) :=
-begin
-  finish,
-end
-
-lemma inf_sub_inf_le [h: ∀ (e : β), 2*∥e∥ ≤ ∥2•e∥ ] (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+lemma inf_sub_inf_le (h: ∀ (e : β), 2*∥e∥ ≤ ∥2•e∥) (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
   have e1: 2*∥a⊓b-c⊓d∥ ≤ ∥2•(a⊓b)-2•(c⊓d)∥ := begin rw ← smul_sub, apply h end,
   rw [← mul_le_mul_left zero_lt_two, mul_add],
@@ -969,8 +958,10 @@ begin
   exact real.nontrivial,
 end
 
-@[priority 100]
-instance  [h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α →ᵇ β) := {
+/--
+Continuous normed lattice group valued functions form a meet-semilattice
+-/
+def to_semilattice_inf (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilattice_inf (α →ᵇ β) := {
   inf := λf g, {
     to_fun := λ t, f(t)⊓g(t),
     continuous_to_fun := begin
@@ -983,8 +974,7 @@ instance  [h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α �
       intros,
       simp,
       rw normed_group.dist_eq,
-      apply le_trans (inf_sub_inf_le _ _ _ _) _,
-      apply h,
+      apply le_trans (inf_sub_inf_le h _ _ _ _) _,
       rw [← normed_group.dist_eq, ← normed_group.dist_eq],
       apply add_le_add (hf _ _) (hg _ _),
     end
@@ -997,45 +987,34 @@ instance  [h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α �
   ..bounded_continuous_function.partial_order
 }
 
-lemma reverse : (∀ (b : order_dual β), 2*∥b∥ ≤ ∥2•b∥) ↔ (∀ (b : β), 2*∥b∥ ≤ ∥2•b∥) :=
+/--
+Continuous functions with values in the order dual also form a meet-semilattice
+-/
+def upsidedown (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilattice_inf (α →ᵇ order_dual β) :=
 begin
-  rw iff_def,
-  split,
-  { sorry, },
-  { sorry, },
-end
-
-example : decidable (5 ≠ 5) := infer_instance
-
-@[priority 100]
-instance upsidedown [h: ∀ (b : order_dual β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α →ᵇ order_dual β) :=
-begin
-  convert bounded_continuous_function.semilattice_inf,
+  apply bounded_continuous_function.to_semilattice_inf,
   exact h,
 end
 
-
-@[priority 100]
-instance [h: ∀ (b : order_dual β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_sup (order_dual (α →ᵇ order_dual β)) :=
+/--
+The order dual of continuous functions with values in the order dual form a join-semilattice
+-/
+def to_semilattice_sup' (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) :
+  semilattice_sup (order_dual (α →ᵇ order_dual β)) :=
 begin
   convert order_dual.semilattice_sup _,
-  convert bounded_continuous_function.upsidedown,
+  apply bounded_continuous_function.upsidedown,
   exact h,
 end
 
-lemma test3  (f g : order_dual (α →ᵇ order_dual β)) : f ≤ g ↔ (f : α →ᵇ β) ≤ (g : α →ᵇ β) :=
+/--
+Continuous normed lattice group valued functions form a join-semilattice
+-/
+def to_semilattice_sup (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilattice_sup (α →ᵇ β) :=
 begin
-  finish,
-end
-
-
-@[priority 100]
-instance [h: ∀ (b : order_dual β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_sup (α →ᵇ β) :=
-begin
-  convert bounded_continuous_function.order_dual.semilattice_sup,
+  apply bounded_continuous_function.to_semilattice_sup',
   exact h,
 end
-
 
 end normed_lattice_ordered_group
 

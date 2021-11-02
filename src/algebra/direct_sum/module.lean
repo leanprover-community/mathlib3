@@ -258,4 +258,16 @@ lemma submodule_is_internal_iff_independent_and_supr_eq_top {R M : Type*}
 ⟨λ i, ⟨i.independent, i.supr_eq_top⟩,
  and.rec submodule_is_internal_of_independent_of_supr_eq_top⟩
 
+/-! Now copy the lemmas for subgroup and submonoids. -/
+
+lemma add_submonoid_is_internal.independent {M : Type*} [add_comm_monoid M]
+  (A : ι → add_submonoid M) (h : add_submonoid_is_internal A) :
+  complete_lattice.independent A :=
+complete_lattice.independent_of_dfinsupp_sum_add_hom_injective _ h.injective
+
+lemma add_subgroup_is_internal.independent {M : Type*} [add_comm_group M]
+  (A : ι → add_subgroup M) (h : add_subgroup_is_internal A) :
+  complete_lattice.independent A :=
+complete_lattice.independent_of_dfinsupp_sum_add_hom_injective' _ h.injective
+
 end direct_sum

@@ -795,6 +795,14 @@ begin
   simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
 end
 
+/-- Note that this goal could also be stated `(disjoint on f) a b` -/
+lemma disjoint.comap_order_iso [semilattice_inf_bot α] [semilattice_inf_bot β] {a b : α}
+  (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
+begin
+  rw [disjoint, ←f.map_inf, ←f.map_bot],
+  exact f.monotone ha,
+end
+
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
   (f : α ↪o β) (x y : α) :
   f x ⊔ f y ≤ f (x ⊔ y) :=

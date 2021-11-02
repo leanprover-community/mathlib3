@@ -267,4 +267,19 @@ begin
     apply zero_le }
 end
 
+-- Inequalities about increasing the first argument
+
+lemma choose_add_one (a c : ℕ) : choose a c ≤ choose (a + 1) c :=
+by cases c; simp [nat.choose_succ_succ]
+
+lemma choose_add_le (a b c : ℕ) : choose a c ≤ choose (a + b) c :=
+begin
+  induction b with b_n b_ih,
+  { simp, },
+  exact le_trans b_ih (choose_add_one (a + b_n) c),
+end
+
+lemma choose_mono {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choose b c :=
+(add_tsub_cancel_of_le h) ▸ choose_add_le a (b - a) c
+
 end nat

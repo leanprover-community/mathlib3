@@ -39,7 +39,7 @@ class graded_ring.core :=
 ( one_degree_zero : (1 : R) ∈ A 0 )
 ( mul_respect_grading : ∀ {i j : ι} {a b : R}, a ∈ A i → b ∈ A j → a * b ∈ A (i + j))
 
-class graded_ring extends graded_ring_core R A :=
+class graded_ring extends graded_ring.core R A :=
 ( left_inv : function.left_inverse decompose (direct_sum.add_subgroup_coe A) )
 ( right_inv : function.right_inverse decompose (direct_sum.add_subgroup_coe A) )
 

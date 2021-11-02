@@ -980,7 +980,7 @@ assume u,
 calc  ∑ x in u, f x.1 * g x.2
     ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
       sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) subset_product
-... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product
+... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product_left
 ... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :
       sum_congr rfl (λ x _, mul_sum.symm)
 ... ≤ ∑ x in u.image prod.fst, f x * t :

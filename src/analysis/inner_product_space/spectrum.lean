@@ -60,7 +60,7 @@ end
 /-- The eigenvalues of a self-adjoint operator are real. -/
 lemma conj_eigenvalue_eq_self {μ : 𝕜} (hμ : has_eigenvalue T μ) : conj μ = μ :=
 begin
-  obtain ⟨v, hv₁, hv₂⟩ := hμ.exists_has_eigenvector _, -- fix this lemma
+  obtain ⟨v, hv₁, hv₂⟩ := hμ.exists_has_eigenvector,
   rw mem_eigenspace_iff at hv₁,
   simpa [hv₂, inner_smul_left, inner_smul_right, hv₁] using hT v v
 end

@@ -86,7 +86,7 @@ begin
   { exact or.inr (nonsing_inv_apply_not_is_unit _ h) }
 end
 
-@[simp] lemma det_nonsing_inv_mul_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
+lemma det_nonsing_inv_mul_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
 by rw [←det_mul, A.nonsing_inv_mul h, det_one]
 
 @[simp] lemma det_nonsing_inv : A⁻¹.det = ring.inverse A.det :=

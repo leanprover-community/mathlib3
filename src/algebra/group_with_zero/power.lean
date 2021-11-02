@@ -29,6 +29,11 @@ begin
   { exact zero_pow' n h.ne.symm }
 end
 
+lemma ring.inverse_pow (r : M) : ∀ (n : ℕ), ring.inverse r ^ n = ring.inverse (r ^ n)
+| 0 := by rw [pow_zero, pow_zero, ring.inverse_one]
+| (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev' ((commute.refl r).pow_left n),
+                    ring.inverse_pow]
+
 end zero
 
 section group_with_zero

@@ -474,6 +474,10 @@ by { cases x, simpa using h, refl, }
   (x : with_bot α).unbot h = x := rfl
 
 @[priority 10]
+instance has_le [has_le α] : has_le (with_bot α) :=
+{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b }
+
+@[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
 
@@ -493,10 +497,10 @@ instance : can_lift (with_bot α) α :=
   prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
 
 instance [preorder α] : preorder (with_bot α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
+{ le          := (≤),
   lt          := (<),
   lt_iff_le_not_le := by intros; cases a; cases b;
-                         simp [lt_iff_le_not_le]; simp [(<)];
+                         simp [lt_iff_le_not_le]; simp [(≤), (<)];
                          split; refl,
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
@@ -518,20 +522,20 @@ instance order_bot [partial_order α] : order_bot (with_bot α) :=
 { bot_le := λ a a' h, option.no_confusion h,
   ..with_bot.partial_order, ..with_bot.has_bot }
 
-@[simp, norm_cast] theorem coe_le_coe [preorder α] {a b : α} :
+@[simp, norm_cast] theorem coe_le_coe [has_le α] {a b : α} :
   (a : with_bot α) ≤ b ↔ a ≤ b :=
 ⟨λ h, by rcases h a rfl with ⟨_, ⟨⟩, h⟩; exact h,
  λ h a' e, option.some_inj.1 e ▸ ⟨b, rfl, h⟩⟩
 
-@[simp] theorem some_le_some [preorder α] {a b : α} :
+@[simp] theorem some_le_some [has_le α] {a b : α} :
   @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b := coe_le_coe
 
-theorem coe_le [preorder α] {a b : α} :
+theorem coe_le [has_le α] {a b : α} :
   ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
 @[norm_cast]
-lemma coe_lt_coe [preorder α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
+lemma coe_lt_coe [has_lt α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -543,7 +547,7 @@ lemma get_or_else_bot_le_iff [order_bot α] {a : with_bot α} {b : α} :
   a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
 
-instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
+instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
 | none x := is_true $ λ a h, option.no_confusion h
 | (some x) (some y) :=
   if h : x ≤ y
@@ -756,12 +760,12 @@ instance order_top [partial_order α] : order_top (with_top α) :=
 { le_top := λ a a' h, option.no_confusion h,
   ..with_top.partial_order, .. with_top.has_top }
 
-@[simp, norm_cast] theorem coe_le_coe [preorder α] {a b : α} :
+@[simp, norm_cast] theorem coe_le_coe [has_le α] {a b : α} :
   (a : with_top α) ≤ b ↔ a ≤ b :=
 ⟨λ h, by rcases h b rfl with ⟨_, ⟨⟩, h⟩; exact h,
  λ h a' e, option.some_inj.1 e ▸ ⟨a, rfl, h⟩⟩
 
-theorem le_coe [preorder α] {a b : α} :
+theorem le_coe [has_le α] {a b : α} :
   ∀ {o : option α}, a ∈ o →
   (@has_le.le (with_top α) _ o b ↔ a ≤ b)
 | _ rfl := coe_le_coe
@@ -779,9 +783,9 @@ theorem lt_iff_exists_coe [partial_order α] : ∀{a b : with_top α}, a < b ↔
 | none     b := by simp [none_eq_top]
 
 @[norm_cast]
-lemma coe_lt_coe [preorder α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
+lemma coe_lt_coe [has_lt α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
 
-lemma coe_lt_top [preorder α] (a : α) : (a : with_top α) < ⊤ := some_lt_none a
+lemma coe_lt_top [has_lt α] (a : α) : (a : with_top α) < ⊤ := some_lt_none a
 
 theorem coe_lt_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
@@ -790,7 +794,7 @@ theorem coe_lt_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (
 lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
 λ h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
 
-instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
+instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
 λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
 
 instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_top α) (<) :=

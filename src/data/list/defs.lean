@@ -18,7 +18,7 @@ proofs about these definitions, those are contained in other files in `data/list
 
 namespace list
 
-open function nat native (rb_map mk_rb_map rb_map.of_list)
+open function nat
 universes u v w x
 variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=

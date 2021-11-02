@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Anne Baanen
 -/
 import algebra.order.field
-import algebra.big_operators.basic
 
 /-!
 # Absolute values
@@ -203,19 +202,6 @@ theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 theorem abv_pos {a : R} : 0 < abv a ↔ a ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
 
-variables {ι : Type*} (f : ι → R) (s : finset ι)
-
-open_locale big_operators
-
-theorem abv_sum : abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
-begin
-  classical,
-  induction s using finset.induction with i s hi ih,
-  { simp [is_absolute_value.abv_zero abv], },
-  { rw [finset.sum_insert hi, finset.sum_insert hi],
-    calc _ ≤ _ : is_absolute_value.abv_add abv _ _
-       ... ≤ _ : add_le_add_left ih _, }
-end
 
 end ordered_semiring
 
@@ -254,21 +240,6 @@ lemma abv_pow [nontrivial R] (abv : R → S) [is_absolute_value abv]
 
 end semiring
 
-section comm_semiring
-
-variables {R ι : Type*} [comm_semiring R] [nontrivial R] (abv : R → S) [is_absolute_value abv]
-variables (f : ι → R) (s : finset ι)
-open_locale big_operators
-
-theorem abv_prod : abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
-begin
-  classical,
-  induction s using finset.induction with i s hi ih,
-  { simp [is_absolute_value.abv_one abv], },
-  { rw [finset.prod_insert hi, finset.prod_insert hi],
-    simp [is_absolute_value.abv_mul abv, ih], },
-end
-end comm_semiring
 end linear_ordered_comm_ring
 
 section linear_ordered_field

@@ -110,6 +110,22 @@ begin
     exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
 end
 
+/-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` except `0` and `1`. -/
+lemma strict_convex_on_zpow {m : ℤ} (hm : m ≠ 0) : strict_convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
+begin
+  have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
+    from λ n, differentiable_on_zpow _ _ (or.inl $ lt_irrefl _),
+  apply convex_on_of_deriv2_nonneg (convex_Ioi 0);
+    try { simp only [interior_Ioi, deriv_zpow'] },
+  { exact (this _).continuous_on },
+  { exact this _ },
+  { exact (this _).const_mul _ },
+  { intros x hx,
+    simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
+    refine mul_nonneg (int.cast_nonneg.2 _) (zpow_nonneg (le_of_lt hx) _),
+    exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
+end
+
 lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
 begin
   have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp] },
@@ -127,7 +143,24 @@ begin
     exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
 end
 
-lemma concave_on_log_Ioi : concave_on ℝ (Ioi 0) log :=
+lemma strict_convex_on_rpow {p : ℝ} (hp : 1 < p) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
+begin
+  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp] },
+  apply convex_on_of_deriv2_nonneg (convex_Ici 0),
+  { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp)) },
+  { exact (differentiable_rpow_const hp).differentiable_on },
+  { rw A,
+    assume x hx,
+    replace hx : x ≠ 0, by { simp at hx, exact ne_of_gt hx },
+    simp [differentiable_at.differentiable_within_at, hx] },
+  { assume x hx,
+    replace hx : 0 < x, by simpa using hx,
+    suffices : 0 ≤ p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
+    apply mul_nonneg (le_trans zero_le_one hp),
+    exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
+end
+
+lemma strict_concave_on_log_Ioi : strict_concave_on ℝ (Ioi 0) log :=
 begin
   have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
   { intros x hx hx',
@@ -145,7 +178,7 @@ begin
     exact neg_nonpos.mpr (inv_nonneg.mpr (sq_nonneg x)) }
 end
 
-lemma concave_on_log_Iio : concave_on ℝ (Iio 0) log :=
+lemma strict_concave_on_log_Iio : strict_concave_on ℝ (Iio 0) log :=
 begin
   have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
   { intros x hx hx',

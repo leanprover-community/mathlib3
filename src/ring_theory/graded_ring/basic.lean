@@ -77,5 +77,3 @@ def graded_ring.recompose : (⨁ i, A i) ≃+* R :=
   graded_ring.recompose R A (direct_sum.of _ i x) = x := dfinsupp.lift_add_hom_apply_single _ _ _
 
 end graded_ring
-
-#lint

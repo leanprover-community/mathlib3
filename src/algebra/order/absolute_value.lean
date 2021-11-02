@@ -207,7 +207,7 @@ variables {ι : Type*} (f : ι → R) (s : finset ι)
 
 open_locale big_operators
 
-theorem is_absolute_value.abv_sum : abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
+theorem abv_sum : abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
 begin
   classical,
   induction s using finset.induction with i s hi ih,
@@ -260,7 +260,7 @@ variables {R ι : Type*} [comm_semiring R] [nontrivial R] (abv : R → S) [is_ab
 variables (f : ι → R) (s : finset ι)
 open_locale big_operators
 
-theorem is_absolute_value.abv_prod : abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
+theorem abv_prod : abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
 begin
   classical,
   induction s using finset.induction with i s hi ih,

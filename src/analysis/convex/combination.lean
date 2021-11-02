@@ -381,7 +381,7 @@ begin
       rw [←finset.sum_smul, hv', one_smul] } }
 end
 
-lemma convex_hull_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_group (E i)]
+lemma convex_hull_pi {ι : Type*} [fintype ι] {E : ι → Type*} [Π i, add_comm_group (E i)]
   [Π i, module 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} :
   convex_hull R (s.pi t) = s.pi (convex_hull R ∘ t) :=
 begin

@@ -947,25 +947,8 @@ section normed_lattice_ordered_group
 
 variables [topological_space α] [normed_lattice_add_comm_group β]
 
---Not sure we need this, see https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114
-instance : partial_order (α →ᵇ β) := {
-  le := λf g, (∀ (t : α), f t ≤ g t),
-  le_refl := by { rintro f t, apply le_refl },
-  le_trans := by {
-    rintro f g h hfg hgh t,
-    apply le_trans (hfg t) (hgh t)
-  },
-  le_antisymm := by {
-    rintro f g hfg hgf,
-    ext t,
-    apply le_antisymm (hfg t) (hgf t),
-  },
-}
-
-lemma (a b c : ℝ) [a ≤ b] [b ≤ c] : a ≤ c :=
-begin
-  exact le_trans _inst_3 _inst_4
-end
+-- Can we infer this from https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114 ?
+instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
 
 lemma inf_sub_inf_le [h: ∀ (e : β), 2*∥e∥ ≤ ∥2•e∥ ] (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
@@ -996,9 +979,11 @@ instance [h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α →
       apply add_le_add (hf _ _) (hg _ _),
     end
   },
-  inf_le_left := sorry,
-  inf_le_right := sorry,
-  le_inf :=sorry,
+  inf_le_left :=  λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_left, end),
+  inf_le_right := λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_right, end),
+  le_inf := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ a, begin
+    apply le_inf (continuous_map.le_def.mp w₁ a) (continuous_map.le_def.mp w₂ a),
+  end),
   ..bounded_continuous_function.partial_order
 }
 

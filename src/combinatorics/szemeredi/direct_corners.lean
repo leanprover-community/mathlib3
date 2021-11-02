@@ -243,7 +243,7 @@ begin
     rintro _ x hx rfl,
     apply triangle_map_mem,
     apply trivial_triangles_mem _ hx },
-  { simp only [set.pairwise_on, mem_map, mem_coe, forall_exists_index, prod.forall, prod.forall',
+  { simp only [set.pairwise, mem_map, mem_coe, forall_exists_index, prod.forall, prod.forall',
       function.embedding.coe_fn_mk, trivial_triangles, true_and, and_imp, mem_filter, mem_univ],
     rintro _ ⟨h₁, _⟩ ⟨⟨v₁, _⟩, ⟨_, k₁⟩⟩ t₁ i₁ rfl _ ⟨h₂, _⟩ ⟨⟨v₂, _⟩, ⟨_, k₂⟩⟩ t₂ i₂ rfl q,
     dsimp at i₁ i₂ t₁ t₂,

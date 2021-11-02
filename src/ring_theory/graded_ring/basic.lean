@@ -34,12 +34,14 @@ variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
   respecting multiplication, i.e. product of an element of degree `i` and an element of degree `j`
   is an element of degree `i + j`.
 -/
-class graded_ring :=
+class graded_ring.core :=
 ( decompose : R → ⨁ i, A i)
-( left_inv : function.left_inverse decompose (direct_sum.add_subgroup_coe A) )
-( right_inv : function.right_inverse decompose (direct_sum.add_subgroup_coe A) )
 ( one_degree_zero : (1 : R) ∈ A 0 )
 ( mul_respect_grading : ∀ {i j : ι} {a b : R}, a ∈ A i → b ∈ A j → a * b ∈ A (i + j))
+
+class graded_ring extends graded_ring_core R A :=
+( left_inv : function.left_inverse decompose (direct_sum.add_subgroup_coe A) )
+( right_inv : function.right_inverse decompose (direct_sum.add_subgroup_coe A) )
 
 variable [graded_ring R A]
 

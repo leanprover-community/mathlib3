@@ -962,10 +962,17 @@ instance : partial_order (α →ᵇ β) := {
   },
 }
 
-lemma inf_sub_inf_le [h: ∀ (e : β), 2*∥e∥ = ∥2•e∥ ] (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+lemma (a b c : ℝ) [a ≤ b] [b ≤ c] : a ≤ c :=
 begin
-  rw [← mul_le_mul_left zero_lt_two, h, smul_sub, mul_add],
-  apply two_inf_sub_two_inf_le,
+  exact le_trans _inst_3 _inst_4
+end
+
+lemma inf_sub_inf_le [h: ∀ (e : β), 2*∥e∥ ≤ ∥2•e∥ ] (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+begin
+  have e1: 2*∥a⊓b-c⊓d∥ ≤ ∥2•(a⊓b)-2•(c⊓d)∥ := begin rw ← smul_sub, apply h end,
+  rw ← mul_le_mul_left zero_lt_two,
+  rw mul_add,
+  apply le_trans e1 (two_inf_sub_two_inf_le _ _ _ _),
   exact real.nontrivial,
 end
 

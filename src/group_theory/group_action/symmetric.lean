@@ -29,3 +29,10 @@ instance prod.is_symmetric_smul {R α β}
   [has_scalar R α] [has_scalar R β] [has_scalar Rᵒᵖ α] [has_scalar Rᵒᵖ β]
   [is_symmetric_smul R α] [is_symmetric_smul R β] : is_symmetric_smul R (α × β) :=
 ⟨λ r m, prod.ext (op_smul_eq_smul _ _) (op_smul_eq_smul _ _)⟩
+
+instance (R M) [has_scalar R M] [has_scalar Rᵒᵖ M] [is_symmetric_smul R M] :
+  is_symmetric_smul R Mᵒᵖ := ⟨λ r m, unop_injective (op_smul_eq_smul r m.unop : _)⟩
+
+lemma op_smul_eq_op_smul_op (R M) [has_scalar R M] [has_scalar Rᵒᵖ M] [is_symmetric_smul R M]
+  (r : R) (m : M) : op (r • m) = op r • op m :=
+(op_smul_eq_smul r (op m)).symm

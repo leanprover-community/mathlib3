@@ -173,10 +173,6 @@ theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
 
-@[simp, to_additive]
-theorem monoid_hom.map_zpow (f : G →* H) (a : G) (n : ℤ) : f (a ^ n) = f a ^ n :=
-by cases n; simp
-
 @[simp, norm_cast, to_additive]
 lemma units.coe_zpow (u : units G) (n : ℤ) : ((u ^ n : units G) : G) = u ^ n :=
 (units.coe_hom G).map_zpow u n

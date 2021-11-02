@@ -35,11 +35,11 @@ variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
   is an element of degree `i + j`.
 -/
 class graded_ring.core :=
-( decompose : R → ⨁ i, A i)
 ( one_degree_zero : (1 : R) ∈ A 0 )
 ( mul_respect_grading : ∀ {i j : ι} {a b : R}, a ∈ A i → b ∈ A j → a * b ∈ A (i + j))
 
 class graded_ring extends graded_ring.core R A :=
+( decompose : R → ⨁ i, A i)
 ( left_inv : function.left_inverse decompose (direct_sum.add_subgroup_coe A) )
 ( right_inv : function.right_inverse decompose (direct_sum.add_subgroup_coe A) )
 

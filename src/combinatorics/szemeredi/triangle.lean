@@ -51,15 +51,13 @@ variables {α : Type*} (G : simple_graph α)
 
 namespace simple_graph
 
--- def is_triangle (a b c : α) : Prop := G.adj a b ∧ G.adj b c ∧ G.adj c a
-
 /-- A `n`-clique in a graph is a set of `n` vertices which are pairwise connected. -/
-def is_n_clique (n : ℕ) (s : finset α) : Prop := s.card = n ∧ (s : set α).pairwise_on G.adj
+def is_n_clique (n : ℕ) (s : finset α) : Prop := s.card = n ∧ (s : set α).pairwise G.adj
 
 instance [decidable_eq α] [decidable_rel G.adj] {n} {s : finset α} :
   decidable (G.is_n_clique n s) :=
 decidable_of_iff (s.card = n ∧ ∀ x ∈ s, ∀ y ∈ s, x ≠ y → G.adj x y)
-  (by simp [simple_graph.is_n_clique, set.pairwise_on])
+  (by simp [simple_graph.is_n_clique, set.pairwise])
 
 def no_triangles := ∀ t, ¬ G.is_n_clique 3 t
 
@@ -80,19 +78,19 @@ def triangle_finset [decidable_eq α] [decidable_rel G.adj] : finset (finset α)
   (powerset_len 3 univ).filter (G.is_n_clique 3)
 
 lemma mem_triangle_finset [decidable_eq α] [decidable_rel G.adj] (s : finset α) :
-  s ∈ G.triangle_finset ↔ s.card = 3 ∧ (s : set α).pairwise_on G.adj :=
+  s ∈ G.triangle_finset ↔ s.card = 3 ∧ (s : set α).pairwise G.adj :=
 by simp [triangle_finset, mem_powerset_len, is_n_clique]
 
 lemma mem_triangle_finset' [decidable_eq α] [decidable_rel G.adj] (s : finset α) :
   s ∈ G.triangle_finset ↔ G.is_n_clique 3 s :=
-by simp [triangle_finset, mem_powerset_len, is_n_clique]
+G.mem_triangle_finset s
 
 lemma mem_triangle_finset'' [decidable_eq α] [decidable_rel G.adj] (x y z : α) :
   {x, y, z} ∈ G.triangle_finset ↔ G.adj x y ∧ G.adj x z ∧ G.adj y z :=
 begin
   rw [mem_triangle_finset],
-  simp only [coe_insert, coe_singleton, set.pairwise_on_insert_of_symmetric G.symm,
-    set.pairwise_on_singleton, true_and, set.mem_insert_iff, set.mem_singleton_iff,
+  simp only [coe_insert, coe_singleton, set.pairwise_insert_of_symmetric G.symm,
+    set.pairwise_singleton, true_and, set.mem_insert_iff, set.mem_singleton_iff,
     forall_eq_or_imp, forall_eq, ne.def],
   split,
   { rintro ⟨h, yz, xy, xz⟩,
@@ -478,7 +476,7 @@ end
 
 lemma triangle_free_far_of_disjoint_triangles_aux
   (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
-  (pd : set.pairwise_on (tris : set (finset α)) (λ x y, (x ∩ y).card ≤ 1)) :
+  (pd : set.pairwise (tris : set (finset α)) (λ x y, (x ∩ y).card ≤ 1)) :
   ∀ (G' ≤ G), G'.no_triangles → tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
 begin
   intros G' hG hG',
@@ -520,7 +518,7 @@ end
 
 lemma triangle_free_far_of_disjoint_triangles
   (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
-  (pd : set.pairwise_on (tris : set (finset α)) (λ x y, (x ∩ y).card ≤ 1))
+  (pd : set.pairwise (tris : set (finset α)) (λ x y, (x ∩ y).card ≤ 1))
   (tris_big : ε * card α ^ 2 ≤ tris.card) :
   G.triangle_free_far ε :=
 begin
@@ -793,8 +791,6 @@ begin
   simpa using nat.mul_le_mul_left k this,
 end
 
--- #exit
-
 lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}
   (hP₁ : P.is_equipartition)
   (hP₃ : P.parts.card ≤ szemeredi_bound (ε / 8) ⌈4/ε⌉₊) (hX : X ∈ P.parts) :
@@ -860,11 +856,5 @@ begin
   all_goals
   { exact div_nonneg (nat.cast_nonneg _) (mul_nonneg (by norm_num) (nat.cast_nonneg _)) },
 end
-
---   (hG : (G.edge_finset.card : ℝ) ≤ (card α)^3 * triangle_removal_bound ε (card α)) :
---   ∃ (G' ≤ G),
---     (G.edge_finset.card - G'.edge_finset.card : ℝ) ≤ (card α)^2 * ε
---       ∧ ∀ x y z, ¬ G.is_triangle x y z :=
--- sorry
 
 end simple_graph

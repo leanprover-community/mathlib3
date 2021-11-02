@@ -18,9 +18,6 @@ open_locale big_operators
 variables {α ι ι' : Type*} [add_comm_monoid α] [decidable_eq ι] [fintype ι] [decidable_eq ι']
   [fintype ι'] {ε : ℝ}
 
-lemma finset.disjoint_iff [decidable_eq α] (s t : finset α) : disjoint s t ↔ ∀ ⦃x⦄, x ∈ s → x ∉ t :=
-disjoint_left
-
 lemma exists_ne_ne_fin {n : ℕ} (hn : 3 ≤ n) (a b : fin n) : ∃ c, a ≠ c ∧ b ≠ c :=
 begin
   obtain ⟨c, hc⟩ : ({a,b}ᶜ : finset (fin n)).nonempty,
@@ -58,16 +55,6 @@ begin
   ext i,
   exact (fin.ext_iff _ _).1 (h i),
 end
-
--- /-- Projects any point onto the simplex domain in one direction. -/
--- def proj (f : ι → ℕ) (i : ι) (hf : ∑ j in univ.erase i, f j ≤ n) : simplex_domain ι n :=
--- begin
---   refine ⟨finset.piecewise {i} (n - ∑ j in univ.erase i, f j) f,
---     (sum_piecewise _ _ _ _).trans _⟩,
---   rw [univ_inter, sum_singleton, sdiff_singleton_eq_erase, pi.sub_apply, sum_apply],
---   simp only [nat.cast_id, pi.coe_nat],
---   exact tsub_add_cancel_of_le hf,
--- end
 
 /-- Projects a point in a simplex domain onto a smaller simplex domain in one direction. -/
 def proj (x : simplex_domain ι' n) (f : ι ↪ ι') (i : ι) : simplex_domain ι n :=
@@ -220,7 +207,7 @@ end
 --   obtain ⟨x, hx, rfl⟩ := hx,
 --   obtain ⟨y, hy, rfl⟩ := hy,
 --   rw trivial_n_clique_injective.ne_iff at h,
---   rw finset.disjoint_iff,
+--   rw finset.disjoint_left,
 --   rintro ⟨i, a⟩ hax hay,
 --   rw mem_trivial_n_clique at hax hay,
 --   sorry -- wrong
@@ -262,16 +249,27 @@ begin
   refine card_le_of_subset (λ v hv, _),
   rw mem_image at hv,
   obtain ⟨x, hx, rfl⟩ := hv,
-  rw ←mem_coe at hx,
-  rw [simple_graph.mem_triangle_finset'],
-  have := trivial_n_clique_is_n_clique hx,
-  rwa fintype.card_fin at this,
+  rw simple_graph.mem_triangle_finset',
+  exact trivial_n_clique_is_n_clique (mem_coe.2 hx),
 end
 
-lemma corners_graph_triangle_free_far :
+lemma corners_graph_triangle_free_far (hs : ε * (3 * (n + 1) : ℕ) ^ 2 ≤ s.card) :
   (corners_graph (s : set (simplex_domain (fin 3) n))).triangle_free_far ε :=
 begin
-
+  refine simple_graph.triangle_free_far_of_disjoint_triangles (s.image trivial_n_clique) _ _ _,
+  { rintro x hx,
+    obtain ⟨y, hy, rfl⟩ := mem_image.1 hx,
+    rw simple_graph.mem_triangle_finset',
+    exact trivial_n_clique_is_n_clique (mem_coe.2 hy) },
+  { rintro a ha b hb hab,
+    rw [mem_coe, mem_image] at ha hb,
+    obtain ⟨a, ha, rfl⟩ := ha,
+    obtain ⟨b, hb, rfl⟩ := hb,
+    have h : a ≠ b := ne_of_apply_ne _ hab,
+    sorry
+  },
+  { rw [fintype.card_prod, fintype.card_fin, fintype.card_fin],
+    exact hs.trans (nat.cast_le.2 (card_image_of_injective s trivial_n_clique_injective).ge) }
 end
 
 lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
@@ -285,7 +283,7 @@ lemma strengthened_corners_theorem {ε : ℝ} (hε : 0 < ε) :
   ∃ n : ℕ, ∀ n', n ≤ n' → ∀ A : finset (simplex_domain (fin 3) n'), ε * n'^2 ≤ A.card →
     ∃ x : simplex_domain (option (fin 3)) n', 0 < x.val none ∧ corners ↑A x :=
 begin
-
+  sorry
 end
 
 end simplex_corner
@@ -310,11 +308,6 @@ simple_graph.from_rel (λ a b, begin
       ∨ a.1 = 2 ∧ b.1 = 0 ∧ b.2 ≤ a.2 ∧ (↑b.2, ↑a.2 - ↑b.2) ∈ A,
 end)
 
--- lemma trivial_triangle_mem_half_corners_graph (hx : x ∈ A) {a b : fin n} :
---   half_corners_graph.adj n A (a, k) (b, k)
-
-lemma corners_graph_triangle_free_far : (half_corners_graph A n).triangle_free_far ε := sorry
-
 lemma half_corners_theorem {ε : ℝ} (hε : 0 < ε) :
   ∃ n : ℕ, ∀ A : finset (ℕ × ℕ), (∀ x y, (x, y) ∈ A → x + y ≤ n) →  ε * n^2 ≤ A.card →
     ∃ x y h, h ≠ 0 ∧ is_corner ↑A x y h :=
@@ -322,15 +315,4 @@ begin
   sorry
 end
 
-/-! ### Corners theorem-/
-
-/-- The graph appearing in the corners theorem. -/
-def corners_graph (A : set (ℕ × ℕ)) : simple_graph (fin 3 × ℕ) := sorry
-
--- lemma corners_graph_triangle_free_far : (corners_graph A).triangle_free_far ε
-
-lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
-  ∃ n : ℕ, ∀ A ⊆ (Iio n).product (Iio n), ε * n^2 ≤ A.card → ∃ x y h, h ≠ 0 ∧ is_corner ↑A x y h :=
-begin
-  sorry
-end
+end simplex_domain

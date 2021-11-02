@@ -17,37 +17,22 @@ variables {α β ι : Type*}
 
 namespace finset
 
-lemma product_subset_product {A A' : finset α} {B B' : finset β}
-  (hA : A' ⊆ A) (hB : B' ⊆ B) :
-  A'.product B' ⊆ A.product B :=
-begin
-  rintro ⟨x,y⟩ h,
-  simp only [mem_product] at h ⊢,
-  exact ⟨hA h.1, hB h.2⟩,
-end
-
 @[to_additive]
 lemma le_prod_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
   (n : β) (h : ∀ (x ∈ s), n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
 @prod_le_of_forall_le α (order_dual β) _ s f n h
 
-variable [decidable_eq α]
-
-@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ :=
-by rw [off_diag, empty_product, filter_empty]
-
 end finset
 
 namespace sym2
 
 attribute [elab_as_eliminator]
-lemma ind {f : sym2 α → Prop} : (∀ x y, f ⟦(x,y)⟧) → ∀ (i : sym2 α), f i :=
+lemma ind {f : sym2 α → Prop} : (∀ x y, f ⟦(x, y)⟧) → ∀ (i : sym2 α), f i :=
 λ hf, quotient.ind (by simpa using hf)
 
 attribute [elab_as_eliminator]
-lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
-sym2.ind hf i
+lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i := i.ind hf
 
 lemma «exists» {α : Sort*} {f : sym2 α → Prop} : (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
 begin

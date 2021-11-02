@@ -133,10 +133,3 @@ begin
 end
 
 end simple_graph
-
--- def contains_3AP (s : set ℕ) := ∃ a d, 0 < d ∧ a ∈ s ∧ a + d ∈ s ∧ a + 2*d ∈ s
-
--- theorem roth {δ : ℝ} (hδ : 0 < δ) : ∃ N, ∀ s ⊆ range N, δ * N ≤ s.card → contains_3AP s :=
--- begin
-
--- end

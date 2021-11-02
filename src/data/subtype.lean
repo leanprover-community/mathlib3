@@ -157,6 +157,26 @@ lemma map_involutive {p : α → Prop} {f : α → α} (h : ∀ a, p a → p (f 
   (hf : involutive f) : involutive (map f h) :=
 λ x, subtype.ext (hf x)
 
+/-- A reflexive relation yields a reflexive relation on a subtype. -/
+lemma reflexive_coe {r : α → α → Prop} (h : reflexive r) :
+  reflexive (λ x y : subtype p, r x y) :=
+λ x, h _
+
+/-- A symmetric relation yields a symmetric relation on a subtype. -/
+lemma symmetric_coe {r : α → α → Prop} (h : symmetric r) :
+  symmetric (λ x y : subtype p, r x y) :=
+λ x y hr, h hr
+
+/-- A transitive relation yields a transitive relation on a subtype. -/
+lemma transitive_coe {r : α → α → Prop} (h : transitive r) :
+  transitive (λ x y : subtype p, r x y) :=
+λ x y z hr₁ hr₂, h hr₁ hr₂
+
+/-- An equivalence relation yields an equivalence relation on a subtype. -/
+lemma equivalence_coe {r : α → α → Prop} (h : _root_.equivalence r) :
+  _root_.equivalence (λ x y : subtype p, r x y) :=
+⟨reflexive_coe h.1, symmetric_coe h.2.1, transitive_coe h.2.2⟩
+
 instance [has_equiv α] (p : α → Prop) : has_equiv (subtype p) :=
 ⟨λ s t, (s : α) ≈ (t : α)⟩
 

@@ -315,17 +315,6 @@ instance {X Y Z : C} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) [has_image g] : has_
 
 end
 
-/-- If `sq : f ⟶ g` is an isomorphism between two arrows
-then the image of `g` provides a mono factorisation for `f`. -/
-@[simps] def mono_factorisation.of_arrow_iso {f g : arrow C} [has_image g.hom]
-  (sq : f ⟶ g) [is_iso sq] : mono_factorisation f.hom :=
-{ I := image g.hom,
-  m := image.ι _ ≫ (inv sq).right,
-  m_mono := mono_comp _ _,
-  e := sq.left ≫ factor_thru_image _,
-  fac' := by erw [category.assoc, image.fac_assoc, arrow.w_assoc, ← comma.comp_right,
-    is_iso.hom_inv_id, comma.id_right, category.comp_id] }
-
 section
 variables (C)
 
@@ -578,6 +567,11 @@ mk' :: (has_image_map : nonempty (image_map sq))
 lemma has_image_map.mk {f g : arrow C} [has_image f.hom] [has_image g.hom] {sq : f ⟶ g}
   (m : image_map sq) : has_image_map sq :=
 ⟨nonempty.intro m⟩
+
+lemma has_image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
+  (F : mono_factorisation f.hom) {F' : mono_factorisation g.hom} (hF' : is_image F')
+  (map : F.I ⟶ F'.I) (map_ι : map ≫ F'.m = F.m ≫ sq.right) : has_image_map sq :=
+has_image_map.mk $ image_map.transport sq F hF' map_ι
 
 /-- Obtain an `image_map` from a `has_image_map` instance. -/
 def has_image_map.image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)

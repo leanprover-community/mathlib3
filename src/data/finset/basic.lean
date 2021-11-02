@@ -1169,9 +1169,6 @@ sup_sdiff_symm
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s :=
 by { rw union_comm, exact sup_inf_sdiff _ _ }
 
-@[simp] lemma sdiff_idem (s t : finset α) : s \ t \ t = s \ t :=
-sdiff_idem
-
 lemma sdiff_eq_empty_iff_subset {s t : finset α} : s \ t = ∅ ↔ s ⊆ t :=
 sdiff_eq_bot_iff
 
@@ -2919,9 +2916,6 @@ disjoint_of_subset_right (inter_subset_right _ _) sdiff_disjoint
 
 lemma sdiff_eq_self_iff_disjoint {s t : finset α} : s \ t = s ↔ disjoint s t :=
 by rw [sdiff_eq_self, subset_empty, disjoint_iff_inter_eq_empty]
-
-lemma sdiff_eq_self_of_disjoint {s t : finset α} (h : disjoint s t) : s \ t = s :=
-sdiff_eq_self_iff_disjoint.2 h
 
 lemma disjoint_self_iff_empty (s : finset α) : disjoint s s ↔ s = ∅ :=
 disjoint_self

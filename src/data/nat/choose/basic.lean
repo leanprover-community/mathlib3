@@ -269,14 +269,14 @@ end
 
 -- Inequalities about increasing the first argument
 
-lemma choose_le_add_one (a c : ℕ) : choose a c ≤ choose (a + 1) c :=
+lemma choose_le_succ (a c : ℕ) : choose a c ≤ choose a.succ c :=
 by cases c; simp [nat.choose_succ_succ]
 
 lemma choose_le_add (a b c : ℕ) : choose a c ≤ choose (a + b) c :=
 begin
   induction b with b_n b_ih,
   { simp, },
-  exact le_trans b_ih (choose_le_add_one (a + b_n) c),
+  exact le_trans b_ih (choose_le_succ (a + b_n) c),
 end
 
 lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choose b c :=

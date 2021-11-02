@@ -224,7 +224,7 @@ lemma to_quasi_measure_preserving {X : α → E} [has_pdf X ℙ μ] : quasi_meas
 lemma have_lebesgue_decomposition_of_has_pdf {X : α → E} [hX' : has_pdf X ℙ μ] :
   (map X ℙ).have_lebesgue_decomposition μ :=
 ⟨⟨⟨0, pdf X ℙ μ⟩,
-  by simp only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero.symm,
+  by simp only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero_right,
     map_eq_with_density_pdf X ℙ μ] ⟩⟩
 
 lemma has_pdf_iff {X : α → E} :

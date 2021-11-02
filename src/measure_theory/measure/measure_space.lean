@@ -1380,7 +1380,7 @@ localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in m
 
 namespace mutually_singular
 
-lemma zero : μ ⊥ₘ 0 :=
+lemma zero_right : μ ⊥ₘ 0 :=
 ⟨∅, measurable_set.empty, measure_empty, rfl⟩
 
 lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
@@ -1388,7 +1388,7 @@ let ⟨i, hi, his, hit⟩ := h in
   ⟨iᶜ, measurable_set.compl hi, hit, (compl_compl i).symm ▸ his⟩
 
 lemma zero_left : 0 ⊥ₘ μ :=
-zero.symm
+zero_right.symm
 
 lemma add (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
 begin
@@ -2262,8 +2262,8 @@ lemma finite_at_nhds_within [topological_space α] {m0 : measurable_space α} (�
 @[simp] lemma finite_at_principal : μ.finite_at_filter (𝓟 s) ↔ μ s < ∞ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
 
-lemma is_locally_finite_measure_of_le [topological_space α] {m : measurable_space α} {μ ν : measure α}
-  [H : is_locally_finite_measure μ] (h : ν ≤ μ) :
+lemma is_locally_finite_measure_of_le [topological_space α] {m : measurable_space α}
+  {μ ν : measure α} [H : is_locally_finite_measure μ] (h : ν ≤ μ) :
   is_locally_finite_measure ν :=
 let F := H.finite_at_nhds in ⟨λ x, (F x).measure_mono h⟩
 

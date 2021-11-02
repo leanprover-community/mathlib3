@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
 import topology.continuous_function.algebra
+import analysis.normed_space.lattice_ordered_group
 
 /-!
 # Bounded continuous functions
@@ -941,5 +942,63 @@ show that the space of bounded continuous functions from `α` to `β` is natural
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
+
+section normed_lattice_ordered_group
+
+variables [topological_space α] [normed_lattice_add_comm_group β]
+
+--Not sure we need this, see https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114
+instance : partial_order (α →ᵇ β) := {
+  le := λf g, (∀ (t : α), f t ≤ g t),
+  le_refl := by { rintro f t, apply le_refl },
+  le_trans := by {
+    rintro f g h hfg hgh t,
+    apply le_trans (hfg t) (hgh t)
+  },
+  le_antisymm := by {
+    rintro f g hfg hgf,
+    ext t,
+    apply le_antisymm (hfg t) (hgf t),
+  },
+}
+
+lemma inf_sub_inf_le [h: ∀ (e : β), 2*∥e∥ = ∥2•e∥ ] (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+begin
+  rw [← mul_le_mul_left zero_lt_two, h, smul_sub, mul_add],
+  apply two_inf_sub_two_inf_le,
+  exact real.nontrivial,
+end
+
+instance [h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α →ᵇ β) := {
+  inf := λf g, {
+    to_fun := λ t, f(t)⊓g(t),
+    continuous_to_fun := begin
+      continuity,
+    end,
+    bounded' := begin
+      cases f.bounded' with C₁ hf,
+      cases g.bounded' with C₂ hg,
+      use C₁+C₂,
+      intros,
+      simp,
+      --rw le_div_iff',
+      rw normed_group.dist_eq,
+
+      rw ← real.norm_two,
+
+      -- two_meet_eq_add_sub_abs_sub (a b : α) : 2•(a⊓b) = a + b - |b - a|
+      --two_le
+      --rw ← norm_smul,
+      sorry,
+      exact zero_lt_two,
+    end
+  },
+  inf_le_left := sorry,
+  inf_le_right := sorry,
+  le_inf :=sorry,
+  ..bounded_continuous_function.partial_order
+}
+
+end normed_lattice_ordered_group
 
 end bounded_continuous_function

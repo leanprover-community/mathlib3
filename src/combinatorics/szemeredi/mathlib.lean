@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.special_functions.log
 import combinatorics.simple_graph.basic
+import combinatorics.pigeonhole
 import data.set.equitable
 import .finpartition
 
@@ -15,7 +16,27 @@ open finset fintype function
 
 variables {α β ι : Type*}
 
+section
+
+-- Should *replace* the existing lemma with a similar name.
+lemma exists_le_card_fiber_of_mul_le_card_of_maps_to'
+  {α : Type*} {β : Type*} {M : Type*} [linear_ordered_comm_ring M] [decidable_eq β]
+  {s : finset α} {t : finset β} {f : α → β} {b : M}
+  (hf : ∀ a ∈ s, f a ∈ t) (ht : t.nonempty) (hn : t.card • b ≤ s.card) :
+  ∃ y ∈ t, b ≤ (s.filter (λ x, f x = y)).card :=
+begin
+  simp only [finset.card_eq_sum_ones, nat.cast_sum],
+  refine exists_le_sum_fiber_of_maps_to_of_nsmul_le_sum hf ht _,
+  simpa using hn,
+end
+
+end
+
 namespace finset
+
+@[simp] lemma nonempty_product {α β : Type*} (A : finset α) (B : finset β) :
+  (A.product B).nonempty ↔ A.nonempty ∧ B.nonempty :=
+by simp [finset.nonempty]
 
 @[to_additive]
 lemma le_prod_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)

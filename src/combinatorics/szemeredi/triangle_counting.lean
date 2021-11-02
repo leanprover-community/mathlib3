@@ -18,10 +18,7 @@ variables {α : Type*} {G : simple_graph α}
 namespace simple_graph
 
 variables [fintype α]
-
-open_locale classical
-
-lemma double_edge_finset_card_eq :
+lemma double_edge_finset_card_eq [decidable_eq α] [decidable_rel G.adj] :
   2 * G.edge_finset.card = (univ.filter (λ (xy : α × α), G.adj xy.1 xy.2)).card :=
 begin
   rw [finset.card_eq_sum_ones (finset.filter _ _), sum_partition (sym2.rel.setoid α),
@@ -58,6 +55,8 @@ begin
   { exact ⟨h, rfl⟩ },
   { exact ⟨G.symm h, sym2.eq_swap⟩, }
 end
+
+open_locale classical
 
 lemma reduced_edges_card_aux [nonempty α] {ε : ℝ} {P : finpartition (univ : finset α)}
   (hε : 0 < ε)

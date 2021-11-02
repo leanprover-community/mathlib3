@@ -131,7 +131,7 @@ begin
   have mem_B : ∀ {f : simplex_domain (fin 3) (2 * n)}, f ∈ B ↔ f.1 1 ≤ f.1 0 ∧ f.1 0 - f.1 1 ∈ A,
   {
     sorry
-  },
+    },
   obtain ⟨⟨c, hc₀⟩, hc₁ : 0 < c _, hc₂⟩ := hN (2 * n) ((nat.le_mul_of_pos_left zero_lt_two).trans $
     hn.trans $ nat.le_mul_of_pos_left zero_lt_two) B _,
   { rw simplex_domain.corners at hc₂,

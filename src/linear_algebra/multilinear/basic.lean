@@ -1252,7 +1252,7 @@ are basis vectors. Unlike `basis.ext_multilinear_fin`, this only uses a single b
 dependently-typed version would still be true, but the proof would need a dependently-typed
 version of `dom_dom_congr`. -/
 lemma basis.ext_multilinear [fintype ι] {f g : multilinear_map R (λ i : ι, M₂) M₃}
-  {ι₁ : Type*} {e : basis ι₁ R M₂} (h : ∀ i : ι → ι₁, f (λ x, e (i x)) = g (λ x, e (i x))) :
+  {ι₁ : Type*} (e : basis ι₁ R M₂) (h : ∀ v : ι → ι₁, f (λ i, e (v i)) = g (λ i, e (v i))) :
   f = g :=
 begin
   generalize' hn : fintype.card ι = n,

@@ -953,8 +953,7 @@ instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (
 lemma inf_sub_inf_le [h: ∀ (e : β), 2*∥e∥ ≤ ∥2•e∥ ] (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
   have e1: 2*∥a⊓b-c⊓d∥ ≤ ∥2•(a⊓b)-2•(c⊓d)∥ := begin rw ← smul_sub, apply h end,
-  rw ← mul_le_mul_left zero_lt_two,
-  rw mul_add,
+  rw [← mul_le_mul_left zero_lt_two, mul_add],
   apply le_trans e1 (two_inf_sub_two_inf_le _ _ _ _),
   exact real.nontrivial,
 end
@@ -974,8 +973,7 @@ instance [h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α →
       rw normed_group.dist_eq,
       apply le_trans (inf_sub_inf_le _ _ _ _) _,
       apply h,
-      rw ← normed_group.dist_eq,
-      rw ← normed_group.dist_eq,
+      rw [← normed_group.dist_eq, ← normed_group.dist_eq],
       apply add_le_add (hf _ _) (hg _ _),
     end
   },

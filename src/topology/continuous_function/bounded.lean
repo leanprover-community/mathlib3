@@ -988,16 +988,12 @@ instance [h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ] : semilattice_inf (α →
       use C₁+C₂,
       intros,
       simp,
-      --rw le_div_iff',
       rw normed_group.dist_eq,
-
-      rw ← real.norm_two,
-
-      -- two_meet_eq_add_sub_abs_sub (a b : α) : 2•(a⊓b) = a + b - |b - a|
-      --two_le
-      --rw ← norm_smul,
-      sorry,
-      exact zero_lt_two,
+      apply le_trans (inf_sub_inf_le _ _ _ _) _,
+      apply h,
+      rw ← normed_group.dist_eq,
+      rw ← normed_group.dist_eq,
+      apply add_le_add (hf _ _) (hg _ _),
     end
   },
   inf_le_left := sorry,

@@ -265,6 +265,8 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_Lo
       further speed this up. -/ },
   end }
 
+namespace Γ_Spec
+
 lemma right_triangle_base :
   ((Spec' R).to_Γ_Spec ≫ Spec.to_LocallyRingedSpace.map (to_Spec_Γ R).op).1.1 = 𝟙 _ :=
 begin
@@ -298,7 +300,7 @@ begin
 end
 
 /-- Auxiliary data structure for defining the adjunction. -/
-def Γ_Spec_core_unit_counit :
+def core_unit_counit :
   adjunction.core_unit_counit Γ.right_op Spec.to_LocallyRingedSpace :=
 { unit := identity_to_Γ_Spec,
   counit := nat_trans.op Spec_Γ_identity.inv,
@@ -308,6 +310,8 @@ def Γ_Spec_core_unit_counit :
 /- left and right triangle identities above are slow. -/
 
 /-- The adjunction `Γ ⊣ Spec`. -/
-def Γ_Spec_adjunction := adjunction.mk_of_unit_counit Γ_Spec_core_unit_counit
+def adjunction := adjunction.mk_of_unit_counit core_unit_counit
+
+end Γ_Spec
 
 end algebraic_geometry

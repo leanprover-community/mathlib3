@@ -88,15 +88,15 @@ def graded_ring.proj (i : ι) : R →+ R :=
   (graded_ring.recompose R A).symm.to_add_monoid_hom
 
 lemma graded_ring.proj_apply (i : ι) (r : R) :
-  graded_ring.proj _ A i r = (graded_ring.core.decompose r : ⨁ i, A i) i := rfl
+  graded_ring.proj _ A i r = (graded_ring.decompose r : ⨁ i, A i) i := rfl
 
 lemma graded_ring.proj_mem (i : ι) (r : R) :
-  graded_ring.proj R A i r ∈ A i := (@graded_ring.core.decompose R _ ι A _ _ _ r i).2
+  graded_ring.proj R A i r ∈ A i := (@graded_ring.decompose R _ ι A _ _ _ r i).2
 
 /-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
 def graded_ring.support [Π (i : ι) (x : (λ (i : ι), ↥(A i)) i), decidable (x ≠ 0)]
   (r : R) : finset ι :=
-(@graded_ring.core.decompose R _ ι A _ _ _ r).support
+(@graded_ring.decompose R _ ι A _ _ _ r).support
 
 lemma graded_ring.proj_recompose (a : ⨁ i, A i) (i : ι) :
   graded_ring.proj R A i (graded_ring.recompose R A a) =
@@ -125,7 +125,9 @@ end, λ hi, begin
   unfold graded_ring.proj at hi,
   unfold graded_ring.support,
   simp only [ne.def, dfinsupp.mem_support_to_fun],
-  intro rid, simp only [add_monoid_hom.coe_mk, ne.def, subtype.val_eq_coe] at hi, rw rid at hi,
+  intro rid,
+  simp only [add_monoid_hom.coe_comp, add_subgroup.coe_subtype, function.comp_app, ne.def] at hi,
+  erw rid at hi,
   simp only [eq_self_iff_true, not_true, ne.def, add_subgroup.coe_zero, subtype.val_eq_coe] at hi,
   exact hi,
 end⟩

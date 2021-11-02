@@ -55,13 +55,15 @@ instance gsemiring.of_ring_is_internally_graded :
 direct_sum.gsemiring.of_add_subgroups A
   (graded_ring.core.one_degree_zero) (λ i j ai aj, graded_ring.core.mul_respect_grading ai.2 aj.2)
 
+/-- The cannonical ring isomorphism between `⨁ i, A i` and `R`-/
+def direct_sum.subgroup_coe_ring_hom : (⨁ i, A i) →+* R :=
+  direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
+
 variable [graded_ring R A]
 
 /--If `R` is graded by `ι` with degree `i` component `A i`, then `(⨁ i, A i ≃+* R)`-/
 def graded_ring.recompose : (⨁ i, A i) ≃+* R :=
-let f : (⨁ i, A i) →+* R :=
-  direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) in
-{ to_fun := f,
+{ to_fun := direct_sum.subgroup_coe_ring_hom R A,
   inv_fun := graded_ring.decompose,
   left_inv := graded_ring.left_inv,
   right_inv := graded_ring.right_inv,

@@ -58,14 +58,14 @@ def graded_ring.recompose : (⨁ i, A i) ≃+* R :=
 let f : (⨁ i, A i) →+* R :=
   direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) in
 { to_fun := f,
-  inv_fun := graded_ring.core.decompose,
+  inv_fun := graded_ring.decompose,
   left_inv := graded_ring.left_inv,
   right_inv := graded_ring.right_inv,
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _, }
 
 @[simp] lemma graded_ring.decompose_def :
-  graded_ring.core.decompose = (graded_ring.recompose R A).symm := rfl
+  graded_ring.decompose = (graded_ring.recompose R A).symm := rfl
 
 @[simp] lemma graded_ring.recompose_of {i : ι} (x : A i) :
   graded_ring.recompose R A (direct_sum.of _ i x) = x := dfinsupp.lift_add_hom_apply_single _ _ _

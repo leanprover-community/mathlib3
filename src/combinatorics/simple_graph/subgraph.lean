@@ -243,6 +243,8 @@ instance : bounded_lattice (subgraph G) :=
   inf_le_left := λ x y, ⟨set.inter_subset_left x.verts y.verts, (λ v w h, h.1)⟩,
   inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩ }
 
+@[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
+
 /-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
 @[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) :
   G.subgraph :=
@@ -331,6 +333,9 @@ a spanning subgraph into `G`. -/
 def map_spanning_top (x : subgraph G) : x.spanning_coe →g G :=
 { to_fun := id,
   map_rel' := λ v w hvw, x.adj_sub hvw }
+
+@[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
+by { ext, refl }
 
 lemma map_spanning_top.injective {x : subgraph G} : function.injective x.map_top :=
 λ v w h, subtype.ext h

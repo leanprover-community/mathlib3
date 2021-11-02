@@ -383,8 +383,14 @@ def reachable_setoid : setoid V := setoid.mk _ G.reachable_is_equivalence
 the `simple_graph.reachable` relation. -/
 def connected_component := quot G.reachable
 
-/-- A graph is connected is every pair of vertices is reachable from one another. -/
-def connected : Prop := ∀ (u v : V), G.reachable u v
+/-- A graph is preconnected if every pair of vertices is reachable from one another. -/
+def preconnected : Prop := ∀ (u v : V), G.reachable u v
+
+/-- A graph is connected if it's preconnected and contains at least one vertex. -/
+@[protect_proj]
+structure connected : Prop :=
+(preconnected : G.preconnected)
+(nonempty : nonempty V)
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
@@ -392,7 +398,7 @@ def connected_component_of (v : V) : G.connected_component := quot.mk G.reachabl
 instance connected_components.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_of (default _)⟩
 
-lemma connected_component.subsingleton_of_connected (h : G.connected) :
+lemma connected_component.subsingleton_of_connected (h : G.preconnected) :
   subsingleton G.connected_component :=
 ⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
 
@@ -952,15 +958,20 @@ def path.map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path
     exact hp.2 hx, },
 end⟩
 
-lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
-  G.connected :=
+lemma preconnected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
+  G.preconnected :=
 begin
   intros v w,
-  specialize h ∅ (by simp) (by simp [hk]) v w,
-  simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h,
-  cases h,
-  exact ⟨h.map (subgraph.map_spanning_top _)⟩,
+  have h' := (h ∅ (by simp) (by simp [hk])).preconnected v w,
+  simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h',
+  cases h',
+  exact ⟨h'.map (subgraph.map_spanning_top _)⟩,
 end
+
+lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) : G.connected :=
+let C' := h ∅ (by simp) (by simp [hk]) in
+{ preconnected := by simpa using C'.preconnected,
+  nonempty := C'.nonempty }
 
 end map
 
@@ -1220,12 +1231,17 @@ begin
   { apply is_acyclic_if_unique_path, },
 end
 
-lemma is_tree_iff : G.is_tree ↔ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
+lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin
   simp only [is_tree, is_acyclic_iff],
   split,
-  { rintro ⟨hc, hu⟩ v w,
-    let q := (hc v w).some.to_path,
+  { intro h,
+    split,
+    { cases h with h hne,
+      simp [h.2], },
+    intros v w,
+    cases h with hc hu,
+    let q := (hc.1 v w).some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
     intros p hp,
@@ -1234,22 +1250,24 @@ begin
     refl, },
   { intro h,
     split,
-    { intros v w,
-      obtain ⟨p, hp⟩ := h v w,
-      use p, },
+    { split,
+      intros v w,
+      obtain ⟨p, hp⟩ := h.2 v w,
+      use p,
+      simp [h]},
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only,
-      exact unique_of_exists_unique (h v w) hp hq, }, },
+      exact unique_of_exists_unique (h.2 v w) hp hq, }, },
 end
 
 /-- Get the unique path between two vertices in the tree. -/
 noncomputable abbreviation tree_path (h : G.is_tree) (v w : V) : G.path v w :=
-⟨((G.is_tree_iff.mp h) v w).some, ((G.is_tree_iff.mp h) v w).some_spec.1⟩
+⟨((G.is_tree_iff.mp h).2 v w).some, ((G.is_tree_iff.mp h).2 v w).some_spec.1⟩
 
 lemma tree_path_spec {h : G.is_tree} {v w : V} (p : G.path v w) : p = G.tree_path h v w :=
 begin
   cases p,
-  have := ((G.is_tree_iff.mp h) v w).some_spec,
+  have := ((G.is_tree_iff.mp h).2 v w).some_spec,
   simp only [this.2 p_val p_property],
 end
 

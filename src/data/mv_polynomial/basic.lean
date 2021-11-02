@@ -934,7 +934,7 @@ begin
   refl
 end
 
-/-- If `f : S₁ →ₐ[R] S₂` is an morphism of `R`-algebras, then so is `mv_polynomial.map f`. -/
+/-- If `f : S₁ →ₐ[R] S₂` is a morphism of `R`-algebras, then so is `mv_polynomial.map f`. -/
 @[simps]
 def map_alg_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] (f : S₁ →ₐ[R] S₂) :
   mv_polynomial σ S₁ →ₐ[R] mv_polynomial σ S₂ :=

@@ -92,17 +92,15 @@ by rw [←det_mul, A.nonsing_inv_mul h, det_one]
 @[simp] lemma det_nonsing_inv : A⁻¹.det = ring.inverse A.det :=
 begin
   rw [inv_def, det_smul, det_adjugate],
-  cases (fintype.card n).zero_le.eq_or_lt with hc0 hc_pos,
-  { haveI : is_empty n := fintype.card_eq_zero_iff.mp hc0.symm,
-    rw [←hc0, zero_tsub, pow_zero, det_is_empty, pow_zero, ring.inverse_one, one_mul] },
+  casesI is_empty_or_nonempty n,
+  { rw [fintype.card_eq_zero, zero_tsub, pow_zero, det_is_empty, pow_zero, ring.inverse_one,
+      one_mul] },
+  have hc_pos : 0 < fintype.card n := fintype.card_pos,
   by_cases h : is_unit A.det,
   { obtain ⟨u, hu⟩ := h,
-    rw [←hu, ring.inverse_unit, ←units.coe_pow, ←units.coe_pow, ←units.coe_mul],
-    congr,
-    apply @mul_right_cancel _ _ _ u,
-    rw [mul_assoc, ←pow_succ', inv_mul_self, tsub_add_cancel_of_le hc_pos.nat_succ_le, inv_pow,
-      inv_mul_self] },
-  rw [ring.inverse_non_unit _ h, zero_pow hc_pos, zero_mul],
+    rw [←hu, ring.inverse_unit, ←units.coe_pow, ←units.coe_pow, ←units.coe_mul,
+      inv_pow, ←inv_pow_sub _ tsub_le_self, tsub_tsub_cancel_of_le hc_pos.nat_succ_le, pow_one], },
+  { rw [ring.inverse_non_unit _ h, zero_pow hc_pos, zero_mul], },
 end
 
 lemma is_unit_nonsing_inv_det (h : is_unit A.det) : is_unit A⁻¹.det :=
@@ -115,18 +113,9 @@ calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
                                          (A⁻¹).mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
                                          matrix.mul_one], }
 
-@[simp] lemma is_unit_nonsing_inv_det_iff {A : matrix n n α} :
+lemma is_unit_nonsing_inv_det_iff {A : matrix n n α} :
   is_unit A⁻¹.det ↔ is_unit A.det :=
-begin
-  refine ⟨λ h, _, is_unit_nonsing_inv_det _⟩,
-  nontriviality α,
-  casesI is_empty_or_nonempty n,
-  { simp },
-  contrapose! h,
-  rw [nonsing_inv_apply_not_is_unit _ h, det_zero],
-  { simp },
-  { apply_instance }
-end
+by rw [matrix.det_nonsing_inv, is_unit_ring_inverse]
 
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
 def invertible_of_det_invertible [invertible A.det] : invertible A :=

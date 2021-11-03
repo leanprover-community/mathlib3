@@ -20,7 +20,7 @@ we would need, and some sheafification would be needed for here and there.
 
 - `category_theory.cover_dense.sheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
 then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : G ⋙ ℱ ⟶ G ⋙ ℱ'`, we may glue them
-together to obtain a morphsim of sheaves `ℱ ⟶ ℱ'`.
+together to obtain a morphism of sheaves `ℱ ⟶ ℱ'`.
 - `category_theory.cover_dense.sheaf_iso`: If the `α` above is iso, then the result is also iso.
 - `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
 then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, then `α` is an iso if
@@ -69,7 +69,7 @@ begin
 end
 
 /--
-Given a functor `G`, the sieve of `U : D` such that each arrows factors through images of `G`.
+Given a functor `G`, the sieve of `U : D` such that each arrow factors through images of `G`.
 -/
 def sieve.cover_by_image (G : C ⥤ D) (U : D) : sieve U :=
 ⟨presieve.cover_by_image G U,

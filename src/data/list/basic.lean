@@ -3759,7 +3759,7 @@ prefix_append_right_inj [a]
 
 theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
 
-theorem take_sublist (n) (l : list α) : take n l <+ l := sublist_of_prefix (take_prefix n l)
+theorem take_sublist (n) (l : list α) : take n l <+ l := (take_prefix n l).sublist
 
 theorem take_subset (n) (l : list α) : take n l ⊆ l := (take_sublist n l).subset
 
@@ -3767,7 +3767,7 @@ theorem mem_of_mem_take {n} {l : list α} {x : α} (h : x ∈ l.take n) : x ∈ 
 
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
 
-theorem drop_sublist (n) (l : list α) : drop n l <+ l := sublist_of_suffix (drop_suffix n l)
+theorem drop_sublist (n) (l : list α) : drop n l <+ l := (drop_suffix n l).sublist
 
 theorem drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subset
 
@@ -3777,21 +3777,19 @@ theorem init_prefix : ∀ (l : list α), l.init <+: l
 | [] := ⟨nil, by rw [init, list.append_nil]⟩
 | (a :: l) := ⟨_, init_append_last (cons_ne_nil a l)⟩
 
-theorem init_sublist (l : list α) : l.init <+ l := sublist_of_prefix (init_prefix l)
+theorem init_sublist (l : list α) : l.init <+ l := (init_prefix l).sublist
 
 theorem init_subset (l : list α) : l.init ⊆ l := (init_sublist l).subset
 
-theorem mem_of_mem_init {l : list α} {a : α} (h : a ∈ l.init) : a ∈ l :=
-init_subset l h
+theorem mem_of_mem_init {l : list α} {a : α} (h : a ∈ l.init) : a ∈ l := init_subset l h
 
 theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
 
-lemma tail_sublist (l : list α) : l.tail <+ l := (tail_suffix l).sublist
+theorem tail_sublist (l : list α) : l.tail <+ l := (tail_suffix l).sublist
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
 
-theorem mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
-tail_subset l h
+theorem mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l := tail_subset l h
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩

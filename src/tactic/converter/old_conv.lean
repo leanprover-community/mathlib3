@@ -269,7 +269,8 @@ meta def findp : pexpr → old_conv unit → old_conv unit :=
   find_pattern pat c r e
 
 meta def conversion (c : old_conv unit) : tactic unit :=
-do (r, lhs, rhs) ← (target_lhs_rhs <|> fail "conversion failed, target is not of the form 'lhs R rhs'"),
+do (r, lhs, rhs) ←
+    (target_lhs_rhs <|> fail "conversion failed, target is not of the form 'lhs R rhs'"),
    (new_lhs, pr) ← to_tactic c r lhs,
    (unify new_lhs rhs <|>
      do new_lhs_fmt ← pp new_lhs,

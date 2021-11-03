@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.basic
-import data.stream
+import data.stream.init
 import data.lazy_list
 import data.seq.computation
 
@@ -233,7 +233,7 @@ instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
 section bisim
   variable (R : seq α → seq α → Prop)
 
-  local infix ~ := R
+  local infix ` ~ `:50 := R
 
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true

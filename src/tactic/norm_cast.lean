@@ -2,8 +2,6 @@
 Copyright (c) 2019 Paul-Nicolas Madelaine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul-Nicolas Madelaine, Robert Y. Lewis
-
-Normalizing casts inside expressions.
 -/
 import tactic.converter.interactive
 import tactic.hint
@@ -323,7 +321,7 @@ end
 ```
 -/
 meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
-tactic.interactive.simp none none tt hs [`push_cast] l
+tactic.interactive.simp none none tt hs [`push_cast] l {discharger := tactic.assumption}
 
 
 end tactic.interactive
@@ -535,7 +533,8 @@ A small variant of `push_cast` suited for non-interactive use.
 -/
 meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
 do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
-   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff},
+   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e
+                  {fail_if_unchanged := ff} `eq tactic.assumption,
    return (e, prf)
 
 end norm_cast
@@ -579,11 +578,10 @@ decorate_error "assumption_mod_cast failed:" $ do
     fail_if_unchanged := ff,
     canonize_instances := ff,
     canonize_proofs := ff,
-    proj := ff
-  },
+    proj := ff },
   replace_at derive [] tt,
   ctx ← local_context,
-  try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
+  ctx.mfirst (λ h, aux_mod_cast h ff >>= tactic.exact)
 
 end tactic
 
@@ -629,8 +627,7 @@ do
     pty ← pp ty, ptgt ← pp e,
     fail ("exact_mod_cast failed, expression type not directly " ++
     "inferrable. Try:\n\nexact_mod_cast ...\nshow " ++
-    to_fmt pty ++ ",\nfrom " ++ ptgt : format)
-  },
+    to_fmt pty ++ ",\nfrom " ++ ptgt : format) },
   tactic.exact_mod_cast e
 
 /--

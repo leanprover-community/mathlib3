@@ -3,10 +3,10 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.fin_cases
+import data.nat.interval
 import data.nat.prime
 import group_theory.perm.sign
-import data.finset.intervals
+import tactic.fin_cases
 
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin

@@ -5,7 +5,7 @@ Authors: Johan Commelin, Kenny Lau
 -/
 import data.mv_polynomial
 import linear_algebra.std_basis
-import ring_theory.ideal.operations
+import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
 import tactic.linarith
@@ -191,14 +191,14 @@ end
 lemma coeff_add_monomial_mul (a : R) :
   coeff R (m + n) (monomial R m a * φ) = a * coeff R n φ :=
 begin
-  rw [coeff_monomial_mul, if_pos, nat_add_sub_cancel_left],
+  rw [coeff_monomial_mul, if_pos, add_tsub_cancel_left],
   exact le_add_right le_rfl
 end
 
 lemma coeff_add_mul_monomial (a : R) :
   coeff R (m + n) (φ * monomial R n a) = coeff R m φ * a :=
 begin
-  rw [coeff_mul_monomial, if_pos, nat_add_sub_cancel],
+  rw [coeff_mul_monomial, if_pos, add_tsub_cancel_right],
   exact le_add_left le_rfl
 end
 
@@ -270,8 +270,8 @@ begin
   ext k,
   simp only [coeff_mul_monomial, coeff_monomial],
   split_ifs with h₁ h₂ h₃ h₃ h₂; try { refl },
-  { rw [← h₂, nat_sub_add_cancel h₁] at h₃, exact (h₃ rfl).elim },
-  { rw [h₃, nat_add_sub_cancel] at h₂, exact (h₂ rfl).elim },
+  { rw [← h₂, tsub_add_cancel_of_le h₁] at h₃, exact (h₃ rfl).elim },
+  { rw [h₃, add_tsub_cancel_right] at h₂, exact (h₂ rfl).elim },
   { exact zero_mul b },
   { rw h₂ at h₁, exact (h₁ $ le_add_left le_rfl).elim }
 end
@@ -382,7 +382,7 @@ lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ R) :
  then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : mv_power_series σ R) (h : is_unit φ) :
   is_unit (constant_coeff σ R φ) :=
-h.map' (constant_coeff σ R)
+h.map (constant_coeff σ R).to_monoid_hom
 
 @[simp]
 lemma coeff_smul (f : mv_power_series σ R) (n) (a : R) :
@@ -416,7 +416,7 @@ def map : mv_power_series σ R →+* mv_power_series σ S :=
     show f ((coeff R n) (φ + ψ)) = f ((coeff R n) φ) + f ((coeff R n) ψ), by simp,
   map_mul' := λ φ ψ, ext $ λ n, show f _ = _,
   begin
-    rw [coeff_mul, ← finset.sum_hom _ f, coeff_mul, finset.sum_congr rfl],
+    rw [coeff_mul, f.map_sum, coeff_mul, finset.sum_congr rfl],
     rintros ⟨i,j⟩ hij, rw [f.map_mul], refl,
   end }
 
@@ -541,18 +541,18 @@ begin
       { rintros ⟨i,j⟩ hij hne, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply hne, rw [← hij, ← hi, prod.mk.inj_iff], refine ⟨rfl, _⟩,
-          ext t, simp only [nat.add_sub_cancel_left, finsupp.add_apply, finsupp.nat_sub_apply] },
+          ext t, simp only [add_tsub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
         { exact zero_mul _ } },
         { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply H, rw [← hij, hi], ext,
-          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, nat_add_sub_cancel_left, add_comm], },
+          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, add_tsub_cancel_left, add_comm], },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
-        { subst t, simpa using nat.sub_add_cancel H },
+        { subst t, simpa using tsub_add_cancel_of_le H },
         { simp [finsupp.single_apply, hst] } } } }
 end
 
@@ -1239,8 +1239,8 @@ rescale_neg_one_X
 
 end comm_ring
 
-section integral_domain
-variable [integral_domain R]
+section domain
+variables [ring R] [is_domain R]
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
@@ -1270,10 +1270,15 @@ begin
     { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : integral_domain (power_series R) :=
+instance : is_domain (power_series R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nontrivial,
-  .. power_series.comm_ring }
+  .. power_series.nontrivial, }
+
+end domain
+
+section is_domain
+
+variables [comm_ring R] [is_domain R]
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1305,7 +1310,7 @@ begin
   exact ha (pow_eq_zero h'),
 end
 
-end integral_domain
+end is_domain
 
 section local_ring
 variables {S : Type*} [comm_ring R] [comm_ring S]
@@ -1455,7 +1460,7 @@ multiplicity.zero _
 begin
   split,
   { intro h, ext n, rw [(coeff R n).map_zero, coeff_of_lt_order], simp [h] },
-  { rintros rfl, exact order_zero  }
+  { rintros rfl, exact order_zero }
 end
 
 /-- The order of a formal power series is at least `n` if
@@ -1464,7 +1469,7 @@ lemma nat_le_order (φ : power_series R) (n : ℕ) (h : ∀ i < n, coeff R i φ 
   ↑n ≤ order φ :=
 begin
   by_contra H, rw not_le at H,
-  have : (order φ).dom := enat.dom_of_le_some (le_of_lt H),
+  have : (order φ).dom := enat.dom_of_le_coe H.le,
   rw [← enat.coe_get this, enat.coe_lt_coe] at H,
   exact coeff_order _ this (h _ H)
 end
@@ -1485,7 +1490,7 @@ and the `i`th coefficient is `0` for all `i < n`.-/
 lemma order_eq_nat {φ : power_series R} {n : ℕ} :
   order φ = n ↔ (coeff R n φ ≠ 0) ∧ (∀ i, i < n → coeff R i φ = 0) :=
 begin
-  simp only [eq_some_iff, X_pow_dvd_iff], push_neg,
+  simp only [eq_coe_iff, X_pow_dvd_iff], push_neg,
   split,
   { rintros ⟨h₁, m, hm₁, hm₂⟩, refine ⟨_, h₁⟩,
     suffices : n = m, { rwa this },
@@ -1556,7 +1561,7 @@ begin
   rw not_lt at hi hj, rw finset.nat.mem_antidiagonal at hij,
   exfalso,
   apply ne_of_lt (lt_of_lt_of_le hn $ add_le_add hi hj),
-  rw [← enat.coe_add, hij]
+  rw [← nat.cast_add, hij]
 end
 
 /-- The order of the monomial `a*X^n` is infinite if `a = 0` and `n` otherwise.-/
@@ -1618,7 +1623,7 @@ by simpa using order_monomial_of_ne_zero 0 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X` is `1`.-/
 @[simp] lemma order_X : order (X : power_series R) = 1 :=
-order_monomial_of_ne_zero 1 (1:R) one_ne_zero
+by simpa only [nat.cast_one] using order_monomial_of_ne_zero 1 (1:R) one_ne_zero
 
 /-- The order of the formal power series `X^n` is `n`.-/
 @[simp] lemma order_X_pow (n : ℕ) : order ((X : power_series R)^n) = n :=
@@ -1626,8 +1631,8 @@ by { rw [X_pow_eq, order_monomial_of_ne_zero], exact one_ne_zero }
 
 end order_zero_ne_one
 
-section order_integral_domain
-variables [integral_domain R]
+section order_is_domain
+variables [comm_ring R] [is_domain R]
 
 /-- The order of the product of two formal power series over an integral domain
  is the sum of their orders.-/
@@ -1635,7 +1640,7 @@ lemma order_mul (φ ψ : power_series R) :
   order (φ * ψ) = order φ + order ψ :=
 multiplicity.mul (X_prime)
 
-end order_integral_domain
+end order_is_domain
 
 end power_series
 

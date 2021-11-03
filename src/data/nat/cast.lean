@@ -3,7 +3,7 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_field
+import algebra.order.field
 import data.nat.basic
 
 /-!
@@ -124,7 +124,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
 
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
   ((n - m : ℕ) : α) = n - m :=
-eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
+eq_sub_of_add_eq $ by rw [← cast_add, tsub_add_cancel_of_le h]
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
@@ -166,7 +166,7 @@ variables [ordered_semiring α]
 | 0     := le_refl _
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
-theorem mono_cast : monotone (coe : ℕ → α) :=
+@[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
 λ m n h, let ⟨k, hk⟩ := le_iff_exists_add.1 h in by simp [hk]
 
 variable [nontrivial α]
@@ -179,7 +179,7 @@ theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
-@[simp, norm_cast] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
+@[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
 
 @[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
@@ -204,14 +204,14 @@ end
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min]
+(@mono_cast α _).map_min
 
 @[simp, norm_cast] theorem cast_max [linear_ordered_semiring α] {a b : ℕ} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [h, max]
+(@mono_cast α _).map_max
 
 @[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
-  abs (a : α) = a :=
+  |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 
 lemma coe_nat_dvd [comm_semiring α] {m n : ℕ} (h : m ∣ n) :
@@ -238,6 +238,19 @@ by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
 end linear_ordered_field
 
 end nat
+
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α]
+  [has_zero β] [has_one β] [has_add β]
+
+@[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_nat_cast (n : ℕ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
 
 namespace add_monoid_hom
 
@@ -323,7 +336,7 @@ begin
 end
 
 lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
-⟨λ h, (coe_lt_coe.2 zero_lt_one).trans_le h,
+⟨lt_of_lt_of_le (coe_lt_coe.mpr zero_lt_one),
   λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
 
 @[elab_as_eliminator]

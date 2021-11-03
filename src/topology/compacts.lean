@@ -46,13 +46,16 @@ instance nonempty_compacts_inhabited [inhabited α] : inhabited (nonempty_compac
 /-- The compact sets with nonempty interior of a topological space. See also `compacts` and
   `nonempty_compacts`. -/
 @[nolint has_inhabited_instance]
-def positive_compacts: Type* := { s : set α // is_compact s ∧ (interior s).nonempty  }
+def positive_compacts: Type* := { s : set α // is_compact s ∧ (interior s).nonempty }
 
 /-- In a nonempty compact space, `set.univ` is a member of `positive_compacts`, the compact sets
 with nonempty interior. -/
 def positive_compacts_univ {α : Type*} [topological_space α] [compact_space α] [nonempty α] :
   positive_compacts α :=
 ⟨set.univ, compact_univ, by simp⟩
+
+@[simp] lemma positive_compacts_univ_val (α : Type*) [topological_space α] [compact_space α]
+  [nonempty α] : (positive_compacts_univ : positive_compacts α).val = univ := rfl
 
 variables {α}
 
@@ -117,5 +120,19 @@ def nonempty_compacts.to_closeds [t2_space α] : nonempty_compacts α → closed
 set.inclusion $ λ s hs, hs.2.is_closed
 
 end nonempty_compacts
+
+section positive_compacts
+
+variable (α)
+/-- In a nonempty locally compact space, there exists a compact set with nonempty interior. -/
+instance nonempty_positive_compacts [locally_compact_space α] [nonempty α] :
+  nonempty (positive_compacts α) :=
+begin
+  inhabit α,
+  rcases exists_compact_subset is_open_univ (mem_univ (default α)) with ⟨K, hK⟩,
+  exact ⟨⟨K, hK.1, ⟨_, hK.2.1⟩⟩⟩
+end
+
+end positive_compacts
 
 end topological_space

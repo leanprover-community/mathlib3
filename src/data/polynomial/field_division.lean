@@ -3,9 +3,12 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.ring_division
+import algebra.gcd_monoid.basic
 import data.polynomial.derivative
-import algebra.gcd_monoid
+import data.polynomial.ring_division
+import data.set.pairwise
+import ring_theory.coprime.lemmas
+import ring_theory.euclidean_domain
 
 /-!
 # Theory of univariate polynomials
@@ -21,8 +24,9 @@ namespace polynomial
 universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
 
-section integral_domain
-variables [integral_domain R] [normalization_monoid R]
+section is_domain
+variables [comm_ring R] [is_domain R] [normalization_monoid R]
+
 instance : normalization_monoid (polynomial R) :=
 { norm_unit := λ p, ⟨C ↑(norm_unit (p.leading_coeff)), C ↑(norm_unit (p.leading_coeff))⁻¹,
     by rw [← ring_hom.map_mul, units.mul_inv, C_1], by rw [← ring_hom.map_mul, units.inv_mul, C_1]⟩,
@@ -48,7 +52,12 @@ by simp [norm_unit]
 lemma leading_coeff_normalize (p : polynomial R) :
   leading_coeff (normalize p) = normalize (leading_coeff p) := by simp
 
-end integral_domain
+lemma monic.normalize_eq_self {p : polynomial R} (hp : p.monic) :
+  normalize p = p :=
+by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
+  units.coe_one, polynomial.C.map_one, mul_one]
+
+end is_domain
 
 section field
 variables [field R] {p q : polynomial R}
@@ -66,9 +75,11 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 
 lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
-lt_of_not_ge (λ h, by rw [eq_C_of_degree_le_zero h] at hp0 hp;
-  exact (hp $ is_unit.map' C $
-    is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0))))
+lt_of_not_ge (λ h, begin
+  rw [eq_C_of_degree_le_zero h] at hp0 hp,
+  exact hp (is_unit.map (C.to_monoid_hom : R →* _)
+    (is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0)))),
+end)
 
 lemma monic_mul_leading_coeff_inv (h : p ≠ 0) :
   monic (p * C (leading_coeff p)⁻¹) :=
@@ -92,7 +103,7 @@ have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_moni
 or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
 hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
   (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv', ← leading_coeff_mul,
+by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, ← leading_coeff_mul,
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/
@@ -116,8 +127,6 @@ private lemma remainder_lt_aux (p : polynomial R) (hq : q ≠ 0) :
   degree (mod p q) < degree q :=
 by rw ← degree_mul_leading_coeff_inv q hq; exact
   degree_mod_by_monic_lt p (monic_mul_leading_coeff_inv hq)
-    (mul_ne_zero hq (mt leading_coeff_eq_zero.2 (by rw leading_coeff_C;
-      exact inv_ne_zero (mt leading_coeff_eq_zero.1 hq))))
 
 instance : has_div (polynomial R) := ⟨div⟩
 
@@ -168,7 +177,7 @@ lemma div_eq_zero_iff (hq0 : q ≠ 0) : p / q = 0 ↔ degree p < degree q :=
 λ h, have hlt : degree p < degree (q * C (leading_coeff q)⁻¹),
     by rwa degree_mul_leading_coeff_inv q hq0,
   have hm : monic (q * C (leading_coeff q)⁻¹) := monic_mul_leading_coeff_inv hq0,
-  by rw [div_def, (div_by_monic_eq_zero_iff hm (ne_zero_of_monic hm)).2 hlt, mul_zero]⟩
+  by rw [div_def, (div_by_monic_eq_zero_iff hm).2 hlt, mul_zero]⟩
 
 lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
   degree q + degree (p / q) = degree p :=
@@ -327,8 +336,6 @@ end
 lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
 by simp [hp]
 
-lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
-
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
@@ -341,12 +348,12 @@ lemma degree_normalize : degree (normalize p) = degree p := by simp
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),
-  from prime_of_degree_eq_one_of_monic (hp1 ▸ degree_normalize)
+  from monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
     (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
-prime_of_associated normalize_associated this
+(normalize_associated _).prime this
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
-irreducible_of_prime (prime_of_degree_eq_one hp1)
+(prime_of_degree_eq_one hp1).irreducible
 
 theorem not_irreducible_C (x : R) : ¬irreducible (C x) :=
 if H : x = 0 then by { rw [H, C_0], exact not_irreducible_zero }
@@ -401,7 +408,7 @@ begin
     pairwise_coprime_X_sub function.injective_id,
   have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
   { intros a b hdiff, exact (hcoprime a b hdiff).pow },
-  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on H (↑(multiset.to_finset p.roots) : set R)),
+  apply finset.prod_dvd_of_coprime (H.set_pairwise (↑(multiset.to_finset p.roots) : set R)),
   intros a h,
   rw multiset.mem_to_finset at h,
   exact pow_root_multiplicity_dvd p a

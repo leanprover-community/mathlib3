@@ -78,6 +78,10 @@ lemma is_initial.subsingleton_to (hI : is_initial I) {A : C} :
   subsingleton (A ⟶ I) :=
 ⟨hI.strict_hom_ext⟩
 
+@[priority 100] instance initial_mono_of_strict_initial_objects : initial_mono_class C :=
+{ is_initial_mono_from := λ I A hI,
+  { right_cancellation := λ B g h i, hI.strict_hom_ext _ _ } }
+
 /-- If `I` is initial, then `X ⨯ I` is isomorphic to it. -/
 @[simps hom]
 noncomputable def mul_is_initial (X : C) [has_binary_product X I] (hI : is_initial I) :

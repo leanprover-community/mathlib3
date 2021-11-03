@@ -87,11 +87,11 @@ end
 
 /-- Let `b` map rows and columns of a square matrix `M` to `n` blocks. Then
   `block_triangular_matrix' M n b` says the matrix is block triangular. -/
-def block_triangular_matrix' {o : Type*} [fintype o] (M : matrix o o R) {n : ℕ}
+def block_triangular_matrix' {o : Type*} (M : matrix o o R) {n : ℕ}
   (b : o → fin n) : Prop :=
 ∀ i j, b j < b i → M i j = 0
 
-lemma upper_two_block_triangular' {m n : Type*} [fintype m] [fintype n]
+lemma upper_two_block_triangular' {m n : Type*}
   (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   block_triangular_matrix' (from_blocks A B 0 D) (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) :=
 begin
@@ -115,10 +115,10 @@ end
 
 /-- Let `b` map rows and columns of a square matrix `M` to blocks indexed by `ℕ`s. Then
   `block_triangular_matrix M n b` says the matrix is block triangular. -/
-def block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (b : o → ℕ) : Prop :=
+def block_triangular_matrix {o : Type*} (M : matrix o o R) (b : o → ℕ) : Prop :=
 ∀ i j, b j < b i → M i j = 0
 
-lemma upper_two_block_triangular {m n : Type*} [fintype m] [fintype n]
+lemma upper_two_block_triangular {m n : Type*}
   (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   block_triangular_matrix (from_blocks A B 0 D) (sum.elim (λ i, 0) (λ j, 1)) :=
 begin

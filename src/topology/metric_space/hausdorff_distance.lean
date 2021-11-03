@@ -91,12 +91,12 @@ lemma inf_edist_closure : inf_edist x (closure s) = inf_edist x s :=
 begin
   refine le_antisymm (inf_edist_le_inf_edist_of_subset subset_closure) _,
   refine ennreal.le_of_forall_pos_le_add (λε εpos h, _),
-  have εpos' : (0 : ℝ≥0∞) < ε := by simpa,
-  have : inf_edist x (closure s) < inf_edist x (closure s) + ε/2 :=
-    ennreal.lt_add_right h (ennreal.half_pos εpos'),
+  have ε0 : 0 < (ε / 2 : ℝ≥0∞) := by simpa [pos_iff_ne_zero] using εpos,
+  have : inf_edist x (closure s) < inf_edist x (closure s) + ε/2,
+    from ennreal.lt_add_right h.ne ε0.ne',
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ycs, hy⟩,
   -- y : α,  ycs : y ∈ closure s,  hy : edist x y < inf_edist x (closure s) + ↑ε / 2
-  rcases emetric.mem_closure_iff.1 ycs (ε/2) (ennreal.half_pos εpos') with ⟨z, zs, dyz⟩,
+  rcases emetric.mem_closure_iff.1 ycs (ε/2) ε0 with ⟨z, zs, dyz⟩,
   -- z : α,  zs : z ∈ s,  dyz : edist y z < ↑ε / 2
   calc inf_edist x s ≤ edist x z : inf_edist_le_edist_of_mem zs
         ... ≤ edist x y + edist y z : edist_triangle _ _ _
@@ -114,6 +114,17 @@ lemma mem_iff_inf_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist
 begin
   convert ← mem_closure_iff_inf_edist_zero,
   exact h.closure_eq
+end
+
+lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ≥0∞} (h : r < inf_edist x s) :
+  disjoint (closed_ball x r) s :=
+begin
+  rw disjoint_left,
+  assume y hy h'y,
+  apply lt_irrefl (inf_edist x s),
+  calc inf_edist x s ≤ edist x y : inf_edist_le_edist_of_mem h'y
+  ... ≤ r : by rwa [mem_closed_ball, edist_comm] at hy
+  ... < inf_edist x s : h
 end
 
 /-- The infimum edistance is invariant under isometries -/
@@ -227,13 +238,13 @@ between `s` and `t` -/
 lemma inf_edist_le_inf_edist_add_Hausdorff_edist :
   inf_edist x t ≤ inf_edist x s + Hausdorff_edist s t :=
 ennreal.le_of_forall_pos_le_add $ λε εpos h, begin
-  have εpos' : (0 : ℝ≥0∞) < ε := by simpa,
+  have ε0 : (ε / 2 : ℝ≥0∞) ≠ 0 := by simpa [pos_iff_ne_zero] using εpos,
   have : inf_edist x s < inf_edist x s + ε/2 :=
-    ennreal.lt_add_right (ennreal.add_lt_top.1 h).1 (ennreal.half_pos εpos'),
+    ennreal.lt_add_right (ennreal.add_lt_top.1 h).1.ne ε0,
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ys, dxy⟩,
   -- y : α,  ys : y ∈ s,  dxy : edist x y < inf_edist x s + ↑ε / 2
   have : Hausdorff_edist s t < Hausdorff_edist s t + ε/2 :=
-    ennreal.lt_add_right (ennreal.add_lt_top.1 h).2 (ennreal.half_pos εpos'),
+    ennreal.lt_add_right (ennreal.add_lt_top.1 h).2.ne ε0,
   rcases exists_edist_lt_of_Hausdorff_edist_lt ys this with ⟨z, zt, dyz⟩,
   -- z : α,  zt : z ∈ t,  dyz : edist y z < Hausdorff_edist s t + ↑ε / 2
   calc inf_edist x t ≤ edist x z : inf_edist_le_edist_of_mem zt
@@ -433,6 +444,17 @@ begin
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
 end
 
+lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
+  disjoint (closed_ball x r) s :=
+begin
+  rw disjoint_left,
+  assume y hy h'y,
+  apply lt_irrefl (inf_dist x s),
+  calc inf_dist x s ≤ dist x y : inf_dist_le_dist_of_mem h'y
+  ... ≤ r : by rwa [mem_closed_ball, dist_comm] at hy
+  ... < inf_dist x s : h
+end
+
 variable (s)
 
 /-- The minimal distance to a set is Lipschitz in point with constant 1 -/
@@ -460,11 +482,20 @@ lemma mem_closure_iff_inf_dist_zero (h : s.nonempty) : x ∈ closure s ↔ inf_d
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
-lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s.nonempty) :
+lemma _root_.is_closed.mem_iff_inf_dist_zero (h : is_closed s) (hs : s.nonempty) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,
   rwa h.closure_eq at this
+end
+
+/-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
+lemma _root_.is_closed.not_mem_iff_inf_dist_pos (h : is_closed s) (hs : s.nonempty) :
+  x ∉ s ↔ 0 < inf_dist x s :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  simp [h.mem_iff_inf_dist_zero hs, le_antisymm_iff, inf_dist_nonneg],
 end
 
 /-- The infimum distance is invariant under isometries -/
@@ -523,7 +554,7 @@ begin
       have : dist x cs ≤ max rs rt := le_trans (hrt xt) (le_max_right _ _),
       rwa [edist_dist, ennreal.of_real_le_of_real_iff],
       exact le_trans dist_nonneg this }},
-  exact ennreal.lt_top_iff_ne_top.1 (lt_of_le_of_lt this (by simp [lt_top_iff_ne_top]))
+  exact ne_top_of_le_ne_top ennreal.of_real_ne_top this
 end
 
 /-- The Hausdorff distance between a set and itself is zero -/
@@ -664,9 +695,9 @@ begin
   { have Dtu : Hausdorff_edist t u < ⊤ := calc
       Hausdorff_edist t u ≤ Hausdorff_edist t s + Hausdorff_edist s u : Hausdorff_edist_triangle
       ... = Hausdorff_edist s t + Hausdorff_edist s u : by simp [Hausdorff_edist_comm]
-      ... < ⊤ : by simp  [ennreal.add_lt_top]; simp [ennreal.lt_top_iff_ne_top, h, fin],
+      ... < ⊤ : by simp [lt_top_iff_ne_top, *],
     rw [Hausdorff_dist, Hausdorff_dist, Hausdorff_dist,
-        ← ennreal.to_real_add fin (lt_top_iff_ne_top.1 Dtu), ennreal.to_real_le_to_real h],
+        ← ennreal.to_real_add fin Dtu.ne, ennreal.to_real_le_to_real h],
     { exact Hausdorff_edist_triangle },
     { simp [ennreal.add_eq_top, lt_top_iff_ne_top.1 Dtu, fin] }}
 end
@@ -706,7 +737,7 @@ by simp [Hausdorff_edist_zero_iff_closure_eq_closure.symm, Hausdorff_dist,
          ennreal.to_real_eq_zero_iff, fin]
 
 /-- Two closed sets are at zero Hausdorff distance if and only if they coincide -/
-lemma Hausdorff_dist_zero_iff_eq_of_closed (hs : is_closed s) (ht : is_closed t)
+lemma _root_.is_closed.Hausdorff_dist_zero_iff_eq (hs : is_closed s) (ht : is_closed t)
   (fin : Hausdorff_edist s t ≠ ⊤) : Hausdorff_dist s t = 0 ↔ s = t :=
 by simp [(Hausdorff_edist_zero_iff_eq_of_closed hs ht).symm, Hausdorff_dist,
          ennreal.to_real_eq_zero_iff, fin]

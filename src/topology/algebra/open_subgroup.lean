@@ -6,11 +6,31 @@ Authors: Johan Commelin
 import order.filter.lift
 import topology.opens
 import topology.algebra.ring
+/-!
+# Open subgroups of a topological groups
+
+This files builds the lattice `open_subgroup G` of open subgroups in a topological group `G`,
+and its additive version `open_add_subgroup`.  This lattice has a top element, the subgroup of all
+elements, but no bottom element in general. The trivial subgroup which is the natural candidate
+bottom has no reason to be open (this happens only in discrete groups).
+
+Note that this notion is especially relevant in a non-archimedean context, for instance for
+`p`-adic groups.
+
+## Main declarations
+
+* `open_subgroup.is_closed`: An open subgroup is automatically closed.
+* `subgroup.is_open_mono`: A subgroup containing an open subgroup is open.
+                           There are also versions for additive groups, submodules and ideals.
+* `open_subgroup.comap`: Open subgroups can be pulled back by a continuous group morphism.
+
+## TODO
+* Prove that the identity component of a locally path connected group is an open subgroup.
+  Up to now this file is really geared towards non-archimedean algebra, not Lie groups.
+-/
 
 open topological_space
 open_locale topological_space
-
-set_option old_structure_cmd true
 
 /-- The type of open subgroups of a topological additive group. -/
 @[ancestor add_subgroup]
@@ -50,16 +70,13 @@ instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_su
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
-@[simp, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive]
+@[simp, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
 
-attribute [norm_cast] mem_coe mem_coe_opens mem_coe_subgroup open_add_subgroup.mem_coe
-  open_add_subgroup.mem_coe_opens open_add_subgroup.mem_coe_add_subgroup
-
 @[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
-λ U V h, by cases U; cases V; congr; assumption
+by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }
 
 @[ext, to_additive]
 lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := coe_injective $ set.ext h
@@ -132,14 +149,12 @@ instance : semilattice_inf_top (open_subgroup G) :=
   le_top := λ U, set.subset_univ _,
   ..open_subgroup.partial_order }
 
-@[simp, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
+@[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 
-@[simp, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
+@[simp, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
 
-@[simp, to_additive] lemma coe_subgroup_le : (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
-
-attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_inf
-  open_add_subgroup.coe_subset open_add_subgroup.coe_add_subgroup_le
+@[simp, norm_cast, to_additive] lemma coe_subgroup_le :
+(U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 variables {N : Type*} [group N] [topological_space N]
 
@@ -181,7 +196,7 @@ begin
   have : filter.tendsto (λ y, y * (x⁻¹ * g)) (𝓝 x) (𝓝 $ x * (x⁻¹ * g)) :=
     (continuous_id.mul continuous_const).tendsto _,
   rw [mul_inv_cancel_left] at this,
-  have := filter.mem_map.1 (this hg),
+  have := filter.mem_map'.1 (this hg),
   replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_mem_nhds hg),
   simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
   exact this
@@ -190,7 +205,7 @@ end
 @[to_additive]
 lemma is_open_of_open_subgroup {U : open_subgroup G} (h : U.1 ≤ H) :
   is_open (H : set G) :=
-H.is_open_of_mem_nhds (filter.mem_sets_of_superset U.mem_nhds_one h)
+H.is_open_of_mem_nhds (filter.mem_of_superset U.mem_nhds_one h)
 
 @[to_additive]
 lemma is_open_mono {H₁ H₂ : subgroup G} (h : H₁ ≤ H₂) (h₁ : is_open (H₁  :set G)) :
@@ -213,6 +228,10 @@ instance : semilattice_sup_top (open_subgroup G) :=
   le_sup_right := λ U V, coe_subgroup_le.1 le_sup_right,
   sup_le := λ U V W hU hV, coe_subgroup_le.1 (sup_le hU hV),
   ..open_subgroup.semilattice_inf_top }
+
+@[to_additive]
+instance : lattice (open_subgroup G) :=
+{ ..open_subgroup.semilattice_sup_top, ..open_subgroup.semilattice_inf_top }
 
 end open_subgroup
 

@@ -68,6 +68,6 @@ def free : Type u ⥤ Mon.{u} :=
 def adj : free ⊣ forget Mon.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_monoid.lift.symm,
-  hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+  hom_equiv_naturality_left_symm' := λ X Y G f g, by { ext1, refl } }
 
 instance : is_right_adjoint (forget Mon.{u}) := ⟨_, adj⟩

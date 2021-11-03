@@ -13,7 +13,7 @@ a polynomial over an integral domain.
 -/
 
 open polynomial ideal.quotient
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_ring R]
 
 namespace polynomial
 namespace eisenstein_criterion_aux
@@ -63,6 +63,8 @@ end eisenstein_criterion_aux
 
 open eisenstein_criterion_aux
 
+variables [is_domain R]
+
 /-- If `f` is a non constant polynomial with coefficients in `R`, and `P` is a prime ideal in `R`,
 then if every coefficient in `R` except the leading coefficient is in `P`, and
 the trailing coefficient is not in `P^2` and no non units in `R` divide `f`, then `f` is
@@ -82,7 +84,7 @@ begin
   rintros p q rfl,
   rw [map_mul] at hf,
   rcases mul_eq_mul_prime_pow (show prime (X : polynomial (ideal.quotient P)),
-    from prime_of_degree_eq_one_of_monic degree_X monic_X) hf with
+    from monic_X.prime_of_degree_eq_one degree_X) hf with
       ⟨m, n, b, c, hmnd, hbc, hp, hq⟩,
   have hmn : 0 < m → 0 < n → false,
   { assume hm0 hn0,

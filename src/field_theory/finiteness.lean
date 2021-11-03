@@ -31,19 +31,15 @@ its dimension (as a cardinal) is strictly less than the first infinite cardinal 
 lemma iff_dim_lt_omega : is_noetherian K V ↔ module.rank K V < omega.{v} :=
 begin
   let b := basis.of_vector_space K V,
-  have := b.mk_eq_dim,
-  simp only [lift_id] at this,
-  rw [← this, lt_omega_iff_fintype, ← @set.set_of_mem_eq _ (basis.of_vector_space_index K V),
-      ← subtype.range_coe_subtype],
+  rw [← b.mk_eq_dim'', lt_omega_iff_finite],
   split,
-  { intro,
-    resetI,
-    simpa using finite_of_linear_independent (basis.of_vector_space_index.linear_independent K V) },
+  { introI,
+    exact finite_of_linear_independent (basis.of_vector_space_index.linear_independent K V) },
   { assume hbfinite,
     refine @is_noetherian_of_linear_equiv K (⊤ : submodule K V) V _
       _ _ _ _ (linear_equiv.of_top _ rfl) (id _),
     refine is_noetherian_of_fg_of_noetherian _ ⟨set.finite.to_finset hbfinite, _⟩,
-    rw [set.finite.coe_to_finset, ← b.span_eq, basis.coe_of_vector_space] }
+    rw [set.finite.coe_to_finset, ← b.span_eq, basis.coe_of_vector_space, subtype.range_coe] }
 end
 
 variables (K V)

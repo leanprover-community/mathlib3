@@ -34,7 +34,6 @@ section lie_subalgebra
 
 variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-set_option old_structure_cmd true
 /-- A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie algebra. -/
 structure lie_subalgebra extends submodule R L :=
@@ -83,7 +82,7 @@ lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L
 @[simp] lemma mem_carrier {x : L} : x ∈ L'.carrier ↔ x ∈ (L' : set L) := iff.rfl
 
 @[simp] lemma mem_mk_iff (S : set L) (h₁ h₂ h₃ h₄) {x : L} :
-  x ∈ (⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
+  x ∈ (⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
 iff.rfl
 
 @[simp] lemma mem_coe_submodule {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
@@ -104,14 +103,14 @@ lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x �
 ⟨λ h x, by rw h, ext L₁' L₂'⟩
 
 @[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
-  ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
+  ((⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
 
 @[simp] lemma coe_to_submodule_mk (p : submodule R L) (h) :
   (({lie_mem' := h, ..p} : lie_subalgebra R L) : submodule R L) = p :=
 by { cases p, refl, }
 
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
-λ L₁' L₂' h, by cases L₁'; cases L₂'; congr'
+by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h, congr' }
 
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
@@ -315,7 +314,9 @@ end
 lemma Inf_glb (S : set (lie_subalgebra R L)) : is_glb S (Inf S) :=
 begin
   have h : ∀ (K K' : lie_subalgebra R L), (K : set L) ≤ K' ↔ K ≤ K', { intros, exact iff.rfl, },
-  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+  apply is_glb.of_image h,
+  simp only [Inf_coe],
+  exact is_glb_binfi
 end
 
 /-- The set of Lie subalgebras of a Lie algebra form a complete lattice.
@@ -456,6 +457,29 @@ begin
   { rw [← coe_to_submodule_mk p h, coe_to_submodule, coe_to_submodule_eq_iff, lie_span_eq], },
 end
 
+variables (R L)
+
+/-- `lie_span` forms a Galois insertion with the coercion from `lie_subalgebra` to `set`. -/
+protected def gi : galois_insertion (lie_span R L : set L → lie_subalgebra R L) coe :=
+{ choice    := λ s _, lie_span R L s,
+  gc        := λ s t, lie_span_le,
+  le_l_u    := λ s, subset_lie_span,
+  choice_eq := λ s h, rfl }
+
+@[simp] lemma span_empty : lie_span R L (∅ : set L) = ⊥ :=
+(lie_subalgebra.gi R L).gc.l_bot
+
+@[simp] lemma span_univ : lie_span R L (set.univ : set L) = ⊤ :=
+eq_top_iff.2 $ set_like.le_def.2 $ subset_lie_span
+
+variables {L}
+
+lemma span_union (s t : set L) : lie_span R L (s ∪ t) = lie_span R L s ⊔ lie_span R L t :=
+(lie_subalgebra.gi R L).gc.l_sup
+
+lemma span_Union {ι} (s : ι → set L) : lie_span R L (⋃ i, s i) = ⨆ i, lie_span R L (s i) :=
+(lie_subalgebra.gi R L).gc.l_supr
+
 end lie_span
 
 end lie_subalgebra
@@ -470,9 +494,8 @@ variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [li
 /-- An injective Lie algebra morphism is an equivalence onto its range. -/
 noncomputable def of_injective (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) :
   L₁ ≃ₗ⁅R⁆ f.range :=
-have h' : (f : L₁ →ₗ[R] L₂).ker = ⊥ := linear_map.ker_eq_bot_of_injective h,
 { map_lie' := λ x y, by { apply set_coe.ext, simpa, },
-..(linear_equiv.of_injective ↑f h')}
+..(linear_equiv.of_injective ↑f $ by rwa [lie_hom.coe_to_linear_map])}
 
 @[simp] lemma of_injective_apply (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) (x : L₁) :
   ↑(of_injective f h x) = f x := rfl

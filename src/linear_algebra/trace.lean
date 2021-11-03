@@ -8,7 +8,7 @@ import linear_algebra.matrix.trace
 
 
 /-!
-# Trace of a matrix
+# Trace of a linear map
 
 This file defines the trace of a linear map.
 
@@ -37,7 +37,7 @@ variables (b : basis ι R M) (c : basis κ R M)
 /-- The trace of an endomorphism given a basis. -/
 def trace_aux :
   (M →ₗ[R] M) →ₗ[R] R :=
-(matrix.trace ι R R).comp $ linear_map.to_matrix b b
+(matrix.trace ι R R) ∘ₗ ↑(linear_map.to_matrix b b)
 
 -- Can't be `simp` because it would cause a loop.
 lemma trace_aux_def (b : basis ι R M) (f : M →ₗ[R] M) :

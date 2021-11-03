@@ -126,3 +126,10 @@ begin
 end
 
 end ennreal
+
+lemma b (h g : true) : true ∧ true :=
+begin
+ split,
+ assumption_mod_cast,
+ assumption_mod_cast,
+end

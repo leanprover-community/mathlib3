@@ -47,7 +47,7 @@ nat.rec_on n rfl $ λ n ihn, by rw [iterate_succ, ihn, comp.left_id]
 
 theorem iterate_add : ∀ (m n : ℕ), f^[m + n] = (f^[m]) ∘ (f^[n])
 | m 0 := rfl
-| m (nat.succ n) := by rw [iterate_succ, iterate_succ, iterate_add]
+| m (nat.succ n) := by rw [nat.add_succ, iterate_succ, iterate_succ, iterate_add]
 
 theorem iterate_add_apply (m n : ℕ) (x : α) : f^[m + n] x = (f^[m] (f^[n] x)) :=
 by rw iterate_add
@@ -138,6 +138,15 @@ by rw [← iterate_succ, nat.succ_pred_eq_of_pos hn]
 
 theorem comp_iterate_pred_of_pos {n : ℕ} (hn : 0 < n) : f ∘ (f^[n.pred]) = (f^[n]) :=
 by rw [← iterate_succ', nat.succ_pred_eq_of_pos hn]
+
+/-- A recursor for the iterate of a function. -/
+def iterate.rec (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) (n : ℕ) :
+  p (f^[n] a) :=
+nat.rec ha (λ m, by { rw iterate_succ', exact h _ }) n
+
+lemma iterate.rec_zero (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) :
+  iterate.rec p h ha 0 = ha :=
+rfl
 
 variable {f}
 

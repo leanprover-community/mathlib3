@@ -36,7 +36,7 @@ namespace ε_NFA
 instance : inhabited (ε_NFA α σ) := ⟨ ε_NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
 /-- The `ε_closure` of a set is the set of states which can be reached by taking a finite string of
-  ε-transitions from an element of the the set -/
+  ε-transitions from an element of the set -/
 inductive ε_closure : set σ → set σ
 | base : ∀ S (s ∈ S), ε_closure S s
 | step : ∀ S s (t ∈ M.step s none), ε_closure S s → ε_closure S t
@@ -76,8 +76,8 @@ begin
 end
 
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
-  (hlen : fintype.card (set σ) + 1 ≤ list.length x) :
-  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) + 1 ∧ b ≠ [] ∧
+  (hlen : fintype.card (set σ) ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
   rw ←to_NFA_correct at hx ⊢,

@@ -2,11 +2,28 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-The integers, with addition, multiplication, and subtraction.
 -/
 import data.nat.pow
-import algebra.order_functions
+import order.min_max
+
+/-!
+# Basic operations on the integers
+
+This file contains:
+* instances on `ℤ`. The stronger one is `int.linear_ordered_comm_ring`.
+* some basic lemmas about integers
+
+## Recursors
+
+* `int.rec`: Sign disjunction. Something is true/defined on `ℤ` if it's true/defined for nonnegative
+  and for negative values.
+* `int.bit_cases_on`: Parity disjunction. Something is true/defined on `ℤ` if it's true/defined for
+  even and for odd values.
+* `int.induction_on`: Simple growing induction on positive numbers, plus simple decreasing induction
+  on negative numbers. Note that this recursor is currently only `Prop`-valued.
+* `int.induction_on'`: Simple growing induction for numbers greater than `b`, plus simple decreasing
+  induction on numbers less than `b`.
+-/
 
 open nat
 
@@ -35,13 +52,17 @@ instance : comm_ring int :=
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm,
-  gsmul          := (*),
-  gsmul_zero'    := int.zero_mul,
-  gsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
+  zsmul          := (*),
+  zsmul_zero'    := int.zero_mul,
+  zsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
                                   int.one_mul],
-  gsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
+  zsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
-/-! ### Extra instances to short-circuit type class resolution -/
+/-! ### Extra instances to short-circuit type class resolution
+
+These also prevent non-computable instances like `int.normed_comm_ring` being used to construct
+these instances non-computably.
+-/
 -- instance : has_sub int            := by apply_instance -- This is in core
 instance : add_comm_monoid int    := by apply_instance
 instance : add_monoid int         := by apply_instance
@@ -49,6 +70,8 @@ instance : monoid int             := by apply_instance
 instance : comm_monoid int        := by apply_instance
 instance : comm_semigroup int     := by apply_instance
 instance : semigroup int          := by apply_instance
+instance : add_comm_group int     := by apply_instance
+instance : add_group int          := by apply_instance
 instance : add_comm_semigroup int := by apply_instance
 instance : add_semigroup int      := by apply_instance
 instance : comm_semiring int      := by apply_instance
@@ -67,14 +90,14 @@ by apply_instance
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
-theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
+theorem abs_eq_nat_abs : ∀ a : ℤ, |a| = nat_abs a
 | (n : ℕ) := abs_of_nonneg $ coe_zero_le _
 | -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
 
-theorem nat_abs_abs (a : ℤ) : nat_abs (abs a) = nat_abs a :=
+theorem nat_abs_abs (a : ℤ) : nat_abs (|a|) = nat_abs a :=
 by rw [abs_eq_nat_abs]; refl
 
-theorem sign_mul_abs (a : ℤ) : sign a * abs a = a :=
+theorem sign_mul_abs (a : ℤ) : sign a * |a| = a :=
 by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 
 @[simp] lemma default_eq_zero : default ℤ = 0 := rfl
@@ -123,7 +146,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-@[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
+@[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : |(n : ℤ)| = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
 /-! ### succ and pred -/
@@ -183,7 +206,7 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
-@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
+@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : |a| < 1 ↔ a = 0 :=
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
@@ -375,8 +398,8 @@ match a, b, eq_coe_of_zero_le H1, eq_succ_of_zero_lt (lt_of_le_of_lt H1 H2), H2 
   congr_arg of_nat $ nat.div_eq_of_lt $ lt_of_coe_nat_lt_coe_nat H2
 end
 
-theorem div_eq_zero_of_lt_abs {a b : ℤ} (H1 : 0 ≤ a) (H2 : a < abs b) : a / b = 0 :=
-match b, abs b, abs_eq_nat_abs b, H2 with
+theorem div_eq_zero_of_lt_abs {a b : ℤ} (H1 : 0 ≤ a) (H2 : a < |b|) : a / b = 0 :=
+match b, |b|, abs_eq_nat_abs b, H2 with
 | (n : ℕ), ._, rfl, H2 := div_eq_zero_of_lt H1 H2
 | -[1+ n], ._, rfl, H2 := neg_injective $ by rw [← int.div_neg]; exact div_eq_zero_of_lt H1 H2
 end
@@ -462,7 +485,7 @@ match b, eq_succ_of_zero_lt bpos with ._, ⟨n, rfl⟩ := rfl end
 | (m : ℕ) n := @congr_arg ℕ ℤ _ _ (λ i, ↑(m % i)) (nat_abs_neg _)
 | -[1+ m] n := @congr_arg ℕ ℤ _ _ (λ i, sub_nat_nat i (nat.succ (m % i))) (nat_abs_neg _)
 
-@[simp] theorem mod_abs (a b : ℤ) : a % (abs b) = a % b :=
+@[simp] theorem mod_abs (a b : ℤ) : a % (|b|) = a % b :=
 abs_by_cases (λ i, a % i = a % b) rfl (mod_neg _ _)
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
@@ -495,7 +518,7 @@ match a, b, eq_succ_of_zero_lt H with
 | -[1+ m], ._, ⟨n, rfl⟩ := sub_lt_self _ (coe_nat_lt_coe_nat_of_lt $ nat.succ_pos _)
 end
 
-theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < abs b :=
+theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < |b| :=
 by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
@@ -655,8 +678,8 @@ theorem lt_div_add_one_mul_self (a : ℤ) {b : ℤ} (H : 0 < b) : a < (a / b + 1
 by { rw [add_mul, one_mul, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
   exact mod_lt_of_pos _ H }
 
-theorem abs_div_le_abs : ∀ (a b : ℤ), abs (a / b) ≤ abs a :=
-suffices ∀ (a : ℤ) (n : ℕ), abs (a / n) ≤ abs a, from
+theorem abs_div_le_abs : ∀ (a b : ℤ), |a / b| ≤ |a| :=
+suffices ∀ (a : ℤ) (n : ℕ), |a / n| ≤ |a|, from
 λ a b, match b, eq_coe_or_neg b with
 | ._, ⟨n, or.inl rfl⟩ := this _ _
 | ._, ⟨n, or.inr rfl⟩ := by rw [int.div_neg, abs_neg]; apply this
@@ -814,7 +837,7 @@ theorem div_sign : ∀ a b, a / sign b = a * sign b
 | -[1+ m] (n+1:ℕ) := rfl
 | -[1+ m] -[1+ n] := rfl
 
-protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
+protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / |a| :=
 if az : a = 0 then by simp [az] else
 (int.div_eq_of_eq_mul_left (mt abs_eq_zero.1 az)
   (sign_mul_abs _).symm).symm
@@ -963,7 +986,7 @@ begin
   subst hk,
   rw [int.mul_div_cancel_left _ hb],
   rw mul_assoc at h,
-  apply mul_left_cancel' hb h
+  apply mul_left_cancel₀ hb h
 end
 
 /-- If an integer with larger absolute value divides an integer, it is
@@ -1001,7 +1024,7 @@ theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ}
 begin
   change sub_nat_nat _ _ = _,
   have h' : n.succ - m = 0,
-  apply sub_eq_zero_of_le h,
+  apply tsub_eq_zero_iff_le.mpr h,
   simp [*, sub_nat_nat]
 end
 
@@ -1036,6 +1059,9 @@ by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
 
 @[simp] theorem lt_to_nat {n : ℕ} {a : ℤ} : n < to_nat a ↔ (n : ℤ) < a :=
 le_iff_le_iff_lt_iff_lt.1 to_nat_le
+
+@[simp]lemma le_to_nat_iff {n : ℕ} {z : ℤ} (h : 0 ≤ z) : n ≤ z.to_nat ↔ (n : ℤ) ≤ z :=
+by rw [←int.coe_nat_le_coe_nat_iff, int.to_nat_of_nonneg h]
 
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)
@@ -1245,8 +1271,7 @@ private meta def bitwise_tac : tactic unit := `[
     apply congr_arg (λ f, nat.bitwise f m n),
     funext a,
     funext b,
-    cases a; cases b; refl
-  },
+    cases a; cases b; refl },
   all_goals {unfold nat.land nat.ldiff nat.lor}
 ]
 
@@ -1321,15 +1346,15 @@ lemma shiftl_add : ∀ (m : ℤ) (n : ℕ) (k : ℤ), shiftl m (n + k) = shiftl 
 | (m : ℕ) n -[1+k] := sub_nat_nat_elim n k.succ
     (λ n k i, shiftl ↑m i = nat.shiftr (nat.shiftl m n) k)
     (λ i n, congr_arg coe $
-      by rw [← nat.shiftl_sub, nat.add_sub_cancel_left]; apply nat.le_add_right)
+      by rw [← nat.shiftl_sub, add_tsub_cancel_left]; apply nat.le_add_right)
     (λ i n, congr_arg coe $
-      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl_sub, nat.sub_self]; refl)
+      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl_sub, tsub_self]; refl)
 | -[1+ m] n -[1+k] := sub_nat_nat_elim n k.succ
     (λ n k i, shiftl -[1+ m] i = -[1+ nat.shiftr (nat.shiftl' tt m n) k])
     (λ i n, congr_arg neg_succ_of_nat $
-      by rw [← nat.shiftl'_sub, nat.add_sub_cancel_left]; apply nat.le_add_right)
+      by rw [← nat.shiftl'_sub, add_tsub_cancel_left]; apply nat.le_add_right)
     (λ i n, congr_arg neg_succ_of_nat $
-      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl'_sub, nat.sub_self]; refl)
+      by rw [add_assoc, nat.shiftr_add, ← nat.shiftl'_sub, tsub_self]; refl)
 
 lemma shiftl_sub (m : ℤ) (n : ℕ) (k : ℤ) : shiftl m (n - k) = shiftr (shiftl m n) k :=
 shiftl_add _ _ _
@@ -1369,66 +1394,6 @@ congr_arg coe (nat.one_shiftl _)
 | -[1+ n] := congr_arg coe (nat.zero_shiftr _)
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 := zero_shiftl _
-
-/-! ### Least upper bound property for integers -/
-
-/-- A computable version of `exists_least_of_bdd`: given a decidable predicate on the
-integers, with an explicit lower bound and a proof that it is somewhere true, return
-the least value for which the predicate is true. -/
-def least_of_bdd {P : ℤ → Prop} [decidable_pred P]
-  (b : ℤ) (Hb : ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  {lb : ℤ // P lb ∧ (∀ z : ℤ, P z → lb ≤ z)} :=
-have EX : ∃ n : ℕ, P (b + n), from
-  let ⟨elt, Helt⟩ := Hinh in
-  match elt, le.dest (Hb _ Helt), Helt with
-  | ._, ⟨n, rfl⟩, Hn := ⟨n, Hn⟩
-  end,
-⟨b + (nat.find EX : ℤ), nat.find_spec EX, λ z h,
-  match z, le.dest (Hb _ h), h with
-  | ._, ⟨n, rfl⟩, h := add_le_add_left
-    (int.coe_nat_le.2 $ nat.find_min' _ h) _
-  end⟩
-
-theorem exists_least_of_bdd {P : ℤ → Prop}
-  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
-by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
-
-lemma coe_least_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
-  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → b ≤ z) (Hb' : ∀ z : ℤ, P z → b' ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  (least_of_bdd b Hb Hinh : ℤ) = least_of_bdd b' Hb' Hinh :=
-begin
-  rcases least_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
-  rcases least_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
-  exact le_antisymm (h2n _ hn') (h2n' _ hn),
-end
-
-/-- A computable version of `exists_greatest_of_bdd`: given a decidable predicate on the
-integers, with an explicit upper bound and a proof that it is somewhere true, return
-the greatest value for which the predicate is true. -/
-def greatest_of_bdd {P : ℤ → Prop} [decidable_pred P]
-  (b : ℤ) (Hb : ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
-  {ub : ℤ // P ub ∧ (∀ z : ℤ, P z → z ≤ ub)} :=
-have Hbdd' : ∀ (z : ℤ), P (-z) → -b ≤ z, from λ z h, neg_le.1 (Hb _ h),
-have Hinh' : ∃ z : ℤ, P (-z), from
-let ⟨elt, Helt⟩ := Hinh in ⟨-elt, by rw [neg_neg]; exact Helt⟩,
-let ⟨lb, Plb, al⟩ := least_of_bdd (-b) Hbdd' Hinh' in
-⟨-lb, Plb, λ z h, le_neg.1 $ al _ $ by rwa neg_neg⟩
-
-theorem exists_greatest_of_bdd {P : ℤ → Prop}
-  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
-  ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
-by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := greatest_of_bdd b Hb Hinh in ⟨lb, H⟩
-
-lemma coe_greatest_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
-  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → z ≤ b) (Hb' : ∀ z : ℤ, P z → z ≤ b') (Hinh : ∃ z : ℤ, P z) :
-  (greatest_of_bdd b Hb Hinh : ℤ) = greatest_of_bdd b' Hb' Hinh :=
-begin
-  rcases greatest_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
-  rcases greatest_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
-  exact le_antisymm (h2n' _ hn) (h2n _ hn'),
-end
-
 
 end int
 

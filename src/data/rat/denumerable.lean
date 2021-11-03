@@ -37,7 +37,9 @@ end
 end rat
 
 namespace cardinal
-lemma mk_rat : cardinal.mk ℚ = omega :=
-denumerable_iff.mp ⟨by apply_instance⟩
+
+open_locale cardinal
+
+lemma mk_rat : #ℚ = ω := mk_denumerable ℚ
 
 end cardinal

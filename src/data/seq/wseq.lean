@@ -5,6 +5,8 @@ Authors: Mario Carneiro
 -/
 import data.seq.seq
 import data.dlist
+
+open function
 universes u v w
 
 /-
@@ -378,7 +380,7 @@ theorem lift_rel_destruct_iff {R : α → β → Prop} {s : wseq α} {t : wseq �
     intros s t, apply or.inl
   end⟩⟩
 
-infix ~ := equiv
+infix ` ~ `:50 := equiv
 
 theorem destruct_congr {s t : wseq α} :
   s ~ t → computation.lift_rel (bisim_o (~)) (destruct s) (destruct t) :=
@@ -396,24 +398,24 @@ theorem lift_rel.refl (R : α → α → Prop) (H : reflexive R) : reflexive (li
 end
 
 theorem lift_rel_o.swap (R : α → β → Prop) (C) :
-  function.swap (lift_rel_o R C) = lift_rel_o (function.swap R) (function.swap C) :=
+  swap (lift_rel_o R C) = lift_rel_o (swap R) (swap C) :=
 by funext x y; cases x with x; [skip, cases x]; { cases y with y; [skip, cases y]; refl }
 
 theorem lift_rel.swap_lem {R : α → β → Prop} {s1 s2} (h : lift_rel R s1 s2) :
-  lift_rel (function.swap R) s2 s1 :=
+  lift_rel (swap R) s2 s1 :=
 begin
-  refine ⟨function.swap (lift_rel R), h, λ s t (h : lift_rel R t s), _⟩,
+  refine ⟨swap (lift_rel R), h, λ s t (h : lift_rel R t s), _⟩,
   rw [←lift_rel_o.swap, computation.lift_rel.swap],
   apply lift_rel_destruct h
 end
 
 theorem lift_rel.swap (R : α → β → Prop) :
-  function.swap (lift_rel R) = lift_rel (function.swap R) :=
+  swap (lift_rel R) = lift_rel (swap R) :=
 funext $ λ x, funext $ λ y, propext ⟨lift_rel.swap_lem, lift_rel.swap_lem⟩
 
 theorem lift_rel.symm (R : α → α → Prop) (H : symmetric R) : symmetric (lift_rel R) :=
-λ s1 s2 (h : function.swap (lift_rel R) s2 s1),
-by rwa [lift_rel.swap, show function.swap R = R, from
+λ s1 s2 (h : swap (lift_rel R) s2 s1),
+by rwa [lift_rel.swap, show swap R = R, from
         funext $ λ a, funext $ λ b, propext $ by constructor; apply H] at h
 
 theorem lift_rel.trans (R : α → α → Prop) (H : transitive R) : transitive (lift_rel R) :=
@@ -1202,7 +1204,7 @@ theorem lift_rel_join (R : α → β → Prop) {S : wseq (wseq α)} {T : wseq (w
     dsimp [destruct_append.aux, computation.lift_rel], constructor,
     { intro, apply lift_rel_join.lem _ ST (λ _ _, id) },
     { intros b mb,
-      rw [←lift_rel_o.swap], apply lift_rel_join.lem (function.swap R),
+      rw [←lift_rel_o.swap], apply lift_rel_join.lem (swap R),
       { rw [←lift_rel.swap R, ←lift_rel.swap], apply ST },
       { rw [←lift_rel.swap R, ←lift_rel.swap (lift_rel R)],
         exact λ s1 s2 ⟨s, t, S, T, h1, h2, st, ST⟩,

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard, Scott Morrison
+Authors: Kevin Buzzard, Scott Morrison, Jakob von Raumer
 -/
 import category_theory.monoidal.braided
 import algebra.category.Module.basic
@@ -32,6 +32,7 @@ namespace monoidal_category
 -- you should use that API.
 
 open_locale tensor_product
+local attribute [ext] tensor_product.ext
 
 /-- (implementation) tensor product of R-modules -/
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
@@ -69,8 +70,7 @@ private lemma associator_naturality_aux
   [add_comm_monoid Y₁] [add_comm_monoid Y₂] [add_comm_monoid Y₃]
   [module R Y₁] [module R Y₂] [module R Y₃]
   (f₁ : X₁ →ₗ[R] Y₁) (f₂ : X₂ →ₗ[R] Y₂) (f₃ : X₃ →ₗ[R] Y₃) :
-  linear_map.comp ↑(assoc R Y₁ Y₂ Y₃) (map (map f₁ f₂) f₃) =
-    (map f₁ (map f₂ f₃)).comp ↑(assoc R X₁ X₂ X₃) :=
+  (↑(assoc R Y₁ Y₂ Y₃) ∘ₗ (map (map f₁ f₂) f₃)) = ((map f₁ (map f₂ f₃)) ∘ₗ ↑(assoc R X₁ X₂ X₃)) :=
 begin
   apply tensor_product.ext_threefold,
   intros x y z,
@@ -181,13 +181,27 @@ lemma left_unitor_hom_apply {M : Module.{u} R} (r : R) (m : M) :
 tensor_product.lid_tmul m r
 
 @[simp]
+lemma left_unitor_inv_apply {M : Module.{u} R} (m : M) :
+  ((λ_ M).inv : M ⟶ 𝟙_ (Module.{u} R) ⊗ M) m = 1 ⊗ₜ[R] m :=
+tensor_product.lid_symm_apply m
+
+@[simp]
 lemma right_unitor_hom_apply {M : Module.{u} R} (m : M) (r : R) :
   ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
 tensor_product.rid_tmul m r
 
 @[simp]
+lemma right_unitor_inv_apply {M : Module.{u} R} (m : M) :
+  ((ρ_ M).inv : M ⟶ M ⊗ 𝟙_ (Module.{u} R)) m = m ⊗ₜ[R] 1 :=
+tensor_product.rid_symm_apply m
+
+@[simp]
 lemma associator_hom_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
   ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) := rfl
+
+@[simp]
+lemma associator_inv_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
+  ((α_ M N K).inv : M ⊗ (N ⊗ K) ⟶ (M ⊗ N) ⊗ K) (m ⊗ₜ (n ⊗ₜ k)) = ((m ⊗ₜ n) ⊗ₜ k) := rfl
 
 end monoidal_category
 
@@ -199,7 +213,7 @@ linear_equiv.to_Module_iso (tensor_product.comm R M N)
   (f ⊗ g) ≫ (Y₁.braiding Y₂).hom =
     (X₁.braiding X₂).hom ≫ (g ⊗ f) :=
 begin
-  apply tensor_product.ext,
+  apply tensor_product.ext',
   intros x y,
   refl
 end
@@ -222,6 +236,8 @@ begin
   intros x y z,
   refl,
 end
+
+local attribute [ext] tensor_product.ext
 
 /-- The symmetric monoidal structure on `Module R`. -/
 instance symmetric_category : symmetric_category (Module.{u} R) :=

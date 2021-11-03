@@ -30,7 +30,7 @@ uniform space, uniform continuity, compact space
 open_locale classical uniformity topological_space filter
 open filter uniform_space set
 
-variables {α β : Type*} [uniform_space α] [uniform_space β]
+variables {α β γ : Type*} [uniform_space α] [uniform_space β]
 
 
 /-!
@@ -64,25 +64,25 @@ begin
   contradiction
 end
 
-lemma unique_uniformity_of_compact_t2 {α : Type*} [t : topological_space α] [compact_space α]
-[t2_space α] {u u' : uniform_space α}
+lemma unique_uniformity_of_compact_t2 [t : topological_space γ] [compact_space γ]
+[t2_space γ] {u u' : uniform_space γ}
 (h : u.to_topological_space = t) (h' : u'.to_topological_space = t) : u = u' :=
 begin
   apply uniform_space_eq,
   change uniformity _ = uniformity _,
-  haveI : @compact_space α u.to_topological_space := by rw h ; assumption,
-  haveI : @compact_space α u'.to_topological_space := by rw h' ; assumption,
-  haveI : @separated_space α u := by rwa [separated_iff_t2, h],
-  haveI : @separated_space α u' :=  by rwa [separated_iff_t2, h'],
+  haveI : @compact_space γ u.to_topological_space, { rw h ; assumption },
+  haveI : @compact_space γ u'.to_topological_space, { rw h' ; assumption },
+  haveI : @separated_space γ u, { rwa [separated_iff_t2, h] },
+  haveI : @separated_space γ u', { rwa [separated_iff_t2, h'] },
   rw [compact_space_uniformity, compact_space_uniformity, h, h']
 end
 
 /-- The unique uniform structure inducing a given compact Hausdorff topological structure. -/
-def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_space α] [t2_space α] :
-  uniform_space α :=
+def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_space γ] :
+  uniform_space γ :=
 { uniformity := ⨆ x, 𝓝 (x, x),
   refl := begin
-    simp_rw [filter.principal_le_iff, mem_supr_sets],
+    simp_rw [filter.principal_le_iff, mem_supr],
     rintros V V_in ⟨x, _⟩ ⟨⟩,
     exact mem_of_mem_nhds (V_in x),
   end,
@@ -97,32 +97,32 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     This is the difficult part of the proof. We need to prove that, for each neighborhood W
     of the diagonal Δ, W ○ W is still a neighborhood of the diagonal.
     -/
-    set 𝓝Δ := ⨆ x : α, 𝓝 (x, x), -- The filter of neighborhoods of Δ
-    set F := 𝓝Δ.lift' (λ (s : set (α × α)), s ○ s), -- Compositions of neighborhoods of Δ
+    set 𝓝Δ := ⨆ x : γ, 𝓝 (x, x), -- The filter of neighborhoods of Δ
+    set F := 𝓝Δ.lift' (λ (s : set (γ × γ)), s ○ s), -- Compositions of neighborhoods of Δ
     -- If this weren't true, then there would be V ∈ 𝓝Δ such that F ⊓ 𝓟 Vᶜ ≠ ⊥
     rw le_iff_forall_inf_principal_compl,
     intros V V_in,
     by_contra H,
     haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := ⟨H⟩,
     -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 Vᶜ
-    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact _,
+    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : γ × γ), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact _,
     -- In particular (x, y) is a cluster point of 𝓟 Vᶜ, hence is not in the interior of V,
     -- and a fortiori not in Δ, so x ≠ y
     have clV : cluster_pt (x, y) (𝓟 $ Vᶜ) := hxy.of_inf_right,
     have : (x, y) ∉ interior V,
     { have : (x, y) ∈ closure (Vᶜ), by rwa mem_closure_iff_cluster_pt,
       rwa closure_compl at this },
-    have diag_subset : diagonal α ⊆ interior V,
+    have diag_subset : diagonal γ ⊆ interior V,
     { rw subset_interior_iff_nhds,
       rintros ⟨x, x⟩ ⟨⟩,
-      exact (mem_supr_sets.mp V_in : _) x },
+      exact (mem_supr.mp V_in : _) x },
     have x_ne_y : x ≠ y,
     { intro h,
       apply this,
       apply diag_subset,
       simp [h] },
-    -- Since α is compact and Hausdorff, it is normal, hence regular.
-    haveI : normal_space α := normal_of_compact_t2,
+    -- Since γ is compact and Hausdorff, it is normal, hence regular.
+    haveI : normal_space γ := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
     -- U₁ and U₂.
     obtain
@@ -137,7 +137,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
       is_open_compl_iff.mpr (is_closed.union V₁_cl V₂_cl),
     let W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃),
     have W_in : W ∈ 𝓝Δ,
-    { rw mem_supr_sets,
+    { rw mem_supr,
       intros x,
       apply is_open.mem_nhds (is_open.union (is_open.union _ _) _),
       { by_cases hx : x ∈ V₁ ∪ V₂,
@@ -178,16 +178,16 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
   is_open_uniformity := begin
     -- Here we need to prove the topology induced by the constructed uniformity is the
     -- topology we started with.
-    suffices : ∀ x : α,  comap (prod.mk x) (⨆ y, 𝓝 (y ,y)) = 𝓝 x,
+    suffices : ∀ x : γ, filter.comap (prod.mk x) (⨆ y, 𝓝 (y ,y)) = 𝓝 x,
     { intros s,
       change is_open s ↔ _,
       simp_rw [is_open_iff_mem_nhds, nhds_eq_comap_uniformity_aux, this] },
     intros x,
     simp_rw [comap_supr, nhds_prod_eq, comap_prod,
-             show prod.fst ∘ prod.mk x = λ y : α, x, by ext ; simp,
-             show prod.snd ∘ (prod.mk x) = (id : α → α), by ext ; refl, comap_id],
+             show prod.fst ∘ prod.mk x = λ y : γ, x, by ext ; simp,
+             show prod.snd ∘ (prod.mk x) = (id : γ → γ), by ext ; refl, comap_id],
     rw [supr_split_single _ x, comap_const_of_mem (λ V, mem_of_mem_nhds)],
-    suffices : ∀ y ≠ x, comap (λ (y : α), x) (𝓝 y) ⊓ 𝓝 y ≤ 𝓝 x,
+    suffices : ∀ y ≠ x, comap (λ (y : γ), x) (𝓝 y) ⊓ 𝓝 y ≤ 𝓝 x,
       by simpa,
     intros y hxy,
     simp [comap_const_of_not_mem (compl_singleton_mem_nhds hxy) (by simp)],

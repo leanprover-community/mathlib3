@@ -3,7 +3,7 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.set.lattice
+import order.galois_connection
 
 /-!
 # Relations
@@ -116,9 +116,9 @@ end
 lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
 
 /-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.inv` -/
-def preimage (s : set β) : set α := image (inv r) s
+def preimage (s : set β) : set α := r.inv.image s
 
-lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
+lemma mem_preimage (x : α) (s : set β) : x ∈ r.preimage s ↔ ∃ y ∈ s, r x y :=
 iff.rfl
 
 lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
@@ -144,10 +144,10 @@ lemma preimage_univ : r.preimage set.univ = r.dom :=
 by { rw [preimage, image_univ, codom_inv] }
 
 /-- Core of a set `s : set β` w.r.t `r : rel α β` is the set of `x : α` that are related *only*
-to elements of `s`. -/
+to elements of `s`. Other generalization of `function.preimage`. -/
 def core (s : set β) := {x | ∀ y, r x y → y ∈ s}
 
-lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
+lemma mem_core (x : α) (s : set β) : x ∈ r.core s ↔ ∀ y, r x y → y ∈ s :=
 iff.rfl
 
 lemma core_subset : ((⊆) ⇒ (⊆)) r.core r.core :=
@@ -170,8 +170,8 @@ lemma core_comp (s : rel β γ) (t : set γ) :
   core (r ∘ s) t = core r (core s t) :=
 begin
   ext x, simp [core, comp], split,
-  { intros h y rxy z syz, exact h z y rxy syz },
-  intros h z y rzy syz, exact h y rzy z syz
+  { exact λ h y rxy z, h z y rxy },
+  { exact λ h z y rzy, h y rzy z }
 end
 
 /-- Restrict the domain of a relation to a subtype. -/
@@ -183,7 +183,7 @@ iff.intro
   (λ h x xs y rxy, h ⟨x, xs, rxy⟩)
   (λ h y ⟨x, xs, rxy⟩, h xs y rxy)
 
-theorem core_preimage_gc : galois_connection (image r) (core r) :=
+theorem image_core_gc : galois_connection r.image r.core :=
 image_subset_iff _
 
 end rel

@@ -232,6 +232,14 @@ begin
   rw quotient.out_eq x,
 end
 
+@[simp] lemma quotient.out_equiv_out [s : setoid α] {x y : quotient s} :
+  x.out ≈ y.out ↔ x = y :=
+by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
+
+@[simp] lemma quotient.out_inj [s : setoid α] {x y : quotient s} :
+  x.out = y.out ↔ x = y :=
+⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
+
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
   iseqv := ⟨

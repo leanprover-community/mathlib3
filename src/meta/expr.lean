@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
-import data.option.defs
+import meta.rb_map
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -247,6 +247,17 @@ meta def fold_mvar {α} : level → (name → α → α) → α → α
 | (max a b) f := fold_mvar a f ∘ fold_mvar b f
 | (imax a b) f := fold_mvar a f ∘ fold_mvar b f
 
+/--
+`l.params` is the set of parameters occuring in `l`.
+For example if `l = max 1 (max (u+1) (max v w))` then `l.params = {u, v, w}`.
+-/
+protected meta def params (u : level) : name_set :=
+u.fold mk_name_set $ λ v l,
+  match v with
+  | (param nm) := l.insert nm
+  | _ := l
+  end
+
 end level
 
 /-! ### Declarations about `binder` -/
@@ -453,8 +464,8 @@ meta def match_app {elab} : expr elab → option (expr elab × expr elab)
 | _ := none
 
 /-- Match an application of `coe_fn`. -/
-meta def match_app_coe_fn : expr → option (expr × expr × expr × expr)
-| (app `(@coe_fn %%α %%inst %%fexpr) x) := some (α, inst, fexpr, x)
+meta def match_app_coe_fn : expr → option (expr × expr × expr × expr × expr)
+| (app `(@coe_fn %%α %%β %%inst %%fexpr) x) := some (α, β, inst, fexpr, x)
 | _ := none
 
 /-- Match an abstraction. -/
@@ -860,25 +871,32 @@ protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) :
 (inductive type, defined function etc) in an expression, unless
 * The identifier occurs in an application with first argument `arg`; and
 * `test arg` is false.
-* Reorder contains the information about what arguments to reorder:
-  e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
-  We assume that all functions where we want to reorder arguments are fully applied.
-  This can be done by applying `expr.eta_expand` first.
+However, if `f` is in the dictionary `relevant`, then the argument `relevant.find f`
+is tested, instead of the first argument.
+
+Reorder contains the information about what arguments to reorder:
+e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
+We assume that all functions where we want to reorder arguments are fully applied.
+This can be done by applying `expr.eta_expand` first.
 -/
 protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) : expr → expr
+  (relevant : name_map ℕ) (reorder : name_map $ list ℕ) : expr → expr
 | e := e.replace $ λ e _,
   match e with
   | const n ls := some $ const (f n) $
       -- if the first two arguments are reordered, we also reorder the first two universe parameters
       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
   | app g x :=
-    let l := (reorder.find g.get_app_fn.const_name).iget in -- this might be inefficient
-    if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
+    let f := g.get_app_fn,
+        nm := f.const_name,
+        n_args := g.get_app_num_args in -- this might be inefficient
+    if n_args ∈ (reorder.find nm).iget ∧ test g.get_app_args.head then
     -- interchange `x` and the last argument of `g`
     some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
       apply_replacement_fun g.app_arg else
-    if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
+    if n_args = (relevant.find nm).lhoare 0 ∧ f.is_constant ∧ ¬ test x then
+      some $ (f.mk_app $ g.get_app_args.map apply_replacement_fun) (apply_replacement_fun x) else
+      none
   | _ := none
   end
 
@@ -1027,11 +1045,13 @@ sets the name of the given `decl : declaration` to `tgt`, and applies both `expr
 `expr.apply_replacement_fun` to the value and type of `decl`.
 -/
 protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
+  (relevant : name_map ℕ) (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) :
+  declaration :=
 let decl := decl.update_name $ tgt in
 let decl := decl.update_type $
-  (decl.type.eta_expand env reorder).apply_replacement_fun f test reorder in
-decl.update_value $ (decl.value.eta_expand env reorder).apply_replacement_fun f test reorder
+  (decl.type.eta_expand env reorder).apply_replacement_fun f test relevant reorder in
+decl.update_value $
+  (decl.value.eta_expand env reorder).apply_replacement_fun f test relevant reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

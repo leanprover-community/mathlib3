@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
 import data.finset.order
-import linear_algebra.direct_sum_module
+import algebra.direct_sum.module
 import ring_theory.free_comm_ring
 import ring_theory.ideal.operations
 /-!
@@ -360,7 +360,7 @@ lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supporte
   f' j k hjk (lift (λ ix : s, f' ix.1.1 j (hj ix ix.2) ix.1.2) (restriction s x)) =
   lift (λ ix : t, f' ix.1.1 k (hk ix ix.2) ix.1.2) (restriction t x) :=
 begin
-  refine ring.in_closure.rec_on hxs _ _ _ _,
+  refine subring.in_closure.rec_on hxs _ _ _ _,
   { rw [(restriction _).map_one, (free_comm_ring.lift _).map_one, (f' j k hjk).map_one,
         (restriction _).map_one, (free_comm_ring.lift _).map_one] },
   { rw [(restriction _).map_neg, (restriction _).map_one,
@@ -562,7 +562,9 @@ by rw [inv, dif_neg hp, classical.some_spec (direct_limit.exists_inv G f hp)]
 protected theorem inv_mul_cancel {p : ring.direct_limit G f} (hp : p ≠ 0) : inv G f p * p = 1 :=
 by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 
-/-- Noncomputable field structure on the direct limit of fields. -/
+/-- Noncomputable field structure on the direct limit of fields.
+See note [reducible non-instances]. -/
+@[reducible]
 protected noncomputable def field [directed_system G (λ i j h, f' i j h)] :
   field (ring.direct_limit G (λ i j h, f' i j h)) :=
 { inv := inv G (λ i j h, f' i j h),

@@ -156,7 +156,7 @@ lemma map_is_least (hf : right_ord_continuous f) {s : set α} {x : α} (h : is_l
 hf.order_dual.map_is_greatest h
 
 lemma mono (hf : right_ord_continuous f) : monotone f :=
-hf.order_dual.mono.order_dual
+hf.order_dual.mono.dual
 
 lemma comp (hg : right_ord_continuous g) (hf : right_ord_continuous f) :
   right_ord_continuous (g ∘ f) :=

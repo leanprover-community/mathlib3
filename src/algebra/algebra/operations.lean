@@ -3,7 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.basic
+import algebra.algebra.bilinear
+import algebra.module.submodule_pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -27,12 +28,14 @@ It is proved that `submodule R A` is a semiring, and also an algebra over `set A
 multiplication of submodules, division of subodules, submodule semiring
 -/
 
-universes u v
+universes uι u v
 
 open algebra set
+open_locale pointwise
 
 namespace submodule
 
+variables {ι : Sort uι}
 variables {R : Type u} [comm_semiring R]
 
 section ring
@@ -185,6 +188,23 @@ end
 
 end decidable_eq
 
+lemma mul_eq_span_mul_set (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
+by rw [← span_mul_span, span_eq, span_eq]
+
+lemma supr_mul (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
+begin
+  suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul],
+end
+
+lemma mul_supr (t : submodule R A) (s : ι → submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
+begin
+  suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.mul_Union],
+end
+
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
   ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
 submodule.mem_span_mul_finite_of_mem_span_mul
@@ -201,7 +221,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid_submodule,
+  ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
   ..submodule.has_mul }
 

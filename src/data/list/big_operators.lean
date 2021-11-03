@@ -95,6 +95,20 @@ begin
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
 end
 
+@[to_additive]
+lemma prod_eq_one : ∀ {l : list α} (h : ∀ x ∈ l, x = (1 : α)), l.prod = 1
+| [] _ := prod_nil
+| (hd :: tl) h := begin
+  rw [prod_cons, h hd (mem_cons_self _ _), one_mul],
+  apply prod_eq_one,
+  intros x hx,
+  exact h x (mem_cons_of_mem hd hx),
+end
+
+@[simp, to_additive]
+lemma prod_repeat_one (n : ℕ) : prod (repeat (1 : α) n) = 1 :=
+  prod_eq_one $ λ _ hx, (mem_repeat.mp hx).right
+
 @[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list α) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
@@ -108,6 +122,24 @@ lemma prod_take_succ :
 | [] i p := by cases p
 | (h :: t) 0 _ := by simp
 | (h :: t) (n+1) _ := by { dsimp, rw [prod_cons, prod_cons, prod_take_succ, mul_assoc] }
+
+@[simp, to_additive]
+lemma prod_map_mul [comm_monoid γ] (f g : β → γ) (l : list β) :
+  prod (l.map $ λ x, f x * g x) = prod (l.map f) * prod (l.map g) :=
+begin
+  unfold prod,
+  repeat {rw foldl_map},
+  have := @foldl_distrib _ _ (*) _ _ f g (1 : γ) (1 : γ) l,
+  rwa [mul_one] at this,
+end
+
+@[to_additive]
+lemma prod_map_prod_map [comm_monoid γ] {f : δ → β → γ} {s : list δ} :
+  ∀ {t : list β},
+    (prod $ t.map $ λ (b : β), prod $ s.map (λ (d : δ), f d b)) =
+    (prod $ s.map $ λ (d : δ), prod $ t.map (f d))
+| [] := by {simp only [map_nil, prod_nil, map_const, prod_repeat_one]}
+| (hd :: tl) := by {simp only [map_cons, prod_cons, prod_map_mul, prod_map_prod_map]}
 
 /-- A list with product not one must have positive length. -/
 @[to_additive]

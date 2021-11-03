@@ -2348,6 +2348,26 @@ include hc
 lemma foldl_assoc_comm_cons {l : list α} {a₁ a₂} : (a₁ :: l) <*> a₂ = a₁ * (l <*> a₂) :=
 by rw [foldl_cons, hc.comm, foldl_assoc]
 
+lemma foldl_distrib {f g : β → α} (u₁ u₂ : α) :
+  ∀ (l : list β), foldl (λ a b, a * ((f b) * (g b))) (u₁ * u₂) l =
+                  foldl (λ a b, a * (f b)) u₁ l * foldl (λ a b, a * (g b)) u₂ l
+| [] := by simp only [foldl_nil]
+| (hd :: tl) :=
+begin
+  have : ∀ (u : α) (hd' : β) (tl' : list β) (φ : β → α),
+    foldl (λ (a : α) (b : β), a * (φ b)) u (hd' :: tl') =
+    φ (hd') * foldl (λ (a : α) (b : β), a * (φ b)) u tl',
+  {
+    intros _ _ _ _,
+    rw [foldl_cons, ←foldl_map, hc.comm, foldl_assoc, foldl_map],
+  },
+  repeat {rw this},
+  rw foldl_distrib,
+  let assoc := @is_associative.assoc _ _ ha,
+  let comm := @is_commutative.comm _ _ hc,
+  rw [assoc, assoc, ←assoc (g hd), ←assoc _ (g hd), comm _ (g hd)],
+end
+
 end
 
 /-! ### mfoldl, mfoldr, mmap -/

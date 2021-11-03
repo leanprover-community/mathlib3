@@ -238,6 +238,16 @@ begin
     exact λ N, (dist_le (b0 _)).2 (λx, fF_bdd x N) }
 end
 
+/-- Composition of a bounded continuous function and a continuous function. -/
+@[simps { fully_applied := ff }]
+def comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) : δ →ᵇ β :=
+{ to_continuous_map := f.1.comp g,
+  bounded' := f.bounded'.imp (λ C hC x y, hC _ _) }
+
+/-- Restrict a bounded continuous function to a set. -/
+@[simps apply { fully_applied := ff }]
+def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β := f.comp_continuous (continuous_map.id.restrict s)
+
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
 def comp (G : β → γ) {C : ℝ≥0} (H : lipschitz_with C G)

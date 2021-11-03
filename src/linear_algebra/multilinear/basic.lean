@@ -322,7 +322,6 @@ section apply_sum
 
 variables {α : ι → Type*} (g : Π i, α i → M₁ i) (A : Π i, finset (α i))
 
-open_locale classical
 open fintype finset
 
 /-- If `f` is multilinear, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the sum of
@@ -330,9 +329,10 @@ open fintype finset
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. Here, we give an auxiliary statement tailored for an inductive proof. Use instead
 `map_sum_finset`. -/
-lemma map_sum_finset_aux [fintype ι] {n : ℕ} (h : ∑ i, (A i).card = n) :
+lemma map_sum_finset_aux [decidable_eq ι] [fintype ι] {n : ℕ} (h : ∑ i, (A i).card = n) :
   f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 begin
+  letI := λ i, classical.dec_eq (α i),
   induction n using nat.strong_induction_on with n IH generalizing A,
   -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,
@@ -466,20 +466,22 @@ end
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r 1 ∈ A₁`, ...,
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. -/
-lemma map_sum_finset [fintype ι] :
+lemma map_sum_finset [decidable_eq ι] [fintype ι] :
   f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 f.map_sum_finset_aux _ _ rfl
 
 /-- If `f` is multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
 multilinearity by expanding successively with respect to each coordinate. -/
-lemma map_sum [fintype ι] [∀ i, fintype (α i)] :
+lemma map_sum [decidable_eq ι] [fintype ι] [∀ i, fintype (α i)] :
   f (λ i, ∑ j, g i j) = ∑ r : Π i, α i, f (λ i, g i (r i)) :=
 f.map_sum_finset g (λ i, finset.univ)
 
-lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M₁ i) (m : Π i, M₁ i):
+lemma map_update_sum {α : Type*} [decidable_eq ι] (t : finset α) (i : ι) (g : α → M₁ i)
+  (m : Π i, M₁ i) :
   f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
 begin
+  classical,
   induction t using finset.induction with a t has ih h,
   { simp },
   { simp [finset.sum_insert has, ih] }

@@ -356,15 +356,15 @@ begin
         function.update_comm hij.symm (v i) (v i) v],
 end
 
-lemma map_add_swap {i j : ι} (hij : i ≠ j) :
+lemma map_add_swap [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   f v + f (v ∘ equiv.swap i j) = 0 :=
 by { rw add_comm, exact f.map_swap_add v hij }
 
-lemma map_swap {i j : ι} (hij : i ≠ j) :
+lemma map_swap [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   g (v ∘ equiv.swap i j) = - g v  :=
 eq_neg_of_add_eq_zero (g.map_swap_add v hij)
 
-lemma map_perm [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
+lemma map_perm [decidable_eq ι] [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
   g (v ∘ σ) = σ.sign • g v :=
 begin
   apply equiv.perm.swap_induction_on' σ,
@@ -373,11 +373,11 @@ begin
     simpa [g.map_swap (v ∘ s) hxy, equiv.perm.sign_swap hxy] using hI, }
 end
 
-lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
+lemma map_congr_perm [decidable_eq ι] [fintype ι] (σ : equiv.perm ι) :
   g v = σ.sign • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
 
-lemma coe_dom_dom_congr [fintype ι] (σ : equiv.perm ι) :
+lemma coe_dom_dom_congr [decidable_eq ι] [fintype ι] (σ : equiv.perm ι) :
   (g : multilinear_map R (λ _ : ι, M) N').dom_dom_congr σ
     = σ.sign • (g : multilinear_map R (λ _ : ι, M) N') :=
 multilinear_map.ext $ λ v, g.map_perm v σ
@@ -413,7 +413,7 @@ namespace multilinear_map
 
 open equiv
 
-variables [fintype ι]
+variables [fintype ι] [decidable_eq ι]
 
 private lemma alternization_map_eq_zero_of_eq_aux
   (m : multilinear_map R (λ i : ι, M) N')
@@ -467,7 +467,7 @@ namespace alternating_map
 
 /-- Alternatizing a multilinear map that is already alternating results in a scale factor of `n!`,
 where `n` is the number of inputs. -/
-lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
+lemma coe_alternatization [decidable_eq ι] [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   apply alternating_map.coe_injective,
@@ -480,7 +480,7 @@ end alternating_map
 
 namespace linear_map
 
-variables {N'₂ : Type*} [add_comm_group N'₂] [module R N'₂] [fintype ι]
+variables {N'₂ : Type*} [add_comm_group N'₂] [module R N'₂] [decidable_eq ι] [fintype ι]
 
 /-- Composition with a linear map before and after alternatization are equivalent. -/
 lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)

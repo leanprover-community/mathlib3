@@ -44,10 +44,10 @@ example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- says: `exact nat.mul_sub_left_distrib n m k`
+by library_search -- says: `exact mul_tsub n m k`
 
 example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
-by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
+by library_search -- says: `exact eq.symm (mul_tsub n m k)`
 
 example {α : Type} (x y : α) : x = y ↔ y = x :=
 by library_search -- says: `exact eq_comm`

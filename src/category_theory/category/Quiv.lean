@@ -18,13 +18,13 @@ universes v u
 namespace category_theory
 
 /-- Category of quivers. -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def Quiv := bundled quiver.{(v+1) u}
 
 namespace Quiv
 
-instance : has_coe_to_sort Quiv :=
-{ S := Type u,
-  coe := bundled.α }
+instance : has_coe_to_sort Quiv (Type u) :=
+{ coe := bundled.α }
 
 instance str (C : Quiv.{v u}) : quiver.{(v+1) u} C := C.str
 

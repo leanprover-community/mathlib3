@@ -5,7 +5,7 @@ Authors: Yury Kudriashov
 -/
 import algebra.big_operators.order
 import analysis.convex.hull
-import linear_algebra.affine_space.combination
+import linear_algebra.affine_space.barycentric_coords
 
 /-!
 # Convex combinations
@@ -191,6 +191,16 @@ begin
   simp_rw [vsub_eq_sub, sub_zero],
 end
 
+lemma affine_combination_mem_convex_hull
+  {s : finset ι} {v : ι → E} {w : ι → R} (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1) :
+  s.affine_combination v w ∈ convex_hull R (range v) :=
+begin
+  rw affine_combination_eq_center_mass hw₁,
+  apply s.center_mass_mem_convex_hull hw₀,
+  { simp [hw₁], },
+  { simp, },
+end
+
 /-- The centroid can be regarded as a center of mass. -/
 @[simp] lemma finset.centroid_eq_center_mass (s : finset ι) (hs : s.nonempty) (p : ι → E) :
   s.centroid R p = s.center_mass (s.centroid_weights R) p :=
@@ -207,7 +217,38 @@ begin
       finset.centroid_weights_apply, zero_lt_one] }
 end
 
--- TODO : Do we need other versions of the next lemma?
+lemma convex_hull_range_eq_exists_affine_combination (v : ι → E) :
+  convex_hull R (range v) = { x | ∃ (s : finset ι) (w : ι → R)
+    (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1), s.affine_combination v w = x } :=
+begin
+  refine subset.antisymm (convex_hull_min _ _) _,
+  { intros x hx,
+    obtain ⟨i, hi⟩ := set.mem_range.mp hx,
+    refine ⟨{i}, function.const ι (1 : R), by simp, by simp, by simp [hi]⟩, },
+  { rw convex,
+    rintros x y ⟨s, w, hw₀, hw₁, rfl⟩ ⟨s', w', hw₀', hw₁', rfl⟩ a b ha hb hab,
+    let W : ι → R := λ i, (if i ∈ s then a * w i else 0) + (if i ∈ s' then b * w' i else 0),
+    have hW₁ : (s ∪ s').sum W = 1,
+    { rw [sum_add_distrib, ← sum_subset (subset_union_left s s'),
+        ← sum_subset (subset_union_right s s'), sum_ite_of_true _ _ (λ i hi, hi),
+        sum_ite_of_true _ _ (λ i hi, hi), ← mul_sum, ← mul_sum, hw₁, hw₁', ← add_mul, hab, mul_one];
+      intros i hi hi';
+      simp [hi'], },
+    refine ⟨s ∪ s', W, _, hW₁, _⟩,
+    { rintros i -,
+      by_cases hi : i ∈ s;
+      by_cases hi' : i ∈ s';
+      simp [hi, hi', add_nonneg, mul_nonneg ha (hw₀ i _), mul_nonneg hb (hw₀' i _)], },
+    { simp_rw [affine_combination_eq_linear_combination (s ∪ s') v _ hW₁,
+        affine_combination_eq_linear_combination s v w hw₁,
+        affine_combination_eq_linear_combination s' v w' hw₁', add_smul, sum_add_distrib],
+      rw [← sum_subset (subset_union_left s s'), ← sum_subset (subset_union_right s s')],
+      { simp only [ite_smul, sum_ite_of_true _ _ (λ i hi, hi), mul_smul, ← smul_sum], },
+      { intros i hi hi', simp [hi'], },
+      { intros i hi hi', simp [hi'], }, }, },
+  { rintros x ⟨s, w, hw₀, hw₁, rfl⟩,
+    exact affine_combination_mem_convex_hull hw₀ hw₁, },
+end
 
 /-- Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `z '' t ⊆ s`.
 This version allows finsets in any type in any universe. -/
@@ -323,3 +364,27 @@ end
 lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
   f x ∈ Icc (0 : R) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩
+
+/-- The convex hull of an affine basis is the intersection of the half-spaces defined by the
+corresponding barycentric coordinates. -/
+lemma convex_hull_affine_basis_eq_nonneg_barycentric {ι : Type*}
+  {p : ι → E} (h_ind : affine_independent R p) (h_tot : affine_span R (range p) = ⊤) :
+  convex_hull R (range p) = { x | ∀ i, 0 ≤ barycentric_coord h_ind h_tot i x } :=
+begin
+  rw convex_hull_range_eq_exists_affine_combination,
+  ext x,
+  split,
+  { rintros ⟨s, w, hw₀, hw₁, rfl⟩ i,
+    by_cases hi : i ∈ s,
+    { rw barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw₁,
+      exact hw₀ i hi, },
+    { rw barycentric_coord_apply_combination_of_not_mem h_ind h_tot hi hw₁, }, },
+  { intros hx,
+    have hx' : x ∈ affine_span R (range p), { rw h_tot, exact affine_subspace.mem_top R E x, },
+    obtain ⟨s, w, hw₁, rfl⟩ := (mem_affine_span_iff_eq_affine_combination R E).mp hx',
+    refine ⟨s, w, _, hw₁, rfl⟩,
+    intros i hi,
+    specialize hx i,
+    rw barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw₁ at hx,
+    exact hx, },
+end

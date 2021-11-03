@@ -1,5 +1,9 @@
 import algebra.group.to_additive
+import algebra.group.units
+import tactic
 
+-- work in a namespace so that it doesn't matter if names clash
+namespace test
 @[to_additive bar0]
 def foo0 {α} [has_mul α] [has_one α] (x y : α) : α := x * y * 1
 
@@ -10,8 +14,8 @@ class my_has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 
 attribute [to_additive_reorder 1] my_has_pow
 attribute [to_additive_reorder 1 4] my_has_pow.pow
-attribute [to_additive my_has_scalar] my_has_pow
-attribute [to_additive my_has_scalar.smul] my_has_pow.pow
+attribute [to_additive test.my_has_scalar] my_has_pow
+attribute [to_additive test.my_has_scalar.smul] my_has_pow.pow
 
 -- set_option pp.universes true
 -- set_option pp.implicit true
@@ -52,10 +56,10 @@ open tactic
 run_cmd do
 env ← get_env,
 reorder ← to_additive.reorder_attr.get_cache,
-d ← get_decl `foo6,
+d ← get_decl `test.foo6,
 let e := d.value.eta_expand env reorder,
 let t := d.type.eta_expand env reorder,
-let decl := declaration.defn `barr6 d.univ_params t e d.reducibility_hints d.is_trusted,
+let decl := declaration.defn `test.barr6 d.univ_params t e d.reducibility_hints d.is_trusted,
 add_decl decl,
 skip
 
@@ -79,6 +83,12 @@ attribute [to_additive add_some_def] some_def
 
 run_cmd success_if_fail (get_decl `add_some_def.in_namespace)
 
+example : (add_units.mk_of_add_eq_zero 0 0 (by simp) : ℕ)
+        = (add_units.mk_of_add_eq_zero 0 0 (by simp) : ℕ) :=
+by norm_cast
+
+-- TODO test alias
+
 -- test @[to_additive_relevant_args] and to_additive.first_multiplicative_arg
 
 -- first multiplicative argument: f
@@ -91,9 +101,9 @@ instance pi.has_one {I : Type*} {f : I → Type*} [∀ i, has_one $ f i] : has_o
 ⟨λ _, 1⟩
 
 run_cmd do
-  n ← to_additive.first_multiplicative_arg `pi.has_one,
+  n ← to_additive.first_multiplicative_arg `test.pi.has_one,
   guard $ n = 2,
-  n ← to_additive.first_multiplicative_arg `foo_mul,
+  n ← to_additive.first_multiplicative_arg `test.foo_mul,
   guard $ n = 5
 
 @[to_additive]
@@ -101,3 +111,5 @@ def nat_pi_has_one {α : Type*} [has_one α] : has_one (Π x : ℕ, α) := by ap
 
 @[to_additive]
 def pi_nat_has_one {I : Type*} : has_one (Π x : I, ℕ) := by apply_instance
+
+end test

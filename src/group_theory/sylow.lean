@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import group_theory.group_action.conj_act
 import group_theory.p_group
 
 /-!
@@ -47,15 +48,23 @@ structure sylow extends subgroup G :=
 
 variables {p} {G}
 
+namespace sylow
+
 instance : has_coe (sylow p G) (subgroup G) := ⟨sylow.to_subgroup⟩
 
-@[simp] lemma sylow.to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
+@[simp] lemma to_subgroup_eq_coe {P : sylow p G} : P.to_subgroup = ↑P := rfl
 
-@[ext] lemma sylow.ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
+@[ext] lemma ext {P Q : sylow p G} (h : (P : subgroup G) = Q) : P = Q :=
 by cases P; cases Q; congr'
 
-lemma sylow.ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
-⟨congr_arg coe, sylow.ext⟩
+lemma ext_iff {P Q : sylow p G} : P = Q ↔ (P : subgroup G) = Q :=
+⟨congr_arg coe, ext⟩
+
+instance : set_like (sylow p G) G :=
+{ coe := coe,
+  coe_injective' := λ P Q h, ext (set_like.coe_injective h) }
+
+end sylow
 
 /-- A generalization of **Sylow's first theorem**.
   Every `p`-subgroup is contained in a Sylow `p`-subgroup. -/
@@ -89,8 +98,13 @@ instance sylow.pointwise_mul_action {α : Type*} [group α] [mul_distrib_mul_act
   one_smul := λ P, sylow.ext (one_smul α P),
   mul_smul := λ g h P, sylow.ext (mul_smul g h P) }
 
+lemma sylow.pointwise_smul_def {α : Type*} [group α] [mul_distrib_mul_action α G]
+  {g : α} {P : sylow p G} : ↑(g • P) = g • (P : subgroup G) := rfl
+
 instance sylow.mul_action : mul_action G (sylow p G) :=
 comp_hom _ mul_aut.conj
+
+lemma sylow.smul_def {g : G} {P : sylow p G} : g • P = mul_aut.conj g • P := rfl
 
 lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : subgroup G) := rfl
@@ -101,7 +115,7 @@ lemma sylow.coe_smul {g : G} {P : sylow p G} :
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ P.1.normalizer :=
 begin
-  rw [eq_comm, sylow.ext_iff, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
+  rw [eq_comm, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
   exact forall_congr (λ h, iff_congr iff.rfl ⟨λ ⟨a, b, c⟩, (congr_arg _ c).mp
     ((congr_arg (∈ P.1) (mul_aut.inv_apply_self G (mul_aut.conj g) a)).mpr b),
     λ hh, ⟨(mul_aut.conj g)⁻¹ h, hh, mul_aut.apply_inv_self G (mul_aut.conj g) h⟩⟩),
@@ -189,6 +203,22 @@ lemma card_sylow_eq_index_normalizer [fact p.prime] [fintype (sylow p G)] (P : s
 lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
+
+/-- Frattini's Argument -/
+lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]
+  [fintype (sylow p N)] (P : sylow p N) : ((↑P : subgroup N).map N.subtype).normalizer ⊔ N = ⊤ :=
+begin
+  refine top_le_iff.mp (λ g hg, _),
+  obtain ⟨n, hn⟩ := exists_smul_eq N ((mul_aut.conj_normal g : mul_aut N) • P) P,
+  rw [←inv_mul_cancel_left ↑n g, sup_comm],
+  apply mul_mem_sup (N.inv_mem n.2),
+  rw [sylow.smul_def, ←mul_smul, ←mul_aut.conj_normal_coe, ←mul_aut.conj_normal.map_mul,
+      sylow.ext_iff, sylow.pointwise_smul_def, pointwise_smul_def] at hn,
+  refine λ x, (mem_map_iff_mem (show function.injective (mul_aut.conj (↑n * g)).to_monoid_hom,
+    from (mul_aut.conj (↑n * g)).injective)).symm.trans _,
+  rw [map_map, ←(congr_arg (map N.subtype) hn), map_map],
+  refl,
+end
 
 end infinite_sylow
 
@@ -310,17 +340,17 @@ have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* 
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
 ⟨subgroup.map ((normalizer H).subtype) (subgroup.comap
-  (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
+  (quotient_group.mk' (comap H.normalizer.subtype H)) (zpowers x)),
 begin
   show card ↥(map H.normalizer.subtype
-    (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) = p ^ (n + 1),
+    (comap (mk' (comap H.normalizer.subtype H)) (subgroup.zpowers x))) = p ^ (n + 1),
   suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (comap H.normalizer.subtype H))
-    (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
+    (zpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
   { convert this using 2 },
   rw [set.card_image_of_injective
-        (subgroup.comap (mk' (comap H.normalizer.subtype H)) (gpowers x) : set (H.normalizer))
+        (subgroup.comap (mk' (comap H.normalizer.subtype H)) (zpowers x) : set (H.normalizer))
         subtype.val_injective,
-      pow_succ', ← hH, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
+      pow_succ', ← hH, fintype.card_congr hequiv, ← hx, order_eq_card_zpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
 end,
@@ -328,7 +358,7 @@ begin
   assume y hy,
   simp only [exists_prop, subgroup.coe_subtype, mk'_apply, subgroup.mem_map, subgroup.mem_comap],
   refine ⟨⟨y, le_normalizer hy⟩, ⟨0, _⟩, rfl⟩,
-  rw [gpow_zero, eq_comm, quotient_group.eq_one_iff],
+  rw [zpow_zero, eq_comm, quotient_group.eq_one_iff],
   simpa using hy
 end⟩
 
@@ -343,12 +373,12 @@ theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ
     (λ hnm : n < m,
       have h0m : 0 < m, from (lt_of_le_of_lt n.zero_le hnm),
       have wf : m - 1 < m,  from nat.sub_lt h0m zero_lt_one,
-      have hnm1 : n ≤ m - 1, from nat.le_sub_right_of_add_le hnm,
+      have hnm1 : n ≤ m - 1, from le_tsub_of_add_le_right hnm,
       let ⟨K, hK⟩ := @exists_subgroup_card_pow_prime_le n (m - 1) hp
-        (nat.pow_dvd_of_le_of_pow_dvd (nat.sub_le_self _ _) hdvd) H hH hnm1 in
-      have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [nat.sub_add_cancel h0m],
+        (nat.pow_dvd_of_le_of_pow_dvd tsub_le_self hdvd) H hH hnm1 in
+      have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [tsub_add_cancel_of_le h0m.nat_succ_le],
       let ⟨K', hK'⟩ := @exists_subgroup_card_pow_succ _ _ _ _ _ hp hdvd' K hK.1 in
-      ⟨K', by rw [hK'.1, nat.sub_add_cancel h0m], le_trans hK.2 hK'.2⟩)
+      ⟨K', by rw [hK'.1, tsub_add_cancel_of_le h0m.nat_succ_le], le_trans hK.2 hK'.2⟩)
     (λ hnm : n = m, ⟨H, by simp [hH, hnm]⟩)
 
 /-- A generalisation of **Sylow's first theorem**. If `p ^ n` divides

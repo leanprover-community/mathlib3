@@ -36,12 +36,14 @@ namespace ωCPO
 open omega_complete_partial_order
 
 instance : bundled_hom @continuous_hom :=
-{ to_fun := @continuous_hom.to_fun,
+{ to_fun := @continuous_hom.simps.apply,
   id := @continuous_hom.id,
   comp := @continuous_hom.comp,
   hom_ext := @continuous_hom.coe_inj }
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] ωCPO
+attribute [derive [large_category, concrete_category]] ωCPO
+
+instance : has_coe_to_sort ωCPO Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled ωCPO from the underlying type and typeclass. -/
 def of (α : Type*) [omega_complete_partial_order α] : ωCPO := bundled.of α
@@ -63,7 +65,7 @@ fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.eval_preorder_hom j) (
 /-- The pi-type is a limit cone for the product. -/
 def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=
 { lift := λ s,
-    ⟨λ t j, s.π.app j t, λ x y h j, (s.π.app j).monotone h,
+    ⟨⟨λ t j, s.π.app j t, λ x y h j, (s.π.app j).monotone h⟩,
      λ x, funext (λ j, (s.π.app j).continuous x)⟩,
   uniq' := λ s m w,
   begin

@@ -128,17 +128,22 @@ from mul_inv_le_mul_inv_iff'
 @[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
 zero_lt_iff.2 $ u.ne_zero
 
-lemma mul_lt_mul₀ (hab : a < b) (hcd : c < d) : a * c < b * d :=
-have hb : b ≠ 0 := ne_zero_of_lt hab,
+lemma mul_lt_mul_of_lt_of_le₀ (hab : a ≤ b) (hb : b ≠ 0) (hcd : c < d) : a * c < b * d :=
 have hd : d ≠ 0 := ne_zero_of_lt hcd,
 if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd } else
 if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
 show (units.mk0 a ha) * (units.mk0 c hc) < (units.mk0 b hb) * (units.mk0 d hd),
-from mul_lt_mul''' hab hcd
+from mul_lt_mul_of_le_of_lt hab hcd
+
+lemma mul_lt_mul₀ (hab : a < b) (hcd : c < d) : a * c < b * d :=
+mul_lt_mul_of_lt_of_le₀ hab.le (ne_zero_of_lt hab) hcd
 
 lemma mul_inv_lt_of_lt_mul₀ (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
 by { contrapose! h, simpa only [inv_inv₀] using mul_inv_le_of_le_mul (inv_ne_zero hz) h }
+
+lemma inv_mul_lt_of_lt_mul₀ (h : x < y * z) : y⁻¹ * x < z :=
+by { rw mul_comm at *, exact mul_inv_lt_of_lt_mul₀ h }
 
 lemma mul_lt_right₀ (c : α) (h : a < b) (hc : c ≠ 0) : a * c < b * c :=
 by { contrapose! h, exact le_of_le_mul_right hc h }
@@ -157,6 +162,14 @@ from inv_lt_inv_iff
 lemma inv_le_inv₀ (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 show (units.mk0 a ha)⁻¹ ≤ (units.mk0 b hb)⁻¹ ↔ (units.mk0 b hb) ≤ (units.mk0 a ha),
 from inv_le_inv_iff
+
+lemma lt_of_mul_lt_mul_of_le₀ (h : a * b < c * d) (hc : 0 < c) (hh : c ≤ a) : b < d :=
+begin
+  have ha : a ≠ 0 := ne_of_gt (lt_of_lt_of_le hc hh),
+  simp_rw ← inv_le_inv₀ ha (ne_of_gt hc) at hh,
+  have := mul_lt_mul_of_lt_of_le₀ hh (inv_ne_zero (ne_of_gt hc)) h,
+  simpa [inv_mul_cancel_left₀ ha, inv_mul_cancel_left₀ (ne_of_gt hc)] using this,
+end
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,

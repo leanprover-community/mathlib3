@@ -61,8 +61,10 @@ def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
+open order_dual (of_dual to_dual)
+
 /-- The galois insertion between sets and opens, but ordered by reverse inclusion. -/
-def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior subtype.val :=
+def gi : galois_insertion (to_dual ∘ @interior α _ ∘ of_dual) (to_dual ∘ subtype.val ∘ of_dual) :=
 { choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc.dual,
   le_l_u := λ _, interior_subset,

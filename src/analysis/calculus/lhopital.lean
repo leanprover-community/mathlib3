@@ -37,7 +37,7 @@ variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 ## Interval-based versions
 
 We start by proving statements where all conditions (derivability, `g' ≠ 0`) have
-to be satisfied on an explicitely-provided interval.
+to be satisfied on an explicitly-provided interval.
 -/
 
 namespace has_deriv_at

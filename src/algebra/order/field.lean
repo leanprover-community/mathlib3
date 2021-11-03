@@ -327,7 +327,8 @@ begin
   exact mul_le_mul_of_nonneg_right h (one_div_nonneg.2 hc)
 end
 
-@[mono] lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
+-- Not a `mono` lemma b/c `div_le_div` is strictly more general
+lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
 begin
   rw [div_eq_mul_inv, div_eq_mul_inv],
   exact mul_le_mul_of_nonneg_left ((inv_le_inv (hc.trans_le h) hc).mpr h) ha
@@ -581,6 +582,10 @@ begin
     ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
+lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
+
+lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
+
 /--  An inequality involving `2`. -/
 lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
   (1 - 1 / a)⁻¹ ≤ 2 :=
@@ -641,6 +646,14 @@ end
 
 lemma exists_add_lt_and_pos_of_lt (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
 ⟨(a - b) / 2, add_sub_div_two_lt h, div_pos (sub_pos_of_lt h) zero_lt_two⟩
+
+lemma exists_pos_mul_lt {a : α} (h : 0 < a) (b : α) : ∃ c : α, 0 < c ∧ b * c < a :=
+begin
+  have : 0 < a / max (b + 1) 1, from div_pos h (lt_max_iff.2 (or.inr zero_lt_one)),
+  refine ⟨a / max (b + 1) 1, this, _⟩,
+  rw [← lt_div_iff this, div_div_cancel' h.ne'],
+  exact lt_max_iff.2 (or.inl $ lt_add_one _)
+end
 
 lemma le_of_forall_sub_le (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin

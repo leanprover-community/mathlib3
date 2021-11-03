@@ -54,6 +54,39 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 lemma image_restrict (f : α → β) (s t : set α) : s.restrict f '' (coe ⁻¹' t) = f '' (t ∩ s) :=
 by rw [restrict, image_comp, image_preimage_eq_inter_range, subtype.range_coe]
 
+@[simp] lemma restrict_dite {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β) (g : Π a ∉ s, β) :
+  restrict (λ a, if h : a ∈ s then f a h else g a h) s = λ a, f a a.2 :=
+funext $ λ a, dif_pos a.2
+
+@[simp] lemma restrict_dite_compl {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β)
+  (g : Π a ∉ s, β) :
+  restrict (λ a, if h : a ∈ s then f a h else g a h) sᶜ = λ a, g a a.2 :=
+funext $ λ a, dif_neg a.2
+
+@[simp] lemma restrict_ite (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (λ a, if a ∈ s then f a else g a) s = restrict f s :=
+restrict_dite _ _
+
+@[simp] lemma restrict_ite_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (λ a, if a ∈ s then f a else g a) sᶜ = restrict g sᶜ :=
+restrict_dite_compl _ _
+
+@[simp] lemma restrict_piecewise (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (piecewise s f g) s = restrict f s :=
+restrict_ite _ _ _
+
+@[simp] lemma restrict_piecewise_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
+  restrict (piecewise s f g) sᶜ = restrict g sᶜ :=
+restrict_ite_compl _ _ _
+
+lemma restrict_extend_range (f : α → β) (g : α → γ) (g' : β → γ) :
+  restrict (extend f g g') (range f) = λ x, g x.coe_prop.some :=
+by convert restrict_dite _ _
+
+@[simp] lemma restrict_extend_compl_range (f : α → β) (g : α → γ) (g' : β → γ) :
+  restrict (extend f g g') (range f)ᶜ = g' ∘ coe :=
+by convert restrict_dite_compl _ _
+
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/
 def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
@@ -223,8 +256,14 @@ theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x
 @[reducible] def inj_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃x₁ : α⦄, x₁ ∈ s → ∀ ⦃x₂ : α⦄, x₂ ∈ s → f x₁ = f x₂ → x₁ = x₂
 
-theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
-λ _ h₁, false.elim h₁
+theorem subsingleton.inj_on (hs : s.subsingleton) (f : α → β) : inj_on f s :=
+λ x hx y hy h, hs hx hy
+
+@[simp] theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
+subsingleton_empty.inj_on f
+
+@[simp] theorem inj_on_singleton (f : α → β) (a : α) : inj_on f {a} :=
+subsingleton_singleton.inj_on f
 
 theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y ↔ x = y :=
@@ -240,17 +279,22 @@ theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
 λ x hx y hy H, ht (h hx) (h hy) H
 
+theorem inj_on_union (h : disjoint s₁ s₂) :
+  inj_on f (s₁ ∪ s₂) ↔ inj_on f s₁ ∧ inj_on f s₂ ∧ ∀ (x ∈ s₁) (y ∈ s₂), f x ≠ f y :=
+begin
+  refine ⟨λ H, ⟨H.mono $ subset_union_left _ _, H.mono $ subset_union_right _ _, _⟩, _⟩,
+  { intros x hx y hy hxy,
+    obtain rfl : x = y, from H (or.inl hx) (or.inr hy) hxy,
+    exact h ⟨hx, hy⟩ },
+  { rintro ⟨h₁, h₂, h₁₂⟩,
+    rintro x (hx|hx) y (hy|hy) hxy,
+    exacts [h₁ hx hy hxy, (h₁₂ _ hx _ hy hxy).elim, (h₁₂ _ hy _ hx hxy.symm).elim, h₂ hx hy hxy] }
+end
+
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
-⟨λ hf, ⟨hf.mono $ subset_insert a s,
-  λ ⟨x, hxs, hx⟩, has $ mem_of_eq_of_mem (hf (or.inl rfl) (or.inr hxs) hx.symm) hxs⟩,
-λ ⟨h1, h2⟩ x hx y hy hfxy, or.cases_on hx
-  (λ hxa : x = a, or.cases_on hy
-    (λ hya : y = a, hxa.trans hya.symm)
-    (λ hys : y ∈ s, h2.elim ⟨y, hys, hxa ▸ hfxy.symm⟩))
-  (λ hxs : x ∈ s, or.cases_on hy
-    (λ hya : y = a, h2.elim ⟨x, hxs, hya ▸ hfxy⟩)
-    (λ hys : y ∈ s, h1 hxs hys hfxy))⟩
+have disjoint s {a}, from λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
+by { rw [← union_singleton, inj_on_union this], simp }
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 ⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
@@ -777,6 +821,16 @@ begin
   ext y, split,
   { rintro ⟨x, rfl⟩, by_cases h : x ∈ s;[left, right]; use x; simp [h] },
   { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
+end
+
+lemma injective_piecewise_iff {f g : α → β} :
+  injective (s.piecewise f g) ↔ inj_on f s ∧ inj_on g sᶜ ∧ (∀ (x ∈ s) (y ∉ s), f x ≠ g y) :=
+begin
+  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ s _),
+    (piecewise_eq_on s f g).inj_on_iff, (piecewise_eq_on_compl s f g).inj_on_iff],
+  refine and_congr iff.rfl (and_congr iff.rfl $ forall_congr $ λ x, forall_congr $ λ hx,
+    forall_congr $ λ y, forall_congr $ λ hy, _),
+  rw [piecewise_eq_of_mem s f g hx, piecewise_eq_of_not_mem s f g hy]
 end
 
 lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}

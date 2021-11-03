@@ -209,9 +209,9 @@ end
 /--
 The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`
 and `direct_sum.algebra`. -/
-noncomputable instance homogeneous_submodule.gcomm_monoid :
-  direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=
-direct_sum.gcomm_monoid.of_submodules _
+noncomputable instance homogeneous_submodule.gcomm_semiring :
+  direct_sum.gcomm_semiring (λ i, homogeneous_submodule σ R i) :=
+direct_sum.gcomm_semiring.of_submodules _
   (is_homogeneous_one σ R)
   (λ i j hi hj, is_homogeneous.mul hi.prop hj.prop)
 

@@ -42,10 +42,10 @@ begin
   refl,
 end
 
-/-- Let `{x | p x}` be an additive subsemigroup of an additive commutative monoid `M`. Let `f : M →
-N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let `g i`, `i ∈
-s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
-`f (∑ i in s, g i) ≤ ∏ i in s, f (g i)`. -/
+/-- Let `{x | p x}` be an additive subsemigroup of an additive commutative monoid `M`. Let
+`f : M → N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let
+`g i`, `i ∈ s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
+`f (∑ i in s, g i) ≤ ∑ i in s, f (g i)`. -/
 add_decl_doc le_sum_nonempty_of_subadditive_on_pred
 
 /-- If `f : M → N` is a submultiplicative function, `f (x * y) ≤ f x * f y` and `g i`, `i ∈ s`, is a
@@ -76,10 +76,10 @@ begin
   { exact le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul g s hs_nonempty hs, },
 end
 
-/-- Let `{x | p x}` be a subsemigroup of a commutative monoid `M`. Let `f : M → N` be a map
-such that `f 1 = 1` and `f` is submultiplicative on `{x | p x}`, i.e.,
-`p x → p y → f (x * y) ≤ f x * f y`. Let `g i`, `i ∈ s`, be a finite family of elements of `M` such
-that `∀ i ∈ s, p (g i)`. Then `f (∏ x in s, g x) ≤ ∏ x in s, f (g x)`. -/
+/-- Let `{x | p x}` be a subsemigroup of a commutative additive monoid `M`. Let `f : M → N` be a map
+such that `f 0 = 0` and `f` is subadditive on `{x | p x}`, i.e. `p x → p y → f (x + y) ≤ f x + f y`.
+Let `g i`, `i ∈ s`, be a finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
+`f (∑ x in s, g x) ≤ ∑ x in s, f (g x)`. -/
 add_decl_doc le_sum_of_subadditive_on_pred
 
 /-- If `f : M → N` is a submultiplicative function, `f (x * y) ≤ f x * f y`, `f 1 = 1`, and `g i`,
@@ -94,8 +94,8 @@ begin
   refl,
 end
 
-/-- If `f : M → N` is a submultiplicative function, `f (x * y) ≤ f x * f y`, `f 1 = 1`, and `g i`,
-`i ∈ s`, is a finite family of elements of `M`, then `f (∏ i in s, g i) ≤ ∏ i in s, f (g i)`. -/
+/-- If `f : M → N` is a subadditive function, `f (x + y) ≤ f x + f y`, `f 0 = 0`, and `g i`,
+`i ∈ s`, is a finite family of elements of `M`, then `f (∑ i in s, g i) ≤ ∑ i in s, f (g i)`. -/
 add_decl_doc le_sum_of_subadditive
 
 variables {f g : ι → N} {s t : finset ι}
@@ -229,6 +229,11 @@ begin
   { simpa using h },
   { simpa }
 end
+
+lemma card_bUnion_le_card_mul (s : finset α) (f : α → finset β) (n : ℕ)
+  (h : ∀ a ∈ s, (f a).card ≤ n) :
+  (s.bUnion f).card ≤ s.card * n :=
+card_bUnion_le.trans $ sum_le_of_forall_le _ _ _ h
 
 end pigeonhole
 
@@ -443,9 +448,11 @@ namespace fintype
 
 variables [fintype ι]
 
-@[mono, to_additive sum_mono]
+@[to_additive sum_mono, mono]
 lemma prod_mono' [ordered_comm_monoid M] : monotone (λ f : ι → M, ∏ i, f i) :=
 λ f g hfg, finset.prod_le_prod'' $ λ x _, hfg x
+
+attribute [mono] sum_mono
 
 @[to_additive sum_strict_mono]
 lemma prod_strict_mono' [ordered_cancel_comm_monoid M] : strict_mono (λ f : ι → M, ∏ x, f x) :=

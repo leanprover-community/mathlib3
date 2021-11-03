@@ -187,7 +187,9 @@ begin
   { refine quotient.rec_on_subsingleton z _,
     rintros ⟨z₁, z₂⟩ ⟨hx, hy⟩,
     rw eq_iff,
-    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; cc },
+    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; subst x; subst y;
+    try { exact (hne rfl).elim };
+    simp only [true_or, eq_self_iff_true, and_self, or_true] },
   { rintro rfl, simp },
 end
 
@@ -203,7 +205,7 @@ begin
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
   simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
   cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' };
-  cc,
+  simp only [eq_self_iff_true, and_self, or_self, true_or, or_true],
 end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
@@ -440,7 +442,7 @@ begin
   simp only [h, if_true, eq_self_iff_true],
   split_ifs, assumption, refl,
   simp only [h, if_false, if_true, eq_self_iff_true],
-  cases mem_iff.mp ha; cc,
+  exact ((mem_iff.mp ha).resolve_left h).symm,
   refl,
 end
 

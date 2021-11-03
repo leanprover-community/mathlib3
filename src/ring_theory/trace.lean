@@ -243,9 +243,7 @@ lemma trace_eq_trace_adjoin [finite_dimensional K L] (x : L) :
 begin
   rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
   conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
-  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
-      smul_eq_mul, algebra.smul_def],
-  apply_instance
+  rw [trace_algebra_map, linear_map.map_smul_of_tower],
 end
 
 variables {K}
@@ -359,7 +357,7 @@ begin
     vandermonde (λ i, e.symm i pb.gen),
   calc algebra_map K (algebraic_closure _) (bilin_form.to_matrix pb.basis (trace_form K L)).det
       = det ((algebra_map K _).map_matrix $
-              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det
+              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det _ _
   ... = det (Mᵀ ⬝ M) : _
   ... = det M * det M : by rw [det_mul, det_transpose]
   ... ≠ 0 : mt mul_self_eq_zero.mp _,

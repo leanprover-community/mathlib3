@@ -3,8 +3,8 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 -/
-import algebra.module.ordered
-import linear_algebra.affine_space.affine_map
+import algebra.order.module
+import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Convex sets and functions in vector spaces
@@ -289,6 +289,28 @@ begin
 end
 
 end ordered_cancel_add_comm_monoid
+
+section linear_ordered_add_comm_monoid
+variables [linear_ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 E] {𝕜}
+
+lemma segment_subset_interval (x y : E) : [x -[𝕜] y] ⊆ interval x y :=
+begin
+  cases le_total x y,
+  { rw interval_of_le h,
+    exact segment_subset_Icc h },
+  { rw [interval_of_ge h, segment_symm],
+    exact segment_subset_Icc h }
+end
+
+lemma convex.min_le_combo (x y : E) {a b : 𝕜} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+  min x y ≤ a • x + b • y :=
+(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).1
+
+lemma convex.combo_le_max (x y : E) {a b : 𝕜} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+  a • x + b • y ≤ max x y :=
+(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).2
+
+end linear_ordered_add_comm_monoid
 end ordered_semiring
 
 section linear_ordered_field
@@ -507,6 +529,20 @@ begin
   exact h hx hy ha hb hab
 end
 
+lemma convex_iff_pairwise_pos :
+  convex 𝕜 s ↔ s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s) :=
+begin
+  refine ⟨λ h x hx y hy _ a b ha hb hab, h hx hy ha.le hb.le hab, _⟩,
+  intros h x y hx hy a b ha hb hab,
+  obtain rfl | ha' := ha.eq_or_lt,
+  { rw [zero_add] at hab, rwa [hab, zero_smul, one_smul, zero_add] },
+  obtain rfl | hb' := hb.eq_or_lt,
+  { rw [add_zero] at hab, rwa [hab, zero_smul, one_smul, add_zero] },
+  obtain rfl | hxy := eq_or_ne x y,
+  { rwa convex.combo_self hab },
+  exact h _ hx _ hy hxy ha' hb' hab,
+end
+
 lemma convex_iff_open_segment_subset :
   convex 𝕜 s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → open_segment 𝕜 x y ⊆ s :=
 begin
@@ -653,6 +689,80 @@ end linear_ordered_add_comm_monoid
 end module
 end add_comm_monoid
 
+section linear_ordered_add_comm_monoid
+variables [linear_ordered_add_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E]
+  [ordered_smul 𝕜 E] {s : set E} {f : E → β}
+
+lemma monotone_on.convex_le (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | f x ≤ r} :=
+λ x y hx hy a b ha hb hab, ⟨hs hx.1 hy.1 ha hb hab,
+  (hf (hs hx.1 hy.1 ha hb hab) (max_rec' s hx.1 hy.1) (convex.combo_le_max x y ha hb hab)).trans
+    (max_rec' _ hx.2 hy.2)⟩
+
+lemma monotone_on.convex_lt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | f x < r} :=
+λ x y hx hy a b ha hb hab, ⟨hs hx.1 hy.1 ha hb hab,
+  (hf (hs hx.1 hy.1 ha hb hab) (max_rec' s hx.1 hy.1) (convex.combo_le_max x y ha hb hab)).trans_lt
+    (max_rec' _ hx.2 hy.2)⟩
+
+lemma monotone_on.convex_ge (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | r ≤ f x} :=
+@monotone_on.convex_le 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
+
+lemma monotone_on.convex_gt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | r < f x} :=
+@monotone_on.convex_lt 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
+
+lemma antitone_on.convex_le (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | f x ≤ r} :=
+@monotone_on.convex_ge 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+
+lemma antitone_on.convex_lt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | f x < r} :=
+@monotone_on.convex_gt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+
+lemma antitone_on.convex_ge (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | r ≤ f x} :=
+@monotone_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+
+lemma antitone_on.convex_gt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
+  convex 𝕜 {x ∈ s | r < f x} :=
+@monotone_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+
+lemma monotone.convex_le (hf : monotone f) (r : β) :
+  convex 𝕜 {x | f x ≤ r} :=
+set.sep_univ.subst ((hf.monotone_on univ).convex_le convex_univ r)
+
+lemma monotone.convex_lt (hf : monotone f) (r : β) :
+  convex 𝕜 {x | f x ≤ r} :=
+set.sep_univ.subst ((hf.monotone_on univ).convex_le convex_univ r)
+
+lemma monotone.convex_ge (hf : monotone f ) (r : β) :
+  convex 𝕜 {x | r ≤ f x} :=
+set.sep_univ.subst ((hf.monotone_on univ).convex_ge convex_univ r)
+
+lemma monotone.convex_gt (hf : monotone f) (r : β) :
+  convex 𝕜 {x | f x ≤ r} :=
+set.sep_univ.subst ((hf.monotone_on univ).convex_le convex_univ r)
+
+lemma antitone.convex_le (hf : antitone f) (r : β) :
+  convex 𝕜 {x | f x ≤ r} :=
+set.sep_univ.subst ((hf.antitone_on univ).convex_le convex_univ r)
+
+lemma antitone.convex_lt (hf : antitone f) (r : β) :
+  convex 𝕜 {x | f x < r} :=
+set.sep_univ.subst ((hf.antitone_on univ).convex_lt convex_univ r)
+
+lemma antitone.convex_ge (hf : antitone f) (r : β) :
+  convex 𝕜 {x | r ≤ f x} :=
+set.sep_univ.subst ((hf.antitone_on univ).convex_ge convex_univ r)
+
+lemma antitone.convex_gt (hf : antitone f) (r : β) :
+  convex 𝕜 {x | r < f x} :=
+set.sep_univ.subst ((hf.antitone_on univ).convex_gt convex_univ r)
+
+end linear_ordered_add_comm_monoid
+
 section add_comm_group
 variables [add_comm_group E] [module 𝕜 E] {s t : set E}
 
@@ -738,6 +848,14 @@ begin
   apply h.segment_subset hx hy,
   rw segment_eq_image',
   exact mem_image_of_mem _ ht,
+end
+
+/-- Affine subspaces are convex. -/
+lemma affine_subspace.convex (Q : affine_subspace 𝕜 E) : convex 𝕜 (Q : set E) :=
+begin
+  intros x y hx hy a b ha hb hab,
+  rw [eq_sub_of_add_eq hab, ← affine_map.line_map_apply_module],
+  exact affine_map.line_map_mem b hx hy,
 end
 
 /--

@@ -92,10 +92,14 @@ instance : gcd_monoid ℕ :=
   gcd_dvd_left := nat.gcd_dvd_left ,
   gcd_dvd_right := nat.gcd_dvd_right,
   dvd_gcd := λ a b c, nat.dvd_gcd,
-  normalize_gcd := λ a b, normalize_eq _,
-  gcd_mul_lcm := λ a b, by rw [normalize_eq _, nat.gcd_mul_lcm],
+  gcd_mul_lcm := λ a b, by rw [nat.gcd_mul_lcm],
   lcm_zero_left := nat.lcm_zero_left,
-  lcm_zero_right := nat.lcm_zero_right,
+  lcm_zero_right := nat.lcm_zero_right }
+
+instance : normalized_gcd_monoid ℕ :=
+{ normalize_gcd := λ a b, normalize_eq _,
+  normalize_lcm := λ a b, normalize_eq _,
+  .. (infer_instance : gcd_monoid ℕ),
   .. (infer_instance : normalization_monoid ℕ) }
 
 lemma gcd_eq_nat_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
@@ -135,6 +139,17 @@ begin
   { simp [of_nat_nat_abs_of_nonpos (le_of_not_ge h), normalize_of_neg (lt_of_not_ge h)] }
 end
 
+lemma nonneg_of_normalize_eq_self {z : ℤ} (hz : normalize z = z) : 0 ≤ z :=
+calc 0 ≤ (z.nat_abs : ℤ) : coe_zero_le _
+... = normalize z : coe_nat_abs_eq_normalize _
+... = z : hz
+
+lemma nonneg_iff_normalize_eq_self (z : ℤ) : normalize z = z ↔ 0 ≤ z :=
+⟨nonneg_of_normalize_eq_self, normalize_of_nonneg⟩
+
+lemma eq_of_associated_of_nonneg {a b : ℤ} (h : associated a b) (ha : 0 ≤ a) (hb : 0 ≤ b) : a = b :=
+dvd_antisymm_of_normalize_eq (normalize_of_nonneg ha) (normalize_of_nonneg hb) h.dvd h.symm.dvd
+
 end normalization_monoid
 
 section gcd_monoid
@@ -145,11 +160,17 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_left   := assume a b, int.gcd_dvd_left _ _,
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
-  normalize_gcd  := assume a b, normalize_coe_nat _,
-  gcd_mul_lcm    := by intros; rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  gcd_mul_lcm    := λ a b, by {
+    rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+    exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
-  lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _,
-  .. int.normalization_monoid }
+  lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}
+
+instance : normalized_gcd_monoid ℤ :=
+{ normalize_gcd  := λ a b, normalize_coe_nat _,
+  normalize_lcm  := λ a b, normalize_coe_nat _,
+  .. int.normalization_monoid,
+  .. (infer_instance : gcd_monoid ℤ) }
 
 lemma coe_gcd (i j : ℤ) : ↑(int.gcd i j) = gcd_monoid.gcd i j := rfl
 lemma coe_lcm (i j : ℤ) : ↑(int.lcm i j) = gcd_monoid.lcm i j := rfl
@@ -194,7 +215,7 @@ by rw [←gcd_eq_one_iff_coprime, nat.coprime_iff_gcd_eq_one, gcd_eq_nat_abs]
 lemma sq_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
-  have h' : gcd_monoid.gcd a b = 1, { rw [← coe_gcd, h], dec_trivial },
+  have h' : is_unit (gcd_monoid.gcd a b), { rw [← coe_gcd, h, int.coe_nat_one], exact is_unit_one },
   obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow h' heq,
   use d,
   rw ← hu,
@@ -296,13 +317,13 @@ end
 
 open unique_factorization_monoid
 
-theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=
+theorem nat.factors_eq {n : ℕ} : normalized_factors n = n.factors :=
 begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply factors_unique (irreducible_of_factor) _,
+  apply factors_unique (irreducible_of_normalized_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
-    apply factors_prod (nat.succ_ne_zero _) },
+    apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
@@ -311,10 +332,11 @@ end
 
 lemma nat.factors_multiset_prod_of_irreducible
   {s : multiset ℕ} (h : ∀ (x : ℕ), x ∈ s → irreducible x) :
-  unique_factorization_monoid.factors (s.prod) = s :=
+  normalized_factors (s.prod) = s :=
 begin
   rw [← multiset.rel_eq, ← associated_eq_eq],
-  apply (unique_factorization_monoid.factors_unique irreducible_of_factor h (factors_prod _)),
+  apply unique_factorization_monoid.factors_unique irreducible_of_normalized_factor h
+    (normalized_factors_prod _),
   rw [ne.def, multiset.prod_eq_zero_iff],
   intro con,
   exact not_irreducible_zero (h 0 con),
@@ -369,11 +391,11 @@ end
 
 namespace int
 
-lemma gmultiples_nat_abs (a : ℤ) :
-  add_subgroup.gmultiples (a.nat_abs : ℤ) = add_subgroup.gmultiples a :=
+lemma zmultiples_nat_abs (a : ℤ) :
+  add_subgroup.zmultiples (a.nat_abs : ℤ) = add_subgroup.zmultiples a :=
 le_antisymm
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
-  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
 
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }

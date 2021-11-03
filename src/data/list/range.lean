@@ -78,7 +78,7 @@ theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
 
 theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_range'] using length_le_of_sublist h,
- λ h, by rw [← nat.sub_add_cancel h, ← range'_append]; apply sublist_append_left⟩
+ λ h, by rw [← tsub_add_cancel_of_le h, ← range'_append]; apply sublist_append_left⟩
 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
 ⟨λ h, le_of_not_lt $ λ hn, lt_irrefl (s+n) $
@@ -171,7 +171,7 @@ theorem reverse_range' : ∀ s n : ℕ,
 | s (n+1) := by rw [range'_concat, reverse_append, range_succ_eq_map];
   simpa only [show s + (n + 1) - 1 = s + n, from rfl, (∘),
     λ a i, show a - 1 - i = a - succ i, from pred_sub _ _,
-    reverse_singleton, map_cons, nat.sub_zero, cons_append,
+    reverse_singleton, map_cons, tsub_zero, cons_append,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 

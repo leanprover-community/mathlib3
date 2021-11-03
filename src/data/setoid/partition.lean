@@ -5,7 +5,7 @@ Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 -/
 
 import data.setoid.basic
-import data.set.lattice
+import data.set.pairwise
 
 /-!
 # Equivalence relations: partitions
@@ -107,20 +107,20 @@ by { convert setoid.eqv_class_mem H, ext, rw setoid.comm' }
 
 /-- Distinct elements of a set of sets partitioning α are disjoint. -/
 lemma eqv_classes_disjoint {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) :
-  set.pairwise_disjoint c :=
+  c.pairwise_disjoint :=
 λ b₁ h₁ b₂ h₂ h, set.disjoint_left.2 $
   λ x hx1 hx2, (H x).elim2 $ λ b hc hx hb, h $ eq_of_mem_eqv_class H h₁ hx1 h₂ hx2
 
 /-- A set of disjoint sets covering α partition α (classical). -/
 lemma eqv_classes_of_disjoint_union {c : set (set α)}
-  (hu : set.sUnion c = @set.univ α) (H : set.pairwise_disjoint c) (a) :
+  (hu : set.sUnion c = @set.univ α) (H : c.pairwise_disjoint) (a) :
   ∃! b ∈ c, a ∈ b :=
 let ⟨b, hc, ha⟩ := set.mem_sUnion.1 $ show a ∈ _, by rw hu; exact set.mem_univ a in
-  exists_unique.intro2 b hc ha $ λ b' hc' ha', H.elim hc' hc a ha' ha
+  exists_unique.intro2 b hc ha $ λ b' hc' ha', H.elim_set hc' hc a ha' ha
 
 /-- Makes an equivalence relation from a set of disjoints sets covering α. -/
 def setoid_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α)
-  (H : set.pairwise_disjoint c) : setoid α :=
+  (H : c.pairwise_disjoint) : setoid α :=
 setoid.mk_classes c $ eqv_classes_of_disjoint_union hu H
 
 /-- The equivalence relation made from the equivalence classes of an equivalence

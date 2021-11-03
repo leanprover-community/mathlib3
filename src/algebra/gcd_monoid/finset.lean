@@ -31,7 +31,7 @@ variables {α β γ : Type*}
 namespace finset
 open multiset
 
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [gcd_monoid α]
+variables [comm_cancel_monoid_with_zero α] [normalized_gcd_monoid α]
 
 /-! ### lcm -/
 section lcm
@@ -199,9 +199,9 @@ end gcd
 end finset
 
 namespace finset
-section integral_domain
+section is_domain
 
-variables [nontrivial β] [integral_domain α] [gcd_monoid α]
+variables [comm_ring α] [is_domain α] [normalized_gcd_monoid α]
 
 lemma gcd_eq_of_dvd_sub {s : finset β} {f g : β → α} {a : α}
   (h : ∀ x : β, x ∈ s → a ∣ f x - g x) :
@@ -218,6 +218,6 @@ begin
   exact congr_arg _ (gcd_eq_of_dvd_sub_right (h _ (mem_insert_self _ _)))
 end
 
-end integral_domain
+end is_domain
 
 end finset

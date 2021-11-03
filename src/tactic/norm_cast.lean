@@ -321,7 +321,7 @@ end
 ```
 -/
 meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
-tactic.interactive.simp none none tt hs [`push_cast] l
+tactic.interactive.simp none none tt hs [`push_cast] l {discharger := tactic.assumption}
 
 
 end tactic.interactive
@@ -533,7 +533,8 @@ A small variant of `push_cast` suited for non-interactive use.
 -/
 meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
 do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
-   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff},
+   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e
+                  {fail_if_unchanged := ff} `eq tactic.assumption,
    return (e, prf)
 
 end norm_cast

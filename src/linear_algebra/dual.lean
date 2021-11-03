@@ -53,7 +53,7 @@ namespace dual
 
 instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
-instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
+instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and
 `module.eval_equiv`. -/
@@ -288,7 +288,10 @@ theorem dual_dim_eq [finite_dimensional K V] :
 (basis.of_vector_space K V).dual_dim_eq
 
 lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
-by { classical, exact (basis.of_vector_space K V).eval_range }
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact (basis.of_vector_space K V).eval_range
+end
 
 variables (K V)
 

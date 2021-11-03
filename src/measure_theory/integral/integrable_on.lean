@@ -312,17 +312,20 @@ is_compact.induction_on hs integrable_on_empty (λ s t hst ht, ht.mono_set hst)
 
 /-- A function which is continuous on a set `s` is almost everywhere measurable with respect to
 `μ.restrict s`. -/
-lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space α] [borel_space E]
-  {f : α → E} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
+lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space α]
+  [measurable_space β] [topological_space β] [borel_space β]
+  {f : α → β} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
   ae_measurable f (μ.restrict s) :=
 begin
-  refine ⟨indicator s f, _, (indicator_ae_eq_restrict hs).symm⟩,
+  nontriviality α, inhabit α,
+  have : piecewise s f (λ _, f (default α)) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
+  refine ⟨piecewise s f (λ _, f (default α)), _, this.symm⟩,
   apply measurable_of_is_open,
   assume t ht,
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
     _root_.continuous_on_iff'.1 hf t ht,
-  rw [indicator_preimage, set.ite, hu],
-  exact (u_open.measurable_set.inter hs).union ((measurable_zero ht.measurable_set).diff hs)
+  rw [piecewise_preimage, set.ite, hu],
+  exact (u_open.measurable_set.inter hs).union ((measurable_const ht.measurable_set).diff hs)
 end
 
 lemma continuous_on.integrable_at_nhds_within
@@ -353,8 +356,8 @@ hf.integrable_on_compact is_compact_Icc
 lemma continuous_on.integrable_on_interval [borel_space E]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
-  {a b : β} {f : β → E} (hf : continuous_on f (interval a b)) :
-  integrable_on f (interval a b) μ :=
+  {a b : β} {f : β → E} (hf : continuous_on f [a, b]) :
+  integrable_on f [a, b] μ :=
 hf.integrable_on_compact is_compact_interval
 
 /-- A continuous function `f` is integrable on any compact set with respect to any locally finite
@@ -373,12 +376,26 @@ lemma continuous.integrable_on_Icc [borel_space E]
   integrable_on f (Icc a b) μ :=
 hf.integrable_on_compact is_compact_Icc
 
+lemma continuous.integrable_on_Ioc [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous f) :
+  integrable_on f (Ioc a b) μ :=
+hf.integrable_on_Icc.mono_set Ioc_subset_Icc_self
+
 lemma continuous.integrable_on_interval [borel_space E]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous f) :
-  integrable_on f (interval a b) μ :=
+  integrable_on f [a, b] μ :=
 hf.integrable_on_compact is_compact_interval
+
+lemma continuous.integrable_on_interval_oc [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous f) :
+  integrable_on f (Ι a b) μ :=
+hf.integrable_on_Ioc
 
 /-- A continuous function with compact closure of the support is integrable on the whole space. -/
 lemma continuous.integrable_of_compact_closure_support

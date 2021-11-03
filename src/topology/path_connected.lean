@@ -72,7 +72,7 @@ structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)
 
-instance : has_coe_to_fun (path x y) := ⟨_, λ p, p.to_fun⟩
+instance : has_coe_to_fun (path x y) (λ _, I → X) := ⟨λ p, p.to_fun⟩
 
 @[ext] protected lemma path.ext {X : Type*} [topological_space X] {x y : X} :
   ∀ {γ₁ γ₂ : path x y}, (γ₁ : I → X) = γ₂ → γ₁ = γ₂
@@ -94,13 +94,21 @@ protected lemma continuous : continuous γ :=
 @[simp] protected lemma target : γ 1 = y :=
 γ.target'
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+because it is a composition of multiple projections. -/
+def simps.apply : I → X := γ
+
+initialize_simps_projections path (to_continuous_map_to_fun → simps.apply, -to_continuous_map)
+
+@[simp] lemma coe_to_continuous_map : ⇑γ.to_continuous_map = γ := rfl
+
 /-- Any function `φ : Π (a : α), path (x a) (y a)` can be seen as a function `α × I → X`. -/
 instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} :
   has_uncurry (Π (a : α), path (x a) (y a)) (α × I) X :=
 ⟨λ φ p, φ p.1 p.2⟩
 
 /-- The constant path from a point to itself -/
-@[refl] def refl (x : X) : path x x :=
+@[refl, simps] def refl (x : X) : path x x :=
 { to_fun := λ t, x,
   continuous_to_fun := continuous_const,
   source' := rfl,
@@ -111,11 +119,14 @@ instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} 
 by simp [path.refl, has_coe_to_fun.coe, coe_fn]
 
 /-- The reverse of a path from `x` to `y`, as a path from `y` to `x` -/
-@[symm] def symm (γ : path x y) : path y x :=
+@[symm, simps] def symm (γ : path x y) : path y x :=
 { to_fun      := γ ∘ σ,
   continuous_to_fun := by continuity,
   source'       := by simpa [-path.target] using γ.target,
   target'      := by simpa [-path.source] using γ.source }
+
+@[simp] lemma symm_symm {γ : path x y} : γ.symm.symm = γ :=
+by { ext, simp }
 
 @[simp] lemma refl_symm {X : Type*} [topological_space X] {a : X} :
   (path.refl a).symm = path.refl a :=
@@ -134,6 +145,7 @@ end
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
 
+@[continuity]
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend
 
@@ -193,6 +205,31 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
   end,
   source' := by norm_num,
   target' := by norm_num }
+
+lemma trans_apply (γ : path x y) (γ' : path y z) (t : I) : (γ.trans γ') t =
+  if h : (t : ℝ) ≤ 1/2 then
+    γ ⟨2 * t, (mul_pos_mem_iff zero_lt_two).2 ⟨t.2.1, h⟩⟩
+  else
+    γ' ⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩ :=
+show ite _ _ _ = _,
+by split_ifs; rw extend_extends
+
+@[simp] lemma trans_symm (γ : path x y) (γ' : path y z) :
+  (γ.trans γ').symm = γ'.symm.trans γ.symm :=
+begin
+  ext t,
+  simp only [trans_apply, one_div, symm_apply, not_le, comp_app],
+  split_ifs with h h₁ h₂ h₃ h₄; rw [coe_symm_eq] at h,
+  { have ht : (t : ℝ) = 1/2,
+    { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
+    norm_num [ht] },
+  { refine congr_arg _ (subtype.ext _),
+    norm_num [sub_sub_assoc_swap, mul_sub] },
+  { refine congr_arg _ (subtype.ext _),
+    have h : 2 - 2 * (t : ℝ) - 1 = 1 - 2 * t, by linarith,
+    norm_num [mul_sub, h] },
+  { exfalso, linarith [unit_interval.nonneg t, unit_interval.le_one t] }
+end
 
 @[simp] lemma refl_trans_refl {X : Type*} [topological_space X] {a : X} :
   (path.refl a).trans (path.refl a) = path.refl a :=
@@ -276,16 +313,19 @@ def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
   (γ.cast hx hy : I → X) = γ :=
 rfl
 
+@[continuity]
 lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).symm) :=
 h.comp (continuous_id.prod_map continuous_symm)
 
+@[continuity]
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).extend) :=
 h.comp (continuous_id.prod_map continuous_proj_Icc)
 
+@[continuity]
 lemma trans_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b c : ι → X}
   (γ₁ : Π (t : ι), path (a t) (b t)) (h₁ : continuous ↿γ₁)
@@ -354,6 +394,7 @@ end
 
 /-- For a path `γ`, `γ.truncate` gives a "continuous family of paths", by which we
   mean the uncurried function which maps `(t₀, t₁, s)` to `γ.truncate t₀ t₁ s` is continuous. -/
+@[continuity]
 lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : continuous (λ x, γ.truncate x.1 x.2.1 x.2.2 : ℝ × ℝ × I → X) :=
 γ.continuous_extend.comp
@@ -366,6 +407,7 @@ lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
       `exact continuous_subtype_coe`
     `end` -/
 
+@[continuity]
 lemma truncate_const_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : ℝ) : continuous ↿(γ.truncate t) :=
 have key : continuous (λ x, (t, x) : ℝ × I → ℝ × ℝ × I) := continuous_const.prod_mk continuous_id,
@@ -396,6 +438,53 @@ begin
   rw cast_coe,
   have : ↑x ∈ (Icc 0 1 : set ℝ) := x.2,
   rw [truncate, coe_mk, max_eq_left this.1, min_eq_left this.2, extend_extends']
+end
+
+/-! #### Reparametrising a path -/
+
+/--
+Given a path `γ` and a function `f : I → I` where `f 0 = 0` and `f 1 = 1`, `γ.reparam f` is the
+path defined by `γ ∘ f`.
+-/
+def reparam (γ : path x y) (f : I → I) (hfcont : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
+  path x y :=
+{ to_fun := γ ∘ f,
+  continuous_to_fun := by continuity,
+  source' := by simp [hf₀],
+  target' := by simp [hf₁] }
+
+@[simp]
+lemma coe_to_fun (γ : path x y) {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
+  (hf₁ : f 1 = 1) : ⇑(γ.reparam f hfcont hf₀ hf₁) = γ ∘ f := rfl
+
+@[simp]
+lemma reparam_id (γ : path x y) : γ.reparam id continuous_id rfl rfl = γ :=
+by { ext, refl }
+
+lemma range_reparam (γ : path x y) {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
+  (hf₁ : f 1 = 1) : range ⇑(γ.reparam f hfcont hf₀ hf₁) = range γ :=
+begin
+  change range (γ ∘ f) = range γ,
+  have : range f = univ,
+  { rw range_iff_surjective,
+    intro t,
+    have h₁ : continuous (Icc_extend (@zero_le_one ℝ _) f),
+    { continuity },
+    have := intermediate_value_Icc (@zero_le_one ℝ _) h₁.continuous_on,
+    { rw [Icc_extend_left, Icc_extend_right] at this,
+      change Icc (f 0) (f 1) ⊆ _ at this,
+      rw [hf₀, hf₁] at this,
+      rcases this t.2 with ⟨w, hw₁, hw₂⟩,
+      rw Icc_extend_of_mem _ _ hw₁ at hw₂,
+      use [⟨w, hw₁⟩, hw₂] } },
+  rw [range_comp, this, image_univ],
+end
+
+lemma refl_reparam {f : I → I} (hfcont : continuous f) (hf₀ : f 0 = 0)
+  (hf₁ : f 1 = 1) : (refl x).reparam f hfcont hf₀ hf₁ = refl x :=
+begin
+  ext,
+  simp,
 end
 
 end path

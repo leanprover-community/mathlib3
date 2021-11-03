@@ -297,7 +297,7 @@ def format_errors(errors):
         if errno == ERR_OME:
             output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import tactic.omega")
         if errno == ERR_TAC:
-            output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import the whole tactic folder")
+            output_message(path, line_nr, "ERR_TAC", "Files in mathlib cannot import the whole tactic folder")
         if errno == WRN_IND:
             output_message(path, line_nr, "WRN_IND", "Probable indentation mistake in proof")
 

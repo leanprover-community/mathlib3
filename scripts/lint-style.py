@@ -156,17 +156,28 @@ def indent_check(lines, path):
     errors = []
     indent_lvl = 0
     in_prf = 0 # counter for nested proof blocks
+    check_rest_of_block = True # we only check uncomplicated syntax
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if in_prf > 0:
+        if in_prf > 0 and check_rest_of_block:
             lstr = line.lstrip(' ') # strip spaces from beginning of line
             if lstr[0] == '{' and len(line) - len(lstr) != indent_lvl:
                 errors += [(WRN_IND, line_nr, path)]
+        if line[0] != ' ':
+            # reset the state
+            indent_lvl = 0
+            in_prf = 0
+            check_rest_of_block = True
+        if "match" in line:
+            check_rest_of_block = False
         if "begin" in line:
-            in_prf += 1
+            if line.find("begin") > 0 and in_prf == 0:
+                # complicate proof block syntax
+                check_rest_of_block = False
             indent_lvl += 2
+            in_prf += 1
         if "end" in line:
-            in_prf -= 1
             indent_lvl -= 2
+            in_prf -= 1
         indent_lvl += 2 * line.count('{') # potential innocent(?) clash with set-builder notation
         indent_lvl -= 2 * line.count('}') # there can be multiple closing braces on one line
     return errors

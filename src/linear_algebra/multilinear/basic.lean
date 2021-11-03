@@ -518,10 +518,10 @@ def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M
   multilinear_map R (λ i : ι₂, M₂) M₃ :=
 { to_fun := λ v, m (λ i, v (σ i)),
   map_add' := λ _ v i a b, by {
-    resetI, letI := classical.dec_eq ι₁,
+    resetI, letI := σ.injective.decidable_eq,
     simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
   map_smul' := λ _ v i a b, by {
-    resetI, letI := classical.dec_eq ι₁,
+    resetI, letI := σ.injective.decidable_eq,
     simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
 
 lemma dom_dom_congr_trans (σ₁ : ι₁ ≃ ι₂) (σ₂ : ι₂ ≃ ι₃) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
@@ -1077,12 +1077,16 @@ def uncurry_sum (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x 
   multilinear_map R (λ x : ι ⊕ ι', M') M₂ :=
 { to_fun := λ u, f (u ∘ sum.inl) (u ∘ sum.inr),
   map_add' := λ _ u i x y, by {
-    resetI, letI := classical.dec_eq ι, letI := classical.dec_eq ι',
+    resetI,
+    letI := (@sum.inl_injective ι ι').decidable_eq,
+    letI := (@sum.inr_injective ι ι').decidable_eq,
     cases i;
     simp only [map_add, add_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
       sum.update_inr_comp_inl, sum.update_inr_comp_inr] },
   map_smul' := λ _ u i c x, by {
-    resetI, letI := classical.dec_eq ι, letI := classical.dec_eq ι',
+    resetI,
+    letI := (@sum.inl_injective ι ι').decidable_eq,
+    letI := (@sum.inr_injective ι ι').decidable_eq,
     cases i;
     simp only [map_smul, smul_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
       sum.update_inr_comp_inl, sum.update_inr_comp_inr] } }

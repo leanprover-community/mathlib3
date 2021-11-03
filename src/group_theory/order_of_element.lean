@@ -185,7 +185,7 @@ begin
       ha, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
   { exact nat.min_fac_dvd a, },
   { rw is_of_fin_order_iff_pow_eq_one,
-    exact Exists.intro n (id ⟨hn, hx⟩)},
+    exact Exists.intro n (id ⟨hn, hx⟩) },
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]

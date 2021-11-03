@@ -267,7 +267,7 @@ begin
     apply zero_le }
 end
 
--- Inequalities about increasing the first argument
+/-! #### Inequalities about increasing the first argument -/
 
 lemma choose_le_succ (a c : ℕ) : choose a c ≤ choose a.succ c :=
 by cases c; simp [nat.choose_succ_succ]

@@ -50,7 +50,7 @@ variables {N : Type*} [add_comm_monoid N] [module R N]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {N' : Type*} [add_comm_group N'] [module R N']
 
-variables {ι : Type*} [decidable_eq ι]
+variables {ι : Type*}
 
 set_option old_structure_cmd true
 
@@ -117,7 +117,7 @@ lemma coe_multilinear_map_injective :
 @[simp] lemma to_multilinear_map_eq_coe : f.to_multilinear_map = f := rfl
 
 @[simp] lemma coe_multilinear_map_mk (f : (ι → M) → N) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : alternating_map R M N ι) :  multilinear_map R (λ i : ι, M) N) = ⟨f, h₁, h₂⟩ :=
+  ((⟨f, h₁, h₂, h₃⟩ : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = ⟨f, @h₁, @h₂⟩ :=
 rfl
 
 end coercions
@@ -127,19 +127,19 @@ end coercions
 
 These are expressed in terms of `⇑f` instead of `f.to_fun`.
 -/
-@[simp] lemma map_add (i : ι) (x y : M) :
+@[simp] lemma map_add [decidable_eq ι] (i : ι) (x y : M) :
   f (update v i (x + y)) = f (update v i x) + f (update v i y) :=
 f.to_multilinear_map.map_add' v i x y
 
-@[simp] lemma map_sub (i : ι) (x y : M') :
+@[simp] lemma map_sub [decidable_eq ι] (i : ι) (x y : M') :
   g' (update v' i (x - y)) = g' (update v' i x) - g' (update v' i y) :=
 g'.to_multilinear_map.map_sub v' i x y
 
-@[simp] lemma map_neg (i : ι) (x : M') :
+@[simp] lemma map_neg [decidable_eq ι] (i : ι) (x : M') :
   g' (update v' i (-x)) = -g' (update v' i x) :=
 g'.to_multilinear_map.map_neg v' i x
 
-@[simp] lemma map_smul (i : ι) (r : R) (x : M) :
+@[simp] lemma map_smul [decidable_eq ι] (i : ι) (r : R) (x : M) :
   f (update v i (r • x)) = r • f (update v i x) :=
 f.to_multilinear_map.map_smul' v i r x
 
@@ -150,7 +150,7 @@ f.map_eq_zero_of_eq' v i j h hij
 lemma map_coord_zero {m : ι → M} (i : ι) (h : m i = 0) : f m = 0 :=
 f.to_multilinear_map.map_coord_zero i h
 
-@[simp] lemma map_update_zero (m : ι → M) (i : ι) : f (update m i 0) = 0 :=
+@[simp] lemma map_update_zero [decidable_eq ι] (m : ι → M) (i : ι) : f (update m i 0) = 0 :=
 f.to_multilinear_map.map_update_zero m i
 
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
@@ -323,7 +323,7 @@ section
 
 open_locale big_operators
 
-lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M) (m : ι → M):
+lemma map_update_sum {α : Type*} [decidable_eq ι] (t : finset α) (i : ι) (g : α → M) (m : ι → M) :
   f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
 f.to_multilinear_map.map_update_sum t i g m
 
@@ -336,16 +336,16 @@ Various properties of reordered and repeated inputs which follow from
 `alternating_map.map_eq_zero_of_eq`.
 -/
 
-lemma map_update_self {i j : ι} (hij : i ≠ j) :
+lemma map_update_self [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   f (function.update v i (v j)) = 0 :=
 f.map_eq_zero_of_eq _ (by rw [function.update_same, function.update_noteq hij.symm]) hij
 
-lemma map_update_update {i j : ι} (hij : i ≠ j) (m : M) :
+lemma map_update_update [decidable_eq ι] {i j : ι} (hij : i ≠ j) (m : M) :
   f (function.update (function.update v i m) j m) = 0 :=
 f.map_eq_zero_of_eq _
   (by rw [function.update_same, function.update_noteq hij, function.update_same]) hij
 
-lemma map_swap_add {i j : ι} (hij : i ≠ j) :
+lemma map_swap_add [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   f (v ∘ equiv.swap i j) + f v = 0 :=
 begin
   rw equiv.comp_swap_eq_update,
@@ -392,6 +392,7 @@ lemma map_linear_dependent
   f v = 0 :=
 begin
   obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
+  letI := classical.dec_eq ι,
   suffices : f (update v i (g i • v i)) = 0,
   { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
     exact or.resolve_left this hz, },
@@ -494,7 +495,7 @@ section coprod
 open_locale big_operators
 open_locale tensor_product
 
-variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
+variables {ιa ιb : Type*}[fintype ιa] [fintype ιb]
 
 variables
   {R' : Type*} {Mᵢ N₁ N₂ : Type*}

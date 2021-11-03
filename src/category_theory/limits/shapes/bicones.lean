@@ -29,9 +29,9 @@ namespace category_theory
 section bicone
 variables (J : Type u₁)
 
-/-- Given a category `J`, construct a waling `bicone J` by adjoining two elements. -/
+/-- Given a category `J`, construct a walking `bicone J` by adjoining two elements. -/
 @[derive decidable_eq, nolint has_inhabited_instance]
-inductive bicone (J : Type u₁)
+inductive bicone
 | left : bicone
 | right : bicone
 | diagram (val : J) : bicone

@@ -94,8 +94,7 @@ is cofiltered for each `X : C`.
 class representably_flat (F : C ⥤ D) : Prop :=
 (cofiltered : ∀ (X : D), is_cofiltered (structured_arrow X F))
 
-instance functor.flat_cofiltered (F : C ⥤ D) [representably_flat F] (X : D) :
- is_cofiltered (structured_arrow X F) := representably_flat.cofiltered X
+attribute [instance] representably_flat.cofiltered
 
 end representably_flat
 
@@ -184,7 +183,7 @@ end
 
 end preserves_finite_limit_of_flat
 
-/-- Representably flat functors preserves finite limits. -/
+/-- Representably flat functors preserve finite limits. -/
 noncomputable
 def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F] :
   preserves_finite_limits F := ⟨λ J _ _, by exactI ⟨λ K, ⟨λ c hc,
@@ -215,7 +214,7 @@ variables {C D : Type u₁} [small_category C] [small_category D]
 
 /--
 (Implementation)
-The evaluation of `Lan F` at `X` is the colimit over the costrucuted arrows over `X`.
+The evaluation of `Lan F` at `X` is the colimit over the costructured arrows over `X`.
 -/
 noncomputable
 def Lan_evaluation_iso_colim (E : Type u₂) [category.{u₁} E] (F : C ⥤ D) (X : D)

@@ -1016,6 +1016,12 @@ begin
   exact h,
 end
 
+def to_lattice (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : lattice(α →ᵇ β) := {
+  ..(to_semilattice_sup h),
+  ..(to_semilattice_inf h),
+}
+
+
 end normed_lattice_ordered_group
 
 end bounded_continuous_function

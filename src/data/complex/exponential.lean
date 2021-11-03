@@ -92,7 +92,7 @@ begin
   refine lt_of_le_of_lt (le_trans (le_trans _ (le_abs_self _)) sub_le) this,
   generalize hk : j - max n i = k,
   clear this hi₂ hi₁ hi ε0 ε hg sub_le,
-  rw nat.sub_eq_iff_eq_add ji at hk,
+  rw tsub_eq_iff_eq_add_of_le ji at hk,
   rw hk,
   clear hk ji j,
   induction k with k' hi,
@@ -160,7 +160,7 @@ begin
     simpa [r_zero, nat.succ_pred_eq_of_pos m_pos, pow_succ] },
   generalize hk : m - n.succ = k,
   have r_pos : 0 < r := lt_of_le_of_ne hr0 (ne.symm r_ne_zero),
-  replace hk : m = k + n.succ := (nat.sub_eq_iff_eq_add hmn).1 hk,
+  replace hk : m = k + n.succ := (tsub_eq_iff_eq_add_of_le hmn).1 hk,
   induction k with k ih generalizing m n,
   { rw [hk, zero_add, mul_right_comm, inv_pow₀ _ _, ← div_eq_mul_inv, mul_div_cancel],
     exact (ne_of_lt (pow_pos r_pos _)).symm },
@@ -186,16 +186,16 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
   have hb : b₁ < n ∧ b₂ ≤ b₁ :=
       ⟨mem_range.1 (mem_sigma.1 hb).1, nat.le_of_lt_succ (mem_range.1 (mem_sigma.1 hb).2)⟩,
   have h : a₂ = b₂ ∧ _ := sigma.mk.inj h,
-  have h' : a₁ = b₁ - b₂ + a₂ := (nat.sub_eq_iff_eq_add ha.2).1 (eq_of_heq h.2),
+  have h' : a₁ = b₁ - b₂ + a₂ := (tsub_eq_iff_eq_add_of_le ha.2).1 (eq_of_heq h.2),
   sigma.mk.inj_iff.2
-    ⟨nat.sub_add_cancel hb.2 ▸ h'.symm ▸ h.1 ▸ rfl,
+    ⟨tsub_add_cancel_of_le hb.2 ▸ h'.symm ▸ h.1 ▸ rfl,
       (heq_of_eq h.1)⟩)
 (λ ⟨a₁, a₂⟩ ha,
   have ha : a₁ < n ∧ a₂ < n - a₁ :=
       ⟨mem_range.1 (mem_sigma.1 ha).1, (mem_range.1 (mem_sigma.1 ha).2)⟩,
   ⟨⟨a₂ + a₁, a₁⟩, ⟨mem_sigma.2 ⟨mem_range.2 (lt_tsub_iff_right.1 ha.2),
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
-  sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
+  sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (add_tsub_cancel_right _ _).symm⟩⟩⟩)
 
 -- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
 lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
@@ -1139,7 +1139,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
       from have h₁ : (((λ m : ℕ, (x ^ m / m! : ℂ)) ∘ nat.succ) 0).re = x, by simp,
       have h₂ : ((x : ℂ) ^ 0 / 0!).re = 1, by simp,
       begin
-        rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
+        rw [← tsub_add_cancel_of_le hj, sum_range_succ', sum_range_succ',
           add_re, add_re, h₁, h₂, add_assoc,
           ← coe_re_add_group_hom, (re_add_group_hom).map_sum, coe_re_add_group_hom ],
         refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _),
@@ -1204,14 +1204,14 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
   sum_bij (λ m _, m - n)
     (λ m hm, mem_range.2 $ (tsub_lt_tsub_iff_right (by simp at hm; tauto)).2
       (by simp at hm; tauto))
-    (λ m hm, by rw nat.sub_add_cancel; simp at *; tauto)
+    (λ m hm, by rw tsub_add_cancel_of_le; simp at *; tauto)
     (λ a₁ a₂ ha₁ ha₂ h,
-      by rwa [nat.sub_eq_iff_eq_add, ← nat.sub_add_comm, eq_comm, nat.sub_eq_iff_eq_add,
+      by rwa [tsub_eq_iff_eq_add_of_le, tsub_add_eq_add_tsub, eq_comm, tsub_eq_iff_eq_add_of_le,
               add_left_inj, eq_comm] at h;
         simp at *; tauto)
     (λ b hb, ⟨b + n,
       mem_filter.2 ⟨mem_range.2 $ lt_tsub_iff_right.mp (mem_range.1 hb), nat.le_add_left _ _⟩,
-      by rw nat.add_sub_cancel⟩)
+      by rw add_tsub_cancel_right⟩)
 ... ≤ ∑ m in range (j - n), (n! * n.succ ^ m)⁻¹ :
   begin
     refine  sum_le_sum (assume m n, _),
@@ -1286,7 +1286,7 @@ begin
   simp_rw [←sub_eq_add_neg],
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n / (n!) * 2,
   let k := j - n,
-  have hj : j = n + k := (nat.add_sub_of_le hj).symm,
+  have hj : j = n + k := (add_tsub_cancel_of_le hj).symm,
   rw [hj, sum_range_add_sub_sum_range],
   calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
       ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _

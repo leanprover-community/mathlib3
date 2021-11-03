@@ -81,11 +81,9 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   exact submodule.fg_map hM.1
 end⟩
 
---TODO: this should be true over semirings
-lemma of_injective {R M N : Type*} [ring R] [add_comm_group M] [module R M] [add_comm_group N]
-  [module R N] [is_noetherian R N] (f : M →ₗ[R] N)
+lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
   (hf : function.injective f) : finite R M :=
-⟨fg_of_injective f $ linear_map.ker_eq_bot_of_injective hf⟩
+⟨fg_of_injective f hf⟩
 
 variables (R)
 

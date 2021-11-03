@@ -243,7 +243,7 @@ lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
 begin
   conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
-  conv_rhs { rw [← nhds_translation f', tendsto_comap_iff] },
+  conv_rhs { rw [← nhds_translation_sub f', tendsto_comap_iff] },
   refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
   refine (eventually_principal.2 $ λ z hz, _).filter_mono inf_le_right,
   simp only [(∘)],
@@ -1876,88 +1876,88 @@ hc.has_deriv_at.pow.deriv
 
 end pow
 
-section fpow
+section zpow
 /-! ### Derivative of `x ↦ x^m` for `m : ℤ` -/
 variables {x : 𝕜} {s : set 𝕜} {m : ℤ}
 
-lemma has_strict_deriv_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
+lemma has_strict_deriv_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_strict_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
 begin
   have : ∀ m : ℤ, 0 < m → has_strict_deriv_at (λx, x^m) ((m:𝕜) * x^(m-1)) x,
   { assume m hm,
     lift m to ℕ using (le_of_lt hm),
-    simp only [gpow_coe_nat, int.cast_coe_nat],
+    simp only [zpow_coe_nat, int.cast_coe_nat],
     convert has_strict_deriv_at_pow _ _ using 2,
-    rw [← int.coe_nat_one, ← int.coe_nat_sub, gpow_coe_nat],
+    rw [← int.coe_nat_one, ← int.coe_nat_sub, zpow_coe_nat],
     norm_cast at hm,
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,
   { have hx : x ≠ 0, from h.resolve_right hm.not_le,
     have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
-      [skip, exact fpow_ne_zero_of_ne_zero hx _],
-    simp only [(∘), fpow_neg, one_div, inv_inv₀, smul_eq_mul] at this,
+      [skip, exact zpow_ne_zero_of_ne_zero hx _],
+    simp only [(∘), zpow_neg₀, one_div, inv_inv₀, smul_eq_mul] at this,
     convert this using 1,
     rw [sq, mul_inv₀, inv_inv₀, int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
-      ← fpow_add hx, mul_assoc, ← fpow_add hx], congr, abel },
-  { simp only [hm, gpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
+      ← zpow_add₀ hx, mul_assoc, ← zpow_add₀ hx], congr, abel },
+  { simp only [hm, zpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }
 end
 
-lemma has_deriv_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
+lemma has_deriv_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
-(has_strict_deriv_at_fpow m x h).has_deriv_at
+(has_strict_deriv_at_zpow m x h).has_deriv_at
 
-theorem has_deriv_within_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) (s : set 𝕜) :
+theorem has_deriv_within_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) (s : set 𝕜) :
   has_deriv_within_at (λx, x^m) ((m : 𝕜) * x^(m-1)) s x :=
-(has_deriv_at_fpow m x h).has_deriv_within_at
+(has_deriv_at_zpow m x h).has_deriv_within_at
 
-lemma differentiable_at_fpow : differentiable_at 𝕜 (λx, x^m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
-⟨λ H, normed_field.continuous_at_fpow.1 H.continuous_at,
-  λ H, (has_deriv_at_fpow m x H).differentiable_at⟩
+lemma differentiable_at_zpow : differentiable_at 𝕜 (λx, x^m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
+⟨λ H, normed_field.continuous_at_zpow.1 H.continuous_at,
+  λ H, (has_deriv_at_zpow m x H).differentiable_at⟩
 
-lemma differentiable_within_at_fpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
+lemma differentiable_within_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   differentiable_within_at 𝕜 (λx, x^m) s x :=
-(differentiable_at_fpow.mpr h).differentiable_within_at
+(differentiable_at_zpow.mpr h).differentiable_within_at
 
-lemma differentiable_on_fpow (m : ℤ) (s : set 𝕜) (h : (0 : 𝕜) ∉ s ∨ 0 ≤ m) :
+lemma differentiable_on_zpow (m : ℤ) (s : set 𝕜) (h : (0 : 𝕜) ∉ s ∨ 0 ≤ m) :
   differentiable_on 𝕜 (λx, x^m) s :=
-λ x hxs, differentiable_within_at_fpow m x $ h.imp_left $ ne_of_mem_of_not_mem hxs
+λ x hxs, differentiable_within_at_zpow m x $ h.imp_left $ ne_of_mem_of_not_mem hxs
 
-lemma deriv_fpow (m : ℤ) (x : 𝕜) : deriv (λ x, x ^ m) x = m * x ^ (m - 1) :=
+lemma deriv_zpow (m : ℤ) (x : 𝕜) : deriv (λ x, x ^ m) x = m * x ^ (m - 1) :=
 begin
   by_cases H : x ≠ 0 ∨ 0 ≤ m,
-  { exact (has_deriv_at_fpow m x H).deriv },
-  { rw deriv_zero_of_not_differentiable_at (mt differentiable_at_fpow.1 H),
+  { exact (has_deriv_at_zpow m x H).deriv },
+  { rw deriv_zero_of_not_differentiable_at (mt differentiable_at_zpow.1 H),
     push_neg at H, rcases H with ⟨rfl, hm⟩,
-    rw [zero_fpow _ ((sub_one_lt _).trans hm).ne, mul_zero] }
+    rw [zero_zpow _ ((sub_one_lt _).trans hm).ne, mul_zero] }
 end
 
-@[simp] lemma deriv_fpow' (m : ℤ) : deriv (λ x : 𝕜, x ^ m) = λ x, m * x ^ (m - 1) :=
-funext $ deriv_fpow m
+@[simp] lemma deriv_zpow' (m : ℤ) : deriv (λ x : 𝕜, x ^ m) = λ x, m * x ^ (m - 1) :=
+funext $ deriv_zpow m
 
-lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (h : x ≠ 0 ∨ 0 ≤ m) :
+lemma deriv_within_zpow (hxs : unique_diff_within_at 𝕜 s x) (h : x ≠ 0 ∨ 0 ≤ m) :
   deriv_within (λx, x^m) s x = (m : 𝕜) * x^(m-1) :=
-(has_deriv_within_at_fpow m x h s).deriv_within hxs
+(has_deriv_within_at_zpow m x h s).deriv_within hxs
 
-@[simp] lemma iter_deriv_fpow' (m : ℤ) (k : ℕ) :
+@[simp] lemma iter_deriv_zpow' (m : ℤ) (k : ℕ) :
   deriv^[k] (λ x : 𝕜, x ^ m) = λ x, (∏ i in finset.range k, (m - i)) * x ^ (m - k) :=
 begin
   induction k with k ihk,
   { simp only [one_mul, int.coe_nat_zero, id, sub_zero, finset.prod_range_zero,
       function.iterate_zero] },
-  { simp only [function.iterate_succ_apply', ihk, deriv_const_mul_field', deriv_fpow',
+  { simp only [function.iterate_succ_apply', ihk, deriv_const_mul_field', deriv_zpow',
       finset.prod_range_succ, int.coe_nat_succ, ← sub_sub, int.cast_sub, int.cast_coe_nat,
       mul_assoc], }
 end
 
-lemma iter_deriv_fpow (m : ℤ) (x : 𝕜) (k : ℕ) :
+lemma iter_deriv_zpow (m : ℤ) (x : 𝕜) (k : ℕ) :
   deriv^[k] (λ y, y ^ m) x = (∏ i in finset.range k, (m - i)) * x ^ (m - k) :=
-congr_fun (iter_deriv_fpow' m k) x
+congr_fun (iter_deriv_zpow' m k) x
 
 lemma iter_deriv_pow (n : ℕ) (x : 𝕜) (k : ℕ) :
   deriv^[k] (λx:𝕜, x^n) x = (∏ i in finset.range k, (n - i)) * x^(n-k) :=
 begin
-  simp only [← gpow_coe_nat, iter_deriv_fpow, int.cast_coe_nat],
+  simp only [← zpow_coe_nat, iter_deriv_zpow, int.cast_coe_nat],
   cases le_or_lt k n with hkn hnk,
   { rw int.coe_nat_sub hkn },
   { have : ∏ i in finset.range k, (n - i : 𝕜) = 0,
@@ -1971,13 +1971,13 @@ funext $ λ x, iter_deriv_pow n x k
 
 lemma iter_deriv_inv (k : ℕ) (x : 𝕜) :
   deriv^[k] has_inv.inv x = (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=
-by simpa only [fpow_neg_one, int.cast_neg, int.cast_one] using iter_deriv_fpow (-1) x k
+by simpa only [zpow_neg_one₀, int.cast_neg, int.cast_one] using iter_deriv_zpow (-1) x k
 
 @[simp] lemma iter_deriv_inv' (k : ℕ) :
   deriv^[k] has_inv.inv = λ x : 𝕜, (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=
 funext (iter_deriv_inv k)
 
-end fpow
+end zpow
 
 /-! ### Upper estimates on liminf and limsup -/
 

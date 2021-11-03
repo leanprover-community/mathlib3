@@ -159,7 +159,7 @@ have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
   end,
 begin
   rw [card_sdiff h2, card_image_of_inj_on h1, card_range,
-    card_range, ← one_mul (p ^ n), pow_succ, ← nat.mul_sub_right_distrib,
+    card_range, ← one_mul (p ^ n), pow_succ, ← tsub_mul,
     one_mul, mul_comm]
 end
 
@@ -179,7 +179,7 @@ begin
   { apply lt_of_le_of_ne,
     { rwa succ_le_iff },
     { rintro rfl,
-      rw [totient_one, nat.sub_self] at h,
+      rw [totient_one, tsub_self] at h,
       exact one_ne_zero h } },
   rw [totient_eq_card_coprime, range_eq_Ico, ←Ico_insert_succ_left hp.le, finset.filter_insert,
     if_neg (tactic.norm_num.nat_coprime_helper_zero_right p hp), ←nat.card_Ico 1 p] at h,

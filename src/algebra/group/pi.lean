@@ -59,17 +59,17 @@ tactic.pi_instance_derive_field
 instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
   div_inv_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, gpow := λ z x i, gpow z (x i) }; tactic.pi_instance_derive_field
+  npow := npow, zpow := λ z x i, zpow z (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, gpow := gpow }; tactic.pi_instance_derive_field
+  npow := npow, zpow := zpow }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, gpow := gpow }; tactic.pi_instance_derive_field
+  npow := npow, zpow := zpow }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
@@ -245,6 +245,33 @@ end
 
 end single
 
+namespace function
+
+@[simp, to_additive]
+lemma update_one [Π i, has_one (f i)] [decidable_eq I] (i : I) :
+  update (1 : Π i, f i) i 1 = 1 :=
+update_eq_self i 1
+
+@[to_additive]
+lemma update_mul [Π i, has_mul (f i)] [decidable_eq I]
+  (f₁ f₂ : Π i, f i) (i : I) (x₁ : f i) (x₂ : f i) :
+  update (f₁ * f₂) i (x₁ * x₂) = update f₁ i x₁ * update f₂ i x₂ :=
+funext $ λ j, (apply_update₂ (λ i, (*)) f₁ f₂ i x₁ x₂ j).symm
+
+@[to_additive]
+lemma update_inv [Π i, has_inv (f i)] [decidable_eq I]
+  (f₁ : Π i, f i) (i : I) (x₁ : f i) :
+  update (f₁⁻¹) i (x₁⁻¹) = (update f₁ i x₁)⁻¹ :=
+funext $ λ j, (apply_update (λ i, has_inv.inv) f₁ i x₁ j).symm
+
+@[to_additive]
+lemma update_div [Π i, has_div (f i)] [decidable_eq I]
+  (f₁ f₂ : Π i, f i) (i : I) (x₁ : f i) (x₂ : f i) :
+  update (f₁ / f₂) i (x₁ / x₂) = update f₁ i x₁ / update f₂ i x₂ :=
+funext $ λ j, (apply_update₂ (λ i, (/)) f₁ f₂ i x₁ x₂ j).symm
+
+end function
+
 section piecewise
 
 @[to_additive]
@@ -254,13 +281,13 @@ lemma set.piecewise_mul [Π i, has_mul (f i)] (s : set I) [Π i, decidable (i �
 s.piecewise_op₂ _ _ _ _ (λ _, (*))
 
 @[to_additive]
-lemma pi.piecewise_inv [Π i, has_inv (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+lemma set.piecewise_inv [Π i, has_inv (f i)] (s : set I) [Π i, decidable (i ∈ s)]
   (f₁ g₁ : Π i, f i) :
   s.piecewise (f₁⁻¹) (g₁⁻¹) = (s.piecewise f₁ g₁)⁻¹ :=
 s.piecewise_op f₁ g₁ (λ _ x, x⁻¹)
 
 @[to_additive]
-lemma pi.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+lemma set.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈ s)]
   (f₁ f₂ g₁ g₂ : Π i, f i) :
   s.piecewise (f₁ / f₂) (g₁ / g₂) = s.piecewise f₁ g₁ / s.piecewise f₂ g₂ :=
 s.piecewise_op₂ _ _ _ _ (λ _, (/))

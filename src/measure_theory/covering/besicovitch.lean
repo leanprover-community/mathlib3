@@ -418,7 +418,7 @@ are no satellite configurations with `N+1` points. -/
 theorem exist_disjoint_covering_families {N : ℕ} {τ : ℝ}
   (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (q : ball_package β α) :
   ∃ s : fin N → set β,
-    (∀ (i : fin N), (s i).pairwise_on (disjoint on (λ j, closed_ball (q.c j) (q.r j)))) ∧
+    (∀ (i : fin N), (s i).pairwise (disjoint on (λ j, closed_ball (q.c j) (q.r j)))) ∧
       (range q.c ⊆ ⋃ (i : fin N), ⋃ (j ∈ s i), ball (q.c j) (q.r j)) :=
 begin
   -- first exclude the trivial case where `β` is empty (we need non-emptiness for the transfinite
@@ -493,14 +493,14 @@ lemma exist_finset_disjoint_balls_large_measure
   (hτ : 1 < τ) (hN : is_empty (satellite_config α N τ)) (s : set α)
   (r : α → ℝ) (rpos : ∀ x ∈ s, 0 < r x) (rle : ∀ x ∈ s, r x ≤ 1) :
   ∃ (t : finset α), (↑t ⊆ s) ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) ≤ N/(N+1) * μ s
-    ∧ (t : set α).pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
+    ∧ (t : set α).pairwise (disjoint on (λ x, closed_ball x (r x))) :=
 begin
   -- exclude the trivial case where `μ s = 0`.
   rcases le_or_lt (μ s) 0 with hμs|hμs,
   { have : μ s = 0 := le_bot_iff.1 hμs,
     refine ⟨∅, by simp only [finset.coe_empty, empty_subset], _, _⟩,
     { simp only [this, diff_empty, Union_false, Union_empty, nonpos_iff_eq_zero, mul_zero] },
-    { simp only [finset.coe_empty, pairwise_on_empty], } },
+    { simp only [finset.coe_empty, pairwise_empty], } },
   casesI is_empty_or_nonempty α,
   { simp only [eq_empty_of_is_empty s, measure_empty] at hμs,
     exact (lt_irrefl _ hμs).elim },
@@ -560,7 +560,7 @@ begin
   { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
     { refl },
-    { exact pairwise_on_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
+    { exact pairwise_disjoint_on_mono (hu i) (λ k hk, inter_subset_right _ _) },
     { exact λ b hb, omeas.inter measurable_set_closed_ball } },
   -- A large enough finite subfamily of `u i` will also cover a proportion `> 1/(N+1)` of `s`.
   -- Since `s` might not be measurable, we express this in terms of the measurable superset `o`.
@@ -598,10 +598,10 @@ begin
       apply hw.le.trans (le_of_eq _),
       rw [← finset.set_bUnion_coe, inter_comm _ o, inter_bUnion, finset.set_bUnion_coe,
           measure_bUnion_finset],
-      { have : (w : set (u i)).pairwise_on
+      { have : (w : set (u i)).pairwise
             (disjoint on (λ (b : u i), closed_ball (b : α) (r (b : α)))),
           by { assume k hk l hl hkl, exact hu i k k.2 l l.2 (subtype.coe_injective.ne hkl) },
-        exact pairwise_on_disjoint_on_mono this (λ k hk, inter_subset_right _ _) },
+        exact pairwise_disjoint_on_mono this (λ k hk, inter_subset_right _ _) },
       { assume b hb,
         apply omeas.inter measurable_set_closed_ball }
     end },
@@ -635,13 +635,13 @@ theorem exists_disjoint_closed_ball_covering_ae_of_finite_measure_aux
   ∃ (t : set (α × ℝ)), (countable t)
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
-    ∧ t.pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) :=
+    ∧ t.pairwise (disjoint on (λ p, closed_ball p.1 p.2)) :=
 begin
   rcases hb.no_satellite_config with ⟨N, τ, hτ, hN⟩,
   /- Introduce a property `P` on finsets saying that we have a nice disjoint covering of a
     subset of `s` by admissible balls. -/
   let P : finset (α × ℝ) → Prop := λ t,
-    (t : set (α × ℝ)).pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) ∧
+    (t : set (α × ℝ)).pairwise (disjoint on (λ p, closed_ball p.1 p.2)) ∧
     (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1),
   /- Given a finite good covering of a subset `s`, one can find a larger finite good covering,
   covering additionally a proportion at least `1/(N+1)` of leftover points. This follows from
@@ -672,12 +672,12 @@ begin
     choose! r hr using this,
     obtain ⟨v, vs', hμv, hv⟩ : ∃ (v : finset α), ↑v ⊆ s'
       ∧ μ (s' \ ⋃ (x ∈ v), closed_ball x (r x)) ≤ N/(N+1) * μ s'
-      ∧ (v : set α).pairwise_on (disjoint on λ (x : α), closed_ball x (r x)),
+      ∧ (v : set α).pairwise (disjoint on λ (x : α), closed_ball x (r x)),
     { have rpos : ∀ x ∈ s', 0 < r x := λ x hx, hf' x ((mem_diff x).1 hx).1 (hr x hx).1,
       have rle : ∀ x ∈ s', r x ≤ 1 := λ x hx, (hr x hx).2.1,
       exact exist_finset_disjoint_balls_large_measure μ hτ hN s' r rpos rle },
     refine ⟨t ∪ (finset.image (λ x, (x, r x)) v), finset.subset_union_left _ _, ⟨_, _, _⟩, _⟩,
-    { simp only [finset.coe_union, pairwise_on_union, ht.1, true_and, finset.coe_image],
+    { simp only [finset.coe_union, pairwise_union, ht.1, true_and, finset.coe_image],
       split,
       { assume p hp q hq hpq,
         rcases (mem_image _ _ _).1 hp with ⟨p', p'v, rfl⟩,
@@ -716,7 +716,7 @@ begin
     induction n with n IH,
     { simp only [u, P, prod.forall, id.def, function.iterate_zero],
       simp only [finset.not_mem_empty, forall_false_left, finset.coe_empty, forall_2_true_iff,
-        and_self, pairwise_on_empty] },
+        and_self, pairwise_empty] },
     { rw u_succ,
       exact (hF (u n) IH).2.1 } },
   refine ⟨⋃ n, u n, countable_Union (λ n, (u n).countable_to_set), _, _, _, _⟩,
@@ -755,7 +755,7 @@ begin
     rw zero_mul at C,
     apply le_bot_iff.1,
     exact le_of_tendsto_of_tendsto' tendsto_const_nhds C (λ n, (A n).trans (B n)) },
-  { refine (pairwise_on_Union _).2 (λ n, (Pu n).1),
+  { refine (pairwise_Union _).2 (λ n, (Pu n).1),
     apply (monotone_nat_of_le_succ (λ n, _)).directed_le,
     rw u_succ,
     exact (hF (u n) (Pu n)).1 }
@@ -779,7 +779,7 @@ theorem exists_disjoint_closed_ball_covering_ae_aux
   ∃ (t : set (α × ℝ)), (countable t)
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
-    ∧ t.pairwise_on (disjoint on (λ p, closed_ball p.1 p.2)) :=
+    ∧ t.pairwise (disjoint on (λ p, closed_ball p.1 p.2)) :=
 begin
   /- This is deduced from the finite measure case, by using a finite measure with respect to which
   the initial sigma-finite measure is absolutely continuous. -/
@@ -803,7 +803,7 @@ theorem exists_disjoint_closed_ball_covering_ae
   (hf : ∀ x ∈ s, (f x).nonempty) (hf' : ∀ x ∈ s, f x ⊆ Ioi 0) (hf'' : ∀ x ∈ s, Inf (f x) ≤ 0) :
   ∃ (t : set α) (r : α → ℝ), countable t ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
     ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
-    ∧ t.pairwise_on (disjoint on (λ x, closed_ball x (r x))) :=
+    ∧ t.pairwise (disjoint on (λ x, closed_ball x (r x))) :=
 begin
   rcases exists_disjoint_closed_ball_covering_ae_aux μ f s hf hf' hf''
     with ⟨v, v_count, vs, vf, μv, v_disj⟩,
@@ -848,7 +848,7 @@ begin
     exact μv },
   { have A : inj_on (λ x : α, (x, r x)) t,
       by simp only [inj_on, prod.mk.inj_iff, implies_true_iff, eq_self_iff_true] {contextual := tt},
-    rwa [← im_t, A.pairwise_on_image] at v_disj }
+    rwa [← im_t, A.pairwise_image] at v_disj }
 end
 
 end besicovitch

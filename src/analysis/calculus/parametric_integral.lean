@@ -107,7 +107,6 @@ begin
   rw [has_fderiv_at_iff_tendsto, tendsto_congr' this, ← tendsto_zero_iff_norm_tendsto_zero,
       ← show ∫ (a : α), ∥x₀ - x₀∥⁻¹ • (F x₀ a - F x₀ a - (F' a) (x₀ - x₀)) ∂μ = 0, by simp],
   apply tendsto_integral_filter_of_dominated_convergence,
-  { apply is_countably_generated_nhds },
   { filter_upwards [h_ball],
     intros x x_in,
     apply ae_measurable.const_smul,

@@ -211,13 +211,20 @@ lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 end linear_ordered_ring
 end nat
 
-lemma floor_semiring_unique {α} [linear_ordered_semiring α] (inst1 inst2 : floor_semiring α) :
-  @nat.floor _ _ inst1 = @nat.floor _ _ inst2 :=
+/-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/
+lemma subsingleton_floor_semiring {α} [linear_ordered_semiring α] :
+  subsingleton (floor_semiring α) :=
 begin
-  ext a,
-  cases le_total a 0,
-  { rw [@nat.floor_of_nonpos α _ inst1 a h, @nat.floor_of_nonpos α _ inst2 a h] },
-  { exact (@nat.floor_eq_iff α _ inst1 a _ h).2 ⟨nat.floor_le h, nat.lt_floor_add_one a⟩ }
+  refine ⟨λ H₁ H₂, _⟩,
+  have : H₁.ceil = H₂.ceil,
+    from funext (λ a, H₁.gc_ceil.l_unique H₂.gc_ceil $ λ n, rfl),
+  have : H₁.floor = H₂.floor,
+  { ext a,
+    cases lt_or_le a 0,
+    { rw [H₁.floor_of_neg, H₂.floor_of_neg]; exact h },
+    { refine eq_of_forall_le_iff (λ n, _),
+      rw [H₁.gc_floor, H₂.gc_floor]; exact h } },
+  cases H₁, cases H₂, congr; assumption
 end
 
 /-! ### Floor rings -/
@@ -357,6 +364,14 @@ lemma floor_eq_on_Ico' (n : ℤ) : ∀ a ∈ set.Ico (n : α) (n + 1), (⌊a⌋ 
 
 @[simp] lemma fract_add_floor (a : α) : fract a + ⌊a⌋ = a := sub_add_cancel _ _
 
+@[simp] lemma fract_add_int (a : α) (m : ℤ) : fract (a + m) = fract a := by simp [fract]
+
+@[simp] lemma fract_sub_int (a : α) (m : ℤ) : fract (a - m) = fract a := by simp [fract]
+
+@[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
+
+@[simp] lemma fract_sub_self (a : α) : fract a - a = -⌊a⌋ := sub_sub_cancel_left _ _
+
 lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
 
 lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
@@ -391,8 +406,11 @@ lemma fract_eq_fract {a b : α} : fract a = fract b ↔ ∃ z : ℤ, a - b = z :
   exact add_sub_sub_cancel _ _ _,
 end⟩
 
+@[simp] lemma fract_eq_self {a : α} : fract a = a ↔ 0 ≤ a ∧ a < 1 :=
+fract_eq_iff.trans $ and.assoc.symm.trans $ and_iff_left ⟨0, sub_self a⟩
+
 @[simp] lemma fract_fract (a : α) : fract (fract a) = fract a :=
-fract_eq_fract.2 ⟨-⌊a⌋, (cast_neg ⌊a⌋).symm.subst (sub_sub_cancel_left a ⌊a⌋)⟩
+fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
 
 lemma fract_add (a b : α) : ∃ z : ℤ, fract (a + b) - fract a - fract b = z :=
 ⟨⌊a⌋ + ⌊b⌋ - ⌊a + b⌋, by { unfold fract, simp [sub_eq_add_neg], abel }⟩
@@ -436,11 +454,14 @@ lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
 by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
-lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
+@[simp] lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
 
-lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
+@[simp] lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
+
+@[simp] lemma ceil_sub_one (a : α) : ⌈a - 1⌉ = ⌈a⌉ - 1 :=
+by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
 
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
@@ -507,10 +528,12 @@ by { ext, simp [le_floor] }
 
 end int
 
-lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
-  @int.floor _ _ inst1 = @int.floor _ _ inst2 :=
+/-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
+lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :
+  subsingleton (floor_ring α) :=
 begin
-  ext v,
-  suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [int.floor_eq_iff],
-  exact ⟨int.floor_le v, int.lt_floor_add_one v⟩
+  refine ⟨λ H₁ H₂, _⟩,
+  have : H₁.floor = H₂.floor := funext (λ a, H₁.gc_coe_floor.u_unique H₂.gc_coe_floor $ λ _, rfl),
+  have : H₁.ceil = H₂.ceil := funext (λ a, H₁.gc_ceil_coe.l_unique H₂.gc_ceil_coe $ λ _, rfl),
+  cases H₁, cases H₂, congr; assumption
 end

@@ -287,7 +287,7 @@ def closure_operator :
 { to_fun := λ x, u (l x),
   monotone' := l.monotone,
   le_closure' := l.le_closure,
-  idempotent' := λ x, show (u ∘ l ∘ u) (l x) = u (l x), by rw l.gc.u_l_u_eq_u }
+  idempotent' := λ x, l.gc.u_l_u_eq_u (l x) }
 
 lemma idempotent (x : α) : u (l (u (l x))) = u (l x) :=
 l.closure_operator.idempotent _

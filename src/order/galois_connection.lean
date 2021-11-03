@@ -121,13 +121,19 @@ section partial_order
 variables [partial_order α] [preorder β] {l : α → β} {u : β → α} (gc : galois_connection l u)
 include gc
 
-lemma u_l_u_eq_u : u ∘ l ∘ u = u :=
-funext (λ x, (gc.monotone_u (gc.l_u_le _)).antisymm (gc.le_u_l _))
+lemma u_l_u_eq_u (b : β) : u (l (u b)) = u b :=
+(gc.monotone_u (gc.l_u_le _)).antisymm (gc.le_u_l _)
+
+lemma u_l_u_eq_u' : u ∘ l ∘ u = u := funext gc.u_l_u_eq_u
 
 lemma u_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
   (hl : ∀ a, l a = l' a) {b : β} : u b = u' b :=
 le_antisymm (gc'.le_u $ hl (u b) ▸ gc.l_u_le _)
   (gc.le_u $ (hl (u' b)).symm ▸ gc'.l_u_le _)
+
+/-- If there exists a `b` such that `a = u a`, then `b = l a` is one such element. -/
+lemma exists_eq_u (a : α) : (∃ b : β, a = u b) ↔ a = u (l a) :=
+⟨λ ⟨S, hS⟩, hS.symm ▸ (gc.u_l_u_eq_u _).symm, λ HI, ⟨_, HI⟩ ⟩
 
 end partial_order
 
@@ -135,13 +141,19 @@ section partial_order
 variables [preorder α] [partial_order β] {l : α → β} {u : β → α} (gc : galois_connection l u)
 include gc
 
-lemma l_u_l_eq_l : l ∘ u ∘ l = l :=
-funext (λ x, (gc.l_u_le _).antisymm (gc.monotone_l (gc.le_u_l _)))
+lemma l_u_l_eq_l (a : α) : l (u (l a)) = l a :=
+(gc.l_u_le _).antisymm (gc.monotone_l (gc.le_u_l _))
+
+lemma l_u_l_eq_l' : l ∘ u ∘ l = l := funext gc.l_u_l_eq_l
 
 lemma l_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
   (hu : ∀ b, u b = u' b) {a : α} : l a = l' a :=
 le_antisymm (gc.l_le $ (hu (l' a)).symm ▸ gc'.le_u_l _)
   (gc'.l_le $ hu (l a) ▸ gc.le_u_l _)
+
+/-- If there exists an `a` such that `b = l a`, then `a = u b` is one such element. -/
+lemma exists_eq_l (b : β) : (∃ a : α, b = l a) ↔ b = l (u b) :=
+⟨λ ⟨S, hS⟩, hS.symm ▸ (gc.l_u_l_eq_l _).symm, λ HI, ⟨_, HI⟩ ⟩
 
 end partial_order
 
@@ -205,7 +217,7 @@ protected lemma id [pα : preorder α] : @galois_connection α α pα pα id id 
 λ a b, iff.intro (λ x, x) (λ x, x)
 
 protected lemma compose [preorder α] [preorder β] [preorder γ]
-  (l1 : α → β) (u1 : β → α) (l2 : β → γ) (u2 : γ → β)
+  {l1 : α → β} {u1 : β → α} {l2 : β → γ} {u2 : γ → β}
   (gc1 : galois_connection l1 u1) (gc2 : galois_connection l2 u2) :
   galois_connection (l2 ∘ l1) (u1 ∘ u2) :=
 by intros a b; rw [gc2, gc1]
@@ -213,7 +225,7 @@ by intros a b; rw [gc2, gc1]
 protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}
   [∀ i, preorder (α i)] [∀ i, preorder (β i)]
   (l : Πi, α i → β i) (u : Πi, β i → α i) (gc : ∀ i, galois_connection (l i) (u i)) :
-  @galois_connection (Π i, α i) (Π i, β i) _ _ (λ a i, l i (a i)) (λ b i, u i (b i)) :=
+  galois_connection (λ (a : Π i, α i) i, l i (a i)) (λ b i, u i (b i)) :=
 λ a b, forall_congr $ λ i, gc i (a i) (b i)
 
 end constructions

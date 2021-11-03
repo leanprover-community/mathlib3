@@ -582,9 +582,7 @@ namespace uniform_space
 
 open sequentially_complete
 
-variables (H : is_countably_generated (𝓤 α))
-
-include H
+variables [is_countably_generated (𝓤 α)]
 
 /-- A uniform space is complete provided that (a) its uniformity filter has a countable basis;
 (b) any sequence satisfying a "controlled" version of the Cauchy condition converges. -/
@@ -592,7 +590,7 @@ theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α))
   (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
 begin
-  obtain ⟨U', U'_mono, hU'⟩ := H.exists_antitone_seq',
+  obtain ⟨U', U'_mono, hU'⟩ := (𝓤 α).exists_antitone_seq,
   have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
     from λ n, inter_mem (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
   refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $
@@ -607,12 +605,15 @@ complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H' : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-let ⟨U', U'_mono, hU'⟩ := H.exists_antitone_seq' in
-complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
+let ⟨U', U'_mono, hU'⟩ := (𝓤 α).exists_antitone_seq in
+complete_of_convergent_controlled_sequences U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
   (λ u hu, H' u $ cauchy_seq_of_controlled U' (λ s hs, hU'.1 hs) hu)
 
-protected lemma first_countable_topology : first_countable_topology α :=
-⟨λ a, by { rw nhds_eq_comap_uniformity, exact H.comap (prod.mk a) }⟩
+variable (α)
+
+@[priority 100]
+instance first_countable_topology : first_countable_topology α :=
+⟨λ a, by { rw nhds_eq_comap_uniformity, apply_instance }⟩
 
 /-- A separable uniform space with countably generated uniformity filter is second countable:
 one obtains a countable basis by taking the balls centered at points in a dense subset,
@@ -625,7 +626,7 @@ begin
   obtain ⟨t : ℕ → set (α × α),
     hto : ∀ (i : ℕ), t i ∈ (𝓤 α).sets ∧ is_open (t i) ∧ symmetric_rel (t i),
     h_basis : (𝓤 α).has_antitone_basis (λ _, true) t⟩ :=
-    H.exists_antitone_subbasis uniformity_has_basis_open_symmetric,
+    (@uniformity_has_basis_open_symmetric α _).exists_antitone_subbasis,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
   refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],

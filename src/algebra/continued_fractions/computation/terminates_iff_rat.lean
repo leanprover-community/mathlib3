@@ -28,7 +28,8 @@ rational, continued fraction, termination
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
+
+open generalized_continued_fraction (of)
 
 variables {K : Type*} [linear_ordered_field K] [floor_ring K]
 
@@ -36,7 +37,7 @@ variables {K : Type*} [linear_ordered_field K] [floor_ring K]
 We will have to constantly coerce along our structures in the following proofs using their provided
 map functions.
 -/
-local attribute [simp] gcf.pair.map gcf.int_fract_pair.mapFr
+local attribute [simp] pair.map int_fract_pair.mapFr
 
 section rat_of_terminates
 /-!
@@ -53,21 +54,22 @@ show that `v = ↑q`.
 variables (v : K) (n : ℕ)
 
 lemma exists_gcf_pair_rat_eq_of_nth_conts_aux :
-  ∃ (conts : gcf.pair ℚ), (gcf.of v).continuants_aux n = (conts.map coe : gcf.pair K) :=
+  ∃ (conts : pair ℚ),
+    (of v).continuants_aux n = (conts.map coe : pair K) :=
 nat.strong_induction_on n
 begin
   clear n,
-  let g := gcf.of v,
+  let g := of v,
   assume n IH,
   rcases n with _|_|n,
   -- n = 0
-  { suffices : ∃ (gp : gcf.pair ℚ), gcf.pair.mk (1 : K) 0 = gp.map coe, by simpa [continuants_aux],
-    use (gcf.pair.mk 1 0),
+  { suffices : ∃ (gp : pair ℚ), pair.mk (1 : K) 0 = gp.map coe, by simpa [continuants_aux],
+    use (pair.mk 1 0),
     simp },
   -- n = 1
-  { suffices : ∃ (conts : gcf.pair ℚ), gcf.pair.mk g.h 1 = conts.map coe, by
+  { suffices : ∃ (conts : pair ℚ), pair.mk g.h 1 = conts.map coe, by
       simpa [continuants_aux],
-    use (gcf.pair.mk ⌊v⌋ 1),
+    use (pair.mk ⌊v⌋ 1),
     simp },
   -- 2 ≤ n
   { cases (IH (n + 1) $ lt_add_one (n + 1)) with pred_conts pred_conts_eq, -- invoke the IH
@@ -92,17 +94,17 @@ begin
 end
 
 lemma exists_gcf_pair_rat_eq_nth_conts :
-  ∃ (conts : gcf.pair ℚ), (gcf.of v).continuants n = (conts.map coe : gcf.pair K) :=
+  ∃ (conts : pair ℚ), (of v).continuants n = (conts.map coe : pair K) :=
 by { rw [nth_cont_eq_succ_nth_cont_aux], exact (exists_gcf_pair_rat_eq_of_nth_conts_aux v $ n + 1) }
 
-lemma exists_rat_eq_nth_numerator : ∃ (q : ℚ), (gcf.of v).numerators n = (q : K) :=
+lemma exists_rat_eq_nth_numerator : ∃ (q : ℚ), (of v).numerators n = (q : K) :=
 begin
   rcases (exists_gcf_pair_rat_eq_nth_conts v n) with ⟨⟨a, _⟩, nth_cont_eq⟩,
   use a,
   simp [num_eq_conts_a, nth_cont_eq],
 end
 
-lemma exists_rat_eq_nth_denominator : ∃ (q : ℚ), (gcf.of v).denominators n = (q : K) :=
+lemma exists_rat_eq_nth_denominator : ∃ (q : ℚ), (of v).denominators n = (q : K) :=
 begin
   rcases (exists_gcf_pair_rat_eq_nth_conts v n) with ⟨⟨_, b⟩, nth_cont_eq⟩,
   use b,
@@ -110,7 +112,7 @@ begin
 end
 
 /-- Every finite convergent corresponds to a rational number. -/
-lemma exists_rat_eq_nth_convergent : ∃ (q : ℚ), (gcf.of v).convergents n = (q : K) :=
+lemma exists_rat_eq_nth_convergent : ∃ (q : ℚ), (of v).convergents n = (q : K) :=
 begin
   rcases (exists_rat_eq_nth_numerator v n) with ⟨Aₙ, nth_num_eq⟩,
   rcases (exists_rat_eq_nth_denominator v n) with ⟨Bₙ, nth_denom_eq⟩,
@@ -121,12 +123,14 @@ end
 variable {v}
 
 /-- Every terminating continued fraction corresponds to a rational number. -/
-theorem exists_rat_eq_of_terminates (terminates : (gcf.of v).terminates) : ∃ (q : ℚ), v = ↑q :=
+theorem exists_rat_eq_of_terminates
+  (terminates : (of v).terminates) :
+  ∃ (q : ℚ), v = ↑q :=
 begin
-  obtain ⟨n, v_eq_conv⟩ : ∃ n, v = (gcf.of v).convergents n, from
+  obtain ⟨n, v_eq_conv⟩ : ∃ n, v = (of v).convergents n, from
     of_correctness_of_terminates terminates,
-  obtain ⟨q, conv_eq_q⟩ : ∃ (q : ℚ), (gcf.of v).convergents n = (↑q : K), from
-    exists_rat_eq_nth_convergent v n,
+  obtain ⟨q, conv_eq_q⟩ :
+    ∃ (q : ℚ), (of v).convergents n = (↑q : K), from exists_rat_eq_nth_convergent v n,
   have : v = (↑q : K), from eq.trans v_eq_conv conv_eq_q,
   use [q, this]
 end
@@ -196,45 +200,44 @@ end int_fract_pair
 
 /-! Now we lift the coercion results to the continued fraction computation. -/
 
-lemma coe_of_h_rat_eq : (↑((gcf.of q).h : ℚ) : K) = (gcf.of v).h :=
+lemma coe_of_h_rat_eq : (↑((of q).h : ℚ) : K) = (of v).h :=
 begin
-  unfold gcf.of int_fract_pair.seq1,
+  unfold of int_fract_pair.seq1,
   rw ←(int_fract_pair.coe_of_rat_eq v_eq_q),
   simp
 end
 
 lemma coe_of_s_nth_rat_eq :
-  (((gcf.of q).s.nth n).map (gcf.pair.map coe) : option $ gcf.pair K) = (gcf.of v).s.nth n :=
+  (((of q).s.nth n).map (pair.map coe) : option $ pair K) = (of v).s.nth n :=
 begin
-  simp only [gcf.of, gcf.int_fract_pair.seq1, seq.map_nth, seq.nth_tail],
+  simp only [of, int_fract_pair.seq1, seq.map_nth, seq.nth_tail],
   simp only [seq.nth],
   rw [←(int_fract_pair.coe_stream_rat_eq v_eq_q)],
   rcases succ_nth_stream_eq : (int_fract_pair.stream q (n + 1)) with _ | ⟨_, _⟩;
   simp [stream.map, stream.nth, succ_nth_stream_eq]
 end
 
-lemma coe_of_s_rat_eq :
-  (((gcf.of q).s).map (gcf.pair.map coe) : seq $ gcf.pair K) = (gcf.of v).s :=
+lemma coe_of_s_rat_eq : (((of q).s).map (pair.map coe) : seq $ pair K) = (of v).s :=
 by { ext n, rw ←(coe_of_s_nth_rat_eq v_eq_q), refl }
 
 /-- Given `(v : K), (q : ℚ), and v = q`, we have that `gcf.of q = gcf.of v` -/
-lemma coe_of_rat_eq : (⟨(gcf.of q).h, (gcf.of q).s.map (gcf.pair.map coe)⟩ : gcf K) = gcf.of v :=
+lemma coe_of_rat_eq :
+  (⟨(of q).h, (of q).s.map (pair.map coe)⟩ : generalized_continued_fraction K) = of v :=
 begin
-  cases gcf_v_eq : (gcf.of v) with h s,
-  have : ↑⌊↑q⌋ = h, by { rw v_eq_q at gcf_v_eq, injection gcf_v_eq },
-  simp [(coe_of_h_rat_eq v_eq_q), (coe_of_s_rat_eq v_eq_q), gcf_v_eq],
-  rwa [←(@rat.cast_floor K _ _ q), floor_ring_unique]
+  cases gcf_v_eq : (of v) with h s, subst v,
+  obtain rfl : ↑⌊↑q⌋ = h, by { injection gcf_v_eq },
+  simp [coe_of_h_rat_eq rfl, coe_of_s_rat_eq rfl, gcf_v_eq]
 end
 
 lemma of_terminates_iff_of_rat_terminates {v : K} {q : ℚ} (v_eq_q : v = (q : K)) :
-  (gcf.of v).terminates ↔ (gcf.of q).terminates :=
+  (of v).terminates ↔ (of q).terminates :=
 begin
   split;
   intro h;
   cases h with n h;
   use n;
   simp only [seq.terminated_at, (coe_of_s_nth_rat_eq v_eq_q n).symm] at h ⊢;
-  cases ((gcf.of q).s.nth n);
+  cases ((of q).s.nth n);
   trivial
 end
 
@@ -326,7 +329,7 @@ end int_fract_pair
 
 
 /-- The continued fraction of a rational number terminates. -/
-theorem terminates_of_rat (q : ℚ) : (gcf.of q).terminates :=
+theorem terminates_of_rat (q : ℚ) : (of q).terminates :=
 exists.elim (int_fract_pair.exists_nth_stream_eq_none_of_rat q)
 ( assume n stream_nth_eq_none,
   exists.intro n
@@ -340,16 +343,15 @@ end terminates_of_rat
 /--
 The continued fraction `generalized_continued_fraction.of v` terminates if and only if `v ∈ ℚ`.
 -/
-theorem terminates_iff_rat (v : K) :
-  (gcf.of v).terminates ↔ ∃ (q : ℚ), v = (q : K) :=
+theorem terminates_iff_rat (v : K) : (of v).terminates ↔ ∃ (q : ℚ), v = (q : K) :=
 iff.intro
-( assume terminates_v : (gcf.of v).terminates,
+( assume terminates_v : (of v).terminates,
   show ∃ (q : ℚ), v = (q : K), from exists_rat_eq_of_terminates terminates_v )
 ( assume exists_q_eq_v : ∃ (q : ℚ), v = (↑q : K),
   exists.elim exists_q_eq_v
   ( assume q,
     assume v_eq_q : v = ↑q,
-    have (gcf.of q).terminates, from terminates_of_rat q,
+    have (of q).terminates, from terminates_of_rat q,
     (of_terminates_iff_of_rat_terminates v_eq_q).elim_right this ) )
 
 end generalized_continued_fraction

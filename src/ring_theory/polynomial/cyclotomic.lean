@@ -695,4 +695,39 @@ end
 
 end minpoly
 
+section eval_one
+
+open finset nat
+
+@[simp]
+lemma eval_one_cyclotomic_prime {R : Type*} [comm_ring R] {n : ℕ} [hn : fact (nat.prime n)] :
+  eval 1 (cyclotomic n R) = n :=
+begin
+  simp only [cyclotomic_eq_geom_sum hn.out, geom_sum_def, eval_X, one_pow, sum_const, eval_pow,
+    eval_finset_sum, card_range, smul_one_eq_coe],
+end
+
+@[simp]
+lemma eval₂_one_cyclotomic_prime {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S) {n : ℕ}
+  [fact n.prime] : eval₂ f 1 (cyclotomic n R) = n :=
+by simp
+
+@[simp]
+lemma eval_one_cyclotomic_prime_pow {R : Type*} [comm_ring R] {n : ℕ} (k : ℕ)
+  [hn : fact n.prime] : eval 1 (cyclotomic (n ^ (k + 1)) R) = n :=
+begin
+  simp only [cyclotomic_prime_pow_eq_geom_sum hn.out, geom_sum_def, eval_X, one_pow, sum_const,
+    eval_pow, eval_finset_sum, card_range, smul_one_eq_coe]
+end
+
+@[simp]
+lemma eval₂_one_cyclotomic_prime_pow {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
+  {n : ℕ} (k : ℕ) [fact n.prime] :
+  eval₂ f 1 (cyclotomic (n ^ (k + 1)) R) = n :=
+by simp
+
+-- TODO show that `eval 1 (cyclotomic n R) = 1` when `n` is not a power of a prime
+
+end eval_one
+
 end polynomial

@@ -101,6 +101,12 @@ end
 lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
 by rw [inf_comm, inf_relindex_right]
 
+lemma inf_relindex_eq_relindex_sup [K.normal] : (H ⊓ K).relindex H = K.relindex (H ⊔ K) :=
+cardinal.to_nat_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv
+
+lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
+by rw [←inf_relindex_left, inf_relindex_eq_relindex_sup]
+
 variables {H K}
 
 lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
@@ -154,5 +160,17 @@ begin
   classical,
   exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
+
+variables {H}
+
+@[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
+⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
+  λ h, (congr_arg index h).trans index_top⟩
+
+lemma index_ne_zero_of_fintype [hH : fintype (quotient_group.quotient H)] : H.index ≠ 0 :=
+by { rw index_eq_card, exact fintype.card_ne_zero }
+
+lemma one_lt_index_of_ne_top [fintype (quotient_group.quotient H)] (hH : H ≠ ⊤) : 1 < H.index :=
+nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
 
 end subgroup

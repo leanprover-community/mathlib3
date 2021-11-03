@@ -268,21 +268,6 @@ lemma hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (h₀ : homotopic f₀ f
 
 lemma equivalence : equivalence (@homotopic X Y _ _) := ⟨refl, symm, trans⟩
 
-variables (X Y)
-
-/--
-The setoid on `C(X, Y)` defined by regarding two maps to be equivalent if they are homotopic.
--/
-protected def setoid : setoid (C(X, Y)) := ⟨homotopic, equivalence⟩
-
-/--
-The quotient on `C(X, Y)` by `homotopic`.
--/
-protected def quotient := quotient (homotopic.setoid X Y)
-
-instance : inhabited (homotopic.quotient unit unit) :=
-⟨@quotient.mk _ (homotopic.setoid unit unit) id⟩
-
 end homotopic
 
 /--
@@ -551,24 +536,6 @@ lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_rel f g S) (h₁ : homotopic
 
 lemma equivalence : equivalence (λ f g : C(X, Y), homotopic_rel f g S) :=
 ⟨refl, symm, trans⟩
-
-variables (X Y S)
-
-/--
-The setoid on `C(X, Y)` defined by regarding two maps to be equivalent if they are homotopic
-relative to a set `S`.
--/
-protected def setoid :
-setoid (C(X, Y)) := ⟨λ f g : C(X, Y), homotopic_rel f g S, equivalence⟩
-
-/--
-The quotient on `C(X, Y)` by `homotopic_rel`.
--/
-protected def quotient :=
-quotient (homotopic_rel.setoid X Y S)
-
-instance : inhabited (homotopic_rel.quotient unit unit set.univ) :=
-⟨@quotient.mk _ (homotopic_rel.setoid unit unit set.univ) id⟩
 
 end homotopic_rel
 

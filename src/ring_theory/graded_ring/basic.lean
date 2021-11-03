@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 import algebra.direct_sum.algebra
+import algebra.direct_sum.internal
 
 /-! # Typeclass for graded ring
 For definition of a ring `R` being graded by `A : ι → add_subgroup R`, see doc string of
@@ -34,12 +35,7 @@ variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
   respecting multiplication, i.e. product of an element of degree `i` and an element of degree `j`
   is an element of degree `i + j`.
 -/
-class graded_ring.core :=
-( one_degree_zero : (1 : R) ∈ A 0 )
-( mul_respect_grading : ∀ {i j : ι} {a b : R}, a ∈ A i → b ∈ A j → a * b ∈ A (i + j))
-
-/-- See above-/
-class graded_ring extends graded_ring.core R A :=
+class graded_ring extends set_like.graded_monoid A :=
 ( decompose : R → ⨁ i, A i)
 ( left_inv : function.left_inverse decompose (direct_sum.add_subgroup_coe A) )
 ( right_inv : function.right_inverse decompose (direct_sum.add_subgroup_coe A) )
@@ -47,23 +43,11 @@ class graded_ring extends graded_ring.core R A :=
 lemma graded_ring.is_internal [graded_ring R A] : direct_sum.add_subgroup_is_internal A :=
 ⟨graded_ring.left_inv.injective, graded_ring.right_inv.surjective⟩
 
-
-variable [graded_ring.core R A]
-
-instance gsemiring.of_ring_is_internally_graded :
-  direct_sum.gsemiring (λ i, A i) :=
-direct_sum.gsemiring.of_add_subgroups A
-  (graded_ring.core.one_degree_zero) (λ i j ai aj, graded_ring.core.mul_respect_grading ai.2 aj.2)
-
-/-- The cannonical ring isomorphism between `⨁ i, A i` and `R`-/
-def direct_sum.subgroup_coe_ring_hom : (⨁ i, A i) →+* R :=
-  direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
-
 variable [graded_ring R A]
 
 /--If `R` is graded by `ι` with degree `i` component `A i`, then `(⨁ i, A i ≃+* R)`-/
 def graded_ring.recompose : (⨁ i, A i) ≃+* R :=
-{ to_fun := direct_sum.subgroup_coe_ring_hom R A,
+{ to_fun := direct_sum.subgroup_coe_ring_hom A,
   inv_fun := graded_ring.decompose,
   left_inv := graded_ring.left_inv,
   right_inv := graded_ring.right_inv,

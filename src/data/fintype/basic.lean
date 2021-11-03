@@ -310,7 +310,7 @@ def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
 
 /-- There is (computably) an equivalence between `α` and `fin (card α)`.
 
-Since it is not unique, and depends on which permutation
+Since it is not unique and depends on which permutation
 of the universe list is used, the equivalence is wrapped in `trunc` to
 preserve computability.
 
@@ -354,6 +354,10 @@ end, begin
 end⟩
 
 /-- There is (computably) a bijection between `fin (card α)` and `α`.
+
+Since it is not unique and depends on which permutation
+of the universe list is used, the bijection is wrapped in `trunc` to
+preserve computability.
 
 See `fintype.trunc_equiv_fin` for a version that gives an equivalence
 given `[decidable α]`.

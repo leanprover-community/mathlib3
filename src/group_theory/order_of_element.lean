@@ -178,7 +178,7 @@ begin
   have a_min_fac_dvd_p_sub_one : a.min_fac ∣ n,
   { obtain ⟨b, hb⟩ : ∃ (b : ℕ), a = b * a.min_fac := exists_eq_mul_left_of_dvd a.min_fac_dvd,
     rw [hb, ←mul_assoc] at ha,
-    exact dvd.intro_left (order_of x * b) (eq.symm ha), },
+    exact dvd.intro_left (order_of x * b) ha.symm, },
   -- Use the minimum prime factor of `a` as `p`.
   refine hd a.min_fac (nat.min_fac_prime h) a_min_fac_dvd_p_sub_one _,
   rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff (a_min_fac_dvd_p_sub_one),

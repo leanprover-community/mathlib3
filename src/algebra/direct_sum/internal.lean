@@ -25,6 +25,8 @@ mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as
 internally graded ring
 -/
 
+open_locale direct_sum
+
 variables {ι : Type*} {S R : Type*} [decidable_eq ι]
 
 /-! #### From `add_submonoid`s -/
@@ -48,6 +50,11 @@ instance gcomm_semiring [add_comm_monoid ι] [comm_semiring R]
 { ..set_like.gcomm_monoid A,
   ..add_submonoid.gsemiring A, }
 
+/-- The cannonical ring isomorphism between `⨁ i, A i` and `R`-/
+def direct_sum.submonoid_coe_ring_hom [add_monoid ι] [semiring R]
+  (A : ι → add_submonoid R) [h : set_like.graded_monoid A] : (⨁ i, A i) →+* R :=
+direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
+
 end add_submonoid
 
 /-! #### From `add_subgroup`s -/
@@ -67,6 +74,11 @@ instance gcomm_semiring [add_comm_group ι] [comm_ring R]
   direct_sum.gsemiring (λ i, A i) :=
 have i' : set_like.graded_monoid (λ i, (A i).to_add_submonoid) := {..h},
 by exactI add_submonoid.gsemiring (λ i, (A i).to_add_submonoid)
+
+/-- The cannonical ring isomorphism between `⨁ i, A i` and `R`-/
+def _root_.direct_sum.subgroup_coe_ring_hom [add_monoid ι] [ring R]
+  (A : ι → add_subgroup R) [h : set_like.graded_monoid A] : (⨁ i, A i) →+* R :=
+direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
 
 end add_subgroup
 
@@ -91,8 +103,8 @@ have i' : set_like.graded_monoid (λ i, (A i).to_add_submonoid) := {..h},
 by exactI add_submonoid.gcomm_semiring (λ i, (A i).to_add_submonoid)
 
 /-- Build a `galgebra` instance for a collection of `submodule`s. -/
-instance submodule.galgebra [add_comm_monoid ι]
-  [comm_semiring S] [comm_semiring R] [algebra S R]
+instance submodule.galgebra [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] :
   direct_sum.galgebra S (λ i, A i) :=
 { to_fun := begin
@@ -104,6 +116,12 @@ instance submodule.galgebra [add_comm_monoid ι]
   commutes := λ r ⟨i, xi⟩,
     sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
   smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _ }
+
+/-- The cannonical algebra isomorphism between `⨁ i, A i` and `R`-/
+def _root_.direct_sum.submodule_coe_alg_hom [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [h : set_like.graded_monoid A] : (⨁ i, A i) →ₐ[S] R :=
+direct_sum.to_algebra S _ (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) (λ _, rfl)
 
 /-- A direct sum of powers of a submodule of an algebra has a multiplicative structure. -/
 instance nat_power_graded_monoid

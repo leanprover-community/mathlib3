@@ -41,6 +41,7 @@ ERR_OPT = 6 # set_option
 ERR_AUT = 7 # malformed authors list
 ERR_OME = 8 # imported tactic.omega
 ERR_TAC = 9 # imported tactic
+WRN_IND = 10 # indentation
 
 exceptions = []
 
@@ -73,6 +74,8 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(ERR_OME, path)]
         if errno == "ERR_TAC":
             exceptions += [(ERR_TAC, path)]
+        if errno == "WRN_IND":
+            exceptions += [(WRN_IND, path)]
 
 new_exceptions = False
 
@@ -147,6 +150,25 @@ def long_lines_check(lines, path):
             continue
         if len(line) > 101:
             errors += [(ERR_LIN, line_nr, path)]
+    return errors
+
+def indent_check(lines, path):
+    errors = []
+    indent_lvl = 0
+    in_prf = 0 # counter for nested proof blocks
+    for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
+        if in_prf > 0:
+            lstr = line.lstrip(' ') # strip spaces from beginning of line
+            if lstr[0] == '{' and len(line) - len(lstr) != indent_lvl:
+                errors += [(WRN_IND, line_nr, path)]
+        if "begin" in line:
+            in_prf += 1
+            indent_lvl += 2
+        if "end" in line:
+            in_prf -= 1
+            indent_lvl -= 2
+        indent_lvl += 2 * line.count('{') # potential innocent(?) clash with set-builder notation
+        indent_lvl -= 2 * line.count('}') # there can be multiple closing braces on one line
     return errors
 
 def import_only_check(lines, path):
@@ -232,8 +254,12 @@ def output_message(path, line_nr, code, msg):
         # filename first, then line so that we can call "sort" on the output
         print(f"{path} : line {line_nr} : {code} : {msg}")
     else:
+        if code.startswith("ERR"):
+            msg_type = "error"
+        if code.startswith("WRN"):
+            msg_type = "warning"
         # We are outputting for github. It doesn't appear to surface code, so show it in the message too
-        print(f"::error file={path},line={line_nr},code={code}::{code}: {msg}")
+        print(f"::{msg_type} file={path},line={line_nr},code={code}::{code}: {msg}")
 
 def format_errors(errors):
     global new_exceptions
@@ -261,6 +287,8 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import tactic.omega")
         if errno == ERR_TAC:
             output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import the whole tactic folder")
+        if errno == WRN_IND:
+            output_message(path, line_nr, "WRN_IND", "Probable indentation mistake in proof")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:
@@ -280,6 +308,8 @@ def lint(path):
         errs = set_option_check(lines, path)
         format_errors(errs)
         errs = import_omega_check(lines, path)
+        format_errors(errs)
+        errs = indent_check(lines, path)
         format_errors(errs)
 
 for filename in sys.argv[1:]:

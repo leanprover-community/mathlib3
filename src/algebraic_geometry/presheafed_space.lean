@@ -187,18 +187,18 @@ def iso_of_components (H : X.1 ≅ Y.1) (α : H.hom _* X.2 ≅ Y.2) : X ≅ Y :=
     { simp }
   end }
 
-/-- Isomorphic PresheafedSpaces have homeomorphic topological spaces. -/
-def base_iso_of_iso (H : X ≅ Y) : X.1 ≅ Y.1 :=
-{ hom := H.hom.base,
-  inv := H.inv.base,
-  hom_inv_id' := congr_arg hom.base H.hom_inv_id,
-  inv_hom_id' := congr_arg hom.base H.inv_hom_id }
+-- /-- Isomorphic PresheafedSpaces have homeomorphic topological spaces. -/
+-- def base_iso_of_iso (H : X ≅ Y) : X.1 ≅ Y.1 :=
+-- { hom := H.hom.base,
+--   inv := H.inv.base,
+--   hom_inv_id' := congr_arg hom.base H.hom_inv_id,
+--   inv_hom_id' := congr_arg hom.base H.inv_hom_id }
 
 /-- Isomorphic PresheafedSpaces have natural isomorphic presheaves. -/
 @[simps]
 def sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
 { hom := H.hom.c,
-  inv := pushforward_to_of_iso (base_iso_of_iso H).symm H.inv.c,
+  inv := pushforward_to_of_iso ((forget _).map_iso H).symm H.inv.c,
   hom_inv_id' :=
   begin
     ext U,
@@ -219,7 +219,7 @@ def sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
   end }
 
 instance base_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.base :=
-is_iso.of_iso (base_iso_of_iso (as_iso f))
+is_iso.of_iso ((forget _).map_iso (as_iso f))
 
 instance c_is_iso_of_iso (f : X ⟶ Y) [is_iso f] : is_iso f.c :=
 is_iso.of_iso (sheaf_iso_of_iso (as_iso f))
@@ -402,7 +402,7 @@ also isomorphic.
 def restrict_map_iso {X Y : PresheafedSpace C} {T : Top.{v}} (f : T ⟶ X) (hf : open_embedding f)
   (g : X ≅ Y) :
 X.restrict hf ≅ @restrict _ _ T Y (f ≫ g.hom.base)
-  ((homeo_of_iso (base_iso_of_iso g)).open_embedding.comp hf) :=
+  ((homeo_of_iso ((forget _).map_iso g)).open_embedding.comp hf) :=
 iso_of_components (iso.refl _) $ nat_iso.of_components
   (λ U, X.presheaf.map_iso (eq_to_iso
     (begin
@@ -412,7 +412,7 @@ iso_of_components (iso.refl _) $ nat_iso.of_components
       congr,
       rw coe_comp,
       conv_rhs { rw ←set.image_image },
-      erw set.preimage_image_eq _ (homeo_of_iso (base_iso_of_iso g)).injective,
+      erw set.preimage_image_eq _ (homeo_of_iso ((forget _).map_iso g)).injective,
       simpa
     end)) ≪≫ ((sheaf_iso_of_iso g).app _).symm)
   (λ U V i,

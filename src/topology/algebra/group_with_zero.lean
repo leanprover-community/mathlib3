@@ -171,7 +171,8 @@ continuous_on_fst.div continuous_on_snd $ λ _, id
 However, under appropriate conditions, `h x (f x / g x)` is still continuous.
 The condition is that if `g a = 0` then `h x y` must tend to `h a 0` when `x` tends to `a`,
 with no information about `y`. This is represented by the `⊤` filter.
-Note: `filter.tendsto_prod_top_iff` characterizes this convergence in uniform spaces. -/
+Note: `filter.tendsto_prod_top_iff` characterizes this convergence in uniform spaces.
+See also `filter.prod_top` and `filter.mem_prod_top`. -/
 lemma continuous_at.comp_div_cases {f g : α → G₀} (h : α → G₀ → β)
   (hf : continuous_at f a) (hg : continuous_at g a)
   (hh : g a ≠ 0 → continuous_at ↿h (a, f a / g a))

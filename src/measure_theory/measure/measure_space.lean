@@ -1277,6 +1277,12 @@ protected lemma rfl : μ ≪ μ := λ s hs, hs
 if hf : measurable f then absolutely_continuous.mk $ λ s hs, by simpa [hf, hs] using @h _
 else by simp only [map_of_not_measurable hf]
 
+protected lemma smul (h : μ ≪ ν) (c : ℝ≥0∞) : c • μ ≪ ν :=
+mk (λ s hs hνs, by simp only [h hνs, algebra.id.smul_eq_mul, coe_smul, pi.smul_apply, mul_zero])
+
+protected lemma coe_nnreal_smul (h : μ ≪ ν) (c : ℝ≥0) : c • μ ≪ ν :=
+h.smul c
+
 end absolutely_continuous
 
 lemma ae_le_iff_absolutely_continuous : μ.ae ≤ ν.ae ↔ μ ≪ ν :=
@@ -1374,12 +1380,15 @@ localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in m
 
 namespace mutually_singular
 
-lemma zero : μ ⊥ₘ 0 :=
+lemma zero_right : μ ⊥ₘ 0 :=
 ⟨∅, measurable_set.empty, measure_empty, rfl⟩
 
 lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
 let ⟨i, hi, his, hit⟩ := h in
   ⟨iᶜ, measurable_set.compl hi, hit, (compl_compl i).symm ▸ his⟩
+
+lemma zero_left : 0 ⊥ₘ μ :=
+zero_right.symm
 
 lemma add (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
 begin
@@ -1942,6 +1951,28 @@ lemma mem_spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) :
   x ∈ spanning_sets μ (spanning_sets_index μ x) :=
 disjointed_subset _ _ (mem_disjointed_spanning_sets_index μ x)
 
+lemma mem_spanning_sets_of_index_le (μ : measure α) [sigma_finite μ] (x : α)
+  {n : ℕ} (hn : spanning_sets_index μ x ≤ n) :
+  x ∈ spanning_sets μ n :=
+monotone_spanning_sets μ hn (mem_spanning_sets_index μ x)
+
+lemma eventually_mem_spanning_sets (μ : measure α) [sigma_finite μ] (x : α) :
+  ∀ᶠ n in at_top, x ∈ spanning_sets μ n :=
+eventually_at_top.2 ⟨spanning_sets_index μ x, λ b, mem_spanning_sets_of_index_le μ x⟩
+
+lemma ae_of_forall_measure_lt_top_ae_restrict {μ : measure α} [sigma_finite μ] (P : α → Prop)
+  (h : ∀ s, measurable_set s → μ s < ∞ → ∀ᵐ x ∂(μ.restrict s), P x) :
+  ∀ᵐ x ∂μ, P x :=
+begin
+  have : ∀ n, ∀ᵐ x ∂μ, x ∈ spanning_sets μ n → P x,
+  { assume n,
+    have := h (spanning_sets μ n) (measurable_spanning_sets _ _) (measure_spanning_sets_lt_top _ _),
+    rwa ae_restrict_iff' (measurable_spanning_sets _ _) at this },
+  filter_upwards [ae_all_iff.2 this],
+  assume x hx,
+  exact hx _ (mem_spanning_sets_index _ _),
+end
+
 omit m0
 
 namespace measure
@@ -2078,6 +2109,16 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
+instance is_locally_finite_measure_smul_nnreal [topological_space α] (μ : measure α)
+  [is_locally_finite_measure μ] (c : ℝ≥0) : is_locally_finite_measure (c • μ) :=
+begin
+  refine ⟨λ x, _⟩,
+  rcases μ.exists_is_open_measure_lt_top x with ⟨o, xo, o_open, μo⟩,
+  refine ⟨o, o_open.mem_nhds xo, _⟩,
+  apply ennreal.mul_lt_top _ μo.ne,
+  simp only [ennreal.coe_ne_top, ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
+end
 
 omit m0
 
@@ -2220,6 +2261,11 @@ lemma finite_at_nhds_within [topological_space α] {m0 : measurable_space α} (�
 
 @[simp] lemma finite_at_principal : μ.finite_at_filter (𝓟 s) ↔ μ s < ∞ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
+
+lemma is_locally_finite_measure_of_le [topological_space α] {m : measurable_space α}
+  {μ ν : measure α} [H : is_locally_finite_measure μ] (h : ν ≤ μ) :
+  is_locally_finite_measure ν :=
+let F := H.finite_at_nhds in ⟨λ x, (F x).measure_mono h⟩
 
 /-! ### Subtraction of measures -/
 

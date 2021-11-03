@@ -84,15 +84,14 @@ A functor `G : (C, J) ⥤ (D, K)` is called `cover_dense` if for each object in 
 
 This definition can be found in https://ncatlab.org/nlab/show/dense+sub-site Definition 2.2.
 -/
-@[nolint has_inhabited_instance]
-structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) :=
+structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (is_cover : ∀ (U : D), sieve.cover_by_image G U ∈ K U)
 
 open presieve opposite
 namespace cover_dense
 variables {A : Type*} [category A] {K} {G : C ⥤ D} (H : cover_dense K G)
 
-lemma sheaf_ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
+lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
   s = t :=
 begin
@@ -154,7 +153,7 @@ lemma pushforward_family_compatible {X} (x : ℱ.val.obj (op X)) :
   (pushforward_family H α x).compatible :=
 begin
   intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ e,
-  apply H.sheaf_ext,
+  apply H.ext,
   intros Y f,
   simp only [pushforward_family, ←functor_to_types.map_comp_apply, ←op_comp],
   change (ℱ.val.map _ ≫ α.app (op _) ≫ ℱ'.val.map _) _ =
@@ -212,14 +211,14 @@ def app_iso (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) (X : D) :
   hom_inv_id' :=
   begin
     ext x,
-    apply H.sheaf_ext,
+    apply H.ext,
     intros Y f,
     simp
   end,
   inv_hom_id' :=
   begin
     ext x,
-    apply H.sheaf_ext,
+    apply H.ext,
     intros Y f,
     simp
   end }
@@ -233,7 +232,7 @@ def sheaf_hom (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val) : ℱ.val ⟶ ℱ'.v
 { app := λ X, app_hom H α (unop X), naturality' := λ X Y f,
   begin
     ext x,
-    apply H.sheaf_ext ℱ' (unop Y),
+    apply H.ext ℱ' (unop Y),
     intros Y' f',
     simp only [app_hom_restrict, types_comp_apply, ←functor_to_types.map_comp_apply],
     rw app_hom_restrict H α (f ≫ f'.op : op (unop X) ⟶ _)
@@ -294,7 +293,7 @@ end
 
 /--
 Given an natural transformation `G ⋙ ℱ ⟶ G ⋙ ℱ'` between presheaves of arbitrary category,
-we may obtain a natural transformation between sheaves.
+where `G` is full and cover-dense, we may obtain a natural transformation between sheaves.
 -/
 @[simps] noncomputable
 def sheaf_hom {ℱ ℱ' : Sheaf K A} (α : G.op ⋙ ℱ.val ⟶ G.op ⋙ ℱ'.val) :
@@ -307,7 +306,7 @@ end
 
 /--
 Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of arbitrary category,
-we may obtain a natural isomorphism between sheaves.
+where `G` is full and cover-dense, we may obtain a natural isomorphism between sheaves.
 -/
 @[simps] noncomputable
 def sheaf_iso {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
@@ -374,7 +373,8 @@ begin
 end
 
 /--
-Given an natural transformation `ℱ ⟶ ℱ'`, if its pullback wrt `G` is an iso, then it is also iso.
+Given a full and cover-dense functor `G` and a natural transformation `α : ℱ ⟶ ℱ'`,
+if the pullback of `α` along `G` is iso, then `α` is also iso.
 -/
 lemma iso_of_restrict_iso {ℱ ℱ' : Sheaf K A} (α : ℱ.val ⟶ ℱ'.val)
   (i : is_iso (whisker_left G.op α)) : is_iso α :=

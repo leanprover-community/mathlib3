@@ -810,7 +810,6 @@ lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α
   (∏ k in range (n + m), f k) / (∏ k in range n, f k) = ∏ k in finset.range m, f (n + k) :=
 div_eq_of_eq_mul' (prod_range_add f n m)
 
-
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
@@ -939,15 +938,15 @@ begin
   rw [tsub_add_eq_add_tsub h₂, add_tsub_cancel_of_le h₁],
 end
 
-@[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
+@[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (λ a s has ih,
 by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 
-lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b
-| 0 := by simp
-| (n+1) := by simp
+@[to_additive]
+lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
 
+@[to_additive sum_nsmul]
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
@@ -1086,6 +1085,7 @@ begin
   simp [this]
 end
 
+@[to_additive]
 lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s) (f : α → β) (b : β) :
   (∏ x in s, function.update f i b x) = b * (∏ x in s \ (singleton i), f x) :=
 by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
@@ -1169,22 +1169,6 @@ lemma prod_add_prod_eq [comm_semiring β] {s : finset α} {i : α} {f g h : α �
   (h3 : ∀ j ∈ s, j ≠ i → h j = f j) : ∏ i in s, g i + ∏ i in s, h i = ∏ i in s, f i :=
 by { classical, simp_rw [prod_eq_mul_prod_diff_singleton hi, ← h1, right_distrib],
      congr' 2; apply prod_congr rfl; simpa }
-
-lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
-  (h : i ∈ s) (f : α → β) (b : β) :
-  (∑ x in s, function.update f i b x) = b + (∑ x in s \ (singleton i), f x) :=
-by { rw [update_eq_piecewise, sum_piecewise], simp [h] }
-attribute [to_additive] prod_update_of_mem
-
-lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
-  (∑ x in s, n • (f x)) = n • ((∑ x in s, f x)) :=
-@prod_pow (multiplicative β) _ _ _ _ _
-attribute [to_additive sum_nsmul] prod_pow
-
-@[simp] lemma sum_const [add_comm_monoid β] (b : β) :
-  (∑ x in s, b) = s.card • b :=
-@prod_const (multiplicative β) _ _ _ _
-attribute [to_additive] prod_const
 
 lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
 by simp

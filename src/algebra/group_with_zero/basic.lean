@@ -379,19 +379,36 @@ by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
 lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
 by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
 
-lemma mul_inverse_rev {M₀ : Type*} [comm_monoid_with_zero M₀] (a b : M₀) :
-  ring.inverse (a * b) = ring.inverse b * ring.inverse a :=
+variables (M₀)
+
+@[simp] lemma inverse_one : inverse (1 : M₀) = 1 :=
+inverse_unit 1
+
+@[simp] lemma inverse_zero : inverse (0 : M₀) = 0 :=
+by { nontriviality, exact inverse_non_unit _ not_is_unit_zero }
+
+variables {M₀}
+
+lemma mul_inverse_rev' {a b : M₀} (h : commute a b) : inverse (a * b) = inverse b * inverse a :=
 begin
   by_cases hab : is_unit (a * b),
-  { obtain ⟨⟨a, rfl⟩, b, rfl⟩ := is_unit.mul_iff.mp hab,
-    rw [←units.coe_mul, ring.inverse_unit, ring.inverse_unit, ring.inverse_unit, ←units.coe_mul,
+  { obtain ⟨⟨a, rfl⟩, b, rfl⟩ := h.is_unit_mul_iff.mp hab,
+    rw [←units.coe_mul, inverse_unit, inverse_unit, inverse_unit, ←units.coe_mul,
       mul_inv_rev], },
-  obtain ha | hb := not_and_distrib.mp (mt is_unit.mul_iff.mpr hab),
-  { rw [ring.inverse_non_unit _ hab, ring.inverse_non_unit _ ha, mul_zero]},
-  { rw [ring.inverse_non_unit _ hab, ring.inverse_non_unit _ hb, zero_mul]},
+  obtain ha | hb := not_and_distrib.mp (mt h.is_unit_mul_iff.mpr hab),
+  { rw [inverse_non_unit _ hab, inverse_non_unit _ ha, mul_zero]},
+  { rw [inverse_non_unit _ hab, inverse_non_unit _ hb, zero_mul]},
 end
 
+lemma mul_inverse_rev {M₀} [comm_monoid_with_zero M₀] (a b : M₀) :
+  ring.inverse (a * b) = inverse b * inverse a :=
+mul_inverse_rev' (commute.all _ _)
+
 end ring
+
+lemma commute.ring_inverse_ring_inverse {a b : M₀} (h : commute a b) :
+  commute (ring.inverse a) (ring.inverse b) :=
+(ring.mul_inverse_rev' h.symm).symm.trans $ (congr_arg _ h.symm.eq).trans $ ring.mul_inverse_rev' h
 
 variable (M₀)
 
@@ -1123,6 +1140,10 @@ end monoid_with_zero_hom
 @[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
   (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
 by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]
+
+@[simp] lemma monoid_with_zero_hom.map_units_inv {M G₀ : Type*} [monoid_with_zero M]
+  [group_with_zero G₀] (f : monoid_with_zero_hom M G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+f.to_monoid_hom.map_units_inv u
 
 section noncomputable_defs
 

@@ -126,7 +126,7 @@ lemma measure_add_measure_compl (h : measurable_set s) :
 by { rw [← union_compl_self s, measure_union _ h h.compl], exact disjoint_compl_right }
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
-  (hd : pairwise_on s (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
+  (hd : s.pairwise (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
@@ -135,11 +135,11 @@ begin
 end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
-  (hd : pairwise_on S disjoint) (h : ∀ s ∈ S, measurable_set s) :
+  (hd : S.pairwise disjoint) (h : ∀ s ∈ S, measurable_set s) :
   μ (⋃₀ S) = ∑' s : S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
 
-lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_on ↑s (disjoint on f))
+lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : set.pairwise ↑s (disjoint on f))
   (hm : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 begin
@@ -152,14 +152,14 @@ of the fibers `f ⁻¹' {y}`. -/
 lemma tsum_measure_preimage_singleton {s : set β} (hs : countable s) {f : α → β}
   (hf : ∀ y ∈ s, measurable_set (f ⁻¹' {y})) :
   ∑' b : s, μ (f ⁻¹' {↑b}) = μ (f ⁻¹' s) :=
-by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_on_disjoint_fiber _ _) hf]
+by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_disjoint_fiber _ _) hf]
 
 /-- If `s` is a `finset`, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
 lemma sum_measure_preimage_singleton (s : finset β) {f : α → β}
   (hf : ∀ y ∈ s, measurable_set (f ⁻¹' {y})) :
   ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
-by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
+by simp only [← measure_bUnion_finset (pairwise_disjoint_fiber _ _) hf,
   finset.set_bUnion_preimage_singleton]
 
 lemma measure_diff_null' (h : μ (s₁ ∩ s₂) = 0) : μ (s₁ \ s₂) = μ s₁ :=
@@ -222,7 +222,7 @@ lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ)
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
 lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, measurable_set (t i))
-  (H : pairwise_on ↑s (disjoint on t)) :
+  (H : set.pairwise ↑s (disjoint on t)) :
   ∑ i in s, μ (t i) ≤ μ (univ : set α) :=
 by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
 
@@ -303,7 +303,7 @@ begin
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
   rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union (disjoint_disjointed _) this,
     ennreal.tsum_eq_supr_nat],
-  simp only [← measure_bUnion_finset ((disjoint_disjointed _).pairwise_on _) (λ n _, this n)],
+  simp only [← measure_bUnion_finset ((disjoint_disjointed _).set_pairwise _) (λ n _, this n)],
   refine supr_le (λ n, _),
   refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
   exact measure_mono (bUnion_mono (λ k hk, disjointed_subset _ _)),
@@ -1277,6 +1277,12 @@ protected lemma rfl : μ ≪ μ := λ s hs, hs
 if hf : measurable f then absolutely_continuous.mk $ λ s hs, by simpa [hf, hs] using @h _
 else by simp only [map_of_not_measurable hf]
 
+protected lemma smul (h : μ ≪ ν) (c : ℝ≥0∞) : c • μ ≪ ν :=
+mk (λ s hs hνs, by simp only [h hνs, algebra.id.smul_eq_mul, coe_smul, pi.smul_apply, mul_zero])
+
+protected lemma coe_nnreal_smul (h : μ ≪ ν) (c : ℝ≥0) : c • μ ≪ ν :=
+h.smul c
+
 end absolutely_continuous
 
 lemma ae_le_iff_absolutely_continuous : μ.ae ≤ ν.ae ↔ μ ≪ ν :=
@@ -1374,12 +1380,15 @@ localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in m
 
 namespace mutually_singular
 
-lemma zero : μ ⊥ₘ 0 :=
+lemma zero_right : μ ⊥ₘ 0 :=
 ⟨∅, measurable_set.empty, measure_empty, rfl⟩
 
 lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
 let ⟨i, hi, his, hit⟩ := h in
   ⟨iᶜ, measurable_set.compl hi, hit, (compl_compl i).symm ▸ his⟩
+
+lemma zero_left : 0 ⊥ₘ μ :=
+zero_right.symm
 
 lemma add (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
 begin
@@ -1942,6 +1951,28 @@ lemma mem_spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) :
   x ∈ spanning_sets μ (spanning_sets_index μ x) :=
 disjointed_subset _ _ (mem_disjointed_spanning_sets_index μ x)
 
+lemma mem_spanning_sets_of_index_le (μ : measure α) [sigma_finite μ] (x : α)
+  {n : ℕ} (hn : spanning_sets_index μ x ≤ n) :
+  x ∈ spanning_sets μ n :=
+monotone_spanning_sets μ hn (mem_spanning_sets_index μ x)
+
+lemma eventually_mem_spanning_sets (μ : measure α) [sigma_finite μ] (x : α) :
+  ∀ᶠ n in at_top, x ∈ spanning_sets μ n :=
+eventually_at_top.2 ⟨spanning_sets_index μ x, λ b, mem_spanning_sets_of_index_le μ x⟩
+
+lemma ae_of_forall_measure_lt_top_ae_restrict {μ : measure α} [sigma_finite μ] (P : α → Prop)
+  (h : ∀ s, measurable_set s → μ s < ∞ → ∀ᵐ x ∂(μ.restrict s), P x) :
+  ∀ᵐ x ∂μ, P x :=
+begin
+  have : ∀ n, ∀ᵐ x ∂μ, x ∈ spanning_sets μ n → P x,
+  { assume n,
+    have := h (spanning_sets μ n) (measurable_spanning_sets _ _) (measure_spanning_sets_lt_top _ _),
+    rwa ae_restrict_iff' (measurable_spanning_sets _ _) at this },
+  filter_upwards [ae_all_iff.2 this],
+  assume x hx,
+  exact hx _ (mem_spanning_sets_index _ _),
+end
+
 omit m0
 
 namespace measure
@@ -2078,6 +2109,16 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
+instance is_locally_finite_measure_smul_nnreal [topological_space α] (μ : measure α)
+  [is_locally_finite_measure μ] (c : ℝ≥0) : is_locally_finite_measure (c • μ) :=
+begin
+  refine ⟨λ x, _⟩,
+  rcases μ.exists_is_open_measure_lt_top x with ⟨o, xo, o_open, μo⟩,
+  refine ⟨o, o_open.mem_nhds xo, _⟩,
+  apply ennreal.mul_lt_top _ μo.ne,
+  simp only [ennreal.coe_ne_top, ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
+end
 
 omit m0
 
@@ -2220,6 +2261,11 @@ lemma finite_at_nhds_within [topological_space α] {m0 : measurable_space α} (�
 
 @[simp] lemma finite_at_principal : μ.finite_at_filter (𝓟 s) ↔ μ s < ∞ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
+
+lemma is_locally_finite_measure_of_le [topological_space α] {m : measurable_space α}
+  {μ ν : measure α} [H : is_locally_finite_measure μ] (h : ν ≤ μ) :
+  is_locally_finite_measure ν :=
+let F := H.finite_at_nhds in ⟨λ x, (F x).measure_mono h⟩
 
 /-! ### Subtraction of measures -/
 

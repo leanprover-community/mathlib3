@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bolton Bailey
+Author: Bolton Bailey
 -/
 import data.zmod.basic
 import data.fintype.basic

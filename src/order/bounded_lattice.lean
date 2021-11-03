@@ -114,17 +114,17 @@ lemma strict_mono.maximal_preimage_top [linear_order α] [preorder β] [order_to
   x ≤ a :=
 H.maximal_of_maximal_image (λ p, by { rw h_top, exact le_top }) x
 
-theorem order_top.ext_top {α} [partial_order α] (A B : order_top α)
-  (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
+theorem order_top.ext_top {α} {hA : partial_order α} (A : order_top α)
+  {hB : partial_order α} (B : order_top α)
+  (H : ∀ x y : α, (by haveI := hA; exact x ≤ y) ↔ x ≤ y) :
   (by haveI := A; exact ⊤ : α) = ⊤ :=
 top_unique $ by rw ← H; apply le_top
 
 theorem order_top.ext {α} [partial_order α] {A B : order_top α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  have := partial_order.ext H,
   have tt := order_top.ext_top A B H,
-  casesI A with a ha, casesI B with b hb,
+  casesI A with _ ha, casesI B with _ hb,
   congr,
   exact le_antisymm (hb _) (ha _)
 end

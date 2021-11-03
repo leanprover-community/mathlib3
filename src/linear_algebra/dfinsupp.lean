@@ -330,10 +330,8 @@ lemma independent_of_dfinsupp_sum_add_hom_injective (p : ι → add_submonoid N)
   (h : function.injective (sum_add_hom (λ i, (p i).subtype))) :
   independent p :=
 begin
-  obtain p_eq : add_submonoid.to_nat_submodule.symm ∘ add_submonoid.to_nat_submodule ∘ p = p :=
-    funext (λ i, order_iso.symm_apply_apply _ _),
-  rw ←p_eq at ⊢ h,
-  exact (independent_of_dfinsupp_lsum_injective _ h).map_order_iso _,
+  rw ←independent_map_order_iso_iff (add_submonoid.to_nat_submodule : add_submonoid N ≃o _),
+  exact independent_of_dfinsupp_lsum_injective _ h,
 end
 
 /-- Combining `dfinsupp.lsum` with `linear_map.to_span_singleton` is the same as `finsupp.total` -/
@@ -359,10 +357,8 @@ lemma independent_of_dfinsupp_sum_add_hom_injective' (p : ι → add_subgroup N)
   (h : function.injective (sum_add_hom (λ i, (p i).subtype))) :
   independent p :=
 begin
-  obtain p_eq : add_subgroup.to_int_submodule.symm ∘ add_subgroup.to_int_submodule ∘ p = p :=
-    funext (λ i, order_iso.symm_apply_apply _ _),
-  rw ←p_eq at ⊢ h,
-  exact (independent_of_dfinsupp_lsum_injective _ h).map_order_iso _,
+  rw ←independent_map_order_iso_iff (add_subgroup.to_int_submodule : add_subgroup N ≃o _),
+  exact independent_of_dfinsupp_lsum_injective _ h,
 end
 
 /-- The canonical map out of a direct sum of a family of submodules is injective when the submodules
@@ -396,10 +392,8 @@ additive subgroups are `complete_lattice.independent`. -/
 lemma independent.dfinsupp_sum_add_hom_injective {p : ι → add_subgroup N}
   (h : independent p) : function.injective (sum_add_hom (λ i, (p i).subtype)) :=
 begin
-  obtain p_eq : add_subgroup.to_int_submodule.symm ∘ add_subgroup.to_int_submodule ∘ p = p :=
-    funext (λ i, order_iso.symm_apply_apply _ _),
-  rw ←p_eq,
-  exact (h.map_order_iso _).dfinsupp_lsum_injective,
+  rw ←independent_map_order_iso_iff (add_subgroup.to_int_submodule : add_subgroup N ≃o _) at h,
+  exact h.dfinsupp_lsum_injective,
 end
 
 /-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`

@@ -1016,11 +1016,21 @@ begin
   exact h,
 end
 
-def to_lattice (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : lattice(α →ᵇ β) := {
+def to_lattice (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : lattice (α →ᵇ β) := {
   ..(to_semilattice_sup h),
   ..(to_semilattice_inf h),
 }
 
+def to_normed_lattice_add_comm_group (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : normed_lattice_add_comm_group (α →ᵇ β) := {
+  add_le_add_left := begin
+    intros,
+    sorry,
+  end,
+  solid := begin
+    sorry,
+  end,
+  ..(to_lattice h),
+}
 
 end normed_lattice_ordered_group
 

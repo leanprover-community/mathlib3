@@ -67,8 +67,6 @@ section
 @le_antisymm _ _
 end
 
-instance [h : nontrivial α] : nontrivial (order_dual α) := h
-
 /- TODO: automatic construction of dual definitions / theorems -/
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/

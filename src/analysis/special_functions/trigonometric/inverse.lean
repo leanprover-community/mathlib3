@@ -68,7 +68,7 @@ inj_on_arcsin.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
 
 @[continuity]
 lemma continuous_arcsin : continuous arcsin :=
-continuous_subtype_coe.comp sin_order_iso.symm.continuous.Icc_extend
+continuous_subtype_coe.comp sin_order_iso.symm.continuous.Icc_extend'
 
 lemma continuous_at_arcsin {x : ℝ} : continuous_at arcsin x :=
 continuous_arcsin.continuous_at

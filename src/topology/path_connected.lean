@@ -143,11 +143,11 @@ def extend : ℝ → X := Icc_extend zero_le_one γ
 
 @[continuity]
 lemma continuous_extend : continuous γ.extend :=
-γ.continuous.Icc_extend
+γ.continuous.Icc_extend'
 
 lemma continuous.extend {γ : Y → path x y} {f : Y → ℝ} (hγ : continuous ↿γ) (hf : continuous f) :
   continuous (λ t, (γ t).extend (f t)) :=
-continuous.Icc_extend' hγ hf
+continuous.Icc_extend hγ hf
 
 lemma filter.tendsto.extend {X Y : Type*} [topological_space X] [topological_space Y] {l r : Y → X}
   {y : Y} {l₁ : filter ℝ} {l₂ : filter X} {γ : ∀ y, path (l y) (r y)}

@@ -19,7 +19,7 @@ instances for `Prop` and `fun`.
 ## Main declarations
 
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
-* `order_<top/bot> α`: Order with a top/bottom element.
+* `order_<top/bot> α`: Order mixin for a top/bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
@@ -59,7 +59,8 @@ notation `⊥` := has_bot.bot
 
 attribute [pattern] has_bot.bot has_top.top
 
-/-- An `order_top` is when an order has a greatest element. -/
+/-- An order is an `order_top` if it has a greatest element.
+We state this using a data mixin, holding the value of `⊤` and the greatest element constraint. -/
 @[ancestor has_top]
 class order_top (α : Type u) [has_le α] extends has_top α :=
 (le_top : ∀ a : α, a ≤ ⊤)
@@ -128,7 +129,8 @@ begin
   exact le_antisymm (hb _) (ha _)
 end
 
-/-- An `order_bot` is when an order has a least element. -/
+/-- An order is an `order_bot` if it has a least element.
+We state this using a data mixin, holding the value of `⊥` and the least element constraint. -/
 @[ancestor has_bot]
 class order_bot (α : Type u) [has_le α] extends has_bot α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)

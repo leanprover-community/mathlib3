@@ -34,7 +34,8 @@ of `𝕜`).
 ## Separation theorem
 
 This is the geometric Hahn-Banach theorem. For any two disjoint convex sets, there exists a
-continuous linear functional separating them (fancy way of saying we can put a plane in between).
+continuous linear functional separating them, geometrically meaning that we can intercalate a plane
+between them.
 
 We provide many variations to stricten the result under more assumptions on the convex sets:
 * `geometric_hahn_banach_open`: One set is open. Weak separation.
@@ -227,8 +228,8 @@ begin
 end
 
 /-- Given a set `C` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
-a continuous linear functional `f` which sends `x₀` to 1 and all of `C` to values strictly below
-`1`. -/
+a continuous linear functional `f` separating `x0` and `C`, in the sense that it sends `x₀` to 1 and
+all of `C` to values strictly below `1`. -/
 lemma separate_convex_open_set {C : set E} (zero_mem : (0:E) ∈ C) (hC : convex ℝ C)
   (hC₂ : is_open C) {x₀ : E} (hx₀ : x₀ ∉ C) :
   ∃ (f : E →L[ℝ] ℝ), f x₀ = 1 ∧ ∀ x ∈ C, f x < 1 :=

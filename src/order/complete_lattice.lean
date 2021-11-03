@@ -1346,8 +1346,6 @@ end
 
 /-- Composing an indepedent indexed family with an order isomorphism on the elements results in
 another indepedendent indexed family. -/
-/-- Composing an indepedent indexed family with an order isomorphism on the elements results in
-another indepedendent indexed family. -/
 lemma independent.map_order_iso {ι : Sort*} {α β : Type*}
   [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} (ha : independent a) :
   independent (f ∘ a) :=

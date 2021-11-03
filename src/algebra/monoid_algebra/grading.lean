@@ -35,17 +35,17 @@ abbreviation grade [comm_semiring R] (i : ι) : submodule R (add_monoid_algebra 
 
 end
 
-variables {R} [decidable_eq ι] [add_monoid ι] [comm_semiring R]
-
 open_locale direct_sum
 
-instance grade.graded_monoid :
+instance grade.graded_monoid [add_monoid ι] [comm_semiring R] :
   set_like.graded_monoid (grade R : ι → submodule R (add_monoid_algebra R ι)) :=
 { one_mem := ⟨1, rfl⟩,
   mul_mem := λ i j _ _, begin
     rintros ⟨a, rfl⟩ ⟨b, rfl⟩,
     exact ⟨_, single_mul_single.symm⟩,
   end }
+
+variables {R} [decidable_eq ι] [add_monoid ι] [comm_semiring R]
 
 /-- The canonical grade decomposition. -/
 def to_grades : add_monoid_algebra R ι →ₐ[R] ⨁ i : ι, grade R i :=

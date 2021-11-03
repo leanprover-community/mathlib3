@@ -333,7 +333,7 @@ begin
   obtain p_eq : add_submonoid.to_nat_submodule.symm ∘ add_submonoid.to_nat_submodule ∘ p = p :=
     funext (λ i, order_iso.symm_apply_apply _ _),
   rw ←p_eq at ⊢ h,
-  exact (independent_of_dfinsupp_lsum_injective _ h).comap_order_iso _,
+  exact (independent_of_dfinsupp_lsum_injective _ h).map_order_iso _,
 end
 
 /-- Combining `dfinsupp.lsum` with `linear_map.to_span_singleton` is the same as `finsupp.total` -/
@@ -362,7 +362,7 @@ begin
   obtain p_eq : add_subgroup.to_int_submodule.symm ∘ add_subgroup.to_int_submodule ∘ p = p :=
     funext (λ i, order_iso.symm_apply_apply _ _),
   rw ←p_eq at ⊢ h,
-  exact (independent_of_dfinsupp_lsum_injective _ h).comap_order_iso _,
+  exact (independent_of_dfinsupp_lsum_injective _ h).map_order_iso _,
 end
 
 /-- The canonical map out of a direct sum of a family of submodules is injective when the submodules
@@ -399,7 +399,7 @@ begin
   obtain p_eq : add_subgroup.to_int_submodule.symm ∘ add_subgroup.to_int_submodule ∘ p = p :=
     funext (λ i, order_iso.symm_apply_apply _ _),
   rw ←p_eq,
-  exact (h.comap_order_iso _).dfinsupp_lsum_injective,
+  exact (h.map_order_iso _).dfinsupp_lsum_injective,
 end
 
 /-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`

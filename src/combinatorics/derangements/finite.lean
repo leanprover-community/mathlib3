@@ -103,7 +103,7 @@ theorem num_derangements_sum (n : ℕ) :
   (num_derangements n : ℤ) = ∑ k in finset.range (n + 1), (-1:ℤ)^k * nat.asc_factorial k (n - k) :=
 begin
   induction n with n hn, { refl },
-  rw [finset.sum_range_succ, num_derangements_succ, hn, finset.mul_sum, nat.sub_self,
+  rw [finset.sum_range_succ, num_derangements_succ, hn, finset.mul_sum, tsub_self,
     nat.asc_factorial_zero, int.coe_nat_one, mul_one, pow_succ, neg_one_mul, sub_eq_add_neg,
     add_left_inj, finset.sum_congr rfl],
   -- show that (n + 1) * (-1)^x * asc_fac x (n - x) = (-1)^x * asc_fac x (n.succ - x)

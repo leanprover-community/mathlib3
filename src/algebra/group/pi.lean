@@ -59,17 +59,17 @@ tactic.pi_instance_derive_field
 instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
   div_inv_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, gpow := λ z x i, gpow z (x i) }; tactic.pi_instance_derive_field
+  npow := npow, zpow := λ z x i, zpow z (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, gpow := gpow }; tactic.pi_instance_derive_field
+  npow := npow, zpow := zpow }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, gpow := gpow }; tactic.pi_instance_derive_field
+  npow := npow, zpow := zpow }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :

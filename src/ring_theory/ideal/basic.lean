@@ -100,6 +100,9 @@ lemma mem_span_insert {s : set α} {x y} :
 lemma mem_span_singleton' {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
+lemma span_insert (x) (s : set α) : span (insert x s) = span ({x} : set α) ⊔ span s :=
+submodule.span_insert x s
+
 lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := submodule.span_eq_bot
 
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=

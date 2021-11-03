@@ -523,8 +523,7 @@ theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' 
 begin
   have : 0 < ε - edist y x := by simpa using h,
   refine ⟨ε - edist y x, this, ball_subset _ (ne_top_of_lt h)⟩,
-  rw ennreal.add_sub_cancel_of_le (le_of_lt h),
-  exact le_refl ε
+  exact (add_tsub_cancel_of_le (mem_ball.mp h).le).le
 end
 
 theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=

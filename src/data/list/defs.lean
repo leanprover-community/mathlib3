@@ -6,6 +6,9 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 import data.option.defs
 import logic.basic
 import tactic.cache
+import data.rbmap.basic
+import data.rbtree.default_lt
+
 /-!
 ## Definitions on lists
 
@@ -15,7 +18,7 @@ proofs about these definitions, those are contained in other files in `data/list
 
 namespace list
 
-open function nat native (rb_map mk_rb_map rb_map.of_list)
+open function nat
 universes u v w x
 variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
@@ -985,5 +988,33 @@ def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → lis
 def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
 | (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
 | _       _       _       _       _       := []
+
+/-- An auxiliary function for `list.map_with_prefix_suffix`. -/
+def map_with_prefix_suffix_aux {α β} (f : list α → α → list α → β) : list α → list α → list β
+| prev [] := []
+| prev (h::t) := f prev h t :: map_with_prefix_suffix_aux (prev.concat h) t
+
+/--
+`list.map_with_prefix_suffix f l` maps `f` across a list `l`.
+For each `a ∈ l` with `l = pref ++ [a] ++ suff`, `a` is mapped to `f pref a suff`.
+
+Example: if `f : list ℕ → ℕ → list ℕ → β`,
+`list.map_with_prefix_suffix f [1, 2, 3]` will produce the list
+`[f [] 1 [2, 3], f [1] 2 [3], f [1, 2] 3 []]`.
+-/
+def map_with_prefix_suffix {α β} (f : list α → α → list α → β) (l : list α) : list β :=
+map_with_prefix_suffix_aux f [] l
+
+/--
+`list.map_with_complement f l` is a variant of `list.map_with_prefix_suffix`
+that maps `f` across a list `l`.
+For each `a ∈ l` with `l = pref ++ [a] ++ suff`, `a` is mapped to `f a (pref ++ suff)`,
+i.e., the list input to `f` is `l` with `a` removed.
+
+Example: if `f : ℕ → list ℕ → β`, `list.map_with_complement f [1, 2, 3]` will produce the list
+`[f 1 [2, 3], f 2 [1, 3], f 3 [1, 2]]`.
+-/
+def map_with_complement {α β} (f : α → list α → β) : list α → list β :=
+map_with_prefix_suffix $ λ pref a suff, f a (pref ++ suff)
 
 end list

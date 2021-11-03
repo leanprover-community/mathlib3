@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import topology.opens
 import ring_theory.ideal.prod
+import ring_theory.ideal.over
 import linear_algebra.finsupp
 import algebra.punit_instances
 
@@ -360,6 +361,21 @@ lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
 by { rw [is_closed_iff_zero_locus], exact ⟨s, rfl⟩ }
 
+lemma is_closed_singleton_iff_is_maximal (x : prime_spectrum R) :
+  is_closed ({x} : set (prime_spectrum R)) ↔ x.as_ideal.is_maximal :=
+begin
+  refine (is_closed_iff_zero_locus _).trans ⟨λ h, _, λ h, _⟩,
+  { obtain ⟨s, hs⟩ := h,
+    rw [eq_comm, set.eq_singleton_iff_unique_mem] at hs,
+    refine ⟨⟨x.2.1, λ I hI, not_not.1 (mt (ideal.exists_le_maximal I) $
+      not_exists.2 (λ J, not_and.2 $ λ hJ hIJ,_))⟩⟩,
+    exact ne_of_lt (lt_of_lt_of_le hI hIJ) (symm $ congr_arg prime_spectrum.as_ideal
+      (hs.2 ⟨J, hJ.is_prime⟩ (λ r hr, hIJ (le_of_lt hI $ hs.1 hr)))) },
+  { refine ⟨x.as_ideal.1, _⟩,
+    rw [eq_comm, set.eq_singleton_iff_unique_mem],
+    refine ⟨λ _ h, h, λ y hy, prime_spectrum.ext.2 (h.eq_of_le y.2.ne_top hy).symm⟩ }
+end
+
 lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
   zero_locus (vanishing_ideal t : set R) = closure t :=
 begin
@@ -376,6 +392,20 @@ end
 lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
   vanishing_ideal (closure t) = vanishing_ideal t :=
 zero_locus_vanishing_ideal_eq_closure t ▸ (gc R).u_l_u_eq_u t
+
+lemma t1_space_iff_is_field [is_domain R] :
+  t1_space (prime_spectrum R) ↔ is_field R :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { introI h,
+    have hbot : ideal.is_prime (⊥ : ideal R) := ideal.bot_prime,
+    exact not_not.1 (mt (ring.ne_bot_of_is_maximal_of_not_is_field $
+      (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
+  { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
+    by_cases hx : x.as_ideal = ⊥,
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
+end
 
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
@@ -406,6 +436,11 @@ begin
   refl
 end
 
+lemma comap_injective_of_surjective (f : R →+* S) (hf : function.surjective f) :
+  function.injective (comap f) :=
+λ x y h, prime_spectrum.ext.2 (ideal.comap_injective_of_surjective f hf
+  (congr_arg prime_spectrum.as_ideal h : (comap f x).as_ideal = (comap f y).as_ideal))
+
 lemma comap_continuous (f : R →+* S) : continuous (comap f) :=
 begin
   rw continuous_iff_is_closed,
@@ -413,6 +448,20 @@ begin
   rintro _ ⟨s, rfl⟩,
   exact ⟨_, preimage_comap_zero_locus f s⟩
 end
+
+lemma comap_singleton_is_closed_of_surjective (f : R →+* S) (hf : function.surjective f)
+  (x : prime_spectrum S) (hx : is_closed ({x} : set (prime_spectrum S))) :
+  is_closed ({comap f x} : set (prime_spectrum R)) :=
+begin
+  haveI : x.as_ideal.is_maximal := (is_closed_singleton_iff_is_maximal x).1 hx,
+  exact (is_closed_singleton_iff_is_maximal _).2 (ideal.comap_is_maximal_of_surjective f hf)
+end
+
+lemma comap_singleton_is_closed_of_is_integral (f : R →+* S) (hf : f.is_integral)
+  (x : prime_spectrum S) (hx : is_closed ({x} : set (prime_spectrum S))) :
+  is_closed ({comap f x} : set (prime_spectrum R)) :=
+(is_closed_singleton_iff_is_maximal _).2 (ideal.is_maximal_comap_of_is_integral_of_is_maximal'
+  f hf x.as_ideal $ (is_closed_singleton_iff_is_maximal x).1 hx)
 
 end comap
 

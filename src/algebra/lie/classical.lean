@@ -77,7 +77,7 @@ variables [comm_ring R]
   matrix.trace n R R ⁅X, Y⁆ = 0 :=
 calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_map.map_sub _ _ _
    ... = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (X ⬝ Y) :
-     congr_arg (λ x, _ - x) (matrix.trace_mul_comm X Y)
+     congr_arg (λ x, _ - x) (matrix.trace_mul_comm Y X)
    ... = 0 : sub_self _
 
 namespace special_linear

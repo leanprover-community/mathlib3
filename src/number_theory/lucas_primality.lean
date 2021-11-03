@@ -52,8 +52,7 @@ begin
   rw nat.prime_iff_card_units,
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`
   rw le_antisymm_iff,
-  split,
-  { exact nat.card_units_zmod_lt_sub_one hp1, },
+  refine ⟨nat.card_units_zmod_lt_sub_one hp1, _⟩,
   { have hp' : p - 2 + 1 = p - 1,
     { apply eq.symm,
       rw [nat.sub_eq_iff_eq_add, add_assoc, one_add_one_eq_two, ←nat.sub_eq_iff_eq_add],

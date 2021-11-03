@@ -141,21 +141,23 @@ end
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
 
+/-- See Note [continuity lemma statement]. -/
+lemma _root_.continuous.path_extend {γ : Y → path x y} {f : Y → ℝ} (hγ : continuous ↿γ)
+  (hf : continuous f) : continuous (λ t, (γ t).extend (f t)) :=
+continuous.Icc_extend hγ hf
+
+/-- A useful special case of `continuous.path_extend`. -/
 @[continuity]
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend'
 
-lemma continuous.extend {γ : Y → path x y} {f : Y → ℝ} (hγ : continuous ↿γ) (hf : continuous f) :
-  continuous (λ t, (γ t).extend (f t)) :=
-continuous.Icc_extend hγ hf
-
-lemma filter.tendsto.extend {X Y : Type*} [topological_space X] [topological_space Y] {l r : Y → X}
-  {y : Y} {l₁ : filter ℝ} {l₂ : filter X} {γ : ∀ y, path (l y) (r y)}
+lemma _root_.filter.tendsto.path_extend {X Y : Type*} [topological_space X] [topological_space Y]
+  {l r : Y → X} {y : Y} {l₁ : filter ℝ} {l₂ : filter X} {γ : ∀ y, path (l y) (r y)}
   (hγ : tendsto ↿γ (𝓝 y ×ᶠ l₁.map (proj_Icc 0 1 zero_le_one)) l₂) :
   tendsto ↿(λ x, (γ x).extend) (𝓝 y ×ᶠ l₁) l₂ :=
 filter.tendsto.Icc_extend _ hγ
 
-lemma continuous_at.extend {g : Y → ℝ} {l r : Y → X} (γ : ∀ y, path (l y) (r y)) {y : Y}
+lemma _root_.continuous_at.path_extend {g : Y → ℝ} {l r : Y → X} (γ : ∀ y, path (l y) (r y)) {y : Y}
   (hγ : continuous_at ↿γ (y, proj_Icc 0 1 zero_le_one (g y)))
   (hg : continuous_at g y) : continuous_at (λ i, (γ i).extend (g i)) y :=
 hγ.Icc_extend (λ x, γ x) hg

@@ -2030,7 +2030,7 @@ noncomputable instance : field (fraction_ring A) :=
   sub := has_sub.sub,
   one := 1,
   zero := 0,
-  nsmul := monoid.nsmul,
+  nsmul := add_monoid.nsmul,
   zsmul := sub_neg_monoid.zsmul,
   npow := localization.npow _,
   .. localization.comm_ring,

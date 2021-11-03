@@ -7,6 +7,7 @@ import data.zmod.basic
 import data.fintype.basic
 import field_theory.finite.basic
 import group_theory.order_of_element
+import tactic.zify
 
 /-!
 # The Lucas test for primes.
@@ -54,10 +55,8 @@ begin
   rw le_antisymm_iff,
   refine ⟨nat.card_units_zmod_lt_sub_one hp1, _⟩,
   have hp' : p - 2 + 1 = p - 1,
-  { apply eq.symm,
-    rw [nat.sub_eq_iff_eq_add, add_assoc, one_add_one_eq_two, ←nat.sub_eq_iff_eq_add],
-    linarith,
-    linarith, },
+  { zify [le_of_lt hp1],
+    ring, },
   let a' : units (zmod p) := units.mk_of_mul_eq_one a (a ^ (p-2)) (by rw [←pow_succ, hp', ha]),
   have a_coe : a = units.coe_hom (zmod p) a',
   { unfold_coes, simp, },

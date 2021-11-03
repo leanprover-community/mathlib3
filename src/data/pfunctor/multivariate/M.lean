@@ -260,8 +260,8 @@ begin
   replace h₁ := congr_fun (congr_fun h₁ fin2.fz) i,
   simp [(⊚),append_fun,split_fun] at h₁,
   replace h₁ := quot.exact _  h₁,
-  rw relation.eqv_gen_iff_of_equivalence at h₁,
-  exact h₁, exact h₀
+  rw h₀.eqv_gen_iff at h₁,
+  exact h₁,
 end
 
 theorem M.bisim' {α : typevec n} (R : P.M α → P.M α → Prop)

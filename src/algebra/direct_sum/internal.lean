@@ -12,8 +12,8 @@ import algebra.direct_sum.algebra
 This module provides `gsemiring` and `gcomm_semiring` instances for a collection of subobjects `A`
 when a `set_like.graded_monoid` instance is available:
 
-* on `submonoid R`s: `add_submonoid.gsemiring`, `add_submonoid.gcomm_semiring`.
-* on `subgroup R`s: `add_subgroup.gsemiring`, `add_subgroup.gcomm_semiring`.
+* on `add_submonoid R`s: `add_submonoid.gsemiring`, `add_submonoid.gcomm_semiring`.
+* on `add_subgroup R`s: `add_subgroup.gsemiring`, `add_subgroup.gcomm_semiring`.
 * on `submodule S R`s: `submodule.gsemiring`, `submodule.gcomm_semiring`.
 
 With these instances in place, it provides the bundled canonical maps out of a direct sum of
@@ -25,11 +25,11 @@ subobjects into their carrier type:
 
 Strictly the definitions in this file are not sufficient to fully define an "internal" direct sum;
 to represent this case, `(h : direct_sum.submodule_is_internal A) [set_like.graded_monoid A]` is
-needed. In future there will likely be a data-carrying, constructive, typeclass version of
+needed. In the future there will likely be a data-carrying, constructive, typeclass version of
 `direct_sum.submodule_is_internal` for providing an explicit decomposition function.
 
 When `complete_lattice.independent (set.range A)` (a weaker condition than
-`direct_sum.submodule_is_internal A`), these provide a gradation of `⨆ i, A i`, and the
+`direct_sum.submodule_is_internal A`), these provide a grading of `⨆ i, A i`, and the
 mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as
 `direct_sum.to_monoid (λ i, add_submonoid.inclusion $ le_supr A i)`.
 

@@ -212,7 +212,7 @@ lemma support_chain : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.support
 | _ _ nil := list.chain.nil
 | _ _ (cons h p) := support_chain_aux h p
 
-/-- The list of edges in a walk are all edges of the graph.
+/-- Every edge in a walk's edge list is an edge of the graph.
 It is written in this form to avoid unsightly coercions. -/
 lemma edges_subset_edge_set {u v : V} (p : G.walk u v) {e : sym2 V}
   (h : e ∈ p.edges) : e ∈ G.edge_set :=

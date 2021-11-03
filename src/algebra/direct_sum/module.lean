@@ -27,7 +27,6 @@ universes u v w u₁
 variables (R : Type u) [semiring R]
 variables (ι : Type v) [dec_ι : decidable_eq ι] (M : ι → Type w)
 variables [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
-include R
 
 namespace direct_sum
 open_locale direct_sum

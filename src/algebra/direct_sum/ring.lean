@@ -20,7 +20,7 @@ additively-graded ring. The typeclasses are:
 * `direct_sum.gsemiring A`
 * `direct_sum.gcomm_semiring A`
 
-Respectively, these imbue the direct sum `⨁ i, A i` with:
+Respectively, these imbue the external direct sum `⨁ i, A i` with:
 
 * `direct_sum.non_unital_non_assoc_semiring`
 * `direct_sum.semiring`, `direct_sum.ring`

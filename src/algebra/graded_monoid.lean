@@ -51,13 +51,16 @@ In addition to the above typeclasses, in the most frequent case when `A` is an i
 `set_like` subobjects (such as `add_submonoid`s, `add_subgroup`s, or `submodule`s), this file
 provides the `Prop` typeclasses:
 
-* `set_like.has_graded_one` (which provides the obvious `graded_monoid.ghas_one A`)
-* `set_like.has_graded_mul` (which provides the obvious `graded_monoid.ghas_mul A`)
-* `set_like.graded_monoid` (which provides the obvious `graded_monoid.gmonoid A` and
-  `graded_monoid.gcomm_monoid A`)
+* `set_like.has_graded_one A` (which provides the obvious `graded_monoid.ghas_one A` instance)
+* `set_like.has_graded_mul A` (which provides the obvious `graded_monoid.ghas_mul A` instance)
+* `set_like.graded_monoid A` (which provides the obvious `graded_monoid.gmonoid A` and
+  `graded_monoid.gcomm_monoid A` instances)
 
 Strictly this last class is unecessary as it has no fields not present in its parents, but it is
-included for convenience.
+included for convenience. Note that there is no need for `graded_ring` or similar, as all the
+information it would contain is already supplied by `graded_monoid` when `A` is a collection
+of additively-closed set_like objects such as `submodules`. These constructions are explored in
+`algebra.direct_sum.internal`.
 
 ## tags
 

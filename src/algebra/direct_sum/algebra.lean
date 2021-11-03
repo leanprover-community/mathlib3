@@ -23,11 +23,6 @@ where all `A i` are `R`-modules. This is the extra structure needed to promote `
   submodules.
 * `direct_sum.to_algebra` extends `direct_sum.to_semiring` to produce an `alg_hom`.
 
-## Direct sums of subobjects
-
-Additionally, this module provides the instance `direct_sum.galgebra.of_submodules` which promotes
-any instance constructed with `direct_sum.gmonoid.of_submodules` to an `R`-algebra.
-
 -/
 
 universes uι uR uA uB

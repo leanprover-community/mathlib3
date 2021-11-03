@@ -103,7 +103,7 @@ begin
   -- f(ab) = ab → b^4 = 1 → b = 1 → f(b) = b → false
   { have H₃ : (a ^ 2 + (1 / b) ^ 2) / (2 * (a * b)) = (a ^ 2 + b ^ 2) / (2 * (a * b)) ↔
               1 / b ^ 2 = b ^ 2 ∨ 2 * (a * b) = 0,
-    { field_simp, simp [h2ab_ne_0], },
+    { field_simp [h2ab_ne_0], },
     rw [hab₁, H₃] at H₂,
     obtain hb₁ := or.resolve_right H₂ h2ab_ne_0,
     field_simp [ne_of_gt hb] at hb₁,

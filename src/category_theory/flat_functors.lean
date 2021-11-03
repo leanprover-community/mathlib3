@@ -29,7 +29,7 @@ This definition is equivalent to left exact functors (functors that preserves fi
 
 * `flat_of_preserves_finite_limit`: If `F : C ⥤ D` preserves finite limits and `C` has all finite
   limits, then `F` is flat.
-* `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat, then it preserves all finite limits.
+* `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is flat, then it preserves all finite limits.
 * `preserves_finite_limit_iff_flat`: If `C` has all finite limits,
   then `F` is flat iff `F` is left_exact.
 * `Lan_preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,

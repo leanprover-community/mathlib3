@@ -157,7 +157,7 @@ def indent_check(lines, path):
     indent_lvl = 0
     in_prf = 0 # counter for nested proof blocks
     check_rest_of_block = True # we only check uncomplicated syntax
-    for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
+    for line_nr, line in enumerate(lines, 1):
         if in_prf > 0 and check_rest_of_block:
             lstr = line.lstrip(' ') # strip spaces from beginning of line
             if lstr[0] == '{' and len(line) - len(lstr) != indent_lvl:

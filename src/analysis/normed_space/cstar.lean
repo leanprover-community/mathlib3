@@ -51,4 +51,7 @@ begin
     exact le_antisymm (le_of_mul_le_mul_right h₂ hnt_star) (le_of_mul_le_mul_right h₁ hnt) },
 end
 
+lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
+by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
+
 end cstar_ring

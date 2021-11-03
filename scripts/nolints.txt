@@ -226,12 +226,6 @@ apply_nolint snum.cadd doc_blame
 -- data/option/defs.lean
 apply_nolint option.traverse doc_blame
 
--- data/pequiv.lean
-apply_nolint pequiv has_inhabited_instance
-apply_nolint pequiv.refl doc_blame
-apply_nolint pequiv.symm doc_blame
-apply_nolint pequiv.trans doc_blame
-
 -- data/pnat/xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame
 apply_nolint pnat.gcd_b' doc_blame
@@ -255,6 +249,80 @@ apply_nolint pnat.xgcd_type.succ₂ doc_blame
 apply_nolint pnat.xgcd_type.v doc_blame
 apply_nolint pnat.xgcd_type.w doc_blame
 apply_nolint pnat.xgcd_type.z doc_blame
+
+-- data/rbmap/basic.lean
+apply_nolint mk_rbmap doc_blame
+apply_nolint rbmap doc_blame
+apply_nolint rbmap.contains doc_blame
+apply_nolint rbmap.empty doc_blame
+apply_nolint rbmap.find doc_blame
+apply_nolint rbmap.find_entry doc_blame
+apply_nolint rbmap.fold doc_blame
+apply_nolint rbmap.from_list doc_blame
+apply_nolint rbmap.insert doc_blame
+apply_nolint rbmap.max doc_blame
+apply_nolint rbmap.mem doc_blame
+apply_nolint rbmap.min doc_blame
+apply_nolint rbmap.rbmap_lt_dec doc_blame
+apply_nolint rbmap.rev_fold doc_blame
+apply_nolint rbmap.to_list doc_blame
+apply_nolint rbmap.to_value doc_blame
+apply_nolint rbmap_lt doc_blame
+apply_nolint rbmap_of doc_blame
+
+-- data/rbtree/basic.lean
+apply_nolint rbnode.is_node_of doc_blame
+apply_nolint rbnode.is_red_black doc_blame
+apply_nolint rbnode.is_searchable doc_blame
+apply_nolint rbnode.is_searchable_tactic doc_blame
+apply_nolint rbnode.lift doc_blame
+apply_nolint tactic.interactive.blast_disjs doc_blame
+
+-- data/rbtree/default_lt.lean
+apply_nolint rbtree.default_lt doc_blame
+
+-- data/rbtree/init.lean
+apply_nolint mk_rbtree doc_blame
+apply_nolint rbnode doc_blame
+apply_nolint rbnode.balance1 doc_blame
+apply_nolint rbnode.balance1_node doc_blame
+apply_nolint rbnode.balance2 doc_blame
+apply_nolint rbnode.balance2_node doc_blame
+apply_nolint rbnode.color doc_blame
+apply_nolint rbnode.depth doc_blame
+apply_nolint rbnode.find doc_blame
+apply_nolint rbnode.fold doc_blame
+apply_nolint rbnode.get_color doc_blame
+apply_nolint rbnode.ins doc_blame
+apply_nolint rbnode.insert doc_blame
+apply_nolint rbnode.max doc_blame
+apply_nolint rbnode.mem doc_blame
+apply_nolint rbnode.mem_exact doc_blame
+apply_nolint rbnode.min doc_blame
+apply_nolint rbnode.mk_insert_result doc_blame
+apply_nolint rbnode.rev_fold doc_blame
+apply_nolint rbnode.well_formed doc_blame
+apply_nolint rbtree doc_blame
+apply_nolint rbtree.contains doc_blame
+apply_nolint rbtree.depth doc_blame
+apply_nolint rbtree.empty doc_blame
+apply_nolint rbtree.find doc_blame
+apply_nolint rbtree.fold doc_blame
+apply_nolint rbtree.from_list doc_blame
+apply_nolint rbtree.insert doc_blame
+apply_nolint rbtree.max doc_blame
+apply_nolint rbtree.mem doc_blame
+apply_nolint rbtree.mem_exact doc_blame
+apply_nolint rbtree.min doc_blame
+apply_nolint rbtree.rev_fold doc_blame
+apply_nolint rbtree.to_list doc_blame
+apply_nolint rbtree_of doc_blame
+
+-- data/rbtree/insert.lean
+apply_nolint rbnode.ins_ne_leaf_tac doc_blame
+apply_nolint rbnode.ins_rb_result doc_blame
+apply_nolint rbnode.insert_rb_result doc_blame
+apply_nolint rbnode.is_bad_red_black doc_blame
 
 -- data/seq/computation.lean
 apply_nolint computation.bind.F doc_blame
@@ -292,6 +360,38 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
+-- data/stream/init.lean
+apply_nolint stream doc_blame
+apply_nolint stream.all doc_blame
+apply_nolint stream.any doc_blame
+apply_nolint stream.append_stream doc_blame
+apply_nolint stream.apply doc_blame
+apply_nolint stream.approx doc_blame
+apply_nolint stream.cons doc_blame
+apply_nolint stream.const doc_blame
+apply_nolint stream.corec doc_blame
+apply_nolint stream.corec' doc_blame
+apply_nolint stream.corec_on doc_blame
+apply_nolint stream.cycle doc_blame
+apply_nolint stream.drop doc_blame
+apply_nolint stream.even doc_blame
+apply_nolint stream.head doc_blame
+apply_nolint stream.inits doc_blame
+apply_nolint stream.inits_core doc_blame
+apply_nolint stream.interleave doc_blame
+apply_nolint stream.is_bisimulation doc_blame
+apply_nolint stream.iterate doc_blame
+apply_nolint stream.map doc_blame
+apply_nolint stream.mem doc_blame
+apply_nolint stream.nats doc_blame
+apply_nolint stream.nth doc_blame
+apply_nolint stream.odd doc_blame
+apply_nolint stream.pure doc_blame
+apply_nolint stream.tail doc_blame
+apply_nolint stream.tails doc_blame
+apply_nolint stream.unfolds doc_blame
+apply_nolint stream.zip doc_blame
+
 -- data/vector3.lean
 apply_nolint vector3 has_inhabited_instance
 apply_nolint vector3.cons_elim doc_blame
@@ -319,15 +419,6 @@ apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 -- linear_algebra/affine_space/affine_subspace.lean
 apply_nolint affine_span.nonempty fails_quickly
 apply_nolint affine_subspace.to_add_torsor fails_quickly
-
--- logic/embedding.lean
-apply_nolint function.embedding.Pi_congr_right doc_blame
-apply_nolint function.embedding.arrow_congr_left doc_blame
-apply_nolint function.embedding.arrow_congr_right doc_blame
-apply_nolint function.embedding.congr doc_blame
-apply_nolint function.embedding.refl doc_blame
-apply_nolint function.embedding.subtype_map doc_blame
-apply_nolint function.embedding.trans doc_blame
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
@@ -907,7 +998,3 @@ apply_nolint uniform_space.completion.completion_separation_quotient_equiv doc_b
 apply_nolint uniform_space.completion.cpkg doc_blame
 apply_nolint uniform_space.completion.extension₂ doc_blame
 apply_nolint uniform_space.completion.map₂ doc_blame
-
--- topology/uniform_space/uniform_embedding.lean
-apply_nolint uniform_embedding doc_blame
-apply_nolint uniform_inducing doc_blame

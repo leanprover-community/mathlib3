@@ -846,6 +846,27 @@ begin
   exact hf (h m),
 end
 
+lemma map_surjective (hf : function.surjective f) :
+  function.surjective (map f : mv_polynomial σ R → mv_polynomial σ S₁) :=
+λ p, begin
+  induction p using mv_polynomial.induction_on' with i fr a b ha hb,
+  { obtain ⟨r, rfl⟩ := hf fr,
+    exact ⟨monomial i r, map_monomial _ _ _⟩, },
+  { obtain ⟨a, rfl⟩ := ha,
+    obtain ⟨b, rfl⟩ := hb,
+    exact ⟨a + b, ring_hom.map_add _ _ _⟩ },
+end
+
+/-- If `f` is a left-inverse of `g` then `map f` is a left-inverse of `map g`. -/
+lemma map_left_inverse {f : R →+* S₁} {g : S₁ →+* R} (hf : function.left_inverse f g) :
+  function.left_inverse (map f : mv_polynomial σ R → mv_polynomial σ S₁) (map g) :=
+λ x, by rw [map_map, (ring_hom.ext hf : f.comp g = ring_hom.id _), map_id]
+
+/-- If `f` is a right-inverse of `g` then `map f` is a right-inverse of `map g`. -/
+lemma map_right_inverse {f : R →+* S₁} {g : S₁ →+* R} (hf : function.right_inverse f g) :
+  function.right_inverse (map f : mv_polynomial σ R → mv_polynomial σ S₁) (map g) :=
+(map_left_inverse hf.left_inverse).right_inverse
+
 @[simp] lemma eval_map (f : R →+* S₁) (g : σ → S₁) (p : mv_polynomial σ R) :
   eval g (map f p) = eval₂ f g p :=
 by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
@@ -912,6 +933,22 @@ begin
   apply eq_iff_eq_cancel_right.mpr,
   refl
 end
+
+/-- If `f : S₁ →ₐ[R] S₂` is a morphism of `R`-algebras, then so is `mv_polynomial.map f`. -/
+@[simps]
+def map_alg_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] (f : S₁ →ₐ[R] S₂) :
+  mv_polynomial σ S₁ →ₐ[R] mv_polynomial σ S₂ :=
+{ to_fun := map ↑f,
+  commutes' := λ r, begin
+    have h₁ : algebra_map R (mv_polynomial σ S₁) r = C (algebra_map R S₁ r) := rfl,
+    have h₂ : algebra_map R (mv_polynomial σ S₂) r = C (algebra_map R S₂ r) := rfl,
+    rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply, alg_hom.coe_to_ring_hom, alg_hom.commutes],
+  end,
+  ..map ↑f }
+
+@[simp] lemma map_alg_hom_id [algebra R S₁] :
+  map_alg_hom (alg_hom.id R S₁) = alg_hom.id R (mv_polynomial σ S₁) :=
+alg_hom.ext map_id
 
 end map
 

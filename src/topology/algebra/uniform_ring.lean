@@ -2,12 +2,30 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
-
-Theory of topological rings with uniform structure.
 -/
 import topology.algebra.group_completion
 import topology.algebra.ring
 
+/-!
+# Completion of topological rings:
+
+This files endows the completion of a topological ring with a ring structure.
+More precisely the instance `uniform_space.completion.ring` builds a ring structure
+on the completion of a ring endowed with a compatible uniform structure in the sense of
+`uniform_add_group`. There is also a commutative version when the original ring is commutative.
+
+The last part of the file builds a ring structure on the biggest separated quotient of a ring.
+
+## Main declarations:
+
+Beyond the instances explained above (that don't have to be explicitly invoked),
+the main constructions deal with continuous ring morphisms.
+
+* `uniform_space.completion.extension_hom`: extends a continuous ring morphism from `R`
+  to a complete separated group `S` to `completion R`.
+* `uniform_space.completion.map_ring_hom` : promotes a continuous ring morphism
+  from `R` to `S` into a continuous ring morphism from `completion R` to `completion S`.
+-/
 open classical set filter topological_space add_comm_group
 open_locale classical
 noncomputable theory

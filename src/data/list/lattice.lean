@@ -130,7 +130,7 @@ lemma sublist_suffix_of_union : ∀ l₁ l₂ : list α, ∃ t, t <+ l₁ ∧ t 
 | (a :: l₁) l₂ := let ⟨t, s, e⟩ := sublist_suffix_of_union l₁ l₂ in
   if h : a ∈ l₁ ∪ l₂
   then ⟨t, sublist_cons_of_sublist _ s, by simp only [e, cons_union, insert_of_mem h]⟩
-  else ⟨a::t, cons_sublist_cons _ s, by simp only [cons_append, cons_union, e, insert_of_not_mem h];
+  else ⟨a::t, s.cons_cons _, by simp only [cons_append, cons_union, e, insert_of_not_mem h];
     split; refl⟩
 
 lemma suffix_union_right (l₁ l₂ : list α) : l₂ <:+ l₁ ∪ l₂ :=
@@ -262,7 +262,7 @@ lemma bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l
 | []        l₂ := by simp [nil_sublist]
 | (b :: l₁) l₂ := begin
   by_cases b ∈ l₂; simp [h],
-  { apply cons_sublist_cons, apply bag_inter_sublist_left },
+  { exact (bag_inter_sublist_left _ _).cons_cons _ },
   { apply sublist_cons_of_sublist, apply bag_inter_sublist_left }
 end
 

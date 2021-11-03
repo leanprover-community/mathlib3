@@ -167,7 +167,7 @@ def indent_check(lines, path):
             indent_lvl = 0
             in_prf = 0
             check_rest_of_block = True
-        if "match" in line:
+        if "match" in line or "calc" in line:
             check_rest_of_block = False
         if "begin" in line:
             if line.find("begin") > 0 and in_prf == 0:

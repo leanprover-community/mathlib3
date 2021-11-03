@@ -9,15 +9,12 @@ import algebra.direct_sum.algebra
 /-!
 # Internally graded rings and algebras
 
-This module imbues collections of subobjects with `gsemiring` and `gcomm_semiring` instances
-when a `set_like.graded_monoid` instance is available:
+This module provides `gsemiring` and `gcomm_semiring` instances for a collection of subobjects when
+a `set_like.graded_monoid` instance is available:
 
-* `A : ι → submonoid R`:
-  `add_submonoid.gsemiring`, `add_submonoid.gcomm_semiring`.
-* `A : ι → subgroup R`:
-  `add_subgroup.gsemiring`, `add_subgroup.gcomm_semiring`.
-* `A : ι → submodule S R`:
-  `submodule.gsemiring`, `submodule.gcomm_semiring`.
+* `A : ι → submonoid R`: `add_submonoid.gsemiring`, `add_submonoid.gcomm_semiring`.
+* `A : ι → subgroup R`: `add_subgroup.gsemiring`, `add_subgroup.gcomm_semiring`.
+* `A : ι → submodule S R`: `submodule.gsemiring`, `submodule.gcomm_semiring`.
 
 If `complete_lattice.independent (set.range A)`, these provide a gradation of `⨆ i, A i`, and the
 mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as

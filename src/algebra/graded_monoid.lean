@@ -45,15 +45,19 @@ and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplicat
 For now, these typeclasses are primarily used in the construction of `direct_sum.ring` and the rest
 of that file.
 
-## Indexed subobjects
+## Internally graded monoids
 
-Additionally, this module provides helper functions to construct `gmonoid` and `gcomm_monoid`
-instances for collections of subobjects:
+In addition to the above typeclasses, in the most frequent case when `A` is an indexed collection of
+`set_like` subobjects (such as `add_submonoid`s, `add_subgroup`s, or `submodule`s), this file
+provides the `Prop` typeclasses:
 
-* `ghas_one.of_add_subobjects`
-* `ghas_mul.of_add_subobjects`
-* `gmonoid.of_add_subobjects`
-* `gcomm_monoid.of_add_subobjects`
+* `set_like.has_graded_one` (which provides the obvious `graded_monoid.ghas_one A`)
+* `set_like.has_graded_mul` (which provides the obvious `graded_monoid.ghas_mul A`)
+* `set_like.graded_monoid` (which provides the obvious `graded_monoid.gmonoid A` and
+  `graded_monoid.gcomm_monoid A`)
+
+Strictly this last class is unecessary as it has no fields not present in its parents, but it is
+included for convenience.
 
 ## tags
 
@@ -313,7 +317,6 @@ instance set_like.ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] 
 class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι]
   (A : ι → S) : Prop :=
 (mul_mem : ∀ ⦃i j⦄ {gi gj}, gi ∈ A i → gj ∈ A j → gi * gj ∈ A (i + j))
-
 
 instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
   [set_like.has_graded_mul A] :

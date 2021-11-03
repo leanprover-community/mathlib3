@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Eric Wieser, Kevin Buzzard, Eric Wieser, Kevin Buzzard, Jujian Zhang
+Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 
 import algebra.direct_sum.algebra
@@ -16,12 +16,12 @@ when a `set_like.graded_monoid` instance is available:
 * on `subgroup R`s: `add_subgroup.gsemiring`, `add_subgroup.gcomm_semiring`.
 * on `submodule S R`s: `submodule.gsemiring`, `submodule.gcomm_semiring`.
 
-With these instances in place, it provides the canonical map out of a direct sum of submodules into
-the carrier type:
+With these instances in place, it provides the bundled canonical maps out of a direct sum of
+subobjects into their carrier type:
 
 * `direct_sum.add_submonoid_coe_ring_hom` (a `ring_hom` version of `direct_sum.add_submonoid_coe`)
 * `direct_sum.add_subgroup_coe_ring_hom` (a `ring_hom` version of `direct_sum.add_subgroup_coe`)
-* `direct_sum.submodule_coe_ring_hom` (an `alg_hom` version of `direct_sum.submodule_coe`)
+* `direct_sum.submodule_coe_alg_hom` (an `alg_hom` version of `direct_sum.submodule_coe`)
 
 Strictly the definitions in this file are not sufficient to fully define an "internal" direct sum;
 to represent this case, `(h : direct_sum.submodule_is_internal A) [set_like.graded_monoid A]` is

@@ -40,7 +40,8 @@ instance has_limits_of_shape_of_has_finite_limits
   has_limits_of_shape J C := has_finite_limits.out J
 
 /-- If `C` has all limits, it has finite limits. -/
-lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
+@[priority 100]
+instance has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
 ⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
 
 /--
@@ -58,7 +59,8 @@ instance has_limits_of_shape_of_has_finite_colimits
   has_colimits_of_shape J C := has_finite_colimits.out J
 
 /-- If `C` has all colimits, it has finite colimits. -/
-lemma has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
+@[priority 100]
+instance has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
 ⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
 
 section

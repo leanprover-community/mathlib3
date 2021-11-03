@@ -3,7 +3,7 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import category_theory.limits.kan_extension
+-- import category_theory.limits.kan_extension
 import category_theory.limits.filtered_colimit_commutes_finite_limit
 import category_theory.limits.preserves.functor_category
 import category_theory.limits.preserves.shapes.equalizers
@@ -11,6 +11,7 @@ import category_theory.limits.shapes.bicones
 import category_theory.limits.presheaf
 import category_theory.limits.yoneda
 import category_theory.limits.comma
+import category_theory.limits.preserves.finite
 
 /-!
 # Representably flat functors
@@ -18,8 +19,8 @@ import category_theory.limits.comma
 We define representably flat functors as functors such that the catetory of structured arrows
 over `X` is cofiltered for each `X`. This concept is also knows as flat functors as in [Elephant]
 Remark C2.3.7, and this name is suggested by Mike Shulman in
-https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to differentiate
-this concept from other notions of flatness.
+https://golem.ph.utexas.edu/category/2011/06/flat_functors_and_morphisms_of.html to avoid
+confusion with other notions of flatness.
 
 This definition is equivalent to left exact functors (functors that preserves finite limits) when
 `C` has all finite limits.
@@ -27,12 +28,17 @@ This definition is equivalent to left exact functors (functors that preserves fi
 ## Main results
 
 * `flat_of_preserves_finite_limit`: If `F : C ⥤ D` preserves finite limits and `C` has all finite
-limits, then `F` is flat.
+  limits, then `F` is flat.
 * `preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat, then it preserves all finite limits.
+* `preserves_finite_limit_iff_flat`: If `C` has all finite limits,
+  then `F` is flat iff `F` is left_exact.
 * `Lan_preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,
 then the functor `Lan F.op` between presheaves of sets preserves all finite limits.
-* `preserves_limit_of_Lan_preserves_limit`: If the functor `Lan F.op` between presheaves of sets
-preserves limits of shape `J`, then so will `F`.
+* `flat_iff_Lan_flat`: If `C`, `D` are small and `C` has all finite limits, then `F` is flat iff
+  `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` is flat.
+* `preserves_finite_limits_iff_Lan_preserves_finite_limits`: If `C`, `D` are small and `C` has all
+  finite limits, then `F` preserves finite limits iff `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)`
+  does.
 
 -/
 
@@ -77,20 +83,6 @@ def to_cone {X : D} (f : X ⟶ F.obj c.X) :
 { X := mk f, π := { app := λ j, hom_mk (c.π.app j) rfl,
                     naturality' := λ j k g, by { ext, dsimp, simp } } }
 
-lemma eq_to_hom_right {A : Type*} [category A] {B : Type*} [category B] {T : Type*} [category T]
-  {L : A ⥤ T} {R : B ⥤ T} (X Y : comma L R) (H : X = Y) :
-  comma_morphism.right (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
-
-local attribute[simp] eq_to_hom_right
-
-/--
-If a cone `s₁` factors through another cone `s₂`, then the two constructed diagrams are actually
-the same.
--/
-lemma to_diagram_comp_map (s₁ s₂ : cone K)
-  (f : s₁.X ⟶ s₂.X) (H : ∀ (j : J), f ≫ s₂.π.app j = s₁.π.app j) :
-    to_diagram s₂ ⋙ structured_arrow.map f = to_diagram s₁ := by { apply functor.ext, tidy, }
-
 end structured_arrow_cone
 
 section representably_flat
@@ -117,9 +109,8 @@ instance cofiltered_of_has_finite_limit [has_finite_limits C] : is_cofiltered C 
   cocone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
   nonempty := ⟨⊤_ C⟩ }
 
-lemma flat_of_preserves_finite_limit [has_limits C] (F : C ⥤ D)
-  (H : ∀ (J : Type v₁) [h : small_category J] [h' : @fin_category J h],
-    @preserves_limits_of_shape _ _ _ _ J h F) : representably_flat F := ⟨λ X,
+lemma flat_of_preserves_finite_limit [has_finite_limits C] (F : C ⥤ D)
+  [preserves_finite_limits F] : representably_flat F := ⟨λ X,
 begin
   haveI : has_finite_limits (structured_arrow X F) :=
     { out := λ J _ _, by { resetI, apply_instance } },
@@ -140,11 +131,13 @@ Given a limit cone `c : cone K` and a cone `s : cone (K ⋙ F)` with `F` represe
 -/
 noncomputable def lift : s.X ⟶ F.obj c.X :=
 let s' := is_cofiltered.cone (to_diagram s ⋙ structured_arrow.pre _ K F) in
-s'.X.hom ≫ F.map (hc.lift ((cones.postcompose (eq_to_hom (by apply functor.hext; tidy))).obj
-  ((structured_arrow.proj s.X F).map_cone s')))
+s'.X.hom ≫ (F.map $ hc.lift $
+  (cones.postcompose ({ app := λ X, 𝟙 _, naturality' := by simp }
+      : (to_diagram s ⋙ pre s.X K F) ⋙ proj s.X F ⟶ K)).obj $
+  (structured_arrow.proj s.X F).map_cone s')
 
 lemma fac (x : J) : lift F hc s ≫ (F.map_cone c).π.app x = s.π.app x :=
-by { dsimp [lift], simpa [← F.map_comp, -category.id_comp] using category.id_comp (s.π.app x) }
+by simpa [lift, ←functor.map_comp]
 
 lemma uniq {K : J ⥤ C} {c : cone K} (hc : is_limit c)
   (s : cone (K ⋙ F)) (f₁ f₂ : s.X ⟶ F.obj c.X)
@@ -152,10 +145,14 @@ lemma uniq {K : J ⥤ C} {c : cone K} (hc : is_limit c)
   (h₂ : ∀ (j : J), f₂ ≫ (F.map_cone c).π.app j = s.π.app j) : f₁ = f₂ :=
 begin
   -- We can make two cones over the diagram of `s` via `f₁` and `f₂`.
-  let c₁ : cone (to_diagram s ⋙ pre s.X K F) := (cones.postcompose
-    (eq_to_hom (by simpa [←to_diagram_comp_map s (F.map_cone c) f₁ h₁]))).obj (to_cone F c f₁),
-  let c₂ : cone (to_diagram s ⋙ pre s.X K F) := (cones.postcompose
-    (eq_to_hom (by simpa [←to_diagram_comp_map s (F.map_cone c) f₂ h₂]))).obj (to_cone F c f₂),
+  let α₁ : to_diagram (F.map_cone c) ⋙ map f₁ ⟶ to_diagram s :=
+  { app := λ X, eq_to_hom (by simp [←h₁]), naturality' := λ _ _ _, by { ext, simp } },
+  let α₂ : to_diagram (F.map_cone c) ⋙ map f₂ ⟶ to_diagram s :=
+  { app := λ X, eq_to_hom (by simp [←h₂]), naturality' := λ _ _ _, by { ext, simp } },
+  let c₁ : cone (to_diagram s ⋙ pre s.X K F) :=
+    (cones.postcompose (whisker_right α₁ (pre s.X K F) : _)).obj (to_cone F c f₁),
+  let c₂ : cone (to_diagram s ⋙ pre s.X K F) :=
+    (cones.postcompose (whisker_right α₂ (pre s.X K F) : _)).obj (to_cone F c f₂),
 
   -- The two cones can then be combined and we may obtain a cone over the two cones since
   -- `structured_arrow s.X F` is cofiltered.
@@ -168,7 +165,7 @@ begin
   { intro j,
     injection c₀.π.naturality (bicone_hom.left  j) with _ e₁,
     injection c₀.π.naturality (bicone_hom.right j) with _ e₂,
-    simpa [eq_to_hom_right] using e₁.symm.trans e₂ },
+    simpa using e₁.symm.trans e₂ },
   have : c.extend g₁.right = c.extend g₂.right,
   { unfold cone.extend, congr' 1, ext x, apply this },
 
@@ -190,17 +187,29 @@ end preserves_finite_limit_of_flat
 
 /-- Representably flat functors preserves finite limits. -/
 noncomputable
-def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
-(J : Type v₁) [small_category J] [fin_category J]
-: preserves_limits_of_shape J F := ⟨λ K, ⟨λ c hc,
+def preserves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F] :
+  preserves_finite_limits F := ⟨λ J _ _, by exactI ⟨λ K, ⟨λ c hc,
 { lift := preserves_finite_limit_of_flat.lift F hc,
   fac' := preserves_finite_limit_of_flat.fac F hc,
   uniq' := λ s m h, by
   { apply preserves_finite_limit_of_flat.uniq F hc,
     exact h,
-    exact preserves_finite_limit_of_flat.fac F hc s } }⟩⟩
+    exact preserves_finite_limit_of_flat.fac F hc s } }⟩⟩⟩
+
+/--
+If `C` is finitely cocomplete, then `F : C ⥤ D` is representably flat iff it preserves
+finite limits.
+-/
+noncomputable
+def preserves_finite_limit_iff_flat [has_finite_limits C] (F : C ⥤ D) :
+  representably_flat F ≃ preserves_finite_limits F :=
+{ to_fun := λ _, by exactI preserves_finite_limit_of_flat F,
+  inv_fun := λ _, by exactI flat_of_preserves_finite_limit F,
+  left_inv := λ _, proof_irrel _ _,
+  right_inv := λ x, by { cases x, unfold preserves_finite_limit_of_flat, congr } }
 
 end has_limit
+
 
 section small_category
 variables {C D : Type u₁} [small_category C] [small_category D]
@@ -209,29 +218,23 @@ variables {C D : Type u₁} [small_category C] [small_category D]
 (Implementation)
 The evaluation of `Lan F` at `X` is the colimit over the costrucuted arrows over `X`.
 -/
-lemma Lan_evaluation_eq_colim (E : Type u₂) [category.{u₁} E] (F : C ⥤ D) (X : D)
+noncomputable
+def Lan_evaluation_iso_colim (E : Type u₂) [category.{u₁} E] (F : C ⥤ D) (X : D)
   [∀ (X : D), has_colimits_of_shape (costructured_arrow F X) E] :
-  Lan F ⋙ (evaluation D E).obj X =
+  Lan F ⋙ (evaluation D E).obj X ≅
   ((whiskering_left _ _ E).obj (costructured_arrow.proj F X)) ⋙ colim :=
+nat_iso.of_components (λ G, colim.map_iso (iso.refl _))
 begin
-  apply functor.hext,
-  { intro Y, simp },
-  intros Y₁ Y₂ f,
-  simp only [functor.comp_map, evaluation_obj_map,
-    whiskering_left_obj_map, Lan_map_app, heq_iff_eq],
-  symmetry,
-  apply (colimit.is_colimit (Lan.diagram F Y₁ X)).uniq { X := colimit _, ι := _ }
-    (colim.map (whisker_left (costructured_arrow.proj F X) f)),
-  intro Z,
-  simp only [colimit.ι_map, colimit.cocone_ι, whisker_left_app, category.comp_id, category.assoc],
-  transitivity f.app Z.left ≫ (colimit.ι (costructured_arrow.map Z.hom ⋙ Lan.diagram F Y₂ X :
-    costructured_arrow F _ ⥤ _) (costructured_arrow.mk (𝟙 (F.obj Z.left))) : _)
-    ≫ (colimit.pre (Lan.diagram F Y₂ X) (costructured_arrow.map Z.hom)),
-  { rw colimit.ι_pre,
-    congr,
-    simp only [category.id_comp, costructured_arrow.map_mk],
-    apply costructured_arrow.eq_mk },
-  { congr }
+  intros G H i,
+  ext,
+  simp only [functor.comp_map, colimit.ι_desc_assoc, functor.map_iso_refl, evaluation_obj_map,
+    whiskering_left_obj_map, category.comp_id, Lan_map_app, category.assoc],
+  erw [colimit.ι_pre_assoc (Lan.diagram F H X) (costructured_arrow.map j.hom),
+    category.id_comp, category.comp_id, colimit.ι_map],
+  cases j,
+  cases j_right,
+  congr,
+  rw [costructured_arrow.map_mk, category.id_comp, costructured_arrow.mk]
 end
 
 /--
@@ -239,28 +242,59 @@ If `F : C ⥤ D` is a representably flat functor between small categories, then 
 `Lan F.op` that takes presheaves over `C` to presheaves over `D` preserves finite limits.
 -/
 noncomputable
-def Lan_presesrves_finite_limit_of_flat (F : C ⥤ D) [representably_flat F]
-  (J : Type u₁) [small_category J] [fin_category J] :
-  preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
-begin
+instance Lan_preserves_finite_limits_of_flat (F : C ⥤ D) [representably_flat F] :
+  preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
+⟨λ J _ _, begin
+  resetI,
   apply preserves_limits_of_shape_of_evaluation (Lan F.op : (Cᵒᵖ ⥤ Type u₁) ⥤ (Dᵒᵖ ⥤ Type u₁)) J,
   intro K,
-  rw Lan_evaluation_eq_colim,
   haveI : is_filtered (costructured_arrow F.op K) :=
     is_filtered.of_equivalence (structured_arrow_op_equivalence F (unop K)),
+  exact preserves_limits_of_shape_of_nat_iso (Lan_evaluation_iso_colim _ _ _).symm
+end⟩
+
+instance Lan_flat_of_flat (F : C ⥤ D) [representably_flat F] :
+  representably_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) := flat_of_preserves_finite_limit _
+
+variable [has_finite_limits C]
+
+noncomputable
+instance Lan_preserves_finite_limits_of_preserves_finite_limits (F : C ⥤ D)
+  [preserves_finite_limits F] : preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
+begin
+  haveI := flat_of_preserves_finite_limit F,
   apply_instance
 end
 
-/-- If `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` preserves limits of shape `J`, so will `F`. -/
-noncomputable
-def preserves_limit_of_Lan_presesrves_limit (F : C ⥤ D) (J : Type u₁) [small_category J]
-  [preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁))] :
-  preserves_limits_of_shape J F :=
+lemma flat_iff_Lan_flat (F : C ⥤ D) :
+  representably_flat F ↔ representably_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
+⟨λ H, by exactI infer_instance, λ H,
 begin
-  apply preserves_limits_of_shape_of_reflects_of_preserves F yoneda,
-  exact preserves_limits_of_shape_of_nat_iso (comp_yoneda_iso_yoneda_comp_Lan F).symm,
-  apply_instance
-end
+  resetI,
+  haveI := preserves_finite_limit_of_flat (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)),
+  haveI : preserves_finite_limits F :=
+    ⟨λ _ _ _, by exactI preserves_limit_of_Lan_presesrves_limit _ _⟩,
+  apply flat_of_preserves_finite_limit
+end⟩
+
+/--
+If `C` is finitely complete, then `F : C ⥤ D` preserves finite limits iff
+`Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` preserves finite limits.
+-/
+noncomputable
+def preserves_finite_limits_iff_Lan_preserves_finite_limits (F : C ⥤ D) :
+  preserves_finite_limits F ≃ preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
+{ to_fun := λ _, by exactI infer_instance,
+  inv_fun := λ _, ⟨λ _ _ _, by exactI preserves_limit_of_Lan_presesrves_limit _ _⟩,
+  left_inv := λ x, by { cases x, unfold preserves_finite_limit_of_flat, congr },
+  right_inv := λ x,
+  begin
+    cases x,
+    unfold preserves_finite_limit_of_flat,
+    congr,
+    unfold category_theory.Lan_preserves_finite_limits_of_preserves_finite_limits
+      category_theory.Lan_preserves_finite_limits_of_flat, congr
+  end }
 
 end small_category
 end category_theory

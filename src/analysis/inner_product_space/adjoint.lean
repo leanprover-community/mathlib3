@@ -68,7 +68,8 @@ def inner_left_right : (E →L[𝕜] F) →+ F →L⋆[𝕜] E →L[𝕜] 𝕜 :
 { to_fun := λ A,
   (linear_map.mk_continuous
   { to_fun := λ v, (to_dual 𝕜 F v).comp A,
-    map_add' := λ x y, by { ext w, simp only [continuous_linear_map.add_apply, continuous_linear_map.coe_comp', function.comp_app, linear_isometry_equiv.map_add]},
+    map_add' := λ x y, by { ext w, simp only [continuous_linear_map.add_apply,
+            continuous_linear_map.coe_comp', function.comp_app, linear_isometry_equiv.map_add]},
     map_smul' := λ r x, by { ext z, simp [inner_smul_left] } }
   ∥A∥
   (λ x, to_dual_comp_norm A x)),
@@ -95,7 +96,8 @@ lemma inner_left_right_norm (A : E →L[𝕜] F) (v : F) : ∥inner_left_right A
 to_dual_comp_norm A v
 
 --/-- The adjoint, as a bare function. This is only meant as an auxiliary definition for
---the main definition `adjoint`, where this is bundled as a conjugate-linear isometric equivalence. -/
+--the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
+--equivalence. -/
 --@[simps] def adjoint' (A : E →L[𝕜] F) : F →L[𝕜] E :=
 --linear_map.mk_continuous
 --{ to_fun := λ v : F, (to_dual 𝕜 E).symm (inner_left_right A v),
@@ -176,15 +178,18 @@ sorry
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_inner_left {A : E →L[𝕜] F} {x : E} {y : F} : ⟪adjoint A y, x⟫ = ⟪y, A x⟫ :=
-adjoint'_inner_left
+--adjoint'_inner_left
+sorry
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_inner_right {A : E →L[𝕜] F} {x : E} {y : F} : ⟪x, adjoint A y⟫ = ⟪A x, y⟫ :=
-adjoint'_inner_right
+--adjoint'_inner_right
+sorry
 
 /-- The adjoint is involutive -/
 @[simp] lemma adjoint_adjoint_apply {A : E →L[𝕜] F} : adjoint (adjoint A) = A :=
-adjoint'_adjoint'_apply A
+--adjoint'_adjoint'_apply A
+sorry
 
 /-- The adjoint of the composition of two operators is the composition of the two adjoints
 in reverse order. -/

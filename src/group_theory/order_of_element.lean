@@ -176,8 +176,7 @@ begin
   -- Assume `a` is not one...
   by_contra,
   have a_min_fac_dvd_p_sub_one : a.min_fac ∣ n,
-  { have b_dvd_factor : ∃ (b : ℕ), a = b * a.min_fac := exists_eq_mul_left_of_dvd a.min_fac_dvd,
-    cases b_dvd_factor with b hb,
+  { obtain ⟨b, hb⟩ : ∃ (b : ℕ), a = b * a.min_fac := exists_eq_mul_left_of_dvd a.min_fac_dvd,
     rw [hb, ←mul_assoc] at ha,
     exact dvd.intro_left (order_of x * b) (eq.symm ha), },
   -- Use the minimum prime factor of `a` as `p`.

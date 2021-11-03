@@ -1,4 +1,25 @@
+/-
+Copyright (c) 2021 Bryan Gin-ge Chen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bryan Gin-ge Chen, Yury Kudryashov
+-/
 import algebra.group.hom
+
+/-!
+# Extensionality lemmas for monoid and group structures
+
+In this file we prove extensionality lemmas for `monoid` and higher algebraic structures with one
+binary operation. Extensionality lemmas for structures that are lower in the hierarchy can be found
+in `algebra.group.defs`.
+
+## Implementation details
+
+To get equality of `npow` etc, we define a monoid homomorphism between two monoid structures on the
+same type, then apply lemmas like `monoid_hom.map_div`, `monoid_hom.map_pow` etc.
+
+## Tags
+monoid, group, extensionality
+-/
 
 universe u
 

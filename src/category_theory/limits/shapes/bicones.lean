@@ -30,11 +30,13 @@ section bicone
 variables (J : Type u₁)
 
 /-- Given a category `J`, construct a walking `bicone J` by adjoining two elements. -/
-@[derive decidable_eq, nolint has_inhabited_instance]
+@[derive decidable_eq]
 inductive bicone
 | left : bicone
 | right : bicone
 | diagram (val : J) : bicone
+
+instance : inhabited (bicone J) := ⟨bicone.left⟩
 
 instance fin_bicone [fintype J] [decidable_eq J] : fintype (bicone J) :=
 { elems := [bicone.left, bicone.right].to_finset ∪ finset.image bicone.diagram (fintype.elems J),
@@ -43,13 +45,14 @@ instance fin_bicone [fintype J] [decidable_eq J] : fintype (bicone J) :=
 variables [category.{v₁} J] [∀ (j k : J), decidable_eq (j ⟶ k)]
 
 /-- The homs for a walking `bicone J`. -/
-@[nolint has_inhabited_instance]
 inductive bicone_hom : bicone J → bicone J → Type (max u₁ v₁)
 | left_id  : bicone_hom bicone.left bicone.left
 | right_id : bicone_hom bicone.right bicone.right
 | left (j : J) : bicone_hom bicone.left (bicone.diagram j)
 | right (j : J) : bicone_hom bicone.right (bicone.diagram j)
 | diagram {j k : J} (f : j ⟶ k) : bicone_hom (bicone.diagram j) (bicone.diagram k)
+
+instance : inhabited (bicone_hom J bicone.left bicone.left) := ⟨bicone_hom.left_id⟩
 
 instance bicone_hom.decidable_eq {j k : bicone J} : decidable_eq (bicone_hom J j k) :=
 λ f g, by { cases f; cases g; simp; apply_instance }

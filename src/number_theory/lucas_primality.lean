@@ -46,8 +46,8 @@ begin
   { exact λ h1, hd 2 nat.prime_two (by simp only [h1, nat.sub_self, dvd_zero]) (by simp [h1]) },
   have hp1 : 1 < p := lt_of_le_of_ne (nat.succ_le_iff.mpr (zero_lt_iff.mpr h0)) (ne.symm h1),
   have order_of_a : order_of a = p-1,
-    { apply order_of_eq_of_pow_and_pow_div_prime _ ha hd,
-      exact tsub_pos_of_lt hp1, },
+  { apply order_of_eq_of_pow_and_pow_div_prime _ ha hd,
+    exact tsub_pos_of_lt hp1, },
   haveI fhp0 : fact (0 < p) := {out := zero_lt_iff.mpr h0},
   rw nat.prime_iff_card_units,
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`

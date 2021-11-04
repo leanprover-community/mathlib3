@@ -50,6 +50,9 @@ private def idfb := induced_functor (op ∘ (basic_open_B R).f)
 
 lemma basic_opens_is_basis {R} : Top.is_basis_range (basic_open_B R) := is_basis_basic_opens
 
+/- to do : prime spectrum version of sheaf hom_ext, direcly unfold to basic open r -/
+/- to do : remove bundled indexed family -/
+
 namespace LocallyRingedSpace
 
 variable (X : LocallyRingedSpace.{v})

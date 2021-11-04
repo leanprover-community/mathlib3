@@ -250,16 +250,16 @@ namespace sheaf
 
 open presheaf.sheaf_condition.basis_le
 
-variables {F G} [has_products C]
+variables {ι : Type v} {f : ι → opens X} {F G} [has_products C]
 
-private abbreviation idf := induced_functor (op ∘ B.f)
+private abbreviation idf := induced_functor (op ∘ f)
 
 /--
 If the target `G` is a sheaf and `B` is a basis,
 a presheaf hom on `B` extends uniquely to a actual presheaf hom (on all opens).
 -/
 @[irreducible] def uniq_hom_extn_from_basis (hG : G.is_sheaf) (hB : is_basis_range B)
-  (α : idf B ⋙ F ⟶ idf B ⋙ G) : sheaf_hom.uniq_extn_struct α :=
+  (α : idf ⋙ F ⟶ idf ⋙ G) : sheaf_hom.uniq_extn_struct α :=
 sheaf_hom.uniq_extn_from_basis
   ((presheaf.is_sheaf_iff_is_sheaf_opens_le_cover _).1 hG) hB α
 

@@ -159,8 +159,8 @@ def indent_check(lines, path):
     check_rest_of_block = True # we only check uncomplicated syntax
     ended_with_comma = False # track whether the previous line ends with a comma
     for line_nr, line in enumerate(lines, 1):
+        lstr = line.lstrip(' ') # strip spaces from beginning of line
         if in_prf > 0 and check_rest_of_block and ended_with_comma:
-            lstr = line.lstrip(' ') # strip spaces from beginning of line
             if lstr[0] == '{' and len(line) - len(lstr) != indent_lvl:
                 errors += [(WRN_IND, line_nr, path)]
         ended_with_comma = (line.endswith(",\n"))
@@ -173,6 +173,9 @@ def indent_check(lines, path):
             check_rest_of_block = False
         if "begin" in line:
             if line.find("begin") > 0 and in_prf == 0:
+                # complicate proof block syntax
+                check_rest_of_block = False
+            if lstr.find("begin") > 0:
                 # complicate proof block syntax
                 check_rest_of_block = False
             indent_lvl += 2

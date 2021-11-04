@@ -418,8 +418,7 @@ variables {R}
 variables (R E E₂ E₃)
 
 /-- The natural equivalence `(E × E₂) × E₃ ≃ E × (E₂ × E₃)` is a linear isometry. -/
-@[simps] noncomputable def prod_assoc [module R E₂] [module R E₃] :
-  (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
+noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
 { to_fun    := equiv.prod_assoc E E₂ E₃,
   inv_fun   := (equiv.prod_assoc E E₂ E₃).symm,
   map_add'  := by simp,
@@ -433,6 +432,10 @@ variables (R E E₂ E₃)
 
 @[simp] lemma coe_prod_assoc [module R E₂] [module R E₃] :
   (prod_assoc R E E₂ E₃ : (E × E₂) × E₃ → E × E₂ × E₃) = equiv.prod_assoc E E₂ E₃ :=
+rfl
+
+@[simp] lemma coe_prod_assoc_symm [module R E₂] [module R E₃] :
+  ((prod_assoc R E E₂ E₃).symm : E × E₂ × E₃ → (E × E₂) × E₃) = (equiv.prod_assoc E E₂ E₃).symm :=
 rfl
 
 end linear_isometry_equiv

@@ -15,7 +15,8 @@ A C⋆-ring is a normed star ring that verifies the stronger condition `∥x⋆ 
 If a C⋆-ring is also a star algebra, then it is a C⋆-algebra.
 
 To get a C⋆-algebra `E` over field `𝕜`, use
-`[normed_field 𝕜] [star_ring 𝕜] [cstar_ring E] [normed_algebra 𝕜 E] [star_module 𝕜 E]`.
+`[normed_field 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [cstar_ring E]
+ [normed_algebra 𝕜 E] [star_module 𝕜 E]`.
 
 -/
 
@@ -30,7 +31,7 @@ attribute [simp] norm_star
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
-class cstar_ring (E : Type*) extends normed_ring E, star_ring E :=
+class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
 
 variables {𝕜 E : Type*}
@@ -39,7 +40,8 @@ open cstar_ring
 
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
-instance cstar_ring.to_normed_star_ring {E : Type*} [cstar_ring E] : normed_star_ring E :=
+instance cstar_ring.to_normed_star_ring {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E] :
+  normed_star_ring E :=
 ⟨begin
   intro x,
   by_cases htriv : x = 0,
@@ -57,15 +59,13 @@ instance cstar_ring.to_normed_star_ring {E : Type*} [cstar_ring E] : normed_star
     exact le_antisymm (le_of_mul_le_mul_right h₂ hnt_star) (le_of_mul_le_mul_right h₁ hnt) },
 end⟩
 
-lemma cstar_ring.norm_self_mul_star [cstar_ring E] {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
+lemma cstar_ring.norm_self_mul_star [normed_ring E] [star_ring E] [cstar_ring E] {x : E} :
+  ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
 by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 
 /-- `star` bundled as a linear isometric equivalence -/
-noncomputable def starₗᵢ [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E]
+def starₗᵢ [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E]
   [normed_star_ring E] [module 𝕜 E] [star_module 𝕜 E] : E ≃ₗᵢ⋆[𝕜] E :=
-linear_isometry_equiv.of_surjective
-{ to_fun := star,
-  map_add' := star_add,
-  map_smul' := star_smul,
-  norm_map' := λ x, norm_star }
-(λ x, ⟨x⋆, star_star x⟩)
+{ map_smul' := star_smul,
+  norm_map' := λ x, norm_star,
+  .. star_add_equiv }

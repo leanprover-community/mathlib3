@@ -67,7 +67,7 @@ lemma comm' (s : setoid α) {x y} : s.rel x y ↔ s.rel y x :=
 
 /-- The kernel of a function is an equivalence relation. -/
 def ker (f : α → β) : setoid α :=
-⟨λ x y, f x = f y, ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h, h.trans⟩⟩
+⟨(=) on f, eq_equivalence.comap f⟩
 
 /-- The kernel of the quotient map induced by an equivalence relation r equals r. -/
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
@@ -317,7 +317,7 @@ by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 /-- Given a function `f : α → β`, an equivalence relation `r` on `β` induces an equivalence
     relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'. -/
 def comap (f : α → β) (r : setoid β) : setoid α :=
-⟨λ x y, r.rel (f x) (f y), ⟨λ _, r.refl' _, λ _ _ h, r.symm' h, λ _ _ _ h1, r.trans' h1⟩⟩
+⟨r.rel on f, r.iseqv.comap _⟩
 
 lemma comap_rel (f : α → β) (r : setoid β) (x y : α) : (comap f r).rel x y ↔ r.rel (f x) (f y) :=
 iff.rfl

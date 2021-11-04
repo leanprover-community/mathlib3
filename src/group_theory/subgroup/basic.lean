@@ -425,7 +425,7 @@ begin
   rw [← subgroup.coe_mk H y hy, subsingleton.elim (⟨y, hy⟩ : H) 1, subgroup.coe_one],
 end
 
-@[to_additive] lemma coe_eq_top {H : subgroup G} : (H : set G) = ⊤ ↔ H = ⊤ :=
+@[to_additive] lemma coe_eq_univ {H : subgroup G} : (H : set G) = set.univ ↔ H = ⊤ :=
 (set_like.ext'_iff.trans (by refl)).symm
 
 @[to_additive] lemma coe_eq_singleton {H : subgroup G} : (∃ g : G, (H : set G) = {g}) ↔ H = ⊥ :=

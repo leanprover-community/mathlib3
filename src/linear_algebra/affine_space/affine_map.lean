@@ -504,8 +504,8 @@ domain with the space of linear maps, by taking the value of the affine map at `
 linear part. -/
 @[simps] def to_const_prod_linear_map : (V1 →ᵃ[k] V2) ≃ₗ[k] V2 × (V1 →ₗ[k] V2) :=
 { to_fun    := λ f, ⟨f 0, f.linear⟩,
-  inv_fun   := λ p, const k V1 p.1 + p.2.to_affine_map,
-  left_inv  := λ f, by { ext, rw f.decomp, simp [add_comm (f 0)], },
+  inv_fun   := λ p, p.2.to_affine_map + const k V1 p.1,
+  left_inv  := λ f, by { ext, rw f.decomp, simp, },
   right_inv := by { rintros ⟨v, f⟩, ext; simp, },
   map_add'  := by simp,
   map_smul' := by simp, }

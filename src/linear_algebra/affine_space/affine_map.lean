@@ -149,6 +149,19 @@ def const (p : P2) : P1 →ᵃ[k] P2 :=
 
 variables {k P1}
 
+lemma linear_eq_zero_iff_exists_const (f : P1 →ᵃ[k] P2) :
+  f.linear = 0 ↔ ∃ q, f = const k P1 q :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { inhabit P1,
+    use f (default P1),
+    ext,
+    rw [coe_const, function.const_apply, ← @vsub_eq_zero_iff_eq V2, ← f.linear_map_vsub, h,
+      linear_map.zero_apply], },
+  { rcases h with ⟨q, rfl⟩,
+    exact const_linear k P1 q, },
+end
+
 instance nonempty : nonempty (P1 →ᵃ[k] P2) :=
 (add_torsor.nonempty : nonempty P2).elim $ λ p, ⟨const k P1 p⟩
 

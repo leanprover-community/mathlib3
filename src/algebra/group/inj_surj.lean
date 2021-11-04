@@ -111,19 +111,18 @@ protected def monoid [monoid M₂] (f : M₁ → M₂) (hf : injective f)
 
 /-- A type endowed with `1` and `*` is a monoid,
 if it admits an injective map that preserves `1` and `*` to a monoid.
-This version takes a custom `npow` as an explicit argument.
+This version takes a custom `npow` as a `[has_pow M₁ ℕ]` argument.
 See note [reducible non-instances]. -/
-@[reducible, to_additive
+@[reducible, to_additive add_monoid_smul
 "A type endowed with `0` and `+` is an additive monoid,
 if it admits an injective map that preserves `0` and `+` to an additive monoid.
-This version takes a custom `nsmul` as an explicit argument."]
-protected def monoid_npow [monoid M₂] (f : M₁ → M₂) (hf : injective f)
-  (npow : ℕ → M₁ → M₁) (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y)
-  (map_npow : ∀ n x, f (npow n x) = f x ^ n) :
+This version takes a custom `nsmul` as a `[has_scalar ℕ M₁]` argument."]
+protected def monoid_pow [has_pow M₁ ℕ] [monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   monoid M₁ :=
-{ npow := npow,
-  npow_zero' := λ x, hf $ by erw [map_npow, one, pow_zero],
-  npow_succ' := λ n x, hf $ by erw [map_npow, pow_succ, mul, map_npow],
+{ npow := λ n x, x ^ n,
+  npow_zero' := λ x, hf $ by erw [npow, one, pow_zero],
+  npow_succ' := λ n x, hf $ by erw [npow, pow_succ, mul, npow],
   .. hf.monoid f one mul }
 
 /-- A type endowed with `1` and `*` is a left cancel monoid,
@@ -199,32 +198,36 @@ protected def div_inv_monoid [div_inv_monoid M₂] (f : M₁ → M₂) (hf : inj
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.
-This version takes custom `npow` and `zpow` as explicit arguments.
+This version takes custom `npow` and `zpow` as `[has_pow M₁ ℕ]` and `[has_pow M₁ ℤ]` arguments.
 See note [reducible non-instances]. -/
 @[reducible, to_additive sub_neg_monoid_smul
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `sub_neg_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `sub_neg_monoid`.
-This version takes custom `nsmul` and `zsmul` as explicit arguments."]
-protected def div_inv_monoid_pow [div_inv_monoid M₂] (f : M₁ → M₂) (hf : injective f)
-  (npow : ℕ → M₁ → M₁) (zpow : ℤ → M₁ → M₁)
+This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
+`[has_scalar ℤ M₁]` arguments."]
+protected def div_inv_monoid_pow [has_pow M₁ ℕ] [has_pow M₁ ℤ] [div_inv_monoid M₂]
+  (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y) (map_npow : ∀ n x, f (npow n x) = f x ^ n)
-  (map_zpow : ∀ n x, f (zpow n x) = f x ^ n) :
+  (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   div_inv_monoid M₁ :=
-{ zpow := zpow,
-  zpow_zero' := λ x, hf $ by erw [map_zpow, zpow_zero, one],
-  zpow_succ' := λ n x, hf $ by erw [map_zpow, mul, zpow_of_nat, pow_succ, map_zpow, zpow_of_nat],
-  zpow_neg' := λ n x, hf $ by erw [map_zpow, zpow_neg_succ_of_nat, inv, map_zpow, zpow_coe_nat],
-  .. hf.monoid_npow f npow one mul map_npow,
+{ zpow := λ n x, x ^ n,
+  zpow_zero' := λ x, hf $ by erw [zpow, zpow_zero, one],
+  zpow_succ' := λ n x, hf $ by erw [zpow, mul, zpow_of_nat, pow_succ, zpow, zpow_of_nat],
+  zpow_neg' := λ n x, hf $ by erw [zpow, zpow_neg_succ_of_nat, inv, zpow, zpow_coe_nat],
+  .. hf.monoid_pow f one mul npow,
   .. hf.div_inv_monoid f one mul inv div }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.
+This version takes custom `npow` and `zpow` as `[has_pow M₁ ℕ]` and `[has_pow M₁ ℤ]` arguments.
 See note [reducible non-instances]. -/
 @[reducible, to_additive
 "A type endowed with `0` and `+` is an additive group,
-if it admits an injective map that preserves `0` and `+` to an additive group."]
+if it admits an injective map that preserves `0` and `+` to an additive group.
+This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
+`[has_scalar ℤ M₁]` arguments."]
 protected def group [group M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) :
@@ -235,16 +238,15 @@ protected def group [group M₂] (f : M₁ → M₂) (hf : injective f)
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.
 See note [reducible non-instances]. -/
-@[reducible, to_additive
+@[reducible, to_additive add_group_smul
 "A type endowed with `0` and `+` is an additive group,
 if it admits an injective map that preserves `0` and `+` to an additive group."]
-protected def group_pow [group M₂] (f : M₁ → M₂) (hf : injective f)
-  (npow : ℕ → M₁ → M₁) (zpow : ℤ → M₁ → M₁)
+protected def group_pow [has_pow M₁ ℕ] [has_pow M₁ ℤ] [group M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y) (map_npow : ∀ n x, f (npow n x) = f x ^ n)
-  (map_zpow : ∀ n x, f (zpow n x) = f x ^ n) :
+  (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   group M₁ :=
-{ .. hf.div_inv_monoid_pow f npow zpow one mul inv div map_npow map_zpow,
+{ .. hf.div_inv_monoid_pow f one mul inv div npow zpow,
   .. hf.group f one mul inv div }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a commutative group,

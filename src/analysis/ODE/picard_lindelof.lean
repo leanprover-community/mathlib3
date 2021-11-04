@@ -92,8 +92,8 @@ begin
     exact (sub_le_sub_right t.2.2 _).trans (le_max_left _ _) }
 end
 
-/-- Projection $ℝ → [t_{min}, t_{max}]$ sending $(-∞, t_{min}]$ to $t_{min}$ and $[t_{max}, ∞)$ to
-$t_{max}$. -/
+/-- Projection $ℝ → [t_{\min}, t_{\max}]$ sending $(-∞, t_{\min}]$ to $t_{\min}$ and $[t_{\max}, ∞)$
+to $t_{\max}$. -/
 def proj : ℝ → Icc v.t_min v.t_max := proj_Icc v.t_min v.t_max v.t_min_le_t_max
 
 lemma proj_coe (t : Icc v.t_min v.t_max) : v.proj t = t := proj_Icc_coe _ _
@@ -103,7 +103,7 @@ by simp only [proj, proj_Icc_of_mem _ ht, subtype.coe_mk]
 
 @[continuity] lemma continuous_proj : continuous v.proj := continuous_proj_Icc
 
-/-- The space of curves $γ \colon [t_{min}, t_{max}] \to E$ such that $γ(t₀) = x₀$ and $γ$ is
+/-- The space of curves $γ \colon [t_{\min}, t_{\max}] \to E$ such that $γ(t₀) = x₀$ and $γ$ is
 Lipschitz continuous with constant $C$. The map sending $γ$ to
 $\mathbf Pγ(t)=x₀ + ∫_{t₀}^{t} v(τ, γ(τ))\,dτ$ is a contracting map on this space, and its fixed
 point is a solution of the ODE $\dot x=v(t, x)$. -/
@@ -151,9 +151,9 @@ calc dist (f t) v.x₀ = dist (f t) (f.to_fun v.t₀) : by rw f.map_t₀'
                  ... ≤ v.C * v.t_dist             : mul_le_mul_of_nonneg_left (v.dist_t₀_le _) v.C.2
                  ... ≤ v.R                        : v.C_mul_le_R
 
-/-- Given a curve $γ \colon [t_{min}, t_{max}] → E$, `v_comp` is the function $F(t)=v(π t, γ(π t))$,
-where `π` is the projection $ℝ → [t_{min}, t_{max}]$. The integral of this function is the image of
-`γ` under the contracting map we are going to define below. -/
+/-- Given a curve $γ \colon [t_{\min}, t_{\max}] → E$, `v_comp` is the function
+$F(t)=v(π t, γ(π t))$, where `π` is the projection $ℝ → [t_{\min}, t_{\max}]$. The integral of this
+function is the image of `γ` under the contracting map we are going to define below. -/
 def v_comp (t : ℝ) : E := v (v.proj t) (f (v.proj t))
 
 lemma v_comp_apply_coe (t : Icc v.t_min v.t_max) : f.v_comp t = v t (f t) :=

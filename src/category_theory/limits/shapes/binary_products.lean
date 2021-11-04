@@ -402,9 +402,11 @@ is_iso.of_iso (prod.map_iso (as_iso f) (as_iso g))
 
 instance prod.map_mono {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [mono f]
   [mono g] [has_binary_product W X] [has_binary_product Y Z] : mono (prod.map f g) :=
-⟨λ A i₁ i₂ h, by { ext,
-                   rw ←cancel_mono f, simpa using congr_arg (λ f, f ≫ prod.fst) h,
-                   rw ←cancel_mono g, simpa using congr_arg (λ f, f ≫ prod.snd) h }⟩
+⟨λ A i₁ i₂ h, begin
+  ext,
+  { rw ←cancel_mono f, simpa using congr_arg (λ f, f ≫ prod.fst) h },
+  { rw ←cancel_mono g, simpa using congr_arg (λ f, f ≫ prod.snd) h }
+end⟩
 
 @[simp, reassoc]
 lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary_product Y Y] :

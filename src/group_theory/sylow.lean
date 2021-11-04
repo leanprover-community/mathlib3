@@ -406,11 +406,10 @@ lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [fact p.prime] (P : s
 begin
   obtain ⟨Q, hQ⟩ := exists_subgroup_card_pow_prime p hdvd,
   obtain ⟨R, hR⟩ := (is_p_group.of_card hQ).exists_le_sylow,
-  obtain ⟨g, hg⟩ := exists_smul_eq G R P,
+  obtain ⟨g, rfl⟩ := exists_smul_eq G R P,
   calc p ^ n = card Q : hQ.symm
   ... ∣ card R : card_dvd_of_le hR
   ... = card (g • R) : card_congr (R.equiv_smul g).to_equiv
-  ... = card P : by rw hg,
 end
 
 lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)

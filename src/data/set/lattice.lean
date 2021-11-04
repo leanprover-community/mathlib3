@@ -1501,6 +1501,14 @@ theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : s
   (h : ∀ b ∈ s, ∀ c ∈ t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
 by rintro a ⟨⟨b, hb, eq⟩, c, hc, rfl⟩; exact h b hb c hc eq
 
+lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set α}
+  (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
+disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
+
+lemma disjoint_preimage {s t : set β} (hd : disjoint s t) (f : α → β) :
+  disjoint (f ⁻¹' s) (f ⁻¹' t) :=
+λ x hx, hd hx
+
 lemma preimage_eq_empty {f : α → β} {s : set β} (h : disjoint s (range f)) :
   f ⁻¹' s = ∅ :=
 by simpa using h.preimage f

@@ -28,9 +28,6 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 * `path.homotopic.setoid x₀ x₁` is the setoid on `path`s from `path.homotopic`
 * `path.homotopic.quotient x₀ x₁` is the quotient type from `path x₀ x₀` by `path.homotopic.setoid`
 
-## Todos
-
-Define the fundamental group(oid).
 -/
 
 universes u v

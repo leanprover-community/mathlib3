@@ -34,8 +34,7 @@ open_locale big_operators
 
 /-- `exp` is strictly convex on the whole real line. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
-strict_convex_on_univ_of_deriv2_pos differentiable_exp (by simp)
-  (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
+strict_convex_on_univ_of_deriv2_pos differentiable_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
 lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
@@ -141,8 +140,6 @@ begin
   { exact (this _).continuous_on },
    all_goals { rw interior_Ioi },
   { exact this _ },
-  { rw deriv_zpow',
-    exact (this _).const_mul _ },
   intros x hx,
   simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
   refine mul_pos (int.cast_pos.2 _) (zpow_pos_of_pos hx _),
@@ -168,7 +165,7 @@ begin
     replace hx : 0 < x, by simpa using hx,
     suffices : 0 ≤ p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
     apply mul_nonneg (le_trans zero_le_one hp),
-    exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
+    exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg hx.le _) }
 end
 
 lemma strict_convex_on_rpow {p : ℝ} (hp : 1 < p) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
@@ -177,42 +174,32 @@ begin
   apply strict_convex_on_of_deriv2_pos (convex_Ici 0),
   { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp.le)) },
   { exact (differentiable_rpow_const hp.le).differentiable_on },
-  all_goals { rw interior_Ici },
-  { rw A,
-    rintro x (hx : 0 < x),
-    simp [differentiable_at.differentiable_within_at, hx.ne'] },
-  { rintro x (hx : 0 < x),
-    suffices : 0 < p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
-    apply mul_pos (zero_lt_one.trans hp),
-    exact mul_pos (sub_pos_of_lt hp) (rpow_pos_of_pos hx _) }
+  rw interior_Ici,
+  rintro x (hx : 0 < x),
+  suffices : 0 < p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
+  exact mul_pos (zero_lt_one.trans hp) (mul_pos (sub_pos_of_lt hp) (rpow_pos_of_pos hx _)),
 end
 
 lemma strict_concave_on_log_Ioi : strict_concave_on ℝ (Ioi 0) log :=
 begin
   have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
   { exact λ x (hx : 0 < x) (hx' : x = 0), hx.ne' hx' },
-  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 0) is_open_Ioi _ _ _,
-  { exact differentiable_on_log.mono h₁ },
-  { exact ((times_cont_diff_on_log.deriv_of_open is_open_compl_singleton le_top).differentiable_on
-      le_top).mono h₁ },
-  { rintro x (hx : 0 < x),
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x < 0,
-    rw [deriv_log', deriv_inv],
-    exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne') }
+  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 0) is_open_Ioi
+    (differentiable_on_log.mono h₁) (λ x (hx : 0 < x), _),
+  rw [function.iterate_succ, function.iterate_one],
+  change (deriv (deriv log)) x < 0,
+  rw [deriv_log', deriv_inv],
+  exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne'),
 end
 
 lemma strict_concave_on_log_Iio : strict_concave_on ℝ (Iio 0) log :=
 begin
   have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
   { exact λ x (hx : x < 0) (hx' : x = 0), hx.ne hx' },
-  refine strict_concave_on_open_of_deriv2_neg (convex_Iio 0) is_open_Iio _ _ _,
-  { exact differentiable_on_log.mono h₁ },
-  { exact ((times_cont_diff_on_log.deriv_of_open is_open_compl_singleton le_top).differentiable_on
-      le_top).mono h₁ },
-  { rintro x (hx : x < 0),
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x < 0,
-    rw [deriv_log', deriv_inv],
-    exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne) }
+  refine strict_concave_on_open_of_deriv2_neg (convex_Iio 0) is_open_Iio
+    (differentiable_on_log.mono h₁) (λ x (hx : x < 0), _),
+  rw [function.iterate_succ, function.iterate_one],
+  change (deriv (deriv log)) x < 0,
+  rw [deriv_log', deriv_inv],
+  exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
 end

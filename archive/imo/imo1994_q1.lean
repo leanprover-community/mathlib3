@@ -97,9 +97,10 @@ begin
   rw this, clear this,
 
   -- The rest is a simple calculation by rearranging one of the two sums
-  calc 2 * ∑ i : fin (m+1), a i = ∑ i : fin (m+1), a i + ∑ i : fin (m+1), a i       : two_mul _
-                            ... = ∑ i : fin (m+1), a i + ∑ i : fin (m+1), a (rev i) : by {rw equiv.sum_comp rev}
-                            ... = ∑ i : fin (m+1), (a i + a (rev i))                : sum_add_distrib.symm
-                            ... ≥ ∑ i : fin (m+1), (n+1)                            : sum_le_sum hpair
-                            ... = (m+1) * (n+1)                                     : by {simp}
+  calc 2 * ∑ i : fin (m+1), a i
+         = ∑ i : fin (m+1), a i + ∑ i : fin (m+1), a i       : two_mul _
+     ... = ∑ i : fin (m+1), a i + ∑ i : fin (m+1), a (rev i) : by {rw equiv.sum_comp rev}
+     ... = ∑ i : fin (m+1), (a i + a (rev i))                : sum_add_distrib.symm
+     ... ≥ ∑ i : fin (m+1), (n+1)                            : sum_le_sum hpair
+     ... = (m+1) * (n+1)                                     : by {simp}
 end

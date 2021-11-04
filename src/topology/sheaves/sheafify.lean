@@ -191,8 +191,7 @@ end
 instance _root_.Top.sheaf.to_sheafify_is_iso (F : sheaf (Type v) X) :
   is_iso F.val.to_sheafify :=
 begin
-  rw is_iso_iff_is_iso',
-  rw is_iso_iff_stalk_functor_map_iso,
+  rw [←is_iso_iff_is_iso', is_iso_iff_stalk_functor_map_iso],
   intro x,
   rw ←is_iso.inv_eq_of_inv_hom_id (stalk_functor_sheafify_comp_stalk_to_fiber F.val x),
   exact is_iso.inv_is_iso
@@ -201,7 +200,7 @@ end
 /-- A sheaf is isomorphic to its sheafification. -/
 @[simps] def _root_.Top.sheaf.iso_sheafify (F : sheaf (Type v) X) : F ≅ F.val.sheafify :=
 @as_iso (sheaf (Type v) X) _ _ _ F.val.to_sheafify
-  ((is_iso_iff_is_iso' _ _ F.val.to_sheafify).mp F.to_sheafify_is_iso)
+  ((is_iso_iff_is_iso' _ _ F.val.to_sheafify).mpr F.to_sheafify_is_iso)
 
 /-- A morphsim `F ⟶ G` into a sheaf factors through the sheafification `F♯ ⟶ G`. -/
 def sheafify_lift {F : presheaf (Type v) X} {G : sheaf (Type v) X} (α : F ⟶ G.val) :

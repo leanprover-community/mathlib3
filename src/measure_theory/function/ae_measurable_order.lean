@@ -33,7 +33,7 @@ theorem measure_theory.ae_measurable_of_exist_almost_disjoint_supersets
   (s : set β) (s_count : countable s) (s_dense : dense s) (f : α → β)
   (h : ∀ (p ∈ s) (q ∈ s), p < q → ∃ u v, measurable_set u ∧ measurable_set v ∧
     {x | f x < p} ⊆ u ∧ {x | q < f x} ⊆ v ∧ μ (u ∩ v) = 0) :
-  ae_measurable f μ  :=
+  ae_measurable f μ :=
 begin
   haveI : encodable s := s_count.to_encodable,
   have h' : ∀ p q, ∃ u v, measurable_set u ∧ measurable_set v ∧

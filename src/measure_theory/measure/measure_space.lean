@@ -582,7 +582,7 @@ begin
   refine (measure_inter_eq_of_measure_eq hs _ (subset_to_measurable _ _) _).symm,
   { refine measure_eq_left_of_subset_of_measure_add_eq _ (subset_to_measurable _ _)
       (measure_to_measurable t).symm,
-    rwa measure_to_measurable t,  },
+    rwa measure_to_measurable t, },
   { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at ht,
     exact ht.1 }
 end

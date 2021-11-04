@@ -44,7 +44,7 @@ $$
 
 Currently we only prove this inequality for $p=1$. As in the rest of `mathlib`, we provide
 different theorems for natural exponents (`pow_arith_mean_le_arith_mean_pow`), integer exponents
-(`fpow_arith_mean_le_arith_mean_fpow`), and real exponents (`rpow_arith_mean_le_arith_mean_rpow` and
+(`zpow_arith_mean_le_arith_mean_zpow`), and real exponents (`rpow_arith_mean_le_arith_mean_rpow` and
 `arith_mean_le_rpow_mean`). In the first two cases we prove
 $$
 \left(\sum_{i\in s} w_i z_i\right)^n ≤ \sum_{i\in s} w_i z_i^n
@@ -148,10 +148,10 @@ theorem pow_arith_mean_le_arith_mean_pow_of_even (w z : ι → ℝ) (hw : ∀ i 
   (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 (convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
 
-theorem fpow_arith_mean_le_arith_mean_fpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+theorem zpow_arith_mean_le_arith_mean_zpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :
   (∑ i in s, w i * z i) ^ m ≤ ∑ i in s, (w i * z i ^ m) :=
-(convex_on_fpow m).map_sum_le hw hw' hz
+(convex_on_zpow m).map_sum_le hw hw' hz
 
 theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) {p : ℝ} (hp : 1 ≤ p) :

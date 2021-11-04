@@ -225,14 +225,14 @@ by refine
   sub_eq_add_neg := _,
   nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  gsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  zsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  gsmul_zero' := _,
-  gsmul_succ' := _,
-  gsmul_neg' := _,
+  zsmul_zero' := _,
+  zsmul_succ' := _,
+  zsmul_neg' := _,
   .. alternating_map.add_comm_monoid, .. };
 intros; ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, gsmul_coe_nat]
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, zsmul_coe_nat]
 
 section distrib_mul_action
 

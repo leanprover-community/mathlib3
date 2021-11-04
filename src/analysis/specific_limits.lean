@@ -65,8 +65,8 @@ sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
 
 lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
   tendsto (λn:ℕ, m ^ n) at_top at_top :=
-nat.sub_add_cancel (le_of_lt h) ▸
-  tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
+tsub_add_cancel_of_le (le_of_lt h) ▸
+  tendsto_add_one_pow_at_top_at_top_of_pos (tsub_pos_of_lt h)
 
 lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
@@ -78,28 +78,28 @@ lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field �
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{0}ᶜ] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
-lemma tendsto_norm_fpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
+lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
   (hm : m < 0) :
   tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[{0}ᶜ] 0) at_top :=
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [normed_field.norm_pow, fpow_neg, gpow_coe_nat, ← inv_pow₀],
+  simp only [normed_field.norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
-@[simp] lemma continuous_at_fpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
-  refine ⟨_, continuous_at_fpow _ _⟩,
+  refine ⟨_, continuous_at_zpow _ _⟩,
   contrapose!, rintro ⟨rfl, hm⟩ hc,
   exact not_tendsto_at_top_of_tendsto_nhds (hc.tendsto.mono_left nhds_within_le_nhds).norm
-      (tendsto_norm_fpow_nhds_within_0_at_top hm)
+      (tendsto_norm_zpow_nhds_within_0_at_top hm)
 end
 
 @[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
-by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_fpow _ _ (-1) x
+by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
 
 end normed_field
 
@@ -401,7 +401,7 @@ begin
     norm_cast at *,
     convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
     rw [ennreal.coe_inv $ ne_of_gt $ tsub_pos_iff_lt.2 hr] },
-  { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
+  { rw [tsub_eq_zero_iff_le.mpr hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
     calc (n:ℝ≥0∞) = ∑ i in range n, 1     : by rw [sum_const, nsmul_one, card_range]
@@ -515,7 +515,7 @@ begin
   refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
   rw [ennreal.tsum_mul_left, ennreal.tsum_geometric],
   refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
-  exact (ennreal.sub_pos.2 hr).ne'
+  exact (tsub_pos_iff_lt.2 hr).ne'
 end
 
 omit hr hC

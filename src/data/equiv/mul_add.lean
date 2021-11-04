@@ -379,10 +379,10 @@ end mul_equiv
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
-@[to_additive "Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id` and
-`f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
+@[to_additive /-"Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id`
+and `f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
 constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
-monoid homomorphisms.", simps {fully_applied := ff}]
+monoid homomorphisms."-/, simps {fully_applied := ff}]
 def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (g : N →* M)
   (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
   M ≃* N :=
@@ -540,19 +540,13 @@ variables [group_with_zero G]
 underlying type. -/
 @[simps {fully_applied := ff}]
 protected def mul_left₀ (a : G) (ha : a ≠ 0) : perm G :=
-{ to_fun := λ x, a * x,
-  inv_fun := λ x, a⁻¹ * x,
-  left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
-  right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
+(units.mk0 a ha).mul_left
 
 /-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
 @[simps {fully_applied := ff}]
 protected def mul_right₀ (a : G) (ha : a ≠ 0) : perm G :=
-{ to_fun := λ x, x * a,
-  inv_fun := λ x, x * a⁻¹,
-  left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
-  right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
+(units.mk0 a ha).mul_right
 
 end group_with_zero
 

@@ -15,10 +15,6 @@ sum of elements of a list. These are defined in [`data.list.defs`](./data/list/d
 variables {α β γ : Type*}
 
 namespace list
-
--- `list.sum` was already defined in defs.lean, but we couldn't tag it with `to_additive` yet.
-attribute [to_additive] list.prod
-
 section monoid
 variables [monoid α] {l l₁ l₂ : list α} {a : α}
 
@@ -362,8 +358,6 @@ by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 
 section alternating
 variables {G : Type*} [comm_group G]
-
-attribute [to_additive] alternating_prod
 
 @[simp, to_additive] lemma alternating_prod_nil : alternating_prod ([] : list G) = 1 := rfl
 

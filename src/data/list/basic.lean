@@ -4046,6 +4046,16 @@ end
 
 end to_chunks
 
+/-! ### Retroattributes
+
+The list definitions happen earlier than `to_additive`, so here we tag the few multiplicative
+definitions that couldn't be tagged earlier.
+-/
+
+attribute [to_additive] list.prod -- `list.sum`
+
+attribute [to_additive] alternating_prod -- `list.alternating_sum`
+
 /-! ### Miscellaneous lemmas -/
 
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l

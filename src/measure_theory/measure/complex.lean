@@ -116,7 +116,7 @@ def equiv_signed_measureₗ : complex_measure α ≃ₗ[R] signed_measure α × 
     { ext i hi,
       change (r • c i).im = r • (c i).im,
       simp [complex.smul_im] }
-  end, .. equiv_signed_measure}
+  end, .. equiv_signed_measure }
 
 end
 

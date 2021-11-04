@@ -256,11 +256,10 @@ begin
     map_one' := rfl,
     map_mul' := λ d₁ d₂, _, },
   refine (dfinsupp.single_eq_of_sigma_eq (sigma.subtype_ext _ _)).trans
-    (direct_sum.of_mul_of _ _).symm; dsimp,
-  exact finsupp.sum_add_index (λ _, rfl) (λ _ _ _, rfl),
-  rw [monomial_mul, mul_one],
+    (direct_sum.of_mul_of _ _).symm; dsimp only [set_like.coe_ghas_mul, subtype.coe_mk, to_add_mul],
+  { exact finsupp.sum_add_index (λ _, rfl) (λ _ _ _, rfl) },
+  { rw [monomial_mul, mul_one], },
 end
-
 
 lemma to_homogeneous_components_monomial_one [comm_semiring R] (d : σ →₀ ℕ) :
   to_homogeneous_components (monomial d (1 : R)) =
@@ -348,7 +347,7 @@ lemma to_homogeneous_components_of_is_homogeneous [comm_semiring R] (i : ℕ)
 /-- Assemble a polynomial from a direct sum of homogeneous components. -/
 def of_homogeneous_components [comm_semiring R] :
   (⨁ i, homogeneous_submodule σ R i) →ₐ[R] mv_polynomial σ R :=
-direct_sum.to_algebra R _ (λ i, submodule.subtype _) rfl (λ _ _ _ _, rfl) (λ r, rfl)
+direct_sum.submodule_coe_alg_hom _
 
 @[simp]
 lemma of_homogeneous_components_of [comm_semiring R] (i : ℕ) (x : homogeneous_submodule σ R i) :

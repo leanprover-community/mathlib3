@@ -133,8 +133,7 @@ begin
   induction U using opposite.rec,
   cases U,
   delta stalk_functor to_sheafify stalk_to_fiber Top.stalk_to_fiber presheaf.germ sheafify,
-  simp,
-  congr
+  simpa
 end
 
 @[simp, reassoc] lemma stalk_to_fiber_comp_stalk_functor_sheafify (x : X) :
@@ -172,8 +171,8 @@ variable (X)
 def sheafify_functor : X.presheaf (Type v) ⥤ X.sheaf (Type v) :=
 { obj := λ F, F.sheafify,
   map := λ _ _ f, sheafify_map f,
-  map_id' := λ F, by { unfold sheafify_map, simp, congr },
-  map_comp' := λ F G H α β, by { unfold sheafify_map, simp, congr } }
+  map_id' := λ F, by { unfold sheafify_map, simpa },
+  map_comp' := λ F G H α β, by { unfold sheafify_map, simpa } }
 
 variable {X}
 
@@ -184,7 +183,7 @@ begin
   change F.to_sheafify ≫ sheafify_map α = _,
   delta to_sheafify sheafify_map presheaf.stalk_functor presheaf.germ,
   ext,
-  simp,
+  simp only [functor_to_types.comp, subtype.coe_mk],
   erw limits.types.colimit.ι_map_apply,
   congr
 end

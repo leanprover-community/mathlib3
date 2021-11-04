@@ -6,6 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import algebra.quadratic_discriminant
 import analysis.complex.polynomial
 import field_theory.is_alg_closed.basic
+import analysis.special_functions.trigonometric.deriv
 
 /-!
 # Complex trigonometric functions

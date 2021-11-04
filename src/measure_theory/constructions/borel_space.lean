@@ -1144,7 +1144,6 @@ lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ x, limsup at_top (λ i, f i x)) :=
 measurable_limsup' hf at_top_countable_basis (λ i, countable_encodable _)
 
-
 end complete_linear_order
 
 section conditionally_complete_linear_order
@@ -1193,6 +1192,61 @@ instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
 
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
+
+/-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
+gives a way to compute the measure of a set in terms of sets on which a given function `f` does not
+fluctuate by more than `t`. -/
+lemma measure_eq_measure_preimage_add_measure_tsum_Ico_zpow [measurable_space α] (μ : measure α)
+  {f : α → ℝ≥0∞} (hf : measurable f) {s : set α} (hs : measurable_set s) {t : ℝ≥0} (ht : 1 < t) :
+  μ s = μ (s ∩ f⁻¹' {0}) + μ (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :=
+begin
+  have A : μ s = μ (s ∩ f⁻¹' {0}) + μ (s ∩ f⁻¹' (Ioi 0)),
+  { rw ← measure_union,
+    { congr' 1,
+      ext x,
+      have : 0 = f x ∨ 0 < f x := eq_or_lt_of_le bot_le,
+      rw eq_comm at this,
+      simp only [←and_or_distrib_left, this, mem_singleton_iff, mem_inter_eq, and_true,
+        mem_union_eq, mem_Ioi, mem_preimage], },
+    { apply disjoint_left.2 (λ x hx h'x, _),
+      have : 0 < f x := h'x.2,
+      exact lt_irrefl 0 (this.trans_le hx.2.le) },
+    { exact hs.inter (hf (measurable_set_singleton _)) },
+    { exact hs.inter (hf measurable_set_Ioi) } },
+  have B : μ (s ∩ f⁻¹' (Ioi 0)) = μ (s ∩ f⁻¹' {∞}) + μ (s ∩ f⁻¹' (Ioo 0 ∞)),
+  { rw ← measure_union,
+    { rw ← inter_union_distrib_left,
+      congr,
+      ext x,
+      simp only [mem_singleton_iff, mem_union_eq, mem_Ioo, mem_Ioi, mem_preimage],
+      have H : f x = ∞ ∨ f x < ∞ := eq_or_lt_of_le le_top,
+      cases H,
+      { simp only [H, eq_self_iff_true, or_false, with_top.zero_lt_top, not_top_lt, and_false] },
+      { simp only [H, H.ne, and_true, false_or] } },
+    { apply disjoint_left.2 (λ x hx h'x, _),
+      have : f x < ∞ := h'x.2.2,
+      exact lt_irrefl _ (this.trans_le (le_of_eq hx.2.symm)) },
+    { exact hs.inter (hf (measurable_set_singleton _)) },
+    { exact hs.inter (hf measurable_set_Ioo) } },
+  have C : μ (s ∩ f⁻¹' (Ioo 0 ∞)) = ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))),
+  { rw [← measure_Union, ennreal.Ioo_zero_top_eq_Union_Ico_zpow (ennreal.one_lt_coe_iff.2 ht)
+         ennreal.coe_ne_top, preimage_Union, inter_Union],
+    { assume i j,
+      simp only [function.on_fun],
+      wlog h : i ≤ j := le_total i j using [i j, j i] tactic.skip,
+      { assume hij,
+        replace hij : i + 1 ≤ j := lt_of_le_of_ne h hij,
+        apply disjoint_left.2 (λ x hx h'x, lt_irrefl (f x) _),
+        calc f x < t ^ (i + 1) : hx.2.2
+        ... ≤ t ^ j : ennreal.zpow_le_of_le (ennreal.one_le_coe_iff.2 ht.le) hij
+        ... ≤ f x : h'x.2.1 },
+      { assume hij,
+        rw disjoint.comm,
+        exact this hij.symm } },
+    { assume n,
+      exact hs.inter (hf measurable_set_Ico) } },
+  rw [A, B, C, add_assoc],
+end
 
 section metric_space
 

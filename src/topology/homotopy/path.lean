@@ -206,7 +206,6 @@ def reparam (p  : path x₀ x₁) (f : I → I) (hf : continuous f) (hf₀ : f 0
 { to_fun := λ x, p ⟨σ x.1 * x.2 + x.1 * f x.2,
     show (σ x.1 : ℝ) • (x.2 : ℝ) + (x.1 : ℝ) • (f x.2 : ℝ) ∈ I, from convex_Icc _ _ x.2.2 (f x.2).2
     (by unit_interval) (by unit_interval) (by simp)⟩,
-  continuous_to_fun := by continuity,
   to_fun_zero := λ x, by norm_num,
   to_fun_one := λ x, by norm_num,
   prop' := λ t x hx,
@@ -225,7 +224,6 @@ argument.
 @[simps]
 def symm₂ {p q : path x₀ x₁} (F : p.homotopy q) : p.symm.homotopy q.symm :=
 { to_fun := λ x, F ⟨x.1, σ x.2⟩,
-  continuous_to_fun := by continuity,
   to_fun_zero := by simp [path.symm],
   to_fun_one := by simp [path.symm],
   prop' := λ t x hx, begin
@@ -234,6 +232,23 @@ def symm₂ {p q : path x₀ x₁} (F : p.homotopy q) : p.symm.homotopy q.symm :
     { rw set.mem_singleton_iff at hx,
       rw hx,
       simp }
+  end }
+
+/--
+Given `F : homotopy p q`, and `f : C(X, Y)`, we can define a homotopy from `p.map f.continuous` to
+`q.map f.continuous`.
+-/
+@[simps]
+def map {p q : path x₀ x₁} (F : p.homotopy q) (f : C(X, Y)) : homotopy
+  (p.map f.continuous) (q.map f.continuous) :=
+{ to_fun := f ∘ F,
+  to_fun_zero := by simp,
+  to_fun_one := by simp,
+  prop' := λ t x hx, begin
+    cases hx,
+    { simp [hx] },
+    { rw set.mem_singleton_iff at hx,
+      simp [hx] }
   end }
 
 end homotopy
@@ -256,6 +271,9 @@ lemma trans ⦃p₀ p₁ p₂ : path x₀ x₁⦄ (h₀ : p₀.homotopic p₁) (
   p₀.homotopic p₂ := ⟨h₀.some.trans h₁.some⟩
 
 lemma equivalence : equivalence (@homotopic X _ x₀ x₁) := ⟨refl, symm, trans⟩
+
+lemma map {p q : path x₀ x₁} (h : p.homotopic q) (f : C(X, Y)) :
+  homotopic (p.map f.continuous) (q.map f.continuous) := ⟨h.some.map f⟩
 
 /--
 The setoid on `path`s defined by the equivalence relation `path.homotopic`. That is, two paths are

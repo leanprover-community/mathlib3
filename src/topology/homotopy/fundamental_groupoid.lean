@@ -5,6 +5,8 @@ Authors: Shing Tak Lam
 -/
 import topology.homotopy.path
 import category_theory.groupoid
+import category_theory.category.Groupoid
+import topology.category.Top
 
 /-!
 # Fundamental groupoid of a space
@@ -258,6 +260,8 @@ put a `category_theory.groupoid` structure on it.
 -/
 def fundamental_groupoid (X : Type u) := X
 
+namespace fundamental_groupoid
+
 instance {X : Type u} [h : inhabited X] : inhabited (fundamental_groupoid X) := h
 
 local attribute [reducible] fundamental_groupoid
@@ -291,3 +295,26 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
   comp_inv' := λ x y f, quotient.induction_on f
     (λ a, show ⟦a.trans a.symm⟧ = ⟦path.refl x⟧,
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
+
+lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
+  p ≫ q = quotient.lift₂ (λ (l₁ : path x y) (l₂ : path y z), ⟦l₁.trans l₂⟧) begin
+    rintros a₁ a₂ b₁ b₂ ⟨h₁⟩ ⟨h₂⟩,
+    rw quotient.eq,
+    exact ⟨h₁.hcomp h₂⟩,
+  end p q := rfl
+
+example : category_theory.functor Top category_theory.Groupoid :=
+{ obj := λ t, category_theory.bundled.of (fundamental_groupoid t),
+  map := λ X Y f,
+    { obj := f,
+      map := λ x y p, quotient.lift (λ q, ⟦path.map q f.continuous⟧) begin
+        rintros a b h,
+        rw quotient.eq,
+        exact h.map f
+      end p,
+      map_id' := λ x, rfl,
+      map_comp' := λ x y z p₀ p₁, quotient.induction_on₂ p₀ p₁ (λ q₀ q₁, by { simp [comp_eq], }) },
+  map_id' := _,
+  map_comp' := _ }
+
+end fundamental_groupoid

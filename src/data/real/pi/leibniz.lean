@@ -3,8 +3,8 @@ Copyright (c) 2020 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import analysis.special_functions.pow
-import analysis.special_functions.trigonometric.arctan
+import analysis.special_functions.pow_deriv
+import analysis.special_functions.trigonometric.arctan_deriv
 
 /-! ### Leibniz's Series for Pi -/
 

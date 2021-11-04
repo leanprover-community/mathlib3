@@ -38,6 +38,7 @@ variables {𝕜 E : Type*}
 open cstar_ring
 
 /-- In a C*-ring, star preserves the norm. -/
+@[priority 100] -- see Note [lower instance priority]
 instance cstar_ring.to_normed_star_ring {E : Type*} [cstar_ring E] : normed_star_ring E :=
 ⟨begin
   intro x,

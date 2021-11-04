@@ -41,28 +41,19 @@ group must itself have order `p-1`, which only happens when `p` is prime.
 theorem lucas_primality (p : ℕ) (a : zmod p) (ha : a^(p-1) = 1)
   (hd : ∀ q : ℕ, q.prime → q ∣ (p-1) → a^((p-1)/q) ≠ 1) : p.prime :=
 begin
-  have h0 : p ≠ 0,
-  { exact λ h0, hd 2 nat.prime_two (by simp only [h0, zero_sub, dvd_zero]) (by simp [h0]) },
-  have h1 : p ≠ 1,
-  { exact λ h1, hd 2 nat.prime_two (by simp only [h1, nat.sub_self, dvd_zero]) (by simp [h1]) },
-  have hp1 : 1 < p := lt_of_le_of_ne (nat.succ_le_iff.mpr (zero_lt_iff.mpr h0)) (ne.symm h1),
+  have h0 : p ≠ 0, { rintro ⟨⟩, exact hd 2 nat.prime_two (dvd_zero _) (pow_zero _) },
+  have h1 : p ≠ 1, { rintro ⟨⟩, exact hd 2 nat.prime_two (dvd_zero _) (pow_zero _) },
+  have hp1 : 1 < p := lt_of_le_of_ne h0.bot_lt h1.symm,
   have order_of_a : order_of a = p-1,
   { apply order_of_eq_of_pow_and_pow_div_prime _ ha hd,
     exact tsub_pos_of_lt hp1, },
-  haveI fhp0 : fact (0 < p) := ⟨zero_lt_iff.mpr h0⟩,
+  haveI fhp0 : fact (0 < p) := ⟨h0.bot_lt⟩,
   rw nat.prime_iff_card_units,
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`
-  rw le_antisymm_iff,
-  refine ⟨nat.card_units_zmod_lt_sub_one hp1, _⟩,
-  have hp' : p - 2 + 1 = p - 1,
-  { zify [le_of_lt hp1],
-    ring, },
+  refine le_antisymm (nat.card_units_zmod_lt_sub_one hp1) _,
+  have hp' : p - 2 + 1 = p - 1 := tsub_add_eq_add_tsub hp1,
   let a' : units (zmod p) := units.mk_of_mul_eq_one a (a ^ (p-2)) (by rw [←pow_succ, hp', ha]),
-  have a_coe : a = units.coe_hom (zmod p) a',
-  { unfold_coes, simp, },
-  have order_of_a' : order_of a' = p-1,
-  { rw [←order_of_a, a_coe, order_of_injective (@units.coe_hom (zmod p) _)],
-    exact units.ext, },
-  rw ←order_of_a',
-  apply order_of_le_card_univ,
+  calc p - 1 = order_of a : order_of_a.symm
+  ... = order_of a' : order_of_injective (units.coe_hom (zmod p)) units.ext a'
+  ... ≤ fintype.card (units (zmod p)) : order_of_le_card_univ,
 end

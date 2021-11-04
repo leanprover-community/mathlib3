@@ -158,17 +158,21 @@ def indent_check(lines, path):
     in_prf = 0 # counter for nested proof blocks
     check_rest_of_block = True # we only check uncomplicated syntax
     ended_with_comma = False # track whether the previous line ends with a comma
+    inside_special = 0 # track whether we are inside ⟨⟩ or []
     for line_nr, line in enumerate(lines, 1):
         lstr = line.lstrip(' ') # strip spaces from beginning of line
-        if in_prf > 0 and check_rest_of_block and ended_with_comma:
+        if in_prf > 0 and check_rest_of_block and ended_with_comma and not inside_special:
             if lstr[0] == '{' and len(line) - len(lstr) != indent_lvl:
                 errors += [(WRN_IND, line_nr, path)]
         ended_with_comma = (line.endswith(",\n"))
+        inside_special += line.count('⟨') + line.count('[') - line.count('⟩') - line.count(']')
         if line[0] != ' ':
             # reset the state
             indent_lvl = 0
             in_prf = 0
             check_rest_of_block = True
+            ended_with_comma = False
+            inside_special = 0
         if "match" in line or "calc" in line:
             check_rest_of_block = False
         if "begin" in line:

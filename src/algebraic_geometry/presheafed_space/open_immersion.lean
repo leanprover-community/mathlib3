@@ -114,7 +114,7 @@ instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : open_immersion f] (g :
 
 /-- An isomorphism is an open immersion. -/
 instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : open_immersion H.hom :=
-{ base_open := (Top.homeo_of_iso (base_iso_of_iso H)).open_embedding,
+{ base_open := (Top.homeo_of_iso ((forget _).map_iso H)).open_embedding,
   c_iso := λ _, infer_instance }
 
 @[priority 100]
@@ -368,5 +368,39 @@ begin
   rw [←limit.w (cospan f g) walking_cospan.hom.inl, cospan_map_inl],
   apply_instance
 end
+
+def pullback_carrier_iso_pullback :
+  (pullback f g).carrier ≅ pullback f.base g.base :=
+(forget C).map_iso
+  ((has_limit.iso_of_nat_iso (open_immersion_cospan_iso f g)) ≪≫
+    limit.iso_limit_cone ⟨_, pullback_cone_of_restrict_is_limit Z hf.base_open hg.base_open⟩)
+
+@[simp, reassoc] lemma pullback_carrier_iso_pullback_hom_fst :
+  (pullback_carrier_iso_pullback f g).hom ≫ pullback.fst = (forget C).map pullback.fst :=
+begin
+  erw category.assoc,
+  change _ ≫ _ ≫ (pullback_cone_of_restrict _ hf.base_open hg.base_open).fst.base = _,
+  rw [←comp_base, ←comp_base, forget_map, limit.iso_limit_cone_hom_π,
+    has_limit.iso_of_nat_iso_hom_π, comp_base],
+  exact category.comp_id _
+end
+
+@[simp, reassoc] lemma pullback_carrier_iso_pullback_hom_snd :
+  (pullback_carrier_iso_pullback f g).hom ≫ pullback.snd = (forget C).map pullback.snd :=
+begin
+  erw category.assoc,
+  change _ ≫ _ ≫ (pullback_cone_of_restrict _ hf.base_open hg.base_open).snd.base = _,
+  rw [←comp_base, ←comp_base, forget_map, limit.iso_limit_cone_hom_π,
+    has_limit.iso_of_nat_iso_hom_π, comp_base],
+  exact category.comp_id _
+end
+
+@[simp, reassoc] lemma pullback_carrier_iso_pullback_inv_fst :
+  (pullback_carrier_iso_pullback f g).inv ≫ (forget C).map pullback.fst = pullback.fst :=
+by rw [←pullback_carrier_iso_pullback_hom_fst, iso.inv_hom_id_assoc]
+
+@[simp, reassoc] lemma pullback_carrier_iso_pullback_inv_snd :
+  (pullback_carrier_iso_pullback f g).inv ≫ (forget C).map pullback.snd = pullback.snd :=
+by rw [←pullback_carrier_iso_pullback_hom_snd, iso.inv_hom_id_assoc]
 
 end algebraic_geometry.PresheafedSpace

@@ -49,9 +49,9 @@ open_locale filter measure_theory topological_space
 
 variables {α : Type*} [metric_space α]
 
-/-- On a metric space `X` with a measure `μ`, consider for each `x : X` a family of measurable sets with
-nonempty interiors, called `sets_at x`. This family is a Vitali family if it satisfies the following
-property: consider a (possibly non-measurable) set `s`, and for any `x` in `s` a
+/-- On a metric space `X` with a measure `μ`, consider for each `x : X` a family of measurable sets
+with nonempty interiors, called `sets_at x`. This family is a Vitali family if it satisfies the
+following property: consider a (possibly non-measurable) set `s`, and for any `x` in `s` a
 subfamily `f x` of `sets_at x` containing sets of arbitrarily small diameter. Then one can extract
 a disjoint subfamily covering almost all `s`.
 

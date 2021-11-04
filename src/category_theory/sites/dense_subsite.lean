@@ -69,7 +69,7 @@ begin
 end
 
 /--
-Given a functor `G`, the sieve of `U : D` such that each arrows factors through images of `G`.
+Given a functor `G`, the sieve of `U : D` such that each arrow factors through images of `G`.
 -/
 def sieve.cover_by_image (G : C ⥤ D) (U : D) : sieve U :=
 ⟨presieve.cover_by_image G U,

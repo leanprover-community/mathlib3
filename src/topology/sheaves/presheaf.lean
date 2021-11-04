@@ -192,15 +192,14 @@ def id : pullback_obj (𝟙 _) ℱ ≅ ℱ :=
 nat_iso.of_components
   (λ U, pullback_obj_obj_of_image_open (𝟙 _) ℱ (unop U) (by simpa using U.unop.2) ≪≫
     ℱ.map_iso (eq_to_iso (by simp)))
-  (λ U V i, by {
+  (λ U V i,
+  begin
       ext, simp[-eq_to_hom_map,-eq_to_iso_map],
       erw category_theory.limits.colimit.pre_desc_assoc,
       erw colimit.ι_desc_assoc,
       erw colimit.ι_desc_assoc,
-      dsimp, simp only [←ℱ.map_comp], congr })
-
-private lemma heq_of_subsingleton (α β : Type*) [subsingleton α] (x : α) (y : β)
-  (H : α = β) : x == y := by { cases H, simp, }
+      dsimp, simp only [←ℱ.map_comp], congr
+  end)
 
 lemma id_inv_app (U : opens Y) :
   (id ℱ).inv.app (op U) = colimit.ι (Lan.diagram (opens.map (𝟙 Y)).op ℱ (op U))
@@ -211,7 +210,7 @@ begin
   refine eq.trans _ (category.id_comp _),
   rw ← ℱ.map_id,
   congr,
-  any_goals { apply heq_of_subsingleton },
+  any_goals { apply subsingleton.helim },
   all_goals { simp }
 end
 

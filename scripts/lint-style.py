@@ -155,12 +155,12 @@ def long_lines_check(lines, path):
 def indent_check(lines, path):
     errors = []
     indent_lvl = 0
-    in_prf = 0 # counter for nested proof blocks
-    check_rest_of_block = True # we only check uncomplicated syntax
-    ended_with_comma = False # track whether the previous line ends with a comma
-    inside_special = 0 # track whether we are inside ⟨⟩ or []
+    in_prf = 0  # counter for nested proof blocks
+    check_rest_of_block = True  # we only check uncomplicated syntax
+    ended_with_comma = False  # track whether the previous line ends with a comma
+    inside_special = 0  # track whether we are inside ⟨⟩ or []
     for line_nr, line in enumerate(lines, 1):
-        lstr = line.lstrip(' ') # strip spaces from beginning of line
+        lstr = line.lstrip(' ')  # strip spaces from beginning of line
         if in_prf > 0 and check_rest_of_block and ended_with_comma and not inside_special:
             if lstr[0] == '{' and len(line) - len(lstr) != indent_lvl:
                 errors += [(WRN_IND, line_nr, path)]

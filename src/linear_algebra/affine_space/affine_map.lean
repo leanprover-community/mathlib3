@@ -500,7 +500,8 @@ instance : module k (P1 →ᵃ[k] V2) :=
 @[simp] lemma smul_linear (t : k) (f : P1 →ᵃ[k] V2) : (t • f).linear = t • f.linear := rfl
 
 /-- The space of affine maps between two modules is linearly equivalent to the product of the
-domain with the space of linear maps. -/
+domain with the space of linear maps, by taking the value of the affine map at `(0 : V1)` and the
+linear part. -/
 @[simps] def to_const_prod_linear_map : (V1 →ᵃ[k] V2) ≃ₗ[k] V2 × (V1 →ₗ[k] V2) :=
 { to_fun    := λ f, ⟨f 0, f.linear⟩,
   inv_fun   := λ p, const k V1 p.1 + p.2.to_affine_map,

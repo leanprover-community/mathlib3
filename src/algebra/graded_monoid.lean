@@ -316,6 +316,9 @@ instance set_like.ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] 
   [set_like.has_graded_one A] : graded_monoid.ghas_one (λ i, A i) :=
 { one := ⟨1, set_like.has_graded_one.one_mem⟩ }
 
+@[simp] lemma set_like.coe_ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] (A : ι → S)
+  [set_like.has_graded_one A] : ↑(@graded_monoid.ghas_one.one _ (λ i, A i) _ _) = (1 : R) := rfl
+
 /-- A version of `graded_monoid.ghas_one` for internally graded objects. -/
 class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι]
   (A : ι → S) : Prop :=
@@ -325,6 +328,10 @@ instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (
   [set_like.has_graded_mul A] :
   graded_monoid.ghas_mul (λ i, A i) :=
 { mul := λ i j a b, ⟨(a * b : R), set_like.has_graded_mul.mul_mem a.prop b.prop⟩ }
+
+@[simp] lemma set_like.coe_ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
+  [set_like.has_graded_mul A] {i j : ι} (x : A i) (y : A j) :
+    ↑(@graded_monoid.ghas_mul.mul _ (λ i, A i) _ _ _ _ x y) = (x * y : R) := rfl
 
 /-- A version of `graded_monoid.gmonoid` for internally graded objects. -/
 class set_like.graded_monoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
@@ -347,6 +354,10 @@ instance set_like.gmonoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι] 
   gnpow_succ' := λ n a, sigma.subtype_ext (succ_nsmul _ _) (pow_succ _ _),
   ..set_like.ghas_one A,
   ..set_like.ghas_mul A }
+
+@[simp] lemma set_like.coe_gpow {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S)
+  [set_like.graded_monoid A] {i : ι} (x : A i) (n : ℕ) :
+    ↑(@graded_monoid.gmonoid.gnpow _ (λ i, A i) _ _ n _ x) = (x ^ n : R) := rfl
 
 /-- Build a `gcomm_monoid` instance for a collection of subobjects. -/
 instance set_like.gcomm_monoid {S : Type*} [set_like S R] [comm_monoid R] [add_comm_monoid ι]

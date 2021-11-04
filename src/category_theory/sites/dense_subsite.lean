@@ -20,7 +20,7 @@ we would need, and some sheafification would be needed for here and there.
 
 - `category_theory.cover_dense.sheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any presheaf `ℱ` and sheaf `ℱ'` on `D`, and a morphism `α : G ⋙ ℱ ⟶ G ⋙ ℱ'`,
-  we may glue them together to obtain a morphsim of sheaves `ℱ ⟶ ℱ'`.
+  we may glue them together to obtain a morphism of sheaves `ℱ ⟶ ℱ'`.
 - `category_theory.cover_dense.sheaf_iso`: If the `α` above is iso, then the result is also iso.
 - `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, then `α` is an iso if
@@ -239,7 +239,7 @@ def sheaf_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) : ℱ ⟶ ℱ'.val :=
   end }
 
 /--
-Given an natural isomorphsim `G ⋙ ℱ ≅ G ⋙ ℱ'` between sheaves of types, where `G` is full and
+Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between sheaves of types, where `G` is full and
 cover-dense, we may obtain a natural isomorphism between sheaves.
 -/
 @[simps] noncomputable

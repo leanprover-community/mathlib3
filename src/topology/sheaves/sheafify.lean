@@ -168,7 +168,7 @@ def sheafify_map {F G : presheaf (Type v) X} (α : F ⟶ G) :
 
 variable (X)
 
-/-- The sheafification functor from presheaves to sheaves -/
+/-- The sheafification functor from presheaves of types to sheaves of types. -/
 def sheafify_functor : X.presheaf (Type v) ⥤ X.sheaf (Type v) :=
 { obj := λ F, F.sheafify,
   map := λ _ _ f, sheafify_map f,

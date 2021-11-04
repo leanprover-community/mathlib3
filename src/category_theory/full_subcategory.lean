@@ -109,11 +109,11 @@ induced_category.faithful subtype.val
 variable {Z}
 
 lemma is_iso_iff_is_iso {X Y : {X : C // Z X}} (f : X ⟶ Y) :
-is_iso f ↔ @is_iso C _ _ _ f :=
+  is_iso f ↔ @is_iso C _ _ _ f :=
 by split; rintros ⟨a,b,c⟩; exact ⟨⟨a,b,c⟩⟩
 
-lemma is_iso_iff_is_iso' (X Y : {X : C // Z X}) (f : X.val ⟶ Y.val) :
-is_iso f ↔ @is_iso {X : C // Z X} _ _ _ f :=
+lemma is_iso_iff_is_iso' (X Y : {X : C // Z X}) (f : (X : C) ⟶ (Y : C)) :
+  is_iso f ↔ @is_iso {X : C // Z X} _ _ _ f :=
 by split; rintros ⟨a,b,c⟩; exact ⟨⟨a,b,c⟩⟩
 
 end full_subcategory

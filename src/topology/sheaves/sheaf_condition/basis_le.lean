@@ -33,7 +33,7 @@ namespace Top
 
 variables {C : Type u} [category.{v} C] (X : Top.{v})
 
-/-- Structure for indexing a family of open sets in a topological space. -/
+/-- Bundled indexed family of open sets. -/
 structure opens_index_struct :=
 (ι : Type v)
 (f : ι → opens X)
@@ -82,9 +82,9 @@ def basis_le_cone' : cone (bli B U) :=
 
 /-- A cone in the category of open sets is determined by the cone point (and the diagram). -/
 @[ext] lemma cone_ext {J : Type*} [category J] {f : J ⥤ (opens X)ᵒᵖ}
-  {c1 c2 : cone f} (h : c1.X = c2.X) : c1 = c2 :=
+  {c₁ c₂ : cone f} (h : c₁.X = c₂.X) : c₁ = c₂ :=
 -- or any category with subsingleton hom sets in place of (opens X)ᵒᵖ
-by { cases c1, cases c2, congr, exact h,
+by { cases c₁, cases c₂, congr, exact h,
      convert cast_heq _ _, dsimp at h, rw h }
 
 /-- If `B` is an indexed basis, `⋃{ V ∈ B | B ⊆ U } = U`. -/
@@ -110,7 +110,7 @@ lemma basis_le_presheaf_cone_app (i : basis_le B U) :
 
 lemma basis_le_presheaf_cone_app_id (i : B.ι) :
   (basis_le_presheaf_cone B (B.f i) F).π.app ⟨i, le_of_eq rfl⟩ = 𝟙 _
-:= by dunfold basis_le_presheaf_cone; dsimp; rw ← F.map_id; refl
+:= by { dunfold basis_le_presheaf_cone, dsimp, rw ← F.map_id, refl }
 
 /-- The condition that `F(U)` is the limit of all `F(V)` with `V ∈ B, V ⊆ U`. -/
 @[nolint has_inhabited_instance]

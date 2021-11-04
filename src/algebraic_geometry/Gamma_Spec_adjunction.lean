@@ -7,11 +7,13 @@ import algebraic_geometry.Spec
 import algebraic_geometry.ringed_space
 import topology.sheaves.sheaf_condition.basis_le
 import topology.sheaves.functors
+import category_theory.adjunction.limits
+import category_theory.adjunction.fully_faithful
 
 /-!
 # Adjunction between `Γ` and `Spec`
 
-Define the adjunction `Γ_Spec_adjunction : Γ ⊣ Spec` (or more technically,
+Define the adjunction `Γ_Spec.adjunction : Γ ⊣ Spec` (or more technically,
 `Γ.right_op ⊣ Spec.to_LocallyRingedSpace`) by defining the unit (done in Spec.lean) and
 counit (`to_Γ_Spec`, in multiple steps in this file) and checking that they satisfy
 the left and right triangle identities. The constructions and proofs make use of
@@ -303,7 +305,7 @@ end
 def core_unit_counit :
   adjunction.core_unit_counit Γ.right_op Spec.to_LocallyRingedSpace :=
 { unit := identity_to_Γ_Spec,
-  counit := nat_trans.op Spec_Γ_identity.inv,
+  counit := (nat_iso.op Spec_Γ_identity).inv,
   left_triangle' := by { ext X, rw nat_trans.comp_app, erw category.id_comp,
     convert congr_arg quiver.hom.op X.left_triangle using 1 },
   right_triangle' := by { ext1, ext1 R, erw category.id_comp, exact right_triangle R.unop } }
@@ -313,5 +315,15 @@ def core_unit_counit :
 def adjunction := adjunction.mk_of_unit_counit core_unit_counit
 
 end Γ_Spec
+
+/- Easy consequences of the adjunction. -/
+
+def Spec_preserves_limits := adjunction.right_adjoint_preserves_limits Γ_Spec.adjunction
+
+def Spec_full := @R_full_of_counit_is_iso
+  _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
+
+lemma Spec_faithful := @R_faithful_of_counit_is_iso
+  _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
 
 end algebraic_geometry

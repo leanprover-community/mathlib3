@@ -66,18 +66,9 @@ instance : small_category (walking_multicospan fst snd) :=
 { hom := hom,
   id := hom.id,
   comp := λ X Y Z, hom.comp,
-  id_comp' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  comp_id' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  assoc' := begin
-    rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_),
-    tidy,
-  end }
+  id_comp' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  comp_id' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  assoc' := by { rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_), tidy } }
 
 end walking_multicospan
 
@@ -108,18 +99,9 @@ instance : small_category (walking_multispan fst snd) :=
 { hom := hom,
   id := hom.id,
   comp := λ X Y Z, hom.comp,
-  id_comp' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  comp_id' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  assoc' := begin
-    rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_),
-    tidy,
-  end }
+  id_comp' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  comp_id' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  assoc' := by { rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_), tidy } }
 
 end walking_multispan
 
@@ -160,14 +142,8 @@ def multicospan : walking_multicospan I.fst_to I.snd_to ⥤ C :=
   | _, _, walking_multicospan.hom.fst b := I.fst _
   | _, _, walking_multicospan.hom.snd b := I.snd _
   end,
-  map_id' := begin
-    rintros (_|_),
-    tidy
-  end,
-  map_comp' := begin
-    rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_),
-    tidy
-  end }
+  map_id' := by { rintros (_|_), tidy },
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_), tidy } }
 
 @[simp] lemma multicospan_obj_left (a) :
   I.multicospan.obj (walking_multicospan.left a) = I.left a := rfl
@@ -200,14 +176,8 @@ def multispan : walking_multispan I.fst_from I.snd_from ⥤ C :=
   | _, _, walking_multispan.hom.fst b := I.fst _
   | _, _, walking_multispan.hom.snd b := I.snd _
   end,
-  map_id' := begin
-    rintros (_|_),
-    tidy
-  end,
-  map_comp' := begin
-    rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_),
-    tidy
-  end }
+  map_id' := by { rintros (_|_), tidy },
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_), tidy } }
 
 @[simp] lemma multispan_obj_left (a) :
   I.multispan.obj (walking_multispan.left a) = I.left a := rfl

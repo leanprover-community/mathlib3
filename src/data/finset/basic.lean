@@ -63,9 +63,6 @@ and the empty finset otherwise. See `data.fintype.basic`.
 * `finset.range`: For any `n : ℕ`, `range n` is equal to `{0, 1, ... , n - 1} ⊆ ℕ`.
   This convention is consistent with other languages and normalizes `card (range n) = n`.
   Beware, `n` is not in `range n`.
-* `finset.diag`: Given `s`, `diag s` is the set of pairs `(a, a)` with `a ∈ s`. See also
-  `finset.off_diag`: Given a finite set `s`, the off-diagonal,
-  `s.off_diag` is the set of pairs `(a, b)` with `a ≠ b` for `a, b ∈ s`.
 * `finset.attach`: Given `s : finset α`, `attach s` forms a finset of elements of the subtype
   `{a // a ∈ s}`; in other words, it attaches elements to a proof of membership in the set.
 
@@ -85,9 +82,9 @@ called `top` with `⊤ = univ`.
 
 * `finset.subset`: Lots of API about lattices, otherwise behaves exactly as one would expect.
 * `finset.union`: Defines `s ∪ t` (or `s ⊔ t`) as the union of `s` and `t`.
-  See `finset.bUnion` for finite unions.
+  See `finset.sup`/`finset.bUnion` for finite unions.
 * `finset.inter`: Defines `s ∩ t` (or `s ⊓ t`) as the intersection of `s` and `t`.
-  TODO: `finset.bInter` for finite intersections.
+  See `finset.inf` for finite intersections.
 * `finset.disj_union`: Given a hypothesis `h` which states that finsets `s` and `t` are disjoint,
   `s.disj_union t h` is the set such that `a ∈ disj_union s t h` iff `a ∈ s` or `a ∈ t`; this does
   not require decidable equality on the type `α`.
@@ -2752,69 +2749,6 @@ bUnion_nonempty.2 $ hs.imp $ λ x hx, ⟨hx, ht x hx⟩
 
 end bUnion
 
-/-! ### prod -/
-section prod
-variables {s s' : finset α} {t t' : finset β}
-
-/-- `product s t` is the set of pairs `(a, b)` such that `a ∈ s` and `b ∈ t`. -/
-protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
-
-@[simp] theorem product_val : (s.product t).1 = s.1.product t.1 := rfl
-
-@[simp] theorem mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
-
-theorem subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
-  s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
-λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
-
-lemma product_subset_product (hs : s ⊆ s') (ht : t ⊆ t') : s.product t ⊆ s'.product t' :=
-λ ⟨x,y⟩ h, mem_product.2 ⟨hs (mem_product.1 h).1, ht (mem_product.1 h).2⟩
-
-lemma product_subset_product_left (hs : s ⊆ s') : s.product t ⊆ s'.product t :=
-product_subset_product hs (subset.refl _)
-
-lemma product_subset_product_right (ht : t ⊆ t') : s.product t ⊆ s.product t' :=
-product_subset_product (subset.refl _) ht
-
-theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
-  s.product t = s.bUnion (λa, t.image $ λb, (a, b)) :=
-ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
-  and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
-
-@[simp] lemma product_bUnion {β γ : Type*} [decidable_eq γ]
-  (s : finset α) (t : finset β) (f : α × β → finset γ) :
-  (s.product t).bUnion f = s.bUnion (λ a, t.bUnion (λ b, f (a, b))) :=
-by { classical, simp_rw [product_eq_bUnion, bUnion_bUnion, image_bUnion] }
-
-@[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
-multiset.card_product _ _
-
-theorem filter_product (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
-  (s.product t).filter (λ (x : α × β), p x.1 ∧ q x.2) = (s.filter p).product (t.filter q) :=
-by { ext ⟨a, b⟩, simp only [mem_filter, mem_product], finish, }
-
-lemma filter_product_card (s : finset α) (t : finset β)
-  (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
-  ((s.product t).filter (λ (x : α × β), p x.1 ↔ q x.2)).card =
-  (s.filter p).card * (t.filter q).card + (s.filter (not ∘ p)).card * (t.filter (not ∘ q)).card :=
-begin
-  classical,
-  rw [← card_product, ← card_product, ← filter_product, ← filter_product, ← card_union_eq],
-  { apply congr_arg, ext ⟨a, b⟩, simp only [filter_union_right, mem_filter, mem_product],
-    split; intros; finish, },
-  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter, finish, },
-end
-
-lemma empty_product (t : finset β) :
-  (∅ : finset α).product t = ∅ :=
-rfl
-
-lemma product_empty (s : finset α) :
-  s.product (∅ : finset β) = ∅ :=
-eq_empty_of_forall_not_mem (λ x h, (finset.mem_product.1 h).2)
-
-end prod
-
 /-! ### sigma -/
 section sigma
 variables {σ : α → Type*} {s : finset α} {t : Πa, finset (σ a)}
@@ -2972,45 +2906,6 @@ lemma filter_card_add_filter_neg_card_eq_card {α : Type*} {s : finset α} (p : 
 by { classical, simp [← card_union_eq, filter_union_filter_neg_eq, disjoint_filter], }
 
 end disjoint
-
-section self_prod
-variables (s : finset α) [decidable_eq α]
-
-/-- Given a finite set `s`, the diagonal, `s.diag` is the set of pairs of the form `(a, a)` for
-`a ∈ s`. -/
-def diag := (s.product s).filter (λ (a : α × α), a.fst = a.snd)
-
-/-- Given a finite set `s`, the off-diagonal, `s.off_diag` is the set of pairs `(a, b)` with `a ≠ b`
-for `a, b ∈ s`. -/
-def off_diag := (s.product s).filter (λ (a : α × α), a.fst ≠ a.snd)
-
-@[simp] lemma mem_diag (x : α × α) : x ∈ s.diag ↔ x.1 ∈ s ∧ x.1 = x.2 :=
-by { simp only [diag, mem_filter, mem_product], split; intros; finish, }
-
-@[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
-by { simp only [off_diag, mem_filter, mem_product], split; intros; finish, }
-
-@[simp] lemma diag_card : (diag s).card = s.card :=
-begin
-  suffices : diag s = s.image (λ a, (a, a)), { rw this, apply card_image_of_inj_on, finish, },
-  ext ⟨a₁, a₂⟩, rw mem_diag, split; intros; finish,
-end
-
-@[simp] lemma off_diag_card : (off_diag s).card = s.card * s.card - s.card :=
-begin
-  suffices : (diag s).card + (off_diag s).card = s.card * s.card,
-  { nth_rewrite 2 ← s.diag_card, finish, },
-  rw ← card_product,
-  apply filter_card_add_filter_neg_card_eq_card,
-end
-
-@[simp] lemma diag_empty : (∅ : finset α).diag = ∅ :=
-eq_empty_of_forall_not_mem (by simp)
-
-@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ :=
-eq_empty_of_forall_not_mem (by simp)
-
-end self_prod
 
 /--
 Given a set A and a set B inside it, we can shrink A to any appropriate size, and keep B

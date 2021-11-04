@@ -92,17 +92,11 @@ theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma le_Sup_iff :
-  a ≤ Sup s ↔ (∀ b, (∀ x ∈ s, x ≤ b) → a ≤ b) :=
+lemma le_Sup_iff : a ≤ Sup s ↔ (∀ b ∈ upper_bounds s, a ≤ b) :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
-le_of_forall_le' begin
-  simp only [Sup_le_iff],
-  introv h₀ h₁,
-  rcases h _ h₁ with ⟨y,hy,hy'⟩,
-  solve_by_elim [le_trans hy']
-end
+le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
 
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=
@@ -120,6 +114,23 @@ class complete_semilattice_Inf (α : Type*) extends partial_order α, has_Inf α
 (Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
 (le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
 
+namespace order_dual
+
+variable (α)
+
+instance [complete_semilattice_Inf α] : complete_semilattice_Sup (order_dual α) :=
+{ Sup := Sup,
+  le_Sup := @complete_semilattice_Inf.Inf_le α _,
+  Sup_le := @complete_semilattice_Inf.le_Inf α _,
+  .. order_dual.partial_order α }
+
+instance [complete_semilattice_Sup α] : complete_semilattice_Inf (order_dual α) :=
+{ Inf := Inf,
+  Inf_le := @complete_semilattice_Sup.le_Sup α _,
+  le_Inf := @complete_semilattice_Sup.Sup_le α _,
+  .. order_dual.partial_order α }
+
+end order_dual
 
 section
 variables [complete_semilattice_Inf α] {s t : set α} {a b : α}
@@ -141,17 +152,11 @@ theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 @[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 le_is_glb_iff (is_glb_Inf s)
 
-lemma Inf_le_iff :
-  Inf s ≤ a ↔ (∀ b, (∀ x ∈ s, b ≤ x) → b ≤ a) :=
-⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
+lemma Inf_le_iff : Inf s ≤ a ↔ (∀ b ∈ lower_bounds s, b ≤ a) :=
+@le_Sup_iff (order_dual α) _ _ _
 
 theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
-le_of_forall_le begin
-  simp only [le_Inf_iff],
-  introv h₀ h₁,
-  rcases h _ h₁ with ⟨y,hy,hy'⟩,
-  solve_by_elim [le_trans _ hy']
-end
+@Sup_le_Sup_of_forall_exists_le (order_dual α) _ _ _ h
 
 -- We will generalize this to conditionally complete lattices in `cInf_singleton`.
 theorem Inf_singleton {a : α} : Inf {a} = a :=
@@ -266,11 +271,8 @@ namespace order_dual
 variable (α)
 
 instance [complete_lattice α] : complete_lattice (order_dual α) :=
-{ le_Sup := @complete_lattice.Inf_le α _,
-  Sup_le := @complete_lattice.le_Inf α _,
-  Inf_le := @complete_lattice.le_Sup α _,
-  le_Inf := @complete_lattice.Sup_le α _,
-  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
+{ .. order_dual.bounded_lattice α, .. order_dual.complete_semilattice_Sup α,
+  .. order_dual.complete_semilattice_Inf α }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
 { .. order_dual.complete_lattice α, .. order_dual.linear_order α }

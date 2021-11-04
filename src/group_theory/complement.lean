@@ -114,8 +114,7 @@ begin
     exact is_complement_top_singleton },
 end
 
-@[to_additive] lemma is_complement_top_right :
-  is_complement S ⊤ ↔ ∃ g : G, S = {g} :=
+@[to_additive] lemma is_complement_top_right : is_complement S ⊤ ↔ ∃ g : G, S = {g} :=
 begin
   refine ⟨λ h, set.exists_eq_singleton.mpr ⟨_, λ a b ha hb, _⟩, _⟩,
   { obtain ⟨a, ha⟩ := h.2 1,

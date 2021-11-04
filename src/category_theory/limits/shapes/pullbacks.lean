@@ -666,9 +666,11 @@ pullback_cone.mono_snd_of_is_pullback_of_mono (limit.is_limit _)
 instance mono_pullback_to_prod {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_binary_product X Y] :
   mono (prod.lift pullback.fst pullback.snd : pullback f g ⟶ _) :=
-⟨λ W i₁ i₂ h, by { ext,
-                   simpa using congr_arg (λ f, f ≫ prod.fst) h,
-                   simpa using congr_arg (λ f, f ≫ prod.snd) h }⟩
+⟨λ W i₁ i₂ h, begin
+  ext,
+  { simpa using congr_arg (λ f, f ≫ prod.fst) h }
+  { simpa using congr_arg (λ f, f ≫ prod.snd) h }
+end⟩
 
 /-- Two morphisms out of a pushout are equal if their compositions with the pushout morphisms are
     equal -/
@@ -697,9 +699,11 @@ pushout_cocone.epi_inr_of_is_pushout_of_epi (colimit.is_colimit _)
 instance epi_coprod_to_pushout {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
   [has_pushout f g] [has_binary_coproduct Y Z] :
   epi (coprod.desc pushout.inl pushout.inr : _ ⟶ pushout f g) :=
-⟨λ W i₁ i₂ h, by { ext,
-                   simpa using congr_arg (λ f, coprod.inl ≫ f) h,
-                   simpa using congr_arg (λ f, coprod.inr ≫ f) h }⟩
+⟨λ W i₁ i₂ h, begin
+  ext,
+  { simpa using congr_arg (λ f, coprod.inl ≫ f) h },
+  { simpa using congr_arg (λ f, coprod.inr ≫ f) h }
+end⟩
 
 section
 

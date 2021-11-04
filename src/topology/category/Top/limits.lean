@@ -331,7 +331,7 @@ begin
   apply concrete.limit_ext,
   rintros (_|_|_),
   { simp only [Top.comp_app, limit.lift_π_apply, pullback_preimage_fst, category.assoc,
-    pullback_cone.mk_π_app_one, hx₁, pullback_map],
+    pullback_cone.mk_π_app_one, hx₁],
     simp only[← comp_apply],
     congr,
     apply limit.w _ walking_cospan.hom.inl },
@@ -491,8 +491,8 @@ begin
   refine preserves_colimit_iso forget _ ≪≫
     colim.map_iso (nat_iso.of_components _ _) ≪≫
     colimit.iso_colimit_cocone (limits.types.coproduct_colimit_cocone (λ i, α i)),
-  exact λ i, iso.refl (α i),
-  intros _ _ _, tidy,
+  { exact λ i, iso.refl (α i) },
+  { intros _ _ _, tidy },
 end
 
 @[simp]

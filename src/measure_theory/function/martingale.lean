@@ -24,6 +24,18 @@ structure filtration {α} (ι) [preorder ι] {m0 : measurable_space α} (μ : me
 variables {α E ι : Type*} [preorder ι] [measurable_space E]
   {m0 : measurable_space α} {μ : measure α}
 
+variables (ι)
+
+/-- Constant filtration, equal to `m` for all `i ∈ ι`. -/
+def filtration.const (μ : measure α) (m : measurable_space α) (hm : m ≤ m0)
+  (hμ : sigma_finite (μ.trim hm)) : filtration ι μ :=
+{ map := λ _, m, le := λ _, hm, mono := λ i j hij, le_rfl, sigma_finite := λ _, hμ, }
+
+variables {ι}
+
+instance [sigma_finite μ] : inhabited (filtration ι μ) :=
+⟨filtration.const ι μ m0 le_rfl (by simpa)⟩
+
 /-- A family of functions `f` is adapted with respect to a filtration `ℱ` if for all `i`, `f i`
 is `ℱ i`-measurable. -/
 def adapted (f : ι → α → E) (ℱ : filtration ι μ) : Prop :=

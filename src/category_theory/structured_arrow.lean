@@ -20,7 +20,8 @@ We prove that `𝟙 (T.obj Y)` is the initial object in `T`-structured objects w
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+-- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /--
@@ -120,6 +121,20 @@ def mk_id_initial [full T] [faithful T] : is_initial (mk (𝟙 (T.obj Y))) :=
     simpa only [hom_mk_right, T.image_preimage, ←w m] using (category.id_comp _).symm,
   end }
 
+variables {A : Type u₃} [category.{v₃} A] {B : Type u₄} [category.{v₄} B]
+
+/-- The functor `(S, F ⋙ G) ⥤ (S, G)`. -/
+@[simps]
+def pre (S : D) (F : B ⥤ C) (G : C ⥤ D) : structured_arrow S (F ⋙ G) ⥤ structured_arrow S G :=
+comma.pre_right _ F G
+
+/-- The functor `(S, F) ⥤ (G(S), F ⋙ G)`. -/
+@[simps] def post (S : C) (F : B ⥤ C) (G : C ⥤ D) :
+  structured_arrow S F ⥤ structured_arrow (G.obj S) (F ⋙ G) :=
+{ obj := λ X, { right := X.right, hom := G.map X.hom },
+  map := λ X Y f, { right := f.right, w' :=
+    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
+
 end structured_arrow
 
 
@@ -213,6 +228,21 @@ def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
     apply S.map_injective,
     simpa only [hom_mk_left, S.image_preimage, ←w m] using (category.comp_id _).symm,
   end }
+
+
+variables {A : Type u₃} [category.{v₃} A] {B : Type u₄} [category.{v₄} B]
+
+/-- The functor `(F ⋙ G, S) ⥤ (G, S)`. -/
+@[simps]
+def pre (F : B ⥤ C) (G : C ⥤ D) (S : D) : costructured_arrow (F ⋙ G) S ⥤ costructured_arrow G S :=
+comma.pre_left F G _
+
+/-- The functor `(F, S) ⥤ (F ⋙ G, G(S))`. -/
+@[simps] def post (F : B ⥤ C) (G : C ⥤ D) (S : C) :
+  costructured_arrow F S ⥤ costructured_arrow (F ⋙ G) (G.obj S) :=
+{ obj := λ X, { left := X.left, hom := G.map X.hom },
+  map := λ X Y f, { left := f.left, w' :=
+    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
 
 end costructured_arrow
 

@@ -102,8 +102,8 @@ by simp only [foo.mk, foo.map_mk]; refl
 lemma foo.map_tt {α : Type} (x y : α) :
   foo.mk tt x = foo.mk tt y ↔ x = y :=
 by simp [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
-   rw relation.eqv_gen_iff_of_equivalence at h;
-   [exact h.2 rfl, apply equivalence_foo.R]
+   rw (equivalence_foo.R _).eqv_gen_iff at h;
+   exact h.2 rfl
 
 /-- consequence of original definition of `supp`. If there exists more than
 one value of type `α`, then the support of `foo.mk ff x` is empty -/
@@ -157,7 +157,7 @@ begin
   { introv hp, simp [functor.liftp] at hp,
     rcases hp with ⟨⟨z,z',hz⟩,hp⟩,
     simp at hp, replace hp := quot.exact _ hp,
-    rw relation.eqv_gen_iff_of_equivalence (equivalence_foo.R _) at hp,
+    rw (equivalence_foo.R _).eqv_gen_iff at hp,
     rcases hp with ⟨⟨⟩,hp⟩, subst y,
     replace hp := hp rfl, cases hp,
     exact hz }

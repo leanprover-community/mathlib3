@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
+import linear_algebra.dfinsupp
 import linear_algebra.std_basis
 import linear_algebra.isomorphisms
 import set_theory.cofinality
@@ -246,6 +247,11 @@ begin
     exact le_refl _, },
 end
 
+lemma cardinal_lift_le_dim_of_linear_independent'
+  {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
+  cardinal.lift.{v} (#ι) ≤ cardinal.lift.{w} (module.rank R M) :=
+cardinal_lift_le_dim_of_linear_independent.{u v w 0} hv
+
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type v} {v : ι → M} (hv : linear_independent R v) :
   #ι ≤ module.rank R M :=
@@ -419,11 +425,63 @@ lemma infinite_basis_le_maximal_linear_independent
   #ι ≤ #κ :=
 cardinal.lift_le.mp (infinite_basis_le_maximal_linear_independent' b v i m)
 
+lemma complete_lattice.independent.subtype_ne_bot_le_rank [no_zero_smul_divisors R M]
+  {V : ι → submodule R M} (hV : complete_lattice.independent V) :
+  cardinal.lift.{v} (#{i : ι // V i ≠ ⊥}) ≤ cardinal.lift.{w} (module.rank R M) :=
+begin
+  set I := {i : ι // V i ≠ ⊥},
+  have hI : ∀ i : I, ∃ v ∈ V i, v ≠ (0:M),
+  { intros i,
+    rw ← submodule.ne_bot_iff,
+    exact i.prop },
+  choose v hvV hv using hI,
+  have : linear_independent R v,
+  { exact (hV.comp _ subtype.coe_injective).linear_independent _ hvV hv },
+  exact cardinal_lift_le_dim_of_linear_independent' this
 end
+
+end
+
+section rank_zero
+
+variables {R : Type u} {M : Type v}
+variables [ring R] [nontrivial R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+
+lemma dim_zero_iff_forall_zero : module.rank R M = 0 ↔ ∀ x : M, x = 0 :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { contrapose! h,
+    obtain ⟨x, hx⟩ := h,
+    suffices : 1 ≤ module.rank R M,
+    { intro h, exact lt_irrefl _ (lt_of_lt_of_le cardinal.zero_lt_one (h ▸ this)) },
+    suffices : linear_independent R (λ (y : ({x} : set M)), ↑y),
+    { simpa using (cardinal_le_dim_of_linear_independent this), },
+    exact linear_independent_singleton hx },
+  { have : (⊤ : submodule R M) = ⊥,
+    { ext x, simp [h x] },
+    rw [←dim_top, this, dim_bot] }
+end
+
+lemma dim_zero_iff : module.rank R M = 0 ↔ subsingleton M :=
+dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
+
+lemma dim_pos_iff_exists_ne_zero : 0 < module.rank R M ↔ ∃ x : M, x ≠ 0 :=
+begin
+  rw ←not_iff_not,
+  simpa using dim_zero_iff_forall_zero
+end
+
+lemma dim_pos_iff_nontrivial : 0 < module.rank R M ↔ nontrivial M :=
+dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
+
+lemma dim_pos [h : nontrivial M] : 0 < module.rank R M :=
+dim_pos_iff_nontrivial.2 h
+
+end rank_zero
 
 section invariant_basis_number
 
-variables {R : Type u} [ring R] [nontrivial R] [invariant_basis_number R]
+variables {R : Type u} [ring R] [invariant_basis_number R]
 variables {M : Type v} [add_comm_group M] [module R M]
 
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
@@ -431,6 +489,7 @@ have the same cardinalities. -/
 theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.lift.{w'} (#ι) = cardinal.lift.{w} (#ι') :=
 begin
+  haveI := nontrivial_of_invariant_basis_number R,
   by_cases h : #ι < ω,
   { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
     haveI : fintype ι := (cardinal.lt_omega_iff_fintype.mp h).some,
@@ -500,8 +559,6 @@ begin
     simpa using s, },
 end
 
-variables [nontrivial R]
-
 /--
 Another auxiliary lemma for `basis.le_span`, which does not require assuming the basis is finite,
 but still assumes we have a finite spanning set.
@@ -510,6 +567,7 @@ lemma basis_le_span' {ι : Type*} (b : basis ι R M)
   {w : set M} [fintype w] (s : span R w = ⊤) :
   #ι ≤ fintype.card w :=
 begin
+  haveI := nontrivial_of_invariant_basis_number R,
   haveI := basis_fintype_of_finite_spans w s b,
   rw cardinal.fintype_card ι,
   simp only [cardinal.nat_cast_le],
@@ -525,7 +583,11 @@ then the cardinality of any basis is bounded by the cardinality of any spanning 
 theorem basis.le_span {J : set M} (v : basis ι R M)
    (hJ : span R J = ⊤) : #(range v) ≤ #J :=
 begin
-  cases le_or_lt ω (#J) with oJ oJ,
+  haveI := nontrivial_of_invariant_basis_number R,
+  casesI fintype_or_infinite J,
+  { rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
+    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
+    simp, },
   { have := cardinal.mk_range_eq_of_injective v.injective,
     let S : J → set ι := λ j, ↑(v.repr j).support,
     let S' : J → set M := λ j, v '' S j,
@@ -548,11 +610,7 @@ begin
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ (finset.finite_to_set _).image _) },
-    { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
-  { haveI : fintype J := (cardinal.lt_omega_iff_fintype.mp oJ).some,
-    rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
-    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
-    simp, },
+    { simpa } },
 end
 
 end rank_condition
@@ -632,6 +690,26 @@ begin
   exact le_top,
 end
 
+/-- A linearly-independent family of vectors in a module over a ring satisfying the strong rank
+condition must be finite if the module is Noetherian. -/
+noncomputable def fintype_of_is_noetherian_linear_independent [is_noetherian R M]
+  {v : ι → M} (hi : linear_independent R v) : fintype ι :=
+begin
+  have hfg : (⊤ : submodule R M).fg,
+  { exact is_noetherian_def.mp infer_instance ⊤, },
+  rw submodule.fg_def at hfg,
+  choose s hs hs' using hfg,
+  haveI : fintype s := hs.fintype,
+  apply linear_independent_fintype_of_le_span_fintype v hi s,
+  simp only [hs', set.subset_univ, submodule.top_coe, set.le_eq_subset],
+end
+
+/-- A linearly-independent subset of a module over a ring satisfying the strong rank condition
+must be finite if the module is Noetherian. -/
+lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
+  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
+⟨fintype_of_is_noetherian_linear_independent hi⟩
+
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
 we handle the case where the basis `b` is infinite.
@@ -642,13 +720,9 @@ lemma linear_independent_le_infinite_basis
   #κ ≤ #ι :=
 begin
   by_contradiction,
-  simp only [not_le] at h,
-  have w : #(finset ι) = #ι :=
-    cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›),
-  rw ←w at h,
+  rw [not_le, ← cardinal.mk_finset_eq_mk ι] at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
-  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h
-    (by { rw [cardinal.infinite_iff, w], exact (cardinal.infinite_iff.mp ‹infinite ι›), }),
+  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (by apply_instance),
   let v' := λ k : Φ ⁻¹' {s}, v k,
   have i' : linear_independent R v' := i.comp _ subtype.val_injective,
   have w' : fintype (Φ ⁻¹' {s}),
@@ -681,6 +755,13 @@ begin
     exact linear_independent_le_infinite_basis b v i, },
 end
 
+/-- In an `n`-dimensional space, the rank is at most `m`. -/
+lemma basis.card_le_card_of_linear_independent_aux
+  {R : Type*} [ring R] [strong_rank_condition R]
+  (n : ℕ) {m : ℕ} (v : fin m → fin n → R) :
+  linear_independent R v → m ≤ n :=
+λ h, by simpa using (linear_independent_le_basis (pi.basis_fun R (fin n)) v h)
+
 /--
 Over any ring `R` satisfying the strong rank condition,
 if `b` is an infinite basis for a module `M`,
@@ -701,11 +782,10 @@ begin
     exact infinite_basis_le_maximal_linear_independent b v i m, }
 end
 
-variables [nontrivial R]
-
 theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι R M) :
   #ι = module.rank R M :=
 begin
+  haveI := nontrivial_of_invariant_basis_number R,
   apply le_antisymm,
   { transitivity,
     swap,
@@ -729,12 +809,34 @@ v.reindex_range.mk_eq_dim''
 cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι R M) :
   module.rank R M = fintype.card ι :=
-by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
-       set.card_range_of_injective h.injective]
+by {haveI := nontrivial_of_invariant_basis_number R,
+  rw [←h.mk_range_eq_dim, cardinal.fintype_card, set.card_range_of_injective h.injective] }
+
+lemma basis.card_le_card_of_linear_independent {ι : Type*} [fintype ι]
+  (b : basis ι R M) {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
+  fintype.card ι' ≤ fintype.card ι :=
+begin
+  letI := nontrivial_of_invariant_basis_number R,
+  simpa [dim_eq_card_basis b, cardinal.fintype_card] using
+    cardinal_lift_le_dim_of_linear_independent' hv
+end
+
+lemma basis.card_le_card_of_submodule (N : submodule R M) [fintype ι] (b : basis ι R M)
+  [fintype ι'] (b' : basis ι' R N) : fintype.card ι' ≤ fintype.card ι :=
+b.card_le_card_of_linear_independent (b'.linear_independent.map' N.subtype N.ker_subtype)
+
+lemma basis.card_le_card_of_le
+  {N O : submodule R M} (hNO : N ≤ O) [fintype ι] (b : basis ι R O) [fintype ι']
+  (b' : basis ι' R N) : fintype.card ι' ≤ fintype.card ι :=
+b.card_le_card_of_linear_independent
+  (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
 
 theorem basis.mk_eq_dim (v : basis ι R M) :
   cardinal.lift.{v} (#ι) = cardinal.lift.{w} (module.rank R M) :=
-by rw [←v.mk_range_eq_dim, cardinal.mk_range_eq_of_injective v.injective]
+begin
+  haveI := nontrivial_of_invariant_basis_number R,
+  rw [←v.mk_range_eq_dim, cardinal.mk_range_eq_of_injective v.injective]
+end
 
 theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
   cardinal.lift.{(max v m)} (#ι) = cardinal.lift.{(max w m)} (module.rank R M) :=
@@ -763,16 +865,51 @@ finite_def.2 (b.nonempty_fintype_index_of_dim_lt_omega h)
 
 lemma dim_span {v : ι → M} (hv : linear_independent R v) :
   module.rank R ↥(span R (range v)) = #(range v) :=
-by rw [←cardinal.lift_inj, ← (basis.span hv).mk_eq_dim,
+begin
+  haveI := nontrivial_of_invariant_basis_number R,
+  rw [←cardinal.lift_inj, ← (basis.span hv).mk_eq_dim,
     cardinal.mk_range_eq_of_injective (@linear_independent.injective ι R M v _ _ _ _ hv)]
+end
 
 lemma dim_span_set {s : set M} (hs : linear_independent R (λ x, x : s → M)) :
   module.rank R ↥(span R s) = #s :=
 by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span hs }
 
+/-- If `N` is a submodule in a free, finitely generated module,
+do induction on adjoining a linear independent element to a submodule. -/
+def submodule.induction_on_rank [is_domain R] [fintype ι] (b : basis ι R M)
+  (P : submodule R M → Sort*) (ih : ∀ (N : submodule R M),
+    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') →
+    P N)
+  (N : submodule R M) : P N :=
+submodule.induction_on_rank_aux b P ih (fintype.card ι) N (λ s hs hli,
+  by simpa using b.card_le_card_of_linear_independent hli)
+
+/-- If `S` a finite-dimensional ring extension of `R` which is free as an `R`-module,
+then the rank of an ideal `I` of `S` over `R` is the same as the rank of `S`.
+-/
+lemma ideal.rank_eq {R S : Type*} [comm_ring R] [strong_rank_condition R] [ring S] [is_domain S]
+  [algebra R S] {n m : Type*} [fintype n] [fintype m]
+  (b : basis n R S) {I : ideal S} (hI : I ≠ ⊥) (c : basis m R I) :
+  fintype.card m = fintype.card n :=
+begin
+  obtain ⟨a, ha⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr hI),
+  have : linear_independent R (λ i, b i • a),
+  { have hb := b.linear_independent,
+    rw fintype.linear_independent_iff at ⊢ hb,
+    intros g hg,
+    apply hb g,
+    simp only [← smul_assoc, ← finset.sum_smul, smul_eq_zero] at hg,
+    exact hg.resolve_right ha },
+  exact le_antisymm
+    (b.card_le_card_of_linear_independent (c.linear_independent.map' (submodule.subtype I)
+      (linear_map.ker_eq_bot.mpr subtype.coe_injective)))
+    (c.card_le_card_of_linear_independent this),
+end
+
 variables (R)
 
-lemma dim_self : module.rank R R = 1 :=
+@[simp] lemma dim_self : module.rank R R = 1 :=
 by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.mk_punit]
 
 end strong_rank_condition
@@ -837,14 +974,9 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq :
 -- using `linear_independent_le_span'`
 lemma dim_span_le (s : set V) : module.rank K (span K s) ≤ #s :=
 begin
-  classical,
-  rcases
-    exists_linear_independent (linear_independent_empty K V) (set.empty_subset s)
-    with ⟨b, hb, _, hsb, hlib⟩,
-  have hsab : span K s = span K b,
-    from span_eq_of_le _ hsb (span_le.2 (λ x hx, subset_span (hb hx))),
+  obtain ⟨b, hb, hsab, hlib⟩ := exists_linear_independent K s,
   convert cardinal.mk_le_mk_of_subset hb,
-  rw [hsab, dim_span_set hlib]
+  rw [← hsab, dim_span_set hlib]
 end
 
 lemma dim_span_of_finset (s : finset V) :
@@ -859,44 +991,13 @@ begin
   let c := basis.of_vector_space K V₁,
   rw [← cardinal.lift_inj,
       ← (basis.prod b c).mk_eq_dim,
-      cardinal.lift_add, cardinal.lift_mk,
+      cardinal.lift_add, ← cardinal.mk_ulift,
       ← b.mk_eq_dim, ← c.mk_eq_dim,
-      cardinal.lift_mk, cardinal.lift_mk,
+      ← cardinal.mk_ulift, ← cardinal.mk_ulift,
       cardinal.add_def (ulift _)],
   exact cardinal.lift_inj.1 (cardinal.lift_mk_eq.2
       ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm ⟩),
 end
-
--- TODO the remainder of this section should generalize beyond division rings.
-
-lemma dim_zero_iff_forall_zero : module.rank K V = 0 ↔ ∀ x : V, x = 0 :=
-begin
-  split,
-  { intros h x,
-    have card_mk_range := (basis.of_vector_space K V).mk_range_eq_dim,
-    rw [h, cardinal.mk_emptyc_iff, coe_of_vector_space, subtype.range_coe] at card_mk_range,
-    simpa [card_mk_range] using (of_vector_space K V).mem_span x },
-  { intro h,
-    have : (⊤ : submodule K V) = ⊥,
-    { ext x, simp [h x] },
-    rw [←dim_top, this, dim_bot] }
-end
-
-lemma dim_zero_iff : module.rank K V = 0 ↔ subsingleton V :=
-dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
-
-lemma dim_pos_iff_exists_ne_zero : 0 < module.rank K V ↔ ∃ x : V, x ≠ 0 :=
-begin
-  rw ←not_iff_not,
-  simpa using dim_zero_iff_forall_zero
-end
-
-lemma dim_pos_iff_nontrivial : 0 < module.rank K V ↔ nontrivial V :=
-dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
-
-lemma dim_pos [h : nontrivial V] : 0 < module.rank K V :=
-dim_pos_iff_nontrivial.2 h
-
 
 section fintype
 variable [fintype η]
@@ -908,18 +1009,18 @@ lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ 
 begin
   let b := assume i, basis.of_vector_space K (φ i),
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
-  rw [←cardinal.lift_inj, ← this.mk_eq_dim],
-  simp [λ i, (b i).mk_range_eq_dim.symm, cardinal.sum_mk]
+  rw [← cardinal.lift_inj, ← this.mk_eq_dim],
+  simp [← (b _).mk_range_eq_dim]
 end
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
-by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
+by rw [dim_pi, cardinal.sum_const', cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
   module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
     cardinal.lift.{u₁'} (module.rank K V) :=
-by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
+by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card, cardinal.lift_nat_cast]
 
 lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_self, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
@@ -1016,14 +1117,6 @@ lemma dim_add_le_dim_add_dim (s t : submodule K V) :
   module.rank K (s ⊔ t : submodule K V) ≤ module.rank K s + module.rank K t :=
 by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
-end
-
-lemma exists_mem_ne_zero_of_ne_bot {s : submodule K V} (h : s ≠ ⊥) : ∃ b : V, b ∈ s ∧ b ≠ 0 :=
-begin
-  classical,
-  by_contradiction hex,
-  have : ∀x∈s, (x:V) = 0, { simpa only [not_exists, not_and, not_not, ne.def] using hex },
-  exact (h $ bot_unique $ assume s hs, (submodule.mem_bot K).2 $ this s hs)
 end
 
 lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s) :

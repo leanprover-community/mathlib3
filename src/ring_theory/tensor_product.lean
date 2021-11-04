@@ -303,15 +303,15 @@ lemma mul_assoc' (mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] 
 begin
     intros,
     apply tensor_product.induction_on x,
-    { simp, },
+    { simp only [linear_map.map_zero, linear_map.zero_apply], },
     apply tensor_product.induction_on y,
-    { simp, },
+    { simp only [linear_map.map_zero, forall_const, linear_map.zero_apply], },
     apply tensor_product.induction_on z,
-    { simp, },
-    { intros, simp [h], },
-    { intros, simp [linear_map.map_add, *], },
-    { intros, simp [linear_map.map_add, *], },
-    { intros, simp [linear_map.map_add, *], },
+    { simp only [linear_map.map_zero, forall_const], },
+    { intros, simp only [h], },
+    { intros, simp only [linear_map.map_add, *], },
+    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
+    { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
 end
 
 lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=

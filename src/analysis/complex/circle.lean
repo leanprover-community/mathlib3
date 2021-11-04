@@ -3,8 +3,8 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.complex.basic
-import data.complex.exponential
+import analysis.special_functions.exp
+import topology.continuous_function.basic
 
 /-!
 # The circle
@@ -33,6 +33,7 @@ is the kernel of the homomorphism `complex.norm_sq` from `ℂ` to `ℝ`.
 noncomputable theory
 
 open complex metric
+open_locale complex_conjugate
 
 /-- The unit circle in `ℂ`, here given the structure of a submonoid of `ℂ`. -/
 def circle : submonoid ℂ :=
@@ -55,12 +56,12 @@ lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := by { ext, simp }
 lemma nonzero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := nonzero_of_mem_unit_sphere z
 
 instance : group circle :=
-{ inv := λ z, ⟨conj z, by simp⟩,
+{ inv := λ z, ⟨conj (z : ℂ), by simp⟩,
   mul_left_inv := λ z, subtype.ext $ by { simp [has_inv.inv, ← norm_sq_eq_conj_mul_self,
     ← mul_self_abs] },
   .. circle.to_monoid }
 
-lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj z := rfl
+lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = (conj : ring_aut ℂ) z := rfl
 
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin
@@ -85,16 +86,23 @@ instance : topological_group circle :=
     complex.conj_cle.continuous.comp continuous_subtype_coe }
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`. -/
-def exp_map_circle (t : ℝ) : circle :=
-⟨exp (t * I), by simp [exp_mul_I, abs_cos_add_sin_mul_I]⟩
+def exp_map_circle : C(ℝ, circle) :=
+{ to_fun := λ t, ⟨exp (t * I), by simp [exp_mul_I, abs_cos_add_sin_mul_I]⟩ }
 
 @[simp] lemma exp_map_circle_apply (t : ℝ) : ↑(exp_map_circle t) = complex.exp (t * complex.I) :=
 rfl
 
+@[simp] lemma exp_map_circle_zero : exp_map_circle 0 = 1 :=
+subtype.ext $ by rw [exp_map_circle_apply, of_real_zero, zero_mul, exp_zero, submonoid.coe_one]
+
+@[simp] lemma exp_map_circle_add (x y : ℝ) :
+  exp_map_circle (x + y) = exp_map_circle x * exp_map_circle y :=
+subtype.ext $ by simp only [exp_map_circle_apply, submonoid.coe_mul, of_real_add, add_mul,
+  complex.exp_add]
+
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`, considered as a homomorphism of
 groups. -/
 def exp_map_circle_hom : ℝ →+ (additive circle) :=
-{ to_fun := exp_map_circle,
-  map_zero' := by { rw exp_map_circle, convert of_mul_one, simp },
-  map_add' := λ x y, show exp_map_circle (x + y) = (exp_map_circle x) * (exp_map_circle y),
-    from subtype.ext $ by simp [exp_map_circle, exp_add, add_mul] }
+{ to_fun := additive.of_mul ∘ exp_map_circle,
+  map_zero' := exp_map_circle_zero,
+  map_add' := exp_map_circle_add }

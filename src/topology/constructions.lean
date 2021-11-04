@@ -121,11 +121,25 @@ continuous_inf_dom_left continuous_induced_dom
 lemma continuous_at_fst {p : α × β} : continuous_at prod.fst p :=
 continuous_fst.continuous_at
 
+lemma continuous.fst {f : α → β × γ} (hf : continuous f) : continuous (λ a : α, (f a).1) :=
+continuous_fst.comp hf
+
+lemma continuous_at.fst {f : α → β × γ} {x : α} (hf : continuous_at f x) :
+  continuous_at (λ a : α, (f a).1) x :=
+continuous_at_fst.comp hf
+
 @[continuity] lemma continuous_snd : continuous (@prod.snd α β) :=
 continuous_inf_dom_right continuous_induced_dom
 
 lemma continuous_at_snd {p : α × β} : continuous_at prod.snd p :=
 continuous_snd.continuous_at
+
+lemma continuous.snd {f : α → β × γ} (hf : continuous f) : continuous (λ a : α, (f a).2) :=
+continuous_snd.comp hf
+
+lemma continuous_at.snd {f : α → β × γ} {x : α} (hf : continuous_at f x) :
+  continuous_at (λ a : α, (f a).2) x :=
+continuous_at_snd.comp hf
 
 @[continuity] lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
@@ -152,7 +166,7 @@ lemma filter.eventually.prod_mk_nhds {pa : α → Prop} {a} (ha : ∀ᶠ x in �
 (ha.prod_inl_nhds b).and (hb.prod_inr_nhds a)
 
 lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
-continuous.prod_mk continuous_snd continuous_fst
+continuous_snd.prod_mk continuous_fst
 
 lemma continuous_uncurry_left {f : α → β → γ} (a : α)
   (h : continuous (function.uncurry f)) : continuous (f a) :=
@@ -787,6 +801,17 @@ lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space 
   {I : set ι} {s : Π i, set (α i)} :
   interior (pi I s) = I.pi (λ i, interior (s i)) :=
 by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
+
+lemma exists_finset_piecewise_mem_of_mem_nhds [decidable_eq ι] [Π i, topological_space (π i)]
+  {s : set (Π a, π a)} {x : Π a, π a} (hs : s ∈ 𝓝 x) (y : Π a, π a) :
+  ∃ I : finset ι, I.piecewise x y ∈ s :=
+begin
+  simp only [nhds_pi, mem_infi', mem_comap] at hs,
+  rcases hs with ⟨I, hI, V, hV, hV_univ, rfl, -⟩,
+  choose t ht htV using hV,
+  refine ⟨hI.to_finset, mem_bInter $ λ i hi, htV i _⟩,
+  simpa [hI.mem_to_finset.2 hi] using mem_of_mem_nhds (ht i)
+end
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =

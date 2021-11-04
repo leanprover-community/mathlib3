@@ -70,8 +70,7 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
-instance : has_coe_to_sort (Module.{v} R) :=
-{ S := Type v, coe := Module.carrier }
+instance : has_coe_to_sort (Module.{v} R) (Type v) := ⟨Module.carrier⟩
 
 instance Module_category : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,

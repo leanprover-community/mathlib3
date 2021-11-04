@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.complex.arg
+import analysis.special_functions.log
+import analysis.special_functions.trigonometric.inverse_deriv
 
 /-!
 # The complex `log` function
@@ -70,21 +72,6 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
-
-lemma exists_pow_nat_eq (x : ℂ) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
-begin
-  by_cases hx : x = 0,
-  { use 0, simp only [hx, zero_pow_eq_zero, hn] },
-  { use exp (log x / n),
-    rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
-    exact_mod_cast (pos_iff_ne_zero.mp hn) }
-end
-
-lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=
-begin
-  obtain ⟨z, rfl⟩ := exists_pow_nat_eq x zero_lt_two,
-  exact ⟨z, sq z⟩
-end
 
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]

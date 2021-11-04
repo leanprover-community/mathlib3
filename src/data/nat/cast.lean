@@ -124,7 +124,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
 
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
   ((n - m : ℕ) : α) = n - m :=
-eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
+eq_sub_of_add_eq $ by rw [← cast_add, tsub_add_cancel_of_le h]
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
@@ -166,7 +166,7 @@ variables [ordered_semiring α]
 | 0     := le_refl _
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
-theorem mono_cast : monotone (coe : ℕ → α) :=
+@[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
 λ m n h, let ⟨k, hk⟩ := le_iff_exists_add.1 h in by simp [hk]
 
 variable [nontrivial α]
@@ -179,7 +179,7 @@ theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
-@[simp, norm_cast] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
+@[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
 
 @[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
@@ -336,7 +336,7 @@ begin
 end
 
 lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
-⟨λ h, (coe_lt_coe.2 zero_lt_one).trans_le h,
+⟨lt_of_lt_of_le (coe_lt_coe.mpr zero_lt_one),
   λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
 
 @[elab_as_eliminator]

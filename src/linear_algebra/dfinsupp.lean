@@ -35,10 +35,10 @@ function with finite support, module, linear algebra
 variables {ι : Type*} {R : Type*} {S : Type*} {M : ι → Type*} {N : Type*}
 
 variables [dec_ι : decidable_eq ι]
-variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
-variables [add_comm_monoid N] [module R N]
 
 namespace dfinsupp
+variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
+variables [add_comm_monoid N] [module R N]
 
 include dec_ι
 
@@ -214,6 +214,7 @@ end dfinsupp
 include dec_ι
 
 namespace submodule
+variables [semiring R] [add_comm_monoid N] [module R N]
 open dfinsupp
 
 lemma dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
@@ -289,13 +290,15 @@ namespace complete_lattice
 
 open dfinsupp
 
+section semiring
+variables [semiring R] [add_comm_monoid N] [module R N]
+
 /-- Independence of a family of submodules can be expressed as a quantifier over `dfinsupp`s.
 
 This is an intermediate result used to prove
 `complete_lattice.independent_of_dfinsupp_lsum_injective` and
 `complete_lattice.independent.dfinsupp_lsum_injective`. -/
-lemma independent_iff_forall_dfinsupp {R M : Type*}
-  [semiring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M) :
+lemma independent_iff_forall_dfinsupp (p : ι → submodule R N) :
   independent p ↔
     ∀ i (x : p i) (v : Π₀ (i : ι), ↥(p i)), lsum ℕ (λ i, (p i).subtype) (erase i v) = x → x = 0 :=
 begin
@@ -309,8 +312,7 @@ end
 
 /- If `dfinsupp.lsum` applied with `submodule.subtype` is injective then the submodules are
 independent. -/
-lemma independent_of_dfinsupp_lsum_injective {R M : Type*}
-  [semiring R] [add_comm_monoid M] [module R M] (p : ι → submodule R M)
+lemma independent_of_dfinsupp_lsum_injective (p : ι → submodule R N)
   (h : function.injective (lsum ℕ (λ i, (p i).subtype))) :
   independent p :=
 begin
@@ -322,6 +324,22 @@ begin
   simpa [eq_comm] using this,
 end
 
+/-- Combining `dfinsupp.lsum` with `linear_map.to_span_singleton` is the same as `finsupp.total` -/
+lemma lsum_comp_map_range_to_span_singleton
+  [Π (m : R), decidable (m ≠ 0)]
+  (p : ι → submodule R N) {v : ι → N} (hv : ∀ (i : ι), v i ∈ p i) :
+  ((lsum ℕ) (λ i, (p i).subtype) : _ →ₗ[R] _).comp
+    ((map_range.linear_map
+      (λ i, linear_map.to_span_singleton R ↥(p i) ⟨v i, hv i⟩) : _ →ₗ[R] _).comp
+      (finsupp_lequiv_dfinsupp R : (ι →₀ R) ≃ₗ[R] _).to_linear_map) =
+  finsupp.total ι N R v :=
+by { ext, simp }
+
+end semiring
+
+section ring
+variables [ring R] [add_comm_group N] [module R N]
+
 /-- The canonical map out of a direct sum of a family of submodules is injective when the submodules
 are `complete_lattice.independent`.
 
@@ -329,11 +347,10 @@ Note that this is not generally true for `[semiring R]`, for instance when `A` i
 `ℕ`-submodules of the positive and negative integers.
 
 See `counterexamples/direct_sum_is_internal.lean` for a proof of this fact. -/
-lemma independent.dfinsupp_lsum_injective {R M : Type*}
-  [ring R] [add_comm_group M] [module R M] {p : ι → submodule R M}
+lemma independent.dfinsupp_lsum_injective {p : ι → submodule R N}
   (h : independent p) : function.injective (lsum ℕ (λ i, (p i).subtype)) :=
 begin
-  -- simplify everything down to binders over equalities in `M`
+  -- simplify everything down to binders over equalities in `N`
   rw independent_iff_forall_dfinsupp at h,
   suffices : (lsum ℕ (λ i, (p i).subtype)).ker = ⊥,
   { -- Lean can't find this without our help
@@ -354,9 +371,31 @@ applied with `submodule.subtype` is injective.
 
 Note that this is not generally true for `[semiring R]`; see
 `complete_lattice.independent.dfinsupp_lsum_injective` for details. -/
-lemma independent_iff_dfinsupp_lsum_injective {R M : Type*}
-  [ring R] [add_comm_group M] [module R M] (p : ι → submodule R M) :
+lemma independent_iff_dfinsupp_lsum_injective (p : ι → submodule R N) :
   independent p ↔ function.injective (lsum ℕ (λ i, (p i).subtype)) :=
 ⟨independent.dfinsupp_lsum_injective, independent_of_dfinsupp_lsum_injective p⟩
+
+omit dec_ι
+/-- If a family of submodules is `independent`, then a choice of nonzero vector from each submodule
+forms a linearly independent family. -/
+lemma independent.linear_independent [no_zero_smul_divisors R N] (p : ι → submodule R N)
+  (hp : complete_lattice.independent p) {v : ι → N} (hv : ∀ i, v i ∈ p i) (hv' : ∀ i, v i ≠ 0) :
+  linear_independent R v :=
+begin
+  classical,
+  rw linear_independent_iff,
+  intros l hl,
+  let a := dfinsupp.map_range.linear_map
+    (λ i, linear_map.to_span_singleton R (p i) (⟨v i, hv i⟩)) l.to_dfinsupp,
+  have ha : a = 0,
+  { apply hp.dfinsupp_lsum_injective,
+    rwa ←lsum_comp_map_range_to_span_singleton _ hv at hl },
+  ext i,
+  apply smul_left_injective R (hv' i),
+  have : l i • v i = a i := rfl,
+  simp [this, ha],
+end
+
+end ring
 
 end complete_lattice

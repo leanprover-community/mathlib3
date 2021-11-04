@@ -99,7 +99,7 @@ theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
   (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0} :=
 begin
-  have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
+  have hq : 0 < q - 1, { rw [← fintype.card_units, fintype.card_pos_iff], exact ⟨1⟩ },
   let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, eval x (f i) = 0 },
   have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
   { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },

@@ -72,7 +72,7 @@ lemma omega_limit_mono_left {f₁ f₂ : filter τ} (hf : f₁ ≤ f₂) : ω f�
 omega_limit_subset_of_tendsto ϕ s (tendsto_id' hf)
 
 lemma omega_limit_mono_right {s₁ s₂ : set α} (hs : s₁ ⊆ s₂) : ω f ϕ s₁ ⊆ ω f ϕ s₂ :=
-bInter_subset_bInter_right $ λ u hu, closure_mono (image2_subset subset.rfl hs)
+bInter_mono $ λ u hu, closure_mono (image2_subset subset.rfl hs)
 
 lemma is_closed_omega_limit : is_closed (ω f ϕ s) :=
 is_closed_Inter $ λ u, is_closed_Inter $ λ hu, is_closed_closure

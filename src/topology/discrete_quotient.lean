@@ -92,8 +92,8 @@ lemma trans : ∀ x y z : X, S.rel x y → S.rel y z → S.rel x z := S.equiv.2.
 /-- The setoid whose quotient yields the discrete quotient. -/
 def setoid : setoid X := ⟨S.rel, S.equiv⟩
 
-instance : has_coe_to_sort (discrete_quotient X) :=
-⟨Type*, λ S, quotient S.setoid⟩
+instance : has_coe_to_sort (discrete_quotient X) Type* :=
+⟨λ S, quotient S.setoid⟩
 
 instance : topological_space S := ⊥
 

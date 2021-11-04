@@ -7,7 +7,7 @@ Authors: Johan Commelin, Eric Wieser
 import data.mv_polynomial
 import algebra.algebra.operations
 import data.fintype.card
-import algebra.direct_sum.algebra
+import algebra.direct_sum.internal
 
 /-!
 # Homogeneous polynomials
@@ -221,11 +221,10 @@ end
 /--
 The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`
 and `direct_sum.algebra`. -/
-noncomputable instance homogeneous_submodule.gcomm_monoid :
-  direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=
-direct_sum.gcomm_monoid.of_submodules _
-  (is_homogeneous_one σ R)
-  (λ i j hi hj, is_homogeneous.mul hi.prop hj.prop)
+instance homogeneous_submodule.gcomm_semiring :
+  set_like.graded_monoid (homogeneous_submodule σ R) :=
+{ one_mem := is_homogeneous_one σ R,
+  mul_mem := λ i j xi xj, is_homogeneous.mul}
 
 open_locale direct_sum
 noncomputable example : comm_semiring (⨁ i, homogeneous_submodule σ R i) := infer_instance

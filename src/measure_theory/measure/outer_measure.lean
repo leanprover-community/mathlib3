@@ -70,7 +70,7 @@ section basic
 
 variables {α : Type*} {β : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
 
-instance : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
+instance : has_coe_to_fun (outer_measure α) (λ _, set α → ℝ≥0∞) := ⟨λ m, m.measure_of⟩
 
 @[simp] lemma measure_of_eq_coe (m : outer_measure α) : m.measure_of = m := rfl
 
@@ -131,7 +131,7 @@ begin
   rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,
   cases le_or_lt j n with hjn hnj, { exact or.inl (h' hjn hj) },
   have : j - (n + 1) + n + 1 = j,
-    by rw [add_assoc, nat.sub_add_cancel hnj],
+    by rw [add_assoc, tsub_add_cancel_of_le hnj.nat_succ_le],
   refine or.inr (mem_Union.2 ⟨j - (n + 1), _, hlt _ _⟩),
   { rwa this },
   { rw [← nat.succ_le_iff, nat.succ_eq_add_one, this] }

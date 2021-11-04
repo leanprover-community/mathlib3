@@ -6,9 +6,9 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
-import algebra.order.functions
 import algebra.order.monoid_lemmas
 import order.bounded_lattice
+import order.min_max
 import order.rel_iso
 
 /-!
@@ -156,14 +156,9 @@ preorder.lift (coe : units α → α)
 theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
--- should `to_additive` do this?
-attribute [norm_cast] add_units.coe_le_coe
-
 @[simp, norm_cast, to_additive]
 theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) < b ↔ a < b := iff.rfl
-
-attribute [norm_cast] add_units.coe_lt_coe
 
 @[to_additive]
 instance [monoid α] [partial_order α] : partial_order (units α) :=
@@ -178,14 +173,10 @@ theorem max_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [max_def, h]
 
-attribute [norm_cast] add_units.max_coe
-
 @[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min_def, h]
-
-attribute [norm_cast] add_units.min_coe
 
 end units
 
@@ -287,15 +278,13 @@ variables [has_one α]
 
 @[to_additive] instance : has_one (with_top α) := ⟨(1 : α)⟩
 
-@[simp, to_additive] lemma coe_one : ((1 : α) : with_top α) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : α) : with_top α) = 1 := rfl
 
-@[simp, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
+@[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
 
-@[simp, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
+@[simp, norm_cast, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
 trans eq_comm coe_eq_one
-
-attribute [norm_cast] coe_one coe_eq_one coe_zero coe_eq_zero one_eq_coe zero_eq_coe
 
 @[simp, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
 @[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
@@ -330,6 +319,12 @@ lemma add_eq_coe [has_add α] : ∀ {a b : with_top α} {c : α},
 | (some a) none c := by simp [none_eq_top]
 | (some a) (some b) c :=
     by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
+
+@[simp] lemma add_coe_eq_top_iff [has_add α] {x : with_top α} {y : α} : x + y = ⊤ ↔ x = ⊤ :=
+by { induction x using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_add] }
+
+@[simp] lemma coe_add_eq_top_iff [has_add α] {x : α} {y : with_top α} : ↑x + y = ⊤ ↔ y = ⊤ :=
+by { induction y using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_add] }
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add_assoc := begin
@@ -887,6 +882,14 @@ instance [linear_ordered_comm_monoid α] :
   .. order_dual.ordered_comm_monoid }
 
 end order_dual
+
+section linear_ordered_cancel_add_comm_monoid
+variables [linear_ordered_cancel_add_comm_monoid α]
+
+lemma lt_or_lt_of_add_lt_add {a b m n : α} (h : m + n < a + b) : m < a ∨ n < b :=
+by { contrapose! h, exact add_le_add h.1 h.2 }
+
+end linear_ordered_cancel_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid
 

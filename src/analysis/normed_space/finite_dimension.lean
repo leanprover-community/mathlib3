@@ -474,14 +474,14 @@ theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : 
   ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
 begin
   let F := submodule.span 𝕜 (s : set E),
-  haveI : finite_dimensional 𝕜 F,
-  { apply is_noetherian_span_of_finite _ (finset.finite_to_set s), apply_instance },
+  haveI : finite_dimensional 𝕜 F := module.finite_def.2
+    ((submodule.fg_top _).2 (submodule.fg_def.2 ⟨s, finset.finite_to_set _, rfl⟩)),
   have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
   have : ∃ x, x ∉ F,
   { contrapose! h,
     have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
     have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
-    exact is_noetherian_top_iff.1 this },
+    refine module.finite_def.2 ((submodule.fg_top _).1 (module.finite_def.1 this)) },
   obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
     riesz_lemma_of_norm_lt hc hR Fclosed this,
   have hx' : ∀ (y : E), y ∈ F → 1 ≤ ∥y - x∥,

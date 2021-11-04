@@ -89,9 +89,8 @@ namespace unitary_group
 
 instance coe_matrix : has_coe (unitary_group n α) (matrix n n α) := ⟨subtype.val⟩
 
-instance coe_fun : has_coe_to_fun (unitary_group n α) :=
-{ F   := λ _, n → n → α,
-  coe := λ A, A.val }
+instance coe_fun : has_coe_to_fun (unitary_group n α) (λ _, n → n → α) :=
+{ coe := λ A, A.val }
 
 /--
 `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.

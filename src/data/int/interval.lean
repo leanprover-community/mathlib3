@@ -3,6 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import algebra.char_zero
 import data.int.basic
 import data.nat.interval
 
@@ -79,6 +80,9 @@ variables (a b : ℤ)
 lemma Icc_eq_finset_map :
   Icc a b = (finset.range (b + 1 - a).to_nat).map
     (nat.cast_embedding.trans $ add_left_embedding a) := rfl
+lemma Ico_eq_finset_map :
+  Ico a b = (finset.range (b - a).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding a) := rfl
 lemma Ioc_eq_finset_map :
   Ioc a b = (finset.range (b - a).to_nat).map
     (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
@@ -87,6 +91,9 @@ lemma Ioo_eq_finset_map :
     (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
 
 @[simp] lemma card_Icc : (Icc a b).card = (b + 1 - a).to_nat :=
+by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
+
+@[simp] lemma card_Ico : (Ico a b).card = (b - a).to_nat :=
 by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 
 @[simp] lemma card_Ioc : (Ioc a b).card = (b - a).to_nat :=
@@ -98,6 +105,9 @@ by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
 lemma card_Icc_of_le (h : a ≤ b + 1) : ((Icc a b).card : ℤ) = b + 1 - a :=
 by rw [card_Icc, to_nat_sub_of_le h]
 
+lemma card_Ico_of_le (h : a ≤ b) : ((Ico a b).card : ℤ) = b - a :=
+by rw [card_Ico, to_nat_sub_of_le h]
+
 lemma card_Ioc_of_le (h : a ≤ b) : ((Ioc a b).card : ℤ) = b - a :=
 by rw [card_Ioc, to_nat_sub_of_le h]
 
@@ -107,6 +117,9 @@ by rw [card_Ioo, sub_sub, to_nat_sub_of_le h]
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = (b + 1 - a).to_nat :=
 by rw [←card_Icc, fintype.card_of_finset]
 
+@[simp] lemma card_fintype_Ico : fintype.card (set.Ico a b) = (b - a).to_nat :=
+by rw [←card_Ico, fintype.card_of_finset]
+
 @[simp] lemma card_fintype_Ioc : fintype.card (set.Ioc a b) = (b - a).to_nat :=
 by rw [←card_Ioc, fintype.card_of_finset]
 
@@ -115,6 +128,9 @@ by rw [←card_Ioo, fintype.card_of_finset]
 
 lemma card_fintype_Icc_of_le (h : a ≤ b + 1) : (fintype.card (set.Icc a b) : ℤ) = b + 1 - a :=
 by rw [card_fintype_Icc, to_nat_sub_of_le h]
+
+lemma card_fintype_Ico_of_le (h : a ≤ b) : (fintype.card (set.Ico a b) : ℤ) = b - a :=
+by rw [card_fintype_Ico, to_nat_sub_of_le h]
 
 lemma card_fintype_Ioc_of_le (h : a ≤ b) : (fintype.card (set.Ioc a b) : ℤ) = b - a :=
 by rw [card_fintype_Ioc, to_nat_sub_of_le h]

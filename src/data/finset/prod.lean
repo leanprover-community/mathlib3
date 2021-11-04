@@ -1,14 +1,15 @@
 /-
-Copyright (c) 2015 Microsoft Corporation. All rights reserved.
+Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Oliver Nash
 -/
 import data.finset.basic
 
 /-!
 # Finsets in product types
 
-This file defines finset constructions on the product type `α × β`.
+This file defines finset constructions on the product type `α × β`. Beware not to confuse with the
+`finset.prod` operation which computes the multiplicative product.
 
 ## Main declarations
 
@@ -21,7 +22,7 @@ This file defines finset constructions on the product type `α × β`.
 
 open multiset
 
-variables {α β : Type*}
+variables {α β γ : Type*}
 
 namespace finset
 
@@ -54,8 +55,7 @@ lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t :
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
-@[simp] lemma product_bUnion {β γ : Type*} [decidable_eq γ]
-  (s : finset α) (t : finset β) (f : α × β → finset γ) :
+@[simp] lemma product_bUnion [decidable_eq γ] (s : finset α) (t : finset β) (f : α × β → finset γ) :
   (s.product t).bUnion f = s.bUnion (λ a, t.bUnion (λ b, f (a, b))) :=
 by { classical, simp_rw [product_eq_bUnion, bUnion_bUnion, image_bUnion] }
 
@@ -116,11 +116,9 @@ begin
   apply filter_card_add_filter_neg_card_eq_card,
 end
 
-@[simp] lemma diag_empty : (∅ : finset α).diag = ∅ :=
-eq_empty_of_forall_not_mem (by simp)
+@[simp] lemma diag_empty : (∅ : finset α).diag = ∅ := rfl
 
-@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ :=
-eq_empty_of_forall_not_mem (by simp)
+@[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ := rfl
 
 end diag
 end finset

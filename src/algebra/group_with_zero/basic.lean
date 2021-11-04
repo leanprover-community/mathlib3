@@ -406,6 +406,18 @@ mul_inverse_rev' (commute.all _ _)
 
 end ring
 
+lemma is_unit.ring_inverse {a : M₀} : is_unit a → is_unit (ring.inverse a)
+| ⟨u, hu⟩ := hu ▸ ⟨u⁻¹, (ring.inverse_unit u).symm⟩
+
+@[simp] lemma is_unit_ring_inverse {a : M₀} : is_unit (ring.inverse a) ↔ is_unit a :=
+⟨λ h, begin
+  casesI subsingleton_or_nontrivial M₀,
+  { convert h },
+  { contrapose h,
+    rw ring.inverse_non_unit _ h,
+    exact not_is_unit_zero, },
+end, is_unit.ring_inverse⟩
+
 lemma commute.ring_inverse_ring_inverse {a b : M₀} (h : commute a b) :
   commute (ring.inverse a) (ring.inverse b) :=
 (ring.mul_inverse_rev' h.symm).symm.trans $ (congr_arg _ h.symm.eq).trans $ ring.mul_inverse_rev' h

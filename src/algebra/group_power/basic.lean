@@ -20,20 +20,12 @@ Further lemmas can be found in `algebra.group_power.lemmas`.
 
 ## Notation
 
-The class `has_pow α β` provides the notation `a^b` for powers.
-We define instances of `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for groups `G`.
-
-Scalar multiplication by naturals and integers is handled by the `•` (`has_scalar.smul`)
-notation defined elsewhere.
+- `a ^ n` is used as notation for `has_pow.pow a n`; in this file `n : ℕ` or `n : ℤ`.
+- `n • a` is used as notation for `has_scalar.smul n a`; in this file `n : ℕ` or `n : ℤ`.
 
 ## Implementation details
 
 We adopt the convention that `0^0 = 1`.
-
-This module provides the instance `has_pow ℕ ℕ` (via `monoid.has_pow`)
-and is imported by `data.nat.basic`, so it has to live low in the import hierarchy.
-Not all of its imports are needed yet; the intent is to move more lemmas here from `.lemmas`
-so that they are available in `data.nat.basic`, and the imports will be required then.
 -/
 
 universes u v w x y z u₁ u₂
@@ -218,6 +210,10 @@ eq_mul_inv_of_mul_eq h2
 @[to_additive nsmul_neg_comm]
 theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 (commute.refl a).inv_left.pow_pow m n
+
+@[to_additive sub_nsmul_neg]
+theorem inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
+by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 
 end nat
 

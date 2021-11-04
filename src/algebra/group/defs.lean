@@ -20,6 +20,20 @@ The file does not contain any lemmas except for
 * lemmas required for instances.
 
 For basic lemmas about these classes see `algebra.group.basic`.
+
+We also introduce notation classes `has_scalar` and `has_vadd` for multiplicative and additive
+actions and register the following instances:
+
+- `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for groups `G`;
+- `has_smul ℕ M` for additive monoids `M`, and `has_smul ℤ G` for additive groups `G`.
+
+## Notation
+
+- `+`, `-`, `*`, `/`, `^` : the usual arithmetic operations; the underlying functions are
+  `has_add.add`, `has_neg.neg`/`has_sub.sub`, `has_mul.mul`, `has_div.div`, and `has_pow.pow`.
+- `a • b` is used as notation for `has_scalar.smul a b`.
+- `a +ᵥ b` is used as notation for `has_vadd.vadd a b`.
+
 -/
 
 /-- Type class for the `+ᵥ` notation. -/

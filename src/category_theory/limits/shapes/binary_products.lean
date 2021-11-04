@@ -517,9 +517,11 @@ is_iso.of_iso (coprod.map_iso (as_iso f) (as_iso g))
 
 instance coprod.map_epi {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [epi f]
   [epi g] [has_binary_coproduct W X] [has_binary_coproduct Y Z] : epi (coprod.map f g) :=
-⟨λ A i₁ i₂ h, by { ext,
-                   rw ←cancel_epi f, simpa using congr_arg (λ f, coprod.inl ≫ f) h,
-                   rw ←cancel_epi g, simpa using congr_arg (λ f, coprod.inr ≫ f) h }⟩
+⟨λ A i₁ i₂ h, begin
+  ext,
+  { rw ←cancel_epi f, simpa using congr_arg (λ f, coprod.inl ≫ f) h },
+  { rw ←cancel_epi g, simpa using congr_arg (λ f, coprod.inr ≫ f) h }
+end⟩
 
 
 -- The simp linter says simp can prove the reassoc version of this lemma.

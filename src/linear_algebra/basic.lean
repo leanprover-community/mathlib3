@@ -805,7 +805,7 @@ le_antisymm (span_le.2 h₁) h₂
 span_eq_of_le _ (subset.refl _) subset_span
 
 /-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/
-@[simp] lemma span_eq_restrict_scalars
+@[simp] lemma span_coe_eq_restrict_scalars
   [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
   span S (p : set M) = p.restrict_scalars S :=
 span_eq (p.restrict_scalars S)

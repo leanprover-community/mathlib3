@@ -425,15 +425,15 @@ variables [linear_ordered_add_comm_monoid β] [has_scalar 𝕜 E] [module 𝕜 �
 lemma convex_on.sup (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   convex_on 𝕜 s (f ⊔ g) :=
 begin
-   refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
-   { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
-      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
-      (smul_le_smul_of_nonneg le_sup_left ha)
-      (smul_le_smul_of_nonneg le_sup_left hb) },
-   { calc g (a • x + b • y) ≤ a • g x + b • g y : hg.right hx hy ha hb hab
-      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
-      (smul_le_smul_of_nonneg le_sup_right ha)
-      (smul_le_smul_of_nonneg le_sup_right hb) }
+  refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
+  { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
+     ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+     (smul_le_smul_of_nonneg le_sup_left ha)
+     (smul_le_smul_of_nonneg le_sup_left hb) },
+  { calc g (a • x + b • y) ≤ a • g x + b • g y : hg.right hx hy ha hb hab
+     ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+     (smul_le_smul_of_nonneg le_sup_right ha)
+     (smul_le_smul_of_nonneg le_sup_right hb) }
 end
 
 /-- The pointwise minimum of concave functions is concave. -/

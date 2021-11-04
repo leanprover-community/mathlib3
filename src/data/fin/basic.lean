@@ -1323,7 +1323,7 @@ by simp [eq_iff_veq, cast_pred, pred_above, cast_succ_lt_last]
   cast_pred ⟨i, lt_succ_of_lt h⟩ = ⟨i, h⟩ :=
 begin
   have : ¬cast_succ (last n) < ⟨i, lt_succ_of_lt h⟩,
-    { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
+  { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
   simp [cast_pred, pred_above, this]
 end
 

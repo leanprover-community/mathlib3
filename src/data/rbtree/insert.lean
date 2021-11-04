@@ -99,22 +99,18 @@ begin
      cases h : cmp_using lt x y,
      case ordering.lt { apply is_red_lt; assumption },
      case ordering.eq { apply is_red_eq; assumption },
-     case ordering.gt { apply is_red_gt; assumption },
-   },
+     case ordering.gt { apply is_red_gt; assumption }, },
   case black_node : a y b {
-     cases h : cmp_using lt x y,
-     case ordering.lt {
-       by_cases get_color a = red,
-       { apply is_black_lt_red; assumption },
-       { apply is_black_lt_not_red; assumption },
-     },
-     case ordering.eq { apply is_black_eq; assumption },
-     case ordering.gt {
-       by_cases get_color b = red,
-       { apply is_black_gt_red; assumption },
-       { apply is_black_gt_not_red; assumption },
-     }
-  }
+    cases h : cmp_using lt x y,
+    case ordering.lt {
+      by_cases get_color a = red,
+      { apply is_black_lt_red; assumption },
+      { apply is_black_lt_not_red; assumption }, },
+    case ordering.eq { apply is_black_eq; assumption },
+    case ordering.gt {
+      by_cases get_color b = red,
+      { apply is_black_gt_red; assumption },
+      { apply is_black_gt_not_red; assumption }, } }
 end
 
 lemma is_searchable_balance1 {l y r v t lo hi} : is_searchable lt l lo (some y) →

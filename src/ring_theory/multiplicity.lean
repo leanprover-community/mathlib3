@@ -49,11 +49,11 @@ lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b :=
 theorem int.coe_nat_multiplicity (a b : ℕ) :
     multiplicity (a : ℤ) (b : ℤ) = multiplicity a b :=
 begin
-    apply part.ext',
-    { repeat {rw [← finite_iff_dom, finite_def]},
-      norm_cast },
-    { intros h1 h2,
-      apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp }}
+  apply part.ext',
+  { repeat {rw [← finite_iff_dom, finite_def]},
+    norm_cast },
+  { intros h1 h2,
+    apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp } }
 end
 
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=

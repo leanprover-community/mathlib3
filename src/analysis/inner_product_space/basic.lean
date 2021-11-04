@@ -1423,7 +1423,7 @@ lemma orthonormal.sum_inner_products_le {s : finset ι} (hv : orthonormal 𝕜 v
 begin
   have h₂ : ∑ i in s, ∑ j in s, ⟪v i, x⟫ * ⟪x, v j⟫ * ⟪v j, v i⟫
     = (∑ k in s, (⟪v k, x⟫ * ⟪x, v k⟫) : 𝕜),
-   { exact hv.inner_left_right_finset },
+  { exact hv.inner_left_right_finset },
   have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥z∥ ^ 2,
   { intro z,
     simp only [mul_conj, norm_sq_eq_def'],

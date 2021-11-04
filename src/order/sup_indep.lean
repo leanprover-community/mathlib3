@@ -47,7 +47,6 @@ lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.
 λ i _,
   by { rw [←finset.sup_image, image_erase subtype.val_injective, attach_image_val], exact hs i.2 }
 
--- This really is a `set.pairwise_disjoint` lemma, but we can't state it that way
 /-- Bind operation for `sup_indep`. -/
 lemma sup_indep.sup {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
   (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
@@ -71,24 +70,46 @@ lemma sup_indep.bUnion {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
   (s.bUnion g).sup_indep f :=
 by { rw ←sup_eq_bUnion, exact hs.sup hg }
 
--- Could be generalized if `set.pairwise_disjoint` were about indexed sets
-lemma sup_indep.pairwise_disjoint {s : finset α} [decidable_eq α] (hs : s.sup_indep id) :
-  (s : set α).pairwise_disjoint :=
+lemma sup_indep.pairwise_disjoint  (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
 λ a ha b hb hab, (hs ha).mono_right $ le_sup $ mem_erase.2 ⟨hab.symm, hb⟩
 
--- Could be generalized if `set.pairwise_disjoint` were about indexed sets
--- Once `finset.sup_indep` will have been generalized to non distributive lattices, we can state
--- this lemma for nondistributive atomic lattices. This setting makes the `←` implication much
+-- Once `finset.sup_indep` will have been generalized to non distributive lattices, can we state
+-- this lemma for nondistributive atomic lattices? This setting makes the `←` implication much
 -- harder.
-lemma sup_indep_iff_pairwise_disjoint {s : finset α} [decidable_eq α] :
-  s.sup_indep id ↔ (s : set α).pairwise_disjoint :=
+lemma sup_indep_iff_pairwise_disjoint :
+  s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
 begin
-  refine ⟨sup_indep.pairwise_disjoint, λ hs a ha, _⟩,
+  refine ⟨λ hs a ha b hb hab, (hs ha).mono_right $ le_sup $ mem_erase.2 ⟨hab.symm, hb⟩,
+    λ hs a ha, _⟩,
   rw disjoint_sup_right,
   exact λ b hb, hs a ha b (mem_of_mem_erase hb) (ne_of_mem_erase hb).symm,
 end
 
+alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
+  set.pairwise_disjoint.sup_indep
+
 end finset
+
+namespace set
+variables [distrib_lattice_bot α]
+
+/-- Bind operation for `set.pairwise_disjoint`. In a complete lattice, you can use
+`set.pairwise_disjoint.bUnion_finset`. -/
+lemma pairwise_disjoint.bUnion_finset {s : set ι'} {g : ι' → finset ι} {f : ι → α}
+  (hs : s.pairwise_disjoint (λ i' : ι', (g i').sup f))
+  (hg : ∀ i ∈ s, (g i : set ι).pairwise_disjoint f) :
+  (⋃ i ∈ s, ↑(g i)).pairwise_disjoint f :=
+begin
+  rintro a ha b hb hab,
+  simp_rw set.mem_Union at ha hb,
+  obtain ⟨c, hc, ha⟩ := ha,
+  obtain ⟨d, hd, hb⟩ := hb,
+  obtain hcd | hcd := eq_or_ne (g c) (g d),
+  { exact hg d hd a (hcd ▸ ha) b hb hab },
+  { exact (hs _ hc _ hd (ne_of_apply_ne _ hcd)).mono (finset.le_sup ha) (finset.le_sup hb) }
+end
+
+end set
 
 lemma complete_lattice.independent_iff_sup_indep [complete_distrib_lattice α] [decidable_eq ι]
   {s : finset ι} {f : ι → α} :

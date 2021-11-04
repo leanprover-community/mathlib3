@@ -1067,7 +1067,7 @@ lemma span_le_restrict_scalars [semiring S] [has_scalar R S] [module S M] [is_sc
   span R s ≤ (span S s).restrict_scalars R :=
 submodule.span_le.2 submodule.subset_span
 
-/-- A version of `submodule.span_le_restrict_scalars_span` with coercions. -/
+/-- A version of `submodule.span_le_restrict_scalars` with coercions. -/
 @[simp] lemma span_subset_span [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
   ↑(span R s) ⊆ (span S s : set M) :=
 span_le_restrict_scalars

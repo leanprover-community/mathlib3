@@ -1008,7 +1008,7 @@ begin
   { simp [one_of, static.decorate_errors] },
   { have : one_of (hd :: tl) (hd :: tl).to_buffer 0 = done 1 hd,
     { simp [one_of_eq_done] },
-  simpa using not_of_ne this zero_ne_one }
+    simpa using not_of_ne this zero_ne_one }
 end
 
 instance one_of : static (one_of []) :=

@@ -169,11 +169,14 @@ begin
     hom := ((@hom_of_le _ _ _ ((opens.map f).obj ⟨_, H⟩) (set.image_preimage.le_u_l _)).op :
     op ((opens.map f).obj (⟨⇑f '' ↑U, H⟩)) ⟶ op U) },
   have hx : is_terminal x :=
-  { lift := λ s, by { fapply costructured_arrow.hom_mk,
-    change op (unop _) ⟶ op (⟨_, H⟩ : opens _),
-    refine (hom_of_le _).op,
-    exact (set.image_subset f s.X.hom.unop.le).trans (set.image_preimage.l_u_le ↑(unop s.X.left)),
-    simp } },
+  { lift := λ s,
+    begin
+      fapply costructured_arrow.hom_mk,
+      change op (unop _) ⟶ op (⟨_, H⟩ : opens _),
+      refine (hom_of_le _).op,
+      exact (set.image_subset f s.X.hom.unop.le).trans (set.image_preimage.l_u_le ↑(unop s.X.left)),
+      simp
+    end },
   exact is_colimit.cocone_point_unique_up_to_iso
     (colimit.is_colimit _)
     (colimit_of_diagram_terminal hx _),

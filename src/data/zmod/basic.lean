@@ -414,6 +414,10 @@ begin
   simp [nat.modeq_iff_dvd, int.modeq_iff_dvd],
 end
 
+lemma nat_coe_eq_nat_coe_iff' (a b c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=
+zmod.nat_coe_eq_nat_coe_iff a b c
+
 lemma int_coe_zmod_eq_zero_iff_dvd (a : ℤ) (b : ℕ) : (a : zmod b) = 0 ↔ (b : ℤ) ∣ a :=
 begin
   change (a : zmod b) = ((0 : ℤ) : zmod b) ↔ (b : ℤ) ∣ a,

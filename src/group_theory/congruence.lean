@@ -174,7 +174,7 @@ lemma ext'_iff {c d : con M} : c.r = d.r ↔ c = d :=
 @[to_additive "The kernel of an addition-preserving function as an additive congruence relation."]
 def mul_ker (f : M → P) (h : ∀ x y, f (x * y) = f x * f y) : con M :=
 { to_setoid := setoid.ker f,
-  mul' := λ _ _ _ _ h1 h2, by { dsimp [setoid.ker] at *, rw [h, h1, h2, h], } }
+  mul' := λ _ _ _ _ h1 h2, by { dsimp [setoid.ker, on_fun] at *, rw [h, h1, h2, h], } }
 
 /-- Given types with multiplications `M, N`, the product of two congruence relations `c` on `M` and
     `d` on `N`: `(x₁, x₂), (y₁, y₂) ∈ M × N` are related by `c.prod d` iff `x₁` is related to `y₁`

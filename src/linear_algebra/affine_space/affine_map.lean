@@ -497,6 +497,19 @@ instance : module k (P1 →ᵃ[k] V2) :=
 
 @[simp] lemma coe_smul (c : k) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
 
+@[simp] lemma smul_linear (t : k) (f : P1 →ᵃ[k] V2) : (t • f).linear = t • f.linear := rfl
+
+/-- The space of affine maps between two modules is linearly equivalent to the product of the
+domain with the space of linear maps, by taking the value of the affine map at `(0 : V1)` and the
+linear part. -/
+@[simps] def to_const_prod_linear_map : (V1 →ᵃ[k] V2) ≃ₗ[k] V2 × (V1 →ₗ[k] V2) :=
+{ to_fun    := λ f, ⟨f 0, f.linear⟩,
+  inv_fun   := λ p, p.2.to_affine_map + const k V1 p.1,
+  left_inv  := λ f, by { ext, rw f.decomp, simp, },
+  right_inv := by { rintros ⟨v, f⟩, ext; simp, },
+  map_add'  := by simp,
+  map_smul' := by simp, }
+
 /-- `homothety c r` is the homothety (also known as dilation) about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : P1 →ᵃ[k] P1 :=
 r • (id k P1 -ᵥ const k P1 c) +ᵥ const k P1 c

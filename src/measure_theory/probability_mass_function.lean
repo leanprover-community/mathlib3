@@ -51,7 +51,8 @@ def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
   a ∈ p.support ↔ p a ≠ 0 := iff.rfl
 
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
-has_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (has_sum_ite_eq a (p a)) p.2
+has_sum_le (by { intro b, split_ifs; simp only [h, zero_le'] })
+  (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
 
 section pure
 

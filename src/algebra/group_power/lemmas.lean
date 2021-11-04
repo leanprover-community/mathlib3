@@ -15,7 +15,7 @@ import data.equiv.mul_add
 # Lemmas about power operations on monoids and groups
 
 This file contains lemmas about `monoid.pow`, `group.pow`, `nsmul`, `zsmul`
-which require additional imports besides those available in `.basic`.
+which require additional imports besides those available in `algebra.group_power.basic`.
 -/
 
 universes u v w x y z u₁ u₂
@@ -418,11 +418,11 @@ lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n %
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
 
 section ordered_semiring
-variable [ordered_semiring R]
+variables [ordered_semiring R] {a : R}
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
-theorem one_add_mul_le_pow' {a : R} (Hsq : 0 ≤ a * a) (Hsq' : 0 ≤ (1 + a) * (1 + a))
+theorem one_add_mul_le_pow' (Hsq : 0 ≤ a * a) (Hsq' : 0 ≤ (1 + a) * (1 + a))
   (H : 0 ≤ 2 + a) :
   ∀ (n : ℕ), 1 + (n : R) * a ≤ (1 + a) ^ n
 | 0     := by simp
@@ -439,7 +439,7 @@ calc 1 + (↑(n + 2) : R) * a ≤ 1 + ↑(n + 2) * a + (n * (a * a * (2 + a)) + 
   mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) Hsq'
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
-private lemma pow_lt_pow_of_lt_one_aux {a : R} (h : 0 < a) (ha : a < 1) (i : ℕ) :
+private lemma pow_lt_pow_of_lt_one_aux (h : 0 < a) (ha : a < 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
 | 0 :=
   begin
@@ -454,33 +454,33 @@ private lemma pow_lt_pow_of_lt_one_aux {a : R} (h : 0 < a) (ha : a < 1) (i : ℕ
     { show 0 < a ^ (i + (k + 1) + 0), apply pow_pos h }
   end
 
-private lemma pow_le_pow_of_le_one_aux {a : R}  (h : 0 ≤ a) (ha : a ≤ 1) (i : ℕ) :
+private lemma pow_le_pow_of_le_one_aux (h : 0 ≤ a) (ha : a ≤ 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k) ≤ a ^ i
 | 0 := by simp
 | (k+1) := by { rw [←add_assoc, ←one_mul (a^i), pow_succ],
                 exact mul_le_mul ha (pow_le_pow_of_le_one_aux _) (pow_nonneg h _) zero_le_one }
 
-lemma pow_lt_pow_of_lt_one  {a : R} (h : 0 < a) (ha : a < 1)
+lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1)
   {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_lt hij in
 by rw hk; exact pow_lt_pow_of_lt_one_aux h ha _ _
 
-lemma pow_lt_pow_iff_of_lt_one {a : R} {n m : ℕ} (hpos : 0 < a) (h : a < 1) :
+lemma pow_lt_pow_iff_of_lt_one {n m : ℕ} (hpos : 0 < a) (h : a < 1) :
   a ^ m < a ^ n ↔ n < m :=
 begin
   have : strict_mono (λ (n : order_dual ℕ), a ^ (id n : ℕ)) := λ m n, pow_lt_pow_of_lt_one hpos h,
   exact this.lt_iff_lt
 end
 
-lemma pow_le_pow_of_le_one {a : R} (h : 0 ≤ a) (ha : a ≤ 1) {i j : ℕ} (hij : i ≤ j) :
+lemma pow_le_pow_of_le_one (h : 0 ≤ a) (ha : a ≤ 1) {i j : ℕ} (hij : i ≤ j) :
   a ^ j ≤ a ^ i :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
 by rw hk; exact pow_le_pow_of_le_one_aux h ha _ _
 
-lemma pow_le_of_le_one {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ a :=
+lemma pow_le_of_le_one (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ a :=
 (pow_one a).subst (pow_le_pow_of_le_one h₀ h₁ (nat.pos_of_ne_zero hn))
 
-lemma sq_le {a : R} (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
+lemma sq_le (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
 
 end ordered_semiring
 
@@ -507,8 +507,7 @@ variables [linear_ordered_ring R] {a : R} {n : ℕ}
 (pow_abs a n).symm
 
 @[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
-⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
-  λ h, by { rw [bit1, pow_succ], exact mul_neg_of_neg_of_pos h (pow_bit0_pos h.ne _)}⟩
+⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _, λ ha, pow_bit1_neg ha n⟩
 
 @[simp] theorem pow_bit1_nonneg_iff : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
 le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
@@ -564,6 +563,9 @@ begin
     { exact (pow_bit1_nonpos_iff.2 ha).trans_lt (pow_bit1_pos_iff.2 hb) } },
   { exact pow_lt_pow_of_lt_left hab ha (bit1_pos (zero_le n)) }
 end
+
+lemma odd.strict_mono_pow (hn : odd n) : strict_mono (λ a : R, a ^ n) :=
+by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow (H : -2 ≤ a) (n : ℕ) : 1 + (n : R) * a ≤ (1 + a) ^ n :=

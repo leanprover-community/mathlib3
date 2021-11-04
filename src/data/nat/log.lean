@@ -144,7 +144,7 @@ lemma log_le_log_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n 
 begin
   cases n, { simp },
   rw ← pow_le_iff_le_log hc (zero_lt_succ n),
-  exact calc
+  calc
     c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
                                             (le_of_lt $ zero_lt_one.trans hc) hb _
                  ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
@@ -257,7 +257,7 @@ lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b
 begin
   cases n, { simp },
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
-  exact calc
+  calc
     n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
        ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
 end

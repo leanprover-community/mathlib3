@@ -37,7 +37,7 @@ add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
 lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
   (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
   (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
-by { rw [sum_product_left, sum_mul, sum_congr rfl], intros, rw mul_sum }
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 end semiring
 
@@ -235,7 +235,7 @@ begin
   classical,
   rw [powerset_card_bUnion, prod_bUnion],
   intros i hi j hj hij,
-  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  rw [function.on_fun, powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
   intros x hx hc hnc,
   apply hij,
   rwa ← hc,

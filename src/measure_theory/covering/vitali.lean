@@ -457,7 +457,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
   covering := begin
     assume s f fsubset ffine,
     rcases eq_empty_or_nonempty s with rfl|H,
-    { refine ⟨∅, λ _, ∅, by simp, by simp⟩ },
+    { exact ⟨∅, λ _, ∅, by simp, by simp⟩ },
     haveI : inhabited α, { choose x hx using H, exact ⟨x⟩ },
     let t := ⋃ (x ∈ s), f x,
     have A₁ : ∀ x ∈ s, ∀ (ε : ℝ), 0 < ε → (∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε),
@@ -494,7 +494,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
     { assume y hy,
       rcases (mem_image _ _ _).1 hy with ⟨a, au, rfl⟩,
       exact (hx a au).1 },
-    { rw [inj_on_x.pairwise_image],
+    { rw [inj_on_x.pairwise_disjoint_image],
       assume a ha b hb hab,
       simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb],
       exact u_disj a ha b hb hab },

@@ -215,9 +215,9 @@ lemma pairwise_disjoint.mono_on (hs : s.pairwise_disjoint f) (h : ∀ ⦃i⦄, i
 lemma pairwise_disjoint.mono (hs : s.pairwise_disjoint f) (h : g ≤ f) : s.pairwise_disjoint g :=
 hs.mono_on (λ i _, h i)
 
-lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_empty _
+@[simp] lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_empty _
 
-lemma pairwise_disjoint_singleton (i : ι) (f : ι → α) : pairwise_disjoint {i} f :=
+@[simp] lemma pairwise_disjoint_singleton (i : ι) (f : ι → α) : pairwise_disjoint {i} f :=
 pairwise_singleton i _
 
 lemma pairwise_disjoint_insert {i : ι} :

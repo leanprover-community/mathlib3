@@ -42,17 +42,13 @@ open Top.presheaf.sheaf_condition
 
 variable (R : CommRing)
 
-/-- `Spec` as a function from CommRing to LocallyRingedSpace. -/
-abbreviation Spec' := Spec.to_LocallyRingedSpace.obj (op R)
-
 /-- Basic opens in `Spec R` indexed by elements of `R`. -/
-def basic_open_B : (Spec' R).to_Top.opens_index_struct := ⟨R, λ r, basic_open r⟩
+def basic_open_B : (Spec.Top_obj R).opens_index_struct := ⟨R, λ r, basic_open r⟩
 -- Much nicer to work directly with the indexing function than the range set
 
 private def idfb := induced_functor (op ∘ (basic_open_B R).f)
 
 lemma basic_opens_is_basis {R} : Top.is_basis_range (basic_open_B R) := is_basis_basic_opens
-
 
 namespace LocallyRingedSpace
 
@@ -67,7 +63,7 @@ def Γ_to_stalk (x : X) : Γ' X ⟶ X.presheaf.stalk x :=
 -- or @Top.presheaf.germ _ _ _ _ _ ⊤ ⟨x,trivial⟩
 
 /-- Unit on the underlying set. -/
-def to_Γ_Spec_fun : X → Spec' (Γ' X) := λ x,
+def to_Γ_Spec_fun : X → prime_spectrum (Γ' X) := λ x,
   comap (X.Γ_to_stalk x) (@local_ring.closed_point _ _ (X.local_ring x))
 -- or Spec.to_Top.map (X.Γ_to_stalk x).op (@local_ring.closed_point ...)
 
@@ -90,7 +86,7 @@ begin
 end
 
 /-- Unit as a continuous map. -/
-def to_Γ_Spec_base : continuous_map X (Spec' (Γ' X)) :=
+def to_Γ_Spec_base : X.to_Top ⟶ Spec.Top_obj (Γ' X) :=
 { to_fun := X.to_Γ_Spec_fun,
   continuous_to_fun := X.to_Γ_Spec_continuous }
 
@@ -137,7 +133,7 @@ lemma to_Γ_Spec_c_app_spec (r : Γ' X) :
 (X.to_Γ_Spec_c_app_iff r _).2 rfl
 
 /-- Unit as a sheaf hom on all basic opens, commuting with restrictions. -/
-def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (Spec' (Γ' X)).presheaf
+def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (structure_sheaf (Γ' X)).1
                           ⟶ idfb _ ⋙ X.to_Γ_Spec_base _* X.presheaf :=
 { app := X.to_Γ_Spec_c_app,
   naturality' := λ r s f, by {
@@ -153,7 +149,7 @@ def to_Γ_Spec_c := Top.sheaf.uniq_hom_extn_from_basis _
   basic_opens_is_basis X.to_Γ_Spec_c_basic_opens
 
 /-- Unit as a sheafed space hom. -/
-def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ (Spec' (Γ' X)).to_SheafedSpace :=
+def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ Spec.to_SheafedSpace.obj (op (Γ' X)) :=
 { base := X.to_Γ_Spec_base,
   c := X.to_Γ_Spec_c.lift }
 
@@ -185,7 +181,7 @@ begin
 end
 
 /-- Unit as a hom of locally ringed spaces. -/
-def to_Γ_Spec : X ⟶ Spec' (Γ' X) :=
+def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ' X) :=
 begin
   fsplit, exact X.to_Γ_Spec_SheafedSpace,
   intro x, let p : prime_spectrum (Γ' X) := X.to_Γ_Spec_fun x,
@@ -270,22 +266,24 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_Lo
 namespace Γ_Spec
 
 lemma right_triangle_base :
-  ((Spec' R).to_Γ_Spec ≫ Spec.to_LocallyRingedSpace.map (to_Spec_Γ R).op).1.1 = 𝟙 _ :=
+  ((Spec.LocallyRingedSpace_obj R).to_Γ_Spec ≫
+  Spec.to_LocallyRingedSpace.map (to_Spec_Γ R).op).1.1 = 𝟙 _ :=
 begin
   ext1 p, ext, erw ← @is_localization.at_prime.to_map_mem_maximal_iff _ _ _ _
     (to_stalk R p).to_algebra p.1 _ (is_localization.to_stalk R p) x, refl,
 end
 
-lemma right_triangle_c (r : R) : (CommRing.of_hom
-  (structure_sheaf.comap (to_Spec_Γ R) (basic_open r) (basic_open $ to_Spec_Γ R r) (λ _ h, h)) ≫
-    (Spec' R).to_Γ_Spec_SheafedSpace.c.app (op $ basic_open $ to_Spec_Γ R r)) ≫
-    (Spec' R).presheaf.map (by { dsimp, refine (eq_to_hom _).op,
-      change (opens.map $ 𝟙 $ Spec.to_Top.obj $ op R).obj (basic_open r) = _,
+lemma right_triangle_c (r : R) :
+  let S := Spec.LocallyRingedSpace_obj R, f := to_Spec_Γ R in
+  (CommRing.of_hom (comap f (basic_open r) (basic_open (f r)) (λ _ h, h)) ≫
+    S.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open (f r))) ≫
+    S.presheaf.map (by { dsimp, refine (eq_to_hom _).op,
+      change (opens.map (𝟙 (Spec.Top_obj R))).obj (basic_open r) = _,
       erw ← right_triangle_base, refl }) = 𝟙 _ :=
 begin
   apply (to_basic_open_epi R r).1, rw category.assoc,
   erw to_open_comp_comap_assoc, rw ← category.assoc (to_open _ _),
-  erw (Spec' R).to_Γ_Spec_SheafedSpace_app_spec,
+  erw (Spec.LocallyRingedSpace_obj R).to_Γ_Spec_SheafedSpace_app_spec,
   erw [←functor.map_comp, category.comp_id, ←op_comp], apply to_open_res,
 end
 
@@ -295,7 +293,7 @@ lemma right_triangle :
   Spec.LocallyRingedSpace_map (Spec_Γ_identity.inv.app R) = 𝟙 _ :=
 begin
   ext1, ext1, swap, exact right_triangle_base R,
-  { apply Top.sheaf.hom_ext (basic_open_B R) ((Top.sheaf.pushforward _).obj (Spec' R).𝒪).2,
+  { apply Top.sheaf.hom_ext (basic_open_B R) ((Top.sheaf.pushforward _).obj (structure_sheaf R)).2,
     exact basic_opens_is_basis, intro r,
     rw [nat_trans.comp_app, LocallyRingedSpace.comp_val_c_app'],
     convert right_triangle_c R r using 2, simpa },
@@ -318,12 +316,15 @@ end Γ_Spec
 
 /- Easy consequences of the adjunction. -/
 
+/-- Spec preserves limits. -/
 def Spec_preserves_limits := adjunction.right_adjoint_preserves_limits Γ_Spec.adjunction
 
+/-- Spec is a full functor. -/
 def Spec_full := @R_full_of_counit_is_iso
   _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
 
-lemma Spec_faithful := @R_faithful_of_counit_is_iso
-  _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
+/-- Spec is a faithful functor. -/
+lemma Spec_faithful : faithful Spec.to_LocallyRingedSpace :=
+  @R_faithful_of_counit_is_iso _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
 
 end algebraic_geometry

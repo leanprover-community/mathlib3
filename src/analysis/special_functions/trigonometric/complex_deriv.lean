@@ -66,4 +66,9 @@ if h : cos x = 0 then
   by simp [deriv_zero_of_not_differentiable_at this, h, sq]
 else (has_deriv_at_tan h).deriv
 
+@[simp] lemma times_cont_diff_at_tan {x : ℂ} {n : with_top ℕ} :
+  times_cont_diff_at ℂ n tan x ↔ cos x ≠ 0 :=
+⟨λ h, continuous_at_tan.1 h.continuous_at,
+  times_cont_diff_sin.times_cont_diff_at.div times_cont_diff_cos.times_cont_diff_at⟩
+
 end complex

@@ -285,6 +285,9 @@ by { convert pow_zero a using 1, exact zpow_coe_nat a 0 }
 theorem zpow_one (a : G) : a ^ (1:ℤ) = a :=
 by { convert pow_one a using 1, exact zpow_coe_nat a 1 }
 
+theorem zpow_two (a : G) : a ^ (2 : ℤ) = a * a :=
+by { convert pow_two a using 1, exact zpow_coe_nat a 2 }
+
 end div_inv_monoid
 
 section group
@@ -310,6 +313,10 @@ eq_mul_inv_of_mul_eq h2
 @[to_additive nsmul_neg_comm]
 theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 (commute.refl a).inv_left.pow_pow m n
+
+@[to_additive sub_nsmul_neg]
+theorem inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
+by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 
 end nat
 

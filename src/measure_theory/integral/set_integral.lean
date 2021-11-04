@@ -563,7 +563,7 @@ variables (α F 𝕜)
 def Lp_to_Lp_restrict_clm [borel_space 𝕜] (μ : measure α) (p : ℝ≥0∞) [hp : fact (1 ≤ p)]
   (s : set α) :
   Lp F p μ →L[𝕜] Lp F p (μ.restrict s) :=
-@linear_map.mk_continuous 𝕜 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _
+@linear_map.mk_continuous 𝕜 𝕜 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _ _ (ring_hom.id 𝕜)
   ⟨λ f, mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s), λ f g, Lp_to_Lp_restrict_add f g s,
     λ c f, Lp_to_Lp_restrict_smul c f s⟩
   1 (by { intro f, rw one_mul, exact norm_Lp_to_Lp_restrict_le s f, })

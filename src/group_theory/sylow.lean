@@ -173,6 +173,18 @@ end
 
 variables {p} {G}
 
+/-- Sylow subgroups are isomorphic -/
+def sylow.equiv_smul (P : sylow p G) (g : G) : P ≃* (g • P : sylow p G) :=
+equiv_smul (mul_aut.conj g) P.1
+
+/-- Sylow subgroups are isomorphic -/
+noncomputable def sylow.equiv [fact p.prime] [fintype (sylow p G)] (P Q : sylow p G) :
+  P ≃* Q :=
+begin
+  rw ← classical.some_spec (exists_smul_eq G P Q),
+  exact P.equiv_smul (classical.some (exists_smul_eq G P Q)),
+end
+
 @[simp] lemma sylow.orbit_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   orbit G P = ⊤ :=
 top_le_iff.mp (λ Q hQ, exists_smul_eq G P Q)

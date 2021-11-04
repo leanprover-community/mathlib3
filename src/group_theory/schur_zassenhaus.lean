@@ -145,9 +145,9 @@ lemma smul_left_injective [H.normal] (α : H.quotient_diff)
   exact (pow_coprime hH).injective hα,
 end
 
-lemma is_complement_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
+lemma is_complement'_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
   (hH : nat.coprime (fintype.card H) H.index) :
-  is_complement (H : set G) (mul_action.stabilizer G α : set G) :=
+  is_complement' H (mul_action.stabilizer G α) :=
 begin
   classical,
   let ϕ : H ≃ mul_action.orbit G α := equiv.of_bijective (λ h, ⟨h • α, h, rfl⟩)
@@ -155,7 +155,7 @@ begin
       λ β, exists_imp_exists (λ h hh, subtype.ext hh) (exists_smul_eq α β hH)⟩,
   have key := card_eq_card_quotient_mul_card_subgroup (mul_action.stabilizer G α),
   rw ← fintype.card_congr (ϕ.trans (mul_action.orbit_equiv_quotient_stabilizer G α)) at key,
-  apply is_complement_of_coprime key.symm,
+  apply is_complement'_of_coprime key.symm,
   rw [card_eq_card_quotient_mul_card_subgroup H, mul_comm, mul_right_inj'] at key,
   { rwa [←key, ←index_eq_card] },
   { rw [←pos_iff_ne_zero, fintype.card_pos_iff],
@@ -165,18 +165,18 @@ end
 /-- **Schur-Zassenhaus** for abelian normal subgroups:
   If `H : subgroup G` is abelian, normal, and has order coprime to its index, then there exists
   a subgroup `K` which is a (right) complement of `H`. -/
-theorem exists_right_complement_of_coprime [fintype G] [H.normal]
+theorem exists_right_complement'_of_coprime [fintype G] [H.normal]
   (hH : nat.coprime (fintype.card H) H.index) :
-  ∃ K : subgroup G, is_complement (H : set G) (K : set G) :=
+  ∃ K : subgroup G, is_complement' H K :=
 nonempty_of_inhabited.elim
-  (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, is_complement_stabilizer_of_coprime hH⟩)
+  (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
 
 /-- **Schur-Zassenhaus** for abelian normal subgroups:
   If `H : subgroup G` is abelian, normal, and has order coprime to its index, then there exists
   a subgroup `K` which is a (left) complement of `H`. -/
-theorem exists_left_complement_of_coprime [fintype G] [H.normal]
+theorem exists_left_complement'_of_coprime [fintype G] [H.normal]
   (hH : nat.coprime (fintype.card H) H.index) :
-  ∃ K : subgroup G, is_complement (K : set G) (H : set G) :=
-Exists.imp (λ _, is_complement.symm) (exists_right_complement_of_coprime hH)
+  ∃ K : subgroup G, is_complement' K H :=
+Exists.imp (λ _, is_complement'.symm) (exists_right_complement'_of_coprime hH)
 
 end subgroup

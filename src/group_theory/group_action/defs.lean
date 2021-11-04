@@ -13,10 +13,9 @@ import logic.embedding
 
 This file defines a hierarchy of group action type-classes:
 
-* `has_scalar M α` and its additive version `has_vadd G P` are notation typeclasses for
-  `•` and `+ᵥ`, respectively;
 * `mul_action M α` and its additive version `add_action G P` are typeclasses used for
-  actions of multiplicative and additive monoids and groups;
+  actions of multiplicative and additive monoids and groups; they extend notation classes
+  `has_scalar` and `has_vadd` that are defined in `algebra.group.defs`;
 * `distrib_mul_action M A` is a typeclass for an action of a multiplicative monoid on
   an additive monoid such that `a • (b + c) = a • b + a • c` and `a • 0 = 0`.
 

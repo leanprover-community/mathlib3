@@ -297,11 +297,11 @@ by have := and.intro univ.2 mem_univ_val;
 /-- `card α` is the number of elements in `α`, defined when `α` is a fintype. -/
 def card (α) [fintype α] : ℕ := (@univ α _).card
 
-/-- If `l` lists all the elements of `α` without duplicates, then `α ≃ fin (l.length)`.
+/-- If `l` lists all the elements of `α` without duplicates, then `α ≃ fin l.length`.
 
 See `fintype.fin_bijection_of_forall_mem_list` for a version without `[decidable_eq α]`. -/
 def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
-  {l : list α} (h : ∀ x : α, x ∈ l) (nd : l.nodup) : α ≃ fin (l.length) :=
+  {l : list α} (h : ∀ x : α, x ∈ l) (nd : l.nodup) : α ≃ fin l.length :=
 ⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
  λ i, l.nth_le i.1 i.2,
  λ a, by simp,
@@ -336,11 +336,11 @@ noncomputable def equiv_fin (α) [fintype α] : α ≃ fin (card α) :=
 by { letI := classical.dec_eq α, exact (trunc_equiv_fin α).out }
 
 /-- If `l` lists all the elements of `α` without duplicates, then there is
-a bijection `fin (l.length) → α`.  See `fintype.equiv_fin_of_forall_mem_list`
+a bijection `fin l.length → α`.  See `fintype.equiv_fin_of_forall_mem_list`
 for a version giving an equivalence given `[decidable_eq α]`. -/
 def fin_bijection_of_forall_mem_list {α}
   {l : list α} (h : ∀ x : α, x ∈ l) (nd : l.nodup) :
-  {f : fin (l.length) → α // bijective f} :=
+  {f : fin l.length → α // bijective f} :=
 ⟨λ i, l.nth_le i i.property, begin
   intros i j,
   rw nd.nth_le_inj_iff,

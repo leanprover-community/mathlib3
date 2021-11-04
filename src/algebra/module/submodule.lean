@@ -211,12 +211,15 @@ variables (S) [semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar
 `V.restrict_scalars S` is the `S`-submodule of the `S`-module given by restriction of scalars,
 corresponding to `V`, an `R`-submodule of the original `R`-module.
 -/
-@[simps]
 def restrict_scalars (V : submodule R M) : submodule S M :=
 { carrier := V.carrier,
   zero_mem' := V.zero_mem,
   smul_mem' := λ c m h, V.smul_of_tower_mem c h,
   add_mem' := λ x y hx hy, V.add_mem hx hy }
+
+@[simp]
+lemma coe_restrict_scalars (V : submodule R M) : (V.restrict_scalars S : set M) = V :=
+rfl
 
 @[simp]
 lemma restrict_scalars_mem (V : submodule R M) (m : M) :

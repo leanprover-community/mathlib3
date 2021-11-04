@@ -496,7 +496,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact (hx a au).1 },
     { rw [inj_on_x.pairwise_disjoint_image],
       assume a ha b hb hab,
-      simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb],
+      simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb, (∘)],
       exact u_disj a ha b hb hab },
     { assume y hy,
       rcases (mem_image _ _ _).1 hy with ⟨a, ha, rfl⟩,

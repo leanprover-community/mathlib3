@@ -546,7 +546,7 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 
 /-- `sinh` is strictly monotone. -/
 lemma sinh_strict_mono : strict_mono sinh :=
-strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact cosh_pos })
+strict_mono_of_deriv_pos $ by { rw real.deriv_sinh, exact cosh_pos }
 
 end real
 

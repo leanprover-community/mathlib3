@@ -46,7 +46,7 @@ begin
   { by_contra h,
     have h : a ≤ g - k • a,
     { refine a_min ⟨_, _⟩,
-      { exact add_subgroup.sub_mem H g_in (add_subgroup.gsmul_mem H a_in k) },
+      { exact add_subgroup.sub_mem H g_in (add_subgroup.zsmul_mem H a_in k) },
       { exact lt_of_le_of_ne nonneg (ne.symm h) } },
     have h' : ¬ (a ≤ g - k • a) := not_le.mpr lt,
     contradiction },

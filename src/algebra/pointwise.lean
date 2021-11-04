@@ -621,6 +621,14 @@ lemma zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] {s : set 
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
 
+lemma zero_smul_subset [has_zero α] [has_zero β] [smul_with_zero α β] (s : set β) :
+  (0 : α) • s ⊆ 0 :=
+image_subset_iff.2 $ λ x _, zero_smul α x
+
+lemma subsingleton_zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] (s : set β) :
+  ((0 : α) • s).subsingleton :=
+subsingleton_singleton.mono (zero_smul_subset s)
+
 section group
 variables [group α] [mul_action α β]
 

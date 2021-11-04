@@ -54,28 +54,16 @@ alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
 @[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
 
-@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ :=
-Icc_eq_empty h.not_le
-
-@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ :=
-Ico_eq_empty h.not_lt
-
-@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ :=
-Ioc_eq_empty h.not_lt
-
-@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
-Ioo_eq_empty h.not_lt
+@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ := Icc_eq_empty h.not_le
+@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ := Ico_eq_empty h.not_lt
+@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ := Ioc_eq_empty h.not_lt
+@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ := Ioo_eq_empty h.not_lt
 
 variables (a)
 
-@[simp] lemma Ico_self : Ico a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ico, set.Ico_self]
-
-@[simp] lemma Ioc_self : Ioc a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ioc, set.Ioc_self]
-
-@[simp] lemma Ioo_self : Ioo a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
+@[simp] lemma Ico_self : Ico a a = ∅ := by rw [←coe_eq_empty, coe_Ico, set.Ico_self]
+@[simp] lemma Ioc_self : Ioc a a = ∅ := by rw [←coe_eq_empty, coe_Ioc, set.Ioc_self]
+@[simp] lemma Ioo_self : Ioo a a = ∅ := by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
 
 @[simp] lemma right_not_mem_Ico {a b : α} : b ∉ Ico a b :=
 by { rw [mem_Ico, not_and], exact λ _, lt_irrefl _ }
@@ -112,13 +100,21 @@ begin
   exact and_iff_right_of_imp (λ h, hac.trans h.1),
 end
 
+/-- A set with upper and lower bounds in a locally finite order is a fintype -/
+def _root_.set.fintype_of_mem_bounds {a b} {s : set α} [decidable_pred (∈ s)]
+  (ha : a ∈ lower_bounds s) (hb : b ∈ upper_bounds s) : fintype s :=
+set.fintype_subset (set.Icc a b) $ λ x hx, ⟨ha hx, hb hx⟩
+
+lemma _root_.bdd_below.finite_of_bdd_above {s : set α} (h₀ : bdd_below s) (h₁ : bdd_above s) :
+  s.finite :=
+let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fintype_of_mem_bounds ha hb⟩ }
+
 end preorder
 
 section partial_order
 variables [partial_order α] [locally_finite_order α] {a b : α}
 
-@[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
-by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
+@[simp] lemma Icc_self (a : α) : Icc a a = {a} := by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
 
 lemma Ico_insert_right [decidable_eq α] (h : a ≤ b) : insert b (Ico a b) = Icc a b :=
 by rw [←coe_inj, coe_insert, coe_Icc, coe_Ico, set.insert_eq, set.union_comm, set.Ico_union_right h]
@@ -202,73 +198,94 @@ end
 
 end linear_order
 
+section order_top
+variables [order_top α] [locally_finite_order α]
+
+lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
+hs.finite_of_bdd_above $ order_top.bdd_above s
+
+end order_top
+
+section order_bot
+variables [order_bot α] [locally_finite_order α]
+
+lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
+
+end order_bot
+
 section ordered_cancel_add_comm_monoid
 variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
   [locally_finite_order α]
 
-lemma image_add_const_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (a + c) (b + c) :=
+lemma image_add_left_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (c + a) (c + b) :=
 begin
   ext x,
   rw [mem_image, mem_Icc],
   split,
   { rintro ⟨y, hy, rfl⟩,
     rw mem_Icc at hy,
-    rw add_comm c,
-    exact ⟨add_le_add_right hy.1 c, add_le_add_right hy.2 c⟩ },
+    exact ⟨add_le_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
   { intro hx,
     obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw [hy, add_right_comm] at hx,
-    rw [eq_comm, add_right_comm, add_comm] at hy,
-    exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩ }
+    rw add_assoc at hy,
+    rw hy at hx,
+    exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
 end
 
-lemma image_add_const_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (a + c) (b + c) :=
+lemma image_add_left_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (c + a) (c + b) :=
 begin
   ext x,
   rw [mem_image, mem_Ico],
   split,
-  { rintro ⟨y, hy, hx⟩,
+  { rintro ⟨y, hy, rfl⟩,
     rw mem_Ico at hy,
-    rw [←hx, add_comm c],
-    exact ⟨add_le_add_right hy.1 c, add_lt_add_right hy.2 c⟩ },
+    exact ⟨add_le_add_left hy.1 c, add_lt_add_left hy.2 c⟩ },
   { intro hx,
     obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw [hy, add_right_comm] at hx,
-    rw [eq_comm, add_right_comm, add_comm] at hy,
-    exact ⟨a + y, mem_Ico.2 ⟨le_of_add_le_add_right hx.1, lt_of_add_lt_add_right hx.2⟩, hy⟩ }
+    rw add_assoc at hy,
+    rw hy at hx,
+    exact ⟨a + y, mem_Ico.2 ⟨le_of_add_le_add_left hx.1, lt_of_add_lt_add_left hx.2⟩, hy.symm⟩ }
 end
 
-lemma image_add_const_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (a + c) (b + c) :=
+lemma image_add_left_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (c + a) (c + b) :=
 begin
   ext x,
   rw [mem_image, mem_Ioc],
-  split,
+  refine ⟨_, λ hx, _⟩,
   { rintro ⟨y, hy, rfl⟩,
     rw mem_Ioc at hy,
-    rw add_comm c,
-    exact ⟨add_lt_add_right hy.1 c, add_le_add_right hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw [hy, add_right_comm] at hx,
-    rw [eq_comm, add_right_comm, add_comm] at hy,
-    exact ⟨a + y, mem_Ioc.2 ⟨lt_of_add_lt_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩ }
+    exact ⟨add_lt_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
+  { obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
+    rw add_assoc at hy,
+    rw hy at hx,
+    exact ⟨a + y, mem_Ioc.2 ⟨lt_of_add_lt_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
 end
 
-lemma image_add_const_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (a + c) (b + c) :=
+lemma image_add_left_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (c + a) (c + b) :=
 begin
   ext x,
   rw [mem_image, mem_Ioo],
-  split,
+  refine ⟨_, λ hx, _⟩,
   { rintro ⟨y, hy, rfl⟩,
     rw mem_Ioo at hy,
-    rw add_comm c,
-    exact ⟨add_lt_add_right hy.1 c, add_lt_add_right hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw [hy, add_right_comm] at hx,
-    rw [eq_comm, add_right_comm, add_comm] at hy,
-    exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_right hx.1, lt_of_add_lt_add_right hx.2⟩, hy⟩ }
+    exact ⟨add_lt_add_left hy.1 c, add_lt_add_left hy.2 c⟩ },
+  { obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
+    rw add_assoc at hy,
+    rw hy at hx,
+    exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_left hx.1, lt_of_add_lt_add_left hx.2⟩, hy.symm⟩ }
 end
+
+lemma image_add_right_Icc (a b c : α) : (Icc a b).image (λ x, x + c) = Icc (a + c) (b + c) :=
+by { simp_rw add_comm _ c, exact image_add_left_Icc a b c }
+
+lemma image_add_right_Ico (a b c : α) : (Ico a b).image (λ x, x + c) = Ico (a + c) (b + c) :=
+by { simp_rw add_comm _ c, exact image_add_left_Ico a b c }
+
+lemma image_add_right_Ioc (a b c : α) : (Ioc a b).image (λ x, x + c) = Ioc (a + c) (b + c) :=
+by { simp_rw add_comm _ c, exact image_add_left_Ioc a b c }
+
+lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (λ x, x + c) = Ioo (a + c) (b + c) :=
+by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
 
 end ordered_cancel_add_comm_monoid
 end finset

@@ -45,15 +45,22 @@ and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplicat
 For now, these typeclasses are primarily used in the construction of `direct_sum.ring` and the rest
 of that file.
 
-## Indexed subobjects
+## Internally graded monoids
 
-Additionally, this module provides helper functions to construct `gmonoid` and `gcomm_monoid`
-instances for collections of subobjects:
+In addition to the above typeclasses, in the most frequent case when `A` is an indexed collection of
+`set_like` subobjects (such as `add_submonoid`s, `add_subgroup`s, or `submodule`s), this file
+provides the `Prop` typeclasses:
 
-* `ghas_one.of_add_subobjects`
-* `ghas_mul.of_add_subobjects`
-* `gmonoid.of_add_subobjects`
-* `gcomm_monoid.of_add_subobjects`
+* `set_like.has_graded_one A` (which provides the obvious `graded_monoid.ghas_one A` instance)
+* `set_like.has_graded_mul A` (which provides the obvious `graded_monoid.ghas_mul A` instance)
+* `set_like.graded_monoid A` (which provides the obvious `graded_monoid.gmonoid A` and
+  `graded_monoid.gcomm_monoid A` instances)
+
+Strictly this last class is unecessary as it has no fields not present in its parents, but it is
+included for convenience. Note that there is no need for `graded_ring` or similar, as all the
+information it would contain is already supplied by `graded_monoid` when `A` is a collection
+of additively-closed set_like objects such as `submodules`. These constructions are explored in
+`algebra.direct_sum.internal`.
 
 ## tags
 
@@ -256,67 +263,7 @@ end
 
 end mul_action
 
-
 end grade_zero
-
-/-! ### Shorthands for creating instance of the above typeclasses for collections of subobjects -/
-
-section subobjects
-
-variables {R : Type*}
-
-/-- Build a `ghas_one` instance for a collection of subobjects. -/
-@[simps one]
-def ghas_one.of_subobjects {S : Type*} [set_like S R] [has_one R] [has_zero ι]
-  (carriers : ι → S)
-  (one_mem : (1 : R) ∈ carriers 0) :
-  ghas_one (λ i, carriers i) :=
-{ one := ⟨1, one_mem⟩ }
-
-/-- Build a `ghas_mul` instance for a collection of subobjects. -/
-@[simps mul]
-def ghas_mul.of_subobjects {S : Type*} [set_like S R] [has_mul R] [has_add ι]
-  (carriers : ι → S)
-  (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
-  ghas_mul (λ i, carriers i) :=
-{ mul := λ i j a b, ⟨(a * b : R), mul_mem a b⟩ }
-
-/-- Build a `gmonoid` instance for a collection of subobjects.
-
-See note [reducible non-instances]. -/
-@[reducible]
-def gmonoid.of_subobjects {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
-  (carriers : ι → S)
-  (one_mem : (1 : R) ∈ carriers 0)
-  (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
-  gmonoid (λ i, carriers i) :=
-{ one_mul := λ ⟨i, a, h⟩, sigma.subtype_ext (zero_add _) (one_mul _),
-  mul_one := λ ⟨i, a, h⟩, sigma.subtype_ext (add_zero _) (mul_one _),
-  mul_assoc := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩ ⟨k, c, hc⟩,
-    sigma.subtype_ext (add_assoc _ _ _) (mul_assoc _ _ _),
-  gnpow := λ n i a, ⟨a ^ n, begin
-    induction n,
-    { rw [pow_zero, zero_nsmul], exact one_mem },
-    { rw [pow_succ', succ_nsmul'], exact mul_mem ⟨_, n_ih⟩ a },
-  end⟩,
-  gnpow_zero' := λ n, sigma.subtype_ext (zero_nsmul _) (pow_zero _),
-  gnpow_succ' := λ n a, sigma.subtype_ext (succ_nsmul _ _) (pow_succ _ _),
-  ..ghas_one.of_subobjects carriers one_mem,
-  ..ghas_mul.of_subobjects carriers mul_mem }
-
-/-- Build a `gcomm_monoid` instance for a collection of subobjects.
-
-See note [reducible non-instances]. -/
-@[reducible]
-def gcomm_monoid.of_subobjects {S : Type*} [set_like S R] [comm_monoid R] [add_comm_monoid ι]
-  (carriers : ι → S)
-  (one_mem : (1 : R) ∈ carriers 0)
-  (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
-  gcomm_monoid (λ i, carriers i) :=
-{ mul_comm := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩, sigma.subtype_ext (add_comm _ _) (mul_comm _ _),
-  ..gmonoid.of_subobjects carriers one_mem mul_mem}
-
-end subobjects
 
 end graded_monoid
 
@@ -354,3 +301,58 @@ instance comm_monoid.gcomm_monoid [add_comm_monoid ι] [comm_monoid R] :
   ..monoid.gmonoid ι }
 
 end
+/-! ### Shorthands for creating instance of the above typeclasses for collections of subobjects -/
+
+section subobjects
+
+variables {R : Type*}
+
+/-- A version of `graded_monoid.ghas_one` for internally graded objects. -/
+class set_like.has_graded_one {S : Type*} [set_like S R] [has_one R] [has_zero ι]
+  (A : ι → S) : Prop :=
+(one_mem : (1 : R) ∈ A 0)
+
+instance set_like.ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] (A : ι → S)
+  [set_like.has_graded_one A] : graded_monoid.ghas_one (λ i, A i) :=
+{ one := ⟨1, set_like.has_graded_one.one_mem⟩ }
+
+/-- A version of `graded_monoid.ghas_one` for internally graded objects. -/
+class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι]
+  (A : ι → S) : Prop :=
+(mul_mem : ∀ ⦃i j⦄ {gi gj}, gi ∈ A i → gj ∈ A j → gi * gj ∈ A (i + j))
+
+instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
+  [set_like.has_graded_mul A] :
+  graded_monoid.ghas_mul (λ i, A i) :=
+{ mul := λ i j a b, ⟨(a * b : R), set_like.has_graded_mul.mul_mem a.prop b.prop⟩ }
+
+/-- A version of `graded_monoid.gmonoid` for internally graded objects. -/
+class set_like.graded_monoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
+  (A : ι → S) extends set_like.has_graded_one A, set_like.has_graded_mul A : Prop
+
+/-- Build a `gmonoid` instance for a collection of subobjects. -/
+instance set_like.gmonoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S)
+  [set_like.graded_monoid A] :
+  graded_monoid.gmonoid (λ i, A i) :=
+{ one_mul := λ ⟨i, a, h⟩, sigma.subtype_ext (zero_add _) (one_mul _),
+  mul_one := λ ⟨i, a, h⟩, sigma.subtype_ext (add_zero _) (mul_one _),
+  mul_assoc := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩ ⟨k, c, hc⟩,
+    sigma.subtype_ext (add_assoc _ _ _) (mul_assoc _ _ _),
+  gnpow := λ n i a, ⟨a ^ n, begin
+    induction n,
+    { rw [pow_zero, zero_nsmul], exact set_like.has_graded_one.one_mem },
+    { rw [pow_succ', succ_nsmul'], exact set_like.has_graded_mul.mul_mem n_ih a.prop },
+  end⟩,
+  gnpow_zero' := λ n, sigma.subtype_ext (zero_nsmul _) (pow_zero _),
+  gnpow_succ' := λ n a, sigma.subtype_ext (succ_nsmul _ _) (pow_succ _ _),
+  ..set_like.ghas_one A,
+  ..set_like.ghas_mul A }
+
+/-- Build a `gcomm_monoid` instance for a collection of subobjects. -/
+instance set_like.gcomm_monoid {S : Type*} [set_like S R] [comm_monoid R] [add_comm_monoid ι]
+  (A : ι → S) [set_like.graded_monoid A] :
+  graded_monoid.gcomm_monoid (λ i, A i) :=
+{ mul_comm := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩, sigma.subtype_ext (add_comm _ _) (mul_comm _ _),
+  ..set_like.gmonoid A}
+
+end subobjects

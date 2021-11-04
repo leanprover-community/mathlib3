@@ -249,26 +249,25 @@ let f := finsupp.restrict_dom R R {d : σ →₀ ℕ | ∑ i in d.support, d i =
 /-- Split a polynomial into a direct sum of homogeneous components. -/
 def to_homogeneous_components [comm_semiring R] :
   mv_polynomial σ R →ₐ[R] (⨁ i, homogeneous_submodule σ R i) :=
-mv_polynomial.aeval_tower (algebra.of_id _ _)
-  (λ s, direct_sum.of (λ i, homogeneous_submodule σ R i) 1 ⟨X s, is_homogeneous_X _ _⟩)
+begin
+  refine add_monoid_algebra.lift _ _ _ _,
+  exact {
+    to_fun := λ d, direct_sum.of (λ i, homogeneous_submodule σ R i) (d.to_add.sum $ λ i x, x)
+      ⟨monomial d.to_add 1, is_homogeneous_monomial _ _ _ rfl⟩,
+    map_one' := rfl,
+    map_mul' := λ d₁ d₂, _, },
+  refine (dfinsupp.single_eq_of_sigma_eq (sigma.subtype_ext _ _)).trans
+    (direct_sum.of_mul_of _ _).symm; dsimp,
+  exact finsupp.sum_add_index (λ _, rfl) (λ _ _ _, rfl),
+  rw [monomial_mul, mul_one],
+end
 
-@[simp]
-lemma to_homogeneous_components_X [comm_semiring R] (d : σ) :
-  to_homogeneous_components (mv_polynomial.X d : mv_polynomial σ R) =
-    direct_sum.of (λ i, homogeneous_submodule σ R i) 1 ⟨mv_polynomial.X d, is_homogeneous_X _ _⟩ :=
-aeval_tower_X _ _ _
 
 lemma to_homogeneous_components_monomial_one [comm_semiring R] (d : σ →₀ ℕ) :
   to_homogeneous_components (monomial d (1 : R)) =
     direct_sum.of (λ i, homogeneous_submodule σ R i) (d.sum $ λ i x, x)
       ⟨monomial d 1, is_homogeneous_monomial _ _ _ rfl⟩ :=
-begin
-  simp_rw monomial_eq,
-  simp_rw [ring_hom.map_one, one_mul, alg_hom.map_finsupp_prod, alg_hom.map_pow,
-    to_homogeneous_components_X],
-end
-
-#exit
+(add_monoid_algebra.lift_single _ _ _).trans (one_smul _ _)
 
 @[simp]
 lemma to_homogeneous_components_monomial [comm_semiring R] (d : σ →₀ ℕ) (r : R) :

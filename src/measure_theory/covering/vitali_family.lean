@@ -8,7 +8,7 @@ import measure_theory.measure.measure_space
 /-!
 # Vitali families
 
-On a metric space with a measure `μ`, consider for each `x` a family of measurable sets with
+On a metric space `X` with a measure `μ`, consider for each `x : X` a family of measurable sets with
 nonempty interiors, called `sets_at x`. This family is a Vitali family if it satisfies the following
 property: consider a (possibly non-measurable) set `s`, and for any `x` in `s` a
 subfamily `f x` of `sets_at x` containing sets of arbitrarily small diameter. Then one can extract
@@ -50,7 +50,7 @@ open_locale filter measure_theory topological_space
 
 variables {α : Type*} [metric_space α]
 
-/-- On a metric space with a measure `μ`, consider for each `x` a family of measurable sets with
+/-- On a metric space `X` with a measure `μ`, consider for each `x : X` a family of measurable sets with
 nonempty interiors, called `sets_at x`. This family is a Vitali family if it satisfies the following
 property: consider a (possibly non-measurable) set `s`, and for any `x` in `s` a
 subfamily `f x` of `sets_at x` containing sets of arbitrarily small diameter. Then one can extract
@@ -106,52 +106,54 @@ theorem exists_disjoint_covering_ae :
     (∀ x ∈ t, u x ∈ v.sets_at x ∩ f x) ∧ μ (s \ ⋃ x ∈ t, u x) = 0 :=
 v.covering s (λ x, v.sets_at x ∩ f x) (λ x hx, inter_subset_left _ _) h
 
-/-- Given `h : v.fine_subfamily_on f s`, then `h.t` is a subset of `s` parametrizing a disjoint
+/-- Given `h : v.fine_subfamily_on f s`, then `h.index` is a subset of `s` parametrizing a disjoint
 covering of almost every `s`. -/
-protected def t : set α :=
+protected def index : set α :=
 h.exists_disjoint_covering_ae.some
 
-/-- Given `h : v.fine_subfamily_on f s`, then `h.u x` is a set in the family, for `x ∈ h.t`, such
-that these sets form a disjoint covering of almost every `s`. -/
-protected def u : α → set α :=
+/-- Given `h : v.fine_subfamily_on f s`, then `h.covering x` is a set in the family,
+for `x ∈ h.index`, such that these sets form a disjoint covering of almost every `s`. -/
+protected def covering : α → set α :=
 h.exists_disjoint_covering_ae.some_spec.some
 
-lemma t_subset_s : h.t ⊆ s :=
+lemma index_subset : h.index ⊆ s :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.1
 
-lemma u_disjoint : h.t.pairwise (disjoint on h.u) :=
+lemma covering_disjoint : h.index.pairwise (disjoint on h.covering) :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.1
 
-lemma u_disjoint_subtype : pairwise (disjoint on (λ x : h.t, h.u x)) :=
-(pairwise_subtype_iff_pairwise_set _ _).2 h.u_disjoint
+lemma covering_disjoint_subtype : pairwise (disjoint on (λ x : h.index, h.covering x)) :=
+(pairwise_subtype_iff_pairwise_set _ _).2 h.covering_disjoint
 
-lemma u_mem_f {x : α} (hx : x ∈ h.t) : h.u x ∈ f x :=
+lemma covering_mem {x : α} (hx : x ∈ h.index) : h.covering x ∈ f x :=
 (h.exists_disjoint_covering_ae.some_spec.some_spec.2.2.1 x hx).2
 
-lemma u_mem_v {x : α} (hx : x ∈ h.t) : h.u x ∈ v.sets_at x :=
+lemma covering_mem_family {x : α} (hx : x ∈ h.index) : h.covering x ∈ v.sets_at x :=
 (h.exists_disjoint_covering_ae.some_spec.some_spec.2.2.1 x hx).1
 
-lemma measure_diff_bUnion : μ (s \ ⋃ x ∈ h.t, h.u x) = 0 :=
+lemma measure_diff_bUnion : μ (s \ ⋃ x ∈ h.index, h.covering x) = 0 :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.2.2
 
-lemma t_countable [second_countable_topology α] : countable h.t :=
-countable_of_nonempty_interior_of_disjoint h.u (λ x hx, v.nonempty_interior _ _ (h.u_mem_v hx))
-  h.u_disjoint
+lemma index_countable [second_countable_topology α] : countable h.index :=
+countable_of_nonempty_interior_of_disjoint h.covering
+  (λ x hx, v.nonempty_interior _ _ (h.covering_mem_family hx)) h.covering_disjoint
 
-protected lemma measurable_set_u {x : α} (hx : x ∈ h.t) : _root_.measurable_set (h.u x) :=
-v.measurable_set' x _ (h.u_mem_v hx)
+protected lemma measurable_set_u {x : α} (hx : x ∈ h.index) : measurable_set (h.covering x) :=
+v.measurable_set' x _ (h.covering_mem_family hx)
 
 lemma measure_le_tsum_of_absolutely_continuous [second_countable_topology α]
   {ρ : measure α} (hρ : ρ ≪ μ) :
-  ρ s ≤ ∑' (x : h.t), ρ (h.u x) :=
-calc ρ s ≤ ρ ((s \ ⋃ (x ∈ h.t), h.u x) ∪ (⋃ (x ∈ h.t), h.u x)) :
+  ρ s ≤ ∑' (x : h.index), ρ (h.covering x) :=
+calc ρ s ≤ ρ ((s \ ⋃ (x ∈ h.index), h.covering x) ∪ (⋃ (x ∈ h.index), h.covering x)) :
     measure_mono (by simp only [subset_union_left, diff_union_self])
-  ... ≤ ρ (s \ ⋃ (x ∈ h.t), h.u x) + ρ (⋃ (x ∈ h.t), h.u x) : measure_union_le _ _
-  ... = ∑' (x : h.t), ρ (h.u x) : by rw [hρ h.measure_diff_bUnion,
-    measure_bUnion h.t_countable h.u_disjoint (λ x hx, h.measurable_set_u hx), zero_add]
+  ... ≤ ρ (s \ ⋃ (x ∈ h.index), h.covering x) + ρ (⋃ (x ∈ h.index), h.covering x) :
+    measure_union_le _ _
+  ... = ∑' (x : h.index), ρ (h.covering x) : by rw [hρ h.measure_diff_bUnion,
+    measure_bUnion h.index_countable h.covering_disjoint (λ x hx, h.measurable_set_u hx),
+    zero_add]
 
 lemma measure_le_tsum [second_countable_topology α] :
-  μ s ≤ ∑' (x : h.t), μ (h.u x) :=
+  μ s ≤ ∑' (x : h.index), μ (h.covering x) :=
 h.measure_le_tsum_of_absolutely_continuous measure.absolutely_continuous.rfl
 
 end fine_subfamily_on

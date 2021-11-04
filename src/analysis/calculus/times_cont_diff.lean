@@ -1564,7 +1564,7 @@ lemma continuous_linear_equiv.times_cont_diff {n : with_top ℕ} (f : E ≃L[�
   times_cont_diff 𝕜 n f :=
 (f : E →L[𝕜] F).times_cont_diff
 
-lemma linear_isometry_map.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
+lemma linear_isometry.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
   times_cont_diff 𝕜 n f :=
 f.to_continuous_linear_map.times_cont_diff
 

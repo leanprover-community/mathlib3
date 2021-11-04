@@ -314,6 +314,10 @@ eq_mul_inv_of_mul_eq h2
 theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 (commute.refl a).inv_left.pow_pow m n
 
+@[to_additive sub_nsmul_neg]
+theorem inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
+by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
+
 end nat
 
 @[simp, to_additive zsmul_zero]

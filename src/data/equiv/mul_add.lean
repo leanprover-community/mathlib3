@@ -561,7 +561,7 @@ protected def mul_left₀ (a : G) (ha : a ≠ 0) : perm G :=
   left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
   right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
 
-lemma _root_.group_with_zero.mul_left_bijective₀ (a : G) (ha : a ≠ 0) :
+lemma _root_.mul_left_bijective₀ (a : G) (ha : a ≠ 0) :
   function.bijective ((*) a : G → G) :=
 (equiv.mul_left₀ a ha).bijective
 
@@ -574,7 +574,7 @@ protected def mul_right₀ (a : G) (ha : a ≠ 0) : perm G :=
   left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
   right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
 
-lemma _root_.group_with_zero.mul_right_bijective₀ (a : G) (ha : a ≠ 0) :
+lemma _root_.mul_right_bijective₀ (a : G) (ha : a ≠ 0) :
   function.bijective ((* a) : G → G) :=
 (equiv.mul_right₀ a ha).bijective
 

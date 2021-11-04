@@ -157,13 +157,13 @@ end
 /--
 The isomorphsim between the underlying set of `X ⨯ Y` and the set-theoretic product of `X` and `Y`.
 -/
-def prod_iso_prod (X Y : Top.{u}) : ↥(X ⨯ Y) ≅ X × Y :=
+def prod_iso_prod (X Y : Top.{u}) : ((X ⨯ Y : Top) : Type*) ≅ X × Y :=
 begin
   refine preserves_limit_iso forget (pair X Y) ≪≫
     limits.lim.map_iso (nat_iso.of_components _ _) ≪≫
     limit.iso_limit_cone (limits.types.binary_product_limit_cone _ _),
-  intro j, apply eq_to_iso, cases j; simp,
-  tidy,
+  { intro j, apply eq_to_iso, cases j; simp },
+  { tidy }
 end
 
 @[simp, reassoc] lemma prod_iso_prod_hom_fst (X Y : Top) :
@@ -212,21 +212,21 @@ lemma range_prod_map {W X Y Z : Top.{u}} (f : W ⟶ Y) (g : X ⟶ Z) :
 begin
   ext,
   split,
-  rintros ⟨y, rfl⟩,
-  simp only [set.mem_preimage, set.mem_range, set.mem_inter_eq, ←comp_apply],
-  simp only [limits.prod.map_fst, limits.prod.map_snd,
-    exists_apply_eq_apply, comp_apply, and_self],
-  rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
-  use (prod_iso_prod W X).inv (x₁, x₂),
-  apply concrete.limit_ext,
-  rintro ⟨⟩,
-  all_goals { simp only [←comp_apply], erw lim_map_π, simpa }
+  { rintros ⟨y, rfl⟩,
+    simp only [set.mem_preimage, set.mem_range, set.mem_inter_eq, ←comp_apply],
+    simp only [limits.prod.map_fst, limits.prod.map_snd,
+      exists_apply_eq_apply, comp_apply, and_self] },
+  { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
+    use (prod_iso_prod W X).inv (x₁, x₂),
+    apply concrete.limit_ext,
+    rintro ⟨⟩,
+    all_goals { simp only [←comp_apply], erw lim_map_π, simpa } }
 end
 
 lemma inducing_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
   (hf : inducing f) (hg : inducing g) : inducing (limits.prod.map f g) :=
 begin
-  split,
+  constructor,
   simp only [prod_topology, induced_compose, ←coe_comp, limits.prod.map_fst, limits.prod.map_snd,
     induced_inf],
   simp only [coe_comp],
@@ -254,14 +254,14 @@ begin
   change (pullback f g).str = _,
   conv_lhs { rw Top.limit_induced },
   apply le_antisymm,
-  rw le_inf_iff,
-  exact ⟨infi_le _ walking_cospan.left, infi_le _ walking_cospan.right⟩,
-  rw le_infi_iff,
-  rintro (_|_|_),
-  rw ← limit.w _ walking_cospan.hom.inl,
-  conv_rhs { rw [coe_comp, ←induced_compose] },
-  exact inf_le_left.trans (induced_mono (continuous.le_induced (by continuity))),
-  exacts [inf_le_left, inf_le_right]
+  { rw le_inf_iff,
+    exact ⟨infi_le _ walking_cospan.left, infi_le _ walking_cospan.right⟩ },
+  { rw le_infi_iff,
+    rintro (_|_|_),
+    { rw ← limit.w _ walking_cospan.hom.inl,
+      conv_rhs { rw [coe_comp, ←induced_compose] },
+      exact inf_le_left.trans (induced_mono (continuous.le_induced (by continuity))) },
+    exacts [inf_le_left, inf_le_right] }
 end
 
 /--
@@ -292,14 +292,14 @@ lemma range_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
 begin
   ext x,
   split,
-  rintros ⟨y, rfl⟩,
-  simp only [←comp_apply, set.mem_set_of_eq],
-  congr' 1,
-  simp [pullback.condition],
-  intro h,
-  use pullback_preimage f g _ _ h,
-  apply concrete.limit_ext,
-  rintro ⟨⟩; simp,
+  { rintros ⟨y, rfl⟩,
+    simp only [←comp_apply, set.mem_set_of_eq],
+    congr' 1,
+    simp [pullback.condition] },
+  { intro h,
+    use pullback_preimage f g _ _ h,
+    apply concrete.limit_ext,
+    rintro ⟨⟩; simp }
 end
 
 lemma inducing_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -314,7 +314,7 @@ lemma embedding_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
 lemma range_pullback_map {W X Y Z S T : Top} (f₁ : W ⟶ S) (f₂ : X ⟶ S)
   (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T) [H₃ : mono i₃]
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
-  set.range (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) =
+  set.range (pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) =
     (pullback.fst : pullback g₁ g₂ ⟶ _) ⁻¹' (set.range i₁) ∩
       (pullback.snd : pullback g₁ g₂ ⟶ _) ⁻¹' (set.range i₂) :=
 begin
@@ -353,14 +353,14 @@ lemma pullback_map_embedding_of_embeddings {W X Y Z S T : Top}
   (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
   (H₁ : embedding i₁) (H₂ : embedding i₂) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
-  embedding (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
+  embedding (pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
 begin
   refine embedding_of_embedding_compose (continuous_map.continuous_to_fun _)
     (show continuous (prod.lift pullback.fst pullback.snd : pullback g₁ g₂ ⟶ Y ⨯ Z), from
       continuous_map.continuous_to_fun _) _,
   suffices : embedding
     (prod.lift pullback.fst pullback.snd ≫ limits.prod.map i₁ i₂ : pullback f₁ f₂ ⟶ _),
-  { simpa[←coe_comp] using this },
+  { simpa [←coe_comp] using this },
   rw coe_comp,
   refine embedding.comp (embedding_prod_map H₁ H₂)
     (embedding_pullback_to_prod _ _)
@@ -379,15 +379,15 @@ lemma pullback_map_open_embedding_of_open_embeddings {W X Y Z S T : Top}
   (f₁ : W ⟶ S) (f₂ : X ⟶ S) (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) {i₁ : W ⟶ Y} {i₂ : X ⟶ Z}
   (H₁ : open_embedding i₁) (H₂ : open_embedding i₂) (i₃ : S ⟶ T) [H₃ : mono i₃]
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) :
-  open_embedding (pullback_map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
+  open_embedding (pullback.map f₁ f₂ g₁ g₂ i₁ i₂ i₃ eq₁ eq₂) :=
 begin
   split,
-  apply pullback_map_embedding_of_embeddings
-    f₁ f₂ g₁ g₂ H₁.to_embedding H₂.to_embedding i₃ eq₁ eq₂,
-  rw range_pullback_map,
-  apply is_open.inter; apply continuous.is_open_preimage,
-  continuity,
-  exacts [H₁.open_range, H₂.open_range]
+  { apply pullback_map_embedding_of_embeddings
+      f₁ f₂ g₁ g₂ H₁.to_embedding H₂.to_embedding i₃ eq₁ eq₂ },
+  { rw range_pullback_map,
+    apply is_open.inter; apply continuous.is_open_preimage,
+    continuity,
+    exacts [H₁.open_range, H₂.open_range] }
 end
 
 lemma snd_embedding_of_left_embedding {X Y S : Top}
@@ -455,7 +455,6 @@ begin
 end
 
 end pullback
-
 lemma colimit_coinduced (F : J ⥤ Top.{u}) :
   (colimit F).topological_space = ⨆ j, (F.obj j).topological_space.coinduced (colimit.ι F j) :=
 begin
@@ -481,9 +480,9 @@ begin
   { intro H, exact H _ },
   { intros H j,
     cases j,
-    rw ←colimit.w F walking_parallel_pair_hom.left,
-    exact (F.map walking_parallel_pair_hom.left).continuous_to_fun.is_open_preimage _ H,
-    exact H }
+    { rw ←colimit.w F walking_parallel_pair_hom.left,
+      exact (F.map walking_parallel_pair_hom.left).continuous_to_fun.is_open_preimage _ H },
+    { exact H } }
 end
 
 /-- The isomorphism `∐ α ≅ Σ i, α i` as types. -/

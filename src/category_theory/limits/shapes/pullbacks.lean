@@ -615,7 +615,7 @@ Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`
   X  ⟶  Z
 
 -/
-def pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
+abbreviation pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
   (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) [has_pullback g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) : pullback f₁ f₂ ⟶ pullback g₁ g₂ :=
 pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
@@ -632,7 +632,7 @@ Given such a diagram, then there is a natural morphism `W ⨿ₛ X ⟶ Y ⨿ₜ 
       X  ⟶  Z
 
 -/
-def pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
+abbreviation pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
   (g₁ : T ⟶ Y) (g₂ : T ⟶ Z) [has_pushout g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₁ = i₃ ≫ g₁) (eq₂ : f₂ ≫ i₂ = i₃ ≫ g₂) : pushout f₁ f₂ ⟶ pushout g₁ g₂ :=
 pushout.desc (i₁ ≫ pushout.inl) (i₂ ≫ pushout.inr)

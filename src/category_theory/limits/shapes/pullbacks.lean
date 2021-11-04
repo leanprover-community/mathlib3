@@ -668,7 +668,7 @@ instance mono_pullback_to_prod {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z
   mono (prod.lift pullback.fst pullback.snd : pullback f g ⟶ _) :=
 ⟨λ W i₁ i₂ h, begin
   ext,
-  { simpa using congr_arg (λ f, f ≫ prod.fst) h }
+  { simpa using congr_arg (λ f, f ≫ prod.fst) h },
   { simpa using congr_arg (λ f, f ≫ prod.snd) h }
 end⟩
 

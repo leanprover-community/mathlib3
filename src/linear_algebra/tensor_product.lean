@@ -42,7 +42,7 @@ variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
   [add_comm_monoid S]
 variables [module Rᵒᵖ M] [module R N] [module R P] [module R Q] [module R S]
-variables [distrib_mul_action R'ᵒᵖ M] [distrib_mul_action R' N]
+variables [distrib_mul_action R'ᵒᵖ M] [has_scalar R' N]
 variables [module R'' M]
 include R
 
@@ -213,7 +213,7 @@ Note that in the special case that `R = R'`, since `R` is commutative, we just g
 action on a tensor product of two modules. This special case is important enough that, for
 performance reasons, we define it explicitly below. -/
 instance left_has_scalar [smul_comm_class Rᵒᵖ R'ᵒᵖ M] :
-  has_scalar R'ᵒᵖ (M ⊗[R] N) :=
+  has_scalar R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (rsmul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
@@ -230,57 +230,56 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
---TODO keep this shortcut or delete?
-instance left_has_scalar_comm {R} [comm_semiring R] [module Rᵒᵖ M] [module R N] :
-  has_scalar R (M ⊗[R] N) := infer_instance
+end module
 
-instance right_has_scalar [smul_comm_class R R' N] :
-  has_scalar R'ᵒᵖ (M ⊗[R] N) :=
-⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift
-  (smul.aux (opposite.unop r) : _ →+ M ⊗[R] N) $
-add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
-| _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
-    by rw [add_monoid_hom.map_zero, smul.aux_of, zero_tmul]
-| _, _, (eqv.of_zero_right m)      := (add_con.ker_rel _).2 $
-    by { rw [smul.aux_of],  }
-| _, _, (eqv.of_add_left m₁ m₂ n)  := (add_con.ker_rel _).2 $
-    _
-| _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
-    _
-| _, _, (eqv.of_smul s m n)        := (add_con.ker_rel _).2 $
-    _
-| _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
-    _
-end⟩
+end tensor_product
+
+end semiring
+
+section comm_semiring
+variables {R R' M N : Type*}
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N]
+variables [module Rᵒᵖ M] [module R N]
+variables [monoid R'] [distrib_mul_action R'ᵒᵖ M]
+variables [smul_comm_class Rᵒᵖ R'ᵒᵖ M] [has_scalar R' N]
+variables {R'' : Type*} [semiring R''] [module R''ᵒᵖ M] [module R'' N]
+variables [smul_comm_class Rᵒᵖ R''ᵒᵖ M]
+
+open_locale tensor_product
+open opposite
+
+namespace tensor_product
+
+--TODO keep this shortcut or delete?
+instance left_has_scalar_comm : has_scalar R (M ⊗[R] N) := infer_instance
 
 protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
 
-protected theorem smul_add (r : R') (x y : M ⊗[R] N) :
+protected theorem smul_add  (r : R') (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
 protected theorem zero_smul (x : M ⊗[R] N) : (0 : R'') • x = 0 :=
-have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (m <• r) ⊗ₜ n := λ _ _ _, rfl,
 tensor_product.induction_on x
   (by rw tensor_product.smul_zero)
-  (λ m n, by rw [this, zero_smul, zero_tmul])
+  (λ m n, by rw [this, op_zero, zero_smul, zero_tmul])
   (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy, add_zero])
 
 protected theorem one_smul (x : M ⊗[R] N) : (1 : R') • x = x :=
-have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (m <• r) ⊗ₜ n := λ _ _ _, rfl,
 tensor_product.induction_on x
   (by rw tensor_product.smul_zero)
-  (λ m n, by rw [this, one_smul])
+  (λ m n, by rw [this, op_one, one_smul])
   (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy])
 
 protected theorem add_smul (r s : R'') (x : M ⊗[R] N) : (r + s) • x = r • x + s • x :=
-have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (m <• r) ⊗ₜ n := λ _ _ _, rfl,
 tensor_product.induction_on x
   (by simp_rw [tensor_product.smul_zero, add_zero])
-  (λ m n, by simp_rw [this, add_smul, add_tmul])
+  (λ m n, by simp_rw [this, op_add, add_smul, add_tmul])
   (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy, add_add_add_comm] })
-
 
 instance : add_comm_monoid (M ⊗[R] N) :=
 { nsmul := λ n v, n • v,
@@ -289,12 +288,12 @@ instance : add_comm_monoid (M ⊗[R] N) :=
   .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
 
 instance left_distrib_mul_action : distrib_mul_action R' (M ⊗[R] N) :=
-have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (m <• r) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
     (by simp_rw tensor_product.smul_zero)
-    (λ m n, by simp_rw [this, mul_smul])
+    (λ m n, by rw [this, op_mul, mul_smul, smul_comm])
     (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy] }),
   one_smul := tensor_product.one_smul,
   smul_zero := tensor_product.smul_zero }
@@ -357,21 +356,6 @@ instance is_scalar_tower {R} [comm_semiring R] [module R M] [module Rᵒᵖ N]
   [smul_comm_class R R' M] :
   is_scalar_tower R' R (M ⊗[R] N) :=
 tensor_product.is_scalar_tower_left  -- or right
-
-end module
-
-end tensor_product
-
-end semiring
-
-section comm_semiring
-variables (R M N : Type*)
-variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N]
-variables [module R M] [module Rᵒᵖ N]
-
-open_locale tensor_product
-
-namespace tensor_product
 
 example : has_scalar Rᵒᵖ (M ⊗[R] N) := infer_instance
 

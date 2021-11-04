@@ -540,19 +540,13 @@ variables [group_with_zero G]
 underlying type. -/
 @[simps {fully_applied := ff}]
 protected def mul_left₀ (a : G) (ha : a ≠ 0) : perm G :=
-{ to_fun := λ x, a * x,
-  inv_fun := λ x, a⁻¹ * x,
-  left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
-  right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
+(units.mk0 a ha).mul_left
 
 /-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
 @[simps {fully_applied := ff}]
 protected def mul_right₀ (a : G) (ha : a ≠ 0) : perm G :=
-{ to_fun := λ x, x * a,
-  inv_fun := λ x, x * a⁻¹,
-  left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
-  right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
+(units.mk0 a ha).mul_right
 
 end group_with_zero
 

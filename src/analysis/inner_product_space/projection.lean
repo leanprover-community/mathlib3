@@ -139,7 +139,7 @@ begin
     rw dist_eq_norm,
     apply nonneg_le_nonneg_of_sq_le_sq, { exact sqrt_nonneg _ },
     rw mul_self_sqrt,
-    exact calc
+    calc
       ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) -
         4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ : by { rw ← this, simp }
       ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left eq₁ _
@@ -246,7 +246,7 @@ begin
   { apply le_cinfi, assume w,
     apply nonneg_le_nonneg_of_sq_le_sq (norm_nonneg _),
     have := h w w.2,
-    exact calc
+    calc
       ∥u - v∥ * ∥u - v∥ ≤ ∥u - v∥ * ∥u - v∥ - 2 * inner (u - v) ((w:F) - v) : by linarith
       ... ≤ ∥u - v∥^2 - 2 * inner (u - v) ((w:F) - v) + ∥(w:F) - v∥^2 :
         by { rw sq, refine le_add_of_nonneg_right _, exact sq_nonneg _ }

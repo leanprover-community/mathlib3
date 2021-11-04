@@ -51,7 +51,7 @@ begin
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm hi.1 hj,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
-  exact calc f i ≤ a - (nat.pred l) • ε : hi.2
+  calc f i ≤ a - (nat.pred l) • ε : hi.2
     ... = a - l • ε + ε :
       by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
         sub_add, add_sub_cancel] }
@@ -287,7 +287,7 @@ begin
   refine add_lt_add (lt_of_le_of_lt hsumlesum
     (by rw [← sum_mul, mul_comm]; exact (mul_lt_mul_left hPε0).mpr hsumltP)) _,
   rw sum_range_sub_sum_range (le_of_lt hNMK),
-  exact calc ∑ i in (range K).filter (λ k, max N M + 1 ≤ k),
+  calc ∑ i in (range K).filter (λ k, max N M + 1 ≤ k),
       abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k)
       ≤ ∑ i in (range K).filter (λ k, max N M + 1 ≤ k), abv (a i) * (2 * Q) :
     sum_le_sum (λ n hn, begin
@@ -1254,7 +1254,7 @@ begin
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
     ≤ abs x ^ n * (n.succ * (n! * n)⁻¹),
   rw sum_range_sub_sum_range hj,
-  exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
+  calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
       = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m!) : ℂ)) :
     begin
       refine congr_arg abs (sum_congr rfl (λ m hm, _)),

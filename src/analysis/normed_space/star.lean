@@ -5,7 +5,6 @@ Authors: Frédéric Dupuis
 -/
 
 import analysis.normed_space.linear_isometry
-import algebra.star.module
 
 /-!
 # Normed star rings and algebras

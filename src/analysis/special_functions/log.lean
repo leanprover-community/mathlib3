@@ -101,6 +101,8 @@ by { intro h, rwa [← exp_lt_exp, exp_log hx, exp_log (lt_trans hx h)] }
 lemma log_lt_log_iff (hx : 0 < x) (hy : 0 < y) : log x < log y ↔ x < y :=
 by { rw [← exp_lt_exp, exp_log hx, exp_log hy] }
 
+lemma log_le_iff_le_exp (hx : 0 < x) : log x ≤ y ↔ x ≤ exp y := by rw [←exp_le_exp, exp_log ha]
+
 lemma log_pos_iff (hx : 0 < x) : 0 < log x ↔ 1 < x :=
 by { rw ← log_one, exact log_lt_log_iff zero_lt_one hx }
 
@@ -228,4 +230,3 @@ lemma continuous_on.log (hf : continuous_on f s) (h₀ : ∀ x ∈ s, f x ≠ 0)
 λ x hx, (hf x hx).log (h₀ x hx)
 
 end continuity
-

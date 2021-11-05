@@ -6,7 +6,9 @@ Authors: Antoine Labelle
 import algebra.big_operators.basic
 import algebra.big_operators.order
 import data.fintype.card
-import tactic
+import data.finset.sort
+import data.fin.interval
+import tactic.linarith
 import tactic.by_contra
 
 /-!

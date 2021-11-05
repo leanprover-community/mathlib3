@@ -193,7 +193,8 @@ section examples
 `GL_2` if `a ^ 2 + b ^ 2` is nonzero. -/
 noncomputable def abnba {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   matrix.general_linear_group (fin 2) R :=
-general_linear_group.mk''' ![![a, b], ![-b, a]] (by simpa [det_fin_two, sq] using hab)
+general_linear_group.mk_of_det_ne_zero ![![a, b], ![-b, a]] 
+  (by simpa [det_fin_two, sq] using hab)
 
 @[simp] lemma coe_abnba {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   (abnba a b hab : matrix (fin 2) (fin 2) R) = ![![a, b], ![-b, a]] :=

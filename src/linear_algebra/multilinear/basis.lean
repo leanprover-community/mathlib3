@@ -46,26 +46,12 @@ begin
     apply hm,
     intro j,
     convert h (fin.cons i j),
-    { rw curry_left_apply,
-      congr,
-      ext x,
-      by_cases hx : x = 0,
-      { rw hx,
-        simp },
-      { let x' := x.pred hx,
-        have hx' : x'.succ = x := fin.succ_pred x hx,
-        rw ←hx',
-        simp [fin.tail] } },
-    { rw curry_left_apply,
-      congr,
-      ext x,
-      by_cases hx : x = 0,
-      { rw hx,
-        simp },
-      { let x' := x.pred hx,
-        have hx' : x'.succ = x := fin.succ_pred x hx,
-        rw ←hx',
-        simp [fin.tail] } } }
+    iterate 2 { {
+      rw curry_left_apply,
+      congr' 1 with x,
+      refine fin.cases rfl (λ x, _) x,
+      dsimp [fin.tail],
+      rw [fin.cons_succ, fin.cons_succ], } }
 end
 
 /-- Two multilinear maps indexed by a `fintype` are equal if they are equal when all arguments

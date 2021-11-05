@@ -50,20 +50,5 @@ version of `dom_dom_congr`. -/
 lemma basis.ext_multilinear [decidable_eq ι] [fintype ι] {f g : multilinear_map R (λ i : ι, M₂) M₃}
   {ι₁ : Type*} (e : basis ι₁ R M₂) (h : ∀ v : ι → ι₁, f (λ i, e (v i)) = g (λ i, e (v i))) :
   f = g :=
-begin
-  generalize' hn : fintype.card ι = n,
-  let f' := f.dom_dom_congr (fintype.equiv_fin_of_card_eq hn),
-  let g' := g.dom_dom_congr (fintype.equiv_fin_of_card_eq hn),
-  rw ←dom_dom_congr_eq_iff (fintype.equiv_fin_of_card_eq hn),
-  change f' = g',
-  cases n with m hm,
-  { ext x,
-    haveI := fintype.card_eq_zero_iff.1 hn,
-    convert h is_empty_elim,
-    { rw dom_dom_congr_apply,
-      congr },
-    { rw dom_dom_congr_apply,
-      congr } },
-  { exact basis.ext_multilinear_fin (λ i : fin m.succ, e)
-                                    (λ i, h (i ∘ fintype.equiv_fin_of_card_eq hn)) }
-end
+(dom_dom_congr_eq_iff (fintype.equiv_fin ι) f g).mp $
+  basis.ext_multilinear_fin (λ i, e) (λ i, h (i ∘ _))

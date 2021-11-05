@@ -734,7 +734,7 @@ begin
       simpa using (add_lt_add_iff_left (repr a0)).2 e0 },
     { refine lt_of_lt_of_le Rl (power_le_power_right omega_pos $
         mul_le_mul_left _ $ succ_le_succ.2 $ nat_cast_le.2 $ le_of_lt k.lt_succ_self) } },
-  refine calc
+  calc
         ω0 ^ k.succ * α' + R'
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _

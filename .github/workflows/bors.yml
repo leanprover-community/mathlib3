@@ -30,12 +30,12 @@ jobs:
   style_lint:
     if: github.repository == 'leanprover-community/mathlib'
     name: Lint style
-    runs-on: self-hosted
+    runs-on: bors
     steps:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ${{ 'self-hosted' == 'ubuntu-latest' }}
+        if: ${{ 'bors' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
@@ -47,7 +47,7 @@ jobs:
   build:
     if: github.repository == 'leanprover-community/mathlib'
     name: Build mathlib
-    runs-on: self-hosted
+    runs-on: bors
     env:
       # number of commits to check for olean cache
       GIT_HISTORY_DEPTH: 20
@@ -111,7 +111,7 @@ jobs:
 
   lint:
     name: Lint mathlib
-    runs-on: self-hosted
+    runs-on: bors
     needs: build
 
     # skip on master branch
@@ -144,7 +144,7 @@ jobs:
 
   tests:
     name: Run tests
-    runs-on: self-hosted
+    runs-on: bors
     needs: build
 
     # skip on master branch

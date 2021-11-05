@@ -191,7 +191,7 @@ begin
     (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
-  simp only [fpow_neg x n],
+  simp only [zpow_neg₀ x n],
   ring,
 end
 

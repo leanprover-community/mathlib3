@@ -168,12 +168,12 @@ section add_comm_group
 variables (R M) [semiring R] [add_comm_group M]
 
 instance add_comm_group.int_module : module ℤ M :=
-{ one_smul := one_gsmul,
-  mul_smul := λ m n a, mul_gsmul a m n,
-  smul_add := λ n a b, gsmul_add a b n,
-  smul_zero := gsmul_zero,
-  zero_smul := zero_gsmul,
-  add_smul := λ r s x, add_gsmul x r s }
+{ one_smul := one_zsmul,
+  mul_smul := λ m n a, mul_zsmul a m n,
+  smul_add := λ n a b, zsmul_add a b n,
+  smul_zero := zsmul_zero,
+  zero_smul := zero_zsmul,
+  add_smul := λ r s x, add_zsmul x r s }
 
 /-- A structure containing most informations as in a module, except the fields `zero_smul`
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
@@ -329,8 +329,8 @@ variables [semiring S] [ring R] [add_comm_group M] [module S M] [module R M]
 
 section
 variables (R)
-/-- `gsmul` is equal to any other module structure via a cast. -/
-lemma gsmul_eq_smul_cast (n : ℤ) (b : M) : n • b = (n : R) • b :=
+/-- `zsmul` is equal to any other module structure via a cast. -/
+lemma zsmul_eq_smul_cast (n : ℤ) (b : M) : n • b = (n : R) • b :=
 have (smul_add_hom ℤ M).flip b = ((smul_add_hom R M).flip b).comp (int.cast_add_hom R),
   by { ext, simp },
 add_monoid_hom.congr_fun this n
@@ -338,15 +338,15 @@ end
 
 /-- Convert back any exotic `ℤ`-smul to the canonical instance. This should not be needed since in
 mathlib all `add_comm_group`s should normally have exactly one `ℤ`-module structure by design. -/
-lemma int_smul_eq_gsmul (h : module ℤ M) (n : ℤ) (x : M) :
+lemma int_smul_eq_zsmul (h : module ℤ M) (n : ℤ) (x : M) :
   @has_scalar.smul ℤ M h.to_has_scalar n x = n • x :=
-by rw [gsmul_eq_smul_cast ℤ n x, int.cast_id]
+by rw [zsmul_eq_smul_cast ℤ n x, int.cast_id]
 
 /-- All `ℤ`-module structures are equal. Not an instance since in mathlib all `add_comm_group`
 should normally have exactly one `ℤ`-module structure by design. -/
 def add_comm_group.int_module.unique : unique (module ℤ M) :=
 { default := by apply_instance,
-  uniq := λ P, module_ext P _ $ λ n, int_smul_eq_gsmul P n }
+  uniq := λ P, module_ext P _ $ λ n, int_smul_eq_zsmul P n }
 
 end add_comm_group
 
@@ -358,12 +358,12 @@ f.map_nsmul a x
 
 lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
-f.map_gsmul a x
+f.map_zsmul a x
 
 lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
   (x : ℤ) (a : M) : f ((x : R) • a) = (x : S) • f a :=
-by simp only [←gsmul_eq_smul_cast, f.map_gsmul]
+by simp only [←zsmul_eq_smul_cast, f.map_zsmul]
 
 lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂)
   (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂] (x : ℕ) (a : M) :
@@ -439,7 +439,7 @@ instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [
 instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [semiring S]
   [add_comm_group M] [module S M] :
   smul_comm_class ℤ S M :=
-{ smul_comm := λ n x y, ((smul_add_hom S M x).map_gsmul y n).symm }
+{ smul_comm := λ n x y, ((smul_add_hom S M x).map_zsmul y n).symm }
 
 -- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
 instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [semiring S]
@@ -592,4 +592,4 @@ by rw [nsmul_eq_mul, mul_one]
 
 @[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
-by rw [gsmul_eq_mul, mul_one]
+by rw [zsmul_eq_mul, mul_one]

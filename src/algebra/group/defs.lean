@@ -25,7 +25,7 @@ We also introduce notation classes `has_scalar` and `has_vadd` for multiplicativ
 actions and register the following instances:
 
 - `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for groups `G`;
-- `has_smul ℕ M` for additive monoids `M`, and `has_smul ℤ G` for additive groups `G`.
+- `has_scalar ℕ M` for additive monoids `M`, and `has_scalar ℤ G` for additive groups `G`.
 
 ## Notation
 

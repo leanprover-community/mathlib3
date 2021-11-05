@@ -1443,36 +1443,34 @@ lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔
 
 /-! ### Mutually singular measures -/
 
-/-- Two measures `μ`, `ν` are said to be mutually singular if there exists a set `s`
+/-- Two measures `μ`, `ν` are said to be mutually singular if there exists a measurable set `s`
 such that `μ s = 0` and `ν sᶜ = 0`. -/
 def mutually_singular {m0 : measurable_space α} (μ ν : measure α) : Prop :=
-∃ (s : set α), μ s = 0 ∧ ν sᶜ = 0
+∃ (s : set α), measurable_set s ∧ μ s = 0 ∧ ν sᶜ = 0
 
 localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory
 
 namespace mutually_singular
 
-lemma mk' {s t : set α} (hs : μ s = 0) (ht : ν t = 0) (hst : univ ⊆ s ∪ t) :
+lemma mk {s t : set α} (hs : μ s = 0) (ht : ν t = 0) (hst : univ ⊆ s ∪ t) :
   mutually_singular μ ν :=
-⟨s, hs, measure_mono_null (compl_subset_iff_union.2 (univ_subset_iff.1 hst)) ht⟩
+begin
+  use [to_measurable μ s, measurable_set_to_measurable _ _, (measure_to_measurable _).trans hs],
+  refine measure_mono_null (λ x hx, (hst trivial).resolve_left $ λ hxs, hx _) ht,
+  exact subset_to_measurable _ _ hxs
+end
 
-lemma exists_measurable (h : μ ⊥ₘ ν) :
-  ∃ s, measurable_set s ∧ μ s = 0 ∧ ν sᶜ = 0 :=
-let ⟨s, hμ, hν⟩ := h
-in ⟨to_measurable μ s, measurable_set_to_measurable _ _, (measure_to_measurable _).trans hμ,
-  measure_mono_null (compl_subset_compl.2 (subset_to_measurable _ _)) hν⟩
-
-@[simp] lemma zero_right : μ ⊥ₘ 0 := ⟨∅, measure_empty, rfl⟩
+@[simp] lemma zero_right : μ ⊥ₘ 0 := ⟨∅, measurable_set.empty, measure_empty, rfl⟩
 
 @[symm] lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
-let ⟨i, his, hit⟩ := h in ⟨iᶜ, hit, (compl_compl i).symm ▸ his⟩
+let ⟨i, hi, his, hit⟩ := h in ⟨iᶜ, hi.compl, hit, (compl_compl i).symm ▸ his⟩
 
 lemma comm : μ ⊥ₘ ν ↔ ν ⊥ₘ μ := ⟨λ h, h.symm, λ h, h.symm⟩
 
 @[simp] lemma zero_left : 0 ⊥ₘ μ := zero_right.symm
 
 lemma mono_ac (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≪ μ₁) (hν : ν₂ ≪ ν₁) : μ₂ ⊥ₘ ν₂ :=
-let ⟨s, h₁, h₂⟩ := h in ⟨s, hμ h₁, hν h₂⟩
+let ⟨s, hs, h₁, h₂⟩ := h in ⟨s, hs, hμ h₁, hν h₂⟩
 
 lemma mono (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≤ μ₁) (hν : ν₂ ≤ ν₁) : μ₂ ⊥ₘ ν₂ :=
 h.mono_ac hμ.absolutely_continuous hν.absolutely_continuous
@@ -1481,9 +1479,8 @@ h.mono_ac hμ.absolutely_continuous hν.absolutely_continuous
   (sum μ) ⊥ₘ ν ↔ ∀ i, μ i ⊥ₘ ν :=
 begin
   refine ⟨λ h i, h.mono (le_sum _ _) le_rfl, λ H, _⟩,
-  casesI is_empty_or_nonempty ι, { simp }, inhabit ι,
-  choose s hsm hsμ hsν using λ i, (H i).exists_measurable,
-  refine ⟨⋂ i, s i, _, _⟩,
+  choose s hsm hsμ hsν using H,
+  refine ⟨⋂ i, s i, measurable_set.Inter hsm, _, _⟩,
   { rw [sum_apply _ (measurable_set.Inter hsm), ennreal.tsum_eq_zero],
     exact λ i, measure_mono_null (Inter_subset _ _) (hsμ i) },
   { rwa [compl_Inter, measure_Union_null_iff], }

@@ -2077,7 +2077,7 @@ lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f
 begin
   set S : set α := { x | f x < 0 } with hSdef,
   have hS : measurable_set S := measurable_set_lt hf measurable_const,
-  refine ⟨S, _, _⟩,
+  refine ⟨S, hS, _, _⟩,
   { rw [with_density_apply _ hS, lintegral_eq_zero_iff hf.ennreal_of_real, eventually_eq],
     exact (ae_restrict_mem hS).mono (λ x hx, ennreal.of_real_eq_zero.2 (le_of_lt hx)) },
   { rw [with_density_apply _ hS.compl, lintegral_eq_zero_iff hf.neg.ennreal_of_real, eventually_eq],

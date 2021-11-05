@@ -253,7 +253,7 @@ variable (s : pullback_cone f g)
 -- /--
 --   (Implementation.) Any cone over `cospan f g` indeed factors through the constructed cone.
 -- -/
-def pullback_cone_of_left : s.X ⟶ (pullback_cone_of_left f g).X :=
+def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
 { base := pullback.lift s.fst.base s.snd.base
   (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
   c :=

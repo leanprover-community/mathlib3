@@ -286,6 +286,10 @@ lemma _root_.has_lt.lt.nat_succ_le {n m : ℕ} (h : n < m) : succ n ≤ m := suc
 lemma succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
 by rw [nat.succ_eq_add_one, nat.add_comm]
 
+lemma succ_sub_self : ∀ {n : ℕ}, n.succ - n = 1
+| 0       := rfl
+| (n + 1) := by rw [succ_sub_succ, succ_sub_self]
+
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
@@ -846,6 +850,12 @@ protected lemma mul_div_mul_left (a b : ℕ) {c : ℕ} (hc : 0 < c) : c * a / (c
 nat.mul_div_mul a b hc
 protected lemma mul_div_mul_right (a b : ℕ) {c : ℕ} (hc : 0 < c) : a * c / (b * c) = a / b :=
 by rw [mul_comm, mul_comm b, a.mul_div_mul_left b hc]
+
+lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
+begin
+  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+  exact nat.lt_succ_self _,
+end
 
 /-! ### `mod`, `dvd` -/
 

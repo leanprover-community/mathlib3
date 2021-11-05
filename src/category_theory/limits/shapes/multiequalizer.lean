@@ -333,7 +333,7 @@ lemma multifork_ι (a) :
   (multiequalizer.multifork I).ι a = multiequalizer.ι I a := rfl
 
 @[simp]
-lemma multifork_π_app_zero (a) :
+lemma multifork_π_app_left (a) :
   (multiequalizer.multifork I).π.app (walking_multicospan.left a) =
   multiequalizer.ι I a := rfl
 
@@ -387,7 +387,7 @@ lemma multicofork_π (b) :
   (multicoequalizer.multicofork I).π b = multicoequalizer.π I b := rfl
 
 @[simp]
-lemma multicofork_π_app_right (b) :
+lemma multicofork_ι_app_right (b) :
   (multicoequalizer.multicofork I).ι.app (walking_multispan.right b) =
   multicoequalizer.π I b := rfl
 @[reassoc]
@@ -403,7 +403,7 @@ abbreviation desc (W : C) (k : Π b, I.right b ⟶ W)
 colimit.desc _ (multicofork.of_π I _ k h)
 
 @[simp, reassoc]
-lemma lift_ι (W : C) (k : Π b, I.right b ⟶ W)
+lemma π_desc (W : C) (k : Π b, I.right b ⟶ W)
   (h : ∀ a, I.fst a ≫  k (I.fst_from a) = I.snd a ≫ k (I.snd_from a)) (b) :
   multicoequalizer.π I b ≫ multicoequalizer.desc I _ k h = k _ :=
 colimit.ι_desc _ _

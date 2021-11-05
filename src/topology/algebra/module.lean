@@ -1309,6 +1309,13 @@ e.to_linear_equiv.to_equiv.image_eq_preimage s
 
 protected lemma image_symm_eq_preimage (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₂) : e.symm '' s = e ⁻¹' s :=
 by rw [e.symm.image_eq_preimage, e.symm_symm]
+
+@[simp] protected lemma symm_preimage_preimage (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₂) :
+  e.symm ⁻¹' (e ⁻¹' s) = s := e.to_linear_equiv.to_equiv.symm_preimage_preimage s
+
+@[simp] protected lemma preimage_symm_preimage (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₁) :
+  e ⁻¹' (e.symm ⁻¹' s) = s := e.symm.symm_preimage_preimage s
+
 omit σ₂₁
 
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are

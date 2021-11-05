@@ -158,6 +158,8 @@ have he_vol' : measure_preserving eL.to_homeomorph.to_measurable_equiv volume vo
   ⟨eL.continuous.measurable, he_vol⟩,
 have hIcc : eL ⁻¹' (Icc (eL a) (eL b)) = Icc a b,
   by { ext1 x, simp only [set.mem_preimage, set.mem_Icc, he_ord] },
+have hIcc' : Icc (eL a) (eL b) = eL.symm ⁻¹' (Icc a b),
+  by rw [← hIcc, eL.symm_preimage_preimage],
 calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : by simp only [hDF]
 ... = ∫ x in Icc (eL a) (eL b), ∑ i, f' i (eL.symm x) (eL.symm $ e i) :
   begin
@@ -171,8 +173,16 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
         f i (eL.symm $ i.insert_nth (eL a i) x))) :
   begin
     convert integral_divergence_of_has_fderiv_within_at_off_countable' (eL a) (eL b)
-      ((he_ord _ _).2 hle) (λ i x, f i (eL.symm x)) _
-      (eL '' s) (hs.image _) _ _ _
+      ((he_ord _ _).2 hle) (λ i x, f i (eL.symm x))
+      (λ i x, f' i (eL.symm x) ∘L (eL.symm : ℝⁿ⁺¹ →L[ℝ] F))
+      (eL.symm ⁻¹' s) (hs.preimage eL.symm.injective) _ _ _,
+    { intros x hx i,
+      refine (Hc _ hx i).comp eL.symm.continuous_within_at _,
+      rw hIcc' },
+    { rintro x hx i,
+      rw hIcc' at hx ⊢,
+      exact (Hd _ hx i).comp x eL.symm.has_fderiv_within_at subset.rfl },
+    { erw [← he_vol'.map_eq, integrable_on_map_equiv, hIcc], }
   end
 
 end

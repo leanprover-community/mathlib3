@@ -2752,9 +2752,17 @@ nat.le.intro (head_add_tail_sum L)
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 
--- The product of a list of positive natural numbers is positive
-lemma pos_list_nat_prod_pos (L : list ℕ) (h: ∀ n ∈ L, 0 < n) : 0 < L.prod :=
-by {rw pos_iff_ne_zero, apply list.prod_ne_zero (λ H, lt_irrefl 0 (h 0 H))}
+-- The product of a list of positive natural numbers is positive,
+-- and likewise for any nontrivial ordered semiring
+lemma prod_pos {S : Type} [ordered_semiring S] [nontrivial S] (L : list S)
+(h: ∀ n:S, n ∈ L → 0 < n) : 0 < L.prod :=
+begin
+  induction L, {simp},
+  { simp, apply mul_pos,
+    { apply h, simp },
+    { exact L_ih (λ n hn, h n (mem_cons_of_mem L_hd hn)) }}
+end
+
 
 
 section

@@ -30,7 +30,7 @@ In a `locally_finite_order`,
 * `multiset.Icc`: Closed-closed interval as a multiset.
 * `multiset.Ico`: Closed-open interval as a multiset. Currently only for `ℕ`.
 * `multiset.Ioc`: Open-closed interval as a multiset.
-* `multiset.Ioo`: Open-open interval as a finset.
+* `multiset.Ioo`: Open-open interval as a multiset.
 
 When it's also an `order_top`,
 * `finset.Ici`: Closed-infinite interval as a finset.
@@ -55,16 +55,16 @@ A `locally_finite_order` instance can be built
   `order_embedding.locally_finite_order`.
 
 Instances for concrete types are proved in their respective files:
-* `ℕ` is in `data.nat.intervals`
-* `ℤ` is in `data.int.intervals`
-* `ℕ+` is in `data.pnat.intervals`
-* `fin n` is in `data.fin.intervals`
+* `ℕ` is in `data.nat.interval`
+* `ℤ` is in `data.int.interval`
+* `ℕ+` is in `data.pnat.interval`
+* `fin n` is in `data.fin.interval`
+* `finset α` is in `data.finset.interval`
 Along, you will find lemmas about the cardinality of those finite intervals.
 
 ## TODO
 
-`finset.Ico` and `multiset.Ico` haven't been generalized yet. All of `data.finset.intervals` and
-`data.multiset.intervals` should be generalized.
+`multiset.Ico` hasn't been generalized yet. All of `data.multiset.intervals` should be generalized.
 
 Provide the `locally_finite_order` instance for `lex α β` where `locally_finite_order α` and
 `fintype β`.

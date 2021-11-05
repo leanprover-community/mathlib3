@@ -85,12 +85,15 @@ protected lemma ind {f : sym2 α → Prop} (h : ∀ x y, f ⟦(x, y)⟧) : ∀ i
 quotient.ind $ prod.rec $ by exact h
 
 attribute [elab_as_eliminator]
-protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i := i.ind hf
+protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
+i.ind hf
 
-protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} : (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
+protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} :
+  (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
 (surjective_quotient_mk _).exists.trans prod.exists
 
-protected lemma «forall» {α : Sort*} {f : sym2 α → Prop} : (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
+protected lemma «forall» {α : Sort*} {f : sym2 α → Prop} :
+  (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
 (surjective_quotient_mk _).forall.trans prod.forall
 
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=

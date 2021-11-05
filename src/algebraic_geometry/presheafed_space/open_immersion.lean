@@ -141,6 +141,33 @@ instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
       apply_instance }
   end }
 
+noncomputable
+def inv_app (U : opens X) : X.presheaf.obj (op U) ⟶ Y.presheaf.obj (op (H.open_functor.obj U)) :=
+X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) ≫
+  inv (f.c.app (op (H.open_functor.obj U)))
+
+@[simp, reassoc] lemma inv_naturality {U V : (opens X)ᵒᵖ} (i : U ⟶ V) :
+  X.presheaf.map i ≫ H.inv_app (unop V) = H.inv_app (unop U) ≫
+    Y.presheaf.map (H.open_functor.op.map i) :=
+begin
+  simp only [inv_app, ←category.assoc],
+  rw [is_iso.comp_inv_eq],
+  simp only [category.assoc, f.c.naturality, is_iso.inv_hom_id_assoc, ← X.presheaf.map_comp],
+  erw ← X.presheaf.map_comp,
+  congr
+end
+
+@[simp, reassoc] lemma inv_app_app (U : opens X) :
+  H.inv_app U ≫ f.c.app (op (H.open_functor.obj U)) =
+    X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) :=
+by rw [inv_app, category.assoc, is_iso.inv_hom_id, category.comp_id]
+
+@[simp, reassoc] lemma app_inv_app (U : opens Y) :
+  f.c.app (op U) ≫ H.inv_app ((opens.map f.base).obj U) =
+  Y.presheaf.map ((hom_of_le (by exact set.image_preimage_subset f.base U)).op :
+    op U ⟶ op (H.open_functor.obj ((opens.map f.base).obj U))) :=
+by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
+
 end open_immersion
 
 open open_immersion
@@ -156,30 +183,52 @@ variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : open_immersion f] (g :
 
 include hf
 
-def pullback_cone : pullback_cone f g :=
+def pullback_cone_of_left_fst :
+  Y.restrict (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base) ⟶ X :=
+{ base := pullback.fst,
+  c :=
+  { app := λ U, hf.inv_app (unop U) ≫
+      g.c.app (op (hf.base_open.is_open_map.functor.obj (unop U))) ≫
+      Y.presheaf.map (eq_to_hom
+      (begin
+        simp only [is_open_map.functor, subtype.mk_eq_mk, unop_op, op_inj_iff, opens.map,
+        subtype.coe_mk, functor.op_obj, subtype.val_eq_coe],
+        apply has_le.le.antisymm,
+          { rintros _ ⟨_, h₁, h₂⟩,
+            use (Top.pullback_iso_prod_subtype _ _).inv ⟨⟨_, _⟩, h₂⟩,
+            simpa using h₁ },
+          { rintros _ ⟨x, h₁, rfl⟩,
+            exact ⟨_, h₁, concrete_category.congr_hom pullback.condition x⟩ }
+      end)),
+    naturality' :=
+    begin
+      intros U V i,
+      induction U using opposite.rec,
+      induction V using opposite.rec,
+      simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map, category.assoc,
+        nat_trans.naturality_assoc, functor.op_map, inv_naturality_assoc, ← Y.presheaf.map_comp],
+      erw ← Y.presheaf.map_comp,
+      congr
+    end } }
+
+def pullback_cone_of_left : pullback_cone f g :=
 begin
   fapply pullback_cone.mk,
-  exact Y.restrict (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base),
-  refine { base := pullback.fst, c := { app := _, naturality' := _ } },
-  intro U,
-  refine X.presheaf.map (eq_to_hom _) ≫
-    inv (f.c.app (op (hf.base_open.is_open_map.functor.obj (unop U)))) ≫
-    g.c.app (op (hf.base_open.is_open_map.functor.obj (unop U))) ≫ Y.presheaf.map (eq_to_hom _),
-  -- { induction U using opposite.rec,
-  --   simp[opens.map, is_open_map.functor, set.preimage_image_eq _ hf.base_open.inj] },
-  admit,
-  { induction U using opposite.rec,
-    simp only [is_open_map.functor, subtype.mk_eq_mk, unop_op, op_inj_iff, opens.map,
-      subtype.coe_mk, functor.op_obj, subtype.val_eq_coe],
-    apply has_le.le.antisymm,
-    { rintros _ ⟨_, h₁, h₂⟩,
-      use Top.pullback_preimage _ _ _ _ h₂,
-      simpa using h₁ },
-    { rintros _ ⟨x, h₁, rfl⟩,
-      exact ⟨_, h₁, concrete_category.congr_hom pullback.condition x⟩ } },
-  -- have := ,
-  dsimp,
+  { exact Y.restrict (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base) },
+  exact pullback_cone_of_left_fst f g,
+  { exact Y.of_restrict _ },
+  { ext U,
+    { induction U using opposite.rec,
+      dsimp only [comp_c_app, nat_trans.comp_app, unop_op,
+        whisker_right_app, pullback_cone_of_left_fst],
+      simp only [quiver.hom.unop_op, Top.presheaf.pushforward_obj_map, app_inv_app_assoc,
+        eq_to_hom_app, eq_to_hom_unop, category.assoc, nat_trans.naturality_assoc, functor.op_map],
+      erw [← Y.presheaf.map_comp, ← Y.presheaf.map_comp],
+      congr },
+    { simpa using pullback.condition } }
 end
+
+section end
 
 -- /--
 -- We construct the pullback of two restrictions via restricting along the pullback of the
@@ -199,59 +248,66 @@ end
 -- end
 
 
--- variable (s : pullback_cone (Z.of_restrict hf) (Z.of_restrict hg))
+variable (s : pullback_cone f g)
 
 -- /--
 --   (Implementation.) Any cone over `cospan f g` indeed factors through the constructed cone.
 -- -/
--- def pullback_cone_of_restrict_lift : s.X ⟶ (pullback_cone_of_restrict Z hf hg).X :=
--- { base := pullback.lift s.fst.base s.snd.base
---   (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
---   c := whisker_left _ (s.π.app walking_cospan.one).c ≫
---     (whisker_right (nat_trans.op
---     { app := λ U, hom_of_le
---       (λ x (hx : x ∈ (opens.map (pullback.lift s.fst.base s.snd.base _)).obj U),
---         ⟨pullback.lift s.fst.base s.snd.base
---             (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition) x, hx,
---           show limit.π (cospan f g) walking_cospan.one
---             (pullback.lift s.fst.base s.snd.base _ x) = (s.π.app walking_cospan.one).base x,
---           by  { have := s.π.naturality walking_cospan.hom.inl,
---                 erw category.id_comp at this,
---                 simpa [this] } ⟩),
---       naturality' := λ _ _ _, refl _ }) s.X.presheaf
---       : (is_open_map.functor _ ⋙ opens.map _).op ⋙ s.X.presheaf ⟶ _ ⋙ s.X.presheaf)}
+def pullback_cone_of_left : s.X ⟶ (pullback_cone_of_left f g).X :=
+{ base := pullback.lift s.fst.base s.snd.base
+  (congr_arg (λ x, PresheafedSpace.hom.base x) s.condition),
+  c :=
+  { app := λ U, s.snd.c.app _ ≫ s.X.presheaf.map (eq_to_hom (begin
+      dsimp only [opens.map, is_open_map.functor, functor.op],
+      congr' 2,
+      let s' : pullback_cone f.base g.base := pullback_cone.mk s.fst.base s.snd.base _,
+      have : _ = s.snd.base := limit.lift_π s' walking_cospan.right,
+      conv_lhs { erw ← this, rw coe_comp, erw ← set.preimage_preimage },
+      erw set.preimage_image_eq _
+        (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base).inj,
+      simp,
+    end)),
+    naturality' := λ U V i,
+    begin
+      erw s.snd.c.naturality_assoc,
+      rw category.assoc,
+      erw [← s.X.presheaf.map_comp, ← s.X.presheaf.map_comp],
+      congr
+    end } }
 
--- lemma pullback_cone_of_restrict_lift_comp_fst :
---   pullback_cone_of_restrict_lift Z hf hg s ≫
---     (pullback_cone_of_restrict Z hf hg).fst = s.fst :=
--- begin
---   delta pullback_cone_of_restrict_lift pullback_cone_of_restrict,
---   ext x,
---   { induction x using opposite.rec,
---     cases x,
---     have i : f ⁻¹' (⇑(limit.π (cospan f g) walking_cospan.one) ''
---       ((pullback.fst : pullback f g ⟶ _) ⁻¹' x_val)) ⊆ x_val,
---     { rw [←limit.w (cospan f g) walking_cospan.hom.inl, coe_comp, ←set.image_image],
---       erw set.preimage_image_eq _ hf.inj,
---       simp },
---     have := λ x, PresheafedSpace.congr_app
---       ((category.id_comp _).symm.trans (s.π.naturality walking_cospan.hom.inl : _)) x,
---     dsimp only [PresheafedSpace.comp_c_app, whisker_right_app,
---       nat_trans.comp_app],
---     erw this,
---     dsimp only [pullback_cone.mk_fst, PresheafedSpace.comp_c_app],
---     erw restrict_comp_hom_c_app',
---     simp only [category.assoc],
---     erw ←Z.presheaf.map_comp_assoc,
---     erw ←Z.presheaf.map_comp_assoc,
---     erw s.fst.c.naturality_assoc,
---     iterate 3 { erw [←s.X.presheaf.map_comp] },
---     convert category.comp_id _,
---     exact s.X.presheaf.map_id _,
---     { dsimp only [functor.op], refine (hom_of_le _).op, exact i } },
---   { change pullback.lift _ _ _ ≫ 𝟙 _ ≫ pullback.fst = _,
---     simp only [category.comp_id, category.id_comp, pullback.lift_fst] }
--- end
+section end
+
+lemma pullback_cone_of_restrict_lift_comp_fst :
+  pullback_cone_of_restrict_lift Z hf hg s ≫
+    (pullback_cone_of_restrict Z hf hg).fst = s.fst :=
+begin
+  delta pullback_cone_of_restrict_lift pullback_cone_of_restrict,
+  ext x,
+  { induction x using opposite.rec,
+    cases x,
+    have i : f ⁻¹' (⇑(limit.π (cospan f g) walking_cospan.one) ''
+      ((pullback.fst : pullback f g ⟶ _) ⁻¹' x_val)) ⊆ x_val,
+    { rw [←limit.w (cospan f g) walking_cospan.hom.inl, coe_comp, ←set.image_image],
+      erw set.preimage_image_eq _ hf.inj,
+      simp },
+    have := λ x, PresheafedSpace.congr_app
+      ((category.id_comp _).symm.trans (s.π.naturality walking_cospan.hom.inl : _)) x,
+    dsimp only [PresheafedSpace.comp_c_app, whisker_right_app,
+      nat_trans.comp_app],
+    erw this,
+    dsimp only [pullback_cone.mk_fst, PresheafedSpace.comp_c_app],
+    erw restrict_comp_hom_c_app',
+    simp only [category.assoc],
+    erw ←Z.presheaf.map_comp_assoc,
+    erw ←Z.presheaf.map_comp_assoc,
+    erw s.fst.c.naturality_assoc,
+    iterate 3 { erw [←s.X.presheaf.map_comp] },
+    convert category.comp_id _,
+    exact s.X.presheaf.map_id _,
+    { dsimp only [functor.op], refine (hom_of_le _).op, exact i } },
+  { change pullback.lift _ _ _ ≫ 𝟙 _ ≫ pullback.fst = _,
+    simp only [category.comp_id, category.id_comp, pullback.lift_fst] }
+end
 
 -- lemma pullback_cone_of_restrict_lift_comp_snd :
 --   pullback_cone_of_restrict_lift Z hf hg s ≫

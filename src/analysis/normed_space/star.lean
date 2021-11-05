@@ -9,10 +9,12 @@ import analysis.normed_space.linear_isometry
 /-!
 # Normed star rings and algebras
 
-A normed star ring is a star ring endowed with a norm such that the star operation is isometric.
+A normed star monoid is a `star_add_monoid` endowed with a norm such that the star operation is
+isometric.
 
-A C⋆-ring is a normed star ring that verifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2` for all `x`.
-If a C⋆-ring is also a star algebra, then it is a C⋆-algebra.
+A C⋆-ring is a normed star monoid that is also a ring and that verifies the stronger
+condition `∥x⋆ * x∥ = ∥x∥^2` for all `x`.  If a C⋆-ring is also a star algebra, then it is a
+C⋆-algebra.
 
 To get a C⋆-algebra `E` over field `𝕜`, use
 `[normed_field 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [cstar_ring E]
@@ -23,10 +25,10 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 local postfix `⋆`:1000 := star
 
 /-- A normed star ring is a star ring endowed with a norm such that `star` is isometric. -/
-class normed_star_ring (E : Type*) [normed_ring E] [star_ring E] :=
+class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] :=
 (norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
 
-export normed_star_ring (norm_star)
+export normed_star_monoid (norm_star)
 attribute [simp] norm_star
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
@@ -40,8 +42,8 @@ open cstar_ring
 
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
-instance cstar_ring.to_normed_star_ring {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E] :
-  normed_star_ring E :=
+instance cstar_ring.to_normed_star_monoid {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E] :
+  normed_star_monoid E :=
 ⟨begin
   intro x,
   by_cases htriv : x = 0,
@@ -65,7 +67,7 @@ by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 
 /-- `star` bundled as a linear isometric equivalence -/
 def starₗᵢ [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E]
-  [normed_star_ring E] [module 𝕜 E] [star_module 𝕜 E] : E ≃ₗᵢ⋆[𝕜] E :=
+  [normed_star_monoid E] [module 𝕜 E] [star_module 𝕜 E] : E ≃ₗᵢ⋆[𝕜] E :=
 { map_smul' := star_smul,
   norm_map' := λ x, norm_star,
   .. star_add_equiv }

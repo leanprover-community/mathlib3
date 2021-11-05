@@ -120,6 +120,9 @@ le_of_le_mul_right h (by simpa [h] using hab)
 lemma mul_inv_le_iff₀ (hb : b ≠ 0) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
 ⟨λ h, inv_inv₀ b ▸ le_mul_inv_of_mul_le (inv_ne_zero hb) h, mul_inv_le_of_le_mul hb⟩
 
+lemma le_mul_inv_iff₀ (hc : c ≠ 0) : a ≤ b * c⁻¹ ↔ a * c ≤ b :=
+⟨λ h, inv_inv₀ c ▸ mul_inv_le_of_le_mul (inv_ne_zero hc) h, le_mul_inv_of_mul_le hc⟩
+
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 if ha : a = 0 then by simp [ha] else
@@ -182,6 +185,9 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
 
 lemma div_le_iff₀ (hb : b ≠ 0) : a/b ≤ c ↔ a ≤ c*b :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hb]
+
+lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b/c ↔ a*c ≤ b :=
+by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,

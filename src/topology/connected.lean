@@ -133,58 +133,27 @@ begin
     Hs.is_preconnected Ht.is_preconnected
 end
 
-/--
-The union of an increasing family s of preconnected sets is preconnected.
+
+
+
+/-- The filtered sUnion of a set S of preconnected subsets is preconnected.
+(A set of sets is filtered if if the inclusion relation is total on it.)
 -/
-variables {ι : Type*} [linear_order ι]
-
-theorem is_preconnected.Union_of_monotone {s : ι → set α} (K : monotone s)
-  (H : ∀ n: ι, is_preconnected (s n)) :
-  is_preconnected ⋃ i, s i :=
-begin
-  set S := ⋃ i, s i,
-  rintros u v hu hv Huv ⟨a, Kua⟩ ⟨b, Kvb⟩,
-  obtain ⟨m, asm : a ∈ s m⟩ := mem_Union.mp Kua.left,
-  obtain ⟨n, bsn : b ∈ s n⟩ := mem_Union.mp Kvb.left,
-  revert a b u v,
-  wlog hmn : m ≤ n := le_total m n using [m n, n m] tactic.skip,
-  { rintros a b u v u_open v_open Huv ⟨aS, au⟩ ⟨bS, bv⟩ asm bsn,
-    have asn : a ∈ s n := mem_of_mem_of_subset asm (K hmn),
-    have Hnuv : ((s n) ∩ (u ∩ v)).nonempty,
-      from H n u v u_open v_open ((subset_Union s n).trans Huv) ⟨a, asn, au⟩ ⟨b, bsn, bv⟩,
-    have Knuv : ((s n) ∩ (u ∩ v)) ⊆ Union s ∩ (u ∩ v),
-      from inter_subset_inter_left _ (subset_Union s n),
-    exact Hnuv.mono Knuv },
-  { /- The case n ≤ m is done by symmetry, using wlog -/
-    intros a b u v hu hv S_sub_uv a_in_Su b_in_Sv a_in_sm b_in_sn,
-    rw union_comm at S_sub_uv,
-    rw inter_comm u v,
-    apply this ; assumption }
-end
-
-/-
-ACL wanted the following definition, but I'm not sure it's worth the trouble.
--/
-
-/-- A set of sets is filtered if if the inclusion relation is total on it. -/
+/- Would it be useful to introduce the following definition  ?
 def set.is_filtered {α : Type*} (S : set (set α)) := ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s
 
-/-
 The above definition could be written as:
 def set.is_filtered' {α : Type*} (S : set (set α)) := is_total S (λ s t : S, (s : set α) ⊆ t)
 but that would be less convenient.
 
 We could also use
-def set.is_filtered' {α : Type*} (S : set (set α)) := zorn.chain (⊆) S
+def set.is_filtered'' {α : Type*} (S : set (set α)) := zorn.chain (⊆) S
 which would be equivalent but only asks:
-∀ s t, s ∈ S → t ∈ S → → s ≠ t → s ⊆ t ∨ t ⊆ s
+∀ s t, s ∈ S → t ∈ S → s ≠ t → s ⊆ t ∨ t ⊆ s
 -/
-
-/-- The filtered sUnion of a set S of preconnected subsets is preconnected -/
 theorem is_preconnected.filtered_sUnion_of {S : set (set α)}
-  (K : S.is_filtered) (H : ∀ s ∈ S, is_preconnected s ) : is_preconnected ⋃₀ S :=
+  (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s) (H : ∀ s ∈ S, is_preconnected s ) : is_preconnected ⋃₀ S :=
 begin
-  /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
   rw is_preconnected,
   rintros u v hu hv Huv ⟨a, ⟨s, hsS, has⟩, hau⟩ ⟨b, ⟨t, htS, hbt⟩, hbv⟩,
   revert a b u v,
@@ -205,9 +174,11 @@ begin
   exact this t s b a v u hv hu Huv hbv hbt hau has,
 end
 
-/- Let's redo the first theorem using the second one. -/
-
-theorem is_preconnected.Union_of_monotone' {s : ι → set α} (K : monotone s)
+/--
+The union of an increasing family s of preconnected sets is preconnected.
+-/
+variables {ι : Type*} [linear_order ι]
+theorem is_preconnected.Union_of_monotone {s : ι → set α} (K : monotone s)
   (H : ∀ n: ι, is_preconnected (s n)) :
   is_preconnected ⋃ i, s i :=
 begin
@@ -218,7 +189,6 @@ begin
   { rintros - ⟨i, rfl⟩,
     exact H i }
 end
-
 
 /--
 If s = (s_j)_(j ∈ ℕ) is a family of (pre)connected sets
@@ -233,7 +203,7 @@ imply that j.succ ∈ { j: ℕ | j ≤ n}
 theorem is_preconnected.union_of_chain { s : ℕ → set α }
   (H : ∀ n: ℕ, is_preconnected (s n))
   (K : ∀ n: ℕ, (s n ∩ s(n.succ)).nonempty) :
-  is_preconnected ( Union s ) :=
+  is_preconnected (⋃ n, s n) :=
 begin
   set Us : ℕ → set α := λ n, partial_sups s n,
 
@@ -250,23 +220,22 @@ begin
     have : Us n ∪ (s n.succ) = Us n.succ := partial_sups_succ s n,
     rw ← this,
     have : ((Us n) ∩ (s n.succ)).nonempty,
-    { obtain ⟨ x, hx ⟩ := K n,
+    { obtain ⟨x, hx⟩ := K n,
       apply exists.intro x,
       split,
       apply le_partial_sups s,
       exact hx.left, exact hx.right, },
-    obtain ⟨ x, hx ⟩ := K n,
+    obtain ⟨x, hx⟩ := K n,
     apply is_preconnected.union x,
     apply le_partial_sups s n, exact hx.left,
     exact hx.right,
     exact hn, exact (H n.succ), },
 
   have Us_eq_Us : Union Us = Union s := supr_partial_sups_eq s,
-  rw ←Us_eq_Us,
+  rw ← Us_eq_Us,
 
   exact is_preconnected.Union_of_monotone ((partial_sups s).mono) Pn ,
 end
-
 
 /-- Theorem of bark and tree :
 if a set is within a (pre)connected set and its closure,

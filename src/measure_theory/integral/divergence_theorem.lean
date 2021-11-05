@@ -154,8 +154,7 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv
         f i (eL.symm $ i.insert_nth (eL b i) x)) -
       (∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
         f i (eL.symm $ i.insert_nth (eL a i) x))) :=
-have he_vol' : measure_preserving eL.to_homeomorph.to_measurable_equiv volume volume :=
-  ⟨eL.continuous.measurable, he_vol⟩,
+have he_emb : measurable_embedding eL := eL.to_homeomorph.to_measurable_equiv.measurable_embedding,
 have hIcc : eL ⁻¹' (Icc (eL a) (eL b)) = Icc a b,
   by { ext1 x, simp only [set.mem_preimage, set.mem_Icc, he_ord] },
 have hIcc' : Icc (eL a) (eL b) = eL.symm ⁻¹' (Icc a b),
@@ -163,9 +162,8 @@ have hIcc' : Icc (eL a) (eL b) = eL.symm ⁻¹' (Icc a b),
 calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : by simp only [hDF]
 ... = ∫ x in Icc (eL a) (eL b), ∑ i, f' i (eL.symm x) (eL.symm $ e i) :
   begin
-    rw [← he_vol'.map_eq, set_integral_map_equiv],
-    simp only [hIcc, homeomorph.to_measurable_equiv_coe, continuous_linear_equiv.coe_to_homeomorph,
-      eL.symm_apply_apply]
+    rw [← he_vol, he_emb.set_integral_map],
+    simp only [hIcc, eL.symm_apply_apply]
   end
 ... = ∑ i : fin (n + 1), ((∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
         f i (eL.symm $ i.insert_nth (eL b i) x)) -

@@ -171,23 +171,17 @@ begin
   simpa [inv_mul_cancel_left₀ ha, inv_mul_cancel_left₀ (ne_of_gt hc)] using this,
 end
 
-lemma with_zero.div_le_div_right (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
-begin
-  rw [div_eq_mul_inv _ _, div_eq_mul_inv _ _],
-  split; intro hab,
-  { rw [← mul_one a, ← mul_one b, ← inv_mul_cancel hc, ← mul_assoc, ← mul_assoc],
-    exact mul_le_mul_right' hab _, },
-  { exact mul_le_mul_right' hab _, }
-end
+lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
+⟨le_of_le_mul_right hc, λ hab, mul_le_mul_right' hab _⟩
 
-lemma with_zero.div_le_iff (hb : b ≠ 0) : a/b ≤ c ↔ a ≤ c*b :=
-begin
-  conv_lhs {rw ← mul_one c, rw ← div_self hb, rw ← mul_div_assoc},
-  exact with_zero.div_le_div_right hb,
-end
+lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
 
-lemma with_zero.mul_le_one (ha : a ≤ 1) (hb : b ≤ 1) : a*b ≤ 1 :=
-by { rw ← mul_one (1 : α), exact mul_le_mul' ha hb }
+lemma mul_inv_le_iff₀ (hb : b ≠ 0) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
+⟨λ h, inv_inv₀ b ▸ le_mul_inv_of_mul_le (inv_ne_zero hb) h, mul_inv_le_of_le_mul hb⟩
+
+lemma div_le_iff₀ (hb : b ≠ 0) : a/b ≤ c ↔ a ≤ c*b :=
+by rw [div_eq_mul_inv, mul_inv_le_iff₀ hb]
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,

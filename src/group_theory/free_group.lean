@@ -162,7 +162,7 @@ match b, c, red.step.diamond hab hac rfl with
 end)
 
 lemma cons_cons {p} : red L₁ L₂ → red (p :: L₁) (p :: L₂) :=
-refl_trans_gen_lift (list.cons p) (assume a b, step.cons)
+refl_trans_gen.lift (list.cons p) (assume a b, step.cons)
 
 lemma cons_cons_iff (p) : red (p :: L₁) (p :: L₂) ↔ red L₁ L₂ :=
 iff.intro
@@ -188,8 +188,7 @@ lemma append_append_left_iff : ∀L, red (L ++ L₁) (L ++ L₂) ↔ red L₁ L�
 | (p :: L) := by simp [append_append_left_iff L, cons_cons_iff]
 
 lemma append_append (h₁ : red L₁ L₃) (h₂ : red L₂ L₄) : red (L₁ ++ L₂) (L₃ ++ L₄) :=
-(refl_trans_gen_lift (λL, L ++ L₂) (assume a b, step.append_right) h₁).trans
-  ((append_append_left_iff _).2 h₂)
+(h₁.lift (λL, L ++ L₂) (assume a b, step.append_right)).trans ((append_append_left_iff _).2 h₂)
 
 lemma to_append_iff : red L (L₁ ++ L₂) ↔ (∃L₃ L₄, L = L₃ ++ L₄ ∧ red L₃ L₁ ∧ red L₄ L₂) :=
 iff.intro
@@ -325,8 +324,8 @@ join_of_single reflexive_refl_trans_gen h.to_red
 theorem eqv_gen_step_iff_join_red : eqv_gen red.step L₁ L₂ ↔ join red L₁ L₂ :=
 iff.intro
   (assume h,
-    have eqv_gen (join red) L₁ L₂ := eqv_gen_mono (assume a b, join_red_of_step) h,
-    (eqv_gen_iff_of_equivalence $ equivalence_join_red).1 this)
+    have eqv_gen (join red) L₁ L₂ := h.mono (assume a b, join_red_of_step),
+    equivalence_join_red.eqv_gen_iff.1 this)
   (join_of_equivalence (eqv_gen.is_equivalence _) $ assume a b,
     refl_trans_gen_of_equivalence (eqv_gen.is_equivalence _) eqv_gen.rel)
 

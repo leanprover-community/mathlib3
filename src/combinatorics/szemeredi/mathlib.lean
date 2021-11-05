@@ -14,7 +14,7 @@ import .finpartition
 open_locale big_operators nat
 open finset fintype function
 
-variables {α β ι : Type*}
+variables {α β ι ι' : Type*}
 
 section
 
@@ -32,17 +32,84 @@ end
 
 end
 
-namespace finset
+namespace set
+variables {s : set ι} {t : set ι'} {f : ι → set α} {g : ι' → set β}
 
-@[simp] lemma nonempty_product {α β : Type*} (A : finset α) (B : finset β) :
-  (A.product B).nonempty ↔ A.nonempty ∧ B.nonempty :=
-by simp [finset.nonempty]
+lemma pairwise_disjoint.prod (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint g) :
+  (s.prod t).pairwise_disjoint (λ i, (f i.1).prod (g i.2)) :=
+λ ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ ⟨⟨hai, hbi⟩, haj, hbj⟩,
+  hij $ prod.ext (hs.elim_set hi hj _ hai haj) $ ht.elim_set hi' hj' _ hbi hbj
+
+lemma pairwise_disjoint.product [decidable_eq α] [decidable_eq β] {f : ι → finset α}
+  {g : ι' → finset β} (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint g) :
+  (s.prod t).pairwise_disjoint (λ i, (f i.1).product (g i.2)) :=
+begin
+  rintro ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ hab,
+  simp_rw [finset.inf_eq_inter, finset.mem_inter, finset.mem_product] at hab,
+  exact hij (prod.ext (hs.elim_finset hi hj _ hab.1.1 hab.2.1) $
+    ht.elim_finset hi' hj' _ hab.1.2 hab.2.2),
+end
+
+-- lemma pairwise_disjoint.product' [decidable_eq α] [decidable_eq β] {s : finset ι} {t : finset ι'}
+--   {f : ι → finset α} {g : ι' → finset β} (hs : s.pairwise_disjoint f)
+--   (ht : t.pairwise_disjoint g) :
+--   (s.product t).pairwise_disjoint (λ i, (f i.1).product (g i.2)) :=
+-- begin
+--   rintro ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ hab,
+--   simp_rw [finset.inf_eq_inter, finset.mem_inter, finset.mem_product] at hab,
+--   exact hij (prod.ext (hs.elim_finset hi hj _ hab.1.1 hab.2.1) $
+--     ht.elim_finset hi' hj' _ hab.1.2 hab.2.2),
+-- end
+
+lemma pairwise_disjoint_pi {α : ι' → Type*} {ι : ι' → Type*} {s : Π i, set (ι i)}
+  {f : Π i, ι i → set (α i)}
+  (hs : ∀ i, (s i).pairwise_disjoint (f i)) :
+  ((univ : set ι').pi s).pairwise_disjoint (λ I, (univ : set ι').pi (λ i, f _ (I i))) :=
+λ I hI J hJ hIJ a ⟨haI, haJ⟩, hIJ $ funext $ λ i,
+  (hs i).elim_set (hI i trivial) (hJ i trivial) (a i) (haI i trivial) (haJ i trivial)
+
+lemma pairwise_disjoint.attach [semilattice_inf_bot α] {s : finset ι} {f : ι → α}
+  (hs : (s : set ι).pairwise_disjoint f) :
+  (s.attach : set {x // x ∈ s}).pairwise_disjoint (f ∘ subtype.val) :=
+λ i _ j _ hij, hs _ i.2 _ j.2 $ mt subtype.ext_val hij
+
+end set
+
+namespace finset
 
 @[to_additive]
 lemma le_prod_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
   (n : β) (h : ∀ (x ∈ s), n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
 @prod_le_of_forall_le α (order_dual β) _ s f n h
+
+variables [decidable_eq α]
+
+lemma card_eq_two {s : finset α} :
+  s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x,y} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp only [card_eq_one],
+    rintro ⟨a, _, hab, rfl, b, rfl⟩,
+    simp only [mem_singleton] at hab,
+    exact ⟨a, b, hab, rfl⟩ },
+  { rintro ⟨x, y, hxy, rfl⟩,
+    simp [hxy] }
+end
+
+lemma card_eq_three {s : finset α} :
+  s.card = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x,y,z} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp only [card_eq_two],
+    rintro ⟨a, _, abc, rfl, b, c, bc, rfl⟩,
+    simp only [mem_insert, mem_singleton, not_or_distrib] at abc,
+    refine ⟨a, b, c, abc.1, abc.2, bc, rfl⟩ },
+  rintro ⟨x, y, z, xy, xz, yz, rfl⟩,
+  simp [xy, xz, yz],
+end
 
 end finset
 
@@ -72,13 +139,6 @@ end sym2
 
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ a ≤ b) : b < a := lt_of_not_ge' h
 
-section generalized_boolean_algebra
-variables [generalized_boolean_algebra α] {x y : α}
-
-lemma sdiff_sup_of_le (h : y ≤ x) : x \ y ⊔ y = x :=
-sup_comm.trans $ sup_sdiff_of_le h
-
-end generalized_boolean_algebra
 -- change docstring of `finset.le_sum_of_subadditive`
 
 lemma finset.sum_le [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι} {a : α}
@@ -94,24 +154,6 @@ lemma finset.le_sum [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι}
 
 lemma one_div_le_one_of_one_le [linear_ordered_field α] {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha
-
--- -- should be `s.pairwise_disjoint (λ b, ⋃ t ∈ f b)`
--- lemma set.pairwise_disjoint.bUnion [semilattice_inf_bot α] {s : set β} {f : β → set α}
---   (hs : ((λ b, ⋃ t ∈ f b, t : β → set α) '' s).pairwise_disjoint)
-  -- (hf : ∀ a ∈ s, (f a).pairwise_disjoint) :
---   (⋃ a ∈ s, f a).pairwise_disjoint :=
--- begin
---   rintro a ha b hb hab,
---   simp_rw set.mem_Union at ha hb,
---   obtain ⟨c, hc, ha⟩ := ha,
---   obtain ⟨d, hd, hb⟩ := hb,
---   obtain hcd | hcd := eq_or_ne (f c) (f d),
---   { exact hf d hd a (hcd.subst ha) b hb hab },
---   {
---     have := hs _ (set.mem_image_of_mem _ hc) _ (set.mem_image_of_mem _ hd) hcd,
---     sorry
---   }
--- end
 
 lemma disjoint.eq_bot_of_ge {α : Type*} [semilattice_inf_bot α] {a b : α} (hab : disjoint a b)
   (h : b ≤ a) :
@@ -471,10 +513,7 @@ def is_equipartition : Prop := (P.parts : set (finset α)).equitable_on card
 
 lemma is_equipartition_iff_card_parts_eq_average : P.is_equipartition ↔
   ∀ a : finset α, a ∈ P.parts → a.card = s.card/P.parts.card ∨ a.card = s.card/P.parts.card + 1 :=
-begin
-  simp_rw [is_equipartition, finset.equitable_on_iff, ←card_bUnion P.disjoint, ←P.bUnion_parts],
-  refl,
-end
+by simp_rw [is_equipartition, finset.equitable_on_iff, P.sum_card_parts]
 
 variables {P}
 

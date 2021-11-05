@@ -97,22 +97,17 @@ begin
   simp_rw [pair_contrib, ←sum_div],
   refine div_le_div_of_le_of_nonneg _ (sq_nonneg _),
   rw ←sum_bUnion,
-  { refine sum_le_sum_of_subset_of_nonneg distinct_pairs_increment (λ i _ _, _),
-    apply sq_nonneg },
-  simp only [prod.forall, not_and, mem_attach, subtype.forall, ne.def, forall_true_left],
-  intros U₁ U₂ h₁₂ U₃ U₄ h₃₄ h,
-  simp only [not_and, prod.mk.inj_iff] at h,
-  simp only [mem_off_diag, ne.def] at h₁₂ h₃₄,
-  obtain ⟨hU₁, hU₂, h₁₂⟩ := h₁₂,
-  obtain ⟨hU₃, hU₄, h₃₄⟩ := h₃₄,
-  rintro ⟨Vi, Vj⟩,
-  simp only [and_imp, inf_eq_inter, bot_eq_empty, mem_inter, mem_product, not_mem_empty],
-  rintro hVi₁ hVj₁ hVi₂ hVj₂,
-  obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ hVi₁,
-  have := P.disjoint.elim_finset hU₁ hU₃ i (finpartition.le _ hVi₁ hi) (finpartition.le _ hVi₂ hi),
-  apply h this,
-  obtain ⟨j, hj⟩ := nonempty_of_mem_parts _ hVj₁,
-  apply P.disjoint.elim_finset hU₂ hU₄ j (finpartition.le _ hVj₁ hj) (finpartition.le _ hVj₂ hj),
+  { exact sum_le_sum_of_subset_of_nonneg distinct_pairs_increment (λ i _ _, sq_nonneg _) },
+  rintro ⟨⟨s₁, s₂⟩, hs⟩ _ ⟨⟨t₁, t₂⟩, ht⟩ _ hst ⟨u, v⟩ huv,
+  simp only [inf_eq_inter, mem_inter, mem_product] at huv,
+  rw mem_off_diag at hs ht,
+  obtain ⟨a, ha⟩ := finpartition.nonempty_of_mem_parts _ huv.1.1,
+  obtain ⟨b, hb⟩ := finpartition.nonempty_of_mem_parts _ huv.1.2,
+  exact hst (subtype.ext_val $ prod.ext
+    (P.disjoint.elim_finset hs.1 ht.1 a
+      (finpartition.le _ huv.1.1 ha) (finpartition.le _ huv.2.1 ha))
+    (P.disjoint.elim_finset hs.2.1 ht.2.1 b
+      (finpartition.le _ huv.1.2 hb) (finpartition.le _ huv.2.2 hb))),
 end
 
 lemma pair_contrib_lower_bound [nonempty α] (x : {i // i ∈ P.parts.off_diag}) (hε₁ : ε ≤ 1)
@@ -122,9 +117,9 @@ lemma pair_contrib_lower_bound [nonempty α] (x : {i // i ∈ P.parts.off_diag})
 begin
   split_ifs,
   { rw add_zero,
-    apply sq_density_sub_eps_le_sum_sq_density_div_card hPα hPε },
+    exact sq_density_sub_eps_le_sum_sq_density_div_card hPα hPε _ _ },
   { apply sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform hPα hPε hε₁ _ h,
-    apply ((mem_off_diag _ _).1 x.2).2.2 }
+    exact ((mem_off_diag _ _).1 x.2).2.2 }
 end
 
 lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1) (hP₇ : 7 ≤ P.parts.card)

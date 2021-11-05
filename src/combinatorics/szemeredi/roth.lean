@@ -159,8 +159,4 @@ begin
       simp at this,
       sorry,
       norm_num } }
-  -- let ε : ℝ := sorry,
-  -- have hε : 0 < ε := sorry,
-  -- obtain ⟨N, hN⟩ := corners_theorem hε,
-
 end

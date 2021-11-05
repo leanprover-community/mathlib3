@@ -172,7 +172,8 @@ variables [comm_semiring R] [comm_semiring A]
 variables [algebra R A] {s t : set A}
 
 variables (R s t)
-theorem adjoin_union_eq_under : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
+theorem adjoin_union_eq_adjoin_adjoin :
+  adjoin R (s ∪ t) = (adjoin (adjoin R s) t).restrict_scalars R :=
 le_antisymm
   (closure_mono $ set.union_subset
     (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)

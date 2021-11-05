@@ -96,7 +96,7 @@ begin
         (if 0 < a then a-1 else a)
         (if 0 < a then b else b-1)
         hcard,
-    refine ⟨P'.extend this.ne_empty sdiff_disjoint (sdiff_sup_of_le $ hp'₁.trans $ A.le hp₁),
+    refine ⟨P'.extend this.ne_empty sdiff_disjoint (sdiff_sup_cancel $ hp'₁.trans $ A.le hp₁),
       _,  _, _⟩,
     { simp only [mem_insert, forall_eq_or_imp, extend_parts, and_iff_left hP'₁, hp'₂, h'],
       apply ite_eq_or_eq },
@@ -159,7 +159,7 @@ begin
     (if 0 < a then a-1 else a)
     (if 0 < a then b else b-1)
     this,
-  refine ⟨P'.extend hs'.ne_empty sdiff_disjoint (sdiff_sup_of_le hs'₁), _, _, _⟩,
+  refine ⟨P'.extend hs'.ne_empty sdiff_disjoint (sdiff_sup_cancel hs'₁), _, _, _⟩,
   { simp only [extend_parts, mem_insert, forall_eq_or_imp, and_iff_left hP'₁, hs'₂, h'],
     apply ite_eq_or_eq },
   { intros x hx,

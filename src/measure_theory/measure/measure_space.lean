@@ -462,6 +462,29 @@ lemma measure_union_add_inter' (hs : measurable_set s) (t : set α) :
 by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 namespace measure
 
+/-- If `u` is a superset of `t` with the same measure (both sets possibly non-measurable), then
+for any measurable set `s` one also has `μ (t ∩ s) = μ (u ∩ s)`. -/
+lemma measure_inter_eq_of_measure_eq {s t u : set α} (hs : measurable_set s)
+  (h : μ t = μ u) (htu : t ⊆ u) (ht_ne_top : μ t ≠ ∞) :
+  μ (t ∩ s) = μ (u ∩ s) :=
+begin
+  rw h at ht_ne_top,
+  refine le_antisymm (measure_mono (inter_subset_inter_left _ htu)) _,
+  have A : μ (u ∩ s) + μ (u \ s) ≤ μ (t ∩ s) + μ (u \ s) := calc
+    μ (u ∩ s) + μ (u \ s) = μ u : measure_inter_add_diff _ hs
+    ... = μ t : h.symm
+    ... = μ (t ∩ s) + μ (t \ s) : (measure_inter_add_diff _ hs).symm
+    ... ≤ μ (t ∩ s) + μ (u \ s) :
+      add_le_add le_rfl (measure_mono (diff_subset_diff htu subset.rfl)),
+  have B : μ (u \ s) ≠ ∞ := (lt_of_le_of_lt (measure_mono (diff_subset _ _)) ht_ne_top.lt_top).ne,
+  exact ennreal.le_of_add_le_add_right B A
+end
+
+lemma measure_to_measurable_inter {s t : set α} (hs : measurable_set s) (ht : μ t ≠ ∞) :
+  μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
+(measure_inter_eq_of_measure_eq hs (measure_to_measurable t).symm
+  (subset_to_measurable μ t) ht).symm
+
 /-! ### The `ℝ≥0∞`-module of measures -/
 
 instance [measurable_space α] : has_zero (measure α) :=
@@ -514,7 +537,7 @@ rfl
   ⇑(c • μ) = c • μ :=
 rfl
 
-theorem smul_apply {m : measurable_space α} (c : ℝ≥0∞) (μ : measure α) (s : set α) :
+@[simp] theorem smul_apply {m : measurable_space α} (c : ℝ≥0∞) (μ : measure α) (s : set α) :
   (c • μ) s = c * μ s :=
 rfl
 
@@ -525,6 +548,52 @@ injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_o
 @[simp, norm_cast] theorem coe_nnreal_smul {m : measurable_space α} (c : ℝ≥0) (μ : measure α) :
   ⇑(c • μ) = c • μ :=
 rfl
+
+@[simp] theorem coe_nnreal_smul_apply {m : measurable_space α} (c : ℝ≥0) (μ : measure α)
+  (s : set α) :
+  (c • μ) s = c * μ s :=
+rfl
+
+lemma measure_eq_left_of_subset_of_measure_add_eq {s t : set α}
+  (h : (μ + ν) t ≠ ∞) (h' : s ⊆ t) (h'' : (μ + ν) s = (μ + ν) t) :
+  μ s = μ t :=
+begin
+  refine le_antisymm (measure_mono h') _,
+  have : μ t + ν t ≤ μ s + ν t := calc
+    μ t + ν t = μ s + ν s : h''.symm
+    ... ≤ μ s + ν t : add_le_add le_rfl (measure_mono h'),
+  apply ennreal.le_of_add_le_add_right _ this,
+  simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at h,
+  exact h.2
+end
+
+lemma measure_eq_right_of_subset_of_measure_add_eq {s t : set α}
+  (h : (μ + ν) t ≠ ∞) (h' : s ⊆ t) (h'' : (μ + ν) s = (μ + ν) t) :
+  ν s = ν t :=
+begin
+  rw add_comm at h'' h,
+  exact measure_eq_left_of_subset_of_measure_add_eq h h' h''
+end
+
+lemma measure_to_measurable_add_inter_left {s t : set α}
+  (hs : measurable_set s) (ht : (μ + ν) t ≠ ∞) :
+  μ (to_measurable (μ + ν) t ∩ s) = μ (t ∩ s) :=
+begin
+  refine (measure_inter_eq_of_measure_eq hs _ (subset_to_measurable _ _) _).symm,
+  { refine measure_eq_left_of_subset_of_measure_add_eq _ (subset_to_measurable _ _)
+      (measure_to_measurable t).symm,
+    rwa measure_to_measurable t, },
+  { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at ht,
+    exact ht.1 }
+end
+
+lemma measure_to_measurable_add_inter_right {s t : set α}
+  (hs : measurable_set s) (ht : (μ + ν) t ≠ ∞) :
+  ν (to_measurable (μ + ν) t ∩ s) = ν (t ∩ s) :=
+begin
+  rw add_comm at ht ⊢,
+  exact measure_to_measurable_add_inter_left hs ht
+end
 
 /-! ### The complete lattice of measures -/
 
@@ -1277,6 +1346,12 @@ protected lemma rfl : μ ≪ μ := λ s hs, hs
 if hf : measurable f then absolutely_continuous.mk $ λ s hs, by simpa [hf, hs] using @h _
 else by simp only [map_of_not_measurable hf]
 
+protected lemma smul (h : μ ≪ ν) (c : ℝ≥0∞) : c • μ ≪ ν :=
+mk (λ s hs hνs, by simp only [h hνs, algebra.id.smul_eq_mul, coe_smul, pi.smul_apply, mul_zero])
+
+protected lemma coe_nnreal_smul (h : μ ≪ ν) (c : ℝ≥0) : c • μ ≪ ν :=
+h.smul c
+
 end absolutely_continuous
 
 lemma ae_le_iff_absolutely_continuous : μ.ae ≤ ν.ae ↔ μ ≪ ν :=
@@ -1374,12 +1449,15 @@ localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in m
 
 namespace mutually_singular
 
-lemma zero : μ ⊥ₘ 0 :=
+lemma zero_right : μ ⊥ₘ 0 :=
 ⟨∅, measurable_set.empty, measure_empty, rfl⟩
 
 lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
 let ⟨i, hi, his, hit⟩ := h in
   ⟨iᶜ, measurable_set.compl hi, hit, (compl_compl i).symm ▸ his⟩
+
+lemma zero_left : 0 ⊥ₘ μ :=
+zero_right.symm
 
 lemma add (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
 begin
@@ -1942,6 +2020,28 @@ lemma mem_spanning_sets_index (μ : measure α) [sigma_finite μ] (x : α) :
   x ∈ spanning_sets μ (spanning_sets_index μ x) :=
 disjointed_subset _ _ (mem_disjointed_spanning_sets_index μ x)
 
+lemma mem_spanning_sets_of_index_le (μ : measure α) [sigma_finite μ] (x : α)
+  {n : ℕ} (hn : spanning_sets_index μ x ≤ n) :
+  x ∈ spanning_sets μ n :=
+monotone_spanning_sets μ hn (mem_spanning_sets_index μ x)
+
+lemma eventually_mem_spanning_sets (μ : measure α) [sigma_finite μ] (x : α) :
+  ∀ᶠ n in at_top, x ∈ spanning_sets μ n :=
+eventually_at_top.2 ⟨spanning_sets_index μ x, λ b, mem_spanning_sets_of_index_le μ x⟩
+
+lemma ae_of_forall_measure_lt_top_ae_restrict {μ : measure α} [sigma_finite μ] (P : α → Prop)
+  (h : ∀ s, measurable_set s → μ s < ∞ → ∀ᵐ x ∂(μ.restrict s), P x) :
+  ∀ᵐ x ∂μ, P x :=
+begin
+  have : ∀ n, ∀ᵐ x ∂μ, x ∈ spanning_sets μ n → P x,
+  { assume n,
+    have := h (spanning_sets μ n) (measurable_spanning_sets _ _) (measure_spanning_sets_lt_top _ _),
+    rwa ae_restrict_iff' (measurable_spanning_sets _ _) at this },
+  filter_upwards [ae_all_iff.2 this],
+  assume x hx,
+  exact hx _ (mem_spanning_sets_index _ _),
+end
+
 omit m0
 
 namespace measure
@@ -2078,6 +2178,16 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
+instance is_locally_finite_measure_smul_nnreal [topological_space α] (μ : measure α)
+  [is_locally_finite_measure μ] (c : ℝ≥0) : is_locally_finite_measure (c • μ) :=
+begin
+  refine ⟨λ x, _⟩,
+  rcases μ.exists_is_open_measure_lt_top x with ⟨o, xo, o_open, μo⟩,
+  refine ⟨o, o_open.mem_nhds xo, _⟩,
+  apply ennreal.mul_lt_top _ μo.ne,
+  simp only [ennreal.coe_ne_top, ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
+end
 
 omit m0
 
@@ -2220,6 +2330,11 @@ lemma finite_at_nhds_within [topological_space α] {m0 : measurable_space α} (�
 
 @[simp] lemma finite_at_principal : μ.finite_at_filter (𝓟 s) ↔ μ s < ∞ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
+
+lemma is_locally_finite_measure_of_le [topological_space α] {m : measurable_space α}
+  {μ ν : measure α} [H : is_locally_finite_measure μ] (h : ν ≤ μ) :
+  is_locally_finite_measure ν :=
+let F := H.finite_at_nhds in ⟨λ x, (F x).measure_mono h⟩
 
 /-! ### Subtraction of measures -/
 

@@ -10,37 +10,6 @@ import combinatorics.simple_graph.subgraph
 # Triangle counting lemma
 -/
 
-namespace finset
-variables {α : Type*} [decidable_eq α]
-
-lemma card_eq_two {s : finset α} :
-  s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x,y} :=
-begin
-  split,
-  { rw card_eq_succ,
-    simp only [card_eq_one],
-    rintro ⟨a, _, hab, rfl, b, rfl⟩,
-    simp only [mem_singleton] at hab,
-    exact ⟨a, b, hab, rfl⟩ },
-  { rintro ⟨x, y, hxy, rfl⟩,
-    simp [hxy] }
-end
-
-lemma card_eq_three {s : finset α} :
-  s.card = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x,y,z} :=
-begin
-  split,
-  { rw card_eq_succ,
-    simp only [card_eq_two],
-    rintro ⟨a, _, abc, rfl, b, c, bc, rfl⟩,
-    simp only [mem_insert, mem_singleton, not_or_distrib] at abc,
-    refine ⟨a, b, c, abc.1, abc.2, bc, rfl⟩ },
-  rintro ⟨x, y, z, xy, xz, yz, rfl⟩,
-  simp [xy, xz, yz],
-end
-
-end finset
-
 open finset fintype
 open_locale big_operators
 
@@ -436,43 +405,6 @@ begin
   { rintro ⟨a, b, hsa, hsb, hGab, h⟩,
     exact ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h.symm⟩ }
 end
-
--- lemma edge_finset_diff : (G \ H).edge_finset_on s = G.edge_finset_on s \ H.edge_finset_on s :=
--- begin
---   sorry
--- end
-
--- lemma triangle_free_far_of_pairwise_disjoint (hε : ε * (card α)^2 ≤ G.triangle_finset.card)
---   (ht : (G.triangle_finset : set (finset α)).pairwise_disjoint) :
---   G.triangle_free_far ε :=
--- begin
---   refine λ H hHG hH, hε.trans _,
---   have : ∀ s, G.is_n_clique 3 s → ∃ a b, a ∈ s ∧ b ∈ s ∧ G.adj a b ∧ ¬H.adj a b,
---   { rintro s hs,
---     by_contra,
---     push_neg at h,
---     exact hH s ⟨hs.1, λ a ha b hb hab, h a b ha hb (hs.2 a ha b hb hab)⟩ },
---   sorry
--- end
-
--- lemma triangle_free_far_of_pairwise_disjoint' (hε : ε * (card α)^2 ≤ G.triangle_finset.card)
---   (ht : (G.triangle_finset : set (finset α)).pairwise_disjoint) :
---   G.triangle_free_far ε :=
--- begin
---   refine λ H hHG hH, hε.trans _,
---   have : ∀ s, G.is_n_clique 3 s → ((G \ H).edge_finset_on s).nonempty,
---   { rintro s hs,
---     rw [edge_finset_diff, finset.nonempty_diff],
---     refine λ h, hH s ⟨hs.1, λ a ha b hb hab, _⟩,
---     have := hs.2 a ha b hb hab,
---     sorry
---   },
---   sorry
--- end
-
--- lemma exists_ne_map_eq_of_card_lt_of_maps_to {s : finset α} {t : finset β} (hc : t.card < s.card)
---   {f : α → β} (hf : ∀ a ∈ s, f a ∈ t) :
---   ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
 
 lemma triangle_free_far_of_disjoint_triangles_aux
   (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)

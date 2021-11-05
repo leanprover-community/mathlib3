@@ -53,7 +53,7 @@ variables {hP G ε hU V}
 lemma star_subset_chunk_increment : hP.star G ε hU V ⊆ (hP.chunk_increment G ε hU).parts :=
 filter_subset _ _
 
-lemma star_pairwise_disjoint : (hP.star G ε hU V : set (finset α)).pairwise_disjoint :=
+lemma star_pairwise_disjoint : (hP.star G ε hU V : set (finset α)).pairwise_disjoint id :=
 (hP.chunk_increment G ε hU).disjoint.subset star_subset_chunk_increment
 
 lemma witness_sdiff_bUnion_star_small (hV : V ∈ P.parts) (hUV : U ≠ V) (h₂ : ¬G.is_uniform ε U V) :

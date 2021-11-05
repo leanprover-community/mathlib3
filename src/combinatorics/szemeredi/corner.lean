@@ -298,21 +298,4 @@ def higher_corners (A : set (ι → α)) : set ((ι → α) × α) :=
 def is_corner (A : set (α × α)) : α → α → α → Prop :=
 λ x y h, (x, y) ∈ A ∧ (x + h, y) ∈ A ∧ (x, y + h) ∈ A
 
-/-! ### Half Corners theorem -/
-
-/-- The graph appearing in the corners theorem. -/
-def half_corners_graph (A : set (ℕ × ℕ)) (n : ℕ) : simple_graph (fin 3 × fin n) :=
-simple_graph.from_rel (λ a b, begin
-  exact a.1 = 0 ∧ b.1 = 1 ∧ (↑a.2, ↑b.2) ∈ A
-      ∨ a.1 = 1 ∧ b.1 = 2 ∧ a.2 ≤ b.2 ∧ (↑b.2 - ↑a.2, ↑a.2) ∈ A
-      ∨ a.1 = 2 ∧ b.1 = 0 ∧ b.2 ≤ a.2 ∧ (↑b.2, ↑a.2 - ↑b.2) ∈ A,
-end)
-
-lemma half_corners_theorem {ε : ℝ} (hε : 0 < ε) :
-  ∃ n : ℕ, ∀ A : finset (ℕ × ℕ), (∀ x y, (x, y) ∈ A → x + y ≤ n) →  ε * n^2 ≤ A.card →
-    ∃ x y h, h ≠ 0 ∧ is_corner ↑A x y h :=
-begin
-  sorry
-end
-
 end simplex_domain

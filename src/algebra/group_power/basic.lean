@@ -14,8 +14,7 @@ The power operation on monoids and groups.
 We separate this from group, because it depends on `ℕ`,
 which in turn depends on other parts of algebra.
 
-This module contains the definitions of `monoid.pow` and `group.pow`
-and their additive counterparts `nsmul` and `zsmul`, along with a few lemmas.
+This module contains lemmas about `a ^ n` and `n • a`, where `n : ℕ` or `n : ℤ`.
 Further lemmas can be found in `algebra.group_power.lemmas`.
 
 ## Notation

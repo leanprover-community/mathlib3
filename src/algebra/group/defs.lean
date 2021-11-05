@@ -25,7 +25,7 @@ We also introduce notation classes `has_scalar` and `has_vadd` for multiplicativ
 actions and register the following instances:
 
 - `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for groups `G`;
-- `has_smul ℕ M` for additive monoids `M`, and `has_smul ℤ G` for additive groups `G`.
+- `has_scalar ℕ M` for additive monoids `M`, and `has_scalar ℤ G` for additive groups `G`.
 
 ## Notation
 
@@ -356,9 +356,9 @@ fields to the multiplicative structure `monoid`, which could solve defeq problem
 needed. These problems do not come up in practice, so most of the time we will not need to adjust
 the `npow` field when defining multiplicative objects.
 
-Nice notation and a basic theory for the power function on monoids and the `ℕ`-action on additive
-monoids are built in the file `algebra.group_power.basic`. For now, we only register the most basic
-properties that we need right away.
+A basic theory for the power function on monoids and the `ℕ`-action on additive monoids is built in
+the file `algebra.group_power.basic`. For now, we only register the most basic properties that we
+need right away.
 
 In the definition, we use `n.succ` instead of `n + 1` in the `nsmul_succ'` and `npow_succ'` fields
 to make sure that `to_additive` is not confused (otherwise, it would try to convert `1 : ℕ`

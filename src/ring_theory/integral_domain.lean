@@ -30,17 +30,33 @@ section
 open finset polynomial function
 open_locale big_operators nat
 
+section cancel_monoid_with_zero
+-- There doesn't seem to be a better home for these right now
+variables {M : Type*} [cancel_monoid_with_zero M] [fintype M]
+
+lemma mul_right_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b, a * b) :=
+fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
+
+lemma mul_left_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b, b * a) :=
+fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
+
+/-- Every finite nontrivial cancel_monoid_with_zero is a group_with_zero. -/
+def group_with_zero_of_fintype (M : Type*) [cancel_monoid_with_zero M] [decidable_eq M] [fintype M]
+  [nontrivial M] : group_with_zero M :=
+{ inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective_of_fintype₀ h) 1,
+  mul_inv_cancel := λ a ha,
+    by { simp [has_inv.inv, dif_neg ha], exact fintype.right_inverse_bij_inv _ _ },
+  inv_zero := by { simp [has_inv.inv, dif_pos rfl] },
+  ..‹nontrivial M›,
+  ..‹cancel_monoid_with_zero M› }
+
+end cancel_monoid_with_zero
+
 variables {R : Type*} {G : Type*}
 
 section ring
 
 variables [ring R] [is_domain R] [fintype R]
-
-lemma mul_right_bijective₀ (a : R) (ha : a ≠ 0) : bijective (λ b, a * b) :=
-fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
-
-lemma mul_left_bijective₀ (a : R) (ha : a ≠ 0) : bijective (λ b, b * a) :=
-fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
 
 /-- Every finite domain is a division ring.
 
@@ -48,11 +64,7 @@ TODO: Prove Wedderburn's little theorem,
 which shows a finite domain is in fact commutative, hence a field. -/
 def division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R] [fintype R] :
   division_ring R :=
-{ inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective₀ a h) 1,
-  mul_inv_cancel := λ a ha, show a * dite _ _ _ = _,
-    by { rw dif_neg ha, exact fintype.right_inverse_bij_inv _ _ },
-  inv_zero := dif_pos rfl,
-  ..show nontrivial R, by apply_instance,
+{ ..show group_with_zero R, from group_with_zero_of_fintype R,
   ..‹ring R› }
 
 end ring

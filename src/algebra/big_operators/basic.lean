@@ -8,6 +8,7 @@ import algebra.group.pi
 import data.equiv.mul_add
 import data.finset.fold
 import data.fintype.basic
+import data.set.pairwise
 
 /-!
 # Big operators
@@ -302,21 +303,18 @@ begin
 end
 
 @[to_additive]
-lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α} :
-  (∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) →
+lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
+  (hs : set.pairwise_disjoint ↑s t) :
   (∏ x in (s.bUnion t), f x) = ∏ x in s, ∏ i in t x, f i :=
-by haveI := classical.dec_eq γ; exact
-finset.induction_on s (λ _, by simp only [bUnion_empty, prod_empty])
-  (assume x s hxs ih hd,
-  have hd' : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y),
-    from assume _ hx _ hy, hd _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy),
-  have ∀ y ∈ s, x ≠ y,
-    from assume _ hy h, by rw [←h] at hy; contradiction,
-  have ∀ y ∈ s, disjoint (t x) (t y),
-    from assume _ hy, hd _ (mem_insert_self _ _) _ (mem_insert_of_mem hy) (this _ hy),
-  have disjoint (t x) (finset.bUnion s t),
-    from (disjoint_bUnion_right _ _ _).mpr this,
-  by simp only [bUnion_insert, prod_insert hxs, prod_union this, ih hd'])
+begin
+  haveI := classical.dec_eq γ,
+  induction s using finset.induction_on with x s hxs ih hd,
+  { simp_rw [bUnion_empty, prod_empty] },
+  { simp_rw [coe_insert, set.pairwise_disjoint_insert, mem_coe] at hs,
+    have : disjoint (t x) (finset.bUnion s t),
+    { exact (disjoint_bUnion_right _ _ _).mpr (λ y hy, hs.2 y hy $ λ H, hxs $ H.substr hy) },
+    rw [bUnion_insert, prod_insert hxs, prod_union this, ih hs.1] }
+end
 
 @[to_additive]
 lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :
@@ -326,8 +324,10 @@ begin
   rw [product_eq_bUnion, prod_bUnion],
   { congr, funext, exact prod_image (λ _ _ _ _ H, (prod.mk.inj H).2) },
   simp only [disjoint_iff_ne, mem_image],
-  rintros _ _ _ _ h ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ _,
-  apply h, cc
+  rintro x _ y _ h ⟨i, z⟩ hz,
+  rw [inf_eq_inter, mem_inter, mem_image, mem_image] at hz,
+  obtain ⟨⟨_, _, rfl, _⟩, _, _, rfl, _⟩ := hz,
+  exact h rfl,
 end
 
 /-- An uncurried version of `finset.prod_product`. -/
@@ -367,7 +367,7 @@ begin
   letI := classical.dec_eq α,
   rw [← bUnion_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
   refine (prod_bUnion $ λ x' hx y' hy hne, _).symm,
-  rw [disjoint_filter],
+  rw [function.on_fun, disjoint_filter],
   rintros x hx rfl,
   exact hne
 end

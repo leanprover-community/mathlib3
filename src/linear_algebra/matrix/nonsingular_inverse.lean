@@ -144,20 +144,22 @@ end
 
 /-! #### Variants of the statements above with `is_unit`-/
 
+lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
+@is_unit_of_invertible _ _ _ (det_invertible_of_invertible A)
+
+variables {A B}
+
 lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_left_inverse _ _ h)
 
 lemma is_unit_det_of_right_inverse (h : A ⬝ B = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_right_inverse _ _ h)
 
-lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
-@is_unit_of_invertible _ _ _ (det_invertible_of_invertible A)
-
 lemma det_ne_zero_of_left_inverse [nontrivial α] (h : B ⬝ A = 1) : A.det ≠ 0 :=
-(is_unit_det_of_left_inverse A B h).ne_zero
+(is_unit_det_of_left_inverse h).ne_zero
 
 lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠ 0 :=
-(is_unit_det_of_right_inverse A B h).ne_zero
+(is_unit_det_of_right_inverse h).ne_zero
 
 end invertible
 

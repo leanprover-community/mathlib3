@@ -37,7 +37,7 @@ instance : has_one (with_one α) := ⟨none⟩
 instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
 @[to_additive]
-instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
+instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩

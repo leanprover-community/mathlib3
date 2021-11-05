@@ -843,9 +843,9 @@ theorem lt_omega {c : cardinal.{u}} : c < ω ↔ ∃ n : ℕ, c = n :=
   rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
   rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
   suffices : finite S,
-  { cases this, resetI,
+  { casesI this,
     existsi fintype.card S,
-    rw [← lift_nat_cast.{0 u}, lift_inj, fintype_card S] },
+    rw [lift_eq_nat_iff, fintype_card S] },
   contrapose! h',
   haveI := infinite.to_subtype h',
   exact ⟨infinite.nat_embedding S⟩

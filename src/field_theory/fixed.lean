@@ -245,11 +245,11 @@ instance separable : is_separable (fixed_points.subfield G F) F :=
 
 lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
 begin
-  refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
-  rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
-    cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
-  exact cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max u v)}
-    (linear_independent_smul_of_linear_independent G F hs)
+  refine dim_le (λ s hs, _),
+  have := cardinal_lift_le_dim_of_linear_independent'
+    (linear_independent_smul_of_linear_independent G F hs),
+  rwa [dim_fun', finset.coe_sort_coe, ← cardinal.finset_card, cardinal.lift_nat_cast,
+    cardinal.lift_nat_cast, cardinal.nat_cast_le] at this,
 end
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=

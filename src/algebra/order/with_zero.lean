@@ -178,6 +178,16 @@ instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
   ..additive.linear_ordered_add_comm_monoid_with_top,
   ..additive.nontrivial }
 
+instance linear_ordered_comm_group_with_zero.to_covariant_class : covariant_class α α (*) (≤) :=
+{ elim := λ a b c bc, linear_ordered_comm_group_with_zero.mul_le_mul_left _ _ bc a }
+
+instance {β : Type*} [linear_ordered_comm_group β] :
+  linear_ordered_comm_group_with_zero (with_zero β) :=
+{ mul_le_mul_left := λ x y, mul_le_mul_left',
+  zero_le_one     := with_zero.zero_le _,
+  ..with_zero.linear_order,
+  ..with_zero.comm_group_with_zero }
+
 namespace monoid_hom
 
 variables {R : Type*} [ring R] (f : R →* α)

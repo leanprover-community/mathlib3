@@ -49,8 +49,11 @@ include m
 def re (c : complex_measure α) : signed_measure α :=
 c.map_range complex.re_lm.to_add_monoid_hom complex.continuous_re
 
-lemma re_add (c d : complex_measure α) :
+@[simp] lemma re_add (c d : complex_measure α) :
   (c + d).re = c.re + d.re :=
+rfl
+
+@[simp] lemma re_zero : (0 : complex_measure α).re = 0 :=
 rfl
 
 /-- The imaginary part of a complex measure is a signed measure. -/
@@ -58,8 +61,11 @@ rfl
 def im (c : complex_measure α) : signed_measure α :=
 c.map_range complex.im_lm.to_add_monoid_hom complex.continuous_im
 
-lemma im_add (c d : complex_measure α) :
+@[simp] lemma im_add (c d : complex_measure α) :
   (c + d).im = c.im + d.im :=
+rfl
+
+@[simp] lemma im_zero : (0 : complex_measure α).im = 0 :=
 rfl
 
 /-- Given `s` and `t` signed measures, `s + it` is a complex measure-/

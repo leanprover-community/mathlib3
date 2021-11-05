@@ -66,7 +66,7 @@ section normed_group
 lemma has_finite_integral_restrict_of_bounded [normed_group E] {f : α → E} {s : set α}
   {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
   has_finite_integral f (μ.restrict s) :=
-by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
+by haveI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
 
 variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
@@ -145,7 +145,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_union {s : set β} (hs : finite s)
+@[simp] lemma integrable_on_finite_Union {s : set β} (hs : finite s)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -153,9 +153,13 @@ begin
   { intros a s ha hs hf, simp [hf, or_imp_distrib, forall_and_distrib] }
 end
 
-@[simp] lemma integrable_on_finset_union  {s : finset β} {t : β → set α} :
+@[simp] lemma integrable_on_finset_Union {s : finset β} {t : β → set α} :
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
-integrable_on_finite_union s.finite_to_set
+integrable_on_finite_Union s.finite_to_set
+
+@[simp] lemma integrable_on_fintype_Union [fintype β] {t : β → set α} :
+  integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=
+by simpa using @integrable_on_finset_Union _ _ _ _ _ _ f μ finset.univ t
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
@@ -166,6 +170,11 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
 ⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
   h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_measure h.2⟩
+
+lemma integrable_on_map_equiv [measurable_space β] (e : α ≃ᵐ β) {f : β → E} {μ : measure α}
+  {s : set β} :
+  integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
+by simp only [integrable_on, e.restrict_map, integrable_map_equiv e]
 
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
@@ -198,7 +207,7 @@ begin
   refine mem_ℒp_one_iff_integrable.mp _,
   have hμ_restrict_univ : (μ.restrict s) set.univ < ∞,
     by simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply, lt_top_iff_ne_top],
-  haveI hμ_finite : finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
+  haveI hμ_finite : is_finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
 
@@ -303,22 +312,25 @@ is_compact.induction_on hs integrable_on_empty (λ s t hst ht, ht.mono_set hst)
 
 /-- A function which is continuous on a set `s` is almost everywhere measurable with respect to
 `μ.restrict s`. -/
-lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space α] [borel_space E]
-  {f : α → E} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
+lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space α]
+  [measurable_space β] [topological_space β] [borel_space β]
+  {f : α → β} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
   ae_measurable f (μ.restrict s) :=
 begin
-  refine ⟨indicator s f, _, (indicator_ae_eq_restrict hs).symm⟩,
+  nontriviality α, inhabit α,
+  have : piecewise s f (λ _, f (default α)) =ᵐ[μ.restrict s] f := piecewise_ae_eq_restrict hs,
+  refine ⟨piecewise s f (λ _, f (default α)), _, this.symm⟩,
   apply measurable_of_is_open,
   assume t ht,
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
     _root_.continuous_on_iff'.1 hf t ht,
-  rw [indicator_preimage, set.ite, hu],
-  exact (u_open.measurable_set.inter hs).union ((measurable_zero ht.measurable_set).diff hs)
+  rw [piecewise_preimage, set.ite, hu],
+  exact (u_open.measurable_set.inter hs).union ((measurable_const ht.measurable_set).diff hs)
 end
 
 lemma continuous_on.integrable_at_nhds_within
   [topological_space α] [opens_measurable_space α] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α} {f : α → E}
+  {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α} {f : α → E}
   (hft : continuous_on f t) (ht : measurable_set t) (ha : a ∈ t) :
   integrable_at_filter f (𝓝[t] a) μ :=
 by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
@@ -329,52 +341,66 @@ exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_measura
 locally finite measure. -/
 lemma continuous_on.integrable_on_compact
   [topological_space α] [opens_measurable_space α] [borel_space E]
-  [t2_space α] {μ : measure α} [locally_finite_measure μ]
+  [t2_space α] {μ : measure α} [is_locally_finite_measure μ]
   {s : set α} (hs : is_compact s) {f : α → E} (hf : continuous_on f s) :
   integrable_on f s μ :=
 hs.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hs.measurable_set hx
 
 lemma continuous_on.integrable_on_Icc [borel_space E]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
-  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous_on f (Icc a b)) :
   integrable_on f (Icc a b) μ :=
 hf.integrable_on_compact is_compact_Icc
 
 lemma continuous_on.integrable_on_interval [borel_space E]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
-  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
-  {a b : β} {f : β → E} (hf : continuous_on f (interval a b)) :
-  integrable_on f (interval a b) μ :=
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous_on f [a, b]) :
+  integrable_on f [a, b] μ :=
 hf.integrable_on_compact is_compact_interval
 
 /-- A continuous function `f` is integrable on any compact set with respect to any locally finite
 measure. -/
 lemma continuous.integrable_on_compact
   [topological_space α] [opens_measurable_space α] [t2_space α]
-  [borel_space E] {μ : measure α} [locally_finite_measure μ] {s : set α}
+  [borel_space E] {μ : measure α} [is_locally_finite_measure μ] {s : set α}
   (hs : is_compact s) {f : α → E} (hf : continuous f) :
   integrable_on f s μ :=
 hf.continuous_on.integrable_on_compact hs
 
 lemma continuous.integrable_on_Icc [borel_space E]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
-  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous f) :
   integrable_on f (Icc a b) μ :=
 hf.integrable_on_compact is_compact_Icc
 
+lemma continuous.integrable_on_Ioc [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous f) :
+  integrable_on f (Ioc a b) μ :=
+hf.integrable_on_Icc.mono_set Ioc_subset_Icc_self
+
 lemma continuous.integrable_on_interval [borel_space E]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
-  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
   {a b : β} {f : β → E} (hf : continuous f) :
-  integrable_on f (interval a b) μ :=
+  integrable_on f [a, b] μ :=
 hf.integrable_on_compact is_compact_interval
+
+lemma continuous.integrable_on_interval_oc [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [is_locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous f) :
+  integrable_on f (Ι a b) μ :=
+hf.integrable_on_Ioc
 
 /-- A continuous function with compact closure of the support is integrable on the whole space. -/
 lemma continuous.integrable_of_compact_closure_support
   [topological_space α] [opens_measurable_space α] [t2_space α] [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {f : α → E} (hf : continuous f)
+  {μ : measure α} [is_locally_finite_measure μ] {f : α → E} (hf : continuous f)
   (hfc : is_compact (closure $ support f)) :
   integrable f μ :=
 begin
@@ -427,43 +453,37 @@ variables
   [topological_space α] [borel_space α] [borel_space E]
   [conditionally_complete_linear_order α] [conditionally_complete_linear_order E]
   [order_topology α] [order_topology E] [second_countable_topology E]
-  {μ : measure α} [locally_finite_measure μ] {s : set α} (hs : is_compact s) {f : α → E}
+  {μ : measure α} [is_locally_finite_measure μ] {s : set α} (hs : is_compact s) {f : α → E}
 
 include hs
 
-lemma integrable_on_compact_of_monotone_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+lemma monotone_on.integrable_on_compact (hmono : monotone_on f s) :
   integrable_on f s μ :=
 begin
-  by_cases h : s.nonempty,
-  { have hbelow : bdd_below (f '' s) :=
-      ⟨f (Inf s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono (hs.Inf_mem h) hy (cInf_le hs.bdd_below hy)⟩,
-    have habove : bdd_above (f '' s) :=
-      ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
-    have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
-    rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
-    exact integrable.mono' (continuous_const.integrable_on_compact hs)
-      (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono)
-      ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
-        λ y hy, hC (f y) (mem_image_of_mem f hy)) },
-  { rw set.not_nonempty_iff_eq_empty at h,
-    rw h,
-    exact integrable_on_empty }
+  obtain rfl | h := s.eq_empty_or_nonempty,
+  { exact integrable_on_empty },
+  have hbelow : bdd_below (f '' s) :=
+    ⟨f (Inf s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono (hs.Inf_mem h) hy (cInf_le hs.bdd_below hy)⟩,
+  have habove : bdd_above (f '' s) :=
+    ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
+  have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
+  rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
+  exact integrable.mono' (continuous_const.integrable_on_compact hs)
+    (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono)
+    ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
+      λ y hy, hC (f y) (mem_image_of_mem f hy)),
 end
 
-lemma integrable_on_compact_of_antimono_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+lemma antitone_on.integrable_on_compact (hanti : antitone_on f s) :
   integrable_on f s μ :=
-@integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hmono
+@monotone_on.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _ hanti
 
-lemma integrable_on_compact_of_monotone (hmono : monotone f) :
+lemma monotone.integrable_on_compact (hmono : monotone f) :
   integrable_on f s μ :=
-integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
+monotone_on.integrable_on_compact hs (λ x y _ _ hxy, hmono hxy)
 
-alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
-
-lemma integrable_on_compact_of_antimono (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+lemma antitone.integrable_on_compact (hanti : antitone f) :
   integrable_on f s μ :=
-@integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
-  hmono
+@monotone.integrable_on_compact α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _ hanti
 
 end monotone

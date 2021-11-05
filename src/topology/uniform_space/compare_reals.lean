@@ -82,8 +82,8 @@ def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_
   complete :=  by apply_instance,
   separation :=  by apply_instance,
   uniform_inducing := by { rw rat.uniform_space_eq,
-                           exact uniform_embedding_of_rat.to_uniform_inducing },
-  dense := dense_embedding_of_rat.dense }
+                           exact rat.uniform_embedding_coe_real.to_uniform_inducing },
+  dense := rat.dense_embedding_coe_real.dense }
 
 namespace compare_reals
 /-- Type wrapper around ℚ to make sure the absolute value uniform space instance is picked up

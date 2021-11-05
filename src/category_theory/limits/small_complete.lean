@@ -28,6 +28,7 @@ small complete, preorder, Freyd
 namespace category_theory
 
 open category limits
+open_locale cardinal
 
 universe u
 
@@ -45,14 +46,14 @@ instance {X Y : C} : subsingleton (X ⟶ Y) :=
 begin
   classical,
   by_contra r_ne_s,
-  have z : (2 : cardinal) ≤ cardinal.mk (X ⟶ Y),
+  have z : (2 : cardinal) ≤ #(X ⟶ Y),
   { rw cardinal.two_le_iff,
     exact ⟨_, _, r_ne_s⟩ },
   let md := Σ (Z W : C), Z ⟶ W,
-  let α := cardinal.mk md,
+  let α := #md,
   apply not_le_of_lt (cardinal.cantor α),
   let yp : C := ∏ (λ (f : md), Y),
-  transitivity (cardinal.mk (X ⟶ yp)),
+  transitivity (#(X ⟶ yp)),
   { apply le_trans (cardinal.power_le_power_right z),
     rw cardinal.power_def,
     apply le_of_eq,

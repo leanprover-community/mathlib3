@@ -59,21 +59,21 @@ structure subgraph {V : Type u} (G : simple_graph V) :=
 (adj : V → V → Prop)
 (adj_sub : ∀ {v w : V}, adj v w → G.adj v w)
 (edge_vert : ∀ {v w : V}, adj v w → v ∈ verts)
-(sym : symmetric adj . obviously)
+(symm : symmetric adj . obviously)
 
 namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
-⟨λ x, G'.sym x, λ x, G'.sym x⟩
+⟨λ x, G'.symm x, λ x, G'.symm x⟩
 
-@[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.sym h
+@[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
 
 /-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
 @[simps] def coe (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj v w,
-  sym := λ v w h, G'.sym h,
+  symm := λ v w h, G'.symm h,
   loopless := λ v h, loopless G v (G'.adj_sub h) }
 
 @[simp] lemma coe_adj_sub (G' : subgraph G) (u v : G'.verts) (h : G'.coe.adj u v) : G.adj u v :=
@@ -87,7 +87,7 @@ subgraph, then `G'.spanning_coe` yields an isomorphic graph.
 In general, this adds in all vertices from `V` as isolated vertices. -/
 @[simps] def spanning_coe (G' : subgraph G) : simple_graph V :=
 { adj := G'.adj,
-  sym := G'.sym,
+  symm := G'.symm,
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
 @[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
@@ -125,7 +125,7 @@ def coe_neighbor_set_equiv {G' : subgraph G} (v : G'.verts) :
   right_inv := λ w, by simp }
 
 /-- The edge set of `G'` consists of a subset of edges of `G`. -/
-def edge_set (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.sym
+def edge_set (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.symm
 
 lemma edge_set_subset (G' : subgraph G) : G'.edge_set ⊆ G.edge_set :=
 λ e, quotient.ind (λ e h, G'.adj_sub h) e
@@ -141,7 +141,7 @@ begin
   simp only [mem_edge_set] at he,
   cases sym2.mem_iff.mp hv with h h; subst h,
   { exact G'.edge_vert he, },
-  { exact G'.edge_vert (G'.sym he), },
+  { exact G'.edge_vert (G'.symm he), },
 end
 
 /-- The `incidence_set` is the set of edges incident to a given vertex. -/
@@ -170,7 +170,7 @@ def copy (G' : subgraph G)
   adj := adj',
   adj_sub := hadj.symm ▸ G'.adj_sub,
   edge_vert := hV.symm ▸ hadj.symm ▸ G'.edge_vert,
-  sym := hadj.symm ▸ G'.sym }
+  symm := hadj.symm ▸ G'.symm }
 
 lemma copy_eq (G' : subgraph G)
   (V'' : set V) (hV : V'' = G'.verts)
@@ -184,7 +184,7 @@ def union (x y : subgraph G) : subgraph G :=
   adj := x.adj ⊔ y.adj,
   adj_sub := λ v w h, or.cases_on h (λ h, x.adj_sub h) (λ h, y.adj_sub h),
   edge_vert := λ v w h, or.cases_on h (λ h, or.inl (x.edge_vert h)) (λ h, or.inr (y.edge_vert h)),
-  sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }
+  symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }
 
 /-- The intersection of two subgraphs. -/
 def inter (x y : subgraph G) : subgraph G :=
@@ -192,7 +192,7 @@ def inter (x y : subgraph G) : subgraph G :=
   adj := x.adj ⊓ y.adj,
   adj_sub := λ v w h, x.adj_sub h.1,
   edge_vert := λ v w h, ⟨x.edge_vert h.1, y.edge_vert h.2⟩,
-  sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }
+  symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }
 
 /-- The `top` subgraph is `G` as a subgraph of itself. -/
 def top : subgraph G :=
@@ -200,7 +200,7 @@ def top : subgraph G :=
   adj := G.adj,
   adj_sub := λ v w h, h,
   edge_vert := λ v w h, set.mem_univ v,
-  sym := G.sym }
+  symm := G.symm }
 
 /-- The `bot` subgraph is the subgraph with no vertices or edges. -/
 def bot : subgraph G :=
@@ -208,7 +208,7 @@ def bot : subgraph G :=
   adj := λ v w, false,
   adj_sub := λ v w h, false.rec _ h,
   edge_vert := λ v w h, false.rec _ h,
-  sym := λ u v h, h }
+  symm := λ u v h, h }
 
 instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
 
@@ -248,7 +248,7 @@ instance : bounded_lattice (subgraph G) :=
   adj := H.adj,
   adj_sub := h,
   edge_vert := λ v w h, set.mem_univ v,
-  sym := H.sym }
+  symm := H.symm }
 
 lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
   (H.to_subgraph h).is_spanning := set.mem_univ

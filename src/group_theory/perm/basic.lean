@@ -51,9 +51,9 @@ lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
 
-lemma gpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+lemma zpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
-by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, gpow_mul_comm]
+by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -286,6 +286,28 @@ equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
   simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
 
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
+
+/-- Permutations on a subtype are equivalent to permutations on the original type that fix pointwise
+the rest. -/
+@[simps] protected def subtype_equiv_subtype_perm (p : α → Prop) [decidable_pred p] :
+  perm (subtype p) ≃ {f : perm α // ∀ a, ¬p a → f a = a} :=
+{ to_fun := λ f, ⟨f.of_subtype, λ a, f.of_subtype_apply_of_not_mem⟩,
+  inv_fun := λ f, (f : perm α).subtype_perm
+    (λ a, ⟨decidable.not_imp_not.1 $ λ hfa, (f.val.injective (f.prop _ hfa) ▸ hfa),
+    decidable.not_imp_not.1 $ λ ha hfa, ha $ f.prop a ha ▸ hfa⟩),
+  left_inv := equiv.perm.subtype_perm_of_subtype,
+  right_inv := λ f,
+    subtype.ext (equiv.perm.of_subtype_subtype_perm _ $ λ a, not.decidable_imp_symm $ f.prop a) }
+
+lemma subtype_equiv_subtype_perm_apply_of_mem {α : Type*} {p : α → Prop}
+  [decidable_pred p] (f : perm (subtype p)) {a : α} (h : p a) :
+  perm.subtype_equiv_subtype_perm p f a = f ⟨a, h⟩ :=
+f.of_subtype_apply_of_mem h
+
+lemma subtype_equiv_subtype_perm_apply_of_not_mem {α : Type*} {p : α → Prop}
+  [decidable_pred p] (f : perm (subtype p)) {a : α} (h : ¬ p a) :
+  perm.subtype_equiv_subtype_perm p f a = a :=
+f.of_subtype_apply_of_not_mem h
 
 variables (e : perm α) (ι : α ↪ β)
 

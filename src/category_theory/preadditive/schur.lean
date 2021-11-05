@@ -3,10 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
+import algebra.group.ext
 import category_theory.simple
 import category_theory.linear
 import category_theory.endomorphism
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.basic
 
 /-!
 # Schur's lemma
@@ -87,7 +88,7 @@ variables [is_alg_closed 𝕜] [linear 𝕜 C]
 -- To get around this, we use `convert I`,
 -- then check the various instances agree field-by-field,
 -- using `ext` equipped with the following extra lemmas:
-local attribute [ext] add_comm_group module distrib_mul_action mul_action has_scalar
+local attribute [ext] module distrib_mul_action mul_action has_scalar
 
 /--
 An auxiliary lemma for Schur's lemma.
@@ -109,7 +110,7 @@ begin
   { intro f,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
     obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
-      (by { convert I, ext; refl, ext; refl, }) (End.of f),
+      (by { convert I, ext, refl, ext, refl, }) (End.of f),
     use c,
     rw [is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
       algebra.algebra_map_eq_smul_one] at nu,

@@ -3,7 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import analysis.normed_space.inner_product
+import analysis.inner_product_space.basic
 import measure_theory.integral.set_integral
 
 /-! # `L^2` space
@@ -60,6 +60,7 @@ begin
 end
 
 section inner_product_space
+open_locale complex_conjugate
 
 variables [measurable_space 𝕜] [borel_space 𝕜]
 
@@ -89,11 +90,11 @@ private lemma norm_sq_eq_inner' (f : α →₂[μ] E) : ∥f∥ ^ 2 = is_R_or_C.
 begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
   rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,
-    ennreal.to_real_eq_to_real (ennreal.pow_lt_top (Lp.snorm_lt_top f) 2) _],
+    ennreal.to_real_eq_to_real (ennreal.pow_ne_top (Lp.snorm_ne_top f)) _],
   { rw [←ennreal.rpow_nat_cast, snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top, snorm',
       ← ennreal.rpow_mul, one_div, h_two],
     simp, },
-  { refine lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _,
+  { refine (lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _).ne,
     rw [← h_two, ← snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top],
     exact Lp.snorm_lt_top f, },
 end
@@ -117,7 +118,7 @@ begin
 end
 
 private lemma smul_left' (f g : α →₂[μ] E) (r : 𝕜) :
-  inner (r • f) g = is_R_or_C.conj r * inner f g :=
+  inner (r • f) g = conj r * inner f g :=
 begin
   rw [inner_def, inner_def, ← smul_eq_mul, ← integral_smul],
   refine integral_congr_ae ((coe_fn_smul r f).mono (λ x hx, _)),
@@ -195,9 +196,9 @@ section inner_continuous
 
 variables {α : Type*} [topological_space α] [measure_space α] [borel_space α] {𝕜 : Type*}
   [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-variables (μ : measure α) [finite_measure μ]
+variables (μ : measure α) [is_finite_measure μ]
 
-open_locale bounded_continuous_function
+open_locale bounded_continuous_function complex_conjugate
 
 local attribute [instance] fact_one_le_two_ennreal
 
@@ -207,7 +208,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 (α →₂[μ] 𝕜) _ x y
 inner product is the integral of their pointwise inner product. -/
 lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
   ⟪bounded_continuous_function.to_Lp 2 μ 𝕜 f, bounded_continuous_function.to_Lp 2 μ 𝕜 g⟫
-  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+  = ∫ x, conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,
@@ -224,7 +225,7 @@ variables [compact_space α]
 inner product is the integral of their pointwise inner product. -/
 lemma continuous_map.inner_to_Lp (f g : C(α, 𝕜)) :
   ⟪continuous_map.to_Lp 2 μ 𝕜 f, continuous_map.to_Lp 2 μ 𝕜 g⟫
-  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+  = ∫ x, conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,

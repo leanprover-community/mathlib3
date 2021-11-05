@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
-import linear_algebra.basic
 import linear_algebra.pi
 
 /-!
@@ -635,8 +634,8 @@ noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
 begin
   haveI := classical.dec_pred (λ x, x ∈ s),
   haveI := classical.dec_pred (λ x, x ∈ t),
-  refine linear_equiv.trans (finsupp.supported_equiv_finsupp s)
-      (linear_equiv.trans _ (finsupp.supported_equiv_finsupp t).symm),
+  refine (finsupp.supported_equiv_finsupp s) ≪≫ₗ
+      (_ ≪≫ₗ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e
 end
 
@@ -744,7 +743,8 @@ This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. 
 { map_smul' :=
     by { intros, ext;
           simp only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
-              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp] },
+              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp,
+              ring_hom.id_apply] },
   .. sum_finsupp_add_equiv_prod_finsupp }
 
 lemma fst_sum_finsupp_lequiv_prod_finsupp {α β : Type*}

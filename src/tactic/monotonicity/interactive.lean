@@ -188,7 +188,8 @@ meta def parse_assoc_chain' (f : expr) : expr → tactic (dlist expr)
 meta def parse_assoc_chain (f : expr) : expr → tactic (list expr) :=
 map dlist.to_list ∘ parse_assoc_chain' f
 
-meta def fold_assoc (op : expr) : option (expr × expr × expr) → list expr → option (expr × list expr)
+meta def fold_assoc (op : expr) :
+  option (expr × expr × expr) → list expr → option (expr × list expr)
 | _ (x::xs) := some (foldl (expr.app ∘ expr.app op) x xs, [])
 | none []   := none
 | (some (l_id,r_id,x₀)) [] := some (x₀,[l_id,r_id])
@@ -464,9 +465,11 @@ do t ← target,
      do lmms ← r.mmap (λ ⟨l,gs,_⟩,
           do ts ← gs.mmap infer_type,
              msg ← ts.mmap pp,
-             pure $ foldl compose "\n\n" (list.intersperse "\n" $ to_fmt l.get_app_fn.const_name :: msg)),
+             pure $ foldl compose "\n\n" $
+               list.intersperse "\n" $ to_fmt l.get_app_fn.const_name :: msg),
         let msg := foldl compose "" lmms,
-        fail format!"ambiguous match: {msg}\n\nTip: try asserting a side condition to distinguish between the lemmas"
+        fail format!("ambiguous match: {msg}\n\n" ++
+          "Tip: try asserting a side condition to distinguish between the lemmas")
    end
 
 meta def mono_aux (dir : parse side) :
@@ -487,7 +490,8 @@ do t ← target >>= instantiate_mvars,
     - left:  `x ≤ w` and `y < z` or
     - right: `x < w` and `y ≤ z`
 - `mono using [rule1,rule2]` calls `simp [rule1,rule2]` before applying mono.
-- The general syntax is `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?
+- The general syntax is
+  `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?`
 
 To use it, first import `tactic.monotonicity`.
 

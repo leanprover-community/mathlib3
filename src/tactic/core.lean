@@ -12,14 +12,40 @@ import data.bool
 import tactic.binder_matching
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import tactic.project_dir
 import system.io
 
-universe variable u
+universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
+-- Rather than import order.lexicographic here, we can get away with defining the order by hand.
 instance : has_lt pos :=
-{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+{ lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
+
+namespace tactic
+
+/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
+meta def refl_conv (e : expr) : tactic (expr × expr) :=
+do p ← mk_eq_refl e, return (e, p)
+
+/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
+proof by reflexivity. -/
+meta def or_refl_conv (tac : expr → tactic (expr × expr))
+  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
+
+/-- Transitivity conversion: given two conversions (which take an
+expression `e` and returns `(e', ⊢ e = e')`), produces another
+conversion that combines them with transitivity, treating failures
+as reflexivity conversions. -/
+meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
+  tactic (expr × expr) :=
+(do (e₁, p₁) ← t₁ e,
+  (do (e₂, p₂) ← t₂ e₁,
+    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
+  return (e₁, p₁)) <|> t₂ e
+
+end tactic
 
 namespace expr
 open tactic
@@ -1862,9 +1888,9 @@ It does *not* use the `namespace` command, so it will typically be used after
 meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") :
   lean.parser unit :=
 emit_code_here "
-open lean
-open lean.parser
-open interactive interactive.types
+open _root_.lean
+open _root_.lean.parser
+open _root_.interactive _root_.interactive.types
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
@@ -2087,7 +2113,7 @@ See `proof_state`, `goal` and `get_proof_state`.
 meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
 try_core $ retrieve $ tac >> get_proof_state
 
-open lean interactive
+open lean _root_.interactive
 
 /-- A type alias for `tactic format`, standing for "pretty print format". -/
 meta def pformat := tactic format
@@ -2165,11 +2191,20 @@ meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
 
+/-- A hackish way to get the `src` directory of any project.
+  Requires as argument any declaration name `n` in that project, and `k`, the number of characters
+  in the path of the file where `n` is declared not part of the `src` directory.
+  Example: For `mathlib_dir_locator` this is the length of `tactic/project_dir.lean`, so `23`.
+  Note: does not work in the file where `n` is declared. -/
+meta def get_project_dir (n : name) (k : ℕ) : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean n <|>
+fail!"Did not find declaration {n}. This command does not work in the file where {n} is declared.",
+  return $ s.popn_back k
+
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
-do e ← get_env,
-  s ← e.decl_olean `tactic.reset_instance_cache,
-  return $ s.popn_back 17
+get_project_dir `mathlib_dir_locator 23
 
 /-- Checks whether a declaration with the given name is declared in mathlib.
 If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,
@@ -2191,7 +2226,8 @@ do d ← get_decl n,
      (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
    else if (t =ₐ `(tactic string)) then
      (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
+   else fail!
+     "name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
 /-- auxiliary function for `apply_under_n_pis` -/
 private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr → pexpr
@@ -2338,7 +2374,7 @@ ns.mfirst (λ nm, do
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
 /-- A tactic to set either a basic attribute or a user attribute.
-  If the the user attribute has a parameter, the default value will be used.
+  If the user attribute has a parameter, the default value will be used.
   This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do
@@ -2352,8 +2388,10 @@ then do
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
     ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
-    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter without a default value.
-Solution: provide an `inhabited` instance.",
+    fail! ("Cannot set attribute @[{attr_name}].\n" ++
+      "The corresponding user attribute {user_attr_nm} " ++
+      "has a parameter without a default value.\n" ++
+      "Solution: provide an `inhabited` instance."),
   tac
 else fail msg
 

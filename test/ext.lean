@@ -16,7 +16,7 @@ setup_tactic_parser
 namespace tactic
 namespace interactive
 
-meta def ext_trace_test (patts : parse (rcases_patt_parse tt)*)
+meta def ext_trace_test (patts : parse rcases_patt_parse_hi*)
   (fuel : parse (tk ":" *> small_nat)?) (tgt_trace : string) : tactic unit := do
   ⟨_, σ⟩ ← state_t.run (ext_core {}) ⟨patts, [], fuel⟩,
   guard $ ", ".intercalate σ.trace_msg = tgt_trace

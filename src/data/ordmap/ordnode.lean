@@ -482,7 +482,7 @@ def partition (p : α → Prop) [decidable_pred p] : ordnode α → ordnode α �
   else (merge l₁ r₁, link l₂ x r₂)
 
 /-- O(n). Map a function across a tree, without changing the structure. Only valid when
-the function is strictly monotonic, i.e. `x < y → f x < f y`.
+the function is strictly monotone, i.e. `x < y → f x < f y`.
 
      partition (λ x, x + 2) {1, 2, 4} = {2, 3, 6}
      partition (λ x : ℕ, x - 2) {1, 2, 4} = precondition violation -/

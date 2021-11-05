@@ -71,7 +71,7 @@ theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a 
 option.some.inj $ ha.symm.trans hb
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
@@ -446,5 +446,11 @@ begin
 end
 
 end
+
+@[simp] lemma to_list_some (a : α) : (a : option α).to_list = [a] :=
+rfl
+
+@[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
+rfl
 
 end option

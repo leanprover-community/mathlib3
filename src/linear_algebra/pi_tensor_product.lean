@@ -5,7 +5,7 @@ Authors: Frédéric Dupuis, Eric Wieser
 -/
 
 import group_theory.congruence
-import linear_algebra.multilinear
+import linear_algebra.multilinear.tensor_product
 
 /-!
 # Tensor product of an indexed family of modules over commutative semirings
@@ -376,12 +376,12 @@ For simplicity, this is defined only for homogeneously- (rather than dependently
 -/
 def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M :=
 linear_equiv.of_linear
-  ((lift.symm.trans $
-    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm).trans
-      lift (linear_map.id))
-  ((lift.symm.trans $
-    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e).trans
-      lift (linear_map.id))
+  (((lift.symm ≪≫ₗ
+    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm)) ≪≫ₗ
+      lift) (linear_map.id))
+  (((lift.symm ≪≫ₗ
+    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e)) ≪≫ₗ
+      lift) (linear_map.id))
   (by { ext, simp })
   (by { ext, simp })
 
@@ -397,7 +397,7 @@ lift.tprod f
 multilinear_map.ext $ reindex_tprod e
 
 @[simp] lemma lift_comp_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _ : ι₂, M) E) :
-  (lift φ).comp ↑(reindex R M e) = lift (φ.dom_dom_congr e.symm) :=
+  (lift φ) ∘ₗ ↑(reindex R M e) = lift (φ.dom_dom_congr e.symm) :=
 by { ext, simp, }
 
 @[simp]
@@ -452,7 +452,8 @@ tensor_product.lift
   { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
       (multilinear_map.curry_sum_equiv R _ _ M _ (tprod R)) a,
     map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
-    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
+    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul,
+                                      ring_hom.id_apply], }
 
 private lemma tmul_apply (a : ι → M) (b : ι₂ → M) :
   tmul ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
@@ -471,6 +472,7 @@ private lemma tmul_symm_apply (a : ι ⊕ ι₂ → M) :
 pi_tensor_product.lift.tprod _
 
 variables (R M)
+local attribute [ext] tensor_product.ext
 
 /-- Equivalence between a `tensor_product` of `pi_tensor_product`s and a single
 `pi_tensor_product` indexed by a `sum` type.

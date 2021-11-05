@@ -10,6 +10,7 @@ import topology.G_delta
 import measure_theory.group.arithmetic
 import topology.semicontinuous
 import topology.instances.ereal
+import topology.continuous_function.basic
 
 /-!
 # Borel (measurable) space
@@ -39,7 +40,7 @@ import topology.instances.ereal
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal
+open_locale classical big_operators topological_space nnreal ennreal interval
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -109,25 +110,7 @@ section order_topology
 variable (α)
 variables [topological_space α] [second_countable_topology α] [linear_order α] [order_topology α]
 
-lemma is_pi_system_Ioo_mem {α : Type*} [linear_order α] (s t : set α) :
-  is_pi_system {S | ∃ (l ∈ s) (u ∈ t), l < u ∧ Ioo l u = S} :=
-begin
-  rintro _ _ ⟨l₁, hls₁, u₁, hut₁, hlu₁, rfl⟩ ⟨l₂, hls₂, u₂, hut₂, hlu₂, rfl⟩
-    ⟨x, ⟨hlx₁ : l₁ < x, hxu₁ : x < u₁⟩, ⟨hlx₂ : l₂ < x, hxu₂ : x < u₂⟩⟩,
-  refine ⟨l₁ ⊔ l₂, sup_ind l₁ l₂ hls₁ hls₂, u₁ ⊓ u₂, inf_ind u₁ u₂ hut₁ hut₂, _,
-    Ioo_inter_Ioo.symm⟩,
-  simp [hlx₂.trans hxu₁, hlx₁.trans hxu₂, *]
-end
-
-lemma is_pi_system_Ioo {α β : Type*} [linear_order β] (f : α → β) :
-  @is_pi_system β (⋃ l u (h : f l < f u), {Ioo (f l) (f u)})  :=
-begin
-  convert is_pi_system_Ioo_mem (range f) (range f),
-  ext s,
-  simp [@eq_comm _ _ s]
-end
-
-lemma borel_eq_generate_Iio : borel α = generate_from (range Iio) :=
+lemma borel_eq_generate_from_Iio : borel α = generate_from (range Iio) :=
 begin
   refine le_antisymm _ (generate_from_le _),
   { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
@@ -158,8 +141,8 @@ begin
     exact generate_measurable.basic _ is_open_Iio }
 end
 
-lemma borel_eq_generate_Ioi : borel α = generate_from (range Ioi) :=
-@borel_eq_generate_Iio (order_dual α) _ (by apply_instance : second_countable_topology α) _ _
+lemma borel_eq_generate_from_Ioi : borel α = generate_from (range Ioi) :=
+@borel_eq_generate_from_Iio (order_dual α) _ (by apply_instance : second_countable_topology α) _ _
 
 end order_topology
 
@@ -198,6 +181,15 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   [h : opens_measurable_space α] (s : set α) :
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
+
+theorem _root_.measurable_set.induction_on_open [topological_space α] [measurable_space α]
+  [borel_space α] {C : set α → Prop} (h_open : ∀ U, is_open U → C U)
+  (h_compl : ∀ t, measurable_set t → C t → C tᶜ)
+  (h_union : ∀ f : ℕ → set α, pairwise (disjoint on f) →
+    (∀ i, measurable_set (f i)) → (∀ i, C (f i)) → C (⋃ i, f i)) :
+  ∀ ⦃t⦄, measurable_set t → C t :=
+measurable_space.induction_on_inter borel_space.measurable_eq is_pi_system_is_open
+  (h_open _ is_open_empty) h_open h_compl h_union
 
 section
 variables [topological_space α] [measurable_space α] [opens_measurable_space α]
@@ -272,7 +264,7 @@ instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
   measurable_singleton_class α :=
 ⟨λ x, is_closed_singleton.measurable_set⟩
 
-instance pi.opens_measurable_space {ι : Type*} {π : ι → Type*} [fintype ι]
+instance pi.opens_measurable_space_encodable {ι : Type*} {π : ι → Type*} [encodable ι]
   [t' : Π i, topological_space (π i)]
   [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
   [∀ i, opens_measurable_space (π i)] :
@@ -291,6 +283,13 @@ begin
   exact generate_open.basic _ (hi a ha)
 end
 
+instance pi.opens_measurable_space_fintype {ι : Type*} {π : ι → Type*} [fintype ι]
+  [t' : Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
+  [∀ i, opens_measurable_space (π i)] :
+  opens_measurable_space (Π i, π i) :=
+by { letI := fintype.encodable ι, apply_instance }
+
 instance prod.opens_measurable_space [second_countable_topology α] [second_countable_topology β] :
   opens_measurable_space (α × β) :=
 begin
@@ -304,18 +303,18 @@ end
 
 variables {α' : Type*} [topological_space α'] [measurable_space α']
 
-lemma meas_interior_of_null_bdry {μ : measure α'} {s : set α'}
+lemma measure_interior_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
-meas_eq_meas_smaller_of_between_null_diff
+measure_eq_measure_smaller_of_between_null_diff
   interior_subset subset_closure h_nullbdry
 
-lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
+lemma measure_closure_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
-(meas_eq_meas_larger_of_between_null_diff
+(measure_eq_measure_larger_of_between_null_diff
   interior_subset subset_closure h_nullbdry).symm
 
 section preorder
-variables [preorder α] [order_closed_topology α] {a b : α}
+variables [preorder α] [order_closed_topology α] {a b x : α}
 
 @[simp, measurability]
 lemma measurable_set_Ici : measurable_set (Ici a) := is_closed_Ici.measurable_set
@@ -332,6 +331,10 @@ instance nhds_within_Iic_is_measurably_generated :
   (𝓝[Iic b] a).is_measurably_generated :=
 measurable_set_Iic.nhds_within_is_measurably_generated _
 
+instance nhds_within_Icc_is_measurably_generated :
+  is_measurably_generated (𝓝[Icc a b] x) :=
+by { rw [← Ici_inter_Iic, nhds_within_inter], apply_instance }
+
 instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (measurable_set_Ici : measurable_set (Ici a)).principal_is_measurably_generated
@@ -339,6 +342,16 @@ instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measura
 instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measurably_generated :=
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (measurable_set_Iic : measurable_set (Iic a)).principal_is_measurably_generated
+
+lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
+  (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
+  (⨆ x ∈ s, μ (Iic x)) = μ univ :=
+begin
+  rw ← measure_bUnion_eq_supr hsc,
+  { congr, exact bUnion_eq_univ_iff.2 hst },
+  { exact λ _ _, measurable_set_Iic },
+  { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
+end
 
 end preorder
 
@@ -358,7 +371,7 @@ hf.prod_mk hg measurable_set_le'
 end partial_order
 
 section linear_order
-variables [linear_order α] [order_closed_topology α] {a b : α}
+variables [linear_order α] [order_closed_topology α] {a b x : α}
 
 @[simp, measurability]
 lemma measurable_set_Iio : measurable_set (Iio a) := is_open_Iio.measurable_set
@@ -380,6 +393,10 @@ measurable_set_Ioi.nhds_within_is_measurably_generated _
 instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
+
+instance nhds_within_interval_is_measurably_generated :
+  is_measurably_generated (𝓝[[a, b]] x) :=
+nhds_within_Icc_is_measurably_generated
 
 @[measurability]
 lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α × α | p.1 < p.2} :=
@@ -411,6 +428,201 @@ lemma is_preconnected.measurable_set
   (h : is_preconnected s) : measurable_set s :=
 h.ord_connected.measurable_set
 
+lemma generate_from_Ico_mem_le_borel {α : Type*} [topological_space α] [linear_order α]
+  [order_closed_topology α] (s t : set α) :
+  measurable_space.generate_from {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ico l u = S} ≤ borel α :=
+begin
+  apply generate_from_le,
+  letI : measurable_space α := borel α, haveI : borel_space α := ⟨rfl⟩,
+  rintro _ ⟨a, -, b, -, -, rfl⟩,
+  exact measurable_set_Ico
+end
+
+lemma dense.borel_eq_generate_from_Ico_mem_aux {α : Type*} [topological_space α] [linear_order α]
+  [order_topology α] [second_countable_topology α] {s : set α} (hd : dense s)
+  (hbot : ∀ x, is_bot x → x ∈ s) (hIoo : ∀ x y : α, x < y → Ioo x y = ∅ → y ∈ s) :
+  borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ico l u = S} :=
+begin
+  set S : set (set α) := {S | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ico l u = S},
+  refine le_antisymm _ (generate_from_Ico_mem_le_borel _ _),
+  letI : measurable_space α := generate_from S,
+  rw borel_eq_generate_from_Iio,
+  refine generate_from_le (forall_range_iff.2 $ λ a, _),
+  rcases hd.exists_countable_dense_subset_bot_top with ⟨t, hts, hc, htd, htb, htt⟩,
+  by_cases ha : ∀ b < a, (Ioo b a).nonempty,
+  { convert_to measurable_set (⋃ (l ∈ t) (u ∈ t) (hlu : l < u) (hu : u ≤ a), Ico l u),
+    { ext y, simp only [mem_Union, mem_Iio, mem_Ico], split,
+      { intro hy,
+        rcases htd.exists_le' (λ b hb, htb _ hb (hbot b hb)) y with ⟨l, hlt, hly⟩,
+        rcases htd.exists_mem_open is_open_Ioo (ha y hy) with ⟨u, hut, hyu, hua⟩,
+        exact ⟨l, hlt, u, hut, hly.trans_lt hyu, hua.le, hly, hyu⟩ },
+      { rintro ⟨l, -, u, -, -, hua, -, hyu⟩,
+        exact hyu.trans_le hua } },
+    { refine measurable_set.bUnion hc (λ a ha, measurable_set.bUnion hc $ λ b hb, _),
+      refine measurable_set.Union_Prop (λ hab, measurable_set.Union_Prop $ λ hb', _),
+      exact generate_measurable.basic _ ⟨a, hts ha, b, hts hb, hab, mem_singleton _⟩ } },
+  { simp only [not_forall, not_nonempty_iff_eq_empty] at ha,
+    replace ha : a ∈ s := hIoo ha.some a ha.some_spec.fst ha.some_spec.snd,
+    convert_to measurable_set (⋃ (l ∈ t) (hl : l < a), Ico l a),
+    { symmetry,
+      simp only [← Ici_inter_Iio, ← Union_inter, inter_eq_right_iff_subset, subset_def, mem_Union,
+        mem_Ici, mem_Iio],
+      intros x hx, rcases htd.exists_le' (λ b hb, htb _ hb (hbot b hb)) x with ⟨z, hzt, hzx⟩,
+      exact ⟨z, hzt, hzx.trans_lt hx, hzx⟩ },
+    { refine measurable_set.bUnion hc (λ x hx, measurable_set.Union_Prop $ λ hlt, _),
+      exact generate_measurable.basic _ ⟨x, hts hx, a, ha, hlt, mem_singleton _⟩ } }
+end
+
+lemma dense.borel_eq_generate_from_Ico_mem {α : Type*} [topological_space α] [linear_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_bot_order α]
+  {s : set α} (hd : dense s) :
+  borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ico l u = S} :=
+hd.borel_eq_generate_from_Ico_mem_aux (by simp) $
+  λ x y hxy H, ((nonempty_Ioo.2 hxy).ne_empty H).elim
+
+lemma borel_eq_generate_from_Ico (α : Type*) [topological_space α]
+  [second_countable_topology α] [linear_order α] [order_topology α] :
+  borel α = generate_from {S : set α | ∃ l u (h : l < u), Ico l u = S} :=
+by simpa only [exists_prop, mem_univ, true_and]
+  using (@dense_univ α _).borel_eq_generate_from_Ico_mem_aux (λ _ _, mem_univ _)
+      (λ _ _ _ _, mem_univ _)
+
+lemma dense.borel_eq_generate_from_Ioc_mem_aux {α : Type*} [topological_space α] [linear_order α]
+  [order_topology α] [second_countable_topology α] {s : set α} (hd : dense s)
+  (hbot : ∀ x, is_top x → x ∈ s) (hIoo : ∀ x y : α, x < y → Ioo x y = ∅ → x ∈ s) :
+  borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ioc l u = S} :=
+begin
+  convert hd.order_dual.borel_eq_generate_from_Ico_mem_aux hbot (λ x y hlt he, hIoo y x hlt _),
+  { ext s,
+    split; rintro ⟨l, hl, u, hu, hlt, rfl⟩,
+    exacts [⟨u, hu, l, hl, hlt, dual_Ico⟩, ⟨u, hu, l, hl, hlt, dual_Ioc⟩] },
+  { erw dual_Ioo,
+    exact he }
+end
+
+lemma dense.borel_eq_generate_from_Ioc_mem {α : Type*} [topological_space α] [linear_order α]
+  [order_topology α] [second_countable_topology α] [densely_ordered α] [no_top_order α]
+  {s : set α} (hd : dense s) :
+  borel α = generate_from {S : set α | ∃ (l ∈ s) (u ∈ s) (h : l < u), Ioc l u = S} :=
+hd.borel_eq_generate_from_Ioc_mem_aux (by simp) $
+  λ x y hxy H, ((nonempty_Ioo.2 hxy).ne_empty H).elim
+
+lemma borel_eq_generate_from_Ioc (α : Type*) [topological_space α]
+  [second_countable_topology α] [linear_order α] [order_topology α] :
+  borel α = generate_from {S : set α | ∃ l u (h : l < u), Ioc l u = S} :=
+by simpa only [exists_prop, mem_univ, true_and]
+  using (@dense_univ α _).borel_eq_generate_from_Ioc_mem_aux (λ _ _, mem_univ _)
+      (λ _ _ _ _, mem_univ _)
+
+namespace measure_theory.measure
+
+/-- Two finite measures on a Borel space are equal if they agree on all closed-open intervals.  If
+`α` is a conditionally complete linear order with no top element,
+`measure_theory.measure..ext_of_Ico` is an extensionality lemma with weaker assumptions on `μ` and
+`ν`. -/
+lemma ext_of_Ico_finite {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α]
+  [borel_space α] (μ ν : measure α) [is_finite_measure μ] (hμν : μ univ = ν univ)
+  (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
+begin
+  refine ext_of_generate_finite _
+    (borel_space.measurable_eq.trans (borel_eq_generate_from_Ico α))
+    (is_pi_system_Ico (id : α → α) id) _ hμν,
+  { rintro - ⟨a, b, hlt, rfl⟩,
+    exact h hlt }
+end
+
+/-- Two finite measures on a Borel space are equal if they agree on all open-closed intervals.  If
+`α` is a conditionally complete linear order with no top element,
+`measure_theory.measure..ext_of_Ioc` is an extensionality lemma with weaker assumptions on `μ` and
+`ν`. -/
+lemma ext_of_Ioc_finite {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α]
+  [borel_space α] (μ ν : measure α) [is_finite_measure μ] (hμν : μ univ = ν univ)
+  (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
+begin
+  refine @ext_of_Ico_finite (order_dual α) _ _ _ _ _ ‹_› μ ν _ hμν (λ a b hab, _),
+  erw dual_Ico,
+  exact h hab
+end
+
+/-- Two measures which are finite on closed-open intervals are equal if the agree on all
+closed-open intervals. -/
+lemma ext_of_Ico' {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
+  [no_top_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ico a b) ≠ ∞)
+  (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
+begin
+  rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
+  have : countable (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)),
+    from hsc.bUnion (λ l hl, hsc.bUnion
+      (λ u hu, countable_Union_Prop $ λ _, countable_singleton _)),
+  simp only [← set_of_eq_eq_singleton, ← set_of_exists] at this,
+  refine measure.ext_of_generate_from_of_cover_subset
+    (borel_space.measurable_eq.trans (borel_eq_generate_from_Ico α))
+    (is_pi_system_Ico id id) _ this _ _ _,
+  { rintro _ ⟨l, -, u, -, h, rfl⟩, exact ⟨l, u, h, rfl⟩ },
+  { refine sUnion_eq_univ_iff.2 (λ x, _),
+    rcases hsd.exists_le' hsb x with ⟨l, hls, hlx⟩,
+    rcases hsd.exists_gt x with ⟨u, hus, hxu⟩,
+    exact ⟨_, ⟨l, hls, u, hus, hlx.trans_lt hxu, rfl⟩, hlx, hxu⟩ },
+  { rintro _ ⟨l, -, u, -, hlt, rfl⟩, exact hμ hlt },
+  { rintro _ ⟨l, u, hlt, rfl⟩, exact h hlt }
+end
+
+/-- Two measures which are finite on closed-open intervals are equal if the agree on all
+open-closed intervals. -/
+lemma ext_of_Ioc' {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
+  [no_bot_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
+  (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
+begin
+  refine @ext_of_Ico' (order_dual α) _ _ _ _ _ ‹_› _ μ ν _ _;
+    intros a b hab; erw dual_Ico,
+  exacts [hμ hab, h hab]
+end
+
+/-- Two measures which are finite on closed-open intervals are equal if the agree on all
+closed-open intervals. -/
+lemma ext_of_Ico {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
+  [borel_space α] [no_top_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
+μ.ext_of_Ico' ν (λ a b hab, measure_Ico_lt_top.ne) h
+
+/-- Two measures which are finite on closed-open intervals are equal if the agree on all
+open-closed intervals. -/
+lemma ext_of_Ioc {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [conditionally_complete_linear_order α] [order_topology α]
+  [borel_space α] [no_bot_order α] (μ ν : measure α) [is_locally_finite_measure μ]
+  (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
+μ.ext_of_Ioc' ν (λ a b hab, measure_Ioc_lt_top.ne) h
+
+/-- Two finite measures on a Borel space are equal if they agree on all left-infinite right-closed
+intervals. -/
+lemma ext_of_Iic {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
+  (μ ν : measure α) [is_finite_measure μ] (h : ∀ a, μ (Iic a) = ν (Iic a)) : μ = ν :=
+begin
+  refine ext_of_Ioc_finite μ ν _ (λ a b hlt, _),
+  { rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, -, hst⟩,
+    have : directed_on (≤) s, from directed_on_iff_directed.2 (directed_of_sup $ λ _ _, id),
+    simp only [← bsupr_measure_Iic hsc (hsd.exists_ge' hst) this, h] },
+  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic,
+      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic, h a, h b],
+  { rw ← h a, exact (measure_lt_top μ _).ne },
+  { exact (measure_lt_top μ _).ne }
+end
+
+/-- Two finite measures on a Borel space are equal if they agree on all left-closed right-infinite
+intervals. -/
+lemma ext_of_Ici {α : Type*} [topological_space α] {m : measurable_space α}
+  [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
+  (μ ν : measure α) [is_finite_measure μ] (h : ∀ a, μ (Ici a) = ν (Ici a)) : μ = ν :=
+@ext_of_Iic (order_dual α) _ _ _ _ _ ‹_› _ _ _ h
+
+end measure_theory.measure
+
 end linear_order
 
 section linear_order
@@ -426,7 +638,7 @@ variables [second_countable_topology α]
 @[measurability]
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
-hf.piecewise (measurable_set_le hg hf) hg
+by simpa only [max_def] using hf.piecewise (measurable_set_le hg hf) hg
 
 @[measurability]
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
@@ -437,7 +649,7 @@ lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
 @[measurability]
 lemma measurable.min {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, min (f a) (g a)) :=
-hf.piecewise (measurable_set_le hf hg) hg
+by simpa only [min_def] using hf.piecewise (measurable_set_le hf hg) hg
 
 @[measurability]
 lemma ae_measurable.min {f g : δ → α} {μ : measure δ}
@@ -490,11 +702,14 @@ instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
 
 section homeomorph
 
+@[measurability] protected lemma homeomorph.measurable (h : α ≃ₜ γ) : measurable h :=
+h.continuous.measurable
+
 /-- A homeomorphism between two Borel spaces is a measurable equivalence.-/
 def homeomorph.to_measurable_equiv (h : γ ≃ₜ γ₂) : γ ≃ᵐ γ₂ :=
-{ measurable_to_fun := h.continuous_to_fun.measurable,
-  measurable_inv_fun := h.continuous_inv_fun.measurable,
-  .. h }
+{ measurable_to_fun := h.measurable,
+  measurable_inv_fun := h.symm.measurable,
+  to_equiv := h.to_equiv }
 
 @[simp]
 lemma homeomorph.to_measurable_equiv_coe (h : γ ≃ₜ γ₂) : (h.to_measurable_equiv : γ → γ₂) = h :=
@@ -504,11 +719,10 @@ rfl
   (h.to_measurable_equiv.symm : γ₂ → γ) = h.symm :=
 rfl
 
-@[measurability]
-lemma homeomorph.measurable (h : α ≃ₜ γ) : measurable h :=
-h.continuous.measurable
-
 end homeomorph
+
+@[measurability] lemma continuous_map.measurable (f : C(α, γ)) : measurable f :=
+f.continuous.measurable
 
 lemma measurable_of_continuous_on_compl_singleton [t1_space α] {f : α → γ} (a : α)
   (hf : continuous_on f {a}ᶜ) :
@@ -529,10 +743,10 @@ lemma continuous.ae_measurable2 [second_countable_topology α] [second_countable
 h.measurable.comp_ae_measurable (hf.prod_mk hg)
 
 @[priority 100]
-instance has_continuous_inv'.has_measurable_inv [group_with_zero γ] [t1_space γ]
-  [has_continuous_inv' γ] :
+instance has_continuous_inv₀.has_measurable_inv [group_with_zero γ] [t1_space γ]
+  [has_continuous_inv₀ γ] :
   has_measurable_inv γ :=
-⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv'⟩
+⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv₀⟩
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul₂ [second_countable_topology γ] [has_mul γ]
@@ -578,7 +792,14 @@ begin
   { exact comap_le_iff_le_map.mpr continuous_snd.borel_measurable }
 end
 
-instance pi.borel_space {ι : Type*} {π : ι → Type*} [fintype ι]
+instance pi.borel_space_fintype_encodable {ι : Type*} {π : ι → Type*} [encodable ι]
+  [t' : Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
+  [∀ i, borel_space (π i)] :
+  borel_space (Π i, π i) :=
+⟨le_antisymm pi_le_borel_pi opens_measurable_space.borel_le⟩
+
+instance pi.borel_space_fintype {ι : Type*} {π : ι → Type*} [fintype ι]
   [t' : Π i, topological_space (π i)]
   [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
   [∀ i, borel_space (π i)] :
@@ -648,7 +869,7 @@ variables [linear_order α] [order_topology α] [second_countable_topology α]
 lemma measurable_of_Iio {f : δ → α} (hf : ∀ x, measurable_set (f ⁻¹' Iio x)) : measurable f :=
 begin
   convert measurable_generate_from _,
-  exact borel_space.measurable_eq.trans (borel_eq_generate_Iio _),
+  exact borel_space.measurable_eq.trans (borel_eq_generate_from_Iio _),
   rintro _ ⟨x, rfl⟩, exact hf x
 end
 
@@ -659,7 +880,7 @@ measurable_of_Iio (λ y, (hf.is_open_preimage y).measurable_set)
 lemma measurable_of_Ioi {f : δ → α} (hf : ∀ x, measurable_set (f ⁻¹' Ioi x)) : measurable f :=
 begin
   convert measurable_generate_from _,
-  exact borel_space.measurable_eq.trans (borel_eq_generate_Ioi _),
+  exact borel_space.measurable_eq.trans (borel_eq_generate_from_Ioi _),
   rintro _ ⟨x, rfl⟩, exact hf x
 end
 
@@ -686,7 +907,7 @@ lemma measurable.is_lub {ι} [encodable ι] {f : ι → δ → α} {g : δ → �
   measurable g :=
 begin
   change ∀ b, is_lub (range $ λ i, f i b) (g b) at hg,
-  rw [‹borel_space α›.measurable_eq, borel_eq_generate_Ioi α],
+  rw [‹borel_space α›.measurable_eq, borel_eq_generate_from_Ioi α],
   apply measurable_generate_from,
   rintro _ ⟨a, rfl⟩,
   simp_rw [set.preimage, mem_Ioi, lt_is_lub_iff (hg _), exists_range_iff, set_of_exists],
@@ -743,7 +964,7 @@ lemma measurable.is_glb {ι} [encodable ι] {f : ι → δ → α} {g : δ → �
   measurable g :=
 begin
   change ∀ b, is_glb (range $ λ i, f i b) (g b) at hg,
-  rw [‹borel_space α›.measurable_eq, borel_eq_generate_Iio α],
+  rw [‹borel_space α›.measurable_eq, borel_eq_generate_from_Iio α],
   apply measurable_generate_from,
   rintro _ ⟨a, rfl⟩,
   simp_rw [set.preimage, mem_Iio, is_glb_lt_iff (hg _), exists_range_iff, set_of_exists],
@@ -795,28 +1016,26 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
-lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α}
+protected lemma monotone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
   (hf : monotone f) : measurable f :=
 suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
   from measurable_of_Ioi (λ x, (h x).measurable_set),
 λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
 
-alias measurable_of_monotone ← monotone.measurable
-
 lemma ae_measurable_restrict_of_monotone_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) : ae_measurable f (μ.restrict s) :=
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : monotone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
 ae_measurable_restrict_of_measurable_subtype hs this.measurable
 
-lemma measurable_of_antimono [linear_order β] [order_closed_topology β] {f : β → α}
-  (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
+protected lemma antitone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : antitone f) :
   measurable f :=
-@measurable_of_monotone (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+@monotone.measurable (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
 
-lemma ae_measurable_restrict_of_antimono_on [linear_order β] [order_closed_topology β]
-  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
-  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
+lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : antitone_on f s) :
+  ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
 end linear_order
@@ -925,7 +1144,6 @@ lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ x, limsup at_top (λ i, f i x)) :=
 measurable_limsup' hf at_top_countable_basis (λ i, countable_encodable _)
 
-
 end complete_linear_order
 
 section conditionally_complete_linear_order
@@ -974,6 +1192,61 @@ instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
 
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
+
+/-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
+gives a way to compute the measure of a set in terms of sets on which a given function `f` does not
+fluctuate by more than `t`. -/
+lemma measure_eq_measure_preimage_add_measure_tsum_Ico_zpow [measurable_space α] (μ : measure α)
+  {f : α → ℝ≥0∞} (hf : measurable f) {s : set α} (hs : measurable_set s) {t : ℝ≥0} (ht : 1 < t) :
+  μ s = μ (s ∩ f⁻¹' {0}) + μ (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :=
+begin
+  have A : μ s = μ (s ∩ f⁻¹' {0}) + μ (s ∩ f⁻¹' (Ioi 0)),
+  { rw ← measure_union,
+    { congr' 1,
+      ext x,
+      have : 0 = f x ∨ 0 < f x := eq_or_lt_of_le bot_le,
+      rw eq_comm at this,
+      simp only [←and_or_distrib_left, this, mem_singleton_iff, mem_inter_eq, and_true,
+        mem_union_eq, mem_Ioi, mem_preimage], },
+    { apply disjoint_left.2 (λ x hx h'x, _),
+      have : 0 < f x := h'x.2,
+      exact lt_irrefl 0 (this.trans_le hx.2.le) },
+    { exact hs.inter (hf (measurable_set_singleton _)) },
+    { exact hs.inter (hf measurable_set_Ioi) } },
+  have B : μ (s ∩ f⁻¹' (Ioi 0)) = μ (s ∩ f⁻¹' {∞}) + μ (s ∩ f⁻¹' (Ioo 0 ∞)),
+  { rw ← measure_union,
+    { rw ← inter_union_distrib_left,
+      congr,
+      ext x,
+      simp only [mem_singleton_iff, mem_union_eq, mem_Ioo, mem_Ioi, mem_preimage],
+      have H : f x = ∞ ∨ f x < ∞ := eq_or_lt_of_le le_top,
+      cases H,
+      { simp only [H, eq_self_iff_true, or_false, with_top.zero_lt_top, not_top_lt, and_false] },
+      { simp only [H, H.ne, and_true, false_or] } },
+    { apply disjoint_left.2 (λ x hx h'x, _),
+      have : f x < ∞ := h'x.2.2,
+      exact lt_irrefl _ (this.trans_le (le_of_eq hx.2.symm)) },
+    { exact hs.inter (hf (measurable_set_singleton _)) },
+    { exact hs.inter (hf measurable_set_Ioo) } },
+  have C : μ (s ∩ f⁻¹' (Ioo 0 ∞)) = ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))),
+  { rw [← measure_Union, ennreal.Ioo_zero_top_eq_Union_Ico_zpow (ennreal.one_lt_coe_iff.2 ht)
+         ennreal.coe_ne_top, preimage_Union, inter_Union],
+    { assume i j,
+      simp only [function.on_fun],
+      wlog h : i ≤ j := le_total i j using [i j, j i] tactic.skip,
+      { assume hij,
+        replace hij : i + 1 ≤ j := lt_of_le_of_ne h hij,
+        apply disjoint_left.2 (λ x hx h'x, lt_irrefl (f x) _),
+        calc f x < t ^ (i + 1) : hx.2.2
+        ... ≤ t ^ j : ennreal.zpow_le_of_le (ennreal.one_le_coe_iff.2 ht.le) hij
+        ... ≤ f x : h'x.2.1 },
+      { assume hij,
+        rw disjoint.comm,
+        exact this hij.symm } },
+    { assume n,
+      exact hs.inter (hf measurable_set_Ico) } },
+  rw [A, B, C, add_assoc],
+end
 
 section metric_space
 
@@ -1084,11 +1357,15 @@ lemma borel_eq_generate_from_Ioo_rat :
 is_topological_basis_Ioo_rat.borel_eq_generate_from
 
 lemma is_pi_system_Ioo_rat : @is_pi_system ℝ (⋃ (a b : ℚ) (h : a < b), {Ioo a b})  :=
-by simpa using is_pi_system_Ioo (coe : ℚ → ℝ)
+begin
+  convert is_pi_system_Ioo (coe : ℚ → ℝ) (coe : ℚ → ℝ),
+  ext x,
+  simp [eq_comm]
+end
 
 /-- The intervals `(-(n + 1), (n + 1))` form a finite spanning sets in the set of open intervals
 with rational endpoints for a locally finite measure `μ` on `ℝ`. -/
-def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure μ] :
+def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measure μ] :
   μ.finite_spanning_sets_in (⋃ (a b : ℚ) (h : a < b), {Ioo a b}) :=
 { set := λ n, Ioo (-(n + 1)) (n + 1),
   set_mem := λ n,
@@ -1097,14 +1374,12 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure �
       refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
-  finite := λ n,
-    calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
-                 ... < ∞           : is_compact_Icc.finite_measure,
+  finite := λ n, measure_Ioo_lt_top,
   spanning := Union_eq_univ_iff.2 $ λ x,
-    ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
-      (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
+    ⟨⌊|x|⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (nat.lt_floor_add_one _)),
+      (le_abs_self x).trans_lt (nat.lt_floor_add_one _)⟩ }
 
-lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
+lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
 (finite_spanning_sets_in_Ioo_rat μ).ext borel_eq_generate_from_Ioo_rat is_pi_system_Ioo_rat $
   by { simp only [mem_Union, mem_singleton_iff], rintro _ ⟨a, b, -, rfl⟩, apply h }
@@ -1190,7 +1465,7 @@ namespace ennreal
 lemma measurable_of_measurable_nnreal {f : ℝ≥0∞ → α}
   (h : measurable (λ p : ℝ≥0, f p)) : measurable f :=
 measurable_of_measurable_on_compl_singleton ∞
-  (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
+  (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_comp_iff.1 h)
 
 /-- `ℝ≥0∞` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
 def ennreal_equiv_sum : ℝ≥0∞ ≃ᵐ ℝ≥0 ⊕ unit :=
@@ -1208,7 +1483,7 @@ lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_spa
 let e : ℝ≥0∞ × β ≃ᵐ ℝ≥0 × β ⊕ unit × β :=
   (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
     (measurable_equiv.sum_prod_distrib _ _ _) in
-e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
+e.symm.measurable_comp_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
 
 lemma measurable_of_measurable_nnreal_nnreal [measurable_space β]
   {f : ℝ≥0∞ × ℝ≥0∞ → β} (h₁ : measurable (λ p : ℝ≥0 × ℝ≥0, f (p.1, p.2)))
@@ -1242,7 +1517,7 @@ end
 
 instance : has_measurable_sub₂ ℝ≥0∞ :=
 ⟨by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
+  simp [← with_top.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
 
 instance : has_measurable_inv ℝ≥0∞ := ⟨ennreal.continuous_inv.measurable⟩
 
@@ -1324,7 +1599,7 @@ ereal.ne_bot_top_homeomorph_real.to_measurable_equiv
 lemma ereal.measurable_of_measurable_real {f : ereal → α}
   (h : measurable (λ p : ℝ, f p)) : measurable f :=
 measurable_of_measurable_on_compl_finite {⊥, ⊤} (by simp)
-  (measurable_equiv.ereal_equiv_real.symm.measurable_coe_iff.1 h)
+  (measurable_equiv.ereal_equiv_real.symm.measurable_comp_iff.1 h)
 
 @[measurability]
 lemma measurable_ereal_to_real : measurable ereal.to_real :=
@@ -1407,7 +1682,7 @@ variables [measurable_space β] [metric_space β] [borel_space β]
 open metric
 
 /-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable.
-The assumption `hs` can be dropped using `filter.is_countably_generated.has_antimono_basis`, but we
+The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
 don't need that case yet. -/
 lemma measurable_of_tendsto_nnreal' {ι ι'} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
   [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
@@ -1427,7 +1702,7 @@ lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ�
 measurable_of_tendsto_nnreal' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
 
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
-The assumption `hs` can be dropped using `filter.is_countably_generated.has_antimono_basis`, but we
+The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
 don't need that case yet. -/
 lemma measurable_of_tendsto_metric' {ι ι'} {f : ι → α → β} {g : α → β}
   (u : filter ι) [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
@@ -1440,7 +1715,7 @@ begin
     rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
   have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
-  { ext x, simp [h1s, ← mem_iff_inf_dist_zero_of_closed h1s h2s, ← nnreal.coe_eq_zero] },
+  { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
   rw [h4s], exact this (measurable_set_singleton 0),
 end
 
@@ -1587,14 +1862,3 @@ lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc :
 ae_measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedding_smul_left hc)
 
 end normed_space
-
-lemma is_compact.measure_lt_top_of_nhds_within [topological_space α]
-  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
-  μ s < ∞ :=
-is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
-  (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
-
-lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
-  [locally_finite_measure μ] (h : is_compact s) :
-  μ s < ∞ :=
-h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _

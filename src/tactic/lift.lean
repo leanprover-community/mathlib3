@@ -147,9 +147,8 @@ do
   if h_prf_nm : prf_nm.is_some ∧ n.nth 2 ≠ prf_nm then
     get_local (option.get h_prf_nm.1) >>= clear else skip
 
-open lean.parser interactive interactive.types
+setup_tactic_parser
 
-local postfix `?`:9001 := optional
 /-- Parses an optional token "using" followed by a trailing `pexpr`. -/
 meta def using_texpr := (tk "using" *> texpr)?
 

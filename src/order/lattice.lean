@@ -3,8 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import order.monotone
 import order.rel_classes
 import tactic.simps
+import tactic.pi_instances
 
 /-!
 # (Semi-)lattices
@@ -232,17 +234,19 @@ by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
 lemma sup_right_comm (a b c : α) : a ⊔ b ⊔ c = a ⊔ c ⊔ b :=
 by rw [sup_assoc, sup_assoc, @sup_comm _ _ b]
 
+lemma sup_sup_sup_comm (a b c d : α) : a ⊔ b ⊔ (c ⊔ d) = a ⊔ c ⊔ (b ⊔ d) :=
+by rw [sup_assoc, sup_left_comm b, ←sup_assoc]
+
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [or_iff_not_imp_left, not_forall],
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
-/-- If `f` is a monotonically increasing sequence, `g` is a monotonically decreasing
-sequence, and `f n ≤ g n` for all `n`, then for all `m`, `n` we have `f m ≤ g n`. -/
-theorem forall_le_of_monotone_of_mono_decr {β : Type*} [preorder β]
-  {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
-  (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=
+/-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
+theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
+  (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
+  f m ≤ g n :=
 calc f m ≤ f (m ⊔ n) : hf le_sup_left
      ... ≤ g (m ⊔ n) : h _
      ... ≤ g n       : hg le_sup_right
@@ -260,6 +264,13 @@ begin
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
   casesI A, casesI B,
   injection this; congr'
+end
+
+theorem exists_lt_of_sup (α : Type*) [semilattice_sup α] [nontrivial α] : ∃ a b : α, a < b :=
+begin
+  rcases exists_pair_ne α with ⟨a, b, hne⟩,
+  rcases forall_le_or_exists_lt_sup b with (hb|⟨c, hc⟩),
+  exacts [⟨a, b, (hb a).lt_of_ne hne⟩, ⟨b, c, hc⟩]
 end
 
 end semilattice_sup
@@ -388,6 +399,9 @@ lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
 lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b :=
 @sup_right_comm (order_dual α) _ a b c
 
+lemma inf_inf_inf_comm (a b c d : α) : a ⊓ b ⊓ (c ⊓ d) = a ⊓ c ⊓ (b ⊓ d) :=
+@sup_sup_sup_comm (order_dual α) _ _ _ _ _
+
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a
 
@@ -409,6 +423,10 @@ end
 theorem semilattice_inf.dual_dual (α : Type*) [H : semilattice_inf α] :
   order_dual.semilattice_inf (order_dual α) = H :=
 semilattice_inf.ext $ λ _ _, iff.rfl
+
+theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
+  ∃ a b : α, a < b :=
+let ⟨a, b, h⟩ := exists_lt_of_sup (order_dual α) in ⟨b, a, h⟩
 
 end semilattice_inf
 
@@ -609,6 +627,25 @@ instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
 theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
 theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
+/-- A lattice with total order is a linear order.
+
+See note [reducible non-instances]. -/
+@[reducible] def lattice.to_linear_order (α : Type u) [lattice α] [decidable_eq α]
+  [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((<) : α → α → Prop)]
+  (h : ∀ x y : α, x ≤ y ∨ y ≤ x) :
+  linear_order α :=
+{ decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
+  le_total := h,
+  max := (⊔),
+  max_def := by {
+    funext x y, dunfold max_default,
+    split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
+  min := (⊓),
+  min_def := by {
+    funext x y, dunfold min_default,
+    split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
+  .. ‹lattice α› }
+
 @[priority 100] -- see Note [lower instance priority]
 instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
@@ -622,10 +659,63 @@ instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
+/-! ### Function lattices -/
+
+namespace pi
+variables {ι : Type*} {α' : ι → Type*}
+
+instance [Π i, has_sup (α' i)] : has_sup (Π i, α' i) := ⟨λ f g i, f i ⊔ g i⟩
+
+@[simp] lemma sup_apply [Π i, has_sup (α' i)] (f g : Π i, α' i) (i : ι) : (f ⊔ g) i = f i ⊔ g i :=
+rfl
+
+lemma sup_def [Π i, has_sup (α' i)] (f g : Π i, α' i) : f ⊔ g = λ i, f i ⊔ g i := rfl
+
+instance [Π i, has_inf (α' i)] : has_inf (Π i, α' i) := ⟨λ f g i, f i ⊓ g i⟩
+
+@[simp] lemma inf_apply [Π i, has_inf (α' i)] (f g : Π i, α' i) (i : ι) : (f ⊓ g) i = f i ⊓ g i :=
+rfl
+
+lemma inf_def [Π i, has_inf (α' i)] (f g : Π i, α' i) : f ⊓ g = λ i, f i ⊓ g i := rfl
+
+instance [Π i, semilattice_sup (α' i)] : semilattice_sup (Π i, α' i) :=
+by refine_struct { sup := (⊔), .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance [Π i, semilattice_inf (α' i)] : semilattice_inf (Π i, α' i) :=
+by refine_struct { inf := (⊓), .. pi.partial_order }; tactic.pi_instance_derive_field
+
+instance [Π i, lattice (α' i)] : lattice (Π i, α' i) :=
+{ .. pi.semilattice_sup, .. pi.semilattice_inf }
+
+instance [Π i, distrib_lattice (α' i)] : distrib_lattice (Π i, α' i) :=
+by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
+
+end pi
+
 /-!
 ### Monotone functions and lattices
 -/
 namespace monotone
+
+/-- Pointwise supremum of two monotone functions is a monotone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (f ⊔ g) :=
+λ x y h, sup_le_sup (hf h) (hg h)
+
+/-- Pointwise infimum of two monotone functions is a monotone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (f ⊓ g) :=
+λ x y h, inf_le_inf (hf h) (hg h)
+
+/-- Pointwise maximum of two monotone functions is a monotone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, max (f x) (g x)) :=
+hf.sup hg
+
+/-- Pointwise minimum of two monotone functions is a monotone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} (hf : monotone f)
+  (hg : monotone g) : monotone (λ x, min (f x) (g x)) :=
+hf.inf hg
 
 lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
   {f : α → β} (h : monotone f) (x y : α) :
@@ -647,7 +737,7 @@ le_inf (h inf_le_left) (h inf_le_right)
 lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
   (hf : monotone f) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
-@monotone.map_sup (order_dual α) _ _ _ _ _ hf.order_dual x y
+@monotone.map_sup (order_dual α) _ _ _ _ _ hf.dual x y
 
 end monotone
 

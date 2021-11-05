@@ -76,8 +76,9 @@ For measurable sets this returns the measure assigned by the `measure_of` field 
 But we can extend this to _all_ sets, but using the outer measure. This gives us monotonicity and
 subadditivity for all sets.
 -/
-instance measure.has_coe_to_fun [measurable_space α] : has_coe_to_fun (measure α) :=
-⟨λ _, set α → ℝ≥0∞, λ m, m.to_outer_measure⟩
+instance measure.has_coe_to_fun [measurable_space α] :
+  has_coe_to_fun (measure α) (λ _, set α → ℝ≥0∞) :=
+⟨λ m, m.to_outer_measure⟩
 
 section
 
@@ -179,7 +180,8 @@ lemma exists_measurable_superset_forall_eq {ι} [encodable ι] (μ : ι → meas
 by simpa only [← measure_eq_trim]
   using outer_measure.exists_measurable_superset_forall_eq_trim (λ i, (μ i).to_outer_measure) s
 
-/-- A measurable set `t ⊇ s` such that `μ t = μ s`. -/
+/-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisifies `μ (t ∩ u) = μ (s ∩ u)` for
+any measurable set `u`, see `measure_to_measurable_inter`. -/
 def to_measurable (μ : measure α) (s : set α) : set α :=
 classical.some (exists_measurable_superset μ s)
 
@@ -219,8 +221,12 @@ begin
   exact measure_bUnion_le s.countable_to_set f
 end
 
+lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
+  μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
+by { convert measure_bUnion_finset_le finset.univ f, simp }
+
 lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
-  (hfin : ∀ i ∈ s, μ (f i) < ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
+  (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
   convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
   { ext, rw [finite.mem_to_finset] },
@@ -237,7 +243,7 @@ lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
 
 lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
-by { haveI := hs.to_encodable, rw [← Union_subtype, measure_Union_null_iff, set_coe.forall], refl }
+by { haveI := hs.to_encodable, rw [bUnion_eq_Union, measure_Union_null_iff, set_coe.forall], refl }
 
 theorem measure_union_le (s₁ s₂ : set α) : μ (s₁ ∪ s₂) ≤ μ s₁ + μ s₂ :=
 μ.to_outer_measure.union _ _
@@ -249,6 +255,19 @@ lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s�
 ⟨λ h, ⟨measure_mono_null (subset_union_left _ _) h, measure_mono_null (subset_union_right _ _) h⟩,
   λ h, measure_union_null h.1 h.2⟩
 
+lemma measure_union_lt_top (hs : μ s < ∞) (ht : μ t < ∞) : μ (s ∪ t) < ∞ :=
+(measure_union_le s t).trans_lt (ennreal.add_lt_top.mpr ⟨hs, ht⟩)
+
+lemma measure_union_lt_top_iff : μ (s ∪ t) < ∞ ↔ μ s < ∞ ∧ μ t < ∞ :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, λ h, measure_union_lt_top h.1 h.2⟩,
+  { exact (measure_mono (set.subset_union_left s t)).trans_lt h, },
+  { exact (measure_mono (set.subset_union_right s t)).trans_lt h, },
+end
+
+lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t) ≠ ∞ :=
+((measure_union_le s t).trans_lt (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hs, ht⟩))).ne
+
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
@@ -256,6 +275,18 @@ begin
   simp_rw nonpos_iff_eq_zero at h,
   exact hs (measure_Union_null h),
 end
+
+lemma measure_inter_lt_top_of_left_ne_top (hs_finite : μ s ≠ ∞) : μ (s ∩ t) < ∞ :=
+(measure_mono (set.inter_subset_left s t)).trans_lt hs_finite.lt_top
+
+lemma measure_inter_lt_top_of_right_ne_top (ht_finite : μ t ≠ ∞) : μ (s ∩ t) < ∞ :=
+inter_comm t s ▸ measure_inter_lt_top_of_left_ne_top ht_finite
+
+lemma measure_inter_null_of_null_right (S : set α) {T : set α} (h : μ T = 0) : μ (S ∩ T) = 0 :=
+measure_mono_null (inter_subset_right S T) h
+
+lemma measure_inter_null_of_null_left {S : set α} (T : set α) (h : μ S = 0) : μ (S ∩ T) = 0 :=
+measure_mono_null (inter_subset_left S T) h
 
 /-! ### The almost everywhere filter -/
 
@@ -322,6 +353,14 @@ lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h)
   f =ᵐ[μ] h :=
 h₁.trans h₂
 
+lemma ae_le_of_ae_lt {f g : α → ℝ≥0∞} (h : ∀ᵐ x ∂μ, f x < g x) : f ≤ᵐ[μ] g :=
+begin
+  rw [filter.eventually_le, ae_iff],
+  rw ae_iff at h,
+  refine measure_mono_null (λ x hx, _) h,
+  exact not_lt.2 (le_of_lt (not_le.1 hx)),
+end
+
 @[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
 eventually_eq_empty.trans $ by simp [ae_iff]
 
@@ -340,6 +379,17 @@ by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
+
+@[to_additive]
+lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
+  (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
+begin
+  rw [filter.eventually_eq, ae_iff] at h,
+  convert h,
+  ext a,
+  rw ← set.mul_indicator_eq_one_iff,
+  refl
+end
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

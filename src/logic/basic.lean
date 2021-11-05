@@ -20,6 +20,7 @@ In the presence of automation, this whole file may be unnecessary. On the other 
 maybe it is useful for writing automation.
 -/
 
+open function
 local attribute [instance, priority 10] classical.prop_decidable
 
 section miscellany
@@ -81,16 +82,26 @@ lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : su
   (a : α) : (a : γ) = (a : β) := rfl
 
 theorem coe_fn_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+  {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ δ]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+/-- Non-dependent version of `coe_fn_coe_trans`, helps `rw` figure out the argument. -/
+theorem coe_fn_coe_trans'
+  {α β γ} {δ : out_param $ _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 @[simp] theorem coe_fn_coe_base
-  {α β} [has_coe α β] [has_coe_to_fun β]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+  {α β γ} [has_coe α β] [has_coe_to_fun β γ]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+/-- Non-dependent version of `coe_fn_coe_base`, helps `rw` figure out the argument. -/
+theorem coe_fn_coe_base'
+  {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 theorem coe_sort_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+  {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
+  (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
 
 /--
 Many structures such as bundled morphisms coerce to functions so that you can
@@ -120,8 +131,8 @@ often causes loops in the simplifier.)
 library_note "function coercion"
 
 @[simp] theorem coe_sort_coe_base
-  {α β} [has_coe α β] [has_coe_to_sort β]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+  {α β γ} [has_coe α β] [has_coe_to_sort β γ]
+  (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
 
 /-- `pempty` is the universe-polymorphic analogue of `empty`. -/
 @[derive decidable_eq]
@@ -230,6 +241,13 @@ iff_true_intro $ λ_, trivial
 theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
+theorem decidable.imp_iff_right_iff [decidable a] : ((a → b) ↔ b) ↔ (a ∨ b) :=
+⟨λ H, (decidable.em a).imp_right $ λ ha', H.1 $ λ ha, (ha' ha).elim,
+  λ H, H.elim imp_iff_right $ λ hb, ⟨λ hab, hb, λ _ _, hb⟩⟩
+
+@[simp] theorem imp_iff_right_iff : ((a → b) ↔ b) ↔ (a ∨ b) :=
+decidable.imp_iff_right_iff
+
 /-! ### Declarations about `not` -/
 
 /-- Ex falso for negation. From `¬ a` and `a` anything follows. This is the same as `absurd` with
@@ -334,7 +352,7 @@ by { have := @imp_not_self (¬a), rwa decidable.not_not at this }
 @[simp] theorem not_imp_self : (¬a → a) ↔ a := decidable.not_imp_self
 
 theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
@@ -374,6 +392,9 @@ and.imp id h
 
 lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
 by simp only [and.left_comm, and.comm]
+
+lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
+by rw [←and_assoc, @and.right_comm a, and_assoc]
 
 lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
 by simp only [and.left_comm, and.comm]
@@ -793,13 +814,17 @@ lemma exists₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
 exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
-⟨function.swap, function.swap⟩
+⟨swap, swap⟩
 
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
-@[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
+@[simp] theorem forall_exists_index {q : (∃ x, p x) → Prop} :
+  (∀ h, q h) ↔ ∀ x (h : p x), q ⟨x, h⟩ :=
 ⟨λ h x hpx, h ⟨x, hpx⟩, λ h ⟨x, hpx⟩, h x hpx⟩
+
+theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
+forall_exists_index
 
 /--
 Extract an element from a existential statement, using `classical.some`.
@@ -844,6 +869,11 @@ protected theorem decidable.not_exists_not [∀ x, decidable (p x)] : (¬ ∃ x,
 by simp [decidable.not_not]
 
 @[simp] theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := decidable.not_exists_not
+
+theorem forall_imp_iff_exists_imp [ha : nonempty α] : ((∀ x, p x) → b) ↔ ∃ x, p x → b :=
+let ⟨a⟩ := ha in
+⟨λ h, not_forall_not.1 $ λ h', classical.by_cases (λ hb : b, h' a $ λ _, hb)
+  (λ hb, hb $ h $ λ x, (not_imp.1 (h' x)).1), λ ⟨x, hx⟩ h, hx (h x)⟩
 
 -- TODO: duplicate of a lemma in core
 theorem forall_true_iff : (α → true) ↔ true :=
@@ -899,11 +929,15 @@ by simp [and_comm]
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
+theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, classical.em,
+  forall_const]
+
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=
 by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 
-@[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
+theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
 
@@ -921,11 +955,9 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
   (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
-@[simp] theorem exists_apply_eq_apply {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a = f a' :=
-⟨a', rfl⟩
+@[simp] theorem exists_apply_eq_apply (f : α → β) (a' : α) : ∃ a, f a = f a' := ⟨a', rfl⟩
 
-@[simp] theorem exists_apply_eq_apply' {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a' = f a :=
-⟨a', rfl⟩
+@[simp] theorem exists_apply_eq_apply' (f : α → β) (a' : α) : ∃ a, f a' = f a := ⟨a', rfl⟩
 
 @[simp] theorem exists_exists_and_eq_and {f : α → β} {p : α → Prop} {q : β → Prop} :
   (∃ b, (∃ a, p a ∧ f a = b) ∧ q b) ↔ ∃ a, p a ∧ q (f a) :=
@@ -975,6 +1007,9 @@ by simp [@eq_comm _ a']
 
 theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
 ⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
+
+theorem and.exists {p q : Prop} {f : p ∧ q → Prop} : (∃ h, f h) ↔ ∃ hp hq, f ⟨hp, hq⟩ :=
+⟨λ ⟨h, H⟩, ⟨h.1, h.2, H⟩, λ ⟨hp, hq, H⟩, ⟨⟨hp, hq⟩, H⟩⟩
 
 theorem forall_or_of_or_forall (h : b ∨ ∀x, p x) (x) : b ∨ p x :=
 h.imp_right $ λ h₂, h₂ x
@@ -1144,6 +1179,14 @@ hpq _ $ some_spec _
 noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
 ⟨classical.some h, classical.some_spec h⟩
 
+/-- A version of `by_contradiction` that uses types instead of propositions. -/
+protected noncomputable def by_contradiction' {α : Sort*} (H : ¬ (α → false)) : α :=
+classical.choice $ peirce _ false $ λ h, (H $ λ a, h ⟨a⟩).elim
+
+/-- `classical.by_contradiction'` is equivalent to lean's axiom `classical.choice`. -/
+def choice_of_by_contradiction' {α : Sort*} (contra : ¬ (α → false) → α) : nonempty α → α :=
+λ H, contra H.elim
+
 end classical
 
 /-- This function has the same type as `exists.rec_on`, and can be used to case on an equality,
@@ -1270,8 +1313,7 @@ decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 /-! ### Declarations about `nonempty` -/
 
 section nonempty
-universe variables u v w
-variables {α : Type u} {β : Type v} {γ : α → Type w}
+variables {α β : Type*} {γ : α → Type*}
 
 attribute [simp] nonempty_of_inhabited
 
@@ -1292,14 +1334,13 @@ lemma not_nonempty_iff_imp_false {α : Sort*} : ¬ nonempty α ↔ α → false 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
 iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
 
-@[simp] lemma nonempty_subtype {α : Sort u} {p : α → Prop} : nonempty (subtype p) ↔ (∃a:α, p a) :=
+@[simp] lemma nonempty_subtype {α} {p : α → Prop} : nonempty (subtype p) ↔ (∃a:α, p a) :=
 iff.intro (assume ⟨⟨a, h⟩⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a, h⟩⟩)
 
 @[simp] lemma nonempty_prod : nonempty (α × β) ↔ (nonempty α ∧ nonempty β) :=
 iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
 
-@[simp] lemma nonempty_pprod {α : Sort u} {β : Sort v} :
-  nonempty (pprod α β) ↔ (nonempty α ∧ nonempty β) :=
+@[simp] lemma nonempty_pprod {α β} : nonempty (pprod α β) ↔ (nonempty α ∧ nonempty β) :=
 iff.intro (assume ⟨⟨a, b⟩⟩, ⟨⟨a⟩, ⟨b⟩⟩) (assume ⟨⟨a⟩, ⟨b⟩⟩, ⟨⟨a, b⟩⟩)
 
 @[simp] lemma nonempty_sum : nonempty (α ⊕ β) ↔ (nonempty α ∨ nonempty β) :=
@@ -1307,14 +1348,12 @@ iff.intro
   (assume ⟨h⟩, match h with sum.inl a := or.inl ⟨a⟩ | sum.inr b := or.inr ⟨b⟩ end)
   (assume h, match h with or.inl ⟨a⟩ := ⟨sum.inl a⟩ | or.inr ⟨b⟩ := ⟨sum.inr b⟩ end)
 
-@[simp] lemma nonempty_psum {α : Sort u} {β : Sort v} :
-  nonempty (psum α β) ↔ (nonempty α ∨ nonempty β) :=
+@[simp] lemma nonempty_psum {α β} : nonempty (psum α β) ↔ (nonempty α ∨ nonempty β) :=
 iff.intro
   (assume ⟨h⟩, match h with psum.inl a := or.inl ⟨a⟩ | psum.inr b := or.inr ⟨b⟩ end)
   (assume h, match h with or.inl ⟨a⟩ := ⟨psum.inl a⟩ | or.inr ⟨b⟩ := ⟨psum.inr b⟩ end)
 
-@[simp] lemma nonempty_psigma {α : Sort u} {β : α → Sort v} :
-  nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
+@[simp] lemma nonempty_psigma {α} {β : α → Sort*} : nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
 iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
 
 @[simp] lemma nonempty_empty : ¬ nonempty empty :=
@@ -1323,45 +1362,42 @@ assume ⟨h⟩, h.elim
 @[simp] lemma nonempty_ulift : nonempty (ulift α) ↔ nonempty α :=
 iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
 
-@[simp] lemma nonempty_plift {α : Sort u} : nonempty (plift α) ↔ nonempty α :=
+@[simp] lemma nonempty_plift {α} : nonempty (plift α) ↔ nonempty α :=
 iff.intro (assume ⟨⟨a⟩⟩, ⟨a⟩) (assume ⟨a⟩, ⟨⟨a⟩⟩)
 
-@[simp] lemma nonempty.forall {α : Sort u} {p : nonempty α → Prop} :
-  (∀h:nonempty α, p h) ↔ (∀a, p ⟨a⟩) :=
+@[simp] lemma nonempty.forall {α} {p : nonempty α → Prop} : (∀h:nonempty α, p h) ↔ (∀a, p ⟨a⟩) :=
 iff.intro (assume h a, h _) (assume h ⟨a⟩, h _)
 
-@[simp] lemma nonempty.exists {α : Sort u} {p : nonempty α → Prop} :
-  (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
+@[simp] lemma nonempty.exists {α} {p : nonempty α → Prop} : (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
 iff.intro (assume ⟨⟨a⟩, h⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a⟩, h⟩)
 
-lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
-  nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
+lemma classical.nonempty_pi {α} {β : α → Sort*} : nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
 /-- Using `classical.choice`, lifts a (`Prop`-valued) `nonempty` instance to a (`Type`-valued)
   `inhabited` instance. `classical.inhabited_of_nonempty` already exists, in
   `core/init/classical.lean`, but the assumption is not a type class argument,
   which makes it unsuitable for some applications. -/
-noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty α] : inhabited α :=
+noncomputable def classical.inhabited_of_nonempty' {α} [h : nonempty α] : inhabited α :=
 ⟨classical.choice h⟩
 
 /-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-@[reducible] protected noncomputable def nonempty.some {α : Sort u} (h : nonempty α) : α :=
+@[reducible] protected noncomputable def nonempty.some {α} (h : nonempty α) : α :=
 classical.choice h
 
 /-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
-@[reducible] protected noncomputable def classical.arbitrary (α : Sort u) [h : nonempty α] : α :=
+@[reducible] protected noncomputable def classical.arbitrary (α) [h : nonempty α] : α :=
 classical.choice h
 
 /-- Given `f : α → β`, if `α` is nonempty then `β` is also nonempty.
   `nonempty` cannot be a `functor`, because `functor` is restricted to `Type`. -/
-lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α → nonempty β
+lemma nonempty.map {α β} (f : α → β) : nonempty α → nonempty β
 | ⟨h⟩ := ⟨f h⟩
 
 protected lemma nonempty.map2 {α β γ : Sort*} (f : α → β → γ) : nonempty α → nonempty β → nonempty γ
 | ⟨x⟩ ⟨y⟩ := ⟨f x y⟩
 
-protected lemma nonempty.congr {α : Sort u} {β : Sort v} (f : α → β) (g : β → α) :
+protected lemma nonempty.congr {α β} (f : α → β) (g : β → α) :
   nonempty α ↔ nonempty β :=
 ⟨nonempty.map f, nonempty.map g⟩
 

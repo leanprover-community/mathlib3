@@ -2,18 +2,19 @@
 Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison
-
-Defines a functor between categories.
-
-(As it is a 'bundled' object rather than the `is_functorial` typeclass parametrised
-by the underlying function on objects, the name is capitalised.)
-
-Introduces notations
-  `C ⥤ D` for the type of all functors from `C` to `D`.
-    (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
 import tactic.reassoc_axiom
 import tactic.monotonicity
+
+/-!
+# Functors
+
+Defines a functor between categories, extending a `prefunctor` between quivers.
+
+Introduces notation `C ⥤ D` for the type of all functors from `C` to `D`.
+(Unfortunately the `⇒` arrow (`\functor`) is taken by core, 
+but in mathlib4 we should switch to this.)
+-/
 
 namespace category_theory
 
@@ -103,10 +104,6 @@ protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 by { split_ifs; refl, }
 
 end
-
-@[mono] lemma monotone {α β : Type*} [preorder α] [preorder β] (F : α ⥤ β) :
-  monotone F.obj :=
-λ a b h, (F.map h.hom).le
 
 end functor
 

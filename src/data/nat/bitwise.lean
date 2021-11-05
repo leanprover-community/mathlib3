@@ -30,6 +30,8 @@ should be connected.
 bitwise, and, or, xor
 -/
 
+open function
+
 namespace nat
 
 @[simp] lemma bit_ff : bit ff = bit0 := rfl
@@ -114,8 +116,8 @@ begin
   cases hm.lt_or_lt with hm hm,
   { rw [nat.div_eq_zero, bodd_zero],
     exact nat.pow_lt_pow_of_lt_right one_lt_two hm },
-  { rw [pow_div hm.le zero_lt_two, ←nat.sub_add_cancel (nat.sub_pos_of_lt hm), pow_succ],
-    simp }
+  { rw [pow_div hm.le zero_lt_two, ← tsub_add_cancel_of_le (succ_le_of_lt $ tsub_pos_of_lt hm)],
+    simp [pow_succ] }
 end
 
 lemma test_bit_two_pow (n m : ℕ) : test_bit (2 ^ n) m = (n = m) :=
@@ -131,9 +133,9 @@ end
     commutative. -/
 lemma bitwise_comm {f : bool → bool → bool} (hf : ∀ b b', f b b' = f b' b)
   (hf' : f ff ff = ff) (n m : ℕ) : bitwise f n m = bitwise f m n :=
-suffices bitwise f = function.swap (bitwise f), by conv_lhs { rw this },
-calc bitwise f = bitwise (function.swap f) : congr_arg _ $ funext $ λ _, funext $ hf _
-     ...       = function.swap (bitwise f) : bitwise_swap hf'
+suffices bitwise f = swap (bitwise f), by conv_lhs { rw this },
+calc bitwise f = bitwise (swap f) : congr_arg _ $ funext $ λ _, funext $ hf _
+     ...       = swap (bitwise f) : bitwise_swap hf'
 
 lemma lor_comm (n m : ℕ) : lor n m = lor m n := bitwise_comm bool.bor_comm rfl n m
 lemma land_comm (n m : ℕ) : land n m = land m n := bitwise_comm bool.band_comm rfl n m

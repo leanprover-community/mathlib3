@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.order.absolute_value
 import algebra.big_operators.basic
 
 /-!
@@ -41,10 +42,10 @@ begin
   refl,
 end
 
-/-- Let `{x | p x}` be an additive subsemigroup of an additive commutative monoid `M`. Let `f : M →
-N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let `g i`, `i ∈
-s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
-`f (∑ i in s, g i) ≤ ∏ i in s, f (g i)`. -/
+/-- Let `{x | p x}` be an additive subsemigroup of an additive commutative monoid `M`. Let
+`f : M → N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let
+`g i`, `i ∈ s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
+`f (∑ i in s, g i) ≤ ∑ i in s, f (g i)`. -/
 add_decl_doc le_sum_nonempty_of_subadditive_on_pred
 
 /-- If `f : M → N` is a submultiplicative function, `f (x * y) ≤ f x * f y` and `g i`, `i ∈ s`, is a
@@ -75,10 +76,10 @@ begin
   { exact le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul g s hs_nonempty hs, },
 end
 
-/-- Let `{x | p x}` be a subsemigroup of a commutative monoid `M`. Let `f : M → N` be a map
-such that `f 1 = 1` and `f` is submultiplicative on `{x | p x}`, i.e.,
-`p x → p y → f (x * y) ≤ f x * f y`. Let `g i`, `i ∈ s`, be a finite family of elements of `M` such
-that `∀ i ∈ s, p (g i)`. Then `f (∏ x in s, g x) ≤ ∏ x in s, f (g x)`. -/
+/-- Let `{x | p x}` be a subsemigroup of a commutative additive monoid `M`. Let `f : M → N` be a map
+such that `f 0 = 0` and `f` is subadditive on `{x | p x}`, i.e. `p x → p y → f (x + y) ≤ f x + f y`.
+Let `g i`, `i ∈ s`, be a finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
+`f (∑ x in s, g x) ≤ ∑ x in s, f (g x)`. -/
 add_decl_doc le_sum_of_subadditive_on_pred
 
 /-- If `f : M → N` is a submultiplicative function, `f (x * y) ≤ f x * f y`, `f 1 = 1`, and `g i`,
@@ -93,8 +94,8 @@ begin
   refl,
 end
 
-/-- If `f : M → N` is a submultiplicative function, `f (x * y) ≤ f x * f y`, `f 1 = 1`, and `g i`,
-`i ∈ s`, is a finite family of elements of `M`, then `f (∏ i in s, g i) ≤ ∏ i in s, f (g i)`. -/
+/-- If `f : M → N` is a subadditive function, `f (x + y) ≤ f x + f y`, `f 0 = 0`, and `g i`,
+`i ∈ s`, is a finite family of elements of `M`, then `f (∑ i in s, g i) ≤ ∑ i in s, f (g i)`. -/
 add_decl_doc le_sum_of_subadditive
 
 variables {f g : ι → N} {s t : finset ι}
@@ -184,11 +185,11 @@ lemma prod_le_prod_fiberwise_of_prod_fiber_le_one' {t : finset ι'}
 end
 
 lemma abs_sum_le_sum_abs {G : Type*} [linear_ordered_add_comm_group G] (f : ι → G) (s : finset ι) :
-  abs (∑ i in s, f i) ≤ ∑ i in s, abs (f i) :=
+  |∑ i in s, f i| ≤ ∑ i in s, |f i| :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
 lemma abs_prod {R : Type*} [linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
-  abs (∏ x in s, f x) = ∏ x in s, abs (f x) :=
+  |∏ x in s, f x| = ∏ x in s, |f x| :=
 (abs_hom.to_monoid_hom : R →* R).map_prod _ _
 
 section pigeonhole
@@ -228,6 +229,11 @@ begin
   { simpa using h },
   { simpa }
 end
+
+lemma card_bUnion_le_card_mul (s : finset α) (f : α → finset β) (n : ℕ)
+  (h : ∀ a ∈ s, (f a).card ≤ n) :
+  (s.bUnion f).card ≤ s.card * n :=
+card_bUnion_le.trans $ sum_le_of_forall_le _ _ _ h
 
 end pigeonhole
 
@@ -442,9 +448,11 @@ namespace fintype
 
 variables [fintype ι]
 
-@[mono, to_additive sum_mono]
+@[to_additive sum_mono, mono]
 lemma prod_mono' [ordered_comm_monoid M] : monotone (λ f : ι → M, ∏ i, f i) :=
 λ f g hfg, finset.prod_le_prod'' $ λ x _, hfg x
+
+attribute [mono] sum_mono
 
 @[to_additive sum_strict_mono]
 lemma prod_strict_mono' [ordered_cancel_comm_monoid M] : strict_mono (λ f : ι → M, ∏ x, f x) :=
@@ -458,14 +466,16 @@ open finset
 
 /-- A product of finite numbers is still finite -/
 lemma prod_lt_top [canonically_ordered_comm_semiring R] [nontrivial R] [decidable_eq R]
-  {s : finset ι} {f : ι → with_top R} (h : ∀ i ∈ s, f i < ⊤) :
+  {s : finset ι} {f : ι → with_top R} (h : ∀ i ∈ s, f i ≠ ⊤) :
   ∏ i in s, f i < ⊤ :=
-prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
+prod_induction f (λ a, a < ⊤) (λ a b h₁ h₂, mul_lt_top h₁.ne h₂.ne) (coe_lt_top 1) $
+  λ a ha, lt_top_iff_ne_top.2 (h a ha)
 
 /-- A sum of finite numbers is still finite -/
-lemma sum_lt_top [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
-  (∀ i ∈ s, f i < ⊤) → (∑ i in s, f i) < ⊤ :=
-sum_induction f (λ a, a < ⊤) (by { simp_rw add_lt_top, tauto }) zero_lt_top
+lemma sum_lt_top [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M}
+  (h : ∀ i ∈ s, f i ≠ ⊤) : (∑ i in s, f i) < ⊤ :=
+sum_induction f (λ a, a < ⊤) (λ a b h₁ h₂, add_lt_top.2 ⟨h₁, h₂⟩) zero_lt_top $
+  λ i hi, lt_top_iff_ne_top.2 (h i hi)
 
 /-- A sum of numbers is infinite iff one of them is infinite -/
 lemma sum_eq_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
@@ -474,7 +484,7 @@ begin
   classical,
   split,
   { contrapose!,
-    exact λ h, (sum_lt_top $ λ i hi, lt_top_iff_ne_top.2 (h i hi)).ne },
+    exact λ h, (sum_lt_top $ λ i hi, (h i hi)).ne },
   { rintro ⟨i, his, hi⟩,
     rw [sum_eq_add_sum_diff_singleton his, hi, top_add] }
 end
@@ -485,3 +495,35 @@ lemma sum_lt_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → wit
 by simp only [lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
 
 end with_top
+
+section absolute_value
+
+variables {S : Type*}
+
+lemma absolute_value.sum_le [semiring R] [ordered_semiring S]
+  (abv : absolute_value R S) (s : finset ι) (f : ι → R) :
+  abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ (λ i s hi ih, _),
+  { simp },
+  { simp only [finset.sum_insert hi],
+  exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
+end
+
+lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S)
+  [is_absolute_value abv] (f : ι → R) (s : finset ι) :
+  abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
+(is_absolute_value.to_absolute_value abv).sum_le _ _
+
+lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+  (abv : absolute_value R S) (f : ι → R) (s : finset ι) :
+  abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
+abv.to_monoid_hom.map_prod f s
+
+lemma is_absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+  (abv : R → S) [is_absolute_value abv] (f : ι → R) (s : finset ι) :
+  abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
+(is_absolute_value.to_absolute_value abv).map_prod _ _
+
+end absolute_value

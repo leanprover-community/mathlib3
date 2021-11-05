@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
-import analysis.normed_space.pi_Lp
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Constructing examples of manifolds over ℝ
@@ -40,6 +40,7 @@ typeclass. We provide it as `[fact (x < y)]`.
 noncomputable theory
 open set function
 open_locale manifold
+local attribute [instance] fact_one_le_two_real
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when

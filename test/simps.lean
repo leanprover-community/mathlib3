@@ -1,7 +1,7 @@
 import tactic.simps
 import algebra.group.hom
 
-universe variables v u w
+universes v u w
 -- set_option trace.simps.verbose true
 -- set_option trace.simps.debug true
 -- set_option trace.app_builder true
@@ -354,7 +354,7 @@ structure foo_str :=
  (c : Type)
  (x : c)
 
-instance : has_coe_to_sort foo_str := ⟨_, foo_str.c⟩
+instance : has_coe_to_sort foo_str Type := ⟨foo_str.c⟩
 
 @[simps] def foo : foo_str := ⟨ℕ, 3⟩
 @[simps] def foo2 : foo_str := ⟨ℕ, 34⟩
@@ -366,7 +366,7 @@ structure voo_str (n : ℕ) :=
  (c : Type)
  (x : c)
 
-instance has_coe_voo_str (n : ℕ) : has_coe_to_sort (voo_str n) := ⟨_, voo_str.c⟩
+instance has_coe_voo_str (n : ℕ) : has_coe_to_sort (voo_str n) Type := ⟨voo_str.c⟩
 
 @[simps] def voo : voo_str 7 := ⟨ℕ, 3⟩
 @[simps] def voo2 : voo_str 4 := ⟨ℕ, 34⟩
@@ -380,7 +380,7 @@ structure equiv2 (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-instance {α β} : has_coe_to_fun $ equiv2 α β := ⟨_, equiv2.to_fun⟩
+instance {α β} : has_coe_to_fun (equiv2 α β) (λ _, α → β) := ⟨equiv2.to_fun⟩
 
 @[simps] protected def rfl2 {α} : equiv2 α α :=
 ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
@@ -395,9 +395,7 @@ example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simp
 @[simps] protected def equiv2.symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f.to_fun, f.right_inv, f.left_inv⟩
 
-/- we can use the `md` attribute to not unfold the `has_coe_to_fun` attribute, so that `@[simps]`
-  doesn't recognize that the type of `⇑f` is still a function type. -/
-@[simps {type_md := reducible}] protected def equiv2.symm3 {α β} (f : equiv2 α β) : equiv2 β α :=
+@[simps {fully_applied := ff}] protected def equiv2.symm3 {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
 
 example {α β} (f : equiv2 α β) (y : β) : f.symm y = f.inv_fun y := by simp
@@ -428,7 +426,7 @@ structure Semigroup :=
 
 namespace Group
 
-instance : has_coe_to_sort Semigroup := ⟨_, Semigroup.G⟩
+instance : has_coe_to_sort Semigroup Type* := ⟨Semigroup.G⟩
 -- We could try to generate lemmas with this `has_mul` instance, but it is unused in mathlib.
 -- Therefore, this is ignored.
 instance (G : Semigroup) : has_mul G := ⟨G.op⟩
@@ -487,7 +485,7 @@ local infix ` ≃ `:25 := manual_coercion.equiv
 
 variables {α β γ : Sort*}
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -534,7 +532,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 local infix ` ≃ `:25 := manual_initialize.equiv
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -562,7 +560,7 @@ structure equiv (α : Sort u) (β : Sort v) :=
 
 local infix ` ≃ `:25 := faulty_universes.equiv
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -576,7 +574,7 @@ run_cmd do e ← get_env,
 "Invalid custom projection:
   λ {α : Type u} {β : Type v} (e : α ≃ β), ⇑(e.symm)
 Expression has different type than faulty_universes.equiv.inv_fun. Given type:
-  Π {α : Type u} {β : Type v} (e : α ≃ β), has_coe_to_fun.F e.symm
+  Π {α : Type u} {β : Type v} (e : α ≃ β), (λ (_x : β ≃ α), β → α) e.symm
 Expected type:
   Π (α : Sort u) (β : Sort v), α ≃ β → β → α"
 
@@ -592,7 +590,7 @@ structure equiv (α : Sort u) (β : Sort v) :=
 
 local infix ` ≃ `:25 := manual_universes.equiv
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -615,7 +613,7 @@ local infix ` ≃ `:25 := manual_projection_names.equiv
 
 variables {α β γ : Sort*}
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -655,7 +653,7 @@ local infix ` ≃ `:25 := prefix_projection_names.equiv
 
 variables {α β γ : Sort*}
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -774,7 +772,7 @@ structure needs_prop_class (n : ℕ) [prop_class n] :=
 structure alg_hom (R A B : Type*) :=
 (to_fun : A → B)
 
-instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) := ⟨_, λ f, f.to_fun⟩
+instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) (λ _, A → B) := ⟨λ f, f.to_fun⟩
 
 @[simps] def my_alg_hom : alg_hom unit bool bool :=
 { to_fun := id }
@@ -784,7 +782,7 @@ example (x : bool) : my_alg_hom x = id x := by simp only [my_alg_hom_to_fun]
 structure ring_hom (A B : Type*) :=
 (to_fun : A → B)
 
-instance (A B : Type*) : has_coe_to_fun (ring_hom A B) := ⟨_, λ f, f.to_fun⟩
+instance (A B : Type*) : has_coe_to_fun (ring_hom A B) (λ _, A → B) := ⟨λ f, f.to_fun⟩
 
 @[simps] def my_ring_hom : ring_hom bool bool :=
 { to_fun := id }
@@ -878,7 +876,7 @@ end
 
 section comp_projs
 
-instance {α β} : has_coe_to_fun (α ≃ β) := ⟨λ _, α → β, equiv.to_fun⟩
+instance {α β} : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 @[simps] protected def equiv.symm {α β} (f : α ≃ β) : β ≃ α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
@@ -887,7 +885,7 @@ structure decorated_equiv (α : Sort*) (β : Sort*) extends equiv α β :=
 (P_to_fun    : function.injective to_fun )
 (P_inv_fun   : function.injective inv_fun)
 
-instance {α β} : has_coe_to_fun (decorated_equiv α β) := ⟨λ _, α → β, λ f, f.to_equiv⟩
+instance {α β} : has_coe_to_fun (decorated_equiv α β) (λ _, α → β) := ⟨λ f, f.to_equiv⟩
 
 def decorated_equiv.symm {α β : Sort*} (e : decorated_equiv α β) : decorated_equiv β α :=
 { to_equiv := e.to_equiv.symm,
@@ -925,8 +923,8 @@ structure further_decorated_equiv (α : Sort*) (β : Sort*) extends decorated_eq
 (Q_to_fun    : function.surjective to_fun )
 (Q_inv_fun   : function.surjective inv_fun )
 
-instance {α β} : has_coe_to_fun (further_decorated_equiv α β) :=
-⟨λ _, α → β, λ f, f.to_decorated_equiv⟩
+instance {α β} : has_coe_to_fun (further_decorated_equiv α β) (λ _, α → β) :=
+⟨λ f, f.to_decorated_equiv⟩
 
 def further_decorated_equiv.symm {α β : Sort*} (e : further_decorated_equiv α β) :
   further_decorated_equiv β α :=
@@ -964,8 +962,8 @@ def ffoo4 (α : Type) : further_decorated_equiv α α :=
 
 structure one_more (α : Sort*) (β : Sort*) extends further_decorated_equiv α β
 
-instance {α β} : has_coe_to_fun (one_more α β) :=
-⟨λ _, α → β, λ f, f.to_further_decorated_equiv⟩
+instance {α β} : has_coe_to_fun (one_more α β) (λ _, α → β) :=
+⟨λ f, f.to_further_decorated_equiv⟩
 
 def one_more.symm {α β : Sort*} (e : one_more α β) :
   one_more β α :=

@@ -258,19 +258,12 @@ begin
     refine λ x hxt, tendsto_nhds_unique (h_approx x) _,
     rw funext (λ n, h_fs_zero n x hxt),
     exact tendsto_const_nhds, },
-  { refine measure.finite_spanning_sets_in.sigma_finite _ _,
-    { exact set.range (λ n, tᶜ ∪ T n), },
-    { refine ⟨λ n, tᶜ ∪ T n, λ n, set.mem_range_self _, λ n, _, _⟩,
-      { rw [measure.restrict_apply' (measurable_set.Union hT_meas), set.union_inter_distrib_right,
-          set.compl_inter_self t, set.empty_union],
-        exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hT_lt_top n), },
-      rw ← set.union_Union tᶜ T,
-      exact set.compl_union_self _, },
-    { intros s hs,
-      rw set.mem_range at hs,
-      cases hs with n hsn,
-      rw ← hsn,
-      exact (measurable_set.compl (measurable_set.Union hT_meas)).union (hT_meas n), }, },
+  { refine ⟨⟨⟨λ n, tᶜ ∪ T n, λ n, trivial, λ n, _, _⟩⟩⟩,
+    { rw [measure.restrict_apply' (measurable_set.Union hT_meas), set.union_inter_distrib_right,
+        set.compl_inter_self t, set.empty_union],
+      exact (measure_mono (set.inter_subset_left _ _)).trans_lt (hT_lt_top n), },
+    { rw ← set.union_Union tᶜ T,
+      exact set.compl_union_self _ } }
 end
 
 /-- A finitely strongly measurable function is measurable. -/

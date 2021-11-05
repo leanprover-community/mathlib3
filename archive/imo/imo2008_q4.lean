@@ -22,7 +22,7 @@ The desired theorem is that either `f = λ x, x` or `f = λ x, 1/x`
 
 open real
 
-lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : abs x = 1 :=
+lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : |x| = 1 :=
 by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_pow, pow_abs, h,
   abs_one]
 
@@ -101,7 +101,10 @@ begin
   cases h₃ with hab₁ hab₂,
 
   -- f(ab) = ab → b^4 = 1 → b = 1 → f(b) = b → false
-  { rw hab₁ at H₂, field_simp at H₂,
+  { have H₃ : (a ^ 2 + (1 / b) ^ 2) / (2 * (a * b)) = (a ^ 2 + b ^ 2) / (2 * (a * b)) ↔
+              1 / b ^ 2 = b ^ 2 ∨ 2 * (a * b) = 0,
+    { field_simp [h2ab_ne_0], },
+    rw [hab₁, H₃] at H₂,
     obtain hb₁ := or.resolve_right H₂ h2ab_ne_0,
     field_simp [ne_of_gt hb] at hb₁,
     rw (show b ^ 2 * b ^ 2 = b ^ 4, by ring) at hb₁,

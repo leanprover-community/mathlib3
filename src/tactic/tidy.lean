@@ -40,7 +40,8 @@ meta def default_tactics : list (tactic string) :=
 [ reflexivity                                 >> pure "refl",
   `[exact dec_trivial]                        >> pure "exact dec_trivial",
   propositional_goal >> assumption            >> pure "assumption",
-  intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
+  intros1                                     >>= λ ns, pure ("intros " ++ (" ".intercalate $
+                                                  ns.map $ λ e, e.to_string)),
   auto_cases,
   `[apply_auto_param]                         >> pure "apply_auto_param",
   `[dsimp at *]                               >> pure "dsimp at *",
@@ -73,7 +74,7 @@ end tidy
 meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 
 namespace interactive
-open lean.parser interactive
+setup_tactic_parser
 
 /-- Use a variety of conservative tactics to solve goals.
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
 
-import group_theory.subgroup
+import group_theory.subgroup.basic
 import ring_theory.subsemiring
 
 /-!
@@ -31,6 +31,8 @@ Notation used here:
 * `subring R` : the type of subrings of a ring `R`.
 
 * `instance : complete_lattice (subring R)` : the complete lattice structure on the subrings.
+
+* `subring.center` : the center of a ring `R`.
 
 * `subring.closure` : subring closure of a set, i.e., the smallest subring that includes the set.
 
@@ -91,6 +93,18 @@ instance : set_like (subring R) R :=
 @[simp]
 lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp]
+lemma mem_mk {S : set R} {x : R} (h₁ h₂ h₃ h₄ h₅) :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_set_mk (S : set R) (h₁ h₂ h₃ h₄ h₅) :
+  ((⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) : set R) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set R} (h₁ h₂ h₃  h₄ h₅ h₁' h₂' h₃'  h₄' h₅') :
+  (⟨S, h₁, h₂, h₃, h₄, h₅⟩ : subring R) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅'⟩ : subring R) ↔ S ⊆ S' :=
+iff.rfl
+
 /-- Two subrings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
@@ -100,6 +114,12 @@ protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
 { carrier := s,
   neg_mem' := hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
+
+@[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
+  (S.copy s hs : set R) = s := rfl
+
+lemma copy_eq (S : subring R) (s : set R) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
 
 lemma to_subsemiring_injective : function.injective (to_subsemiring : subring R → subsemiring R)
 | r s h := ext (set_like.ext_iff.mp h : _)
@@ -230,11 +250,11 @@ s.to_add_subgroup.sum_mem h
 
 lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
-lemma gsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
+  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+by simp only [← zsmul_one, zsmul_mem, one_mem]
 
 /-- A subring of a ring inherits a ring structure -/
 instance to_ring : ring s :=
@@ -266,9 +286,9 @@ s.to_subsemiring.nontrivial
 instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s :=
 s.to_subsemiring.no_zero_divisors
 
-/-- A subring of an integral domain is an integral domain. -/
-instance {R} [integral_domain R] (s : subring R) : integral_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
+/-- A subring of a domain is a domain. -/
+instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
+{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
@@ -302,7 +322,7 @@ s.subtype.map_nat_cast n
 @[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 s.subtype.map_int_cast n
 
-/-! # Partial order -/
+/-! ## Partial order -/
 
 @[simp] lemma mem_to_submonoid {s : subring R} {x : R} : x ∈ s.to_submonoid ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_submonoid (s : subring R) : (s.to_submonoid : set R) = s := rfl
@@ -310,7 +330,7 @@ s.subtype.map_int_cast n
   x ∈ s.to_add_subgroup ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_add_subgroup (s : subring R) : (s.to_add_subgroup : set R) = s := rfl
 
-/-! # top -/
+/-! ## top -/
 
 /-- The subring `R` of the ring `R`. -/
 instance : has_top (subring R) :=
@@ -320,7 +340,7 @@ instance : has_top (subring R) :=
 
 @[simp] lemma coe_top : ((⊤ : subring R) : set R) = set.univ := rfl
 
-/-! # comap -/
+/-! ## comap -/
 
 /-- The preimage of a subring along a ring homomorphism is a subring. -/
 def comap {R : Type u} {S : Type v} [ring R] [ring S]
@@ -338,7 +358,7 @@ lemma comap_comap (s : subring T) (g : S →+* T) (f : R →+* S) :
   (s.comap g).comap f = s.comap (g.comp f) :=
 rfl
 
-/-! # map -/
+/-! ## map -/
 
 /-- The image of a subring along a ring homomorphism is a subring. -/
 def map {R : Type u} {S : Type v} [ring R] [ring S]
@@ -352,6 +372,9 @@ def map {R : Type u} {S : Type v} [ring R] [ring S]
 @[simp] lemma mem_map {f : R →+* S} {s : subring R} {y : S} :
   y ∈ s.map f ↔ ∃ x ∈ s, f x = y :=
 set.mem_image_iff_bex
+
+@[simp] lemma map_id : s.map (ring_hom.id R) = s :=
+set_like.coe_injective $ set.image_id _
 
 lemma map_map (g : S →+* T) (f : R →+* S) : (s.map f).map g = s.map (g.comp f) :=
 set_like.coe_injective $ set.image_image _ _ _
@@ -380,7 +403,7 @@ namespace ring_hom
 
 variables (g : S →+* T) (f : R →+* S)
 
-/-! # range -/
+/-! ## range -/
 
 /-- The range of a ring homomorphism, as a subring of the target. See Note [range copy pattern]. -/
 def range {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S) : subring S :=
@@ -419,7 +442,7 @@ end ring_hom
 
 namespace subring
 
-/-! # bot -/
+/-! ## bot -/
 
 instance : has_bot (subring R) := ⟨(int.cast_ring_hom R).range⟩
 
@@ -431,7 +454,7 @@ ring_hom.coe_range (int.cast_ring_hom R)
 lemma mem_bot {x : R} : x ∈ (⊥ : subring R) ↔ ∃ (n : ℤ), ↑n = x :=
 ring_hom.mem_range
 
-/-! # inf -/
+/-! ## inf -/
 
 /-- The inf of two subrings is their intersection. -/
 instance : has_inf (subring R) :=
@@ -476,7 +499,62 @@ instance : complete_lattice (subring R) :=
 lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
 
-/-! # subring closure of a subset -/
+/-! ## Center of a ring -/
+
+section
+
+variables (R)
+
+/-- The center of a ring `R` is the set of elements that commute with everything in `R` -/
+def center : subring R :=
+{ carrier := set.center R,
+  neg_mem' := λ a, set.neg_mem_center,
+  .. subsemiring.center R }
+
+lemma coe_center : ↑(center R) = set.center R := rfl
+
+@[simp] lemma center_to_subsemiring : (center R).to_subsemiring = subsemiring.center R := rfl
+
+variables {R}
+
+lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
+iff.rfl
+
+instance decidable_mem_center [decidable_eq R] [fintype R] : decidable_pred (∈ center R) :=
+λ _, decidable_of_iff' _ mem_center_iff
+
+@[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
+set_like.coe_injective (set.center_eq_univ R)
+
+/-- The center is commutative. -/
+instance : comm_ring (center R) :=
+{ ..subsemiring.center.comm_semiring,
+  ..(center R).to_ring}
+
+end
+
+section division_ring
+
+variables {K : Type u} [division_ring K]
+
+instance : field (center K) :=
+{ inv := λ a, ⟨a⁻¹, set.inv_mem_center₀ a.prop⟩,
+  mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ mul_inv_cancel $ subtype.coe_injective.ne h,
+  div := λ a b, ⟨a / b, set.div_mem_center₀ a.prop b.prop⟩,
+  div_eq_mul_inv := λ a b, subtype.ext $ div_eq_mul_inv _ _,
+  inv_zero := subtype.ext inv_zero,
+  ..(center K).nontrivial,
+  ..center.comm_ring }
+
+@[simp]
+lemma center.coe_inv (a : center K) : ((a⁻¹ : center K) : K) = (a : K)⁻¹ := rfl
+
+@[simp]
+lemma center.coe_div (a b : center K) : ((a / b : center K) : K) = (a : K) / (b : K) := rfl
+
+end division_ring
+
+/-! ## subring closure of a subset -/
 
 /-- The `subring` generated by a set. -/
 def closure (s : set R) : subring R := Inf {S | s ⊆ S}
@@ -486,6 +564,9 @@ mem_Inf
 
 /-- The subring generated by a set includes the set. -/
 @[simp] lemma subset_closure {s : set R} : s ⊆ closure s := λ x hx, mem_closure.2 $ λ S hS, hS hx
+
+lemma not_mem_of_not_mem_closure {s : set R} {P : R} (hP : P ∉ closure s) : P ∉ s :=
+λ h, hP (subset_closure h)
 
 /-- A subring `t` includes `closure s` if and only if it includes `s`. -/
 @[simp]
@@ -752,7 +833,7 @@ namespace subring
 open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
-def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
+def inclusion {S T : subring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=
@@ -856,10 +937,10 @@ end subring
 
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
-by { convert add_subgroup.gsmul_mem G h k, simp }
+by { convert add_subgroup.zsmul_mem G h k, simp }
 
 
-/-! ### Actions by `subring`s
+/-! ## Actions by `subring`s
 
 These are just copies of the definitions about `subsemiring` starting from
 `subsemiring.mul_action`.
@@ -903,6 +984,10 @@ S.to_subsemiring.has_faithful_scalar
 instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=
 S.to_subsemiring.distrib_mul_action
 
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [monoid α] [mul_distrib_mul_action R α] (S : subring R) : mul_distrib_mul_action S α :=
+S.to_subsemiring.mul_distrib_mul_action
+
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
@@ -910,3 +995,16 @@ S.to_subsemiring.module
 end subring
 
 end actions
+
+-- while this definition is not about subrings, this is the earliest we have
+-- both ordered ring structures and submonoids available
+
+/-- The subgroup of positive units of a linear ordered commutative ring. -/
+def units.pos_subgroup (R : Type*) [linear_ordered_comm_ring R] [nontrivial R] :
+  subgroup (units R) :=
+{ carrier := {x | (0 : R) < x},
+  inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
+  ..(pos_submonoid R).comap (units.coe_hom R)}
+
+@[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R]
+  (u : units R) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl

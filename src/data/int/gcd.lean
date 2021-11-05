@@ -153,7 +153,7 @@ begin
   calc
   nat_abs (a / b) = nat_abs (a / b) * 1 : by rw mul_one
     ... = nat_abs (a / b) * (nat_abs b / nat_abs b) : by rw nat.div_self h
-    ... = nat_abs (a / b) * nat_abs b / nat_abs b : by rw (nat.mul_div_assoc _ (dvd_refl _))
+    ... = nat_abs (a / b) * nat_abs b / nat_abs b : by rw (nat.mul_div_assoc _ dvd_rfl)
     ... = nat_abs (a / b * b) / nat_abs b : by rw (nat_abs_mul (a / b) b)
     ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
 end
@@ -175,7 +175,7 @@ hsd.elim
   (λ hsd2, or.inr begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd2 end)
 
 theorem dvd_of_mul_dvd_mul_left {i j k : ℤ} (k_non_zero : k ≠ 0) (H : k * i ∣ k * j) : i ∣ j :=
-dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel' k_non_zero H1⟩)
+dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel₀ k_non_zero H1⟩)
 
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
@@ -275,7 +275,7 @@ gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 
 theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
 nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
-                 (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs_iff.mpr H))
+                 (by unfold gcd; exact nat.dvd_gcd dvd_rfl (nat_abs_dvd_abs_iff.mpr H))
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
@@ -352,8 +352,8 @@ begin
   obtain ⟨x, rfl⟩ : is_unit x,
   { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
   simp only [← units.coe_pow] at *,
-  rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
-  simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+  rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
+  simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
 end
 
 lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m • x = 0)
@@ -364,11 +364,13 @@ begin
   rwa [←of_add_nsmul, ←of_add_zero, equiv.apply_eq_iff_eq]
 end
 
+attribute [to_additive gcd_nsmul_eq_zero] pow_gcd_eq_one
+
 /-! ### GCD prover -/
+open norm_num
 
 namespace tactic
 namespace norm_num
-open norm_num
 
 lemma int_gcd_helper' {d : ℕ} {x y a b : ℤ} (h₁ : (d:ℤ) ∣ x) (h₂ : (d:ℤ) ∣ y)
   (h₃ : x * a + y * b = d) : int.gcd x y = d :=
@@ -376,8 +378,8 @@ begin
   refine nat.dvd_antisymm _ (int.coe_nat_dvd.1 (int.dvd_gcd h₁ h₂)),
   rw [← int.coe_nat_dvd, ← h₃],
   apply dvd_add,
-  { exact dvd_mul_of_dvd_left (int.gcd_dvd_left _ _) _ },
-  { exact dvd_mul_of_dvd_left (int.gcd_dvd_right _ _) _ }
+  { exact (int.gcd_dvd_left _ _).mul_right _ },
+  { exact (int.gcd_dvd_right _ _).mul_right _ }
 end
 
 lemma nat_gcd_helper_dvd_left (x y a : ℕ) (h : x * a = y) : nat.gcd x y = x :=

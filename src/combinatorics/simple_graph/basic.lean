@@ -138,10 +138,10 @@ instance : has_le (simple_graph V) := ⟨is_subgraph⟩
 @[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) :=
 rfl
 
-lemma support_mono (G' : simple_graph V) (h : G ≤ G') : G.support ≤ G'.support :=
+lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ≤ G'.support :=
 begin
   intros v hv,
-  rw [←is_subgraph_eq_le, is_subgraph] at h,
+  rw [ ←is_subgraph_eq_le, is_subgraph] at h,
   rw mem_support at hv,
   cases hv with w hw,
   use w,

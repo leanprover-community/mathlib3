@@ -163,14 +163,9 @@ instance [mul_one_class α] : mul_one_class (opposite α) :=
   .. opposite.has_mul α, .. opposite.has_one α }
 
 instance [monoid α] : monoid (opposite α) :=
-{ npow := λ n x, op $ monoid.npow n x.unop,
+{ npow := λ n x, op $ x.unop ^ n,
   npow_zero' := λ x, unop_injective $ monoid.npow_zero' x.unop,
-  npow_succ' := λ n x, unop_injective $ (monoid.npow_succ' n x.unop).trans begin
-    dsimp,
-    induction n with n ih,
-    { rw [monoid.npow_zero', one_mul, mul_one] },
-    { rw [monoid.npow_succ' n x.unop, mul_assoc, ih], },
-  end,
+  npow_succ' := λ n x, unop_injective $ pow_succ' x.unop n,
   .. opposite.semigroup α, .. opposite.mul_one_class α }
 
 instance [right_cancel_monoid α] : left_cancel_monoid (opposite α) :=
@@ -189,14 +184,10 @@ instance [cancel_comm_monoid α] : cancel_comm_monoid (opposite α) :=
 { .. opposite.cancel_monoid α, ..opposite.comm_monoid α }
 
 instance [div_inv_monoid α] : div_inv_monoid (opposite α) :=
-{ zpow := λ n x, op $ div_inv_monoid.zpow n x.unop,
+{ zpow := λ n x, op $ x.unop ^ n,
   zpow_zero' := λ x, unop_injective $ div_inv_monoid.zpow_zero' x.unop,
-  zpow_succ' := λ n x, unop_injective $ (div_inv_monoid.zpow_succ' n x.unop).trans begin
-    dsimp,
-    induction n with n ih,
-    { rw [int.of_nat_zero, div_inv_monoid.zpow_zero', one_mul, mul_one] },
-    { rw [div_inv_monoid.zpow_succ' n x.unop, mul_assoc, ih], },
-  end,
+  zpow_succ' := λ n x, unop_injective $
+    by rw [unop_op, zpow_of_nat, zpow_of_nat, pow_succ', unop_mul, unop_op],
   zpow_neg' := λ z x, unop_injective $ div_inv_monoid.zpow_neg' z x.unop,
   .. opposite.monoid α, .. opposite.has_inv α }
 

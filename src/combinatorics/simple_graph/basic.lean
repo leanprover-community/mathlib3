@@ -230,10 +230,9 @@ end decidable
 end order
 
 /-- `G.support` is the set of vertices that form edges in `G`. -/
-def support : set V := rel.image G.adj set.univ
+def support : set V := rel.dom G.adj
 
-lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w :=
-  by simp [support, rel.mem_image, adj_comm]
+lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w := iff.rfl
 
 lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ⊆ G'.support :=
 begin

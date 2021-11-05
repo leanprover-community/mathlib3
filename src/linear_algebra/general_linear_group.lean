@@ -62,7 +62,8 @@ noncomputable def mk'' (A : matrix n n R) (h : is_unit (matrix.det A)) : GL n R 
 nonsing_inv_unit A h
 
 /--Given a matrix with non-zero determinant over a field, we get an element of `GL n K`-/
-noncomputable def mk_of_det_ne_zero {K : Type*} [field K] (A : matrix n n K) (h : matrix.det A ≠ 0) : 
+noncomputable def mk_of_det_ne_zero {K : Type*} [field K] (A : matrix n n K) 
+  (h : matrix.det A ≠ 0) : 
   GL n K :=
 mk'' A (is_unit_iff_ne_zero.mpr h)
 

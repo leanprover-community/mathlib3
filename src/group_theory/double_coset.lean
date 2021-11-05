@@ -40,17 +40,17 @@ lemma left_bot_eq_left_group_rel (H : subgroup G) :
   (double_coset_rel ⊥ H) = (quotient_group.left_rel H).rel :=
 begin
   show (double_coset_rel ⊥ H) = (quotient_group.left_rel H).r,
-  {ext,
-    simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, rel_iff],
-    split,
-    rintro ⟨a, ha⟩,
-    rw [quotient_group.left_rel, ha.2],
-    simp only [ha.left, inv_mul_cancel_left],
-    rw quotient_group.left_rel,
-    dsimp only,
-    intro h,
-    use (⟨x⁻¹ * x_1, h⟩ : H),
-    simp only [h, mul_inv_cancel_left, eq_self_iff_true, and_self, subgroup.coe_mk]},
+  ext,
+  simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, rel_iff],
+  split,
+  rintro ⟨a, ha⟩,
+  rw [quotient_group.left_rel, ha.2],
+  simp only [ha.left, inv_mul_cancel_left],
+  rw quotient_group.left_rel,
+  dsimp only,
+  intro h,
+  use (⟨x⁻¹ * x_1, h⟩ : H),
+  simp only [h, mul_inv_cancel_left, eq_self_iff_true, and_self, subgroup.coe_mk],
 end
 
 
@@ -58,17 +58,17 @@ lemma right_bot_eq_right_group_rel (H : subgroup G) :
   (double_coset_rel H ⊥) = (quotient_group.right_rel H).rel :=
 begin
   show (double_coset_rel H ⊥) = (quotient_group.right_rel H).r,
-   {ext,
-    simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, rel_iff],
-    split,
-    rintro ⟨a, ha⟩,
-    rw [quotient_group.right_rel, ha.2],
-    simp only [ha.left, mul_one, mul_inv_cancel_right],
-    rw quotient_group.right_rel,
-    dsimp only,
-    intro h,
-    use (⟨x_1 * x⁻¹, h⟩ : H),
-    simp only [h, mul_one, eq_self_iff_true, and_self, subgroup.coe_mk, inv_mul_cancel_right]},
+  ext,
+  simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, rel_iff],
+  split,
+  rintro ⟨a, ha⟩,
+  rw [quotient_group.right_rel, ha.2],
+  simp only [ha.left, mul_one, mul_inv_cancel_right],
+  rw quotient_group.right_rel,
+  dsimp only,
+  intro h,
+  use (⟨x_1 * x⁻¹, h⟩ : H),
+  simp only [h, mul_one, eq_self_iff_true, and_self, subgroup.coe_mk, inv_mul_cancel_right],
 end
 
 lemma rel_reflex {H K : subgroup G} : reflexive (double_coset_rel H K) :=
@@ -92,7 +92,7 @@ begin
   use b⁻¹,
   have hbb := subgroup.inv_mem K hb,
   simp only [hbb, true_and],
-  rw  hx,
+  rw hx,
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
 end
@@ -108,10 +108,7 @@ begin
   simp only [hac, true_and],
   use b*d,
   have hdb :=  (K.mul_mem hb hd),
-  simp only [hdb, true_and],
-  rw  hyz,
-  rw  hxy,
-  simp_rw ← mul_assoc,
+  simp only [hdb, true_and, hyz, hxy, ← mul_assoc],
 end
 
 lemma rel_is_equiv  {H K : subgroup G} : equivalence (double_coset_rel H K) :=
@@ -146,17 +143,6 @@ begin
   simp_rw ← mul_assoc,
 end
 
---Is this already somewhere? I'd rather not have to prove it
-lemma auxeq : ∀ (a b c d e f : G), a * b * c = d * e * f ↔ b = a⁻¹ * d * e * f * c⁻¹ :=
-begin
-  intros a b c d e f,
-  split; intro h,
-  { assoc_rw h.symm,
-    group,},
-  { rw h,
-    group,},
-end
-
 lemma disjoint_sub (H K : subgroup G) (a b : G) (h : ¬ disjoint (doset H.1 K a ) (doset H K b)) :
   b ∈ doset H.1 K a :=
 begin
@@ -166,14 +152,15 @@ begin
   rcases h with ⟨x, ⟨hx, hxx⟩, hk, hhk⟩ ,
   use ( ⟨hk.1⁻¹ * hx.1, hx.2 * hk.2⁻¹⟩ : H × K),
   rw hxx at hhk,
-  simp only [subgroup.coe_inv, subgroup.coe_mul],
-  simp_rw  ← mul_assoc,
-  rw ← auxeq,
-  apply hhk.symm,
+  simp only [subgroup.coe_inv, subgroup.coe_mul,  ← mul_assoc],
+  rw  ← mul_inv_eq_iff_eq_mul,
+  simp only [inv_inv],
+  rw [mul_assoc, mul_assoc ] at *,
+  simp only [hhk,inv_mul_cancel_left],
 end
 
 lemma disjoint_doset  (H K : subgroup G) (a b : G) (h: ¬ disjoint (doset H.1 K a) (doset H K b)) :
-   doset H.1 K a = doset H K b :=
+  doset H.1 K a = doset H K b :=
 begin
   have hb :  b ∈ (doset H.1 K a), by {apply disjoint_sub _ _ _ _ h},
   rw disjoint.comm at h,
@@ -194,10 +181,7 @@ quotient.mk' a
 instance (H K : subgroup G) : inhabited (quotient H K) := ⟨(mk H K (1 : G) : quotient H K)⟩
 
 lemma eq (H K : subgroup G) (a b : G): mk H K a = mk H K b ↔ ∃ (h ∈ H) (k ∈ K), b = h * a * k :=
-begin
-rw quotient.eq',
-apply  (rel_iff H K a b),
-end
+by { rw quotient.eq', apply (rel_iff H K a b), }
 
 lemma out_eq' (H K : subgroup G) (q : quotient H K) : mk H K q.out' = q :=
 quotient.out_eq' q
@@ -228,11 +212,11 @@ begin
 end
 
 lemma doset_eq_quot_eq (H K : subgroup G) (a b : G) (h : doset H.1 K a = doset H K b ) :
-   mk H K a = mk H K b :=
+  mk H K a = mk H K b :=
 begin
   rw eq,
   have : b ∈ doset H.1 K a,
-    {rw h,
+  { rw h,
     simp only [exists_prop, set_coe.exists, doset_mem, set_like.mem_coe, subgroup.coe_mk,
     prod.exists],
     use 1,
@@ -243,7 +227,7 @@ begin
 end
 
 lemma disjoint_doset'  (H K : subgroup G) (a b : quotient H K) :
-   a ≠ b → disjoint (doset H.1 K a.out') (doset H K b.out') :=
+  a ≠ b → disjoint (doset H.1 K a.out') (doset H K b.out') :=
 begin
   simp only [ne.def],
   contrapose,
@@ -295,7 +279,7 @@ lemma doset_union_left_coset (H K : subgroup G) (a : G) :
 begin
   ext,
   simp only [mem_left_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, doset_mem,
-    subgroup.mem_carrier, set_like.mem_coe],
+  subgroup.mem_carrier, set_like.mem_coe],
   split,
   intro h,
   cases h with x,

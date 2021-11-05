@@ -229,7 +229,7 @@ end decidable
 
 end order
 
-/-- `G.support` is the set of vertices of `G`. -/
+/-- `G.support` is the set of vertices that form edges in `G`. -/
 def support : set V := rel.image G.adj set.univ
 
 lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w :=

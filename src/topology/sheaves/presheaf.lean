@@ -246,13 +246,15 @@ section iso
   X.presheaf C ≌ Y.presheaf C :=
 equivalence.congr_left (opens.map_map_iso H).symm.op
 
+variable {C}
+
 /--
 If `H : X ≅ Y` is a homeomorphism,
 then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
 -/
 def to_pushforward_of_iso {X Y : Top} (H : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
   (α : H.hom _* ℱ ⟶ 𝒢) : ℱ ⟶ H.inv _* 𝒢 :=
-(iso_pushforward_equiv H).to_adjunction.hom_equiv ℱ 𝒢 α
+(iso_pushforward_equiv _ H).to_adjunction.hom_equiv ℱ 𝒢 α
 
 @[simp]
 lemma to_pushforward_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
@@ -275,7 +277,7 @@ then given an `H _* ℱ ⟶ 𝒢`, we may obtain an `ℱ ⟶ H ⁻¹ _* 𝒢`.
 -/
 def pushforward_to_of_iso {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}
   (H₂ : ℱ ⟶ H₁.hom _* 𝒢) : H₁.inv _* ℱ ⟶ 𝒢 :=
-((iso_pushforward_equiv H₁.symm).to_adjunction.hom_equiv ℱ 𝒢).symm H₂
+((iso_pushforward_equiv _ H₁.symm).to_adjunction.hom_equiv ℱ 𝒢).symm H₂
 
 @[simp]
 lemma pushforward_to_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C} {𝒢 : X.presheaf C}

@@ -152,7 +152,8 @@ which would be equivalent but only asks:
 ∀ s t, s ∈ S → t ∈ S → s ≠ t → s ⊆ t ∨ t ⊆ s
 -/
 theorem is_preconnected.filtered_sUnion_of {S : set (set α)}
-  (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s) (H : ∀ s ∈ S, is_preconnected s ) : is_preconnected ⋃₀ S :=
+  (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s)
+  (H : ∀ s ∈ S, is_preconnected s ) : is_preconnected ⋃₀ S :=
 begin
   rw is_preconnected,
   rintros u v hu hv Huv ⟨a, ⟨s, hsS, has⟩, hau⟩ ⟨b, ⟨t, htS, hbt⟩, hbv⟩,

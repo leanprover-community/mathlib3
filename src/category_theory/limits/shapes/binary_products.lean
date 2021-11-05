@@ -404,8 +404,8 @@ instance prod.map_mono {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g :
   [mono g] [has_binary_product W X] [has_binary_product Y Z] : mono (prod.map f g) :=
 ⟨λ A i₁ i₂ h, begin
   ext,
-  { rw ←cancel_mono f, simpa using congr_arg (λ f, f ≫ prod.fst) h },
-  { rw ←cancel_mono g, simpa using congr_arg (λ f, f ≫ prod.snd) h }
+  { rw ← cancel_mono f, simpa using congr_arg (λ f, f ≫ prod.fst) h },
+  { rw ← cancel_mono g, simpa using congr_arg (λ f, f ≫ prod.snd) h }
 end⟩
 
 @[simp, reassoc]
@@ -519,8 +519,8 @@ instance coprod.map_epi {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g 
   [epi g] [has_binary_coproduct W X] [has_binary_coproduct Y Z] : epi (coprod.map f g) :=
 ⟨λ A i₁ i₂ h, begin
   ext,
-  { rw ←cancel_epi f, simpa using congr_arg (λ f, coprod.inl ≫ f) h },
-  { rw ←cancel_epi g, simpa using congr_arg (λ f, coprod.inr ≫ f) h }
+  { rw ← cancel_epi f, simpa using congr_arg (λ f, coprod.inl ≫ f) h },
+  { rw ← cancel_epi g, simpa using congr_arg (λ f, coprod.inr ≫ f) h }
 end⟩
 
 

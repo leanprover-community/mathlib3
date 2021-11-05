@@ -945,14 +945,6 @@ lemma restrict_map {f : α → β} (hf : measurable f) {s : set β} (hs : measur
   (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
 ext $ λ t ht, by simp [*, hf ht]
 
-lemma map_comap_subtype_coe {m0 : measurable_space α} (hs : measurable_set s) :
-  (map (coe : s → α)).comp (comap coe) = restrictₗ s :=
-linear_map.ext $ λ μ, ext $ λ t ht,
-by rw [restrictₗ_apply, restrict_apply ht, linear_map.comp_apply,
-  map_apply measurable_subtype_coe ht,
-  comap_apply (coe : s → α) subtype.val_injective (λ _, hs.subtype_image) _
-    (measurable_subtype_coe ht), subtype.image_preimage_coe]
-
 /-- Restriction of a measure to a subset is monotone both in set and in measure. -/
 lemma restrict_mono' {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ ν : measure α⦄
   (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
@@ -2476,6 +2468,90 @@ end measure_theory
 
 open measure_theory measure_theory.measure
 
+namespace measurable_embedding
+
+variables {m0 : measurable_space α} {m1 : measurable_space β} {f : α → β}
+  (hf : measurable_embedding f)
+include hf
+
+theorem map_apply (μ : measure α) (s : set β) : map f μ s = μ (f ⁻¹' s) :=
+begin
+  refine le_antisymm _ (le_map_apply hf.measurable s),
+  set t := f '' (to_measurable μ (f ⁻¹' s)) ∪ (range f)ᶜ,
+  have htm : measurable_set t,
+    from (hf.measurable_set_image.2 $ measurable_set_to_measurable _ _).union
+      hf.measurable_set_range.compl,
+  have hst : s ⊆ t,
+  { rw [subset_union_compl_iff_inter_subset, ← image_preimage_eq_inter_range],
+    exact image_subset _ (subset_to_measurable _ _) },
+  have hft : f ⁻¹' t = to_measurable μ (f ⁻¹' s),
+    by rw [preimage_union, preimage_compl, preimage_range, compl_univ, union_empty,
+      hf.injective.preimage_image],
+  calc map f μ s ≤ map f μ t : measure_mono hst
+            ... = μ (f ⁻¹' s) :
+    by rw [map_apply hf.measurable htm, hft, measure_to_measurable]
+end
+
+lemma map_comap (μ : measure β) : map f (comap f μ) = μ.restrict (range f) :=
+begin
+  ext1 t ht,
+  rw [hf.map_apply, comap_apply f hf.injective hf.measurable_set_image' _ (hf.measurable ht),
+    image_preimage_eq_inter_range, restrict_apply ht]
+end
+
+lemma comap_apply (μ : measure β) (s : set α) : comap f μ s = μ (f '' s) :=
+calc comap f μ s = comap f μ (f ⁻¹' (f '' s)) : by rw hf.injective.preimage_image
+... = map f (comap f μ) (f '' s) : (hf.map_apply _ _).symm
+... = μ (f '' s) : by rw [hf.map_comap, restrict_apply' hf.measurable_set_range,
+  inter_eq_self_of_subset_left (image_subset_range _ _)]
+
+lemma ae_map_iff {p : β → Prop} {μ : measure α} : (∀ᵐ x ∂(map f μ), p x) ↔ ∀ᵐ x ∂μ, p (f x) :=
+by simp only [ae_iff, hf.map_apply, preimage_set_of_eq]
+
+lemma restrict_map (μ : measure α) (s : set β) :
+  (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
+measure.ext $ λ t ht, by simp [hf.map_apply, ht, hf.measurable ht]
+
+end measurable_embedding
+
+section subtype
+
+lemma comap_subtype_coe_apply {m0 : measurable_space α} {s : set α} (hs : measurable_set s)
+  (μ : measure α) (t : set s) :
+  comap coe μ t = μ (coe '' t) :=
+(measurable_embedding.subtype_coe hs).comap_apply _ _
+
+lemma map_comap_subtype_coe {m0 : measurable_space α} {s : set α} (hs : measurable_set s)
+  (μ : measure α) : map (coe : s → α) (comap coe μ) = μ.restrict s :=
+by rw [(measurable_embedding.subtype_coe hs).map_comap, subtype.range_coe]
+
+lemma ae_restrict_iff_subtype {m0 : measurable_space α} {μ : measure α} {s : set α}
+  (hs : measurable_set s) {p : α → Prop} :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂(comap (coe : s → α) μ), p ↑x :=
+by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_map_iff]
+
+variables [measure_space α]
+
+/-!
+### Volume on `s : set α`
+-/
+
+instance _root_.set_coe.measure_space (s : set α) : measure_space s :=
+⟨comap (coe : s → α) volume⟩
+
+lemma volume_set_coe_def (s : set α) : (volume : measure s) = comap (coe : s → α) volume := rfl
+
+lemma measurable_set.map_coe_volume {s : set α} (hs : measurable_set s) :
+  map (coe : s → α) volume = restrict volume s :=
+by rw [volume_set_coe_def, (measurable_embedding.subtype_coe hs).map_comap volume,
+  subtype.range_coe]
+
+lemma volume_image_subtype_coe {s : set α} (hs : measurable_set s) (t : set s) :
+  volume (coe '' t : set α) = volume t :=
+(comap_subtype_coe_apply hs volume t).symm
+
+end subtype
+
 namespace measurable_equiv
 
 /-! Interactions of measurable equivalences and measures -/
@@ -2487,18 +2563,7 @@ variables [measurable_space α] [measurable_space β] {μ : measure α} {ν : me
 /-- If we map a measure along a measurable equivalence, we can compute the measure on all sets
   (not just the measurable ones). -/
 protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : map f μ s = μ (f ⁻¹' s) :=
-begin
-  refine le_antisymm _ (le_map_apply f.measurable s),
-  rw [measure_eq_infi' μ],
-  refine le_infi _, rintro ⟨t, hst, ht⟩,
-  rw [subtype.coe_mk],
-  have : f.symm '' s = f ⁻¹' s := f.symm.to_equiv.image_eq_preimage s,
-  rw [← this, image_subset_iff] at hst,
-  convert measure_mono hst,
-  rw [map_apply, preimage_preimage],
-  { refine congr_arg μ (eq.symm _), convert preimage_id, exact funext f.left_inv },
-  exacts [f.measurable, f.measurable_inv_fun ht]
-end
+f.measurable_embedding.map_apply _ _
 
 @[simp] lemma map_symm_map (e : α ≃ᵐ β) : map e.symm (map e μ) = μ :=
 by simp [map_map e.symm.measurable e.measurable]
@@ -2513,7 +2578,7 @@ lemma map_apply_eq_iff_map_symm_apply_eq (e : α ≃ᵐ β) : map e μ = ν ↔ 
 by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
 
 lemma restrict_map (e : α ≃ᵐ β) (s : set β) : (map e μ).restrict s = map e (μ.restrict $ e ⁻¹' s) :=
-measure.ext $ λ t ht, by simp [e.map_apply, ht, e.measurable ht]
+e.measurable_embedding.restrict_map _ _
 
 end measurable_equiv
 
@@ -2922,6 +2987,16 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
 ⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
 
+lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} (hs : measurable_set s) :
+  ae_measurable (cod_restrict f s hfs) μ :=
+begin
+  casesI is_empty_or_nonempty α, { exact (measurable_of_empty _).ae_measurable }, inhabit α,
+  rcases h with ⟨g, hgm, hg⟩,
+  rcases hs.exists_measurable_proj ⟨f (default α), hfs _⟩ with ⟨π, hπm, hπ⟩,
+  refine ⟨π ∘ g, hπm.comp hgm, hg.mono $ λ x hx, _⟩,
+  rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
+end
+
 protected lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   null_measurable_set μ (f ⁻¹' s) :=
 begin
@@ -2934,6 +3009,31 @@ begin
 end
 
 end ae_measurable
+
+lemma measurable_embedding.ae_measurable_map_iff [measurable_space γ] {f : α → β}
+  (hf : measurable_embedding f) {μ : measure α} {g : β → γ} :
+  ae_measurable g (map f μ) ↔ ae_measurable (g ∘ f) μ :=
+begin
+  refine ⟨λ H, H.comp_measurable hf.measurable, _⟩,
+  rintro ⟨g₁, hgm₁, heq⟩,
+  rcases hf.exists_measurable_extend hgm₁ (λ x, ⟨g x⟩) with ⟨g₂, hgm₂, rfl⟩,
+  exact ⟨g₂, hgm₂, hf.ae_map_iff.2 heq⟩
+end
+
+lemma measurable_embedding.ae_measurable_comp_iff [measurable_space γ] {g : β → γ}
+  (hg : measurable_embedding g) {μ : measure α} {f : α → β} :
+  ae_measurable (g ∘ f) μ ↔ ae_measurable f μ :=
+begin
+  refine ⟨λ H, _, hg.measurable.comp_ae_measurable⟩,
+  suffices : ae_measurable ((range_splitting g ∘ range_factorization g) ∘ f) μ,
+    by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
+  exact hg.measurable_range_splitting.comp_ae_measurable (H.subtype_mk hg.measurable_set_range)
+end
+
+lemma ae_measurable_restrict_iff_comap_subtype {s : set α} (hs : measurable_set s)
+  {μ : measure α} {f : α → β} :
+  ae_measurable f (μ.restrict s) ↔ ae_measurable (f ∘ coe : s → β) (comap coe μ) :=
+by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_measurable_map_iff]
 
 @[simp] lemma ae_measurable_add_measure_iff :
   ae_measurable f (μ + ν) ↔ ae_measurable f μ ∧ ae_measurable f ν :=
@@ -2956,26 +3056,11 @@ lemma ae_measurable_of_ae_measurable_trim {α} {m m0 : measurable_space α}
 
 lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
   (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
-begin
-  casesI is_empty_or_nonempty β,
-  { exact (measurable_of_empty_codomain f).ae_measurable },
-  refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
-    (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
-  intros t ht,
-  rw piecewise_preimage,
-  refine measurable_set.union _ ((measurable_const ht).diff hs),
-  rw [← subtype.image_preimage_coe, ← preimage_comp],
-  exact hs.subtype_image (hf ht)
-end
+(ae_measurable_restrict_iff_comap_subtype hs).2 hf.ae_measurable
 
 lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
   ae_measurable f (map e μ) ↔ ae_measurable (f ∘ e) μ :=
-begin
-  refine ⟨λ h, h.comp_measurable e.measurable, λ h, _⟩,
-  rw [← (e.map_symm_map : _ = μ)] at h,
-  convert h.comp_measurable e.symm.measurable,
-  simp [(∘)]
-end
+e.measurable_embedding.ae_measurable_map_iff
 
 end
 

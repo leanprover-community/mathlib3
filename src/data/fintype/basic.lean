@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.array.lemmas
+import data.finset.option
 import data.finset.pi
 import data.finset.powerset
-import data.finset.option
+import data.finset.prod
 import data.sym.basic
 import data.ulift
 import group_theory.perm.basic

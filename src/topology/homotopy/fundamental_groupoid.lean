@@ -303,18 +303,37 @@ lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
     exact ⟨h₁.hcomp h₂⟩,
   end p q := rfl
 
-example : category_theory.functor Top category_theory.Groupoid :=
-{ obj := λ t, category_theory.bundled.of (fundamental_groupoid t),
+/--
+The functor sending a topological space `X` to its fundamental groupoid.
+-/
+def π₁ : Top ⥤ category_theory.Groupoid :=
+{ obj := λ X, { α := fundamental_groupoid X },
   map := λ X Y f,
-    { obj := f,
-      map := λ x y p, quotient.lift (λ q, ⟦path.map q f.continuous⟧) begin
-        rintros a b h,
-        rw quotient.eq,
-        exact h.map f
-      end p,
-      map_id' := λ x, rfl,
-      map_comp' := λ x y z p₀ p₁, quotient.induction_on₂ p₀ p₁ (λ q₀ q₁, by simp [comp_eq]) },
-  map_id' := λ X, by sorry,
-  map_comp' := sorry }
+  { obj := f,
+    map := λ x y p, quotient.lift (λ (q : path _ _), ⟦q.map f.continuous⟧) begin
+      rintros a b h,
+      rw quotient.eq,
+      exact h.map f
+    end p,
+    map_id' := λ X, rfl,
+    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b, by simp [comp_eq] },
+  map_id' := begin
+    intro X,
+    change _ = (⟨_, _, _, _⟩ : fundamental_groupoid X ⥤ fundamental_groupoid X),
+    congr',
+    ext x y p,
+    refine quotient.induction_on p (λ q, _),
+    rw [quotient.lift_mk],
+    conv_rhs { rw [←q.map_id] },
+    refl,
+  end,
+  map_comp' := begin
+    intros X Y Z f g,
+    congr',
+    ext x y p,
+    refine quotient.induction_on p (λ q, _),
+    simp only [quotient.lift_mk, path.map_map, quotient.eq],
+    refl,
+  end }
 
 end fundamental_groupoid

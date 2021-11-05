@@ -82,17 +82,26 @@ by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, li
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
 by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
 
+@[simp] lemma card_Iic : (Iic b).card = b + 1 := by rw [Iic, card_Icc, bot_eq_zero, tsub_zero]
+@[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio, card_Ico, bot_eq_zero, tsub_zero]
+
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = b + 1 - a :=
-by rw [←card_Icc, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Icc]
 
 @[simp] lemma card_fintype_Ico : fintype.card (set.Ico a b) = b - a :=
-by rw [←card_Ico, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Ico]
 
 @[simp] lemma card_fintype_Ioc : fintype.card (set.Ioc a b) = b - a :=
-by rw [←card_Ioc, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Ioc]
 
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = b - a - 1 :=
-by rw [←card_Ioo, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Ioo]
+
+@[simp] lemma card_fintype_Iic : fintype.card (set.Iic b) = b + 1 :=
+by rw [fintype.card_of_finset, card_Iic]
+
+@[simp] lemma card_fintype_Iio : fintype.card (set.Iio b) = b :=
+by rw [fintype.card_of_finset, card_Iio]
 
 -- TODO@Yaël: Generalize all the following lemmas to `succ_order`
 

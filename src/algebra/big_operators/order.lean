@@ -511,9 +511,19 @@ begin
   exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
 end
 
+lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S)
+  [is_absolute_value abv] (f : ι → R) (s : finset ι) :
+  abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
+(is_absolute_value.to_absolute_value abv).sum_le _ _
+
 lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
   (abv : absolute_value R S) (f : ι → R) (s : finset ι) :
   abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
 abv.to_monoid_hom.map_prod f s
+
+lemma is_absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+  (abv : R → S) [is_absolute_value abv] (f : ι → R) (s : finset ι) :
+  abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
+(is_absolute_value.to_absolute_value abv).map_prod _ _
 
 end absolute_value

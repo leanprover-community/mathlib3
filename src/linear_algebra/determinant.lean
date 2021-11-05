@@ -342,6 +342,10 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
+/-- `basis.det` is not the zero map. -/
+lemma basis.det_ne_zero [nontrivial R] : e.det ≠ 0 :=
+λ h, by simpa [h] using e.det_self
+
 lemma is_basis_iff_det {v : ι → M} :
   linear_independent R v ∧ span R (set.range v) = ⊤ ↔ is_unit (e.det v) :=
 begin

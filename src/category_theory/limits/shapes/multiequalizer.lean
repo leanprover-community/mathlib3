@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import category_theory.limits.has_limits
+import category_theory.arrow
 
 /-!
 
@@ -16,6 +17,9 @@ In fact, it is well-known that any limit can be obtained as a multiequalizer.
 The dual construction (multicoequalizers) is also provided.
 
 ## Projects
+
+Prove that a multiequalizer can be identified with
+an equalizer between products (and analogously for multicoequalizers).
 
 Prove that the limit of any diagram is a multiequalizer (and similarly for colimits).
 

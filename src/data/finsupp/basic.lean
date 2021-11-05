@@ -1030,7 +1030,7 @@ instance [add_group G] : add_group (α →₀ G) :=
   zsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_zsmul] },
   zsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
     zsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
-    add_zsmul, add_nsmul, one_zsmul, zsmul_coe_nat, one_nsmul] },
+    add_zsmul, add_nsmul, one_zsmul, coe_nat_zsmul, one_nsmul] },
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=

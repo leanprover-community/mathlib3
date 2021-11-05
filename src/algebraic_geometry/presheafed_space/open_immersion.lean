@@ -114,7 +114,7 @@ instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : open_immersion f] (g :
 
 /-- An isomorphism is an open immersion. -/
 instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : open_immersion H.hom :=
-{ base_open := (Top.homeo_of_iso (base_iso_of_iso H)).open_embedding,
+{ base_open := (Top.homeo_of_iso ((forget C).map_iso H)).open_embedding,
   c_iso := λ _, infer_instance }
 
 @[priority 100]

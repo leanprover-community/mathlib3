@@ -555,7 +555,7 @@ def map_range {N : Type*} [add_comm_monoid N] [topological_space N]
   m_Union' := λ g hg₁ hg₂, has_sum.map (v.m_Union hg₁ hg₂) f hf }
 
 lemma map_range_apply {N : Type*} [add_comm_monoid N] [topological_space N]
-  {f : M →+ N} (hf : continuous f) {s : set α} (hs : measurable_set s) :
+  {f : M →+ N} (hf : continuous f) {s : set α} :
   v.map_range f hf s = f (v s) :=
 rfl
 

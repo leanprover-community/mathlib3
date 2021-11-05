@@ -65,9 +65,20 @@ lemma cstar_ring.norm_self_mul_star [normed_ring E] [star_ring E] [cstar_ring E]
   ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
 by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 
+section starₗᵢ
+
+variables [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [normed_star_monoid E]
+variables [module 𝕜 E] [star_module 𝕜 E]
+
+variables (𝕜)
 /-- `star` bundled as a linear isometric equivalence -/
-def starₗᵢ [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E]
-  [normed_star_monoid E] [module 𝕜 E] [star_module 𝕜 E] : E ≃ₗᵢ⋆[𝕜] E :=
+def starₗᵢ : E ≃ₗᵢ⋆[𝕜] E :=
 { map_smul' := star_smul,
   norm_map' := λ x, norm_star,
   .. star_add_equiv }
+
+variables {𝕜}
+
+@[simp] lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
+
+end starₗᵢ

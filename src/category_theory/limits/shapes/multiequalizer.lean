@@ -390,6 +390,7 @@ lemma multicofork_π (b) :
 lemma multicofork_ι_app_right (b) :
   (multicoequalizer.multicofork I).ι.app (walking_multispan.right b) =
   multicoequalizer.π I b := rfl
+
 @[reassoc]
 lemma condition (a) :
   I.fst a ≫ multicoequalizer.π I (I.fst_from a) =

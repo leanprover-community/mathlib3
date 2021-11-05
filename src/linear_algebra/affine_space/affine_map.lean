@@ -170,7 +170,7 @@ instance : add_comm_group (P1 →ᵃ[k] V2) :=
 { zero := ⟨0, 0, λ p v, (zero_vadd _ _).symm⟩,
   add := λ f g, ⟨f + g, f.linear + g.linear, λ p v, by simp [add_add_add_comm]⟩,
   sub := λ f g, ⟨f - g, f.linear - g.linear, λ p v, by simp [sub_add_comm]⟩,
-  sub_eq_add_neg := λ f g, by { ext, exact sub_eq_add_neg (f p) (g p), },
+  sub_eq_add_neg := λ f g, ext $ λ p, sub_eq_add_neg _ _,
   neg := λ f, ⟨-f, -f.linear, λ p v, by simp [add_comm]⟩,
   add_assoc := λ f₁ f₂ f₃, ext $ λ p, add_assoc _ _ _,
   zero_add := λ f, ext $ λ p, zero_add (f p),
@@ -183,8 +183,9 @@ instance : add_comm_group (P1 →ᵃ[k] V2) :=
 @[simp, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
 @[simp, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
 @[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := rfl
-@[simp]
-lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
+@[simp] lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
+@[simp] lemma sub_linear (f g : P1 →ᵃ[k] V2) : (f - g).linear = f.linear - g.linear := rfl
+@[simp] lemma neg_linear (f : P1 →ᵃ[k] V2) : (-f).linear = -f.linear := rfl
 
 /-- The space of affine maps from `P1` to `P2` is an affine space over the space of affine maps
 from `P1` to the vector space `V2` corresponding to `P2`. -/

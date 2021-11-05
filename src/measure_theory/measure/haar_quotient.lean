@@ -33,7 +33,13 @@ notation `μ_ℝmodℤ` := measure_theory.measure.add_haar_measure
 
 instance : compact_space ℝmodℤ := sorry
 
-instance : t2_space ℝmodℤ := sorry
+instance : t2_space ℝmodℤ :=
+{ t2 := begin
+  intros x y hxy,
+  sorry,
+end }
+
+instance : separated_space (metric.sphere (0:ℝ) 1) := to_separated
 
 instance : topological_space.second_countable_topology ℝmodℤ := sorry
 

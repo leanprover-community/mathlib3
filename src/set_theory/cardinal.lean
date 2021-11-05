@@ -228,8 +228,10 @@ induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le }
 @[simps { fully_applied := ff }] def lift_order_embedding : cardinal.{v} ↪o cardinal.{max v u} :=
 order_embedding.of_map_le_iff lift (λ _ _, lift_le)
 
+theorem lift_injective : injective lift.{u v} := lift_order_embedding.injective
+
 @[simp] theorem lift_inj {a b : cardinal} : lift a = lift b ↔ a = b :=
-lift_order_embedding.injective.eq_iff
+lift_injective.eq_iff
 
 @[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
 lift_order_embedding.lt_iff_lt
@@ -242,6 +244,9 @@ instance : inhabited cardinal.{u} := ⟨0⟩
 (equiv.equiv_pempty α).cardinal_eq
 
 @[simp] theorem lift_zero : lift 0 = 0 := mk_congr (equiv.equiv_pempty _)
+
+@[simp] theorem lift_eq_zero {a : cardinal.{v}} : lift.{u} a = 0 ↔ a = 0 :=
+lift_injective.eq_iff' lift_zero
 
 lemma mk_eq_zero_iff {α : Type u} : #α = 0 ↔ is_empty α :=
 ⟨λ e, let ⟨h⟩ := quotient.exact e in h.is_empty, @mk_eq_zero α⟩
@@ -757,15 +762,15 @@ by rw [← lift_omega, lift_le]
 | (n+1) := by rw [nat.cast_succ, ← mk_fin]; exact
   quotient.sound (fintype.card_eq.1 $ by simp)
 
-@[simp] theorem lift_nat_cast (n : ℕ) : lift n = n :=
+@[simp] theorem lift_nat_cast (n : ℕ) : lift.{u} (n : cardinal.{v}) = n :=
 by induction n; simp *
 
-lemma lift_eq_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a = n ↔ a = n :=
-by rw [← lift_nat_cast.{u v} n, lift_inj]
+@[simp] lemma lift_eq_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a = n ↔ a = n :=
+lift_injective.eq_iff' (lift_nat_cast n)
 
-lemma nat_eq_lift_eq_iff {n : ℕ} {a : cardinal.{u}} :
+@[simp] lemma nat_eq_lift_iff {n : ℕ} {a : cardinal.{u}} :
   (n : cardinal) = lift.{v} a ↔ (n : cardinal) = a :=
-by rw [← lift_nat_cast.{u v} n, lift_inj]
+by rw [← lift_nat_cast.{v} n, lift_inj]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 

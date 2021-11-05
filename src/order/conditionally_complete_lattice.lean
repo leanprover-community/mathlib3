@@ -535,7 +535,7 @@ lemma csupr_mem_Inter_Icc_of_antitone_Icc [semilattice_sup β]
 monotone.csupr_mem_Inter_Icc_of_antitone (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).1)
   (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).2) h'
 
-lemma csupr_mem_Inter_Icc_of_antitone_nontrivial_interval [nonempty β] [semilattice_sup β]
+lemma csupr_mem_Inter_Icc_of_antitone_nontrivial_interval [semilattice_sup β]
   {f : β → nontrivial_interval α} (h : antitone f) :
   (⨆ n, (f n).left) ∈ ⋂ n, (f n).Icc :=
 csupr_mem_Inter_Icc_of_antitone_Icc (nontrivial_interval.Icc.monotone.comp_antitone h) $

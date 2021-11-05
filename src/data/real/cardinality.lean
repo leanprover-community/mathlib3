@@ -42,19 +42,21 @@ continuum, cardinality, reals, cardinality of the reals
 -/
 
 open nat set
-open_locale cardinal
+open_locale cardinal interval
 noncomputable theory
 
 namespace cardinal
 
-/-- The cardinality of the reals, as a type. -/
-@[simp] lemma mk_real : #ℝ = 𝔠 :=
+instance : has_card_continuum ℝ :=
 begin
-  apply le_antisymm _ (le_mk_of_conditionally_complete_lattice ℝ),
-  rw real.equiv_Cauchy.cardinal_eq,
+  refine ⟨le_antisymm _ (continuum_le_mk ℝ)⟩,
+  rw mk_congr real.equiv_Cauchy,
   apply mk_quotient_le.trans, apply (mk_subtype_le _).trans,
-  rw [←power_def, mk_nat, mk_rat, power_self_eq (le_refl _)]
+  simp
 end
+
+/-- The cardinality of the reals, as a type. -/
+@[simp] lemma mk_real : #ℝ = 𝔠 := mk_eq_continuum ℝ
 
 /-- The cardinality of the reals, as a set. -/
 lemma mk_univ_real : #(set.univ : set ℝ) = 𝔠 :=
@@ -62,44 +64,44 @@ by rw [mk_univ, mk_real]
 
 /-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
 lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-not_countable_of_mk_eq_two_pow_omega _ mk_univ_real
+not_countable_of_continuum_le_mk _ mk_univ_real.ge
 
 /-- The cardinality of the interval (a, b). -/
-@[simp] lemma mk_Ioo_real {a b : ℝ} (h : a < b) : #(Ioo a b) = 2 ^ omega.{0} :=
-le_antisymm (mk_real ▸ mk_set_le _) $ le_mk_Ioo h
+@[simp] lemma mk_Ioo_real {a b : ℝ} (h : a < b) : #(Ioo a b) = 𝔠 :=
+mk_Ioo_eq_continuum h
 
 /-- The cardinality of the interval (a, ∞). -/
-lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 2 ^ omega.{0} :=
-le_antisymm (mk_real ▸ mk_set_le _) $
-  mk_Ioo_real (lt_add_one a) ▸ mk_le_mk_of_subset Ioo_subset_Ioi_self
+lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 𝔠 :=
+mk_Ioi_eq_continuum a
 
 /-- The cardinality of the interval [a, ∞). -/
 lemma mk_Ici_real (a : ℝ) : #(Ici a) = 𝔠 :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioi_real a ▸ mk_le_mk_of_subset Ioi_subset_Ici_self)
+mk_Ici_eq_continuum a
 
 /-- The cardinality of the interval (-∞, a). -/
 lemma mk_Iio_real (a : ℝ) : #(Iio a) = 𝔠 :=
-begin
-  refine le_antisymm (mk_real ▸ mk_set_le _) _,
-  have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
-  { convert image_const_sub_Iio _ _, simp },
-  exact mk_Ioi_real a ▸ h2 ▸ mk_image_le
-end
+mk_Iio_eq_continuum a
 
 /-- The cardinality of the interval (-∞, a]. -/
 lemma mk_Iic_real (a : ℝ) : #(Iic a) = 𝔠 :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
+mk_Iic_eq_continuum a
 
 /-- The cardinality of the interval [a, b). -/
 lemma mk_Ico_real {a b : ℝ} (h : a < b) : #(Ico a b) = 𝔠 :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ico_self)
+mk_Ico_eq_continuum h
 
 /-- The cardinality of the interval [a, b]. -/
 lemma mk_Icc_real {a b : ℝ} (h : a < b) : #(Icc a b) = 𝔠 :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Icc_self)
+mk_Icc_eq_continuum h
 
 /-- The cardinality of the interval (a, b]. -/
 lemma mk_Ioc_real {a b : ℝ} (h : a < b) : #(Ioc a b) = 𝔠 :=
-le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ioc_self)
+mk_Ioc_eq_continuum h
+
+lemma mk_interval_real {a b : ℝ} (h : a ≠ b) : #([a, b]) = 𝔠 :=
+mk_Icc_real $ min_lt_max.2 h
+
+lemma mk_interval_oc_real {a b : ℝ} (h : a ≠ b) : #(Ι a b) = 𝔠 :=
+mk_Ioc_real $ min_lt_max.2 h
 
 end cardinal

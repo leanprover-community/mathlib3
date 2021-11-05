@@ -56,7 +56,7 @@ lemma continuum_ne_zero : 𝔠 ≠ 0 := continuum_pos.ne'
 
 lemma _root_.set.not_countable_of_continuum_le_mk {α : Type*} (s : set α) (hs : 𝔠 ≤ #s) :
   ¬s.countable :=
-by { rw [countable_iff, not_le], exact omega_lt_continuum.trans_le hs }
+by { rw [← mk_set_le_omega, not_le], exact omega_lt_continuum.trans_le hs }
 
 /-!
 ### Addition
@@ -122,11 +122,19 @@ class has_card_continuum (α : Type u) : Prop :=
 export has_card_continuum (mk_eq_continuum)
 attribute [simp] mk_eq_continuum
 
+instance _root_.set.univ.has_card_continuum {α} [has_card_continuum α] :
+  has_card_continuum (set.univ : set α) :=
+⟨mk_univ.trans (mk_eq_continuum _)⟩
+
 /-- A typeclass saying that `cardinal.mk α ≤ cardinal.continuum`. -/
 class has_card_le_continuum (α : Type u) : Prop :=
 (mk_le_continuum [] : #α ≤ 𝔠)
 
 export has_card_le_continuum (mk_le_continuum)
+
+instance _root_.set.univ.has_card_le_continuum {α} [has_card_le_continuum α] :
+  has_card_le_continuum (set.univ : set α) :=
+⟨mk_univ.trans_le (mk_le_continuum _)⟩
 
 @[priority 100] -- See Note [lower instance priority]
 instance has_card_continuum.to_has_card_le_continuum (α : Type u) [has_card_continuum α] :
@@ -161,7 +169,7 @@ lemma equiv.has_card_continuum_congr {α : Type u} {β : Type v} (e : α ≃ β)
 
 instance (α : Type u) (π : α → Type v) [denumerable α] [∀ a, nontrivial (π a)]
   [Π a, encodable (π a)] : has_card_continuum (Π a, π a) :=
-⟨calc #(Π a, π a) = prod (λ a : α, #(π a)) : (prod_mk _).symm
+⟨calc #(Π a, π a) = prod (λ a : α, #(π a)) : mk_pi _
               ... = 2 ^ lift.{v} (#α)      :
    prod_eq_two_power (λ i, two_le_iff.2 $ exists_pair_ne _) $ λ i, by simp
               ... = 𝔠                      : by simp⟩
@@ -179,7 +187,7 @@ instance prod.has_card_continuum_left (α : Type u) (β : Type v)
 ⟨begin
   rw [mk_prod, mk_eq_continuum, lift_continuum, mul_eq_left omega_le_continuum],
   { simp [mk_le_continuum] },
-  { rwa [lift_mk, ne_zero_iff_nonempty, nonempty_ulift] }
+  { rw [ne.def, lift_eq_zero], exact mk_ne_zero β }
 end⟩
 
 instance prod.has_card_continuum_right (α : Type u) (β : Type v)

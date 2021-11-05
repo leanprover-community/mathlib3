@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import set_theory.continuum
-import data.stream
+import data.stream.basic
 import data.setoid.basic
 import order.pilex
 import order.conditionally_complete_lattice
@@ -255,8 +255,7 @@ lemma strict_mono_decode_out (I : nontrivial_interval α) :
   strict_mono (λ x : quotient binary_fraction.setoid, x.out.decode choice I) :=
 λ x y h, decode_lt_of_lt_not_equiv _ _ h $ λ H, h.ne $ quotient.out_equiv_out.1 H
 
-instance : has_card_continuum binary_fraction :=
-⟨by rw [binary_fraction, ← power_def, mk_nat, mk_bool, continuum]⟩
+instance : has_card_continuum binary_fraction := pi.has_card_continuum _ _
 
 instance : has_card_continuum (quotient binary_fraction.setoid) :=
 ⟨begin

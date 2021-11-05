@@ -68,3 +68,52 @@ variables {R}
 
 localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
 localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
+
+namespace tensor_product
+
+instance : add_zero_class (M ⊗[R] N) :=
+{ .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
+
+instance : add_comm_semigroup (M ⊗[R] N) :=
+{ add_comm := λ x y, add_con.induction_on₂ x y $ λ x y, quotient.sound' $
+    add_con_gen.rel.of _ _ $ eqv.add_comm _ _,
+  .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
+
+instance : inhabited (M ⊗[R] N) := ⟨0⟩
+
+variables (R) {M N}
+/-- The canonical function `M → N → M ⊗ N`. The localized notations are `m ⊗ₜ n` and `m ⊗ₜ[R] n`,
+accessed by `open_locale tensor_product`. -/
+def tmul (m : M) (n : N) : M ⊗[R] N := add_con.mk' _ $ free_add_monoid.of (m, n)
+variables {R}
+
+infix ` ⊗ₜ `:100 := tmul _
+notation x ` ⊗ₜ[`:100 R `] `:0 y:100 := tmul R x y
+
+@[elab_as_eliminator]
+protected theorem induction_on
+  {C : (M ⊗[R] N) → Prop}
+  (z : M ⊗[R] N)
+  (C0 : C 0)
+  (C1 : ∀ {x : M}{y : N}, C $ x ⊗ₜ[R] y)
+  (Cp : ∀ {x y}, C x → C y → C (x + y)) : C z :=
+add_con.induction_on z $ λ x, free_add_monoid.rec_on x C0 $ λ ⟨m, n⟩ y ih,
+by { rw add_con.coe_add, exact Cp C1 ih }
+
+variables (M)
+@[simp] lemma zero_tmul (n : N) : (0 : M) ⊗ₜ[R] n = 0 :=
+quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_left _
+variables {M}
+
+lemma add_tmul (m₁ m₂ : M) (n : N) : (m₁ + m₂) ⊗ₜ n = m₁ ⊗ₜ n + m₂ ⊗ₜ[R] n :=
+eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_left _ _ _
+
+variables (N)
+@[simp] lemma tmul_zero (m : M) : m ⊗ₜ[R] (0 : N) = 0 :=
+quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_right _
+variables {N}
+
+lemma tmul_add (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ + n₂) = m ⊗ₜ n₁ + m ⊗ₜ[R] n₂ :=
+eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_right _ _ _
+
+end tensor_product

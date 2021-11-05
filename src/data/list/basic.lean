@@ -2732,11 +2732,11 @@ Instead we write the statement in terms of `(L.nth 0).get_or_else 1`,
 and below, restate the lemma just for `ℕ`.
 -/
 @[to_additive]
-lemma head_mul_tail_prod' [monoid α] (L : list α) :
+lemma nth_zero_mul_tail_prod [monoid α] (L : list α) :
   (L.nth 0).get_or_else 1 * L.tail.prod = L.prod :=
 by cases L; simp
 
-/-- In the case where thge list is not empty the above complication can be avoided. -/
+/-- In the case where the list is not empty the above complication can be avoided. -/
 @[to_additive]
 lemma head_mul_tail_prod_of_ne_nil [monoid α] [inhabited α] (L : list α) (h: L ≠ []) :
   L.head * L.tail.prod = L.prod :=

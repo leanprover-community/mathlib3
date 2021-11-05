@@ -10,7 +10,8 @@ import category_theory.limits.shapes.binary_products
 # Open immersions of presheafed spaces
 
 We say that a morphism of presheaved spaces `f : X ⟶ Y` is an open immersions if
-the underlying map of spaces is an open embedding `f : X ⟶ U ⊆ Y`, and `f : 𝒪_Y ⟶ f _* ℱ ` factors through
+the underlying map of spaces is an open embedding `f : X ⟶ U ⊆ Y`,
+and `f : 𝒪_Y ⟶ f _* ℱ ` factors through
 `of_restrict : Y|ᵤ ⟶ Y` via some isomorphism `X ≅ Y|ᵤ`.
 
 We also proves that the pullback of two presheaved spaces exists, and is also an open immersion.

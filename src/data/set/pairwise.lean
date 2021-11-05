@@ -197,19 +197,6 @@ end
 
 alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
 
-lemma pairwise_subtype_iff_pairwise_set {α : Type*} (s : set α) (r : α → α → Prop) :
-  pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise r :=
-begin
-  split,
-  { assume h x hx y hy hxy,
-    exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
-  { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-    simp only [subtype.mk_eq_mk, ne.def] at hxy,
-    exact h x hx y hy hxy }
-end
-
-alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
-
 namespace set
 section semilattice_inf_bot
 variables [semilattice_inf_bot α] {s t : set ι} {f g : ι → α}

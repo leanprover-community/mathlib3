@@ -23,9 +23,10 @@ will result in a multiplicative inverse to `A`.
 Note that there are at least three different inverses in mathlib:
 
 * `A⁻¹` (`has_inv.inv`): alone, this satisfies no properties, although it is usually used in
-  conjunction with `group` or `group_with_zero`. On matrices, this is defined to be zero when no inverse exists.
-* `⅟A` (`inv_of`): this is only available in the presence of `[invertible A]`, which guarantees an inverse
-  exists.
+  conjunction with `group` or `group_with_zero`. On matrices, this is defined to be zero when no
+  inverse exists.
+* `⅟A` (`inv_of`): this is only available in the presence of `[invertible A]`, which guarantees an
+  inverse exists.
 * `ring.inverse A`: this is defined on any `monoid_with_zero`, and just like `⁻¹` on matrices, is
   defined to be zero when no inverse exists.
 

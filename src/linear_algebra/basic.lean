@@ -1062,7 +1062,7 @@ span_eq_of_le _ (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mono $ subset
 
 lemma span_span : span R (span R s : set M) = span R s := span_eq _
 
-variables (R S)
+variables (R S s)
 
 /-- If `R` is "smaller" ring than `S` then the span by `R` is smaller than the span by `S`. -/
 lemma span_le_restrict_scalars [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
@@ -1072,15 +1072,15 @@ submodule.span_le.2 submodule.subset_span
 /-- A version of `submodule.span_le_restrict_scalars` with coercions. -/
 @[simp] lemma span_subset_span [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
   ↑(span R s) ⊆ (span S s : set M) :=
-span_le_restrict_scalars R S
+span_le_restrict_scalars R S s
 
 /-- Taking the span by a large ring of the span by the small ring is the same as taking the span
 by just the large ring. -/
 lemma span_span_of_tower [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
   span S (span R s : set M) = span S s :=
-le_antisymm (span_le.2 $ span_subset_span R S) (span_mono subset_span)
+le_antisymm (span_le.2 $ span_subset_span R S s) (span_mono subset_span)
 
-variables {R S}
+variables {R S s}
 
 lemma span_eq_bot : span R (s : set M) = ⊥ ↔ ∀ x ∈ s, (x:M) = 0 :=
 eq_bot_iff.trans ⟨

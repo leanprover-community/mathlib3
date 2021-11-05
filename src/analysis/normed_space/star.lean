@@ -48,8 +48,7 @@ instance cstar_ring.to_normed_star_monoid {E : Type*} [normed_ring E] [star_ring
   intro x,
   by_cases htriv : x = 0,
   { simp only [htriv, star_zero] },
-  { change x ≠ 0 at htriv,
-    have hnt : 0 < ∥x∥ := norm_pos_iff.mpr htriv,
+  { have hnt : 0 < ∥x∥ := norm_pos_iff.mpr htriv,
     have hnt_star : 0 < ∥x⋆∥ :=
       norm_pos_iff.mpr ((add_equiv.map_ne_zero_iff star_add_equiv).mpr htriv),
     have h₁ := calc

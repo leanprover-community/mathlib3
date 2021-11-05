@@ -117,6 +117,9 @@ le_of_le_mul_right h (by simpa [h] using hab)
 lemma mul_inv_le_of_le_mul (h : c ≠ 0) (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
 le_of_le_mul_right h (by simpa [h] using hab)
 
+lemma mul_inv_le_iff₀ (hb : b ≠ 0) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
+⟨λ h, inv_inv₀ b ▸ le_mul_inv_of_mul_le (inv_ne_zero hb) h, mul_inv_le_of_le_mul hb⟩
+
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 if ha : a = 0 then by simp [ha] else
@@ -176,9 +179,6 @@ lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
 
 lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
-
-lemma mul_inv_le_iff₀ (hb : b ≠ 0) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
-⟨λ h, inv_inv₀ b ▸ le_mul_inv_of_mul_le (inv_ne_zero hb) h, mul_inv_le_of_le_mul hb⟩
 
 lemma div_le_iff₀ (hb : b ≠ 0) : a/b ≤ c ↔ a ≤ c*b :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hb]

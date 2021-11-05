@@ -303,18 +303,18 @@ lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
     exact ⟨h₁.hcomp h₂⟩,
   end p q := rfl
 
--- example : category_theory.functor Top category_theory.Groupoid :=
--- { obj := λ t, category_theory.bundled.of (fundamental_groupoid t),
---   map := λ X Y f,
---     { obj := f,
---       map := λ x y p, quotient.lift (λ q, ⟦path.map q f.continuous⟧) begin
---         rintros a b h,
---         rw quotient.eq,
---         exact h.map f
---       end p,
---       map_id' := λ x, rfl,
---       map_comp' := λ x y z p₀ p₁, quotient.induction_on₂ p₀ p₁ (λ q₀ q₁, by { simp [comp_eq], }) },
---   map_id' := _,
---   map_comp' := _ }
+example : category_theory.functor Top category_theory.Groupoid :=
+{ obj := λ t, category_theory.bundled.of (fundamental_groupoid t),
+  map := λ X Y f,
+    { obj := f,
+      map := λ x y p, quotient.lift (λ q, ⟦path.map q f.continuous⟧) begin
+        rintros a b h,
+        rw quotient.eq,
+        exact h.map f
+      end p,
+      map_id' := λ x, rfl,
+      map_comp' := λ x y z p₀ p₁, quotient.induction_on₂ p₀ p₁ (λ q₀ q₁, by simp [comp_eq]) },
+  map_id' := λ X, by sorry,
+  map_comp' := sorry }
 
 end fundamental_groupoid

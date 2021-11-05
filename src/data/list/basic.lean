@@ -2737,6 +2737,11 @@ lemma head_mul_tail_prod' [monoid α] (L : list α) :
   (L.nth 0).get_or_else 1 * L.tail.prod = L.prod :=
 by cases L; simp
 
+-- In the case where L is not empty the above complication can be avoided
+lemma nonempty_head_mul_tail_prod [monoid α] [inhabited α] (L : list α) (h: L ≠ list.nil) :
+  L.head * L.tail.prod = L.prod :=
+by {cases L, { contradiction }, { simp }}
+
 lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
 by { cases L, { simp, refl, }, { simp, }, }
 
@@ -2745,6 +2750,11 @@ nat.le.intro (head_add_tail_sum L)
 
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
+
+-- The product of a list of positive natural numbers is positive
+lemma pos_list_nat_prod_pos (L : list ℕ) (h: ∀ n ∈ L, 0 < n) : 0 < L.prod :=
+by {rw pos_iff_ne_zero, apply list.prod_ne_zero (λ H, lt_irrefl 0 (h 0 H))}
+
 
 section
 variables {G : Type*} [comm_group G]

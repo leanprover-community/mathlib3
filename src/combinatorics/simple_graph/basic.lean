@@ -94,7 +94,6 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
   symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
-
 noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
 by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
@@ -142,9 +141,9 @@ rfl
 lemma support_mono (H: simple_graph V) : H ≤ G → H.support ≤ G.support :=
 begin
   intros h v hv,
-  -- simp [←is_subgraph_eq_le, is_subgraph] at h,
+  rw [←is_subgraph_eq_le, is_subgraph] at h,
   rw mem_support at hv,
-  choose w hw using hv,
+  cases hv with w hw,
   use w,
   simp [hw, h, adj_comm],
 end

@@ -169,6 +169,8 @@ def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' =
 instance : add_comm_group (P1 →ᵃ[k] V2) :=
 { zero := ⟨0, 0, λ p v, (zero_vadd _ _).symm⟩,
   add := λ f g, ⟨f + g, f.linear + g.linear, λ p v, by simp [add_add_add_comm]⟩,
+  sub := λ f g, ⟨f - g, f.linear - g.linear, λ p v, by simp [sub_add_comm]⟩,
+  sub_eq_add_neg := λ f g, by { ext, exact sub_eq_add_neg (f p) (g p), },
   neg := λ f, ⟨-f, -f.linear, λ p v, by simp [add_comm]⟩,
   add_assoc := λ f₁ f₂ f₃, ext $ λ p, add_assoc _ _ _,
   zero_add := λ f, ext $ λ p, zero_add (f p),
@@ -180,7 +182,7 @@ instance : add_comm_group (P1 →ᵃ[k] V2) :=
 @[simp] lemma zero_linear : (0 : P1 →ᵃ[k] V2).linear = 0 := rfl
 @[simp, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
 @[simp, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
-@[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := by simp [sub_eq_add_neg]
+@[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := rfl
 @[simp]
 lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
 

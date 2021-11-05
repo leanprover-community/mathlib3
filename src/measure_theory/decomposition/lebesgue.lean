@@ -1201,8 +1201,8 @@ namespace complex_measure
 /-- A complex measure is said to `have_lebesgue_decomposition` with respect to a positive measure
 if both its real and imaginary part `have_lebesgue_decomposition` with respect to that measure. -/
 class have_lebesgue_decomposition (c : complex_measure α) (μ : measure α) : Prop :=
-(re_part : c.re_part.have_lebesgue_decomposition μ)
-(im_part : c.im_part.have_lebesgue_decomposition μ)
+(re_part : c.re.have_lebesgue_decomposition μ)
+(im_part : c.im.have_lebesgue_decomposition μ)
 
 attribute [instance] have_lebesgue_decomposition.re_part
 attribute [instance] have_lebesgue_decomposition.im_part
@@ -1211,11 +1211,11 @@ attribute [instance] have_lebesgue_decomposition.im_part
 measure satisfying `c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c`. This property is given
 by `measure_theory.complex_measure.singular_part_add_with_density_rn_deriv_eq`. -/
 def singular_part (c : complex_measure α) (μ : measure α) : complex_measure α :=
-(c.re_part.singular_part μ).to_complex_measure (c.im_part.singular_part μ)
+(c.re.singular_part μ).to_complex_measure (c.im.singular_part μ)
 
 /-- The Radon-Nikodym derivative between a complex measure and a positive measure. -/
 def rn_deriv (c : complex_measure α) (μ : measure α) : α → ℂ := λ x,
-⟨c.re_part.rn_deriv μ x, c.im_part.rn_deriv μ x⟩
+⟨c.re.rn_deriv μ x, c.im.rn_deriv μ x⟩
 
 variable {c : complex_measure α}
 
@@ -1233,23 +1233,23 @@ begin
   conv_rhs { rw [← c.to_complex_measure_to_signed_measure] },
   ext i hi,
   { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
-        complex.add_re, re_part_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
+        complex.add_re, re_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
         ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
     suffices : (c.singular_part μ i).re + ∫ x in i, (c.rn_deriv μ x).re ∂μ = (c i).re,
     { simpa },
     rw [← with_densityᵥ_apply _ hi],
-    { change (c.re_part.singular_part μ + μ.with_densityᵥ (c.re_part.rn_deriv μ)) i = _,
-      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ (re_part c) _,
+    { change (c.re.singular_part μ + μ.with_densityᵥ (c.re.rn_deriv μ)) i = _,
+      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ c.re _,
       refl },
     { exact (signed_measure.integrable_rn_deriv _ _) } },
   { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
-        complex.add_im, im_part_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
+        complex.add_im, im_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
         ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
     suffices : (c.singular_part μ i).im + ∫ x in i, (c.rn_deriv μ x).im ∂μ = (c i).im,
     { simpa },
     rw [← with_densityᵥ_apply _ hi],
-    { change (c.im_part.singular_part μ + μ.with_densityᵥ (c.im_part.rn_deriv μ)) i = _,
-      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ (im_part c) _,
+    { change (c.im.singular_part μ + μ.with_densityᵥ (c.im.rn_deriv μ)) i = _,
+      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ c.im _,
       refl },
     { exact (signed_measure.integrable_rn_deriv _ _) } }
 end

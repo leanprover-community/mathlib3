@@ -77,15 +77,15 @@ lemma Ico_filter_lt_of_le_right [decidable_pred (< c)] (hcb : c ≤ b) :
   (Ico a b).filter (λ x, x < c) = Ico a c :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_lt_of_le_right hcb], refl }
 
-lemma Ico_filter_le_of_le_left [decidable_pred (c ≤)] (hca : c ≤ a) :
+lemma Ico_filter_le_of_le_left [decidable_pred ((≤) c)] (hca : c ≤ a) :
   (Ico a b).filter (λ x, c ≤ x) = Ico a b :=
 by rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_le_left hca]
 
-lemma Ico_filter_le_of_right_le [decidable_pred (b ≤)] :
+lemma Ico_filter_le_of_right_le [decidable_pred ((≤) b)] :
   (Ico a b).filter (λ x, b ≤ x) = ∅ :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_right_le], refl }
 
-lemma Ico_filter_le_of_left_le [decidable_pred (c ≤)] (hac : a ≤ c) :
+lemma Ico_filter_le_of_left_le [decidable_pred ((≤) c)] (hac : a ≤ c) :
   (Ico a b).filter (λ x, c ≤ x) = Ico c b :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_left_le hac], refl }
 

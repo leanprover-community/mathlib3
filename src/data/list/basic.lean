@@ -2738,7 +2738,8 @@ lemma head_mul_tail_prod' [monoid α] (L : list α) :
 by cases L; simp
 
 -- In the case where L is not empty the above complication can be avoided
-lemma nonempty_head_mul_tail_prod [monoid α] [inhabited α] (L : list α) (h: L ≠ list.nil) :
+@[to_additive head_add_tail_sum']
+lemma head_mul_tail_prod [monoid α] [inhabited α] (L : list α) (h: L ≠ []) :
   L.head * L.tail.prod = L.prod :=
 by {cases L, { contradiction }, { simp }}
 

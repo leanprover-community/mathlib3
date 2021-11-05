@@ -235,7 +235,7 @@ def support : set V := rel.image G.adj set.univ
 lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w :=
   by simp [support, rel.mem_image, adj_comm]
 
-lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ≤ G'.support :=
+lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ⊆ G'.support :=
 begin
   intros v hv,
   rw [← is_subgraph_eq_le, is_subgraph] at h,

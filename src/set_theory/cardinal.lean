@@ -774,16 +774,18 @@ by rw [← lift_nat_cast.{v} n, lift_inj]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 
-theorem fintype_card (α : Type u) [fintype α] : #α = fintype.card α :=
+@[simp] theorem mk_fintype (α : Type u) [fintype α] : #α = fintype.card α :=
 by rw [← lift_mk_fin.{u}, ← lift_id (#α), lift_mk_eq.{u 0 u}];
    exact fintype.card_eq.1 (by simp)
+
+lemma mk_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
 
 theorem card_le_of_finset {α} (s : finset α) :
   (s.card : cardinal) ≤ #α :=
 begin
   rw (_ : (s.card : cardinal) = #s),
   { exact ⟨function.embedding.subtype _⟩ },
-  rw [cardinal.fintype_card, fintype.card_coe]
+  rw [cardinal.mk_fintype, fintype.card_coe]
 end
 
 @[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
@@ -843,9 +845,8 @@ theorem lt_omega {c : cardinal.{u}} : c < ω ↔ ∃ n : ℕ, c = n :=
   rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
   rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
   suffices : finite S,
-  { casesI this,
-    existsi fintype.card S,
-    rw [lift_eq_nat_iff, fintype_card S] },
+  { lift S to finset ℕ using this,
+    simp },
   contrapose! h',
   haveI := infinite.to_subtype h',
   exact ⟨infinite.nat_embedding S⟩
@@ -863,7 +864,7 @@ lt_omega.trans ⟨λ ⟨n, e⟩, begin
   rw [← lift_mk_fin n] at e,
   cases quotient.exact e with f,
   exact ⟨fintype.of_equiv _ f.symm⟩
-end, λ ⟨_⟩, by exactI ⟨_, fintype_card _⟩⟩
+end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
 
 theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ finite S :=
 lt_omega_iff_fintype.trans finite_def.symm
@@ -996,9 +997,7 @@ lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
 lemma mk_to_nat_of_infinite [h : infinite α] : (#α).to_nat = 0 :=
 dif_neg (not_lt_of_le (infinite_iff.1 h))
 
-@[simp]
-lemma mk_to_nat_eq_card [fintype α] : (#α).to_nat = fintype.card α :=
-by simp [fintype_card]
+lemma mk_to_nat_eq_card [fintype α] : (#α).to_nat = fintype.card α := by simp
 
 @[simp]
 lemma zero_to_nat : to_nat 0 = 0 :=
@@ -1101,9 +1100,8 @@ begin
     (λ n, ⟨n, to_enat_cast n⟩),
 end
 
-@[simp]
 lemma mk_to_enat_eq_coe_card [fintype α] : (#α).to_enat = fintype.card α :=
-by simp [fintype_card]
+by simp
 
 lemma mk_int : #ℤ = ω := mk_denumerable ℤ
 
@@ -1212,11 +1210,7 @@ mk_congr ((equiv.of_injective f h).symm)
 
 lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{u} (#(range f)) = lift.{v} (#α) :=
-begin
-  have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.of_injective f hf).symm⟩,
-  simp only [lift_umax.{u v}, lift_umax.{v u}] at this,
-  exact this
-end
+lift_mk_eq'.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{(max u w)} (# (range f)) = lift.{(max v w)} (# α) :=
@@ -1247,9 +1241,6 @@ lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
   #(⋃(x ∈ s), A x) ≤ #s * cardinal.sup.{u u} (λ x : s, #(A x.1)) :=
 by { rw [bUnion_eq_Union], apply mk_Union_le }
 
-@[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = #s :=
-by rw [fintype_card, nat_cast_inj, fintype.card_coe]
-
 lemma finset_card_lt_omega (s : finset α) : #(↑s : set α) < ω :=
 by { rw [lt_omega_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
 
@@ -1258,11 +1249,10 @@ theorem mk_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
 begin
   split,
   { intro h,
-    have : # s < omega, by { rw h, exact nat_lt_omega n },
-    refine ⟨(lt_omega_iff_finite.1 this).to_finset, finite.coe_to_finset _, nat_cast_inj.1 _⟩,
-    rwa [finset_card, finite.coe_sort_to_finset] },
+    lift s to finset α using lt_omega_iff_finite.1 (h.symm ▸ nat_lt_omega n),
+    simpa using h },
   { rintro ⟨t, rfl, rfl⟩,
-    exact finset_card.symm }
+    exact mk_finset }
 end
 
 theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :

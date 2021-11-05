@@ -55,8 +55,8 @@ Among others, we provide `fintype` instances for
 * `Prop`.
 
 and `infinite` instances for
-* `ℕ`
-* `ℤ`
+* specific types: `ℕ`, `ℤ`
+* type constructors: `set α`, `finset α`, `multiset α`, `list α`, `α ⊕ β`
 
 along with some machinery
 * Types which have a surjection from/an injection to a `fintype` are themselves fintypes. See
@@ -1709,6 +1709,12 @@ end
 instance [nonempty α] : infinite (list α) :=
 of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
 
+instance sum_of_left [infinite α] : infinite (α ⊕ β) :=
+of_injective sum.inl sum.inl_injective
+
+instance sum_of_right [infinite β] : infinite (α ⊕ β) :=
+of_injective sum.inr sum.inr_injective
+
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α
 | n := by letI := classical.dec_eq α; exact classical.some (exists_not_mem_finset
   ((multiset.range n).pmap (λ m (hm : m < n), nat_embedding_aux m)
@@ -1739,6 +1745,13 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 ⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
+
+lemma infinite_sum : infinite (α ⊕ β) ↔ infinite α ∨ infinite β :=
+begin
+  refine ⟨λ H, _, λ H, H.elim (@infinite.sum_of_left α β) (@infinite.sum_of_right α β)⟩,
+  contrapose! H, haveI := fintype_of_not_infinite H.1, haveI := fintype_of_not_infinite H.2,
+  exact infinite.false
+end
 
 /-- If every finset in a type has bounded cardinality, that type is finite. -/
 noncomputable def fintype_of_finset_card_le {ι : Type*} (n : ℕ)

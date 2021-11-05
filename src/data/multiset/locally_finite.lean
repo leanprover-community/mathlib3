@@ -111,7 +111,7 @@ lemma Ico_disjoint_Ico {a b c d : α} (h : b ≤ c) : (Ico a b).disjoint (Ico c 
   Ico a b ∩ Ico c d = 0 :=
 multiset.inter_eq_zero_iff_disjoint.2 $ Ico_disjoint_Ico h
 
-lemma Ico_filter_le_left [decidable_pred (≤ a)] {a b : α} (hab : a < b) :
+lemma Ico_filter_le_left {a b : α} [decidable_pred (≤ a)] (hab : a < b) :
   (Ico a b).filter (λ x, x ≤ a) = {a} :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_left hab], refl }
 

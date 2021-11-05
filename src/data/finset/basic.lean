@@ -1120,7 +1120,7 @@ lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a �
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
 
 theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
-sup_sdiff_of_le h
+sup_sdiff_cancel_right h
 
 theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 (union_comm _ _).trans (union_sdiff_of_subset h)

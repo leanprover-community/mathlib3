@@ -37,6 +37,8 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_coe_to_fun (α →ᵇ β) (λ _, α → β) :=  ⟨λ f, f.to_fun⟩
 
+@[simp] lemma coe_to_continuous_fun (f : α →ᵇ β) : (f.to_continuous_map : α → β) = f := rfl
+
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
 def simps.apply (h : α →ᵇ β) : α → β := h
@@ -55,6 +57,9 @@ lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
 
 lemma bounded_range : bounded (range f) :=
 bounded_range_iff.2 f.bounded
+
+lemma eq_of_empty [is_empty α] (f g : α →ᵇ β) : f = g :=
+ext $ is_empty.elim ‹_›
 
 /-- A continuous function with an explicit bound is a bounded continuous function. -/
 def mk_of_bound (f : C(α, β)) (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
@@ -158,10 +163,6 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
 ⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_nonempty_compact⟩
 
-/-- On an empty space, bounded continuous functions are at distance 0 -/
-lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
-le_antisymm ((dist_le (le_refl _)).2 is_empty_elim) dist_nonneg'
-
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 instance : metric_space (α →ᵇ β) :=
 { dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
@@ -171,6 +172,10 @@ instance : metric_space (α →ᵇ β) :=
   dist_triangle := λ f g h,
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
+
+/-- On an empty space, bounded continuous functions are at distance 0 -/
+lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
+dist_eq_zero.2 (eq_of_empty f g)
 
 variables (α) {β}
 
@@ -243,6 +248,14 @@ end
 def comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) : δ →ᵇ β :=
 { to_continuous_map := f.1.comp g,
   bounded' := f.bounded'.imp (λ C hC x y, hC _ _) }
+
+lemma lipschitz_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, α)) :
+  lipschitz_with 1 (λ f : α →ᵇ β, f.comp_continuous g) :=
+lipschitz_with.mk_one $ λ f₁ f₂, (dist_le dist_nonneg).2 $ λ x, dist_coe_le_dist (g x)
+
+lemma continuous_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, α)) :
+  continuous (λ f : α →ᵇ β, f.comp_continuous g) :=
+(lipschitz_comp_continuous g).continuous
 
 /-- Restrict a bounded continuous function to a set. -/
 @[simps apply { fully_applied := ff }]
@@ -454,6 +467,9 @@ instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
 
 lemma forall_coe_zero_iff_zero (f : α →ᵇ β) : (∀x, f x = 0) ↔ f = 0 := (@ext_iff _ _ _ _ f 0).symm
 
+@[simp] lemma zero_comp_continuous [topological_space γ] (f : C(γ, α)) :
+  (0 : α →ᵇ β).comp_continuous f = 0 := rfl
+
 variables [has_lipschitz_add β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
@@ -474,6 +490,9 @@ instance : has_add (α →ᵇ β) :=
 
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
+
+lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
+  (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
 
 instance : add_monoid (α →ᵇ β) :=
 { add_assoc      := assume f g h, by ext; simp [add_assoc],
@@ -560,11 +579,7 @@ begin
 end
 
 @[simp] lemma norm_eq_zero_of_empty [h : is_empty α] : ∥f∥ = 0 :=
-begin
-  have h' : ∀ (C : ℝ) (x : α), ∥f x∥ ≤ C, { intros, exfalso, apply h.false, use x, },
-  simp only [norm_eq, h', and_true, implies_true_iff],
-  exact cInf_Ici,
-end
+dist_zero_of_empty
 
 lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
   ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]

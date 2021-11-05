@@ -134,98 +134,89 @@ begin
 end
 
 /--
-The union Union s of an increasing mapping s of preconnected sets
-is preconnected
+The union of an increasing family s of preconnected sets is preconnected.
 -/
 variables {ι : Type*} [linear_order ι]
 
 theorem is_preconnected.Union_of_monotone {s : ι → set α} (K : monotone s)
   (H : ∀ n: ι, is_preconnected (s n)) :
-  is_preconnected ( Union s ) :=
+  is_preconnected ⋃ i, s i :=
 begin
-  /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
-  rw is_preconnected,
-  intros u v hu hv Huv Ku Kv ,
-  obtain ⟨ a, Kua ⟩ : ∃ a, a ∈ Union s ∩ u, from Ku,
-  obtain ⟨ b, Kvb ⟩ : ∃ b, b ∈ Union s ∩ v, from Kv,
-  obtain ⟨ m, Kam ⟩ : ∃ m, a ∈ s m , from mem_Union.1 Kua.left,
-  obtain ⟨ n, Kbn ⟩ : ∃ n, b ∈ s n , from mem_Union.1 Kvb.left,
-
+  set S := ⋃ i, s i,
+  rintros u v hu hv Huv ⟨a, Kua⟩ ⟨b, Kvb⟩,
+  obtain ⟨m, asm : a ∈ s m⟩ := mem_Union.mp Kua.left,
+  obtain ⟨n, bsn : b ∈ s n⟩ := mem_Union.mp Kvb.left,
   revert a b u v,
-  /- WLOG, it suffices to treat the case where m ≤ n -/
   wlog hmn : m ≤ n := le_total m n using [m n, n m] tactic.skip,
-
-  intros a b u v hu hv , intro Huv, intros Ku Kv, intros Kua Kvb,
-  intros Kam Kbn,
-
-  have Kan : a ∈ s n := mem_of_mem_of_subset Kam (K hmn),
-
-  have Hnuv : ((s n) ∩ (u ∩ v)).nonempty,
-  { apply (H n), apply hu, apply hv,
-    apply has_subset.subset.trans (subset_Union s n) Huv,
-    apply nonempty_of_mem  (mem_inter Kan Kua.right),
-    apply nonempty_of_mem (mem_inter Kbn Kvb.right), },
-  have Knuv : ((s n) ∩ (u ∩ v)) ⊆ Union s ∩ (u ∩ v),
-  { apply inter_subset_inter,
-    apply subset_Union,
-    apply eq.subset, refl, },
-  exact nonempty.mono Knuv Hnuv,
-
-  /- The case n ≤ m is done by symmetry, using wlog -/
-  intros a b u v hu hv Huv Ku Kv Kau Kbv Kam Kbn,
-  rw union_comm at Huv,
-  rw inter_comm u v,
-  exact this b a v u hv hu Huv Kv Ku Kbv Kau Kbn Kam,
+  { rintros a b u v u_open v_open Huv ⟨aS, au⟩ ⟨bS, bv⟩ asm bsn,
+    have asn : a ∈ s n := mem_of_mem_of_subset asm (K hmn),
+    have Hnuv : ((s n) ∩ (u ∩ v)).nonempty,
+      from H n u v u_open v_open ((subset_Union s n).trans Huv) ⟨a, asn, au⟩ ⟨b, bsn, bv⟩,
+    have Knuv : ((s n) ∩ (u ∩ v)) ⊆ Union s ∩ (u ∩ v),
+      from inter_subset_inter_left _ (subset_Union s n),
+    exact Hnuv.mono Knuv },
+  { /- The case n ≤ m is done by symmetry, using wlog -/
+    intros a b u v hu hv S_sub_uv a_in_Su b_in_Sv a_in_sm b_in_sn,
+    rw union_comm at S_sub_uv,
+    rw inter_comm u v,
+    apply this ; assumption }
 end
 
-/- I would like to define filtered, more or less as in
- filtered (S : set (set Type*)) (s t) := s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s
- so that the argument K of the next theorem comes out as something like K: filtered S,
- but I don't know how to do it… (nor whether this is worth being done) -/
+/-
+ACL wanted the following definition, but I'm not sure it's worth the trouble.
+-/
+
+/-- A set of sets is filtered if if the inclusion relation is total on it. -/
+def set.is_filtered {α : Type*} (S : set (set α)) := ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s
+
+/-
+The above definition could be written as:
+def set.is_filtered' {α : Type*} (S : set (set α)) := is_total S (λ s t : S, (s : set α) ⊆ t)
+but that would be less convenient.
+
+We could also use
+def set.is_filtered' {α : Type*} (S : set (set α)) := zorn.chain (⊆) S
+which would be equivalent but only asks:
+∀ s t, s ∈ S → t ∈ S → → s ≠ t → s ⊆ t ∨ t ⊆ s
+-/
 
 /-- The filtered sUnion of a set S of preconnected subsets is preconnected -/
 theorem is_preconnected.filtered_sUnion_of {S : set (set α)}
-  (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s)
-  (H : ∀ s, s ∈ S → is_preconnected s ) :
-  is_preconnected ( sUnion S ) :=
+  (K : S.is_filtered) (H : ∀ s ∈ S, is_preconnected s ) : is_preconnected ⋃₀ S :=
 begin
   /- λ u v hu hv htuv ⟨y, hyt, hyu⟩ ⟨z, hzt, hzv⟩ , -/
   rw is_preconnected,
-  intros u v hu hv Huv Ku Kv ,
-
-  obtain ⟨ a, KaS, hau ⟩ := Ku,
-  simp at KaS,
-  obtain ⟨ s, hsS, has⟩ := KaS,
-
-  obtain ⟨ b, KbS, hbv ⟩ := Kv,
-  simp at KbS,
-  obtain ⟨ t, htS, hbt ⟩ := KbS,
-
+  rintros u v hu hv Huv ⟨a, ⟨s, hsS, has⟩, hau⟩ ⟨b, ⟨t, htS, hbt⟩, hbv⟩,
   revert a b u v,
   /- WLOG, we will only prove the case where s ⊆ t -/
   wlog Hst: s ⊆ t := K s t hsS htS using [s t, t s] tactic.skip,
-
-  intros a b u v hu hv, intro Huv,
-  intros hau has hbv hbt,
-
-  have hat : a ∈ t := mem_of_mem_of_subset has Hst,
-
+  intros a b u v hu hv Huv hau has hbv hbt,
+  have hat : a ∈ t := Hst has,
   have Hnuv : (t ∩ (u ∩ v)).nonempty,
-  {  apply (H t htS), apply hu, apply hv,
-    exact has_subset.subset.trans (subset_sUnion_of_mem htS) Huv,
-    exact nonempty_of_mem (mem_inter hat hau),
-    exact nonempty_of_mem (mem_inter hbt hbv), },
+    from H t htS u v hu hv ((subset_sUnion_of_mem htS).trans Huv) ⟨a, hat, hau⟩ ⟨b, hbt, hbv⟩,
   have Ktuv : ( t ∩ (u ∩ v)) ⊆ sUnion S ∩ (u ∩ v),
-  { apply inter_subset_inter,
-    apply subset_sUnion_of_mem htS,
-    apply eq.subset, refl, },
-  exact nonempty.mono Ktuv Hnuv,
+    from inter_subset_inter_left _ (subset_sUnion_of_mem htS),
+  exact Hnuv.mono Ktuv,
 
   /- We now prove t ⊆ s by symmetry -/
   intros s t a b u v hu hv Huv hau has hbv hbt,
   rw union_comm at Huv,
   rw inter_comm u v,
   exact this t s b a v u hv hu Huv hbv hbt hau has,
+end
+
+/- Let's redo the first theorem using the second one. -/
+
+theorem is_preconnected.Union_of_monotone' {s : ι → set α} (K : monotone s)
+  (H : ∀ n: ι, is_preconnected (s n)) :
+  is_preconnected ⋃ i, s i :=
+begin
+  rw ← sUnion_range s,
+  apply is_preconnected.filtered_sUnion_of,
+  { rintros - - ⟨i, rfl⟩ ⟨j, rfl⟩,
+    exact (le_total i j).elim (λ h, or.inl $ K h) (λ h, or.inr $ K h) },
+  { rintros - ⟨i, rfl⟩,
+    exact H i }
 end
 
 

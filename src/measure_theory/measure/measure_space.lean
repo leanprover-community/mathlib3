@@ -1342,6 +1342,8 @@ rfl.absolutely_continuous
 
 protected lemma rfl : μ ≪ μ := λ s hs, hs
 
+instance [measurable_space α] : is_refl (measure α) (≪) := ⟨λ μ, absolutely_continuous.rfl⟩
+
 @[trans] protected lemma trans (h1 : μ₁ ≪ μ₂) (h2 : μ₂ ≪ μ₃) : μ₁ ≪ μ₃ :=
 λ s hs, h1 $ h2 hs
 
@@ -1498,6 +1500,9 @@ comm.trans $ add_left_iff.trans $ and_congr comm comm
 
 lemma add_left (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
 add_left_iff.2 ⟨h₁, h₂⟩
+
+lemma add_right (h₁ : μ ⊥ₘ ν₁) (h₂ : μ ⊥ₘ ν₂) : μ ⊥ₘ ν₁ + ν₂ :=
+add_right_iff.2 ⟨h₁, h₂⟩
 
 lemma smul (r : ℝ≥0∞) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=
 h.mono_ac (absolutely_continuous.rfl.smul r) absolutely_continuous.rfl

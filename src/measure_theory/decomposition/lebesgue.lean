@@ -288,9 +288,8 @@ begin
   { haveI := hl,
     refine (eq_singular_part ((measurable_rn_deriv μ ν).const_smul (r : ℝ≥0∞))
       (mutually_singular.smul r (have_lebesgue_decomposition_spec _ _).2.1) _).symm,
-    rw with_density_smul _ (measurable_rn_deriv _ _),
-    change _ = _ + r • _,
-    rw [← smul_add, ← have_lebesgue_decomposition_add μ ν] },
+    rw [with_density_smul _ (measurable_rn_deriv _ _), ← smul_add,
+      ← have_lebesgue_decomposition_add μ ν, ennreal.smul_def] },
   { rw [singular_part, singular_part, dif_neg hl, dif_neg, smul_zero],
     refine λ hl', hl _,
     rw ← inv_smul_smul₀ hr μ,
@@ -303,7 +302,7 @@ lemma singular_part_add (μ₁ μ₂ ν : measure α)
 begin
   refine (eq_singular_part
     ((measurable_rn_deriv μ₁ ν).add (measurable_rn_deriv μ₂ ν))
-    ((have_lebesgue_decomposition_spec _ _).2.1.add (have_lebesgue_decomposition_spec _ _).2.1)
+    ((have_lebesgue_decomposition_spec _ _).2.1.add_left (have_lebesgue_decomposition_spec _ _).2.1)
     _).symm,
   erw with_density_add (measurable_rn_deriv μ₁ ν) (measurable_rn_deriv μ₂ ν),
   conv_rhs { rw [add_assoc, add_comm (μ₂.singular_part ν), ← add_assoc, ← add_assoc] },
@@ -910,7 +909,7 @@ end
 /-- Given a signed measure `s` and a measure `μ`, `s.singular_part μ` is the signed measure
 such that `s.singular_part μ + μ.with_densityᵥ (s.rn_deriv μ) = s` and
 `s.singular_part μ` is mutually singular with respect to `μ`. -/
-def singular_part(s : signed_measure α) (μ : measure α) : signed_measure α :=
+def singular_part (s : signed_measure α) (μ : measure α) : signed_measure α :=
 (s.to_jordan_decomposition.pos_part.singular_part μ).to_signed_measure -
 (s.to_jordan_decomposition.neg_part.singular_part μ).to_signed_measure
 
@@ -955,8 +954,7 @@ begin
   rw [mutually_singular_ennreal_iff, singular_part_total_variation],
   change _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ),
   rw vector_measure.equiv_measure.right_inv μ,
-  exact measure.mutually_singular.add
-    (mutually_singular_singular_part _ _) (mutually_singular_singular_part _ _),
+  exact (mutually_singular_singular_part _ _).add_left (mutually_singular_singular_part _ _)
 end
 
 end
@@ -1024,10 +1022,10 @@ begin
   change _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ) ∧
          _ ⊥ₘ vector_measure.equiv_measure.to_fun (vector_measure.equiv_measure.inv_fun μ) at htμ,
   rw [vector_measure.equiv_measure.right_inv] at htμ,
-  exact ((jordan_decomposition.mutually_singular _).symm.add
-    (htμ.1.symm.of_absolutely_continuous (with_density_absolutely_continuous _ _))).symm.add
-    ((htμ.2.symm.of_absolutely_continuous (with_density_absolutely_continuous _ _)).symm.add
-      (with_density_of_real_mutually_singular hf).symm).symm
+  exact ((jordan_decomposition.mutually_singular _).add_right
+    (htμ.1.mono_ac (refl _) (with_density_absolutely_continuous _ _))).add_left
+    ((htμ.2.symm.mono_ac (with_density_absolutely_continuous _ _) (refl _)).add_right
+    (with_density_of_real_mutually_singular hf))
 end
 
 lemma to_jordan_decomposition_eq_of_eq_add_with_density

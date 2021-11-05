@@ -801,7 +801,7 @@ span_le.2 $ subset.trans h subset_span
 lemma span_eq_of_le (h₁ : s ⊆ p) (h₂ : p ≤ span R s) : span R s = p :=
 le_antisymm (span_le.2 h₁) h₂
 
-@[simp] lemma span_eq : span R (p : set M) = p :=
+lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
 /-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/

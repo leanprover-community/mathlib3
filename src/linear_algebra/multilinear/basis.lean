@@ -41,9 +41,7 @@ begin
     congr' 1,
     refine basis.ext (e 0) _,
     intro i,
-    replace hm := @hm _ _ _ (f.curry_left ((e 0) i)) (g.curry_left ((e 0) i)) (fin.tail ι₁)
-                      (fin.tail e),
-    apply hm,
+    apply hm (fin.tail e),
     intro j,
     convert h (fin.cons i j),
     iterate 2 { {

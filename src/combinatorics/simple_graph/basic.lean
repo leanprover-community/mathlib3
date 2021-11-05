@@ -119,11 +119,6 @@ lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G
 
 @[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
 
-def support : set V := rel.image G.adj set.univ
-
-lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w :=
-  by simp [support, rel.mem_image, adj_comm]
-
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.irrefl hab }
 
@@ -137,16 +132,6 @@ instance : has_le (simple_graph V) := ⟨is_subgraph⟩
 
 @[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) :=
 rfl
-
-lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ≤ G'.support :=
-begin
-  intros v hv,
-  rw [← is_subgraph_eq_le, is_subgraph] at h,
-  rw mem_support at hv,
-  cases hv with w hw,
-  use w,
-  simp [hw, h, adj_comm],
-end
 
 /-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
 instance : has_sup (simple_graph V) := ⟨λ x y,
@@ -243,6 +228,22 @@ instance compl.adj_decidable : decidable_rel Gᶜ.adj := λ v w, and.decidable
 end decidable
 
 end order
+
+/-- `G.support` is the set of vertices of `G`. -/
+def support : set V := rel.image G.adj set.univ
+
+lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w :=
+  by simp [support, rel.mem_image, adj_comm]
+
+lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ≤ G'.support :=
+begin
+  intros v hv,
+  rw [← is_subgraph_eq_le, is_subgraph] at h,
+  rw mem_support at hv,
+  cases hv with w hw,
+  use w,
+  simp [hw, h, adj_comm],
+end
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)

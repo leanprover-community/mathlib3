@@ -238,6 +238,16 @@ begin
     exact λ N, (dist_le (b0 _)).2 (λx, fF_bdd x N) }
 end
 
+/-- Composition of a bounded continuous function and a continuous function. -/
+@[simps { fully_applied := ff }]
+def comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) : δ →ᵇ β :=
+{ to_continuous_map := f.1.comp g,
+  bounded' := f.bounded'.imp (λ C hC x y, hC _ _) }
+
+/-- Restrict a bounded continuous function to a set. -/
+@[simps apply { fully_applied := ff }]
+def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β := f.comp_continuous (continuous_map.id.restrict s)
+
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
 def comp (G : β → γ) {C : ℝ≥0} (H : lipschitz_with C G)
@@ -329,7 +339,7 @@ begin
   /- If two functions have the same approximation, then they are within distance ε -/
   refine lt_of_le_of_lt ((dist_le $ le_of_lt ε₁0).2 (λ x, _)) εε₁,
   obtain ⟨x', x'tα, hx'⟩ : ∃x' ∈ tα, x ∈ U x' := mem_bUnion_iff.1 (htα (mem_univ x)),
-  refine calc dist (f x) (g x)
+  calc dist (f x) (g x)
       ≤ dist (f x) (f x') + dist (g x) (g x') + dist (f x') (g x') : dist_triangle4_right _ _ _ _
   ... ≤ ε₂ + ε₂ + ε₁/2 : le_of_lt (add_lt_add (add_lt_add _ _) _)
   ... = ε₁ : by rw [add_halves, add_halves],

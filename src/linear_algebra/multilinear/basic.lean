@@ -538,10 +538,7 @@ def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
 and only if those maps are. -/
 @[simp] lemma dom_dom_congr_eq_iff (σ : ι₁ ≃ ι₂) (f g : multilinear_map R (λ i : ι₁, M₂) M₃) :
   f.dom_dom_congr σ = g.dom_dom_congr σ ↔ f = g :=
-begin
-  change multilinear_map.dom_dom_congr_equiv σ f = multilinear_map.dom_dom_congr_equiv σ g ↔ f = g,
-  exact add_equiv.apply_eq_iff_eq _
-end
+(dom_dom_congr_equiv σ : _ ≃+ multilinear_map R (λ i, M₂) M₃).apply_eq_iff_eq
 
 end
 

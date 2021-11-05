@@ -545,6 +545,24 @@ begin
   { exact dif_neg hf }
 end
 
+/-- Given a vector measure `v` on `M` and a continuous add_monoid_hom `f : M → N`, `f ∘ v` is a
+vector measure on `N`. -/
+def map_range {N : Type*} [add_comm_monoid N] [topological_space N]
+  (v : vector_measure α M) (f : M →+ N) (hf : continuous f) : vector_measure α N :=
+{ measure_of' := λ s, f (v s),
+  empty' := by rw [empty, add_monoid_hom.map_zero],
+  not_measurable' := λ i hi, by rw [not_measurable v hi, add_monoid_hom.map_zero],
+  m_Union' := λ g hg₁ hg₂, has_sum.map (v.m_Union hg₁ hg₂) f hf }
+
+lemma map_range_apply {N : Type*} [add_comm_monoid N] [topological_space N]
+  {f : M →+ N} (hf : continuous f) {s : set α} (hs : measurable_set s) :
+  v.map_range f hf s = f (v s) :=
+rfl
+
+@[simp] lemma map_range_id :
+  v.map_range (add_monoid_hom.id M) continuous_id = v :=
+by { ext, refl }
+
 /-- The restriction of a vector measure on some set. -/
 def restrict (v : vector_measure α M) (i : set α) :
   vector_measure α M :=

@@ -47,10 +47,7 @@ include m
 /-- The real part of a complex measure is a signed measure. -/
 @[simps]
 def re (c : complex_measure α) : signed_measure α :=
-{ measure_of' := λ i, (c i).re,
-  empty' := by simp only [c.empty, complex.zero_re],
-  not_measurable' := λ i hi, by simp only [c.not_measurable hi, complex.zero_re],
-  m_Union' := λ f hfm hfdisj, (c.m_Union hfm hfdisj).mapL complex.re_clm }
+c.map_range complex.re_lm.to_add_monoid_hom complex.continuous_re
 
 lemma re_add (c d : complex_measure α) :
   (c + d).re = c.re + d.re :=
@@ -59,10 +56,7 @@ rfl
 /-- The imaginary part of a complex measure is a signed measure. -/
 @[simps]
 def im (c : complex_measure α) : signed_measure α :=
-{ measure_of' := λ i, (c i).im,
-  empty' := by simp only [c.empty, complex.zero_im],
-  not_measurable' := λ i hi, by simp only [c.not_measurable hi, complex.zero_im],
-  m_Union' := λ f hfm hfdisj, (c.m_Union hfm hfdisj).mapL complex.im_clm }
+c.map_range complex.im_lm.to_add_monoid_hom complex.continuous_im
 
 lemma im_add (c d : complex_measure α) :
   (c + d).im = c.im + d.im :=

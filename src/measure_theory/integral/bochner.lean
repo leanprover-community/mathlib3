@@ -837,8 +837,7 @@ theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a ∂μ) at_top (𝓝 $ ∫ a, f a ∂μ) :=
 begin
-  have f_measurable : ae_measurable f μ,
-  { refine ae_measurable_of_tendsto_metric_ae F_measurable h_lim },
+  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae F_measurable h_lim,
   /- To show `(∫ a, F n a) --> (∫ f)`, suffices to show `∥∫ a, F n a - ∫ f∥ --> 0` -/
   rw tendsto_iff_norm_tendsto_zero,
   /- But `0 ≤ ∥∫ a, F n a - ∫ f∥ = ∥∫ a, (F n a - f a) ∥ ≤ ∫ a, ∥F n a - f a∥, and thus we apply the

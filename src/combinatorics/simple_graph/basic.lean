@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
+import data.rel
 import data.set.finite
 import data.sym.sym2
 
@@ -93,6 +94,7 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
   symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
+
 noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
 by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
@@ -118,6 +120,11 @@ lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G
 
 @[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
 
+def support : set V := rel.image G.adj set.univ
+
+lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w :=
+  by simp [support, rel.mem_image, adj_comm]
+
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.irrefl hab }
 
@@ -131,6 +138,16 @@ instance : has_le (simple_graph V) := ⟨is_subgraph⟩
 
 @[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) :=
 rfl
+
+lemma support_mono (H: simple_graph V) : H ≤ G → H.support ≤ G.support :=
+begin
+  intros h v hv,
+  -- simp [←is_subgraph_eq_le, is_subgraph] at h,
+  rw mem_support at hv,
+  choose w hw using hv,
+  use w,
+  simp [hw, h, adj_comm],
+end
 
 /-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
 instance : has_sup (simple_graph V) := ⟨λ x y,

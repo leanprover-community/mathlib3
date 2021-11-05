@@ -65,27 +65,27 @@ lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := finset.right_mem_Ioc
 @[simp] lemma right_not_mem_Ico : b ∉ Ico a b := finset.right_not_mem_Ico
 @[simp] lemma right_not_mem_Ioo : b ∉ Ioo a b := finset.right_not_mem_Ioo
 
-lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] (hca : c ≤ a) :
+lemma Ico_filter_lt_of_le_left [decidable_pred (< c)] (hca : c ≤ a) :
   (Ico a b).filter (λ x, x < c) = ∅ :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_lt_of_le_left hca], refl }
 
-lemma Ico_filter_lt_of_right_le [decidable_rel ((<) : α → α → Prop)] (hbc : b ≤ c) :
+lemma Ico_filter_lt_of_right_le [decidable_pred (< c)] (hbc : b ≤ c) :
   (Ico a b).filter (λ x, x < c) = Ico a b :=
 by rw [Ico, ←finset.filter_val, finset.Ico_filter_lt_of_right_le hbc]
 
-lemma Ico_filter_lt_of_le_right [decidable_rel ((<) : α → α → Prop)] (hcb : c ≤ b) :
+lemma Ico_filter_lt_of_le_right [decidable_pred (< c)] (hcb : c ≤ b) :
   (Ico a b).filter (λ x, x < c) = Ico a c :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_lt_of_le_right hcb], refl }
 
-lemma Ico_filter_le_of_le_left [decidable_rel ((≤) : α → α → Prop)] (hca : c ≤ a) :
+lemma Ico_filter_le_of_le_left [decidable_pred (c ≤)] (hca : c ≤ a) :
   (Ico a b).filter (λ x, c ≤ x) = Ico a b :=
 by rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_le_left hca]
 
-lemma Ico_filter_le_of_right_le [decidable_rel ((≤) : α → α → Prop)] :
+lemma Ico_filter_le_of_right_le [decidable_pred (b ≤)] :
   (Ico a b).filter (λ x, b ≤ x) = ∅ :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_right_le], refl }
 
-lemma Ico_filter_le_of_left_le [decidable_rel ((≤) : α → α → Prop)] (hac : a ≤ c) :
+lemma Ico_filter_le_of_left_le [decidable_pred (c ≤)] (hac : a ≤ c) :
   (Ico a b).filter (λ x, c ≤ x) = Ico c b :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_of_left_le hac], refl }
 
@@ -111,7 +111,7 @@ lemma Ico_disjoint_Ico {a b c d : α} (h : b ≤ c) : (Ico a b).disjoint (Ico c 
   Ico a b ∩ Ico c d = 0 :=
 multiset.inter_eq_zero_iff_disjoint.2 $ Ico_disjoint_Ico h
 
-lemma Ico_filter_le_left [decidable_rel ((≤) : α → α → Prop)] {a b : α} (hab : a < b) :
+lemma Ico_filter_le_left [decidable_pred (≤ a)] {a b : α} (hab : a < b) :
   (Ico a b).filter (λ x, x ≤ a) = {a} :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_left hab], refl }
 

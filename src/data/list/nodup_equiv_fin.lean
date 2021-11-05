@@ -35,61 +35,35 @@ namespace nodup
 /-- If `l` lists all the elements of `α` without duplicates, then `list.nth_le` defines
 a bijection `fin l.length → α`.  See `list.nodup.nth_le_equiv_of_forall_mem_list`
 for a version giving an equivalence when there is decidable equality. -/
+@[simps]
 def nth_le_bijection_of_forall_mem_list (l : list α) (nd : l.nodup) (h : ∀ (x : α), x ∈ l) :
   {f : fin l.length → α // function.bijective f} :=
 ⟨λ i, l.nth_le i i.property, λ i j h, fin.ext $ (nd.nth_le_inj_iff _ _).1 h,
  λ x, let ⟨i, hi, hl⟩ := list.mem_iff_nth_le.1 (h x) in ⟨⟨i, hi⟩, hl⟩⟩
 
-section nth_le_bijection_of_forall_mem_list
-
-variables {l : list α} (nd : l.nodup) (h : ∀ (x : α), x ∈ l) (i : fin l.length)
-
-@[simp] lemma coe_nth_le_bijection_of_forall_mem_list_apply :
-  (nd.nth_le_bijection_of_forall_mem_list l h : fin l.length → α) i = nth_le l i i.2 := rfl
-
-end nth_le_bijection_of_forall_mem_list
-
 variable [decidable_eq α]
 
 /-- If `l` has no duplicates, then `list.nth_le` defines an equivalence between `fin (length l)` and
 the set of elements of `l`. -/
+@[simps]
 def nth_le_equiv (l : list α) (H : nodup l) : fin (length l) ≃ {x // x ∈ l} :=
 { to_fun := λ i, ⟨nth_le l i i.2, nth_le_mem l i i.2⟩,
   inv_fun := λ x, ⟨index_of ↑x l, index_of_lt_length.2 x.2⟩,
   left_inv := λ i, by simp [H],
   right_inv := λ x, by simp }
 
-section nth_le_equiv
-
-variables {l : list α} (H : nodup l) (x : {x // x ∈ l}) (i : fin (length l))
-
-@[simp] lemma coe_nth_le_equiv_apply : (H.nth_le_equiv l i : α) = nth_le l i i.2 := rfl
-@[simp] lemma coe_nth_le_equiv_symm_apply : ((H.nth_le_equiv l).symm x : ℕ) = index_of ↑x l := rfl
-
-end nth_le_equiv
-
 /-- If `l` lists all the elements of `α` without duplicates, then `list.nth_le` defines
 an equivalence between `fin l.length` and `α`.
 
 See `list.nodup.nth_le_bijection_of_forall_mem_list` for a version without
 decidable equality. -/
+@[simps]
 def nth_le_equiv_of_forall_mem_list (l : list α) (nd : l.nodup) (h : ∀ (x : α), x ∈ l) :
   fin l.length ≃ α :=
 { to_fun := λ i, l.nth_le i i.2,
   inv_fun := λ a, ⟨_, index_of_lt_length.2 (h a)⟩,
   left_inv := λ i, by simp [nd],
   right_inv := λ a, by simp }
-
-section nth_le_equiv_of_forall_mem_list
-
-variables {l : list α} (nd : l.nodup) (h : ∀ (x : α), x ∈ l) (x : α) (i : fin l.length)
-
-@[simp] lemma coe_nth_le_equiv_of_forall_mem_list_apply :
-  nd.nth_le_equiv_of_forall_mem_list l h i = nth_le l i i.2 := rfl
-@[simp] lemma coe_nth_le_equiv_of_forall_mem_list_symm_apply :
-  ((nd.nth_le_equiv_of_forall_mem_list l h).symm x : ℕ) = index_of x l := rfl
-
-end nth_le_equiv_of_forall_mem_list
 
 end nodup
 

@@ -81,24 +81,17 @@ def sym2 (α : Type u) := quotient (sym2.rel.setoid α)
 namespace sym2
 
 attribute [elab_as_eliminator]
-lemma ind {f : sym2 α → Prop} : (∀ x y, f ⟦(x, y)⟧) → ∀ (i : sym2 α), f i :=
-λ hf, quotient.ind (by simpa using hf)
+lemma ind {f : sym2 α → Prop} (h : ∀ x y, f ⟦(x, y)⟧) : ∀ i, f i :=
+quotient.ind $ prod.rec $ by exact h
 
 attribute [elab_as_eliminator]
 lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i := i.ind hf
 
 lemma «exists» {α : Sort*} {f : sym2 α → Prop} : (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
-begin
-  split,
-  { rintro ⟨x, hx⟩,
-    induction x using sym2.induction_on with x y,
-    exact ⟨x, y, hx⟩ },
-  { rintro ⟨x, y, h⟩,
-    exact ⟨_, h⟩ }
-end
+(surjective_quotient_mk _).exists.trans prod.exists
 
 lemma «forall» {α : Sort*} {f : sym2 α → Prop} : (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
-⟨λ h x y, h _, sym2.ind⟩
+(surjective_quotient_mk _).forall.trans prod.forall
 
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }

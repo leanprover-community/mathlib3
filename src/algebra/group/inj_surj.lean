@@ -221,13 +221,10 @@ protected def div_inv_monoid_pow [has_pow M₁ ℕ] [has_pow M₁ ℤ] [div_inv_
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.
-This version takes custom `npow` and `zpow` as `[has_pow M₁ ℕ]` and `[has_pow M₁ ℤ]` arguments.
 See note [reducible non-instances]. -/
 @[reducible, to_additive
 "A type endowed with `0` and `+` is an additive group,
-if it admits an injective map that preserves `0` and `+` to an additive group.
-This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
-`[has_scalar ℤ M₁]` arguments."]
+if it admits an injective map that preserves `0` and `+` to an additive group."]
 protected def group [group M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) :
@@ -237,10 +234,13 @@ protected def group [group M₂] (f : M₁ → M₂) (hf : injective f)
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.
+This version takes custom `npow` and `zpow` as `[has_pow M₁ ℕ]` and `[has_pow M₁ ℤ]` arguments.
 See note [reducible non-instances]. -/
 @[reducible, to_additive add_group_smul
 "A type endowed with `0` and `+` is an additive group,
-if it admits an injective map that preserves `0` and `+` to an additive group."]
+if it admits an injective map that preserves `0` and `+` to an additive group.
+This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
+`[has_scalar ℤ M₁]` arguments."]
 protected def group_pow [has_pow M₁ ℕ] [has_pow M₁ ℤ] [group M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)

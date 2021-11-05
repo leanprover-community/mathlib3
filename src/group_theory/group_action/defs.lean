@@ -11,7 +11,8 @@ import logic.embedding
 /-!
 # Definitions of group actions
 
-This file defines a hierarchy of group action type-classes:
+This file defines a hierarchy of group action type-classes on top of the previously defined
+notation classes `has_scalar` and its additive version `has_vadd`:
 
 * `mul_action M α` and its additive version `add_action G P` are typeclasses used for
   actions of multiplicative and additive monoids and groups; they extend notation classes

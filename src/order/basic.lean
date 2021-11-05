@@ -205,6 +205,10 @@ lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨n
 
 lemma ne.lt_or_lt [linear_order α] {x y : α} (h : x ≠ y) : x < y ∨ y < x := lt_or_gt_of_ne h
 
+/-- A version of `ne_iff_lt_or_gt` with LHS and RHS reversed. -/
+@[simp] lemma lt_or_lt_iff_ne [linear_order α] {x y : α} : x < y ∨ y < x ↔ x ≠ y :=
+ne_iff_lt_or_gt.symm
+
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ decidable.le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
 

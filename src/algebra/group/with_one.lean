@@ -171,6 +171,9 @@ attribute [irreducible] with_one
 @[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
 
+@[simp, norm_cast, to_additive]
+lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_one α) = a⁻¹ := rfl
+
 end with_one
 
 namespace with_zero
@@ -233,16 +236,28 @@ instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 
 /-- Given an inverse operation on `α` there is an inverse operation
   on `with_zero α` sending `0` to `0`-/
-definition inv [has_inv α] (x : with_zero α) : with_zero α :=
-do a ← x, return a⁻¹
-
-instance [has_inv α] : has_inv (with_zero α) := ⟨with_zero.inv⟩
+instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
 @[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
   ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
 
 @[simp] lemma inv_zero [has_inv α] :
   (0 : with_zero α)⁻¹ = 0 := rfl
+
+instance [has_div α] : has_div (with_zero α) :=
+⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
+
+@[norm_cast] lemma coe_div [has_div α] (a b : α) : ↑(a / b : α) = (a / b : with_zero α) := rfl
+
+instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
+{ div_eq_mul_inv := λ a b, match a, b with
+    | none, _   := rfl
+    | some a, none   := rfl
+    | some a, some b := congr_arg some (div_eq_mul_inv _ _)
+    end,
+  .. with_zero.has_div,
+  .. with_zero.has_inv,
+  .. with_zero.monoid_with_zero, }
 
 section group
 variables [group α]
@@ -253,13 +268,10 @@ show ((1⁻¹ : α) : with_zero α) = 1, by simp
 /-- if `G` is a group then `with_zero G` is a group with zero. -/
 instance : group_with_zero (with_zero α) :=
 { inv_zero := inv_zero,
-  mul_inv_cancel := by { intros a ha, lift a to α using ha, norm_cast, apply mul_right_inv },
+  mul_inv_cancel := λ a ha, by { lift a to α using ha, norm_cast, apply mul_right_inv },
   .. with_zero.monoid_with_zero,
-  .. with_zero.has_inv,
+  .. with_zero.div_inv_monoid,
   .. with_zero.nontrivial }
-
-@[norm_cast]
-lemma div_coe (a b : α) : (a : with_zero α) / b = (a * b⁻¹ : α) := rfl
 
 end group
 

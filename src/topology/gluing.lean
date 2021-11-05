@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import topology.category.Top
 import category_theory.limits.concrete_category
+import category_theory.limits.shapes.multiequalizer
 
 /-!
 # Gluing Topological spaces
@@ -175,7 +176,8 @@ by { rw [coequalizer_is_open_iff, colimit_is_open_iff], refl }
 lemma imm_jointly_surjective (x : D.glued) : ∃ i (y : D.U i), D.imm i y = x :=
 begin
   rcases D.π_surjective x with ⟨x', rfl⟩,
-  rw ← (show (sigma_iso_sigma _).inv _ = x', from congr_fun (sigma_iso_sigma _).hom_inv_id x'),
+  rw ← (show (sigma_iso_sigma _).inv _ = x',
+    from concrete_category.congr_hom ((sigma_iso_sigma _).hom_inv_id) x'),
   rcases (sigma_iso_sigma _).hom x' with ⟨i, y⟩,
   exact ⟨i, y, by simpa⟩
 end
@@ -278,21 +280,24 @@ lemma imm_eq_iff_rel (i j : D.ι) (x : D.U i) (y : D.U j) :
 begin
   split,
   { intro h,
-    rw ← (show _ = sigma.mk i x, from congr_fun (sigma_iso_sigma D.U).inv_hom_id _),
-    rw ← (show _ = sigma.mk j y, from congr_fun (sigma_iso_sigma D.U).inv_hom_id _),
+    rw ← (show _ = sigma.mk i x,
+      from concrete_category.congr_hom (sigma_iso_sigma D.U).inv_hom_id _),
+    rw ← (show _ = sigma.mk j y,
+      from concrete_category.congr_hom (sigma_iso_sigma D.U).inv_hom_id _),
     change inv_image D.rel (sigma_iso_sigma D.U).hom _ _,
-    simp only [Top.sigma_iso_sigma_inv_app],
+    simp only [Top.sigma_iso_sigma_inv_apply],
     rw ← (inv_image.equivalence _ _ D.rel_equiv).eqv_gen_iff,
     refine eqv_gen.mono _ (D.eqv_gen_of_π_eq h : _),
     rintros _ _ ⟨x⟩,
-    rw ← (show (sigma_iso_sigma _).inv _ = x, from congr_fun (sigma_iso_sigma _).hom_inv_id x),
+    rw ← (show (sigma_iso_sigma _).inv _ = x,
+      from concrete_category.congr_hom (sigma_iso_sigma _).hom_inv_id x),
     generalize : (sigma_iso_sigma D.V).hom x = x',
     rcases x' with ⟨⟨i,j⟩,y⟩,
     unfold inv_image left_imm right_imm,
-    simp only [opens.inclusion_to_fun, Top.comp_app, sigma_iso_sigma_inv_app,
+    simp only [opens.inclusion_to_fun, Top.comp_app, sigma_iso_sigma_inv_apply,
       category_theory.limits.colimit.ι_desc_apply, cofan.mk_ι_app,
-      sigma_iso_sigma_hom_app, continuous_map.to_fun_eq_coe],
-    erw [Top.sigma_iso_sigma_hom_app, Top.sigma_iso_sigma_hom_app],
+      sigma_iso_sigma_hom_ι_apply, continuous_map.to_fun_eq_coe],
+    erw [sigma_iso_sigma_hom_ι_apply, sigma_iso_sigma_hom_ι_apply],
     exact or.inr ⟨y, by simp⟩ },
   { rintro (⟨⟨⟩⟩ | ⟨_, e₁, e₂⟩),
     refl, dsimp only at *, cases e₁, cases e₂, simp }

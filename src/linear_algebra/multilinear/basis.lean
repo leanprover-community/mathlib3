@@ -15,28 +15,19 @@ This file proves lemmas about the action of multilinear maps on basis vectors.
 
 open multilinear_map
 
-variables {R : Type*} {ι : Type*} {n : ℕ} {M : fin n.succ → Type*} {M₂ : Type*} {M₃ : Type*}
+variables {R : Type*} {ι : Type*} {n : ℕ} {M : fin n → Type*} {M₂ : Type*} {M₃ : Type*}
 variables [comm_semiring R] [add_comm_monoid M₂] [add_comm_monoid M₃] [∀i, add_comm_monoid (M i)]
 variables [∀i, module R (M i)] [module R M₂] [module R M₃]
 
-/-- Two multilinear maps indexed by `fin n.succ` are equal if they are equal when all arguments
-are basis vectors. -/
-lemma basis.ext_multilinear_fin {f g : multilinear_map R M M₂} {ι₁ : fin n.succ → Type*}
+/-- Two multilinear maps indexed by `fin n` are equal if they are equal when all arguments are
+basis vectors. -/
+lemma basis.ext_multilinear_fin {f g : multilinear_map R M M₂} {ι₁ : fin n → Type*}
   (e : Π i, basis (ι₁ i) R (M i)) (h : ∀ v : Π i, ι₁ i, f (λ i, e i (v i)) = g (λ i, e i (v i))) :
   f = g :=
 begin
   unfreezingI { induction n with m hm },
-  { rw [←f.uncurry_curry_left, ←g.uncurry_curry_left],
-    congr' 1,
-    refine basis.ext (e 0) _,
-    intro i,
-    ext v,
-    rw [curry_left_apply, curry_left_apply],
-    convert h (fin.cons i fin_zero_elim),
-    iterate 2 {
-      ext x,
-      obtain rfl : x = 0 := subsingleton.elim _ _,
-      refl, },
+  { ext x,
+    convert h fin_zero_elim },
   { rw [←f.uncurry_curry_left, ←g.uncurry_curry_left],
     congr' 1,
     refine basis.ext (e 0) _,
@@ -44,7 +35,7 @@ begin
     apply hm (fin.tail e),
     intro j,
     convert h (fin.cons i j),
-    iterate 2 { {
+    iterate 2 {
       rw curry_left_apply,
       congr' 1 with x,
       refine fin.cases rfl (λ x, _) x,

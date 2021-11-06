@@ -33,6 +33,10 @@ def cont_linear (f : P →A[R] Q) : V →L[R] W :=
   (f.cont_linear : V →ₗ[R] W) = (f : P →ᵃ[R] Q).linear :=
 by { ext, refl, }
 
+@[simp] lemma coe_mk_const_linear_eq_linear (f : P →ᵃ[R] Q) (h) :
+  ((⟨f, h⟩ : P →A[R] Q).cont_linear : V → W) = f.linear :=
+rfl
+
 @[simp] lemma coe_linear_eq_coe_cont_linear (f : P →A[R] Q) :
   ((f : P →ᵃ[R] Q).linear : V → W) = (⇑f.cont_linear : V → W) :=
 rfl

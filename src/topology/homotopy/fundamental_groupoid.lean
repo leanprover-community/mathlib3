@@ -304,11 +304,8 @@ def π₁ : Top ⥤ category_theory.Groupoid :=
 { obj := λ X, { α := fundamental_groupoid X },
   map := λ X Y f,
   { obj := f,
-    map := λ x y p, quotient.lift (λ (q : path _ _), ⟦q.map f.continuous⟧) begin
-      rintros a b h,
-      rw quotient.eq,
-      exact h.map f
-    end p,
+    map := λ x y p, quotient.map
+      (λ (q : path x y), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f) p,
     map_id' := λ X, rfl,
     map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b, by simp [comp_eq] },
   map_id' := begin
@@ -317,7 +314,7 @@ def π₁ : Top ⥤ category_theory.Groupoid :=
     congr',
     ext x y p,
     refine quotient.induction_on p (λ q, _),
-    rw [quotient.lift_mk],
+    rw [quotient.map_mk],
     conv_rhs { rw [←q.map_id] },
     refl,
   end,
@@ -326,7 +323,7 @@ def π₁ : Top ⥤ category_theory.Groupoid :=
     congr',
     ext x y p,
     refine quotient.induction_on p (λ q, _),
-    simp only [quotient.lift_mk, path.map_map, quotient.eq],
+    simp only [quotient.map_mk, path.map_map, quotient.eq],
     refl,
   end }
 

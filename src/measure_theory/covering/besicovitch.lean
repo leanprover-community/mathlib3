@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import topology.metric_space.basic
 import set_theory.cardinal_ordinal
 import measure_theory.integral.lebesgue
+import measure_theory.covering.vitali_family
 
 /-!
 # Besicovitch covering theorems
@@ -847,5 +848,59 @@ begin
       by simp only [inj_on, prod.mk.inj_iff, implies_true_iff, eq_self_iff_true] {contextual := tt},
     rwa [← im_t, A.pairwise_disjoint_image] at v_disj }
 end
+
+/-- In a space with the Besicovitch covering property, the set of closed balls with positive radius
+forms a Vitali family. This is essentially a restatement of the measurable Besicovitch theorem. -/
+protected def vitali_family [second_countable_topology α] [has_besicovitch_covering α]
+  [measurable_space α] [opens_measurable_space α] (μ : measure α) [sigma_finite μ] :
+  vitali_family μ :=
+{ sets_at := λ x, (λ (r : ℝ), closed_ball x r) '' (Ioi (0 : ℝ)),
+  measurable_set' := begin
+    assume x y hy,
+    obtain ⟨r, rpos, rfl⟩ : ∃ (r : ℝ), 0 < r ∧ closed_ball x r = y,
+      by simpa only [mem_image, mem_Ioi] using hy,
+    exact is_closed_ball.measurable_set
+  end,
+  nonempty_interior := begin
+    assume x y hy,
+    obtain ⟨r, rpos, rfl⟩ : ∃ (r : ℝ), 0 < r ∧ closed_ball x r = y,
+      by simpa only [mem_image, mem_Ioi] using hy,
+    simp only [nonempty.mono ball_subset_interior_closed_ball, rpos, nonempty_ball],
+  end,
+  nontrivial := λ x ε εpos, ⟨closed_ball x ε, mem_image_of_mem _ εpos, subset.refl _⟩,
+  covering := begin
+    assume s f fsubset ffine,
+    let g : α → set ℝ := λ x, {r | 0 < r ∧ closed_ball x r ∈ f x},
+    have A : ∀ x ∈ s, (g x).nonempty,
+    { assume x xs,
+      obtain ⟨t, tf, ht⟩ : ∃ (t : set α) (H : t ∈ f x), t ⊆ closed_ball x 1 :=
+        ffine x xs 1 zero_lt_one,
+      obtain ⟨r, rpos, rfl⟩ : ∃ (r : ℝ), 0 < r ∧ closed_ball x r = t,
+        by simpa using fsubset x xs tf,
+      exact ⟨r, rpos, tf⟩ },
+    have B : ∀ x ∈ s, g x ⊆ Ioi (0 : ℝ),
+    { assume x xs r hr,
+      replace hr : 0 < r ∧ closed_ball x r ∈ f x, by simpa only using hr,
+      exact hr.1 },
+    have C : ∀ x ∈ s, Inf (g x) ≤ 0,
+    { assume x xs,
+      have g_bdd : bdd_below (g x) := ⟨0, λ r hr, hr.1.le⟩,
+      refine le_of_forall_le_of_dense (λ ε εpos, _),
+      obtain ⟨t, tf, ht⟩ : ∃ (t : set α) (H : t ∈ f x), t ⊆ closed_ball x ε := ffine x xs ε εpos,
+      obtain ⟨r, rpos, rfl⟩ : ∃ (r : ℝ), 0 < r ∧ closed_ball x r = t,
+        by simpa using fsubset x xs tf,
+      rcases le_total r ε with H|H,
+      { exact (cInf_le g_bdd ⟨rpos, tf⟩).trans H },
+      { have : closed_ball x r = closed_ball x ε :=
+          subset.antisymm ht (closed_ball_subset_closed_ball H),
+        rw this at tf,
+        exact cInf_le g_bdd ⟨εpos, tf⟩ } },
+    obtain ⟨t, r, t_count, ts, tg, μt, tdisj⟩ : ∃ (t : set α) (r : α → ℝ), countable t
+      ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ g x)
+      ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
+      ∧ t.pairwise_disjoint (λ x, closed_ball x (r x)) :=
+        exists_disjoint_closed_ball_covering_ae μ g s A B C,
+    exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).2, μt⟩,
+  end }
 
 end besicovitch

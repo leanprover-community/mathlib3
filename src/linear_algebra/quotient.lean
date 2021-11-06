@@ -99,7 +99,7 @@ instance : add_comm_group (quotient p) :=
   zsmul_succ' := by { rintros n ⟨⟩,
     simp [nat.succ_eq_add_one, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul, add_smul, add_comm],
     refl },
-  zsmul_neg' := by { rintros n ⟨x⟩, simp_rw [zsmul_neg_succ_of_nat, zsmul_coe_nat], refl }, }
+  zsmul_neg' := by { rintros n ⟨x⟩, simp_rw [zsmul_neg_succ_of_nat, coe_nat_zsmul], refl }, }
 
 section has_scalar
 

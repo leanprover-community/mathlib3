@@ -32,7 +32,7 @@ This definition is equivalent to left exact functors (functors that preserves fi
 * `preserves_finite_limit_iff_flat`: If `C` has all finite limits,
   then `F` is flat iff `F` is left_exact.
 * `Lan_preserves_finite_limit_of_flat`: If `F : C ⥤ D` is a flat functor between small categories,
-then the functor `Lan F.op` between presheaves of sets preserves all finite limits.
+  then the functor `Lan F.op` between presheaves of sets preserves all finite limits.
 * `flat_iff_Lan_flat`: If `C`, `D` are small and `C` has all finite limits, then `F` is flat iff
   `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` is flat.
 * `preserves_finite_limits_iff_Lan_preserves_finite_limits`: If `C`, `D` are small and `C` has all
@@ -100,7 +100,7 @@ section has_limit
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
 
 @[priority 100]
-instance cofiltered_of_has_finite_limit [has_finite_limits C] : is_cofiltered C :=
+instance cofiltered_of_has_finite_limits [has_finite_limits C] : is_cofiltered C :=
 { cocone_objs := λ A B, ⟨limits.prod A B, limits.prod.fst, limits.prod.snd, trivial⟩,
   cocone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
   nonempty := ⟨⊤_ C⟩ }

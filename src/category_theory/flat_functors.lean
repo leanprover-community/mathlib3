@@ -63,9 +63,7 @@ arrows over `X` with `f` as the cone point. This is the underlying diagram.
 @[simps]
 def to_diagram : J ⥤ structured_arrow c.X K :=
 { obj := λ j, structured_arrow.mk (c.π.app j),
-  map := λ j k g, structured_arrow.hom_mk g (by simpa),
-  map_id' := λ X, by simpa,
-  map_comp' := λ X Y Z g h, by { ext, simp } }
+  map := λ j k g, structured_arrow.hom_mk g (by simpa) }
 
 /-- Given a diagram of `structured_arrow X F`s, we may obtain a cone with cone point `X`. -/
 @[simps]

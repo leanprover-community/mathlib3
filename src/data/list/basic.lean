@@ -2711,25 +2711,51 @@ begin
     exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
--- Several lemmas about sum/head/tail for `list ℕ`.
--- These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
-
--- We'd like to state this as `L.head * L.tail.prod = L.prod`,
--- but because `L.head` relies on an inhabited instances and
--- returns a garbage value for the empty list, this is not possible.
--- Instead we write the statement in terms of `(L.nth 0).get_or_else 1`,
--- and below, restate the lemma just for `ℕ`.
+/--
+We'd like to state this as `L.head * L.tail.prod = L.prod`,
+but because `L.head` relies on an inhabited instances and
+returns a garbage value for the empty list, this is not possible.
+Instead we write the statement in terms of `(L.nth 0).get_or_else 1`,
+and below, restate the lemma just for `ℕ`.
+-/
 @[to_additive]
-lemma head_mul_tail_prod' [monoid α] (L : list α) :
+lemma nth_zero_mul_tail_prod [monoid α] (L : list α) :
   (L.nth 0).get_or_else 1 * L.tail.prod = L.prod :=
 by cases L; simp
 
+/-- In the case where the list is not empty the above complication can be avoided. -/
+@[to_additive]
+lemma head_mul_tail_prod_of_ne_nil [monoid α] [inhabited α] (L : list α) (h: L ≠ []) :
+  L.head * L.tail.prod = L.prod :=
+by {cases L, { contradiction }, { simp }}
+
+/-- The product of a list of positive natural numbers is positive,
+and likewise for any nontrivial ordered semiring. -/
+lemma prod_pos {S : Type} [ordered_semiring S] [nontrivial S] (L : list S)
+(h: ∀ n:S, n ∈ L → 0 < n) : 0 < L.prod :=
+begin
+  induction L, {simp},
+  { simp, apply mul_pos,
+    { apply h, simp },
+    { exact L_ih (λ n hn, h n (mem_cons_of_mem L_hd hn)) }}
+end
+
+/-!
+Several lemmas about sum/head/tail for `list ℕ`.
+These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
+If desired, we could add a class stating that `default α = 0` at some point
+(extending `inhabited` and `has_zero`).
+-/
+
+/-- This relies on `default ℕ = 0`. -/
 lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
 by { cases L, { simp, refl, }, { simp, }, }
 
+/-- This relies on `default ℕ = 0`. -/
 lemma head_le_sum (L : list ℕ) : L.head ≤ L.sum :=
 nat.le.intro (head_add_tail_sum L)
 
+/-- This relies on `default ℕ = 0`. -/
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 

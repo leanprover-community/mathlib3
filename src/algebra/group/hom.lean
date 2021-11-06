@@ -713,7 +713,7 @@ theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f
 eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 
 /-- Group homomorphisms preserve integer power. -/
-@[simp, to_additive /-" Group homomorphisms preserve integer power. "-/]
+@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
 theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) : f (g ^ n) = (f g) ^ n :=
 f.map_zpow' f.map_inv g n
 

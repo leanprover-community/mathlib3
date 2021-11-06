@@ -83,6 +83,26 @@ lemma empty_product (t : finset β) : (∅ : finset α).product t = ∅ := rfl
 lemma product_empty (s : finset α) : s.product (∅ : finset β) = ∅ :=
 eq_empty_of_forall_not_mem (λ x h, (finset.mem_product.1 h).2)
 
+lemma nonempty.product (hs : s.nonempty) (ht : t.nonempty) : (s.product t).nonempty :=
+let ⟨x, hx⟩ := hs, ⟨y, hy⟩ := ht in ⟨(x, y), mem_product.2 ⟨hx, hy⟩⟩
+
+lemma nonempty.fst (h : (s.product t).nonempty) : s.nonempty :=
+let ⟨xy, hxy⟩ := h in ⟨xy.1, (mem_product.1 hxy).1⟩
+
+lemma nonempty.snd (h : (s.product t).nonempty) : t.nonempty :=
+let ⟨xy, hxy⟩ := h in ⟨xy.2, (mem_product.1 hxy).2⟩
+
+@[simp] lemma nonempty_product : (s.product t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.product h.2⟩
+
+@[simp] lemma union_product [decidable_eq α] [decidable_eq β] :
+  (s ∪ s').product t = s.product t ∪ s'.product t :=
+by { ext ⟨x, y⟩, simp only [or_and_distrib_right, mem_union, mem_product] }
+
+@[simp] lemma product_union [decidable_eq α] [decidable_eq β] :
+  s.product (t ∪ t') = s.product t ∪ s.product t' :=
+by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
+
 end prod
 
 section diag

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 import data.polynomial.eval
 import data.finsupp.antidiagonal
+import algebra.algebra.tower
 
 /-!
 # Multivariate polynomials
@@ -290,27 +291,40 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                      show P (monomial 0 0), from h1 0 0)
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
-
-@[ext] lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
   f = g :=
 by { ext, exacts [hC _, hX _] }
 
+/-- See note [partially-applied ext lemmas]. -/
+@[ext] lemma ring_hom_ext' {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+  (hC : f.comp C = g.comp C) (hX : ∀ i, f (X i) = g (X i)) :
+  f = g :=
+ring_hom_ext (ring_hom.ext_iff.1 hC) hX
+
 lemma hom_eq_hom [semiring S₂]
   (f g : mv_polynomial σ R →+* S₂)
-  (hC : ∀a:R, f (C a) = g (C a)) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
+  (hC : f.comp C = g.comp C) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
   f p = g p :=
-ring_hom.congr_fun (ring_hom_ext hC hX) p
+ring_hom.congr_fun (ring_hom_ext' hC hX) p
 
 lemma is_id (f : mv_polynomial σ R →+* mv_polynomial σ R)
-  (hC : ∀a:R, f (C a) = (C a)) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :
+  (hC : f.comp C = C) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :
   f p = p :=
 hom_eq_hom f (ring_hom.id _) hC hX p
+
+@[ext] lemma alg_hom_ext' {A B : Type*} [comm_semiring A] [comm_semiring B]
+  [algebra R A] [algebra R B] {f g : mv_polynomial σ A →ₐ[R] B}
+  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A (mv_polynomial σ A)) =
+        g.comp (is_scalar_tower.to_alg_hom R A (mv_polynomial σ A)))
+  (h₂ : ∀ i, f (X i) = g (X i)) : f = g :=
+alg_hom.coe_ring_hom_injective (mv_polynomial.ring_hom_ext'
+  (congr_arg alg_hom.to_ring_hom h₁) h₂)
 
 @[ext] lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
   {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
-by { ext, exact hf _ }
+add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat (hf x)))
 
 @[simp] lemma alg_hom_C (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
   f (C r) = C r :=
@@ -348,7 +362,7 @@ section coeff
 
 /-- The coefficient of the monomial `m` in the multi-variable polynomial `p`. -/
 def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ R) : R :=
-@coe_fn _ (monoid_algebra.has_coe_to_fun _ _) p m
+@coe_fn _ _ (monoid_algebra.has_coe_to_fun _ _) p m
 
 @[simp] lemma mem_support_iff {p : mv_polynomial σ R} {m : σ →₀ ℕ} :
   m ∈ p.support ↔ p.coeff m ≠ 0 :=
@@ -452,7 +466,7 @@ add_monoid_algebra.mul_apply_antidiagonal p q _ _ $ λ p, mem_antidiagonal
 
 @[simp] lemma support_mul_X (s : σ) (p : mv_polynomial σ R) :
   (p * X s).support = p.support.map (add_right_embedding (single s 1)) :=
-add_monoid_algebra.support_mul_single p _ (by simp) _ 
+add_monoid_algebra.support_mul_single p _ (by simp) _
 
 lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
@@ -462,8 +476,9 @@ begin
   { conv_rhs {rw ← coeff_mul_X _ s},
     congr' with  t,
     by_cases hj : s = t,
-    { subst t, simp only [nat_sub_apply, add_apply, single_eq_same],
-      refine (nat.sub_add_cancel $ nat.pos_of_ne_zero _).symm, rwa finsupp.mem_support_iff at h },
+    { subst t, simp only [tsub_apply, add_apply, single_eq_same],
+      refine (tsub_add_cancel_of_le (nat.pos_of_ne_zero _).nat_succ_le).symm,
+      rwa finsupp.mem_support_iff at h },
     { simp [single_eq_of_ne hj] } },
   { rw ← not_mem_support_iff, intro hm, apply h,
     have H := support_mul _ _ hm, simp only [finset.mem_bUnion] at H,
@@ -835,6 +850,27 @@ begin
   exact hf (h m),
 end
 
+lemma map_surjective (hf : function.surjective f) :
+  function.surjective (map f : mv_polynomial σ R → mv_polynomial σ S₁) :=
+λ p, begin
+  induction p using mv_polynomial.induction_on' with i fr a b ha hb,
+  { obtain ⟨r, rfl⟩ := hf fr,
+    exact ⟨monomial i r, map_monomial _ _ _⟩, },
+  { obtain ⟨a, rfl⟩ := ha,
+    obtain ⟨b, rfl⟩ := hb,
+    exact ⟨a + b, ring_hom.map_add _ _ _⟩ },
+end
+
+/-- If `f` is a left-inverse of `g` then `map f` is a left-inverse of `map g`. -/
+lemma map_left_inverse {f : R →+* S₁} {g : S₁ →+* R} (hf : function.left_inverse f g) :
+  function.left_inverse (map f : mv_polynomial σ R → mv_polynomial σ S₁) (map g) :=
+λ x, by rw [map_map, (ring_hom.ext hf : f.comp g = ring_hom.id _), map_id]
+
+/-- If `f` is a right-inverse of `g` then `map f` is a right-inverse of `map g`. -/
+lemma map_right_inverse {f : R →+* S₁} {g : S₁ →+* R} (hf : function.right_inverse f g) :
+  function.right_inverse (map f : mv_polynomial σ R → mv_polynomial σ S₁) (map g) :=
+(map_left_inverse hf.left_inverse).right_inverse
+
 @[simp] lemma eval_map (f : R →+* S₁) (g : σ → S₁) (p : mv_polynomial σ R) :
   eval g (map f p) = eval₂ f g p :=
 by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
@@ -902,6 +938,28 @@ begin
   refl
 end
 
+/-- If `f : S₁ →ₐ[R] S₂` is a morphism of `R`-algebras, then so is `mv_polynomial.map f`. -/
+@[simps]
+def map_alg_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] (f : S₁ →ₐ[R] S₂) :
+  mv_polynomial σ S₁ →ₐ[R] mv_polynomial σ S₂ :=
+{ to_fun := map ↑f,
+  commutes' := λ r, begin
+    have h₁ : algebra_map R (mv_polynomial σ S₁) r = C (algebra_map R S₁ r) := rfl,
+    have h₂ : algebra_map R (mv_polynomial σ S₂) r = C (algebra_map R S₂ r) := rfl,
+    rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply, alg_hom.coe_to_ring_hom, alg_hom.commutes],
+  end,
+  ..map ↑f }
+
+@[simp] lemma map_alg_hom_id [algebra R S₁] :
+  map_alg_hom (alg_hom.id R S₁) = alg_hom.id R (mv_polynomial σ S₁) :=
+alg_hom.ext map_id
+
+@[simp] lemma map_alg_hom_coe_ring_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] 
+  (f : S₁ →ₐ[R] S₂) :
+  ↑(map_alg_hom f : _ →ₐ[R] mv_polynomial σ S₂) =
+    (map ↑f : mv_polynomial σ S₁ →+* mv_polynomial σ S₂) :=
+ring_hom.mk_coe _ _ _ _ _ 
+
 end map
 
 
@@ -909,8 +967,8 @@ section aeval
 
 /-! ### The algebra of multivariate polynomials -/
 
-variables (f : σ → S₁)
 variables [algebra R S₁] [comm_semiring S₂]
+variables (f : σ → S₁)
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/
@@ -983,6 +1041,52 @@ lemma aeval_eq_zero [algebra R S₂] (f : σ → S₂) (φ : mv_polynomial σ R)
 eval₂_hom_eq_zero _ _ _ h
 
 end aeval
+
+section aeval_tower
+
+variables {S A B : Type*} [comm_semiring S] [comm_semiring A] [comm_semiring B]
+variables [algebra S R] [algebra S A] [algebra S B]
+
+/-- Version of `aeval` for defining algebra homs out of `mv_polynomial σ R` over a smaller base ring
+  than `R`. -/
+def aeval_tower (f : R →ₐ[S] A) (x : σ → A) : mv_polynomial σ R →ₐ[S] A :=
+{ commutes' := λ r,
+    by simp [is_scalar_tower.algebra_map_eq S R (mv_polynomial σ R), algebra_map_eq],
+  ..eval₂_hom ↑f x }
+
+variables (g : R →ₐ[S] A) (y : σ → A)
+
+@[simp] lemma aeval_tower_X (i : σ): aeval_tower g y (X i) = y i := eval₂_X _ _ _
+
+@[simp] lemma aeval_tower_C (x : R) : aeval_tower g y (C x) = g x := eval₂_C _ _ _
+
+@[simp] lemma aeval_tower_comp_C : ((aeval_tower g y : mv_polynomial σ R →+* A).comp C) = g :=
+ring_hom.ext $ aeval_tower_C _ _
+
+@[simp] lemma aeval_tower_algebra_map (x : R) :
+  aeval_tower g y (algebra_map R (mv_polynomial σ R) x) = g x := eval₂_C _ _ _
+
+@[simp] lemma aeval_tower_comp_algebra_map :
+  (aeval_tower g y : mv_polynomial σ R →+* A).comp (algebra_map R (mv_polynomial σ R)) = g :=
+aeval_tower_comp_C _ _
+
+lemma aeval_tower_to_alg_hom (x : R) :
+  aeval_tower g y (is_scalar_tower.to_alg_hom S R (mv_polynomial σ R) x) = g x :=
+aeval_tower_algebra_map _ _ _
+
+@[simp] lemma aeval_tower_comp_to_alg_hom :
+  (aeval_tower g y).comp (is_scalar_tower.to_alg_hom S R (mv_polynomial σ R)) = g :=
+alg_hom.coe_ring_hom_injective $ aeval_tower_comp_algebra_map _ _
+
+@[simp] lemma aeval_tower_id : aeval_tower (alg_hom.id S S) =
+  (aeval : (σ → S) → (mv_polynomial σ S →ₐ[S] S)) :=
+by { ext, simp only [aeval_tower_X, aeval_X] }
+
+@[simp] lemma aeval_tower_of_id : aeval_tower (algebra.of_id S A) =
+  (aeval : (σ → A) → (mv_polynomial σ S →ₐ[S] A)) :=
+by { ext, simp only [aeval_X, aeval_tower_X] }
+
+end aeval_tower
 
 end comm_semiring
 

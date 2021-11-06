@@ -175,7 +175,7 @@ hsd.elim
   (λ hsd2, or.inr begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd2 end)
 
 theorem dvd_of_mul_dvd_mul_left {i j k : ℤ} (k_non_zero : k ≠ 0) (H : k * i ∣ k * j) : i ∣ j :=
-dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel' k_non_zero H1⟩)
+dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel₀ k_non_zero H1⟩)
 
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
@@ -352,8 +352,8 @@ begin
   obtain ⟨x, rfl⟩ : is_unit x,
   { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
   simp only [← units.coe_pow] at *,
-  rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
-  simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+  rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
+  simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
 end
 
 lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m • x = 0)
@@ -364,11 +364,13 @@ begin
   rwa [←of_add_nsmul, ←of_add_zero, equiv.apply_eq_iff_eq]
 end
 
+attribute [to_additive gcd_nsmul_eq_zero] pow_gcd_eq_one
+
 /-! ### GCD prover -/
+open norm_num
 
 namespace tactic
 namespace norm_num
-open norm_num
 
 lemma int_gcd_helper' {d : ℕ} {x y a b : ℤ} (h₁ : (d:ℤ) ∣ x) (h₂ : (d:ℤ) ∣ y)
   (h₃ : x * a + y * b = d) : int.gcd x y = d :=

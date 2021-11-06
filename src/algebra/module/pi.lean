@@ -13,11 +13,12 @@ import algebra.ring.pi
 This file defines instances for module, mul_action and related structures on Pi Types
 -/
 
-namespace pi
 universes u v w
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
+
+namespace pi
 
 @[to_additive pi.has_vadd]
 instance has_scalar {α : Type*} [Π i, has_scalar α $ f i] :
@@ -154,12 +155,12 @@ single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
 
 /-- A version of `pi.single_smul` for non-dependent functions. It is useful in cases Lean fails
 to apply `pi.single_smul`. -/
-lemma single_smul'' {α β} [monoid α] [add_monoid β]
+lemma single_smul' {α β} [monoid α] [add_monoid β]
   [distrib_mul_action α β] [decidable_eq I] (i : I) (r : α) (x : β) :
   single i (r • x) = r • single i x :=
 single_smul i r x
 
-lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
+lemma single_smul₀ {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
   single i (r • x) = single i r • single i x :=
 single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
@@ -201,3 +202,32 @@ instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
   (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩
 
 end pi
+
+namespace function
+
+@[to_additive]
+lemma update_smul {α : Type*} [Π i, has_scalar α (f i)] [decidable_eq I]
+  (c : α) (f₁ : Π i, f i) (i : I) (x₁ : f i) :
+  update (c • f₁) i (c • x₁) = c • update f₁ i x₁ :=
+funext $ λ j, (apply_update (λ i, (•) c) f₁ i x₁ j).symm
+
+end function
+
+namespace set
+
+@[to_additive]
+lemma piecewise_smul {α : Type*} [Π i, has_scalar α (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (c : α) (f₁ g₁ : Π i, f i) :
+  s.piecewise (c • f₁) (c • g₁) = c • s.piecewise f₁ g₁ :=
+s.piecewise_op _ _ (λ _, (•) c)
+
+end set
+
+section extend
+
+@[to_additive] lemma function.extend_smul {R α β γ : Type*} [has_scalar R γ]
+  (r : R) (f : α → β) (g : α → γ) (e : β → γ) :
+  function.extend f (r • g) (r • e) = r • function.extend f g e :=
+funext $ λ _, by convert (apply_dite ((•) r) _ _ _).symm
+
+end extend

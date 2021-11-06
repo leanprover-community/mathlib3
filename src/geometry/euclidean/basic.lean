@@ -3,13 +3,11 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.special_functions.trigonometric
+import analysis.inner_product_space.projection
+import analysis.special_functions.trigonometric.inverse
 import algebra.quadratic_discriminant
-import analysis.normed_space.affine_isometry
-import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
-import tactic.fin_cases
-import analysis.calculus.conformal
+import analysis.calculus.conformal.normed_space
 
 /-!
 # Euclidean spaces
@@ -311,7 +309,7 @@ end
 /-- If the angle between two vectors is 0, the norm of their difference equals
 the absolute value of the difference of their norms. -/
 lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
-  ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
+  ∥x - y∥ = |∥x∥ - ∥y∥| :=
 begin
   rw [← sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
       norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, sq_abs (∥x∥ - ∥y∥)],
@@ -347,7 +345,7 @@ end
 /-- The norm of the difference of two non-zero vectors equals the absolute value
 of the difference of their norms if and only the angle between the two vectors is 0. -/
 lemma norm_sub_eq_abs_sub_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  ∥x - y∥ = abs (∥x∥ - ∥y∥) ↔ angle x y = 0 :=
+  ∥x - y∥ = |∥x∥ - ∥y∥| ↔ angle x y = 0 :=
 begin
   refine ⟨λ h, _, norm_sub_eq_abs_sub_norm_of_angle_eq_zero⟩,
   rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
@@ -476,7 +474,7 @@ by linarith [angle_add_angle_eq_pi_of_angle_eq_pi p1 hbpd, angle_comm p4 p5 p1,
 lemma left_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p1 p2 ≠ 0 :=
 begin
   by_contra heq,
-  rw [not_not, dist_eq_zero] at heq,
+  rw [dist_eq_zero] at heq,
   rw [heq, angle_eq_left] at h,
   exact real.pi_ne_zero (by linarith),
 end
@@ -504,7 +502,7 @@ end
 
 /-- If ∠ABC = 0, then (dist A C) = abs ((dist A B) - (dist B C)). -/
 lemma dist_eq_abs_sub_dist_of_angle_eq_zero {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = 0) :
-  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) :=
+  (dist p1 p3) = |(dist p1 p2) - (dist p3 p2)| :=
 begin
   rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
   exact norm_sub_eq_abs_sub_norm_of_angle_eq_zero h,
@@ -512,7 +510,7 @@ end
 
 /-- If A ≠ B and C ≠ B then ∠ABC = 0 if and only if (dist A C) = abs ((dist A B) - (dist B C)). -/
 lemma dist_eq_abs_sub_dist_iff_angle_eq_zero {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
-  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) ↔ ∠ p1 p2 p3 = 0 :=
+  (dist p1 p3) = |(dist p1 p2) - (dist p3 p2)| ↔ ∠ p1 p2 p3 = 0 :=
 begin
   rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
   exact norm_sub_eq_abs_sub_norm_iff_angle_eq_zero
@@ -992,7 +990,7 @@ calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 �
   : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
-... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + abs (r1 - r2) * abs (r1 - r2) * ∥v∥ * ∥v∥
+... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + |r1 - r2| * |r1 - r2| * ∥v∥ * ∥v∥
   : by { rw [norm_smul, real.norm_eq_abs], ring }
 ... = dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥)
   : by { rw [dist_eq_norm_vsub V p1, abs_mul_abs_self, mul_assoc] }

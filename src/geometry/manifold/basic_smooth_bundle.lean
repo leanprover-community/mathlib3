@@ -270,7 +270,7 @@ begin
       rw e.right_inv hx.1.1,
       have := Z.coord_change_comp ⟨e, he⟩ ⟨f, chart_mem_atlas _ _⟩ ⟨e', he'⟩ (I.symm x) A v,
       simpa only [] using this } },
-  constructor,
+  refine @smooth_manifold_with_corners.mk _ _ _ _ _ _ _ _ _ _ _ ⟨_⟩,
   assume e₀ e₀' he₀ he₀',
   rcases (Z.mem_atlas_iff _).1 he₀ with ⟨e, he, rfl⟩,
   rcases (Z.mem_atlas_iff _).1 he₀' with ⟨e', he', rfl⟩,

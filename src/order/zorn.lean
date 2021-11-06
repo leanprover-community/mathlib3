@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.lattice
+import data.set.pairwise
 
 /-!
 # Chains and Zorn's lemmas
@@ -80,7 +80,7 @@ parameters {α : Type u} (r : α → α → Prop)
 local infix ` ≺ `:50  := r
 
 /-- A chain is a subset `c` satisfying `x ≺ y ∨ x = y ∨ y ≺ x` for all `x y ∈ c`. -/
-def chain (c : set α) := pairwise_on c (λ x y, x ≺ y ∨ y ≺ x)
+def chain (c : set α) := c.pairwise (λ x y, x ≺ y ∨ y ≺ x)
 parameters {r}
 
 lemma chain.total_of_refl [is_refl α r]
@@ -90,7 +90,25 @@ if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
 
 lemma chain.mono {c c'} :
   c' ⊆ c → chain c → chain c' :=
-pairwise_on.mono
+set.pairwise.mono
+
+lemma chain_of_trichotomous [is_trichotomous α r] (s : set α) :
+  chain s :=
+begin
+  intros a _ b _ hab,
+  obtain h | h | h := @trichotomous _ r _ a b,
+  { exact or.inl h },
+  { exact (hab h).elim },
+  { exact or.inr h }
+end
+
+lemma chain_univ_iff :
+  chain (univ : set α) ↔ is_trichotomous α r :=
+begin
+  refine ⟨λ h, ⟨λ a b , _⟩, λ h, @chain_of_trichotomous _ _ h univ⟩,
+  rw [or.left_comm, or_iff_not_imp_left],
+  exact h a trivial b trivial,
+end
 
 lemma chain.directed_on [is_refl α r] {c} (H : chain c) :
   directed_on (≺) c :=

@@ -63,8 +63,8 @@ end
 `orthogonal_projection` is. -/
 lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} [nonempty s]
   [complete_space s.direction] {ps : set P} (hps : ps ⊆ s) (p : P) :
-  (set.pairwise_on ps (λ p1 p2, dist p1 p = dist p2 p) ↔
-    (set.pairwise_on ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
+  (set.pairwise ps (λ p1 p2, dist p1 p = dist p2 p) ↔
+    (set.pairwise ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
       dist p2 (orthogonal_projection s p)))) :=
 ⟨λ h p1 hp1 p2 hp2 hne,
   (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
@@ -81,7 +81,7 @@ lemma exists_dist_eq_iff_exists_dist_orthogonal_projection_eq {s : affine_subspa
     ∃ r, ∀ p1 ∈ ps, dist p1 ↑(orthogonal_projection s p) = r :=
 begin
   have h := dist_set_eq_iff_dist_orthogonal_projection_eq hps p,
-  simp_rw set.pairwise_on_eq_iff_exists_eq at h,
+  simp_rw set.pairwise_eq_iff_exists_eq at h,
   exact h
 end
 
@@ -164,7 +164,7 @@ begin
             _ (hps hp0),
           orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃', h', hcr p0 hp0,
           dist_eq_norm_vsub V _ cc₃', vadd_vsub, norm_smul, ←dist_eq_norm_vsub V p,
-          real.norm_eq_abs, ←mul_assoc, mul_comm _ (abs t₃), ←mul_assoc, abs_mul_abs_self],
+          real.norm_eq_abs, ←mul_assoc, mul_comm _ (|t₃|), ←mul_assoc, abs_mul_abs_self],
       ring },
     replace hcr₃ := hcr₃ p (set.mem_insert _ _),
     rw [hpo, hcc₃'', hcr₃val, ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
@@ -196,8 +196,7 @@ lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonemp
   ∃! cccr : (P × ℝ), cccr.fst ∈ affine_span ℝ (set.range p) ∧
     ∀ i, dist (p i) cccr.fst = cccr.snd :=
 begin
-  generalize' hn : fintype.card ι = n,
-  unfreezingI { induction n with m hm generalizing ι },
+  unfreezingI { induction hn : fintype.card ι with m hm generalizing ι },
   { exfalso,
     have h := fintype.card_pos_iff.2 hne,
     rw hn at h,
@@ -363,7 +362,7 @@ end
 lemma circumcenter_eq_centroid (s : simplex ℝ P 1) :
   s.circumcenter = finset.univ.centroid ℝ s.points :=
 begin
-  have hr : set.pairwise_on set.univ
+  have hr : set.pairwise set.univ
     (λ i j : fin 2, dist (s.points i) (finset.univ.centroid ℝ s.points) =
                     dist (s.points j) (finset.univ.centroid ℝ s.points)),
   { intros i hi j hj hij,
@@ -371,7 +370,7 @@ begin
         dist_eq_norm_vsub V (s.points j), vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub,
         ←one_smul ℝ (s.points i -ᵥ s.points 0), ←one_smul ℝ (s.points j -ᵥ s.points 0)],
     fin_cases i; fin_cases j; simp [-one_smul, ←sub_smul]; norm_num },
-  rw set.pairwise_on_eq_iff_exists_eq at hr,
+  rw set.pairwise_eq_iff_exists_eq at hr,
   cases hr with r hr,
   exact (s.eq_circumcenter_of_dist_eq
           (centroid_mem_affine_span_of_card_eq_add_one ℝ _ (finset.card_fin 2))
@@ -621,7 +620,7 @@ begin
            sum_ite, sum_const, filter_or, filter_eq'],
   rw card_union_eq,
   { simp },
-  { simp [h.symm] }
+  { simpa only [if_true, mem_univ, disjoint_singleton] using h }
 end
 
 include V

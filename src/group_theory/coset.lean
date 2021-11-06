@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
 
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Cosets
@@ -87,13 +87,13 @@ end coset_mul
 section coset_semigroup
 variable [semigroup α]
 
-@[simp] lemma left_coset_assoc (s : set α) (a b : α) : a *l (b *l s) = (a * b) *l s :=
+@[simp, to_additive left_add_coset_assoc] lemma left_coset_assoc (s : set α) (a b : α) :
+  a *l (b *l s) = (a * b) *l s :=
 by simp [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
-attribute [to_additive left_add_coset_assoc] left_coset_assoc
 
-@[simp] lemma right_coset_assoc (s : set α) (a b : α) : s *r a *r b = s *r (a * b) :=
+@[simp, to_additive right_add_coset_assoc] lemma right_coset_assoc (s : set α) (a b : α) :
+  s *r a *r b = s *r (a * b) :=
 by simp [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
-attribute [to_additive right_add_coset_assoc] right_coset_assoc
 
 @[to_additive left_add_coset_right_add_coset]
 lemma left_coset_right_coset (s : set α) (a b : α) : a *l s *r b = a *l (s *r b) :=
@@ -104,13 +104,11 @@ end coset_semigroup
 section coset_monoid
 variables [monoid α] (s : set α)
 
-@[simp] lemma one_left_coset : 1 *l s = s :=
+@[simp, to_additive zero_left_add_coset] lemma one_left_coset : 1 *l s = s :=
 set.ext $ by simp [left_coset]
-attribute [to_additive zero_left_add_coset] one_left_coset
 
-@[simp] lemma right_coset_one : s *r 1 = s :=
+@[simp, to_additive right_add_coset_zero] lemma right_coset_one : s *r 1 = s :=
 set.ext $ by simp [right_coset]
-attribute [to_additive right_add_coset_zero] right_coset_one
 
 end coset_monoid
 
@@ -226,6 +224,8 @@ instance left_rel_decidable [decidable_pred (∈ s)] :
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
+@[to_additive "`quotient s` is the quotient type representing the left cosets of `s`.  If `s` is a
+normal subgroup, `quotient s` is a group"]
 def quotient : Type* := quotient (left_rel s)
 
 /-- The equivalence relation corresponding to the partition of a group by right cosets of a
@@ -244,16 +244,6 @@ instance right_rel_decidable [decidable_pred (∈ s)] :
   decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
 end quotient_group
-
-namespace quotient_add_group
-
-/-- `quotient s` is the quotient type representing the left cosets of `s`.
-  If `s` is a normal subgroup, `quotient s` is a group -/
-def quotient [add_group α] (s : add_subgroup α) : Type* := quotient (left_rel s)
-
-end quotient_add_group
-
-attribute [to_additive quotient_add_group.quotient] quotient_group.quotient
 
 namespace quotient_group
 

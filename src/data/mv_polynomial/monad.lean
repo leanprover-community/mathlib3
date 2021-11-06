@@ -151,7 +151,7 @@ eval₂_hom_C f X r
 
 @[simp]
 lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
-by { ext1; simp }
+by { ext : 2; simp }
 
 @[simp]
 lemma bind₂_comp_C (f : R →+* mv_polynomial σ S) :
@@ -194,7 +194,7 @@ by { ext1, apply bind₁_bind₁ }
 
 lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) :
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
-by { ext1; simp }
+by { ext : 2; simp }
 
 lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T)
   (φ : mv_polynomial σ R) :
@@ -262,7 +262,7 @@ by { ext1, apply aeval_bind₁ }
 
 lemma eval₂_hom_comp_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) :
   (eval₂_hom f g).comp (bind₂ h) = eval₂_hom ((eval₂_hom f g).comp h) g :=
-by { ext1; simp }
+by { ext : 2; simp }
 
 lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S)
   (φ : mv_polynomial σ R) :

@@ -745,7 +745,7 @@ def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=
   map_add' := λ f g, by {
     ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
   map_smul' := λ r f, by {
-    ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
+    dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
 
 /-- `rtensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
@@ -753,7 +753,8 @@ def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
   map_add' := λ f g, by {
     ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
   map_smul' := λ r f, by {
-    ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply, rtensor_tmul] } }
+    dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
+    rtensor_tmul] } }
 
 @[simp] lemma coe_ltensor_hom :
   (ltensor_hom M : (N →ₗ[R] P) → (M ⊗[R] N →ₗ[R] M ⊗[R] P)) = ltensor M := rfl
@@ -893,10 +894,10 @@ instance : add_comm_group (M ⊗[R] N) :=
   sub := _,
   sub_eq_add_neg := λ _ _, rfl,
   add_left_neg := λ x, by exact tensor_product.add_left_neg x,
-  gsmul := λ n v, n • v,
-  gsmul_zero' := by simp [tensor_product.zero_smul],
-  gsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
-  gsmul_neg' := λ n x, begin
+  zsmul := λ n v, n • v,
+  zsmul_zero' := by simp [tensor_product.zero_smul],
+  zsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  zsmul_neg' := λ n x, begin
     change (- n.succ : ℤ) • x = - (((n : ℤ) + 1) • x),
     rw [← zero_add (-↑(n.succ) • x), ← tensor_product.add_left_neg (↑(n.succ) • x), add_assoc,
       ← add_smul, ← sub_eq_add_neg, sub_self, zero_smul, add_zero],

@@ -12,7 +12,7 @@ import analysis.calculus.mean_value
 A parametric integral is a function with shape `f = λ x : H, ∫ a : α, F x a ∂μ` for some
 `F : H → α → E`, where `H` and `E` are normed spaces and `α` is a measured space with measure `μ`.
 
-We already know from `continuous_of_dominated` in `measure_theory.bochner_integral` how to
+We already know from `continuous_of_dominated` in `measure_theory.integral.bochner` how to
 guarantee that `f` is continuous using the dominated convergence theorem. In this file,
 we want to express the derivative of `f` as the integral of the derivative of `F` with respect
 to `x`.
@@ -72,7 +72,7 @@ lemma has_fderiv_at_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (
 begin
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have nneg : ∀ x, 0 ≤ ∥x - x₀∥⁻¹ := λ x, inv_nonneg.mpr (norm_nonneg _) ,
-  set b : α → ℝ := λ a, abs (bound a),
+  set b : α → ℝ := λ a, |bound a|,
   have b_int : integrable b μ := bound_integrable.norm,
   have b_nonneg : ∀ a, 0 ≤ b a := λ a, abs_nonneg _,
   have hF_int' : ∀ x ∈ ball x₀ ε, integrable (F x) μ,
@@ -107,12 +107,10 @@ begin
   rw [has_fderiv_at_iff_tendsto, tendsto_congr' this, ← tendsto_zero_iff_norm_tendsto_zero,
       ← show ∫ (a : α), ∥x₀ - x₀∥⁻¹ • (F x₀ a - F x₀ a - (F' a) (x₀ - x₀)) ∂μ = 0, by simp],
   apply tendsto_integral_filter_of_dominated_convergence,
-  { apply is_countably_generated_nhds },
   { filter_upwards [h_ball],
     intros x x_in,
     apply ae_measurable.const_smul,
     exact ((hF_meas _ x_in).sub (hF_meas _ x₀_in)).sub (hF'_meas.apply_continuous_linear_map _) },
-  { simp [measurable_const] },
   { apply mem_of_superset h_ball,
     intros x hx,
     apply (h_diff.and h_lipsch).mono,

@@ -5,8 +5,6 @@ Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 
 import category_theory.category.Cat
-import category_theory.category.default
-import category_theory.opposites
 import order.category.Preorder
 
 /-!

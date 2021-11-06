@@ -82,17 +82,17 @@ section cancel_monoid_with_zero
 
 variables [cancel_monoid_with_zero M₀] {a b c : M₀}
 
-lemma mul_left_cancel' (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
+lemma mul_left_cancel₀ (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
 cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
 
-lemma mul_right_cancel' (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
+lemma mul_right_cancel₀ (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
 cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
 
-lemma mul_right_injective' (ha : a ≠ 0) : function.injective ((*) a) :=
-λ b c, mul_left_cancel' ha
+lemma mul_right_injective₀ (ha : a ≠ 0) : function.injective ((*) a) :=
+λ b c, mul_left_cancel₀ ha
 
-lemma mul_left_injective' (hb : b ≠ 0) : function.injective (λ a, a * b) :=
-λ a c, mul_right_cancel' hb
+lemma mul_left_injective₀ (hb : b ≠ 0) : function.injective (λ a, a * b) :=
+λ a c, mul_right_cancel₀ hb
 
 end cancel_monoid_with_zero
 

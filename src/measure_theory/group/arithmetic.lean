@@ -347,30 +347,30 @@ attribute [measurability] measurable.neg ae_measurable.neg
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
-@[simp] lemma measurable_inv_iff' {G₀ : Type*} [group_with_zero G₀]
+@[simp] lemma measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   measurable (λ x, (f x)⁻¹) ↔ measurable f :=
-⟨λ h, by simpa only [inv_inv'] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
 
-@[simp] lemma ae_measurable_inv_iff' {G₀ : Type*} [group_with_zero G₀]
+@[simp] lemma ae_measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} {μ : measure α} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
-⟨λ h, by simpa only [inv_inv'] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
 
 end inv
 
 /- There is something extremely strange here: copy-pasting the proof of this lemma in the proof
-of `has_measurable_gpow` fails, while `pp.all` does not show any difference in the goal.
+of `has_measurable_zpow` fails, while `pp.all` does not show any difference in the goal.
 Keep it as a separate lemmas as a workaround. -/
-private lemma has_measurable_gpow_aux (G : Type u) [div_inv_monoid G] [measurable_space G]
+private lemma has_measurable_zpow_aux (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] (k : ℕ) :
   measurable (λ (x : G), x ^(-[1+ k])) :=
 begin
-  simp_rw [gpow_neg_succ_of_nat],
+  simp_rw [zpow_neg_succ_of_nat],
   exact (measurable_id.pow_const (k + 1)).inv
 end
 
-instance has_measurable_gpow (G : Type u) [div_inv_monoid G] [measurable_space G]
+instance has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
 begin
@@ -380,7 +380,7 @@ begin
   dsimp,
   apply int.cases_on n,
   { simpa using measurable_id.pow_const },
-  { exact has_measurable_gpow_aux G }
+  { exact has_measurable_zpow_aux G }
 end
 
 @[priority 100, to_additive]
@@ -423,13 +423,13 @@ export has_measurable_vadd (measurable_const_vadd measurable_vadd_const)
   has_measurable_vadd₂ (measurable_vadd)
 
 @[to_additive]
-instance has_measurable_smul_of_mul (M : Type*) [monoid M] [measurable_space M]
+instance has_measurable_smul_of_mul (M : Type*) [has_mul M] [measurable_space M]
   [has_measurable_mul M] :
   has_measurable_smul M M :=
 ⟨measurable_id.const_mul, measurable_id.mul_const⟩
 
 @[to_additive]
-instance has_measurable_smul₂_of_mul (M : Type*) [monoid M] [measurable_space M]
+instance has_measurable_smul₂_of_mul (M : Type*) [has_mul M] [measurable_space M]
   [has_measurable_mul₂ M] :
   has_measurable_smul₂ M M :=
 ⟨measurable_mul⟩
@@ -529,15 +529,48 @@ let ⟨u, hu⟩ := hc in hu ▸ ae_measurable_const_smul_iff u
 variables {G₀ : Type*} [group_with_zero G₀] [measurable_space G₀] [mul_action G₀ β]
   [has_measurable_smul G₀ β]
 
-lemma measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
+lemma measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
   measurable (λ x, c • f x) ↔ measurable f :=
 (is_unit.mk0 c hc).measurable_const_smul_iff
 
-lemma ae_measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
+lemma ae_measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 (is_unit.mk0 c hc).ae_measurable_const_smul_iff
 
 end mul_action
+
+/-!
+### Opposite monoid
+-/
+
+section opposite
+open opposite
+
+instance {α : Type*} [h : measurable_space α] : measurable_space αᵒᵖ := measurable_space.map op h
+
+lemma measurable_op {α : Type*} [measurable_space α] : measurable (op : α → αᵒᵖ) := λ s, id
+
+lemma measurable_unop {α : Type*} [measurable_space α] : measurable (unop : αᵒᵖ → α) := λ s, id
+
+instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul M] :
+  has_measurable_mul Mᵒᵖ :=
+⟨λ c, measurable_op.comp (measurable_unop.mul_const _),
+  λ c, measurable_op.comp (measurable_unop.const_mul _)⟩
+
+instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] :
+  has_measurable_mul₂ Mᵒᵖ :=
+⟨measurable_op.comp ((measurable_unop.comp measurable_snd).mul
+  (measurable_unop.comp measurable_fst))⟩
+
+instance has_measurable_smul_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
+  [has_measurable_mul M] : has_measurable_smul Mᵒᵖ M :=
+⟨λ c, measurable_mul_const (unop c), λ x, measurable_unop.const_mul x⟩
+
+instance has_measurable_smul₂_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
+  [has_measurable_mul₂ M] : has_measurable_smul₂ Mᵒᵖ M :=
+⟨measurable_snd.mul (measurable_unop.comp measurable_fst)⟩
+
+end opposite
 
 /-!
 ### Big operators: `∏` and `∑`

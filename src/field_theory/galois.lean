@@ -104,8 +104,10 @@ begin
   have h_sep : (minpoly F α).separable := is_galois.separable F α,
   have h_splits : (minpoly F α).splits (algebra_map F E) := is_galois.splits F α,
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minpoly F α),
-  { convert polynomial.splits_comp_of_splits
-    (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits },
+  { have p : iso.symm.to_alg_hom.to_ring_hom.comp (algebra_map F E) = (algebra_map F ↥F⟮α⟯),
+    { ext, simp, },
+    simpa [p] using polynomial.splits_comp_of_splits
+      (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits, },
   rw ← linear_equiv.finrank_eq iso.to_linear_equiv,
   rw ← intermediate_field.adjoin_simple.card_aut_eq_finrank F E H h_sep h_splits,
   apply fintype.card_congr,
@@ -331,7 +333,8 @@ lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
   fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
-  have h : is_integral K x := is_integral_of_is_scalar_tower x (is_integral_of_noetherian hFE x),
+  have h : is_integral K x := is_integral_of_is_scalar_tower x
+    (is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
   { apply minpoly.dvd,

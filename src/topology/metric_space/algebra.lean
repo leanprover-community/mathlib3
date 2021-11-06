@@ -82,8 +82,8 @@ instance real.has_lipschitz_add : has_lipschitz_add ℝ :=
       nnreal.coe_bit0],
     convert le_trans (abs_add (p.1 - q.1) (p.2 - q.2)) _ using 2,
     { abel },
-    have := le_max_left (abs (p.1 - q.1)) (abs (p.2 - q.2)),
-    have := le_max_right (abs (p.1 - q.1)) (abs (p.2 - q.2)),
+    have := le_max_left (|p.1 - q.1|) (|p.2 - q.2|),
+    have := le_max_right (|p.1 - q.1|) (|p.2 - q.2|),
     linarith,
   end⟩ }
 

@@ -278,9 +278,9 @@ end
 
 end comm_ring
 
-section integral_domain
+section is_domain
 
-variables (R : Type u) [integral_domain R]
+variables (R : Type u) [comm_ring R] [is_domain R]
 
 theorem is_local_ring_hom_expand {p : ℕ} (hp : 0 < p) :
   is_local_ring_hom (↑(expand R p) : polynomial R →+* polynomial R) :=
@@ -291,7 +291,7 @@ begin
   rw [hf2, is_unit_C] at hf1, rw expand_eq_C hp at hf2, rwa [hf2, is_unit_C]
 end
 
-end integral_domain
+end is_domain
 
 section field
 
@@ -383,8 +383,8 @@ else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
   ∃ (n : ℕ) (g : polynomial F), g.separable ∧ expand F (p ^ n) g = f :=
 begin
-  generalize hn : f.nat_degree = N, unfreezingI { revert f },
-  apply nat.strong_induction_on N, intros N ih f hf hf0 hn,
+  unfreezingI {
+    induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
   rcases separable_or p hf with h | ⟨h1, g, hg, hgf⟩,
   { refine ⟨0, f, h, _⟩, rw [pow_zero, expand_one] },
   { cases N with N,
@@ -445,7 +445,7 @@ lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
 
 lemma separable_prod_X_sub_C_iff {ι : Sort*} [fintype ι] {f : ι → F} :
   (∏ i, (X - C (f i))).separable ↔ function.injective f :=
-separable_prod_X_sub_C_iff'.trans $ by simp_rw [mem_univ, true_implies_iff]
+separable_prod_X_sub_C_iff'.trans $ by simp_rw [mem_univ, true_implies_iff, function.injective]
 
 section splits
 
@@ -595,25 +595,38 @@ begin
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
 
+section comm_ring
+
+variables (F K : Type*) [comm_ring F] [ring K] [algebra F K]
+
 -- TODO: refactor to allow transcendental extensions?
 -- See: https://en.wikipedia.org/wiki/Separable_extension#Separability_of_transcendental_extensions
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
-the minimal polynomial of every `x : K` is separable. -/
-class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+the minimal polynomial of every `x : K` is separable.
+
+We define this for general (commutative) rings and only assume `F` and `K` are fields if this
+is needed for a proof.
+-/
+class is_separable : Prop :=
 (is_integral' (x : K) : is_integral F x)
 (separable' (x : K) : (minpoly F x).separable)
 
-theorem is_separable.is_integral (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
+variables (F) {K}
+
+theorem is_separable.is_integral [is_separable F K] :
   ∀ x : K, is_integral F x := is_separable.is_integral'
 
-theorem is_separable.separable (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
+theorem is_separable.separable [is_separable F K] :
   ∀ x : K, (minpoly F x).separable := is_separable.separable'
 
-theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
-  ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
+variables {F K}
+
+theorem is_separable_iff : is_separable F K ↔ ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
 ⟨λ h x, ⟨@@is_separable.is_integral F _ _ _ h x, @@is_separable.separable F _ _ _ h x⟩,
  λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+
+end comm_ring
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩

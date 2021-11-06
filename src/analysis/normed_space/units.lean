@@ -165,7 +165,7 @@ begin
   change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
-  { rw ← inv_inv' (2:ℝ),
+  { rw ← inv_inv₀ (2:ℝ),
     refine inv_le_inv_of_le (by norm_num) _,
     have : (2:ℝ)⁻¹ + (2:ℝ)⁻¹ = 1 := by ring,
     linarith },

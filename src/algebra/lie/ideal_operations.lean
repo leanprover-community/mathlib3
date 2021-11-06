@@ -205,7 +205,7 @@ lemma comap_bracket_eq {J₁ J₂ : lie_ideal R L'} (h : f.is_ideal_morphism) :
   comap f ⁅f.ideal_range ⊓ J₁, f.ideal_range ⊓ J₂⁆ = ⁅comap f J₁, comap f J₂⁆ ⊔ f.ker :=
 begin
   rw [← lie_submodule.coe_to_submodule_eq_iff, comap_coe_submodule,
-    lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, ← linear_map.comap_map_eq,
+    lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, ← submodule.comap_map_eq,
     lie_submodule.lie_ideal_oper_eq_linear_span, lie_submodule.lie_ideal_oper_eq_linear_span,
     linear_map.map_span],
   congr, simp only [lie_hom.coe_to_linear_map, set.mem_set_of_eq], ext y,

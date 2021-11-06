@@ -2,8 +2,6 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
 import algebra.direct_sum.basic
 import linear_algebra.dfinsupp
@@ -124,6 +122,39 @@ to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 
 omit dec_ι
 
+variables (ι M)
+/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence
+between `⨁ i, M i` and `Π i, M i`. -/
+@[simps apply] def linear_equiv_fun_on_fintype [fintype ι] :
+  (⨁ i, M i) ≃ₗ[R] (Π i, M i) :=
+{ to_fun := coe_fn,
+  map_add' := λ f g, by { ext, simp only [add_apply, pi.add_apply] },
+  map_smul' := λ c f, by { ext, simp only [dfinsupp.coe_smul, ring_hom.id_apply] },
+  .. dfinsupp.equiv_fun_on_fintype }
+
+variables {ι M}
+@[simp] lemma linear_equiv_fun_on_fintype_lof [fintype ι] [decidable_eq ι] (i : ι) (m : M i) :
+  (linear_equiv_fun_on_fintype R ι M) (lof R ι M i m) = pi.single i m :=
+begin
+  ext a,
+  change (dfinsupp.equiv_fun_on_fintype (lof R ι M i m)) a = _,
+  convert _root_.congr_fun (dfinsupp.equiv_fun_on_fintype_single i m) a,
+end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_single [fintype ι] [decidable_eq ι]
+  (i : ι) (m : M i) :
+  (linear_equiv_fun_on_fintype R ι M).symm (pi.single i m) = lof R ι M i m :=
+begin
+  ext a,
+  change (dfinsupp.equiv_fun_on_fintype.symm (pi.single i m)) a = _,
+  rw (dfinsupp.equiv_fun_on_fintype_symm_single i m),
+  refl
+end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_coe [fintype ι] (f : ⨁ i, M i) :
+  (linear_equiv_fun_on_fintype R ι M).symm f = f :=
+by { ext, simp [linear_equiv_fun_on_fintype], }
+
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [module R M]
   [unique ι] :
@@ -163,12 +194,27 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
+/-- The canonical embedding from `⨁ i, A i` to `M`  where `A` is a collection of `submodule R M`
+indexed by `ι`-/
+def submodule_coe {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
+  (A : ι → submodule R M) : (⨁ i, A i) →ₗ[R] M :=
+to_module R ι M (λ i, (A i).subtype)
+
+@[simp] lemma submodule_coe_of {R M : Type*} [semiring R] [add_comm_monoid M] [module R M]
+  (A : ι → submodule R M) (i : ι) (x : A i) :
+  submodule_coe A (of (λ i, A i) i x) = x :=
+to_add_monoid_of _ _ _
+
+
 /-- The `direct_sum` formed by a collection of `submodule`s of `M` is said to be internal if the
-canonical map `(⨁ i, A i) →ₗ[R] M` is bijective. -/
+canonical map `(⨁ i, A i) →ₗ[R] M` is bijective.
+
+For the alternate statement in terms of independence and spanning, see
+`direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top`. -/
 def submodule_is_internal {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M]
   (A : ι → submodule R M) : Prop :=
-function.bijective (to_module R ι M (λ i, (A i).subtype))
+function.bijective (submodule_coe A)
 
 lemma submodule_is_internal.to_add_submonoid {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M) :
@@ -180,12 +226,36 @@ lemma submodule_is_internal.to_add_subgroup {R M : Type*}
   submodule_is_internal A ↔ add_subgroup_is_internal (λ i, (A i).to_add_subgroup) :=
 iff.rfl
 
+/-- If a direct sum of submodules is internal then the submodules span the module. -/
 lemma submodule_is_internal.supr_eq_top {R M : Type*}
-  [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M)
+  [semiring R] [add_comm_monoid M] [module R M] {A : ι → submodule R M}
   (h : submodule_is_internal A) : supr A = ⊤ :=
 begin
   rw [submodule.supr_eq_range_dfinsupp_lsum, linear_map.range_eq_top],
   exact function.bijective.surjective h,
 end
+
+/-- If a direct sum of submodules is internal then the submodules are independent. -/
+lemma submodule_is_internal.independent {R M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M] {A : ι → submodule R M}
+  (h : submodule_is_internal A) : complete_lattice.independent A :=
+complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
+
+/-- Note that this is not generally true for `[semiring R]`; see
+`complete_lattice.independent.dfinsupp_lsum_injective` for details. -/
+lemma submodule_is_internal_of_independent_of_supr_eq_top {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
+  (hi : complete_lattice.independent A) (hs : supr A = ⊤) : submodule_is_internal A :=
+⟨hi.dfinsupp_lsum_injective, linear_map.range_eq_top.1 $
+  (submodule.supr_eq_range_dfinsupp_lsum _).symm.trans hs⟩
+
+/-- `iff` version of `direct_sum.submodule_is_internal_of_independent_of_supr_eq_top`,
+`direct_sum.submodule_is_internal.independent`, and `direct_sum.submodule_is_internal.supr_eq_top`.
+-/
+lemma submodule_is_internal_iff_independent_and_supr_eq_top {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] (A : ι → submodule R M) :
+    submodule_is_internal A ↔ complete_lattice.independent A ∧ supr A = ⊤ :=
+⟨λ i, ⟨i.independent, i.supr_eq_top⟩,
+ and.rec submodule_is_internal_of_independent_of_supr_eq_top⟩
 
 end direct_sum

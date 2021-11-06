@@ -13,7 +13,7 @@ import data.matrix.basis
 # Transvections
 
 Transvections are matrices of the form `1 + std_basis_matrix i j c`, where `std_basis_matrix i j c`
-is the basic matrix with a `1` at position `(i, j)`. Multiplying by such a transvection on the left
+is the basic matrix with a `c` at position `(i, j)`. Multiplying by such a transvection on the left
 (resp. on the right) amounts to adding `c` times the `j`-th row to to the `i`-th row
 (resp `c` times the `i`-th column to the `j`-th column). Therefore, they are useful to present
 algorithms operating on rows and columns.

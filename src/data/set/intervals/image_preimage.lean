@@ -527,7 +527,7 @@ lemma image_inv_Ioo_0_left {a : k} (ha : 0 < a) : has_inv.inv '' Ioo 0 a = Ioi a
 begin
   ext x,
   exact ⟨λ ⟨y, ⟨hy0, hya⟩, hyx⟩, hyx ▸ (inv_lt_inv ha hy0).2 hya, λ h, ⟨x⁻¹, ⟨inv_pos.2 (lt_trans
-    (inv_pos.2 ha) h), (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩, inv_inv' x⟩⟩,
+    (inv_pos.2 ha) h), (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩, inv_inv₀ x⟩⟩,
 end
 
 

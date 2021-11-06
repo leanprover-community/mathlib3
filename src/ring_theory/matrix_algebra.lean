@@ -47,6 +47,7 @@ def to_fun_right_linear (a : A) : matrix n n R →ₗ[R] matrix n n A :=
     dsimp only [to_fun],
     ext,
     simp only [pi.smul_apply, ring_hom.map_mul, algebra.id.smul_eq_mul],
+    dsimp,
     rw [algebra.smul_def r, ←_root_.mul_assoc, ←_root_.mul_assoc, algebra.commutes],
   end, }
 

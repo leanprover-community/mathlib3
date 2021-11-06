@@ -41,7 +41,7 @@ vector measure, signed measure, complex measure
 
 noncomputable theory
 
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -73,8 +73,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
 include m
 
-instance : has_coe_to_fun (vector_measure α M) :=
-⟨λ _, set α → M, vector_measure.measure_of'⟩
+instance : has_coe_to_fun (vector_measure α M) (λ _, set α → M) :=
+⟨vector_measure.measure_of'⟩
 
 initialize_simps_projections vector_measure (measure_of' → apply)
 
@@ -395,6 +395,12 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [is_finite_measure μ
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
+-- Without this lemma, `singular_part_neg` in `measure_theory.decomposition.lebesgue` is
+-- extremely slow
+lemma to_signed_measure_congr {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
+  (h : μ = ν) : μ.to_signed_measure = ν.to_signed_measure :=
+by { congr, exact h }
+
 lemma to_signed_measure_eq_to_signed_measure_iff
   {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
   μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=
@@ -405,7 +411,7 @@ begin
     { rw h },
     rwa [to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
         ennreal.to_real_eq_to_real] at this;
-    { exact measure_lt_top _ _ } },
+    { exact measure_ne_top _ _ } },
   { congr, assumption }
 end
 
@@ -936,13 +942,17 @@ include m
 def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
 ∀ ⦃s : set α⦄, w s = 0 → v s = 0
 
-infix ` ≪ `:50 := absolutely_continuous
+
+localized "infix ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
+  in measure_theory
+
+open_locale measure_theory
 
 namespace absolutely_continuous
 
 variables {v : vector_measure α M} {w : vector_measure α N}
 
-lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
+lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ᵥ w :=
 begin
   intros s hs,
   by_cases hmeas : measurable_set s,
@@ -950,24 +960,24 @@ begin
   { exact not_measurable v hmeas }
 end
 
-lemma eq {w : vector_measure α M} (h : v = w) : v ≪ w :=
+lemma eq {w : vector_measure α M} (h : v = w) : v ≪ᵥ w :=
 λ s hs, h.symm ▸ hs
 
-@[refl] lemma refl (v : vector_measure α M) : v ≪ v :=
+@[refl] lemma refl (v : vector_measure α M) : v ≪ᵥ v :=
 eq rfl
 
-@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
+@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
 λ _ hs, huv $ hvw hs
 
-lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ v :=
+lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ᵥ v :=
 λ s _, vector_measure.zero_apply s
 
 lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
-  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : -v ≪ w :=
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) : -v ≪ᵥ w :=
 λ s hs, by { rw [neg_apply, h hs, neg_zero] }
 
 lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
-  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) : v ≪ -w :=
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) : v ≪ᵥ -w :=
 begin
   intros s hs,
   rw [neg_apply, neg_eq_zero] at hs,
@@ -975,22 +985,22 @@ begin
 end
 
 lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
-  (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) : v₁ + v₂ ≪ w :=
+  (hv₁ : v₁ ≪ᵥ w) (hv₂ : v₂ ≪ᵥ w) : v₁ + v₂ ≪ᵥ w :=
 λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
 
 lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
-  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ w) (hv₂ : v₂ ≪ w) :
-  v₁ - v₂ ≪ w :=
+  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ᵥ w) (hv₂ : v₂ ≪ᵥ w) :
+  v₁ - v₂ ≪ᵥ w :=
 λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
 
 lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
   [topological_space R] [has_continuous_smul R M]
-  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ w) :
-  r • v ≪ w :=
+  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) :
+  r • v ≪ᵥ w :=
 λ s hs, by { rw [smul_apply, h hs, smul_zero] }
 
-lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
-  v.map f ≪ w.map f :=
+lemma map [measure_space β] (h : v ≪ᵥ w) (f : α → β) :
+  v.map f ≪ᵥ w.map f :=
 begin
   by_cases hf : measurable f,
   { refine mk (λ s hs hws, _),
@@ -1001,7 +1011,7 @@ begin
 end
 
 lemma ennreal_to_measure {μ : vector_measure α ℝ≥0∞} :
-  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ μ :=
+  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ᵥ μ :=
 begin
   split; intro h,
   { refine mk (λ s hmeas hs, h _),
@@ -1088,7 +1098,79 @@ lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_s
   [has_continuous_smul R M] (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
 (smul_right r h.symm).symm
 
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : -v ⊥ᵥ w :=
+begin
+  obtain ⟨u, hmu, hu₁, hu₂⟩ := h,
+  refine ⟨u, hmu, λ s hs, _, hu₂⟩,
+  rw [neg_apply v s, neg_eq_zero],
+  exact hu₁ s hs
+end
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : v ⊥ᵥ -w :=
+h.symm.neg_left.symm
+
+@[simp]
+lemma neg_left_iff {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  -v ⊥ᵥ w ↔ v ⊥ᵥ w :=
+⟨λ h, neg_neg v ▸ h.neg_left, neg_left⟩
+
+@[simp]
+lemma neg_right_iff {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  v ⊥ᵥ -w ↔ v ⊥ᵥ w :=
+⟨λ h, neg_neg w ▸ h.neg_right, neg_right⟩
+
 end mutually_singular
+
+section trim
+
+omit m
+
+/-- Restriction of a vector measure onto a sub-σ-algebra. -/
+@[simps] def trim {m n : measurable_space α} (v : vector_measure α M) (hle : m ≤ n) :
+  @vector_measure α m M _ _ :=
+{ measure_of' := λ i, if measurable_set[m] i then v i else 0,
+  empty' := by rw [if_pos measurable_set.empty, v.empty],
+  not_measurable' := λ i hi, by rw if_neg hi,
+  m_Union' := λ f hf₁ hf₂,
+  begin
+    have hf₁' : ∀ k, measurable_set[n] (f k) := λ k, hle _ (hf₁ k),
+    convert v.m_Union hf₁' hf₂,
+    { ext n, rw if_pos (hf₁ n) },
+    { rw if_pos (@measurable_set.Union _ _ m _ _ hf₁) }
+  end }
+
+variables {n : measurable_space α} {v : vector_measure α M}
+
+lemma trim_eq_self : v.trim le_rfl = v :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+@[simp] lemma zero_trim (hle : m ≤ n) :
+  (0 : vector_measure α M).trim hle = 0 :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+lemma trim_measurable_set_eq (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  v.trim hle i = v i :=
+if_pos hi
+
+lemma restrict_trim (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  @vector_measure.restrict α m M _ _ (v.trim hle) i = (v.restrict i).trim hle :=
+begin
+  ext j hj,
+  rw [restrict_apply, trim_measurable_set_eq hle hj, restrict_apply, trim_measurable_set_eq],
+  all_goals { measurability }
+end
+
+end trim
 
 end
 

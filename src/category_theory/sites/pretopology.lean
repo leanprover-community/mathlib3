@@ -68,8 +68,7 @@ structure pretopology :=
 
 namespace pretopology
 
-instance : has_coe_to_fun (pretopology C) :=
-⟨_, λ J, J.coverings⟩
+instance : has_coe_to_fun (pretopology C) (λ _, Π X : C, set (presieve X)) := ⟨coverings⟩
 
 instance : partial_order (pretopology C) :=
 { le := λ K₁ K₂, (K₁ : Π (X : C), set _) ≤ K₂,

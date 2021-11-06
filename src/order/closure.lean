@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
 import data.set_like.basic
-import order.basic
 import order.preorder_hom
 import order.galois_connection
 import tactic.monotonicity
@@ -60,8 +59,7 @@ structure closure_operator [preorder α] extends α →ₘ α :=
 
 namespace closure_operator
 
-instance [preorder α] : has_coe_to_fun (closure_operator α) :=
-{ F := _, coe := λ c, c.to_fun }
+instance [preorder α] : has_coe_to_fun (closure_operator α) (λ _, α → α) := ⟨λ c, c.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def simps.apply [preorder α] (f : closure_operator α) : α → α := f
@@ -74,8 +72,7 @@ variable [partial_order α]
 /-- The identity function as a closure operator. -/
 @[simps]
 def id : closure_operator α :=
-{ to_fun := λ x, x,
-  monotone' := λ _ _ h, h,
+{ to_preorder_hom := preorder_hom.id,
   le_closure' := λ _, le_rfl,
   idempotent' := λ _, rfl }
 
@@ -260,8 +257,7 @@ instance [preorder α] : inhabited (lower_adjoint (id : α → α)) := ⟨lower_
 section preorder
 variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
-instance : has_coe_to_fun (lower_adjoint u) :=
-{ F := λ _, α → β, coe := to_fun }
+instance : has_coe_to_fun (lower_adjoint u) (λ _, α → β) := { coe := to_fun }
 
 /-- See Note [custom simps projection] -/
 def simps.apply : α → β := l
@@ -291,7 +287,7 @@ def closure_operator :
 { to_fun := λ x, u (l x),
   monotone' := l.monotone,
   le_closure' := l.le_closure,
-  idempotent' := λ x, show (u ∘ l ∘ u) (l x) = u (l x), by rw l.gc.u_l_u_eq_u }
+  idempotent' := λ x, l.gc.u_l_u_eq_u (l x) }
 
 lemma idempotent (x : α) : u (l (u (l x))) = u (l x) :=
 l.closure_operator.idempotent _
@@ -381,6 +377,9 @@ variables [set_like α β] (l : lower_adjoint (coe : α → set β))
 
 lemma subset_closure (s : set β) : s ⊆ l s :=
 l.le_closure s
+
+lemma not_mem_of_not_mem_closure {s : set β} {P : β} (hP : P ∉ l s) : P ∉ s :=
+λ h, hP (subset_closure _ s h)
 
 lemma le_iff_subset (s : set β) (S : α) : l s ≤ S ↔ s ⊆ S :=
 l.gc s S

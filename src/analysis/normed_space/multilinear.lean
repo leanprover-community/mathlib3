@@ -130,7 +130,7 @@ begin
   refine ⟨_, this, _⟩,
   refine f.bound_of_shell (λ _, ε0) (λ _, hc) (λ m hcm hm, _),
   refine (hε m ((pi_norm_lt_iff ε0).2 hm)).le.trans _,
-  rw [← div_le_iff' this, one_div, ← inv_pow', inv_div, fintype.card, ← prod_const],
+  rw [← div_le_iff' this, one_div, ← inv_pow₀, inv_div, fintype.card, ← prod_const],
   exact prod_le_prod (λ _ _, div_nonneg ε0.le (norm_nonneg _)) (λ i _, hcm i)
 end
 
@@ -446,8 +446,8 @@ def prodL :
 /-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
 def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
   [Π i', normed_space 𝕜 (E' i')] :
-  @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
-    (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
+  @linear_isometry_equiv 𝕜 𝕜 _ _ (ring_hom.id 𝕜) _ _ _
+    (Π i', continuous_multilinear_map 𝕜 E (E' i')) (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _
       (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
 { to_linear_equiv :=
   -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent
@@ -821,7 +821,8 @@ protected def pi_field_equiv : G ≃L[𝕜] (continuous_multilinear_map 𝕜 (λ
     rw one_mul,
     change ∥f (λi, 1)∥ ≤ ∥f∥,
     apply @continuous_multilinear_map.unit_le_op_norm 𝕜 ι (λ (i : ι), 𝕜) G _ _ _ _ _ _ _ f,
-    simp [pi_norm_le_iff zero_le_one, le_refl]
+    simp only [pi_norm_le_iff zero_le_one, norm_one],
+    exact λ _, le_rfl
   end,
   .. continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G }
 
@@ -852,7 +853,8 @@ multilinear_map.mk_continuous
   { to_fun := λ m, linear_map.mk_continuous
       { to_fun := λ x, f x m,
         map_add' := λ x y, by simp only [map_add, continuous_multilinear_map.add_apply],
-        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul]}
+        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul,
+                                          ring_hom.id_apply] }
       (∥f∥ * ∏ i, ∥m i∥) $ λ x,
       by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
     map_add' := λ m i x y,

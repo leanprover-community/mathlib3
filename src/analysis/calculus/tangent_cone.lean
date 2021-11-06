@@ -368,7 +368,7 @@ unique_diff_on.pi _ _ _ _ $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
+theorem unique_diff_on_convex {s : set G} (conv : convex ℝ s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,

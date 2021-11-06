@@ -57,8 +57,8 @@ theorem smul_eval_smul (m : M) (f : polynomial S) (x : S) :
 polynomial.induction_on f
   (λ r, by rw [smul_C, eval_C, eval_C])
   (λ f g ihf ihg, by rw [smul_add, eval_add, ihf, ihg, eval_add, smul_add])
-  (λ n r ih, by rw [smul_mul', smul_pow, smul_C, smul_X, eval_mul, eval_C, eval_pow, eval_X,
-      eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow])
+  (λ n r ih, by rw [smul_mul', smul_pow', smul_C, smul_X, eval_mul, eval_C, eval_pow, eval_X,
+      eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow'])
 
 variables (G : Type*) [group G]
 
@@ -117,9 +117,9 @@ protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M
   map_smul' := λ m p, polynomial.induction_on p
     (λ b, by rw [smul_C, map_C, coe_fn_coe, g.map_smul, map_C, coe_fn_coe, smul_C])
     (λ p q ihp ihq, by rw [smul_add, polynomial.map_add, ihp, ihq, polynomial.map_add, smul_add])
-    (λ n b ih, by rw [smul_mul', smul_C, smul_pow, smul_X, polynomial.map_mul, map_C,
+    (λ n b ih, by rw [smul_mul', smul_C, smul_pow', smul_X, polynomial.map_mul, map_C,
         polynomial.map_pow, map_X, coe_fn_coe, g.map_smul, polynomial.map_mul, map_C,
-        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow, smul_X, coe_fn_coe]),
+        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow', smul_X, coe_fn_coe]),
   map_zero' := polynomial.map_zero g,
   map_add' := λ p q, polynomial.map_add g,
   map_one' := polynomial.map_one g,

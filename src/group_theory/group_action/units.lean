@@ -32,6 +32,10 @@ instance [monoid M] [has_scalar M α] : has_scalar (units M) α :=
 lemma smul_def [monoid M] [has_scalar M α] (m : units M) (a : α) :
   m • a = (m : M) • a := rfl
 
+lemma _root_.is_unit.inv_smul [monoid α] {a : α} (h : is_unit a) :
+  (h.unit)⁻¹ • a = 1 :=
+h.coe_inv_mul
+
 @[to_additive]
 instance [monoid M] [has_scalar M α] [has_faithful_scalar M α] : has_faithful_scalar (units M) α :=
 { eq_of_smul_eq_smul := λ u₁ u₂ h, units.ext $ eq_of_smul_eq_smul h, }

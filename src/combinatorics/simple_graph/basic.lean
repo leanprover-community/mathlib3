@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
+import data.rel
 import data.set.finite
 import data.sym.sym2
 
@@ -64,10 +65,10 @@ finitely many vertices.
 * Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
 
 * This is the simplest notion of an unoriented graph.  This should
-eventually fit into a more complete combinatorics hierarchy which
-includes multigraphs and directed graphs.  We begin with simple graphs
-in order to start learning what the combinatorics hierarchy should
-look like.
+  eventually fit into a more complete combinatorics hierarchy which
+  includes multigraphs and directed graphs.  We begin with simple graphs
+  in order to start learning what the combinatorics hierarchy should
+  look like.
 -/
 open finset
 universes u v w
@@ -135,7 +136,7 @@ rfl
 /-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
 instance : has_sup (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊔ y.adj,
-    symm := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma sup_adj (x y : simple_graph V) (v w : V) : (x ⊔ y).adj v w ↔ x.adj v w ∨ y.adj v w :=
 iff.rfl
@@ -143,7 +144,7 @@ iff.rfl
 /-- The infinum of two graphs `x ⊓ y` has edges where both `x` and `y` have edges. -/
 instance : has_inf (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊓ y.adj,
-    symm := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }⟩
+    symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma inf_adj (x y : simple_graph V) (v w : V) : (x ⊓ y).adj v w ↔ x.adj v w ∧ y.adj v w :=
 iff.rfl
@@ -227,6 +228,14 @@ instance compl.adj_decidable : decidable_rel Gᶜ.adj := λ v w, and.decidable
 end decidable
 
 end order
+
+/-- `G.support` is the set of vertices that form edges in `G`. -/
+def support : set V := rel.dom G.adj
+
+lemma mem_support {v : V} : v ∈ G.support ↔ ∃ w, G.adj v w := iff.rfl
+
+lemma support_mono {G G' : simple_graph V} (h : G ≤ G') : G.support ⊆ G'.support :=
+rel.dom_mono h
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)

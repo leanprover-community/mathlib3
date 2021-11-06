@@ -224,10 +224,10 @@ by { rintro ⟨c, rfl⟩, simp [pow_mul] }
 theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
 
-theorem neg_pow_of_even {x : R} (h : even n) : (-x) ^ n = x ^ n :=
+theorem even.neg_pow (h : even n) (x : R) : (-x) ^ n = x ^ n :=
 by rw [neg_pow, neg_one_pow_of_even h, one_mul]
 
-theorem neg_pow_of_odd {x : R} (h : odd n) : (-x) ^ n = -x ^ n :=
+theorem odd.neg_pow (h : odd n) (x : R) : (-x) ^ n = -x ^ n :=
 by rw [neg_pow, neg_one_pow_of_odd h, neg_one_mul]
 
 -- Here are examples of how `parity_simps` can be used with `nat`.

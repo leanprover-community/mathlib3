@@ -217,7 +217,7 @@ theorem int.pow_add_pow {x y : ℤ} (hxy₁ : ↑p ∣ x + y) (hxy₂ : ¬↑p �
 begin
   rw ← sub_neg_eq_add at hxy₁,
   rw [← dvd_neg, neg_mul_eq_mul_neg] at hxy₂,
-  rw [← sub_neg_eq_add, ← sub_neg_eq_add, ← nat.neg_pow_of_odd hn],
+  rw [← sub_neg_eq_add, ← sub_neg_eq_add, ← nat.odd.neg_pow hn],
   exact int.pow_sub_pow hp hp1 hxy₁ hxy₂ n
 end
 

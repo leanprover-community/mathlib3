@@ -83,6 +83,26 @@ lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) {f : U �
   (restrict_stalk_iso X h x).inv = (X.restrict h).presheaf.germ ⟨x, hx⟩ :=
 by rw [← restrict_stalk_iso_hom_eq_germ, category.assoc, iso.hom_inv_id, category.comp_id]
 
+lemma restrict_stalk_iso_inv_eq_of_restrict {U : Top} (X : PresheafedSpace C)
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) (x : U) :
+    (X.restrict_stalk_iso h x).inv = stalk_map (X.of_restrict h) x :=
+begin
+  ext U,
+  induction U using opposite.rec,
+  let i : (H.base_open.is_open_map.functor_nhds x).obj ((open_nhds.map f.base x).obj U) ⟶ U :=
+    hom_of_le (set.image_preimage_subset f.base _),
+  erw [iso.eq_comp_inv, colimit.ι_map_assoc, colimit.ι_map_assoc, colimit.ι_pre],
+  simp_rw category.assoc,
+  erw colimit.ι_pre ((open_nhds.inclusion (f.base x)).op ⋙ Y.presheaf)
+    (H.base_open.is_open_map.functor_nhds x).op,
+  erw ← Y.presheaf.map_comp_assoc,
+  exact colimit.w ((open_nhds.inclusion (f.base x)).op ⋙ Y.presheaf) i.op,
+end
+
+instance of_restrict_stalk_map_is_iso {U : Top} (X : PresheafedSpace C)
+  {f : U ⟶ (X : Top.{v})} (h : open_embedding f) (x : U) :
+  is_iso (stalk_map (X.of_restrict h) x) :=
+by { rw ← restrict_stalk_iso_inv_eq_of_restrict, apply_instance }
 end restrict
 
 namespace stalk_map

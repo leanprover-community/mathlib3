@@ -270,11 +270,8 @@ local attribute [instance] path.homotopic.setoid
 instance : category_theory.groupoid (fundamental_groupoid X) :=
 { hom := λ x y, path.homotopic.quotient x y,
   id := λ x, ⟦path.refl x⟧,
-  comp := λ x y z p q, quotient.lift₂ (λ (l₁ : path x y) (l₂ : path y z), ⟦l₁.trans l₂⟧) begin
-    rintros a₁ a₂ b₁ b₂ ⟨h₁⟩ ⟨h₂⟩,
-    rw quotient.eq,
-    exact ⟨h₁.hcomp h₂⟩,
-  end p q,
+  comp := λ x y z p q, quotient.map₂ path.trans
+    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq) p q,
   id_comp' := λ x y f, quotient.induction_on f
     (λ a, show ⟦(path.refl x).trans a⟧ = ⟦a⟧,
           from quotient.sound ⟨path.homotopy.refl_trans a⟩ ),
@@ -297,11 +294,8 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
 
 lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
-  p ≫ q = quotient.lift₂ (λ (l₁ : path x y) (l₂ : path y z), ⟦l₁.trans l₂⟧) begin
-    rintros a₁ a₂ b₁ b₂ ⟨h₁⟩ ⟨h₂⟩,
-    rw quotient.eq,
-    exact ⟨h₁.hcomp h₂⟩,
-  end p q := rfl
+  p ≫ q = quotient.map₂ path.trans
+    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq) p q := rfl
 
 /--
 The functor sending a topological space `X` to its fundamental groupoid.

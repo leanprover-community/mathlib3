@@ -33,7 +33,7 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 universes u v
 
 variables {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
-variables {x₀ x₁ : X}
+variables {x₀ x₁ x₂ : X}
 
 noncomputable theory
 
@@ -151,7 +151,7 @@ end
 
 section
 
-variables {x₂ : X} {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂}
+variables {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂}
 
 /--
 Suppose `p₀` and `q₀` are paths from `x₀` to `x₁`, `p₁` and `q₁` are paths from `x₁` to `x₂`.
@@ -264,16 +264,19 @@ namespace homotopic
 lemma refl (p : path x₀ x₁) : p.homotopic p := ⟨homotopy.refl p⟩
 
 @[symm]
-lemma symm ⦃p₀ p₁ : path x₀ x₁⦄ (h : p₀.homotopic p₁) : p₁.homotopic p₀ := ⟨h.some.symm⟩
+lemma symm ⦃p₀ p₁ : path x₀ x₁⦄ (h : p₀.homotopic p₁) : p₁.homotopic p₀ := h.map homotopy.symm
 
 @[trans]
 lemma trans ⦃p₀ p₁ p₂ : path x₀ x₁⦄ (h₀ : p₀.homotopic p₁) (h₁ : p₁.homotopic p₂) :
-  p₀.homotopic p₂ := ⟨h₀.some.trans h₁.some⟩
+  p₀.homotopic p₂ := h₀.map2 homotopy.trans h₁
 
 lemma equivalence : equivalence (@homotopic X _ x₀ x₁) := ⟨refl, symm, trans⟩
 
 lemma map {p q : path x₀ x₁} (h : p.homotopic q) (f : C(X, Y)) :
-  homotopic (p.map f.continuous) (q.map f.continuous) := ⟨h.some.map f⟩
+  homotopic (p.map f.continuous) (q.map f.continuous) := h.map (λ F, F.map f)
+
+lemma hcomp {p₀ p₁ : path x₀ x₁} {q₀ q₁ : path x₁ x₂} (hp : p₀.homotopic p₁)
+  (hq : q₀.homotopic q₁) : (p₀.trans q₀).homotopic (p₁.trans q₁) := hp.map2 homotopy.hcomp hq
 
 /--
 The setoid on `path`s defined by the equivalence relation `path.homotopic`. That is, two paths are

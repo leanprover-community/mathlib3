@@ -12,8 +12,36 @@ import algebraic_geometry.stalks
 
 We say that a morphism of presheaved spaces `f : X ⟶ Y` is an open immersions if
 the underlying map of spaces is an open embedding `f : X ⟶ U ⊆ Y`,
-and `f : 𝒪_Y ⟶ f _* ℱ ` factors through
-`of_restrict : Y|ᵤ ⟶ Y` via some isomorphism `X ≅ Y|ᵤ`.
+and the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
+
+## Main definitions
+
+* `algebraic_geometry.PresheafedSpace.is_open_immersion`: the `Prop`-valued typeclass asserting
+  that `f` is an open_immersion
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.iso_restrict`: The source of an
+  open immersion is isomorphic to the restriction of the target onto the image.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_cone_of_left`: An explicit limit
+  cocone of the pullback of `f, g` if `f` is an open immersion.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: If `f : X ⟶ U ⊆ Z` is an
+  open immersion, then for each `Y ⟶ Z` whose image falls in `U`, we may lift it into a unique
+  `Y ⟶ X` that commutes with them.
+
+## Main results
+
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.comp`: The composition of two open
+  immersions is an open immersion.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.of_iso`: An iso is an open immersion.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`: An epic open immersion is iso.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`: An epic open immersion is iso.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
+  an isomorphism on stalks.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.has_pullback_of_left`: If `f` is an
+  open immersion, then the pullback of `f, g` exists. There is also `has_pullback_of_right`.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
+  are stable under pullback. There is also `pullback_fst_of_right`.
+* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_one_is_open_immersion`:
+  The pullback of two open immersions is an open immersion.
+
 
 We also proves that the pullback of two presheaved spaces exists, and is also an open immersion.
 -/
@@ -28,20 +56,19 @@ variables {C : Type u} [category.{v} C]
 
 /--
 An open immersion of PresheafedSpaces is an open embedding `f : X ⟶ U ⊆ Y` of the underlying
-spaces, and an isomorphism between the structure sheaves `𝒪ₓ ≅ 𝒪|ᵤ`, such that `f` factors through
-`of_restrict : 𝒪|ᵤ ⟶ 𝒪_Y`.
+spaces, such that the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
 -/
-class open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
+class is_open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
 (base_open : open_embedding f.base)
 (c_iso : ∀ U : opens X, is_iso (f.c.app (op (base_open.is_open_map.functor.obj U))))
 
-attribute [instance] open_immersion.c_iso
+attribute [instance] is_open_immersion.c_iso
 
-namespace open_immersion
+namespace is_open_immersion
 
 section
 
-variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : open_immersion f)
+variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
 
 /-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
 abbreviation open_functor := H.base_open.is_open_map.functor
@@ -85,13 +112,13 @@ end
 @[simp] lemma iso_restrict_inv_of_restrict : H.iso_restrict.inv ≫ f = Y.of_restrict _ :=
 by { rw iso.inv_comp_eq, simp }
 
-instance mono [H : open_immersion f] : mono f :=
+instance mono [H : is_open_immersion f] : mono f :=
 by { rw ← H.iso_restrict_hom_of_restrict, apply mono_comp }
 
 /-- The composition of two open immersions is an open immersion. -/
-instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : open_immersion f] (g : Y ⟶ Z)
-  [hg : open_immersion g] :
-  open_immersion (f ≫ g) :=
+instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : is_open_immersion f] (g : Y ⟶ Z)
+  [hg : is_open_immersion g] :
+  is_open_immersion (f ≫ g) :=
 { base_open := hg.base_open.comp hf.base_open,
   c_iso := λ U,
   begin
@@ -116,34 +143,7 @@ instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : open_immersion f] (g :
   end
 }
 
-/-- An isomorphism is an open immersion. -/
-instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : open_immersion H.hom :=
-{ base_open := (Top.homeo_of_iso ((forget C).map_iso H)).open_embedding,
-  c_iso := λ _, infer_instance }
-
-@[priority 100]
-instance of_is_iso {X Y : PresheafedSpace C} (f : X ⟶ Y) [is_iso f] : open_immersion f :=
-algebraic_geometry.PresheafedSpace.open_immersion.of_iso (as_iso f)
-
-instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
-  (hf : open_embedding f) : open_immersion (Y.of_restrict hf) :=
-{ base_open := hf,
-  c_iso := λ U,
-  begin
-    dsimp,
-    have : (opens.map f).obj (hf.is_open_map.functor.obj U) = U,
-    { cases U,
-      dsimp only [opens.map, is_open_map.functor],
-      congr' 1,
-      rw set.preimage_image_eq _ hf.inj,
-      refl },
-    convert (show is_iso (Y.presheaf.map (𝟙 _)), from infer_instance),
-    { apply subsingleton.helim,
-      rw this },
-    { rw Y.presheaf.map_id,
-      apply_instance }
-  end }
-
+/-- For an open immersion `f : X ⟶ Y` and an open set `U ⊆ X`, we have the map `X(U) ⟶ Y(U)`. -/
 noncomputable
 def inv_app (U : opens X) : X.presheaf.obj (op U) ⟶ Y.presheaf.obj (op (H.open_functor.obj U)) :=
 X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) ≫
@@ -171,6 +171,40 @@ by rw [inv_app, category.assoc, is_iso.inv_hom_id, category.comp_id]
     op U ⟶ op (H.open_functor.obj ((opens.map f.base).obj U))) :=
 by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 
+end
+
+section
+
+variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
+
+/-- An isomorphism is an open immersion. -/
+instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : is_open_immersion H.hom :=
+{ base_open := (Top.homeo_of_iso ((forget C).map_iso H)).open_embedding,
+  c_iso := λ _, infer_instance }
+
+@[priority 100]
+instance of_is_iso {X Y : PresheafedSpace C} (f : X ⟶ Y) [is_iso f] : is_open_immersion f :=
+algebraic_geometry.PresheafedSpace.open_immersion.of_iso (as_iso f)
+
+instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
+  (hf : open_embedding f) : is_open_immersion (Y.of_restrict hf) :=
+{ base_open := hf,
+  c_iso := λ U,
+  begin
+    dsimp,
+    have : (opens.map f).obj (hf.is_open_map.functor.obj U) = U,
+    { cases U,
+      dsimp only [opens.map, is_open_map.functor],
+      congr' 1,
+      rw set.preimage_image_eq _ hf.inj,
+      refl },
+    convert (show is_iso (Y.presheaf.map (𝟙 _)), from infer_instance),
+    { apply subsingleton.helim,
+      rw this },
+    { rw Y.presheaf.map_id,
+      apply_instance }
+  end }
+
 /-- This could be used in conjunction with `category_theory.nat_iso.is_iso_of_is_iso_app`. -/
 lemma is_iso_of_components (f : X ⟶ Y) [is_iso f.base] [is_iso f.c] : is_iso f :=
 begin
@@ -178,7 +212,7 @@ begin
   ext, { simpa }, { simp },
 end
 
-lemma to_iso (f : X ⟶ Y) [h : open_immersion f] [h' : epi f.base] : is_iso f :=
+lemma to_iso (f : X ⟶ Y) [h : is_open_immersion f] [h' : epi f.base] : is_iso f :=
 begin
   apply_with is_iso_of_components { instances := ff },
   { let : X ≃ₜ Y := (homeomorph.of_embedding _ h.base_open.to_embedding).trans
@@ -195,14 +229,14 @@ begin
       dsimp only [functor.op, opens.map],
       congr,
       exact (set.image_preimage_eq _ ((Top.epi_iff_surjective _).mp h')).symm },
-    convert @@open_immersion.c_iso _ h ((opens.map f.base).obj (unop U)) }
+    convert @@is_open_immersion.c_iso _ h ((opens.map f.base).obj (unop U)) }
 end
 
-instance stalk_iso [has_colimits C] [H : open_immersion f] (x : X) : is_iso (stalk_map f x) :=
+instance stalk_iso [has_colimits C] [H : is_open_immersion f] (x : X) : is_iso (stalk_map f x) :=
 begin
   rw ← H.iso_restrict_hom_of_restrict,
   rw PresheafedSpace.stalk_map.comp,
-  apply_instance,
+  apply_instance
 end
 
 end
@@ -210,10 +244,15 @@ end
 section pullback
 noncomputable theory
 
-variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : open_immersion f] (g : Y ⟶ Z)
+open is_open_immersion
+
+variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
 
 include hf
 
+/--
+  (Implementation.) The projection map when constructing the pullback along an open immersion.
+-/
 def pullback_cone_of_left_fst :
   Y.restrict (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base) ⟶ X :=
 { base := pullback.fst,
@@ -330,8 +369,8 @@ begin
     simp }
 end
 
-instance pullback_cone_snd_open_immersion :
-  open_immersion (pullback_cone_of_left f g).snd :=
+instance pullback_cone_snd_is_open_immersion :
+  is_open_immersion (pullback_cone_of_left f g).snd :=
 begin
   erw category_theory.limits.pullback_cone.mk_snd,
   apply_instance
@@ -364,7 +403,7 @@ instance has_pullback_of_right :
 
 /-- Open immersions are stable under base-change. -/
 instance pullback_snd_of_left :
-  open_immersion (pullback.snd : pullback f g ⟶ _) :=
+  is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
 begin
   delta pullback.snd,
   rw ← limit.iso_limit_cone_hom_π ⟨_, pullback_cone_of_left_is_limit f g⟩ walking_cospan.right,
@@ -373,9 +412,16 @@ end
 
 /-- Open immersions are stable under base-change. -/
 instance pullback_fst_of_right :
-  open_immersion (pullback.fst : pullback g f ⟶ _) :=
+  is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
 begin
   rw ← pullback_symmetry_hom_comp_snd,
+  apply_instance
+end
+
+instance pullback_one_is_open_immersion [is_open_immersion g] :
+  is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
+begin
+  rw [←limit.w (cospan f g) walking_cospan.hom.inl, cospan_map_inl],
   apply_instance
 end
 
@@ -391,6 +437,12 @@ begin
   apply to_iso
 end
 
+/--
+The universal property of open immersions:
+For an open immersion `f : X ⟶ Z`, given any morphism of schemes `g : Y ⟶ Z` whose topological
+image is contained in the image of `f`, we can lift this morphism to a unique `Y ⟶ X` that
+commutes with these maps.
+-/
 def lift (H : set.range g.base ⊆ set.range f.base) : Y ⟶ X :=
 begin
   haveI := pullback_snd_is_iso_of_range_subset f g H,
@@ -405,15 +457,8 @@ lemma lift_uniq (H : set.range g.base ⊆ set.range f.base) (l : Y ⟶ X)
   (hl : l ≫ f = g) : l = lift f g H :=
 by rw [← cancel_mono f, hl, lift_fac]
 
-instance pullback_one_open_immersion [open_immersion g] :
-  open_immersion (limit.π (cospan f g) walking_cospan.one) :=
-begin
-  rw [←limit.w (cospan f g) walking_cospan.hom.inl, cospan_map_inl],
-  apply_instance
-end
-
 end pullback
 
-end open_immersion
+end is_open_immersion
 
 end algebraic_geometry.PresheafedSpace

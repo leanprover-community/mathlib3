@@ -5,7 +5,6 @@ Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import linear_algebra.affine_space.midpoint
-import topology.algebra.continuous_affine_map
 import topology.instances.real_vector_space
 
 /-!

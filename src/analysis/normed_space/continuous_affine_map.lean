@@ -45,7 +45,7 @@ rfl
   f (v +ᵥ p) = f.cont_linear v +ᵥ f p :=
 f.map_vadd' p v
 
-@[simp] lemma linear_map_vsub (f : P →A[R] Q) (p₁ p₂ : P) :
+@[simp] lemma cont_linear_map_vsub (f : P →A[R] Q) (p₁ p₂ : P) :
   f.cont_linear (p₁ -ᵥ p₂) = f p₁ -ᵥ f p₂ :=
 f.to_affine_map.linear_map_vsub p₁ p₂
 

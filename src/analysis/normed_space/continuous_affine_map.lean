@@ -10,7 +10,8 @@ import analysis.normed_space.affine_isometry
 /-!
 # Continuous affine maps between normed spaces.
 
-This file the theory of continuous affine maps between affine spaces modelled on normed spaces.
+This file develops the theory of continuous affine maps between affine spaces modelled on normed
+spaces.
 
 -/
 

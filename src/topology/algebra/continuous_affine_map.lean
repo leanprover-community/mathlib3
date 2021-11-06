@@ -12,6 +12,12 @@ import topology.continuous_function.basic
 
 This file defines a type of bundled continuous affine maps.
 
+Note that the definition and basic properties established here require minimal assumptions, and do
+not even assume compatibility between the topological and algebraic structures. Of course it is
+necessary to assume some compatibility in order to obtain a useful theory. Such a theory is
+developed elsewhere for affine spaces modelled on _normed_ vector spaces, but not yet for general
+topological affine spaces (since we have not defined these yet).
+
 ## Main definitions:
 
  * `continuous_affine_map`
@@ -24,8 +30,8 @@ to the notation `E →L[R] F` for `continuous_linear_map R E F`.
 
 /-- A continuous map of affine spaces. -/
 structure continuous_affine_map (R : Type*) {V W : Type*} (P Q : Type*) [ring R]
-  [add_comm_group V] [module R V] [metric_space P] [add_torsor V P]
-  [add_comm_group W] [module R W] [metric_space Q] [add_torsor W Q]
+  [add_comm_group V] [module R V] [topological_space P] [add_torsor V P]
+  [add_comm_group W] [module R W] [topological_space Q] [add_torsor W Q]
   extends P →ᵃ[R] Q :=
 (cont : continuous to_fun)
 
@@ -34,8 +40,8 @@ notation P ` →A[`:25 R `] ` Q := continuous_affine_map R P Q
 namespace continuous_affine_map
 
 variables {R V W P Q : Type*} [ring R]
-variables [add_comm_group V] [module R V] [metric_space P] [add_torsor V P]
-variables [add_comm_group W] [module R W] [metric_space Q] [add_torsor W Q]
+variables [add_comm_group V] [module R V] [topological_space P] [add_torsor V P]
+variables [add_comm_group W] [module R W] [topological_space Q] [add_torsor W Q]
 
 include V W
 

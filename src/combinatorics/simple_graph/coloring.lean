@@ -1,3 +1,13 @@
+/-
+This is an attempt to design proper graph colorings by using isomorphisms
+
+#TODO: gather material from:
+* https://github.com/leanprover-community/mathlib/blob/simple_graph_matching/src/combinatorics/simple_graph/coloring.lean
+* https://github.com/kmill/lean-graphcoloring/blob/master/src/graph.lean
+
+#TODO: vertex / edge coloring duality
+-/
+
 import combinatorics.simple_graph.basic
 import data.nat.lattice
 

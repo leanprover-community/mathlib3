@@ -184,7 +184,7 @@ instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : is_open_immersion H.ho
 
 @[priority 100]
 instance of_is_iso {X Y : PresheafedSpace C} (f : X ⟶ Y) [is_iso f] : is_open_immersion f :=
-algebraic_geometry.PresheafedSpace.open_immersion.of_iso (as_iso f)
+algebraic_geometry.PresheafedSpace.is_open_immersion.of_iso (as_iso f)
 
 instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
   (hf : open_embedding f) : is_open_immersion (Y.of_restrict hf) :=

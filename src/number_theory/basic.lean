@@ -60,7 +60,7 @@ begin
   rw ← mem_span_singleton at *,
   rw ← ideal.quotient.eq at hxy₁,
   rw ← eq_zero_iff_mem at *,
-  haveI := (ideal.span_singleton_prime hp.1).mpr hp,
+  haveI := (span_singleton_prime hp.1).mpr hp,
   rw [ring_hom.map_geom_sum₂, hxy₁, geom_sum₂_self, mul_eq_zero],
   apply not_or,
   { rwa ring_hom.map_nat_cast at hn },

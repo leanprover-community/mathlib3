@@ -496,7 +496,7 @@ begin
     haveI : fintype (range v) := set.fintype_range ⇑v,
     haveI := basis_fintype_of_finite_spans _ v.span_eq v',
     -- We clean up a little:
-    rw [cardinal.fintype_card, cardinal.fintype_card],
+    rw [cardinal.mk_fintype, cardinal.mk_fintype],
     simp only [cardinal.lift_nat_cast, cardinal.nat_cast_inj],
     -- Now we can use invariant basis number to show they have the same cardinality.
     apply card_eq_of_lequiv R,
@@ -569,7 +569,7 @@ lemma basis_le_span' {ι : Type*} (b : basis ι R M)
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   haveI := basis_fintype_of_finite_spans w s b,
-  rw cardinal.fintype_card ι,
+  rw cardinal.mk_fintype ι,
   simp only [cardinal.nat_cast_le],
   exact basis.le_span'' b s,
 end
@@ -585,7 +585,7 @@ theorem basis.le_span {J : set M} (v : basis ι R M)
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   casesI fintype_or_infinite J,
-  { rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
+  { rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.mk_fintype J],
     convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
     simp, },
   { have := cardinal.mk_range_eq_of_injective v.injective,
@@ -670,7 +670,7 @@ lemma linear_independent_le_span' {ι : Type*} (v : ι → M) (i : linear_indepe
   #ι ≤ fintype.card w :=
 begin
   haveI : fintype ι := linear_independent_fintype_of_le_span_fintype v i w s,
-  rw cardinal.fintype_card,
+  rw cardinal.mk_fintype,
   simp only [cardinal.nat_cast_le],
   exact linear_independent_le_span_aux' v i w s,
 end
@@ -747,7 +747,7 @@ begin
   -- We split into cases depending on whether `ι` is infinite.
   cases fintype_or_infinite ι; resetI,
   { -- When `ι` is finite, we have `linear_independent_le_span`,
-    rw cardinal.fintype_card ι,
+    rw cardinal.mk_fintype ι,
     haveI : nontrivial R := nontrivial_of_invariant_basis_number R,
     rw fintype.card_congr (equiv.of_injective b b.injective),
     exact linear_independent_le_span v i (range b) b.span_eq, },
@@ -810,14 +810,14 @@ cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι R M) :
   module.rank R M = fintype.card ι :=
 by {haveI := nontrivial_of_invariant_basis_number R,
-  rw [←h.mk_range_eq_dim, cardinal.fintype_card, set.card_range_of_injective h.injective] }
+  rw [←h.mk_range_eq_dim, cardinal.mk_fintype, set.card_range_of_injective h.injective] }
 
 lemma basis.card_le_card_of_linear_independent {ι : Type*} [fintype ι]
   (b : basis ι R M) {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
   fintype.card ι' ≤ fintype.card ι :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simpa [dim_eq_card_basis b, cardinal.fintype_card] using
+  simpa [dim_eq_card_basis b, cardinal.mk_fintype] using
     cardinal_lift_le_dim_of_linear_independent' hv
 end
 
@@ -1015,12 +1015,12 @@ end
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
-by rw [dim_pi, cardinal.sum_const', cardinal.fintype_card]
+by rw [dim_pi, cardinal.sum_const', cardinal.mk_fintype]
 
 lemma dim_fun_eq_lift_mul :
   module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
     cardinal.lift.{u₁'} (module.rank K V) :=
-by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card, cardinal.lift_nat_cast]
+by rw [dim_pi, cardinal.sum_const, cardinal.mk_fintype, cardinal.lift_nat_cast]
 
 lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_self, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]

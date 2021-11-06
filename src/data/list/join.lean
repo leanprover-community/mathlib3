@@ -12,7 +12,7 @@ This file proves basic properties of `list.join`, which concatenates a list of l
 in [`data.list.defs`](./data/list/defs).
 -/
 
-variables {α : Type*}
+variables {α β : Type*}
 
 namespace list
 
@@ -39,6 +39,13 @@ by simp [join_filter_empty_eq_ff, ← empty_iff_eq_nil]
 
 lemma join_join (l : list (list (list α))) : l.join.join = (l.map join).join :=
 by { induction l, simp, simp [l_ih] }
+
+@[simp] lemma length_join (L : list (list α)) : length (join L) = sum (map length L) :=
+by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
+
+@[simp] lemma length_bind (l : list α) (f : α → list β) :
+  length (list.bind l f) = sum (map (length ∘ f) l) :=
+by rw [list.bind, length_join, map_map]
 
 /-- In a join, taking the first elements up to an index which is the sum of the lengths of the
 first `i` sublists, is the same as taking the join of the first `i` sublists. -/

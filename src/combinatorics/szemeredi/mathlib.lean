@@ -113,44 +113,7 @@ end
 
 end finset
 
-namespace sym2
-
-attribute [elab_as_eliminator]
-lemma ind {f : sym2 α → Prop} : (∀ x y, f ⟦(x, y)⟧) → ∀ (i : sym2 α), f i :=
-λ hf, quotient.ind (by simpa using hf)
-
-attribute [elab_as_eliminator]
-lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i := i.ind hf
-
-lemma «exists» {α : Sort*} {f : sym2 α → Prop} : (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
-begin
-  split,
-  { rintro ⟨x, hx⟩,
-    induction x using sym2.induction_on with x y,
-    exact ⟨x, y, hx⟩ },
-  { rintro ⟨x, y, h⟩,
-    exact ⟨_, h⟩ }
-end
-
-lemma «forall» {α : Sort*} {f : sym2 α → Prop} : (∀ (x : sym2 α), f x) ↔ ∀ x y, f ⟦(x, y)⟧ :=
-⟨λ h x y, h _, sym2.ind⟩
-
-end sym2
-
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ a ≤ b) : b < a := lt_of_not_ge' h
-
--- change docstring of `finset.le_sum_of_subadditive`
-
-lemma finset.sum_le [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι} {a : α}
-  (h : ∀ i ∈ s, f i ≤ a) :
-  (∑ i in s, f i) ≤ s.card • a :=
-calc (∑ i in s, f i) ≤ (∑ i in s, a) : finset.sum_le_sum h
-                 ... = s.card • a    : finset.sum_const a
-
-lemma finset.le_sum [ordered_add_comm_monoid α] {f : ι → α} {s : finset ι} {a : α}
-  (h : ∀ i ∈ s, a ≤ f i) :
-  s.card • a ≤ ∑ i in s, f i :=
-@finset.sum_le (order_dual α) _ _ _ _ _ h
 
 lemma one_div_le_one_of_one_le [linear_ordered_field α] {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha

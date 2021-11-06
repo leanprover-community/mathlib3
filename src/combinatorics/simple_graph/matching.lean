@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alena Gusakov
+Authors: Alena Gusakov, Arthur Paulino
 -/
 import combinatorics.simple_graph.basic
 
@@ -34,6 +34,24 @@ universe u
 
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
+
+
+/-
+Kyle Miller: Matchings were added to mathlib before subgraphs were. It might be
+reasonable to redesign them as a graph M : simple_graph V satisfying M \leq G
+such that whenever M.adj v w and M.adj v w' then w = w'. We could define
+simple_graph.support of a graph to be {v : V | \exists w, G.adj v w}, and then a
+perfect matching is an M such that M.support = set.univ.
+
+Kyle Miller: though it would instead actually be terms of G.subgraph instead of
+terms of simple_graph V that are subgraphs.
+-/
+
+structure matching' :=
+(M : simple_graph V)
+(is_subgraph : M ≤ G)
+(is_disjoint : ∀ (v w w': V), M.adj v w ∧ M.adj v w' → w = w')
+
 
 /--
 A matching on `G` is a subset of its edges such that no two edges share a vertex.

@@ -1059,16 +1059,22 @@ by simpa only [mul_inv_cancel_right₀ I_ne_zero] using exp_antiperiodic.mul_con
 lemma exp_mul_I_periodic : function.periodic (λ x, exp (x * I)) (2 * π) :=
 exp_mul_I_antiperiodic.periodic
 
-lemma exp_pi_mul_I : exp (π * I) = -1 :=
+@[simp] lemma exp_pi_mul_I : exp (π * I) = -1 :=
 exp_zero ▸ exp_antiperiodic.eq
 
-lemma exp_two_pi_mul_I : exp (2 * π * I) = 1 :=
+@[simp] lemma exp_two_pi_mul_I : exp (2 * π * I) = 1 :=
 exp_periodic.eq.trans exp_zero
 
-lemma exp_nat_mul_two_pi_mul_I (n : ℕ) : exp (n * (2 * π * I)) = 1 :=
+@[simp] lemma exp_nat_mul_two_pi_mul_I (n : ℕ) : exp (n * (2 * π * I)) = 1 :=
 (exp_periodic.nat_mul_eq n).trans exp_zero
 
-lemma exp_int_mul_two_pi_mul_I (n : ℤ) : exp (n * (2 * π * I)) = 1 :=
+@[simp] lemma exp_int_mul_two_pi_mul_I (n : ℤ) : exp (n * (2 * π * I)) = 1 :=
 (exp_periodic.int_mul_eq n).trans exp_zero
+
+@[simp] lemma exp_add_pi_mul_I (z : ℂ) : exp (z + π * I) = -exp z :=
+exp_antiperiodic z
+
+@[simp] lemma exp_sub_pi_mul_I (z : ℂ) : exp (z - π * I) = -exp z :=
+exp_antiperiodic.sub_eq z
 
 end complex

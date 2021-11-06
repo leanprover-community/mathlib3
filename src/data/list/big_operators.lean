@@ -229,9 +229,9 @@ end
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
 lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α]
-  {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) (hl₂ : l.prod = 1) :
-  ∀ x ∈ l, x = (1 : α) :=
-λ x hx, le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
+  {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) (hl₂ : l.prod = 1) {x : α} (hx : x ∈ l) :
+  x = 1 :=
+le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 
 lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :
   l.sum = 0 ↔ ∀ x ∈ l, x = (0 : α) :=
@@ -267,19 +267,19 @@ lemma sum_le_foldr_max [add_monoid α] [add_monoid β] [linear_order β] (f : α
 begin
   induction l with hd tl IH,
   { simpa using h0 },
-  { simp only [list.sum_cons, list.foldr_map, le_max_iff, list.foldr] at IH ⊢,
-    cases le_or_lt (f tl.sum) (f hd),
-    { left,
-      refine (hadd _ _).trans _,
-      simpa using h },
-    { right,
-      refine (hadd _ _).trans _,
-      simp only [IH, max_le_iff, and_true, h.le.trans IH] } }
+  simp only [list.sum_cons, list.foldr_map, le_max_iff, list.foldr] at IH ⊢,
+  cases le_or_lt (f tl.sum) (f hd),
+  { left,
+    refine (hadd _ _).trans _,
+    simpa using h },
+  { right,
+    refine (hadd _ _).trans _,
+    simp only [IH, max_le_iff, and_true, h.le.trans IH] }
 end
 
 @[simp, to_additive]
 lemma prod_erase [decidable_eq α] [comm_monoid α] {a} :
-  Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
+  ∀ {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
 | (b :: l) h :=
   begin
     obtain rfl | ⟨ne, h⟩ := decidable.list.eq_or_ne_mem_of_mem h,
@@ -301,13 +301,6 @@ begin
   { rw [list.sum_cons],
     exact dvd_add (h _ (mem_cons_self _ _)) (ih (λ x hx, h x (mem_cons_of_mem _ hx))) }
 end
-
-@[simp] lemma length_join (L : list (list α)) : length (join L) = sum (map length L) :=
-by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
-
-@[simp] lemma length_bind (l : list α) (f : α → list β) :
-  length (list.bind l f) = sum (map (length ∘ f) l) :=
-by rw [list.bind, length_join, map_map]
 
 lemma exists_lt_of_sum_lt [linear_ordered_cancel_add_comm_monoid β] {l : list α} (f g : α → β)
   (h : (l.map f).sum < (l.map g).sum) :
@@ -335,24 +328,47 @@ begin
   exact lt_of_add_lt_add_left (h.trans_lt $ add_lt_add_right h' _),
 end
 
--- Several lemmas about sum/head/tail for `list ℕ`.
--- These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
-
--- We'd like to state this as `L.head * L.tail.prod = L.prod`,
--- but because `L.head` relies on an inhabited instances and
--- returns a garbage value for the empty list, this is not possible.
--- Instead we write the statement in terms of `(L.nth 0).get_or_else 1`,
--- and below, restate the lemma just for `ℕ`.
+/-- We'd like to state this as `L.head * L.tail.prod = L.prod`, but because `L.head` relies on an
+inhabited instance to return a garbage value on the empty list, this is not possible.
+Instead, we write the statement in terms of `(L.nth 0).get_or_else 1` and state the lemma for `ℕ` as
+ -/
 @[to_additive]
-lemma head_mul_tail_prod' [monoid α] (L : list α) :
-  (L.nth 0).get_or_else 1 * L.tail.prod = L.prod :=
-by cases L; simp
+lemma nth_zero_mul_tail_prod [monoid α] (l : list α) :
+  (l.nth 0).get_or_else 1 * l.tail.prod = l.prod :=
+by cases l; simp
 
+/-- Same as `nth_zero_mul_tail_prod`, but avoiding the `list.head` garbage complication by requiring
+the list to be nonempty. -/
+@[to_additive]
+lemma head_mul_tail_prod_of_ne_nil [monoid α] [inhabited α] (l : list α) (h : l ≠ []) :
+  l.head * l.tail.prod = l.prod :=
+by cases l; [contradiction, simp]
+
+/-- The product of a list of positive natural numbers is positive,
+and likewise for any nontrivial ordered semiring. -/
+lemma prod_pos [ordered_semiring α] [nontrivial α] (l : list α) (h : ∀ a ∈ l, (0 : α) < a) :
+  0 < l.prod :=
+begin
+  induction l with a l ih,
+  { simp },
+  { rw prod_cons,
+    exact mul_pos (h _ $ mem_cons_self _ _) (ih $ λ a ha, h a $ mem_cons_of_mem _ ha) }
+end
+
+/-!
+Several lemmas about sum/head/tail for `list ℕ`.
+These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
+If desired, we could add a class stating that `default α = 0`.
+-/
+
+/-- This relies on `default ℕ = 0`. -/
 lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
 by { cases L, { simp, refl }, { simp } }
 
+/-- This relies on `default ℕ = 0`. -/
 lemma head_le_sum (L : list ℕ) : L.head ≤ L.sum := nat.le.intro (head_add_tail_sum L)
 
+/-- This relies on `default ℕ = 0`. -/
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 

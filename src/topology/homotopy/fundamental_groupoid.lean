@@ -270,8 +270,8 @@ local attribute [instance] path.homotopic.setoid
 instance : category_theory.groupoid (fundamental_groupoid X) :=
 { hom := λ x y, path.homotopic.quotient x y,
   id := λ x, ⟦path.refl x⟧,
-  comp := λ x y z p q, quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq) p q,
+  comp := λ x y z, quotient.map₂ path.trans
+    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq),
   id_comp' := λ x y f, quotient.induction_on f
     (λ a, show ⟦(path.refl x).trans a⟧ = ⟦a⟧,
           from quotient.sound ⟨path.homotopy.refl_trans a⟩ ),
@@ -304,8 +304,8 @@ def π₁ : Top ⥤ category_theory.Groupoid :=
 { obj := λ X, { α := fundamental_groupoid X },
   map := λ X Y f,
   { obj := f,
-    map := λ x y p, quotient.map
-      (λ (q : path x y), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f) p,
+    map := λ x y, quotient.map
+      (λ (q : path x y), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f),
     map_id' := λ X, rfl,
     map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b, by simp [comp_eq] },
   map_id' := begin

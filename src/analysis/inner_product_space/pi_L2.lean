@@ -149,7 +149,7 @@ begin
   suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
   { exact this (e₁.symm w) },
   intros v,
-  simp [e₂, direct_sum.to_module, dfinsupp.sum_add_hom_apply],
+  simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with

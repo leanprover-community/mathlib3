@@ -227,12 +227,18 @@ instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
   ..with_zero.mul_zero_class,
   ..with_zero.has_one }
 
+instance [has_one α] [has_pow α ℕ] : has_pow (with_zero α) ℕ :=
+⟨λ x n, match x, n with
+  | none, 0 := 1
+  | none, n + 1 := 0
+  | some x, n := ↑(x ^ n)
+  end⟩
+
+@[simp, norm_cast] lemma coe_pow [has_one α] [has_pow α ℕ] {a : α} (n : ℕ) :
+  ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
+
 instance [monoid α] : monoid_with_zero (with_zero α) :=
-{ npow := λ n x, match x, n with
-    | none, 0 := 1
-    | none, n + 1 := 0
-    | some x, n := some (x ^ n)
-    end,
+{ npow := λ n x, x ^ n,
   npow_zero' := λ x, match x with
     | none   := rfl
     | some x := congr_arg some $ pow_zero _
@@ -243,9 +249,6 @@ instance [monoid α] : monoid_with_zero (with_zero α) :=
     end,
   .. with_zero.mul_zero_one_class,
   .. with_zero.semigroup_with_zero }
-
-@[simp, norm_cast] lemma coe_pow [monoid α] {a : α} (n : ℕ) :
-  ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
 
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }
@@ -265,18 +268,24 @@ instance [has_div α] : has_div (with_zero α) :=
 
 @[norm_cast] lemma coe_div [has_div α] (a b : α) : ↑(a / b : α) = (a / b : with_zero α) := rfl
 
+instance [has_one α] [has_pow α ℤ] : has_pow (with_zero α) ℤ :=
+⟨λ x n, match x, n with
+  | none, int.of_nat 0            := 1
+  | none, int.of_nat (nat.succ n) := 0
+  | none, int.neg_succ_of_nat n   := 0
+  | some x, n                     := ↑(x ^ n)
+  end⟩
+
+@[simp, norm_cast] lemma coe_zpow [div_inv_monoid α] {a : α} (n : ℤ) :
+  ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
+
 instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
 { div_eq_mul_inv := λ a b, match a, b with
-    | none, _   := rfl
+    | none,   _      := rfl
     | some a, none   := rfl
     | some a, some b := congr_arg some (div_eq_mul_inv _ _)
     end,
-  zpow := λ n x, match x, n with
-    | none, int.of_nat 0 := 1
-    | none, int.of_nat (nat.succ n) := 0
-    | none, int.neg_succ_of_nat n := 0
-    | some x, n := some (x ^ n)
-    end,
+  zpow := λ n x, x ^ n,
   zpow_zero' := λ x, match x with
     | none   := rfl
     | some x := congr_arg some $ zpow_zero _
@@ -293,8 +302,6 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
   .. with_zero.has_inv,
   .. with_zero.monoid_with_zero, }
 
-@[simp, norm_cast] lemma coe_zpow [div_inv_monoid α] {a : α} (n : ℤ) :
-  ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
 
 section group
 variables [group α]

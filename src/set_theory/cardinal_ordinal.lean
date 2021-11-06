@@ -273,7 +273,7 @@ begin
     refine (equiv.set.insert _).trans
       ((equiv.refl _).sum_congr punit_equiv_punit),
     apply @irrefl _ r },
-  cases lt_or_ge (card (typein (<) (g p)).succ) ω with qo qo,
+  cases lt_or_le (card (typein (<) (g p)).succ) ω with qo qo,
   { exact lt_of_lt_of_le (mul_lt_omega qo qo) ol },
   { suffices, {exact lt_of_le_of_lt (IH _ this qo) this},
     rw ← lt_ord, apply (ord_is_limit ol).2,
@@ -694,18 +694,18 @@ lt_of_lt_of_le zero_lt_one (self_le_add_left _ _)
 @[simp] lemma one_le_bit1 (a : cardinal) : 1 ≤ bit1 a :=
 self_le_add_left _ _
 
-theorem bit0_eq_self {c : cardinal} (h : omega ≤ c) : bit0 c = c :=
+theorem bit0_eq_self {c : cardinal} (h : ω ≤ c) : bit0 c = c :=
 add_eq_self h
 
-@[simp] theorem bit0_lt_omega {c : cardinal} : bit0 c < omega ↔ c < omega :=
+@[simp] theorem bit0_lt_omega {c : cardinal} : bit0 c < ω ↔ c < ω :=
 by simp [bit0, add_lt_omega_iff]
 
-@[simp] theorem omega_le_bit0 {c : cardinal} : omega ≤ bit0 c ↔ omega ≤ c :=
+@[simp] theorem omega_le_bit0 {c : cardinal} : ω ≤ bit0 c ↔ ω ≤ c :=
 by { rw ← not_iff_not, simp }
 
-@[simp] theorem bit1_eq_self_iff {c : cardinal} : bit1 c = c ↔ omega ≤ c :=
+@[simp] theorem bit1_eq_self_iff {c : cardinal} : bit1 c = c ↔ ω ≤ c :=
 begin
-  by_cases h : omega ≤ c,
+  by_cases h : ω ≤ c,
   { simp only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_of_omega_le] },
   { simp only [h, iff_false],
     apply ne_of_gt,
@@ -715,22 +715,22 @@ begin
     linarith }
 end
 
-@[simp] theorem bit1_lt_omega {c : cardinal} : bit1 c < omega ↔ c < omega :=
+@[simp] theorem bit1_lt_omega {c : cardinal} : bit1 c < ω ↔ c < ω :=
 by simp [bit1, bit0, add_lt_omega_iff, one_lt_omega]
 
-@[simp] theorem omega_le_bit1 {c : cardinal} : omega ≤ bit1 c ↔ omega ≤ c :=
+@[simp] theorem omega_le_bit1 {c : cardinal} : ω ≤ bit1 c ↔ ω ≤ c :=
 by { rw ← not_iff_not, simp }
 
 @[simp] lemma bit0_le_bit0 {a b : cardinal} : bit0 a ≤ bit0 b ↔ a ≤ b :=
 begin
-  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
   { rw [bit0_eq_self ha, bit0_eq_self hb] },
   { rw bit0_eq_self ha,
     have I1 : ¬ (a ≤ b),
     { assume h, apply hb, exact le_trans ha h },
     have I2 : ¬ (a ≤ bit0 b),
     { assume h,
-      have A : bit0 b < omega, by simpa using hb,
+      have A : bit0 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
     simp [I1, I2] },
   { rw [bit0_eq_self hb],
@@ -747,14 +747,14 @@ end
 
 @[simp] lemma bit0_le_bit1 {a b : cardinal} : bit0 a ≤ bit1 b ↔ a ≤ b :=
 begin
-  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
   { rw [bit0_eq_self ha, bit1_eq_self_iff.2 hb], },
   { rw bit0_eq_self ha,
     have I1 : ¬ (a ≤ b),
     { assume h, apply hb, exact le_trans ha h },
     have I2 : ¬ (a ≤ bit1 b),
     { assume h,
-      have A : bit1 b < omega, by simpa using hb,
+      have A : bit1 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
     simp [I1, I2] },
   { rw [bit1_eq_self_iff.2 hb],
@@ -779,9 +779,9 @@ begin
            ... ≤ b + b + 1 : add_le_add_right (add_le_add_right h b) 1 }
 end
 
-@[simp] lemma bit1_le_bit0 {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ omega ≤ a)) :=
+@[simp] lemma bit1_le_bit0 {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ ω ≤ a)) :=
 begin
-  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
   { simp only [bit1_eq_self_iff.mpr ha, bit0_eq_self hb, ha, and_true],
     refine ⟨λ h, or.inr h, λ h, _⟩,
     cases h,
@@ -792,7 +792,7 @@ begin
     { assume h, apply hb, exact le_trans ha h },
     have I2 : ¬ (a ≤ bit0 b),
     { assume h,
-      have A : bit0 b < omega, by simpa using hb,
+      have A : bit0 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_of_lt_of_le (lt_of_lt_of_le A ha) h) },
     simp [I1, I2, le_of_not_ge I1] },
   { rw [bit0_eq_self hb],
@@ -809,14 +809,14 @@ end
 
 @[simp] lemma bit0_lt_bit0 {a b : cardinal} : bit0 a < bit0 b ↔ a < b :=
 begin
-  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
   { rw [bit0_eq_self ha, bit0_eq_self hb] },
   { rw bit0_eq_self ha,
     have I1 : ¬ (a < b),
     { assume h, apply hb, exact le_trans ha (le_of_lt h) },
     have I2 : ¬ (a < bit0 b),
     { assume h,
-      have A : bit0 b < omega, by simpa using hb,
+      have A : bit0 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
     simp [I1, I2] },
   { rw [bit0_eq_self hb],
@@ -833,14 +833,14 @@ end
 
 @[simp] lemma bit1_lt_bit0 {a b : cardinal} : bit1 a < bit0 b ↔ a < b :=
 begin
-  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
   { rw [bit1_eq_self_iff.2 ha, bit0_eq_self hb], },
   { rw bit1_eq_self_iff.2 ha,
     have I1 : ¬ (a < b),
     { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
     have I2 : ¬ (a < bit0 b),
     { assume h,
-      have A : bit0 b < omega, by simpa using hb,
+      have A : bit0 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
     simp [I1, I2] },
   { rw [bit0_eq_self hb],
@@ -857,14 +857,14 @@ end
 
 @[simp] lemma bit1_lt_bit1 {a b : cardinal} : bit1 a < bit1 b ↔ a < b :=
 begin
-  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
   { rw [bit1_eq_self_iff.2 ha, bit1_eq_self_iff.2 hb], },
   { rw bit1_eq_self_iff.2 ha,
     have I1 : ¬ (a < b),
     { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
     have I2 : ¬ (a < bit1 b),
     { assume h,
-      have A : bit1 b < omega, by simpa using hb,
+      have A : bit1 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
     simp [I1, I2] },
   { rw [bit1_eq_self_iff.2 hb],
@@ -879,16 +879,16 @@ begin
     simp }
 end
 
-@[simp] lemma bit0_lt_bit1 {a b : cardinal} : bit0 a < bit1 b ↔ (a < b ∨ (a ≤ b ∧ a < omega)) :=
+@[simp] lemma bit0_lt_bit1 {a b : cardinal} : bit0 a < bit1 b ↔ (a < b ∨ (a ≤ b ∧ a < ω)) :=
 begin
-  by_cases ha : omega ≤ a; by_cases hb : omega ≤ b,
+  by_cases ha : ω ≤ a; by_cases hb : ω ≤ b,
   { simp [bit0_eq_self ha, bit1_eq_self_iff.2 hb, not_lt.mpr ha] },
   { rw bit0_eq_self ha,
     have I1 : ¬ (a < b),
     { assume h, apply hb, exact le_of_lt (lt_of_le_of_lt ha h) },
     have I2 : ¬ (a < bit1 b),
     { assume h,
-      have A : bit1 b < omega, by simpa using hb,
+      have A : bit1 b < ω, by simpa using hb,
       exact lt_irrefl _ (lt_trans (lt_of_lt_of_le A ha) h) },
     simp [I1, I2, not_lt.mpr ha] },
   { rw [bit1_eq_self_iff.2 hb],

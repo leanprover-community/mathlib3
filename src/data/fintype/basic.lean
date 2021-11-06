@@ -56,7 +56,7 @@ Among others, we provide `fintype` instances for
 
 and `infinite` instances for
 * specific types: `ℕ`, `ℤ`
-* type constructors: `set α`, `finset α`, `multiset α`, `list α`, `α ⊕ β`
+* type constructors: `set α`, `finset α`, `multiset α`, `list α`, `α ⊕ β`, `α × β`
 
 along with some machinery
 * Types which have a surjection from/an injection to a `fintype` are themselves fintypes. See
@@ -1715,6 +1715,12 @@ of_injective sum.inl sum.inl_injective
 instance sum_of_right [infinite β] : infinite (α ⊕ β) :=
 of_injective sum.inr sum.inr_injective
 
+instance prod_of_right [nonempty α] [infinite β] : infinite (α × β) :=
+of_surjective prod.snd prod.snd_surjective
+
+instance prod_of_left [infinite α] [nonempty β] : infinite (α × β) :=
+of_surjective prod.fst prod.fst_surjective
+
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α
 | n := by letI := classical.dec_eq α; exact classical.some (exists_not_mem_finset
   ((multiset.range n).pmap (λ m (hm : m < n), nat_embedding_aux m)
@@ -1746,11 +1752,22 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 
 end infinite
 
-lemma infinite_sum : infinite (α ⊕ β) ↔ infinite α ∨ infinite β :=
+@[simp] lemma infinite_sum : infinite (α ⊕ β) ↔ infinite α ∨ infinite β :=
 begin
   refine ⟨λ H, _, λ H, H.elim (@infinite.sum_of_left α β) (@infinite.sum_of_right α β)⟩,
   contrapose! H, haveI := fintype_of_not_infinite H.1, haveI := fintype_of_not_infinite H.2,
   exact infinite.false
+end
+
+@[simp] lemma infinite_prod :
+  infinite (α × β) ↔ infinite α ∧ nonempty β ∨ nonempty α ∧ infinite β :=
+begin
+  refine ⟨λ H, _, λ H, H.elim (and_imp.2 $ @infinite.prod_of_left α β)
+    (and_imp.2 $ @infinite.prod_of_right α β)⟩,
+  rw and.comm, contrapose! H, introI H',
+  rcases infinite.nonempty (α × β) with ⟨a, b⟩,
+  haveI := fintype_of_not_infinite (H.1 ⟨b⟩), haveI := fintype_of_not_infinite (H.2 ⟨a⟩),
+  exact H'.false
 end
 
 /-- If every finset in a type has bounded cardinality, that type is finite. -/

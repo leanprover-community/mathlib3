@@ -32,7 +32,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 -/
 
 open real set filter is_R_or_C
-open_locale big_operators uniformity topological_space nnreal ennreal direct_sum complex_conjugate
+open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
 local attribute [instance] fact_one_le_two_real
 
@@ -117,22 +117,6 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 
 lemma finrank_euclidean_space_fin {n : ℕ} :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
-
-@[simp] lemma dfinsupp.sum_eq_sum_fintype {ι β : Type*} [fintype ι] [decidable_eq ι]
-  [add_comm_monoid β]
-  {α : ι → Type*}
-  [Π i, has_zero (α i)] [Π (i : ι) (x : α i), decidable (x ≠ 0)]
-  (v : Π₀ i, α i) {f : Π i, α i → β} (hf : ∀ i, f i 0 = 0) :
-  v.sum f = ∑ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
-begin
-  suffices : ∑ i in v.support, f i (v i) = ∑ i, f i (v i),
-  { simp [dfinsupp.sum, this] },
-  apply finset.sum_subset,
-  refine (dfinsupp.support v).subset_univ,
-  intros i hi' hi,
-  rw [dfinsupp.mem_support_iff, not_not] at hi,
-  rw [hi, hf],
-end
 
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/

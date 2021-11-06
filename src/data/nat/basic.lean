@@ -108,6 +108,9 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] 
   ..subtype.linear_order s,
   ..lattice_of_linear_order }
 
+lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
+  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
+
 theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
 rfl
 
@@ -216,8 +219,7 @@ iff.intro eq_zero_of_mul_eq_zero (by simp [or_imp_distrib] {contextual := tt})
 by rw [eq_comm, nat.mul_eq_zero]
 
 lemma eq_zero_of_double_le {a : ℕ} (h : 2 * a ≤ a) : a = 0 :=
-nat.eq_zero_of_le_zero $
-  by rwa [two_mul, nat.add_le_to_le_sub, nat.sub_self] at h; refl
+add_right_eq_self.mp $ le_antisymm ((two_mul a).symm.trans_le h) le_add_self
 
 lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
@@ -278,6 +280,8 @@ theorem eq_one_of_mul_eq_one_left {m n : ℕ} (H : m * n = 1) : n = 1 :=
 eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
+
+lemma _root_.has_lt.lt.nat_succ_le {n m : ℕ} (h : n < m) : succ n ≤ m := succ_le_of_lt h
 
 lemma succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
 by rw [nat.succ_eq_add_one, nat.add_comm]
@@ -462,7 +466,7 @@ theorem pred_eq_of_eq_succ {m n : ℕ} (H : m = n.succ) : m.pred = n := by simp 
 by cases n; split; rintro ⟨⟩; refl
 
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
-by rw [← nat.sub_one, nat.sub_sub, one_add]; refl
+by rw [← nat.sub_one, nat.sub_sub, one_add, sub_succ]
 
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 nat.sub_le_sub_right h 1
@@ -509,6 +513,9 @@ begin
     exact nat.le_of_pred_lt h', },
 end
 
+/-- A version of `nat.sub_succ` in the form `_ - 1` instead of `nat.pred _`. -/
+lemma sub_succ' (a b : ℕ) : a - b.succ = a - b - 1 := rfl
+
 /-! ### `mul` -/
 
 lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
@@ -534,13 +541,13 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},
-  exact decidable.mul_le_mul_of_nonneg_right (nat.succ_le_of_lt h) dec_trivial,
+  exact decidable.mul_le_mul_of_nonneg_right h.nat_succ_le dec_trivial,
 end
 
 lemma le_mul_of_pos_right {m n : ℕ} (h : 0 < n) : m ≤ m * n :=
 begin
   conv {to_lhs, rw [← mul_one(m)]},
-  exact decidable.mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
+  exact decidable.mul_le_mul_of_nonneg_left h.nat_succ_le dec_trivial,
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
@@ -858,7 +865,7 @@ protected theorem div_mod_unique {n k m d : ℕ} (h : 0 < k) :
    simp [div_eq_of_lt, mod_eq_of_lt, h₂]⟩
 
 lemma two_mul_odd_div_two {n : ℕ} (hn : n % 2 = 1) : 2 * (n / 2) = n - 1 :=
-by conv {to_rhs, rw [← nat.mod_add_div n 2, hn, nat.add_sub_cancel_left]}
+by conv {to_rhs, rw [← nat.mod_add_div n 2, hn, add_tsub_cancel_left]}
 
 lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 ⟨b, (nat.div_mul_cancel h).symm⟩
@@ -909,7 +916,7 @@ lemma dvd_sub' {k m n : ℕ} (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
 begin
   cases le_total n m with H H,
   { exact dvd_sub H h₁ h₂ },
-  { rw nat.sub_eq_zero_of_le H,
+  { rw tsub_eq_zero_iff_le.mpr H,
     exact dvd_zero k },
 end
 
@@ -945,12 +952,12 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
       from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
     have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
     { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
-        ← add_tsub_add_right_eq_tsub a 1 b, add_comm (_ - _), add_assoc,
-        nat.sub_add_cancel (succ_le_succ hb_le_a), add_comm 1] },
+        ← add_tsub_add_eq_tsub_right a 1 b, add_comm (_ - _), add_assoc,
+        tsub_add_cancel_of_le (succ_le_succ hb_le_a), add_comm 1] },
     have wf : a - b < a + 1, from lt_succ_of_le tsub_le_self,
-    rw [if_pos h₁, if_pos h₂, add_tsub_add_right_eq_tsub, nat.sub_add_comm hb_le_a,
+    rw [if_pos h₁, if_pos h₂, add_tsub_add_eq_tsub_right, ← tsub_add_eq_add_tsub hb_le_a,
       by exact have _ := wf, succ_div (a - b),
-      add_tsub_add_right_eq_tsub],
+      add_tsub_add_eq_tsub_right],
     simp [dvd_iff, succ_eq_add_one, add_comm 1, add_assoc] },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
@@ -980,8 +987,8 @@ end
 
 /--  If `a` and `b` are equal mod `c`, `a - b` is zero mod `c`. -/
 lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c = 0 :=
-by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
-       ←nat.mul_sub_left_distrib, nat.mul_mod_right]
+by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, tsub_add_eq_tsub_tsub, add_tsub_cancel_left,
+       ←mul_tsub, nat.mul_mod_right]
 
 @[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
@@ -1122,7 +1129,7 @@ begin
   by_cases n0 : n = 0,
   { rw [n0, nat.div_zero, nat.div_zero] },
   { rw [← mod_add_div m n] { occs := occurrences.pos [2] },
-    rw [nat.add_sub_cancel_left, mul_div_right _ (nat.pos_of_ne_zero n0)] }
+    rw [add_tsub_cancel_left, mul_div_right _ (nat.pos_of_ne_zero n0)] }
 end
 
 lemma mul_div_le (m n : ℕ) : n * (m / n) ≤ m :=
@@ -1421,9 +1428,8 @@ decidable_of_iff (∀ k (h : k < succ n), P k (le_of_lt_succ h))
 instance decidable_lo_hi (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred P] :
   decidable (∀x, lo ≤ x → x < hi → P x) :=
 decidable_of_iff (∀ x < hi - lo, P (lo + x))
-⟨λal x hl hh, by have := al (x - lo) (lt_of_not_ge $
-  (not_congr (nat.sub_le_sub_right_iff _ _ _ hl)).2 $ not_le_of_gt hh);
-  rwa [nat.add_sub_of_le hl] at this,
+⟨λal x hl hh, by { have := al (x - lo) ((tsub_lt_tsub_iff_right hl).mpr hh),
+  rwa [add_tsub_cancel_of_le hl] at this, },
 λal x h, al _ (nat.le_add_right _ _) (lt_tsub_iff_left.mp h)⟩
 
 instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred P] :

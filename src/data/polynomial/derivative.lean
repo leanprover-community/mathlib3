@@ -50,7 +50,8 @@ begin
   { assume b, cases b,
     { intros, rw [nat.cast_zero, mul_zero, zero_mul], },
     { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } },
-  { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
+  { rw [if_pos (add_tsub_cancel_right n 1).symm, mul_one, nat.cast_add, nat.cast_one,
+      mem_support_iff],
     intro h, push_neg at h, simp [h], },
 end
 
@@ -173,7 +174,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       by simp only [nat.cast_add, mul_add, add_mul, C_add, C_mul];
       cases n; simp only [nat.succ_sub_succ, pow_zero];
       cases m; simp only [nat.cast_zero, C_0, nat.succ_sub_succ, zero_mul, mul_zero, nat.add_succ,
-        nat.sub_zero, pow_zero, pow_add, one_mul, pow_succ, mul_comm, mul_left_comm]
+        tsub_zero, pow_zero, pow_add, one_mul, pow_succ, mul_comm, mul_left_comm]
   ... = derivative f * g + f * derivative g :
     begin
       conv { to_rhs, congr,
@@ -320,10 +321,10 @@ begin
   apply le_antisymm,
   { rw derivative_apply,
     apply le_trans (degree_sum_le _ _) (sup_le (λ n hn, _)),
-    apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (nat.sub_le_sub_right _ _)),
+    apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (tsub_le_tsub_right _ _)),
     apply le_nat_degree_of_mem_supp _ hn },
   { refine le_sup _,
-    rw [mem_support_derivative, nat.sub_add_cancel, mem_support_iff],
+    rw [mem_support_derivative, tsub_add_cancel_of_le, mem_support_iff],
     { show ¬ leading_coeff p = 0,
       rw [leading_coeff_eq_zero],
       assume h, rw [h, nat_degree_zero] at hp,
@@ -342,7 +343,7 @@ begin
     have f_nat_degree_pos : 0 < f.nat_degree,
     { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
     let m := f.nat_degree - 1,
-    have hm : m + 1 = f.nat_degree := nat.sub_add_cancel f_nat_degree_pos,
+    have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
     have h2 := coeff_derivative f m,
     rw polynomial.ext_iff at h,
     rw [h m, coeff_zero, zero_eq_mul] at h2,

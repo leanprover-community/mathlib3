@@ -12,6 +12,7 @@ import data.bool
 import tactic.binder_matching
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import tactic.project_dir
 import system.io
 
 universe u
@@ -2190,11 +2191,20 @@ meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
 
+/-- A hackish way to get the `src` directory of any project.
+  Requires as argument any declaration name `n` in that project, and `k`, the number of characters
+  in the path of the file where `n` is declared not part of the `src` directory.
+  Example: For `mathlib_dir_locator` this is the length of `tactic/project_dir.lean`, so `23`.
+  Note: does not work in the file where `n` is declared. -/
+meta def get_project_dir (n : name) (k : ℕ) : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean n <|>
+fail!"Did not find declaration {n}. This command does not work in the file where {n} is declared.",
+  return $ s.popn_back k
+
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
-do e ← get_env,
-  s ← e.decl_olean `tactic.reset_instance_cache,
-  return $ s.popn_back 17
+get_project_dir `mathlib_dir_locator 23
 
 /-- Checks whether a declaration with the given name is declared in mathlib.
 If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,

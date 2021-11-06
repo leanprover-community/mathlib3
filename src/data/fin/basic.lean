@@ -785,7 +785,7 @@ by { cases i, refl }
 
 @[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
   fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
-by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
+by simp only [ext_iff, coe_pred, coe_mk, add_tsub_cancel_right]
 
 -- This is not a simp lemma by default, because `pred_mk_succ` is nicer when it applies.
 lemma pred_mk {n : ℕ} (i : ℕ) (h : i < n + 1) (w) :
@@ -812,7 +812,7 @@ by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
 lemma pred_add_one (i : fin (n + 2)) (h : (i : ℕ) < n + 1) :
   pred (i + 1) (ne_of_gt (add_one_pos _ (lt_iff_coe_lt_coe.mpr h))) = cast_lt i h :=
 begin
-  rw [ext_iff, coe_pred, coe_cast_lt, coe_add, coe_one, mod_eq_of_lt, nat.add_sub_cancel],
+  rw [ext_iff, coe_pred, coe_cast_lt, coe_add, coe_one, mod_eq_of_lt, add_tsub_cancel_right],
   exact add_lt_add_right h 1,
 end
 
@@ -833,11 +833,11 @@ by simp [eq_iff_veq]
 
 @[simp] lemma add_nat_sub_nat {i : fin (n + m)} (h : m ≤ i) :
   add_nat m (sub_nat m i h) = i :=
-ext $ nat.sub_add_cancel h
+ext $ tsub_add_cancel_of_le h
 
 @[simp] lemma sub_nat_add_nat (i : fin n) (m : ℕ) (h : m ≤ add_nat m i := le_coe_add_nat m i) :
   sub_nat m (add_nat m i) h = i :=
-ext $ nat.add_sub_cancel i m
+ext $ add_tsub_cancel_right i m
 
 @[simp] lemma nat_add_sub_nat_cast {i : fin (n + m)} (h : n ≤ i) :
   nat_add n (sub_nat n (cast (add_comm _ _) i) h) = i :=
@@ -1053,7 +1053,7 @@ instance (n : ℕ) : has_neg (fin n) :=
 /-- Abelian group structure on `fin (n+1)`. -/
 instance (n : ℕ) : add_comm_group (fin (n+1)) :=
 { add_left_neg := λ ⟨a, ha⟩, fin.ext $ trans (nat.mod_add_mod _ _ _) $
-    by { rw [fin.coe_mk, fin.coe_zero, nat.sub_add_cancel, nat.mod_self], exact le_of_lt ha },
+    by { rw [fin.coe_mk, fin.coe_zero, tsub_add_cancel_of_le, nat.mod_self], exact le_of_lt ha },
   sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, fin.ext $
     show (a + (n + 1 - b)) % (n + 1) = (a + (n + 1 - b) % (n + 1)) % (n + 1), by simp,
   sub := fin.sub,

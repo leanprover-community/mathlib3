@@ -262,7 +262,7 @@ begin
     { rw [mem_support_iff, coeff_mul_X_pow'] at hy,
       exact by_contra (λ h, hy (if_neg h)) },
     rw [mem_support_iff, coeff_mul_X_pow', if_pos key] at hy,
-    exact (nat.add_le_to_le_sub _ key).mpr (nat_trailing_degree_le_of_ne_zero hy) },
+    exact (le_tsub_iff_right key).mp (nat_trailing_degree_le_of_ne_zero hy) },
 end
 
 end semiring

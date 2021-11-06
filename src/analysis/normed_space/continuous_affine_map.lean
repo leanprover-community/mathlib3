@@ -24,37 +24,37 @@ variables [normed_group W] [normed_space R W] [metric_space Q] [normed_add_torso
 include V W
 
 /-- The linear map underlying a continuous affine map is continuous. -/
-def continuous_linear (f : P →A[R] Q) : V →L[R] W :=
+def cont_linear (f : P →A[R] Q) : V →L[R] W :=
 { to_fun := f.linear,
   cont   := by { rw affine_map.continuous_linear_iff, exact f.cont, },
   .. f.linear, }
 
-@[simp] lemma coe_continuous_linear_eq_linear (f : P →A[R] Q) :
-  (f.continuous_linear : V →ₗ[R] W) = (f : P →ᵃ[R] Q).linear :=
+@[simp] lemma coe_cont_linear_eq_linear (f : P →A[R] Q) :
+  (f.cont_linear : V →ₗ[R] W) = (f : P →ᵃ[R] Q).linear :=
 by { ext, refl, }
 
-@[simp] lemma coe_linear_eq_coe_continuous_linear (f : P →A[R] Q) :
-  ((f : P →ᵃ[R] Q).linear : V → W) = (⇑f.continuous_linear : V → W) :=
+@[simp] lemma coe_linear_eq_coe_cont_linear (f : P →A[R] Q) :
+  ((f : P →ᵃ[R] Q).linear : V → W) = (⇑f.cont_linear : V → W) :=
 rfl
 
 @[simp] lemma map_vadd (f : P →A[R] Q) (p : P) (v : V) :
-  f (v +ᵥ p) = f.continuous_linear v +ᵥ f p :=
+  f (v +ᵥ p) = f.cont_linear v +ᵥ f p :=
 f.map_vadd' p v
 
 @[simp] lemma linear_map_vsub (f : P →A[R] Q) (p₁ p₂ : P) :
-  f.continuous_linear (p₁ -ᵥ p₂) = f p₁ -ᵥ f p₂ :=
+  f.cont_linear (p₁ -ᵥ p₂) = f p₁ -ᵥ f p₂ :=
 f.to_affine_map.linear_map_vsub p₁ p₂
 
-@[simp] lemma const_continuous_linear (q : Q) : (const R P q).continuous_linear = 0 := rfl
+@[simp] lemma const_cont_linear (q : Q) : (const R P q).cont_linear = 0 := rfl
 
-lemma continuous_linear_eq_zero_iff_exists_const (f : P →A[R] Q) :
-  f.continuous_linear = 0 ↔ ∃ q, f = const R P q :=
+lemma cont_linear_eq_zero_iff_exists_const (f : P →A[R] Q) :
+  f.cont_linear = 0 ↔ ∃ q, f = const R P q :=
 begin
-  have h₁ : f.continuous_linear = 0 ↔ (f : P →ᵃ[R] Q).linear = 0,
+  have h₁ : f.cont_linear = 0 ↔ (f : P →ᵃ[R] Q).linear = 0,
   { refine ⟨λ h, _, λ h, _⟩;
     ext,
-    { rw [← coe_continuous_linear_eq_linear, h], refl, },
-    { rw [← coe_linear_eq_coe_continuous_linear, h], refl, }, },
+    { rw [← coe_cont_linear_eq_linear, h], refl, },
+    { rw [← coe_linear_eq_coe_cont_linear, h], refl, }, },
   have h₂ : ∀ (q : Q), f = const R P q ↔ (f : P →ᵃ[R] Q) = affine_map.const R P q,
   { intros q,
     refine ⟨λ h, _, λ h, _⟩;

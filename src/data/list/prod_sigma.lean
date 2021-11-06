@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2014 Parikshit Khanna. All rights reserved.
+Copyright (c) 2015 Leonardo de Moura. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
+Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.list.big_operators
 
@@ -9,7 +9,7 @@ import data.list.big_operators
 # Lists in product and sigma types
 
 This file proves basic properties of `list.product` and `list.sigma`, which are list constructions
-living in product and sigma types respectively. Their definitions can be found in
+living in `prod` and `sigma` types respectively. Their definitions can be found in
 [`data.list.defs`](./data/list/defs). Beware, this is not about `list.prod`, the multiplicative
 product.
 -/

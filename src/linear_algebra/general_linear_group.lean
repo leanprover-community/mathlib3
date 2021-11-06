@@ -195,10 +195,6 @@ def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
 general_linear_group.mk_of_det_ne_zero ![![a, b], ![-b, a]]
   (by simpa [det_fin_two, sq] using hab)
 
-@[simp] lemma coe_plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
-  (plane_conformal_matrix a b hab : matrix (fin 2) (fin 2) R) = ![![a, b], ![-b, a]] :=
-rfl
-
 /- TODO: Add Iwasawa matrices `n_x=![![1,x],![0,1]]`, `a_t=![![exp(t/2),0],![0,exp(-t/2)]]` and
   `k_θ==![![cos θ, sin θ],![-sin θ, cos θ]]`
 -/

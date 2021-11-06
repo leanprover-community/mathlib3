@@ -1766,7 +1766,7 @@ begin
     (and_imp.2 $ @infinite.prod_of_right α β)⟩,
   rw and.comm, contrapose! H, introI H',
   rcases infinite.nonempty (α × β) with ⟨a, b⟩,
-  have := fintype_of_not_infinite (H.1 ⟨b⟩), have := fintype_of_not_infinite (H.2 ⟨a⟩), resetI,
+  haveI := fintype_of_not_infinite (H.1 ⟨b⟩), haveI := fintype_of_not_infinite (H.2 ⟨a⟩),
   exact H'.false
 end
 

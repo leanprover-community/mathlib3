@@ -55,6 +55,24 @@ begin
       (complete_graph.of_embedding equiv.ulift.symm.to_embedding).to_hom.comp C, by simp⟩, },
 end
 
+lemma colorable_if_nonempty_fin_coloring' (G : simple_graph V) (n : ℕ) :
+  G.colorable n ↔ ∃ (C : G.proper_coloring ℕ), ∀ v, C.color v < n :=
+begin
+  rw colorable_if_nonempty_fin_coloring,
+  split,
+  { rintro ⟨C⟩,
+    let f := complete_graph.of_embedding (fin.coe_embedding n).to_embedding,
+    use f.to_hom.comp C,
+    cases C with color valid,
+    intro v,
+    exact fin.is_lt (color v), },
+  { rintro ⟨C, Cf⟩,
+    refine ⟨⟨λ v, ⟨C.color v, Cf v⟩, _⟩⟩,
+    rintro v w hvw,
+    simp only [complete_graph_eq_top, top_adj, subtype.mk_eq_mk, ne.def],
+    exact C.valid v w hvw, },
+end
+
 lemma proper_coloring.chromatic_number_le [fintype α] (C : G.proper_coloring α) :
   G.chromatic_number ≤ fintype.card α :=
 begin

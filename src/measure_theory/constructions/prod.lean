@@ -957,4 +957,13 @@ lemma integral_integral_swap ⦃f : α → β → E⦄ (hf : integrable (uncurry
   ∫ x, ∫ y, f x y ∂ν ∂μ = ∫ y, ∫ x, f x y ∂μ ∂ν :=
 (integral_integral hf).trans (integral_prod_symm _ hf)
 
+/-- **Fubini's Theorem** for set integrals. -/
+lemma set_integral_prod (f : α × β → E) {s : set α} {t : set β} (hs : measurable_set s)
+  (ht : measurable_set t) (hf : integrable_on f (s.prod t) (μ.prod ν)) :
+  ∫ z in s.prod t, f z ∂(μ.prod ν) = ∫ x in s, ∫ y in t, f (x, y) ∂ν ∂μ :=
+begin
+  simp only [← measure.prod_restrict hs ht, integrable_on] at hf ⊢,
+  exact integral_prod f hf
+end
+
 end measure_theory

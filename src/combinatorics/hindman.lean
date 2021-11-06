@@ -48,18 +48,18 @@ instance {M} [has_mul M] : has_mul (ultrafilter M) := { mul := λ U V, (*) <$> U
 /- We could have taken this as the definition of `U * V`, but then we would have to prove that it
 defines an ultrafilter. -/
 @[to_additive]
-lemma eventually_mul {M} [has_mul M] (U V : ultrafilter M) (p : M → Prop) :
+lemma ultrafilter.eventually_mul {M} [has_mul M] (U V : ultrafilter M) (p : M → Prop) :
   (∀ᶠ m in ↑(U * V), p m) ↔ ∀ᶠ m in U, ∀ᶠ m' in V, p (m * m') := iff.rfl
 
 @[to_additive]
 instance {M} [semigroup M] : semigroup (ultrafilter M) :=
 { mul_assoc := λ U V W, ultrafilter.coe_inj.mp $ filter.ext' $ λ p,
-    by simp only [eventually_mul, mul_assoc]
+    by simp only [ultrafilter.eventually_mul, mul_assoc]
   ..ultrafilter.has_mul }
 
 /- We don't prove `continuous_mul_right`, because in general it is false! -/
 @[to_additive]
-lemma continuous_mul_left {M} [semigroup M] (V : ultrafilter M) : continuous (* V) :=
+lemma ultrafilter.continuous_mul_left {M} [semigroup M] (V : ultrafilter M) : continuous (* V) :=
 topological_space.is_topological_basis.continuous ultrafilter_basis_is_basis _ $
 set.forall_range_iff.mpr $ λ s, ultrafilter_is_open_basic { m : M | ∀ᶠ m' in V, m * m' ∈ s }
 
@@ -90,7 +90,7 @@ begin
   let S : set (ultrafilter M) := ⋂ n, { U | ∀ᶠ m in U, m ∈ FS (stream.tail^[n] a) },
   obtain ⟨U, hU, U_idem⟩ := exists_idempotent_in_compact_add_subsemigoup _ S _ _ _,
   { refine ⟨U, U_idem, _⟩, convert set.mem_Inter.mp hU 0, },
-  { exact continuous_add_left },
+  { exact ultrafilter.continuous_add_left },
   { apply is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed,
     { intros n U hU,
       apply eventually.mono hU,
@@ -104,7 +104,7 @@ begin
   { intros U V hU hV,
     rw set.mem_Inter at *,
     intro n,
-    rw [set.mem_set_of_eq, eventually_add],
+    rw [set.mem_set_of_eq, ultrafilter.eventually_add],
     apply eventually.mono (hU n),
     intros m hm,
     obtain ⟨n', hn⟩ := FS_add hm,
@@ -157,6 +157,7 @@ let ⟨c, cs, hc⟩ := (ultrafilter.finite_sUnion_mem_iff sfin).mp (mem_of_super
 parts contains an FS-set. -/
 lemma exists_FS_of_finite_cover {M} [add_semigroup M] [nonempty M] (s : set (set M))
   (sfin : s.finite) (scov : ⊤ ⊆ ⋃₀ s) : ∃ (c ∈ s) (a : stream M), FS a ⊆ c :=
-let ⟨U, hU⟩ := exists_idempotent_of_compact_t2_of_continuous_add_left (@continuous_add_left M _) in
+let ⟨U, hU⟩ := exists_idempotent_of_compact_t2_of_continuous_add_left
+  (@ultrafilter.continuous_add_left M _) in
 let ⟨c, c_s, hc⟩ := (ultrafilter.finite_sUnion_mem_iff sfin).mp (mem_of_superset univ_mem scov) in
 ⟨c, c_s, exists_FS_of_large U hU c hc⟩

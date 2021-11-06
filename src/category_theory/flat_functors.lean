@@ -6,9 +6,7 @@ Authors: Andrew Yang
 import category_theory.limits.filtered_colimit_commutes_finite_limit
 import category_theory.limits.preserves.functor_category
 import category_theory.limits.preserves.shapes.equalizers
-import category_theory.limits.shapes.bicones
-import category_theory.limits.presheaf
-import category_theory.limits.yoneda
+import category_theory.limits.bicones
 import category_theory.limits.comma
 import category_theory.limits.preserves.finite
 

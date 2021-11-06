@@ -67,8 +67,8 @@ def to_diagram : J ⥤ structured_arrow c.X K :=
 
 /-- Given a diagram of `structured_arrow X F`s, we may obtain a cone with cone point `X`. -/
 @[simps]
-def diagram_to_cone {X : D} (G : J ⥤ structured_arrow X F) : cone (G ⋙ proj X F ⋙ F) := {
-  X := X, π := { app := λ j, (G.obj j).hom } }
+def diagram_to_cone {X : D} (G : J ⥤ structured_arrow X F) : cone (G ⋙ proj X F ⋙ F) :=
+{ X := X, π := { app := λ j, (G.obj j).hom } }
 
 /--
 Given a cone `c : cone K` and a map `f : X ⟶ F.obj c.X`, we can construct a cone of structured

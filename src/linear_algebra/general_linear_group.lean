@@ -62,10 +62,9 @@ noncomputable def mk'' (A : matrix n n R) (h : is_unit (matrix.det A)) : GL n R 
 nonsing_inv_unit A h
 
 /--Given a matrix with non-zero determinant over a field, we get an element of `GL n K`-/
-noncomputable def mk_of_det_ne_zero {K : Type*} [field K] (A : matrix n n K) 
-  (h : matrix.det A ≠ 0) : 
+def mk_of_det_ne_zero {K : Type*} [field K] (A : matrix n n K) (h : matrix.det A ≠ 0) :
   GL n K :=
-mk'' A (is_unit_iff_ne_zero.mpr h)
+@unit_of_det_invertible _ _ _ _ _ _ (invertible_of_nonzero h)
 
 instance coe_fun : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
 { coe := λ A, A.val }
@@ -95,11 +94,9 @@ begin
 end
 
 /-- An element of the matrix general linear group on `(n) [fintype n]` can be considered as an
-element of the endomorphism general linear group on `n → R`.
-
-TODO Improve this from a homomorphism to an isomorphism. -/
-def to_linear : (general_linear_group n R) →* linear_map.general_linear_group R (n → R) :=
-units.map matrix.to_lin_alg_equiv'.to_ring_equiv.to_ring_hom.to_monoid_hom
+element of the endomorphism general linear group on `n → R`. -/
+def to_linear : general_linear_group n R ≃* linear_map.general_linear_group R (n → R) :=
+units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
 -- TODO This simp-lemma should be stated for `n` rather than `fin m`, but for some reason it
 -- doesn't trigger when stated in the larger generality.  Decidability issue apparently?

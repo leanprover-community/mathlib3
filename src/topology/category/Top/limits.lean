@@ -447,6 +447,32 @@ begin
   { simp [hx₂] },
 end
 
+lemma pullback_fst_range {X Y S : Top} (f : X ⟶ S) (g : Y ⟶ S) :
+  set.range (pullback.fst : pullback f g ⟶ _) = { x : X | ∃ y : Y, f x = g y} :=
+begin
+  ext x,
+  split,
+  { rintro ⟨y, rfl⟩,
+    use (pullback.snd : pullback f g ⟶ _) y,
+    exact concrete_category.congr_hom pullback.condition y },
+  { rintro ⟨y, eq⟩,
+    use (Top.pullback_iso_prod_subtype f g).inv ⟨⟨x, y⟩, eq⟩,
+    simp },
+end
+
+lemma pullback_snd_range {X Y S : Top} (f : X ⟶ S) (g : Y ⟶ S) :
+  set.range (pullback.snd : pullback f g ⟶ _) = { y : Y | ∃ x : X, f x = g y} :=
+begin
+  ext y,
+  split,
+  { rintro ⟨x, rfl⟩,
+    use (pullback.fst : pullback f g ⟶ _) x,
+    exact concrete_category.congr_hom pullback.condition x },
+  { rintro ⟨x, eq⟩,
+    use (Top.pullback_iso_prod_subtype f g).inv ⟨⟨x, y⟩, eq⟩,
+    simp },
+end
+
 /--
 If there is a diagram where the morphisms `W ⟶ Y` and `X ⟶ Z` are embeddings,
 then the induced morphism `W ×ₛ X ⟶ Y ×ₜ Z` is also an embedding.
@@ -561,6 +587,36 @@ begin
   erw ←coe_comp,
   congr,
   exact (limit.w _ walking_cospan.hom.inr).symm
+end
+
+lemma fst_iso_of_right_embedding_range_subset {X Y S : Top} (f : X ⟶ S) {g : Y ⟶ S}
+  (hg : embedding g) (H : set.range f ⊆ set.range g) : is_iso (pullback.fst : pullback f g ⟶ X) :=
+begin
+  let : (pullback f g : Top) ≃ₜ X :=
+    (homeomorph.of_embedding _ (fst_embedding_of_right_embedding f hg)).trans
+    { to_fun := coe,
+      inv_fun := (λ x, ⟨x,
+        by { rw pullback_fst_range, exact ⟨_, (H (set.mem_range_self x)).some_spec.symm⟩ }⟩),
+      left_inv := λ ⟨_,_⟩, rfl,
+      right_inv := λ x, rfl },
+  convert is_iso.of_iso (iso_of_homeo this),
+  ext,
+  refl
+end
+
+lemma snd_iso_of_left_embedding_range_subset {X Y S : Top} {f : X ⟶ S} (hf : embedding f)
+  (g : Y ⟶ S) (H : set.range g ⊆ set.range f) : is_iso (pullback.snd : pullback f g ⟶ Y) :=
+begin
+  let : (pullback f g : Top) ≃ₜ Y :=
+    (homeomorph.of_embedding _ (snd_embedding_of_left_embedding hf g)).trans
+    { to_fun := coe,
+      inv_fun := (λ x, ⟨x,
+        by { rw pullback_snd_range, exact ⟨_, (H (set.mem_range_self x)).some_spec⟩ }⟩),
+      left_inv := λ ⟨_,_⟩, rfl,
+      right_inv := λ x, rfl },
+  convert is_iso.of_iso (iso_of_homeo this),
+  ext,
+  refl
 end
 
 end pullback

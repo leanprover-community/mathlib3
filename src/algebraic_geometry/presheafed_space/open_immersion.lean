@@ -334,15 +334,34 @@ instance has_pullback_of_left :
 instance has_pullback_of_right :
   has_pullback g f := has_pullback_symmetry f g
 
-
 lemma snd_embedding_of_left_embedding {X Y S : Top}
-  {f : X ⟶ S} (H : embedding f) (g : Y ⟶ S) (H : set.range g ⊆ set.range f) :
+  {f : X ⟶ S} (H : embedding f) (g : Y ⟶ S) (H' : set.range g ⊆ set.range f) :
   is_iso (pullback.snd : pullback f g ⟶ Y) :=
 begin
-  let : Y ⟶ pullback f g,
-    refine _ ≫ (Top.pullback_iso_prod_subtype f g).inv,
-    refine { to_fun := _, continuous_to_fun := _ },
-    intro x,
+  let : Y ⟶ pullback f g :=
+    ({ to_fun := λ x, ⟨⟨(H' (set.mem_range_self x)).some, x⟩,
+        by simp [(H' (set.mem_range_self x)).some_spec]⟩,
+      continuous_to_fun :=
+      begin
+        apply continuous_subtype_mk,
+        refine continuous.prod_mk _ continuous_id',
+        rw H.to_inducing.continuous_iff,
+        convert g.continuous_to_fun using 1,
+        ext,
+        simp [(H' (set.mem_range_self x)).some_spec],
+      end } : Y ⟶ Top.of {p : X × Y // f p.fst = g p.snd}) ≫
+    (Top.pullback_iso_prod_subtype f g).inv,
+  use this,
+  split, admit,
+  -- { ext x,
+  --   apply H.inj,
+  --   convert (H' (set.mem_range_self ((pullback.snd : pullback f g ⟶ Y) x))).some_spec,
+  --   { simp },
+  --   { simpa using concrete_category.congr_hom pullback.condition x },
+  --   { ext, simp } },
+  {
+
+  }
   -- simp
 end
 

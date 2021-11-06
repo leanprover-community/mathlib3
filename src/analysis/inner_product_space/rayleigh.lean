@@ -219,7 +219,9 @@ end
 end complete_space
 
 section finite_dimensional
-variables [finite_dimensional 𝕜 E] [nontrivial E] {T : E →ₗ[𝕜] E}
+variables [finite_dimensional 𝕜 E] [_i : nontrivial E] {T : E →ₗ[𝕜] E}
+
+include _i
 
 /-- The supremum of the Rayleigh quotient of a self-adjoint operator `T` on a nontrivial
 finite-dimensional vector space is an eigenvalue for that operator. -/

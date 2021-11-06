@@ -180,7 +180,8 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
     { rintro x hx i,
       rw hIcc' at hx ⊢,
       exact (Hd _ hx i).comp x eL.symm.has_fderiv_within_at subset.rfl },
-    { erw [← he_vol'.map_eq, integrable_on_map_equiv, hIcc], }
+    { rw [← he_vol, he_emb.integrable_on_map_iff, hIcc],
+      simp [← hDF, (∘), Hi] }
   end
 
 end
@@ -200,43 +201,30 @@ theorem integral_eq_of_has_deriv_within_at_off_countable_of_le (f f' : ℝ → E
   (Hi : interval_integrable f' volume a b) :
   ∫ x in a..b, f' x = f b - f a :=
 begin
-  set eL : ℝ¹ →L[ℝ] ℝ := continuous_linear_map.proj 0,
-  set eo : ℝ¹ ≃o ℝ := order_iso.fun_unique _ _,
-  set e : ℝ¹ ≃ᵐ ℝ := measurable_equiv.fun_unique _ _,
-  have he : measure_preserving e volume volume, from ⟨e.measurable, measure.map_fun_unique volume⟩,
-  set F : fin 1 → ℝ¹ → E := λ i x, f (x 0),
-  set F' : fin 1 → ℝ¹ → ℝ¹ →L[ℝ] E := λ i x, ((1 : ℝ →L[ℝ] ℝ).smul_right (f' (x 0))) ∘L eL,
-  have hF' : ∀ x, ∑ i, F' i (λ _, x) (pi.single i 1) = f' x,
-  { intro x, rw [fin.sum_univ_one], simp },
-  calc ∫ x in a..b, f' x
-      = ∫ x : ℝ¹ in Icc (eo.symm a) (eo.symm b), ∑ i : fin 1, F' i x (pi.single i 1) :
+  set eL : ℝ ≃L[ℝ] ℝ¹ := (continuous_linear_equiv.fun_unique (fin 1) ℝ ℝ).symm,
+  have eL_symm : ∀ x, eL.symm x = x 0 := λ x, rfl,
+  set F' : ℝ → ℝ →L[ℝ] E := λ x, smul_right (1 : ℝ →L[ℝ] ℝ) (f' x),
+  have hF' : ∀ x y, F' x y = y • f' x := λ x y, rfl,
+  calc ∫ x in a..b, f' x = ∫ x in Icc a b, f' x :
+    by simp only [interval_integral.integral_of_le hle, set_integral_congr_set_ae Ioc_ae_eq_Icc]
+  ... = ∑ i : fin 1, ((∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f (eL.symm $ i.insert_nth (eL b i) x)) -
+      (∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f (eL.symm $ i.insert_nth (eL a i) x))) :
     begin
-      simp only [volume_pi, set_integral_fun_unique_pi, interval_integral.integral_of_le hle,
-        set_integral_congr_set_ae Ioc_ae_eq_Icc, ← eo.preimage_Icc, hF'],
-      refl
-    end
-  ... = ∑ i : fin 1, ((∫ x in Icc (const _ a) (const _ b), F i (i.insert_nth b x)) -
-                     ∫ x in Icc (const _ a) (const _ b), F i (i.insert_nth a x)) :
-    begin
-      refine integral_divergence_of_has_fderiv_within_at_off_countable' (const _ a) (const _ b)
-        (λ _, hle) F F' (eo.symm '' s) (hs.image _) (ball_image_iff.2 $ λ x hx i, _) _ _,
-      { rw [← eo.preimage_Icc],
-        refine continuous_within_at.comp _ eL.continuous.continuous_within_at subset.rfl,
-        exact Hc x hx },
-      { rw [eo.symm.image_eq_preimage, eo.symm_symm, ← eo.preimage_Icc, ← preimage_diff],
-        intros x hx i,
-        refine has_fderiv_within_at.comp x _ eL.has_fderiv_within_at subset.rfl,
-        exact Hd (x 0) hx },
-      { rw [← eo.preimage_Icc, ← he.symm.map_eq, integrable_on_map_equiv],
-        rw [interval_integrable_iff_integrable_Ioc_of_le hle] at Hi,
-        convert Hi.congr_set_ae Ioc_ae_eq_Icc.symm using 1,
-        exact funext hF' }
+      refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv eL _ _
+        (λ _, f) (λ _, F') s hs a b hle (λ x hx i, Hc x hx) (λ x hx i, Hd x hx) _ _ _,
+      { exact λ x y, (order_iso.fun_unique (fin 1) ℝ).symm.le_iff_le },
+      { exact (measure.pi_unique_eq_map (volume : measure ℝ) (fin 1)).symm },
+      { intro x, rw [fin.sum_univ_one, hF', eL_symm, pi.single_eq_same, one_smul] },
+      { rw [interval_integrable_iff_integrable_Ioc_of_le hle] at Hi,
+        exact Hi.congr_set_ae Ioc_ae_eq_Icc.symm }
     end
   ... = f b - f a :
     begin
-      rw fin.sum_univ_one,
-      have : ∀ c : ℝ, const (fin 0) c = is_empty_elim := λ c, subsingleton.elim _ _,
-      simp [F, this, volume_pi, measure.pi_of_empty (λ _, volume)],
+      have : ∀ (c : ℝ), const (fin 0) c = is_empty_elim := λ c, subsingleton.elim _ _,
+      simp only [fin.sum_univ_one, eL_symm],
+      simp [this, volume_pi, measure.pi_of_empty (λ _ : fin 0, volume)]
     end
 end
 
@@ -252,6 +240,35 @@ begin
   { simp only [interval_of_ge hab] at *,
     rw [interval_integral.integral_symm, neg_eq_iff_neg_eq, neg_sub, eq_comm],
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
+end
+
+/-
+lemma integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv
+  {F : Type*} [normed_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
+  [borel_space F] (eL : F ≃L[ℝ] ℝⁿ⁺¹) (he_ord : ∀ x y, eL x ≤ eL y ↔ x ≤ y)
+  (he_vol : measure.map eL volume = volume) (f : fin (n + 1) → F → E)
+  (f' : fin (n + 1) → F → F →L[ℝ] E) (s : set F) (hs : countable s)
+  (a b : F) (hle : a ≤ b) (Hc : ∀ (x ∈ s) i, continuous_within_at (f i) (Icc a b) x)
+  (Hd : ∀ (x ∈ Icc a b \ s) i, has_fderiv_within_at (f i) (f' i x) (Icc a b) x)
+  (DF : F → E) (hDF : ∀ x, DF x = ∑ i, f' i x (eL.symm $ e i)) (Hi : integrable_on DF (Icc a b)) :
+  ∫ x in Icc a b, DF x =
+    ∑ i : fin (n + 1), ((∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f i (eL.symm $ i.insert_nth (eL b i) x)) -
+      (∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
+        f i (eL.symm $ i.insert_nth (eL a i) x))) :=
+-/
+
+lemma integral_divergence_prod_of_has_fderiv_within_at_off_countable (f : ℝ × ℝ → E × E)
+  (f' : ℝ × ℝ → ℝ × ℝ →L[ℝ] E × E) {a b : ℝ × ℝ} (hle : a ≤ b) (s : set (ℝ × ℝ))
+  (hs : countable s)
+  (Hc : ∀ x ∈ Icc a b ∩ s, continuous_within_at f (Icc a b) x)
+  (Hd : ∀ x ∈ Icc a b \ s, has_fderiv_within_at f (f' x) (Icc a b) x)
+  (Hi : integrable_on (λ x, (f' x (1, 0)).1 + (f' x (0, 1)).2) (Icc a b)) :
+  ∫ x in Icc a b, (f' x (1, 0)).1 + (f' x (0, 1)).2 =
+    (∫ x in a.1..b.1, (f (x, b.2)).2) - (∫ x in a.1..b.1, (f (x, a.2)).2) +
+      (∫ y in a.2..b.2, (f (b.1, y)).1) - ∫ y in a.2..b.2, (f (a.1, y)).1 :=
+begin
+  
 end
 
 end measure_theory

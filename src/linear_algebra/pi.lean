@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
 import linear_algebra.basic
+import data.equiv.fin
 
 /-!
 # Pi types of modules
@@ -340,6 +341,22 @@ def fun_unique (ι R M : Type*) [unique ι] [semiring R] [add_comm_monoid M] [mo
 { map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
   .. equiv.fun_unique ι M }
+
+variables (R M)
+
+@[simps { simp_rhs := tt }]
+def pi_fin_two (M : fin 2 → Type*) [semiring R] [Π i, add_comm_monoid (M i)] [Π i, module R (M i)] :
+  (Π i, M i) ≃ₗ[R] M 0 × M 1 :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. pi_fin_two_equiv M }
+
+@[simps apply { simp_rhs := tt }]
+def fin_two_arrow : (fin 2 → M) ≃ₗ[R] M × M :=
+pi_fin_two R (λ _, M)
+
+@[simp] lemma fin_two_arrow_symm_apply (x : M × M) :
+  (fin_two_arrow R M).symm x = ![x.1, x.2]
 
 end linear_equiv
 

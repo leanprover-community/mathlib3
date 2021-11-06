@@ -527,7 +527,8 @@ variable {S : set X}
 lemma refl (f : C(X, Y)) : homotopic_rel f f S := ⟨homotopy_rel.refl f S⟩
 
 @[symm]
-lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S := h.map homotopy_rel.symm
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S :=
+  h.map homotopy_rel.symm
 
 @[trans]
 lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_rel f g S) (h₁ : homotopic_rel g h S) :

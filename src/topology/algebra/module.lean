@@ -959,6 +959,12 @@ variables (S) [has_continuous_add M₃]
   map_smul' := λ c f, rfl,
   .. prod_equiv }
 
+/-- The coercion from `M →L[R] M₂` to `M →ₗ[R] M₂`, as a linear map. -/
+def coe_lm : (M →L[R] M₂) →ₗ[S] (M →ₗ[R] M₂) :=
+{ to_fun := coe,
+  map_add' := λ f g, coe_add f g,
+  map_smul' := λ c f, coe_smul c f }
+
 end smul
 
 section smul_rightₗ

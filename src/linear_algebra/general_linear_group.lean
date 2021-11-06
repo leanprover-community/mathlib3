@@ -64,7 +64,7 @@ nonsing_inv_unit A h
 /--Given a matrix with non-zero determinant over a field, we get an element of `GL n K`-/
 def mk_of_det_ne_zero {K : Type*} [field K] (A : matrix n n K) (h : matrix.det A ≠ 0) :
   GL n K :=
-@unit_of_det_invertible _ _ _ _ _ _ (invertible_of_nonzero h)
+mk' A (invertible_of_nonzero h)
 
 instance coe_fun : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
 { coe := λ A, A.val }
@@ -189,6 +189,7 @@ section examples
 
 /-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
 `GL_2` if `a ^ 2 + b ^ 2` is nonzero. -/
+@[simps {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   matrix.general_linear_group (fin 2) R :=
 general_linear_group.mk_of_det_ne_zero ![![a, b], ![-b, a]]

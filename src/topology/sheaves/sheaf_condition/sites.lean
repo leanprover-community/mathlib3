@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
 
-import category_theory.sites.sheaf
 import category_theory.sites.spaces
 import topology.sheaves.sheaf
+import category_theory.sites.dense_subsite
 
 /-!
 
@@ -35,7 +35,7 @@ naturality lemmas relating the two fork diagrams to each other.
 
 noncomputable theory
 
-universes u v
+universes u v w
 
 namespace Top.presheaf
 
@@ -473,3 +473,43 @@ begin
 end
 
 end Top.presheaf
+
+namespace Top.opens
+
+open category_theory topological_space
+
+variables {X : Top} {ι : Type*} [category ι]
+
+lemma cover_dense_iff_basis (B : ι ⥤ opens X) :
+  cover_dense (opens.grothendieck_topology X) B ↔ opens.is_basis (set.range B.obj) :=
+begin
+  rw opens.is_basis_iff_nbhd,
+  split, intros hd U x hx, rcases hd.1 U x hx with ⟨V,f,⟨i,f₁,f₂,hc⟩,hV⟩,
+  exact ⟨B.obj i, ⟨i,rfl⟩, f₁.le hV, f₂.le⟩,
+  intro hb, split, intros U x hx, rcases hb hx with ⟨_,⟨i,rfl⟩,hx,hi⟩,
+  exact ⟨B.obj i, ⟨⟨hi⟩⟩, ⟨i, 𝟙 _, ⟨⟨hi⟩⟩, by rw category.id_comp⟩, hx⟩,
+end
+
+lemma cover_dense_induced_functor {B : ι → opens X} (h : opens.is_basis (set.range B)) :
+  cover_dense (opens.grothendieck_topology X) (induced_functor B) :=
+(cover_dense_iff_basis _).2 h
+
+end Top.opens
+
+namespace Top.sheaf
+
+open category_theory topological_space Top
+
+variables {C : Type u} [category.{v} C] [limits.has_products C]
+variables {X : Top.{v}} {F : presheaf C X} {F' : sheaf C X}
+variables {ι : Type*} {B : ι → opens X} (h : opens.is_basis (set.range B))
+
+def restrict_hom_equiv_hom :
+  ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1) ≃ (F ⟶ F'.1) :=
+@cover_dense.restrict_hom_equiv_hom _ _ _ _ _ _ _ _
+  (@opens.cover_dense_induced_functor X ι (induced_category.category B) B h)
+  _ F ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F')
+
+#check @restrict_hom_equiv_hom
+
+end Top.sheaf

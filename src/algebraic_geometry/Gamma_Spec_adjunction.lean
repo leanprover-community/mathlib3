@@ -5,8 +5,8 @@ Authors: Junyan Xu
 -/
 import algebraic_geometry.Spec
 import algebraic_geometry.ringed_space
-import topology.sheaves.sheaf_condition.basis_le
 import topology.sheaves.functors
+import topology.sheaves.sheaf_condition.sites
 import category_theory.adjunction.limits
 import category_theory.adjunction.fully_faithful
 
@@ -42,16 +42,10 @@ open Top.presheaf.sheaf_condition
 
 variable (R : CommRing)
 
-/-- Basic opens in `Spec R` indexed by elements of `R`. -/
-def basic_open_B : (Spec.Top_obj R).opens_index_struct := ⟨R, λ r, basic_open r⟩
--- Much nicer to work directly with the indexing function than the range set
+private def idfb := induced_functor (@basic_open R _)
 
-private def idfb := induced_functor (op ∘ (basic_open_B R).f)
-
-lemma basic_opens_is_basis {R} : Top.is_basis_range (basic_open_B R) := is_basis_basic_opens
 
 /- to do : prime spectrum version of sheaf hom_ext, direcly unfold to basic open r -/
-/- to do : remove bundled indexed family -/
 
 namespace LocallyRingedSpace
 
@@ -136,20 +130,21 @@ lemma to_Γ_Spec_c_app_spec (r : Γ' X) :
 (X.to_Γ_Spec_c_app_iff r _).2 rfl
 
 /-- Unit as a sheaf hom on all basic opens, commuting with restrictions. -/
-def to_Γ_Spec_c_basic_opens : idfb _ ⋙ (structure_sheaf (Γ' X)).1
-                          ⟶ idfb _ ⋙ X.to_Γ_Spec_base _* X.presheaf :=
-{ app := X.to_Γ_Spec_c_app,
+def to_Γ_Spec_c_basic_opens :
+  (induced_functor basic_open).op ⋙ (structure_sheaf (Γ' X)).1 ⟶
+  (induced_functor basic_open).op ⋙ X.to_Γ_Spec_base _* X.presheaf :=
+{ app := λ r, X.to_Γ_Spec_c_app r.unop,
   naturality' := λ r s f, by {
-    apply (to_basic_open_epi (Γ' X) r).1,
+    apply (to_basic_open_epi (Γ' X) r.unop).1,
     simp only [←category.assoc],
-    erw X.to_Γ_Spec_c_app_spec r,
-    convert X.to_Γ_Spec_c_app_spec s,
+    erw X.to_Γ_Spec_c_app_spec r.unop,
+    convert X.to_Γ_Spec_c_app_spec s.unop,
     apply eq.symm, apply X.presheaf.map_comp } }
 
 /-- Unit as a sheaf hom. -/
-def to_Γ_Spec_c := Top.sheaf.uniq_hom_extn_from_basis _
-  ((Top.sheaf.pushforward _).obj X.𝒪).2
-  basic_opens_is_basis X.to_Γ_Spec_c_basic_opens
+def to_Γ_Spec_c := Top.sheaf.restrict_hom_equiv_hom is_basis_basic_opens
+  --((Top.sheaf.pushforward _).obj X.𝒪).2
+  --basic_opens_is_basis X.to_Γ_Spec_c_basic_opens
 
 /-- Unit as a sheafed space hom. -/
 def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ Spec.to_SheafedSpace.obj (op (Γ' X)) :=

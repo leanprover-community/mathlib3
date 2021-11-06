@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.affine_map
-import topology.metric_space.basic
 import topology.continuous_function.basic
 
 /-!
@@ -133,7 +132,7 @@ noncomputable instance : inhabited (P →A[R] Q) :=
 ⟨const R P $ nonempty.some (by apply_instance : nonempty Q)⟩
 
 variables {R P} {W₂ Q₂ : Type*}
-variables [add_comm_group W₂] [module R W₂] [metric_space Q₂] [add_torsor W₂ Q₂]
+variables [add_comm_group W₂] [module R W₂] [topological_space Q₂] [add_torsor W₂ Q₂]
 
 include W₂
 

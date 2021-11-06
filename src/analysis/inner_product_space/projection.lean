@@ -1040,4 +1040,55 @@ suffices orthonormal 𝕜 (orthonormal_basis _ _ ∘ equiv.symm _),
 by { simp only [fin_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
 (orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
+/-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
+sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
+def fin_subordinate_orthonormal_basis
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
+  {V : ι → submodule 𝕜 E}
+  (hV : orthogonal_family 𝕜 V)
+  (hV_sum : direct_sum.submodule_is_internal V) :
+  basis (fin n) 𝕜 E :=
+have h : fintype.card (Σ i, orthonormal_basis_index 𝕜 (V i)) = n,
+by sorry,
+(collected_basis hV_sum (λ i, orthonormal_basis 𝕜 (V i))).reindex (fintype.equiv_fin_of_card_eq h)
+
+/-- fixme -/
+def fin_subordinate_orthonormal_basis_index
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
+  {V : ι → submodule 𝕜 E}
+  (hV : orthogonal_family 𝕜 V)
+  (hV_sum : direct_sum.submodule_is_internal V) (a : fin n) :
+  ι :=
+have h : fintype.card (Σ i, orthonormal_basis_index 𝕜 (V i)) = n,
+by sorry,
+((fintype.equiv_fin_of_card_eq h).symm a).1
+
+lemma fin_subordinate_orthonormal_basis_orthonormal
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
+  {V : ι → submodule 𝕜 E}
+  (hV : orthogonal_family 𝕜 V)
+  (hV_sum : direct_sum.submodule_is_internal V) :
+  orthonormal 𝕜 (fin_subordinate_orthonormal_basis hn hV hV_sum) :=
+begin
+  simp only [fin_subordinate_orthonormal_basis, basis.coe_reindex],
+  have : orthonormal 𝕜 (collected_basis hV_sum (λ i, orthonormal_basis 𝕜 (V i))) :=
+    collected_basis_orthonormal hV hV_sum (λ i, orthonormal_basis_orthonormal 𝕜 (V i)),
+  exact this.comp _ (equiv.injective _),
+end
+
+lemma fin_subordinate_orthonormal_basis_subordinate
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
+  {V : ι → submodule 𝕜 E}
+  (hV : orthogonal_family 𝕜 V)
+  (hV_sum : direct_sum.submodule_is_internal V) (a : fin n) :
+  fin_subordinate_orthonormal_basis hn hV hV_sum a
+    ∈ V (fin_subordinate_orthonormal_basis_index hn hV hV_sum a):=
+begin
+  have h : fintype.card (Σ i, orthonormal_basis_index 𝕜 (V i)) = n,
+  by sorry,
+  simp only [fin_subordinate_orthonormal_basis, basis.coe_reindex],
+  exact collected_basis_mem hV_sum (λ i, orthonormal_basis 𝕜 (V i))
+    ((fintype.equiv_fin_of_card_eq h).symm a)
+end
+
 end orthonormal_basis

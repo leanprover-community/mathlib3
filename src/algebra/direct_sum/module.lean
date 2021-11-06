@@ -258,4 +258,41 @@ lemma submodule_is_internal_iff_independent_and_supr_eq_top {R M : Type*}
 ⟨λ i, ⟨i.independent, i.supr_eq_top⟩,
  and.rec submodule_is_internal_of_independent_of_supr_eq_top⟩
 
+noncomputable def collected_basis {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
+  (hV_sum : direct_sum.submodule_is_internal A) {α : ι → Type*}
+  (v_family : Π i, basis (α i) R (A i)) :
+  basis (Σ i, α i) R M :=
+{ repr := (linear_equiv.of_bijective _ hV_sum.injective hV_sum.surjective).symm ≪≫ₗ
+      (dfinsupp.map_range.linear_equiv (λ i, (v_family i).repr)) ≪≫ₗ
+      (sigma_finsupp_lequiv_dfinsupp R).symm }
+
+@[simp] lemma collected_basis_apply {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
+  (hV_sum : direct_sum.submodule_is_internal A) {α : ι → Type*}
+  (v_family : Π i, basis (α i) R (A i)) (a : Σ i, (α i)) :
+  collected_basis hV_sum v_family a = v_family a.1 a.2 :=
+begin
+  rw collected_basis,
+  simp [direct_sum.submodule_coe],
+  -- refl,
+  sorry
+end
+
+@[simp] lemma collected_basis_coe {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
+  (hV_sum : direct_sum.submodule_is_internal A) {α : ι → Type*}
+  (v_family : Π i, basis (α i) R (A i)) :
+  ⇑(collected_basis hV_sum v_family) = λ a : Σ i, (α i), ↑(v_family a.1 a.2) :=
+funext $ collected_basis_apply hV_sum v_family
+
+lemma collected_basis_mem {R M : Type*}
+  [ring R] [add_comm_group M] [module R M] {A : ι → submodule R M}
+  (hV_sum : direct_sum.submodule_is_internal A) {α : ι → Type*}
+  (v_family : Π i, basis (α i) R (A i)) (a : Σ i, (α i)) :
+  collected_basis hV_sum v_family a ∈ A a.1 :=
+begin
+  sorry
+end
+
 end direct_sum

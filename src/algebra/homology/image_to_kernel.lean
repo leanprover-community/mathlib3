@@ -241,11 +241,20 @@ by ext; simp only [homology.π_desc, homology.π_map_assoc]
 lemma homology.map_id : homology.map w w (𝟙 _) (𝟙 _) rfl = 𝟙 _ :=
 by ext; simp only [homology.π_map, kernel_subobject_map_id, category.id_comp, category.comp_id]
 
+/-- Auxiliary lemma for homology computations. -/
+lemma homology.comp_right_eq_comp_left
+  {V : Type*} [category V] {A₁ B₁ C₁ A₂ B₂ C₂ A₃ B₃ C₃ : V}
+  {f₁ : A₁ ⟶ B₁} {g₁ : B₁ ⟶ C₁} {f₂ : A₂ ⟶ B₂} {g₂ : B₂ ⟶ C₂} {f₃ : A₃ ⟶ B₃} {g₃ : B₃ ⟶ C₃}
+  {α₁ : arrow.mk f₁ ⟶ arrow.mk f₂} {β₁ : arrow.mk g₁ ⟶ arrow.mk g₂}
+  {α₂ : arrow.mk f₂ ⟶ arrow.mk f₃} {β₂ : arrow.mk g₂ ⟶ arrow.mk g₃}
+  (p₁ : α₁.right = β₁.left) (p₂ : α₂.right = β₂.left) :
+  (α₁ ≫ α₂).right = (β₁ ≫ β₂).left :=
+by simp only [comma.comp_left, comma.comp_right, p₁, p₂]
+
 @[reassoc]
 lemma homology.map_comp (p₁ : α₁.right = β₁.left) (p₂ : α₂.right = β₂.left) :
   homology.map w₁ w₂ α₁ β₁ p₁ ≫ homology.map w₂ w₃ α₂ β₂ p₂ =
-    homology.map w₁ w₃ (α₁ ≫ α₂) (β₁ ≫ β₂)
-      (by simp only [comma.comp_left, comma.comp_right, p₁, p₂]) :=
+    homology.map w₁ w₃ (α₁ ≫ α₂) (β₁ ≫ β₂) (homology.comp_right_eq_comp_left p₁ p₂) :=
 by ext; simp only [kernel_subobject_map_comp, homology.π_map_assoc, homology.π_map, category.assoc]
 
 /-- An isomorphism between two three-term complexes induces an isomorphism on homology. -/
@@ -327,14 +336,18 @@ variables [has_cokernels V]
 -/
 def homology_iso_cokernel_image_to_kernel' (w : f ≫ g = 0) :
   homology f g w ≅ cokernel (image_to_kernel' f g w) :=
-{ hom := cokernel.map _ _ (image_subobject_iso f).hom (kernel_subobject_iso g).hom (by tidy),
-  inv := cokernel.map _ _ (image_subobject_iso f).inv (kernel_subobject_iso g).inv (by tidy),
+{ hom := cokernel.map _ _ (image_subobject_iso f).hom (kernel_subobject_iso g).hom
+    (by simp only [image_subobject_iso_image_to_kernel']),
+  inv := cokernel.map _ _ (image_subobject_iso f).inv (kernel_subobject_iso g).inv
+    (by simp only [image_to_kernel'_kernel_subobject_iso]),
   hom_inv_id' := begin
     apply coequalizer.hom_ext,
     simp only [iso.hom_inv_id_assoc, cokernel.π_desc, cokernel.π_desc_assoc, category.assoc,
       coequalizer_as_cokernel],
     exact (category.comp_id _).symm,
-  end, }
+  end,
+  inv_hom_id' := by { ext1, simp only [iso.inv_hom_id_assoc, cokernel.π_desc, category.comp_id,
+    cokernel.π_desc_assoc, category.assoc], } }
 
 variables [has_equalizers V]
 

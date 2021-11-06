@@ -218,14 +218,11 @@ begin
         _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl,
 end
 
-private def eha := nat_trans.app $ eq_to_hom $
-  pushforward_eq' (X.to_Γ_Spec_base_naturality f) X.presheaf
-
-lemma to_Γ_Spec_c_naturality (r : Γ' Y) : let f' := Γ.map f.op in
+lemma to_Γ_Spec_c_naturality (r : Γ' Y) : let f' := Γ.map f.op,
+  eq := λ U, congr_arg (λ g, op $ (opens.map g).obj U) (X.to_Γ_Spec_base_naturality f) in
   (Y.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open r) ≫
     f.1.c.app (op $ Y.opens_map_basic_open r)) ≫
-    eha X f (op (basic_open r)) =
- /- inlining `eha` results in wrong inferred type (mis-unification?) -/
+    X.presheaf.map (eq_to_hom $ eq $ basic_open r) =
   comap f' (basic_open r) (basic_open $ f' r) (λ _ h, h) ≫
     X.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open $ f' r) :=
 begin
@@ -234,8 +231,7 @@ begin
   iterate 2 {rw ← category.assoc},
   rw Y.to_Γ_Spec_SheafedSpace_app_spec r,
   erw [f.1.c.naturality, category.assoc], congr,
-  rw [eha, pushforward_eq'_hom_app, pushforward_obj_map, ←functor.map_comp],
-  congr, exact X.to_Γ_Spec_base_naturality f,
+  erw ← X.presheaf.map_comp, congr,
 end
 
 /-- `to_Spec_Γ _` is iso so these are mutually two-sided inverses. -/
@@ -244,8 +240,7 @@ begin
   unfold to_Spec_Γ,
   rw ← to_open_res _ (basic_open (1 : Γ' X)) ⊤ (eq_to_hom basic_open_one.symm),
   erw category.assoc, rw [nat_trans.naturality, ←category.assoc],
-  erw X.to_Γ_Spec_SheafedSpace_app_spec 1,
-  change X.presheaf.map _ ≫ X.presheaf.map _ = _, rw ← functor.map_comp,
+  erw [X.to_Γ_Spec_SheafedSpace_app_spec 1, ← functor.map_comp],
   convert eq_to_hom_map X.presheaf _, refl,
 end
 
@@ -259,7 +254,7 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace ⟶ Γ.right_op ⋙ Spec.to_Lo
     { apply Top.sheaf.hom_ext (basic_open_B Y.Γ') ((Top.sheaf.pushforward _).obj X.𝒪).2,
       exact basic_opens_is_basis, intro r, rw nat_trans.comp_app,
       iterate 2 {rw LocallyRingedSpace.comp_val_c_app'},
-      convert X.to_Γ_Spec_c_naturality f r using 1, /- Slow! `exact` timeouts.
+      convert X.to_Γ_Spec_c_naturality f r using 2, simpa /- Slow! `exact` timeouts.
       In general, `dsimp` and `erw` are slow in this proof, often timeout (loop?).
       Must mark `uniq_hom_extn_from_basis` as `irreducible` to avoid timeout here
       (the terminal `convert`). Maybe more `irreducible` at appropriate places can
@@ -277,12 +272,11 @@ begin
 end
 
 lemma right_triangle_c (r : R) :
-  let S := Spec.LocallyRingedSpace_obj R, f := to_Spec_Γ R in
+  let S := Spec.LocallyRingedSpace_obj R, f := to_Spec_Γ R,
+  eq := λ U, congr_arg (λ g, (opens.map g).obj U) (right_triangle_base R).symm in
   (CommRing.of_hom (comap f (basic_open r) (basic_open (f r)) (λ _ h, h)) ≫
     S.to_Γ_Spec_SheafedSpace.c.app (op $ basic_open (f r))) ≫
-    S.presheaf.map (by { dsimp, refine (eq_to_hom _).op,
-      change (opens.map (𝟙 (Spec.Top_obj R))).obj (basic_open r) = _,
-      erw ← right_triangle_base, refl }) = 𝟙 _ :=
+    S.presheaf.map (eq_to_hom $ eq $ basic_open r).op = 𝟙 _ :=
 begin
   apply (to_basic_open_epi R r).1, rw category.assoc,
   erw to_open_comp_comap_assoc, rw ← category.assoc (to_open _ _),

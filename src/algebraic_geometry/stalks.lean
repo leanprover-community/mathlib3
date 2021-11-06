@@ -103,6 +103,7 @@ instance of_restrict_stalk_map_is_iso {U : Top} (X : PresheafedSpace C)
   {f : U ⟶ (X : Top.{v})} (h : open_embedding f) (x : U) :
   is_iso (stalk_map (X.of_restrict h) x) :=
 by { rw ← restrict_stalk_iso_inv_eq_of_restrict, apply_instance }
+
 end restrict
 
 namespace stalk_map

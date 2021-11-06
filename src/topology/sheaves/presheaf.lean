@@ -312,6 +312,6 @@ adjunction.left_adjoint_uniq
   (pushforward_pullback_adjunction C H.inv)
   (presheaf_equiv_of_iso C H).to_adjunction
 
-
 end presheaf
+
 end Top

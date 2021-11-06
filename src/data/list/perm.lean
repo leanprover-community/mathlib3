@@ -3,7 +3,6 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.list.count
 import data.list.erase_dup
 import data.list.lattice
 import data.list.permutation
@@ -377,7 +376,7 @@ by rw [countp_eq_length_filter, countp_eq_length_filter];
 
 theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
-| ⟨l, p', s⟩ := p'.countp_eq p ▸ countp_le_of_sublist p s
+| ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
 
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=

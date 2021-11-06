@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.basic
 import data.equiv.fin
+import data.fin.vec_notation
 
 /-!
 # Pi types of modules
@@ -344,19 +345,18 @@ def fun_unique (ι R M : Type*) [unique ι] [semiring R] [add_comm_monoid M] [mo
 
 variables (R M)
 
-@[simps { simp_rhs := tt }]
-def pi_fin_two (M : fin 2 → Type*) [semiring R] [Π i, add_comm_monoid (M i)] [Π i, module R (M i)] :
+/-- Linear equivalence between dependent functions `Π i : fin 2, M i` and `M 0 × M 1`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def pi_fin_two (M : fin 2 → Type v) [Π i, add_comm_monoid (M i)] [Π i, module R (M i)] :
   (Π i, M i) ≃ₗ[R] M 0 × M 1 :=
 { map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
   .. pi_fin_two_equiv M }
 
-@[simps apply { simp_rhs := tt }]
+/-- Linear equivalence between vectors in `M² = fin 2 → M` and `M × M`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
 def fin_two_arrow : (fin 2 → M) ≃ₗ[R] M × M :=
-pi_fin_two R (λ _, M)
-
-@[simp] lemma fin_two_arrow_symm_apply (x : M × M) :
-  (fin_two_arrow R M).symm x = ![x.1, x.2]
+{ .. fin_two_arrow_equiv M, .. pi_fin_two R (λ _, M) }
 
 end linear_equiv
 

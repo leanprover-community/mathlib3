@@ -3,9 +3,8 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-
-import data.fintype.card
-import tactic.fin_cases
+import data.fin.basic
+import data.list.range
 
 /-!
 # Matrix and vector notation
@@ -81,8 +80,7 @@ end matrix_notation
 
 variables {m n o : ℕ} {m' n' o' : Type*}
 
-lemma empty_eq (v : fin 0 → α) : v = ![] :=
-by { ext i, fin_cases i }
+lemma empty_eq (v : fin 0 → α) : v = ![] := subsingleton.elim _ _
 
 section val
 
@@ -142,7 +140,7 @@ by { rw [← fin.succ_zero_eq_one, cons_val_succ], refl }
 
 @[simp] lemma cons_val_fin_one (x : α) (u : fin 0 → α) (i : fin 1) :
   vec_cons x u i = x :=
-by { fin_cases i, refl }
+by { refine fin.forall_fin_one.2 _ i, refl }
 
 lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
 funext (cons_val_fin_one x u)

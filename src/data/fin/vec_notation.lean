@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import data.fin.basic
 import data.list.range
+import algebra.module.pi
 
 /-!
 # Matrix and vector notation
@@ -270,6 +271,18 @@ end
 by simp
 
 end val
+
+section smul
+
+variables {M : Type*} [has_scalar M α]
+
+@[simp] lemma smul_empty (x : M) (v : fin 0 → α) : x • v = ![] := empty_eq _
+
+@[simp] lemma smul_cons (c : M) (x : α) (v : fin n → α) :
+  c • vec_cons x v = vec_cons (c • x) (c • v) :=
+by { ext i, refine fin.cases _ _ i; simp }
+
+end smul
 
 section add
 

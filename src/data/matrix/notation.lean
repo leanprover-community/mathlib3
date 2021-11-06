@@ -199,27 +199,9 @@ by { ext i, refine fin.cases _ _ i; simp [vec_mul_vec] }
 
 @[simp] lemma vec_mul_vec_cons (v : m' → α) (x : α) (w : fin n → α) :
   vec_mul_vec v (vec_cons x w) = λ i, v i • vec_cons x w :=
-by { ext i j, simp [vec_mul_vec]}
+by { ext i j, rw [vec_mul_vec, pi.smul_apply, smul_eq_mul] }
 
 end vec_mul_vec
-
-section smul
-
-variables [semiring α]
-
-@[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
-
-@[simp] lemma smul_mat_empty {m' : Type*} (x : α) (A : fin 0 → m' → α) : x • A = ![] := empty_eq _
-
-@[simp] lemma smul_cons (x y : α) (v : fin n → α) :
-  x • vec_cons y v = vec_cons (x * y) (x • v) :=
-by { ext i, refine fin.cases _ _ i; simp }
-
-@[simp] lemma smul_mat_cons (x : α) (v : n' → α) (A : matrix (fin m) n' α) :
-  x • vec_cons v A = vec_cons (x • v) (x • A) :=
-by { ext i, refine fin.cases _ _ i; simp }
-
-end smul
 
 section minor
 

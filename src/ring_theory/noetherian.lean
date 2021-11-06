@@ -481,8 +481,8 @@ open is_noetherian submodule function
 
 section
 universe w
-variables {R M P : Type*} {N : Type w} [ring R] [add_comm_group M] [module R M]
-  [add_comm_group N] [module R N] [add_comm_group P] [module R P]
+variables {R M P : Type*} {N : Type w} [semiring R] [add_comm_monoid M] [module R M]
+  [add_comm_monoid N] [module R N] [add_comm_monoid P] [module R P]
 
 theorem is_noetherian_iff_well_founded :
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
@@ -493,11 +493,37 @@ end
 
 variables (R M)
 
-lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
+lemma well_founded_submodule_gt (R M) [semiring R] [add_comm_monoid M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
 variables {R M}
+
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them.
+-/
+theorem set_has_maximal_iff_noetherian :
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔
+  is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
+
+/-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
+theorem monotone_stabilizes_iff_noetherian :
+  (∀ (f : ℕ →ₘ submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
+    ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
+
+/-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
+lemma is_noetherian.induction [is_noetherian R M] {P : submodule R M → Prop}
+  (hgt : ∀ I, (∀ J > I, P J) → P I) (I : submodule R M) : P I :=
+well_founded.recursion (well_founded_submodule_gt R M) I hgt
+
+end
+
+
+section
+universe w
+variables {R M P : Type*} {N : Type w} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N] [add_comm_group P] [module R P]
 
 lemma finite_of_linear_independent [nontrivial R] [is_noetherian R M]
   {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
@@ -518,24 +544,6 @@ begin
       λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
-
-/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them.
--/
-theorem set_has_maximal_iff_noetherian :
-  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔
-  is_noetherian R M :=
-by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
-
-/-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
-theorem monotone_stabilizes_iff_noetherian :
-  (∀ (f : ℕ →ₘ submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
-    ↔ is_noetherian R M :=
-by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
-
-/-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
-lemma is_noetherian.induction [is_noetherian R M] {P : submodule R M → Prop}
-  (hgt : ∀ I, (∀ J > I, P J) → P I) (I : submodule R M) : P I :=
-well_founded.recursion (well_founded_submodule_gt R M) I hgt
 
 /-- If the first and final modules in a short exact sequence are noetherian,
   then the middle module is also noetherian. -/
@@ -639,31 +647,33 @@ end
 end
 
 /--
-A ring is Noetherian if it is Noetherian as a module over itself,
+A (semi)ring is Noetherian if it is Noetherian as a module over itself,
 i.e. all its ideals are finitely generated.
 -/
-class is_noetherian_ring (R) [ring R] extends is_noetherian R R : Prop
+class is_noetherian_ring (R) [semiring R] extends is_noetherian R R : Prop
 
-theorem is_noetherian_ring_iff {R} [ring R] : is_noetherian_ring R ↔ is_noetherian R R :=
+theorem is_noetherian_ring_iff {R} [semiring R] : is_noetherian_ring R ↔ is_noetherian R R :=
 ⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
 
 /-- A commutative ring is Noetherian if and only if all its ideals are finitely-generated. -/
-lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_ring R] :
+lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_semiring R] :
   is_noetherian_ring R ↔ ∀ I : ideal R, I.fg :=
 is_noetherian_ring_iff.trans is_noetherian_def
 
 @[priority 80] -- see Note [lower instance priority]
-instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :
+instance ring.is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoid M]
+  [module R M] :
   is_noetherian R M :=
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
-theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
+theorem ring.is_noetherian_of_zero_eq_one {R} [semiring R] (h01 : (0 : R) = 1) :
+  is_noetherian_ring R :=
 by haveI := subsingleton_of_zero_eq_one h01;
    haveI := fintype.of_subsingleton (0:R);
    exact is_noetherian_ring_iff.2 (ring.is_noetherian_of_fintype R R)
 
-theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group M] [module R M]
+theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
@@ -679,8 +689,8 @@ end
 
 /-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
 also noetherian. -/
-theorem is_noetherian_of_tower (R) {S M} [comm_ring R] [ring S]
-  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+theorem is_noetherian_of_tower (R) {S M} [semiring R] [semiring S]
+  [add_comm_monoid M] [has_scalar R S] [module S M] [module R M] [is_scalar_tower R S M]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
@@ -751,7 +761,7 @@ theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
 is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
 namespace submodule
-variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 variables (M N : submodule R A)
 
 theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=

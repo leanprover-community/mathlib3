@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Simon Hudon
 -/
 import tactic.ext
-import data.stream
+import data.stream.init
 import data.list.basic
 import data.list.range
 

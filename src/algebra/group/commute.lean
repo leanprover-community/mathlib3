@@ -115,6 +115,26 @@ theorem units_of_coe : commute (u₁ : M) u₂ → commute u₁ u₂ := semiconj
 @[simp, to_additive]
 theorem units_coe_iff : commute (u₁ : M) u₂ ↔ commute u₁ u₂ := semiconj_by.units_coe_iff
 
+@[to_additive] lemma is_unit_mul_iff {a b : M} (h : commute a b) :
+  is_unit (a * b) ↔ is_unit a ∧ is_unit b :=
+begin
+  refine ⟨_, λ H, H.1.mul H.2⟩,
+  rintro ⟨u, hu⟩,
+  have : b * ↑u⁻¹ * a = 1,
+  { have : commute a u := hu.symm ▸ (commute.refl _).mul_right h,
+    rw [← this.units_inv_right.right_comm, ← h.eq, ← hu, u.mul_inv] },
+  split,
+  { refine ⟨⟨a, b * ↑u⁻¹, _, this⟩, rfl⟩,
+    rw [← mul_assoc, ← hu, u.mul_inv] },
+  { rw mul_assoc at this,
+    refine ⟨⟨b, ↑u⁻¹ * a, this, _⟩, rfl⟩,
+    rw [mul_assoc, ← hu, u.inv_mul] }
+end
+
+@[simp, to_additive] lemma _root_.is_unit_mul_self_iff {a : M} :
+  is_unit (a * a) ↔ is_unit a :=
+(commute.refl a).is_unit_mul_iff.trans (and_self _)
+
 end monoid
 
 section group

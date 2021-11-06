@@ -15,7 +15,7 @@ We separate this from group, because it depends on `ℕ`,
 which in turn depends on other parts of algebra.
 
 This module contains the definitions of `monoid.pow` and `group.pow`
-and their additive counterparts `nsmul` and `gsmul`, along with a few lemmas.
+and their additive counterparts `nsmul` and `zsmul`, along with a few lemmas.
 Further lemmas can be found in `algebra.group_power.lemmas`.
 
 ## Notation
@@ -49,14 +49,14 @@ attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
 
 instance div_inv_monoid.has_pow [div_inv_monoid M] : has_pow M ℤ := ⟨λ x n, zpow n x⟩
 
-instance sub_neg_monoid.has_scalar_int [sub_neg_monoid M] : has_scalar ℤ M := ⟨gsmul⟩
+instance sub_neg_monoid.has_scalar_int [sub_neg_monoid M] : has_scalar ℤ M := ⟨zsmul⟩
 
 attribute [to_additive sub_neg_monoid.has_scalar_int] div_inv_monoid.has_pow
 
 @[simp, to_additive nsmul_eq_smul]
 lemma npow_eq_pow {M : Type*} [monoid M] (n : ℕ) (x : M) : npow n x = x^n := rfl
 
-@[simp, to_additive gsmul_eq_smul]
+@[simp, to_additive zsmul_eq_smul]
 lemma zpow_eq_pow {M : Type*} [div_inv_monoid M] (n : ℤ) (x : M) : zpow n x = x^n := rfl
 
 /-!
@@ -277,13 +277,16 @@ zpow_coe_nat _ _
 theorem zpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ :=
 by { rw ← zpow_coe_nat, exact div_inv_monoid.zpow_neg' n a }
 
-@[simp, to_additive zero_gsmul]
+@[simp, to_additive zero_zsmul]
 theorem zpow_zero (a : G) : a ^ (0:ℤ) = 1 :=
 by { convert pow_zero a using 1, exact zpow_coe_nat a 0 }
 
-@[simp, to_additive one_gsmul]
+@[simp, to_additive one_zsmul]
 theorem zpow_one (a : G) : a ^ (1:ℤ) = a :=
 by { convert pow_one a using 1, exact zpow_coe_nat a 1 }
+
+theorem zpow_two (a : G) : a ^ (2 : ℤ) = a * a :=
+by { convert pow_two a using 1, exact zpow_coe_nat a 2 }
 
 end div_inv_monoid
 
@@ -313,12 +316,12 @@ theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :
 
 end nat
 
-@[simp, to_additive gsmul_zero]
+@[simp, to_additive zsmul_zero]
 theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, one_inv]
 
-@[simp, to_additive neg_gsmul]
+@[simp, to_additive neg_zsmul]
 theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
@@ -327,16 +330,16 @@ theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 lemma mul_zpow_neg_one (a b : G) : (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
 by simp only [mul_inv_rev, zpow_one, zpow_neg]
 
-@[to_additive neg_one_gsmul]
+@[to_additive neg_one_zsmul]
 theorem zpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
 by { rw [← congr_arg has_inv.inv (pow_one x), zpow_neg, ← zpow_coe_nat], refl }
 
-@[to_additive gsmul_neg]
+@[to_additive zsmul_neg]
 theorem inv_zpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow]
 
-@[to_additive add_commute.gsmul_add]
+@[to_additive add_commute.zsmul_add]
 theorem commute.mul_zpow {a b : G} (h : commute a b) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n
 | (n : ℕ) := by simp [zpow_coe_nat, h.mul_pow n]
 | -[1+n]  := by simp [h.mul_pow, (h.pow_pow n.succ n.succ).inv_inv.symm.eq]
@@ -346,10 +349,10 @@ end group
 section comm_group
 variables [comm_group G] [add_comm_group A]
 
-@[to_additive gsmul_add]
+@[to_additive zsmul_add]
 theorem mul_zpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b).mul_zpow n
 
-@[to_additive gsmul_sub]
+@[to_additive zsmul_sub]
 theorem div_zpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_zpow, inv_zpow]
 
@@ -490,7 +493,7 @@ alias sub_sq ← sub_pow_two
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
-lemma of_add_gsmul [add_group A] (x : A) (n : ℤ) :
+lemma of_add_zsmul [add_group A] (x : A) (n : ℤ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
 lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :

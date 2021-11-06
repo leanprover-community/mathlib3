@@ -249,7 +249,7 @@ lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻
 
 @[simp] lemma translate_zpow (x : ℝ) (n : ℤ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-by simp only [← gsmul_eq_mul, of_add_gsmul, monoid_hom.map_zpow]
+by simp only [← zsmul_eq_mul, of_add_zsmul, monoid_hom.map_zpow]
 
 @[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=

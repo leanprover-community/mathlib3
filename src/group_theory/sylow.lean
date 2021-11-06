@@ -173,6 +173,18 @@ end
 
 variables {p} {G}
 
+/-- Sylow subgroups are isomorphic -/
+def sylow.equiv_smul (P : sylow p G) (g : G) : P ≃* (g • P : sylow p G) :=
+equiv_smul (mul_aut.conj g) P.1
+
+/-- Sylow subgroups are isomorphic -/
+noncomputable def sylow.equiv [fact p.prime] [fintype (sylow p G)] (P Q : sylow p G) :
+  P ≃* Q :=
+begin
+  rw ← classical.some_spec (exists_smul_eq G P Q),
+  exact P.equiv_smul (classical.some (exists_smul_eq G P Q)),
+end
+
 @[simp] lemma sylow.orbit_eq_top [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   orbit G P = ⊤ :=
 top_le_iff.mp (λ Q hQ, exists_smul_eq G P Q)
@@ -210,8 +222,8 @@ lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.n
 begin
   refine top_le_iff.mp (λ g hg, _),
   obtain ⟨n, hn⟩ := exists_smul_eq N ((mul_aut.conj_normal g : mul_aut N) • P) P,
-  rw ← inv_mul_cancel_left ↑n g,
-  refine mul_mem _ (inv_mem _ (mem_sup_right n.2)) (mem_sup_left _),
+  rw [←inv_mul_cancel_left ↑n g, sup_comm],
+  apply mul_mem_sup (N.inv_mem n.2),
   rw [sylow.smul_def, ←mul_smul, ←mul_aut.conj_normal_coe, ←mul_aut.conj_normal.map_mul,
       sylow.ext_iff, sylow.pointwise_smul_def, pointwise_smul_def] at hn,
   refine λ x, (mem_map_iff_mem (show function.injective (mul_aut.conj (↑n * g)).to_monoid_hom,

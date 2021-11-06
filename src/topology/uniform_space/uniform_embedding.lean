@@ -21,6 +21,9 @@ variables {α : Type*} {β : Type*} {γ : Type*}
           [uniform_space α] [uniform_space β] [uniform_space γ]
 universe u
 
+/-- A map `f : α → β` between uniform spaces is called *uniform inducing* if the uniformity filter
+on `α` is the pullback of the uniformity filter on `β` under `prod.map f f`. If `α` is a separated
+space, then this implies that `f` is injective, hence it is a `uniform_embedding`. -/
 structure uniform_inducing (f : α → β) : Prop :=
 (comap_uniformity : comap (λx:α×α, (f x.1, f x.2)) (𝓤 β) = 𝓤 α)
 
@@ -39,6 +42,8 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
 
+/-- A map `f : α → β` between uniform spaces is a *uniform embedding* if it is uniform inducing and
+injective. If `α` is a separated space, then the latter assumption follows from the former. -/
 structure uniform_embedding (f : α → β) extends uniform_inducing f : Prop :=
 (inj : function.injective f)
 
@@ -87,7 +92,7 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
 
 /-- If the domain of a `uniform_inducing` map `f` is a `separated_space`, then `f` is injective,
 hence it is a `uniform_embedding`. -/
-theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
+protected theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
   (hf : uniform_inducing f) :
   uniform_embedding f :=
 ⟨hf, λ x y h, eq_of_uniformity_basis (hf.basis_uniformity (𝓤 β).basis_sets) $

@@ -384,15 +384,10 @@ by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 
 end monoid
 
+@[to_additive nsmul_one']
 lemma npow_one {M : Type u} [monoid M] (x : M) :
   npow 1 x = x :=
 by simp [monoid.npow_succ', monoid.npow_zero']
-
-lemma nsmul_one' {M : Type u} [add_monoid M] (x : M) :
-  nsmul 1 x = x :=
-by simp [add_monoid.nsmul_succ', add_monoid.nsmul_zero']
-
-attribute [to_additive nsmul_one'] npow_one
 
 @[to_additive nsmul_add']
 lemma npow_add {M : Type u} [monoid M] (m n : ℕ) (x : M) :
@@ -538,9 +533,9 @@ def zpow_rec {M : Type*} [has_one M] [has_mul M] [has_inv M] : ℤ → M → M
 | (int.of_nat n) a := npow_rec n a
 | -[1+ n]    a := (npow_rec n.succ a) ⁻¹
 
-/-- The fundamental scalar multiplication in an additive group. `gsmul_rec n a = a+a+...+a` n
+/-- The fundamental scalar multiplication in an additive group. `zsmul_rec n a = a+a+...+a` n
 times, for integer `n`. Use instead `n • a`, which has better definitional behavior. -/
-def gsmul_rec {M : Type*} [has_zero M] [has_add M] [has_neg M]: ℤ → M → M
+def zsmul_rec {M : Type*} [has_zero M] [has_add M] [has_neg M]: ℤ → M → M
 | (int.of_nat n) a := nsmul_rec n a
 | -[1+ n]    a := - (nsmul_rec n.succ a)
 
@@ -591,7 +586,7 @@ Let `foo X` be a type with a `∀ X, has_sub (foo X)` instance but no
 `add_group.has_sub` cannot be definitionally equal to the `(-)` coming from
 `foo.has_sub`.
 
-In the same way, adding a `gsmul` field makes it possible to avoid definitional failures
+In the same way, adding a `zsmul` field makes it possible to avoid definitional failures
 in diamonds. See the definition of `add_monoid` and Note [forgetful inheritance] for more
 explanations on this.
 -/
@@ -599,14 +594,14 @@ explanations on this.
 class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
 (sub := λ a b, a + -b)
 (sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
-(gsmul : ℤ → G → G := gsmul_rec)
-(gsmul_zero' : ∀ (a : G), gsmul 0 a = 0 . try_refl_tac)
-(gsmul_succ' :
-  ∀ (n : ℕ) (a : G), gsmul (int.of_nat n.succ) a = a + gsmul (int.of_nat n) a . try_refl_tac)
-(gsmul_neg' :
-  ∀ (n : ℕ) (a : G), gsmul (-[1+ n]) a = - (gsmul n.succ a) . try_refl_tac)
+(zsmul : ℤ → G → G := zsmul_rec)
+(zsmul_zero' : ∀ (a : G), zsmul 0 a = 0 . try_refl_tac)
+(zsmul_succ' :
+  ∀ (n : ℕ) (a : G), zsmul (int.of_nat n.succ) a = a + zsmul (int.of_nat n) a . try_refl_tac)
+(zsmul_neg' :
+  ∀ (n : ℕ) (a : G), zsmul (-[1+ n]) a = - (zsmul n.succ a) . try_refl_tac)
 
-export sub_neg_monoid (gsmul)
+export sub_neg_monoid (zsmul)
 
 attribute [to_additive sub_neg_monoid] div_inv_monoid
 
@@ -615,31 +610,20 @@ lemma div_inv_monoid.ext {M : Type*} ⦃m₁ m₂ : div_inv_monoid M⦄ (h_mul :
   (h_inv : m₁.inv = m₂.inv) : m₁ = m₂ :=
 begin
   let iM : div_inv_monoid M := m₁,
+  have : @div_inv_monoid.to_monoid M m₁ = @div_inv_monoid.to_monoid M m₂, from monoid.ext h_mul,
   unfreezingI {
     cases m₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁ inv₁ div₁
       div_eq_mul_inv₁ zpow₁ zpow_zero'₁ zpow_succ'₁ zpow_neg'₁,
     cases m₂ with mul₂ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ inv₂ div₂
       div_eq_mul_inv₂ zpow₂ zpow_zero'₂ zpow_succ'₂ zpow_neg'₂ },
-  change mul₁ = mul₂ at h_mul,
-  subst h_mul,
-  have h_one : one₁ = one₂,
-  { rw ←one_mul₂ one₁,
-    exact mul_one₁ one₂ },
-  subst h_one,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with d hd,
-    { rw [npow_zero₁, npow_zero₂] },
-    { rw [npow_succ₁, npow_succ₂, hd] } },
-  subst h_npow,
-  change inv₁ = inv₂ at h_inv,
-  subst h_inv,
-  have h_div : div₁ = div₂,
+  dunfold div_inv_monoid.to_monoid at this, simp only at this,
+  obtain rfl : mul₁ = mul₂ := h_mul,
+  obtain rfl : one₁ = one₂, by injection this,
+  obtain rfl : npow₁ = npow₂, by injection this,
+  obtain rfl : inv₁ = inv₂ := h_inv,
+  obtain rfl : div₁ = div₂,
   { ext a b,
-    convert (rfl : a * b⁻¹ = a * b⁻¹),
-    { exact div_eq_mul_inv₁ a b },
-    { exact div_eq_mul_inv₂ a b } },
-  subst h_div,
+    exact (div_eq_mul_inv₁ a b).trans (div_eq_mul_inv₂ a b).symm },
   have h_zpow_aux : ∀ n g, zpow₁ (int.of_nat n) g = zpow₂ (int.of_nat n) g,
   { intros n g,
     induction n with n IH,

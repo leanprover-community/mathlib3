@@ -83,7 +83,7 @@ theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
   f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_pow x n m
 
-theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
+theorem iterate_map_zsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
   f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_zpow x n m
 
@@ -125,9 +125,9 @@ f.to_add_monoid_hom.iterate_map_sub n x y
 theorem iterate_map_neg : f^[n] (-x) = -(f^[n] x) :=
 f.to_add_monoid_hom.iterate_map_neg n x
 
-theorem iterate_map_gsmul (n : ℕ) (m : ℤ) (x : R) :
+theorem iterate_map_zsmul (n : ℕ) (m : ℤ) (x : R) :
   f^[n] (m • x) = m • (f^[n] x) :=
-f.to_add_monoid_hom.iterate_map_gsmul n m x
+f.to_add_monoid_hom.iterate_map_zsmul n m x
 
 end ring_hom
 
@@ -139,17 +139,18 @@ section monoid
 
 variables [monoid G] (a : G) (n : ℕ)
 
-@[simp] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
+@[simp, to_additive] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
 
-@[simp] lemma mul_right_iterate : (* a)^[n] = (* a ^ n) :=
+@[simp, to_additive] lemma mul_right_iterate : (* a)^[n] = (* a ^ n) :=
 begin
   induction n with d hd,
   { simpa },
   { simp [← pow_succ, hd] }
 end
 
+@[to_additive]
 lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
 by simp [mul_right_iterate]
 
@@ -180,23 +181,3 @@ lemma commute.function_commute_mul_right (h : commute a b) :
 semiconj_by.function_semiconj_mul_right_swap h
 
 end semigroup
-
---what should be the namespace for this section?
-section add_monoid
-
-variables [add_monoid M] (a : M) (n : ℕ)
-
-@[simp] lemma add_left_iterate : ((+) a)^[n] = (+) (n • a) :=
-@mul_left_iterate (multiplicative M) _ a n
-
-@[simp] lemma add_right_iterate : (+ a)^[n] = (+ n • a) :=
-begin
-  induction n with d hd,
-  { simp [zero_nsmul, id_def] },
-  { simp [hd, add_assoc, succ_nsmul] }
-end
-
-lemma add_right_iterate_apply_zero : (+ a)^[n] 0 = n • a :=
-by simp [add_right_iterate]
-
-end add_monoid

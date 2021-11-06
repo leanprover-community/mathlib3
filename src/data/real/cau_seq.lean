@@ -244,7 +244,7 @@ by refine_struct
        sub := has_sub.sub,
        npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
        nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩,
-       gsmul := @gsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+       zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 

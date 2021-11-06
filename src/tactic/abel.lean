@@ -238,7 +238,7 @@ theorem unfold_smulg {α} [add_comm_group α] (n : ℕ) (x y : α)
   (h : smulg (int.of_nat n) x = y) : (n : ℤ) • x = y := h
 
 theorem unfold_zsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
-  (h : smulg n x = y) : zsmul n x = y := h
+  (h : smulg n x = y) : n • x = y := h
 
 lemma subst_into_smul {α} [add_comm_monoid α]
   (l r tl tr t) (prl : l = tl) (prr : r = tr)
@@ -277,11 +277,11 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   (e₂, p₂) ← eval_neg c e₁,
   p ← c.mk_app ``norm_num.subst_into_neg ``has_neg [e, e₁, e₂, p₁, p₂],
   return (e₂, p)
-| `(nsmul %%e₁ %%e₂) := do
+| `(add_monoid.nsmul %%e₁ %%e₂) := do
   n ← if c.is_group then mk_app ``int.of_nat [e₁] else return e₁,
   (e', p) ← eval $ c.iapp ``smul [n, e₂],
   return (e', c.iapp ``unfold_smul [e₁, e₂, e', p])
-| `(zsmul %%e₁ %%e₂) := do
+| `(sub_neg_monoid.zsmul %%e₁ %%e₂) := do
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
   return (e', c.app ``unfold_zsmul c.inst [e₁, e₂, e', p])

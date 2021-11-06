@@ -3,6 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
+import tactic.interactive
 import data.rbtree.init
 
 universe u
@@ -63,12 +64,11 @@ begin
   }
 end
 
-variable [decidable_rel lt]
-
 lemma is_searchable_of_is_searchable_of_incomp [is_strict_weak_order α lt] {t} :
   ∀ {lo hi hi'} (hc : ¬ lt hi' hi ∧ ¬ lt hi hi') (hs : is_searchable lt t lo (some hi)),
     is_searchable lt t lo (some hi') :=
 begin
+  classical,
   induction t; intros; is_searchable_tactic,
   { cases lo; simp [lift, *] at *, apply lt_of_lt_of_incomp, assumption, exact ⟨hc.2, hc.1⟩ },
   all_goals { apply t_ih_rchild hc hs_hs₂ }
@@ -78,6 +78,7 @@ lemma is_searchable_of_incomp_of_is_searchable [is_strict_weak_order α lt] {t} 
   ∀ {lo lo' hi} (hc : ¬ lt lo' lo ∧ ¬ lt lo lo') (hs : is_searchable lt t (some lo) hi),
     is_searchable lt t (some lo') hi :=
 begin
+  classical,
   induction t; intros; is_searchable_tactic,
   { cases hi; simp [lift, *] at *, apply lt_of_incomp_of_lt, assumption, assumption },
   all_goals { apply t_ih_lchild hc hs_hs₁ }
@@ -120,8 +121,9 @@ end
 lemma range [is_strict_weak_order α lt] {t : rbnode α} {x} :
   ∀ {lo hi}, is_searchable lt t lo hi → mem lt x t → lift lt lo (some x) ∧ lift lt (some x) hi :=
 begin
+  classical,
   induction t,
-  case leaf { simp [mem], intros, trivial },
+  case leaf { simp [mem] },
   all_goals { -- red_node and black_node are identical
     intros lo hi h₁ h₂, cases h₁,
     simp only [mem] at h₂,
@@ -199,7 +201,7 @@ inductive is_red_black : rbnode α → color → nat → Prop
 
 open is_red_black
 
-lemma depth_min : ∀ {c n} {t : rbnode α}, is_red_black t c n → depth min t ≥ n :=
+lemma depth_min : ∀ {c n} {t : rbnode α}, is_red_black t c n → n ≤ depth min t :=
 begin
   intros c n' t h,
   induction h,
@@ -243,7 +245,7 @@ end
 lemma depth_max {c n} {t : rbnode α} (h : is_red_black t c n) : depth max t ≤ 2 * n + 1:=
 le_trans (depth_max' h) (upper_le _ _)
 
-lemma balanced {c n} {t : rbnode α} (h : is_red_black t c n) : 2 * depth min t + 1 ≥ depth max t :=
+lemma balanced {c n} {t : rbnode α} (h : is_red_black t c n) : depth max t ≤ 2 * depth min t + 1 :=
 begin
  have : 2 * depth min t + 1 ≥ 2 * n + 1,
  { apply succ_le_succ, apply nat.mul_le_mul_left, apply depth_min h},

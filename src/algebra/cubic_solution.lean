@@ -272,8 +272,8 @@ begin
 end
 
 /--
-The three solutions obtained by using different cube roots in the above formula
-factorize the depressed cubic.
+The three solutions obtained by using different cube roots in the
+depressed_cubic_solution formula factorize the depressed cubic.
 --/
 lemma depressed_cubic_factorize [field F] (c d x sqrt cubrt rt3_i : F)
       (two_ne_zero : (2 : F) ≠ (0 : F)) (three_ne_zero : (3 : F) ≠ (0 : F))
@@ -432,7 +432,7 @@ def depressed_cubic_constant [field F] (a b c d : F) : F :=
     (((2 * b * b * b) - (9 * a * b * c)) / (27 * a * a * a)) + (d / a)
 
 /--
-Every cubic can be reduced to an equivalent depressed cubic using the above substitution.
+Every cubic can be reduced to an equivalent depressed cubic using the depressed_cubic_x substitution.
 --/
 lemma convert_cubic_to_depressed [field F] (a b c d x : F)
     (a_ne_zero : a ≠ 0) (three_ne_zero : (3 : F) ≠ (0 : F)) :
@@ -474,7 +474,7 @@ def cubic_formula_sqrt [field F] (a b c d : F) : F :=
   depressed_cubic_solution_sqrt (depressed_cubic_x_term a b c) (depressed_cubic_constant a b c d)
 
 /--
-The above solution to a cubic is correct.
+The cubic_formula is a correct solution to a cubic.
 --/
 lemma cubic_solution [field F] (a b c d x sqrt cubrt rt3_i : F)
   (a_ne_zero : a ≠ 0) (two_ne_zero : (2 : F) ≠ 0) (three_ne_zero : (3 : F) ≠ 0)

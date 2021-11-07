@@ -45,7 +45,7 @@ namespace finset
 `∏ x in s, f x` is the product of `f x`
 as `x` ranges over the elements of the finite set `s`.
 -/
-@[to_additive "`∑ x in s, f` is the sum of `f x` as `x` ranges over the elements
+@[to_additive "`∑ x in s, f x` is the sum of `f x` as `x` ranges over the elements
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 

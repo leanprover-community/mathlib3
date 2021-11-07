@@ -498,11 +498,11 @@ end Top.opens
 
 namespace Top.sheaf
 
-open category_theory topological_space Top
+open category_theory topological_space Top opposite
 
 variables {C : Type u} [category.{v} C] [limits.has_products C]
-variables {X : Top.{v}} {F : presheaf C X} {F' : sheaf C X}
-variables {ι : Type*} {B : ι → opens X} (h : opens.is_basis (set.range B))
+variables {X : Top.{v}} {ι : Type v} {B : ι → opens X}
+variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 
 def restrict_hom_equiv_hom :
   ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1) ≃ (F ⟶ F'.1) :=
@@ -510,6 +510,12 @@ def restrict_hom_equiv_hom :
   (@opens.cover_dense_induced_functor X ι (induced_category.category B) B h)
   _ F ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F')
 
-#check @restrict_hom_equiv_hom
+lemma extend_hom_app {α i} :
+  (restrict_hom_equiv_hom F F' h α).app (op (B i)) = α.app (op i) :=
+by { nth_rewrite 1 ← (restrict_hom_equiv_hom F F' h).left_inv α, refl }
+
+include h
+lemma hom_ext {α β : F ⟶ F'.1} (he : ∀ i, α.app (op (B i)) = β.app (op (B i))) : α = β :=
+by { apply (restrict_hom_equiv_hom F F' h).symm.injective, ext i, exact he i.unop }
 
 end Top.sheaf

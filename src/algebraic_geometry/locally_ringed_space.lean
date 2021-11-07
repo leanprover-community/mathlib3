@@ -14,8 +14,6 @@ We define (bundled) locally ringed spaces (as `SheafedSpace CommRing` along with
 stalks are local rings), and morphisms between these (morphisms in `SheafedSpace` with
 `is_local_ring_hom` on the stalk maps).
 
-## Future work
-* Define the restriction along an open embedding
 -/
 
 universes v u

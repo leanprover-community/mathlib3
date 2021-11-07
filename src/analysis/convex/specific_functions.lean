@@ -23,6 +23,14 @@ In this file we prove that the following functions are convex:
 open real set
 open_locale big_operators
 
+/-- The norm of a real normed space is convex. -/
+lemma convex_on_norm {E : Type*} [normed_group E] [normed_space ℝ E] :
+  convex_on ℝ univ (norm : E → ℝ) :=
+⟨convex_univ, λ x y hx hy a b ha hb hab,
+  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
+    ... = a * ∥x∥ + b * ∥y∥
+        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
+
 /-- `exp` is convex on the whole real line -/
 lemma convex_on_exp : convex_on ℝ univ exp :=
 convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)

@@ -860,12 +860,17 @@ lemma norm_eq_sqrt_real_inner (x : F) : ∥x∥ = sqrt ⟪x, x⟫_ℝ :=
 by { have h := @norm_eq_sqrt_inner ℝ F _ _ x, simpa using h }
 
 lemma inner_self_eq_norm_sq (x : E) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
-by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
+by rw [norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
   sqrt_mul_self inner_self_nonneg]
+
+lemma inner_self_eq_norm_sq' (x : E) : re ⟪x, x⟫ = ∥x∥^2 :=
+by rw [pow_two, inner_self_eq_norm_sq]
 
 lemma real_inner_self_eq_norm_sq (x : F) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
 by { have h := @inner_self_eq_norm_sq ℝ F _ _ x, simpa using h }
 
+lemma real_inner_self_eq_norm_sq' (x : F) : ⟪x, x⟫_ℝ = ∥x∥^2 :=
+by rw [pow_two, real_inner_self_eq_norm_sq]
 
 /-- Expand the square -/
 lemma norm_add_sq {x y : E} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=

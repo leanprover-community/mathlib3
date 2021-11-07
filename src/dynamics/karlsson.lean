@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.fekete
-import analysis.inner_product_space.basic
+import analysis.inner_product_space.dual
 import tactic.by_contra
 import analysis.normed_space.dual
 
 noncomputable theory
 open_locale topological_space
 open filter normed_space metric
+
+notation `⟪`x`, `y`⟫` := @inner ℝ _ _ x y
+
 
 variables {α β : Type*} [metric_space α] [metric_space β]
 
@@ -84,6 +87,9 @@ begin
   exact h.u_subadditive.tendsto_lim B,
 end
 
+lemma l_nonneg : 0 ≤ h.l :=
+ge_of_tendsto' h.tendsto_lim (λ n, div_nonneg dist_nonneg (nat.cast_nonneg _))
+
 lemma tendsto_sub_at_top {w : ℝ} (hw : w < h.l) :
   tendsto (λ (n : ℕ), h.u n - n * w) at_top at_top :=
 begin
@@ -104,7 +110,7 @@ lemma exists_dual_up_to_of_lt {w : ℝ} (hw : w < h.l) (N : ℕ) :
 begin
   obtain ⟨n, Nn, hn⟩ : ∃ n ≥ N, ∀ m ≤ n, h.u m - m * w ≤ h.u n - n * w :=
     exists_high_score _ (h.tendsto_sub_at_top hw) N,
-  obtain ⟨v, vnorm, hv⟩ : ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ v (-(f^[n] 0)) = norm (-(f^[n] 0)) :=
+  obtain ⟨v, vnorm, hv⟩ : ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ v (-(f^[n] 0)) = ∥-(f^[n] 0)∥ :=
     exists_dual_vector'' ℝ (-(f^[n] 0)),
   refine ⟨v, vnorm, λ i hi, _⟩,
   have A : i ≤ n := hi.trans Nn,
@@ -130,27 +136,82 @@ end
 
 lemma exists_dual : ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ ∀ i, v (f^[i] 0) ≤ -i * h.l :=
 begin
-  have : proper_space E := by apply_instance,
-  have : proper_space (dual ℝ E) := by apply_instance,
   obtain ⟨w, -, w_lt, w_lim⟩ : ∃ (w : ℕ → ℝ), strict_mono w ∧ (∀ (n : ℕ), w n < h.l)
     ∧ tendsto w at_top (𝓝 h.l) := exists_seq_strict_mono_tendsto _,
-  have : ∀ n, ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ ∀ i ≤ n, v (f^[i] 0) ≤ - i * w n :=
+  have : ∀ n, ∃ (y : dual ℝ E), ∥y∥ ≤ 1 ∧ ∀ i ≤ n, y (f^[i] 0) ≤ - i * w n :=
     λ n, h.exists_dual_up_to_of_lt (w_lt n) n,
-  choose v hv using this,
-  have : ∃ y ∈ closed_ball (0 : dual ℝ E) 1, ∃ (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (v ∘ φ) at_top (𝓝 y),
-  { apply is_compact.tendsto_subseq,
-    apply proper_space.is_compact_closed_ball,
-
-
-  },
+  choose y hy using this,
+  obtain ⟨v, v_mem, φ, φ_mono, φlim⟩ : ∃ v ∈ closed_ball (0 : dual ℝ E) 1, ∃ (φ : ℕ → ℕ),
+    strict_mono φ ∧ tendsto (y ∘ φ) at_top (𝓝 v),
+  { -- dual ℝ E est propre
+    refine is_compact.tendsto_subseq (proper_space.is_compact_closed_ball _ _) _,
+    assume n,
+    simp [(hy n).1] },
+  refine ⟨v, by simpa using v_mem, λ i, _⟩,
+  have A : tendsto (λ n, ((y ∘ φ) n) (f^[i] 0)) at_top (𝓝 (v (f^[i] 0))) :=
+    ((is_bounded_bilinear_map_apply.is_bounded_linear_map_left (f^[i] 0)).continuous.tendsto _)
+      .comp φlim,
+  have B : tendsto (λ n, -(i : ℝ) * w (φ n)) at_top (𝓝 (- i * h.l)) :=
+    (tendsto_const_nhds.mul w_lim).comp φ_mono.tendsto_at_top,
+  have C : ∀ᶠ n in at_top, ((y ∘ φ) n) (f^[i] 0) ≤ - i * w (φ n),
+  { apply eventually_at_top.2 ⟨i, λ n hn, _⟩,
+    apply (hy (φ n)).2 i,
+    exact le_trans hn (φ_mono.id_le n) },
+  exact le_of_tendsto_of_tendsto A B C
 end
+
+lemma exists_asymp_vector :
+  ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
+begin
+  obtain ⟨v', v'_norm, hv'⟩ : ∃ (v' : dual ℝ E), ∥v'∥ ≤ 1 ∧ ∀ i, v' (f^[i] 0) ≤ -i * h.l :=
+    h.exists_dual,
+  let v := (inner_product_space.to_dual ℝ E).symm (-v'),
+  refine ⟨v, by simpa using v'_norm, λ i, _⟩,
+  simp [v],
+  linarith [hv' i]
+end
+
+lemma exists_tendsto_div :
+  ∃ (v : E), tendsto (λ (n : ℕ), ((1 : ℝ) / n) • f^[n] 0) at_top (𝓝 v) :=
+begin
+  obtain ⟨v₀, v₀_norm, h₀⟩ : ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
+    h.exists_asymp_vector,
+  refine ⟨h.l • v₀, _⟩,
+  have A : ∀ᶠ (n : ℕ) in at_top,
+    ∥(1 / (n : ℝ)) • (f^[n] 0) - h.l • v₀∥^2 ≤ (h.u n / n)^2 - h.l^2,
+  sorry,
+  /-{ apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
+    have n_ne_zero : n ≠ 0 := (zero_lt_one.trans_le hn).ne',
+    calc ∥(1 / (n : ℝ)) • (f^[n] 0) - h.l • v₀∥ ^ 2 =
+    ∥(1 / (n : ℝ)) • (f^[n] 0)∥^2 - 2 * ⟪(1 / (n : ℝ)) • (f^[n] 0), h.l • v₀⟫ + ∥h.l • v₀∥^2 :
+      norm_sub_sq_real
+    ... = (h.u n / n)^2 - 2 * h.l / n * ⟪v₀, (f^[n] 0)⟫ + h.l^2 * ∥v₀∥^2 :
+       begin
+        congr' 2,
+        { simp [norm_smul, real.norm_eq_abs, u, dist_zero_left, div_eq_inv_mul, mul_pow] },
+        { simp [real_inner_smul_left, real_inner_smul_right, div_eq_inv_mul, real_inner_comm],
+          ring },
+        { simp [norm_smul, real.norm_eq_abs, mul_pow] }
+      end
+    ... ≤ (h.u n / n)^2 - 2 * h.l / n * (n * h.l) + h.l^2 * 1^2 :
+      begin
+        refine add_le_add (sub_le_sub le_rfl _) _,
+        { apply mul_le_mul_of_nonneg_left (h₀ n),
+          exact mul_nonneg (mul_nonneg zero_le_two h.l_nonneg) (by simp) },
+        { refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
+          exact pow_le_pow_of_le_left (norm_nonneg _) v₀_norm _ }
+      end
+    ... = (h.u n / n)^2 - h.l^2 : by { field_simp [n_ne_zero], ring } },-/
+  have B : tendsto (λ (n : ℕ), (h.u n / n)^2 - h.l^2) at_top (𝓝 (h.l^2 - h.l^2)) :=
+    (h.tendsto_lim.pow 2).sub tendsto_const_nhds,
+  have : tendsto (λ (n : ℕ), ∥(1 / (n : ℝ)) • (f^[n] 0) - h.l • v₀∥^2) at_top (𝓝 0),
+  { rw [sub_self] at B,
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds B _ A,
+    exact eventually_of_forall (λ n, by simp) },
+end
+
+end semicontraction
 
 #exit
 
-  have : ∀ n, v n ∈ metric.closed_ball (0 : dual ℝ E) 1 :=
-    λ n, by simp [(hv n).1],
-  have Z := is_compact.tendsto_subseq,
-end
-
-
-end semicontraction
+-- norm_sub_sq_real

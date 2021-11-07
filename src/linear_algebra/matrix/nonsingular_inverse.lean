@@ -76,11 +76,7 @@ def invertible_of_det_invertible [invertible A.det] : invertible A :=
     by rw [smul_mul_assoc, matrix.mul_eq_mul, adjugate_mul, smul_smul, inv_of_mul_self, one_smul] }
 
 lemma inv_of_eq [invertible A.det] [invertible A] : ⅟A = ⅟A.det • A.adjugate :=
-begin
-  letI := invertible_of_det_invertible A,
-  have : ⅟A = ⅟A.det • A.adjugate := rfl,
-  convert this,
-end
+by { letI := invertible_of_det_invertible A, convert (rfl : ⅟A = ⅟A.det • A.adjugate) }
 
 /-- `A.det` is invertible if `A` has a left inverse. -/
 def det_invertible_of_left_inverse (h : B ⬝ A = 1) : invertible A.det :=
@@ -99,11 +95,7 @@ def det_invertible_of_invertible [invertible A] : invertible A.det :=
 det_invertible_of_left_inverse A (⅟A) (inv_of_mul_self _)
 
 lemma det_inv_of [invertible A] [invertible A.det] : (⅟A).det = ⅟A.det :=
-begin
-  letI := det_invertible_of_invertible A,
-  have : (⅟A).det = ⅟A.det := rfl,
-  convert this,
-end
+by { letI := det_invertible_of_invertible A, convert (rfl : (⅟A).det = ⅟A.det) }
 
 variables {A B}
 

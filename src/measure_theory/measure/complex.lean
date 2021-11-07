@@ -45,12 +45,12 @@ namespace complex_measure
 include m
 
 /-- The real part of a complex measure is a signed measure. -/
-@[simps]
+@[simps apply]
 def re : complex_measure α →ₗ[ℝ] signed_measure α :=
 map_rangeₗ complex.re_clm complex.continuous_re
 
 /-- The imaginary part of a complex measure is a signed measure. -/
-@[simps]
+@[simps apply]
 def im : complex_measure α →ₗ[ℝ] signed_measure α :=
 map_rangeₗ complex.im_clm complex.continuous_im
 

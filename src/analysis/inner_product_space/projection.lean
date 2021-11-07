@@ -974,10 +974,14 @@ let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_dense_span (orthono
 ⟨u, hu, hu_max⟩
 variables {𝕜 E}
 
+section finite_dimensional
+
+variables [finite_dimensional 𝕜 E]
+
 /-- An orthonormal set in a finite-dimensional `inner_product_space` is maximal, if and only if it
 is a basis. -/
 lemma maximal_orthonormal_iff_basis_of_finite_dimensional
-  [finite_dimensional 𝕜 E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  (hv : orthonormal 𝕜 (coe : v → E)) :
   (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ ∃ b : basis v 𝕜 E, ⇑b = coe :=
 begin
   rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
@@ -994,7 +998,7 @@ end
 /-- In a finite-dimensional `inner_product_space`, any orthonormal subset can be extended to an
 orthonormal basis. -/
 lemma exists_subset_is_orthonormal_basis
-  [finite_dimensional 𝕜 E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  (hv : orthonormal 𝕜 (coe : v → E)) :
   ∃ (u ⊇ v) (b : basis u 𝕜 E), orthonormal 𝕜 b ∧ ⇑b = coe :=
 begin
   obtain ⟨u, hus, hu, hu_max⟩ := exists_maximal_orthonormal hv,
@@ -1005,90 +1009,90 @@ end
 variables (𝕜 E)
 
 /-- Index for an arbitrary orthonormal basis on a finite-dimensional `inner_product_space`. -/
-def orthonormal_basis_index [finite_dimensional 𝕜 E] : set E :=
+def orthonormal_basis_index : set E :=
 classical.some (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E))
 
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def orthonormal_basis [finite_dimensional 𝕜 E] :
+def orthonormal_basis :
   basis (orthonormal_basis_index 𝕜 E) 𝕜 E :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some
 
-lemma orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] :
+lemma orthonormal_basis_orthonormal :
   orthonormal 𝕜 (orthonormal_basis 𝕜 E) :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.1
 
-@[simp] lemma coe_orthonormal_basis [finite_dimensional 𝕜 E] :
+@[simp] lemma coe_orthonormal_basis :
   ⇑(orthonormal_basis 𝕜 E) = coe :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
-instance [finite_dimensional 𝕜 E] : fintype (orthonormal_basis_index 𝕜 E) :=
+instance : fintype (orthonormal_basis_index 𝕜 E) :=
 @is_noetherian.fintype_basis_index _ _ _ _ _ _ _
   (is_noetherian.iff_fg.2 infer_instance) (orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}
 
 /-- An `n`-dimensional `inner_product_space` has an orthonormal basis indexed by `fin n`. -/
-def fin_orthonormal_basis [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
+def fin_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) :
   basis (fin n) 𝕜 E :=
 have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
 by rw [← finrank_eq_card_basis (orthonormal_basis 𝕜 E), hn],
 (orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
 
-lemma fin_orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
+lemma fin_orthonormal_basis_orthonormal {n : ℕ} (hn : finrank 𝕜 E = n) :
   orthonormal 𝕜 (fin_orthonormal_basis hn) :=
 suffices orthonormal 𝕜 (orthonormal_basis _ _ ∘ equiv.symm _),
 by { simp only [fin_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
 (orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
+section subordinate_orthonormal_basis
+open direct_sum
+variables {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι] {V : ι → submodule 𝕜 E}
+  (hV_sum : submodule_is_internal V)
+
+/-- Exhibit a bijection between `fin n` and the index set of a certain basis of an `n`-dimensional
+inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
+private def sigma_orthonormal_basis_index_equiv :
+  (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
+let b := collected_basis hV_sum (λ i, orthonormal_basis 𝕜 (V i)) in
+fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b).symm.trans hn
+
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
-def fin_subordinate_orthonormal_basis
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
-  {V : ι → submodule 𝕜 E}
-  (hV : orthogonal_family 𝕜 V)
-  (hV_sum : direct_sum.submodule_is_internal V) :
+def orthogonal_family.subordinate_orthonormal_basis (hV : orthogonal_family 𝕜 V) :
   basis (fin n) 𝕜 E :=
-have h : fintype.card (Σ i, orthonormal_basis_index 𝕜 (V i)) = n,
-by sorry,
-(collected_basis hV_sum (λ i, orthonormal_basis 𝕜 (V i))).reindex (fintype.equiv_fin_of_card_eq h)
+(collected_basis hV_sum (λ i, orthonormal_basis 𝕜 (V i))).reindex
+  (sigma_orthonormal_basis_index_equiv hn hV_sum)
 
-/-- fixme -/
-def fin_subordinate_orthonormal_basis_index
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
-  {V : ι → submodule 𝕜 E}
-  (hV : orthogonal_family 𝕜 V)
-  (hV_sum : direct_sum.submodule_is_internal V) (a : fin n) :
+/-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
+sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. This function
+provides the mapping by which it is subordinate. -/
+def orthogonal_family.subordinate_orthonormal_basis_index
+  (hV : orthogonal_family 𝕜 V) (a : fin n) :
   ι :=
-have h : fintype.card (Σ i, orthonormal_basis_index 𝕜 (V i)) = n,
-by sorry,
-((fintype.equiv_fin_of_card_eq h).symm a).1
+((sigma_orthonormal_basis_index_equiv hn hV_sum).symm a).1
 
-lemma fin_subordinate_orthonormal_basis_orthonormal
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
-  {V : ι → submodule 𝕜 E}
-  (hV : orthogonal_family 𝕜 V)
-  (hV_sum : direct_sum.submodule_is_internal V) :
-  orthonormal 𝕜 (fin_subordinate_orthonormal_basis hn hV hV_sum) :=
+/-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is orthonormal. -/
+lemma orthogonal_family.subordinate_orthonormal_basis_orthonormal (hV : orthogonal_family 𝕜 V) :
+  orthonormal 𝕜 (hV.subordinate_orthonormal_basis hn hV_sum) :=
 begin
-  simp only [fin_subordinate_orthonormal_basis, basis.coe_reindex],
+  simp only [orthogonal_family.subordinate_orthonormal_basis, basis.coe_reindex],
   have : orthonormal 𝕜 (collected_basis hV_sum (λ i, orthonormal_basis 𝕜 (V i))) :=
     collected_basis_orthonormal hV hV_sum (λ i, orthonormal_basis_orthonormal 𝕜 (V i)),
   exact this.comp _ (equiv.injective _),
 end
 
-lemma fin_subordinate_orthonormal_basis_subordinate
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι]
-  {V : ι → submodule 𝕜 E}
-  (hV : orthogonal_family 𝕜 V)
-  (hV_sum : direct_sum.submodule_is_internal V) (a : fin n) :
-  fin_subordinate_orthonormal_basis hn hV hV_sum a
-    ∈ V (fin_subordinate_orthonormal_basis_index hn hV hV_sum a):=
-begin
-  have h : fintype.card (Σ i, orthonormal_basis_index 𝕜 (V i)) = n,
-  by sorry,
-  simp only [fin_subordinate_orthonormal_basis, basis.coe_reindex],
-  exact collected_basis_mem hV_sum (λ i, orthonormal_basis 𝕜 (V i))
-    ((fintype.equiv_fin_of_card_eq h).symm a)
-end
+/-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is subordinate to
+the `orthogonal_family` in question. -/
+lemma orthogonal_family.subordinate_orthonormal_basis_subordinate
+  (hV : orthogonal_family 𝕜 V) (a : fin n) :
+  hV.subordinate_orthonormal_basis hn hV_sum a
+    ∈ V (hV.subordinate_orthonormal_basis_index hn hV_sum a):=
+by simpa only [orthogonal_family.subordinate_orthonormal_basis, basis.coe_reindex]
+  using collected_basis_mem hV_sum (λ i, orthonormal_basis 𝕜 (V i))
+    ((sigma_orthonormal_basis_index_equiv hn hV_sum).symm a)
+
+end subordinate_orthonormal_basis
+
+end finite_dimensional
 
 end orthonormal_basis

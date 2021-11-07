@@ -577,9 +577,9 @@ variables [has_continuous_add M] [has_continuous_add N]
   (v + w).map_range f hf = v.map_range f hf + w.map_range f hf :=
 by { ext, simp }
 
-/-- Given a continuous add_monoid_hom `f : M → N`, `map_rangeₗ` is the add_monoid_hom mapping the
+/-- Given a continuous add_monoid_hom `f : M → N`, `map_range_hom` is the add_monoid_hom mapping the
 vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
-def map_rangeₗ (f : M →+ N) (hf : continuous f) : vector_measure α M →+ vector_measure α N :=
+def map_range_hom (f : M →+ N) (hf : continuous f) : vector_measure α M →+ vector_measure α N :=
 { to_fun := λ v, v.map_range f hf,
   map_zero' := zero_map_range hf,
   map_add' := λ _ _, map_range_add hf }

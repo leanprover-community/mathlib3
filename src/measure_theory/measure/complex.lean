@@ -47,12 +47,12 @@ include m
 /-- The real part of a complex measure is a signed measure. -/
 @[simps]
 def re : complex_measure α →+ signed_measure α :=
-map_rangeₗ complex.re_lm.to_add_monoid_hom complex.continuous_re
+map_range_hom complex.re_lm.to_add_monoid_hom complex.continuous_re
 
 /-- The imaginary part of a complex measure is a signed measure. -/
 @[simps]
 def im : complex_measure α →+ signed_measure α :=
-map_rangeₗ complex.im_lm.to_add_monoid_hom complex.continuous_im
+map_range_hom complex.im_lm.to_add_monoid_hom complex.continuous_im
 
 /-- Given `s` and `t` signed measures, `s + it` is a complex measure-/
 @[simps]

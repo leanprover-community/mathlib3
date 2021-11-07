@@ -482,7 +482,12 @@ locally_finite_order.of_Icc' (α × β)
 
 end preorder
 
-/-! #### `with_top`, `with_bot` -/
+/-!
+#### `with_top`, `with_bot`
+
+Adding a `⊤` to a locally finite `order_top` keeps it locally finite.
+Adding a `⊥` to a locally finite `order_bot` keeps it locally finite.
+-/
 
 section order_top
 open with_top
@@ -496,27 +501,21 @@ instance : locally_finite_order (with_top α) :=
                               (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
     | (some a), (some b) := (Icc a b).map embedding.some
     end,
-  finset_Ico := λ a b, match a with
-    | ⊤        := ∅
-    | (some a) := match b with
-      | ⊤ := (Ici a).map embedding.some
-      | (some b) := (Ico a b).map embedding.some
-      end
+  finset_Ico := λ a b, match a, b with
+    |        ⊤,        _ := ∅
+    | (some a),        ⊤ := (Ici a).map embedding.some
+    | (some a), (some b) := (Ico a b).map embedding.some
     end,
-  finset_Ioc := λ a b, match a with
-    | ⊤        := ∅
-    | (some a) := match b with
-      | ⊤        := cons (⊤ : with_top α) ((Ioi a).map embedding.some)
-                      (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
-      | (some b) := (Ioc a b).map embedding.some
-      end
+  finset_Ioc := λ a b, match a, b with
+    |        ⊤,        _ := ∅
+    | (some a),        ⊤ := cons (⊤ : with_top α) ((Ioi a).map embedding.some)
+                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
+    | (some a), (some b) := (Ioc a b).map embedding.some
     end,
-  finset_Ioo := λ a b, match a with
-    | ⊤        := ∅
-    | (some a) := match b with
-      | ⊤        := (Ioi a).map embedding.some
-      | (some b) := (Ioo a b).map embedding.some
-      end
+  finset_Ioo := λ a b, match a, b with
+    |        ⊤,        _ := ∅
+    | (some a),        ⊤ := (Ioi a).map embedding.some
+    | (some a), (some b) := (Ioo a b).map embedding.some
     end,
   finset_mem_Icc := begin
     rintro (_ | a) (_ | b) x,
@@ -615,27 +614,21 @@ instance : locally_finite_order (with_bot α) :=
                               (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx)
     | (some b), (some a) := (Icc a b).map embedding.some
     end,
-  finset_Ico := λ a b, match b with
-    | ⊥        := ∅
-    | (some b) := match a with
-      | ⊥        := cons (⊥ : with_bot α) ((Iio b).map embedding.some)
-                      (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx)
-      | (some a) := (Ico a b).map embedding.some
-      end
+  finset_Ico := λ a b, match b, a with
+    |        ⊥,        _ := ∅
+    | (some b),        ⊥ := cons (⊥ : with_bot α) ((Iio b).map embedding.some)
+                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx)
+    | (some b), (some a) := (Ico a b).map embedding.some
     end,
-  finset_Ioc := λ a b, match b with
-    | ⊥        := ∅
-    | (some b) := match a with
-      | ⊥ := (Iic b).map embedding.some
-      | (some a) := (Ioc a b).map embedding.some
-      end
+  finset_Ioc := λ a b, match b, a with
+    |        ⊥,        _ := ∅
+    | (some b),        ⊥ := (Iic b).map embedding.some
+    | (some b), (some a) := (Ioc a b).map embedding.some
     end,
-  finset_Ioo := λ a b, match b with
-    | ⊥        := ∅
-    | (some b) := match a with
-      | ⊥        := (Iio b).map embedding.some
-      | (some a) := (Ioo a b).map embedding.some
-      end
+  finset_Ioo := λ a b, match b, a with
+    |        ⊥,        _ := ∅
+    | (some b),        ⊥ := (Iio b).map embedding.some
+    | (some b), (some a) := (Ioo a b).map embedding.some
     end,
   finset_mem_Icc := begin
     rintro (_ | a) (_ | b) x,

@@ -44,20 +44,8 @@ instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
 
 instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
-instance glouk [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
-  finite_dimensional 𝕜 (E →L[𝕜] F) :=
-begin
-  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
-  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
-  apply module.finite.of_injective I,
-  exact continuous_linear_map.coe_injective
-end
-
-
-#exit
-  --finite_dimensional.linear_map 𝕜 E F
-
-#print normed_space.glouk
+instance [finite_dimensional 𝕜 E] : finite_dimensional 𝕜 (dual 𝕜 E) :=
+continuous_linear_map.finite_dimensional
 
 /-- The inclusion of a normed space in its double (topological) dual, considered
    as a bounded linear map. -/

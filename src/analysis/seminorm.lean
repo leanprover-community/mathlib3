@@ -358,7 +358,7 @@ end
 end has_scalar
 
 section module
-variables [module ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E) (c : 𝕜) (x : E) (r : ℝ)
+variables [module ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E) (x : E) (r : ℝ)
 
 /-- Seminorm-balls are convex. -/
 lemma convex_ball : convex ℝ (ball p x r) :=

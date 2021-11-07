@@ -371,8 +371,9 @@ instance : comm_semiring cardinal.{u} :=
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 
-theorem mk_bool : #bool = 2 := by simp
-theorem mk_Prop : #(Prop) = 2 := by simp
+@[simp] theorem mk_bool : #bool = 2 := by simp
+
+@[simp] theorem mk_Prop : #(Prop) = 2 := by simp
 
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
 induction_on a $ assume α heq, mk_eq_zero_iff.2 $ is_empty_pi.2 $

@@ -181,6 +181,16 @@ lemma integrable_on_map_equiv [measurable_space β] (e : α ≃ᵐ β) {f : β �
   integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
 by simp only [integrable_on, e.restrict_map, integrable_map_equiv e]
 
+lemma measure_preserving.integrable_on_comp_preimage [measurable_space β] {e : α → β} {ν}
+  (h₁ : measure_preserving e μ ν) (h₂ : measurable_embedding e) {f : β → E} {s : set β} :
+  integrable_on (f ∘ e) (e ⁻¹' s) μ ↔ integrable_on f s ν :=
+(h₁.restrict_preimageₑ h₂ s).integrable_compₑ h₂
+
+lemma measure_preserving.integrable_on_image [measurable_space β] {e : α → β} {ν}
+  (h₁ : measure_preserving e μ ν) (h₂ : measurable_embedding e) {f : β → E} {s : set α} :
+  integrable_on f (e '' s) ν ↔  integrable_on (f ∘ e) s μ :=
+((h₁.restrict_imageₑ h₂ s).integrable_compₑ h₂).symm
+
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
 by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,

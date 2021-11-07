@@ -54,6 +54,8 @@ noncomputable theory
 open function set measure_theory.outer_measure filter measurable_space encodable
 open_locale classical big_operators topological_space ennreal
 
+universes u v
+
 variables {ι ι' : Type*} {α : ι → Type*}
 
 /-! We start with some measurability properties -/
@@ -331,21 +333,6 @@ begin
   exact λ i, measurable_set_closed_ball
 end
 
-lemma pi_unique_eq_map {β : Type*} {m : measurable_space β} (μ : measure β) (α : Type*) [unique α] :
-  measure.pi (λ a : α, μ) = map (measurable_equiv.fun_unique α β).symm μ :=
-begin
-  set e := measurable_equiv.fun_unique α β,
-  have : pi_premeasure (λ _ : α, μ.to_outer_measure) = map e.symm μ,
-  { ext1 s,
-    rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
-    congr' 1, exact e.to_equiv.image_eq_preimage s },
-  simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
-end
-
-lemma map_fun_unique {α β : Type*} [unique α] {m : measurable_space β} (μ : measure β) :
-  map (measurable_equiv.fun_unique α β) (measure.pi $ λ _, μ) = μ :=
-(measurable_equiv.fun_unique α β).map_apply_eq_iff_map_symm_apply_eq.2 (pi_unique_eq_map μ _).symm
-
 variable {μ}
 
 /-- `measure.pi μ` has finite spanning sets in rectangles of finite spanning sets. -/
@@ -410,36 +397,6 @@ begin
   rw [fintype.prod_empty, dirac_apply_of_mem],
   exact is_empty_elim
 end
-
-lemma {u} pi_fin_two_eq_map {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
-  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
-  measure.pi μ = map (measurable_equiv.pi_fin_two α).symm ((μ 0).prod (μ 1)) :=
-begin
-  refine pi_eq (λ s hs, _),
-  rw [measurable_equiv.map_apply, fin.prod_univ_succ, fin.prod_univ_succ, fin.prod_univ_zero,
-    mul_one, ← measure.prod_prod (hs _) (hs _)]; [skip, apply_instance],
-  congr' 1,
-  ext ⟨a, b⟩,
-  simp [fin.forall_fin_succ, is_empty.forall_iff]
-end
-
-lemma {u} map_pi_fin_two {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
-  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
-  map (measurable_equiv.pi_fin_two α) (measure.pi μ) = ((μ 0).prod (μ 1)) :=
-(measurable_equiv.pi_fin_two α).map_apply_eq_iff_map_symm_apply_eq.2 (pi_fin_two_eq_map μ).symm
-
-lemma prod_eq_map_fin_two_arrow {α : Type*} {m : measurable_space α} (μ ν : measure α)
-  [sigma_finite μ] [sigma_finite ν] :
-  μ.prod ν = map measurable_equiv.fin_two_arrow (measure.pi ![μ, ν]) :=
-begin
-  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
-  exact (map_pi_fin_two ![μ, ν]).symm
-end
-
-lemma prod_eq_map_fin_two_arrow_same {α : Type*} {m : measurable_space α} (μ : measure α)
-  [sigma_finite μ] :
-  μ.prod μ = map measurable_equiv.fin_two_arrow (measure.pi $ λ _, μ) :=
-by rw [prod_eq_map_fin_two_arrow, matrix.vec_single_eq_const, matrix.vec_cons_const]
 
 lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
@@ -601,7 +558,6 @@ begin
 end
 
 end measure
-
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
 ⟨measure.pi (λ i, volume)⟩
 
@@ -625,6 +581,63 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
   volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
 measure.pi_closed_ball _ _ hr
 
+section measure_preserving
+
+lemma measure_preserving_fun_unique {β : Type u} {m : measurable_space β} (μ : measure β)
+  (α : Type v) [unique α] :
+  measure_preserving (measurable_equiv.fun_unique α β) (measure.pi (λ a : α, μ)) μ :=
+begin
+  set e := measurable_equiv.fun_unique α β,
+  have : pi_premeasure (λ _ : α, μ.to_outer_measure) = measure.map e.symm μ,
+  { ext1 s,
+    rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
+    congr' 1, exact e.to_equiv.image_eq_preimage s },
+  simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
+  exact ((measurable_equiv.fun_unique α β).symm.measurable.measure_preserving _).symm
+end
+
+lemma volume_preserving_fun_unique (α : Type u) (β : Type v) [unique α] [measure_space β] :
+  measure_preserving (measurable_equiv.fun_unique α β) volume volume :=
+measure_preserving_fun_unique volume α
+
+lemma measure_preserving_pi_fin_two {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
+  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
+  measure_preserving (measurable_equiv.pi_fin_two α) (measure.pi μ) ((μ 0).prod (μ 1)) :=
+begin
+  refine ⟨measurable_equiv.measurable _, (measure.prod_eq $ λ s t hs ht, _).symm⟩,
+  simp_rw [measurable_equiv.map_apply, preimage, mem_prod],
+end
+/-  
+  measure.pi μ = map (measurable_equiv.pi_fin_two α).symm ((μ 0).prod (μ 1)) :=
+begin
+  refine pi_eq (λ s hs, _),
+  rw [measurable_equiv.map_apply, fin.prod_univ_succ, fin.prod_univ_succ, fin.prod_univ_zero,
+    mul_one, ← measure.prod_prod (hs _) (hs _)]; [skip, apply_instance],
+  congr' 1,
+  ext ⟨a, b⟩,
+  simp [fin.forall_fin_succ, is_empty.forall_iff]
+end-/
+
+lemma {u} map_pi_fin_two {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
+  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
+  map (measurable_equiv.pi_fin_two α) (measure.pi μ) = ((μ 0).prod (μ 1)) :=
+(measurable_equiv.pi_fin_two α).map_apply_eq_iff_map_symm_apply_eq.2 (pi_fin_two_eq_map μ).symm
+
+lemma prod_eq_map_fin_two_arrow {α : Type*} {m : measurable_space α} (μ ν : measure α)
+  [sigma_finite μ] [sigma_finite ν] :
+  μ.prod ν = map measurable_equiv.fin_two_arrow (measure.pi ![μ, ν]) :=
+begin
+  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
+  exact (map_pi_fin_two ![μ, ν]).symm
+end
+
+lemma prod_eq_map_fin_two_arrow_same {α : Type*} {m : measurable_space α} (μ : measure α)
+  [sigma_finite μ] :
+  μ.prod μ = map measurable_equiv.fin_two_arrow (measure.pi $ λ _, μ) :=
+by rw [prod_eq_map_fin_two_arrow, matrix.vec_single_eq_const, matrix.vec_cons_const]
+
+
+end measure_preserving
 section fun_unique
 /-!
 ### Integral over `ι → α` with `[unique ι]`

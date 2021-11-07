@@ -1303,6 +1303,11 @@ lemma integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β �
   ∫ y, f y ∂(measure.map e μ) = ∫ x, f (e x) ∂μ :=
 e.measurable_embedding.integral_map f
 
+lemma measure_preserving.integral_comp {β} {_ : measurable_space β} {f : α → β} {ν}
+  (h₁ : measure_preserving f μ ν) (h₂ : measurable_embedding f) (g : β → E) :
+  ∫ x, g (f x) ∂μ = ∫ y, g y ∂ν :=
+h₁.map_eq ▸ (h₂.integral_map g).symm
+
 @[simp] lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :

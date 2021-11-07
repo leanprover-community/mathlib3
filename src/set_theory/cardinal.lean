@@ -238,7 +238,7 @@ instance : has_zero cardinal.{u} := ⟨#pempty⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
-@[simp] lemma mk_eq_zero (α : Type u) [is_empty α] : #α = 0 :=
+lemma mk_eq_zero (α : Type u) [is_empty α] : #α = 0 :=
 (equiv.equiv_pempty α).cardinal_eq
 
 @[simp] theorem lift_zero : lift 0 = 0 := mk_congr (equiv.equiv_pempty _)
@@ -255,7 +255,7 @@ instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
-@[simp] lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
+lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
 mk_congr equiv_punit_of_unique
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
@@ -275,6 +275,15 @@ mk_congr ((equiv.ulift).symm.sum_congr (equiv.ulift).symm)
 
 @[simp] lemma mk_psum (α : Type u) (β : Type v) : #(psum α β) = lift.{v} (#α) + lift.{u} (#β) :=
 (mk_congr (equiv.psum_equiv_sum α β)).trans (mk_sum α β)
+
+@[simp] lemma mk_fintype (α : Type u) [fintype α] : #α = fintype.card α :=
+begin
+  refine fintype.induction_empty_option' _ _ _ α,
+  { introsI α β h e hα, letI := fintype.of_equiv β e.symm,
+    rwa [mk_congr e, fintype.card_congr e] at hα },
+  { refl },
+  { introsI α h hα, simp [hα] }
+end
 
 instance : has_mul cardinal.{u} := ⟨map₂ prod $ λ α β γ δ, equiv.prod_congr⟩
 
@@ -362,11 +371,8 @@ instance : comm_semiring cardinal.{u} :=
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 
-@[simp] theorem mk_bool : #bool = 2 :=
-mk_congr equiv.bool_equiv_punit_sum_punit
-
-@[simp] theorem mk_Prop : #(Prop) = 2 :=
-equiv.Prop_equiv_bool.cardinal_eq.trans mk_bool
+theorem mk_bool : #bool = 2 := by simp
+theorem mk_Prop : #(Prop) = 2 := by simp
 
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
 induction_on a $ assume α heq, mk_eq_zero_iff.2 $ is_empty_pi.2 $
@@ -750,12 +756,9 @@ by rw [← lift_omega, lift_le]
 @[simp] theorem lift_le_omega {c : cardinal.{u}} : lift.{v} c ≤ ω ↔ c ≤ ω :=
 by rw [← lift_omega, lift_le]
 
-/- properties about the cast from nat -/
+/-! ### Properties about the cast from `ℕ` -/
 
-@[simp] theorem mk_fin : ∀ (n : ℕ), #(fin n) = n
-| 0     := mk_eq_zero _
-| (n+1) := by rw [nat.cast_succ, ← mk_fin]; exact
-  quotient.sound (fintype.card_eq.1 $ by simp)
+@[simp] theorem mk_fin (n : ℕ) : #(fin n) = n := by simp
 
 @[simp] theorem lift_nat_cast (n : ℕ) : lift n = n :=
 by induction n; simp *
@@ -768,10 +771,6 @@ lemma nat_eq_lift_eq_iff {n : ℕ} {a : cardinal.{u}} :
 by rw [← lift_nat_cast.{u v} n, lift_inj]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
-
-@[simp] theorem mk_fintype (α : Type u) [fintype α] : #α = fintype.card α :=
-by rw [← lift_mk_fin.{u}, ← lift_id (#α), lift_mk_eq.{u 0 u}];
-   exact fintype.card_eq.1 (by simp)
 
 lemma mk_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
 

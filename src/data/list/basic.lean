@@ -1874,19 +1874,6 @@ end
 theorem drop_nil : ∀ n, drop n [] = ([] : list α) :=
 λ _, drop_eq_nil_of_le (nat.zero_le _)
 
-lemma mem_of_mem_drop {α} {n : ℕ} {l : list α} {x : α}
-  (h : x ∈ l.drop n) :
-  x ∈ l :=
-begin
-  induction l generalizing n,
-  case list.nil : n h
-  { simpa using h },
-  case list.cons : l_hd l_tl l_ih n h
-  { cases n; simp only [mem_cons_iff, drop] at h ⊢,
-    { exact h },
-    right, apply l_ih h },
-end
-
 @[simp] theorem drop_one : ∀ l : list α, drop 1 l = tail l
 | []       := rfl
 | (a :: l) := rfl
@@ -2724,25 +2711,51 @@ begin
     exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
--- Several lemmas about sum/head/tail for `list ℕ`.
--- These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
-
--- We'd like to state this as `L.head * L.tail.prod = L.prod`,
--- but because `L.head` relies on an inhabited instances and
--- returns a garbage value for the empty list, this is not possible.
--- Instead we write the statement in terms of `(L.nth 0).get_or_else 1`,
--- and below, restate the lemma just for `ℕ`.
+/--
+We'd like to state this as `L.head * L.tail.prod = L.prod`,
+but because `L.head` relies on an inhabited instances and
+returns a garbage value for the empty list, this is not possible.
+Instead we write the statement in terms of `(L.nth 0).get_or_else 1`,
+and below, restate the lemma just for `ℕ`.
+-/
 @[to_additive]
-lemma head_mul_tail_prod' [monoid α] (L : list α) :
+lemma nth_zero_mul_tail_prod [monoid α] (L : list α) :
   (L.nth 0).get_or_else 1 * L.tail.prod = L.prod :=
 by cases L; simp
 
+/-- In the case where the list is not empty the above complication can be avoided. -/
+@[to_additive]
+lemma head_mul_tail_prod_of_ne_nil [monoid α] [inhabited α] (L : list α) (h: L ≠ []) :
+  L.head * L.tail.prod = L.prod :=
+by {cases L, { contradiction }, { simp }}
+
+/-- The product of a list of positive natural numbers is positive,
+and likewise for any nontrivial ordered semiring. -/
+lemma prod_pos {S : Type} [ordered_semiring S] [nontrivial S] (L : list S)
+(h: ∀ n:S, n ∈ L → 0 < n) : 0 < L.prod :=
+begin
+  induction L, {simp},
+  { simp, apply mul_pos,
+    { apply h, simp },
+    { exact L_ih (λ n hn, h n (mem_cons_of_mem L_hd hn)) }}
+end
+
+/-!
+Several lemmas about sum/head/tail for `list ℕ`.
+These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
+If desired, we could add a class stating that `default α = 0` at some point
+(extending `inhabited` and `has_zero`).
+-/
+
+/-- This relies on `default ℕ = 0`. -/
 lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
 by { cases L, { simp, refl, }, { simp, }, }
 
+/-- This relies on `default ℕ = 0`. -/
 lemma head_le_sum (L : list ℕ) : L.head ≤ L.sum :=
 nat.le.intro (head_add_tail_sum L)
 
+/-- This relies on `default ℕ = 0`. -/
 lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 
@@ -3772,16 +3785,37 @@ prefix_append_right_inj [a]
 
 theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
 
+theorem take_sublist (n) (l : list α) : take n l <+ l := (take_prefix n l).sublist
+
+theorem take_subset (n) (l : list α) : take n l ⊆ l := (take_sublist n l).subset
+
+theorem mem_of_mem_take {n} {l : list α} {x : α} (h : x ∈ l.take n) : x ∈ l := take_subset n l h
+
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩
+
+theorem drop_sublist (n) (l : list α) : drop n l <+ l := (drop_suffix n l).sublist
+
+theorem drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subset
+
+theorem mem_of_mem_drop {n} {l : list α} {x : α} (h : x ∈ l.drop n) : x ∈ l := drop_subset n l h
+
+theorem init_prefix : ∀ (l : list α), l.init <+: l
+| [] := ⟨nil, by rw [init, list.append_nil]⟩
+| (a :: l) := ⟨_, init_append_last (cons_ne_nil a l)⟩
+
+theorem init_sublist (l : list α) : l.init <+ l := (init_prefix l).sublist
+
+theorem init_subset (l : list α) : l.init ⊆ l := (init_sublist l).subset
+
+theorem mem_of_mem_init {l : list α} {a : α} (h : a ∈ l.init) : a ∈ l := init_subset l h
 
 theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
 
-lemma tail_sublist (l : list α) : l.tail <+ l := (tail_suffix l).sublist
+theorem tail_sublist (l : list α) : l.tail <+ l := (tail_suffix l).sublist
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
 
-lemma mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l :=
-tail_subset l h
+theorem mem_of_mem_tail {l : list α} {a : α} (h : a ∈ l.tail) : a ∈ l := tail_subset l h
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩

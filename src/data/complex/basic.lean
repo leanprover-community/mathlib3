@@ -234,6 +234,8 @@ lemma norm_sq_apply (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
 
+@[simp] lemma norm_sq_mk (x y : ℝ) : norm_sq ⟨x, y⟩ = x * x + y * y := rfl
+
 lemma norm_sq_eq_conj_mul_self {z : ℂ} : (norm_sq z : ℂ) = conj z * z :=
 by { ext; simp [norm_sq, mul_comm], }
 

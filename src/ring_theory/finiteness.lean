@@ -289,7 +289,8 @@ end
 variable (R)
 
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
-lemma mv_polynomial (ι : Type u_2) [fintype ι] : finite_presentation R (mv_polynomial ι R) :=
+protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
+  finite_presentation R (mv_polynomial ι R) :=
 begin
   obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
   replace equiv := mv_polynomial.rename_equiv R equiv,
@@ -304,13 +305,13 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-equiv (mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
+equiv (finite_presentation.mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
 
 variable {R}
 
 /-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
 presented. -/
-lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
+protected lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
   finite_presentation R I.quotient :=
 begin
   obtain ⟨n, f, hf⟩ := hfp,
@@ -324,22 +325,22 @@ end
 then so is `B`. -/
 lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.to_ring_hom.ker.fg)
   (hfp : finite_presentation R A) : finite_presentation R B :=
-equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
+equiv (hfp.quotient hker) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
 lemma iff : finite_presentation R A ↔
-  ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
+  ∃ n (I : ideal (mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
 begin
   split,
   { rintros ⟨n, f, hf⟩,
     exact ⟨n, f.to_ring_hom.ker, ideal.quotient_ker_alg_equiv_of_surjective hf.1, hf.2⟩ },
   { rintros ⟨n, I, e, hfg⟩,
-    exact equiv (quotient hfg (mv_polynomial R _)) e }
+    exact equiv ((finite_presentation.mv_polynomial R _).quotient hfg) e }
 end
 
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
 lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) (_ : fintype ι)
-  (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
+  (f : mv_polynomial ι R →ₐ[R] A), surjective f ∧ f.to_ring_hom.ker.fg :=
 begin
   split,
   { rintro ⟨n, f, hfs, hfk⟩,
@@ -363,30 +364,27 @@ end
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
-  [fintype ι] : finite_presentation R (_root_.mv_polynomial ι A) :=
+  [fintype ι] : finite_presentation R (mv_polynomial ι A) :=
 begin
   classical,
-  let n := fintype.card ι,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin ι,
-  replace e := (mv_polynomial.rename_equiv A e).restrict_scalars R,
-  refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
-  refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
+  set ι' := fin m,
+  refine equiv _ (mv_polynomial.map_alg_equiv ι e),
+
+  have : finite_presentation R (mv_polynomial ι (mv_polynomial ι' R)),
+  { let := mv_polynomial.sum_alg_equiv R ι ι',
+    refine (finite_presentation.mv_polynomial R (ι ⊕ ι')).equiv this, },
+
   -- typeclass inference seems to struggle to find this path
-  letI : is_scalar_tower R
-    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin m) R) :=
+  letI : is_scalar_tower R (mv_polynomial ι' R) (mv_polynomial ι' R) :=
       is_scalar_tower.right,
   letI : is_scalar_tower R
-    (_root_.mv_polynomial (fin m) R)
-    (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R)) :=
+    (mv_polynomial ι' R) (mv_polynomial ι (mv_polynomial ι' R)) :=
       mv_polynomial.is_scalar_tower,
 
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
-    _ (fin n) _ I).restrict_scalars R).symm,
-  refine quotient (submodule.map_fg_of_fg I hfg _) _,
-  let := mv_polynomial.sum_alg_equiv R (fin n) (fin m),
-  refine equiv _ this,
-  exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
+    _ ι _ I).restrict_scalars R).symm,
+  refine this.quotient (submodule.map_fg_of_fg I hfg _),
 end
 
 
@@ -396,7 +394,7 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R 
   (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
-  exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
+  exact equiv ((mv_polynomial_of_finite_presentation hfpA _).quotient hfg) (e.restrict_scalars R)
 end
 
 end finite_presentation

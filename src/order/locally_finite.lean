@@ -97,7 +97,7 @@ successor (and actually a predecessor as well), so it is a `succ_order`, but it'
 as `Icc (-1) 1` is infinite.
 -/
 
-open finset
+open finset function
 
 /-- A locally finite order is an order where bounded intervals are finite. When you don't care too
 much about definitional equality, you can use `locally_finite_order.of_Icc` or
@@ -486,40 +486,36 @@ end preorder
 
 section order_top
 open with_top
-variables (α) [decidable_eq α] [order_top α] [locally_finite_order α]
+variables (α) [order_top α] [locally_finite_order α]
 
-/- Could avoid `decidable_eq α` if we had an `option`-specific `finset.image`. Then the `insert`
-would become `cons`. -/
 instance : locally_finite_order (with_top α) :=
-{ finset_Icc := λ a b, match a with
-    | ⊤        := match b with
-      | ⊤        := {⊤}
-      | (some b) := ∅
-      end
-    | (some a) := match b with
-      | ⊤        := insert (⊤ : with_top α) ((Ici a).image coe)
-      | (some b) := (Icc a b).image coe
-      end
+{ finset_Icc := λ a b, match a, b with
+    |        ⊤,        ⊤ := {⊤}
+    |        ⊤, (some b) := ∅
+    | (some a),        ⊤ := cons (⊤ : with_top α) ((Ici a).map embedding.some)
+                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
+    | (some a), (some b) := (Icc a b).map embedding.some
     end,
   finset_Ico := λ a b, match a with
     | ⊤        := ∅
     | (some a) := match b with
-      | ⊤ := (Ici a).image coe
-      | (some b) := (Ico a b).image coe
+      | ⊤ := (Ici a).map embedding.some
+      | (some b) := (Ico a b).map embedding.some
       end
     end,
   finset_Ioc := λ a b, match a with
     | ⊤        := ∅
     | (some a) := match b with
-      | ⊤        := insert (⊤ : with_top α) ((Ioi a).image coe)
-      | (some b) := (Ioc a b).image coe
+      | ⊤        := cons (⊤ : with_top α) ((Ioi a).map embedding.some)
+                      (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
+      | (some b) := (Ioc a b).map embedding.some
       end
     end,
   finset_Ioo := λ a b, match a with
     | ⊤        := ∅
     | (some a) := match b with
-      | ⊤        := (Ioi a).image coe
-      | (some b) := (Ioo a b).image coe
+      | ⊤        := (Ioi a).map embedding.some
+      | (some b) := (Ioo a b).map embedding.some
       end
     end,
   finset_mem_Icc := begin
@@ -528,14 +524,14 @@ instance : locally_finite_order (with_top α) :=
     { exact iff_of_false (not_mem_empty _) (λ h, (h.1.trans h.2).not_lt $ some_lt_none _) },
     { simp only [with_top.le_none, and_true],
       cases x,
-      { exact iff_of_true (mem_insert_self _ _) le_top },
-      { refine mem_insert.trans ((or_iff_right_of_imp $ λ h, (coe_ne_top h).elim).trans _),
-        rw mem_image,
+      { exact iff_of_true (mem_cons_self _ _) le_top },
+      { refine mem_cons.trans ((or_iff_right_of_imp $ λ h, (coe_ne_top h).elim).trans _),
+        rw mem_map,
         refine ⟨_, λ h, ⟨x, mem_Ici.2 (some_le_some.1 h), rfl⟩⟩,
         rintro ⟨y, hy, hxy⟩,
         rw ←hxy,
         exact some_le_some.2 (mem_Ici.1 hy) } },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ ≤ some _ ∧ some _ ≤ some _,
         rwa [some_le_some, some_le_some, ←mem_Icc] },
@@ -548,13 +544,13 @@ instance : locally_finite_order (with_top α) :=
     rintro (_ | a) b x,
     { exact iff_of_false (not_mem_empty _) (λ h, not_top_lt (h.1.trans_lt h.2)) },
     cases b,
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         exact ⟨some_le_some.2 (mem_Ici.1 hy), some_lt_none _⟩ },
       cases x,
       { exact (lt_irrefl _ h.2).elim },
       { exact ⟨x, mem_Ici.2 (some_le_some.1 h.1), rfl⟩ } },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ ≤ some _ ∧ some _ < some _,
         rwa [some_le_some, some_lt_some, ←mem_Ico] },
@@ -569,14 +565,14 @@ instance : locally_finite_order (with_top α) :=
     cases b,
     { simp only [with_top.le_none, and_true],
       cases x,
-      { exact iff_of_true (mem_insert_self _ _) (some_lt_none _) },
-      { refine mem_insert.trans ((or_iff_right_of_imp $ λ h, (coe_ne_top h).elim).trans _),
-        rw mem_image,
+      { exact iff_of_true (mem_cons_self _ _) (some_lt_none _) },
+      { refine mem_cons.trans ((or_iff_right_of_imp $ λ h, (coe_ne_top h).elim).trans _),
+        rw mem_map,
         refine ⟨_, λ h, ⟨x, mem_Ioi.2 (some_lt_some.1 h), rfl⟩⟩,
         rintro ⟨y, hy, hxy⟩,
         rw ←hxy,
         exact some_lt_some.2 (mem_Ioi.1 hy) } },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ < some _ ∧ some _ ≤ some _,
         rwa [some_le_some, some_lt_some, ←mem_Ioc] },
@@ -589,13 +585,13 @@ instance : locally_finite_order (with_top α) :=
     rintro (_ | a) b x,
     { exact iff_of_false (not_mem_empty _) (λ h, not_top_lt (h.1.trans h.2)) },
     cases b,
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         exact ⟨some_lt_some.2 (mem_Ioi.1 hy), some_lt_none _⟩ },
       cases x,
       { exact (lt_irrefl _ h.2).elim },
       { exact ⟨x, mem_Ioi.2 (some_lt_some.1 h.1), rfl⟩ } },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ < some _ ∧ some _ < some _,
         rwa [some_lt_some, some_lt_some, ←mem_Ioo] },
@@ -609,41 +605,36 @@ end order_top
 
 section order_bot
 open with_bot
-variables (α) [decidable_eq α] [order_bot α] [locally_finite_order α]
+variables (α) [order_bot α] [locally_finite_order α]
 
-
-/- Could avoid `decidable_eq α` if we had an `option`-specific `finset.image`. Then the `insert`
-would become `cons`. -/
 instance : locally_finite_order (with_bot α) :=
-{ finset_Icc := λ a b, match b with
-    | ⊥        := match a with
-      | ⊥        := {⊥}
-      | (some a) := ∅
-      end
-    | (some b) := match a with
-      | ⊥        := insert (⊥ : with_bot α) ((Iic b).image coe)
-      | (some a) := (Icc a b).image coe
-      end
+{ finset_Icc := λ a b, match b, a with
+    |        ⊥,        ⊥ := {⊥}
+    |        ⊥, (some a) := ∅
+    | (some b),        ⊥ := cons (⊥ : with_bot α) ((Iic b).map embedding.some)
+                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx)
+    | (some b), (some a) := (Icc a b).map embedding.some
     end,
   finset_Ico := λ a b, match b with
     | ⊥        := ∅
     | (some b) := match a with
-      | ⊥        := insert (⊥ : with_bot α) ((Iio b).image coe)
-      | (some a) := (Ico a b).image coe
+      | ⊥        := cons (⊥ : with_bot α) ((Iio b).map embedding.some)
+                      (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx)
+      | (some a) := (Ico a b).map embedding.some
       end
     end,
   finset_Ioc := λ a b, match b with
     | ⊥        := ∅
     | (some b) := match a with
-      | ⊥ := (Iic b).image coe
-      | (some a) := (Ioc a b).image coe
+      | ⊥ := (Iic b).map embedding.some
+      | (some a) := (Ioc a b).map embedding.some
       end
     end,
   finset_Ioo := λ a b, match b with
     | ⊥        := ∅
     | (some b) := match a with
-      | ⊥        := (Iio b).image coe
-      | (some a) := (Ioo a b).image coe
+      | ⊥        := (Iio b).map embedding.some
+      | (some a) := (Ioo a b).map embedding.some
       end
     end,
   finset_mem_Icc := begin
@@ -651,15 +642,15 @@ instance : locally_finite_order (with_bot α) :=
     { exact mem_singleton.trans (le_antisymm_iff.trans $ and_comm _ _) },
     { refine iff.trans _ (and_iff_right bot_le).symm,
       cases x,
-      { exact iff_of_true (mem_insert_self _ _) bot_le },
-      { refine mem_insert.trans ((or_iff_right_of_imp $ λ h, (coe_ne_bot _ h).elim).trans _),
-        rw mem_image,
+      { exact iff_of_true (mem_cons_self _ _) bot_le },
+      { refine mem_cons.trans ((or_iff_right_of_imp $ λ h, (coe_ne_bot _ h).elim).trans _),
+        rw mem_map,
         refine ⟨_, λ h, ⟨x, mem_Iic.2 (some_le_some.1 h), rfl⟩⟩,
         rintro ⟨y, hy, hxy⟩,
         rw ←hxy,
         exact some_le_some.2 (mem_Iic.1 hy) } },
     { exact iff_of_false (not_mem_empty _) (λ h, (h.1.trans h.2).not_lt $ none_lt_some _) },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ ≤ some _ ∧ some _ ≤ some _,
         rwa [some_le_some, some_le_some, ←mem_Icc] },
@@ -674,14 +665,14 @@ instance : locally_finite_order (with_bot α) :=
     cases a,
     { refine iff.trans _ (and_iff_right bot_le).symm,
       cases x,
-      { exact iff_of_true (mem_insert_self _ _) (none_lt_some _) },
-      { refine mem_insert.trans ((or_iff_right_of_imp $ λ h, (coe_ne_bot _ h).elim).trans _),
-        rw mem_image,
+      { exact iff_of_true (mem_cons_self _ _) (none_lt_some _) },
+      { refine mem_cons.trans ((or_iff_right_of_imp $ λ h, (coe_ne_bot _ h).elim).trans _),
+        rw mem_map,
         refine ⟨_, λ h, ⟨x, mem_Iio.2 (some_lt_some.1 h), rfl⟩⟩,
         rintro ⟨y, hy, hxy⟩,
         rw ←hxy,
         exact some_lt_some.2 (mem_Iio.1 hy) } },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ ≤ some _ ∧ some _ < some _,
         rwa [some_le_some, some_lt_some, ←mem_Ico] },
@@ -694,13 +685,13 @@ instance : locally_finite_order (with_bot α) :=
     rintro a (_ | b) x,
     { exact iff_of_false (not_mem_empty _) (λ h, not_lt_bot (h.1.trans_le h.2)) },
     cases a,
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         exact ⟨none_lt_some _, some_le_some.2 (mem_Iic.1 hy)⟩ },
       cases x,
       { exact (lt_irrefl _ h.1).elim },
       { exact ⟨x, mem_Iic.2 (some_le_some.1 h.2), rfl⟩ } },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ < some _ ∧ some _ ≤ some _,
         rwa [some_le_some, some_lt_some, ←mem_Ioc] },
@@ -713,13 +704,13 @@ instance : locally_finite_order (with_bot α) :=
     rintro a ( _ | b) x,
     { exact iff_of_false (not_mem_empty _) (λ h, not_lt_bot (h.1.trans h.2)) },
     cases a,
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         exact ⟨none_lt_some _, some_lt_some.2 (mem_Iio.1 hy)⟩ },
       cases x,
       { exact (lt_irrefl _ h.1).elim },
       { exact ⟨x, mem_Iio.2 (some_lt_some.1 h.2), rfl⟩ } },
-    { refine mem_image.trans ⟨_, λ h, _⟩,
+    { refine mem_map.trans ⟨_, λ h, _⟩,
       { rintro ⟨y, hy, rfl⟩,
         change some _ < some _ ∧ some _ < some _,
         rwa [some_lt_some, some_lt_some, ←mem_Ioo] },

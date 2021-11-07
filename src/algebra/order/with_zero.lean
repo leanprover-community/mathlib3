@@ -117,11 +117,11 @@ le_of_le_mul_right h (by simpa [h] using hab)
 lemma mul_inv_le_of_le_mul (h : c ≠ 0) (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
 le_of_le_mul_right h (by simpa [h] using hab)
 
-lemma mul_inv_le_iff₀ (hb : b ≠ 0) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
-⟨λ h, inv_inv₀ b ▸ le_mul_inv_of_mul_le (inv_ne_zero hb) h, mul_inv_le_of_le_mul hb⟩
-
 lemma le_mul_inv_iff₀ (hc : c ≠ 0) : a ≤ b * c⁻¹ ↔ a * c ≤ b :=
 ⟨λ h, inv_inv₀ c ▸ mul_inv_le_of_le_mul (inv_ne_zero hc) h, le_mul_inv_of_mul_le hc⟩
+
+lemma mul_inv_le_iff₀ (hb : c ≠ 0) : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
+⟨λ h, inv_inv₀ c ▸ le_mul_inv_of_mul_le (inv_ne_zero hc) h, mul_inv_le_of_le_mul hc⟩
 
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=

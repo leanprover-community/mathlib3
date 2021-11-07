@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import data.fin.basic
 import data.equiv.basic
 import tactic.norm_num
+import data.fin.vec_notation
 
 /-!
 # Equivalences for `fin n`
@@ -50,11 +51,24 @@ non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α 
   left_inv := λ f, funext $ fin.forall_fin_two.2 ⟨rfl, rfl⟩,
   right_inv := λ ⟨x, y⟩, rfl }
 
+lemma fin.preimage_apply_01_prod {α : fin 2 → Type u} (s : set (α 0)) (t : set (α 1)) :
+  (λ f : Π i, α i, (f 0, f 1)) ⁻¹' (s.prod t) =
+    set.pi set.univ (fin.cons s $ fin.cons t fin.elim0) :=
+begin
+  ext f,
+  have : (fin.cons s (fin.cons t fin.elim0) : Π i, set (α i)) 1 = t := rfl,
+  simp [fin.forall_fin_two, this]
+end
+
+lemma fin.preimage_apply_01_prod' {α : Type u} (s t : set α) :
+  (λ f : fin 2 → α, (f 0, f 1)) ⁻¹' (s.prod t) = set.pi set.univ ![s, t] :=
+fin.preimage_apply_01_prod s t
+
 /-- A product space `α × β` is equivalent to the space `Π i : fin 2, γ i`, where
 `γ = fin.cons α (fin.cons β fin_zero_elim)`. See also `pi_fin_two_equiv` and
 `fin_two_arrow_equiv`. -/
 @[simps {fully_applied := ff }] def prod_equiv_pi_fin_two (α β : Type u) :
-  α × β ≃ Π i : fin 2, @fin.cons _ (λ _, Type u) α (fin.cons β fin_zero_elim) i :=
+  α × β ≃ Π i : fin 2, ![α, β] i :=
 (pi_fin_two_equiv (fin.cons α (fin.cons β fin_zero_elim))).symm
 
 /-- The space of functions `fin 2 → α` is equivalent to `α × α`. See also `pi_fin_two_equiv` and

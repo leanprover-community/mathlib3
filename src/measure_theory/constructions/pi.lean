@@ -605,23 +605,11 @@ lemma measure_preserving_pi_fin_two {α : fin 2 → Type u} {m : Π i, measurabl
   measure_preserving (measurable_equiv.pi_fin_two α) (measure.pi μ) ((μ 0).prod (μ 1)) :=
 begin
   refine ⟨measurable_equiv.measurable _, (measure.prod_eq $ λ s t hs ht, _).symm⟩,
-  simp_rw [measurable_equiv.map_apply, preimage, mem_prod],
+  rw [measurable_equiv.map_apply, measurable_equiv.pi_fin_two_apply, fin.preimage_apply_01_prod,
+    measure.pi_pi, fin.prod_univ_two],
+  { refl },
+  { exact fin.forall_fin_two.2 ⟨hs, ht⟩ }
 end
-/-  
-  measure.pi μ = map (measurable_equiv.pi_fin_two α).symm ((μ 0).prod (μ 1)) :=
-begin
-  refine pi_eq (λ s hs, _),
-  rw [measurable_equiv.map_apply, fin.prod_univ_succ, fin.prod_univ_succ, fin.prod_univ_zero,
-    mul_one, ← measure.prod_prod (hs _) (hs _)]; [skip, apply_instance],
-  congr' 1,
-  ext ⟨a, b⟩,
-  simp [fin.forall_fin_succ, is_empty.forall_iff]
-end-/
-
-lemma {u} map_pi_fin_two {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
-  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
-  map (measurable_equiv.pi_fin_two α) (measure.pi μ) = ((μ 0).prod (μ 1)) :=
-(measurable_equiv.pi_fin_two α).map_apply_eq_iff_map_symm_apply_eq.2 (pi_fin_two_eq_map μ).symm
 
 lemma prod_eq_map_fin_two_arrow {α : Type*} {m : measurable_space α} (μ ν : measure α)
   [sigma_finite μ] [sigma_finite ν] :

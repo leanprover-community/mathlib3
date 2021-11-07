@@ -284,12 +284,12 @@ lemma tendsto_lintegral_norm_of_dominated_convergence [measurable_space β]
   [borel_space β] [second_countable_topology β]
   {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
   (F_measurable : ∀ n, ae_measurable (F n) μ)
-  (f_measurable : ae_measurable f μ)
   (bound_has_finite_integral : has_finite_integral bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
-let b := λa, 2 * ennreal.of_real (bound a) in
+have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae F_measurable h_lim,
+let b := λ a, 2 * ennreal.of_real (bound a) in
 /- `∥F n a∥ ≤ bound a` and `F n a --> f a` implies `∥f a∥ ≤ bound a`, and thus by the
   triangle inequality, have `∥F n a - f a∥ ≤ 2 * (bound a). -/
 have hb : ∀ n, ∀ᵐ a ∂μ, ennreal.of_real ∥F n a - f a∥ ≤ b a,

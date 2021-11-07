@@ -144,7 +144,7 @@ begin
   have := ennreal.sub_lt_self hU h.ne_bot h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
-  rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
+  rw [← tsub_le_iff_right], exact le_of_lt h2U
 end
 
 /-- The inner content of a supremum of opens is at most the sum of the individual inner

@@ -760,6 +760,24 @@ monoid_with_zero_hom.ext $ λ x, rfl
   (f : monoid_with_zero_hom M N) : (monoid_with_zero_hom.id N).comp f = f :=
 monoid_with_zero_hom.ext $ λ x, rfl
 
+@[simp, to_additive add_monoid_hom.map_nsmul]
+theorem monoid_hom.map_pow [monoid M] [monoid N] (f : M →* N) (a : M) :
+  ∀(n : ℕ), f (a ^ n) = (f a) ^ n
+| 0     := by rw [pow_zero, pow_zero, f.map_one]
+| (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
+
+@[to_additive]
+theorem monoid_hom.map_zpow' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
+  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a : M) :
+  ∀ n : ℤ, f (a ^ n) = (f a) ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, f.map_pow, zpow_coe_nat]
+| -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, f.map_pow, ← zpow_neg_succ_of_nat]
+
+@[to_additive]
+theorem monoid_hom.map_div' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
+  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a b : M) : f (a / b) = f a / f b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul, hf]
+
 section End
 
 namespace monoid
@@ -907,6 +925,11 @@ left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
 protected theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 map_inv f g
 
+/-- Group homomorphisms preserve integer power. -/
+@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) : f (g ^ n) = (f g) ^ n :=
+f.map_zpow' f.map_inv g n
+
 /-- Group homomorphisms preserve division. -/
 @[to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
 protected theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
@@ -914,7 +937,7 @@ protected theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
 map_div f g h
 
 /-- Group homomorphisms preserve division. -/
-@[to_additive]
+@[to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
 protected theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
 f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h

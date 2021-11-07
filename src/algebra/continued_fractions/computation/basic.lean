@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.basic
+import algebra.order.archimedean
 import algebra.order.field
-import algebra.archimedean
 /-!
 # Computable Continued Fractions
 
@@ -61,7 +61,6 @@ numerics, number theory, approximations, fractions
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
 
 -- Fix a carrier `K`.
 variable (K : Type*)
@@ -170,7 +169,8 @@ process stops when the fractional part `v - ⌊v⌋` hits 0 at some step.
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued
 fraction. Refer to said function for more details about the computation process.
 -/
-protected def of [linear_ordered_field K] [floor_ring K] (v : K) : gcf K :=
+protected def of [linear_ordered_field K] [floor_ring K] (v : K) :
+  generalized_continued_fraction K :=
 let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fractional parts.
 ⟨ h.b, -- the head is just the first integer part
   s.map (λ p, ⟨1, p.b⟩) ⟩ -- the sequence consists of the remaining integer parts as the partial

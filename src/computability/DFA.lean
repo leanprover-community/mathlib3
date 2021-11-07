@@ -79,7 +79,7 @@ begin
   { intro h,
     have hlen' := congr_arg list.length h,
     simp only [list.length_drop, list.length, list.length_take] at hlen',
-    rw [min_eq_left, nat.sub_eq_zero_iff_le] at hlen',
+    rw [min_eq_left, tsub_eq_zero_iff_le] at hlen',
     { apply hneq,
       apply le_antisymm,
       assumption' },

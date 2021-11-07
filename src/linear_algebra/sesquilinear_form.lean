@@ -5,6 +5,7 @@ Authors: Andreas Swerdlow
 -/
 import ring_theory.ring_invo
 import algebra.module.linear_map
+import tactic.abel
 
 /-!
 # Sesquilinear form

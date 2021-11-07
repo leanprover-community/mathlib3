@@ -88,10 +88,10 @@ begin
   rw [eq_comm, list.nth_eq_some] at this,
   obtain ⟨w, h⟩ := this,
   let f' : ℕ ↪o ℕ := order_embedding.of_map_le_iff (λ i, f (i + 1) - (f 0 + 1))
-    (λ a b, by simp [nat.sub_le_sub_right_iff, nat.succ_le_iff, nat.lt_succ_iff]),
+    (λ a b, by simp [tsub_le_tsub_iff_right, nat.succ_le_iff, nat.lt_succ_iff]),
   have : ∀ ix, tl.nth ix = (l'.drop (f 0 + 1)).nth (f' ix),
   { intro ix,
-    simp [list.nth_drop, nat.add_sub_of_le, nat.succ_le_iff, ←hf] },
+    simp [list.nth_drop, add_tsub_cancel_of_le, nat.succ_le_iff, ←hf] },
   rw [←list.take_append_drop (f 0 + 1) l', ←list.singleton_append],
   apply list.sublist.append _ (IH _ this),
   rw [list.singleton_sublist, ←h, l'.nth_le_take _ (nat.lt_succ_self _)],

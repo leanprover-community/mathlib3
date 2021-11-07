@@ -12,15 +12,19 @@ import data.sigma
 
 This file includes several ways of interacting with `list (sigma β)`, treated as a key-value store.
 
+If `α : Type*` and `β : α → Type*`, then we regard `s : sigma β` as having key `s.1 : α` and value
+`s.2 : β s.1`. Hence, `list (sigma β)` behaves like a key-value store.
+
 ## Main Definitions
 
 - `list.keys` extracts the list of keys.
 - `list.nodupkeys` determines if the store has duplicate keys.
 - `list.lookup`/`lookup_all` accesses the value(s) of a particular key.
-- `list.kreplace` modifies a value.
+- `list.kreplace` replaces the first value with a given key by a given value.
 - `list.kerase` removes a value.
 - `list.kinsert` inserts a value.
 - `list.kunion` computes the union of two stores.
+- `list.kextract` returns a value with a given key and the rest of the values.
 -/
 
 universes u v
@@ -28,17 +32,14 @@ universes u v
 namespace list
 variables {α : Type u} {β : α → Type v}
 
-/- keys -/
+/-! ### `keys` -/
 
 /-- List of keys from a list of key-value pairs -/
-def keys : list (sigma β) → list α :=
-map sigma.fst
+def keys : list (sigma β) → list α := map sigma.fst
 
-@[simp] theorem keys_nil : @keys α β [] = [] :=
-rfl
+@[simp] theorem keys_nil : @keys α β [] = [] := rfl
 
-@[simp] theorem keys_cons {s} {l : list (sigma β)} : (s :: l).keys = s.1 :: l.keys :=
-rfl
+@[simp] theorem keys_cons {s} {l : list (sigma β)} : (s :: l).keys = s.1 :: l.keys := rfl
 
 theorem mem_keys_of_mem {s : sigma β} {l : list (sigma β)} : s ∈ l → s.1 ∈ l.keys :=
 mem_map_of_mem sigma.fst
@@ -59,10 +60,10 @@ iff.intro
   (λ h₁ s h₂ e, absurd (mem_keys_of_mem h₂) (by rwa e at h₁))
   (λ f h₁, let ⟨b, h₂⟩ := exists_of_mem_keys h₁ in f _ h₂ rfl)
 
-/- nodupkeys -/
+/-! ### `nodupkeys` -/
 
-def nodupkeys (l : list (sigma β)) : Prop :=
-l.keys.nodup
+/-- Determines whether the store uses a key several times. -/
+def nodupkeys (l : list (sigma β)) : Prop := l.keys.nodup
 
 theorem nodupkeys_iff_pairwise {l} : nodupkeys l ↔
   pairwise (λ s s' : sigma β, s.1 ≠ s'.1) l := pairwise_map _
@@ -147,7 +148,7 @@ end
 
 variables [decidable_eq α]
 
-/- lookup -/
+/-! ### `lookup` -/
 
 /-- `lookup a l` is the first value in `l` corresponding to the key `a`,
   or `none` if no such element exists. -/
@@ -216,7 +217,7 @@ lemma lookup_ext {l₀ l₁ : list (sigma β)}
 mem_ext (nodup_of_nodupkeys nd₀) (nodup_of_nodupkeys nd₁)
   (λ ⟨a,b⟩, by rw [← mem_lookup_iff, ← mem_lookup_iff, h]; assumption)
 
-/- lookup_all -/
+/-! ### `lookup_all` -/
 
 /-- `lookup_all a l` is the list of all values in `l` corresponding to the key `a`. -/
 def lookup_all (a : α) : list (sigma β) → list (β a)
@@ -283,10 +284,11 @@ theorem perm_lookup_all (a : α) {l₁ l₂ : list (sigma β)}
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup_all a l₁ = lookup_all a l₂ :=
 by simp [lookup_all_eq_lookup, nd₁, nd₂, perm_lookup a nd₁ nd₂ p]
 
-/- kreplace -/
+/-! ### `kreplace` -/
 
+/-- Replaces the first value with key `a` by `b`. -/
 def kreplace (a : α) (b : β a) : list (sigma β) → list (sigma β) :=
-lookmap $ λ s, if h : a = s.1 then some ⟨a, b⟩ else none
+lookmap $ λ s, if a = s.1 then some ⟨a, b⟩ else none
 
 theorem kreplace_of_forall_not (a : α) (b : β a) {l : list (sigma β)}
   (H : ∀ b : β a, sigma.mk a b ∉ l) : kreplace a b l = l :=
@@ -326,7 +328,7 @@ perm_lookmap _ $ begin
   exact (h (h_2.symm.trans h_1)).elim
 end
 
-/- kerase -/
+/-! ### `kerase` -/
 
 /-- Remove the first pair with the key `a`. -/
 def kerase (a : α) : list (sigma β) → list (sigma β) :=
@@ -495,7 +497,7 @@ begin
   { by_cases x = y.1; simp [*, list.sizeof] },
 end
 
-/- kinsert -/
+/-! ### `kinsert` -/
 
 /-- Insert the pair `⟨a, b⟩` and erase the first pair with the key `a`. -/
 def kinsert (a : α) (b : β a) (l : list (sigma β)) : list (sigma β) :=
@@ -524,8 +526,10 @@ theorem lookup_kinsert_ne {a a'} {b' : β a'} {l : list (sigma β)} (h : a ≠ a
   lookup a (kinsert a' b' l) = lookup a l :=
 by simp [h]
 
-/- kextract -/
+/-! ### `kextract` -/
 
+/-- Finds the first entry with a given key `a` and returns its value (as an `option` because there
+might be no entry with key `a`) alongside with the rest of the entries. -/
 def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
 | []     := (none, [])
 | (s::l) := if h : s.1 = a then (some (eq.rec_on h s.2), l) else
@@ -540,7 +544,7 @@ def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
     { simp [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
   end
 
-/- erase_dupkeys -/
+/-! ### `erase_dupkeys` -/
 
 /-- Remove entries with duplicate keys from `l : list (sigma β)`. -/
 def erase_dupkeys : list (sigma β) → list (sigma β) :=
@@ -582,7 +586,7 @@ begin
     assumption }
 end
 
-/- kunion -/
+/-! ### `kunion` -/
 
 /-- `kunion l₁ l₂` is the append to l₁ of l₂ after, for each key in l₁, the
 first matching pair in l₂ is erased. -/

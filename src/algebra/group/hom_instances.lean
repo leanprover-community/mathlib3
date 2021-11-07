@@ -24,6 +24,7 @@ universes uM uN uP uQ
 variables {M : Type uM} {N : Type uN} {P : Type uP} {Q : Type uQ}
 
 /-- `(M →* N)` is a `comm_monoid` if `N` is commutative. -/
+@[to_additive "`(M →+ N)` is an `add_comm_monoid` if `N` is commutative."]
 instance [mul_one_class M] [comm_monoid N] : comm_monoid (M →* N) :=
 { mul := (*),
   mul_assoc := by intros; ext; apply mul_assoc,
@@ -32,58 +33,27 @@ instance [mul_one_class M] [comm_monoid N] : comm_monoid (M →* N) :=
   mul_one := by intros; ext; apply mul_one,
   mul_comm := by intros; ext; apply mul_comm,
   npow := λ n f,
-  { to_fun := λ x, npow n (f x),
+  { to_fun := λ x, (f x) ^ n,
     map_one' := by simp,
     map_mul' := λ x y, by simp [mul_pow] },
   npow_zero' := λ f, by { ext x, simp },
   npow_succ' := λ n f, by { ext x, simp [pow_succ] } }
 
-/-- `(M →+ N)` is an `add_comm_monoid` if `N` is commutative. -/
-instance [add_zero_class M] [add_comm_monoid N] : add_comm_monoid (M →+ N) :=
-{ add := (+),
-  add_assoc := by intros; ext; apply add_assoc,
-  zero := 0,
-  zero_add := by intros; ext; apply zero_add,
-  add_zero := by intros; ext; apply add_zero,
-  add_comm := by intros; ext; apply add_comm,
-  nsmul := λ n f,
-  { to_fun := λ x, nsmul n (f x),
-    map_zero' := by simp [nsmul_zero],
-    map_add' := λ x y, by simp [nsmul_add] },
-  nsmul_zero' := λ f, by { ext x, simp [zero_nsmul], },
-  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_add_one, add_comm, add_nsmul] } }
-
-attribute [to_additive] monoid_hom.comm_monoid
-
 /-- If `G` is a commutative group, then `M →* G` is a commutative group too. -/
+@[to_additive "If `G` is an additive commutative group, then `M →+ G` is an additive commutative
+group too."]
 instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
   div := has_div.div,
   div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
   mul_left_inv := by intros; ext; apply mul_left_inv,
-  gpow := λ n f, { to_fun := λ x, gpow n (f x),
+  zpow := λ n f, { to_fun := λ x, (f x) ^ n,
     map_one' := by simp,
-    map_mul' := λ x y, by simp [mul_gpow] },
-  gpow_zero' := λ f, by { ext x, simp },
-  gpow_succ' := λ n f, by { ext x, simp [gpow_of_nat, pow_succ] },
-  gpow_neg'  := λ n f, by { ext x, simp },
+    map_mul' := λ x y, by simp [mul_zpow] },
+  zpow_zero' := λ f, by { ext x, simp },
+  zpow_succ' := λ n f, by { ext x, simp [zpow_of_nat, pow_succ] },
+  zpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
-
-/-- If `G` is an additive commutative group, then `M →+ G` is an additive commutative group too. -/
-instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G) :=
-{ neg := has_neg.neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := by { intros, ext, apply sub_eq_add_neg },
-  add_left_neg := by intros; ext; apply add_left_neg,
-  gsmul := λ n f, { to_fun := λ x, gsmul n (f x),
-    map_zero' := by simp,
-    map_add' := λ x y, by simp [gsmul_add] },
-  gsmul_zero' := λ f, by { ext x, simp },
-  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_add_one, add_comm, add_nsmul] },
-  gsmul_neg'  := λ n f, by { ext x, simp },
-  ..add_monoid_hom.add_comm_monoid }
-
-attribute [to_additive] monoid_hom.comm_group
 
 instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
 { zero_mul := λ x, add_monoid_hom.ext $ λ i, rfl,

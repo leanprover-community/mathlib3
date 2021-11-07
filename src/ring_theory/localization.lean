@@ -3,14 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 -/
-import tactic.ring_exp
 import data.equiv.ring
 import group_theory.monoid_localization
-import ring_theory.ideal.operations
-import ring_theory.ideal.local_ring
 import ring_theory.algebraic
+import ring_theory.ideal.local_ring
+import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.non_zero_divisors
+import tactic.ring_exp
 
 /-!
 # Localizations of commutative rings
@@ -209,20 +209,32 @@ by rw [mul_comm, sec_spec]
 
 open_locale big_operators
 
-/-- We can clear the denominators of a finite set of fractions. -/
-lemma exist_integer_multiples_of_finset (s : finset S) :
-  ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
+/-- We can clear the denominators of a `finset`-indexed family of fractions. -/
+lemma exist_integer_multiples {ι : Type*} (s : finset ι) (f : ι → S) :
+  ∃ (b : M), ∀ i ∈ s, is_localization.is_integer R ((b : R) • f i) :=
 begin
   haveI := classical.prop_decidable,
-  use ∏ a in s, (is_localization.sec M a).2,
-  intros a ha,
-  use (∏ x in s.erase a, (is_localization.sec M x).2) * (is_localization.sec M a).1,
+  refine ⟨∏ i in s, (sec M (f i)).2, λ i hi, ⟨_, _⟩⟩,
+  { exact (∏ j in s.erase i, (sec M (f j)).2) * (sec M (f i)).1 },
   rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←(algebra_map R S).map_mul, ← algebra.smul_def],
   congr' 2,
   refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
-  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase a), finset.insert_erase ha],
-  refl,
+  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase i), finset.insert_erase hi],
+  refl
 end
+
+/-- We can clear the denominators of a `fintype`-indexed family of fractions. -/
+lemma exist_integer_multiples_of_fintype {ι : Type*} [fintype ι] (f : ι → S) :
+  ∃ (b : M), ∀ i, is_localization.is_integer R ((b : R) • f i) :=
+begin
+  obtain ⟨b, hb⟩ := exist_integer_multiples M finset.univ f,
+  exact ⟨b, λ i, hb i (finset.mem_univ _)⟩
+end
+
+/-- We can clear the denominators of a finite set of fractions. -/
+lemma exist_integer_multiples_of_finset (s : finset S) :
+  ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
+exist_integer_multiples M s id
 
 variables {R M}
 
@@ -761,12 +773,12 @@ instance : comm_ring (localization M) :=
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  gsmul := localization.smul,
-  gsmul_zero' := λ x, localization.induction_on x
-    (λ x, by simp only [smul_mk, zero_gsmul, mk_zero]),
-  gsmul_succ' := λ n x, localization.induction_on x
+  zsmul := localization.smul,
+  zsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
+  zsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
-  gsmul_neg' := λ n x, localization.induction_on x
+  zsmul_neg' := λ n x, localization.induction_on x
     (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
@@ -2018,8 +2030,8 @@ noncomputable instance : field (fraction_ring A) :=
   sub := has_sub.sub,
   one := 1,
   zero := 0,
-  nsmul := nsmul,
-  gsmul := gsmul,
+  nsmul := add_monoid.nsmul,
+  zsmul := sub_neg_monoid.zsmul,
   npow := localization.npow _,
   .. localization.comm_ring,
   .. is_fraction_ring.to_field A }

@@ -59,17 +59,18 @@ lemma hasse_deriv_coeff (n : ℕ) :
   (hasse_deriv k f).coeff n = (n + k).choose k * f.coeff (n + k) :=
 begin
   rw [hasse_deriv_apply, coeff_sum, sum_def, finset.sum_eq_single (n + k), coeff_monomial],
-  { simp only [if_true, nat.add_sub_cancel, eq_self_iff_true], },
+  { simp only [if_true, add_tsub_cancel_right, eq_self_iff_true], },
   { intros i hi hink,
     rw [coeff_monomial],
     by_cases hik : i < k,
     { simp only [nat.choose_eq_zero_of_lt hik, if_t_t, nat.cast_zero, zero_mul], },
-    { push_neg at hik, rw if_neg, contrapose! hink, exact (nat.sub_eq_iff_eq_add hik).mp hink, } },
+    { push_neg at hik, rw if_neg, contrapose! hink,
+      exact (tsub_eq_iff_eq_add_of_le hik).mp hink, } },
   { intro h, simp only [not_mem_support_iff.mp h, monomial_zero_right, mul_zero, coeff_zero] }
 end
 
 lemma hasse_deriv_zero' : hasse_deriv 0 f = f :=
-by simp only [hasse_deriv_apply, nat.sub_zero, nat.choose_zero_right,
+by simp only [hasse_deriv_apply, tsub_zero, nat.choose_zero_right,
   nat.cast_one, one_mul, sum_monomial_eq]
 
 @[simp] lemma hasse_deriv_zero : @hasse_deriv R _ 0 = linear_map.id :=
@@ -91,7 +92,7 @@ begin
   { rw [if_pos hnik, if_pos, ← hnik], apply tsub_eq_of_eq_add_rev, rwa add_comm },
   { rw [if_neg hnik, mul_zero],
     by_cases hkn : k ≤ n,
-    { rw [← nat.sub_eq_iff_eq_add hkn] at hnik, rw [if_neg hnik] },
+    { rw [← tsub_eq_iff_eq_add_of_le hkn] at hnik, rw [if_neg hnik] },
     { push_neg at hkn, rw [nat.choose_eq_zero_of_lt hkn, nat.cast_zero, zero_mul, if_t_t] } }
 end
 
@@ -125,7 +126,7 @@ begin
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
   -- why can't `field_simp` help me here?
   simp only [cast_mul, cast_choose ℚ, h1, h2, -one_div, -mul_eq_zero,
-    succ_sub_succ_eq_sub, nat.add_sub_cancel, add_tsub_cancel_left] with field_simps,
+    succ_sub_succ_eq_sub, add_tsub_cancel_right, add_tsub_cancel_left] with field_simps,
   rw [eq_div_iff_mul_eq (mul_ne_zero (H _) (H _)), eq_comm, div_mul_eq_mul_div,
     eq_div_iff_mul_eq (mul_ne_zero (H _) (H _))],
   norm_cast,
@@ -138,7 +139,7 @@ begin
   ext i : 2,
   simp only [linear_map.smul_apply, comp_app, linear_map.coe_comp, smul_monomial,
     hasse_deriv_apply, mul_one, monomial_eq_zero_iff, sum_monomial_index, mul_zero,
-    nat.sub_sub, add_comm l k],
+    ← tsub_add_eq_tsub_tsub, add_comm l k],
   rw_mod_cast nsmul_eq_mul,
   congr' 2,
   by_cases hikl : i < k + l,
@@ -154,8 +155,9 @@ begin
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
   -- why can't `field_simp` help me here?
   simp only [cast_mul, cast_choose ℚ, h1, h2, h3, hikl, -one_div, -mul_eq_zero,
-    succ_sub_succ_eq_sub, nat.add_sub_cancel, add_tsub_cancel_left] with field_simps,
-  rw [eq_div_iff_mul_eq, eq_comm, div_mul_eq_mul_div, eq_div_iff_mul_eq, nat.sub_sub, add_comm l k],
+    succ_sub_succ_eq_sub, add_tsub_cancel_right, add_tsub_cancel_left] with field_simps,
+  rw [eq_div_iff_mul_eq, eq_comm, div_mul_eq_mul_div, eq_div_iff_mul_eq, ← tsub_add_eq_tsub_tsub,
+    add_comm l k],
   { ring, },
   all_goals { apply_rules [mul_ne_zero, H] }
 end
@@ -186,8 +188,9 @@ begin
     { simp only [nat.choose_eq_zero_of_lt hn, nat.cast_zero,
         zero_mul, mul_zero, monomial_zero_right], },
     push_neg at hm hn,
-    rw [← nat.sub_add_comm hm, ← nat.add_sub_assoc hn, nat.sub_sub, add_comm x.2 x.1, mul_assoc,
-      ← mul_assoc r, ← (nat.cast_commute _ r).eq, mul_assoc, mul_assoc], },
+    rw [tsub_add_eq_add_tsub hm, ← add_tsub_assoc_of_le hn, ← tsub_add_eq_tsub_tsub,
+      add_comm x.2 x.1, mul_assoc, ← mul_assoc r, ← (nat.cast_commute _ r).eq, mul_assoc,
+      mul_assoc], },
   conv_rhs { apply_congr, skip, rw aux _ H, },
   rw_mod_cast [← linear_map.map_sum, ← finset.sum_mul, ← nat.add_choose_eq],
 end

@@ -56,7 +56,7 @@ lemma edist_inequality (hf : contracting_with K f) {x y} (h : edist x y ≠ ∞)
   edist x y ≤ (edist x (f x) + edist y (f y)) / (1 - K) :=
 suffices edist x y ≤ edist x (f x) + edist y (f y) + K * edist x y,
   by rwa [ennreal.le_div_iff_mul_le (or.inl hf.one_sub_K_ne_zero) (or.inl one_sub_K_ne_top),
-    mul_comm, ennreal.sub_mul (λ _ _, h), one_mul, ennreal.sub_le_iff_le_add],
+    mul_comm, ennreal.sub_mul (λ _ _, h), one_mul, tsub_le_iff_right],
 calc edist x y ≤ edist x (f x) + edist (f x) (f y) + edist (f y) y : edist_triangle4 _ _ _ _
   ... = edist x (f x) + edist y (f y) + edist (f x) (f y) : by rw [edist_comm y, add_right_comm]
   ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add (le_refl _) (hf.2 _ _)

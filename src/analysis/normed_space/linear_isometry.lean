@@ -11,7 +11,8 @@ import analysis.normed_space.basic
 In this file we define `linear_isometry σ₁₂ E E₂` (notation: `E →ₛₗᵢ[σ₁₂] E₂`) to be a semilinear
 isometric embedding of `E` into `E₂` and `linear_isometry_equiv` (notation: `E ≃ₛₗᵢ[σ₁₂] E₂`) to be
 a semilinear isometric equivalence between `E` and `E₂`.  The notation for the associated purely
-linear concepts is `E →ₗᵢ[R] E₂`, `E ≃ₗᵢ[R] E₂`.
+linear concepts is `E →ₗᵢ[R] E₂`, `E ≃ₗᵢ[R] E₂`, and `E →ₗᵢ⋆[R] E₂`, `E ≃ₗᵢ⋆[R] E₂` for
+the star-linear versions.
 
 We also prove some trivial lemmas and provide convenience constructors.
 
@@ -45,6 +46,7 @@ structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*) [semi_norme
 
 notation E ` →ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry σ₁₂ E E₂
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry (ring_hom.id R) E E₂
+notation E ` →ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 := linear_isometry (@star_ring_aut R _ _ : R →+* R) E E₂
 
 namespace linear_isometry
 
@@ -200,6 +202,8 @@ structure linear_isometry_equiv (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+*
 
 notation E ` ≃ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry_equiv σ₁₂ E E₂
 notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry_equiv (ring_hom.id R) E E₂
+notation E ` ≃ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 :=
+  linear_isometry_equiv (@star_ring_aut R _ _ : R →+* R) E E₂
 
 namespace linear_isometry_equiv
 
@@ -410,5 +414,28 @@ variables {R}
 @[simp] lemma coe_neg : (neg R : E → E) = λ x, -x := rfl
 
 @[simp] lemma symm_neg : (neg R : E ≃ₗᵢ[R] E).symm = neg R := rfl
+
+variables (R E E₂ E₃)
+
+/-- The natural equivalence `(E × E₂) × E₃ ≃ E × (E₂ × E₃)` is a linear isometry. -/
+noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
+{ to_fun    := equiv.prod_assoc E E₂ E₃,
+  inv_fun   := (equiv.prod_assoc E E₂ E₃).symm,
+  map_add'  := by simp,
+  map_smul' := by simp,
+  norm_map' :=
+    begin
+      rintros ⟨⟨e, f⟩, g⟩,
+      simp only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.semi_norm_def, max_assoc],
+    end,
+  .. equiv.prod_assoc E E₂ E₃, }
+
+@[simp] lemma coe_prod_assoc [module R E₂] [module R E₃] :
+  (prod_assoc R E E₂ E₃ : (E × E₂) × E₃ → E × E₂ × E₃) = equiv.prod_assoc E E₂ E₃ :=
+rfl
+
+@[simp] lemma coe_prod_assoc_symm [module R E₂] [module R E₃] :
+  ((prod_assoc R E E₂ E₃).symm : E × E₂ × E₃ → (E × E₂) × E₃) = (equiv.prod_assoc E E₂ E₃).symm :=
+rfl
 
 end linear_isometry_equiv

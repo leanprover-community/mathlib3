@@ -274,12 +274,14 @@ end val
 
 section smul
 
-variables {M : Type*} [has_scalar M α]
+variables [semiring α]
+-- TODO: if I generalize these lemmas to `[has_scalar M α]`, then Lean fails to apply them
+-- in `data.complex.module`
 
-@[simp] lemma smul_empty (x : M) (v : fin 0 → α) : x • v = ![] := empty_eq _
+@[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
 
-@[simp] lemma smul_cons (c : M) (x : α) (v : fin n → α) :
-  c • vec_cons x v = vec_cons (c • x) (c • v) :=
+@[simp] lemma smul_cons (x y : α) (v : fin n → α) :
+  x • vec_cons y v = vec_cons (x * y) (x • v) :=
 by { ext i, refine fin.cases _ _ i; simp }
 
 end smul

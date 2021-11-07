@@ -1214,8 +1214,8 @@ def singular_part (c : complex_measure α) (μ : measure α) : complex_measure �
 (c.re.singular_part μ).to_complex_measure (c.im.singular_part μ)
 
 /-- The Radon-Nikodym derivative between a complex measure and a positive measure. -/
-def rn_deriv (c : complex_measure α) (μ : measure α) : α → ℂ := λ x,
-⟨c.re.rn_deriv μ x, c.im.rn_deriv μ x⟩
+def rn_deriv (c : complex_measure α) (μ : measure α) : α → ℂ :=
+λ x, ⟨c.re.rn_deriv μ x, c.im.rn_deriv μ x⟩
 
 variable {c : complex_measure α}
 

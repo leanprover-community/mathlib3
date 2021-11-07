@@ -11,12 +11,12 @@ import logic.embedding
 /-!
 # Definitions of group actions
 
-This file defines a hierarchy of group action type-classes:
+This file defines a hierarchy of group action type-classes on top of the previously defined
+notation classes `has_scalar` and its additive version `has_vadd`:
 
-* `has_scalar M α` and its additive version `has_vadd G P` are notation typeclasses for
-  `•` and `+ᵥ`, respectively;
 * `mul_action M α` and its additive version `add_action G P` are typeclasses used for
-  actions of multiplicative and additive monoids and groups;
+  actions of multiplicative and additive monoids and groups; they extend notation classes
+  `has_scalar` and `has_vadd` that are defined in `algebra.group.defs`;
 * `distrib_mul_action M A` is a typeclass for an action of a multiplicative monoid on
   an additive monoid such that `a • (b + c) = a • b + a • c` and `a • 0 = 0`.
 
@@ -45,16 +45,6 @@ group action
 variables {M N G A B α β γ : Type*}
 
 open function
-
-/-- Type class for the `+ᵥ` notation. -/
-class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
-
-/-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-@[to_additive has_vadd]
-class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
-
-infix ` +ᵥ `:65 := has_vadd.vadd
-infixr ` • `:73 := has_scalar.smul
 
 /-- Typeclass for faithful actions. -/
 class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
@@ -99,11 +89,6 @@ class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
 
 export mul_action (mul_smul) add_action (add_vadd) smul_comm_class (smul_comm)
   vadd_comm_class (vadd_comm)
-
-attribute [to_additive_reorder 1] has_pow
-attribute [to_additive_reorder 1 4] has_pow.pow
-attribute [to_additive has_scalar] has_pow
-attribute [to_additive has_scalar.smul] has_pow.pow
 
 /--
 Frequently, we find ourselves wanting to express a bilinear map `M →ₗ[R] N →ₗ[R] P` or an

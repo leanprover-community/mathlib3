@@ -57,7 +57,7 @@ begin
   have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ),
   { assume n hn,
     apply (zsmul_le_zsmul_iff ha).mp,
-    rw ← zsmul_coe_nat at hk,
+    rw ← coe_nat_zsmul at hk,
     exact le_trans hn hk },
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
   refine ⟨m, hm, _⟩,

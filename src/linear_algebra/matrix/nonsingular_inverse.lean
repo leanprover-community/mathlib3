@@ -61,6 +61,10 @@ end
 lemma transpose_nonsing_inv : (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
 by rw [inv_def, inv_def, transpose_smul, det_transpose, adjugate_transpose]
 
+lemma conj_transpose_nonsing_inv [star_ring α] : (A⁻¹)ᴴ = (Aᴴ)⁻¹ :=
+by rw [inv_def, inv_def, conj_transpose_smul, det_conj_transpose, adjugate_conj_transpose,
+       ring.inverse_star]
+
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 @[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A⁻¹ = 1 :=
 by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul,
@@ -82,11 +86,25 @@ begin
   { exact or.inr (nonsing_inv_apply_not_is_unit _ h) }
 end
 
-@[simp] lemma nonsing_inv_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
+lemma det_nonsing_inv_mul_det (h : is_unit A.det) : A⁻¹.det * A.det = 1 :=
 by rw [←det_mul, A.nonsing_inv_mul h, det_one]
 
+@[simp] lemma det_nonsing_inv : A⁻¹.det = ring.inverse A.det :=
+begin
+  rw [inv_def, det_smul, det_adjugate],
+  casesI is_empty_or_nonempty n,
+  { rw [fintype.card_eq_zero, zero_tsub, pow_zero, det_is_empty, pow_zero, ring.inverse_one,
+      one_mul] },
+  have hc_pos : 0 < fintype.card n := fintype.card_pos,
+  by_cases h : is_unit A.det,
+  { obtain ⟨u, hu⟩ := h,
+    rw [←hu, ring.inverse_unit, ←units.coe_pow, ←units.coe_pow, ←units.coe_mul,
+      inv_pow, ←inv_pow_sub _ tsub_le_self, tsub_tsub_cancel_of_le hc_pos.nat_succ_le, pow_one], },
+  { rw [ring.inverse_non_unit _ h, zero_pow hc_pos, zero_mul], },
+end
+
 lemma is_unit_nonsing_inv_det (h : is_unit A.det) : is_unit A⁻¹.det :=
-is_unit_of_mul_eq_one _ _ (A.nonsing_inv_det h)
+is_unit_of_mul_eq_one _ _ (A.det_nonsing_inv_mul_det h)
 
 @[simp] lemma nonsing_inv_nonsing_inv (h : is_unit A.det) : (A⁻¹)⁻¹ = A :=
 calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
@@ -95,18 +113,9 @@ calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
                                          (A⁻¹).mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
                                          matrix.mul_one], }
 
-@[simp] lemma is_unit_nonsing_inv_det_iff {A : matrix n n α} :
+lemma is_unit_nonsing_inv_det_iff {A : matrix n n α} :
   is_unit A⁻¹.det ↔ is_unit A.det :=
-begin
-  refine ⟨λ h, _, is_unit_nonsing_inv_det _⟩,
-  nontriviality α,
-  casesI is_empty_or_nonempty n,
-  { simp },
-  contrapose! h,
-  rw [nonsing_inv_apply_not_is_unit _ h, det_zero],
-  { simp },
-  { apply_instance }
-end
+by rw [matrix.det_nonsing_inv, is_unit_ring_inverse]
 
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
 def invertible_of_det_invertible [invertible A.det] : invertible A :=
@@ -157,6 +166,18 @@ begin
     apply det_invertible_of_invertible, },
   { haveI : invertible A.det := hx.rec x.invertible,
     apply invertible_of_det_invertible, },
+end
+
+/-- The nonsingular inverse is the same as the general `ring.inverse`. -/
+lemma nonsing_inv_eq_ring_inverse : A⁻¹ = ring.inverse A :=
+begin
+  by_cases h_det : is_unit A.det,
+  { change ↑(nonsing_inv_unit A h_det)⁻¹ = _,
+    obtain ⟨u, rfl⟩ := (is_unit_iff_is_unit_det _).mpr h_det,
+    rw [ring.inverse_unit _, units.inv_unique],
+    refl },
+  { have h := mt (is_unit_iff_is_unit_det _).mp h_det,
+    rw [ring.inverse_non_unit _ h, nonsing_inv_apply_not_is_unit A h_det], },
 end
 
 /- `is_unit_of_invertible A`

@@ -611,15 +611,15 @@ Given such a diagram, then there is a natural morphism `W ×ₛ X ⟶ Y ×ₜ Z`
   W  ⟶  Y
     ↘      ↘
       S  ⟶  T
-    ↗       ↗
+    ↗      ↗
   X  ⟶  Z
 
 -/
-@[simp] def pullback_map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
+abbreviation pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [has_pullback f₁ f₂]
   (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) [has_pullback g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) : pullback f₁ f₂ ⟶ pullback g₁ g₂ :=
 pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
-  (by simp [←eq₁, ←eq₂, pullback.condition_assoc])
+  (by simp [← eq₁, ← eq₂, pullback.condition_assoc])
 
 
 /--
@@ -628,15 +628,15 @@ Given such a diagram, then there is a natural morphism `W ⨿ₛ X ⟶ Y ⨿ₜ 
       W  ⟶  Y
     ↗      ↗
   S  ⟶  T
-    ↘       ↘
+    ↘      ↘
       X  ⟶  Z
 
 -/
-@[simp] def pushout_map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
+abbreviation pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [has_pushout f₁ f₂]
   (g₁ : T ⟶ Y) (g₂ : T ⟶ Z) [has_pushout g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₁ = i₃ ≫ g₁) (eq₂ : f₂ ≫ i₂ = i₃ ≫ g₂) : pushout f₁ f₂ ⟶ pushout g₁ g₂ :=
 pushout.desc (i₁ ≫ pushout.inl) (i₂ ≫ pushout.inr)
-  (by { simp only [←category.assoc, eq₁, eq₂], simp [pushout.condition] })
+  (by { simp only [← category.assoc, eq₁, eq₂], simp [pushout.condition] })
 
 
 /-- Two morphisms into a pullback are equal if their compositions with the pullback morphisms are
@@ -666,9 +666,11 @@ pullback_cone.mono_snd_of_is_pullback_of_mono (limit.is_limit _)
 instance mono_pullback_to_prod {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_binary_product X Y] :
   mono (prod.lift pullback.fst pullback.snd : pullback f g ⟶ _) :=
-⟨λ W i₁ i₂ h, by { ext,
-                   simpa using congr_arg (λ f, f ≫ prod.fst) h,
-                   simpa using congr_arg (λ f, f ≫ prod.snd) h }⟩
+⟨λ W i₁ i₂ h, begin
+  ext,
+  { simpa using congr_arg (λ f, f ≫ prod.fst) h },
+  { simpa using congr_arg (λ f, f ≫ prod.snd) h }
+end⟩
 
 /-- Two morphisms out of a pushout are equal if their compositions with the pushout morphisms are
     equal -/
@@ -693,13 +695,15 @@ instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout
   epi (pushout.inr : Z ⟶ pushout f g) :=
 pushout_cocone.epi_inr_of_is_pushout_of_epi (colimit.is_colimit _)
 
-/-- The map ` X ⨿ Y ⟶ X ⨿[Z] Y ⟶` is epi. -/
+/-- The map ` X ⨿ Y ⟶ X ⨿[Z] Y` is epi. -/
 instance epi_coprod_to_pushout {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
   [has_pushout f g] [has_binary_coproduct Y Z] :
   epi (coprod.desc pushout.inl pushout.inr : _ ⟶ pushout f g) :=
-⟨λ W i₁ i₂ h, by { ext,
-                   simpa using congr_arg (λ f, coprod.inl ≫ f) h,
-                   simpa using congr_arg (λ f, coprod.inr ≫ f) h }⟩
+⟨λ W i₁ i₂ h, begin
+  ext,
+  { simpa using congr_arg (λ f, coprod.inl ≫ f) h },
+  { simpa using congr_arg (λ f, coprod.inr ≫ f) h }
+end⟩
 
 section
 

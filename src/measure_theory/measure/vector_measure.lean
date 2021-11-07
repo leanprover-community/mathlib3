@@ -586,6 +586,21 @@ def map_range_hom (f : M →+ N) (hf : continuous f) : vector_measure α M →+ 
 
 end has_continuous_add
 
+section module
+
+variables {R : Type*} [semiring R] [module R M] [module R N]
+variables [topological_space R] [has_continuous_add M] [has_continuous_add N]
+  [has_continuous_smul R M] [has_continuous_smul R N]
+
+/-- Given a continuous linear map `f : M → N`, `map_rangeₗ` is the linear map mapping the
+vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
+def map_rangeₗ (f : M →ₗ[R] N) (hf : continuous f) : vector_measure α M →ₗ[R] vector_measure α N :=
+{ to_fun := λ v, v.map_range f.to_add_monoid_hom hf,
+  map_add' := λ _ _, map_range_add hf,
+  map_smul' := by { intros, ext, simp } }
+
+end module
+
 end
 
 /-- The restriction of a vector measure on some set. -/

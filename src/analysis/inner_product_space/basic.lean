@@ -1558,7 +1558,7 @@ begin
     hV.inner_right_dfinsupp] using this,
 end
 
-lemma orthogonal_family.collected_orthonormal (hV : orthogonal_family 𝕜 V) {α : ι → Type*}
+lemma orthogonal_family.orthonormal_sigma_orthonormal (hV : orthogonal_family 𝕜 V) {α : ι → Type*}
   {v_family : Π i, (α i) → V i} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (λ a : Σ i, α i, (v_family a.1 a.2 : E)) :=
 begin
@@ -1573,11 +1573,11 @@ begin
   { exact hV hij (v_family i vi : V i).prop (v_family j vj : V j).prop }
 end
 
-lemma direct_sum.collected_basis_orthonormal (hV : orthogonal_family 𝕜 V)
+lemma direct_sum.submodule_is_internal.collected_basis_orthonormal (hV : orthogonal_family 𝕜 V)
   (hV_sum : direct_sum.submodule_is_internal V) {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
-  orthonormal 𝕜 (direct_sum.collected_basis hV_sum v_family) :=
-by simpa using hV.collected_orthonormal hv_family
+  orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
+by simpa using hV.orthonormal_sigma_orthonormal hv_family
 
 end orthogonal_family
 

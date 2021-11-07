@@ -510,8 +510,8 @@ def restrict_hom_equiv_hom :
   (@opens.cover_dense_induced_functor X ι (induced_category.category B) B h)
   _ F ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F')
 
-lemma extend_hom_app {α i} :
-  (restrict_hom_equiv_hom F F' h α).app (op (B i)) = α.app (op i) :=
+@[simp] lemma extend_hom_app {α : ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1)}
+  {i : ι} : (restrict_hom_equiv_hom F F' h α).app (op (B i)) = α.app (op i) :=
 by { nth_rewrite 1 ← (restrict_hom_equiv_hom F F' h).left_inv α, refl }
 
 include h

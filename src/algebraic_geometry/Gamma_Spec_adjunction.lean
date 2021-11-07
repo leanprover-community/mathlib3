@@ -241,33 +241,30 @@ begin
   { intro r, apply to_open_res },
 end
 
-/-- Auxiliary data structure for defining the adjunction. -/
-def core_unit_counit :
-  adjunction.core_unit_counit Γ.right_op Spec.to_LocallyRingedSpace :=
+/-- The adjunction `Γ ⊣ Spec`. -/
+def adjunction : Γ.right_op ⊣ Spec.to_LocallyRingedSpace := adjunction.mk_of_unit_counit
 { unit := identity_to_Γ_Spec,
   counit := (nat_iso.op Spec_Γ_identity).inv,
   left_triangle' := by { ext X, erw category.id_comp,
     convert congr_arg quiver.hom.op X.left_triangle using 1 },
   right_triangle' := by { ext1, ext1 R, erw category.id_comp,
     exact right_triangle R.unop } }
-/- left triangle takes 33s and right triangle identakes 7s on my machine. -/
-
-/-- The adjunction `Γ ⊣ Spec`. -/
-def adjunction := adjunction.mk_of_unit_counit core_unit_counit
+/- left triangle takes 33s and right triangle takes 7s on my machine. -/
 
 end Γ_Spec
 
 /- Easy consequences of the adjunction. -/
 
 /-- Spec preserves limits. -/
-def Spec.preserves_limits := adjunction.right_adjoint_preserves_limits Γ_Spec.adjunction
+instance Spec.preserves_limits : limits.preserves_limits Spec.to_LocallyRingedSpace :=
+adjunction.right_adjoint_preserves_limits Γ_Spec.adjunction
 
 /-- Spec is a full functor. -/
-def Spec.full := @R_full_of_counit_is_iso
-  _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
+instance Spec.full : full Spec.to_LocallyRingedSpace :=
+@R_full_of_counit_is_iso _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
 
 /-- Spec is a faithful functor. -/
-lemma Spec.faithful : faithful Spec.to_LocallyRingedSpace :=
-  @R_faithful_of_counit_is_iso _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
+instance Spec.faithful : faithful Spec.to_LocallyRingedSpace :=
+@R_faithful_of_counit_is_iso _ _ _ _ _ _ Γ_Spec.adjunction (is_iso.of_iso_inv _)
 
 end algebraic_geometry

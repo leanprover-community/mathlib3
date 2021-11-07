@@ -16,28 +16,6 @@ spaces.
 
 -/
 
-namespace continuous_linear_map
-
-variables {R V W : Type*} [normed_group V] [normed_group W]
-variables [normed_field R] [normed_space R V] [normed_space R W]
-
-/-- A continuous linear map can be regarded as a continuous affine map. -/
-def to_continuous_affine_map (f : V →L[R] W) : V →A[R] W :=
-{ to_fun    := f,
-  linear    := f,
-  map_vadd' := by simp,
-  cont      := f.cont, }
-
-@[simp] lemma coe_to_continuous_affine_map (f : V →L[R] W) :
-  ⇑f.to_continuous_affine_map = f :=
-rfl
-
-@[simp] lemma to_continuous_affine_map_map_zero (f : V →L[R] W) :
-  f.to_continuous_affine_map 0 = 0 :=
-by simp
-
-end continuous_linear_map
-
 namespace continuous_affine_map
 
 variables {𝕜 R V W P Q : Type*}

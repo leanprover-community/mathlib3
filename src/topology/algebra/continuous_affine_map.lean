@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.affine_map
 import topology.continuous_function.basic
-import topology.algebra.mul_action
+import topology.algebra.module
 
 /-!
 # Continuous affine maps.
@@ -207,3 +207,26 @@ function.injective.module S ⟨λ f, f.to_affine_map.to_fun, rfl, coe_add⟩ coe
 end module_valued_maps
 
 end continuous_affine_map
+
+namespace continuous_linear_map
+
+variables {R V W : Type*} [ring R]
+variables [add_comm_group V] [module R V] [topological_space V]
+variables [add_comm_group W] [module R W] [topological_space W]
+
+/-- A continuous linear map can be regarded as a continuous affine map. -/
+def to_continuous_affine_map (f : V →L[R] W) : V →A[R] W :=
+{ to_fun    := f,
+  linear    := f,
+  map_vadd' := by simp,
+  cont      := f.cont, }
+
+@[simp] lemma coe_to_continuous_affine_map (f : V →L[R] W) :
+  ⇑f.to_continuous_affine_map = f :=
+rfl
+
+@[simp] lemma to_continuous_affine_map_map_zero (f : V →L[R] W) :
+  f.to_continuous_affine_map 0 = 0 :=
+by simp
+
+end continuous_linear_map

@@ -23,7 +23,7 @@ In this file we prove that the following functions are convex:
 open real set
 open_locale big_operators
 
-/-- The norm of a real normed space is convex. -/
+/-- The norm of a real normed space is convex. Also see `seminorm.convex_on`. -/
 lemma convex_on_norm {E : Type*} [normed_group E] [normed_space ℝ E] :
   convex_on ℝ univ (norm : E → ℝ) :=
 ⟨convex_univ, λ x y hx hy a b ha hb hab,

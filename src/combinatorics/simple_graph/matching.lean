@@ -46,7 +46,7 @@ begin
   { intros h v,
     cases h with h hu,
     have hu' := set.mem_univ v,
-    rw [←hu, subgraph.mem_support] at hu',
+    rw [← hu, subgraph.mem_support] at hu',
     cases hu' with w hvw,
     use [w, hvw],
     intros w' hvw',

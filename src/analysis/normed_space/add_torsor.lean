@@ -183,7 +183,7 @@ lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2)
 lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
 (lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
 
-instance semi_normed_add_torsor.has_continuous_vadd :
+@[priority 100] instance semi_normed_add_torsor.has_continuous_vadd :
   has_continuous_vadd V P :=
 { continuous_vadd := uniform_continuous_vadd.continuous }
 

@@ -1733,8 +1733,8 @@ begin
   { apply filter.eventually_of_forall (λ x, _),
     rw [← dist_zero_right, ← dist_zero_right, ← g0],
     apply hg'.le_mul_dist },
-  exact hL.of_le_mul ((ae_measurable_comp_iff_of_closed_embedding g
-    (hg'.closed_embedding hg)).1 hL.1) this,
+  exact hL.of_le_mul ((hg'.closed_embedding hg).measurable_embedding.ae_measurable_comp_iff.1
+    hL.1) this,
 end
 
 namespace lipschitz_with

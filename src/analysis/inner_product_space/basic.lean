@@ -1647,6 +1647,29 @@ continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
 
 end continuous
 
+section re_apply_inner_self
+
+/-- Extract a real bilinear form from an operator `T`, by taking the pairing `λ x, re ⟪T x, x⟫`. -/
+def continuous_linear_map.re_apply_inner_self (T : E →L[𝕜] E) (x : E) : ℝ := re ⟪T x, x⟫
+
+lemma continuous_linear_map.re_apply_inner_self_apply (T : E →L[𝕜] E) (x : E) :
+  T.re_apply_inner_self x = re ⟪T x, x⟫ :=
+rfl
+
+lemma continuous_linear_map.re_apply_inner_self_continuous (T : E →L[𝕜] E) :
+  continuous T.re_apply_inner_self :=
+re_clm.continuous.comp $ T.continuous.inner continuous_id
+
+lemma continuous_linear_map.re_apply_inner_self_smul (T : E →L[𝕜] E) (x : E) {c : 𝕜} :
+  T.re_apply_inner_self (c • x) = ∥c∥ ^ 2 * T.re_apply_inner_self x :=
+by simp only [continuous_linear_map.map_smul, continuous_linear_map.re_apply_inner_self_apply,
+  inner_smul_left, inner_smul_right, ← mul_assoc, mul_conj, norm_sq_eq_def', ← smul_re,
+  algebra.smul_def (∥c∥ ^ 2) ⟪T x, x⟫, algebra_map_eq_of_real]
+
+end re_apply_inner_self
+
+/-! ### The orthogonal complement -/
+
 section orthogonal
 variables (K : submodule 𝕜 E)
 
@@ -1786,3 +1809,40 @@ begin
 end
 
 end orthogonal
+
+/-! ### Self-adjoint operators -/
+
+section is_self_adjoint
+
+/-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
+`x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
+def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
+
+/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
+`bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
+lemma is_self_adjoint_iff_bilin_form (T : F →ₗ[ℝ] F) :
+  is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
+by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
+
+lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
+  conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
+by rw [hT x y, inner_conj_sym]
+
+@[simp] lemma is_self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
+  (x y : E) :
+  ⟪T x, y⟫ = ⟪x, T y⟫ :=
+hT x y
+
+/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
+@[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply
+  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
+  (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
+begin
+  suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
+  { obtain ⟨r, hr⟩ := this,
+    simp [hr, T.re_apply_inner_self_apply] },
+  rw ← eq_conj_iff_real,
+  exact hT.conj_inner_sym x x
+end
+
+end is_self_adjoint

@@ -3,7 +3,7 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import algebra.order.monoid
+import algebra.order.group
 /-!
 # Ordered Subtraction
 
@@ -37,6 +37,8 @@ TODO: generalize `nat.le_of_le_of_sub_le_sub_right`, `nat.sub_le_sub_right_iff`,
   `nat.mul_self_sub_mul_self_eq`
 -/
 
+open function
+
 variables {α β : Type*}
 
 /-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ c + b`.
@@ -47,6 +49,10 @@ in canonically ordered monoids on many specific types.
 -/
 class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
 (tsub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
+
+instance add_group.to_has_ordered_sub [add_group α] [has_le α]
+  [covariant_class α α (swap (+)) (≤)] : has_ordered_sub α :=
+⟨λ a b c, sub_le_iff_le_add⟩
 
 section has_add
 

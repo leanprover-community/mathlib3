@@ -211,8 +211,9 @@ open is_scalar_tower
 
 section semiring
 
-variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+variables (R) {S A B} [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
+variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
+variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
 /-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
 `R`-subalgebra. -/
@@ -237,12 +238,12 @@ lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : subalgebra S A → subalgebra R A) :=
 λ U V H, ext $ λ x, by rw [← mem_restrict_scalars R, H, mem_restrict_scalars]
 
-/-- Produces a map from `subalgebra.under`. -/
-def of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
-  [algebra R A] [algebra R B] (S : subalgebra R A) (U : subalgebra S A)
-  [algebra S B] [is_scalar_tower R S B] (f : U →ₐ[S] B) : S.under U →ₐ[R] B :=
-{ commutes' := λ r, (f.commutes (algebra_map R S r)).trans (algebra_map_apply R S B r).symm,
-  .. f }
+/-- Produces an `R`-algebra map from `U.restrict_scalars R` given an `S`-algebra map from `U`.
+
+This is a special case of `alg_hom.restrict_scalars` that can be helpful in elaboration. -/
+@[simp]
+def of_restrict_scalars (U : subalgebra S A) (f : U →ₐ[S] B) : U.restrict_scalars R →ₐ[R] B :=
+f.restrict_scalars R
 
 end semiring
 
@@ -255,8 +256,9 @@ open subalgebra
 variables [comm_semiring R] [comm_semiring S] [comm_semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
-theorem range_under_adjoin (t : set A) :
-  (to_alg_hom R S A).range.under (algebra.adjoin _ t) = (algebra.adjoin S t).restrict_scalars R :=
+theorem adjoin_range_to_alg_hom (t : set A) :
+  (algebra.adjoin (to_alg_hom R S A).range t).restrict_scalars R =
+    (algebra.adjoin S t).restrict_scalars R :=
 subalgebra.ext $ λ z,
 show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range A) ∪ t : set A) ↔
   z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),

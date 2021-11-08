@@ -574,13 +574,13 @@ instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
     to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  gsmul := λ n f, {
+  zsmul := λ n f, {
     to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  gsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
-  gsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.gsmul_succ' n _,
-  gsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.gsmul_neg' n _,
+  zsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
+  zsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_succ' n _,
+  zsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_neg' n _,
   .. linear_map.add_comm_monoid }
 
 end arithmetic

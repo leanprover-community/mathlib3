@@ -454,7 +454,6 @@ by rw [dimH_univ_pi, fintype.card_fin]
 theorem dimH_of_mem_nhds {x : E} {s : set E} (h : s ∈ 𝓝 x) :
   dimH s = finrank ℝ E :=
 begin
-  haveI : finite_dimensional ℝ (fin (finrank ℝ E) → ℝ), from is_noetherian_pi',
   have e : E ≃L[ℝ] (fin (finrank ℝ E) → ℝ),
     from continuous_linear_equiv.of_finrank_eq (finite_dimensional.finrank_fin_fun ℝ).symm,
   rw ← e.dimH_image,

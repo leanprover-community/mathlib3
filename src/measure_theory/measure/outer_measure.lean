@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.pi_system
-import data.matrix.notation
+import data.fin.vec_notation
 import topology.algebra.infinite_sum
 
 /-!
@@ -131,7 +131,7 @@ begin
   rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,
   cases le_or_lt j n with hjn hnj, { exact or.inl (h' hjn hj) },
   have : j - (n + 1) + n + 1 = j,
-    by rw [add_assoc, nat.sub_add_cancel hnj],
+    by rw [add_assoc, tsub_add_cancel_of_le hnj.nat_succ_le],
   refine or.inr (mem_Union.2 ⟨j - (n + 1), _, hlt _ _⟩),
   { rwa this },
   { rw [← nat.succ_le_iff, nat.succ_eq_add_one, this] }

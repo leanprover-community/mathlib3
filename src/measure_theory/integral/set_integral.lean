@@ -96,13 +96,13 @@ begin
 end
 
 lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
-  (hs : ∀ i ∈ t, measurable_set (s i)) (h's : pairwise_on ↑t (disjoint on s))
+  (hs : ∀ i ∈ t, measurable_set (s i)) (h's : set.pairwise ↑t (disjoint on s))
   (hf : ∀ i ∈ t, integrable_on f (s i) μ) :
   ∫ x in (⋃ i ∈ t, s i), f x ∂ μ = ∑ i in t, ∫ x in s i, f x ∂ μ :=
 begin
   induction t using finset.induction_on with a t hat IH hs h's,
   { simp },
-  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_on_insert,
+  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_insert,
       finset.set_bUnion_insert] at hs hf h's ⊢,
     rw [integral_union _ hs.1 _ hf.1 (integrable_on_finset_Union.2 hf.2)],
     { rw [finset.sum_insert hat, IH hs.2 h's.1 hf.2] },
@@ -118,7 +118,7 @@ lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
 begin
   convert integral_finset_bUnion finset.univ (λ i hi, hs i) _ (λ i _, hf i),
   { simp },
-  { simp [pairwise_on_univ, h's] }
+  { simp [pairwise_univ, h's] }
 end
 
 lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
@@ -180,7 +180,7 @@ lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f 
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 begin
   have hfi' : ∀ i, integrable_on f (s i) μ, from λ i, hfi.mono_set (subset_Union _ _),
-  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.pairwise_on _) (λ i _, hfi' i)],
+  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.set_pairwise _) (λ i _, hfi' i)],
   rw Union_eq_Union_finset at hfi ⊢,
   exact tendsto_set_integral_of_monotone (λ t, t.measurable_set_bUnion (λ i _, hm i))
     (λ t₁ t₂ h, bUnion_subset_bUnion_left h) hfi
@@ -306,18 +306,20 @@ begin
   exact measure.map_mono g measure.restrict_le_self
 end
 
-lemma set_integral_map_of_closed_embedding [topological_space α] [borel_space α]
+lemma _root_.measurable_embedding.set_integral_map {β} {_ : measurable_space β} {f : α → β}
+  (hf : measurable_embedding f) (g : β → E) (s : set β) :
+  ∫ y in s, g y ∂(measure.map f μ) = ∫ x in f ⁻¹' s, g (f x) ∂μ :=
+by rw [hf.restrict_map, hf.integral_map]
+
+lemma _root_.closed_embedding.set_integral_map [topological_space α] [borel_space α]
   {β} [measurable_space β] [topological_space β] [borel_space β]
-  {g : α → β} {f : β → E} {s : set β} (hs : measurable_set s) (hg : closed_embedding g) :
+  {g : α → β} {f : β → E} (s : set β) (hg : closed_embedding g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
-begin
-  rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg],
-  apply_instance,
-end
+hg.measurable_embedding.set_integral_map _ _
 
 lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) (s : set β) :
   ∫ y in s, f y ∂(measure.map e μ) = ∫ x in e ⁻¹' s, f (e x) ∂μ :=
-by rw [e.restrict_map, integral_map_equiv]
+e.measurable_embedding.set_integral_map f s
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
@@ -489,12 +491,10 @@ begin
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,
   rw ← integral_indicator (measurable_set.Inter hsm),
-  refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
+  refine tendsto_integral_of_dominated_convergence bound _ _ _ _,
   { intro n,
     rw ae_measurable_indicator_iff (hsm n),
     exact (integrable_on.mono_set hfi (h_anti (zero_le n))).1 },
-  { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
-    exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
   { rw integrable_indicator_iff (hsm 0),
     exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,
@@ -563,7 +563,7 @@ variables (α F 𝕜)
 def Lp_to_Lp_restrict_clm [borel_space 𝕜] (μ : measure α) (p : ℝ≥0∞) [hp : fact (1 ≤ p)]
   (s : set α) :
   Lp F p μ →L[𝕜] Lp F p (μ.restrict s) :=
-@linear_map.mk_continuous 𝕜 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _
+@linear_map.mk_continuous 𝕜 𝕜 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _ _ (ring_hom.id 𝕜)
   ⟨λ f, mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s), λ f g, Lp_to_Lp_restrict_add f g s,
     λ c f, Lp_to_Lp_restrict_smul c f s⟩
   1 (by { intro f, rw one_mul, exact norm_Lp_to_Lp_restrict_le s f, })

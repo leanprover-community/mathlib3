@@ -9,8 +9,6 @@ import combinatorics.simple_graph.degree_sum
 /-!
 # Matchings
 
-## Main definitions
-
 TODO:
   - Lemma stating that the existence of a perfect matching on `G` implies that
     the cardinality of `V` is even (assuming it's finite)

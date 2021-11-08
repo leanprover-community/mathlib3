@@ -478,9 +478,9 @@ namespace Top.opens
 
 open category_theory topological_space
 
-variables {X : Top} {ι : Type*} [category ι]
+variables {X : Top} {ι : Type*}
 
-lemma cover_dense_iff_basis (B : ι ⥤ opens X) :
+lemma cover_dense_iff_basis [category ι] (B : ι ⥤ opens X) :
   cover_dense (opens.grothendieck_topology X) B ↔ opens.is_basis (set.range B.obj) :=
 begin
   rw opens.is_basis_iff_nbhd,
@@ -501,13 +501,16 @@ namespace Top.sheaf
 open category_theory topological_space Top opposite
 
 variables {C : Type u} [category.{v} C] [limits.has_products C]
-variables {X : Top.{v}} {ι : Type v} {B : ι → opens X}
+variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 
+/-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
+    is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`
+    is equivalent to a homomorphism between their restrictions to the indexing type
+    `ι` of `B`, with the induced category structure on `ι`. -/
 def restrict_hom_equiv_hom :
   ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1) ≃ (F ⟶ F'.1) :=
-@cover_dense.restrict_hom_equiv_hom _ _ _ _ _ _ _ _
-  (@opens.cover_dense_induced_functor X ι (induced_category.category B) B h)
+@cover_dense.restrict_hom_equiv_hom _ _ _ _ _ _ _ _ (opens.cover_dense_induced_functor h)
   _ F ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F')
 
 @[simp] lemma extend_hom_app {α : ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1)}

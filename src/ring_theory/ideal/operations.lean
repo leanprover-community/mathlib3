@@ -314,20 +314,11 @@ by simp only [le_antisymm_iff, span_singleton_mul_le_span_singleton_mul, eq_comm
 
 lemma prod_span {ι : Type*} (s : finset ι) (I : ι → set R) :
   (∏ i in s, ideal.span (I i)) = ideal.span (∏ i in s, I i) :=
-begin
-  letI := classical.dec_eq ι,
-  refine finset.induction_on s _ _,
-  { simp },
-  { intros _ _ H ih,
-    rw [finset.prod_insert H, finset.prod_insert H, ih, ideal.span_mul_span],
-    congr' 1,
-    ext x,
-    simp [set.mem_mul, eq_comm] }
-end
+submodule.prod_span s I
 
 lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
   (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
-by rw [prod_span, set.finset_prod_singleton]
+submodule.prod_span_singleton s I
 
 lemma finset_inf_span_singleton {ι : Type*} (s : finset ι) (I : ι → R)
   (hI : set.pairwise ↑s (is_coprime on I)) :

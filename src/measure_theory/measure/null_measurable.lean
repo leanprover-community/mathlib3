@@ -246,7 +246,8 @@ section  measurable_singleton_class
 
 variable [measurable_singleton_class (null_measurable_space α μ)]
 
-lemma null_measurable_set_singleton (x : α) : null_measurable_set {x} μ := measurable_set_singleton x
+lemma null_measurable_set_singleton (x : α) : null_measurable_set {x} μ :=
+measurable_set_singleton x
 
 @[simp] lemma null_measurable_set_insert {a : α} {s : set α} :
   null_measurable_set (insert a s) μ ↔ null_measurable_set s μ :=

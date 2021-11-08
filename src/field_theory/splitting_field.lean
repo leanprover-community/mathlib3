@@ -576,41 +576,31 @@ nat.rec_on n (λ K _ _ _, ‹field K›) $ λ n ih K _ f hf, ih _
 instance inhabited {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n) :
   inhabited (splitting_field_aux n f hfn) := ⟨37⟩
 
+/-
+Note that the recursive nature of this definition and `splitting_field_aux.field` creates
+non-definitionally-equal diamonds in the `ℕ`- and `ℤ`- actions.
+```lean
+example (n : ℕ) {K : Type u} [field K] {f : polynomial K} (hfn : f.nat_degree = n) :
+    (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f hfn)) =
+  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _ hfn) :=
+rfl  -- fails
+```
+It's not immediately clear whether this _can_ be fixed; the failure is much the same as the reason
+that the following fails:
+```lean
+def cases_twice {α} (a₀ aₙ : α) : ℕ → α × α
+| 0 := (a₀, a₀)
+| (n + 1) := (aₙ, aₙ)
+
+example (x : ℕ) {α} (a₀ aₙ : α) : (cases_twice a₀ aₙ x).1 = (cases_twice a₀ aₙ x).2 := rfl  -- fails
+```
+We don't really care at this point because this is an implementation detail (which is why this is
+not a docstring), but we do in `splitting_field.algebra'` below. -/
 instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [field K],
   by exactI Π [algebra R K] {f : polynomial K} (hfn : f.nat_degree = n),
     algebra R (splitting_field_aux n f hfn) :=
 nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
          λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
-
-def foo : ℕ → ℕ × ℕ
-| 0 := (1, 1)
-| (n + 1) := (2, 2)
-
-example (x : ℕ) : (foo x).1 = (foo x).2 := rfl
-
-example
-  (n : ℕ) {K : Type u} [field K] {f : polynomial K} (hfn : f.nat_degree = n) :
-    (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f hfn)) =
-  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _ hfn) :=
-begin
-  ext,
-  dunfold add_comm_monoid.nat_module module.to_mul_action_with_zero
-    mul_action_with_zero.to_smul_with_zero smul_with_zero.to_has_scalar
-    mul_action.to_has_scalar add_monoid.has_scalar_nat has_scalar.smul
-    splitting_field_aux.algebra
-    splitting_field_aux.field,
-  unfold_projs,
-  dsimp,
-  induction n,
-  refl,
-  apply
-  refl,
-end
-example : (add_comm_group.int_module _ : module ℤ (splitting_field_aux n f hfn)) =
-  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra f) :=
-rfl
-
-#exit
 
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
   [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
@@ -717,7 +707,30 @@ splitting_field_aux.field _ _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
-instance {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
+/-- This should be an instance globally, but it creates diamonds with the `ℕ` and `ℤ` actions:
+
+```lean
+example :
+  (add_comm_monoid.nat_module : module ℕ (splitting_field f)) =
+    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+rfl  -- fails
+
+example :
+  (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
+    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+rfl  -- fails
+```
+
+Until we resolve these diamonds, it's more convenient to only turn this instance on with
+`local attribute [instance]` in places where the benefit of having the instance outweighs the cost.
+
+In the meantime, the `splitting_field.algebra` instance below is safe since `K = ℕ` and `K = ℤ` are
+not possible.
+-/
+instance algebra' {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
+splitting_field_aux.algebra _ _ _
+
+instance : algebra K (splitting_field f) :=
 splitting_field_aux.algebra _ _ _
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=

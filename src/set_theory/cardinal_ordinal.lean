@@ -614,7 +614,7 @@ begin
   { refine lt_of_le_of_lt (mk_subtype_le _) _,
     rw [← lift_lt, lift_omega, ← h1', ← lift_omega.{u (max v w)}, lift_lt], exact hα' },
   lift #(tᶜ : set β) to ℕ using this with k hk,
-  simp [nat_eq_lift_eq_iff] at h2, rw [nat_eq_lift_eq_iff.{v (max u w)}] at h2,
+  simp at h2, rw [nat_eq_lift_iff.{v (max u w)}] at h2,
   simp [h2.symm] at h1 ⊢, norm_cast at h1, simp at h1, exact h1
 end
 

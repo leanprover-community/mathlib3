@@ -111,7 +111,6 @@ begin
     intros x x_in,
     apply ae_measurable.const_smul,
     exact ((hF_meas _ x_in).sub (hF_meas _ x₀_in)).sub (hF'_meas.apply_continuous_linear_map _) },
-  { simp [measurable_const] },
   { apply mem_of_superset h_ball,
     intros x hx,
     apply (h_diff.and h_lipsch).mono,

@@ -1365,8 +1365,9 @@ end
 
 section quotient_algebra
 
-variables (R₁ : Type*) {A B : Type*}
-variables [comm_semiring R₁] [comm_ring A] [comm_ring B] [algebra R₁ A] [algebra R₁ B]
+variables (R₁ R₂ : Type*) {A B : Type*}
+variables [comm_semiring R₁] [comm_semiring R₂] [comm_ring A] [comm_ring B]
+variables [algebra R₁ A] [algebra R₂ A] [algebra R₁ B]
 
 /-- The `R₁`-algebra structure on `A/I` for an `R₁`-algebra `A` -/
 instance {I : ideal A} : algebra R₁ (ideal.quotient I) :=
@@ -1376,6 +1377,11 @@ instance {I : ideal A} : algebra R₁ (ideal.quotient I) :=
       ((quotient.mk I).congr_arg $ algebra.smul_def _ _).trans (ring_hom.map_mul _ _ _),
   commutes' := λ _ _, mul_comm _ _,
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R₁ A) }
+
+-- Lean can struggle to find this instance later if we don't provide this shortcut
+instance [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
+  is_scalar_tower R₁ R₂ (ideal.quotient I) :=
+by apply_instance
 
 /-- The canonical morphism `A →ₐ[R₁] I.quotient` as morphism of `R₁`-algebras, for `I` an ideal of
 `A`, where `A` is an `R₁`-algebra. -/

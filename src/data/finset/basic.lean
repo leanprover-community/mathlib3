@@ -2299,8 +2299,8 @@ theorem card_insert_eq_ite [decidable_eq α] {a : α} {s : finset α} :
   card (insert a s) = if a ∈ s then card s else card s + 1 :=
 begin
   by_cases h : a ∈ s,
-  rw [card_insert_of_mem h, if_pos h],
-  rw [card_insert_of_not_mem h, if_neg h],
+  { rw [card_insert_of_mem h, if_pos h] },
+  { rw [card_insert_of_not_mem h, if_neg h] },
 end
 
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _

@@ -234,6 +234,8 @@ protected def linear_map : R →ₗ[R] A :=
 @[simp]
 lemma linear_map_apply (r : R) : algebra.linear_map R A r = algebra_map R A r := rfl
 
+lemma coe_linear_map : ⇑(algebra.linear_map R A) = algebra_map R A := rfl
+
 instance id : algebra R R := (ring_hom.id R).to_algebra
 
 variables {R A}

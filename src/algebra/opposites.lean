@@ -35,9 +35,9 @@ namespace mul_opposite
 variables {α : Type u}
 
 /-- The element of `mul_opposite α` that represents `x : α`. -/
-def op (x : α) : αᵐᵒᵖ := ⟨x⟩
+def op : α → αᵐᵒᵖ := mk
 
-@[simp] lemma mk_eq_op (x : α) : (⟨x⟩ : αᵐᵒᵖ) = op x := rfl
+@[simp] lemma mk_eq_op : (mk : α → αᵐᵒᵖ) = op := rfl
 @[simp] lemma unop_op (x : α) : unop (op x) = x := rfl
 @[simp] lemma op_unop (x : αᵐᵒᵖ) : op (unop x) = x := by { cases x, refl }
 @[simp] lemma op_comp_unop : (op : α → αᵐᵒᵖ) ∘ unop = id := funext op_unop

@@ -18,14 +18,14 @@ is m * n - m - n.
 
 ## Implementation Notes
 
-This proof uses Bezout's greatest common divisor theorem
-to create a construction for all integers greater than the maximal value
-m * n - m - n. To show the maximal value doesn't work, it rewrites the equation into a multiple
-of m equalling a multiple of n, then uses inequalities to show the multiples get too large.
+For the upper bound, we begin with an auxiliary lemma showing m * n is not attainable, then show
+m * n - m - n is not attainable. Then for the construction, we create a k_1 which is k mod n and
+0 mod m, then show it is at most k. Then k_1 is a multiple of m, and (k-k_1) is a multiple of n,
+and we're done.
 
 ## Tags
 
-chicken mcnugget, frobenius coin
+chicken mcnugget, frobenius coin, chinese remainder theorem
 -/
 
 open nat

@@ -109,7 +109,7 @@ begin
     { rw adjoin_le_iff,
       have α_in_Fγ : α ∈ F⟮γ⟯,
       { rw ← add_sub_cancel α (c • β),
-        exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c)},
+        exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
     { rw adjoin_le_iff,
       change {γ} ⊆ _,

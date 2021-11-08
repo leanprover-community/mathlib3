@@ -9,30 +9,42 @@ import combinatorics.simple_graph.degree_sum
 /-!
 # Matchings
 
-TODO:
-  - Lemma stating that the existence of a perfect matching on `G` implies that
-    the cardinality of `V` is even (assuming it's finite)
-  - Hall's Marriage Theorem (see combinatorics.hall)
-  - Tutte's Theorem
-  - consider coercions instead of type definition for `matching`:
-    https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532935457
-  - consider expressing `matching_verts` as union:
-    https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532906131
+The idea of a matching refers to the pairing of adjacent vertices. In this approach we're
+representing a matching as a subgraph that contains all vertices of a graph.
+
+## Main definitions
+
+* A *matching* `M` on a simple graph `G` is a subgraph of `G`, such that every vertex of `G` is a
+  vertex of `M` and no two edges of `M` share an endpoint.
+
+* A *perfect matching* on a simple graph is a matching in which every vertex forms an edge.
+
+## Todo
+
+* Lemma stating that the existence of a perfect matching on `G` implies that
+  the cardinality of `V` is even (assuming it's finite)
+
+* Hall's Marriage Theorem (see combinatorics.hall)
+
+* Tutte's Theorem
+
+* https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532906131
 -/
-open finset
+
 universe u
 
 namespace simple_graph
 variables {V : Type u} {G : simple_graph V} (M : subgraph G)
 
+namespace matching
+
 /--
-A *matching* `M` on a simple graph `G` is a subgraph of `G`, such that every vertex of `G` is a
-vertex of `M` and no two edges of `M` share an endpoint.
+The subgraph `M` of `G` is a matching on `G` if every vertex only forms at most one edge of `M`.
 -/
 def is_matching : Prop := ∀ (v w w': V), M.adj v w → M.adj v w' → w = w'
 
 /--
-A *perfect matching* on a simple graph is a matching in which every vertex forms an edge.
+`M` is a perfect matching on `G` if it's a matching on `G` and if every vertex forms an edge of `M`.
 -/
 def is_perfect : Prop := is_matching M ∧ M.support = set.univ
 
@@ -68,5 +80,7 @@ begin
       use w,
       exact hvw, }, },
 end
+
+end matching
 
 end simple_graph

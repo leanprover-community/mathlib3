@@ -175,7 +175,7 @@ protected def homeomorph.smul (c : G) : α ≃ₜ α :=
   continuous_to_fun  := continuous_id.const_smul _,
   continuous_inv_fun := continuous_id.const_smul _ }
 
-/-- Scalar multiplication by an element of an additive group `G` acting on `α` is a homeomorphism
+/-- Affine-addition of an element of an additive group `G` acting on `α` is a homeomorphism
 from `α` to itself. -/
 protected def homeomorph.vadd {G : Type*} [topological_space G] [add_group G] [add_action G α]
   [has_continuous_vadd G α] (c : G) : α ≃ₜ α :=

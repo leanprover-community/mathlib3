@@ -179,7 +179,8 @@ begin
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
 
-@[simp] lemma div_one (p : R) : p / 1 = p :=
+@[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
+lemma div_one (p : R) : p / 1 = p :=
 (euclidean_domain.eq_div_of_mul_eq_left (@one_ne_zero R _ _) (mul_one p)).symm
 
 lemma div_dvd_of_dvd {p q : R} (hpq : q ∣ p) :

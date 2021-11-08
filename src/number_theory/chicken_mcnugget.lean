@@ -71,5 +71,5 @@ end
 
 /-- This theorem combines both sublemmas in a single claim. -/
 theorem chicken_mcnugget (m n : ℕ) (hm : 1 < m) (hn: 1 < n) (cop: coprime m n) :
-  (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, k > m * n - m - n → ∃ a b, a * m + b * n = k :=
+  (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
 ⟨chicken_mcnugget_upper_bound m n cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩

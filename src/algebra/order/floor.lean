@@ -364,6 +364,14 @@ lemma floor_eq_on_Ico' (n : ℤ) : ∀ a ∈ set.Ico (n : α) (n + 1), (⌊a⌋ 
 
 @[simp] lemma fract_add_floor (a : α) : fract a + ⌊a⌋ = a := sub_add_cancel _ _
 
+@[simp] lemma fract_add_int (a : α) (m : ℤ) : fract (a + m) = fract a := by simp [fract]
+
+@[simp] lemma fract_sub_int (a : α) (m : ℤ) : fract (a - m) = fract a := by simp [fract]
+
+@[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
+
+@[simp] lemma fract_sub_self (a : α) : fract a - a = -⌊a⌋ := sub_sub_cancel_left _ _
+
 lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
 
 lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
@@ -398,8 +406,11 @@ lemma fract_eq_fract {a b : α} : fract a = fract b ↔ ∃ z : ℤ, a - b = z :
   exact add_sub_sub_cancel _ _ _,
 end⟩
 
+@[simp] lemma fract_eq_self {a : α} : fract a = a ↔ 0 ≤ a ∧ a < 1 :=
+fract_eq_iff.trans $ and.assoc.symm.trans $ and_iff_left ⟨0, sub_self a⟩
+
 @[simp] lemma fract_fract (a : α) : fract (fract a) = fract a :=
-fract_eq_fract.2 ⟨-⌊a⌋, (cast_neg ⌊a⌋).symm.subst (sub_sub_cancel_left a ⌊a⌋)⟩
+fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
 
 lemma fract_add (a b : α) : ∃ z : ℤ, fract (a + b) - fract a - fract b = z :=
 ⟨⌊a⌋ + ⌊b⌋ - ⌊a + b⌋, by { unfold fract, simp [sub_eq_add_neg], abel }⟩
@@ -443,11 +454,14 @@ lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
 by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
-lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
+@[simp] lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
 
-lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
+@[simp] lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
+
+@[simp] lemma ceil_sub_one (a : α) : ⌈a - 1⌉ = ⌈a⌉ - 1 :=
+by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
 
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }

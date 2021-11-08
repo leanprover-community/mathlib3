@@ -46,15 +46,25 @@ lemma summable_iff_vanishing_norm [complete_space E] {f : ι → E} :
   summable f ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
 
+lemma cauchy_seq_finset_of_norm_bounded_eventually {f : ι → E} {g : ι → ℝ} (hg : summable g)
+  (h : ∀ᶠ i in cofinite, ∥f i∥ ≤ g i) : cauchy_seq (λ s, ∑ i in s, f i) :=
+begin
+  refine cauchy_seq_finset_iff_vanishing_norm.2 (λ ε hε, _),
+  rcases summable_iff_vanishing_norm.1 hg ε hε with ⟨s, hs⟩,
+  refine ⟨s ∪ h.to_finset, λ t ht, _⟩,
+  have : ∀ i ∈ t, ∥f i∥ ≤ g i,
+  { intros i hi,
+    simp only [disjoint_left, mem_union, not_or_distrib, h.mem_to_finset, set.mem_compl_iff,
+      not_not] at ht,
+    exact (ht hi).2 },
+  calc ∥∑ i in t, f i∥ ≤ ∑ i in t, g i    : norm_sum_le_of_le _ this
+                    ... ≤ ∥∑ i in t, g i∥ : le_abs_self _
+                    ... < ε               : hs _ (ht.mono_right le_sup_left),
+end
+
 lemma cauchy_seq_finset_of_norm_bounded {f : ι → E} (g : ι → ℝ) (hg : summable g)
   (h : ∀i, ∥f i∥ ≤ g i) : cauchy_seq (λ s : finset ι, ∑ i in s, f i) :=
-cauchy_seq_finset_iff_vanishing_norm.2 $ assume ε hε,
-  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hg ε hε in
-  ⟨s, assume t ht,
-    have ∥∑ i in t, g i∥ < ε := hs t ht,
-    have nn : 0 ≤ ∑ i in t, g i := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
-    lt_of_le_of_lt (norm_sum_le_of_le t (λ i _, h i)) $
-      by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
+cauchy_seq_finset_of_norm_bounded_eventually hg $ eventually_of_forall h
 
 lemma cauchy_seq_finset_of_summable_norm {f : ι → E} (hf : summable (λa, ∥f a∥)) :
   cauchy_seq (λ s : finset ι, ∑ a in s, f a) :=
@@ -130,13 +140,7 @@ variable [complete_space E]
 real function `g` which is summable, then `f` is summable. -/
 lemma summable_of_norm_bounded_eventually {f : ι → E} (g : ι → ℝ) (hg : summable g)
   (h : ∀ᶠ i in cofinite, ∥f i∥ ≤ g i) : summable f :=
-begin
-  replace h := mem_cofinite.1 h,
-  refine h.summable_compl_iff.mp _,
-  refine summable_of_norm_bounded _ (h.summable_compl_iff.mpr hg) _,
-  rintros ⟨a, h'⟩,
-  simpa using h'
-end
+summable_iff_cauchy_seq_finset.2 $ cauchy_seq_finset_of_norm_bounded_eventually hg h
 
 lemma summable_of_nnnorm_bounded {f : ι → E} (g : ι → ℝ≥0) (hg : summable g)
   (h : ∀i, ∥f i∥₊ ≤ g i) : summable f :=

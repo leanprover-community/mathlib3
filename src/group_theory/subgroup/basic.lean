@@ -2441,13 +2441,13 @@ namespace subgroup
 we have `n = 0` or `g ∈ H`. -/
 @[to_additive "An additive subgroup `H` of `G` is *saturated* if
 for all `n : ℕ` and `g : G` with `n•g ∈ H` we have `n = 0` or `g ∈ H`."]
-def saturated (H : subgroup G) : Prop := ∀ ⦃n g⦄, npow n g ∈ H → n = 0 ∨ g ∈ H
+def saturated (H : subgroup G) : Prop := ∀ ⦃n g⦄, g ^ n ∈ H → n = 0 ∨ g ∈ H
 
 @[to_additive] lemma saturated_iff_npow {H : subgroup G} :
-  saturated H ↔ (∀ (n : ℕ) (g : G), g^n ∈ H → n = 0 ∨ g ∈ H) := iff.rfl
+  saturated H ↔ (∀ (n : ℕ) (g : G), g ^ n ∈ H → n = 0 ∨ g ∈ H) := iff.rfl
 
 @[to_additive] lemma saturated_iff_zpow {H : subgroup G} :
-  saturated H ↔ (∀ (n : ℤ) (g : G), g^n ∈ H → n = 0 ∨ g ∈ H) :=
+  saturated H ↔ (∀ (n : ℤ) (g : G), g ^ n ∈ H → n = 0 ∨ g ∈ H) :=
 begin
   split,
   { rintros hH ⟨n⟩ g hgn,

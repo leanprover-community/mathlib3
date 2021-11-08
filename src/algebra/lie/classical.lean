@@ -171,7 +171,7 @@ begin
     by_cases h : x = y; simp [Pso, indefinite_diagonal, h, hi], },
 end
 
-def invertible_Pso {i : R} (hi : i*i = -1) : invertible (Pso p q R i) :=
+instance invertible_Pso {i : R} (hi : i*i = -1) : invertible (Pso p q R i) :=
 invertible_of_right_inverse _ _ (Pso_inv p q R hi)
 
 lemma indefinite_diagonal_transform {i : R} (hi : i*i = -1) :

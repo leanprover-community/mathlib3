@@ -67,60 +67,50 @@ begin
   rw nat.Inf_eq_zero, right, assumption,
 end
 
-lemma Inf_add {n : ℕ} {p : ℕ → Prop} (h : n ≤ Inf (set_of p)) :
+lemma find_le' {n : ℕ} {p : ℕ → Prop} {h : ∃ n, p n} (hn : p n) : nat.find h ≤ n :=
+(nat.find_le_iff _ _).2 ⟨n, le_rfl, hn⟩
+
+lemma find_add {n : ℕ} {p : ℕ → Prop} {hₘ : ∃ m, p (m + n)} {hₙ : ∃ n, p n} (hn : n ≤ nat.find hₙ) :
+  nat.find hₘ + n = nat.find hₙ :=
+begin
+  refine ((le_find_iff _ _).2 (λ m hm hpm, hm.not_le _)).antisymm _,
+  { have hnm : n ≤ m := hn.trans (find_le' hpm),
+    refine add_le_of_le_tsub_right_of_le hnm (find_le' _),
+    rwa tsub_add_cancel_of_le hnm },
+  { rw ←tsub_le_iff_right,
+    refine (le_find_iff _ _).2 (λ m hm hpm, hm.not_le _),
+    rw tsub_le_iff_right,
+    exact find_le' hpm }
+end
+
+lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf (set_of p)) :
   Inf {m : ℕ | p (m + n)} + n = Inf (set_of p) :=
 begin
-  by_cases hn0 : n = 0,
-  { simp only [hn0, add_zero]},
-  { rw <- eq_tsub_iff_add_eq_of_le h,
-    rw Inf_def,
-    { rw nat.find_eq_iff,
-      split,
-      { rw mem_set_of_eq,
-        rw nat.sub_add_cancel h,
-        { apply Inf_mem,
-          apply nonempty_of_pos_Inf,
-          apply lt_of_lt_of_le (ne.bot_lt hn0) h, }, },
-      intros k hk,
-      rw mem_set_of_eq,
-      rw lt_tsub_iff_right at hk,
-      apply not_mem_of_lt_Inf hk, },
-    { by_contra he,
-      have hpe : set_of p = ∅,
-      { ext x,
-        simp only [mem_empty_eq, mem_set_of_eq, iff_false],
-        by_cases hnx : n ≤ x,
-        { have hxnn : x = x - n + n := (nat.sub_eq_iff_eq_add hnx).mp rfl,
-          rw hxnn,
-          rw not_nonempty_iff_eq_empty at he,
-          rw eq_empty_iff_forall_not_mem at he,
-          simp only [mem_set_of_eq] at he,
-          apply he, },
-        { apply not_mem_of_lt_Inf,
-          rw not_le at hnx,
-          exact gt_of_ge_of_gt h hnx, }, },
-      rw hpe at h,
-      simp only [Inf_empty, nonpos_iff_eq_zero] at h,
-      tauto, }, },
-
+  obtain h | ⟨m, hm⟩ := {m : ℕ | p (m + n)}.eq_empty_or_nonempty,
+  { rw [h, nat.Inf_empty, zero_add],
+    obtain hnp | hnp := hn.eq_or_lt,
+    { exact hnp },
+    suffices hp : p (Inf (set_of p) - n + n),
+    { exact (h.subset hp).elim },
+    rw tsub_add_cancel_of_le hn,
+    exact Inf_mem (nonempty_of_pos_Inf $ n.zero_le.trans_lt hnp) },
+  { have hp : ∃ n, n ∈ set_of p := ⟨_, hm⟩,
+    rw [nat.Inf_def ⟨m, hm⟩, nat.Inf_def hp],
+    rw [nat.Inf_def hp] at hn,
+    exact find_add hn }
 end
 
 lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
   Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin
-  symmetry,
-  rw Inf_def,
-  { rw nat.find_eq_iff,
-    simp only [nat.add_sub_cancel, set.mem_set_of_eq],
-    refine ⟨Inf_mem (nonempty_of_pos_Inf h), λ k hk hpk, not_mem_of_lt_Inf _ hpk⟩,
-    rwa tsub_lt_iff_right,
-    apply le_of_lt,
-    rw [←tsub_pos_iff_lt, pos_iff_ne_zero],
-    intro hkn,
-    rw hkn at hpk,
-    exact not_mem_of_lt_Inf h hpk },
-  { obtain ⟨t, ht⟩ := nonempty_of_pos_Inf h,
-    exact ⟨t + n, by simpa using ht⟩ }
+  convert Inf_add _,
+  { simp_rw add_tsub_cancel_right },
+  obtain ⟨m, hm⟩ := nonempty_of_pos_Inf h,
+  refine le_cInf ⟨m + n, _⟩ (λ b hb, le_of_not_lt $ λ hbn,
+    ne_of_mem_of_not_mem _ (not_mem_of_lt_Inf h) (tsub_eq_zero_of_le hbn.le)),
+  { dsimp,
+    rwa add_tsub_cancel_right },
+  { exact hb }
 end
 
 lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=

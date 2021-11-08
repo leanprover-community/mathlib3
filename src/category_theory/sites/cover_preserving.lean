@@ -9,19 +9,19 @@ import category_theory.sites.sheaf
 # Cover-preserving functors between sites.
 
 We define cover-preserving functors between sites as functors that push covering sieves to
-covering sieves. A cover-preserving and flat functor `G : F ⥤ D` then pulls sheaves on `D`
-back to sheaves on `C` via `G.op ⋙ -`. This functor has a left adjoint `Lan G.op` that
-preserves finite limits (`category_theory.Lan_preserves_finite_limit_of_flat`).
-This pair of functors is also known as a *morphism of sites* in the literature.
+covering sieves. A cover-preserving and compatible-preserving functor `G : C ⥤ D` then pulls
+sheaves on `D` back to sheaves on `C` via `G.op ⋙ -`.
 
 ## Main definitions
 
-* `category_theory.sites.cover_preserving`: a functor between sites is cover-preserving if it
-  pushes covering sieves to covering sieves
-* `category_theory.sites.compatible_preserving`: a functor between sites is compatible-preserving
-  if it pushes compatible families of elements to compatible families.
-* `category_theory.sites.pullback`: A cover-preserving and compatible-perserving functor
-  `G : (C, J) ⥤ (D, K)` induces a morphism of sheaves in the opposite direction of the functor.
+* `category_theory.cover_preserving`: a functor between sites is cover-preserving if it
+pushes covering sieves to covering sieves
+* `category_theory.compatible_preserving`: a functor between sites is compatible-preserving
+if it pushes compatible families of elements to compatible families.
+* `category_theory.pullback_sheaf` : the pullback of a sheaf along a cover-preserving and
+compatible-preserving functor.
+* `category_theory.sites.pullback` : the induced functor `Sheaf K A ⥤ Sheaf J A` for a
+cover-preserving and compatible-preserving functor `G : (C, J) ⥤ (D, K)`.
 
 ## Main results
 
@@ -65,17 +65,17 @@ lemma id_cover_preserving : cover_preserving J J (𝟭 _) := ⟨λ U S hS, by si
 variables (J) (K)
 
 /-- The composition of two cover-preserving functors is cover-preserving. -/
-lemma cover_preserving.comp {G} (hG : cover_preserving J K G) {v} (hv : cover_preserving K L v) :
-  cover_preserving J L (G ⋙ v) := ⟨λ U S hS,
+lemma cover_preserving.comp {F} (hF : cover_preserving J K F) {G} (hG : cover_preserving K L G) :
+  cover_preserving J L (F ⋙ G) := ⟨λ U S hS,
 begin
   rw sieve.functor_pushforward_comp,
-  exact hv.cover_preserve (hG.cover_preserve hS)
+  exact hG.cover_preserve (hF.cover_preserve hS)
 end⟩
 
 /--
 A functor `G : (C, J) ⥤ (D, K)` between sites is called compatible preserving if for each
 compatible family of elements at `C` and valued in `G.op ⋙ ℱ`, and each commuting diagram
-`f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂`, `x g₁` and `x g₂` coincides when restricted via `fᵢ`.
+`f₁ ≫ G.map g₁ = f₂ ≫ G.map g₂`, `x g₁` and `x g₂` coincide when restricted via `fᵢ`.
 This is actually stronger than merely preserving compatible families because of the definition of
 `functor_pushforward` used.
 -/
@@ -95,7 +95,7 @@ include h hG
 
 /-- `compatible_preserving` functors indeed preserve compatible families. -/
 lemma presieve.family_of_elements.compatible.functor_pushforward :
-    (x.functor_pushforward G).compatible :=
+  (x.functor_pushforward G).compatible :=
 begin
   rintros Z₁ Z₂ W g₁ g₂ f₁' f₂' H₁ H₂ eq,
   unfold family_of_elements.functor_pushforward,
@@ -107,7 +107,7 @@ begin
   simpa using eq
 end
 
-lemma compatible_preserving.apply_map {Y : C} {f: Y ⟶ Z} (hf) :
+@[simp] lemma compatible_preserving.apply_map {Y : C} {f : Y ⟶ Z} (hf : T f) :
   x.functor_pushforward G (G.map f) (image_mem_functor_pushforward G T hf) = x f hf :=
 begin
   unfold family_of_elements.functor_pushforward,
@@ -126,10 +126,10 @@ This result is basically https://stacks.math.columbia.edu/tag/00WW.
 -/
 theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving.{v₃} K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) :
-  presheaf.is_sheaf J (((whiskering_left _ _ _).obj G.op).obj ℱ.val) :=
+  presheaf.is_sheaf J (G.op ⋙ ℱ.val) :=
 begin
   intros X U S hS x hx,
-  change family_of_elements (G.op ⋙ ℱ.val ⋙ coyoneda.obj (op X)) ⇑S at x,
+  change family_of_elements (G.op ⋙ ℱ.val ⋙ coyoneda.obj (op X)) _ at x,
   let H := ℱ.2 X _ (hG₂.cover_preserve hS),
   let hx' := hx.functor_pushforward hG₁ (sheaf_over ℱ X),
   split, swap,
@@ -145,8 +145,13 @@ begin
     rintros V f ⟨Z, f', g', h, rfl⟩,
     erw family_of_elements.comp_of_compatible (S.functor_pushforward G)
       hx' (image_mem_functor_pushforward G S h) g',
-    simpa [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
+    simp [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
 end
+
+/-- The pullback of a sheaf along a cover-preserving and compatible-preserving functor. -/
+def pullback_sheaf {G : C ⥤ D} (hG₁ : compatible_preserving K G)
+  (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) : Sheaf J A :=
+⟨G.op ⋙ ℱ.val, pullback_is_sheaf_of_cover_preserving hG₁ hG₂ ℱ⟩
 
 variable (A)
 
@@ -156,7 +161,7 @@ if `G` is cover-preserving and compatible-preserving.
 -/
 @[simps] def sites.pullback {G : C ⥤ D} (hG₁ : compatible_preserving K G)
   (hG₂ : cover_preserving J K G) : Sheaf K A ⥤ Sheaf J A :=
-{ obj := λ ℱ, ⟨G.op ⋙ ℱ.val, pullback_is_sheaf_of_cover_preserving hG₁ hG₂ ℱ⟩,
+{ obj := λ ℱ, pullback_sheaf hG₁ hG₂ ℱ,
   map := λ _ _ f, (((whiskering_left _ _ _).obj G.op)).map f,
   map_id' := λ ℱ, (((whiskering_left _ _ _).obj G.op)).map_id ℱ.val,
   map_comp' := λ _ _ _ f g, (((whiskering_left _ _ _).obj G.op)).map_comp f g }

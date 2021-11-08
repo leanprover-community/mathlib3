@@ -37,8 +37,6 @@ TODO: generalize `nat.le_of_le_of_sub_le_sub_right`, `nat.sub_le_sub_right_iff`,
   `nat.mul_self_sub_mul_self_eq`
 -/
 
-open function
-
 variables {α β : Type*}
 
 /-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ c + b`.

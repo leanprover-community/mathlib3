@@ -7,7 +7,7 @@ import algebra.direct_sum.basic
 import linear_algebra.dfinsupp
 
 /-!
-# Direct sum of modules over commutative rings, indexed by a discrete type.
+# Direct sum of modules over commutative rings
 
 This file provides constructors for direct sums of modules.
 The first part of the file provides a construction of the direct sum using the universal property
@@ -250,10 +250,14 @@ noncomputable def submodule_is_internal.collected_basis
   (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
   h.collected_basis v a = v a.1 a.2 :=
 begin
-  rw submodule_is_internal.collected_basis,
-  simp [direct_sum.submodule_coe],
-  -- refl,
-  sorry
+  simp only [submodule_is_internal.collected_basis, to_module, submodule_coe,
+    add_equiv.to_fun_eq_coe, basis.coe_of_repr, basis.repr_symm_apply, dfinsupp.lsum_apply_apply,
+    dfinsupp.map_range.linear_equiv_apply, dfinsupp.map_range.linear_equiv_symm,
+    dfinsupp.map_range_single, finsupp.total_single, linear_equiv.of_bijective_apply,
+    linear_equiv.symm_symm, linear_equiv.symm_trans_apply, one_smul,
+    sigma_finsupp_add_equiv_dfinsupp_apply, sigma_finsupp_equiv_dfinsupp_single,
+    sigma_finsupp_lequiv_dfinsupp_apply],
+  convert dfinsupp.sum_add_hom_single (λ i, (A i).subtype.to_add_monoid_hom) a.1 (v a.1 a.2),
 end
 
 @[simp] lemma submodule_is_internal.collected_basis_coe
@@ -264,9 +268,7 @@ funext $ h.collected_basis_apply v
 lemma submodule_is_internal.collected_basis_mem
   (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
   h.collected_basis v a ∈ A a.1 :=
-begin
-  sorry
-end
+by simp
 
 end semiring
 

@@ -85,14 +85,6 @@ begin
   sorry,
 end
 
-lemma Ico_zero : Ico 0 = range :=
-begin
-  funext,
-  rw ext_iff,
-  intro a,
-  -- rw [mem_Ico, mem_range],
-  simp,
-end
 
 example (a b : ℕ) (h : a ≠ b) : a ≤ b ↔ a < b := ne.le_iff_lt h
 
@@ -129,7 +121,7 @@ begin
   { simp [h], },
   { induction n,
     -- TODO Ico_zero should be simp lemma?
-    { simp [Ico_zero, totient] },
+    { simp [Ico_zero_eq_range, totient], },
     {
       rw <-n_ih,
       clear n_ih,

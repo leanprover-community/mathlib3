@@ -565,7 +565,7 @@ rfl
   v.map_range (add_monoid_hom.id M) continuous_id = v :=
 by { ext, refl }
 
-@[simp] lemma zero_map_range {f : M →+ N} (hf : continuous f) :
+@[simp] lemma map_range_zero {f : M →+ N} (hf : continuous f) :
   map_range (0 : vector_measure α M) f hf = 0 :=
 by { ext, simp }
 
@@ -581,7 +581,7 @@ by { ext, simp }
 vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
 def map_range_hom (f : M →+ N) (hf : continuous f) : vector_measure α M →+ vector_measure α N :=
 { to_fun := λ v, v.map_range f hf,
-  map_zero' := zero_map_range hf,
+  map_zero' := map_range_zero hf,
   map_add' := λ _ _, map_range_add hf }
 
 end has_continuous_add

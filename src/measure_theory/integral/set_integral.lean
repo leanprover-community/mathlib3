@@ -368,8 +368,9 @@ lemma set_integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[
   (hfi : integrable_on f s μ) :
   0 < ∫ x in s, f x ∂μ ↔ 0 < μ (support f ∩ s) :=
 begin
-  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_null_measurable_set],
-  exact hfi.ae_measurable.null_measurable_set (measurable_set_singleton 0).compl
+  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, measure.restrict_apply₀],
+  rw support_eq_preimage,
+  exact hfi.ae_measurable.null_measurable (measurable_set_singleton 0).compl
 end
 
 lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}

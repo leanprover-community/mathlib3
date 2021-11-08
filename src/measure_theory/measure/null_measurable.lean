@@ -3,14 +3,16 @@ import measure_theory.measure.measure_space_def
 /-!
 -/
 
-open filter set encodable measure_theory
+open filter set encodable
 
 variables {ι α β γ : Type*}
 
-section
+namespace measure_theory
 
 /-- A type tag for `α` with `measurable_set` given by `null_measurable_set`. -/
 def null_measurable_space (α : Type*) [measurable_space α] (μ : measure α . volume_tac) : Type* := α
+
+section
 
 variables {m0 : measurable_space α} {μ : measure α} {s t : set α}
 
@@ -29,7 +31,7 @@ a set of null measure. -/
 def null_measurable_set [measurable_space α] (s : set α) (μ : measure α . volume_tac) : Prop :=
 @measurable_set (null_measurable_space α μ) _ s
 
-@[simp] lemma measurable_set.null_measurable (h : measurable_set s) :
+@[simp] lemma _root_.measurable_set.null_measurable (h : measurable_set s) :
   null_measurable_set s μ :=
 ⟨s, h, ae_eq_refl _⟩
 
@@ -60,7 +62,7 @@ protected lemma Union [encodable ι] {s : ι → set α}
   (h : ∀ i, null_measurable_set (s i) μ) : null_measurable_set (⋃ i, s i) μ :=
 measurable_set.Union h
 
-protected lemma bUnion_decode2 [encodable ι] ⦃f : ι → set α⦄ (h : ∀ i, null_measurable_set (f i) μ)
+protected lemma bUnion_decode₂ [encodable ι] ⦃f : ι → set α⦄ (h : ∀ i, null_measurable_set (f i) μ)
   (n : ℕ) : null_measurable_set (⋃ b ∈ encodable.decode₂ ι n, f b) μ :=
 measurable_set.bUnion_decode₂ h n
 
@@ -159,8 +161,6 @@ lemma exists_measurable_subset_ae_eq (h : null_measurable_set s μ) :
 
 end null_measurable_set
 
-namespace measure_theory
-
 lemma measure_Union {m0 : measurable_space α} {μ : measure α} [encodable ι] {f : ι → set α}
   (hn : pairwise (disjoint on f)) (h : ∀ i, measurable_set (f i)) :
   μ (⋃ i, f i) = ∑' i, μ (f i) :=
@@ -191,10 +191,6 @@ begin
   exacts [pairwise_disjoint_on_bool.2 hd, λ b, bool.cases_on b ht hs]
 end
 
-end measure_theory
-
-open measure_theory
-
 section  measurable_singleton_class
 
 variable [measurable_singleton_class (null_measurable_space α μ)]
@@ -208,38 +204,38 @@ measurable_set_insert
 lemma null_measurable_set_eq {a : α} : null_measurable_set {x | x = a} μ :=
 null_measurable_set_singleton a
 
-protected lemma set.finite.null_measurable (hs : finite s) : null_measurable_set s μ :=
+protected lemma _root_.set.finite.null_measurable (hs : finite s) : null_measurable_set s μ :=
 finite.measurable_set hs
 
-protected lemma finset.null_measurable (s : finset α) : null_measurable_set ↑s μ :=
+protected lemma _root_.finset.null_measurable (s : finset α) : null_measurable_set ↑s μ :=
 finset.measurable_set s
 
 end measurable_singleton_class
 
-lemma set.finite.null_measurable_bUnion {f : ι → set α} {s : set ι} (hs : finite s)
+lemma _root_.set.finite.null_measurable_bUnion {f : ι → set α} {s : set ι} (hs : finite s)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   null_measurable_set (⋃ b ∈ s, f b) μ :=
 finite.measurable_set_bUnion hs h
 
-lemma finset.null_measurable_bUnion {f : ι → set α} (s : finset ι)
+lemma _root_.finset.null_measurable_bUnion {f : ι → set α} (s : finset ι)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   null_measurable_set (⋃ b ∈ s, f b) μ :=
 finset.measurable_set_bUnion s h
 
-lemma set.finite.null_measurable_sUnion {s : set (set α)} (hs : finite s)
+lemma _root_.set.finite.null_measurable_sUnion {s : set (set α)} (hs : finite s)
   (h : ∀ t ∈ s, null_measurable_set t μ) :
   null_measurable_set (⋃₀ s) μ :=
 finite.measurable_set_sUnion hs h
 
-lemma set.finite.null_measurable_bInter {f : ι → set α} {s : set ι} (hs : finite s)
+lemma _root_.set.finite.null_measurable_bInter {f : ι → set α} {s : set ι} (hs : finite s)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
 finite.measurable_set_bInter hs h
 
-lemma finset.null_measurable_bInter {f : ι → set α} (s : finset ι)
+lemma _root_.finset.null_measurable_bInter {f : ι → set α} (s : finset ι)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
 s.finite_to_set.null_measurable_bInter h
 
-lemma set.finite.null_measurable_sInter {s : set (set α)} (hs : finite s)
+lemma _root_.set.finite.null_measurable_sInter {s : set (set α)} (hs : finite s)
   (h : ∀ t ∈ s, null_measurable_set t μ) : null_measurable_set (⋂₀ s) μ :=
 null_measurable_set.sInter hs.countable h
 
@@ -258,7 +254,7 @@ variables [measurable_space α] [measurable_space β] [measurable_space γ]
 def null_measurable (f : α → β) (μ : measure α . volume_tac) : Prop :=
 ∀ ⦃s : set β⦄, measurable_set s → null_measurable_set (f ⁻¹' s) μ
 
-protected lemma measurable.null_measurable (h : measurable f) : null_measurable f μ :=
+protected lemma _root_.measurable.null_measurable (h : measurable f) : null_measurable f μ :=
 λ s hs, (h hs).null_measurable
 
 protected lemma null_measurable.measurable' (h : null_measurable f μ) :
@@ -281,14 +277,14 @@ section is_complete
   A null set is a subset of a measurable set with measure `0`.
   Since every measure is defined as a special case of an outer measure, we can more simply state
   that a set `s` is null if `μ s = 0`. -/
-class measure_theory.measure.is_complete {_ : measurable_space α} (μ : measure α) : Prop :=
+class measure.is_complete {_ : measurable_space α} (μ : measure α) : Prop :=
 (out' : ∀ s, μ s = 0 → measurable_set s)
 
 variables {m0 : measurable_space α} {μ : measure α} {s t : set α}
 
-theorem measure_theory.measure.is_complete_iff :
+theorem measure.is_complete_iff :
   μ.is_complete ↔ ∀ s, μ s = 0 → measurable_set s := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-theorem measure_theory.measure.is_complete.out (h : μ.is_complete) :
+theorem measure.is_complete.out (h : μ.is_complete) :
   ∀ s, μ s = 0 → measurable_set s := h.1
 
 theorem measurable_set_of_null [μ.is_complete] (hs : μ s = 0) : measurable_set s :=
@@ -306,7 +302,7 @@ theorem null_measurable.measurable_of_complete [μ.is_complete] {m1 : measurable
 open measure_theory
 
 /-- Given a measure we can complete it to a (complete) measure on all null measurable sets. -/
-def completion {_ : measurable_space α} (μ : measure α) :
+def measure.completion {_ : measurable_space α} (μ : measure α) :
   @measure_theory.measure (null_measurable_space α μ) _ :=
 { to_outer_measure := μ.to_outer_measure,
   m_Union := λ s hs hd, measure_Union₀ hd hs,
@@ -317,12 +313,15 @@ def completion {_ : measurable_space α} (μ : measure α) :
     exact λ t ht, infi_le_infi2 (λ h, ⟨h.null_measurable, le_rfl⟩)
   end }
 
-instance completion.is_complete {m : measurable_space α} (μ : measure α) : (completion μ).is_complete :=
+instance measure.completion.is_complete {m : measurable_space α} (μ : measure α) :
+  μ.completion.is_complete :=
 ⟨λ z hz, null_measurable_set.of_null hz⟩
 
-lemma measurable.congr_ae {α β} [measurable_space α] [measurable_space β] {μ : measure α}
+lemma _root_.measurable.congr_ae {α β} [measurable_space α] [measurable_space β] {μ : measure α}
   [hμ : μ.is_complete] {f g : α → β} (hf : measurable f) (hfg : f =ᵐ[μ] g) :
   measurable g :=
 (hf.null_measurable.congr hfg).measurable_of_complete
 
 end is_complete
+
+end measure_theory

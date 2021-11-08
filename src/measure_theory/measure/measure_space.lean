@@ -421,6 +421,16 @@ lemma le_to_measure_apply (m : outer_measure α) (h : ms ≤ m.caratheodory) (s 
   m s ≤ m.to_measure h s :=
 m.le_trim s
 
+lemma to_measure_apply₀ (m : outer_measure α) (h : ms ≤ m.caratheodory)
+  {s : set α} (hs : null_measurable_set s (m.to_measure h)) : m.to_measure h s = m s :=
+begin
+  refine le_antisymm _ (le_to_measure_apply _ _ _),
+  rcases hs.exists_measurable_subset_ae_eq with ⟨t, hts, htm, heq⟩,
+  calc m.to_measure h s = m.to_measure h t : measure_congr heq.symm
+                    ... = m t              : to_measure_apply m h htm
+                    ... ≤ m s              : m.mono hts
+end
+
 @[simp] lemma to_outer_measure_to_measure {μ : measure α} :
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
 measure.ext $ λ s, μ.to_outer_measure.trim_eq
@@ -801,11 +811,15 @@ lemma restrict_to_outer_measure_eq_to_outer_measure_restrict (h : measurable_set
 by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
   outer_measure.restrict_trim h, μ.trimmed]
 
+lemma restrict_apply₀ (ht : null_measurable_set t (μ.restrict s)) :
+  μ.restrict s t = μ (t ∩ s) :=
+(to_measure_apply₀ _ _ ht).trans $ by simp only [coe_to_outer_measure, outer_measure.restrict_apply]
+
 /-- If `t` is a measurable set, then the measure of `t` with respect to the restriction of
   the measure to `s` equals the outer measure of `t ∩ s`. An alternate version requiring that `s`
   be measurable instead of `t` exists as `measure.restrict_apply'`. -/
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
-by simp [← restrictₗ_apply, restrictₗ, ht]
+restrict_apply₀ ht.null_measurable
 
 /-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
 the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
@@ -1481,6 +1495,14 @@ end measure
 
 open measure
 open_locale measure_theory
+
+lemma null_measurable_set.mono_ac (h : null_measurable_set s μ) (hle : ν ≪ μ) :
+  null_measurable_set s ν :=
+⟨to_measurable μ s, measurable_set_to_measurable _ _, hle.ae_eq h.to_measurable_ae_eq.symm⟩
+
+lemma null_measurable_set.mono (h : null_measurable_set s μ) (hle : ν ≤ μ) :
+  null_measurable_set s ν :=
+h.mono_ac hle.absolutely_continuous
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]

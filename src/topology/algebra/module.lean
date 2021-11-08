@@ -904,46 +904,53 @@ end ring
 
 section smul
 
-variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R₃]
+  [semiring S] [semiring S₃] [topological_space S] [topological_space S₃]
   {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
-  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
-  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
-  [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R₂ M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R₃ M₃]
+  {N₂ : Type*} [topological_space N₂] [add_comm_monoid N₂] [module R N₂]
+  {N₃ : Type*} [topological_space N₃] [add_comm_monoid N₃] [module R N₃]
+  [module S₃ M₃] [smul_comm_class R₃ S₃ M₃] [has_continuous_smul S₃ M₃]
+  [module S N₃] [smul_comm_class R S N₃] [has_continuous_smul S N₃]
+  {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
-instance : has_scalar S (M →L[R] M₃) :=
+instance : has_scalar S₃ (M →SL[σ₁₃] M₃) :=
 ⟨λ c f, ⟨c • f, (continuous_const.smul f.2 : continuous (λ x, c • f x))⟩⟩
 
-variables (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
+variables (c : S₃) (h : M₂ →SL[σ₂₃] M₃) (f g : M →SL[σ₁₂] M₂) (x y z : M)
 
+include σ₁₃
 @[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
+omit σ₁₃
 
-variables [module S M₂] [has_continuous_smul S M₂] [smul_comm_class R S M₂]
+variables [module S₃ M₂] [has_continuous_smul S₃ M₂] [smul_comm_class R₂ S₃ M₂]
 
 lemma smul_apply : (c • f) x = c • (f x) := rfl
-@[simp, norm_cast] lemma coe_smul : (((c • f) : M →L[R] M₂) : M →ₗ[R] M₂) = c • f := rfl
-@[simp, norm_cast] lemma coe_smul' : (((c • f) : M →L[R] M₂) : M → M₂) = c • f := rfl
+@[simp, norm_cast] lemma coe_smul : (((c • f) : M →SL[σ₁₂] M₂) : M →ₛₗ[σ₁₂] M₂) = c • f := rfl
+@[simp, norm_cast] lemma coe_smul' : (((c • f) : M →SL[σ₁₂] M₂) : M → M₂) = c • f := rfl
 
-@[simp] lemma comp_smul [linear_map.compatible_smul M₂ M₃ S R] : h.comp (c • f) = c • (h.comp f) :=
-by { ext x, exact h.map_smul_of_tower c (f x) }
+--@[simp] lemma comp_smul [linear_map.compatible_smul N₂ N₃ S R] (c : S) : h.comp (c • f) = c • (h.comp f) :=
+--by { ext x, exact h.map_smul_of_tower c (f x) }
 
 /-- `continuous_linear_map.prod` as an `equiv`. -/
-@[simps apply] def prod_equiv : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ (M →L[R] M₂ × M₃) :=
+@[simps apply] def prod_equiv : ((M →L[R] N₂) × (M →L[R] N₃)) ≃ (M →L[R] N₂ × N₃) :=
 { to_fun := λ f, f.1.prod f.2,
   inv_fun := λ f, ⟨(fst _ _ _).comp f, (snd _ _ _).comp f⟩,
   left_inv := λ f, by ext; refl,
   right_inv := λ f, by ext; refl }
 
-lemma prod_ext_iff {f g : M × M₂ →L[R] M₃} :
+lemma prod_ext_iff {f g : M × N₂ →L[R] N₃} :
   f = g ↔ f.comp (inl _ _ _) = g.comp (inl _ _ _) ∧ f.comp (inr _ _ _) = g.comp (inr _ _ _) :=
 by { simp only [← coe_inj, linear_map.prod_ext_iff], refl }
 
-@[ext] lemma prod_ext {f g : M × M₂ →L[R] M₃} (hl : f.comp (inl _ _ _) = g.comp (inl _ _ _))
+@[ext] lemma prod_ext {f g : M × N₂ →L[R] N₃} (hl : f.comp (inl _ _ _) = g.comp (inl _ _ _))
   (hr : f.comp (inr _ _ _) = g.comp (inr _ _ _)) : f = g :=
 prod_ext_iff.2 ⟨hl, hr⟩
 
 variables [has_continuous_add M₂]
 
-instance : module S (M →L[R] M₂) :=
+instance : module S₃ (M →SL[σ₁₂] M₂) :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
   zero_smul := λ _, ext $ λ _, zero_smul _ _,
   one_smul  := λ _, ext $ λ _, by exact one_smul _ _,
@@ -954,7 +961,7 @@ instance : module S (M →L[R] M₂) :=
 variables (S) [has_continuous_add M₃]
 
 /-- `continuous_linear_map.prod` as a `linear_equiv`. -/
-@[simps apply] def prodₗ : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ₗ[S] (M →L[R] M₂ × M₃) :=
+@[simps apply] def prodₗ : ((M →L[R] N₂) × (M →L[R] N₃)) ≃ₗ[S] (M →L[R] N₂ × N₃) :=
 { map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
   .. prod_equiv }

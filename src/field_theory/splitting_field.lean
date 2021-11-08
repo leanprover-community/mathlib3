@@ -582,8 +582,38 @@ instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [fiel
 nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
          λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
 
+def foo : ℕ → ℕ × ℕ
+| 0 := (1, 1)
+| (n + 1) := (2, 2)
+
+example (x : ℕ) : (foo x).1 = (foo x).2 := rfl
+
+example
+  (n : ℕ) {K : Type u} [field K] {f : polynomial K} (hfn : f.nat_degree = n) :
+    (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f hfn)) =
+  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _ hfn) :=
+begin
+  ext,
+  dunfold add_comm_monoid.nat_module module.to_mul_action_with_zero
+    mul_action_with_zero.to_smul_with_zero smul_with_zero.to_has_scalar
+    mul_action.to_has_scalar add_monoid.has_scalar_nat has_scalar.smul
+    splitting_field_aux.algebra
+    splitting_field_aux.field,
+  unfold_projs,
+  dsimp,
+  induction n,
+  refl,
+  apply
+  refl,
+end
+example : (add_comm_group.int_module _ : module ℤ (splitting_field_aux n f hfn)) =
+  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra f) :=
+rfl
+
+#exit
+
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
-  [comm_ring R₁] [comm_ring R₂] [has_scalar R₁ R₂] [field K],
+  [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],
   by exactI Π [is_scalar_tower R₁ R₂ K] {f : polynomial K} (hfn : f.nat_degree = n),
     is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=
@@ -687,13 +717,8 @@ splitting_field_aux.field _ _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
-instance {R} [comm_ring R] [algebra R K] : algebra R (splitting_field f) :=
+instance {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
 splitting_field_aux.algebra _ _ _
-
-example : (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
-  @algebra.to_module _ _ _ _ (splitting_field.algebra f) :=
-rfl
-#exit
 
 protected theorem splits : splits (algebra_map K (splitting_field f)) f :=
 splitting_field_aux.splits _ _ _

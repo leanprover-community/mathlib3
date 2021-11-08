@@ -154,6 +154,10 @@ quotient.algebra_quotient_of_le_comap le_comap_map
   algebra_map p.quotient (map f p).quotient (quotient.mk p x) = quotient.mk _ (f x) :=
 rfl
 
+@[simp] lemma quotient.mk_smul_mk_quotient_map_quotient (x : R) (y : S) :
+  quotient.mk p x • quotient.mk (map f p) y = quotient.mk _ (f x * y) :=
+rfl
+
 instance quotient.tower_quotient_map_quotient [algebra R S] :
   is_scalar_tower R p.quotient (map (algebra_map R S) p).quotient :=
 is_scalar_tower.of_algebra_map_eq $ λ x,

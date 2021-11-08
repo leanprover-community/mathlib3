@@ -17,9 +17,11 @@ This pair of functors is also known as a *morphism of sites* in the literature.
 ## Main definitions
 
 * `category_theory.sites.cover_preserving`: a functor between sites is cover-preserving if it
-pushes covering sieves to covering sieves
+  pushes covering sieves to covering sieves
 * `category_theory.sites.compatible_preserving`: a functor between sites is compatible-preserving
-if it pushes compatible families of elements to compatible families.
+  if it pushes compatible families of elements to compatible families.
+* `category_theory.sites.pullback`: A cover-preserving and compatible-perserving functor
+  `G : (C, J) ⥤ (D, K)` induces a morphism of sheaves in the opposite direction of the functor.
 
 ## Main results
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.sites.sheaf
+import category_theory.sites.cover_lifting
+import category_theory.adjunction.fully_faithful
 
 /-!
 # Dense subsites
@@ -18,23 +20,26 @@ we would need, and some sheafification would be needed for here and there.
 
 ## Main results
 
-- `category_theory.cover_dense.sheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
+* `category_theory.cover_dense.sheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any presheaf `ℱ` and sheaf `ℱ'` on `D`, and a morphism `α : G ⋙ ℱ ⟶ G ⋙ ℱ'`,
   we may glue them together to obtain a morphism of sheaves `ℱ ⟶ ℱ'`.
-- `category_theory.cover_dense.sheaf_iso`: If the `α` above is iso, then the result is also iso.
-- `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
+* `category_theory.cover_dense.sheaf_iso`: If the `α` above is iso, then the result is also iso.
+* `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, then `α` is an iso if
   `G ⋙ ℱ ⟶ G ⋙ ℱ'` is iso.
+- `category_theory.ccover_dense.Sheaf_iso_of_cover_preserving_cover_lifting`:
+  If `G : (C, J) ⥤ (D, K)` is fully-faithful, cover-lifting, cover-preserving, and cover-dense,
+  then it will induce an equivalence of categories of sheaves.
 
 ## References
 
-* [Elephant]: *Sketches of an Elephant*, ℱ. T. Johnstone: C2.2.
+* [Elephant]: *Sketches of an Elephant*, P. T. Johnstone: C2.2.
 * https://ncatlab.org/nlab/show/dense+sub-site
 * https://ncatlab.org/nlab/show/comparison+lemma
 
 -/
 
-universes v
+universes v u
 
 namespace category_theory
 
@@ -87,17 +92,6 @@ begin
   apply (ℱ.property (sieve.cover_by_image G X) (H.is_cover X)).is_separated_for.ext,
   rintros Y _ ⟨Z, f₁, f₂, rfl⟩,
   simp[h f₂]
-end
-
-lemma functor_pullback_pushforward_covering [full G] (H : cover_dense K G) {X : C}
-  (T : K (G.obj X)) : (T.val.functor_pullback G).functor_pushforward G ∈ K (G.obj X) :=
-begin
-  refine K.superset_covering _ (K.bind_covering T.property (λ Y f Hf, H.is_cover Y)),
-  rintros Y _ ⟨Z, _, f, hf, ⟨W, g, f', rfl⟩, rfl⟩,
-  use W, use G.preimage (f' ≫ f), use g,
-  split,
-  simpa using T.val.downward_closed hf f',
-  simp,
 end
 
 /--
@@ -407,6 +401,68 @@ begin
   apply sheaf_hom_eq
 end
 
+/-- A fully faithful cover-dense functor preserves compatible families. -/
+lemma compatible_preserving [faithful G] : compatible_preserving K G :=
+begin
+  split,
+  intros ℱ Z T x hx Y₁ Y₂ X f₁ f₂ g₁ g₂ hg₁ hg₂ eq,
+  apply H.ext,
+  intros W i,
+  simp only [← functor_to_types.map_comp_apply, ← op_comp],
+  rw ← G.image_preimage (i ≫ f₁),
+  rw ← G.image_preimage (i ≫ f₂),
+  apply hx,
+  apply G.map_injective,
+  simp[eq]
+end
+
+noncomputable
+instance sites.pullback.full [faithful G] (Hp : cover_preserving J K G) :
+  full (sites.pullback A H.compatible_preserving Hp) :=
+{ preimage := λ ℱ ℱ' α, H.sheaf_hom α,
+  witness' := λ ℱ ℱ' α, H.sheaf_hom_restrict_eq α }
+
+instance sites.pullback.faithful [faithful G] (Hp : cover_preserving J K G) :
+  faithful (sites.pullback A H.compatible_preserving Hp) :=
+{ map_injective' := λ ℱ ℱ' α β (eq : whisker_left G.op α = whisker_left G.op β),
+  by rw [← H.sheaf_hom_eq α, ← H.sheaf_hom_eq β, eq] }
+
 end cover_dense
 
 end category_theory
+
+namespace category_theory.cover_dense
+
+open category_theory
+
+variables {C : Type u} [small_category C] {D : Type u} [small_category D]
+variables {G : C ⥤ D} [full G] [faithful G]
+variables {J : grothendieck_topology C} {K : grothendieck_topology D}
+variables {A : Type v} [category.{u} A] [limits.has_limits A]
+variables (Hd : cover_dense K G) (Hp : cover_preserving J K G) (Hl : cover_lifting J K G)
+
+include Hd Hp Hl
+
+/--
+Given a functor between small sites that is cover-dense, cover-preserving, and cover-lifting,
+it induces an equivalence of category of sheaves valued in a complete category.
+-/
+noncomputable
+def Sheaf_iso_of_cover_preserving_cover_lifting : Sheaf J A ≌ Sheaf K A :=
+begin
+  symmetry,
+  let α := sites.pullback_copullback_adjunction A Hp Hl Hd.compatible_preserving,
+  haveI : is_iso α.unit := infer_instance,
+  haveI : ∀ (X : Sheaf J A), is_iso (α.counit.app X),
+  { intro ℱ,
+    apply_with (reflects_isomorphisms.reflects (Sheaf_to_presheaf J A)) { instances := ff },
+    exact is_iso.of_iso ((@as_iso _ _ _ _ _ (Ran.reflective A G.op)).app ℱ.val) },
+  haveI : is_iso α.counit := nat_iso.is_iso_of_is_iso_app _,
+  exact { unit_iso := as_iso α.unit,
+    counit_iso := as_iso α.counit,
+    inverse := sites.copullback A Hl,
+    functor := sites.pullback A Hd.compatible_preserving Hp,
+    functor_unit_iso_comp' := λ ℱ, by convert α.left_triangle_components }
+end
+
+end category_theory.cover_dense

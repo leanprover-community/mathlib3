@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import category_theory.sites.sheaf
 import category_theory.limits.kan_extension
+import category_theory.sites.cover_preserving
 
 /-!
 # Cover-lifting functors between sites.
@@ -22,11 +23,15 @@ but they are actually equivalent via `category_theory.grothendieck_topology.supe
 ## Main definitions
 
 * `category_theory.sites.cover_lifting`: a functor between sites is cover_lifting if it
-pulls back covering sieves to covering sieves
+  pulls back covering sieves to covering sieves
+* `category_theory.sites.copullback`: A cover-lifting functor `G : (C, J) ⥤ (D, K)` induces a
+  morphism of sheaves in the same direction as the functor.
 
 ## Main results
-- `category_theory.sites.Ran_is_sheaf_of_cover_lifting`: If `G : C ⥤ D` is cover_lifting, then
-`Ran G.op` (`ₚu`) as a functor `(Cᵒᵖ ⥤ A) ⥤ (Dᵒᵖ ⥤ A)` of presheaves maps sheaves to sheaves.
+* `category_theory.sites.Ran_is_sheaf_of_cover_lifting`: If `G : C ⥤ D` is cover_lifting, then
+  `Ran G.op` (`ₚu`) as a functor `(Cᵒᵖ ⥤ A) ⥤ (Dᵒᵖ ⥤ A)` of presheaves maps sheaves to sheaves.
+* `category_theory.pullback_copullback_adjunction`: If `G : (C, J) ⥤ (D, K)` is cover-lifting,
+  cover-preserving, and compatible-preserving, then `pullback G` and `copullback G` are adjoint.
 
 ## References
 
@@ -240,11 +245,28 @@ end
 
 variable (A)
 
+/-- A cover-lifting functor induces a morphism of sheaves in the same direction as the functor. -/
 def sites.copullback {G : C ⥤ D} (hG : cover_lifting J K G) :
   Sheaf J A ⥤ Sheaf K A :=
 { obj := λ ℱ, ⟨(Ran G.op).obj ℱ.val, Ran_is_sheaf_of_cover_lifting hG ℱ⟩,
   map := λ _ _ f, (Ran G.op).map f,
   map_id' := λ ℱ, (Ran G.op).map_id ℱ.val,
   map_comp' := λ _ _ _ f g, (Ran G.op).map_comp f g }
+
+/--
+Given a functor between sites that is cover-preserving, cover-lifting, and compatible-preserving,
+the pullback and copullback along `G` is adjoint to each other
+-/
+@[simps] noncomputable
+def sites.pullback_copullback_adjunction {G : C ⥤ D} (Hp : cover_preserving J K G)
+  (Hl : cover_lifting J K G) (Hc : compatible_preserving K G) :
+  sites.pullback A Hc Hp ⊣ sites.copullback A Hl :=
+{ hom_equiv := λ X Y, (Ran.adjunction A G.op).hom_equiv X.val Y.val,
+  unit := { app := λ X, (Ran.adjunction A G.op).unit.app X.val,
+    naturality' := λ _ _ f, (Ran.adjunction A G.op).unit.naturality f },
+  counit := { app := λ X, (Ran.adjunction A G.op).counit.app X.val,
+    naturality' := λ _ _ f, (Ran.adjunction A G.op).counit.naturality f },
+  hom_equiv_unit' := λ X Y f, (Ran.adjunction A G.op).hom_equiv_unit,
+  hom_equiv_counit' := λ X Y f, (Ran.adjunction A G.op).hom_equiv_counit }
 
 end category_theory

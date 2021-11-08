@@ -44,12 +44,22 @@ class has_continuous_smul (M α : Type*) [has_scalar M α]
 
 export has_continuous_smul (continuous_smul)
 
+/-- Class `has_continuous_vadd M α` says that the additive action `(+ᵥ) : M → α → α`
+is continuous in both arguments. We use the same class for all kinds of additive actions,
+including (semi)modules and algebras. -/
+class has_continuous_vadd (M α : Type*) [has_vadd M α]
+  [topological_space M] [topological_space α] : Prop :=
+(continuous_vadd : continuous (λp : M × α, p.1 +ᵥ p.2))
+
+export has_continuous_vadd (continuous_vadd)
+
 variables {M α β : Type*} [topological_space M] [topological_space α]
 
 section has_scalar
 
 variables [has_scalar M α] [has_continuous_smul M α]
 
+@[to_additive]
 lemma filter.tendsto.smul {f : β → M} {g : β → α} {l : filter β} {c : M} {a : α}
   (hf : tendsto f l (𝓝 c)) (hg : tendsto g l (𝓝 a)) :
   tendsto (λ x, f x • g x) l (𝓝 $ c • a) :=

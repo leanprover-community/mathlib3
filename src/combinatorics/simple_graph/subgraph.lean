@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hunter Monroe, Kyle Miller, Alena Gusakov
 -/
 import combinatorics.simple_graph.basic
+import data.rel
 
 /-!
 # Subgraphs of a simple graph
@@ -64,6 +65,11 @@ structure subgraph {V : Type u} (G : simple_graph V) :=
 namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
+
+/-- `H.support` is the set of vertices that form edges in the subgraph `H`. -/
+def support (H : subgraph G) : set V := rel.dom H.adj
+
+lemma mem_support (H : subgraph G) {v : V} : v ∈ H.support ↔ ∃ w, H.adj v w := iff.rfl
 
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩

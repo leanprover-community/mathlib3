@@ -930,7 +930,8 @@ lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp, norm_cast] lemma coe_smul : (((c • f) : M →SL[σ₁₂] M₂) : M →ₛₗ[σ₁₂] M₂) = c • f := rfl
 @[simp, norm_cast] lemma coe_smul' : (((c • f) : M →SL[σ₁₂] M₂) : M → M₂) = c • f := rfl
 
---@[simp] lemma comp_smul [linear_map.compatible_smul N₂ N₃ S R] (c : S) : h.comp (c • f) = c • (h.comp f) :=
+--@[simp] lemma comp_smul [linear_map.compatible_smul N₂ N₃ S R] (c : S) :
+  --h.comp (c • f) = c • (h.comp f) :=
 --by { ext x, exact h.map_smul_of_tower c (f x) }
 
 /-- `continuous_linear_map.prod` as an `equiv`. -/

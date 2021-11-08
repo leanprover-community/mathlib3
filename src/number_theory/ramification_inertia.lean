@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 
 import field_theory.separable
-import linear_algebra.free_module.finite
+import linear_algebra.free_module.finite.basic
 import ring_theory.dedekind_domain
 
 /-!
@@ -36,7 +36,7 @@ We will try to relax the above hypotheses as much as possible
 open_locale big_operators
 open_locale non_zero_divisors
 
-variables {R S : Type*} [integral_domain R] [integral_domain S] (f : R →+* S)
+variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain R] [is_domain S] (f : R →+* S)
 variables (p : ideal R) (P : ideal S)
 
 open finite_dimensional
@@ -44,40 +44,6 @@ open ideal
 open unique_factorization_monoid
 
 section move_me
-
-@[simp] lemma ideal.quotient.algebra_map_eq :
-  algebra_map R p.quotient = p^.quotient.mk :=
-rfl
-
-@[simp] lemma ideal.quotient.mk_comp_algebra_map [algebra R S] :
-  P^.quotient.mk^.comp (algebra_map R S) = algebra_map R P^.quotient :=
-rfl
-
-@[simp] lemma ideal.quotient.mk_algebra_map [algebra R S] (x : R) :
-  ideal.quotient.mk P (algebra_map R S x) = algebra_map R P^.quotient x :=
-rfl
-
-/-- If there is an injective map `R/p → S/P` such that following diagram commutes:
-```
-R   → S
-↓     ↓
-R/p → S/P
-```
-then `P` lies over `p`.
--/
-lemma comap_eq_of_scalar_tower_quotient [algebra R S] [algebra p.quotient P.quotient]
-  [is_scalar_tower R p.quotient P.quotient]
-  (h : function.injective (algebra_map p.quotient P.quotient)) :
-  comap (algebra_map R S) P = p :=
-begin
-  ext x, split; rw [mem_comap, ← quotient.eq_zero_iff_mem, ← quotient.eq_zero_iff_mem,
-    ideal.quotient.mk_algebra_map, is_scalar_tower.algebra_map_apply _ p.quotient,
-    ideal.quotient.algebra_map_eq p],
-  { intro hx,
-    exact (algebra_map p.quotient P.quotient).injective_iff.mp h _ hx },
-  { intro hx,
-    rw [hx, ring_hom.map_zero] },
-end
 
 lemma ideal.quotient.subsingleton_iff : subsingleton p.quotient ↔ p = ⊤ :=
 by rw [eq_top_iff_one, ← subsingleton_iff_zero_eq_one, eq_comm,
@@ -100,34 +66,6 @@ is_scalar_tower.of_algebra_map_eq $ λ x,
 by rw [ideal.quotient.algebra_map_eq, ideal.quotient.algebra_map_quotient_map_quotient,
        ideal.quotient.mk_algebra_map]
 
-/-- We can clear the denominators of a finite family of fractions. -/
-lemma is_localization.exist_integer_multiples_of_finset' {R Rₘ ι : Type*}
-  [comm_ring R] [comm_ring Rₘ] (M : submonoid R) [algebra R Rₘ] [is_localization M Rₘ]
-  (s : finset ι) (f : ι → Rₘ) :
-  ∃ (b : M), ∀ i ∈ s, is_localization.is_integer R ((b : R) • f i) :=
-begin
-  haveI := classical.prop_decidable,
-  refine ⟨∏ i in s, (is_localization.sec M (f i)).2, λ i hi, ⟨_, _⟩⟩,
-  { exact (∏ j in s.erase i,
-    (is_localization.sec M (f j)).2) * (is_localization.sec M (f i)).1 },
-  rw [ring_hom.map_mul, is_localization.sec_spec', ←mul_assoc, ←(algebra_map R Rₘ).map_mul,
-      ← algebra.smul_def],
-  congr' 2,
-  refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
-  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase i),
-      finset.insert_erase hi],
-  refl
-end
-
-/-- We can clear the denominators of a finite family of fractions. -/
-lemma is_localization.exist_integer_multiples {R Rₘ ι : Type*}
-  [comm_ring R] [fintype ι] [comm_ring Rₘ] (M : submonoid R) [algebra R Rₘ] [is_localization M Rₘ]
-  (f : ι → Rₘ) : ∃ (b : M), ∀ i, is_localization.is_integer R ((b : R) • f i) :=
-begin
-  obtain ⟨b, hb⟩ := is_localization.exist_integer_multiples_of_finset' M finset.univ f,
-  exact ⟨b, λ i, hb i (finset.mem_univ _)⟩
-end
-
 instance ideal.noetherian_dimensional_quotient_map_quotient [algebra R S] [p.is_maximal]
   [is_noetherian R S] :
   is_noetherian p.quotient (map (algebra_map R S) p).quotient :=
@@ -145,7 +83,7 @@ linear_map.range_eq_top.mpr ideal.quotient.mk_surjective
 -/
 
 instance is_fraction_ring.no_zero_smul_divisors
-  {R K : Type*} [integral_domain R] [field K] [algebra R K] [is_fraction_ring R K] :
+  {R K : Type*} [comm_ring R] [field K] [algebra R K] [is_fraction_ring R K] :
   no_zero_smul_divisors R K :=
 ⟨λ x z h, by rwa [algebra.smul_def, mul_eq_zero, is_fraction_ring.to_map_eq_zero_iff] at h⟩
 
@@ -156,7 +94,7 @@ Let `p ≠ ⊤` be an ideal in a Dedekind domain `R`, and `f ≠ 0` a finite col
 of elements of `K = Frac(R)`, then we can multiply the elements of `f` by some `a : K`
 to find a collection of elements of `R` that is not completely contained in `p`. -/
 lemma ideal.exist_integer_multiples_not_mem
-  {R K : Type*} [integral_domain R] [is_dedekind_domain R] [field K]
+  {R K : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] [field K]
   [algebra R K] [is_fraction_ring R K]
   {p : ideal R} (hp : p ≠ ⊤) {ι : Type*} (s : finset ι) (f : ι → K)
   {j} (hjs : j ∈ s) (hjf : f j ≠ 0) :

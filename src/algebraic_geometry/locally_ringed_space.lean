@@ -115,17 +115,13 @@ instance : category LocallyRingedSpace :=
   id_comp' := by { intros, ext1, simp, },
   assoc' := by { intros, ext1, simp, }, }.
 
-lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl
 
-lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[simp] lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward g.val.base).map f.val.c := rfl
 
-lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (f ≫ g).val.c.app (op U) = g.val.c.app (op U) ≫ f.val.c.app (op $ (opens.map g.val.base).obj U)
-:= rfl
-
-lemma comp_val_c_app' {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+@[simp] lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop)
 := rfl
 

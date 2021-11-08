@@ -194,7 +194,7 @@ lemma comp_ring_hom_ext {X : LocallyRingedSpace} {R : CommRing}
 begin
   ext1, apply Spec.hom_ext,
   { intros r _,
-    rw LocallyRingedSpace.comp_val_c_app',
+    rw LocallyRingedSpace.comp_val_c_app,
     erw to_open_comp_comap_assoc,
     rw category.assoc,
     erw [to_Γ_Spec_SheafedSpace_app_spec, ←X.presheaf.map_comp],
@@ -225,7 +225,7 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.t
       erw prime_spectrum.comap_comp, rw function.comp_apply,
       erw (@local_ring.local_hom_iff_comap_closed_point
         _ _ (Y.2 _) _ _ (X.2 x) _).1 (f.2 x), refl },
-    { intro r, rw [LocallyRingedSpace.comp_val_c_app', ←category.assoc],
+    { intro r, rw [LocallyRingedSpace.comp_val_c_app, ←category.assoc],
       erw [Y.to_Γ_Spec_SheafedSpace_app_spec, f.1.c.naturality], refl },
   end }
 

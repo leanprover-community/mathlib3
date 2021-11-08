@@ -36,8 +36,6 @@ universe u
 namespace simple_graph
 variables {V : Type u} {G : simple_graph V} (M : subgraph G)
 
-namespace matching
-
 /--
 The subgraph `M` of `G` is a matching on `G` if every vertex only forms at most one edge of `M`.
 -/
@@ -80,7 +78,5 @@ begin
       use w,
       exact hvw, }, },
 end
-
-end matching
 
 end simple_graph

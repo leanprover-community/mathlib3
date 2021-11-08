@@ -147,6 +147,9 @@ by rw [relindex, subgroup_of_bot_eq_top, index_top]
 @[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
 
+@[to_additive] lemma card_mul_index : nat.card H * H.index = nat.card G :=
+by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
+
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
 nat.card_eq_fintype_card

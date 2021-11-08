@@ -82,7 +82,7 @@ abbreviation opens_map_basic_open (r : Γ' X) :=
   (opens.map X.to_Γ_Spec_base).obj (basic_open r)
 
 /-- The preimage is a basic open in `X` defined by the same element `r`. -/
-lemma to_Γ_Spec_opens_map_obj_basic_open_eq (r : Γ' X) :
+lemma to_Γ_Spec_opens_map_basic_open_eq (r : Γ' X) :
   X.opens_map_basic_open r = X.to_RingedSpace.basic_open r :=
 subtype.eq (X.to_Γ_Spec_preim_basic_open_eq r)
 
@@ -94,7 +94,7 @@ abbreviation to_opens_map_basic_open (r : Γ' X) :=
 lemma is_unit_res_opens_map_basic_open (r : Γ' X) :
   is_unit (X.to_opens_map_basic_open r r) :=
 by { have h := X.to_RingedSpace.is_unit_res_basic_open r,
-     rw ← to_Γ_Spec_opens_map_obj_basic_open_eq at h, exact h }
+     rw ← to_Γ_Spec_opens_map_basic_open_eq at h, exact h }
 
 /-- Define the unit as a sheaf hom on individual basic opens. -/
 def to_Γ_Spec_c_app (r : Γ' X) := CommRing.of_hom $

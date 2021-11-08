@@ -251,7 +251,7 @@ instance semiring.to_module [semiring R] : module R R :=
 
 /-- Like `semiring.to_module`, but multiplies on the right. -/
 @[priority 910] -- see Note [lower instance priority]
-instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
+instance semiring.to_opposite_module [semiring R] : module Rᵐᵒᵖ R :=
 { smul_add := λ r x y, add_mul _ _ _,
   add_smul := λ r x y, mul_add _ _ _,
   ..monoid_with_zero.to_opposite_mul_action_with_zero R}

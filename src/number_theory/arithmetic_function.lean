@@ -366,9 +366,9 @@ end
 theorem coe_mul_zeta_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
   (f * ζ) x = ∑ i in divisors x, f i :=
 begin
-  apply opposite.op_injective,
+  apply mul_opposite.op_injective,
   rw [op_sum],
-  convert @coe_zeta_mul_apply Rᵒᵖ _ { to_fun := opposite.op ∘ f, map_zero' := by simp} x,
+  convert @coe_zeta_mul_apply Rᵐᵒᵖ _ { to_fun := mul_opposite.op ∘ f, map_zero' := by simp} x,
   rw [mul_apply, mul_apply, op_sum],
   conv_lhs { rw ← map_swap_divisors_antidiagonal, },
   rw sum_map,

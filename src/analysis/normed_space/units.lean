@@ -263,7 +263,7 @@ end
 end normed_ring
 
 namespace units
-open opposite filter normed_ring
+open mul_opposite filter normed_ring
 
 /-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
 embedding in `R × R`) to `R` is an open map. -/
@@ -274,7 +274,7 @@ begin
   rw [mem_map, mem_nhds_induced],
   rintros ⟨t, ht, hts⟩,
   obtain ⟨u, hu, v, hv, huvt⟩ :
-    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
+    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (mul_opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
   { simpa [embed_product, mem_nhds_prod_iff] using ht },
   have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
   { refine inter_mem (inter_mem hu _) (units.nhds x),

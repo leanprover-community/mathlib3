@@ -37,7 +37,7 @@ open_locale big_operators
 universes u v w
 
 /-- A sesquilinear form over a module  -/
-structure sesq_form (R : Type u) (M : Type v) [ring R] (I : R ≃+* Rᵒᵖ)
+structure sesq_form (R : Type u) (M : Type v) [ring R] (I : R ≃+* Rᵐᵒᵖ)
   [add_comm_group M] [module R M] :=
 (sesq : M → M → R)
 (sesq_add_left : ∀ (x y z : M), sesq (x + y) z = sesq x z + sesq y z)
@@ -49,7 +49,7 @@ namespace sesq_form
 
 section general_ring
 variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+variables {I : R ≃+* Rᵐᵒᵖ} {S : sesq_form R M I}
 
 instance : has_coe_to_fun (sesq_form R M I) (λ _, M → M → R) := ⟨sesq⟩
 
@@ -204,7 +204,7 @@ end general_ring
 section comm_ring
 
 variables {R : Type*} [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {J : R ≃+* Rᵒᵖ} (F : sesq_form R M J) (f : M → M)
+  {J : R ≃+* Rᵐᵒᵖ} (F : sesq_form R M J) (f : M → M)
 
 instance to_module : module R (sesq_form R M J) :=
 { smul := λ c S,
@@ -230,7 +230,7 @@ section is_domain
 
 variables {R : Type*} [ring R] [is_domain R]
   {M : Type v} [add_comm_group M] [module R M]
-  {K : R ≃+* Rᵒᵖ} {G : sesq_form R M K}
+  {K : R ≃+* Rᵐᵒᵖ} {G : sesq_form R M K}
 
 theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
   (is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
@@ -255,7 +255,7 @@ begin
     { exfalso,
       -- `map_eq_zero_iff` doesn't fire here even if marked as a simp lemma, probably bcecause
       -- different instance paths
-      simp only [opposite.unop_eq_zero_iff] at H,
+      simp only [mul_opposite.unop_eq_zero_iff] at H,
       exact ha (K.map_eq_zero_iff.mp H), },
     { exact H }}
 end
@@ -269,7 +269,7 @@ namespace refl_sesq_form
 open refl_sesq_form sesq_form
 
 variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+variables {I : R ≃+* Rᵐᵒᵖ} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (S : sesq_form R M I) : Prop := ∀ (x y : M), S x y = 0 → S y x = 0
@@ -288,7 +288,7 @@ namespace sym_sesq_form
 open sym_sesq_form sesq_form
 
 variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+variables {I : R ≃+* Rᵐᵒᵖ} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is symmetric -/
 def is_sym (S : sesq_form R M I) : Prop := ∀ (x y : M), (I (S x y)).unop = S y x
@@ -310,7 +310,7 @@ namespace alt_sesq_form
 open alt_sesq_form sesq_form
 
 variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+variables {I : R ≃+* Rᵐᵒᵖ} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (S : sesq_form R M I) : Prop := ∀ (x : M), S x x = 0

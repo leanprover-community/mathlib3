@@ -229,7 +229,9 @@ e.left_inv x
 
 @[simp] theorem self_comp_symm (e : α ≃ β) : e ∘ e.symm = id := funext e.apply_symm_apply
 
-@[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
+@[simp] lemma symm_trans (f : α ≃ β) (g : β ≃ γ) : (f.trans g).symm = g.symm.trans f.symm := rfl
+
+lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
   (f.trans g).symm a = f.symm (g.symm a) := rfl
 
 -- The `simp` attribute is needed to make this a `dsimp` lemma.
@@ -273,9 +275,9 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
-@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
+@[simp] theorem symm_trans_self (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
 
-@[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
+@[simp] theorem self_trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
 
 lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
   (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=

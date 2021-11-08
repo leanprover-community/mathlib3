@@ -27,7 +27,7 @@ well as the expected implementations of tropical addition and tropical multiplic
 The tropical structure relies on `has_top` and `min`. For the max-tropical numbers, use
 `order_dual R`.
 
-Inspiration was drawn from the implementation of `additive`/`multiplicative`/`opposite`,
+Inspiration was drawn from the implementation of `additive`/`multiplicative`,
 where a type synonym is created with some barebones API, and quickly made irreducible.
 
 Algebraic structures are provided with as few typeclass assumptions as possible, even though

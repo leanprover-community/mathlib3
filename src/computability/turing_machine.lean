@@ -2036,9 +2036,7 @@ theorem add_bottom_map (L) : (add_bottom L).map ⟨prod.snd, rfl⟩ = L :=
 begin
   simp only [add_bottom, list_blank.map_cons]; convert list_blank.cons_head_tail _,
   generalize : list_blank.tail L = L',
-  refine L'.induction_on _, intro l, simp,
-  rw (_ : _ ∘ _ = id), {simp},
-  funext a, refl
+  refine L'.induction_on (λ l, _), simp
 end
 
 theorem add_bottom_modify_nth (f : (∀ k, option (Γ k)) → (∀ k, option (Γ k))) (L n) :

@@ -154,6 +154,13 @@ mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
   rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
 
+lemma is_complement'.sup_eq_top (h : subgroup.is_complement' H K) : H ⊔ K = ⊤ :=
+begin
+  refine top_le_iff.mp (λ g hg, _),
+  obtain ⟨⟨h, k⟩, rfl⟩ := h.2 g,
+  exact subgroup.mul_mem_sup h.2 k.2,
+end
+
 lemma is_complement'.card_mul [fintype G] [fintype H] [fintype K] (h : is_complement' H K) :
   fintype.card H * fintype.card K = fintype.card G :=
 (fintype.card_prod _ _).symm.trans (fintype.card_of_bijective h)

@@ -239,7 +239,7 @@ begin
   rw [vec_mul_vec_eq, matrix.to_lin'_mul],
   refine le_trans (rank_comp_le1 _ _) _,
   refine le_trans (rank_le_domain _) _,
-  rw [dim_fun', ← cardinal.lift_eq_nat_iff.mpr (cardinal.fintype_card unit), cardinal.mk_unit],
+  rw [dim_fun', ← cardinal.lift_eq_nat_iff.mpr (cardinal.mk_fintype unit), cardinal.mk_unit],
   exact le_of_eq (cardinal.lift_one)
 end
 

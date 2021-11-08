@@ -283,9 +283,9 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 variable {α}
 
 /-- In a separable space, a family of nonempty disjoint open sets is countable. -/
-lemma countable_of_is_open_of_disjoint [separable_space α] {β : Type*}
-  (s : β → set α) {a : set β} (ha : ∀ i ∈ a, is_open (s i)) (h'a : ∀ i ∈ a, (s i).nonempty)
-  (h : a.pairwise (disjoint on s)) :
+lemma _root_.set.pairwise_disjoint.countable_of_is_open [separable_space α] {ι : Type*}
+  {s : ι → set α} {a : set ι} (h : a.pairwise_disjoint s) (ha : ∀ i ∈ a, is_open (s i))
+  (h'a : ∀ i ∈ a, (s i).nonempty) :
   countable a :=
 begin
   rcases eq_empty_or_nonempty a with rfl|H, { exact countable_empty },
@@ -312,14 +312,11 @@ begin
 end
 
 /-- In a separable space, a family of disjoint sets with nonempty interiors is countable. -/
-lemma countable_of_nonempty_interior_of_disjoint [separable_space α] {β : Type*} (s : β → set α)
-  {a : set β} (ha : ∀ i ∈ a, (interior (s i)).nonempty) (h : a.pairwise (disjoint on s)) :
+lemma _root_.set.pairwise_disjoint.countable_of_nonempty_interior [separable_space α] {ι : Type*}
+  {s : ι → set α} {a : set ι} (h : a.pairwise_disjoint s)
+  (ha : ∀ i ∈ a, (interior (s i)).nonempty) :
   countable a :=
-begin
-  have : a.pairwise (disjoint on (λ i, interior (s i))) :=
-    pairwise_disjoint_on_mono h (λ i hi, interior_subset),
-  exact countable_of_is_open_of_disjoint (λ i, interior (s i)) (λ i hi, is_open_interior) ha this
-end
+(h.mono $ λ i, interior_subset).countable_of_is_open (λ i hi, is_open_interior) ha
 
 end topological_space
 

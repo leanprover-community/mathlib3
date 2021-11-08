@@ -190,7 +190,7 @@ end
 
 /-- An equivalence between the indefinite and definite orthogonal Lie algebras, over a ring
 containing a square root of -1. -/
-noncomputable def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ⁅R⁆ so (p ⊕ q) R :=
+def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ⁅R⁆ so (p ⊕ q) R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv
     (indefinite_diagonal p q R) (Pso p q R i) (invertible_Pso p q R hi)).trans,

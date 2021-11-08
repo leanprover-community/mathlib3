@@ -1,6 +1,56 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
+-/
 import measure_theory.measure.measure_space_def
 
 /-!
+# Null measurable sets and complete measures
+
+## Main definitions
+
+### Null measurable sets and functions
+
+A set `s : set α` is called *null measurable* (`measure_theory.null_measurable_set`) if it satisfies
+any of the following equivalent conditions:
+
+* there exists a measurable set `t` such that `s =ᵐ[μ] t` (this is used as a definition);
+* `measure_theory.to_measurable μ s =ᵐ[μ] s`;
+* there exists a measurable subset `t ⊆ s` such that `t =ᵐ[μ] s` (in this case the latter equality
+  means that `μ (s \ t) = 0`);
+* `s` can be represented as a union of a measurable set and a set of measure zero;
+* `s` can be represented as a difference of a measurable set and a set of measure zero.
+
+Null measurable sets form a σ-algebra that is registered as a `measurable_space` instance on
+`measure_theory.null_measurable_space α μ`. We also say that `f : α → β` is
+`measure_theory.null_measurable` if the preimage of a measurable set is a null measurable set.
+In other words, `f : α → β` is null measurable if it is measurable as a function
+`measure_theory.null_measurable_space α μ → β`.
+
+### Complete measures
+
+We say that a measure `μ` is complete w.r.t. the `measurable_space α` σ-algebra (or the σ-algebra is
+complete w.r.t measure `μ`) if every set of measure zero is measurable. In this case all null
+measurable sets and functions are measurable.
+
+For each measure `μ`, we define `measure_theory.measure.completion μ` to be the same measure
+interpreted as a measure on `measure_theory.null_measurable_space α μ` and prove that this is a
+complete measure.
+
+## Implementation notes
+
+We define `measure_theory.null_measurable_set` as `@measurable_set (null_measurable_space α μ) _` so
+that theorems about `measurable_set`s like `measurable_set.union` can be applied to
+`null_measurable_set`s. However, these lemmas output terms of the same form
+`@measurable_set (null_measurable_space α μ) _ _`. While this is definitionally equal to the
+expected output `null_measurable_set s μ`, it looks different and may be misleading. So we copy all
+standard lemmas about measurable sets to the `measure_theory.null_measurable_set` namespace and fix
+the output type.
+
+## Tags
+
+measurable, measure, null measurable, completion
 -/
 
 open filter set encodable
@@ -10,6 +60,7 @@ variables {ι α β γ : Type*}
 namespace measure_theory
 
 /-- A type tag for `α` with `measurable_set` given by `null_measurable_set`. -/
+@[nolint unused_arguments]
 def null_measurable_space (α : Type*) [measurable_space α] (μ : measure α . volume_tac) : Type* := α
 
 section
@@ -251,6 +302,8 @@ section null_measurable
 variables [measurable_space α] [measurable_space β] [measurable_space γ]
   {f : α → β} {μ : measure α}
 
+/-- A function `f : α → β` is null measurable if the preimage of a measurable set is a null
+measurable set. -/
 def null_measurable (f : α → β) (μ : measure α . volume_tac) : Prop :=
 ∀ ⦃s : set β⦄, measurable_set s → null_measurable_set (f ⁻¹' s) μ
 

@@ -8,6 +8,10 @@ import analysis.inner_product_space.dual
 import tactic.by_contra
 import analysis.normed_space.dual
 
+/-!
+# Karlsson's proof of the existence of an asymptotic vector for semicontractions
+-/
+
 noncomputable theory
 open_locale topological_space
 open filter normed_space metric
@@ -172,18 +176,18 @@ begin
 end
 
 lemma exists_tendsto_div :
-  ∃ (v : E), tendsto (λ (n : ℕ), ((1 : ℝ) / n) • f^[n] 0) at_top (𝓝 v) :=
+  ∃ (v : E), tendsto (λ (n : ℕ), (1 / (n : ℝ)) • (f^[n] 0)) at_top (𝓝 v) :=
 begin
   obtain ⟨v₀, v₀_norm, h₀⟩ : ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
     h.exists_asymp_vector,
-  refine ⟨h.l • v₀, _⟩,
+  let v := h.l • v₀,
+  use v,
   have A : ∀ᶠ (n : ℕ) in at_top,
-    ∥(1 / (n : ℝ)) • (f^[n] 0) - h.l • v₀∥^2 ≤ (h.u n / n)^2 - h.l^2,
-  sorry,
-  /-{ apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
+    ∥(1 / (n : ℝ)) • (f^[n] 0) - v∥^2 ≤ (h.u n / n)^2 - h.l^2,
+  { apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
     have n_ne_zero : n ≠ 0 := (zero_lt_one.trans_le hn).ne',
-    calc ∥(1 / (n : ℝ)) • (f^[n] 0) - h.l • v₀∥ ^ 2 =
-    ∥(1 / (n : ℝ)) • (f^[n] 0)∥^2 - 2 * ⟪(1 / (n : ℝ)) • (f^[n] 0), h.l • v₀⟫ + ∥h.l • v₀∥^2 :
+    calc ∥(1 / (n : ℝ)) • (f^[n] 0) - v∥ ^ 2 =
+    ∥(1 / (n : ℝ)) • (f^[n] 0)∥^2 - 2 * ⟪(1 / (n : ℝ)) • (f^[n] 0), v⟫ + ∥v∥^2 :
       norm_sub_sq_real
     ... = (h.u n / n)^2 - 2 * h.l / n * ⟪v₀, (f^[n] 0)⟫ + h.l^2 * ∥v₀∥^2 :
        begin
@@ -201,17 +205,16 @@ begin
         { refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
           exact pow_le_pow_of_le_left (norm_nonneg _) v₀_norm _ }
       end
-    ... = (h.u n / n)^2 - h.l^2 : by { field_simp [n_ne_zero], ring } },-/
+    ... = (h.u n / n)^2 - h.l^2 : by { field_simp [n_ne_zero], ring } },
   have B : tendsto (λ (n : ℕ), (h.u n / n)^2 - h.l^2) at_top (𝓝 (h.l^2 - h.l^2)) :=
     (h.tendsto_lim.pow 2).sub tendsto_const_nhds,
-  have : tendsto (λ (n : ℕ), ∥(1 / (n : ℝ)) • (f^[n] 0) - h.l • v₀∥^2) at_top (𝓝 0),
+  have C : tendsto (λ (n : ℕ), ∥(1 / (n : ℝ)) • (f^[n] 0) - v∥^2) at_top (𝓝 0),
   { rw [sub_self] at B,
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds B _ A,
     exact eventually_of_forall (λ n, by simp) },
+  have D : tendsto (λ (n : ℕ), ∥(1 / (n : ℝ)) • (f^[n] 0) - v∥) at_top (𝓝 0),
+    by { convert C.sqrt; simp },
+  exact tendsto_iff_norm_tendsto_zero.2 D,
 end
 
 end semicontraction
-
-#exit
-
--- norm_sub_sq_real

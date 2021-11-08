@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.fin.basic
+import data.fin.vec_notation
 import data.equiv.basic
 import tactic.norm_num
 
@@ -72,8 +72,9 @@ fin.preimage_apply_01_prod s t
 
 /-- The space of functions `fin 2 → α` is equivalent to `α × α`. See also `pi_fin_two_equiv` and
 `prod_equiv_pi_fin_two`. -/
-@[simps {fully_applied := ff}] def fin_two_arrow_equiv (α : Type*) : (fin 2 → α) ≃ α × α :=
-pi_fin_two_equiv (λ _, α)
+@[simps { fully_applied := ff }] def fin_two_arrow_equiv (α : Type*) : (fin 2 → α) ≃ α × α :=
+{ inv_fun := λ x, ![x.1, x.2],
+  .. pi_fin_two_equiv (λ _, α) }
 
 /-- `Π i : fin 2, α i` is order equivalent to `α 0 × α 1`. See also `order_iso.fin_two_arrow_equiv`
 for a non-dependent version. -/
@@ -85,7 +86,7 @@ def order_iso.pi_fin_two_iso (α : fin 2 → Type u) [Π i, preorder (α i)] :
 /-- The space of functions `fin 2 → α` is order equivalent to `α × α`. See also
 `order_iso.pi_fin_two_iso`. -/
 def order_iso.fin_two_arrow_iso (α : Type*) [preorder α] : (fin 2 → α) ≃o α × α :=
-order_iso.pi_fin_two_iso (λ _, α)
+{ to_equiv := fin_two_arrow_equiv α, .. order_iso.pi_fin_two_iso (λ _, α) }
 
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=

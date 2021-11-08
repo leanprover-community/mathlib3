@@ -140,7 +140,7 @@ not_congr coe_nat_eq_zero
 
 @[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
-@[simp] lemma le_coe_nat_sub (m n : ℕ) :
+lemma le_coe_nat_sub (m n : ℕ) :
   (m - n : ℤ) ≤ ↑(m - n : ℕ) :=
 begin
   by_cases h: m ≥ n,

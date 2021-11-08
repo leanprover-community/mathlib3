@@ -22,7 +22,7 @@ variables [∀i, module R (M i)] [module R M₂] [module R M₃]
 /-- Two multilinear maps indexed by `fin n` are equal if they are equal when all arguments are
 basis vectors. -/
 lemma basis.ext_multilinear_fin {f g : multilinear_map R M M₂} {ι₁ : fin n → Type*}
-  (e : Π i, basis (ι₁ i) R (M i)) (h : ∀ v : Π i, ι₁ i, f (λ i, e i (v i)) = g (λ i, e i (v i))) :
+  (e : Π i, basis (ι₁ i) R (M i)) (h : ∀ (v : Π i, ι₁ i), f (λ i, e i (v i)) = g (λ i, e i (v i))) :
   f = g :=
 begin
   unfreezingI { induction n with m hm },

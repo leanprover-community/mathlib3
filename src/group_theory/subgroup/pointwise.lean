@@ -117,61 +117,6 @@ subset_set_smul_iff₀ ha
 
 end group_with_zero
 
-section conjugate_subgroup
-/-
-* `conj_subgroup`: defines the conjugate subgroup of a subgroup `H` by an element `g : G`,
- i.e. `g H g⁻¹`.
--/
-
-open_locale pointwise
-
-/--The conjugate of a subgroup `H` of `G` by `g`  -/
-def conj_subgroup (g : G) (H : subgroup G) : subgroup G := mul_aut.conj g • H
-
-@[simp] lemma conj_mem'  (g : G)  (H : subgroup G) (h : G) :
-  (h ∈ conj_subgroup g H) ↔ ∃ x : H, g * x * g⁻¹ = h  :=
-subgroup.mem_map.trans subtype.exists'
-
-lemma conj_subgroup_mul (g h : G) (H : subgroup G) :
-  conj_subgroup (g * h) H = conj_subgroup g (conj_subgroup h H) :=
-by rw [conj_subgroup, conj_subgroup, conj_subgroup, mul_aut.conj.map_mul, mul_smul]
-
-lemma conj_map  (g : G) (H : subgroup G) :
-  subgroup.map ((mul_aut.conj g).to_monoid_hom) H  = conj_subgroup g H := rfl
-
-/--Isomorphism of a subgroup with its conjugate-/
-def conj_equiv (g : G) (H : subgroup G) : H ≃* conj_subgroup g H :=
-begin
-  rw ← conj_map,
-  apply monoid_hom.img_mul_equiv,
-end
-
-@[simp] lemma cong_subgroup_one (H : subgroup G) : conj_subgroup 1 H = H :=
-begin
-  rw conj_subgroup,
-  simp only [one_smul, monoid_hom.map_one],
-end
-
-lemma cong_sub_image (H K : subgroup G) (g : G) :
-  subgroup.map (subgroup.conj_equiv g K).to_monoid_hom (H.subgroup_of K) =
-  (subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K) :=
-begin
-  apply monoid_hom.equiv_sub_subgroup_of,
-end
-
-lemma cong_sub_image' (H K : subgroup G) (g : G) :
-  subgroup.map ((subgroup.conj_equiv g K).symm).to_monoid_hom
-  ((subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K)) = (H.subgroup_of K) :=
-begin
-   rw ← cong_sub_image H K g,
-   simp_rw subgroup.map,
-   ext,
-   simp only [mul_equiv.coe_to_monoid_hom, set.mem_image, mul_equiv.symm_apply_apply,
-   exists_eq_right, exists_exists_and_eq_and, set_like.mem_coe, subgroup.mem_mk],
-end
-
-end conjugate_subgroup
-
 end subgroup
 
 namespace add_subgroup

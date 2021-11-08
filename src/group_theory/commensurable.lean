@@ -6,7 +6,7 @@ Authors: Chris Birkbeck
 import group_theory.index
 import group_theory.quotient_group
 import group_theory.subgroup.pointwise
-
+import group_theory.group_action.conj_act
 /-!
 # Commensurability for subgroups
 
@@ -28,6 +28,8 @@ H.relindex K ≠ 0 ∧ K.relindex H ≠ 0
 
 namespace commensurable
 
+open_locale pointwise
+
 @[refl] protected lemma refl (H : subgroup G) : commensurable H H := by
  simp only [commensurable, nat.one_ne_zero, ne.def, not_false_iff, and_self, subgroup.relindex_self]
 
@@ -44,61 +46,60 @@ lemma equivalence : equivalence (@commensurable G _) :=
 ⟨commensurable.refl, λ _ _, commensurable.symm, λ _ _ _, commensurable.trans⟩
 
 /--Equivalence of `K/H ⊓ K` with `gKg⁻¹/gHg⁻¹ ⊓ gKg⁻¹`-/
-noncomputable def  quot_conj_equiv (H K : subgroup G) (g : G) :
+def  quot_conj_equiv (H K : subgroup G) (g : conj_act G) :
   quotient_group.quotient (H.subgroup_of K) ≃
-  quotient_group.quotient ((subgroup.conj_subgroup g H).subgroup_of (subgroup.conj_subgroup g K)) :=
-begin
-  have h1 := quotient_group.quot_map_inj (H.subgroup_of K) ((subgroup.conj_subgroup g H).subgroup_of
-    (subgroup.conj_subgroup g K))(subgroup.conj_equiv g K).to_monoid_hom
-    (subgroup.cong_sub_image H K g) (subgroup.conj_equiv g K).injective,
-  have h2 :=  quotient_group.quot_map_inj ((subgroup.conj_subgroup g H).subgroup_of
-    (subgroup.conj_subgroup g K)) (H.subgroup_of K) ((subgroup.conj_equiv g K).symm).to_monoid_hom
-    (subgroup.cong_sub_image' H K g) (subgroup.conj_equiv g K).symm.injective,
-  have := function.embedding.schroeder_bernstein  h1 h2,
-  apply equiv.of_bijective this.some,
-  apply this.some_spec,
-end
+  quotient_group.quotient ((g • H).subgroup_of (g • K)) :=
+quotient.congr (K.equiv_smul g).to_equiv (λ a b, by rw [←quotient.eq', ←quotient.eq',
+  quotient_group.eq', quotient_group.eq', subgroup.mem_subgroup_of, subgroup.mem_subgroup_of,
+  mul_equiv.coe_to_equiv, ←mul_equiv.map_inv, ←mul_equiv.map_mul,
+  subgroup.equiv_smul_apply_coe, subgroup.smul_mem_pointwise_smul_iff])
 
-lemma commensurable_conj {H K : subgroup G} (g : G) :
-   commensurable H K ↔ commensurable (H.conj_subgroup g) (K.conj_subgroup g) :=
+lemma commensurable_conj {H K : subgroup G} (g : conj_act G) :
+   commensurable H K ↔ commensurable (g • H) (g • K) :=
 and_congr (not_iff_not.mpr (eq.congr_left (cardinal.to_nat_congr (quot_conj_equiv H K g))))
   (not_iff_not.mpr (eq.congr_left (cardinal.to_nat_congr (quot_conj_equiv K H g))))
 
-lemma commensurable_inv (H : subgroup G) (g : G) :
-  commensurable (subgroup.conj_subgroup g H) H ↔ commensurable H (subgroup.conj_subgroup g⁻¹ H)  :=
-begin
-  rw [commensurable_conj g⁻¹ ,← subgroup.conj_subgroup_mul g⁻¹ g],
-  simp only [mul_left_inv, subgroup.cong_subgroup_one],
-end
+lemma commensurable_inv (H : subgroup G) (g : conj_act G) :
+  commensurable (g • H) H ↔ commensurable H (g⁻¹ • H) :=
+ by rw [commensurable_conj, inv_smul_smul]
+
+/--For `H` a subgroup of `G`, this is the subgroup of all elements `g : conj_aut G`
+such that `commensurable ( g • H) H`   -/
+
+def commensurator' (H : subgroup G) : subgroup (conj_act G) :=
+{ carrier := {g : conj_act G | commensurable (g • H) H},
+  one_mem' := by rw [set.mem_set_of_eq, one_smul],
+  mul_mem' := λ a b ha hb, by
+  { rw [set.mem_set_of_eq, mul_smul],
+    exact trans ((commensurable_conj a).mp hb) ha },
+  inv_mem' := λ a ha, by rwa [set.mem_set_of_eq, comm, ←commensurable_inv] }
 
 /--For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
-such that `commensurable (conj_subgroup g H) H`   -/
+such that `commensurable ( g H g⁻¹) H`   -/
 
 def commensurator (H : subgroup G) : subgroup G :=
-{ carrier := {g : G | commensurable (subgroup.conj_subgroup g H) H },
-  one_mem' := by {simp only [set.mem_set_of_eq, subgroup.cong_subgroup_one], },
-  mul_mem' := by {intros a b ha hb,
-      simp only [set.mem_set_of_eq] at *,
-      rw subgroup.conj_subgroup_mul,
-      have h1 : commensurable (subgroup.conj_subgroup a (subgroup.conj_subgroup b H))
-        (subgroup.conj_subgroup a H),
-      { have hab := trans ha ((comm ).1 hb),
-        rw (commensurable_conj a⁻¹) at hab,
-        rw ← subgroup.conj_subgroup_mul at hab,
-        simp only [mul_left_inv, subgroup.cong_subgroup_one] at hab,
-        have r1 := commensurable_inv (subgroup.conj_subgroup b H) a,
-        have hab2 := trans hb hab,
-        have r2 := r1.2 hab2,
-        apply trans r2 (trans hb (symm  ha)),},
-      exact trans h1 ha,},
-  inv_mem' := by {simp only [set.mem_set_of_eq],
-      intros x hx,
-      rw comm,
-      apply (commensurable_inv H x).1 hx,},}
+  (commensurator' H).map (conj_act.of_conj_act.to_monoid_hom)
+
+@[simp]
+lemma commensurator'_mem_iff (H : subgroup G) (g : conj_act G) :
+  g ∈ (commensurator' H) ↔ commensurable (g • H) H := iff.rfl
 
 @[simp]
 lemma commensurator_mem_iff (H : subgroup G) (g : G) :
-  g ∈ (commensurator H) ↔ commensurable (subgroup.conj_subgroup g H) H := iff.rfl
+  g ∈ (commensurator H) ↔ commensurable (conj_act.to_conj_act g • H) H :=
+begin
+rw commensurator,
+simp only [exists_prop, mul_equiv.coe_to_monoid_hom, commensurator'_mem_iff, subgroup.mem_map],
+split,
+intro h,
+obtain ⟨x, hx⟩ := h,
+rw ← hx.2,
+simp only [conj_act.to_conj_act_of_conj_act],
+apply hx.1,
+intro h,
+use conj_act.to_conj_act g,
+simp only [h, conj_act.of_conj_act_to_conj_act, eq_self_iff_true, and_self],
+end
 
 lemma commensurable_subgroups_have_eq_commensurator (H K : subgroup G) :
   commensurable H K → commensurator H = commensurator K :=

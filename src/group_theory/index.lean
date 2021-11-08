@@ -162,7 +162,7 @@ begin
 end
 
 lemma relindex_eq_zero_of_le  (h : K ≤ L) (h2 : H.relindex K = 0) : H.relindex L = 0 :=
-cardinal.to_nat_eq_zero_of_injective (quotient_group.le_quot_map_injective H L K h ) h2
+cardinal.to_nat_eq_zero_of_injective (quotient_group.le_quot_map H h ).injective h2
 
 lemma index_eq_zero_of_le {H K : subgroup G} (h : H ≤ K) (h1 : K.index = 0) : H.index = 0 :=
 by rw [←subgroup.relindex_mul_index h, h1, mul_zero]

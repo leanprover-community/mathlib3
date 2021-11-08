@@ -246,10 +246,11 @@ noncomputable def submodule_is_internal.collected_basis
       (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
       (sigma_finsupp_lequiv_dfinsupp R).symm }
 
-@[simp] lemma submodule_is_internal.collected_basis_apply
-  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
-  h.collected_basis v a = v a.1 a.2 :=
+@[simp] lemma submodule_is_internal.collected_basis_coe
+  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
+  ⇑(h.collected_basis v) = λ a : Σ i, (α i), ↑(v a.1 a.2) :=
 begin
+  funext a,
   simp only [submodule_is_internal.collected_basis, to_module, submodule_coe,
     add_equiv.to_fun_eq_coe, basis.coe_of_repr, basis.repr_symm_apply, dfinsupp.lsum_apply_apply,
     dfinsupp.map_range.linear_equiv_apply, dfinsupp.map_range.linear_equiv_symm,
@@ -259,11 +260,6 @@ begin
     sigma_finsupp_lequiv_dfinsupp_apply],
   convert dfinsupp.sum_add_hom_single (λ i, (A i).subtype.to_add_monoid_hom) a.1 (v a.1 a.2),
 end
-
-@[simp] lemma submodule_is_internal.collected_basis_coe
-  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
-  ⇑(h.collected_basis v) = λ a : Σ i, (α i), ↑(v a.1 a.2) :=
-funext $ h.collected_basis_apply v
 
 lemma submodule_is_internal.collected_basis_mem
   (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :

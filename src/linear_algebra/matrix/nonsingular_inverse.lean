@@ -97,6 +97,15 @@ det_invertible_of_left_inverse A (⅟A) (inv_of_mul_self _)
 lemma det_inv_of [invertible A] [invertible A.det] : (⅟A).det = ⅟A.det :=
 by { letI := det_invertible_of_invertible A, convert (rfl : _ = ⅟A.det) }
 
+/-- Together `matrix.det_invertible_of_invertible` and `matrix.invertible_of_det_invertible` form an
+equivalence, although both sides of the equiv are subsingleton anyway. -/
+@[simps]
+def invertible_equiv_det_invertible : invertible A ≃ invertible A.det :=
+{ to_fun := @det_invertible_of_invertible _ _ _ _ _ A,
+  inv_fun := @invertible_of_det_invertible _ _ _ _ _ A,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
 variables {A B}
 
 lemma mul_eq_one_comm : A ⬝ B = 1 ↔ B ⬝ A = 1 :=
@@ -124,8 +133,7 @@ def invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A :=
 def unit_of_det_invertible [invertible A.det] : units (matrix n n α) :=
 @unit_of_invertible _ _ A (invertible_of_det_invertible A)
 
-/-- When lowered to a prop, `matrix.det_invertible_of_invertible` and
-`matrix.invertible_of_det_invertible` form an `iff`. -/
+/-- When lowered to a prop, `matrix.invertible_equiv_det_invertible` forms an `iff`. -/
 lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
 begin
   split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),

@@ -3,7 +3,7 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import algebra.order.group
+import algebra.order.monoid
 /-!
 # Ordered Subtraction
 
@@ -49,10 +49,6 @@ in canonically ordered monoids on many specific types.
 -/
 class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
 (tsub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
-
-instance add_group.to_has_ordered_sub [add_group α] [has_le α]
-  [covariant_class α α (swap (+)) (≤)] : has_ordered_sub α :=
-⟨λ a b c, sub_le_iff_le_add⟩
 
 section has_add
 

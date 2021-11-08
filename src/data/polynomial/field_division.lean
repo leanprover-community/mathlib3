@@ -367,7 +367,7 @@ lemma dvd_C_mul (ha : a ≠ 0) : p ∣ polynomial.C a * q ↔ p ∣ q :=
 
 lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
 have p.leading_coeff ≠ 0 := mt leading_coeff_eq_zero.mp hp,
-by simp [comm_group_with_zero.coe_norm_unit this]
+by simp [comm_group_with_zero.coe_norm_unit _ this]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]

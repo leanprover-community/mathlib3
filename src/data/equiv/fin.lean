@@ -6,7 +6,6 @@ Authors: Kenny Lau
 import data.fin.basic
 import data.equiv.basic
 import tactic.norm_num
-import data.fin.vec_notation
 
 /-!
 # Equivalences for `fin n`

@@ -71,24 +71,4 @@ begin
       exact hvw, }, },
 end
 
-open_locale big_operators
-
-lemma is_perfect_degree_sum (hp: is_perfect M) [fintype V] [decidable_rel M.adj] :
-  ∑ v, M.degree v = fintype.card V :=
-begin
-  simp only [subgraph.degree, subgraph.neighbor_set],
-  rw is_perfect_iff at hp,
-  sorry,
-end
-
-lemma is_perfect_then_even_card_vertices (hp: is_perfect M)
-  [fintype V] [fintype M.edge_set] [decidable_rel M.adj]:
-  even (fintype.card V) :=
-begin
-  rw even,
-  use fintype.card M.edge_set,
-  rw ← is_perfect_degree_sum M hp,
-  simp [← sum_degrees_eq_twice_card_edges], -- breakpoint
-end
-
 end simple_graph

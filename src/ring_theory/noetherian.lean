@@ -246,8 +246,7 @@ lemma map_fg_of_fg {R S : Type*} [semiring R] [semiring S] (I : ideal R) (h : I.
 begin
   classical,
   obtain ⟨s, hs : ideal.span ↑s = _⟩ := h,
-  refine ⟨s.image f, _⟩,
-  show ideal.span _ = _,
+  refine ⟨s.image f, (_ : ideal.span _ = _)⟩,
   rw [finset.coe_image, ←ideal.map_span, hs],
 end
 

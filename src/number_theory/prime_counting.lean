@@ -9,6 +9,7 @@ import tactic.interval_cases
 import tactic.cancel_denoms
 import tactic.linarith
 import data.nat.totient
+import data.multiset.locally_finite
 
 
 /-!
@@ -89,7 +90,7 @@ begin
   funext,
   rw ext_iff,
   intro a,
-  rw [mem_Ico, mem_range],
+  -- rw [mem_Ico, mem_range],
   simp,
 end
 
@@ -127,20 +128,21 @@ begin
   by_cases a = 0,
   { simp [h], },
   { induction n,
-    -- TODO Ico 0 should simp to range
-    { simp [Ico_zero],
-      rw totient, },
+    -- TODO Ico_zero should be simp lemma?
+    { simp [Ico_zero, totient] },
     {
       rw <-n_ih,
       clear n_ih,
       rw succ_add,
+      -- Cast to multisets?
       rw Ico_succ_right_eq_insert_Ico,
       rw Ico_succ_left_eq_erase_Ico,
       rw filter_insert,
       by_cases a.coprime n_n,
       { have h_add_a : a.coprime (n_n + a), sorry,
         rw if_pos,
-        { rw finset.card_insert_of_mem, },
+        { rw finset.card_insert_of_mem,
+          rw finset.erase_filter, },
         { }, },
       -- rw Ico_succ_left,
       apply Ioo_insert_left,

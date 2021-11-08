@@ -211,23 +211,29 @@ variables (S) [semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar
 `V.restrict_scalars S` is the `S`-submodule of the `S`-module given by restriction of scalars,
 corresponding to `V`, an `R`-submodule of the original `R`-module.
 -/
-@[simps]
 def restrict_scalars (V : submodule R M) : submodule S M :=
-{ carrier := V.carrier,
+{ carrier := V,
   zero_mem' := V.zero_mem,
   smul_mem' := λ c m h, V.smul_of_tower_mem c h,
   add_mem' := λ x y hx hy, V.add_mem hx hy }
 
 @[simp]
-lemma restrict_scalars_mem (V : submodule R M) (m : M) :
-  m ∈ V.restrict_scalars S ↔ m ∈ V :=
+lemma coe_restrict_scalars (V : submodule R M) : (V.restrict_scalars S : set M) = V :=
+rfl
+
+@[simp]
+lemma restrict_scalars_mem (V : submodule R M) (m : M) : m ∈ V.restrict_scalars S ↔ m ∈ V :=
 iff.refl _
+
+@[simp]
+lemma restrict_scalars_self (V : submodule R M) : V.restrict_scalars R = V :=
+set_like.coe_injective rfl
 
 variables (R S M)
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars S : submodule R M → submodule S M) :=
-λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
+λ V₁ V₂ h, ext $ set.ext_iff.1 (set_like.ext'_iff.1 h : _)
 
 @[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule R M} :
   restrict_scalars S V₁ = restrict_scalars S V₂ ↔ V₁ = V₂ :=

@@ -491,6 +491,11 @@ begin
         ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
 end
 
+lemma convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
+  [Π i, has_scalar 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
+  convex 𝕜 (s.pi t) :=
+λ x y hx hy a b ha hb hab i hi, ht i (hx i hi) (hy i hi) ha hb hab
+
 lemma directed.convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed (⊆) s)
   (hc : ∀ ⦃i : ι⦄, convex 𝕜 (s i)) :
   convex 𝕜 (⋃ i, s i) :=

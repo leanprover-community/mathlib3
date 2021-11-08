@@ -829,7 +829,10 @@ begin
 end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
-  everywhere convergence of a sequence of functions implies the convergence of their integrals. -/
+  everywhere convergence of a sequence of functions implies the convergence of their integrals.
+  We could weaken the condition `bound_integrable` to require `has_finite_integral bound μ` instead
+  (i.e. not requiring that `bound` is measurable), but in all applications proving integrability
+  is easier. -/
 theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α → E} (bound : α → ℝ)
   (F_measurable : ∀ n, ae_measurable (F n) μ)
   (bound_integrable : integrable bound μ)
@@ -847,7 +850,7 @@ begin
     tendsto (λn, ennreal.to_real $ ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
   (tendsto_to_real zero_ne_top).comp
     (tendsto_lintegral_norm_of_dominated_convergence
-      F_measurable f_measurable bound_integrable.has_finite_integral h_bound h_lim),
+      F_measurable bound_integrable.has_finite_integral h_bound h_lim),
   -- Use the sandwich theorem
   refine squeeze_zero (λ n, norm_nonneg _) _ lintegral_norm_tendsto_zero,
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`

@@ -1205,6 +1205,9 @@ ext $ λ s hs, by simp [hs, tsum_fintype]
   (sum μ).restrict s = sum (λ i, (μ i).restrict s) :=
 ext $ λ t ht, by simp only [sum_apply, restrict_apply, ht, ht.inter hs]
 
+@[simp] lemma sum_of_empty [is_empty ι] (μ : ι → measure α) : sum μ = 0 :=
+by rw [← measure_univ_eq_zero, sum_apply _ measurable_set.univ, tsum_empty]
+
 lemma sum_congr {μ ν : ℕ → measure α} (h : ∀ n, μ n = ν n) : sum μ = sum ν :=
 by { congr, ext1 n, exact h n }
 
@@ -1331,6 +1334,8 @@ rfl.absolutely_continuous
 
 protected lemma rfl : μ ≪ μ := λ s hs, hs
 
+instance [measurable_space α] : is_refl (measure α) (≪) := ⟨λ μ, absolutely_continuous.rfl⟩
+
 @[trans] protected lemma trans (h1 : μ₁ ≪ μ₂) (h2 : μ₂ ≪ μ₃) : μ₁ ≪ μ₃ :=
 λ s hs, h1 $ h2 hs
 
@@ -1441,45 +1446,60 @@ localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in m
 
 namespace mutually_singular
 
-lemma zero_right : μ ⊥ₘ 0 :=
-⟨∅, measurable_set.empty, measure_empty, rfl⟩
-
-lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
-let ⟨i, hi, his, hit⟩ := h in
-  ⟨iᶜ, measurable_set.compl hi, hit, (compl_compl i).symm ▸ his⟩
-
-lemma zero_left : 0 ⊥ₘ μ :=
-zero_right.symm
-
-lemma add (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
+lemma mk {s t : set α} (hs : μ s = 0) (ht : ν t = 0) (hst : univ ⊆ s ∪ t) :
+  mutually_singular μ ν :=
 begin
-  obtain ⟨s, hs, hs0, hs0'⟩ := h₁,
-  obtain ⟨t, ht, ht0, ht0'⟩ := h₂,
-  refine ⟨s ∩ t, hs.inter ht, _, _⟩,
-  { simp only [pi.add_apply, add_eq_zero_iff, coe_add],
-    exact ⟨measure_mono_null (inter_subset_left s t) hs0,
-           measure_mono_null (inter_subset_right s t) ht0⟩ },
-  { rw [compl_inter, ← nonpos_iff_eq_zero],
-    refine le_trans (measure_union_le _ _) _,
-    rw [hs0', ht0', zero_add],
-    exact le_refl _ }
+  use [to_measurable μ s, measurable_set_to_measurable _ _, (measure_to_measurable _).trans hs],
+  refine measure_mono_null (λ x hx, (hst trivial).resolve_left $ λ hxs, hx _) ht,
+  exact subset_to_measurable _ _ hxs
 end
 
-lemma add_iff : ν₁ + ν₂ ⊥ₘ μ ↔ ν₁ ⊥ₘ μ ∧ ν₂ ⊥ₘ μ :=
+@[simp] lemma zero_right : μ ⊥ₘ 0 := ⟨∅, measurable_set.empty, measure_empty, rfl⟩
+
+@[symm] lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
+let ⟨i, hi, his, hit⟩ := h in ⟨iᶜ, hi.compl, hit, (compl_compl i).symm ▸ his⟩
+
+lemma comm : μ ⊥ₘ ν ↔ ν ⊥ₘ μ := ⟨λ h, h.symm, λ h, h.symm⟩
+
+@[simp] lemma zero_left : 0 ⊥ₘ μ := zero_right.symm
+
+lemma mono_ac (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≪ μ₁) (hν : ν₂ ≪ ν₁) : μ₂ ⊥ₘ ν₂ :=
+let ⟨s, hs, h₁, h₂⟩ := h in ⟨s, hs, hμ h₁, hν h₂⟩
+
+lemma mono (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≤ μ₁) (hν : ν₂ ≤ ν₁) : μ₂ ⊥ₘ ν₂ :=
+h.mono_ac hμ.absolutely_continuous hν.absolutely_continuous
+
+@[simp] lemma sum_left {ι : Type*} [encodable ι] {μ : ι → measure α} :
+  (sum μ) ⊥ₘ ν ↔ ∀ i, μ i ⊥ₘ ν :=
 begin
-  split,
-  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
-    rw [measure.add_apply, add_eq_zero_iff] at hu₁,
-    exact ⟨⟨u, hmeas, hu₁.1, hu₂⟩, u, hmeas, hu₁.2, hu₂⟩ },
-  { exact λ ⟨h₁, h₂⟩, h₁.add h₂ }
+  refine ⟨λ h i, h.mono (le_sum _ _) le_rfl, λ H, _⟩,
+  choose s hsm hsμ hsν using H,
+  refine ⟨⋂ i, s i, measurable_set.Inter hsm, _, _⟩,
+  { rw [sum_apply _ (measurable_set.Inter hsm), ennreal.tsum_eq_zero],
+    exact λ i, measure_mono_null (Inter_subset _ _) (hsμ i) },
+  { rwa [compl_Inter, measure_Union_null_iff], }
 end
 
-lemma smul (r : ℝ≥0) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=
-let ⟨s, hs, hs0, hs0'⟩ := h in
-  ⟨s, hs, by simp only [coe_nnreal_smul, pi.smul_apply, hs0, smul_zero], hs0'⟩
+@[simp] lemma sum_right {ι : Type*} [encodable ι] {ν : ι → measure α} :
+  μ ⊥ₘ sum ν ↔ ∀ i, μ ⊥ₘ ν i :=
+comm.trans $ sum_left.trans $ forall_congr $ λ i, comm
 
-lemma of_absolutely_continuous (hms : ν₂ ⊥ₘ μ) (hac : ν₁ ≪ ν₂) : ν₁ ⊥ₘ μ :=
-let ⟨u, hmeas, hu₁, hu₂⟩ := hms in ⟨u, hmeas, hac hu₁, hu₂⟩
+@[simp] lemma add_left_iff : μ₁ + μ₂ ⊥ₘ ν ↔ μ₁ ⊥ₘ ν ∧ μ₂ ⊥ₘ ν :=
+by rw [← sum_cond, sum_left, bool.forall_bool, cond, cond, and.comm]
+
+@[simp] lemma add_right_iff : μ ⊥ₘ ν₁ + ν₂ ↔ μ ⊥ₘ ν₁ ∧ μ ⊥ₘ ν₂ :=
+comm.trans $ add_left_iff.trans $ and_congr comm comm
+
+lemma add_left (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
+add_left_iff.2 ⟨h₁, h₂⟩
+
+lemma add_right (h₁ : μ ⊥ₘ ν₁) (h₂ : μ ⊥ₘ ν₂) : μ ⊥ₘ ν₁ + ν₂ :=
+add_right_iff.2 ⟨h₁, h₂⟩
+
+lemma smul (r : ℝ≥0∞) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=
+h.mono_ac (absolutely_continuous.rfl.smul r) absolutely_continuous.rfl
+
+lemma smul_nnreal (r : ℝ≥0) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ := h.smul r
 
 end mutually_singular
 

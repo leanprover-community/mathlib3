@@ -329,15 +329,22 @@ lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
   (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
 by rw [prod_span, set.finset_prod_singleton]
 
+lemma finset_inf_span_singleton {ι : Type*} (s : finset ι) (I : ι → R)
+  (hI : set.pairwise ↑s (is_coprime on I)) :
+  (s.inf $ λ i, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
+begin
+  ext x,
+  simp only [submodule.mem_finset_inf, ideal.mem_span_singleton],
+  exact ⟨finset.prod_dvd_of_coprime hI,
+    λ h i hi, (finset.dvd_prod_of_mem _ hi).trans h⟩
+end
+
 lemma infi_span_singleton {ι : Type*} [fintype ι] (I : ι → R)
   (hI : ∀ i j (hij : i ≠ j), is_coprime (I i) (I j)):
   (⨅ i, ideal.span ({I i} : set R)) = ideal.span {∏ i, I i} :=
 begin
-  letI := classical.dec_eq ι,
-  ext x,
-  simp only [submodule.mem_infi, ideal.mem_span_singleton],
-  exact ⟨fintype.prod_dvd_of_coprime hI,
-    λ h i, dvd_trans (finset.dvd_prod_of_mem _ (finset.mem_univ _)) h⟩
+  rw [← finset.inf_univ_eq_infi, finset_inf_span_singleton],
+  rwa [finset.coe_univ, set.pairwise_univ]
 end
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=

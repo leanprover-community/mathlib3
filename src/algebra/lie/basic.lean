@@ -132,11 +132,11 @@ add_monoid_hom.map_nsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie 
 @[simp] lemma lie_nsmul (n : ℕ) : ⁅x, n • m⁆ = n • ⁅x, m⁆ :=
 add_monoid_hom.map_nsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
 
-@[simp] lemma gsmul_lie (a : ℤ) : ⁅a • x, m⁆ = a • ⁅x, m⁆ :=
-add_monoid_hom.map_gsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _
+@[simp] lemma zsmul_lie (a : ℤ) : ⁅a • x, m⁆ = a • ⁅x, m⁆ :=
+add_monoid_hom.map_zsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _
 
-@[simp] lemma lie_gsmul (a : ℤ) : ⁅x, a • m⁆ = a • ⁅x, m⁆ :=
-add_monoid_hom.map_gsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
+@[simp] lemma lie_zsmul (a : ℤ) : ⁅x, a • m⁆ = a • ⁅x, m⁆ :=
+add_monoid_hom.map_zsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
 
 @[simp] lemma lie_lie : ⁅⁅x, y⁆, m⁆ = ⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆ :=
 by rw [leibniz_lie, add_sub_cancel]
@@ -145,7 +145,7 @@ lemma lie_jacobi : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆�
 by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie], abel, }
 
 instance lie_ring.int_lie_algebra : lie_algebra ℤ L :=
-{ lie_smul := λ n x y, lie_gsmul x y n, }
+{ lie_smul := λ n x y, lie_zsmul x y n, }
 
 instance : lie_ring_module L (M →ₗ[R] N) :=
 { bracket     := λ x f,

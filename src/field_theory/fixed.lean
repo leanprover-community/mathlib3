@@ -253,7 +253,7 @@ begin
 end
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=
-is_noetherian.iff_dim_lt_omega.2 $
+is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
 lemma finrank_le_card : finrank (fixed_points.subfield G F) F ≤ fintype.card G :=

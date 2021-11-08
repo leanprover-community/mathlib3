@@ -55,7 +55,7 @@ zip_with_nil_right _ l
 @[simp] theorem length_zip_with (f : α → β → γ) : ∀  (l₁ : list α) (l₂ : list β),
    length (zip_with f l₁ l₂) = min (length l₁) (length l₂)
 | []      l₂      := rfl
-| l₁      []      := by simp only [length, nat.min_zero, zip_with_nil_right]
+| l₁      []      := by simp only [length, min_zero, zip_with_nil_right]
 | (a::l₁) (b::l₂) := by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
 
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),

@@ -333,7 +333,8 @@ lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
   fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
-  have h : is_integral K x := is_integral_of_is_scalar_tower x (is_integral_of_noetherian hFE x),
+  have h : is_integral K x := is_integral_of_is_scalar_tower x
+    (is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
   { apply minpoly.dvd,

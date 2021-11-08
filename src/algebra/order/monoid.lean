@@ -883,6 +883,14 @@ instance [linear_ordered_comm_monoid α] :
 
 end order_dual
 
+section linear_ordered_cancel_add_comm_monoid
+variables [linear_ordered_cancel_add_comm_monoid α]
+
+lemma lt_or_lt_of_add_lt_add {a b m n : α} (h : m + n < a + b) : m < a ∨ n < b :=
+by { contrapose! h, exact add_le_add h.1 h.2 }
+
+end linear_ordered_cancel_add_comm_monoid
+
 section ordered_cancel_add_comm_monoid
 
 variable [ordered_cancel_add_comm_monoid α]

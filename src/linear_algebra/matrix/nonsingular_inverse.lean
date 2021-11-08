@@ -62,10 +62,10 @@ variables (A : matrix n n α) (B : matrix n n α)
 section invertible
 
 /-- A copy of `inv_of_mul_self` using `⬝` not `*`. -/
-protected lemma inv_of_mul_self [invertible A] : ⅟A ⬝ A = 1 := inv_of_mul_self A
+@[simp] protected lemma inv_of_mul_self [invertible A] : ⅟A ⬝ A = 1 := inv_of_mul_self A
 
 /-- A copy of `mul_inv_of_self` using `⬝` not `*`. -/
-protected lemma mul_inv_of_self [invertible A] : A ⬝ ⅟A = 1 := mul_inv_of_self A
+@[simp] protected lemma mul_inv_of_self [invertible A] : A ⬝ ⅟A = 1 := mul_inv_of_self A
 
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
 def invertible_of_det_invertible [invertible A.det] : invertible A :=

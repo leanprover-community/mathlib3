@@ -99,7 +99,7 @@ begin
   rw [finite_def, fg_def] at hM ⊢,
   obtain ⟨S, hSfin, hSgen⟩ := hM,
   refine ⟨S, hSfin, eq_top_iff.2 _⟩,
-  have := submodule.span_le_restrict_scalars R A M S,
+  have := submodule.span_le_restrict_scalars R A S,
   rw hSgen at this,
   exact this
 end

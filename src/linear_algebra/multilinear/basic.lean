@@ -646,6 +646,16 @@ instance [module R' M₂] [smul_comm_class A R' M₂] : module R' (multilinear_m
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
+instance [no_zero_smul_divisors R' M₃] : no_zero_smul_divisors R' (multilinear_map A M₁ M₃) :=
+⟨λ c f h, begin
+  rw or_iff_not_imp_right,
+  intro hf,
+  simp_rw [ext_iff, not_forall, zero_apply] at hf,
+  rcases hf with ⟨x, hx⟩,
+  rw ext_iff at h,
+  simpa [hx] using h x
+end⟩
+
 variables (M₂ M₃ R' A)
 
 /-- `multilinear_map.dom_dom_congr` as a `linear_equiv`. -/

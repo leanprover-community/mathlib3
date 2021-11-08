@@ -775,7 +775,8 @@ variables [module R' N₁] [module R' N₂]
 
 /-- Two alternating maps indexed by a `fintype` are equal if they are equal when all arguments
 are basis vectors. -/
-lemma basis.ext_alternating {f g : alternating_map R' N₁ N₂ ι} (e : basis ι₁ R' N₁) (h : ∀ v : ι → ι₁, f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
+lemma basis.ext_alternating {f g : alternating_map R' N₁ N₂ ι} (e : basis ι₁ R' N₁)
+  (h : ∀ v : ι → ι₁, f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
 begin
   rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
   exact basis.ext_multilinear e h

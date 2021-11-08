@@ -41,14 +41,27 @@ set_option extends_priority 200 /- control priority of
 `instance [algebra R A] : has_scalar R A` -/
 
 /--
-Given a commutative (semi)ring `R`, an `R`-algebra is a (possibly noncommutative)
-(semi)ring `A` endowed with a morphism of rings `R →+* A` which lands in the
-center of `A`.
+Given a commutative (semi)ring `R`, an `R`-algebra is a (possibly noncommutative) (semi)ring `A`
+endowed with a morphism of rings `R →+* A` denoted `algebra_map R A` which lands in the center of
+`A`.
 
-For convenience, this typeclass extends `has_scalar R A` where the scalar action must
-agree with left multiplication by the image of the structure morphism.
+Alternatively, an `R`-algebra is an `R`-module over a semiring `A` such that the action associates
+with multiplication as `r • (a₁ * a₂) = (r • a₁) * a₂ = a₁ * (r • a₂)`.
 
-Given an `algebra R A` instance, the structure morphism `R →+* A` is denoted `algebra_map R A`.
+For convenience, we define `algebra R A` as the first case, but ensure compatibility with the second
+by having this typeclass extend `has_scalar R A` where the scalar action must agree with left
+multiplication by the image of the structure morphism (that is `r • x` = `algebra_map R A r * x`).
+
+For algebras in more general settings, such as when `A` has no `1` or is not associative, use:
+```lean
+[module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+```
+instead of
+```lean
+[algebra R A]
+```
+as the former places weaker contraints on the typeclasses that `R` and `A` must individually
+satisfy. The lemmas `mul_smul_comm` and `smul_mul_assoc` will work in both cases.
 -/
 @[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]

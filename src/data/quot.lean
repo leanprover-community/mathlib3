@@ -180,6 +180,12 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
 
+@[simp] lemma quotient.lift₂_mk {α : Sort*} {β : Sort*} {γ : Sort*} [setoid α] [setoid β]
+  (f : α → β → γ)
+  (h : ∀ (a₁ : α) (a₂ : β) (b₁ : α) (b₂ : β), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂)
+  (a : α) (b : β) :
+  quotient.lift₂ f h (quotient.mk a) (quotient.mk b) = f a b := rfl
+
 @[simp] lemma quotient.lift_on_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift_on (quotient.mk x) f h = f x := rfl

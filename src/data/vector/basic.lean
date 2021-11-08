@@ -88,6 +88,10 @@ begin
   simpa only [to_list_of_fn] using list.of_fn_nth_le _
 end
 
+/-- The natural equivalence between length-`n` vectors and functions from `fin n`. -/
+def _root_.equiv.vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
+
 theorem nth_tail (x : vector α n) (i) :
   x.tail.nth i = x.nth ⟨i.1 + 1, lt_tsub_iff_right.mp i.2⟩ :=
 by { rcases x with ⟨_|_, h⟩; refl, }

@@ -1,5 +1,16 @@
 /-
-This is an attempt to design proper graph colorings by using isomorphisms
+Copyright (c) 2020 Arthur Paulino. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Arthur Paulino, Kyle Miller
+-/
+
+import combinatorics.simple_graph.subgraph
+import data.nat.lattice
+
+/-!
+# Graph Coloring
+
+This approach to graph colorings uses homomorphisms to complete graphs.
 
 #TODO: gather material from:
 * https://github.com/leanprover-community/mathlib/blob/simple_graph_matching/src/combinatorics/simple_graph/coloring.lean
@@ -7,9 +18,6 @@ This is an attempt to design proper graph colorings by using isomorphisms
 
 #TODO: vertex / edge coloring duality
 -/
-
-import combinatorics.simple_graph.basic
-import data.nat.lattice
 
 universes u v
 
@@ -21,6 +29,12 @@ abbreviation proper_coloring (α : Type v) := G →g complete_graph α
 variables {G} {α : Type v} (C : G.proper_coloring α)
 
 def proper_coloring.color (v : V) : α := C v
+
+def proper_coloring.used_colors : set α := set.range C.color
+
+-- maybe there's a smoother definition of the chromatic number using the minimal size among
+-- proper colorings
+def proper_coloring.size [fintype C.used_colors] : ℕ := fintype.card C.used_colors
 
 lemma proper_coloring.valid (v w : V) (h : G.adj v w) : C.color v ≠ C.color w :=
   C.map_rel h
@@ -34,7 +48,7 @@ def colorable (G : simple_graph V) (n : ℕ) : Prop :=
 ∃ (α : Type*) [fintype α] (C : G.proper_coloring α), by exactI fintype.card α ≤ n
 
 /-- If `G` isn't colorable with finitely many colors, this will be 0. -/
-noncomputable def chromatic_number (G : simple_graph V) :=
+noncomputable def chromatic_number (G : simple_graph V) : ℕ :=
   Inf { n : ℕ | G.colorable n }
 
 def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
@@ -42,7 +56,7 @@ def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph
   inj' := f.inj',
   map_rel_iff' := by simp }
 
-lemma colorable_if_nonempty_fin_coloring (G : simple_graph V) (n : ℕ) :
+lemma colorable_iff_nonempty_fin_coloring (G : simple_graph V) (n : ℕ) :
   G.colorable n ↔ nonempty (G.proper_coloring (fin n)) :=
 begin
   split,
@@ -55,10 +69,10 @@ begin
       (complete_graph.of_embedding equiv.ulift.symm.to_embedding).to_hom.comp C, by simp⟩, },
 end
 
-lemma colorable_if_nonempty_fin_coloring' (G : simple_graph V) (n : ℕ) :
+lemma colorable_iff_nonempty_fin_coloring' (G : simple_graph V) (n : ℕ) :
   G.colorable n ↔ ∃ (C : G.proper_coloring ℕ), ∀ v, C.color v < n :=
 begin
-  rw colorable_if_nonempty_fin_coloring,
+  rw colorable_iff_nonempty_fin_coloring,
   split,
   { rintro ⟨C⟩,
     let f := complete_graph.of_embedding (fin.coe_embedding n).to_embedding,
@@ -73,20 +87,40 @@ begin
     exact C.valid v w hvw, },
 end
 
-lemma proper_coloring.chromatic_number_le [fintype α] (C : G.proper_coloring α) :
+-- may eliminate `proper_coloring.size`'s requirement if we have a finite number of colors
+lemma fin_colors_then_fin_size [fintype α] (C : G.proper_coloring α) : fintype C.used_colors :=
+begin
+  sorry
+end
+
+lemma chromatic_number_le [fintype α] (C : G.proper_coloring α) :
   G.chromatic_number ≤ fintype.card α :=
 begin
-  sorry
+  rw chromatic_number,
+  apply cInf_le,
+  { sorry, },
+  { sorry, },
 end
 
-lemma proper_coloring.zero_le_chromatic_number [nonempty V] [fintype α] (C : G.proper_coloring α) :
-  0 < G.chromatic_number :=
+lemma chromatic_number_lower_bound (G' : simple_graph V) (h : G ≤ G') :
+  G.chromatic_number ≤ G'.chromatic_number :=
 begin
   sorry
 end
 
-lemma proper_coloring.chromatic_number_minimal [fintype α] (C : G.proper_coloring α)
-  (h : ∀ (C' : G.proper_coloring α), set.range C'.color = set.univ) :
+lemma zero_le_chromatic_number [nonempty V] [fintype α] (C : G.proper_coloring α) :
+  0 < G.chromatic_number :=
+begin
+  rw [nat.lt_iff_add_one_le, chromatic_number, zero_add],
+  let v := classical.arbitrary V, -- coloring this vertex requires at least 1 color
+  apply le_cInf,
+  { sorry, },
+  { intros n hn,
+    sorry, },
+end
+
+lemma chromatic_number_minimal [fintype α] (C : G.proper_coloring α)
+  (h : ∀ (C' : G.proper_coloring α), C'.used_colors = set.univ) :
   G.chromatic_number = fintype.card α :=
 begin
   sorry

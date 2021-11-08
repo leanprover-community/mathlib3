@@ -473,30 +473,14 @@ have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
   left_inv := λ ⟨a, ha⟩, subtype.eq $ show _ * _ = a, by simp,
   right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, show (_, _) = _, by simp [h hx ha] }
 
-/--For subgroups `H`, `K`, `L` of `G`, with `L ≤ K` it defines the map `L/(H ⊓ L) → K/(H ⊓ K)`   -/
-noncomputable def  le_quot_map (H K L : subgroup α) (h : L ≤ K) :
-  quotient_group.quotient (H.subgroup_of L) → quotient_group.quotient (H.subgroup_of K) :=
-  λ x, quotient_group.mk (⟨x.out', by
-    {let y := x.out',
-    have := y.property,
-    simp only [subgroup.mem_inf, subtype.val_eq_coe] at this,
-    simp_rw ← y,
-    exact h this, }⟩ : K)
-
-lemma le_quot_map_injective (H K L : subgroup α) (h : L ≤ K) :
-  function.injective (le_quot_map H K L h) :=
-begin
-  rw function.injective ,
-  rw le_quot_map,
-  intros a b,
-  intro hab,
-  have ha :=  quotient.out_eq' a,
-  have hb :=  quotient.out_eq' b,
-  rw ← ha,
-  rw ← hb,
-  simp only [quotient.eq'] at *,
-  convert hab,
-end
+/-- If `K ≤ L`, then there is an embedding `K/(H ⊓ K) ↪ L/(H ⊓ L)` -/
+def le_quot_map (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
+  quotient (H.subgroup_of K) ↪ quotient (H.subgroup_of L) :=
+{ to_fun := quotient.map' (set.inclusion h) (λ a b, id),
+  inj' := by
+  { refine quotient.ind₂' (λ a b, _),
+    simp only [quotient.map'_mk', quotient.eq'],
+    exact id } }
 
 variables {G G' : Type*} [group G] [group G']
 

@@ -2293,6 +2293,14 @@ theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
 rw [card_insert_of_not_mem h]]
 
+theorem card_insert_eq_ite [decidable_eq α] {a : α} {s : finset α} :
+  card (insert a s) = if a ∈ s then card s else card s + 1 :=
+begin
+  by_cases h : a ∈ s,
+  rw [card_insert_of_mem h, if_pos h],
+  rw [card_insert_of_not_mem h, if_neg h],
+end
+
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
 
 lemma card_singleton_inter [decidable_eq α] {x : α} {s : finset α} : ({x} ∩ s).card ≤ 1 :=

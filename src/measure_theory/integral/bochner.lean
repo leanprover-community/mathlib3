@@ -829,7 +829,10 @@ begin
 end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
-  everywhere convergence of a sequence of functions implies the convergence of their integrals. -/
+  everywhere convergence of a sequence of functions implies the convergence of their integrals.
+  We could weaken the condition `bound_integrable` to require `has_finite_integral bound μ` instead
+  (i.e. not requiring that `bound` is measurable), but in all applications proving integrability
+  is easier. -/
 theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α → E} (bound : α → ℝ)
   (F_measurable : ∀ n, ae_measurable (F n) μ)
   (bound_integrable : integrable bound μ)
@@ -847,7 +850,7 @@ begin
     tendsto (λn, ennreal.to_real $ ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
   (tendsto_to_real zero_ne_top).comp
     (tendsto_lintegral_norm_of_dominated_convergence
-      F_measurable f_measurable bound_integrable.has_finite_integral h_bound h_lim),
+      F_measurable bound_integrable.has_finite_integral h_bound h_lim),
   -- Use the sandwich theorem
   refine squeeze_zero (λ n, norm_nonneg _) _ lintegral_norm_tendsto_zero,
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
@@ -1283,25 +1286,25 @@ let g := hfm.mk f in calc
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
-lemma integral_map_of_closed_embedding {β} [topological_space α] [borel_space α]
+lemma _root_.measurable_embedding.integral_map {β} {_ : measurable_space β} {f : α → β}
+  (hf : measurable_embedding f) (g : β → E) :
+  ∫ y, g y ∂(measure.map f μ) = ∫ x, g (f x) ∂μ :=
+begin
+  by_cases hgm : ae_measurable g (measure.map f μ),
+  { exact integral_map hf.measurable hgm },
+  { rw [integral_non_ae_measurable hgm, integral_non_ae_measurable],
+    rwa ← hf.ae_measurable_map_iff }
+end
+
+lemma _root_.closed_embedding.integral_map {β} [topological_space α] [borel_space α]
   [topological_space β] [measurable_space β] [borel_space β]
   {φ : α → β} (hφ : closed_embedding φ) (f : β → E) :
   ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
-begin
-  by_cases hfm : ae_measurable f (measure.map φ μ),
-  { exact integral_map hφ.continuous.measurable hfm },
-  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
-    rwa ae_measurable_comp_right_iff_of_closed_embedding hφ }
-end
+hφ.measurable_embedding.integral_map _
 
 lemma integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) :
   ∫ y, f y ∂(measure.map e μ) = ∫ x, f (e x) ∂μ :=
-begin
-  by_cases hfm : ae_measurable f (measure.map e μ),
-  { exact integral_map e.measurable hfm },
-  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
-    rwa ← ae_measurable_map_equiv_iff }
-end
+e.measurable_embedding.integral_map f
 
 @[simp] lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
@@ -1335,7 +1338,7 @@ begin
   { rw ← map_mul_left_eq_self at hμ,
     exact hμ g },
   have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
-  rw [← integral_map_of_closed_embedding h_mul, hgμ],
+  rw [← h_mul.integral_map, hgμ],
   apply_instance,
 end
 
@@ -1349,7 +1352,7 @@ begin
   { rw ← map_mul_right_eq_self at hμ,
     exact hμ g },
   have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
-  rw [← integral_map_of_closed_embedding h_mul, hgμ],
+  rw [← h_mul.integral_map, hgμ],
   apply_instance,
 end
 

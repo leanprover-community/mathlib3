@@ -98,6 +98,9 @@ def forget : SheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
   map := λ X Y f, f.base }
 
+def forget_iso_forget_forget : forget C ≅ forget_to_PresheafedSpace ⋙ PresheafedSpace.forget C :=
+nat_iso.of_components (λ _, iso.refl _) (λ _ _ f, rfl)
+
 end
 
 open Top.presheaf

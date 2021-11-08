@@ -1730,11 +1730,11 @@ lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
   (hg : uniform_continuous g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) : mem_ℒp f p μ :=
 begin
   have : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg'.le_mul_dist },
-  exact hL.of_le_mul ((ae_measurable_comp_iff_of_closed_embedding g
-    (hg'.closed_embedding hg)).1 hL.1) this,
+  { apply filter.eventually_of_forall (λ x, _),
+    rw [← dist_zero_right, ← dist_zero_right, ← g0],
+    apply hg'.le_mul_dist },
+  exact hL.of_le_mul ((hg'.closed_embedding hg).measurable_embedding.ae_measurable_comp_iff.1
+    hL.1) this,
 end
 
 namespace lipschitz_with

@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import data.fin.basic
 import data.list.range
+import algebra.module.pi
 
 /-!
 # Matrix and vector notation
@@ -270,6 +271,20 @@ end
 by simp
 
 end val
+
+section smul
+
+variables [semiring α]
+-- TODO: if I generalize these lemmas to `[has_scalar M α]`, then Lean fails to apply them
+-- in `data.complex.module`
+
+@[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
+
+@[simp] lemma smul_cons (x y : α) (v : fin n → α) :
+  x • vec_cons y v = vec_cons (x * y) (x • v) :=
+by { ext i, refine fin.cases _ _ i; simp }
+
+end smul
 
 section add
 

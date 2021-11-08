@@ -580,7 +580,8 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
---TODO: Should -/
+-- TODO: Should we get rid of `sub_le_iff_le_add` in favor of
+-- (a renamed version of) `tsub_le_iff_right`?
 instance add_group.to_has_ordered_sub [add_group α] [has_le α]
   [covariant_class α α (swap (+)) (≤)] : has_ordered_sub α :=
 ⟨λ a b c, sub_le_iff_le_add⟩

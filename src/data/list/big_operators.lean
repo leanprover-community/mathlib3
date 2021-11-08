@@ -397,7 +397,7 @@ lemma _root_.monoid_hom.map_list_prod [monoid α] [monoid β] (f : α →* β) (
 open mul_opposite
 
 /-- A morphism into the opposite monoid acts on the product by acting on the reversed elements -/
-lemma monoid_hom.unop_map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* βᵐᵒᵖ)
+lemma _root_.monoid_hom.unop_map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* βᵐᵒᵖ)
   (l : list α) :
   unop (f l.prod) = (l.map (unop ∘ f)).reverse.prod :=
 by rw [f.map_list_prod l, unop_list_prod, list.map_map]

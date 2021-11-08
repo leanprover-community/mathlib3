@@ -556,7 +556,7 @@ end
 lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
   s.total_variation ⊥ₘ μ ↔
   s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
-measure.mutually_singular.add_iff
+measure.mutually_singular.add_left_iff
 
 end signed_measure
 

@@ -364,6 +364,8 @@ begin
   rwa [←of_add_nsmul, ←of_add_zero, equiv.apply_eq_iff_eq]
 end
 
+attribute [to_additive gcd_nsmul_eq_zero] pow_gcd_eq_one
+
 /-! ### GCD prover -/
 open norm_num
 

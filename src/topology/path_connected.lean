@@ -62,7 +62,7 @@ noncomputable theory
 open_locale classical topological_space filter unit_interval
 open filter set function unit_interval
 
-variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
+variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} {ι : Type*}
 
 /-! ### Paths -/
 
@@ -74,8 +74,7 @@ structure path (x y : X) extends C(I, X) :=
 
 instance : has_coe_to_fun (path x y) (λ _, I → X) := ⟨λ p, p.to_fun⟩
 
-@[ext] protected lemma path.ext {X : Type*} [topological_space X] {x y : X} :
-  ∀ {γ₁ γ₂ : path x y}, (γ₁ : I → X) = γ₂ → γ₁ = γ₂
+@[ext] protected lemma path.ext : ∀ {γ₁ γ₂ : path x y}, (γ₁ : I → X) = γ₂ → γ₁ = γ₂
 | ⟨⟨x, h11⟩, h12, h13⟩ ⟨⟨.(x), h21⟩, h22, h23⟩ rfl := rfl
 
 namespace path
@@ -114,8 +113,7 @@ instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} 
   source' := rfl,
   target' := rfl }
 
-@[simp] lemma refl_range {X : Type*} [topological_space X] {a : X} :
-  range (path.refl a) = {a} :=
+@[simp] lemma refl_range {a : X} : range (path.refl a) = {a} :=
 by simp [path.refl, has_coe_to_fun.coe, coe_fn]
 
 /-- The reverse of a path from `x` to `y`, as a path from `y` to `x` -/
@@ -128,12 +126,10 @@ by simp [path.refl, has_coe_to_fun.coe, coe_fn]
 @[simp] lemma symm_symm {γ : path x y} : γ.symm.symm = γ :=
 by { ext, simp }
 
-@[simp] lemma refl_symm {X : Type*} [topological_space X] {a : X} :
-  (path.refl a).symm = path.refl a :=
+@[simp] lemma refl_symm {a : X} : (path.refl a).symm = path.refl a :=
 by { ext, refl }
 
-@[simp] lemma symm_range {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
-  range γ.symm = range γ :=
+@[simp] lemma symm_range {a b : X} (γ : path a b) : range γ.symm = range γ :=
 begin
   ext x,
   simp only [mem_range, path.symm, has_coe_to_fun.coe, coe_fn, unit_interval.symm, set_coe.exists,
@@ -145,9 +141,26 @@ end
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
 
+/-- See Note [continuity lemma statement]. -/
+lemma _root_.continuous.path_extend {γ : Y → path x y} {f : Y → ℝ} (hγ : continuous ↿γ)
+  (hf : continuous f) : continuous (λ t, (γ t).extend (f t)) :=
+continuous.Icc_extend hγ hf
+
+/-- A useful special case of `continuous.path_extend`. -/
 @[continuity]
 lemma continuous_extend : continuous γ.extend :=
-γ.continuous.Icc_extend
+γ.continuous.Icc_extend'
+
+lemma _root_.filter.tendsto.path_extend {X Y : Type*} [topological_space X] [topological_space Y]
+  {l r : Y → X} {y : Y} {l₁ : filter ℝ} {l₂ : filter X} {γ : ∀ y, path (l y) (r y)}
+  (hγ : tendsto ↿γ (𝓝 y ×ᶠ l₁.map (proj_Icc 0 1 zero_le_one)) l₂) :
+  tendsto ↿(λ x, (γ x).extend) (𝓝 y ×ᶠ l₁) l₂ :=
+filter.tendsto.Icc_extend _ hγ
+
+lemma _root_.continuous_at.path_extend {g : Y → ℝ} {l r : Y → X} (γ : ∀ y, path (l y) (r y)) {y : Y}
+  (hγ : continuous_at ↿γ (y, proj_Icc 0 1 zero_le_one (g y)))
+  (hg : continuous_at g y) : continuous_at (λ i, (γ i).extend (g i)) y :=
+hγ.Icc_extend (λ x, γ x) hg
 
 @[simp] lemma extend_extends {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : t ∈ (Icc 0 1 : set ℝ)) : γ.extend t = γ ⟨t, ht⟩ :=

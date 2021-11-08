@@ -3,8 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.sublists
+import data.list.count
 import data.list.lex
+import data.list.sublists
 import data.set.pairwise
 
 /-!
@@ -246,8 +247,8 @@ from λ R l, ⟨λ p, reverse_reverse l ▸ this p, this⟩,
     pairwise_cons, forall_prop_of_false (not_mem_nil _), forall_true_iff,
     pairwise.nil, mem_reverse, mem_singleton, forall_eq, true_and] using h]
 
-lemma pairwise.set_pairwise_on {l : list α} (h : pairwise R l) (hr : symmetric R) :
-  set.pairwise_on {x | x ∈ l} R :=
+lemma pairwise.set_pairwise {l : list α} (h : pairwise R l) (hr : symmetric R) :
+  set.pairwise {x | x ∈ l} R :=
 begin
   induction h with hd tl imp h IH,
   { simp },
@@ -360,7 +361,7 @@ theorem pw_filter_sublist : ∀ (l : list α), pw_filter R l <+ l
 | (x :: l) := begin
   by_cases (∀ y ∈ pw_filter R l, R x y),
   { rw [pw_filter_cons_of_pos h],
-    exact cons_sublist_cons _ (pw_filter_sublist l) },
+    exact (pw_filter_sublist l).cons_cons _ },
   { rw [pw_filter_cons_of_neg h],
     exact sublist_cons_of_sublist _ (pw_filter_sublist l) },
 end

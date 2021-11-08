@@ -224,6 +224,8 @@ instance left_rel_decidable [decidable_pred (∈ s)] :
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
+@[to_additive "`quotient s` is the quotient type representing the left cosets of `s`.  If `s` is a
+normal subgroup, `quotient s` is a group"]
 def quotient : Type* := quotient (left_rel s)
 
 /-- The equivalence relation corresponding to the partition of a group by right cosets of a
@@ -242,16 +244,6 @@ instance right_rel_decidable [decidable_pred (∈ s)] :
   decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
 end quotient_group
-
-namespace quotient_add_group
-
-/-- `quotient s` is the quotient type representing the left cosets of `s`.
-  If `s` is a normal subgroup, `quotient s` is a group -/
-def quotient [add_group α] (s : add_subgroup α) : Type* := quotient (left_rel s)
-
-end quotient_add_group
-
-attribute [to_additive quotient_add_group.quotient] quotient_group.quotient
 
 namespace quotient_group
 

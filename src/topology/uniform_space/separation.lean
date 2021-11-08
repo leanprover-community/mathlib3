@@ -208,7 +208,7 @@ instance separated_regular [separated_space α] : regular_space α :=
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
 
 lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
-  {s : set α} (hs : pairwise_on s (λ x y, (x, y) ∉ V₀)) : is_closed s :=
+  {s : set α} (hs : s.pairwise (λ x y, (x, y) ∉ V₀)) : is_closed s :=
 begin
   rcases comp_symm_mem_uniformity_sets V₀_in with ⟨V₁, V₁_in, V₁_symm, h_comp⟩,
   apply is_closed_of_closure_subset,

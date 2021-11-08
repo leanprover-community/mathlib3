@@ -112,7 +112,7 @@ lemma continuous_on.const_smul (hg : continuous_on g s) (c : M) :
   continuous_on (λ x, c • g x) s :=
 λ x hx, (hg x hx).const_smul c
 
-@[to_additive, continuity]
+@[continuity, to_additive]
 lemma continuous.smul (hf : continuous f) (hg : continuous g) :
   continuous (λ x, f x • g x) :=
 continuous_smul.comp (hf.prod_mk hg)

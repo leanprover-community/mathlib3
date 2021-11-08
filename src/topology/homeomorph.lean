@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
 import topology.dense_embedding
+import data.equiv.fin
 
 /-!
 # Homeomorphisms
@@ -398,6 +399,17 @@ def fun_unique (ι α : Type*) [unique ι] [topological_space α] : (ι → α) 
 { to_equiv := equiv.fun_unique ι α,
   continuous_to_fun := continuous_apply _,
   continuous_inv_fun := continuous_pi (λ _, continuous_id) }
+
+/-- Homeomorphism between dependent functions `Π i : fin 2, α i` and `α 0 × α 1`. -/
+@[simps { fully_applied := ff }]
+def {u} pi_fin_two (α : fin 2 → Type u) [Π i, topological_space (α i)] : (Π i, α i) ≃ₜ α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  continuous_to_fun := (continuous_apply 0).prod_mk (continuous_apply 1),
+  continuous_inv_fun := continuous_pi $ fin.forall_fin_two.2 ⟨continuous_fst, continuous_snd⟩ }
+
+/-- Homeomorphism between `α² = fin 2 → α` and `α × α`. -/
+@[simps { fully_applied := ff }] def fin_two_arrow : (fin 2 → α) ≃ₜ α × α :=
+{ to_equiv := fin_two_arrow_equiv α, ..  pi_fin_two (λ _, α) }
 
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.

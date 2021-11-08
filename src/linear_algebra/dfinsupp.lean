@@ -405,7 +405,7 @@ lemma independent_iff_dfinsupp_lsum_injective (p : ι → submodule R N) :
   independent p ↔ function.injective (lsum ℕ (λ i, (p i).subtype)) :=
 ⟨independent.dfinsupp_lsum_injective, independent_of_dfinsupp_lsum_injective p⟩
 
-/-- A family of additive subgroups over an additive group are independent if and only iff
+/-- A family of additive subgroups over an additive group are independent if and only if
 `dfinsupp.sum_add_hom` applied with `add_subgroup.subtype` is injective. -/
 lemma independent_iff_dfinsupp_sum_add_hom_injective (p : ι → add_subgroup N) :
   independent p ↔ function.injective (sum_add_hom (λ i, (p i).subtype)) :=

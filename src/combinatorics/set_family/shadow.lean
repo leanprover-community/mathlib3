@@ -55,8 +55,7 @@ from any set in `𝒜`, and the (`k` times) iterated shadow is all sets we can g
 by removing k elements from any set in `𝒜`. -/
 def shadow (𝒜 : finset (finset α)) : finset (finset α) := 𝒜.sup (λ A, A.image (erase A))
 
-reserve prefix `∂`:90
-localized "notation ∂ 𝒜 := shadow 𝒜" in finset_family
+localized "notation `∂ `:90 := shadow" in finset_family
 
 /-- The shadow of the empty set is empty. -/
 lemma shadow_empty : ∂ (∅ : finset (finset α)) = ∅ := rfl

@@ -773,10 +773,10 @@ by refine
   sub := has_sub.sub,
   sub_eq_add_neg := _,
   nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
-  gsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
-  gsmul_zero' := _,
-  gsmul_succ' := _,
-  gsmul_neg' := _,
+  zsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
+  zsmul_zero' := _,
+  zsmul_succ' := _,
+  zsmul_neg' := _,
   .. multilinear_map.add_comm_monoid, .. };
 intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
 

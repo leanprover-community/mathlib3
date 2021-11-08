@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 -/
 import analysis.special_functions.complex.arg
 import analysis.special_functions.log
+import analysis.special_functions.trigonometric.inverse_deriv
 
 /-!
 # The complex `log` function

@@ -56,8 +56,8 @@ begin
   obtain ⟨k, hk⟩ := archimedean.arch g ha,
   have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ),
   { assume n hn,
-    apply (gsmul_le_gsmul_iff ha).mp,
-    rw ← gsmul_coe_nat at hk,
+    apply (zsmul_le_zsmul_iff ha).mp,
+    rw ← coe_nat_zsmul at hk,
     exact le_trans hn hk },
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
   refine ⟨m, hm, _⟩,
@@ -70,7 +70,7 @@ lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
 begin
   obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
   refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  simpa only [sub_lt_iff_lt_add', add_gsmul, one_gsmul] using h2
+  simpa only [sub_lt_iff_lt_add', add_zsmul, one_zsmul] using h2
 end
 
 lemma exists_add_int_smul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
@@ -78,8 +78,8 @@ lemma exists_add_int_smul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
 begin
   rcases exists_int_smul_near_of_pos' ha (b - c) with ⟨m, hle, hlt⟩,
   refine ⟨-m, _, _⟩,
-  { rwa [neg_gsmul, ← sub_eq_add_neg, le_sub, ← sub_nonneg] },
-  { rwa [sub_right_comm, sub_lt_iff_lt_add', sub_eq_add_neg, ← neg_gsmul] at hlt }
+  { rwa [neg_zsmul, ← sub_eq_add_neg, le_sub, ← sub_nonneg] },
+  { rwa [sub_right_comm, sub_lt_iff_lt_add', sub_eq_add_neg, ← neg_zsmul] at hlt }
 end
 
 lemma exists_add_int_smul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
@@ -87,7 +87,7 @@ lemma exists_add_int_smul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
 begin
   rcases exists_int_smul_near_of_pos ha (c - b) with ⟨m, hle, hlt⟩,
   refine ⟨m + 1, sub_lt_iff_lt_add'.1 hlt, _⟩,
-  rwa [add_gsmul, one_gsmul, ← add_assoc, add_le_add_iff_right, ← le_sub_iff_add_le']
+  rwa [add_zsmul, one_zsmul, ← add_assoc, add_le_add_iff_right, ← le_sub_iff_add_le']
 end
 
 end linear_ordered_add_comm_group
@@ -164,11 +164,11 @@ section linear_ordered_field
 variables [linear_ordered_field α]
 
 /-- Every positive `x` is between two successive integer powers of
-another `y` greater than one. This is the same as `exists_int_pow_near'`,
+another `y` greater than one. This is the same as `exists_mem_Ioc_zpow`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near [archimedean α]
+lemma exists_mem_Ico_zpow [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
+  ∃ n : ℤ, x ∈ set.Ico (y ^ n) (y ^ (n + 1)) :=
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
@@ -183,12 +183,12 @@ let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
 /-- Every positive `x` is between two successive integer powers of
-another `y` greater than one. This is the same as `exists_int_pow_near`,
+another `y` greater than one. This is the same as `exists_mem_Ico_zpow`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near' [archimedean α]
+lemma exists_mem_Ioc_zpow [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
-  ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
-let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
+  ∃ n : ℤ, x ∈ set.Ioc (y ^ n) (y ^ (n + 1)) :=
+let ⟨m, hle, hlt⟩ := exists_mem_Ico_zpow (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
 by rwa [zpow_neg₀, inv_lt (zpow_pos_of_pos hyp _) hx],

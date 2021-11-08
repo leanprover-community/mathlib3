@@ -414,6 +414,10 @@ begin
   simp [nat.modeq_iff_dvd, int.modeq_iff_dvd],
 end
 
+lemma nat_coe_eq_nat_coe_iff' (a b c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=
+zmod.nat_coe_eq_nat_coe_iff a b c
+
 lemma int_coe_zmod_eq_zero_iff_dvd (a : ℤ) (b : ℕ) : (a : zmod b) = 0 ↔ (b : ℤ) ∣ a :=
 begin
   change (a : zmod b) = ((0 : ℤ) : zmod b) ↔ (b : ℤ) ∣ a,
@@ -434,8 +438,8 @@ begin
 end
 
 lemma ker_int_cast_add_hom (n : ℕ) :
-  (int.cast_add_hom (zmod n)).ker = add_subgroup.gmultiples n :=
-by { ext, rw [int.mem_gmultiples_iff, add_monoid_hom.mem_ker,
+  (int.cast_add_hom (zmod n)).ker = add_subgroup.zmultiples n :=
+by { ext, rw [int.mem_zmultiples_iff, add_monoid_hom.mem_ker,
               int.coe_cast_add_hom, int_coe_zmod_eq_zero_iff_dvd] }
 
 lemma ker_int_cast_ring_hom (n : ℕ) :
@@ -895,9 +899,9 @@ def lift : {f : ℤ →+ A // f n = 0} ≃ (zmod n →+ A) :=
   rw ker_int_cast_add_hom,
   split,
   { rintro hf _ ⟨x, rfl⟩,
-    simp only [f.map_gsmul, gsmul_zero, f.mem_ker, hf] },
+    simp only [f.map_zsmul, zsmul_zero, f.mem_ker, hf] },
   { intro h,
-    refine h (add_subgroup.mem_gmultiples _) }
+    refine h (add_subgroup.mem_zmultiples _) }
 end).trans $ ((int.cast_add_hom (zmod n)).lift_of_right_inverse coe int_cast_zmod_cast)
 
 variables (f : {f : ℤ →+ A // f n = 0})

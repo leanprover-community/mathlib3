@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.array.lemmas
+import data.finset.option
 import data.finset.pi
 import data.finset.powerset
-import data.finset.option
+import data.finset.prod
 import data.sym.basic
 import data.ulift
 import group_theory.perm.basic
@@ -54,8 +55,8 @@ Among others, we provide `fintype` instances for
 * `Prop`.
 
 and `infinite` instances for
-* `ℕ`
-* `ℤ`
+* specific types: `ℕ`, `ℤ`
+* type constructors: `set α`, `finset α`, `multiset α`, `list α`, `α ⊕ β`, `α × β`
 
 along with some machinery
 * Types which have a surjection from/an injection to a `fintype` are themselves fintypes. See
@@ -1679,7 +1680,7 @@ instance (α : Type*) [H : infinite α] : nontrivial α :=
 let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
 ⟨y, x, by simpa only [mem_singleton] using hy⟩⟩
 
-lemma nonempty (α : Type*) [infinite α] : nonempty α :=
+protected lemma nonempty (α : Type*) [infinite α] : nonempty α :=
 by apply_instance
 
 lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
@@ -1687,6 +1688,38 @@ lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite �
 
 lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
 ⟨λ I, by { classical, exactI (fintype.of_surjective f hf).false }⟩
+
+instance : infinite ℕ :=
+⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
+
+instance : infinite ℤ :=
+infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
+
+instance [infinite α] : infinite (set α) :=
+of_injective singleton (λ a b, set.singleton_eq_singleton_iff.1)
+
+instance [infinite α] : infinite (finset α) := of_injective singleton finset.singleton_injective
+
+instance [nonempty α] : infinite (multiset α) :=
+begin
+  inhabit α,
+  exact of_injective (multiset.repeat (default α)) (multiset.repeat_injective _),
+end
+
+instance [nonempty α] : infinite (list α) :=
+of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
+
+instance sum_of_left [infinite α] : infinite (α ⊕ β) :=
+of_injective sum.inl sum.inl_injective
+
+instance sum_of_right [infinite β] : infinite (α ⊕ β) :=
+of_injective sum.inr sum.inr_injective
+
+instance prod_of_right [nonempty α] [infinite β] : infinite (α × β) :=
+of_surjective prod.snd prod.snd_surjective
+
+instance prod_of_left [infinite α] [nonempty β] : infinite (α × β) :=
+of_surjective prod.fst prod.fst_surjective
 
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α
 | n := by letI := classical.dec_eq α; exact classical.some (exists_not_mem_finset
@@ -1718,6 +1751,24 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 ⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
+
+@[simp] lemma infinite_sum : infinite (α ⊕ β) ↔ infinite α ∨ infinite β :=
+begin
+  refine ⟨λ H, _, λ H, H.elim (@infinite.sum_of_left α β) (@infinite.sum_of_right α β)⟩,
+  contrapose! H, haveI := fintype_of_not_infinite H.1, haveI := fintype_of_not_infinite H.2,
+  exact infinite.false
+end
+
+@[simp] lemma infinite_prod :
+  infinite (α × β) ↔ infinite α ∧ nonempty β ∨ nonempty α ∧ infinite β :=
+begin
+  refine ⟨λ H, _, λ H, H.elim (and_imp.2 $ @infinite.prod_of_left α β)
+    (and_imp.2 $ @infinite.prod_of_right α β)⟩,
+  rw and.comm, contrapose! H, introI H',
+  rcases infinite.nonempty (α × β) with ⟨a, b⟩,
+  haveI := fintype_of_not_infinite (H.1 ⟨b⟩), haveI := fintype_of_not_infinite (H.2 ⟨a⟩),
+  exact H'.false
+end
 
 /-- If every finset in a type has bounded cardinality, that type is finite. -/
 noncomputable def fintype_of_finset_card_le {ι : Type*} (n : ℕ)
@@ -1794,12 +1845,6 @@ lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β)
 assume (hf : surjective f),
 have H : infinite α := infinite.of_surjective f hf,
 by exactI not_fintype α
-
-instance nat.infinite : infinite ℕ :=
-⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
-
-instance int.infinite : infinite ℤ :=
-infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
 
 section trunc
 

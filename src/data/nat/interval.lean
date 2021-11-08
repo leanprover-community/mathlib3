@@ -64,9 +64,10 @@ lemma Ioo_eq_range' : Ioo a b = (list.range' (a + 1) (b - a - 1)).to_finset := r
 
 lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
-lemma Ico_zero_eq_range : Ico 0 a = range a := by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
+@[simp] lemma Ico_zero_eq_range : Ico 0 = range :=
+by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
 
-lemma _root_.finset.range_eq_Ico : range = Ico 0 := by { funext, exact (Ico_zero_eq_range n).symm }
+lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 
 @[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
 by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']

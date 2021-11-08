@@ -76,7 +76,7 @@ namespace unitary_submonoid
 
 lemma star_mem {A : matrix n n α} (h : A ∈ unitary_submonoid (matrix n n α)) :
   star A ∈ unitary_submonoid (matrix n n α) :=
-matrix.nonsing_inv_left_right $ (star_star A).symm ▸ h
+mul_eq_one_comm.mp $ (star_star A).symm ▸ h
 
 @[simp]
 lemma star_mem_iff {A : matrix n n α} :

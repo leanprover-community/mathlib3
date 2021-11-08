@@ -7,11 +7,11 @@ import algebra.direct_sum.basic
 import linear_algebra.dfinsupp
 
 /-!
-# Direct sum of modules over commutative rings
+# Direct sum of modules
 
-This file provides constructors for direct sums of modules.
-The first part of the file provides a construction of the direct sum using the universal property
-and proves its uniqueness.
+The first part of the file provides constructors for direct sums of modules. It provides a
+construction of the direct sum using the universal property and proves its uniqueness
+(`direct_sum.to_module.unique`).
 
 The second part of the file covers the special case of direct sums of submodules of a fixed module
 `M`.  There is a canonical linear map from this direct sum to `M`, and the construction is

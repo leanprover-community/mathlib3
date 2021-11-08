@@ -141,14 +141,14 @@ begin
 end
 
 /-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`. -/
-def quotient.algebra_quotient_of_over (h : p ≤ comap f P) :
+def quotient.algebra_quotient_of_le_comap (h : p ≤ comap f P) :
   algebra p.quotient P.quotient :=
 ring_hom.to_algebra $ quotient_map _ f h
 
 /-- `R / p` has a canonical map to `S / pS`. -/
 instance quotient.algebra_quotient_map_quotient :
   algebra p.quotient (map f p).quotient :=
-quotient.algebra_quotient_of_over le_comap_map
+quotient.algebra_quotient_of_le_comap le_comap_map
 
 @[simp] lemma quotient.algebra_map_quotient_map_quotient (x : R) :
   algebra_map p.quotient (map f p).quotient (quotient.mk p x) = quotient.mk _ (f x) :=

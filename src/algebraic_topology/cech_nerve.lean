@@ -61,6 +61,7 @@ namespace simplicial_object
 variables [∀ (n : ℕ) (f : arrow C),
   has_wide_pullback f.right (λ i : ulift (fin (n+1)), f.left) (λ i, f.hom)]
 
+@[simps]
 def cech_nerve_map {f g : arrow C} (F : f ⟶ g) : (f.cech_nerve ⟶ g.cech_nerve) :=
 { app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
     (λ i, wide_pullback.π _ i ≫ F.left)
@@ -108,6 +109,7 @@ begin
     eq_self_iff_true, limits.wide_pullback.lift_base],
 end
 
+@[simps]
 def augmented_cech_nerve_map
   (f g : arrow C)
   (F : f ⟶ g) :

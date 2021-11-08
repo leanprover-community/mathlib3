@@ -2293,6 +2293,7 @@ theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
 rw [card_insert_of_not_mem h]]
 
+/-- If `a ∈ s` is known, see also `finset.card_insert_of_mem` and `finset.card_insert_of_not_mem`. -/
 theorem card_insert_eq_ite [decidable_eq α] {a : α} {s : finset α} :
   card (insert a s) = if a ∈ s then card s else card s + 1 :=
 begin

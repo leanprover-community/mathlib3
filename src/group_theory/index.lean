@@ -70,6 +70,10 @@ end
 eq.trans (congr_arg index (by refl))
   ((H.subgroup_of f.range).index_comap_of_surjective f.range_restrict_surjective)
 
+@[to_additive] lemma index_map {G' : Type*} [group G'] {f : G →* G'}
+  (hf1 : function.surjective f) (hf2 : f.ker ≤ H) : (H.map f).index = H.index :=
+by rw [←comap_map_eq_self hf2, (H.map f).index_comap_of_surjective hf1, comap_map_eq_self hf2]
+
 variables {H K L}
 
 @[to_additive] lemma relindex_mul_index (h : H ≤ K) : H.relindex K * K.index = H.index :=

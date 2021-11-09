@@ -153,6 +153,12 @@ def long_lines_check(lines, path):
     return errors
 
 def indent_check(lines, path):
+    """Check that tactic blocks are indented correctly.
+    
+    This linter warns whenever a `{` symbol starting a subproof appears wrongly indented in a tactic block.
+    It does not do much parsing, so to avoid false positives it skips some blocks with complicated syntax
+    like nested `begin`/`end` or containing the keywords `calc` or `match`.
+    """
     errors = []
     indent_lvl = 0
     in_prf = 0  # counter for nested proof blocks
@@ -160,14 +166,22 @@ def indent_check(lines, path):
     ended_with_comma = False  # track whether the previous line ends with a comma
     inside_special = 0  # track whether we are inside ⟨⟩ or []
     for line_nr, line in enumerate(lines, 1):
-        lstr = line.lstrip(' ')  # strip spaces from beginning of line
+        line = line.split(' --')[0]  # discard any commented out part of this line
+        # `lstr` is the line with starting whitespace removed.
+        # Therefore, `len(line) - len(lstr)` is the line's indentation depth.
+        lstr = line.lstrip(' ')
+
+        # Check that `{` starting a subproof has the expected indentation.
         if in_prf > 0 and check_rest_of_block and ended_with_comma and not inside_special:
             if lstr[0] == '{' and len(line) - len(lstr) != indent_lvl:
                 errors += [(WRN_IND, line_nr, path)]
-        ended_with_comma = (line.endswith(",\n"))
+
+        # Update state for next line.
+        ended_with_comma = line.endswith(",\n")
         inside_special += line.count('⟨') + line.count('[') - line.count('⟩') - line.count(']')
         if line[0] != ' ':
-            # reset the state
+            # This is either the `end` line of a tactic proof, or the first line of a new declaration.
+            # Reset the state:
             indent_lvl = 0
             in_prf = 0
             check_rest_of_block = True

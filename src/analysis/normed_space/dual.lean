@@ -3,7 +3,7 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed_space.hahn_banach
+import analysis.normed_space.hahn_banach.extension
 
 /-!
 # The topological dual of a normed space

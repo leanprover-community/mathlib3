@@ -45,7 +45,7 @@ def proper_coloring.mk (color : V → α) (h : ∀ {v w : V}, G.adj v w → colo
 
 /-- Whether a graph can be colored by at most `n` colors. -/
 def colorable (G : simple_graph V) (n : ℕ) : Prop :=
-∃ (α : Type*) [fintype α] (C : G.proper_coloring α), by exactI fintype.card α ≤ n
+∃ (α : Type v) [fintype α] (C : G.proper_coloring α), by exactI fintype.card α ≤ n
 
 /-- If `G` isn't colorable with finitely many colors, this will be 0. -/
 noncomputable def chromatic_number (G : simple_graph V) : ℕ :=
@@ -87,15 +87,21 @@ begin
     exact C.valid v w hvw, },
 end
 
+example [fintype α] (r : set α) : fintype (set α) := by library_search
+
 -- may eliminate `proper_coloring.size`'s requirement if we have a finite number of colors
 lemma fin_colors_then_fin_size [fintype α] (C : G.proper_coloring α) : fintype C.used_colors :=
 begin
+  rw proper_coloring.used_colors,
   sorry
 end
 
-lemma exists_coloring_then_colorable [fintype α] (C : G.proper_coloring α) :
+lemma exists_fin_coloring_then_colorable [fintype α] (C : G.proper_coloring α) :
   G.colorable (fintype.card α) :=
 begin
+  rw colorable,
+  by_contra h,
+  simp at h,
   sorry
 end
 
@@ -107,12 +113,19 @@ begin
   { use 0,
     rintros _ _,
     simp only [zero_le], },
-  { simp [exists_coloring_then_colorable C], },
+  { simp [exists_fin_coloring_then_colorable C], },
+end
+
+lemma colorable_lower_bound (G' : simple_graph V) (h : G ≤ G') (n : ℕ) (hc : G'.colorable n) :
+  G.colorable n :=
+begin
+  sorry
 end
 
 lemma chromatic_number_lower_bound (G' : simple_graph V) (h : G ≤ G') :
   G.chromatic_number ≤ G'.chromatic_number :=
 begin
+  simp only [chromatic_number],
   sorry
 end
 
@@ -122,11 +135,12 @@ begin
   rw [nat.lt_iff_add_one_le, chromatic_number, zero_add],
   apply le_cInf,
   { use fintype.card α,
-    exact exists_coloring_then_colorable C, },
+    exact exists_fin_coloring_then_colorable C, },
   { intros n hn,
-    let v := classical.arbitrary V, -- coloring this vertex requires at least 1 color
     by_contra h,
     simp at h,
+    simp [h] at hn,
+    let v := classical.arbitrary V, -- coloring this vertex requires at least 1 color
     sorry, },
 end
 
@@ -134,6 +148,8 @@ lemma chromatic_number_minimal [fintype α] (C : G.proper_coloring α)
   (h : ∀ (C' : G.proper_coloring α), C'.used_colors = set.univ) :
   G.chromatic_number = fintype.card α :=
 begin
+  simp [proper_coloring.used_colors] at h,
+  rw chromatic_number,
   sorry
 end
 

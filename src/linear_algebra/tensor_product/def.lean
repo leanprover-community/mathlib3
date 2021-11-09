@@ -151,6 +151,22 @@ end⟩
 instance compatible_smul.self : compatible_smul R R M N :=
 ⟨λ r m n, quotient.sound' (add_con_gen.rel.of _ _ (eqv.of_smul r m n))⟩
 
+/-- A right `smul` can be moved from one side of the product to the other. -/
+lemma rsmul_tmul [has_scalar R'ᵒᵖ M] [has_scalar R' N] [compatible_smul R R' M N]
+  (r : R') (m : M) (n : N) : (m <• r) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
+compatible_smul.rsmul_tmul _ _ _
+
+variables {R R' M N}
+/-- In the case of a symmetric action on `M`, we can move a `smul` vom the left to the
+right of the tensor product. -/
+lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵒᵖ M] [is_symmetric_smul R' M]
+  [has_scalar R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
+  (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
+by rw [←is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul]
+
+instance : add_comm_monoid (M ⊗[R] N) :=
+{ .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
+
 end
 
 end tensor_product

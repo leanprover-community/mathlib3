@@ -157,6 +157,14 @@ f.to_multilinear_map.map_update_zero m i
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 f.to_multilinear_map.map_zero
 
+lemma map_eq_zero_of_not_injective (v : ι → M) (hv : ¬function.injective v) : f v = 0 :=
+begin
+  rw function.injective at hv,
+  push_neg at hv,
+  rcases hv with ⟨i₁, i₂, heq, hne⟩,
+  exact f.map_eq_zero_of_eq v heq hne
+end
+
 /-!
 ### Algebraic structure inherited from `multilinear_map`
 

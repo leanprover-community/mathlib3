@@ -406,6 +406,18 @@ mul_inverse_rev' (commute.all _ _)
 
 end ring
 
+lemma is_unit.ring_inverse {a : M₀} : is_unit a → is_unit (ring.inverse a)
+| ⟨u, hu⟩ := hu ▸ ⟨u⁻¹, (ring.inverse_unit u).symm⟩
+
+@[simp] lemma is_unit_ring_inverse {a : M₀} : is_unit (ring.inverse a) ↔ is_unit a :=
+⟨λ h, begin
+  casesI subsingleton_or_nontrivial M₀,
+  { convert h },
+  { contrapose h,
+    rw ring.inverse_non_unit _ h,
+    exact not_is_unit_zero, },
+end, is_unit.ring_inverse⟩
+
 lemma commute.ring_inverse_ring_inverse {a b : M₀} (h : commute a b) :
   commute (ring.inverse a) (ring.inverse b) :=
 (ring.mul_inverse_rev' h.symm).symm.trans $ (congr_arg _ h.symm.eq).trans $ ring.mul_inverse_rev' h
@@ -881,6 +893,38 @@ end
 @[simp] lemma ring.inverse_eq_inv' : (ring.inverse : G₀ → G₀) = has_inv.inv :=
 funext ring.inverse_eq_inv
 
+@[field_simps] lemma div_div_eq_mul_div (a b c : G₀) :
+  a / (b / c) = (a * c) / b :=
+by rw [div_eq_mul_one_div, one_div_div, ← mul_div_assoc]
+
+/-- Dividing `a` by the result of dividing `a` by itself results in
+`a` (whether or not `a` is zero). -/
+@[simp] lemma div_div_self (a : G₀) : a / (a / a) = a :=
+begin
+  rw div_div_eq_mul_div,
+  exact mul_self_div_self a
+end
+
+lemma ne_zero_of_one_div_ne_zero {a : G₀} (h : 1 / a ≠ 0) : a ≠ 0 :=
+assume ha : a = 0, begin rw [ha, div_zero] at h, contradiction end
+
+lemma eq_zero_of_one_div_eq_zero {a : G₀} (h : 1 / a = 0) : a = 0 :=
+classical.by_cases
+  (assume ha, ha)
+  (assume ha, ((one_div_ne_zero ha) h).elim)
+
+lemma div_div_div_cancel_right (a : G₀) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
+by rw [div_div_eq_mul_div, div_mul_cancel _ hc]
+
+lemma div_mul_div_cancel (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
+by rw [← mul_div_assoc, div_mul_cancel _ hc]
+
+@[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+eq_div_iff_mul_eq hb
+
+@[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+(div_eq_iff_mul_eq hb).trans eq_comm
+
 end group_with_zero
 
 section comm_group_with_zero -- comm
@@ -951,10 +995,6 @@ lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb :
 by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self hb,
        ← div_mul_eq_mul_div_comm, h, div_mul_eq_mul_div, div_mul_cancel _ hd]
 
-@[field_simps] lemma div_div_eq_mul_div (a b c : G₀) :
-      a / (b / c) = (a * c) / b :=
-by rw [div_eq_mul_one_div, one_div_div, ← mul_div_assoc]
-
 @[field_simps] lemma div_div_eq_div_mul (a b c : G₀) :
       (a / b) / c = a / (b * c) :=
 by rw [div_eq_mul_one_div, div_mul_div, mul_one]
@@ -966,22 +1006,6 @@ by rw [div_div_eq_mul_div, div_mul_eq_mul_div, div_div_eq_div_mul]
 lemma div_mul_eq_div_mul_one_div (a b c : G₀) :
       a / (b * c) = (a / b) * (1 / c) :=
 by rw [← div_div_eq_div_mul, ← div_eq_mul_one_div]
-
-/-- Dividing `a` by the result of dividing `a` by itself results in
-`a` (whether or not `a` is zero). -/
-@[simp] lemma div_div_self (a : G₀) : a / (a / a) = a :=
-begin
-  rw div_div_eq_mul_div,
-  exact mul_self_div_self a
-end
-
-lemma ne_zero_of_one_div_ne_zero {a : G₀} (h : 1 / a ≠ 0) : a ≠ 0 :=
-assume ha : a = 0, begin rw [ha, div_zero] at h, contradiction end
-
-lemma eq_zero_of_one_div_eq_zero {a : G₀} (h : 1 / a = 0) : a = 0 :=
-classical.by_cases
-  (assume ha, ha)
-  (assume ha, ((one_div_ne_zero ha) h).elim)
 
 lemma div_helper {a : G₀} (b : G₀) (h : a ≠ 0) : (1 / (a * b)) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
@@ -1009,24 +1033,12 @@ by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
 lemma div_right_comm (a : G₀) : (a / b) / c = (a / c) / b :=
 by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
 
-lemma div_div_div_cancel_right (a : G₀) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
-by rw [div_div_eq_mul_div, div_mul_cancel _ hc]
-
-lemma div_mul_div_cancel (a : G₀) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
-by rw [← mul_div_assoc, div_mul_cancel _ hc]
-
 @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
 by rw [mul_left_inj' (mul_ne_zero hb hd)]
                ... ↔ a * d = c * b :
 by rw [← mul_assoc, div_mul_cancel _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
-
-@[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
-(div_eq_iff_mul_eq hb).trans eq_comm
-
-@[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
-eq_div_iff_mul_eq hb
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]

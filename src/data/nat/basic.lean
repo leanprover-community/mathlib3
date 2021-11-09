@@ -847,6 +847,12 @@ nat.mul_div_mul a b hc
 protected lemma mul_div_mul_right (a b : ℕ) {c : ℕ} (hc : 0 < c) : a * c / (b * c) = a / b :=
 by rw [mul_comm, mul_comm b, a.mul_div_mul_left b hc]
 
+lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
+begin
+  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+  exact nat.lt_succ_self _,
+end
+
 /-! ### `mod`, `dvd` -/
 
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=

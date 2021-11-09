@@ -534,6 +534,12 @@ def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
   right_inv := λ m, by {ext, simp},
   map_add' := λ a b, by {ext, simp} }
 
+/-- The results of applying `dom_dom_congr` to two maps are equal if
+and only if those maps are. -/
+@[simp] lemma dom_dom_congr_eq_iff (σ : ι₁ ≃ ι₂) (f g : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  f.dom_dom_congr σ = g.dom_dom_congr σ ↔ f = g :=
+(dom_dom_congr_equiv σ : _ ≃+ multilinear_map R (λ i, M₂) M₃).apply_eq_iff_eq
+
 end
 
 end semiring

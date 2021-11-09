@@ -466,6 +466,16 @@ lemma integrable_map_equiv (f : α ≃ᵐ δ) (g : δ → β) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
 f.measurable_embedding.integrable_map_iff
 
+lemma measure_preserving.integrable_comp [opens_measurable_space β] {ν : measure δ} {g : δ → β}
+  {f : α → δ} (hf : measure_preserving f μ ν) (hg : ae_measurable g ν) :
+  integrable (g ∘ f) μ ↔ integrable g ν :=
+by { rw ← hf.map_eq at hg ⊢, exact (integrable_map_measure hg hf.measurable).symm }
+
+lemma measure_preserving.integrable_compₑ {f : α → δ} {ν} (h₁ : measure_preserving f μ ν)
+  (h₂ : measurable_embedding f) {g : δ → β} :
+  integrable (g ∘ f) μ ↔ integrable g ν :=
+h₁.map_eq ▸ iff.symm h₂.integrable_map_iff
+
 lemma lintegral_edist_lt_top [second_countable_topology β] [opens_measurable_space β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ < ∞ :=

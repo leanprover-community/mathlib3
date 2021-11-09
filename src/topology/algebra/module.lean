@@ -276,6 +276,7 @@ linear_map.coe_injective.comp coe_injective
   because it is a composition of multiple projections. -/
 def simps.apply (h : M₁ →SL[σ₁₂] M₂) : M₁ → M₂ := h
 
+/-- See Note [custom simps projection]. -/
 def simps.coe (h : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂ := h
 
 initialize_simps_projections continuous_linear_map

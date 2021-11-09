@@ -236,7 +236,7 @@ begin
   intros U R hR,
   refine ⟨_⟩,
   apply (is_limit.of_cone_equiv (cones.postcompose_equivalence
-    (covering_of_presieve.diagram_nat_iso F U R))).to_fun,
+    (covering_of_presieve.diagram_nat_iso F U R : _))).to_fun,
   apply (is_limit.equiv_iso_limit
     (covering_of_presieve.postcompose_diagram_fork_iso F U R hR)).inv_fun,
   exact (Fsh (covering_of_presieve U R)).some,

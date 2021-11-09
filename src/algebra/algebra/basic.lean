@@ -48,9 +48,9 @@ Given a commutative (semi)ring `R`, there are two ways to define an `R`-algebra 
 * By requiring `A` be an `R`-module such that the action associates and commutes with multiplication
   as `r • (a₁ * a₂) = (r • a₁) * a₂ = a₁ * (r • a₂)`.
 
-We define `algebra R A` as in a way that subsumes both definitions, by extending `has_scalar R A`
-and requiring that this scalar action `r • x` must agree with left multiplication by the image of
-the structure morphism `algebra_map R A r * x`.
+We define `algebra R A` in a way that subsumes both definitions, by extending `has_scalar R A` and
+requiring that this scalar action `r • x` must agree with left multiplication by the image of the
+structure morphism `algebra_map R A r * x`.
 
 As a result, there are two ways to talk about an `R`-algebra `A` when `A` is a semiring:
 1. ```lean
@@ -70,12 +70,18 @@ example {R A : Type*} [comm_semiring R] [semiring A]
 algebra.of_module smul_mul_assoc mul_smul_comm
 ```
 
+The advantage of the first approach is that `algebra_map R A` is available, and `alg_hom R A B` and
+`subalgebra R A` can be used. For concrete `R` and `A`, `algebra_map R A` is often definitionally
+convenient.
+
 The advantage of the second approach is that `comm_semiring R`, `semiring A`, and `module R A` can
 all be relaxed independently; for instance, this allows us to:
-* Replace `semiring A` with `non_unital_non_assoc_semiring A` in order to describe Lie algebras
+* Replace `semiring A` with `non_unital_non_assoc_semiring A` in order to describe non-unital and/or
+  non-associative algebras.
 * Replace `comm_semiring R` and `module R A` with `comm_group R'` and `distrib_mul_action R' A`,
   which when `R' = units R` lets us talk about the "algebra-like" action of `units R` on an
   `R`-algebra `A`.
+While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.
 -/
 @[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]

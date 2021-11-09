@@ -236,9 +236,9 @@ begin
   cases (n % m).zero_le.eq_or_lt with hn hn,
   { simpa [←hn] using nat.mod_eq_of_lt hk },
   { have mpos : 0 < m := k.zero_le.trans_lt hk,
-    have hm : m - n % m < m := sub_lt_self' mpos hn,
+    have hm : m - n % m < m := tsub_lt_self mpos hn,
     have hn' : n % m < m := nat.mod_lt _ mpos,
-    simpa [mod_eq_of_lt hm, nat.sub_add_cancel hn'.le] using nat.mod_eq_of_lt hk }
+    simpa [mod_eq_of_lt hm, tsub_add_cancel_of_le hn'.le] using nat.mod_eq_of_lt hk }
 end
 
 lemma rotate_injective (n : ℕ) : function.injective (λ l : list α, l.rotate n) :=
@@ -264,7 +264,7 @@ begin
   { rw [eq_nil_of_length_eq_zero hl.symm, rotate_nil, rotate_eq_nil_iff] },
   { cases (nat.zero_le (n % l'.length)).eq_or_lt with hn hn,
     { simp [←hn] },
-    { rw [mod_eq_of_lt (sub_lt_self' hl hn), nat.sub_add_cancel, mod_self, rotate_zero],
+    { rw [mod_eq_of_lt (tsub_lt_self hl hn), tsub_add_cancel_of_le, mod_self, rotate_zero],
       exact (nat.mod_lt _ hl).le } }
 end
 
@@ -294,9 +294,9 @@ begin
     { simp },
     { have : k'.succ < (x :: l).length,
       { simp [←hk', hk, nat.mod_lt] },
-      rw [nat.mod_eq_of_lt, nat.sub_add_cancel, rotate_length],
-      { exact sub_le_self' },
-      { exact sub_lt_self' (by simp) nat.succ_pos' } } }
+      rw [nat.mod_eq_of_lt, tsub_add_cancel_of_le, rotate_length],
+      { exact tsub_le_self },
+      { exact tsub_lt_self (by simp) nat.succ_pos' } } }
 end
 
 lemma map_rotate {β : Type*} (f : α → β) (l : list α) (n : ℕ) :
@@ -320,7 +320,7 @@ begin
     rw nodup_iff_nth_le_inj at hl,
     refine hl _ _ (mod_lt _ hl') hl' _,
     rw ←nth_le_rotate' _ n,
-    simp_rw [h, nat.sub_add_cancel (mod_lt _ hl').le, mod_self] },
+    simp_rw [h, tsub_add_cancel_of_le (mod_lt _ hl').le, mod_self] },
   { rintro (h|h),
     { rw [←rotate_mod, h],
       exact rotate_zero l },
@@ -334,7 +334,7 @@ begin
   have hj : j % l.length < l.length := mod_lt _ (length_pos_of_ne_nil hn),
   refine (nodup_iff_nth_le_inj.mp hl) _ _ hi hj _,
   rw [←nth_le_rotate' l i, ←nth_le_rotate' l j],
-  simp [nat.sub_add_cancel, hi.le, hj.le, h]
+  simp [tsub_add_cancel_of_le, hi.le, hj.le, h]
 end
 
 section is_rotated
@@ -358,7 +358,7 @@ begin
   cases l with hd tl,
   { simp },
   { use (hd :: tl).length * n - n,
-    rw [rotate_rotate, add_sub_cancel_of_le, rotate_length_mul],
+    rw [rotate_rotate, add_tsub_cancel_of_le, rotate_length_mul],
     exact nat.le_mul_of_pos_left (by simp) }
 end
 
@@ -595,7 +595,7 @@ begin
   refine ⟨k % l.length, _⟩,
   have hk' : k % l.length < l.length := mod_lt _ (length_pos_of_ne_nil hl),
   rw [←nth_le_cyclic_permutations _ _ (hk'.trans_le hl'.ge), ←nth_le_rotate' _ k],
-  simp [hk, hl', nat.sub_add_cancel hk'.le]
+  simp [hk, hl', tsub_add_cancel_of_le hk'.le]
 end
 
 section decidable

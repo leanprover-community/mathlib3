@@ -68,7 +68,7 @@ begin
   choose V iVU m h_unit using λ x : U, X.is_unit_res_of_is_unit_germ U f x (h x),
   have hcover : U ≤ supr V,
   { intros x hxU,
-    rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_coe, opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
   -- Let `g x` denote the inverse of `f` in `U x`.
   choose g hg using λ x : U, is_unit.exists_right_inv (h_unit x),

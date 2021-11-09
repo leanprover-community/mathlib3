@@ -174,7 +174,7 @@ begin
     { suffices : p.judge₁ = p.judge₂, { simp [this], }, finish, }, },
   have hst' : (s \ t).card = 2*z + 1, { rw [hst, finset.diag_card, ← hJ], refl, },
   rw [finset.filter_and, ← finset.sdiff_sdiff_self_left s t, finset.card_sdiff],
-  { rw hst', rw add_assoc at hs, apply le_sub_of_add_le_right' hs, },
+  { rw hst', rw add_assoc at hs, apply le_tsub_of_add_le_right hs, },
   { apply finset.sdiff_subset, },
 end
 

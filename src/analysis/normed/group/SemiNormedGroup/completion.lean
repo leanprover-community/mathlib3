@@ -34,8 +34,9 @@ noncomputable theory
 
 universe u
 
-namespace SemiNormedGroup
 open uniform_space opposite category_theory normed_group_hom
+
+namespace SemiNormedGroup
 
 /-- The completion of a seminormed group, as an endofunctor on `SemiNormedGroup`. -/
 @[simps]

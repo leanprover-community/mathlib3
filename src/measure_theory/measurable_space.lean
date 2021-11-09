@@ -126,7 +126,7 @@ lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 
-lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :
+@[mono] lemma generate_from_mono {s t : set (set α)} (h : s ⊆ t) :
   generate_from s ≤ generate_from t :=
 gi_generate_from.gc.monotone_l h
 
@@ -358,6 +358,16 @@ begin
       subtype.range_coe, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
 end
 
+lemma measurable_of_restrict_of_restrict_compl {f : α → β} {s : set α}
+  (hs : measurable_set s) (h₁ : measurable (restrict f s)) (h₂ : measurable (restrict f sᶜ)) :
+  measurable f :=
+measurable_of_measurable_union_cover s sᶜ hs hs.compl (union_compl_self s).ge h₁ h₂
+
+lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurable f)
+  {g : sᶜ → β} (hg : measurable g) (hs : measurable_set s) :
+  measurable (λ x, if hx : x ∈ s then f ⟨x, hx⟩ else g ⟨x, hx⟩) :=
+measurable_of_restrict_of_restrict_compl hs (by simpa) (by simpa)
+
 instance {α} {p : α → Prop} [measurable_space α] [measurable_singleton_class α] :
   measurable_singleton_class (subtype p) :=
 { measurable_set_singleton := λ x,
@@ -373,8 +383,8 @@ lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
   measurable f :=
 begin
   letI : fintype s := finite.fintype hs,
-  exact measurable_of_measurable_union_cover s sᶜ hs.measurable_set hs.measurable_set.compl
-    (by simp only [union_compl_self]) (measurable_of_fintype _) hf
+  exact measurable_of_restrict_of_restrict_compl hs.measurable_set
+    (measurable_of_fintype _) hf
 end
 
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
@@ -681,6 +691,92 @@ instance {α} {β : α → Type*} [m : Πa, measurable_space (β a)] : measurabl
 
 end constructions
 
+/-- A map `f : α → β` is called a *measurable embedding* if it is injective, measurable, and sends
+measurable sets to measurable sets. The latter assumption can be replaced with “`f` has measurable
+inverse `g : range f → α`”, see `measurable_embedding.measurable_range_splitting`,
+`measurable_embedding.of_measurable_inverse_range`, and
+`measurable_embedding.of_measurable_inverse`.
+
+One more interpretation: `f` is a measurable embedding if it defines a measurable equivalence to its
+range and the range is a measurable set. One implication is formalized as
+`measurable_embedding.equiv_range`; the other one follows from
+`measurable_equiv.measurable_embedding`, `measurable_embedding.subtype_coe`, and
+`measurable_embedding.comp`. -/
+@[protect_proj]
+structure measurable_embedding {α β : Type*} [measurable_space α] [measurable_space β] (f : α → β) :
+  Prop :=
+(injective : injective f)
+(measurable : measurable f)
+(measurable_set_image' : ∀ ⦃s⦄, measurable_set s → measurable_set (f '' s))
+
+namespace measurable_embedding
+
+variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β} {g : β → γ}
+
+lemma measurable_set_image (hf : measurable_embedding f) {s : set α} :
+  measurable_set (f '' s) ↔ measurable_set s :=
+⟨λ h, by simpa only [hf.injective.preimage_image] using hf.measurable h,
+  λ h, hf.measurable_set_image' h⟩
+
+lemma id : measurable_embedding (id : α → α) :=
+⟨injective_id, measurable_id, λ s hs, by rwa image_id⟩
+
+lemma comp (hg : measurable_embedding g) (hf : measurable_embedding f) :
+  measurable_embedding (g ∘ f) :=
+⟨hg.injective.comp hf.injective, hg.measurable.comp hf.measurable,
+  λ s hs, by rwa [← image_image, hg.measurable_set_image, hf.measurable_set_image]⟩
+
+lemma subtype_coe {s : set α} (hs : measurable_set s) : measurable_embedding (coe : s → α) :=
+{ injective := subtype.coe_injective,
+  measurable := measurable_subtype_coe,
+  measurable_set_image' := λ _, measurable_set.subtype_image hs }
+
+lemma measurable_set_range (hf : measurable_embedding f) : measurable_set (range f) :=
+by { rw ← image_univ, exact hf.measurable_set_image' measurable_set.univ }
+
+lemma measurable_set_preimage (hf : measurable_embedding f) {s : set β} :
+  measurable_set (f ⁻¹' s) ↔ measurable_set (s ∩ range f) :=
+by rw [← image_preimage_eq_inter_range, hf.measurable_set_image]
+
+lemma measurable_range_splitting (hf : measurable_embedding f) :
+  measurable (range_splitting f) :=
+λ s hs, by rwa [preimage_range_splitting hf.injective,
+  ← (subtype_coe hf.measurable_set_range).measurable_set_image, ← image_comp,
+  coe_comp_range_factorization, hf.measurable_set_image]
+
+lemma measurable_extend (hf : measurable_embedding f) {g : α → γ} {g' : β → γ}
+  (hg : measurable g) (hg' : measurable g') :
+  measurable (extend f g g') :=
+begin
+  refine measurable_of_restrict_of_restrict_compl hf.measurable_set_range _ _,
+  { rw restrict_extend_range,
+    simpa only [range_splitting] using hg.comp hf.measurable_range_splitting },
+  { rw restrict_extend_compl_range, exact hg'.comp measurable_subtype_coe }
+end
+
+lemma exists_measurable_extend (hf : measurable_embedding f) {g : α → γ} (hg : measurable g)
+  (hne : β → nonempty γ) :
+  ∃ g' : β → γ, measurable g' ∧ g' ∘ f = g :=
+⟨extend f g (λ x, classical.choice (hne x)),
+  hf.measurable_extend hg (measurable_const' $ λ _ _, rfl),
+  funext $ λ x, extend_apply hf.injective _ _ _⟩
+
+lemma measurable_comp_iff (hg : measurable_embedding g) : measurable (g ∘ f) ↔ measurable f :=
+begin
+  refine ⟨λ H, _, hg.measurable.comp⟩,
+  suffices : measurable ((range_splitting g ∘ range_factorization g) ∘ f),
+    by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
+  exact hg.measurable_range_splitting.comp H.subtype_mk
+end
+
+end measurable_embedding
+
+lemma measurable_set.exists_measurable_proj [measurable_space α] {s : set α}
+  (hs : measurable_set s) (hne : s.nonempty) : ∃ f : α → s, measurable f ∧ ∀ x : s, f x = x :=
+let ⟨f, hfm, hf⟩ := (measurable_embedding.subtype_coe hs).exists_measurable_extend
+  measurable_id (λ _, hne.to_subtype)
+in ⟨f, hfm, congr_fun hf⟩
+
 /-- Equivalences between measurable spaces. Main application is the simplification of measurability
 statements along measurable equivalences. -/
 structure measurable_equiv (α β : Type*) [measurable_space α] [measurable_space β] extends α ≃ β :=
@@ -693,8 +789,7 @@ namespace measurable_equiv
 
 variables (α β) [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
 
-instance : has_coe_to_fun (α ≃ᵐ β) :=
-⟨λ _, α → β, λ e, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ᵐ β) (λ _, α → β) := ⟨λ e, e.to_fun⟩
 
 variables {α β}
 
@@ -769,6 +864,26 @@ protected theorem surjective (e : α ≃ᵐ β) : surjective e := e.to_equiv.sur
 protected theorem bijective (e : α ≃ᵐ β) : bijective e := e.to_equiv.bijective
 protected theorem injective (e : α ≃ᵐ β) : injective e := e.to_equiv.injective
 
+@[simp] theorem symm_preimage_preimage (e : α ≃ᵐ β) (s : set β) : e.symm ⁻¹' (e ⁻¹' s) = s :=
+e.to_equiv.symm_preimage_preimage s
+
+theorem image_eq_preimage (e : α ≃ᵐ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
+e.to_equiv.image_eq_preimage s
+
+@[simp] theorem measurable_set_preimage (e : α ≃ᵐ β) {s : set β} :
+  measurable_set (e ⁻¹' s) ↔ measurable_set s :=
+⟨λ h, by simpa only [symm_preimage_preimage] using e.symm.measurable h, λ h, e.measurable h⟩
+
+@[simp] theorem measurable_set_image (e : α ≃ᵐ β) {s : set α} :
+  measurable_set (e '' s) ↔ measurable_set s :=
+by rw [image_eq_preimage, measurable_set_preimage]
+
+/-- A measurable equivalence is a measurable embedding. -/
+protected lemma measurable_embedding (e : α ≃ᵐ β) : measurable_embedding e :=
+{ injective := e.injective,
+  measurable := e.measurable,
+  measurable_set_image' := λ s, e.measurable_set_image.2 }
+
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]
   (h : α = β) (hi : i₁ == i₂) : α ≃ᵐ β :=
@@ -776,13 +891,20 @@ protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space
   measurable_to_fun  := by { substI h, substI hi, exact measurable_id },
   measurable_inv_fun := by { substI h, substI hi, exact measurable_id }}
 
-protected lemma measurable_coe_iff {f : β → γ} (e : α ≃ᵐ β) :
+protected lemma measurable_comp_iff {f : β → γ} (e : α ≃ᵐ β) :
   measurable (f ∘ e) ↔ measurable f :=
 iff.intro
   (assume hfe,
     have measurable (f ∘ (e.symm.trans e).to_equiv) := hfe.comp e.symm.measurable,
     by rwa [coe_to_equiv, symm_trans_self] at this)
   (λ h, h.comp e.measurable)
+
+/-- Any two types with unique elements are measurably equivalent. -/
+def of_unique_of_unique (α β : Type*) [measurable_space α] [measurable_space β]
+  [unique α] [unique β] : α ≃ᵐ β :=
+{ to_equiv := equiv_of_unique_of_unique,
+  measurable_to_fun := subsingleton.measurable,
+  measurable_inv_fun := subsingleton.measurable }
 
 /-- Products of equivalent measurable spaces are equivalent. -/
 def prod_congr (ab : α ≃ᵐ β) (cd : γ ≃ᵐ δ) : α × γ ≃ᵐ β × δ :=
@@ -907,13 +1029,13 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       (by { rintro ⟨a|b, c⟩; simp [set.prod_eq] })
       _
       _,
-    { refine (set.prod (range sum.inl) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inl) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inl (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inl,
       ext ⟨a, c⟩, refl },
-    { refine (set.prod (range sum.inr) univ).symm.measurable_coe_iff.1 _,
-      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_coe_iff.1 _,
+    { refine (set.prod (range sum.inr) univ).symm.measurable_comp_iff.1 _,
+      refine (prod_congr set.range_inr (set.univ _)).symm.measurable_comp_iff.1 _,
       dsimp [(∘)],
       convert measurable_inr,
       ext ⟨b, c⟩, refl }
@@ -972,6 +1094,36 @@ noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : 
 @[simps {fully_applied := ff}] def fin_two_arrow : (fin 2 → α) ≃ᵐ α × α := pi_fin_two (λ _, α)
 
 end measurable_equiv
+
+namespace measurable_embedding
+
+variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β}
+
+/-- A measurable embedding defines a measurable equivalence between its domain
+and its range. -/
+noncomputable def equiv_range (f : α → β) (hf : measurable_embedding f) :
+  α ≃ᵐ range f :=
+{ to_equiv := equiv.of_injective f hf.injective,
+  measurable_to_fun := hf.measurable.subtype_mk,
+  measurable_inv_fun :=
+    by { rw coe_of_injective_symm, exact hf.measurable_range_splitting } }
+
+lemma of_measurable_inverse_on_range {g : range f → α} (hf₁ : measurable f)
+  (hf₂ : measurable_set (range f)) (hg : measurable g)
+  (H : left_inverse g (range_factorization f)) : measurable_embedding f :=
+begin
+  set e : α ≃ᵐ range f :=
+    ⟨⟨range_factorization f, g, H, H.right_inverse_of_surjective surjective_onto_range⟩,
+      hf₁.subtype_mk, hg⟩,
+  exact (measurable_embedding.subtype_coe hf₂).comp e.measurable_embedding
+end
+
+lemma of_measurable_inverse {g : β → α} (hf₁ : measurable f)
+  (hf₂ : measurable_set (range f)) (hg : measurable g)
+  (H : left_inverse g f) : measurable_embedding f :=
+of_measurable_inverse_on_range hf₁ hf₂ (hg.comp measurable_subtype_coe) H
+
+end measurable_embedding
 
 namespace filter
 

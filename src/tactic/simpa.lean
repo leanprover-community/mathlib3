@@ -5,9 +5,12 @@ Authors: Mario Carneiro
 -/
 import tactic.doc_commands
 
+open interactive
+open interactive.types
+
 namespace tactic
 namespace interactive
-open interactive interactive.types expr lean.parser
+open expr lean.parser
 
 local postfix `?`:9001 := optional
 

@@ -55,8 +55,7 @@ notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 namespace mul_action_hom
 
-instance : has_coe_to_fun (X →[M'] Y) :=
-⟨_, λ c, c.to_fun⟩
+instance : has_coe_to_fun (X →[M'] Y) (λ _, X → Y) := ⟨mul_action_hom.to_fun⟩
 
 variables {M M' X Y}
 
@@ -136,8 +135,7 @@ instance has_coe : has_coe (A →+[M] B) (A →+ B) :=
 instance has_coe' : has_coe (A →+[M] B) (A →[M] B) :=
 ⟨to_mul_action_hom⟩
 
-instance : has_coe_to_fun (A →+[M] B) :=
-⟨_, to_fun⟩
+instance : has_coe_to_fun (A →+[M] B) (λ _, A → B) := ⟨to_fun⟩
 
 variables {M A B}
 
@@ -259,8 +257,7 @@ instance has_coe : has_coe (R →+*[M] S) (R →+* S) :=
 instance has_coe' : has_coe (R →+*[M] S) (R →+[M] S) :=
 ⟨to_distrib_mul_action_hom⟩
 
-instance : has_coe_to_fun (R →+*[M] S) :=
-⟨_, λ c, c.to_fun⟩
+instance : has_coe_to_fun (R →+*[M] S) (λ _, R → S) := ⟨λ c, c.to_fun⟩
 
 variables {M R S}
 

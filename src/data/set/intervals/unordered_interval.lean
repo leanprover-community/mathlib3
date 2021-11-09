@@ -93,6 +93,9 @@ not_mem_Icc_of_gt $ max_lt_iff.mpr ⟨ha, hb⟩
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 Icc_subset_Icc (le_min h₁.1 h₂.1) (max_le h₁.2 h₂.2)
 
+lemma interval_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
+Icc_subset_Icc (le_min ha.1 hb.1) (max_le ha.2 hb.2)
+
 lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
 iff.intro (λh, ⟨h left_mem_interval, h right_mem_interval⟩) (λ h, interval_subset_interval h.1 h.2)
 

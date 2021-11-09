@@ -49,7 +49,7 @@ variables {C : Type u} [category.{v} C]
 /--
 An alternative formulation of the sheaf condition
 (which we prove equivalent to the usual one below as
-`sheaf_condition_equiv_sheaf_condition_pairwise_intersections`).
+`is_sheaf_iff_is_sheaf_pairwise_intersections`).
 
 A presheaf is a sheaf if `F` sends the cone `(pairwise.cocone U).op` to a limit cone.
 (Recall `pairwise.cocone U` has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
@@ -60,7 +60,7 @@ def is_sheaf_pairwise_intersections (F : presheaf C X) : Prop :=
 /--
 An alternative formulation of the sheaf condition
 (which we prove equivalent to the usual one below as
-`sheaf_condition_equiv_sheaf_condition_preserves_limit_pairwise_intersections`).
+`is_sheaf_iff_is_sheaf_preserves_limit_pairwise_intersections`).
 
 A presheaf is a sheaf if `F` preserves the limit of `pairwise.diagram U`.
 (Recall `pairwise.diagram U` is the diagram consisting of the pairwise intersections

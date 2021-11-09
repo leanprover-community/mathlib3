@@ -73,6 +73,7 @@ if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
 begin
   let q := (not_is_empty_iff.mp hι).some,
   rw affine_independent_iff_linear_independent_vsub k p q at hi,
+  letI : is_noetherian k V := is_noetherian.iff_fg.2 infer_instance,
   exact fintype_of_fintype_ne _ (fintype_of_is_noetherian_linear_independent hi)
 end
 

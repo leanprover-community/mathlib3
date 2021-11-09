@@ -108,7 +108,7 @@ instance : inhabited (con M) :=
 
 /-- A coercion from a congruence relation to its underlying binary relation. -/
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
-instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, @setoid.r _ c.to_setoid x y⟩
+instance : has_coe_to_fun (con M) (λ _, M → M → Prop) := ⟨λ c, λ x y, @setoid.r _ c.to_setoid x y⟩
 
 @[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
 
@@ -153,8 +153,6 @@ by { rcases c with ⟨⟨⟩⟩, rcases d with ⟨⟨⟩⟩, cases H, congr, }
 lemma ext {c d : con M} (H : ∀ x y, c x y ↔ d x y) : c = d :=
 ext' $ by ext; apply H
 
-attribute [ext] add_con.ext
-
 /-- The map sending a congruence relation to its underlying equivalence relation is injective. -/
 @[to_additive "The map sending an additive congruence relation to its underlying equivalence
 relation is injective."]
@@ -176,7 +174,7 @@ lemma ext'_iff {c d : con M} : c.r = d.r ↔ c = d :=
 @[to_additive "The kernel of an addition-preserving function as an additive congruence relation."]
 def mul_ker (f : M → P) (h : ∀ x y, f (x * y) = f x * f y) : con M :=
 { to_setoid := setoid.ker f,
-  mul' := λ _ _ _ _ h1 h2, by { dsimp [setoid.ker] at *, rw [h, h1, h2, h], } }
+  mul' := λ _ _ _ _ h1 h2, by { dsimp [setoid.ker, on_fun] at *, rw [h, h1, h2, h], } }
 
 /-- Given types with multiplications `M, N`, the product of two congruence relations `c` on `M` and
     `d` on `N`: `(x₁, x₂), (y₁, y₂) ∈ M × N` are related by `c.prod d` iff `x₁` is related to `y₁`
@@ -210,7 +208,8 @@ relation", priority 0]
 instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
 /-- The quotient by a decidable congruence relation has decidable equality. -/
-@[to_additive "The quotient by a decidable additive congruence relation has decidable equality."]
+@[to_additive "The quotient by a decidable additive congruence relation has decidable equality.",
+  priority 500] -- Lower the priority since it unifies with any quotient type.
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 
@@ -534,7 +533,7 @@ def comap (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (c : con N) : con M
 iff.rfl
 
 section
-open quotient
+open _root_.quotient
 
 /-- Given a congruence relation `c` on a type `M` with a multiplication, the order-preserving
     bijection between the set of congruence relations containing `c` and the congruence relations

@@ -150,7 +150,7 @@ mul_support_binop_subset (*) (one_mul _) f g
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
 set.ext $ λ x, not_congr inv_eq_one
 
-@[simp, to_additive support_neg'] lemma mul_support_inv'' [group G] (f : α → G) :
+@[simp, to_additive] lemma mul_support_inv' [group G] (f : α → G) :
   mul_support (f⁻¹) = mul_support f :=
 mul_support_inv f
 

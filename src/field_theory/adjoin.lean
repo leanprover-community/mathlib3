@@ -582,7 +582,10 @@ end
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
   (K : intermediate_field F E) : P K :=
-induction_on_adjoin_fg P base ih K K.fg_of_noetherian
+begin
+  letI : is_noetherian F E := is_noetherian.iff_fg.2 infer_instance,
+  exact induction_on_adjoin_fg P base ih K K.fg_of_noetherian
+end
 
 end induction
 

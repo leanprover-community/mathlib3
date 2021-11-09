@@ -40,6 +40,7 @@ typeclass. We provide it as `[fact (x < y)]`.
 noncomputable theory
 open set function
 open_locale manifold
+local attribute [instance] fact_one_le_two_real
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when

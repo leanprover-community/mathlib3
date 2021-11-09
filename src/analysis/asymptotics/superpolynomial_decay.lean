@@ -72,7 +72,7 @@ begin
   split; intros h c; specialize h (-c),
   { simpa [div_eq_mul_inv] using div_is_bounded_under_of_is_O h },
   { refine (is_O_iff_div_is_bounded_under _).2 _,
-    { exact hα.mono (λ x hx hx', absurd (fpow_eq_zero hx') hx) },
+    { exact hα.mono (λ x hx hx', absurd (zpow_eq_zero hx') hx) },
     { simpa [div_eq_mul_inv] using h } }
 end
 
@@ -92,7 +92,7 @@ begin
   have := this.mul_is_O (h $ c - 1),
   simp only [one_mul] at this,
   refine this.trans_is_O (is_O.of_bound 1 (hα'.mono (λ x hx, le_of_eq _))),
-  rw [fpow_sub_one hx, mul_comm, mul_assoc, inv_mul_cancel hx, one_mul, mul_one]
+  rw [zpow_sub_one₀ hx, mul_comm, mul_assoc, inv_mul_cancel hx, one_mul, mul_one]
 end
 
 theorem superpolynomial_decay_iff_norm_tendsto_zero (f : α → 𝕜)
@@ -184,12 +184,12 @@ begin
   haveI : nontrivial α := (algebra_map α 𝕜).domain_nontrivial,
   refine λ c, (is_O.mul (is_O_refl (algebra_map α 𝕜) at_top) (hf (c - 1))).trans _,
   refine is_O_of_div_tendsto_nhds (eventually_of_forall
-    (λ x hx, mul_eq_zero_of_left (fpow_eq_zero hx) _)) 1 (tendsto_nhds.2 _),
+    (λ x hx, mul_eq_zero_of_left (zpow_eq_zero hx) _)) 1 (tendsto_nhds.2 _),
   refine λ s hs hs', at_top.sets_of_superset (mem_at_top 1) (λ x hx, set.mem_preimage.2 _),
   have hx' : algebra_map α 𝕜 x ≠ 0 := λ hx', (ne_of_lt $ lt_of_lt_of_le zero_lt_one hx).symm
     (by simpa [algebra.algebra_map_eq_smul_one, smul_eq_zero] using hx'),
   convert hs',
-  rw [pi.div_apply, div_eq_one_iff_eq (fpow_ne_zero c hx'), fpow_sub_one hx' c,
+  rw [pi.div_apply, div_eq_one_iff_eq (zpow_ne_zero c hx'), zpow_sub_one₀ hx' c,
     mul_comm (algebra_map α 𝕜 x), mul_assoc, inv_mul_cancel hx', mul_one],
 end
 
@@ -252,19 +252,19 @@ begin
   { exact hC c hc },
   { refine (hC C le_rfl).trans (is_O.of_bound 1 (_)),
     refine at_top.sets_of_superset hα (λ x hx, _),
-    simp only [one_mul, normed_field.norm_fpow, set.mem_set_of_eq],
-    exact fpow_le_of_le hx (le_of_not_le hc) }
+    simp only [one_mul, normed_field.norm_zpow, set.mem_set_of_eq],
+    exact zpow_le_of_le hx (le_of_not_le hc) }
 end
 
-lemma superpolynomial_decay_of_is_O_fpow_le (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
+lemma superpolynomial_decay_of_is_O_zpow_le (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
   (C : ℤ) (h : ∀ c ≤ C, is_O f (λ n, (algebra_map α 𝕜 n) ^ c) at_top) :
   superpolynomial_decay f :=
 superpolynomial_decay_of_eventually_is_O hα (eventually_at_bot.2 ⟨C, h⟩)
 
-lemma superpolynomial_decay_of_is_O_fpow_lt (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
+lemma superpolynomial_decay_of_is_O_zpow_lt (hα : ∀ᶠ (x : α) in at_top, 1 ≤ ∥algebra_map α 𝕜 x∥)
   (C : ℤ) (h : ∀ c < C, is_O f (λ n, (algebra_map α 𝕜 n) ^ c) at_top) :
   superpolynomial_decay f :=
-superpolynomial_decay_of_is_O_fpow_le hα C.pred
+superpolynomial_decay_of_is_O_zpow_le hα C.pred
   (λ c hc, h c (lt_of_le_of_lt hc (int.pred_self_lt C)))
 
 section order_topology
@@ -279,7 +279,7 @@ begin
   refine is_O.trans_tendsto (hf (-1)) _,
   have : (has_inv.inv : 𝕜 → 𝕜) ∘ (algebra_map α 𝕜 : α → 𝕜)
     = (λ (n : α), (algebra_map α 𝕜 n) ^ (-1 : ℤ)),
-  by simp only [gpow_one, fpow_neg],
+  by simp only [zpow_one, zpow_neg₀],
   exact this ▸ (tendsto_inv_at_top_zero).comp (hα)
 end
 

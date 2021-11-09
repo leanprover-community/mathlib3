@@ -52,7 +52,7 @@ begin
   rw [←sum_range_reflect, add_succ_sub_one, add_zero, bernoulli_poly],
   apply sum_congr rfl,
   rintros x hx,
-  rw mem_range_succ_iff at hx, rw [choose_symm hx, nat.sub_sub_self hx],
+  rw mem_range_succ_iff at hx, rw [choose_symm hx, tsub_tsub_cancel_of_le hx],
 end
 
 namespace bernoulli_poly
@@ -71,7 +71,7 @@ begin
  rw [bernoulli_poly, polynomial.eval_finset_sum, sum_range_succ],
   have : ∑ (x : ℕ) in range n, bernoulli x * (n.choose x) * 0 ^ (n - x) = 0,
   { apply sum_eq_zero (λ x hx, _),
-    have h : 0 < n - x := nat.sub_pos_of_lt (mem_range.1 hx),
+    have h : 0 < n - x := tsub_pos_of_lt (mem_range.1 hx),
     simp [h] },
   simp [this],
 end
@@ -96,23 +96,23 @@ end examples
 begin
  simp_rw [bernoulli_poly_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
     finset.sum_Ico_eq_sum_range],
-  simp only [cast_succ, nat.add_sub_cancel_left, nat.sub_zero, zero_add, linear_map.map_add],
+  simp only [cast_succ, add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
   simp_rw [polynomial.smul_monomial, mul_comm (bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
-      rw [← nat.cast_mul, choose_mul ((le_sub_iff_left $ mem_range_le H).1
-        $ mem_range_le H_1) (le.intro rfl), nat.cast_mul, add_comm x x_1, nat.add_sub_cancel,
+      rw [← nat.cast_mul, choose_mul ((le_tsub_iff_left $ mem_range_le H).1
+        $ mem_range_le H_1) (le.intro rfl), nat.cast_mul, add_comm x x_1, add_tsub_cancel_right,
         mul_assoc, mul_comm, ←smul_eq_mul, ←polynomial.smul_monomial] },
     rw [←sum_smul], },
   rw [sum_range_succ_comm],
-  simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, nat.add_sub_cancel_left,
+  simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, add_tsub_cancel_left,
     choose_succ_self_right, one_smul, bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
   apply sum_eq_zero (λ x hx, _),
   have f : ∀ x ∈ range n, ¬ n + 1 - x = 1,
   { rintros x H, rw [mem_range] at H,
     rw [eq_comm],
-    exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (le_sub_of_add_le_left' (succ_le_succ H))) },
+    exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (le_tsub_of_add_le_left (succ_le_succ H))) },
   rw [sum_bernoulli],
   have g : (ite (n + 1 - x = 1) (1 : ℚ) 0) = 0,
     { simp only [ite_eq_right_iff, one_ne_zero],
@@ -141,7 +141,7 @@ begin
   rw [coeff_succ_X_mul, coeff_rescale, coeff_exp, coeff_mul,
     nat.sum_antidiagonal_eq_sum_range_succ_mk, sum_range_succ],
   -- last term is zero so kill with `add_zero`
-  simp only [ring_hom.map_sub, nat.sub_self, constant_coeff_one, constant_coeff_exp,
+  simp only [ring_hom.map_sub, tsub_self, constant_coeff_one, constant_coeff_exp,
     coeff_zero_eq_constant_coeff, mul_zero, sub_self, add_zero],
   -- Let's multiply both sides by (n+1)! (OK because it's a unit)
   set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,

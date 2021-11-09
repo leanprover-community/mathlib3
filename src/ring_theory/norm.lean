@@ -178,8 +178,6 @@ begin
   rw [← power_basis.finrank, adjoin_simple.algebra_map_gen K x],
 end
 
-end intermediate_field.adjoin_simple
-
 section eq_prod_embeddings
 
 open intermediate_field intermediate_field.adjoin_simple polynomial

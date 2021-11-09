@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.basic
 import measure_theory.constructions.borel_space
+import measure_theory.covering.vitali_family
 
 /-!
 # Vitali covering theorems
@@ -26,6 +27,10 @@ where `μ` is a doubling measure and `t` is a family of balls). Consider a set `
 family is fine, i.e., every point of `s` belongs to arbitrarily small elements of `t`. Then one
 can extract from `t` a disjoint subfamily that covers almost all `s`. It is proved in
 `vitali.exists_disjoint_covering_ae`.
+
+A way to restate this theorem is to say that the set of closed sets `a` with nonempty interior
+covering a fixed proportion `1/C` of the ball `closed_ball x (3 * diam a)` forms a Vitali family.
+This version is given in `vitali.vitali_family`.
 -/
 
 variables {α : Type*}
@@ -47,7 +52,7 @@ element `b` of `u` of size larger than that of `a` up to `τ`, i.e., `δ b ≥ �
 theorem exists_disjoint_subfamily_covering_enlargment
   (t : set (set α)) (δ : set α → ℝ) (τ : ℝ) (hτ : 1 < τ) (δnonneg : ∀ a ∈ t, 0 ≤ δ a)
   (R : ℝ) (δle : ∀ a ∈ t, δ a ≤ R) (hne : ∀ a ∈ t, set.nonempty a) :
-  ∃ u ⊆ t, u.pairwise disjoint ∧
+  ∃ u ⊆ t, u.pairwise_disjoint id ∧
     ∀ a ∈ t, ∃ b ∈ u, set.nonempty (a ∩ b) ∧ δ a ≤ τ * δ b :=
 begin
   /- The proof could be formulated as a transfinite induction. First pick an element of `t` with `δ`
@@ -63,7 +68,7 @@ begin
   that `u ∪ {a'}` still has this property, contradicting the maximality. Therefore, `u`
   intersects all elements of `t`, and by definition it satisfies all the desired properties.
   -/
-  let T : set (set (set α)) := {u | u ⊆ t ∧ u.pairwise disjoint
+  let T : set (set (set α)) := {u | u ⊆ t ∧ u.pairwise_disjoint id
     ∧ ∀ a ∈ t, ∀ b ∈ u, set.nonempty (a ∩ b) → ∃ c ∈ u, (a ∩ c).nonempty ∧ δ a ≤ τ * δ c},
   -- By Zorn, choose a maximal family in the good set `T` of disjoint families.
   obtain ⟨u, uT, hu⟩ : ∃ u ∈ T, ∀ v ∈ T, u ⊆ v → v = u,
@@ -71,13 +76,11 @@ begin
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
     simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
                 set.mem_set_of_eq],
-    refine ⟨λ u hu, (UT hu).1, _, λ a hat b u uU hbu hab, _⟩,
-    { rw [pairwise_sUnion hU.directed_on],
-      assume u hu,
-      exact (UT hu).2.1 },
-    { obtain ⟨c, cu, ac, hc⟩ : ∃ (c : set α) (H : c ∈ u), (a ∩ c).nonempty ∧ δ a ≤ τ * δ c :=
-        (UT uU).2.2 a hat b hbu hab,
-      exact ⟨c, ⟨u, uU, cu⟩, ac, hc⟩ } },
+    refine ⟨λ u hu, (UT hu).1, (pairwise_disjoint_sUnion hU.directed_on).2 (λ u hu, (UT hu).2.1),
+      λ a hat b u uU hbu hab, _⟩,
+    obtain ⟨c, cu, ac, hc⟩ : ∃ (c : set α) (H : c ∈ u), (a ∩ c).nonempty ∧ δ a ≤ τ * δ c :=
+      (UT uU).2.2 a hat b hbu hab,
+    exact ⟨c, ⟨u, uU, cu⟩, ac, hc⟩ },
   -- the only nontrivial bit is to check that every `a ∈ t` intersects an element `b ∈ u` with
   -- comparatively large `δ b`. Assume this is not the case, then we will contradict the maximality.
   refine ⟨u, uT.1, uT.2.1, λ a hat, _⟩,
@@ -119,9 +122,7 @@ begin
     exact ⟨a'A.1, uT.1⟩ },
   -- check that `u ∪ {a'}` is a disjoint family. This follows from the fact that `a'` does not
   -- intersect `u`.
-  { rw pairwise_insert_of_symmetric, swap,
-    { simp only [function.on_fun, symmetric, disjoint.comm, imp_self, forall_const] },
-    exact ⟨uT.2.1, λ b bu ba', a'A.2 b bu⟩ },
+  { exact uT.2.1.insert (λ b bu ba', a'A.2 b bu) },
   -- check that every element `c` of `t` intersecting `u ∪ {a'}` intersects an element of this
   -- family with large `δ`.
   { assume c ct b ba'u hcb,
@@ -150,11 +151,11 @@ extract a disjoint subfamily `u ⊆ t` so that all balls in `t` are covered by t
 dilations of balls in `u`. -/
 theorem exists_disjoint_subfamily_covering_enlargment_closed_ball [metric_space α]
   (t : set (set α)) (R : ℝ) (ht : ∀ s ∈ t, ∃ x r, s = closed_ball x r ∧ r ≤ R) :
-  ∃ u ⊆ t, u.pairwise disjoint ∧
+  ∃ u ⊆ t, u.pairwise_disjoint id ∧
     ∀ a ∈ t, ∃ x r, closed_ball x r ∈ u ∧ a ⊆ closed_ball x (5 * r) :=
 begin
   rcases eq_empty_or_nonempty t with rfl|tnonempty,
-  { exact ⟨∅, subset.refl _, by simp⟩ },
+  { exact ⟨∅, subset.refl _, pairwise_disjoint_empty, by simp⟩ },
   haveI : inhabited α,
   { choose s hst using tnonempty,
     choose x r hxr using ht s hst,
@@ -163,7 +164,7 @@ begin
   rcases eq_or_ne t {∅} with rfl|t_ne_empty,
   { refine ⟨{∅}, subset.refl _, _⟩,
     simp only [true_and, closed_ball_eq_empty, mem_singleton_iff, and_true, empty_subset, forall_eq,
-      pairwise_singleton, exists_const],
+      pairwise_disjoint_singleton, exists_const],
     exact ⟨-1, by simp only [right.neg_neg_iff, zero_lt_one]⟩ },
   -- The real proof starts now. Since the center or the radius of a ball is not uniquely defined
   -- in a general metric space, we just choose one for definiteness.
@@ -177,7 +178,7 @@ begin
   -- to the subfamily `t'` made of nonempty sets, and we use `δ = r` there. This gives a disjointed
   -- subfamily `u'`.
   let t' := {a ∈ t | 0 ≤ r a},
-  obtain ⟨u', u't', u'_disj, hu'⟩ : ∃ u' ⊆ t', u'.pairwise disjoint ∧
+  obtain ⟨u', u't', u'_disj, hu'⟩ : ∃ u' ⊆ t', u'.pairwise_disjoint id ∧
     ∀ a ∈ t', ∃ b ∈ u', set.nonempty (a ∩ b) ∧ r a ≤ 2 * r b,
   { refine exists_disjoint_subfamily_covering_enlargment t' r 2 one_lt_two
       (λ a ha, ha.2) R (λ a ha, (hxr a ha.1).2) (λ a ha, _),
@@ -234,7 +235,7 @@ theorem exists_disjoint_covering_ae [metric_space α] [measurable_space α] [ope
   (t : set (set α)) (hf : ∀ x ∈ s, ∀ (ε > (0 : ℝ)), ∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε)
   (ht : ∀ a ∈ t, (interior a).nonempty) (h't : ∀ a ∈ t, is_closed a)
   (C : ℝ≥0) (h : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a) :
-  ∃ u ⊆ t, countable u ∧ u.pairwise disjoint ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
+  ∃ u ⊆ t, countable u ∧ u.pairwise_disjoint id ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
 begin
   /- The idea of the proof is the following. Assume for simplicity that `μ` is finite. Applying the
   abstract Vitali covering theorem with `δ = diam`, one obtains a disjoint subfamily `u`, such
@@ -255,7 +256,7 @@ begin
   the family is assumed to be fine at every point of `s`).
   -/
   rcases eq_empty_or_nonempty s with rfl|nonempty,
-  { refine ⟨∅, empty_subset _, countable_empty, by simp only [pairwise_empty],
+  { refine ⟨∅, empty_subset _, countable_empty, pairwise_disjoint_empty,
       by simp only [measure_empty, Union_false, Union_empty, diff_self]⟩ },
   haveI : inhabited α,
   { choose x hx using nonempty,
@@ -278,7 +279,7 @@ begin
   -- they only see a finite part of the measure.
   let t' := {a ∈ t | ∃ x, a ⊆ closed_ball x (r x)},
   -- extract a disjoint subfamily `u` of `t'` thanks to the abstract Vitali covering theorem.
-  obtain ⟨u, ut', u_disj, hu⟩ : ∃ u ⊆ t', u.pairwise disjoint ∧
+  obtain ⟨u, ut', u_disj, hu⟩ : ∃ u ⊆ t', u.pairwise_disjoint id ∧
     ∀ a ∈ t', ∃ b ∈ u, set.nonempty (a ∩ b) ∧ diam a ≤ 2 * diam b,
   { have A : ∀ (a : set α), a ∈ t' → diam a ≤ 2,
     { rintros a ⟨hat, ⟨x, hax⟩⟩,
@@ -294,7 +295,7 @@ begin
   -- As the space is second countable, the family is countable since all its sets have nonempty
   -- interior.
   have u_count : countable u :=
-    countable_of_nonempty_interior_of_disjoint id (λ a ha, ht a (ut ha)) u_disj,
+    u_disj.countable_of_nonempty_interior (λ a ha, ht a (ut ha)),
   -- the family `u` will be the desired family
   refine ⟨u, λ a hat', (ut' hat').1, u_count, u_disj, _⟩,
   -- it suffices to show that it covers almost all `s` locally around each point `x`.
@@ -352,7 +353,7 @@ begin
   have I : ∑' (a : v), μ a < ∞,
   { calc ∑' (a : v), μ a = μ (⋃ (a ∈ v), a) : begin
       rw measure_bUnion (u_count.mono vu) _ (λ a ha, (h't _ (vu.trans ut ha)).measurable_set),
-      exact u_disj.mono vu
+      exact u_disj.subset vu
     end
     ... ≤ μ (closed_ball x R) : measure_mono (bUnion_subset (λ a ha, hR a (vu ha) ha.2))
     ... < ∞ : μR },
@@ -430,5 +431,80 @@ begin
   ... ≤ C * (ε / C) : ennreal.mul_le_mul le_rfl hw.le
   ... ≤ ε : ennreal.mul_div_le,
 end
+
+/-- Assume that around every point there are arbitrarily small scales at which the measure is
+doubling. Then the set of closed sets `a` with nonempty interior covering a fixed proportion `1/C`
+of the ball `closed_ball x (3 * diam a)` forms a Vitali family. This is essentially a restatement
+of the measurable Vitali theorem. -/
+protected def vitali_family [metric_space α] [measurable_space α] [opens_measurable_space α]
+  [second_countable_topology α] (μ : measure α) [is_locally_finite_measure μ] (C : ℝ≥0)
+  (h : ∀ x (ε > 0), ∃ r ∈ Ioc (0 : ℝ) ε, μ (closed_ball x (6 * r)) ≤ C * μ (closed_ball x r)) :
+  vitali_family μ :=
+{ sets_at := λ x, {a | x ∈ a ∧ is_closed a ∧ (interior a).nonempty ∧
+                      μ (closed_ball x (3 * diam a)) ≤ C * μ a},
+  measurable_set' := λ x a ha, ha.2.1.measurable_set,
+  nonempty_interior := λ x a ha, ha.2.2.1,
+  nontrivial := λ x ε εpos, begin
+    obtain ⟨r, ⟨rpos, rε⟩, μr⟩ : ∃ r ∈ Ioc (0 : ℝ) ε,
+      μ (closed_ball x (6 * r)) ≤ C * μ (closed_ball x r) := h x ε εpos,
+    refine ⟨closed_ball x r, ⟨_, is_closed_ball, _, _⟩, closed_ball_subset_closed_ball rε⟩,
+    { simp only [rpos.le, mem_closed_ball, dist_self] },
+    { exact (nonempty_ball.2 rpos).mono (ball_subset_interior_closed_ball) },
+    { apply le_trans (measure_mono (closed_ball_subset_closed_ball _)) μr,
+      have : diam (closed_ball x r) ≤ 2 * r := diam_closed_ball rpos.le,
+      linarith }
+  end,
+  covering := begin
+    assume s f fsubset ffine,
+    rcases eq_empty_or_nonempty s with rfl|H,
+    { exact ⟨∅, λ _, ∅, by simp, by simp⟩ },
+    haveI : inhabited α, { choose x hx using H, exact ⟨x⟩ },
+    let t := ⋃ (x ∈ s), f x,
+    have A₁ : ∀ x ∈ s, ∀ (ε : ℝ), 0 < ε → (∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε),
+    { assume x xs ε εpos,
+      rcases ffine x xs ε εpos with ⟨a, xa, hax⟩,
+      exact ⟨a, mem_bUnion xs xa, (fsubset x xs xa).1, hax⟩ },
+    have A₂ : ∀ a ∈ t, (interior a).nonempty,
+    { rintros a ha,
+      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      exact (fsubset x xs xa).2.2.1 },
+    have A₃ : ∀ a ∈ t, is_closed a,
+    { rintros a ha,
+      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      exact (fsubset x xs xa).2.1 },
+    have A₄ : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a,
+    { rintros a ha,
+      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      exact ⟨x, (fsubset x xs xa).1, (fsubset x xs xa).2.2.2⟩ },
+    obtain ⟨u, ut, u_count, u_disj, μu⟩ :
+      ∃ u ⊆ t, u.countable ∧ u.pairwise disjoint ∧ μ (s \ ⋃ a ∈ u, a) = 0 :=
+        exists_disjoint_covering_ae μ s t A₁ A₂ A₃ C A₄,
+    have : ∀ a ∈ u, ∃ x ∈ s, a ∈ f x := λ a ha, mem_bUnion_iff.1 (ut ha),
+    choose! x hx using this,
+    have inj_on_x : inj_on x u,
+    { assume a ha b hb hab,
+      have A : (a ∩ b).nonempty,
+      { refine ⟨x a, mem_inter ((fsubset _ (hx a ha).1 (hx a ha).2).1) _⟩,
+        rw hab,
+        exact (fsubset _ (hx b hb).1 (hx b hb).2).1 },
+      contrapose A,
+      have : disjoint a b := u_disj a ha b hb A,
+      simpa only [← not_disjoint_iff_nonempty_inter] },
+    refine ⟨x '' u, function.inv_fun_on x u, _, _, _, _⟩,
+    { assume y hy,
+      rcases (mem_image _ _ _).1 hy with ⟨a, au, rfl⟩,
+      exact (hx a au).1 },
+    { rw [inj_on_x.pairwise_disjoint_image],
+      assume a ha b hb hab,
+      simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb, (∘)],
+      exact u_disj a ha b hb hab },
+    { assume y hy,
+      rcases (mem_image _ _ _).1 hy with ⟨a, ha, rfl⟩,
+      rw function.inv_fun_on_eq' inj_on_x ha,
+      exact (hx a ha).2 },
+    { rw [bUnion_image],
+      convert μu using 3,
+      exact bUnion_congr (λ a ha, function.inv_fun_on_eq' inj_on_x ha) }
+  end }
 
 end vitali

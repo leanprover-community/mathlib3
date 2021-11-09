@@ -910,6 +910,21 @@ lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h
   ∃ u (_ : a < u), Ico a u ⊆ s :=
 let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
 
+lemma is_open.exists_Ioo_subset [nontrivial α] {s : set α} (hs : is_open s) (h : s.nonempty) :
+  ∃ a b, a < b ∧ Ioo a b ⊆ s :=
+begin
+  obtain ⟨x, hx⟩ : ∃ x, x ∈ s := h,
+  obtain ⟨y, hy⟩ : ∃ y, y ≠ x := exists_ne x,
+  rcases lt_trichotomy x y with H|rfl|H,
+  { obtain ⟨u, xu, hu⟩ : ∃ (u : α) (hu : x < u), Ico x u ⊆ s :=
+      exists_Ico_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
+    exact ⟨x, u, xu, Ioo_subset_Ico_self.trans hu⟩ },
+  { exact (hy rfl).elim },
+  { obtain ⟨l, lx, hl⟩ : ∃ (l : α) (hl : l < x), Ioc l x ⊆ s :=
+      exists_Ioc_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
+    exact ⟨l, x, lx, Ioo_subset_Ioc_self.trans hl⟩ }
+end
+
 lemma order_separated {a₁ a₂ : α} (h : a₁ < a₂) :
   ∃u v : set α, is_open u ∧ is_open v ∧ a₁ ∈ u ∧ a₂ ∈ v ∧ (∀b₁∈u, ∀b₂∈v, b₁ < b₂) :=
 match dense_or_discrete a₁ a₂ with
@@ -2404,6 +2419,21 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
 @[simp] lemma tendsto_Iio_at_top {f : β → Iio a} :
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[Iio a] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
+
+lemma dense_iff_forall_lt_exists_mem [nontrivial α] {s : set α} :
+  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
+begin
+  split,
+  { assume h a b hab,
+    obtain ⟨c, ⟨hc, cs⟩⟩ : ((Ioo a b) ∩ s).nonempty :=
+      dense_iff_inter_open.1 h (Ioo a b) is_open_Ioo (nonempty_Ioo.2 hab),
+    exact ⟨c, cs, hc⟩ },
+  { assume h,
+    apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
+    obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
+    obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h a b hab,
+    exact ⟨x, ⟨H hx, xs⟩⟩ }
+end
 
 end densely_ordered
 

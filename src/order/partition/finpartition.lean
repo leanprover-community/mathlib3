@@ -34,7 +34,7 @@ We provide many ways to build finpartitions:
 
 ## TODO
 
-`distrib_lattice_bot` shuld be replaced everywhere by `lattice_bot`, which we don't have.
+`distrib_lattice_bot` should be replaced everywhere by `lattice_bot`, which we don't have.
 
 Link `finpartition` and `setoid.is_partition`.
 -/
@@ -42,73 +42,109 @@ Link `finpartition` and `setoid.is_partition`.
 open finset function
 open_locale big_operators
 
-variables {α : Type*}
+variables {ι ι' α : Type*}
+
+lemma set.univ_unique [unique α] : @set.univ α = {default α} :=
+begin
+  ext,
+  simp only [set.mem_univ, set.mem_singleton_iff, eq_iff_true_of_subsingleton],
+end
 
 /-- A finite partition of `a : α` is a pairwise disjoint finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
-@[ext] structure finpartition {α : Type*} [distrib_lattice_bot α] (a : α) :=
-(parts : finset α)
-(disjoint : (parts : set α).pairwise_disjoint)
-(sup_parts : parts.sup id = a)
-(not_bot_mem : ⊥ ∉ parts)
+@[ext] structure finpartition (ι : Type*) [fintype ι] [distrib_lattice_bot α] (a : α) :=
+(parts : ι → α)
+(disjoint : (set.univ : set ι).pairwise_disjoint parts)
+(sup_parts : univ.sup parts = a)
+(ne_bot : ∀ i, parts i ≠ ⊥)
 
 attribute [protected] finpartition.disjoint
 
 namespace finpartition
 section distrib_lattice_bot
-variables [distrib_lattice_bot α]
+variables [fintype ι] [fintype ι'] [distrib_lattice_bot α]
+
+/-- A `finpartition` constructor which does not insist on `⊥` not being a part. -/
+@[simps] def of_erase' [decidable_eq α] {a : α} (parts : ι → α)
+  (disjoint : (set.univ : set ι).pairwise_disjoint parts) (sup_parts : univ.sup parts = a) :
+  finpartition {i // parts i ≠ ⊥} a :=
+{ parts := parts ∘ coe,
+  disjoint := begin
+    -- disjoint.subset (erase_subset _ _)
+    sorry
+  end,
+  sup_parts := begin
+    classical,
+    rw [←sup_image],
+
+    sorry
+    -- (sup_erase_bot _).trans sup_parts,
+  end,
+  ne_bot := λ i, i.2 }
 
 /-- A `finpartition` constructor which does not insist on `⊥` not being a part. -/
 @[simps] def of_erase [decidable_eq α] {a : α} (parts : finset α)
-  (disjoint : (parts : set α).pairwise_disjoint) (sup_parts : parts.sup id = a) :
-  finpartition a :=
-{ parts := parts.erase ⊥,
-  disjoint := disjoint.subset (erase_subset _ _),
+  (disjoint : (parts : set α).pairwise_disjoint id) (sup_parts : parts.sup id = a) :
+  finpartition (parts.erase ⊥) a :=
+{ parts := coe,
+  disjoint := begin
+    -- disjoint.subset (erase_subset _ _)
+    sorry
+  end,
   sup_parts := (sup_erase_bot _).trans sup_parts,
-  not_bot_mem := not_mem_erase _ _ }
+  ne_bot := not_mem_erase _ _ }
 
 /-- A `finpartition` constructor from a bigger existing finpartition. -/
-@[simps] def of_subset {a b : α} (P : finpartition a) {parts : finset α}
-  (subset : parts ⊆ P.parts) (sup_parts : parts.sup id = b) :
-  finpartition b :=
-{ parts := parts,
-  disjoint := P.disjoint.subset subset,
+@[simps] def of_embedding {a b : α} (P : finpartition ι' a) (f : ι ↪ ι')
+  (sup_parts : univ.sup (P.parts ∘ f) = b) :
+  finpartition ι b :=
+{ parts := P.parts ∘ f,
+  disjoint := begin
+    have := P.disjoint,
+    sorry
+  end,
   sup_parts := sup_parts,
-  not_bot_mem := λ h, P.not_bot_mem (subset h) }
+  ne_bot := λ i, P.ne_bot _ }
 
-variables (α)
+variables (ι α)
 
 /-- The empty finpartition. -/
-@[simps] protected def empty : finpartition (⊥ : α) :=
-{ parts := ∅,
-  disjoint := coe_empty.symm.subst set.pairwise_disjoint_empty,
-  sup_parts := finset.sup_empty,
-  not_bot_mem := not_mem_empty ⊥ }
+@[simps] protected def empty [is_empty ι] : finpartition ι (⊥ : α) :=
+{ parts := is_empty_elim,
+  disjoint := begin
+    sorry
+  end,
+  sup_parts := begin
+    sorry
+  end,
+  ne_bot := is_empty_elim }
 
-variables {α} {a : α}
+variables {ι α} {a : α}
 
 /-- The finpartition in one part, aka indiscrete finpartition. -/
-@[simps] def indiscrete (ha : a ≠ ⊥) : finpartition a :=
-{ parts := {a},
-  disjoint := (coe_singleton a).symm.subst (set.pairwise_disjoint_singleton _),
-  sup_parts := finset.sup_singleton,
-  not_bot_mem := λ h, ha (mem_singleton.1 h).symm }
+@[simps] def indiscrete [unique ι] (ha : a ≠ ⊥) : finpartition ι a :=
+{ parts := λ _, a,
+  disjoint := begin
+    rw set.univ_unique,
+    exact set.pairwise_singleton _ _,
+  end,
+  sup_parts := by rw [univ_unique, sup_singleton],
+  ne_bot := λ _, ha }
 
-instance : inhabited (finpartition (⊥ : α)) := ⟨finpartition.empty α ⟩
+instance [is_empty ι] : inhabited (finpartition ι (⊥ : α)) := ⟨finpartition.empty ι α⟩
 
-variables (P : finpartition a)
+variables (P : finpartition ι a) {i : ι}
 
-protected lemma le {b : α} (hb : b ∈ P.parts) : b ≤ a := (le_sup hb).trans P.sup_parts.le
+protected lemma le : P.parts i ≤ a := (le_sup $ mem_univ _).trans P.sup_parts.le
 
-lemma ne_bot {b : α} (hb : b ∈ P.parts) : b ≠ ⊥ := λ h, P.not_bot_mem $ h.subst hb
-
-lemma eq_empty (P : finpartition (⊥ : α)) : P = finpartition.empty α :=
+lemma eq_empty [is_empty ι] (P : finpartition ι (⊥ : α)) : P = finpartition.empty ι α :=
 begin
   ext a,
   exact iff_of_false (λ h, P.ne_bot h $ le_bot_iff.1 $ P.le h) (not_mem_empty a),
 end
 
-instance : unique (finpartition (⊥ : α)) := { uniq := eq_empty ..finpartition.inhabited }
+instance [is_empty ι] : unique (finpartition ι (⊥ : α)) :=
+{ uniq := eq_empty ..finpartition.inhabited }
 
 variables {P}
 
@@ -129,7 +165,7 @@ variables [decidable_eq α]
 
 /-- Given a finpartition `P` of `a` and finpartitions of each part of `P`, this yields the
 finpartition of `a` obtained by juxtaposing all the subpartitions. -/
-@[simps] def bind (P : finpartition a) (Q : Π i ∈ P.parts, finpartition i) : finpartition a :=
+@[simps] def bind (P : finpartition ι a) (Q : Π i ∈ P.parts, finpartition i) : finpartition a :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
   disjoint := λ a ha b hb h, begin
     rw [finset.mem_coe, finset.mem_bUnion] at ha hb,

@@ -161,8 +161,6 @@ algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
 
 end eq_zero_iff
 
-namespace intermediate_field.adjoin_simple
-
 open intermediate_field
 
 variable (K)

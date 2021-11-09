@@ -73,7 +73,7 @@ end
 
 /-- A version of `exists_idempotent_of_compact_t2_of_continuous_mul_left` where the idempotent lies
 in some specified nonempty compact subsemigroup. -/
-@[to_additive exists_idempotent_in_compact_add_subsemigoup "A version of
+@[to_additive exists_idempotent_in_compact_add_subsemigroup "A version of
 `exists_idempotent_of_compact_t2_of_continuous_add_left` where the idempotent lies in some specified
 nonempty compact additive subsemigroup."]
 lemma exists_idempotent_in_compact_subsemigroup {M} [semigroup M] [topological_space M] [t2_space M]

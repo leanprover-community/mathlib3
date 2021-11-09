@@ -43,7 +43,10 @@ Ramsey theory, ultrafilter
 open filter
 
 @[to_additive]
-instance {M} [has_mul M] : has_mul (ultrafilter M) := { mul := λ U V, (*) <$> U <*> V }
+def ultrafilter.has_mul {M} [has_mul M] : has_mul (ultrafilter M) :=
+{ mul := λ U V, (*) <$> U <*> V }
+
+local attribute [instance] ultrafilter.has_mul ultrafilter.has_add
 
 /- We could have taken this as the definition of `U * V`, but then we would have to prove that it
 defines an ultrafilter. -/
@@ -52,10 +55,12 @@ lemma ultrafilter.eventually_mul {M} [has_mul M] (U V : ultrafilter M) (p : M �
   (∀ᶠ m in ↑(U * V), p m) ↔ ∀ᶠ m in U, ∀ᶠ m' in V, p (m * m') := iff.rfl
 
 @[to_additive]
-instance {M} [semigroup M] : semigroup (ultrafilter M) :=
+def ultrafilter.semigroup {M} [semigroup M] : semigroup (ultrafilter M) :=
 { mul_assoc := λ U V W, ultrafilter.coe_inj.mp $ filter.ext' $ λ p,
     by simp only [ultrafilter.eventually_mul, mul_assoc]
   ..ultrafilter.has_mul }
+
+local attribute [instance] ultrafilter.semigroup ultrafilter.add_semigroup
 
 /- We don't prove `continuous_mul_right`, because in general it is false! -/
 @[to_additive]
@@ -63,72 +68,82 @@ lemma ultrafilter.continuous_mul_left {M} [semigroup M] (V : ultrafilter M) : co
 topological_space.is_topological_basis.continuous ultrafilter_basis_is_basis _ $
 set.forall_range_iff.mpr $ λ s, ultrafilter_is_open_basic { m : M | ∀ᶠ m' in V, m * m' ∈ s }
 
-/-- `FS_aux a m` says that `m : M` is the sum of a finite nonempty subsequence of `a : stream M`. We
-define it directly as an inductive prop instead of talking about finite subsequences. -/
-inductive FS_aux {M} [add_semigroup M] : stream M → M → Prop
-| singleton (a : stream M) : FS_aux a a.head
-| tail (a : stream M) (m : M) (h : FS_aux a.tail m) : FS_aux a m
-| cons (a : stream M) (m : M) (h : FS_aux a.tail m) : FS_aux a (a.head + m)
+namespace hindman
 
-/-- The set of finite sums in a sequence. -/
-def FS {M} [add_semigroup M] (a : stream M) : set M := { m | FS_aux a m }
+/-- `FS a` is the set of finite sums in `a`, i.e. `m ∈ FS a` if `m` is the sum of a nonempty
+subsequence of `a`. We give a direct inductive definition instead of talking about subsequences. -/
+inductive FS {M} [add_semigroup M] : stream M → set M
+| singleton (a : stream M) : FS a a.head
+| tail (a : stream M) (m : M) (h : FS a.tail m) : FS a m
+| cons (a : stream M) (m : M) (h : FS a.tail m) : FS a (a.head + m)
 
-/-- If `m` and `m'` are finite sums in `M`, then so is `m + m'`, provided that `m'` is obtained from
-a subsequence of `M` starting sufficiently late. -/
-lemma FS_add {M} [add_semigroup M] {a : stream M} {m : M} (hm : m ∈ FS a) :
-  ∃ n, ∀ m' ∈ FS (stream.tail^[n] a), m + m' ∈ FS a :=
+/-- `FP a` is the set of finite products in `a`, i.e. `m ∈ FP a` if `m` is the product of a nonempty
+subsequence of `a`. We give a direct inductive definition instead of talking about subsequences. -/
+@[to_additive FS]
+inductive FP {M} [semigroup M] : stream M → set M
+| singleton (a : stream M) : FP a a.head
+| tail (a : stream M) (m : M) (h : FP a.tail m) : FP a m
+| cons (a : stream M) (m : M) (h : FP a.tail m) : FP a (a.head * m)
+
+/-- If `m` and `m'` are finite products in `M`, then so is `m * m'`, provided that `m'` is obtained
+from a subsequence of `M` starting sufficiently late. -/
+@[to_additive]
+lemma FP.mul {M} [semigroup M] {a : stream M} {m : M} (hm : m ∈ FP a) :
+  ∃ n, ∀ m' ∈ FP (stream.tail^[n] a), m * m' ∈ FP a :=
 begin
   induction hm with a a m hm ih a m hm ih,
-  { exact ⟨1, λ m hm, FS_aux.cons a m hm⟩, },
-  { cases ih with n hn, use n+1, intros m' hm', exact FS_aux.tail _ _ (hn _ hm'), },
-  { cases ih with n hn, use n+1, intros m' hm', rw add_assoc, exact FS_aux.cons _ _ (hn _ hm'), },
+  { exact ⟨1, λ m hm, FP.cons a m hm⟩, },
+  { cases ih with n hn, use n+1, intros m' hm', exact FP.tail _ _ (hn _ hm'), },
+  { cases ih with n hn, use n+1, intros m' hm', rw mul_assoc, exact FP.cons _ _ (hn _ hm'), },
 end
 
-lemma exists_idempotent_ultrafilter_le_FS {M} [add_semigroup M] (a : stream M) :
-  ∃ U : ultrafilter M, U + U = U ∧ ∀ᶠ m in U, m ∈ FS a :=
+@[to_additive exists_idempotent_ultrafilter_le_FS]
+lemma exists_idempotent_ultrafilter_le_FP {M} [semigroup M] (a : stream M) :
+  ∃ U : ultrafilter M, U * U = U ∧ ∀ᶠ m in U, m ∈ FP a :=
 begin
-  let S : set (ultrafilter M) := ⋂ n, { U | ∀ᶠ m in U, m ∈ FS (stream.tail^[n] a) },
-  obtain ⟨U, hU, U_idem⟩ := exists_idempotent_in_compact_add_subsemigoup _ S _ _ _,
+  let S : set (ultrafilter M) := ⋂ n, { U | ∀ᶠ m in U, m ∈ FP (stream.tail^[n] a) },
+  obtain ⟨U, hU, U_idem⟩ := exists_idempotent_in_compact_subsemigroup _ S _ _ _,
   { refine ⟨U, U_idem, _⟩, convert set.mem_Inter.mp hU 0, },
-  { exact ultrafilter.continuous_add_left },
+  { exact ultrafilter.continuous_mul_left },
   { apply is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed,
     { intros n U hU,
       apply eventually.mono hU,
       intros m hm,
-      apply FS_aux.tail,
+      apply FP.tail,
       simpa only [function.iterate_succ_apply'] using hm, },
-    { intro n, exact ⟨pure _, mem_pure.mpr $ FS_aux.singleton _⟩, },
+    { intro n, exact ⟨pure _, mem_pure.mpr $ FP.singleton _⟩, },
     { exact (ultrafilter_is_closed_basic _).is_compact, },
     { intro n, apply ultrafilter_is_closed_basic, }, },
   { exact is_closed.is_compact (is_closed_Inter $ λ i, ultrafilter_is_closed_basic _) },
   { intros U V hU hV,
     rw set.mem_Inter at *,
     intro n,
-    rw [set.mem_set_of_eq, ultrafilter.eventually_add],
+    rw [set.mem_set_of_eq, ultrafilter.eventually_mul],
     apply eventually.mono (hU n),
     intros m hm,
-    obtain ⟨n', hn⟩ := FS_add hm,
+    obtain ⟨n', hn⟩ := FP.mul hm,
     apply eventually.mono (hV (n' + n)),
     intros m' hm',
     apply hn,
     simpa only [function.iterate_add_apply] using hm', }
 end
 
-lemma exists_FS_of_large {M} [add_semigroup M] (U : ultrafilter M) (U_idem : U + U = U)
-  (s₀ : set M) (sU : s₀ ∈ U) : ∃ a, FS a ⊆ s₀ :=
+@[to_additive exists_FS_of_large]
+lemma exists_FP_of_large {M} [semigroup M] (U : ultrafilter M) (U_idem : U * U = U)
+  (s₀ : set M) (sU : s₀ ∈ U) : ∃ a, FP a ⊆ s₀ :=
 begin
-/- Informally: given a `U`-large set `s₀`, the set `s₀ ∩ { m | ∀ᶠ m' in U, m + m' ∈ s₀ }` is also
+/- Informally: given a `U`-large set `s₀`, the set `s₀ ∩ { m | ∀ᶠ m' in U, m * m' ∈ s₀ }` is also
 `U`-large (since `U` is idempotent). Thus in particular there is an `a₀` in this intersection. Now
-let `s₁` be the intersection `s₀ ∩ { m | a₀ + m ∈ s₀ }`. By choice of `a₀`, this is again `U`-large,
+let `s₁` be the intersection `s₀ ∩ { m | a₀ * m ∈ s₀ }`. By choice of `a₀`, this is again `U`-large,
 so we can repeat the argument starting from `s₁`, obtaining `a₁`, `s₂`, etc. This gives the desired
 infinite sequence. -/
-  have exists_elem : ∀ {s : set M} (hs : s ∈ U), (s ∩ { m | ∀ᶠ m' in U, m + m' ∈ s }).nonempty :=
+  have exists_elem : ∀ {s : set M} (hs : s ∈ U), (s ∩ { m | ∀ᶠ m' in U, m * m' ∈ s }).nonempty :=
     λ s hs, ultrafilter.nonempty_of_mem (inter_mem hs $ by { rw ←U_idem at hs, exact hs }),
   let elem : { s // s ∈ U } → M := λ p, (exists_elem p.property).some,
-  let succ : { s // s ∈ U } → { s // s ∈ U } := λ p, ⟨p.val ∩ { m | elem p + m ∈ p.val },
+  let succ : { s // s ∈ U } → { s // s ∈ U } := λ p, ⟨p.val ∩ { m | elem p * m ∈ p.val },
     inter_mem p.2 $ show _, from set.inter_subset_right _ _ (exists_elem p.2).some_mem⟩,
   use stream.corec elem succ (subtype.mk s₀ sU),
-  suffices : ∀ (a : stream M) (m ∈ FS a), ∀ p, a = stream.corec elem succ p → m ∈ p.val,
+  suffices : ∀ (a : stream M) (m ∈ FP a), ∀ p, a = stream.corec elem succ p → m ∈ p.val,
   { intros m hm, exact this _ m hm ⟨s₀, sU⟩ rfl, },
   clear sU s₀,
   intros a m h,
@@ -145,19 +160,23 @@ infinite sequence. -/
     rw [stream.corec_eq, stream.tail_cons], },
 end
 
-/-- The strong form of **Hindman's theorem**: in any finite cover of an FS-set, one the parts
-contains an FS-set. -/
-lemma FS_partition_regular {M} [add_semigroup M] (a : stream M) (s : set (set M)) (sfin : s.finite)
-  (scov : FS a ⊆ ⋃₀ s) : ∃ (c ∈ s) (b : stream M), FS b ⊆ c :=
-let ⟨U, idem, aU⟩ := exists_idempotent_ultrafilter_le_FS a in
+/-- The strong form of **Hindman's theorem**: in any finite cover of an FP-set, one the parts
+contains an FP-set. -/
+@[to_additive FS_partition_regular]
+lemma FP_partition_regular {M} [semigroup M] (a : stream M) (s : set (set M)) (sfin : s.finite)
+  (scov : FP a ⊆ ⋃₀ s) : ∃ (c ∈ s) (b : stream M), FP b ⊆ c :=
+let ⟨U, idem, aU⟩ := exists_idempotent_ultrafilter_le_FP a in
 let ⟨c, cs, hc⟩ := (ultrafilter.finite_sUnion_mem_iff sfin).mp (mem_of_superset aU scov) in
-⟨c, cs, exists_FS_of_large U idem c hc⟩
+⟨c, cs, exists_FP_of_large U idem c hc⟩
 
 /-- The weak form of **Hindman's theorem**: in any finite cover of a nonempty semigroup, one of the
-parts contains an FS-set. -/
-lemma exists_FS_of_finite_cover {M} [add_semigroup M] [nonempty M] (s : set (set M))
-  (sfin : s.finite) (scov : ⊤ ⊆ ⋃₀ s) : ∃ (c ∈ s) (a : stream M), FS a ⊆ c :=
-let ⟨U, hU⟩ := exists_idempotent_of_compact_t2_of_continuous_add_left
-  (@ultrafilter.continuous_add_left M _) in
+parts contains an FP-set. -/
+@[to_additive exists_FS_of_finite_cover]
+lemma exists_FP_of_finite_cover {M} [semigroup M] [nonempty M] (s : set (set M))
+  (sfin : s.finite) (scov : ⊤ ⊆ ⋃₀ s) : ∃ (c ∈ s) (a : stream M), FP a ⊆ c :=
+let ⟨U, hU⟩ := exists_idempotent_of_compact_t2_of_continuous_mul_left
+  (@ultrafilter.continuous_mul_left M _) in
 let ⟨c, c_s, hc⟩ := (ultrafilter.finite_sUnion_mem_iff sfin).mp (mem_of_superset univ_mem scov) in
-⟨c, c_s, exists_FS_of_large U hU c hc⟩
+⟨c, c_s, exists_FP_of_large U hU c hc⟩
+
+end hindman

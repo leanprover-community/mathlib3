@@ -485,52 +485,40 @@ begin
   exact or.inl (multiplicity_le_one_of_separable hunit hsep)
 end
 
+/--If `is_unit n` in a nontrivial `comm_ring R`, then `X ^ n - u` is separable for any unit `u`. -/
+lemma separable_X_pow_sub_C_unit {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ}
+  (u : units R) (hn : is_unit (n : R)) : separable (X ^ n - C (u : R)) :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hpos,
+  { simpa using hn },
+  apply (separable_def' (X ^ n - C (u : R))).2,
+  obtain ⟨n', hn'⟩ := hn.exists_left_inv,
+  refine ⟨-C ↑u⁻¹, C ↑u⁻¹ * C n' * X, _⟩,
+  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
+  calc  - C ↑u⁻¹ * (X ^ n - C ↑u) + C ↑u⁻¹ * C n' * X * (↑n * X ^ (n - 1))
+      = C (↑u⁻¹ * ↑ u) - C ↑u⁻¹ * X^n + C ↑ u ⁻¹ * C (n' * ↑n) * (X * X ^ (n - 1)) :
+    by { simp only [C.map_mul, C_eq_nat_cast], ring }
+  ... = 1 : by simp only [units.inv_mul, hn', C.map_one, mul_one, ← pow_succ,
+              nat.sub_add_cancel (show 1 ≤ n, from hpos), sub_add_cancel]
+end
+
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
 lemma separable_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
   separable (X ^ n - C a) :=
-begin
-  cases nat.eq_zero_or_pos n with hzero hpos,
-  { exfalso,
-    rw hzero at hn,
-    exact hn (refl 0) },
-  apply (separable_def' (X ^ n - C a)).2,
-  use [-C (a⁻¹), (C ((a⁻¹) * (↑n)⁻¹) *  X)],
-  have mul_pow_sub : X * X ^ (n - 1) = X ^ n,
-  { nth_rewrite 0 [←pow_one X],
-    rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
-  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
-  have hcalc : C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) = C a⁻¹ * (X ^ n),
-  { calc C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n))
-       = C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_mul, C_eq_nat_cast]
-   ... = C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
-   ... = C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [← C_mul]
-   ... = C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
-   ... = C a⁻¹ * (X ^ n) : by rw [C_1, mul_one] },
-  calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
-      = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
-  ... = -C a⁻¹ * (X ^ n - C a) + C a⁻¹ * (X ^ n) : by rw [mul_pow_sub, hcalc]
-  ... = C a⁻¹ * C a : by ring
-  ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
-end
+separable_X_pow_sub_C_unit (units.mk0 a ha) (is_unit.mk0 n hn)
 
--- further work: 90% sure that in a nontrivial comm_ring, X^n - 1 is separable ↔ is_unit ↑n
-lemma X_pow_sub_one_separable_iff {n : ℕ} : (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
+-- this can possibly be strengthened to a statement about rings & `is_unit`, but it is nontrivial!
+/-- In a field `F`, `X ^ n - ↑n` is separable iff `↑n ≠ 0`. -/
+lemma X_pow_sub_one_separable_iff {R : Type*} {n : ℕ} :
+  (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
 begin
-  refine ⟨_, λ h, separable_X_pow_sub_C 1 h one_ne_zero⟩,
+  refine ⟨_, λ h, separable_X_pow_sub_C_unit 1 (is_unit.mk0 ↑n h)⟩,
   rw [separable_def', derivative_sub, derivative_X_pow, derivative_one, sub_zero],
-  rintro ⟨a, b, h⟩ hn',
-  obtain rfl | hn := eq_or_ne n 0,
-  { simpa only [add_zero, nat.cast_zero, zero_mul,
-                zero_ne_one, mul_zero, pow_zero, sub_self] using h },
-  rw [←C_eq_nat_cast, ←smul_eq_C_mul, hn', zero_smul, mul_zero, add_zero] at h,
-  obtain rfl | ha := eq_or_ne a 0,
-  { simpa only [zero_mul, coeff_one_zero, zero_ne_one, coeff_zero] using ext_iff.mp h 0 },
-  replace h := congr_arg polynomial.degree h,
-  rw [degree_mul, degree_one] at h,
-  refine absurd (nat.with_bot.add_eq_zero_iff.mp h).2 _,
-  rw [←C_1, degree_X_pow_sub_C hn.bot_lt],
-  exact_mod_cast hn,
-  apply_instance
+  -- Suppose `(n : F) = 0`, then the derivative is `0`, so `X ^ n - 1` is a unit, contradiction.
+  rintro (h : is_coprime _ _) hn',
+  rw [← C_eq_nat_cast, hn', C.map_zero, zero_mul, is_coprime_zero_right] at h,
+  have := not_is_unit_X_pow_sub_one F n,
+  contradiction
 end
 
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/

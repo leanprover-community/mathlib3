@@ -183,7 +183,8 @@ end
 lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
 begin
   rw [compression, card_disjoint_union (compress_disjoint _ _), compress_motion,
-    card_image_of_inj_on, ←card_disjoint_union, union_comm, compress_remains, filter_union_filter_neg_eq],
+    card_image_of_inj_on, ←card_disjoint_union, union_comm, compress_remains,
+    filter_union_filter_neg_eq],
   { rw [disjoint.comm, disjoint_iff_inter_eq_empty],
     exact filter_inter_filter_neg_eq _ _ },
   intros a ha b hb hab,

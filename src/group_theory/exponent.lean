@@ -6,6 +6,7 @@ Authors: Julian Kuelshammer
 import group_theory.order_of_element
 import algebra.punit_instances
 import algebra.gcd_monoid.finset
+import ring_theory.int.basic
 
 /-!
 # Exponent of a group
@@ -78,4 +79,19 @@ begin
 end
 
 lemma order_dvd_exponent (g : G) : (order_of g) ∣ exponent G :=
-by exact order_of_dvd_of_pow_eq_one (pow_exponent_eq_one G g)
+begin
+  exact order_of_dvd_of_pow_eq_one (pow_exponent_eq_one G g)
+end
+
+variable [fintype G]
+
+lemma lcm_order_dvd_exponent : ((finset.univ : finset G).image order_of).lcm id ∣ exponent G :=
+begin
+  apply finset.lcm_dvd,
+  intros n hn,
+  simp only [finset.mem_univ, finset.mem_image, exists_true_left] at hn,
+  cases hn with g hg,
+  cases hg with hg1 hg2,
+  rw [id, ←hg2],
+  exact order_dvd_exponent G g,
+end

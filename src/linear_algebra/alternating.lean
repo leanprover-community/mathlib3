@@ -780,18 +780,12 @@ are distinct basis vectors. -/
 lemma basis.ext_alternating {f g : alternating_map R' N₁ N₂ ι} (e : basis ι₁ R' N₁)
   (h : ∀ v : ι → ι₁, function.injective v → f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
 begin
-  rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
-  refine basis.ext_multilinear e _,
-  intro v,
+  refine alternating_map.coe_multilinear_map_injective (basis.ext_multilinear e $ λ v, _),
   by_cases hi : function.injective v,
   { exact h v hi },
-  { rw function.injective at hi,
-    push_neg at hi,
-    rcases hi with ⟨i₁, i₂, heq, hne⟩,
-    rw [coe_multilinear_map, coe_multilinear_map, f.map_eq_zero_of_eq _ _ hne],
-    { rw [map_eq_zero_of_eq _ _ _ hne],
-      rw heq },
-    { rw heq } }
+  { have : ¬function.injective (λ i, e (v i)) := hi.imp function.injective.of_comp,
+    rw [coe_multilinear_map, coe_multilinear_map,
+        f.map_eq_zero_of_not_injective _ this, g.map_eq_zero_of_not_injective _ this], }
 end
 
 end basis

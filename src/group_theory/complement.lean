@@ -87,10 +87,8 @@ end
 @[to_additive] lemma is_complement_singleton_left {g : G} : is_complement {g} S ↔ S = ⊤ :=
 begin
   refine ⟨λ h, top_le_iff.mp (λ x hx, _), λ h, (congr_arg _ h).mpr is_complement_singleton_top⟩,
-  obtain ⟨y, hy⟩ := h.2 (g * x),
-  conv_rhs at hy { rw ← (show y.1.1 = g, from y.1.2) },
-  rw ← mul_left_cancel hy,
-  exact y.2.2,
+  obtain ⟨⟨⟨z, rfl : z = g⟩, y, _⟩, hy⟩ := h.2 (g * x),
+  rwa ← mul_left_cancel hy,
 end
 
 @[to_additive] lemma is_complement_singleton_right {g : G} : is_complement S {g} ↔ S = ⊤ :=

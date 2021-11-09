@@ -1,4 +1,5 @@
 import group_theory.congruence
+import group_theory.group_action.symmetric
 import algebra.module.basic
 import algebra.free_monoid
 
@@ -27,7 +28,7 @@ as `m ⊗ₜ n` and `m ⊗ₜ[R] n` for `tensor_product.tmul R m n`.
 bilinear, tensor, tensor product
 -/
 
-variables {R M N : Type*} [semiring R]
+variables {R R' M N : Type*} [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid N]
 variables [module Rᵒᵖ M] [module R N]
 
@@ -115,5 +116,41 @@ variables {N}
 
 lemma tmul_add (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ + n₂) = m ⊗ₜ n₁ + m ⊗ₜ[R] n₂ :=
 eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_right _ _ _
+
+section
+
+variables (R R' M N)
+
+/--
+A typeclass for `has_scalar` structures which can be moved across a tensor product.
+
+This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
+we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
+`R` does not support negation.
+
+Note that `module R' (M ⊗[R] N)` is available even without this typeclass on `R'`; it's only
+needed if `tensor_product.smul_tmul`, `tensor_product.smul_tmul'`, or `tensor_product.tmul_smul` is
+used.
+-/
+class compatible_smul [has_scalar R'ᵒᵖ M] [has_scalar R' N] :=
+(rsmul_tmul : ∀ (r : R') (m : M) (n : N), (m <• r) ⊗ₜ n = m ⊗ₜ[R] (r • n))
+
+@[priority 100]
+instance compatible_smul.is_scalar_tower
+  [has_scalar R' R] [has_scalar R'ᵒᵖ R] [is_symmetric_smul R' R]
+  [has_scalar R'ᵒᵖ M] [is_scalar_tower R'ᵒᵖ Rᵒᵖ M]
+  [has_scalar R' N] [is_scalar_tower R' R N] :
+  compatible_smul R R' M N :=
+⟨λ r m n, begin
+  conv_lhs {rw ← one_smul Rᵒᵖ m},
+  conv_rhs {rw ← one_smul R n},
+  rw [←smul_assoc, ←smul_assoc, ←opposite.op_one, ←op_smul_eq_op_smul_op],
+  exact quotient.sound' (add_con_gen.rel.of _ _ (eqv.of_smul (r • (1 : R)) m n)),
+end⟩
+
+instance compatible_smul.self : compatible_smul R R M N :=
+⟨λ r m n, quotient.sound' (add_con_gen.rel.of _ _ (eqv.of_smul r m n))⟩
+
+end
 
 end tensor_product

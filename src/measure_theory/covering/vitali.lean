@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.basic
 import measure_theory.constructions.borel_space
+import measure_theory.covering.vitali_family
 
 /-!
 # Vitali covering theorems
@@ -26,6 +27,10 @@ where `μ` is a doubling measure and `t` is a family of balls). Consider a set `
 family is fine, i.e., every point of `s` belongs to arbitrarily small elements of `t`. Then one
 can extract from `t` a disjoint subfamily that covers almost all `s`. It is proved in
 `vitali.exists_disjoint_covering_ae`.
+
+A way to restate this theorem is to say that the set of closed sets `a` with nonempty interior
+covering a fixed proportion `1/C` of the ball `closed_ball x (3 * diam a)` forms a Vitali family.
+This version is given in `vitali.vitali_family`.
 -/
 
 variables {α : Type*}
@@ -426,5 +431,80 @@ begin
   ... ≤ C * (ε / C) : ennreal.mul_le_mul le_rfl hw.le
   ... ≤ ε : ennreal.mul_div_le,
 end
+
+/-- Assume that around every point there are arbitrarily small scales at which the measure is
+doubling. Then the set of closed sets `a` with nonempty interior covering a fixed proportion `1/C`
+of the ball `closed_ball x (3 * diam a)` forms a Vitali family. This is essentially a restatement
+of the measurable Vitali theorem. -/
+protected def vitali_family [metric_space α] [measurable_space α] [opens_measurable_space α]
+  [second_countable_topology α] (μ : measure α) [is_locally_finite_measure μ] (C : ℝ≥0)
+  (h : ∀ x (ε > 0), ∃ r ∈ Ioc (0 : ℝ) ε, μ (closed_ball x (6 * r)) ≤ C * μ (closed_ball x r)) :
+  vitali_family μ :=
+{ sets_at := λ x, {a | x ∈ a ∧ is_closed a ∧ (interior a).nonempty ∧
+                      μ (closed_ball x (3 * diam a)) ≤ C * μ a},
+  measurable_set' := λ x a ha, ha.2.1.measurable_set,
+  nonempty_interior := λ x a ha, ha.2.2.1,
+  nontrivial := λ x ε εpos, begin
+    obtain ⟨r, ⟨rpos, rε⟩, μr⟩ : ∃ r ∈ Ioc (0 : ℝ) ε,
+      μ (closed_ball x (6 * r)) ≤ C * μ (closed_ball x r) := h x ε εpos,
+    refine ⟨closed_ball x r, ⟨_, is_closed_ball, _, _⟩, closed_ball_subset_closed_ball rε⟩,
+    { simp only [rpos.le, mem_closed_ball, dist_self] },
+    { exact (nonempty_ball.2 rpos).mono (ball_subset_interior_closed_ball) },
+    { apply le_trans (measure_mono (closed_ball_subset_closed_ball _)) μr,
+      have : diam (closed_ball x r) ≤ 2 * r := diam_closed_ball rpos.le,
+      linarith }
+  end,
+  covering := begin
+    assume s f fsubset ffine,
+    rcases eq_empty_or_nonempty s with rfl|H,
+    { exact ⟨∅, λ _, ∅, by simp, by simp⟩ },
+    haveI : inhabited α, { choose x hx using H, exact ⟨x⟩ },
+    let t := ⋃ (x ∈ s), f x,
+    have A₁ : ∀ x ∈ s, ∀ (ε : ℝ), 0 < ε → (∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε),
+    { assume x xs ε εpos,
+      rcases ffine x xs ε εpos with ⟨a, xa, hax⟩,
+      exact ⟨a, mem_bUnion xs xa, (fsubset x xs xa).1, hax⟩ },
+    have A₂ : ∀ a ∈ t, (interior a).nonempty,
+    { rintros a ha,
+      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      exact (fsubset x xs xa).2.2.1 },
+    have A₃ : ∀ a ∈ t, is_closed a,
+    { rintros a ha,
+      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      exact (fsubset x xs xa).2.1 },
+    have A₄ : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a,
+    { rintros a ha,
+      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      exact ⟨x, (fsubset x xs xa).1, (fsubset x xs xa).2.2.2⟩ },
+    obtain ⟨u, ut, u_count, u_disj, μu⟩ :
+      ∃ u ⊆ t, u.countable ∧ u.pairwise disjoint ∧ μ (s \ ⋃ a ∈ u, a) = 0 :=
+        exists_disjoint_covering_ae μ s t A₁ A₂ A₃ C A₄,
+    have : ∀ a ∈ u, ∃ x ∈ s, a ∈ f x := λ a ha, mem_bUnion_iff.1 (ut ha),
+    choose! x hx using this,
+    have inj_on_x : inj_on x u,
+    { assume a ha b hb hab,
+      have A : (a ∩ b).nonempty,
+      { refine ⟨x a, mem_inter ((fsubset _ (hx a ha).1 (hx a ha).2).1) _⟩,
+        rw hab,
+        exact (fsubset _ (hx b hb).1 (hx b hb).2).1 },
+      contrapose A,
+      have : disjoint a b := u_disj a ha b hb A,
+      simpa only [← not_disjoint_iff_nonempty_inter] },
+    refine ⟨x '' u, function.inv_fun_on x u, _, _, _, _⟩,
+    { assume y hy,
+      rcases (mem_image _ _ _).1 hy with ⟨a, au, rfl⟩,
+      exact (hx a au).1 },
+    { rw [inj_on_x.pairwise_disjoint_image],
+      assume a ha b hb hab,
+      simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb, (∘)],
+      exact u_disj a ha b hb hab },
+    { assume y hy,
+      rcases (mem_image _ _ _).1 hy with ⟨a, ha, rfl⟩,
+      rw function.inv_fun_on_eq' inj_on_x ha,
+      exact (hx a ha).2 },
+    { rw [bUnion_image],
+      convert μu using 3,
+      exact bUnion_congr (λ a ha, function.inv_fun_on_eq' inj_on_x ha) }
+  end }
 
 end vitali

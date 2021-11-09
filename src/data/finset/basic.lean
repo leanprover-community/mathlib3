@@ -1120,7 +1120,7 @@ lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a �
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
 
 theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
-sup_sdiff_of_le h
+sup_sdiff_cancel_right h
 
 theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 (union_comm _ _).trans (union_sdiff_of_subset h)
@@ -2292,6 +2292,16 @@ theorem card_insert_of_mem [decidable_eq α] {a : α} {s : finset α}
 theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert a s) ≤ card s + 1 :=
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
 rw [card_insert_of_not_mem h]]
+
+/-- If `a ∈ s` is known, see also `finset.card_insert_of_mem` and
+`finset.card_insert_of_not_mem`. -/
+theorem card_insert_eq_ite [decidable_eq α] {a : α} {s : finset α} :
+  card (insert a s) = if a ∈ s then card s else card s + 1 :=
+begin
+  by_cases h : a ∈ s,
+  { rw [card_insert_of_mem h, if_pos h] },
+  { rw [card_insert_of_not_mem h, if_neg h] },
+end
 
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
 

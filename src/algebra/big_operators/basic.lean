@@ -46,7 +46,7 @@ namespace finset
 `∏ x in s, f x` is the product of `f x`
 as `x` ranges over the elements of the finite set `s`.
 -/
-@[to_additive "`∑ x in s, f` is the sum of `f x` as `x` ranges over the elements
+@[to_additive "`∑ x in s, f x` is the sum of `f x` as `x` ranges over the elements
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
@@ -1225,6 +1225,11 @@ variables [comm_group β]
 lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
 (monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s).symm
 
+@[to_additive zsmul_sum]
+lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) :
+  (∏ a in s, f a) ^ n = ∏ a in s, (f a) ^ n :=
+(zpow_group_hom n : β →* β).map_prod f s
+
 end comm_group
 
 @[simp] theorem card_sigma {σ : α → Type*} (s : finset α) (t : Π a, finset (σ a)) :
@@ -1256,10 +1261,6 @@ by simp only [card_eq_sum_ones, sum_fiberwise_of_maps_to H]
 theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α) :
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
 card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
-
-lemma zsmul_sum (α β : Type) [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
-  zsmul z (∑ a in s, f a) = ∑ a in s, zsmul z (f a) :=
-add_monoid_hom.map_sum (zsmul_add_group_hom z : β →+ β) f s
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=

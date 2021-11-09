@@ -59,7 +59,7 @@ open category_theory category_theory.category category_theory.functor opposite
 namespace category_theory.limits
 
 -- declare the `v`'s first; see `category_theory.category` for an explanation
-universes v₁ v₂ v₃ u₁ u₂ u₃ v v' v'' u u' u''
+universes v₁ u₁ v₂ u₂ v₃ u₃ v v' v'' u u' u''
 
 variables {J : Type u₁} [category.{v₁} J] {K : Type u₂} [category.{v₂} K]
 variables {C : Type u} [category.{v} C]
@@ -480,14 +480,20 @@ lemma has_limits_of_shape_of_equivalence {J' : Type u₂} [category.{v₂} J']
   (e : J ≌ J') [has_limits_of_shape J C] : has_limits_of_shape J' C :=
 by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance }
 
+variable (C)
+
+/--
+`has_limits_of_size.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
+from some other `has_limits_of_size C`.
+-/
 lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
-  has_limits_of_size.{v₂ u₂} C :=
+  has_limits_of_size.{v₁ u₁} C :=
 ⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence
-  (ulift_hom_ulift_category.equiv.{v₁ u₁} J).symm⟩
+  (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
 @[priority 100]
 instance has_smallest_limits_of_has_limits [has_limits C] :
-  has_limits_of_size.{0 0} C := has_limits_of_size_shrink
+  has_limits_of_size.{0 0} C := has_limits_of_size_shrink.{0 0} C
 
 end limit
 
@@ -715,17 +721,6 @@ lemma has_colimit.of_cocones_iso {K : Type u₁} [category.{v₂} K] (F : J ⥤ 
     [has_colimit F] : has_colimit G :=
 has_colimit.mk ⟨_, is_colimit.of_nat_iso (is_colimit.nat_iso (colimit.is_colimit F) ≪≫ h)⟩
 
-/- TODO :
-lemma has_colimit.of_cocones_ulift_iso (F : J ⥤ C)
-  (G : K ⥤ C) (h : F.cocones ⋙ ulift_functor.{u₂} ≅ G.cocones ⋙ ulift_functor.{u₁})
-    [has_colimit F] : has_colimit G :=
-has_colimit.mk ⟨_, is_colimit.of_nat_iso
-begin
-  have := (associator _ _ _).symm ≪≫
-  (iso_whisker_right (is_colimit.nat_iso (colimit.is_colimit F)) ulift_functor.{u₂} ≪≫ h),
-end⟩
--/
-
 /--
 The colimits of `F : J ⥤ C` and `G : J ⥤ C` are isomorphic,
 if the functors are naturally isomorphic.
@@ -952,14 +947,20 @@ lemma has_colimits_of_shape_of_equivalence {J' : Type u₂} [category.{v₂} J']
   (e : J ≌ J') [has_colimits_of_shape J C] : has_colimits_of_shape J' C :=
 by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instance }
 
+variable (C)
+
+/--
+`has_colimits_of_size.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
+from some other `has_colimits_of_size C`.
+-/
 lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
-  has_colimits_of_size.{v₂ u₂} C :=
+  has_colimits_of_size.{v₁ u₁} C :=
 ⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence
-  (ulift_hom_ulift_category.equiv.{v₁ u₁} J).symm⟩
+  (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
 @[priority 100]
 instance has_smallest_colimits_of_has_colimits [has_colimits C] :
-  has_colimits_of_size.{0 0} C := has_colimits_of_size_shrink
+  has_colimits_of_size.{0 0} C := has_colimits_of_size_shrink.{0 0} C
 
 end colimit
 

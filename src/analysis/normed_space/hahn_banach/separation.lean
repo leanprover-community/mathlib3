@@ -46,7 +46,8 @@ begin
   exact hV₃ _ hy,
 end
 
-lemma continuous_at_of_exists_open' [normed_ring 𝕜] [normed_group E] [module 𝕜 E] (f : E →ₗ[𝕜] 𝕜) {x : E}
+lemma continuous_at_of_exists_open' [normed_ring 𝕜] [normed_group E] [module 𝕜 E]
+  (f : E →ₗ[𝕜] 𝕜) {x : E}
   (hf : ∀ ε, 0 < ε → ∃ (U : set E), x ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y - f x∥ < ε) :
   continuous_at f x :=
 begin

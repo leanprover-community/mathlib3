@@ -168,7 +168,7 @@ open intermediate_field
 variable (K)
 
 lemma norm_eq_norm_adjoin [finite_dimensional K L] [is_separable K L] (x : L) :
-  norm K x = (norm K (adjoin_simple.gen K x)) ^ (finrank K⟮x⟯ L) :=
+  norm K x = norm K (adjoin_simple.gen K x) ^ finrank K⟮x⟯ L :=
 begin
   letI := is_separable_tower_top_of_is_separable K K⟮x⟯ L,
   let pbL := field.power_basis_of_finite_of_separable K⟮x⟯ L,

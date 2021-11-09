@@ -89,6 +89,8 @@ alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
 
 end finset
 
+-- TODO: Relax `complete_distrib_lattice` to `complete_lattice` once `finset.sup_indep` is general
+-- enough
 lemma complete_lattice.independent_iff_sup_indep [complete_distrib_lattice α] [decidable_eq ι]
   {s : finset ι} {f : ι → α} :
   complete_lattice.independent (f ∘ (coe : s → ι)) ↔ s.sup_indep f :=

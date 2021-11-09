@@ -72,8 +72,6 @@ def fin_category.obj_as_type_equiv_as_type : fin_category.as_type α ≌ fin_cat
   unit_iso := nat_iso.of_components iso.refl (λ _ _ _, by { dsimp, simp }),
   counit_iso := nat_iso.of_components iso.refl (λ _ _ _, by { dsimp, simp }) }
 
-section end
-
 noncomputable
 instance fin_category.as_type_fin_category : fin_category (fin_category.as_type α) := {}
 

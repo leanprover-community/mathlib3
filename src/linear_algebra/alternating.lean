@@ -769,17 +769,29 @@ end coprod
 
 section basis
 
+open alternating_map
+
 variables {ι₁ : Type*} [fintype ι]
 variables {R' : Type*} {N₁ N₂ : Type*} [comm_semiring R'] [add_comm_monoid N₁] [add_comm_monoid N₂]
 variables [module R' N₁] [module R' N₂]
 
 /-- Two alternating maps indexed by a `fintype` are equal if they are equal when all arguments
-are basis vectors. -/
+are distinct basis vectors. -/
 lemma basis.ext_alternating {f g : alternating_map R' N₁ N₂ ι} (e : basis ι₁ R' N₁)
-  (h : ∀ v : ι → ι₁, f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
+  (h : ∀ v : ι → ι₁, function.injective v → f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
 begin
   rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
-  exact basis.ext_multilinear e h
+  refine basis.ext_multilinear e _,
+  intro v,
+  by_cases hi : function.injective v,
+  { exact h v hi },
+  { rw function.injective at hi,
+    push_neg at hi,
+    rcases hi with ⟨i₁, i₂, heq, hne⟩,
+    rw [coe_multilinear_map, coe_multilinear_map, f.map_eq_zero_of_eq _ _ hne],
+    { rw [map_eq_zero_of_eq _ _ _ hne],
+      rw heq },
+    { rw heq } }
 end
 
 end basis

@@ -372,19 +372,10 @@ lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
 map with respect to that basis, multiplied by the value of that alternating map on that basis. -/
 lemma alternating_map.eq_smul_det (f : alternating_map R M R ι) : f = f e • e.det :=
 begin
-  refine basis.ext_alternating e _,
-  intro i,
-  by_cases h : function.injective i,
-  { let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
-    change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
-    simp [alternating_map.map_perm, basis.det_self] },
-  { rw function.injective at h,
-    push_neg at h,
-    rcases h with ⟨i₁, i₂, heq, hne⟩,
-    rw f.map_eq_zero_of_eq _ _ hne,
-    { rw (f e • e.det).map_eq_zero_of_eq _ _ hne,
-      rw heq },
-    { rw heq } }
+  refine basis.ext_alternating e (λ i h, _),
+  let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
+  change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
+  simp [alternating_map.map_perm, basis.det_self]
 end
 
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M]

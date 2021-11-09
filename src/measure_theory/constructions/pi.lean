@@ -611,129 +611,45 @@ begin
   { exact fin.forall_fin_two.2 ⟨hs, ht⟩ }
 end
 
-lemma prod_eq_map_fin_two_arrow {α : Type*} {m : measurable_space α} (μ ν : measure α)
-  [sigma_finite μ] [sigma_finite ν] :
-  μ.prod ν = map measurable_equiv.fin_two_arrow (measure.pi ![μ, ν]) :=
+lemma volume_preserving_pi_fin_two (α : fin 2 → Type u) [Π i, measure_space (α i)]
+  [∀ i, sigma_finite (volume : measure (α i))] :
+  measure_preserving (measurable_equiv.pi_fin_two α) volume volume :=
+measure_preserving_pi_fin_two _
+
+lemma measure_preserving_fin_two_arrow_vec {α : Type u} {m : measurable_space α}
+  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
+  measure_preserving measurable_equiv.fin_two_arrow (measure.pi ![μ, ν]) (μ.prod ν) :=
 begin
   haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
-  exact (map_pi_fin_two ![μ, ν]).symm
+  exact measure_preserving_pi_fin_two _
+end
+  
+lemma measure_preserving_fin_two_arrow {α : Type u} {m : measurable_space α}
+  (μ : measure α) [sigma_finite μ] :
+  measure_preserving measurable_equiv.fin_two_arrow (measure.pi (λ _, μ)) (μ.prod μ) :=
+by simpa only [matrix.vec_single_eq_const, matrix.vec_cons_const]
+  using measure_preserving_fin_two_arrow_vec μ μ
+
+lemma volume_preserving_fin_two_arrow (α : Type u) [measure_space α]
+  [sigma_finite (volume : measure α)] :
+  measure_preserving (@measurable_equiv.fin_two_arrow α _) volume volume :=
+measure_preserving_fin_two_arrow volume
+
+lemma measure_preserving_pi_empty {ι : Type u} {α : ι → Type v} [is_empty ι]
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) :
+  measure_preserving (measurable_equiv.of_unique_of_unique (Π i, α i) unit)
+    (measure.pi μ) (measure.dirac ()) :=
+begin
+  set e := (measurable_equiv.of_unique_of_unique (Π i, α i) unit),
+  refine ⟨e.measurable, _⟩,
+  rw [measure.pi_of_empty, measure.map_dirac e.measurable], refl
 end
 
-lemma prod_eq_map_fin_two_arrow_same {α : Type*} {m : measurable_space α} (μ : measure α)
-  [sigma_finite μ] :
-  μ.prod μ = map measurable_equiv.fin_two_arrow (measure.pi $ λ _, μ) :=
-by rw [prod_eq_map_fin_two_arrow, matrix.vec_single_eq_const, matrix.vec_cons_const]
-
+lemma volume_preserving_pi_empty {ι : Type u} (α : ι → Type v) [is_empty ι]
+  [Π i, measure_space (α i)] :
+  measure_preserving (measurable_equiv.of_unique_of_unique (Π i, α i) unit) volume volume :=
+measure_preserving_pi_empty (λ _, volume)
 
 end measure_preserving
-section fun_unique
-/-!
-### Integral over `ι → α` with `[unique ι]`
-
-In this section we prove some lemmas that relate integrals over `ι → β`, where `ι` is a type with
-unique element (e.g., `unit` or `fin 1`) and integrals over `β`.
--/
-
-variables {β E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
-  [topological_space.second_countable_topology E] [borel_space E] [complete_space E]
-
-lemma integral_fun_unique_pi (ι) [unique ι] {m : measurable_space β} (μ : measure β)
-  (f : (ι → β) → E) :
-  ∫ y, f y ∂(measure.pi (λ _, μ)) = ∫ x, f (λ _, x) ∂μ :=
-by rw [measure.pi_unique_eq_map μ ι, integral_map_equiv]; refl
-
-lemma integral_fun_unique_pi' (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
-  (f : β → E) :
-  ∫ y : ι → β, f (y (default ι)) ∂(measure.pi (λ _, μ)) = ∫ x, f x ∂μ :=
-integral_fun_unique_pi ι μ _
-
-lemma integral_fun_unique (ι : Type*) [unique ι] [measure_space β] (f : (ι → β) → E) :
-  ∫ y, f y = ∫ x, f (λ _, x) :=
-integral_fun_unique_pi ι volume f
-
-lemma integral_fun_unique' (ι : Type*) [unique ι] [measure_space β] (f : β → E) :
-  ∫ y : ι → β, f (y (default ι)) = ∫ x, f x :=
-integral_fun_unique_pi' ι volume f
-
-lemma set_integral_fun_unique_pi (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
-  (f : (ι → β) → E) (s : set (ι → β)) :
-  ∫ y in s, f y ∂(measure.pi (λ _, μ)) = ∫ x in const ι ⁻¹' s, f (λ _, x) ∂μ :=
-by rw [measure.pi_unique_eq_map μ ι, set_integral_map_equiv]; refl
-
-lemma set_integral_fun_unique_pi' (ι : Type*) [unique ι] {m : measurable_space β} (μ : measure β)
-  (f : β → E) (s : set β) :
-  ∫ y : ι → β in function.eval (default ι) ⁻¹' s, f (y (default ι)) ∂(measure.pi (λ _, μ)) =
-    ∫ x in s, f x ∂μ :=
-by erw [set_integral_fun_unique_pi, (equiv.fun_unique ι β).symm_preimage_preimage]
-
-lemma set_integral_fun_unique (ι : Type*) [unique ι] [measure_space β] (f : (ι → β) → E)
-  (s : set (ι → β)) :
-  ∫ y in s, f y = ∫ x in const ι ⁻¹' s, f (λ _, x) :=
-by convert set_integral_fun_unique_pi ι volume f s
-
-lemma set_integral_fun_unique' (ι : Type*) [unique ι] [measure_space β] (f : β → E) (s : set β) :
-  ∫ y : ι → β in @function.eval ι (λ _, β) (default ι) ⁻¹' s, f (y (default ι)) = ∫ x in s, f x :=
-by convert set_integral_fun_unique_pi' ι volume f s
-
-end fun_unique
-
-section fin_two_arrow
-
-variables {β E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
-  [topological_space.second_countable_topology E] [borel_space E] [complete_space E]
-
-lemma integral_fin_two_arrow_pi {m : measurable_space β} (μ ν : measure β)
-  [sigma_finite μ] [sigma_finite ν] (f : (fin 2 → β) → E) :
-  ∫ y, f y ∂(measure.pi ![μ, ν]) = ∫ x, f ![x.1, x.2] ∂(μ.prod ν) :=
-begin
-  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
-  rw [measure.pi_fin_two_eq_map, integral_map_equiv], refl
-end
-
-lemma integral_fin_two_arrow_pi' {m : measurable_space β} (μ ν : measure β) [sigma_finite μ]
-  [sigma_finite ν] (f : β × β → E) :
-  ∫ y : fin 2 → β, f (y 0, y 1) ∂(measure.pi ![μ, ν]) = ∫ x, f x ∂(μ.prod ν) :=
-by { rw [measure.prod_eq_map_fin_two_arrow, integral_map_equiv], refl }
-
-lemma integral_fin_two_arrow [measure_space β] [sigma_finite (volume : measure β)]
-  (f : (fin 2 → β) → E) :
-  ∫ y, f y = ∫ x : β × β, f ![x.1, x.2] :=
-by rw [volume_pi, measure.volume_eq_prod, ← integral_fin_two_arrow_pi, matrix.vec_single_eq_const,
-  matrix.vec_cons_const]
-
-lemma integral_fin_two_arrow' [measure_space β] [sigma_finite (volume : measure β)]
-  (f : β × β → E) :
-  ∫ y : fin 2 → β, f (y 0, y 1) = ∫ x, f x :=
-by rw [volume_pi, measure.volume_eq_prod, ← integral_fin_two_arrow_pi', matrix.vec_single_eq_const,
-  matrix.vec_cons_const]
-
-lemma set_integral_fin_two_arrow_pi {m : measurable_space β} (μ ν : measure β)
-  [sigma_finite μ] [sigma_finite ν] (f : (fin 2 → β) → E) (s : set (fin 2 → β)) :
-  ∫ y in s, f y ∂(measure.pi ![μ, ν]) =
-    ∫ x : β × β in (fin_two_arrow_equiv β).symm ⁻¹' s, f ![x.1, x.2] ∂(μ.prod ν) :=
-begin
-  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
-  rw [measure.pi_fin_two_eq_map, set_integral_map_equiv], refl
-end
-
-lemma set_integral_fin_two_arrow_pi' {m : measurable_space β} (μ ν : measure β)
-  [sigma_finite μ] [sigma_finite ν] (f : β × β → E) (s : set (β × β)) :
-  ∫ y : fin 2 → β in fin_two_arrow_equiv β ⁻¹' s, f (y 0, y 1) ∂(measure.pi ![μ, ν]) =
-    ∫ x in s, f x ∂(μ.prod ν) :=
-by { rw [set_integral_fin_two_arrow_pi, equiv.symm_preimage_preimage], simp }
-
-lemma set_integral_fin_two_arrow [measure_space β] [sigma_finite (volume : measure β)]
-  (f : (fin 2 → β) → E) (s : set (fin 2 → β)) :
-  ∫ y in s, f y = ∫ x in (fin_two_arrow_equiv β).symm ⁻¹' s, f ![x.1, x.2] :=
-by rw [measure.volume_eq_prod, ← set_integral_fin_two_arrow_pi, volume_pi,
-  matrix.vec_single_eq_const, matrix.vec_cons_const]
-
-lemma set_integral_fin_two_arrow' [measure_space β] [sigma_finite (volume : measure β)]
-  (f : β × β → E) (s : set (β × β)) :
-  ∫ y : fin 2 → β in fin_two_arrow_equiv β ⁻¹' s, f (y 0, y 1) = ∫ x in s, f x :=
-by rw [measure.volume_eq_prod, ← set_integral_fin_two_arrow_pi', volume_pi,
-  matrix.vec_single_eq_const, matrix.vec_cons_const]
-
-end fin_two_arrow
 
 end measure_theory

@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import field_theory.primitive_element
 import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
 import ring_theory.power_basis
-import field_theory.primitive_element
 
 /-!
 # Norm for (finite) ring extensions

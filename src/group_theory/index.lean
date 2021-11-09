@@ -70,10 +70,6 @@ end
 eq.trans (congr_arg index (by refl))
   ((H.subgroup_of f.range).index_comap_of_surjective f.range_restrict_surjective)
 
-@[to_additive] lemma index_map {G' : Type*} [group G'] {f : G →* G'}
-  (hf1 : function.surjective f) (hf2 : f.ker ≤ H) : (H.map f).index = H.index :=
-by rw [←comap_map_eq_self hf2, (H.map f).index_comap_of_surjective hf1, comap_map_eq_self hf2]
-
 variables {H K L}
 
 @[to_additive] lemma relindex_mul_index (h : H ≤ K) : H.relindex K * K.index = H.index :=
@@ -150,6 +146,28 @@ by rw [relindex, subgroup_of_bot_eq_top, index_top]
 
 @[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
+
+@[to_additive] lemma index_map {G' : Type*} [group G'] (f : G →* G') :
+  (H.map f).index = (H ⊔ f.ker).index * f.range.index :=
+by rw [←comap_map_eq, index_comap, relindex_mul_index (H.map_le_range f)]
+
+@[to_additive] lemma index_map_dvd {G' : Type*} [group G'] {f : G →* G'}
+  (hf : function.surjective f) : (H.map f).index ∣ H.index :=
+begin
+  rw [index_map, f.range_top_of_surjective hf, index_top, mul_one],
+  exact index_dvd_of_le le_sup_left,
+end
+
+@[to_additive] lemma dvd_index_map {G' : Type*} [group G'] {f : G →* G'}
+  (hf : f.ker ≤ H) : H.index ∣ (H.map f).index :=
+begin
+  rw [index_map, sup_of_le_left hf],
+  apply dvd_mul_right,
+end
+
+@[to_additive] lemma index_map_eq {G' : Type*} [group G'] {f : G →* G'}
+  (hf1 : function.surjective f) (hf2 : f.ker ≤ H) : (H.map f).index = H.index :=
+nat.dvd_antisymm (H.index_map_dvd hf1) (H.dvd_index_map hf2)
 
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=

@@ -509,8 +509,8 @@ def add_monoid_hom.op {α β} [add_zero_class α] [add_zero_class β] :
 @[simp] def add_monoid_hom.unop {α β} [add_zero_class α] [add_zero_class β] :
   (αᵐᵒᵖ →+ βᵐᵒᵖ) ≃ (α →+ β) := add_monoid_hom.op.symm
 
-/-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵐᵒᵖ →+* βᵐᵒᵖ`. This is the action
-of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
+/-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵐᵒᵖ →+* βᵐᵒᵖ`. This is the
+action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
 @[simps]
 def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
   (α →+* β) ≃ (αᵐᵒᵖ →+* βᵐᵒᵖ) :=

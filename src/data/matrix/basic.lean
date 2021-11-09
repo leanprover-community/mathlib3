@@ -1166,7 +1166,8 @@ lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι �
 def transpose_ring_equiv [comm_semiring α] [fintype m] : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
 { to_fun := λ M, mul_opposite.op (Mᵀ),
   inv_fun := λ M, M.unopᵀ,
-  map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans (mul_opposite.op_mul _ _),
+  map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans
+    (mul_opposite.op_mul _ _),
   ..transpose_add_equiv.trans mul_opposite.op_add_equiv }
 
 lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : list (matrix m m α)) :
@@ -1246,7 +1247,8 @@ def conj_transpose_ring_equiv [comm_semiring α] [star_ring α] [fintype m] :
   matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
 { to_fun := λ M, mul_opposite.op (Mᴴ),
   inv_fun := λ M, M.unopᴴ,
-  map_mul' := λ M N, (congr_arg mul_opposite.op (conj_transpose_mul M N)).trans (mul_opposite.op_mul _ _),
+  map_mul' := λ M N, (congr_arg mul_opposite.op (conj_transpose_mul M N)).trans
+    (mul_opposite.op_mul _ _),
   ..conj_transpose_add_equiv.trans mul_opposite.op_add_equiv }
 
 lemma conj_transpose_list_prod [comm_semiring α] [star_ring α] [fintype m] [decidable_eq m]

@@ -519,7 +519,7 @@ class has_colimits_of_size : Prop :=
 /--
 `C` has all (small) colimits if it has colimits of every shape that is as big as its hom-sets.
 -/
-abbreviation has_colimits (C : Type u) [category.{v} C] : Prop := has_limits_of_size.{v v} C
+abbreviation has_colimits (C : Type u) [category.{v} C] : Prop := has_colimits_of_size.{v v} C
 
 abbreviation has_colimits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
   (J : Type v) [category.{v} J] :

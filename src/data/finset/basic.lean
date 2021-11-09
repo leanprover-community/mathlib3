@@ -2203,9 +2203,7 @@ finset.val_inj.1 (multiset.erase_dup_map_erase_dup_eq _ _).symm
 namespace finset
 
 /-! ### card -/
-
 section card
-variables {s t : finset α}
 
 /-- `card s` is the cardinality (number of elements) of `s`. -/
 def card (s : finset α) : nat := s.1.card
@@ -2216,24 +2214,24 @@ theorem card_def (s : finset α) : s.card = s.1.card := rfl
 
 @[simp] theorem card_empty : card (∅ : finset α) = 0 := rfl
 
-theorem card_le_of_subset : s ⊆ t → card s ≤ card t :=
+theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
 multiset.card_le_of_le ∘ val_le_iff.mpr
 
-@[simp] theorem card_eq_zero : card s = 0 ↔ s = ∅ :=
+@[simp] theorem card_eq_zero {s : finset α} : card s = 0 ↔ s = ∅ :=
 card_eq_zero.trans val_eq_zero
 
-theorem card_pos : 0 < card s ↔ s.nonempty :=
+theorem card_pos {s : finset α} : 0 < card s ↔ s.nonempty :=
 pos_iff_ne_zero.trans $ (not_congr card_eq_zero).trans nonempty_iff_ne_empty.symm
 
 alias finset.card_pos ↔ _ finset.nonempty.card_pos
 
-theorem card_ne_zero_of_mem {a : α} (h : a ∈ s) : card s ≠ 0 :=
+theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 0 :=
 (not_congr card_eq_zero).2 (ne_empty_of_mem h)
 
-theorem card_eq_one : s.card = 1 ↔ ∃ a, s = {a} :=
+theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = {a} :=
 by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton_val]
 
-theorem card_le_one : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
+theorem card_le_one {s : finset α} : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|⟨x, hx⟩, { simp },
   refine (nat.succ_le_of_lt (card_pos.2 ⟨x, hx⟩)).le_iff_eq.trans (card_eq_one.trans ⟨_, _⟩),
@@ -2241,10 +2239,10 @@ begin
   { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
 end
 
-theorem card_le_one_iff : s.card ≤ 1 ↔ ∀ {a b}, a ∈ s → b ∈ s → a = b :=
+theorem card_le_one_iff {s : finset α} : s.card ≤ 1 ↔ ∀ {a b}, a ∈ s → b ∈ s → a = b :=
 by { rw card_le_one, tauto }
 
-lemma card_le_one_iff_subset_singleton [nonempty α] :
+lemma card_le_one_iff_subset_singleton [nonempty α] {s : finset α} :
   s.card ≤ 1 ↔ ∃ (x : α), s ⊆ {x} :=
 begin
   split,
@@ -2265,10 +2263,11 @@ end
 lemma card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
 finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
 
-theorem one_lt_card : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
+theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ← not_iff_not, push_neg, exact card_le_one }
 
-lemma exists_ne_of_one_lt_card (hs : 1 < s.card) (a : α) : ∃ b : α, b ∈ s ∧ b ≠ a :=
+lemma exists_ne_of_one_lt_card {s : finset α} (hs : 1 < s.card) (a : α) :
+  ∃ b : α, b ∈ s ∧ b ≠ a :=
 begin
   obtain ⟨x, hx, y, hy, hxy⟩ := finset.one_lt_card.mp hs,
   by_cases ha : y = a,
@@ -2276,17 +2275,19 @@ begin
   { exact ⟨y, hy, ha⟩ },
 end
 
-lemma one_lt_card_iff : 1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
+lemma one_lt_card_iff {s : finset α} :
+  1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
 by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
 
-@[simp] theorem card_cons {a : α} (h : a ∉ s) : card (cons a s h) = card s + 1 := card_cons _ _
+@[simp] theorem card_cons {a : α} {s : finset α} (h : a ∉ s) : card (cons a s h) = card s + 1 :=
+card_cons _ _
 
-@[simp] theorem card_insert_of_not_mem [decidable_eq α] {a : α} (h : a ∉ s) :
-  card (insert a s) = card s + 1 :=
+@[simp] theorem card_insert_of_not_mem [decidable_eq α]
+  {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
 by rw [← cons_eq_insert _ _ h, card_cons]
 
-theorem card_insert_of_mem [decidable_eq α] {a : α} (h : a ∈ s) : card (insert a s) = card s :=
-by rw insert_eq_of_mem h
+theorem card_insert_of_mem [decidable_eq α] {a : α} {s : finset α}
+  (h : a ∈ s) : card (insert a s) = card s := by rw insert_eq_of_mem h
 
 theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert a s) ≤ card s + 1 :=
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
@@ -2294,7 +2295,7 @@ rw [card_insert_of_not_mem h]]
 
 /-- If `a ∈ s` is known, see also `finset.card_insert_of_mem` and
 `finset.card_insert_of_not_mem`. -/
-theorem card_insert_eq_ite [decidable_eq α] {a : α} :
+theorem card_insert_eq_ite [decidable_eq α] {a : α} {s : finset α} :
   card (insert a s) = if a ∈ s then card s else card s + 1 :=
 begin
   by_cases h : a ∈ s,
@@ -2304,7 +2305,7 @@ end
 
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
 
-lemma card_singleton_inter [decidable_eq α] {x : α} : ({x} ∩ s).card ≤ 1 :=
+lemma card_singleton_inter [decidable_eq α] {x : α} {s : finset α} : ({x} ∩ s).card ≤ 1 :=
 begin
   cases (finset.decidable_mem x s),
   { simp [finset.singleton_inter_of_not_mem h] },
@@ -2312,16 +2313,16 @@ begin
 end
 
 @[simp]
-theorem card_erase_of_mem [decidable_eq α] {a : α} :
+theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
-theorem card_erase_lt_of_mem [decidable_eq α] {a : α} :
+theorem card_erase_lt_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) < card s := card_erase_lt_of_mem
 
-theorem card_erase_le [decidable_eq α] {a : α} :
+theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} :
   card (erase s a) ≤ card s := card_erase_le
 
-theorem pred_card_le_card_erase [decidable_eq α] {a : α} :
+theorem pred_card_le_card_erase [decidable_eq α] {a : α} {s : finset α} :
   card s - 1 ≤ card (erase s a) :=
 begin
   by_cases h : a ∈ s,
@@ -2330,12 +2331,12 @@ begin
 end
 
 /-- If `a ∈ s` is known, see also `finset.card_erase_of_mem` and `finset.erase_eq_of_not_mem`. -/
-theorem card_erase_eq_ite [decidable_eq α] {a : α} :
+theorem card_erase_eq_ite [decidable_eq α] {a : α} {s : finset α} :
   card (erase s a) = if a ∈ s then pred (card s) else card s := card_erase_eq_ite
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
-@[simp] theorem card_attach : card (attach s) = card s := multiset.card_attach
+@[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
 
 end card
 end finset

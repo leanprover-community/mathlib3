@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Jakob von Raumer
 -/
 import group_theory.congruence
+import linear_algebra.bilinear_map
 import linear_algebra.tensor_product.def
 
 /-!
@@ -160,6 +161,29 @@ for the `compatible_smul` instances are sufficient. -/
 instance is_scalar_tower [smul_comm_class Rᵒᵖ R' M] [has_scalar R' R] [is_scalar_tower R' Rᵒᵖ M] :
   is_scalar_tower R' Rᵒᵖ (M ⊗[R] N) :=
 tensor_product.is_scalar_tower_left
+
+variables (R M N)
+/-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
+def mk [module Rᵒᵖ N] [is_symmetric_smul R N] : M →ₗ[Rᵒᵖ] N →ₗ[Rᵒᵖ] M ⊗[R] N :=
+linear_map.mk₂ Rᵒᵖ (⊗ₜ) add_tmul (λ c m n, rfl) tmul_add
+  (λ c m n, by rw [←opposite.op_unop c, is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul,
+       smul_tmul'] )
+variables {R M N}
+
+@[simp] lemma mk_apply [module Rᵒᵖ N] [is_symmetric_smul R N] (m : M) (n : N) :
+  mk R M N m n = m ⊗ₜ n :=
+rfl
+
+/-- The simple (aka pure) elements span the tensor product. -/
+lemma span_tmul_eq_top :
+  submodule.span Rᵒᵖ { t : M ⊗[R] N | ∃ m n, m ⊗ₜ n = t } = ⊤ :=
+begin
+  ext t, simp only [submodule.mem_top, iff_true],
+  apply t.induction_on,
+  { exact submodule.zero_mem _, },
+  { intros m n, apply submodule.subset_span, use [m, n], },
+  { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
+end
 
 end comm_semiring
 

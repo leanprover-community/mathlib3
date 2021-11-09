@@ -1,6 +1,6 @@
 import group_theory.congruence
 import group_theory.group_action.symmetric
-import algebra.module.basic
+import linear_algebra.basic
 import algebra.free_monoid
 
 /-!
@@ -166,6 +166,38 @@ lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵒᵖ M] [is_symmetric_smul R' 
   [has_scalar R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
   (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 by rw [←is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul]
+
+lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
+  (if P then x₁ else 0) ⊗ₜ[R] x₂ = if P then x₁ ⊗ₜ x₂ else 0 :=
+by { split_ifs; simp }
+
+lemma tmul_ite (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
+  x₁ ⊗ₜ[R] (if P then x₂ else 0) = if P then x₁ ⊗ₜ x₂ else 0 :=
+by { split_ifs; simp }
+
+section
+open_locale big_operators
+
+lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
+  (∑ a in s, m a) ⊗ₜ[R] n = ∑ a in s, m a ⊗ₜ[R] n :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp, },
+  { simp [finset.sum_insert has, add_tmul, ih], },
+end
+
+lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
+  m ⊗ₜ[R] (∑ a in s, n a) = ∑ a in s, m ⊗ₜ[R] n a :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp, },
+  { simp [finset.sum_insert has, tmul_add, ih], },
+end
+end
+
+
 
 end
 

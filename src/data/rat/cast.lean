@@ -37,6 +37,8 @@ variable [division_ring α]
 -- see Note [coercion into rings]
 @[priority 900] instance cast_coe : has_coe_t ℚ α := ⟨λ r, r.1 / r.2⟩
 
+theorem cast_def (r : ℚ) : (r : α) = r.num / r.denom := rfl
+
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
@@ -53,6 +55,9 @@ by rw [coe_int_eq_of_int, cast_of_int]
 
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
 (r.1.cast_commute a).div_left (r.2.cast_commute a)
+
+theorem cast_comm (r : ℚ) (a : α) : (r : α) * a = a * r :=
+(cast_commute r a).eq
 
 theorem commute_cast (a : α) (r : ℚ) : commute a r :=
 (r.cast_commute a).symm
@@ -85,7 +90,7 @@ end
   suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
     n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, left_distrib, right_distrib, mul_inv_rev', d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, left_distrib, right_distrib, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
       (nat.cast_commute _ _).eq], simp [d₁0, mul_assoc]
@@ -108,9 +113,23 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
   rw [num_denom', num_denom', mul_def d₁0' d₂0'],
   suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, mul_inv_rev', d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
-  rw [(d₁.commute_cast (_:α)).inv_right'.eq]
+  rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
+end
+
+@[simp] theorem cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+begin
+  cases n, { simp },
+  simp_rw [coe_nat_eq_mk, inv_def, mk, mk_nat, dif_neg n.succ_ne_zero, mk_pnat],
+  simp [cast_def]
+end
+
+@[simp] theorem cast_inv_int (n : ℤ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+begin
+  cases n,
+  { exact cast_inv_nat _ },
+  { simp only [int.cast_neg_succ_of_nat, ← nat.cast_succ, cast_neg, inv_neg, cast_inv_nat] }
 end
 
 @[norm_cast] theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
@@ -143,7 +162,7 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
   have d₂a : (d₂:α) ≠ 0 := nat.cast_ne_zero.2 d₂0,
   rw [num_denom', num_denom'] at h ⊢,
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
-  rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left'.eq,
+  rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left₀.eq,
     ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq d₁a, eq_comm,
     ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
     int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h
@@ -227,15 +246,15 @@ by rw [← cast_zero, cast_lt]
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min]
+by by_cases a ≤ b; simp [h, min_def]
 
 @[simp, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [h, max]
+by by_cases b ≤ a; simp [h, max_def]
 
 @[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
-  ((abs q : ℚ) : α) = abs q :=
-by simp [abs]
+  ((|q| : ℚ) : α) = |q| :=
+by simp [abs_eq_max_neg]
 
 end rat
 
@@ -274,3 +293,28 @@ end
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩
+
+namespace monoid_with_zero_hom
+
+variables {M : Type*} [group_with_zero M]
+
+/-- If `f` and `g` agree on the integers then they are equal `φ`.
+
+See note [partially-applied ext lemmas] for why `comp` is used here. -/
+@[ext]
+theorem ext_rat {f g : monoid_with_zero_hom ℚ M}
+  (same_on_int : f.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
+    g.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : f = g :=
+begin
+  have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
+  ext x,
+  rw [← @rat.num_denom x, rat.mk_eq_div, f.map_div, g.map_div,
+    same_on_int' x.num, same_on_int' x.denom],
+end
+
+/-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
+theorem ext_rat_on_pnat {f g : monoid_with_zero_hom ℚ M}
+  (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
+ext_rat $ ext_int' (by simpa) ‹_›
+
+end monoid_with_zero_hom

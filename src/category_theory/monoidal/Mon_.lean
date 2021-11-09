@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.discrete
-import category_theory.monoidal.unitors
 import category_theory.limits.shapes.terminal
 import algebra.punit_instances
 
@@ -12,7 +11,7 @@ import algebra.punit_instances
 # The category of monoids in a monoidal category.
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ u₁ u₂ u
 
 open category_theory
 open category_theory.monoidal_category
@@ -52,7 +51,8 @@ def trivial : Mon_ C :=
 { X := 𝟙_ C,
   one := 𝟙 _,
   mul := (λ_ _).hom,
-  mul_assoc' := by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
+  mul_assoc' :=
+    by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
   mul_one' := by simp [unitors_equal] }
 
 instance : inhabited (Mon_ C) := ⟨trivial C⟩
@@ -117,14 +117,13 @@ instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso f
 
 /-- The forgetful functor from monoid objects to the ambient category reflects isomorphisms. -/
 instance : reflects_isomorphisms (forget C) :=
-{ reflects := λ X Y f e, by exactI
-  { inv :=
-    { hom := inv f.hom,
-      mul_hom' :=
-      begin
-        simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
-          is_iso.inv_hom_id, tensor_id, category.id_comp],
-      end } } }
+{ reflects := λ X Y f e, by exactI ⟨⟨{
+  hom := inv f.hom,
+  mul_hom' :=
+  begin
+    simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
+      is_iso.inv_hom_id, tensor_id, category.id_comp],
+  end }, by tidy⟩⟩ }
 
 instance unique_hom_from_trivial (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=
@@ -221,13 +220,13 @@ namespace equiv_lax_monoidal_functor_punit
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
-def lax_monoidal_to_Mon : lax_monoidal_functor (discrete punit) C ⥤ Mon_ C :=
+def lax_monoidal_to_Mon : lax_monoidal_functor (discrete punit.{u+1}) C ⥤ Mon_ C :=
 { obj := λ F, (F.map_Mon : Mon_ _ ⥤ Mon_ C).obj (trivial (discrete punit)),
   map := λ F G α, ((map_Mon_functor (discrete punit) C).map α).app _ }
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
-def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
+def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit.{u+1}) C :=
 { obj := λ A,
   { obj := λ _, A.X,
     map := λ _ _ _, 𝟙 _,
@@ -244,7 +243,8 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
 def unit_iso :
-  𝟭 (lax_monoidal_functor (discrete punit) C) ≅ lax_monoidal_to_Mon C ⋙ Mon_to_lax_monoidal C :=
+  𝟭 (lax_monoidal_functor (discrete punit.{u+1}) C) ≅
+    lax_monoidal_to_Mon C ⋙ Mon_to_lax_monoidal C :=
 nat_iso.of_components (λ F,
   monoidal_nat_iso.of_components
     (λ _, F.to_functor.map_iso (eq_to_iso (by ext)))
@@ -265,7 +265,7 @@ open equiv_lax_monoidal_functor_punit
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
 -/
 @[simps]
-def equiv_lax_monoidal_functor_punit : lax_monoidal_functor (discrete punit) C ≌ Mon_ C :=
+def equiv_lax_monoidal_functor_punit : lax_monoidal_functor (discrete punit.{u+1}) C ≌ Mon_ C :=
 { functor := lax_monoidal_to_Mon C,
   inverse := Mon_to_lax_monoidal C,
   unit_iso := unit_iso C,

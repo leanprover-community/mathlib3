@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.seq.seq
 import data.dlist
+
+open function
 universes u v w
 
 /-
@@ -378,7 +380,7 @@ theorem lift_rel_destruct_iff {R : α → β → Prop} {s : wseq α} {t : wseq �
     intros s t, apply or.inl
   end⟩⟩
 
-infix ~ := equiv
+infix ` ~ `:50 := equiv
 
 theorem destruct_congr {s t : wseq α} :
   s ~ t → computation.lift_rel (bisim_o (~)) (destruct s) (destruct t) :=
@@ -396,24 +398,24 @@ theorem lift_rel.refl (R : α → α → Prop) (H : reflexive R) : reflexive (li
 end
 
 theorem lift_rel_o.swap (R : α → β → Prop) (C) :
-  function.swap (lift_rel_o R C) = lift_rel_o (function.swap R) (function.swap C) :=
+  swap (lift_rel_o R C) = lift_rel_o (swap R) (swap C) :=
 by funext x y; cases x with x; [skip, cases x]; { cases y with y; [skip, cases y]; refl }
 
 theorem lift_rel.swap_lem {R : α → β → Prop} {s1 s2} (h : lift_rel R s1 s2) :
-  lift_rel (function.swap R) s2 s1 :=
+  lift_rel (swap R) s2 s1 :=
 begin
-  refine ⟨function.swap (lift_rel R), h, λ s t (h : lift_rel R t s), _⟩,
+  refine ⟨swap (lift_rel R), h, λ s t (h : lift_rel R t s), _⟩,
   rw [←lift_rel_o.swap, computation.lift_rel.swap],
   apply lift_rel_destruct h
 end
 
 theorem lift_rel.swap (R : α → β → Prop) :
-  function.swap (lift_rel R) = lift_rel (function.swap R) :=
+  swap (lift_rel R) = lift_rel (swap R) :=
 funext $ λ x, funext $ λ y, propext ⟨lift_rel.swap_lem, lift_rel.swap_lem⟩
 
 theorem lift_rel.symm (R : α → α → Prop) (H : symmetric R) : symmetric (lift_rel R) :=
-λ s1 s2 (h : function.swap (lift_rel R) s2 s1),
-by rwa [lift_rel.swap, show function.swap R = R, from
+λ s1 s2 (h : swap (lift_rel R) s2 s1),
+by rwa [lift_rel.swap, show swap R = R, from
         funext $ λ a, funext $ λ b, propext $ by constructor; apply H] at h
 
 theorem lift_rel.trans (R : α → α → Prop) (H : transitive R) : transitive (lift_rel R) :=
@@ -1157,7 +1159,7 @@ begin
   let ⟨o, m, k, rs1, rs2, en⟩ := of_results_bind ra,
       ⟨p, mT, rop⟩ := computation.exists_of_lift_rel_left (lift_rel_destruct ST) rs1.mem in
   by exact match o, p, rop, rs1, rs2, mT with
-  | none, none, _, rs1, rs2, mT := by simp [destruct_join]; exact
+  | none, none, _, rs1, rs2, mT := by simp only [destruct_join]; exact
     ⟨none, mem_bind mT (ret_mem _), by rw eq_of_ret_mem rs2.mem; trivial⟩
   | some (s, S'), some (t, T'), ⟨st, ST'⟩, rs1, rs2, mT :=
     by simp [destruct_append] at rs2; exact
@@ -1202,7 +1204,7 @@ theorem lift_rel_join (R : α → β → Prop) {S : wseq (wseq α)} {T : wseq (w
     dsimp [destruct_append.aux, computation.lift_rel], constructor,
     { intro, apply lift_rel_join.lem _ ST (λ _ _, id) },
     { intros b mb,
-      rw [←lift_rel_o.swap], apply lift_rel_join.lem (function.swap R),
+      rw [←lift_rel_o.swap], apply lift_rel_join.lem (swap R),
       { rw [←lift_rel.swap R, ←lift_rel.swap], apply ST },
       { rw [←lift_rel.swap R, ←lift_rel.swap (lift_rel R)],
         exact λ s1 s2 ⟨s, t, S, T, h1, h2, st, ST⟩,
@@ -1238,9 +1240,9 @@ begin
   { exact λ c1 c2 h, match c1, c2, h with
     | ._, ._, ⟨s, rfl, rfl⟩ := begin
       clear h _match,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret],
-      { refine ⟨_, ret_mem _, _⟩, simp },
-      { exact ⟨s, rfl, rfl⟩ }
+      have : ∀ s, ∃ s' : wseq α, (map ret s).join.destruct = (map ret s').join.destruct ∧
+        destruct s = s'.destruct, from λ s, ⟨s, rfl, rfl⟩,
+      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this, option.exists]
     end end },
   { exact ⟨s, rfl, rfl⟩ }
 end

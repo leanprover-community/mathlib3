@@ -8,13 +8,22 @@ import data.list.nodup
 import data.list.of_fn
 import data.list.zip
 
-open nat
+/-!
+# Ranges of naturals as lists
 
-namespace list
-/- iota and range(') -/
+This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
+`data.list.defs`) and defines `list.fin_range`.
+`fin_range n` is the list of elements of `fin n`.
+`iota n = [1, ..., n]` and `range n = [0, ..., n - 1]` are basic list constructions used for
+tactics. `range' a b = [a, ..., a + b - 1]` is there to help prove properties about them.
+Actual maths should use `list.Ico` instead.
+-/
 
 universe u
 
+open nat
+
+namespace list
 variables {α : Type u}
 
 @[simp] theorem length_range' : ∀ (s n : ℕ), length (range' s n) = n
@@ -28,9 +37,9 @@ by rw [← length_eq_zero, length_range']
 | s 0     := (false_iff _).2 $ λ ⟨H1, H2⟩, not_le_of_lt H2 H1
 | s (succ n) :=
   have m = s → m < s + n + 1,
-    from λ e, e ▸ lt_succ_of_le (le_add_right _ _),
+    from λ e, e ▸ lt_succ_of_le (nat.le_add_right _ _),
   have l : m = s ∨ s + 1 ≤ m ↔ s ≤ m,
-    by simpa only [eq_comm] using (@le_iff_eq_or_lt _ _ s m).symm,
+    by simpa only [eq_comm] using (@decidable.le_iff_eq_or_lt _ _ _ s m).symm,
   (mem_cons_iff _ _ _).trans $ by simp only [mem_range',
     or_and_distrib_left, or_iff_right_of_imp this, l, add_right_comm]; refl
 
@@ -69,11 +78,11 @@ theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
 
 theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_range'] using length_le_of_sublist h,
- λ h, by rw [← nat.sub_add_cancel h, ← range'_append]; apply sublist_append_left⟩
+ λ h, by rw [← tsub_add_cancel_of_le h, ← range'_append]; apply sublist_append_left⟩
 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
 ⟨λ h, le_of_not_lt $ λ hn, lt_irrefl (s+n) $
-  (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
+  (mem_range'.1 $ h $ mem_range'.2 ⟨nat.le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
  λ h, (range'_sublist_right.2 h).subset⟩
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
@@ -162,7 +171,7 @@ theorem reverse_range' : ∀ s n : ℕ,
 | s (n+1) := by rw [range'_concat, reverse_append, range_succ_eq_map];
   simpa only [show s + (n + 1) - 1 = s + n, from rfl, (∘),
     λ a i, show a - 1 - i = a - succ i, from pred_sub _ _,
-    reverse_singleton, map_cons, nat.sub_zero, cons_append,
+    reverse_singleton, map_cons, tsub_zero, cons_append,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 

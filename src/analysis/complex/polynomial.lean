@@ -3,13 +3,15 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import topology.algebra.polynomial
 import analysis.special_functions.pow
+import field_theory.is_alg_closed.basic
 
 /-!
 # The fundamental theorem of algebra
 
 This file proves that every nonconstant complex polynomial has a root.
+
+As a consequence, the complex numbers are algebraically closed.
 -/
 
 open complex polynomial metric filter is_absolute_value set
@@ -18,8 +20,9 @@ open_locale classical
 namespace complex
 
 /- The following proof uses the method given at
-  <https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus> -/
-/-- The fundamental theorem of algebra. Every non constant complex polynomial
+<https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus>
+-/
+/-- **Fundamental theorem of algebra**: every non constant complex polynomial
   has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
 let ⟨z₀, hz₀⟩ := f.exists_forall_norm_le in
@@ -47,10 +50,10 @@ let F : polynomial ℂ := C (f.eval z₀) + C (g.eval z₀) * (X - C z₀) ^ n i
 let z' := (-f.eval z₀ * (g.eval z₀).abs * δ ^ n /
   ((f.eval z₀).abs * g.eval z₀)) ^ (n⁻¹ : ℂ) + z₀ in
 have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs,
-  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc, mul_comm (g.eval z₀),
-      mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv', inv_mul_cancel hg0,
-      eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X, add_neg_cancel_right,
-      neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
+  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc,
+      mul_comm (g.eval z₀), mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv₀,
+      inv_mul_cancel hg0, eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X,
+      add_neg_cancel_right, neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
   from (div_lt_one hf0').2 $ (lt_div_iff' hg0').1 $
@@ -90,5 +93,8 @@ lt_irrefl (f.eval z₀).abs $
     ... < (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n + (g.eval z₀).abs * δ ^ n :
       add_lt_add_of_le_of_lt (by rw hF₂) hF₃
     ... = (f.eval z₀).abs : sub_add_cancel _ _
+
+instance is_alg_closed : is_alg_closed ℂ :=
+is_alg_closed.of_exists_root _ $ λ p _ hp, complex.exists_root $ degree_pos_of_irreducible hp
 
 end complex

@@ -32,8 +32,7 @@ do load_data cache_name <|>
    do {
      a ← t,
      save_data cache_name a,
-     return a
-   }
+     return a }
 
 -- We maintain two separate caches with different scopes:
 -- one local to `begin ... end` or `by` blocks, and another

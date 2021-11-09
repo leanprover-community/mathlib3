@@ -10,11 +10,13 @@ import category_theory.limits.preserves.shapes.binary_products
 /-!
 # Preservation of (co)limits in the functor category
 
-Show that if `X ⨯ -` preserves colimits in `D` for any `X : D`, then the product functor `F ⨯ -`
+* Show that if `X ⨯ -` preserves colimits in `D` for any `X : D`, then the product functor `F ⨯ -`
 for `F : C ⥤ D` preserves colimits.
 
 The idea of the proof is simply that products and colimits in the functor category are computed
 pointwise, so pointwise preservation implies general preservation.
+
+* Show that `F ⋙ -` preserves limits if the target category has limits.
 
 # References
 
@@ -22,7 +24,7 @@ https://ncatlab.org/nlab/show/commutativity+of+limits+and+colimits#preservation_
 
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ u u₂
 
 noncomputable theory
 
@@ -30,8 +32,9 @@ namespace category_theory
 
 open category limits
 
-variables {C : Type v₂} [category.{v₁} C]
-variables {D : Type u₂} [category.{v₂} D]
+variables {C : Type u} [category.{v₁} C]
+variables {D : Type u₂} [category.{u} D]
+variables {E : Type u} [category.{v₂} E]
 
 /--
 If `X × -` preserves colimits in `D` for any `X : D`, then the product functor `F ⨯ -` for
@@ -62,5 +65,14 @@ def functor_category.prod_preserves_colimits [has_binary_products D] [has_colimi
         { intros G G',
           apply prod_comparison_natural ((evaluation C D).obj k) (𝟙 F) },
       end } } }
+
+instance whiskering_left_preserves_limits [has_limits D] (F : C ⥤ E) :
+  preserves_limits ((whiskering_left C E D).obj F) := ⟨λ J hJ, by exactI ⟨λ K, ⟨λ c hc,
+begin
+  apply evaluation_jointly_reflects_limits,
+  intro Y,
+  change is_limit (((evaluation E D).obj (F.obj Y)).map_cone c),
+  exact preserves_limit.preserves hc,
+end ⟩⟩⟩
 
 end category_theory

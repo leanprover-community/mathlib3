@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jannis Limperg
+Authors: Jannis Limperg
 -/
 
+import tactic.clear
 import tactic.dependencies
 import tactic.fresh_names
 import tactic.generalizes
@@ -94,7 +95,11 @@ We record the following information:
   requirement, for `iⱼ` to be considered an index occurrences,
   the type of `iⱼ` must match that of `a` according to
   `index_occurrence_type_match`.
-- `is_recursive`: whether this is a recursive constructor argument.
+- `recursive_leading_pis`: `none` if this constructor is not recursive.
+  Otherwise, the argument has type `Π (x₁ : T₁) ... (xₙ : Tₙ), I ...`
+  where `I` is the inductive type to which this constructor belongs. In this
+  case, `recursive_leading_pis` is `some n` with `n` the number of leading Π
+  binders in the argument's type.
 -/
 @[derive has_reflect]
 meta structure constructor_argument_info :=
@@ -102,7 +107,18 @@ meta structure constructor_argument_info :=
 (type : expr)
 (dependent : bool)
 (index_occurrences : list ℕ)
-(is_recursive : bool)
+(recursive_leading_pis : option ℕ)
+
+namespace constructor_argument_info
+
+/--
+`is_recursive c` is true iff the constructor argument described by `c` is
+recursive.
+-/
+meta def is_recursive (c : constructor_argument_info) :=
+c.recursive_leading_pis.is_some
+
+end constructor_argument_info
 
 /--
 Information about a constructor. Contains:
@@ -213,18 +229,22 @@ meta def get_index_occurrences (num_params : ℕ) (ret_type : expr) :
     mk_rb_map
 
 /--
-Returns true iff `arg_type` is the local constant named `type_name`
-(possibly applied to some arguments). If `arg_type` is the type of an argument
-of one of `type_name`'s constructors and this function returns true, then the
-constructor argument is a recursive occurrence.
+`match_recursive_constructor_arg I T`, given `I` the name of an inductive type
+and `T` the type of an argument of a constructor of `I`, returns `none` if the
+argument is non-recursive (i.e. `I` does not appear in `T`). If the argument is
+recursive, `T` is of the form `Π (x₁ : T₁) ... (xₙ : Tₙ), I ...`, in which case
+`match_recursive_constructor_arg` returns `some n`. Matching is performed up to
+WHNF with semireducible transparency.
 -/
-meta def is_recursive_constructor_argument (type_name : name) (arg_type : expr) :
-  bool :=
-let base := arg_type.get_app_fn in
-match base with
-| (expr.const base _) := base = type_name
-| _ := ff
-end
+meta def match_recursive_constructor_arg (I : name) (T : expr) :
+  tactic (option ℕ) := do
+  (pis, base) ← open_pis_whnf T,
+  base ← get_app_fn_whnf base,
+  pure $
+    match base with
+    | (const c _) := if c = I then some pis.length else none
+    | _ := none
+    end
 
 /--
 Get information about the arguments of a constructor `C` of an inductive type
@@ -243,11 +263,11 @@ meta def get_constructor_argument_info (inductive_name : name)
   tactic (list constructor_argument_info) := do
   ⟨args, ret⟩ ← open_pis_whnf_dep T,
   index_occs ← get_index_occurrences num_params ret,
-  pure $ args.map $ λ ⟨c, dep⟩,
-    let occs := rb_set.of_list $ index_occs.find c in
-    let type := c.local_type in
-    let is_recursive := is_recursive_constructor_argument inductive_name type in
-    ⟨c.local_pp_name, type, dep, occs.to_list, is_recursive⟩
+  args.mmap $ λ ⟨c, dep⟩, do
+    let occs := rb_set.of_list $ index_occs.find c,
+    let type := c.local_type,
+    recursive_leading_pis ← match_recursive_constructor_arg inductive_name type,
+    pure ⟨c.local_pp_name, type, dep, occs.to_list, recursive_leading_pis⟩
 
 /--
 Get information about a constructor `C` of an inductive type `I`.
@@ -275,8 +295,7 @@ meta def get_constructor_info (iname : name) (num_params : ℕ) (c : name) :
       non_param_args := non_param_args,
       num_non_param_args := non_param_args.length,
       rec_args := rec_args,
-      num_rec_args := rec_args.length
-    }
+      num_rec_args := rec_args.length }
 
 /--
 Get information about an inductive type `I`, given `I`'s name.
@@ -466,28 +485,27 @@ Input:
 
 Output:
 
-- For each constructor argument, the pretty name of the newly introduced
-  hypothesis corresponding to the argument and its `constructor_argument_info`.
-- For each newly introduced induction hypothesis, its pretty name and the name
-  of the recursive constructor argument from which it was derived.
+- For each constructor argument: (1) the pretty name of the newly introduced
+  hypothesis corresponding to the argument; (2) the argument's
+  `constructor_argument_info`.
+- For each newly introduced induction hypothesis: (1) its pretty name; (2) the
+  pretty name of the hypothesis corresponding to the constructor argument from
+  which this induction hypothesis was derived; (3) that constructor argument's
+  `constructor_argument_info`.
 -/
 meta def constructor_intros (generate_induction_hyps : bool)
   (cinfo : constructor_info) :
-  tactic (list (name × constructor_argument_info) × list (name × name)) := do
+  tactic (list (name × constructor_argument_info) ×
+          list (name × name × constructor_argument_info)) := do
   let args := cinfo.non_param_args,
   arg_hyps ← intron_fresh cinfo.num_non_param_args,
-  let arg_hyp_names :=
-    list.map₂ (λ (h : expr) ainfo, (h.local_pp_name, ainfo)) arg_hyps args,
-  tt ← pure generate_induction_hyps | pure (arg_hyp_names, []),
+  let args := (arg_hyps.map expr.local_pp_name).zip args,
+  tt ← pure generate_induction_hyps | pure (args, []),
 
-  let rec_args := arg_hyp_names.filter $ λ x, x.2.is_recursive,
+  let rec_args := args.filter $ λ x, x.2.is_recursive,
   ih_hyps ← intron_fresh cinfo.num_rec_args,
-  let ih_hyp_names :=
-    list.map₂
-      (λ (h : expr) (arg : name × constructor_argument_info),
-        (h.local_pp_name, arg.1))
-      ih_hyps rec_args,
-  pure (arg_hyp_names, ih_hyp_names)
+  let ihs := (ih_hyps.map expr.local_pp_name).zip rec_args,
+  pure (args, ihs)
 
 /--
 `ih_name arg_name` is the name `ih_<arg_name>`.
@@ -495,10 +513,61 @@ meta def constructor_intros (generate_induction_hyps : bool)
 meta def ih_name (arg_name : name) : name :=
 mk_simple_name ("ih_" ++ arg_name.to_string)
 
-private meta def get_with_name : option name → option name
-| (some `_) := none
-| (some n) := some n
-| none := none
+/--
+Representation of a pattern in the `with n ...` syntax supported by
+`induction'` and `cases'`. A `with_pattern` can be:
+
+- `with_pattern.auto` (`with _` or no `with` clause): use the name generated by the tactic.
+- `with_pattern.clear` (`with -`): clear this hypothesis and any hypotheses depending on it.
+- `with_pattern.exact n` (`with n`): use the name `n` for this hypothesis.
+-/
+@[derive has_reflect]
+meta inductive with_pattern
+| auto
+| clear
+| exact (n : name)
+
+namespace with_pattern
+
+open lean (parser)
+open lean.parser
+
+/-- Parser for a `with_pattern`. -/
+protected meta def parser : parser with_pattern :=
+(tk "-" *> pure with_pattern.clear) <|>
+(tk "_" *> pure with_pattern.auto) <|>
+(with_pattern.exact <$> ident)
+
+/-- Parser for a `with` clause. -/
+meta def clause_parser : parser (list with_pattern) :=
+(tk "with" *> many with_pattern.parser) <|> pure []
+
+/--
+`to_name_spec auto_candidates p` returns a description of how the hypothesis to
+which the `with_pattern` `p` applies should be named. If this function returns
+`none`, the hypothesis should be cleared. If it returns `some (inl n)`, it
+should receive exactly the name `n`, even if this shadows other hypotheses. If
+it returns `some (inr ns)`, it should receive the first unused name from `ns`.
+
+If `p = auto`, the `auto_candidates` tactic is run to determine candidate names
+for the hypothesis (from which the first fresh one is later chosen).
+`auto_candidates` must return a nonempty list.
+-/
+meta def to_name_spec (auto_candidates : tactic (list name)) :
+  with_pattern → tactic (option (name ⊕ list name))
+| auto := (some ∘ sum.inr) <$> auto_candidates
+| clear := pure none
+| (exact n) := pure $ some $ sum.inl n
+
+end with_pattern
+
+/--
+If `h` refers to a hypothesis, `clear_dependent_if_exists h` clears `h` and any
+hypotheses which depend on it. Otherwise, the tactic does nothing.
+-/
+meta def clear_dependent_if_exists (h : name) : tactic unit := do
+  (some h) ← try_core $ get_local h | pure (),
+  clear' tt [h]
 
 /--
 Rename the new hypotheses in the goal for a minor premise.
@@ -511,9 +580,10 @@ Input:
 - `iinfo`: information about the inductive type.
 - `cinfo`: information about the constructor whose minor premise we are
   processing.
-- `with_names`: a list of names given by the user. These are used to name
-  constructor arguments and induction hypotheses. Our own naming logic only
-  kicks in if this list does not contain enough names.
+- `with_patterns`: a list of `with` patterns given by the user. These are used
+  to name constructor arguments and induction hypotheses. If the list does not
+  contain enough patterns for all introduced hypotheses, the remaining ones are
+  treated as if the user had given `with_pattern.auto` (`_`).
 - `args` and `ihs`: the output of `constructor_intros`.
 
 Output:
@@ -523,26 +593,25 @@ Output:
 -/
 meta def constructor_renames (generate_induction_hyps : bool)
   (mpinfo : major_premise_info) (iinfo : inductive_info)
-  (cinfo : constructor_info) (with_names : list name)
-  (args : list (name × constructor_argument_info)) (ihs : list (name × name)) :
+  (cinfo : constructor_info) (with_patterns : list with_pattern)
+  (args : list (name × constructor_argument_info))
+  (ihs : list (name × name × constructor_argument_info)) :
   tactic (list expr × list expr) := do
 
   -- Rename constructor arguments
   let arg_pp_name_set := name_set.of_list $ args.map prod.fst,
   let iname := iinfo.iname,
-  let ⟨args, with_names⟩ := args.zip_left' with_names,
-  arg_renames : list (name × list name) ←
-    args.mmap_filter $ λ ⟨⟨old_ppname, ainfo⟩, with_name⟩, do {
-      new ←
-        match get_with_name with_name with
-        | some with_name := pure [with_name]
-        | none := constructor_argument_names ⟨mpinfo, iinfo, cinfo, ainfo⟩
-        end,
+  let ⟨args, with_patterns⟩ :=
+    args.map₂_left' (λ arg p, (arg, p.get_or_else with_pattern.auto))
+      with_patterns,
+  arg_renames ← args.mmap_filter $ λ ⟨⟨old_ppname, ainfo⟩, with_pat⟩, do {
+      (some new) ← with_pat.to_name_spec
+        (constructor_argument_names ⟨mpinfo, iinfo, cinfo, ainfo⟩)
+        | clear_dependent_if_exists old_ppname >> pure none,
       -- Some of the arg hyps may have been cleared by earlier simplification
       -- steps, so get_local may fail.
       (some old) ← try_core $ get_local old_ppname | pure none,
-      pure $ some (old.local_uniq_name, new)
-    },
+      pure $ some (old.local_uniq_name, new) },
   let arg_renames := rb_map.of_list arg_renames,
   arg_hyp_map ← rename_fresh arg_renames mk_name_set,
   let new_arg_hyps := arg_hyp_map.filter_map $ λ ⟨old, new⟩,
@@ -553,26 +622,22 @@ meta def constructor_renames (generate_induction_hyps : bool)
   -- Rename induction hypotheses (if we generated them)
   tt ← pure generate_induction_hyps | pure (new_arg_hyps, []),
   let ih_pp_name_set := name_set.of_list $ ihs.map prod.fst,
-  let ihs := ihs.zip_left with_names,
-  ih_renames ← ihs.mmap_filter $ λ ⟨⟨ih_hyp_ppname, arg_hyp_ppname⟩, with_name⟩, do {
+  let ihs :=
+    ihs.map₂_left (λ ih p, (ih, p.get_or_else with_pattern.auto)) with_patterns,
+  let single_ih := ihs.length = 1,
+  ih_renames ← ihs.mmap_filter $ λ ⟨⟨ih_hyp_ppname, arg_hyp_ppname, _⟩, with_pat⟩, do {
     some arg_hyp ← pure $ arg_hyp_map.find arg_hyp_ppname
-      | fail! "internal error in constructor_renames",
-    let new :=
-      match get_with_name with_name with
-      | some with_name := sum.inl with_name
-      | none := sum.inr $ ih_name arg_hyp.local_pp_name
-      end,
+      | fail! "internal error in constructor_renames: {arg_hyp_ppname} not found in arg_hyp_map",
+    (some new) ← with_pat.to_name_spec (pure $
+      if single_ih
+        then [`ih, ih_name arg_hyp.local_pp_name]
+        -- If we have only a single IH which hasn't been named explicitly in a
+        -- `with` clause, the preferred name is "ih". If that is taken, we fall
+        -- back to the name the IH would ordinarily receive.
+        else [ih_name arg_hyp.local_pp_name])
+      | clear_dependent_if_exists ih_hyp_ppname >> pure none,
     (some ih_hyp) ← try_core $ get_local ih_hyp_ppname | pure none,
-    pure $ some (ih_hyp.local_uniq_name, new)
-  },
-  let ih_renames : list (name × list name) :=
-    -- Special case: When there's only one IH and it hasn't been named
-    -- explicitly in a "with" clause, we call it simply "ih" (unless that name
-    -- is already taken).
-    match ih_renames with
-    | [(h, sum.inr n)] := [(h, ["ih", n])]
-    | ns := ns.map (λ ⟨h, n⟩, (h, [n.elim id id]))
-    end,
+    pure $ some (ih_hyp.local_uniq_name, new) },
   ih_hyp_map ← rename_fresh (rb_map.of_list ih_renames) mk_name_set,
   let new_ih_hyps := ih_hyp_map.filter_map $ λ ⟨old, new⟩,
     if ih_pp_name_set.contains old.local_pp_name then some new else none,
@@ -599,7 +664,9 @@ auto-generalisation functionality:
   * Hypotheses which do not occur in the target and which do not mention the
     major premise or its dependencies are never generalised. Generalising them
     would not lead to a more general induction hypothesis.
-  * Frozen local instances and their dependencies are never generalised.
+  * Local definitions (hypotheses of the form `h : T := t`) and their
+    dependencies are not generalised. This is due to limitations of the
+    implementation; local definitions could in principle be generalised.
 
 - `generalize_only hs` means that only the `hs` are generalised. Exception:
   hypotheses which depend on the major premise are generalised even if they do
@@ -634,10 +701,11 @@ meta def to_generalize (major_premise : expr) :
   let tgt_dependencies := tgt.list_local_const_unique_names,
   major_premise_type ← infer_type major_premise,
   major_premise_dependencies ← dependency_name_set_of_hyp_inclusive major_premise,
+  defs ← local_defs,
   fixed_dependencies ←
-    (major_premise :: fixed).mmap dependency_name_set_of_hyp_inclusive,
+    (major_premise :: defs ++ fixed).mmap dependency_name_set_of_hyp_inclusive,
   let fixed_dependencies := fixed_dependencies.foldl name_set.union mk_name_set,
-  ctx ← revertible_local_context,
+  ctx ← local_context,
   to_revert ← ctx.mmap_filter $ λ h, do {
     h_depends_on_major_premise_deps ←
       -- TODO `hyp_depends_on_local_name_set` is somewhat expensive
@@ -652,8 +720,7 @@ meta def to_generalize (major_premise : expr) :
     of the major_premise's index args. (But the overapproximation seems to work
     okay in practice as well.)
     -/
-    pure $ if rev then some h_name else none
-  },
+    pure $ if rev then some h_name else none },
   pure $ name_set.of_list to_revert
 
 end generalization_mode
@@ -665,7 +732,7 @@ Generalize hypotheses for the given major premise and generalization mode. See
 meta def generalize_hyps (major_premise : expr) (gm : generalization_mode) :
   tactic ℕ := do
   to_revert ← gm.to_generalize major_premise,
-  ⟨n, _⟩ ← revert_name_set to_revert,
+  ⟨n, _⟩ ← unfreezing (revert_name_set to_revert),
   pure n
 
 
@@ -723,7 +790,7 @@ focus1 $ do
   -- This shouldn't matter semantically, but we'd get simpler terms.
 
   let js := major_premise_index_args,
-  ctx ← revertible_local_context,
+  ctx ← local_context,
   tgt ← target,
   major_premise_deps ← dependency_name_set_of_hyp_inclusive major_premise,
 
@@ -738,10 +805,11 @@ focus1 $ do
     -- TODO We need a variant of `kdepends_on` that takes local defs into account.
     pure $
       (dep_on_major_premise ∧ h ≠ major_premise) ∨
-      (dep_of_index ∧ ¬ dep_of_major_premise)
-  },
-  ⟨relevant_ctx_size, relevant_ctx⟩ ← revert_lst' relevant_ctx,
-  revert major_premise,
+      (dep_of_index ∧ ¬ dep_of_major_premise) },
+  ⟨relevant_ctx_size, relevant_ctx⟩ ← unfreezing $ do {
+    r ← revert_lst' relevant_ctx,
+    revert major_premise,
+    pure r },
 
   -- Create the local constants that will replace the index args. We have to be
   -- careful to get the right types.
@@ -750,8 +818,7 @@ focus1 $ do
           J ← infer_type j,
           k ← mk_local' `index binder_info.default J,
           ks ← ks.mmap $ λ k', kreplace k' j k,
-          pure $ k :: ks
-        },
+          pure $ k :: ks },
   ks ← js.mfoldr go [],
 
   let js_ks := js.zip ks,
@@ -825,7 +892,12 @@ metavariables.
 meta def process_index_equation : expr → tactic (expr × option expr)
 | h@(local_const _ ppname binfo
     T@(app (app (app (const `eq [u]) type) lhs) rhs)) := do
-  rhs_eq_lhs ← succeeds $ unify lhs rhs,
+  rhs_eq_lhs ← succeeds $ unify rhs lhs,
+  -- Note: It is important that we `unify rhs lhs` rather than `unify lhs rhs`.
+  -- This is because `lhs` and `rhs` may be metavariables which represent
+  -- Π-bound variables, so if they unify, we want to assign `rhs := lhs`.
+  -- If we assign `lhs := rhs` instead, it can happen that `lhs` is used before
+  -- `rhs` is bound, so the generated term becomes ill-typed.
   if rhs_eq_lhs
     then pure ((const `eq.refl [u]) type lhs, none)
     else do
@@ -837,7 +909,8 @@ meta def process_index_equation : expr → tactic (expr × option expr)
     then do
       pure (h, some h)
     else do
-      lhs_eq_rhs ← succeeds $ unify lhs rhs,
+      lhs_eq_rhs ← succeeds $ unify rhs lhs,
+      -- See note above about `unify rhs lhs`.
       if lhs_eq_rhs
         then pure ((const `heq.refl [u]) lhs_type lhs, none)
         else do
@@ -880,20 +953,22 @@ Simplify an induction hypothesis.
 
 Input: a local constant
 ```
-ih : ∀ (x₁ : T₁) ... (xₙ : Tₙ) (eq₁ : y₁ = z₁) ... (eqₘ : yₘ = zₘ), P
+ih : ∀ (a₁ : A₁) ... (aₙ : Aₙ) (b₁ : B₁) ... (bₘ : Bₘ)
+       (eq₁ : y₁ = z₁) ... (eqₖ : yₒ = zₒ), P
 ```
-where `n = num_generalized` and `m = num_index_vars`. The `xᵢ` are hypotheses
-that we generalised over before performing induction. The `eqᵢ` are index
-equations.
+where `n = num_leading_pis`, `m = num_generalized` and `o = num_index_vars`.
+The `aᵢ` are arguments of the type of the constructor argument to which this
+induction hypothesis belongs (usually zero). The `xᵢ` are hypotheses that we
+generalised over before performing induction. The `eqᵢ` are index equations.
 
 Output: a new local constant
 ```
-ih' : ∀ (x'₁ : T'₁) ... (x'ₖ : T'ₖ) (eq'₁ : y'₁ = z'₁) ... (eq'ₗ : y'ₗ = z'ₗ), P'
+ih' : ∀ (a'₁ : A'₁) ... (b'ₖ : B'ₖ) (eq'₁ : y'₁ = z'₁) ... (eq'ₗ : y'ₗ = z'ₗ), P'
 ```
 This new induction hypothesis is derived from `ih` by removing those `eqᵢ` whose
 left- and right-hand sides can be unified. This unification may also determine
-some of the `xᵢ`. The `x'ᵢ` and `eq'ᵢ` are those `xᵢ` and `eqᵢ` that were not
-removed by this process.
+some of the `aᵢ` and `bᵢ`. The `a'ᵢ`, `b'ᵢ` and `eq'ᵢ` are those `aᵢ`, `bᵢ` and
+`eqᵢ` that were not removed by this process.
 
 Some of the `eqᵢ` may be heterogeneous: `eqᵢ : yᵢ == zᵢ`. In this case, we
 proceed as follows:
@@ -914,12 +989,12 @@ It would therefore be preferable to use the algorithm from
 but it requires a complete refactoring of `unify_equations` so that it works
 not only on hypotheses but on arbitrary terms.
 -/
-meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) :
-  tactic expr := do
+meta def simplify_ih (num_leading_pis : ℕ) (num_generalized : ℕ)
+  (num_index_vars : ℕ) (ih : expr) : tactic expr := do
   T ← infer_type ih,
 
   -- Replace the `xᵢ` with fresh metavariables.
-  (generalized_arg_mvars, body) ← open_n_pis_metas' T num_generalized,
+  (generalized_arg_mvars, body) ← open_n_pis_metas' T (num_leading_pis + num_generalized),
 
   -- Replace the `eqᵢ` with fresh local constants.
   (index_eq_lcs, body) ← open_n_pis body num_index_vars,
@@ -1000,9 +1075,9 @@ non-interactive variant `eliminate_hyp.`
 open eliminate
 
 /--
-`eliminate_hyp generate_ihs h gm with_names` performs induction or case analysis
-on the hypothesis `h`. If `generate_ihs` is true, the tactic performs induction,
-otherwise case analysis.
+`eliminate_hyp generate_ihs h gm with_patterns` performs induction or case
+analysis on the hypothesis `h`. If `generate_ihs` is true, the tactic performs
+induction, otherwise case analysis.
 
 In case analysis mode, `eliminate_hyp` is very similar to `tactic.cases`. The
 only differences (assuming no bugs in `eliminate_hyp`) are that `eliminate_hyp`
@@ -1037,8 +1112,8 @@ more significant differences:
 - `eliminate_hyp` currently does not support custom induction principles a la
   `induction using`.
 
-If `with_names` is nonempty, `eliminate_hyp` uses the given names for the new
-hypotheses it introduces (like `cases with` and `induction with`).
+The `with_patterns` can be used to give names for the hypotheses introduced by
+`eliminate_hyp`. See `tactic.eliminate.with_pattern` for details.
 
 To debug this tactic, use
 
@@ -1048,7 +1123,7 @@ set_option trace.eliminate_hyp true
 -/
 meta def eliminate_hyp (generate_ihs : bool) (major_premise : expr)
   (gm := generalization_mode.generalize_all_except [])
-  (with_names : list name := []) : tactic unit :=
+  (with_patterns : list with_pattern := []) : tactic unit :=
 focus1 $ do
   mpinfo ← get_major_premise_info major_premise,
   let major_premise_type := mpinfo.type,
@@ -1081,8 +1156,7 @@ focus1 $ do
   -- NOTE: The previous step may have changed the unique names of all hyps in
   -- the context.
 
-  -- Record the current case tag and the unique names of all hypotheses in the
-  -- context.
+  -- Record the current case tag.
   in_tag ← get_main_tag,
 
   trace_state_eliminate_hyp
@@ -1109,14 +1183,14 @@ focus1 $ do
     <|> fail! "Failed to apply the (dependent) recursor for {iname} on {major_premise}.",
 
   -- Prepare the "with" names for each constructor case.
-  let with_names := prod.fst $
-    with_names.take_list
+  let with_patterns := prod.fst $
+    with_patterns.take_list
       (iinfo.constructors.map constructor_info.num_nameable_hypotheses),
-  let constrs := iinfo.constructors.zip with_names,
+  let constrs := iinfo.constructors.zip with_patterns,
 
   -- For each case (constructor):
   cases : list (option (name × list expr)) ←
-    focus $ constrs.map $ λ ⟨cinfo, with_names⟩, do {
+    focus $ constrs.map $ λ ⟨cinfo, with_patterns⟩, do {
       trace_eliminate_hyp "============",
       trace_eliminate_hyp $ format! "Case {cinfo.cname}",
       trace_state_eliminate_hyp "Initial state:",
@@ -1136,7 +1210,7 @@ focus1 $ do
         "State after clearing the major premise (and its arguments) and before introductions:",
 
       -- Introduce the constructor arguments
-      (constructor_arg_names, ih_names) ←
+      (constructor_args, ihs) ←
         constructor_intros generate_ihs cinfo,
 
       -- Introduce the auto-generalised hypotheses.
@@ -1166,8 +1240,11 @@ focus1 $ do
       -- NOTE: The previous step may have changed the unique names of the
       -- induction hypotheses, so we have to locate them again. Their pretty
       -- names should be unique in the context, so we can use these.
-      (ih_names.map prod.fst).mmap'
-        (get_local >=> simplify_ih num_auto_generalized num_index_vars),
+      ihs.mmap' $ λ ⟨ih, _, arg_info⟩, do {
+        ih ← get_local ih,
+        (some num_leading_pis) ← pure arg_info.recursive_leading_pis
+          | fail! "eliminate_hyp: internal error: unexpected non-recursive argument info",
+        simplify_ih num_leading_pis num_auto_generalized num_index_vars ih },
 
       trace_state_eliminate_hyp
         "State after simplifying IHs and before clearing index variables:",
@@ -1184,8 +1261,8 @@ focus1 $ do
       -- hypotheses in the context, and therefore more of the desired
       -- names may be free.
       (constructor_arg_hyps, ih_hyps) ←
-        constructor_renames generate_ihs mpinfo iinfo cinfo with_names
-          constructor_arg_names ih_names,
+        constructor_renames generate_ihs mpinfo iinfo cinfo with_patterns
+          constructor_args ihs,
 
       trace_state_eliminate_hyp "Final state:",
 
@@ -1194,8 +1271,7 @@ focus1 $ do
       -- that index variables and index equations are not renamable. This may be
       -- counterintuitive in some cases, but it's surprisingly difficult to
       -- catch exactly the relevant hyps here.
-      pure $ some (cinfo.cname, constructor_arg_hyps ++ ih_hyps)
-    },
+      pure $ some (cinfo.cname, constructor_arg_hyps ++ ih_hyps) },
 
   set_cases_tags in_tag cases.reduce_option,
 
@@ -1212,8 +1288,9 @@ remember the value of the major premise.
 -/
 meta def eliminate_expr (generate_induction_hyps : bool) (major_premise : expr)
   (eq_name : option name := none) (gm := generalization_mode.generalize_all_except [])
-  (with_names : list name := []) : tactic unit := do
-  num_reverted ← revert_reverse_dependencies_of_hyp major_premise,
+  (with_patterns : list with_pattern := []) : tactic unit := do
+  major_premise_revdeps ← reverse_dependencies_of_hyps [major_premise],
+  num_reverted ← unfreezing (revert_lst major_premise_revdeps),
   hyp ← match eq_name with
       | some h := do
           x ← get_unused_name `x,
@@ -1227,7 +1304,7 @@ meta def eliminate_expr (generate_induction_hyps : bool) (major_premise : expr)
               generalize' major_premise x
       end,
   intron num_reverted,
-  eliminate_hyp generate_induction_hyps hyp gm with_names
+  eliminate_hyp generate_induction_hyps hyp gm with_patterns
 
 end tactic
 
@@ -1279,6 +1356,9 @@ A variant of `tactic.interactive.induction`, with the following differences:
 Like `induction`, `induction'` supports some modifiers:
 
 `induction' e with n₁ ... nₘ` uses the names `nᵢ` for the new hypotheses.
+Instead of a name, you can also give an underscore (`_`) to have `induction'`
+generate a name for you, or a hyphen (`-`) to clear the hypothesis and any
+hypotheses that depend on it.
 
 `induction' e fixing h₁ ... hₙ` fixes the hypotheses `hᵢ`, so the induction
 hypothesis is not generalised over these hypotheses.
@@ -1303,10 +1383,11 @@ set_option trace.eliminate_hyp true
 -/
 meta def induction' (major_premise : parse cases_arg_p)
   (gm : parse generalisation_mode_parser)
-  (with_names : parse (optional with_ident_list)) : tactic unit := do
+  (with_patterns : parse with_pattern.clause_parser) :
+  tactic unit := do
   let ⟨eq_name, e⟩ := major_premise,
   e ← to_expr e,
-  eliminate_expr tt e eq_name gm (with_names.get_or_else [])
+  eliminate_expr tt e eq_name gm with_patterns
 
 /--
 A variant of `tactic.interactive.cases`, with minor changes:
@@ -1319,7 +1400,7 @@ A variant of `tactic.interactive.cases`, with minor changes:
 This tactic supports the same modifiers as `cases`, e.g.
 
 ```
-cases' H : e = x with n m o
+cases' H : e = x with n _ o
 ```
 
 This is almost exactly the same as `tactic.interactive.induction'`, only that no
@@ -1332,10 +1413,11 @@ set_option trace.eliminate_hyp true
 ```
 -/
 meta def cases' (major_premise : parse cases_arg_p)
-  (with_names : parse (optional with_ident_list)) : tactic unit := do
+  (with_patterns : parse with_pattern.clause_parser) :
+  tactic unit := do
   let ⟨eq_name, e⟩ := major_premise,
   e ← to_expr e,
   eliminate_expr ff e eq_name (generalization_mode.generalize_only [])
-    (with_names.get_or_else [])
+    with_patterns
 
 end tactic.interactive

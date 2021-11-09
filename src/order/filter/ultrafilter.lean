@@ -65,7 +65,7 @@ f.le_of_inf_ne_bot $ by rwa inf_comm
 
 @[simp] lemma compl_not_mem_iff : sᶜ ∉ f ↔ s ∈ f :=
 ⟨λ hsc, le_principal_iff.1 $ f.le_of_inf_ne_bot
-  ⟨λ h, hsc $ mem_sets_of_eq_bot $ by rwa compl_compl⟩, compl_not_mem_sets⟩
+  ⟨λ h, hsc $ mem_of_eq_bot$ by rwa compl_compl⟩, compl_not_mem⟩
 
 @[simp] lemma frequently_iff_eventually : (∃ᶠ x in f, p x) ↔ ∀ᶠ x in f, p x :=
 compl_not_mem_iff
@@ -74,16 +74,19 @@ alias frequently_iff_eventually ↔ filter.frequently.eventually _
 
 lemma compl_mem_iff_not_mem : sᶜ ∈ f ↔ s ∉ f := by rw [← compl_not_mem_iff, compl_compl]
 
+lemma diff_mem_iff (f : ultrafilter α) : s \ t ∈ f ↔ s ∈ f ∧ t ∉ f :=
+inter_mem_iff.trans $ and_congr iff.rfl compl_mem_iff_not_mem
+
 /-- If `sᶜ ∉ f ↔ s ∈ f`, then `f` is an ultrafilter. The other implication is given by
 `ultrafilter.compl_not_mem_iff`.  -/
 def of_compl_not_mem_iff (f : filter α) (h : ∀ s, sᶜ ∉ f ↔ s ∈ f) : ultrafilter α :=
 { to_filter := f,
   ne_bot' := ⟨λ hf, by simpa [hf] using h⟩,
-  le_of_le := λ g hg hgf s hs, (h s).1 $ λ hsc, by exactI compl_not_mem_sets hs (hgf hsc) }
+  le_of_le := λ g hg hgf s hs, (h s).1 $ λ hsc, by exactI compl_not_mem hs (hgf hsc) }
 
-lemma nonempty_of_mem (hs : s ∈ f) : s.nonempty := nonempty_of_mem_sets hs
+lemma nonempty_of_mem (hs : s ∈ f) : s.nonempty := nonempty_of_mem hs
 lemma ne_empty_of_mem (hs : s ∈ f) : s ≠ ∅ := (nonempty_of_mem hs).ne_empty
-@[simp] lemma empty_not_mem : ∅ ∉ f := empty_nmem_sets f
+@[simp] lemma empty_not_mem : ∅ ∉ f := empty_not_mem f
 
 lemma mem_or_compl_mem (f : ultrafilter α) (s : set α) : s ∈ f ∨ sᶜ ∈ f :=
 or_iff_not_imp_left.2 compl_mem_iff_not_mem.2
@@ -130,11 +133,19 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   le_of_le := λ g hg hgu, by { resetI,
     simp only [← u.unique (map_le_iff_le_comap.2 hgu), comap_map inj, le_rfl] } }
 
+@[simp] lemma mem_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+  (large : set.range m ∈ u) {s : set α} :
+  s ∈ u.comap inj large ↔ m '' s ∈ u :=
+mem_comap_iff inj large
+
+@[simp] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+  (large : set.range m ∈ u) : (u.comap inj large : filter α) = filter.comap m u := rfl
+
 /-- The principal ultrafilter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
 
-@[simp] lemma mem_pure_sets {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
+@[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 
@@ -142,7 +153,7 @@ instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 defined in terms of map and join.-/
 def bind (f : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 of_compl_not_mem_iff (bind ↑f (λ x, ↑(m x))) $ λ s,
-  by simp only [mem_bind_sets', mem_coe, ← compl_mem_iff_not_mem, compl_set_of, compl_compl]
+  by simp only [mem_bind', mem_coe, ← compl_mem_iff_not_mem, compl_set_of, compl_compl]
 
 instance ultrafilter.has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
 instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map }
@@ -207,7 +218,7 @@ begin
     exact ⟨G, λ T hT, h1 (hF hT)⟩ },
   use filter.generate S,
   refine ⟨_, λ T hT, filter.generate_sets.basic hT⟩,
-  rw ← forall_sets_nonempty_iff_ne_bot,
+  rw ← forall_mem_nonempty_iff_ne_bot,
   intros T hT,
   rcases mem_generate_iff.mp hT with ⟨A, h1, h2, h3⟩,
   let B := set.finite.to_finset h2,
@@ -271,7 +282,7 @@ ultrafilter.of_le cofinite
 (by apply_instance : ne_bot ↑(hyperfilter α)).1.symm
 
 theorem nmem_hyperfilter_of_finite {s : set α} (hf : s.finite) : s ∉ hyperfilter α :=
-λ hy, compl_not_mem_sets hy $ hyperfilter_le_cofinite hf.compl_mem_cofinite
+λ hy, compl_not_mem hy $ hyperfilter_le_cofinite hf.compl_mem_cofinite
 
 alias nmem_hyperfilter_of_finite ← set.finite.nmem_hyperfilter
 

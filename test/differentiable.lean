@@ -1,4 +1,5 @@
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.deriv
+import analysis.special_functions.log_deriv
 
 namespace real
 
@@ -33,7 +34,6 @@ example (x : ℝ) (h : x ≠ 0) : deriv (λ x, x * (log x - 1)) x = log x :=
 by simp [h]
 
 end real
-
 
 namespace complex
 
@@ -74,12 +74,12 @@ example : (3 + X : polynomial R).derivative = 1 :=
 by conv_lhs { simp }
 
 example : (2 * X ^ 2 : polynomial R).derivative = 4 * X :=
-by conv_lhs { simp, ring, }
+by conv_lhs { simp, ring_nf, }
 
 example : (X ^ 2 : polynomial R).derivative = 2 * X :=
 by conv_lhs { simp }
 
 example : ((C 2 * X ^ 3).derivative : polynomial R) = 6 * X ^ 2 :=
-by conv_lhs { simp, ring, }
+by conv_lhs { simp, ring_nf, }
 
 end polynomial

@@ -185,4 +185,45 @@ normal_of_is_pushout_snd_of_normal comm.symm (pushout_cocone.flip_is_colimit t)
 
 end
 
+open opposite
+variables [has_zero_morphisms C]
+
+/-- A normal mono becomes a normal epi in the opposite category. -/
+def normal_epi_of_normal_mono_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_mono f.unop) :
+  normal_epi f :=
+{ W := op m.Z,
+  g := m.g.op,
+  w := congr_arg quiver.hom.op m.w,
+  is_colimit := is_colimit.of_π _ _
+    (λ Z' g' w',
+      (kernel_fork.is_limit.lift' m.is_limit g'.unop (congr_arg quiver.hom.unop w')).1.op)
+    (λ Z' g' w',
+      congr_arg quiver.hom.op
+        (kernel_fork.is_limit.lift' m.is_limit g'.unop (congr_arg quiver.hom.unop w')).2)
+    begin
+      rintros Z' g' w' m' rfl,
+      apply quiver.hom.unop_inj,
+      apply m.is_limit.uniq (kernel_fork.of_ι (m'.unop ≫ f.unop) _) m'.unop,
+      rintro (⟨⟩|⟨⟩); simp,
+    end, }
+
+/-- A normal epi becomes a normal mono in the opposite category. -/
+def normal_mono_of_normal_epi_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_epi f.unop) :
+  normal_mono f :=
+{ Z := op m.W,
+  g := m.g.op,
+  w := congr_arg quiver.hom.op m.w,
+  is_limit := is_limit.of_ι _ _
+    (λ Z' g' w',
+      (cokernel_cofork.is_colimit.desc' m.is_colimit g'.unop (congr_arg quiver.hom.unop w')).1.op)
+    (λ Z' g' w',
+      congr_arg quiver.hom.op
+        (cokernel_cofork.is_colimit.desc' m.is_colimit g'.unop (congr_arg quiver.hom.unop w')).2)
+    begin
+      rintros Z' g' w' m' rfl,
+      apply quiver.hom.unop_inj,
+      apply m.is_colimit.uniq (cokernel_cofork.of_π (f.unop ≫ m'.unop) _) m'.unop,
+      rintro (⟨⟩|⟨⟩); simp,
+    end, }
+
 end category_theory

@@ -1,17 +1,17 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison, Adam Topaz.
+Authors: Scott Morrison, Adam Topaz
 -/
 import algebra.algebra.subalgebra
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 import linear_algebra
-import data.equiv.transfer_instance
 
 /-!
 # Free Algebras
 
-Given a commutative semiring `R`, and a type `X`, we construct the free `R`-algebra on `X`.
+Given a commutative semiring `R`, and a type `X`, we construct the free unital, associative
+`R`-algebra on `X`.
 
 ## Notation
 
@@ -321,7 +321,7 @@ end
 (by { ext, simp, })
 
 instance [nontrivial R] : nontrivial (free_algebra R X) :=
-equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
+equiv_monoid_algebra_free_monoid.surjective.nontrivial
 
 section
 open_locale classical
@@ -368,8 +368,6 @@ begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from X
   let s : subalgebra R (free_algebra R X) := {
     carrier := C,
-    one_mem' := h_grade0 1,
-    zero_mem' := h_grade0 0,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },

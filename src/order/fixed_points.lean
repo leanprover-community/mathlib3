@@ -1,212 +1,253 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Kenny Lau
+Authors: Johannes Hölzl, Kenny Lau, Yury Kudryashov
 -/
-import order.complete_lattice
+import order.preorder_hom
 import dynamics.fixed_points.basic
 
 /-!
 # Fixed point construction on complete lattices
+
+This file sets up the basic theory of fixed points of a monotone function in a complete lattice.
+
+## Main definitions
+
+* `preorder_hom.lfp`: The least fixed point of a bundled monotone function.
+* `preorder_hom.gfp`: The greatest fixed point of a bundled monotone function.
+* `preorder_hom.prev_fixed`: The greatest fixed point of a bundled monotone function smaller than or
+  equal to a given element.
+* `preorder_hom.next_fixed`: The least fixed point of a bundled monotone function greater than or
+  equal to a given element.
+* `fixed_points.complete_lattice`: The Knaster-Tarski theorem: fixed points of a monotone
+  self-map of a complete lattice form themselves a complete lattice.
+
+## Tags
+
+fixed point, complete lattice, monotone function
 -/
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function (fixed_points)
+open function (fixed_points is_fixed_pt)
 
-section fixedpoint
-variables [complete_lattice α] {f : α → α}
+namespace preorder_hom
+
+section basic
+
+variables [complete_lattice α] (f : α →ₘ α)
 
 /-- Least fixed point of a monotone function -/
-def lfp (f : α → α) : α := Inf {a | f a ≤ a}
+def lfp : (α →ₘ α) →ₘ α :=
+{ to_fun := λ f, Inf {a | f a ≤ a},
+  monotone' := λ f g hle, Inf_le_Inf $ λ a ha, (hle a).trans ha }
+
 /-- Greatest fixed point of a monotone function -/
-def gfp (f : α → α) : α := Sup {a | a ≤ f a}
+def gfp : (α →ₘ α) →ₘ α :=
+{ to_fun := λ f, Sup {a | a ≤ f a},
+  monotone' := λ f g hle, Sup_le_Sup $ λ a ha, le_trans ha (hle a) }
 
-theorem lfp_le {a : α} (h : f a ≤ a) : lfp f ≤ a :=
-Inf_le h
+lemma lfp_le {a : α} (h : f a ≤ a) : lfp f ≤ a := Inf_le h
 
-theorem le_lfp {a : α} (h : ∀b, f b ≤ b → a ≤ b) : a ≤ lfp f :=
-le_Inf h
+lemma lfp_le_fixed {a : α} (h : f a = a) : lfp f ≤ a := f.lfp_le h.le
 
-theorem lfp_eq (m : monotone f) : lfp f = f (lfp f) :=
-have f (lfp f) ≤ lfp f,
-  from le_lfp $ assume b, assume h : f b ≤ b, le_trans (m (lfp_le h)) h,
-le_antisymm (lfp_le (m this)) this
+lemma le_lfp {a : α} (h : ∀ b, f b ≤ b → a ≤ b) : a ≤ lfp f := le_Inf h
 
-theorem lfp_induct {p : α → Prop} (m : monotone f)
-  (step : ∀a, p a → a ≤ lfp f → p (f a)) (sup : ∀s, (∀a∈s, p a) → p (Sup s)) :
-p (lfp f) :=
-let s := {a | a ≤ lfp f ∧ p a} in
-have p_s : p (Sup s),
-  from sup s (assume a ⟨_, h⟩, h),
-have Sup s ≤ lfp f,
-  from le_lfp $ assume a, assume h : f a ≤ a, Sup_le $ assume b ⟨b_le, _⟩, le_trans b_le (lfp_le h),
-have Sup s = lfp f,
-  from le_antisymm this $ lfp_le $ le_Sup
-    ⟨le_trans (m this) $ ge_of_eq $ lfp_eq m, step _ p_s this⟩,
-this ▸ p_s
+lemma map_le_lfp {a : α} (ha : a ≤ f.lfp) : f a ≤ f.lfp :=
+f.le_lfp $ λ b hb, (f.mono $ le_Inf_iff.1 ha _ hb).trans hb
 
-theorem monotone_lfp : monotone (@lfp α _) :=
-assume f g, assume : f ≤ g, le_lfp $ assume a, assume : g a ≤ a, lfp_le $ le_trans (‹f ≤ g› a) this
+@[simp] lemma map_lfp : f (lfp f) = lfp f :=
+have h : f (lfp f) ≤ lfp f, from f.map_le_lfp le_rfl,
+h.antisymm $ f.lfp_le $ f.mono h
 
-theorem le_gfp {a : α} (h : a ≤ f a) : a ≤ gfp f :=
+lemma is_fixed_pt_lfp : is_fixed_pt f f.lfp := f.map_lfp
+
+lemma lfp_le_map {a : α} (ha : lfp f ≤ a) : lfp f ≤ f a :=
+calc lfp f = f (lfp f) : f.map_lfp.symm
+       ... ≤ f a       : f.mono ha
+
+lemma is_least_lfp_le : is_least {a | f a ≤ a} (lfp f) :=
+⟨f.map_lfp.le, λ a, f.lfp_le⟩
+
+lemma is_least_lfp : is_least (fixed_points f) (lfp f) :=
+⟨f.is_fixed_pt_lfp, λ a, f.lfp_le_fixed⟩
+
+lemma lfp_induction {p : α → Prop} (step : ∀ a, p a → a ≤ lfp f → p (f a))
+  (hSup : ∀ s, (∀ a ∈ s, p a) → p (Sup s)) :
+  p (lfp f) :=
+begin
+  set s := {a | a ≤ lfp f ∧ p a},
+  specialize hSup s (λ a, and.right),
+  suffices : Sup s = lfp f, from this ▸ hSup,
+  have h : Sup s ≤ lfp f := Sup_le (λ b, and.left),
+  have hmem : f (Sup s) ∈ s, from ⟨f.map_le_lfp h, step _ hSup h⟩,
+  exact h.antisymm (f.lfp_le $ le_Sup hmem)
+end
+
+lemma le_gfp {a : α} (h : a ≤ f a) : a ≤ gfp f :=
 le_Sup h
 
-theorem gfp_le {a : α} (h : ∀b, b ≤ f b → b ≤ a) : gfp f ≤ a :=
+lemma gfp_le {a : α} (h : ∀ b, b ≤ f b → b ≤ a) : gfp f ≤ a :=
 Sup_le h
 
-theorem gfp_eq (m : monotone f) : gfp f = f (gfp f) :=
-have gfp f ≤ f (gfp f),
-  from gfp_le $ assume b, assume h : b ≤ f b, le_trans h (m (le_gfp h)),
-le_antisymm this (le_gfp (m this))
+lemma is_fixed_pt_gfp : is_fixed_pt f (gfp f) := f.dual.is_fixed_pt_lfp
 
-theorem gfp_induct {p : α → Prop} (m : monotone f)
-  (step : ∀a, p a → gfp f ≤ a → p (f a)) (inf : ∀s, (∀a∈s, p a) → p (Inf s)) :
-p (gfp f) :=
-let s := {a | gfp f ≤ a ∧ p a} in
-have p_s : p (Inf s),
-  from inf s (assume a ⟨_, h⟩, h),
-have gfp f ≤ Inf s,
-  from gfp_le $ assume a, assume h : a ≤ f a, le_Inf $ assume b ⟨le_b, _⟩, le_trans (le_gfp h) le_b,
-have Inf s = gfp f,
-  from le_antisymm (le_gfp $ Inf_le
-    ⟨le_trans (le_of_eq $ gfp_eq m) (m this), step _ p_s this⟩) this,
-this ▸ p_s
+@[simp] lemma map_gfp : f (gfp f) = gfp f := f.dual.map_lfp
 
-theorem monotone_gfp : monotone (@gfp α _) :=
-assume f g, assume : f ≤ g, gfp_le $ assume a, assume : a ≤ f a, le_gfp $ le_trans this (‹f ≤ g› a)
+lemma map_le_gfp {a : α} (ha : a ≤ gfp f) : f a ≤ gfp f := f.dual.lfp_le_map ha
 
-end fixedpoint
+lemma gfp_le_map {a : α} (ha : gfp f ≤ a) : gfp f ≤ f a := f.dual.map_le_lfp ha
 
-section fixedpoint_eqn
-variables [complete_lattice α] [complete_lattice β] {f : β → α} {g : α → β}
+lemma is_greatest_gfp_le : is_greatest {a | a ≤ f a} (gfp f) :=
+f.dual.is_least_lfp_le
+
+lemma is_greatest_gfp : is_greatest (fixed_points f) (gfp f) :=
+f.dual.is_least_lfp
+
+lemma gfp_induction {p : α → Prop} (step : ∀ a, p a → gfp f ≤ a → p (f a))
+  (hInf : ∀ s, (∀ a ∈ s, p a) → p (Inf s)) :
+  p (gfp f) :=
+f.dual.lfp_induction step hInf
+
+end basic
+
+section eqn
+
+variables [complete_lattice α] [complete_lattice β] (f : β →ₘ α) (g : α →ₘ β)
 
 -- Rolling rule
-theorem lfp_comp (m_f : monotone f) (m_g : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) :=
-le_antisymm
-  (lfp_le $ m_f $ ge_of_eq $ lfp_eq $ m_g.comp m_f)
-  (le_lfp $ assume a fg_le,
-    le_trans (m_f $ lfp_le $ show (g ∘ f) (g a) ≤ g a, from m_g fg_le) fg_le)
+lemma map_lfp_comp : f (lfp (g.comp f)) = lfp (f.comp g) :=
+le_antisymm ((f.comp g).map_lfp ▸ f.mono (lfp_le_fixed _ $ congr_arg g (f.comp g).map_lfp)) $
+  lfp_le _ (congr_arg f (g.comp f).map_lfp).le
 
-theorem gfp_comp (m_f : monotone f) (m_g : monotone g) : gfp (f ∘ g) = f (gfp (g ∘ f)) :=
-le_antisymm
-  (gfp_le $ assume a fg_le,
-    le_trans fg_le $ m_f $ le_gfp $ show g a ≤ (g ∘ f) (g a), from m_g fg_le)
-  (le_gfp $ m_f $ le_of_eq $ gfp_eq $ m_g.comp m_f)
+lemma map_gfp_comp : f ((g.comp f).gfp) = (f.comp g).gfp :=
+f.dual.map_lfp_comp g.dual
 
 -- Diagonal rule
-theorem lfp_lfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
-  lfp (lfp ∘ h) = lfp (λx, h x x) :=
-let f := lfp (lfp ∘ h) in
-have f_eq : f = lfp (h f),
-  from lfp_eq $ monotone.comp monotone_lfp (assume a b h x, m h (le_refl _)) ,
-le_antisymm
-  (lfp_le $ lfp_le $ ge_of_eq $ lfp_eq $ assume a b h, m h h)
-  (lfp_le $ ge_of_eq $
-    calc f = lfp (h f)       : f_eq
-       ... = h f (lfp (h f)) : lfp_eq $ assume a b h, m (le_refl _) h
-       ... = h f f           : congr_arg (h f) f_eq.symm)
+lemma lfp_lfp (h : α →ₘ α →ₘ α) :
+  lfp (lfp.comp h) = lfp h.on_diag :=
+begin
+  let a := lfp (lfp.comp h),
+  refine (lfp_le _ _).antisymm (lfp_le _ (eq.le _)),
+  { exact lfp_le _ h.on_diag.map_lfp.le },
+  have ha : (lfp ∘ h) a = a := (lfp.comp h).map_lfp,
+  calc h a a = h a (lfp (h a)) : congr_arg (h a) ha.symm
+         ... = lfp (h a)       : (h a).map_lfp
+         ... = a               : ha
+end
 
-theorem gfp_gfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
-  gfp (gfp ∘ h) = gfp (λx, h x x) :=
-let f := gfp (gfp ∘ h) in
-have f_eq : f = gfp (h f),
-  from gfp_eq $ monotone.comp monotone_gfp (assume a b h x, m h (le_refl _)),
-le_antisymm
-  (le_gfp $ le_of_eq $
-    calc f = gfp (h f)       : f_eq
-       ... = h f (gfp (h f)) : gfp_eq $ assume a b h, m (le_refl _) h
-       ... = h f f           : congr_arg (h f) f_eq.symm)
-  (le_gfp $ le_gfp $ le_of_eq $ gfp_eq $ assume a b h, m h h)
+lemma gfp_gfp (h : α →ₘ α →ₘ α) :
+  gfp (gfp.comp h) = gfp h.on_diag :=
+@lfp_lfp (order_dual α) _ $ (preorder_hom.dual_iso (order_dual α)
+  (order_dual α)).symm.to_order_embedding.to_preorder_hom.comp h.dual
 
-end fixedpoint_eqn
+end eqn
 
-/- The complete lattice of fixed points of a function f -/
+section prev_next
+variables [complete_lattice α] (f : α →ₘ α)
+
+lemma gfp_const_inf_le (x : α) : gfp (const α x ⊓ f) ≤ x :=
+gfp_le _ $ λ b hb, hb.trans inf_le_left
+
+/-- Previous fixed point of a monotone map. If `f` is a monotone self-map of a complete lattice and
+`x` is a point such that `f x ≤ x`, then `f.prev_fixed x hx` is the greatest fixed point of `f`
+that is less than or equal to `x`. -/
+def prev_fixed (x : α) (hx : f x ≤ x) : fixed_points f :=
+⟨gfp (const α x ⊓ f),
+  calc f (gfp (const α x ⊓ f)) = x ⊓ f (gfp (const α x ⊓ f)) :
+    eq.symm $ inf_of_le_right $ (f.mono $ f.gfp_const_inf_le x).trans hx
+  ... = gfp (const α x ⊓ f) : (const α x ⊓ f).map_gfp ⟩
+
+/-- Next fixed point of a monotone map. If `f` is a monotone self-map of a complete lattice and
+`x` is a point such that `x ≤ f x`, then `f.next_fixed x hx` is the least fixed point of `f`
+that is greater than or equal to `x`. -/
+def next_fixed (x : α) (hx : x ≤ f x) : fixed_points f :=
+{ val := (const α x ⊔ f).lfp,
+  .. f.dual.prev_fixed x hx }
+
+lemma prev_fixed_le {x : α} (hx : f x ≤ x) : ↑(f.prev_fixed x hx) ≤ x :=
+f.gfp_const_inf_le x
+
+lemma le_next_fixed {x : α} (hx : x ≤ f x) : x ≤ f.next_fixed x hx :=
+f.dual.prev_fixed_le hx
+
+lemma next_fixed_le {x : α} (hx : x ≤ f x) {y : fixed_points f} (h : x ≤ y) :
+  f.next_fixed x hx ≤ y :=
+subtype.coe_le_coe.1 $ lfp_le _ $ sup_le h y.2.le
+
+@[simp] lemma next_fixed_le_iff {x : α} (hx : x ≤ f x) {y : fixed_points f} :
+  f.next_fixed x hx ≤ y ↔ x ≤ y :=
+⟨λ h, (f.le_next_fixed hx).trans h, f.next_fixed_le hx⟩
+
+@[simp] lemma le_prev_fixed_iff {x : α} (hx : f x ≤ x) {y : fixed_points f} :
+  y ≤ f.prev_fixed x hx ↔ ↑y ≤ x :=
+f.dual.next_fixed_le_iff hx
+
+lemma le_prev_fixed {x : α} (hx : f x ≤ x) {y : fixed_points f} (h : ↑y ≤ x) :
+  y ≤ f.prev_fixed x hx :=
+(f.le_prev_fixed_iff hx).2 h
+
+lemma le_map_sup_fixed_points (x y : fixed_points f) : (x ⊔ y : α) ≤ f (x ⊔ y) :=
+calc (x ⊔ y : α) = f x ⊔ f y : congr_arg2 (⊔) x.2.symm y.2.symm
+             ... ≤ f (x ⊔ y) : f.mono.le_map_sup x y
+
+lemma map_inf_fixed_points_le (x y : fixed_points f) : f (x ⊓ y) ≤ x ⊓ y :=
+f.dual.le_map_sup_fixed_points x y
+
+lemma le_map_Sup_subset_fixed_points (A : set α) (hA : A ⊆ fixed_points f) : Sup A ≤ f (Sup A) :=
+Sup_le $ λ x hx, hA hx ▸ (f.mono $ le_Sup hx)
+
+lemma map_Inf_subset_fixed_points_le (A : set α) (hA : A ⊆ fixed_points f) : f (Inf A) ≤ Inf A :=
+le_Inf $ λ x hx, (hA hx) ▸ (f.mono $ Inf_le hx)
+
+end prev_next
+
+end preorder_hom
+
 namespace fixed_points
-variables [complete_lattice α] (f : α → α) (hf : monotone f)
 
-def prev (x : α) : α := gfp (λ z, x ⊓ f z)
-def next (x : α) : α := lfp (λ z, x ⊔ f z)
+open preorder_hom
 
-variable {f}
+variables [complete_lattice α] (f : α →ₘ α)
 
-theorem prev_le {x : α} : prev f x ≤ x := gfp_le $ λ z hz, le_trans hz inf_le_left
+instance : semilattice_sup (fixed_points f) :=
+{ sup := λ x y, f.next_fixed (x ⊔ y) (f.le_map_sup_fixed_points x y),
+  le_sup_left := λ x y, subtype.coe_le_coe.1 $ le_sup_left.trans (f.le_next_fixed _),
+  le_sup_right := λ x y, subtype.coe_le_coe.1 $ le_sup_right.trans (f.le_next_fixed _),
+  sup_le := λ x y z hxz hyz, f.next_fixed_le _ $ sup_le hxz hyz,
+  .. subtype.partial_order _ }
 
-lemma prev_eq (hf : monotone f) {a : α} (h : f a ≤ a) : prev f a = f (prev f a) :=
-calc prev f a = a ⊓ f (prev f a) :
-    gfp_eq $ show monotone (λz, a ⊓ f z), from assume x y h, inf_le_inf_left _ (hf h)
-  ... = f (prev f a) :
-    inf_of_le_right $ le_trans (hf prev_le) h
+instance : semilattice_inf (fixed_points f) :=
+{ inf := λ x y, f.prev_fixed (x ⊓ y) (f.map_inf_fixed_points_le x y),
+  .. subtype.partial_order _, .. (order_dual.semilattice_inf (fixed_points f.dual))  }
 
-def prev_fixed (hf : monotone f) (a : α) (h : f a ≤ a) : fixed_points f :=
-⟨prev f a, (prev_eq hf h).symm⟩
+instance : complete_semilattice_Sup (fixed_points f) :=
+{ Sup := λ s, f.next_fixed (Sup (coe '' s))
+    (f.le_map_Sup_subset_fixed_points (coe '' s) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
+  le_Sup := λ s x hx, subtype.coe_le_coe.1 $ le_trans (le_Sup $ set.mem_image_of_mem _ hx)
+    (f.le_next_fixed _),
+  Sup_le := λ s x hx, f.next_fixed_le _ $ Sup_le $ set.ball_image_iff.2 hx,
+  .. subtype.partial_order _ }
 
-theorem next_le {x : α} : x ≤ next f x := le_lfp $ λ z hz, le_trans le_sup_left hz
+instance : complete_semilattice_Inf (fixed_points f) :=
+{ Inf := λ s, f.prev_fixed (Inf (coe '' s))
+    (f.map_Inf_subset_fixed_points_le (coe '' s) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
+  le_Inf := λ s x hx, f.le_prev_fixed _ $ le_Inf $ set.ball_image_iff.2 hx,
+  Inf_le := λ s x hx, subtype.coe_le_coe.1 $ le_trans (f.prev_fixed_le _)
+    (Inf_le $ set.mem_image_of_mem _ hx),
+  .. subtype.partial_order _ }
 
-lemma next_eq (hf : monotone f) {a : α} (h : a ≤ f a) : next f a = f (next f a) :=
-calc next f a = a ⊔ f (next f a) :
-    lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup_left (hf h) _
- ... = f (next f a) :
-    sup_of_le_right $ le_trans h (hf next_le)
-
-def next_fixed (hf : monotone f) (a : α) (h : a ≤ f a) : fixed_points f :=
-⟨next f a, (next_eq hf h).symm⟩
-
-variable f
-
-theorem sup_le_f_of_fixed_points (x y : fixed_points f) : x.1 ⊔ y.1 ≤ f (x.1 ⊔ y.1) :=
-sup_le
-  (x.2 ▸ (hf $ show x.1 ≤ f x.1 ⊔ y.1, from x.2.symm ▸ le_sup_left))
-  (y.2 ▸ (hf $ show y.1 ≤ x.1 ⊔ f y.1, from y.2.symm ▸ le_sup_right))
-
-theorem f_le_inf_of_fixed_points (x y : fixed_points f) : f (x.1 ⊓ y.1) ≤ x.1 ⊓ y.1 :=
-le_inf
-  (x.2 ▸ (hf $ show f (x.1) ⊓ y.1 ≤ x.1, from x.2.symm ▸ inf_le_left))
-  (y.2 ▸ (hf $ show x.1 ⊓ f (y.1) ≤ y.1, from y.2.symm ▸ inf_le_right))
-
-theorem Sup_le_f_of_fixed_points (A : set α) (HA : A ⊆ fixed_points f) : Sup A ≤ f (Sup A) :=
-Sup_le $ λ x hxA, (HA hxA) ▸ (hf $ le_Sup hxA)
-
-theorem f_le_Inf_of_fixed_points (A : set α) (HA : A ⊆ fixed_points f) : f (Inf A) ≤ Inf A :=
-le_Inf $ λ x hxA, (HA hxA) ▸ (hf $ Inf_le hxA)
-
-/-- The fixed points of `f` form a complete lattice.
-This cannot be an instance, since it depends on the monotonicity of `f`. -/
-protected def complete_lattice : complete_lattice (fixed_points f) :=
-{ le           := λx y, x.1 ≤ y.1,
-  le_refl      := λ x, le_refl x,
-  le_trans     := λ x y z, le_trans,
-  le_antisymm  := λ x y hx hy, subtype.eq $ le_antisymm hx hy,
-
-  sup          := λ x y, next_fixed hf (x.1 ⊔ y.1) (sup_le_f_of_fixed_points f hf x y),
-  le_sup_left  := λ x y, show x.1 ≤ _, from le_trans le_sup_left next_le,
-  le_sup_right := λ x y, show y.1 ≤ _, from le_trans le_sup_right next_le,
-  sup_le       := λ x y z hxz hyz, lfp_le $ sup_le (sup_le hxz hyz) (z.2.symm ▸ le_refl z.1),
-
-  inf          := λ x y, prev_fixed hf (x.1 ⊓ y.1) (f_le_inf_of_fixed_points f hf x y),
-  inf_le_left  := λ x y, show _ ≤ x.1, from le_trans prev_le inf_le_left,
-  inf_le_right := λ x y, show _ ≤ y.1, from le_trans prev_le inf_le_right,
-  le_inf       := λ x y z hxy hxz, le_gfp $ le_inf (le_inf hxy hxz) (x.2.symm ▸ le_refl x),
-
-  top          := prev_fixed hf ⊤ le_top,
-  le_top       := λ ⟨x, H⟩, le_gfp $ le_inf le_top (H.symm ▸ le_refl x),
-
-  bot          := next_fixed hf ⊥ bot_le,
-  bot_le       := λ ⟨x, H⟩, lfp_le $ sup_le bot_le (H.symm ▸ le_refl x),
-
-  Sup          := λ A, next_fixed hf (Sup $ subtype.val '' A)
-    (Sup_le_f_of_fixed_points f hf (subtype.val '' A) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
-  le_Sup       := λ A x hxA, show x.1 ≤ _, from le_trans
-    (le_Sup $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩)
-    next_le,
-  Sup_le       := λ A x Hx, lfp_le $ sup_le (Sup_le $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x),
-
-  Inf          := λ A, prev_fixed hf (Inf $ subtype.val '' A)
-    (f_le_Inf_of_fixed_points f hf (subtype.val '' A) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
-  le_Inf       := λ A x Hx, le_gfp $ le_inf (le_Inf $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x.1),
-  Inf_le       := λ A x hxA, show _ ≤ x.1, from le_trans
-    prev_le
-    (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩) }
+/-- **Knaster-Tarski Theorem**: The fixed points of `f` form a complete lattice. -/
+instance : complete_lattice (fixed_points f) :=
+{ top := ⟨f.gfp, f.is_fixed_pt_gfp⟩,
+  bot := ⟨f.lfp, f.is_fixed_pt_lfp⟩,
+  le_top := λ x, f.le_gfp x.2.ge,
+  bot_le := λ x, f.lfp_le x.2.le,
+  .. subtype.partial_order _,
+  .. fixed_points.semilattice_sup f,
+  .. fixed_points.semilattice_inf f,
+  .. fixed_points.complete_semilattice_Sup f,
+  .. fixed_points.complete_semilattice_Inf f }
 
 end fixed_points

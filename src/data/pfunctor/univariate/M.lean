@@ -55,8 +55,8 @@ lemma approx_eta  {n : ℕ} (x : cofix_a F (n+1)) :
   x = cofix_a.intro (head' x) (children' x) :=
 by cases x; refl
 
-/-- Relation between two approximations of the cofix of a pfunctor that state they both contain the same
-data until one of them is truncated -/
+/-- Relation between two approximations of the cofix of a pfunctor
+that state they both contain the same data until one of them is truncated -/
 inductive agree : ∀ {n : ℕ}, cofix_a F n → cofix_a F (n+1) → Prop
  | continue (x : cofix_a F 0) (y : cofix_a F 1) : agree x y
  | intro {n} {a} (x : F.B a → cofix_a F n) (x' : F.B a → cofix_a F (n+1)) :
@@ -164,7 +164,8 @@ structure M_intl :=
 /-- For polynomial functor `F`, `M F` is its final coalgebra -/
 def M := M_intl F
 
-lemma M.default_consistent [inhabited F.A] : Π n, agree (default (cofix_a F n)) (default (cofix_a F (succ n)))
+lemma M.default_consistent [inhabited F.A] :
+  Π n, agree (default (cofix_a F n)) (default (cofix_a F (succ n)))
 | 0 := agree.continue _ _
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
@@ -276,7 +277,7 @@ begin
   dsimp only [M.mk,dest],
   cases x with x ch, congr' with i,
   cases h : ch i,
-  simp  only [children,M.approx.s_mk,children',cast_eq],
+  simp only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
   congr, rw h,
 end
@@ -370,12 +371,13 @@ lemma cases_on_mk {r : M F → Sort*} (x : F.obj $ M F) (f : Π x : F.obj $ M F,
 cases_mk x f
 
 @[simp]
-lemma cases_on_mk' {r : M F → Sort*} {a} (x : F.B a → M F) (f : Π a (f : F.B a → M F), r (M.mk ⟨a,f⟩)) :
+lemma cases_on_mk'
+  {r : M F → Sort*} {a} (x : F.B a → M F) (f : Π a (f : F.B a → M F), r (M.mk ⟨a,f⟩)) :
   pfunctor.M.cases_on' (M.mk ⟨a,x⟩) f = f a x :=
 cases_mk ⟨_,x⟩ _
 
 /-- `is_path p x` tells us if `p` is a valid path through `x` -/
-inductive is_path  : path F → M F → Prop
+inductive is_path : path F → M F → Prop
 | nil (x : M F) : is_path [] x
 | cons (xs : path F) {a} (x : M F) (f : F.B a → M F) (i : F.B a) :
   x = M.mk ⟨a,f⟩ →
@@ -452,7 +454,8 @@ by { dsimp only [ichildren,pfunctor.obj.iget],
      intros, refl }
 
 @[simp]
-lemma isubtree_cons [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :
+lemma isubtree_cons
+  [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :
   isubtree (⟨_,i⟩ :: ps) (M.mk ⟨a,f⟩) = isubtree ps (f i) :=
 by simp only [isubtree,ichildren_mk,pfunctor.obj.iget,dif_pos,isubtree,M.cases_on_mk']; refl
 
@@ -530,7 +533,7 @@ end
 section bisim
 
 variable (R : M F → M F → Prop)
-local infix ~ := R
+local infix ` ~ `:50 := R
 
 /-- Bisimulation is the standard proof technique for equality between
 infinite tree-like structures -/

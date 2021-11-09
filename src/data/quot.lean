@@ -40,9 +40,9 @@ protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ �
 quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁ a₂ pa,
   quot.induction_on qb $ λ b,
     calc @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₁) (@cb _)
-          == f a₁ b                                     : by simp
+          == f a₁ b                                     : by simp [heq_self_iff_true]
       ... == f a₂ b                                     : ca pa
-      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
+      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp [heq_self_iff_true]
 
 /-- Map a function `f : α → β` such that `ra x y` implies `rb (f x) (f y)`
 to a map `quot ra → quot rb`. -/
@@ -180,6 +180,12 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
 
+@[simp] lemma quotient.lift₂_mk {α : Sort*} {β : Sort*} {γ : Sort*} [setoid α] [setoid β]
+  (f : α → β → γ)
+  (h : ∀ (a₁ : α) (a₂ : β) (b₁ : α) (b₂ : β), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂)
+  (a : α) (b : β) :
+  quotient.lift₂ f h (quotient.mk a) (quotient.mk b) = f a b := rfl
+
 @[simp] lemma quotient.lift_on_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift_on (quotient.mk x) f h = f x := rfl
@@ -217,6 +223,28 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
+
+lemma quotient.mk_eq_iff_out [s : setoid α] {x : α} {y : quotient s} :
+  ⟦x⟧ = y ↔ x ≈ quotient.out y :=
+begin
+  refine iff.trans _ quotient.eq,
+  rw quotient.out_eq y,
+end
+
+lemma quotient.eq_mk_iff_out [s : setoid α] {x : quotient s} {y : α} :
+  x = ⟦y⟧ ↔ quotient.out x ≈ y  :=
+begin
+  refine iff.trans _ quotient.eq,
+  rw quotient.out_eq x,
+end
+
+@[simp] lemma quotient.out_equiv_out [s : setoid α] {x y : quotient s} :
+  x.out ≈ y.out ↔ x = y :=
+by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
+
+@[simp] lemma quotient.out_inj [s : setoid α] {x y : quotient s} :
+  x.out = y.out ↔ x = y :=
+⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
 
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
@@ -326,18 +354,18 @@ noncomputable def out : trunc α → α := quot.out
 
 @[simp] theorem out_eq (q : trunc α) : mk q.out = q := trunc.eq _ _
 
-end trunc
+protected theorem nonempty (q : trunc α) : nonempty α :=
+nonempty_of_exists q.exists_rep
 
-theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
-let ⟨a, _⟩ := q.exists_rep in ⟨a⟩
+end trunc
 
 namespace quotient
 variables {γ : Sort*} {φ : Sort*}
   {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
 
-/- Versions of quotient definitions and lemmas ending in `'` use unification instead
+/-! Versions of quotient definitions and lemmas ending in `'` use unification instead
 of typeclass inference for inferring the `setoid` argument. This is useful when there are
-several different quotient relations on a type, for example quotient groups, rings and modules -/
+several different quotient relations on a type, for example quotient groups, rings and modules. -/
 
 /-- A version of `quotient.mk` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/
@@ -404,6 +432,22 @@ protected lemma induction_on₃' {p : quotient s₁ → quotient s₂ → quotie
   (h : ∀ a₁ a₂ a₃, p (quotient.mk' a₁) (quotient.mk' a₂) (quotient.mk' a₃)) : p q₁ q₂ q₃ :=
 quotient.induction_on₃ q₁ q₂ q₃ h
 
+/-- A version of `quotient.rec_on_subsingleton` taking `{s₁ : setoid α}` as an implicit argument
+instead of an instance argument. -/
+@[elab_as_eliminator]
+protected def rec_on_subsingleton' {φ : quotient s₁ → Sort*}
+  [h : ∀ a, subsingleton (φ ⟦a⟧)] (q : quotient s₁) (f : Π a, φ (quotient.mk' a)) : φ q :=
+quotient.rec_on_subsingleton q f
+
+/-- A version of `quotient.rec_on_subsingleton₂` taking `{s₁ : setoid α} {s₂ : setoid α}`
+as implicit arguments instead of instance arguments. -/
+attribute [reducible, elab_as_eliminator]
+protected def rec_on_subsingleton₂'
+   {φ : quotient s₁ → quotient s₂ → Sort*} [h : ∀ a b, subsingleton (φ ⟦a⟧ ⟦b⟧)]
+   (q₁ : quotient s₁) (q₂ : quotient s₂) (f : Π a₁ a₂, φ (quotient.mk' a₁) (quotient.mk' a₂)) :
+   φ q₁ q₂ :=
+quotient.rec_on_subsingleton₂ q₁ q₂ f
+
 /-- Recursion on a `quotient` argument `a`, result type depends on `⟦a⟧`. -/
 protected def hrec_on' {φ : quotient s₁ → Sort*} (qa : quotient s₁) (f : Π a, φ (quotient.mk' a))
   (c : ∀ a₁ a₂, a₁ ≈ a₂ → f a₁ == f a₂) : φ qa :=
@@ -465,4 +509,5 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
+
 end quotient

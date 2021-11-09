@@ -13,9 +13,11 @@ This file defines isomorphisms between objects of a category.
 ## Main definitions
 
 - `structure iso` : a bundled isomorphism between two objects of a category;
-- `class is_iso` : an unbundled version of `iso`; note that `is_iso f` is usually *not* a `Prop`,
-  because it holds the inverse morphism;
-- `as_iso` : convert from `is_iso` to `iso`;
+- `class is_iso` : an unbundled version of `iso`;
+  note that `is_iso f` is a `Prop`, and only asserts the existence of an inverse.
+  Of course, this inverse is unique, so it doesn't cost us much to use choice to retrieve it.
+- `inv f`, for the inverse of a morphism with `[is_iso f]`
+- `as_iso` : convert from `is_iso` to `iso` (noncomputable);
 - `of_iso` : convert from `iso` to `is_iso`;
 - standard operations on isomorphisms (composition, inverse etc)
 
@@ -29,7 +31,7 @@ This file defines isomorphisms between objects of a category.
 category, category theory, isomorphism
 -/
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open category
@@ -157,41 +159,74 @@ by { erw [inv_eq_inv α.symm β, eq_comm], refl }
 
 end iso
 
-/-- `is_iso` typeclass expressing that a morphism is invertible.
-    This contains the data of the inverse, but is a subsingleton type. -/
-class is_iso (f : X ⟶ Y) :=
-(inv : Y ⟶ X)
-(hom_inv_id' : f ≫ inv = 𝟙 X . obviously)
-(inv_hom_id' : inv ≫ f = 𝟙 Y . obviously)
+/-- `is_iso` typeclass expressing that a morphism is invertible. -/
+class is_iso (f : X ⟶ Y) : Prop :=
+(out : ∃ inv : Y ⟶ X, f ≫ inv = 𝟙 X ∧ inv ≫ f = 𝟙 Y)
 
-export is_iso (inv)
+/--
+The inverse of a morphism `f` when we have `[is_iso f]`.
+-/
+noncomputable def inv (f : X ⟶ Y) [I : is_iso f] := classical.some I.1
+
+namespace is_iso
+
+@[simp, reassoc] lemma hom_inv_id (f : X ⟶ Y) [I : is_iso f] : f ≫ inv f = 𝟙 X :=
+(classical.some_spec I.1).left
+@[simp, reassoc] lemma inv_hom_id (f : X ⟶ Y) [I : is_iso f] : inv f ≫ f = 𝟙 Y :=
+(classical.some_spec I.1).right
+
+end is_iso
+
+open is_iso
 
 /-- Reinterpret a morphism `f` with an `is_iso f` instance as an `iso`. -/
-def as_iso (f : X ⟶ Y) [h : is_iso f] : X ≅ Y := { hom := f, ..h }
+noncomputable
+def as_iso (f : X ⟶ Y) [h : is_iso f] : X ≅ Y := ⟨f, inv f, hom_inv_id f, inv_hom_id f⟩
 
 @[simp] lemma as_iso_hom (f : X ⟶ Y) [is_iso f] : (as_iso f).hom = f := rfl
 @[simp] lemma as_iso_inv (f : X ⟶ Y) [is_iso f] : (as_iso f).inv = inv f := rfl
 
 namespace is_iso
 
-@[simp] lemma hom_inv_id (f : X ⟶ Y) [is_iso f] : f ≫ inv f = 𝟙 X :=
-is_iso.hom_inv_id'
-@[simp] lemma inv_hom_id (f : X ⟶ Y) [is_iso f] : inv f ≫ f = 𝟙 Y :=
-is_iso.inv_hom_id'
+@[priority 100] -- see Note [lower instance priority]
+instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
+{ left_cancellation := λ Z g h w,
+  -- This is an interesting test case for better rewrite automation.
+  by rw [← is_iso.inv_hom_id_assoc f g, w, is_iso.inv_hom_id_assoc f h] }
+@[priority 100] -- see Note [lower instance priority]
+instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
+{ right_cancellation := λ Z g h w,
+  by rw [← category.comp_id g, ← category.comp_id h, ← is_iso.hom_inv_id f, ← category.assoc, w,
+    ← category.assoc] }
 
-@[simp] lemma hom_inv_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : X ⟶ Z) :
-  f ≫ inv f ≫ g = g :=
-(as_iso f).hom_inv_id_assoc g
+@[ext] lemma inv_eq_of_hom_inv_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+  (hom_inv_id : f ≫ g = 𝟙 X) : inv f = g :=
+begin
+  apply (cancel_epi f).mp,
+  simp [hom_inv_id],
+end
 
-@[simp] lemma inv_hom_id_assoc {Z} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) :
-  inv f ≫ f ≫ g = g :=
-(as_iso f).inv_hom_id_assoc g
+lemma inv_eq_of_inv_hom_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+  (inv_hom_id : g ≫ f = 𝟙 Y) : inv f = g :=
+begin
+  apply (cancel_mono f).mp,
+  simp [inv_hom_id],
+end
+
+@[ext] lemma eq_inv_of_hom_inv_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+  (hom_inv_id : f ≫ g = 𝟙 X) : g = inv f :=
+(inv_eq_of_hom_inv_id hom_inv_id).symm
+
+lemma eq_inv_of_inv_hom_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+  (inv_hom_id : g ≫ f = 𝟙 Y) : g = inv f :=
+(inv_eq_of_inv_hom_id inv_hom_id).symm
+
 
 instance id (X : C) : is_iso (𝟙 X) :=
-{ inv := 𝟙 X }
+⟨⟨𝟙 X, by simp⟩⟩
 
 instance of_iso (f : X ≅ Y) : is_iso f.hom :=
-{ .. f }
+⟨⟨f.inv, by simp⟩⟩
 
 instance of_iso_inv (f : X ≅ Y) : is_iso f.inv :=
 is_iso.of_iso f.symm
@@ -204,11 +239,11 @@ is_iso.of_iso_inv (as_iso f)
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
 is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 
-@[simp] lemma inv_id : inv (𝟙 X) = 𝟙 X := rfl
-@[simp] lemma inv_comp [is_iso f] [is_iso h] : inv (f ≫ h) = inv h ≫ inv f := rfl
-@[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := rfl
-@[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
-@[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
+@[simp] lemma inv_id : inv (𝟙 X) = 𝟙 X := by { ext, simp, }
+@[simp] lemma inv_comp [is_iso f] [is_iso h] : inv (f ≫ h) = inv h ≫ inv f := by { ext, simp, }
+@[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := by { ext, simp, }
+@[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := by { ext, simp, }
+@[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := by { ext, simp, }
 
 @[simp]
 lemma inv_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : inv α ≫ f = g ↔ f = α ≫ g :=
@@ -226,17 +261,6 @@ lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫
 lemma eq_comp_inv (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ inv α ↔ g ≫ α = f :=
 (as_iso α).eq_comp_inv
 
-@[priority 100] -- see Note [lower instance priority]
-instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
-{ left_cancellation := λ Z g h w,
-  -- This is an interesting test case for better rewrite automation.
-  by rw [← is_iso.inv_hom_id_assoc f g, w, is_iso.inv_hom_id_assoc f h] }
-@[priority 100] -- see Note [lower instance priority]
-instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
-{ right_cancellation := λ Z g h w,
-  by rw [← category.comp_id g, ← category.comp_id h, ← is_iso.hom_inv_id f, ← category.assoc, w,
-    ← category.assoc] }
-
 end is_iso
 
 open is_iso
@@ -246,12 +270,6 @@ begin
   apply (cancel_epi (inv f)).1,
   erw [inv_hom_id, p, inv_hom_id],
 end
-
-instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
-⟨λ a b,
- suffices a.inv = b.inv, by cases a; cases b; congr; exact this,
- show (@as_iso C _ _ _ f a).inv = (@as_iso C _ _ _ f b).inv,
- by congr' 1; ext; refl⟩
 
 lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
 iso.inv_eq_inv (as_iso f) (as_iso g)
@@ -263,6 +281,17 @@ lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y �
 (as_iso g).comp_hom_eq_id
 
 namespace iso
+
+@[ext] lemma inv_ext {f : X ≅ Y} {g : Y ⟶ X}
+  (hom_inv_id : f.hom ≫ g = 𝟙 X) : f.inv = g :=
+begin
+  apply (cancel_epi f.hom).mp,
+  simp [hom_inv_id],
+end
+
+@[ext] lemma inv_ext' {f : X ≅ Y} {g : Y ⟶ X}
+  (hom_inv_id : f.hom ≫ g = 𝟙 X) : g = f.inv :=
+by { symmetry, ext, assumption, }
 
 /-!
 All these cancellation lemmas can be solved by `simp [cancel_mono]` (or `simp [cancel_epi]`),
@@ -323,14 +352,12 @@ variables {D : Type u₂}
 variables [category.{v₂} D]
 
 /-- A functor `F : C ⥤ D` sends isomorphisms `i : X ≅ Y` to isomorphisms `F.obj X ≅ F.obj Y` -/
+@[simps]
 def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=
 { hom := F.map i.hom,
   inv := F.map i.inv,
   hom_inv_id' := by rw [←map_comp, iso.hom_inv_id, ←map_id],
   inv_hom_id' := by rw [←map_comp, iso.inv_hom_id, ←map_id] }
-
-@[simp] lemma map_iso_hom (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).hom = F.map i.hom := rfl
-@[simp] lemma map_iso_inv (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : (F.map_iso i).inv = F.map i.inv := rfl
 
 @[simp] lemma map_iso_symm (F : C ⥤ D) {X Y : C} (i : X ≅ Y) :
   F.map_iso i.symm = (F.map_iso i).symm :=
@@ -348,7 +375,7 @@ is_iso.of_iso $ F.map_iso (as_iso f)
 
 @[simp] lemma map_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map (inv f) = inv (F.map f) :=
-rfl
+by { ext, simp [←F.map_comp], }
 
 lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map f ≫ F.map (inv f) = 𝟙 (F.obj X) :=

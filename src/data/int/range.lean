@@ -1,16 +1,27 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro and Kenny Lau
+Authors: Mario Carneiro, Kenny Lau
 -/
 import data.int.basic
 import data.list.range
+
+/-!
+# Intervals in ℤ
+
+This file defines integer ranges. `range m n` is the set of integers greater than `m` and strictly
+less than `n`.
+
+## Note
+
+This could be unified with `data.list.intervals`. See the TODOs there.
+-/
 
 namespace int
 
 local attribute [semireducible] int.nonneg
 
-/-- List enumerating `[m, n)`. -/
+/-- List enumerating `[m, n)`. This is the ℤ variant of `list.Ico`. -/
 def range (m n : ℤ) : list ℤ :=
 (list.range (to_nat (n-m))).map $ λ r, m+r
 

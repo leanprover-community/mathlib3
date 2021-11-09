@@ -98,7 +98,6 @@ begin
 end
 
 lemma min_def [K : linear_order β] (x y : β*) : min x y = map₂ min x y :=
-
 induction_on₂ x y $ λ a b,
 begin
   cases le_total (a : β*) b,
@@ -106,8 +105,8 @@ begin
   { rw [min_eq_right h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_right hi).symm) }
 end
 
-lemma abs_def [linear_ordered_add_comm_group β] (x : β*) : abs x = map abs x :=
-induction_on x $ λ a, by rw [abs, ← coe_neg, max_def, map₂_coe]; refl
+lemma abs_def [linear_ordered_add_comm_group β] (x : β*) : |x| = map abs x :=
+induction_on x $ λ a, by exact rfl
 
 @[simp] lemma const_max [linear_order β] (x y : β) : (↑(max x y : β) : β*) = max ↑x ↑y :=
 by rw [max_def, map₂_const]
@@ -116,8 +115,12 @@ by rw [max_def, map₂_const]
 by rw [min_def, map₂_const]
 
 @[simp] lemma const_abs [linear_ordered_add_comm_group β] (x : β) :
-  (↑(abs x) : β*) = abs ↑x :=
-const_max x (-x)
+  (↑(|x|) : β*) = |↑x| :=
+by rw [abs_def, map_const]
+
+lemma lattice_of_linear_order_eq_filter_germ_lattice [linear_order β] :
+  (@lattice_of_linear_order (filter.germ ↑φ β) filter.germ.linear_order) = filter.germ.lattice :=
+lattice.ext (λ x y, iff.rfl)
 
 end germ
 

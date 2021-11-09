@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author:  Aaron Anderson.
+Authors: Aaron Anderson
 -/
 
 import order.bounded_lattice
@@ -118,6 +118,9 @@ instance [order_bot α] : order_bot (Iic a) :=
 
 @[simp] lemma coe_bot [order_bot α] {a : α} : ↑(⊥ : Iic a) = (⊥ : α) := rfl
 
+instance [partial_order α] [no_bot_order α] {a : α} : no_bot_order (Iic a) :=
+⟨λ x, let ⟨y, hy⟩ := no_bot x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩
+
 instance [semilattice_inf_bot α] : semilattice_inf_bot (Iic a) :=
 { .. (Iic.semilattice_inf),
   .. (Iic.order_bot) }
@@ -167,6 +170,9 @@ instance [order_top α] : order_top (Ici a) :=
   .. (infer_instance : partial_order (Ici a)) }
 
 @[simp] lemma coe_top [order_top α] {a : α} : ↑(⊤ : Ici a) = (⊤ : α) := rfl
+
+instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
+⟨λ x, let ⟨y, hy⟩ := no_top x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
 
 instance [semilattice_sup_top α] : semilattice_sup_top (Ici a) :=
 { .. (Ici.semilattice_sup),

@@ -17,6 +17,11 @@ and Verschiebung is equal to multiplication by `p`.
 
 * `mul_n_is_poly`: multiplication by `n` is a polynomial function
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector

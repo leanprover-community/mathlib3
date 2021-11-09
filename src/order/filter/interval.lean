@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import data.set.intervals.ord_connected
 import order.filter.lift
@@ -42,13 +42,15 @@ that need topology are defined in `topology/algebra/ordered`.
 
 variables {α β : Type*}
 
-open_locale classical filter
+open_locale classical filter interval
 
 open set function
 
-variables [preorder α]
-
 namespace filter
+
+section preorder
+
+variables [preorder α]
 
 /-- A pair of filters `l₁`, `l₂` has `tendsto_Ixx_class Ixx` property if `Ixx a b` tends to
 `l₂.lift' powerset` as `a` and `b` tend to `l₁`. In all instances `Ixx` is one of `Icc`, `Ico`,
@@ -107,8 +109,8 @@ lemma has_basis.tendsto_Ixx_class {ι : Type*} {p : ι → Prop} {s} {l : filter
   ⟨i, hi, λ x hx, H i hi _ hx.1 _ hx.2⟩⟩
 
 instance tendsto_Icc_at_top_at_top : tendsto_Ixx_class Icc (at_top : filter α) at_top :=
-(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs, ord_connected_bInter $
-  λ i hi, ord_connected_Ici
+(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs,
+set.ord_connected.out $ ord_connected_bInter $ λ i hi, ord_connected_Ici
 
 instance tendsto_Ico_at_top_at_top : tendsto_Ixx_class Ico (at_top : filter α) at_top :=
 tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
@@ -120,8 +122,8 @@ instance tendsto_Ioo_at_top_at_top : tendsto_Ixx_class Ioo (at_top : filter α) 
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
 instance tendsto_Icc_at_bot_at_bot : tendsto_Ixx_class Icc (at_bot : filter α) at_bot :=
-(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs, ord_connected_bInter $
-  λ i hi, ord_connected_Iic
+(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs,
+set.ord_connected.out $ ord_connected_bInter $ λ i hi, ord_connected_Iic
 
 instance tendsto_Ico_at_bot_at_bot : tendsto_Ixx_class Ico (at_bot : filter α) at_bot :=
 tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
@@ -132,9 +134,9 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 instance tendsto_Ioo_at_bot_at_bot : tendsto_Ixx_class Ioo (at_bot : filter α) at_bot :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-instance ord_connected.tendsto_Icc {s : set α} [ord_connected s] :
+instance ord_connected.tendsto_Icc {s : set α} [hs : ord_connected s] :
   tendsto_Ixx_class Icc (𝓟 s) (𝓟 s) :=
-tendsto_Ixx_class_principal.2 ‹_›
+tendsto_Ixx_class_principal.2 hs.out
 
 instance tendsto_Ico_Ici_Ici {a : α} : tendsto_Ixx_class Ico (𝓟 (Ici a)) (𝓟 (Ici a)) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
@@ -172,18 +174,43 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 instance tendsto_Ioo_Iio_Iio {a : α} : tendsto_Ixx_class Ioo (𝓟 (Iio a)) (𝓟 (Iio a)) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 
-variable [partial_order β]
+instance tendsto_Icc_Icc_icc {a b : α} :
+  tendsto_Ixx_class Icc (𝓟 (Icc a b)) (𝓟 (Icc a b)) :=
+tendsto_Ixx_class_principal.mpr $ λ x hx y hy, Icc_subset_Icc hx.1 hy.2
 
-instance tendsto_Icc_pure_pure {a : β} : tendsto_Ixx_class Icc (pure a) (pure a : filter β) :=
-by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton }
+instance tendsto_Ioc_Icc_Icc {a b : α} : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Icc a b)) :=
+tendsto_Ixx_class_of_subset $ λ _ _, Ioc_subset_Icc_self
 
-instance tendsto_Ico_pure_bot {a : β} : tendsto_Ixx_class Ico (pure a) ⊥ :=
+end preorder
+
+section partial_order
+
+variable [partial_order α]
+
+instance tendsto_Icc_pure_pure {a : α} : tendsto_Ixx_class Icc (pure a) (pure a : filter α) :=
+by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton.out }
+
+instance tendsto_Ico_pure_bot {a : α} : tendsto_Ixx_class Ico (pure a) ⊥ :=
 ⟨by simp [lift'_bot monotone_powerset]⟩
 
-instance tendsto_Ioc_pure_bot {a : β} : tendsto_Ixx_class Ioc (pure a) ⊥ :=
+instance tendsto_Ioc_pure_bot {a : α} : tendsto_Ixx_class Ioc (pure a) ⊥ :=
 ⟨by simp [lift'_bot monotone_powerset]⟩
 
-instance tendsto_Ioo_pure_bot {a : β} : tendsto_Ixx_class Ioo (pure a) ⊥ :=
+instance tendsto_Ioo_pure_bot {a : α} : tendsto_Ixx_class Ioo (pure a) ⊥ :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
+
+end partial_order
+
+section linear_order
+
+variables [linear_order α]
+
+instance tendsto_Icc_interval_interval {a b : α} : tendsto_Ixx_class Icc (𝓟 [a, b]) (𝓟 [a, b]) :=
+filter.tendsto_Icc_Icc_icc
+
+instance tendsto_Ioc_interval_interval {a b : α} : tendsto_Ixx_class Ioc (𝓟 [a, b]) (𝓟 [a, b]) :=
+tendsto_Ixx_class_of_subset $ λ _ _, Ioc_subset_Icc_self
+
+end linear_order
 
 end filter

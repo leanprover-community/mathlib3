@@ -3,7 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.basic
+import algebra.algebra.bilinear
+import algebra.module.submodule_pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -27,12 +28,14 @@ It is proved that `submodule R A` is a semiring, and also an algebra over `set A
 multiplication of submodules, division of subodules, submodule semiring
 -/
 
-universes u v
+universes uι u v
 
 open algebra set
+open_locale pointwise
 
 namespace submodule
 
+variables {ι : Sort uι}
 variables {R : Type u} [comm_semiring R]
 
 section ring
@@ -42,19 +45,22 @@ variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 /-- `1 : submodule R A` is the submodule R of A. -/
 instance : has_one (submodule R A) :=
-⟨submodule.map (of_id R A).to_linear_map (⊤ : submodule R R)⟩
+⟨(algebra.linear_map R A).range⟩
 
-theorem one_eq_map_top :
-  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : submodule R R) := rfl
+theorem one_eq_range :
+  (1 : submodule R A) = (algebra.linear_map R A).range := rfl
+
+lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : submodule R A) :=
+linear_map.mem_range_self _ _
+
+@[simp] lemma mem_one {x : A} : x ∈ (1 : submodule R A) ↔ ∃ y, algebra_map R A y = x :=
+by simp only [one_eq_range, linear_map.mem_range, algebra.linear_map_apply]
 
 theorem one_eq_span : (1 : submodule R A) = R ∙ 1 :=
 begin
   apply submodule.ext,
   intro a,
-  erw [mem_map, mem_span_singleton],
-  apply exists_congr,
-  intro r,
-  simpa [smul_def],
+  simp only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
 end
 
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
@@ -182,6 +188,23 @@ end
 
 end decidable_eq
 
+lemma mul_eq_span_mul_set (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
+by rw [← span_mul_span, span_eq, span_eq]
+
+lemma supr_mul (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
+begin
+  suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul],
+end
+
+lemma mul_supr (t : submodule R A) (s : ι → submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
+begin
+  suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.mul_Union],
+end
+
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
   ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
 submodule.mem_span_mul_finite_of_mem_span_mul
@@ -198,7 +221,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid_submodule,
+  ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
   ..submodule.has_mul }
 
@@ -207,7 +230,9 @@ variables (M)
 lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
 begin
   induction n with n ih,
-  { erw [pow_zero, pow_zero, set.singleton_subset_iff], rw [mem_coe, ← one_le], exact le_refl _ },
+  { erw [pow_zero, pow_zero, set.singleton_subset_iff],
+    rw [set_like.mem_coe, ← one_le],
+    exact le_refl _ },
   { rw [pow_succ, pow_succ],
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
@@ -218,8 +243,7 @@ on either side). -/
 def span.ring_hom : set_semiring A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,
-  map_one' := le_antisymm (span_le.2 $ singleton_subset_iff.2 ⟨1, ⟨⟩, (algebra_map R A).map_one⟩)
-    (map_le_iff_le_comap.2 $ λ r _, mem_span_singleton.2 ⟨r, (algebra_map_eq_smul_one r).symm⟩),
+  map_one' := one_eq_span.symm,
   map_add' := span_union,
   map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
 
@@ -246,7 +270,7 @@ instance : comm_semiring (submodule R A) :=
 variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
-instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
+instance module_set : module (set_semiring A) (submodule R A) :=
 { smul := λ s P, span R s * P,
   smul_add := λ _ _ _, mul_add _ _ _,
   add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
@@ -275,7 +299,7 @@ begin
   apply le_antisymm,
   { rw span_le,
     rintros _ ⟨b, m, hb, hm, rfl⟩,
-    rw [mem_coe, mem_map, set.mem_singleton_iff.mp hb],
+    rw [set_like.mem_coe, mem_map, set.mem_singleton_iff.mp hb],
     exact ⟨m, hm, rfl⟩ },
   { rintros _ ⟨m, hm, rfl⟩, exact subset_span ⟨a, m, set.mem_singleton a, hm, rfl⟩ }
 end

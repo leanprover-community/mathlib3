@@ -25,15 +25,14 @@ universes v u
 namespace category_theory
 
 /-- Category of categories. -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def Cat := bundled category.{v u}
 
 namespace Cat
 
 instance : inhabited Cat := ⟨⟨Type u, category_theory.types⟩⟩
 
-instance : has_coe_to_sort Cat :=
-{ S := Type u,
-  coe := bundled.α }
+instance : has_coe_to_sort Cat (Type u) := ⟨bundled.α⟩
 
 instance str (C : Cat.{v u}) : category.{v u} C := C.str
 
@@ -76,8 +75,8 @@ def Type_to_Cat : Type u ⥤ Cat :=
   map_id' := λ X, begin apply functor.ext, tidy, end,
   map_comp' := λ X Y Z f g, begin apply functor.ext, tidy, end }
 
-instance : faithful Type_to_Cat := {}
-instance : full Type_to_Cat :=
+instance : faithful Type_to_Cat.{u} := {}
+instance : full Type_to_Cat.{u} :=
 { preimage := λ X Y F, F.obj,
   witness' :=
   begin

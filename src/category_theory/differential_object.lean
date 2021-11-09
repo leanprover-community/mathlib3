@@ -163,7 +163,7 @@ variables (C : Type u) [category.{v} C]
 
 variables [has_zero_object C] [has_zero_morphisms C] [has_shift C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance has_zero_object : has_zero_object (differential_object C) :=
 { zero :=

@@ -29,11 +29,16 @@ lemma Pi.uniformity :
   𝓤 (Π i, α i) = ⨅ i : ι, filter.comap (λ a, (a.1 i, a.2 i)) $ 𝓤 (α i) :=
 infi_uniformity
 
+variable {α}
+
+lemma uniform_continuous_pi {β : Type*} [uniform_space β] {f : β → Π i, α i} :
+  uniform_continuous f ↔ ∀ i, uniform_continuous (λ x, f x i) :=
+by simp only [uniform_continuous, Pi.uniformity, tendsto_infi, tendsto_comap_iff]
+
+variable (α)
+
 lemma Pi.uniform_continuous_proj (i : ι) : uniform_continuous (λ (a : Π (i : ι), α i), a i) :=
-begin
-  rw uniform_continuous_iff,
-  exact infi_le (λ j, uniform_space.comap (λ (a : Π (i : ι), α i), a j) (U j)) i
-end
+uniform_continuous_pi.1 uniform_continuous_id i
 
 instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i) :=
 ⟨begin

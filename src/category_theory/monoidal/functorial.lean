@@ -108,6 +108,5 @@ end
 -- TODO instances for composition, as required
 
 -- TODO `strong_monoidal`, as well as `lax_monoidal`
--- (... but it seems for enriched categories I'll only need unbundled lax monoidal functors at first)
 
 end category_theory

@@ -487,8 +487,6 @@ variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : 
 instance : has_zero (M →ₛₗ[σ₁₂] M₂) :=
 ⟨{ to_fun := 0, map_add' := by simp, map_smul' := by simp }⟩
 
-lemma coe_zero : ⇑(0 : M →ₛₗ[σ₁₂] M₂) = 0 := rfl
-
 @[simp] lemma zero_apply (x : M) : (0 : M →ₛₗ[σ₁₂] M₂) x = 0 := rfl
 
 @[simp] theorem comp_zero (g : M₂ →ₛₗ[σ₂₃] M₃) : (g.comp (0 : M →ₛₗ[σ₁₂] M₂) : M →ₛₗ[σ₁₃] M₃) = 0 :=
@@ -505,8 +503,6 @@ instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
 instance : has_add (M →ₛₗ[σ₁₂] M₂) :=
 ⟨λ f g, { to_fun := f + g,
           map_add' := by simp [add_comm, add_left_comm], map_smul' := by simp [smul_add] }⟩
-
-lemma coe_add (f g : M →ₛₗ[σ₁₂] M₂) : ⇑(f + g) = f + g := rfl
 
 @[simp] lemma add_apply (f g : M →ₛₗ[σ₁₂] M₂) (x : M) : (f + g) x = f x + g x := rfl
 
@@ -554,8 +550,6 @@ instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_comm],
           map_smul' := λ r x, by simp [pi.sub_apply, map_smul, smul_sub] }⟩
-
-lemma coe_sub (f g : M →ₛₗ[σ₁₂] N₂) : ⇑(f - g) = f - g := rfl
 
 @[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₂] N₂) (x : M) : (f - g) x = f x - g x := rfl
 

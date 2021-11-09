@@ -289,7 +289,7 @@ variable {μ}
 
 /-- `measure.pi μ` has finite spanning sets in rectangles of finite spanning sets. -/
 def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
-  (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) (hC : ∀ i (s ∈ C i), measurable_set s) :
+  (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) :
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
   haveI := λ i, (hμ i).sigma_finite,
@@ -297,8 +297,14 @@ begin
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
   { refine mem_image_of_mem _ (λ i _, (hμ i).set_mem _) },
-  { simp_rw [pi_pi_aux μ (λ i, (hμ i).set (e n i)) (λ i, hC i _ ((hμ i).set_mem _))],
-    exact ennreal.prod_lt_top (λ i _, ((hμ i).finite _).ne) },
+  { calc measure.pi μ (pi univ (λ i, (hμ i).set (e n i)))
+        ≤ measure.pi μ (pi univ (λ i, to_measurable (μ i) ((hμ i).set (e n i)))) :
+      measure_mono (pi_mono $ λ i hi, subset_to_measurable _ _)
+    ... = ∏ i, μ i (to_measurable (μ i) ((hμ i).set (e n i))) :
+      pi_pi_aux μ _ (λ i, measurable_set_to_measurable _ _)
+    ... = ∏ i, μ i ((hμ i).set (e n i)) :
+      by simp only [measure_to_measurable]
+    ... < ∞ : ennreal.prod_lt_top (λ i hi, ((hμ i).finite _).ne) },
   { simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, (hμ i).set (x i))),
       Union_univ_pi (λ i, (hμ i).set), (hμ _).spanning, set.pi_univ] }
 end
@@ -315,7 +321,7 @@ lemma pi_eq_generate_from {C : Π i, set (set (α i))}
 begin
   have h4C : ∀ i (s : set (α i)), s ∈ C i → measurable_set s,
   { intros i s hs, rw [← hC], exact measurable_set_generate_from hs },
-  refine (finite_spanning_sets_in.pi h3C h4C).ext
+  refine (finite_spanning_sets_in.pi h3C).ext
     (generate_from_eq_pi hC (λ i, (h3C i).is_countably_spanning)).symm
     (is_pi_system.pi h2C) _,
   rintro _ ⟨s, hs, rfl⟩,
@@ -348,12 +354,12 @@ end
 
 lemma pi_univ : measure.pi μ univ = ∏ i, μ i univ := by rw [← pi_univ, pi_pi μ]
 
-lemma pi_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ}
+lemma pi_ball [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ}
   (hr : 0 < r) :
   measure.pi μ (metric.ball x r) = ∏ i, μ i (metric.ball (x i) r) :=
 by rw [ball_pi _ hr, pi_pi]
 
-lemma pi_closed_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ}
+lemma pi_closed_ball [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ}
   (hr : 0 ≤ r) :
   measure.pi μ (metric.closed_ball x r) = ∏ i, μ i (metric.closed_ball (x i) r) :=
 by rw [closed_ball_pi _ hr, pi_pi]
@@ -374,7 +380,7 @@ lemma map_fun_unique {α β : Type*} [unique α] {m : measurable_space β} (μ :
 (measurable_equiv.fun_unique α β).map_apply_eq_iff_map_symm_apply_eq.2 (pi_unique_eq_map μ _).symm
 
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
-(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).sigma_finite
+(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in)).sigma_finite
 
 lemma pi_of_empty {α : Type*} [is_empty α] {β : α → Type*} {m : Π a, measurable_space (β a)}
   (μ : Π a : α, measure (β a)) (x : Π a, β a := is_empty_elim) :
@@ -523,8 +529,7 @@ lemma pi_has_no_atoms (i : ι) [has_no_atoms (μ i)] :
 instance [h : nonempty ι] [∀ i, has_no_atoms (μ i)] : has_no_atoms (measure.pi μ) :=
 h.elim $ λ i, pi_has_no_atoms i
 
-instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
-  [∀ i, is_locally_finite_measure (μ i)] :
+instance [Π i, topological_space (α i)] [∀ i, is_locally_finite_measure (μ i)] :
   is_locally_finite_measure (measure.pi μ) :=
 begin
   refine ⟨λ x, _⟩,

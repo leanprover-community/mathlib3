@@ -403,8 +403,7 @@ measure_ae_null_of_prod_null h
 
 /-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
 def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (set β)}
-  (hμ : μ.finite_spanning_sets_in C) (hν : ν.finite_spanning_sets_in D)
-  (hC : ∀ s ∈ C, measurable_set s) (hD : ∀ t ∈ D, measurable_set t) :
+  (hμ : μ.finite_spanning_sets_in C) (hν : ν.finite_spanning_sets_in D) :
   (μ.prod ν).finite_spanning_sets_in (image2 set.prod C D) :=
 begin
   haveI := hν.sigma_finite,
@@ -430,7 +429,7 @@ end
 variables [sigma_finite μ]
 
 instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
-(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).sigma_finite
+(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in).sigma_finite
 
 /-- A measure on a product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
@@ -441,11 +440,7 @@ lemma prod_eq_generate_from {μ : measure α} {ν : measure β} {C : set (set α
   {μν : measure (α × β)}
   (h₁ : ∀ (s ∈ C) (t ∈ D), μν (set.prod s t) = μ s * ν t) : μ.prod ν = μν :=
 begin
-  have h4C : ∀ (s : set α), s ∈ C → measurable_set s,
-  { intros s hs, rw [← hC], exact measurable_set_generate_from hs },
-  have h4D : ∀ (t : set β), t ∈ D → measurable_set t,
-  { intros t ht, rw [← hD], exact measurable_set_generate_from ht },
-  refine (h3C.prod h3D h4C h4D).ext
+  refine (h3C.prod h3D).ext
     (generate_from_eq_prod hC hD h3C.is_countably_spanning h3D.is_countably_spanning).symm
     (h2C.prod h2D) _,
   { rintro _ ⟨s, t, hs, ht, rfl⟩, haveI := h3D.sigma_finite,
@@ -476,7 +471,7 @@ lemma prod_assoc_prod [sigma_finite τ] :
 begin
   refine (prod_eq_generate_from generate_from_measurable_set generate_from_prod
     is_pi_system_measurable_set is_pi_system_prod μ.to_finite_spanning_sets_in
-    (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in (λ _, id) (λ _, id)) _).symm,
+    (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in) _).symm,
   rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of_eq] at hs ht hu,
   simp_rw [map_apply (measurable_equiv.measurable _) (hs.prod (ht.prod hu)),
     measurable_equiv.prod_assoc, measurable_equiv.coe_mk, equiv.prod_assoc_preimage,

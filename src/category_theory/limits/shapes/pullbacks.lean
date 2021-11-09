@@ -1019,10 +1019,10 @@ variables (C)
 
 See https://stacks.math.columbia.edu/tag/001W.
 -/
-abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
+abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
-abbreviation has_pushouts := has_colimits_of_shape walking_span C
+abbreviation has_pushouts := has_colimits_of_shape walking_span.{v} C
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
 lemma has_pullbacks_of_has_limit_cospan

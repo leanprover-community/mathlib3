@@ -172,11 +172,7 @@ begin
 end
 
 lemma is_unit_Pso {i : R} (hi : i*i = -1) : is_unit (Pso p q R i) :=
-⟨{ val     := Pso p q R i,
-   inv     := Pso p q R (-i),
-   val_inv := Pso_inv p q R hi,
-   inv_val := by { apply matrix.nonsing_inv_left_right, exact Pso_inv p q R hi, }, },
-rfl⟩
+@is_unit_of_invertible _ _ _ (invertible_of_right_inverse _ _ (Pso_inv p q R hi))
 
 lemma indefinite_diagonal_transform {i : R} (hi : i*i = -1) :
   (Pso p q R i)ᵀ ⬝ (indefinite_diagonal p q R) ⬝ (Pso p q R i) = 1 :=
@@ -258,11 +254,7 @@ begin
 end
 
 lemma is_unit_PD [fintype l] [invertible (2 : R)] : is_unit (PD l R) :=
-⟨{ val     := PD l R,
-   inv     := ⅟(2 : R) • (PD l R)ᵀ,
-   val_inv := PD_inv l R,
-   inv_val := by { apply matrix.nonsing_inv_left_right, exact PD_inv l R, }, },
-rfl⟩
+@is_unit_of_invertible _ _ _ (invertible_of_right_inverse _ _ (PD_inv l R))
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type D. -/
 noncomputable def type_D_equiv_so' [fintype l] [invertible (2 : R)] :
@@ -322,11 +314,7 @@ begin
 end
 
 lemma is_unit_PB [invertible (2 : R)] : is_unit (PB l R) :=
-⟨{ val     := PB l R,
-   inv     := matrix.from_blocks 1 0 0 (PD l R)⁻¹,
-   val_inv := PB_inv l R,
-   inv_val := by { apply matrix.nonsing_inv_left_right, exact PB_inv l R, }, },
-rfl⟩
+@is_unit_of_invertible _ _ _ (invertible_of_right_inverse _ _ (PB_inv l R))
 
 lemma JB_transform : (PB l R)ᵀ ⬝ (JB l R) ⬝ (PB l R) = (2 : R) • matrix.from_blocks 1 0 0 (S l R) :=
 by simp [PB, JB, JD_transform, matrix.from_blocks_transpose, matrix.from_blocks_multiply,

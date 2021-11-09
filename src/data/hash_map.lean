@@ -3,9 +3,10 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.pnat.basic
-import data.list.range
 import data.array.lemmas
+import data.list.join
+import data.list.range
+import data.pnat.basic
 
 /-!
 # Hash maps

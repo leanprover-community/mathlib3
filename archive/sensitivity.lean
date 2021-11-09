@@ -373,7 +373,7 @@ begin
     rw set.range_restrict at hdW,
     convert hdW,
     rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
-        cardinal.fintype_card] },
+        cardinal.mk_fintype] },
   rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,

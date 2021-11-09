@@ -62,6 +62,7 @@ open function
 open_locale big_operators pointwise
 
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} {R₄ : Type*}
+variables {S : Type*}
 variables {K : Type*} {K₂ : Type*}
 variables {M : Type*} {M' : Type*} {M₁ : Type*} {M₂ : Type*} {M₃ : Type*} {M₄ : Type*}
 variables {N : Type*} {N₂ : Type*}
@@ -219,7 +220,7 @@ add_monoid_hom.map_sum ((add_monoid_hom.eval b).comp to_add_monoid_hom') f _
 
 section smul_right
 
-variables {S : Type*} [semiring S] [module R S] [module S M] [is_scalar_tower R S M]
+variables [semiring S] [module R S] [module S M] [is_scalar_tower R S M]
 
 /-- When `f` is an `R`-linear map taking values in `S`, then `λb, f b • x` is an `R`-linear map. -/
 def smul_right (f : M₁ →ₗ[R] S) (x : M) : M₁ →ₗ[R] M :=
@@ -338,7 +339,7 @@ end add_comm_monoid
 
 section module
 
-variables {S : Type*} [semiring R] [semiring S]
+variables [semiring R] [semiring S]
   [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
   [module R M] [module R M₂] [module R M₃]
   [module S M₂] [module S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃]
@@ -800,8 +801,14 @@ span_le.2 $ subset.trans h subset_span
 lemma span_eq_of_le (h₁ : s ⊆ p) (h₂ : p ≤ span R s) : span R s = p :=
 le_antisymm (span_le.2 h₁) h₂
 
-@[simp] lemma span_eq : span R (p : set M) = p :=
+lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
+
+/-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/
+@[simp] lemma span_coe_eq_restrict_scalars
+  [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+  span S (p : set M) = p.restrict_scalars S :=
+span_eq (p.restrict_scalars S)
 
 lemma map_span [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (s : set M) :
   (span R s).map f = span R₂ (f '' s) :=
@@ -810,13 +817,14 @@ map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
 alias submodule.map_span ← linear_map.map_span
 
-lemma map_span_le {R M M₂ : Type*} [semiring R] [add_comm_monoid M]
-  [add_comm_monoid M₂] [module R M] [module R M₂] (f : M →ₗ[R] M₂)
-  (s : set M) (N : submodule R M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
+lemma map_span_le [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (s : set M)
+  (N : submodule R₂ M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
 begin
   rw [f.map_span, span_le, set.image_subset_iff],
   exact iff.rfl
 end
+
+alias submodule.map_span_le ← linear_map.map_span_le
 
 @[simp] lemma span_insert_zero : span R (insert (0 : M) s) = span R s :=
 begin
@@ -824,8 +832,6 @@ begin
   rw [span_le, set.insert_subset],
   exact ⟨by simp only [set_like.mem_coe, submodule.zero_mem], submodule.subset_span⟩,
 end
-
-alias submodule.map_span_le ← linear_map.map_span_le
 
 /- See also `span_preimage_eq` below. -/
 lemma span_preimage_le (f : M →ₛₗ[σ₁₂] M₂) (s : set M₂) :
@@ -1055,6 +1061,26 @@ span_eq_of_le _ (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mono $ subset
 
 lemma span_span : span R (span R s : set M) = span R s := span_eq _
 
+variables (R S s)
+
+/-- If `R` is "smaller" ring than `S` then the span by `R` is smaller than the span by `S`. -/
+lemma span_le_restrict_scalars [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+  span R s ≤ (span S s).restrict_scalars R :=
+submodule.span_le.2 submodule.subset_span
+
+/-- A version of `submodule.span_le_restrict_scalars` with coercions. -/
+@[simp] lemma span_subset_span [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+  ↑(span R s) ⊆ (span S s : set M) :=
+span_le_restrict_scalars R S s
+
+/-- Taking the span by a large ring of the span by the small ring is the same as taking the span
+by just the large ring. -/
+lemma span_span_of_tower [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+  span S (span R s : set M) = span S s :=
+le_antisymm (span_le.2 $ span_subset_span R S s) (span_mono subset_span)
+
+variables {R S s}
+
 lemma span_eq_bot : span R (s : set M) = ⊥ ↔ ∀ x ∈ s, (x:M) = 0 :=
 eq_bot_iff.trans ⟨
   λ H x h, (mem_bot R).1 $ H $ subset_span h,
@@ -1067,8 +1093,7 @@ span_eq_bot.trans $ by simp
 
 @[simp] lemma span_image [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) :
   span R₂ (f '' s) = map f (span R s) :=
-span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
-span_le.2 $ image_subset_iff.1 subset_span
+(map_span f s).symm
 
 lemma apply_mem_span_image_of_mem_span
    [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
@@ -1083,7 +1108,7 @@ lemma not_mem_span_of_apply_not_mem_span_image
    [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) {x : M} {s : set M}
    (h : f x ∉ submodule.span R₂ (f '' s)) :
    x ∉ submodule.span R s :=
-not.imp h (apply_mem_span_image_of_mem_span f)
+h.imp (apply_mem_span_image_of_mem_span f)
 
 lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=

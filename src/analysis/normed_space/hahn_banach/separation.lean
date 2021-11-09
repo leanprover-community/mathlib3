@@ -31,6 +31,10 @@ open_locale pointwise
 
 variables {𝕜 E : Type*}
 
+section
+open filter
+open_locale topological_space
+
 lemma continuous_at_of_exists_open [normed_ring 𝕜] [normed_group E] [module 𝕜 E] (f : E →ₗ[𝕜] 𝕜)
   (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0 : E) ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y∥ < ε) :
   continuous_at f 0 :=
@@ -72,20 +76,20 @@ begin
   { by_contra h,
     push_neg at h,
     exact hf (continuous_linear_map.ext (λ x, by simp [h]) )},
-  intros A hA,
-  rw is_open_iff_mem_nhds,
-  rintro _ ⟨a, ha, rfl⟩,
+  apply is_open_map.of_nhds_le,
+  intros a,
   let g : 𝕜 → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
-  have := (show continuous g, by continuity).is_open_preimage _ ‹is_open A›,
-  rw is_open_iff_mem_nhds at this,
-  exact filter.sets_of_superset _ (this (f a) (by simpa [set.mem_preimage, g]))
-    (λ x hx, ⟨_, hx, by simp [hx₀]⟩),
+  have cont_g : continuous g, by continuity,
+  have comp : f ∘ g = id, by { ext, simp [hx₀] },
+  have comp_a : g (f a) = a, by simp [hx₀],
+  calc 𝓝 (f a) = ((𝓝 (f a)).map g).map f : by rw [map_map, comp, map_id]
+    ... ≤ (𝓝 $ g (f a)).map f             : map_mono cont_g.continuous_at
+    ... = (𝓝 a).map f                     : by rw comp_a
 end
 
 variables [normed_group E] [normed_space ℝ E]
-
 /-- Given a set `C` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
-a continuous linear functional `f` separating `x₀` and `C`, in the sense that it sends `x₀` to 1 and
+a continuous linear functional `f` separating `x0` and `C`, in the sense that it sends `x₀` to 1 and
 all of `C` to values strictly below `1`. -/
 lemma separate_convex_open_set {C : set E} (zero_mem : (0:E) ∈ C) (hC : convex ℝ C)
   (hC₂ : is_open C) {x₀ : E} (hx₀ : x₀ ∉ C) :
@@ -93,46 +97,30 @@ lemma separate_convex_open_set {C : set E} (zero_mem : (0:E) ∈ C) (hC : convex
 begin
   let f : linear_pmap ℝ E ℝ :=
     linear_pmap.mk_span_singleton x₀ 1 (ne_of_mem_of_not_mem zero_mem hx₀).symm,
-  have : f ⟨(1:ℝ) • x₀, by { dsimp, rw submodule.mem_span_singleton, refine ⟨1, rfl⟩ }⟩ = 1,
-  { change linear_pmap.mk_span_singleton _ _ _ _ = _,
-    rw [linear_pmap.mk_span_singleton_apply, one_smul] },
-  rcases exists_extension_of_le_sublinear f (gauge C) _ _ _ with ⟨φ, hφ₁, hφ₂⟩,
+  have hfx₀ : f ⟨(1:ℝ) • x₀, by { dsimp, rw submodule.mem_span_singleton, exact ⟨1, rfl⟩ }⟩ = 1,
+  { simp_rw [linear_pmap.mk_span_singleton_apply, one_smul] },
+  obtain ⟨φ, hφ₁, hφ₂⟩ := exists_extension_of_le_sublinear f (gauge C) _ _ _,
   { refine ⟨⟨φ, (φ.to_add_monoid_hom.uniform_continuous_of_continuous_at_zero _).continuous⟩, _, _⟩,
     { refine continuous_at_of_exists_open _ (λ ε hε, ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩),
-      { rw mem_smul_set,
-        exact ⟨0, zero_mem, by rw smul_zero⟩ },
-      { rw mem_smul_set,
-        exact ⟨0, zero_mem, by rw smul_zero⟩ },
-      { apply is_open.inter (is_open_map_smul₀ hε.ne' _ hC₂),
-        { exact is_open_map_smul₀ (by linarith) _ hC₂ } },
+      { exact mem_smul_set.mpr ⟨0, zero_mem, smul_zero _⟩ },
+      { exact mem_smul_set.mpr ⟨0, zero_mem, smul_zero _⟩ },
+      { exact (is_open_map_smul₀ hε.ne' _ hC₂).inter
+          (is_open_map_smul₀ (neg_ne_zero.mpr hε.ne.symm) _ hC₂), },
       rintro x ⟨hx₁, hx₂⟩,
-      rw [real.norm_eq_abs, abs_lt],
-      split,
-      { rw [neg_lt, ←linear_map.map_neg],
-        apply (hφ₂ _).trans_lt,
-        have : -ε⁻¹ • x ∈ C,
-        { obtain ⟨y, _, rfl⟩ := hx₂,
-          simpa [smul_smul, hε.ne'] },
-        have := gauge_lt_one_of_mem_of_open hC zero_mem hC₂ (-ε⁻¹ • x) ‹_ ∈ C›,
-        rwa [neg_smul, ←smul_neg, gauge_smul_of_nonneg (inv_nonneg.2 hε.le), smul_eq_mul,
-          inv_mul_lt_iff hε, mul_one] at this,
-        apply_instance },
-      { have : ε⁻¹ • x ∈ C,
-        { rwa ←mem_smul_set_iff_inv_smul_mem₀ hε.ne' },
-        have := gauge_lt_one_of_mem_of_open hC zero_mem hC₂ (ε⁻¹ • x) ‹_›,
-        rw [gauge_smul_of_nonneg (inv_nonneg.2 hε.le), smul_eq_mul, inv_mul_lt_iff hε, mul_one]
-          at this,
-        exact (hφ₂ _).trans_lt ‹_›,
-        apply_instance } },
+      rw [real.norm_eq_abs, abs_lt, neg_lt, ←linear_map.map_neg],
+      split; apply (hφ₂ _).trans_lt,
+      { refine gauge_lt_of_mem_smul (-x) ε hε zero_mem hC hC₂ _,
+        rw [mem_smul_set_iff_inv_smul_mem₀ hε.ne', smul_neg],
+        rwa [mem_smul_set_iff_inv_smul_mem₀ (neg_ne_zero.mpr hε.ne'), inv_neg, neg_smul] at hx₂, },
+      { exact gauge_lt_of_mem_smul x ε hε zero_mem hC hC₂ hx₁, } },
     { dsimp,
       have : x₀ ∈ f.domain := submodule.mem_span_singleton_self _,
-      rw [←submodule.coe_mk x₀ this, hφ₁],
-      convert linear_pmap.mk_span_singleton_apply x₀ (1 : ℝ) _ (1 : ℝ) _; rw one_smul,
-      exact this },
+      rw [←submodule.coe_mk x₀ this, hφ₁, ← hfx₀],
+      congr,
+      rw one_smul, },
     { exact λ x hx, (hφ₂ x).trans_lt (gauge_lt_one_of_mem_of_open hC zero_mem hC₂ _ hx) } },
-  { rintro c hc x,
-    rw [gauge_smul_of_nonneg (le_of_lt hc), smul_eq_mul],
-    apply_instance },
+  { simp_rw ← smul_eq_mul,
+    exact λ c hc x, gauge_smul_of_nonneg hc.le x, },
   { exact gauge_add_le hC (absorbent_nhds_zero (hC₂.mem_nhds zero_mem)) },
   { rintro ⟨x, hx⟩,
     obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
@@ -142,8 +130,12 @@ begin
     { rw [gauge_smul_of_nonneg h.le, smul_eq_mul, le_mul_iff_one_le_right h],
       exact one_le_gauge_of_not_mem hC zero_mem hC₂ hx₀,
       apply_instance },
-    exact h.trans (gauge_nonneg _) }
+    { exact h.trans (gauge_nonneg _) } }
 end
+
+end
+
+variables [normed_group E] [normed_space ℝ E]
 
 /-- A version of the Hahn-Banach theorem: given disjoint convex sets `A`, `B` where `A` is open,
 there is a continuous linear functional which separates them. -/

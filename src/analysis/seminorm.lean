@@ -512,6 +512,53 @@ begin
   exact convex_Inter (λ i, convex_Inter (λ (hi : _ < _), hs.smul _)),
 end
 
+section linear_ordered_field
+variables {α : Type*} [linear_ordered_field α] [mul_action_with_zero α ℝ] [ordered_smul α ℝ]
+
+lemma gauge_smul_of_nonneg [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E}
+  {r : α} (hr : 0 ≤ r) (x : E) :
+  gauge s (r • x) = r • gauge s x :=
+begin
+  obtain rfl | hr' := hr.eq_or_lt,
+  { rw [zero_smul, gauge_zero, zero_smul] },
+  rw [gauge_def', gauge_def', ←real.Inf_smul_of_nonneg hr],
+  congr' 1,
+  ext β,
+  simp_rw [set.mem_smul_set, set.mem_sep_eq],
+  split,
+  { rintro ⟨hβ, hx⟩,
+    simp_rw [mem_Ioi] at ⊢ hβ,
+    have := smul_pos (inv_pos.2 hr') hβ,
+    refine ⟨r⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hr'.ne' _⟩,
+    rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
+    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv₀],
+    { exact this.ne' },
+    { exact hβ.ne' } },
+  { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
+    rw mem_Ioi at ⊢ hβ,
+    have := smul_pos hr' hβ,
+    refine ⟨this, _⟩,
+    rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
+    rw smul_assoc,
+    exact smul_mem_smul_set hx,
+    { exact this.ne' },
+    { exact hβ.ne'} }
+end
+
+/-- In textbooks, this is the homogeneity of the Minkowksi functional. -/
+lemma gauge_smul [module α E] [is_scalar_tower α ℝ (set E)] {s : set E}
+  (symmetric : ∀ x ∈ s, -x ∈ s) (r : α) (x : E) :
+  gauge s (r • x) = abs r • gauge s x :=
+begin
+  rw ←gauge_smul_of_nonneg (abs_nonneg r),
+  obtain h | h := abs_choice r,
+  { rw h },
+  { rw [h, neg_smul, gauge_neg symmetric] },
+  { apply_instance }
+end
+
+end linear_ordered_field
+
 section topological_space
 variables [topological_space E] [has_continuous_smul ℝ E]
 
@@ -561,51 +608,19 @@ begin
   exact le_of_not_lt hx
 end
 
+lemma gauge_lt_of_mem_smul (x : E) (ε : ℝ) (hε : 0 < ε) {C : set E} (zero_mem : (0:E) ∈ C)
+  (hC : convex ℝ C) (hC₂ : is_open C) (hx : x ∈ ε • C) :
+  gauge C x < ε :=
+begin
+  have : ε⁻¹ • x ∈ C,
+  { rwa ←mem_smul_set_iff_inv_smul_mem₀ hε.ne' },
+  have h_gauge_lt := gauge_lt_one_of_mem_of_open hC zero_mem hC₂ (ε⁻¹ • x) this,
+  rwa [gauge_smul_of_nonneg (inv_nonneg.2 hε.le), smul_eq_mul, inv_mul_lt_iff hε, mul_one]
+    at h_gauge_lt,
+  apply_instance
+end
+
 end topological_space
-
-variables {α : Type*} [linear_ordered_field α] [mul_action_with_zero α ℝ] [ordered_smul α ℝ]
-
-lemma gauge_smul_of_nonneg [mul_action_with_zero α E] [is_scalar_tower α ℝ (set E)] {s : set E}
-  {r : α} (hr : 0 ≤ r) (x : E) :
-  gauge s (r • x) = r • gauge s x :=
-begin
-  obtain rfl | hr' := hr.eq_or_lt,
-  { rw [zero_smul, gauge_zero, zero_smul] },
-  rw [gauge_def', gauge_def', ←real.Inf_smul_of_nonneg hr],
-  congr' 1,
-  ext β,
-  simp_rw [set.mem_smul_set, set.mem_sep_eq],
-  split,
-  { rintro ⟨hβ, hx⟩,
-    simp_rw [mem_Ioi] at ⊢ hβ,
-    have := smul_pos (inv_pos.2 hr') hβ,
-    refine ⟨r⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hr'.ne' _⟩,
-    rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
-    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv₀],
-    { exact this.ne' },
-    { exact hβ.ne' } },
-  { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
-    rw mem_Ioi at ⊢ hβ,
-    have := smul_pos hr' hβ,
-    refine ⟨this, _⟩,
-    rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
-    rw smul_assoc,
-    exact smul_mem_smul_set hx,
-    { exact this.ne' },
-    { exact hβ.ne'} }
-end
-
-/-- In textbooks, this is the homogeneity of the Minkowksi functional. -/
-lemma gauge_smul [module α E] [is_scalar_tower α ℝ (set E)] {s : set E}
-  (symmetric : ∀ x ∈ s, -x ∈ s) (r : α) (x : E) :
-  gauge s (r • x) = abs r • gauge s x :=
-begin
-  rw ←gauge_smul_of_nonneg (abs_nonneg r),
-  obtain h | h := abs_choice r,
-  { rw h },
-  { rw [h, neg_smul, gauge_neg symmetric] },
-  { apply_instance }
-end
 
 lemma gauge_add_le (hs : convex ℝ s) (absorbs : absorbent ℝ s) (x y : E) :
   gauge s (x + y) ≤ gauge s x + gauge s y :=

@@ -180,6 +180,8 @@ end
 
 section eq_prod_embeddings
 
+variable {K}
+
 open intermediate_field intermediate_field.adjoin_simple polynomial
 
 variables (E : Type*) [field E] [algebra K E] [is_scalar_tower K L F]
@@ -220,6 +222,8 @@ begin
     simp only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
          is_scalar_tower.coe_to_alg_hom'] }
 end
+
+variable (K)
 
 lemma norm_eq_prod_embeddings [finite_dimensional K L] [is_separable K L] [is_alg_closed E]
   {x : L} : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=

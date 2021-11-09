@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import category_theory.limits.has_limits
+import category_theory.limits.shapes.products
+import category_theory.limits.shapes.equalizers
 
 /-!
 
@@ -160,6 +162,25 @@ def multicospan : walking_multicospan I.fst_to I.snd_to ⥤ C :=
 @[simp] lemma multicospan_map_snd (b) :
   I.multicospan.map (walking_multicospan.hom.snd b) = I.snd b := rfl
 
+variables [has_product I.left] [has_product I.right]
+
+noncomputable
+def fst_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.fst_to b) ≫ I.fst b)
+
+noncomputable
+def snd_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.snd_to b) ≫ I.snd b)
+
+@[simp, reassoc]
+lemma fst_product_map_π (b) : I.fst_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.fst b :=
+by simp [fst_pi_map]
+
+@[simp, reassoc]
+lemma snd_product_map_π (b) : I.snd_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.snd b :=
+by simp [snd_pi_map]
+
+@[simps] protected noncomputable
+def parallel_pair := parallel_pair I.fst_pi_map I.snd_pi_map
+
 end multicospan_index
 
 namespace multispan_index
@@ -200,7 +221,7 @@ variables {C : Type u} [category.{v} C]
 
 /-- A multifork is a cone over a multicospan. -/
 @[nolint has_inhabited_instance]
-def multifork (I : multicospan_index C) := cone I.multicospan
+abbreviation multifork (I : multicospan_index C) := cone I.multicospan
 
 /-- A multicofork is a cocone over a multispan. -/
 @[nolint has_inhabited_instance]
@@ -249,7 +270,88 @@ def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
 lemma condition (b) :
   K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b := by simp
 
+variables [has_product I.left] [has_product I.right]
+
+@[simp, reassoc]
+lemma pi_condition :
+  pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map := by { ext, simp }
+
+@[simps X] noncomputable
+def to_pi_fork (K : multifork I) : fork I.fst_pi_map I.snd_pi_map :=
+{ X := K.X,
+  π :=
+  { app := λ x,
+    match x with
+    | walking_parallel_pair.zero := pi.lift K.ι
+    | walking_parallel_pair.one := pi.lift K.ι ≫ I.fst_pi_map
+    end,
+    naturality' :=
+    begin
+      rintros (_|_) (_|_) (_|_|_),
+      any_goals { symmetry, dsimp, rw category.id_comp, apply category.comp_id },
+      all_goals { change 𝟙 _ ≫ _ ≫ _ = pi.lift _ ≫ _, simp }
+    end } }
+
+section end
+
+@[simp] lemma to_pi_fork_π_app_zero :
+  K.to_pi_fork.π.app walking_parallel_pair.zero = pi.lift K.ι := rfl
+
+@[simp] lemma to_pi_fork_π_app_one :
+  K.to_pi_fork.π.app walking_parallel_pair.one = pi.lift K.ι ≫ I.fst_pi_map := rfl
+
+variable (I)
+
+@[simps X] noncomputable
+def of_pi_fork (c : fork I.fst_pi_map I.snd_pi_map) : multifork I :=
+{ X := c.X,
+  π :=
+  { app := λ x,
+    match x with
+    | walking_multicospan.left a := c.ι ≫ pi.π _ _
+    | walking_multicospan.right b := c.ι ≫ I.fst_pi_map ≫ pi.π _ _
+    end,
+    naturality' :=
+    begin
+      rintros (_|_) (_|_) (_|_|_),
+      any_goals { symmetry, dsimp, rw category.id_comp, apply category.comp_id },
+      { change 𝟙 _ ≫ _ ≫ _ = (_ ≫ _) ≫ _, simp },
+      { change 𝟙 _ ≫ _ ≫ _ = (_ ≫ _) ≫ _, rw c.condition_assoc, simp }
+    end } }
+
+@[simp] lemma of_pi_fork_π_app_left (c : fork I.fst_pi_map I.snd_pi_map) (a) :
+  (of_pi_fork I c).π.app (walking_multicospan.left a) = c.ι ≫ pi.π _ _ := rfl
+
+@[simp] lemma of_pi_fork_π_app_right (c : fork I.fst_pi_map I.snd_pi_map) (a) :
+  (of_pi_fork I c).π.app (walking_multicospan.right a) = c.ι ≫ I.fst_pi_map ≫ pi.π _ _ := rfl
+
+
 end multifork
+
+namespace multicospan_index
+
+variables (I : multicospan_index C) [has_product I.left] [has_product I.right]
+
+local attribute [tidy] tactic.case_bash
+
+@[simps] noncomputable
+def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
+{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom } }
+
+@[simps] noncomputable
+def of_pi_fork_functor : fork I.fst_pi_map I.snd_pi_map ⥤ multifork I :=
+{ obj := multifork.of_pi_fork I, map := λ K₁ K₂ f, { hom := f.hom, w' := by rintros (_|_); simp } }
+
+@[simps] noncomputable
+def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
+{ functor := to_pi_fork_functor I,
+  inverse := of_pi_fork_functor I,
+  unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _) (by rintros (_|_); dsimp; simp))
+    (λ K₁ K₂ f, by { ext, simp }),
+  counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
+    (λ K₁ K₂ f, by { ext, simp }) }
+
+end multicospan_index
 
 namespace multicofork
 
@@ -367,6 +469,11 @@ begin
   simp_rw [← limit.w I.multicospan (walking_multicospan.hom.fst b),
     ← category.assoc, h],
 end
+
+variables [has_product I.left] [has_product I.right] [has_equalizer I.fst_pi_map I.snd_pi_map]
+
+def iso_equalizer : multiequalizer I ≅ equalizer I.fst_pi_map I.snd_pi_map :=
+has_limit.iso_of_equivalence I.multifork_equiv_pi_fork _
 
 end multiequalizer
 

@@ -39,6 +39,10 @@ by { haveI := @has_finite_products.out C _ _ J (classical.dec_eq _), apply_insta
 instance has_finite_products_of_has_finite_limits [has_finite_limits C] : has_finite_products C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
 
+instance has_fin_products [has_finite_products C] (n : ℕ) :
+  has_limits_of_shape (discrete (fin n)) C :=
+has_limits_of_shape_of_equivalence (discrete.equivalence (show ulift.{v} (fin n) ≃ fin n, by tidy))
+
 /--
 If a category has all products then in particular it has finite products.
 -/
@@ -64,6 +68,11 @@ by { haveI := @has_finite_coproducts.out C _ _ J (classical.dec_eq _), apply_ins
 instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
   has_finite_coproducts C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
+
+instance has_fin_coproducts [has_finite_coproducts C] (n : ℕ) :
+  has_colimits_of_shape (discrete (fin n)) C :=
+has_colimits_of_shape_of_equivalence
+  (discrete.equivalence (show ulift.{v} (fin n) ≃ fin n, by tidy))
 
 /--
 If a category has all coproducts then in particular it has finite coproducts.

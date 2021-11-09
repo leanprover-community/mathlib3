@@ -29,23 +29,59 @@ We provide many variations to stricten the result under more assumptions on the 
 open set
 open_locale pointwise
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {𝕜 E : Type*}
 
-lemma continuous_at_of_exists_open (f : E →ₗ[ℝ] ℝ)
-  (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0:E) ∈ U ∧ is_open U ∧ ∀ x ∈ U, ∥f x∥ < ε) :
-  continuous_at f (0:E) :=
+lemma continuous_at_of_exists_open [normed_ring 𝕜] [normed_group E] [module 𝕜 E] (f : E →ₗ[𝕜] 𝕜)
+  (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0 : E) ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y∥ < ε) :
+  continuous_at f 0 :=
 begin
   intros U hU,
   rw metric.nhds_basis_ball.1 at hU,
   rcases hU with ⟨ε, hε₁, hε₂⟩,
-  simp only [linear_map.map_zero] at hε₂,
   simp only [filter.mem_map],
   obtain ⟨V, hV₁, hV₂, hV₃⟩ := hf ε hε₁,
   rw mem_nhds_iff,
-  refine ⟨V, λ x hx, hε₂ _, hV₂, hV₁⟩,
-  simp only [metric.mem_ball, dist_zero_right],
-  apply hV₃ _ hx,
+  refine ⟨V, λ y hy, hε₂ _, hV₂, hV₁⟩,
+  rw [metric.mem_ball, f.map_zero, dist_zero_right],
+  exact hV₃ _ hy,
 end
+
+lemma continuous_at_of_exists_open' [normed_ring 𝕜] [normed_group E] [module 𝕜 E] (f : E →ₗ[𝕜] 𝕜) {x : E}
+  (hf : ∀ ε, 0 < ε → ∃ (U : set E), x ∈ U ∧ is_open U ∧ ∀ y ∈ U, ∥f y - f x∥ < ε) :
+  continuous_at f x :=
+begin
+  intros U hU,
+  rw metric.nhds_basis_ball.1 at hU,
+  rcases hU with ⟨ε, hε₁, hε₂⟩,
+  simp only [filter.mem_map],
+  obtain ⟨V, hV₁, hV₂, hV₃⟩ := hf ε hε₁,
+  rw mem_nhds_iff,
+  refine ⟨V, λ y hy, hε₂ _, hV₂, hV₁⟩,
+  rw [metric.mem_ball, dist_eq_norm],
+  exact hV₃ _ hy,
+end
+
+/-- A nonzero continuous linear functional is open. -/
+lemma nonzero_linear_map_is_open_map [topological_space 𝕜] [division_ring 𝕜]
+  [topological_ring 𝕜] [add_comm_group E] [topological_space E] [topological_add_group E]
+  [module 𝕜 E] [has_continuous_smul 𝕜 E] (f : E →L[𝕜] 𝕜) (hf : f ≠ 0) :
+  is_open_map f :=
+begin
+  obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ ≠ 0,
+  { by_contra h,
+    push_neg at h,
+    exact hf (continuous_linear_map.ext (λ x, by simp [h]) )},
+  intros A hA,
+  rw is_open_iff_mem_nhds,
+  rintro _ ⟨a, ha, rfl⟩,
+  let g : 𝕜 → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
+  have := (show continuous g, by continuity).is_open_preimage _ ‹is_open A›,
+  rw is_open_iff_mem_nhds at this,
+  exact filter.sets_of_superset _ (this (f a) (by simpa [set.mem_preimage, g]))
+    (λ x hx, ⟨_, hx, by simp [hx₀]⟩),
+end
+
+variables [normed_group E] [normed_space ℝ E]
 
 /-- Given a set `C` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x₀` and `C`, in the sense that it sends `x₀` to 1 and
@@ -108,25 +144,6 @@ begin
     exact h.trans (gauge_nonneg _) }
 end
 
-/-- A nonzero continuous linear functional is open. -/
-lemma nonzero_linear_map_is_open_map {E : Type*} [add_comm_group E] [topological_space E]
-  [topological_add_group E] [module ℝ E] [has_continuous_smul ℝ E] (f : E →L[ℝ] ℝ) (hf : f ≠ 0) :
-  is_open_map f :=
-begin
-  obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ ≠ 0,
-  { by_contra h,
-    push_neg at h,
-    exact hf (continuous_linear_map.ext (λ x, by simp [h]) )},
-  intros A hA,
-  rw is_open_iff_mem_nhds,
-  rintro _ ⟨a, ha, rfl⟩,
-  let g : ℝ → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
-  have := (show continuous g, by continuity).is_open_preimage _ ‹is_open A›,
-  rw is_open_iff_mem_nhds at this,
-  exact filter.sets_of_superset _ (this (f a) (by simpa [set.mem_preimage, g]))
-    (λ x hx, ⟨_, hx, by simp [hx₀]⟩),
-end
-
 /-- A version of the Hahn-Banach theorem: given disjoint convex sets `A`, `B` where `A` is open,
 there is a continuous linear functional which separates them. -/
 theorem geometric_hahn_banach_open {A B : set E}
@@ -167,7 +184,7 @@ begin
       { rintro _ ⟨b', hb, rfl⟩,
         exact (forall_lt _ ha _ hb).le },
       { exact mem_image_of_mem _ hb₀ } },
-    apply nonzero_linear_map_is_open_map _ _ _ hA₂,
+    refine nonzero_linear_map_is_open_map _ _ _ hA₂,
     rintro rfl,
     simpa using hf₁ },
   { intros b hb,

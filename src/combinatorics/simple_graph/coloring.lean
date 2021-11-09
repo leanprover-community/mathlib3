@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Arthur Paulino. All rights reserved.
+Copyright (c) 2021 Arthur Paulino. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Kyle Miller
 -/
@@ -86,8 +86,6 @@ begin
     simp only [complete_graph_eq_top, top_adj, subtype.mk_eq_mk, ne.def],
     exact C.valid v w hvw, },
 end
-
-example [fintype α] (r : set α) : fintype (set α) := by library_search
 
 -- may eliminate `proper_coloring.size`'s requirement if we have a finite number of colors
 lemma fin_colors_then_fin_size [fintype α] (C : G.proper_coloring α) : fintype C.used_colors :=

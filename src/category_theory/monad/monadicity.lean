@@ -294,7 +294,7 @@ def monadic_of_creates_G_split_coequalizers
 begin
   letI : ∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_colimit (parallel_pair f g ⋙ G),
   { introsI A B f g i,
-    apply has_colimit_of_iso (diagram_iso_parallel_pair _),
+    apply has_colimit_of_iso (diagram_iso_parallel_pair.{v₁} _),
     change has_coequalizer (G.map f) (G.map g),
     apply_instance },
   apply monadic_of_has_preserves_reflects_G_split_coequalizers _,

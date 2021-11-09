@@ -106,7 +106,7 @@ private lemma has_product_ulift_fin :
   Π (n : ℕ) (f : ulift (fin n) → C), has_product f
 | 0 := λ f,
   begin
-    letI : has_limits_of_shape (discrete (ulift (fin 0))) C :=
+    letI : has_limits_of_shape (discrete (ulift.{v} (fin 0))) C :=
       has_limits_of_shape_of_equivalence
         (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm),
     apply_instance,
@@ -124,7 +124,7 @@ This is a helper lemma for `has_finite_products_of_has_binary_and_terminal`, whi
 than this.
 -/
 private lemma has_limits_of_shape_ulift_fin (n : ℕ) :
-  has_limits_of_shape (discrete (ulift (fin n))) C :=
+  has_limits_of_shape (discrete (ulift.{v} (fin n))) C :=
 { has_limit := λ K,
 begin
   letI := has_product_ulift_fin n K.obj,
@@ -284,7 +284,7 @@ private lemma has_coproduct_ulift_fin :
   Π (n : ℕ) (f : ulift (fin n) → C), has_coproduct f
 | 0 := λ f,
   begin
-    letI : has_colimits_of_shape (discrete (ulift (fin 0))) C :=
+    letI : has_colimits_of_shape (discrete (ulift.{v} (fin 0))) C :=
       has_colimits_of_shape_of_equivalence
         (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm),
     apply_instance,
@@ -303,7 +303,7 @@ This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, w
 than this.
 -/
 private lemma has_colimits_of_shape_ulift_fin (n : ℕ) :
-  has_colimits_of_shape (discrete (ulift (fin n))) C :=
+  has_colimits_of_shape (discrete (ulift.{v} (fin n))) C :=
 { has_colimit := λ K,
 begin
   letI := has_coproduct_ulift_fin n K.obj,

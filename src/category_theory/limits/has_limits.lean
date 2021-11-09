@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.is_limit
+import category_theory.category.ulift
 
 /-!
 # Existence of limits and colimits
@@ -101,7 +102,7 @@ class has_limits_of_size : Prop :=
 /-- `C` has all (small) limits if it has limits of every shape that is as big as its hom-sets. -/
 abbreviation has_limits (C : Type u) [category.{v} C] : Prop := has_limits_of_size.{v v} C
 
-abbreviation has_limits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
+lemma has_limits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
   (J : Type v) [category.{v} J] :
   has_limits_of_shape J C := has_limits_of_size.has_limits_of_shape J
 
@@ -479,6 +480,15 @@ lemma has_limits_of_shape_of_equivalence {J' : Type u₂} [category.{v₂} J']
   (e : J ≌ J') [has_limits_of_shape J C] : has_limits_of_shape J' C :=
 by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance }
 
+lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
+  has_limits_of_size.{v₂ u₂} C :=
+⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence
+  (ulift_hom_ulift_category.equiv.{v₁ u₁} J).symm⟩
+
+@[priority 100]
+instance has_smallest_limits_of_has_limits [has_limits C] :
+  has_limits_of_size.{0 0} C := has_limits_of_size_shrink
+
 end limit
 
 
@@ -521,7 +531,7 @@ class has_colimits_of_size : Prop :=
 -/
 abbreviation has_colimits (C : Type u) [category.{v} C] : Prop := has_colimits_of_size.{v v} C
 
-abbreviation has_colimits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
+lemma has_colimits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
   (J : Type v) [category.{v} J] :
   has_limits_of_shape J C := has_limits_of_size.has_limits_of_shape J
 
@@ -941,6 +951,15 @@ We can transport colimits of shape `J` along an equivalence `J ≌ J'`.
 lemma has_colimits_of_shape_of_equivalence {J' : Type u₂} [category.{v₂} J']
   (e : J ≌ J') [has_colimits_of_shape J C] : has_colimits_of_shape J' C :=
 by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instance }
+
+lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
+  has_colimits_of_size.{v₂ u₂} C :=
+⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence
+  (ulift_hom_ulift_category.equiv.{v₁ u₁} J).symm⟩
+
+@[priority 100]
+instance has_smallest_colimits_of_has_colimits [has_colimits C] :
+  has_colimits_of_size.{0 0} C := has_colimits_of_size_shrink
 
 end colimit
 

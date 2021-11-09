@@ -176,4 +176,17 @@ is_filtered.of_equivalence as_small.equiv
 instance [is_cofiltered C] : is_cofiltered (as_small C) :=
 is_cofiltered.of_equivalence as_small.equiv
 
+/-- The equivalence between `C` and `ulift C`. -/
+def {u' v u} ulift_category.equiv (C : Type u) [category.{v} C] :
+  C ≌ ulift.{u'} C :=
+{ functor := { obj := _root_.ulift.up, map := λ _ _, id },
+  inverse := { obj := _root_.ulift.down, map := λ _ _, id },
+  unit_iso := nat_iso.of_components iso.refl (by tidy),
+  counit_iso := nat_iso.of_components (λ X, eq_to_iso (ulift.up_down _)) (by tidy) }
+
+/-- The equivalence between `C` and `ulift_hom (ulift C)`. -/
+def {v' u' v u} ulift_hom_ulift_category.equiv (C : Type u) [category.{v} C] :
+  C ≌ ulift_hom.{v'} (ulift.{u'} C) :=
+(ulift_category.equiv C).trans ulift_hom.equiv
+
 end category_theory

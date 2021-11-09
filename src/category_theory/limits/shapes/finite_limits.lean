@@ -39,9 +39,13 @@ instance has_limits_of_shape_of_has_finite_limits
   (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
   has_limits_of_shape J C := has_finite_limits.out J
 
+@[priority 100]
+instance has_finite_limits_of_has_smallest_limits [has_limits_of_size.{0 0} C] :
+  has_finite_limits C :=
+⟨λ J hJ hJ', by exactI has_limits_of_shape_of_equivalence (fin_category.equiv_as_type J)⟩
+
 /-- If `C` has all limits, it has finite limits. -/
-lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
-⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
+lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C := infer_instance
 
 /--
 A category has all finite colimits if every functor `J ⥤ C` with a `fin_category J` instance
@@ -57,9 +61,14 @@ instance has_limits_of_shape_of_has_finite_colimits
   (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C := has_finite_colimits.out J
 
+@[priority 100]
+instance has_finite_colimits_of_has_smallest_colimits [has_colimits_of_size.{0 0} C] :
+  has_finite_colimits C :=
+⟨λ J hJ hJ', by exactI has_colimits_of_shape_of_equivalence (fin_category.equiv_as_type J)⟩
+
 /-- If `C` has all colimits, it has finite colimits. -/
 lemma has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
-⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
+infer_instance
 
 section
 

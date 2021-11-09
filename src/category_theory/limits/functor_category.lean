@@ -154,9 +154,9 @@ instance functor_category_has_colimits_of_shape
   { cocone := combine_cocones _ (λ k, get_colimit_cocone _),
     is_colimit := combined_is_colimit _ _ } }
 
-instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) := {}
+instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) := ⟨infer_instance⟩
 
-instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) := {}
+instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) := ⟨infer_instance⟩
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=

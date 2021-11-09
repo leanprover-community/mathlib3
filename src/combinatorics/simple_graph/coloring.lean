@@ -93,13 +93,21 @@ begin
   sorry
 end
 
+lemma exists_coloring_then_colorable [fintype α] (C : G.proper_coloring α) :
+  G.colorable (fintype.card α) :=
+begin
+  sorry
+end
+
 lemma chromatic_number_le [fintype α] (C : G.proper_coloring α) :
   G.chromatic_number ≤ fintype.card α :=
 begin
   rw chromatic_number,
   apply cInf_le,
-  { sorry, },
-  { sorry, },
+  { use 0,
+    rintros _ _,
+    simp only [zero_le], },
+  { simp [exists_coloring_then_colorable C], },
 end
 
 lemma chromatic_number_lower_bound (G' : simple_graph V) (h : G ≤ G') :
@@ -112,10 +120,13 @@ lemma zero_le_chromatic_number [nonempty V] [fintype α] (C : G.proper_coloring 
   0 < G.chromatic_number :=
 begin
   rw [nat.lt_iff_add_one_le, chromatic_number, zero_add],
-  let v := classical.arbitrary V, -- coloring this vertex requires at least 1 color
   apply le_cInf,
-  { sorry, },
+  { use fintype.card α,
+    exact exists_coloring_then_colorable C, },
   { intros n hn,
+    let v := classical.arbitrary V, -- coloring this vertex requires at least 1 color
+    by_contra h,
+    simp at h,
     sorry, },
 end
 

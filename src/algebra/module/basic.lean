@@ -6,6 +6,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 import algebra.big_operators.basic
 import algebra.smul_with_zero
 import group_theory.group_action.group
+import tactic.norm_num
 
 /-!
 # Modules over a ring
@@ -167,12 +168,12 @@ section add_comm_group
 variables (R M) [semiring R] [add_comm_group M]
 
 instance add_comm_group.int_module : module ℤ M :=
-{ one_smul := one_gsmul,
-  mul_smul := λ m n a, mul_gsmul a m n,
-  smul_add := λ n a b, gsmul_add a b n,
-  smul_zero := gsmul_zero,
-  zero_smul := zero_gsmul,
-  add_smul := λ r s x, add_gsmul x r s }
+{ one_smul := one_zsmul,
+  mul_smul := λ m n a, mul_zsmul a m n,
+  smul_add := λ n a b, zsmul_add a b n,
+  smul_zero := zsmul_zero,
+  zero_smul := zero_zsmul,
+  add_smul := λ r s x, add_zsmul x r s }
 
 /-- A structure containing most informations as in a module, except the fields `zero_smul`
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
@@ -328,43 +329,24 @@ variables [semiring S] [ring R] [add_comm_group M] [module S M] [module R M]
 
 section
 variables (R)
-/-- `gsmul` is equal to any other module structure via a cast. -/
-lemma gsmul_eq_smul_cast (n : ℤ) (b : M) : n • b = (n : R) • b :=
-begin
-  induction n using int.induction_on with p hp n hn,
-  { rw [int.cast_zero, zero_smul, zero_smul] },
-  { rw [int.cast_add, int.cast_one, add_smul, add_smul, one_smul, one_smul, hp] },
-  { rw [int.cast_sub, int.cast_one, sub_smul, sub_smul, one_smul, one_smul, hn] },
-end
+/-- `zsmul` is equal to any other module structure via a cast. -/
+lemma zsmul_eq_smul_cast (n : ℤ) (b : M) : n • b = (n : R) • b :=
+have (smul_add_hom ℤ M).flip b = ((smul_add_hom R M).flip b).comp (int.cast_add_hom R),
+  by { ext, simp },
+add_monoid_hom.congr_fun this n
 end
 
 /-- Convert back any exotic `ℤ`-smul to the canonical instance. This should not be needed since in
 mathlib all `add_comm_group`s should normally have exactly one `ℤ`-module structure by design. -/
-lemma int_smul_eq_gsmul (h : module ℤ M) (n : ℤ) (x : M) :
+lemma int_smul_eq_zsmul (h : module ℤ M) (n : ℤ) (x : M) :
   @has_scalar.smul ℤ M h.to_has_scalar n x = n • x :=
-by rw [gsmul_eq_smul_cast ℤ n x, int.cast_id]
+by rw [zsmul_eq_smul_cast ℤ n x, int.cast_id]
 
 /-- All `ℤ`-module structures are equal. Not an instance since in mathlib all `add_comm_group`
 should normally have exactly one `ℤ`-module structure by design. -/
 def add_comm_group.int_module.unique : unique (module ℤ M) :=
 { default := by apply_instance,
-  uniq := λ P, module_ext P _ $ λ n, int_smul_eq_gsmul P n }
-
-instance add_comm_group.int_is_scalar_tower : is_scalar_tower ℤ R M :=
-{ smul_assoc := λ n x y, int.induction_on n
-    (by simp only [zero_smul])
-    (λ n ih, by simp only [one_smul, add_smul, ih])
-    (λ n ih, by simp only [one_smul, sub_smul, ih]) }
-
-instance add_comm_group.int_smul_comm_class : smul_comm_class ℤ S M :=
-{ smul_comm := λ n x y, int.induction_on n
-    (by simp only [zero_smul, smul_zero])
-    (λ n ih, by simp only [one_smul, add_smul, smul_add, ih])
-    (λ n ih, by simp only [one_smul, sub_smul, smul_sub, ih]) }
-
--- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' : smul_comm_class S ℤ M :=
-smul_comm_class.symm _ _ _
+  uniq := λ P, module_ext P _ $ λ n, int_smul_eq_zsmul P n }
 
 end add_comm_group
 
@@ -372,16 +354,16 @@ namespace add_monoid_hom
 
 lemma map_nat_module_smul [add_comm_monoid M] [add_comm_monoid M₂]
   (f : M →+ M₂) (x : ℕ) (a : M) : f (x • a) = x • f a :=
-by simp only [f.map_nsmul]
+f.map_nsmul a x
 
 lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
-by simp only [f.map_gsmul]
+f.map_zsmul a x
 
 lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
   (x : ℤ) (a : M) : f ((x : R) • a) = (x : S) • f a :=
-by simp only [←gsmul_eq_smul_cast, f.map_gsmul]
+by simp only [←zsmul_eq_smul_cast, f.map_zsmul]
 
 lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂)
   (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂] (x : ℕ) (a : M) :
@@ -449,6 +431,32 @@ lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ri
   [division_ring S] [module R E] [module S E] (r : ℚ) (x : E) :
   (r : R) • x = (r : S) • x :=
 (add_monoid_hom.id E).map_rat_cast_smul R S r x
+
+instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [add_comm_group M]
+  [module R M]: is_scalar_tower ℤ R M :=
+{ smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_int_module_smul n x }
+
+instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [semiring S]
+  [add_comm_group M] [module S M] :
+  smul_comm_class ℤ S M :=
+{ smul_comm := λ n x y, ((smul_add_hom S M x).map_zsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [semiring S]
+  [add_comm_group M] [module S M] : smul_comm_class S ℤ M :=
+smul_comm_class.symm _ _ _
+
+instance is_scalar_tower.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]
+  [module R M] [module ℚ R] [module ℚ M] : is_scalar_tower ℚ R M :=
+{ smul_assoc := λ r x y, ((smul_add_hom R M).flip y).map_rat_module_smul r x }
+
+instance smul_comm_class.rat {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
+  [module R M] [module ℚ M] : smul_comm_class ℚ R M :=
+{ smul_comm := λ r x y, ((smul_add_hom R M x).map_rat_module_smul r y).symm }
+
+instance smul_comm_class.rat' {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
+  [module R M] [module ℚ M] : smul_comm_class R ℚ M :=
+smul_comm_class.symm _ _ _
 
 section no_zero_smul_divisors
 /-! ### `no_zero_smul_divisors`
@@ -584,4 +592,4 @@ by rw [nsmul_eq_mul, mul_one]
 
 @[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
-by rw [gsmul_eq_mul, mul_one]
+by rw [zsmul_eq_mul, mul_one]

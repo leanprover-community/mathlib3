@@ -7,6 +7,7 @@ import analysis.inner_product_space.projection
 import analysis.special_functions.trigonometric.inverse
 import algebra.quadratic_discriminant
 import linear_algebra.affine_space.finite_dimensional
+import analysis.calculus.conformal.normed_space
 
 /-!
 # Euclidean spaces
@@ -473,7 +474,7 @@ by linarith [angle_add_angle_eq_pi_of_angle_eq_pi p1 hbpd, angle_comm p4 p5 p1,
 lemma left_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p1 p2 ≠ 0 :=
 begin
   by_contra heq,
-  rw [not_not, dist_eq_zero] at heq,
+  rw [dist_eq_zero] at heq,
   rw [heq, angle_eq_left] at h,
   exact real.pi_ne_zero (by linarith),
 end

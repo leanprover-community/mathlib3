@@ -243,9 +243,7 @@ lemma trace_eq_trace_adjoin [finite_dimensional K L] (x : L) :
 begin
   rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
   conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
-  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
-      smul_eq_mul, algebra.smul_def],
-  apply_instance
+  rw [trace_algebra_map, linear_map.map_smul_of_tower],
 end
 
 variables {K}
@@ -327,9 +325,9 @@ begin
 end
 
 lemma trace_eq_sum_embeddings [finite_dimensional K L] [is_separable K L]
-  {x : L} (hx : is_integral K x) :
-  algebra_map K E (algebra.trace K L x) = ∑ σ : L →ₐ[K] E, σ x :=
+  {x : L} : algebra_map K E (algebra.trace K L x) = ∑ σ : L →ₐ[K] E, σ x :=
 begin
+  have hx := is_separable.is_integral K x,
   rw [trace_eq_trace_adjoin K x, algebra.smul_def, ring_hom.map_mul, ← adjoin.power_basis_gen hx,
       trace_eq_sum_embeddings_gen E (adjoin.power_basis hx) (is_alg_closed.splits_codomain _),
       ← algebra.smul_def, algebra_map_smul],
@@ -359,15 +357,14 @@ begin
     vandermonde (λ i, e.symm i pb.gen),
   calc algebra_map K (algebraic_closure _) (bilin_form.to_matrix pb.basis (trace_form K L)).det
       = det ((algebra_map K _).map_matrix $
-              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det
+              bilin_form.to_matrix pb.basis (trace_form K L)) : ring_hom.map_det _ _
   ... = det (Mᵀ ⬝ M) : _
   ... = det M * det M : by rw [det_mul, det_transpose]
   ... ≠ 0 : mt mul_self_eq_zero.mp _,
   { refine congr_arg det _, ext i j,
     rw [vandermonde_transpose_mul_vandermonde, ring_hom.map_matrix_apply, matrix.map_apply,
         bilin_form.to_matrix_apply, pb.basis_eq_pow, pb.basis_eq_pow, trace_form_apply,
-        ← pow_add, trace_eq_sum_embeddings (algebraic_closure L) (pb.is_integral_gen.pow _),
-        fintype.sum_equiv e],
+        ← pow_add, trace_eq_sum_embeddings (algebraic_closure L), fintype.sum_equiv e],
     intros σ,
     rw [e.symm_apply_apply, σ.map_pow] },
   { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],

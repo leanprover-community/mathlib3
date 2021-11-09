@@ -12,14 +12,16 @@ import data.bool
 import tactic.binder_matching
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import tactic.project_dir
 import system.io
 
-universe variable u
+universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
+-- Rather than import order.lexicographic here, we can get away with defining the order by hand.
 instance : has_lt pos :=
-{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+{ lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
 
 namespace tactic
 
@@ -1886,9 +1888,9 @@ It does *not* use the `namespace` command, so it will typically be used after
 meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") :
   lean.parser unit :=
 emit_code_here "
-open lean
-open lean.parser
-open interactive interactive.types
+open _root_.lean
+open _root_.lean.parser
+open _root_.interactive _root_.interactive.types
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
@@ -2111,7 +2113,7 @@ See `proof_state`, `goal` and `get_proof_state`.
 meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
 try_core $ retrieve $ tac >> get_proof_state
 
-open lean interactive
+open lean _root_.interactive
 
 /-- A type alias for `tactic format`, standing for "pretty print format". -/
 meta def pformat := tactic format
@@ -2189,11 +2191,20 @@ meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
 
+/-- A hackish way to get the `src` directory of any project.
+  Requires as argument any declaration name `n` in that project, and `k`, the number of characters
+  in the path of the file where `n` is declared not part of the `src` directory.
+  Example: For `mathlib_dir_locator` this is the length of `tactic/project_dir.lean`, so `23`.
+  Note: does not work in the file where `n` is declared. -/
+meta def get_project_dir (n : name) (k : ℕ) : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean n <|>
+fail!"Did not find declaration {n}. This command does not work in the file where {n} is declared.",
+  return $ s.popn_back k
+
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
-do e ← get_env,
-  s ← e.decl_olean `tactic.reset_instance_cache,
-  return $ s.popn_back 17
+get_project_dir `mathlib_dir_locator 23
 
 /-- Checks whether a declaration with the given name is declared in mathlib.
 If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,

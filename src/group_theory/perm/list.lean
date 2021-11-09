@@ -282,14 +282,14 @@ begin
       rw [length_reverse, ←nat.succ_le_iff, nat.succ_eq_add_one] at hk,
       cases hk.eq_or_lt with hk' hk',
       { simp [←hk'] },
-      { rw [length_reverse, nat.mod_eq_of_lt hk', ←nat.sub_add_comm (nat.le_pred_of_lt hk'),
+      { rw [length_reverse, nat.mod_eq_of_lt hk', tsub_add_eq_add_tsub (nat.le_pred_of_lt hk'),
             nat.mod_eq_of_lt],
         { simp },
-        { rw nat.sub_add_cancel,
-          refine sub_lt_self' _ (nat.zero_lt_succ _),
+        { rw tsub_add_cancel_of_le,
+          refine tsub_lt_self _ (nat.zero_lt_succ _),
           all_goals { simpa using (nat.zero_le _).trans_lt hk' } } } },
-    all_goals { rw [nat.sub_sub, ←length_reverse],
-      refine sub_lt_self' _ (zero_lt_one.trans_le (le_add_right le_rfl)),
+    all_goals { rw [← tsub_add_eq_tsub_tsub, ←length_reverse],
+      refine tsub_lt_self _ (zero_lt_one.trans_le (le_add_right le_rfl)),
       exact k.zero_le.trans_lt hk } },
 end
 
@@ -420,14 +420,14 @@ begin
     { simp [-form_perm_cons_cons, form_perm_ext_iff hl hl'] } }
 end
 
-lemma form_perm_gpow_apply_mem_imp_mem (l : list α) (x : α) (hx : x ∈ l) (n : ℤ) :
+lemma form_perm_zpow_apply_mem_imp_mem (l : list α) (x : α) (hx : x ∈ l) (n : ℤ) :
   ((form_perm l) ^ n) x ∈ l :=
 begin
   by_cases h : (l.form_perm ^ n) x = x,
   { simpa [h] using hx },
   { have : x ∈ {x | (l.form_perm ^ n) x ≠ x} := h,
     rw ←set_support_apply_mem at this,
-    replace this := set_support_gpow_subset _ _ this,
+    replace this := set_support_zpow_subset _ _ this,
     simpa using support_form_perm_le' _ this }
 end
 
@@ -441,7 +441,7 @@ begin
   { have : x ∉ {x | (l.form_perm ^ l.length) x ≠ x},
     { intros H,
       refine hx _,
-      replace H := set_support_gpow_subset l.form_perm l.length H,
+      replace H := set_support_zpow_subset l.form_perm l.length H,
       simpa using support_form_perm_le' _ H },
     simpa }
 end

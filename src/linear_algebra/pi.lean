@@ -302,7 +302,7 @@ Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings]. -/
 def pi_ring : ((ι → R) →ₗ[R] M) ≃ₗ[S] (ι → M) :=
 (linear_map.lsum R (λ i : ι, R) S).symm.trans
-  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R M S)
+  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R S M)
 
 variables {ι R M}
 
@@ -332,6 +332,14 @@ def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoi
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inl a) = f a := rfl
 @[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inr {α β} (f : α → M) (g : β → M) (b : β) :
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
+
+/-- If `ι` has a unique element, then `ι → M` is linearly equivalent to `M`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def fun_unique (ι R M : Type*) [unique ι] [semiring R] [add_comm_monoid M] [module R M] :
+  (ι → M) ≃ₗ[R] M :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. equiv.fun_unique ι M }
 
 end linear_equiv
 

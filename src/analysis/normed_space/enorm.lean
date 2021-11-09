@@ -47,9 +47,9 @@ namespace enorm
 variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [module 𝕜 V]
   (e : enorm 𝕜 V)
 
-instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
+instance : has_coe_to_fun (enorm 𝕜 V) (λ _, V → ℝ≥0∞) := ⟨enorm.to_fun⟩
 
-lemma coe_fn_injective : @function.injective (enorm 𝕜 V) (V → ℝ≥0∞) coe_fn :=
+lemma coe_fn_injective : function.injective (coe_fn : enorm 𝕜 V → (V → ℝ≥0∞)) :=
 λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
@@ -58,7 +58,7 @@ coe_fn_injective $ funext h
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
-@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = nnnorm c * e x :=

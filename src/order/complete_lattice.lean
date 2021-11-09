@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.bounds
 import data.set.bool
+import data.nat.basic
 
 /-!
 # Theory of complete lattices
@@ -1052,6 +1053,14 @@ theorem infi_option (f : option β → α) :
   (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
 @supr_option (order_dual α) _ _ _
 
+/-- A version of `supr_option` useful for rewriting right-to-left. -/
+lemma supr_option_elim (a : α) (f : β → α) : (⨆ o : option β, o.elim a f) = a ⊔ ⨆ b, f b :=
+by simp [supr_option]
+
+/-- A version of `infi_option` useful for rewriting right-to-left. -/
+lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
+@supr_option_elim (order_dual α) _ _ _ _
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/
@@ -1060,7 +1069,7 @@ lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = 
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
-  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw nat.sub_add_cancel hi }⟩ },
+  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw tsub_add_cancel_of_le hi }⟩ },
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
@@ -1325,7 +1334,7 @@ lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   independent t :=
 λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
 
-/-- Composing an indepedent indexed family with an injective function on the index results in
+/-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
 lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
@@ -1334,6 +1343,20 @@ lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
   exact supr_le_supr_const hf.ne,
 end
+
+/-- Composing an indepedent indexed family with an order isomorphism on the elements results in
+another indepedendent indexed family. -/
+lemma independent.map_order_iso {ι : Sort*} {α β : Type*}
+  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} (ha : independent a) :
+  independent (f ∘ a) :=
+λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr2 _)
+
+@[simp] lemma independent_map_order_iso_iff {ι : Sort*} {α β : Type*}
+  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} :
+  independent (f ∘ a) ↔ independent a :=
+⟨ λ h, have hf : f.symm ∘ f ∘ a = a := congr_arg (∘ a) f.left_inv.comp_eq_id,
+      hf ▸ h.map_order_iso f.symm,
+  λ h, h.map_order_iso f⟩
 
 /-- If the elements of a set are independent, then any element is disjoint from the `supr` of some
 subset of the rest. -/

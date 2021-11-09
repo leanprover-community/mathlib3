@@ -73,8 +73,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
 include m
 
-instance : has_coe_to_fun (vector_measure α M) :=
-⟨λ _, set α → M, vector_measure.measure_of'⟩
+instance : has_coe_to_fun (vector_measure α M) (λ _, set α → M) :=
+⟨vector_measure.measure_of'⟩
 
 initialize_simps_projections vector_measure (measure_of' → apply)
 
@@ -543,6 +543,64 @@ begin
   { ext i hi,
     rw [map_apply _ hf hi, zero_apply, zero_apply] },
   { exact dif_neg hf }
+end
+
+section
+
+variables {N : Type*} [add_comm_monoid N] [topological_space N]
+
+/-- Given a vector measure `v` on `M` and a continuous add_monoid_hom `f : M → N`, `f ∘ v` is a
+vector measure on `N`. -/
+def map_range (v : vector_measure α M) (f : M →+ N) (hf : continuous f) : vector_measure α N :=
+{ measure_of' := λ s, f (v s),
+  empty' := by rw [empty, add_monoid_hom.map_zero],
+  not_measurable' := λ i hi, by rw [not_measurable v hi, add_monoid_hom.map_zero],
+  m_Union' := λ g hg₁ hg₂, has_sum.map (v.m_Union hg₁ hg₂) f hf }
+
+@[simp] lemma map_range_apply {f : M →+ N} (hf : continuous f) {s : set α} :
+  v.map_range f hf s = f (v s) :=
+rfl
+
+@[simp] lemma map_range_id :
+  v.map_range (add_monoid_hom.id M) continuous_id = v :=
+by { ext, refl }
+
+@[simp] lemma map_range_zero {f : M →+ N} (hf : continuous f) :
+  map_range (0 : vector_measure α M) f hf = 0 :=
+by { ext, simp }
+
+section has_continuous_add
+
+variables [has_continuous_add M] [has_continuous_add N]
+
+@[simp] lemma map_range_add {v w : vector_measure α M} {f : M →+ N} (hf : continuous f) :
+  (v + w).map_range f hf = v.map_range f hf + w.map_range f hf :=
+by { ext, simp }
+
+/-- Given a continuous add_monoid_hom `f : M → N`, `map_range_hom` is the add_monoid_hom mapping the
+vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
+def map_range_hom (f : M →+ N) (hf : continuous f) : vector_measure α M →+ vector_measure α N :=
+{ to_fun := λ v, v.map_range f hf,
+  map_zero' := map_range_zero hf,
+  map_add' := λ _ _, map_range_add hf }
+
+end has_continuous_add
+
+section module
+
+variables {R : Type*} [semiring R] [module R M] [module R N]
+variables [topological_space R] [has_continuous_add M] [has_continuous_add N]
+  [has_continuous_smul R M] [has_continuous_smul R N]
+
+/-- Given a continuous linear map `f : M → N`, `map_rangeₗ` is the linear map mapping the
+vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
+def map_rangeₗ (f : M →ₗ[R] N) (hf : continuous f) : vector_measure α M →ₗ[R] vector_measure α N :=
+{ to_fun := λ v, v.map_range f.to_add_monoid_hom hf,
+  map_add' := λ _ _, map_range_add hf,
+  map_smul' := by { intros, ext, simp } }
+
+end module
+
 end
 
 /-- The restriction of a vector measure on some set. -/

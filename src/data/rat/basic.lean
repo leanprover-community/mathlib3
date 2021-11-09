@@ -450,9 +450,8 @@ instance : field ℚ :=
 
 /- Extra instances to short-circuit type class resolution -/
 instance : division_ring ℚ      := by apply_instance
-instance : integral_domain ℚ    := by apply_instance
+instance : is_domain ℚ          := by apply_instance
 -- TODO(Mario): this instance slows down data.real.basic
---instance : domain ℚ           := by apply_instance
 instance : nontrivial ℚ         := by apply_instance
 instance : comm_ring ℚ          := by apply_instance
 --instance : ring ℚ             := by apply_instance

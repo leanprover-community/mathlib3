@@ -144,4 +144,11 @@ lemma _root_.mul_aut.conj_normal_coe {H : subgroup G} [H.normal] {h : H} :
   mul_aut.conj_normal ↑h = mul_aut.conj h :=
 mul_equiv.ext (λ x, rfl)
 
+instance normal_of_characteristic_of_normal {H : subgroup G} [hH : H.normal]
+  {K : subgroup H} [h : K.characteristic] : (K.map H.subtype).normal :=
+⟨λ a ha b, by
+{ obtain ⟨a, ha, rfl⟩ := ha,
+  exact K.apply_coe_mem_map H.subtype
+    ⟨_, ((set_like.ext_iff.mp (h.fixed (mul_aut.conj_normal b)) a).mpr ha)⟩ }⟩
+
 end conj_act

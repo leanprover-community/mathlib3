@@ -202,9 +202,10 @@ As an example, we now have everything we need to check the sheaf condition
 for a presheaf of commutative rings, merely by checking the sheaf condition
 for the underlying sheaf of types.
 ```
-example (X : Top) (F : presheaf CommRing X) (h : sheaf_condition (F ⋙ (forget CommRing))) :
-  sheaf_condition F :=
-(sheaf_condition_equiv_sheaf_condition_forget F).symm h
+import algebra.category.CommRing.limits
+example (X : Top) (F : presheaf CommRing X) (h : presheaf.is_sheaf (F ⋙ (forget CommRing))) :
+  F.is_sheaf :=
+(is_sheaf_iff_is_sheaf_comp (forget CommRing) F).mpr h
 ```
 -/
 

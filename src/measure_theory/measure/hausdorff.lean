@@ -230,7 +230,7 @@ begin
   apply ennreal.le_of_add_le_add_right hyz.ne_top,
   refine le_trans _ (edist_triangle _ _ _),
   refine (add_le_add le_rfl hyz.le).trans (eq.trans_le _ hxz),
-  rw [ennreal.sub_add_cancel_of_le A.le]
+  rw [tsub_add_cancel_of_le A.le]
 end
 
 lemma le_caratheodory [measurable_space X] [borel_space X] (hm : is_metric μ) :

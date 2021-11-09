@@ -987,14 +987,14 @@ lemma supr_eq_supr_finset' (s : ι' → α) :
 by rw [← supr_eq_supr_finset, ← equiv.plift.surjective.supr_comp]; refl
 
 /-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
-`⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `infi_eq_infi_finset'` for a version
+`⨅ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `infi_eq_infi_finset'` for a version
 that works for `ι : Sort*`. -/
 lemma infi_eq_infi_finset (s : ι → α) :
   (⨅i, s i) = (⨅t:finset ι, ⨅i∈t, s i) :=
 @supr_eq_supr_finset (order_dual α) _ _ _
 
 /-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
-`⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `infi_eq_infi_finset` for a version
+`⨅ i ∈ t, s i`. This version works for `ι : Sort*`. See `infi_eq_infi_finset` for a version
 that assumes `ι : Type*` but has no `plift`s. -/
 lemma infi_eq_infi_finset' (s : ι' → α) :
   (⨅i, s i) = (⨅t:finset (plift ι'), ⨅i∈t, s (plift.down i)) :=

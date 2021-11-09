@@ -1437,6 +1437,15 @@ lemma filter.tendsto.abs {f : β → α} {a : α} {l : filter β} (h : tendsto f
   tendsto (λ x, |f x|) l (𝓝 (|a|)) :=
 (continuous_abs.tendsto _).comp h
 
+lemma tendsto_zero_iff_abs_tendsto_zero (f : β → α) {l : filter β} :
+  tendsto f l (𝓝 0) ↔ tendsto (abs ∘ f) l (𝓝 0) :=
+begin
+  refine ⟨λ h, (abs_zero : |(0 : α)| = 0) ▸ h.abs, λ h, _⟩,
+  have : tendsto (λ a, -|f a|) l (𝓝 0) := (neg_zero : -(0 : α) = 0) ▸ h.neg,
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le this h
+    (λ x, neg_abs_le_self $ f x) (λ x, le_abs_self $ f x),
+end
+
 lemma nhds_basis_Ioo_pos [no_bot_order α] [no_top_order α] (a : α) :
   (𝓝 a).has_basis (λ ε : α, (0 : α) < ε) (λ ε, Ioo (a-ε) (a+ε)) :=
 ⟨begin

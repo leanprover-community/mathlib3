@@ -483,7 +483,7 @@ begin
     exact ⟨(algebra.of_id F L).comp (algebra.bot_equiv F K)⟩ },
   rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f,
   choose H3 H4 using H3,
-  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union_eq_under],
+  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union_eq_adjoin_adjoin],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
@@ -500,7 +500,7 @@ begin
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
     { rw [← is_scalar_tower.aeval_apply, minpoly.aeval] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
-  refine ⟨subalgebra.of_under _ _ _⟩,
+  refine ⟨subalgebra.of_restrict_scalars _ _ _⟩,
   refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,
   exact alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly (algebra.adjoin F (↑s : set K)) a
 end
@@ -649,11 +649,11 @@ have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := ma
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
     multiset.to_finset_singleton, finset.coe_singleton,
-    algebra.adjoin_union_eq_under, ← set.image_singleton,
+    algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
-    is_scalar_tower.range_under_adjoin K (adjoin_root f.factor)
+    is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     ih, subalgebra.restrict_scalars_top] }
 
@@ -738,11 +738,12 @@ theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_fie
   (splits_comp_of_splits _ _ (splits K f))
   ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
  by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
-        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union, algebra.adjoin_union_eq_under,
+        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union,
+      algebra.adjoin_union_eq_adjoin_adjoin,
       is_scalar_tower.algebra_map_eq F K L, ← map_map,
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
-      algebra.map_top, is_scalar_tower.range_under_adjoin, ← map_map, adjoin_roots,
+      algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ← map_map, adjoin_roots,
       subalgebra.restrict_scalars_top]⟩
 
 end scalar_tower

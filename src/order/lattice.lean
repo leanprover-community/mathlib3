@@ -266,6 +266,13 @@ begin
   injection this; congr'
 end
 
+theorem exists_lt_of_sup (α : Type*) [semilattice_sup α] [nontrivial α] : ∃ a b : α, a < b :=
+begin
+  rcases exists_pair_ne α with ⟨a, b, hne⟩,
+  rcases forall_le_or_exists_lt_sup b with (hb|H),
+  exacts [⟨a, b, (hb a).lt_of_ne hne⟩, ⟨b, H⟩]
+end
+
 end semilattice_sup
 
 /-!
@@ -417,6 +424,10 @@ theorem semilattice_inf.dual_dual (α : Type*) [H : semilattice_inf α] :
   order_dual.semilattice_inf (order_dual α) = H :=
 semilattice_inf.ext $ λ _ _, iff.rfl
 
+theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
+  ∃ a b : α, a < b :=
+let ⟨a, b, h⟩ := exists_lt_of_sup (order_dual α) in ⟨b, a, h⟩
+
 end semilattice_inf
 
 /--
@@ -500,6 +511,18 @@ have partial_order_eq :
 
 section lattice
 variables [lattice α] {a b c d : α}
+
+lemma inf_le_sup : a ⊓ b ≤ a ⊔ b := inf_le_left.trans le_sup_left
+
+@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b :=
+begin
+  split,
+  { rintro H rfl, simpa using H },
+  { refine λ Hne, lt_iff_le_and_ne.2 ⟨inf_le_sup, λ Heq, Hne _⟩,
+    refine le_antisymm _ _,
+    exacts [le_sup_left.trans (Heq.symm.trans_le inf_le_right),
+      le_sup_right.trans (Heq.symm.trans_le inf_le_left)] }
+end
 
 /-!
 #### Distributivity laws

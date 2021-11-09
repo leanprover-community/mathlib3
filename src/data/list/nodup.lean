@@ -65,7 +65,7 @@ theorem nodup_iff_sublist {l : list α} : nodup l ↔ ∀ a, ¬ [a, a] <+ l :=
 ⟨λ d a h, not_nodup_pair a (nodup_of_sublist h d), begin
   induction l with a l IH; intro h, {exact nodup_nil},
   exact nodup_cons_of_nodup
-    (λ al, h a $ cons_sublist_cons _ $ singleton_sublist.2 al)
+    (λ al, h a $ (singleton_sublist.2 al).cons_cons _)
     (IH $ λ a s, h a $ sublist_cons_of_sublist _ s)
 end⟩
 

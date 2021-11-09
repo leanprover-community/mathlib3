@@ -655,6 +655,16 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_bot_order �
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
+instance {α : Type*} [preorder α] [no_top_order α] [nonempty α] : no_top_order (with_bot α) :=
+⟨begin
+  apply with_bot.rec_bot_coe,
+  { apply ‹nonempty α›.elim,
+    exact λ a, ⟨a, with_bot.bot_lt_coe a⟩, },
+  { intro a,
+    obtain ⟨b, ha⟩ := no_top a,
+    exact ⟨b, with_bot.coe_lt_coe.mpr ha⟩, }
+end⟩
+
 end with_bot
 
 --TODO(Mario): Construct using order dual on with_bot
@@ -896,6 +906,16 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
   (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
 ⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := lt_iff_exists_coe.1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
+
+instance {α : Type*} [preorder α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
+⟨begin
+  apply with_top.rec_top_coe,
+  { apply ‹nonempty α›.elim,
+    exact λ a, ⟨a, with_top.coe_lt_top a⟩, },
+  { intro a,
+    obtain ⟨b, ha⟩ := no_bot a,
+    exact ⟨b, with_top.coe_lt_coe.mpr ha⟩, }
+end⟩
 
 end with_top
 

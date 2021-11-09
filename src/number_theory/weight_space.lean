@@ -489,7 +489,7 @@ variables {c : ℕ}
 --def clopen_nat_equiv : clopen_basis' p d ≃ (ℕ → )
 
 def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a.val : ℚ) / (d*p^n))
-    - c * fract ( (((((c : zmod (d * p^(2 * n.succ)))⁻¹ : zmod (d * p^n)) * a) : zmod (d * p^n)) : ℚ) / (d * p^n)) + (c - 1)/2
+    - c * fract ( (((((c : zmod (d * p^(2 * n)))⁻¹ : zmod (d * p^n)) * a) : zmod (d * p^n)) : ℚ) / (d * p^n)) + (c - 1)/2
 
 -- I don't understand why this works!
 example (n : ℕ) (a b : zmod n) : ((a * b) : ℚ) = (a : ℚ) * (b : ℚ) :=
@@ -733,19 +733,9 @@ lemma equi_class_eq (f : locally_constant (zmod d × ℤ_[p]) R) (x : zmod (d * 
 
 lemma fract_eq_self {a : ℚ} (h : 0 ≤ a) (ha : a < 1) : fract a = a :=
 begin
-  have : floor a = 0, sorry,
    rw fract_eq_iff,
    refine ⟨h, ha, ⟨0, _⟩⟩, simp,
 end
-
-example (x : zmod 1) : x = 0 :=
-fin.eq_zero x
-
---example (m n : ℕ) (x : zmod (p^m)) (y : zmod (p^n)) (h : (y : zmod (p^m)) = x) :
-
---example (m : ℕ) (x : zmod m) : zmod (m^2) := begin hint, end
-
---example (a n : ℕ) :
 
 lemma equi_class_some (n : ℕ) (x : zmod (d * p^n)) (y : equi_class p d n n.succ (lt_add_one n) x) :
   ∃ k : ℕ, k < p ∧ (y : zmod (d * p^n.succ)).val = x.val + k * d * p^n :=
@@ -896,34 +886,39 @@ begin
   rw [←this_must_exist, ←this_must_exist],
 end
 
-example (n : ℕ) [fact (0 < n)] (a b : zmod n) : (((a : zmod n) + b) : ℚ) = (a : ℚ) + (b : ℚ) :=
-begin
-sorry
-end
-
-example {α : Type*} {s : set α} [fintype s] : (s.to_finset : set α) = s :=
-begin
-  simp only [set.coe_to_finset],
-end
-
 lemma sum_fract (m : ℕ) (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m) x)),
-  fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) = x.val / (d * p^m) + (p - 1) / 2 :=
+  fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) =
+    x.val / (d * p^m) + (p - 1) / 2 :=
 begin
-  have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x.val : ℚ) / (d * p^n) ∧ (x.val : ℚ) / (d * p^n) < 1, sorry,
+  haveI imp : ∀ n : ℕ, fact (0 < d * p^n), sorry,
+  have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x.val : ℚ) / (d * p^n) ∧ (x.val : ℚ) / (d * p^n) < 1,
+  sorry,
   conv_lhs { congr, skip, funext, rw [fract_eq_self ((this m.succ x_1).1) ((this m.succ x_1).2)], },
   rw fintype.sum_equiv (equi_iso_fin p d m x),
   swap 3, { intro k, exact ↑((equi_iso_fin p d m x).inv_fun k).val / (d * p ^ m.succ), },
   { rw ←finset.sum_div,
-    have : ∀ k : fin p, ((equi_iso_fin p d m x).inv_fun k).val = x.val + ↑k * (d * p^m), sorry,
-    have imp : fact (0 < d * p^m.succ), sorry,
+    have : ∀ k : fin p, ((equi_iso_fin p d m x).inv_fun k).val = x.val + ↑k * (d * p^m),
+    { simp, sorry, },
     conv_lhs { congr, congr, skip, funext, rw this x, rw ←zmod.int_cast_cast,
       rw zmod.coe_add_eq_ite, rw ←ite_not, }, push_neg,
-    convert_to (∑ x_1 : fin p, ((((x.val) : zmod (d * p^m.succ)) : ℤ) + (↑x_1 * ((d : zmod (d * p^m.succ)) * (p : zmod (d * p^m.succ)) ^ m) : ℤ) : ℚ)) / _ = _,
+    convert_to (∑ x_1 : fin p, ((((x.val) : zmod (d * p^m.succ)) : ℤ) +
+      (↑x_1 * ((d : zmod (d * p^m.succ)) * (p : zmod (d * p^m.succ)) ^ m) : ℤ) : ℚ)) / _ = _,
     { congr, ext y, norm_cast, sorry, },
-    sorry, },
-  sorry,
+    { rw finset.sum_add_distrib, rw finset.sum_const, rw finset.card_univ, rw fintype.card_fin _,
+      norm_cast, rw ←finset.sum_mul, rw add_div, apply congr_arg2,
+      { rw div_eq_iff _,
+        { rw div_mul_comm', rw nsmul_eq_mul, apply congr_arg2,
+          { norm_num, rw mul_div_mul_left _, rw pow_succ, rw mul_div_cancel _,
+            { norm_cast, apply pow_ne_zero m (nat.prime.ne_zero (fact_iff.1 _)), assumption, },
+            { norm_num, apply ne_of_gt, apply fact_iff.1, assumption, }, },
+          { norm_cast, rw zmod.nat_cast_val, sorry, }, },
+        sorry, },
+      { sorry, }, }, },
+  { rintros y,
+    simp only [equiv.symm_apply_apply, subtype.val_eq_coe, equiv.inv_fun_as_coe,
+      zmod.nat_cast_val], },
 end
-
+#exit
 lemma div_coe (m n : ℕ) (h : m ∣ n) (a : zmod m) : ((a : zmod n) : zmod m) = a :=
 begin
   conv_rhs
@@ -932,49 +927,115 @@ begin
   rw zmod.cast_hom_apply,
 end
 
-example (a a' b b' c c' : ℤ) (h1 : a = a') (h2 : b = b') (h3 : c = c') : b * a = b * a' :=
+lemma fract_eq_val (n : ℕ) [h : fact (0 < n)] (a : zmod n) : fract ((a : ℚ) / n) = (a.val : ℚ) / n :=
 begin
-  exact congr_arg (has_mul.mul b) h1,
---  congr, all_goals {assumption},
+  rw fract_eq_iff, split,
+  { apply div_nonneg _ _,
+    { exact (zmod.val a).cast_nonneg, },
+    { exact nat.cast_nonneg n, }, },
+  split,
+  { rw div_lt_one,
+    { norm_cast, apply zmod.val_lt, },
+    { norm_cast, apply fact_iff.1, assumption, }, },
+  { rw ←zmod.nat_cast_val, use 0, simp, },
 end
 
-example (l m n : ℕ) [fact (0 < l)] (h1 : l ∣ m) (h2 : m ∣ n) (a : ℕ)
-  (h : (a : zmod l).val = (a : zmod n).val) :
-  (((a : zmod n) : zmod l) : zmod m) = ((a : zmod n) : zmod m) :=
+lemma card_equi_class (m : ℕ) (x : zmod (d * p^m)) :
+  finset.card (@finset.univ (equi_class p d m m.succ (lt_add_one m) x) _) = p :=
 begin
-  haveI n_pos : fact (0 < n), sorry,
-  conv_rhs { rw ←zmod.nat_cast_val (a : zmod n), },
-  rw ←zmod.nat_cast_val, apply congr_arg,
-  have : ((a : zmod n) : zmod l) = (a : zmod l),
-  { rw zmod.cast_nat_cast _, swap, refine zmod.char_p _, exact dvd_trans h1 h2, },
-  rw this, assumption,
+  rw finset.card_univ,
+  rw ←fintype.of_equiv_card (equi_iso_fin p d m x),
+  convert fintype.card_fin p,
 end
 
-lemma fract_eq_val (n : ℕ) (a : zmod n) : fract ((a : ℚ) / n) = (a.val : ℚ) / n := sorry
-
-lemma card_equi_class (m : ℕ) (x : zmod (d * p^m)) : finset.card (@finset.univ (equi_class p d m m.succ (lt_add_one m) x) _) = p := sorry
-
-example (m n : ℕ) (h : m ∣ n) [fact (0 < n)] (a b c d : ℕ) (x : zmod n) : ((a : zmod n) : zmod m) = (a : zmod m) :=
+lemma is_unit_mul (hc : gcd c p = 1) (hc' : gcd c d = 1) :
+  is_unit ((c : zmod (d * p^(2 * (m.succ)))) : zmod (d * p^(m.succ))) :=
 begin
-  rw zmod.cast_nat_cast h, refine zmod.char_p _,
+  rw is_unit, refine ⟨(zmod.unit_of_coprime c _), _⟩,
+  { apply nat.coprime.symm (nat.coprime.mul (nat.coprime.symm hc')
+      (nat.coprime.pow_left m.succ (nat.coprime.symm hc))), },
+  { rw zmod.coe_unit_of_coprime c _,
+    rw zmod.cast_nat_cast _,
+    swap, { refine zmod.char_p _, },
+    { apply mul_dvd_mul_left, apply pow_dvd_pow, linarith, }, },
+end
+
+lemma is_unit_mul' (hc : gcd c p = 1) (hc' : gcd c d = 1) :
+  is_unit ((c : zmod (d * p^(2 * (m.succ)))) : zmod (d * p^m)) :=
+begin
+  rw is_unit, refine ⟨(zmod.unit_of_coprime c _), _⟩,
+  { apply nat.coprime.symm (nat.coprime.mul (nat.coprime.symm hc')
+      (nat.coprime.pow_left m (nat.coprime.symm hc))), },
+  { rw zmod.coe_unit_of_coprime c _,
+    rw zmod.cast_nat_cast _,
+    swap, { refine zmod.char_p _, },
+    { apply mul_dvd_mul_left, apply pow_dvd_pow, rw ←one_mul m,
+      apply mul_le_mul, any_goals { linarith, },
+      { rw one_mul, apply nat.le_succ, }, }, },
+end
+
+--example (a b c : ℤ) (h : a = b) : c * a = c * b := congr_arg (has_mul.mul c) h
+
+-- A lot of goals are recurring, maybe make them local instances / lemmas?
+lemma coe_inv (m : ℕ) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
+  ((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m))⁻¹ =
+  ((((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ))⁻¹ : zmod (d * p^m.succ)) : zmod (d * p^m)) :=
+begin
+  have : ((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m)) =
+    (((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ)) : zmod (d * p^m)),
+    { repeat { rw zmod.cast_nat_cast _, },
+      any_goals { refine zmod.char_p _ },
+      any_goals { apply mul_dvd_mul_left, },
+      any_goals { apply pow_dvd_pow _, },
+      { apply nat.le_succ, },
+      { linarith, },
+      { rw ←one_mul m, apply mul_le_mul, any_goals { linarith, },
+        { rw one_mul, apply nat.le_succ, }, }, },
+  convert_to (((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ)) : zmod (d * p^m))⁻¹ = _,
+  { apply congr_arg, assumption, },
+  { have g1 : (((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ)) : zmod (d * p^m))
+      * (((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ)) : zmod (d * p^m))⁻¹ = 1,
+    { rw zmod.mul_inv_of_unit, rw ←this, apply is_unit_mul' p d m hc hc', },
+    have g2 : (((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ)) : zmod (d * p^m))
+      * ((((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ))⁻¹ : zmod (d * p^m.succ)) : zmod (d * p^m)) = 1,
+    { rw ←zmod.cast_mul _,
+      { rw ←zmod.cast_one _,
+        { congr, rw zmod.mul_inv_of_unit, apply is_unit_mul p d m hc hc', },
+        swap, { refine zmod.char_p _, },
+        { apply mul_dvd_mul_left, rw pow_succ', apply dvd_mul_right, }, },
+        swap, { refine zmod.char_p _, },
+        { apply mul_dvd_mul_left, rw pow_succ', apply dvd_mul_right, }, },
+    rw ←g1 at g2,
+    have g3 := congr_arg (has_mul.mul
+      ((((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ))⁻¹ : zmod (d * p^m)))) g2,
+    rw [←mul_assoc, ←mul_assoc, zmod.inv_mul_of_unit _, one_mul, one_mul] at g3,
+    { rw g3, },
+    { rw ←this, apply is_unit_mul' p d m hc hc', }, },
 end
 
 lemma E_c_sum_equi_class' [has_coe ℝ R] (x : zmod (d * p^m)) (hc : gcd c p = 1) (hc' : gcd c d = 1) :
 ∑ (y : equi_class p d m m.succ (lt_add_one m) x), (E_c p d hc m.succ y) = (E_c p d hc m x) :=
 begin
-  rw E_c, simp,
+  rw E_c, simp only,
+  haveI imp : ∀ n : ℕ, fact (0 < d * p^n),
+  { rintros n, rw fact_iff at *, apply mul_pos,
+    { assumption, },
+    { apply ((pow_pos (nat.prime.pos _)) n), assumption, }, },
   have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x.val : ℚ) / (d * p^n) ∧ (x.val : ℚ) / (d * p^n) < 1,
   { rintros n x,
-    haveI imp : ∀ n, fact (0 < d * p^n), sorry,
     split,
-    { norm_cast, sorry, },
+    { norm_cast, refine div_nonneg _ _,
+      all_goals { norm_cast, apply nat.zero_le _, }, },
     { rw div_lt_one,
       { norm_cast, apply @zmod.val_lt _ _, apply imp n, },
       { norm_cast,apply fact_iff.1 (imp n), }, }, },
   rw [finset.sum_add_distrib, finset.sum_sub_distrib, sum_fract, ←finset.mul_sum],
-  convert_to ((x.val : ℚ) / (d * p ^ m) + (p - 1) / 2) - (c : ℚ) * ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m) ( ((c : zmod (d * p^(2*m.succ)))⁻¹ : zmod (d * p^m)) * x))),
-  fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) + (∑ (x : (equi_class p d m m.succ _ x)), ((c : ℚ) - 1) / 2) = _ - _ + _,
-  { rw add_right_cancel_iff, rw sub_right_inj, apply congr_arg,
+  convert_to ((x.val : ℚ) / (d * p ^ m) + (p - 1) / 2) - (c : ℚ) *
+    ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m)
+      ( ((c : zmod (d * p^(2*m.succ)))⁻¹ : zmod (d * p^m)) * x))),
+    fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) +
+    (∑ (x : (equi_class p d m m.succ _ x)), ((c : ℚ) - 1) / 2) = _ - _ + _,
+  { rw [add_right_cancel_iff, sub_right_inj], apply congr_arg,
     apply finset.sum_bij,
     swap 5,
     { rintros, constructor, swap,
@@ -983,52 +1044,43 @@ begin
         have := (mem_equi_class p d m m.succ _ x a).1 a.prop,
         conv_rhs { congr, skip, rw ←this, },
         rw zmod.cast_mul _,
-        { congr,
-          convert_to _ = (((c : zmod (d * p^(2 * (m.succ))))⁻¹ : zmod (d * p^(m.succ))) : zmod (d * p^m)),
-          { sorry, },
-          refl, },
+        { congr, rw coe_inv p d m hc hc', },
         swap, { exact zmod.char_p (d * p^m), },
         { apply mul_dvd_mul_left, rw pow_succ', apply dvd_mul_right, }, }, },
-    { simp, },
-    { rintros, rw fract_eq_fract, simp only [subtype.coe_mk], rw div_sub_div_same,
-      sorry, },
+    { simp, }, --squeeze_simp does not work!
+    { rintros, rw fract_eq_fract, simp only [subtype.coe_mk],
+      rw [div_sub_div_same, zmod.nat_cast_val], use 0, simp, },
     { simp, rintros a1 ha1 a2 ha2 h, rw is_unit.mul_right_inj at h, assumption,
-      { sorry, }, },
+      { rw is_unit_iff_exists_inv',
+        refine ⟨((c : zmod (d * p^(2 * (m.succ)))) : zmod (d * p^(m.succ))),
+          zmod.mul_inv_of_unit _ (is_unit_mul p d m hc hc')⟩, }, },
     { simp, rintros a ha, rw mem_equi_class at *,
       use ((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ)) * a,
       split,
-      { rw mem_equi_class,
-        rw zmod.cast_mul _,
+      { rw [mem_equi_class, zmod.cast_mul _],
         { rw ha,
           have rep : (((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m.succ)) : zmod (d * p^m)) =
             ((c : zmod (d * p^(2 * m.succ))) : zmod (d * p^m)), sorry,
           -- if I remove the above line, the convert below does not work?
           rw ←mul_assoc, convert one_mul x, convert zmod.mul_inv_of_unit _ _,
-          { -- proved multiple times, use `have`
-            rw is_unit, refine ⟨(zmod.unit_of_coprime c _), _⟩,
-            { apply nat.coprime.symm (nat.coprime.mul (nat.coprime.symm hc')
-              (nat.coprime.pow_left m.succ (nat.coprime.symm hc))), },
-            { rw zmod.coe_unit_of_coprime c _,
-              rw zmod.cast_nat_cast _,
-              swap, { refine zmod.char_p _, },
-            { apply mul_dvd_mul_left, apply pow_dvd_pow, linarith, }, }, }, },
+          { apply is_unit_mul' p d m hc hc', }, },
         swap, { refine zmod.char_p _, },
         { apply mul_dvd_mul_left, rw pow_succ', apply dvd_mul_right, }, },
-      { rw ←mul_assoc, rw zmod.inv_mul_of_unit _ _, { rw one_mul a, },
-        rw is_unit, refine ⟨(zmod.unit_of_coprime c _), _⟩,
-        { apply nat.coprime.symm (nat.coprime.mul (nat.coprime.symm hc')
-            (nat.coprime.pow_left m.succ (nat.coprime.symm hc))), },
-        { rw zmod.coe_unit_of_coprime c _,
-          rw zmod.cast_nat_cast _,
-          swap, { refine zmod.char_p _, },
-          { apply mul_dvd_mul_left, apply pow_dvd_pow, linarith, }, }, }, }, },
-  rw sum_fract,
-  rw fract_eq_self (this m x).1 (this m x).2,
-  rw mul_add, rw finset.sum_const, rw card_equi_class,
-  simp only [nsmul_eq_mul], rw sub_add_eq_add_sub, rw sub_add_eq_add_sub, rw sub_add_eq_sub_sub,
-  rw sub_right_comm, congr,
-  { rw add_assoc, rw add_sub_assoc, congr, linarith, },
-  { rw ←nat.cast_pow, rw ←nat.cast_mul, rw ←fract_eq_val _ _, },
+      { rw [←mul_assoc, zmod.inv_mul_of_unit _ _],
+        { rw one_mul a, },
+        apply is_unit_mul p d m hc hc', }, }, },
+  rw [sum_fract, fract_eq_self (this m x).1 (this m x).2, mul_add, finset.sum_const, card_equi_class],
+  simp only [nsmul_eq_mul],
+  rw [sub_add_eq_add_sub, sub_add_eq_add_sub, sub_add_eq_sub_sub, sub_right_comm], congr,
+  { rw [add_assoc, add_sub_assoc], congr, linarith, },
+  { rw [←nat.cast_pow, ←nat.cast_mul, ←fract_eq_val _ _], repeat { apply congr_arg, },
+    apply congr_fun, repeat { apply congr_arg, }, apply congr_fun, repeat { apply congr_arg, },
+    repeat { rw zmod.cast_nat_cast _, }, repeat { any_goals { refine zmod.char_p _, }, },
+    { apply mul_dvd_mul_left, apply pow_dvd_pow, linarith, },
+    { apply mul_dvd_mul_left, apply pow_dvd_pow, rw ←one_mul m,
+      apply mul_le_mul, any_goals { linarith, },
+      { rw one_mul, apply nat.le_succ, }, },
+    apply imp m, },
 end
 #exit
 

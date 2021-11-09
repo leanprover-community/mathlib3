@@ -119,7 +119,7 @@ instance : category LocallyRingedSpace :=
   (f ≫ g).val = f.val ≫ g.val := rfl
 
 @[simp] lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward g.val.base).map f.val.c := rfl
+  (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward _ g.val.base).map f.val.c := rfl
 
 @[simp] lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop)

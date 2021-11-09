@@ -820,7 +820,7 @@ rfl
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
 lemma continuous_zsmul : ∀ (n : ℤ), continuous (λ (x : M₂), n • x)
-| (n : ℕ) := by { simp only [coe_nat_zsmul], exact continuous_nsmul _ }
+| (n : ℕ) := by { simp only [zsmul_coe_nat], exact continuous_nsmul _ }
 | -[1+ n] := by { simp only [zsmul_neg_succ_of_nat], exact (continuous_nsmul _).neg }
 
 @[continuity]
@@ -958,6 +958,12 @@ variables (S) [has_continuous_add M₃]
 { map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
   .. prod_equiv }
+
+/-- The coercion from `M →L[R] M₂` to `M →ₗ[R] M₂`, as a linear map. -/
+def coe_lm : (M →L[R] M₂) →ₗ[S] (M →ₗ[R] M₂) :=
+{ to_fun := coe,
+  map_add' := λ f g, coe_add f g,
+  map_smul' := λ c f, coe_smul c f }
 
 end smul
 

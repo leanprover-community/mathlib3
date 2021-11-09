@@ -627,7 +627,7 @@ instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
   (c • f) m = c • f m := rfl
 
 lemma coe_smul (c : R') (f : multilinear_map A M₁ M₂) : ⇑(c • f) = c • ⇑f :=
-λ _ _, funext $ λ _, rfl
+funext $ λ _, rfl
 
 instance : distrib_mul_action R' (multilinear_map A M₁ M₂) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,

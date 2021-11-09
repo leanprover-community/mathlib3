@@ -250,7 +250,7 @@ instance : has_scalar S (alternating_map R M N ι) :=
   ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
 
 lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • ⇑f :=
-λ _ _, funext $ λ _, rfl
+funext $ λ _, rfl
 
 instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,

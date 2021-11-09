@@ -633,14 +633,7 @@ instance : module S (M →ₗ[R] M₂) :=
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 instance [no_zero_smul_divisors S M₂] : no_zero_smul_divisors S (M →ₗ[R] M₂) :=
-⟨λ c f h, begin
-  rw or_iff_not_imp_right,
-  intro hf,
-  simp_rw [ext_iff, not_forall, zero_apply] at hf,
-  rcases hf with ⟨x, hx⟩,
-  rw ext_iff at h,
-  simpa [hx] using h x
-end⟩
+coe_injective.no_zero_smul_divisors rfl (λ _ _ _, rfl)
 
 end module
 

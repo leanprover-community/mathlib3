@@ -478,6 +478,24 @@ class no_zero_smul_divisors (R M : Type*) [has_zero R] [has_zero M] [has_scalar 
 
 export no_zero_smul_divisors (eq_zero_or_eq_zero_of_smul_eq_zero)
 
+/-- A `no_zero_smul_divisors` instance on the codomain of a type coercing to functions induces
+one on that type, given appropriate properties of the types and scalar actions. -/
+lemma function.injective.no_zero_smul_divisors {R F M N : Type*} [has_zero R] [has_zero F]
+  [has_zero N] [has_scalar R F] [has_scalar R N] [no_zero_smul_divisors R N]
+  [has_coe_to_fun F (λ _, M → N)] (hi : function.injective (coe_fn : F → M → N))
+  (h0 : ((0 : F) : M → N) = 0) (hs : ∀ (c : R) (f : F) (x : M), (c • f) x = c • f x) :
+  no_zero_smul_divisors R F :=
+⟨λ c f h, begin
+  rw or_iff_not_imp_right,
+  intro hf,
+  simp_rw [←hi.eq_iff, function.funext_iff, h0, pi.zero_apply, not_forall] at hf,
+  rcases hf with ⟨x, hx⟩,
+  simp_rw [←hi.eq_iff, h0, function.funext_iff, pi.zero_apply] at h,
+  have h' := h x,
+  rw hs c f at h',
+  exact or.resolve_right (eq_zero_or_eq_zero_of_smul_eq_zero h') hx
+end⟩
+
 section module
 
 variables [semiring R] [add_comm_monoid M] [module R M]

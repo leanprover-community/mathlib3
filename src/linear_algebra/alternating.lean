@@ -268,14 +268,7 @@ instance : module S (alternating_map R M N ι) :=
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 instance [no_zero_smul_divisors S N] : no_zero_smul_divisors S (alternating_map R M N ι) :=
-⟨λ c f h, begin
-  rw or_iff_not_imp_right,
-  intro hf,
-  simp_rw [ext_iff, not_forall, zero_apply] at hf,
-  rcases hf with ⟨x, hx⟩,
-  rw ext_iff at h,
-  simpa [hx] using h x
-end⟩
+coe_injective.no_zero_smul_divisors rfl (λ _ _ _, rfl)
 
 end module
 

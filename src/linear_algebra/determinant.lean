@@ -370,7 +370,7 @@ lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
 
 /-- Any alternating map to `R` where `ι` has the cardinality of a basis equals the determinant
 map with respect to that basis, multiplied by the value of that alternating map on that basis. -/
-lemma alternating_map.eq_smul_det (f : alternating_map R M R ι) : f = f e • e.det :=
+lemma alternating_map.eq_smul_basis_det (f : alternating_map R M R ι) : f = f e • e.det :=
 begin
   refine basis.ext_alternating e (λ i h, _),
   let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),

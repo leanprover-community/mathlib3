@@ -121,6 +121,20 @@ instance left_module : module R'' (M ⊗[R] N) :=
   zero_smul := tensor_product.zero_smul,
   ..tensor_product.left_distrib_mul_action }
 
+section
+-- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
+variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
+variables [smul_comm_class Rᵒᵖ R'₂ M] [has_scalar R'₂ R']
+
+/-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
+instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
+  is_scalar_tower R'₂ R' (M ⊗[R] N) :=
+⟨λ s r x, tensor_product.induction_on x
+  (by simp)
+  (λ m n, by rw [smul_tmul', smul_tmul', smul_tmul', smul_assoc])
+  (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
+
+end
 end semiring
 
 section comm_semiring
@@ -131,6 +145,7 @@ variables {R'' : Type*} [comm_semiring R''] --?
 variables {M N : Type*}
 variables [add_comm_monoid M] [add_comm_monoid N]
 variables [module Rᵒᵖ M] [module R N]
+variables [distrib_mul_action R' M]
 
 /-- The instance `tensor_product.left_has_scalar` induces this special case of `R` acting
 on the right of the tensor product `M ⊗[R] N`. -/
@@ -139,6 +154,12 @@ instance right_has_scalar_comm : has_scalar Rᵒᵖ (M ⊗[R] N) := infer_instan
 instance : distrib_mul_action Rᵒᵖ (M ⊗[R] N) := tensor_product.left_distrib_mul_action
 
 instance : module Rᵒᵖ (M ⊗[R] N) := tensor_product.left_module
+
+/-- A short-cut instance of `is_scalar_tower_left` for the common case, where the requirements
+for the `compatible_smul` instances are sufficient. -/
+instance is_scalar_tower [smul_comm_class Rᵒᵖ R' M] [has_scalar R' R] [is_scalar_tower R' Rᵒᵖ M] :
+  is_scalar_tower R' Rᵒᵖ (M ⊗[R] N) :=
+tensor_product.is_scalar_tower_left
 
 end comm_semiring
 

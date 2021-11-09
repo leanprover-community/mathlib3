@@ -80,6 +80,9 @@ instance : add_comm_semigroup (M ⊗[R] N) :=
     add_con_gen.rel.of _ _ $ eqv.add_comm _ _,
   .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
 
+instance : add_comm_monoid (M ⊗[R] N) :=
+{ .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
+
 instance : inhabited (M ⊗[R] N) := ⟨0⟩
 
 variables (R) {M N}
@@ -163,9 +166,6 @@ lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵒᵖ M] [is_symmetric_smul R' 
   [has_scalar R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
   (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 by rw [←is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul]
-
-instance : add_comm_monoid (M ⊗[R] N) :=
-{ .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
 
 end
 

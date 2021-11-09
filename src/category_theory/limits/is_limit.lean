@@ -37,7 +37,8 @@ open category_theory category_theory.category category_theory.functor opposite
 
 namespace category_theory.limits
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 variables {J : Type u₁} [category.{v₁} J] {K : Type u₂} [category.{v₂} K]
 variables {C : Type u₃} [category.{v₃} C]
@@ -357,7 +358,8 @@ def of_faithful {t : cone F} {D : Type u₄} [category.{v₄} D] (G : C ⥤ D) [
 If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a limit implies
 `G.map_cone c` is also a limit.
 -/
-def map_cone_equiv {D : Type u₄} [category.{v₄} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
+def map_cone_equiv {D : Type u₄} [category.{v₄} D]
+  {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
   (t : is_limit (F.map_cone c)) : is_limit (G.map_cone c) :=
 begin
   apply postcompose_inv_equiv (iso_whisker_left K h : _) (G.map_cone c) _,

@@ -8,8 +8,8 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- morphism levels before object levels. See note [category_theory universes].
-
+-- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 open category_theory
 
 variables {J : Type u₁} [category.{v₁} J]

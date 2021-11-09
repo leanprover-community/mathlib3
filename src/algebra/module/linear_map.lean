@@ -605,6 +605,8 @@ instance : has_scalar S (M →ₗ[R] M₂) :=
 instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₗ[R] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
+lemma coe_smul (a : S) (f : M →ₗ[R] M₂) : ⇑(a • f) = a • ⇑f := λ _ _, funext $ λ _, rfl
+
 -- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
 -- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
 instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₗ[R] M₂) :=
@@ -633,7 +635,7 @@ instance : module S (M →ₗ[R] M₂) :=
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 instance [no_zero_smul_divisors S M₂] : no_zero_smul_divisors S (M →ₗ[R] M₂) :=
-coe_injective.no_zero_smul_divisors _ rfl (λ _ _, funext $ λ _, rfl)
+coe_injective.no_zero_smul_divisors _ rfl coe_smul
 
 end module
 

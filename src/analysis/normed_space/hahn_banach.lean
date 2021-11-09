@@ -228,7 +228,7 @@ begin
 end
 
 /-- Given a set `C` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
-a continuous linear functional `f` separating `x0` and `C`, in the sense that it sends `x₀` to 1 and
+a continuous linear functional `f` separating `x₀` and `C`, in the sense that it sends `x₀` to 1 and
 all of `C` to values strictly below `1`. -/
 lemma separate_convex_open_set {C : set E} (zero_mem : (0:E) ∈ C) (hC : convex ℝ C)
   (hC₂ : is_open C) {x₀ : E} (hx₀ : x₀ ∉ C) :
@@ -238,15 +238,14 @@ begin
     linear_pmap.mk_span_singleton x₀ 1 (ne_of_mem_of_not_mem zero_mem hx₀).symm,
   have : f ⟨(1:ℝ) • x₀, by { dsimp, rw submodule.mem_span_singleton, refine ⟨1, rfl⟩ }⟩ = 1,
   { change linear_pmap.mk_span_singleton _ _ _ _ = _,
-    rw linear_pmap.mk_span_singleton_apply,
-    simp },
+    rw [linear_pmap.mk_span_singleton_apply, one_smul] },
   rcases exists_extension_of_le_sublinear f (gauge C) _ _ _ with ⟨φ, hφ₁, hφ₂⟩,
   { refine ⟨⟨φ, (φ.to_add_monoid_hom.uniform_continuous_of_continuous_at_zero _).continuous⟩, _, _⟩,
     { refine continuous_at_of_exists_open _ (λ ε hε, ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩),
       { rw mem_smul_set,
-        exact ⟨0, zero_mem, by simp⟩ },
+        exact ⟨0, zero_mem, by rw smul_zero⟩ },
       { rw mem_smul_set,
-        exact ⟨0, zero_mem, by simp⟩ },
+        exact ⟨0, zero_mem, by rw smul_zero⟩ },
       { apply is_open.inter (is_open_map_smul₀ hε.ne' _ hC₂),
         { exact is_open_map_smul₀ (by linarith) _ hC₂ } },
       rintro x ⟨hx₁, hx₂⟩,

@@ -45,13 +45,13 @@ variables {C : Type u₁} [category.{v₁} C]
 
 /-- The functorial version of `ulift.up`. -/
 @[simps]
-def ulift.up : C ⥤ (ulift.{u₂} C) :=
+protected def ulift.up : C ⥤ (ulift.{u₂} C) :=
 { obj := ulift.up,
   map := λ X Y f, f }
 
 /-- The functorial version of `ulift.down`. -/
 @[simps]
-def ulift.down : (ulift.{u₂} C) ⥤ C :=
+protected def ulift.down : (ulift.{u₂} C) ⥤ C :=
 { obj := ulift.down,
   map := λ X Y f, f }
 

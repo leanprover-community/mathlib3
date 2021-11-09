@@ -42,7 +42,7 @@ end
 variables [distrib_lattice_bot α] -- TODO: This could be `lattice_bot` if it existed
 
 /-- Bind operation for `set.pairwise_disjoint`. In a complete lattice, you can use
-`set.pairwise_disjoint.bUnion_finset`. -/
+`set.pairwise_disjoint.bUnion`. -/
 lemma pairwise_disjoint.bUnion_finset {s : set ι'} {g : ι' → finset ι} {f : ι → α}
   (hs : s.pairwise_disjoint (λ i' : ι', (g i').sup f))
   (hg : ∀ i ∈ s, (g i : set ι).pairwise_disjoint f) :

@@ -166,8 +166,7 @@ variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
 def mk [module Rᵒᵖ N] [is_symmetric_smul R N] : M →ₗ[Rᵒᵖ] N →ₗ[Rᵒᵖ] M ⊗[R] N :=
 linear_map.mk₂ Rᵒᵖ (⊗ₜ) add_tmul (λ c m n, rfl) tmul_add
-  (λ c m n, by rw [←opposite.op_unop c, is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul,
-       smul_tmul'] )
+  (λ c m n, by rw [←c.op_unop , is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul, smul_tmul'])
 variables {R M N}
 
 @[simp] lemma mk_apply [module Rᵒᵖ N] [is_symmetric_smul R N] (m : M) (n : N) :
@@ -184,6 +183,107 @@ begin
   { intros m n, apply submodule.subset_span, use [m, n], },
   { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
 end
+
+section UMP
+
+variables {P Q : Type*}
+variables [add_comm_monoid P] [module R P] [module Rᵒᵖ P] [is_symmetric_smul R P]
+variables [add_comm_monoid Q] [module R Q] [module Rᵒᵖ Q] [is_symmetric_smul R Q]
+variables [module Rᵒᵖ N] [is_symmetric_smul R N]
+variables (f : M →ₗ[Rᵒᵖ] N →ₗ[Rᵒᵖ] P)
+
+/-- Auxiliary function to constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
+with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
+def lift_aux : (M ⊗[R] N) →+ P :=
+(add_con_gen (tensor_product.eqv R M N)).lift (free_add_monoid.lift $ λ p : M × N, f p.1 p.2) $
+add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
+| _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_zero, free_add_monoid.lift_eval_of, f.map_zero₂]
+| _, _, (eqv.of_zero_right m)      := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_zero, free_add_monoid.lift_eval_of, (f m).map_zero]
+| _, _, (eqv.of_add_left m₁ m₂ n)  := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, f.map_add₂]
+| _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, (f m).map_add]
+| _, _, (eqv.of_smul r m n)        := (add_con.ker_rel _).2 $
+    by rw [free_add_monoid.lift_eval_of, free_add_monoid.lift_eval_of,
+           f.map_smul₂, ←(f m).map_smul (opposite.op r), is_symmetric_smul.op_smul_eq_smul r n]
+| _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_add, add_comm]
+end
+
+lemma lift_aux_tmul (m n) : lift_aux f (m ⊗ₜ n) = f m n :=
+zero_add _
+
+variable {f}
+
+@[simp] lemma lift_aux.smul (r : Rᵒᵖ) (x) : lift_aux f (r • x) = r • lift_aux f x :=
+tensor_product.induction_on x (smul_zero _).symm
+  (λ p q, by rw [lift_aux_tmul,smul_tmul', lift_aux_tmul, f.map_smul₂] )
+  (λ p q ih1 ih2, by rw [smul_add, (lift_aux f).map_add, ih1, ih2, (lift_aux f).map_add, smul_add])
+
+variable (f)
+/-- Constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P` with the property that
+its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
+def lift : M ⊗ N →ₗ[Rᵒᵖ] P :=
+{ map_smul' := lift_aux.smul,
+  .. lift_aux f }
+variable {f}
+
+@[simp] lemma lift.tmul (x y) : lift f (x ⊗ₜ y) = f x y :=
+zero_add _
+
+@[simp] lemma lift.tmul' (x y) : (lift f).1 (x ⊗ₜ y) = f x y :=
+lift.tmul _ _
+
+theorem ext' {g h : (M ⊗[R] N) →ₗ[Rᵒᵖ] P}
+  (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
+linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
+λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
+
+theorem lift.unique {g : (M ⊗[R] N) →ₗ[Rᵒᵖ] P} (H : ∀ x y, g (x ⊗ₜ y) = f x y) :
+  g = lift f :=
+ext' $ λ m n, by rw [H, lift.tmul]
+
+example : has_scalar Rᵒᵖ (M ⊗[R] N) := tensor_product.left_has_scalar
+
+variables [module R (M ⊗[R] N)] [is_symmetric_smul R (M ⊗[R] N)]
+
+theorem lift_mk : lift (mk R M N) = linear_map.id :=
+eq.symm $ lift.unique $ λ x y, rfl
+
+theorem lift_compr₂ (g : P →ₗ[Rᵒᵖ] Q) : lift (f.compr₂ g) = g.comp (lift f) :=
+eq.symm $ lift.unique $ λ x y, by simp
+
+theorem lift_mk_compr₂ (f : M ⊗ N →ₗ[Rᵒᵖ] P) : lift ((mk R M N).compr₂ f) = f :=
+by { rw [lift_compr₂ f, lift_mk, linear_map.comp_id], repeat { apply_instance } }
+
+/--
+This used to be an `@[ext]` lemma, but it fails very slowly when the `ext` tactic tries to apply
+it in some cases, notably when one wants to show equality of two linear maps. The `@[ext]`
+attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of
+`tensor_product.ext'` allows `ext` to apply lemmas specific to `M →ₗ _` and `N →ₗ _`.
+See note [partially-applied ext lemmas]. -/
+theorem ext {g h : M ⊗[R] N →ₗ[Rᵒᵖ] P}
+  (H : (mk R M N).compr₂ g = (mk R M N).compr₂ h) : g = h :=
+by rw [← lift_mk_compr₂ g, H, lift_mk_compr₂]
+
+local attribute [ext] ext
+
+example : M → N → (M → N → P) → P :=
+λ m, flip $ λ f, f m
+
+variables (R M N P)
+/-- Linearly constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
+with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
+def uncurry : (M →ₗ[Rᵒᵖ] N →ₗ[Rᵒᵖ] P) →ₗ[Rᵒᵖ] M ⊗[R] N →ₗ[Rᵒᵖ] P :=
+linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp (linear_map.flip linear_map.id)
+variables {R M N P}
+
+end UMP
 
 end comm_semiring
 

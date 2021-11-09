@@ -12,8 +12,7 @@ import data.set.pairwise
 In this file, we define supremum independence of indexed sets. An indexed family `f : ι → α` is
 sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint.
 
-In distributive lattices, this is equivalent to being pairwise disjoint. Note however that
-`set.pairwise_disjoint` does not currently handle indexed sets.
+In distributive lattices, this is equivalent to being pairwise disjoint.
 
 ## TODO
 
@@ -89,27 +88,6 @@ alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
   set.pairwise_disjoint.sup_indep
 
 end finset
-
-namespace set
-variables [distrib_lattice_bot α]
-
-/-- Bind operation for `set.pairwise_disjoint`. In a complete lattice, you can use
-`set.pairwise_disjoint.bUnion_finset`. -/
-lemma pairwise_disjoint.bUnion_finset {s : set ι'} {g : ι' → finset ι} {f : ι → α}
-  (hs : s.pairwise_disjoint (λ i' : ι', (g i').sup f))
-  (hg : ∀ i ∈ s, (g i : set ι).pairwise_disjoint f) :
-  (⋃ i ∈ s, ↑(g i)).pairwise_disjoint f :=
-begin
-  rintro a ha b hb hab,
-  simp_rw set.mem_Union at ha hb,
-  obtain ⟨c, hc, ha⟩ := ha,
-  obtain ⟨d, hd, hb⟩ := hb,
-  obtain hcd | hcd := eq_or_ne (g c) (g d),
-  { exact hg d hd a (hcd ▸ ha) b hb hab },
-  { exact (hs _ hc _ hd (ne_of_apply_ne _ hcd)).mono (finset.le_sup ha) (finset.le_sup hb) }
-end
-
-end set
 
 lemma complete_lattice.independent_iff_sup_indep [complete_distrib_lattice α] [decidable_eq ι]
   {s : finset ι} {f : ι → α} :

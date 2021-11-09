@@ -1225,6 +1225,72 @@ begin
     refine nat.find_spec _ },
 end
 
---this comment is a test
-
 end quotient_multiplicity
+
+
+namespace temporary
+
+section factorisations_same_shape
+
+/-
+  Here are the changes I suggest.
+  Once were are finished proving these, we would no longer need the whole `quotient_multiplicity`
+  part above, which would greatly simplify the PR
+-/
+noncomputable theory
+open_locale classical
+variables {T : Type u_1} [integral_domain T] [is_dedekind_domain T] {I : ideal T}
+variables {S : Type u_2}  [integral_domain S] [is_dedekind_domain S] {J : ideal S}
+open ideal unique_factorization_monoid
+
+@[simps]
+def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):
+  {p : ideal T | p ∣ I} ≃ {p : ideal S | p ∣ J} :=
+{
+  to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)), sorry⟩,
+  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)), sorry⟩,
+  left_inv := λ X, sorry,
+  right_inv := λ X, sorry
+}
+
+lemma ideal_correspondence_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
+  {p : ideal S} (hp : p ∣ J) :
+  (ideal_correspondence hI hJ f).symm = ideal_correspondence hJ hI f.symm :=
+sorry
+
+lemma ideal_correspondence_mono (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
+  {p q : ideal T} (hp : p ∣ I) (hq : q ∣ I) (h : p ≤ q) :
+  ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) ≤ ( ideal_correspondence hI hJ f ⟨q, hq⟩ : ideal S) :=
+sorry
+
+lemma ideal_correspondence_is_prime_of_is_prime (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
+  ↑(ideal_correspondence hI hJ f ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors J :=
+  sorry
+
+-- This statement looks a bit dubious to me, and may need some changes to actually be correct
+lemma pow_ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∣ I) (n : ℕ)
+  (h : p^n ∣ I):
+  ideal_correspondence hI hJ f ⟨p^n, h⟩ =
+    ⟨(ideal_correspondence hI hJ f ⟨p, hp⟩ : ideal S)^n, sorry⟩
+  := sorry
+
+lemma preserves_multiplicity (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
+  {p : ideal T} (hp : p ∈ normalized_factors I) : multiplicity p I =
+    multiplicity ↑(ideal_correspondence hI hJ f ⟨p, dvd_of_mem_normalized_factors hp⟩) J :=
+sorry
+
+def prime_factors_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient) :
+  {p : ideal T | p ∈ normalized_factors I} ≃ {p : ideal S | p ∈ normalized_factors J} :=
+{
+  to_fun := λ X, ⟨↑(ideal_correspondence hI hJ f ⟨X.1, dvd_of_mem_normalized_factors X.2⟩),
+    ideal_correspondence_is_prime_of_is_prime hI hJ f X.2⟩,
+  inv_fun := λ X, ⟨↑(ideal_correspondence hJ hI f.symm ⟨X.1, dvd_of_mem_normalized_factors X.2⟩),
+    ideal_correspondence_is_prime_of_is_prime hJ hI f.symm X.2⟩,
+  left_inv := sorry,   --uses `ideal_correspondence_symm`
+  right_inv := sorry   --same
+}
+
+end factorisations_same_shape
+end temporary

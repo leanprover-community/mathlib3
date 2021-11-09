@@ -647,7 +647,7 @@ instance [module R' M₂] [smul_comm_class A R' M₂] : module R' (multilinear_m
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 instance [no_zero_smul_divisors R' M₃] : no_zero_smul_divisors R' (multilinear_map A M₁ M₃) :=
-coe_injective.no_zero_smul_divisors rfl (λ _ _ _, rfl)
+coe_injective.no_zero_smul_divisors _ rfl (λ _ _, funext $ λ _, rfl)
 
 variables (M₂ M₃ R' A)
 

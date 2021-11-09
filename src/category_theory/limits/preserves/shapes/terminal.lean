@@ -35,7 +35,7 @@ The map of an empty cone is a limit iff the mapped object is terminal.
 -/
 def is_limit_map_cone_empty_cone_equiv :
   is_limit (G.map_cone (as_empty_cone X)) ≃ is_terminal (G.obj X) :=
-(is_limit.postcompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
+(is_limit.postcompose_hom_equiv (functor.empty_ext _ (functor.empty D) : _) _).symm.trans
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/

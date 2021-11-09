@@ -9,11 +9,16 @@ import group_theory.group_action.defs
 import data.equiv.mul_add
 
 /-!
-# Algebraic operations on `αᵐᵒᵖ`
+# Multiplicative opposite and algebraic operations on it
 
-This file records several basic facts about the opposite of an algebraic structure, e.g. the
-opposite of a ring is a ring (with multiplication `x * y = yx`). Use is made of the identity
-functions `op : α → αᵐᵒᵖ` and `unop : αᵐᵒᵖ → α`.
+In this file we define `mul_oppposite α = αᵐᵒᵖ` to be the multiplicative opposite of `α`. It is a
+structure with one field `unop : α`. It inherits all additive algebraic structures on `α`, and
+reverses the order of multipliers in multiplicative structures, i.e., `op (x * y) = op x * op y`,
+where `mul_opposite.op = mul_oppposite.mk` is the canonical map from `α` to `αᵐᵒᵖ`.
+
+## Notation
+
+`αᵐᵒᵖ = mul_opposite α`
 -/
 
 universes u

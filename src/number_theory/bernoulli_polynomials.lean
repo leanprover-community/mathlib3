@@ -115,9 +115,9 @@ begin
     exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (le_tsub_of_add_le_left (succ_le_succ H))) },
   rw [sum_bernoulli],
   have g : (ite (n + 1 - x = 1) (1 : ℚ) 0) = 0,
-    { simp only [ite_eq_right_iff, one_ne_zero],
-      intro h₁,
-      exact (f x hx) h₁, },
+  { simp only [ite_eq_right_iff, one_ne_zero],
+    intro h₁,
+    exact (f x hx) h₁, },
   rw [g, zero_smul],
 end
 

@@ -147,6 +147,10 @@ by rw [relindex, subgroup_of_bot_eq_top, index_top]
 @[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
 
+@[simp, to_additive card_mul_index]
+lemma card_mul_index : nat.card H * H.index = nat.card G :=
+by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
+
 @[to_additive] lemma index_map {G' : Type*} [group G'] (f : G →* G') :
   (H.map f).index = (H ⊔ f.ker).index * f.range.index :=
 by rw [←comap_map_eq, index_comap, relindex_mul_index (H.map_le_range f)]

@@ -1415,6 +1415,10 @@ lemma ae_eq (h : quasi_measure_preserving f μa μb) {g₁ g₂ : β → δ} (hg
   g₁ ∘ f =ᵐ[μa] g₂ ∘ f :=
 h.ae hg
 
+lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : μb s = 0) :
+  μa (f ⁻¹' s) = 0 :=
+preimage_null_of_map_null h.1 (h.2 hs)
+
 end quasi_measure_preserving
 
 /-! ### The `cofinite` filter -/

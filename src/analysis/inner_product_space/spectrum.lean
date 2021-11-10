@@ -115,17 +115,14 @@ begin
 end
 
 lemma orthogonal_supr_eigenspaces_eq_bot' : (⨆ μ : eigenvalues T, eigenspace T μ)ᗮ = ⊥ :=
-begin
-  convert hT.orthogonal_supr_eigenspaces_eq_bot using 1,
-  rw ← supr_ne_bot_subtype (λ μ, eigenspace T μ),
-  refl,
-end
+show (⨆ μ : {μ // (eigenspace T μ) ≠ ⊥}, eigenspace T μ)ᗮ = ⊥,
+by rw [supr_ne_bot_subtype, hT.orthogonal_supr_eigenspaces_eq_bot]
 
 /-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
 an internal direct sum decomposition of `E`. -/
 lemma direct_sum_submodule_is_internal :
   direct_sum.submodule_is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
-by convert hT.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
+hT.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
   hT.orthogonal_supr_eigenspaces_eq_bot'
 
 /-- Isometry from an inner product space `E` to the direct sum of the eigenspaces of some

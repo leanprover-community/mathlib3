@@ -208,7 +208,7 @@ begin
     rw [← (_ : #_ = 1)], apply cof_type_le,
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
-    { rw [cardinal.fintype_card, set.card_singleton], simp } },
+    { rw [cardinal.mk_fintype, set.card_singleton], simp } },
   { rw [← cardinal.succ_zero, cardinal.succ_le],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }

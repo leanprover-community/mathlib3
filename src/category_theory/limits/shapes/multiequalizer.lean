@@ -3,7 +3,11 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.limits.has_limits
+-- import category_theory.limits.has_limits
+import category_theory.limits.shapes.products
+import category_theory.limits.shapes.equalizers
+import category_theory.limits.cone_category
+import category_theory.adjunction
 
 /-!
 
@@ -17,6 +21,9 @@ The dual construction (multicoequalizers) is also provided.
 
 ## Projects
 
+Prove that a multiequalizer can be identified with
+an equalizer between products (and analogously for multicoequalizers).
+
 Prove that the limit of any diagram is a multiequalizer (and similarly for colimits).
 
 -/
@@ -29,21 +36,21 @@ universes v u
 
 /-- The type underlying the multiequalizer diagram. -/
 @[nolint unused_arguments]
-inductive walking_multicospan {α β : Type v} (fst snd : β → α) : Type v
-| left : α → walking_multicospan
-| right : β → walking_multicospan
+inductive walking_multicospan {L R : Type v} (fst snd : R → L) : Type v
+| left : L → walking_multicospan
+| right : R → walking_multicospan
 
 /-- The type underlying the multiecoqualizer diagram. -/
 @[nolint unused_arguments]
-inductive walking_multispan {α β : Type v} (fst snd : α → β) : Type v
-| left : α → walking_multispan
-| right : β → walking_multispan
+inductive walking_multispan {L R : Type v} (fst snd : L → R) : Type v
+| left : L → walking_multispan
+| right : R → walking_multispan
 
 namespace walking_multicospan
 
-variables {α β : Type v} {fst snd : β → α}
+variables {L R : Type v} {fst snd : R → L}
 
-instance [inhabited α] : inhabited (walking_multicospan fst snd) :=
+instance [inhabited L] : inhabited (walking_multicospan fst snd) :=
 ⟨left (default _)⟩
 
 /-- Morphisms for `walking_multicospan`. -/
@@ -66,26 +73,17 @@ instance : small_category (walking_multicospan fst snd) :=
 { hom := hom,
   id := hom.id,
   comp := λ X Y Z, hom.comp,
-  id_comp' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  comp_id' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  assoc' := begin
-    rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_),
-    tidy,
-  end }
+  id_comp' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  comp_id' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  assoc' := by { rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_), tidy } }
 
 end walking_multicospan
 
 namespace walking_multispan
 
-variables {α β : Type v} {fst snd : α → β}
+variables {L R : Type v} {fst snd : L → R}
 
-instance [inhabited α] : inhabited (walking_multispan fst snd) :=
+instance [inhabited L] : inhabited (walking_multispan fst snd) :=
 ⟨left (default _)⟩
 
 /-- Morphisms for `walking_multispan`. -/
@@ -108,47 +106,38 @@ instance : small_category (walking_multispan fst snd) :=
 { hom := hom,
   id := hom.id,
   comp := λ X Y Z, hom.comp,
-  id_comp' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  comp_id' := begin
-    rintro (_|_) (_|_) (_|_|_),
-    tidy
-  end,
-  assoc' := begin
-    rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_),
-    tidy,
-  end }
+  id_comp' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  comp_id' := by { rintro (_|_) (_|_) (_|_|_), tidy },
+  assoc' := by { rintro (_|_) (_|_) (_|_) (_|_) (_|_|_) (_|_|_) (_|_|_), tidy } }
 
 end walking_multispan
 
 /-- This is a structure encapsulating the data necessary to define a `multicospan`. -/
 @[nolint has_inhabited_instance]
 structure multicospan_index (C : Type u) [category.{v} C] :=
-(α β : Type v)
-(f s : β → α)
-(left : α → C)
-(right : β → C)
-(fst : Π b, left (f b) ⟶ right b)
-(snd : Π b, left (s b) ⟶ right b)
+(L R : Type v)
+(fst_to snd_to : R → L)
+(left : L → C)
+(right : R → C)
+(fst : Π b, left (fst_to b) ⟶ right b)
+(snd : Π b, left (snd_to b) ⟶ right b)
 
 /-- This is a structure encapsulating the data necessary to define a `multispan`. -/
 @[nolint has_inhabited_instance]
 structure multispan_index (C : Type u) [category.{v} C] :=
-(α β : Type v)
-(f s : α → β)
-(left : α → C)
-(right : β → C)
-(fst : Π a, left a ⟶ right (f a))
-(snd : Π a, left a ⟶ right (s a))
+(L R : Type v)
+(fst_from snd_from : L → R)
+(left : L → C)
+(right : R → C)
+(fst : Π a, left a ⟶ right (fst_from a))
+(snd : Π a, left a ⟶ right (snd_from a))
 
 namespace multicospan_index
 
 variables {C : Type u} [category.{v} C] (I : multicospan_index C)
 
 /-- The multicospan associated to `I : multicospan_index`. -/
-def multicospan : walking_multicospan I.f I.s ⥤ C :=
+def multicospan : walking_multicospan I.fst_to I.snd_to ⥤ C :=
 { obj := λ x,
   match x with
   | walking_multicospan.left a := I.left a
@@ -160,14 +149,8 @@ def multicospan : walking_multicospan I.f I.s ⥤ C :=
   | _, _, walking_multicospan.hom.fst b := I.fst _
   | _, _, walking_multicospan.hom.snd b := I.snd _
   end,
-  map_id' := begin
-    rintros (_|_),
-    tidy
-  end,
-  map_comp' := begin
-    rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_),
-    tidy
-  end }
+  map_id' := by { rintros (_|_), tidy },
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_), tidy } }
 
 @[simp] lemma multicospan_obj_left (a) :
   I.multicospan.obj (walking_multicospan.left a) = I.left a := rfl
@@ -181,6 +164,25 @@ def multicospan : walking_multicospan I.f I.s ⥤ C :=
 @[simp] lemma multicospan_map_snd (b) :
   I.multicospan.map (walking_multicospan.hom.snd b) = I.snd b := rfl
 
+variables [has_product I.left] [has_product I.right]
+
+noncomputable
+def fst_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.fst_to b) ≫ I.fst b)
+
+noncomputable
+def snd_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.snd_to b) ≫ I.snd b)
+
+@[simp, reassoc]
+lemma fst_product_map_π (b) : I.fst_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.fst b :=
+by simp [fst_pi_map]
+
+@[simp, reassoc]
+lemma snd_product_map_π (b) : I.snd_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.snd b :=
+by simp [snd_pi_map]
+
+@[simps] protected noncomputable
+def parallel_pair := parallel_pair I.fst_pi_map I.snd_pi_map
+
 end multicospan_index
 
 namespace multispan_index
@@ -188,7 +190,7 @@ namespace multispan_index
 variables {C : Type u} [category.{v} C] (I : multispan_index C)
 
 /-- The multispan associated to `I : multispan_index`. -/
-def multispan : walking_multispan I.f I.s ⥤ C :=
+def multispan : walking_multispan I.fst_from I.snd_from ⥤ C :=
 { obj := λ x,
   match x with
   | walking_multispan.left a := I.left a
@@ -200,14 +202,8 @@ def multispan : walking_multispan I.f I.s ⥤ C :=
   | _, _, walking_multispan.hom.fst b := I.fst _
   | _, _, walking_multispan.hom.snd b := I.snd _
   end,
-  map_id' := begin
-    rintros (_|_),
-    tidy
-  end,
-  map_comp' := begin
-    rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_),
-    tidy
-  end }
+  map_id' := by { rintros (_|_), tidy },
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_|_) (_|_|_), tidy } }
 
 @[simp] lemma multispan_obj_left (a) :
   I.multispan.obj (walking_multispan.left a) = I.left a := rfl
@@ -227,7 +223,7 @@ variables {C : Type u} [category.{v} C]
 
 /-- A multifork is a cone over a multicospan. -/
 @[nolint has_inhabited_instance]
-def multifork (I : multicospan_index C) := cone I.multicospan
+abbreviation multifork (I : multicospan_index C) := cone I.multicospan
 
 /-- A multicofork is a cocone over a multispan. -/
 @[nolint has_inhabited_instance]
@@ -238,32 +234,32 @@ namespace multifork
 variables {I : multicospan_index C} (K : multifork I)
 
 /-- The maps from the cone point of a multifork to the objects on the left. -/
-def ι (a : I.α) : K.X ⟶ I.left a :=
+def ι (a : I.L) : K.X ⟶ I.left a :=
 K.π.app (walking_multicospan.left _)
 
 @[simp] lemma ι_eq_app_left (a) : K.ι a = K.π.app (walking_multicospan.left _) := rfl
 
 @[simp] lemma app_left_fst (b) :
-  K.π.app (walking_multicospan.left (I.f b)) ≫ I.fst b =
+  K.π.app (walking_multicospan.left (I.fst_to b)) ≫ I.fst b =
     K.π.app (walking_multicospan.right b) :=
 by { rw ← K.w (walking_multicospan.hom.fst b), refl }
 
 @[simp] lemma app_left_snd (b) :
-  K.π.app (walking_multicospan.left (I.s b)) ≫ I.snd b =
+  K.π.app (walking_multicospan.left (I.snd_to b)) ≫ I.snd b =
     K.π.app (walking_multicospan.right b) :=
 by { rw ← K.w (walking_multicospan.hom.snd b), refl }
 
 /-- Construct a multifork using a collection `ι` of morphisms. -/
 @[simps]
 def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
-  (w : ∀ b, ι (I.f b) ≫ I.fst b = ι (I.s b) ≫ I.snd b) :
+  (w : ∀ b, ι (I.fst_to b) ≫ I.fst b = ι (I.snd_to b) ≫ I.snd b) :
   multifork I :=
 { X := P,
   π :=
   { app := λ x,
     match x with
     | walking_multicospan.left a := ι _
-    | walking_multicospan.right b := ι (I.f b) ≫ I.fst b
+    | walking_multicospan.right b := ι (I.fst_to b) ≫ I.fst b
     end,
     naturality' := begin
       rintros (_|_) (_|_) (_|_|_),
@@ -274,34 +270,114 @@ def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
 
 @[reassoc]
 lemma condition (b) :
-  K.ι (I.f b) ≫ I.fst b = K.ι (I.s b) ≫ I.snd b := by simp
+  K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b := by simp
+
+variables [has_product I.left] [has_product I.right]
+
+@[simp, reassoc]
+lemma pi_condition :
+  pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map := by { ext, simp }
+
+@[simps X] noncomputable
+def to_pi_fork (K : multifork I) : fork I.fst_pi_map I.snd_pi_map :=
+{ X := K.X,
+  π :=
+  { app := λ x,
+    match x with
+    | walking_parallel_pair.zero := pi.lift K.ι
+    | walking_parallel_pair.one := pi.lift K.ι ≫ I.fst_pi_map
+    end,
+    naturality' :=
+    begin
+      rintros (_|_) (_|_) (_|_|_),
+      any_goals { symmetry, dsimp, rw category.id_comp, apply category.comp_id },
+      all_goals { change 𝟙 _ ≫ _ ≫ _ = pi.lift _ ≫ _, simp }
+    end } }
+
+section end
+
+@[simp] lemma to_pi_fork_π_app_zero :
+  K.to_pi_fork.π.app walking_parallel_pair.zero = pi.lift K.ι := rfl
+
+@[simp] lemma to_pi_fork_π_app_one :
+  K.to_pi_fork.π.app walking_parallel_pair.one = pi.lift K.ι ≫ I.fst_pi_map := rfl
+
+variable (I)
+
+@[simps X] noncomputable
+def of_pi_fork (c : fork I.fst_pi_map I.snd_pi_map) : multifork I :=
+{ X := c.X,
+  π :=
+  { app := λ x,
+    match x with
+    | walking_multicospan.left a := c.ι ≫ pi.π _ _
+    | walking_multicospan.right b := c.ι ≫ I.fst_pi_map ≫ pi.π _ _
+    end,
+    naturality' :=
+    begin
+      rintros (_|_) (_|_) (_|_|_),
+      any_goals { symmetry, dsimp, rw category.id_comp, apply category.comp_id },
+      { change 𝟙 _ ≫ _ ≫ _ = (_ ≫ _) ≫ _, simp },
+      { change 𝟙 _ ≫ _ ≫ _ = (_ ≫ _) ≫ _, rw c.condition_assoc, simp }
+    end } }
+
+@[simp] lemma of_pi_fork_π_app_left (c : fork I.fst_pi_map I.snd_pi_map) (a) :
+  (of_pi_fork I c).π.app (walking_multicospan.left a) = c.ι ≫ pi.π _ _ := rfl
+
+@[simp] lemma of_pi_fork_π_app_right (c : fork I.fst_pi_map I.snd_pi_map) (a) :
+  (of_pi_fork I c).π.app (walking_multicospan.right a) = c.ι ≫ I.fst_pi_map ≫ pi.π _ _ := rfl
 
 end multifork
+
+namespace multicospan_index
+
+variables (I : multicospan_index C) [has_product I.left] [has_product I.right]
+
+local attribute [tidy] tactic.case_bash
+
+@[simps] noncomputable
+def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
+{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom } }
+
+@[simps] noncomputable
+def of_pi_fork_functor : fork I.fst_pi_map I.snd_pi_map ⥤ multifork I :=
+{ obj := multifork.of_pi_fork I, map := λ K₁ K₂ f, { hom := f.hom, w' := by rintros (_|_); simp } }
+
+@[simps] noncomputable
+def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
+{ functor := to_pi_fork_functor I,
+  inverse := of_pi_fork_functor I,
+  unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _) (by rintros (_|_); dsimp; simp))
+    (λ K₁ K₂ f, by { ext, simp }),
+  counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
+    (λ K₁ K₂ f, by { ext, simp }) }
+
+end multicospan_index
 
 namespace multicofork
 
 variables {I : multispan_index C} (K : multicofork I)
 
 /-- The maps to the cocone point of a multicofork from the objects on the right. -/
-def π (b : I.β) : I.right b ⟶ K.X :=
+def π (b : I.R) : I.right b ⟶ K.X :=
 K.ι.app (walking_multispan.right _)
 
 @[simp] lemma π_eq_app_right (b) : K.π b = K.ι.app (walking_multispan.right _) := rfl
 
 @[simp] lemma fst_app_right (a) :
-  I.fst a ≫ K.ι.app (walking_multispan.right (I.f a)) =
+  I.fst a ≫ K.ι.app (walking_multispan.right (I.fst_from a)) =
     K.ι.app (walking_multispan.left a) :=
 by { rw ← K.w (walking_multispan.hom.fst a), refl }
 
 @[simp] lemma snd_app_right (a) :
-  I.snd a ≫ K.ι.app (walking_multispan.right (I.s a)) =
+  I.snd a ≫ K.ι.app (walking_multispan.right (I.snd_from a)) =
     K.ι.app (walking_multispan.left a) :=
 by { rw ← K.w (walking_multispan.hom.snd a), refl }
 
 /-- Construct a multicofork using a collection `π` of morphisms. -/
 @[simps]
 def of_π (I : multispan_index C) (P : C) (π : Π b, I.right b ⟶ P)
-  (w : ∀ a, I.fst a ≫ π (I.f a) = I.snd a ≫ π (I.s a)) :
+  (w : ∀ a, I.fst a ≫ π (I.fst_from a) = I.snd a ≫ π (I.snd_from a)) :
   multicofork I :=
 { X := P,
   ι :=
@@ -319,7 +395,7 @@ def of_π (I : multispan_index C) (P : C) (π : Π b, I.right b ⟶ P)
 
 @[reassoc]
 lemma condition (a) :
-  I.fst a ≫ K.π (I.f a) = I.snd a ≫ K.π (I.s a) := by simp
+  I.fst a ≫ K.π (I.fst_from a) = I.snd a ≫ K.π (I.snd_from a) := by simp
 
 end multicofork
 
@@ -348,7 +424,7 @@ namespace multiequalizer
 variables (I : multicospan_index C) [has_multiequalizer I]
 
 /-- The canonical map from the multiequalizer to the objects on the left. -/
-abbreviation ι (a : I.α) : multiequalizer I ⟶ I.left a :=
+abbreviation ι (a : I.L) : multiequalizer I ⟶ I.left a :=
 limit.π _ (walking_multicospan.left a)
 
 /-- The multifork associated to the multiequalizer. -/
@@ -360,25 +436,25 @@ lemma multifork_ι (a) :
   (multiequalizer.multifork I).ι a = multiequalizer.ι I a := rfl
 
 @[simp]
-lemma multifork_π_app_zero (a) :
+lemma multifork_π_app_left (a) :
   (multiequalizer.multifork I).π.app (walking_multicospan.left a) =
   multiequalizer.ι I a := rfl
 
 @[reassoc]
 lemma condition (b) :
-  multiequalizer.ι I (I.f b) ≫ I.fst b =
-  multiequalizer.ι I (I.s b) ≫ I.snd b :=
+  multiequalizer.ι I (I.fst_to b) ≫ I.fst b =
+  multiequalizer.ι I (I.snd_to b) ≫ I.snd b :=
 multifork.condition _ _
 
 /-- Construct a morphism to the multiequalizer from its universal property. -/
 abbreviation lift (W : C) (k : Π a, W ⟶ I.left a)
-  (h : ∀ b, k (I.f b) ≫ I.fst b = k (I.s b) ≫ I.snd b) :
+  (h : ∀ b, k (I.fst_to b) ≫ I.fst b = k (I.snd_to b) ≫ I.snd b) :
   W ⟶ multiequalizer I :=
 limit.lift _ (multifork.of_ι I _ k h)
 
 @[simp, reassoc]
 lemma lift_ι (W : C) (k : Π a, W ⟶ I.left a)
-  (h : ∀ b, k (I.f b) ≫ I.fst b = k (I.s b) ≫ I.snd b) (a) :
+  (h : ∀ b, k (I.fst_to b) ≫ I.fst b = k (I.snd_to b) ≫ I.snd b) (a) :
   multiequalizer.lift I _ k h ≫ multiequalizer.ι I a = k _ :=
 limit.lift_π _ _
 
@@ -395,6 +471,12 @@ begin
     ← category.assoc, h],
 end
 
+variables [has_product I.left] [has_product I.right] [has_equalizer I.fst_pi_map I.snd_pi_map]
+
+def iso_equalizer : multiequalizer I ≅ equalizer I.fst_pi_map I.snd_pi_map :=
+limit.iso_limit_cone ⟨_, is_limit_of_preserves_cone_terminal
+  I.multifork_equiv_pi_fork.inverse _ (limit.is_limit _)⟩
+
 end multiequalizer
 
 namespace multicoequalizer
@@ -402,7 +484,7 @@ namespace multicoequalizer
 variables (I : multispan_index C) [has_multicoequalizer I]
 
 /-- The canonical map from the multiequalizer to the objects on the left. -/
-abbreviation π (b : I.β) : I.right b ⟶ multicoequalizer I :=
+abbreviation π (b : I.R) : I.right b ⟶ multicoequalizer I :=
 colimit.ι I.multispan (walking_multispan.right _)
 
 /-- The multicofork associated to the multicoequalizer. -/
@@ -414,24 +496,25 @@ lemma multicofork_π (b) :
   (multicoequalizer.multicofork I).π b = multicoequalizer.π I b := rfl
 
 @[simp]
-lemma multicofork_π_app_right (b) :
+lemma multicofork_ι_app_right (b) :
   (multicoequalizer.multicofork I).ι.app (walking_multispan.right b) =
   multicoequalizer.π I b := rfl
+
 @[reassoc]
 lemma condition (a) :
-  I.fst a ≫ multicoequalizer.π I (I.f a) =
-  I.snd a ≫ multicoequalizer.π I (I.s a) :=
+  I.fst a ≫ multicoequalizer.π I (I.fst_from a) =
+  I.snd a ≫ multicoequalizer.π I (I.snd_from a) :=
 multicofork.condition _ _
 
 /-- Construct a morphism from the multicoequalizer from its universal property. -/
 abbreviation desc (W : C) (k : Π b, I.right b ⟶ W)
-  (h : ∀ a, I.fst a ≫  k (I.f a) = I.snd a ≫ k (I.s a)) :
+  (h : ∀ a, I.fst a ≫  k (I.fst_from a) = I.snd a ≫ k (I.snd_from a)) :
   multicoequalizer I ⟶ W :=
 colimit.desc _ (multicofork.of_π I _ k h)
 
 @[simp, reassoc]
-lemma lift_ι (W : C) (k : Π b, I.right b ⟶ W)
-  (h : ∀ a, I.fst a ≫  k (I.f a) = I.snd a ≫ k (I.s a)) (b) :
+lemma π_desc (W : C) (k : Π b, I.right b ⟶ W)
+  (h : ∀ a, I.fst a ≫  k (I.fst_from a) = I.snd a ≫ k (I.snd_from a)) (b) :
   multicoequalizer.π I b ≫ multicoequalizer.desc I _ k h = k _ :=
 colimit.ι_desc _ _
 

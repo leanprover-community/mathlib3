@@ -184,6 +184,74 @@ begin
 end
 
 end stalk_pushforward
+section stalk_pullback
+
+/-- The morphism `ℱ_{f x} ⟶ (f⁻¹ℱ)ₓ` that factors through `(f_*f⁻¹ℱ)_{f x}`. -/
+def stalk_pullback_hom (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
+  F.stalk (f x) ⟶ (pullback_obj f F).stalk x :=
+(stalk_functor _ (f x)).map ((pushforward_pullback_adjunction C f).unit.app F) ≫
+  stalk_pushforward _ _ _ x
+
+/-- The morphism `(f⁻¹ℱ)(U) ⟶ ℱ_{f(x)}` for some `U ∋ x`. -/
+def germ_to_pullback_stalk (f : X ⟶ Y) (F : Y.presheaf C) (U : opens X) (x : U) :
+  (pullback_obj f F).obj (op U) ⟶ F.stalk (f x) :=
+colimit.desc (Lan.diagram (opens.map f).op F (op U))
+{ X := F.stalk (f x),
+  ι := { app := λ V, F.germ ⟨f x, V.hom.unop.le x.2⟩,
+          naturality' := λ _ _ i, by { erw category.comp_id, exact F.germ_res i.left.unop _ } } }
+
+/-- The morphism `(f⁻¹ℱ)ₓ ⟶ ℱ_{f(x)}`. -/
+def stalk_pullback_inv (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
+  (pullback_obj f F).stalk x ⟶ F.stalk (f x) :=
+colimit.desc ((open_nhds.inclusion x).op ⋙ presheaf.pullback_obj f F)
+{ X := F.stalk (f x),
+  ι := { app := λ U, F.germ_to_pullback_stalk _ f (unop U).1 ⟨x, (unop U).2⟩,
+          naturality' := λ _ _ _, by { erw [colimit.pre_desc, category.comp_id], congr } } }
+
+/-- The isomorphism `ℱ_{f(x)} ≅ (f⁻¹ℱ)ₓ`. -/
+def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
+  F.stalk (f x) ≅ (pullback_obj f F).stalk x :=
+{ hom := stalk_pullback_hom _ _ _ _,
+  inv := stalk_pullback_inv _ _ _ _,
+  hom_inv_id' :=
+  begin
+    delta stalk_pullback_hom stalk_pullback_inv stalk_functor presheaf.pullback stalk_pushforward
+      germ_to_pullback_stalk germ,
+    ext j,
+    induction j using opposite.rec,
+    cases j,
+    simp only [topological_space.open_nhds.inclusion_map_iso_inv, whisker_right_app,
+      whisker_left_app, whiskering_left_obj_map, functor.comp_map, colimit.ι_map_assoc,
+      nat_trans.op_id, Lan_obj_map, pushforward_pullback_adjunction_unit_app_app, category.assoc,
+      colimit.ι_pre_assoc],
+    erw [colimit.ι_desc, colimit.pre_desc, colimit.ι_desc, category.comp_id],
+    simpa
+  end,
+  inv_hom_id' :=
+  begin
+    delta stalk_pullback_hom stalk_pullback_inv stalk_functor presheaf.pullback stalk_pushforward,
+    ext U j,
+    induction U using opposite.rec,
+    cases U, cases j, cases j_right,
+    erw [colimit.map_desc, colimit.map_desc, colimit.ι_desc_assoc,
+      colimit.ι_desc_assoc, colimit.ι_desc, category.comp_id],
+    simp only [cocone.whisker_ι, colimit.cocone_ι, open_nhds.inclusion_map_iso_inv,
+      cocones.precompose_obj_ι, whisker_right_app, whisker_left_app, nat_trans.comp_app,
+      whiskering_left_obj_map, nat_trans.op_id, Lan_obj_map,
+      pushforward_pullback_adjunction_unit_app_app],
+    erw ←colimit.w _
+      (@hom_of_le (open_nhds x) _
+         ⟨_, U_property⟩ ⟨(opens.map f).obj (unop j_left), j_hom.unop.le U_property⟩
+         j_hom.unop.le).op,
+    erw colimit.ι_pre_assoc (Lan.diagram _ F _) (costructured_arrow.map _),
+    erw colimit.ι_pre_assoc (Lan.diagram _ F _) (costructured_arrow.map _),
+    congr,
+    simp only [category.assoc, costructured_arrow.map_mk],
+    delta costructured_arrow.mk,
+    congr
+  end }
+
+end stalk_pullback
 
 section concrete
 

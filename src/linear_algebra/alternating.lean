@@ -232,7 +232,7 @@ by refine
   zsmul_neg' := _,
   .. alternating_map.add_comm_monoid, .. };
 intros; ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, zsmul_coe_nat]
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, coe_nat_zsmul]
 
 section distrib_mul_action
 

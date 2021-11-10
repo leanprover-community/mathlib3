@@ -277,7 +277,7 @@ begin
       simp only [f', hfx, simple_func.integral_eq_integral _ (this _), indicator_of_mem,
         mem_set_of_eq],
       refine tendsto_integral_of_dominated_convergence (λ y, ∥f x y∥ + ∥f x y∥)
-        (λ n, (s' n x).ae_measurable) hf.of_uncurry_left.ae_measurable (hfx.norm.add hfx.norm) _ _,
+        (λ n, (s' n x).ae_measurable) (hfx.norm.add hfx.norm) _ _,
       { exact λ n, eventually_of_forall (λ y, simple_func.norm_approx_on_zero_le _ _ (x, y) n) },
       { exact eventually_of_forall (λ y, simple_func.tendsto_approx_on _ _ (by simp)) } },
     { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, } },

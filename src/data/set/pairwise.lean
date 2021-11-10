@@ -184,6 +184,19 @@ lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x
 
 end pairwise
 
+lemma pairwise_subtype_iff_pairwise_set {α : Type*} (s : set α) (r : α → α → Prop) :
+  pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise r :=
+begin
+  split,
+  { assume h x hx y hy hxy,
+    exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
+  { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    simp only [subtype.mk_eq_mk, ne.def] at hxy,
+    exact h x hx y hy hxy }
+end
+
+alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
+
 namespace set
 section semilattice_inf_bot
 variables [semilattice_inf_bot α] {s t : set ι} {f g : ι → α}
@@ -202,9 +215,9 @@ lemma pairwise_disjoint.mono_on (hs : s.pairwise_disjoint f) (h : ∀ ⦃i⦄, i
 lemma pairwise_disjoint.mono (hs : s.pairwise_disjoint f) (h : g ≤ f) : s.pairwise_disjoint g :=
 hs.mono_on (λ i _, h i)
 
-lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_empty _
+@[simp] lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_empty _
 
-lemma pairwise_disjoint_singleton (i : ι) (f : ι → α) : pairwise_disjoint {i} f :=
+@[simp] lemma pairwise_disjoint_singleton (i : ι) (f : ι → α) : pairwise_disjoint {i} f :=
 pairwise_singleton i _
 
 lemma pairwise_disjoint_insert {i : ι} :

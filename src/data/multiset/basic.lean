@@ -1081,8 +1081,7 @@ lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α] {m : multiset
 begin
   apply quotient.induction_on m,
   simp only [quot_mk_to_coe, coe_prod, mem_coe],
-  intros l hl₁ hl₂ x hx,
-  apply all_one_of_le_one_le_of_prod_eq_one hl₁ hl₂ _ hx,
+  exact λ l, all_one_of_le_one_le_of_prod_eq_one,
 end
 
 lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] {m : multiset α} :

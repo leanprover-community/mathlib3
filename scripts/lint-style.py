@@ -181,6 +181,7 @@ def indent_check(lines, path):
 
         # Update state for next line.
         ended_with_comma = line.endswith(",\n")
+        # We don't want to lint inside `⟨..⟩` (anonymous constructor) or `[..]` tactic blocks.
         inside_special += line.count('⟨') + line.count('[') - line.count('⟩') - line.count(']')
         if line[0] != ' ':
             # This is either the `end` line of a tactic proof, or the first line of a new declaration.

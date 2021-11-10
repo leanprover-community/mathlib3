@@ -224,7 +224,7 @@ lemma inner_sub_right {x y z : F} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right, inner_neg_right] }
 
 lemma inner_mul_conj_re_abs {x y : F} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
-by { rw[←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
+by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 
 /-- Expand `inner (x + y) (x + y)` -/
 lemma inner_add_add_self {x y : F} : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
@@ -297,8 +297,8 @@ local attribute [instance] to_has_norm
 
 lemma norm_eq_sqrt_inner (x : F) : ∥x∥ = sqrt (re ⟪x, x⟫) := rfl
 
-lemma inner_self_eq_norm_sq (x : F) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
-by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
+lemma inner_self_eq_norm_mul_norm (x : F) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
+by rw [norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
   sqrt_mul_self inner_self_nonneg]
 
 lemma sqrt_norm_sq_eq_norm {x : F} : sqrt (norm_sqF x) = ∥x∥ := rfl
@@ -308,11 +308,11 @@ lemma abs_inner_le_norm (x y : F) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 nonneg_le_nonneg_of_sq_le_sq (mul_nonneg (sqrt_nonneg _) (sqrt_nonneg _))
 begin
   have H : ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥) = re ⟪y, y⟫ * re ⟪x, x⟫,
-  { simp only [inner_self_eq_norm_sq], ring, },
+  { simp only [inner_self_eq_norm_mul_norm], ring, },
   rw H,
   conv
   begin
-    to_lhs, congr, rw[inner_abs_conj_sym],
+    to_lhs, congr, rw [inner_abs_conj_sym],
   end,
   exact inner_mul_inner_self_le y x,
 end
@@ -340,7 +340,7 @@ normed_group.of_core F
     have h₃ : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ := by linarith,
     have h₄ : re ⟪y, x⟫ ≤ ∥x∥ * ∥y∥ := by rwa [←inner_conj_sym, conj_re],
     have : ∥x + y∥ * ∥x + y∥ ≤ (∥x∥ + ∥y∥) * (∥x∥ + ∥y∥),
-    { simp [←inner_self_eq_norm_sq, inner_add_add_self, add_mul, mul_add, mul_comm],
+    { simp [←inner_self_eq_norm_mul_norm, inner_add_add_self, add_mul, mul_add, mul_comm],
       linarith },
     exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this
   end,
@@ -528,7 +528,7 @@ begin
 end
 
 lemma inner_self_abs_to_K {x : E} : (absK ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
-by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
+by { rw [←inner_self_re_abs], exact inner_self_re_to_K }
 
 lemma real_inner_self_abs {x : F} : absR ⟪x, x⟫_ℝ = ⟪x, x⟫_ℝ :=
 by { have h := @inner_self_abs_to_K ℝ F _ _ x, simpa using h }
@@ -554,7 +554,7 @@ lemma inner_sub_right {x y z : E} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right] }
 
 lemma inner_mul_conj_re_abs {x y : E} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
-by { rw[←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
+by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 
 /-- Expand `⟪x + y, x + y⟫` -/
 lemma inner_add_add_self {x y : E} : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
@@ -859,19 +859,24 @@ end
 lemma norm_eq_sqrt_real_inner (x : F) : ∥x∥ = sqrt ⟪x, x⟫_ℝ :=
 by { have h := @norm_eq_sqrt_inner ℝ F _ _ x, simpa using h }
 
-lemma inner_self_eq_norm_sq (x : E) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
-by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
+lemma inner_self_eq_norm_mul_norm (x : E) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
+by rw [norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
   sqrt_mul_self inner_self_nonneg]
 
-lemma real_inner_self_eq_norm_sq (x : F) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
-by { have h := @inner_self_eq_norm_sq ℝ F _ _ x, simpa using h }
+lemma inner_self_eq_norm_sq (x : E) : re ⟪x, x⟫ = ∥x∥^2 :=
+by rw [pow_two, inner_self_eq_norm_mul_norm]
 
+lemma real_inner_self_eq_norm_mul_norm (x : F) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
+by { have h := @inner_self_eq_norm_mul_norm ℝ F _ _ x, simpa using h }
+
+lemma real_inner_self_eq_norm_sq (x : F) : ⟪x, x⟫_ℝ = ∥x∥^2 :=
+by rw [pow_two, real_inner_self_eq_norm_mul_norm]
 
 /-- Expand the square -/
 lemma norm_add_sq {x y : E} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [sq, ←inner_self_eq_norm_sq]},
-  rw[inner_add_add_self, two_mul],
+  repeat {rw [sq, ←inner_self_eq_norm_mul_norm]},
+  rw [inner_add_add_self, two_mul],
   simp only [add_assoc, add_left_inj, add_right_inj, add_monoid_hom.map_add],
   rw [←inner_conj_sym, conj_re],
 end
@@ -895,14 +900,14 @@ by { have h := @norm_add_mul_self ℝ F _ _, simpa using h }
 /-- Expand the square -/
 lemma norm_sub_sq {x y : E} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [sq, ←inner_self_eq_norm_sq]},
-  rw[inner_sub_sub_self],
+  repeat {rw [sq, ←inner_self_eq_norm_mul_norm]},
+  rw [inner_sub_sub_self],
   calc
     re (⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫)
         = re ⟪x, x⟫ - re ⟪x, y⟫ - re ⟪y, x⟫ + re ⟪y, y⟫  : by simp
     ... = -re ⟪y, x⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫  : by ring
-    ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[inner_conj_sym]
-    ... = -re ⟪x, y⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[conj_re]
+    ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw [inner_conj_sym]
+    ... = -re ⟪x, y⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw [conj_re]
     ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
 end
 
@@ -927,7 +932,7 @@ lemma abs_inner_le_norm (x y : E) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 nonneg_le_nonneg_of_sq_le_sq (mul_nonneg (norm_nonneg _) (norm_nonneg _))
 begin
   have : ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥) = (re ⟪x, x⟫) * (re ⟪y, y⟫),
-    simp only [inner_self_eq_norm_sq], ring,
+    simp only [inner_self_eq_norm_mul_norm], ring,
   rw this,
   conv_lhs { congr, skip, rw [inner_abs_conj_sym] },
   exact inner_mul_inner_self_le _ _
@@ -948,8 +953,8 @@ include 𝕜
 lemma parallelogram_law_with_norm {x y : E} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
-  simp only [← inner_self_eq_norm_sq],
-  rw[← re.map_add, parallelogram_law, two_mul, two_mul],
+  simp only [← inner_self_eq_norm_mul_norm],
+  rw [← re.map_add, parallelogram_law, two_mul, two_mul],
   simp only [re.map_add],
 end
 omit 𝕜
@@ -1079,7 +1084,7 @@ if they have the same norm. -/
 lemma real_inner_add_sub_eq_zero_iff (x y : F) : ⟪x + y, x - y⟫_ℝ = 0 ↔ ∥x∥ = ∥y∥ :=
 begin
   conv_rhs { rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _) },
-  simp only [←inner_self_eq_norm_sq, inner_add_left, inner_sub_right,
+  simp only [←inner_self_eq_norm_mul_norm, inner_add_left, inner_sub_right,
             real_inner_comm y x, sub_eq_zero, re_to_real],
   split,
   { intro h,
@@ -1093,7 +1098,7 @@ end
 lemma norm_sub_eq_norm_add {v w : E} (h : ⟪v, w⟫ = 0) : ∥w - v∥ = ∥w + v∥ :=
 begin
   rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _),
-  simp [h, ←inner_self_eq_norm_sq, inner_add_left, inner_add_right, inner_sub_left,
+  simp [h, ←inner_self_eq_norm_mul_norm, inner_add_left, inner_add_right, inner_sub_left,
     inner_sub_right, inner_re_symm]
 end
 
@@ -1114,11 +1119,11 @@ end
 
 /-- The inner product of a vector with a multiple of itself. -/
 lemma real_inner_smul_self_left (x : F) (r : ℝ) : ⟪r • x, x⟫_ℝ = r * (∥x∥ * ∥x∥) :=
-by rw [real_inner_smul_left, ←real_inner_self_eq_norm_sq]
+by rw [real_inner_smul_left, ←real_inner_self_eq_norm_mul_norm]
 
 /-- The inner product of a vector with a multiple of itself. -/
 lemma real_inner_smul_self_right (x : F) (r : ℝ) : ⟪x, r • x⟫_ℝ = r * (∥x∥ * ∥x∥) :=
-by rw [inner_smul_right, ←real_inner_self_eq_norm_sq]
+by rw [inner_smul_right, ←real_inner_self_eq_norm_mul_norm]
 
 /-- The inner product of a nonzero vector with a nonzero multiple of
 itself, divided by the product of their norms, has absolute value
@@ -1128,7 +1133,7 @@ lemma abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
 begin
   have hx' : ∥x∥ ≠ 0 := by simp [norm_eq_zero, hx],
   have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
-  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_sq,
+  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_mul_norm,
       norm_smul],
   rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
      ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
@@ -1185,12 +1190,12 @@ begin
     have ht0 : ⟪x, t⟫ = 0,
     { rw [ht, inner_sub_right, inner_smul_right, hr],
       norm_cast,
-      rw [←inner_self_eq_norm_sq, inner_self_re_to_K,
+      rw [←inner_self_eq_norm_mul_norm, inner_self_re_to_K,
           div_mul_cancel _ (λ h, hx0 (inner_self_eq_zero.1 h)), sub_self] },
     replace h : ∥r • x∥ / ∥t + r • x∥ = 1,
     { rw [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
         is_R_or_C.abs_div, is_R_or_C.abs_mul, ←inner_self_re_abs,
-        inner_self_eq_norm_sq] at h,
+        inner_self_eq_norm_mul_norm] at h,
       norm_cast at h,
       rwa [_root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm, ←mul_assoc, mul_comm,
         mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), ←is_R_or_C.norm_eq_abs,
@@ -1203,7 +1208,7 @@ begin
     have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
     { rw [eq_of_div_eq_one h] },
     replace h2 : ⟪r • x, r • x⟫ = ⟪t, t⟫ + ⟪t, r • x⟫ + ⟪r • x, t⟫ + ⟪r • x, r • x⟫,
-    { rw [sq, sq, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq ] at h2,
+    { rw [sq, sq, ←inner_self_eq_norm_mul_norm, ←inner_self_eq_norm_mul_norm ] at h2,
       have h2' := congr_arg (λ z : ℝ, (z : 𝕜)) h2,
       simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
       exact h2' },

@@ -1356,7 +1356,7 @@ begin
     rw [ring_hom.mem_ker, ← hy, ideal.quotient.lift_mk, ← ring_hom.mem_ker] at hx,
     rw [← hy, mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective],
     exact ⟨y, hx, rfl⟩ },
- { intro hx,
+  { intro hx,
     rw mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective at hx,
     obtain ⟨y, hy⟩ := hx,
     rw [ring_hom.mem_ker, ← hy.right, ideal.quotient.lift_mk, ← (ring_hom.mem_ker f)],

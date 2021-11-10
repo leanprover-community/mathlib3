@@ -619,7 +619,7 @@ abbreviation pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [h
   (g₁ : Y ⟶ T) (g₂ : Z ⟶ T) [has_pullback g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₃ = i₁ ≫ g₁) (eq₂ : f₂ ≫ i₃ = i₂ ≫ g₂) : pullback f₁ f₂ ⟶ pullback g₁ g₂ :=
 pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
-  (by simp [←eq₁, ←eq₂, pullback.condition_assoc])
+  (by simp [← eq₁, ← eq₂, pullback.condition_assoc])
 
 
 /--
@@ -636,7 +636,7 @@ abbreviation pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [ha
   (g₁ : T ⟶ Y) (g₂ : T ⟶ Z) [has_pushout g₁ g₂] (i₁ : W ⟶ Y) (i₂ : X ⟶ Z) (i₃ : S ⟶ T)
   (eq₁ : f₁ ≫ i₁ = i₃ ≫ g₁) (eq₂ : f₂ ≫ i₂ = i₃ ≫ g₂) : pushout f₁ f₂ ⟶ pushout g₁ g₂ :=
 pushout.desc (i₁ ≫ pushout.inl) (i₂ ≫ pushout.inr)
-  (by { simp only [←category.assoc, eq₁, eq₂], simp [pushout.condition] })
+  (by { simp only [← category.assoc, eq₁, eq₂], simp [pushout.condition] })
 
 
 /-- Two morphisms into a pullback are equal if their compositions with the pullback morphisms are

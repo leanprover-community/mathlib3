@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 -- import category_theory.limits.has_limits
--- import category_theory.limits.shapes.products
--- import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.products
+import category_theory.limits.shapes.equalizers
+import category_theory.limits.cone_category
 import category_theory.adjunction
 
 /-!
@@ -326,7 +327,6 @@ def of_pi_fork (c : fork I.fst_pi_map I.snd_pi_map) : multifork I :=
 @[simp] lemma of_pi_fork_π_app_right (c : fork I.fst_pi_map I.snd_pi_map) (a) :
   (of_pi_fork I c).π.app (walking_multicospan.right a) = c.ι ≫ I.fst_pi_map ≫ pi.π _ _ := rfl
 
-
 end multifork
 
 namespace multicospan_index
@@ -351,17 +351,6 @@ def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
     (λ K₁ K₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, simp }) }
-
-section end
-
-def cones_iso_of_cones_equiv {C : Type v} [category.{v} C] {D : Type u} [category.{v} D]
-  {C' : Type v} [category.{v} C'] {D' : Type u} [category.{v} D'] {F : C ⥤ D} {F' : C' ⥤ D'}
-  (e : cone F ≌ cone F') (c : cone F) : is_limit c ≃ is_limit (e.functor.obj c) :=
-begin
-  refine ((cone_limiting_iff_is_terminal _).trans _).trans (cone_limiting_iff_is_terminal _).symm,
-  exact { to_fun := is_terminal_obj_of_is_terminal _ _, inv_fun := _, left_inv := by tidy, right_inv := by tidy }
-end
-
 
 end multicospan_index
 
@@ -485,8 +474,8 @@ end
 variables [has_product I.left] [has_product I.right] [has_equalizer I.fst_pi_map I.snd_pi_map]
 
 def iso_equalizer : multiequalizer I ≅ equalizer I.fst_pi_map I.snd_pi_map :=
-limit.iso_limit_cone ⟨_, is_limit.of_nat_iso ((is_limit.nat_iso (limit.is_limit _)) ≪≫
-  ((I.multifork_equiv_pi_fork).symm : _ ≌ _))⟩
+limit.iso_limit_cone ⟨_, is_limit_of_preserves_cone_terminal
+  I.multifork_equiv_pi_fork.inverse _ (limit.is_limit _)⟩
 
 end multiequalizer
 

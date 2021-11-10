@@ -17,10 +17,14 @@ the (semi)group.
 
 open opposite
 
-class is_symmetric_smul (R M : Type*) [has_scalar R M] [has_scalar (opposite R) M] :=
+class is_symmetric_smul (R M : Type*) [has_scalar R M] [has_scalar Rᵒᵖ M] :=
 (op_smul_eq_smul : ∀ (r : R) (m : M), m <• r = r • m)
 
 open is_symmetric_smul (op_smul_eq_smul)
+
+lemma unop_smul_eq_smul {R M : Type*} [has_scalar R M] [has_scalar Rᵒᵖ M]
+  [is_symmetric_smul R M] (r : Rᵒᵖ) (m : M) : unop r • m = r • m :=
+by { conv_rhs { rw[←op_unop r] }, rw [op_smul_eq_smul] }
 
 instance comm_semigroup.is_symmetric_smul {R} [comm_semigroup R] : is_symmetric_smul R R :=
 ⟨λ r m, mul_comm _ _⟩
@@ -36,3 +40,13 @@ instance (R M) [has_scalar R M] [has_scalar Rᵒᵖ M] [is_symmetric_smul R M] :
 lemma op_smul_eq_op_smul_op (R M) [has_scalar R M] [has_scalar Rᵒᵖ M] [is_symmetric_smul R M]
   (r : R) (m : M) : op (r • m) = op r • op m :=
 (op_smul_eq_smul r (op m)).symm
+
+instance is_scalar_tower.is_symmetric_smul {R α} [monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
+  [is_scalar_tower Rᵒᵖ R α] : is_symmetric_smul R α :=
+⟨λ r a, by rw [←one_smul R a, ←smul_assoc, one_smul, op_smul_eq_mul, one_mul]⟩
+
+instance mul_action.of_is_symmetric_smul {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
+  [is_symmetric_smul R α] : mul_action Rᵒᵖ α :=
+⟨λ a, by rw [←op_one, op_smul_eq_smul (1 : R) a, one_smul],
+ λ r s a, by rw [mul_comm, ←op_unop (s * r), op_smul_eq_smul, unop_mul, mul_smul,
+                 unop_smul_eq_smul, unop_smul_eq_smul]⟩

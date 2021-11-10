@@ -167,7 +167,7 @@ namespace category_theory.limits
 
 variables {C : Type u} [category.{v} C] {D : Type u'} [category.{v} D]
 
-variables {J : Type v} [category.{v} J] {K : Type v} [category.{v} K]
+variables {J : Type v} [category.{v} J] {K : Type v} [category.{v₂} K]
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=

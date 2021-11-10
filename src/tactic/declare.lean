@@ -113,8 +113,8 @@ canonical declarations for certain concepts (for example, all of the
 
 * Declare notation which is localized to a locale using:
 ```lean
-def_declare algebra R A := "variables [comm_semiring %(R)] [semiring %(A)] [algebra %(R) %(A)]"
-def_declare vector_space K V := "variables [field %(K)] [add_comm_group %(V)] [module %(K) %(V)]"
+def_declare algebra R A := "variables [semiring %(A)] [algebra %(R) %(A)]"
+def_declare vector_space K V := "variables [add_comm_group %(V)] [module %(K) %(V)]"
 ```
 
 * The following command will evaluate this code in a given section/namespace/file,
@@ -149,7 +149,7 @@ When given arguments, it shows only those declarations that apply.
 
 * To see what a `def_declare` is defining, use `def_declare?`:
 ```lean
-def_declare? vector_space K V := "variables [field %(K)] [add_comm_group %(V)] [module %(K) %(V)]"
+def_declare? vector_space K V := "variables [add_comm_group %(V)] [module %(K) %(V)]"
 ```
 
 * To see what a `declare` is evaluating, use `declare?`:

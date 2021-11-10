@@ -77,12 +77,6 @@ end set
 
 namespace finset
 
-@[to_additive]
-lemma le_prod_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
-  (n : β) (h : ∀ (x ∈ s), n ≤ f x) :
-  n ^ s.card ≤ s.prod f :=
-@prod_le_of_forall_le α (order_dual β) _ s f n h
-
 variables [decidable_eq α]
 
 lemma card_eq_two {s : finset α} :
@@ -111,33 +105,68 @@ begin
   simp [xy, xz, yz],
 end
 
+-- lemma nonempty_diff [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
+-- sorry
+
+lemma dumb_thing {α : Type*} [decidable_eq α]
+  {X Y Z : finset α} (hXY : disjoint X Y) (hXZ : disjoint X Z) (hYZ : disjoint Y Z)
+  {x₁ x₂ y₁ y₂ z₁ z₂ : α} (h : ({x₁, y₁, z₁} : finset α) = {x₂, y₂, z₂})
+  (hx₁ : x₁ ∈ X) (hx₂ : x₂ ∈ X) (hy₁ : y₁ ∈ Y) (hy₂ : y₂ ∈ Y) (hz₁ : z₁ ∈ Z) (hz₂ : z₂ ∈ Z) :
+  (x₁, y₁, z₁) = (x₂, y₂, z₂) :=
+begin
+  simp only [finset.subset.antisymm_iff, subset_iff, mem_insert, mem_singleton, forall_eq_or_imp,
+    forall_eq] at h,
+  rw disjoint_left at hXY hXZ hYZ,
+  rw [prod.mk.inj_iff, prod.mk.inj_iff],
+  simp only [and.assoc, @or.left_comm _ (y₁ = y₂), @or.comm _ (z₁ = z₂),
+    @or.left_comm _ (z₁ = z₂)] at h,
+  refine ⟨h.1.resolve_right (not_or _ _), h.2.1.resolve_right (not_or _ _),
+    h.2.2.1.resolve_right (not_or _ _)⟩;
+  { rintro rfl,
+    solve_by_elim },
+end
+
 end finset
+
+lemma exists_ne_ne_fin {n : ℕ} (hn : 3 ≤ n) (a b : fin n) : ∃ c, a ≠ c ∧ b ≠ c :=
+begin
+  obtain ⟨c, hc⟩ : ({a,b}ᶜ : finset (fin n)).nonempty,
+  { rw [←finset.card_pos, card_compl, fintype.card_fin],
+    apply nat.sub_pos_of_lt ((card_insert_le _ _).trans_lt _),
+    rw card_singleton,
+    linarith },
+  exact ⟨c, by simpa [not_or_distrib, @eq_comm _ c] using hc⟩,
+end
+
+lemma fin3_cases (i j : fin 3) : i = j ∨ i = j + 1 ∨ i = j + 2 :=
+by { fin_cases i; fin_cases j; finish }
 
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ a ≤ b) : b < a := lt_of_not_ge' h
 
-lemma one_div_le_one_of_one_le [linear_ordered_field α] {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
+section linear_ordered_field
+variables [linear_ordered_field α]
+
+lemma one_div_le_one_of_one_le {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha
+
+lemma le_div_self {x y : α} (hx : 0 ≤ x) (hy₀ : 0 < y) (hy₁ : y ≤ 1) :
+  x ≤ x / y :=
+by simpa using div_le_div_of_le_left hx hy₀ hy₁
+
+lemma mul_le_of_nonneg_of_le_div {x y z : α} (hy : 0 ≤ y) (hz : 0 ≤ z) (h : x ≤ y / z) :
+  x * z ≤ y :=
+begin
+  rcases hz.eq_or_lt with rfl | hz,
+  { simpa using hy },
+  rwa le_div_iff hz at h,
+end
+
+end linear_ordered_field
 
 lemma disjoint.eq_bot_of_ge {α : Type*} [semilattice_inf_bot α] {a b : α} (hab : disjoint a b)
   (h : b ≤ a) :
   b = ⊥ :=
 hab.symm.eq_bot_of_le h
-
-lemma set.subsingleton.equitable_on {α β : Type*} [ordered_semiring β] {s : set α}
-  (hs : s.subsingleton) (f : α → β) :
-  s.equitable_on f :=
-λ i j hi hj, by { rw hs hi hj, exact le_add_of_nonneg_right zero_le_one }
-
-lemma set.equitable_on_singleton {α β : Type*} [ordered_semiring β] (a : α) (f : α → β) :
-  set.equitable_on {a} f :=
-set.subsingleton_singleton.equitable_on f
-
-namespace real
-
-lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) : log a ≤ b ↔ a ≤ exp b :=
-by rw [←exp_le_exp, exp_log ha]
-
-end real
 
 lemma sum_mul_sq_le_sq_mul_sq {α : Type*}
   (s : finset α) (f g : α → ℝ) :
@@ -174,19 +203,41 @@ begin
   apply mul_le_mul_of_nonneg_right (chebyshev' _ _) hs'.le,
 end
 
-namespace nat
+namespace simple_graph
+variables {G G' : simple_graph α} {s : finset α}
 
-lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
+instance {r : α → α → Prop} [h : decidable_rel r] : decidable_pred (uncurry r) := λ x, h x.1 x.2
+
+@[mono] lemma edge_set_mono (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
 begin
-  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
-  exact nat.lt_succ_self _,
+  refine sym2.ind _,
+  intros x y h',
+  exact h h',
+end
+variables [decidable_eq α] [fintype α] [decidable_rel G.adj] [decidable_rel G'.adj]
+
+@[mono] lemma edge_finset_mono (h : G ≤ G') : G.edge_finset ⊆ G'.edge_finset :=
+set.to_finset_mono.2 (edge_set_mono h)
+
+variables (G G')
+
+def edge_finset_on [decidable_eq α] [decidable_rel G.adj] (s : finset α) : finset (sym2 α) :=
+((s.product s).filter $ function.uncurry G.adj).image quotient.mk
+
+variables {G G'}
+
+lemma mem_edge_finset_on {x : sym2 α} :
+  x ∈ G.edge_finset_on s ↔ ∃ a b, a ∈ s ∧ b ∈ s ∧ G.adj a b ∧ x = ⟦(a, b)⟧ :=
+begin
+  simp_rw [edge_finset_on, mem_image, exists_prop, mem_filter, mem_product],
+  split,
+  { rintro ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h⟩,
+    exact ⟨a, b, hsa, hsb, hGab, h.symm⟩ },
+  { rintro ⟨a, b, hsa, hsb, hGab, h⟩,
+    exact ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h.symm⟩ }
 end
 
-lemma succ_sub_self : ∀ {n : ℕ}, n.succ - n = 1
-| 0       := rfl
-| (n + 1) := by rw [succ_sub_succ, succ_sub_self]
-
-end nat
+end simple_graph
 
 open finset
 
@@ -273,9 +324,6 @@ begin
   exact finset.card_filter_le _ _,
 end
 
---   -- rw card_bUnion,
---   -- exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint x hx y hy h),
-
 -- lemma pairs_count_bUnion_left [decidable_eq α] (A : finset β) (f : β → finset α) (B : finset α) :
 --   pairs_count r (A.bUnion f) B = ∑ a in A, pairs_count r (f a) B :=
 -- begin
@@ -289,14 +337,13 @@ end
 -- end
 
 -- lemma pairs_count_bUnion [decidable_eq α] (A B : finset β) (f g : β → finset α) :
---   pairs_count r (A.bUnion f) (B.bUnion g) = ∑ ab in A.product B, pairs_count r (f ab.1) (g ab.2) :=
+--   pairs_count r (A.bUnion f) (B.bUnion g) =
+--     ∑ ab in A.product B, pairs_count r (f ab.1) (g ab.2) :=
 -- begin
 --   simp only [pairs_count, pairs_finset_bUnion],
 --   rw card_bUnion,
 
 -- end
-
--- #exit
 
 /-- Edge density between two finsets of vertices -/
 noncomputable def pairs_density (U V : finset α) : ℝ :=

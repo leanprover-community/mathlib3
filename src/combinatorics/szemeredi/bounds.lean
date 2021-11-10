@@ -63,9 +63,6 @@ begin
     ←mul_pow],
 end
 
-lemma le_div_self {x y : ℝ} (hx : 0 ≤ x) (hy₀ : 0 < y) (hy₁ : y ≤ 1) : x ≤ x / y :=
-by simpa using div_le_div_of_le_left hx hy₀ hy₁
-
 lemma hundred_le_m [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
   (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε : ε ≤ 1) : 100 ≤ m :=
 by exact_mod_cast

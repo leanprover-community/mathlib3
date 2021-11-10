@@ -334,7 +334,7 @@ of the universe list is used, the bijection is wrapped in `trunc` to
 preserve computability.
 
 See `fintype.trunc_equiv_fin` for a version that gives an equivalence
-given `[decidable α]`.
+given `[decidable_eq α]`.
 -/
 def trunc_fin_bijection (α) [fintype α] :
   trunc {f : fin (card α) → α // bijective f} :=

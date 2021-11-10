@@ -48,7 +48,7 @@ lemma map_add {X Y : C} {f g : X ⟶ Y} : F.map (f + g) = F.map f + F.map g :=
 functor.additive.map_add'
 
 /-- `F.map_add_hom` is an additive homomorphism whose underlying function is `F.map`. -/
-@[simps]
+@[simps {fully_applied := ff}]
 def map_add_hom {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
 add_monoid_hom.mk' (λ f, F.map f) (λ f g, F.map_add)
 

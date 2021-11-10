@@ -19,11 +19,18 @@ See the tactic doc entry below for more information.
 
 open lean lean.parser interactive tactic native
 
+/-- Descriptor for a `def_declare`, constructed when building
+the attribute cache.
+It contains the number of parameters it expects, names for the
+metavariables given in the `def_declare` (for debugging), and
+a function that takes a list of that many parameters and produces
+the code to evaluate. -/
 meta structure canon_decl_def :=
 (nparams : ℕ)
 (default : list string)
 (mk_cmd : list string → tactic string)
 
+/-- The user attribute for canonical declarations. -/
 @[user_attribute]
 meta def canon_decl_attr : user_attribute (rb_lmap name canon_decl_def) unit := {
   name := "_canon_decl_attr",

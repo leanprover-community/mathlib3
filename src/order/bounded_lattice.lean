@@ -321,7 +321,6 @@ instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_latt
   semilattice_sup_bot α :=
 { ..bl }
 
--- tougher, because the has_le required for order_top/bot is now different
 theorem bounded_lattice.ext {α} {A B : bounded_lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin

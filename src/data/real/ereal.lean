@@ -62,7 +62,7 @@ def real.to_ereal : ℝ → ereal := some ∘ some
 
 namespace ereal
 
--- Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
+-- TODO: Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
 instance : has_bot ereal := ⟨some ⊥⟩
 
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _

@@ -62,7 +62,8 @@ do do_print ← optional (tk "?"),
      when do_print.is_some $ trace code,
      emit_code_here code -- is it possible to print the code if this fails?
 
-private meta def parse_declare_string (args : list name) (lst : pexpr): string → list char → parser pexpr
+private meta def parse_declare_string (args : list name) (lst : pexpr) :
+  string → list char → parser pexpr
 | acc [] := pure $ pexpr.of_expr (reflect acc)
 | acc ('%'::'%'::s) := parse_declare_string (acc ++ "%") s
 | acc ('%'::'('::s) :=

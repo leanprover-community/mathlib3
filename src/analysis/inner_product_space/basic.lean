@@ -513,7 +513,7 @@ by { have h := @inner_self_nonpos ℝ F _ _ x, simpa using h }
 @[simp] lemma inner_self_re_to_K {x : E} : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by rw is_R_or_C.ext_iff; exact ⟨by simp, by simp [inner_self_nonneg_im]⟩
 
-lemma inner_self_eq_norm_mul_norm_to_K (x : E) : ⟪x, x⟫ = (∥x∥ ^ 2 : 𝕜) :=
+lemma inner_self_eq_norm_sq_to_K (x : E) : ⟪x, x⟫ = (∥x∥ ^ 2 : 𝕜) :=
 begin
   suffices : (is_R_or_C.re ⟪x, x⟫ : 𝕜) = ∥x∥ ^ 2,
   { simpa [inner_self_re_to_K] using this },
@@ -687,7 +687,7 @@ begin
   split,
   { intros hv i j,
     split_ifs,
-    { simp [h, inner_self_eq_norm_mul_norm_to_K, hv.1] },
+    { simp [h, inner_self_eq_norm_sq_to_K, hv.1] },
     { exact hv.2 h } },
   { intros h,
     split,

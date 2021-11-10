@@ -85,8 +85,8 @@ lemma norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
 by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
              2 * (real.cos (angle x y) * (∥x∥ * ∥y∥)), by ring),
        cos_angle_mul_norm_mul_norm, ←real_inner_self_eq_norm_mul_norm,
-       ←real_inner_self_eq_norm_mul_norm, ←real_inner_self_eq_norm_mul_norm, real_inner_sub_sub_self,
-       sub_add_eq_add_sub]
+       ←real_inner_self_eq_norm_mul_norm, ←real_inner_self_eq_norm_mul_norm,
+       real_inner_sub_sub_self, sub_add_eq_add_sub]
 
 /-- Pons asinorum, vector angle form. -/
 lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :

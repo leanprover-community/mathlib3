@@ -190,11 +190,8 @@ def indent_check(lines, path):
         if "match" in line or "calc" in line:
             check_rest_of_block = False
         if "begin" in line:
-            if line.find("begin") > 0 and in_prf == 0:
-                # complicate proof block syntax
-                check_rest_of_block = False
+            # Don't check complicated proof block syntax
             if lstr.find("begin") > 0:
-                # complicate proof block syntax
                 check_rest_of_block = False
             indent_lvl += 2
             in_prf += 1

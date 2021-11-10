@@ -207,18 +207,22 @@ begin
       { apply preserves_product.iso s } },
     { rintro _ _ (_ | _),
       { ext : 1,
-        dsimp [equalizer.presieve.first_map, first_map],
+        dsimp only [equalizer.presieve.first_map, first_map, parallel_pair_map_left,
+          preserves_product.iso_hom, subtype.val_eq_coe, functor.comp_obj, functor.comp_map],
         simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
-        erw pi_comparison_comp_π_assoc },
+        rw pi_comparison_comp_π_assoc },
       { ext : 1,
-        dsimp [equalizer.presieve.second_map, second_map],
+        dsimp only [equalizer.presieve.second_map, second_map, parallel_pair_map_right,
+          preserves_product.iso_hom, subtype.val_eq_coe, functor.comp_obj, functor.comp_map],
         simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
-        erw pi_comparison_comp_π_assoc },
-      { dsimp,
-        simp } } },
+        rw pi_comparison_comp_π_assoc },
+      { simp only [category.comp_id, category.id_comp, limits.walking_parallel_pair_hom_id,
+          category_theory.functor.map_id, eq_self_iff_true ] } } },
   { refine fork.ext (iso.refl _) _,
-    dsimp [equalizer.fork_map, fork_map],
-    simp }
+    dsimp only [equalizer.fork_map, fork_map],
+    simp only [iso.refl_hom, limits.fork.ι_eq_app_zero, nat_trans.comp_app, category.id_comp,
+      limits.cones.postcompose_obj_π, limits.fork.of_ι_π_app, limits.map_lift_pi_comparison,
+      nat_iso.of_components.hom_app, limits.preserves_product.iso_hom, functor.comp_map] }
 end
 
 /-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/

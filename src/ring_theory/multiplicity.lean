@@ -382,8 +382,9 @@ have hdiv : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   by rw [hpoweq]; apply mul_dvd_mul; assumption,
 have hsucc : ¬p ^ ((get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) + 1) ∣ a * b,
-  from λ h, not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
-    (by exact succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
+  from λ h, by exact
+    not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
+      (_root_.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
 by rw [← enat.coe_inj, enat.coe_get, eq_coe_iff];
   exact ⟨hdiv, hsucc⟩
 

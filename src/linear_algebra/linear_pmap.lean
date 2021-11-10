@@ -165,6 +165,13 @@ instance : has_bot (linear_pmap R E F) := ⟨⟨⊥, 0⟩⟩
 
 instance : inhabited (linear_pmap R E F) := ⟨⊥⟩
 
+instance : order_bot (linear_pmap R E F) :=
+{ bot := ⊥,
+  bot_le := λ f, ⟨bot_le, λ x y h,
+    have hx : x = 0, from subtype.eq ((mem_bot R).1 x.2),
+    have hy : y = 0, from subtype.eq (h.symm.trans (congr_arg _ hx)),
+    by rw [hx, hy, map_zero, map_zero]⟩ }
+
 instance : semilattice_inf_bot (linear_pmap R E F) :=
 { le := (≤),
   le_refl := λ f, ⟨le_refl f.domain, λ x y h, subtype.eq h ▸ rfl⟩,
@@ -173,11 +180,6 @@ instance : semilattice_inf_bot (linear_pmap R E F) :=
       have hxy : (x:E) = of_le fg_le x, from rfl,
       (fg_eq hxy).trans (gh_eq $ hxy.symm.trans hxz)⟩,
   le_antisymm := λ f g fg gf, eq_of_le_of_domain_eq fg (le_antisymm fg.1 gf.1),
-  bot := ⊥,
-  bot_le := λ f, ⟨bot_le, λ x y h,
-    have hx : x = 0, from subtype.eq ((mem_bot R).1 x.2),
-    have hy : y = 0, from subtype.eq (h.symm.trans (congr_arg _ hx)),
-    by rw [hx, hy, map_zero, map_zero]⟩,
   inf := (⊓),
   le_inf := λ f g h ⟨fg_le, fg_eq⟩ ⟨fh_le, fh_eq⟩,
     ⟨λ x hx, ⟨fg_le hx, fh_le hx,
@@ -186,7 +188,8 @@ instance : semilattice_inf_bot (linear_pmap R E F) :=
   inf_le_left := λ f g, ⟨λ x hx, hx.fst,
     λ x y h, congr_arg f $ subtype.eq $ by exact h⟩,
   inf_le_right := λ f g, ⟨λ x hx, hx.snd.fst,
-    λ ⟨x, xf, xg, hx⟩ y h, hx.trans $ congr_arg g $ subtype.eq $ by exact h⟩ }
+    λ ⟨x, xf, xg, hx⟩ y h, hx.trans $ congr_arg g $ subtype.eq $ by exact h⟩,
+  ..linear_pmap.order_bot }
 
 lemma le_of_eq_locus_ge {f g : linear_pmap R E F} (H : f.domain ≤ f.eq_locus g) :
   f ≤ g :=

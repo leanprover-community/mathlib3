@@ -43,6 +43,9 @@ instance has_fin_products [has_finite_products C] (n : ℕ) :
   has_limits_of_shape (discrete (fin n)) C :=
 has_limits_of_shape_of_equivalence (discrete.equivalence (show ulift.{v} (fin n) ≃ fin n, by tidy))
 
+/-- We can now write this for powers. -/
+noncomputable example [has_finite_products C] (X : C) : C := ∏ (λ (i : fin 5), X)
+
 /--
 If a category has all products then in particular it has finite products.
 -/

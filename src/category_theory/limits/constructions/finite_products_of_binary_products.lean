@@ -103,18 +103,18 @@ This is a helper lemma for `has_finite_products_of_has_binary_and_terminal`, whi
 than this.
 -/
 private lemma has_product_ulift_fin :
-  Π (n : ℕ) (f : ulift (fin n) → C), has_product f
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), has_product f
 | 0 := λ f,
   begin
     letI : has_limits_of_shape (discrete (ulift.{v} (fin 0))) C :=
       has_limits_of_shape_of_equivalence
-        (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm),
+        (discrete.equivalence.{v} (equiv.ulift.trans fin_zero_equiv').symm),
     apply_instance,
   end
 | (n+1) := λ f,
   begin
     haveI := has_product_ulift_fin n,
-    apply has_limit.mk ⟨_, extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)⟩,
+    apply has_limit.mk ⟨_, extend_fan_is_limit f (limit.is_limit.{v} _) (limit.is_limit _)⟩,
   end
 
 /--
@@ -167,7 +167,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
     haveI := preserves_fin_of_preserves_binary_and_terminal n,
     intro f,
     refine preserves_limit_of_preserves_limit_cone
-      (extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)) _,
+      (extend_fan_is_limit f (limit.is_limit.{v} _) (limit.is_limit _)) _,
     apply (is_limit_map_cone_fan_mk_equiv _ _ _).symm _,
     let := extend_fan_is_limit (λ i, F.obj (f i))
               (is_limit_of_has_product_of_preserves_limit F _)
@@ -281,19 +281,19 @@ This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, w
 than this.
 -/
 private lemma has_coproduct_ulift_fin :
-  Π (n : ℕ) (f : ulift (fin n) → C), has_coproduct f
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), has_coproduct f
 | 0 := λ f,
   begin
     letI : has_colimits_of_shape (discrete (ulift.{v} (fin 0))) C :=
       has_colimits_of_shape_of_equivalence
-        (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm),
+        (discrete.equivalence.{v} (equiv.ulift.trans fin_zero_equiv').symm),
     apply_instance,
   end
 | (n+1) := λ f,
   begin
     haveI := has_coproduct_ulift_fin n,
     apply has_colimit.mk
-      ⟨_, extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)⟩,
+      ⟨_, extend_cofan_is_colimit f (colimit.is_colimit.{v} _) (colimit.is_colimit _)⟩,
   end
 
 /--
@@ -346,7 +346,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_initial  :
     haveI := preserves_fin_of_preserves_binary_and_initial n,
     intro f,
     refine preserves_colimit_of_preserves_colimit_cocone
-      (extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)) _,
+      (extend_cofan_is_colimit f (colimit.is_colimit.{v} _) (colimit.is_colimit _)) _,
     apply (is_colimit_map_cocone_cofan_mk_equiv _ _ _).symm _,
     let := extend_cofan_is_colimit (λ i, F.obj (f i))
               (is_colimit_of_has_coproduct_of_preserves_colimit F _)

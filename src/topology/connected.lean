@@ -133,23 +133,8 @@ begin
     Hs.is_preconnected Ht.is_preconnected
 end
 
-
-
-
 /-- The filtered sUnion of a set S of preconnected subsets is preconnected.
 (A set of sets is filtered if if the inclusion relation is total on it.)
--/
-/- Would it be useful to introduce the following definition  ?
-def set.is_filtered {α : Type*} (S : set (set α)) := ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s
-
-The above definition could be written as:
-def set.is_filtered' {α : Type*} (S : set (set α)) := is_total S (λ s t : S, (s : set α) ⊆ t)
-but that would be less convenient.
-
-We could also use
-def set.is_filtered'' {α : Type*} (S : set (set α)) := zorn.chain (⊆) S
-which would be equivalent but only asks:
-∀ s t, s ∈ S → t ∈ S → s ≠ t → s ⊆ t ∨ t ⊆ s
 -/
 theorem is_preconnected.filtered_sUnion_of {S : set (set α)}
   (K : ∀ s t, s ∈ S → t ∈ S → s ⊆ t ∨ t ⊆ s)
@@ -192,49 +177,26 @@ begin
 end
 
 /--
-If s = (s_j)_(j ∈ ℕ) is a family of (pre)connected sets
-such that sj meets s(j+1) for all j, then union s is (pre)connected. -/
-
-/- I would have liked to define the analogue for finite sequences,
-but I can't guess the type of the theorem,
-because j ∈ { j:ℕ | j ≤ n} ∧ j < n does'nt immediately
-imply that j.succ ∈ { j: ℕ | j ≤ n}
--/
-
+If `s` is a family of preconnected sets indexed by `ℕ` such that `s j` meets `s (j+1)`
+for all `j`, then `⋃ n, s n` s is preconnected. -/
 theorem is_preconnected.union_of_chain { s : ℕ → set α }
   (H : ∀ n: ℕ, is_preconnected (s n))
   (K : ∀ n: ℕ, (s n ∩ s(n.succ)).nonempty) :
   is_preconnected (⋃ n, s n) :=
 begin
   set Us : ℕ → set α := λ n, partial_sups s n,
-
   /- Each member of the increasing union is preconnected -/
   have Pn : ∀ n : ℕ, is_preconnected (Us n),
-  { /- proof by induction -/
-    intro n, induction n with n hn,
+  { intro n, induction n with n hn,
     /- initialization -/
-    have : Us 0 = s 0 := partial_sups_zero s,
-    rw this,
-    exact (H 0),
-
+    { rw show Us 0 = s 0, from partial_sups_zero s,
+      exact H 0 },
     /- inductive step -/
-    have : Us n ∪ (s n.succ) = Us n.succ := partial_sups_succ s n,
-    rw ← this,
-    have : ((Us n) ∩ (s n.succ)).nonempty,
-    { obtain ⟨x, hx⟩ := K n,
-      apply exists.intro x,
-      split,
-      apply le_partial_sups s,
-      exact hx.left, exact hx.right, },
-    obtain ⟨x, hx⟩ := K n,
-    apply is_preconnected.union x,
-    apply le_partial_sups s n, exact hx.left,
-    exact hx.right,
-    exact hn, exact (H n.succ), },
-
-  have Us_eq_Us : Union Us = Union s := supr_partial_sups_eq s,
-  rw ← Us_eq_Us,
-
+    { rw ← show Us n ∪ (s n.succ) = Us n.succ, from partial_sups_succ s n,
+      obtain ⟨x, hx : x ∈ s n, hx' : x ∈ s n.succ⟩ := K n,
+      replace hx : x ∈ Us n := (le_partial_sups s n : s n ⊆ Us n) hx,
+      exact is_preconnected.union x hx hx' hn (H _) } },
+  rw ← show Union Us = Union s, from supr_partial_sups_eq s,
   exact is_preconnected.Union_of_monotone ((partial_sups s).mono) Pn ,
 end
 

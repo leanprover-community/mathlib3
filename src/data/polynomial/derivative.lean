@@ -237,6 +237,27 @@ polynomial.induction_on p
       @derivative_mul _ _ _ X, derivative_X, mul_one, eval₂_add, @eval₂_mul _ _ _ _ X, eval₂_X,
       add_mul, mul_right_comm])
 
+theorem derivative_prod {s : multiset ι} {f : ι → polynomial R} :
+  (multiset.map f s).prod.derivative =
+  (multiset.map (λ i, (multiset.map f (s.erase i)).prod * (f i).derivative) s).sum :=
+begin
+  refine multiset.induction_on s (by simp) (λ i s h, _),
+  rw [multiset.map_cons, multiset.prod_cons, derivative_mul, multiset.map_cons _ i s,
+    multiset.sum_cons, multiset.erase_cons_head, mul_comm (f i).derivative],
+  congr,
+  rw [h, ← add_monoid_hom.coe_mul_left, (add_monoid_hom.mul_left (f i)).map_multiset_sum _,
+    add_monoid_hom.coe_mul_left],
+  simp only [function.comp_app, multiset.map_map],
+  congr' 1,
+  refine multiset.map_congr (λ j hj, _),
+  simp only [function.comp_app],
+  rw [← mul_assoc, ← multiset.prod_cons, ← multiset.map_cons],
+  congr' 1,
+  by_cases hij : i = j,
+  { simp [hij, ← multiset.prod_cons, ← multiset.map_cons, multiset.cons_erase hj] },
+  { simp [hij] }
+end
+
 theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.derivative.support) :
   n + 1 ∈ p.support :=
 mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $

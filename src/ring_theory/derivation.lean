@@ -56,10 +56,11 @@ instance : add_monoid_hom_class (derivation R A M) A M :=
   map_add := λ D, D.to_linear_map.map_add',
   map_zero := λ D, D.to_linear_map.map_zero }
 
-@[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
-
 /-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
 instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
+
+-- Not a simp lemma because it can be proved via `coe_fn_coe` + `to_linear_map_eq_coe`
+lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
@@ -78,7 +79,7 @@ fun_like.coe_injective
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 fun_like.ext _ _ H
 
-lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := congr_fun (congr_arg coe_fn h) a
+lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := fun_like.congr_fun h a
 
 protected lemma map_add : D (a + b) = D a + D b := map_add D a b
 protected lemma map_zero : D 0 = 0 := map_zero D

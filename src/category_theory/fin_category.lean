@@ -43,28 +43,33 @@ instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J
   fin_category (discrete J) :=
 { }
 
+namespace fin_category
 variables (α : Type*) [fintype α] [small_category α] [fin_category α]
 
 /-- A fin_category `α` is equivalent to a category with objects in `Type`. -/
-abbreviation fin_category.obj_as_type : Type := induced_category α (fintype.equiv_fin α).symm
+@[nolint unused_arguments]
+abbreviation obj_as_type : Type := induced_category α (fintype.equiv_fin α).symm
 
 /-- The constructed category is indeed equivalent to `α`. -/
-noncomputable def fin_category.obj_as_type_equiv : fin_category.obj_as_type α ≌ α :=
+noncomputable def obj_as_type_equiv : obj_as_type α ≌ α :=
 (induced_functor (fintype.equiv_fin α).symm).as_equivalence
 
 /-- A fin_category `α` is equivalent to a fin_category with in `Type`. -/
-abbreviation fin_category.as_type : Type := fin (fintype.card α)
+@[nolint unused_arguments] abbreviation as_type : Type := fin (fintype.card α)
 
-@[simps] noncomputable
-instance fin_category.category_as_type : small_category (fin_category.as_type α) :=
-{ hom := λ i j, fin (fintype.card (@quiver.hom (fin_category.obj_as_type α) _ i j)),
+@[simps hom id comp (lemmas_only)] noncomputable
+instance category_as_type : small_category (as_type α) :=
+{ hom := λ i j, fin (fintype.card (@quiver.hom (obj_as_type α) _ i j)),
   id := λ i, fintype.equiv_fin _ (𝟙 i),
   comp := λ i j k f g, fintype.equiv_fin _
     ((fintype.equiv_fin _).symm f ≫ (fintype.equiv_fin _).symm g) }
 
-/-- The constructed category is equivalent to `fin_category.obj_as_type α`. -/
+local attribute [simp] category_as_type_hom category_as_type_id
+  category_as_type_comp
+
+/-- The constructed category is equivalent to `obj_as_type α`. -/
 noncomputable
-def fin_category.obj_as_type_equiv_as_type : fin_category.as_type α ≌ fin_category.obj_as_type α :=
+def obj_as_type_equiv_as_type : as_type α ≌ obj_as_type α :=
 { functor := { obj := id, map := λ i j f, (fintype.equiv_fin _).symm f,
     map_comp' := λ _ _ _ _ _, by { dsimp, simp } },
   inverse := { obj := id, map := λ i j f, fintype.equiv_fin _ f,
@@ -73,11 +78,13 @@ def fin_category.obj_as_type_equiv_as_type : fin_category.as_type α ≌ fin_cat
   counit_iso := nat_iso.of_components iso.refl (λ _ _ _, by { dsimp, simp }) }
 
 noncomputable
-instance fin_category.as_type_fin_category : fin_category (fin_category.as_type α) := {}
+instance as_type_fin_category : fin_category (as_type α) := {}
 
 /-- The constructed category is indeed equivalent to `α`. -/
-noncomputable def fin_category.equiv_as_type : fin_category.as_type α ≌ α :=
-(fin_category.obj_as_type_equiv_as_type α).trans (fin_category.obj_as_type_equiv α)
+noncomputable def equiv_as_type : as_type α ≌ α :=
+(obj_as_type_equiv_as_type α).trans (obj_as_type_equiv α)
+
+end fin_category
 
 open opposite
 

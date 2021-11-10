@@ -787,11 +787,8 @@ begin
   { rintros i - ⟨v, hv, rfl⟩,
     exact hf i v hv },
   suffices : (infi p).map f ≤ infi p,
-  { intros v hv,
-    exact this ⟨v, hv, rfl⟩ },
-  refine le_infi _,
-  intros i,
-  exact (submodule.map_mono (infi_le p i)).trans (this i),
+  { exact λ v hv, this ⟨v, hv, rfl⟩, },
+  exact le_infi (λ i, (submodule.map_mono (infi_le p i)).trans (this i)),
 end
 
 section

@@ -106,11 +106,21 @@ begin
   convert Inf_add _,
   { simp_rw add_tsub_cancel_right },
   obtain ⟨m, hm⟩ := nonempty_of_pos_Inf h,
-  refine le_cInf ⟨m + n, _⟩ (λ b hb, le_of_not_lt $ λ hbn,
-    ne_of_mem_of_not_mem _ (not_mem_of_lt_Inf h) (tsub_eq_zero_of_le hbn.le)),
-  { dsimp,
-    rwa add_tsub_cancel_right },
-  { exact hb }
+  have hx: ∀ x, x ∈ {m : ℕ | p (m - n)} → n ≤ x,
+  { intros x hx,
+    rw mem_set_of_eq at hx,
+    apply le_of_lt,
+    rw ← tsub_pos_iff_lt,
+    rw pos_iff_ne_zero,
+    intro hxn,
+    rw hxn at hx,
+    apply not_mem_of_lt_Inf h hx,
+  },
+  apply hx,
+  apply Inf_mem,
+  use m + n,
+  simp only [mem_set_of_eq, add_tsub_cancel_right],
+  exact hm,
 end
 
 lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=

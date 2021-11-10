@@ -443,7 +443,7 @@ protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a 
  λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ cardinal.add_le_add_left _ (cardinal.zero_le _)⟩
 
 instance : order_bot cardinal.{u} :=
-{ bot := 0, bot_le := cardinal.zero_le, ..cardinal.partial_order }
+{ bot := 0, bot_le := cardinal.zero_le }
 
 instance : canonically_ordered_comm_semiring cardinal.{u} :=
 { add_le_add_left       := λ a b h c, cardinal.add_le_add_left _ h,

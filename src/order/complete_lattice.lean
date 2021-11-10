@@ -299,16 +299,16 @@ theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 @Sup_inter_le (order_dual α) _ _ _
 
 @[simp] theorem Sup_empty : Sup ∅ = (⊥ : α) :=
-(@is_lub_empty α _).Sup_eq
+(@is_lub_empty α _ _).Sup_eq
 
 @[simp] theorem Inf_empty : Inf ∅ = (⊤ : α) :=
-(@is_glb_empty α _).Inf_eq
+(@is_glb_empty α _ _).Inf_eq
 
 @[simp] theorem Sup_univ : Sup univ = (⊤ : α) :=
-(@is_lub_univ α _).Sup_eq
+(@is_lub_univ α _ _).Sup_eq
 
 @[simp] theorem Inf_univ : Inf univ = (⊥ : α) :=
-(@is_glb_univ α _).Inf_eq
+(@is_glb_univ α _ _).Inf_eq
 
 -- TODO(Jeremy): get this automatically
 @[simp] theorem Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=

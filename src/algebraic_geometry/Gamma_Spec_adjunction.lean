@@ -254,7 +254,7 @@ def adjunction : Γ.right_op ⊣ Spec.to_LocallyRingedSpace := adjunction.mk_of_
 
 end Γ_Spec
 
-/- Easy consequences of the adjunction. -/
+/-! Immediate consequences of the adjunction. -/
 
 /-- Spec preserves limits. -/
 instance Spec.preserves_limits : limits.preserves_limits Spec.to_LocallyRingedSpace :=

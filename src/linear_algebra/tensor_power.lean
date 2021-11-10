@@ -61,7 +61,7 @@ begin
 end
 
 lemma tprod_mul_tprod {na nb} (a : fin na → M) (b : fin nb → M) :
-  mul (tprod R a) (tprod R b) = (tprod R $ fin.concat a b) :=
+  mul (tprod R a) (tprod R b) = (tprod R $ fin.append' a b) :=
 begin
   dsimp [mul, mul_equiv],
   rw [tmul_equiv_apply R M a b],
@@ -80,7 +80,7 @@ begin
   show (reindex R M (equiv.cast _)) (mul (tprod R (fin.elim0 : fin 0 → M)) (tprod R a)) = tprod R a,
   rw [tprod_mul_tprod, reindex_tprod],
   congr' 1 with i,
-  rw fin.elim0_concat,
+  rw fin.elim0_append',
   refine congr_arg a (fin.ext _),
   simp,
 end
@@ -101,7 +101,7 @@ begin
   show (reindex R M (equiv.cast _)) (mul (tprod R a) (tprod R (fin.elim0 : fin 0 → M))) = tprod R a,
   rw [tprod_mul_tprod, reindex_tprod],
   congr' 1 with i,
-  rw fin.concat_elim0,
+  rw fin.append'_elim0,
   refine congr_arg a (fin.ext _),
   simp,
 end
@@ -137,8 +137,8 @@ begin
   simp only [linear_map.comp_multilinear_map_apply, lhs_eq, rhs_eq, tprod_mul_tprod, e,
     reindex_tprod],
   congr' with j,
-  rw fin.concat_assoc,
-  refine congr_arg (fin.concat a (fin.concat b c)) (fin.ext _),
+  rw fin.append'_assoc,
+  refine congr_arg (fin.append' a (fin.append' b c)) (fin.ext _),
   simp,
   sorry,
 end

@@ -49,23 +49,6 @@ lemma ideal.quotient.subsingleton_iff : subsingleton p.quotient ↔ p = ⊤ :=
 by rw [eq_top_iff_one, ← subsingleton_iff_zero_eq_one, eq_comm,
        ← p^.quotient.mk^.map_one, quotient.eq_zero_iff_mem]
 
-/-- `R / p` has a canonical map to `S / pS`. -/
-instance ideal.quotient.algebra_quotient_map_quotient :
-  algebra p.quotient (map f p).quotient :=
-ring_hom.to_algebra $
-ideal.quotient.lift _ ((ideal.quotient.mk _).comp f) $
-(λ a ha, quotient.eq_zero_iff_mem.mpr (mem_map_of_mem f ha))
-
-@[simp] lemma ideal.quotient.algebra_map_quotient_map_quotient (x : R) :
-  algebra_map p.quotient (map f p).quotient (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
-rfl
-
-instance ideal.quotient.tower_quotient_map_quotient [algebra R S] :
-  is_scalar_tower R p.quotient (map (algebra_map R S) p).quotient :=
-is_scalar_tower.of_algebra_map_eq $ λ x,
-by rw [ideal.quotient.algebra_map_eq, ideal.quotient.algebra_map_quotient_map_quotient,
-       ideal.quotient.mk_algebra_map]
-
 instance ideal.noetherian_dimensional_quotient_map_quotient [algebra R S] [p.is_maximal]
   [is_noetherian R S] :
   is_noetherian p.quotient (map (algebra_map R S) p).quotient :=
@@ -101,7 +84,7 @@ lemma ideal.exist_integer_multiples_not_mem
   ∃ a : K, (∀ i ∈ s, is_localization.is_integer R (a * f i)) ∧
     ∃ i ∈ s, (a * f i) ∉ (p : fractional_ideal R⁰ K) :=
 begin
-  obtain ⟨a', ha'⟩ := is_localization.exist_integer_multiples_of_finset' R⁰ s f,
+  obtain ⟨a', ha'⟩ := is_localization.exist_integer_multiples R⁰ s f,
   let I : fractional_ideal R⁰ K := ⟨submodule.span R (f '' s), a', a'.2, _⟩,
   have hI0 : I ≠ 0,
   { intro hI0,
@@ -193,7 +176,7 @@ end
   inertia_deg (algebra_map R S) p P = finrank p.quotient P.quotient :=
 begin
   nontriviality P.quotient using [inertia_deg_of_subsingleton, finrank_zero_of_subsingleton],
-  have := comap_eq_of_scalar_tower_quotient p P (ring_hom.injective _),
+  have := comap_eq_of_scalar_tower_quotient (algebra_map p.quotient P.quotient).injective,
   rw [inertia_deg, dif_pos this],
   congr,
   refine algebra.algebra_ext _ _ (λ x', quotient.induction_on' x' $ λ x, _),
@@ -203,7 +186,7 @@ begin
       ← ideal.quotient.algebra_map_eq, ← is_scalar_tower.algebra_map_apply]
 end
 
-lemma linear_independent.of_fraction_ring (R K : Type*) [integral_domain R] [field K]
+lemma linear_independent.of_fraction_ring (R K : Type*) [comm_ring R] [nontrivial R] [field K]
   [algebra R K] [is_fraction_ring R K] {ι V : Type*}
   [add_comm_group V] [module R V] [module K V] [is_scalar_tower R K V] {b : ι → V} :
   linear_independent R b ↔ linear_independent K b :=
@@ -212,7 +195,7 @@ begin
   rw [linear_independent_iff', linear_independent_iff'],
   intros hli s g hg i hi,
   choose a g' hg' using
-    is_localization.exist_integer_multiples_of_finset' (non_zero_divisors R) s g,
+    is_localization.exist_integer_multiples (non_zero_divisors R) s g,
   refine (smul_eq_zero.mp _).resolve_left (non_zero_divisors.coe_ne_zero a),
   rw [← hg' i hi, is_fraction_ring.to_map_eq_zero_iff],
   convert hli s (λ i, if hi : i ∈ s then g' i hi else 0) _ i hi,
@@ -224,7 +207,9 @@ begin
     simp only [dif_pos hi, ← smul_assoc, ← hg' i hi, is_scalar_tower.algebra_map_smul] },
 end
 
-lemma finrank_quotient_map_aux' {R S K : Type*} [integral_domain R] [is_dedekind_domain R]
+-- TODO: generalize?
+lemma finrank_quotient_map.linear_independent_of_injective
+  {R S K : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R]
   [comm_ring S] [algebra R S] (hRS : function.injective (algebra_map R S))
   [field K] [algebra R K] [is_fraction_ring R K] {ι V V' V'' : Type*}
   [add_comm_group V] [module R V] [module K V] [is_scalar_tower R K V]
@@ -236,10 +221,13 @@ begin
   rw [← linear_independent.of_fraction_ring R K,
       f.linear_independent_iff (linear_map.ker_eq_bot.mpr hf)],
   refine linear_independent.of_comp f' (linear_independent.restrict_scalars_algebras _ hb'),
-  simpa only [algebra.smul_def, mul_one] using hRS
+  simpa only [algebra.smul_def, mul_one] using hRS,
+  { apply_instance }
 end
 
-lemma finrank_quotient_map_aux {R S K : Type*} [integral_domain R] [is_dedekind_domain R]
+-- TODO: generalize?
+lemma finrank_quotient_map.linear_independent_of_nontrivial
+  {R S K : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R]
   [comm_ring S] [algebra R S] (hRS : (algebra_map R S).ker ≠ ⊤)
   [field K] [algebra R K] [is_fraction_ring R K] {ι V V' V'' : Type*}
   [add_comm_group V] [module R V] [module K V] [is_scalar_tower R K V]
@@ -273,21 +261,83 @@ begin
           (f.map_eq_zero_iff hf).mp eq, linear_map.map_zero],
 end
 
+.
+
+#print module.finite
+
+open_locale matrix
+
+-- TODO: generalize?
+lemma finrank_quotient_map.span_eq_top {K L : Type*} [field K] [field L]
+  [algebra R S] [algebra S L] [algebra K L] [module.finite R S]
+  (b : set S) (hb' : submodule.span p.quotient ((map (algebra_map R S) p)^.quotient.mk '' b) = ⊤) :
+  submodule.span K (algebra_map S L '' b) = ⊤ :=
+begin
+  -- Let `M` be the `R`-module spanned by the proposed basis elements.
+  let M : submodule R S := submodule.span R b,
+  -- Then `S / M` is generated by some finite set of vectors `a`.
+  letI h : module.finite R M.quotient :=
+    module.finite.of_surjective (submodule.mkq _) (submodule.quotient.mk_surjective _),
+  obtain ⟨n, a, ha⟩ := @module.finite.exists_fin R M.quotient _ _ _ _,
+  -- Because the image of `p` in `S / M` is `⊤`, we can write the elements of `a` as `p`-linear
+  -- combinations of other elements of `a`.
+  have : ∀ x : M.quotient, ∃ a' : fin n → R, (∀ i, a' i ∈ p) ∧ ∑ i, a' i • a i = x,
+  { sorry },
+  choose A' hA'p hA' using λ i, this (a i),
+  -- This gives us a(n invertible) matrix `A` such that `span S {det A} ≤ M = span R b`,
+  -- and going to the fraction fields, `L = span L {det A} ≤ span K (algebra_map S L '' b)`.
+  let A : matrix (fin n) (fin n) R := A' - 1,
+  let B := A.adjugate,
+  have A_smul : ∀ i, ∑ j, A i j • a j = 0,
+  { intros,
+    simp only [A, pi.sub_apply, sub_smul, finset.sum_sub_distrib, hA', matrix.one_apply, ite_smul,
+      one_smul, zero_smul, finset.sum_ite_eq, finset.mem_univ, if_true, sub_self] },
+  have d_smul : ∀ i, A.det • a i = 0,
+  { intro i,
+    calc A.det • a i = ∑ j, (B ⬝ A) i j • a j : _
+                 ... = ∑ k, B i k • ∑ j, (A k j • a j) : _
+                 ... = 0 : finset.sum_eq_zero (λ k _, _),
+    { simp only [matrix.adjugate_mul, pi.smul_apply, matrix.one_apply, mul_ite, ite_smul,
+        smul_eq_mul, mul_one, mul_zero, one_smul, zero_smul, finset.sum_ite_eq, finset.mem_univ,
+        if_true] },
+    { simp only [matrix.mul_apply, finset.smul_sum, finset.sum_smul, smul_smul],
+      rw finset.sum_comm },
+    { rw [A_smul, smul_zero] } },
+  have : (submodule.span S ({algebra_map R S A.det} : set S)).restrict_scalars R ≤ M,
+  { },
+
+end
+
+set_option pp.proofs true
+
+/-- If `p` is a maximal ideal of `R`, and `R` is contained in `S`,
+then the dimension `[S/pS : R/p]` is equal to `[Frac(S) : Frac(R)]`. -/
 lemma finrank_quotient_map [is_dedekind_domain R] (K L : Type*) [field K] [field L]
   [algebra R S] [algebra R K] [algebra S L] [algebra K L] [is_separable K L]
-  [is_fraction_ring R K]
+  [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
+  [is_fraction_ring R K] [is_fraction_ring S L]
   [hp : p.is_maximal] /- [module.free R S] [module.finite R S] -/ [is_noetherian R S] :
   finrank p.quotient (map (algebra_map R S) p).quotient = finrank K L :=
 begin
   let ι := module.free.choose_basis_index p.quotient (map (algebra_map R S) p).quotient,
   let b : basis ι _ _ := module.free.choose_basis p.quotient (map (algebra_map R S) p).quotient,
-  let b' : ι → L := λ i, algebra_map S L (ideal.quotient.mk_surjective (b i)).some,
-  have b'_li : linear_independent _ b' := _,
-  have b'_sp : submodule.span _ (set.range b') = ⊤ := _,
-  let c : basis ι K L := basis.mk b'_li b'_sp,
+  let b' : ι → S := λ i, (ideal.quotient.mk_surjective (b i)).some,
+  have b_eq_b' : ⇑ b = (submodule.mkq _).restrict_scalars R ∘ b' :=
+    funext (λ i, (ideal.quotient.mk_surjective (b i)).some_spec.symm),
+  let b'' : ι → L := algebra_map S L ∘ b',
+  have b''_li : linear_independent _ b'' := _,
+  have b''_sp : submodule.span _ (set.range b'') = ⊤ := _,
+  let c : basis ι K L := basis.mk b''_li b''_sp,
   rw [finrank_eq_card_basis b, finrank_eq_card_basis c],
-  { rw eq_top_iff, rintros x -, sorry },
-  { have := b.linear_independent.of_quotient p hp.ne_top (algebra.linear_map S L) _ _, }
+  { rw eq_top_iff, rintros x -, sorry /- apply finrank_quotient_map.span_eq_top -/ },
+  { have := b.linear_independent, rw b_eq_b' at this,
+    convert finrank_quotient_map.linear_independent_of_nontrivial _
+      ((algebra.linear_map S L).restrict_scalars R) _
+      ((submodule.mkq _).restrict_scalars R)
+      this,
+    { rw [quotient.algebra_map_eq, ideal.mk_ker], exact hp.ne_top },
+    { apply_instance }, { apply_instance }, { apply_instance },
+    exact is_fraction_ring.injective S L },
 end
 
 /-- The **fundamental identity** of ramification index `e` and inertia degree `f`:

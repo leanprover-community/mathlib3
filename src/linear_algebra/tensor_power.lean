@@ -19,10 +19,10 @@ open_locale tensor_product
 /-- Homogenous tensor powers $M^{\otimes n}$. `⨂[R]^n M` is a shorthand for
 `⨂[R] (i : fin n), M`. -/
 protected abbreviation tensor_power (R : Type*) (n : ℕ) (M : Type*)
-  [comm_semiring R] [add_comm_monoid M] [semimodule R M] : Type* :=
+  [comm_semiring R] [add_comm_monoid M] [module R M] : Type* :=
 ⨂[R] (i : fin n), M
 
-variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M]
+variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
 
 localized "notation `⨂[`:100 R `]^`:80 n:max := tensor_power R n"
   in tensor_product
@@ -51,7 +51,7 @@ instance {α : pempty → Type*} : unique (Π x, α x) :=
 
 /---/
 def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n + m) M :=
-(tmul_equiv R M).trans (reindex R M sum_fin_sum_equiv)
+(tmul_equiv R M).trans (reindex R M fin_sum_fin_equiv)
 
 def mul {n m : ℕ} : (⨂[R]^n M) →ₗ[R] (⨂[R]^m M) →ₗ[R] ⨂[R]^(n + m) M :=
 begin
@@ -101,17 +101,31 @@ begin
   apply pi_tensor_product.induction_on a,
   { intros r a',
     simp only [linear_equiv.map_smul,
-      ←tensor_product.smul_tmul',
+      ←tensor_product.smul_tmul' r (tprod R a'),
       linear_equiv.trans_apply,
       tmul_equiv_apply,
       reindex_tprod,
-      reindex_trans],
+      reindex_trans, linear_map.compr₂_apply,
+      linear_equiv.coe_to_linear_map,
+      tensor_product.mk_apply],
+    rw ←tensor_product.smul_tmul' r (tprod R a'),
+    simp only [linear_equiv.map_smul,
+      ←tensor_product.smul_tmul' r (tprod R a'),
+      linear_equiv.trans_apply,
+      tmul_equiv_apply,
+      reindex_tprod,
+      reindex_trans, linear_map.compr₂_apply,
+      linear_equiv.coe_to_linear_map,
+      tensor_product.mk_apply],
+    dsimp,
     congr',
     ext,
-    generalize_proofs p,
-    dsimp only [p],
-    cases h : (sum_fin_sum_equiv.symm) x,
-    simp [equiv.cast], sorry },
+    conv_rhs {rw ← (fin_sum_fin_equiv : _ ≃ fin (n + 0)).apply_symm_apply x},
+    cases h : (fin_sum_fin_equiv.symm : fin (n + 0) ≃ _) x,
+    { rw [fin_sum_fin_equiv_apply_left, sum.elim_inl],
+      congr,
+      simp?, },
+    { exact val.elim0, }, },
   { rintros a' b' ha hb,
     simp only [linear_equiv.map_add,
       tensor_product.add_tmul,
@@ -126,6 +140,8 @@ lemma mul_assoc {na nb nc} (a : ⨂[R]^na M) (b : ⨂[R]^nb M)  (c : ⨂[R]^nc M
 begin
   unfold mul mul_equiv,
   apply pi_tensor_product.induction_on a,
+  sorry,
+  sorry,
 end
 
 #check sum.elim

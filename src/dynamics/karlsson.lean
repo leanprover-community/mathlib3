@@ -217,4 +217,27 @@ begin
   exact tendsto_iff_norm_tendsto_zero.2 D,
 end
 
+
+
+
+
+
+lemma wrong_exists_tendsto_div :
+  ∃ (v : E), tendsto (λ (n : ℕ), (1 / n) • (f^[n] 0)) at_top (𝓝 v) :=
+begin
+  use 0,
+  have A : ∀ n ≥ 2, 1/n = 0,
+  { assume n hn,
+    exact nat.div_eq_of_lt hn },
+  have : tendsto (λ (n : ℕ), (0 : E)) at_top (𝓝 0) := tendsto_const_nhds,
+  apply tendsto.congr' _ this,
+  apply eventually_at_top.2 ⟨2, _⟩,
+  assume n hn,
+  simp [A n hn]
+end
+
+lemma wrong_exists_tendsto_div' :
+  ∃ (v : E), tendsto (λ (n : ℕ), (1 / n) • (f^[n] 0)) at_top (𝓝 v) :=
+⟨(0 : E), tendsto_const_nhds.congr' $ eventually_at_top.2 ⟨2, λ n hn, by simp [nat.div_eq_of_lt hn]⟩⟩
+
 end semicontraction

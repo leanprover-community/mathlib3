@@ -64,6 +64,7 @@ variables {ι ι₂ ι₃ : Type*} [decidable_eq ι] [decidable_eq ι₂] [decid
 variables {R : Type*} [comm_semiring R]
 variables {R₁ R₂ : Type*}
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, module R (s i)]
+variables {t : ι₂ → Type*} [∀ i, add_comm_monoid (t i)] [∀ i, module R (t i)]
 variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {E : Type*} [add_comm_monoid E] [module R E]
 variables {F : Type*} [add_comm_monoid F]
@@ -381,14 +382,14 @@ For simplicity, this is defined only for homogeneously- (rather than dependently
 -/
 def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M :=
 linear_equiv.of_linear
-  (((lift.symm ≪≫ₗ
-    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm)) ≪≫ₗ
-      lift) (linear_map.id))
-  (((lift.symm ≪≫ₗ
-    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e)) ≪≫ₗ
-      lift) (linear_map.id))
-  (by { ext, simp })
-  (by { ext, simp })
+  (lift (dom_dom_congr e.symm (tprod R : multilinear_map R _ (⨂[R] i : ι₂, M))))
+  (lift (dom_dom_congr e (tprod R : multilinear_map R _ (⨂[R] i : ι, M))))
+  (by { ext, simp only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
+                        linear_map.comp_multilinear_map_apply, lift.tprod,
+                        dom_dom_congr_apply, equiv.apply_symm_apply] })
+  (by { ext, simp only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
+                        linear_map.comp_multilinear_map_apply, lift.tprod,
+                        dom_dom_congr_apply, equiv.symm_apply_apply] })
 
 end
 

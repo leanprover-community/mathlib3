@@ -92,11 +92,11 @@ begin
   rw preadditive.exact_iff_homology_zero at h ⊢,
   rcases h with ⟨w₁, ⟨i⟩⟩,
   suffices w₂ : f₂ ≫ g₂ = 0, from ⟨w₂, ⟨(homology.map_iso w₁ w₂ α β p).symm.trans i⟩⟩,
-  rw [← cancel_epi α.hom.left, ← cancel_mono β.inv.right, comp_zero, zero_comp],
-  erw [arrow.w_assoc α.hom, p, category.assoc, category.assoc, ← arrow.w β.inv],
-  slice_lhs 2 3 { rw [← comma.comp_left, β.hom_inv_id] },
-  erw [arrow.id_left, category.id_comp],
-  exact w₁
+  rw [← cancel_epi α.hom.left, ← cancel_mono β.inv.right, comp_zero, zero_comp, ← w₁],
+  simp only [← arrow.mk_hom f₁, ← arrow.left_hom_inv_right α.hom,
+      ← arrow.mk_hom g₁, ← arrow.left_hom_inv_right β.hom, p],
+  simp only [arrow.mk_hom, is_iso.inv_hom_id_assoc, category.assoc, ← arrow.inv_right,
+    is_iso.iso.inv_hom]
 end
 
 lemma preadditive.exact_iff_exact_of_iso {A₁ B₁ C₁ A₂ B₂ C₂ : V}

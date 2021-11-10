@@ -36,7 +36,7 @@ open pi_tensor_product
 /-- The canonical map from `R` to `⨂[R]^0 M` corresponding to the algebra_map of the tensor
 algebra. -/
 def algebra_map : R ≃ₗ[R] ⨂[R]^0 M :=
-((reindex R M fin_zero_equiv').trans pempty_equiv).symm
+((reindex R M fin_zero_equiv').trans pempty_equiv.{u_1 u_2 u_1}).symm
 
 lemma algebra_map_eq_smul_tprod (r : R) :
   algebra_map r = r • tprod R (λ i : fin 0, (i.elim0 : M)) :=
@@ -46,10 +46,6 @@ begin
 end
 
 def one : ⨂[R]^0 M := algebra_map 1
-
--- TODO: remove after #6243 is merged
-instance {α : pempty → Type*} : unique (Π x, α x) :=
-⟨⟨λ x, pempty.elim x⟩, λ f, funext $ λ x, pempty.elim x ⟩
 
 /---/
 def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n + m) M :=
@@ -110,29 +106,12 @@ begin
   simp,
 end
 
-section
-set_option pp.implicit true
-
 lemma algebra_map_mul_algebra_map (r s : R) :
   reindex R M (equiv.cast $ by rw add_zero) (mul (algebra_map r) (algebra_map s)) =
     algebra_map (r * s) :=
 begin
   rw [←smul_eq_mul, linear_equiv.map_smul],
-  have := algebra_map_mul r (@algebra_map R M _ _ _ s),
-  refine this.trans _, clear this,
-  -- what the heck? This should be refl!
-  refine congr_arg _ _,
-  refine linear_equiv.congr_fun _ s,
-  -- This should definitely be refl!
-  -- refine congr_arg _ _,
-  -- dunfold tensor_power.algebra_map,
-
-  -- dsimp only [linear_equiv.symm_trans_apply],
-  -- rw [reindex_symm fin_zero_equiv', reindex_symm fin_zero_equiv'],
-  -- convert congr_fun _ _ using 1,
-  sorry
-end
-
+  exact algebra_map_mul r (@algebra_map R M _ _ _ s),
 end
 
 lemma mul_one {n} (a : ⨂[R]^n M) : reindex R M (equiv.cast $ by rw add_zero) (mul a one) = a :=
@@ -181,7 +160,7 @@ instance gsemiring : direct_sum.gsemiring (λ i, ⨂[R]^i M) :=
   add_mul := λ i j a₁ a₂ b, linear_map.map_add₂ _ _ _ _,
   ..tensor_power.gmonoid }
 
-instance galgebra : @direct_sum.galgebra _ R (λ i, ⨂[R]^i M) _ _ _ _ _ tensor_power.gsemiring :=
+instance galgebra : direct_sum.galgebra R (λ i, ⨂[R]^i M) :=
 { to_fun := (tensor_power.algebra_map : R ≃ₗ[R] ⨂[R]^0 M) .to_linear_map.to_add_monoid_hom,
   map_one := rfl,
   map_mul := λ r s, sigma_eq_of_reindex_cast rfl begin
@@ -204,10 +183,9 @@ instance galgebra : @direct_sum.galgebra _ R (λ i, ⨂[R]^i M) _ _ _ _ _ tensor
 open_locale direct_sum
 
 /-- While this is an instance, lean is incapable of finding it. -/
-instance semiring : semiring (⨁ n : ℕ, ⨂[R]^n M) :=
-  @direct_sum.semiring _ _ (λ i, ⨂[R]^i M) _ _ tensor_power.gsemiring
+instance semiring : semiring (⨁ n : ℕ, ⨂[R]^n M) := by apply_instance
 
 /-- TODO: show this is isomorphic to the `tensor_algebra R M`. -/
-instance algebra : @algebra R (⨁ n : ℕ, ⨂[R]^n M) _ tensor_power.semiring := by apply_instance
+instance algebra : algebra R (⨁ n : ℕ, ⨂[R]^n M) := by apply_instance
 
 end tensor_power

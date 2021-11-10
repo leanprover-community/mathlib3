@@ -388,6 +388,42 @@ instance is_iso_ι_terminal [has_terminal J] (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F (⊤_ J)) :=
 is_iso_ι_of_is_terminal (terminal_is_terminal) F
 
+/-- A cone is a limit cone iff it is terminal. -/
+def cone_limiting_iff_is_terminal {F : J ⥤ C} (c : cone F) : is_limit c ≃ is_terminal c :=
+is_limit.iso_unique_cone_morphism.to_equiv.trans
+({ to_fun  := λ h, by exactI is_terminal.of_unique _,
+   inv_fun := λ h s, ⟨⟨is_terminal.from h s⟩, λ a, is_terminal.hom_ext h a _⟩,
+   left_inv := by tidy,
+   right_inv := by tidy } :
+  (Π (s : limits.cone F), unique (s ⟶ c)) ≃ is_terminal c)
+
+lemma limit_cone_lift_eq_terminal_from {F : J ⥤ C} (c : limit_cone F) (s : cone F) :
+  c.is_limit.lift_cone_morphism s =
+    is_terminal.from (cone_limiting_iff_is_terminal _ c.is_limit) _ := rfl
+
+lemma terminal_from_eq_limit_cone_lift {F : J ⥤ C} (c : cone F) (hc : is_terminal c) (s : cone F) :
+  is_terminal.from hc s =
+    ((cone_limiting_iff_is_terminal _).symm hc).lift_cone_morphism s :=
+by convert (limit_cone_lift_eq_terminal_from ⟨c, _⟩ s).symm
+
+/-- A cocone is a colimit cocone iff it is initial. -/
+def cocone_colimiting_iff_is_initial {F : J ⥤ C} (c : cocone F) : is_colimit c ≃ is_initial c :=
+is_colimit.iso_unique_cocone_morphism.to_equiv.trans
+({ to_fun  := λ h, by exactI is_initial.of_unique _,
+   inv_fun := λ h s, ⟨⟨is_initial.to h s⟩, λ a, is_initial.hom_ext h a _⟩,
+   left_inv := by tidy,
+   right_inv := by tidy } :
+  (Π (s : limits.cocone F), unique (c ⟶ s)) ≃ is_initial c)
+
+lemma colimit_cocone_desc_eq_initial_to {F : J ⥤ C} (c : colimit_cocone F) (s : cocone F) :
+  c.is_colimit.desc_cocone_morphism s =
+    is_initial.to (cocone_colimiting_iff_is_initial _ c.is_colimit) _ := rfl
+
+lemma initial_to_eq_colimit_cocone_lift {F : J ⥤ C} (c : cocone F)
+  (hc : is_initial c) (s : cocone F) :
+  is_initial.to hc s = ((cocone_colimiting_iff_is_initial _).symm hc).desc_cocone_morphism s :=
+by convert (colimit_cocone_desc_eq_initial_to ⟨c, _⟩ s).symm
+
 end
 
 end category_theory.limits

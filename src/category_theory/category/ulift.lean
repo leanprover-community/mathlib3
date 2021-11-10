@@ -45,21 +45,21 @@ variables {C : Type u₁} [category.{v₁} C]
 
 /-- The functorial version of `ulift.up`. -/
 @[simps]
-protected def ulift.up : C ⥤ (ulift.{u₂} C) :=
+def ulift.up_functor : C ⥤ (ulift.{u₂} C) :=
 { obj := ulift.up,
   map := λ X Y f, f }
 
 /-- The functorial version of `ulift.down`. -/
 @[simps]
-protected def ulift.down : (ulift.{u₂} C) ⥤ C :=
+protected def ulift.down_functor : (ulift.{u₂} C) ⥤ C :=
 { obj := ulift.down,
   map := λ X Y f, f }
 
 /-- The categorical equivalence between `C` and `ulift C`. -/
 @[simps]
 def ulift.equivalence : C ≌ (ulift.{u₂} C) :=
-{ functor := ulift.up,
-  inverse := ulift.down,
+{ functor := ulift.up_functor,
+  inverse := ulift.down_functor,
   unit_iso :=
   { hom := 𝟙 _,
     inv := 𝟙 _ },

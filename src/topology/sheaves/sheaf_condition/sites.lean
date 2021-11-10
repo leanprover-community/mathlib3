@@ -461,7 +461,7 @@ def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topolo
 /--
 The equivalence of categories between sheaves on the site `opens X` and sheaves on the space `X`.
 -/
-@[simps]
+--@[simps] TODO this times out
 def Sheaf_spaces_equivelence_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
 begin
   refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,

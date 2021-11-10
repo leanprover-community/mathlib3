@@ -273,7 +273,18 @@ A natural transformation induces a natural transformation between the `map_presh
 def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { base := 𝟙 _,
-    c := whisker_left X.presheaf α ≫ eq_to_hom (presheaf.pushforward.id_eq _).symm } }
+    c := whisker_left X.presheaf α ≫ eq_to_hom (presheaf.pushforward.id_eq _).symm },
+  naturality' := λ X Y f, by {
+    ext,
+    { simp only [presheaf.pushforward_obj, category.comp_id, functor.map_presheaf_map_c,
+        PresheafedSpace.comp_c_app, whisker_right_app, whisker_left_app, nat_trans.comp_app,
+        eq_to_hom_refl, eq_to_hom_app, category.assoc],
+      induction x using opposite.rec,
+      cases x,
+      simp only [presheaf.pushforward_obj, category.id_comp, eq_to_hom_refl],
+      dsimp,
+      simp, },
+    { refl } } }
 
 -- TODO Assemble the last two constructions into a functor
 --   `(C ⥤ D) ⥤ (PresheafedSpace C ⥤ PresheafedSpace D)`

@@ -234,12 +234,13 @@ instance distrib_mul_action' : distrib_mul_action R₁ (⨂[R] i, s i) :=
     (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy]),
   smul_zero := λ r, add_monoid_hom.map_zero _ }
 
-instance [smul_comm_class R₁ R₂ R] : smul_comm_class R₁ R₂ (⨂[R] i, s i) :=
+instance smul_comm_class' [smul_comm_class R₁ R₂ R] : smul_comm_class R₁ R₂ (⨂[R] i, s i) :=
 ⟨λ r' r'' x, pi_tensor_product.induction_on' x
   (λ xr xf, by simp only [smul_tprod_coeff', smul_comm])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
 
-instance [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ R] : is_scalar_tower R₁ R₂ (⨂[R] i, s i) :=
+instance is_scalar_tower' [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ R] :
+  is_scalar_tower R₁ R₂ (⨂[R] i, s i) :=
 ⟨λ r' r'' x, pi_tensor_product.induction_on' x
   (λ xr xf, by simp only [smul_tprod_coeff', smul_assoc])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
@@ -259,7 +260,10 @@ instance module' [semiring R₁] [module R₁ R] [is_scalar_tower R₁ R R]
     (λ x y ihx ihy, by rw [pi_tensor_product.smul_add, ihx, ihy, add_zero]),
   ..pi_tensor_product.distrib_mul_action' }
 
+-- shortcut instances
 instance : module R (⨂[R] i, s i) := pi_tensor_product.module'
+instance : smul_comm_class R R (⨂[R] i, s i) := pi_tensor_product.smul_comm_class'
+instance : is_scalar_tower R R (⨂[R] i, s i) := pi_tensor_product.is_scalar_tower'
 
 variables {R}
 

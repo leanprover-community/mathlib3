@@ -437,7 +437,7 @@ begin
     exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
-lemma eval_root_derivative_of_split [algebra K L] {P : polynomial K} (hmo : P.monic)
+lemma aeval_root_derivative_of_splits [algebra K L] {P : polynomial K} (hmo : P.monic)
   (hP : P.splits (algebra_map K L)) {r : L} (hr : r ∈ (P.map (algebra_map K L)).roots) :
   aeval r P.derivative =
   (multiset.map (λ a, r - a) ((P.map (algebra_map K L)).roots.erase r)).prod :=

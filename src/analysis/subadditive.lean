@@ -45,7 +45,7 @@ begin
     exact zero_lt_iff.2 hn }
 end
 
-lemma apply_mul_add_le (k r n) : u (k * n + r) ≤ k * u n + u r :=
+lemma apply_mul_add_le (k n r) : u (k * n + r) ≤ k * u n + u r :=
 begin
   induction k with k IH, { simp only [nat.cast_zero, zero_mul, zero_add] },
   calc

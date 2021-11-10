@@ -88,7 +88,7 @@ lemma exponent_min (m : ℕ) (hpos : 0 < m) (hm : m < exponent G) : ∃ g : G, g
 begin
   by_contradiction,
   push_neg at h,
-  have hcon : exponent G ≤ m, from exponent_min' G m hpos h,
+  have hcon : exponent G ≤ m := exponent_min' G m hpos h,
   linarith,
 end
 
@@ -110,10 +110,25 @@ begin
   exact order_of_dvd_of_pow_eq_one (pow_exponent_eq_one G g)
 end
 
+@[to_additive]
+lemma exponent_dvd_of_forall_pow_eq_one (n : ℕ) (hpos : 0 < n) (hG : ∀ g : G, g ^ n = 1) :
+  exponent G ∣ n :=
+begin
+  apply nat.dvd_of_mod_eq_zero,
+  by_contradiction h,
+  have h₁ := nat.pos_of_ne_zero h,
+  have h₂ : n % exponent G < exponent G := nat.mod_lt _ (exponent_pos_of_exists _ n hpos hG),
+  have h₃ : exponent G ≤ n % exponent G,
+  { apply exponent_min' _ _ h₁,
+    simp_rw ←pow_eq_mod_exponent,
+    exact hG },
+  linarith,
+end
+
 variable [fintype G]
 
-@[to_additive lcm_add_order_dvd_exponent]
-lemma lcm_order_dvd_exponent : ((finset.univ : finset G).image order_of).lcm id ∣ exponent G :=
+@[to_additive lcm_add_order_of_dvd_exponent]
+lemma lcm_order_of_dvd_exponent : ((finset.univ : finset G).image order_of).lcm id ∣ exponent G :=
 begin
   apply finset.lcm_dvd,
   intros n hn,
@@ -124,10 +139,18 @@ begin
   exact order_dvd_exponent G g,
 end
 
-lemma exponent_dvd_of_forall_pow_eq_one (n : ℕ) (hpos : 0 < n) (hG : ∀ g : G, g ^ n = 1) :
-  exponent G ∣ n :=
+lemma lcm_order_eq_exponent : ((finset.univ : finset G).image order_of).lcm id = exponent G :=
 begin
-  sorry
+  apply nat.dvd_antisymm (lcm_order_of_dvd_exponent _),
+  apply exponent_dvd_of_forall_pow_eq_one,
+  { sorry },
+  { intro g,
+    have h : (order_of g) ∣ (finset.image order_of finset.univ).lcm id,
+    { apply finset.dvd_lcm,
+      rw finset.mem_image,
+      exact ⟨g, finset.mem_univ g, rfl⟩ },
+    cases h with m hm,
+    rw [hm, pow_mul, pow_order_of_eq_one, one_pow] },
 end
 
 end monoid

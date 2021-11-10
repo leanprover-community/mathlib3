@@ -223,6 +223,16 @@ alias coe_nat_dvd ← has_dvd.dvd.nat_cast
 section linear_ordered_field
 variables [linear_ordered_field α]
 
+/-- Natural division is always less than division in the field. -/
+lemma cast_div_le {m n : ℕ} : ((m / n : ℕ) : α) ≤ m / n :=
+begin
+  cases n,
+  { rw [cast_zero, div_zero, nat.div_zero, cast_zero] },
+  rwa [le_div_iff, ←nat.cast_mul],
+  exact nat.cast_le.2 (nat.div_mul_le_self m n.succ),
+  { exact nat.cast_pos.2 n.succ_pos }
+end
+
 lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
 inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 

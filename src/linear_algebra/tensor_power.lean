@@ -7,6 +7,7 @@ Authors: Eric Wieser
 import linear_algebra.pi_tensor_product
 import data.equiv.fin
 import algebra.direct_sum.algebra
+import data.fin.pi
 
 /-!
 # Tensor power of a semimodule over a commutative semirings
@@ -63,27 +64,8 @@ begin
   exact mul_equiv,
 end
 
-def _root_.fin.concat {α} {na nb} (a : fin na → α) (b : fin nb → α) : fin (na + nb) → α :=
-sum.elim a b ∘ fin_sum_fin_equiv.symm
-
-instance fin.pi_graded_monoid : graded_monoid.gmonoid (λ n, fin n → M) :=
-{ mul := λ i j, fin.concat,
-  one := fin.elim0,
-  one_mul := λ a, sigma.ext (zero_add _) $ function.hfunext (congr_arg _ (zero_add _)) $ λ a b h,
-  begin
-    dsimp [(*), has_one.one],
-    cases h : fin_sum_fin_equiv.symm a,
-  end,
-  mul_one := _,
-  mul_assoc := _,
-  gnpow := _,
-  gnpow_zero' := _,
-  gnpow_succ' := _ }
-
-#exit
-
 lemma tprod_mul_tprod {na nb} (a : fin na → M) (b : fin nb → M) :
-  mul (tprod R a) (tprod R b) = (tprod R $ λ i, sum.elim a b (fin_sum_fin_equiv.symm i)) :=
+  mul (tprod R a) (tprod R b) = (tprod R $ fin.concat a b) :=
 begin
   dsimp [mul, mul_equiv],
   rw [tmul_equiv_apply R M a b],
@@ -102,33 +84,9 @@ begin
   show (reindex R M (equiv.cast _)) (mul (tprod R (fin.elim0 : fin 0 → M)) (tprod R a)) = tprod R a,
   rw [tprod_mul_tprod, reindex_tprod],
   congr' 1 with i,
-  generalize_proofs hi,
-  cases h : fin_sum_fin_equiv.symm ((equiv.cast hi).symm i),
-  { exact val.elim0, },
-  { refine congr_arg a (fin.ext _),
-    rw [equiv.symm_apply_eq, fin_sum_fin_equiv_apply_right, fin.ext_iff] at h,
-    simpa using h.symm, }
-  -- simp [mul, one, mul_equiv, linear_equiv.trans_apply],
-  -- change (reindex R M _).to_linear_map.compr₂ mul one a = a,
-  -- unfold mul one mul_equiv,
-  -- rw [algebra_map_eq_smul_tprod, one_smul],
-  -- apply pi_tensor_product.induction_on a,
-  -- { intros r a',
-  --   simp only [linear_equiv.map_smul,
-  --     tensor_product.tmul_smul,
-  --     linear_equiv.trans_apply,
-  --     tmul_equiv_apply,
-  --     reindex_tprod],
-  --   congr',
-  --   ext,
-  --   simp [sum_fin_sum_equiv, equiv.cast], },
-  -- { rintros a' b' ha hb,
-  --   simp only [linear_equiv.map_add,
-  --     tensor_product.tmul_add,
-  --     linear_equiv.trans_apply,
-  --     tmul_equiv_apply,
-  --     reindex_tprod] at *,
-  --   rw [ha, hb], },
+  rw fin.elim0_concat,
+  refine congr_arg a (fin.ext _),
+  simp,
 end
 
 lemma one_mul {n} (a : ⨂[R]^n M) : reindex R M (equiv.cast $ by rw zero_add) (mul one a) = a :=
@@ -138,33 +96,23 @@ lemma mul_algebra_map {n} (r : R) (a : ⨂[R]^n M) :
   reindex R M (equiv.cast $ by rw add_zero) (mul a (algebra_map r)) = r • a :=
 begin
   unfold mul one mul_equiv,
-  rw [algebra_map_eq_smul_tprod, linear_map.map_smul, linear_equiv.map_smul],
+  rw [algebra_map_eq_smul_tprod, linear_map.map_smul, linear_equiv.map_smul,
+    ←linear_map.flip_apply, ←linear_equiv.coe_coe _, ←linear_map.llcomp_apply],
   congr' 1,
-  show (reindex R M (equiv.refl (fin (n + 0))))
-    (reindex R M fin_sum_fin_equiv (tmul_equiv R M (a ⊗ₜ[R] tprod R fin.elim0))) = a,
-  apply pi_tensor_product.induction_on a,
-  { intros r a',
-    change Π i : fin n, M at a',
-    rw ←tensor_product.smul_tmul' r (tprod R a') _, swap, apply_instance,
-    simp only [linear_equiv.map_smul],
-    rw [tmul_equiv_apply, reindex_tprod, reindex_refl, linear_equiv.refl_apply],
-    dsimp only,
-    congr',
-    ext,
-    conv_rhs {rw ← (fin_sum_fin_equiv : _ ≃ fin (n + 0)).apply_symm_apply x},
-    cases h : (fin_sum_fin_equiv.symm : fin (n + 0) ≃ _) x,
-    { rw [fin_sum_fin_equiv_apply_left, sum.elim_inl],
-      congr,
-      ext,
-      refl, },
-    { exact val.elim0, }, },
-  { rintros a' b' ha hb,
-    simp only [linear_equiv.map_add, tensor_product.add_tmul],
-    rw [ha, hb], },
+  refine linear_map.congr_fun (_ : _ = linear_map.id) a,
+  clear r a,
+  ext a,
+  show (reindex R M (equiv.cast _)) (mul (tprod R a) (tprod R (fin.elim0 : fin 0 → M))) = tprod R a,
+  rw [tprod_mul_tprod, reindex_tprod],
+  congr' 1 with i,
+  rw fin.concat_elim0,
+  refine congr_arg a (fin.ext _),
+  simp,
 end
 
-lemma linear_equiv.apply_eq_iff_eq_symm_apply {R M N} [semiring R] [add_comm_monoid M] [add_comm_monoid N]
-  [module R M] [module R N] (e : M ≃ₗ[R] N) {x : M} {y : N} : e x = y ↔ x = e.symm y :=
+lemma linear_equiv.apply_eq_iff_eq_symm_apply {R M N} [semiring R] [add_comm_monoid M]
+  [add_comm_monoid N] [module R M] [module R N] (e : M ≃ₗ[R] N) {x : M} {y : N} :
+  e x = y ↔ x = e.symm y :=
 e.to_equiv.apply_eq_iff_eq_symm_apply
 
 section
@@ -208,18 +156,12 @@ begin
   simp only [linear_map.comp_multilinear_map_apply, lhs_eq, rhs_eq, tprod_mul_tprod, e,
     reindex_tprod],
   congr' with j,
-  cases hja : (fin_sum_fin_equiv.symm j) with ja jbc,
-  { rw sum.elim_inl, sorry },
-  { rw sum.elim_inr,
-    cases hjbc : (fin_sum_fin_equiv.symm jbc) with jb jc,
-    { rw sum.elim_inl, sorry },
-    { rw sum.elim_inr, sorry }, },
+  rw fin.concat_assoc,
+  refine congr_arg (fin.concat a (fin.concat b c)) (fin.ext _),
+  simp,
+  sorry,
 end
 
-#check sum.elim
-
-
-#check vector2
 instance gmonoid : graded_monoid.gmonoid (λ i, ⨂[R]^i M) :=
 { mul := λ i j a b, mul a b,
   one := one,
@@ -256,5 +198,14 @@ instance galgebra : @direct_sum.galgebra _ R (λ i, ⨂[R]^i M) _ _ _ _ _ tensor
     rw [linear_equiv.apply_eq_iff_eq_symm_apply, reindex_symm],
     exact (algebra_map_mul r x.snd).symm,
   end }
+
+open_locale direct_sum
+
+/-- While this is an instance, lean is incapable of finding it. -/
+instance semiring : semiring (⨁ n : ℕ, ⨂[R]^n M) :=
+  @direct_sum.semiring _ _ (λ i, ⨂[R]^i M) _ _ tensor_power.gsemiring
+
+/-- TODO: show this is isomorphic to the `tensor_algebra R M`. -/
+instance algebra : @algebra R (⨁ n : ℕ, ⨂[R]^n M) _ tensor_power.semiring := by apply_instance
 
 end tensor_power

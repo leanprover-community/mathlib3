@@ -507,9 +507,10 @@ lemma separable_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0
   separable (X ^ n - C a) :=
 separable_X_pow_sub_C_unit (units.mk0 a ha) (is_unit.mk0 n hn)
 
--- this can possibly be strengthened to a statement about rings & `is_unit`, but it is nontrivial!
+-- this can possibly be strengthened to making `separable_X_pow_sub_C_unit` a
+-- bi-implication, but it is nontrivial!
 /-- In a field `F`, `X ^ n - ↑n` is separable iff `↑n ≠ 0`. -/
-lemma X_pow_sub_one_separable_iff {R : Type*} {n : ℕ} :
+lemma X_pow_sub_one_separable_iff {n : ℕ} :
   (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
 begin
   refine ⟨_, λ h, separable_X_pow_sub_C_unit 1 (is_unit.mk0 ↑n h)⟩,

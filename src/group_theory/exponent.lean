@@ -83,6 +83,15 @@ begin
   { exact ⟨n, hpos, hG⟩ },
 end
 
+@[to_additive]
+lemma exponent_min (m : ℕ) (hpos : 0 < m) (hm : m < exponent G) : ∃ g : G, g ^ m ≠ 1 :=
+begin
+  by_contradiction,
+  push_neg at h,
+  have hcon : exponent G ≤ m, from exponent_min' G m hpos h,
+  linarith,
+end
+
 lemma exp_punit_eq_one : exponent punit = 1 :=
 begin
   apply le_antisymm,

@@ -214,6 +214,16 @@ end
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
 
+@[to_additive]
+lemma subset_mul_left {α} [mul_one_class α] (s : set α) {t : set α} (ht : (1 : α) ∈ t) :
+  s ⊆ s * t :=
+λ x hx, ⟨x, 1, hx, ht, mul_one _⟩
+
+@[to_additive]
+lemma subset_mul_right {α} [mul_one_class α] {s : set α} (t : set α) (hs : (1 : α) ∈ s) :
+  t ⊆ s * t :=
+λ x hx, ⟨1, x, hs, hx, one_mul _⟩
+
 lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
   s ^ n ⊆ t ^ n :=
 begin

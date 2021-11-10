@@ -269,23 +269,10 @@ begin
     have := mem_of_is_closed_sequential ‹is_closed B› (λ n, h₄ (φ n)) this,
     apply disj ⟨hw, ‹w ∈ B›⟩ },
   obtain ⟨n, hn⟩ := this,
-  refine ⟨_, _, _, _, hA₁.add _, hB₁.add _, _, _, hn⟩,
-  { exact metric.is_open_ball.add_left },
-  { exact metric.is_open_ball.add_left },
-  { exact convex_ball 0 _ },
-  { exact convex_ball 0 _ },
-  { suffices : A + {0} ⊆ A + metric.ball (0:E) (n+1)⁻¹,
-    { simpa },
-    apply add_subset_add (set.subset.refl _),
-    simp only [metric.mem_ball, norm_zero, dist_zero_left, singleton_subset_iff, inv_pos],
-    norm_cast,
-    simp },
-  { suffices : B + {0} ⊆ B + metric.ball (0:E) (n+1)⁻¹,
-    { simpa },
-    apply add_subset_add (set.subset.refl _),
-    simp only [metric.mem_ball, norm_zero, dist_zero_left, singleton_subset_iff, inv_pos],
-    norm_cast,
-    simp },
+  refine ⟨_, _, metric.is_open_ball.add_left, metric.is_open_ball.add_left,
+    hA₁.add (convex_ball 0 _), hB₁.add (convex_ball 0 _), _, _, hn⟩,
+  { exact subset_add_left A _ (metric.mem_ball_self nat.inv_pos_of_nat) },
+  { exact subset_add_left B _ (metric.mem_ball_self nat.inv_pos_of_nat) }
 end
 
 /-- A version of the Hahn-Banach theorem: given disjoint convex sets `A`, `B` where `A` is compact

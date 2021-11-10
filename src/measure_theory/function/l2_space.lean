@@ -73,7 +73,7 @@ lemma inner_def (f g : α →₂[μ] E) : inner f g = ∫ a : α, ⟪f a, g a⟫
 lemma integral_inner_eq_sq_snorm (f : α →₂[μ] E) :
   ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (nnnorm (f a) : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
 begin
-  simp_rw inner_self_eq_norm_sq_to_K,
+  simp_rw inner_self_eq_norm_mul_norm_to_K,
   norm_cast,
   rw integral_eq_lintegral_of_nonneg_ae,
   swap, { exact filter.eventually_of_forall (λ x, sq_nonneg _), },

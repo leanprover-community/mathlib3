@@ -142,7 +142,7 @@ begin
   convert hc,
   have : ∥x₀∥ ≠ 0 := by simp [hx₀],
   field_simp,
-  simpa [inner_smul_left, real_inner_self_eq_norm_sq, sq] using congr_arg (λ x, ⟪x, x₀⟫_ℝ) hc,
+  simpa [inner_smul_left, real_inner_self_eq_norm_mul_norm, sq] using congr_arg (λ x, ⟪x, x₀⟫_ℝ) hc,
 end
 
 end real

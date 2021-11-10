@@ -46,7 +46,7 @@ open submodule
 
 universes u v w
 
-open linear_map matrix
+open linear_map matrix set function
 
 variables {R : Type*} [comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
@@ -400,3 +400,19 @@ by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.r
 lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
+
+/-- If we fix a background basis `e`, then for any other basis `v`, we can characterise coordinates
+provided by `v` in terms of determinants relative to `b`. -/
+lemma basis.det_smul_mk_coord_eq_det_update {v : ι → M}
+  (hli : linear_independent R v) (hsp : span R (range v) = ⊤) (i : ι) :
+  (e.det v) • (basis.mk hli hsp).coord i =
+  ⟨λ m, e.det (update v i m), e.det.map_add v i, e.det.map_smul v i⟩ :=
+begin
+  apply (basis.mk hli hsp).ext,
+  intros k,
+  rcases eq_or_ne k i with rfl | hik;
+  simp only [algebra.id.smul_eq_mul, basis.coe_mk, linear_map.smul_apply, linear_map.coe_mk],
+  { rw [basis.mk_coord_apply_eq, mul_one, update_eq_self], },
+  { rw [basis.mk_coord_apply_neq hik, mul_zero, eq_comm],
+    exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
+end

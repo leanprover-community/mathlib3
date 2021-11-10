@@ -110,11 +110,6 @@ begin
   simp,
 end
 
-lemma linear_equiv.apply_eq_iff_eq_symm_apply {R M N} [semiring R] [add_comm_monoid M]
-  [add_comm_monoid N] [module R M] [module R N] (e : M ≃ₗ[R] N) {x : M} {y : N} :
-  e x = y ↔ x = e.symm y :=
-e.to_equiv.apply_eq_iff_eq_symm_apply
-
 section
 set_option pp.implicit true
 
@@ -122,15 +117,22 @@ lemma algebra_map_mul_algebra_map (r s : R) :
   reindex R M (equiv.cast $ by rw add_zero) (mul (algebra_map r) (algebra_map s)) =
     algebra_map (r * s) :=
 begin
+  rw [←smul_eq_mul, linear_equiv.map_smul],
   have := algebra_map_mul r (@algebra_map R M _ _ _ s),
-  rw linear_equiv.apply_eq_iff_eq_symm_apply at this,
-  rw [this, ←linear_equiv.trans_apply, reindex_symm, reindex_trans, ←smul_eq_mul,
-    linear_equiv.map_smul, linear_equiv.map_smul, equiv.cast_symm, equiv.cast_trans,
-    equiv.cast_refl, reindex_refl, linear_equiv.refl_apply],
+  refine this.trans _, clear this,
+  -- what the heck? This should be refl!
   refine congr_arg _ _,
-  sorry  -- what the heck? This is refl!
+  refine linear_equiv.congr_fun _ s,
+  -- This should definitely be refl!
+  -- refine congr_arg _ _,
+  -- dunfold tensor_power.algebra_map,
 
+  -- dsimp only [linear_equiv.symm_trans_apply],
+  -- rw [reindex_symm fin_zero_equiv', reindex_symm fin_zero_equiv'],
+  -- convert congr_fun _ _ using 1,
+  sorry
 end
+
 end
 
 lemma mul_one {n} (a : ⨂[R]^n M) : reindex R M (equiv.cast $ by rw add_zero) (mul a one) = a :=
@@ -183,19 +185,19 @@ instance galgebra : @direct_sum.galgebra _ R (λ i, ⨂[R]^i M) _ _ _ _ _ tensor
 { to_fun := (tensor_power.algebra_map : R ≃ₗ[R] ⨂[R]^0 M) .to_linear_map.to_add_monoid_hom,
   map_one := rfl,
   map_mul := λ r s, sigma_eq_of_reindex_cast rfl begin
-    rw [linear_equiv.apply_eq_iff_eq_symm_apply],
+    rw [←linear_equiv.eq_symm_apply],
     have := algebra_map_mul_algebra_map r s,
     exact this.symm,
   end,
   commutes := λ r x, sigma_eq_of_reindex_cast (add_comm _ _) begin
     have := (algebra_map_mul r x.snd).trans (mul_algebra_map r x.snd).symm,
-    rw [linear_equiv.apply_eq_iff_eq_symm_apply, reindex_symm, equiv.cast_symm],
-    rw [linear_equiv.apply_eq_iff_eq_symm_apply, reindex_symm, ←linear_equiv.trans_apply,
-      reindex_trans, equiv.cast_symm, equiv.cast_trans] at this,
+    rw [←linear_equiv.eq_symm_apply, reindex_symm, equiv.cast_symm],
+    rw [←linear_equiv.eq_symm_apply, reindex_symm, reindex_reindex, equiv.cast_symm,
+      equiv.cast_trans] at this,
     exact this,
   end,
   smul_def := λ r x, sigma_eq_of_reindex_cast (zero_add x.fst).symm begin
-    rw [linear_equiv.apply_eq_iff_eq_symm_apply, reindex_symm],
+    rw [←linear_equiv.eq_symm_apply, reindex_symm],
     exact (algebra_map_mul r x.snd).symm,
   end }
 

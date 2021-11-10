@@ -899,7 +899,7 @@ by simp [hli.repr_eq_single i]
 
 /-- Given a basis, the `i`th element of the dual basis evaluates to 0 on the `j`th element of the
 basis if `j ≠ i`. -/
-lemma mk_coord_apply_neq {i j : ι} (h : j ≠ i) :
+lemma mk_coord_apply_ne {i j : ι} (h : j ≠ i) :
   (basis.mk hli hsp).coord i (v j) = 0 :=
 show hli.repr ⟨v j, submodule.subset_span (mem_range_self j)⟩ i = 0,
 by simp [hli.repr_eq_single j, h]
@@ -911,7 +911,7 @@ lemma mk_coord_apply {i j : ι} :
 begin
   cases eq_or_ne j i,
   { simp only [h, if_true, eq_self_iff_true, mk_coord_apply_eq i], },
-  { simp only [h, if_false, mk_coord_apply_neq h], },
+  { simp only [h, if_false, mk_coord_apply_ne h], },
 end
 
 end mk

@@ -172,10 +172,11 @@ begin
   { lift := λ s,
     begin
       fapply costructured_arrow.hom_mk,
-      change op (unop _) ⟶ op (⟨_, H⟩ : opens _),
-      refine (hom_of_le _).op,
-      exact (set.image_subset f s.X.hom.unop.le).trans (set.image_preimage.l_u_le ↑(unop s.X.left)),
-      simp
+      { change op (unop _) ⟶ op (⟨_, H⟩ : opens _),
+        refine (hom_of_le _).op,
+        exact (set.image_subset f s.X.hom.unop.le).trans
+          (set.image_preimage.l_u_le ↑(unop s.X.left)) },
+      { simp only [quiver.hom.unop_op, id.def, functor.op_map, eq_iff_true_of_subsingleton] },
     end },
   exact is_colimit.cocone_point_unique_up_to_iso
     (colimit.is_colimit _)

@@ -446,7 +446,7 @@ begin
   replace hP := (splits_id_iff_splits (algebra_map K L)).2 hP,
   rw [aeval_def, ← eval_map, ← derivative_map],
   nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
-  rw [eval_prod_derivative hr]
+  rw [eval_multiset_prod_X_sub_C_derivative hr]
 end
 
 end splits

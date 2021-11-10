@@ -6,6 +6,7 @@ Authors: Eric Wieser
 
 import linear_algebra.pi_tensor_product
 import data.equiv.fin
+import algebra.direct_sum.algebra
 
 /-!
 # Tensor power of a semimodule over a commutative semirings
@@ -124,7 +125,7 @@ begin
     cases h : (fin_sum_fin_equiv.symm : fin (n + 0) ≃ _) x,
     { rw [fin_sum_fin_equiv_apply_left, sum.elim_inl],
       congr,
-      simp?, },
+      sorry, },
     { exact val.elim0, }, },
   { rintros a' b' ha hb,
     simp only [linear_equiv.map_add,
@@ -146,5 +147,26 @@ end
 
 #check sum.elim
 
+instance gsemiring : direct_sum.gsemiring (λ i, ⨂[R]^i M) :=
+{ mul := λ i j a b, mul a b,
+  mul_zero := λ i j a, linear_map.map_zero _,
+  zero_mul := λ i j b, linear_map.map_zero₂ _ _,
+  mul_add := λ i j a b₁ b₂, linear_map.map_add _ _ _,
+  add_mul := λ i j a₁ a₂ b, linear_map.map_add₂ _ _ _ _,
+  one := one,
+  one_mul := sorry,
+  mul_one := sorry,
+  mul_assoc := sorry,
+  gnpow := sorry,
+  gnpow_zero' := sorry,
+  gnpow_succ' := sorry
+   }
+
+instance galgebra : @direct_sum.galgebra _ R (λ i, ⨂[R]^i M) _ _ _ _ _ tensor_power.gsemiring :=
+{ to_fun := (tensor_power.algebra_map : R ≃ₗ[R] ⨂[R]^0 M) .to_linear_map.to_add_monoid_hom,
+  map_one := sorry,
+  map_mul := sorry,
+  commutes := sorry,
+  smul_def := sorry }
 
 end tensor_power

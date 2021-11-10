@@ -28,16 +28,14 @@ abbreviation proper_coloring (α : Type v) := G →g complete_graph α
 
 variables {G} {α : Type v} (C : G.proper_coloring α)
 
-def proper_coloring.color (v : V) : α := C v
+lemma proper_coloring.valid (v w : V) (h : G.adj v w) : C v ≠ C w :=
+  C.map_rel h
 
-def proper_coloring.used_colors : set α := set.range C.color
+def proper_coloring.used_colors : set α := set.range C
 
 -- maybe there's a smoother definition of the chromatic number using the minimal size among
 -- proper colorings
 def proper_coloring.size [fintype C.used_colors] : ℕ := fintype.card C.used_colors
-
-lemma proper_coloring.valid (v w : V) (h : G.adj v w) : C.color v ≠ C.color w :=
-  C.map_rel h
 
 @[pattern]
 def proper_coloring.mk (color : V → α) (h : ∀ {v w : V}, G.adj v w → color v ≠ color w) :
@@ -70,7 +68,7 @@ begin
 end
 
 lemma colorable_iff_nonempty_fin_coloring' (G : simple_graph V) (n : ℕ) :
-  G.colorable n ↔ ∃ (C : G.proper_coloring ℕ), ∀ v, C.color v < n :=
+  G.colorable n ↔ ∃ (C : G.proper_coloring ℕ), ∀ v, C v < n :=
 begin
   rw colorable_iff_nonempty_fin_coloring,
   split,
@@ -81,7 +79,7 @@ begin
     intro v,
     exact fin.is_lt (color v), },
   { rintro ⟨C, Cf⟩,
-    refine ⟨⟨λ v, ⟨C.color v, Cf v⟩, _⟩⟩,
+    refine ⟨⟨λ v, ⟨C v, Cf v⟩, _⟩⟩,
     rintro v w hvw,
     simp only [complete_graph_eq_top, top_adj, subtype.mk_eq_mk, ne.def],
     exact C.valid v w hvw, },
@@ -138,8 +136,18 @@ begin
     by_contra h,
     simp at h,
     simp [h] at hn,
+    rw colorable at hn,
+    cases hn with α' hn,
+    cases hn with hα' hn,
+    cases hn with C' hf,
+    simp at hf,
     let v := classical.arbitrary V, -- coloring this vertex requires at least 1 color
-    sorry, },
+    have c := C' v,
+    have hn : nonempty α', use c,
+    tactic.unfreeze_local_instances,
+    rw ← fintype.card_pos_iff at hn,
+    rw hf at hn,
+    exact nat.lt_asymm hn hn, },
 end
 
 lemma chromatic_number_minimal [fintype α] (C : G.proper_coloring α)

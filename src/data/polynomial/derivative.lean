@@ -301,7 +301,7 @@ begin
   { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
 end
 
-lemma eval_prod_derivative {S : multiset R} {r : R} (hr : r ∈ S) :
+lemma eval_multiset_prod_X_sub_C_derivative {S : multiset R} {r : R} (hr : r ∈ S) :
   eval r (multiset.map (λ a, X - C a) S).prod.derivative =
   (multiset.map (λ a, r - a) (S.erase r)).prod :=
 begin

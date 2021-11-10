@@ -1220,6 +1220,22 @@ begin
   exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (succ_lt_succ_iff.1 hn)]
 end
 
+lemma find_le' {n : ℕ} {p : ℕ → Prop} {h : ∃ n, p n} (hn : p n) : nat.find h ≤ n :=
+(nat.find_le_iff _ _).2 ⟨n, le_rfl, hn⟩
+
+lemma find_add {n : ℕ} {p : ℕ → Prop} {hₘ : ∃ m, p (m + n)} {hₙ : ∃ n, p n} (hn : n ≤ nat.find hₙ) :
+  nat.find hₘ + n = nat.find hₙ :=
+begin
+  refine ((le_find_iff _ _).2 (λ m hm hpm, hm.not_le _)).antisymm _,
+  { have hnm : n ≤ m := hn.trans (find_le' hpm),
+    refine add_le_of_le_tsub_right_of_le hnm (find_le' _),
+    rwa tsub_add_cancel_of_le hnm },
+  { rw ←tsub_le_iff_right,
+    refine (le_find_iff _ _).2 (λ m hm hpm, hm.not_le _),
+    rw tsub_le_iff_right,
+    exact find_le' hpm }
+end
+
 end find
 
 /-! ### `find_greatest` -/

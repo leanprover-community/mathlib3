@@ -119,7 +119,14 @@ end
 lemma exists_fin_coloring_then_colorable [fintype α] (C : G.coloring α) :
   G.colorable (fintype.card α) :=
 begin
-  sorry
+  rw colorable_iff_nonempty_fin_coloring,
+  let f : α → (fin (fintype.card α)) := λ a, sorry, -- create a function that takes different
+                                                    -- colors to different natural numbers
+  let color : V → fin (fintype.card α) := λ v, f (C v),
+  have h : ∀ (v w : V), G.adj v w → color v ≠ color w,
+  { -- prove that `color` takes adjacent vertices to different colors
+    sorry, },
+  { use coloring.mk color h, },
 end
 
 lemma chromatic_number_bdd_below (C: G.coloring α) : bdd_below {n : ℕ | G.colorable n} :=

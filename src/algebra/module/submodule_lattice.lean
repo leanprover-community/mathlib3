@@ -169,6 +169,16 @@ instance : complete_lattice (submodule R M) :=
 
 @[simp] theorem Inf_coe (P : set (submodule R M)) : (↑(Inf P) : set M) = ⋂ p ∈ P, ↑p := rfl
 
+@[simp] theorem finset_inf_coe {ι} (s : finset ι) (p : ι → submodule R M) :
+  (↑(s.inf p) : set M) = ⋂ i ∈ s, ↑(p i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine s.induction_on _ (λ i s hi ih, _),
+  { simp },
+  { rw [finset.inf_insert, inf_coe, ih],
+    simp },
+end
+
 @[simp] theorem infi_coe {ι} (p : ι → submodule R M) :
   (↑⨅ i, p i : set M) = ⋂ i, ↑(p i) :=
 by rw [infi, Inf_coe]; ext a; simp; exact
@@ -180,6 +190,10 @@ set.mem_bInter_iff
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) {x} :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
 by rw [← set_like.mem_coe, infi_coe, set.mem_Inter]; refl
+
+@[simp] theorem mem_finset_inf {ι} {s : finset ι} {p : ι → submodule R M} {x : M} :
+  x ∈ s.inf p ↔ ∀ i ∈ s, x ∈ p i :=
+by simp only [← set_like.mem_coe, finset_inf_coe, set.mem_Inter]
 
 lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left

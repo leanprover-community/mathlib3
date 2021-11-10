@@ -765,12 +765,21 @@ ne_empty_iff_nonempty
 instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 ⟨⟨⟨a, mem_singleton a⟩⟩, λ ⟨x, h⟩, subtype.eq h⟩
 
-lemma eq_singleton_iff_unique_mem {s : set α} {a : α} : s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
+lemma eq_singleton_iff_unique_mem : s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
 subset.antisymm_iff.trans $ and.comm.trans $ and_congr_left' singleton_subset_iff
 
-lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
-  s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
+lemma eq_singleton_iff_nonempty_unique_mem : s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
 eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩, λ ⟨x, h⟩, H x h ▸ h⟩
+
+lemma exists_eq_singleton_iff_nonempty_unique_mem :
+  (∃ a : α, s = {a}) ↔ (s.nonempty ∧ ∀ a b ∈ s, a = b) :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨a, rfl⟩,
+    refine ⟨set.singleton_nonempty a, λ b c hb hc, hb.trans hc.symm⟩ },
+  { obtain ⟨a, ha⟩ := h.1,
+    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b a hb ha)⟩⟩ },
+end
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
 @[simp] lemma default_coe_singleton (x : α) :
@@ -938,7 +947,7 @@ theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : 
 sup_sdiff_cancel' h₁ h₂
 
 theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
-sup_sdiff_of_le h
+sup_sdiff_cancel_right h
 
 theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
 disjoint.sup_sdiff_cancel_left h
@@ -973,10 +982,10 @@ theorem diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂
 show s₁ ≤ s₂ → t₂ ≤ t₁ → s₁ \ t₁ ≤ s₂ \ t₂, from sdiff_le_sdiff
 
 theorem diff_subset_diff_left {s₁ s₂ t : set α} (h : s₁ ⊆ s₂) : s₁ \ t ⊆ s₂ \ t :=
-sdiff_le_self_sdiff ‹s₁ ≤ s₂›
+sdiff_le_sdiff_right ‹s₁ ≤ s₂›
 
 theorem diff_subset_diff_right {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
-sdiff_le_sdiff_self ‹t ≤ u›
+sdiff_le_sdiff_left ‹t ≤ u›
 
 theorem compl_eq_univ_diff (s : set α) : sᶜ = univ \ s :=
 top_sdiff.symm

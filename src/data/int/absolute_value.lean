@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import algebra.order.absolute_value
-import algebra.algebra.basic
+import algebra.module.basic
 import data.int.cast
 import group_theory.group_action.units
 
@@ -29,8 +29,8 @@ by rcases int.units_eq_one_or x with (rfl | rfl); simp
 lemma absolute_value.map_units_int_cast [nontrivial R] (abv : absolute_value R S) (x : units ℤ) :
   abv ((x : ℤ) : R) = 1 :=
 by rcases int.units_eq_one_or x with (rfl | rfl); simp
-
+#check units.neg_smul
 @[simp]
 lemma absolute_value.map_units_int_smul (abv : absolute_value R S) (x : units ℤ) (y : R) :
   abv (x • y) = abv y :=
-by rcases int.units_eq_one_or x with (rfl | rfl); simp
+by rcases int.units_eq_one_or x with (rfl | rfl); simp only [units.neg_smul, one_smul, absolute_value.map_neg]

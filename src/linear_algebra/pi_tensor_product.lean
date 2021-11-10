@@ -200,8 +200,8 @@ begin
 end
 
 section distrib_mul_action
-variables [monoid R₁] [distrib_mul_action R₁ R] [is_scalar_tower R₁ R R] [smul_comm_class R₁ R R]
-variables [monoid R₂] [distrib_mul_action R₂ R] [is_scalar_tower R₂ R R] [smul_comm_class R₂ R R]
+variables [monoid R₁] [distrib_mul_action R₁ R] [smul_comm_class R₁ R R]
+variables [monoid R₂] [distrib_mul_action R₂ R] [smul_comm_class R₂ R R]
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
@@ -248,8 +248,7 @@ end distrib_mul_action
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance module' [semiring R₁] [module R₁ R] [is_scalar_tower R₁ R R]
-  [smul_comm_class R₁ R R] : module R₁ (⨂[R] i, s i) :=
+instance module' [semiring R₁] [module R₁ R] [smul_comm_class R₁ R R] : module R₁ (⨂[R] i, s i) :=
 { smul := (•),
   add_smul := λ r r' x, pi_tensor_product.induction_on' x
     (λ r f, by simp [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'])

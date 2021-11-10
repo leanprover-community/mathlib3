@@ -11,10 +11,18 @@ import group_theory.group_action.prod
 # Symmetric group actions
 
 This file defines a class of group actions which are invariant unter taking the `opposite` of
-the (semi)group.
+the operating type/(semi)group/monoid.
 
+The main definition is the one of the typeclass `is_symmetric_smul` which states that for a
+pair of types `R` and `M`, the actions of `R` and its opposite `Rᵒᵖ` on `M` coincide.
+
+We then provide the alternate version of its constructor, `unop_smul_eq_smul` about general
+instance of `Rᵒᵖ` and several instances for closure properties.
+
+## Tags
+
+group action
 -/
-
 open opposite
 
 class is_symmetric_smul (R M : Type*) [has_scalar R M] [has_scalar Rᵒᵖ M] :=
@@ -45,8 +53,18 @@ instance is_scalar_tower.is_symmetric_smul {R α} [monoid R] [mul_action R α] [
   [is_scalar_tower Rᵒᵖ R α] : is_symmetric_smul R α :=
 ⟨λ r a, by rw [←one_smul R a, ←smul_assoc, one_smul, op_smul_eq_mul, one_mul]⟩
 
+instance is_symmetric_smul.is_scalar_tower {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
+  [is_symmetric_smul R α] : is_scalar_tower Rᵒᵖ R α :=
+⟨λ r' r a, by { rw [←unop_smul_eq_smul r' (r • a), smul_smul],
+                change (_ * _) • _ = _, rw [mul_comm] } ⟩
+
 instance mul_action.of_is_symmetric_smul {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
   [is_symmetric_smul R α] : mul_action Rᵒᵖ α :=
 ⟨λ a, by rw [←op_one, op_smul_eq_smul (1 : R) a, one_smul],
  λ r s a, by rw [mul_comm, ←op_unop (s * r), op_smul_eq_smul, unop_mul, mul_smul,
                  unop_smul_eq_smul, unop_smul_eq_smul]⟩
+
+-- TODO there might be a more general version of this
+instance smul_comm_class.of_is_symmetric_smul {R α} [has_scalar R α] [has_scalar Rᵒᵖ α]
+  [is_symmetric_smul R α] [smul_comm_class R R α] : smul_comm_class Rᵒᵖ R α :=
+⟨λ r' r a, by rw [←unop_smul_eq_smul r' (r • a), ←unop_smul_eq_smul r' a, smul_comm]⟩

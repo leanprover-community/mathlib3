@@ -145,16 +145,19 @@ variables {R' : Type*} [monoid R']
 variables {R'' : Type*} [comm_semiring R''] --?
 variables {M N : Type*}
 variables [add_comm_monoid M] [add_comm_monoid N]
-variables [module Rᵒᵖ M] [module R N]
+variables [module R M] [module Rᵒᵖ M] [smul_comm_class Rᵒᵖ R M] -- TODO this or require `is_symmetric_smul`?
+variables [module R N]
 variables [distrib_mul_action R' M]
+
+example : is_symmetric_smul R M := is_scalar_tower.is_symmetric_smul
 
 /-- The instance `tensor_product.left_has_scalar` induces this special case of `R` acting
 on the right of the tensor product `M ⊗[R] N`. -/
-instance right_has_scalar_comm : has_scalar Rᵒᵖ (M ⊗[R] N) := infer_instance
+instance right_has_scalar_comm : has_scalar R (M ⊗[R] N) := infer_instance
 
-instance : distrib_mul_action Rᵒᵖ (M ⊗[R] N) := tensor_product.left_distrib_mul_action
+instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.left_distrib_mul_action
 
-instance : module Rᵒᵖ (M ⊗[R] N) := tensor_product.left_module
+instance : module R (M ⊗[R] N) := tensor_product.left_module
 
 /-- A short-cut instance of `is_scalar_tower_left` for the common case, where the requirements
 for the `compatible_smul` instances are sufficient. -/
@@ -164,8 +167,8 @@ tensor_product.is_scalar_tower_left
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
-def mk [module Rᵒᵖ N] [is_symmetric_smul R N] : M →ₗ[Rᵒᵖ] N →ₗ[Rᵒᵖ] M ⊗[R] N :=
-linear_map.mk₂ Rᵒᵖ (⊗ₜ) add_tmul (λ c m n, rfl) tmul_add
+def mk [module Rᵒᵖ N] [is_symmetric_smul R N] : M →ₗ[R] N →ₗ[R] M ⊗[R] N :=
+linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, rfl) tmul_add
   (λ c m n, by rw [←c.op_unop , is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul, smul_tmul'])
 variables {R M N}
 
@@ -275,13 +278,6 @@ local attribute [ext] ext
 example : M → N → (M → N → P) → P :=
 λ m, flip $ λ f, f m
 
-variables (R M N P)
-/-- Linearly constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
-with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
-the given bilinear map `M → N → P`. -/
-def uncurry : (M →ₗ[Rᵒᵖ] N →ₗ[Rᵒᵖ] P) →ₗ[Rᵒᵖ] M ⊗[R] N →ₗ[Rᵒᵖ] P :=
-linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp (linear_map.flip linear_map.id)
-variables {R M N P}
 
 end UMP
 

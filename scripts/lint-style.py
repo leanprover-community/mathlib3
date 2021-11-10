@@ -30,6 +30,7 @@ exceptions by redirecting the output to ``style-exceptions.txt``:
 
 from pathlib import Path
 import sys
+import re
 
 ERR_COP = 0 # copyright header
 ERR_IMP = 1 # import statements
@@ -166,7 +167,9 @@ def indent_check(lines, path):
     ended_with_comma = False  # track whether the previous line ends with a comma
     inside_special = 0  # track whether we are inside ⟨⟩ or []
     for line_nr, line in enumerate(lines, 1):
-        line = line.split(' --')[0]  # discard any commented out part of this line
+        line = line.split('--')[0] # discard any commented out part of this line
+        if len(line) == 0 or line[-1] != '\n':
+            line += '\n' # add back newline if it just got removed
         # `lstr` is the line with starting whitespace removed.
         # Therefore, `len(line) - len(lstr)` is the line's indentation depth.
         lstr = line.lstrip(' ')
@@ -187,15 +190,19 @@ def indent_check(lines, path):
             check_rest_of_block = True
             ended_with_comma = False
             inside_special = 0
-        if "match" in line or "calc" in line:
+        if re.match("\b(match|calc)\b", line) is not None:
             check_rest_of_block = False
-        if "begin" in line:
-            # Don't check complicated proof block syntax
+        if re.match("\bbegin\b", line) is not None:
+            # Don't check complicated proof block syntax (note, one if uses `line.find` the other `lstr.find`)
+            # in this case, we ignore proof blocks whose outermost-block doesn't begin flush-left
+            if line.find("begin") > 0 and in_prf == 0:
+                check_rest_of_block = False
+            # in this case, we ignore proof blocks where begin is not the first word on the line
             if lstr.find("begin") > 0:
                 check_rest_of_block = False
             indent_lvl += 2
             in_prf += 1
-        if "end" in line:
+        if re.match("\bend\b", line) is not None:
             indent_lvl -= 2
             in_prf -= 1
         indent_lvl += 2 * line.count('{') # potential innocent(?) clash with set-builder notation

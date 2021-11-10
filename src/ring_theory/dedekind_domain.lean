@@ -978,7 +978,7 @@ begin
 end
 
 end is_dedekind_domain
-
+/-
 section quotient_multiplicity
 noncomputable theory
 open_locale classical
@@ -1226,7 +1226,7 @@ begin
 end
 
 end quotient_multiplicity
-
+-/
 
 namespace temporary
 
@@ -1255,13 +1255,23 @@ def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+*
 
 lemma ideal_correspondence_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
   {p : ideal S} (hp : p ∣ J) :
-  (ideal_correspondence hI hJ f).symm = ideal_correspondence hJ hI f.symm :=
-sorry
+  (ideal_correspondence hI hJ f).symm = ideal_correspondence hJ hI f.symm := rfl
 
 lemma ideal_correspondence_mono (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
   {p q : ideal T} (hp : p ∣ I) (hq : q ∣ I) (h : p ≤ q) :
   ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) ≤ ( ideal_correspondence hI hJ f ⟨q, hq⟩ : ideal S) :=
-sorry
+begin
+  rw [ideal_correspondence_apply_coe, subtype.coe_mk, ideal_correspondence_apply_coe,
+    subtype.coe_mk, comap_le_comap_iff_of_surjective J^.quotient.mk quotient.mk_surjective],
+  apply le_map_of_comap_le_of_surjective ↑f,
+  rw ring_equiv.coe_to_ring_hom,
+  exact ring_equiv.surjective f,
+  apply le_map_of_comap_le_of_surjective I^.quotient.mk quotient.mk_surjective,
+  rw [map_comap_of_equiv, comap_of_equiv, comap_map_of_surjective I^.quotient.mk quotient.mk_surjective,
+    ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.2 (le_of_dvd hp)],
+  exact h,
+end
+
 
 lemma ideal_correspondence_is_prime_of_is_prime (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
   (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :

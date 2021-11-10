@@ -66,7 +66,7 @@ do do_print ← optional (tk "?"),
      fail format!"no canonical declaration for {n} with {args.length} arguments",
    decls.mmap' $ λ d, do
      code ← d.mk_cmd args',
-     when do_print.is_some $ trace code,
+     when do_print.is_some $ trace ("Try this: " ++ code),
      emit_code_here code -- is it possible to print the code if this fails?
 
 private meta def parse_declare_string (args : list name) (lst : pexpr) :

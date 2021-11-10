@@ -7,7 +7,7 @@ import topology.instances.real
 import order.filter.archimedean
 
 /-!
-# Convergence of subadditive sequence
+# Convergence of subadditive sequences
 
 A subadditive sequence `u : ℕ → ℝ` is a sequence satisfying `u (m + n) ≤ u m + u n` for all `m, n`.
 We define this notion as `subadditive u`, and prove in `subadditive.tendsto_lim` that, if `u n / n`
@@ -31,7 +31,8 @@ include h
 
 /-- The limit of a bounded-below subadditive sequence. The fact that the sequence indeed tends to
 this limit is given in `subadditive.tendsto_lim` -/
-@[irreducible] protected def lim := Inf ((λ (n : ℕ), u n / n) '' (Ici 1))
+@[irreducible, nolint unused_arguments]
+protected def lim := Inf ((λ (n : ℕ), u n / n) '' (Ici 1))
 
 lemma lim_le_div (hbdd : bdd_below (range (λ n, u n / n))) {n : ℕ} (hn : n ≠ 0) :
   h.lim ≤ u n / n :=
@@ -46,12 +47,13 @@ end
 
 lemma apply_mul_add_le (k r n) : u (k * n + r) ≤ k * u n + u r :=
 begin
-  induction k with k IH,
-  { simp },
-  { calc u ((k+1) * n + r) = u (n + (k * n + r)) : by { congr' 1, ring }
-    ... ≤ u n + u (k * n + r) : h _ _
-    ... ≤ u n + (k * u n + u r) : add_le_add_left IH _
-    ... = (k+1) * u n + u r : by ring }
+  induction k with k IH, { simp only [nat.cast_zero, zero_mul, zero_add] },
+  calc
+  u ((k+1) * n + r)
+      = u (n + (k * n + r)) : by { congr' 1, ring }
+  ... ≤ u n + u (k * n + r) : h _ _
+  ... ≤ u n + (k * u n + u r) : add_le_add_left IH _
+  ... = (k+1) * u n + u r : by ring
 end
 
 lemma eventually_div_lt_of_div_lt {L : ℝ} {n : ℕ} (hn : n ≠ 0) (hL : u n / n < L) :
@@ -59,9 +61,8 @@ lemma eventually_div_lt_of_div_lt {L : ℝ} {n : ℕ} (hn : n ≠ 0) (hL : u n /
 begin
   have I : ∀ (i : ℕ), 0 < i → (i : ℝ) ≠ 0,
   { assume i hi, simp only [hi.ne', ne.def, nat.cast_eq_zero, not_false_iff] },
-  have npos : 0 < n := bot_lt_iff_ne_bot.2 hn,
   obtain ⟨w, nw, wL⟩ : ∃ w, u n / n < w ∧ w < L := exists_between hL,
-  obtain ⟨x, hx⟩ : ∃ x, ∀ i, i < n → u i - i * w ≤ x,
+  obtain ⟨x, hx⟩ : ∃ x, ∀ i < n, u i - i * w ≤ x,
   { obtain ⟨x, hx⟩ : bdd_above (↑(finset.image (λ i, u i - i * w) (finset.range n))) :=
       finset.bdd_above _,
     refine ⟨x, λ i hi, _⟩,
@@ -75,12 +76,12 @@ begin
     have hp : p = s * n + r, by rw [mul_comm, nat.div_add_mod],
     calc u p = u (s * n + r) : by rw hp
     ... ≤ s * u n + u r : h.apply_mul_add_le _ _ _
-    ... = s * n * (u n / n) + u r : by { field_simp [I _ npos], ring }
+    ... = s * n * (u n / n) + u r : by { field_simp [I _ hn.bot_lt], ring }
     ... ≤ s * n * w + u r : add_le_add_right
       (mul_le_mul_of_nonneg_left nw.le (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _))) _
     ... = (s * n + r) * w + (u r - r * w) : by ring
     ... = p * w + (u r - r * w) : by { rw hp, simp only [nat.cast_add, nat.cast_mul] }
-    ... ≤ p * w + x : add_le_add_left (hx _ (nat.mod_lt _ npos)) _ },
+    ... ≤ p * w + x : add_le_add_left (hx _ (nat.mod_lt _ hn.bot_lt)) _ },
   have B : ∀ᶠ p in at_top, u p / p ≤ w + x / p,
   { refine eventually_at_top.2 ⟨1, λ p hp, _⟩,
     simp only [I p hp, ne.def, not_false_iff] with field_simps,

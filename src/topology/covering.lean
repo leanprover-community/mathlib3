@@ -30,22 +30,25 @@ structure covering_map extends continuous_map E X :=
 (surjective : function.surjective to_fun)
 (evenly_covered : ∀ e : E, open_embedding (to_fun ∘ coe : connected_component e → X))
 
+variables {E E' X}
+
+namespace covering_map
+
 infixr ` ↠ `:25 := covering_map -- shortcut: type `\rr-` or just type `\rr `
 
 instance : has_coe_to_fun (E ↠ X) (λ _, E → X) := ⟨λ q, q.to_fun⟩
 
-variables {E E' X}
+@[continuity] lemma continuous (q : E ↠ X) : continuous q := q.continuous_to_fun
 
-def covering_map.comp
-  (p : E' ↠ X) (q : E ↠ E') : E ↠ X :=
+def comp (p : E' ↠ X) (q : E ↠ E') : E ↠ X :=
 { to_fun := p ∘ q,
-  continuous_to_fun := continuous.comp p.continuous_to_fun q.continuous_to_fun, -- seems like there might be a fancy way to get the continuity tactic to do this automatically?
-  surjective := function.surjective.comp p.surjective q.surjective,
+  surjective := p.surjective.comp q.surjective,
   evenly_covered := λ e, by
   { have key : set.maps_to q (connected_component e) (connected_component (q e)) :=
-    (λ x hx, continuous.image_connected_component_subset q.continuous_to_fun e ⟨x, hx, rfl⟩),
+    λ x hx, continuous.image_connected_component_subset q.continuous e ⟨x, hx, rfl⟩,
     change open_embedding ((p ∘ coe) ∘ (set.maps_to.restrict _ _ _ key)),
-    exact open_embedding.comp (p.evenly_covered (q e))
-      (open_embedding_of_open_embedding_compose_injective
-      (set.maps_to.restrict.continuous q.continuous_to_fun key)
+    exact (p.evenly_covered (q e)).comp (open_embedding_of_open_embedding_compose_injective
+      (set.maps_to.restrict.continuous q.continuous key)
       continuous_subtype_coe (q.evenly_covered e) subtype.coe_injective) } }
+
+end covering_map

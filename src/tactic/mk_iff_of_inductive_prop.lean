@@ -3,8 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import tactic.core
-import tactic.lint
+import tactic.lint.basic
 /-!
 # mk_iff_of_inductive_prop
 

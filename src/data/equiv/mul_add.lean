@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group_with_zero
-import data.equiv.set
+import algebra.group_with_zero.basic
 
 /-!
 # Multiplicative and additive equivs

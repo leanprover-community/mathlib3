@@ -3,8 +3,10 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
-import algebra.module.basic
+import algebra.big_operators.basic
+import algebra.smul_with_zero
 import data.set.finite
+import group_theory.group_action.group
 import group_theory.submonoid.basic
 
 /-!

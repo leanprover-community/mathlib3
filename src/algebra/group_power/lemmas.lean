@@ -3,13 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.group_power.basic
-import algebra.invertible
-import algebra.opposites
-import data.list.basic
 import data.int.cast
-import data.equiv.basic
-import data.equiv.mul_add
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -173,10 +167,6 @@ theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
 
-@[simp, to_additive]
-theorem monoid_hom.map_zpow (f : G →* H) (a : G) (n : ℤ) : f (a ^ n) = f a ^ n :=
-by cases n; simp
-
 @[simp, norm_cast, to_additive]
 lemma units.coe_zpow (u : units G) (n : ℤ) : ((u ^ n : units G) : G) = u ^ n :=
 (units.coe_hom G).map_zpow u n
@@ -193,7 +183,7 @@ open int
 lemma zsmul_pos {a : A} (ha : 0 < a) {k : ℤ} (hk : (0:ℤ) < k) : 0 < k • a :=
 begin
   lift k to ℕ using int.le_of_lt hk,
-  rw zsmul_coe_nat,
+  rw coe_nat_zsmul,
   apply nsmul_pos ha,
   exact (coe_nat_pos.mp hk).ne',
 end
@@ -263,10 +253,10 @@ lemma abs_zsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℤ) (a : �
 begin
   by_cases n0 : 0 ≤ n,
   { lift n to ℕ using n0,
-    simp only [abs_nsmul, coe_nat_abs, zsmul_coe_nat] },
+    simp only [abs_nsmul, coe_nat_abs, coe_nat_zsmul] },
   { lift (- n) to ℕ using int.le_of_lt (neg_pos.mpr (not_le.mp n0)) with m h,
-    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, zsmul_coe_nat, coe_nat_abs,
-      zsmul_coe_nat],
+    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, coe_nat_zsmul, coe_nat_abs,
+      coe_nat_zsmul],
     exact abs_nsmul m _ },
 end
 
@@ -391,7 +381,7 @@ lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 @[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
-| (n : ℕ) := by { rw [zsmul_coe_nat, nsmul_eq_mul], refl }
+| (n : ℕ) := by { rw [coe_nat_zsmul, nsmul_eq_mul], refl }
 | -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=

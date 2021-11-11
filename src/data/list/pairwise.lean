@@ -3,8 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.sublists
+import data.list.count
 import data.list.lex
+import data.list.sublists
 import data.set.pairwise
 
 /-!

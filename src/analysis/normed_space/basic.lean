@@ -505,10 +505,10 @@ end
 lemma norm_zsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
 begin
   induction n with n n,
-  { simp only [int.of_nat_eq_coe, zsmul_coe_nat],
+  { simp only [int.of_nat_eq_coe, coe_nat_zsmul],
     convert norm_nsmul_le n a,
     exact nat.abs_cast n },
-  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, zsmul_coe_nat],
+  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, coe_nat_zsmul],
     convert norm_nsmul_le n.succ a,
     exact nat.abs_cast n.succ, }
 end

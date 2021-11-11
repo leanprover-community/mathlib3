@@ -46,6 +46,7 @@ many lemmas.
 rounding, floor, ceil
 -/
 
+open set
 variables {α : Type*}
 
 /-! ### Floor semiring -/
@@ -130,18 +131,28 @@ lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
 lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos $ (nat.zero_le n).trans_lt h).le
 
-lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
+@[simp] lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
 by { rw [←lt_one_iff, ←@cast_one α], exact floor_lt' nat.one_ne_zero }
 
 lemma floor_eq_iff (ha : 0 ≤ a) : ⌊a⌋₊ = n ↔ ↑n ≤ a ∧ a < ↑n + 1 :=
 by rw [←le_floor_iff ha, ←nat.cast_one, ←nat.cast_add, ←floor_lt ha, nat.lt_add_one_iff,
   le_antisymm_iff, and.comm]
 
+lemma floor_eq_iff' (hn : n ≠ 0) : ⌊a⌋₊ = n ↔ ↑n ≤ a ∧ a < ↑n + 1 :=
+by rw [← le_floor_iff' hn, ← nat.cast_one, ← nat.cast_add, ← floor_lt' (nat.add_one_ne_zero n),
+  nat.lt_add_one_iff, le_antisymm_iff, and.comm]
+
 lemma floor_eq_on_Ico (n : ℕ) : ∀ a ∈ (set.Ico n (n+1) : set α), ⌊a⌋₊ = n :=
 λ a ⟨h₀, h₁⟩, (floor_eq_iff $ n.cast_nonneg.trans h₀).mpr ⟨h₀, h₁⟩
 
 lemma floor_eq_on_Ico' (n : ℕ) : ∀ a ∈ (set.Ico n (n+1) : set α), (⌊a⌋₊ : α) = n :=
 λ x hx, by exact_mod_cast floor_eq_on_Ico n x hx
+
+@[simp] lemma preimage_floor_zero : (floor : α → ℕ) ⁻¹' {0} = Iio 1 :=
+ext $ λ a, floor_eq_zero
+
+lemma preimage_floor_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (floor : α → ℕ) ⁻¹' {n} = Ico n (n + 1) :=
+ext $ λ a, floor_eq_iff' hn
 
 /-! #### Ceil -/
 
@@ -172,6 +183,17 @@ begin
   { rw floor_lt ha, exact h.trans_le (le_ceil _) },
   { rwa [floor_of_nonpos ha.le, lt_ceil] }
 end
+
+lemma ceil_eq_iff (hn : n ≠ 0) : ⌈a⌉₊ = n ↔ ↑(n - 1) < a ∧ a ≤ n :=
+by rw [← ceil_le, ← not_le, ← ceil_le, not_le,
+  tsub_lt_iff_right (nat.add_one_le_iff.2 (pos_iff_ne_zero.2 hn)), nat.lt_add_one_iff,
+  le_antisymm_iff, and.comm]
+
+@[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
+ext $ λ x, ceil_eq_zero
+
+lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
+ext $ λ x, ceil_eq_iff hn
 
 end linear_ordered_semiring
 
@@ -358,15 +380,25 @@ lemma floor_eq_on_Ico (n : ℤ) : ∀ a ∈ set.Ico (n : α) (n + 1), ⌊a⌋ = 
 lemma floor_eq_on_Ico' (n : ℤ) : ∀ a ∈ set.Ico (n : α) (n + 1), (⌊a⌋ : α) = n :=
 λ a ha, congr_arg _ $ floor_eq_on_Ico n a ha
 
+@[simp] lemma preimage_floor_singleton (m : ℤ) : (floor : α → ℤ) ⁻¹' {m} = Ico m (m + 1) :=
+ext $ λ x, floor_eq_iff
+
 /-! #### Fractional part -/
+
+@[simp] lemma self_sub_floor (a : α) : a - ⌊a⌋ = fract a := rfl
 
 @[simp] lemma floor_add_fract (a : α) : (⌊a⌋ : α) + fract a = a := add_sub_cancel'_right _ _
 
 @[simp] lemma fract_add_floor (a : α) : fract a + ⌊a⌋ = a := sub_add_cancel _ _
 
-@[simp] lemma fract_add_int (a : α) (m : ℤ) : fract (a + m) = fract a := by simp [fract]
+@[simp] lemma fract_add_int (a : α) (m : ℤ) : fract (a + m) = fract a :=
+by { rw fract, simp }
 
-@[simp] lemma fract_sub_int (a : α) (m : ℤ) : fract (a - m) = fract a := by simp [fract]
+@[simp] lemma fract_sub_int (a : α) (m : ℤ) : fract (a - m) = fract a :=
+by { rw fract, simp }
+
+@[simp] lemma fract_int_add (m : ℤ) (a : α) : fract (↑m + a) = fract a :=
+by rw [add_comm, fract_add_int]
 
 @[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
 
@@ -427,6 +459,27 @@ begin
   abel
 end
 
+lemma preimage_fract (s : set α) : fract ⁻¹' s = ⋃ m : ℤ, (λ x, x - m) ⁻¹' (s ∩ Ico (0 : α) 1) :=
+begin
+  ext x,
+  simp only [mem_preimage, mem_Union, mem_inter_eq],
+  refine ⟨λ h, ⟨⌊x⌋, h, fract_nonneg x, fract_lt_one x⟩, _⟩,
+  rintro ⟨m, hms, hm0, hm1⟩,
+  obtain rfl : ⌊x⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 hm0, sub_lt_iff_lt_add'.1 hm1⟩,
+  exact hms
+end
+
+lemma image_fract (s : set α) : fract '' s = ⋃ m : ℤ, (λ x, x - m) '' s ∩ Ico 0 1 :=
+begin
+  ext x,
+  simp only [mem_image, mem_inter_eq, mem_Union], split,
+  { rintro ⟨y, hy, rfl⟩,
+    exact ⟨⌊y⌋, ⟨y, hy, rfl⟩, fract_nonneg y, fract_lt_one y⟩ },
+  { rintro ⟨m, ⟨y, hys, rfl⟩, h0, h1⟩,
+    obtain rfl : ⌊y⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 h0, sub_lt_iff_lt_add'.1 h1⟩,
+    exact ⟨y, hys, rfl⟩ }
+end
+
 /-! #### Ceil -/
 
 lemma gc_ceil_coe : galois_connection ceil (coe : ℤ → α) := floor_ring.gc_ceil_coe
@@ -485,6 +538,9 @@ lemma ceil_eq_on_Ioc' (z : ℤ) : ∀ a ∈ set.Ioc (z - 1 : α) z, (⌈a⌉ : �
 
 lemma floor_lt_ceil_of_lt {a b : α} (h : a < b) : ⌊a⌋ < ⌈b⌉ :=
 cast_lt.1 $ (floor_le a).trans_lt $ h.trans_le $ le_ceil b
+
+@[simp] lemma preimage_ceil_singleton (m : ℤ) : (ceil : α → ℤ) ⁻¹' {m} = Ioc (m - 1) m :=
+ext $ λ x, ceil_eq_iff
 
 /-! #### A floor ring as a floor semiring -/
 

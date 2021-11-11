@@ -3,7 +3,7 @@ Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
-import analysis.convex.basic
+import analysis.convex.function
 import analysis.normed_space.ordered
 import data.real.pointwise
 import data.set.intervals
@@ -338,30 +338,38 @@ balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_sm
 end normed_field
 
 section normed_linear_ordered_field
-variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [module ℝ E] [semi_normed_space ℝ 𝕜]
-  [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
+variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [semi_normed_space ℝ 𝕜] [module 𝕜 E]
+
+section has_scalar
+variables [has_scalar ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
+
+/-- A seminorm is convex. Also see `convex_on_norm`. -/
+protected lemma convex_on : convex_on ℝ univ p :=
+begin
+  refine ⟨convex_univ, λ x y _ _ a b ha hb hab, _⟩,
+  calc p (a • x + b • y) ≤ p (a • x) + p (b • y) : p.triangle _ _
+    ... = ∥a • (1 : 𝕜)∥ * p x + ∥b • (1 : 𝕜)∥ * p y
+        : by rw [←p.smul, ←p.smul, smul_one_smul, smul_one_smul]
+    ... = a * p x + b * p y
+        : by rw [norm_smul, norm_smul, norm_one, mul_one, mul_one, real.norm_of_nonneg ha,
+            real.norm_of_nonneg hb],
+end
+
+end has_scalar
+
+section module
+variables [module ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E) (x : E) (r : ℝ)
 
 /-- Seminorm-balls are convex. -/
 lemma convex_ball : convex ℝ (ball p x r) :=
 begin
-  rw convex_iff_forall_pos,
-  rintro y z hy hz a b ha hb hab,
-  rw mem_ball at ⊢ hy hz,
-  calc p (a • y + b • z - x)
-        = p (a • (y - x) + b • (z - x))
-        : by rw [smul_sub, smul_sub, sub_add_comm, convex.combo_self hab x]
-    ... ≤ p (a • (y - x)) + p (b • (z - x)) : p.triangle _ _
-    ... = ∥a • (1 : 𝕜)∥ * p (y - x) + ∥b • (1 : 𝕜)∥ * p (z - x)
-        : by rw [←p.smul, ←p.smul, smul_one_smul, smul_one_smul]
-    ... = a * p (y - x) + b * p (z - x)
-        : by rw [norm_smul, norm_smul, norm_one, mul_one, mul_one, real.norm_eq_abs,
-            real.norm_eq_abs, abs_of_pos ha, abs_of_pos hb]
-    ... < a * r + b * r
-        : add_lt_add (mul_lt_mul_of_pos_left hy ha) (mul_lt_mul_of_pos_left hz hb)
-    ... = r
-        : by rw [←smul_eq_mul, ←smul_eq_mul, convex.combo_self hab _]
+  convert (p.convex_on.translate_left (-x)).convex_lt r,
+  ext y,
+  rw [preimage_univ, sep_univ, p.mem_ball x y r, sub_eq_add_neg],
+  refl,
 end
 
+end module
 end normed_linear_ordered_field
 
 -- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ

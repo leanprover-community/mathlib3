@@ -928,7 +928,7 @@ theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : ε ≠ 0) (ι) [encoda
   ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
 let ⟨a, a0, aε⟩ := exists_between (pos_iff_ne_zero.2 hε) in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
-⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
+⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.1 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
    lt_of_le_of_lt (nnreal.coe_le_coe.1 hcε) aε ⟩
 

@@ -336,7 +336,7 @@ A slight rearrangement from `lsum` gives us
 the bijection underlying the free-forgetful adjunction for R-modules.
 -/
 noncomputable def lift : (X → M) ≃+ ((X →₀ R) →ₗ[R] M) :=
-(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R M ℕ).to_add_equiv.symm).trans
+(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R ℕ M).to_add_equiv.symm).trans
   (lsum _ : _ ≃ₗ[ℕ] _).to_add_equiv
 
 @[simp]

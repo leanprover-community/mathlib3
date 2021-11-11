@@ -207,8 +207,8 @@ begin
   cases l with hd tl,
   { simp },
   { have : k ≤ tl.length,
-      { refine nat.le_of_lt_succ _,
-        simpa using hk },
+    { refine nat.le_of_lt_succ _,
+      simpa using hk },
     rcases this.eq_or_lt with rfl|hk',
     { simp [nth_le_append_right (le_refl _)] },
     { simpa [nth_le_append _ hk', length_cons, nat.mod_eq_of_lt (nat.succ_lt_succ hk')] } }

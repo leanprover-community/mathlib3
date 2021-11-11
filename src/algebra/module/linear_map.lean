@@ -343,7 +343,7 @@ instance compatible_smul.int_module
   induction c using int.induction_on,
   case hz : { simp },
   case hp : n ih { simp [add_smul, ih] },
-  case hn : n ih { simp [sub_smul, ih] }
+  case hn : n ih { simp [sub_smul, ih, map_neg] }
 end⟩
 
 instance compatible_smul.units {R S : Type*}

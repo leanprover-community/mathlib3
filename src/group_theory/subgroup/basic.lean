@@ -367,7 +367,7 @@ subtype.coe_injective.linear_ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) 
 @[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
 def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (H.subtype : H → G) = coe := rfl
 
 @[simp, norm_cast, to_additive coe_smul]
 lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=

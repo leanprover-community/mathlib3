@@ -213,11 +213,11 @@ lemma add_monoid_hom.mul_apply (x y : R) : add_monoid_hom.mul x y = x * y := rfl
 
 @[simp]
 lemma add_monoid_hom.coe_mul :
-  ⇑(add_monoid_hom.mul : R →+ R →+ R) = add_monoid_hom.mul_left := rfl
+  ((add_monoid_hom.mul : R →+ R →+ R) : R → R →+ R) = add_monoid_hom.mul_left := rfl
 
 @[simp]
 lemma add_monoid_hom.coe_flip_mul :
-  ⇑(add_monoid_hom.mul : R →+ R →+ R).flip = add_monoid_hom.mul_right := rfl
+  ((add_monoid_hom.mul : R →+ R →+ R).flip : R → R →+ R) = add_monoid_hom.mul_right := rfl
 
 /-- An `add_monoid_hom` preserves multiplication if pre- and post- composition with
 `add_monoid_hom.mul` are equivalent. By converting the statement into an equality of

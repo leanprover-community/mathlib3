@@ -196,8 +196,8 @@ def inr : N →* M × N :=
 
 variables {M N}
 
-@[simp, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
-@[simp, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
+@[simp, to_additive] lemma coe_fst : (fst M N : M × N → M) = prod.fst := rfl
+@[simp, to_additive] lemma coe_snd : (snd M N : M × N → N) = prod.snd := rfl
 
 @[simp, to_additive] lemma inl_apply (x) : inl M N x = (x, 1) := rfl
 @[simp, to_additive] lemma inr_apply (y) : inr M N y = (1, y) := rfl
@@ -251,7 +251,7 @@ def prod_map : M × N →* M' × N' := (f.comp (fst M N)).prod (g.comp (snd M N)
 lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
 
 @[simp, to_additive coe_prod_map]
-lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
+lemma coe_prod_map : (prod_map f g : M × N → M' × N') = prod.map f g := rfl
 
 @[to_additive prod_comp_prod_map]
 lemma prod_comp_prod_map (f : P →* M) (g : P →* N) (f' : M →* M') (g' : N →* N') :

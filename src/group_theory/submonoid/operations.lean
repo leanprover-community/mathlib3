@@ -449,7 +449,7 @@ subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (S.subtype : S → M) = coe := rfl
 
 /-- A submonoid is isomorphic to its image under an injective function -/
 @[to_additive "An additive submonoid is isomorphic to its image under an injective function"]

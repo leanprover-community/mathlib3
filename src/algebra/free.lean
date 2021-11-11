@@ -82,7 +82,8 @@ namespace free_magma
 variables {α : Type u} {β : Type v} [has_mul β] (f : α → β)
 
 @[to_additive]
-theorem lift_aux_unique (F : mul_hom (free_magma α) β) : ⇑F = lift_aux (F ∘ of) :=
+theorem lift_aux_unique (F : mul_hom (free_magma α) β) :
+  (F : free_magma α → β) = lift_aux (F ∘ of) :=
 funext $ λ x, free_magma.rec_on x (λ x, rfl) $ λ x y ih1 ih2,
 (F.map_mul x y).trans $ congr (congr_arg _ ih1) ih2
 

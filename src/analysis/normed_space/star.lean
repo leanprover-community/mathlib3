@@ -20,6 +20,11 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 `[normed_field 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [cstar_ring E]
  [normed_algebra 𝕜 E] [star_module 𝕜 E]`.
 
+## TODO
+
+- Show that `∥x⋆ * x∥ = ∥x∥^2` is equivalent to `∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥`, which is used as the
+  definition of C*-algebras in some sources (e.g. Wikipedia).
+
 -/
 
 local postfix `⋆`:1000 := star
@@ -63,6 +68,10 @@ end⟩
 lemma cstar_ring.norm_self_mul_star [normed_ring E] [star_ring E] [cstar_ring E] {x : E} :
   ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
 by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
+
+lemma cstar_ring.norm_star_mul_self' [normed_ring E] [star_ring E] [cstar_ring E] {x : E} :
+  ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
+by rw [norm_star_mul_self, norm_star]
 
 section starₗᵢ
 

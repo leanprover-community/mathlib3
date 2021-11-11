@@ -3,7 +3,6 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
--- import category_theory.limits.has_limits
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.cone_category
@@ -166,22 +165,28 @@ def multicospan : walking_multicospan I.fst_to I.snd_to ⥤ C :=
 
 variables [has_product I.left] [has_product I.right]
 
+/-- The induced map `∏ I.left ⟶ ∏ I.right` via `I.fst`. -/
 noncomputable
 def fst_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.fst_to b) ≫ I.fst b)
 
+/-- The induced map `∏ I.left ⟶ ∏ I.right` via `I.snd`. -/
 noncomputable
 def snd_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.snd_to b) ≫ I.snd b)
 
 @[simp, reassoc]
-lemma fst_product_map_π (b) : I.fst_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.fst b :=
+lemma fst_pi_map_π (b) : I.fst_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.fst b :=
 by simp [fst_pi_map]
 
 @[simp, reassoc]
-lemma snd_product_map_π (b) : I.snd_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.snd b :=
+lemma snd_pi_map_π (b) : I.snd_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.snd b :=
 by simp [snd_pi_map]
 
+/--
+Taking the multiequalizer over the multicospan index is equivlant to taking the equalizer over
+the two morphsims `∏ I.left ⇉ ∏ I.right`. This is the diagram of the latter.
+-/
 @[simps] protected noncomputable
-def parallel_pair := parallel_pair I.fst_pi_map I.snd_pi_map
+def parallel_pair_diagram := parallel_pair I.fst_pi_map I.snd_pi_map
 
 end multicospan_index
 
@@ -217,6 +222,31 @@ def multispan : walking_multispan I.fst_from I.snd_from ⥤ C :=
 @[simp] lemma multispan_map_snd (a) :
   I.multispan.map (walking_multispan.hom.snd a) = I.snd a := rfl
 
+variables [has_coproduct I.left] [has_coproduct I.right]
+
+/-- The induced map `∐ I.left ⟶ ∐ I.right` via `I.fst`. -/
+noncomputable
+def fst_sigma_map : ∐ I.left ⟶ ∐ I.right := sigma.desc (λ b, I.fst b ≫ sigma.ι _ (I.fst_from b))
+
+/-- The induced map `∐ I.left ⟶ ∐ I.right` via `I.snd`. -/
+noncomputable
+def snd_sigma_map : ∐ I.left ⟶ ∐ I.right := sigma.desc (λ b, I.snd b ≫ sigma.ι _ (I.snd_from b))
+
+@[simp, reassoc]
+lemma ι_fst_sigma_map (b) : sigma.ι I.left b ≫ I.fst_sigma_map = I.fst b ≫ sigma.ι I.right _ :=
+by simp [fst_sigma_map]
+
+@[simp, reassoc]
+lemma ι_snd_sigma_map (b) : sigma.ι I.left b ≫ I.snd_sigma_map = I.snd b ≫ sigma.ι I.right _ :=
+by simp [snd_sigma_map]
+
+/--
+Taking the multicoequalizer over the multispan index is equivlant to taking the coequalizer over
+the two morphsims `∐ I.left ⇉ ∐ I.right`. This is the diagram of the latter.
+-/
+protected noncomputable
+abbreviation parallel_pair_diagram := parallel_pair I.fst_sigma_map I.snd_sigma_map
+
 end multispan_index
 
 variables {C : Type u} [category.{v} C]
@@ -227,7 +257,7 @@ abbreviation multifork (I : multicospan_index C) := cone I.multicospan
 
 /-- A multicofork is a cocone over a multispan. -/
 @[nolint has_inhabited_instance]
-def multicofork (I : multispan_index C) := cocone I.multispan
+abbreviation multicofork (I : multispan_index C) := cocone I.multispan
 
 namespace multifork
 
@@ -278,6 +308,7 @@ variables [has_product I.left] [has_product I.right]
 lemma pi_condition :
   pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map := by { ext, simp }
 
+/-- Given a multifork, we may obtain a fork over `∏ I.left ⇉ ∏ I.right`. -/
 @[simps X] noncomputable
 def to_pi_fork (K : multifork I) : fork I.fst_pi_map I.snd_pi_map :=
 { X := K.X,
@@ -304,6 +335,7 @@ section end
 
 variable (I)
 
+/-- Given a fork over `∏ I.left ⇉ ∏ I.right`, we may obtain a multifork. -/
 @[simps X] noncomputable
 def of_pi_fork (c : fork I.fst_pi_map I.snd_pi_map) : multifork I :=
 { X := c.X,
@@ -335,14 +367,21 @@ variables (I : multicospan_index C) [has_product I.left] [has_product I.right]
 
 local attribute [tidy] tactic.case_bash
 
+/-- `multifork.to_pi_fork` is functorial. -/
 @[simps] noncomputable
 def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
 { obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom } }
 
+/-- `multifork.of_pi_fork` is functorial. -/
 @[simps] noncomputable
 def of_pi_fork_functor : fork I.fst_pi_map I.snd_pi_map ⥤ multifork I :=
 { obj := multifork.of_pi_fork I, map := λ K₁ K₂ f, { hom := f.hom, w' := by rintros (_|_); simp } }
 
+/--
+The category of multiforks is equivalent to the category of forks over `∏ I.left ⇉ ∏ I.right`.
+It then follows from `category_theory.is_limit_of_preserves_cone_terminal` (or `reflects`) that it
+preserves and reflects limit cones.
+-/
 @[simps] noncomputable
 def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
 { functor := to_pi_fork_functor I,
@@ -397,7 +436,101 @@ def of_π (I : multispan_index C) (P : C) (π : Π b, I.right b ⟶ P)
 lemma condition (a) :
   I.fst a ≫ K.π (I.fst_from a) = I.snd a ≫ K.π (I.snd_from a) := by simp
 
+variables [has_coproduct I.left] [has_coproduct I.right]
+
+@[simp, reassoc]
+lemma sigma_condition :
+  I.fst_sigma_map ≫ sigma.desc K.π = I.snd_sigma_map ≫ sigma.desc K.π := by { ext, simp }
+
+/-- Given a multicofork, we may obtain a cofork over `∐ I.left ⇉ ∐ I.right`. -/
+@[simps X] noncomputable
+def to_sigma_cofork (K : multicofork I) : cofork I.fst_sigma_map I.snd_sigma_map :=
+{ X := K.X,
+  ι :=
+  { app := λ x,
+    match x with
+    | walking_parallel_pair.zero := I.fst_sigma_map ≫ sigma.desc K.π
+    | walking_parallel_pair.one := sigma.desc K.π
+    end,
+    naturality' :=
+    begin
+      rintros (_|_) (_|_) (_|_|_),
+      any_goals { dsimp, rw category.comp_id, apply category.id_comp },
+      all_goals { change _ ≫ sigma.desc _ = (_ ≫ _) ≫ 𝟙 _, simp }
+    end } }
+
+section end
+
+@[simp] lemma to_sigma_cofork_ι_app_zero :
+  K.to_sigma_cofork.ι.app walking_parallel_pair.zero = I.fst_sigma_map ≫ sigma.desc K.π := rfl
+
+@[simp] lemma to_sigma_cofork_ι_app_one :
+  K.to_sigma_cofork.ι.app walking_parallel_pair.one = sigma.desc K.π := rfl
+
+variable (I)
+
+/-- Given a cofork over `∐ I.left ⇉ ∐ I.right`, we may obtain a multicofork. -/
+@[simps X] noncomputable
+def of_sigma_cofork (c : cofork I.fst_sigma_map I.snd_sigma_map) : multicofork I :=
+{ X := c.X,
+  ι :=
+  { app := λ x,
+    match x with
+    | walking_multispan.left a := (sigma.ι I.left a : _) ≫ I.fst_sigma_map ≫ c.π
+    | walking_multispan.right b := (sigma.ι I.right b : _) ≫ c.π
+    end,
+    naturality' :=
+    begin
+      rintros (_|_) (_|_) (_|_|_),
+      any_goals { dsimp, rw category.comp_id, apply category.id_comp },
+      { change _ ≫ _ ≫ _ = (_ ≫ _) ≫ _,
+        dsimp, simp [←cofork.left_app_one, -cofork.left_app_one] },
+      { change _ ≫ _ ≫ _ = (_ ≫ _) ≫ 𝟙 _,
+        rw c.condition,
+        dsimp, simp [←cofork.right_app_one, -cofork.right_app_one] }
+    end } }
+
+@[simp] lemma of_sigma_cofork_ι_app_left (c : cofork I.fst_sigma_map I.snd_sigma_map) (a) :
+  (of_sigma_cofork I c).ι.app (walking_multispan.left a) =
+    (sigma.ι I.left a : _) ≫ I.fst_sigma_map ≫ c.π := rfl
+
+@[simp] lemma of_sigma_cofork_ι_app_right (c : cofork I.fst_sigma_map I.snd_sigma_map) (b) :
+  (of_sigma_cofork I c).ι.app (walking_multispan.right b) = (sigma.ι I.right b : _) ≫ c.π := rfl
+
 end multicofork
+
+namespace multispan_index
+
+variables (I : multispan_index C) [has_coproduct I.left] [has_coproduct I.right]
+
+local attribute [tidy] tactic.case_bash
+
+/-- `multicofork.to_sigma_cofork` is functorial. -/
+@[simps] noncomputable
+def to_sigma_cofork_functor : multicofork I ⥤ cofork I.fst_sigma_map I.snd_sigma_map :=
+{ obj := multicofork.to_sigma_cofork, map := λ K₁ K₂ f, { hom := f.hom } }
+
+/-- `multicofork.of_sigma_cofork` is functorial. -/
+@[simps] noncomputable
+def of_sigma_cofork_functor : cofork I.fst_sigma_map I.snd_sigma_map ⥤ multicofork I :=
+{ obj := multicofork.of_sigma_cofork I,
+  map := λ K₁ K₂ f, { hom := f.hom, w' := by rintros (_|_); simp } }
+
+/--
+The category of multicoforks is equivalent to the category of coforks over `∐ I.left ⇉ ∐ I.right`.
+It then follows from `category_theory.is_colimit_of_preserves_cocone_initial` (or `reflects`) that
+it preserves and reflects colimit cocones.
+-/
+@[simps] noncomputable
+def multicofork_equiv_sigma_cofork : multicofork I ≌ cofork I.fst_sigma_map I.snd_sigma_map :=
+{ functor := to_sigma_cofork_functor I,
+  inverse := of_sigma_cofork_functor I,
+  unit_iso := nat_iso.of_components (λ K, cocones.ext (iso.refl _) (by rintros (_|_); dsimp; simp))
+    (λ K₁ K₂ f, by { ext, simp }),
+  counit_iso := nat_iso.of_components (λ K, cofork.ext (iso.refl _) (by { ext, dsimp, simp }))
+    (λ K₁ K₂ f, by { ext, dsimp, simp, }) }
+
+end multispan_index
 
 /-- For `I : multicospan_index C`, we say that it has a multiequalizer if the associated
   multicospan has a limit. -/
@@ -473,9 +606,20 @@ end
 
 variables [has_product I.left] [has_product I.right] [has_equalizer I.fst_pi_map I.snd_pi_map]
 
+/-- The multiequalizer is isomorphic to the equalizer of `∏ I.left ⇉ ∏ I.right`. -/
 def iso_equalizer : multiequalizer I ≅ equalizer I.fst_pi_map I.snd_pi_map :=
 limit.iso_limit_cone ⟨_, is_limit_of_preserves_cone_terminal
   I.multifork_equiv_pi_fork.inverse _ (limit.is_limit _)⟩
+
+/-- The canonical injection `multiequalizer I ⟶ ∏ I.left`. -/
+def ι_pi : multiequalizer I ⟶ ∏ I.left :=
+  (iso_equalizer I).hom ≫ equalizer.ι I.fst_pi_map I.snd_pi_map
+
+@[simp, reassoc]
+lemma ι_pi_π (a) : ι_pi I ≫ pi.π I.left a = ι I a :=
+by { rw [ι_pi, category.assoc, ← iso.eq_inv_comp, iso_equalizer], simpa }
+
+instance : mono (ι_pi I) := @@mono_comp _ _ _ _ equalizer.ι_mono
 
 end multiequalizer
 
@@ -529,6 +673,24 @@ begin
     category.assoc, h] },
   { apply h },
 end
+
+variables [has_coproduct I.left] [has_coproduct I.right]
+variables [has_coequalizer I.fst_sigma_map I.snd_sigma_map]
+
+/-- The multicoequalizer is isomorphic to the coequalizer of `∐ I.left ⇉ ∐ I.right`. -/
+def iso_coequalizer : multicoequalizer I ≅ coequalizer I.fst_sigma_map I.snd_sigma_map :=
+colimit.iso_colimit_cocone ⟨_, is_colimit_of_preserves_cocone_initial
+  I.multicofork_equiv_sigma_cofork.inverse _ (colimit.is_colimit _)⟩
+
+/-- The canonical projection `∐ I.right ⟶ multicoequalizer I`. -/
+def sigma_π : ∐ I.right ⟶ multicoequalizer I :=
+  coequalizer.π I.fst_sigma_map I.snd_sigma_map ≫ (iso_coequalizer I).inv
+
+@[simp, reassoc]
+lemma ι_sigma_π (b) : sigma.ι I.right b ≫ sigma_π I = π I b :=
+by { rw [sigma_π, ← category.assoc, iso.comp_inv_eq, iso_coequalizer], simpa }
+
+instance : epi (sigma_π I) := @@epi_comp _ _ coequalizer.π_epi _ _
 
 end multicoequalizer
 

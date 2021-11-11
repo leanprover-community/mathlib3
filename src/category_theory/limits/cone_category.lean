@@ -10,6 +10,9 @@ import category_theory.limits.preserves.shapes.terminal
 
 # Limits and the category of (co)cones
 
+This files contains results that stem from the limit API. For the definition and the category
+instance of `cone`, please refer to `category_theory/limits/cones.lean`.
+
 A cone is limiting iff it is terminal in the category of cones. As a corollary, an equivalence of
 categories of cones preserves limiting properties. We also provide the dual.
 -/

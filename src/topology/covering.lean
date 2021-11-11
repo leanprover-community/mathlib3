@@ -24,15 +24,10 @@ end-/
 
 end for_mathlib
 
-universes u v w
-
-variables (E : Type u) (E' : Type v) (X : Type w)
-  [topological_space E] [topological_space E'] [topological_space X]
-
-variables {E E' X}
+variables {E E' X : Type*} [topological_space E] [topological_space E'] [topological_space X]
 
 def evenly_covered (f : E → X) (U : set X) : Prop :=
-∃ (α : Type u) (g : (Σ (a : α), U) → E), embedding g ∧ set.range g = f ⁻¹' U ∧ f ∘ g = λ x, x.2
+∃ (α : Type*) (g : (Σ (a : α), U) → E), embedding g ∧ set.range g = f ⁻¹' U ∧ f ∘ g = λ x, x.2
 
 variables (E E' X)
 

@@ -20,7 +20,7 @@ variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 namespace finsupp
 
 instance : order_bot (α →₀ μ) :=
-{ bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
+{ bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero] }
 
 instance [semilattice_inf β] : semilattice_inf (α →₀ β) :=
 { inf := zip_with (⊓) inf_idem,

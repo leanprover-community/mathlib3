@@ -183,16 +183,12 @@ lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2)
 lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
 (lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
 
-lemma continuous_vadd : continuous (λ x : V × P, x.1 +ᵥ x.2) :=
-uniform_continuous_vadd.continuous
+@[priority 100] instance semi_normed_add_torsor.has_continuous_vadd :
+  has_continuous_vadd V P :=
+{ continuous_vadd := uniform_continuous_vadd.continuous }
 
 lemma continuous_vsub : continuous (λ x : P × P, x.1 -ᵥ x.2) :=
 uniform_continuous_vsub.continuous
-
-lemma filter.tendsto.vadd {l : filter α} {f : α → V} {g : α → P} {v : V} {p : P}
-  (hf : tendsto f l (𝓝 v)) (hg : tendsto g l (𝓝 p)) :
-  tendsto (f +ᵥ g) l (𝓝 (v +ᵥ p)) :=
-(continuous_vadd.tendsto (v, p)).comp (hf.prod_mk_nhds hg)
 
 lemma filter.tendsto.vsub {l : filter α} {f g : α → P} {x y : P}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
@@ -203,27 +199,13 @@ section
 
 variables [topological_space α]
 
-lemma continuous.vadd {f : α → V} {g : α → P} (hf : continuous f) (hg : continuous g) :
-  continuous (f +ᵥ g) :=
-continuous_vadd.comp (hf.prod_mk hg)
-
 lemma continuous.vsub {f g : α → P} (hf : continuous f) (hg : continuous g) :
   continuous (f -ᵥ g) :=
 continuous_vsub.comp (hf.prod_mk hg : _)
 
-lemma continuous_at.vadd {f : α → V} {g : α → P} {x : α} (hf : continuous_at f x)
-  (hg : continuous_at g x) :
-  continuous_at (f +ᵥ g) x :=
-hf.vadd hg
-
 lemma continuous_at.vsub {f g : α → P}  {x : α} (hf : continuous_at f x) (hg : continuous_at g x) :
   continuous_at (f -ᵥ g) x :=
 hf.vsub hg
-
-lemma continuous_within_at.vadd {f : α → V} {g : α → P} {x : α} {s : set α}
-  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
-  continuous_within_at (f +ᵥ g) s x :=
-hf.vadd hg
 
 lemma continuous_within_at.vsub {f g : α → P} {x : α} {s : set α}
   (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :

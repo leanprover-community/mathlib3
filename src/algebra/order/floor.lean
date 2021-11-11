@@ -469,6 +469,17 @@ begin
   exact hms
 end
 
+lemma image_fract (s : set α) : fract '' s = ⋃ m : ℤ, (λ x, x - m) '' s ∩ Ico 0 1 :=
+begin
+  ext x,
+  simp only [mem_image, mem_inter_eq, mem_Union], split,
+  { rintro ⟨y, hy, rfl⟩,
+    exact ⟨⌊y⌋, ⟨y, hy, rfl⟩, fract_nonneg y, fract_lt_one y⟩ },
+  { rintro ⟨m, ⟨y, hys, rfl⟩, h0, h1⟩,
+    obtain rfl : ⌊y⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 h0, sub_lt_iff_lt_add'.1 h1⟩,
+    exact ⟨y, hys, rfl⟩ }
+end
+
 /-! #### Ceil -/
 
 lemma gc_ceil_coe : galois_connection ceil (coe : ℤ → α) := floor_ring.gc_ceil_coe

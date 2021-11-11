@@ -48,6 +48,13 @@ end
   {f : α → R} (hf : measurable f) : measurable (λ x, int.fract (f x)) :=
 measurable_fract.comp hf
 
+lemma measurable_set.image_fract [borel_space R] {s : set R} (hs : measurable_set s) :
+  measurable_set (int.fract '' s) :=
+begin
+  simp only [int.image_fract, sub_eq_add_neg, image_add_right'],
+  exact measurable_set.Union (λ m, (measurable_add_const _ hs).inter measurable_set_Ico)
+end
+
 end floor_ring
 
 section floor_semiring

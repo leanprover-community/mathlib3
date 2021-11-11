@@ -15,6 +15,7 @@ instance of `cone`, please refer to `category_theory/limits/cones.lean`.
 
 A cone is limiting iff it is terminal in the category of cones. As a corollary, an equivalence of
 categories of cones preserves limiting properties. We also provide the dual.
+
 -/
 
 namespace category_theory.limits
@@ -29,11 +30,10 @@ variables {C : Type u} [category.{v} C] {C' : Type u} [category.{v} C']
 /-- A cone is a limit cone iff it is terminal. -/
 def cone_limiting_iff_terminal {F : J ⥤ C} (c : cone F) : is_limit c ≃ is_terminal c :=
 is_limit.iso_unique_cone_morphism.to_equiv.trans
-({ to_fun  := λ h, by exactI is_terminal.of_unique _,
-   inv_fun := λ h s, ⟨⟨is_terminal.from h s⟩, λ a, is_terminal.hom_ext h a _⟩,
-   left_inv := by tidy,
-   right_inv := by tidy } :
-  (Π (s : limits.cone F), unique (s ⟶ c)) ≃ is_terminal c)
+{ to_fun := λ h, by exactI is_terminal.of_unique _,
+  inv_fun := λ h s, ⟨⟨is_terminal.from h s⟩, λ a, is_terminal.hom_ext h a _⟩,
+  left_inv := by tidy,
+  right_inv := by tidy }
 
 lemma limit_cone_lift_eq_terminal_from {F : J ⥤ C} (c : cone F) (hc : is_limit c) (s : cone F) :
   hc.lift_cone_morphism s =
@@ -61,11 +61,10 @@ def is_limit_of_reflects_cone_terminal {F : J ⥤ C} {F' : J' ⥤ C'} (G : cone 
 /-- A cocone is a colimit cocone iff it is initial. -/
 def cocone_colimiting_iff_initial {F : J ⥤ C} (c : cocone F) : is_colimit c ≃ is_initial c :=
 is_colimit.iso_unique_cocone_morphism.to_equiv.trans
-({ to_fun  := λ h, by exactI is_initial.of_unique _,
-   inv_fun := λ h s, ⟨⟨is_initial.to h s⟩, λ a, is_initial.hom_ext h a _⟩,
-   left_inv := by tidy,
-   right_inv := by tidy } :
-  (Π (s : limits.cocone F), unique (c ⟶ s)) ≃ is_initial c)
+{ to_fun := λ h, by exactI is_initial.of_unique _,
+  inv_fun := λ h s, ⟨⟨is_initial.to h s⟩, λ a, is_initial.hom_ext h a _⟩,
+  left_inv := by tidy,
+  right_inv := by tidy }
 
 lemma colimit_cocone_desc_eq_initial_to {F : J ⥤ C} (c : colimit_cocone F) (s : cocone F) :
   c.is_colimit.desc_cocone_morphism s =

@@ -13,15 +13,15 @@ that factors through images of the functor for each object in `D`.
 
 We will primarily consider cover-dense functors that are also full, since this notion is in general
 not well-behaved otherwise. Note that https://ncatlab.org/nlab/show/dense+sub-site indeed has a
-weaker notion of cover-dense that loosen this requirement, but it would not have all the properties
+weaker notion of cover-dense that loosens this requirement, but it would not have all the properties
 we would need, and some sheafification would be needed for here and there.
 
 ## Main results
 
 - `category_theory.cover_dense.sheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any presheaf `ℱ` and sheaf `ℱ'` on `D`, and a morphism `α : G ⋙ ℱ ⟶ G ⋙ ℱ'`,
-  we may glue them together to obtain a morphism of sheaves `ℱ ⟶ ℱ'`.
-- `category_theory.cover_dense.sheaf_iso`: If the `α` above is iso, then the result is also iso.
+  we may glue them together to obtain a morphism of presheaves `ℱ ⟶ ℱ'`.
+- `category_theory.cover_dense.sheaf_iso`: If the `α` above is an iso, then the result is also an iso.
 - `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, then `α` is an iso if
   `G ⋙ ℱ ⟶ G ⋙ ℱ'` is iso.
@@ -52,13 +52,15 @@ structure presieve.cover_by_image_structure (G : C ⥤ D) {V U : D} (f : V ⟶ U
 attribute [simp, reassoc] presieve.cover_by_image_structure.fac
 
 /--
-Given a functor `G`, the presieve of `U : D` such that each arrows factors through images of `G`.
+For a functor `G : C ⥤ D`, and an object `U : D`, `presieve.cover_by_image G U` is the presieve of `U`
+consisting of those arrows that factor through images of `G`.
 -/
 def presieve.cover_by_image (G : C ⥤ D) (U : D) : presieve U :=
 λ Y f, nonempty (presieve.cover_by_image_structure G f)
 
 /--
-Given a functor `G`, the sieve of `U : D` such that each arrow factors through images of `G`.
+For a functor `G : C ⥤ D`, and an object `U : D`, `sieve.cover_by_image G U` is the sieve of `U`
+consisting of those arrows that factor through images of `G`.
 -/
 def sieve.cover_by_image (G : C ⥤ D) (U : D) : sieve U :=
 ⟨presieve.cover_by_image G U,
@@ -78,7 +80,7 @@ structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 
 open presieve opposite
 namespace cover_dense
-variables {A : Type*} [category A] {K} {G : C ⥤ D} (H : cover_dense K G)
+variables {A : Type*} [category A] {K : grothendieck_topology D} {G : C ⥤ D} (H : cover_dense K G)
 
 lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
@@ -86,7 +88,7 @@ lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.ob
 begin
   apply (ℱ.property (sieve.cover_by_image G X) (H.is_cover X)).is_separated_for.ext,
   rintros Y _ ⟨Z, f₁, f₂, rfl⟩,
-  simp[h f₂]
+  simp [h f₂]
 end
 
 lemma functor_pullback_pushforward_covering [full G] (H : cover_dense K G) {X : C}
@@ -96,8 +98,8 @@ begin
   rintros Y _ ⟨Z, _, f, hf, ⟨W, g, f', rfl⟩, rfl⟩,
   use W, use G.preimage (f' ≫ f), use g,
   split,
-  simpa using T.val.downward_closed hf f',
-  simp,
+  { simpa using T.val.downward_closed hf f' },
+  { simp },
 end
 
 /--
@@ -120,7 +122,7 @@ iso_whisker_right α (coyoneda.obj (op X))
 lemma sheaf_eq_amalgamation (ℱ : Sheaf K A) {X : A} {U : D} {T : sieve U} (hT)
   (x : family_of_elements _ T) (hx) (t) (h : x.is_amalgamation t) :
   t = (ℱ.property X T hT).amalgamate x hx :=
-    (ℱ.property X T hT).is_separated_for x t _ h ((ℱ.property X T hT).is_amalgamation hx)
+(ℱ.property X T hT).is_separated_for x t _ h ((ℱ.property X T hT).is_amalgamation hx)
 
 
 include H
@@ -196,20 +198,8 @@ def app_iso {ℱ ℱ' : SheafOfTypes.{v} K} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ �
   ℱ.val.obj (op X) ≅ ℱ'.val.obj (op X) :=
 { hom := app_hom H i.hom X,
   inv := app_hom H i.inv X,
-  hom_inv_id' :=
-  begin
-    ext x,
-    apply H.ext,
-    intros Y f,
-    simp
-  end,
-  inv_hom_id' :=
-  begin
-    ext x,
-    apply H.ext,
-    intros Y f,
-    simp
-  end }
+  hom_inv_id' := by { ext x, apply H.ext, intros Y f, simp },
+  inv_hom_id' := by { ext x, apply H.ext, intros Y f, simp } }
 
 /--
 Given an natural transformation `G ⋙ ℱ ⟶ G ⋙ ℱ'` between presheaves of types, where `G` is full

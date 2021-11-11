@@ -427,14 +427,17 @@ begin
   refl,
 end
 
-/-- The tensor product over an empty set of indices is isomorphic to the base ring -/
-def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
-{ to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
-  inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
+variables (ι)
+
+/-- The tensor product over an empty index type `ι` is isomorphic to the base ring. -/
+@[simps symm_apply]
+def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
+{ to_fun := lift ⟨λ (_ : ι → M), (1 : R), λ v, is_empty_elim, λ v, is_empty_elim⟩,
+  inv_fun := λ r, r • tprod R (@is_empty_elim _ _ _),
   left_inv := λ x, by {
     apply x.induction_on,
     { intros r f,
-      have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
+      have := subsingleton.elim f is_empty_elim,
       simp [this], },
     { simp only,
       intros x y hx hy,
@@ -443,6 +446,37 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
     linear_map.map_smul, pi_tensor_product.lift.tprod],
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
+
+@[simp]
+lemma is_empty_equiv_apply_tprod [is_empty ι] (f : ι → M) : is_empty_equiv ι (tprod R f) = 1 :=
+lift.tprod _
+
+variables {ι}
+
+/-- The tensor product over an single index is isomorphic to the module -/
+def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R] M :=
+{ to_fun := lift (multilinear_map.of_subsingleton R M i₀),
+  inv_fun := λ m, tprod R (λ v, m),
+  left_inv := λ x, by {
+    dsimp only,
+    have : ∀ (f : ι → M) (z : M), (λ i : ι, z) = update f i₀ z,
+    { intros f z,
+      ext i,
+      rw [subsingleton.elim i i₀, function.update_same] },
+    apply x.induction_on,
+    { intros r f,
+      simp only [linear_map.map_smul, lift.tprod, of_subsingleton_apply, function.eval,
+                 this f, map_smul, update_eq_self], },
+    { intros x y hx hy,
+      simp only [linear_map.map_add, this 0 (_ + _), map_add, ←this 0 (lift _ _), hx, hy], } },
+  right_inv := λ t, by simp only [of_subsingleton_apply, lift.tprod, function.eval_apply],
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _, }
+
+@[simp]
+lemma subsingleton_equiv_apply_tprod [subsingleton ι] (i : ι) (f : ι → M) :
+  subsingleton_equiv i (tprod R f) = f i :=
+lift.tprod _
 
 section tmul
 

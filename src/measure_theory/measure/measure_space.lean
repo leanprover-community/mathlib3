@@ -105,7 +105,7 @@ instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 
 lemma measure_union (hd : disjoint s₁ s₂) (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
-measure_union₀ h₁.null_measurable h₂.null_measurable hd
+measure_union₀ h₁.null_measurable_set h₂.null_measurable_set hd
 
 lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
@@ -819,7 +819,7 @@ lemma restrict_apply₀ (ht : null_measurable_set t (μ.restrict s)) :
   the measure to `s` equals the outer measure of `t ∩ s`. An alternate version requiring that `s`
   be measurable instead of `t` exists as `measure.restrict_apply'`. -/
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
-restrict_apply₀ ht.null_measurable
+restrict_apply₀ ht.null_measurable_set
 
 /-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
 the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of

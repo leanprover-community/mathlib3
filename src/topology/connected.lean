@@ -504,7 +504,7 @@ begin
         { exact ⟨x, hxs, hxu, hxv⟩ } } } },
   { split,
     { rw ← ne_empty_iff_nonempty,
-      by_contradiction hs, push_neg at hs, subst hs,
+      by_contradiction hs, subst hs,
       simpa using h ∅ _ _ _; simp },
     intros u v hu hv hs hsuv,
     rcases h {u, v} _ _ _ with ⟨t, ht, ht'⟩,

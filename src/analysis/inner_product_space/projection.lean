@@ -139,7 +139,7 @@ begin
     rw dist_eq_norm,
     apply nonneg_le_nonneg_of_sq_le_sq, { exact sqrt_nonneg _ },
     rw mul_self_sqrt,
-    exact calc
+    calc
       ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) -
         4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ : by { rw ← this, simp }
       ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left eq₁ _
@@ -246,7 +246,7 @@ begin
   { apply le_cinfi, assume w,
     apply nonneg_le_nonneg_of_sq_le_sq (norm_nonneg _),
     have := h w w.2,
-    exact calc
+    calc
       ∥u - v∥ * ∥u - v∥ ≤ ∥u - v∥ * ∥u - v∥ - 2 * inner (u - v) ((w:F) - v) : by linarith
       ... ≤ ∥u - v∥^2 - 2 * inner (u - v) ((w:F) - v) + ∥(w:F) - v∥^2 :
         by { rw sq, refine le_add_of_nonneg_right _, exact sq_nonneg _ }
@@ -527,7 +527,7 @@ begin
   { intros x hx,
     obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
     have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
-    simp [inner_sub_left, inner_smul_left, inner_smul_right, is_R_or_C.conj_div, mul_comm, hv,
+    simp [inner_sub_left, inner_smul_left, inner_smul_right, ring_equiv.map_div, mul_comm, hv,
       inner_product_space.conj_sym, hv] }
 end
 
@@ -862,6 +862,19 @@ submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, 
 
 end orthogonal
 
+section orthogonal_family
+variables {ι : Type*}
+
+/-- An orthogonal family of subspaces of `E` satisfies `direct_sum.submodule_is_internal` (that is,
+they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
+orthogonal complement. -/
+lemma orthogonal_family.submodule_is_internal_iff [finite_dimensional 𝕜 E]
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) :
+  direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
+by simp only [direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top, hV.independent,
+  true_and, submodule.orthogonal_eq_bot_iff (supr V).complete_of_finite_dimensional]
+
+end orthogonal_family
 
 section orthonormal_basis
 
@@ -1009,7 +1022,8 @@ lemma orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] :
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance [finite_dimensional 𝕜 E] : fintype (orthonormal_basis_index 𝕜 E) :=
-is_noetherian.fintype_basis_index (orthonormal_basis 𝕜 E)
+@is_noetherian.fintype_basis_index _ _ _ _ _ _ _
+  (is_noetherian.iff_fg.2 infer_instance) (orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}
 

@@ -16,7 +16,7 @@ be the polynomial with root `r * s` for each root `r` of `p` and proves some bas
 
 section scale_roots
 
-variables {A K R S : Type*} [comm_ring A] [integral_domain A] [field K] [comm_ring R] [comm_ring S]
+variables {A K R S : Type*} [comm_ring A] [is_domain A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A}
 
 open polynomial
@@ -32,7 +32,7 @@ by simp [scale_roots, coeff_monomial] {contextual := tt}
 
 lemma coeff_scale_roots_nat_degree (p : polynomial R) (s : R) :
   (scale_roots p s).coeff p.nat_degree = p.leading_coeff :=
-by rw [leading_coeff, coeff_scale_roots, nat.sub_self, pow_zero, mul_one]
+by rw [leading_coeff, coeff_scale_roots, tsub_self, pow_zero, mul_one]
 
 @[simp] lemma zero_scale_roots (s : R) : scale_roots 0 s = 0 := by { ext, simp }
 
@@ -99,7 +99,7 @@ calc eval₂ f (f s * r) (scale_roots p s) =
   (λ i hi, by simp_rw [f.map_mul, f.map_pow, pow_add, mul_pow, mul_assoc])
 ... = p.support.sum (λ (i : ℕ), f s ^ p.nat_degree * (f (p.coeff i) * r ^ i)) :
   finset.sum_congr rfl
-  (λ i hi, by { rw [mul_assoc, mul_left_comm, nat.sub_add_cancel],
+  (λ i hi, by { rw [mul_assoc, mul_left_comm, tsub_add_cancel_of_le],
                 exact le_nat_degree_of_ne_zero (polynomial.mem_support_iff.mp hi) })
 ... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
 ... = f s ^ p.nat_degree * eval₂ f r p : by { simp [eval₂_eq_sum, sum_def] }

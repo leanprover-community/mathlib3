@@ -36,6 +36,12 @@ variables [preorder α] {a b c : α}
 @[simp] lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
 λ x hx, not_le_of_lt hx.1.2 hx.2.1
 
+@[simp] lemma Ici_disjoint_Iic : disjoint (Ici a) (Iic b) ↔ ¬(a ≤ b) :=
+by rw [set.disjoint_iff_inter_eq_empty, Ici_inter_Iic, Icc_eq_empty_iff]
+
+@[simp] lemma Iic_disjoint_Ici : disjoint (Iic a) (Ici b) ↔ ¬(b ≤ a) :=
+disjoint.comm.trans Ici_disjoint_Iic
+
 end preorder
 
 section linear_order
@@ -59,6 +65,22 @@ begin
   apply le_antisymm h2.1,
   exact h.elim (λ h, absurd hx (not_lt_of_le h)) id
 end
+
+@[simp] lemma Union_Ico_eq_Iio_self_iff {ι : Sort*} {f : ι → α} {a : α} :
+  (⋃ i, Ico (f i) a) = Iio a ↔ ∀ x < a, ∃ i, f i ≤ x :=
+by simp [← Ici_inter_Iio, ← Union_inter, subset_def]
+
+@[simp] lemma Union_Ioc_eq_Ioi_self_iff {ι : Sort*} {f : ι → α} {a : α} :
+  (⋃ i, Ioc a (f i)) = Ioi a ↔ ∀ x, a < x → ∃ i, x ≤ f i :=
+by simp [← Ioi_inter_Iic, ← inter_Union, subset_def]
+
+@[simp] lemma bUnion_Ico_eq_Iio_self_iff {ι : Sort*} {p : ι → Prop} {f : Π i, p i → α} {a : α} :
+  (⋃ i (hi : p i), Ico (f i hi) a) = Iio a ↔ ∀ x < a, ∃ i hi, f i hi ≤ x :=
+by simp [← Ici_inter_Iio, ← Union_inter, subset_def]
+
+@[simp] lemma bUnion_Ioc_eq_Ioi_self_iff {ι : Sort*} {p : ι → Prop} {f : Π i, p i → α} {a : α} :
+  (⋃ i (hi : p i), Ioc a (f i hi)) = Ioi a ↔ ∀ x, a < x → ∃ i hi, x ≤ f i hi :=
+by simp [← Ioi_inter_Iic, ← inter_Union, subset_def]
 
 end linear_order
 

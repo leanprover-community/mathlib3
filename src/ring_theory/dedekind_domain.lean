@@ -10,6 +10,7 @@ import ring_theory.integrally_closed
 import ring_theory.polynomial.rational_root
 import ring_theory.trace
 import algebra.associated
+import algebraic_geometry.prime_spectrum.noetherian
 
 /-!
 # Dedekind domains
@@ -61,10 +62,10 @@ open ideal ring
 namespace ring
 
 lemma dimension_le_one.principal_ideal_ring
-  [integral_domain A] [is_principal_ideal_ring A] : dimension_le_one A :=
+  [is_domain A] [is_principal_ideal_ring A] : dimension_le_one A :=
 λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
 
-lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [integral_domain B]
+lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [is_domain B]
   [nontrivial R] [algebra R A] [algebra R B] [algebra B A] [is_scalar_tower R B A]
   [is_integral_closure B R A] (h : dimension_le_one R) :
   dimension_le_one B :=
@@ -72,13 +73,13 @@ lemma dimension_le_one.is_integral_closure (B : Type*) [comm_ring B] [integral_d
   is_integral_closure.is_maximal_of_is_maximal_comap A p
     (h _ (is_integral_closure.comap_ne_bot A ne_bot) infer_instance)
 
-lemma dimension_le_one.integral_closure [nontrivial R] [integral_domain A] [algebra R A]
+lemma dimension_le_one.integral_closure [nontrivial R] [is_domain A] [algebra R A]
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
 h.is_integral_closure R A (integral_closure R A)
 
 end ring
 
-variables [integral_domain A]
+variables [is_domain A]
 
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
@@ -132,7 +133,7 @@ structure is_dedekind_domain_dvr : Prop :=
 
 section inverse
 
-variables {R₁ : Type*} [comm_ring R₁] [integral_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
+variables {R₁ : Type*} [comm_ring R₁] [is_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
 variables {I J : fractional_ideal R₁⁰ K}
 
 noncomputable instance : has_inv (fractional_ideal R₁⁰ K) := ⟨λ I, 1 / I⟩
@@ -406,7 +407,7 @@ lemma exists_multiset_prod_cons_le_and_prod_not_le [is_dedekind_domain A]
     ¬ (multiset.prod (Z.map prime_spectrum.as_ideal) ≤ I) :=
 begin
   -- Let `Z` be a minimal set of prime ideals such that their product is contained in `J`.
-  obtain ⟨Z₀, hZ₀⟩ := exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF hI0,
+  obtain ⟨Z₀, hZ₀⟩ := prime_spectrum.exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF hI0,
   obtain ⟨Z, ⟨hZI, hprodZ⟩, h_eraseZ⟩ := multiset.well_founded_lt.has_min
     (λ Z, (Z.map prime_spectrum.as_ideal).prod ≤ I ∧ (Z.map prime_spectrum.as_ideal).prod ≠ ⊥)
     ⟨Z₀, hZ₀⟩,
@@ -843,6 +844,7 @@ lemma finite_dimensional.exists_is_basis_integral :
   ∃ (s : finset L) (b : basis s K L), (∀ x, is_integral A (b x)) :=
 begin
   letI := classical.dec_eq L,
+  letI : is_noetherian K L := is_noetherian.iff_fg.2 infer_instance,
   let s' := is_noetherian.finset_basis_index K L,
   let bs' := is_noetherian.finset_basis K L,
   obtain ⟨y, hy, his'⟩ := exists_integral_multiples A K (finset.univ.image bs'),
@@ -881,7 +883,7 @@ begin
   let f : C →ₗ[A] submodule.span A (set.range b') :=
     (submodule.of_le (is_integral_closure.range_le_span_dual_basis C b hb_int)).comp
     ((algebra.linear_map C L).restrict_scalars A).range_restrict,
-  refine is_noetherian_of_tower A (is_noetherian_of_injective f _),
+  refine is_noetherian_of_tower A (is_noetherian_of_ker_bot f _),
   rw [linear_map.ker_comp, submodule.ker_of_le, submodule.comap_bot, linear_map.ker_cod_restrict],
   exact linear_map.ker_eq_bot_of_injective (is_integral_closure.algebra_map_injective C A L)
 end
@@ -895,7 +897,7 @@ lemma integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetheria
   is_noetherian_ring (integral_closure A L) :=
 is_integral_closure.is_noetherian_ring A K L (integral_closure A L)
 
-variables (A K) [integral_domain C]
+variables (A K) [is_domain C]
 /- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a Dedekind domain,
 the integral closure `C` of `A` in `L` is a Dedekind domain.
 
@@ -944,7 +946,7 @@ end is_integral_closure
 
 section is_dedekind_domain
 
-variables {T : Type*} [comm_ring T] [integral_domain T] [is_dedekind_domain T] (I J : ideal T)
+variables {T : Type*} [comm_ring T] [is_domain T] [is_dedekind_domain T] (I J : ideal T)
 open_locale classical
 open multiset unique_factorization_monoid ideal
 

@@ -40,6 +40,12 @@ lemma zip_with_tail (x : vector α n) (y : vector β n) :
   (vector.zip_with f x y).tail = vector.zip_with f x.tail y.tail :=
 by { ext, simp [nth_tail], }
 
+@[to_additive]
+lemma prod_mul_prod_eq_prod_zip_with [comm_monoid α] (x y : vector α n) :
+  x.to_list.prod * y.to_list.prod = (vector.zip_with (*) x y).to_list.prod :=
+list.prod_mul_prod_eq_prod_zip_with_of_length_eq x.to_list y.to_list
+  ((to_list_length x).trans (to_list_length y).symm)
+
 end zip_with
 
 end vector

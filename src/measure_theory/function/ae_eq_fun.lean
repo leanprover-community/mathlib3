@@ -98,8 +98,8 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 def mk (f : α → β) (hf : ae_measurable f μ) : α →ₘ[μ] β := quotient.mk' ⟨f, hf⟩
 
 /-- A measurable representative of an `ae_eq_fun` [f] -/
-instance : has_coe_to_fun (α →ₘ[μ] β) :=
-⟨_, λf, ae_measurable.mk _ (quotient.out' f : {f : α → β // ae_measurable f μ}).2⟩
+instance : has_coe_to_fun (α →ₘ[μ] β) (λ _, α → β) :=
+⟨λf, ae_measurable.mk _ (quotient.out' f : {f : α → β // ae_measurable f μ}).2⟩
 
 protected lemma measurable (f : α →ₘ[μ] β) : measurable f :=
 ae_measurable.measurable_mk _

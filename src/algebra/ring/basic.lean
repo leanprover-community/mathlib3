@@ -20,7 +20,7 @@ slowly remove them from mathlib.
 
 ## Main definitions
 
-ring_hom, nonzero, domain, integral_domain
+ring_hom, nonzero, domain, is_domain
 
 ## Notations
 
@@ -40,7 +40,7 @@ ring_hom, nonzero, domain, integral_domain
 ## Tags
 
 `ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
-`integral_domain`, `nonzero`, `units`
+`is_domain`, `nonzero`, `units`
 -/
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
@@ -356,7 +356,7 @@ variables {rα : non_assoc_semiring α} {rβ : non_assoc_semiring β}
 
 include rα rβ
 
-instance : has_coe_to_fun (α →+* β) := ⟨_, ring_hom.to_fun⟩
+instance : has_coe_to_fun (α →+* β) (λ _, α → β) := ⟨ring_hom.to_fun⟩
 
 initialize_simps_projections ring_hom (to_fun → apply)
 
@@ -570,7 +570,7 @@ protected def function.injective.comm_semiring [has_zero γ] [has_one γ] [has_a
   comm_semiring γ :=
 { .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
 
-/-- Pullback a `semiring` instance along an injective function.
+/-- Pushforward a `semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
@@ -620,7 +620,7 @@ protected def function.injective.ring
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
-/-- Pullback a `ring` instance along an injective function.
+/-- Pushforward a `ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.ring
@@ -733,6 +733,9 @@ end units
 
 lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
 | ⟨x, hx⟩ := hx ▸ (-x).is_unit
+
+lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
+⟨λ h, neg_neg a ▸ h.neg, is_unit.neg⟩
 
 namespace ring_hom
 
@@ -868,7 +871,7 @@ protected def function.injective.comm_ring
   comm_ring β :=
 { .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
 
-/-- Pullback a `comm_ring` instance along an injective function.
+/-- Pushforward a `comm_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_ring
@@ -948,51 +951,41 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
-  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
-  is an integral domain without assuming commutativity of multiplication. -/
-@[protect_proj] class domain (α : Type u) [ring α] extends no_zero_divisors α, nontrivial α : Prop
+  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
-section domain
-variables [ring α] [domain α]
+  This is implemented as a mixin for `ring α`.
+  To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
+@[protect_proj] class is_domain (α : Type u) [ring α]
+  extends no_zero_divisors α, nontrivial α : Prop
+
+section is_domain
+section ring
+
+variables [ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
+instance is_domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
     @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
-/-- Pullback a `domain` instance along an injective function. -/
-protected theorem function.injective.domain [ring β] (f : β →+* α) (hf : injective f) :
-  domain β :=
+/-- Pullback an `is_domain` instance along an injective function. -/
+protected theorem function.injective.is_domain [ring β] (f : β →+* α) (hf : injective f) :
+  is_domain β :=
 { .. pullback_nonzero f f.map_zero f.map_one,
   .. hf.no_zero_divisors f f.map_zero f.map_mul }
 
-end domain
+end ring
 
-/-!
-### Integral domains
--/
+section comm_ring
 
-/-- An integral domain is a nontrivial commutative ring with no zero divisors,
-i.e. satisfying the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
-Alternatively, an integral domain is a domain with commutative multiplication. -/
-@[protect_proj]
-class integral_domain (α : Type u) [comm_ring α] extends domain α : Prop
-
-section integral_domain
-variables [comm_ring α] [integral_domain α] {a b c d e : α}
+variables [comm_ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance integral_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
-{ ..comm_semiring.to_comm_monoid_with_zero, ..domain.to_cancel_monoid_with_zero }
-
-/-- Pullback an `integral_domain` instance along an injective function. -/
-protected theorem function.injective.integral_domain
-  [comm_ring β] (f : β →+* α) (hf : injective f) :
-  integral_domain β :=
-{ .. hf.domain f }
+instance is_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
+{ ..comm_semiring.to_comm_monoid_with_zero, ..is_domain.to_cancel_monoid_with_zero }
 
 lemma mul_self_eq_mul_self_iff {a b : α} : a * a = b * b ↔ a = b ∨ a = -b :=
 by rw [← sub_eq_zero, mul_self_sub_mul_self, mul_eq_zero, or_comm, sub_eq_zero,
@@ -1036,75 +1029,9 @@ lemma add_monoid_hom.coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [
   (f : β →+ α) (h h_two h_one) :
   (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β →+ α) = f := by {ext, simp}
 
-end integral_domain
+end comm_ring
 
-namespace ring
-variables {M₀ : Type*} [monoid_with_zero M₀]
-open_locale classical
-
-/-- Introduce a function `inverse` on a monoid with zero `M₀`, which sends `x` to `x⁻¹` if `x` is
-invertible and to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather
-than partially) defined inverse function for some purposes, including for calculus.
-
-Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
-`monoid_with_zero M₀` instead of `ring M₀`. -/
-noncomputable def inverse : M₀ → M₀ :=
-λ x, if h : is_unit x then ((h.unit⁻¹ : units M₀) : M₀) else 0
-
-/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-@[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
-begin
-  simp only [units.is_unit, inverse, dif_pos],
-  exact units.inv_unique rfl
-end
-
-/-- By definition, if `x` is not invertible then `inverse x = 0`. -/
-@[simp] lemma inverse_non_unit (x : M₀) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
-
-lemma mul_inverse_cancel (x : M₀) (h : is_unit x) : x * inverse x = 1 :=
-by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.mul_inv], }
-
-lemma inverse_mul_cancel (x : M₀) (h : is_unit x) : inverse x * x = 1 :=
-by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.inv_mul], }
-
-lemma mul_inverse_cancel_right (x y : M₀) (h : is_unit x) : y * x * inverse x = y :=
-by rw [mul_assoc, mul_inverse_cancel x h, mul_one]
-
-lemma inverse_mul_cancel_right (x y : M₀) (h : is_unit x) : y * inverse x * x = y :=
-by rw [mul_assoc, inverse_mul_cancel x h, mul_one]
-
-lemma mul_inverse_cancel_left (x y : M₀) (h : is_unit x) : x * (inverse x * y) = y :=
-by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
-
-lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
-by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
-
-end ring
-
-/-- A predicate to express that a ring is an integral domain.
-
-This is mainly useful because such a predicate does not contain data,
-and can therefore be easily transported along ring isomorphisms. -/
-structure is_integral_domain (R : Type u) [ring R] extends nontrivial R : Prop :=
-(mul_comm : ∀ (x y : R), x * y = y * x)
-(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
-
--- The linter does not recognize that is_integral_domain.to_nontrivial is a structure
--- projection, disable it
-attribute [nolint def_lemma doc_blame] is_integral_domain.to_nontrivial
-
-/-- Every integral domain satisfies the predicate for integral domains. -/
-lemma integral_domain.to_is_integral_domain (R : Type u) [comm_ring R] [integral_domain R] :
-  is_integral_domain R :=
-{ .. (‹_› : comm_ring R), .. (‹_› : integral_domain R) }
-
-/-- If a ring satisfies the predicate for integral domains,
-then it can be endowed with an `integral_domain` instance
-whose data is definitionally equal to the existing data. -/
-theorem is_integral_domain.to_integral_domain
-  (R : Type u) [comm_ring R] (h : is_integral_domain R) :
-  integral_domain R :=
-{ .. (‹_› : is_integral_domain R) }
+end is_domain
 
 namespace semiconj_by
 

@@ -158,7 +158,7 @@ end interactive
 end tactic
 
 namespace witt_vector
-universe variable u
+universe u
 
 variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 
@@ -349,8 +349,9 @@ begin
   simp only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
 end
 
-namespace tactic
 open tactic
+
+namespace tactic
 
 /-!
 ### The `@[is_poly]` attribute
@@ -616,7 +617,7 @@ attribute [ghost_simps]
       ring_hom.map_zero ring_hom.map_one ring_hom.map_mul ring_hom.map_add
       ring_hom.map_sub ring_hom.map_neg ring_hom.id_apply ring_hom.map_nat_cast
       mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
-      nat.succ_ne_zero nat.add_sub_cancel nat.succ_eq_add_one
+      nat.succ_ne_zero add_tsub_cancel_right nat.succ_eq_add_one
       if_true eq_self_iff_true if_false forall_true_iff forall_2_true_iff forall_3_true_iff
 
 end witt_vector

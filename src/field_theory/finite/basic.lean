@@ -20,11 +20,11 @@ and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
 cyclic group, as well as the fact that every finite integral domain is a field
-(`field_of_integral_domain`).
+(`field_of_is_domain`).
 
 ## Main results
 
-1. `card_units`: The unit group of a finite field is has cardinality `q - 1`.
+1. `fintype.card_units`: The unit group of a finite field is has cardinality `q - 1`.
 2. `sum_pow_units`: The sum of `x^i`, where `x` ranges over the units of `K`, is
    - `q-1` if `q-1 ∣ i`
    - `0`   otherwise
@@ -36,10 +36,15 @@ cyclic group, as well as the fact that every finite integral domain is a field
 Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.
 
+## Implementation notes
+
+While `fintype (units K)` can be inferred from `fintype K` in the presence of `decidable_eq K`,
+in this file we take the `fintype (units K)` argument directly to reduce the chance of typeclass
+diamonds, as `fintype` carries data.
+
 -/
 
-variables {K : Type*} [field K] [fintype K]
-variables {R : Type*} [comm_ring R] [integral_domain R]
+variables {K : Type*} {R : Type*}
 local notation `q` := fintype.card K
 
 open_locale big_operators
@@ -48,6 +53,8 @@ namespace finite_field
 open finset function
 
 section polynomial
+
+variables [comm_ring R] [is_domain R]
 
 open polynomial
 
@@ -90,19 +97,7 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
 
 end polynomial
 
-lemma card_units : fintype.card (units K) = fintype.card K - 1 :=
-begin
-  classical,
-  rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : K)⟩)],
-  haveI := set_fintype {a : K | a ≠ 0},
-  haveI := set_fintype (@set.univ K),
-  rw [fintype.card_congr (equiv.units_equiv_ne_zero _),
-    ← @set.card_insert _ _ {a : K | a ≠ 0} _ (not_not.2 (eq.refl (0 : K)))
-    (set.fintype_insert _ _), fintype.card_congr (equiv.set.univ K).symm],
-  congr; simp [set.ext_iff, classical.em]
-end
-
-lemma prod_univ_units_id_eq_neg_one :
+lemma prod_univ_units_id_eq_neg_one [field K] [fintype (units K)] :
   (∏ x : units K, x) = (-1 : units K) :=
 begin
   classical,
@@ -115,10 +110,13 @@ begin
       this, mul_one]
 end
 
+section
+variables [group_with_zero K] [fintype K]
+
 lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) : a ^ (q - 1) = 1 :=
 calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
     by rw [units.coe_pow, units.coe_mk0]
-  ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
+  ... = 1 : by { classical, rw [← fintype.card_units, pow_card_eq_one], refl }
 
 lemma pow_card (a : K) : a ^ q = a :=
 begin
@@ -135,7 +133,9 @@ begin
   { simp [pow_succ, pow_mul, ih, pow_card], },
 end
 
-variable (K)
+end
+
+variables (K) [field K] [fintype K]
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
@@ -151,7 +151,8 @@ begin
   exact absurd this zero_ne_one,
 end
 
-theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
+-- this statement doesn't use `q` because we want `K` to be an explicit parameter
+theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ fintype.card K = p^(n : ℕ) :=
 let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
 
 @[simp] lemma cast_card_eq_zero : (q : K) = 0 :=
@@ -166,20 +167,20 @@ end
 lemma forall_pow_eq_one_iff (i : ℕ) :
   (∀ x : units K, x ^ i = 1) ↔ q - 1 ∣ i :=
 begin
-  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
   classical,
-  rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers hx, order_of_dvd_iff_pow_eq_one],
+  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units K),
+  rw [←fintype.card_units, ←order_of_eq_card_of_forall_mem_zpowers hx, order_of_dvd_iff_pow_eq_one],
   split,
   { intro h, apply h },
   { intros h y,
-    simp_rw ← mem_powers_iff_mem_gpowers at hx,
+    simp_rw ← mem_powers_iff_mem_zpowers at hx,
     rcases hx y with ⟨j, rfl⟩,
     rw [← pow_mul, mul_comm, pow_mul, h, one_pow], }
 end
 
 /-- The sum of `x ^ i` as `x` ranges over the units of a finite field of cardinality `q`
 is equal to `0` unless `(q - 1) ∣ i`, in which case the sum is `q - 1`. -/
-lemma sum_pow_units (i : ℕ) :
+lemma sum_pow_units [fintype (units K)] (i : ℕ) :
   ∑ x : units K, (x ^ i : K) = if (q - 1) ∣ i then -1 else 0 :=
 begin
   let φ : units K →* K :=
@@ -192,7 +193,7 @@ begin
   suffices : (q - 1) ∣ i ↔ φ = 1,
   { simp only [this],
     split_ifs with h h, swap, refl,
-    rw [card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
+    rw [fintype.card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
     show 1 ≤ q, from fintype.card_pos_iff.mpr ⟨0⟩ },
   rw [← forall_pow_eq_one_iff, monoid_hom.ext_iff],
   apply forall_congr, intro x,
@@ -335,7 +336,7 @@ end zmod
 
 namespace char_p
 
-lemma sq_add_sq (R : Type*) [comm_ring R] [integral_domain R]
+lemma sq_add_sq (R : Type*) [comm_ring R] [is_domain R]
   (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
@@ -370,7 +371,7 @@ end
 
 section
 
-variables {V : Type*} [add_comm_group V] [module K V]
+variables {V : Type*} [fintype K] [division_ring K] [add_comm_group V] [module K V]
 
 -- should this go in a namespace?
 -- finite_dimensional would be natural,
@@ -403,7 +404,7 @@ end
 by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
-by rw [card_units, card]
+by rw [fintype.card_units, card]
 
 /-- **Fermat's Little Theorem**: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : units (zmod p)) :

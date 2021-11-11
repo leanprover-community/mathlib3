@@ -73,8 +73,8 @@ monic_of_degree_le f.nat_degree
 
 end semiring
 
-section domain
-variables [comm_ring R] [integral_domain R]
+section is_domain
+variables [ring R] [is_domain R]
 
 @[simp] lemma support_integral_normalization {f : polynomial R} :
   (integral_normalization f).support = f.support :=
@@ -86,7 +86,10 @@ begin
   intro hfi,
   split_ifs with hi; simp [hfi, hi, pow_ne_zero _ (leading_coeff_ne_zero.mpr hf)]
 end
+end is_domain
 
+section is_domain
+variables [comm_ring R] [is_domain R]
 variables [comm_ring S]
 
 lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (f : R →+* S)
@@ -108,12 +111,12 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
         congr' 2,
         by_cases hi : i.1 = nat_degree p,
         { rw [hi, integral_normalization_coeff_degree, one_mul, leading_coeff, ←pow_succ,
-              nat.sub_add_cancel one_le_deg],
+              tsub_add_cancel_of_le one_le_deg],
           exact degree_eq_nat_degree hp },
         { have : i.1 ≤ p.nat_degree - 1 := nat.le_pred_of_lt (lt_of_le_of_ne
             (le_nat_degree_of_ne_zero (mem_support_iff.mp i.2)) hi),
           rw [integral_normalization_coeff_ne_nat_degree hi, mul_assoc, ←pow_add,
-              nat.sub_add_cancel this] }
+              tsub_add_cancel_of_le this] }
       end
 ... = f p.leading_coeff ^ (nat_degree p - 1) * eval₂ f z p :
       by { simp_rw [eval₂, sum_def, λ i, mul_comm (coeff p i), ring_hom.map_mul,
@@ -127,7 +130,7 @@ lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R}
   aeval (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
 integral_normalization_eval₂_eq_zero (algebra_map R S) hz inj
 
-end domain
+end is_domain
 
 end integral_normalization
 

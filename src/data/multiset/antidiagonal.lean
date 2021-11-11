@@ -41,7 +41,7 @@ quotient.induction_on s $ λ l, begin
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
   cases x with x₁ x₂,
   dsimp only,
-  exact ⟨x₁, le_add_right _ _, by rw add_sub_cancel_left x₁ x₂⟩
+  exact ⟨x₁, le_add_right _ _, by rw add_tsub_cancel_left x₁ x₂⟩
 end
 
 @[simp] theorem antidiagonal_map_fst (s : multiset α) :

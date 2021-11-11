@@ -304,8 +304,7 @@ end
 
 instance order_bot : order_bot (fractional_ideal S P) :=
 { bot := 0,
-  bot_le := zero_le,
-  ..set_like.partial_order }
+  bot_le := zero_le }
 
 @[simp] lemma bot_eq_zero : (⊥ : fractional_ideal S P) = 0 :=
 rfl
@@ -768,7 +767,8 @@ variables {I J : fractional_ideal R⁰ K} (h : K →ₐ[R] K')
 lemma exists_ne_zero_mem_is_integer [nontrivial R] (hI : I ≠ 0) :
   ∃ x ≠ (0 : R), algebra_map R K x ∈ I :=
 begin
-  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr hI),
+  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt
+    (by simpa only using bot_lt_iff_ne_bot.mpr hI),
   have y_ne_zero : y ≠ 0 := by simpa using y_not_mem,
   obtain ⟨z, ⟨x, hx⟩⟩ := exists_integer_multiple R⁰ y,
   refine ⟨x, _, _⟩,
@@ -836,7 +836,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
 λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
 
-variables [integral_domain R₁]
+variables [is_domain R₁]
 
 include frac
 
@@ -845,7 +845,8 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0)
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
-  obtain ⟨y, mem_J, not_mem_zero⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr h),
+  obtain ⟨y, mem_J, not_mem_zero⟩ := set_like.exists_of_lt
+    (by simpa only using bot_lt_iff_ne_bot.mpr h),
   obtain ⟨y', hy'⟩ := hJ y mem_J,
   use (aI * y'),
   split,
@@ -976,7 +977,7 @@ end quotient
 
 section field
 
-variables {R₁ K L : Type*} [comm_ring R₁] [integral_domain R₁] [field K] [field L]
+variables {R₁ K L : Type*} [comm_ring R₁] [is_domain R₁] [field K] [field L]
 variables [algebra R₁ K] [is_fraction_ring R₁ K] [algebra K L] [is_fraction_ring K L]
 
 lemma eq_zero_or_one (I : fractional_ideal K⁰ L) : I = 0 ∨ I = 1 :=
@@ -1146,12 +1147,12 @@ lemma mk'_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {x y : R₁} (hy : y ∈
 begin
   have inj : function.injective (coe : ideal R₁ → fractional_ideal R₁⁰ K) :=
     fractional_ideal.coe_ideal_injective,
-  have : span_singleton R₁⁰ (is_localization.mk' _ 1 ⟨y, hy⟩) *
+  have : span_singleton R₁⁰ (is_localization.mk' _ (1 : R₁) ⟨y, hy⟩) *
            span_singleton R₁⁰ (algebra_map R₁ K y) = 1,
   { rw [span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
         is_localization.mk'_self, span_singleton_one] },
   let y' : units (fractional_ideal R₁⁰ K) := units.mk_of_mul_eq_one _ _ this,
-  have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K 1 ⟨y, hy⟩) := rfl,
+  have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K (1 : R₁) ⟨y, hy⟩) := rfl,
   refine iff.trans _ (y'.mul_right_inj.trans inj.eq_iff),
   rw [coe_y', coe_ideal_mul, coe_ideal_span_singleton, coe_ideal_mul, coe_ideal_span_singleton,
     ←mul_assoc, span_singleton_mul_span_singleton, ←mul_assoc, span_singleton_mul_span_singleton,
@@ -1170,7 +1171,7 @@ lemma span_singleton_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {z : K} :
 by erw [← mk'_mul_coe_ideal_eq_coe_ideal K (is_localization.sec R₁⁰ z).2.prop,
         is_localization.mk'_sec K z]
 
-variables [integral_domain R₁]
+variables [is_domain R₁]
 
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
@@ -1220,7 +1221,7 @@ begin
     rwa [hx', ←mul_assoc, inv_mul_cancel map_a_nonzero, one_mul] }
 end
 
-instance is_principal {R} [comm_ring R] [integral_domain R] [is_principal_ideal_ring R]
+instance is_principal {R} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
   [algebra R K] [is_fraction_ring R K]
   (I : fractional_ideal R⁰ K) : (I : submodule R K).is_principal :=
 begin
@@ -1283,7 +1284,7 @@ begin
 end
 
 include frac
-variables [integral_domain R₁]
+variables [is_domain R₁]
 
 lemma is_noetherian_span_singleton_inv_to_map_mul (x : R₁) {I : fractional_ideal R₁⁰ K}
   (hI : is_noetherian R₁ I) :

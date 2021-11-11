@@ -32,9 +32,7 @@ namespace Cat
 
 instance : inhabited Cat := ⟨⟨Type u, category_theory.types⟩⟩
 
-instance : has_coe_to_sort Cat :=
-{ S := Type u,
-  coe := bundled.α }
+instance : has_coe_to_sort Cat (Type u) := ⟨bundled.α⟩
 
 instance str (C : Cat.{v u}) : category.{v u} C := C.str
 

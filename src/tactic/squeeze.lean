@@ -6,7 +6,7 @@ Authors: Simon Hudon
 import control.traversable.basic
 import tactic.simpa
 
-open interactive interactive.types lean.parser
+setup_tactic_parser
 
 private meta def loc.to_string_aux : option name → string
 | none := "⊢"

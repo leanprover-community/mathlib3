@@ -15,8 +15,6 @@ We provide some instances for finite and free modules.
 
 ## Main results
 
-* `module.free.pi` : the product of finitely many free modules is free.
-* `module.free.matrix` : the module of (finite) matrices is free.
 * `module.free.choose_basis_index.fintype` : If a free module is finite, then any basis is
   finite.
 * `module.free.linear_map.free ` : if `M` and `N` are finite and free, then `M →ₗ[R] N` is free.
@@ -30,20 +28,6 @@ universes u v w
 variables (R : Type u) (M : Type v) (N : Type w)
 
 namespace module.free
-
-section semiring
-
-variables [semiring R]
-
-instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_group (M i)]
-  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
-of_basis $ pi.basis $ λ i, choose_basis R (M i)
-
-instance matrix {n : Type*} [fintype n] {m : Type*} [fintype m] :
-  module.free R (matrix n m R) :=
-of_basis $ matrix.std_basis R n m
-
-end semiring
 
 section ring
 

@@ -73,7 +73,7 @@ begin
     simpa only [r, s.piecewise_eq_of_mem _ _ hJs] using hπ.1 J hJ (box.coe_subset_Icc hx) },
   refine abs_sub_le_iff.2 ⟨_, _⟩,
   { refine (ennreal.le_to_real_sub B).trans (ennreal.to_real_le_coe_of_le_coe _),
-    refine (ennreal.sub_le_sub (measure_mono htU) le_rfl).trans (le_measure_diff.trans _),
+    refine (tsub_le_tsub (measure_mono htU) le_rfl).trans (le_measure_diff.trans _),
     refine (measure_mono $ λ x hx, _).trans hμU.le,
     exact ⟨hx.1.1, λ hx', hx.2 ⟨hx'.1, hx.1.2⟩⟩ },
   { have hμt : μ t ≠ ∞ :=

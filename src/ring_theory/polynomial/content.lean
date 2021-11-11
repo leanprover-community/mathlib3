@@ -59,7 +59,7 @@ end
 
 end primitive
 
-variables {R : Type*} [comm_ring R] [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 
 section normalized_gcd_monoid
 variable [normalized_gcd_monoid R]
@@ -409,7 +409,7 @@ begin
   refine ⟨_, rfl, ⟨dvd_cancel_leads_of_dvd_of_dvd pr ps, dvd_cancel_leads_of_dvd_of_dvd qr qs⟩,
       λ rcs, rs _⟩,
   rw ← rprim.dvd_prim_part_iff_dvd s0,
-  rw [cancel_leads, nat.sub_eq_zero_of_le hs, pow_zero, mul_one] at rcs,
+  rw [cancel_leads, tsub_eq_zero_iff_le.mpr hs, pow_zero, mul_one] at rcs,
   have h := dvd_add rcs (dvd.intro_left _ rfl),
   have hC0 := rprim.ne_zero,
   rw [ne.def, ← leading_coeff_eq_zero, ← C_eq_zero] at hC0,

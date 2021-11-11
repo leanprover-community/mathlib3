@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.pi_system
-import data.matrix.notation
+import data.fin.vec_notation
 import topology.algebra.infinite_sum
 
 /-!
@@ -70,7 +70,7 @@ section basic
 
 variables {α : Type*} {β : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
 
-instance : has_coe_to_fun (outer_measure α) := ⟨_, λ m, m.measure_of⟩
+instance : has_coe_to_fun (outer_measure α) (λ _, set α → ℝ≥0∞) := ⟨λ m, m.measure_of⟩
 
 @[simp] lemma measure_of_eq_coe (m : outer_measure α) : m.measure_of = m := rfl
 
@@ -131,7 +131,7 @@ begin
   rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,
   cases le_or_lt j n with hjn hnj, { exact or.inl (h' hjn hj) },
   have : j - (n + 1) + n + 1 = j,
-    by rw [add_assoc, nat.sub_add_cancel hnj],
+    by rw [add_assoc, tsub_add_cancel_of_le hnj.nat_succ_le],
   refine or.inr (mem_Union.2 ⟨j - (n + 1), _, hlt _ _⟩),
   { rwa this },
   { rw [← nat.succ_le_iff, nat.succ_eq_add_one, this] }
@@ -215,13 +215,17 @@ instance : module ℝ≥0∞ (outer_measure α) :=
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
-instance outer_measure.order_bot : order_bot (outer_measure α) :=
+@[simp] theorem coe_bot : (⊥ : outer_measure α) = 0 := rfl
+
+instance outer_measure.partial_order : partial_order (outer_measure α) :=
 { le          := λm₁ m₂, ∀s, m₁ s ≤ m₂ s,
-  bot         := 0,
   le_refl     := assume a s, le_refl _,
   le_trans    := assume a b c hab hbc s, le_trans (hab s) (hbc s),
-  le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s),
-  bot_le      := assume a s, zero_le _ }
+  le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s) }
+
+instance outer_measure.order_bot : order_bot (outer_measure α) :=
+{ bot_le      := assume a s, by simp only [coe_zero, pi.zero_apply, coe_bot, zero_le],
+  ..outer_measure.has_bot }
 
 section supremum
 

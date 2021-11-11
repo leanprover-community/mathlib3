@@ -120,6 +120,7 @@ end real_deriv_of_complex
 section conformality
 /-! ### Conformality of real-differentiable complex maps -/
 open complex continuous_linear_map
+open_locale complex_conjugate
 
 variables
 

@@ -5,8 +5,10 @@ Authors: Yury Kudryashov
 -/
 
 import algebra.ring.prod
-import group_theory.submonoid
+import algebra.module.basic
+import group_theory.submonoid.membership
 import group_theory.submonoid.center
+import data.set.finite
 import data.equiv.ring
 
 /-!
@@ -400,6 +402,10 @@ lemma center_to_submonoid (R) [semiring R] : (center R).to_submonoid = submonoid
 
 lemma mem_center_iff {R} [semiring R] {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
 iff.rfl
+
+instance decidable_mem_center {R} [semiring R] [decidable_eq R] [fintype R] :
+  decidable_pred (∈ center R) :=
+λ _, decidable_of_iff' _ mem_center_iff
 
 @[simp] lemma center_eq_top (R) [comm_semiring R] : center R = ⊤ :=
 set_like.coe_injective (set.center_eq_univ R)

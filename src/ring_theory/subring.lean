@@ -250,11 +250,11 @@ s.to_add_subgroup.sum_mem h
 
 lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
-lemma gsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
+  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+by simp only [← zsmul_one, zsmul_mem, one_mem]
 
 /-- A subring of a ring inherits a ring structure -/
 instance to_ring : ring s :=
@@ -287,12 +287,8 @@ instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s 
 s.to_subsemiring.no_zero_divisors
 
 /-- A subring of a domain is a domain. -/
-instance {R} [ring R] [domain R] (s : subring R) : domain s :=
+instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
 { .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
-
-/-- A subring of an integral domain is an integral domain. -/
-instance {R} [comm_ring R] [integral_domain R] (s : subring R) : integral_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
@@ -523,6 +519,9 @@ variables {R}
 
 lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
 iff.rfl
+
+instance decidable_mem_center [decidable_eq R] [fintype R] : decidable_pred (∈ center R) :=
+λ _, decidable_of_iff' _ mem_center_iff
 
 @[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
 set_like.coe_injective (set.center_eq_univ R)
@@ -834,7 +833,7 @@ namespace subring
 open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
-def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
+def inclusion {S T : subring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=
@@ -938,7 +937,7 @@ end subring
 
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
-by { convert add_subgroup.gsmul_mem G h k, simp }
+by { convert add_subgroup.zsmul_mem G h k, simp }
 
 
 /-! ## Actions by `subring`s

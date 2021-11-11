@@ -63,7 +63,7 @@ end eisenstein_criterion_aux
 
 open eisenstein_criterion_aux
 
-variables [integral_domain R]
+variables [is_domain R]
 
 /-- If `f` is a non constant polynomial with coefficients in `R`, and `P` is a prime ideal in `R`,
 then if every coefficient in `R` except the leading coefficient is in `P`, and

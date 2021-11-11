@@ -6,6 +6,7 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.matrix.basis
+import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.tensor_product
 
@@ -68,8 +69,7 @@ variables {B : bilin_form R M} {B₁ : bilin_form R₁ M₁} {B₂ : bilin_form 
 
 namespace bilin_form
 
-instance : has_coe_to_fun (bilin_form R M) :=
-⟨_, λ B, B.bilin⟩
+instance : has_coe_to_fun (bilin_form R M) (λ _, M → M → R) := ⟨bilin⟩
 
 initialize_simps_projections bilin_form (bilin -> apply)
 
@@ -557,7 +557,7 @@ lemma is_Ortho_def {n : Type w} {B : bilin_form R M} {v : n → M} :
 
 section
 
-variables {R₄ M₄ : Type*} [ring R₄] [domain R₄]
+variables {R₄ M₄ : Type*} [ring R₄] [is_domain R₄]
 variables [add_comm_group M₄] [module R₄ M₄] {G : bilin_form R₄ M₄}
 
 @[simp]
@@ -1214,7 +1214,7 @@ begin
   suffices : x * ↑u = ↑v * y ↔ ↑v⁻¹ * x = y * ↑u⁻¹,
   { dunfold matrix.is_adjoint_pair,
     repeat { rw matrix.transpose_mul, },
-    simp only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv h'],
+    simp only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv],
     conv_lhs { to_rhs, rw [mul_assoc, mul_assoc], congr, skip, rw ←mul_assoc, },
     conv_rhs { rw [mul_assoc, mul_assoc], conv { to_lhs, congr, skip, rw ←mul_assoc }, },
     exact this, },
@@ -1663,7 +1663,7 @@ section det
 
 open matrix
 
-variables {A : Type*} [comm_ring A] [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
+variables {A : Type*} [comm_ring A] [is_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
 theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.nondegenerate) :

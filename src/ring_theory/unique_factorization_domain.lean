@@ -36,7 +36,7 @@ class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
 export wf_dvd_monoid (well_founded_dvd_not_unit)
 
 @[priority 100]  -- see Note [lower instance priority]
-instance is_noetherian_ring.wf_dvd_monoid [comm_ring α] [integral_domain α] [is_noetherian_ring α] :
+instance is_noetherian_ring.wf_dvd_monoid [comm_ring α] [is_domain α] [is_noetherian_ring α] :
   wf_dvd_monoid α :=
 ⟨by { convert inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _),
       ext,
@@ -749,6 +749,17 @@ theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
 | a none h := show a.prod ≤ (⊤ : factor_set α).prod, by simp; exact le_top
 | (some a) (some b) h := prod_le_prod $ multiset.map_le_map $ with_top.coe_le_coe.1 $ h
 
+theorem factor_set.prod_eq_zero_iff [nontrivial α] (p : factor_set α) :
+  p.prod = 0 ↔ p = ⊤ :=
+begin
+  induction p using with_top.rec_top_coe,
+  { simp only [iff_self, eq_self_iff_true, associates.prod_top] },
+  simp only [prod_coe, with_top.coe_ne_top, iff_false, prod_eq_zero_iff, multiset.mem_map],
+  rintro ⟨⟨a, ha⟩, -, eq⟩,
+  rw [subtype.coe_mk] at eq,
+  exact ha.ne_zero eq,
+end
+
 /-- `bcount p s` is the multiplicity of `p` in the factor_set `s` (with bundled `p`)-/
 def bcount [decidable_eq (associates α)] (p : {a : associates α // irreducible a}) :
   factor_set α → ℕ
@@ -831,12 +842,19 @@ begin
   simpa [quot_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated] using eq
 end
 
-private theorem forall_map_mk_factors_irreducible [decidable_eq α] (x : α) (hx : x ≠ 0) :
-  ∀(a : associates α), a ∈ multiset.map associates.mk (factors x) → irreducible a :=
+theorem factor_set.unique [nontrivial α] {p q : factor_set α} (h : p.prod = q.prod) : p = q :=
 begin
-  assume a ha,
-  rcases multiset.mem_map.1 ha with ⟨c, hc, rfl⟩,
-  exact (irreducible_mk c).2 (irreducible_of_factor _ hc)
+  induction p using with_top.rec_top_coe;
+  induction q using with_top.rec_top_coe,
+  { refl },
+  { rw [eq_comm, ←factor_set.prod_eq_zero_iff, ←h, associates.prod_top] },
+  { rw [←factor_set.prod_eq_zero_iff, h, associates.prod_top] },
+  { congr' 1,
+    rw  ←multiset.map_eq_map subtype.coe_injective,
+    apply unique' _ _ h;
+    { intros a ha,
+      obtain ⟨⟨a', irred⟩, -, rfl⟩ := multiset.mem_map.mp ha,
+      rwa [subtype.coe_mk] } },
 end
 
 theorem prod_le_prod_iff_le [nontrivial α] {p q : multiset (associates α)}
@@ -845,20 +863,16 @@ theorem prod_le_prod_iff_le [nontrivial α] {p q : multiset (associates α)}
 iff.intro
   begin
     classical,
-    rintros ⟨⟨c⟩, eqc⟩,
-    have : c ≠ 0, from (mt mk_eq_zero.2 $
-      assume (hc : quot.mk setoid.r c = 0),
-      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eqc.symm ▸ hc.symm ▸ mul_zero _,
-      not_irreducible_zero ((irreducible_mk 0).1 $ hq _ this)),
-    have : associates.mk (factors c).prod = quot.mk setoid.r c,
-      from mk_eq_mk_iff_associated.2 (factors_prod this),
-
-    refine multiset.le_iff_exists_add.2 ⟨(factors c).map associates.mk, unique' hq _ _⟩,
-    { assume x hx,
-      rcases multiset.mem_add.1 hx with h | h,
-      exact hp x h,
-      exact forall_map_mk_factors_irreducible c ‹c ≠ 0› _ h },
-    { simp [multiset.prod_add, prod_mk, *] at * }
+    rintros ⟨c, eqc⟩,
+    refine multiset.le_iff_exists_add.2 ⟨factors c, unique' hq (λ x hx, _) _⟩,
+    { obtain h|h := multiset.mem_add.1 hx,
+      { exact hp x h },
+      { exact irreducible_of_factor _ h } },
+    { rw [eqc, multiset.prod_add],
+      congr,
+      refine associated_iff_eq.mp (factors_prod (λ hc, _)).symm,
+      refine not_irreducible_zero (hq _ _),
+      rw [←prod_eq_zero_iff, eqc, hc, mul_zero] }
   end
   prod_le_prod
 
@@ -876,12 +890,20 @@ noncomputable def factors' (a : α) :
   (factors' a).map coe = (factors a).map associates.mk :=
 by simp [factors', multiset.map_pmap, multiset.pmap_eq_map]
 
-theorem factors'_cong {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) (h : a ~ᵤ b) :
+theorem factors'_cong {a b : α} (h : a ~ᵤ b) :
   factors' a = factors' b :=
-have multiset.rel associated (factors a) (factors b), from
-  factors_unique irreducible_of_factor irreducible_of_factor
+begin
+  obtain rfl|hb := eq_or_ne b 0,
+  { rw associated_zero_iff_eq_zero at h, rw h },
+  have ha : a ≠ 0,
+  { contrapose! hb with ha,
+    rw [←associated_zero_iff_eq_zero, ←ha],
+    exact h.symm },
+  rw [←multiset.map_eq_map subtype.coe_injective, map_subtype_coe_factors',
+    map_subtype_coe_factors', ←rel_associated_iff_map_eq_map],
+  exact factors_unique irreducible_of_factor irreducible_of_factor
     ((factors_prod ha).trans $ h.trans $ (factors_prod hb).symm),
-by simpa [(multiset.map_eq_map subtype.coe_injective).symm, rel_associated_iff_map_eq_map.symm]
+end
 
 include dec'
 
@@ -898,8 +920,7 @@ begin
       iff.intro (assume ha0, hab.symm.trans ha0) (assume hb0, hab.trans hb0),
     simp only [associated_zero_iff_eq_zero] at this,
     simp only [quotient_mk_eq_mk, this, mk_eq_zero] },
-  exact (assume ha hb eq, heq_of_eq $ congr_arg some $ factors'_cong
-    (λ c, ha (mk_eq_zero.2 c)) (λ c, hb (mk_eq_zero.2 c)) hab)
+  exact (assume ha hb eq, heq_of_eq $ congr_arg some $ factors'_cong hab)
 end
 
 @[simp] theorem factors_0 : (0 : associates α).factors = ⊤ :=
@@ -909,33 +930,6 @@ dif_pos rfl
   (associates.mk a).factors = factors' a :=
 by { classical, apply dif_neg, apply (mt mk_eq_zero.1 h) }
 
-theorem prod_factors [nontrivial α] : ∀(s : factor_set α), s.prod.factors = s
-| none     := by simp [factor_set.prod]; refl
-| (some s) :=
-  begin
-    unfold factor_set.prod,
-    generalize eq_a : (s.map coe).prod = a,
-    rcases a with ⟨a⟩,
-    rw quot_mk_eq_mk at *,
-
-    have : (s.map (coe : _ → associates α)).prod ≠ 0, from assume ha,
-      let ⟨⟨a, ha⟩, h, eq⟩ := multiset.mem_map.1 (prod_eq_zero_iff.1 ha) in
-      have irreducible (0 : associates α), from eq ▸ ha,
-      not_irreducible_zero ((irreducible_mk _).1 this),
-    have ha : a ≠ 0, by simp [*] at *,
-    suffices : (unique_factorization_monoid.factors a).map associates.mk = s.map coe,
-    { rw [factors_mk a ha],
-      apply congr_arg some _,
-      simpa [(multiset.map_eq_map subtype.coe_injective).symm] },
-
-    refine unique'
-      (forall_map_mk_factors_irreducible _ ha)
-      (assume a ha, let ⟨⟨x, hx⟩, ha, eq⟩ := multiset.mem_map.1 ha in eq ▸ hx)
-      _,
-    rw [prod_mk, eq_a, mk_eq_mk_iff_associated],
-    exact factors_prod ha
-  end
-
 @[simp]
 theorem factors_prod (a : associates α) : a.factors.prod = a :=
 quotient.induction_on a $ assume a, decidable.by_cases
@@ -944,6 +938,9 @@ quotient.induction_on a $ assume a, decidable.by_cases
     have a ≠ 0, by simp * at *,
     by simp [this, quotient_mk_eq_mk, prod_mk,
       mk_eq_mk_iff_associated.2 (factors_prod this)])
+
+theorem prod_factors [nontrivial α] (s : factor_set α) : s.prod.factors = s :=
+factor_set.unique $ factors_prod _
 
 theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factors) : a = b :=
 have a.factors.prod = b.factors.prod, by rw h,

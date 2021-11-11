@@ -3,14 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 -/
-import tactic.ring_exp
 import data.equiv.ring
 import group_theory.monoid_localization
-import ring_theory.ideal.operations
-import ring_theory.ideal.local_ring
 import ring_theory.algebraic
+import ring_theory.ideal.local_ring
+import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.non_zero_divisors
+import tactic.ring_exp
 
 /-!
 # Localizations of commutative rings
@@ -209,20 +209,32 @@ by rw [mul_comm, sec_spec]
 
 open_locale big_operators
 
-/-- We can clear the denominators of a finite set of fractions. -/
-lemma exist_integer_multiples_of_finset (s : finset S) :
-  ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
+/-- We can clear the denominators of a `finset`-indexed family of fractions. -/
+lemma exist_integer_multiples {ι : Type*} (s : finset ι) (f : ι → S) :
+  ∃ (b : M), ∀ i ∈ s, is_localization.is_integer R ((b : R) • f i) :=
 begin
   haveI := classical.prop_decidable,
-  use ∏ a in s, (is_localization.sec M a).2,
-  intros a ha,
-  use (∏ x in s.erase a, (is_localization.sec M x).2) * (is_localization.sec M a).1,
+  refine ⟨∏ i in s, (sec M (f i)).2, λ i hi, ⟨_, _⟩⟩,
+  { exact (∏ j in s.erase i, (sec M (f j)).2) * (sec M (f i)).1 },
   rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←(algebra_map R S).map_mul, ← algebra.smul_def],
   congr' 2,
   refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
-  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase a), finset.insert_erase ha],
-  refl,
+  rw [mul_comm, ←finset.prod_insert (s.not_mem_erase i), finset.insert_erase hi],
+  refl
 end
+
+/-- We can clear the denominators of a `fintype`-indexed family of fractions. -/
+lemma exist_integer_multiples_of_fintype {ι : Type*} [fintype ι] (f : ι → S) :
+  ∃ (b : M), ∀ i, is_localization.is_integer R ((b : R) • f i) :=
+begin
+  obtain ⟨b, hb⟩ := exist_integer_multiples M finset.univ f,
+  exact ⟨b, λ i, hb i (finset.mem_univ _)⟩
+end
+
+/-- We can clear the denominators of a finite set of fractions. -/
+lemma exist_integer_multiples_of_finset (s : finset S) :
+  ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
+exist_integer_multiples M s id
 
 variables {R M}
 
@@ -619,7 +631,7 @@ variables [is_localization.away x S]
 
 /-- Given `x : R` and a localization map `F : R →+* S` away from `x`, `inv_self` is `(F x)⁻¹`. -/
 noncomputable def inv_self : S :=
-mk' S 1 ⟨x, submonoid.mem_powers _⟩
+mk' S (1 : R) ⟨x, submonoid.mem_powers _⟩
 
 variables {g : R →+* P}
 
@@ -761,12 +773,12 @@ instance : comm_ring (localization M) :=
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  gsmul := localization.smul,
-  gsmul_zero' := λ x, localization.induction_on x
-    (λ x, by simp only [smul_mk, zero_gsmul, mk_zero]),
-  gsmul_succ' := λ n x, localization.induction_on x
+  zsmul := localization.smul,
+  zsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
+  zsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
-  gsmul_neg' := λ n x, localization.induction_on x
+  zsmul_neg' := λ n x, localization.induction_on x
     (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
@@ -1068,7 +1080,7 @@ begin
   { have : I = ⊤,
     { rw ideal.eq_top_iff_one,
       rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_comap] at hM,
-      convert I.mul_mem_right (mk' S 1 ⟨m, hm⟩) hM,
+      convert I.mul_mem_right (mk' S (1 : R) ⟨m, hm⟩) hM,
       rw [← mk'_eq_mul_mk'_one, mk'_self] },
     exact ⟨0, eq_comm.1 (by simp [ideal.quotient.eq_zero_iff_mem, this])⟩ },
   { rw ideal.quotient.maximal_ideal_iff_is_field_quotient at hI,
@@ -1275,7 +1287,7 @@ by rw [aeval_def, is_scalar_tower.algebra_map_eq R S R',
 
 end integer_normalization
 
-variables {R M} (S) {A K : Type*} [comm_ring A] [integral_domain A]
+variables {R M} (S) {K : Type*}
 
 lemma to_map_eq_zero_iff {x : R} (hM : M ≤ non_zero_divisors R) :
   algebra_map R S x = 0 ↔ x = 0 :=
@@ -1348,13 +1360,15 @@ begin
     rw [hx, ideal.submodule_span_eq, coe_submodule_span_singleton] }
 end
 
+variables {A : Type*} [comm_ring A] [is_domain A]
+
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-theorem integral_domain_of_le_non_zero_divisors
+theorem is_domain_of_le_non_zero_divisors
   [algebra A S] {M : submonoid A} [is_localization M S]
-  (hM : M ≤ non_zero_divisors A) : integral_domain S :=
+  (hM : M ≤ non_zero_divisors A) : is_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros z w h,
@@ -1374,16 +1388,16 @@ theorem integral_domain_of_le_non_zero_divisors
 /-- The localization at of an integral domain to a set of non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]
-theorem integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
-  integral_domain (localization M) :=
-integral_domain_of_le_non_zero_divisors _ hM
+theorem is_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
+  is_domain (localization M) :=
+is_domain_of_le_non_zero_divisors _ hM
 
 /--
 The localization of an integral domain at the complement of a prime ideal is an integral domain.
 -/
-instance integral_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
-  integral_domain (localization.at_prime P) :=
-integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors
+instance is_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
+  is_domain (localization.at_prime P) :=
+is_domain_localization (le_non_zero_divisors_of_no_zero_divisors
   (not_not_intro P.zero_mem))
 
 namespace at_prime
@@ -1513,7 +1527,7 @@ open is_localization
 
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
 lemma localization_map_bijective_of_field
-  {R Rₘ : Type*} [comm_ring R] [integral_domain R] [comm_ring Rₘ]
+  {R Rₘ : Type*} [comm_ring R] [is_domain R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
@@ -1524,7 +1538,7 @@ begin
     by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
 
-variables (R) {A : Type*} [comm_ring A] [integral_domain A]
+variables (R) {A : Type*} [comm_ring A] [is_domain A]
 variables (K : Type*)
 
 /-- `is_fraction_ring R K` states `K` is the field of fractions of an integral domain `R`. -/
@@ -1605,11 +1619,9 @@ is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ (le_refl _) hx
 variables (A)
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
-integral domain.
-See note [reducible non-instances]. -/
-@[reducible]
-theorem to_integral_domain : integral_domain K :=
-integral_domain_of_le_non_zero_divisors K (le_refl (non_zero_divisors A))
+integral domain. -/
+protected theorem is_domain : is_domain K :=
+is_domain_of_le_non_zero_divisors K (le_refl (non_zero_divisors A))
 
 local attribute [instance] classical.dec_eq
 
@@ -1638,12 +1650,12 @@ noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
   inv_zero := dif_pos rfl,
-  .. to_integral_domain A,
+  .. is_fraction_ring.is_domain A,
   .. show comm_ring K, by apply_instance }
 
 end comm_ring
 
-variables {B : Type*} [comm_ring B] [integral_domain B] [field K] {L : Type*} [field L]
+variables {B : Type*} [comm_ring B] [is_domain B] [field K] {L : Type*} [field L]
   [algebra A K] [is_fraction_ring A K] {g : A →+* L}
 
 lemma mk'_mk_eq_div {r s} (hs : s ∈ non_zero_divisors A) :
@@ -1938,7 +1950,7 @@ end is_integral
 namespace is_integral_closure
 
 variables (A) {L : Type*} [field K] [field L] [algebra A K] [algebra A L] [is_fraction_ring A K]
-variables (C : Type*) [comm_ring C] [integral_domain C] [algebra C L] [is_integral_closure C A L]
+variables (C : Type*) [comm_ring C] [is_domain C] [algebra C L] [is_integral_closure C A L]
 variables [algebra A C] [is_scalar_tower A C L]
 
 open algebra
@@ -2018,8 +2030,8 @@ noncomputable instance : field (fraction_ring A) :=
   sub := has_sub.sub,
   one := 1,
   zero := 0,
-  nsmul := nsmul,
-  gsmul := gsmul,
+  nsmul := add_monoid.nsmul,
+  zsmul := sub_neg_monoid.zsmul,
   npow := localization.npow _,
   .. localization.comm_ring,
   .. is_fraction_ring.to_field A }

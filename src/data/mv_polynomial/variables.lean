@@ -332,8 +332,8 @@ begin
     exact finset.union_subset_union (finset.subset.refl _) hsub }
 end
 
-section integral_domain
-variables {A : Type*} [comm_ring A] [integral_domain A]
+section is_domain
+variables {A : Type*} [comm_ring A] [is_domain A]
 
 lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) : (C a * φ).vars = φ.vars :=
 begin
@@ -345,7 +345,7 @@ begin
   rw [coeff_C_mul, mul_ne_zero_iff, eq_true_intro ha, true_and],
 end
 
-end integral_domain
+end is_domain
 
 end mul
 

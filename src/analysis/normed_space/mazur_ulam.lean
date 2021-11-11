@@ -72,11 +72,11 @@ begin
   { rintros e ⟨hx, hy⟩,
     split; simp [hx, hy, e.symm_apply_eq.2 hx.symm, e.symm_apply_eq.2 hy.symm], },
   -- Therefore, `dist (e z) z = 0` for all `e ∈ s`.
-  set c := ⨆ e : s, dist (e z) z,
+  set c := ⨆ e : s, dist ((e : PE ≃ᵢ PE) z) z,
   have : c ≤ c / 2,
   { apply csupr_le,
     rintros ⟨e, he⟩,
-    simp only [coe_fn_coe_base, subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
+    simp only [subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
     exact le_csupr h_bdd ⟨f e, hf_maps_to he⟩ },
   replace : c ≤ 0, { linarith },
   refine λ e hx hy, dist_le_zero.1 (le_trans _ this),

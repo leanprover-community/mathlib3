@@ -265,7 +265,7 @@ namespace polynomial
 open polynomial
 
 section comm_ring
-variables {R S : Type*} [comm_ring R] [comm_ring S] [integral_domain S]
+variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S]
 variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
 
 /-- If `I` is a prime ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
@@ -324,7 +324,7 @@ end
 /-- If `f : R → S` descends to an integral map in the localization at `x`,
   and `R` is a Jacobson ring, then the intersection of all maximal ideals in `S` is trivial -/
 lemma jacobson_bot_of_integral_localization
-  {R : Type*} [comm_ring R] [integral_domain R] [is_jacobson R]
+  {R : Type*} [comm_ring R] [is_domain R] [is_jacobson R]
   (Rₘ Sₘ : Type*) [comm_ring Rₘ] [comm_ring Sₘ]
   (φ : R →+* S) (hφ : function.injective φ) (x : R) (hx : x ≠ 0)
   [algebra R Rₘ] [is_localization.away x Rₘ]
@@ -335,7 +335,7 @@ lemma jacobson_bot_of_integral_localization
 begin
   have hM : ((submonoid.powers x).map φ : submonoid S) ≤ non_zero_divisors S :=
     φ.map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_no_zero_divisors hx),
-  letI : integral_domain Sₘ := is_localization.integral_domain_of_le_non_zero_divisors _ hM,
+  letI : is_domain Sₘ := is_localization.is_domain_of_le_non_zero_divisors _ hM,
   let φ' : Rₘ →+* Sₘ := is_localization.map _ φ (submonoid.powers x).le_comap_map,
   suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap (algebra_map S Sₘ)).is_maximal,
   { have hϕ' : comap (algebra_map S Sₘ) (⊥ : ideal Sₘ) = (⊥ : ideal S),
@@ -343,7 +343,7 @@ begin
       exact is_localization.injective Sₘ hM },
     have hSₘ : is_jacobson Sₘ := is_jacobson_of_is_integral' φ' hφ' (is_jacobson_localization x),
     refine eq_bot_iff.mpr (le_trans _ (le_of_eq hϕ')),
-    rw [← hSₘ.out radical_bot_of_integral_domain, comap_jacobson],
+    rw [← hSₘ.out radical_bot_of_is_domain, comap_jacobson],
     exact Inf_le_Inf (λ j hj, ⟨bot_le, let ⟨J, hJ⟩ := hj in hJ.2 ▸ this J hJ.1.2⟩) },
   introsI I hI,
   -- Remainder of the proof is pulling and pushing ideals around the square and the quotient square
@@ -372,13 +372,13 @@ end
 /-- Used to bootstrap the proof of `is_jacobson_polynomial_iff_is_jacobson`.
   That theorem is more general and should be used instead of this one. -/
 private lemma is_jacobson_polynomial_of_domain
-  (R : Type*) [comm_ring R] [integral_domain R] [hR : is_jacobson R]
+  (R : Type*) [comm_ring R] [is_domain R] [hR : is_jacobson R]
   (P : ideal (polynomial R)) [is_prime P] (hP : ∀ (x : R), C x ∈ P → x = 0) :
   P.jacobson = P :=
 begin
   by_cases Pb : P = ⊥,
   { exact Pb.symm ▸ jacobson_bot_polynomial_of_jacobson_bot
-      (hR.out radical_bot_of_integral_domain) },
+      (hR.out radical_bot_of_is_domain) },
   { rw jacobson_eq_iff_jacobson_quotient_eq_bot,
     haveI : (P.comap (C : R →+* polynomial R)).is_prime := comap_is_prime C P,
     obtain ⟨p, pP, p0⟩ := exists_nonzero_mem_of_ne_bot Pb hP,
@@ -435,7 +435,7 @@ is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
 
 end comm_ring
 
-section integral_domain
+section
 variables {R : Type*} [comm_ring R] [is_jacobson R]
 variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
@@ -465,8 +465,8 @@ begin
   let M' : submonoid P.quotient := M.map φ,
   have hM' : (0 : P.quotient) ∉ M' :=
     λ ⟨z, hz⟩, hM (quotient_map_injective (trans hz.2 φ.map_zero.symm) ▸ hz.1),
-  haveI : integral_domain (localization M') :=
-    is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
+  haveI : is_domain (localization M') :=
+    is_localization.is_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
   suffices : (⊥ : ideal (localization M')).is_maximal,
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (is_localization.map_injective_of_injective
       M (localization M) (localization M')
@@ -561,12 +561,13 @@ begin
   exact function.surjective.of_comp hf,
 end
 
-end integral_domain
+end
 
 end polynomial
 
-namespace mv_polynomial
 open mv_polynomial ring_hom
+
+namespace mv_polynomial
 
 lemma is_jacobson_mv_polynomial_fin {R : Type*} [comm_ring R] [H : is_jacobson R] :
   ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)

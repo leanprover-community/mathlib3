@@ -14,7 +14,7 @@ principal ideal domain (PID) is an integral domain which is a principal ideal ri
 # Main definitions
 
 Note that for principal ideal domains, one should use
-`[integral_domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
+`[is_domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
 Theorems about PID's are in the `principal_ideal_ring` namespace.
 
 - `is_principal_ideal_ring`: a predicate on rings, saying that every left ideal is principal.
@@ -105,6 +105,18 @@ lemma prime_generator_of_is_prime (S : ideal R) [submodule.is_principal S] [is_p
  λ h, is_prime.ne_top (S.eq_top_of_is_unit_mem (generator_mem S) h),
  by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
 
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_map_dvd_of_mem {N : submodule R M}
+  (ϕ : M →ₗ[R] R) [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
+  generator (N.map ϕ) ∣ ϕ x :=
+by { rw [← mem_iff_generator_dvd, submodule.mem_map], exact ⟨x, hx, rfl⟩ }
+
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_submodule_image_dvd_of_mem {N O : submodule R M} (hNO : N ≤ O)
+  (ϕ : O →ₗ[R] R) [(ϕ.submodule_image N).is_principal] {x : M} (hx : x ∈ N) :
+  generator (ϕ.submodule_image N) ∣ ϕ ⟨x, hNO hx⟩ :=
+by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], exact ⟨x, hx, rfl⟩ }
+
 end comm_ring
 
 end submodule.is_principal
@@ -116,7 +128,7 @@ open submodule.is_principal ideal
 -- 0 isn't prime in a non-ID PIR but the Krull dimension is still <= 1.
 -- The below result follows from this, but we could also use the below result to
 -- prove this (quotient out by p).
-lemma to_maximal_ideal [comm_ring R] [integral_domain R] [is_principal_ideal_ring R] {S : ideal R}
+lemma to_maximal_ideal [comm_ring R] [is_domain R] [is_principal_ideal_ring R] {S : ideal R}
   [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
@@ -193,7 +205,7 @@ lemma is_maximal_of_irreducible [comm_ring R] [is_principal_ideal_ring R]
   erw [ideal.span_singleton_le_span_singleton, is_unit.mul_right_dvd hb]
 end⟩⟩
 
-variables [comm_ring R] [integral_domain R] [is_principal_ideal_ring R]
+variables [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 
 lemma irreducible_iff_prime {p : R} : irreducible p ↔ prime p :=
 ⟨λ hp, (ideal.span_singleton_prime hp.ne_zero).1 $
@@ -218,7 +230,7 @@ begin
 end
 
 lemma ne_zero_of_mem_factors
-  {R : Type v} [comm_ring R] [integral_domain R] [is_principal_ideal_ring R] {a b : R}
+  {R : Type v} [comm_ring R] [is_domain R] [is_principal_ideal_ring R] {a b : R}
   (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
 
 lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
@@ -233,7 +245,7 @@ end
 /-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it
 also maps `a` into that submonoid. -/
 lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
-  [comm_ring R] [integral_domain R] [is_principal_ideal_ring R] [semiring S]
+  [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [semiring S]
   (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
   (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
   f a ∈ s :=

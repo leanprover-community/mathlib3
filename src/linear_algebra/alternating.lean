@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
+import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
 import linear_algebra.linear_independent
 import group_theory.perm.sign
@@ -77,7 +78,7 @@ open function
 /-! Basic coercion simp lemmas, largely copied from `ring_hom` and `multilinear_map` -/
 section coercions
 
-instance : has_coe_to_fun (alternating_map R M N ι) := ⟨_, λ x, x.to_fun⟩
+instance : has_coe_to_fun (alternating_map R M N ι) (λ _, (ι → M) → N) := ⟨λ x, x.to_fun⟩
 
 initialize_simps_projections alternating_map (to_fun → apply)
 
@@ -92,11 +93,15 @@ congr_arg (λ h : alternating_map R M N ι, h x) h
 theorem congr_arg (f : alternating_map R M N ι) {x y : ι → M} (h : x = y) : f x = f y :=
 congr_arg (λ x : ι → M, f x) h
 
-theorem coe_inj ⦃f g : alternating_map R M N ι⦄ (h : ⇑f = g) : f = g :=
-by { cases f, cases g, cases h, refl }
+theorem coe_injective : injective (coe_fn : alternating_map R M N ι → ((ι → M) → N)) :=
+λ f g h, by { cases f, cases g, cases h, refl }
+
+@[simp, norm_cast] theorem coe_inj {f g : alternating_map R M N ι} :
+  (f : (ι → M) → N) = g ↔ f = g :=
+coe_injective.eq_iff
 
 @[ext] theorem ext {f f' : alternating_map R M N ι} (H : ∀ x, f x = f' x) : f = f' :=
-coe_inj (funext H)
+coe_injective (funext H)
 
 theorem ext_iff {f g : alternating_map R M N ι} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -151,6 +156,14 @@ f.to_multilinear_map.map_update_zero m i
 
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 f.to_multilinear_map.map_zero
+
+lemma map_eq_zero_of_not_injective (v : ι → M) (hv : ¬function.injective v) : f v = 0 :=
+begin
+  rw function.injective at hv,
+  push_neg at hv,
+  rcases hv with ⟨i₁, i₂, heq, hne⟩,
+  exact f.map_eq_zero_of_eq v heq hne
+end
 
 /-!
 ### Algebraic structure inherited from `multilinear_map`
@@ -221,14 +234,14 @@ by refine
   sub_eq_add_neg := _,
   nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  gsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  zsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  gsmul_zero' := _,
-  gsmul_succ' := _,
-  gsmul_neg' := _,
+  zsmul_zero' := _,
+  zsmul_succ' := _,
+  zsmul_neg' := _,
   .. alternating_map.add_comm_monoid, .. };
 intros; ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, gsmul_coe_nat]
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, coe_nat_zsmul]
 
 section distrib_mul_action
 
@@ -244,6 +257,9 @@ instance : has_scalar S (alternating_map R M N ι) :=
 
 @[norm_cast] lemma coe_smul (c : S):
   ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
+
+lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
+rfl
 
 instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
@@ -262,6 +278,9 @@ addition and scalar multiplication. -/
 instance : module S (alternating_map R M N ι) :=
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+instance [no_zero_smul_divisors S N] : no_zero_smul_divisors S (alternating_map R M N ι) :=
+coe_injective.no_zero_smul_divisors _ rfl coe_fn_smul
 
 end module
 
@@ -450,7 +469,7 @@ rfl
 
 lemma alternatization_coe (m : multilinear_map R (λ i : ι, M) N') :
   ↑m.alternatization = (∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ : _) :=
-coe_inj rfl
+coe_injective rfl
 
 lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
   alternatization m v = ∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ v :=
@@ -465,7 +484,7 @@ where `n` is the number of inputs. -/
 lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
-  apply alternating_map.coe_inj,
+  apply alternating_map.coe_injective,
   simp_rw [multilinear_map.alternatization_def, coe_dom_dom_congr, smul_smul,
     int.units_mul_self, one_smul, finset.sum_const, finset.card_univ, fintype.card_perm,
     ←coe_multilinear_map, coe_smul],
@@ -761,3 +780,26 @@ begin
 end
 
 end coprod
+
+section basis
+
+open alternating_map
+
+variables {ι₁ : Type*} [fintype ι]
+variables {R' : Type*} {N₁ N₂ : Type*} [comm_semiring R'] [add_comm_monoid N₁] [add_comm_monoid N₂]
+variables [module R' N₁] [module R' N₂]
+
+/-- Two alternating maps indexed by a `fintype` are equal if they are equal when all arguments
+are distinct basis vectors. -/
+lemma basis.ext_alternating {f g : alternating_map R' N₁ N₂ ι} (e : basis ι₁ R' N₁)
+  (h : ∀ v : ι → ι₁, function.injective v → f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
+begin
+  refine alternating_map.coe_multilinear_map_injective (basis.ext_multilinear e $ λ v, _),
+  by_cases hi : function.injective v,
+  { exact h v hi },
+  { have : ¬function.injective (λ i, e (v i)) := hi.imp function.injective.of_comp,
+    rw [coe_multilinear_map, coe_multilinear_map,
+        f.map_eq_zero_of_not_injective _ this, g.map_eq_zero_of_not_injective _ this], }
+end
+
+end basis

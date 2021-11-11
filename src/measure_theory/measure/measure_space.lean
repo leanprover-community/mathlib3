@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import measure_theory.measure.measure_space_def
+import measure_theory.measure.null_measurable
 import measure_theory.measurable_space
 
 /-!
@@ -103,23 +103,9 @@ instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 ⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
   ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
-lemma measure_Union [encodable β] {f : β → set α}
-  (hn : pairwise (disjoint on f)) (h : ∀ i, measurable_set (f i)) :
-  μ (⋃ i, f i) = ∑' i, μ (f i) :=
-begin
-  rw [measure_eq_extend (measurable_set.Union h),
-    extend_Union measurable_set.empty _ measurable_set.Union _ hn h],
-  { simp [measure_eq_extend, h] },
-  { exact μ.empty },
-  { exact μ.m_Union }
-end
-
 lemma measure_union (hd : disjoint s₁ s₂) (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
-begin
-  rw [union_eq_Union, measure_Union, tsum_fintype, fintype.sum_bool, cond, cond],
-  exacts [pairwise_disjoint_on_bool.2 hd, λ b, bool.cases_on b h₂ h₁]
-end
+measure_union₀ h₁.null_measurable_set h₂.null_measurable_set hd
 
 lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
@@ -434,6 +420,16 @@ m.trim_eq hs
 lemma le_to_measure_apply (m : outer_measure α) (h : ms ≤ m.caratheodory) (s : set α) :
   m s ≤ m.to_measure h s :=
 m.le_trim s
+
+lemma to_measure_apply₀ (m : outer_measure α) (h : ms ≤ m.caratheodory)
+  {s : set α} (hs : null_measurable_set s (m.to_measure h)) : m.to_measure h s = m s :=
+begin
+  refine le_antisymm _ (le_to_measure_apply _ _ _),
+  rcases hs.exists_measurable_subset_ae_eq with ⟨t, hts, htm, heq⟩,
+  calc m.to_measure h s = m.to_measure h t : measure_congr heq.symm
+                    ... = m t              : to_measure_apply m h htm
+                    ... ≤ m s              : m.mono hts
+end
 
 @[simp] lemma to_outer_measure_to_measure {μ : measure α} :
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
@@ -815,11 +811,15 @@ lemma restrict_to_outer_measure_eq_to_outer_measure_restrict (h : measurable_set
 by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
   outer_measure.restrict_trim h, μ.trimmed]
 
+lemma restrict_apply₀ (ht : null_measurable_set t (μ.restrict s)) :
+  μ.restrict s t = μ (t ∩ s) :=
+(to_measure_apply₀ _ _ ht).trans $ by simp only [coe_to_outer_measure, outer_measure.restrict_apply]
+
 /-- If `t` is a measurable set, then the measure of `t` with respect to the restriction of
   the measure to `s` equals the outer measure of `t ∩ s`. An alternate version requiring that `s`
   be measurable instead of `t` exists as `measure.restrict_apply'`. -/
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
-by simp [← restrictₗ_apply, restrictₗ, ht]
+restrict_apply₀ ht.null_measurable_set
 
 /-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
 the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
@@ -1511,6 +1511,14 @@ end measure
 
 open measure
 open_locale measure_theory
+
+lemma null_measurable_set.mono_ac (h : null_measurable_set s μ) (hle : ν ≪ μ) :
+  null_measurable_set s ν :=
+⟨to_measurable μ s, measurable_set_to_measurable _ _, hle.ae_eq h.to_measurable_ae_eq.symm⟩
+
+lemma null_measurable_set.mono (h : null_measurable_set s μ) (hle : ν ≤ μ) :
+  null_measurable_set s ν :=
+h.mono_ac hle.absolutely_continuous
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
@@ -2606,240 +2614,6 @@ e.measurable_embedding.restrict_map _ _
 
 end measurable_equiv
 
-section is_complete
-
-/-- A measure is complete if every null set is also measurable.
-  A null set is a subset of a measurable set with measure `0`.
-  Since every measure is defined as a special case of an outer measure, we can more simply state
-  that a set `s` is null if `μ s = 0`. -/
-class measure_theory.measure.is_complete {_ : measurable_space α} (μ : measure α) : Prop :=
-(out' : ∀ s, μ s = 0 → measurable_set s)
-
-theorem measure_theory.measure.is_complete_iff {_ : measurable_space α} {μ : measure α} :
-  μ.is_complete ↔ ∀ s, μ s = 0 → measurable_set s := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-theorem measure_theory.measure.is_complete.out {_ : measurable_space α} {μ : measure α}
-  (h : μ.is_complete) : ∀ s, μ s = 0 → measurable_set s := h.1
-
-variables [measurable_space α] {μ : measure α} {s t z : set α}
-
-/-- A set is null measurable if it is the union of a null set and a measurable set. -/
-def null_measurable_set (μ : measure α) (s : set α) : Prop :=
-∃ t z, s = t ∪ z ∧ measurable_set t ∧ μ z = 0
-
-theorem null_measurable_set_iff : null_measurable_set μ s ↔
-  ∃ t, t ⊆ s ∧ measurable_set t ∧ μ (s \ t) = 0 :=
-begin
-  split,
-  { rintro ⟨t, z, rfl, ht, hz⟩,
-    refine ⟨t, set.subset_union_left _ _, ht, measure_mono_null _ hz⟩,
-    simp [union_diff_left, diff_subset] },
-  { rintro ⟨t, st, ht, hz⟩,
-    exact ⟨t, _, (union_diff_cancel st).symm, ht, hz⟩ }
-end
-
-theorem null_measurable_set_measure_eq (st : t ⊆ s) (hz : μ (s \ t) = 0) : μ s = μ t :=
-begin
-  refine le_antisymm _ (measure_mono st),
-  have := measure_union_le t (s \ t),
-  rw [union_diff_cancel st, hz] at this, simpa
-end
-
-theorem measurable_set.null_measurable_set (μ : measure α) (hs : measurable_set s) :
-  null_measurable_set μ s :=
-⟨s, ∅, by simp, hs, μ.empty⟩
-
-theorem null_measurable_set_of_complete (μ : measure α) [c : μ.is_complete] :
-  null_measurable_set μ s ↔ measurable_set s :=
-⟨by rintro ⟨t, z, rfl, ht, hz⟩; exact
-  measurable_set.union ht (c.out _ hz),
- λ h, h.null_measurable_set _⟩
-
-theorem null_measurable_set.union_null (hs : null_measurable_set μ s) (hz : μ z = 0) :
-  null_measurable_set μ (s ∪ z) :=
-begin
-  rcases hs with ⟨t, z', rfl, ht, hz'⟩,
-  exact ⟨t, z' ∪ z, set.union_assoc _ _ _, ht, nonpos_iff_eq_zero.1
-    (le_trans (measure_union_le _ _) $ by simp [hz, hz'])⟩
-end
-
-theorem null_null_measurable_set (hz : μ z = 0) : null_measurable_set μ z :=
-by simpa using (measurable_set.empty.null_measurable_set _).union_null hz
-
-theorem null_measurable_set.Union_nat {s : ℕ → set α} (hs : ∀ i, null_measurable_set μ (s i)) :
-  null_measurable_set μ (Union s) :=
-begin
-  choose t ht using assume i, null_measurable_set_iff.1 (hs i),
-  simp [forall_and_distrib] at ht,
-  rcases ht with ⟨st, ht, hz⟩,
-  refine null_measurable_set_iff.2
-    ⟨Union t, Union_subset_Union st, measurable_set.Union ht,
-      measure_mono_null _ (measure_Union_null hz)⟩,
-  rw [diff_subset_iff, ← Union_union_distrib],
-  exact Union_subset_Union (λ i, by rw ← diff_subset_iff)
-end
-
-theorem measurable_set.diff_null (hs : measurable_set s) (hz : μ z = 0) :
-  null_measurable_set μ (s \ z) :=
-begin
-  rw measure_eq_infi at hz,
-  choose f hf using show ∀ q : {q : ℚ // q > 0}, ∃ t : set α,
-    z ⊆ t ∧ measurable_set t ∧ μ t < (real.to_nnreal q.1 : ℝ≥0∞),
-  { rintro ⟨ε, ε0⟩,
-    have : 0 < (real.to_nnreal ε : ℝ≥0∞), { simpa using ε0 },
-    rw ← hz at this, simpa [infi_lt_iff] },
-  refine null_measurable_set_iff.2 ⟨s \ Inter f,
-    diff_subset_diff_right (subset_Inter (λ i, (hf i).1)),
-    hs.diff (measurable_set.Inter (λ i, (hf i).2.1)),
-    measure_mono_null _ (nonpos_iff_eq_zero.1 $ le_of_not_lt $ λ h, _)⟩,
-  { exact Inter f },
-  { rw [diff_subset_iff, diff_union_self],
-    exact subset.trans (diff_subset _ _) (subset_union_left _ _) },
-  rcases ennreal.lt_iff_exists_rat_btwn.1 h with ⟨ε, ε0', ε0, h⟩,
-  simp at ε0,
-  apply not_le_of_lt (lt_trans (hf ⟨ε, ε0⟩).2.2 h),
-  exact measure_mono (Inter_subset _ _)
-end
-
-theorem null_measurable_set.diff_null (hs : null_measurable_set μ s) (hz : μ z = 0) :
-  null_measurable_set μ (s \ z) :=
-begin
-  rcases hs with ⟨t, z', rfl, ht, hz'⟩,
-  rw [set.union_diff_distrib],
-  exact (ht.diff_null hz).union_null (measure_mono_null (diff_subset _ _) hz')
-end
-
-theorem null_measurable_set.compl (hs : null_measurable_set μ s) : null_measurable_set μ sᶜ :=
-begin
-  rcases hs with ⟨t, z, rfl, ht, hz⟩,
-  rw compl_union,
-  exact ht.compl.diff_null hz
-end
-
-theorem null_measurable_set_iff_ae {s : set α} :
-  null_measurable_set μ s ↔ ∃ t, measurable_set t ∧ s =ᵐ[μ] t :=
-begin
-  simp only [ae_eq_set],
-  split,
-  { assume h,
-    rcases null_measurable_set_iff.1 h with ⟨t, ts, tmeas, ht⟩,
-    refine ⟨t, tmeas, ht, _⟩,
-    rw [diff_eq_empty.2 ts, measure_empty] },
-  { rintros ⟨t, tmeas, h₁, h₂⟩,
-    have : null_measurable_set μ (t ∪ (s \ t)) :=
-      null_measurable_set.union_null (tmeas.null_measurable_set _) h₁,
-    have A : null_measurable_set μ ((t ∪ (s \ t)) \ (t \ s)) :=
-      null_measurable_set.diff_null this h₂,
-    have : (t ∪ (s \ t)) \ (t \ s) = s,
-    { apply subset.antisymm,
-      { assume x hx,
-        simp only [mem_union_eq, not_and, mem_diff, not_not_mem] at hx,
-        cases hx.1, { exact hx.2 h }, { exact h.1 } },
-      { assume x hx,
-        simp [hx, classical.em (x ∈ t)] } },
-    rwa this at A }
-end
-
-theorem null_measurable_set_iff_sandwich {s : set α} :
-  null_measurable_set μ s ↔
-  ∃ (t u : set α), measurable_set t ∧ measurable_set u ∧ t ⊆ s ∧ s ⊆ u ∧ μ (u \ t) = 0 :=
-begin
-  split,
-  { assume h,
-    rcases null_measurable_set_iff.1 h with ⟨t, ts, tmeas, ht⟩,
-    rcases null_measurable_set_iff.1 h.compl with ⟨u', u's, u'meas, hu'⟩,
-    have A : s ⊆ u'ᶜ := subset_compl_comm.mp u's,
-    refine ⟨t, u'ᶜ, tmeas, u'meas.compl, ts, A, _⟩,
-    have : sᶜ \ u' = u'ᶜ \ s, by simp [compl_eq_univ_diff, diff_diff, union_comm],
-    rw this at hu',
-    apply le_antisymm _ bot_le,
-    calc μ (u'ᶜ \ t) ≤ μ ((u'ᶜ \ s) ∪ (s \ t)) :
-    begin
-      apply measure_mono,
-      assume x hx,
-      simp at hx,
-      simp [hx, or_comm, classical.em],
-    end
-    ... ≤ μ (u'ᶜ \ s) + μ (s \ t) : measure_union_le _ _
-    ... = 0 : by rw [ht, hu', zero_add] },
-  { rintros ⟨t, u, tmeas, umeas, ts, su, hμ⟩,
-    refine null_measurable_set_iff.2 ⟨t, ts, tmeas, _⟩,
-    apply le_antisymm _ bot_le,
-    calc μ (s \ t) ≤ μ (u \ t) : measure_mono (diff_subset_diff_left su)
-    ... = 0 : hμ }
-end
-
-lemma restrict_apply_of_null_measurable_set {s t : set α}
-  (ht : null_measurable_set (μ.restrict s) t) : μ.restrict s t = μ (t ∩ s) :=
-begin
-  rcases null_measurable_set_iff_sandwich.1 ht with ⟨u, v, umeas, vmeas, ut, tv, huv⟩,
-  apply le_antisymm _ (le_restrict_apply _ _),
-  calc μ.restrict s t ≤ μ.restrict s v : measure_mono tv
-  ... = μ (v ∩ s) : restrict_apply vmeas
-  ... ≤ μ ((u ∩ s) ∪ ((v \ u) ∩ s)) : measure_mono $
-    by { assume x hx, simp at hx, simp [hx, classical.em] }
-  ... ≤ μ (u ∩ s) + μ ((v \ u) ∩ s) : measure_union_le _ _
-  ... = μ (u ∩ s) + μ.restrict s (v \ u) : by rw measure.restrict_apply (vmeas.diff umeas)
-  ... = μ (u ∩ s) : by rw [huv, add_zero]
-  ... ≤ μ (t ∩ s) : measure_mono $ inter_subset_inter_left s ut
-end
-
-/-- The measurable space of all null measurable sets. -/
-def null_measurable (μ : measure α) : measurable_space α :=
-{ measurable_set' := null_measurable_set μ,
-  measurable_set_empty := measurable_set.empty.null_measurable_set _,
-  measurable_set_compl := λ s hs, hs.compl,
-  measurable_set_Union := λ f, null_measurable_set.Union_nat }
-
-/-- Given a measure we can complete it to a (complete) measure on all null measurable sets. -/
-def completion (μ : measure α) : @measure_theory.measure α (null_measurable μ) :=
-{ to_outer_measure := μ.to_outer_measure,
-  m_Union := λ s hs hd, show μ (Union s) = ∑' i, μ (s i), begin
-    choose t ht using assume i, null_measurable_set_iff.1 (hs i),
-    simp [forall_and_distrib] at ht, rcases ht with ⟨st, ht, hz⟩,
-    rw null_measurable_set_measure_eq (Union_subset_Union st),
-    { rw measure_Union _ ht,
-      { congr, funext i,
-        exact (null_measurable_set_measure_eq (st i) (hz i)).symm },
-      { rintro i j ij x ⟨h₁, h₂⟩,
-        exact hd i j ij ⟨st i h₁, st j h₂⟩ } },
-    { refine measure_mono_null _ (measure_Union_null hz),
-      rw [diff_subset_iff, ← Union_union_distrib],
-      exact Union_subset_Union (λ i, by rw ← diff_subset_iff) }
-  end,
-  trimmed := begin
-    letI := null_measurable μ,
-    refine le_antisymm (λ s, _) (outer_measure.le_trim _),
-    rw outer_measure.trim_eq_infi,
-    dsimp,
-    clear _inst,
-    resetI,
-    rw measure_eq_infi s,
-    exact infi_le_infi (λ t, infi_le_infi $ λ st,
-      infi_le_infi2 $ λ ht, ⟨ht.null_measurable_set _, le_refl _⟩)
-  end }
-
-instance completion.is_complete (μ : measure α) : (completion μ).is_complete :=
-⟨λ z hz, null_null_measurable_set hz⟩
-
-lemma measurable.ae_eq {α β} [measurable_space α] [measurable_space β] {μ : measure α}
-  [hμ : μ.is_complete] {f g : α → β} (hf : measurable f) (hfg : f =ᵐ[μ] g) :
-  measurable g :=
-begin
-  intros s hs,
-  let t := {x | f x = g x},
-  have ht_compl : μ tᶜ = 0, by rwa [filter.eventually_eq, ae_iff] at hfg,
-  rw (set.inter_union_compl (g ⁻¹' s) t).symm,
-  refine measurable_set.union _ _,
-  { have h_g_to_f : (g ⁻¹' s) ∩ t = (f ⁻¹' s) ∩ t,
-    { ext,
-      simp only [set.mem_inter_iff, set.mem_preimage, and.congr_left_iff, set.mem_set_of_eq],
-      exact λ hx, by rw hx, },
-    rw h_g_to_f,
-    exact measurable_set.inter (hf hs) (measurable_set.compl_iff.mp (hμ.out tᶜ ht_compl)), },
-  { exact hμ.out (g ⁻¹' s ∩ tᶜ) (measure_mono_null (set.inter_subset_right _ _) ht_compl), },
-end
-
-end is_complete
 
 namespace measure_theory
 
@@ -2934,15 +2708,6 @@ begin
   exact ⟨λ x, f (default α), measurable_const, rfl⟩
 end
 
-lemma ae_measurable_iff_measurable [μ.is_complete] :
-  ae_measurable f μ ↔ measurable f :=
-begin
-  split; intro h,
-  { rcases h with ⟨g, hg_meas, hfg⟩,
-    exact hg_meas.ae_eq hfg.symm, },
-  { exact h.ae_measurable, },
-end
-
 namespace ae_measurable
 
 lemma mono_measure (h : ae_measurable f μ) (h' : ν ≤ μ) : ae_measurable f ν :=
@@ -3021,18 +2786,14 @@ begin
   rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
 end
 
-protected lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
-  null_measurable_set μ (f ⁻¹' s) :=
-begin
-  apply null_measurable_set_iff_ae.2,
-  refine ⟨(h.mk f) ⁻¹' s, h.measurable_mk hs, _⟩,
-  filter_upwards [h.ae_eq_mk],
-  assume x hx,
-  change (f x ∈ s) = ((h.mk f) x ∈ s),
-  rwa hx
-end
+protected lemma null_measurable (h : ae_measurable f μ) : null_measurable f μ :=
+let ⟨g, hgm, hg⟩ := h in hgm.null_measurable.congr hg.symm
 
 end ae_measurable
+
+lemma ae_measurable_iff_measurable [μ.is_complete] :
+  ae_measurable f μ ↔ measurable f :=
+⟨λ h, h.null_measurable.measurable_of_complete, λ h, h.ae_measurable⟩
 
 lemma measurable_embedding.ae_measurable_map_iff [measurable_space γ] {f : α → β}
   (hf : measurable_embedding f) {μ : measure α} {g : β → γ} :

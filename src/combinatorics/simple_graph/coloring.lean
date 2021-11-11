@@ -359,4 +359,55 @@ begin
   exact C.valid h,
 end
 
+-- TODO move to basic.lean
+/--
+Two vertices are adjacent in the complete bipartite graph on two vertex types
+if and only if they are not from the same side.
+Bipartite graphs in general may be regarded as being subgraphs of one of these.
+
+TODO maybe replace with complete multi-partite graphs, where the vertex type
+is a sigma type of an indexed family of vertex types?
+-/
+@[simps]
+def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
+{ adj := λ v w, (v.is_left ∧ w.is_right) ∨ (v.is_right ∧ w.is_left),
+  -- maybe replace adj with v.is_left ↔ ¬w.is_left?
+  symm := begin
+    intros v w,
+    cases v; cases w; simp,
+  end,
+  loopless := begin
+    intro v,
+    cases v; simp,
+  end }
+
+/-- The bicoloring of a complete bipartite graph using whether a vertex
+is on the left or on the right. -/
+def complete_bipartite_graph.bicoloring (V W : Type*) :
+  (complete_bipartite_graph V W).coloring bool :=
+coloring.mk (λ v, v.is_right) begin
+  intros v w,
+  cases v; cases w; simp,
+end
+
+lemma complete_bipartite_graph.chromatic_number {V W : Type*} [nonempty V] [nonempty W] :
+  (complete_bipartite_graph V W).chromatic_number = 2 :=
+begin
+  apply chromatic_number_minimal (complete_bipartite_graph.bicoloring V W),
+  intros C b,
+  have v := classical.arbitrary V,
+  have w := classical.arbitrary W,
+  have h : (complete_bipartite_graph V W).adj (sum.inl v) (sum.inr w) := by simp,
+  have hn := C.valid h,
+  by_cases he : C (sum.inl v) = b,
+  { exact ⟨_, he⟩ },
+  { by_cases he' : C (sum.inr w) = b,
+    { exact ⟨_, he'⟩ },
+    { exfalso,
+      cases b;
+      simp only [eq_tt_eq_not_eq_ff, eq_ff_eq_not_eq_tt] at he he';
+      rw [he, he'] at hn;
+      contradiction }, },
+end
+
 end simple_graph

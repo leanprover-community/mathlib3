@@ -6,7 +6,7 @@ Authors: Adam Topaz
 import algebra.free_algebra
 import algebra.ring_quot
 import algebra.triv_sq_zero_ext
-import linear_algebra.pi_tensor_product
+import linear_algebra.tensor_power
 
 /-!
 # Tensor Algebras
@@ -228,6 +228,30 @@ begin
   rw ι_eq_algebra_map_iff x at hx,
   rw [hx.2, ring_hom.map_zero]
 end
+
+open_locale direct_sum tensor_product
+
+/-- Construct a tensor power within the tensor algebra. -/
+def tpower (n : ℕ) : multilinear_map R (λ i : fin n, M) (tensor_algebra R M) :=
+(multilinear_map.mk_pi_algebra_fin R i (tensor_algebra R M)).comp_linear_map $ λ _, ι R)
+
+/-- The tensor algebra is isomorphic to a direct sum of tensor powers -/
+def equiv_direct_sum_tensor_power :
+  tensor_algebra R M ≃ₐ[R] ⨁ n : ℕ, ⨂[R]^n M :=
+alg_equiv.of_alg_hom
+  (tensor_algebra.lift R $ multilinear_map.of_subsingleton R _ i)
+  (direct_sum.to_algebra _ _ (λ i, pi_tensor_product.lift (tpower i))
+    (by {
+      sorry
+    })
+    (by {
+      sorry
+    })
+    (by {
+      sorry
+    }))
+  (by { ext, sorry })
+  (by { ext, sorry })
 
 end tensor_algebra
 

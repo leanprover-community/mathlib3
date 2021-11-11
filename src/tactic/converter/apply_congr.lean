@@ -3,8 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
-import tactic.interactive
-import tactic.converter.interactive
+import tactic.doc_commands
 
 /-!
 ## Introduce the `apply_congr` conv mode tactic.

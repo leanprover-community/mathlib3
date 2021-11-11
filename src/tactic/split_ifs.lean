@@ -5,7 +5,7 @@ Authors: Gabriel Ebner
 
 Tactic to split if-then-else-expressions.
 -/
-import tactic.hint
+import meta.expr
 
 open expr tactic
 

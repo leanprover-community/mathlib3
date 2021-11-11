@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import tactic.core
-import tactic.lint
 /-!
 # mk_iff_of_inductive_prop
 

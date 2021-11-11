@@ -5,8 +5,7 @@ Authors: Kenny Lau
 -/
 
 import algebra.big_operators.pi
-import algebra.big_operators.ring
-import data.finsupp
+import data.finsupp.basic
 
 /-!
 # Big operators for finsupps

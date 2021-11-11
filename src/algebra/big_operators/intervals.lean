@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import algebra.big_operators.basic
 import data.nat.interval
-import tactic.linarith
+import tactic.ring
 
 /-!
 # Results about big operators over intervals

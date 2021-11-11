@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.equiv.encodable.basic
-import data.sigma
 import data.fintype.basic
-import data.list.min_max
 
 /-!
 # Denumerable types

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 import algebra.group_with_zero.power
-import tactic.linarith
 import data.equiv.ring
+import data.rat.cast
 
 /-!
 # Integer power operation on fields and division rings

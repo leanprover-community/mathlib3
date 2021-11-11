@@ -41,6 +41,8 @@ a complete graph, whose vertices represent the colors.
 
   * Planar graphs
 
+  * Chromatic polynomials
+
   * develop API for partial colorings, likely as colorings of subgraphs (`H.coe.coloring α`)
 -/
 
@@ -236,7 +238,6 @@ end
 lemma zero_lt_chromatic_number [nonempty V] {n : ℕ} (hc : G.colorable n) :
   0 < G.chromatic_number :=
 begin
-  change 1 ≤ G.chromatic_number, -- optional, can be removed
   apply le_cInf (colorable_set_nonempty_of_colorable hc),
   intros m hm,
   by_contra h',
@@ -248,7 +249,7 @@ end
 
 lemma colorable_lower_bound {G' : simple_graph V} (h : G ≤ G') (n : ℕ) (hc : G'.colorable n) :
   G.colorable n :=
-⟨hc.some.comp (hom.map h)⟩
+⟨hc.some.comp (hom.map_spanning_subgraphs h)⟩
 
 lemma chromatic_number_le_of_forall_imp {G' : simple_graph V}
   {m : ℕ} (hc : G'.colorable m)

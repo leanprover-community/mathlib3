@@ -738,7 +738,7 @@ The underlying map on edges is given by `sym2.map`. -/
 ⟨f w, f.apply_mem_neighbor_set w.property⟩
 
 /-- The induced map for spanning subgraphs, which is the identity. -/
-def map {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
+def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
 { to_fun := λ x, x,
   map_rel' := h }
 

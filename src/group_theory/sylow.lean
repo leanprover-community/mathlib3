@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
 
@@ -216,7 +217,8 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
-/-- Frattini's Argument -/
+/-- Frattini's Argument: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
+  of `N`, then `N_G(P) ⊔ N = G`. -/
 lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]
   [fintype (sylow p N)] (P : sylow p N) : ((↑P : subgroup N).map N.subtype).normalizer ⊔ N = ⊤ :=
 begin
@@ -399,5 +401,32 @@ theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) {n : ℕ} [fact p.p
   (hdvd : p ^ n ∣ card G) : ∃ K : subgroup G, fintype.card K = p ^ n :=
 let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero_le in
 ⟨K, hK.1⟩
+
+lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [fact p.prime] (P : sylow p G)
+  (hdvd : p ^ n ∣ card G) : p ^ n ∣ card P :=
+begin
+  obtain ⟨Q, hQ⟩ := exists_subgroup_card_pow_prime p hdvd,
+  obtain ⟨R, hR⟩ := (is_p_group.of_card hQ).exists_le_sylow,
+  obtain ⟨g, rfl⟩ := exists_smul_eq G R P,
+  calc p ^ n = card Q : hQ.symm
+  ... ∣ card R : card_dvd_of_le hR
+  ... = card (g • R) : card_congr (R.equiv_smul g).to_equiv
+end
+
+lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)
+  (hdvd : p ∣ card G) : p ∣ card P :=
+begin
+  rw ← pow_one p at hdvd,
+  have key := P.pow_dvd_card_of_pow_dvd_card hdvd,
+  rwa pow_one at key,
+end
+
+lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
+  (hdvd : p ∣ card G) : (P : subgroup G) ≠ ⊥ :=
+begin
+  refine λ h, hp.out.not_dvd_one _,
+  have key : p ∣ card (P : subgroup G) := P.dvd_card_of_dvd_card hdvd,
+  rwa [h, card_bot] at key,
+end
 
 end sylow

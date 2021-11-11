@@ -165,7 +165,7 @@ lemma continuous_at_clog {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
 begin
   refine continuous_at.add _ _,
   { refine continuous_of_real.continuous_at.comp _,
-    refine (real.continuous_at_log _).comp  complex.continuous_abs.continuous_at,
+    refine (real.continuous_at_log _).comp complex.continuous_abs.continuous_at,
     rw abs_ne_zero,
     intro hx,
     cases h,

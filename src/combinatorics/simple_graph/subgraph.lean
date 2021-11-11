@@ -66,11 +66,6 @@ namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
-/-- `H.support` is the set of vertices that form edges in the subgraph `H`. -/
-def support (H : subgraph G) : set V := rel.dom H.adj
-
-lemma mem_support (H : subgraph G) {v : V} : v ∈ H.support ↔ ∃ w, H.adj v w := iff.rfl
-
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩
 
@@ -112,6 +107,11 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
 they are adjacent in `G`. -/
 def is_induced (G' : subgraph G) : Prop :=
 ∀ {v w : V}, v ∈ G'.verts → w ∈ G'.verts → G.adj v w → G'.adj v w
+
+/-- `H.support` is the set of vertices that form edges in the subgraph `H`. -/
+def support (H : subgraph G) : set V := rel.dom H.adj
+
+lemma mem_support (H : subgraph G) {v : V} : v ∈ H.support ↔ ∃ w, H.adj v w := iff.rfl
 
 /-- `G'.neighbor_set v` is the set of vertices adjacent to `v` in `G'`. -/
 def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)
@@ -261,6 +261,9 @@ lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H �
 
 lemma spanning_coe.is_subgraph_of_is_subgraph {H H' : subgraph G} (h : H ≤ H') :
   H.spanning_coe ≤ H'.spanning_coe := h.2
+
+lemma support_mono {H H' : subgraph G} (h : H ≤ H') : H.support ⊆ H'.support :=
+rel.dom_mono (spanning_coe.is_subgraph_of_is_subgraph h)
 
 /-- The top of the `subgraph G` lattice is equivalent to the graph itself. -/
 def top_equiv : (⊤ : subgraph G).coe ≃g G :=

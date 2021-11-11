@@ -36,47 +36,40 @@ universe u
 namespace simple_graph
 variables {V : Type u} {G : simple_graph V} (M : subgraph G)
 
-/--
-The subgraph `M` of `G` is a matching on `G` if every vertex only forms at most one edge of `M`.
--/
-def is_matching : Prop := ∀ ⦃v w w': V⦄, M.adj v w → M.adj v w' → w = w'
+namespace subgraph
 
 /--
-`M` is a perfect matching on `G` if it's a matching on `G` and if every vertex forms an edge of `M`.
+The subgraph `M` of `G` is a matching if every vertex of `M` forms exactly one edge in `M`.
 -/
-def is_perfect_matching : Prop := is_matching M ∧ M.is_spanning
+structure is_matching : Prop :=
+(disjoint : ∀ ⦃v w w': V⦄, M.adj v w → M.adj v w' → w = w')
+(verts_eq_support : M.verts = M.support)
 
-lemma is_perfect_iff :
-  is_perfect M ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=
+/--
+`M` is a perfect matching on `G` if it's a matching and if every vertex forms an edge of `G`.
+-/
+def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
+
+lemma is_matching_iff : M.is_matching ↔ ∀ (v ∈ M.support), ∃! (w ∈ M.support), M.adj v w :=
 begin
-  simp only [is_matching, is_perfect, exists_unique],
+  sorry
+end
+
+lemma is_perfect_iff : M.is_perfect_matching ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=
+begin
+  simp [is_perfect_matching, is_matching_iff, subgraph.is_spanning, exists_unique],
   split,
   { intros h v,
-    cases h with h hu,
-    have hu' := set.mem_univ v,
-    rw [← hu, subgraph.mem_support] at hu',
-    cases hu' with w hvw,
-    use [w, hvw],
-    intros w' hvw',
-    specialize h v w w' hvw hvw',
-    simp only [h], },
+    cases h with ee ss,
+    sorry, },
   { intro h,
     split,
-    { intros v w w' hvw hvw',
-      specialize h v,
-      cases h with x h,
-      cases h with _ hy,
-      have hxw := hy w hvw,
-      have hxw' := hy w' hvw',
-      simp only [hxw, hxw'], },
-    { rw set.eq_univ_iff_forall,
-      intro v,
-      specialize h v,
-      cases h with w h,
-      cases h with hvw h,
-      rw subgraph.mem_support,
-      use w,
-      exact hvw, }, },
+    { intros v hv,
+      sorry, },
+    { intro v,
+      sorry, }, },
 end
+
+end subgraph
 
 end simple_graph

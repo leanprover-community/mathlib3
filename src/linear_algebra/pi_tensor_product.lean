@@ -62,7 +62,7 @@ section semiring
 
 variables {ι ι₂ ι₃ : Type*} [decidable_eq ι] [decidable_eq ι₂] [decidable_eq ι₃]
 variables {R : Type*} [comm_semiring R]
-variables {R' : Type*} [comm_semiring R'] [algebra R' R]
+variables {R₁ R₂ : Type*}
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, module R (s i)]
 variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {E : Type*} [add_comm_monoid E] [module R E]
@@ -144,12 +144,12 @@ lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r * z) f :=
  quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
-lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R')
-  [module R' (s i)] [is_scalar_tower R' R (s i)] :
+lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R₁)
+  [has_scalar R₁ R] [is_scalar_tower R₁ R R] [has_scalar R₁ (s i)] [is_scalar_tower R₁ R (s i)] :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
 begin
-  have h₁ : r • z = (r • (1 : R)) * z := by simp,
-  have h₂ : r • (f i) = (r • (1 : R)) • f i := by simp,
+  have h₁ : r • z = (r • (1 : R)) * z := by rw [smul_mul_assoc, one_mul],
+  have h₂ : r • (f i) = (r • (1 : R)) • f i := (smul_one_smul _ _ _).symm,
   rw [h₁, h₂],
   exact smul_tprod_coeff_aux z f i _,
 end
@@ -182,25 +182,6 @@ def lift_add_hom (φ : (R × Π i, s i) → F)
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
 
--- Most of the time we want the instance below this one, which is easier for typeclass resolution
--- to find.
-instance has_scalar' : has_scalar R' (⨂[R] i, s i) :=
-⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r • f.1) f.2)
-  (λ r' f i hf, by simp_rw [zero_tprod_coeff' _ f i hf])
-  (λ f, by simp [zero_tprod_coeff])
-  (λ r' f i m₁ m₂, by simp [add_tprod_coeff])
-  (λ r' r'' f, by simp [add_tprod_coeff', mul_add])
-  (λ z f i r', by simp [smul_tprod_coeff])⟩
-
-instance : has_scalar R (⨂[R] i, s i) := pi_tensor_product.has_scalar'
-
-lemma smul_tprod_coeff' (r : R') (z : R) (f : Π i, s i) :
-  r • (tprod_coeff R z f) = tprod_coeff R (r • z) f := rfl
-
-protected theorem smul_add (r : R') (x y : ⨂[R] i, s i) :
-  r • (x + y) = r • x + r • y :=
-add_monoid_hom.map_add _ _ _
-
 @[elab_as_eliminator]
 protected theorem induction_on'
   {C : (⨂[R] i, s i) → Prop}
@@ -218,42 +199,69 @@ begin
   simp only [prod.mk.eta],
 end
 
+section distrib_mul_action
+variables [monoid R₁] [distrib_mul_action R₁ R] [smul_comm_class R₁ R R]
+variables [monoid R₂] [distrib_mul_action R₂ R] [smul_comm_class R₂ R R]
+
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance module' : module R' (⨂[R] i, s i) :=
+instance has_scalar' : has_scalar R₁ (⨂[R] i, s i) :=
+⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r • f.1) f.2)
+  (λ r' f i hf, by simp_rw [zero_tprod_coeff' _ f i hf])
+  (λ f, by simp [zero_tprod_coeff])
+  (λ r' f i m₁ m₂, by simp [add_tprod_coeff])
+  (λ r' r'' f, by simp [add_tprod_coeff', mul_add])
+  (λ z f i r', by simp [smul_tprod_coeff, mul_smul_comm])⟩
+
+instance : has_scalar R (⨂[R] i, s i) := pi_tensor_product.has_scalar'
+
+lemma smul_tprod_coeff' (r : R₁) (z : R) (f : Π i, s i) :
+  r • (tprod_coeff R z f) = tprod_coeff R (r • z) f := rfl
+
+protected theorem smul_add (r : R₁) (x y : ⨂[R] i, s i) :
+  r • (x + y) = r • x + r • y :=
+add_monoid_hom.map_add _ _ _
+
+instance distrib_mul_action' : distrib_mul_action R₁ (⨂[R] i, s i) :=
 { smul := (•),
-  smul_add := λ r x y, pi_tensor_product.smul_add r x y,
-  mul_smul := λ r r' x,
-    begin
-      refine pi_tensor_product.induction_on' x _ _,
-      { intros r'' f,
-        simp [smul_tprod_coeff', smul_smul] },
-      { intros x y ihx ihy,
-        simp [pi_tensor_product.smul_add, ihx, ihy] }
-    end,
+  smul_add := λ r x y, add_monoid_hom.map_add _ _ _,
+  mul_smul := λ r r' x, pi_tensor_product.induction_on' x
+    (λ r'' f, by simp [smul_tprod_coeff', smul_smul])
+    (λ x y ihx ihy, by simp_rw [pi_tensor_product.smul_add, ihx, ihy]),
   one_smul := λ x, pi_tensor_product.induction_on' x
     (λ f, by simp [smul_tprod_coeff' _ _])
     (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy]),
-  add_smul := λ r r' x,
-    begin
-      refine pi_tensor_product.induction_on' x _ _,
-      { intros r f,
-        simp [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'] },
-      { intros x y ihx ihy,
-        simp [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm] }
-    end,
-  smul_zero := λ r, add_monoid_hom.map_zero _,
-  zero_smul := λ x,
-    begin
-      refine pi_tensor_product.induction_on' x _ _,
-      { intros r f,
-        simp_rw [smul_tprod_coeff' _ _, zero_smul],
-        exact zero_tprod_coeff _ },
-      { intros x y ihx ihy,
-        rw [pi_tensor_product.smul_add, ihx, ihy, add_zero] },
-    end }
+  smul_zero := λ r, add_monoid_hom.map_zero _ }
 
-instance : module R' (⨂[R] i, s i) := pi_tensor_product.module'
+instance smul_comm_class' [smul_comm_class R₁ R₂ R] : smul_comm_class R₁ R₂ (⨂[R] i, s i) :=
+⟨λ r' r'' x, pi_tensor_product.induction_on' x
+  (λ xr xf, by simp only [smul_tprod_coeff', smul_comm])
+  (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
+
+instance is_scalar_tower' [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ R] :
+  is_scalar_tower R₁ R₂ (⨂[R] i, s i) :=
+⟨λ r' r'' x, pi_tensor_product.induction_on' x
+  (λ xr xf, by simp only [smul_tprod_coeff', smul_assoc])
+  (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
+
+end distrib_mul_action
+
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+instance module' [semiring R₁] [module R₁ R] [smul_comm_class R₁ R R] : module R₁ (⨂[R] i, s i) :=
+{ smul := (•),
+  add_smul := λ r r' x, pi_tensor_product.induction_on' x
+    (λ r f, by simp [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'])
+    (λ x y ihx ihy, by simp [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm]),
+  zero_smul := λ x, pi_tensor_product.induction_on' x
+    (λ r f, by { simp_rw [smul_tprod_coeff' _ _, zero_smul], exact zero_tprod_coeff _ })
+    (λ x y ihx ihy, by rw [pi_tensor_product.smul_add, ihx, ihy, add_zero]),
+  ..pi_tensor_product.distrib_mul_action' }
+
+-- shortcut instances
+instance : module R (⨂[R] i, s i) := pi_tensor_product.module'
+instance : smul_comm_class R R (⨂[R] i, s i) := pi_tensor_product.smul_comm_class'
+instance : is_scalar_tower R R (⨂[R] i, s i) := pi_tensor_product.is_scalar_tower'
 
 variables {R}
 
@@ -376,14 +384,14 @@ For simplicity, this is defined only for homogeneously- (rather than dependently
 -/
 def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M :=
 linear_equiv.of_linear
-  (((lift.symm ≪≫ₗ
-    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm)) ≪≫ₗ
-      lift) (linear_map.id))
-  (((lift.symm ≪≫ₗ
-    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e)) ≪≫ₗ
-      lift) (linear_map.id))
-  (by { ext, simp })
-  (by { ext, simp })
+  (lift (dom_dom_congr e.symm (tprod R : multilinear_map R _ (⨂[R] i : ι₂, M))))
+  (lift (dom_dom_congr e (tprod R : multilinear_map R _ (⨂[R] i : ι, M))))
+  (by { ext, simp only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
+                        linear_map.comp_multilinear_map_apply, lift.tprod,
+                        dom_dom_congr_apply, equiv.apply_symm_apply] })
+  (by { ext, simp only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
+                        linear_map.comp_multilinear_map_apply, lift.tprod,
+                        dom_dom_congr_apply, equiv.symm_apply_apply] })
 
 end
 

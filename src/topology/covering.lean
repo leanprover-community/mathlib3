@@ -24,10 +24,35 @@ end-/
 
 end for_mathlib
 
-variables {E E' X : Type*} [topological_space E] [topological_space E'] [topological_space X]
+universes u
+
+variables {E E' X : Type u} [topological_space E] [topological_space E'] [topological_space X]
 
 def evenly_covered (f : E → X) (U : set X) : Prop :=
-∃ (α : Type*) (g : (Σ (a : α), U) → E), embedding g ∧ set.range g = f ⁻¹' U ∧ f ∘ g = λ x, x.2
+∃ (α : Type u) (ι : (Σ (a : α), U) → E), embedding ι ∧ set.range ι = f ⁻¹' U ∧ ∀ s, f (ι s) = s.2
+
+-- not sure if we'll end up needing this lemma
+lemma evenly_covered.comp {f : E' → X} {g : E → E'} {U : set X}
+  (hf : evenly_covered f U) (hg : evenly_covered g (f ⁻¹' U)) : evenly_covered (f ∘ g) U :=
+begin
+  obtain ⟨α, ι, hι1, hι2, hι3⟩ := hf,
+  obtain ⟨β, κ, hκ1, hκ2, hκ3⟩ := hg,
+  let γ := α × β,
+  let μ : (Σ (c : γ), U) → E :=
+  λ s, κ ⟨s.1.2, ⟨ι ⟨s.1.1, s.2⟩, (congr_arg (∈ U) (hι3 ⟨s.1.1, s.2⟩)).mpr s.2.2⟩⟩,
+  have h3 : ∀ s, f (g (μ s)) = s.2 := λ s, by rw [hκ3, subtype.coe_mk, hι3],
+  have h2 : set.range μ = (f ∘ g) ⁻¹' U,
+  { refine set.subset.antisymm _ _,
+    { rintros _ ⟨s, rfl⟩,
+      exact (congr_arg (∈ U) (h3 s)).mpr s.2.2 },
+    { intros e he,
+      obtain ⟨s, hs⟩ := hι2.symm.subset he,
+      obtain ⟨t, rfl⟩ := hκ2.symm.subset he,
+      exact ⟨⟨⟨s.1, t.1⟩, s.2⟩, by simp_rw [μ, sigma.eta, hs, hκ3, subtype.coe_eta, sigma.eta]⟩ } },
+  have h1 : embedding μ,
+  { sorry },
+  exact ⟨γ, μ, h1, h2, h3⟩,
+end
 
 variables (E E' X)
 
@@ -44,10 +69,5 @@ infixr ` ↠ `:25 := covering_map -- shortcut: type `\rr-` or just type `\rr `
 instance : has_coe_to_fun (E ↠ X) (λ _, E → X) := ⟨λ q, q.to_fun⟩
 
 @[continuity] lemma continuous (q : E ↠ X) : continuous q := q.continuous_to_fun
-
-def comp (p : E' ↠ X) (q : E ↠ E') : E ↠ X :=
-{ to_fun := p ∘ q,
-  surjective := p.surjective.comp q.surjective,
-  evenly_covered := sorry }
 
 end covering_map

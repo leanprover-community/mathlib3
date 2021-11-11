@@ -552,7 +552,7 @@ variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ 
 
 lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
   has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
-by simp only [has_sum, tendsto_pi, sum_apply]
+by simp only [has_sum, tendsto_pi_nhds, sum_apply]
 
 lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
 by simp only [summable, pi.has_sum, skolem]

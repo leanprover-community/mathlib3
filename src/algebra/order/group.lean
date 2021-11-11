@@ -3,9 +3,9 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.order.monoid
-import order.order_dual
 import algebra.abs
+import algebra.order.sub
+import order.order_dual
 
 /-!
 # Ordered groups
@@ -580,6 +580,12 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
+-- TODO: Should we get rid of `sub_le_iff_le_add` in favor of
+-- (a renamed version of) `tsub_le_iff_right`?
+@[priority 100] -- see Note [lower instance priority]
+instance add_group.to_has_ordered_sub {α : Type*} [add_group α] [has_le α]
+  [covariant_class α α (swap (+)) (≤)] : has_ordered_sub α :=
+⟨λ a b c, sub_le_iff_le_add⟩
 /-- `equiv.mul_right` as an `order_iso`. See also `order_embedding.mul_right`. -/
 @[to_additive "`equiv.add_right` as an `order_iso`. See also `order_embedding.add_right`.",
   simps to_equiv apply {simp_rhs := tt}]

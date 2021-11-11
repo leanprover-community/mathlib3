@@ -127,7 +127,7 @@ begin
   -- If all numbers `z i` with non-zero weight are positive, then we apply Jensen's inequality
   -- for `exp` and numbers `log (z i)` with weights `w i`.
   { simp only [not_exists, not_and, ne.def, not_not] at A,
-    have := convex_on_exp.map_sum_le hw hw' (λ i _, set.mem_univ $ log (z i)),
+    have := strict_convex_on_exp.convex_on.map_sum_le hw hw' (λ i _, set.mem_univ $ log (z i)),
     simp only [exp_sum, (∘), smul_eq_mul, mul_comm (w _) (log _)] at this,
     convert this using 1; [apply prod_congr rfl, apply sum_congr rfl]; intros i hi,
     { cases eq_or_lt_of_le (hz i hi) with hz hz,
@@ -146,7 +146,7 @@ theorem pow_arith_mean_le_arith_mean_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0
 theorem pow_arith_mean_le_arith_mean_pow_of_even (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : even n) :
   (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
-(convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
+hn.convex_on_pow.map_sum_le hw hw' (λ _ _, trivial)
 
 theorem zpow_arith_mean_le_arith_mean_zpow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 < z i) (m : ℤ) :

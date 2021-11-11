@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.pi_system
-import data.matrix.notation
+import data.fin.vec_notation
 import topology.algebra.infinite_sum
 
 /-!
@@ -215,13 +215,17 @@ instance : module ℝ≥0∞ (outer_measure α) :=
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
-instance outer_measure.order_bot : order_bot (outer_measure α) :=
+@[simp] theorem coe_bot : (⊥ : outer_measure α) = 0 := rfl
+
+instance outer_measure.partial_order : partial_order (outer_measure α) :=
 { le          := λm₁ m₂, ∀s, m₁ s ≤ m₂ s,
-  bot         := 0,
   le_refl     := assume a s, le_refl _,
   le_trans    := assume a b c hab hbc s, le_trans (hab s) (hbc s),
-  le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s),
-  bot_le      := assume a s, zero_le _ }
+  le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s) }
+
+instance outer_measure.order_bot : order_bot (outer_measure α) :=
+{ bot_le      := assume a s, by simp only [coe_zero, pi.zero_apply, coe_bot, zero_le],
+  ..outer_measure.has_bot }
 
 section supremum
 

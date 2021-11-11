@@ -58,6 +58,10 @@ end
 (sup_parts : univ.sup parts = a)
 (ne_bot : ∀ i, parts i ≠ ⊥)
 
+-- instance {ι : Type*} [fintype ι] [distrib_lattice_bot α] {a : α} :
+--   has_coe (finpartition ι a) (ι → α) :=
+-- { coe := λ F, F.parts }
+
 attribute [protected] finpartition.disjoint
 
 namespace finpartition
@@ -66,19 +70,29 @@ variables [fintype ι] [fintype ι'] [distrib_lattice_bot α]
 
 /-- A `finpartition` constructor which does not insist on `⊥` not being a part. -/
 @[simps] def of_erase' [decidable_eq α] {a : α} (parts : ι → α)
-  (disjoint : (set.univ : set ι).pairwise_disjoint parts) (sup_parts : univ.sup parts = a) :
+  (disj : (set.univ : set ι).pairwise_disjoint parts) (sup_parts : univ.sup parts = a) :
   finpartition {i // parts i ≠ ⊥} a :=
 { parts := parts ∘ coe,
-  disjoint := begin
-    -- disjoint.subset (erase_subset _ _)
-    sorry
+  disjoint :=
+  begin
+    rintro i - j - ne',
+    apply disj _ (set.mem_univ _) _ (set.mem_univ _),
+    simpa [subtype.ext_iff] using ne',
   end,
   sup_parts := begin
     classical,
-    rw [←sup_image],
-
-    sorry
-    -- (sup_erase_bot _).trans sup_parts,
+    rw [←sup_parts, ←sup_image],
+    have : (univ : finset ι) = univ.filter (λ i, parts i = ⊥) ∪ univ.filter (λ i, parts i ≠ ⊥),
+    { rw filter_union_filter_neg_eq },
+    conv_rhs {rw this},
+    rw sup_union,
+    have : (image coe (univ : finset {i // parts i ≠ ⊥})) = univ.filter (λ i, parts i ≠ ⊥),
+    { ext, simp },
+    rw ←this,
+    convert bot_sup_eq.symm,
+    rw eq_bot_iff,
+    rw finset.sup_le_iff,
+    simp,
   end,
   ne_bot := λ i, i.2 }
 
@@ -165,26 +179,34 @@ variables [decidable_eq α]
 
 /-- Given a finpartition `P` of `a` and finpartitions of each part of `P`, this yields the
 finpartition of `a` obtained by juxtaposing all the subpartitions. -/
-@[simps] def bind (P : finpartition ι a) (Q : Π i ∈ P.parts, finpartition i) : finpartition a :=
-{ parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
-  disjoint := λ a ha b hb h, begin
-    rw [finset.mem_coe, finset.mem_bUnion] at ha hb,
-    obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
-    obtain ⟨⟨B, hB⟩, -, hb⟩ := hb,
-    obtain rfl | hAB := eq_or_ne A B,
-    { exact (Q A hA).disjoint _ ha _ hb h },
-    { exact (P.disjoint _ hA _ hB hAB).mono ((Q A hA).le ha) ((Q B hB).le hb) }
-  end,
-  sup_parts := begin
-    simp_rw [sup_bUnion, ←P.sup_parts],
-    rw [eq_comm, ←finset.sup_attach],
-    exact sup_congr rfl (λ b hb, (Q b.1 b.2).sup_parts.symm),
-  end,
-  not_bot_mem := λ h, begin
-    rw finset.mem_bUnion at h,
-    obtain ⟨⟨A, hA⟩, -, h⟩ := h,
-    exact (Q A hA).not_bot_mem h,
-  end }
+@[simps] def bind (δ : ι → Type*) [∀ i, fintype (δ i)]
+  (P : finpartition ι a) (Q : Π i, finpartition (δ i) (P.parts i)) : finpartition (Σ i, δ i) a :=
+{ parts := λ i, (Q _).parts i.2,
+  disjoint := λ i _ j _ ne,
+  begin
+    rw [function.on_fun],
+  end
+
+}
+-- { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
+--   disjoint := λ a ha b hb h, begin
+--     rw [finset.mem_coe, finset.mem_bUnion] at ha hb,
+--     obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
+--     obtain ⟨⟨B, hB⟩, -, hb⟩ := hb,
+--     obtain rfl | hAB := eq_or_ne A B,
+--     { exact (Q A hA).disjoint _ ha _ hb h },
+--     { exact (P.disjoint _ hA _ hB hAB).mono ((Q A hA).le ha) ((Q B hB).le hb) }
+--   end,
+--   sup_parts := begin
+--     simp_rw [sup_bUnion, ←P.sup_parts],
+--     rw [eq_comm, ←finset.sup_attach],
+--     exact sup_congr rfl (λ b hb, (Q b.1 b.2).sup_parts.symm),
+--   end,
+--   not_bot_mem := λ h, begin
+--     rw finset.mem_bUnion at h,
+--     obtain ⟨⟨A, hA⟩, -, h⟩ := h,
+--     exact (Q A hA).not_bot_mem h,
+--   end }
 
 lemma mem_bind {P : finpartition a} {Q : Π i ∈ P.parts, finpartition i} {b : α} :
   b ∈ (P.bind Q).parts ↔ ∃ A hA, b ∈ (Q A hA).parts :=

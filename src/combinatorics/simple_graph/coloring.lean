@@ -6,6 +6,8 @@ Authors: Arthur Paulino, Kyle Miller
 
 import combinatorics.simple_graph.subgraph
 import data.nat.lattice
+import data.polynomial.eval
+import algebra.big_operators.basic
 
 /-!
 # Graph Coloring
@@ -29,6 +31,9 @@ a complete graph, whose vertices represent the colors.
   `n`-colorable, or `0` if it cannot be colored with finitely many
   colors.
 
+* `G.chromatic_poly` is a polynomial that when evaluated at `n` gives
+  the cardinality of `G.coloring (fin n)`.
+
 ## Todo:
 
   * Gather material from:
@@ -45,6 +50,8 @@ a complete graph, whose vertices represent the colors.
 
   * develop API for partial colorings, likely as colorings of subgraphs (`H.coe.coloring α`)
 -/
+
+open_locale big_operators
 
 universes u v
 
@@ -84,14 +91,32 @@ begin
   apply_instance,
 end
 
--- TODO make this computable
+section chromatic_poly
+-- TODO make this computable, and sort out the decidable instances
+
+variables (G) [fintype V]
+  [∀ (G' : simple_graph V), decidable_rel G'.adj]
+  [∀ (G' : simple_graph V), fintype (quot G'.adj)]
+  [decidable_eq V]
+  [decidable_pred (λ G', G' ≤ G)]
+
 /--
 The chromatic polynomial evaluated at `n` is the number of colorings
-with at most `n` colors.  This is a polynomial function of `n`
-(TODO: show that this is indeed a polynomial.)
+given a set of `n` colors.
+
+Implementation note: `quot G'.adj` is a type whose terms are connected components of `G'`.
 -/
 noncomputable
-def chromatic_poly [fintype V] (n : ℕ) := fintype.card (G.coloring (fin n))
+def chromatic_poly (R : Type*) [ring R] :
+  polynomial R :=
+∑ G' in finset.univ.filter (λ G', G' ≤ G),
+  (-1) ^ (G'.edge_finset.card) * polynomial.X ^ fintype.card (quot G'.adj)
+
+lemma chromatic_poly_eq (n : ℕ) :
+  polynomial.eval (n : ℤ) (G.chromatic_poly ℤ) = fintype.card (G.coloring (fin n)) :=
+sorry
+
+end chromatic_poly
 
 variables (G)
 

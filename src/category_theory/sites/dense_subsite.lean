@@ -93,6 +93,7 @@ variable {K}
 
 variables {A : Type*} [category A] {G : C ⥤ D} (H : cover_dense K G)
 
+-- this is not marked with `@[ext]` because `H` can not be inferred from the type
 lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
   s = t :=

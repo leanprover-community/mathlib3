@@ -25,14 +25,15 @@ value in `ℝ`, `ℝ≥0` or `ℝ≥0∞`.
 
 open measure_theory
 
-localized "notation `𝔼[` X `|` hm `]` := measure_theory.condexp hm volume X" in probability_theory
+localized "notation `𝔼[` X `|` hm `]` := measure_theory.condexp hm measure_theory.measure.volume X"
+  in probability_theory
 
 localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory
 
 localized "notation `𝔼[` X `]` := ∫ a, X a" in probability_theory
 
-localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[volume] Y" in probability_theory
+localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[measure_theory.measure.volume] Y" in probability_theory
 
-localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[volume] Y" in probability_theory
+localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[measure_theory.measure.volume] Y" in probability_theory
 
 localized "notation `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory

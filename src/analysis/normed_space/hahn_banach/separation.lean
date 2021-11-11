@@ -66,28 +66,64 @@ begin
   exact hV₃ _ hy,
 end
 
+lemma linear_map.exists_ne_zero {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
+  {M₁ : Type*} [add_comm_monoid M₁] {M₂ : Type*} [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
+  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : f ≠ 0) :
+  ∃ x, f x ≠ 0 :=
+begin
+  by_contra,
+  push_neg at h,
+  exact hf (linear_map.ext h),
+end
+
+lemma continuous_linear_map.exists_ne_zero {R₁ R₂ : Type*} [semiring R₁]
+  [semiring R₂] {σ₁₂ : R₁ →+* R₂} {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
+  {f : M₁ →SL[σ₁₂] M₂} (hf : f ≠ 0) :
+  ∃ x, f x ≠ 0 :=
+begin
+  by_contra,
+  push_neg at h,
+  exact hf (continuous_linear_map.ext h),
+end
+
+lemma nhds_le_map_nhds [topological_space 𝕜] [topological_space E] {f : E → 𝕜} {g : 𝕜 → E} {a : E}
+  (hg : continuous_at g (f a)) (hcomp : f ∘ g = id) (hgfa : g (f a) = a) :
+  𝓝 (f a) ≤ map f (𝓝 a) :=
+calc 𝓝 (f a) = ((𝓝 (f a)).map g).map f : by rw [map_map, hcomp, map_id]
+  ... ≤ (𝓝 $ g (f a)).map f             : map_mono hg
+  ... = (𝓝 a).map f                     : by rw hgfa
+
+lemma linear_map.nhds_le_map_nhds [topological_space 𝕜] [division_ring 𝕜] [topological_ring 𝕜]
+  [add_comm_group E] [topological_space E] [topological_add_group E] [module 𝕜 E]
+  [has_continuous_smul 𝕜 E] {f : E →ₗ[𝕜] 𝕜} (hf : f ≠ 0) (a : E) :
+  𝓝 (f a) ≤ map f (𝓝 a) :=
+begin
+  obtain ⟨x₀, hx₀⟩ := linear_map.exists_ne_zero hf,
+  let g : 𝕜 → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
+  have hg : continuous g, by continuity,
+  have hcomp : f ∘ g = id, by { ext, simp [hx₀] },
+  have hgfa : g (f a) = a, by simp [hx₀],
+  exact nhds_le_map_nhds hg.continuous_at hcomp hgfa,
+end
+
 /-- A nonzero continuous linear functional is open. -/
-lemma nonzero_linear_map_is_open_map [topological_space 𝕜] [division_ring 𝕜]
+lemma continuous_linear_map.is_open_map [topological_space 𝕜] [division_ring 𝕜]
   [topological_ring 𝕜] [add_comm_group E] [topological_space E] [topological_add_group E]
   [module 𝕜 E] [has_continuous_smul 𝕜 E] (f : E →L[𝕜] 𝕜) (hf : f ≠ 0) :
   is_open_map f :=
 begin
-  obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ ≠ 0,
-  { by_contra h,
-    push_neg at h,
-    exact hf (continuous_linear_map.ext (λ x, by simp [h]) )},
-  apply is_open_map.of_nhds_le,
-  intros a,
+  refine is_open_map.of_nhds_le (λ a, _),
+  obtain ⟨x₀, hx₀⟩ := continuous_linear_map.exists_ne_zero hf,
   let g : 𝕜 → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
-  have cont_g : continuous g, by continuity,
-  have comp : f ∘ g = id, by { ext, simp [hx₀] },
-  have comp_a : g (f a) = a, by simp [hx₀],
-  calc 𝓝 (f a) = ((𝓝 (f a)).map g).map f : by rw [map_map, comp, map_id]
-    ... ≤ (𝓝 $ g (f a)).map f             : map_mono cont_g.continuous_at
-    ... = (𝓝 a).map f                     : by rw comp_a
+  have hg : continuous g, by continuity,
+  have hcomp : f ∘ g = id, by { ext, simp [hx₀] },
+  have hgfa : g (f a) = a, by simp [hx₀],
+  exact nhds_le_map_nhds hg.continuous_at hcomp hgfa,
 end
 
 variables [normed_group E] [normed_space ℝ E]
+
 /-- Given a set `C` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x0` and `C`, in the sense that it sends `x₀` to 1 and
 all of `C` to values strictly below `1`. -/
@@ -177,7 +213,7 @@ begin
       { rintro _ ⟨b', hb, rfl⟩,
         exact (forall_lt _ ha _ hb).le },
       { exact mem_image_of_mem _ hb₀ } },
-    refine nonzero_linear_map_is_open_map _ _ _ hA₂,
+    refine f.is_open_map _ _ hA₂,
     rintro rfl,
     simpa using hf₁ },
   { intros b hb,
@@ -200,7 +236,7 @@ let ⟨f, hf⟩ := geometric_hahn_banach_open_point hB₁ hB₂ disj in ⟨-f, b
 
 theorem geometric_hahn_banach_open_open {A B : set E} (hA₁ : convex ℝ A) (hA₂ : is_open A)
   (hB₁ : convex ℝ B) (hB₃ : is_open B) (disj : disjoint A B) :
-∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s < f b) :=
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s < f b) :=
 begin
   obtain (rfl | ⟨a₀, ha₀⟩) := A.eq_empty_or_nonempty,
   { exact ⟨0, -1, by simp, λ b hb, by norm_num⟩ },
@@ -209,12 +245,8 @@ begin
   obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open hA₁ hA₂ hB₁ disj,
   have : f ≠ 0,
   { rintro rfl,
-    have := hf₁ _ ha₀,
-    simp only [continuous_linear_map.zero_apply] at this,
-    have := hf₂ _ hb₀,
-    simp only [continuous_linear_map.zero_apply] at this,
-    linarith },
-  have : is_open_map f := nonzero_linear_map_is_open_map _ this,
+    exact (hf₁ _ ha₀).not_le (hf₂ _ hb₀) },
+  have : is_open_map f := f.is_open_map this,
   refine ⟨f, s, hf₁, _⟩,
   suffices : f '' B ⊆ Ioi s,
   { exact λ b hb, this ⟨b, ‹_›, rfl⟩ },
@@ -256,7 +288,7 @@ begin
         have : f n - g n = g' n - f' n,
         { rw [sub_eq_iff_eq_add', ←add_sub_assoc, h₆, ←h₃, add_sub_cancel] },
         rw this,
-        apply le_trans (norm_sub_le _ _) _,
+        apply (norm_sub_le _ _).trans _,
         rw two_mul,
         apply add_le_add (h₅ n).le (h₂ n).le },
       have : tendsto (f ∘ φ - g ∘ φ) at_top (𝓝 0),
@@ -271,8 +303,8 @@ begin
   obtain ⟨n, hn⟩ := this,
   refine ⟨_, _, metric.is_open_ball.add_left, metric.is_open_ball.add_left,
     hA₁.add (convex_ball 0 _), hB₁.add (convex_ball 0 _), _, _, hn⟩,
-  { exact subset_add_left A _ (metric.mem_ball_self nat.inv_pos_of_nat) },
-  { exact subset_add_left B _ (metric.mem_ball_self nat.inv_pos_of_nat) }
+  { exact subset_add_left A (metric.mem_ball_self nat.inv_pos_of_nat) },
+  { exact subset_add_left B (metric.mem_ball_self nat.inv_pos_of_nat) }
 end
 
 /-- A version of the Hahn-Banach theorem: given disjoint convex sets `A`, `B` where `A` is compact
@@ -296,10 +328,8 @@ begin
   exact ⟨f, (f x + s)/2, s, λ a ha, by linarith [hx₂ a ha], by linarith, λ b hb, hf₂ b (BV hb)⟩,
 end
 
-/--
-A version of the Hahn-Banach theorem: given disjoint convex subsets `A,B` where `A` is closed,
-and `B` is compact, there is a continuous linear functional which strongly separates them.
--/
+/-- A version of the Hahn-Banach theorem: given disjoint convex subsets `A,B` where `A` is closed,
+and `B` is compact, there is a continuous linear functional which strongly separates them. -/
 theorem geometric_hahn_banach_closed_compact {A B : set E} (hA₁ : convex ℝ A) (hA₂ : is_closed A)
   (hB₁ : convex ℝ B) (hB₂ : is_compact B) (disj : disjoint A B) :
   ∃ (f : E →L[ℝ] ℝ) (s t : ℝ), (∀ a ∈ A, f a < s) ∧ s < t ∧ (∀ b ∈ B, t < f b) :=

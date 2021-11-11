@@ -3,7 +3,7 @@ import topology.continuous_function.basic
 
 section for_mathlib
 
-lemma open_embedding_of_open_embedding_compose_injective {A B C : Type*}
+/-lemma open_embedding_of_open_embedding_compose_injective {A B C : Type*}
   [topological_space A] [topological_space B] [topological_space C]
   {f : A → B} {g : B → C} (hf : continuous f) (hg : continuous g) (h : open_embedding (g ∘ f))
   (hg' : function.injective g) : open_embedding f :=
@@ -20,15 +20,25 @@ begin
   refine ⟨λ U hU, _⟩,
   obtain ⟨U, hU, rfl⟩ := hU,
   exact ⟨f ⁻¹' U, is_open.preimage hf' hU, rfl⟩,
-end
+end-/
 
 end for_mathlib
 
-variables (E E' X : Type*) [topological_space E] [topological_space E'] [topological_space X]
+universes u v w
+
+variables (E : Type u) (E' : Type v) (X : Type w)
+  [topological_space E] [topological_space E'] [topological_space X]
+
+variables {E E' X}
+
+def evenly_covered (f : E → X) (U : set X) : Prop :=
+∃ (α : Type u) (g : (Σ (a : α), U) → E), embedding g ∧ set.range g = f ⁻¹' U ∧ f ∘ g = λ x, x.2
+
+variables (E E' X)
 
 structure covering_map extends continuous_map E X :=
 (surjective : function.surjective to_fun)
-(evenly_covered : ∀ e : E, open_embedding (to_fun ∘ coe : connected_component e → X))
+(evenly_covered : ∀ x : X, ∃ U ∈ nhds x, evenly_covered to_fun U)
 
 variables {E E' X}
 
@@ -43,12 +53,6 @@ instance : has_coe_to_fun (E ↠ X) (λ _, E → X) := ⟨λ q, q.to_fun⟩
 def comp (p : E' ↠ X) (q : E ↠ E') : E ↠ X :=
 { to_fun := p ∘ q,
   surjective := p.surjective.comp q.surjective,
-  evenly_covered := λ e, by
-  { have key : set.maps_to q (connected_component e) (connected_component (q e)) :=
-    λ x hx, continuous.image_connected_component_subset q.continuous e ⟨x, hx, rfl⟩,
-    change open_embedding ((p ∘ coe) ∘ (set.maps_to.restrict _ _ _ key)),
-    exact (p.evenly_covered (q e)).comp (open_embedding_of_open_embedding_compose_injective
-      (set.maps_to.restrict.continuous q.continuous key)
-      continuous_subtype_coe (q.evenly_covered e) subtype.coe_injective) } }
+  evenly_covered := sorry }
 
 end covering_map

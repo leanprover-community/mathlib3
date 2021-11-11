@@ -3,7 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.fekete
+import analysis.subadditive
 import analysis.inner_product_space.dual
 import tactic.by_contra
 import analysis.normed_space.dual

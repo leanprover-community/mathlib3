@@ -227,7 +227,8 @@ Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of ty
 cover-dense, and `ℱ, ℱ'` are sheaves, we may obtain a natural isomorphism between presheaves.
 -/
 @[simps] noncomputable
-def presheaf_iso {ℱ ℱ' : SheafOfTypes.{v} K} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) : ℱ.val ≅ ℱ'.val :=
+def presheaf_iso {ℱ ℱ' : SheafOfTypes.{v} K} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
+  ℱ.val ≅ ℱ'.val :=
 nat_iso.of_components (λ X, app_iso H i (unop X)) (presheaf_hom H i.hom).naturality
 
 /--

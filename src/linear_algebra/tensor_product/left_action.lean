@@ -145,15 +145,18 @@ variables {R' : Type*} [monoid R']
 variables {R'' : Type*} [comm_semiring R''] --?
 variables {M N : Type*}
 variables [add_comm_monoid M] [add_comm_monoid N]
-variables [module R M] [module Rᵒᵖ M] [smul_comm_class Rᵒᵖ R M] -- TODO this or require `is_symmetric_smul`?
+variables [module R M] [module Rᵒᵖ M] [is_symmetric_smul R M]
 variables [module R N]
 variables [distrib_mul_action R' M]
 
---example : is_symmetric_smul R M := is_scalar_tower.is_symmetric_smul
-
 /-- The instance `tensor_product.left_has_scalar` induces this special case of `R` acting
-on the right of the tensor product `M ⊗[R] N`. -/
+on the left of the tensor product `M ⊗[R] N`. -/
 instance right_has_scalar_comm : has_scalar R (M ⊗[R] N) := infer_instance
+
+instance : is_symmetric_smul R (M ⊗[R] N) :=
+⟨λ r x, tensor_product.induction_on x rfl
+  (λ m n, by rw [smul_tmul' r, ←is_symmetric_smul.op_smul_eq_smul r m, smul_tmul'])
+  (λ x y hx hy, by rw [smul_add, hx, hy, smul_add])⟩
 
 instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.left_distrib_mul_action
 
@@ -190,9 +193,9 @@ end
 section UMP
 
 variables {P Q : Type*}
-variables [add_comm_monoid P] [module R P] [module Rᵒᵖ P] [is_symmetric_smul R P]
+variables [add_comm_monoid P] [module R P] --
 variables [add_comm_monoid Q] [module R Q] [module Rᵒᵖ Q] [is_symmetric_smul R Q]
-variables [is_symmetric_smul R M] [module Rᵒᵖ N] [is_symmetric_smul R N]
+variables [is_symmetric_smul R M]
 variables (f : M →ₗ[R] N →ₗ[R] P)
 
 /-- Auxiliary function to constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
@@ -252,15 +255,14 @@ ext' $ λ m n, by rw [H, lift.tmul]
 
 example : has_scalar Rᵒᵖ (M ⊗[R] N) := tensor_product.left_has_scalar
 
-variables [is_symmetric_smul R (M ⊗[R] N)]
-
 theorem lift_mk : lift (mk R M N) = linear_map.id :=
 eq.symm $ lift.unique $ λ x y, rfl
 
 theorem lift_compr₂ (g : P →ₗ[R] Q) : lift (f.compr₂ g) = g.comp (lift f) :=
 eq.symm $ lift.unique $ λ x y, by simp
 
-theorem lift_mk_compr₂ (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f) = f :=
+theorem lift_mk_compr₂ [module Rᵒᵖ P] [is_symmetric_smul R P]
+  (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f) = f :=
 by { rw [lift_compr₂ f, lift_mk, linear_map.comp_id], repeat { apply_instance } }
 
 /--
@@ -269,7 +271,7 @@ it in some cases, notably when one wants to show equality of two linear maps. Th
 attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of
 `tensor_product.ext'` allows `ext` to apply lemmas specific to `M →ₗ _` and `N →ₗ _`.
 See note [partially-applied ext lemmas]. -/
-theorem ext {g h : M ⊗[R] N →ₗ[R] P}
+theorem ext [module Rᵒᵖ P] [is_symmetric_smul R P] {g h : M ⊗[R] N →ₗ[R] P}
   (H : (mk R M N).compr₂ g = (mk R M N).compr₂ h) : g = h :=
 by rw [← lift_mk_compr₂ g, H, lift_mk_compr₂]
 
@@ -278,6 +280,13 @@ local attribute [ext] ext
 example : M → N → (M → N → P) → P :=
 λ m, flip $ λ f, f m
 
+variables (R M N P)
+/-- Linearly constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
+with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
+def uncurry : (M →ₗ[R] N →ₗ[R] P) →ₗ[R] M ⊗[R] N →ₗ[R] P :=
+linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp (linear_map.flip linear_map.id)
+variables {R M N P}
 
 end UMP
 

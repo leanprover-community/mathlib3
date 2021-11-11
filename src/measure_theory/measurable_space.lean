@@ -186,6 +186,10 @@ hf ht
 lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
 λ s hs, @subsingleton.measurable_set α _ _ _
 
+@[nontriviality, measurability]
+lemma measurable_of_subsingleton_codomain [subsingleton β] (f : α → β) : measurable f :=
+λ s hs, subsingleton.set_cases measurable_set.empty measurable_set.univ s
+
 @[measurability]
 lemma measurable.piecewise {s : set α} {_ : decidable_pred (∈ s)} {f g : α → β}
   (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
@@ -214,11 +218,7 @@ hf.piecewise hs measurable_const
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
 lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
-begin
-  assume s hs,
-  convert measurable_set.empty,
-  exact eq_empty_of_is_empty _,
-end
+subsingleton.measurable
 
 lemma measurable_of_empty_codomain [is_empty β] (f : α → β) : measurable f :=
 by { haveI := function.is_empty f, exact measurable_of_empty f }

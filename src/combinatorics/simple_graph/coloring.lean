@@ -74,6 +74,25 @@ but with a syntactically better proper coloring hypothesis.)
   (valid : ∀ {v w : V}, G.adj v w → color v ≠ color w) :
   G.coloring α := ⟨color, @valid⟩
 
+-- TODO make this computable
+noncomputable
+instance [fintype V] [fintype α] : fintype (coloring G α) :=
+begin
+  classical,
+  change fintype (rel_hom G.adj (⊤ : simple_graph α).adj),
+  apply fintype.of_injective _ rel_hom.coe_fn_injective,
+  apply_instance,
+end
+
+-- TODO make this computable
+/--
+The chromatic polynomial evaluated at `n` is the number of colorings
+with at most `n` colors.  This is a polynomial function of `n`
+(TODO: show that this is indeed a polynomial.)
+-/
+noncomputable
+def chromatic_poly [fintype V] (n : ℕ) := fintype.card (G.coloring (fin n))
+
 variables (G)
 
 /-- Whether a graph can be colored by at most `n` colors. -/

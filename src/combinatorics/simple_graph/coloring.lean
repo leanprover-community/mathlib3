@@ -12,7 +12,7 @@ import data.nat.lattice
 
 The following approach to graph coloring refers to the attribution of "colors" to all of its
 vertices such that no edge connects vertices with the same color. A coloring can be represented by a
-homomorphism into a complete graph whose vertices are the colors themselves.
+homomorphism into a complete graph, whose vertices represent the colors.
 
 ## Main definitions
 
@@ -22,6 +22,12 @@ the set of available colors.
 * We say that *G* is *n-colorable* if it's possible to produce a coloring with at most *n* colors.
 
 * The *chromatic number* of *G* is the minimum number of colors required to color *G*.
+
+**Disclaimer**: Since we're almost always interested in feasible colorings, i.e. all vertices have
+colors and adjacent vertices have different colors, we will be using "coloring" to represent exactly
+that for the sake of brevity/simplicity. Some authors, however, bring up gradual definitions like
+partial/complete/proper/feasible colorings in order to build up to the definition of coloring used
+here.
 
 ## Todo:
 
@@ -46,12 +52,12 @@ variables {V : Type u} (G : simple_graph V)
 /--
 An `α-coloring` of the `simple_graph G` is a homomorphism of `G` into the complete graph of `α`.
 -/
-abbreviation coloring (α : Type v) := G →g complete_graph α
+abbreviation coloring (α : Type v) := G →g (⊤ : simple_graph α)
 
 variables {G} {α : Type v} (C : G.coloring α)
 
 lemma coloring.valid (v w : V) (h : G.adj v w) : C v ≠ C w :=
-  C.map_rel h
+C.map_rel h
 
 /--
 Produces a coloring given a color function (which takes a vertex to a color) and a term of the type
@@ -64,10 +70,36 @@ which guarantees that adjacent vertices have different colors.
 def colorable (G : simple_graph V) (n : ℕ) : Prop :=
 ∃ (α : Type v) [fintype α] (C : G.coloring α), by exactI fintype.card α ≤ n
 
+/-- Returns a generic coloring of an empty graph. -/
+def colorable_of_empty (G : simple_graph V) (he : is_empty V) : G.coloring α :=
+begin
+  let color : V → α := he.elim,
+  have h : ∀ (v w : V), G.adj v w → color v ≠ color w,
+  { intro v,
+    exfalso,
+    exact is_empty_iff.mp he v, },
+  { exact coloring.mk color h, },
+end
+
+/-- Returns a coloring of the graph itself, using the the vertices as colors. -/
+def self_coloring (G : simple_graph V) : G.coloring V :=
+begin
+  let color : V → V := λ v, v,
+  have h : ∀ (v w : V), G.adj v w → color v ≠ color w,
+  { simp only [color],
+    intros v w ha,
+    apply G.ne_of_adj ha, },
+  { exact coloring.mk color h, },
+end
+
 /-- If `G` isn't colorable with finitely many colors, this will be 0. -/
 noncomputable def chromatic_number (G : simple_graph V) : ℕ :=
-  Inf { n : ℕ | G.colorable n }
+Inf { n : ℕ | G.colorable n }
 
+/--
+Builds up an embedding from a complete graph into another given an injective function between the
+types that represent their vertices.
+-/
 def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
 { to_fun := f,
   inj' := f.inj',
@@ -106,27 +138,17 @@ end
 
 lemma empty_graph_trivially_colorable (he: is_empty V) : ∀ (n : ℕ), G.colorable n :=
 begin
-  intro n,
+  intro _,
   rw colorable_iff_nonempty_fin_coloring,
-  let color : V → fin n := he.elim,
-  have h : ∀ (v w : V), G.adj v w → color v ≠ color w,
-  { intro v,
-    exfalso,
-    exact is_empty_iff.mp he v, },
-  { use coloring.mk color h, },
+  use colorable_of_empty G he,
 end
 
 lemma exists_fin_coloring_then_colorable [fintype α] (C : G.coloring α) :
   G.colorable (fintype.card α) :=
 begin
   rw colorable_iff_nonempty_fin_coloring,
-  let f : α → (fin (fintype.card α)) := λ a, sorry, -- create a function that takes different
-                                                    -- colors to different natural numbers
-  let color : V → fin (fintype.card α) := λ v, f (C v),
-  have h : ∀ (v w : V), G.adj v w → color v ≠ color w,
-  { -- prove that `color` takes adjacent vertices to different colors
-    sorry, },
-  { use coloring.mk color h, },
+  rw ← colorable_iff_nonempty_fin_coloring,
+  use [α, infer_instance, C],
 end
 
 lemma chromatic_number_bdd_below (C: G.coloring α) : bdd_below {n : ℕ | G.colorable n} :=
@@ -188,8 +210,7 @@ begin
 end
 
 lemma chromatic_number_minimal [fintype α] (C : G.coloring α)
-  (h : ∀ (C' : G.coloring α), set.range C' = set.univ) :
-  G.chromatic_number = fintype.card α :=
+(h : ∀ (C' : G.coloring α), set.range C' = set.univ) : G.chromatic_number = fintype.card α :=
 begin
   sorry
 end

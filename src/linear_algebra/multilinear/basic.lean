@@ -196,10 +196,10 @@ variables (R M₂)
 @[simps]
 def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, M₂) M₂ :=
 { to_fun := function.eval i',
-  map_add' := λ m i x y, by {
-    rw subsingleton.elim i i', simp only [function.eval, function.update_same], },
-  map_smul' := λ m i r x, by {
-    rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
+  map_add' := λ m i x y, by
+  { rw subsingleton.elim i i', simp only [function.eval, function.update_same], },
+  map_smul' := λ m i r x, by
+  { rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
 
 end
 
@@ -1171,8 +1171,8 @@ Note that this is not a submodule - it is not closed under addition. -/
 def map [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :
   sub_mul_action R M₂ :=
 { carrier   := f '' { v | ∀ i, v i ∈ p i},
-  smul_mem' := λ c _ ⟨x, hx, hf⟩, let ⟨i⟩ := ‹nonempty ι› in by {
-    refine ⟨update x i (c • x i), λ j, if hij : j = i then _ else _, hf ▸ _⟩,
+  smul_mem' := λ c _ ⟨x, hx, hf⟩, let ⟨i⟩ := ‹nonempty ι› in by
+  { refine ⟨update x i (c • x i), λ j, if hij : j = i then _ else _, hf ▸ _⟩,
     { rw [hij, update_same], exact (p i).smul_mem _ (hx i) },
     { rw [update_noteq hij], exact hx j },
     { rw [f.map_smul, update_eq_self] } } }

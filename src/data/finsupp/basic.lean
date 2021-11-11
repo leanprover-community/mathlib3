@@ -1917,8 +1917,8 @@ section multiset
 def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
 { to_fun := λ f, f.sum (λa n, n • {a}),
   inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
-  left_inv := λ f, ext $ λ a, by {
-      simp only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
+  left_inv := λ f, ext $ λ a, by
+    { simp only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
         multiset.mem_to_finset, iff_self, not_not, mem_support_iff, ite_eq_left_iff, ne.def,
         multiset.count_eq_zero, multiset.count_nsmul, finset.sum_ite_eq, ite_not],
       exact eq.symm },

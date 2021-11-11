@@ -93,8 +93,8 @@ lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n]
   set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔
   set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
 begin
-  split; id {
-    intros h,
+  split; id
+  { intros h,
     classical,
     rw ←perm_inv_maps_to_iff_maps_to at h,
     intro x,

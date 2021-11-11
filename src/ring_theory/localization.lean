@@ -755,8 +755,8 @@ lemma smul_mk {S : Type*} [has_scalar S R] [is_scalar_tower S R R]
   (c : S) (a b) : localization.smul c (mk a b : localization M) = mk (c • a) b :=
 by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
 
-private meta def tac := `[{
-  intros,
+private meta def tac := `[
+{ intros,
   simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
   simp only [submonoid.coe_mul, prod.fst_mul, prod.snd_mul],

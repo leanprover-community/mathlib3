@@ -431,8 +431,8 @@ end
 def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
 { to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
   inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
-  left_inv := λ x, by {
-    apply x.induction_on,
+  left_inv := λ x, by
+  { apply x.induction_on,
     { intros r f,
       have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
       simp [this], },

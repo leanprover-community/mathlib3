@@ -360,8 +360,8 @@ namespace module
 @[simps]
 def comp_hom.to_linear_equiv {R S : Type*} [semiring R] [semiring S] (g : R ≃+* S) :
   (by haveI := comp_hom S (↑g : R →+* S); exact (R ≃ₗ[R] S)) :=
-by exact {
-  to_fun := (g : R → S),
+by exact
+{ to_fun := (g : R → S),
   inv_fun := (g.symm : S → R),
   map_smul' := g.map_mul,
   ..g }

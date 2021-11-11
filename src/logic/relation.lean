@@ -214,8 +214,8 @@ lemma head_induction_on
 begin
   induction h generalizing P,
   case refl_trans_gen.refl { exact refl },
-  case refl_trans_gen.tail : b c hab hbc ih {
-    apply ih,
+  case refl_trans_gen.tail : b c hab hbc ih
+  { apply ih,
     show P b _, from head hbc _ refl,
     show ∀ a a', r a a' → refl_trans_gen r a' b → P a' _ → P a _,
       from λ a a' hab hbc, head hab _ }
@@ -318,8 +318,8 @@ begin
   refine ⟨λ h, _, λ ⟨b, hab, hbc⟩, head' hab hbc⟩,
   induction h,
   case trans_gen.single : c hac { exact ⟨_, hac, by refl⟩ },
-  case trans_gen.tail : b c hab hbc IH {
-    rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
+  case trans_gen.tail : b c hab hbc IH
+  { rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
 end
 
 end trans_gen
@@ -436,14 +436,14 @@ lemma church_rosser
 begin
   induction hab,
   case refl_trans_gen.refl { exact ⟨c, hac, refl⟩ },
-  case refl_trans_gen.tail : d e had hde ih {
-    clear hac had a,
+  case refl_trans_gen.tail : d e had hde ih
+  { clear hac had a,
     rcases ih with ⟨b, hdb, hcb⟩,
     have : ∃ a, refl_trans_gen r e a ∧ refl_gen r b a,
     { clear hcb, induction hdb,
       case refl_trans_gen.refl { exact ⟨e, refl, refl_gen.single hde⟩ },
-      case refl_trans_gen.tail : f b hdf hfb ih {
-        rcases ih with ⟨a, hea, hfa⟩,
+      case refl_trans_gen.tail : f b hdf hfb ih
+      { rcases ih with ⟨a, hea, hfa⟩,
         cases hfa with _ hfa,
         { exact ⟨b, hea.tail hfb, refl_gen.refl⟩ },
         { rcases h _ _ _ hfb hfa with ⟨c, hbc, hac⟩,

@@ -499,8 +499,8 @@ ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
 instance [measurable_space α] : inhabited (measure α) := ⟨0⟩
 
 instance [measurable_space α] : has_add (measure α) :=
-⟨λ μ₁ μ₂, {
-  to_outer_measure := μ₁.to_outer_measure + μ₂.to_outer_measure,
+⟨λ μ₁ μ₂,
+{ to_outer_measure := μ₁.to_outer_measure + μ₂.to_outer_measure,
   m_Union := λ s hs hd,
     show μ₁ (⋃ i, s i) + μ₂ (⋃ i, s i) = ∑' i, (μ₁ (s i) + μ₂ (s i)),
     by rw [ennreal.tsum_add, measure_Union hd hs, measure_Union hd hs],

@@ -111,11 +111,11 @@ See note [bundled maps over different rings] for why separate `R` and `S` semiri
 @[simps]
 def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
-{ to_fun := λ F, {
-    to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
+{ to_fun := λ F,
+  { to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
     map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
-    map_smul' := λ c f, by {
-      dsimp,
+    map_smul' := λ c f, by
+    { dsimp,
       apply dfinsupp.induction f,
       { rw [smul_zero, add_monoid_hom.map_zero, smul_zero] },
       { intros a b f ha hb hf,

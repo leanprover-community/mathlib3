@@ -178,16 +178,16 @@ begin
   { exact this ⟨i,x⟩ ⟨j,y⟩ h },
   intros a b h,
   induction h,
-  case eqv_gen.rel : x y hh {
-    obtain ⟨e,he⟩ := hh,
+  case eqv_gen.rel : x y hh
+  { obtain ⟨e,he⟩ := hh,
     use [y.1, e, 𝟙 _],
     simpa using he.symm },
   case eqv_gen.refl : x { use [x.1, 𝟙 _, 𝟙 _, rfl] },
-  case eqv_gen.symm : x y _ hh {
-    obtain ⟨k, f, g, hh⟩ := hh,
+  case eqv_gen.symm : x y _ hh
+  { obtain ⟨k, f, g, hh⟩ := hh,
     use [k, g, f, hh.symm] },
-  case eqv_gen.trans : x y z _ _ hh1 hh2 {
-    obtain ⟨k1, f1, g1, h1⟩ := hh1,
+  case eqv_gen.trans : x y z _ _ hh1 hh2
+  { obtain ⟨k1, f1, g1, h1⟩ := hh1,
     obtain ⟨k2, f2, g2, h2⟩ := hh2,
     let k0 : J := is_filtered.max k1 k2,
     let e1 : k1 ⟶ k0 := is_filtered.left_to_max _ _,

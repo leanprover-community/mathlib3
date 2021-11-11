@@ -188,7 +188,7 @@ variables {G : Type u} [group G] [fintype G] {N : subgroup G} [normal N]
 include h1 h2 h3
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step0 : N ≠ ⊥ :=
+@[nolint unused_arguments] lemma step0 : N ≠ ⊥ :=
 begin
   tactic.unfreeze_local_instances,
   rintro rfl,
@@ -231,7 +231,7 @@ begin
       (K.one_lt_card_iff_ne_bot.mpr h4.1) },
   have h6 : nat.coprime (fintype.card (N.map (quotient_group.mk' K)))
     (N.map (quotient_group.mk' K)).index,
-  { have index_map := N.index_map this (by rwa quotient_group.ker_mk),
+  { have index_map := N.index_map_eq this (by rwa quotient_group.ker_mk),
     have index_pos : 0 < N.index := nat.pos_of_ne_zero index_ne_zero_of_fintype,
     rw index_map,
     refine h1.coprime_dvd_left _,

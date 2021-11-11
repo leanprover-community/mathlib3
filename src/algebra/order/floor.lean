@@ -154,7 +154,6 @@ ext $ λ a, floor_eq_zero
 lemma preimage_floor_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (floor : α → ℕ) ⁻¹' {n} = Ico n (n + 1) :=
 ext $ λ a, floor_eq_iff' hn
 
-
 /-! #### Ceil -/
 
 lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.gc_ceil
@@ -184,6 +183,17 @@ begin
   { rw floor_lt ha, exact h.trans_le (le_ceil _) },
   { rwa [floor_of_nonpos ha.le, lt_ceil] }
 end
+
+lemma ceil_eq_iff (hn : n ≠ 0) : ⌈a⌉₊ = n ↔ ↑(n - 1) < a ∧ a ≤ n :=
+by rw [← ceil_le, ← not_le, ← ceil_le, not_le,
+  tsub_lt_iff_right (nat.add_one_le_iff.2 (pos_iff_ne_zero.2 hn)), nat.lt_add_one_iff,
+  le_antisymm_iff, and.comm]
+
+@[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
+ext $ λ x, ceil_eq_zero
+
+lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
+ext $ λ x, ceil_eq_iff hn
 
 end linear_ordered_semiring
 

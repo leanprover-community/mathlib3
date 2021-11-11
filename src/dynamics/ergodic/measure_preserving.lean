@@ -25,10 +25,10 @@ Isabelle formalization.
 measure preserving map, measure
 -/
 
+namespace measure_theory
+
 variables {α β γ δ : Type*} [measurable_space α] [measurable_space β] [measurable_space γ]
   [measurable_space δ]
-
-namespace measure_theory
 
 open measure function set
 
@@ -130,3 +130,42 @@ end
 end measure_preserving
 
 end measure_theory
+
+open measure_theory set
+
+lemma measurable_embedding.measure_preserving_comp_map_iff {α β γ} {_ : measurable_space α}
+  {_ : measurable_space β} {_ : measurable_space γ} {μ : measure α} {ν : measure β}
+  {g : β → γ} {f : α → β} (hg : measurable_embedding g) :
+  measure_preserving (g ∘ f) μ (measure.map g ν) ↔ measure_preserving f μ ν :=
+begin
+  refine ⟨λ H, _, (hg.measurable.measure_preserving _).comp⟩,
+  have hf : measurable f := hg.measurable_comp_iff.1 H.1, use hf,
+  ext1 s hs,
+  rw [← s.preimage_image_eq hg.injective, ← hg.map_apply , ← hg.map_apply,
+    measure.map_map hg.measurable hf, H.map_eq]
+end
+
+lemma measurable_embedding.measure_preserving_comap_iff {α β γ} {_ : measurable_space α}
+  {_ : measurable_space β} {_ : measurable_space γ} {μ : measure α} {ν : measure γ}
+  {g : β → γ} {f : α → β} (hg : measurable_embedding g) :
+  measure_preserving f μ (measure.comap g ν) ↔
+    measure_preserving (g ∘ f) μ (ν.restrict (range g)) :=
+by rw [← hg.measure_preserving_comp_map_iff, hg.map_comap]
+
+lemma measurable_embedding.measure_preserving_comap_iff' {α β γ} {_ : measurable_space α}
+  {_ : measurable_space β} {_ : measurable_space γ} {μ : measure α} {ν : measure γ}
+  {g : β → γ} {f : α → β} (hg : measurable_embedding g) :
+  measure_preserving f μ (measure.comap g ν) ↔
+    measurable f ∧ ∀ s ⊆ range g, measurable_set s → μ ((g ∘ f) ⁻¹' s) = ν s :=
+begin
+  split,
+  { refine λ h, ⟨h.measurable, λ s hsg hsm, _⟩,
+    rw hg.measure_preserving_comap_iff at h,
+    rw [h.measure_preimage hsm, measure.restrict_apply hsm, inter_eq_self_of_subset_left hsg] },
+  { rintro ⟨hfm, H⟩,
+    refine hg.measure_preserving_comap_iff.mpr ⟨hg.measurable.comp hfm, _⟩,
+    ext1 s hs,
+    rw [measure.map_apply (hg.measurable.comp hfm) hs, measure.restrict_apply hs,
+      ← H _ (inter_subset_right _ _) (hs.inter hg.measurable_set_range)],
+    congr' 1, ext1 x, exact (and_iff_left $ mem_range_self _).symm }
+end

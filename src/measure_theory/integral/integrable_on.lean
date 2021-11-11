@@ -87,7 +87,7 @@ by rw [integrable_on, measure.restrict_univ]
 
 lemma integrable_on_zero : integrable_on (λ _, (0:E)) s μ := integrable_zero _ _ _
 
-lemma integrable_on_const {C : E} : integrable_on (λ _, C) s μ ↔ C = 0 ∨ μ s < ∞ :=
+@[simp] lemma integrable_on_const {C : E} : integrable_on (λ _, C) s μ ↔ C = 0 ∨ μ s < ∞ :=
 integrable_const_iff.trans $ by rw [measure.restrict_apply_univ]
 
 lemma integrable_on.mono (h : integrable_on f t ν) (hs : s ⊆ t) (hμ : μ ≤ ν) :

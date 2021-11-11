@@ -279,7 +279,7 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
 /--
 (Implementation). `sheaf_coyoneda_hom` but the order of the arguments of the functor are swapped.
 -/
-@[simps] noncomputable
+noncomputable
 def sheaf_yoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   ℱ ⋙ yoneda ⟶ ℱ'.val ⋙ yoneda :=
 begin

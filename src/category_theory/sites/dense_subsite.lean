@@ -259,21 +259,21 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   coyoneda ⋙ (whiskering_left Dᵒᵖ A Type*).obj ℱ'.val :=
 { app := λ X, presheaf_hom H (hom_over α (unop X)), naturality' := λ X Y f,
   begin
-  ext U x,
-  change app_hom H (hom_over α (unop Y)) (unop U) (f.unop ≫ x) =
-    f.unop ≫ app_hom H (hom_over α (unop X)) (unop U) x,
-  symmetry,
-  apply sheaf_eq_amalgamation,
-  apply H.is_cover,
-  intros Y' f' hf',
-  change unop X ⟶ ℱ.obj (op (unop _)) at x,
-  simp only [pushforward_family, functor.comp_map, coyoneda_obj_map, hom_over_app, category.assoc],
-  congr' 1,
-  conv_lhs { rw ← hf'.some.fac },
-  simp only [← category.assoc, op_comp, functor.map_comp],
-  congr' 1,
-  refine (app_hom_restrict H (hom_over α (unop X)) hf'.some.map.op x).trans _,
-  simp
+    ext U x,
+    change app_hom H (hom_over α (unop Y)) (unop U) (f.unop ≫ x) =
+      f.unop ≫ app_hom H (hom_over α (unop X)) (unop U) x,
+    symmetry,
+    apply sheaf_eq_amalgamation,
+    apply H.is_cover,
+    intros Y' f' hf',
+    change unop X ⟶ ℱ.obj (op (unop _)) at x,
+    simp only [pushforward_family, functor.comp_map, coyoneda_obj_map, hom_over_app, category.assoc],
+    congr' 1,
+    conv_lhs { rw ← hf'.some.fac },
+    simp only [← category.assoc, op_comp, functor.map_comp],
+    congr' 1,
+    refine (app_hom_restrict H (hom_over α (unop X)) hf'.some.map.op x).trans _,
+    simp
   end }
 
 /--
@@ -298,14 +298,12 @@ Given an natural transformation `G ⋙ ℱ ⟶ G ⋙ ℱ'` between presheaves of
 where `G` is full and cover-dense, and `ℱ'` is a sheaf, we may obtain a natural transformation
 between presheaves.
 -/
-@[simps] noncomputable
+noncomputable
 def sheaf_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   ℱ ⟶ ℱ'.val :=
-begin
-  have α' := sheaf_yoneda_hom H α,
-  exact { app := λ X, yoneda.preimage (α'.app X),
-          naturality' := λ X Y f, yoneda.map_injective (by simpa using α'.naturality f) }
-end
+let α' := sheaf_yoneda_hom H α in
+  { app := λ X, yoneda.preimage (α'.app X),
+    naturality' := λ X Y f, yoneda.map_injective (by simpa using α'.naturality f) }
 
 /--
 Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of arbitrary category,
@@ -322,12 +320,12 @@ begin
     use (sheaf_yoneda_hom H i.inv).app X,
     split;
       ext x : 2;
-      simp only [sheaf_hom_app, nat_trans.comp_app, nat_trans.id_app, functor.image_preimage],
+      simp only [sheaf_hom, nat_trans.comp_app, nat_trans.id_app, functor.image_preimage],
       exact ((presheaf_iso H (iso_over i (unop x))).app X).hom_inv_id,
       exact ((presheaf_iso H (iso_over i (unop x))).app X).inv_hom_id,
     apply_instance },
   haveI : is_iso (sheaf_hom H i.hom) := by apply nat_iso.is_iso_of_is_iso_app,
-apply as_iso (sheaf_hom H i.hom),
+  apply as_iso (sheaf_hom H i.hom),
 end
 
 /--

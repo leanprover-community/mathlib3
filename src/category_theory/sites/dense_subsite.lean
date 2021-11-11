@@ -47,13 +47,18 @@ An auxiliary structure that witnesses the fact that `f` factors through an image
 -/
 @[nolint has_inhabited_instance]
 structure presieve.cover_by_image_structure (G : C ⥤ D) {V U : D} (f : V ⟶ U) :=
-(obj : C) (lift : V ⟶ G.obj obj) (map : G.obj obj ⟶ U) (fac : lift ≫ map = f)
+(obj : C)
+(lift : V ⟶ G.obj obj)
+(map : G.obj obj ⟶ U)
+(fac' : lift ≫ map = f . obviously)
+
+restate_axiom presieve.cover_by_image_structure.fac'
 
 attribute [simp, reassoc] presieve.cover_by_image_structure.fac
 
 /--
-For a functor `G : C ⥤ D`, and an object `U : D`, `presieve.cover_by_image G U` is the presieve of `U`
-consisting of those arrows that factor through images of `G`.
+For a functor `G : C ⥤ D`, and an object `U : D`, `presieve.cover_by_image G U` is the presieve
+of `U` consisting of those arrows that factor through images of `G`.
 -/
 def presieve.cover_by_image (G : C ⥤ D) (U : D) : presieve U :=
 λ Y f, nonempty (presieve.cover_by_image_structure G f)
@@ -64,7 +69,8 @@ consisting of those arrows that factor through images of `G`.
 -/
 def sieve.cover_by_image (G : C ⥤ D) (U : D) : sieve U :=
 ⟨presieve.cover_by_image G U,
-  λ X Y f ⟨⟨Z, f₁, f₂, eq⟩⟩ g, ⟨⟨Z, g ≫ f₁, f₂, by rw [category.assoc, ← eq] ⟩⟩⟩
+  λ X Y f ⟨⟨Z, f₁, f₂, (e : _ = _)⟩⟩ g,
+    ⟨⟨Z, g ≫ f₁, f₂, show (g ≫ f₁) ≫ f₂ = g ≫ f, by rw [category.assoc, ← e]⟩⟩⟩
 
 lemma presieve.in_cover_by_image (G : C ⥤ D) {X : D} {Y : C} (f : G.obj Y ⟶ X) :
   presieve.cover_by_image G X f := ⟨⟨Y, 𝟙 _, f, by simp⟩⟩
@@ -80,14 +86,14 @@ structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 
 open presieve opposite
 namespace cover_dense
-variables {A : Type*} [category A] {K : grothendieck_topology D} {G : C ⥤ D} (H : cover_dense K G)
+variables {A : Type*} [category A] {K} {G : C ⥤ D} (H : cover_dense K G)
 
 lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
   s = t :=
 begin
   apply (ℱ.property (sieve.cover_by_image G X) (H.is_cover X)).is_separated_for.ext,
-  rintros Y _ ⟨Z, f₁, f₂, rfl⟩,
+  rintros Y _ ⟨Z, f₁, f₂, ⟨rfl⟩⟩,
   simp [h f₂]
 end
 
@@ -95,7 +101,7 @@ lemma functor_pullback_pushforward_covering [full G] (H : cover_dense K G) {X : 
   (T : K (G.obj X)) : (T.val.functor_pullback G).functor_pushforward G ∈ K (G.obj X) :=
 begin
   refine K.superset_covering _ (K.bind_covering T.property (λ Y f Hf, H.is_cover Y)),
-  rintros Y _ ⟨Z, _, f, hf, ⟨W, g, f', rfl⟩, rfl⟩,
+  rintros Y _ ⟨Z, _, f, hf, ⟨W, g, f', ⟨rfl⟩⟩, rfl⟩,
   use W, use G.preimage (f' ≫ f), use g,
   split,
   { simpa using T.val.downward_closed hf f' },
@@ -156,7 +162,7 @@ begin
   simp only [quiver.hom.unop_op, functor.comp_map, ← op_comp, ← category.assoc,
     functor.op_map, ← ℱ.map_comp, G.image_preimage],
   congr' 3,
-  simp[e]
+  simp [e]
 end
 
 /-- (Implementation). The morphism `ℱ(X) ⟶ ℱ'(X)` given by gluing the `pushforward_family`. -/

@@ -1,10 +1,9 @@
 /-
 Copyright (c) 2020 Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alena Gusakov, Arthur Paulino
+Authors: Alena Gusakov, Arthur Paulino, Kyle Miller
 -/
 import combinatorics.simple_graph.subgraph
-import combinatorics.simple_graph.degree_sum
 
 /-!
 # Matchings
@@ -41,34 +40,48 @@ namespace subgraph
 /--
 The subgraph `M` of `G` is a matching if every vertex of `M` forms exactly one edge in `M`.
 -/
-structure is_matching : Prop :=
-(disjoint : ∀ ⦃v w w': V⦄, M.adj v w → M.adj v w' → w = w')
-(verts_eq_support : M.verts = M.support)
+def is_matching : Prop := ∀ {{v}}, v ∈ M.verts → ∃! w, M.adj v w
 
 /--
 `M` is a perfect matching on `G` if it's a matching and if every vertex forms an edge of `G`.
 -/
 def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
 
-lemma is_matching_iff : M.is_matching ↔ ∀ (v ∈ M.support), ∃! (w ∈ M.support), M.adj v w :=
+namespace matching
+
+lemma verts_eq_support (h : M.is_matching) : M.verts = M.support :=
 begin
-  sorry
+  rw set.subset.antisymm_iff,
+  split,
+  { intros v hv,
+    specialize h hv,
+    cases h with w h,
+    cases h with hvw h,
+    use w,
+    exact hvw, },
+  { intros v hv,
+    cases hv with w hvw,
+    exact M.edge_vert hvw, },
 end
 
 lemma is_perfect_iff : M.is_perfect_matching ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=
 begin
-  simp [is_perfect_matching, is_matching_iff, subgraph.is_spanning, exists_unique],
   split,
   { intros h v,
-    cases h with ee ss,
-    sorry, },
+    cases h with h hv,
+    exact h (hv v), },
   { intro h,
     split,
     { intros v hv,
-      sorry, },
+      exact h v, },
     { intro v,
-      sorry, }, },
+      specialize h v,
+      cases h with w h,
+      cases h with hvw h,
+      exact M.edge_vert hvw, }, },
 end
+
+end matching
 
 end subgraph
 

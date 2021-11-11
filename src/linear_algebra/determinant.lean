@@ -400,3 +400,12 @@ by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.r
 lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
+
+/-- This lemma is useful because it enables us to see `matrix.det` as (the coercion of) an
+`alternating_map` on the module `ι → R`. -/
+lemma matrix.det_eq_basis_det : matrix.det = ((pi.basis_fun R ι).det : matrix ι ι R → R) :=
+begin
+  change _ = matrix.det ∘ (pi.basis_fun R ι).to_matrix,
+  ext M,
+  simp [basis.coe_pi_basis_fun.to_matrix_eq_transpose],
+end

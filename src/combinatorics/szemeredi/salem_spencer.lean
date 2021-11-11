@@ -10,6 +10,11 @@ import analysis.inner_product_space.pi_L2
 section
 variables {α : Type*} [add_comm_monoid α] (s : set α)
 
+/-- A subset `s` of an additive commutative monoid has a 3AP if there are points `x,y,z` for which
+`x ≠ y` and `x + z = y + y`. In other words, there is a pair of elements in the set whose average
+is also in the set. A set which fails this condition is sometimes called a Salem-Spencer set, or
+non-averaging. -/
+-- TODO: if your monoid is cancellative, this property is preserved by translation
 def has_three_ap := ∃ x y z ∈ s, x ≠ y ∧ x + z = y + y
 
 lemma has_three_ap_mono {t₁ t₂ : set α} : t₁ ⊆ t₂ → has_three_ap t₁ → has_three_ap t₂ :=
@@ -29,6 +34,13 @@ end
 
 open finset
 
+/-- The Roth number of a natural `N` is the largest integer `m` for which there is a subset of
+`range N` of size `m` with no arithmetic progression of length 3.
+Trivially, `roth_number N ≤ N`, but Roth's theorem (proved in ...) shows that
+`roth_number N = o(N)` and the construction by Behrend `roth_behrend_bound` gives a lower bound
+of the form `N * exp(-C sqrt(log(N))) ≤ roth_number N`.
+A significant refinement of Roth's theorem by Bloom and Sisask(sp?) announced in 2020 gives
+`roth_number N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
 def roth_number (N : ℕ) : ℕ :=
 nat.find_greatest (λ m, ∃ s ⊆ range N, s.card = m ∧ ¬ has_three_ap (s : set ℕ)) N
 
@@ -52,6 +64,9 @@ lemma le_roth_number_of_not_has_three_ap {N k : ℕ} (A : finset ℕ) (hA : A �
   k ≤ roth_number N :=
 nat.le_find_greatest (by simpa [←hA''] using card_le_of_subset hA) ⟨A, hA, hA'', hA'⟩
 
+/-- The Roth number is a subadditive function. Note that by Fekete's lemma this shows that
+the limit `roth_number N / N` exists, but Roth's theorem gives the stronger result that this
+limit exists and is equal to `0`. -/
 lemma roth_number_subadditive (N M : ℕ) :
   roth_number (N + M) ≤ roth_number N + roth_number M :=
 begin
@@ -96,9 +111,11 @@ lemma trivial_roth_bound' : is_O_with 1 (λ N, (roth_number N : ℝ)) (λ N, (N 
 is_O_with.of_bound $
  by simpa only [one_mul, real.norm_coe_nat, nat.cast_le] using eventually_of_forall roth_number_le
 
+/-- The Roth number has the trivial bound `roth_number N = O(N)`. -/
 lemma trivial_roth_bound : is_O (λ N, (roth_number N : ℝ)) (λ N, (N : ℝ)) at_top :=
 is_O_iff_is_O_with.2 ⟨1, trivial_roth_bound'⟩
 
+/-! Some lemmas and calculations of the Roth number for (very) small naturals. -/
 section explicit_values
 
 lemma roth_number_upper_bound {N M : ℕ}
@@ -255,6 +272,7 @@ end
 
 end explicit_values
 
+/-! The Behrend construction giving lower bounds on the Roth number. -/
 namespace behrend
 
 open_locale big_operators

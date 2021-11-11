@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import logic.function.iterate
-import order.galois_connection
+import order.bounded_lattice
+import order.complete_lattice
+import tactic.monotonicity
 
 /-!
 # Preorder homomorphisms

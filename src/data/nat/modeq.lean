@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.int.gcd
 import data.list.rotate
+import tactic.abel
 
 /-!
 # Congruences modulo a natural number

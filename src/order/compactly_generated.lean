@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import data.finset.order
-import data.list.tfae
 import order.atoms
 import order.order_iso_nat
 import order.zorn
+import tactic.tfae
 
 /-!
 # Compactness properties for complete lattices

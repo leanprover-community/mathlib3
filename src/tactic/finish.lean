@@ -3,7 +3,7 @@ Copyright (c) 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Jesse Michael Han
 -/
-import tactic.core
+import tactic.hint
 
 /-!
 # The `finish` family of tactics

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
+import algebra.iterate_hom
 import data.int.modeq
-import data.nat.choose.dvd
-import data.nat.choose.sum
+import data.nat.choose
 import group_theory.order_of_element
 /-!
 # Characteristic of semirings

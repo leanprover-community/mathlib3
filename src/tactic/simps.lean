@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.group.to_additive
+import tactic.protected
+import data.sum
 
 /-!
 # simps attribute

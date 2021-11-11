@@ -5,8 +5,8 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
-import data.rat.cast
 import group_theory.group_action.group
+import tactic.norm_num
 
 /-!
 # Modules over a ring

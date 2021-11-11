@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import data.option.defs
-import data.rbmap.basic
 import logic.basic
+import tactic.cache
+import data.rbmap.basic
+import data.rbtree.default_lt
 
 /-!
 ## Definitions on lists

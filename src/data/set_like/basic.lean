@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.set.basic
+import tactic.monotonicity.basic
 
 /-!
 # Typeclass for types with a set-like extensionality property

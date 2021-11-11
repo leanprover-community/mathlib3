@@ -3,9 +3,7 @@ Copyright (c) 2018 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.ext
-import tactic.interactive
-import tactic.solve_by_elim
+import order.basic
 
 /-!
 # `pi_instance`

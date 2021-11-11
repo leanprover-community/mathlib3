@@ -3,7 +3,7 @@ Copyright (c) 2020 Keeley Hoek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Keeley Hoek, Scott Morrison
 -/
-import data.list.defs
+import meta.expr
 /-!
 # A lens for zooming into nested `expr` applications
 

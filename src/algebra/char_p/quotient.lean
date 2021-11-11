@@ -5,7 +5,7 @@ Authors: Kenny Lau, Eric Wieser
 -/
 
 import algebra.char_p.basic
-import ring_theory.ideal.quotient
+import algebra.ring_quot
 
 /-!
 # Characteristic of quotients rings

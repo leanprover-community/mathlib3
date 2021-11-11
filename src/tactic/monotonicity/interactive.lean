@@ -3,8 +3,10 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import order.directed
 import tactic.monotonicity.basic
+import control.traversable
+import control.traversable.derive
+import data.dlist
 
 variables {a b c p : Prop}
 

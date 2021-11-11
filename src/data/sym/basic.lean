@@ -5,7 +5,7 @@ Authors: Kyle Miller
 -/
 
 import data.multiset.basic
-import data.vector
+import data.vector.basic
 
 /-!
 # Symmetric powers

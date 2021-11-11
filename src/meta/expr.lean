@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
+import meta.rb_map
+import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
 

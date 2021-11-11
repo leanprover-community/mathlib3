@@ -225,7 +225,7 @@ open function
     of equivalence relations on α. -/
 theorem injective_iff_ker_bot (f : α → β) :
   injective f ↔ ker f = ⊥ :=
-(@eq_bot_iff (setoid α) _ (ker f)).symm
+(@eq_bot_iff (setoid α) _ _ (ker f)).symm
 
 /-- The elements related to x ∈ α by the kernel of f are those in the preimage of f(x) under f. -/
 lemma ker_iff_mem_preimage {f : α → β} {x y} : (ker f).rel x y ↔ x ∈ f ⁻¹' {f y} :=

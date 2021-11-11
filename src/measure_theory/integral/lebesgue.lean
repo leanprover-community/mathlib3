@@ -407,11 +407,11 @@ instance [partial_order β] : partial_order (α →ₛ β) :=
 { le_antisymm := assume f g hfg hgf, ext $ assume a, le_antisymm (hfg a) (hgf a),
   .. simple_func.preorder }
 
-instance [order_bot β] : order_bot (α →ₛ β) :=
-{ bot := const α ⊥, bot_le := λf a, bot_le, .. simple_func.partial_order }
+instance [has_le β] [order_bot β] : order_bot (α →ₛ β) :=
+{ bot := const α ⊥, bot_le := λf a, bot_le }
 
-instance [order_top β] : order_top (α →ₛ β) :=
-{ top := const α ⊤, le_top := λf a, le_top, .. simple_func.partial_order }
+instance [has_le β] [order_top β] : order_top (α →ₛ β) :=
+{ top := const α ⊤, le_top := λf a, le_top }
 
 instance [semilattice_inf β] : semilattice_inf (α →ₛ β) :=
 { inf := (⊓),

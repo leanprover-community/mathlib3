@@ -36,7 +36,7 @@ open pi_tensor_product
 /-- The canonical map from `R` to `⨂[R]^0 M` corresponding to the algebra_map of the tensor
 algebra. -/
 def algebra_map : R ≃ₗ[R] ⨂[R]^0 M :=
-((reindex R M fin_zero_equiv').trans pempty_equiv.{u_1 u_2 u_1}).symm
+linear_equiv.symm $ is_empty_equiv (fin 0)
 
 lemma algebra_map_eq_smul_tprod (r : R) :
   algebra_map r = r • tprod R (λ i : fin 0, (i.elim0 : M)) :=

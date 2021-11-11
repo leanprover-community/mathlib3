@@ -201,8 +201,8 @@ begin
 end
 
 section distrib_mul_action
-variables [monoid R₁] [distrib_mul_action R₁ R] [is_scalar_tower R₁ R R] [smul_comm_class R₁ R R]
-variables [monoid R₂] [distrib_mul_action R₂ R] [is_scalar_tower R₂ R R] [smul_comm_class R₂ R R]
+variables [monoid R₁] [distrib_mul_action R₁ R] [smul_comm_class R₁ R R]
+variables [monoid R₂] [distrib_mul_action R₂ R] [smul_comm_class R₂ R R]
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
@@ -249,8 +249,7 @@ end distrib_mul_action
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance module' [semiring R₁] [module R₁ R] [is_scalar_tower R₁ R R]
-  [smul_comm_class R₁ R R] : module R₁ (⨂[R] i, s i) :=
+instance module' [semiring R₁] [module R₁ R] [smul_comm_class R₁ R R] : module R₁ (⨂[R] i, s i) :=
 { smul := (•),
   add_smul := λ r r' x, pi_tensor_product.induction_on' x
     (λ r f, by simp [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'])
@@ -463,15 +462,17 @@ begin
   simpa using h,
 end
 
-/-- The tensor product over an empty set of indices is isomorphic to the base ring -/
+variables (ι)
+
+/-- The tensor product over an empty index type `ι` is isomorphic to the base ring. -/
 @[simps symm_apply]
-def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
-{ to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
-  inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
+def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
+{ to_fun := lift ⟨λ (_ : ι → M), (1 : R), λ v, is_empty_elim, λ v, is_empty_elim⟩,
+  inv_fun := λ r, r • tprod R (@is_empty_elim _ _ _),
   left_inv := λ x, by {
     apply x.induction_on,
     { intros r f,
-      have := subsingleton.elim f (λ i, pempty.elim i),
+      have := subsingleton.elim f is_empty_elim,
       simp [this], },
     { simp only,
       intros x y hx hy,
@@ -482,7 +483,35 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
   map_smul' := linear_map.map_smul _, }
 
 @[simp]
-lemma pempty_equiv_apply_tprod (f : pempty → M) : pempty_equiv (tprod R f) = 1 :=
+lemma is_empty_equiv_apply_tprod [is_empty ι] (f : ι → M) : is_empty_equiv ι (tprod R f) = 1 :=
+lift.tprod _
+
+variables {ι}
+
+/-- The tensor product over an single index is isomorphic to the module -/
+@[simps symm_apply]
+def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R] M :=
+{ to_fun := lift (multilinear_map.of_subsingleton R M i₀),
+  inv_fun := λ m, tprod R (λ v, m),
+  left_inv := λ x, by {
+    dsimp only,
+    have : ∀ (f : ι → M) (z : M), (λ i : ι, z) = update f i₀ z,
+    { intros f z,
+      ext i,
+      rw [subsingleton.elim i i₀, function.update_same] },
+    apply x.induction_on,
+    { intros r f,
+      simp only [linear_map.map_smul, lift.tprod, of_subsingleton_apply, function.eval,
+                 this f, map_smul, update_eq_self], },
+    { intros x y hx hy,
+      simp only [linear_map.map_add, this 0 (_ + _), map_add, ←this 0 (lift _ _), hx, hy], } },
+  right_inv := λ t, by simp only [of_subsingleton_apply, lift.tprod, function.eval_apply],
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _, }
+
+@[simp]
+lemma subsingleton_equiv_apply_tprod [subsingleton ι] (i : ι) (f : ι → M) :
+  subsingleton_equiv i (tprod R f) = f i :=
 lift.tprod _
 
 section tmul
@@ -539,34 +568,6 @@ tmul_symm_apply a
 
 end tmul
 
-#check 1
-
--- /-- The tensor product over an empty set of indices is isomorphic to the base ring -/
--- def unique_equiv [unique ι] : ⨂[R] i : ι, s i ≃ₗ[R] s (default ι) :=
--- { to_fun := lift ⟨
---     λ (v : Π i, s i), v (default ι),
---     λ v i x y, subsingleton.elim i (default ι) ▸ by simp,
---     λ v i c x, begin
---       have := subsingleton.elim (default ι) i,
---       subst this,
---       simp,
---       recover,
---       exact _inst_7 _,
---       apply_instance,
---     end⟩,
---   inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
---   left_inv := λ x, by {
---     apply x.induction_on,
---     { intros r f,
---       have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
---       simp [this], },
---     { simp only,
---       intros x y hx hy,
---       simp [add_smul, hx, hy] }},
---   right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, multilinear_map.coe_mk,
---     linear_map.map_smul, pi_tensor_product.lift.tprod],
---   map_add' := linear_map.map_add _,
---   map_smul' := linear_map.map_smul _, }
 end multilinear
 
 end pi_tensor_product

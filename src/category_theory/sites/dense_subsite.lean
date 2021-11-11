@@ -18,7 +18,7 @@ we would need, and some sheafification would be needed for here and there.
 
 ## Main results
 
-- `category_theory.cover_dense.sheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
+- `category_theory.cover_dense.presheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any presheaf `ℱ` and sheaf `ℱ'` on `D`, and a morphism `α : G ⋙ ℱ ⟶ G ⋙ ℱ'`,
   we may glue them together to obtain a morphism of presheaves `ℱ ⟶ ℱ'`.
 - `category_theory.cover_dense.sheaf_iso`: If the `α` above is an iso, then the result is

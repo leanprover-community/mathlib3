@@ -91,11 +91,14 @@ Witness that the limit cone in `Module R` is a limit cone.
 (Internal use only; use the limits API.)
 -/
 def limit_cone_is_limit (F : J ⥤ Module R) : is_limit (limit_cone F) :=
-begin
-  refine is_limit.of_faithful
-    (forget (Module R)) (types.limit_cone_is_limit _)
-    (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy
-end
+by refine is_limit.of_faithful
+      (forget (Module R)) (types.limit_cone_is_limit _)
+      (λ s, ⟨_, _, _⟩) (λ s, rfl);
+    intros;
+    ext j;
+    simp only [subtype.coe_mk, functor.map_cone_π_app, forget_map_eq_coe,
+         linear_map.map_add, linear_map.map_smul];
+    refl
 
 end has_limits
 

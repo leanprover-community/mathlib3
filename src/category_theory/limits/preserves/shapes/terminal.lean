@@ -30,6 +30,8 @@ namespace category_theory.limits
 
 variables (X : C)
 
+section terminal
+
 /--
 The map of an empty cone is a limit iff the mapped object is terminal.
 -/
@@ -100,7 +102,9 @@ preserves_terminal_of_is_iso G f.hom
 
 variables [preserves_limit (functor.empty C) G]
 
-/-- If `G` preserves terminal objects, then the terminal comparison map for `G` an isomorphism. -/
+/--
+If `G` preserves terminal objects, then the terminal comparison map for `G` is an isomorphism.
+-/
 def preserves_terminal.iso : G.obj (⊤_ C) ≅ ⊤_ D :=
 (is_limit_of_has_terminal_of_preserves_limit G).cone_point_unique_up_to_iso (limit.is_limit _)
 
@@ -113,5 +117,96 @@ begin
   rw ← preserves_terminal.iso_hom,
   apply_instance,
 end
+
+end terminal
+
+section initial
+
+/--
+The map of an empty cocone is a colimit iff the mapped object is initial.
+-/
+def is_colimit_map_cocone_empty_cocone_equiv :
+  is_colimit (G.map_cocone (as_empty_cocone X)) ≃ is_initial (G.obj X) :=
+(is_colimit.precompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
+  (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by tidy)))
+
+/-- The property of preserving initial objects expressed in terms of `is_initial`. -/
+def is_initial_obj_of_is_initial [preserves_colimit (functor.empty C) G]
+  (l : is_initial X) : is_initial (G.obj X) :=
+is_colimit_map_cocone_empty_cocone_equiv G X (preserves_colimit.preserves l)
+
+/-- The property of reflecting initial objects expressed in terms of `is_initial`. -/
+def is_initial_of_is_initial_obj [reflects_colimit (functor.empty C) G]
+  (l : is_initial (G.obj X)) : is_initial X :=
+reflects_colimit.reflects ((is_colimit_map_cocone_empty_cocone_equiv G X).symm l)
+
+variables [has_initial C]
+/--
+If `G` preserves the initial object and `C` has a initial object, then the image of the initial
+object is initial.
+-/
+def is_colimit_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty C) G] :
+  is_initial (G.obj (⊥_ C)) :=
+is_initial_obj_of_is_initial G (⊥_ C) initial_is_initial
+
+/--
+If `C` has a initial object and `G` preserves initial objects, then `D` has a initial object
+also.
+Note this property is somewhat unique to colimits of the empty diagram: for general `J`, if `C`
+has colimits of shape `J` and `G` preserves them, then `D` does not necessarily have colimits of
+shape `J`.
+-/
+lemma has_initial_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty C) G] :
+  has_initial D :=
+⟨λ F,
+begin
+  haveI := has_colimit.mk ⟨_, is_colimit_of_has_initial_of_preserves_colimit G⟩,
+  apply has_colimit_of_iso F.unique_from_empty,
+end⟩
+
+variable [has_initial D]
+/--
+If the initial comparison map for `G` is an isomorphism, then `G` preserves initial objects.
+-/
+def preserves_initial.of_iso_comparison
+  [i : is_iso (initial_comparison G)] : preserves_colimit (functor.empty C) G :=
+begin
+  apply preserves_colimit_of_preserves_colimit_cocone initial_is_initial,
+  apply (is_colimit_map_cocone_empty_cocone_equiv _ _).symm _,
+  apply is_colimit.of_point_iso (colimit.is_colimit (functor.empty D)),
+  apply i,
+end
+
+/-- If there is any isomorphism `⊥ ⟶ G.obj ⊥`, then `G` preserves initial objects. -/
+def preserves_initial_of_is_iso
+  (f : ⊥_ D ⟶ G.obj (⊥_ C)) [i : is_iso f] : preserves_colimit (functor.empty C) G :=
+begin
+  rw subsingleton.elim f (initial_comparison G) at i,
+  exactI preserves_initial.of_iso_comparison G,
+end
+
+/-- If there is any isomorphism `⊥ ≅ G.obj ⊥ `, then `G` preserves initial objects. -/
+def preserves_initial_of_iso
+  (f : ⊥_ D ≅ G.obj (⊥_ C)) : preserves_colimit (functor.empty C) G :=
+preserves_initial_of_is_iso G f.hom
+
+variables [preserves_colimit (functor.empty C) G]
+
+/-- If `G` preserves initial objects, then the initial comparison map for `G` is an isomorphism. -/
+def preserves_initial.iso : G.obj (⊥_ C) ≅ ⊥_ D :=
+(is_colimit_of_has_initial_of_preserves_colimit G).cocone_point_unique_up_to_iso
+  (colimit.is_colimit _)
+
+@[simp]
+lemma preserves_initial.iso_hom : (preserves_initial.iso G).inv = initial_comparison G :=
+rfl
+
+instance : is_iso (initial_comparison G) :=
+begin
+  rw ← preserves_initial.iso_hom,
+  apply_instance,
+end
+
+end initial
 
 end category_theory.limits

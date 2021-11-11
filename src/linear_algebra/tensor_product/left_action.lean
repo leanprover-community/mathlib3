@@ -149,7 +149,7 @@ variables [module R M] [module Rᵒᵖ M] [smul_comm_class Rᵒᵖ R M] -- TODO 
 variables [module R N]
 variables [distrib_mul_action R' M]
 
-example : is_symmetric_smul R M := is_scalar_tower.is_symmetric_smul
+--example : is_symmetric_smul R M := is_scalar_tower.is_symmetric_smul
 
 /-- The instance `tensor_product.left_has_scalar` induces this special case of `R` acting
 on the right of the tensor product `M ⊗[R] N`. -/
@@ -159,6 +159,7 @@ instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.left_distrib_mul_
 
 instance : module R (M ⊗[R] N) := tensor_product.left_module
 
+--set_option trace.class_instances true
 /-- A short-cut instance of `is_scalar_tower_left` for the common case, where the requirements
 for the `compatible_smul` instances are sufficient. -/
 instance is_scalar_tower [smul_comm_class Rᵒᵖ R' M] [has_scalar R' R] [is_scalar_tower R' Rᵒᵖ M] :
@@ -167,18 +168,17 @@ tensor_product.is_scalar_tower_left
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
-def mk [module Rᵒᵖ N] [is_symmetric_smul R N] : M →ₗ[R] N →ₗ[R] M ⊗[R] N :=
-linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, rfl) tmul_add
-  (λ c m n, by rw [←c.op_unop , is_symmetric_smul.op_smul_eq_smul, ←rsmul_tmul, smul_tmul'])
+def mk [is_symmetric_smul R M] : M →ₗ[R] N →ₗ[R] M ⊗[R] N :=
+linear_map.mk₂ R (⊗ₜ) add_tmul (λ c m n, by rw [smul_tmul, tmul_smul]) tmul_add tmul_smul
 variables {R M N}
 
-@[simp] lemma mk_apply [module Rᵒᵖ N] [is_symmetric_smul R N] (m : M) (n : N) :
-  mk R M N m n = m ⊗ₜ n :=
+@[simp] lemma mk_apply [is_symmetric_smul R M] [module Rᵒᵖ N] [is_symmetric_smul R N]
+  (m : M) (n : N) : mk R M N m n = m ⊗ₜ n :=
 rfl
 
 /-- The simple (aka pure) elements span the tensor product. -/
 lemma span_tmul_eq_top :
-  submodule.span Rᵒᵖ { t : M ⊗[R] N | ∃ m n, m ⊗ₜ n = t } = ⊤ :=
+  submodule.span R { t : M ⊗[R] N | ∃ m n, m ⊗ₜ n = t } = ⊤ :=
 begin
   ext t, simp only [submodule.mem_top, iff_true],
   apply t.induction_on,
@@ -192,8 +192,8 @@ section UMP
 variables {P Q : Type*}
 variables [add_comm_monoid P] [module R P] [module Rᵒᵖ P] [is_symmetric_smul R P]
 variables [add_comm_monoid Q] [module R Q] [module Rᵒᵖ Q] [is_symmetric_smul R Q]
-variables [module Rᵒᵖ N] [is_symmetric_smul R N]
-variables (f : M →ₗ[Rᵒᵖ] N →ₗ[Rᵒᵖ] P)
+variables [is_symmetric_smul R M] [module Rᵒᵖ N] [is_symmetric_smul R N]
+variables (f : M →ₗ[R] N →ₗ[R] P)
 
 /-- Auxiliary function to constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
 with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
@@ -211,7 +211,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, (f m).map_add]
 | _, _, (eqv.of_smul r m n)        := (add_con.ker_rel _).2 $
     by rw [free_add_monoid.lift_eval_of, free_add_monoid.lift_eval_of,
-           f.map_smul₂, ←(f m).map_smul (opposite.op r), is_symmetric_smul.op_smul_eq_smul r n]
+           is_symmetric_smul.op_smul_eq_smul, f.map_smul₂, (f m).map_smul]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
@@ -221,7 +221,7 @@ zero_add _
 
 variable {f}
 
-@[simp] lemma lift_aux.smul (r : Rᵒᵖ) (x) : lift_aux f (r • x) = r • lift_aux f x :=
+@[simp] lemma lift_aux.smul (r : R) (x) : lift_aux f (r • x) = r • lift_aux f x :=
 tensor_product.induction_on x (smul_zero _).symm
   (λ p q, by rw [lift_aux_tmul,smul_tmul', lift_aux_tmul, f.map_smul₂] )
   (λ p q ih1 ih2, by rw [smul_add, (lift_aux f).map_add, ih1, ih2, (lift_aux f).map_add, smul_add])
@@ -230,7 +230,7 @@ variable (f)
 /-- Constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P` with the property that
 its composition with the canonical bilinear map `M → N → M ⊗ N` is
 the given bilinear map `M → N → P`. -/
-def lift : M ⊗ N →ₗ[Rᵒᵖ] P :=
+def lift : M ⊗ N →ₗ[R] P :=
 { map_smul' := lift_aux.smul,
   .. lift_aux f }
 variable {f}
@@ -241,26 +241,26 @@ zero_add _
 @[simp] lemma lift.tmul' (x y) : (lift f).1 (x ⊗ₜ y) = f x y :=
 lift.tmul _ _
 
-theorem ext' {g h : (M ⊗[R] N) →ₗ[Rᵒᵖ] P}
+theorem ext' {g h : (M ⊗[R] N) →ₗ[R] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
 linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
 λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
 
-theorem lift.unique {g : (M ⊗[R] N) →ₗ[Rᵒᵖ] P} (H : ∀ x y, g (x ⊗ₜ y) = f x y) :
+theorem lift.unique {g : (M ⊗[R] N) →ₗ[R] P} (H : ∀ x y, g (x ⊗ₜ y) = f x y) :
   g = lift f :=
 ext' $ λ m n, by rw [H, lift.tmul]
 
 example : has_scalar Rᵒᵖ (M ⊗[R] N) := tensor_product.left_has_scalar
 
-variables [module R (M ⊗[R] N)] [is_symmetric_smul R (M ⊗[R] N)]
+variables [is_symmetric_smul R (M ⊗[R] N)]
 
 theorem lift_mk : lift (mk R M N) = linear_map.id :=
 eq.symm $ lift.unique $ λ x y, rfl
 
-theorem lift_compr₂ (g : P →ₗ[Rᵒᵖ] Q) : lift (f.compr₂ g) = g.comp (lift f) :=
+theorem lift_compr₂ (g : P →ₗ[R] Q) : lift (f.compr₂ g) = g.comp (lift f) :=
 eq.symm $ lift.unique $ λ x y, by simp
 
-theorem lift_mk_compr₂ (f : M ⊗ N →ₗ[Rᵒᵖ] P) : lift ((mk R M N).compr₂ f) = f :=
+theorem lift_mk_compr₂ (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f) = f :=
 by { rw [lift_compr₂ f, lift_mk, linear_map.comp_id], repeat { apply_instance } }
 
 /--
@@ -269,7 +269,7 @@ it in some cases, notably when one wants to show equality of two linear maps. Th
 attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of
 `tensor_product.ext'` allows `ext` to apply lemmas specific to `M →ₗ _` and `N →ₗ _`.
 See note [partially-applied ext lemmas]. -/
-theorem ext {g h : M ⊗[R] N →ₗ[Rᵒᵖ] P}
+theorem ext {g h : M ⊗[R] N →ₗ[R] P}
   (H : (mk R M N).compr₂ g = (mk R M N).compr₂ h) : g = h :=
 by rw [← lift_mk_compr₂ g, H, lift_mk_compr₂]
 

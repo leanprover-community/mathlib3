@@ -53,10 +53,11 @@ instance is_scalar_tower.is_symmetric_smul {R α} [monoid R] [mul_action R α] [
   [is_scalar_tower Rᵒᵖ R α] : is_symmetric_smul R α :=
 ⟨λ r a, by rw [←one_smul R a, ←smul_assoc, one_smul, op_smul_eq_mul, one_mul]⟩
 
-instance is_symmetric_smul.is_scalar_tower {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
+--This causes loops :(
+/-instance is_symmetric_smul.is_scalar_tower {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
   [is_symmetric_smul R α] : is_scalar_tower Rᵒᵖ R α :=
 ⟨λ r' r a, by { rw [←unop_smul_eq_smul r' (r • a), smul_smul],
-                change (_ * _) • _ = _, rw [mul_comm] } ⟩
+                change (_ * _) • _ = _, rw [mul_comm] } ⟩-/
 
 instance mul_action.of_is_symmetric_smul {R α} [comm_monoid R] [mul_action R α] [has_scalar Rᵒᵖ α]
   [is_symmetric_smul R α] : mul_action Rᵒᵖ α :=

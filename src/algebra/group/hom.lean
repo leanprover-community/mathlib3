@@ -613,11 +613,13 @@ def one_hom.comp [has_one M] [has_one N] [has_one P]
 def mul_hom.comp [has_mul M] [has_mul N] [has_mul P]
   (hnp : mul_hom N P) (hmn : mul_hom M N) : mul_hom M P :=
 { to_fun := hnp ∘ hmn, map_mul' := by simp, }
+
 /-- Composition of monoid morphisms as a monoid morphism. -/
 @[to_additive]
 def monoid_hom.comp [mul_one_class M] [mul_one_class N] [mul_one_class P]
   (hnp : N →* P) (hmn : M →* N) : M →* P :=
 { to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
+
 /-- Composition of `monoid_with_zero_hom`s as a `monoid_with_zero_hom`. -/
 def monoid_with_zero_hom.comp [mul_zero_one_class M] [mul_zero_one_class N] [mul_zero_one_class P]
   (hnp : monoid_with_zero_hom N P) (hmn : monoid_with_zero_hom M N) : monoid_with_zero_hom M P :=

@@ -59,7 +59,7 @@ abbreviation coloring (α : Type v) := G →g (⊤ : simple_graph α)
 
 variables {G} {α : Type v} (C : G.coloring α)
 
-lemma coloring.valid (v w : V) (h : G.adj v w) : C v ≠ C w :=
+lemma coloring.valid {v w : V} (h : G.adj v w) : C v ≠ C w :=
 C.map_rel h
 
 /--
@@ -177,7 +177,7 @@ begin
     { exact λ v, ⟨C v, Cf v⟩, },
     { rintro v w hvw,
       simp only [complete_graph_eq_top, top_adj, subtype.mk_eq_mk, ne.def],
-      exact C.valid v w hvw, } }
+      exact C.valid hvw, } }
 end
 
 lemma colorable_set_nonempty_of_colorable {n : ℕ} (h : G.colorable n) :
@@ -232,10 +232,10 @@ begin
   exact G.is_empty_of_colorable_zero h',
 end
 
-lemma zero_le_chromatic_number [nonempty V] {n : ℕ} (hc : G.colorable n) :
+lemma zero_lt_chromatic_number [nonempty V] {n : ℕ} (hc : G.colorable n) :
   0 < G.chromatic_number :=
 begin
-  rw [nat.lt_iff_add_one_le, chromatic_number, zero_add],
+  change 1 ≤ G.chromatic_number, -- optional, can be removed
   apply le_cInf (colorable_set_nonempty_of_colorable hc),
   intros m hm,
   by_contra h',
@@ -274,22 +274,56 @@ begin
 end
 
 lemma chromatic_number_minimal [fintype α] (C : G.coloring α)
-  (h : ∀ (C' : G.coloring α), set.range C' = set.univ) :
+  (h : ∀ (C' : G.coloring α), function.surjective C') :
   G.chromatic_number = fintype.card α :=
-begin
+begin -- TODO this can't be this complicated, right?
   apply le_antisymm,
   { apply chromatic_number_le C, },
   { by_contra hc,
     simp only [not_le] at hc,
     obtain ⟨n, cn, hc⟩ := exists_lt_of_cInf_lt
       (colorable_set_nonempty_of_colorable C.to_colorable) hc,
-    specialize h (cn.to_coloring (le_of_lt hc)),
-    -- hc and h are contradictory, using the fact that
-    -- (cn.to_coloring (le_of_lt hc)) uses at most n colors
-    -- (not sure how to organize this proof though;
-    -- needs more lemmas about to_coloring)
-    sorry
-  },
+    have C' := cn.some,
+    rw ←fintype.card_fin n at hc,
+    have f := (function.embedding.nonempty_of_card_le (le_of_lt hc)).some,
+    specialize h (G.recolor_of_embedding f C'),
+    rw ←set.range_iff_surjective at h,
+    change set.range (f ∘ C') = set.univ at h,
+    rw set.range_comp at h,
+    classical,
+    have h1 : fintype.card (f '' set.range C') = fintype.card α,
+    { rw ←@finset.card_univ α,
+      rw ←set.to_finset_univ,
+      simp only [←h],
+      rw set.to_finset_card,
+      congr, },
+    have h2 := set.card_image_of_injective (set.range C') f.inj',
+    have h3 := eq.trans h2.symm h1,
+    have h5 := set_fintype_card_le_univ (set.range C'),
+    rw h3 at h5,
+    exact nat.lt_le_antisymm hc h5, },
+end
+
+lemma chromatic_number_bot [nonempty V] :
+  (⊥ : simple_graph V).chromatic_number = 1 :=
+begin
+  let C : (⊥ : simple_graph V).coloring (fin 1) :=
+    coloring.mk (λ _, 0) (λ v w h, false.elim h),
+  apply le_antisymm,
+  { exact chromatic_number_le C, },
+  { exact zero_lt_chromatic_number C.to_colorable, },
+end
+
+lemma chromatic_number_complete_graph [fintype V] [nonempty V] :
+  (⊤ : simple_graph V).chromatic_number = fintype.card V :=
+begin
+  apply chromatic_number_minimal (self_coloring _),
+  intro C,
+  rw ←fintype.injective_iff_surjective,
+  intros v w,
+  contrapose,
+  intro h,
+  exact C.valid h,
 end
 
 end simple_graph

@@ -87,17 +87,6 @@ end
 
 open walking_cospan
 
-instance cospan_comp_has_limit_aux {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
-  (g : Y ⟶ Z) [H : has_limit (cospan (F.map f) (F.map g))] : has_limit (cospan f g ⋙ F) :=
-begin
-  apply has_limit_of_iso (diagram_iso_cospan _).symm,
-  exact H
-end
-
-instance cospan_comp_has_limit_aux' {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
-  (g : Y ⟶ Z) [H : has_limit (cospan (F.map f) (F.map g))] :
-    has_limit (cospan ((cospan f g ⋙ F).map hom.inl) ((cospan f g ⋙ F).map hom.inr)) := H
-
 /-- If `F` preserves the pullback of `f, g`, it also preserves the pullback of `g, f`. -/
 def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=

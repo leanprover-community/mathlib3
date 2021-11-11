@@ -82,6 +82,8 @@ do
    CC_type ← instantiate_mvars CC_type,
    x_type ← to_expr ``(@coe_sort %%C _
      (@category_theory.concrete_category.has_coe_to_sort %%C %%S %%CC) %%X),
+    y_type ← to_expr ``(@coe_sort %%C _
+     (@category_theory.concrete_category.has_coe_to_sort %%C %%S %%CC) %%Y),
    x ← mk_local_def `x x_type,
    t' ← to_expr ``(@coe_fn (@quiver.hom %%C %%H %%X %%Y) _
      (@category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%f %%x =

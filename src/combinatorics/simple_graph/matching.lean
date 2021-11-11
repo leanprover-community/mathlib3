@@ -39,12 +39,12 @@ variables {V : Type u} {G : simple_graph V} (M : subgraph G)
 /--
 The subgraph `M` of `G` is a matching on `G` if every vertex only forms at most one edge of `M`.
 -/
-def is_matching : Prop := ∀ (v w w': V), M.adj v w → M.adj v w' → w = w'
+def is_matching : Prop := ∀ ⦃v w w': V⦄, M.adj v w → M.adj v w' → w = w'
 
 /--
 `M` is a perfect matching on `G` if it's a matching on `G` and if every vertex forms an edge of `M`.
 -/
-def is_perfect : Prop := is_matching M ∧ M.support = set.univ
+def is_perfect_matching : Prop := is_matching M ∧ M.is_spanning
 
 lemma is_perfect_iff :
   is_perfect M ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=

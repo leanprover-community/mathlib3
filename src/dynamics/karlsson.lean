@@ -43,6 +43,7 @@ begin
   show false, by linarith [A n],
 end
 
+/-- A semicontraction between two metric spaces is a map that does not increase distances. -/
 def semicontraction (f : α → β) :=
 ∀ x y, dist (f x) (f y) ≤ dist x y
 
@@ -65,6 +66,7 @@ variables {E : Type*} [inner_product_space ℝ E] [finite_dimensional ℝ E]
   {f : E → E} (h : semicontraction f)
 include h
 
+/-- A convenient notation for the distance between `0` and `f^n 0`. -/
 def u (n : ℕ) : ℝ := dist (0 : E) (f^[n] 0)
 
 lemma u_subadditive : subadditive h.u :=
@@ -79,6 +81,7 @@ begin
   ... = h.u m + h.u n : rfl
 end
 
+/-- `h.l` is such that `h.u n` grows like `n * h.l`. -/
 def l := h.u_subadditive.lim
 
 lemma tendsto_lim : tendsto (λ n, h.u n / n) at_top (𝓝 h.l) :=
@@ -175,7 +178,9 @@ begin
   linarith [hv' i]
 end
 
-lemma exists_tendsto_div :
+/-- A semicontraction on a finite-dimensional vector space admits an asymptotic
+translation vector. -/
+theorem exists_tendsto_div :
   ∃ (v : E), tendsto (λ (n : ℕ), (1 / (n : ℝ)) • (f^[n] 0)) at_top (𝓝 v) :=
 begin
   obtain ⟨v₀, v₀_norm, h₀⟩ : ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
@@ -222,6 +227,14 @@ end
 
 
 
+/-- Attention: si on ne fait pas attention à l'énoncé, on peut donner une preuve triviale
+d'un résultat stupide. -/
+lemma wrong_exists_tendsto_div' :
+  ∃ (v : E), tendsto (λ (n : ℕ), (1 / n) • (f^[n] 0)) at_top (𝓝 v) :=
+⟨(0 : E), tendsto_const_nhds.congr' $
+  eventually_at_top.2 ⟨2, λ n hn, by simp [nat.div_eq_of_lt hn]⟩⟩
+
+/-- Version un peu plus détaillée du précédent -/
 lemma wrong_exists_tendsto_div :
   ∃ (v : E), tendsto (λ (n : ℕ), (1 / n) • (f^[n] 0)) at_top (𝓝 v) :=
 begin
@@ -236,8 +249,7 @@ begin
   simp [A n hn]
 end
 
-lemma wrong_exists_tendsto_div' :
-  ∃ (v : E), tendsto (λ (n : ℕ), (1 / n) • (f^[n] 0)) at_top (𝓝 v) :=
-⟨(0 : E), tendsto_const_nhds.congr' $ eventually_at_top.2 ⟨2, λ n hn, by simp [nat.div_eq_of_lt hn]⟩⟩
 
 end semicontraction
+
+#lint

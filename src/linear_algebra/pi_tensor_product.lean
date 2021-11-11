@@ -454,6 +454,7 @@ lift.tprod _
 variables {ι}
 
 /-- The tensor product over an single index is isomorphic to the module -/
+@[simps symm_apply]
 def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R] M :=
 { to_fun := lift (multilinear_map.of_subsingleton R M i₀),
   inv_fun := λ m, tprod R (λ v, m),

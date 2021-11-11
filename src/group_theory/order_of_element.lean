@@ -119,7 +119,7 @@ by rwa [order_of, minimal_period, dif_neg]
 ⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
 
 @[to_additive nsmul_ne_zero_of_lt_add_order_of']
-lemma pow_eq_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
+lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
   ((is_periodic_pt_mul_iff_pow_eq_one x).mpr j)
 
@@ -159,6 +159,33 @@ begin
   obtain ⟨m, hm⟩ :=
     exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
   exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
+end
+
+/--
+If `x^n = 1`, but `x^(n/p) ≠ 1` for all prime factors `p` of `r`,
+then `x` has order `n` in `G`.
+-/
+@[to_additive add_order_of_eq_of_nsmul_and_div_prime_nsmul]
+theorem order_of_eq_of_pow_and_pow_div_prime (hn : 0 < n) (hx : x^n = 1)
+  (hd : ∀ p : ℕ, p.prime → p ∣ n → x^(n/p) ≠ 1) :
+  order_of x = n :=
+begin
+  -- Let `a` be `n/(order_of x)`, and show `a = 1`
+  cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one hx) with a ha,
+  suffices : a = 1, by simp [this, ha],
+  -- Assume `a` is not one...
+  by_contra,
+  have a_min_fac_dvd_p_sub_one : a.min_fac ∣ n,
+  { obtain ⟨b, hb⟩ : ∃ (b : ℕ), a = b * a.min_fac := exists_eq_mul_left_of_dvd a.min_fac_dvd,
+    rw [hb, ←mul_assoc] at ha,
+    exact dvd.intro_left (order_of x * b) ha.symm, },
+  -- Use the minimum prime factor of `a` as `p`.
+  refine hd a.min_fac (nat.min_fac_prime h) a_min_fac_dvd_p_sub_one _,
+  rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff (a_min_fac_dvd_p_sub_one),
+      ha, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
+  { exact nat.min_fac_dvd a, },
+  { rw is_of_fin_order_iff_pow_eq_one,
+    exact Exists.intro n (id ⟨hn, hx⟩) },
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]

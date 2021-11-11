@@ -829,15 +829,19 @@ begin
 end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
-  everywhere convergence of a sequence of functions implies the convergence of their integrals. -/
+  everywhere convergence of a sequence of functions implies the convergence of their integrals.
+  We could weaken the condition `bound_integrable` to require `has_finite_integral bound μ` instead
+  (i.e. not requiring that `bound` is measurable), but in all applications proving integrability
+  is easier. -/
 theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α → E} (bound : α → ℝ)
   (F_measurable : ∀ n, ae_measurable (F n) μ)
-  (f_measurable : ae_measurable f μ)
   (bound_integrable : integrable bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a ∂μ) at_top (𝓝 $ ∫ a, f a ∂μ) :=
 begin
+  /- `f` is a.e.-measurable, since it is the a.e.-pointwise limit of a.e.-measurable functions. -/
+  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae F_measurable h_lim,
   /- To show `(∫ a, F n a) --> (∫ f)`, suffices to show `∥∫ a, F n a - ∫ f∥ --> 0` -/
   rw tendsto_iff_norm_tendsto_zero,
   /- But `0 ≤ ∥∫ a, F n a - ∫ f∥ = ∥∫ a, (F n a - f a) ∥ ≤ ∫ a, ∥F n a - f a∥, and thus we apply the
@@ -846,7 +850,7 @@ begin
     tendsto (λn, ennreal.to_real $ ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
   (tendsto_to_real zero_ne_top).comp
     (tendsto_lintegral_norm_of_dominated_convergence
-      F_measurable f_measurable bound_integrable.has_finite_integral h_bound h_lim),
+      F_measurable bound_integrable.has_finite_integral h_bound h_lim),
   -- Use the sandwich theorem
   refine squeeze_zero (λ n, norm_nonneg _) _ lintegral_norm_tendsto_zero,
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
@@ -864,7 +868,6 @@ lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   [l.is_countably_generated]
   {F : ι → α → E} {f : α → E} (bound : α → ℝ)
   (hF_meas : ∀ᶠ n in l, ae_measurable (F n) μ)
-  (f_measurable : ae_measurable f μ)
   (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (bound_integrable : integrable bound μ)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) l (𝓝 (f a))) :
@@ -877,12 +880,9 @@ begin
   replace h := hxl _ h,
   rcases h with ⟨k, h⟩,
   rw ← tendsto_add_at_top_iff_nat k,
-  refine tendsto_integral_of_dominated_convergence _ _ _ _ _ _,
-  { exact bound },
-  { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
-  { assumption },
-  { assumption },
-  { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+  refine tendsto_integral_of_dominated_convergence bound _ bound_integrable _ _,
+  { intro, refine (h _ _).1, apply self_le_add_left },
+  { intro, refine (h _ _).2, apply self_le_add_left },
   { filter_upwards [h_lim],
     assume a h_lim,
     apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
@@ -898,7 +898,7 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
   (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
   continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
-tendsto_integral_filter_of_dominated_convergence bound ‹_› (mem_of_mem_nhds hF_meas : _) ‹_› ‹_› ‹_›
+tendsto_integral_filter_of_dominated_convergence bound ‹_› ‹_› ‹_› ‹_›
 
 lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
   (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
@@ -1145,7 +1145,7 @@ by { rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.i
 
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
-  cases (@le_top _ _ (μ univ)).lt_or_eq with hμ hμ,
+  cases (@le_top _ _ _ (μ univ)).lt_or_eq with hμ hμ,
   { haveI : is_finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
       ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
@@ -1286,25 +1286,25 @@ let g := hfm.mk f in calc
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
-lemma integral_map_of_closed_embedding {β} [topological_space α] [borel_space α]
+lemma _root_.measurable_embedding.integral_map {β} {_ : measurable_space β} {f : α → β}
+  (hf : measurable_embedding f) (g : β → E) :
+  ∫ y, g y ∂(measure.map f μ) = ∫ x, g (f x) ∂μ :=
+begin
+  by_cases hgm : ae_measurable g (measure.map f μ),
+  { exact integral_map hf.measurable hgm },
+  { rw [integral_non_ae_measurable hgm, integral_non_ae_measurable],
+    rwa ← hf.ae_measurable_map_iff }
+end
+
+lemma _root_.closed_embedding.integral_map {β} [topological_space α] [borel_space α]
   [topological_space β] [measurable_space β] [borel_space β]
   {φ : α → β} (hφ : closed_embedding φ) (f : β → E) :
   ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
-begin
-  by_cases hfm : ae_measurable f (measure.map φ μ),
-  { exact integral_map hφ.continuous.measurable hfm },
-  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
-    rwa ae_measurable_comp_right_iff_of_closed_embedding hφ }
-end
+hφ.measurable_embedding.integral_map _
 
 lemma integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) :
   ∫ y, f y ∂(measure.map e μ) = ∫ x, f (e x) ∂μ :=
-begin
-  by_cases hfm : ae_measurable f (measure.map e μ),
-  { exact integral_map e.measurable hfm },
-  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
-    rwa ← ae_measurable_map_equiv_iff }
-end
+e.measurable_embedding.integral_map f
 
 @[simp] lemma integral_dirac' [measurable_space α] (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
@@ -1338,7 +1338,7 @@ begin
   { rw ← map_mul_left_eq_self at hμ,
     exact hμ g },
   have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
-  rw [← integral_map_of_closed_embedding h_mul, hgμ],
+  rw [← h_mul.integral_map, hgμ],
   apply_instance,
 end
 
@@ -1352,7 +1352,7 @@ begin
   { rw ← map_mul_right_eq_self at hμ,
     exact hμ g },
   have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
-  rw [← integral_map_of_closed_embedding h_mul, hgμ],
+  rw [← h_mul.integral_map, hgμ],
   apply_instance,
 end
 

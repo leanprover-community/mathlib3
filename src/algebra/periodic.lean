@@ -188,7 +188,7 @@ lemma periodic.zsmul [add_group α]
   periodic f (n • c) :=
 begin
   cases n,
-  { simpa only [int.of_nat_eq_coe, zsmul_coe_nat] using h.nsmul n },
+  { simpa only [int.of_nat_eq_coe, coe_nat_zsmul] using h.nsmul n },
   { simpa only [zsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg },
 end
 

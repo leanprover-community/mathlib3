@@ -57,7 +57,7 @@ begin
   have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ),
   { assume n hn,
     apply (zsmul_le_zsmul_iff ha).mp,
-    rw ← zsmul_coe_nat at hk,
+    rw ← coe_nat_zsmul at hk,
     exact le_trans hn hk },
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
   refine ⟨m, hm, _⟩,
@@ -345,15 +345,18 @@ begin
   split; linarith
 end
 
-@[simp, norm_cast] theorem rat.cast_floor (x : ℚ) : ⌊(x:α)⌋ = ⌊x⌋ :=
+@[simp, norm_cast] theorem rat.floor_cast (x : ℚ) : ⌊(x:α)⌋ = ⌊x⌋ :=
 floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
 
-@[simp, norm_cast] theorem rat.cast_ceil (x : ℚ) : ⌈(x:α)⌉ = ⌈x⌉ :=
-by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.cast_floor]
+@[simp, norm_cast] theorem rat.ceil_cast (x : ℚ) : ⌈(x:α)⌉ = ⌈x⌉ :=
+by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
 
-@[simp, norm_cast] theorem rat.cast_round (x : ℚ) : round (x:α) = round x :=
+@[simp, norm_cast] theorem rat.round_cast (x : ℚ) : round (x:α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
-by rw [round, round, ← this, rat.cast_floor]
+by rw [round, round, ← this, rat.floor_cast]
+
+@[simp, norm_cast] theorem rat.cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
+by { simp only [fract, rat.cast_sub], simp }
 
 end
 

@@ -588,12 +588,12 @@ end
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
-def bernoulli_measure (hc : gcd c p = 1) [has_coe ℝ R] :=
-{x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
-  ∀ (n : ℕ) (a : zmod (d * (p^n))), x (char_fn (zmod d × ℤ_[p]) ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_singleton (a : zmod d))
-      (proj_lim_preimage_clopen p d n a) ⟩) =
-    E_c p d hc n a }
+-- def bernoulli_measure (hc : gcd c p = 1) [has_coe ℝ R] :=
+-- {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
+--   ∀ (n : ℕ) (a : zmod (d * (p^n))), x (char_fn (zmod d × ℤ_[p]) ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+--     is_clopen_prod (is_clopen_singleton (a : zmod d))
+--       (proj_lim_preimage_clopen p d n a) ⟩) =
+--     E_c p d hc n a }
 
 /-
 @[reducible] def clopen_basis' :=
@@ -807,7 +807,7 @@ end⟩,
     { apply mul_dvd_mul,
       { refl, },
       { rw pow_succ' p m, exact dvd.intro p rfl, }, },
-    rw zmod.cast_nat_cast g, swap, exact zmod.char_p (d * p ^ m),
+    rw zmod.cast_nat_cast g _, swap, apply_instance,
     rw nat.cast_add,
     rw @zmod.nat_cast_zmod_val _ _ _, swap,
     { rw fact_iff at *, apply mul_pos, assumption, apply ((pow_pos (nat.prime.pos _)) m), assumption, },
@@ -888,26 +888,46 @@ end
 
 example (n : ℕ) (h : 0 < n) : n ≠ 0 := ne_of_gt h
 
-lemma sum_fract (m : ℕ) [0 < m] (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m) x)),
+instance imp [fact (0 < d)] : ∀ n : ℕ, fact (0 < d * p^n) :=
+begin
+  rintros n, rw fact_iff at *, apply mul_pos,
+  { assumption, },
+  { apply ((pow_pos (nat.prime.pos _)) n), assumption, },
+end
+
+lemma sum_fract (m : ℕ) [fact(0 < m)] (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m) x)),
   fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) =
     (x.val : ℚ) / (d * p^m) + (p - 1) / 2 :=
 begin
-  haveI imp : ∀ n : ℕ, fact (0 < d * p^n), sorry,
   have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x.val : ℚ) / (d * p^n) ∧ (x.val : ℚ) / (d * p^n) < 1,
   sorry,
   conv_lhs { congr, skip, funext, rw [fract_eq_self ((this m.succ x_1).1) ((this m.succ x_1).2)], },
-  rw fintype.sum_equiv (equi_iso_fin p d m x),
-  swap 3, { intro k, exact ↑((equi_iso_fin p d m x).inv_fun k).val / (d * p ^ m.succ), },
+  rw fintype.sum_equiv (equi_iso_fin p d m x) _ (λ k, (((equi_iso_fin p d m x).inv_fun k).val : ℚ) / (d * p ^ m.succ)),
   { rw ←finset.sum_div,
     have : ∀ k : fin p, ((equi_iso_fin p d m x).inv_fun k).val = x.val + ↑k * (d * p^m),
-    { simp, sorry, },
+--  sorry, sorry, }, sorry end #exit -- 0.1 seconds!
+    { intro k, unfold equi_iso_fin, dsimp, norm_cast,
+      sorry, },
+--  sorry, }, sorry end #exit -- 0.15s
     conv_lhs { congr, congr, skip, funext, rw this x, rw ←zmod.int_cast_cast,
-      rw zmod.coe_add_eq_ite, rw ←ite_not, }, push_neg,
+      rw zmod.coe_add_eq_ite, rw ←ite_not, },
+--  sorry, }, sorry end #exit -- 0.22 seconds
+--    classical,
+    push_neg,
+--  sorry, }, sorry end #exit -- 0.5 seconds
     convert_to (∑ x_1 : fin p, ((((x.val) : zmod (d * p^m.succ)) : ℤ) +
       (↑x_1 * ((d : zmod (d * p^m.succ)) * (p : zmod (d * p^m.succ)) ^ m) : ℤ) : ℚ)) / _ = _,
-    { congr, ext y, norm_cast, split_ifs,
-      { congr, simp, sorry, },
+--  sorry, sorry }, sorry, recover, sorry, end #exit -- 0.6 seconds
+    { congr,
+      ext y,
+--sorry }, sorry }, sorry, end #exit -- 0.8 seconds
+      norm_cast,
+--sorry }, sorry }, sorry, end #exit -- 1.6 seconds
+      split_ifs,
+--sorry, sorry, }, sorry }, sorry, end #exit -- 1.8 seconds
+      { sorry, },
       { exfalso, apply h, sorry, }, },
+--    sorry, }, sorry, end #exit -- 2.7 seconds
     { rw finset.sum_add_distrib, rw finset.sum_const, rw finset.card_univ, rw fintype.card_fin _,
       norm_cast, rw ←finset.sum_mul, rw add_div, apply congr_arg2,
       { rw div_eq_iff _,
@@ -918,18 +938,22 @@ begin
           { rw zmod.int_cast_cast,
             rw zmod.nat_cast_val, rw ←zmod.nat_cast_val (x : zmod (d * p^m.succ)),
             apply congr_arg, rw ←zmod.nat_cast_val x, rw val_coe_eq_val _ _ _,
-            { apply imp m, },
+            { apply imp p d m, },
             { rw mul_comm d (p^m), rw mul_comm d (p^m.succ), apply mul_lt_mul,
+--sorry, sorry, sorry, sorry }, }, }, sorry, }, sorry, }, }, sorry, end #exit -- 4.72
               any_goals { simp, },
+--sorry, sorry }, }, }, sorry, }, sorry, }, }, sorry, end #exit -- 5.3s
               { apply pow_lt_pow _ (nat.lt_succ_self m), apply nat.prime.one_lt, apply fact_iff.1,
                 assumption, },
               { apply fact_iff.1, assumption, }, }, }, },
-        { norm_cast, apply ne_of_gt, apply fact_iff.1, apply imp m.succ, }, },
+        { norm_cast, apply ne_of_gt, apply fact_iff.1, apply imp p d m.succ, }, },
+--      sorry, }, }, sorry, end #exit -- 4.94 seconds
       { rw int.cast_mul, rw mul_div_assoc,
         have : (((∑ (x : fin p), (x : ℤ)) : ℤ) : ℚ) = (p - 1) * (p : ℚ) / 2, sorry,
         rw this, rw nat.cast_mul, rw int.cast_mul,
         have one : ((p : ℚ) - 1) * (p : ℚ) / 2 * (1 / (p : ℚ)) = ((p : ℚ) - 1) / 2, sorry,
         convert one using 2, rw div_eq_div_iff _ _,
+--        sorry, sorry, sorry, }, }, }, sorry, end #exit -- 5.14 seconds
         { rw one_mul, rw zmod.int_cast_cast, rw int.cast_pow, rw zmod.int_cast_cast,
           rw pow_succ', rw nat.cast_mul, rw nat.cast_pow, rw mul_assoc, apply congr_arg2,
           { rw ←zmod.nat_cast_val _,
@@ -938,7 +962,7 @@ begin
                 { apply nat.prime.one_lt, apply fact_iff.1, assumption, },
                 { simp, }, },
               { apply fact_iff.1, assumption, }, },
-            { rw ←pow_succ', apply imp (m + 1), } },
+            { rw ←pow_succ', apply imp p d (m + 1), } },
           { apply congr_arg2,
             { apply congr_arg2,
               { rw ←zmod.nat_cast_val _,
@@ -949,26 +973,26 @@ begin
                     { rw nat.succ_le_iff, apply fact_iff.1, assumption, },
                     { apply one_lt_pow,
                       { apply nat.prime.one_lt, apply fact_iff.1, assumption, },
-                      { rw nat.succ_le_iff, assumption, }, }, },
+                      { rw nat.succ_le_iff, apply fact.out, }, }, },
                   { apply nat.prime.pos, apply fact_iff.1, assumption, }, },
-                { rw ←pow_succ', apply imp (m + 1), }, },
+                { rw ←pow_succ', apply imp p d (m + 1), }, },
               { refl, }, },
             { refl, }, }, },
-        { rw ←nat.cast_mul, norm_cast, apply ne_of_gt, apply fact_iff.1, apply imp _, },
+        { rw ←nat.cast_mul, norm_cast, apply ne_of_gt, apply fact_iff.1, apply imp p d _, },
         { norm_cast, apply ne_of_gt, apply nat.prime.pos, apply fact_iff.1, assumption, }, }, }, },
   { rintros y,
     simp only [equiv.symm_apply_apply, subtype.val_eq_coe, equiv.inv_fun_as_coe,
       zmod.nat_cast_val], },
 end
-#exit
+
 lemma div_coe (m n : ℕ) (h : m ∣ n) (a : zmod m) : ((a : zmod n) : zmod m) = a :=
 begin
   conv_rhs
-  { rw ←@zmod.ring_hom_map_cast _ (zmod n) _
-      (@zmod.cast_hom _ _ h (zmod m) _ (zmod.char_p m)) a, },
+  { rw ←zmod.ring_hom_map_cast (zmod.cast_hom h (zmod m)) a, },
   rw zmod.cast_hom_apply,
 end
 
+#exit
 lemma fract_eq_val (n : ℕ) [h : fact (0 < n)] (a : zmod n) : fract ((a : ℚ) / n) = (a.val : ℚ) / n :=
 begin
   rw fract_eq_iff, split,
@@ -1067,23 +1091,19 @@ begin
   { linarith, },
 end
 
-lemma E_c_sum_equi_class' [has_coe ℝ R] [0 < m] (x : zmod (d * p^m)) (hc : gcd c p = 1)
+lemma E_c_sum_equi_class' [has_coe ℝ R] [fact (0 < m)] (x : zmod (d * p^m)) (hc : gcd c p = 1)
   (hc' : gcd c d = 1) :
   ∑ (y : equi_class p d m m.succ (lt_add_one m) x), (E_c p d hc m.succ y) = (E_c p d hc m x) :=
 begin
   rw E_c, simp only,
-  haveI imp : ∀ n : ℕ, fact (0 < d * p^n),
-  { rintros n, rw fact_iff at *, apply mul_pos,
-    { assumption, },
-    { apply ((pow_pos (nat.prime.pos _)) n), assumption, }, },
   have : ∀ (n : ℕ) (x : zmod (d * p^n)), 0 ≤ (x.val : ℚ) / (d * p^n) ∧ (x.val : ℚ) / (d * p^n) < 1,
   { rintros n x,
     split,
     { norm_cast, refine div_nonneg _ _,
       all_goals { norm_cast, apply nat.zero_le _, }, },
     { rw div_lt_one,
-      { norm_cast, apply @zmod.val_lt _ _, apply imp n, },
-      { norm_cast,apply fact_iff.1 (imp n), }, }, },
+      { norm_cast, apply @zmod.val_lt _ _, apply imp p d n, },
+      { norm_cast,apply fact_iff.1 (imp p d n), }, }, },
   rw [finset.sum_add_distrib, finset.sum_sub_distrib, sum_fract, ←finset.mul_sum],
   convert_to ((x.val : ℚ) / (d * p ^ m) + (p - 1) / 2) - (c : ℚ) *
     ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m)
@@ -1137,7 +1157,7 @@ begin
     { apply mul_dvd_mul_left, apply pow_dvd_pow, rw ←one_mul m,
       apply mul_le_mul, any_goals { linarith, },
       { rw one_mul, apply nat.le_succ, }, },
-    apply imp m, },
+    apply imp p d m, },
 end
 #exit
 

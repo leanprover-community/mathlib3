@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, E. W. Ayers
 
 import category_theory.sites.sieves
 import category_theory.limits.shapes.pullbacks
+import category_theory.category.preorder
 import order.copy
 
 /-!
@@ -357,6 +358,143 @@ def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
     rcases h hf with ⟨Z, g, hg⟩,
     exact ⟨_, _, hg⟩,
   end }
+
+/-- `J.cover X` denotes the poset of covers of `X` with respect to the
+Grothendieck topology `J`. -/
+@[derive preorder]
+def cover (X : C) := { S : sieve X // S ∈ J X }
+
+namespace cover
+
+variables {J}
+
+instance : has_coe (J.cover X) (sieve X) := ⟨λ S, S.1⟩
+
+instance : has_coe_to_fun (J.cover X) (λ S, Π ⦃Y⦄ (f : Y ⟶ X), Prop) :=
+⟨λ S Y f, (S : sieve X) f⟩
+
+@[simp]
+lemma coe_fun_coe (S : J.cover X) (f : Y ⟶ X) : (S : sieve X) f = S f := rfl
+
+lemma condition (S : J.cover X) : (S : sieve X) ∈ J X := S.2
+
+@[ext]
+lemma ext (S T : J.cover X) (h : ∀ ⦃Y⦄ (f : Y ⟶ X), S f ↔ T f) : S = T :=
+subtype.ext $ sieve.ext h
+
+instance : semilattice_inf_top (J.cover X) :=
+{ inf := λ S T, ⟨S ⊓ T, J.intersection_covering S.condition T.condition⟩,
+  le_antisymm := λ S T h1 h2, ext _ _ $ λ Y f, ⟨h1 _, h2 _⟩,
+  inf_le_left := λ S T Y f hf, hf.1,
+  inf_le_right := λ S T Y f hf, hf.2,
+  le_inf := λ S T W h1 h2 Y f h, ⟨h1 _ h, h2 _ h⟩,
+  top := ⟨⊤, J.top_mem _⟩,
+  le_top := λ S Y f h, by tauto,
+  ..(infer_instance : preorder _) }
+
+instance : inhabited (J.cover X) := ⟨⊤⟩
+
+/-- An auxiliary structure, used to define `S.index` in `plus.lean`. -/
+@[nolint has_inhabited_instance, ext]
+structure L (S : J.cover X) :=
+(Y : C)
+(f : Y ⟶ X)
+(hf : S f)
+
+/-- An auxiliary structure, used to define `S.index` in `plus.lean`. -/
+@[nolint has_inhabited_instance, ext]
+structure R (S : J.cover X) :=
+(Y₁ Y₂ Z : C)
+(g₁ : Z ⟶ Y₁)
+(g₂ : Z ⟶ Y₂)
+(f₁ : Y₁ ⟶ X)
+(f₂ : Y₂ ⟶ X)
+(h₁ : S f₁)
+(h₂ : S f₂)
+(w : g₁ ≫ f₁ = g₂ ≫ f₂)
+
+/-- Map a term of `S.L` along a refinement `S ⟶ T`. -/
+@[simps]
+def L.map {S T : J.cover X} (I : S.L) (f : S ⟶ T) : T.L :=
+⟨I.Y, I.f, f.le _ I.hf⟩
+
+/-- Map a term of `S.R` along a refinement `S ⟶ T`. -/
+@[simps]
+def R.map {S T : J.cover X} (I : S.R) (f : S ⟶ T) : T.R :=
+⟨_, _, _, I.g₁, I.g₂, I.f₁, I.f₂, f.le _ I.h₁, f.le _ I.h₂, I.w⟩
+
+/-- The first term of `S.L` associated to `I : S.R`.
+Used in defining `index` in `plus.lean`. -/
+@[simps]
+def R.fst {S : J.cover X} (I : S.R) : S.L :=
+⟨I.Y₁, I.f₁, I.h₁⟩
+
+/-- The first term of `S.L` associated to `I : S.R`.
+Used in defining `index` in `plus.lean`. -/
+@[simps]
+def R.snd {S : J.cover X} (I : S.R) : S.L :=
+⟨I.Y₂, I.f₂, I.h₂⟩
+
+@[simp]
+lemma R.map_fst {S T : J.cover X} (I : S.R) (f : S ⟶ T) :
+   I.fst.map f = (I.map f).fst := rfl
+
+@[simp]
+lemma R.map_snd {S T : J.cover X} (I : S.R) (f : S ⟶ T) :
+  I.snd.map f = (I.map f).snd := rfl
+
+/-- Pull back a cover along a morphism. -/
+def pullback (S : J.cover X) (f : Y ⟶ X) : J.cover Y :=
+⟨sieve.pullback f S, J.pullback_stable _ S.condition⟩
+
+/-- A term of `(S.pullback f).L` gives rise to a term of `S.L`. -/
+@[simps]
+def L.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).L) : S.L :=
+⟨I.Y, I.f ≫ f, I.hf⟩
+
+/-- A term of `(S.pullback f).R` gives rise to a term of `S.R`. -/
+@[simps]
+def R.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).R) : S.R :=
+⟨_, _, _, I.g₁, I.g₂, I.f₁ ≫ f, I.f₂≫ f, I.h₁, I.h₂, by simp [reassoc_of I.w]⟩
+
+@[simp]
+lemma R.base_fst {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).R) :
+ I.fst.base = I.base.fst := rfl
+
+@[simp]
+lemma R.base_snd {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).R) :
+ I.snd.base = I.base.snd := rfl
+
+@[simp]
+lemma coe_pullback {Z : C} (f : Y ⟶ X) (g : Z ⟶ Y) (S : J.cover X) :
+  (S.pullback f) g ↔ S (g ≫ f) := iff.rfl
+
+/-- The isomorphism between `S` and the pullback of `S` w.r.t. the identity. -/
+def pullback_id (S : J.cover X) : S.pullback (𝟙 X) ≅ S :=
+eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
+
+/-- Pulling back with respect to a composition is the composition of the pullbacks. -/
+def pullback_comp {X Y Z : C} (S : J.cover X) (f : Z ⟶ Y) (g : Y ⟶ X) :
+  S.pullback (f ≫ g) ≅ (S.pullback g).pullback f :=
+eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
+
+end cover
+
+/-- Pull back a cover along a morphism. -/
+@[simps obj]
+def pullback (f : Y ⟶ X) : J.cover X ⥤ J.cover Y :=
+{ obj := λ S, S.pullback f,
+  map := λ S T f, (sieve.pullback_monotone _ f.le).hom }
+
+/-- Pulling back along the identity is naturally isomorphic to the identity functor. -/
+def pullback_id (X : C) : J.pullback (𝟙 X) ≅ 𝟭 _ :=
+nat_iso.of_components (λ S, S.pullback_id) $ by tidy
+
+/-- Pulling back along a composition is naturally isomorphic to
+the composition of the pullbacks. -/
+def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  J.pullback (f ≫ g) ≅ J.pullback g ⋙ J.pullback f :=
+nat_iso.of_components (λ S, S.pullback_comp f g) $ by tidy
 
 end grothendieck_topology
 

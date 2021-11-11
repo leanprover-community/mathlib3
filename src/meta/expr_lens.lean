@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Keeley Hoek, Scott Morrison
 -/
 import data.list.defs
+import tactic.derive_inhabited
 /-!
 # A lens for zooming into nested `expr` applications
 

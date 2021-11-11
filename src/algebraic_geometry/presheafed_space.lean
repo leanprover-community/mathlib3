@@ -94,10 +94,10 @@ instance hom_inhabited (X : PresheafedSpace C) : inhabited (hom X X) := ⟨id X�
 /-- Composition of morphisms of `PresheafedSpace`s. -/
 def comp {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { base := α.base ≫ β.base,
-  c := β.c ≫ (presheaf.pushforward β.base).map α.c }
+  c := β.c ≫ (presheaf.pushforward _ β.base).map α.c }
 
 lemma comp_c {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) :
-  (comp α β).c = β.c ≫ (presheaf.pushforward β.base).map α.c := rfl
+  (comp α β).c = β.c ≫ (presheaf.pushforward _ β.base).map α.c := rfl
 
 
 variables (C)

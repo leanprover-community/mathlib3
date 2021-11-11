@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import field_theory.splitting_field
-import ring_theory.roots_of_unity
 import algebra.polynomial.big_operators
-import number_theory.arithmetic_function
-import data.polynomial.lifts
 import analysis.complex.roots_of_unity
+import data.polynomial.lifts
 import field_theory.separable
+import field_theory.splitting_field
+import number_theory.arithmetic_function
+import ring_theory.roots_of_unity
 
 /-!
 # Cyclotomic polynomials.
@@ -187,10 +187,8 @@ begin
   rw ← finset.prod_bUnion,
   { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots hpos h] },
   intros x hx y hy hdiff,
-  simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hx hy,
-  refine is_primitive_root.disjoint _ _ hdiff,
-  { exact @nat.pos_of_mem_divisors n x (nat.mem_divisors.2 hx) },
-  { exact @nat.pos_of_mem_divisors n y (nat.mem_divisors.2 hy) }
+  rw finset.mem_coe at hx hy,
+  exact is_primitive_root.disjoint (nat.pos_of_mem_divisors hx) (nat.pos_of_mem_divisors hy) hdiff,
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then

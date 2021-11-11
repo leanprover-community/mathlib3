@@ -306,18 +306,20 @@ begin
   exact measure.map_mono g measure.restrict_le_self
 end
 
-lemma set_integral_map_of_closed_embedding [topological_space α] [borel_space α]
+lemma _root_.measurable_embedding.set_integral_map {β} {_ : measurable_space β} {f : α → β}
+  (hf : measurable_embedding f) (g : β → E) (s : set β) :
+  ∫ y in s, g y ∂(measure.map f μ) = ∫ x in f ⁻¹' s, g (f x) ∂μ :=
+by rw [hf.restrict_map, hf.integral_map]
+
+lemma _root_.closed_embedding.set_integral_map [topological_space α] [borel_space α]
   {β} [measurable_space β] [topological_space β] [borel_space β]
-  {g : α → β} {f : β → E} {s : set β} (hs : measurable_set s) (hg : closed_embedding g) :
+  {g : α → β} {f : β → E} (s : set β) (hg : closed_embedding g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
-begin
-  rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg],
-  apply_instance,
-end
+hg.measurable_embedding.set_integral_map _ _
 
 lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : β → E) (s : set β) :
   ∫ y in s, f y ∂(measure.map e μ) = ∫ x in e ⁻¹' s, f (e x) ∂μ :=
-by rw [e.restrict_map, integral_map_equiv]
+e.measurable_embedding.set_integral_map f s
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
@@ -489,12 +491,10 @@ begin
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,
   rw ← integral_indicator (measurable_set.Inter hsm),
-  refine tendsto_integral_of_dominated_convergence bound _ _ _ _ _,
+  refine tendsto_integral_of_dominated_convergence bound _ _ _ _,
   { intro n,
     rw ae_measurable_indicator_iff (hsm n),
     exact (integrable_on.mono_set hfi (h_anti (zero_le n))).1 },
-  { rw ae_measurable_indicator_iff (measurable_set.Inter hsm),
-    exact (integrable_on.mono_set hfi (set.Inter_subset s 0)).1, },
   { rw integrable_indicator_iff (hsm 0),
     exact hfi.norm, },
   { simp_rw norm_indicator_eq_indicator_norm,

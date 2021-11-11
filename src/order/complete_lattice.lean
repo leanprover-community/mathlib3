@@ -1334,7 +1334,7 @@ lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   independent t :=
 λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
 
-/-- Composing an indepedent indexed family with an injective function on the index results in
+/-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
 lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
@@ -1343,6 +1343,20 @@ lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
   exact supr_le_supr_const hf.ne,
 end
+
+/-- Composing an indepedent indexed family with an order isomorphism on the elements results in
+another indepedendent indexed family. -/
+lemma independent.map_order_iso {ι : Sort*} {α β : Type*}
+  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} (ha : independent a) :
+  independent (f ∘ a) :=
+λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr2 _)
+
+@[simp] lemma independent_map_order_iso_iff {ι : Sort*} {α β : Type*}
+  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} :
+  independent (f ∘ a) ↔ independent a :=
+⟨ λ h, have hf : f.symm ∘ f ∘ a = a := congr_arg (∘ a) f.left_inv.comp_eq_id,
+      hf ▸ h.map_order_iso f.symm,
+  λ h, h.map_order_iso f⟩
 
 /-- If the elements of a set are independent, then any element is disjoint from the `supr` of some
 subset of the rest. -/

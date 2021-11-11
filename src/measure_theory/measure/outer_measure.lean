@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.pi_system
-import data.matrix.notation
+import data.fin.vec_notation
 import topology.algebra.infinite_sum
 
 /-!

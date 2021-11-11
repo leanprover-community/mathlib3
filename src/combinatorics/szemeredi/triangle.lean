@@ -74,7 +74,7 @@ begin
   exact ⟨_, _, _, G.ne_of_adj xy, G.ne_of_adj xz, G.ne_of_adj yz, rfl⟩,
 end
 
-lemma mem_triangle_finset''' [decidable_eq α] [decidable_rel G.adj] (s : finset α) :
+lemma mem_triangle_finset''' [decidable_eq α] [decidable_rel G.adj] {s : finset α} :
   s ∈ G.triangle_finset ↔ ∃ x y z, G.adj x y ∧ G.adj x z ∧ G.adj y z ∧ s = {x,y,z} :=
 begin
   split,
@@ -123,10 +123,7 @@ noncomputable def bad_vertices (ε : ℝ) (X Y : finset α) :=
 
 lemma of_mem_bad_vertices {ε : ℝ} {X Y : finset α} :
   ∀ x ∈ G.bad_vertices ε X Y, ((Y.filter (G.adj x)).card : ℝ) ≤ (G.edge_density X Y - ε) * Y.card :=
-begin
-  intros x hx,
-  apply (mem_filter.1 hx).2.le,
-end
+λ x hx, (mem_filter.1 hx).2.le
 
 lemma bad_vertices_eq {ε : ℝ} {X Y : finset α} :
   relation.pairs_finset G.adj (G.bad_vertices ε X Y) Y ⊆
@@ -344,18 +341,14 @@ begin
       simpa [hG'] using this },
     simp only [not_exists, exists_prop, not_and, mem_sdiff, not_not, mem_edge_finset,
       exists_and_distrib_left, ne.def, mem_edge_set] at i,
-    have : t ∈ G.triangle_finset := htris ht,
-    rw mem_triangle_finset''' at this,
-    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := this,
+    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := (mem_triangle_finset''' _).1 (htris ht),
     rw mem_triangle_finset'',
     refine ⟨i _ _ (G.ne_of_adj xy) xy _ _, i _ _ (G.ne_of_adj xz) xz _ _,
       i _ _ (G.ne_of_adj yz) yz _ _⟩;
     simp },
   choose fx fy hfx hfy hfne fmem using this,
   let f : {x // x ∈ tris} → sym2 α := λ t, ⟦(fx _ t.2, fy _ t.2)⟧,
-  have hf : ∀ x ∈ tris.attach, f x ∈ G.edge_finset \ G'.edge_finset,
-  { intros x hx,
-    apply fmem },
+  have hf : ∀ x ∈ tris.attach, f x ∈ G.edge_finset \ G'.edge_finset := λ x hx, fmem _ _,
   obtain ⟨⟨t₁, ht₁⟩, -, ⟨t₂, ht₂⟩, -, tne, t : ⟦_⟧ = ⟦_⟧⟩ :=
     exists_ne_map_eq_of_card_lt_of_maps_to h hf,
   have : t₁ ≠ t₂,

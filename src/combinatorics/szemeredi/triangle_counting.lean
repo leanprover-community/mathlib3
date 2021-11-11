@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .regularity_lemma
 import .triangle
+import combinatorics.simple_graph.degree_sum
 
 /-!
 # Triangle counting lemma
@@ -18,42 +19,16 @@ variables {α : Type*} {G : simple_graph α}
 namespace simple_graph
 
 variables [fintype α]
+
+@[simp] lemma dart_adj (d : G.dart) : G.adj d.fst d.snd := d.3
+
 lemma double_edge_finset_card_eq [decidable_eq α] [decidable_rel G.adj] :
   2 * G.edge_finset.card = (univ.filter (λ (xy : α × α), G.adj xy.1 xy.2)).card :=
 begin
-  rw [finset.card_eq_sum_ones (finset.filter _ _), sum_partition (sym2.rel.setoid α),
-    @sum_const_nat _ _ 2, mul_comm],
-  { congr' 2,
-    ext x,
-    apply sym2.induction_on x,
-    simp only [mem_image, true_and, exists_prop, mem_filter, mem_univ, mem_edge_finset,
-      mem_edge_set, prod.exists, sym2.eq_iff],
-    intros x y,
-    refine ⟨λ h, ⟨x, y, h, or.inl ⟨rfl, rfl⟩⟩, _⟩,
-    rintro ⟨_, _, h, (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩)⟩,
-    { apply h },
-    { apply G.symm h } },
-  refine sym2.ind _,
-  simp only [mem_image, true_and, and_imp, filter_congr_decidable, exists_prop, mem_filter, mul_one,
-    algebra.id.smul_eq_mul, forall_exists_index, mem_univ, sum_const, prod.exists,
-    filter_filter],
-  rintro x y x' y' h q,
-  suffices : filter (λ (a : α × α), G.adj a.fst a.snd ∧ ⟦a⟧ = ⟦(x, y)⟧) univ = {(x',y'), (y',x')},
-  { rw [this, card_insert_of_not_mem, card_singleton],
-    simp only [mem_singleton, prod.mk.inj_iff, not_and_distrib],
-    left,
-    apply G.ne_of_adj h },
-  ext ⟨i, j⟩,
-  simp only [true_and, mem_filter, mem_insert, mem_univ, mem_singleton],
-  rw ←q,
-  split,
-  { rw sym2.eq_iff,
-    rintro ⟨_, (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩)⟩;
-    simp },
-  rw prod.mk.inj_iff,
-  rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
-  { exact ⟨h, rfl⟩ },
-  { exact ⟨G.symm h, sym2.eq_swap⟩, }
+  rw [←dart_card_eq_twice_card_edges, ←card_univ],
+  refine card_congr (λ i _, (i.1, i.2)) (by simp) (by simp [dart.ext_iff, ←and_imp]) _,
+  { rintro ⟨x, y⟩ h,
+    exact ⟨⟨x, y, (mem_filter.1 h).2⟩, mem_univ _, rfl⟩ },
 end
 
 open_locale classical

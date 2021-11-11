@@ -179,10 +179,9 @@ begin
     add_sub_cancel, mul_comm (∑ j in s, (g j)^2), sq (∑ j in s, (g j)^2),
     ←mul_assoc, ←mul_sub_right_distrib] at h,
   obtain h' | h' := (sum_nonneg (λ i (hi : i ∈ s), sq_nonneg (g i))).eq_or_lt,
-  { rw ←h',
-    simp only [@eq_comm _ (0:ℝ), sum_eq_zero_iff_of_nonneg (λ i _, sq_nonneg (g i)), nat.succ_pos',
-      pow_eq_zero_iff] at h',
-    rw [sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h' i hi])],
+  { have h'' : ∀ i ∈ s, g i = 0 :=
+      λ i hi, by simpa using (sum_eq_zero_iff_of_nonneg (λ i _, sq_nonneg (g i))).1 h'.symm i hi,
+    rw [←h', sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h'' i hi])],
     simp },
   rw ←sub_nonneg,
   apply nonneg_of_mul_nonneg_right h h',

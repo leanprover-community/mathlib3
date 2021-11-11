@@ -337,6 +337,18 @@ begin
   exact ⟨g, λ i hi, hf hi $ hg hi, rfl⟩
 end
 
+@[to_additive]
+lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : ι → M) :
+  ∏ (i : ι) in s, ({I i} : set M) = {∏ (i : ι) in s, I i} :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simpa },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih],
+    simp }
+end
+
 /-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
 
 end big_operators

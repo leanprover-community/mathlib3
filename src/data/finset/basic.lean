@@ -958,12 +958,15 @@ instance : lattice (finset α) :=
 @[simp] theorem sup_eq_union : ((⊔) : finset α → finset α → finset α) = (∪) := rfl
 @[simp] theorem inf_eq_inter : ((⊓) : finset α → finset α → finset α) = (∩) := rfl
 
+instance {α : Type u} : order_bot (finset α) :=
+{ bot := ∅, bot_le := empty_subset }
+
 instance : semilattice_inf_bot (finset α) :=
-{ bot := ∅, bot_le := empty_subset, ..finset.lattice }
+{ ..finset.order_bot, ..finset.lattice }
 
-@[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl
+@[simp] lemma bot_eq_empty {α : Type u} : (⊥ : finset α) = ∅ := rfl
 
-instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
+instance : semilattice_sup_bot (finset α) :=
 { ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=

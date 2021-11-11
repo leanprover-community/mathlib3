@@ -127,6 +127,96 @@ lemma concrete.colimit_exists_rep [has_colimit F] (x : colimit F) :
   ∃ (j : J) (y : F.obj j), colimit.ι F j y = x :=
 concrete.is_colimit_exists_rep F (colimit.is_colimit _) x
 
+lemma concrete.is_colimit_rep_eq_of_exists {D : cocone F} {i j : J} (hD : is_colimit D)
+  (x : F.obj i) (y : F.obj j) (h : ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y) :
+  D.ι.app i x = D.ι.app j y :=
+begin
+  let E := (forget C).map_cocone D,
+  let hE : is_colimit E := is_colimit_of_preserves _ hD,
+  let G := types.colimit_cocone (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let T : E ≅ G := hE.unique_up_to_iso hG,
+  let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
+  apply_fun TX.hom,
+  swap, { suffices : function.bijective TX.hom, by exact this.1,
+    rw ← is_iso_iff_bijective, apply is_iso.of_iso },
+  change (E.ι.app i ≫ TX.hom) x = (E.ι.app j ≫ TX.hom) y,
+  erw [T.hom.w, T.hom.w],
+  obtain ⟨k, f, g, h⟩ := h,
+  have : G.ι.app i x = (G.ι.app k (F.map f x) : G.X) := quot.sound ⟨f,rfl⟩,
+  rw [this, h],
+  symmetry,
+  exact quot.sound ⟨g,rfl⟩,
+end
+
+lemma concrete.colimit_rep_eq_of_exists [has_colimit F] {i j : J}
+  (x : F.obj i) (y : F.obj j) (h : ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y) :
+  colimit.ι F i x = colimit.ι F j y :=
+concrete.is_colimit_rep_eq_of_exists F (colimit.is_colimit _) x y h
+
+section filtered_colimits
+
+variable [is_filtered J]
+
+lemma concrete.is_colimit_exists_of_rep_eq {D : cocone F} {i j : J} (hD : is_colimit D)
+  (x : F.obj i) (y : F.obj j) (h : D.ι.app _ x = D.ι.app _ y) :
+  ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+begin
+  let E := (forget C).map_cocone D,
+  let hE : is_colimit E := is_colimit_of_preserves _ hD,
+  let G := types.colimit_cocone (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let T : E ≅ G := hE.unique_up_to_iso hG,
+  let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
+  apply_fun TX.hom at h,
+  change (E.ι.app i ≫ TX.hom) x = (E.ι.app j ≫ TX.hom) y at h,
+  erw [T.hom.w, T.hom.w] at h,
+  replace h := quot.exact _ h,
+  suffices : ∀ (a b : Σ j, F.obj j)
+    (h : eqv_gen (limits.types.quot.rel (F ⋙ forget C)) a b),
+    ∃ k (f : a.1 ⟶ k) (g : b.1 ⟶ k), F.map f a.2 = F.map g b.2,
+  { exact this ⟨i,x⟩ ⟨j,y⟩ h },
+  intros a b h,
+  induction h,
+  case eqv_gen.rel : x y hh {
+    obtain ⟨e,he⟩ := hh,
+    use [y.1, e, 𝟙 _],
+    simpa using he.symm },
+  case eqv_gen.refl : x { use [x.1, 𝟙 _, 𝟙 _, rfl] },
+  case eqv_gen.symm : x y _ hh {
+    obtain ⟨k, f, g, hh⟩ := hh,
+    use [k, g, f, hh.symm] },
+  case eqv_gen.trans : x y z _ _ hh1 hh2 {
+    obtain ⟨k1, f1, g1, h1⟩ := hh1,
+    obtain ⟨k2, f2, g2, h2⟩ := hh2,
+    let k0 : J := is_filtered.max k1 k2,
+    let e1 : k1 ⟶ k0 := is_filtered.left_to_max _ _,
+    let e2 : k2 ⟶ k0 := is_filtered.right_to_max _ _,
+    let k : J := is_filtered.coeq (g1 ≫ e1) (f2 ≫ e2),
+    let e : k0 ⟶ k := is_filtered.coeq_hom _ _,
+    use [k, f1 ≫ e1 ≫ e, g2 ≫ e2 ≫ e],
+    simp only [F.map_comp, comp_apply, h1, ← h2],
+    simp only [← comp_apply, ← F.map_comp],
+    rw is_filtered.coeq_condition },
+end
+
+theorem concrete.is_colimit_rep_eq_iff_exists {D : cocone F} {i j : J}
+  (hD : is_colimit D) (x : F.obj i) (y : F.obj j) :
+  D.ι.app i x = D.ι.app j y ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+⟨concrete.is_colimit_exists_of_rep_eq _ hD _ _, concrete.is_colimit_rep_eq_of_exists _ hD _ _⟩
+
+lemma concrete.colimit_exists_of_rep_eq [has_colimit F] {i j : J}
+  (x : F.obj i) (y : F.obj j) (h : colimit.ι F _ x = colimit.ι F _ y) :
+  ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+concrete.is_colimit_exists_of_rep_eq F (colimit.is_colimit _) x y h
+
+theorem concrete.colimit_rep_eq_iff_exists [has_colimit F] {i j : J}
+  (x : F.obj i) (y : F.obj j) :
+  colimit.ι F i x = colimit.ι F j y ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+⟨concrete.colimit_exists_of_rep_eq _ _ _, concrete.colimit_rep_eq_of_exists _ _ _⟩
+
+end filtered_colimits
+
 section wide_pushout
 
 open wide_pushout

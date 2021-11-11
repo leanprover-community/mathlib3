@@ -540,6 +540,29 @@ open category_theory.limits.walking_cospan
 instance forget_map_is_open_immersion :
   is_open_immersion (forget_map f) := ⟨H.base_open, H.c_iso⟩
 
+instance has_limit_cospan_forget_of_left : has_limit (cospan f g ⋙ forget) :=
+begin
+  apply has_limit_of_iso (diagram_iso_cospan _).symm,
+  change has_limit (cospan (forget_map f) (forget_map g)),
+  apply_instance
+end
+
+instance has_limit_cospan_forget_of_left' : has_limit (cospan ((cospan f g ⋙ forget).map hom.inl)
+  ((cospan f g ⋙ forget).map hom.inr)) :=
+show has_limit (cospan (forget_map f) (forget_map g)), from infer_instance
+
+instance has_limit_cospan_forget_of_right : has_limit (cospan g f ⋙ forget) :=
+begin
+  apply has_limit_of_iso (diagram_iso_cospan _).symm,
+  change has_limit (cospan (forget_map g) (forget_map f)),
+  apply_instance
+end
+
+instance has_limit_cospan_forget_of_right' : has_limit (cospan ((cospan g f ⋙ forget).map hom.inl)
+  ((cospan g f ⋙ forget).map hom.inr)) :=
+show has_limit (cospan (forget_map g) (forget_map f)), from infer_instance
+
+
 instance forget_creates_pullback_of_left : creates_limit (cospan f g) forget :=
 creates_limit_of_fully_faithful_of_iso
   (to_SheafedSpace Y (@pullback.snd (PresheafedSpace C) _ _ _ _ f g _))

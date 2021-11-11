@@ -488,6 +488,7 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
 /-- `polynomial.map` as a `ring_hom` -/
+-- TODO: can't we make this the main definition of `polynomial.map`?
 def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 { to_fun := polynomial.map f,
   map_add' := λ _ _, map_add f,

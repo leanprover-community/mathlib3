@@ -401,6 +401,8 @@ begin
   exacts [hs.some_spec.fst, (exists_measurable_superset μ s).some_spec.1]
 end
 
+lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable μ s := (subset_to_measurable _ _).eventually_le
+
 @[simp] lemma measurable_set_to_measurable (μ : measure α) (s : set α) :
   measurable_set (to_measurable μ s) :=
 begin

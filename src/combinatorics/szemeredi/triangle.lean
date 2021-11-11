@@ -330,7 +330,7 @@ lemma triangle_free_far_of_disjoint_triangles_aux
   ∀ (G' ≤ G), G'.no_triangles → tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
 begin
   intros G' hG hG',
-  rw [←card_sdiff (edge_finset_subset_of_le hG), ←card_attach],
+  rw [←card_sdiff (edge_finset_mono hG), ←card_attach],
   by_contra,
   push_neg at h,
   have : ∀ t ∈ tris, ∃ x y ∈ t, x ≠ y ∧ ⟦(x, y)⟧ ∈ G.edge_finset \ G'.edge_finset,
@@ -362,14 +362,14 @@ begin
   { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) (t.2.symm ▸ hfx t₂ ht₂)) },
 end
 
-lemma triangle_free_far_of_disjoint_triangles
+lemma triangle_free_far_of_disjoint_triangles {ε : ℝ}
   (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
   (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1))
   (tris_big : ε * card α ^ 2 ≤ tris.card) :
   G.triangle_free_far ε :=
 begin
   intros G' hG hG',
-  rw ←nat.cast_sub (card_le_of_subset (edge_finset_subset_of_le hG)),
+  rw ←nat.cast_sub (card_le_of_subset (edge_finset_mono hG)),
   apply tris_big.trans
     (nat.cast_le.2 (triangle_free_far_of_disjoint_triangles_aux tris htris pd G' hG hG')),
 end
@@ -485,7 +485,7 @@ lemma triangle_free_far.not_no_triangles [nonempty α] {ε : ℝ} (hG : G.triang
 --   sorry
 -- end
 
-lemma triangle_free_far.triangle_finset_card_pos [nonempty α] (hG : G.triangle_free_far ε)
+lemma triangle_free_far.triangle_finset_card_pos {ε : ℝ} [nonempty α] (hG : G.triangle_free_far ε)
   (hε : 0 < ε) : 0 < G.triangle_finset.card :=
 begin
   rw [finset.card_pos, nonempty_iff_ne_empty, ne.def, triangle_finset_empty_iff],

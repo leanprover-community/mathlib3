@@ -44,8 +44,6 @@ a complete graph, whose vertices represent the colors.
 
   * Trees
 
-  * Bipartite graphs
-
   * Planar graphs
 
   * develop API for partial colorings, likely as colorings of subgraphs (`H.coe.coloring α`)
@@ -147,24 +145,17 @@ If `G` isn't colorable with finitely many colors, this will be 0. -/
 noncomputable def chromatic_number : ℕ :=
 Inf { n : ℕ | G.colorable n }
 
--- TODO move to basic.lean
-/--
-Embeddings of types induce embeddings of complete graphs on those types.
--/
-def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
-{ to_fun := f,
-  inj' := f.inj',
-  map_rel_iff' := by simp }
+-- open embedding
 
 /-- Given an embedding, there is an induced embedding of colorings. -/
 def recolor_of_embedding {α β : Type*} (f : α ↪ β) : G.coloring α ↪ G.coloring β :=
-{ to_fun := λ C, (complete_graph.of_embedding f).to_hom.comp C,
+{ to_fun := λ C, (embedding.complete_graph.of_embedding f).to_hom.comp C,
   inj' := begin -- this was strangely painful; seems like missing lemmas about embeddings
     intros C C' h,
     dsimp only at h,
     ext v,
-    apply (complete_graph.of_embedding f).inj',
-    change ((complete_graph.of_embedding f).to_hom.comp C) v = _,
+    apply (embedding.complete_graph.of_embedding f).inj',
+    change ((embedding.complete_graph.of_embedding f).to_hom.comp C) v = _,
     rw h,
     refl,
   end }
@@ -211,7 +202,7 @@ begin
   split,
   { rintro hc,
     have C : G.coloring (fin n) := hc.to_coloring (by simp),
-    let f := complete_graph.of_embedding (fin.coe_embedding n).to_embedding,
+    let f := embedding.complete_graph.of_embedding (fin.coe_embedding n).to_embedding,
     use f.to_hom.comp C,
     intro v,
     cases C with color valid,
@@ -289,15 +280,9 @@ begin
   exact nat.not_lt_zero _ hi,
 end
 
--- todo: move to basic.lean
-/-- The induced map for spanning subgraphs, which is the identity. -/
-def map {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
-{ to_fun := id,
-  map_rel' := h }
-
 lemma colorable_lower_bound {G' : simple_graph V} (h : G ≤ G') (n : ℕ) (hc : G'.colorable n) :
   G.colorable n :=
-⟨hc.some.comp (map h)⟩
+⟨hc.some.comp (hom.map h)⟩
 
 lemma chromatic_number_le_of_forall_imp {G' : simple_graph V}
   {m : ℕ} (hc : G'.colorable m)
@@ -358,28 +343,6 @@ begin
   intro h,
   exact C.valid h,
 end
-
--- TODO move to basic.lean
-/--
-Two vertices are adjacent in the complete bipartite graph on two vertex types
-if and only if they are not from the same side.
-Bipartite graphs in general may be regarded as being subgraphs of one of these.
-
-TODO maybe replace with complete multi-partite graphs, where the vertex type
-is a sigma type of an indexed family of vertex types?
--/
-@[simps]
-def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
-{ adj := λ v w, (v.is_left ∧ w.is_right) ∨ (v.is_right ∧ w.is_left),
-  -- maybe replace adj with v.is_left ↔ ¬w.is_left?
-  symm := begin
-    intros v w,
-    cases v; cases w; simp,
-  end,
-  loopless := begin
-    intro v,
-    cases v; simp,
-  end }
 
 /-- The bicoloring of a complete bipartite graph using whether a vertex
 is on the left or on the right. -/

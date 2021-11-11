@@ -86,8 +86,12 @@ structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (is_cover : ∀ (U : D), sieve.cover_by_image G U ∈ K U)
 
 open presieve opposite
+
 namespace cover_dense
-variables {A : Type*} [category A] {K} {G : C ⥤ D} (H : cover_dense K G)
+
+variable {K}
+
+variables {A : Type*} [category A] {G : C ⥤ D} (H : cover_dense K G)
 
 lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :

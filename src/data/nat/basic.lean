@@ -741,6 +741,17 @@ begin
   { intros h hP, exact hP }
 end
 
+/-- A subset of ℕ containing b:ℕ and closed under succ contains n ≥ b -/
+lemma ind_set' (b : ℕ) (S : set ℕ) (hb : b ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k.succ ∈ S) :
+  ∀ n : ℕ, (b ≤ n) → n ∈ S :=
+λ n hn, @le_rec_on (λ n, n ∈ S) b n hn h_ind hb
+
+/-- A subset of ℕ containing zero and closed under succ contains all of ℕ -/
+lemma ind_set (S : set ℕ) (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k.succ ∈ S):
+  ∀ n : ℕ, n ∈ S :=
+λ n, ind_set' 0 S hb h_ind n (zero_le n)
+
+
 /-! ### `div` -/
 
 attribute [simp] nat.div_self

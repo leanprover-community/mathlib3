@@ -263,8 +263,8 @@ lemma test_against_nn_add (μ : finite_measure α) (f₁ f₂ : α →ᵇ ℝ≥
 begin
   simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_add, ennreal.coe_add,
              pi.add_apply, test_against_nn_coe_eq],
-  apply lintegral_add,
-  repeat { exact (bounded_continuous_function.nnreal.to_ennreal_comp_measurable _), },
+  apply lintegral_add;
+  exact bounded_continuous_function.nnreal.to_ennreal_comp_measurable _
 end
 
 lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ ℝ≥0) :
@@ -272,9 +272,8 @@ lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ
 begin
   simp only [←ennreal.coe_eq_coe, algebra.id.smul_eq_mul, bounded_continuous_function.coe_smul,
              test_against_nn_coe_eq, ennreal.coe_mul],
-  have key_smul := @lintegral_const_mul _ _ (μ : measure α) c _
+  exact @lintegral_const_mul _ _ (μ : measure α) c _
                    (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),
-  exact key_smul,
 end
 
 lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →ᵇ ℝ≥0) :
@@ -282,10 +281,10 @@ lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →�
 begin
   simp [←test_against_nn_const μ (nndist f g), ←test_against_nn_add, ←ennreal.coe_le_coe],
   apply lintegral_mono,
-  have le_dist : ∀ x, dist (f x) (g x) ≤ (nndist f g),
-  by exact bounded_continuous_function.dist_coe_le_dist,
+  have le_dist : ∀ x, dist (f x) (g x) ≤ nndist f g :=
+  bounded_continuous_function.dist_coe_le_dist,
   intros x,
-  have le' : f(x) ≤ g(x) + (nndist f g),
+  have le' : f(x) ≤ g(x) + nndist f g,
   { apply (nnreal.le_add_nndist (f x) (g x)).trans,
     rw add_le_add_iff_left,
     exact dist_le_coe.mp (le_dist x), },
@@ -320,7 +319,7 @@ end
 
 /-- Finite measures yield elements of the `weak_dual` of bounded continuous nonnegative
 functions via `finite_measure.test_against_nn`, i.e., integration. -/
-def to_weak_dual_of_bounded_continuous_nnreal (μ : finite_measure α) :
+def to_weak_dual_bounded_continuous_nnreal (μ : finite_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := λ f, μ.test_against_nn f,
   map_add' := test_against_nn_add μ,
@@ -419,7 +418,7 @@ end
 
 /-- Probability measures yield elements of the `weak_dual` of bounded continuous nonnegative
 functions via `probability_measure.test_against_nn`, i.e., integration. -/
-def to_weak_dual_of_bounded_continuous_nnreal (μ : probability_measure α) :
+def to_weak_dual_bounded_continuous_nnreal (μ : probability_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := λ f, μ.test_against_nn f,
   map_add' := μ.to_finite_measure.test_against_nn_add,

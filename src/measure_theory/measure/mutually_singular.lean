@@ -21,10 +21,14 @@ facts about it.
 measure, mutually singular
 -/
 
+open set
+open_locale measure_theory nnreal ennreal
 
 namespace measure_theory
 
 namespace measure
+
+variables {α : Type*} {m0 : measurable_space α} {μ μ₁ μ₂ ν ν₁ ν₂ : measure α}
 
 /-- Two measures `μ`, `ν` are said to be mutually singular if there exists a measurable set `s`
 such that `μ s = 0` and `ν sᶜ = 0`. -/

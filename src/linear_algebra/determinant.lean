@@ -8,7 +8,7 @@ import linear_algebra.matrix.basis
 import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.matrix.reindex
-import linear_algebra.multilinear.basic
+import linear_algebra.multilinear.basis
 import linear_algebra.dual
 import ring_theory.algebra_tower
 
@@ -367,6 +367,16 @@ end
 
 lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
 (is_basis_iff_det e).mp ⟨e'.linear_independent, e'.span_eq⟩
+
+/-- Any alternating map to `R` where `ι` has the cardinality of a basis equals the determinant
+map with respect to that basis, multiplied by the value of that alternating map on that basis. -/
+lemma alternating_map.eq_smul_basis_det (f : alternating_map R M R ι) : f = f e • e.det :=
+begin
+  refine basis.ext_alternating e (λ i h, _),
+  let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
+  change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
+  simp [alternating_map.map_perm, basis.det_self]
+end
 
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M]
 

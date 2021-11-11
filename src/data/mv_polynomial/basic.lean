@@ -950,6 +950,12 @@ def map_alg_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] (f : S₁
   map_alg_hom (alg_hom.id R S₁) = alg_hom.id R (mv_polynomial σ S₁) :=
 alg_hom.ext map_id
 
+@[simp] lemma map_alg_hom_coe_ring_hom [comm_semiring S₂] [algebra R S₁] [algebra R S₂] 
+  (f : S₁ →ₐ[R] S₂) :
+  ↑(map_alg_hom f : _ →ₐ[R] mv_polynomial σ S₂) =
+    (map ↑f : mv_polynomial σ S₁ →+* mv_polynomial σ S₂) :=
+ring_hom.mk_coe _ _ _ _ _ 
+
 end map
 
 

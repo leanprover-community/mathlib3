@@ -141,6 +141,11 @@ instance galgebra [add_monoid ι]
     sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
   smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _ }
 
+@[simp] lemma set_like.coe_galgebra_to_fun [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [h : set_like.graded_monoid A] (s : S) :
+    ↑(@direct_sum.galgebra.to_fun _ S (λ i, A i) _ _ _ _ _ _ _ s) = (algebra_map S R s : R) := rfl
+
 /-- A direct sum of powers of a submodule of an algebra has a multiplicative structure. -/
 instance nat_power_graded_monoid
   [comm_semiring S] [semiring R] [algebra S R] (p : submodule S R) :

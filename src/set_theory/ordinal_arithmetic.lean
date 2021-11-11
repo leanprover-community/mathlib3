@@ -1376,8 +1376,8 @@ by induction n with n ih; [simp only [nat.cast_zero, lift_zero],
 theorem lift_type_fin (n : ℕ) : lift (@type (fin n) (<) _) = n :=
 by simp only [type_fin, lift_nat_cast]
 
-theorem fintype_card (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
-by rw [← card_eq_nat, card_type, fintype_card]
+theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
+by rw [← card_eq_nat, card_type, mk_fintype]
 
 end ordinal
 

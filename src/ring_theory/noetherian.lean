@@ -238,28 +238,16 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
-/-- The image of a finitely generated ideal is finitely generated. -/
-lemma map_fg_of_fg {R S : Type*} [comm_ring R] [comm_ring S] (I : ideal R) (h : I.fg) (f : R →+* S)
-  : (I.map f).fg :=
+/-- The image of a finitely generated ideal is finitely generated.
+
+This is the `ideal` version of `submodule.fg_map`. -/
+lemma map_fg_of_fg {R S : Type*} [semiring R] [semiring S] (I : ideal R) (h : I.fg) (f : R →+* S) :
+  (I.map f).fg :=
 begin
-  obtain ⟨X, hXfin, hXgen⟩ := fg_def.1 h,
-  apply fg_def.2,
-  refine ⟨set.image f X, finite.image ⇑f hXfin, _⟩,
-  rw [ideal.map, ideal.span, ← hXgen],
-  refine le_antisymm (submodule.span_mono (image_subset _ ideal.subset_span)) _,
-  rw [submodule.span_le, image_subset_iff],
-  intros i hi,
-  refine submodule.span_induction hi (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
-  { simp only [set_like.mem_coe, mem_preimage],
-    suffices : f x ∈ f '' X, { exact ideal.subset_span this },
-    exact mem_image_of_mem ⇑f hx },
-  { simp only [set_like.mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
-  { simp only [set_like.mem_coe, mem_preimage] at hx hy,
-    simp only [ring_hom.map_add, set_like.mem_coe, mem_preimage],
-    exact submodule.add_mem _ hx hy },
-  { simp only [set_like.mem_coe, mem_preimage] at hx,
-    simp only [algebra.id.smul_eq_mul, set_like.mem_coe, mem_preimage, ring_hom.map_mul],
-    exact submodule.smul_mem _ _ hx }
+  classical,
+  obtain ⟨s, hs : ideal.span ↑s = _⟩ := h,
+  refine ⟨s.image f, (_ : ideal.span _ = _)⟩,
+  rw [finset.coe_image, ←ideal.map_span, hs],
 end
 
 /-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
@@ -272,7 +260,7 @@ begin
   rw linear_map.ker_comp,
   apply fg_of_fg_map_of_fg_inf_ker f,
   { rwa [submodule.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
-  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
+  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono bot_le)] }
 end
 
 lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]

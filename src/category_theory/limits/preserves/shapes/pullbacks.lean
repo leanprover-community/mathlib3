@@ -85,6 +85,38 @@ begin
   apply i,
 end
 
+open walking_cospan
+
+instance cospan_comp_has_limit_aux {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [H : has_limit (cospan (F.map f) (F.map g))] : has_limit (cospan f g ⋙ F) :=
+begin
+  apply has_limit_of_iso (diagram_iso_cospan _).symm,
+  exact H
+end
+
+instance cospan_comp_has_limit_aux' {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [H : has_limit (cospan (F.map f) (F.map g))] :
+    has_limit (cospan ((cospan f g ⋙ F).map hom.inl) ((cospan f g ⋙ F).map hom.inr)) := H
+
+/-- If `F` preserves the pullback of `f, g`, it also preserves the pullback of `g, f`. -/
+def preserves_pullback_symmetry {D : Type*} [category D] (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [preserves_limit (cospan f g) F] : preserves_limit (cospan g f) F :=
+{ preserves := λ c hc,
+  begin
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).to_fun,
+    apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
+    apply pullback_cone.flip_is_limit,
+    apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,
+    apply_with preserves_limit.preserves { instances := ff },
+    { dsimp, apply_instance },
+    apply pullback_cone.flip_is_limit,
+    apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
+    apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).inv_fun,
+    exact hc,
+    exact (c.π.naturality hom.inr).symm.trans (c.π.naturality hom.inl : _)
+  end }
+
+
 variables [preserves_limit (cospan f g) G]
 /--
 If `G` preserves the pullback of `(f,g)`, then the pullback comparison map for `G` at `(f,g)` is

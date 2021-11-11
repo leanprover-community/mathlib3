@@ -6,6 +6,9 @@ Authors: Andrew Yang
 import algebraic_geometry.presheafed_space.has_colimits
 import category_theory.limits.shapes.binary_products
 import algebraic_geometry.stalks
+import algebraic_geometry.sheafed_space
+import topology.sheaves.functors
+import category_theory.limits.preserves.shapes.pullbacks
 
 /-!
 # Open immersions of presheafed spaces
@@ -425,6 +428,25 @@ begin
   apply_instance
 end
 
+instance forget_preserves_limits_of_left : preserves_limit (cospan f g) (forget C) :=
+preserves_limit_of_preserves_limit_cone (pullback_cone_of_left_is_limit f g)
+begin
+  apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan _) _).to_fun,
+  refine (is_limit.equiv_iso_limit _).to_fun (limit.is_limit (cospan f.base g.base)),
+  fapply cones.ext,
+  exact (iso.refl _),
+  change ∀ j, _ = 𝟙 _ ≫ _ ≫ _,
+  simp_rw category.id_comp,
+  rintros (_|_|_); symmetry,
+  { erw category.comp_id,
+    exact limit.w (cospan f.base g.base) walking_cospan.hom.inl },
+  { exact category.comp_id _ },
+  { exact category.comp_id _ },
+end
+
+instance forget_preserves_limits_of_right : preserves_limit (cospan g f) (forget C) :=
+preserves_pullback_symmetry (forget C) f g
+
 lemma pullback_snd_is_iso_of_range_subset (H : set.range g.base ⊆ set.range f.base) :
   is_iso (pullback.snd : pullback f g ⟶ _) :=
 begin
@@ -458,6 +480,139 @@ lemma lift_uniq (H : set.range g.base ⊆ set.range f.base) (l : Y ⟶ X)
 by rw [← cancel_mono f, hl, lift_fac]
 
 end pullback
+
+open category_theory.limits.walking_cospan
+
+section SheafedSpace
+
+variables [has_products C]
+
+section to_SheafedSpace
+
+variables {X : PresheafedSpace C} (Y : SheafedSpace C)
+
+variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
+
+include H
+
+/-- If `X ⟶ Y` is an open immersion, and `Y` is a SheafedSpace, then so is `X`. -/
+def to_SheafedSpace : SheafedSpace C :=
+{ is_sheaf :=
+  begin
+    apply Top.presheaf.is_sheaf_of_iso (sheaf_iso_of_iso H.iso_restrict.symm).symm,
+    apply Top.sheaf.pushforward_sheaf_of_sheaf,
+    exact (Y.restrict H.base_open).is_sheaf
+  end,
+to_PresheafedSpace := X }
+
+@[simp] lemma to_SheafedSpace_forget_eq : (to_SheafedSpace Y f).to_PresheafedSpace = X := rfl
+
+/--
+If `X ⟶ Y` is an open immersion of PresheafedSpaces, and `Y` is a SheafedSpace, we can
+upgrade it into a morphism of SheafedSpaces.
+-/
+def to_SheafedSpace_hom : to_SheafedSpace Y f ⟶ Y := ⟨f.base, f.c⟩
+
+instance to_SheafedSpace_hom_forget_is_open_immersion :
+  is_open_immersion (to_SheafedSpace_hom Y f) := ⟨H.base_open, H.c_iso⟩
+
+@[simp] lemma to_SheafedSpace_hom_base_eq : (to_SheafedSpace_hom Y f).base = f.base := rfl
+
+@[simp] lemma to_SheafedSpace_hom_c_eq : (to_SheafedSpace_hom Y f).c = f.c := rfl
+
+omit H
+
+@[simp] lemma to_SheafedSpace_hom_eq {X Y : SheafedSpace C} (f : X ⟶ Y) [is_open_immersion f] :
+  to_SheafedSpace Y f = X := by unfreezingI { cases X, refl }
+
+end to_SheafedSpace
+
+section pullback
+
+variables {X Y Z : SheafedSpace C} (f : X ⟶ Z) (g : Y ⟶ Z) [H : is_open_immersion f]
+
+include H
+
+local notation `forget` := SheafedSpace.forget_to_PresheafedSpace
+local notation `forget_map` := SheafedSpace.forget_to_PresheafedSpace.map
+open category_theory.limits.walking_cospan
+
+instance forget_map_is_open_immersion :
+  is_open_immersion (forget_map f) := ⟨H.base_open, H.c_iso⟩
+
+instance forget_creates_pullback_of_left : creates_limit (cospan f g) forget :=
+creates_limit_of_fully_faithful_of_iso
+  (to_SheafedSpace Y (@pullback.snd (PresheafedSpace C) _ _ _ _ f g _))
+  (eq_to_iso (show pullback _ _ = pullback _ _, by congr)
+    ≪≫ has_limit.iso_of_nat_iso (diagram_iso_cospan _).symm)
+
+instance forget_creates_pullback_of_right : creates_limit (cospan g f) forget :=
+creates_limit_of_fully_faithful_of_iso
+  (to_SheafedSpace Y (@pullback.fst (PresheafedSpace C) _ _ _ _ g f _))
+  (eq_to_iso (show pullback _ _ = pullback _ _, by congr)
+    ≪≫ has_limit.iso_of_nat_iso (diagram_iso_cospan _).symm)
+
+instance SheafedSpace_forget_preserves_of_left :
+  preserves_limit (cospan f g) (SheafedSpace.forget C) :=
+@@limits.comp_preserves_limit _ _ _ _ forget (PresheafedSpace.forget C) _
+begin
+  apply_with (preserves_limit_of_iso_diagram _ (diagram_iso_cospan _).symm) { instances := tt },
+  dsimp,
+  apply_instance
+end
+
+instance SheafedSpace_forget_preserves_of_right :
+  preserves_limit (cospan g f) (SheafedSpace.forget C) :=
+preserves_pullback_symmetry _ _ _
+
+instance SheafedSpace_has_pullback_of_left : has_pullback f g :=
+  has_limit_of_created (cospan f g) forget
+
+instance SheafedSpace_has_pullback_of_right : has_pullback g f :=
+  has_limit_of_created (cospan g f) forget
+
+/-- Open immersions are stable under base-change. -/
+instance SheafedSpace_pullback_snd_of_left :
+  is_open_immersion (pullback.snd : pullback f g ⟶ _) :=
+begin
+  delta pullback.snd,
+  have : _ = limit.π (cospan f g) right := preserves_limits_iso_hom_π
+      forget (cospan f g) right,
+  rw ← this,
+  have := has_limit.iso_of_nat_iso_hom_π
+    (diagram_iso_cospan (cospan f g ⋙ forget))
+    right,
+  erw category.comp_id at this,
+  rw ← this,
+  dsimp,
+  apply_instance
+end
+
+instance SheafedSpace_pullback_fst_of_right :
+  is_open_immersion (pullback.fst : pullback g f ⟶ _) :=
+begin
+  delta pullback.fst,
+  have : _ = limit.π (cospan g f) left := preserves_limits_iso_hom_π
+      forget (cospan g f) left,
+  rw ← this,
+  have := has_limit.iso_of_nat_iso_hom_π
+    (diagram_iso_cospan (cospan g f ⋙ forget)) left,
+  erw category.comp_id at this,
+  rw ← this,
+  dsimp,
+  apply_instance
+end
+
+instance SheafedSpace_pullback_one_is_open_immersion [is_open_immersion g] :
+  is_open_immersion (limit.π (cospan f g) one : pullback f g ⟶ Z) :=
+begin
+  rw [←limit.w (cospan f g) hom.inl, cospan_map_inl],
+  apply_instance
+end
+
+end pullback
+
+end SheafedSpace
 
 end is_open_immersion
 

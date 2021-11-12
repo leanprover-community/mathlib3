@@ -742,15 +742,13 @@ begin
 end
 
 /-- A subset of `ℕ` containing `b : ℕ` and closed under `nat.succ` contains every `n ≥ b`. -/
-lemma ind_set' (b : ℕ) (S : set ℕ) (hb : b ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k.succ ∈ S) :
-  ∀ n : ℕ, (b ≤ n) → n ∈ S :=
-λ n hn, @le_rec_on (λ n, n ∈ S) b n hn h_ind hb
+lemma set_induction_bounded {b : ℕ} {S : set ℕ} (hb : b ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S)
+  {n : ℕ} (hbn : b ≤ n) : n ∈ S :=
+@le_rec_on (λ n, n ∈ S) b n hbn h_ind hb
 
 /-- A subset of `ℕ` containing zero and closed under `nat.succ` contains all of `ℕ`. -/
-lemma ind_set (S : set ℕ) (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k.succ ∈ S):
-  ∀ n : ℕ, n ∈ S :=
-λ n, ind_set' 0 S hb h_ind n (zero_le n)
-
+lemma set_induction {S : set ℕ} (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S) (n : ℕ) : n ∈ S :=
+set_induction_bounded hb h_ind (zero_le n)
 
 /-! ### `div` -/
 

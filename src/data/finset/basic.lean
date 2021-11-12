@@ -963,6 +963,7 @@ instance {α : Type u} : order_bot (finset α) :=
 
 @[simp] lemma bot_eq_empty {α : Type u} : (⊥ : finset α) = ∅ := rfl
 
+instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
     simp only [true_or, imp_true_iff, true_and, or_true],

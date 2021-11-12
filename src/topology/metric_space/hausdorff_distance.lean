@@ -766,7 +766,7 @@ continuous.is_open_preimage continuous_inf_edist _ is_open_Iio
 @[simp] lemma thickening_empty (δ : ℝ) : thickening δ (∅ : set α) = ∅ :=
 by { unfold thickening, simp only [set_of_false, inf_edist_empty, not_top_lt], }
 
-/-- The (open) thickening `thickening δ E` of a fixed subset `E` is increasing function of the
+/-- The (open) thickening `thickening δ E` of a fixed subset `E` is an increasing function of the
 thickening radius `δ`. -/
 lemma thickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   thickening δ₁ E ⊆ thickening δ₂ E :=
@@ -789,7 +789,7 @@ begin
   simp,
   split,
   { intros h,
-    rcases (exists_edist_lt_of_inf_edist_lt h) with ⟨z , ⟨hzE, hxz⟩⟩,
+    rcases (exists_edist_lt_of_inf_edist_lt h) with ⟨z, ⟨hzE, hxz⟩⟩,
     use z,
     split,
     { exact hzE, },
@@ -798,7 +798,7 @@ begin
         ((edist x z).to_real) δ (ennreal.to_real_nonneg)).mp,
     rwa ennreal.of_real_to_real (edist_lt_top x z).ne, },
   { intros h,
-    rcases h with ⟨z , ⟨hzE, hxz⟩⟩,
+    rcases h with ⟨z, ⟨hzE, hxz⟩⟩,
     rw dist_edist at hxz,
     apply lt_of_le_of_lt (@inf_edist_le_edist_of_mem _ _ x _ _ hzE) _,
     have key := (@ennreal.of_real_lt_of_real_iff_of_nonneg

@@ -121,8 +121,7 @@ theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
 
 instance : order_bot ℕ+ :=
 { bot := 1,
-  bot_le := λ a, a.property,
-  .. pnat.linear_order }
+  bot_le := λ a, a.property }
 
 @[simp] lemma bot_eq_one : (⊥ : ℕ+) = 1 := rfl
 

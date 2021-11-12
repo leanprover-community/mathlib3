@@ -18,11 +18,12 @@ spaces.
 
 namespace continuous_affine_map
 
-variables {𝕜 R V W P Q : Type*}
+variables {𝕜 R V W W₂ P Q Q₂ : Type*}
 variables [normed_group V] [metric_space P] [normed_add_torsor V P]
 variables [normed_group W] [metric_space Q] [normed_add_torsor W Q]
-variables [normed_field R] [normed_space R V] [normed_space R W]
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W]
+variables [normed_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
+variables [normed_field R] [normed_space R V] [normed_space R W] [normed_space R W₂]
+variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W] [normed_space 𝕜 W₂]
 
 include V W
 
@@ -32,6 +33,10 @@ def cont_linear (f : P →A[R] Q) : V →L[R] W :=
   cont   := by { rw affine_map.continuous_linear_iff, exact f.cont, },
   .. f.linear, }
 
+@[simp] lemma coe_cont_linear (f : P →A[R] Q) :
+  (f.cont_linear : V → W) = f.linear :=
+rfl
+
 @[simp] lemma coe_cont_linear_eq_linear (f : P →A[R] Q) :
   (f.cont_linear : V →ₗ[R] W) = (f : P →ᵃ[R] Q).linear :=
 by { ext, refl, }
@@ -40,9 +45,17 @@ by { ext, refl, }
   ((⟨f, h⟩ : P →A[R] Q).cont_linear : V → W) = f.linear :=
 rfl
 
-@[simp] lemma coe_linear_eq_coe_cont_linear (f : P →A[R] Q) :
+lemma coe_linear_eq_coe_cont_linear (f : P →A[R] Q) :
   ((f : P →ᵃ[R] Q).linear : V → W) = (⇑f.cont_linear : V → W) :=
 rfl
+
+include W₂
+
+@[simp] lemma comp_cont_linear (f : P →A[R] Q) (g : Q →A[R] Q₂) :
+  (g.comp f).cont_linear = g.cont_linear.comp f.cont_linear :=
+rfl
+
+omit W₂
 
 @[simp] lemma map_vadd (f : P →A[R] Q) (p : P) (v : V) :
   f (v +ᵥ p) = f.cont_linear v +ᵥ f p :=
@@ -109,6 +122,8 @@ variables (f : V →A[𝕜] W)
 
 noncomputable instance : has_norm (V →A[𝕜] W) := ⟨λ f, max ∥f 0∥ ∥f.cont_linear∥⟩
 
+/-- Note that unlike the operator norm for linear maps, this norm is _not_ submultiplicative:
+we do _not_ necessarily have `∥f.comp g∥ ≤ ∥f∥ * ∥g∥`. See `norm_comp_le` for what we can say. -/
 lemma norm_def : ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) := rfl
 
 lemma norm_cont_linear_le : ∥f.cont_linear∥ ≤ ∥f∥ := le_max_right _ _
@@ -150,6 +165,27 @@ normed_group.of_core _
 noncomputable instance : normed_space 𝕜 (V →A[𝕜] W) :=
 { norm_smul_le := λ t f, by simp only [norm_def, smul_cont_linear, coe_smul, pi.smul_apply,
     norm_smul, ← mul_max_of_nonneg _ _ (norm_nonneg t)], }
+
+lemma norm_comp_le (g : W₂ →A[𝕜] V) :
+  ∥f.comp g∥ ≤ ∥f∥ * ∥g∥ + ∥f 0∥ :=
+begin
+  rw [norm_def, max_le_iff],
+  split,
+  { calc ∥f.comp g 0∥ = ∥f (g 0)∥ : by simp
+                 ... = ∥f.cont_linear (g 0) + f 0∥ : by { rw f.decomp, simp, }
+                 ... ≤ ∥f.cont_linear∥ * ∥g 0∥ + ∥f 0∥ :
+                          (norm_add_le _ _).trans (add_le_add_right (f.cont_linear.le_op_norm _) _)
+                 ... ≤ ∥f∥ * ∥g∥ + ∥f 0∥ :
+                          add_le_add_right (mul_le_mul f.norm_cont_linear_le g.norm_image_zero_le
+                          (norm_nonneg _) (norm_nonneg _)) _, },
+  { calc ∥(f.comp g).cont_linear∥ ≤ ∥f.cont_linear∥ * ∥g.cont_linear∥ :
+                                      (g.comp_cont_linear f).symm ▸ f.cont_linear.op_norm_comp_le _
+                             ... ≤ ∥f∥ * ∥g∥ :
+                                      mul_le_mul f.norm_cont_linear_le g.norm_cont_linear_le
+                                      (norm_nonneg _) (norm_nonneg _)
+                             ... ≤ ∥f∥ * ∥g∥ + ∥f 0∥ :
+                                      by { rw le_add_iff_nonneg_right, apply norm_nonneg, }, },
+end
 
 variables (𝕜 V W)
 

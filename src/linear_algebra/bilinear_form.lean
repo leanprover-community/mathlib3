@@ -1019,8 +1019,7 @@ end
 lemma is_refl (H : is_alt B₁) : refl_bilin_form.is_refl B₁ :=
 begin
   intros x y h,
-  rw [←neg H, h],
-  simp,
+  rw [←neg H, h, neg_zero],
 end
 
 lemma ortho_sym (H : is_alt B₁) {x y : M₁} :

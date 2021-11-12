@@ -38,47 +38,35 @@ variables {V : Type u} {G : simple_graph V} (M : subgraph G)
 namespace subgraph
 
 /--
-The subgraph `M` of `G` is a matching if every vertex of `M` forms exactly one edge in `M`.
+The subgraph `M` of `G` is a matching if every vertex of `M` is incident to exactly one edge in `M`.
+We say that the vertices in `M.support` are *matched* or *saturated*.
 -/
-def is_matching : Prop := ∀ {{v}}, v ∈ M.verts → ∃! w, M.adj v w
+def is_matching : Prop := ∀ ⦃v⦄, v ∈ M.verts → ∃! w, M.adj v w
 
 /--
-`M` is a perfect matching on `G` if it's a matching and if every vertex forms an edge of `G`.
+`M` is a perfect matching on `G` if it's a matching and every vertex `G` is matched.
 -/
 def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
 
 namespace matching
 
-lemma verts_eq_support (h : M.is_matching) : M.verts = M.support :=
+lemma support_eq_verts (h : M.is_matching) : M.support = M.verts :=
 begin
   rw set.subset.antisymm_iff,
   split,
+  { exact M.support_subset_verts, },
   { intros v hv,
-    specialize h hv,
-    cases h with w h,
-    cases h with hvw h,
-    use w,
-    exact hvw, },
-  { intros v hv,
-    cases hv with w hvw,
-    exact M.edge_vert hvw, },
+    obtain ⟨w, hvw, -⟩ := h hv,
+    exact ⟨_, hvw⟩, },
 end
 
 lemma is_perfect_iff : M.is_perfect_matching ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=
 begin
-  split,
-  { intros h v,
-    cases h with h hv,
-    exact h (hv v), },
-  { intro h,
-    split,
-    { intros v hv,
-      exact h v, },
-    { intro v,
-      specialize h v,
-      cases h with w h,
-      cases h with hvw h,
-      exact M.edge_vert hvw, }, },
+  refine ⟨_, λ hm, ⟨λ v hv, hm v, λ v, _⟩⟩,
+  { rintro ⟨hm, hs⟩ v,
+    exact hm (hs v) },
+  { obtain ⟨w, hw, -⟩ := hm v,
+    exact M.edge_vert hw }
 end
 
 end matching

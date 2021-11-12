@@ -1061,6 +1061,26 @@ by simp [supr_option]
 lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
 @supr_option_elim (order_dual α) _ _ _ _
 
+/-- When taking the supremum of `f : ι → α`, the elements of `ι` on which `f` gives `⊥` can be
+dropped, without changing the result. -/
+lemma supr_ne_bot_subtype (f : ι → α) : (⨆ i : {i // f i ≠ ⊥}, f i) = ⨆ i, f i :=
+begin
+  by_cases htriv : ∀ i, f i = ⊥,
+  { simp only [htriv, supr_bot] },
+  refine le_antisymm (supr_comp_le f _) (supr_le_supr2 _),
+  intros i,
+  by_cases hi : f i = ⊥,
+  { rw hi,
+    obtain ⟨i₀, hi₀⟩ := not_forall.mp htriv,
+    exact ⟨⟨i₀, hi₀⟩, bot_le⟩ },
+  { exact ⟨⟨i, hi⟩, rfl.le⟩ },
+end
+
+/-- When taking the infimum of `f : ι → α`, the elements of `ι` on which `f` gives `⊤` can be
+dropped, without changing the result. -/
+lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = ⨅ i, f i :=
+@supr_ne_bot_subtype (order_dual α) ι _ f
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/

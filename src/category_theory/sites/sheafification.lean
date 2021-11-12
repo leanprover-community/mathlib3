@@ -391,17 +391,16 @@ begin
     apply sieve.downward_closed,
     convert II.hf,
     cases I, refl },
-  let IB : S.arrow := ⟨Z IA, e2 IA, by apply he2⟩,
-  let IC : (T IB).arrow := ⟨IV.Y, e1 IA, by apply he1⟩,
-  let ID : (T I).arrow := ⟨IV.Y, IV.f ≫ II.f, _⟩,
-  swap, { apply sieve.downward_closed, apply II.hf, },
+  let IB : S.arrow := ⟨Z IA, e2 IA, he2 IA⟩,
+  let IC : (T IB).arrow := ⟨IV.Y, e1 IA, he1 IA⟩,
+  let ID : (T I).arrow := ⟨IV.Y, IV.f ≫ II.f, sieve.downward_closed (T I) II.hf IV.f⟩,
   change t IB IC = t I ID,
   apply inj IV.Y,
   rw [to_plus_apply (T I) (t I) ID, to_plus_apply (T IB) (t IB) IC, ← ht, ← ht],
 
   -- Conclude by constructing the relation showing equality...
   let IR : S.relation :=
-    ⟨_, _, IV.Y, e1 IA, IV.f ≫ II.f, e2 IA, I.f, he2 _, I.hf, by rw hee⟩,
+    ⟨_, _, IV.Y, e1 IA, IV.f ≫ II.f, e2 IA, I.f, he2 _, I.hf, hee IA⟩,
   convert s.condition IR,
   cases I, refl,
 end

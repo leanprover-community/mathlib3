@@ -153,7 +153,8 @@ open metric set
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar s` is the subset of `weak_dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
-def polar (s : set E) : set (weak_dual 𝕜 E) :=
+def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (weak_dual 𝕜 E) :=
 {x' : weak_dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1 }
 
 namespace polar

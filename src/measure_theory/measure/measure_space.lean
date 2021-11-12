@@ -220,38 +220,32 @@ begin
   exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
 end
 
+/-- If `sᵢ` is a countable family of measurable sets such that all pairwise intersections have
+measure `0`, then there exists a subordinate family `tᵢ ⊆ sᵢ` of measurable pairwise disjoint sets
+such that `tᵢ =ᵐ[μ] sᵢ`. -/
+lemma exists_subordinate_pairwise_disjoint [encodable ι] {s : ι → set α}
+  (h : ∀ i, measurable_set (s i)) (hd : pairwise (λ i j, μ (s i ∩ s j) = 0)) :
+  ∃ t : ι → set α, (∀ i, t i ⊆ s i) ∧ (∀ i, s i =ᵐ[μ] t i) ∧ (∀ i, measurable_set (t i)) ∧
+    pairwise (disjoint on t) :=
+begin
+  set t : ι → set α := λ i, s i \ ⋃ j ∈ ({i}ᶜ : set ι), s j,
+  refine ⟨t, λ i, diff_subset _ _, λ i, _, λ i, (h i).diff $
+    measurable_set.bUnion (countable_encodable _) $ λ j hj, h j, _⟩,
+  { refine eventually_le.antisymm _ (diff_subset _ _).eventually_le,
+    rw [ae_le_set, sdiff_sdiff_right_self, inf_eq_inter],
+    simp only [inter_Union, measure_bUnion_null_iff (countable_encodable _)],
+    exact λ j hj, hd _ _ (ne.symm hj) },
+  { rintros i j hne x ⟨⟨hsi, -⟩, -, Hj⟩,
+    exact Hj (mem_bUnion hne hsi) }
+end
+
 lemma measure_Union_of_null_inter [encodable ι] {f : ι → set α} (h : ∀ i, measurable_set (f i))
   (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) : μ (⋃ i, f i) = ∑' i, μ (f i) :=
 begin
-  have h_null : μ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
-  { rw measure_Union_null_iff,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { suffices : μ (f i ∩ f j) = 0,
-      { simpa [hij], },
-      apply hn i j hij, }, },
-  have h_pair : pairwise (disjoint on
-    (λ i, f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
-  { intros i j hij x hx,
-    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
-      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
-    simp only [mem_empty_eq, bot_eq_empty],
-    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
-    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
-  have h_meas :
-    ∀ i, measurable_set (f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
-  { intro w,
-    apply (h w).diff,
-    apply measurable_set.Union,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { simp [hij, measurable_set.inter (h i) (h j)], }, },
-  have : μ _ = _ := measure_Union h_pair h_meas,
-  rw ← Union_diff at this,
-  simp_rw measure_diff_null h_null at this,
-  exact this,
+  rcases exists_subordinate_pairwise_disjoint h hn with ⟨t, ht_sub, ht_eq, htm, htd⟩,
+  calc μ (⋃ i, f i) = μ (⋃ i, t i)  : measure_congr (eventually_eq.countable_Union ht_eq)
+                ... = ∑' i, μ (t i) : measure_Union htd htm
+                ... = ∑' i, μ (f i) : tsum_congr (λ i, measure_congr (ht_eq i).symm)
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then

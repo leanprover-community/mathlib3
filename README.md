@@ -49,7 +49,6 @@ welcomed.
 
 ## Maintainers:
 
-* Jeremy Avigad (@avigad): analysis
 * Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
 * Mario Carneiro (@digama0): lean formalization, tactics, type theory, proof engineering
@@ -60,7 +59,6 @@ welcomed.
 * Gabriel Ebner (@gebner): tactics, infrastructure, core, formal languages
 * Sébastien Gouëzel (@sgouezel): topology, calculus, geometry, analysis, measure theory
 * Markus Himmel (@TwoFX): category theory
-* Simon Hudon (@cipher1024): tactics
 * Chris Hughes (@ChrisHughes24): algebra
 * Yury G. Kudryashov (@urkud): analysis, topology, measure theory
 * Robert Y. Lewis (@robertylewis): tactics, documentation
@@ -71,3 +69,9 @@ welcomed.
 * Oliver Nash (@ocfnash): algebra, geometry, topology
 * Adam Topaz (@adamtopaz): algebra, category theory, algebraic geometry
 * Eric Wieser (@eric-wieser): algebra, infrastructure
+
+## Emeritus maintainers:
+
+* Jeremy Avigad (@avigad): analysis
+* Johannes Hölzl (@johoelzl): measure theory, topology
+* Simon Hudon (@cipher1024): tactics

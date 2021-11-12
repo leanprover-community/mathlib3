@@ -84,9 +84,9 @@ lemma norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) :=
 by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
              2 * (real.cos (angle x y) * (∥x∥ * ∥y∥)), by ring),
-       cos_angle_mul_norm_mul_norm, ←real_inner_self_eq_norm_sq,
-       ←real_inner_self_eq_norm_sq, ←real_inner_self_eq_norm_sq, real_inner_sub_sub_self,
-       sub_add_eq_add_sub]
+       cos_angle_mul_norm_mul_norm, ←real_inner_self_eq_norm_mul_norm,
+       ←real_inner_self_eq_norm_mul_norm, ←real_inner_self_eq_norm_mul_norm,
+       real_inner_sub_sub_self, sub_add_eq_add_sub]
 
 /-- Pons asinorum, vector angle form. -/
 lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
@@ -94,8 +94,8 @@ lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
 begin
   refine real.inj_on_cos ⟨angle_nonneg _ _, angle_le_pi _ _⟩ ⟨angle_nonneg _ _, angle_le_pi _ _⟩ _,
   rw [cos_angle, cos_angle, h, ←neg_sub, norm_neg, neg_sub,
-    inner_sub_right, inner_sub_right, real_inner_self_eq_norm_sq,
-    real_inner_self_eq_norm_sq, h, real_inner_comm x y]
+    inner_sub_right, inner_sub_right, real_inner_self_eq_norm_mul_norm,
+    real_inner_self_eq_norm_mul_norm, h, real_inner_comm x y]
 end
 
 /-- Converse of pons asinorum, vector angle form. -/
@@ -111,8 +111,8 @@ begin
         mul_inv_rev₀, mul_inv_rev₀, ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel₀ (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
-    rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_sq,
-        real_inner_self_eq_norm_sq, mul_sub_right_distrib, mul_sub_right_distrib,
+    rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_mul_norm,
+        real_inner_self_eq_norm_mul_norm, mul_sub_right_distrib, mul_sub_right_distrib,
         mul_self_mul_inv, mul_self_mul_inv, sub_eq_sub_iff_sub_eq_sub,
         ←mul_sub_left_distrib] at h,
     by_cases hx0 : x = 0,
@@ -161,7 +161,7 @@ begin
         sin_angle_mul_norm_mul_norm, norm_sub_rev y x, inner_sub_left, inner_sub_left,
         inner_sub_right, inner_sub_right, inner_sub_right, inner_sub_right, real_inner_comm x y, H2,
         H3, real.mul_self_sqrt (sub_nonneg_of_le (real_inner_mul_inner_self_le x y)),
-        real_inner_self_eq_norm_sq, real_inner_self_eq_norm_sq,
+        real_inner_self_eq_norm_mul_norm, real_inner_self_eq_norm_mul_norm,
         real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
     ring }
@@ -199,8 +199,8 @@ begin
         sin_angle_mul_norm_mul_norm, norm_sub_rev x y, H2, sin_angle_mul_norm_mul_norm,
         norm_sub_rev y x, mul_assoc (real.sin (angle x y)), sin_angle_mul_norm_mul_norm,
         inner_sub_left, inner_sub_left, inner_sub_right, inner_sub_right, inner_sub_right,
-        inner_sub_right, real_inner_comm x y, H3, H4, real_inner_self_eq_norm_sq,
-        real_inner_self_eq_norm_sq,
+        inner_sub_right, real_inner_comm x y, H3, H4, real_inner_self_eq_norm_mul_norm,
+        real_inner_self_eq_norm_mul_norm,
         real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
     ring }

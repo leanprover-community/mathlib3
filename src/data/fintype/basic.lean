@@ -110,8 +110,7 @@ univ_eq_empty_iff.2 ‹_›
 
 instance : order_top (finset α) :=
 { top := univ,
-  le_top := subset_univ,
-  .. finset.partial_order }
+  le_top := subset_univ }
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
@@ -1055,6 +1054,8 @@ instance Prop.fintype : fintype Prop :=
 ⟨⟨true ::ₘ false ::ₘ 0, by simp [true_ne_false]⟩,
  classical.cases (by simp) (by simp)⟩
 
+@[simp] lemma fintype.card_Prop : fintype.card Prop = 2 := rfl
+
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
@@ -1925,15 +1926,30 @@ end
 
 /-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
 that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
+@[elab_as_eliminator]
+lemma induction_empty_option' {P : Π (α : Type u) [fintype α], Prop}
+  (of_equiv : ∀ α β [fintype β] (e : α ≃ β), @P α (@fintype.of_equiv α β ‹_› e.symm) → @P β ‹_›)
+  (h_empty : P pempty)
+  (h_option : ∀ α [fintype α], by exactI P α → P (option α))
+  (α : Type u) [fintype α] : P α :=
+begin
+  obtain ⟨p⟩ := @trunc_rec_empty_option (λ α, ∀ h, @P α h)
+    (λ α β e hα hβ, @of_equiv α β hβ e (hα _)) (λ _i, by convert h_empty)
+    _ α _ (classical.dec_eq α),
+  { exact p _ },
+  { rintro α hα - Pα hα', resetI, convert h_option α (Pα _) }
+end
+
+/-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
+that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
 lemma induction_empty_option {P : Type u → Prop}
   (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
   (h_empty : P pempty)
   (h_option : ∀ {α} [fintype α], P α → P (option α))
   (α : Type u) [fintype α] : P α :=
 begin
-  haveI := classical.dec_eq α,
-  obtain ⟨p⟩ := trunc_rec_empty_option @of_equiv h_empty (λ _ _ _, by exactI h_option) α,
-  exact p,
+  refine induction_empty_option' _ _ _ α,
+  exacts [λ α β _, of_equiv, h_empty, @h_option]
 end
 
 end fintype

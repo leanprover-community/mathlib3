@@ -299,16 +299,16 @@ theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 @Sup_inter_le (order_dual α) _ _ _
 
 @[simp] theorem Sup_empty : Sup ∅ = (⊥ : α) :=
-(@is_lub_empty α _).Sup_eq
+(@is_lub_empty α _ _).Sup_eq
 
 @[simp] theorem Inf_empty : Inf ∅ = (⊤ : α) :=
-(@is_glb_empty α _).Inf_eq
+(@is_glb_empty α _ _).Inf_eq
 
 @[simp] theorem Sup_univ : Sup univ = (⊤ : α) :=
-(@is_lub_univ α _).Sup_eq
+(@is_lub_univ α _ _).Sup_eq
 
 @[simp] theorem Inf_univ : Inf univ = (⊥ : α) :=
-(@is_glb_univ α _).Inf_eq
+(@is_glb_univ α _ _).Inf_eq
 
 -- TODO(Jeremy): get this automatically
 @[simp] theorem Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=
@@ -1061,6 +1061,26 @@ by simp [supr_option]
 lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
 @supr_option_elim (order_dual α) _ _ _ _
 
+/-- When taking the supremum of `f : ι → α`, the elements of `ι` on which `f` gives `⊥` can be
+dropped, without changing the result. -/
+lemma supr_ne_bot_subtype (f : ι → α) : (⨆ i : {i // f i ≠ ⊥}, f i) = ⨆ i, f i :=
+begin
+  by_cases htriv : ∀ i, f i = ⊥,
+  { simp only [htriv, supr_bot] },
+  refine le_antisymm (supr_comp_le f _) (supr_le_supr2 _),
+  intros i,
+  by_cases hi : f i = ⊥,
+  { rw hi,
+    obtain ⟨i₀, hi₀⟩ := not_forall.mp htriv,
+    exact ⟨⟨i₀, hi₀⟩, bot_le⟩ },
+  { exact ⟨⟨i, hi⟩, rfl.le⟩ },
+end
+
+/-- When taking the infimum of `f : ι → α`, the elements of `ι` on which `f` gives `⊤` can be
+dropped, without changing the result. -/
+lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = ⨅ i, f i :=
+@supr_ne_bot_subtype (order_dual α) ι _ f
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/
@@ -1334,7 +1354,7 @@ lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   independent t :=
 λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
 
-/-- Composing an indepedent indexed family with an injective function on the index results in
+/-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
 lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
@@ -1343,6 +1363,20 @@ lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
   exact supr_le_supr_const hf.ne,
 end
+
+/-- Composing an indepedent indexed family with an order isomorphism on the elements results in
+another indepedendent indexed family. -/
+lemma independent.map_order_iso {ι : Sort*} {α β : Type*}
+  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} (ha : independent a) :
+  independent (f ∘ a) :=
+λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr2 _)
+
+@[simp] lemma independent_map_order_iso_iff {ι : Sort*} {α β : Type*}
+  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} :
+  independent (f ∘ a) ↔ independent a :=
+⟨ λ h, have hf : f.symm ∘ f ∘ a = a := congr_arg (∘ a) f.left_inv.comp_eq_id,
+      hf ▸ h.map_order_iso f.symm,
+  λ h, h.map_order_iso f⟩
 
 /-- If the elements of a set are independent, then any element is disjoint from the `supr` of some
 subset of the rest. -/

@@ -2,11 +2,19 @@
 Copyright (c) 2017 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Instances for identity and composition functors
 -/
+import algebra.group.defs
 import control.functor
-import algebra.group.basic
+
+/-!
+# `applicative` instances
+
+This file provides `applicative` instances for concrete functors:
+* `id`
+* `functor.comp`
+* `functor.const`
+* `functor.add_const`
+-/
 
 universes u v w
 
@@ -22,8 +30,7 @@ lemma applicative.map_seq_map (f : α → β → γ) (g : σ → β) (x : F α) 
   (f <$> x) <*> (g <$> y) = (flip (∘) g ∘ f) <$> x <*> y :=
 by simp [flip] with functor_norm
 
-lemma applicative.pure_seq_eq_map' (f : α → β) :
-  (<*>) (pure f : F (α → β)) = (<$>) f :=
+lemma applicative.pure_seq_eq_map' (f : α → β) : (<*>) (pure f : F (α → β)) = (<$>) f :=
 by ext; simp with functor_norm
 
 theorem applicative.ext {F} : ∀ {A1 : applicative F} {A2 : applicative F}

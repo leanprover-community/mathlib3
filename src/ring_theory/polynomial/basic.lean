@@ -319,7 +319,8 @@ end mod_by_monic
 
 end polynomial
 
-variables {R : Type u} {σ : Type v} {M : Type w} [comm_ring R] [add_comm_group M] [module R M]
+variables {R : Type u} {S : Type*} {σ : Type v} {M : Type w}
+variables [comm_ring R] [comm_ring S] [add_comm_group M] [module R M]
 
 namespace ideal
 open polynomial
@@ -354,6 +355,14 @@ begin
     simp [monomial_eq_C_mul_X],
     rw mul_comm,
     exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem _ (hf n)) }
+end
+
+lemma _root_.polynomial.ker_map_ring_hom (f : R →+* S) :
+  (polynomial.map_ring_hom f).ker = f.ker.map C :=
+begin
+  ext,
+  rw [mem_map_C_iff, ring_hom.mem_ker, polynomial.ext_iff],
+  simp_rw [coe_map_ring_hom, coeff_map, coeff_zero, ring_hom.mem_ker],
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -601,7 +610,7 @@ instance {R : Type*} [comm_ring R] [is_domain R] [wf_dvd_monoid R] :
     refine rel_hom.well_founded
       ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
       (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_6.well_founded_dvd_not_unit),
+        ‹wf_dvd_monoid R›.well_founded_dvd_not_unit),
     rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
     rw [polynomial.degree_mul, if_neg ane0],
     split_ifs with hac,
@@ -919,7 +928,7 @@ begin
       { simpa [h] using hx.left },
       { simp [ne.symm h] } },
     { simp },
-   { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
+    { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
     { refine λ f g hg n, _,
       rw [smul_eq_mul, coeff_mul],
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
@@ -934,6 +943,13 @@ begin
     { exact ideal.mul_mem_right _ _ this },
     apply ideal.mem_map_of_mem _,
     exact hf m }
+end
+
+lemma ker_map (f : R →+* S) : (map f : mv_polynomial σ R →+* mv_polynomial σ S).ker = f.ker.map C :=
+begin
+  ext,
+  rw [mv_polynomial.mem_map_C_iff, ring_hom.mem_ker, mv_polynomial.ext_iff],
+  simp_rw [coeff_map, coeff_zero, ring_hom.mem_ker],
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} {a : mv_polynomial σ R}

@@ -48,7 +48,7 @@ begin
   by_cases hp : p = 0,
   { convert hq,
     simp [hp, cancel_leads], },
-  rw [cancel_leads, sub_eq_add_neg, nat.sub_eq_zero_of_le h, pow_zero, mul_one],
+  rw [cancel_leads, sub_eq_add_neg, tsub_eq_zero_iff_le.mpr h, pow_zero, mul_one],
   by_cases h0 :
       C p.leading_coeff * q + -(C q.leading_coeff * X ^ (q.nat_degree - p.nat_degree) * p) = 0,
   { convert hq,
@@ -64,12 +64,12 @@ begin
       nsmul_one, degree_neg, degree_mul, zero_add, degree_X, degree_pow],
     rw leading_coeff_eq_zero at hp hq0,
     rw [degree_eq_nat_degree hp, degree_eq_nat_degree hq0, ← with_bot.coe_add, with_bot.coe_le_coe,
-      nat.sub_add_cancel h], },
+      tsub_add_cancel_of_le h], },
   { contrapose! h0,
     rw [← leading_coeff_eq_zero, leading_coeff, h0, mul_assoc, mul_comm _ p,
-      ← nat.sub_add_cancel h, add_comm _ p.nat_degree],
-    simp only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, nat.add_sub_cancel_left, coeff_add],
-    rw [add_comm p.nat_degree, nat.sub_add_cancel h, ← leading_coeff, ← leading_coeff,
+      ← tsub_add_cancel_of_le h, add_comm _ p.nat_degree],
+    simp only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, add_tsub_cancel_left, coeff_add],
+    rw [add_comm p.nat_degree, tsub_add_cancel_of_le h, ← leading_coeff, ← leading_coeff,
       mul_comm _ q.leading_coeff, ← sub_eq_add_neg, ← mul_sub, sub_self, mul_zero] }
 end
 

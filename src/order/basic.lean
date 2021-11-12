@@ -205,6 +205,10 @@ lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨n
 
 lemma ne.lt_or_lt [linear_order α] {x y : α} (h : x ≠ y) : x < y ∨ y < x := lt_or_gt_of_ne h
 
+/-- A version of `ne_iff_lt_or_gt` with LHS and RHS reversed. -/
+@[simp] lemma lt_or_lt_iff_ne [linear_order α] {x y : α} : x < y ∨ y < x ↔ x ≠ y :=
+ne_iff_lt_or_gt.symm
+
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ decidable.le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
 
@@ -447,7 +451,7 @@ function `f : α → β`. See note [reducible non-instances]. -/
   .. partial_order.lift f inj }
 
 instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift subtype.val
+preorder.lift (coe : subtype p → α)
 
 @[simp] lemma subtype.mk_le_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) ≤ ⟨y, hy⟩ ↔ x ≤ y :=
@@ -467,10 +471,14 @@ iff.rfl
 
 instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
-partial_order.lift subtype.val subtype.val_injective
+partial_order.lift coe subtype.coe_injective
 
+/-- A subtype of a linear order is a linear order. We explicitly give the proof of decidable
+  equality as the existing instance, in order to not have two instances of decidable equality that
+  are not definitionally equal. -/
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
-linear_order.lift subtype.val subtype.val_injective
+{ decidable_eq := subtype.decidable_eq,
+  .. linear_order.lift coe subtype.coe_injective }
 
 namespace prod
 

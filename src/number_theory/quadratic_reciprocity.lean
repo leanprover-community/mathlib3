@@ -41,13 +41,13 @@ begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim },
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
-  obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_gpowers, apply hg },
+  obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
   split,
   { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
   { subst x, assume h,
     have key : 2 * (p / 2) ∣ n * (p / 2),
     { rw [← pow_mul] at h,
-      rw [two_mul_odd_div_two hp_odd, ← card_units, ← order_of_eq_card_of_forall_mem_gpowers hg],
+      rw [two_mul_odd_div_two hp_odd, ← card_units, ← order_of_eq_card_of_forall_mem_zpowers hg],
       apply order_of_dvd_of_pow_eq_one h },
     have : 0 < p / 2 := nat.div_pos (fact.out (1 < p)) dec_trivial,
     obtain ⟨m, rfl⟩ := dvd_of_mul_dvd_mul_right this key,
@@ -161,14 +161,14 @@ begin
     { apply nat.pos_of_ne_zero,
       simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
         val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
-      { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
-      { rw nat_cast_nat_abs_val_min_abs,
-        split_ifs,
-        { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
-            if_pos (le_of_lt_succ (mem_Ico.1 hb).2), int.nat_abs_of_nat], },
-        { erw [mul_neg_eq_neg_mul_symm, mul_div_cancel' _ hap, nat_abs_val_min_abs_neg,
-            val_min_abs_def_pos, val_cast_of_lt (hep hb), if_pos (le_of_lt_succ (mem_Ico.1 hb).2),
-            int.nat_abs_of_nat] } } },
+    { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
+    { rw nat_cast_nat_abs_val_min_abs,
+      split_ifs,
+      { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
+          if_pos (le_of_lt_succ (mem_Ico.1 hb).2), int.nat_abs_of_nat], },
+      { erw [mul_neg_eq_neg_mul_symm, mul_div_cancel' _ hap, nat_abs_val_min_abs_neg,
+          val_min_abs_def_pos, val_cast_of_lt (hep hb), if_pos (le_of_lt_succ (mem_Ico.1 hb).2),
+          int.nat_abs_of_nat] } } },
   exact multiset.map_eq_map_of_bij_of_nodup _ _ (finset.nodup _) (finset.nodup _)
     (λ x _, (a * x : zmod p).val_min_abs.nat_abs) hmem (λ _ _, rfl)
     (inj_on_of_surj_on_of_card_le _ hmem hsurj (le_refl _)) hsurj
@@ -328,7 +328,7 @@ begin
       (show x.1 ≤ p / 2, by simp only [*, lt_succ_iff, mem_Ico, mem_product] at *; tauto)
       (nat.div_lt_self hp.1.pos dec_trivial),
     have : (x.1 : zmod p) = 0,
-      { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
+    { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
     simpa only [this, nonpos_iff_eq_zero, mem_Ico, one_ne_zero, false_and, mem_product] using hx },
@@ -341,7 +341,7 @@ begin
     simp only [mem_union, mem_filter, mem_Ico, mem_product]; tauto),
   rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product],
-  simp only [card_Ico, nat.sub_zero, succ_sub_succ_eq_sub]
+  simp only [card_Ico, tsub_zero, succ_sub_succ_eq_sub]
 end
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]

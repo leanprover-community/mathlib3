@@ -114,13 +114,13 @@ instance uniform_add_group : uniform_add_group R := topological_add_group_is_uni
 lemma cauchy_iff {F : filter R} :
   cauchy F ↔ F.ne_bot ∧ ∀ γ : units (Γ₀ R), ∃ M ∈ F, ∀ x y, x ∈ M → y ∈ M → v (y - x) < γ :=
 begin
-    rw add_group_filter_basis.cauchy_iff,
-    apply and_congr iff.rfl,
-    simp_rw subgroups_basis.mem_add_group_filter_basis_iff,
-    split,
-    { intros h γ,
-      exact h _ (subgroups_basis.mem_add_group_filter_basis _) },
-    { rintros h - ⟨γ, rfl⟩,
-      exact h γ }
+  rw add_group_filter_basis.cauchy_iff,
+  apply and_congr iff.rfl,
+  simp_rw subgroups_basis.mem_add_group_filter_basis_iff,
+  split,
+  { intros h γ,
+    exact h _ (subgroups_basis.mem_add_group_filter_basis _) },
+  { rintros h - ⟨γ, rfl⟩,
+    exact h γ }
 end
 end valued

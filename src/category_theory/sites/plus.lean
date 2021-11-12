@@ -24,27 +24,8 @@ open category_theory.limits
 open opposite
 
 universes w v u
-variables {C : Type u} [category.{v} C] {J : grothendieck_topology C}
+variables {C : Type u} [category.{v} C] (J : grothendieck_topology C)
 variables {D : Type w} [category.{max v u} D]
-
-namespace cover
-
-variables {X : C} (S : J.cover X) (P : Cᵒᵖ ⥤ D)
-
-/-- To every `S : J.cover X` and presheaf `P`, associate a `multicospan_index`. -/
-def index : multicospan_index D :=
-{ L := S.L,
-  R := S.R,
-  fst_to := λ I, I.fst,
-  snd_to := λ I, I.snd,
-  left := λ I, P.obj (op I.Y),
-  right := λ I, P.obj (op I.Z),
-  fst := λ I, P.map I.g₁.op,
-  snd := λ I, P.map I.g₂.op }
-
-end cover
-
-variables (J)
 
 noncomputable theory
 
@@ -176,17 +157,12 @@ variable {D}
 See `to_plus` for a functorial version. -/
 @[simps]
 def map_to_plus : P ⟶ (J.plus D).obj P :=
-{ app := λ X, multiequalizer.lift ((⊤ : J.cover X.unop).index P) (P.obj X)
-    (λ I, P.map I.f.op) begin
-      intros I,
-      dsimp [cover.index],
-      simp only [← P.map_comp, ← op_comp],
-      dsimp [cover.R.fst, cover.R.snd],
-      rw [← op_comp, ← op_comp, I.w],
-    end ≫ colimit.ι (J.diagram P X.unop) (op ⊤),
+{ app := λ X, cover.to_multiequalizer (⊤ : J.cover X.unop) P ≫
+    colimit.ι (J.diagram P X.unop) (op ⊤),
   naturality' := begin
     intros X Y f,
     dsimp,
+    delta cover.to_multiequalizer,
     simp only [diagram_pullback_app, colimit.ι_pre, ι_colim_map_assoc, category.assoc],
     dsimp only [functor.op, unop_op],
     let e : (J.pullback f.unop).obj ⊤ ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
@@ -209,6 +185,7 @@ def to_plus : (𝟭 (Cᵒᵖ ⥤ D)) ⟶ J.plus D :=
     intros P Q η,
     ext,
     dsimp,
+    delta cover.to_multiequalizer,
     simp only [ι_colim_map, category.assoc],
     simp_rw ← category.assoc,
     congr' 1,
@@ -226,6 +203,7 @@ lemma plus_map_to_plus_app :
 begin
   ext X S,
   dsimp,
+  delta cover.to_multiequalizer,
   simp only [ι_colim_map],
   let e : S.unop ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
   simp_rw [← colimit.w _ e.op, ← category.assoc],

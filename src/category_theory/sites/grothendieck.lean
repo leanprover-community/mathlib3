@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, E. W. Ayers
 
 import category_theory.sites.sieves
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.multiequalizer
 import category_theory.category.preorder
 import order.copy
 
@@ -47,7 +48,7 @@ small category and Lawvere-Tierney topologies on its presheaf topos, as well as 
 between Grothendieck topoi and left exact reflective subcategories of presheaf toposes.
 -/
 
-universes v u
+universes w v u
 namespace category_theory
 
 open category_theory category
@@ -477,6 +478,46 @@ eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
 def pullback_comp {X Y Z : C} (S : J.cover X) (f : Z ⟶ Y) (g : Y ⟶ X) :
   S.pullback (f ≫ g) ≅ (S.pullback g).pullback f :=
 eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
+
+-- This is used extensively in `plus.lean`, etc.
+-- We place this definition here as it will be used in `sheaf.lean` as well.
+/-- To every `S : J.cover X` and presheaf `P`, associate a `multicospan_index`. -/
+def index {D : Type w} [category.{max v u} D] (S : J.cover X) (P : Cᵒᵖ ⥤ D) :
+  limits.multicospan_index D :=
+{ L := S.L,
+  R := S.R,
+  fst_to := λ I, I.fst,
+  snd_to := λ I, I.snd,
+  left := λ I, P.obj (opposite.op I.Y),
+  right := λ I, P.obj (opposite.op I.Z),
+  fst := λ I, P.map I.g₁.op,
+  snd := λ I, P.map I.g₂.op }
+
+/-- The natural multifork associated to `S : J.cover X` for a presheaf `P`.
+Saying that this multifork is a limit is essentially equivalent to the sheaf condition at the
+given object for the given covering sieve. See `sheaf.lean` for an equivalent sheaf condition
+using this.
+-/
+abbreviation multifork {D : Type w} [category.{max v u} D] (S : J.cover X) (P : Cᵒᵖ ⥤ D) :
+  limits.multifork (S.index P) :=
+limits.multifork.of_ι _ (P.obj (opposite.op X)) (λ I, P.map I.f.op) begin
+  intros I,
+  dsimp [index],
+  simp only [← P.map_comp, ← op_comp, I.w]
+end
+
+/-- The canonical map from `P.obj (op X)` to the multiequalizer associated to a covering sieve,
+assuming such a multiequalizer exists. This will be used in `sheaf.lean` to provide an equivalent
+sheaf condition in terms of multiequalizers. -/
+noncomputable
+abbreviation to_multiequalizer {D : Type w} [category.{max v u} D] (S : J.cover X) (P : Cᵒᵖ ⥤ D)
+  [limits.has_multiequalizer (S.index P)] :
+P.obj (opposite.op X) ⟶ limits.multiequalizer (S.index P) :=
+limits.multiequalizer.lift _ _ (λ I, P.map I.f.op) begin
+  intros I,
+  dsimp only [index, R.fst, R.snd],
+  simp only [← P.map_comp, ← op_comp, I.w],
+end
 
 end cover
 

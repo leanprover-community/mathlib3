@@ -195,7 +195,7 @@ def to_plus_nat_trans : (𝟭 (Cᵒᵖ ⥤ D)) ⟶ J.plus_functor D :=
 
 variable {D}
 
-/-- `(P ⟶ P⁺)⁺ = P⁺ ⟶ P⁺⁺ -/
+/-- `(P ⟶ P⁺)⁺ = P⁺ ⟶ P⁺⁺` -/
 @[simp]
 lemma plus_map_to_plus : J.plus_map (J.to_plus P) = J.to_plus (J.plus_obj P) :=
 begin

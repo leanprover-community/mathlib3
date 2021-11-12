@@ -28,7 +28,7 @@ TODOs:
 
 The main definitions are the
  * types `finite_measure α` and `probability_measure α`;
- * `to_weak_dual_of_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
+ * `to_weak_dual_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
    allowing to interpret a finite measure as a continuous linear functional on the space of
    bounded continuous nonnegative functions on `α`. This will be used for the definition of the
    topology of weak convergence.
@@ -264,7 +264,7 @@ begin
   simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_add, ennreal.coe_add,
              pi.add_apply, test_against_nn_coe_eq],
   apply lintegral_add;
-  exact bounded_continuous_function.nnreal.to_ennreal_comp_measurable _
+  exact bounded_continuous_function.nnreal.to_ennreal_comp_measurable _,
 end
 
 lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ ℝ≥0) :

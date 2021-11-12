@@ -29,7 +29,7 @@ instance : fun_like (my_hom A B) A B :=
 { coe := my_hom.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
 
 /-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
-instance : has_coe_to_fun (M →ₗ[R] M₂) := to_fun.to_coe_fn
+instance : has_coe_to_fun (my_hom A B) := to_fun.to_coe_fn
 
 @[simp] lemma to_fun_eq_coe {f : my_hom A B} : f.to_fun = (f : A → B) := rfl
 

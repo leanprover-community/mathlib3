@@ -417,11 +417,8 @@ instance : order_bot (multiset α) :=
 
 instance : canonically_ordered_add_monoid (multiset α) :=
 { le_iff_exists_add     := @le_iff_exists_add _,
+  ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
-
-instance : order_bot (multiset α) :=
-{ bot                   := 0,
-  bot_le                := multiset.zero_le }
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]

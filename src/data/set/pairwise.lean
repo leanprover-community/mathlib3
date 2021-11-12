@@ -46,7 +46,7 @@ lemma symmetric.pairwise_on [linear_order ι] (hr : symmetric r) (f : ι → α)
   { exact hr (h _ _ hmn') }
 end⟩
 
-lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order β] (f : β → α) :
+lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order ι] (f : ι → α) :
   pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
 

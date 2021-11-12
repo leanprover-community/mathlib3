@@ -87,6 +87,8 @@ def starₗᵢ : E ≃ₗᵢ⋆[𝕜] E :=
 
 variables {𝕜}
 
-@[simp] lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
+@[simp] lemma coe_starₗᵢ : (starₗᵢ 𝕜 : E → E) = star := rfl
+
+lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ

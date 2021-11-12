@@ -24,8 +24,8 @@ These conditions are all equivalent to conditions in terms of polynomials, repla
 These further equivalences are not proven in mathlib but would be good future projects.
 
 The definition of superpolynomial decay for `f : α → β` is relative to a parameter `k : α → β`.
-Super-polynomial decay then means `f x` decays faster than `(k x) ^ c` for integers `c`.
-Equivalently `f x` decays faster than `p.eval (k x)` for polynomials `p : polynomial β`.
+Super-polynomial decay then means `f x` decays faster than `(k x) ^ c` for all integers `c`.
+Equivalently `f x` decays faster than `p.eval (k x)` for all polynomials `p : polynomial β`.
 The definition is also relative to a filter `l : filter α` where the decay rate is compared.
 
 When the map `k` is given by `n ↦ ↑n : ℕ → ℝ` this defines negligible functions:
@@ -49,8 +49,7 @@ open_locale topological_space
 open filter
 
 /-- `f` has superpolynomial decay in parameter `k` along filter `l` if
-  `k ^ z * f` tends to zero for all integers `z`
-  TODO: Try to get this working with `group_with_zero 𝕜` -/
+  `k ^ n * f` tends to zero at `l` for all naturals `n` -/
 def superpolynomial_decay {α β : Type*} [topological_space β] [comm_semiring β]
   (l : filter α) (k : α → β) (f : α → β) :=
 ∀ (n : ℕ), tendsto (λ (a : α), (k a) ^ n * f a) l (𝓝 0)

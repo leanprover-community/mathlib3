@@ -145,14 +145,14 @@ end weak_star_topology_for_duals_of_normed_spaces
 
 section polar_sets_in_weak_dual
 
-open metric set
+open metric set normed_space
 
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar 𝕜 s` is the subset of `weak_dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
 def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (weak_dual 𝕜 E) :=
-{x' : weak_dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1 }
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
+{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1 }
 
 namespace polar
 
@@ -164,25 +164,110 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 λ _ _, by simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero]
 
 lemma eq_Inter (s : set E) :
-  polar 𝕜 s = ⋂ z ∈ s, {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
+  polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
 by { dunfold polar, ext, simp only [mem_bInter_iff, mem_set_of_eq], }
 
-/-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset of `weak_dual 𝕜 E`. -/
-lemma is_closed (s : set E) : is_closed (polar 𝕜 s) :=
+--example (s : set E) : ∃ (z : dual 𝕜 E), z ∈ polar 𝕜 s :=
+--by { use 0, exact zero_mem s, }
+
+lemma to_weak_dual_image (s : set E) :
+  (dual.to_weak_dual '' (polar 𝕜 s)) = { x' : weak_dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1 } :=
 begin
-  rw eq_Inter,
-  apply is_closed_bInter,
-  intros z hz,
-  have eq : {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1} = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1),
-  by refl,
-  rw eq,
-  refine is_closed.preimage _ (is_closed_Iic),
-  apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z),
+  --unfold polar,
+  ext x',
+  dsimp,
+  rw mem_image,
+  split,
+  { rintros ⟨x'', ⟨h₁, h₂⟩⟩,
+    rw ← h₂,
+    exact λ z hz, h₁ z hz, },
+  { intros h,
+    use x',
+    split,
+    { sorry, },
+    { sorry, },
+    },
+  --tidy?,
+  --tidy?,
+end
+
+lemma to_weak_dual_image' (z : E) :
+  (dual.to_weak_dual '' {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1}) = {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
+begin
+  --unfold polar,
+  ext x',
+  dsimp,
+  rw mem_image,
+  split,
+  { rintros ⟨x'', ⟨h₁, h₂⟩⟩,
+    rw ← h₂,
+    sorry,
+    --exact λ z hz, h₁ z hz,
+    },
+  { intros h,
+    use x',
+    split,
+    { sorry, },
+    { sorry, },
+    },
+  --tidy?,
+  --tidy?,
+end
+
+open function
+
+lemma of_empty : polar 𝕜 (∅ : set E) = univ :=
+by { unfold polar, simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true], }
+
+
+
+
+-- Wow! Why can't I find this?
+lemma _root_.surjective.range_eq_univ {α β : Type} {f : α → β} (h : function.surjective f) :
+  range f = univ :=
+begin
+  apply le_antisymm,
+  { apply subset_univ, },
+  intros y hy,
+  cases h y with x hx,
+  rw ←hx,
+  exact mem_range_self _,
+end
+
+-- Wow! Why can't I find this?
+lemma _root_.surjective.image_univ {α β : Type} {f : α → β} (h : function.surjective f) :
+  f '' univ = univ :=
+by { rw image_univ, apply surjective.range_eq_univ h, }
+
+
+
+
+/-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
+is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
+lemma is_weak_dual_closed (s : set E) : is_closed (dual.to_weak_dual '' polar 𝕜 s) :=
+begin
+  by_cases s_emp : s = ∅,
+  { rw [s_emp, of_empty, image_univ],
+    have ran : range (@dual.to_weak_dual 𝕜 _ E _ _) = univ,
+    { refine surjective.range_eq dual.to_weak_dual.surjective, },
+    rw ran,
+    exact is_closed_univ, },
+  rw [eq_Inter, inj_on.image_bInter_eq],
+  { simp_rw to_weak_dual_image',
+    apply is_closed_bInter,
+    intros z hz,
+    have eq : {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1} = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1),
+    by refl,
+    rw eq,
+    refine is_closed.preimage _ (is_closed_Iic),
+    apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z), },
+  { exact nonempty_def.mp (ne_empty_iff_nonempty.mp s_emp), },
+  { apply dual.to_weak_dual.injective.inj_on, },
 end
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
 small scalar multiple of `x'` is in `polar 𝕜 s`. -/
-lemma smul_mem {s : set E} {x' : weak_dual 𝕜 E} {c : 𝕜}
+lemma smul_mem {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
   (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : (c⁻¹ • x') ∈ polar 𝕜 s :=
 begin
   by_cases c_zero : c = 0,
@@ -201,11 +286,10 @@ begin
   rwa cancel at le,
 end
 
-/-- The `polar` of closed unit ball in a normed space `E` is the closed unit ball of the (normed)
-dual (seen as a subset of the weak dual). -/
+/-- The `polar` of closed unit ball in a normed space `E` is the closed unit ball of the dual. -/
 lemma of_closed_unit_ball
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  polar 𝕜 (closed_ball (0 : E) 1) = {x' : weak_dual 𝕜 E | (∥ x'.to_normed_dual ∥ ≤ 1) } :=
+  polar 𝕜 (closed_ball (0 : E) 1) = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1 } :=
 begin
   ext x',
   simp only [mem_closed_ball, mem_set_of_eq, dist_zero_right],
@@ -213,13 +297,13 @@ begin
   { intros h,
     apply continuous_linear_map.op_norm_le_of_ball zero_lt_one zero_le_one,
     intros z hz,
-    have key := linear_map.bound_of_ball_bound zero_lt_one 1 x'.to_normed_dual.to_linear_map h z,
+    have key := linear_map.bound_of_ball_bound zero_lt_one 1 x'.to_linear_map h z,
     simp only [continuous_linear_map.to_linear_map_eq_coe,
                continuous_linear_map.coe_coe, div_one] at key,
     exact key, },
   { intros h z hz,
     simp only [mem_closed_ball, dist_zero_right] at hz,
-    apply (continuous_linear_map.unit_le_op_norm x'.to_normed_dual z hz).trans h, },
+    apply (continuous_linear_map.unit_le_op_norm x' z hz).trans h, },
 end
 
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
@@ -228,7 +312,7 @@ polar of `s`. -/
 lemma eval_bounded_of_nbhd_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
-  ∃ (r : ℝ), ∀ (x' : weak_dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
+  ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
 begin
   have s_absnt : absorbent 𝕜 s := absorbent_nhds_zero s_nhd,
   rcases s_absnt z with ⟨c, ⟨c_pos, hc⟩⟩,
@@ -253,7 +337,7 @@ end
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then there exists a
 function `r : E → ℝ` such that for all elements `x' ∈ polar 𝕜 s` one has `∥x' z∥ ≤ r(z)`. -/
 lemma finite_values_of_nbhd_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  ∃ (r : E → ℝ), ∀ (x' : weak_dual 𝕜 E) (z : E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r z :=
+  ∃ (r : E → ℝ), ∀ (x' : dual 𝕜 E) (z : E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r z :=
 begin
   cases classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd) with r hr,
   use r,
@@ -265,7 +349,7 @@ end
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
 lemma bounded_of_nbhd_zero {𝕜 : Type*} [is_R_or_C 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  ∃ (c : ℝ), ∀ (x' : weak_dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x'.to_normed_dual ∥ ≤ c :=
+  ∃ (c : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' ∥ ≤ c :=
 begin
   rcases metric.mem_nhds_iff.mp s_nhd with ⟨r, ⟨r_pos, r_ball⟩⟩,
   have half_r_pos : 0 < r / 2 := by linarith,
@@ -291,7 +375,7 @@ def bounds_fun (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [nor
 classical.some (classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd))
 
 lemma bounds_fun_spec (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (x' : weak_dual 𝕜 E) (z : E) :
+  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (x' : dual 𝕜 E) (z : E) :
   x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ bounds_fun 𝕜 s_nhd z :=
 classical.some_spec
   (classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd)) z x'

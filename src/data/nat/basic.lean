@@ -86,11 +86,15 @@ instance : distrib nat            := by apply_instance
 instance : semiring nat           := by apply_instance
 instance : ordered_semiring nat   := by apply_instance
 
+instance nat.order_bot : order_bot ℕ :=
+{ bot := 0, bot_le := nat.zero_le }
+
 instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
                                λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   .. nat.nontrivial,
+  .. nat.order_bot,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }

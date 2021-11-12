@@ -232,9 +232,6 @@ by rw [eq_bot_iff, sup_le_iff]; simp
 
 end semilattice_sup_bot
 
-instance nat.order_bot : order_bot ℕ :=
-{ bot := 0, bot_le := nat.zero_le }
-
 section semilattice_inf_top
 variables [semilattice_inf α] [order_top α] {a b : α}
 

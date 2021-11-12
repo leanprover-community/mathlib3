@@ -152,8 +152,7 @@ lemma to_outer_measure_eq_induced_outer_measure :
 
 lemma measure_eq_extend (hs : measurable_set s) :
   μ s = extend (λ t (ht : measurable_set t), μ t) s :=
-by { rw [measure_eq_induced_outer_measure, induced_outer_measure_eq_extend _ _ hs],
-  exact μ.m_Union }
+(extend_eq _ hs).symm
 
 @[simp] lemma measure_empty : μ ∅ = 0 := μ.empty
 
@@ -180,24 +179,9 @@ lemma exists_measurable_superset_forall_eq {ι} [encodable ι] (μ : ι → meas
 by simpa only [← measure_eq_trim]
   using outer_measure.exists_measurable_superset_forall_eq_trim (λ i, (μ i).to_outer_measure) s
 
-/-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisifies `μ (t ∩ u) = μ (s ∩ u)` for
-any measurable set `u`, see `measure_to_measurable_inter`. -/
-def to_measurable (μ : measure α) (s : set α) : set α :=
-classical.some (exists_measurable_superset μ s)
-
-lemma subset_to_measurable (μ : measure α) (s : set α) : s ⊆ to_measurable μ s :=
-(classical.some_spec (exists_measurable_superset μ s)).1
-
-@[simp] lemma measurable_set_to_measurable (μ : measure α) (s : set α) :
-  measurable_set (to_measurable μ s) :=
-(classical.some_spec (exists_measurable_superset μ s)).2.1
-
-@[simp] lemma measure_to_measurable (s : set α) : μ (to_measurable μ s) = μ s :=
-(classical.some_spec (exists_measurable_superset μ s)).2.2
-
 lemma exists_measurable_superset_of_null (h : μ s = 0) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0 :=
-outer_measure.exists_measurable_superset_of_trim_eq_zero (by rw [← measure_eq_trim, h])
+h ▸ exists_measurable_superset μ s
 
 lemma exists_measurable_superset_iff_measure_eq_zero :
   (∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0) ↔ μ s = 0 :=
@@ -403,6 +387,34 @@ alias measure_mono_ae ← filter.eventually_le.measure_le
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
 lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
 le_antisymm H.le.measure_le H.symm.le.measure_le
+
+/-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisifies `μ (t ∩ u) = μ (s ∩ u)` for
+any measurable set `u`, see `measure_to_measurable_inter`. If `s` is a null measurable set, then
+we also have `t =ᵐ[μ] s`, see `null_measurable_set.to_measurable_ae_eq`. -/
+def to_measurable (μ : measure α) (s : set α) : set α :=
+if h : ∃ t ⊇ s, measurable_set t ∧ t =ᵐ[μ] s then h.some
+else (exists_measurable_superset μ s).some
+
+lemma subset_to_measurable (μ : measure α) (s : set α) : s ⊆ to_measurable μ s :=
+begin
+  rw to_measurable, split_ifs with hs,
+  exacts [hs.some_spec.fst, (exists_measurable_superset μ s).some_spec.1]
+end
+
+lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable μ s := (subset_to_measurable _ _).eventually_le
+
+@[simp] lemma measurable_set_to_measurable (μ : measure α) (s : set α) :
+  measurable_set (to_measurable μ s) :=
+begin
+  rw to_measurable, split_ifs with hs,
+  exacts [hs.some_spec.snd.1, (exists_measurable_superset μ s).some_spec.2.1]
+end
+
+@[simp] lemma measure_to_measurable (s : set α) : μ (to_measurable μ s) = μ s :=
+begin
+  rw to_measurable, split_ifs with hs,
+  exacts [measure_congr hs.some_spec.snd.2, (exists_measurable_superset μ s).some_spec.2.2]
+end
 
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/

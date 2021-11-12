@@ -15,7 +15,7 @@ a function `α → ℝ≥0` such that the values have (infinite) sum `1`.
 This file features the monadic structure of `pmf` and the Bernoulli distribution
 
 Given `p : pmf α`, `pmf.to_outer_measure` constructs an `outer_measure` on `α`,
-by assigning each set the sum of the probabilities of each of it's elements.
+by assigning each set the sum of the probabilities of each of its elements.
 Under this outer measure, every set is Carathéodory-measurable,
 so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
 `pmf.to_measure.is_probability_measure` shows this associated measure is a probability measure.
@@ -405,15 +405,16 @@ end bernoulli
 
 section outer_measure
 
+open measure_theory measure_theory.outer_measure
+
 /-- Construct an `outer_measure` from a `pmf`, by assigning measure to each set `s : set α` equal
   to the sum of `p x` for for each `x ∈ α` -/
-def to_outer_measure (p : pmf α) : measure_theory.outer_measure α :=
-measure_theory.outer_measure.sum
-  (λ (x : α), (p x) • (measure_theory.outer_measure.dirac x))
+def to_outer_measure (p : pmf α) : outer_measure α :=
+outer_measure.sum (λ (x : α), p x • dirac x)
 
 lemma to_outer_measure_apply (p : pmf α) (s : set α) :
   p.to_outer_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
-tsum_congr (λ x, (measure_theory.outer_measure.smul_dirac_apply (p x) x s))
+tsum_congr (λ x, smul_dirac_apply (p x) x s)
 
 lemma to_outer_measure_apply' (p : pmf α) (s : set α) :
   p.to_outer_measure s = ↑(∑' (x : α), s.indicator p x) :=
@@ -446,53 +447,60 @@ end
 lemma to_outer_measure_caratheodory (p : pmf α) :
   (to_outer_measure p).caratheodory = ⊤ :=
 begin
-  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _)
-    (measure_theory.outer_measure.le_sum_caratheodory _)),
+  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
   obtain ⟨y, hy⟩ := hx,
-  exact ((le_of_eq (measure_theory.outer_measure.dirac_caratheodory _).symm).trans
-    (measure_theory.outer_measure.le_smul_caratheodory _ _)).trans (le_of_eq hy),
+  exact ((le_of_eq (dirac_caratheodory _).symm).trans
+    (le_smul_caratheodory _ _)).trans (le_of_eq hy),
 end
 
 end outer_measure
 
 section measure
 
+open measure_theory
+
 /-- Since every set is Carathéodory-measurable under `pmf.to_outer_measure`,
   we can further extend this `outer_measure` to a `measure` on `α` -/
-def to_measure [measurable_space α] (p : pmf α) : measure_theory.measure α :=
+def to_measure [measurable_space α] (p : pmf α) : measure α :=
 p.to_outer_measure.to_measure ((to_outer_measure_caratheodory p).symm ▸ le_top)
 
 variables [measurable_space α]
 
 lemma to_measure_apply_eq_to_outer_measure_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
   p.to_measure s = p.to_outer_measure s :=
-measure_theory.to_measure_apply p.to_outer_measure _ hs
+to_measure_apply p.to_outer_measure _ hs
 
 lemma to_outer_measure_apply_le_to_measure_apply (p : pmf α) (s : set α) :
   p.to_outer_measure s ≤ p.to_measure s :=
-measure_theory.le_to_measure_apply p.to_outer_measure _ s
+le_to_measure_apply p.to_outer_measure _ s
 
 lemma to_measure_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
   p.to_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply s)
 
-lemma to_meausre_apply' (p : pmf α) (s : set α) (hs : measurable_set s) :
+lemma to_measure_apply' (p : pmf α) (s : set α) (hs : measurable_set s) :
   p.to_measure s = ↑(∑' x, s.indicator p x) :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply' s)
 
 @[simp]
-lemma to_measure_apply_finset (p : pmf α) (s : finset α) (hs : measurable_set (s : set α)) :
+lemma to_measure_apply_finset [measurable_singleton_class α] (p : pmf α) (s : finset α) :
   p.to_measure s = ∑ x in s, (p x : ℝ≥0∞) :=
-(p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply_finset s)
+(p.to_measure_apply_eq_to_outer_measure_apply s s.measurable_set).trans
+  (p.to_outer_measure_apply_finset s)
+
+lemma to_measure_apply_of_finite [measurable_singleton_class α] (p : pmf α) (s : set α)
+  (hs : s.finite) : p.to_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+(p.to_measure_apply_eq_to_outer_measure_apply s hs.measurable_set).trans
+  (p.to_outer_measure_apply s)
 
 @[simp]
-lemma to_measure_apply_fintype [fintype α] (p : pmf α) (s : set α) (hs : measurable_set s) :
+lemma to_measure_apply_fintype [measurable_singleton_class α] [fintype α] (p : pmf α) (s : set α) :
   p.to_measure s = ∑ x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
-(p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply_fintype s)
+(p.to_measure_apply_eq_to_outer_measure_apply s (set.finite.of_fintype s).measurable_set).trans
+  (p.to_outer_measure_apply_fintype s)
 
 /-- The measure associated to a `pmf` by `to_measure` is a probability measure -/
-instance to_measure.is_probability_measure (p : pmf α) :
-  measure_theory.is_probability_measure (p.to_measure) :=
+instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure (p.to_measure) :=
 ⟨by simpa only [measurable_set.univ, to_measure_apply_eq_to_outer_measure_apply, set.indicator_univ,
   to_outer_measure_apply', ennreal.coe_eq_one] using tsum_coe p⟩
 

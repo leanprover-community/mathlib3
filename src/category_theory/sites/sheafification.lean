@@ -1,0 +1,606 @@
+/-
+Copyright (c) 2021 Adam Topaz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Topaz
+-/
+import category_theory.sites.plus
+import category_theory.limits.concrete_category
+
+/-!
+
+# Sheafification
+
+We show construct the sheafification of a presheaf over a site `C` with values in `D` whenever
+`D` is a concrete category for which the forgetful functor preserves the appropriate (co)limits
+and reflects isomorphisms.
+
+We generally the approach of https://stacks.math.columbia.edu/tag/00W1
+
+-/
+
+namespace category_theory
+
+open category_theory.limits opposite
+
+universes w v u
+variables {C : Type u} [category.{v} C] {J : grothendieck_topology C}
+variables {D : Type w} [category.{max v u} D]
+
+section
+variables [concrete_category.{max v u} D]
+
+local attribute [instance]
+  concrete_category.has_coe_to_sort
+  concrete_category.has_coe_to_fun
+
+/-- A concrete version of the multiequalizer, to be used below. -/
+@[nolint has_inhabited_instance]
+def meq {X : C} (P : Cᵒᵖ ⥤ D) (S : J.cover X) :=
+{ x : Π (I : S.arrow), P.obj (op I.Y) //
+  ∀ (I : S.relation), P.map I.g₁.op (x ⟨_, I.f₁, I.h₁⟩) = P.map I.g₂.op (x ⟨_, I.f₂, I.h₂⟩) }
+end
+
+namespace meq
+
+variables [concrete_category.{max v u} D]
+
+local attribute [instance]
+  concrete_category.has_coe_to_sort
+  concrete_category.has_coe_to_fun
+
+
+instance {X} (P : Cᵒᵖ ⥤ D) (S : J.cover X) : has_coe_to_fun (meq P S)
+  (λ x, Π (I : S.arrow), P.obj (op I.Y)) := ⟨λ x, x.1⟩
+
+@[ext]
+lemma ext {X} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x y : meq P S)
+  (h : ∀ I : S.arrow, x I = y I) : x = y := subtype.ext $ funext $ h
+
+lemma condition {X} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : meq P S) (I : S.relation) :
+  P.map I.g₁.op (x ((S.index P).fst_to I)) = P.map I.g₂.op (x ((S.index P).snd_to I)) := x.2 _
+
+/-- Refine a term of `meq P T` with respect to a refinement `S ⟶ T` of covers. -/
+def refine {X : C} {P : Cᵒᵖ ⥤ D} {S T : J.cover X} (x : meq P T) (e : S ⟶ T) :
+  meq P S :=
+⟨λ I, x ⟨I.Y, I.f, (le_of_hom e) _ I.hf⟩,
+  λ I, x.condition ⟨I.Y₁, I.Y₂, I.Z, I.g₁, I.g₂, I.f₁, I.f₂,
+    (le_of_hom e) _ I.h₁, (le_of_hom e) _ I.h₂, I.w⟩⟩
+
+@[simp]
+lemma refine_apply {X : C} {P : Cᵒᵖ ⥤ D} {S T : J.cover X} (x : meq P T) (e : S ⟶ T)
+  (I : S.arrow) : x.refine e I = x ⟨I.Y, I.f, (le_of_hom e) _ I.hf⟩ := rfl
+
+/-- Pull back a term of `meq P S` with respect to a morphism `f : Y ⟶ X` in `C`. -/
+def pullback {Y X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : meq P S) (f : Y ⟶ X) :
+  meq P ((J.pullback f).obj S) :=
+⟨λ I, x ⟨_,I.f ≫ f, I.hf⟩, λ I, x.condition
+  ⟨I.Y₁, I.Y₂, I.Z, I.g₁, I.g₂, I.f₁ ≫ f, I.f₂ ≫ f, I.h₁, I.h₂, by simp [reassoc_of I.w]⟩ ⟩
+
+@[simp]
+lemma pullback_apply {Y X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : meq P S) (f : Y ⟶ X)
+  (I : ((J.pullback f).obj S).arrow) : x.pullback f I = x ⟨_, I.f ≫ f, I.hf⟩ := rfl
+
+@[simp]
+lemma pullback_refine {Y X : C} {P : Cᵒᵖ ⥤ D} {S T : J.cover X} (h : S ⟶ T)
+  (f : Y ⟶ X) (x : meq P T) : (x.pullback f).refine
+  ((J.pullback f).map h) = (refine x h).pullback _ := rfl
+
+/-- Make a term of `meq P S`. -/
+def mk {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : P.obj (op X)) : meq P S :=
+⟨λ I, P.map I.f.op x, λ I, by { dsimp, simp only [← comp_apply, ← P.map_comp, ← op_comp, I.w] }⟩
+
+lemma mk_apply {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : P.obj (op X)) (I : S.arrow) :
+  mk S x I = P.map I.f.op x := rfl
+
+variable [preserves_limits (forget D)]
+
+/-- The equivalence between the type associated to `multiequalizer (S.index P)` and `meq P S`. -/
+noncomputable
+def equiv {X : C} (P : Cᵒᵖ ⥤ D) (S : J.cover X) [has_multiequalizer (S.index P)] :
+  (multiequalizer (S.index P) : D) ≃ meq P S :=
+limits.concrete.multiequalizer_equiv _
+
+@[simp]
+lemma equiv_apply {X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} [has_multiequalizer (S.index P)]
+  (x : multiequalizer (S.index P)) (I : S.arrow) :
+equiv P S x I = multiequalizer.ι (S.index P) I x := rfl
+
+@[simp]
+lemma equiv_symm_eq_apply {X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} [has_multiequalizer (S.index P)]
+  (x : meq P S) (I : S.arrow) : multiequalizer.ι (S.index P) I ((meq.equiv P S).symm x) = x I :=
+begin
+  let z := (meq.equiv P S).symm x,
+  rw ← equiv_apply,
+  simp,
+end
+
+end meq
+
+namespace grothendieck_topology
+
+namespace plus
+
+variables [concrete_category.{max v u} D]
+
+local attribute [instance]
+  concrete_category.has_coe_to_sort
+  concrete_category.has_coe_to_fun
+
+variable [preserves_limits (forget D)]
+variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
+variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]
+
+noncomputable theory
+
+/-- Make a term of `(J.plus_obj P).obj (op X)` from `x : meq P S`. -/
+def mk {X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : meq P S) : (J.plus_obj P).obj (op X) :=
+colimit.ι (J.diagram P X) (op S) ((meq.equiv P S).symm x)
+
+lemma res_mk_eq_mk_pullback {Y X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : meq P S) (f : Y ⟶ X) :
+  (J.plus_obj P).map f.op (mk x) = mk (x.pullback f) :=
+begin
+  dsimp [mk],
+  simp only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
+  simp_rw [comp_apply],
+  congr' 1,
+  apply_fun meq.equiv P _,
+  erw equiv.apply_symm_apply,
+  ext i,
+  simp only [diagram_pullback_app,
+    meq.pullback_apply, meq.equiv_apply, ← comp_apply],
+  erw [multiequalizer.lift_ι, meq.equiv_symm_eq_apply],
+  cases i, refl,
+end
+
+lemma to_plus_mk {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : P.obj (op X)) :
+  (J.to_plus P).app _ x = mk (meq.mk S x) :=
+begin
+  dsimp [mk],
+  let e : S ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  rw ← colimit.w _ e.op,
+  delta cover.to_multiequalizer,
+  simp only [comp_apply],
+  congr' 1,
+  dsimp [diagram],
+  apply concrete.multiequalizer_ext,
+  intros i,
+  simpa only [← comp_apply, category.assoc, multiequalizer.lift_ι,
+    category.comp_id, meq.equiv_symm_eq_apply],
+end
+
+lemma to_plus_apply {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : meq P S) (I : S.arrow) :
+  (J.to_plus P).app _ (x I) = (J.plus_obj P).map I.f.op (mk x) :=
+begin
+  dsimp only [to_plus],
+  delta cover.to_multiequalizer,
+  dsimp [mk],
+  simp only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
+  simp only [comp_apply],
+  dsimp only [functor.op],
+  let e : (J.pullback I.f).obj (unop (op S)) ⟶ ⊤ := hom_of_le (semilattice_inf_top.le_top _),
+  rw ← colimit.w _ e.op,
+  simp only [comp_apply],
+  congr' 1,
+  apply concrete.multiequalizer_ext,
+  intros i,
+  dsimp [diagram],
+  simp only [← comp_apply, category.assoc, multiequalizer.lift_ι,
+    category.comp_id, meq.equiv_symm_eq_apply],
+  let RR : S.relation :=
+    ⟨_, _, _, i.f, 𝟙 _, I.f, i.f ≫ I.f, I.hf, sieve.downward_closed _ I.hf _, by simp⟩,
+  cases I,
+  erw x.condition RR,
+  simpa [RR],
+end
+
+lemma to_plus_eq_mk {X : C} {P : Cᵒᵖ ⥤ D} (x : P.obj (op X)) :
+  (J.to_plus P).app _ x = mk (meq.mk ⊤ x) :=
+begin
+  dsimp [mk],
+  delta cover.to_multiequalizer,
+  simp only [comp_apply],
+  congr' 1,
+  apply_fun (meq.equiv P ⊤),
+  ext i,
+  simpa,
+end
+
+variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
+
+lemma exists_rep {X : C} {P : Cᵒᵖ ⥤ D} (x : (J.plus_obj P).obj (op X)) :
+  ∃ (S : J.cover X) (y : meq P S), x = mk y :=
+begin
+  obtain ⟨S,y,h⟩ := concrete.colimit_exists_rep (J.diagram P X) x,
+  use [S.unop, meq.equiv _ _ y],
+  rw ← h,
+  dsimp [mk],
+  simp,
+end
+
+lemma eq_mk_iff_exists {X : C} {P : Cᵒᵖ ⥤ D} {S T : J.cover X}
+  (x : meq P S) (y : meq P T) : mk x = mk y ↔ (∃ (W : J.cover X) (h1 : W ⟶ S) (h2 : W ⟶ T),
+    x.refine h1 = y.refine h2) :=
+begin
+  split,
+  { intros h,
+    obtain ⟨W, h1, h2, hh⟩ := concrete.colimit_exists_of_rep_eq _ _ _ h,
+    use [W.unop, h1.unop, h2.unop],
+    ext I,
+    apply_fun (multiequalizer.ι (W.unop.index P) I) at hh,
+    convert hh,
+    all_goals {
+      dsimp [diagram],
+      simp only [← comp_apply, multiequalizer.lift_ι],
+      simp only [category.comp_id, meq.equiv_symm_eq_apply],
+      cases I, refl } },
+  { rintros ⟨S,h1,h2,e⟩,
+    apply concrete.colimit_rep_eq_of_exists,
+    use [(op S), h1.op, h2.op],
+    apply concrete.multiequalizer_ext,
+    intros i,
+    apply_fun (λ ee, ee i) at e,
+    convert e,
+    all_goals {
+      dsimp [diagram],
+      simp only [← comp_apply, multiequalizer.lift_ι],
+      simp,
+      cases i, refl } },
+end
+
+/-- `P⁺` is always separated. -/
+theorem sep {X : C} (P : Cᵒᵖ ⥤ D) (S : J.cover X) (x y : (J.plus_obj P).obj (op X))
+  (h : ∀ (I : S.arrow), (J.plus_obj P).map I.f.op x = (J.plus_obj P).map I.f.op y) :
+  x = y :=
+begin
+  -- First, we choose representatives for x and y.
+  obtain ⟨Sx,x,rfl⟩ := exists_rep x,
+  obtain ⟨Sy,y,rfl⟩ := exists_rep y,
+  simp only [res_mk_eq_mk_pullback] at h,
+
+  -- Next, choose covers over which the pullbacks of these representatives become equal.
+  choose W h1 h2 hh using λ (I : S.arrow), (eq_mk_iff_exists _ _).mp (h I),
+
+  -- To prove equality, it suffices to prove that there exists a cover over which
+  -- the representatives become equal.
+  rw eq_mk_iff_exists,
+
+  -- Construct the cover over which the representatives become equal.
+  let B : J.cover X := ⟨sieve.bind S (λ Y f hf, W ⟨_, f, hf⟩),
+    J.bind_covering S.condition (λ _ _ _, (W _).condition)⟩,
+  use B,
+
+  -- And prove that this cover refines the two covers over which the representatives are defined.
+  let ex : B ⟶ Sx := hom_of_le begin
+    rintros Y f ⟨Z,e1,e2,he2,he1,hee⟩,
+    rw ← hee,
+    apply le_of_hom (h1 ⟨_, _, he2⟩),
+    exact he1,
+  end,
+  let ey : B ⟶ Sy := hom_of_le begin
+    rintros Y f ⟨Z,e1,e2,he2,he1,hee⟩,
+    rw ← hee,
+    apply le_of_hom (h2 ⟨_, _, he2⟩),
+    exact he1,
+  end,
+  use [ex, ey],
+
+  -- Now prove that indeed the representatives become equal over `B`.
+  ext1,
+  choose Z e1 e2 he2 he1 hee using I.hf,
+
+  -- This will follow by applying a previous hypothesis.
+  let IS : S.arrow := ⟨Z, e2, he2⟩,
+  specialize hh IS,
+  let IW : (W IS).arrow := ⟨_, e1, he1⟩,
+  apply_fun (λ e, e IW) at hh,
+  convert hh,
+  { dsimp,
+    let Rx : Sx.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
+    have := x.condition Rx,
+    dsimp [Rx] at this,
+    simpa using this },
+  { dsimp,
+    let Ry : Sy.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
+    have := y.condition Ry,
+    dsimp [Ry] at this,
+    simpa using this },
+end
+
+theorem exists_of_sep (P : Cᵒᵖ ⥤ D)
+  (hsep : ∀ (X : C) (S : J.cover X) (x y : P.obj (op X)),
+    (∀ I : S.arrow, P.map I.f.op x = P.map I.f.op y) → x = y)
+  (X : C) (S : J.cover X)
+  (s : meq (J.plus_obj P) S) :
+  ∃ t : (J.plus_obj P).obj (op X), meq.mk S t = s :=
+begin
+  -- First, we prove that the canonical map from the presheaf `P` to `P⁺` is injective.
+  have inj : ∀ (X : C), function.injective ((J.to_plus P).app (op X)),
+  { intros X x y h,
+    simp only [to_plus_eq_mk] at h,
+    rw eq_mk_iff_exists at h,
+    obtain ⟨W, h1, h2, hh⟩ := h,
+    specialize hsep X W,
+    apply hsep,
+    intros I,
+    apply_fun (λ e, e I) at hh,
+    exact hh },
+
+  -- Choose representatives for the given local sections..
+  choose T t ht using λ I, exists_rep (s I),
+
+  -- Construct a large cover over which we will define a representative that will
+  -- provide the gluing.
+  let B : J.cover X := ⟨sieve.bind S (λ Y f hf, T ⟨Y,f,hf⟩),
+    J.bind_covering S.condition (λ _ _ _, (T _).condition)⟩,
+  choose Z e1 e2 he2 he1 hee using λ I : B.arrow, I.hf,
+
+  -- Construct a compatible system of local sections over this large cover.
+  -- The compatilibity follows from the separatedness assumption.
+  let w : meq P B := ⟨λ I, t ⟨Z I, e2 I, he2 I⟩ ⟨I.Y, e1 I, he1 I⟩, _⟩,
+  swap, {
+    intros I,
+    let I₁ : B.arrow := ⟨_, I.f₁, I.h₁⟩,
+    let I₂ : B.arrow := ⟨_, I.f₂, I.h₂⟩,
+    let IC₁ : S.arrow := ⟨_, e2 I₁, he2 I₁⟩,
+    let IC₂ : S.arrow := ⟨_, e2 I₂, he2 I₂⟩,
+    let ID₁ : (T IC₁).arrow := ⟨_, e1 I₁, he1 I₁⟩,
+    let ID₂ : (T IC₂).arrow := ⟨_, e1 I₂, he1 I₂⟩,
+    change (P.map I.g₁.op) (t IC₁ ID₁) = (P.map I.g₂.op) (t IC₂ ID₂),
+
+    -- By injectivity, it suffices to work in `P⁺`.
+    apply inj,
+    rw [← comp_apply, ← comp_apply, (J.to_plus P).naturality, (J.to_plus P).naturality,
+      comp_apply, comp_apply, to_plus_apply (T IC₁) (t IC₁) ID₁, to_plus_apply (T IC₂) (t IC₂) ID₂,
+      ← ht, ← ht, ← comp_apply, ← comp_apply, ← (J.plus_obj P).map_comp,
+      ← (J.plus_obj P).map_comp, ← op_comp, ← op_comp],
+    let IR : S.relation :=
+      ⟨_, _, _, I.g₁ ≫ ID₁.f, I.g₂ ≫ ID₂.f, e2 I₁, e2 I₂, he2 _, he2 _ , _⟩,
+    swap, { dsimp [ID₁, ID₂], simp_rw [category.assoc, hee], exact I.w },
+    exact s.condition IR },
+
+  -- The associated gluing will be the candidate section.
+  use mk w,
+  ext I,
+  rw ht,
+  change (J.plus_obj P).map _ _ = _,
+  erw [res_mk_eq_mk_pullback],
+
+  -- Use the separatedness of `P⁺`.
+  apply sep P (T I),
+  intros II,
+  simp only [res_mk_eq_mk_pullback, eq_mk_iff_exists],
+
+  -- It suffices to prove equality over a large cover...
+  use (J.pullback II.f).obj (T I),
+  let e0 : (J.pullback II.f).obj (T I) ⟶ (J.pullback II.f).obj ((J.pullback I.f).obj B) :=
+    hom_of_le begin
+      rintros Y f hf,
+      fapply sieve.le_pullback_bind,
+      { exact I.hf },
+      { cases I,
+        exact hf },
+    end,
+  use [e0, 𝟙 _],
+  ext IV,
+  dsimp [meq.refine_apply, meq.pullback_apply, w],
+  let IA : B.arrow := {Y := IV.Y, f := (IV.f ≫ II.f) ≫ I.f, hf := _},
+  swap, {
+    refine ⟨I.Y, _, _, I.hf, _, rfl⟩,
+    apply sieve.downward_closed,
+    convert II.hf,
+    cases I, refl },
+  let IB : S.arrow := ⟨Z IA, e2 IA, by apply he2⟩,
+  let IC : (T IB).arrow := ⟨IV.Y, e1 IA, by apply he1⟩,
+  let ID : (T I).arrow := ⟨IV.Y, IV.f ≫ II.f, _⟩,
+  swap, { apply sieve.downward_closed, apply II.hf, },
+  change t IB IC = t I ID,
+  apply inj IV.Y,
+  erw to_plus_apply (T I) (t I) ID,
+  erw to_plus_apply (T IB) (t IB) IC,
+  rw [← ht, ← ht],
+  dsimp only,
+
+  -- Conclude by constructing the relation showing equality...
+  let IR : S.relation :=
+    ⟨_, _, IV.Y, e1 IA, IV.f ≫ II.f, e2 IA, I.f, he2 _, I.hf, by rw hee⟩,
+  convert s.condition IR,
+  cases I, refl,
+end
+
+variable [reflects_isomorphisms (forget D)]
+
+/-- If `P` is separated, then `P⁺` is a sheaf. -/
+theorem is_sheaf_of_sep (P : Cᵒᵖ ⥤ D)
+  (hsep : ∀ (X : C) (S : J.cover X) (x y : P.obj (op X)),
+    (∀ I : S.arrow, P.map I.f.op x = P.map I.f.op y) → x = y) :
+  presheaf.is_sheaf J (J.plus_obj P) :=
+begin
+  rw presheaf.is_sheaf_iff_multiequalizer,
+  intros X S,
+  apply is_iso_of_reflects_iso _ (forget D),
+  rw is_iso_iff_bijective,
+  split,
+  { intros x y h,
+    apply sep P S _ _,
+    intros I,
+    apply_fun (meq.equiv _ _) at h,
+    apply_fun (λ e, e I) at h,
+    convert h,
+    { rw meq.equiv_apply,
+      erw [← comp_apply, multiequalizer.lift_ι] },
+    { rw meq.equiv_apply,
+      erw [← comp_apply, multiequalizer.lift_ι] } },
+  { rintros (x : (multiequalizer (S.index _) : D)),
+    obtain ⟨t,ht⟩ := exists_of_sep P hsep X S (meq.equiv _ _ x),
+    use t,
+    apply_fun meq.equiv _ _,
+    swap, { apply_instance },
+    rw ← ht,
+    ext i,
+    dsimp,
+    erw [← comp_apply, multiequalizer.lift_ι],
+    refl }
+end
+
+variable (J)
+
+/-- `P⁺⁺` is always a sheaf. -/
+theorem is_sheaf_plus_plus (P : Cᵒᵖ ⥤ D) :
+  presheaf.is_sheaf J (J.plus_obj (J.plus_obj P)) :=
+begin
+  apply is_sheaf_of_sep,
+  intros X S x y,
+  apply sep,
+end
+
+end plus
+
+variables (J)
+variables
+  [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]
+  [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
+
+/-- The sheafification of a presheaf `P`.
+*NOTE:* Additional hypotheses are needed to obtain a proof that this is a sheaf! -/
+@[simps]
+def sheafify (P : Cᵒᵖ ⥤ D) : Cᵒᵖ ⥤ D := J.plus_obj (J.plus_obj P)
+
+/-- The canonical map from `P` to its sheafification. -/
+@[simps]
+def to_sheafify (P : Cᵒᵖ ⥤ D) : P ⟶ J.sheafify P :=
+J.to_plus P ≫ J.plus_map (J.to_plus P)
+
+variable (D)
+
+/-- The sheafification of a presheaf `P`, as a functor.
+*NOTE:* Additional hypotheses are needed to obtain a proof that this is a sheaf! -/
+@[simps map]
+def sheafification : (Cᵒᵖ ⥤ D) ⥤ Cᵒᵖ ⥤ D := (J.plus_functor D ⋙ J.plus_functor D)
+
+@[simp]
+lemma sheafification_obj (P : Cᵒᵖ ⥤ D) : (J.sheafification D).obj P = J.sheafify P := rfl
+
+/-- The canonical map from `P` to its sheafification, as a natural transformation.
+*Note:* We only show this is a sheaf under additional hypotheses on `D`. -/
+def to_sheafification : 𝟭 _ ⟶ sheafification J D :=
+J.to_plus_nat_trans D ≫ whisker_right (J.to_plus_nat_trans D) (J.plus_functor D)
+
+@[simp]
+lemma to_sheafification_app (P : Cᵒᵖ ⥤ D) : (J.to_sheafification D).app P = J.to_sheafify P := rfl
+
+variable {D}
+
+lemma is_iso_to_sheafify {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
+  is_iso (J.to_sheafify P) :=
+begin
+  dsimp [to_sheafify],
+  haveI : is_iso (J.to_plus P) := by { apply is_iso_to_plus_of_is_sheaf J P hP },
+  haveI : is_iso ((J.plus_functor D).map (J.to_plus P)) := by { apply functor.map_is_iso },
+  exact @is_iso.comp_is_iso _ _ _ _ _ (J.to_plus P)
+    ((J.plus_functor D).map (J.to_plus P)) _ _,
+end
+
+/-- If `P` is a sheaf, then `P` is isomorphic to `J.sheafify P`. -/
+def iso_sheafify {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
+  P ≅ J.sheafify P :=
+by letI := is_iso_to_sheafify J hP; exactI as_iso (J.to_sheafify P)
+
+/-- Given a sheaf `Q` and a morphism `P ⟶ Q`, construct a morphism from
+`J.sheafifcation P` to `Q`. -/
+def sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
+  J.sheafify P ⟶ Q := J.plus_lift (J.plus_lift η hQ) hQ
+
+lemma to_sheafify_sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
+  J.to_sheafify P ≫ sheafify_lift J η hQ = η :=
+begin
+  dsimp only [sheafify_lift, to_sheafify],
+  rw [category.assoc, J.plus_map_to_plus P, to_plus_plus_lift, to_plus_plus_lift],
+end
+
+lemma sheafify_lift_unique {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
+  (γ : J.sheafify P ⟶ Q) :
+  J.to_sheafify P ≫ γ = η → γ = sheafify_lift J η hQ :=
+begin
+  intros h,
+  apply plus_lift_unique,
+  apply plus_lift_unique,
+  rw [← category.assoc, ← plus_map_to_plus],
+  exact h,
+end
+
+lemma sheafify_hom_ext {P Q : Cᵒᵖ ⥤ D} (η γ : J.sheafify P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
+  (h : J.to_sheafify P ≫ η = J.to_sheafify P ≫ γ) : η = γ :=
+begin
+  apply J.plus_hom_ext _ _ hQ,
+  apply J.plus_hom_ext _ _ hQ,
+  rw [← category.assoc, ← category.assoc, ← plus_map_to_plus],
+  exact h,
+end
+
+end grothendieck_topology
+
+variables (J D)
+variables
+  [concrete_category.{max v u} D]
+  [preserves_limits (forget D)]
+  [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]
+  [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
+  [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
+  [reflects_isomorphisms (forget D)]
+
+/-- The sheafification functor, as a functor taking values in `Sheaf`. -/
+@[simps obj map]
+def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
+{ obj := λ P, ⟨J.sheafify P, grothendieck_topology.plus.is_sheaf_plus_plus J P⟩,
+  map := λ P Q η, (J.sheafification D).map η,
+  map_id' := (J.sheafification D).map_id,
+  map_comp' := λ P Q R, (J.sheafification D).map_comp }
+
+/-- The sheafification functor is left adjoint to the forgetful functor. -/
+def sheafification_adjunction : presheaf_to_Sheaf J D ⊣ Sheaf_to_presheaf J D :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ P Q,
+  { to_fun := λ e, J.to_sheafify P ≫ e,
+    inv_fun := λ e, J.sheafify_lift e Q.2,
+    left_inv := λ e, (J.sheafify_lift_unique _ _ _ rfl).symm,
+    right_inv := λ e, J.to_sheafify_sheafify_lift _ _ },
+  hom_equiv_naturality_left_symm' := begin
+    intros P Q R η γ, dsimp, symmetry, apply J.sheafify_lift_unique,
+    erw [← category.assoc, ← (J.to_sheafification D).naturality, functor.id_map,
+      category.assoc, J.to_sheafify_sheafify_lift],
+  end,
+  hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc, refl } }
+
+variables {J D}
+/-- A sheaf `P` is isomorphic to its own sheafification. -/
+def sheafification_iso (P : Sheaf J D) :
+  P ≅ (presheaf_to_Sheaf J D).obj ((Sheaf_to_presheaf J D).obj P) :=
+{ hom := (J.iso_sheafify P.2).hom,
+  inv := (J.iso_sheafify P.2).inv,
+  hom_inv_id' := (J.iso_sheafify P.2).hom_inv_id,
+  inv_hom_id' := (J.iso_sheafify P.2).inv_hom_id }
+
+@[simp]
+lemma sheafification_iso_hom (P : Sheaf J D) :
+  (sheafification_iso P).hom = J.to_sheafify ((Sheaf_to_presheaf _ _).obj P) := rfl
+
+@[simp]
+lemma sheafification_iso_inv (P : Sheaf J D) :
+  (sheafification_iso P).inv = J.sheafify_lift (𝟙 _) P.2 :=
+begin
+  apply J.sheafify_lift_unique,
+  erw [iso.comp_inv_eq, category.id_comp],
+  refl,
+end
+
+instance (P : Sheaf J D) : is_iso ((sheafification_adjunction J D).counit.app P) :=
+begin
+  dsimp [sheafification_adjunction],
+  erw ← sheafification_iso_inv,
+  apply_instance
+end
+
+instance reflective : is_iso (sheafification_adjunction J D).counit :=
+nat_iso.is_iso_of_is_iso_app _
+
+end category_theory

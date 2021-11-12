@@ -176,7 +176,7 @@ end is_coatomic
 
 theorem is_atomic_iff_forall_is_atomic_Iic [partial_order α] [order_bot α] :
   is_atomic α ↔ ∀ (x : α), is_atomic (set.Iic x) :=
-⟨@is_atomic.set.Iic.is_atomic _ _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ _ (h x))
+⟨@is_atomic.set.Iic.is_atomic _ _ _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ _ _ (h x))
   (⊤ : set.Iic x)).imp subtype.mk_eq_mk.1 (exists_imp_exists' coe
   (λ ⟨a, ha⟩, and.imp_left (is_atom.of_is_atom_coe_Iic)))⟩⟩
 

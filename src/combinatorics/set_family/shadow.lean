@@ -90,7 +90,7 @@ begin
       by rwa [insert_eq a s, ←ha, sdiff_union_of_subset hst]⟩ }
 end
 
-/-- teing in the shadow of `𝒜` means we have a superset in `𝒜`. -/
+/-- Being in the shadow of `𝒜` means we have a superset in `𝒜`. -/
 lemma exists_subset_of_mem_shadow (hs : s ∈ ∂ 𝒜) : ∃ t ∈ 𝒜, s ⊆ t :=
 let ⟨t, ht, hst⟩ := mem_shadow_iff_exists_mem_card_add_one.1 hs in ⟨t, ht, hst.1⟩
 

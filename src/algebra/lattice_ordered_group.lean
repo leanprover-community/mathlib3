@@ -312,15 +312,15 @@ begin
 end
 
 -- 2•(a ⊔ b) = a + b + |b - a|
-@[to_additive]
+@[to_additive two_sup_eq_add_add_abs_sub]
 lemma sup_sq_eq_mul_mul_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊔ b)^2 = a * b * |b / a| :=
 by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,
     mul_assoc, ← pow_two, inv_mul_cancel_left]
 
 -- 2•(a ⊓ b) = a + b - |b - a|
-@[to_additive]
-lemma two_inf_eq_mul_div_abs_div [covariant_class α α (*) (≤)] (a b : α) :
+@[to_additive two_inf_eq_add_sub_abs_sub]
+lemma inf_sq_eq_mul_div_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊓ b)^2 = a * b / |b / a| :=
 by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_mul_inv,
     mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two]

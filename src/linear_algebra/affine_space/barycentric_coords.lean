@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.independent
+import linear_algebra.determinant
 
 /-!
 # Barycentric coordinates
@@ -42,7 +43,11 @@ open set
 universes u₁ u₂ u₃ u₄
 
 variables {ι : Type u₁} {k : Type u₂} {V : Type u₃} {P : Type u₄}
-variables [ring k] [add_comm_group V] [module k V] [affine_space V P]
+variables [add_comm_group V] [affine_space V P]
+
+section ring
+
+variables [ring k] [module k V]
 variables {p : ι → P} (h_ind : affine_independent k p) (h_tot : affine_span k (range p) = ⊤)
 include V h_ind h_tot
 
@@ -158,3 +163,102 @@ begin
   use s.affine_combination p w,
   simp [barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw],
 end
+
+/-- The vector of barycentric coordinates of a given point with respect to an affine basis. -/
+noncomputable def barycentric_coords (q : P) (i : ι) := barycentric_coord h_ind h_tot i q
+
+lemma barycentric_coords_def (q : P) (i : ι) :
+  barycentric_coords h_ind h_tot q i = barycentric_coord h_ind h_tot i q :=
+rfl
+
+/-- Given an affine basis `p`, and a family of points `q : ι' → P`, this is the matrix whose
+rows are the barycentric coordinates of `q` with respect to `p`.
+
+It is an affine equivalent of `basis.to_matrix`. -/
+noncomputable def affine_basis_to_matrix {ι' : Type*} (q : ι' → P) : matrix ι' ι k :=
+λ i j, barycentric_coord h_ind h_tot j (q i)
+
+lemma affine_basis_to_matrix_def {ι' : Type*} (q : ι' → P) (i : ι') (j : ι):
+  affine_basis_to_matrix h_ind h_tot q i j = barycentric_coord h_ind h_tot j (q i) :=
+rfl
+
+@[simp] lemma affine_basis_to_matrix_self [decidable_eq ι] :
+  affine_basis_to_matrix h_ind h_tot p = (1 : matrix ι ι k) :=
+begin
+  ext i j,
+  rw [affine_basis_to_matrix_def, barycentric_coord_apply, matrix.one_eq_pi_single,
+    pi.single_apply],
+end
+
+variables {q : ι → P} (hq_ind : affine_independent k q) (hq_tot : affine_span k (range q) = ⊤)
+local notation `coords` := barycentric_coords
+open_locale matrix
+
+/-- A change of basis formula for barycentric coordinates.
+
+See also `affine_basis_to_matrix_inv_mul_affine_basis_to_matrix`. -/
+lemma affine_basis_to_matrix_vec_mul_coords [fintype ι] (x : P) :
+  (affine_basis_to_matrix h_ind h_tot q).vec_mul (coords hq_ind hq_tot x) =
+  coords h_ind h_tot x :=
+begin
+  ext j,
+  change _ = barycentric_coord h_ind h_tot j x,
+  conv_rhs { rw ← affine_combination_barycentric_coord_eq_self hq_ind hq_tot x, },
+  rw finset.map_affine_combination _ _ _ (sum_barycentric_coord_apply_eq_one hq_ind hq_tot x),
+  simp [matrix.vec_mul, matrix.dot_product, affine_basis_to_matrix, barycentric_coords],
+end
+
+lemma affine_basis_to_matrix_mul_affine_basis_to_matrix [decidable_eq ι] [fintype ι] :
+  (affine_basis_to_matrix h_ind h_tot q) ⬝ (affine_basis_to_matrix hq_ind hq_tot p) = 1 :=
+begin
+  ext l m,
+  unfold matrix.mul matrix.dot_product,
+  change (affine_basis_to_matrix hq_ind hq_tot p).vec_mul (barycentric_coords h_ind h_tot (q l)) m = _,
+  rw [affine_basis_to_matrix_vec_mul_coords, barycentric_coords_def, ← affine_basis_to_matrix_def,
+    affine_basis_to_matrix_self],
+end
+
+lemma is_unit_affine_basis_to_matrix [decidable_eq ι] [fintype ι] :
+  is_unit (affine_basis_to_matrix h_ind h_tot q) :=
+⟨{ val     := affine_basis_to_matrix h_ind h_tot q,
+   inv     := affine_basis_to_matrix hq_ind hq_tot p,
+   val_inv := affine_basis_to_matrix_mul_affine_basis_to_matrix h_ind h_tot hq_ind hq_tot,
+   inv_val := affine_basis_to_matrix_mul_affine_basis_to_matrix hq_ind hq_tot h_ind h_tot, }, rfl⟩
+
+end ring
+
+section comm_ring
+
+variables [comm_ring k] [module k V] [decidable_eq ι] [fintype ι]
+variables {p : ι → P} (hp_ind : affine_independent k p) (hp_tot : affine_span k (range p) = ⊤)
+variables {q : ι → P} (hq_ind : affine_independent k q) (hq_tot : affine_span k (range q) = ⊤)
+
+local notation `M` := affine_basis_to_matrix hp_ind hp_tot
+local notation `coords` := barycentric_coords
+
+open_locale matrix
+
+/-- A change of basis formula for barycentric coordinates.
+
+See also `affine_basis_to_matrix_vec_mul_coords`. -/
+lemma affine_basis_to_matrix_inv_mul_affine_basis_to_matrix (x : P) :
+  (affine_basis_to_matrix hp_ind hp_tot q)⁻¹.vec_mul (coords hp_ind hp_tot x) =
+  coords hq_ind hq_tot x :=
+begin
+  have hu := is_unit_affine_basis_to_matrix hp_ind hp_tot hq_ind hq_tot,
+  rw matrix.is_unit_iff_is_unit_det at hu,
+  simp [← affine_basis_to_matrix_vec_mul_coords hp_ind hp_tot hq_ind hq_tot, hu],
+end
+
+/-- If we fix a background affine basis `p`, then for any other basis `q`, we can characterise
+the barycentric coordinates provided by `q` in terms of determinants relative to `p`. -/
+lemma det_barycentric_coords_eq_camer_coords (x : P) :
+  (M q).det • coords hq_ind hq_tot x = (M q)ᵀ.cramer (coords hp_ind hp_tot x) :=
+begin
+  have hu := is_unit_affine_basis_to_matrix hp_ind hp_tot hq_ind hq_tot,
+  rw matrix.is_unit_iff_is_unit_det at hu,
+  rw [← affine_basis_to_matrix_inv_mul_affine_basis_to_matrix hp_ind hp_tot hq_ind hq_tot x,
+    matrix.det_smul_inv_vec_mul_eq_cramer_transpose _ _ hu],
+end
+
+end comm_ring

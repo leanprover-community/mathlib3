@@ -372,4 +372,10 @@ begin
       smul_smul, h.mul_coe_inv, one_smul]
 end
 
+@[simp] lemma det_smul_inv_vec_mul_eq_cramer_transpose
+  (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
+  A.det • A⁻¹.vec_mul b = cramer Aᵀ b :=
+by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
+    Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
+
 end matrix

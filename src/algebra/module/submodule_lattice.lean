@@ -53,8 +53,7 @@ instance unique_bot : unique (⊥ : submodule R M) :=
 
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
-  bot_le := λ p x, by simp {contextual := tt},
-  ..set_like.partial_order }
+  bot_le := λ p x, by simp {contextual := tt} }
 
 protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
@@ -109,8 +108,7 @@ end
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
-  le_top := λ p x _, trivial,
-  ..set_like.partial_order }
+  le_top := λ p x _, trivial }
 
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
@@ -160,7 +158,8 @@ instance : complete_lattice (submodule R M) :=
   le_Inf       := λ s a, le_Inf',
   Inf_le       := λ s a, Inf_le',
   ..submodule.order_top,
-  ..submodule.order_bot }
+  ..submodule.order_bot,
+  ..set_like.partial_order }
 
 @[simp] theorem inf_coe : ↑(p ⊓ q) = (p ∩ q : set M) := rfl
 

@@ -260,7 +260,7 @@ begin
   rw linear_map.ker_comp,
   apply fg_of_fg_map_of_fg_inf_ker f,
   { rwa [submodule.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
-  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
+  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono bot_le)] }
 end
 
 lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]

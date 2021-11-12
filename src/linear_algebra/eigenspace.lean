@@ -197,6 +197,111 @@ noncomputable instance [is_alg_closed K] [finite_dimensional K V] [nontrivial V]
   inhabited f.eigenvalues :=
 ⟨⟨f.exists_eigenvalue.some, f.exists_eigenvalue.some_spec⟩⟩
 
+/-- The eigenspaces of a linear operator form an independent family of subspaces of `V`.  That is,
+any eigenspace has trivial intersection with the span of all the other eigenspaces. -/
+lemma eigenspaces_independent (f : End K V) : complete_lattice.independent f.eigenspace :=
+begin
+  classical,
+  -- Define an operation from `Π₀ μ : K, f.eigenspace μ`, the vector space of of finitely-supported
+  -- choices of an eigenvector from each eigenspace, to `V`, by sending a collection to its sum.
+  let S : @linear_map K K _ _ (ring_hom.id K) (Π₀ μ : K, f.eigenspace μ) V
+    (@dfinsupp.add_comm_monoid K (λ μ, f.eigenspace μ) _) _
+    (@dfinsupp.module K _ (λ μ, f.eigenspace μ) _ _ _) _ :=
+    @dfinsupp.lsum K K ℕ _ V _ _ _ _ _ _ _ _ _
+    (λ μ, (f.eigenspace μ).subtype),
+  -- We need to show that if a finitely-supported collection `l` of representatives of the
+  -- eigenspaces has sum `0`, then it itself is zero.
+  suffices : ∀ l : Π₀ μ, f.eigenspace μ, S l = 0 → l = 0,
+  { rw complete_lattice.independent_iff_dfinsupp_lsum_injective,
+    change function.injective S,
+    rw ← @linear_map.ker_eq_bot K K (Π₀ μ, (f.eigenspace μ)) V _ _
+      (@dfinsupp.add_comm_group K (λ μ, f.eigenspace μ) _),
+    rw eq_bot_iff,
+    exact this },
+  intros l hl,
+  -- We apply induction on the finite set of eigenvalues from which `l` selects a nonzero
+  -- eigenvector, i.e. on the support of `l`.
+  induction h_l_support : l.support using finset.induction with μ₀ l_support' hμ₀ ih generalizing l,
+  -- If the support is empty, all coefficients are zero and we are done.
+  { exact dfinsupp.support_eq_empty.1 h_l_support },
+  -- Now assume that the support of `l` contains at least one eigenvalue `μ₀`. We define a new
+  -- collection of representatives `l'` to apply the induction hypothesis on later. The collection
+  -- of representatives `l'` is derived from `l` by multiplying the coefficient of the eigenvector
+  -- with eigenvalue `μ` by `μ - μ₀`.
+  { let l' := dfinsupp.map_range.linear_map
+      (λ μ, (μ - μ₀) • @linear_map.id K (f.eigenspace μ) _ _ _) l,
+    -- The support of `l'` is the support of `l` without `μ₀`.
+    have h_l_support' : l'.support = l_support',
+    { have : l_support' = finset.erase l.support μ₀,
+      { rw [h_l_support, finset.erase_insert hμ₀] },
+      rw this,
+      ext a,
+      have : ¬(a = μ₀ ∨ l a = 0) ↔ ¬a = μ₀ ∧ ¬l a = 0 := by tauto,
+      simp only [l', dfinsupp.map_range.linear_map_apply, dfinsupp.map_range_apply,
+        dfinsupp.mem_support_iff, finset.mem_erase, id.def, linear_map.id_coe,
+        linear_map.smul_apply, ne.def, smul_eq_zero, sub_eq_zero, this] },
+    -- The entries of `l'` add up to `0`.
+    have total_l' : S l' = 0,
+    { let g := f - algebra_map K (End K V) μ₀,
+      let a : Π₀ μ : K, V := dfinsupp.map_range.linear_map (λ μ, (f.eigenspace μ).subtype) l,
+      calc S l'
+          = dfinsupp.lsum ℕ (λ μ, (f.eigenspace μ).subtype.comp ((μ - μ₀) • linear_map.id)) l : _
+      ... = dfinsupp.lsum ℕ (λ μ, g.comp (f.eigenspace μ).subtype) l : _
+      ... = dfinsupp.lsum ℕ (λ μ, g) a : _
+      ... = g (dfinsupp.lsum ℕ (λ μ, (linear_map.id : V →ₗ[K] V)) a) : _
+      ... = g (S l) : _
+      ... = 0 : by rw [hl, g.map_zero],
+      { rw dfinsupp.sum_map_range_index.linear_map },
+      { congr,
+        ext μ v,
+        simp only [g, eq_self_iff_true, function.comp_app, id.def, linear_map.coe_comp,
+          linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply,
+          module.algebra_map_End_apply, sub_left_inj, sub_smul, submodule.coe_smul_of_tower,
+          submodule.coe_sub, submodule.subtype_apply, mem_eigenspace_iff.1 v.prop], },
+      { rw dfinsupp.sum_map_range_index.linear_map },
+      { simp only [dfinsupp.sum_add_hom_apply, linear_map.id_coe, linear_map.map_dfinsupp_sum,
+          id.def, linear_map.to_add_monoid_hom_coe, dfinsupp.lsum_apply_apply], },
+      { congr,
+        simp only [S, a, dfinsupp.sum_map_range_index.linear_map, linear_map.id_comp] } },
+    -- Therefore, by the induction hypothesis, all entries of `l'` are zero.
+    have l'_eq_0 := ih l' total_l' h_l_support',
+    -- By the definition of `l'`, this means that `(μ - μ₀) • l μ = 0` for all `μ`.
+    have h_smul_eq_0 : ∀ μ, (μ - μ₀) • l μ = 0,
+    { intro μ,
+      calc (μ - μ₀) • l μ = l' μ : by simp only [l', linear_map.id_coe, id.def,
+        linear_map.smul_apply, dfinsupp.map_range_apply, dfinsupp.map_range.linear_map_apply]
+      ... = 0 : by { rw [l'_eq_0], refl } },
+    -- Thus, the eigenspace-representatives in `l` for all `μ ≠ μ₀` are `0`.
+    have h_lμ_eq_0 : ∀ μ : K, μ ≠ μ₀ → l μ = 0,
+    { intros μ hμ,
+      apply or_iff_not_imp_left.1 (smul_eq_zero.1 (h_smul_eq_0 μ)),
+      rwa [sub_eq_zero] },
+    -- So if we sum over all these representatives, we obtain `0`.
+    have h_sum_l_support'_eq_0 : finset.sum l_support' (λ μ, (l μ : V)) = 0,
+    { rw ←finset.sum_const_zero,
+      apply finset.sum_congr rfl,
+      intros μ hμ,
+      norm_cast,
+      rw h_lμ_eq_0,
+      intro h,
+      rw h at hμ,
+      contradiction },
+    -- The only potentially nonzero eigenspace-representative in `l` is the one corresponding to
+    -- `μ₀`. But since the overall sum is `0` by assumption, this representative must also be `0`.
+    have : l μ₀ = 0,
+    { simp only [S, dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply,
+        linear_map.to_add_monoid_hom_coe, dfinsupp.sum, h_l_support, submodule.subtype_apply,
+        submodule.coe_eq_zero, finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
+      exact_mod_cast hl },
+    -- Thus, all coefficients in `l` are `0`.
+    show l = 0,
+    { ext μ,
+      by_cases h_cases : μ = μ₀,
+      { rw h_cases,
+        exact_mod_cast this },
+      exact congr_arg (coe : _ → V) (h_lμ_eq_0 μ h_cases) }}
+end
+
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
     independent. (Lemma 5.10 of [axler2015])
 
@@ -205,95 +310,9 @@ noncomputable instance [is_alg_closed K] [finite_dimensional K V] [nontrivial V]
 lemma eigenvectors_linear_independent (f : End K V) (μs : set K) (xs : μs → V)
   (h_eigenvec : ∀ μ : μs, f.has_eigenvector μ (xs μ)) :
   linear_independent K xs :=
-begin
-  classical,
-  -- We need to show that if a linear combination `l` of the eigenvectors `xs` is `0`, then all
-  -- its coefficients are zero.
-  suffices : ∀ l, finsupp.total μs V K xs l = 0 → l = 0,
-  { rw linear_independent_iff,
-    apply this },
-  intros l hl,
-  -- We apply induction on the finite set of eigenvalues whose eigenvectors have nonzero
-  -- coefficients, i.e. on the support of `l`.
-  induction h_l_support : l.support using finset.induction with μ₀ l_support' hμ₀ ih generalizing l,
-  -- If the support is empty, all coefficients are zero and we are done.
-  { exact finsupp.support_eq_empty.1 h_l_support },
-  -- Now assume that the support of `l` contains at least one eigenvalue `μ₀`. We define a new
-  -- linear combination `l'` to apply the induction hypothesis on later. The linear combination `l'`
-  -- is derived from `l` by multiplying the coefficient of the eigenvector with eigenvalue `μ`
-  -- by `μ - μ₀`.
-  -- To get started, we define `l'` as a function `l'_f : μs → K` with potentially infinite support.
-  { let l'_f : μs → K := (λ μ : μs, (↑μ - ↑μ₀) * l μ),
-    -- The support of `l'_f` is the support of `l` without `μ₀`.
-    have h_l_support' : ∀ (μ : μs), μ ∈ l_support' ↔ l'_f μ ≠ 0 ,
-    { intro μ,
-      suffices : μ ∈ l_support' → μ ≠ μ₀,
-      { simp [l'_f, ← finsupp.not_mem_support_iff, h_l_support, sub_eq_zero, ←subtype.ext_iff],
-        tauto },
-      rintro hμ rfl,
-      contradiction },
-    -- Now we can define `l'_f` as an actual linear combination `l'` because we know that the
-    -- support is finite.
-    let l' : μs →₀ K :=
-      { to_fun := l'_f, support := l_support', mem_support_to_fun := h_l_support' },
-    -- The linear combination `l'` over `xs` adds up to `0`.
-    have total_l' : finsupp.total μs V K xs l' = 0,
-    { let g := f - algebra_map K (End K V) μ₀,
-      have h_gμ₀: g (l μ₀ • xs μ₀) = 0,
-        by rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _).1,
-          algebra_map_End_apply, sub_self, smul_zero],
-      have h_useless_filter : finset.filter (λ (a : μs), l'_f a ≠ 0) l_support' = l_support',
-      { rw finset.filter_congr _,
-        { apply finset.filter_true },
-        { apply_instance },
-        exact λ μ hμ, (iff_true _).mpr ((h_l_support' μ).1 hμ) },
-      have bodies_eq : ∀ (μ : μs), l'_f μ • xs μ = g (l μ • xs μ),
-      { intro μ,
-        dsimp only [g, l'_f],
-        rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _).1,
-          algebra_map_End_apply, ←sub_smul, smul_smul, mul_comm] },
-      rw [←linear_map.map_zero g, ←hl, finsupp.total_apply, finsupp.total_apply,
-          finsupp.sum, finsupp.sum, linear_map.map_sum, h_l_support,
-          finset.sum_insert hμ₀, h_gμ₀, zero_add],
-      refine finset.sum_congr rfl (λ μ _, _),
-      apply bodies_eq },
-    -- Therefore, by the induction hypothesis, all coefficients in `l'` are zero.
-    have l'_eq_0 : l' = 0 := ih l' total_l' rfl,
-    -- By the defintion of `l'`, this means that `(μ - μ₀) * l μ = 0` for all `μ`.
-    have h_mul_eq_0 : ∀ μ : μs, (↑μ - ↑μ₀) * l μ = 0,
-    { intro μ,
-      calc (↑μ - ↑μ₀) * l μ = l' μ : rfl
-      ... = 0 : by { rw [l'_eq_0], refl } },
-    -- Thus, the coefficients in `l` for all `μ ≠ μ₀` are `0`.
-    have h_lμ_eq_0 : ∀ μ : μs, μ ≠ μ₀ → l μ = 0,
-    { intros μ hμ,
-      apply or_iff_not_imp_left.1 (mul_eq_zero.1 (h_mul_eq_0 μ)),
-      rwa [sub_eq_zero, ←subtype.ext_iff] },
-    -- So if we sum over all these coefficients, we obtain `0`.
-    have h_sum_l_support'_eq_0 : finset.sum l_support' (λ (μ : ↥μs), l μ • xs μ) = 0,
-    { rw ←finset.sum_const_zero,
-      apply finset.sum_congr rfl,
-      intros μ hμ,
-      rw h_lμ_eq_0,
-      apply zero_smul,
-      intro h,
-      rw h at hμ,
-      contradiction },
-    -- The only potentially nonzero coefficient in `l` is the one corresponding to `μ₀`. But since
-    -- the overall sum is `0` by assumption, this coefficient must also be `0`.
-    have : l μ₀ = 0,
-    { rw [finsupp.total_apply, finsupp.sum, h_l_support,
-          finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
-      by_contra h,
-      exact (h_eigenvec μ₀).2 ((smul_eq_zero.1 hl).resolve_left h) },
-    -- Thus, all coefficients in `l` are `0`.
-    show l = 0,
-    { ext μ,
-      by_cases h_cases : μ = μ₀,
-      { rw h_cases,
-        assumption },
-      exact h_lμ_eq_0 μ h_cases } }
-end
+complete_lattice.independent.linear_independent _
+  (f.eigenspaces_independent.comp (coe : μs → K) subtype.coe_injective)
+  (λ μ, (h_eigenvec μ).1) (λ μ, (h_eigenvec μ).2)
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
 kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for

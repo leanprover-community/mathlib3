@@ -48,9 +48,7 @@ def is_matching : Prop := ∀ ⦃v⦄, v ∈ M.verts → ∃! w, M.adj v w
 -/
 def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
 
-namespace matching
-
-lemma support_eq_verts (h : M.is_matching) : M.support = M.verts :=
+lemma support_eq_verts {M : subgraph G} (h : M.is_matching) : M.support = M.verts :=
 begin
   rw set.subset.antisymm_iff,
   split,
@@ -60,7 +58,7 @@ begin
     exact ⟨_, hvw⟩, },
 end
 
-lemma is_perfect_iff : M.is_perfect_matching ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=
+lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ (v : V), ∃! (w : V), M.adj v w :=
 begin
   refine ⟨_, λ hm, ⟨λ v hv, hm v, λ v, _⟩⟩,
   { rintro ⟨hm, hs⟩ v,
@@ -68,8 +66,6 @@ begin
   { obtain ⟨w, hw, -⟩ := hm v,
     exact M.edge_vert hw }
 end
-
-end matching
 
 end subgraph
 

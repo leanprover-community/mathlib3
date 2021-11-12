@@ -204,7 +204,7 @@ end
 lemma filter.tendsto.cpow {l : filter α} {f g : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 a))
   (hg : tendsto g l (𝓝 b)) (ha : 0 < a.re ∨ a.im ≠ 0) :
   tendsto (λ x, f x ^ g x) l (𝓝 (a ^ b)) :=
-(continuous_at_cpow ha).tendsto.comp (hf.prod_mk_nhds hg)
+(@continuous_at_cpow (a,b) ha).tendsto.comp (hf.prod_mk_nhds hg)
 
 lemma filter.tendsto.const_cpow {l : filter α} {f : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 b))
   (h : a ≠ 0 ∨ b ≠ 0) :

@@ -14,6 +14,29 @@ import analysis.normed_space.operator_norm
 This file develops the theory of continuous affine maps between affine spaces modelled on normed
 spaces.
 
+In the particular case that the affine spaces are just normed vector spaces `V`, `W`, we define a
+norm on the space of continuous affine maps by defining the norm of `f : V →A[𝕜] W` to be
+`∥f∥ = max ∥f 0∥ ∥f.cont_linear∥`. This is chosen so that we have a linear isometry:
+`(V →A[𝕜] W) ≃ₗᵢ[𝕜] W × (V →L[𝕜] W)`.
+
+The abstract picture is that for an affine space `P` modelled on a vector space `V`, together with
+a vector space `W`, there is an exact sequence of `𝕜`-modules: `0 → C → A → L → 0` where `C`, `A`
+are the spaces of constant and affine maps `P → W` and `L` is the space of linear maps `V → W`.
+
+Any choice of a base point in `P` corresponds to a splitting of this sequence so in particular if we
+take `P = V`, using `0 : V` as the base point provides a splitting, and we prove this is an
+isometric decomposition.
+
+On the other hand, choosing a base point breaks the affine invariance so the norm fails to be
+submultiplicative: for a composition of maps, we have only `∥f.comp g∥ ≤ ∥f∥ * ∥g∥ + ∥f 0∥`.
+
+## Main definitions:
+
+ * `continuous_affine_map.cont_linear`
+ * `continuous_affine_map.has_norm`
+ * `continuous_affine_map.norm_comp_le`
+ * `continuous_affine_map.to_const_prod_continuous_linear_map`
+
 -/
 
 namespace continuous_affine_map
@@ -120,10 +143,10 @@ section normed_space_structure
 
 variables (f : V →A[𝕜] W)
 
-noncomputable instance : has_norm (V →A[𝕜] W) := ⟨λ f, max ∥f 0∥ ∥f.cont_linear∥⟩
-
 /-- Note that unlike the operator norm for linear maps, this norm is _not_ submultiplicative:
 we do _not_ necessarily have `∥f.comp g∥ ≤ ∥f∥ * ∥g∥`. See `norm_comp_le` for what we can say. -/
+noncomputable instance has_norm : has_norm (V →A[𝕜] W) := ⟨λ f, max ∥f 0∥ ∥f.cont_linear∥⟩
+
 lemma norm_def : ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) := rfl
 
 lemma norm_cont_linear_le : ∥f.cont_linear∥ ≤ ∥f∥ := le_max_right _ _

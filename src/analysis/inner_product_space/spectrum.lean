@@ -41,7 +41,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
 local attribute [instance] fact_one_le_two_real
 
-open_locale classical big_operators complex_conjugate
+open_locale big_operators complex_conjugate
 open module.End
 
 namespace is_self_adjoint

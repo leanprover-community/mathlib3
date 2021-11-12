@@ -317,6 +317,7 @@ instance : canonically_ordered_add_monoid enat :=
             coe_le_coe.2 (by rw [← nat.cast_add, coe_inj] at hc;
               rw hc; exact nat.le_add_right _ _)) hc)⟩)),
   ..enat.semilattice_sup,
+  ..enat.order_bot,
   ..enat.ordered_add_comm_monoid }
 
 protected lemma add_lt_add_right {x y z : enat} (h : x < y) (hz : z ≠ ⊤) : x + z < y + z :=

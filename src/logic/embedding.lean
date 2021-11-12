@@ -148,9 +148,17 @@ theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidabl
   [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
 by simp [set_value]
 
-/-- Embedding into `option` -/
+/-- Embedding into `option α`. -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
+
+/-- Embedding into `with_bot α`. -/
+@[simps]
+def coe_with_bot {α} : α ↪ with_bot α := { to_fun := coe, ..embedding.some}
+
+/-- Embedding into `with_top α`. -/
+@[simps]
+def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
 
 /-- Given an embedding `f : α ↪ β` and a point outside of `set.range f`, construct an embedding
 `option α ↪ β`. -/

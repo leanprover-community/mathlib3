@@ -8,15 +8,20 @@ import combinatorics.simple_graph.subgraph
 /-!
 # Matchings
 
-The idea of a matching refers to the pairing of adjacent vertices. In this approach we're
-representing a matching as a subgraph that contains all vertices of a graph.
+A *matching* for a simple graph is a set of disjoint pairs of adjacent vertices, and the set of all the vertices
+in a matching is called its *support* (and sometimes the vertices in the support are said to be *saturated*
+by the matching).  A *perfect matching* is a matching whose support contains every vertex of the graph.
+
+In this module, we represent a matching as a subgraph whose vertices are each incident to at most one
+edge, and the edges of the subgraph represent the paired vertices.
 
 ## Main definitions
 
-* A *matching* `M` on a simple graph `G` is a subgraph of `G`, such that every vertex of `G` is a
-  vertex of `M` and no two edges of `M` share an endpoint.
+* `simple_graph.subgraph.is_matching` defines when a subgraph `M` of a simple graph is a matching,
+  denoted `M.is_matching`.
 
-* A *perfect matching* on a simple graph is a matching in which every vertex forms an edge.
+* `simple_graph.subgraph.is_perfect_matching` defines when a subgraph `M` of a simple graph is a perfect
+  matching, denoted `M.is_perfect_matching`.
 
 ## Todo
 
@@ -48,7 +53,7 @@ def is_matching : Prop := ∀ ⦃v⦄, v ∈ M.verts → ∃! w, M.adj v w
 -/
 def is_perfect_matching : Prop := M.is_matching ∧ M.is_spanning
 
-lemma support_eq_verts {M : subgraph G} (h : M.is_matching) : M.support = M.verts :=
+lemma is_matching.support_eq_verts {M : subgraph G} (h : M.is_matching) : M.support = M.verts :=
 begin
   rw set.subset.antisymm_iff,
   split,

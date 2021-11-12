@@ -34,7 +34,7 @@ self-adjoint operator, spectral theorem, diagonalization theorem
 
 -/
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] [dec_𝕜 : decidable_eq 𝕜]
 variables {E : Type*} [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
@@ -118,6 +118,8 @@ end
 lemma orthogonal_supr_eigenspaces_eq_bot' : (⨆ μ : eigenvalues T, eigenspace T μ)ᗮ = ⊥ :=
 show (⨆ μ : {μ // (eigenspace T μ) ≠ ⊥}, eigenspace T μ)ᗮ = ⊥,
 by rw [supr_ne_bot_subtype, hT.orthogonal_supr_eigenspaces_eq_bot]
+
+include dec_𝕜
 
 /-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
 an internal direct sum decomposition of `E`. -/

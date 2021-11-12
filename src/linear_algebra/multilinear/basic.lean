@@ -201,6 +201,15 @@ def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, 
   map_smul' := λ m i r x, by {
     rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
 
+variables {M₂}
+
+/-- The constant map is multilinear when `ι` is empty. -/
+@[simps {fully_applied := ff}]
+def const_of_is_empty [is_empty ι] (m : M₂) : multilinear_map R M₁ M₂ :=
+{ to_fun := function.const _ m,
+  map_add' := λ m, is_empty_elim,
+  map_smul' := λ m, is_empty_elim }
+
 end
 
 /-- Given a multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset `s` of `k`

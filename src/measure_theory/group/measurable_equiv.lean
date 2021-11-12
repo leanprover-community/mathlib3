@@ -22,7 +22,10 @@ In this file we define the following measurable equivalences:
   multiplication by `g : G` is a measurable automorphism of `G`;
 * `measurable_equiv.add_right`: additive version of `measurable_equiv.mul_right`;
 * `measurable_equiv.mul_left₀`, `measurable_equiv.mul_right₀`: versions of
-  `measurable_equiv.mul_left` and `measurable_equiv.mul_right` for groups with zero.
+  `measurable_equiv.mul_left` and `measurable_equiv.mul_right` for groups with zero;
+* `measurable_equiv.inv`, `measurable_equiv.inv₀`: `has_inv.inv` as a measurable automorphism
+  of a group (or a group with zero);
+* `measurable_equiv.neg`: negation as a measurable automorphism of an additive group.
 
 We also deduce that the corresponding maps are measurable embeddings.
 
@@ -40,22 +43,31 @@ variables {G G₀ α : Type*} [measurable_space G] [measurable_space G₀] [meas
 /-- If group `G` acts on `α` by measurable maps, then each element `c : G` defines a measurable
 automorphism of `α`. -/
 @[to_additive "If additive group `G` acts on `α` by measurable maps, then each element `c : G`
-defines a measurable automorphism of `α`.", simps]
+defines a measurable automorphism of `α`.", simps to_equiv apply { fully_applied := ff }]
 def smul (c : G) : α ≃ᵐ α :=
 { to_equiv := mul_action.to_perm c,
   measurable_to_fun := measurable_const_smul c,
   measurable_inv_fun := measurable_const_smul c⁻¹ }
 
 @[to_additive]
-lemma measurable_embedding_const_smul (c : G) : measurable_embedding ((•) c : α → α) :=
+lemma _root_.measurable_embedding_const_smul (c : G) : measurable_embedding ((•) c : α → α) :=
 (smul c).measurable_embedding
+
+@[simp, to_additive]
+lemma symm_smul (c : G) : (smul c : α ≃ᵐ α).symm = smul c⁻¹ := ext rfl
 
 /-- If group with zero `G₀` acts on `α` by measurable maps, then each nonzero element `c : G₀`
 defines a measurable automorphism of `α` -/
 def smul₀ (c : G₀) (hc : c ≠ 0) : α ≃ᵐ α :=
 measurable_equiv.smul (units.mk0 c hc)
 
-lemma measurable_embedding_const_smul₀ {c : G₀} (hc : c ≠ 0) :
+@[simp] lemma coe_smul₀ {c : G₀} (hc : c ≠ 0) : ⇑(smul₀ c hc : α ≃ᵐ α) = (•) c := rfl
+
+@[simp] lemma symm_smul₀ {c : G₀} (hc : c ≠ 0) :
+  (smul₀ c hc : α ≃ᵐ α).symm = smul₀ c⁻¹ (inv_ne_zero hc) :=
+ext rfl
+
+lemma _root_.measurable_embedding_const_smul₀ {c : G₀} (hc : c ≠ 0) :
   measurable_embedding ((•) c : α → α) :=
 (smul₀ c hc).measurable_embedding
 
@@ -67,8 +79,15 @@ measurable automorphism of `G`. -/
 on the left is a measurable automorphism of `G`."]
 def mul_left (g : G) : G ≃ᵐ G := smul g
 
+@[simp, to_additive] lemma coe_mul_left (g : G) : ⇑(mul_left g) = (*) g := rfl
+
+@[simp, to_additive] lemma symm_mul_left (g : G) : (mul_left g).symm = mul_left g⁻¹ := ext rfl
+
+@[simp, to_additive] lemma to_equiv_mul_left (g : G) :
+  (mul_left g).to_equiv = equiv.mul_left g := rfl
+
 @[to_additive]
-lemma measurable_embedding_mul_left (g : G) : measurable_embedding ((*) g) :=
+lemma _root_.measurable_embedding_mul_left (g : G) : measurable_embedding ((*) g) :=
 (mul_left g).measurable_embedding
 
 /-- If `G` is a group with measurable multiplication, then right multiplication by `g : G` is a
@@ -81,15 +100,30 @@ def mul_right (g : G) : G ≃ᵐ G :=
   measurable_inv_fun := measurable_mul_const g⁻¹ }
 
 @[to_additive]
-lemma measurable_embedding_mul_right (g : G) : measurable_embedding (λ x, x * g) :=
+lemma _root_.measurable_embedding_mul_right (g : G) : measurable_embedding (λ x, x * g) :=
 (mul_right g).measurable_embedding
+
+@[simp, to_additive] lemma coe_mul_right (g : G) : ⇑(mul_right g) = (λ x, x * g) := rfl
+
+@[simp, to_additive] lemma symm_mul_right (g : G) : (mul_right g).symm = mul_right g⁻¹ := ext rfl
+
+@[simp, to_additive] lemma to_equiv_mul_right (g : G) :
+  (mul_right g).to_equiv = equiv.mul_right g := rfl
 
 /-- If `G₀` is a group with zero with measurable multiplication, then left multiplication by a
 nonzero element `g : G₀` is a measurable automorphism of `G₀`. -/
 def mul_left₀ (g : G₀) (hg : g ≠ 0) : G₀ ≃ᵐ G₀ := smul₀ g hg
 
-lemma measurable_embedding_mul_left₀ {g : G₀} (hg : g ≠ 0) : measurable_embedding ((*) g) :=
+lemma _root_.measurable_embedding_mul_left₀ {g : G₀} (hg : g ≠ 0) : measurable_embedding ((*) g) :=
 (mul_left₀ g hg).measurable_embedding
+
+@[simp] lemma coe_mul_left₀ {g : G₀} (hg : g ≠ 0) : ⇑(mul_left₀ g hg) = (*) g := rfl
+
+@[simp] lemma symm_mul_left₀ {g : G₀} (hg : g ≠ 0) :
+  (mul_left₀ g hg).symm = mul_left₀ g⁻¹ (inv_ne_zero hg)  := ext rfl
+
+@[simp] lemma to_equiv_mul_left₀ {g : G₀} (hg : g ≠ 0) :
+  (mul_left₀ g hg).to_equiv = equiv.mul_left₀ g hg := rfl
 
 /-- If `G₀` is a group with zero with measurable multiplication, then right multiplication by a
 nonzero element `g : G₀` is a measurable automorphism of `G₀`. -/
@@ -98,7 +132,38 @@ def mul_right₀ (g : G₀) (hg : g ≠ 0) : G₀ ≃ᵐ G₀ :=
   measurable_to_fun := measurable_mul_const g,
   measurable_inv_fun := measurable_mul_const g⁻¹ }
 
-lemma measurable_embedding_mul_right₀ {g : G₀} (hg : g ≠ 0) : measurable_embedding (λ x, x * g) :=
+lemma _root_.measurable_embedding_mul_right₀ {g : G₀} (hg : g ≠ 0) :
+  measurable_embedding (λ x, x * g) :=
 (mul_right₀ g hg).measurable_embedding
+
+@[simp] lemma coe_mul_right₀ {g : G₀} (hg : g ≠ 0) : ⇑(mul_right₀ g hg) = λ x, x * g := rfl
+
+@[simp] lemma symm_mul_right₀ {g : G₀} (hg : g ≠ 0) :
+  (mul_right₀ g hg).symm = mul_right₀ g⁻¹ (inv_ne_zero hg)  := ext rfl
+
+@[simp] lemma to_equiv_mul_right₀ {g : G₀} (hg : g ≠ 0) :
+  (mul_right₀ g hg).to_equiv = equiv.mul_right₀ g hg := rfl
+
+variables (G G₀)
+
+/-- Inversion as a measurable automorphism of a group. -/
+@[to_additive "Negation as a measurable automorphism of an additive group.",
+  simps to_equiv apply { fully_applied := ff }]
+def inv [has_measurable_inv G] : G ≃ᵐ G :=
+{ to_equiv := equiv.inv G,
+  measurable_to_fun := measurable_inv,
+  measurable_inv_fun := measurable_inv }
+
+/-- Inversion as a measurable automorphism of a group with zero. -/
+@[simps to_equiv apply { fully_applied := ff }]
+def inv₀ [has_measurable_inv G₀] : G₀ ≃ᵐ G₀ :=
+{ to_equiv := equiv.inv₀ G₀,
+  measurable_to_fun := measurable_inv,
+  measurable_inv_fun := measurable_inv }
+
+variables {G G₀}
+
+@[simp] lemma symm_inv [has_measurable_inv G] : (inv G).symm = inv G := rfl
+@[simp] lemma symm_inv₀ [has_measurable_inv G₀] : (inv₀ G₀).symm = inv₀ G₀ := rfl
 
 end measurable_equiv

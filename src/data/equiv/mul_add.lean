@@ -512,15 +512,19 @@ variable (G)
 @[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
 protected def inv : perm G :=
-{ to_fun    := λa, a⁻¹,
-  inv_fun   := λa, a⁻¹,
-  left_inv  := assume a, inv_inv a,
-  right_inv := assume a, inv_inv a }
+function.involutive.to_equiv has_inv.inv inv_inv
+
+/-- Inversion on a `group_with_zero` is a permutation of the underlying type. -/
+@[simps apply {fully_applied := ff}]
+protected def inv₀ (G : Type*) [group_with_zero G] : perm G :=
+function.involutive.to_equiv has_inv.inv inv_inv₀
 
 variable {G}
 
 @[simp, to_additive]
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
+
+@[simp] lemma inv_symm₀ {G : Type*} [group_with_zero G] : (equiv.inv₀ G).symm = equiv.inv₀ G := rfl
 
 /-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
 @[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]

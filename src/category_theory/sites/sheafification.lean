@@ -295,16 +295,26 @@ begin
   let IW : (W IS).arrow := ⟨_, e1, he1⟩,
   apply_fun (λ e, e IW) at hh,
   convert hh,
-  { dsimp,
-    let Rx : Sx.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
+  { let Rx : Sx.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
     have := x.condition Rx,
-    dsimp [Rx] at this,
     simpa using this },
-  { dsimp,
-    let Ry : Sy.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
+  { let Ry : Sy.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
     have := y.condition Ry,
-    dsimp [Ry] at this,
     simpa using this },
+end
+
+lemma inj_of_sep (P : Cᵒᵖ ⥤ D) (hsep : ∀ (X : C) (S : J.cover X) (x y : P.obj (op X)),
+  (∀ I : S.arrow, P.map I.f.op x = P.map I.f.op y) → x = y) (X : C) :
+  function.injective ((J.to_plus P).app (op X)) :=
+begin
+  intros x y h,
+  simp only [to_plus_eq_mk] at h,
+  rw eq_mk_iff_exists at h,
+  obtain ⟨W, h1, h2, hh⟩ := h,
+  apply hsep X W,
+  intros I,
+  apply_fun (λ e, e I) at hh,
+  exact hh
 end
 
 theorem exists_of_sep (P : Cᵒᵖ ⥤ D)
@@ -314,18 +324,7 @@ theorem exists_of_sep (P : Cᵒᵖ ⥤ D)
   (s : meq (J.plus_obj P) S) :
   ∃ t : (J.plus_obj P).obj (op X), meq.mk S t = s :=
 begin
-
-  -- First, we prove that the canonical map from the presheaf `P` to `P⁺` is injective.
-  -- This follows easily from the separatedness assummption.
-  have inj : ∀ (X : C), function.injective ((J.to_plus P).app (op X)),
-  { intros X x y h,
-    simp only [to_plus_eq_mk] at h,
-    rw eq_mk_iff_exists at h,
-    obtain ⟨W, h1, h2, hh⟩ := h,
-    apply hsep X W,
-    intros I,
-    apply_fun (λ e, e I) at hh,
-    exact hh },
+  have inj : ∀ (X : C), function.injective ((J.to_plus P).app (op X)) := inj_of_sep _ hsep,
 
   -- Choose representatives for the given local sections..
   choose T t ht using λ I, exists_rep (s I),
@@ -378,15 +377,14 @@ begin
   use (J.pullback II.f).obj (T I),
   let e0 : (J.pullback II.f).obj (T I) ⟶ (J.pullback II.f).obj ((J.pullback I.f).obj B) :=
     hom_of_le begin
-      rintros Y f hf,
-      fapply sieve.le_pullback_bind,
-      { exact I.hf },
+      intros Y f hf,
+      apply sieve.le_pullback_bind _ _ _ I.hf,
       { cases I,
         exact hf },
     end,
   use [e0, 𝟙 _],
   ext IV,
-  dsimp [meq.refine_apply, meq.pullback_apply, w],
+  dsimp only [meq.refine_apply, meq.pullback_apply, w],
   let IA : B.arrow := {Y := IV.Y, f := (IV.f ≫ II.f) ≫ I.f, hf := _},
   swap, {
     refine ⟨I.Y, _, _, I.hf, _, rfl⟩,
@@ -399,8 +397,7 @@ begin
   swap, { apply sieve.downward_closed, apply II.hf, },
   change t IB IC = t I ID,
   apply inj IV.Y,
-  erw [to_plus_apply (T I) (t I) ID, to_plus_apply (T IB) (t IB) IC, ← ht, ← ht],
-  dsimp only,
+  rw [to_plus_apply (T I) (t I) ID, to_plus_apply (T IB) (t IB) IC, ← ht, ← ht],
 
   -- Conclude by constructing the relation showing equality...
   let IR : S.relation :=

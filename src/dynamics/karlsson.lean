@@ -18,7 +18,6 @@ open filter normed_space metric
 
 notation `⟪`x`, `y`⟫` := @inner ℝ _ _ x y
 
-
 variables {α β : Type*} [metric_space α] [metric_space β]
 
 lemma exists_high_score (u : ℕ → ℝ) (hu : tendsto u at_top at_top) (N : ℕ) :
@@ -62,22 +61,25 @@ begin
   { simp [IH.comp h] }
 end
 
-variables {E : Type*} [inner_product_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*}
+  -- [normed_group E] [normed_space ℝ E]
+  [inner_product_space ℝ E]
+  [finite_dimensional ℝ E]
   {f : E → E} (h : semicontraction f)
 include h
 
 /-- A convenient notation for the distance between `0` and `f^n 0`. -/
-def u (n : ℕ) : ℝ := dist (0 : E) (f^[n] 0)
+def u (n : ℕ) : ℝ := dist (f^[n] 0) 0
 
 lemma u_subadditive : subadditive h.u :=
 begin
   assume m n,
-  calc h.u (m + n) = dist (0 : E) (f^[m + n] 0) : rfl
-  ... ≤ dist (0 : E) (f^[m] 0) + dist (f^[m] 0) (f^[m+n] 0) : dist_triangle _ _ _
-  ... = dist (0 : E) (f^[m] 0) + dist (f^[m] 0) (f^[m] (f^[n] 0)) :
-    by simp [function.iterate_add_apply]
-  ... ≤ dist (0 : E) (f^[m] 0) + dist (0 : E) (f^[n] 0) :
-    add_le_add le_rfl (h.iterate _ _ _)
+  calc h.u (m + n) = dist (f^[m + n] 0) 0 : rfl
+  ... ≤ dist (f^[m+n] 0) (f^[n] 0) + dist (f^[n] 0) 0 : dist_triangle _ _ _
+  ... = dist (f^[n] (f^[m] 0)) (f^[n] 0) + dist (f^[n] 0) 0 :
+    by rw [add_comm m n, function.iterate_add_apply]
+  ... ≤ dist (f^[m] 0) 0 + dist (f^[n] 0) 0 :
+    add_le_add (h.iterate _ _ _) le_rfl
   ... = h.u m + h.u n : rfl
 end
 
@@ -86,7 +88,7 @@ def l := h.u_subadditive.lim
 
 lemma tendsto_lim : tendsto (λ n, h.u n / n) at_top (𝓝 h.l) :=
 begin
-  have B : bdd_below (set.range (λ (n : ℕ), h.u n / ↑n)),
+  have B : bdd_below (set.range (λ (n : ℕ), h.u n / n)),
   { refine ⟨0, λ x, _⟩,
     simp,
     rintros n rfl,
@@ -136,25 +138,33 @@ begin
     by rw [← function.iterate_add_apply, one_mul, dist_eq_norm, dist_eq_norm, zero_sub,
            ← nat.add_sub_assoc A, nat.add_sub_cancel_left]
   ... ≤ dist 0 (f^[n-i] 0) - dist 0 (f^[n] 0) : sub_le_sub (h.iterate i _ _) le_rfl
-  ... = h.u (n-i) - h.u n : rfl
+  ... = h.u (n-i) - h.u n : by { simp only [dist_comm (0 : E)], refl, }
   ... ≤ - n * w + (n-i : ℕ) * w : by linarith [hn (n-i) (nat.sub_le n i)]
   ... = - i * w : by { rw [nat.cast_sub A], ring }
 end
 
+-- NB : pourquo a-t-on juste `∥v∥ ≤ 1` ici, et pas `∥v∥ = 1`?
 lemma exists_dual : ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ ∀ i, v (f^[i] 0) ≤ -i * h.l :=
 begin
+  -- on part d'une suite `w_n` qui tend vers `h.l` par valeurs inférieures
   obtain ⟨w, -, w_lt, w_lim⟩ : ∃ (w : ℕ → ℝ), strict_mono w ∧ (∀ (n : ℕ), w n < h.l)
     ∧ tendsto w at_top (𝓝 h.l) := exists_seq_strict_mono_tendsto _,
+  -- pour chaque `n`, on peut choisir un élément du dual tel que `y (f^[i] 0) ≤ - i w_n`
+  -- pour tout `i ≤ n`, d'après le lemme précédent
   have : ∀ n, ∃ (y : dual ℝ E), ∥y∥ ≤ 1 ∧ ∀ i ≤ n, y (f^[i] 0) ≤ - i * w n :=
     λ n, h.exists_dual_up_to_of_lt (w_lt n) n,
-  choose y hy using this,
+  choose y hy using this, -- oui, c'estl'axiome du choix !
+  -- on extrait une sous-suite `y_{φ n}`, qui converge vers une limite `v`.
   obtain ⟨v, v_mem, φ, φ_mono, φlim⟩ : ∃ v ∈ closed_ball (0 : dual ℝ E) 1, ∃ (φ : ℕ → ℕ),
     strict_mono φ ∧ tendsto (y ∘ φ) at_top (𝓝 v),
   { -- dual ℝ E est propre
     refine is_compact.tendsto_subseq (proper_space.is_compact_closed_ball _ _) _,
     assume n,
     simp [(hy n).1] },
+  -- on va voir que cette limite convient.
   refine ⟨v, by simpa using v_mem, λ i, _⟩,
+  -- on a fixé `i`, il faut voir que `v (f^[i] 0) ≤ -i h.l`. Pour cela, on passe à la limite
+  -- dans les inégalités sur les `y_n (f^[i] 0)`.
   have A : tendsto (λ n, ((y ∘ φ) n) (f^[i] 0)) at_top (𝓝 (v (f^[i] 0))) :=
     ((is_bounded_bilinear_map_apply.is_bounded_linear_map_left (f^[i] 0)).continuous.tendsto _)
       .comp φlim,
@@ -167,11 +177,14 @@ begin
   exact le_of_tendsto_of_tendsto A B C
 end
 
+-- on convertit l'existence d'une bonne forme linéaire par celle d'un bon vecteur, car
+-- on est sur un espace euclidien.
 lemma exists_asymp_vector :
   ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
 begin
   obtain ⟨v', v'_norm, hv'⟩ : ∃ (v' : dual ℝ E), ∥v'∥ ≤ 1 ∧ ∀ i, v' (f^[i] 0) ≤ -i * h.l :=
     h.exists_dual,
+  -- (marcherait sur un espace complet, pas besoin de dimension finie ici).
   let v := (inner_product_space.to_dual ℝ E).symm (-v'),
   refine ⟨v, by simpa using v'_norm, λ i, _⟩,
   simp [v],
@@ -222,7 +235,8 @@ begin
   exact tendsto_iff_norm_tendsto_zero.2 D,
 end
 
-
+-- discuter de espace vectoriel normé / espace euclidien
+-- et dimension finie
 
 
 
@@ -251,5 +265,3 @@ end
 
 
 end semicontraction
-
-#lint

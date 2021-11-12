@@ -153,6 +153,12 @@ instance gmonoid : graded_monoid.gmonoid (λ i, ⨂[R]^i M) :=
   gnpow_zero' := sorry,
   gnpow_succ' := sorry }
 
+@[simp] lemma ghas_one_def :
+  @graded_monoid.ghas_one.one ℕ (λ i, ⨂[R]^i M) _ _ = @one R M _ _ _ := rfl
+
+@[simp] lemma ghas_mul_def {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
+  @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _ a b = mul a b := rfl
+
 instance gsemiring : direct_sum.gsemiring (λ i, ⨂[R]^i M) :=
 { mul_zero := λ i j a, linear_map.map_zero _,
   zero_mul := λ i j b, linear_map.map_zero₂ _ _,
@@ -179,6 +185,9 @@ instance galgebra : direct_sum.galgebra R (λ i, ⨂[R]^i M) :=
     rw [←linear_equiv.eq_symm_apply, reindex_symm],
     exact (algebra_map_mul r x.snd).symm,
   end }
+
+@[simp] lemma galgebra_to_fun_def (r : R) :
+  @direct_sum.galgebra.to_fun ℕ R (λ i, ⨂[R]^i M) _ _ _ _ _ _ _ r = algebra_map r := rfl
 
 open_locale direct_sum
 

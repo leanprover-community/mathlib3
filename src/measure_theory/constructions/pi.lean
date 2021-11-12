@@ -612,7 +612,7 @@ begin
   haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
   exact measure_preserving_pi_fin_two _
 end
-  
+
 lemma measure_preserving_fin_two_arrow {α : Type u} {m : measurable_space α}
   (μ : measure α) [sigma_finite μ] :
   measure_preserving measurable_equiv.fin_two_arrow (measure.pi (λ _, μ)) (μ.prod μ) :=

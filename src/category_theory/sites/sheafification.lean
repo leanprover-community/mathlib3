@@ -230,8 +230,7 @@ begin
     convert hh,
     all_goals {
       dsimp [diagram],
-      simp only [← comp_apply, multiequalizer.lift_ι],
-      simp only [category.comp_id, meq.equiv_symm_eq_apply],
+      simp only [← comp_apply, multiequalizer.lift_ι, category.comp_id, meq.equiv_symm_eq_apply],
       cases I, refl } },
   { rintros ⟨S,h1,h2,e⟩,
     apply concrete.colimit_rep_eq_of_exists,
@@ -242,8 +241,7 @@ begin
     convert e,
     all_goals {
       dsimp [diagram],
-      simp only [← comp_apply, multiequalizer.lift_ι],
-      simp,
+      simp only [← comp_apply, multiequalizer.lift_ι, meq.equiv_symm_eq_apply],
       cases i, refl } },
 end
 
@@ -257,19 +255,21 @@ begin
   obtain ⟨Sy,y,rfl⟩ := exists_rep y,
   simp only [res_mk_eq_mk_pullback] at h,
 
-  -- Next, choose covers over which the pullbacks of these representatives become equal.
+  -- Next, using our assumption,
+  -- choose covers over which the pullbacks of these representatives become equal.
   choose W h1 h2 hh using λ (I : S.arrow), (eq_mk_iff_exists _ _).mp (h I),
 
   -- To prove equality, it suffices to prove that there exists a cover over which
   -- the representatives become equal.
   rw eq_mk_iff_exists,
 
-  -- Construct the cover over which the representatives become equal.
+  -- Construct the cover over which the representatives become equal by combining the various
+  -- covers chosen above.
   let B : J.cover X := ⟨sieve.bind S (λ Y f hf, W ⟨_, f, hf⟩),
     J.bind_covering S.condition (λ _ _ _, (W _).condition)⟩,
   use B,
 
-  -- And prove that this cover refines the two covers over which the representatives are defined.
+  -- Prove that this cover refines the two covers over which our representatives are defined.
   let ex : B ⟶ Sx := hom_of_le begin
     rintros Y f ⟨Z,e1,e2,he2,he1,hee⟩,
     rw ← hee,
@@ -288,7 +288,8 @@ begin
   ext1,
   choose Z e1 e2 he2 he1 hee using I.hf,
 
-  -- This will follow by applying a previous hypothesis.
+  -- This will follow by using the fact that our representatives become
+  -- equal over the chosen covers.
   let IS : S.arrow := ⟨Z, e2, he2⟩,
   specialize hh IS,
   let IW : (W IS).arrow := ⟨_, e1, he1⟩,
@@ -313,14 +314,15 @@ theorem exists_of_sep (P : Cᵒᵖ ⥤ D)
   (s : meq (J.plus_obj P) S) :
   ∃ t : (J.plus_obj P).obj (op X), meq.mk S t = s :=
 begin
+
   -- First, we prove that the canonical map from the presheaf `P` to `P⁺` is injective.
+  -- This follows easily from the separatedness assummption.
   have inj : ∀ (X : C), function.injective ((J.to_plus P).app (op X)),
   { intros X x y h,
     simp only [to_plus_eq_mk] at h,
     rw eq_mk_iff_exists at h,
     obtain ⟨W, h1, h2, hh⟩ := h,
-    specialize hsep X W,
-    apply hsep,
+    apply hsep X W,
     intros I,
     apply_fun (λ e, e I) at hh,
     exact hh },
@@ -329,13 +331,14 @@ begin
   choose T t ht using λ I, exists_rep (s I),
 
   -- Construct a large cover over which we will define a representative that will
-  -- provide the gluing.
+  -- provide the gluing of the given local sections.
   let B : J.cover X := ⟨sieve.bind S (λ Y f hf, T ⟨Y,f,hf⟩),
     J.bind_covering S.condition (λ _ _ _, (T _).condition)⟩,
   choose Z e1 e2 he2 he1 hee using λ I : B.arrow, I.hf,
 
-  -- Construct a compatible system of local sections over this large cover.
-  -- The compatilibity follows from the separatedness assumption.
+  -- Construct a compatible system of local sections over this large cover, using the chosen
+  -- representatives of our local sections.
+  -- The compatilibity here follows from the separatedness assumption.
   let w : meq P B := ⟨λ I, t ⟨Z I, e2 I, he2 I⟩ ⟨I.Y, e1 I, he1 I⟩, _⟩,
   swap, {
     intros I,
@@ -347,7 +350,8 @@ begin
     let ID₂ : (T IC₂).arrow := ⟨_, e1 I₂, he1 I₂⟩,
     change (P.map I.g₁.op) (t IC₁ ID₁) = (P.map I.g₂.op) (t IC₂ ID₂),
 
-    -- By injectivity, it suffices to work in `P⁺`.
+    -- By injectivity, it suffices to work in `P⁺`, where one reduces to the
+    -- original compatibility assumption.
     apply inj,
     rw [← comp_apply, ← comp_apply, (J.to_plus P).naturality, (J.to_plus P).naturality,
       comp_apply, comp_apply, to_plus_apply (T IC₁) (t IC₁) ID₁, to_plus_apply (T IC₂) (t IC₂) ID₂,
@@ -361,16 +365,16 @@ begin
   -- The associated gluing will be the candidate section.
   use mk w,
   ext I,
-  rw ht,
-  change (J.plus_obj P).map _ _ = _,
-  erw [res_mk_eq_mk_pullback],
+  erw [ht, res_mk_eq_mk_pullback],
 
-  -- Use the separatedness of `P⁺`.
+  -- Use the separatedness of `P⁺` to prove that this is indeed a gluing of our
+  -- original local sections.
   apply sep P (T I),
   intros II,
   simp only [res_mk_eq_mk_pullback, eq_mk_iff_exists],
 
-  -- It suffices to prove equality over a large cover...
+  -- It suffices to prove equality for representatives over a
+  -- convenient sufficiently large cover...
   use (J.pullback II.f).obj (T I),
   let e0 : (J.pullback II.f).obj (T I) ⟶ (J.pullback II.f).obj ((J.pullback I.f).obj B) :=
     hom_of_le begin
@@ -395,9 +399,7 @@ begin
   swap, { apply sieve.downward_closed, apply II.hf, },
   change t IB IC = t I ID,
   apply inj IV.Y,
-  erw to_plus_apply (T I) (t I) ID,
-  erw to_plus_apply (T IB) (t IB) IC,
-  rw [← ht, ← ht],
+  erw [to_plus_apply (T I) (t I) ID, to_plus_apply (T IB) (t IB) IC, ← ht, ← ht],
   dsimp only,
 
   -- Conclude by constructing the relation showing equality...
@@ -426,10 +428,8 @@ begin
     apply_fun (meq.equiv _ _) at h,
     apply_fun (λ e, e I) at h,
     convert h,
-    { rw meq.equiv_apply,
-      erw [← comp_apply, multiequalizer.lift_ι] },
-    { rw meq.equiv_apply,
-      erw [← comp_apply, multiequalizer.lift_ι] } },
+    { erw [meq.equiv_apply, ← comp_apply, multiequalizer.lift_ι] },
+    { erw [meq.equiv_apply, ← comp_apply, multiequalizer.lift_ι] } },
   { rintros (x : (multiequalizer (S.index _) : D)),
     obtain ⟨t,ht⟩ := exists_of_sep P hsep X S (meq.equiv _ _ x),
     use t,
@@ -438,7 +438,7 @@ begin
     rw ← ht,
     ext i,
     dsimp,
-    erw [← comp_apply, multiequalizer.lift_ι],
+    rw [← comp_apply, multiequalizer.lift_ι],
     refl }
 end
 

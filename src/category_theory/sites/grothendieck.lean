@@ -393,11 +393,6 @@ instance : semilattice_inf_top (J.cover X) :=
   le_top := λ S Y f h, by tauto,
   ..(infer_instance : preorder _) }
 
--- For some reason, typeclass inference is not able to find this instance.
-/-- The top is a terminal object of `J.cover X`. -/
-def is_terminal_top : limits.is_terminal (⊤ : J.cover X) :=
-@limits.is_terminal.of_unique _ _ _ (λ _, category_theory.unique_to_top)
-
 instance : inhabited (J.cover X) := ⟨⊤⟩
 
 /-- An auxiliary structure, used to define `S.index` in `plus.lean`. -/

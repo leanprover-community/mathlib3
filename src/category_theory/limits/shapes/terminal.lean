@@ -6,6 +6,7 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.pempty
 import category_theory.limits.has_limits
 import category_theory.epi_mono
+import category_theory.category.preorder
 
 /-!
 # Initial and terminal objects in a category.
@@ -38,6 +39,10 @@ abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
 def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
 { lift := λ s, (h s.X).default }
 
+/-- If `α` preorder with top, then `⊤` is a terminal object. -/
+def is_terminal_top {α : Type*} [preorder α] [order_top α] : is_terminal (⊤ : α) :=
+is_terminal.of_unique _
+
 /-- Transport a term of type `is_terminal` across an isomorphism. -/
 def is_terminal.of_iso {Y Z : C} (hY : is_terminal Y) (i : Y ≅ Z) : is_terminal Z :=
 is_limit.of_iso_limit hY
@@ -47,6 +52,10 @@ is_limit.of_iso_limit hY
 /-- An object `X` is initial if for every `Y` there is a unique morphism `X ⟶ Y`. -/
 def is_initial.of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : is_initial X :=
 { desc := λ s, (h s.X).default }
+
+/-- If `α` preorder with bot, then `⊥` is an initial object. -/
+def is_initial_bot {α : Type*} [preorder α] [order_bot α] : is_initial (⊥ : α) :=
+is_initial.of_unique _
 
 /-- Transport a term of type `is_initial` across an isomorphism. -/
 def is_initial.of_iso {X Y : C} (hX : is_initial X) (i : X ≅ Y) : is_initial Y :=

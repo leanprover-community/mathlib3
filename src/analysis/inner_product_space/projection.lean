@@ -45,7 +45,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 noncomputable theory
 
 open is_R_or_C real filter
-open_locale big_operators classical topological_space
+open_locale big_operators topological_space
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]

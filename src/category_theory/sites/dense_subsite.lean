@@ -336,8 +336,10 @@ we may obtain a natural isomorphism between presheaves.
 -/
 @[simps] noncomputable
 def sheaf_iso {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) : ℱ ≅ ℱ' :=
-{ hom := (presheaf_iso H i).hom, inv := (presheaf_iso H i).inv,
-  hom_inv_id' := (presheaf_iso H i).hom_inv_id, inv_hom_id' := (presheaf_iso H i).inv_hom_id }
+{ hom := (presheaf_iso H i).hom,
+  inv := (presheaf_iso H i).inv,
+  hom_inv_id' := (presheaf_iso H i).hom_inv_id,
+  inv_hom_id' := (presheaf_iso H i).inv_hom_id }
 
 /--
 The constructed `sheaf_hom α` is equal to `α` when restricted onto `C`.

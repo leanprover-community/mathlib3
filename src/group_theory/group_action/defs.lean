@@ -146,11 +146,11 @@ g n • a
 
 variables (α)
 
-/-- An action of `M` on `α` and a funcion `N → M` induces an action of `N` on `α`.
+/-- An action of `M` on `α` and a function `N → M` induces an action of `N` on `α`.
 
 See note [reducible non-instances]. Since this is reducible, we make sure to go via
 `has_scalar.comp.smul` to prevent typeclass inference unfolding too far. -/
-@[reducible, to_additive /-" An additive action of `M` on `α` and a funcion `N → M` induces
+@[reducible, to_additive /-" An additive action of `M` on `α` and a function `N → M` induces
   an additive action of `N` on `α` "-/]
 def comp (g : N → M) : has_scalar N α :=
 { smul := has_scalar.comp.smul g }

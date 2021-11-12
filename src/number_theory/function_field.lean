@@ -14,7 +14,7 @@ This file defines a function field and the ring of integers corresponding to it.
 
 ## Main definitions
  - `function_field Fq F` states that `F` is a function field over the (finite) field `Fq`,
-   i.e. it is a finite extension of the field of rational funcions in one variable over `Fq`.
+   i.e. it is a finite extension of the field of rational functions in one variable over `Fq`.
  - `function_field.ring_of_integers` defines the ring of integers corresponding to a function field
     as the integral closure of `polynomial Fq` in the function field.
 
@@ -38,7 +38,7 @@ noncomputable theory
 variables (Fq F : Type) [field Fq] [field F]
 
 /-- `F` is a function field over the finite field `Fq` if it is a finite
-extension of the field of rational funcions in one variable over `Fq`.
+extension of the field of rational functions in one variable over `Fq`.
 
 Note that `F` can be a function field over multiple, non-isomorphic, `Fq`.
 -/

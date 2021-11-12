@@ -8,22 +8,22 @@ import ring_theory.euclidean_domain
 import ring_theory.localization
 
 /-!
-# The field of rational funcions
+# The field of rational functions
 
-This file defines the field `ratfunc K` of rational funcions over a field `K`,
+This file defines the field `ratfunc K` of rational functions over a field `K`,
 and shows it is the field of fractions of `polynomial K`.
 
 ## Main definitions
 
-Working with rational funcions as polynomials:
+Working with rational functions as polynomials:
  - `ratfunc.field` provides a field structure
  - `ratfunc.C` is the constant polynomial
  - `ratfunc.X` is the indeterminate
- - `ratfunc.eval` evaluates a rational funcion given a value for the indeterminate
-Use `algebra_map` to map polynomials to rational funcions and `is_fraction_ring.alg_equiv`
+ - `ratfunc.eval` evaluates a rational function given a value for the indeterminate
+Use `algebra_map` to map polynomials to rational functions and `is_fraction_ring.alg_equiv`
 to map other fields of fractions of `polynomial K` to `ratfunc K`.
 
-Working with rational funcions as fractions:
+Working with rational functions as fractions:
  - `ratfunc.num` and `ratfunc.denom` give the numerator and denominator.
    These values are chosen to be coprime and such that `ratfunc.denom` is monic.
 
@@ -33,7 +33,7 @@ We also have a set of recursion and induction principles:
  - `ratfunc.lift_on'`: define a function by mapping a fraction of polynomials `p/q` to `f p q`,
    if `f` is well-defined in the sense that `f (a * p) (a * q) = f p' q'`.
  - `ratfunc.induction_on`: if `P` holds on `p / q` for all polynomials `p q`, then `P` holds on all
-   rational funcions
+   rational functions
 
 ## Implementation notes
 
@@ -55,7 +55,7 @@ universes u v
 
 variables (K : Type u) [field K]
 
-/-- `ratfunc K` is `K(x)`, the field of rational funcions over `K`.
+/-- `ratfunc K` is `K(x)`, the field of rational functions over `K`.
 
 The inclusion of polynomials into `ratfunc` is `algebra_map (polynomial K) (ratfunc K)`,
 the maps between `ratfunc K` and another field of fractions of `polynomial K`,
@@ -79,7 +79,7 @@ lemma to_fraction_ring_injective :
   function.injective (to_fraction_ring : _ → fraction_ring (polynomial K))
 | ⟨x⟩ ⟨y⟩ rfl := rfl
 
-/-- `ratfunc.mk (p q : polynomial K)` is `p / q` as a rational funcion.
+/-- `ratfunc.mk (p q : polynomial K)` is `p / q` as a rational function.
 
 If `q = 0`, then `mk` returns 0.
 
@@ -201,13 +201,13 @@ section field
 
 /-! ### Defining the field structure -/
 
-/-- The zero rational funcion. -/
+/-- The zero rational function. -/
 @[irreducible] protected def zero : ratfunc K := ⟨0⟩
 instance : has_zero (ratfunc K) := ⟨ratfunc.zero⟩
 lemma of_fraction_ring_zero : (of_fraction_ring 0 : ratfunc K) = 0 :=
 by unfold has_zero.zero ratfunc.zero
 
-/-- Addition of rational funcions. -/
+/-- Addition of rational functions. -/
 @[irreducible] protected def add : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p + q⟩
 instance : has_add (ratfunc K) := ⟨ratfunc.add⟩
@@ -215,7 +215,7 @@ lemma of_fraction_ring_add (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p + q) = of_fraction_ring p + of_fraction_ring q :=
 by unfold has_add.add ratfunc.add
 
-/-- Subtraction of rational funcions. -/
+/-- Subtraction of rational functions. -/
 @[irreducible] protected def sub : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p - q⟩
 instance : has_sub (ratfunc K) := ⟨ratfunc.sub⟩
@@ -223,7 +223,7 @@ lemma of_fraction_ring_sub (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p - q) = of_fraction_ring p - of_fraction_ring q :=
 by unfold has_sub.sub ratfunc.sub
 
-/-- Additive inverse of a rational funcion. -/
+/-- Additive inverse of a rational function. -/
 @[irreducible] protected def neg : ratfunc K → ratfunc K
 | ⟨p⟩ := ⟨-p⟩
 instance : has_neg (ratfunc K) := ⟨ratfunc.neg⟩
@@ -231,13 +231,13 @@ lemma of_fraction_ring_neg (p : fraction_ring (polynomial K)) :
   of_fraction_ring (-p) = - of_fraction_ring p :=
 by unfold has_neg.neg ratfunc.neg
 
-/-- The multiplicative unit of rational funcions. -/
+/-- The multiplicative unit of rational functions. -/
 @[irreducible] protected def one : ratfunc K := ⟨1⟩
 instance : has_one (ratfunc K) := ⟨ratfunc.one⟩
 lemma of_fraction_ring_one : (of_fraction_ring 1 : ratfunc K) = 1 :=
 by unfold has_one.one ratfunc.one
 
-/-- Multiplication of rational funcions. -/
+/-- Multiplication of rational functions. -/
 @[irreducible] protected def mul : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p * q⟩
 instance : has_mul (ratfunc K) := ⟨ratfunc.mul⟩
@@ -245,7 +245,7 @@ lemma of_fraction_ring_mul (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p * q) = of_fraction_ring p * of_fraction_ring q :=
 by unfold has_mul.mul ratfunc.mul
 
-/-- Division of rational funcions. -/
+/-- Division of rational functions. -/
 @[irreducible] protected def div : ratfunc K → ratfunc K → ratfunc K
 | ⟨p⟩ ⟨q⟩ := ⟨p / q⟩
 instance : has_div (ratfunc K) := ⟨ratfunc.div⟩
@@ -253,7 +253,7 @@ lemma of_fraction_ring_div (p q : fraction_ring (polynomial K)) :
   of_fraction_ring (p / q) = of_fraction_ring p / of_fraction_ring q :=
 by unfold has_div.div ratfunc.div
 
-/-- Multiplicative inverse of a rational funcion. -/
+/-- Multiplicative inverse of a rational function. -/
 @[irreducible] protected def inv : ratfunc K → ratfunc K
 | ⟨p⟩ := ⟨p⁻¹⟩
 instance : has_inv (ratfunc K) := ⟨ratfunc.inv⟩
@@ -488,7 +488,7 @@ section num_denom
 
 open gcd_monoid polynomial
 
-/-- `ratfunc.num_denom` are numerator and denominator of a rational funcion,
+/-- `ratfunc.num_denom` are numerator and denominator of a rational function,
 normalized such that the denominator is monic. -/
 def num_denom (x : ratfunc K) : polynomial K × polynomial K :=
 x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
@@ -529,7 +529,7 @@ begin
   simp,
 end
 
-/-- `ratfunc.num` is the numerator of a rational funcion,
+/-- `ratfunc.num` is the numerator of a rational function,
 normalized such that the denominator is monic. -/
 def num (x : ratfunc K) : polynomial K := x.num_denom.1
 
@@ -557,7 +557,7 @@ begin
       using right_div_gcd_ne_zero hq },
 end
 
-/-- `ratfunc.denom` is the denominator of a rational funcion,
+/-- `ratfunc.denom` is the denominator of a rational function,
 normalized such that it is monic. -/
 def denom (x : ratfunc K) : polynomial K := x.num_denom.2
 
@@ -705,7 +705,7 @@ section eval
 
 /-! ### Polynomial structure: `C`, `X`, `eval` -/
 
-/-- `ratfunc.C a` is the constant rational funcion `a`. -/
+/-- `ratfunc.C a` is the constant rational function `a`. -/
 def C : K →+* ratfunc K :=
 algebra_map _ _
 
@@ -733,7 +733,7 @@ denom_algebra_map _
 
 variables {L : Type*} [field L]
 
-/-- Evaluate a rational funcion `p` given a ring hom `f` from the scalar field
+/-- Evaluate a rational function `p` given a ring hom `f` from the scalar field
 to the target and a value `x` for the variable in the target.
 
 Fractions are reduced by clearing common denominators before evaluating:

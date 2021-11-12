@@ -73,15 +73,26 @@ quotient.induction_on' x ih
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp C
 
-instance : algebra R (adjoin_root f) :=
-{ smul := @@has_scalar.smul (submodule.quotient.has_scalar' _),
-  smul_def' := λ r (x : submodule.quotient _),
-    show r • x = mk f (C r) * x,
-    by rw [C_eq_algebra_map, mk, ← ideal.quotient.mkₐ_eq_mk R,
-      alg_hom.commutes, ← algebra.smul_def],
-  .. (of f).to_algebra }
+instance [comm_ring S] [algebra S R] : algebra S (adjoin_root f) :=
+ideal.quotient.algebra S
+
+instance [comm_ring S] [comm_ring K] [has_scalar S K] [algebra S R] [algebra K R]
+  [is_scalar_tower S K R] :
+  is_scalar_tower S K (adjoin_root f) :=
+submodule.quotient.is_scalar_tower _ _
+
+instance [comm_ring S] [comm_ring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
+  smul_comm_class S K (adjoin_root f) :=
+submodule.quotient.smul_comm_class _ _
 
 @[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
+
+variables (S)
+
+lemma algebra_map_eq' [comm_ring S] [algebra S R] :
+  algebra_map S (adjoin_root f) = (of f).comp (algebra_map S R) := rfl
+
+variables {S}
 
 /-- The adjoined root. -/
 def root : adjoin_root f := mk f X

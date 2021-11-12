@@ -273,9 +273,8 @@ rfl
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
   induction n with d hd,
-  { simp [subgroup.top_normal] },
-  { haveI := hd,
-    exact general_commutator_normal (lower_central_series G d) ⊤ },
+  { exact (⊤ : subgroup G).normal_of_characteristic },
+  { exactI general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
 lemma lower_central_series_antitone :

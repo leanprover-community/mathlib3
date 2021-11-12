@@ -74,11 +74,11 @@ begin
   { simp [pow_succ, hi] }
 end
 
-@[simp] lemma conj_gpow {i : ℤ} {a b : α} : (a * b * a⁻¹) ^ i = a * (b ^ i) * a⁻¹ :=
+@[simp] lemma conj_zpow {i : ℤ} {a b : α} : (a * b * a⁻¹) ^ i = a * (b ^ i) * a⁻¹ :=
 begin
   induction i,
   { simp },
-  { simp [gpow_neg_succ_of_nat, conj_pow] }
+  { simp [zpow_neg_succ_of_nat, conj_pow] }
 end
 
 lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=

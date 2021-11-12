@@ -39,7 +39,7 @@ https://ncatlab.org/nlab/show/rapidly+decreasing+function
 
 * `superpolynomial_decay.polynomial_mul` says that if `f(x)` is negligible,
     then so is `p(x) * f(x)` for any polynomial `p`.
-* `superpolynomial_decay_iff_fpow_tendsto_zero` gives an equivalence between definitions in terms
+* `superpolynomial_decay_iff_zpow_tendsto_zero` gives an equivalence between definitions in terms
     of decaying faster than `k(x) ^ n` for all naturals `n` or `k(x) ^ c` for all integer `c`.
 -/
 
@@ -196,34 +196,34 @@ begin
   rw [← abs_mul, ← mul_assoc, pow_succ, ← mul_assoc, inv_mul_cancel hk0, one_mul],
 end
 
-lemma superpolynomial_decay_iff_fpow_tendsto_zero (f : α → β) (hk : tendsto k l at_top) :
+lemma superpolynomial_decay_iff_zpow_tendsto_zero (f : α → β) (hk : tendsto k l at_top) :
   superpolynomial_decay l k f ↔ ∀ (z : ℤ), tendsto (λ (a : α), (k a) ^ z * f a) l (𝓝 0) :=
 begin
-  refine ⟨λ h z, _, λ h n, by simpa only [gpow_coe_nat] using h (n : ℤ)⟩,
+  refine ⟨λ h z, _, λ h n, by simpa only [zpow_coe_nat] using h (n : ℤ)⟩,
   by_cases hz : 0 ≤ z,
   { lift z to ℕ using hz,
     simpa using h z },
   { have : tendsto (λ a, (k a) ^ z) l (𝓝 0) :=
-      tendsto.comp (tendsto_fpow_at_top_zero (not_le.1 hz)) hk,
+      tendsto.comp (tendsto_zpow_at_top_zero (not_le.1 hz)) hk,
     have h : tendsto f l (𝓝 0) := by simpa using h 0,
     exact (zero_mul (0 : β)) ▸ this.mul h },
 end
 
-lemma superpolynomial_decay.parameter_fpow_mul (hk : tendsto k l at_top)
+lemma superpolynomial_decay.parameter_zpow_mul (hk : tendsto k l at_top)
   (hf : superpolynomial_decay l k f) (z : ℤ) : superpolynomial_decay l k (λ a, k a ^ z * f a) :=
 begin
-  rw superpolynomial_decay_iff_fpow_tendsto_zero _ hk at hf ⊢,
+  rw superpolynomial_decay_iff_zpow_tendsto_zero _ hk at hf ⊢,
   refine λ z', (hf $ z' + z).congr' ((eventually_ne_of_tendsto_at_top hk 0).mono (λ x hx, _)),
-  simp [fpow_add hx, mul_assoc, pi.mul_apply],
+  simp [zpow_add hx, mul_assoc, pi.mul_apply],
 end
 
-lemma superpolynomial_decay.mul_parameter_fpow (hk : tendsto k l at_top)
+lemma superpolynomial_decay.mul_parameter_zpow (hk : tendsto k l at_top)
   (hf : superpolynomial_decay l k f) (z : ℤ) : superpolynomial_decay l k (λ a, f a * k a ^ z) :=
-(hf.parameter_fpow_mul hk z).congr (λ _, mul_comm _ _)
+(hf.parameter_zpow_mul hk z).congr (λ _, mul_comm _ _)
 
 lemma superpolynomial_decay.inv_parameter_mul (hk : tendsto k l at_top)
   (hf : superpolynomial_decay l k f) : superpolynomial_decay l k (k⁻¹ * f) :=
-by simpa using (hf.parameter_fpow_mul hk (-1))
+by simpa using (hf.parameter_zpow_mul hk (-1))
 
 lemma superpolynomial_decay.parameter_inv_mul (hk : tendsto k l at_top)
   (hf : superpolynomial_decay l k f) : superpolynomial_decay l k (f * k⁻¹) :=
@@ -267,10 +267,10 @@ variable [order_topology β]
 lemma superpolynomial_decay_iff_is_O (hk : tendsto k l at_top) :
   superpolynomial_decay l k f ↔ ∀ (z : ℤ), is_O f (λ (a : α), (k a) ^ z) l :=
 begin
-  refine (superpolynomial_decay_iff_fpow_tendsto_zero f hk).trans _,
+  refine (superpolynomial_decay_iff_zpow_tendsto_zero f hk).trans _,
   have hk0 : ∀ᶠ x in l, k x ≠ 0 := eventually_ne_of_tendsto_at_top hk 0,
   refine ⟨λ h z, _, λ h z, _⟩,
-  { refine is_O_of_div_tendsto_nhds (hk0.mono (λ x hx hxz, absurd (fpow_eq_zero hxz) hx)) 0 _,
+  { refine is_O_of_div_tendsto_nhds (hk0.mono (λ x hx hxz, absurd (zpow_eq_zero hxz) hx)) 0 _,
     have : (λ (a : α), k a ^ z)⁻¹ = (λ (a : α), k a ^ (- z)) := funext (λ x, by simp),
     rw [div_eq_mul_inv, mul_comm f, this],
     exact h (-z) },
@@ -278,8 +278,8 @@ begin
     from is_O.trans_tendsto this hk.inv_tendsto_at_top,
     refine ((is_O_refl (λ a, (k a) ^ z) l).mul (h (- (z + 1)))).trans
       (is_O.of_bound 1 $ hk0.mono (λ a ha0, _)),
-    simp only [one_mul, neg_add z 1, fpow_add ha0, ← mul_assoc, fpow_neg,
-      mul_inv_cancel (fpow_ne_zero z ha0), gpow_one] }
+    simp only [one_mul, neg_add z 1, zpow_add ha0, ← mul_assoc, zpow_neg,
+      mul_inv_cancel (zpow_ne_zero z ha0), zpow_one] }
 end
 
 lemma superpolynomial_decay_iff_is_o (hk : tendsto k l at_top) :
@@ -292,7 +292,7 @@ begin
   have : is_o f (λ (x : α), k x * k x ^ (z - 1)) l,
   by simpa using this.mul_is_O (((superpolynomial_decay_iff_is_O hk).1 h) $ z - 1),
   refine this.trans_is_O (is_O.of_bound 1 (hk0.mono $ λ x hkx, le_of_eq _)),
-  rw [one_mul, fpow_sub_one hkx, mul_comm (k x), mul_assoc, inv_mul_cancel hkx, mul_one],
+  rw [one_mul, zpow_sub_one hkx, mul_comm (k x), mul_assoc, inv_mul_cancel hkx, mul_one],
 end
 
 end normed_linear_ordered_field

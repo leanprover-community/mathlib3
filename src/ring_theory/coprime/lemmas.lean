@@ -55,7 +55,7 @@ theorem is_coprime.of_prod_right (H1 : is_coprime x (∏ i in t, s i)) (i : I) (
 is_coprime.prod_right_iff.1 H1 i hit
 
 theorem finset.prod_dvd_of_coprime :
-  ∀ (Hs : set.pairwise_on (↑t : set I) (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
+  ∀ (Hs : set.pairwise (↑t : set I) (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
   ∏ x in t, s x ∣ z :=
 finset.induction_on t (λ _ _, one_dvd z)
 begin
@@ -70,7 +70,7 @@ end
 
 theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
-finset.prod_dvd_of_coprime (Hs.pairwise_on _) (λ i _, Hs1 i)
+finset.prod_dvd_of_coprime (Hs.set_pairwise _) (λ i _, Hs1 i)
 
 variables {m n : ℕ}
 

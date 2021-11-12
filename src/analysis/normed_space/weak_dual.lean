@@ -219,38 +219,12 @@ open function
 lemma of_empty : polar 𝕜 (∅ : set E) = univ :=
 by { unfold polar, simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true], }
 
-
-
-
--- Wow! Why can't I find this?
-lemma _root_.surjective.range_eq_univ {α β : Type} {f : α → β} (h : function.surjective f) :
-  range f = univ :=
-begin
-  apply le_antisymm,
-  { apply subset_univ, },
-  intros y hy,
-  cases h y with x hx,
-  rw ←hx,
-  exact mem_range_self _,
-end
-
--- Wow! Why can't I find this?
-lemma _root_.surjective.image_univ {α β : Type} {f : α → β} (h : function.surjective f) :
-  f '' univ = univ :=
-by { rw image_univ, apply surjective.range_eq_univ h, }
-
-
-
-
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
 lemma is_weak_dual_closed (s : set E) : is_closed (dual.to_weak_dual '' polar 𝕜 s) :=
 begin
   by_cases s_emp : s = ∅,
-  { rw [s_emp, of_empty, image_univ],
-    have ran : range (@dual.to_weak_dual 𝕜 _ E _ _) = univ,
-    { refine surjective.range_eq dual.to_weak_dual.surjective, },
-    rw ran,
+  { rw [s_emp, of_empty, image_univ, range_iff_surjective.mpr dual.to_weak_dual.surjective],
     exact is_closed_univ, },
   rw [eq_Inter, inj_on.image_bInter_eq],
   { simp_rw to_weak_dual_image',

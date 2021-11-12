@@ -109,27 +109,6 @@ def complete_graph (V : Type u) : simple_graph V := { adj := ne }
 /-- The graph with no edges on a given vertex type `V`. `mathlib` prefers the notation `⊥`. -/
 def empty_graph (V : Type u) : simple_graph V := { adj := λ i j, false }
 
-/--
-Two vertices are adjacent in the complete bipartite graph on two vertex types
-if and only if they are not from the same side.
-Bipartite graphs in general may be regarded as being subgraphs of one of these.
-
-TODO maybe replace with complete multi-partite graphs, where the vertex type
-is a sigma type of an indexed family of vertex types?
--/
-@[simps]
-def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
-{ adj := λ v w, (v.is_left ∧ w.is_right) ∨ (v.is_right ∧ w.is_left),
-  -- maybe replace adj with v.is_left ↔ ¬w.is_left?
-  symm := begin
-    intros v w,
-    cases v; cases w; simp,
-  end,
-  loopless := begin
-    intro v,
-    cases v; simp,
-  end }
-
 namespace simple_graph
 
 variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)

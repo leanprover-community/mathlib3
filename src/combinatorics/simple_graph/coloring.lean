@@ -5,6 +5,7 @@ Authors: Arthur Paulino, Kyle Miller
 -/
 
 import combinatorics.simple_graph.subgraph
+import combinatorics.simple_graph.bipartite
 import data.nat.lattice
 
 /-!
@@ -112,8 +113,6 @@ coloring.mk id (λ v w, G.ne_of_adj)
 If `G` isn't colorable with finitely many colors, this will be 0. -/
 noncomputable def chromatic_number : ℕ :=
 Inf { n : ℕ | G.colorable n }
-
--- open embedding
 
 /-- Given an embedding, there is an induced embedding of colorings. -/
 def recolor_of_embedding {α β : Type*} (f : α ↪ β) : G.coloring α ↪ G.coloring β :=
@@ -269,6 +268,15 @@ begin
   exact colorable_lower_bound h,
 end
 
+lemma chromatic_number_upper_bound {n : ℕ} (hc : G.colorable n) :
+  G.chromatic_number ≤ n :=
+begin
+  rw chromatic_number,
+  apply cInf_le chromatic_number_bdd_below,
+  split,
+  exact classical.choice hc,
+end
+
 lemma chromatic_number_minimal [fintype α] (C : G.coloring α)
   (h : ∀ (C' : G.coloring α), function.surjective C') :
   G.chromatic_number = fintype.card α :=
@@ -309,6 +317,27 @@ begin
   contrapose,
   intro h,
   exact C.valid h,
+end
+
+lemma chromatic_number_bipartite_graph_upper_bound (h : G.is_bipartite) :
+  G.chromatic_number ≤ 2 :=
+begin
+  rw is_bipartite at h,
+  cases h with L h,
+  cases h with R h,
+  rw is_bipartition at h,
+  have hc : G.colorable 2,
+  { cases h with hcomp h,
+    cases h with hl hr,
+    have C : G.coloring (fin 2),
+    { have color : V → fin 2 := λ v, 0, -- 0 if v ∈ L and 1 otherwise
+      have h : ∀ (v w : V), G.adj v w → color v ≠ color w,
+      { intros v w hvw,
+        -- prove that `color` takes v and w to different colors
+        sorry, },
+      { exact coloring.mk color h, }, },
+    { exact C.to_colorable, }, },
+  exact chromatic_number_upper_bound hc,
 end
 
 /-- The bicoloring of a complete bipartite graph using whether a vertex

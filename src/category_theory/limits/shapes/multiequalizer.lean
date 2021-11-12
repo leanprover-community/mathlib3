@@ -608,8 +608,8 @@ variables [has_product I.left] [has_product I.right] [has_equalizer I.fst_pi_map
 
 /-- The multiequalizer is isomorphic to the equalizer of `∏ I.left ⇉ ∏ I.right`. -/
 def iso_equalizer : multiequalizer I ≅ equalizer I.fst_pi_map I.snd_pi_map :=
-limit.iso_limit_cone ⟨_, is_limit_of_preserves_cone_terminal
-  I.multifork_equiv_pi_fork.inverse _ (limit.is_limit _)⟩
+limit.iso_limit_cone ⟨_, is_limit.of_preserves_cone_terminal
+  I.multifork_equiv_pi_fork.inverse (limit.is_limit _)⟩
 
 /-- The canonical injection `multiequalizer I ⟶ ∏ I.left`. -/
 def ι_pi : multiequalizer I ⟶ ∏ I.left :=
@@ -679,8 +679,8 @@ variables [has_coequalizer I.fst_sigma_map I.snd_sigma_map]
 
 /-- The multicoequalizer is isomorphic to the coequalizer of `∐ I.left ⇉ ∐ I.right`. -/
 def iso_coequalizer : multicoequalizer I ≅ coequalizer I.fst_sigma_map I.snd_sigma_map :=
-colimit.iso_colimit_cocone ⟨_, is_colimit_of_preserves_cocone_initial
-  I.multicofork_equiv_sigma_cofork.inverse _ (colimit.is_colimit _)⟩
+colimit.iso_colimit_cocone ⟨_, is_colimit.of_preserves_cocone_initial
+  I.multicofork_equiv_sigma_cofork.inverse (colimit.is_colimit _)⟩
 
 /-- The canonical projection `∐ I.right ⟶ multicoequalizer I`. -/
 def sigma_π : ∐ I.right ⟶ multicoequalizer I :=

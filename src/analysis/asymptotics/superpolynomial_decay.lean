@@ -214,7 +214,7 @@ lemma superpolynomial_decay.parameter_zpow_mul (hk : tendsto k l at_top)
 begin
   rw superpolynomial_decay_iff_zpow_tendsto_zero _ hk at hf ⊢,
   refine λ z', (hf $ z' + z).congr' ((eventually_ne_of_tendsto_at_top hk 0).mono (λ x hx, _)),
-  simp [zpow_add hx, mul_assoc, pi.mul_apply],
+  simp [zpow_add₀ hx, mul_assoc, pi.mul_apply],
 end
 
 lemma superpolynomial_decay.mul_parameter_zpow (hk : tendsto k l at_top)
@@ -278,7 +278,7 @@ begin
     from is_O.trans_tendsto this hk.inv_tendsto_at_top,
     refine ((is_O_refl (λ a, (k a) ^ z) l).mul (h (- (z + 1)))).trans
       (is_O.of_bound 1 $ hk0.mono (λ a ha0, _)),
-    simp only [one_mul, neg_add z 1, zpow_add ha0, ← mul_assoc, zpow_neg,
+    simp only [one_mul, neg_add z 1, zpow_add₀ ha0, ← mul_assoc, zpow_neg₀,
       mul_inv_cancel (zpow_ne_zero z ha0), zpow_one] }
 end
 
@@ -292,7 +292,7 @@ begin
   have : is_o f (λ (x : α), k x * k x ^ (z - 1)) l,
   by simpa using this.mul_is_O (((superpolynomial_decay_iff_is_O hk).1 h) $ z - 1),
   refine this.trans_is_O (is_O.of_bound 1 (hk0.mono $ λ x hkx, le_of_eq _)),
-  rw [one_mul, zpow_sub_one hkx, mul_comm (k x), mul_assoc, inv_mul_cancel hkx, mul_one],
+  rw [one_mul, zpow_sub_one₀ hkx, mul_comm (k x), mul_assoc, inv_mul_cancel hkx, mul_one],
 end
 
 end normed_linear_ordered_field

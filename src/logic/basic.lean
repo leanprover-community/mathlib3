@@ -1145,12 +1145,16 @@ theorem cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
 assume a, cases_on a h1 h2
 
 /- use shortened names to avoid conflict when classical namespace is open. -/
+/-- Any prop `p` is decidable classically. A shorthand for `classical.prop_decidable`. -/
 noncomputable def dec (p : Prop) : decidable p :=
 by apply_instance
+/-- Any predicate `p` is decidable classically. -/
 noncomputable def dec_pred (p : α → Prop) : decidable_pred p :=
 by apply_instance
+/-- Any relation `p` is decidable classically. -/
 noncomputable def dec_rel (p : α → α → Prop) : decidable_rel p :=
 by apply_instance
+/-- Any type `α` has decidable equality classically. -/
 noncomputable def dec_eq (α : Sort*) : decidable_eq α :=
 by apply_instance
 

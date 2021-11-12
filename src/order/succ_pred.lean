@@ -191,7 +191,7 @@ end no_top_order
 end partial_order
 
 section order_top
-variables [order_top α] [succ_order α]
+variables [partial_order α] [order_top α] [succ_order α]
 
 @[simp] lemma succ_top : succ (⊤ : α) = ⊤ :=
 le_top.antisymm (le_succ _)
@@ -208,7 +208,7 @@ end
 end order_top
 
 section order_bot
-variables [order_bot α] [succ_order α] [nontrivial α]
+variables [partial_order α] [order_bot α] [succ_order α] [nontrivial α]
 
 lemma bot_lt_succ (a : α) : ⊥ < succ a :=
 begin
@@ -385,7 +385,7 @@ end no_bot_order
 end partial_order
 
 section order_bot
-variables [order_bot α] [pred_order α]
+variables [partial_order α] [order_bot α] [pred_order α]
 
 @[simp] lemma pred_bot : pred (⊥ : α) = ⊥ :=
 (pred_le _).antisymm bot_le
@@ -402,7 +402,7 @@ end
 end order_bot
 
 section order_top
-variables [order_top α] [pred_order α]
+variables [partial_order α] [order_top α] [pred_order α]
 
 lemma pred_lt_top [nontrivial α] (a : α) : pred a < ⊤ :=
 begin
@@ -488,7 +488,8 @@ open with_top
 
 /-! #### Adding a `⊤` to an `order_top` -/
 
-instance [decidable_eq α] [order_top α] [succ_order α] : succ_order (with_top α) :=
+instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
+  succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
     | (some a) := ite (a = ⊤) ⊤ (some (succ a))
@@ -535,7 +536,7 @@ instance [decidable_eq α] [order_top α] [succ_order α] : succ_order (with_top
     { exact le_of_lt_succ (some_lt_some.1 h) }
   end }
 
-instance [order_top α] [pred_order α] : pred_order (with_top α) :=
+instance [partial_order α] [order_top α] [pred_order α] : pred_order (with_top α) :=
 { pred := λ a, match a with
     | ⊤        := some ⊤
     | (some a) := some (pred a)
@@ -618,7 +619,7 @@ open with_bot
 
 /-! #### Adding a `⊥` to a `bot_order` -/
 
-instance [order_bot α] [succ_order α] : succ_order (with_bot α) :=
+instance [preorder α] [order_bot α] [succ_order α] : succ_order (with_bot α) :=
 { succ := λ a, match a with
     | ⊥        := some ⊥
     | (some a) := some (succ a)
@@ -649,7 +650,8 @@ instance [order_bot α] [succ_order α] : succ_order (with_bot α) :=
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-instance [decidable_eq α] [order_bot α] [pred_order α] : pred_order (with_bot α) :=
+instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
+  pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥
     | (some a) := ite (a = ⊥) ⊥ (some (pred a))
@@ -843,7 +845,7 @@ end pred_order
 end linear_order
 
 section order_bot
-variables [order_bot α] [succ_order α] [is_succ_archimedean α]
+variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]
 
 lemma succ.rec_bot (p : α → Prop) (hbot : p ⊥) (hsucc : ∀ a, p a → p (succ a)) (a : α) : p a :=
 succ.rec hsucc bot_le hbot
@@ -851,7 +853,7 @@ succ.rec hsucc bot_le hbot
 end order_bot
 
 section order_top
-variables [order_top α] [pred_order α] [is_pred_archimedean α]
+variables [preorder α] [order_top α] [pred_order α] [is_pred_archimedean α]
 
 lemma pred.rec_top (p : α → Prop) (htop : p ⊤) (hpred : ∀ a, p a → p (pred a)) (a : α) : p a :=
 pred.rec hpred le_top htop

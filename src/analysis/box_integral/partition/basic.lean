@@ -93,7 +93,7 @@ by { rintro ⟨s₁, h₁, h₁'⟩ ⟨s₂, h₂, h₂'⟩ (rfl : s₁ = s₂),
 /-- We say that `π ≤ π'` if each box of `π` is a subbox of some box of `π'`. -/
 instance : has_le (prepartition I) := ⟨λ π π', ∀ ⦃I⦄, I ∈ π → ∃ I' ∈ π', I ≤ I'⟩
 
-instance : order_top (prepartition I) :=
+instance : partial_order (prepartition I) :=
 { le := (≤),
   le_refl := λ π I hI, ⟨I, hI, le_rfl⟩,
   le_trans := λ π₁ π₂ π₃ h₁₂ h₂₃ I₁ hI₁,
@@ -107,14 +107,15 @@ instance : order_top (prepartition I) :=
       obtain rfl : J = J'', from π₁.eq_of_le hJ hJ'' (hle.trans hle'),
       obtain rfl : J' = J, from le_antisymm ‹_› ‹_›,
       assumption
-    end,
-  top := single I I le_rfl,
+    end }
+
+instance : order_top (prepartition I) :=
+{ top := single I I le_rfl,
   le_top := λ π J hJ, ⟨I, by simp, π.le_of_mem hJ⟩ }
 
 instance : order_bot (prepartition I) :=
 { bot := ⟨∅, λ J hJ, false.elim hJ, λ J hJ, false.elim hJ⟩,
-  bot_le := λ π J hJ, false.elim hJ,
-  .. prepartition.order_top }
+  bot_le := λ π J hJ, false.elim hJ }
 
 instance : inhabited (prepartition I) := ⟨⊤⟩
 
@@ -481,7 +482,7 @@ instance : semilattice_inf_top (prepartition I) :=
 { inf_le_left := λ π₁ π₂, π₁.bUnion_le _,
   inf_le_right := λ π₁ π₂, (bUnion_le_iff _).2 (λ J hJ, le_rfl),
   le_inf := λ π π₁ π₂ h₁ h₂, π₁.le_bUnion_iff.2 ⟨h₁, λ J hJ, restrict_mono h₂⟩,
-  .. prepartition.order_top, .. prepartition.has_inf }
+  ..prepartition.partial_order, .. prepartition.order_top, .. prepartition.has_inf }
 
 instance : semilattice_inf_bot (prepartition I) :=
 { .. prepartition.order_bot, .. prepartition.semilattice_inf_top }

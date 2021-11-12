@@ -23,16 +23,14 @@ class nonempty_fin_lin_ord (α : Type*) extends fintype α, linear_order α :=
 attribute [instance] nonempty_fin_lin_ord.nonempty
 
 @[priority 100]
-instance nonempty_fin_lin_ord.order_bot (α : Type*) [h : nonempty_fin_lin_ord α] : order_bot α :=
+instance nonempty_fin_lin_ord.order_bot (α : Type*) [nonempty_fin_lin_ord α] : order_bot α :=
 { bot := finset.min' finset.univ ⟨classical.arbitrary α, by simp⟩,
-  bot_le := λ a, finset.min'_le _ a (by simp),
-  ..h }
+  bot_le := λ a, finset.min'_le _ a (by simp) }
 
 @[priority 100]
-instance nonempty_fin_lin_ord.order_top (α : Type*) [h : nonempty_fin_lin_ord α] : order_top α :=
+instance nonempty_fin_lin_ord.order_top (α : Type*) [nonempty_fin_lin_ord α] : order_top α :=
 { top := finset.max' finset.univ ⟨classical.arbitrary α, by simp⟩,
-  le_top := λ a, finset.le_max' _ a (by simp),
-  ..h }
+  le_top := λ a, finset.le_max' _ a (by simp) }
 
 instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit :=
 { .. punit.linear_ordered_cancel_add_comm_monoid,

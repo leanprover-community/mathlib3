@@ -99,7 +99,7 @@ begin
   rw [finite_def, fg_def] at hM ⊢,
   obtain ⟨S, hSfin, hSgen⟩ := hM,
   refine ⟨S, hSfin, eq_top_iff.2 _⟩,
-  have := submodule.span_le_restrict_scalars R A M S,
+  have := submodule.span_le_restrict_scalars R A S,
   rw hSgen at this,
   exact this
 end
@@ -366,27 +366,19 @@ as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
   [fintype ι] : finite_presentation R (mv_polynomial ι A) :=
 begin
+  rw iff_quotient_mv_polynomial' at hfp ⊢,
   classical,
-  obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
-  set ι' := fin m,
-  refine equiv _ (mv_polynomial.map_alg_equiv ι e),
-
-  have : finite_presentation R (mv_polynomial ι (mv_polynomial ι' R)),
-  { let := mv_polynomial.sum_alg_equiv R ι ι',
-    refine (finite_presentation.mv_polynomial R (ι ⊕ ι')).equiv this, },
-
-  -- typeclass inference seems to struggle to find this path
-  letI : is_scalar_tower R (mv_polynomial ι' R) (mv_polynomial ι' R) :=
-      is_scalar_tower.right,
-  letI : is_scalar_tower R
-    (mv_polynomial ι' R) (mv_polynomial ι (mv_polynomial ι' R)) :=
-      mv_polynomial.is_scalar_tower,
-
-  refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
-    _ ι _ I).restrict_scalars R).symm,
-  refine this.quotient (submodule.map_fg_of_fg I hfg _),
+  obtain ⟨ι', _, f, hf_surj, hf_ker⟩ := hfp,
+  resetI,
+  let g := (mv_polynomial.map_alg_hom f).comp (mv_polynomial.sum_alg_equiv R ι ι').to_alg_hom,
+  refine ⟨ι ⊕ ι', by apply_instance, g,
+    (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
+    submodule.fg_ker_ring_hom_comp _ _ _ _ (alg_equiv.surjective _)⟩,
+  { convert submodule.fg_bot,
+    exact ring_hom.ker_coe_equiv _, },
+  { rw [alg_hom.to_ring_hom_eq_coe, mv_polynomial.map_alg_hom_coe_ring_hom, mv_polynomial.ker_map],
+    exact submodule.map_fg_of_fg _ hf_ker mv_polynomial.C, }
 end
-
 
 /-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is
   finitely presented as `R`-algebra. -/

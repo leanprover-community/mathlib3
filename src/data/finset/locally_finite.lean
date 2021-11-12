@@ -78,15 +78,15 @@ lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp only [mem_Ioc, and_true
 @[simp] lemma right_not_mem_Ico : b ∉ Ico a b := λ h, lt_irrefl _ (mem_Ico.1 h).2
 @[simp] lemma right_not_mem_Ioo : b ∉ Ioo a b := λ h, lt_irrefl _ (mem_Ioo.1 h).2
 
-lemma Ico_filter_lt_of_le_left [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hca : c ≤ a) :
+lemma Ico_filter_lt_of_le_left {a b c : α} [decidable_pred (< c)] (hca : c ≤ a) :
   (Ico a b).filter (λ x, x < c) = ∅ :=
 finset.filter_false_of_mem (λ x hx, (hca.trans (mem_Ico.1 hx).1).not_lt)
 
-lemma Ico_filter_lt_of_right_le [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hbc : b ≤ c) :
+lemma Ico_filter_lt_of_right_le {a b c : α} [decidable_pred (< c)] (hbc : b ≤ c) :
   (Ico a b).filter (λ x, x < c) = Ico a b :=
 finset.filter_true_of_mem (λ x hx, (mem_Ico.1 hx).2.trans_le hbc)
 
-lemma Ico_filter_lt_of_le_right [decidable_rel ((<) : α → α → Prop)] {a b c : α} (hcb : c ≤ b) :
+lemma Ico_filter_lt_of_le_right {a b c : α} [decidable_pred (< c)] (hcb : c ≤ b) :
   (Ico a b).filter (λ x, x < c) = Ico a c :=
 begin
   ext x,
@@ -94,15 +94,15 @@ begin
   exact and_iff_left_of_imp (λ h, h.2.trans_le hcb),
 end
 
-lemma Ico_filter_le_of_le_left [decidable_rel ((≤) : α → α → Prop)] {a b c : α} (hca : c ≤ a) :
+lemma Ico_filter_le_of_le_left {a b c : α} [decidable_pred ((≤) c)] (hca : c ≤ a) :
   (Ico a b).filter (λ x, c ≤ x) = Ico a b :=
 finset.filter_true_of_mem (λ x hx, hca.trans (mem_Ico.1 hx).1)
 
-lemma Ico_filter_le_of_right_le [decidable_rel ((≤) : α → α → Prop)] {a b : α} :
+lemma Ico_filter_le_of_right_le {a b : α} [decidable_pred ((≤) b)] :
   (Ico a b).filter (λ x, b ≤ x) = ∅ :=
 finset.filter_false_of_mem (λ x hx, (mem_Ico.1 hx).2.not_le)
 
-lemma Ico_filter_le_of_left_le [decidable_rel ((≤) : α → α → Prop)] {a b c : α} (hac : a ≤ c) :
+lemma Ico_filter_le_of_left_le {a b c : α} [decidable_pred ((≤) c)] (hac : a ≤ c) :
   (Ico a b).filter (λ x, c ≤ x) = Ico c b :=
 begin
   ext x,
@@ -153,7 +153,7 @@ le_of_eq $ Ico_inter_Ico_consecutive a b c
 
 end decidable_eq
 
-lemma Ico_filter_le_left [decidable_rel ((≤) : α → α → Prop)] {a b : α} (hab : a < b) :
+lemma Ico_filter_le_left {a b : α} [decidable_pred (≤ a)] (hab : a < b) :
   (Ico a b).filter (λ x, x ≤ a) = {a} :=
 begin
   ext x,
@@ -242,7 +242,7 @@ end
 end linear_order
 
 section order_top
-variables [order_top α] [locally_finite_order α]
+variables [preorder α] [order_top α] [locally_finite_order α]
 
 lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
 hs.finite_of_bdd_above $ order_top.bdd_above s
@@ -250,7 +250,7 @@ hs.finite_of_bdd_above $ order_top.bdd_above s
 end order_top
 
 section order_bot
-variables [order_bot α] [locally_finite_order α]
+variables [preorder α] [order_bot α] [locally_finite_order α]
 
 lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
 

@@ -24,7 +24,7 @@ This files introduces:
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
 * Versions of these notions on metric spaces, called respectively `inf_dist` and
 `Hausdorff_dist`,
-* `thickening δ s`, the open thickening by radius `δ` os a set `s` in a pseudo emetric space.
+* `thickening δ s`, the open thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
 open_locale classical nnreal ennreal topological_space

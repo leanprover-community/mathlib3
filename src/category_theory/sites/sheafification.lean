@@ -14,7 +14,7 @@ We show construct the sheafification of a presheaf over a site `C` with values i
 `D` is a concrete category for which the forgetful functor preserves the appropriate (co)limits
 and reflects isomorphisms.
 
-We generally the approach of https://stacks.math.columbia.edu/tag/00W1
+We generally follow the approach of https://stacks.math.columbia.edu/tag/00W1
 
 -/
 

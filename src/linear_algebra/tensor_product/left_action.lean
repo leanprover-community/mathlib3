@@ -195,7 +195,6 @@ section UMP
 variables {P Q : Type*}
 variables [add_comm_monoid P] [module R P] --
 variables [add_comm_monoid Q] [module R Q] [module Rᵒᵖ Q] [is_symmetric_smul R Q]
-variables [is_symmetric_smul R M]
 variables (f : M →ₗ[R] N →ₗ[R] P)
 
 /-- Auxiliary function to constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
@@ -287,6 +286,73 @@ the given bilinear map `M → N → P`. -/
 def uncurry : (M →ₗ[R] N →ₗ[R] P) →ₗ[R] M ⊗[R] N →ₗ[R] P :=
 linear_map.flip $ lift $ (linear_map.lflip _ _ _ _).comp (linear_map.flip linear_map.id)
 variables {R M N P}
+
+@[simp] theorem uncurry_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
+  uncurry R M N P f (m ⊗ₜ n) = f m n :=
+by rw [uncurry, linear_map.flip_apply, lift.tmul]; refl
+
+variables (R M N P)
+variables [module Rᵒᵖ N] [is_symmetric_smul R N]
+/-- A linear equivalence constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
+with the property that its composition with the canonical bilinear map `M → N → M ⊗ N` is
+the given bilinear map `M → N → P`. -/
+def lift.equiv :
+  (M →ₗ[R] N →ₗ[R] P) ≃ₗ[R] (M ⊗ N →ₗ[R] P) :=
+{ inv_fun := λ f, (mk R M N).compr₂ f,
+  left_inv := λ f, linear_map.ext₂ $ λ m n, lift.tmul _ _,
+  right_inv := λ f, ext' $ λ m n, lift.tmul _ _,
+  .. uncurry R M N P }
+
+@[simp] lemma lift.equiv_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
+  lift.equiv R M N P f (m ⊗ₜ n) = f m n :=
+uncurry_apply f m n
+
+@[simp] lemma lift.equiv_symm_apply (f : M ⊗[R] N →ₗ[R] P) (m : M) (n : N) :
+  (lift.equiv R M N P).symm f m n = f (m ⊗ₜ n) :=
+rfl
+
+/-- Given a linear map `M ⊗ N → P`, compose it with the canonical bilinear map `M → N → M ⊗ N` to
+form a bilinear map `M → N → P`. -/
+def lcurry : (M ⊗[R] N →ₗ[R] P) →ₗ[R] M →ₗ[R] N →ₗ[R] P :=
+(lift.equiv R M N P).symm
+variables {R M N P}
+
+@[simp] theorem lcurry_apply (f : M ⊗[R] N →ₗ[R] P) (m : M) (n : N) :
+  lcurry R M N P f m n = f (m ⊗ₜ n) := rfl
+
+/-- Given a linear map `M ⊗ N → P`, compose it with the canonical bilinear map `M → N → M ⊗ N` to
+form a bilinear map `M → N → P`. -/
+def curry (f : M ⊗ N →ₗ[R] P) : M →ₗ[R] N →ₗ[R] P := lcurry R M N P f
+
+@[simp] theorem curry_apply (f : M ⊗ N →ₗ[R] P) (m : M) (n : N) :
+  curry f m n = f (m ⊗ₜ n) := rfl
+
+variables [module Rᵒᵖ P] [is_symmetric_smul R P]
+variables {S : Type*} [add_comm_monoid S] [module R S]
+
+lemma curry_injective : function.injective (curry : (M ⊗[R] N →ₗ[R] P) → (M →ₗ[R] N →ₗ[R] P)) :=
+λ g h H, ext H
+
+theorem ext_threefold [module Rᵒᵖ (P →ₗ[R] Q)] [is_symmetric_smul R (P →ₗ[R] Q)]
+  {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
+  (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=
+begin
+  ext x y z,
+  exact H x y z
+end
+
+variables [module Rᵒᵖ S] [is_symmetric_smul R S]
+
+-- We'll need this one for checking the pentagon identity!
+theorem ext_fourfold
+  [module Rᵒᵖ (Q →ₗ[R] S)] [is_symmetric_smul R (Q →ₗ[R] S)]
+  [module Rᵒᵖ (P →ₗ[R] Q →ₗ[R] S)] [is_symmetric_smul R (P →ₗ[R] Q →ₗ[R] S)]
+  {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
+  (H : ∀ w x y z, g (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z) = h (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z)) : g = h :=
+begin
+  ext w x y z,
+  exact H w x y z,
+end
 
 end UMP
 

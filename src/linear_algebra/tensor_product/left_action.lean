@@ -136,6 +136,7 @@ instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
   (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
 
 end
+
 end semiring
 
 section comm_semiring
@@ -145,18 +146,16 @@ variables {R' : Type*} [monoid R']
 variables {R'' : Type*} [comm_semiring R''] --?
 variables {M N : Type*}
 variables [add_comm_monoid M] [add_comm_monoid N]
-variables [module R M] [module Rᵒᵖ M] [is_symmetric_smul R M]
+variables [module R M] [module Rᵒᵖ M] [smul_comm_class Rᵒᵖ R M]
 variables [module R N]
 variables [distrib_mul_action R' M]
+variables {P Q : Type*}
+variables [add_comm_monoid P] [module R P]
+variables [add_comm_monoid Q] [module R Q]
 
 /-- The instance `tensor_product.left_has_scalar` induces this special case of `R` acting
 on the left of the tensor product `M ⊗[R] N`. -/
 instance right_has_scalar_comm : has_scalar R (M ⊗[R] N) := infer_instance
-
-instance : is_symmetric_smul R (M ⊗[R] N) :=
-⟨λ r x, tensor_product.induction_on x rfl
-  (λ m n, by rw [smul_tmul' r, ←is_symmetric_smul.op_smul_eq_smul r m, smul_tmul'])
-  (λ x y hx hy, by rw [smul_add, hx, hy, smul_add])⟩
 
 instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.left_distrib_mul_action
 
@@ -190,11 +189,15 @@ begin
   { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
 end
 
+variables [is_symmetric_smul R M]
+
+instance : is_symmetric_smul R (M ⊗[R] N) :=
+⟨λ r x, tensor_product.induction_on x rfl
+  (λ m n, by rw [smul_tmul' r, ←is_symmetric_smul.op_smul_eq_smul r m, smul_tmul'])
+  (λ x y hx hy, by rw [smul_add, hx, hy, smul_add])⟩
+
 section UMP
 
-variables {P Q : Type*}
-variables [add_comm_monoid P] [module R P] --
-variables [add_comm_monoid Q] [module R Q] [module Rᵒᵖ Q] [is_symmetric_smul R Q]
 variables (f : M →ₗ[R] N →ₗ[R] P)
 
 /-- Auxiliary function to constructing a linear map `M ⊗ N → P` given a bilinear map `M → N → P`
@@ -260,7 +263,7 @@ eq.symm $ lift.unique $ λ x y, rfl
 theorem lift_compr₂ (g : P →ₗ[R] Q) : lift (f.compr₂ g) = g.comp (lift f) :=
 eq.symm $ lift.unique $ λ x y, by simp
 
-theorem lift_mk_compr₂ [module Rᵒᵖ P] [is_symmetric_smul R P]
+theorem lift_mk_compr₂
   (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f) = f :=
 by { rw [lift_compr₂ f, lift_mk, linear_map.comp_id], repeat { apply_instance } }
 
@@ -270,7 +273,7 @@ it in some cases, notably when one wants to show equality of two linear maps. Th
 attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of
 `tensor_product.ext'` allows `ext` to apply lemmas specific to `M →ₗ _` and `N →ₗ _`.
 See note [partially-applied ext lemmas]. -/
-theorem ext [module Rᵒᵖ P] [is_symmetric_smul R P] {g h : M ⊗[R] N →ₗ[R] P}
+theorem ext {g h : M ⊗[R] N →ₗ[R] P}
   (H : (mk R M N).compr₂ g = (mk R M N).compr₂ h) : g = h :=
 by rw [← lift_mk_compr₂ g, H, lift_mk_compr₂]
 
@@ -327,27 +330,20 @@ def curry (f : M ⊗ N →ₗ[R] P) : M →ₗ[R] N →ₗ[R] P := lcurry R M N 
 @[simp] theorem curry_apply (f : M ⊗ N →ₗ[R] P) (m : M) (n : N) :
   curry f m n = f (m ⊗ₜ n) := rfl
 
-variables [module Rᵒᵖ P] [is_symmetric_smul R P]
 variables {S : Type*} [add_comm_monoid S] [module R S]
 
 lemma curry_injective : function.injective (curry : (M ⊗[R] N →ₗ[R] P) → (M →ₗ[R] N →ₗ[R] P)) :=
 λ g h H, ext H
 
-theorem ext_threefold [module Rᵒᵖ (P →ₗ[R] Q)] [is_symmetric_smul R (P →ₗ[R] Q)]
-  {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
+theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
   (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=
 begin
   ext x y z,
   exact H x y z
 end
 
-variables [module Rᵒᵖ S] [is_symmetric_smul R S]
-
 -- We'll need this one for checking the pentagon identity!
-theorem ext_fourfold
-  [module Rᵒᵖ (Q →ₗ[R] S)] [is_symmetric_smul R (Q →ₗ[R] S)]
-  [module Rᵒᵖ (P →ₗ[R] Q →ₗ[R] S)] [is_symmetric_smul R (P →ₗ[R] Q →ₗ[R] S)]
-  {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
+theorem ext_fourfold {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
   (H : ∀ w x y z, g (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z) = h (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z)) : g = h :=
 begin
   ext w x y z,
@@ -355,6 +351,230 @@ begin
 end
 
 end UMP
+
+variables {M N}
+section
+variables (R M)
+
+/--
+The base ring is a left identity for the tensor product of modules, up to linear equivalence.
+-/
+protected def lid : R ⊗ M ≃ₗ[R] M :=
+linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
+  (linear_map.ext $ λ _, by simp)
+  (ext' $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
+end
+
+@[simp] theorem lid_tmul (m : M) (r : R) :
+  ((tensor_product.lid R M) : (R ⊗ M → M)) (r ⊗ₜ m) = r • m :=
+begin
+  dsimp [tensor_product.lid],
+  simp,
+end
+
+@[simp] lemma lid_symm_apply (m : M) :
+  (tensor_product.lid R M).symm m = 1 ⊗ₜ m := rfl
+
+section comm
+variables (R M N)
+variables [module Rᵒᵖ N] [is_symmetric_smul R N]
+
+/--
+The tensor product of modules is commutative, up to linear equivalence.
+-/
+protected def comm : M ⊗ N ≃ₗ[R] N ⊗ M :=
+linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
+  (ext' $ λ m n, rfl)
+  (ext' $ λ m n, rfl)
+
+@[simp] theorem comm_tmul (m : M) (n : N) :
+  (tensor_product.comm R M N) (m ⊗ₜ n) = n ⊗ₜ m := rfl
+
+@[simp] theorem comm_symm_tmul (m : M) (n : N) :
+  (tensor_product.comm R M N).symm (n ⊗ₜ m) = m ⊗ₜ n := rfl
+
+end comm
+
+section rid
+variables (R M)
+
+/--
+The base ring is a right identity for the tensor product of modules, up to linear equivalence.
+-/
+protected def rid : M ⊗[R] R ≃ₗ[R] M :=
+linear_equiv.trans (tensor_product.comm R M R) (tensor_product.lid R M)
+end rid
+
+@[simp] theorem rid_tmul (m : M) (r : R) :
+  (tensor_product.rid R M) (m ⊗ₜ r) = r • m :=
+begin
+  dsimp [tensor_product.rid, tensor_product.comm, tensor_product.lid],
+  simp,
+end
+
+@[simp] lemma rid_symm_apply (m : M) :
+  (tensor_product.rid R M).symm m = m ⊗ₜ 1 := rfl
+
+open linear_map
+
+section assoc
+variables [module Rᵒᵖ N] [is_symmetric_smul R N]
+variables [module Rᵒᵖ P] [is_symmetric_smul R P]
+
+variables (R M N P)
+/-- The associator for tensor product of R-modules, as a linear equivalence. -/
+protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=
+begin
+  refine linear_equiv.of_linear
+    (lift $ lift $ comp (lcurry R _ _ _) $ mk _ _ _)
+    (lift $ comp (uncurry R _ _ _) $ curry $ mk _ _ _)
+    (ext $ linear_map.ext $ λ m, ext' $ λ n p, _)
+    (ext $ flip_inj $ linear_map.ext $ λ p, ext' $ λ m n, _);
+  repeat { rw lift.tmul <|> rw compr₂_apply <|> rw comp_apply <|>
+    rw mk_apply <|> rw flip_apply <|> rw lcurry_apply <|>
+    rw uncurry_apply <|> rw curry_apply <|> rw id_apply }
+end
+variables {R M N P}
+
+@[simp] theorem assoc_tmul (m : M) (n : N) (p : P) :
+  (tensor_product.assoc R M N P) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) := rfl
+
+@[simp] theorem assoc_symm_tmul (m : M) (n : N) (p : P) :
+  (tensor_product.assoc R M N P).symm (m ⊗ₜ (n ⊗ₜ p)) = (m ⊗ₜ n) ⊗ₜ p := rfl
+
+end assoc
+
+section map
+
+variables [module Rᵒᵖ P] [is_symmetric_smul R P]
+
+/-- The tensor product of a pair of linear maps between modules. -/
+def map (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : M ⊗ N →ₗ[R] P ⊗ Q :=
+lift $ comp (compl₂ (mk _ _ _) g) f
+
+@[simp] theorem map_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (m : M) (n : N) :
+  map f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
+rfl
+
+lemma map_range_eq_span_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (map f g).range = submodule.span R { t | ∃ m n, (f m) ⊗ₜ (g n) = t } :=
+begin
+  simp only [← submodule.map_top, ← span_tmul_eq_top, submodule.map_span, set.mem_image,
+    set.mem_set_of_eq],
+  congr, ext t,
+  split,
+  { rintros ⟨_, ⟨⟨m, n, rfl⟩, rfl⟩⟩, use [m, n], simp only [map_tmul], },
+  { rintros ⟨m, n, rfl⟩, use [m ⊗ₜ n, m, n], simp only [map_tmul], },
+end
+
+/-- Given submodules `p ⊆ P` and `q ⊆ Q`, this is the natural map: `p ⊗ q → P ⊗ Q`. -/
+@[simp] def map_incl (p : submodule R P) [module Rᵒᵖ p] [is_symmetric_smul R p]
+  (q : submodule R Q) : p ⊗[R] q →ₗ[R] P ⊗[R] Q :=
+map p.subtype q.subtype
+
+section map_comp
+variables {P' Q' : Type*}
+variables [add_comm_monoid P'] [module R P'] [module Rᵒᵖ P'] [is_symmetric_smul R P']
+variables [add_comm_monoid Q'] [module R Q']
+
+lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
+  map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
+ext' $ λ _ _, by simp only [linear_map.comp_apply, map_tmul]
+
+lemma lift_comp_map (i : P →ₗ[R] Q →ₗ[R] Q') (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (lift i).comp (map f g) = lift ((i.comp f).compl₂ g) :=
+ext' $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
+
+local attribute [ext] ext
+
+@[simp] lemma map_id : map (id : M →ₗ[R] M) (id : N →ₗ[R] N) = id :=
+by { ext, simp only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], refl }
+
+@[simp] lemma map_one : map (1 : M →ₗ[R] M) (1 : N →ₗ[R] N) = 1 := map_id
+
+lemma map_mul (f₁ f₂ : M →ₗ[R] M) (g₁ g₂ : N →ₗ[R] N) :
+  map (f₁ * f₂) (g₁ * g₂) = (map f₁ g₁) * (map f₂ g₂) :=
+map_comp f₁ f₂ g₁ g₂
+
+@[simp] lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
+  (map f g)^n = map (f^n) (g^n) :=
+begin
+  induction n with n ih,
+  { simp only [pow_zero, map_one], },
+  { simp only [pow_succ', ih, map_mul], },
+end
+
+end map_comp
+
+end map
+
+section congr
+
+variables [module Rᵒᵖ P] [is_symmetric_smul R P]
+/-- If `M` and `P` are linearly equivalent and `N` and `Q` are linearly equivalent
+then `M ⊗ N` and `P ⊗ Q` are linearly equivalent. -/
+def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
+linear_equiv.of_linear (map f g) (map f.symm g.symm)
+  (ext' $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
+  (ext' $ λ m n, by simp; simp only [linear_equiv.symm_apply_apply])
+
+@[simp] theorem congr_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (m : M) (n : N) :
+  congr f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
+rfl
+
+@[simp] theorem congr_symm_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (p : P) (q : Q) :
+  (congr f g).symm (p ⊗ₜ q) = f.symm p ⊗ₜ g.symm q :=
+rfl
+
+end congr
+
+variables (R M N P Q)
+variables [module Rᵒᵖ N] [is_symmetric_smul R N]
+variables [module Rᵒᵖ P] [is_symmetric_smul R P]
+
+/-- A tensor product analogue of `mul_left_comm`. -/
+def left_comm : M ⊗[R] (N ⊗[R] P) ≃ₗ[R] N ⊗[R] (M ⊗[R] P) :=
+let e₁ := (tensor_product.assoc R M N P).symm,
+    e₂ := congr (tensor_product.comm R M N) (1 : P ≃ₗ[R] P),
+    e₃ := (tensor_product.assoc R N M P) in
+e₁ ≪≫ₗ (e₂ ≪≫ₗ e₃)
+
+variables {M N P Q}
+
+@[simp] lemma left_comm_tmul (m : M) (n : N) (p : P) :
+  left_comm R M N P (m ⊗ₜ (n ⊗ₜ p)) = n ⊗ₜ (m ⊗ₜ p) :=
+rfl
+
+@[simp] lemma left_comm_symm_tmul (m : M) (n : N) (p : P) :
+  (left_comm R M N P).symm (n ⊗ₜ (m ⊗ₜ p)) = m ⊗ₜ (n ⊗ₜ p) :=
+rfl
+
+variables (M N P Q)
+variables [module Rᵒᵖ Q] [is_symmetric_smul R Q]
+
+/-- This special case is worth defining explicitly since it is useful for defining multiplication
+on tensor products of modules carrying multiplications (e.g., associative rings, Lie rings, ...).
+E.g., suppose `M = P` and `N = Q` and that `M` and `N` carry bilinear multiplications:
+`M ⊗ M → M` and `N ⊗ N → N`. Using `map`, we can define `(M ⊗ M) ⊗ (N ⊗ N) → M ⊗ N` which, when
+combined with this definition, yields a bilinear multiplication on `M ⊗ N`:
+`(M ⊗ N) ⊗ (M ⊗ N) → M ⊗ N`. In particular we could use this to define the multiplication in
+the `tensor_product.semiring` instance (currently defined "by hand" using `tensor_product.mul`).
+See also `mul_mul_mul_comm`. -/
+def tensor_tensor_tensor_comm : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M ⊗[R] P) ⊗[R] (N ⊗[R] Q) :=
+let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
+    e₂ := congr (1 : M ≃ₗ[R] M) (left_comm R N P Q),
+    e₃ := (tensor_product.assoc R M P (N ⊗[R] Q)).symm in
+e₁ ≪≫ₗ (e₂ ≪≫ₗ e₃)
+
+variables {M N P Q}
+
+@[simp] lemma tensor_tensor_tensor_comm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
+rfl
+
+@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+rfl
 
 end comm_semiring
 

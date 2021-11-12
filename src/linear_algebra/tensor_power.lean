@@ -131,13 +131,11 @@ begin
   sorry,
 end
 
+-- for now we just use the default for the `gnpow` field as it's easier.
 instance gmonoid : graded_monoid.gmonoid (λ i, ⨂[R]^i M) :=
 { one_mul := λ a, sigma_eq_of_reindex_cast (zero_add _) (one_mul _),
   mul_one := λ a, sigma_eq_of_reindex_cast (add_zero _) (mul_one _),
   mul_assoc := λ a b c, sigma_eq_of_reindex_cast (add_assoc _ _ _) (mul_assoc _ _ _),
-  gnpow := sorry,
-  gnpow_zero' := sorry,
-  gnpow_succ' := sorry,
   ..tensor_power.ghas_mul,
   ..tensor_power.ghas_one, }
 

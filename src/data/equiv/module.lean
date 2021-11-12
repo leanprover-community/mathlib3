@@ -416,31 +416,6 @@ end module
 namespace distrib_mul_action
 
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
-
-section
-variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
-
-/-- Each element of the monoid defines a linear map.
-
-This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
-@[simps]
-def to_linear_map (s : S) : M →ₗ[R] M :=
-{ to_fun := has_scalar.smul s,
-  map_add' := smul_add s,
-  map_smul' := λ a b, smul_comm _ _ _ }
-
-/-- Each element of the monoid defines a module endomorphism.
-
-This is a stronger version of `distrib_mul_action.to_add_monoid_End`. -/
-@[simps]
-def to_module_End : S →* module.End R M :=
-{ to_fun := to_linear_map R M,
-  map_one' := linear_map.ext $ one_smul _,
-  map_mul' := λ a b, linear_map.ext $ mul_smul _ _ }
-
-end
-
-section
 variables [group S] [distrib_mul_action S M] [smul_comm_class S R M]
 
 /-- Each element of the group defines a linear equivalence.
@@ -460,27 +435,4 @@ def to_module_aut : S →* M ≃ₗ[R] M :=
   map_one' := linear_equiv.ext $ one_smul _,
   map_mul' := λ a b, linear_equiv.ext $ mul_smul _ _ }
 
-end
-
 end distrib_mul_action
-
-namespace module
-
-variables (R M) [semiring R] [add_comm_monoid M] [module R M]
-
-section
-variables [semiring S] [module S M] [smul_comm_class S R M]
-
-/-- Each element of the monoid defines a module endomorphism.
-
-This is a stronger version of `distrib_mul_action.to_module_End`. -/
-@[simps?]
-def to_module_End : S →+* module.End R M :=
-{ to_fun := distrib_mul_action.to_linear_map R M,
-  map_zero' := linear_map.ext $ zero_smul _,
-  map_add' := λ f g, linear_map.ext $ add_smul _ _,
-  ..distrib_mul_action.to_module_End R M }
-
-end
-
-end module

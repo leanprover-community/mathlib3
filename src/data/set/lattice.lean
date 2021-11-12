@@ -141,11 +141,6 @@ supr_congr_Prop pq f
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Inter f₁ = Inter f₂ :=
 infi_congr_Prop pq f
 
--- TODO: fix set lattice diamond
-instance : order_top (set α) :=
-{ top := univ,
-  le_top := by simp }
-
 lemma Union_eq_if {p : Prop} [decidable p] (s : set α) :
   (⋃ h : p, s) = if p then s else ∅ :=
 supr_eq_if _

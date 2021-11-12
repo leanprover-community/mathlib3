@@ -332,6 +332,40 @@ is_limit.cone_point_unique_up_to_iso
   (limit.is_limit _)
   (limit_of_diagram_initial initial_is_initial F)
 
+/-- From a functor `F : J ⥤ C`, given a terminal object of `J`, construct a cone for `J`,
+provided that the morphisms in the diagram are isomorphisms.
+In `limit_of_diagram_terminal` we show it is a limit cone. -/
+@[simps]
+def cone_of_diagram_terminal {X : J} (hX : is_terminal X)
+  (F : J ⥤ C) [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : cone F :=
+{ X := F.obj X,
+  π :=
+  { app := λ i, inv (F.map (hX.from _)),
+  naturality' := begin
+    intros i j f,
+    dsimp,
+    simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.id_comp,
+      ← F.map_comp, hX.hom_ext (hX.from i) (f ≫ hX.from j)],
+  end } }
+
+/-- From a functor `F : J ⥤ C`, given a terminal object of `J` and that the morphisms in the
+diagram are isomorphisms, show the cone `cone_of_diagram_terminal` is a limit. -/
+def limit_of_diagram_terminal {X : J} (hX : is_terminal X)
+  (F : J ⥤ C) [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] :
+  is_limit (cone_of_diagram_terminal hX F) :=
+{ lift := λ S, S.π.app _ }
+
+-- This is reducible to allow usage of lemmas about `cone_point_unique_up_to_iso`.
+/-- For a functor `F : J ⥤ C`, if `J` has a terminal object and all the morphisms in the diagram
+are isomorphisms, then the image of the terminal object is isomorphic to the limit of `F`. -/
+@[reducible]
+def limit_of_terminal (F : J ⥤ C)
+  [has_terminal J] [has_limit F] [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] :
+limit F ≅ F.obj (⊤_ J) :=
+is_limit.cone_point_unique_up_to_iso
+  (limit.is_limit _)
+  (limit_of_diagram_terminal terminal_is_terminal F)
+
 /-- From a functor `F : J ⥤ C`, given a terminal object of `J`, construct a cocone for `J`.
 In `colimit_of_diagram_terminal` we show it is a colimit cocone. -/
 @[simps]
@@ -366,6 +400,39 @@ is_colimit.cocone_point_unique_up_to_iso
   (colimit.is_colimit _)
   (colimit_of_diagram_terminal terminal_is_terminal F)
 
+/-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cocone for `J`,
+provided that the morphisms in the diagram are isomorphisms.
+In `colimit_of_diagram_initial` we show it is a colimit cocone. -/
+@[simps]
+def cocone_of_diagram_initial {X : J} (hX : is_initial X) (F : J ⥤ C)
+  [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : cocone F :=
+{ X := F.obj X,
+  ι :=
+  { app := λ i, inv (F.map (hX.to _)),
+  naturality' := begin
+    intros i j f,
+    dsimp,
+    simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.comp_id,
+      ← F.map_comp, hX.hom_ext (hX.to i ≫ f) (hX.to j)],
+  end } }
+
+/-- From a functor `F : J ⥤ C`, given an initial object of `J` and that the morphisms in the
+diagram are isomorphisms, show the cone `cocone_of_diagram_initial` is a colimit. -/
+def colimit_of_diagram_initial {X : J} (hX : is_initial X) (F : J ⥤ C)
+  [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_colimit (cocone_of_diagram_initial hX F) :=
+{ desc := λ S, S.ι.app _ }
+
+-- This is reducible to allow usage of lemmas about `cocone_point_unique_up_to_iso`.
+/-- For a functor `F : J ⥤ C`, if `J` has an initial object and all the morphisms in the diagram
+are isomorphisms, then the image of the initial object is isomorphic to the colimit of `F`. -/
+@[reducible]
+def colimit_of_initial (F : J ⥤ C)
+  [has_initial J] [has_colimit F] [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] :
+colimit F ≅ F.obj (⊥_ J) :=
+is_colimit.cocone_point_unique_up_to_iso
+  (colimit.is_colimit _)
+  (colimit_of_diagram_initial initial_is_initial _)
+
 /--
 If `j` is initial in the index category, then the map `limit.π F j` is an isomorphism.
 -/
@@ -377,6 +444,14 @@ instance is_iso_π_initial [has_initial J] (F : J ⥤ C) [has_limit F] :
   is_iso (limit.π F (⊥_ J)) :=
 is_iso_π_of_is_initial (initial_is_initial) F
 
+lemma is_iso_π_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C)
+  [has_limit F] [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (limit.π F j) :=
+⟨⟨limit.lift _ (cone_of_diagram_terminal I F), by { ext, simp }, by simp ⟩⟩
+
+instance is_iso_π_terminal [has_terminal J] (F : J ⥤ C) [has_limit F]
+  [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (limit.π F (⊤_ J)) :=
+is_iso_π_of_is_terminal terminal_is_terminal F
+
 /--
 If `j` is terminal in the index category, then the map `colimit.ι F j` is an isomorphism.
 -/
@@ -387,6 +462,14 @@ lemma is_iso_ι_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C) [has_co
 instance is_iso_ι_terminal [has_terminal J] (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F (⊤_ J)) :=
 is_iso_ι_of_is_terminal (terminal_is_terminal) F
+
+lemma is_iso_ι_of_is_initial {j : J} (I : is_initial j) (F : J ⥤ C)
+  [has_colimit F] [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (colimit.ι F j) :=
+⟨⟨colimit.desc _ (cocone_of_diagram_initial I F), ⟨by tidy, by { ext, simp }⟩⟩⟩
+
+instance is_iso_ι_initial [has_initial J] (F : J ⥤ C) [has_colimit F]
+  [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (colimit.ι F (⊥_ J)) :=
+is_iso_ι_of_is_initial initial_is_initial F
 
 end
 

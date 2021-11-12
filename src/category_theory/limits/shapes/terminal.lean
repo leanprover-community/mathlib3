@@ -39,7 +39,7 @@ abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
 def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
 { lift := λ s, (h s.X).default }
 
-/-- If `α` preorder with top, then `⊤` is a terminal object. -/
+/-- If `α` is a preorder with top, then `⊤` is a terminal object. -/
 def is_terminal_top {α : Type*} [preorder α] [order_top α] : is_terminal (⊤ : α) :=
 is_terminal.of_unique _
 
@@ -53,7 +53,7 @@ is_limit.of_iso_limit hY
 def is_initial.of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : is_initial X :=
 { desc := λ s, (h s.X).default }
 
-/-- If `α` preorder with bot, then `⊥` is an initial object. -/
+/-- If `α` is a preorder with bot, then `⊥` is an initial object. -/
 def is_initial_bot {α : Type*} [preorder α] [order_bot α] : is_initial (⊥ : α) :=
 is_initial.of_unique _
 

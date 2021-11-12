@@ -163,6 +163,18 @@ begin
   congr
 end
 
+instance (U : opens X) : is_iso (H.inv_app U) := by { delta inv_app, apply_instance }
+
+lemma inv_inv_app (U : opens X) :
+  inv (H.inv_app U) = f.c.app (op (H.open_functor.obj U)) ≫
+    X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) :=
+begin
+  rw ← cancel_epi (H.inv_app U),
+  rw is_iso.hom_inv_id,
+  delta inv_app,
+  simp [← functor.map_comp]
+end
+
 @[simp, reassoc] lemma inv_app_app (U : opens X) :
   H.inv_app U ≫ f.c.app (op (H.open_functor.obj U)) =
     X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) :=

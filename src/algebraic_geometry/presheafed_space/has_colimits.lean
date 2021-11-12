@@ -291,6 +291,56 @@ instance forget_preserves_colimits : preserves_colimits (PresheafedSpace.forget 
       { intro j, dsimp, simp, }
     end } }
 
+def pointwise_diagram (F : J ⥤ PresheafedSpace C)
+  (U : opens (limits.colimit F).carrier) : Jᵒᵖ ⥤ C :=
+{ obj := λ j, (F.obj (unop j)).presheaf.obj (op ((opens.map (colimit.ι F (unop j)).base).obj U)),
+  map := λ j k f, (F.map f.unop).c.app _ ≫ (F.obj (unop k)).presheaf.map
+    (eq_to_hom (by { rw [← colimit.w F f.unop, comp_base], refl })),
+  map_comp' := λ i j k f g,
+  begin
+    cases U,
+    dsimp,
+    simp_rw map_comp_c_app,
+    simp_rw category.assoc,
+    congr' 1,
+    rw Top.presheaf.pushforward.comp_inv_app,
+    rw Top.presheaf.pushforward_eq_hom_app,
+    rw category_theory.nat_trans.naturality_assoc,
+    rw Top.presheaf.pushforward_map_app,
+    congr' 1,
+    rw category.id_comp,
+    rw ← (F.obj (unop k)).presheaf.map_comp,
+    erw ← (F.obj (unop k)).presheaf.map_comp,
+    congr
+  end }
+
+def colimit_presheaf_obj_iso_pointwise_limit (F : J ⥤ PresheafedSpace C)
+  (U : opens (limits.colimit F).carrier) :
+  (limits.colimit F).presheaf.obj (op U) ≅ limit (pointwise_diagram F U) :=
+begin
+  refine ((sheaf_iso_of_iso (colimit.iso_colimit_cocone
+    ⟨_, colimit_cocone_is_colimit F⟩).symm).app (op U)).trans _,
+  refine (limit_obj_iso_limit_comp_evaluation _ _).trans (limits.lim.map_iso _),
+  fapply nat_iso.of_components,
+  { intro X,
+    refine ((F.obj (unop X)).presheaf.map_iso (eq_to_iso _)),
+    dsimp only [functor.op, unop_op, opens.map],
+    congr' 2,
+    rw set.preimage_preimage,
+    simp_rw ← comp_app,
+    congr' 2,
+    exact ι_preserves_colimits_iso_inv (forget C) F (unop X) },
+  { intros X Y f,
+    change ((F.map f.unop).c.app _ ≫ _ ≫ _) ≫ (F.obj (unop Y)).presheaf.map _ = _ ≫ _,
+    rw Top.presheaf.pushforward.comp_inv_app,
+    erw category.id_comp,
+    rw category.assoc,
+    erw ← (F.obj (unop Y)).presheaf.map_comp,
+    erw (F.map f.unop).c.naturality_assoc,
+    erw ← (F.obj (unop Y)).presheaf.map_comp,
+    congr }
+end
+
 end PresheafedSpace
 
 end algebraic_geometry

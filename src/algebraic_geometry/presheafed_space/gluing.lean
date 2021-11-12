@@ -55,7 +55,7 @@ provided.
 
 noncomputable theory
 
-open topological_space category_theory
+open topological_space category_theory opposite
 open category_theory.limits algebraic_geometry.PresheafedSpace
 namespace algebraic_geometry
 
@@ -78,155 +78,162 @@ such that
 We can then glue the topological spaces `U i` along `V i j`.
 -/
 @[nolint has_inhabited_instance]
-structure glue_data : Type (max u v + 1) :=
-  (ι : Type v)
-  (U : ι → PresheafedSpace C)
-  (V : ι × ι → PresheafedSpace C)
-  (f : Π i j, V (i, j) ⟶ U i)
-  (f_open : ∀ i j, open_immersion (f i j))
-  (f_id : ∀ i, is_iso (f i i))
-  (t : Π i j, V (i, j) ⟶ V (j, i))
-  (t_id : ∀ i, t i i = 𝟙 _)
-  (t' : Π i j k, pullback (f i j) (f i k) ⟶ pullback (f j k) (f j i))
-  (t_fac : ∀ i j k, t' i j k ≫ pullback.snd = pullback.fst ≫ t i j)
-  (cocycle : ∀ i j k , t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _)
+structure glue_data extends glue_data (PresheafedSpace C) :=
+  (f_open : ∀ i j, is_open_immersion (f i j))
 
+attribute [instance] glue_data.f_open
 
-attribute [simp] glue_data.t_id
-attribute [instance] glue_data.f_id glue_data.f_open
-attribute [reassoc] glue_data.t_fac glue_data.cocycle
+open category_theory.glue_data
 
 namespace glue_data
 
 variables {C} (D : glue_data C) [has_limits C]
 
-@[simp] lemma t'_iij (i j : D.ι) : D.t' i i j = (pullback_symmetry _ _).hom :=
-begin
-  have eq₁ := D.t_fac i i j,
-  have eq₂ := (is_iso.eq_comp_inv (D.f i i)).mpr (@pullback.condition _ _ _ _ _ _ (D.f i j) _),
-  rw [D.t_id, category.comp_id, eq₂] at eq₁,
-  have eq₃ := (is_iso.eq_comp_inv (D.f i i)).mp eq₁,
-  rw [category.assoc, ←pullback.condition, ←category.assoc] at eq₃,
-  exact mono.right_cancellation _ _
-    ((mono.right_cancellation _ _ eq₃).trans (pullback_symmetry_hom_comp_fst _ _).symm)
-end
+local notation `D'` := D.to_glue_data
 
-lemma t'_jii (i j : D.ι) : D.t' j i i = pullback.fst ≫ D.t j i ≫ inv pullback.snd :=
-by { rw [←category.assoc, ←D.t_fac], simp }
-
-lemma t'_iji (i j : D.ι) : D.t' i j i = pullback.fst ≫ D.t i j ≫ inv pullback.snd :=
-by { rw [←category.assoc, ←D.t_fac], simp }
-
-@[simp, reassoc, elementwise] lemma t_inv (i j : D.ι) :
-  D.t i j ≫ D.t j i = 𝟙 _ :=
-begin
-  have eq : (pullback_symmetry (D.f i i) (D.f i j)).hom = pullback.snd ≫ inv pullback.fst,
-  simp,
-  have := D.cocycle i j i,
-  rw [D.t'_iij, D.t'_jii, D.t'_iji, fst_eq_snd_of_mono_eq, eq] at this,
-  simp only [category.assoc, is_iso.inv_hom_id_assoc] at this,
-  rw [←is_iso.eq_inv_comp, ←category.assoc, is_iso.comp_inv_eq] at this,
-  simpa using this,
-end
-
-instance t_is_iso (i j : D.ι) : is_iso (D.t i j) :=
-⟨⟨D.t j i, D.t_inv _ _, D.t_inv _ _⟩⟩
-
-instance t'_is_iso (i j k : D.ι) : is_iso (D.t' i j k) :=
-⟨⟨D.t' j k i ≫ D.t' k i j, D.cocycle _ _ _, (by simpa using D.cocycle _ _ _)⟩⟩
-
-/-- (Implementation) The disjoint union of `U i`. -/
-def sigma_opens : PresheafedSpace C := ∐ D.U
-
-/-- (Implementation) The disjoint union of `V i j`. -/
-def sigma_inters : PresheafedSpace C := ∐ D.V
-
-/-- (Implementation) The projection `∐ D.inters ⟶ ∐ D.U` via left projection. -/
-def left_imm : D.sigma_inters ⟶ D.sigma_opens :=
-sigma.desc (λ ⟨i, j⟩, D.f i j ≫ sigma.ι D.U i)
-
-/-- (Implementation) The projection `∐ D.inters ⟶ ∐ D.U` via right projection. -/
-def right_imm : D.sigma_inters ⟶ D.sigma_opens :=
-sigma.desc (λ ⟨i, j⟩, D.t i j ≫ D.f j i ≫ sigma.ι D.U j)
-
-/-- (Implementation) The diagram to take colimit of. -/
-def diagram := parallel_pair D.left_imm D.right_imm
-
-/-- The glued topological space given a family of gluing data. -/
-def glued : PresheafedSpace C :=
-coequalizer D.left_imm D.right_imm
-
-/-- (Implementation) The projection `∐ D.U ⟶ D.glued` given by the colimit. -/
-def π : D.sigma_opens ⟶ D.glued :=
-coequalizer.π _ _
-
-instance π_epi : epi D.π :=
-coequalizer.π_epi
-
-/-- The open immersion `D.U i ⟶ D.glued` for each `i`. -/
-def imm (i : D.ι) : D.U i ⟶ D.glued :=
-sigma.ι _ _ ≫ D.π
-
-def to_top_glue_data : Top.glue_data :=
-{ ι := D.ι,
-  U := λ i, (D.U i).carrier,
-  V := λ i, (D.V i).carrier,
-  f := λ i j, (D.f i j).base,
-  f_open := λ i j, (D.f_open i j).base_open,
-  f_id := λ i, infer_instance,
-  t := λ i j, (D.t i j).base,
-  t_id := λ i, by { rw D.t_id i, refl },
-  t' := λ i j k, (pullback_carrier_iso_pullback _ _).inv ≫
-    (forget C).map (D.t' i j k) ≫ (pullback_carrier_iso_pullback _ _).hom,
-  t_fac := λ i j k, by simpa [iso.inv_comp_eq] using congr_arg hom.base (D.t_fac i j k),
-  cocycle := λ i j k, by simpa [iso.inv_comp_eq] using
-    congr_arg (λ f, hom.base f ≫ (pullback_carrier_iso_pullback (D.f i j) (D.f i k)).hom)
-      (D.cocycle i j k) }
+abbreviation to_top_glue_data : Top.glue_data :=
+{ f_open := λ i j, (D.f_open i j).base_open,
+  to_glue_data := D' .map_glue_data (forget C) }
 
 section end
 
-@[simps]
-def sigma_inters_carrier_iso : D.sigma_inters.carrier ≅ D.to_top_glue_data.sigma_inters :=
-preserves_colimit_iso (PresheafedSpace.forget C) (discrete.functor D.V) ≪≫
-  colim.map_iso (nat_iso.of_components (λ i, iso.refl _) (by { rintros _ _ ⟨⟨⟨⟩⟩⟩, simp }))
+def diagram_iso : D' .diagram.multispan ⋙ forget C ≅
+  D.to_top_glue_data.to_glue_data.diagram.multispan :=
+D' .diagram_iso _
 
-@[simps]
-def sigma_opens_carrier_iso : D.sigma_opens.carrier ≅ D.to_top_glue_data.sigma_opens :=
-preserves_colimit_iso (PresheafedSpace.forget C) (discrete.functor D.U) ≪≫
-  colim.map_iso (nat_iso.of_components (λ i, iso.refl _) (by { rintros _ _ ⟨⟨⟨⟩⟩⟩, simp }))
+def carrier_iso : D' .glued.carrier ≅ D.to_top_glue_data.to_glue_data.glued :=
+preserves_colimit_iso (forget C) D' .diagram.multispan ≪≫ colim.map_iso D.diagram_iso
 
-lemma left_imm_naturality :
-  D.sigma_inters_carrier_iso.inv ≫ D.left_imm.base =
-    D.to_top_glue_data.left_imm ≫ D.sigma_opens_carrier_iso.inv :=
+lemma imm_carrier_iso_eq (i : D.ι) :
+  (D' .imm i).base ≫ D.carrier_iso.hom = D.to_top_glue_data.imm i :=
 begin
-  ext1,
-  simp only [ι_preserves_colimits_iso_inv_assoc, functor.map_iso_inv,
-    nat_iso.of_components.inv_app, sigma_opens_carrier_iso, colimit.ι_desc_assoc, iso.trans_inv,
-    iso.refl_inv, colimit.ι_map_assoc, sigma_inters_carrier_iso, Top.glue_data.left_imm,
-    category.assoc, left_imm, forget_map, cofan.mk_ι_app],
-  rw ← comp_base,
-  erw colimit.ι_desc,
-  erw category.id_comp,
-  simp only [cofan.mk_ι_app],
-  delta left_imm,
-  simp? [left_imm],
+  erw ← category.assoc,
+  rw ← iso.eq_comp_inv,
+  erw ι_colim_map,
+  change (forget C).map _ ≫ _ = _,
+  erw ι_preserves_colimits_iso_hom,
+  erw category.id_comp
 end
 
-def glued_carrier_iso : D.glued.carrier ≅ D.to_top_glue_data.glued :=
+lemma imm_carrier_inv_eq (i : D.ι) :
+  D.to_top_glue_data.imm i ≫ D.carrier_iso.inv = (D' .imm i).base :=
+by { rw ← imm_carrier_iso_eq, simp }
+
+lemma imm_open_embedding (i : D.ι) : open_embedding (D' .imm i).base :=
 begin
-  refine preserves_colimit_iso (PresheafedSpace.forget C) (parallel_pair D.left_imm D.right_imm) ≪≫ colim.map_iso _,
-  fapply nat_iso.of_components,
-  { rintro ⟨⟩, exacts [D.sigma_inters_carrier_iso, D.sigma_opens_carrier_iso] },
-  rintros X Y ⟨_|_|_⟩,
+  rw ← imm_carrier_inv_eq,
+  exact open_embedding.comp (Top.homeo_of_iso D.carrier_iso.symm).open_embedding
+    (D.to_top_glue_data.imm_open_embedding i)
+end
+
+lemma lem (i j k : D.ι)  (U : (opens (D.V (i, j)).carrier)) :
+  (D.f_open i j).inv_app U ≫ (D.f i k).c.app _ =
+    (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _).c.app (op U) ≫
+    (PresheafedSpace.is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app (unop _)
+    ≫ (D.V _).presheaf.map (eq_to_hom (by { delta is_open_immersion.open_functor
+, dsimp only [functor.op, is_open_map.functor, opens.map, unop_op], congr, })) :=
+begin
+  -- rw ← cancel_epi (inv ((D.f_open i j).inv_app U)),
+  -- rw is_iso.inv_hom_id_assoc,
+  -- rw PresheafedSpace.is_open_immersion.inv_inv_app,
+  -- simp_rw category.assoc,
+  -- erw (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _).c.naturality_assoc,
+  -- have := PresheafedSpace.congr_app (@pullback.condition _ _ _ _ _ (D.f i j) (D.f i k) _),
+  -- dsimp only [comp_c_app] at this,
+  -- reassoc! this,
+  -- erw this,
+  -- erw ← functor.map_comp_assoc,
+  -- erw PresheafedSpace.is_open_immersion.inv_naturality_assoc,
+  -- erw PresheafedSpace.is_open_immersion.app_inv_app_assoc,
+  -- erw ← (D.V (i, k)).presheaf.map_comp,
+  -- erw ← (D.V (i, k)).presheaf.map_comp,
+  -- convert (category.comp_id _).symm,
+  -- erw (D.V (i, k)).presheaf.map_id,
+  -- refl,
+end
+
+def opens_image_preimage_map (i j : D.ι) (U : opens (D.U i).carrier) :
+  (D.U i).presheaf.obj (op U) ⟶ (D.U j).presheaf.obj
+    (op ((opens.map (D' .imm j).base).obj ((D.imm_open_embedding i).is_open_map.functor.obj U))) :=
+begin
+  refine (D.f i j).c.app (op U) ≫ _,
+  change (D.to_glue_data.V (i, j)).presheaf.obj _ ⟶ _,
+  dsimp only [functor.op],
+  let H : is_open_immersion (D.t i j) := infer_instance,
+  refine H.inv_app _ ≫ (D.f_open j i).inv_app _ ≫ (D.to_glue_data.U j).presheaf.map (eq_to_hom _).op,
+  dsimp only [opens.map, is_open_map.functor],
+  congr' 1,
   dsimp,
-  ext,
-  simp[sigma_inters_carrier_iso, sigma_opens_carrier_iso],
+  rw [← D.imm_carrier_inv_eq,← D.imm_carrier_inv_eq, coe_comp, coe_comp],
+  conv_lhs { erw [← set.image_image, ← set.preimage_preimage] },
+  rw set.preimage_image_eq,
+  dsimp only,
+  erw Top.glue_data.preimage_image_eq_image',
+  rw coe_comp,
+  rw set.image_image,
+  refl,
+  rw ← Top.mono_iff_injective,
+  apply_instance
 end
 
-lemma imm_open_embedding (i : D.ι) : open_embedding (D.imm i).base :=
-begin
-  have := preserves_colimit_iso (PresheafedSpace.forget C) (parallel_pair D.left_imm D.right_imm),
-end
+section end
+
+lemma opens_image_preimage_map (i j k : D.ι) (U : opens (D.U i).carrier) :
+  D.opens_image_preimage_map i j U ≫
+    (D.to_glue_data.f j k).c.app _ ≫
+        (D.to_glue_data.V (j, k)).presheaf.map (eq_to_hom _) =
+          D.opens_image_preimage_map i k U ≫
+            (D.to_glue_data.f k j).c.app _ ≫ (D.to_glue_data.t j k).c.app _
+
+
+def inv_f (i : D.ι) (U : opens (D.U i).carrier) :
+  (D.U i).presheaf.obj (op U) ⟶ limit (pointwise_diagram D.to_glue_data.diagram.multispan
+    ((D.imm_open_embedding i).is_open_map.functor.obj U)) :=
+limit.lift (pointwise_diagram D.to_glue_data.diagram.multispan
+    ((D.imm_open_embedding i).is_open_map.functor.obj U))
+{ X := (D.U i).presheaf.obj (op U),
+  π := { app :=
+  begin
+    intro j,
+    induction j using opposite.rec,
+    rcases j with (⟨j, k⟩|j),
+    { refine D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫
+       (D.V (j, k)).presheaf.map (eq_to_hom _),
+      dsimp only [functor.op, opens.map, unop_op],
+      congr' 2,
+      rw set.preimage_preimage,
+      change (D.f j k ≫ D' .imm j).base ⁻¹' _ = _,
+      congr' 3,
+      exact colimit.w D' .diagram.multispan (walking_multispan.hom.fst (j, k))
+      },
+    exact D.opens_image_preimage_map i j U
+  end,
+  naturality' :=
+  begin
+    rintros X Y f',
+    induction X using opposite.rec,
+    induction Y using opposite.rec,
+    let f : Y ⟶ X := f'.unop, have : f' = f.op := rfl, clear_value f, subst this,
+    rcases f with (_|⟨j,k⟩|⟨j,k⟩),
+    { erw category.id_comp,
+      erw category_theory.functor.map_id,
+      rw category.comp_id },
+    { erw category.id_comp, congr' 1 },
+    erw category.id_comp,
+    change D.opens_image_preimage_map i j U ≫
+      (D.f j k).c.app _ ≫
+        (D.V (j, k)).presheaf.map (eq_to_hom _) =
+          (_ ≫ _ ≫ _) ≫
+            ((D.f k j).c.app _ ≫ (D.t j k).c.app _) ≫
+              (D.V (j, k)).presheaf.map (eq_to_hom _),
+    simp_rw category.assoc,
+    erw (D.f k j).c.naturality_assoc,
+    -- erw is_open_immersion.app_inv_app_assoc,
+    -- erw is_open_immersion.inv_naturality_assoc,
+    -- dsimp [pointwise_diagram, opens_image_preimage_map],
+    -- simp,
+
+  end }
 
 lemma lem (i : D.ι) (U : opens (D.U i)) :
 

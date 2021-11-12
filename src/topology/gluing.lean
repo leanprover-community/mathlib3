@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import topology.category.Top
-import category_theory.limits.concrete_category
-import category_theory.limits.shapes.multiequalizer
+import category_theory.glue_data
 
 /-!
 # Gluing Topological spaces
@@ -76,104 +75,40 @@ such that
 We can then glue the topological spaces `U i` along `V i j`.
 -/
 @[nolint has_inhabited_instance]
-structure glue_data : Type (u+1) :=
-  (ι : Type u)
-  (U : ι → Top.{u})
-  (V : ι × ι → Top.{u})
-  (f : Π i j, V (i, j) ⟶ U i)
+structure glue_data extends glue_data Top :=
   (f_open : ∀ i j, open_embedding (f i j))
-  (f_id : ∀ i, is_iso (f i i))
-  (t : Π i j, V (i, j) ⟶ V (j, i))
-  (t_id : ∀ i, t i i = 𝟙 _)
-  (t' : Π i j k, pullback (f i j) (f i k) ⟶ pullback (f j k) (f j i))
-  (t_fac : ∀ i j k, t' i j k ≫ pullback.snd = pullback.fst ≫ t i j)
-  (cocycle : ∀ i j k , t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _)
+  (f_mono := λ i j, (Top.mono_iff_injective _).mpr (f_open i j).to_embedding.inj)
 
-attribute [simp] glue_data.t_id
-attribute [instance] glue_data.f_id
-attribute [reassoc] glue_data.t_fac glue_data.cocycle
+-- attribute [simp] glue_data.t_id
+-- attribute [instance] glue_data.f_id
+open category_theory.glue_data
 
 namespace glue_data
 
 variable (D : glue_data.{u})
 
-instance (i j : D.ι) : mono (D.f i j) :=
-(Top.mono_iff_injective _).mpr (D.f_open i j).to_embedding.inj
+local notation `D'` := D.to_glue_data
 
-@[simp] lemma t'_iij (i j : D.ι) : D.t' i i j = (pullback_symmetry _ _).hom :=
-begin
-  have eq₁ := D.t_fac i i j,
-  have eq₂ := (is_iso.eq_comp_inv (D.f i i)).mpr (@pullback.condition _ _ _ _ _ _ (D.f i j) _),
-  rw [D.t_id, category.comp_id, eq₂] at eq₁,
-  have eq₃ := (is_iso.eq_comp_inv (D.f i i)).mp eq₁,
-  rw [category.assoc, ←pullback.condition, ←category.assoc] at eq₃,
-  exact mono.right_cancellation _ _
-    ((mono.right_cancellation _ _ eq₃).trans (pullback_symmetry_hom_comp_fst _ _).symm)
-end
-
-lemma t'_jii (i j : D.ι) : D.t' j i i = pullback.fst ≫ D.t j i ≫ inv pullback.snd :=
-by { rw [←category.assoc, ←D.t_fac], simp }
-
-lemma t'_iji (i j : D.ι) : D.t' i j i = pullback.fst ≫ D.t i j ≫ inv pullback.snd :=
-by { rw [←category.assoc, ←D.t_fac], simp }
-
-@[simp, reassoc, elementwise] lemma t_inv (i j : D.ι) :
-  D.t i j ≫ D.t j i = 𝟙 _ :=
-begin
-  have eq : (pullback_symmetry (D.f i i) (D.f i j)).hom = pullback.snd ≫ inv pullback.fst,
-  simp,
-  have := D.cocycle i j i,
-  rw [D.t'_iij, D.t'_jii, D.t'_iji, fst_eq_snd_of_mono_eq, eq] at this,
-  simp only [category.assoc, is_iso.inv_hom_id_assoc] at this,
-  rw [←is_iso.eq_inv_comp, ←category.assoc, is_iso.comp_inv_eq] at this,
-  simpa using this,
-end
-
-instance t_is_iso (i j : D.ι) : is_iso (D.t i j) :=
-⟨⟨D.t j i, D.t_inv _ _, D.t_inv _ _⟩⟩
-
-instance t'_is_iso (i j k : D.ι) : is_iso (D.t' i j k) :=
-⟨⟨D.t' j k i ≫ D.t' k i j, D.cocycle _ _ _, D.cocycle _ _ _⟩⟩
-
-/-- (Implementation) The disjoint union of `U i`. -/
-def sigma_opens : Top := ∐ D.U
-
-/-- (Implementation) The diagram to take colimit of. -/
-def diagram : multispan_index Top :=
-{ L := D.ι × D.ι, R := D.ι,
-  fst_from := prod.fst, snd_from := prod.snd,
-  left := D.V, right := D.U,
-  fst := λ ⟨i, j⟩, D.f i j,
-  snd := λ ⟨i, j⟩, D.t i j ≫ D.f j i }
-
-/-- The glued topological space given a family of gluing data. -/
-def glued : Top := multicoequalizer D.diagram
-
-/-- (Implementation) The projection `∐ D.U ⟶ D.glued` given by the colimit. -/
-def π : D.sigma_opens ⟶ D.glued := multicoequalizer.sigma_π D.diagram
-
-instance π_epi : epi D.π := by { unfold π, apply_instance }
-
-lemma π_surjective : function.surjective D.π :=
-(Top.epi_iff_surjective D.π).mp infer_instance
+lemma π_surjective : function.surjective D' .π :=
+(Top.epi_iff_surjective D' .π).mp infer_instance
 
 /-- The open immersion `D.U i ⟶ D.glued` for each `i`. -/
-def imm (i : D.ι) : D.U i ⟶ D.glued :=
-multicoequalizer.π D.diagram i
+def imm (i : D.ι) : D.U i ⟶ D' .glued :=
+multicoequalizer.π D' .diagram i
 
-lemma is_open_iff (U : set D.glued) : is_open U ↔ ∀ i, is_open (D.imm i ⁻¹' U) :=
+lemma is_open_iff (U : set D' .glued) : is_open U ↔ ∀ i, is_open (D.imm i ⁻¹' U) :=
 begin
   delta imm,
-  simp_rw ← multicoequalizer.ι_sigma_π D.diagram,
-  rw ← (homeo_of_iso (multicoequalizer.iso_coequalizer D.diagram).symm).is_open_preimage,
+  simp_rw ← multicoequalizer.ι_sigma_π D' .diagram,
+  rw ← (homeo_of_iso (multicoequalizer.iso_coequalizer D' .diagram).symm).is_open_preimage,
   rw [coequalizer_is_open_iff, colimit_is_open_iff],
   refl
 end
 
-lemma imm_jointly_surjective (x : D.glued) : ∃ i (y : D.U i), D.imm i y = x :=
+lemma imm_jointly_surjective (x : D' .glued) : ∃ i (y : D.U i), D.imm i y = x :=
 begin
   delta imm,
-  simp_rw ← multicoequalizer.ι_sigma_π D.diagram,
+  simp_rw ← multicoequalizer.ι_sigma_π D' .diagram,
   rcases D.π_surjective x with ⟨x', rfl⟩,
   rw ← (show (sigma_iso_sigma _).inv _ = x',
     from concrete_category.congr_hom ((sigma_iso_sigma _).hom_inv_id) x'),
@@ -184,13 +119,13 @@ end
 @[simp, elementwise]
 lemma glue_condition (i j : D.ι) :
   D.t i j ≫ D.f j i ≫ D.imm j = D.f i j ≫ D.imm i :=
-(multicoequalizer.condition D.diagram ⟨i, j⟩).symm
+(multicoequalizer.condition D' .diagram ⟨i, j⟩).symm
 
 /--
  An equivalence relation on `Σ i, D.U i` that holds iff `D.imm i x = D.imm j y`.
  See `Top.gluing_data.imm_eq_iff_rel`.
  -/
-def rel (a b : Σ i, D.U i) : Prop :=
+def rel (a b : Σ i, ((D.U i : Top) : Type*)) : Prop :=
   a = b ∨ ∃ (x : D.V (a.1, b.1)) , D.f _ _ x = a.2 ∧ D.f _ _ (D.t _ _ x) = b.2
 
 lemma rel_equiv : equivalence D.rel :=
@@ -213,25 +148,25 @@ lemma rel_equiv : equivalence D.rel :=
     dsimp only at *,
     cases e₁, cases e₃, cases e₄, cases eq₁, cases eq₂, simp,
     have h₁ : D.t' j i k ≫ pullback.fst ≫ D.f i k = pullback.fst ≫ D.t j i ≫ D.f i j,
-    { rw ←D.t_fac_assoc, congr' 1, exact pullback.condition },
+    { rw ←D' .t_fac_assoc, congr' 1, exact pullback.condition },
     have h₂ : D.t' j i k ≫ pullback.fst ≫ D.t i k ≫ D.f k i =
       pullback.snd ≫ D.t j k ≫ D.f k j,
-    { rw ←D.t_fac_assoc,
+    { rw ←D' .t_fac_assoc,
       apply @epi.left_cancellation _ _ _ _ (D.t' k j i),
-      rw [D.cocycle_assoc, D.t_fac_assoc, D.t_inv_assoc],
+      rw [D' .cocycle_assoc, D' .t_fac_assoc, D' .t_inv_assoc],
       exact pullback.condition.symm },
     exact ⟨continuous_map.congr_fun h₁ z, continuous_map.congr_fun h₂ z⟩
   end⟩
 
 open category_theory.limits.walking_parallel_pair
 
-lemma eqv_gen_of_π_eq {x y : ∐ D.U} (h : D.π x = D.π y) :
-  eqv_gen (types.coequalizer_rel D.diagram.fst_sigma_map D.diagram.snd_sigma_map) x y :=
+lemma eqv_gen_of_π_eq {x y : ∐ D.U} (h : D' .π x = D' .π y) :
+  eqv_gen (types.coequalizer_rel D' .diagram.fst_sigma_map D' .diagram.snd_sigma_map) x y :=
 begin
   delta π multicoequalizer.sigma_π at h,
   simp_rw comp_app at h,
-  replace h := (Top.mono_iff_injective (multicoequalizer.iso_coequalizer D.diagram).inv).mp _ h,
-  let diagram := parallel_pair D.diagram.fst_sigma_map D.diagram.snd_sigma_map ⋙ forget _,
+  replace h := (Top.mono_iff_injective (multicoequalizer.iso_coequalizer D' .diagram).inv).mp _ h,
+  let diagram := parallel_pair D' .diagram.fst_sigma_map D' .diagram.snd_sigma_map ⋙ forget _,
   have : colimit.ι diagram one x = colimit.ι diagram one y,
   { rw ←ι_preserves_colimits_iso_hom,
     simp [h] },
@@ -316,7 +251,7 @@ by rw [ ←set.preimage_image_eq (set.range (D.f j i)) (D.imm_injective j), ←s
         ←set.image_univ, ←set.image_comp, ←coe_comp, set.image_univ,set.image_univ,
         ←image_inter, set.preimage_range_inter]
 
-lemma preimage_image_eq_preimage_f (i j : D.ι) (U : set (D.U i)) :
+lemma preimage_image_eq_image (i j : D.ι) (U : set (D' .U i)) :
 D.imm j ⁻¹' (D.imm i '' U) = D.f _ _ '' ((D.t j i ≫ D.f _ _) ⁻¹' U) :=
 begin
   have : D.f _ _ ⁻¹' (D.imm j ⁻¹' (D.imm i '' U)) = (D.t j i ≫ D.f _ _) ⁻¹' U,
@@ -331,11 +266,25 @@ begin
   exact set.preimage_mono (set.image_subset_range _ _),
 end
 
-lemma open_image_open (i : D.ι) (U : opens (D.U i)) : is_open (D.imm i '' U) :=
+lemma preimage_image_eq_image' (i j : D.ι) (U : set (D' .U i)) :
+D.imm j ⁻¹' (D.imm i '' U) = (D.t i j ≫ D.f _ _) '' ((D.f _ _) ⁻¹' U) :=
+begin
+  convert D.preimage_image_eq_image i j U using 1,
+  rw [coe_comp, coe_comp, ← set.image_image],
+  congr' 1,
+  rw ← set.eq_preimage_iff_image_eq,
+  rw set.preimage_preimage,
+  change _ = (D.t i j ≫ D.t j i ≫ _) ⁻¹' _,
+  rw D' .t_inv_assoc,
+  rw ← is_iso_iff_bijective,
+  apply (forget Top).map_is_iso
+end
+
+lemma open_image_open (i : D.ι) (U : opens (D' .U i)) : is_open (D.imm i '' U) :=
 begin
   rw is_open_iff,
   intro j,
-  rw preimage_image_eq_preimage_f,
+  rw preimage_image_eq_image,
   apply (D.f_open _ _).is_open_map,
   apply (D.t j i ≫ D.f i j).continuous_to_fun.is_open_preimage,
   exact U.property

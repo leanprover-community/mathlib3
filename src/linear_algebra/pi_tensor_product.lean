@@ -442,8 +442,8 @@ variables (ι)
 def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
 { to_fun := lift ⟨λ (_ : ι → M), (1 : R), λ v, is_empty_elim, λ v, is_empty_elim⟩,
   inv_fun := λ r, r • tprod R (@is_empty_elim _ _ _),
-  left_inv := λ x, by {
-    apply x.induction_on,
+  left_inv := λ x, by
+  { apply x.induction_on,
     { intros r f,
       have := subsingleton.elim f is_empty_elim,
       simp [this], },
@@ -466,8 +466,8 @@ variables {ι}
 def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R] M :=
 { to_fun := lift (multilinear_map.of_subsingleton R M i₀),
   inv_fun := λ m, tprod R (λ v, m),
-  left_inv := λ x, by {
-    dsimp only,
+  left_inv := λ x, by
+  { dsimp only,
     have : ∀ (f : ι → M) (z : M), (λ i : ι, z) = update f i₀ z,
     { intros f z,
       ext i,

@@ -82,8 +82,8 @@ lemma find_correct_exact {t : rbnode α} {lt x} [decidable_rel lt] [is_strict_we
 begin
   apply find.induction lt t x; intros; simp only [mem_exact, find, *],
   iterate 2
-  {
-    { cases hs,
+
+  { { cases hs,
       apply iff.intro,
 
       { intro hm, blast_disjs,

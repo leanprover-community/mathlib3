@@ -227,6 +227,7 @@ def braces_check(lines, path):
         if lstr[-1] == '{':
             if "goal" in lstr:
                 continue
+            errors += [(WRN_BRC, line_nr, path)]
         if lstr[0] == '}':
             errors += [(WRN_BRC, line_nr, path)]
     return errors

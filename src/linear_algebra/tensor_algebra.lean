@@ -248,12 +248,15 @@ alg_equiv.of_alg_hom
       direct_sum.lof R ℕ (λ n, ⨂[R]^n M) _ ∘ₗ x.to_linear_map)
   (direct_sum.to_algebra _ _ (λ i, pi_tensor_product.lift (tpower R M i))
     (by {
+      dsimp only [tensor_power.one, tensor_power.ghas_one_def],
+      rw [tensor_power.algebra_map_eq_smul_tprod, one_smul],
+      refine (pi_tensor_product.lift.tprod _).trans _,
       sorry
     })
-    (by {
+    (λ i j ai aj, by {
       sorry
     })
-    (by {
+    (λ r, by {
       sorry
     }))
   (by { ext, sorry })

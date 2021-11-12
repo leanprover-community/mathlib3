@@ -126,7 +126,7 @@ variable (D)
 
 /-- The plus construction, a functor sending `P` to `J.plus_obj P`. -/
 @[simps]
-def plus : (Cᵒᵖ ⥤ D) ⥤ Cᵒᵖ ⥤ D :=
+def plus_functor : (Cᵒᵖ ⥤ D) ⥤ Cᵒᵖ ⥤ D :=
 { obj := λ P, J.plus_obj P,
   map := λ P Q η, J.plus_map η,
   map_id' := begin
@@ -156,7 +156,7 @@ variable {D}
 /-- The canonical map from `P` to `J.plus.obj P`.
 See `to_plus` for a functorial version. -/
 @[simps]
-def map_to_plus : P ⟶ (J.plus D).obj P :=
+def to_plus : P ⟶ J.plus_obj P :=
 { app := λ X, cover.to_multiequalizer (⊤ : J.cover X.unop) P ≫
     colimit.ι (J.diagram P X.unop) (op ⊤),
   naturality' := begin
@@ -179,8 +179,8 @@ variable (D)
 
 /-- The natural transformation from the identity functor to `plus`. -/
 @[simps]
-def to_plus : (𝟭 (Cᵒᵖ ⥤ D)) ⟶ J.plus D :=
-{ app := λ P, J.map_to_plus P,
+def to_plus_nat_trans : (𝟭 (Cᵒᵖ ⥤ D)) ⟶ J.plus_functor D :=
+{ app := λ P, J.to_plus P,
   naturality' := begin
     intros P Q η,
     ext,
@@ -198,8 +198,8 @@ variable {D}
 
 /-- `(P ⟶ P⁺)⁺ = P⁺ ⟶ P⁺⁺ -/
 @[simp]
-lemma plus_map_to_plus_app :
-  J.plus_map (J.map_to_plus P) = J.map_to_plus (J.plus_obj P) :=
+lemma plus_map_to_plus :
+  J.plus_map (J.to_plus P) = J.to_plus (J.plus_obj P) :=
 begin
   ext X S,
   dsimp,

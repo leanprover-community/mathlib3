@@ -94,7 +94,6 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
     (pushforward_eq (colimit.w (F ⋙ PresheafedSpace.forget C) f) (F.obj j).presheaf).hom).op,
   map_id' := λ j,
   begin
-    sorry,
     apply (op_equiv _ _).injective,
     ext U,
     induction U using opposite.rec,
@@ -118,8 +117,6 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
   begin
     apply (op_equiv _ _).injective,
     ext U,
-    sorry,
-/-
     dsimp,
     simp only [map_comp_c_app, id.def, eq_to_hom_op, pushforward_map_app, eq_to_hom_map, assoc,
       id_comp, pushforward.comp_inv_app, pushforward_eq_hom_app],
@@ -140,8 +137,10 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
       exact colimit.w (F ⋙ PresheafedSpace.forget C) g, },
     -- Finally, the original goal is now easy:
     swap 2,
-    { simp, refl, },
--/
+    { simp only [Top.presheaf.pushforward_obj_map,
+ category_theory.category.assoc,
+ category_theory.eq_to_hom_map,
+ category_theory.eq_to_hom_trans], refl, },
   end, }
 
 variables [has_limits C]

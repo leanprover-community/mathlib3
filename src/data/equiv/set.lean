@@ -48,9 +48,14 @@ lemma _root_.set.preimage_equiv_eq_image_symm {α β} (S : set α) (f : β ≃ �
   f ⁻¹' S = f.symm '' S :=
 (f.symm.image_eq_preimage S).symm
 
-protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
-  t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
+@[simp] protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
+  e.symm '' t ⊆ s ↔ t ⊆ e '' s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
+
+@[simp] protected lemma subset_image' {α β} (e : α ≃ β) (s : set α) (t : set β) :
+  s ⊆ e.symm '' t ↔ e '' s ⊆ t :=
+calc s ⊆ e.symm '' t ↔ e.symm.symm '' s ⊆ t : by rw e.symm.subset_image
+                 ... ↔ e '' s ⊆ t : by rw e.symm_symm
 
 @[simp] lemma symm_image_image {α β} (e : α ≃ β) (s : set α) : e.symm '' (e '' s) = s :=
 e.left_inverse_symm.image_image s
@@ -124,8 +129,9 @@ def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
   left_inv := λ x, by simp,
   right_inv := λ y, by simp, }.
 
-namespace set
 open set
+
+namespace set
 
 /-- `univ α` is equivalent to `α`. -/
 @[simps apply symm_apply]
@@ -441,6 +447,10 @@ begin
   simp [apply_of_injective_symm f hf],
 end
 
+lemma coe_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+  ((of_injective f hf).symm : range f → α) = range_splitting f :=
+by { ext ⟨y, x, rfl⟩, apply hf, simp [apply_range_splitting f] }
+
 @[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
   f ∘ ((of_injective f hf).symm) = coe :=
 funext (λ x, apply_of_injective_symm f hf x)
@@ -468,7 +478,7 @@ by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an
-equivalence between the the types `↥s` and ``↥t`. -/
+equivalence between the types `↥s` and ``↥t`. -/
 noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : set β} (f : α → β)
   (h : set.bij_on f s t) : s ≃ t :=
 equiv.of_bijective _ h.bijective

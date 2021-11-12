@@ -68,8 +68,7 @@ structure pretopology :=
 
 namespace pretopology
 
-instance : has_coe_to_fun (pretopology C) :=
-⟨_, λ J, J.coverings⟩
+instance : has_coe_to_fun (pretopology C) (λ _, Π X : C, set (presieve X)) := ⟨coverings⟩
 
 instance : partial_order (pretopology C) :=
 { le := λ K₁ K₂, (K₁ : Π (X : C), set _) ≤ K₂,
@@ -83,8 +82,7 @@ instance : order_top (pretopology C) :=
     has_isos := λ _ _ _ _, set.mem_univ _,
     pullbacks := λ _ _ _ _ _, set.mem_univ _,
     transitive := λ _ _ _ _ _, set.mem_univ _ },
-  le_top := λ K X S hS, set.mem_univ _,
-  ..pretopology.partial_order C }
+  le_top := λ K X S hS, set.mem_univ _ }
 
 instance : inhabited (pretopology C) := ⟨⊤⟩
 
@@ -203,8 +201,7 @@ instance : order_bot (pretopology C) :=
   begin
     rintro ⟨Y, f, hf, rfl⟩,
     exactI K.has_isos f,
-  end,
-  ..pretopology.partial_order C }
+  end }
 
 /-- The trivial pretopology induces the trivial grothendieck topology. -/
 lemma to_grothendieck_bot : to_grothendieck C ⊥ = ⊥ :=

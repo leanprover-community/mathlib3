@@ -316,16 +316,16 @@ begin
   refine ⟨one_dvd _, nat.succ_lt_succ (nat.succ_pos _)⟩,
 end
 
-@[simp]
-lemma prime.sum_proper_divisors {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
-  ∑ x in p.proper_divisors, f x = f 1 :=
+@[simp, to_additive]
+lemma prime.prod_proper_divisors {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
+  ∏ x in p.proper_divisors, f x = f 1 :=
 by simp [h.proper_divisors]
 
-@[simp]
-lemma prime.sum_divisors {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
-  ∑ x in p.divisors, f x = f p + f 1 :=
+@[simp, to_additive]
+lemma prime.prod_divisors {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
+  ∏ x in p.divisors, f x = f p * f 1 :=
 by rw [divisors_eq_proper_divisors_insert_self_of_pos h.pos,
-       sum_insert proper_divisors.not_self_mem, h.sum_proper_divisors]
+       prod_insert proper_divisors.not_self_mem, h.prod_proper_divisors]
 
 lemma proper_divisors_eq_singleton_one_iff_prime :
   n.proper_divisors = {1} ↔ n.prime :=
@@ -357,20 +357,35 @@ begin
     (eq.trans sum_singleton h.symm)
 end
 
-@[simp]
-lemma prod_divisors_prime {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
-  ∏ x in p.divisors, f x = f p * f 1 :=
-@prime.sum_divisors (additive α) _ _ _ h
+lemma mem_proper_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) {x : ℕ} :
+  x ∈ proper_divisors (p ^ k) ↔ ∃ (j : ℕ) (H : j < k), x = p ^ j :=
+begin
+  rw [mem_proper_divisors, nat.dvd_prime_pow pp, ← exists_and_distrib_right],
+  simp only [exists_prop, and_assoc],
+  apply exists_congr,
+  intro a,
+  split; intro h,
+  { rcases h with ⟨h_left, rfl, h_right⟩,
+    rwa pow_lt_pow_iff pp.one_lt at h_right,
+    simpa, },
+  { rcases h with ⟨h_left, rfl⟩,
+    rwa pow_lt_pow_iff pp.one_lt,
+    simp [h_left, le_of_lt], },
+end
 
-@[simp]
-lemma sum_divisors_prime_pow {α : Type*} [add_comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
-  ∑ x in (p ^ k).divisors, f x = ∑ x in range (k + 1), f (p ^ x) :=
-by simp [h, divisors_prime_pow]
+lemma proper_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
+  proper_divisors (p ^ k) = (finset.range k).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
+by { ext, simp [mem_proper_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a], }
 
-@[simp]
+@[simp, to_additive]
+lemma prod_proper_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α}
+  (h : p.prime) : ∏ x in (p ^ k).proper_divisors, f x = ∏ x in range k, f (p ^ x) :=
+by simp [h, proper_divisors_prime_pow]
+
+@[simp, to_additive]
 lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
-@sum_divisors_prime_pow (additive α) _ _ _ _ h
+by simp [h, divisors_prime_pow]
 
 @[simp]
 lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :

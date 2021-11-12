@@ -13,7 +13,7 @@ import data.equiv.ring
 In this file we define two-binop (`semiring`, `ring` etc) structures on `R × S`. We also prove
 trivial `simp` lemmas, and define the following operations on `ring_hom`s:
 
-* `fst R S : R × S →+* R`, `snd R S : R × S →+* R`: projections `prod.fst` and `prod.snd`
+* `fst R S : R × S →+* R`, `snd R S : R × S →+* S`: projections `prod.fst` and `prod.snd`
   as `ring_hom`s;
 * `f.prod g : `R →+* S × T`: sends `x` to `(f x, g x)`;
 * `f.prod_map g : `R × S → R' × S'`: `prod.map f g` as a `ring_hom`,

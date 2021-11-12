@@ -73,13 +73,13 @@ begin
   { rw [list.take_append_drop, list.take_append_drop] },
 
   { simp only [list.length_drop, list.length_take],
-    rw [min_eq_left (hm.trans hlen), min_eq_left hle, add_sub_cancel_of_le hle],
+    rw [min_eq_left (hm.trans hlen), min_eq_left hle, add_tsub_cancel_of_le hle],
     exact hm },
 
   { intro h,
     have hlen' := congr_arg list.length h,
     simp only [list.length_drop, list.length, list.length_take] at hlen',
-    rw [min_eq_left, nat.sub_eq_zero_iff_le] at hlen',
+    rw [min_eq_left, tsub_eq_zero_iff_le] at hlen',
     { apply hneq,
       apply le_antisymm,
       assumption' },

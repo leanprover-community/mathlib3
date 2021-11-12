@@ -894,10 +894,10 @@ instance : add_comm_group (M ⊗[R] N) :=
   sub := _,
   sub_eq_add_neg := λ _ _, rfl,
   add_left_neg := λ x, by exact tensor_product.add_left_neg x,
-  gsmul := λ n v, n • v,
-  gsmul_zero' := by simp [tensor_product.zero_smul],
-  gsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
-  gsmul_neg' := λ n x, begin
+  zsmul := λ n v, n • v,
+  zsmul_zero' := by simp [tensor_product.zero_smul],
+  zsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  zsmul_neg' := λ n x, begin
     change (- n.succ : ℤ) • x = - (((n : ℤ) + 1) • x),
     rw [← zero_add (-↑(n.succ) • x), ← tensor_product.add_left_neg (↑(n.succ) • x), add_assoc,
       ← add_smul, ← sub_eq_add_neg, sub_self, zero_smul, add_zero],

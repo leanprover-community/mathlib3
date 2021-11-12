@@ -82,6 +82,21 @@ by simp only [funext_iff, mul_indicator_apply_eq_one, set.disjoint_left, mem_mul
   mul_indicator s f = 1 ↔ disjoint (mul_support f) s :=
 mul_indicator_eq_one
 
+@[to_additive] lemma mul_indicator_eq_one_iff (a : α) :
+  s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ mul_support f :=
+begin
+  split; intro h,
+  { by_contra hmem,
+    simp only [set.mem_inter_eq, not_and, not_not, function.mem_mul_support] at hmem,
+    refine h _,
+    by_cases a ∈ s,
+    { simp_rw [set.mul_indicator, if_pos h],
+      exact hmem h },
+    { simp_rw [set.mul_indicator, if_neg h] } },
+  { simp_rw [set.mul_indicator, if_pos h.1],
+    exact h.2 }
+end
+
 @[simp, to_additive] lemma mul_support_mul_indicator :
   function.mul_support (s.mul_indicator f) = s ∩ function.mul_support f :=
 ext $ λ x, by simp [function.mem_mul_support, mul_indicator_apply_eq_one]

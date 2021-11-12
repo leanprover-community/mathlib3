@@ -47,6 +47,24 @@ lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_lef
 @[simp] lemma max_eq_left_iff : max a b = a ↔ b ≤ a := sup_eq_left
 @[simp] lemma max_eq_right_iff : max a b = b ↔ a ≤ b := sup_eq_right
 
+/-- For elements `a` and `b` of a linear order, either `min a b = a` and `a ≤ b`,
+    or `min a b = b` and `b < a`.
+    Use cases on this lemma to automate linarith in inequalities -/
+lemma min_cases (a b : α) : min a b = a ∧ a ≤ b ∨ min a b = b ∧ b < a :=
+begin
+  by_cases a ≤ b,
+  { left,
+    exact ⟨min_eq_left h, h⟩ },
+  { right,
+    exact ⟨min_eq_right (le_of_lt (not_le.mp h)), (not_le.mp h)⟩ }
+end
+
+/-- For elements `a` and `b` of a linear order, either `max a b = a` and `b ≤ a`,
+    or `max a b = b` and `a < b`.
+    Use cases on this lemma to automate linarith in inequalities -/
+lemma max_cases (a b : α) : max a b = a ∧ b ≤ a ∨ max a b = b ∧ a < b :=
+@min_cases (order_dual α) _ a b
+
 lemma min_eq_iff : min a b = c ↔ a = c ∧ a ≤ b ∨ b = c ∧ b ≤ a :=
 begin
   split,
@@ -83,6 +101,8 @@ inf_le_iff
 
 @[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
 @min_le_iff (order_dual α) _ _ _ _
+
+lemma min_lt_max : min a b < max a b ↔ a ≠ b := inf_lt_sup
 
 lemma max_lt_max (h₁ : a < c) (h₂ : b < d) : max a b < max c d :=
 by simp [lt_max_iff, max_lt_iff, *]

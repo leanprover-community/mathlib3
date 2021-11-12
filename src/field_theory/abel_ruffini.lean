@@ -340,7 +340,7 @@ begin
     cases hx,
     exact ⟨is_integral β, hpq.2⟩,
   end),
-  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.unique'
+  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.eq_of_irreducible_of_monic
     (minpoly.irreducible (is_integral γ)) begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
@@ -379,7 +379,7 @@ lemma is_solvable' {α : E} {q : polynomial F} (q_irred : irreducible q)
   _root_.is_solvable q.gal :=
 begin
   haveI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal,
-  { rw [minpoly.unique'' q_irred q_aeval,
+  { rw [minpoly.eq_of_irreducible q_irred q_aeval,
         ←show minpoly F (⟨α, hα⟩ : solvable_by_rad F E) = minpoly F α,
         from minpoly.eq_of_algebra_map_eq (ring_hom.injective _) (is_integral ⟨α, hα⟩) rfl],
     exact is_solvable ⟨α, hα⟩ },

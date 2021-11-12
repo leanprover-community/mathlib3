@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.ennreal
+import measure_theory.measure.measure_space
 
 /-!
 # Probability mass functions
@@ -13,11 +14,11 @@ a function `α → ℝ≥0` such that the values have (infinite) sum `1`.
 
 This file features the monadic structure of `pmf` and the Bernoulli distribution
 
-## Implementation Notes
-
-This file is not yet connected to the `measure_theory` library in any way.
-At some point we need to define a `measure` from a `pmf` and prove the appropriate lemmas about
-that.
+Given `p : pmf α`, `pmf.to_outer_measure` constructs an `outer_measure` on `α`,
+by assigning each set the sum of the probabilities of each of its elements.
+Under this outer measure, every set is Carathéodory-measurable,
+so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
+`pmf.to_measure.is_probability_measure` shows this associated measure is a probability measure.
 
 ## Tags
 
@@ -33,7 +34,7 @@ def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0 // has_sum f 1 }
 
 namespace pmf
 
-instance : has_coe_to_fun (pmf α) := ⟨λ p, α → ℝ≥0, λ p a, p.1 a⟩
+instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0) := ⟨λ p a, p.1 a⟩
 
 @[ext] protected lemma ext : ∀ {p q : pmf α}, (∀ a, p a = q a) → p = q
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
@@ -45,10 +46,16 @@ lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 @[simp] lemma tsum_coe (p : pmf α) : ∑' a, p a = 1 := p.has_sum_coe_one.tsum_eq
 
 /-- The support of a `pmf` is the set where it is nonzero. -/
-def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
+def support (p : pmf α) : set α := function.support p
 
 @[simp] lemma mem_support_iff (p : pmf α) (a : α) :
   a ∈ p.support ↔ p a ≠ 0 := iff.rfl
+
+lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
+has_sum_le (by { intro b, split_ifs; simp only [h, zero_le'] })
+  (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
+
+section pure
 
 /-- The pure `pmf` is the `pmf` where all the mass lies in one point.
   The value of `pure a` is `1` at `a` and `0` elsewhere. -/
@@ -61,8 +68,9 @@ by simp
 
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 
-lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
-has_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (has_sum_ite_eq a (p a)) p.2
+end pure
+
+section bind
 
 protected lemma bind.summable (p : pmf α) (f : α → pmf β) (b : β) :
   summable (λ a : α, p a * f a b) :=
@@ -119,6 +127,10 @@ begin
   rw [ennreal.tsum_comm],
   simp [mul_assoc, mul_left_comm, mul_comm]
 end
+
+end bind
+
+section bind_on_support
 
 protected lemma bind_on_support.summable (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
   summable (λ a : α, p a * if h : p a = 0 then 0 else f a h b) :=
@@ -228,6 +240,10 @@ begin
   split_ifs with h1 h2 h2; ring,
 end
 
+end bind_on_support
+
+section map
+
 /-- The functorial action of a function on a `pmf`. -/
 def map (f : α → β) (p : pmf α) : pmf β := bind p (pure ∘ f)
 
@@ -241,8 +257,36 @@ by simp [map]
 lemma pure_map (a : α) (f : α → β) : (pure a).map f = pure (f a) :=
 by simp [map]
 
+end map
+
 /-- The monadic sequencing operation for `pmf`. -/
 def seq (f : pmf (α → β)) (p : pmf α) : pmf β := f.bind (λ m, p.bind $ λ a, pure (m a))
+
+section of_finite
+
+/-- Given a finset `s` and a function `f : α → ℝ≥0` with sum `1` on `s`,
+  such that `f x = 0` for `x ∉ s`, we get a `pmf` -/
+def of_finset (f : α → ℝ≥0) (s : finset α) (h : ∑ x in s, f x = 1)
+  (h' : ∀ x ∉ s, f x = 0) : pmf α :=
+⟨f, h ▸ has_sum_sum_of_ne_finset_zero h'⟩
+
+@[simp]
+lemma of_finset_apply {f : α → ℝ≥0} {s : finset α} (h : ∑ x in s, f x = 1)
+  (h' : ∀ x ∉ s, f x = 0) (a : α) : of_finset f s h h' a = f a :=
+rfl
+
+lemma of_finset_apply_of_not_mem {f : α → ℝ≥0} {s : finset α} (h : ∑ x in s, f x = 1)
+  (h' : ∀ x ∉ s, f x = 0) {a : α} (ha : a ∉ s) : of_finset f s h h' a = 0 :=
+h' a ha
+
+/-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
+def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
+of_finset f finset.univ h (λ x hx, absurd (finset.mem_univ x) hx)
+
+@[simp]
+lemma of_fintype_apply [fintype α] {f : α → ℝ≥0} (h : ∑ x, f x = 1)
+  (a : α) : of_fintype f h a = f a :=
+rfl
 
 /-- Given a non-empty multiset `s` we construct the `pmf` which sends `a` to the fraction of
   elements in `s` that are `a`. -/
@@ -258,11 +302,54 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
     simp {contextual := tt},
   end⟩
 
-/-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
-def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
-⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
+@[simp]
+lemma of_multiset_apply {s : multiset α} (hs : s ≠ 0) (a : α) :
+  of_multiset s hs a = s.count a / s.card :=
+rfl
 
-/-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by its `tsum` -/
+lemma of_multiset_apply_of_not_mem {s : multiset α} (hs : s ≠ 0)
+  {a : α} (ha : a ∉ s) : of_multiset s hs a = 0 :=
+div_eq_zero_iff.2 (or.inl $ nat.cast_eq_zero.2 $ multiset.count_eq_zero_of_not_mem ha)
+
+end of_finite
+
+section uniform
+
+/-- Uniform distribution taking the same non-zero probability on the nonempty finset `s` -/
+def uniform_of_finset (s : finset α) (hs : s.nonempty) : pmf α :=
+of_finset (λ a, if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0) s (Exists.rec_on hs (λ x hx,
+  calc ∑ (a : α) in s, ite (a ∈ s) (s.card : ℝ≥0)⁻¹ 0
+    = ∑ (a : α) in s, (s.card : ℝ≥0)⁻¹ : finset.sum_congr rfl (λ x hx, by simp [hx])
+    ... = s.card • (s.card : ℝ≥0)⁻¹ : finset.sum_const _
+    ... = (s.card : ℝ≥0) * (s.card : ℝ≥0)⁻¹ : by rw nsmul_eq_mul
+    ... = 1 : div_self (nat.cast_ne_zero.2 $ finset.card_ne_zero_of_mem hx)
+  )) (λ x hx, by simp only [hx, if_false])
+
+@[simp]
+lemma uniform_of_finset_apply {s : finset α} (hs : s.nonempty) (a : α) :
+  uniform_of_finset s hs a = if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0 :=
+rfl
+
+lemma uniform_of_finset_apply_of_mem {s : finset α} (hs : s.nonempty) {a : α} (ha : a ∈ s) :
+  uniform_of_finset s hs a = (s.card)⁻¹ :=
+by simp [ha]
+
+lemma uniform_of_finset_apply_of_not_mem {s : finset α} (hs : s.nonempty) {a : α} (ha : a ∉ s) :
+  uniform_of_finset s hs a = 0 :=
+by simp [ha]
+
+/-- The uniform pmf taking the same uniform value on all of the fintype `α` -/
+def uniform_of_fintype (α : Type*) [fintype α] [nonempty α] : pmf α :=
+  uniform_of_finset (finset.univ) (finset.univ_nonempty)
+
+@[simp]
+lemma uniform_of_fintype_apply [fintype α] [nonempty α] (a : α) :
+  uniform_of_fintype α a = (fintype.card α)⁻¹ :=
+by simpa only [uniform_of_fintype, finset.mem_univ, if_true, uniform_of_finset_apply]
+
+end uniform
+
+/-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by it's `tsum` -/
 def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
 ⟨λ a, f a * (∑' x, f x)⁻¹,
   (mul_inv_cancel hf0) ▸ has_sum.mul_right (∑' x, f x)⁻¹
@@ -270,6 +357,8 @@ def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
 
 lemma normalize_apply {f : α → ℝ≥0} (hf0 : tsum f ≠ 0) (a : α) :
   (normalize f hf0) a = f a * (∑' x, f x)⁻¹ := rfl
+
+section filter
 
 /-- Create new `pmf` by filtering on a set with non-zero measure and normalizing -/
 def filter (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) : pmf α :=
@@ -299,8 +388,122 @@ lemma filter_apply_ne_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a �
   (p.filter s h) a ≠ 0 ↔ a ∈ (p.support ∩ s) :=
 by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_not]
 
+end filter
+
+section bernoulli
+
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])
+
+@[simp]
+lemma bernuolli_apply {p : ℝ≥0} (h : p ≤ 1) (b : bool) :
+  bernoulli p h b = cond b p (1 - p) :=
+rfl
+
+end bernoulli
+
+section outer_measure
+
+open measure_theory measure_theory.outer_measure
+
+/-- Construct an `outer_measure` from a `pmf`, by assigning measure to each set `s : set α` equal
+  to the sum of `p x` for for each `x ∈ α` -/
+def to_outer_measure (p : pmf α) : outer_measure α :=
+outer_measure.sum (λ (x : α), p x • dirac x)
+
+lemma to_outer_measure_apply (p : pmf α) (s : set α) :
+  p.to_outer_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+tsum_congr (λ x, smul_dirac_apply (p x) x s)
+
+lemma to_outer_measure_apply' (p : pmf α) (s : set α) :
+  p.to_outer_measure s = ↑(∑' (x : α), s.indicator p x) :=
+by simp only [ennreal.coe_tsum (nnreal.indicator_summable (summable_coe p) s),
+  ennreal.coe_indicator, to_outer_measure_apply]
+
+@[simp]
+lemma to_outer_measure_apply_finset (p : pmf α) (s : finset α) :
+  p.to_outer_measure s = ∑ x in s, (p x : ℝ≥0∞) :=
+begin
+  refine (to_outer_measure_apply p s).trans ((@tsum_eq_sum _ _ _ _ _ _ s _).trans _),
+  { exact λ x hx, set.indicator_of_not_mem hx _ },
+  { exact finset.sum_congr rfl (λ x hx, set.indicator_of_mem hx _) }
+end
+
+@[simp]
+lemma to_outer_measure_apply_fintype [fintype α] (p : pmf α) (s : set α) :
+  p.to_outer_measure s = ∑ x, (s.indicator (λ x, (p x : ℝ≥0∞)) x) :=
+(p.to_outer_measure_apply s).trans (tsum_eq_sum (λ x h, absurd (finset.mem_univ x) h))
+
+lemma to_outer_measure_apply_eq_zero_iff (p : pmf α) (s : set α) :
+  p.to_outer_measure s = 0 ↔ disjoint p.support s :=
+begin
+  rw [to_outer_measure_apply', ennreal.coe_eq_zero,
+    tsum_eq_zero_iff (nnreal.indicator_summable (summable_coe p) s)],
+  exact function.funext_iff.symm.trans set.indicator_eq_zero',
+end
+
+@[simp]
+lemma to_outer_measure_caratheodory (p : pmf α) :
+  (to_outer_measure p).caratheodory = ⊤ :=
+begin
+  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
+  obtain ⟨y, hy⟩ := hx,
+  exact ((le_of_eq (dirac_caratheodory _).symm).trans
+    (le_smul_caratheodory _ _)).trans (le_of_eq hy),
+end
+
+end outer_measure
+
+section measure
+
+open measure_theory
+
+/-- Since every set is Carathéodory-measurable under `pmf.to_outer_measure`,
+  we can further extend this `outer_measure` to a `measure` on `α` -/
+def to_measure [measurable_space α] (p : pmf α) : measure α :=
+p.to_outer_measure.to_measure ((to_outer_measure_caratheodory p).symm ▸ le_top)
+
+variables [measurable_space α]
+
+lemma to_measure_apply_eq_to_outer_measure_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
+  p.to_measure s = p.to_outer_measure s :=
+to_measure_apply p.to_outer_measure _ hs
+
+lemma to_outer_measure_apply_le_to_measure_apply (p : pmf α) (s : set α) :
+  p.to_outer_measure s ≤ p.to_measure s :=
+le_to_measure_apply p.to_outer_measure _ s
+
+lemma to_measure_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
+  p.to_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+(p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply s)
+
+lemma to_measure_apply' (p : pmf α) (s : set α) (hs : measurable_set s) :
+  p.to_measure s = ↑(∑' x, s.indicator p x) :=
+(p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply' s)
+
+@[simp]
+lemma to_measure_apply_finset [measurable_singleton_class α] (p : pmf α) (s : finset α) :
+  p.to_measure s = ∑ x in s, (p x : ℝ≥0∞) :=
+(p.to_measure_apply_eq_to_outer_measure_apply s s.measurable_set).trans
+  (p.to_outer_measure_apply_finset s)
+
+lemma to_measure_apply_of_finite [measurable_singleton_class α] (p : pmf α) (s : set α)
+  (hs : s.finite) : p.to_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+(p.to_measure_apply_eq_to_outer_measure_apply s hs.measurable_set).trans
+  (p.to_outer_measure_apply s)
+
+@[simp]
+lemma to_measure_apply_fintype [measurable_singleton_class α] [fintype α] (p : pmf α) (s : set α) :
+  p.to_measure s = ∑ x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+(p.to_measure_apply_eq_to_outer_measure_apply s (set.finite.of_fintype s).measurable_set).trans
+  (p.to_outer_measure_apply_fintype s)
+
+/-- The measure associated to a `pmf` by `to_measure` is a probability measure -/
+instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure (p.to_measure) :=
+⟨by simpa only [measurable_set.univ, to_measure_apply_eq_to_outer_measure_apply, set.indicator_univ,
+  to_outer_measure_apply', ennreal.coe_eq_one] using tsum_coe p⟩
+
+end measure
 
 end pmf

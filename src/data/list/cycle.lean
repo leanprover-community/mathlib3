@@ -373,17 +373,17 @@ begin
   obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
   have lpos : 0 < l.length := k.zero_le.trans_lt hk,
   have key : l.length - 1 - k < l.length :=
-    (nat.sub_le _ _).trans_lt (sub_lt_self' lpos nat.succ_pos'),
+    (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos'),
   rw ←nth_le_pmap l.next (λ _ h, h) (by simpa using hk),
   simp_rw [←nth_le_reverse l k (key.trans_le (by simp)), pmap_next_eq_rotate_one _ h],
   rw ←nth_le_pmap l.reverse.prev (λ _ h, h),
   { simp_rw [pmap_prev_eq_rotate_length_sub_one _ (nodup_reverse.mpr h), rotate_reverse,
-             length_reverse, nat.mod_eq_of_lt (sub_lt_self' lpos nat.succ_pos'),
-             nat.sub_sub_self (nat.succ_le_of_lt lpos)],
+             length_reverse, nat.mod_eq_of_lt (tsub_lt_self lpos nat.succ_pos'),
+             tsub_tsub_cancel_of_le (nat.succ_le_of_lt lpos)],
     rw ←nth_le_reverse,
-    { simp [nat.sub_sub_self (nat.le_pred_of_lt hk)] },
-    { simpa using (nat.sub_le _ _).trans_lt (sub_lt_self' lpos nat.succ_pos') } },
-  { simpa using (nat.sub_le _ _).trans_lt (sub_lt_self' lpos nat.succ_pos') }
+    { simp [tsub_tsub_cancel_of_le (nat.le_pred_of_lt hk)] },
+    { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') } },
+  { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') }
 end
 
 lemma next_reverse_eq_prev (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :

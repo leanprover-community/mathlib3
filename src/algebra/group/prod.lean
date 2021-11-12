@@ -35,6 +35,8 @@ lemma snd_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).2 = p.2 * q.2 := 
 @[simp, to_additive]
 lemma mk_mul_mk [has_mul M] [has_mul N] (a₁ a₂ : M) (b₁ b₂ : N) :
   (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
+@[to_additive]
+lemma mul_def [has_mul M] [has_mul N] (p q : M × N) : p * q = (p.1 * q.1, p.2 * q.2) := rfl
 
 @[to_additive]
 instance [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
@@ -101,10 +103,10 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
 @[to_additive]
 instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
 { div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
-  gpow := λ z a, ⟨div_inv_monoid.gpow z a.1, div_inv_monoid.gpow z a.2⟩,
-  gpow_zero' := λ z, ext (div_inv_monoid.gpow_zero' _) (div_inv_monoid.gpow_zero' _),
-  gpow_succ' := λ z a, ext (div_inv_monoid.gpow_succ' _ _) (div_inv_monoid.gpow_succ' _ _),
-  gpow_neg' := λ z a, ext (div_inv_monoid.gpow_neg' _ _) (div_inv_monoid.gpow_neg' _ _),
+  zpow := λ z a, ⟨div_inv_monoid.zpow z a.1, div_inv_monoid.zpow z a.2⟩,
+  zpow_zero' := λ z, ext (div_inv_monoid.zpow_zero' _) (div_inv_monoid.zpow_zero' _),
+  zpow_succ' := λ z a, ext (div_inv_monoid.zpow_succ' _ _) (div_inv_monoid.zpow_succ' _ _),
+  zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
 @[to_additive]

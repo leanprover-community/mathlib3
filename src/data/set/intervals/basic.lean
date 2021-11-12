@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy
 import algebra.order.group
 import data.set.basic
 import order.rel_iso
+import order.order_dual
 
 /-!
 # Intervals
@@ -31,6 +32,7 @@ universe u
 namespace set
 
 open set
+open order_dual (to_dual of_dual)
 
 section intervals
 variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
@@ -95,17 +97,17 @@ lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
 lemma right_mem_Iic : a ∈ Iic a := by simp
 
-@[simp] lemma dual_Ici : @Ici (order_dual α) _ a = @Iic α _ a := rfl
-@[simp] lemma dual_Iic : @Iic (order_dual α) _ a = @Ici α _ a := rfl
-@[simp] lemma dual_Ioi : @Ioi (order_dual α) _ a = @Iio α _ a := rfl
-@[simp] lemma dual_Iio : @Iio (order_dual α) _ a = @Ioi α _ a := rfl
-@[simp] lemma dual_Icc : @Icc (order_dual α) _ a b = @Icc α _ b a :=
+@[simp] lemma dual_Ici : Ici (to_dual a) = of_dual ⁻¹' Iic a := rfl
+@[simp] lemma dual_Iic : Iic (to_dual a) = of_dual ⁻¹' Ici a := rfl
+@[simp] lemma dual_Ioi : Ioi (to_dual a) = of_dual ⁻¹' Iio a := rfl
+@[simp] lemma dual_Iio : Iio (to_dual a) = of_dual ⁻¹' Ioi a := rfl
+@[simp] lemma dual_Icc : Icc (to_dual a) (to_dual b) = of_dual ⁻¹' Icc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioc : @Ioc (order_dual α) _ a b = @Ico α _ b a :=
+@[simp] lemma dual_Ioc : Ioc (to_dual a) (to_dual b) = of_dual ⁻¹' Ico b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ico : @Ico (order_dual α) _ a b = @Ioc α _ b a :=
+@[simp] lemma dual_Ico : Ico (to_dual a) (to_dual b) = of_dual ⁻¹' Ioc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioo : @Ioo (order_dual α) _ a b = @Ioo α _ b a :=
+@[simp] lemma dual_Ioo : Ioo (to_dual a) (to_dual b) = of_dual ⁻¹' Ioo b a :=
 set.ext $ λ x, and_comm _ _
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
@@ -430,14 +432,14 @@ by rw [← Ico_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Ico.2 hab)]
 
 lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
-by simpa only [dual_Ioo, dual_Ico] using @Ioo_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioo, dual_Ico] using Ioo_union_left hab.dual
 
 lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
 by rw [← Icc_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Icc.2 hab)]
 
 lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
-by simpa only [dual_Ioc, dual_Icc] using @Ioc_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioc, dual_Icc] using Ioc_union_left hab.dual
 
 lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
   s ∈ ({Ici a, Ioi a} : set (set α)) :=
@@ -492,7 +494,7 @@ end
 lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
   x = b ∨ x ∈ Ioo a b :=
 begin
-  have := @mem_Ioo_or_eq_left_of_mem_Ico (order_dual α) _ b a x,
+  have := @mem_Ioo_or_eq_left_of_mem_Ico _ _ (to_dual b) (to_dual a) (to_dual x),
   rw [dual_Ioo, dual_Ico] at this,
   exact this hmem
 end
@@ -506,13 +508,17 @@ end
 lemma Iic_singleton_of_bot {a : α} (h_bot : ∀ x, a ≤ x) : Iic a = {a} :=
 @Ici_singleton_of_top (order_dual α) _ a h_bot
 
+lemma Iic_inter_Ioc_of_le {a b c : α} (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
+ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
+
 end partial_order
 
 section order_top
 
-variables {α : Type u} [order_top α] {a : α}
+variables {α : Type u} [preorder α] [order_top α] {a : α}
 
-@[simp] lemma Ici_top : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
+@[simp] lemma Ici_top {α : Type u} [partial_order α] [order_top α] :
+  Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
 @[simp] lemma Iic_top : Iic (⊤ : α) = univ := eq_univ_of_forall $ λ x, le_top
 @[simp] lemma Icc_top : Icc a ⊤ = Ici a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ioc_top : Ioc a ⊤ = Ioi a := by simp [← Ioi_inter_Iic]
@@ -521,10 +527,11 @@ end order_top
 
 section order_bot
 
-variables {α : Type u} [order_bot α] {a : α}
+variables {α : Type u} [preorder α] [order_bot α] {a : α}
 
-@[simp] lemma Iic_bot : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
-@[simp] lemma Ici_bot : Ici (⊥ : α) = univ := @Iic_top (order_dual α) _
+@[simp] lemma Iic_bot {α : Type u} [partial_order α] [order_bot α] :
+  Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
+@[simp] lemma Ici_bot : Ici (⊥ : α) = univ := @Iic_top (order_dual α) _ _
 @[simp] lemma Icc_bot : Icc ⊥ a = Iic a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ico_bot : Ico ⊥ a = Iio a := by simp [← Ici_inter_Iio]
 
@@ -1115,6 +1122,9 @@ by { ext x, simp [Iic] }
 @[simp] lemma Iio_inter_Iio [is_total α (≤)] {a b : α} : Iio a ∩ Iio b = Iio (a ⊓ b) :=
 by { ext x, simp [Iio] }
 
+@[simp] lemma Ioc_inter_Iic (a b c : α) : Ioc a b ∩ Iic c = Ioc a (b ⊓ c) :=
+by rw [← Ioi_inter_Iic, ← Ioi_inter_Iic, inter_assoc, Iic_inter_Iic]
+
 end inf
 
 section sup
@@ -1123,6 +1133,9 @@ variables {α : Type u} [semilattice_sup α]
 
 @[simp] lemma Ici_inter_Ici {a b : α} : Ici a ∩ Ici b = Ici (a ⊔ b) :=
 by { ext x, simp [Ici] }
+
+@[simp] lemma Ico_inter_Ici (a b c : α) : Ico a b ∩ Ici c = Ico (a ⊔ c) b :=
+by rw [← Ici_inter_Iio, ← Ici_inter_Iio, ← Ici_inter_Ici, inter_right_comm]
 
 @[simp] lemma Ioi_inter_Ioi [is_total α (≤)] {a b : α} : Ioi a ∩ Ioi b = Ioi (a ⊔ b) :=
 by { ext x, simp [Ioi] }
@@ -1178,17 +1191,17 @@ by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]
 lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (max a₁ a₂) b₂ :=
 by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
-lemma Iic_inter_Ioc_of_le (h : a₂ ≤ a) : Iic a₂ ∩ Ioc a₁ a = Ioc a₁ a₂ :=
-ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
-
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
-ext $ by simp [iff_def] {contextual:=tt}
+by rw [diff_eq, compl_Iio, Ico_inter_Ici, sup_eq_max]
 
 @[simp] lemma Ioc_diff_Ioi : Ioc a b \ Ioi c = Ioc a (min b c) :=
 ext $ by simp [iff_def] {contextual:=tt}
 
 @[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
 ext $ by simp [iff_def] {contextual:=tt}
+
+@[simp] lemma Ioc_diff_Iic : Ioc a b \ Iic c = Ioc (max a c) b :=
+by rw [diff_eq, compl_Iic, Ioc_inter_Ioi, sup_eq_max]
 
 @[simp] lemma Ioc_union_Ioc_right : Ioc a b ∪ Ioc a c = Ioc a (max b c) :=
 by rw [Ioc_union_Ioc, min_self]; exact (min_le_left _ _).trans (le_max_left _ _)
@@ -1209,6 +1222,32 @@ begin
 end
 
 end linear_order
+
+/-!
+### Closed intervals in `α × β`
+-/
+
+section prod
+
+variables {α β : Type*} [preorder α] [preorder β]
+
+@[simp] lemma Iic_prod_Iic (a : α) (b : β) : (Iic a).prod (Iic b) = Iic (a, b) := rfl
+
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Ici a).prod (Ici b) = Ici (a, b) := rfl
+
+lemma Ici_prod_eq (a : α × β) : Ici a = (Ici a.1).prod (Ici a.2) := rfl
+
+lemma Iic_prod_eq (a : α × β) : Iic a = (Iic a.1).prod (Iic a.2) := rfl
+
+@[simp] lemma Icc_prod_Icc (a₁ a₂ : α) (b₁ b₂ : β) :
+  (Icc a₁ a₂).prod (Icc b₁ b₂) = Icc (a₁, b₁) (a₂, b₂) :=
+by { ext ⟨x, y⟩, simp [and.assoc, and_comm, and.left_comm] }
+
+lemma Icc_prod_eq (a b : α × β) :
+  Icc a b = (Icc a.1 b.1).prod (Icc a.2 b.2) :=
+by simp
+
+end prod
 
 /-! ### Lemmas about membership of arithmetic operations -/
 
@@ -1297,10 +1336,10 @@ end linear_ordered_add_comm_group
 
 end set
 
+open set
+
 namespace order_iso
 variables {α β : Type*}
-
-open set
 
 section preorder
 variables [preorder α] [preorder β]
@@ -1356,12 +1395,12 @@ by rw [e.image_eq_preimage, e.symm.preimage_Icc, e.symm_symm]
 end preorder
 
 /-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
-def Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
+def Iic_top [preorder α] [order_top α] : set.Iic (⊤ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
 
 /-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
-def Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
+def Ici_bot [preorder α] [order_bot α] : set.Ici (⊥ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
 

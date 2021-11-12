@@ -229,6 +229,9 @@ lemma mem_residual {s : set α} : s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t �
 (@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
 λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
 
+lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) : dense s :=
+let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
+
 instance : countable_Inter_filter (residual α) :=
 ⟨begin
   intros S hSc hS,

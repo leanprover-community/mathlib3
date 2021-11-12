@@ -212,9 +212,9 @@ let PR (a) := λ cf cg hf hg, pr a (cf, cg, hf, hg),
     CO (a) := λ cf cg hf hg, co a (cf, cg, hf, hg),
     PC (a) := λ cf cg hf hg, pc a (cf, cg, hf, hg),
     RF (a) := λ cf hf, rf a (cf, hf),
-    F (a) (c : code) : σ := nat.partrec.code.rec_on c
+    F (a : α) (c : code) : σ := nat.partrec.code.rec_on c
       (z a) (s a) (l a) (r a) (PR a) (CO a) (PC a) (RF a) in
-    primrec (λ a, F a (c a)) :=
+    primrec (λ a, F a (c a) : α → σ) :=
 begin
   intros,
   let G₁ : (α × list σ) × ℕ × ℕ → option σ := λ p,
@@ -305,7 +305,7 @@ theorem rec_prim {α σ} [primcodable α] [primcodable σ]
     pc a.1 a.2.1 a.2.2.1 a.2.2.2.1 a.2.2.2.2))
   {rf : α → code → σ → σ}
   (hrf : primrec (λ a : α × code × σ, rf a.1 a.2.1 a.2.2)) :
-let F (a) (c : code) : σ := nat.partrec.code.rec_on c
+let F (a : α) (c : code) : σ := nat.partrec.code.rec_on c
       (z a) (s a) (l a) (r a) (pr a) (co a) (pc a) (rf a) in
     primrec (λ a, F a (c a)) :=
 begin
@@ -401,7 +401,7 @@ let PR (a) := λ cf cg hf hg, pr a (cf, cg, hf, hg),
     CO (a) := λ cf cg hf hg, co a (cf, cg, hf, hg),
     PC (a) := λ cf cg hf hg, pc a (cf, cg, hf, hg),
     RF (a) := λ cf hf, rf a (cf, hf),
-    F (a) (c : code) : σ := nat.partrec.code.rec_on c
+    F (a : α) (c : code) : σ := nat.partrec.code.rec_on c
       (z a) (s a) (l a) (r a) (PR a) (CO a) (PC a) (RF a) in
     computable (λ a, F a (c a)) :=
 begin

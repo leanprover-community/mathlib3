@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.perm
+import data.list.prod_monoid
 
 /-!
 # Multisets
@@ -410,10 +411,13 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
   let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
  λ ⟨u, e⟩, e.symm ▸ le_add_right _ _⟩
 
+instance : order_bot (multiset α) :=
+{ bot                   := 0,
+  bot_le                := multiset.zero_le }
+
 instance : canonically_ordered_add_monoid (multiset α) :=
 { le_iff_exists_add     := @le_iff_exists_add _,
-  bot                   := 0,
-  bot_le                := multiset.zero_le,
+  ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
@@ -529,7 +533,7 @@ def strong_downward_induction {p : multiset α → Sort*} {n : ℕ} (H : ∀ t�
   t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : multiset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (sub_lt_sub_iff_left_of_le ht).2 (card_lt_of_lt h),
+     from (tsub_lt_tsub_iff_left_of_le ht).2 (card_lt_of_lt h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : multiset α), n - t.card)⟩]}
 
@@ -579,6 +583,9 @@ eq_repeat'.2
 theorem eq_repeat {a : α} {n} {s : multiset α} : s = repeat a n ↔ card s = n ∧ ∀ b ∈ s, b = a :=
 ⟨λ h, h.symm ▸ ⟨card_repeat _ _, λ b, eq_of_mem_repeat⟩,
  λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
+
+theorem repeat_injective (a : α) : function.injective (repeat a) :=
+λ m n h, by rw [← (eq_repeat.1 h).1, card_repeat]
 
 theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ {a} := repeat_subset_singleton
 
@@ -924,11 +931,9 @@ theorem prod_eq_foldl [comm_monoid α] (s : multiset α) :
   prod s = foldl (*) (λ x y z, by simp [mul_right_comm]) 1 s :=
 (foldr_swap _ _ _ _).trans (by simp [mul_comm])
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 theorem coe_prod [comm_monoid α] (l : list α) : prod ↑l = l.prod :=
 prod_eq_foldl _
-
-attribute [norm_cast] coe_prod coe_sum
 
 @[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
   s.to_list.prod = s.prod :=
@@ -1079,8 +1084,7 @@ lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α] {m : multiset
 begin
   apply quotient.induction_on m,
   simp only [quot_mk_to_coe, coe_prod, mem_coe],
-  intros l hl₁ hl₂ x hx,
-  apply all_one_of_le_one_le_of_prod_eq_one hl₁ hl₂ _ hx,
+  exact λ l, all_one_of_le_one_le_of_prod_eq_one,
 end
 
 lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] {m : multiset α} :
@@ -1490,7 +1494,7 @@ instance : has_sub (multiset α) := ⟨multiset.sub⟩
 
 @[simp] theorem coe_sub (s t : list α) : (s - t : multiset α) = (s.diff t : list α) := rfl
 
-/-- This is a special case of `sub_zero'`, which should be used instead of this.
+/-- This is a special case of `tsub_zero`, which should be used instead of this.
   This is needed to prove `has_ordered_sub (multiset α)`. -/
 protected theorem sub_zero (s : multiset α) : s - 0 = s :=
 quot.induction_on s $ λ l, rfl
@@ -1498,7 +1502,7 @@ quot.induction_on s $ λ l, rfl
 @[simp] theorem sub_cons (a : α) (s t : multiset α) : s - a ::ₘ t = s.erase a - t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ diff_cons _ _ _
 
-/-- This is a special case of `sub_le_iff_right`, which should be used instead of this.
+/-- This is a special case of `tsub_le_iff_right`, which should be used instead of this.
   This is needed to prove `has_ordered_sub (multiset α)`. -/
 protected theorem sub_le_iff_le_add : s - t ≤ u ↔ s ≤ u + t :=
 by revert s; exact
@@ -1514,7 +1518,7 @@ show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
 by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
 
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
-(nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel_of_le h]).symm
+(tsub_eq_of_eq_add_rev $ by rw [add_comm, ← card_add, tsub_add_cancel_of_le h]).symm
 
 /-! ### Union -/
 
@@ -1527,20 +1531,20 @@ instance : has_union (multiset α) := ⟨union⟩
 
 theorem union_def (s t : multiset α) : s ∪ t = s - t + t := rfl
 
-theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_sub_add
+theorem le_union_left (s t : multiset α) : s ≤ s ∪ t := le_tsub_add
 
 theorem le_union_right (s t : multiset α) : t ≤ s ∪ t := le_add_left _ _
 
-theorem eq_union_left : t ≤ s → s ∪ t = s := sub_add_cancel_of_le
+theorem eq_union_left : t ≤ s → s ∪ t = s := tsub_add_cancel_of_le
 
 theorem union_le_union_right (h : s ≤ t) (u) : s ∪ u ≤ t ∪ u :=
-add_le_add_right (sub_le_sub_right' h _) u
+add_le_add_right (tsub_le_tsub_right h _) u
 
 theorem union_le (h₁ : s ≤ u) (h₂ : t ≤ u) : s ∪ t ≤ u :=
 by rw ← eq_union_left h₂; exact union_le_union_right h₁ t
 
 @[simp] theorem mem_union : a ∈ s ∪ t ↔ a ∈ s ∨ a ∈ t :=
-⟨λ h, (mem_add.1 h).imp_left (mem_of_le sub_le_self'),
+⟨λ h, (mem_add.1 h).imp_left (mem_of_le tsub_le_self),
  or.rec (mem_of_le $ le_union_left _ _) (mem_of_le $ le_union_right _ _)⟩
 
 @[simp] theorem map_union [decidable_eq β] {f : α → β} (finj : function.injective f)
@@ -1635,7 +1639,7 @@ union_le (le_add_right _ _) (le_add_left _ _)
 
 theorem union_add_distrib (s t u : multiset α) : (s ∪ t) + u = (s + u) ∪ (t + u) :=
 by simpa [(∪), union, eq_comm, add_assoc] using show s + u - (t + u) = s - t,
-by rw [add_comm t, sub_add_eq_sub_sub', add_sub_cancel_right]
+by rw [add_comm t, tsub_add_eq_tsub_tsub, add_tsub_cancel_right]
 
 theorem add_union_distrib (s t u : multiset α) : s + (t ∪ u) = (s + t) ∪ (s + u) :=
 by rw [add_comm, union_add_distrib, add_comm s, add_comm s]
@@ -1682,7 +1686,7 @@ begin
 end
 
 theorem sub_inter (s t : multiset α) : s - (s ∩ t) = s - t :=
-add_right_cancel $ by rw [sub_add_inter s t, sub_add_cancel_of_le (inter_le_left s t)]
+add_right_cancel $ by rw [sub_add_inter s t, tsub_add_cancel_of_le (inter_le_left s t)]
 
 end
 
@@ -2071,13 +2075,13 @@ end
 
 @[simp] theorem count_union (a : α) (s t : multiset α) :
   count a (s ∪ t) = max (count a s) (count a t) :=
-by simp [(∪), union, sub_add_eq_max, -add_comm]
+by simp [(∪), union, tsub_add_eq_max, -add_comm]
 
 @[simp] theorem count_inter (a : α) (s t : multiset α) :
   count a (s ∩ t) = min (count a s) (count a t) :=
 begin
   apply @nat.add_left_cancel (count a (s - t)),
-  rw [← count_add, sub_add_inter, count_sub, sub_add_min],
+  rw [← count_add, sub_add_inter, count_sub, tsub_add_min],
 end
 
 lemma count_sum {m : multiset β} {f : β → multiset α} {a : α} :

@@ -79,7 +79,7 @@ end inversion_estimate
 
 open valued
 
-/-- The topology coming from a valuation on a division rings make it a topological division ring
+/-- The topology coming from a valuation on a division ring makes it a topological division ring
     [BouAC, VI.5.1 middle of Proposition 1] -/
 @[priority 100]
 instance valued.topological_division_ring [valued K] : topological_division_ring K :=

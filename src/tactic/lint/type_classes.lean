@@ -376,9 +376,10 @@ args ← unfreezing intros,
 expr.sort _ ← target | pure none,
 let ty : expr := (expr.const d.to_name d.univ_levels).mk_app args,
 some coe_fn_inst ←
-  try_core $ to_expr ``(_root_.has_coe_to_fun %%ty) >>= mk_instance | pure none,
+  try_core $ to_expr ``(_root_.has_coe_to_fun %%ty _) >>= mk_instance | pure none,
+set_bool_option `pp.all true,
 some trans_inst@(expr.app (expr.app _ trans_inst_1) trans_inst_2) ←
-  try_core $ to_expr ``(@_root_.coe_fn_trans %%ty _ _ _) | pure none,
+  try_core $ to_expr ``(@_root_.coe_fn_trans %%ty _ _ _ _) | pure none,
 tt ← succeeds $ unify trans_inst coe_fn_inst transparency.reducible | pure none,
 set_bool_option `pp.all true,
 trans_inst_1 ← pp trans_inst_1,

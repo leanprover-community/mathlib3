@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.equiv.list
+import data.list.join
 import logic.function.iterate
 
 /-!
@@ -571,7 +572,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 λ p, begin
   dsimp [swap],
   cases e : p.1 - p.2 with n,
-  { simp [nat.sub_eq_zero_iff_le.1 e] },
+  { simp [tsub_eq_zero_iff_le.1 e] },
   { simp [not_le.2 (nat.lt_of_sub_eq_succ e)] }
 end
 
@@ -1283,7 +1284,7 @@ theorem if_lt {n a b f g}
 (prec' (sub.comp₂ _ hb ha) hg (tail $ tail hf)).of_eq $
 λ v, begin
   cases e : b v - a v,
-  { simp [not_lt.2 (nat.le_of_sub_eq_zero e)] },
+  { simp [not_lt.2 (tsub_eq_zero_iff_le.mp e)] },
   { simp [nat.lt_of_sub_eq_succ e] }
 end
 

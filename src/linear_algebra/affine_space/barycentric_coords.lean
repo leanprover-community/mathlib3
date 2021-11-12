@@ -108,6 +108,26 @@ begin
     hw, mul_boole, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination p w hw],
 end
 
+@[simp] lemma sum_barycentric_coord_apply_eq_one [fintype ι] (q : P) :
+  ∑ i, barycentric_coord h_ind h_tot i q = 1 :=
+begin
+  have hq : q ∈ affine_span k (range p), { rw h_tot, exact affine_subspace.mem_top k V q, },
+  obtain ⟨w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span_of_fintype hq,
+  convert hw,
+  ext i,
+  exact barycentric_coord_apply_combination_of_mem h_ind h_tot (finset.mem_univ i) hw,
+end
+
+@[simp] lemma affine_combination_barycentric_coord_eq_self [fintype ι] (q : P) :
+  finset.univ.affine_combination p (λ i, barycentric_coord h_ind h_tot i q) = q :=
+begin
+  have hq : q ∈ affine_span k (range p), { rw h_tot, exact affine_subspace.mem_top k V q, },
+  obtain ⟨w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span_of_fintype hq,
+  congr,
+  ext i,
+  exact barycentric_coord_apply_combination_of_mem h_ind h_tot (finset.mem_univ i) hw,
+end
+
 @[simp] lemma coe_barycentric_coord_of_subsingleton_eq_one [subsingleton ι] (i : ι) :
   (barycentric_coord h_ind h_tot i : P → k) = 1 :=
 begin

@@ -110,7 +110,7 @@ or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
 
 end pairwise
 
-variable {a : α}
+variables [partial_order α] {a : α}
 
 @[simp]
 lemma is_coatom_dual_iff_is_atom [partial_order α] [order_bot α] :
@@ -126,7 +126,7 @@ end atoms
 
 section atomic
 
-variable (α)
+variables [partial_order α] (α)
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
 class is_atomic [partial_order α] [order_bot α] : Prop :=

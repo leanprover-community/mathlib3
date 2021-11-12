@@ -52,11 +52,11 @@ instance : comm_ring int :=
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm,
-  gsmul          := (*),
-  gsmul_zero'    := int.zero_mul,
-  gsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
+  zsmul          := (*),
+  zsmul_zero'    := int.zero_mul,
+  zsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
                                   int.one_mul],
-  gsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
+  zsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
 /-! ### Extra instances to short-circuit type class resolution
 
@@ -139,6 +139,14 @@ theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
 @[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
+
+lemma le_coe_nat_sub (m n : ℕ) :
+  (m - n : ℤ) ≤ ↑(m - n : ℕ) :=
+begin
+  by_cases h: m ≥ n,
+  { exact le_of_eq (int.coe_nat_sub h).symm },
+  { simp [le_of_not_ge h] }
+end
 
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),

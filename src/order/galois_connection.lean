@@ -296,7 +296,7 @@ def galois_connection.to_galois_insertion {α β : Type*} [preorder α] [preorde
   choice_eq := λ _ _, rfl }
 
 /-- Lift the bottom along a Galois connection -/
-def galois_connection.lift_order_bot {α β : Type*} [preorder α] [order_bot α] [preorder β]
+def galois_connection.lift_order_bot {α β : Type*} [preorder α] [order_bot α] [partial_order β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   order_bot β :=
 { bot    := l ⊥,
@@ -478,7 +478,7 @@ def galois_connection.to_galois_coinsertion {α β : Type*} [preorder α] [preor
   choice_eq := λ _ _, rfl }
 
 /-- Lift the top along a Galois connection -/
-def galois_connection.lift_order_top {α β : Type*} [preorder α] [preorder β] [order_top β]
+def galois_connection.lift_order_top {α β : Type*} [partial_order α] [preorder β] [order_top β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   order_top α :=
 { top    := u ⊤,
@@ -585,7 +585,7 @@ end galois_coinsertion
 
 /-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
 `λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
-def with_bot.gi_get_or_else_bot [partial_order α] [order_bot α] :
+def with_bot.gi_get_or_else_bot [preorder α] [order_bot α] :
   galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
 { gc := λ a b, with_bot.get_or_else_bot_le_iff,
   le_l_u := λ a, le_rfl,

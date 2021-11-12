@@ -135,10 +135,6 @@ instance : semilattice_inf (discrete_quotient X) :=
     equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
       λ a b c h1 h2, ⟨A.trans _ _ _ h1.1 h2.1, B.trans _ _ _ h1.2 h2.2⟩⟩,
     clopen := λ x, is_clopen.inter (A.clopen _) (B.clopen _) },
-  le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
-  le_refl := λ a, by tauto,
-  le_trans := λ a b c h1 h2, by tauto,
-  le_antisymm := λ a b h1 h2, by { ext, tauto },
   inf_le_left := λ a b, by tauto,
   inf_le_right := λ a b, by tauto,
   le_inf := λ a b c h1 h2, by tauto }

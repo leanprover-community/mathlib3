@@ -54,6 +54,9 @@ def positive_compacts_univ {α : Type*} [topological_space α] [compact_space α
   positive_compacts α :=
 ⟨set.univ, compact_univ, by simp⟩
 
+@[simp] lemma positive_compacts_univ_val (α : Type*) [topological_space α] [compact_space α]
+  [nonempty α] : (positive_compacts_univ : positive_compacts α).val = univ := rfl
+
 variables {α}
 
 namespace compacts

@@ -41,8 +41,11 @@ variables {α : Type*}
 
 namespace nonneg
 
+/-- This instance uses data fields from `subtype.partial_order` to help type-class inference.
+The `set.Ici` data fields are definitionally equal, but that requires unfolding semireducible
+definitions, so type-class inference won't see this. -/
 instance order_bot [preorder α] {a : α} : order_bot {x : α // a ≤ x} :=
-set.Ici.order_bot
+{ ..set.Ici.order_bot }
 
 lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl⟩ := rfl
 
@@ -74,7 +77,7 @@ protected noncomputable def conditionally_complete_linear_order_bot
   conditionally_complete_linear_order_bot {x : α // a ≤ x} :=
 { cSup_empty := (function.funext_iff.1
     (@subset_Sup_def α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩) ∅).trans $ subtype.eq $
-      by { rw bot_eq, cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2], },
+      by { rw bot_eq, cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
   ..nonneg.order_bot,
   ..nonneg.conditionally_complete_linear_order }
 

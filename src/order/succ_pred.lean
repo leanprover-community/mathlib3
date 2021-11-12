@@ -619,7 +619,7 @@ open with_bot
 
 /-! #### Adding a `⊥` to a `bot_order` -/
 
-instance [partial_order α] [order_bot α] [succ_order α] : succ_order (with_bot α) :=
+instance [preorder α] [order_bot α] [succ_order α] : succ_order (with_bot α) :=
 { succ := λ a, match a with
     | ⊥        := some ⊥
     | (some a) := some (succ a)

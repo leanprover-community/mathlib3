@@ -102,8 +102,8 @@ class linear_ordered_add_comm_monoid_with_top (α : Type*)
 (le_top : ∀ x : α, x ≤ ⊤)
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
 
-@[priority 100]  -- see Note [lower instance priority]
-instance linear_ordered_add_comm_monoid_with_top.to_order_top
+@[priority 100]    -- see Note [lower instance priority]
+instance linear_ordered_add_comm_monoid_with_top.to_order_top (α : Type u)
   [h : linear_ordered_add_comm_monoid_with_top α] : order_top α :=
 { ..h }
 
@@ -466,9 +466,15 @@ end with_bot
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other nontrivial `ordered_add_comm_group`s. -/
-@[protect_proj, ancestor ordered_add_comm_monoid]
-class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α :=
+@[protect_proj, ancestor ordered_add_comm_monoid has_bot]
+class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, has_bot α :=
+(bot_le : ∀ x : α, ⊥ ≤ x)
 (le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
+
+@[priority 100]  -- see Note [lower instance priority]
+instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
+  [h : canonically_ordered_add_monoid α] : order_bot α :=
+{ ..h }
 
 /-- A canonically ordered monoid is an ordered commutative monoid
   in which the ordering coincides with the divisibility relation,
@@ -479,9 +485,15 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
   Dedekind domain satisfy this; collections of all things ≤ 1 seem to
   be more natural that collections of all things ≥ 1).
 -/
-@[protect_proj, ancestor ordered_comm_monoid, to_additive]
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α :=
+@[protect_proj, ancestor ordered_comm_monoid has_bot, to_additive]
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, has_bot α :=
+(bot_le : ∀ x : α, ⊥ ≤ x)
 (le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)
+
+@[priority 100, to_additive]  -- see Note [lower instance priority]
+instance canonically_ordered_monoid.to_order_bot (α : Type u)
+  [h : canonically_ordered_monoid α] : order_bot α :=
+{ ..h }
 
 section canonically_ordered_monoid
 
@@ -502,7 +514,7 @@ by { rw [mul_comm], exact self_le_mul_right a b }
 @[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
 le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 
-@[simp, to_additive] lemma bot_eq_one [order_bot α] : (⊥ : α) = 1 :=
+@[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
 
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
@@ -888,6 +900,14 @@ instance [linear_ordered_comm_monoid α] :
   .. order_dual.ordered_comm_monoid }
 
 end order_dual
+
+section linear_ordered_cancel_add_comm_monoid
+variables [linear_ordered_cancel_add_comm_monoid α]
+
+lemma lt_or_lt_of_add_lt_add {a b m n : α} (h : m + n < a + b) : m < a ∨ n < b :=
+by { contrapose! h, exact add_le_add h.1 h.2 }
+
+end linear_ordered_cancel_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid
 

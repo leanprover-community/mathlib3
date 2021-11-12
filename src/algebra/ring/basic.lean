@@ -953,7 +953,7 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
-  This is imlemented as a mixin for `ring α`.
+  This is implemented as a mixin for `ring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 @[protect_proj] class is_domain (α : Type u) [ring α]
   extends no_zero_divisors α, nontrivial α : Prop
@@ -1032,61 +1032,6 @@ lemma add_monoid_hom.coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [
 end comm_ring
 
 end is_domain
-
-namespace ring
-variables {M₀ : Type*} [monoid_with_zero M₀]
-open_locale classical
-
-/-- Introduce a function `inverse` on a monoid with zero `M₀`, which sends `x` to `x⁻¹` if `x` is
-invertible and to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather
-than partially) defined inverse function for some purposes, including for calculus.
-
-Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
-`monoid_with_zero M₀` instead of `ring M₀`. -/
-noncomputable def inverse : M₀ → M₀ :=
-λ x, if h : is_unit x then ((h.unit⁻¹ : units M₀) : M₀) else 0
-
-/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-@[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
-begin
-  simp only [units.is_unit, inverse, dif_pos],
-  exact units.inv_unique rfl
-end
-
-/-- By definition, if `x` is not invertible then `inverse x = 0`. -/
-@[simp] lemma inverse_non_unit (x : M₀) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
-
-lemma mul_inverse_cancel (x : M₀) (h : is_unit x) : x * inverse x = 1 :=
-by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.mul_inv], }
-
-lemma inverse_mul_cancel (x : M₀) (h : is_unit x) : inverse x * x = 1 :=
-by { rcases h with ⟨u, rfl⟩, rw [inverse_unit, units.inv_mul], }
-
-lemma mul_inverse_cancel_right (x y : M₀) (h : is_unit x) : y * x * inverse x = y :=
-by rw [mul_assoc, mul_inverse_cancel x h, mul_one]
-
-lemma inverse_mul_cancel_right (x y : M₀) (h : is_unit x) : y * inverse x * x = y :=
-by rw [mul_assoc, inverse_mul_cancel x h, mul_one]
-
-lemma mul_inverse_cancel_left (x y : M₀) (h : is_unit x) : x * (inverse x * y) = y :=
-by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
-
-lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
-by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
-
-lemma mul_inverse_rev {M₀ : Type*} [comm_monoid_with_zero M₀] (a b : M₀) :
-  ring.inverse (a * b) = ring.inverse b * ring.inverse a :=
-begin
-  by_cases hab : is_unit (a * b),
-  { obtain ⟨⟨a, rfl⟩, b, rfl⟩ := is_unit.mul_iff.mp hab,
-    rw [←units.coe_mul, ring.inverse_unit, ring.inverse_unit, ring.inverse_unit, ←units.coe_mul,
-      mul_inv_rev], },
-  obtain ha | hb := not_and_distrib.mp (mt is_unit.mul_iff.mpr hab),
-  { rw [ring.inverse_non_unit _ hab, ring.inverse_non_unit _ ha, mul_zero]},
-  { rw [ring.inverse_non_unit _ hab, ring.inverse_non_unit _ hb, zero_mul]},
-end
-
-end ring
 
 namespace semiconj_by
 

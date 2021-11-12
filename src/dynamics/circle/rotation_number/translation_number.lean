@@ -247,13 +247,13 @@ by refine (units.map _).comp to_units.to_monoid_hom; exact
 @[simp]
 lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻¹ y = -x + y := rfl
 
-@[simp] lemma translate_gpow (x : ℝ) (n : ℤ) :
+@[simp] lemma translate_zpow (x : ℝ) (n : ℤ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-by simp only [← gsmul_eq_mul, of_add_gsmul, monoid_hom.map_gpow]
+by simp only [← zsmul_eq_mul, of_add_zsmul, monoid_hom.map_zpow]
 
 @[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-translate_gpow x n
+translate_zpow x n
 
 @[simp] lemma translate_iterate (x : ℝ) (n : ℕ) :
   (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ ↑n * x) :=
@@ -608,7 +608,7 @@ eq_neg_iff_add_eq_zero.2 $
 | (n+1) := by rw [pow_succ', translation_number_mul_of_commute (commute.pow_self f n),
   translation_number_pow n, nat.cast_add_one, add_mul, one_mul]
 
-@[simp] lemma translation_number_gpow (f : units circle_deg1_lift) :
+@[simp] lemma translation_number_zpow (f : units circle_deg1_lift) :
   ∀ n : ℤ, τ (f ^ n : units _) = n * τ f
 | (n : ℕ) := by simp [translation_number_pow f n]
 | -[1+n] := by { simp,  ring }
@@ -856,8 +856,8 @@ lemma units_semiconj_of_translation_number_eq {f₁ f₂ : units circle_deg1_lif
   (h : τ f₁ = τ f₂) :
   ∃ F : circle_deg1_lift, semiconj F f₁ f₂ :=
 begin
-  have : ∀ n : multiplicative ℤ, τ ((units.coe_hom _).comp (gpowers_hom _ f₁) n) =
-    τ ((units.coe_hom _).comp (gpowers_hom _ f₂) n),
+  have : ∀ n : multiplicative ℤ, τ ((units.coe_hom _).comp (zpowers_hom _ f₁) n) =
+    τ ((units.coe_hom _).comp (zpowers_hom _ f₂) n),
   { intro n, simp [h] },
   exact (semiconj_of_group_action_of_forall_translation_number_eq _ _ this).imp
     (λ F hF, hF (multiplicative.of_add 1))

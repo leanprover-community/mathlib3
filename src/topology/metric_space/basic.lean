@@ -218,7 +218,7 @@ end
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
 lemma dist_le_range_sum_dist (f : ℕ → α) (n : ℕ) :
   dist (f 0) (f n) ≤ ∑ i in finset.range n, dist (f i) (f (i + 1)) :=
-nat.Ico_zero_eq_range n ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
+nat.Ico_zero_eq_range ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
 
 /-- A version of `dist_le_Ico_sum_dist` with each intermediate distance replaced
 with an upper estimate. -/
@@ -233,7 +233,7 @@ with an upper estimate. -/
 lemma dist_le_range_sum_of_dist_le {f : ℕ → α} (n : ℕ)
   {d : ℕ → ℝ} (hd : ∀ {k}, k < n → dist (f k) (f (k + 1)) ≤ d k) :
   dist (f 0) (f n) ≤ ∑ i in finset.range n, d i :=
-nat.Ico_zero_eq_range n ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
+nat.Ico_zero_eq_range ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
 
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _
@@ -2080,8 +2080,8 @@ instance metric_space.to_emetric_space : emetric_space γ :=
 { eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
   ..pseudo_metric_space.to_pseudo_emetric_space, }
 
-lemma is_closed_of_pairwise_on_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
-  (hs : pairwise_on s (λ x y, ε ≤ dist x y)) : is_closed s :=
+lemma is_closed_of_pairwise_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
+  (hs : s.pairwise (λ x y, ε ≤ dist x y)) : is_closed s :=
 is_closed_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hs
 
 lemma closed_embedding_of_pairwise_le_dist {α : Type*} [topological_space α] [discrete_topology α]

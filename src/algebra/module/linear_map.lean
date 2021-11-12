@@ -574,13 +574,13 @@ instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
     to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  gsmul := λ n f, {
+  zsmul := λ n f, {
     to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  gsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
-  gsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.gsmul_succ' n _,
-  gsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.gsmul_neg' n _,
+  zsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
+  zsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_succ' n _,
+  zsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_neg' n _,
   .. linear_map.add_comm_monoid }
 
 end arithmetic
@@ -601,6 +601,8 @@ instance : has_scalar S (M →ₗ[R] M₂) :=
           map_smul' := λ c x, by simp [pi.smul_apply, f.map_smul, smul_comm c] }⟩
 
 @[simp] lemma smul_apply (a : S) (f : M →ₗ[R] M₂) (x : M) : (a • f) x = a • f x := rfl
+
+lemma coe_smul (a : S) (f : M →ₗ[R] M₂) : ⇑(a • f) = a • f := rfl
 
 instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₗ[R] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
@@ -631,6 +633,9 @@ variables [semiring S] [module S M₂] [smul_comm_class R S M₂]
 instance : module S (M →ₗ[R] M₂) :=
 { add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+instance [no_zero_smul_divisors S M₂] : no_zero_smul_divisors S (M →ₗ[R] M₂) :=
+coe_injective.no_zero_smul_divisors _ rfl coe_smul
 
 end module
 

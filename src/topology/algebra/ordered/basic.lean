@@ -805,11 +805,11 @@ begin
       exact λ hx, ht.out a.2 y.2 ⟨le_of_lt h, le_of_not_gt hx⟩ } }
 end
 
-lemma nhds_top_order [topological_space α] [order_top α] [order_topology α] :
+lemma nhds_top_order [topological_space α] [partial_order α] [order_top α] [order_topology α] :
   𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), 𝓟 (Ioi l)) :=
 by simp [nhds_eq_order (⊤:α)]
 
-lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
+lemma nhds_bot_order [topological_space α] [partial_order α] [order_bot α] [order_topology α] :
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
 
@@ -844,8 +844,8 @@ lemma nhds_bot_basis_Iic [topological_space α] [semilattice_inf_bot α] [is_tot
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) Iic :=
 @nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _
 
-lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
-  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
+lemma tendsto_nhds_top_mono [topological_space β] [partial_order β] [order_top β] [order_topology β]
+  {l : filter α} {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
   tendsto g l (𝓝 ⊤) :=
 begin
   simp only [nhds_top_order, tendsto_infi, tendsto_principal] at hf ⊢,
@@ -854,18 +854,18 @@ begin
   exact λ x, lt_of_lt_of_le
 end
 
-lemma tendsto_nhds_bot_mono [topological_space β] [order_bot β] [order_topology β] {l : filter α}
-  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ᶠ[l] f) :
+lemma tendsto_nhds_bot_mono [topological_space β] [partial_order β] [order_bot β] [order_topology β]
+  {l : filter α} {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ᶠ[l] f) :
   tendsto g l (𝓝 ⊥) :=
-@tendsto_nhds_top_mono α (order_dual β) _ _ _ _ _ _ hf hg
+@tendsto_nhds_top_mono α (order_dual β) _ _ _ _ _ _ _ hf hg
 
-lemma tendsto_nhds_top_mono' [topological_space β] [order_top β] [order_topology β] {l : filter α}
-  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ g) :
+lemma tendsto_nhds_top_mono' [topological_space β] [partial_order β] [order_top β]
+  [order_topology β] {l : filter α} {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ g) :
   tendsto g l (𝓝 ⊤) :=
 tendsto_nhds_top_mono hf (eventually_of_forall hg)
 
-lemma tendsto_nhds_bot_mono' [topological_space β] [order_bot β] [order_topology β] {l : filter α}
-  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ f) :
+lemma tendsto_nhds_bot_mono' [topological_space β] [partial_order β] [order_bot β]
+  [order_topology β] {l : filter α} {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ f) :
   tendsto g l (𝓝 ⊥) :=
 tendsto_nhds_bot_mono hf (eventually_of_forall hg)
 
@@ -909,6 +909,21 @@ let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ioc_subset_of_mem_nhds' hs h
 lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ u, a < u) :
   ∃ u (_ : a < u), Ico a u ⊆ s :=
 let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
+
+lemma is_open.exists_Ioo_subset [nontrivial α] {s : set α} (hs : is_open s) (h : s.nonempty) :
+  ∃ a b, a < b ∧ Ioo a b ⊆ s :=
+begin
+  obtain ⟨x, hx⟩ : ∃ x, x ∈ s := h,
+  obtain ⟨y, hy⟩ : ∃ y, y ≠ x := exists_ne x,
+  rcases lt_trichotomy x y with H|rfl|H,
+  { obtain ⟨u, xu, hu⟩ : ∃ (u : α) (hu : x < u), Ico x u ⊆ s :=
+      exists_Ico_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
+    exact ⟨x, u, xu, Ioo_subset_Ico_self.trans hu⟩ },
+  { exact (hy rfl).elim },
+  { obtain ⟨l, lx, hl⟩ : ∃ (l : α) (hl : l < x), Ioc l x ⊆ s :=
+      exists_Ioc_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
+    exact ⟨l, x, lx, Ioo_subset_Ioc_self.trans hl⟩ }
+end
 
 lemma order_separated {a₁ a₂ : α} (h : a₁ < a₂) :
   ∃u v : set α, is_open u ∧ is_open v ∧ a₁ ∈ u ∧ a₂ ∈ v ∧ (∀b₁∈u, ∀b₂∈v, b₁ < b₂) :=
@@ -2404,6 +2419,21 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
 @[simp] lemma tendsto_Iio_at_top {f : β → Iio a} :
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[Iio a] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
+
+lemma dense_iff_forall_lt_exists_mem [nontrivial α] {s : set α} :
+  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
+begin
+  split,
+  { assume h a b hab,
+    obtain ⟨c, ⟨hc, cs⟩⟩ : ((Ioo a b) ∩ s).nonempty :=
+      dense_iff_inter_open.1 h (Ioo a b) is_open_Ioo (nonempty_Ioo.2 hab),
+    exact ⟨c, cs, hc⟩ },
+  { assume h,
+    apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
+    obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
+    obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h a b hab,
+    exact ⟨x, ⟨H hx, xs⟩⟩ }
+end
 
 end densely_ordered
 

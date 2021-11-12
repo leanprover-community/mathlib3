@@ -70,7 +70,7 @@ lemma eq_some_of_to_value_eq_some {e : option (α × β)} {v : β} :
   to_value e = some v → ∃ k, e = some (k, v) :=
 begin
   cases e with val; simp [to_value, false_implies_iff],
-    { cases val, simp, intro h, subst v, constructor, refl }
+  { cases val, simp, intro h, subst v, constructor, refl }
 end
 
 lemma eq_none_of_to_value_eq_none {e : option (α × β)} : to_value e = none → e = none :=
@@ -197,17 +197,17 @@ end
 lemma constains_correct [is_strict_weak_order α lt] (k : α) (m : rbmap α β lt) :
   k ∈ m ↔ m.contains k = tt :=
 begin
-   apply iff.intro,
-   { intro h,
-     have h := iff.mp (find_entry_correct k m) h,
-     cases h with e h, cases h with h₁ h₂,
-     simp [contains, h₁, option.is_some] },
-   { simp [contains],
-     intro h,
-     generalize he : find_entry m k = e,
-     cases e,
-       { simp [he, option.is_some] at h, contradiction },
-       { exact mem_of_find_entry_some he } }
+  apply iff.intro,
+  { intro h,
+    have h := iff.mp (find_entry_correct k m) h,
+    cases h with e h, cases h with h₁ h₂,
+    simp [contains, h₁, option.is_some] },
+  { simp [contains],
+    intro h,
+    generalize he : find_entry m k = e,
+    cases e,
+    { simp [he, option.is_some] at h, contradiction },
+    { exact mem_of_find_entry_some he } }
 end
 
 lemma mem_insert_of_incomp [is_strict_weak_order α lt] {k₁ k₂ : α} (m : rbmap α β lt) (v : β) :

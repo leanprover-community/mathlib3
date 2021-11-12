@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
+import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
 import linear_algebra.linear_independent
 import group_theory.perm.sign
@@ -156,6 +157,14 @@ f.to_multilinear_map.map_update_zero m i
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 f.to_multilinear_map.map_zero
 
+lemma map_eq_zero_of_not_injective (v : ι → M) (hv : ¬function.injective v) : f v = 0 :=
+begin
+  rw function.injective at hv,
+  push_neg at hv,
+  rcases hv with ⟨i₁, i₂, heq, hne⟩,
+  exact f.map_eq_zero_of_eq v heq hne
+end
+
 /-!
 ### Algebraic structure inherited from `multilinear_map`
 
@@ -232,7 +241,7 @@ by refine
   zsmul_neg' := _,
   .. alternating_map.add_comm_monoid, .. };
 intros; ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, zsmul_coe_nat]
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, coe_nat_zsmul]
 
 section distrib_mul_action
 
@@ -248,6 +257,9 @@ instance : has_scalar S (alternating_map R M N ι) :=
 
 @[norm_cast] lemma coe_smul (c : S):
   ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
+
+lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
+rfl
 
 instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
@@ -266,6 +278,9 @@ addition and scalar multiplication. -/
 instance : module S (alternating_map R M N ι) :=
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+instance [no_zero_smul_divisors S N] : no_zero_smul_divisors S (alternating_map R M N ι) :=
+coe_injective.no_zero_smul_divisors _ rfl coe_fn_smul
 
 end module
 
@@ -765,3 +780,26 @@ begin
 end
 
 end coprod
+
+section basis
+
+open alternating_map
+
+variables {ι₁ : Type*} [fintype ι]
+variables {R' : Type*} {N₁ N₂ : Type*} [comm_semiring R'] [add_comm_monoid N₁] [add_comm_monoid N₂]
+variables [module R' N₁] [module R' N₂]
+
+/-- Two alternating maps indexed by a `fintype` are equal if they are equal when all arguments
+are distinct basis vectors. -/
+lemma basis.ext_alternating {f g : alternating_map R' N₁ N₂ ι} (e : basis ι₁ R' N₁)
+  (h : ∀ v : ι → ι₁, function.injective v → f (λ i, e (v i)) = g (λ i, e (v i))) : f = g :=
+begin
+  refine alternating_map.coe_multilinear_map_injective (basis.ext_multilinear e $ λ v, _),
+  by_cases hi : function.injective v,
+  { exact h v hi },
+  { have : ¬function.injective (λ i, e (v i)) := hi.imp function.injective.of_comp,
+    rw [coe_multilinear_map, coe_multilinear_map,
+        f.map_eq_zero_of_not_injective _ this, g.map_eq_zero_of_not_injective _ this], }
+end
+
+end basis

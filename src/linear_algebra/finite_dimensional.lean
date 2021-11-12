@@ -218,7 +218,7 @@ lemma finrank_eq_card_basis' [finite_dimensional K V] {ι : Type w} (h : basis �
 begin
   haveI : is_noetherian K V := iff_fg.2 infer_instance,
   haveI : fintype ι := fintype_basis_index h,
-  rw [cardinal.fintype_card, finrank_eq_card_basis h]
+  rw [cardinal.mk_fintype, finrank_eq_card_basis h]
 end
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
@@ -269,7 +269,7 @@ end
 lemma fintype_card_le_finrank_of_linear_independent
   [finite_dimensional K V] {ι : Type*} [fintype ι] {b : ι → V} (h : linear_independent K b) :
   fintype.card ι ≤ finrank K V :=
-by simpa [fintype_card] using cardinal_mk_le_finrank_of_linear_independent h
+by simpa using cardinal_mk_le_finrank_of_linear_independent h
 
 lemma finset_card_le_finrank_of_linear_independent [finite_dimensional K V] {b : finset V}
   (h : linear_independent K (λ x, x : b → V)) :
@@ -411,11 +411,7 @@ end
 /-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
 lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map f) ≤ finrank K p :=
-begin
-  rw [← cardinal.nat_cast_le.{max v v'}, ← cardinal.lift_nat_cast.{v' v},
-    ← cardinal.lift_nat_cast.{v v'}, finrank_eq_dim K p, finrank_eq_dim K (p.map f)],
-  exact lift_dim_map_le f p
-end
+by simpa [← finrank_eq_dim] using lift_dim_map_le f p
 
 variable {K}
 
@@ -454,7 +450,7 @@ lemma _root_.complete_lattice.independent.subtype_ne_bot_le_finrank
   [finite_dimensional K V] {ι : Type w} {p : ι → submodule K V}
   (hp : complete_lattice.independent p) [fintype {i // p i ≠ ⊥}] :
   fintype.card {i // p i ≠ ⊥} ≤ finrank K V :=
-by simpa [cardinal.fintype_card] using hp.subtype_ne_bot_le_finrank_aux
+by simpa using hp.subtype_ne_bot_le_finrank_aux
 
 section
 open_locale big_operators
@@ -1149,7 +1145,7 @@ lemma finrank_span_le_card (s : set V) [fin : fintype s] :
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
-  rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
+  rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
 
@@ -1165,7 +1161,7 @@ begin
   haveI : finite_dimensional K (span K (set.range b)) := span_of_finite K (set.finite_range b),
   have : module.rank K (span K (set.range b)) = #(set.range b) := dim_span hb,
   rwa [←finrank_eq_dim, ←lift_inj, mk_range_eq_of_injective hb.injective,
-    cardinal.fintype_card, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
+    cardinal.mk_fintype, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
 end
 
 lemma finrank_span_set_eq_card (s : set V) [fin : fintype s]
@@ -1174,7 +1170,7 @@ lemma finrank_span_set_eq_card (s : set V) [fin : fintype s]
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) = #s := dim_span_set hs,
-  rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
+  rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
 

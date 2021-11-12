@@ -140,6 +140,14 @@ not_congr coe_nat_eq_zero
 
 @[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
+lemma le_coe_nat_sub (m n : ℕ) :
+  (m - n : ℤ) ≤ ↑(m - n : ℕ) :=
+begin
+  by_cases h: m ≥ n,
+  { exact le_of_eq (int.coe_nat_sub h).symm },
+  { simp [le_of_not_ge h] }
+end
+
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
 λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩

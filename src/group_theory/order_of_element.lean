@@ -119,7 +119,7 @@ by rwa [order_of, minimal_period, dif_neg]
 ⟨λ h H, (order_of_pos' H).ne' h, order_of_eq_zero⟩
 
 @[to_additive nsmul_ne_zero_of_lt_add_order_of']
-lemma pow_eq_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
+lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
   ((is_periodic_pt_mul_iff_pow_eq_one x).mpr j)
 

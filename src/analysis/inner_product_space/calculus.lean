@@ -120,7 +120,7 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
 
 lemma times_cont_diff_norm_sq : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
 begin
-  simp only [sq, ← inner_self_eq_norm_sq],
+  simp only [sq, ← inner_self_eq_norm_mul_norm],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).times_cont_diff.comp (times_cont_diff_id.inner times_cont_diff_id)
 end
 
@@ -185,7 +185,7 @@ omit 𝕜
 lemma has_strict_fderiv_at_norm_sq (x : F) :
   has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (inner_right x)) x :=
 begin
-  simp only [sq, ← inner_self_eq_norm_sq],
+  simp only [sq, ← inner_self_eq_norm_mul_norm],
   convert (has_strict_fderiv_at_id x).inner (has_strict_fderiv_at_id x),
   ext y,
   simp [bit0, real_inner_comm],

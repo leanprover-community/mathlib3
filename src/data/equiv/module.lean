@@ -350,6 +350,51 @@ lemma restrict_scalars_inj (f g : M ≃ₗ[S] M₂) :
 
 end restrict_scalars
 
+section automorphisms
+variables [module R M]
+
+instance automorphism_group : group (M ≃ₗ[R] M) :=
+{ mul := λ f g, g.trans f,
+  one := linear_equiv.refl R M,
+  inv := λ f, f.symm,
+  mul_assoc := λ f g h, rfl,
+  mul_one := λ f, ext $ λ x, rfl,
+  one_mul := λ f, ext $ λ x, rfl,
+  mul_left_inv := λ f, ext $ f.left_inv }
+
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linear endomorphisms of `M`,
+promoted to a monoid hom. -/
+@[simps]
+def automorphism_group.to_linear_map_monoid_hom : (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
+{ to_fun := coe,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
+/-- The tautological action by `M ≃ₗ[R] M` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
+{ smul := ($),
+  smul_zero := linear_equiv.map_zero,
+  smul_add := linear_equiv.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : M ≃ₗ[R] M) (a : M) :
+  f • a = f a := rfl
+
+/-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+⟨λ _ _, linear_equiv.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
+{ smul_comm := linear_equiv.map_smul }
+
+end automorphisms
+
 end add_comm_monoid
 
 end linear_equiv
@@ -384,6 +429,15 @@ def to_linear_map (s : S) : M →ₗ[R] M :=
   map_add' := smul_add s,
   map_smul' := λ a b, smul_comm _ _ _ }
 
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_End`. -/
+@[simps]
+def to_module_End : S →* module.End R M :=
+{ to_fun := to_linear_map R M,
+  map_one' := linear_map.ext $ one_smul _,
+  map_mul' := λ a b, linear_map.ext $ mul_smul _ _ }
+
 end
 
 section
@@ -397,6 +451,36 @@ def to_linear_equiv (s : S) : M ≃ₗ[R] M :=
 { ..to_add_equiv M s,
   ..to_linear_map R M s }
 
+/-- Each element of the group defines a module automorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_aut`. -/
+@[simps]
+def to_module_aut : S →* M ≃ₗ[R] M :=
+{ to_fun := to_linear_equiv R M,
+  map_one' := linear_equiv.ext $ one_smul _,
+  map_mul' := λ a b, linear_equiv.ext $ mul_smul _ _ }
+
 end
 
 end distrib_mul_action
+
+namespace module
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+
+section
+variables [semiring S] [module S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_module_End`. -/
+@[simps?]
+def to_module_End : S →+* module.End R M :=
+{ to_fun := distrib_mul_action.to_linear_map R M,
+  map_zero' := linear_map.ext $ zero_smul _,
+  map_add' := λ f g, linear_map.ext $ add_smul _ _,
+  ..distrib_mul_action.to_module_End R M }
+
+end
+
+end module

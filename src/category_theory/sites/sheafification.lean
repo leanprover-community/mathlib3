@@ -590,14 +590,15 @@ begin
   refl,
 end
 
-instance (P : Sheaf J D) : is_iso ((sheafification_adjunction J D).counit.app P) :=
+instance is_iso_sheafification_adjunction_counit (P : Sheaf J D) :
+  is_iso ((sheafification_adjunction J D).counit.app P) :=
 begin
   dsimp [sheafification_adjunction],
   erw ← sheafification_iso_inv,
   apply_instance
 end
 
-instance reflective : is_iso (sheafification_adjunction J D).counit :=
+instance sheafification_reflective : is_iso (sheafification_adjunction J D).counit :=
 nat_iso.is_iso_of_is_iso_app _
 
 end category_theory

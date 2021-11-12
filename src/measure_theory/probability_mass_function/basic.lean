@@ -23,7 +23,7 @@ so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
 
 ## Tags
 
-probability mass function, discrete probability measure, bernoulli distribution
+probability mass function, discrete probability measure
 -/
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}

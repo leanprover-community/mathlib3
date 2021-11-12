@@ -5,6 +5,29 @@ Authors: Johannes Hölzl, Devon Tuma
 -/
 import measure_theory.probability_mass_function.basic
 
+/-!
+# Specific Constructions of Probability Mass Functions
+
+This file gives a number of different `pmf` constructions for common probability distributions
+
+`map` and `seq` allow pushing a `pmf α` along a function `f : α → β` (or distribution of
+functions `f : pmf (α → β)`) to get a `pmf β`
+
+`of_finset` and `of_fintype` simplify the construction of a `pmf α` from a function `f : α → ℝ≥0`,
+by allowing the "sum equals 1" constraint to be in terms of `finset.sum` instead of `tsum`.
+`of_multiset`, `uniform_of_finset`, and `uniform_of_fintype` construct probability mass functions
+from the corresponding object, with proportional weighting for each element of the object.
+
+`normalize` constructs a `pmf α` by normalizing a function `f : α → ℝ≥0` by it's sum,
+and `filter` uses this to filter the support of a `pmf` and re-normalize the new distribution.
+
+`bind_on_support` generalizes `bind` to allow binding to a partial function,
+so that the second argument only needs to be defined on the support of the first argument.
+
+`bernoulli` represents the bernoulli distribution on `bool`
+
+-/
+
 namespace pmf
 
 noncomputable theory

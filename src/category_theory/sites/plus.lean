@@ -198,8 +198,7 @@ variable {D}
 
 /-- `(P ⟶ P⁺)⁺ = P⁺ ⟶ P⁺⁺ -/
 @[simp]
-lemma plus_map_to_plus :
-  J.plus_map (J.to_plus P) = J.to_plus (J.plus_obj P) :=
+lemma plus_map_to_plus : J.plus_map (J.to_plus P) = J.to_plus (J.plus_obj P) :=
 begin
   ext X S,
   dsimp,

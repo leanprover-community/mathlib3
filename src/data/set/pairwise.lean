@@ -281,6 +281,27 @@ hs.elim hi hj $ λ hij, h hij.eq_bot
 
 end semilattice_inf_bot
 
+section complete_lattice
+variables [complete_lattice α]
+
+/-- Bind operation for `set.pairwise_disjoint`. If you want to only consider finsets of indices, you
+can use `set.pairwise_disjoint.bUnion_finset`. -/
+lemma pairwise_disjoint.bUnion {s : set ι'} {g : ι' → set ι} {f : ι → α}
+  (hs : s.pairwise_disjoint (λ i' : ι', ⨆ i ∈ g i', f i))
+  (hg : ∀ i ∈ s, (g i).pairwise_disjoint f) :
+  (⋃ i ∈ s, g i).pairwise_disjoint f :=
+begin
+  rintro a ha b hb hab,
+  simp_rw set.mem_Union at ha hb,
+  obtain ⟨c, hc, ha⟩ := ha,
+  obtain ⟨d, hd, hb⟩ := hb,
+  obtain hcd | hcd := eq_or_ne (g c) (g d),
+  { exact hg d hd a (hcd ▸ ha) b hb hab },
+  { exact (hs _ hc _ hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
+end
+
+end complete_lattice
+
 /-! ### Pairwise disjoint set of sets -/
 
 lemma pairwise_disjoint_range_singleton :

@@ -687,7 +687,7 @@ begin
     { refine le_hausdorff_measure _ _ ∞ ennreal.coe_lt_top (λ s h₁ h₂, _),
       rw [ennreal.rpow_nat_cast],
       exact real.volume_pi_le_diam_pow s },
-    rw [← volume_pi_pi (λ i, Ioo (a i : ℝ) (b i)) (λ i, measurable_set_Ioo)],
+    rw [← volume_pi_pi (λ i, Ioo (a i : ℝ) (b i))],
     exact measure.le_iff'.1 Hle _ },
   /- For the other inequality `μH s ≤ volume s`, we use a covering of `s` by sets of small diameter
   `1/n`, namely cubes with left-most point of the form `a i + f i / n` with `f i` ranging between

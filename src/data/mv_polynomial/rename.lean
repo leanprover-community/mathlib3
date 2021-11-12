@@ -173,8 +173,8 @@ begin
     { simp only [rename_rename, alg_hom.map_add], refl, }, },
   { rintro p n ⟨s, p, rfl⟩,
     refine ⟨insert n s, ⟨_, _⟩⟩,
-  { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
-    simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
+    { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
+      simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
     { simp only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
 end
 

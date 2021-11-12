@@ -23,7 +23,8 @@ This files introduces:
 * `inf_edist x s`, the infimum edistance of a point `x` to a set `s` in an emetric space
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
 * Versions of these notions on metric spaces, called respectively `inf_dist` and
-`Hausdorff_dist`.
+`Hausdorff_dist`,
+* `thickening δ s`, the open thickening by radius `δ` os a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
 open_locale classical nnreal ennreal topological_space
@@ -786,13 +787,11 @@ lemma mem_thickening_iff {δ : ℝ} (E : set X) (x : X) :
   x ∈ thickening δ E ↔ (∃ z ∈ E, dist x z < δ) :=
 begin
   unfold thickening,
-  simp,
+  simp only [exists_prop, mem_set_of_eq],
   split,
   { intros h,
     rcases (exists_edist_lt_of_inf_edist_lt h) with ⟨z, ⟨hzE, hxz⟩⟩,
-    use z,
-    split,
-    { exact hzE, },
+    refine ⟨z, hzE, _⟩,
     rw dist_edist,
     apply (@ennreal.of_real_lt_of_real_iff_of_nonneg
         ((edist x z).to_real) δ (ennreal.to_real_nonneg)).mp,

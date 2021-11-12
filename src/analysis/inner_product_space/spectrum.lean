@@ -50,9 +50,10 @@ variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
 include hT
 
 /-- A self-adjoint operator preserves orthogonal complements of its eigenspaces. -/
-lemma invariant_orthogonal_eigenspace (μ : 𝕜) : ∀ v ∈ (eigenspace T μ)ᗮ, T v ∈ (eigenspace T μ)ᗮ :=
+lemma invariant_orthogonal_eigenspace (μ : 𝕜) (v : E) (hv : v ∈ (eigenspace T μ)ᗮ) :
+  T v ∈ (eigenspace T μ)ᗮ :=
 begin
-  intros v hv w hw,
+  intros w hw,
   have : T w = (μ:𝕜) • w := by rwa mem_eigenspace_iff at hw,
   simp [← hT w, this, inner_smul_left, hv w hw]
 end

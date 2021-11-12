@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import category_theory.sites.sheaf
-import category_theory.limits.shapes.multiequalizer
 
 /-!
 
@@ -73,7 +72,7 @@ def plus_obj : Cᵒᵖ ⥤ D :=
     ext I,
     dsimp,
     simp only [multiequalizer.lift_ι, category.id_comp, category.assoc],
-    dsimp [cover.L.map, cover.L.base],
+    dsimp [cover.arrow.map, cover.arrow.base],
     cases I,
     congr,
     simp,
@@ -92,7 +91,7 @@ def plus_obj : Cᵒᵖ ⥤ D :=
     dsimp,
     simp only [multiequalizer.lift_ι, category.assoc],
     cases I,
-    dsimp only [cover.L.base, cover.L.map],
+    dsimp only [cover.arrow.base, cover.arrow.map],
     congr' 2,
     simp,
   end }
@@ -171,7 +170,7 @@ def to_plus : P ⟶ J.plus_obj P :=
     ext,
     dsimp,
     simp only [multiequalizer.lift_ι, category.assoc],
-    dsimp [cover.L.base],
+    dsimp [cover.arrow.base],
     simp,
   end }
 

@@ -397,14 +397,14 @@ instance : inhabited (J.cover X) := ⟨⊤⟩
 
 /-- An auxiliary structure, used to define `S.index` in `plus.lean`. -/
 @[nolint has_inhabited_instance, ext]
-structure L (S : J.cover X) :=
+structure arrow (S : J.cover X) :=
 (Y : C)
 (f : Y ⟶ X)
 (hf : S f)
 
 /-- An auxiliary structure, used to define `S.index` in `plus.lean`. -/
 @[nolint has_inhabited_instance, ext]
-structure R (S : J.cover X) :=
+structure relation (S : J.cover X) :=
 (Y₁ Y₂ Z : C)
 (g₁ : Z ⟶ Y₁)
 (g₂ : Z ⟶ Y₂)
@@ -414,56 +414,56 @@ structure R (S : J.cover X) :=
 (h₂ : S f₂)
 (w : g₁ ≫ f₁ = g₂ ≫ f₂)
 
-/-- Map a term of `S.L` along a refinement `S ⟶ T`. -/
+/-- Map a `arrow` along a refinement `S ⟶ T`. -/
 @[simps]
-def L.map {S T : J.cover X} (I : S.L) (f : S ⟶ T) : T.L :=
+def arrow.map {S T : J.cover X} (I : S.arrow) (f : S ⟶ T) : T.arrow :=
 ⟨I.Y, I.f, f.le _ I.hf⟩
 
-/-- Map a term of `S.R` along a refinement `S ⟶ T`. -/
+/-- Map a `relation` along a refinement `S ⟶ T`. -/
 @[simps]
-def R.map {S T : J.cover X} (I : S.R) (f : S ⟶ T) : T.R :=
+def relation.map {S T : J.cover X} (I : S.relation) (f : S ⟶ T) : T.relation :=
 ⟨_, _, _, I.g₁, I.g₂, I.f₁, I.f₂, f.le _ I.h₁, f.le _ I.h₂, I.w⟩
 
-/-- The first term of `S.L` associated to `I : S.R`.
+/-- The first `arrow` associated to a `relation`.
 Used in defining `index` in `plus.lean`. -/
 @[simps]
-def R.fst {S : J.cover X} (I : S.R) : S.L :=
+def relation.fst {S : J.cover X} (I : S.relation) : S.arrow :=
 ⟨I.Y₁, I.f₁, I.h₁⟩
 
-/-- The first term of `S.L` associated to `I : S.R`.
+/-- The second `arrow` associated to a `relation`.
 Used in defining `index` in `plus.lean`. -/
 @[simps]
-def R.snd {S : J.cover X} (I : S.R) : S.L :=
+def relation.snd {S : J.cover X} (I : S.relation) : S.arrow :=
 ⟨I.Y₂, I.f₂, I.h₂⟩
 
 @[simp]
-lemma R.map_fst {S T : J.cover X} (I : S.R) (f : S ⟶ T) :
+lemma relation.map_fst {S T : J.cover X} (I : S.relation) (f : S ⟶ T) :
    I.fst.map f = (I.map f).fst := rfl
 
 @[simp]
-lemma R.map_snd {S T : J.cover X} (I : S.R) (f : S ⟶ T) :
+lemma relation.map_snd {S T : J.cover X} (I : S.relation) (f : S ⟶ T) :
   I.snd.map f = (I.map f).snd := rfl
 
 /-- Pull back a cover along a morphism. -/
 def pullback (S : J.cover X) (f : Y ⟶ X) : J.cover Y :=
 ⟨sieve.pullback f S, J.pullback_stable _ S.condition⟩
 
-/-- A term of `(S.pullback f).L` gives rise to a term of `S.L`. -/
+/-- An arrow of `S.pullback f` gives rise to an arrow of `S`. -/
 @[simps]
-def L.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).L) : S.L :=
+def arrow.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).arrow) : S.arrow :=
 ⟨I.Y, I.f ≫ f, I.hf⟩
 
-/-- A term of `(S.pullback f).R` gives rise to a term of `S.R`. -/
+/-- A relation of `S.pullback f` gives rise to a relation of `S`. -/
 @[simps]
-def R.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).R) : S.R :=
+def relation.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).relation) : S.relation :=
 ⟨_, _, _, I.g₁, I.g₂, I.f₁ ≫ f, I.f₂≫ f, I.h₁, I.h₂, by simp [reassoc_of I.w]⟩
 
 @[simp]
-lemma R.base_fst {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).R) :
+lemma relation.base_fst {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).relation) :
  I.fst.base = I.base.fst := rfl
 
 @[simp]
-lemma R.base_snd {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).R) :
+lemma relation.base_snd {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).relation) :
  I.snd.base = I.base.snd := rfl
 
 @[simp]
@@ -484,8 +484,8 @@ eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
 /-- To every `S : J.cover X` and presheaf `P`, associate a `multicospan_index`. -/
 def index {D : Type w} [category.{max v u} D] (S : J.cover X) (P : Cᵒᵖ ⥤ D) :
   limits.multicospan_index D :=
-{ L := S.L,
-  R := S.R,
+{ L := S.arrow,
+  R := S.relation,
   fst_to := λ I, I.fst,
   snd_to := λ I, I.snd,
   left := λ I, P.obj (opposite.op I.Y),
@@ -515,7 +515,7 @@ abbreviation to_multiequalizer {D : Type w} [category.{max v u} D] (S : J.cover 
 P.obj (opposite.op X) ⟶ limits.multiequalizer (S.index P) :=
 limits.multiequalizer.lift _ _ (λ I, P.map I.f.op) begin
   intros I,
-  dsimp only [index, R.fst, R.snd],
+  dsimp only [index, relation.fst, relation.snd],
   simp only [← P.map_comp, ← op_comp, I.w],
 end
 

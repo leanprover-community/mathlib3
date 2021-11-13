@@ -10,7 +10,7 @@ import category_theory.limits.concrete_category
 
 # Sheafification
 
-We show construct the sheafification of a presheaf over a site `C` with values in `D` whenever
+We construct the sheafification of a presheaf over a site `C` with values in `D` whenever
 `D` is a concrete category for which the forgetful functor preserves the appropriate (co)limits
 and reflects isomorphisms.
 
@@ -357,7 +357,7 @@ theorem exists_of_sep (P : Cᵒᵖ ⥤ D)
 begin
   have inj : ∀ (X : C), function.injective ((J.to_plus P).app (op X)) := inj_of_sep _ hsep,
 
-  -- Choose representatives for the given local sections..
+  -- Choose representatives for the given local sections.
   choose T t ht using λ I, exists_rep (s I),
 
   -- Construct a large cover over which we will define a representative that will

@@ -233,11 +233,11 @@ omit σ'
 
 @[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
 
-@[simp] lemma trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
+@[simp] lemma self_trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.trans f.symm = linear_equiv.refl R M :=
 by { ext x, simp }
 
-@[simp] lemma symm_trans [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
+@[simp] lemma symm_trans_self [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.symm.trans f = linear_equiv.refl R M₂ :=
 by { ext x, simp }
 

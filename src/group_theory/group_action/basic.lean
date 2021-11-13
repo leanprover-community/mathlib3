@@ -97,49 +97,11 @@ def stabilizer.submonoid (b : β) : submonoid α :=
 @[simp, to_additive] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
   a ∈ stabilizer.submonoid α b ↔ a • b = b := iff.rfl
 
-variables (α β)
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g • x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_smul_eq : ∀ x y : β, ∃ g : α, g • x = y)
-
-variables {β}
-
-lemma exists_smul_eq [is_pretransitive α β] (x y : β) :
-  ∃ m : α, m • x = y := is_pretransitive.exists_smul_eq x y
-
-lemma surjective_smul [is_pretransitive α β] (x : β) :
-  surjective (λ c : α, c • x) :=
-exists_smul_eq α x
-
-lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
+@[to_additive] lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
-/-- The regular action of a group on itself is transitive. -/
-instance regular.is_pretransitive {G : Type*} [group G] : is_pretransitive G G :=
-⟨λ x y, ⟨y * x⁻¹, inv_mul_cancel_right _ _⟩⟩
-
--- TODO: add an additive version once we have additive opposites
-/-- The right regular action of a group on itself is transitive. -/
-instance opposite_regular.is_pretransitive {G : Type*} [group G] :
-  is_pretransitive Gᵒᵖ G :=
-⟨λ x y, ⟨opposite.op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩
-
 end mul_action
-
-namespace add_action
-variables (α β) [add_monoid α] [add_action α β]
-
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g +ᵥ x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_vadd_eq : ∀ x y : β, ∃ g : α, g +ᵥ x = y)
-
-attribute [to_additive] mul_action.is_pretransitive mul_action.exists_smul_eq
-  mul_action.surjective_smul mul_action.orbit_eq_univ mul_action.regular.is_pretransitive
-
-end add_action
 
 namespace mul_action
 variable (α)

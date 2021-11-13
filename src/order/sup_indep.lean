@@ -16,8 +16,10 @@ In distributive lattices, this is equivalent to being pairwise disjoint.
 
 ## TODO
 
-As we don't have `lattice_bot`, all this file is set into distributive lattices, which kills the
-nuance with `set.pairwise_disjoint`. This ought to change.
+As we don't have `lattice_bot`, we're forced to pick between `bounded_lattice` (which assumes `top`
+unnecessarily) and `distrib_lattice_bot` (which assumes distributivity unnecessarily). For now we
+pick `distrib_lattice_bot` for it to apply to `finset α`, although this use is redundant with
+`set.pairwise_disjoint`.
 
 `complete_lattice.independent` and `complete_lattice.set_independent` should live in this file.
 -/
@@ -28,13 +30,11 @@ namespace finset
 variables [distrib_lattice_bot α] [decidable_eq ι] [decidable_eq ι']
 
 /-- Supremum independence of finite sets. -/
-def sup_indep (s : finset ι) (f : ι → α) : Prop :=
-∀ ⦃a⦄, a ∈ s → disjoint (f a) ((s.erase a).sup f)
+def sup_indep (s : finset ι) (f : ι → α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint (f a) ((s.erase a).sup f)
 
 variables {s t : finset ι} {f : ι → α}
 
-lemma sup_indep.subset (ht : t.sup_indep f) (h : s ⊆ t) :
-  s.sup_indep f :=
+lemma sup_indep.subset (ht : t.sup_indep f) (h : s ⊆ t) : s.sup_indep f :=
 λ a ha, (ht $ h ha).mono_right $ sup_mono $ erase_subset_erase _ h
 
 lemma sup_indep_empty (f : ι → α) : (∅ : finset ι).sup_indep f := λ a ha, ha.elim
@@ -75,8 +75,7 @@ lemma sup_indep.pairwise_disjoint  (hs : s.sup_indep f) : (s : set ι).pairwise_
 -- Once `finset.sup_indep` will have been generalized to non distributive lattices, can we state
 -- this lemma for nondistributive atomic lattices? This setting makes the `←` implication much
 -- harder.
-lemma sup_indep_iff_pairwise_disjoint :
-  s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
+lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
 begin
   refine ⟨λ hs a ha b hb hab, (hs ha).mono_right $ le_sup $ mem_erase.2 ⟨hab.symm, hb⟩,
     λ hs a ha, _⟩,

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson
+Authors: Aaron Anderson, Stuart Presnell
 -/
 import algebra.big_operators.order
 import data.nat.interval
@@ -18,6 +18,7 @@ Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
  * `divisors n` is the `finset` of natural numbers that divide `n`.
  * `proper_divisors n` is the `finset` of natural numbers that divide `n`, other than `n`.
  * `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
+ * `prime_divisors n` is the `finset` of prime natural numbers that divide `n`.
  * `perfect n` is true when `n` is positive and the sum of `proper_divisors n` is `n`.
 
 ## Implementation details
@@ -46,6 +47,10 @@ def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.
   As a special case, `divisors_antidiagonal 0 = ∅`. -/
 def divisors_antidiagonal : finset (ℕ × ℕ) :=
 ((finset.Ico 1 (n + 1)).product (finset.Ico 1 (n + 1))).filter (λ x, x.fst * x.snd = n)
+
+/-- `prime_divisors n` is the `finset` of prime natural numbers that divide `n`. -/
+def prime_divisors (n:ℕ) := (divisors n).filter prime
+
 
 variable {n}
 
@@ -397,5 +402,88 @@ begin
   intros a ha,
   exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
 end
+
+
+
+-- # Prime divisors
+
+lemma prime_divisors_mem {n p : ℕ} (hn : n ≠ 0) : p ∈ n.prime_divisors ↔ p ∣ n ∧ prime p :=
+by { unfold prime_divisors, rw [mem_filter, mem_divisors], simp, intros, exact hn }
+
+/-- 0 has no prime divisors -/
+lemma zero_no_prime_divisors : prime_divisors 0  = (∅:finset ℕ) :=
+by { unfold prime_divisors divisors, simp }
+
+lemma prime_divisors_eq_prime_factors (n:ℕ) : n.prime_divisors = n.factors.to_finset :=
+begin
+  by_cases hn : n = 0,
+  { rw [hn, zero_no_prime_divisors], simp },
+  { ext, rw prime_divisors_mem hn, simp, rw [mem_factors (pos_iff_ne_zero.mpr hn), and_comm] }
+end
+
+/-- 1 has no prime divisors -/
+lemma one_no_prime_divisors : prime_divisors 1 = (∅:finset ℕ) :=
+by { apply filter_singleton prime }
+
+/-- The sets of prime divisors of coprime `a` and `b` are disjoint -/
+lemma coprime_prime_divisors_disjoint {a b : ℕ} (h_ab_coprime : coprime a b) :
+  disjoint a.prime_divisors b.prime_divisors :=
+begin
+  by_cases ha : a = 0,
+    { rw ha at *, simp at h_ab_coprime, rw h_ab_coprime,
+      rw zero_no_prime_divisors, simp },
+  by_cases hb : b = 0,
+    { rw hb at *, simp at h_ab_coprime, rw h_ab_coprime,
+      rw zero_no_prime_divisors, simp },
+
+  rw disjoint_iff_ne,
+  intros x hx y hy,
+  rw (prime_divisors_mem ha) at hx,
+  rw (prime_divisors_mem hb) at hy,
+  cases hy with hy1 hy2,
+  by_contra H, rw H at hx,
+  suffices : y = 1, { rw this at hy2, exact not_prime_one hy2 },
+  exact eq_one_of_dvd_coprimes h_ab_coprime hx.1 hy1,
+end
+
+/-- For coprime `a` and `b`, prime divisors of `(a * b)` are the union of those of `a` and `b` -/
+lemma coprime_prime_divisors_product {a b : ℕ} (h_ab_coprime : coprime a b) :
+  (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
+begin
+  by_cases ha0 : a = 0,
+    { rw ha0 at *, simp at *, rw h_ab_coprime,
+      rw [zero_no_prime_divisors, one_no_prime_divisors], simp },
+  by_cases hb0 : b = 0,
+    { rw hb0 at *, simp at *, rw h_ab_coprime,
+      rw [zero_no_prime_divisors, one_no_prime_divisors], simp },
+  have hab : a * b ≠ 0, { exact mul_ne_zero ha0 hb0 },
+
+  ext p,
+  rw [mem_union,
+      prime_divisors_mem hab,
+      prime_divisors_mem ha0,
+      prime_divisors_mem hb0,
+      ←or_and_distrib_right],
+  simp, exact prime.dvd_mul,
+end
+
+/-- The only prime divisor of positive prime power `p^k` is `p` itself -/
+lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp: prime p) : prime_divisors (p^k) = {p} :=
+begin
+  have h1 : (p^k) ≠ 0, { exact pow_ne_zero k (prime.ne_zero hp) },
+  ext q,
+  rw prime_divisors_mem h1, simp,
+  split,
+  { rintros ⟨hq1, hq2⟩,
+    rw ←(prime_dvd_prime_iff_eq hq2 hp),
+    exact prime.dvd_of_dvd_pow hq2 hq1 },
+  { intros h, rw h, use [dvd_pow_self p hk, hp] },
+end
+
+/-- The only prime divisor of prime `p` is `p` itself -/
+lemma prime_prime_divisor {p:ℕ} (hp: prime p) : prime_divisors p = {p} :=
+by { rw ←(@prime_pow_prime_divisor p 1 _ hp), repeat {simp} }
+
+
 
 end nat

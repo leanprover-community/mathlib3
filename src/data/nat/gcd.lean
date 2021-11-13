@@ -453,4 +453,15 @@ begin
     apply gcd_mul_dvd_mul_gcd }
 end
 
+/-- If `k:ℕ` divides coprime `a` and `b` then `k = 1` -/
+lemma eq_one_of_dvd_coprimes {a b k : ℕ} (h_ab_coprime : coprime a b)
+  (hka : k ∣ a) (hkb : k ∣ b) : k = 1
+  :=
+begin
+  rw coprime_iff_gcd_eq_one at h_ab_coprime,
+  have h1 := dvd_gcd hka hkb,
+  rw h_ab_coprime at h1,
+  simp at h1, exact h1,
+end
+
 end nat

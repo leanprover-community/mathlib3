@@ -116,6 +116,16 @@ lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
+/-- The regular action of a group on itself is transitive. -/
+instance regular.is_pretransitive {G : Type*} [group G] : is_pretransitive G G :=
+⟨λ x y, ⟨y * x⁻¹, inv_mul_cancel_right _ _⟩⟩
+
+-- TODO: add an additive version once we have additive opposites
+/-- The right regular action of a group on itself is transitive. -/
+instance opposite_regular.is_pretransitive {G : Type*} [group G] :
+  is_pretransitive Gᵒᵖ G :=
+⟨λ x y, ⟨opposite.op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩
+
 end mul_action
 
 namespace add_action
@@ -127,7 +137,7 @@ class is_pretransitive : Prop :=
 (exists_vadd_eq : ∀ x y : β, ∃ g : α, g +ᵥ x = y)
 
 attribute [to_additive] mul_action.is_pretransitive mul_action.exists_smul_eq
-  mul_action.surjective_smul mul_action.orbit_eq_univ
+  mul_action.surjective_smul mul_action.orbit_eq_univ mul_action.regular.is_pretransitive
 
 end add_action
 
@@ -158,6 +168,11 @@ variables {α} {β}
 (orbit_smul_subset a b).antisymm $
   calc orbit α b = orbit α (a⁻¹ • a • b) : by rw inv_smul_smul
              ... ⊆ orbit α (a • b)       : orbit_smul_subset _ _
+
+/-- The action of a group on an orbit is transitive. -/
+@[to_additive "The action of an additive group on an orbit is transitive."]
+instance (x : β) : is_pretransitive α (orbit α x) :=
+⟨by { rintro ⟨_, a, rfl⟩ ⟨_, b, rfl⟩, use b * a⁻¹, ext1, simp [mul_smul] }⟩
 
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=

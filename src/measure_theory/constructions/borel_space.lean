@@ -1740,7 +1740,8 @@ begin
   { refine le_antisymm (le_of_eq (measure_mono_null _ hμ_compl)) (zero_le _),
     exact set.compl_subset_compl.mpr (λ x hx, hf_lim_conv x hx), },
   have h_f_lim_meas : measurable f_lim,
-    from measurable_of_tendsto_metric (ae_seq.measurable hf p) (tendsto_pi_nhds.mpr (λ x, hf_lim x)),
+    from measurable_of_tendsto_metric (ae_seq.measurable hf p)
+      (tendsto_pi_nhds.mpr (λ x, hf_lim x)),
   exact ⟨f_lim, h_f_lim_meas, h_ae_tendsto_f_lim⟩,
 end
 

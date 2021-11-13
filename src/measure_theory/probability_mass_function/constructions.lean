@@ -8,7 +8,7 @@ import measure_theory.probability_mass_function.basic
 /-!
 # Specific Constructions of Probability Mass Functions
 
-This file gives a number of different `pmf` constructions for common probability distributions
+This file gives a number of different `pmf` constructions for common probability distributions.
 
 `map` and `seq` allow pushing a `pmf α` along a function `f : α → β` (or distribution of
 functions `f : pmf (α → β)`) to get a `pmf β`
@@ -18,7 +18,7 @@ by allowing the "sum equals 1" constraint to be in terms of `finset.sum` instead
 `of_multiset`, `uniform_of_finset`, and `uniform_of_fintype` construct probability mass functions
 from the corresponding object, with proportional weighting for each element of the object.
 
-`normalize` constructs a `pmf α` by normalizing a function `f : α → ℝ≥0` by it's sum,
+`normalize` constructs a `pmf α` by normalizing a function `f : α → ℝ≥0` by its sum,
 and `filter` uses this to filter the support of a `pmf` and re-normalize the new distribution.
 
 `bind_on_support` generalizes `bind` to allow binding to a partial function,

@@ -172,15 +172,9 @@ lemma to_weak_dual_image_norm_eval_le_one (z : E) :
 begin
   ext x',
   split,
-  { rintros ⟨x'', ⟨h₁, h₂⟩⟩,
-    rw ← h₂,
-    exact h₁, },
-  { intros h,
-    use x',
-    exact ⟨h, rfl⟩, },
+  { rintros ⟨x'', ⟨h₁, h₂⟩⟩, rw ← h₂, exact h₁, },
+  { intros h, use x', exact ⟨h, rfl⟩, },
 end
-
-open function
 
 lemma of_empty : polar 𝕜 (∅ : set E) = univ :=
 by { unfold polar, simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true], }

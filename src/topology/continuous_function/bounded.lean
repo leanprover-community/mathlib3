@@ -945,14 +945,18 @@ end normed_algebra
 
 section normed_lattice_ordered_group
 
-variables [topological_space α] [normed_lattice_add_comm_group β]
+class normed_lattice_add_comm_group' (α : Type*)
+  extends normed_lattice_add_comm_group α :=
+(norm_smul: ∀ a : α, 2*∥a∥ ≤ ∥2•a∥)
+
+variables [topological_space α] [normed_lattice_add_comm_group' β]
 
 -- Can we infer this from https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114 ?
 instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
 
-lemma inf_sub_inf_le (h: ∀ (e : β), 2*∥e∥ ≤ ∥2•e∥) (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+lemma inf_sub_inf_le (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
-  have e1: 2*∥a⊓b-c⊓d∥ ≤ ∥2•(a⊓b)-2•(c⊓d)∥ := begin rw ← smul_sub, apply h end,
+  have e1: 2*∥a⊓b-c⊓d∥ ≤ ∥2•(a⊓b)-2•(c⊓d)∥ := begin rw ← smul_sub, apply normed_lattice_add_comm_group'.norm_smul end,
   rw [← mul_le_mul_left zero_lt_two, mul_add],
   apply le_trans e1 (two_inf_sub_two_inf_le _ _ _ _),
   exact real.nontrivial,
@@ -961,7 +965,7 @@ end
 /--
 Continuous normed lattice group valued functions form a meet-semilattice
 -/
-def to_semilattice_inf (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilattice_inf (α →ᵇ β) := {
+instance : semilattice_inf (α →ᵇ β) := {
   inf := λf g, {
     to_fun := λ t, f(t)⊓g(t),
     continuous_to_fun := begin
@@ -974,7 +978,7 @@ def to_semilattice_inf (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilatti
       intros,
       simp,
       rw normed_group.dist_eq,
-      apply le_trans (inf_sub_inf_le h _ _ _ _) _,
+      apply le_trans (inf_sub_inf_le _ _ _ _) _,
       rw [← normed_group.dist_eq, ← normed_group.dist_eq],
       apply add_le_add (hf _ _) (hg _ _),
     end
@@ -987,50 +991,108 @@ def to_semilattice_inf (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilatti
   ..bounded_continuous_function.partial_order
 }
 
+
+
 /--
 Continuous functions with values in the order dual also form a meet-semilattice
 -/
-def upsidedown (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilattice_inf (α →ᵇ order_dual β) :=
-begin
-  apply bounded_continuous_function.to_semilattice_inf,
-  exact h,
-end
+--instance upsidedown : semilattice_inf (α →ᵇ order_dual β) := infer_instance
 
 /--
 The order dual of continuous functions with values in the order dual form a join-semilattice
 -/
-def to_semilattice_sup' (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) :
-  semilattice_sup (order_dual (α →ᵇ order_dual β)) :=
-begin
-  convert order_dual.semilattice_sup _,
-  apply bounded_continuous_function.upsidedown,
-  exact h,
-end
+--instance to_semilattice_sup' :
+--  semilattice_sup (order_dual (α →ᵇ order_dual β)) := infer_instance
 
 /--
 Continuous normed lattice group valued functions form a join-semilattice
 -/
-def to_semilattice_sup (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : semilattice_sup (α →ᵇ β) :=
-begin
-  apply bounded_continuous_function.to_semilattice_sup',
-  exact h,
-end
+--instance : semilattice_sup (α →ᵇ β) := begin apply bounded_continuous_function.to_semilattice_sup' end
 
-def to_lattice (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : lattice (α →ᵇ β) := {
-  ..(to_semilattice_sup h),
-  ..(to_semilattice_inf h),
+instance : semilattice_sup (α →ᵇ β) := {
+  sup := λf g, {
+    to_fun := λ t, f(t)⊔g(t),
+    continuous_to_fun := begin
+      continuity,
+    end,
+    bounded' := begin
+      cases f.bounded' with C₁ hf,
+      cases g.bounded' with C₂ hg,
+      use C₁+C₂,
+      intros,
+      simp,
+      rw normed_group.dist_eq,
+      apply le_trans (inf_sub_inf_le _ _ _ _) _,
+      rw [← normed_group.dist_eq, ← normed_group.dist_eq],
+      apply add_le_add (hf _ _) (hg _ _),
+    end
+  },
+  inf_le_left :=  λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_left, end),
+  inf_le_right := λ f g, continuous_map.le_def.mpr (begin intro, apply inf_le_right, end),
+  le_inf := λ f g₁ g₂ w₁ w₂, continuous_map.le_def.mpr (λ a, begin
+    apply le_inf (continuous_map.le_def.mp w₁ a) (continuous_map.le_def.mp w₂ a),
+  end),
+  ..bounded_continuous_function.partial_order
 }
 
-def to_normed_lattice_add_comm_group (h: ∀ (b : β), 2*∥b∥ ≤ ∥2•b∥ ) : normed_lattice_add_comm_group (α →ᵇ β) := {
+instance  : lattice (α →ᵇ β) :=
+{ .. bounded_continuous_function.semilattice_sup, .. bounded_continuous_function.semilattice_inf }
+
+lemma inf_pointwise (f g : α →ᵇ β) (t : α) : (f⊓g) t = (f t)⊓(g t) := by finish
+
+lemma s1 (f g : α →ᵇ β) : f⊔g = (f : α →ᵇ order_dual β) ⊓ (g : α →ᵇ order_dual β) := by finish
+
+lemma d1 (α : Type) [lattice α] (a b : α) : (show order_dual α, from a) ⊔ b = (a : α) ⊔ b := rfl
+
+lemma s3 (α : Type) [lattice α] (a b : α) : (show order_dual α, from a) ⊓ b = ((a ⊔ b : α) : order_dual α) := rfl
+
+lemma sup_pointwise (f g : α →ᵇ β) (t : α) : (f⊔g) t = (f t)⊔(g t) :=
+begin
+  rw s1,
+  rw inf_pointwise,
+  --rw ← d1,
+  sorry,
+end
+
+
+lemma test (f : α →ᵇ β) (t : α) : (-f) t = - (f t) :=
+begin
+  simp only [pi.neg_apply, coe_neg],
+end
+
+lemma test2 (f : α →ᵇ β) (t : α) : f t ⊔ (-f) t = f t ⊔ -f t  :=
+begin
+  simp only [pi.neg_apply, coe_neg],
+end
+
+lemma abs_pointwise (f : α →ᵇ β) (t : α) : |f t| = |f| t :=
+begin
+  unfold has_abs.abs,
+  sorry,
+end
+
+instance : normed_lattice_add_comm_group (α →ᵇ β) := {
   add_le_add_left := begin
     intros,
     sorry,
   end,
-  solid := begin
+  solid :=
+  begin
+    intros f g h,
+    have i1: ∀ (t:α),|f(t)| ≤ |g(t)| := begin
+      intro,
+      unfold has_abs.abs,
+      rw ← test2 f t,
+      rw ← sup_pointwise f (-f) t,
+      sorry,
+    end,
+    rw norm_eq_supr_norm,
     sorry,
   end,
-  ..(to_lattice h),
+  ..lattice,
 }
+
+--λ f g h', continuous_map.le_def.mpr (begin intros, apply solid, end),
 
 end normed_lattice_ordered_group
 

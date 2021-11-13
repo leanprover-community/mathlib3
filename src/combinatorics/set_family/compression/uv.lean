@@ -8,9 +8,8 @@ import data.finset.basic
 /-!
 # UV-compressions
 
-This file defines UV-compression.
+This file defines UV-compression. It is an operation on a set family that reduces its shadow.
 
-A compression in combinatorics is an operation on a set family that reduces its shadow.
 UV-compressing `a : α` along `u v : α` means replacing `a` by `(a ⊔ u) \ v` if `a` and `u` are
 disjoint and `v ≤ a`. In some sense, it's moving `a` from `v` to `u`.
 

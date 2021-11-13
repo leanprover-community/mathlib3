@@ -144,7 +144,7 @@ begin
   unfold compress,
   split_ifs with h h',
   { suffices : u = ⊥,
-    { rw [this, sup_bot_eq, sup_bot_eq, sdiff_idem] },
+    { rw [this, sup_bot_eq, sup_bot_eq, _root_.sdiff_idem] },
     rw ←disjoint_self,
     have : u \ v = u := (h.1.mono_right h.2).sdiff_eq_left,
     nth_rewrite 1 ←this,

@@ -82,9 +82,6 @@ def coloring.color_class_of_color (c : α) : set V := {v : V | C v = c}
 /-- The color class of a given vertex. -/
 def coloring.color_class_of_vertex (v : V) : set V := C.color_class_of_color (C v)
 
-/-- The set of color classes. -/
-def coloring.color_classes : set (set V) := {(C.color_class_of_vertex v) | v : V}
-
 -- TODO make this computable
 noncomputable
 instance [fintype V] [fintype α] : fintype (coloring G α) :=

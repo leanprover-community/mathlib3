@@ -211,7 +211,7 @@ Topology:
     Cauchy filter: 'cauchy'
     Cauchy sequence: 'cauchy_seq'
     completeness: 'complete_space'
-    completion: 'completion'
+    completion: 'uniform_space.completion'
     Heine-Cantor theorem: 'compact_space.uniform_continuous_of_continuous'
   Topological algebra:
     order topology: 'order_topology'

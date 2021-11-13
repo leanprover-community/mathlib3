@@ -322,7 +322,7 @@ begin
     { apply t.center_mass_mem_convex_hull hw₀,
       { simp only [hw₁, zero_lt_one] },
       { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
-   { exact Union_subset (λ i, Union_subset convex_hull_mono), },
+  { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 
 lemma convex_hull_prod (s : set E) (t : set F) :

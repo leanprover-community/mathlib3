@@ -53,8 +53,7 @@ instance unique_bot : unique (⊥ : submodule R M) :=
 
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
-  bot_le := λ p x, by simp {contextual := tt},
-  ..set_like.partial_order }
+  bot_le := λ p x, by simp {contextual := tt} }
 
 protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
@@ -109,8 +108,7 @@ end
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
-  le_top := λ p x _, trivial,
-  ..set_like.partial_order }
+  le_top := λ p x _, trivial }
 
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
@@ -160,7 +158,8 @@ instance : complete_lattice (submodule R M) :=
   le_Inf       := λ s a, le_Inf',
   Inf_le       := λ s a, Inf_le',
   ..submodule.order_top,
-  ..submodule.order_bot }
+  ..submodule.order_bot,
+  ..set_like.partial_order }
 
 @[simp] theorem inf_coe : ↑(p ⊓ q) = (p ∩ q : set M) := rfl
 
@@ -168,6 +167,16 @@ instance : complete_lattice (submodule R M) :=
   x ∈ p ⊓ q ↔ x ∈ p ∧ x ∈ q := iff.rfl
 
 @[simp] theorem Inf_coe (P : set (submodule R M)) : (↑(Inf P) : set M) = ⋂ p ∈ P, ↑p := rfl
+
+@[simp] theorem finset_inf_coe {ι} (s : finset ι) (p : ι → submodule R M) :
+  (↑(s.inf p) : set M) = ⋂ i ∈ s, ↑(p i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine s.induction_on _ (λ i s hi ih, _),
+  { simp },
+  { rw [finset.inf_insert, inf_coe, ih],
+    simp },
+end
 
 @[simp] theorem infi_coe {ι} (p : ι → submodule R M) :
   (↑⨅ i, p i : set M) = ⋂ i, ↑(p i) :=
@@ -180,6 +189,10 @@ set.mem_bInter_iff
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) {x} :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
 by rw [← set_like.mem_coe, infi_coe, set.mem_Inter]; refl
+
+@[simp] theorem mem_finset_inf {ι} {s : finset ι} {p : ι → submodule R M} {x : M} :
+  x ∈ s.inf p ↔ ∀ i ∈ s, x ∈ p i :=
+by simp only [← set_like.mem_coe, finset_inf_coe, set.mem_Inter]
 
 lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left

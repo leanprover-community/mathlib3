@@ -111,12 +111,11 @@ instance [semilattice_sup α] : semilattice_sup_top (Iic a) :=
 { .. (Iic.semilattice_sup),
   .. (Iic.order_top) }
 
-instance [order_bot α] : order_bot (Iic a) :=
+instance [preorder α] [order_bot α] : order_bot (Iic a) :=
 { bot := ⟨⊥, bot_le⟩,
-  bot_le := λ ⟨_,_⟩, subtype.mk_le_mk.2 bot_le,
-  .. (infer_instance : partial_order (Iic a)) }
+  bot_le := λ ⟨_,_⟩, subtype.mk_le_mk.2 bot_le }
 
-@[simp] lemma coe_bot [order_bot α] {a : α} : ↑(⊥ : Iic a) = (⊥ : α) := rfl
+@[simp] lemma coe_bot [preorder α] [order_bot α] {a : α} : ↑(⊥ : Iic a) = (⊥ : α) := rfl
 
 instance [partial_order α] [no_bot_order α] {a : α} : no_bot_order (Iic a) :=
 ⟨λ x, let ⟨y, hy⟩ := no_bot x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩
@@ -149,10 +148,9 @@ instance [lattice α] : lattice (Ici a) :=
 { .. (Ici.semilattice_inf),
   .. (Ici.semilattice_sup) }
 
-instance [partial_order α] : order_bot (Ici a) :=
+instance [preorder α] : order_bot (Ici a) :=
 { bot := ⟨a, le_refl a⟩,
-  bot_le := λ x, x.prop,
-  .. (subtype.partial_order _) }
+  bot_le := λ x, x.prop }
 
 @[simp] lemma coe_bot [partial_order α] {a : α} : ↑(⊥ : Ici a) = a := rfl
 
@@ -164,12 +162,11 @@ instance [semilattice_sup α] : semilattice_sup_bot (Ici a) :=
 { .. (Ici.semilattice_sup),
   .. (Ici.order_bot) }
 
-instance [order_top α] : order_top (Ici a) :=
+instance [preorder α] [order_top α] : order_top (Ici a) :=
 { top := ⟨⊤, le_top⟩,
-  le_top := λ ⟨_,_⟩, subtype.mk_le_mk.2 le_top,
-  .. (infer_instance : partial_order (Ici a)) }
+  le_top := λ ⟨_,_⟩, subtype.mk_le_mk.2 le_top }
 
-@[simp] lemma coe_top [order_top α] {a : α} : ↑(⊤ : Ici a) = (⊤ : α) := rfl
+@[simp] lemma coe_top [preorder α] [order_top α] {a : α} : ↑(⊤ : Ici a) = (⊤ : α) := rfl
 
 instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
 ⟨λ x, let ⟨y, hy⟩ := no_top x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩

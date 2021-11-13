@@ -47,32 +47,38 @@ end
 /--
 If F isn't of characteristic 2, 2^3 ≠ 0 also.
 --/
-lemma eight_ne_zero [field F] (two_ne_zero : (2 : F) ≠ (0 : F)) : (8 : F) ≠ (0 : F) :=
+instance four_ne_zero [field F] [invertible (2 : F)] : invertible (4 : F) :=
 begin
-  have cubed : (2 : F) * (2 : F) * (2 : F) = (8 : F),
-    ring,
-  rw <- cubed, clear cubed,
-  exact mul_ne_zero (mul_ne_zero two_ne_zero two_ne_zero) two_ne_zero,
+    have cubed : (2 : F) ^ 2 = (4 : F),
+      ring,
+    rw <- cubed, exact invertible_pow 2 2,
+end
+
+/--
+If F isn't of characteristic 2, 2^3 ≠ 0 also.
+--/
+instance eight_ne_zero [field F] [invertible (2 : F)] : invertible (8 : F) :=
+begin
+    have cubed : (2 : F) ^ 3 = (8 : F),
+      ring,
+    rw <- cubed, exact invertible_pow 2 3,
 end
 
 /--
 If F isn't of characteristic 3, 3^3 ≠ 0 also.
 --/
-lemma twenty_seven_ne_zero [field F] (three_ne_zero : (3 : F) ≠ (0 : F)) :
-  (27 : F) ≠ (0 : F) :=
+instance twenty_seven_ne_zero [field F] [invertible (3 : F)] : invertible (27 : F) :=
 begin
-  have cubed : (3 : F) * (3 : F) * (3 : F) = (27 : F),
-    ring,
-  rw <- cubed, clear cubed,
-  exact mul_ne_zero (mul_ne_zero three_ne_zero three_ne_zero) three_ne_zero,
+    have cubed : (3 : F) ^ 3 = (27 : F),
+      ring,
+    rw <- cubed, exact invertible_pow 3 3,
 end
 
 /--
 ((-1 + sqrt(-3))/2)^3 = 1
 --/
-@[simp] lemma cubrt_unity_a_correct [field F] (root_three_i : F)
-    (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_a_correct [field F] [invertible (2 : F)] (root_three_i : F)
+    (rt3_i_correct : root_three_i * root_three_i = (-3))  :
     (cube_root_unity_a root_three_i) * (cube_root_unity_a root_three_i) * (cube_root_unity_a root_three_i)
      = 1 :=
 begin
@@ -89,15 +95,14 @@ begin
           : by rw div_mul_div
    ... = 8 / (2 * 2 * 2) : by rw simp_numerator
    ... = 8 / 8 : by ring_nf
-   ... = 1 : by rw div_self (eight_ne_zero two_ne_zero),
+   ... = 1 : by rw div_self_of_invertible,
 end
 
 /--
 ((-1 - sqrt(-3))/2)^3 = 1
 --/
-@[simp] lemma cubrt_unity_b_correct [field F] (root_three_i : F)
-    (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_b_correct [field F] [invertible (2 : F)] (root_three_i : F)
+    (rt3_i_correct : root_three_i * root_three_i = (-3)) :
     (cube_root_unity_b root_three_i) * (cube_root_unity_b root_three_i) * (cube_root_unity_b root_three_i)
      = 1 :=
 begin
@@ -106,7 +111,7 @@ begin
   rw switch_roots, clear switch_roots,
   have neg_rt3_i_correct : (-root_three_i) * (-root_three_i) = (-3),
     rw neg_mul_neg, exact rt3_i_correct,
-  exact cubrt_unity_a_correct (-root_three_i) neg_rt3_i_correct two_ne_zero,
+  exact cubrt_unity_a_correct (-root_three_i) neg_rt3_i_correct,
 end
 
 @[simp] lemma cube_roots_unity_sum_zero [field F] (root_three_i : F)
@@ -118,9 +123,8 @@ begin
   field_simp, ring,
 end
 
-@[simp] lemma cubrt_unity_a_ne_zero [field F] (root_three_i : F)
-  (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_a_ne_zero [field F] [invertible (2 : F)] (root_three_i : F)
+  (rt3_i_correct : root_three_i * root_three_i = (-3)) :
   (cube_root_unity_a root_three_i) ≠ 0 :=
 begin
   have one_ne_zero : 1 ≠ (0 : F), simp,
@@ -129,56 +133,51 @@ begin
   repeat {assumption},
 end
 
-@[simp] lemma cubrt_unity_a_reciprocal [field F] (root_three_i : F)
-    (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_a_reciprocal [field F] [invertible (2 : F)] (root_three_i : F)
+    (rt3_i_correct : root_three_i * root_three_i = (-3)) :
     1/(cube_root_unity_a root_three_i) = (cube_root_unity_b root_three_i) :=
 begin
   have root_ne_zero : (cube_root_unity_a root_three_i) ≠ 0,
-    exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct two_ne_zero,
+    exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct,
   field_simp, unfold cube_root_unity_a, unfold cube_root_unity_b,
   field_simp, rw left_distrib, rw sub_eq_add_neg, repeat {rw right_distrib},
   rw neg_mul_comm root_three_i root_three_i,
   rw <- neg_mul_eq_mul_neg root_three_i root_three_i,
-  rw rt3_i_correct, ring,
+  rw rt3_i_correct, field_simp, ring, field_simp,
 end
 
-@[simp] lemma cubrt_unity_b_ne_zero [field F] (root_three_i : F)
-  (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_b_ne_zero [field F] [invertible (2 : F)] (root_three_i : F)
+  (rt3_i_correct : root_three_i * root_three_i = (-3)) :
   (cube_root_unity_b root_three_i) ≠ 0 :=
 begin
-  rw <- cubrt_unity_a_reciprocal root_three_i rt3_i_correct two_ne_zero, apply one_div_ne_zero,
-  exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct two_ne_zero,
+  rw <- cubrt_unity_a_reciprocal root_three_i rt3_i_correct, apply one_div_ne_zero,
+  exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct,
 end
 
-@[simp] lemma cubrt_unity_b_reciprocal [field F] (root_three_i : F)
-    (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_b_reciprocal [field F] [invertible (2 : F)] (root_three_i : F)
+    (rt3_i_correct : root_three_i * root_three_i = (-3)) :
     1/(cube_root_unity_b root_three_i) = (cube_root_unity_a root_three_i) :=
 begin
   have tmp : ∀(a b : F), 1 / a = 1 / b -> a = b,
     intros a b h, simp at h, exact h,
   apply tmp, rw one_div_one_div, symmetry,
-  exact cubrt_unity_a_reciprocal root_three_i rt3_i_correct two_ne_zero,
+  exact cubrt_unity_a_reciprocal root_three_i rt3_i_correct,
 end
 
 /--
 The three cube roots of 1 multiply to 1.
 --/
-@[simp] lemma cubrts_unity_mul_one [field F] (root_three_i : F)
-    (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrts_unity_mul_one [field F] [invertible (2 : F)] (root_three_i : F)
+    (rt3_i_correct : root_three_i * root_three_i = (-3)) :
     (cube_root_unity_a root_three_i) * (cube_root_unity_b root_three_i) = 1 :=
 begin
-  rw <- cubrt_unity_a_reciprocal root_three_i rt3_i_correct two_ne_zero,
+  rw <- cubrt_unity_a_reciprocal root_three_i rt3_i_correct,
   rw mul_div_cancel',
-  exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct two_ne_zero,
+  exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct,
 end
 
-@[simp] lemma cubrt_unity_a_squ [field F] (root_three_i : F)
-    (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_a_squ [field F] [invertible (2 : F)] (root_three_i : F)
+    (rt3_i_correct : root_three_i * root_three_i = (-3)) :
     (cube_root_unity_a root_three_i) * (cube_root_unity_a root_three_i) = (cube_root_unity_b root_three_i)
  :=
 begin
@@ -186,21 +185,20 @@ begin
               (cube_root_unity_a root_three_i) *
               (cube_root_unity_a root_three_i)
                / (cube_root_unity_a root_three_i) = 1 * (cube_root_unity_b root_three_i),
-    rw cubrt_unity_a_correct root_three_i rt3_i_correct two_ne_zero,
-    rw cubrt_unity_a_reciprocal root_three_i rt3_i_correct two_ne_zero,
+    rw cubrt_unity_a_correct root_three_i rt3_i_correct,
+    rw cubrt_unity_a_reciprocal root_three_i rt3_i_correct,
     rw one_mul,
   rw mul_div_cancel at h, rw one_mul at h, exact h,
-  exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct two_ne_zero,
+  exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct,
 end
 
-@[simp] lemma cubrt_unity_b_squ [field F] (root_three_i : F)
-    (rt3_i_correct : root_three_i * root_three_i = (-3))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) :
+@[simp] lemma cubrt_unity_b_squ [field F] [invertible (2 : F)] (root_three_i : F)
+    (rt3_i_correct : root_three_i * root_three_i = (-3)) :
     (cube_root_unity_b root_three_i) * (cube_root_unity_b root_three_i) = (cube_root_unity_a root_three_i)
  :=
 begin
   have h : (cube_root_unity_a root_three_i) ≠ 0,
-    exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct two_ne_zero,
+    exact cubrt_unity_a_ne_zero root_three_i rt3_i_correct ,
   rw [<- cubrt_unity_a_reciprocal] {occs := occurrences.pos [2]},
   field_simp, rw cubrt_unity_a_squ, repeat {assumption},
 end
@@ -241,27 +239,28 @@ begin
   rw <- div_mul_div, rw div_self ne_zero, simp,
 end
 
-lemma tmp_nonzero [field F] (c d sqrt : F) (not_char_three : (3 : F) ≠ (0 : F)):
-    (sqrt * sqrt = depressed_cubic_solution_sqrt c d) ->
-    (c ≠ (0 : F)) ->
-       (sqrt -(d / 2) ≠ (0 : F)) :=
+lemma formula_den_inv [field F] [invertible (3 : F)] (c d sqrt : F) [invertible c]
+    (h_sqrt : sqrt * sqrt = depressed_cubic_solution_sqrt c d) :
+      ((sqrt -(d / 2)) ≠ 0) :=
 begin
-  intros h_sqrt c_ne_zero, intros h,
-  rw sub_eq_zero at h, symmetry' at h,
-  have h_squ : (-(d / 2)) * (-(d / 2)) = (sqrt * sqrt),
-    rw h, clear h,
-    rw neg_mul_neg,
-  clear h,
-  rw h_sqrt at h_squ, unfold depressed_cubic_solution_sqrt at h_squ,
-  have tmp2 : -(d / 2) * -(d / 2) = (d * d) / (2 * 2),
-    rw neg_mul_neg, rw div_mul_div,
-  rw tmp2 at h_squ, clear tmp2, symmetry' at h_squ,
-  have h_iszero : c * c * c / 27 = 0,
-    rw add_right_eq_self at h_squ, exact h_squ,
-  clear h_sqrt,
-  have ne_zero : c * c * c ≠ (0 : F),
-    exact mul_ne_zero (mul_ne_zero c_ne_zero c_ne_zero) c_ne_zero,
-  exact div_ne_zero ne_zero (twenty_seven_ne_zero not_char_three) h_iszero,
+  have ne_zero : (sqrt - (d / 2)) ≠ 0,
+    intros h,
+    rw sub_eq_zero at h, symmetry' at h,
+    have h_squ : (-(d / 2)) * (-(d / 2)) = (sqrt * sqrt),
+      rw h, clear h,
+      rw neg_mul_neg,
+    clear h,
+    rw h_sqrt at h_squ, unfold depressed_cubic_solution_sqrt at h_squ,
+    have tmp2 : -(d / 2) * -(d / 2) = (d * d) / (2 * 2),
+      rw neg_mul_neg, rw div_mul_div,
+    rw tmp2 at h_squ, clear tmp2, symmetry' at h_squ,
+    have h_iszero : c * c * c / 27 = 0,
+      rw add_right_eq_self at h_squ, exact h_squ,
+    clear h_sqrt,
+    have ne_zero : c * c * c ≠ (0 : F),
+      exact mul_ne_zero (mul_ne_zero (nonzero_of_invertible c) (nonzero_of_invertible c)) (nonzero_of_invertible c),
+    exact div_ne_zero ne_zero (nonzero_of_invertible 27) h_iszero,
+  assumption,
 end
 
 lemma multiply_out_cubic [field F] (x a b c : F) :
@@ -275,7 +274,10 @@ end
 The three solutions obtained by using different cube roots in the above formula
 factorize the depressed cubic.
 --/
-lemma depressed_cubic_factorize [field F] (c d x sqrt cubrt rt3_i : F)
+lemma depressed_cubic_factorize [field F] [invertible (2 : F)] [invertible (3 : F)]
+       (c d x sqrt cubrt rt3_i : F) [invertible c]
+       /- TODO: These ne_zero arguments are redundant with the invertibles,
+          but I haven't been able to get the proof to work properly without them.-/
       (two_ne_zero : (2 : F) ≠ (0 : F)) (three_ne_zero : (3 : F) ≠ (0 : F))
       (c_ne_zero : c ≠ (0 : F)) :
   (sqrt * sqrt) = (depressed_cubic_solution_sqrt c d) ->
@@ -292,7 +294,7 @@ begin
     intros cubrt_zero, rw cubrt_zero at h_cubrt, rw mul_zero at h_cubrt,
     symmetry' at h_cubrt, unfold depressed_cubic_solution_cube_root at h_cubrt,
     rw add_comm at h_cubrt, rw <- sub_eq_add_neg at h_cubrt,
-    exact tmp_nonzero c d sqrt three_ne_zero h_sqrt c_ne_zero h_cubrt,
+    exact formula_den_inv c d sqrt h_sqrt h_cubrt,
   repeat {rw sub_eq_add_neg}, rw multiply_out_cubic,
   have x_squ : (-depressed_cubic_solution c cubrt + -depressed_cubic_solution c (cubrt * cube_root_unity_a rt3_i) + -depressed_cubic_solution c (cubrt * cube_root_unity_b rt3_i))
                 = 0,
@@ -379,8 +381,7 @@ end
 Uniqueness of the three solutions.
 --/
 lemma depressed_cubic_solution_unique [field F] (c d x sqrt cubrt rt3_i : F)
-      (two_ne_zero : (2 : F) ≠ (0 : F)) (three_ne_zero : (3 : F) ≠ (0 : F))
-      (c_ne_zero : c ≠ (0 : F)) :
+      [invertible (2 : F)] [invertible (3 : F)] [invertible c] :
   (sqrt * sqrt) = (depressed_cubic_solution_sqrt c d) ->
   (cubrt * cubrt * cubrt) = (depressed_cubic_solution_cube_root d sqrt) ->
   (rt3_i * rt3_i = (-3)) ->
@@ -390,7 +391,8 @@ lemma depressed_cubic_solution_unique [field F] (c d x sqrt cubrt rt3_i : F)
   ((x * x * x) + (c * x) + d ≠ 0) :=
 begin
   intros h_sqrt h_cubrt h_rt3i h1 h2 h3,
-  rw <- depressed_cubic_factorize c d x sqrt cubrt rt3_i two_ne_zero three_ne_zero c_ne_zero
+  rw <- depressed_cubic_factorize c d x sqrt cubrt rt3_i
+                                  (nonzero_of_invertible 2) (nonzero_of_invertible 3) (nonzero_of_invertible c)
                                   h_sqrt h_cubrt h_rt3i,
   apply mul_ne_zero, apply mul_ne_zero,
   repeat {apply sub_ne_zero_of_ne, assumption},
@@ -400,15 +402,15 @@ end
 Correctness of the three solutions.
 --/
 lemma depressed_cubic_solution_correct [field F] (c d x sqrt cubrt rt3_i : F)
-    (c_ne_zero : c ≠ (0 : F))
-    (two_ne_zero : (2 : F) ≠ (0 : F)) (three_ne_zero : (3 : F) ≠ (0 : F))
+    [invertible (2 : F)] [invertible (3 : F)] [invertible c]
     (h_rt3i : rt3_i * rt3_i = (-3)):
   (sqrt * sqrt) = (depressed_cubic_solution_sqrt c d) ->
   (cubrt * cubrt * cubrt) = (depressed_cubic_solution_cube_root d sqrt) ->
   (x = (depressed_cubic_solution c cubrt) -> (x * x * x) + (c * x) + d = 0) :=
 begin
   intros h_sqrt h_cubrt hx,
-  rw <- depressed_cubic_factorize c d x sqrt cubrt rt3_i two_ne_zero three_ne_zero c_ne_zero,
+  rw <- depressed_cubic_factorize c d x sqrt cubrt rt3_i
+                                  (nonzero_of_invertible 2) (nonzero_of_invertible 3) (nonzero_of_invertible c),
   rw hx, simp,
   repeat {assumption},
 end
@@ -432,26 +434,28 @@ def depressed_cubic_constant [field F] (a b c d : F) : F :=
     (((2 * b * b * b) - (9 * a * b * c)) / (27 * a * a * a)) + (d / a)
 
 /--
-Every cubic can be reduced to an equivalent depressed cubic using the above substitution.
+Every cubic can be reduced to an equivalent depressed cubic using the depressed_cubic_x substitution.
 --/
 lemma convert_cubic_to_depressed [field F] (a b c d x : F)
-    (a_ne_zero : a ≠ 0) (three_ne_zero : (3 : F) ≠ (0 : F)) :
+    [invertible (3 : F)] [invertible a] :
   (a * x * x * x) + (b * x * x) + (c * x) + d =
   a * (((depressed_cubic_x a b x) * (depressed_cubic_x a b x) * (depressed_cubic_x a b x))
   + (depressed_cubic_x_term a b c) * (depressed_cubic_x a b x)
   + (depressed_cubic_constant a b c d)) :=
 begin
+  have a_ne_zero : a ≠ 0, exact nonzero_of_invertible a,
+  have three_ne_zero : (3 : F) ≠ 0, exact nonzero_of_invertible 3,
   unfold depressed_cubic_constant, unfold depressed_cubic_x_term,
   unfold depressed_cubic_x,
   have tmp : ∀ (a b : F), (a - b = 0) -> (a = b),
     intros a b h, have h1 : (a - b + b) = (0 + b), rw h, simp at h1, exact h1,
   apply tmp, field_simp, clear tmp,
-  rw mul_div_assoc, rw div_mul_left a_ne_zero,
+  rw mul_div_assoc, rw div_mul_left (nonzero_of_invertible a),
   have tmp : 3 * a * (3 * a) * (3 * a) = (27 * a * a) * a,
     ring,
   rw tmp, clear tmp, repeat {rw mul_assoc (27 * a * a)},
   have den_ne_zero : (27 * a * a) ≠ 0,
-    repeat {apply mul_ne_zero}, exact twenty_seven_ne_zero three_ne_zero, repeat {assumption},
+    repeat {apply mul_ne_zero}, exact nonzero_of_invertible _, repeat {assumption},
   field_simp, ring,
 end
 
@@ -474,11 +478,11 @@ def cubic_formula_sqrt [field F] (a b c d : F) : F :=
   depressed_cubic_solution_sqrt (depressed_cubic_x_term a b c) (depressed_cubic_constant a b c d)
 
 /--
-The above solution to a cubic is correct.
+The cubic_formula is a correct solution to a cubic.
 --/
 lemma cubic_solution [field F] (a b c d x sqrt cubrt rt3_i : F)
-  (a_ne_zero : a ≠ 0) (two_ne_zero : (2 : F) ≠ 0) (three_ne_zero : (3 : F) ≠ 0)
-  (int_quantity_ne_zero : (depressed_cubic_x_term a b c ≠ 0)):
+  [invertible (2 : F)]  [invertible (3 : F)] [invertible a]
+  [invertible (depressed_cubic_x_term a b c)] :
 
   (sqrt * sqrt = (cubic_formula_sqrt a b c d)) ->
   (cubrt * cubrt * cubrt = (cubic_formula_cubrt a b c d sqrt)) ->
@@ -488,7 +492,7 @@ lemma cubic_solution [field F] (a b c d x sqrt cubrt rt3_i : F)
 begin
   intros h_sqrt h_cubrt h_rt3i h_x,
   unfold cubic_formula at h_x,
-  rw convert_cubic_to_depressed a b c d x a_ne_zero three_ne_zero,
+  rw convert_cubic_to_depressed a b c d x,
   have h : depressed_cubic_x a b x = depressed_cubic_solution (depressed_cubic_x_term a b c) cubrt,
     unfold depressed_cubic_x, rw h_x, ring,
   rw h,
@@ -502,8 +506,7 @@ begin
     exact depressed_cubic_solution_correct (depressed_cubic_x_term a b c)
                                            (depressed_cubic_constant a b c d)
                                            (depressed_cubic_solution (depressed_cubic_x_term a b c) cubrt)
-                                           sqrt cubrt rt3_i int_quantity_ne_zero two_ne_zero
-                                           three_ne_zero h_rt3i h_sqrt h_cubrt triv,
+                                           sqrt cubrt rt3_i  h_rt3i h_sqrt h_cubrt triv,
   rw eq_zero, ring,
 end
 
@@ -511,9 +514,9 @@ end
 Uniqueness of the cubic solutions.
 --/
 lemma cubic_solution_unique [field F] (a b c d x sqrt cubrt rt3_i : F)
-      (a_ne_zero : a ≠ (0 : F))
-      (one_ne_zero : (1 : F) ≠ (0 : F)) (two_ne_zero : (2 : F) ≠ (0 : F)) (three_ne_zero : (3 : F) ≠ (0 : F))
-      (int_quantity_ne_zero : (depressed_cubic_x_term a b c ≠ 0)) :
+      --TODO: do we need this "invertible 1"?  Isn't that part of the definition of a field?
+      [invertible (1 : F)] [invertible (2 : F)]  [invertible (3 : F)] [invertible a]
+      [invertible (depressed_cubic_x_term a b c)] :
   (sqrt * sqrt = (cubic_formula_sqrt a b c d)) ->
   (cubrt * cubrt * cubrt = (cubic_formula_cubrt a b c d sqrt)) ->
   (rt3_i * rt3_i = (-3)) ->
@@ -522,10 +525,10 @@ lemma cubic_solution_unique [field F] (a b c d x sqrt cubrt rt3_i : F)
    (x ≠ (cubic_formula a b c (cubrt * (cube_root_unity_b rt3_i)))) ->
   ((a * x * x * x) + (b * x * x) + (c * x) + d ≠ 0) :=
 begin
-  have twenty_seven_ne_zero : (27 : F) ≠ 0,
-    have tmp : (27 : F) = 3 * (3 * 3), ring, rw tmp, clear tmp,
-    exact mul_ne_zero three_ne_zero (mul_ne_zero three_ne_zero three_ne_zero),
-
+  have a_ne_zero : a ≠ 0, exact (nonzero_of_invertible a),
+  have two_ne_zero : (2 : F) ≠ 0, exact (nonzero_of_invertible 2),
+  have three_ne_zero : (3 : F) ≠ 0, exact (nonzero_of_invertible 3),
+  have twenty_seven_ne_zero : (27 : F) ≠ 0, exact (nonzero_of_invertible 27),
   unfold cubic_formula, intros h_sqrt h_cubrt h_rt3i h_solution1 h_solution2 h_solution3,
   /- Divide through by the a (which we know isn't zero)... -/
   have tmp : (1 * x * x * x) + (b / a * x * x) + (c / a * x) + (d / a) ≠ 0 ->

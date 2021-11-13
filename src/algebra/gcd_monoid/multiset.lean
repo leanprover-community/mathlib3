@@ -58,6 +58,22 @@ lcm_dvd.2 $ assume b hb, dvd_lcm (h hb)
 @[simp] lemma normalize_lcm (s : multiset α) : normalize (s.lcm) = s.lcm :=
 multiset.induction_on s (by simp) $ λ a s IH, by simp
 
+theorem lcm_eq_zero_iff [nontrivial α] (s : multiset α) : s.lcm = 0 ↔ (0 : α) ∈ s :=
+begin
+  split,
+  { apply s.induction_on,
+    { simp },
+    { intros a s slcm h,
+      rw mem_cons,
+      rw [lcm_cons, lcm_eq_zero_iff] at h,
+      cases h,
+      { left,
+        exact h.symm },
+      { right,
+        exact slcm h } } },
+  { exact λ h, zero_dvd_iff.mp (dvd_lcm h) }
+end
+
 variables [decidable_eq α]
 
 @[simp] lemma lcm_erase_dup (s : multiset α) : (erase_dup s).lcm = s.lcm :=

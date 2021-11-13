@@ -87,6 +87,13 @@ lcm_dvd (λ b hb, (h b hb).trans (dvd_lcm hb))
 lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
 lcm_dvd $ assume b hb, dvd_lcm (h hb)
 
+theorem lcm_eq_zero_iff [nontrivial α] : s.lcm f = 0 ↔ ∃ (x : β), x ∈ s ∧ f x = 0 :=
+begin
+  rw [lcm_def, multiset.lcm_eq_zero_iff],
+  simp only [multiset.mem_map],
+  refl,
+end
+
 end lcm
 
 /-! ### gcd -/

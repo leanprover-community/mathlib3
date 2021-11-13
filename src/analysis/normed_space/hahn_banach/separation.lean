@@ -26,7 +26,7 @@ We provide many variations to stricten the result under more assumptions on the 
 * `geometric_hahn_banach_point_point`: Both sets are singletons. Strict separation.
 -/
 
-open set
+open function set
 open_locale pointwise
 
 variables {𝕜 E : Type*}
@@ -122,7 +122,45 @@ begin
   exact nhds_le_map_nhds hg.continuous_at hcomp hgfa,
 end
 
-variables [normed_group E] [normed_space ℝ E]
+variables [normed_group E]
+
+/-- If `A`, `B` are disjoint sets, `A` is compact and `B` is closed then we can surround them while
+keeping them disjoint. -/
+-- TODO: This proof uses the normed group structure of `E`, but it could work for locally convex
+-- topological vector spaces: instead of taking the balls around 0 with radius 1/n, we could show
+-- there must be some convex neighbourhood `W` of 0 which make `A + W` and `B + W` disjoint?
+theorem exists_disjoint_add_ball {A B : set E} (hA : is_compact A) (hB : is_closed B)
+  (disj : disjoint A B) :
+  ∃ ε : ℝ, 0 < ε ∧ disjoint (A + metric.ball 0 ε) (B + metric.ball 0 ε) :=
+begin
+  suffices h : ∃ (n : ℕ), disjoint (A + metric.ball 0 (n+1)⁻¹) (B + metric.ball 0 (n+1)⁻¹),
+  { obtain ⟨n, hn⟩ := h,
+    refine ⟨(n+1)⁻¹, nat.inv_pos_of_nat, hn⟩ },
+  by_contra h,
+  push_neg at h,
+  simp only [not_disjoint_iff, set.mem_add, metric.mem_ball, dist_zero_right,
+    ←exists_and_distrib_left, ←exists_and_distrib_right, and_assoc] at h,
+  choose z f f' g g' h₁ h₂ h₃ h₄ h₅ h₆ using h,
+  obtain ⟨w, hw, φ, hφ₁, hφ₂ : tendsto (f ∘ _) _ _⟩ := hA.tendsto_subseq h₁,
+  suffices : tendsto (g ∘ φ) at_top (𝓝 w),
+  { exact disj ⟨hw, mem_of_is_closed_sequential hB (λ n, h₄ (φ n)) this⟩ },
+  have hfg : tendsto (f - g) at_top (𝓝 0),
+  { suffices : ∀ n, ∥(f - g) n∥ ≤ 2 * (n+1)⁻¹,
+    { apply squeeze_zero_norm this,
+      rw ←mul_zero (2:ℝ),
+      apply tendsto.const_mul (2:ℝ),
+      simp_rw inv_eq_one_div,
+      exact tendsto_one_div_add_at_top_nhds_0_nat },
+    intro n,
+    have : f n - g n = g' n - f' n,
+    { rw [sub_eq_iff_eq_add', ←add_sub_assoc, h₆, ←h₃, add_sub_cancel] },
+    rw [pi.sub_apply, this, two_mul],
+    exact (norm_sub_le _ _).trans (add_le_add (h₅ n).le (h₂ n).le) },
+  simpa only [sub_sub_cancel, sub_zero, comp_app, pi.sub_apply]
+    using hφ₂.sub (hfg.comp hφ₁.tendsto_at_top),
+end
+
+variables [normed_space ℝ E]
 
 /-- Given a set `C` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x0` and `C`, in the sense that it sends `x₀` to 1 and
@@ -162,11 +200,11 @@ begin
     obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
     rw linear_pmap.mk_span_singleton_apply,
     simp only [mul_one, algebra.id.smul_eq_mul, submodule.coe_mk],
-    cases lt_or_le 0 y with h h,
+    obtain h | h := le_or_lt y 0,
+    { exact h.trans (gauge_nonneg _) },
     { rw [gauge_smul_of_nonneg h.le, smul_eq_mul, le_mul_iff_one_le_right h],
       exact one_le_gauge_of_not_mem hC zero_mem hC₂ hx₀,
-      apply_instance },
-    { exact h.trans (gauge_nonneg _) } }
+      apply_instance } }
 end
 
 end
@@ -265,47 +303,12 @@ disjoint convex sets containing them. -/
 -- topological vector spaces: instead of taking the balls around 0 with radius 1/n, we could show
 -- there must be some convex neighbourhood `W` of 0 which make `A + W` and `B + W` disjoint?
 theorem closed_compact_separate {A B : set E} (hA₁ : convex ℝ A) (hA₂ : is_compact A)
-  (hB₁ : convex ℝ B) (hB₃ : is_closed B) (disj : disjoint A B) :
+  (hB₁ : convex ℝ B) (hB₂ : is_closed B) (disj : disjoint A B) :
   ∃ U V, is_open U ∧ is_open V ∧ convex ℝ U ∧ convex ℝ V ∧ A ⊆ U ∧ B ⊆ V ∧ disjoint U V :=
-begin
-  have : ∃ (n : ℕ), disjoint (A + metric.ball 0 (n+1)⁻¹) (B + metric.ball 0 (n+1)⁻¹),
-  { by_contra h,
-    push_neg at h,
-    simp only [not_disjoint_iff, set.mem_add, metric.mem_ball, dist_zero_right,
-      ←exists_and_distrib_left, ←exists_and_distrib_right, and_assoc] at h,
-    choose z f f' g g' h₁ h₂ h₃ h₄ h₅ h₆ using h,
-    obtain ⟨w, hw, φ, hφ₁, hφ₂ : tendsto (f ∘ _) _ _⟩ := hA₂.tendsto_subseq h₁,
-    have : tendsto (g ∘ φ) at_top (𝓝 w),
-    { have : tendsto (f - g) at_top (𝓝 0),
-      { suffices : ∀ n, ∥(f - g) n∥ ≤ 2 * (n+1)⁻¹,
-        { apply squeeze_zero_norm this,
-          rw ←mul_zero (2:ℝ),
-          apply tendsto.const_mul (2:ℝ),
-          simp_rw inv_eq_one_div,
-          apply tendsto_one_div_add_at_top_nhds_0_nat },
-        intro n,
-        simp only [pi.sub_apply],
-        have : f n - g n = g' n - f' n,
-        { rw [sub_eq_iff_eq_add', ←add_sub_assoc, h₆, ←h₃, add_sub_cancel] },
-        rw this,
-        apply (norm_sub_le _ _).trans _,
-        rw two_mul,
-        apply add_le_add (h₅ n).le (h₂ n).le },
-      have : tendsto (f ∘ φ - g ∘ φ) at_top (𝓝 0),
-      { have : f ∘ φ - g ∘ φ = (f - g) ∘ φ,
-        { ext,
-          simp },
-        rw this,
-        apply tendsto.comp ‹tendsto (f - g) at_top _› hφ₁.tendsto_at_top },
-      simpa using tendsto.sub hφ₂ ‹tendsto (f ∘ φ - g ∘ φ) at_top _› },
-    have := mem_of_is_closed_sequential ‹is_closed B› (λ n, h₄ (φ n)) this,
-    apply disj ⟨hw, ‹w ∈ B›⟩ },
-  obtain ⟨n, hn⟩ := this,
-  refine ⟨_, _, metric.is_open_ball.add_left, metric.is_open_ball.add_left,
-    hA₁.add (convex_ball 0 _), hB₁.add (convex_ball 0 _), _, _, hn⟩,
-  { exact subset_add_left A (metric.mem_ball_self nat.inv_pos_of_nat) },
-  { exact subset_add_left B (metric.mem_ball_self nat.inv_pos_of_nat) }
-end
+let ⟨ε, hε, hAB⟩ := exists_disjoint_add_ball hA₂ hB₂ disj in
+  ⟨_, _, metric.is_open_ball.add_left, metric.is_open_ball.add_left,
+    hA₁.add (convex_ball 0 _), hB₁.add (convex_ball 0 _),
+    subset_add_left A (metric.mem_ball_self hε), subset_add_left B (metric.mem_ball_self hε), hAB⟩
 
 /-- A version of the Hahn-Banach theorem: given disjoint convex sets `A`, `B` where `A` is compact
 and `B` is closed, there is a continuous linear functional which strongly separates them. -/
@@ -313,17 +316,17 @@ theorem geometric_hahn_banach_compact_closed {A B : set E} (hA₁ : convex ℝ A
   (hB₁ : convex ℝ B) (hB₂ : is_closed B) (disj : disjoint A B) :
   ∃ (f : E →L[ℝ] ℝ) (s t : ℝ), (∀ a ∈ A, f a < s) ∧ s < t ∧ (∀ b ∈ B, t < f b) :=
 begin
-  rcases A.eq_empty_or_nonempty with (rfl | hA),
-  { refine ⟨0, -2, -1, by simp, by norm_num, λ b hb, by norm_num⟩ },
-  rcases B.eq_empty_or_nonempty with (h | hB),
-  { rw h,
-    exact ⟨0, 1, 2, λ a ha, by norm_num, by norm_num, by simp⟩ },
+  obtain rfl | hA := A.eq_empty_or_nonempty,
+  { exact ⟨0, -2, -1, by simp, by norm_num, λ b hb, by norm_num⟩ },
+  tactic.unfreeze_local_instances,
+  obtain rfl | hB := B.eq_empty_or_nonempty,
+  { exact ⟨0, 1, 2, λ a ha, by norm_num, by norm_num, by simp⟩ },
   obtain ⟨U, V, hU, hV, hU₁, hV₁, AU, BV, disj'⟩ := closed_compact_separate hA₁ hA₂ hB₁ hB₂ disj,
   obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open_open hU₁ hU hV₁ hV disj',
   obtain ⟨x, hx₁, hx₂⟩ := hA₂.exists_forall_ge hA f.continuous.continuous_on,
   have : Sup (f '' A) = f x,
   { apply le_antisymm (cSup_le (hA.image f) (by simpa)),
-    refine le_cSup ⟨f x, by simpa [upper_bounds]⟩ ⟨_, hx₁, rfl⟩ },
+    exact le_cSup ⟨f x, by simpa [upper_bounds]⟩ ⟨_, hx₁, rfl⟩ },
   have : f x < s := hf₁ x (AU hx₁),
   exact ⟨f, (f x + s)/2, s, λ a ha, by linarith [hx₂ a ha], by linarith, λ b hb, hf₂ b (BV hb)⟩,
 end

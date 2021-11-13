@@ -6,6 +6,7 @@ Authors: Scott Morrison, Adam Topaz
 import category_theory.limits.preserves.basic
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
+import category_theory.limits.shapes.multiequalizer
 import tactic.elementwise
 
 /-!
@@ -80,6 +81,21 @@ begin
 end
 
 end wide_pullback
+
+section multiequalizer
+
+lemma concrete.multiequalizer_ext {I : multicospan_index C} [has_multiequalizer I]
+  [preserves_limit I.multicospan (forget C)] (x y : multiequalizer I)
+  (h : ∀ (t : I.L), multiequalizer.ι I t x = multiequalizer.ι I t y) : x = y :=
+begin
+  apply concrete.limit_ext,
+  rintros (a|b),
+  { apply h },
+  { rw [← limit.w I.multicospan (walking_multicospan.hom.fst b),
+      comp_apply, comp_apply, h] }
+end
+
+end multiequalizer
 
 -- TODO: Add analogous lemmas about products and equalizers.
 

@@ -32,7 +32,9 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 -/
 
 open real set filter is_R_or_C
-open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate
+open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
+
+local attribute [instance] fact_one_le_two_real
 
 local attribute [instance] fact_one_le_two_real
 
@@ -134,6 +136,20 @@ begin
   transitivity ⟪(∑ i, (v i : E)), ∑ i, (w i : E)⟫,
   { simp [sum_inner, hV'.inner_right_fintype] },
   { congr; simp }
+end
+
+@[simp] lemma direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+  (hV' : orthogonal_family 𝕜 V) (w : pi_Lp 2 (λ i, V i)) :
+  (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
+begin
+  classical,
+  let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
+  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
+  { exact this (e₁.symm w) },
+  intros v,
+  simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with

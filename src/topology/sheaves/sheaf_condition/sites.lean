@@ -7,6 +7,7 @@ Authors: Justus Springer
 import category_theory.sites.sheaf
 import category_theory.sites.spaces
 import topology.sheaves.sheaf
+import category_theory.sites.dense_subsite
 
 /-!
 
@@ -472,4 +473,55 @@ begin
       nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },
 end
 
+
 end Top.presheaf
+
+
+namespace Top.opens
+
+open category_theory topological_space
+
+variables {X : Top} {ι : Type*}
+
+lemma cover_dense_iff_basis [category ι] (B : ι ⥤ opens X) :
+  cover_dense (opens.grothendieck_topology X) B ↔ opens.is_basis (set.range B.obj) :=
+begin
+  rw opens.is_basis_iff_nbhd,
+  split, intros hd U x hx, rcases hd.1 U x hx with ⟨V,f,⟨i,f₁,f₂,hc⟩,hV⟩,
+  exact ⟨B.obj i, ⟨i,rfl⟩, f₁.le hV, f₂.le⟩,
+  intro hb, split, intros U x hx, rcases hb hx with ⟨_,⟨i,rfl⟩,hx,hi⟩,
+  exact ⟨B.obj i, ⟨⟨hi⟩⟩, ⟨i, 𝟙 _, ⟨⟨hi⟩⟩, by rw category.id_comp⟩, hx⟩,
+end
+
+lemma cover_dense_induced_functor {B : ι → opens X} (h : opens.is_basis (set.range B)) :
+  cover_dense (opens.grothendieck_topology X) (induced_functor B) :=
+(cover_dense_iff_basis _).2 h
+
+end Top.opens
+
+namespace Top.sheaf
+
+open category_theory topological_space Top opposite
+
+variables {C : Type u} [category.{v} C] [limits.has_products C]
+variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
+variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
+
+/-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
+    is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`
+    is equivalent to a homomorphism between their restrictions to the indexing type
+    `ι` of `B`, with the induced category structure on `ι`. -/
+def restrict_hom_equiv_hom :
+  ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1) ≃ (F ⟶ F'.1) :=
+@cover_dense.restrict_hom_equiv_hom _ _ _ _ _ _ _ _ (opens.cover_dense_induced_functor h)
+  _ F ((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F')
+
+@[simp] lemma extend_hom_app {α : ((induced_functor B).op ⋙ F ⟶ (induced_functor B).op ⋙ F'.1)}
+  {i : ι} : (restrict_hom_equiv_hom F F' h α).app (op (B i)) = α.app (op i) :=
+by { nth_rewrite 1 ← (restrict_hom_equiv_hom F F' h).left_inv α, refl }
+
+include h
+lemma hom_ext {α β : F ⟶ F'.1} (he : ∀ i, α.app (op (B i)) = β.app (op (B i))) : α = β :=
+by { apply (restrict_hom_equiv_hom F F' h).symm.injective, ext i, exact he i.unop }
+
+end Top.sheaf

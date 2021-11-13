@@ -63,8 +63,8 @@ by simp only [shadow, mem_sup, mem_image]
 lemma erase_mem_shadow (hs : s ∈ 𝒜) (ha : a ∈ s) : erase s a ∈ ∂ 𝒜 :=
 mem_shadow_iff.2 ⟨s, hs, a, ha, rfl⟩
 
-/-- `t` is in the shadow of `𝒜` iff we can add an element to it so that the resulting finset is in `𝒜`.
--/
+/-- `t` is in the shadow of `𝒜` iff we can add an element to it so that the resulting finset is in
+`𝒜`. -/
 lemma mem_shadow_iff_insert_mem : s ∈ ∂ 𝒜 ↔ ∃ a ∉ s, insert a s ∈ 𝒜 :=
 begin
   refine mem_shadow_iff.trans ⟨_, _⟩,

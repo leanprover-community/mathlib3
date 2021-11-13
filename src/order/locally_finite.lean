@@ -491,7 +491,7 @@ Adding a `⊥` to a locally finite `order_bot` keeps it locally finite.
 
 section order_top
 open with_top
-variables (α) [order_top α] [locally_finite_order α]
+variables (α) [preorder α] [order_top α] [locally_finite_order α]
 
 local attribute [pattern] coe
 
@@ -499,16 +499,9 @@ instance : locally_finite_order (with_top α) :=
 { finset_Icc := λ a b, match a, b with
     |       ⊤,       ⊤ := {⊤}
     |       ⊤, (b : α) := ∅
-    | (a : α),       ⊤ := cons (⊤ : with_top α) ((Ici a).map embedding.some)
+    | (a : α),       ⊤ := cons (⊤ : with_top α) ((Ici a).map embedding.coe_with_top)
                                (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
-    | (a : α), (b : α) := (Icc a b).map embedding.some
-    end,
-{ finset_Icc := λ a b, match a, b with
-    |      ⊤,      ⊤ := {⊤}
-    |      ⊤, some b := ∅
-    | some a,      ⊤ := cons (⊤ : with_top α) ((Ici a).map embedding.some)
-                              (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx)
-    | some a, some b := (Icc a b).map embedding.some
+    | (a : α), (b : α) := (Icc a b).map embedding.coe_with_top
     end,
   finset_Ico := λ a b, match a, b with
     |      ⊤,      _ := ∅
@@ -600,7 +593,7 @@ end order_top
 
 section order_bot
 open with_bot
-variables (α) [order_bot α] [locally_finite_order α]
+variables (α) [preorder α] [order_bot α] [locally_finite_order α]
 
 instance : locally_finite_order (with_bot α) :=
 { finset_Icc := λ a b, match b, a with

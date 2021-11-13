@@ -10,10 +10,10 @@ import measure_theory.group.arithmetic
 
 In this file we define the following measurable equivalences:
 
-* `measurable_equiv.smul`: if group `G` acts on `α` by measurable maps, then each element `c : G`
+* `measurable_equiv.smul`: if a group `G` acts on `α` by measurable maps, then each element `c : G`
   defines a measurable automorphism of `α`;
 * `measurable_equiv.vadd`: additive version of `measurable_equiv.smul`;
-* `measurable_equiv.smul₀`: if group with zero `G` acts on `α` by measurable maps, then each
+* `measurable_equiv.smul₀`: if a group with zero `G` acts on `α` by measurable maps, then each
   nonzero element `c : G` defines a measurable automorphism of `α`;
 * `measurable_equiv.mul_left`: if `G` is a group with measurable multiplication, then left
   multiplication by `g : G` is a measurable automorphism of `G`;
@@ -40,9 +40,9 @@ variables {G G₀ α : Type*} [measurable_space G] [measurable_space G₀] [meas
   [group G] [group_with_zero G₀] [mul_action G α] [mul_action G₀ α]
   [has_measurable_smul G α] [has_measurable_smul G₀ α]
 
-/-- If group `G` acts on `α` by measurable maps, then each element `c : G` defines a measurable
+/-- If a group `G` acts on `α` by measurable maps, then each element `c : G` defines a measurable
 automorphism of `α`. -/
-@[to_additive "If additive group `G` acts on `α` by measurable maps, then each element `c : G`
+@[to_additive "If an additive group `G` acts on `α` by measurable maps, then each element `c : G`
 defines a measurable automorphism of `α`.", simps to_equiv apply { fully_applied := ff }]
 def smul (c : G) : α ≃ᵐ α :=
 { to_equiv := mul_action.to_perm c,
@@ -56,7 +56,7 @@ lemma _root_.measurable_embedding_const_smul (c : G) : measurable_embedding ((�
 @[simp, to_additive]
 lemma symm_smul (c : G) : (smul c : α ≃ᵐ α).symm = smul c⁻¹ := ext rfl
 
-/-- If group with zero `G₀` acts on `α` by measurable maps, then each nonzero element `c : G₀`
+/-- If a group with zero `G₀` acts on `α` by measurable maps, then each nonzero element `c : G₀`
 defines a measurable automorphism of `α` -/
 def smul₀ (c : G₀) (hc : c ≠ 0) : α ≃ᵐ α :=
 measurable_equiv.smul (units.mk0 c hc)

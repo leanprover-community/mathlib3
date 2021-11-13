@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import tactic.basic
 import logic.is_empty
+import logic.relator
 
 /-!
 # Option of a type

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Floris van Doorn, Mario Carneiro
 -/
 
 import tactic.core
+import logic.function.basic
 
 /-!
 # `choose` tactic

@@ -3,6 +3,7 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
+import data.int.range
 import data.list.sigma
 import testing.slim_check.sampleable
 import testing.slim_check.testable

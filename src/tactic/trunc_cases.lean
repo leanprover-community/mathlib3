@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.chain
-import data.quot
 
 namespace tactic
 
@@ -24,7 +23,7 @@ do
   -- (It would be nice if we could use the `induction` tactic with non-dependent recursors, too?)
   -- (In fact, the general strategy works just as well here,
   -- except that it leaves a beta redex in the invariance goal.)
-  to_expr ``(trunc.lift_on %%e) >>= tactic.fapply,
+  to_expr ```(trunc.lift_on %%e) >>= tactic.fapply,
   -- Replace the hypothesis `e` with the unboxed version.
   tactic.clear e,
   e ← tactic.intro e.local_pp_name,

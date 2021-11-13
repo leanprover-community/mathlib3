@@ -3,11 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import algebra.module.pi
 import algebra.module.linear_map
-import algebra.big_operators.basic
-import data.set.finite
-import group_theory.submonoid.membership
 
 /-!
 # Dependent functions with finite support

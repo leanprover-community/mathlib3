@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn
 -/
 import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
+import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic

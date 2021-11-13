@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import order.complete_boolean_algebra
-import order.modular_lattice
 import data.fintype.basic
+import order.modular_lattice
 
 /-!
 # Atoms, Coatoms, and Simple Lattices

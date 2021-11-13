@@ -3,11 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action.defs
-import group_theory.group_action.group
-import group_theory.quotient_group
-import data.setoid.basic
 import data.fintype.card
+import group_theory.quotient_group
 
 /-!
 # Basic properties of group actions

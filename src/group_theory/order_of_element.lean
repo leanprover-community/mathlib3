@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.iterate_hom
+import data.int.gcd
 import dynamics.periodic_pts
 import group_theory.coset
 

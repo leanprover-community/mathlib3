@@ -17,12 +17,20 @@ compactness of the operator or finite-dimensionality of the underlying space, no
 * `is_self_adjoint.orthogonal_supr_eigenspaces`: the restriction of the operator to the mutual
   orthogonal complement of the eigenspaces has, itself, no eigenvectors
 
-The second part of the file covers properties of self-adjoint operators in finite dimension.  The
-definition `is_self_adjoint.diagonalization` provides a linear isometry equivalence from a space
-`E` to the direct sum of the eigenspaces of a self-adjoint operator `T` on `E`.  The theorem
-`is_self_adjoint.diagonalization_apply_self_apply` states that, when `T` is transferred via this
-equivalence to an operator on the direct sum, it acts diagonally.  This is the *diagonalization
-theorem* for self-adjoint operators on finite-dimensional inner product spaces.
+The second part of the file covers properties of self-adjoint operators in finite dimension.
+Letting `T` be a self-adjoint operator on a finite-dimensional inner product space `T`,
+* The definition `is_self_adjoint.diagonalization` provides a linear isometry equivalence `E` to
+  the direct sum of the eigenspaces of `T`.  The theorem
+  `is_self_adjoint.diagonalization_apply_self_apply` states that, when `T` is transferred via this
+  equivalence to an operator on the direct sum, it acts diagonally.
+* The definition `is_self_adjoint.eigenvector_basis` provides an orthonormal basis for `E`
+  consisting of eigenvectors of `T`, with `is_self_adjoint.eigenvalues` giving the correspoinding
+  list of eigenvalues, as real numbers.  The definition `is_self_adjoint.diagonalization_basis`
+  gives the associated linear isometry equivalence from `E` to Euclidean space, and the theorem
+  `is_self_adjoint.diagonalization_basis_apply_self_apply` states that, when `T` is transferred via
+  this equivalence to an operator on Euclidean space, it acts diagonally.
+These are forms of the *diagonalization theorem* for self-adjoint operators on finite-dimensional
+inner product spaces.
 
 ## TODO
 
@@ -128,6 +136,8 @@ lemma direct_sum_submodule_is_internal :
 hT.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
   hT.orthogonal_supr_eigenspaces_eq_bot'
 
+section version1
+
 /-- Isometry from an inner product space `E` to the direct sum of the eigenspaces of some
 self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
@@ -139,7 +149,7 @@ hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
 hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   hT.orthogonal_family_eigenspaces' w
 
-/-- *Diagonalization theorem*, *spectral theorem*: A self-adjoint operator `T` on a
+/-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the decomposition of `E` into the
 direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
@@ -156,33 +166,78 @@ begin
   simp [hwT],
 end
 
-/-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of
-orthonormal basis of eigenvectors for a self-adjoint operator `T` on `E`. -/
-noncomputable def diagonalization_basis {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n) :
-  E ≃ₗᵢ[𝕜] euclidean_space 𝕜 (fin n) :=
-basis.isometry_euclidean_of_orthonormal
-  (hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis hn)
-  (hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_orthonormal hn
-    hT.orthogonal_family_eigenspaces')
+end version1
 
-/-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of
-orthonormal basis of eigenvectors for a self-adjoint operator `T` on `E`. -/
-noncomputable def eigenvalues_diagonalization_basis {n : ℕ}
-  (hn : finite_dimensional.finrank 𝕜 E = n) (i : fin n) :
-  ℝ :=
-@is_R_or_C.re 𝕜 _ $
-  (hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn) i
+section version2
+variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
 
-lemma foo {n : ℕ}
-  (hn : finite_dimensional.finrank 𝕜 E = n) (i : fin n) :
-  (hT.diagonalization_basis hn).symm (λ j, ite (j = i) 1 0)
-  ∈ eigenspace T (hT.eigenvalues_diagonalization_basis hn i) :=
+/-- A choice of orthonormal basis of eigenvectors for self-adjoint operator `T` on a
+finite-dimensional inner product space `E`.
+
+TODO Postcompose with a permutation so that these eigenvectors are listed in increasing order of
+eigenvalue. -/
+noncomputable def eigenvector_basis : basis (fin n) 𝕜 E :=
+hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis hn
+
+lemma eigenvector_basis_orthonormal : orthonormal 𝕜 (hT.eigenvector_basis hn) :=
+hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_orthonormal hn
+  hT.orthogonal_family_eigenspaces'
+
+/-- The sequence of real eigenvalues associated to the standard orthonormal basis of eigenvectors
+for a self-adjoint operator `T` on `E`.
+
+TODO Postcompose with a permutation so that these eigenvalues are listed in increasing order. -/
+noncomputable def eigenvalues (i : fin n) : ℝ :=
+@is_R_or_C.re 𝕜 _ $ hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i
+
+lemma has_eigenvector_eigenvector_basis (i : fin n) :
+  has_eigenvector T (hT.eigenvalues hn i) (hT.eigenvector_basis hn i) :=
 begin
-  convert hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_subordinate hn i,
-  { simp [diagonalization_basis, ite_smul, finset.sum_ite_eq] },
-  { simp [eigenvalues_diagonalization_basis, ite_smul, finset.sum_ite_eq],
-    -- ok since real
-   },
+  let v : E := hT.eigenvector_basis hn i,
+  let μ : 𝕜 := hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i,
+  change has_eigenvector T (is_R_or_C.re μ) v,
+  have key : has_eigenvector T μ v,
+  { have H₁ : v ∈ eigenspace T μ,
+    { exact hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_subordinate hn i },
+    have H₂ : v ≠ 0 := (hT.eigenvector_basis_orthonormal hn).ne_zero i,
+    exact ⟨H₁, H₂⟩ },
+  have re_μ : ↑(is_R_or_C.re μ) = μ,
+  { rw ← is_R_or_C.eq_conj_iff_re,
+    exact hT.conj_eigenvalue_eq_self (has_eigenvalue_of_has_eigenvector key) },
+  simpa [re_μ] using key,
 end
+
+attribute [irreducible] eigenvector_basis eigenvalues
+
+@[simp] lemma apply_eigenvector_basis (i : fin n) :
+  T (hT.eigenvector_basis hn i) = (hT.eigenvalues hn i : 𝕜) • (hT.eigenvector_basis hn i) :=
+mem_eigenspace_iff.mp (hT.has_eigenvector_eigenvector_basis hn i).1
+
+/-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of
+orthonormal basis of eigenvectors for a self-adjoint operator `T` on `E`. -/
+noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 (fin n) :=
+(hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal (hT.eigenvector_basis_orthonormal hn)
+
+@[simp] lemma diagonalization_basis_symm_apply (w : euclidean_space 𝕜 (fin n)) :
+  (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=
+(hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal_symm_apply
+  (hT.eigenvector_basis_orthonormal hn) w
+
+/-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
+finite-dimensional inner product space `E` acts diagonally on the identification of `E` with
+Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
+lemma diagonalization_basis_apply_self_apply (v : E) (i : fin n) :
+  hT.diagonalization_basis hn (T v) i = hT.eigenvalues hn i * hT.diagonalization_basis hn v i :=
+begin
+  suffices : ∀ w : euclidean_space 𝕜 (fin n),
+    T ((hT.diagonalization_basis hn).symm w)
+    = (hT.diagonalization_basis hn).symm (λ i, hT.eigenvalues hn i * w i),
+  { simpa [-diagonalization_basis_symm_apply] using
+      congr_arg (λ v, hT.diagonalization_basis hn v i) (this (hT.diagonalization_basis hn v)) },
+  intros w,
+  simp [mul_comm, mul_smul],
+end
+
+end version2
 
 end is_self_adjoint

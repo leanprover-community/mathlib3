@@ -172,9 +172,7 @@ end
 @[simp] lemma basis.isometry_euclidean_of_orthonormal_symm_apply
   (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) (w : euclidean_space 𝕜 ι) :
   (v.isometry_euclidean_of_orthonormal hv).symm w = ∑ i, (w i) • v i :=
-begin
-  sorry
-end
+v.equiv_fun_symm_apply w
 
 end
 

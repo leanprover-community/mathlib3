@@ -38,6 +38,8 @@ iff.rfl
 @[simp, to_additive] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
 
+@[to_additive] lemma orbit_nonempty (b : β) : set.nonempty (orbit α b) := set.range_nonempty _
+
 @[to_additive] lemma maps_to_smul_orbit (a : α) (b : β) :
   set.maps_to ((•) a) (orbit α b) (orbit α b) :=
 set.range_subset_iff.2 $ λ a', ⟨a * a', mul_smul _ _ _⟩
@@ -97,39 +99,11 @@ def stabilizer.submonoid (b : β) : submonoid α :=
 @[simp, to_additive] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
   a ∈ stabilizer.submonoid α b ↔ a • b = b := iff.rfl
 
-variables (α β)
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g • x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_smul_eq : ∀ x y : β, ∃ g : α, g • x = y)
-
-variables {β}
-
-lemma exists_smul_eq [is_pretransitive α β] (x y : β) :
-  ∃ m : α, m • x = y := is_pretransitive.exists_smul_eq x y
-
-lemma surjective_smul [is_pretransitive α β] (x : β) :
-  surjective (λ c : α, c • x) :=
-exists_smul_eq α x
-
-lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
+@[to_additive] lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
 end mul_action
-
-namespace add_action
-variables (α β) [add_monoid α] [add_action α β]
-
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g +ᵥ x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_vadd_eq : ∀ x y : β, ∃ g : α, g +ᵥ x = y)
-
-attribute [to_additive] mul_action.is_pretransitive mul_action.exists_smul_eq
-  mul_action.surjective_smul mul_action.orbit_eq_univ
-
-end add_action
 
 namespace mul_action
 variable (α)
@@ -159,6 +133,11 @@ variables {α} {β}
   calc orbit α b = orbit α (a⁻¹ • a • b) : by rw inv_smul_smul
              ... ⊆ orbit α (a • b)       : orbit_smul_subset _ _
 
+/-- The action of a group on an orbit is transitive. -/
+@[to_additive "The action of an additive group on an orbit is transitive."]
+instance (x : β) : is_pretransitive α (orbit α x) :=
+⟨by { rintro ⟨_, a, rfl⟩ ⟨_, b, rfl⟩, use b * a⁻¹, ext1, simp [mul_smul] }⟩
+
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
@@ -177,10 +156,10 @@ end
 
 variables (α) {β}
 
-@[simp, to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+@[to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
 by simp only [orbit_smul, mem_orbit_self]
 
-@[simp, to_additive] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+@[to_additive] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
 by simp only [orbit_smul, mem_orbit]
 
 variables (α) (β)

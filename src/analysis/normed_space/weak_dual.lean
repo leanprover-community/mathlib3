@@ -167,51 +167,17 @@ lemma eq_Inter (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
 by { dunfold polar, ext, simp only [mem_bInter_iff, mem_set_of_eq], }
 
---example (s : set E) : ∃ (z : dual 𝕜 E), z ∈ polar 𝕜 s :=
---by { use 0, exact zero_mem s, }
-
-lemma to_weak_dual_image (s : set E) :
-  (dual.to_weak_dual '' (polar 𝕜 s)) = { x' : weak_dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1 } :=
-begin
-  --unfold polar,
-  ext x',
-  dsimp,
-  rw mem_image,
-  split,
-  { rintros ⟨x'', ⟨h₁, h₂⟩⟩,
-    rw ← h₂,
-    exact λ z hz, h₁ z hz, },
-  { intros h,
-    use x',
-    split,
-    { sorry, },
-    { sorry, },
-    },
-  --tidy?,
-  --tidy?,
-end
-
-lemma to_weak_dual_image' (z : E) :
+lemma to_weak_dual_image_norm_eval_le_one (z : E) :
   (dual.to_weak_dual '' {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1}) = {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ 1} :=
 begin
-  --unfold polar,
   ext x',
-  dsimp,
-  rw mem_image,
   split,
   { rintros ⟨x'', ⟨h₁, h₂⟩⟩,
     rw ← h₂,
-    sorry,
-    --exact λ z hz, h₁ z hz,
-    },
+    exact h₁, },
   { intros h,
     use x',
-    split,
-    { sorry, },
-    { sorry, },
-    },
-  --tidy?,
-  --tidy?,
+    exact ⟨h, rfl⟩, },
 end
 
 open function
@@ -227,7 +193,7 @@ begin
   { rw [s_emp, of_empty, image_univ, range_iff_surjective.mpr dual.to_weak_dual.surjective],
     exact is_closed_univ, },
   rw [eq_Inter, inj_on.image_bInter_eq],
-  { simp_rw to_weak_dual_image',
+  { simp_rw to_weak_dual_image_norm_eval_le_one,
     apply is_closed_bInter,
     intros z hz,
     have eq : {x' : weak_dual 𝕜 E | ∥x' z∥ ≤ 1} = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1),

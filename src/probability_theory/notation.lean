@@ -18,6 +18,9 @@ measurable space `m0`, and another measurable space structure `m` with `hm : m �
 - `X =ₐₛ Y`: `X =ᵐ[volume] Y`
 - `X ≤ₐₛ Y`: `X ≤ᵐ[volume] Y`
 - `∂P/∂Q = P.rn_deriv Q`
+We note that the notation `∂P/∂Q` applies to three different cases, namely,
+`measure_theory.measure.rn_deriv`, `measure_theory.signed_measure.rn_deriv` and
+`measure_theory.complex_measure.rn_deriv`.
 
 TODO: define the notation `ℙ s` for the probability of a set `s`, and decide whether it should be a
 value in `ℝ`, `ℝ≥0` or `ℝ≥0∞`.
@@ -25,14 +28,15 @@ value in `ℝ`, `ℝ≥0` or `ℝ≥0∞`.
 
 open measure_theory
 
-localized "notation `𝔼[` X `|` hm `]` := measure_theory.condexp hm volume X" in probability_theory
+localized "notation `𝔼[` X `|` hm `]` := measure_theory.condexp hm measure_theory.measure.volume X"
+  in probability_theory
 
 localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory
 
 localized "notation `𝔼[` X `]` := ∫ a, X a" in probability_theory
 
-localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[volume] Y" in probability_theory
+localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[measure_theory.measure.volume] Y" in probability_theory
 
-localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[volume] Y" in probability_theory
+localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[measure_theory.measure.volume] Y" in probability_theory
 
 localized "notation `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory

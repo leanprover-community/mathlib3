@@ -497,22 +497,24 @@ by simp only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici,
 #### Univ
 -/
 
-lemma is_greatest_univ [order_top γ] : is_greatest (univ : set γ) ⊤ :=
+lemma is_greatest_univ [preorder γ] [order_top γ] : is_greatest (univ : set γ) ⊤ :=
 ⟨mem_univ _, λ x hx, le_top⟩
 
-@[simp] lemma order_top.upper_bounds_univ [order_top γ] : upper_bounds (univ : set γ) = {⊤} :=
+@[simp] lemma order_top.upper_bounds_univ [partial_order γ] [order_top γ] :
+  upper_bounds (univ : set γ) = {⊤} :=
 by rw [is_greatest_univ.upper_bounds_eq, Ici_top]
 
-lemma is_lub_univ [order_top γ] : is_lub (univ : set γ) ⊤ :=
+lemma is_lub_univ [preorder γ] [order_top γ] : is_lub (univ : set γ) ⊤ :=
 is_greatest_univ.is_lub
 
-@[simp] lemma order_bot.lower_bounds_univ [order_bot γ] : lower_bounds (univ : set γ) = {⊥} :=
-@order_top.upper_bounds_univ (order_dual γ) _
+@[simp] lemma order_bot.lower_bounds_univ [partial_order γ] [order_bot γ] :
+  lower_bounds (univ : set γ) = {⊥} :=
+@order_top.upper_bounds_univ (order_dual γ) _ _
 
-lemma is_least_univ [order_bot γ] : is_least (univ : set γ) ⊥ :=
-@is_greatest_univ (order_dual γ) _
+lemma is_least_univ [preorder γ] [order_bot γ] : is_least (univ : set γ) ⊥ :=
+@is_greatest_univ (order_dual γ) _ _
 
-lemma is_glb_univ [order_bot γ] : is_glb (univ : set γ) ⊥ :=
+lemma is_glb_univ [preorder γ] [order_bot γ] : is_glb (univ : set γ) ⊥ :=
 is_least_univ.is_glb
 
 @[simp] lemma no_top_order.upper_bounds_univ [no_top_order α] : upper_bounds (univ : set α) = ∅ :=
@@ -544,11 +546,11 @@ by simp only [bdd_above, upper_bounds_empty, univ_nonempty]
 @[simp] lemma bdd_below_empty [nonempty α] : bdd_below (∅ : set α) :=
 by simp only [bdd_below, lower_bounds_empty, univ_nonempty]
 
-lemma is_glb_empty [order_top γ] : is_glb ∅ (⊤:γ) :=
+lemma is_glb_empty [preorder γ] [order_top γ] : is_glb ∅ (⊤:γ) :=
 by simp only [is_glb, lower_bounds_empty, is_greatest_univ]
 
-lemma is_lub_empty [order_bot γ] : is_lub ∅ (⊥:γ) :=
-@is_glb_empty (order_dual γ) _
+lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) :=
+@is_glb_empty (order_dual γ) _ _
 
 lemma is_lub.nonempty [no_bot_order α] (hs : is_lub s a) : s.nonempty :=
 let ⟨a', ha'⟩ := no_bot a in
@@ -611,11 +613,11 @@ by rw [insert_eq, upper_bounds_union, upper_bounds_singleton]
 by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 
 /-- When there is a global maximum, every set is bounded above. -/
-@[simp] protected lemma order_top.bdd_above [order_top γ] (s : set γ) : bdd_above s :=
+@[simp] protected lemma order_top.bdd_above [preorder γ] [order_top γ] (s : set γ) : bdd_above s :=
 ⟨⊤, assume a ha, order_top.le_top a⟩
 
 /-- When there is a global minimum, every set is bounded below. -/
-@[simp] protected lemma order_bot.bdd_below [order_bot γ] (s : set γ) : bdd_below s :=
+@[simp] protected lemma order_bot.bdd_below [preorder γ] [order_bot γ] (s : set γ) : bdd_below s :=
 ⟨⊥, assume a ha, order_bot.bot_le a⟩
 
 /-!

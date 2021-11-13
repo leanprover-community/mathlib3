@@ -179,6 +179,22 @@ begin
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
 
+@[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
+lemma div_one (p : R) : p / 1 = p :=
+(euclidean_domain.eq_div_of_mul_eq_left (@one_ne_zero R _ _) (mul_one p)).symm
+
+lemma div_dvd_of_dvd {p q : R} (hpq : q ∣ p) :
+  p / q ∣ p :=
+begin
+  by_cases hq : q = 0,
+  { rw [hq, zero_dvd_iff] at hpq,
+    rw hpq,
+    exact dvd_zero _ },
+  use q,
+  rw [mul_comm, ← euclidean_domain.mul_div_assoc _ hpq, mul_comm,
+      euclidean_domain.mul_div_cancel _ hq]
+end
+
 section
 open_locale classical
 
@@ -397,6 +413,19 @@ begin
 end
 
 end lcm
+
+section div
+
+lemma mul_div_mul_cancel {a b c : R} (ha : a ≠ 0) (hcb : c ∣ b) :
+  a * b / (a * c) = b / c :=
+begin
+  by_cases hc : c = 0, { simp [hc] },
+  refine eq_div_of_mul_eq_right hc (mul_left_cancel₀ ha _),
+  rw [← mul_assoc, ← mul_div_assoc _ (mul_dvd_mul_left a hcb),
+         mul_div_cancel_left _ (mul_ne_zero ha hc)]
+end
+
+end div
 
 end euclidean_domain
 

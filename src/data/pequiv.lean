@@ -351,7 +351,8 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
     simp [le_def],
     split_ifs; finish
   end,
-  ..pequiv.order_bot }
+  ..pequiv.order_bot,
+  ..pequiv.partial_order }
 
 end order
 

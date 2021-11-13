@@ -1730,11 +1730,11 @@ lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
   (hg : uniform_continuous g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) : mem_ℒp f p μ :=
 begin
   have : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
-    { apply filter.eventually_of_forall (λ x, _),
-      rw [← dist_zero_right, ← dist_zero_right, ← g0],
-      apply hg'.le_mul_dist },
-  exact hL.of_le_mul ((ae_measurable_comp_iff_of_closed_embedding g
-    (hg'.closed_embedding hg)).1 hL.1) this,
+  { apply filter.eventually_of_forall (λ x, _),
+    rw [← dist_zero_right, ← dist_zero_right, ← g0],
+    apply hg'.le_mul_dist },
+  exact hL.of_le_mul ((hg'.closed_embedding hg).measurable_embedding.ae_measurable_comp_iff.1
+    hL.1) this,
 end
 
 namespace lipschitz_with
@@ -1752,7 +1752,7 @@ def comp_Lp (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) : Lp F p μ
 ⟨ae_eq_fun.comp g hg.continuous.measurable (f : α →ₘ[μ] E),
 begin
   suffices : ∀ᵐ x ∂μ, ∥ae_eq_fun.comp g hg.continuous.measurable (f : α →ₘ[μ] E) x∥ ≤ c * ∥f x∥,
-    { exact Lp.mem_Lp_of_ae_le_mul this },
+  { exact Lp.mem_Lp_of_ae_le_mul this },
   filter_upwards [ae_eq_fun.coe_fn_comp g hg.continuous.measurable (f : α →ₘ[μ] E)],
   assume a ha,
   simp only [ha],

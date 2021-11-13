@@ -198,12 +198,12 @@ instance : star_ring ℂ :=
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 
-@[simp] lemma conj_of_real (r : ℝ) : conj (r : ℂ) = r := ext_iff.2 $ by simp [conj]
+lemma conj_of_real (r : ℝ) : conj (r : ℂ) = r := ext_iff.2 $ by simp [conj]
 
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
 
-@[simp] lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
-@[simp] lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
+lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
+lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
 
 @[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
@@ -233,6 +233,8 @@ lemma norm_sq_apply (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
+
+@[simp] lemma norm_sq_mk (x y : ℝ) : norm_sq ⟨x, y⟩ = x * x + y * y := rfl
 
 lemma norm_sq_eq_conj_mul_self {z : ℂ} : (norm_sq z : ℂ) = conj z * z :=
 by { ext; simp [norm_sq, mul_comm], }

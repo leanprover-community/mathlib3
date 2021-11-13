@@ -30,8 +30,6 @@ The main definitions concern the canonical mapping `dual 𝕜 E → weak_dual �
 * `normed_space.dual.continuous_linear_map_to_weak_dual`: A continuous linear mapping from
   `dual 𝕜 E` to `weak_dual 𝕜 E` (same as `normed_space.dual.to_weak_dual` but different bundled
   data).
-* `polar 𝕜 s` is the subset of `weak_dual 𝕜 E` consisting of those functionals `x'` for which
-  `∥x' z∥ ≤ 1` for every `z ∈ s`.
 
 ## Main results
 

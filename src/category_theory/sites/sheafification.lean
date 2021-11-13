@@ -316,6 +316,11 @@ begin
   exact hh
 end
 
+/-- An auxiliary definition to be used in the proof of `exists_of_sep` below.
+  Given a compatible family of local sections for `P⁺`, and representatives of said sections,
+  construct a compatible family of local sections of `P` over the combination of the covers
+  associated to the representatives.
+  The separatedness condition is used to prove compatibility among these local sections of `P`. -/
 def meq_of_sep (P : Cᵒᵖ ⥤ D)
   (hsep : ∀ (X : C) (S : J.cover X) (x y : P.obj (op X)),
     (∀ I : S.arrow, P.map I.f.op x = P.map I.f.op y) → x = y)
@@ -364,30 +369,7 @@ begin
   -- representatives of our local sections.
   -- The compatilibity here follows from the separatedness assumption.
   let w : meq P B := meq_of_sep P hsep X S s T t ht,
-  /-
-  ⟨λ I, t ⟨Z I, e2 I, he2 I⟩ ⟨I.Y, e1 I, he1 I⟩, _⟩,
-  swap, {
-    intros I,
-    let I₁ : B.arrow := ⟨_, I.f₁, I.h₁⟩,
-    let I₂ : B.arrow := ⟨_, I.f₂, I.h₂⟩,
-    let IC₁ : S.arrow := ⟨_, e2 I₁, he2 I₁⟩,
-    let IC₂ : S.arrow := ⟨_, e2 I₂, he2 I₂⟩,
-    let ID₁ : (T IC₁).arrow := ⟨_, e1 I₁, he1 I₁⟩,
-    let ID₂ : (T IC₂).arrow := ⟨_, e1 I₂, he1 I₂⟩,
-    change (P.map I.g₁.op) (t IC₁ ID₁) = (P.map I.g₂.op) (t IC₂ ID₂),
 
-    -- By injectivity, it suffices to work in `P⁺`, where one reduces to the
-    -- original compatibility assumption.
-    apply inj,
-    rw [← comp_apply, ← comp_apply, (J.to_plus P).naturality, (J.to_plus P).naturality,
-      comp_apply, comp_apply, to_plus_apply (T IC₁) (t IC₁) ID₁, to_plus_apply (T IC₂) (t IC₂) ID₂,
-      ← ht, ← ht, ← comp_apply, ← comp_apply, ← (J.plus_obj P).map_comp,
-      ← (J.plus_obj P).map_comp, ← op_comp, ← op_comp],
-    let IR : S.relation :=
-      ⟨_, _, _, I.g₁ ≫ ID₁.f, I.g₂ ≫ ID₂.f, e2 I₁, e2 I₂, he2 _, he2 _ , _⟩,
-    swap, { dsimp [ID₁, ID₂], simp_rw [category.assoc, hee], exact I.w },
-    exact s.condition IR },
-  -/
   -- The associated gluing will be the candidate section.
   use mk w,
   ext I,
@@ -412,22 +394,21 @@ begin
   use [e0, 𝟙 _],
   ext IV,
   dsimp only [meq.refine_apply, meq.pullback_apply, w],
-  let IA : B.arrow := {Y := IV.Y, f := (IV.f ≫ II.f) ≫ I.f, hf := _},
+  let IA : B.arrow := ⟨_, (IV.f ≫ II.f) ≫ I.f, _⟩,
   swap, {
     refine ⟨I.Y, _, _, I.hf, _, rfl⟩,
     apply sieve.downward_closed,
     convert II.hf,
     cases I, refl },
-  let IB : S.arrow := ⟨Z IA, e2 IA, he2 IA⟩,
-  let IC : (T IB).arrow := ⟨IV.Y, e1 IA, he1 IA⟩,
+  let IB : S.arrow := IA.from_middle,
+  let IC : (T IB).arrow := IA.to_middle,
   let ID : (T I).arrow := ⟨IV.Y, IV.f ≫ II.f, sieve.downward_closed (T I) II.hf IV.f⟩,
   change t IB IC = t I ID,
   apply inj IV.Y,
-  rw [to_plus_apply (T I) (t I) ID, to_plus_apply (T IB) (t IB) IC, ← ht, ← ht],
+  erw [to_plus_apply (T I) (t I) ID, to_plus_apply (T IB) (t IB) IC, ← ht, ← ht],
 
   -- Conclude by constructing the relation showing equality...
-  let IR : S.relation :=
-    ⟨_, _, IV.Y, e1 IA, IV.f ≫ II.f, e2 IA, I.f, he2 _, I.hf, hee IA⟩,
+  let IR : S.relation := ⟨_, _, IV.Y, IC.f, ID.f, IB.f, I.f, _, I.hf, IA.middle_spec⟩,
   convert s.condition IR,
   cases I, refl,
 end

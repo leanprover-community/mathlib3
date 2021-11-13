@@ -112,7 +112,9 @@ begin
 end
 
 /--
-So these last two lemmas are enough to reduce a depressed quartic to a product of quadratics.
+So these last two lemmas 
+(factorise_depressed_quartic_simultaneous & depressed_quartic_simultaneous_solution) 
+are enough to reduce a depressed quartic to a product of quadratics.
 -/
 lemma depressed_quartic_to_quadratic_product [field F] (x c d e sqrt_p sqrt_cubic cubrt rt3_i: F)
     [invertible (1 : F)] [invertible (2 : F)]  [invertible (3 : F)]

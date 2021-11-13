@@ -271,8 +271,8 @@ begin
 end
 
 /--
-The three solutions obtained by using different cube roots in the above formula
-factorize the depressed cubic.
+The three solutions obtained by using different cube roots in the
+depressed_cubic_solution formula factorize the depressed cubic.
 --/
 lemma depressed_cubic_factorize [field F] [invertible (2 : F)] [invertible (3 : F)]
        (c d x sqrt cubrt rt3_i : F) [invertible c]

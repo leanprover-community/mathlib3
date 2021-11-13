@@ -379,7 +379,7 @@ end
 
 /-! ### Properties of inner product spaces -/
 
-variables [inner_product_space 𝕜 E] [dec_E : decidable_eq E] [inner_product_space ℝ F]
+variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := has_abs.abs
@@ -1512,7 +1512,6 @@ begin
   { exact hV h v.prop w.prop }
 end
 
-include dec_E
 lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
   (l : Π₀ i, V i) (i : ι) (v : V i) :
   ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
@@ -1537,7 +1536,7 @@ begin
   intros h,
   simp [h]
 end
-omit dec_ι dec_E
+omit dec_ι
 
 lemma orthogonal_family.inner_right_fintype
   [fintype ι] (hV : orthogonal_family 𝕜 V) (l : Π i, V i) (i : ι) (v : V i) :

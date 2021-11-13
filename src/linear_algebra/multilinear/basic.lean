@@ -57,7 +57,7 @@ open_locale big_operators
 
 universes u v v' v₁ v₂ v₃ w u'
 variables {R : Type u} {ι : Type u'} {n : ℕ}
-{M : fin n.succ → Type v} {M₁ : ι → Type v₁} {M₂ : Type v₂} {M₃ : Type v₃} {M' : Type v'}
+{M : tuple n.succ (Type v)} {M₁ : ι → Type v₁} {M₂ : Type v₂} {M₃ : Type v₃} {M' : Type v'}
 [decidable_eq ι]
 
 /-- Multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂` are modules
@@ -227,24 +227,26 @@ def restr {k n : ℕ} (f : multilinear_map R (λ i : fin n, M') M₂) (s : finse
   map_smul' := λ v i c x, by { erw [dite_comp_equiv_update, dite_comp_equiv_update], simp } }
 variable {R}
 
+open fin.dtuple
+
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
 an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the additivity of a
 multilinear map along the first variable. -/
-lemma cons_add (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.succ) (x y : M 0) :
+lemma cons_add (f : multilinear_map R M M₂) (m : dtuple $ λ i, M i.succ) (x y : M 0) :
   f (cons (x+y) m) = f (cons x m) + f (cons y m) :=
 by rw [← update_cons_zero x m (x+y), f.map_add, update_cons_zero, update_cons_zero]
 
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
 an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the multiplicativity
 of a multilinear map along the first variable. -/
-lemma cons_smul (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.succ) (c : R) (x : M 0) :
+lemma cons_smul (f : multilinear_map R M M₂) (m : dtuple $ λ i, M i.succ) (c : R) (x : M 0) :
   f (cons (c • x) m) = c • f (cons x m) :=
 by rw [← update_cons_zero x m (c • x), f.map_smul, update_cons_zero]
 
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
 an element of `Π(i : fin (n+1)), M i` using `snoc`, one can express directly the additivity of a
 multilinear map along the first variable. -/
-lemma snoc_add (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.cast_succ) (x y : M (last n)) :
+lemma snoc_add (f : multilinear_map R M M₂) (m : dtuple $ λ i, M i.cast_succ) (x y : M (last n)) :
   f (snoc m (x+y)) = f (snoc m x) + f (snoc m y) :=
 by rw [← update_snoc_last x m (x+y), f.map_add, update_snoc_last, update_snoc_last]
 
@@ -252,7 +254,7 @@ by rw [← update_snoc_last x m (x+y), f.map_add, update_snoc_last, update_snoc_
 an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the multiplicativity
 of a multilinear map along the first variable. -/
 lemma snoc_smul (f : multilinear_map R M M₂)
-  (m : Π(i : fin n), M i.cast_succ) (c : R) (x : M (last n)) :
+  (m : dtuple $ λ i, M i.cast_succ) (c : R) (x : M (last n)) :
   f (snoc m (c • x)) = c • f (snoc m x) :=
 by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
 
@@ -725,7 +727,7 @@ protected def mk_pi_algebra_fin : multilinear_map R (λ i : fin n, A) A :=
 
 variables {R A n}
 
-@[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
+@[simp] lemma mk_pi_algebra_fin_apply (m : fin.tuple n A) :
   multilinear_map.mk_pi_algebra_fin R n A m = (list.of_fn m).prod :=
 rfl
 

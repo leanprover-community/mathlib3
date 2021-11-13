@@ -14,14 +14,14 @@ to `vector`s.
 
 We define the following operations:
 
-* `fin.tail` : the tail of an `n+1` tuple, i.e., its last `n` entries;
-* `fin.cons` : adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple;
-* `fin.init` : the beginning of an `n+1` tuple, i.e., its first `n` entries;
-* `fin.snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc`
-  comes from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
-* `fin.insert_nth` : insert an element to a tuple at a given position.
-* `fin.find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is never
-  satisfied.
+* `fin.dtuple.tail` : the tail of an `n+1` tuple, i.e., its last `n` entries;
+* `fin.dtuple.cons` : adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple;
+* `fin.dtuple.init` : the beginning of an `n+1` tuple, i.e., its first `n` entries;
+* `fin.dtuple.snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name
+  `snoc` comes from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
+* `fin.dtuple.insert_nth` : insert an element to a tuple at a given position.
+* `fin.tuple.find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is
+  never satisfied.
 
 -/
 universes u v
@@ -33,27 +33,40 @@ open function
 
 section tuple
 
+/-- A dependently-typed tuple. -/
+abbreviation dtuple {n : ℕ} (α : fin n → Sort u) : Sort* := Π i, α i
+
+/-- A homogeneous tuple. Note this is an alias for `fin.dtuple`, so that dot notation works on it.
+-/
+abbreviation tuple (n : ℕ) (α : Sort u) : Sort* := dtuple (λ i : fin n, α)
+
 /-- There is exactly one tuple of size zero. -/
-example (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
+example (α : fin 0 → Sort u) : unique (dtuple α) :=
 by apply_instance
 
-@[simp] lemma tuple0_le {α : Π i : fin 0, Type*} [Π i, preorder (α i)] (f g : Π i, α i) : f ≤ g :=
+@[simp] lemma tuple0_le {α : tuple 0 Type*} [Π i, preorder (α i)] (f g : dtuple α) : f ≤ g :=
 fin_zero_elim
 
-variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
+variables {α : tuple (n+1) (Type u)} (x : α 0) (q : dtuple α) (p : dtuple $ λ i, α (i.succ))
   (i : fin n) (y : α i.succ) (z : α 0)
 
-/-- The tail of an `n+1` tuple, i.e., its last `n` entries. -/
-def tail (q : Πi, α i) : (Π(i : fin n), α (i.succ)) := λ i, q i.succ
+protected lemma tuple.congr {α : Sort*} (x y : tuple n α) {i j : fin n}
+  (hij : i = j) (hxy : x = y) : x i = y j :=
+congr hxy hij
 
-lemma tail_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
-  tail (λ k : fin (n+1), q k) = (λ k : fin n, q k.succ) := rfl
+protected lemma tuple.congr_arg {α : Sort*} (x : tuple n α) {i j : fin n} (h : i = j) : x i = x j :=
+congr_arg x h
+
+namespace dtuple
+
+/-- The tail of an `n+1` tuple, i.e., its last `n` entries. -/
+def tail (q : dtuple α) : dtuple (λ i, α i.succ) := λ i, q i.succ
 
 /-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple. -/
-def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
+def cons (x : α 0) (p : dtuple $ λ i, α i.succ) : dtuple α :=
 λ j, fin.cases x p j
 
-@[simp] lemma tail_cons : tail (cons x p) = p :=
+@[simp] lemma tail_cons : (p.cons x).tail = p :=
 by simp [tail, cons]
 
 @[simp] lemma cons_succ : cons x p i.succ = p i :=
@@ -115,7 +128,20 @@ begin
   { simp [tail, (fin.succ_injective n).ne h, h] }
 end
 
-lemma comp_cons {α : Type*} {β : Type*} (g : α → β) (y : α) (q : fin n → α) :
+lemma le_cons [Π i, preorder (α i)] {x : α 0} {q : dtuple α} {p : dtuple $ λ i, α i.succ} :
+  q ≤ cons x p ↔ q 0 ≤ x ∧ tail q ≤ p :=
+forall_fin_succ.trans $ and_congr iff.rfl $ forall_congr $ λ j, by simp [tail]
+
+lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : dtuple α} {p : dtuple $ λ i, α i.succ} :
+  cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
+@le_cons  _ (λ i, order_dual (α i)) _ x q p
+
+end dtuple
+
+namespace tuple
+open dtuple
+
+lemma comp_cons {α : Type*} {β : Type*} (g : α → β) (y : α) (q : tuple n α) :
   g ∘ (cons y q) = cons (g y) (g ∘ q) :=
 begin
   ext j,
@@ -126,21 +152,13 @@ begin
     rw [← this, cons_succ, comp_app, cons_succ] }
 end
 
-lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
+lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : tuple n.succ α) :
   g ∘ (tail q) = tail (g ∘ q) :=
 by { ext j, simp [tail] }
 
-lemma le_cons [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fin n, α i.succ} :
-  q ≤ cons x p ↔ q 0 ≤ x ∧ tail q ≤ p :=
-forall_fin_succ.trans $ and_congr iff.rfl $ forall_congr $ λ j, by simp [tail]
-
-lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fin n, α i.succ} :
-  cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
-@le_cons  _ (λ i, order_dual (α i)) _ x q p
-
 @[simp]
-lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
-  set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
+lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : tuple n α) :
+  set.range (cons x b : tuple n.succ α) = insert x (set.range b) :=
 begin
   ext y,
   simp only [set.mem_range, set.mem_insert_iff],
@@ -149,7 +167,7 @@ begin
     refine cases (or.inl (cons_zero _ _)) (λ i, or.inr ⟨i, _⟩) i,
     rw cons_succ },
   { rintros (rfl | ⟨i, hi⟩),
-    { exact ⟨0, fin.cons_zero _ _⟩ },
+    { exact ⟨0, cons_zero _ _⟩ },
     { refine ⟨i.succ, _⟩,
       rw [cons_succ, hi] } }
 end
@@ -157,14 +175,16 @@ end
 /-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
 one of length `o = m + n`.  `ho` provides control of definitional equality
 for the vector length. -/
-def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
+def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : tuple m α) (v : tuple n α) : tuple o α :=
 λ i, if h : (i : ℕ) < m
   then u ⟨i, h⟩
   else v ⟨(i : ℕ) - m, (tsub_lt_iff_left (le_of_not_lt h)).2 (ho ▸ i.property)⟩
 
-@[simp] lemma fin_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
-  (u : fin (m + 1) → α) (v : fin n → α) :
-  fin.append ho u v 0 = u 0 := rfl
+@[simp] lemma append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
+  (u : tuple (m + 1) α) (v : tuple n α) :
+  append ho u v 0 = u 0 := rfl
+
+end tuple
 
 end tuple
 
@@ -175,22 +195,22 @@ inductively from `fin n` starting from the left, not from the right. This implie
 more help to realize that elements belong to the right types, i.e., we need to insert casts at
 several places. -/
 
-variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(i : fin n), α i.cast_succ)
-(i : fin n) (y : α i.cast_succ) (z : α (last n))
+variables {α : tuple (n+1) (Type u)} (x : α (last n)) (q : dtuple α)
+(p : dtuple $ λ i, α i.cast_succ) (i : fin n) (y : α i.cast_succ) (z : α (last n))
+
+namespace dtuple
 
 /-- The beginning of an `n+1` tuple, i.e., its first `n` entries -/
-def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
-q i.cast_succ
-
-lemma init_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
-  init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
+def init (q : dtuple α) : dtuple (λ i, α i.cast_succ)
+| i := q i.cast_succ
 
 /-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes from
 `cons` (i.e., adding an element to the left of a tuple) read in reverse order. -/
-def snoc (p : Π(i : fin n), α i.cast_succ) (x : α (last n)) (i : fin (n+1)) : α i :=
-if h : i.val < n
-then _root_.cast (by rw fin.cast_succ_cast_lt i h) (p (cast_lt i h))
-else _root_.cast (by rw eq_last_of_not_lt h) x
+def snoc (p : dtuple $ λ i, α i.cast_succ) (x : α (last n)) : dtuple α
+| i :=
+  if h : i.val < n
+  then _root_.cast (by {dsimp only, rw fin.cast_succ_cast_lt i h}) (p (cast_lt i h))
+  else _root_.cast (by rw eq_last_of_not_lt h) x
 
 @[simp] lemma init_snoc : init (snoc p x) = p :=
 begin
@@ -262,7 +282,9 @@ begin
     simp [h, update_noteq, this, snoc, init, cast_succ_cast_lt],
     have A : cast_succ (cast_lt j h) = j := cast_succ_cast_lt _ _,
     rw ← cast_eq rfl (q j),
-    congr' 1; rw A },
+    congr' 1;
+    { dsimp only,
+      rw A } },
   { rw eq_last_of_not_lt h,
     simp }
 end
@@ -283,13 +305,13 @@ end
 
 /-- `tail` and `init` commute. We state this lemma in a non-dependent setting, as otherwise it
 would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
-lemma tail_init_eq_init_tail {β : Type*} (q : fin (n+2) → β) :
+lemma tail_init_eq_init_tail {β : Type*} (q : tuple (n+2) β) :
   tail (init q) = init (tail q) :=
-by { ext i, simp [tail, init, cast_succ_fin_succ] }
+funext $ λ i, q.congr_arg $ cast_succ_fin_succ _ i
 
 /-- `cons` and `snoc` commute. We state this lemma in a non-dependent setting, as otherwise it
 would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
-lemma cons_snoc_eq_snoc_cons {β : Type*} (a : β) (q : fin n → β) (b : β) :
+lemma cons_snoc_eq_snoc_cons {β : Type*} (a : β) (q : tuple n β) (b : β) :
   @cons n.succ (λ i, β) a (snoc q b) = snoc (cons a q) b :=
 begin
   ext i,
@@ -302,13 +324,13 @@ begin
   { set k := cast_lt j h' with jk,
     have : j = k.cast_succ, by rw [jk, cast_succ_cast_lt],
     rw [this, ← cast_succ_fin_succ],
-    simp },
+    simp only [cons_succ, snoc_cast_succ], },
   rw [eq_last_of_not_lt h', succ_last],
   simp
 end
 
 
-lemma comp_snoc {α : Type*} {β : Type*} (g : α → β) (q : fin n → α) (y : α) :
+lemma comp_snoc {α : Type*} {β : Type*} (g : α → β) (q : tuple n α) (y : α) :
   g ∘ (snoc q y) = snoc (g ∘ q) (g y) :=
 begin
   ext j,
@@ -319,15 +341,19 @@ begin
     simp }
 end
 
-lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
+lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : tuple n.succ α) :
   g ∘ (init q) = init (g ∘ q) :=
 by { ext j, simp [init] }
+
+end dtuple
 
 end tuple_right
 
 section insert_nth
 
-variables {α : fin (n+1) → Type u} {β : Type v}
+variables {α : tuple (n+1) (Type u)} {β : Type v}
+
+namespace dtuple
 
 /-- Define a function on `fin (n + 1)` from a value on `i : fin (n + 1)` and values on each
 `fin.succ_above i j`, `j : fin n`. This version is elaborated as eliminator and works for
@@ -347,16 +373,16 @@ lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
 /-- Insert an element into a tuple at a given position. For `i = 0` see `fin.cons`,
 for `i = fin.last n` see `fin.snoc`. See also `fin.succ_above_cases` for a version elaborated
 as an eliminator. -/
-def insert_nth (i : fin (n + 1)) (x : α i) (p : Π j : fin n, α (i.succ_above j)) (j : fin (n + 1)) :
-  α j :=
-succ_above_cases i x p j
+def insert_nth (i : fin (n + 1)) (x : α i) (p : dtuple $ λ j, α (i.succ_above j)) : dtuple α
+| j := succ_above_cases i x p j
 
-@[simp] lemma insert_nth_apply_same (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j)) :
+@[simp] lemma insert_nth_apply_same (i : fin (n + 1)) (x : α i)
+  (p : dtuple $ λ j, α (i.succ_above j)) :
   insert_nth i x p i = x :=
 by simp [insert_nth, succ_above_cases]
 
-@[simp] lemma insert_nth_apply_succ_above (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j))
-  (j : fin n) :
+@[simp] lemma insert_nth_apply_succ_above (i : fin (n + 1)) (x : α i)
+  (p : dtuple $ λ j, α (i.succ_above j)) (j : fin n) :
   insert_nth i x p (i.succ_above j) = p j :=
 begin
   simp only [insert_nth, succ_above_cases, dif_neg (succ_above_ne _ _)],
@@ -372,127 +398,133 @@ end
 @[simp] lemma succ_above_cases_eq_insert_nth :
   @succ_above_cases.{u + 1} = @insert_nth.{u} := rfl
 
-@[simp] lemma insert_nth_comp_succ_above (i : fin (n + 1)) (x : β) (p : fin n → β) :
+@[simp] lemma insert_nth_comp_succ_above (i : fin (n + 1)) (x : β) (p : tuple n β) :
   insert_nth i x p ∘ i.succ_above = p :=
 funext $ insert_nth_apply_succ_above i x p
 
-lemma insert_nth_eq_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
-  i.insert_nth x p = q ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
+lemma insert_nth_eq_iff {i : fin (n + 1)} {x : α i} {p : dtuple $ λ j, α (i.succ_above j)} {q : dtuple α} :
+  p.insert_nth i x = q ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
 by simp [funext_iff, forall_iff_succ_above i, eq_comm]
 
-lemma eq_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
-  q = i.insert_nth x p ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
+lemma eq_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : dtuple $ λ  j, α (i.succ_above j)} {q : dtuple α} :
+  q = p.insert_nth i x ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
 eq_comm.trans insert_nth_eq_iff
 
 lemma insert_nth_apply_below {i j : fin (n + 1)} (h : j < i) (x : α i)
-  (p : Π k, α (i.succ_above k)) :
-  i.insert_nth x p j = eq.rec_on (succ_above_cast_lt h) (p $ j.cast_lt _) :=
+  (p : dtuple $ λ k, α (i.succ_above k)) :
+  p.insert_nth i x j = eq.rec_on (succ_above_cast_lt h) (p $ j.cast_lt _) :=
 by rw [insert_nth, succ_above_cases, dif_neg h.ne, dif_pos h]
 
 lemma insert_nth_apply_above {i j : fin (n + 1)} (h : i < j) (x : α i)
-  (p : Π k, α (i.succ_above k)) :
-  i.insert_nth x p j = eq.rec_on (succ_above_pred h) (p $ j.pred _) :=
+  (p : dtuple $ λ k, α (i.succ_above k)) :
+  p.insert_nth i x j = eq.rec_on (succ_above_pred h) (p $ j.pred _) :=
 by rw [insert_nth, succ_above_cases, dif_neg h.ne', dif_neg h.not_lt]
 
-lemma insert_nth_zero (x : α 0) (p : Π j : fin n, α (succ_above 0 j)) :
-  insert_nth 0 x p = cons x (λ j, _root_.cast (congr_arg α (congr_fun succ_above_zero j)) (p j)) :=
+lemma insert_nth_zero (x : α 0) (p : dtuple $ λ j, α (succ_above 0 j)) :
+  insert_nth 0 x p = cons x (λ j, _root_.cast (α.congr_arg (congr_fun succ_above_zero j)) (p j)) :=
 begin
   refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
   ext j,
-  convert (cons_succ _ _ _).symm
+  convert (cons_succ _ p _).symm
 end
 
-@[simp] lemma insert_nth_zero' (x : β) (p : fin n → β) :
+@[simp] lemma insert_nth_zero' (x : β) (p : tuple n β) :
   @insert_nth _ (λ _, β) 0 x p = cons x p :=
 by simp [insert_nth_zero]
 
-lemma insert_nth_last (x : α (last n)) (p : Π j : fin n, α ((last n).succ_above j)) :
+lemma insert_nth_last (x : α (last n)) (p : dtuple $ λ j, α ((last n).succ_above j)) :
   insert_nth (last n) x p =
-    snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x :=
+    snoc (λ j, _root_.cast (α.congr_arg (succ_above_last_apply j)) (p j)) x :=
 begin
   refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
   ext j,
   apply eq_of_heq,
-  transitivity snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x j.cast_succ,
+  transitivity snoc (λ j, _root_.cast (α.congr_arg (succ_above_last_apply j)) (p j)) x j.cast_succ,
   { rw [snoc_cast_succ], exact (cast_heq _ _).symm },
   { apply congr_arg_heq,
     rw [succ_above_last] }
 end
 
-@[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
+@[simp] lemma insert_nth_last' (x : β) (p : tuple n β) :
   @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
 by simp [insert_nth_last]
 
 @[simp] lemma insert_nth_zero_right [Π j, has_zero (α j)] (i : fin (n + 1)) (x : α i) :
-  i.insert_nth x 0 = pi.single i x :=
+  (0 : dtuple _).insert_nth i x = pi.single i x :=
 insert_nth_eq_iff.2 $ by simp [succ_above_ne, pi.zero_def]
 
 lemma insert_nth_binop (op : Π j, α j → α j → α j) (i : fin (n + 1))
-  (x y : α i) (p q : Π j, α (i.succ_above j)) :
-  i.insert_nth (op i x y) (λ j, op _ (p j) (q j)) =
-    λ j, op j (i.insert_nth x p j) (i.insert_nth y q j) :=
+  (x y : α i) (p q : dtuple $ λ j, α (i.succ_above j)) :
+  dtuple.insert_nth i (op i x y) (λ j, op _ (p j) (q j)) =
+    λ j, op j (p.insert_nth i x j) (q.insert_nth i y j) :=
 insert_nth_eq_iff.2 $ by simp
 
 @[simp] lemma insert_nth_mul [Π j, has_mul (α j)] (i : fin (n + 1))
-  (x y : α i) (p q : Π j, α (i.succ_above j)) :
-  i.insert_nth (x * y) (p * q) = i.insert_nth x p * i.insert_nth y q :=
+  (x y : α i) (p q : dtuple $ λ j, α (i.succ_above j)) :
+  (p * q).insert_nth i (x * y)  = p.insert_nth i x * q.insert_nth i y :=
 insert_nth_binop (λ _, (*)) i x y p q
 
 @[simp] lemma insert_nth_add [Π j, has_add (α j)] (i : fin (n + 1))
-  (x y : α i) (p q : Π j, α (i.succ_above j)) :
-  i.insert_nth (x + y) (p + q) = i.insert_nth x p + i.insert_nth y q :=
+  (x y : α i) (p q : dtuple $ λ j, α (i.succ_above j)) :
+  (p + q).insert_nth i (x + y) = p.insert_nth i x + q.insert_nth i y :=
 insert_nth_binop (λ _, (+)) i x y p q
 
 @[simp] lemma insert_nth_div [Π j, has_div (α j)] (i : fin (n + 1))
-  (x y : α i) (p q : Π j, α (i.succ_above j)) :
-  i.insert_nth (x / y) (p / q) = i.insert_nth x p / i.insert_nth y q :=
+  (x y : α i) (p q : dtuple $ λ j, α (i.succ_above j)) :
+  (p / q).insert_nth i (x / y) = p.insert_nth i x / q.insert_nth i y :=
 insert_nth_binop (λ _, (/)) i x y p q
 
 @[simp] lemma insert_nth_sub [Π j, has_sub (α j)] (i : fin (n + 1))
-  (x y : α i) (p q : Π j, α (i.succ_above j)) :
-  i.insert_nth (x - y) (p - q) = i.insert_nth x p - i.insert_nth y q :=
+  (x y : α i) (p q : dtuple $ λ j, α (i.succ_above j)) :
+  (p - q).insert_nth i (x - y) = p.insert_nth i x - q.insert_nth i y :=
 insert_nth_binop (λ _, has_sub.sub) i x y p q
 
 @[simp] lemma insert_nth_sub_same [Π j, add_group (α j)] (i : fin (n + 1))
-  (x y : α i) (p : Π j, α (i.succ_above j)) :
-  i.insert_nth x p - i.insert_nth y p = pi.single i (x - y) :=
+  (x y : α i) (p : dtuple $ λ j, α (i.succ_above j)) :
+  p.insert_nth i x - p.insert_nth i y = pi.single i (x - y) :=
 by simp_rw [← insert_nth_sub, ← insert_nth_zero_right, pi.sub_def, sub_self, pi.zero_def]
 
 variables [Π i, preorder (α i)]
 
-lemma insert_nth_le_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
-  i.insert_nth x p ≤ q ↔ x ≤ q i ∧ p ≤ (λ j, q (i.succ_above j)) :=
+lemma insert_nth_le_iff {i : fin (n + 1)} {x : α i} {p : dtuple $ λ j, α (i.succ_above j)}
+  {q : dtuple α} :
+  p.insert_nth i x ≤ q ↔ x ≤ q i ∧ p ≤ (λ j, q (i.succ_above j)) :=
 by simp [pi.le_def, forall_iff_succ_above i]
 
-lemma le_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
-  q ≤ i.insert_nth x p ↔ q i ≤ x ∧ (λ j, q (i.succ_above j)) ≤ p :=
+lemma le_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : dtuple $ λ j, α (i.succ_above j)}
+  {q : dtuple α} :
+  q ≤ p.insert_nth i x ↔ q i ≤ x ∧ (λ j, q (i.succ_above j)) ≤ p :=
 by simp [pi.le_def, forall_iff_succ_above i]
 
 open set
 
-lemma insert_nth_mem_Icc {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)}
-  {q₁ q₂ : Π j, α j} :
-  i.insert_nth x p ∈ Icc q₁ q₂ ↔
+lemma insert_nth_mem_Icc {i : fin (n + 1)} {x : α i} {p : dtuple $ λ j, α (i.succ_above j)}
+  {q₁ q₂ : dtuple α} :
+  p.insert_nth i x ∈ Icc q₁ q₂ ↔
     x ∈ Icc (q₁ i) (q₂ i) ∧ p ∈ Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
 by simp only [mem_Icc, insert_nth_le_iff, le_insert_nth_iff, and.assoc, and.left_comm]
 
-lemma preimage_insert_nth_Icc_of_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+lemma preimage_insert_nth_Icc_of_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : dtuple α}
   (hx : x ∈ Icc (q₁ i) (q₂ i)) :
-  i.insert_nth x ⁻¹' (Icc q₁ q₂) = Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
+  insert_nth i x ⁻¹' (Icc q₁ q₂) = Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
 set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
 
-lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : dtuple α}
   (hx : x ∉ Icc (q₁ i) (q₂ i)) :
-  i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
+  insert_nth i x ⁻¹' (Icc q₁ q₂) = ∅ :=
 set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
+
+end dtuple
 
 end insert_nth
 
 section find
 
+namespace tuple
+
 /-- `find p` returns the first index `n` where `p n` is satisfied, and `none` if it is never
 satisfied. -/
-def find : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p], option (fin n)
+def find : Π {n : ℕ} (p : tuple n Prop) [decidable_pred p], option (fin n)
 | 0     p _ := none
 | (n+1) p _ := by resetI; exact option.cases_on
   (@find n (λ i, p (i.cast_lt (nat.lt_succ_of_lt i.2))) _)
@@ -500,8 +532,8 @@ def find : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p], option (fin n)
   (λ i, some (i.cast_lt (nat.lt_succ_of_lt i.2)))
 
 /-- If `find p = some i`, then `p i` holds -/
-lemma find_spec : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p] {i : fin n}
-  (hi : i ∈ by exactI fin.find p), p i
+lemma find_spec : Π {n : ℕ} (p : tuple n Prop) [decidable_pred p] {i : fin n}
+  (hi : i ∈ by exactI tuple.find p), p i
 | 0     p I i hi := option.no_confusion hi
 | (n+1) p I i hi := begin
   dsimp [find] at hi,
@@ -518,7 +550,7 @@ lemma find_spec : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p] {i : fin 
 end
 
 /-- `find p` does not return `none` if and only if `p i` holds at some index `i`. -/
-lemma is_some_find_iff : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p],
+lemma is_some_find_iff : Π {n : ℕ} {p : tuple n Prop} [decidable_pred p],
   by exactI (find p).is_some ↔ ∃ i, p i
 | 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin_zero_elim i)
 | (n+1) p _ := ⟨λ h, begin
@@ -541,14 +573,14 @@ begin
 end⟩
 
 /-- `find p` returns `none` if and only if `p i` never holds. -/
-lemma find_eq_none_iff {n : ℕ} {p : fin n → Prop} [decidable_pred p] :
+lemma find_eq_none_iff {n : ℕ} {p : tuple n Prop} [decidable_pred p] :
   find p = none ↔ ∀ i, ¬ p i :=
 by rw [← not_exists, ← is_some_find_iff]; cases (find p); simp
 
 /-- If `find p` returns `some i`, then `p j` does not hold for `j < i`, i.e., `i` is minimal among
 the indices where `p` holds. -/
-lemma find_min : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p] {i : fin n}
-  (hi : i ∈ by exactI fin.find p) {j : fin n} (hj : j < i), ¬ p j
+lemma find_min : Π {n : ℕ} {p : tuple n Prop} [decidable_pred p] {i : fin n}
+  (hi : i ∈ by exactI p.find) {j : fin n} (hj : j < i), ¬ p j
 | 0     p _ i hi j hj hpj := option.no_confusion hi
 | (n+1) p _ i hi ⟨j, hjn⟩ hj hpj := begin
   resetI,
@@ -568,11 +600,11 @@ lemma find_min : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p] {i : fin n
     exact find_min h (show (⟨j, lt_trans hj k.2⟩ : fin n) < k, from hj) hpj }
 end
 
-lemma find_min' {p : fin n → Prop} [decidable_pred p] {i : fin n}
-  (h : i ∈ fin.find p) {j : fin n} (hj : p j) : i ≤ j :=
+lemma find_min' {p : tuple n Prop} [decidable_pred p] {i : fin n}
+  (h : i ∈ p.find) {j : fin n} (hj : p j) : i ≤ j :=
 le_of_not_gt (λ hij, find_min h hij hj)
 
-lemma nat_find_mem_find {p : fin n → Prop} [decidable_pred p]
+lemma nat_find_mem_find {p : tuple n Prop} [decidable_pred p]
   (h : ∃ i, ∃ hin : i < n, p ⟨i, hin⟩) :
   (⟨nat.find h, (nat.find_spec h).fst⟩ : fin n) ∈ find p :=
 let ⟨i, hin, hi⟩ := h in
@@ -586,24 +618,26 @@ begin
         exact fin.eta _ _⟩ } }
 end
 
-lemma mem_find_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
-  i ∈ fin.find p ↔ p i ∧ ∀ j, p j → i ≤ j :=
+lemma mem_find_iff {p : tuple n Prop} [decidable_pred p] {i : fin n} :
+  i ∈ p.find ↔ p i ∧ ∀ j, p j → i ≤ j :=
 ⟨λ hi, ⟨find_spec _ hi, λ _, find_min' hi⟩,
   begin
     rintros ⟨hpi, hj⟩,
-    cases hfp : fin.find p,
+    cases hfp : p.find,
     { rw [find_eq_none_iff] at hfp,
       exact (hfp _ hpi).elim },
     { exact option.some_inj.2 (le_antisymm (find_min' hfp hpi) (hj _ (find_spec _ hfp))) }
   end⟩
 
-lemma find_eq_some_iff {p : fin n → Prop} [decidable_pred p] {i : fin n} :
-  fin.find p = some i ↔ p i ∧ ∀ j, p j → i ≤ j :=
+lemma find_eq_some_iff {p : tuple n Prop} [decidable_pred p] {i : fin n} :
+  p.find = some i ↔ p i ∧ ∀ j, p j → i ≤ j :=
  mem_find_iff
 
-lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
-  (h : ∀ i j, p i → p j → i = j) {i : fin n} (hi : p i) : i ∈ fin.find p :=
+lemma mem_find_of_unique {p : tuple n Prop} [decidable_pred p]
+  (h : ∀ i j, p i → p j → i = j) {i : fin n} (hi : p i) : i ∈ p.find :=
 mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
+
+end tuple
 
 end find
 

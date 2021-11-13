@@ -263,7 +263,7 @@ Analysis:
     reflection: 'reflection'
     orthogonal complement: 'submodule.orthogonal'
     existence of Hilbert basis: 'exists_is_orthonormal_dense_span'
-    eigenvalues from Rayleigh quotient: 'has_eigenvector_of_is_local_extr_on'
+    eigenvalues from Rayleigh quotient: 'is_self_adjoint.has_eigenvector_of_is_local_extr_on'
     Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
 
   Differentiability:

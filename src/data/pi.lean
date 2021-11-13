@@ -52,18 +52,6 @@ instance has_mul [∀ i, has_mul $ f i] :
 @[simp, to_additive] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
 @[to_additive] lemma div_def [Π i, has_div $ f i] : x / y = λ i, x i / y i := rfl
 
-namespace function
-variables {α β γ : Type*}
-
-lemma add_comp [has_add γ] {h : α → β} {f g : β → γ} : (f + g) ∘ h = f ∘ h + g ∘ h := rfl
-lemma sub_comp [has_sub γ] {h : α → β} {f g : β → γ} : (f - g) ∘ h = f ∘ h - g ∘ h := rfl
-lemma mul_comp [has_mul γ] {h : α → β} {f g : β → γ} : (f * g) ∘ h = f ∘ h * g ∘ h := rfl
-lemma div_comp [has_div γ] {h : α → β} {f g : β → γ} : (f / g) ∘ h = f ∘ h / g ∘ h := rfl
-lemma neg_comp [has_neg γ] {g : α → β} {f : β → γ} : (-f) ∘ g = - f ∘ g := rfl
-lemma inv_comp [has_inv γ] {g : α → β} {f : β → γ} : f⁻¹ ∘ g = (f ∘ g)⁻¹ := rfl
-
-end function
-
 section
 
 variables [decidable_eq I]
@@ -127,11 +115,17 @@ function.update_injective _ i
 end
 end pi
 
-section extend
-
 namespace function
-
 variables {α β γ : Type*}
+
+lemma add_comp [has_add γ] {h : α → β} {f g : β → γ} : (f + g) ∘ h = f ∘ h + g ∘ h := rfl
+lemma sub_comp [has_sub γ] {h : α → β} {f g : β → γ} : (f - g) ∘ h = f ∘ h - g ∘ h := rfl
+lemma mul_comp [has_mul γ] {h : α → β} {f g : β → γ} : (f * g) ∘ h = f ∘ h * g ∘ h := rfl
+lemma div_comp [has_div γ] {h : α → β} {f g : β → γ} : (f / g) ∘ h = f ∘ h / g ∘ h := rfl
+lemma neg_comp [has_neg γ] {g : α → β} {f : β → γ} : (-f) ∘ g = - f ∘ g := rfl
+lemma inv_comp [has_inv γ] {g : α → β} {f : β → γ} : f⁻¹ ∘ g = (f ∘ g)⁻¹ := rfl
+
+section extend
 
 @[to_additive]
 lemma extend_one [has_one γ] (f : α → β) :
@@ -153,8 +147,8 @@ lemma extend_div [has_div γ] (f : α → β) (g₁ g₂ : α → γ) (e₁ e₂
   function.extend f (g₁ / g₂) (e₁ / e₂) = function.extend f g₁ e₁ / function.extend f g₂ e₂ :=
 funext $ λ _, by convert (apply_dite2 (/) _ _ _ _ _).symm
 
-end function
 end extend
+end function
 
 lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_zero α]
   (i : I) (x : α) :

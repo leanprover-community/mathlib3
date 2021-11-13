@@ -24,8 +24,12 @@ the lowest common multiple of the order of all elements of the group `G`.
 * `add_monoid.exponent_exists` the additive version of `monoid.exponent_exists`.
 * `add_monoid.exponent` the additive version of `monoid.exponent`.
 
+## Main results
+
+* `lcm_order_eq_exponent`: For a finite group `G`, the exponent is equal to the `lcm` of the order
+  of its elements.
+
 ## TODO
-* Show that for a finite group `G`, the exponent is equal to the lcm of the orders of its elements.
 * Compute the exponent of cyclic groups.
 * Refactor the characteristic of a ring to be the exponent of its underlying additive group.
 -/
@@ -139,11 +143,18 @@ begin
   exact order_dvd_exponent G g,
 end
 
-lemma lcm_order_eq_exponent : ((finset.univ : finset G).image order_of).lcm id = exponent G :=
+lemma lcm_order_eq_exponent {H : Type u} [fintype H] [left_cancel_monoid H] :
+  ((finset.univ : finset H).image order_of).lcm id = exponent H :=
 begin
   apply nat.dvd_antisymm (lcm_order_of_dvd_exponent _),
   apply exponent_dvd_of_forall_pow_eq_one,
-  { sorry },
+  { apply nat.pos_of_ne_zero,
+    by_contradiction,
+    rw finset.lcm_eq_zero_iff at h,
+    cases h with m hm,
+    simp at hm,
+    rcases hm with ⟨⟨g, hg⟩, rfl⟩,
+    exact ne_of_gt (order_of_pos g) hg },
   { intro g,
     have h : (order_of g) ∣ (finset.image order_of finset.univ).lcm id,
     { apply finset.dvd_lcm,

@@ -521,7 +521,7 @@ begin
 end
 
 lemma is_basis_basic_opens :
-  topological_space.opens.is_basis (set.range (λ r : R, basic_open r)) :=
+  topological_space.opens.is_basis (set.range (@basic_open R _)) :=
 begin
   unfold topological_space.opens.is_basis,
   convert is_topological_basis_basic_opens,

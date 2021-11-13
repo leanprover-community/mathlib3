@@ -177,10 +177,10 @@ end
 
 variables (α) {β}
 
-@[simp, to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+@[to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
 by simp only [orbit_smul, mem_orbit_self]
 
-@[simp, to_additive] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+@[to_additive] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
 by simp only [orbit_smul, mem_orbit]
 
 variables (α) (β)

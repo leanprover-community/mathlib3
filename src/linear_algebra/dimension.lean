@@ -549,14 +549,14 @@ lemma basis.le_span'' {ι : Type*} [fintype ι] (b : basis ι R M)
   {w : set M} [fintype w] (s : span R w = ⊤) :
   fintype.card ι ≤ fintype.card w :=
 begin
-   -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
-   -- by expressing a linear combination in `w` as a linear combination in `ι`.
-   fapply card_le_of_surjective' R,
-   { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
-   { apply surjective.comp,
-    apply linear_equiv.surjective,
-    rw [←linear_map.range_eq_top, finsupp.range_total],
-    simpa using s, },
+  -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
+  -- by expressing a linear combination in `w` as a linear combination in `ι`.
+  fapply card_le_of_surjective' R,
+  { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
+  { apply surjective.comp,
+   apply linear_equiv.surjective,
+   rw [←linear_map.range_eq_top, finsupp.range_total],
+   simpa using s, },
 end
 
 /--

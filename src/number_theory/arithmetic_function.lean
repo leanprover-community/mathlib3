@@ -208,14 +208,14 @@ begin
     rintros rfl h2 rfl rfl,
     exact ⟨⟨eq.trans H₁.2.1.symm H₂.2.1, rfl⟩, rfl, rfl⟩ },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩,
-  { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
-    rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
-    refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
-    rw mul_ne_zero_iff at *,
-    exact ⟨n0.1, j0.1⟩ },
-  { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
-      ne.def, mem_sigma, heq_iff_eq] at H ⊢,
-    rw H.2.1 } }
+    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+      rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
+      refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
+      rw mul_ne_zero_iff at *,
+      exact ⟨n0.1, j0.1⟩ },
+    { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
+        ne.def, mem_sigma, heq_iff_eq] at H ⊢,
+      rw H.2.1 } }
 end
 
 lemma one_smul' (b : arithmetic_function M) :

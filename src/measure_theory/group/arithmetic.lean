@@ -44,7 +44,7 @@ measurable function, arithmetic operator
 
 universes u v
 
-open_locale big_operators
+open_locale big_operators pointwise
 open measure_theory
 
 /-!
@@ -337,6 +337,9 @@ lemma ae_measurable.inv {f : α → G} {μ : measure α} (hf : ae_measurable f �
 measurable_inv.comp_ae_measurable hf
 
 attribute [measurability] measurable.neg ae_measurable.neg
+
+@[to_additive] lemma measurable_set.inv {s : set G} (hs : measurable_set s) : measurable_set s⁻¹ :=
+measurable_inv hs
 
 @[simp, to_additive] lemma measurable_inv_iff {G : Type*} [group G] [measurable_space G]
   [has_measurable_inv G] {f : α → G} : measurable (λ x, (f x)⁻¹) ↔ measurable f :=

@@ -1016,6 +1016,15 @@ begin
   exact H1,
 end
 
+lemma is_refl (H : is_alt B₁) : refl_bilin_form.is_refl B₁ :=
+begin
+  intros x y h,
+  rw [←neg H, h, neg_zero],
+end
+
+lemma ortho_sym (H : is_alt B₁) {x y : M₁} :
+  is_ortho B₁ x y ↔ is_ortho B₁ y x := refl_bilin_form.ortho_sym (is_refl H)
+
 end alt_bilin_form
 
 namespace bilin_form

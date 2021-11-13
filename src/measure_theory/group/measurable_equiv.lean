@@ -71,6 +71,8 @@ lemma _root_.measurable_embedding_const_smul₀ {c : G₀} (hc : c ≠ 0) :
   measurable_embedding ((•) c : α → α) :=
 (smul₀ c hc).measurable_embedding
 
+section mul
+
 variables [has_measurable_mul G] [has_measurable_mul G₀]
 
 /-- If `G` is a group with measurable multiplication, then left multiplication by `g : G` is a
@@ -143,6 +145,8 @@ lemma _root_.measurable_embedding_mul_right₀ {g : G₀} (hg : g ≠ 0) :
 
 @[simp] lemma to_equiv_mul_right₀ {g : G₀} (hg : g ≠ 0) :
   (mul_right₀ g hg).to_equiv = equiv.mul_right₀ g hg := rfl
+
+end mul
 
 variables (G G₀)
 

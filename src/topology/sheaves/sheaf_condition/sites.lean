@@ -490,7 +490,7 @@ begin
   split, intros hd U x hx, rcases hd.1 U x hx with ⟨V,f,⟨i,f₁,f₂,hc⟩,hV⟩,
   exact ⟨B.obj i, ⟨i,rfl⟩, f₁.le hV, f₂.le⟩,
   intro hb, split, intros U x hx, rcases hb hx with ⟨_,⟨i,rfl⟩,hx,hi⟩,
-  exact ⟨B.obj i, ⟨⟨hi⟩⟩, ⟨i, 𝟙 _, ⟨⟨hi⟩⟩, by rw category.id_comp⟩, hx⟩,
+  exact ⟨B.obj i, ⟨⟨hi⟩⟩, ⟨⟨i, 𝟙 _, ⟨⟨hi⟩⟩, rfl⟩⟩, hx⟩,
 end
 
 lemma cover_dense_induced_functor {B : ι → opens X} (h : opens.is_basis (set.range B)) :

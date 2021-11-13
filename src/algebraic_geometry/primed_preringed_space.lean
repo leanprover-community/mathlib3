@@ -17,7 +17,7 @@ are compatible with the choices of subsets. We show that `PrimedPreringedSpace`
 has all limits.
 
 We then define the obviously fully faithful inclusion functor from
-`LocallyRingedSpace` to `PrimedPreringedSpace`, define Gillam's localization
+`LocallyRingedSpace` to `PrimedPreringedSpace` and Gillam's localization
 functor in the other direction, and show they are an adjoint pair. The
 inclusion functor (the left adjoint) is therefore coreflective, which implies
 that `LocallyRingedSpace` also has all limits. We also deduce the Gamma-Spec
@@ -95,8 +95,10 @@ instance : category PrimedPreringedSpace :=
   assoc' := by { intros, ext1, apply category.assoc } }.
 
 def emb_from_LocallyRingedSpace : LocallyRingedSpace ⥤ PrimedPreringedSpace :=
-{ obj := λ X, ⟨X.to_PresheafedSpace, λ x, {(X.local_ring x).closed_point}⟩,
-  map := }
+{ obj := λ X, ⟨X.to_PresheafedSpace, λ x, {@local_ring.closed_point _ _ (X.local_ring x)}⟩,
+  map := λ X Y f, ⟨f.val, λ x, by { rw [set.singleton_subset_iff, set.mem_preimage,
+    (@local_ring.local_hom_iff_comap_closed_point _ _ (Y.2 _) _ _ (X.2 x)
+      (PresheafedSpace.stalk_map f.1 x)).1 (f.property x)], apply set.mem_singleton }⟩}
 
 
 

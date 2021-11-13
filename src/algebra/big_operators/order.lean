@@ -20,7 +20,7 @@ variables {ι α β M N G k R : Type*}
 
 namespace finset
 
-section
+section ordered_comm_monoid
 
 variables [comm_monoid M] [ordered_comm_monoid N]
 
@@ -164,6 +164,25 @@ calc f a = ∏ i in {a}, f i : prod_singleton.symm
      ... ≤ ∏ i in s, f i   :
   prod_le_prod_of_subset_of_one_le' (singleton_subset_iff.2 h) $ λ i hi _, hf i hi
 
+@[to_additive]
+lemma prod_le_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
+  s.prod f ≤ n ^ s.card :=
+begin
+  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  { simpa using h },
+  { simpa }
+end
+
+@[to_additive]
+lemma le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
+  n ^ s.card ≤ s.prod f :=
+@finset.prod_le_of_forall_le _ (order_dual N) _ _ _ _ h
+
+lemma card_bUnion_le_card_mul [decidable_eq β] (s : finset ι) (f : ι → finset β) (n : ℕ)
+  (h : ∀ a ∈ s, (f a).card ≤ n) :
+  (s.bUnion f).card ≤ s.card * n :=
+card_bUnion_le.trans $ sum_le_of_forall_le _ _ _ h
+
 variables {ι' : Type*} [decidable_eq ι']
 
 @[to_additive sum_fiberwise_le_sum_of_sum_fiber_nonneg]
@@ -182,7 +201,7 @@ lemma prod_le_prod_fiberwise_of_prod_fiber_le_one' {t : finset ι'}
   (∏ x in s, f x) ≤ ∏ y in t, ∏ x in s.filter (λ x, g x = y), f x :=
 @prod_fiberwise_le_prod_of_one_le_prod_fiber' _ (order_dual N) _ _ _ _ _ _ _ h
 
-end
+end ordered_comm_monoid
 
 lemma abs_sum_le_sum_abs {G : Type*} [linear_ordered_add_comm_group G] (f : ι → G) (s : finset ι) :
   |∑ i in s, f i| ≤ ∑ i in s, |f i| :=
@@ -219,21 +238,6 @@ theorem mul_card_image_le_card {f : α → β} (s : finset α)
   (n : ℕ) (hn : ∀ a ∈ s.image f, n ≤ (s.filter (λ x, f x = a)).card) :
   n * (s.image f).card ≤ s.card :=
 mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
-
-@[to_additive]
-lemma prod_le_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
-  (n : β) (h : ∀ (x ∈ s), f x ≤ n) :
-  s.prod f ≤ n ^ s.card :=
-begin
-  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
-  { simpa using h },
-  { simpa }
-end
-
-lemma card_bUnion_le_card_mul (s : finset α) (f : α → finset β) (n : ℕ)
-  (h : ∀ a ∈ s, (f a).card ≤ n) :
-  (s.bUnion f).card ≤ s.card * n :=
-card_bUnion_le.trans $ sum_le_of_forall_le _ _ _ h
 
 end pigeonhole
 

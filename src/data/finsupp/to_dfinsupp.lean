@@ -238,6 +238,21 @@ begin
   exact (finsupp.mem_split_support_iff_nonzero _ _).symm,
 end
 
+@[simp] lemma sigma_finsupp_equiv_dfinsupp_single [has_zero N] (a : Σ i, η i) (n : N) :
+  sigma_finsupp_equiv_dfinsupp (finsupp.single a n)
+    = @dfinsupp.single _ (λ i, η i →₀ N) _ _ a.1 (finsupp.single a.2 n) :=
+begin
+  obtain ⟨i, a⟩ := a,
+  ext j b,
+  by_cases h : i = j,
+  { subst h,
+    simp [split_apply, finsupp.single_apply] },
+  suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
+  { simp [split_apply, dif_neg h, this] },
+  have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
+  rw [finsupp.single_apply, if_neg H]
+end
+
 -- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.
 local attribute [-instance] finsupp.has_zero
 

@@ -184,6 +184,19 @@ lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x
 
 end pairwise
 
+lemma pairwise_subtype_iff_pairwise_set {α : Type*} (s : set α) (r : α → α → Prop) :
+  pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise r :=
+begin
+  split,
+  { assume h x hx y hy hxy,
+    exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
+  { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    simp only [subtype.mk_eq_mk, ne.def] at hxy,
+    exact h x hx y hy hxy }
+end
+
+alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
+
 namespace set
 section semilattice_inf_bot
 variables [semilattice_inf_bot α] {s t : set ι} {f g : ι → α}
@@ -202,9 +215,9 @@ lemma pairwise_disjoint.mono_on (hs : s.pairwise_disjoint f) (h : ∀ ⦃i⦄, i
 lemma pairwise_disjoint.mono (hs : s.pairwise_disjoint f) (h : g ≤ f) : s.pairwise_disjoint g :=
 hs.mono_on (λ i _, h i)
 
-lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_empty _
+@[simp] lemma pairwise_disjoint_empty : (∅ : set ι).pairwise_disjoint f := pairwise_empty _
 
-lemma pairwise_disjoint_singleton (i : ι) (f : ι → α) : pairwise_disjoint {i} f :=
+@[simp] lemma pairwise_disjoint_singleton (i : ι) (f : ι → α) : pairwise_disjoint {i} f :=
 pairwise_singleton i _
 
 lemma pairwise_disjoint_insert {i : ι} :
@@ -267,6 +280,27 @@ lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i �
 hs.elim hi hj $ λ hij, h hij.eq_bot
 
 end semilattice_inf_bot
+
+section complete_lattice
+variables [complete_lattice α]
+
+/-- Bind operation for `set.pairwise_disjoint`. If you want to only consider finsets of indices, you
+can use `set.pairwise_disjoint.bUnion_finset`. -/
+lemma pairwise_disjoint.bUnion {s : set ι'} {g : ι' → set ι} {f : ι → α}
+  (hs : s.pairwise_disjoint (λ i' : ι', ⨆ i ∈ g i', f i))
+  (hg : ∀ i ∈ s, (g i).pairwise_disjoint f) :
+  (⋃ i ∈ s, g i).pairwise_disjoint f :=
+begin
+  rintro a ha b hb hab,
+  simp_rw set.mem_Union at ha hb,
+  obtain ⟨c, hc, ha⟩ := ha,
+  obtain ⟨d, hd, hb⟩ := hb,
+  obtain hcd | hcd := eq_or_ne (g c) (g d),
+  { exact hg d hd a (hcd ▸ ha) b hb hab },
+  { exact (hs _ hc _ hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
+end
+
+end complete_lattice
 
 /-! ### Pairwise disjoint set of sets -/
 

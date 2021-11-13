@@ -95,7 +95,7 @@ begin
       { simp },
       { have : tl ≠ [] := ne_nil_of_mem hy,
         suffices : ∃ (y : α) (H : y ∈ hd :: tl), y ≠ x,
-          { simpa [ne_nil_of_mem hy] },
+        { simpa [ne_nil_of_mem hy] },
         exact ⟨y, mem_cons_of_mem _ hy, hx⟩ } } }
 end
 

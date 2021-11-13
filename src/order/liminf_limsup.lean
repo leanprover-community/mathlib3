@@ -171,16 +171,16 @@ lemma is_cobounded.mono (h : f ≤ g) : f.is_cobounded r → g.is_cobounded r
 
 end relation
 
-lemma is_cobounded_le_of_bot [order_bot α] {f : filter α} : f.is_cobounded (≤) :=
+lemma is_cobounded_le_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_cobounded (≤) :=
 ⟨⊥, assume a h, bot_le⟩
 
-lemma is_cobounded_ge_of_top [order_top α] {f : filter α} : f.is_cobounded (≥) :=
+lemma is_cobounded_ge_of_top [preorder α] [order_top α] {f : filter α} : f.is_cobounded (≥) :=
 ⟨⊤, assume a h, le_top⟩
 
-lemma is_bounded_le_of_top [order_top α] {f : filter α} : f.is_bounded (≤) :=
+lemma is_bounded_le_of_top [preorder α] [order_top α] {f : filter α} : f.is_bounded (≤) :=
 ⟨⊤, eventually_of_forall $ λ _, le_top⟩
 
-lemma is_bounded_ge_of_bot [order_bot α] {f : filter α} : f.is_bounded (≥) :=
+lemma is_bounded_ge_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_bounded (≥) :=
 ⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
 lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :

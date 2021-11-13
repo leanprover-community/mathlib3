@@ -220,20 +220,22 @@ end
 protected lemma zero_lt_one : (0 : enat) < 1 :=
 by { norm_cast, norm_num }
 
+instance order_bot : order_bot enat :=
+{ bot := (⊥),
+  bot_le := λ _, ⟨λ _, trivial, λ _, nat.zero_le _⟩ }
+
 instance semilattice_sup_bot : semilattice_sup_bot enat :=
 { sup := (⊔),
-  bot := (⊥),
-  bot_le := λ _, ⟨λ _, trivial, λ _, nat.zero_le _⟩,
   le_sup_left := λ _ _, ⟨and.left, λ _, le_sup_left⟩,
   le_sup_right := λ _ _, ⟨and.right, λ _, le_sup_right⟩,
   sup_le := λ x y z ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, ⟨λ hz, ⟨hx₁ hz, hy₁ hz⟩,
     λ _, sup_le (hx₂ _) (hy₂ _)⟩,
+  ..enat.order_bot,
   ..enat.partial_order }
 
 instance order_top : order_top enat :=
 { top := (⊤),
-  le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩,
-  ..enat.semilattice_sup_bot }
+  le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩ }
 
 lemma dom_of_lt {x y : enat} : x < y → x.dom :=
 enat.cases_on x not_top_lt $ λ _ _, dom_coe _

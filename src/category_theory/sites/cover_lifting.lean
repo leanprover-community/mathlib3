@@ -22,10 +22,10 @@ but they are actually equivalent via `category_theory.grothendieck_topology.supe
 
 ## Main definitions
 
-* `category_theory.sites.cover_lifting`: a functor between sites is cover_lifting if it
+* `category_theory.sites.cover_lifting`: a functor between sites is cover-lifting if it
   pulls back covering sieves to covering sieves
 * `category_theory.sites.copullback`: A cover-lifting functor `G : (C, J) ⥤ (D, K)` induces a
-  morphism of sheaves in the same direction as the functor.
+  morphism of sites in the same direction as the functor.
 
 ## Main results
 * `category_theory.sites.Ran_is_sheaf_of_cover_lifting`: If `G : C ⥤ D` is cover_lifting, then
@@ -245,7 +245,7 @@ end
 
 variable (A)
 
-/-- A cover-lifting functor induces a morphism of sheaves in the same direction as the functor. -/
+/-- A cover-lifting functor induces a morphism of sites in the same direction as the functor. -/
 def sites.copullback {G : C ⥤ D} (hG : cover_lifting J K G) :
   Sheaf J A ⥤ Sheaf K A :=
 { obj := λ ℱ, ⟨(Ran G.op).obj ℱ.val, Ran_is_sheaf_of_cover_lifting hG ℱ⟩,

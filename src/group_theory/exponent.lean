@@ -48,8 +48,8 @@ namespace monoid
   that `n • g = 0` for all `g`."]
 def exponent_exists  := ∃ n, 0 < n ∧ ∀ g : G, g ^ n = 1
 
-/--The exponent of a group is the smallest positive integer `n` such that `g ^ n = 1` for all `g ∈ G`
-if it exists, otherwise it is zero by convention.-/
+/--The exponent of a group is the smallest positive integer `n` such that `g ^ n = 1` for all
+  `g ∈ G` if it exists, otherwise it is zero by convention.-/
 @[to_additive "The exponent of an additive group is the smallest positive integer `n` such that
   `n • g = 0` for all `g ∈ G` if it exists, otherwise it is zero by convention."]
 noncomputable def exponent :=

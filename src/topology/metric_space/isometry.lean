@@ -238,10 +238,10 @@ lemma eq_symm_apply (h : α ≃ᵢ β) {x : α} {y : β} :
   x = h.symm y ↔ h x = y :=
 h.to_equiv.eq_symm_apply
 
-lemma symm_comp_self (h : α ≃ᵢ β) : ⇑h.symm ∘ ⇑h = id :=
+@[simp] lemma symm_comp_self (h : α ≃ᵢ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
 
-lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
+@[simp] lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
 @[simp] lemma range_eq_univ (h : α ≃ᵢ β) : range h = univ :=
@@ -253,8 +253,14 @@ image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv
 lemma preimage_symm (h : α ≃ᵢ β) : preimage h.symm = image h :=
 (image_eq_preimage_of_inverse h.to_equiv.left_inv h.to_equiv.right_inv).symm
 
-@[simp] lemma symm_trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : γ) :
-  (h₁.trans h₂).symm x = h₁.symm (h₂.symm x) := rfl
+@[simp] lemma symm_trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) :
+  (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl
+
+@[simp] lemma self_trans_symm (h : α ≃ᵢ β) : h.trans h.symm = isometric.refl _ :=
+ext h.symm_apply_apply
+
+@[simp] lemma symm_trans_self (h : α ≃ᵢ β) : h.symm.trans h = isometric.refl _ :=
+ext h.apply_symm_apply
 
 lemma ediam_univ (h : α ≃ᵢ β) : emetric.diam (univ : set α) = emetric.diam (univ : set β) :=
 by rw [← h.range_eq_univ, h.isometry.ediam_range]

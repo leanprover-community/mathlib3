@@ -135,7 +135,7 @@ lemma trans_apply (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) (x : I × I)
       G (⟨2 * x.1 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
 continuous_map.homotopy_rel.trans_apply _ _ _
 
-lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
+@[simp] lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
   (F.trans G).symm = G.symm.trans F.symm :=
 continuous_map.homotopy_rel.symm_trans _ _
 

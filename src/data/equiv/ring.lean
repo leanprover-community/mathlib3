@@ -171,6 +171,15 @@ protected lemma surjective (e : R ≃+* S) : function.surjective e := e.to_equiv
 @[simp] lemma apply_symm_apply (e : R ≃+* S) : ∀ x, e (e.symm x) = x := e.to_equiv.apply_symm_apply
 @[simp] lemma symm_apply_apply (e : R ≃+* S) : ∀ x, e.symm (e x) = x := e.to_equiv.symm_apply_apply
 
+@[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R :=
+ext e.symm_apply_apply
+
+@[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S :=
+ext e.apply_symm_apply
+
+@[simp] lemma symm_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
+
 lemma image_eq_preimage (e : R ≃+* S) (s : set R) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
 
@@ -426,9 +435,6 @@ end mul_equiv
 namespace ring_equiv
 
 variables [has_add R] [has_add S] [has_mul R] [has_mul S]
-
-@[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
-@[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
 /-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
 protected lemma is_domain

@@ -469,10 +469,9 @@ protected def trans : local_equiv α γ :=
   local_equiv.trans' (e.symm.restr (e'.source)).symm (e'.restr (e.target)) (inter_comm _ _)
 
 @[simp, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
-@[simp, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
 
-lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
-by cases e; cases e'; refl
+@[simp, mfld_simps] lemma symm_trans : (e.trans e').symm = e'.symm.trans e.symm := rfl
 
 @[simp, mfld_simps] lemma trans_source : (e.trans e').source = e.source ∩ e ⁻¹' e'.source := rfl
 
@@ -588,7 +587,7 @@ by rw [he.eq_on.inter_preimage_eq, he.source_eq]
 
 /-- Composition of a local equiv and its inverse is equivalent to the restriction of the identity
 to the source -/
-lemma trans_self_symm :
+lemma self_trans_symm :
   e.trans e.symm ≈ local_equiv.of_set e.source :=
 begin
   have A : (e.trans e.symm).source = e.source, by mfld_set_tac,
@@ -599,9 +598,9 @@ end
 
 /-- Composition of the inverse of a local equiv and this local equiv is equivalent to the
 restriction of the identity to the target -/
-lemma trans_symm_self :
+lemma symm_trans_self :
   e.symm.trans e ≈ local_equiv.of_set e.target :=
-trans_self_symm (e.symm)
+e.symm.self_trans_symm
 
 /-- Two equivalent local equivs are equal when the source and target are univ -/
 lemma eq_of_eq_on_source_univ (e e' : local_equiv α β) (h : e ≈ e')

@@ -195,8 +195,8 @@ theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e
 @[to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
-@[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
-  (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
+@[simp, to_additive] theorem symm_trans (e₁ : M ≃* N) (e₂ : N ≃* P) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
 
 @[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
 e.injective.eq_iff
@@ -242,6 +242,12 @@ protected lemma congr_arg {f : mul_equiv M N} : Π {x x' : M}, x = x' → f x = 
 
 @[to_additive]
 protected lemma congr_fun {f g : mul_equiv M N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
+
+@[simp, to_additive] theorem self_trans_symm (e : M ≃* N) : e.trans e.symm = refl _ :=
+ext e.symm_apply_apply
+
+@[simp, to_additive] theorem symm_trans_self (e : M ≃* N) : e.symm.trans e = refl _ :=
+ext e.apply_symm_apply
 
 /-- The `mul_equiv` between two monoids with a unique element. -/
 @[to_additive "The `add_equiv` between two add_monoids with a unique element."]

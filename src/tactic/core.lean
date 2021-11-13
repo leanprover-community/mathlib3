@@ -3,13 +3,17 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import control.basic
 import data.dlist.basic
-import system.io
+import logic.function.basic
+import control.basic
+import meta.expr
+import meta.rb_map
+import data.bool
 import tactic.binder_matching
-import tactic.interactive_expr
 import tactic.lean_core_docs
+import tactic.interactive_expr
 import tactic.project_dir
+import system.io
 
 universe u
 

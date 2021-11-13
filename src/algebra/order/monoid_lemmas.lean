@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Damiano Testa
 -/
 import algebra.covariant_and_contravariant
-import tactic.monotonicity.basic
+import order.monotone
 
 /-!
 # Ordered monoids

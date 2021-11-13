@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import tactic.linarith.lemmas
+import meta.rb_map
 import tactic.ring
+import tactic.linarith.lemmas
 
 /-!
 # Datatypes for `linarith`

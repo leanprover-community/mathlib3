@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import group_theory.perm.basic
+import algebra.group_power.basic
 import logic.function.iterate
+import group_theory.perm.basic
 
 /-!
 # Iterates of monoid and ring homomorphisms

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
+import order.bounded_lattice
 import data.set.intervals.basic
 
 /-!

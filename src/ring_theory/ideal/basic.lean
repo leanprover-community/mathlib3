@@ -5,6 +5,9 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
 import linear_algebra.basic
+import order.zorn
+import order.atoms
+import order.compactly_generated
 import tactic.abel
 /-!
 

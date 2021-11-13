@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.list.perm
+import data.list.chain
 
 /-!
 # Sorting algorithms on lists

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.ring.basic
+import data.equiv.basic
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures

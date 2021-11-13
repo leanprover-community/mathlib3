@@ -3,8 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.part
+import data.pfun
 import tactic.norm_num
+import data.equiv.mul_add
 
 /-!
 # Natural numbers with infinity

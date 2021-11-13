@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import algebra.module.basic
 import algebra.ring.prod
-import data.set.finite
-import group_theory.submonoid.center
+import algebra.module.basic
 import group_theory.submonoid.membership
+import group_theory.submonoid.center
+import data.set.finite
+import data.equiv.ring
 
 /-!
 # Bundled subsemirings

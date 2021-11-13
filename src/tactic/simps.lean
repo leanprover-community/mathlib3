@@ -5,6 +5,7 @@ Authors: Floris van Doorn
 -/
 import algebra.group.to_additive
 import tactic.protected
+import data.sum
 
 /-!
 # simps attribute

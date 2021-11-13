@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import algebra.group.defs
 import data.equiv.set
 import logic.embedding
-import tactic.monotonicity.basic
+import order.rel_classes
 
 /-!
 # Relation homomorphisms, embeddings, isomorphisms

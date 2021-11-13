@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
+import algebra.order.ring
+import data.int.basic
 import tactic.norm_num
 
 /-!

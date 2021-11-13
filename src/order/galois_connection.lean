@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.complete_lattice
+import order.order_dual
 /-!
 # Galois connections, insertions and coinsertions
 

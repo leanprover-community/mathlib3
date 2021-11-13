@@ -6,6 +6,8 @@ Authors: Mario Carneiro
 import data.finset.fold
 import data.finset.option
 import data.multiset.lattice
+import order.order_dual
+import order.complete_lattice
 
 /-!
 # Lattice operations on finsets

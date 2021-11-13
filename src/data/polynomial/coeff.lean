@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 
-import data.nat.choose.sum
 import data.polynomial.basic
+import data.finset.nat_antidiagonal
+import data.nat.choose.sum
 
 /-!
 # Theory of univariate polynomials

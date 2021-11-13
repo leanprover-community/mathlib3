@@ -3,8 +3,10 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.inj_surj
+import logic.nontrivial
 import algebra.group.units_hom
+import algebra.group.inj_surj
+import algebra.group_with_zero.defs
 
 /-!
 # Groups with an adjoined zero element

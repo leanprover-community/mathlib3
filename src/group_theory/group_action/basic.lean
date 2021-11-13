@@ -38,6 +38,8 @@ iff.rfl
 @[simp, to_additive] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
 
+@[to_additive] lemma orbit_nonempty (b : β) : set.nonempty (orbit α b) := set.range_nonempty _
+
 @[to_additive] lemma maps_to_smul_orbit (a : α) (b : β) :
   set.maps_to ((•) a) (orbit α b) (orbit α b) :=
 set.range_subset_iff.2 $ λ a', ⟨a * a', mul_smul _ _ _⟩

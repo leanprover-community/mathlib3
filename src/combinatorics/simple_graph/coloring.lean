@@ -74,6 +74,17 @@ but with a syntactically better proper coloring hypothesis.)
   (valid : ∀ {v w : V}, G.adj v w → color v ≠ color w) :
   G.coloring α := ⟨color, @valid⟩
 
+/--
+The color class of a given color. A color class is a set of vertices that share the same color.
+-/
+def coloring.color_class_of_color (c : α) : set V := {v : V | C v = c}
+
+/-- The color class of a given vertex. -/
+def coloring.color_class_of_vertex (v : V) : set V := C.color_class_of_color (C v)
+
+/-- The set of color classes. -/
+def coloring.color_classes : set (set V) := {(C.color_class_of_vertex v) | v : V}
+
 -- TODO make this computable
 noncomputable
 instance [fintype V] [fintype α] : fintype (coloring G α) :=
@@ -112,8 +123,6 @@ coloring.mk id (λ v w, G.ne_of_adj)
 If `G` isn't colorable with finitely many colors, this will be 0. -/
 noncomputable def chromatic_number : ℕ :=
 Inf { n : ℕ | G.colorable n }
-
--- open embedding
 
 /-- Given an embedding, there is an induced embedding of colorings. -/
 def recolor_of_embedding {α β : Type*} (f : α ↪ β) : G.coloring α ↪ G.coloring β :=
@@ -183,9 +192,9 @@ begin
       exact C.valid hvw, } }
 end
 
-lemma colorable_set_nonempty_of_colorable {n : ℕ} (h : G.colorable n) :
+lemma colorable_set_nonempty_of_colorable {n : ℕ} (hc : G.colorable n) :
   {n : ℕ | G.colorable n}.nonempty :=
-⟨n, h⟩
+⟨n, hc⟩
 
 lemma chromatic_number_bdd_below : bdd_below {n : ℕ | G.colorable n} :=
 ⟨0, λ _ _, zero_le _⟩
@@ -207,7 +216,7 @@ lemma colorable_chromatic_number_of_fintype (G : simple_graph V) [fintype V] :
   G.colorable G.chromatic_number :=
 colorable_chromatic_number G.colorable_of_fintype
 
-lemma chromatic_number_leq_one_of_subsingleton (G : simple_graph V) [subsingleton V] :
+lemma chromatic_number_le_one_of_subsingleton (G : simple_graph V) [subsingleton V] :
   G.chromatic_number ≤ 1 :=
 begin
   rw chromatic_number,
@@ -267,6 +276,15 @@ lemma chromatic_number_lower_bound (G' : simple_graph V)
 begin
   apply chromatic_number_le_of_forall_imp hc,
   exact colorable_lower_bound h,
+end
+
+lemma chromatic_number_le_n_of_colorable {n : ℕ} (hc : G.colorable n) :
+  G.chromatic_number ≤ n :=
+begin
+  rw chromatic_number,
+  apply cInf_le chromatic_number_bdd_below,
+  fsplit,
+  exact classical.choice hc,
 end
 
 lemma chromatic_number_minimal [fintype α] (C : G.coloring α)

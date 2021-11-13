@@ -520,6 +520,14 @@ begin
     exact zero_locus_anti_mono (set.singleton_subset_iff.mpr hfs) }
 end
 
+lemma is_basis_basic_opens :
+  topological_space.opens.is_basis (set.range (λ r : R, basic_open r)) :=
+begin
+  unfold topological_space.opens.is_basis,
+  convert is_topological_basis_basic_opens,
+  rw ← set.range_comp,
+end
+
 lemma is_compact_basic_open (f : R) : is_compact (basic_open f : set (prime_spectrum R)) :=
 is_compact_of_finite_subfamily_closed $ λ ι Z hZc hZ,
 begin

@@ -1272,11 +1272,42 @@ begin
   exact h,
 end
 
+lemma ideal_correspondence_mono' (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
+  {p q : ideal T} (hp : p ∣ I) (hq : q ∣ I) :
+  p ≤ q ↔ ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) ≤ ( ideal_correspondence hI hJ f ⟨q, hq⟩ : ideal S) :=
+sorry
+
+--this should be proven in more generality in `unique_factorisation_domain.lean`
+lemma temp (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
+  ∃ (b ∈ normalized_factors J), (b : ideal S) ∣
+    ((ideal_correspondence hI hJ f ⟨p, dvd_of_mem_normalized_factors hp⟩) : ideal S) :=
+begin
+sorry
+end
 
 lemma ideal_correspondence_is_prime_of_is_prime (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
   (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
   ↑(ideal_correspondence hI hJ f ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors J :=
+begin
+  obtain ⟨b, hb, H⟩ := temp hI hJ f hp,
+  rw dvd_iff_le at H,
+  obtain ⟨c, hc⟩ := equiv.surjective (ideal_correspondence hI hJ f)
+    ⟨b, dvd_of_mem_normalized_factors hb⟩,
+  obtain ⟨c, hd⟩ := c,
+  have : (ideal_correspondence hI hJ f ⟨c, hd⟩ : ideal S) = b,
+    rw subtype.coe_eq_iff,
+    use dvd_of_mem_normalized_factors hb,
+    exact hc,
+  rw ← this at H,
+  rw ← ideal_correspondence_mono' hI hJ f (dvd_of_mem_normalized_factors hp) hd at H,
+  have pmax : p.is_maximal,
+  sorry, --is_prime.is_maximal
+  suffices H'' : c ≠ ⊤,
+  { simp only [is_maximal.eq_of_le pmax H'' H, hb, this] },
   sorry
+end
+
 
 -- This statement looks a bit dubious to me, and may need some changes to actually be correct
 lemma pow_ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥)

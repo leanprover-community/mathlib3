@@ -268,7 +268,8 @@ begin
   let B : J.cover X := S.bind W,
   use B,
 
-  -- Prove that this cover refines the two covers over which our representatives are defined.
+  -- Prove that this cover refines the two covers over which our representatives are defined
+  -- and use these proofs.
   let ex : B ⟶ Sx := hom_of_le begin
     rintros Y f ⟨Z,e1,e2,he2,he1,hee⟩,
     rw ← hee,
@@ -284,20 +285,20 @@ begin
   use [ex, ey],
 
   -- Now prove that indeed the representatives become equal over `B`.
-  ext1 I,
-  choose Z e1 e2 he2 he1 hee using I.hf,
-
   -- This will follow by using the fact that our representatives become
   -- equal over the chosen covers.
-  let IS : S.arrow := ⟨Z, e2, he2⟩,
+  ext1 I,
+  let IS : S.arrow := I.from_middle,
   specialize hh IS,
-  let IW : (W IS).arrow := ⟨_, e1, he1⟩,
+  let IW : (W IS).arrow := I.to_middle,
   apply_fun (λ e, e IW) at hh,
   convert hh,
-  { let Rx : Sx.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
+  { let Rx : Sx.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f,
+      I.to_middle_hom ≫ I.from_middle_hom, _, _, by simp [I.middle_spec]⟩,
     have := x.condition Rx,
     simpa using this },
-  { let Ry : Sy.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f, e1 ≫ e2, _, _, by simp [hee]⟩,
+  { let Ry : Sy.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f,
+      I.to_middle_hom ≫ I.from_middle_hom, _, _, by simp [I.middle_spec]⟩,
     have := y.condition Ry,
     simpa using this },
 end

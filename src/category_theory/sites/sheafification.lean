@@ -37,7 +37,7 @@ local attribute [instance]
 @[nolint has_inhabited_instance]
 def meq {X : C} (P : Cᵒᵖ ⥤ D) (S : J.cover X) :=
 { x : Π (I : S.arrow), P.obj (op I.Y) //
-  ∀ (I : S.relation), P.map I.g₁.op (x ⟨_, I.f₁, I.h₁⟩) = P.map I.g₂.op (x ⟨_, I.f₂, I.h₂⟩) }
+  ∀ (I : S.relation), P.map I.g₁.op (x I.fst) = P.map I.g₂.op (x I.snd) }
 end
 
 namespace meq
@@ -284,7 +284,7 @@ begin
   use [ex, ey],
 
   -- Now prove that indeed the representatives become equal over `B`.
-  ext1,
+  ext1 I,
   choose Z e1 e2 he2 he1 hee using I.hf,
 
   -- This will follow by using the fact that our representatives become
@@ -316,6 +316,33 @@ begin
   exact hh
 end
 
+def meq_of_sep (P : Cᵒᵖ ⥤ D)
+  (hsep : ∀ (X : C) (S : J.cover X) (x y : P.obj (op X)),
+    (∀ I : S.arrow, P.map I.f.op x = P.map I.f.op y) → x = y)
+  (X : C) (S : J.cover X)
+  (s : meq (J.plus_obj P) S)
+  (T : Π (I : S.arrow), J.cover I.Y)
+  (t : Π (I : S.arrow), meq P (T I))
+  (ht : ∀ (I : S.arrow), s I = mk (t I)) : meq P (S.bind T) :=
+{ val := λ I, t I.from_middle I.to_middle,
+  property := begin
+    intros II,
+    apply inj_of_sep P hsep,
+    rw [← comp_apply, ← comp_apply, (J.to_plus P).naturality, (J.to_plus P).naturality,
+      comp_apply, comp_apply],
+    erw [to_plus_apply (T II.fst.from_middle) (t II.fst.from_middle) II.fst.to_middle,
+         to_plus_apply (T II.snd.from_middle) (t II.snd.from_middle) II.snd.to_middle,
+         ← ht, ← ht, ← comp_apply, ← comp_apply, ← (J.plus_obj P).map_comp,
+         ← (J.plus_obj P).map_comp],
+    rw [← op_comp, ← op_comp],
+    let IR : S.relation :=
+      ⟨_, _, _, II.g₁ ≫ II.fst.to_middle_hom, II.g₂ ≫ II.snd.to_middle_hom,
+        II.fst.from_middle_hom, II.snd.from_middle_hom, II.fst.from_middle_condition,
+        II.snd.from_middle_condition, _⟩,
+    swap, { simp only [category.assoc, II.fst.middle_spec, II.snd.middle_spec], apply II.w },
+    exact s.condition IR,
+  end }
+
 theorem exists_of_sep (P : Cᵒᵖ ⥤ D)
   (hsep : ∀ (X : C) (S : J.cover X) (x y : P.obj (op X)),
     (∀ I : S.arrow, P.map I.f.op x = P.map I.f.op y) → x = y)
@@ -336,7 +363,9 @@ begin
   -- Construct a compatible system of local sections over this large cover, using the chosen
   -- representatives of our local sections.
   -- The compatilibity here follows from the separatedness assumption.
-  let w : meq P B := ⟨λ I, t ⟨Z I, e2 I, he2 I⟩ ⟨I.Y, e1 I, he1 I⟩, _⟩,
+  let w : meq P B := meq_of_sep P hsep X S s T t ht,
+  /-
+  ⟨λ I, t ⟨Z I, e2 I, he2 I⟩ ⟨I.Y, e1 I, he1 I⟩, _⟩,
   swap, {
     intros I,
     let I₁ : B.arrow := ⟨_, I.f₁, I.h₁⟩,
@@ -358,7 +387,7 @@ begin
       ⟨_, _, _, I.g₁ ≫ ID₁.f, I.g₂ ≫ ID₂.f, e2 I₁, e2 I₂, he2 _, he2 _ , _⟩,
     swap, { dsimp [ID₁, ID₂], simp_rw [category.assoc, hee], exact I.w },
     exact s.condition IR },
-
+  -/
   -- The associated gluing will be the candidate section.
   use mk w,
   ext I,

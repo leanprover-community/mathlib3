@@ -76,7 +76,7 @@ end
   (h_std_basis : ∀ (i : m) (j : n) (x : α), P (std_basis_matrix i j x)) :
   P M :=
 begin
-  rw [matrix_eq_sum_std_basis M, ← finset.sum_product_left'],
+  rw [matrix_eq_sum_std_basis M, ← finset.sum_product'],
   apply finset.sum_induction _ _ h_add h_zero,
   { intros, apply h_std_basis, }
 end

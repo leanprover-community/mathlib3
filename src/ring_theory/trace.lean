@@ -113,7 +113,7 @@ begin
   haveI := classical.dec_eq κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
       matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
-      ← finset.univ_product_univ, finset.sum_product_left],
+      ← finset.univ_product_univ, finset.sum_product],
   refine finset.sum_congr rfl (λ i _, _),
   simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply,
       -- The unifier is not smart enough to apply this one by itself:

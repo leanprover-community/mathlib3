@@ -513,8 +513,7 @@ begin
     rintros ⟨k, x⟩,
     simp only [prod_congr_left_apply] },
   { intros σ _,
-    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product_left,
-      finset.prod_comm],
+    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product_right],
     simp only [sign_prod_congr_left, units.coe_prod, int.cast_prod, block_diagonal_apply_eq,
       prod_congr_left_apply] },
   { intros σ σ' _ _ eq,
@@ -621,7 +620,7 @@ lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
     det (A.minor i.succ_above fin.succ) :=
 begin
   rw [matrix.det_apply, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
-  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product_left, matrix.minor],
+  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product, matrix.minor],
   refine finset.sum_congr rfl (λ i _, fin.cases _ (λ i, _) i),
   { simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum,
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,

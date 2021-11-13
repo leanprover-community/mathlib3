@@ -396,27 +396,9 @@ begin
 end
 
 @[to_additive]
-lemma prod_product_left {s : finset γ} {t : finset α} {f : γ×α → β} :
-  (∏ x in s.product t, f x) = ∏ x in s, ∏ y in t, f (x, y) :=
-begin
-  haveI := classical.dec_eq α, haveI := classical.dec_eq γ,
-  rw [product_eq_bUnion, prod_bUnion],
-  { congr, funext, exact prod_image (λ _ _ _ _ H, (prod.mk.inj H).2) },
-  simp only [disjoint_iff_ne, mem_image],
-  rintros _ _ _ _ h ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ _,
-  apply h, cc
-end
-
-/-- An uncurried version of `finset.prod_product_left`. -/
-@[to_additive "An uncurried version of `finset.sum_product_left`"]
-lemma prod_product_left' {s : finset γ} {t : finset α} {f : γ → α → β} :
-  (∏ x in s.product t, f x.1 x.2) = ∏ x in s, ∏ y in t, f x y :=
-prod_product_left
-
-@[to_additive]
 lemma prod_product_right {s : finset γ} {t : finset α} {f : γ×α → β} :
   (∏ x in s.product t, f x) = ∏ y in t, ∏ x in s, f (x, y) :=
-by rw [prod_product_left, prod_comm]
+by rw [prod_product, prod_comm]
 
 /-- An uncurried version of `finset.prod_product_right`. -/
 @[to_additive "An uncurried version of `finset.prod_product_right`"]

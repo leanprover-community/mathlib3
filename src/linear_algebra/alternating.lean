@@ -744,7 +744,7 @@ begin
 
   -- now we're ready to clean up the RHS, pulling out the summation
   rw [dom_coprod.summand_mk', multilinear_map.dom_coprod_alternization_coe,
-    ←finset.sum_product_left', finset.univ_product_univ,
+    ←finset.sum_product', finset.univ_product_univ,
     ←multilinear_map.dom_dom_congr_equiv_apply, add_equiv.map_sum, finset.smul_sum],
   congr' 1,
   ext1 ⟨al, ar⟩,

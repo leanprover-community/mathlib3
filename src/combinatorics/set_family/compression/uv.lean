@@ -58,7 +58,7 @@ open finset
 
 variable {α : Type*}
 
--- The namespace here is useful to distinguish from other compressions.
+-- The namespace is here to distinguish from other compressions.
 namespace uv
 
 /-! ### UV-compression in generalized boolean algebras -/
@@ -138,7 +138,7 @@ lemma is_compressed_self (u : α) (s : finset α) : is_compressed u u s := compr
 lemma compress_disjoint (u v : α) : disjoint (compress_motion u v s) (compress_remains u v s) :=
 disjoint_left.2 $ λ a ha₁ ha₂, (mem_compress_motion.1 ha₁).1 (mem_compress_remains.1 ha₂).1
 
-/-- Compressing a set is idempotent. -/
+/-- Compressing an element is idempotent. -/
 @[simp] lemma compress_idem (u v a : α) : compress u v (compress u v a) = compress u v a :=
 begin
   unfold compress,
@@ -179,7 +179,7 @@ begin
   exact filter_union_filter_neg_eq _ (compression u v s),
 end
 
-/-- Compressing a set family doesn't change its size. -/
+/-- Compressing a family doesn't change its size. -/
 lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
 begin
   rw [compression, card_disjoint_union (compress_disjoint _ _), compress_motion,
@@ -203,9 +203,9 @@ begin
   { exact (ha.2 ha.1).elim }
 end
 
-/-- If `a` is in the compressed family and does move under compression, then the compressed version
-was in the original family. -/
-lemma uncompressed_was_already_there (ha : a ∈ 𝓒 u v s) (hva : v ≤ a) (hua : disjoint u a) :
+/-- If `a` is in the family compression and can be compressed, then its compression is in the
+original family. -/
+lemma sup_sdiff_mem_of_mem_compression (ha : a ∈ 𝓒 u v s) (hva : v ≤ a) (hua : disjoint u a) :
   (a ⊔ u) \ v ∈ s :=
 begin
   rw [mem_compression, compress_of_disjoint_of_le hua hva] at ha,
@@ -225,6 +225,21 @@ begin
   rwa [hu, hv, compress_self, sup_bot_eq, sdiff_bot],
 end
 
+/-- If `a` is in the `u, v`-compression but `v ≤ a`, then `a` must have been in the original
+family. -/
+lemma mem_of_mem_compression (ha : a ∈ 𝓒 u v s) (hva : v ≤ a) (hvu : v = ⊥ → u = ⊥) : a ∈ s :=
+begin
+  rw mem_compression at ha,
+  obtain ha | ⟨_, b, hb, h⟩ := ha,
+  { exact ha.1 },
+  unfold compress at h,
+  split_ifs at h,
+  { rw [←h, le_sdiff_iff] at hva,
+    rw [hvu hva, hva, sup_bot_eq, sdiff_bot] at h,
+    rwa ←h },
+  { rwa ←h }
+end
+
 end generalized_boolean_algebra
 
 /-! ### UV-compression on finsets -/
@@ -241,25 +256,6 @@ begin
   { rw [card_sdiff (h.2.trans (le_sup_left)), sup_eq_union, card_disjoint_union h.1.symm, hUV,
     add_tsub_cancel_right] },
   { refl }
-end
-
-/-- If `A` is in the compressed family but `V` is a subset of `A`, `A` must have been in the
-original family. -/
-lemma compress_held (hA : A ∈ 𝓒 U V 𝒜) (hVA : V ⊆ A) (hVU : V = ∅ → U = ∅) : A ∈ 𝒜 :=
-begin
-  rw mem_compression at hA,
-  obtain hA | ⟨_, B, hB, h⟩ := hA,
-  { exact hA.1 },
-  unfold compress at h,
-  split_ifs at h,
-  { have hV : V = ∅,
-    { refine eq_empty_of_forall_not_mem (λ x hx, _),
-      replace hVA := hVA hx,
-      rw [←h, mem_sdiff] at hVA,
-      exact hVA.2 hx },
-    rw [hVU hV, hV, sup_eq_union, union_empty, sdiff_empty] at h,
-    rwa ←h },
-  { rwa ←h }
 end
 
 end uv

@@ -365,6 +365,9 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
               ... ≤ (x ⊔ z) ⊔ x : sup_le_sup_right h x
               ... ≤ z ⊔ x       : by rw [sup_assoc, sup_comm, sup_assoc, sup_idem])⟩
 
+lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
+⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
+
 lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
 by rw [←le_bot_iff, sdiff_le_iff, sup_bot_eq]
 

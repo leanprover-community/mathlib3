@@ -379,7 +379,7 @@ end
 
 /-! ### Properties of inner product spaces -/
 
-variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
+variables [inner_product_space 𝕜 E] [dec_E : decidable_eq E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := has_abs.abs
@@ -1494,7 +1494,7 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 
 section orthogonal_family
-variables {ι : Type*} (𝕜)
+variables {ι : Type*} [dec_ι : decidable_eq ι] (𝕜)
 open_locale direct_sum
 
 /-- An indexed family of mutually-orthogonal subspaces of an inner product space `E`. -/
@@ -1503,6 +1503,7 @@ def orthogonal_family (V : ι → submodule 𝕜 E) : Prop :=
 
 variables {𝕜} {V : ι → submodule 𝕜 E}
 
+include dec_ι
 lemma orthogonal_family.eq_ite (hV : orthogonal_family 𝕜 V) {i j : ι} (v : V i) (w : V j) :
   ⟪(v:E), w⟫ = ite (i = j) ⟪(v:E), w⟫ 0 :=
 begin
@@ -1511,6 +1512,7 @@ begin
   { exact hV h v.prop w.prop }
 end
 
+include dec_E
 lemma orthogonal_family.inner_right_dfinsupp (hV : orthogonal_family 𝕜 V)
   (l : Π₀ i, V i) (i : ι) (v : V i) :
   ⟪(v : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) l⟫ = ⟪v, l i⟫ :=
@@ -1535,6 +1537,7 @@ begin
   intros h,
   simp [h]
 end
+omit dec_ι dec_E
 
 lemma orthogonal_family.inner_right_fintype
   [fintype ι] (hV : orthogonal_family 𝕜 V) (l : Π i, V i) (i : ι) (v : V i) :
@@ -1585,11 +1588,13 @@ begin
   { exact hV hij (v_family i vi : V i).prop (v_family j vj : V j).prop }
 end
 
+include dec_ι
 lemma direct_sum.submodule_is_internal.collected_basis_orthonormal (hV : orthogonal_family 𝕜 V)
   (hV_sum : direct_sum.submodule_is_internal V) {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
 by simpa using hV.orthonormal_sigma_orthonormal hv_family
+omit dec_ι
 
 end orthogonal_family
 

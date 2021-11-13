@@ -741,6 +741,18 @@ begin
   { intros h hP, exact hP }
 end
 
+/-- A subset of `ℕ` containing `b : ℕ` and closed under `nat.succ` contains every `n ≥ b`. -/
+lemma set_induction_bounded {b : ℕ} {S : set ℕ} (hb : b ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S)
+  {n : ℕ} (hbn : b ≤ n) : n ∈ S :=
+@le_rec_on (λ n, n ∈ S) b n hbn h_ind hb
+
+/-- A subset of `ℕ` containing zero and closed under `nat.succ` contains all of `ℕ`. -/
+lemma set_induction {S : set ℕ} (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S) (n : ℕ) : n ∈ S :=
+set_induction_bounded hb h_ind (zero_le n)
+
+lemma set_eq_univ {S : set ℕ} : S = set.univ ↔ 0 ∈ S ∧ ∀ k : ℕ, k ∈ S → k + 1 ∈ S :=
+⟨by rintro rfl; simp, λ ⟨h0, hs⟩, set.eq_univ_of_forall (set_induction h0 hs)⟩
+
 /-! ### `div` -/
 
 attribute [simp] nat.div_self

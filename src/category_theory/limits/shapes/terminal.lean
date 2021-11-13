@@ -350,12 +350,12 @@ def cone_of_diagram_terminal {X : J} (hX : is_terminal X)
 { X := F.obj X,
   π :=
   { app := λ i, inv (F.map (hX.from _)),
-  naturality' := begin
-    intros i j f,
-    dsimp,
-    simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.id_comp,
-      ← F.map_comp, hX.hom_ext (hX.from i) (f ≫ hX.from j)],
-  end } }
+    naturality' := begin
+      intros i j f,
+      dsimp,
+      simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.id_comp,
+        ← F.map_comp, hX.hom_ext (hX.from i) (f ≫ hX.from j)],
+    end } }
 
 /-- From a functor `F : J ⥤ C`, given a terminal object of `J` and that the morphisms in the
 diagram are isomorphisms, show the cone `cone_of_diagram_terminal` is a limit. -/
@@ -418,12 +418,12 @@ def cocone_of_diagram_initial {X : J} (hX : is_initial X) (F : J ⥤ C)
 { X := F.obj X,
   ι :=
   { app := λ i, inv (F.map (hX.to _)),
-  naturality' := begin
-    intros i j f,
-    dsimp,
-    simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.comp_id,
-      ← F.map_comp, hX.hom_ext (hX.to i ≫ f) (hX.to j)],
-  end } }
+    naturality' := begin
+      intros i j f,
+      dsimp,
+      simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.comp_id,
+        ← F.map_comp, hX.hom_ext (hX.to i ≫ f) (hX.to j)],
+    end } }
 
 /-- From a functor `F : J ⥤ C`, given an initial object of `J` and that the morphisms in the
 diagram are isomorphisms, show the cone `cocone_of_diagram_initial` is a colimit. -/

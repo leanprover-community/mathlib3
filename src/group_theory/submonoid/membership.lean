@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-import group_theory.submonoid.operations
-import algebra.big_operators.basic
 import algebra.free_monoid
+import group_theory.submonoid.operations
 
 /-!
 # Submonoids: membership criteria

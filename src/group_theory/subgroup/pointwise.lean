@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import group_theory.subgroup.basic
-import group_theory.submonoid.pointwise
 
 /-! # Pointwise instances on `subgroup` and `add_subgroup`s
 

@@ -3,11 +3,8 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.group.with_one
-import algebra.group.type_tags
 import algebra.group.prod
-import algebra.order.monoid_lemmas
-import order.bounded_lattice
+import algebra.group.with_one
 import order.min_max
 import order.rel_iso
 

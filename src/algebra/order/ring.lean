@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.invertible
-import algebra.order.group
 import algebra.order.sub
 import data.set.intervals.basic
+import tactic.monotonicity.basic
 
 /-!
 # Ordered rings and semirings

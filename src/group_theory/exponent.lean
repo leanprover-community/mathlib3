@@ -42,14 +42,16 @@ open_locale classical
 
 namespace monoid
 
-/-A predicate on a monoid saying that there is a positive integer `n` such that `g ^ n = 1`
+/--A predicate on a monoid saying that there is a positive integer `n` such that `g ^ n = 1`
   for all `g`.-/
-@[to_additive]
+@[to_additive "A predicate on an additive monoid saying that there is a positive integer `n` such
+  that `n • g = 0` for all `g`."]
 def exponent_exists  := ∃ n, 0 < n ∧ ∀ g : G, g ^ n = 1
 
-/-The exponent of a group is the smallest positive integer `n` such that `g ^ n = 1` for all `g ∈ G`
+/--The exponent of a group is the smallest positive integer `n` such that `g ^ n = 1` for all `g ∈ G`
 if it exists, otherwise it is zero by convention.-/
-@[to_additive]
+@[to_additive "The exponent of an additive group is the smallest positive integer `n` such that
+  `n • g = 0` for all `g ∈ G` if it exists, otherwise it is zero by convention."]
 noncomputable def exponent :=
 if h : exponent_exists G then nat.find h else 0
 
@@ -140,6 +142,7 @@ begin
   exact order_dvd_exponent G g,
 end
 
+@[to_additive lcm_add_order_eq_exponent]
 lemma lcm_order_eq_exponent {H : Type u} [fintype H] [left_cancel_monoid H] :
   ((finset.univ : finset H).image order_of).lcm id = exponent H :=
 begin

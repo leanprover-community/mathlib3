@@ -71,8 +71,7 @@ calc g ^ n = g ^ (n % exponent G + exponent G * (n / exponent G)) : by rw [nat.m
 lemma exponent_pos_of_exists (n : ℕ) (hpos : 0 < n)
 (hG : ∀ g : G, g ^ n = 1) : 0 < exponent G :=
 begin
-  have h : ∃ n, 0 < n ∧ ∀ g : G, g ^ n = 1,
-      { exact ⟨n, hpos, hG⟩ },
+  have h : ∃ n, 0 < n ∧ ∀ g : G, g ^ n = 1 := ⟨n, hpos, hG⟩,
   rw [exponent, dif_pos],
   exact (nat.find_spec h).1,
 end
@@ -110,9 +109,7 @@ end
 
 @[to_additive add_order_dvd_exponent]
 lemma order_dvd_exponent (g : G) : (order_of g) ∣ exponent G :=
-begin
-  exact order_of_dvd_of_pow_eq_one (pow_exponent_eq_one G g)
-end
+order_of_dvd_of_pow_eq_one (pow_exponent_eq_one G g)
 
 @[to_additive]
 lemma exponent_dvd_of_forall_pow_eq_one (n : ℕ) (hpos : 0 < n) (hG : ∀ g : G, g ^ n = 1) :

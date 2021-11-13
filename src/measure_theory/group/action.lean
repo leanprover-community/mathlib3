@@ -10,7 +10,7 @@ import dynamics.ergodic.measure_preserving
 -/
 
 open_locale ennreal pointwise
-open measure_theory measure_theory.measure
+open measure_theory measure_theory.measure set function
 
 namespace measure_theory
 
@@ -64,5 +64,45 @@ lemma measure_preserving_smul (c : G) (μ : measure α . volume_tac) [smul_invar
 @[simp, to_additive] lemma measure_smul (c : G) (μ : measure α . volume_tac)
   [smul_invariant_measure G α μ] (s : set α) : μ (c • s) = μ s :=
 by rw [← preimage_smul_inv, measure_preimage_smul]
+
+variable (G)
+
+@[to_additive]
+lemma measure_pos_of_smul_invariant_of_dense_orbit_of_Lindelof_ne_zero [topological_space G]
+  [topological_space α] {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
+  {K U : set α} (hd : ∀ x : α, dense (mul_action.orbit G x))
+  (hK : ∀ U : set (set α), (∀ t ∈ U, is_open t) → K ⊆ ⋃₀ U → ∃ V ⊆ U, countable V ∧ K ⊆ ⋃₀ V)
+  (hμK : μ K ≠ 0) (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
+begin
+  refine pos_iff_ne_zero.2 (λ hμU, hμK _),
+  have : ∀ x, ∃ g : G, g • x ∈ U,
+    from λ x, dense_range.exists_mem_open (hd x) hU hne,
+  choose g hgU,
+  rcases hK ((λ x, (•) (g x) ⁻¹' U) '' K)
+    (ball_image_iff.2 $ λ x hx, hU.preimage $ continuous_id.const_smul _)
+    (λ x hx, mem_sUnion.2 $ ⟨_, ⟨x, hx, rfl⟩, hgU x⟩)
+    with ⟨V, hVU, hVc, hKV⟩,
+  refine measure_mono_null hKV ((measure_sUnion_null_iff hVc).2 $ λ s hs, _),
+  rcases hVU hs with ⟨x, hx, rfl⟩,
+  rwa measure_preimage_smul
+end
+
+@[to_additive]
+lemma measure_pos_of_smul_invariant_of_is_open [topological_space G] [topological_space α]
+  {K U : set α} {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
+  [mul_action.is_pretransitive G α] (hK : is_compact K) (hμK : μ K ≠ 0) (hU : is_open U)
+  (hne : U.nonempty) : 0 < μ U :=
+begin
+  refine measure_pos_of_smul_invariant_of_dense_orbit_of_Lindelof_ne_zero G
+    (λ x, (mul_action.surjective_smul G x).dense_range) (λ U hUo hKU, _) hμK hU hne,
+  rw sUnion_eq_Union at hKU,
+  rcases hK.elim_finite_subcover coe (subtype.forall.2 hUo) hKU with ⟨t, hKt⟩,
+  refine ⟨coe '' (t : set U), image_subset_iff.2 (λ x hx, x.2), t.countable_to_set.image _, _⟩,
+  rwa sUnion_image
+end
+
+@[to_additive]
+lemma measure_lt_top_of_is_compact_of_smul_invariant [topological_space α]
+  {μ : measure α} [smul_invariant_measure G α μ] [
 
 end measure_theory

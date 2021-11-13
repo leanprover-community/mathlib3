@@ -178,7 +178,7 @@ Linear algebra:
     quadratic form: 'quadratic_form'
     polar form of a quadratic: 'quadratic_form.polar'
   Finite-dimensional inner product spaces (see also Hilbert spaces, below):
-    existence of orthonormal basis: 'inner_product_space.orthonormal_basis'
+    existence of orthonormal basis: 'orthonormal_basis'
     diagonalization of self-adjoint endomorphisms: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
 
 Topology:

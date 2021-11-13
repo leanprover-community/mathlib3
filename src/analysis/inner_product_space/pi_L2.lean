@@ -169,6 +169,13 @@ begin
   { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
 end
 
+@[simp] lemma basis.isometry_euclidean_of_orthonormal_symm_apply
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) (w : euclidean_space 𝕜 ι) :
+  (v.isometry_euclidean_of_orthonormal hv).symm w = ∑ i, (w i) • v i :=
+begin
+  sorry
+end
+
 end
 
 /-- `ℂ` is isometric to `ℝ²` with the Euclidean inner product. -/

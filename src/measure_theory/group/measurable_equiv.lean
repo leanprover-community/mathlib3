@@ -10,7 +10,7 @@ import measure_theory.group.arithmetic
 
 In this file we define the following measurable equivalences:
 
-* `measurable_equiv.smul`: if group `G` acts on `α` by measurable maps, then each element `c : G`
+* `measurable_equiv.smul`: if a group `G` acts on `α` by measurable maps, then each element `c : G`
   defines a measurable automorphism of `α`;
 * `measurable_equiv.vadd`: additive version of `measurable_equiv.smul`;
 * `measurable_equiv.smul₀`: if a group with zero `G` acts on `α` by measurable maps, then each
@@ -40,7 +40,7 @@ variables {G G₀ α : Type*} [measurable_space G] [measurable_space G₀] [meas
   [group G] [group_with_zero G₀] [mul_action G α] [mul_action G₀ α]
   [has_measurable_smul G α] [has_measurable_smul G₀ α]
 
-/-- If group `G` acts on `α` by measurable maps, then each element `c : G` defines a measurable
+/-- If a group `G` acts on `α` by measurable maps, then each element `c : G` defines a measurable
 automorphism of `α`. -/
 @[to_additive "If an additive group `G` acts on `α` by measurable maps, then each element `c : G`
 defines a measurable automorphism of `α`.", simps to_equiv apply { fully_applied := ff }]

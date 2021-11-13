@@ -265,8 +265,7 @@ begin
 
   -- Construct the cover over which the representatives become equal by combining the various
   -- covers chosen above.
-  let B : J.cover X := ⟨sieve.bind S (λ Y f hf, W ⟨_, f, hf⟩),
-    J.bind_covering S.condition (λ _ _ _, (W _).condition)⟩,
+  let B : J.cover X := S.bind W,
   use B,
 
   -- Prove that this cover refines the two covers over which our representatives are defined.
@@ -331,8 +330,7 @@ begin
 
   -- Construct a large cover over which we will define a representative that will
   -- provide the gluing of the given local sections.
-  let B : J.cover X := ⟨sieve.bind S (λ Y f hf, T ⟨Y,f,hf⟩),
-    J.bind_covering S.condition (λ _ _ _, (T _).condition)⟩,
+  let B : J.cover X := S.bind T,
   choose Z e1 e2 he2 he1 hee using λ I : B.arrow, I.hf,
 
   -- Construct a compatible system of local sections over this large cover, using the chosen

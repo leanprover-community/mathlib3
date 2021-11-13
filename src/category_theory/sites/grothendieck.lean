@@ -479,6 +479,14 @@ def pullback_comp {X Y Z : C} (S : J.cover X) (f : Z ⟶ Y) (g : Y ⟶ X) :
   S.pullback (f ≫ g) ≅ (S.pullback g).pullback f :=
 eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
 
+/-- Combine a family of covers over a cover. -/
+def bind {X : C} (S : J.cover X) (T : Π (I : S.arrow), J.cover I.Y) : J.cover X :=
+⟨sieve.bind S (λ Y f hf, T ⟨Y, f, hf⟩), J.bind_covering S.condition (λ _ _ _, (T _).condition)⟩
+
+/-- The canonical moprhism from `S.bind T` to `T`. -/
+def bind_to_base {X : C} (S : J.cover X) (T : Π (I : S.arrow), J.cover I.Y) : S.bind T ⟶ S :=
+hom_of_le $ by { rintro Y f ⟨Z,e1,e2,h1,h2,h3⟩, rw ← h3, apply sieve.downward_closed, exact h1 }
+
 -- This is used extensively in `plus.lean`, etc.
 -- We place this definition here as it will be used in `sheaf.lean` as well.
 /-- To every `S : J.cover X` and presheaf `P`, associate a `multicospan_index`. -/

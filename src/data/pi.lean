@@ -17,6 +17,7 @@ Instances of more sophisticated classes are defined in `pi.lean` files elsewhere
 
 universes u v₁ v₂ v₃
 variable {I : Type u}     -- The indexing type
+variables {α β γ : Type*}
 -- The families of types already equipped with instances
 variables {f : I → Type v₁} {g : I → Type v₂} {h : I → Type v₃}
 variables (x y : Π i, f i) (i : I)
@@ -32,6 +33,8 @@ namespace pi
 
 @[to_additive] lemma one_def [Π i, has_one $ f i] : (1 : Π i, f i) = λ i, 1 := rfl
 
+@[simp, to_additive] lemma one_comp [has_one γ] {f : α → β} : (1 : β → γ) ∘ f = 1 := rfl
+
 @[to_additive]
 instance has_mul [∀ i, has_mul $ f i] :
   has_mul (Π i : I, f i) :=
@@ -40,17 +43,25 @@ instance has_mul [∀ i, has_mul $ f i] :
 
 @[to_additive] lemma mul_def [Π i, has_mul $ f i] : x * y = λ i, x i * y i := rfl
 
+@[to_additive] lemma mul_comp [has_mul γ] (h : α → β) (f g : β → γ) :
+  (f * g) ∘ h = f ∘ h * g ∘ h := rfl
+
 @[to_additive] instance has_inv [∀ i, has_inv $ f i] :
   has_inv (Π i : I, f i) :=
   ⟨λ f i, (f i)⁻¹⟩
 @[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
 @[to_additive] lemma inv_def [Π i, has_inv $ f i] : x⁻¹ = λ i, (x i)⁻¹ := rfl
 
+@[to_additive] lemma inv_comp [has_inv γ] (g : α → β) (f : β → γ) : f⁻¹ ∘ g = (f ∘ g)⁻¹ := rfl
+
 @[to_additive] instance has_div [Π i, has_div $ f i] :
   has_div (Π i : I, f i) :=
 ⟨λ f g i, f i / g i⟩
 @[simp, to_additive] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
 @[to_additive] lemma div_def [Π i, has_div $ f i] : x / y = λ i, x i / y i := rfl
+
+@[to_additive] lemma div_comp [has_div γ] (h : α → β) (f g : β → γ) :
+  (f / g) ∘ h = f ∘ h / g ∘ h := rfl
 
 section
 
@@ -115,17 +126,8 @@ function.update_injective _ i
 end
 end pi
 
-namespace function
-variables {α β γ : Type*}
-
-lemma add_comp [has_add γ] {h : α → β} {f g : β → γ} : (f + g) ∘ h = f ∘ h + g ∘ h := rfl
-lemma sub_comp [has_sub γ] {h : α → β} {f g : β → γ} : (f - g) ∘ h = f ∘ h - g ∘ h := rfl
-lemma mul_comp [has_mul γ] {h : α → β} {f g : β → γ} : (f * g) ∘ h = f ∘ h * g ∘ h := rfl
-lemma div_comp [has_div γ] {h : α → β} {f g : β → γ} : (f / g) ∘ h = f ∘ h / g ∘ h := rfl
-lemma neg_comp [has_neg γ] {g : α → β} {f : β → γ} : (-f) ∘ g = - f ∘ g := rfl
-lemma inv_comp [has_inv γ] {g : α → β} {f : β → γ} : f⁻¹ ∘ g = (f ∘ g)⁻¹ := rfl
-
 section extend
+namespace function
 
 @[to_additive]
 lemma extend_one [has_one γ] (f : α → β) :
@@ -147,8 +149,8 @@ lemma extend_div [has_div γ] (f : α → β) (g₁ g₂ : α → γ) (e₁ e₂
   function.extend f (g₁ / g₂) (e₁ / e₂) = function.extend f g₁ e₁ / function.extend f g₂ e₂ :=
 funext $ λ _, by convert (apply_dite2 (/) _ _ _ _ _).symm
 
-end extend
 end function
+end extend
 
 lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_zero α]
   (i : I) (x : α) :

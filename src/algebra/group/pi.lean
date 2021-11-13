@@ -133,8 +133,6 @@ variables {α β γ : Type*}
 
 @[simp, to_additive] lemma comp_one [has_one β] {f : β → γ} : f ∘ 1 = const α (f 1) := rfl
 
-@[simp, to_additive] lemma one_comp [has_one γ] {f : α → β} : (1 : β → γ) ∘ f = 1 := rfl
-
 end instance_lemmas
 
 end pi

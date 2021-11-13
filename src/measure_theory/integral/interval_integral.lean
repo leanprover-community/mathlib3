@@ -576,14 +576,14 @@ variables {a b c d : ℝ} (f : ℝ → E)
 @[simp] lemma integral_comp_mul_right (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
-  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right₀ c hc).closed_embedding,
+  have A : measurable_embedding (λ x, x * c) :=
+    (homeomorph.mul_right₀ c hc).closed_embedding.measurable_embedding,
   conv_rhs { rw [← real.smul_map_volume_mul_right hc] },
-  simp_rw [integral_smul_measure, interval_integral,
-          set_integral_map_of_closed_embedding measurable_set_Ioc A,
+  simp_rw [integral_smul_measure, interval_integral, A.set_integral_map,
           ennreal.to_real_of_real (abs_nonneg c)],
-  cases lt_or_gt_of_ne hc,
+  cases hc.lt_or_lt,
   { simp [h, mul_div_cancel, hc, abs_of_neg, restrict_congr_set Ico_ae_eq_Ioc] },
-  { simp [(show 0 < c, from h), mul_div_cancel, hc, abs_of_pos] }
+  { simp [h, mul_div_cancel, hc, abs_of_pos] }
 end
 
 @[simp] lemma smul_integral_comp_mul_right (c) :
@@ -608,10 +608,11 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_add_right (d) :
   ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x :=
-have A : closed_embedding (λ x, x + d) := (homeomorph.add_right d).closed_embedding,
+have A : measurable_embedding (λ x, x + d) :=
+  (homeomorph.add_right d).closed_embedding.measurable_embedding,
 calc  ∫ x in a..b, f (x + d)
     = ∫ x in a+d..b+d, f x ∂(measure.map (λ x, x + d) volume)
-                           : by simp [interval_integral, set_integral_map_of_closed_embedding _ A]
+                           : by simp [interval_integral, A.set_integral_map]
 ... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
 
 @[simp] lemma integral_comp_add_left (d) :

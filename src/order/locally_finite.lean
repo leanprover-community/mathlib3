@@ -202,7 +202,7 @@ end
 end preorder
 
 section order_top
-variables [order_top α] [locally_finite_order α]
+variables [preorder α] [order_top α] [locally_finite_order α]
 
 /-- The finset of elements `x` such that `a ≤ x`. Basically `set.Ici a` as a finset. -/
 def Ici (a : α) : finset α := Icc a ⊤
@@ -225,7 +225,7 @@ by rw [Ioi, coe_Ioc, set.Ioc_top]
 end order_top
 
 section order_bot
-variables [order_bot α] [locally_finite_order α]
+variables [preorder α] [order_bot α] [locally_finite_order α]
 
 /-- The finset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a finset. -/
 def Iic (b : α) : finset α := Icc ⊥ b
@@ -285,7 +285,7 @@ by rw [Ioo, ←finset.mem_def, finset.mem_Ioo]
 end preorder
 
 section order_top
-variables [order_top α] [locally_finite_order α]
+variables [preorder α] [order_top α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `a ≤ x`. Basically `set.Ici a` as a multiset. -/
 def Ici (a : α) : multiset α := (finset.Ici a).val
@@ -299,7 +299,7 @@ def Ioi (a : α) : multiset α := (finset.Ioi a).val
 end order_top
 
 section order_bot
-variables [order_bot α] [locally_finite_order α]
+variables [preorder α] [order_bot α] [locally_finite_order α]
 
 /-- The multiset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a multiset. -/
 def Iic (b : α) : multiset α := (finset.Iic b).val
@@ -339,7 +339,7 @@ lemma finite_Ioo : (Ioo a b).finite := ⟨set.fintype_Ioo a b⟩
 end preorder
 
 section order_top
-variables [order_top α] [locally_finite_order α] (a : α)
+variables [preorder α] [order_top α] [locally_finite_order α] (a : α)
 
 instance fintype_Ici : fintype (Ici a) :=
 fintype.of_finset (finset.Ici a) (λ x, by rw [finset.mem_Ici, mem_Ici])
@@ -353,7 +353,7 @@ lemma finite_Ioi : (Ioi a).finite := ⟨set.fintype_Ioi a⟩
 end order_top
 
 section order_bot
-variables [order_bot α] [locally_finite_order α] (b : α)
+variables [preorder α] [order_bot α] [locally_finite_order α] (b : α)
 
 instance fintype_Iic : fintype (Iic b) :=
 fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])

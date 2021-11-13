@@ -83,7 +83,7 @@ variables (A B : GL n R)
 lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
 begin
   letI := A.invertible,
-  exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
+  exact inv_of_eq_nonsing_inv (↑A : matrix n n R),
 end
 
 end coe_lemmas

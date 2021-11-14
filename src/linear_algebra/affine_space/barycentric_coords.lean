@@ -258,8 +258,8 @@ begin
     matrix.vec_mul_one],
 end
 
-/-- If we fix a background affine basis `p`, then for any other basis `q`, we can characterise
-the barycentric coordinates provided by `q` in terms of determinants relative to `p`. -/
+/-- If we fix a background affine basis `b`, then for any other basis `b₂`, we can characterise
+the barycentric coordinates provided by `b₂` in terms of determinants relative to `b`. -/
 lemma det_smul_coords_eq_cramer_coords (x : P) :
   (b.to_matrix b₂.points).det • b₂.coords x = (b.to_matrix b₂.points)ᵀ.cramer (b.coords x) :=
 begin

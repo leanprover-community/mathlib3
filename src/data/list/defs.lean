@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import data.option.defs
 import data.rbmap.basic
+import data.rbtree.default_lt
 import logic.basic
 import tactic.cache
 

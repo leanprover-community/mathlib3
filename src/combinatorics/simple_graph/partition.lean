@@ -5,48 +5,74 @@ Authors: Arthur Paulino, Kyle Miller
 -/
 
 import combinatorics.simple_graph.coloring
-import data.setoid.partition
-import order.antichain
 
 universes u v
 
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
 
-structure is_partition (P : set (set V)) : Prop :=
-(valid : setoid.is_partition P)
-(independent : ∀ (s ∈ P), is_antichain G.adj s)
+structure partition :=
+(parts : set (set V))
+(is_partition : setoid.is_partition parts)
+(independent : ∀ (s ∈ parts), is_antichain G.adj s)
 
-variable {P : set (set V)}
+namespace partition
+variables {G} (P : G.partition)
 
-def subset_of_vertex (hp : G.is_partition P) (v : V): set V :=
-classical.some (hp.valid.2 v)
+def part_of_vertex (v : V) : set V :=
+classical.some (P.is_partition.2 v)
 
-lemma subset_of_vertex_spec (hp : G.is_partition P) (v : V) :
-  G.subset_of_vertex hp v ∈ P ∧ v ∈ G.subset_of_vertex hp v :=
+lemma part_of_vertex_mem (v : V) : P.part_of_vertex v ∈ P.parts :=
 begin
-  obtain ⟨⟨h1, h2⟩, h3⟩ := (hp.valid.2 v).some_spec,
-  exact ⟨h1, h2.1⟩,
+  obtain ⟨h, -⟩ := (P.is_partition.2 v).some_spec.1,
+  exact h,
 end
 
-lemma different_subsets_of_adjacent {v w : V} (hp : G.is_partition P) (h : G.adj v w) :
-  G.subset_of_vertex hp v ≠ G.subset_of_vertex hp w :=
+lemma mem_part_of_vertex (v : V) : v ∈ P.part_of_vertex v :=
 begin
+  obtain ⟨⟨h1, h2⟩, h3⟩ := (P.is_partition.2 v).some_spec,
+  exact h2.1,
+end
+
+lemma part_of_vertex_ne_of_adj {v w : V} (h : G.adj v w) :
+  P.part_of_vertex v ≠ P.part_of_vertex w :=
+begin
+  have aa := P.is_partition.2,
   intro hn,
-  have hv := G.subset_of_vertex_spec hp v,
-  have hw := G.subset_of_vertex_spec hp w,
-  have h1 := hp.independent _ hv.1,
+  have hw := P.mem_part_of_vertex w,
   rw ←hn at hw,
-  exact h1 v hv.2 w hw.2 (G.ne_of_adj h) h,
+  have h1 := P.independent _ (P.part_of_vertex_mem v) _ (P.mem_part_of_vertex v),
+  exact h1 w hw (G.ne_of_adj h) h,
 end
 
-def partition_to_coloring (hp : G.is_partition P) : G.coloring (set V) :=
+def to_coloring : G.coloring (set V) :=
+coloring.mk P.part_of_vertex
 begin
-  let color : V → set V := λ v, G.subset_of_vertex hp v,
-  have h : ∀ (v w : V), G.adj v w → color v ≠ color w,
-  { intros _ _ hvw,
-    exact G.different_subsets_of_adjacent hp hvw, },
-  exact coloring.mk color h,
+  intros _ _ hvw,
+  exact P.part_of_vertex_ne_of_adj hvw,
 end
+
+def to_coloring' : G.coloring P.parts :=
+coloring.mk (λ v, ⟨P.part_of_vertex v, P.part_of_vertex_mem v⟩)
+begin
+  intros _ _ hvw,
+  rw [ne.def, subtype.mk_eq_mk],
+  exact P.part_of_vertex_ne_of_adj hvw,
+end
+
+lemma to_colorable [fintype P.parts] : G.colorable (fintype.card P.parts) :=
+coloring.to_colorable P.to_coloring'
+
+def from_coloring {α : Type v} (C : G.coloring α) : G.partition :=
+begin
+  let parts : set (set V) := C.color_classes,
+  have is_partition : setoid.is_partition parts,
+    { by apply coloring.color_classes_is_partition, },
+  have independent : ∀ (s ∈ parts), is_antichain G.adj s,
+    { by apply coloring.color_classes_is_independent, },
+  exact partition.mk parts is_partition independent,
+end
+
+end partition
 
 end simple_graph

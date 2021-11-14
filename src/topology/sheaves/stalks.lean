@@ -3,12 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Justus Springer
 -/
-import topology.category.Top.open_nhds
-import topology.sheaves.presheaf
-import topology.sheaves.sheaf_condition.unique_gluing
-import category_theory.limits.types
 import category_theory.limits.preserves.filtered
-import tactic.elementwise
+import topology.category.Top.open_nhds
+import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
 # Stalks

@@ -3,9 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.category.Top.basic
-import category_theory.eq_to_hom
 import category_theory.category.preorder
+import topology.category.Top.basic
 
 /-!
 # The category of open sets in a topological space.

@@ -3,8 +3,10 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-import topology.continuous_function.algebra
 import linear_algebra.affine_space.affine_map
+import tactic.field_simp
+import topology.algebra.group
+import topology.algebra.mul_action
 
 /-!
 # Topological properties of affine spaces and maps

@@ -5,7 +5,6 @@ Authors: Aaron Anderson
 -/
 
 import group_theory.perm.fin
-import tactic.interval_cases
 
 /-!
 # Alternating Groups

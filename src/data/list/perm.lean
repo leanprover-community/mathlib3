@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.erase_dup
-import data.list.lattice
 import data.list.permutation
 import data.list.zip
 import logic.relation

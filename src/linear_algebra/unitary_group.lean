@@ -5,7 +5,8 @@ Authors: Shing Tak Lam
 -/
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
-import data.complex.basic
+import tactic.field_simp
+import tactic.with_local_reducibility
 
 /-!
 # The Unitary Group

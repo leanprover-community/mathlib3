@@ -3,11 +3,9 @@ Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
 -/
+import category_theory.category.preorder
 import category_theory.fin_category
 import category_theory.limits.cones
-import category_theory.adjunction.basic
-import category_theory.category.preorder
-import order.bounded_lattice
 
 /-!
 # Filtered categories

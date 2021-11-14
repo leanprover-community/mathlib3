@@ -3,11 +3,9 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.opens
-import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import linear_algebra.finsupp
-import algebra.punit_instances
+import ring_theory.ideal.prod
+import topology.opens
 
 /-!
 # Prime spectrum of a commutative ring

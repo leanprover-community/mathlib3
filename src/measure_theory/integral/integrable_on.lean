@@ -5,7 +5,6 @@ Authors: Zhouhang Zhou, Yury Kudryashov
 -/
 
 import measure_theory.function.l1_space
-import analysis.normed_space.indicator_function
 
 /-! # Functions integrable on a set and at a filter
 

@@ -3,8 +3,9 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.noetherian
-import ring_theory.jacobson
+import ring_theory.jacobson_ideal
+import tactic.elementwise
+import tactic.ring_exp
 /-!
 # Nakayama's lemma
 

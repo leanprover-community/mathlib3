@@ -4,12 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan, Anne Baanen
 -/
 
-import algebra.field
-import data.rat.basic
-import ring_theory.algebraic
 import ring_theory.dedekind_domain
-import ring_theory.integral_closure
-import ring_theory.polynomial.rational_root
 
 /-!
 # Number fields

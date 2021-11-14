@@ -3,8 +3,6 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
-import data.nat.basic
-import data.set_like.basic
 import data.set.lattice
 import order.closure
 

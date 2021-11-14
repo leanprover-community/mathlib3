@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.basic
-import algebra.order.archimedean
-import algebra.order.field
+import algebra.order.floor
+import tactic.field_simp
 /-!
 # Computable Continued Fractions
 

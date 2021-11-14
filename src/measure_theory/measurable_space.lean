@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 
-import measure_theory.measurable_space_def
-import measure_theory.tactic
-import data.tprod
 import data.equiv.fin
+import data.tprod
+import measure_theory.measurable_space_def
+import tactic.abel
+import tactic.field_simp
+import tactic.linarith
+import tactic.reassoc_axiom
+import tactic.tfae
+import tactic.with_local_reducibility
 
 /-!
 # Measurable spaces and measurable functions

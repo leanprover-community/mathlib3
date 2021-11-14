@@ -7,7 +7,6 @@ import algebra.geom_sum
 import analysis.asymptotics.asymptotics
 import order.filter.archimedean
 import order.iterate
-import topology.instances.ennreal
 
 /-!
 # A collection of specific limit computations

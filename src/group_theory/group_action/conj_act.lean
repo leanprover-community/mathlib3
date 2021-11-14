@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.group_action.basic
-import group_theory.subgroup.basic
 /-!
 # Conjugation action of a group on itself
 

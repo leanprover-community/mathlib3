@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Eric Rodriguez
 -/
 
-import data.nat.choose.basic
-import data.nat.cast
 import algebra.group_power.lemmas
+import data.nat.choose.basic
 
 /-!
 # Inequalities for binomial coefficients

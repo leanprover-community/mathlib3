@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import linear_algebra.matrix.to_lin
-import linear_algebra.matrix.trace
 
 
 /-!

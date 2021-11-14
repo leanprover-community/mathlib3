@@ -6,7 +6,8 @@ Authors: Nicolò Cavalleri
 
 import algebra.lie.of_associative
 import ring_theory.adjoin.basic
-import ring_theory.algebra_tower
+import tactic.group
+import tactic.interval_cases
 
 /-!
 # Derivations

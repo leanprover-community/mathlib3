@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import tactic.norm_cast
-import data.int.cast
+import data.int.basic
 
 /-!
 # A tactic to shift `ℕ` goals to `ℤ`

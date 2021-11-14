@@ -3,9 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.homology.image_to_kernel
 import algebra.homology.homological_complex
-import category_theory.graded_object
+import algebra.homology.image_to_kernel
 
 /-!
 # The homology of a complex

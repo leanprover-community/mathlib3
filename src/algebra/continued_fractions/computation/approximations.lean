@@ -5,7 +5,6 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.correctness_terminating
 import data.nat.fib
-import tactic.solve_by_elim
 /-!
 # Approximations for Continued Fraction Computations (`generalized_continued_fraction.of`)
 

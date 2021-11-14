@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Julian Kuelshammer, Heather Macbeth
 -/
 import data.polynomial.derivative
-import tactic.ring
 
 /-!
 # Chebyshev polynomials

@@ -5,7 +5,6 @@ Authors: Scott Morrison, Adam Topaz
 -/
 import category_theory.limits.preserves.basic
 import category_theory.limits.types
-import category_theory.limits.shapes.wide_pullbacks
 import tactic.elementwise
 
 /-!

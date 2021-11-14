@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import data.set.finite
-import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
 /-!

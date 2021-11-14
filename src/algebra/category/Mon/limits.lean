@@ -3,11 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.group.pi
 import algebra.category.Mon.basic
-import group_theory.submonoid
-import category_theory.limits.types
 import category_theory.limits.creates
+import category_theory.limits.types
+import group_theory.submonoid.operations
+import tactic.linarith
 
 /-!
 # The category of (commutative) (additive) monoids has all limits

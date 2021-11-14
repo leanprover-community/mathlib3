@@ -3,12 +3,9 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-import data.zmod.basic
-import group_theory.order_of_element
-import data.nat.basic
-import tactic.interval_cases
-import group_theory.specific_groups.dihedral
 import group_theory.specific_groups.cyclic
+import group_theory.specific_groups.dihedral
+import tactic.interval_cases
 
 /-!
 # Quaternion Groups

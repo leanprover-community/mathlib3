@@ -5,7 +5,7 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import category_theory.abelian.exact
 import category_theory.preadditive.projective_resolution
-import algebra.homology.augment
+import tactic.linarith
 
 /-!
 # Abelian categories with enough projectives have projective resolutions

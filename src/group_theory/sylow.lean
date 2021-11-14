@@ -5,7 +5,6 @@ Authors: Chris Hughes, Thomas Browning
 -/
 
 import data.set_like.fintype
-import group_theory.group_action.conj_act
 import group_theory.p_group
 
 /-!

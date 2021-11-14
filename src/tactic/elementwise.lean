@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.fresh_names
-import category_theory.concrete_category
+import tactic.monotonicity
+import tactic.reassoc_axiom
+import tactic.slice
 
 /-!
 # Tools to reformulate category-theoretic lemmas in concrete categories

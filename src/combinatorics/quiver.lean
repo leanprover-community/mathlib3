@@ -3,10 +3,8 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import data.equiv.basic
-import order.well_founded
 import data.nat.basic
-import data.opposite
+import order.well_founded
 
 /-!
 # Quivers

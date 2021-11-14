@@ -3,9 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import tactic.pi_instances
 import algebra.group.pi
-import algebra.ring.basic
 
 /-!
 # Pi instances for ring

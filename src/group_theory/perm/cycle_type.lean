@@ -8,7 +8,6 @@ import algebra.gcd_monoid.multiset
 import combinatorics.partition
 import group_theory.perm.cycles
 import ring_theory.int.basic
-import tactic.linarith
 
 /-!
 # Cycle Types

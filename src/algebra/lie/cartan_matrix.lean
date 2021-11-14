@@ -5,7 +5,8 @@ Authors: Oliver Nash
 -/
 import algebra.lie.free
 import algebra.lie.quotient
-import data.matrix.notation
+import data.fin.vec_notation
+import data.matrix.basic
 
 /-!
 # Lie algebras from Cartan matrices

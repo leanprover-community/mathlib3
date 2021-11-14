@@ -3,9 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
-import data.finset.sort
 import data.fintype.basic
-import group_theory.perm.basic
 
 /-!
 # Support of a permutation

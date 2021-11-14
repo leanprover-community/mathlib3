@@ -3,9 +3,8 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import data.set.intervals.ord_connected
-import order.filter.lift
 import order.filter.at_top_bot
+import order.filter.lift
 
 /-!
 # Convergence of intervals

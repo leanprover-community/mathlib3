@@ -3,12 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import algebra.group_with_zero.power
 import data.set.intervals.pi
 import order.filter.interval
 import topology.algebra.group
-import tactic.linarith
-import tactic.tfae
 
 /-!
 # Theory of topology on ordered spaces

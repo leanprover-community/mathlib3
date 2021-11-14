@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group.preadditive
-import group_theory.quotient_group
 import category_theory.limits.concrete_category
-import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.concrete_category
+import group_theory.quotient_group
 
 /-!
 # The category of additive commutative groups has all colimits.

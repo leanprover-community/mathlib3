@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
-import algebra.group_power.basic
 import data.set_like.basic
-import data.sigma.basic
 import group_theory.group_action.defs
 
 /-!

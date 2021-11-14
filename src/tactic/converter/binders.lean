@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Binder elimination
 -/
-import order
+import tactic.pi_instances
 
 namespace old_conv
 open tactic monad

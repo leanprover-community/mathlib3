@@ -3,9 +3,9 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import geometry.manifold.instances.real
-import analysis.complex.circle
 import analysis.inner_product_space.calculus
+import analysis.inner_product_space.pi_L2
+import geometry.manifold.smooth_manifold_with_corners
 
 /-!
 # Manifold structure on the sphere

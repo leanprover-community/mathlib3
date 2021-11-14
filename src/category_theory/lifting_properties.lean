@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
 import category_theory.arrow
-import category_theory.limits.preserves.shapes.terminal
+import category_theory.limits.shapes.terminal
 
 /-!
 # Lifting properties

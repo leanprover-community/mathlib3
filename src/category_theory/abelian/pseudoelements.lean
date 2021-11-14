@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.abelian.exact
-import category_theory.over
 
 /-!
 # Pseudoelements in abelian categories

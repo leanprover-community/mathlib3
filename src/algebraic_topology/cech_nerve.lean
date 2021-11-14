@@ -6,7 +6,6 @@ Authors: Adam Topaz
 
 import algebraic_topology.simplicial_object
 import category_theory.limits.shapes.wide_pullbacks
-import category_theory.arrow
 
 /-!
 

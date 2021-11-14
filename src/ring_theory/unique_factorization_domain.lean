@@ -5,8 +5,10 @@ Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
 import algebra.gcd_monoid.basic
-import ring_theory.integral_domain
+import ring_theory.multiplicity
 import ring_theory.noetherian
+import tactic.group
+import tactic.interval_cases
 
 /-!
 

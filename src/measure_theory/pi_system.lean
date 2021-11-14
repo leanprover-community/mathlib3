@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Martin Zinkevich
 -/
 import measure_theory.measurable_space_def
-import data.equiv.encodable.lattice
 
 /-!
 # Induction principles for measurable sets, related to π-systems and λ-systems.

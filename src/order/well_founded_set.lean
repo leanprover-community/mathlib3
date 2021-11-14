@@ -3,10 +3,7 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.finite
-import order.well_founded
 import order.order_iso_nat
-import algebra.pointwise
 
 /-!
 # Well-founded sets

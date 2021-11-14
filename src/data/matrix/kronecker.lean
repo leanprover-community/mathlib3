@@ -5,7 +5,6 @@ Authors: Filippo A. E. Nuccio, Eric Wieser
 -/
 
 import data.matrix.basic
-import linear_algebra.tensor_product
 import ring_theory.tensor_product
 
 /-!

@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.pointwise
-import data.equiv.ring
-import group_theory.group_action.group
-import group_theory.submonoid.pointwise
 import group_theory.subgroup.pointwise
 import ring_theory.subring
 

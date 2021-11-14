@@ -3,11 +3,9 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.big_operators.ring
-import data.real.basic
-import algebra.indicator_function
 import algebra.algebra.basic
 import algebra.order.nonneg
+import data.real.basic
 
 /-!
 # Nonnegative real numbers

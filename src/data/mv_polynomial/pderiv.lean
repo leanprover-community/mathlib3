@@ -5,8 +5,6 @@ Authors: Shing Tak Lam
 -/
 
 import data.mv_polynomial.variables
-import algebra.module.basic
-import tactic.ring
 
 /-!
 # Partial derivatives of polynomials

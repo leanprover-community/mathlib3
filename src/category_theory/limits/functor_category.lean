@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.preserves.limits
-import category_theory.currying
-import category_theory.products
 
 /-!
 # (Co)limits in functor categories.

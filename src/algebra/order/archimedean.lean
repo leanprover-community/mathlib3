@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.field_power
-import data.rat
 import data.int.least_greatest
+import data.rat.floor
 
 /-!
 # Archimedean groups and fields.

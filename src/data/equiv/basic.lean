@@ -3,16 +3,13 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.prod
-import data.sum
-import data.subtype
-import data.sigma.basic
 import data.option.basic
-import logic.function.basic
+import data.prod
+import data.sigma.basic
+import data.subtype
+import data.sum
 import logic.function.conjugate
 import logic.unique
-import tactic.norm_cast
-import tactic.simps
 
 /-!
 # Equivalence between types

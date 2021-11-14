@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 import tactic.interactive
-import data.rbtree.init
 
 universe u
 

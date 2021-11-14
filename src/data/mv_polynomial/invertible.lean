@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import data.mv_polynomial.basic
 import ring_theory.algebra_tower
 
 /-!

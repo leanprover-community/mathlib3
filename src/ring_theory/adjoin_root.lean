@@ -3,11 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
-import data.polynomial.field_division
-import linear_algebra.finite_dimensional
-import ring_theory.adjoin.basic
 import ring_theory.power_basis
-import ring_theory.principal_ideal_domain
 
 /-!
 # Adjoining roots of polynomials

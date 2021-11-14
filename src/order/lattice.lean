@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 -/
 import order.monotone
 import order.rel_classes
-import tactic.simps
 import tactic.pi_instances
 
 /-!

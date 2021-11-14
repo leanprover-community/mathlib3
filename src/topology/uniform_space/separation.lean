@@ -5,8 +5,6 @@ Authors: Johannes Hölzl, Patrick Massot
 -/
 
 import topology.uniform_space.basic
-import tactic.apply_fun
-import data.set.pairwise
 
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.

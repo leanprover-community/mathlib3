@@ -3,11 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.continuous_on
-import group_theory.submonoid.operations
-import algebra.group.prod
-import algebra.pointwise
 import algebra.big_operators.finprod
+import group_theory.submonoid.operations
+import topology.continuous_on
 
 /-!
 # Theory of topological monoids

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Fabian Glöckle
 -/
 import linear_algebra.finite_dimensional
-import linear_algebra.projection
 
 /-!
 # Dual vector spaces

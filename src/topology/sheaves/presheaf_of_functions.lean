@@ -3,10 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.yoneda
-import topology.sheaves.presheaf
 import topology.category.TopCommRing
 import topology.continuous_function.algebra
+import topology.sheaves.presheaf
 
 /-!
 # Presheaves of functions

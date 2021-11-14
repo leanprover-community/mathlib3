@@ -3,10 +3,8 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
-import data.pnat.prime
 import data.multiset.sort
-import data.int.gcd
-import algebra.group
+import data.pnat.prime
 
 /-!
 # Prime factors of nonzero naturals

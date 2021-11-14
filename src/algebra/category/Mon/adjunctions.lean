@@ -5,7 +5,6 @@ Authors: Julian Kuelshammer
 -/
 import algebra.category.Mon.basic
 import algebra.category.Semigroup.basic
-import algebra.group.with_one
 import algebra.free_monoid
 
 /-!

@@ -5,7 +5,6 @@ Authors: Kexing Ying
 -/
 import measure_theory.measure.complex
 import measure_theory.measure.with_density_vector_measure
-import measure_theory.function.ae_eq_of_integral
 
 /-!
 # Lebesgue decomposition

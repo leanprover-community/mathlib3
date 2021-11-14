@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import topology.continuous_on
-import topology.constructions
 
 /-!
 # Bases of topologies. Countability axioms.

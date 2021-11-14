@@ -5,7 +5,6 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import topology.sheaves.sheaf_of_functions
 import topology.sheaves.stalks
-import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
 # Functions satisfying a local predicate form a sheaf.

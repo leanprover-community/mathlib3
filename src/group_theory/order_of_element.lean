@@ -3,10 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import algebra.pointwise
-import group_theory.coset
-import dynamics.periodic_pts
 import algebra.iterate_hom
+import dynamics.periodic_pts
+import group_theory.coset
 
 /-!
 # Order of an element

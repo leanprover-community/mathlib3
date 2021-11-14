@@ -3,10 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import data.pi
-import data.set.function
-import tactic.pi_instances
 import algebra.group.hom_instances
+import data.pi
 
 /-!
 # Pi instances for groups and monoids

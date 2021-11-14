@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.group.pi
-import group_theory.free_group
+import algebra.module.basic
+import deprecated.group
 import group_theory.abelianization
-import algebra.module.basic -- we use the ℤ-module structure on an add_comm_group in punit_equiv
-import deprecated.group -- someone who understands `seq` can remove this
+import group_theory.free_group
 
 /-!
 # Free abelian groups

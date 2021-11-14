@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
-import algebra.continued_fractions.computation.correctness_terminating
-import data.rat
+import data.rat.floor
 /-!
 # Termination of Continued Fraction Computations (`gcf.of`)
 

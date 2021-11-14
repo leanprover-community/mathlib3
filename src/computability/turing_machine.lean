@@ -5,9 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.fintype.basic
 import data.pfun
-import logic.function.iterate
-import order.basic
-import tactic.apply_fun
 
 /-!
 # Turing machines

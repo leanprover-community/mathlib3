@@ -3,9 +3,8 @@ Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
-import category_theory.monoidal.of_chosen_finite_products
-import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.types
+import category_theory.monoidal.of_chosen_finite_products
 
 /-!
 # The category of types is a symmetric monoidal category

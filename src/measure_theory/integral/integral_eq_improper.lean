@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import measure_theory.integral.interval_integral
-import order.filter.at_top_bot
 
 /-!
 # Links between an integral and its "improper" version

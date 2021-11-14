@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.mv_polynomial
-import linear_algebra.dimension
-import linear_algebra.direct_sum.finsupp
 import linear_algebra.finite_dimensional
-import linear_algebra.std_basis
 
 /-!
 # Linear structures on function with finite support `ι →₀ M`

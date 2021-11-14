@@ -3,12 +3,8 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.subset_properties
-import topology.connected
-import topology.algebra.monoid
-import topology.continuous_function.basic
-import tactic.tfae
 import tactic.fin_cases
+import topology.continuous_function.basic
 
 /-!
 # Locally constant functions

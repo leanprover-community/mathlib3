@@ -110,8 +110,7 @@ univ_eq_empty_iff.2 ‹_›
 
 instance : order_top (finset α) :=
 { top := univ,
-  le_top := subset_univ,
-  .. finset.partial_order }
+  le_top := subset_univ }
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,

@@ -5,10 +5,7 @@ Authors: Bhavik Mehta
 -/
 import .triangle_counting
 import .salem_spencer
-import combinatorics.pigeonhole
-import analysis.asymptotics.asymptotics
 
-import data.complex.basic
 
 /-!
 # Roth's theorem
@@ -411,18 +408,20 @@ begin
 end
 
 lemma roth' (δ : ℝ) (hδ : 0 < δ) :
-  ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → ∀ A ⊆ range n, δ * n ≤ A.card → has_three_ap (A : set ℕ) :=
+  ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → ∀ A ⊆ range n, δ * n ≤ A.card → ¬ is_salem_spencer (A : set ℕ) :=
 begin
   obtain ⟨n₀, hn₀⟩ := roth δ hδ,
-  refine ⟨n₀, λ n hn A hA hAcard, _⟩,
+  refine ⟨n₀, λ n hn A hA hAcard hA', _⟩,
   obtain ⟨a, d, hd, x, y, z⟩ := hn₀ n hn A hA hAcard,
-  exact ⟨a, a+d, a+2*d, x, y, z, by simp [hd.ne'], by ring⟩,
+  refine hd.ne' _,
+  have := hA' x z y (by { rw two_nsmul, ring }),
+  sorry
 end
 
 open asymptotics filter
 
 theorem roth_asymptotic :
-  is_o (λ N, (roth_number N : ℝ)) (λ N, (N : ℝ)) at_top :=
+  is_o (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
 begin
   rw is_o_iff,
   intros δ hδ,
@@ -430,9 +429,9 @@ begin
   obtain ⟨n₀, hn₀⟩ := roth' δ hδ,
   refine ⟨n₀, λ n hn, _⟩,
   simp only [real.norm_coe_nat, ←not_lt],
-  obtain ⟨A, hA₁, hA₂, hA₃⟩ := roth_number_spec n,
+  obtain ⟨A, hA₁, hA₂, hA₃⟩ := roth_number_spec (range n),
   intro h,
-  apply hA₃ (hn₀ n hn _ hA₁ _),
+  apply (hn₀ n hn _ hA₁ _) hA₃,
   rw hA₂,
   apply h.le,
 end

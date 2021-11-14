@@ -101,12 +101,10 @@ lemma exp_punit_eq_one : exponent punit = 1 :=
 begin
   apply le_antisymm,
   { apply exponent_min' _ _ nat.one_pos,
-    intro g,
-    refl },
+    exact λ g, rfl },
   { apply nat.succ_le_of_lt,
     apply exponent_pos_of_exists _ 1 (nat.one_pos),
-    intro g,
-    refl },
+    exact λ g, rfl },
 end
 
 @[to_additive add_order_dvd_exponent]
@@ -136,9 +134,7 @@ begin
   apply finset.lcm_dvd,
   intros n hn,
   simp only [finset.mem_univ, finset.mem_image, exists_true_left] at hn,
-  cases hn with g hg,
-  cases hg with hg1 hg2,
-  rw [id, ←hg2],
+  rcases hn with ⟨g, hg1, rfl⟩,
   exact order_dvd_exponent G g,
 end
 

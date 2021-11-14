@@ -88,10 +88,8 @@ lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
 lcm_dvd $ assume b hb, dvd_lcm (h hb)
 
 theorem lcm_eq_zero_iff [nontrivial α] : s.lcm f = 0 ↔ 0 ∈ f '' s :=
-begin
-  simp only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe],
-  refl
-end
+by simp only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe,
+  ← finset.mem_def]
 
 end lcm
 

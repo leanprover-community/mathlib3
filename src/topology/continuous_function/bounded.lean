@@ -974,7 +974,7 @@ class normed_lattice_add_comm_group' (α : Type*)
   extends normed_lattice_add_comm_group α :=
 (norm_smul: ∀ a : α, 2*∥a∥ ≤ ∥2•a∥)
 
-variables [topological_space α] [normed_lattice_add_comm_group' β]
+variables [topological_space α] [nonempty α] [normed_lattice_add_comm_group' β]
 
 -- Can we infer this from https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114 ?
 instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
@@ -1085,8 +1085,6 @@ begin
   rw test2,
 end
 
-#check forall_le_or_exists_lt_sup
-
 instance : normed_lattice_add_comm_group (α →ᵇ β) := {
   add_le_add_left := begin
     intros f g h₁ h t,
@@ -1108,17 +1106,11 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) := {
       apply i1,
     end,
     have i3: ∀ (t:α),∥f(t)∥ ≤ ∥g∥ := begin
-      rw norm_eq_supr_norm,
       intro,
-      --unfold supr,
-      --apply le_supr,
-      --@forall_le_or_exists_lt_sup ∥g∥,
-      sorry,
+      apply le_trans (i2 t) (norm_coe_le_norm g t),
     end,
-    apply supr_le i3,
-    rw norm_eq_supr_norm,
-    sorry,
-
+    rw norm_le_of_nonempty,
+    apply i3,
   end,
   ..lattice,
 }

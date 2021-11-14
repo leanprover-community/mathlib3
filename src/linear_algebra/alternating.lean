@@ -333,7 +333,7 @@ def comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) : alte
 { map_eq_zero_of_eq' := λ v i j h hij, f.map_eq_zero_of_eq _ (linear_map.congr_arg h) hij,
   .. (f : multilinear_map R (λ _ : ι, M) N).comp_linear_map (λ _, g) }
 
-lemma coe_comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) (v : ι → M₂) :
+lemma coe_comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) :
   ⇑(f.comp_linear_map g) = f ∘ ((∘) g) := rfl
 
 @[simp] lemma comp_linear_map_apply (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) (v : ι → M₂) :

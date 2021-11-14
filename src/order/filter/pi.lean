@@ -1,4 +1,19 @@
+/-
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
 import order.filter.basic
+
+/-!
+# Product of a family of filters
+
+In this file we define `filter.pi (f : Π i, filter (α i))` to be the maximal filter on `Π i, α i`
+such that `∀ i, filter.tendsto (function.eval i) (filter.pi f) (f i)`. It is defined as
+`Π i, filter.comap (function.eval i) (f i)`. This combinator appears, e.g., in topology (see
+`nhds_pi`) and in measure theory (see `measure_theory.measure.ae_pi_le_pi`), so we define it for a
+general family of filters and prove some basic facts about it in this file.
+-/
 
 open set function
 open_locale classical filter
@@ -7,7 +22,8 @@ namespace filter
 
 variables {ι : Type*} {α : ι → Type*} {f : Π i, filter (α i)} {s : Π i, set (α i)}
 
-def pi (f : Π i, filter (α i)) : filter (Π i, α i) := ⨅ i, comap (function.eval i) (f i)
+/-- The product of an indexed family of filters. -/
+def pi (f : Π i, filter (α i)) : filter (Π i, α i) := ⨅ i, comap (eval i) (f i)
 
 lemma tendsto_eval_pi (f : Π i, filter (α i)) (i : ι) :
   tendsto (eval i) (pi f) (f i) :=

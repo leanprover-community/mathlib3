@@ -102,7 +102,6 @@ class conditionally_complete_linear_order_bot (α : Type*)
   extends conditionally_complete_linear_order α, has_bot α :=
 (bot_le : ∀ x : α, ⊥ ≤ x)
 (cSup_empty : Sup ∅ = ⊥)
-(bot_le : ∀ x : α, ⊥ ≤ x)
 
 @[priority 100]  -- see Note [lower instance priority]
 instance conditionally_complete_linear_order_bot.to_order_bot

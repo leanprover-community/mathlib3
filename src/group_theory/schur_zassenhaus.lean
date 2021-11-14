@@ -14,10 +14,12 @@ In this file we prove the Schur-Zassenhaus theorem.
 
 ## Main results
 
-- `exists_right_complement'_of_coprime` : If `H : subgroup G` is normal and has order coprime to
-  its index, then there exists a subgroup `K` which is a (right) complement of `H`.
-- `exists_left_complement'_of_coprime` : If `H : subgroup G` is normal and has order coprime to
-  its index, then there exists a subgroup `K` which is a (left) complement of `H`.
+- `exists_right_complement'_of_coprime` : The **Schur-Zassenhaus** theorem:
+  If `H : subgroup G` is normal and has order coprime to its index,
+  then there exists a subgroup `K` which is a (right) complement of `H`.
+- `exists_left_complement'_of_coprime`  The **Schur-Zassenhaus** theorem:
+  If `H : subgroup G` is normal and has order coprime to its index,
+  then there exists a subgroup `K` which is a (left) complement of `H`.
 -/
 
 open_locale big_operators
@@ -162,8 +164,8 @@ begin
     apply_instance },
 end
 
--- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]
+/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+private lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]
   (hH : nat.coprime (fintype.card H) H.index) :
   ∃ K : subgroup G, is_complement' H K :=
 nonempty_of_inhabited.elim
@@ -188,15 +190,14 @@ variables {G : Type u} [group G] [fintype G] {N : subgroup G} [normal N]
 include h1 h2 h3
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-@[nolint unused_arguments] lemma step0 : N ≠ ⊥ :=
+@[nolint unused_arguments] private lemma step0 : N ≠ ⊥ :=
 begin
-  tactic.unfreeze_local_instances,
-  rintro rfl,
+  unfreezingI { rintro rfl },
   exact h3 ⊤ is_complement'_bot_top,
 end
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step1 (K : subgroup G) (hK : K ⊔ N = ⊤) : K = ⊤ :=
+private lemma step1 (K : subgroup G) (hK : K ⊔ N = ⊤) : K = ⊤ :=
 begin
   contrapose! h3,
   have h4 : (N.comap K.subtype).index = N.index,
@@ -220,7 +221,7 @@ begin
 end
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step2 (K : subgroup G) [K.normal] (hK : K ≤ N) : K = ⊥ ∨ K = N :=
+private lemma step2 (K : subgroup G) [K.normal] (hK : K ≤ N) : K = ⊥ ∨ K = N :=
 begin
   have : function.surjective (quotient_group.mk' K) := quotient.surjective_quotient_mk',
   have h4 := step1 h1 h2 h3,
@@ -251,7 +252,7 @@ begin
 end
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step3 (K : subgroup N) [(K.map N.subtype).normal] : K = ⊥ ∨ K = ⊤ :=
+private lemma step3 (K : subgroup N) [(K.map N.subtype).normal] : K = ⊥ ∨ K = ⊤ :=
 begin
   have key := step2 h1 h2 h3 (K.map N.subtype) K.map_subtype_le,
   rw ← map_bot N.subtype at key,
@@ -261,18 +262,18 @@ begin
 end
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step4 : (fintype.card N).min_fac.prime :=
+private lemma step4 : (fintype.card N).min_fac.prime :=
 (nat.min_fac_prime (N.one_lt_card_iff_ne_bot.mpr (step0 h1 h2 h3)).ne')
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step5 {P : sylow (fintype.card N).min_fac N} : P.1 ≠ ⊥ :=
+private lemma step5 {P : sylow (fintype.card N).min_fac N} : P.1 ≠ ⊥ :=
 begin
   haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
   exact P.ne_bot_of_dvd_card (fintype.card N).min_fac_dvd,
 end
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step6 : is_p_group (fintype.card N).min_fac N :=
+private lemma step6 : is_p_group (fintype.card N).min_fac N :=
 begin
   haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
   refine sylow.nonempty.elim (λ P, P.2.of_surjective P.1.subtype _),
@@ -283,7 +284,7 @@ begin
 end
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step7 : is_commutative N :=
+private lemma step7 : is_commutative N :=
 begin
   haveI := N.bot_or_nontrivial.resolve_left (step0 h1 h2 h3),
   haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
@@ -292,7 +293,7 @@ begin
 end
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma step8 : false :=
+lemma contradiction : false :=
 begin
   haveI := step7 h1 h2 h3,
   exact not_exists_of_forall_not h3 (exists_right_complement'_of_coprime_aux h1),
@@ -303,16 +304,15 @@ end schur_zassenhaus_induction
 variables {n : ℕ} {G : Type u} [group G]
 
 /-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
-lemma exists_right_complement'_of_coprime_aux' [fintype G] (hG : fintype.card G = n)
+private lemma exists_right_complement'_of_coprime_aux' [fintype G] (hG : fintype.card G = n)
   {N : subgroup G} [N.normal] (hN : nat.coprime (fintype.card N) N.index) :
   ∃ H : subgroup G, is_complement' N H :=
 begin
-  tactic.unfreeze_local_instances,
-  revert G,
+  unfreezingI { revert G },
   apply nat.strong_induction_on n,
   rintros n ih G _ _ rfl N _ hN,
-  exact not_forall_not.mp
-    (schur_zassenhaus_induction.step8 hN (λ G' _ _ hG', by { apply ih _ hG', refl })),
+  exactI not_forall_not.mp
+    (schur_zassenhaus_induction.contradiction hN (λ G' _ _ hG', by { apply ih _ hG', refl })),
 end
 
 /-- **Schur-Zassenhaus** for normal subgroups:

@@ -59,7 +59,7 @@ combinatorial line, Ramsey theory, arithmetic progession
 open_locale classical
 open_locale big_operators
 
-universes u v
+universes u v w
 
 namespace combinatorics
 
@@ -305,5 +305,68 @@ begin
     obtain ⟨y, hy⟩ := option.ne_none_iff_exists.mp hi.right,
     simp_rw [line.apply, ←hy, option.map_some', option.get_or_else_some], },
 end
+
+structure hyperline (η α ι : Type*) :=
+(idx_fun : ι → α ⊕ η)
+(proper : ∀ e, ∃ i, idx_fun i = sum.inr e)
+
+namespace hyperline
+
+instance (η α ι) : has_coe_to_fun (hyperline η α ι) (λ _, (η → α) → ι → α) :=
+⟨λ l x i, (l.idx_fun i).elim id x⟩
+
+lemma apply {η α ι} (l : hyperline η α ι) (x : η → α) (i : ι) :
+  l x i = (l.idx_fun i).elim id x := rfl
+
+def is_mono {η α ι κ} (C : (ι → α) → κ) (l : hyperline η α ι) : Prop :=
+∃ c, ∀ x, C (l x) = c
+
+end hyperline
+
+theorem extended_HJ (α : Type) [fintype α] (κ : Type) [fintype κ] (η : Type) [fintype η] :
+  ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : hyperline η α ι, l.is_mono C :=
+begin
+  obtain ⟨ι, ιfin, hι⟩ := line.exists_mono_in_high_dimension (η → α) κ,
+  resetI,
+  refine ⟨ι × η, infer_instance, _⟩,
+  intro C,
+  specialize hι (C ∘ function.uncurry),
+  obtain ⟨l, c, lC⟩ := hι,
+  refine ⟨⟨λ p, (l.idx_fun p.fst).elim (sum.inr p.snd) (λ x, sum.inl (x p.snd)), _⟩, c, _⟩,
+  { intro e,
+    obtain ⟨i, hi⟩ := l.proper,
+    use (i, e),
+    rw [hi, option.elim], },
+  intro x,
+  specialize lC x,
+  convert lC,
+  funext,
+  cases i with i e,
+  rw [line.apply, hyperline.apply],
+  simp only [function.uncurry_apply_pair],
+  set o := l.idx_fun i,
+  clear_value o,
+  cases o,
+  { simp only [option.elim, option.get_or_else_none, sum.elim_inr], },
+  { simp only [option.get_or_else_some, option.elim, sum.elim_inl, id.def], }
+end
+
+/-
+theorem extended_HJ_fin (α : Type) [fintype α] (κ : Type) [fintype κ] (η : Type) [fintype η] :
+  ∃ n : ℕ, ∀ C : (fin n → α) → κ, ∃ l : hyperline η α (fin n), l.is_mono C :=
+begin
+  obtain ⟨ι, ιfin, hι⟩ := extended_HJ α κ η,
+  resetI,
+  use fintype.card ι,
+  intro C,
+  specialize hι (λ v, C (v ∘ (fintype.equiv_fin _).symm)),
+  obtain ⟨l, c, cl⟩ := hι,
+  refine ⟨⟨l.idx_fun ∘ (fintype.equiv_fin _).symm, _⟩, c, cl⟩,
+  intro e,
+  obtain ⟨i, hi⟩ := l.proper e,
+  use fintype.equiv_fin _ i,
+  simpa only [equiv.symm_apply_apply, function.comp_app] using hi,
+end
+-/
 
 end combinatorics

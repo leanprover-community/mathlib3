@@ -412,27 +412,31 @@ by { unfold prime_divisors, rw [mem_filter, mem_divisors],
     rw [and.congr_left_iff, and_iff_left_iff_imp], intros, exact hn }
 
 /-- 0 has no prime divisors -/
-lemma zero_no_prime_divisors : prime_divisors 0  = (∅:finset ℕ) :=
+lemma prime_divisors_zero : prime_divisors 0  = (∅ : finset ℕ) :=
 by { unfold prime_divisors divisors, simp }
 
+<<<<<<< Updated upstream
 lemma prime_divisors_eq_to_finset_factors (n:ℕ) : n.prime_divisors = n.factors.to_finset :=
+=======
+/-- 1 has no prime divisors -/
+lemma prime_divisors_one : prime_divisors 1 = (∅ : finset ℕ) :=
+by { apply filter_singleton prime }
+
+lemma prime_divisors_eq_to_finset_factors (n : ℕ) : n.prime_divisors = n.factors.to_finset :=
+>>>>>>> Stashed changes
 begin
   by_cases hn : n = 0,
-  { rw [hn, zero_no_prime_divisors], simp },
+  { rw [hn, prime_divisors_zero], simp },
   { ext,
     rw [prime_divisors_mem hn, list.mem_to_finset, mem_factors (pos_iff_ne_zero.mpr hn), and_comm] }
 end
-
-/-- 1 has no prime divisors -/
-lemma one_no_prime_divisors : prime_divisors 1 = (∅:finset ℕ) :=
-by { apply filter_singleton prime }
 
 /-- The sets of prime divisors of coprime `a` and `b` are disjoint -/
 lemma coprime_prime_divisors_disjoint {a b : ℕ} (h_ab_coprime : coprime a b) :
   disjoint a.prime_divisors b.prime_divisors :=
 begin
-  by_cases ha : a = 0, { rw ha at *, rw zero_no_prime_divisors, apply disjoint_empty_left },
-  by_cases hb : b = 0, { rw hb at *, rw zero_no_prime_divisors, apply disjoint_empty_right },
+  by_cases ha : a = 0, { rw ha at *, rw prime_divisors_zero, apply disjoint_empty_left },
+  by_cases hb : b = 0, { rw hb at *, rw prime_divisors_zero, apply disjoint_empty_right },
 
   rw disjoint_iff_ne,
   intros x hx y hy,
@@ -450,10 +454,10 @@ lemma coprime_prime_divisors_product {a b : ℕ} (h_ab_coprime : coprime a b) :
 begin
   by_cases ha0 : a = 0,
     { rw [ha0, coprime_zero_left] at h_ab_coprime,
-      rw [ha0, h_ab_coprime, zero_mul, zero_no_prime_divisors, one_no_prime_divisors], simp },
+      rw [ha0, h_ab_coprime, zero_mul, prime_divisors_zero, prime_divisors_one], simp },
   by_cases hb0 : b = 0,
     { rw [hb0, coprime_zero_right] at h_ab_coprime,
-      rw [hb0, h_ab_coprime, mul_zero, zero_no_prime_divisors, one_no_prime_divisors], simp },
+      rw [hb0, h_ab_coprime, mul_zero, prime_divisors_zero, prime_divisors_one], simp },
   have hab : a * b ≠ 0, { exact mul_ne_zero ha0 hb0 },
 
   ext p,

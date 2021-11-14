@@ -461,7 +461,7 @@ begin
   rw coprime_iff_gcd_eq_one at h_ab_coprime,
   have h1 := dvd_gcd hka hkb,
   rw h_ab_coprime at h1,
-  simp at h1, exact h1,
+  exact (nat.dvd_one).mp h1,
 end
 
 end nat

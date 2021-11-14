@@ -986,7 +986,9 @@ instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (
 
 lemma inf_sub_inf_le (a b c d : β)  : ∥a⊓b - c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
-  have e1: 2*∥a⊓b - c⊓d∥ ≤ ∥2•(a⊓b) - 2•(c⊓d)∥ := begin rw ← smul_sub, apply normed_lattice_add_comm_group'.norm_smul end,
+  have e1: 2*∥a⊓b - c⊓d∥ ≤ ∥2•(a⊓b) - 2•(c⊓d)∥ := begin
+    rw ← smul_sub, apply normed_lattice_add_comm_group'.norm_smul
+  end,
   rw [← mul_le_mul_left zero_lt_two, mul_add],
   apply le_trans e1 (two_inf_sub_two_inf_le _ _ _ _),
   exact real.nontrivial,
@@ -994,7 +996,9 @@ end
 
 lemma sup_sub_sup_le (a b c d : β)  : ∥a⊔b - (c⊔d)∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
-  have e1: 2*∥a⊔b - (c⊔d)∥ ≤ ∥2•(a⊔b) - 2•(c⊔d)∥ := begin rw ← smul_sub,  apply normed_lattice_add_comm_group'.norm_smul end,
+  have e1: 2*∥a⊔b - (c⊔d)∥ ≤ ∥2•(a⊔b) - 2•(c⊔d)∥ := begin
+    rw ← smul_sub,  apply normed_lattice_add_comm_group'.norm_smul
+  end,
   rw [← mul_le_mul_left zero_lt_two, mul_add],
   apply le_trans e1 (two_sup_sub_two_sup_le _ _ _ _),
   exact real.nontrivial,

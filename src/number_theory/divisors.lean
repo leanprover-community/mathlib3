@@ -415,15 +415,11 @@ by { unfold prime_divisors, rw [mem_filter, mem_divisors],
 lemma prime_divisors_zero : prime_divisors 0  = (∅ : finset ℕ) :=
 by { unfold prime_divisors divisors, simp }
 
-<<<<<<< Updated upstream
-lemma prime_divisors_eq_to_finset_factors (n:ℕ) : n.prime_divisors = n.factors.to_finset :=
-=======
 /-- 1 has no prime divisors -/
 lemma prime_divisors_one : prime_divisors 1 = (∅ : finset ℕ) :=
 by { apply filter_singleton prime }
 
 lemma prime_divisors_eq_to_finset_factors (n : ℕ) : n.prime_divisors = n.factors.to_finset :=
->>>>>>> Stashed changes
 begin
   by_cases hn : n = 0,
   { rw [hn, prime_divisors_zero], simp },

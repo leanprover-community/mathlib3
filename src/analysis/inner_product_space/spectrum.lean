@@ -210,7 +210,7 @@ end
 attribute [irreducible] eigenvector_basis eigenvalues
 
 @[simp] lemma apply_eigenvector_basis (i : fin n) :
-  T (hT.eigenvector_basis hn i) = (hT.eigenvalues hn i : 𝕜) • (hT.eigenvector_basis hn i) :=
+  T (hT.eigenvector_basis hn i) = (hT.eigenvalues hn i : 𝕜) • hT.eigenvector_basis hn i :=
 mem_eigenspace_iff.mp (hT.has_eigenvector_eigenvector_basis hn i).1
 
 /-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of

@@ -22,28 +22,22 @@ variable {P : set (set V)}
 def subset_of_vertex (hp : G.is_partition P) (v : V): set V :=
 classical.some (hp.valid.2 v)
 
+lemma subset_of_vertex_spec (hp : G.is_partition P) (v : V) :
+  G.subset_of_vertex hp v ∈ P ∧ v ∈ G.subset_of_vertex hp v :=
+begin
+  obtain ⟨⟨h1, h2⟩, h3⟩ := (hp.valid.2 v).some_spec,
+  exact ⟨h1, h2.1⟩,
+end
+
 lemma different_subsets_of_adjacent {v w : V} (hp : G.is_partition P) (h : G.adj v w) :
   G.subset_of_vertex hp v ≠ G.subset_of_vertex hp w :=
 begin
-  by_contra hn,
-  have hi := hp.independent,
-  simp [is_antichain, set.pairwise] at hi,
-
-  have hvalid := hp.valid,
-  simp [setoid.is_partition] at hvalid,
-  cases hvalid with hmpty hvalid,
-
-  specialize hvalid v,
-  cases hvalid with sv hvalid,
-  cases hvalid with hv hvalid,
-  cases hv with h_sv_in_P h_v_in_sv,
-  have h_w_in_sv : w ∈ sv,
-  {
-    sorry, },
-  have h_w_neq_v : w ≠ v, by exact ne_of_adj G (adj_symm G h),
-  have hwv : G.adj w v, by exact adj_symm G h,
-  have := hi sv h_sv_in_P w h_w_in_sv v h_v_in_sv h_w_neq_v,
-  contradiction,
+  intro hn,
+  have hv := G.subset_of_vertex_spec hp v,
+  have hw := G.subset_of_vertex_spec hp w,
+  have h1 := hp.independent _ hv.1,
+  rw ←hn at hw,
+  exact h1 v hv.2 w hw.2 (G.ne_of_adj h) h,
 end
 
 def partition_to_coloring (hp : G.is_partition P) : G.coloring (set V) :=

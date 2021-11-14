@@ -101,12 +101,10 @@ lemma exp_punit_eq_one : exponent punit = 1 :=
 begin
   apply le_antisymm,
   { apply exponent_min' _ _ nat.one_pos,
-    intro g,
-    refl },
+    exact λ g, rfl },
   { apply nat.succ_le_of_lt,
     apply exponent_pos_of_exists _ 1 (nat.one_pos),
-    intro g,
-    refl },
+    exact λ g, rfl },
 end
 
 @[to_additive add_order_dvd_exponent]
@@ -131,35 +129,29 @@ end
 variable [fintype G]
 
 @[to_additive lcm_add_order_of_dvd_exponent]
-lemma lcm_order_of_dvd_exponent : ((finset.univ : finset G).image order_of).lcm id ∣ exponent G :=
+lemma lcm_order_of_dvd_exponent : (finset.univ : finset G).lcm order_of ∣ exponent G :=
 begin
   apply finset.lcm_dvd,
-  intros n hn,
-  simp only [finset.mem_univ, finset.mem_image, exists_true_left] at hn,
-  cases hn with g hg,
-  cases hg with hg1 hg2,
-  rw [id, ←hg2],
-  exact order_dvd_exponent G g,
+  intros g hg,
+  exact order_dvd_exponent G g
 end
 
 @[to_additive lcm_add_order_eq_exponent]
 lemma lcm_order_eq_exponent {H : Type u} [fintype H] [left_cancel_monoid H] :
-  ((finset.univ : finset H).image order_of).lcm id = exponent H :=
+  (finset.univ : finset H).lcm order_of = exponent H :=
 begin
-  apply nat.dvd_antisymm (lcm_order_of_dvd_exponent _),
+  apply nat.dvd_antisymm (lcm_order_of_dvd_exponent H),
   apply exponent_dvd_of_forall_pow_eq_one,
   { apply nat.pos_of_ne_zero,
     by_contradiction,
     rw finset.lcm_eq_zero_iff at h,
-    cases h with m hm,
-    simp at hm,
-    rcases hm with ⟨⟨g, hg⟩, rfl⟩,
+    cases h with g hg,
+    simp only [true_and, set.mem_univ, finset.coe_univ] at hg,
     exact ne_of_gt (order_of_pos g) hg },
   { intro g,
-    have h : (order_of g) ∣ (finset.image order_of finset.univ).lcm id,
+    have h : (order_of g) ∣ (finset.univ : finset H).lcm order_of,
     { apply finset.dvd_lcm,
-      rw finset.mem_image,
-      exact ⟨g, finset.mem_univ g, rfl⟩ },
+      exact finset.mem_univ g },
     cases h with m hm,
     rw [hm, pow_mul, pow_order_of_eq_one, one_pow] },
 end

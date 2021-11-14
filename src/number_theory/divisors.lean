@@ -444,14 +444,13 @@ begin
   exact eq_one_of_dvd_coprimes h_ab_coprime hx.1 hy1,
 end
 
-/-- If `a * b ≠ 0` then the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
-lemma prime_divisors_mul_of_ne_zero {a b : ℕ} (hab : a * b ≠ 0) :
+/-- If `a`,`b` are nonzero the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
+lemma prime_divisors_mul_of_ne_zero {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
 begin
-  have ha0 : a ≠ 0, { exact left_ne_zero_of_mul hab },
-  have hb0 : b ≠ 0, { exact right_ne_zero_of_mul hab },
+  have hab : a * b ≠ 0, { exact mul_ne_zero ha hb },
   ext p,
-  rw [mem_union, prime_divisors_mem hab, prime_divisors_mem ha0, prime_divisors_mem hb0,
+  rw [mem_union, prime_divisors_mem hab, prime_divisors_mem ha, prime_divisors_mem hb,
       ←or_and_distrib_right, and.congr_left_iff],
   exact prime.dvd_mul,
 end
@@ -460,14 +459,14 @@ end
 lemma prime_divisors_mul_of_coprime {a b : ℕ} (h_ab_coprime : coprime a b) :
   (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
 begin
-  by_cases ha0 : a = 0,
-    { rw [ha0, coprime_zero_left] at h_ab_coprime,
-      rw [ha0, h_ab_coprime, zero_mul, prime_divisors_zero, prime_divisors_one], simp },
-  by_cases hb0 : b = 0,
-    { rw [hb0, coprime_zero_right] at h_ab_coprime,
-      rw [hb0, h_ab_coprime, mul_zero, prime_divisors_zero, prime_divisors_one], simp },
-  have hab : a * b ≠ 0, { exact mul_ne_zero ha0 hb0 },
-  apply prime_divisors_mul_of_ne_zero hab,
+  by_cases ha : a = 0,
+    { rw [ha, coprime_zero_left] at h_ab_coprime,
+      rw [ha, h_ab_coprime, zero_mul, prime_divisors_zero, prime_divisors_one], simp },
+  by_cases hb : b = 0,
+    { rw [hb, coprime_zero_right] at h_ab_coprime,
+      rw [hb, h_ab_coprime, mul_zero, prime_divisors_zero, prime_divisors_one], simp },
+  have hab : a * b ≠ 0, { exact mul_ne_zero ha hb },
+  apply prime_divisors_mul_of_ne_zero ha hb,
 end
 
 /-- The only prime divisor of positive prime power `p^k` is `p` itself -/

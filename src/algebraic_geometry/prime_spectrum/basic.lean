@@ -520,6 +520,14 @@ begin
     exact zero_locus_anti_mono (set.singleton_subset_iff.mpr hfs) }
 end
 
+lemma is_basis_basic_opens :
+  topological_space.opens.is_basis (set.range (@basic_open R _)) :=
+begin
+  unfold topological_space.opens.is_basis,
+  convert is_topological_basis_basic_opens,
+  rw ← set.range_comp,
+end
+
 lemma is_compact_basic_open (f : R) : is_compact (basic_open f : set (prime_spectrum R)) :=
 is_compact_of_finite_subfamily_closed $ λ ι Z hZc hZ,
 begin
@@ -579,3 +587,22 @@ by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
 end order
 
 end prime_spectrum
+
+
+namespace local_ring
+
+variables (R) [local_ring R]
+
+/--
+The closed point in the prime spectrum of a local ring.
+-/
+def closed_point : prime_spectrum R :=
+⟨maximal_ideal R, (maximal_ideal.is_maximal R).is_prime⟩
+
+variable {R}
+
+lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
+  {f : R →+* S} : is_local_ring_hom f ↔ (closed_point S).comap f = closed_point R :=
+by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
+
+end local_ring

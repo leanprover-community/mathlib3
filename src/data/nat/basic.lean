@@ -1451,7 +1451,7 @@ begin
 end
 
 instance decidable_forall_fin {n : ℕ} (P : fin n → Prop)
-    [H : decidable_pred P] : decidable (∀ i, P i) :=
+  [H : decidable_pred P] : decidable (∀ i, P i) :=
 decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨λ a ⟨k, h⟩, a k h, λ a k h, a ⟨k, h⟩⟩
 
 instance decidable_ball_le (n : ℕ) (P : Π k ≤ n, Prop)

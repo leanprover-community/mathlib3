@@ -544,7 +544,7 @@ eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
-lemma mk_bounded_set_le_of_omega_le (α : Type u) [infinite α] (c : cardinal) :
+lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // mk t ≤ c} ≤ #α ^ c :=
 begin
   refine le_trans _ (by rw [←add_one_eq (omega_le_mk α)]),
@@ -573,7 +573,7 @@ begin
   { refine ⟨embedding.subtype_map _ _⟩, apply embedding.image,
     use sum.inr, apply sum.inr.inj, intros s hs, exact le_trans mk_image_le hs },
   refine le_trans
-    (mk_bounded_set_le_of_omega_le (ulift.{u} ℕ ⊕ α) c) _,
+    (mk_bounded_set_le_of_infinite (ulift.{u} ℕ ⊕ α) c) _,
   rw [max_comm, ←add_eq_max]; refl
 end
 
@@ -619,7 +619,7 @@ end
 
 lemma mk_compl_eq_mk_compl_finite {α β : Type u} [fintype α] {s : set α} {t : set β}
   (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
-by { rw [← lift_inj], apply mk_compl_eq_mk_compl_finite_lift; rw [lift_inj]; assumption }
+by { rw ← lift_inj, apply mk_compl_eq_mk_compl_finite_lift; rwa [lift_inj] }
 
 lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [fintype α] {s t : set α}
   (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=

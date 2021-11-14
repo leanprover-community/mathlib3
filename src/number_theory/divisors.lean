@@ -444,8 +444,20 @@ begin
   exact eq_one_of_dvd_coprimes h_ab_coprime hx.1 hy1,
 end
 
+/-- If `a * b ≠ 0` then the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
+lemma prime_divisors_mul_of_ne_zero {a b : ℕ} (hab : a * b ≠ 0) :
+  (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
+begin
+  have ha0 : a ≠ 0, { exact left_ne_zero_of_mul hab },
+  have hb0 : b ≠ 0, { exact right_ne_zero_of_mul hab },
+  ext p,
+  rw [mem_union, prime_divisors_mem hab, prime_divisors_mem ha0, prime_divisors_mem hb0,
+      ←or_and_distrib_right, and.congr_left_iff],
+  exact prime.dvd_mul,
+end
+
 /-- For coprime `a` and `b`, prime divisors of `(a * b)` are the union of those of `a` and `b` -/
-lemma coprime_prime_divisors_product {a b : ℕ} (h_ab_coprime : coprime a b) :
+lemma prime_divisors_mul_of_coprime {a b : ℕ} (h_ab_coprime : coprime a b) :
   (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
 begin
   by_cases ha0 : a = 0,
@@ -455,11 +467,7 @@ begin
     { rw [hb0, coprime_zero_right] at h_ab_coprime,
       rw [hb0, h_ab_coprime, mul_zero, prime_divisors_zero, prime_divisors_one], simp },
   have hab : a * b ≠ 0, { exact mul_ne_zero ha0 hb0 },
-
-  ext p,
-  rw [mem_union, prime_divisors_mem hab, prime_divisors_mem ha0, prime_divisors_mem hb0,
-      ←or_and_distrib_right, and.congr_left_iff],
-  exact prime.dvd_mul,
+  apply prime_divisors_mul_of_ne_zero hab,
 end
 
 /-- The only prime divisor of positive prime power `p^k` is `p` itself -/

@@ -1272,26 +1272,23 @@ begin
   exact h,
 end
 
+--this is quite simple, just use the two previous statements.
 lemma ideal_correspondence_mono' (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
   {p q : ideal T} (hp : p ∣ I) (hq : q ∣ I) :
   p ≤ q ↔ ↑(ideal_correspondence hI hJ f ⟨p, hp⟩) ≤ ( ideal_correspondence hI hJ f ⟨q, hq⟩ : ideal S) :=
 sorry
 
---this should be proven in more generality in `unique_factorisation_domain.lean`
-lemma temp (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
-  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
-  ∃ (b ∈ normalized_factors J), (b : ideal S) ∣
-    ((ideal_correspondence hI hJ f ⟨p, dvd_of_mem_normalized_factors hp⟩) : ideal S) :=
+--this is quite easy and should be proven in more generality in `unique_factorisation_domain.lean`
+lemma temp {p : ideal T} (hp : p ∣ I) : ∃ (b ∈ normalized_factors I), (b : ideal T) ∣ p :=
 begin
-sorry
+  sorry
 end
 
 lemma ideal_correspondence_is_prime_of_is_prime (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
   (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∈ normalized_factors I) :
   ↑(ideal_correspondence hI hJ f ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors J :=
 begin
-  obtain ⟨b, hb, H⟩ := temp hI hJ f hp,
-  rw dvd_iff_le at H,
+  obtain ⟨b, hb, H⟩ := temp (ideal_correspondence hI hJ f ⟨p, dvd_of_mem_normalized_factors hp⟩).2,
   obtain ⟨c, hc⟩ := equiv.surjective (ideal_correspondence hI hJ f)
     ⟨b, dvd_of_mem_normalized_factors hb⟩,
   obtain ⟨c, hd⟩ := c,
@@ -1299,23 +1296,121 @@ begin
     rw subtype.coe_eq_iff,
     use dvd_of_mem_normalized_factors hb,
     exact hc,
-  rw ← this at H,
-  rw ← ideal_correspondence_mono' hI hJ f (dvd_of_mem_normalized_factors hp) hd at H,
+  rw [dvd_iff_le, ← this, subtype.val_eq_coe, ← ideal_correspondence_mono' hI hJ f
+    (dvd_of_mem_normalized_factors hp) hd] at H,
   have pmax : p.is_maximal,
-  sorry, --is_prime.is_maximal
+  sorry, --should use a result like is_prime.is_maximal. I've already proven this so I'll add it soon
   suffices H'' : c ≠ ⊤,
   { simp only [is_maximal.eq_of_le pmax H'' H, hb, this] },
   sorry
 end
 
+lemma prime_power_of_dvd_prime_power {p q : ideal T} (hp : p.is_prime) (n : ℕ) :
+  q ∣ p^n ↔ ∃ (i : finset.Ico 0 (n+1)), q = p^(i : ℕ) :=
+sorry
 
--- This statement looks a bit dubious to me, and may need some changes to actually be correct
-lemma pow_ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
-  (f : I.quotient ≃+* J.quotient) {p : ideal T} (hp : p ∣ I) (n : ℕ)
-  (h : p^n ∣ I):
-  ideal_correspondence hI hJ f ⟨p^n, h⟩ =
-    ⟨(ideal_correspondence hI hJ f ⟨p, hp⟩ : ideal S)^n, sorry⟩
-  := sorry
+lemma pow_prime₁ {q : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i) :
+  (c ⟨1, sorry⟩).is_prime :=
+begin
+  apply is_maximal.is_prime,
+  rw [is_maximal_def, is_coatom],
+  split,
+  { exact ne_top_of_lt (h₁ ⟨0, sorry⟩ ⟨1, sorry⟩ sorry) },
+  { intro b,
+  by_cases h: b ∣ q,
+  { intro hb,
+    have : ∃ (i : finset.Ico 0 (n+1)), b = c i,
+    sorry,
+    obtain ⟨i, hi⟩:= this,
+    sorry },
+  { intro hb,
+    exfalso,
+    have : c ⟨1, sorry⟩ ∣ q,
+    sorry,
+    exact h (dvd_trans (dvd_iff_le.2 (le_of_lt hb)) this) } },
+end
+
+lemma pow_prime₂ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i) :
+  (c ⟨0, sorry⟩) = ⊤ := sorry
+
+lemma pow_prime₃ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i)
+  (hp : p.is_prime) (hr : r ∣ q) (hr' : r ≠ ⊤) :
+  p ∈ normalized_factors r → p = c ⟨1, sorry⟩ :=
+begin
+  intro hp',
+  by_contra hcontra,
+  obtain ⟨i, hi⟩:= (h₂ p).1 (dvd_trans (dvd_of_mem_normalized_factors hp') hr),
+  suffices : i ≥ ⟨1, sorry⟩,
+  { by_cases h : i = ⟨1, sorry⟩,
+    { rw h at hi,
+      contradiction },
+    { rw ← ne.def at h,
+      have temp := h₁ ⟨1, sorry⟩ i (lt_of_le_of_ne this h.symm),
+      rw gt_iff_lt at temp,
+      rw ← dvd_not_unit_iff_lt at temp,
+      sorry } }, --prove not_prime_of_prime_dvd_not_unit
+  by_contra hcontra,
+  rw ← lt_iff_not_ge at hcontra,
+  have : i = ⟨0, sorry⟩,
+    sorry,
+  rw this at hi,
+  apply is_prime.ne_top hp,
+  rw hi,
+  refine pow_prime₂ n c h₁ h₂,
+  exact p,
+  exact p,
+end
+
+lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i)
+  (m : finset (ideal T)) (hm : ∀ r, r ∈ m → r ∣ q) : m.card ≤  n :=
+begin
+  sorry
+end
+
+
+lemma pow_prime₅ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i)
+  (hr : r ∣ q) (hr' : r ≠ ⊤) : ∃ (i : finset.Ico 0 (n+1)), r = p^(i : ℕ) :=
+begin
+  have : ∃ (i : ℕ), normalized_factors r = multiset.repeat q i,
+    sorry,
+  obtain ⟨i, hi⟩ := this,
+  have : i ≤ n, --this should use something like `pow_prime₄`
+    sorry,
+  sorry,
+
+end
+
+lemma pow_prime {q : ideal T} (n : ℕ) :
+(∃ (p : ideal T), p.is_prime ∧ q = p^n) ↔
+  (∃ (c : finset.Ico 0 (n+1) → ideal T), (∀ i j, i < j → c i > c j) ∧
+    {r : ideal T | r ∣ q} = {r : ideal T | ∃ i, r = c i}) :=
+begin
+  split,
+  { intro H,
+    obtain ⟨p, hp₁, hp₂⟩ := H,
+    use λ i, p^(i : ℕ),
+    split,
+    { sorry },
+    { ext y,
+      split,
+      { intro hy,
+        apply (prime_power_of_dvd_prime_power hp₁ n).1,
+        rw ← hp₂,
+        exact hy },
+      { intro hy,
+        obtain ⟨i, hy'⟩ := hy,
+        use p^(n - i : ℕ),
+        rw [hy', pow_mul_pow_sub],
+        exact hp₂,
+        sorry } } },
+  sorry, --this part of the proof is a lot harder so I've separated it into a bunch of
+         --sub-results as above
+end
 
 lemma preserves_multiplicity (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient)
   {p : ideal T} (hp : p ∈ normalized_factors I) : multiplicity p I =

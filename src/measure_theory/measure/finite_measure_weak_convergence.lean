@@ -186,23 +186,13 @@ begin
   exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
 end
 
--- Switched to using `nndist`, and believe these two could be useful... (1)
--- Where to place?
-lemma _root_.nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
-by { simp only [nnreal.nndist_eq, max_eq_right, zero_sub', sub_zero', zero_le'], }
-
--- Switched to using `nndist`, and believe these two could be useful... (2)
--- Where to place?
-lemma _root_.nnreal.nndist_zero_eq_val' (z : ℝ≥0) : nndist z 0 = z :=
-by { rw nndist_comm, exact nnreal.nndist_zero_eq_val z, }
-
 -- I think this might be occasionally useful (it is used below).
 -- Where to place?
 lemma _root_.nnreal.le_add_nndist (a b : ℝ≥0) :
   a ≤ b + nndist a b :=
 begin
   suffices : (a : ℝ) ≤ (b : ℝ) + (dist a b),
-  { exact nnreal.coe_le_coe.mp this,},
+  { exact nnreal.coe_le_coe.mp this, },
   linarith [le_of_abs_le (by refl : abs (a-b : ℝ) ≤ (dist a b))],
 end
 
@@ -301,7 +291,7 @@ begin
   intros f₁ f₂,
   suffices : abs (μ.test_against_nn f₁ - μ.test_against_nn f₂ : ℝ) ≤ μ.mass * (dist f₁ f₂),
   { rwa nnreal.dist_eq, },
-  apply (@abs_le ℝ _ _ _ _ _).mpr,
+  apply abs_le.mpr,
   split,
   { have key' := μ.test_against_nn_lipschitz_estimate f₂ f₁,
     rw mul_comm at key',

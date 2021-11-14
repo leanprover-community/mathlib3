@@ -49,28 +49,25 @@ variables {C : Type u} [category.{v} C]
 /--
 An alternative formulation of the sheaf condition
 (which we prove equivalent to the usual one below as
-`sheaf_condition_equiv_sheaf_condition_pairwise_intersections`).
+`is_sheaf_iff_is_sheaf_pairwise_intersections`).
 
 A presheaf is a sheaf if `F` sends the cone `(pairwise.cocone U).op` to a limit cone.
-(Recall `pairwise.cocone U`, has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
+(Recall `pairwise.cocone U` has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
 -/
-@[derive subsingleton, nolint has_inhabited_instance]
-def sheaf_condition_pairwise_intersections (F : presheaf C X) : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (pairwise.cocone U).op)
+def is_sheaf_pairwise_intersections (F : presheaf C X) : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (pairwise.cocone U).op))
 
 /--
 An alternative formulation of the sheaf condition
 (which we prove equivalent to the usual one below as
-`sheaf_condition_equiv_sheaf_condition_preserves_limit_pairwise_intersections`).
+`is_sheaf_iff_is_sheaf_preserves_limit_pairwise_intersections`).
 
 A presheaf is a sheaf if `F` preserves the limit of `pairwise.diagram U`.
 (Recall `pairwise.diagram U` is the diagram consisting of the pairwise intersections
 `U i ⊓ U j` mapping into the open sets `U i`. This diagram has limit `supr U`.)
 -/
-@[derive subsingleton, nolint has_inhabited_instance]
-def sheaf_condition_preserves_limit_pairwise_intersections
-  (F : presheaf C X) : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), preserves_limit (pairwise.diagram U).op F
+def is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (preserves_limit (pairwise.diagram U).op F)
 
 /-!
 The remainder of this file shows that these conditions are equivalent
@@ -99,21 +96,25 @@ def cone_equiv_functor_obj (F : presheaf C X)
     begin
       cases Y; cases Z; cases f,
       { ext i, dsimp,
-        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id, category.assoc],
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id,
+          category.assoc],
         dsimp,
         simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.left_res],
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
-        have h := c.π.naturality (has_hom.hom.op (hom.left i j)),
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
+        have h := c.π.naturality (quiver.hom.op (hom.left i j)),
         dsimp at h,
         simpa using h, },
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.right_res],
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
-        have h := c.π.naturality (has_hom.hom.op (hom.right i j)),
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
+        have h := c.π.naturality (quiver.hom.op (hom.right i j)),
         dsimp at h,
-        simpa using h,  },
+        simpa using h, },
       { ext i, dsimp,
-        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id, category.assoc],
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id,
+          category.assoc],
         dsimp,
         simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
     end, }, }
@@ -125,10 +126,16 @@ local attribute [tidy] tactic.case_bash
 @[simps]
 def cone_equiv_functor (F : presheaf C X)
   ⦃ι : Type v⦄ (U : ι → opens ↥X) :
-  limits.cone ((diagram U).op ⋙ F) ⥤ limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
+  limits.cone ((diagram U).op ⋙ F) ⥤
+    limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
 { obj := λ c, cone_equiv_functor_obj F U c,
   map := λ c c' f,
-  { hom := f.hom, }, }.
+  { hom := f.hom,
+    w' := λ j, begin
+      cases j;
+      { ext, simp only [limits.fan.mk_π_app, limits.cone_morphism.w,
+        limits.limit.lift_π, category.assoc, cone_equiv_functor_obj_π_app], },
+    end }, }.
 
 end
 
@@ -143,26 +150,21 @@ def cone_equiv_inverse_obj (F : presheaf C X)
   { app :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with (⟨i⟩|⟨i,j⟩),
       { exact c.π.app (walking_parallel_pair.zero) ≫ pi.π _ i, },
       { exact c.π.app (walking_parallel_pair.one) ≫ pi.π _ (i, j), }
     end,
     naturality' :=
     begin
-      -- Unfortunately `op_induction` isn't up to the task here, and we need to use `generalize`.
       intros x y f,
-      have ex : x = op (unop x) := rfl,
-      have ey : y = op (unop y) := rfl,
-      revert ex ey,
-      generalize : unop x = x',
-      generalize : unop y = y',
-      rintro rfl rfl,
+      induction x using opposite.rec,
+      induction y using opposite.rec,
       have ef : f = f.unop.op := rfl,
       revert ef,
       generalize : f.unop = f',
       rintro rfl,
-      rcases x' with ⟨i⟩|⟨⟩; rcases y' with ⟨⟩|⟨j,j⟩; rcases f' with ⟨⟩,
+      rcases x with ⟨i⟩|⟨⟩; rcases y with ⟨⟩|⟨j,j⟩; rcases f' with ⟨⟩,
       { dsimp, erw [F.map_id], simp, },
       { dsimp, simp only [category.id_comp, category.assoc],
         have h := c.π.naturality (walking_parallel_pair_hom.left),
@@ -187,14 +189,15 @@ def cone_equiv_inverse_obj (F : presheaf C X)
 @[simps]
 def cone_equiv_inverse (F : presheaf C X)
   ⦃ι : Type v⦄ (U : ι → opens ↥X) :
-  limits.cone (sheaf_condition_equalizer_products.diagram F U) ⥤ limits.cone ((diagram U).op ⋙ F) :=
+  limits.cone (sheaf_condition_equalizer_products.diagram F U) ⥤
+    limits.cone ((diagram U).op ⋙ F) :=
 { obj := λ c, cone_equiv_inverse_obj F U c,
   map := λ c c' f,
   { hom := f.hom,
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with (⟨i⟩|⟨i,j⟩),
       { dsimp,
         rw [←(f.w walking_parallel_pair.zero), category.assoc], },
@@ -210,10 +213,24 @@ def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → ope
     (cone_equiv_functor F U ⋙ cone_equiv_inverse F U).obj c :=
 { hom :=
   { hom := 𝟙 _,
-    w' := λ j, begin op_induction j, rcases j; tidy, end, },
+    w' := λ j, begin
+      induction j using opposite.rec, rcases j;
+      { dsimp, simp only [limits.fan.mk_π_app, category.id_comp, limits.limit.lift_π], }
+    end, },
   inv :=
   { hom := 𝟙 _,
-    w' := λ j, begin op_induction j, rcases j; tidy, end }}
+    w' := λ j, begin
+      induction j using opposite.rec, rcases j;
+      { dsimp, simp only [limits.fan.mk_π_app, category.id_comp, limits.limit.lift_π], }
+    end },
+  hom_inv_id' := begin
+    ext,
+    simp only [category.comp_id, limits.cone.category_comp_hom, limits.cone.category_id_hom],
+  end,
+  inv_hom_id' := begin
+    ext,
+    simp only [category.comp_id, limits.cone.category_comp_hom, limits.cone.category_id_hom],
+  end, }
 
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
 @[simps]
@@ -233,17 +250,20 @@ nat_iso.of_components (λ c,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp, },
-      { ext ⟨i,j⟩, dsimp, simp, },
+      { ext, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
+      { ext ⟨i,j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
     end },
   inv :=
   { hom := 𝟙 _,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp, },
-      { ext ⟨i,j⟩, dsimp, simp, },
-    end, }}) (by tidy)
+      { ext, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
+      { ext ⟨i,j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
+    end, },
+  hom_inv_id' := by { ext, dsimp, simp only [category.comp_id], },
+  inv_hom_id' := by { ext, dsimp, simp only [category.comp_id], }, })
+(λ c d f, by { ext, dsimp, simp only [category.comp_id, category.id_comp], })
 
 /--
 Cones over `diagram U ⋙ F` are the same as a cones over the usual sheaf condition equalizer diagram.
@@ -274,11 +294,12 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
     end },
@@ -287,14 +308,17 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
     w' :=
     begin
       intro x,
-      op_induction x,
+      induction x using opposite.rec,
       rcases x with ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
-    end }, }
+    end },
+  hom_inv_id' := by { ext, dsimp, simp only [category.comp_id], },
+  inv_hom_id' := by { ext, dsimp, simp only [category.comp_id], }, }
 
 /--
 If `F.map_cone (cone U)` is a limit cone,
@@ -312,7 +336,8 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U)).symm Q)
       rintro ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp, ext ⟨i, j⟩,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
     end },
@@ -323,10 +348,13 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U)).symm Q)
       rintro ⟨⟩,
       { dsimp, simp, refl, },
       { dsimp, ext ⟨i, j⟩,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
-    end }, }
+    end },
+  hom_inv_id' := by { ext, dsimp, simp only [category.comp_id], },
+  inv_hom_id' := by { ext, dsimp, simp only [category.comp_id], }, }
 
 
 end sheaf_condition_pairwise_intersections
@@ -337,26 +365,26 @@ open sheaf_condition_pairwise_intersections
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
-def sheaf_condition_equiv_sheaf_condition_pairwise_intersections (F : presheaf C X) :
-  F.sheaf_condition ≃ F.sheaf_condition_pairwise_intersections :=
-equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
-  equiv_of_subsingleton_of_subsingleton
-    (is_limit_map_cone_of_is_limit_sheaf_condition_fork F U)
-    (is_limit_sheaf_condition_fork_of_is_limit_map_cone F U)))
+lemma is_sheaf_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
+  F.is_sheaf ↔ F.is_sheaf_pairwise_intersections :=
+iff.intro (λ h ι U, ⟨is_limit_map_cone_of_is_limit_sheaf_condition_fork F U (h U).some⟩)
+  (λ h ι U, ⟨is_limit_sheaf_condition_fork_of_is_limit_map_cone F U (h U).some⟩)
 
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of the presheaf preserving the limit of the diagram
 consisting of the `U i` and `U i ⊓ U j`.
 -/
-def sheaf_condition_equiv_sheaf_condition_preserves_limit_pairwise_intersections
-(F : presheaf C X) :
-  F.sheaf_condition ≃ F.sheaf_condition_preserves_limit_pairwise_intersections :=
-equiv.trans
-  (sheaf_condition_equiv_sheaf_condition_pairwise_intersections F)
-  (equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
-     equiv_of_subsingleton_of_subsingleton
-       (λ P, preserves_limit_of_preserves_limit_cone (pairwise.cocone_is_colimit U).op P)
-       (by { introI, exact preserves_limit.preserves (pairwise.cocone_is_colimit U).op }))))
+lemma is_sheaf_iff_is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) :
+  F.is_sheaf ↔ F.is_sheaf_preserves_limit_pairwise_intersections :=
+begin
+  rw is_sheaf_iff_is_sheaf_pairwise_intersections,
+  split,
+  { intros h ι U,
+    exact ⟨preserves_limit_of_preserves_limit_cone (pairwise.cocone_is_colimit U).op (h U).some⟩ },
+  { intros h ι U,
+    haveI := (h U).some,
+    exact ⟨preserves_limit.preserves (pairwise.cocone_is_colimit U).op⟩ }
+end
 
 end Top.presheaf

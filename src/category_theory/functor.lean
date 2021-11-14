@@ -2,21 +2,28 @@
 Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison
-
-Defines a functor between categories.
-
-(As it is a 'bundled' object rather than the `is_functorial` typeclass parametrised
-by the underlying function on objects, the name is capitalised.)
-
-Introduces notations
-  `C ⥤ D` for the type of all functors from `C` to `D`.
-    (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
 import tactic.reassoc_axiom
+import tactic.monotonicity
+
+/-!
+# Functors
+
+Defines a functor between categories, extending a `prefunctor` between quivers.
+
+Introduces notation `C ⥤ D` for the type of all functors from `C` to `D`.
+(Unfortunately the `⇒` arrow (`\functor`) is taken by core, 
+but in mathlib4 we should switch to this.)
+-/
 
 namespace category_theory
 
-universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₁ v₂ v₃ u u₁ u₂ u₃
+
+section
+
+set_option old_structure_cmd true
 
 /--
 `functor C D` represents a functor between categories `C` and `D`.
@@ -28,12 +35,15 @@ The axiom `map_id` expresses preservation of identities, and
 
 See https://stacks.math.columbia.edu/tag/001B.
 -/
-structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
-  Type (max v₁ v₂ u₁ u₂) :=
-(obj []    : C → D)
-(map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
+structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
+  extends prefunctor C D : Type (max v₁ v₂ u₁ u₂) :=
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
 (map_comp' : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
+
+/-- The prefunctor between the underlying quivers. -/
+add_decl_doc functor.to_prefunctor
+
+end
 
 -- A functor is basically a function, so give ⥤ a similar precedence to → (25).
 -- For example, `C × D ⥤ E` should parse as `(C × D) ⥤ E` not `C × (D ⥤ E)`.
@@ -87,6 +97,11 @@ infixr ` ⋙ `:80 := comp
 -- Natural isomorphisms are also provided in `whiskering.lean`.
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
+
+@[simp] lemma map_dite (F : C ⥤ D) {X Y : C} {P : Prop} [decidable P]
+  (f : P → (X ⟶ Y)) (g : ¬P → (X ⟶ Y)) :
+  F.map (if h : P then f h else g h) = if h : P then F.map (f h) else F.map (g h) :=
+by { split_ifs; refl, }
 
 end
 

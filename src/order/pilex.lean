@@ -3,9 +3,17 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.ordered_pi
+import algebra.order.pi
 import order.well_founded
-import algebra.order_functions
+import order.min_max
+
+
+/-!
+# Lexicographic order on Pi types
+
+This file defines the lexicographic relation for Pi types of partial orders and linear orders. We
+also provide a `pilex` analog of `pi.ordered_comm_group` (see `algebra.order.pi`).
+-/
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
@@ -24,77 +32,61 @@ instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=
 instance [∀ a, inhabited (β a)] : inhabited (pilex ι β) :=
 by unfold pilex; apply_instance
 
-set_option eqn_compiler.zeta true
+instance pilex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
+  is_strict_order (pilex ι β) (<) :=
+{ irrefl := λ a ⟨k, hk₁, hk₂⟩, lt_irrefl (a k) hk₂,
+  trans :=
+    begin
+      rintro a b c ⟨N₁, lt_N₁, a_lt_b⟩ ⟨N₂, lt_N₂, b_lt_c⟩,
+      rcases lt_trichotomy N₁ N₂ with (H|rfl|H),
+      exacts [⟨N₁, λ j hj, (lt_N₁ _ hj).trans (lt_N₂ _ $ hj.trans H), lt_N₂ _ H ▸ a_lt_b⟩,
+        ⟨N₁, λ j hj, (lt_N₁ _ hj).trans (lt_N₂ _ hj), a_lt_b.trans b_lt_c⟩,
+        ⟨N₂, λ j hj, (lt_N₁ _ (hj.trans H)).trans (lt_N₂ _ hj), (lt_N₁ _ H).symm ▸ b_lt_c⟩]
+    end }
 
 instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=
-have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
-  from λ x y ⟨⟨i, hi⟩, ⟨j, hj⟩⟩, begin
-      rcases lt_trichotomy i j with hij | hij | hji,
-      { exact lt_irrefl (x i) (by simpa [hj.1 _ hij] using hi.2) },
-      { exact not_le_of_gt hj.2 (hij ▸ le_of_lt hi.2) },
-      { exact lt_irrefl (x j) (by simpa [hi.1 _ hji] using hj.2) },
-    end,
-{ le := λ x y, x < y ∨ x = y,
-  le_refl := λ _, or.inr rfl,
-  le_antisymm := λ x y hxy hyx,
-    hxy.elim (λ hxy, hyx.elim (λ hyx, false.elim (lt_not_symm ⟨hxy, hyx⟩)) eq.symm) id,
-  le_trans :=
-    λ x y z hxy hyz,
-    hxy.elim
-      (λ ⟨i, hi⟩, hyz.elim
-        (λ ⟨j, hj⟩, or.inl
-          ⟨by exactI min i j, by resetI; exact
-            λ k hk, by rw [hi.1 _ (lt_min_iff.1 hk).1, hj.1 _ (lt_min_iff.1 hk).2],
-            by resetI; exact (le_total i j).elim
-              (λ hij, by rw [min_eq_left hij];
-                exact lt_of_lt_of_le hi.2
-                  ((lt_or_eq_of_le hij).elim (λ h, le_of_eq (hj.1 _ h))
-                    (λ h, h.symm ▸ le_of_lt hj.2)))
-              (λ hji, by rw [min_eq_right hji];
-                exact lt_of_le_of_lt
-                  ((lt_or_eq_of_le hji).elim (λ h, le_of_eq (hi.1 _ h))
-                    (λ h, h.symm ▸ le_of_lt hi.2))
-                  hj.2)⟩)
-        (λ hyz, hyz ▸ hxy))
-      (λ hxy, hxy.symm ▸ hyz),
-  lt_iff_le_not_le := λ x y, show x < y ↔ (x < y ∨ x = y) ∧ ¬ (y < x ∨ y = x),
-    from ⟨λ ⟨i, hi⟩, ⟨or.inl ⟨i, hi⟩,
-        λ h, h.elim (λ ⟨j, hj⟩, begin
-            rcases lt_trichotomy i j with hij | hij | hji,
-            { exact lt_irrefl (x i) (by simpa [hj.1 _ hij] using hi.2) },
-            { exact not_le_of_gt hj.2 (hij ▸ le_of_lt hi.2) },
-            { exact lt_irrefl (x j) (by simpa [hi.1 _ hji] using hj.2) },
-          end)
-        (λ hyx, lt_irrefl (x i) (by simpa [hyx] using hi.2))⟩, by tauto⟩,
-  ..pilex.has_lt }
+partial_order_of_SO (<)
+
+protected lemma pilex.is_strict_total_order' [linear_order ι]
+  (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
+  is_strict_total_order' (pilex ι β) (<) :=
+{ trichotomous := λ a b,
+    begin
+      by_cases h : ∃ i, a i ≠ b i,
+      { let i := wf.min _ h,
+        have hlt_i : ∀ j < i, a j = b j,
+        { intro j, rw ← not_imp_not,
+          exact λ h', wf.not_lt_min _ _ h' },
+        have : a i ≠ b i, from wf.min_mem _ h,
+        exact this.lt_or_lt.imp (λ h, ⟨i, hlt_i, h⟩)
+          (λ h, or.inr ⟨i, λ j hj, (hlt_i j hj).symm, h⟩) },
+      { push_neg at h, exact or.inr (or.inl (funext h)) }
+    end }
 
 /-- `pilex` is a linear order if the original order is well-founded.
 This cannot be an instance, since it depends on the well-foundedness of `<`. -/
 protected noncomputable def pilex.linear_order [linear_order ι]
   (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
   linear_order (pilex ι β) :=
-{ le_total := λ x y, by classical; exact
-    or_iff_not_imp_left.2 (λ hxy, begin
-      have := not_or_distrib.1 hxy,
-      let i : ι := well_founded.min wf _ (not_forall.1 (this.2 ∘ funext)),
-      have hjiyx : ∀ j < i, y j = x j,
-      { assume j,
-        rw [eq_comm, ← not_imp_not],
-        exact λ h, well_founded.not_lt_min wf _ _ h },
-      refine or.inl ⟨i, hjiyx, _⟩,
-      { refine lt_of_not_ge (λ hyx, _),
-        exact this.1 ⟨i, (λ j hj, (hjiyx j hj).symm),
-          lt_of_le_of_ne hyx (well_founded.min_mem _ {i | x i ≠ y i} _)⟩ }
-    end),
-  decidable_le := classical.dec_rel _,
-  ..pilex.partial_order }
+@linear_order_of_STO' (pilex ι β) (<) (pilex.is_strict_total_order' wf) (classical.dec_rel _)
 
-instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] : ordered_add_comm_group (pilex ι β) :=
-{ add_le_add_left := λ x y hxy z,
+lemma pilex.le_of_forall_le [linear_order ι]
+  (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] {a b : pilex ι β}
+  (h : ∀ i, a i ≤ b i) : a ≤ b :=
+begin
+  letI : linear_order (pilex ι β) := pilex.linear_order wf,
+  exact le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
+end
+
+--we might want the analog of `pi.ordered_cancel_comm_monoid` as well in the future
+@[to_additive]
+instance [linear_order ι] [∀ a, ordered_comm_group (β a)] :
+  ordered_comm_group (pilex ι β) :=
+{ mul_le_mul_left := λ x y hxy z,
     hxy.elim
+      (λ hxyz, hxyz ▸ le_refl _)
       (λ ⟨i, hi⟩,
-        or.inl ⟨i, λ j hji, show z j + x j = z j + y j, by rw [hi.1 j hji],
-          add_lt_add_left hi.2 _⟩)
-      (λ hxy, hxy ▸ le_refl _),
+        or.inr ⟨i, λ j hji, show z j * x j = z j * y j, by rw hi.1 j hji,
+          mul_lt_mul_left' hi.2 _⟩),
   ..pilex.partial_order,
-  ..pi.add_comm_group }
+  ..pi.comm_group }

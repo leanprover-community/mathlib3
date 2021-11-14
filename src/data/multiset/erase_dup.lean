@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.nodup
 
@@ -56,14 +56,18 @@ quot.induction_on s nodup_erase_dup
 
 theorem erase_dup_eq_self {s : multiset α} : erase_dup s = s ↔ nodup s :=
 ⟨λ e, e ▸ nodup_erase_dup s,
- quot.induction_on s $ λ l h, congr_arg coe $ erase_dup_eq_self.2 h⟩
+ quot.induction_on s $ λ l h, congr_arg coe h.erase_dup⟩
+
+alias erase_dup_eq_self ↔ _ multiset.nodup.erase_dup
+
+alias erase_dup_eq_self ↔ _ multiset.nodup.erase_dup
 
 theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
 ⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
  λ h, h.symm ▸ erase_dup_zero⟩
 
-@[simp] theorem erase_dup_singleton {a : α} : erase_dup (a ::ₘ 0) = a ::ₘ 0 :=
-erase_dup_eq_self.2 $ nodup_singleton _
+@[simp] theorem erase_dup_singleton {a : α} : erase_dup ({a} : multiset α) = {a} :=
+(nodup_singleton _).erase_dup
 
 theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=
 ⟨λ h, ⟨le_trans h (erase_dup_le _), nodup_of_le h (nodup_erase_dup _)⟩,
@@ -77,7 +81,7 @@ theorem erase_dup_map_erase_dup_eq [decidable_eq β] (f : α → β) (s : multis
 
 @[simp]
 lemma erase_dup_nsmul {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  (n •ℕ s).erase_dup = s.erase_dup :=
+  (n • s).erase_dup = s.erase_dup :=
 begin
   ext a,
   by_cases h : a ∈ s;
@@ -92,7 +96,7 @@ end multiset
 
 lemma multiset.nodup.le_nsmul_iff_le {α : Type*} {s t : multiset α}
   {n : ℕ} (h : s.nodup) (hn : n ≠ 0) :
-  s ≤ n •ℕ t ↔ s ≤ t :=
+  s ≤ n • t ↔ s ≤ t :=
 begin
   classical,
   rw [← h.le_erase_dup_iff_le, iff.comm, ← h.le_erase_dup_iff_le],

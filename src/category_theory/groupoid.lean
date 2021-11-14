@@ -3,11 +3,31 @@ Copyright (c) 2018 Reid Barton All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison, David Wärn
 -/
-import category_theory.epi_mono
+import category_theory.full_subcategory
+
+/-!
+# Groupoids
+
+We define `groupoid` as a typeclass extending `category`,
+asserting that all morphisms have inverses.
+
+The instance `is_iso.of_groupoid (f : X ⟶ Y) : is_iso f` means that you can then write
+`inv f` to access the inverse of any morphism `f`.
+
+`groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y)` provides the equivalence between
+isomorphisms and morphisms in a groupoid.
+
+We provide a (non-instance) constructor `groupoid.of_is_iso` from an existing category
+with `is_iso f` for every `f`.
+
+## See also
+
+See also `category_theory.core` for the groupoid of isomorphisms in a category.
+-/
 
 namespace category_theory
 
-universes v v₂ u u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₂ u u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 /-- A `groupoid` is a category such that all morphisms are isomorphisms. -/
 class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
@@ -36,14 +56,15 @@ section
 variables {C : Type u} [groupoid.{v} C] {X Y : C}
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f := { inv := groupoid.inv f }
+instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f :=
+⟨⟨groupoid.inv f, by simp⟩⟩
 
 variables (X Y)
 
 /-- In a groupoid, isomorphisms are equivalent to morphisms. -/
 def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
 { to_fun := iso.hom,
-  inv_fun := λ f, as_iso f,
+  inv_fun := λ f, ⟨f, groupoid.inv f⟩,
   left_inv := λ i, iso.ext rfl,
   right_inv := λ f, rfl }
 
@@ -54,20 +75,9 @@ section
 variables {C : Type u} [category.{v} C]
 
 /-- A category where every morphism `is_iso` is a groupoid. -/
+noncomputable
 def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : groupoid.{v} C :=
-{ inv := λ X Y f, (all_is_iso f).inv }
-
-/-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
-def groupoid.of_trunc_split_mono
-  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono f)) :
-  groupoid.{v} C :=
-begin
-  apply groupoid.of_is_iso,
-  intros X Y f,
-  trunc_cases all_split_mono f,
-  trunc_cases all_split_mono (retraction f),
-  apply is_iso.of_mono_retraction,
-end
+{ inv := λ X Y f, inv f }
 
 end
 

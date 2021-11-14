@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 import category_theory.products.basic
 import category_theory.currying
 
@@ -47,7 +47,7 @@ variables {C : Type u} [category.{v} C]
 variables (F : J ⥤ K ⥤ C)
 
 /--
-A structure carrying a diagram of cones over the the functors `F.obj j`.
+A structure carrying a diagram of cones over the functors `F.obj j`.
 -/
 -- We could try introducing a "dependent functor type" to handle this?
 structure diagram_of_cones :=

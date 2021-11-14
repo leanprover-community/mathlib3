@@ -7,8 +7,6 @@ import set_theory.game.winner
 import tactic.nth_rewrite.default
 import tactic.equiv_rw
 
-universe u
-
 /-!
 # Basic definitions about impartial (pre-)games
 
@@ -17,6 +15,8 @@ Our definition differs slightly by saying that the game is always equivalent to 
 no matter what moves are played. This allows for games such as poker-nim to be classifed as
 impartial.
 -/
+
+universe u
 
 namespace pgame
 
@@ -51,7 +51,8 @@ by simpa only [impartial_iff_aux] using impartial_aux_def
 
 namespace impartial
 
-instance impartial_zero : impartial 0 := by tidy
+instance impartial_zero : impartial 0 :=
+by { rw impartial_def, dsimp, simp }
 
 lemma neg_equiv_self (G : pgame) [h : G.impartial] : G ≈ -G := (impartial_def.1 h).1
 
@@ -69,7 +70,7 @@ begin
   introsI hG hH,
   rw impartial_def,
   split,
-  { apply equiv_trans _ (equiv_of_relabelling (neg_add_relabelling G H)).symm,
+  { apply equiv_trans _ (neg_add_relabelling G H).equiv.symm,
     exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
   split,
   all_goals
@@ -137,11 +138,11 @@ begin
     split,
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_trans add_comm_le $ le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _)
+        (le_trans add_comm_le $ le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _)
         (neg_equiv_self G)) },
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
+        (le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=

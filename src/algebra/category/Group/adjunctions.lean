@@ -61,7 +61,7 @@ The free-forgetful adjunction for abelian groups.
 -/
 def adj : free ⊣ forget AddCommGroup.{u} :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X G, free_abelian_group.hom_equiv X G,
+{ hom_equiv := λ X G, free_abelian_group.lift.symm,
   hom_equiv_naturality_left_symm' :=
   by { intros, ext, refl} }
 
@@ -73,6 +73,8 @@ the monomorphisms in `AddCommGroup` are just the injective functions.
 -/
 example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :=
 (mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
+
+instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
 
 end AddCommGroup
 
@@ -90,8 +92,10 @@ def free : Type u ⥤ Group :=
 -/
 def adj : free ⊣ forget Group.{u} :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X G, (free_group.lift X G).symm,
-  hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+{ hom_equiv := λ X G, free_group.lift.symm,
+  hom_equiv_naturality_left_symm' := λ X Y G f g, by { ext1, refl } }
+
+instance : is_right_adjoint (forget Group.{u}) := ⟨_, adj⟩
 
 end Group
 
@@ -110,7 +114,7 @@ def abelianize : Group.{u} ⥤ CommGroup.{u} :=
 /-- The abelianization-forgetful adjuction from `Group` to `CommGroup`.-/
 def abelianize_adj : abelianize ⊣ forget₂ CommGroup.{u} Group.{u} :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ G A, abelianization.hom_equiv,
+{ hom_equiv := λ G A, abelianization.lift.symm,
   hom_equiv_naturality_left_symm' := λ G H A f g, by { ext1, refl } }
 
 end abelianization

@@ -6,7 +6,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 
 import ring_theory.witt_vector.truncated
 import ring_theory.witt_vector.identities
-import data.padics.ring_homs
+import number_theory.padics.ring_homs
 
 /-!
 
@@ -21,6 +21,11 @@ of the inverse limit of `zmod (p^n)`.
 * `witt_vector.to_zmod_pow`: a family of compatible ring homs `𝕎 (zmod p) → zmod (p^k)`
 * `witt_vector.equiv`: the isomorphism
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 noncomputable theory
@@ -46,7 +51,7 @@ begin
   rw [this, ext_iff, not_forall], clear this,
   use ⟨i, hin⟩,
   rw [witt_vector.coeff_truncate, coeff_zero, fin.coe_mk, witt_vector.coeff_p_pow],
-  haveI : nontrivial R := char_p.nontrivial_of_char_ne_one hp.ne_one,
+  haveI : nontrivial R := char_p.nontrivial_of_char_ne_one hp.1.ne_one,
   exact one_ne_zero
 end
 

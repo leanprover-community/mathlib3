@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 import category_theory.limits.concrete_category
 
 /-!
@@ -399,8 +399,7 @@ begin
     -- left_distrib
     { rw left_distrib, },
     -- right_distrib
-    { rw right_distrib, },
-  }
+    { rw right_distrib, } }
 end
 
 /-- The ring homomorphism from the colimit commutative ring to the cone point of any other

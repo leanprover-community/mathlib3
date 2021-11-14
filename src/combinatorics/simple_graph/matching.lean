@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2020 Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Alena Gusakov.
+Authors: Alena Gusakov
 -/
-import data.fintype.basic
-import data.sym2
 import combinatorics.simple_graph.basic
+
 /-!
 # Matchings
 
@@ -21,7 +20,7 @@ import combinatorics.simple_graph.basic
 TODO:
   - Lemma stating that the existence of a perfect matching on `G` implies that
     the cardinality of `V` is even (assuming it's finite)
-  - Hall's Marriage Theorem
+  - Hall's Marriage Theorem (see combinatorics.hall)
   - Tutte's Theorem
   - consider coercions instead of type definition for `matching`:
     https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532935457

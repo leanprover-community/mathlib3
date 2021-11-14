@@ -28,6 +28,7 @@ variables (G : C ⥤ D)
 
 namespace category_theory.limits
 
+section
 variables {P X Y Z : C} (f : P ⟶ X) (g : P ⟶ Y)
 
 /--
@@ -68,7 +69,7 @@ variables [has_binary_product (G.obj X) (G.obj Y)]
 If the product comparison map for `G` at `(X,Y)` is an isomorphism, then `G` preserves the
 pair of `(X,Y)`.
 -/
-def preserves_pair.of_iso_comparison [i : is_iso (prod_comparison G X Y)] :
+def preserves_limit_pair.of_iso_prod_comparison [i : is_iso (prod_comparison G X Y)] :
   preserves_limit (pair X Y) G :=
 begin
   apply preserves_limit_of_preserves_limit_cone (prod_is_prod X Y),
@@ -82,19 +83,99 @@ variables [preserves_limit (pair X Y) G]
 If `G` preserves the product of `(X,Y)`, then the product comparison map for `G` at `(X,Y)` is
 an isomorphism.
 -/
-def preserves_pair.iso :
+def preserves_limit_pair.iso :
   G.obj (X ⨯ Y) ≅ G.obj X ⨯ G.obj Y :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_binary_product_of_preserves_limit G X Y)
   (limit.is_limit _)
 
 @[simp]
-lemma preserves_pair.iso_hom : (preserves_pair.iso G X Y).hom = prod_comparison G X Y := rfl
+lemma preserves_limit_pair.iso_hom : (preserves_limit_pair.iso G X Y).hom = prod_comparison G X Y :=
+rfl
 
 instance : is_iso (prod_comparison G X Y) :=
 begin
-  rw ← preserves_pair.iso_hom,
+  rw ← preserves_limit_pair.iso_hom,
   apply_instance
+end
+
+end
+
+section
+variables {P X Y Z : C} (f : X ⟶ P) (g : Y ⟶ P)
+
+/--
+The map of a binary cofan is a colimit iff
+the cofork consisting of the mapped morphisms is a colimit.
+This essentially lets us commute `binary_cofan.mk` with `functor.map_cocone`.
+-/
+def is_colimit_map_cocone_binary_cofan_equiv :
+  is_colimit (G.map_cocone (binary_cofan.mk f g)) ≃
+    is_colimit (binary_cofan.mk (G.map f) (G.map g)) :=
+(is_colimit.precompose_hom_equiv (diagram_iso_pair _).symm _).symm.trans
+  (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by { rintro (_ | _), tidy, })))
+
+/-- The property of preserving coproducts expressed in terms of binary cofans. -/
+def map_is_colimit_of_preserves_of_is_colimit [preserves_colimit (pair X Y) G]
+  (l : is_colimit (binary_cofan.mk f g)) :
+  is_colimit (binary_cofan.mk (G.map f) (G.map g)) :=
+is_colimit_map_cocone_binary_cofan_equiv G f g (preserves_colimit.preserves l)
+
+/-- The property of reflecting coproducts expressed in terms of binary cofans. -/
+def is_colimit_of_reflects_of_map_is_colimit [reflects_colimit (pair X Y) G]
+  (l : is_colimit (binary_cofan.mk (G.map f) (G.map g))) :
+  is_colimit (binary_cofan.mk f g) :=
+reflects_colimit.reflects ((is_colimit_map_cocone_binary_cofan_equiv G f g).symm l)
+
+variables (X Y) [has_binary_coproduct X Y]
+
+/--
+If `G` preserves binary coproducts and `C` has them, then the binary cofan constructed of the mapped
+morphisms of the binary product cocone is a colimit.
+-/
+def is_colimit_of_has_binary_coproduct_of_preserves_colimit
+  [preserves_colimit (pair X Y) G] :
+  is_colimit
+    (binary_cofan.mk (G.map (limits.coprod.inl : X ⟶ X ⨿ Y)) (G.map (limits.coprod.inr))) :=
+map_is_colimit_of_preserves_of_is_colimit G _ _ (coprod_is_coprod X Y)
+
+variables [has_binary_coproduct (G.obj X) (G.obj Y)]
+
+/--
+If the coproduct comparison map for `G` at `(X,Y)` is an isomorphism, then `G` preserves the
+pair of `(X,Y)`.
+-/
+def preserves_colimit_pair.of_iso_coprod_comparison [i : is_iso (coprod_comparison G X Y)] :
+  preserves_colimit (pair X Y) G :=
+begin
+  apply preserves_colimit_of_preserves_colimit_cocone (coprod_is_coprod X Y),
+  apply (is_colimit_map_cocone_binary_cofan_equiv _ _ _).symm _,
+  apply is_colimit.of_point_iso (colimit.is_colimit (pair (G.obj X) (G.obj Y))),
+  apply i,
+end
+
+variables [preserves_colimit (pair X Y) G]
+/--
+If `G` preserves the coproduct of `(X,Y)`, then the coproduct comparison map for `G` at `(X,Y)` is
+an isomorphism.
+-/
+def preserves_colimit_pair.iso :
+  G.obj X ⨿ G.obj Y ≅ G.obj (X ⨿ Y) :=
+is_colimit.cocone_point_unique_up_to_iso
+  (colimit.is_colimit _)
+  (is_colimit_of_has_binary_coproduct_of_preserves_colimit G X Y)
+
+@[simp]
+lemma preserves_colimit_pair.iso_hom :
+  (preserves_colimit_pair.iso G X Y).hom = coprod_comparison G X Y :=
+rfl
+
+instance : is_iso (coprod_comparison G X Y) :=
+begin
+  rw ← preserves_colimit_pair.iso_hom,
+  apply_instance
+end
+
 end
 
 end category_theory.limits

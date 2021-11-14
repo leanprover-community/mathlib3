@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 
 import category_theory.sites.canonical
-import category_theory.sites.sheaf_of_types
 
 /-!
 # Grothendieck Topology and Sheaves on the Category of Types
@@ -20,6 +19,7 @@ Then we prove that the topology defined is the canonical topology.
 universe u
 
 namespace category_theory
+open_locale category_theory.Type
 
 /-- A Grothendieck topology associated to the category of all types.
 A sieve is a covering iff it is jointly surjective. -/

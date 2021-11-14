@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Fox Thomson.
+Authors: Fox Thomson
 -/
 import data.fintype.basic
 import data.finset.basic
@@ -228,9 +228,9 @@ begin
         { finish },
         refine ⟨ t, U.join, by finish, _, _ ⟩,
         { specialize helem (b :: t) _,
+          { finish },
           rw rmatch at helem,
           convert helem.2,
-          finish,
           finish },
         { have hwf : U.join.length < (list.cons a x).length,
           { rw hsum,

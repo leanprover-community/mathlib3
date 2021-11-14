@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.finset_ops
 import data.multiset.fold
@@ -27,7 +27,8 @@ fold_zero _ _
   (a ::ₘ s).sup = a ⊔ s.sup :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma sup_singleton {a : α} : (a ::ₘ 0).sup = a := by simp
+@[simp] lemma sup_singleton {a : α} : ({a} : multiset α).sup = a :=
+sup_bot_eq
 
 @[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
 eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
@@ -59,6 +60,15 @@ by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
   (ndinsert a s).sup = a ⊔ s.sup :=
 by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
 
+lemma nodup_sup_iff {α : Type*} [decidable_eq α] {m : multiset (multiset α) } :
+  m.sup.nodup ↔ ∀ (a : multiset α), a ∈ m → a.nodup :=
+begin
+  apply m.induction_on,
+  { simp },
+  { intros a s h,
+    simp [h] }
+end
+
 end sup
 
 /-! ### inf -/
@@ -75,7 +85,8 @@ fold_zero _ _
   (a ::ₘ s).inf = a ⊓ s.inf :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma inf_singleton {a : α} : (a ::ₘ 0).inf = a := by simp
+@[simp] lemma inf_singleton {a : α} : ({a} : multiset α).inf = a :=
+inf_top_eq
 
 @[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
 eq.trans (by simp [inf]) (fold_add _ _ _ _ _)

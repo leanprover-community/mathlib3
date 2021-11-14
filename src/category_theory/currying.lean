@@ -5,6 +5,14 @@ Authors: Scott Morrison
 -/
 import category_theory.products.bifunctor
 
+/-!
+# Curry and uncurry, as functors.
+
+We define `curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E))` and `uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E)`,
+and verify that they provide an equivalence of categories
+`currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E)`.
+
+-/
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
@@ -34,10 +42,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
       simp only [prod_comp_fst, prod_comp_snd, category.comp_id, category.assoc,
         functor.map_id, functor.map_comp, nat_trans.id_app, nat_trans.comp_app],
       slice_lhs 2 3 { rw nat_trans.naturality },
-      slice_lhs 1 2 {
-        rw [←nat_trans.comp_app, nat_trans.naturality,
-            nat_trans.comp_app],
-      },
+      slice_lhs 1 2 { rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app] },
       rw category.assoc,
     end } }.
 
@@ -93,7 +98,7 @@ The equivalence of functor categories given by currying/uncurrying.
 def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
 equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, nat_iso.of_components (λ Y, as_iso (𝟙 _)) (by tidy)) (by tidy)) (by tidy))
+    (λ X, nat_iso.of_components (λ Y, iso.refl _) (by tidy)) (by tidy)) (by tidy))
   (nat_iso.of_components (λ F, nat_iso.of_components
     (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
 

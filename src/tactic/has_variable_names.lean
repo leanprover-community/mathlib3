@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jannis Limperg
+Authors: Jannis Limperg
 -/
 
 import tactic.core
@@ -109,7 +109,7 @@ make_listlike_instance α
 instance : has_variable_names ℕ :=
 ⟨[`n, `m, `o]⟩
 
-instance : has_variable_names Prop :=
+instance Prop.has_variable_names : has_variable_names Prop :=
 ⟨[`P, `Q, `R]⟩
 
 instance {α} [has_variable_names α] : has_variable_names (thunk α) :=

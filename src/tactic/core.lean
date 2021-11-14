@@ -12,14 +12,40 @@ import data.bool
 import tactic.binder_matching
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import tactic.project_dir
 import system.io
 
-universe variable u
+universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
+-- Rather than import order.lexicographic here, we can get away with defining the order by hand.
 instance : has_lt pos :=
-{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+{ lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
+
+namespace tactic
+
+/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
+meta def refl_conv (e : expr) : tactic (expr × expr) :=
+do p ← mk_eq_refl e, return (e, p)
+
+/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
+proof by reflexivity. -/
+meta def or_refl_conv (tac : expr → tactic (expr × expr))
+  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
+
+/-- Transitivity conversion: given two conversions (which take an
+expression `e` and returns `(e', ⊢ e = e')`), produces another
+conversion that combines them with transitivity, treating failures
+as reflexivity conversions. -/
+meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
+  tactic (expr × expr) :=
+(do (e₁, p₁) ← t₁ e,
+  (do (e₂, p₂) ← t₂ e₁,
+    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
+  return (e₁, p₁)) <|> t₂ e
+
+end tactic
 
 namespace expr
 open tactic
@@ -148,6 +174,8 @@ end format
 
 namespace tactic
 open function
+
+export interaction_monad (get_state set_state run_with_state)
 
 /-- Private work function for `add_local_consts_as_local_hyps`: given
     `mappings : list (expr × expr)` corresponding to pairs `(var, hyp)` of variables and the local
@@ -593,6 +621,13 @@ meta def intron_no_renames : ℕ → tactic unit
   intro pp_n,
   intron_no_renames n
 
+/-- `get_univ_level t` returns the universe level of a type `t` -/
+meta def get_univ_level (t : expr) (md := semireducible) (unfold_ginductive := tt) :
+  tactic level :=
+do expr.sort u ← infer_type t >>= λ s, whnf s md unfold_ginductive |
+    fail "get_univ_level: argument is not a type",
+   return u
+
 /-!
 ### Various tactics related to local definitions (local constants of the form `x : α := t`)
 
@@ -613,8 +648,23 @@ tactic.unsafe.type_context.run $ do
 
 /-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
 `e : α := t`) and otherwise fails. -/
-meta def is_local_def (e : expr) : tactic unit :=
-retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
+meta def is_local_def (e : expr) : tactic unit := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  (some decl) ← pure $ ctx.get_local_decl e.local_uniq_name |
+    fail format!"is_local_def: {e} is not a local constant",
+  when decl.value.is_none $ fail
+   format!"is_local_def: {e} is not a local definition"
+
+/-- Returns the local definitions from the context. A local definition is a
+local constant of the form `e : α := t`. The local definitions are returned in
+the order in which they appear in the context. -/
+meta def local_defs : tactic (list expr) := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  ctx' ← local_context,
+  ctx'.mfilter $ λ h, do
+    (some decl) ← pure $ ctx.get_local_decl h.local_uniq_name |
+      fail format!"local_defs: local {h} not found in the local context",
+    pure decl.value.is_some
 
 /-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
 (using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
@@ -674,6 +724,31 @@ meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
   ctx ← local_context,
   let ctx := ctx.take_while (≠ h),
   ctx.many (succeeds ∘ local_def_value)
+
+/--
+If the expression `h` is a local variable with type `x = t` or `t = x`, where `x` is a local
+constant, `tactic.subst' h` substitutes `x` by `t` everywhere in the main goal and then clears `h`.
+If `h` is another local variable, then we find a local constant with type `h = t` or `t = h` and
+substitute `t` for `h`.
+
+This is like `tactic.subst`, but fails with a nicer error message if the substituted variable is a
+local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
+-/
+meta def subst' (h : expr) : tactic unit := do
+  e ← do { -- we first find the variable being substituted away
+    t ← infer_type h,
+    let (f, args) := t.get_app_fn_args,
+    if (f.const_name = `eq ∨ f.const_name = `heq) then do {
+      let lhs := args.inth 1,
+      let rhs := args.ilast,
+      if rhs.is_local_constant then return rhs else
+      if lhs.is_local_constant then return lhs else fail
+      "subst tactic failed, hypothesis '{h.local_pp_name}' is not of the form (x = t) or (t = x)." }
+    else return h },
+  success_if_fail (is_local_def e) <|>
+    fail format!("Cannot substitute variable {e.local_pp_name}, " ++
+      "it is a local definition. If you really want to do this, use `clear_value` first."),
+  subst h
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
@@ -1321,8 +1396,7 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
         them on this first pass. (We return the mappings generated by our second invocation of this
         function below.) -/
      add_local_consts_as_local_hyps vars,
-     es.mmap to_expr
-   },
+     es.mmap to_expr },
 
    /- Now calculate lists of a) the explicitly `include`ed variables and b) the variables which were
       referenced in `e` when it was resolved to `fake_e`.
@@ -1356,8 +1430,7 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
    lean.parser.of_tactic $ do {
       mappings ← add_local_consts_as_local_hyps all_implicitly_included_vars,
       ts ← get_state,
-      return (ts, mappings)
-   }
+      return (ts, mappings) }
 
 end lean.parser
 
@@ -1815,9 +1888,9 @@ It does *not* use the `namespace` command, so it will typically be used after
 meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") :
   lean.parser unit :=
 emit_code_here "
-open lean
-open lean.parser
-open interactive interactive.types
+open _root_.lean
+open _root_.lean.parser
+open _root_.interactive _root_.interactive.types
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
@@ -2040,7 +2113,7 @@ See `proof_state`, `goal` and `get_proof_state`.
 meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
 try_core $ retrieve $ tac >> get_proof_state
 
-open lean interactive
+open lean _root_.interactive
 
 /-- A type alias for `tactic format`, standing for "pretty print format". -/
 meta def pformat := tactic format
@@ -2118,11 +2191,20 @@ meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
 
+/-- A hackish way to get the `src` directory of any project.
+  Requires as argument any declaration name `n` in that project, and `k`, the number of characters
+  in the path of the file where `n` is declared not part of the `src` directory.
+  Example: For `mathlib_dir_locator` this is the length of `tactic/project_dir.lean`, so `23`.
+  Note: does not work in the file where `n` is declared. -/
+meta def get_project_dir (n : name) (k : ℕ) : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean n <|>
+fail!"Did not find declaration {n}. This command does not work in the file where {n} is declared.",
+  return $ s.popn_back k
+
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
-do e ← get_env,
-  s ← e.decl_olean `tactic.reset_instance_cache,
-  return $ s.popn_back 17
+get_project_dir `mathlib_dir_locator 23
 
 /-- Checks whether a declaration with the given name is declared in mathlib.
 If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,
@@ -2144,7 +2226,8 @@ do d ← get_decl n,
      (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
    else if (t =ₐ `(tactic string)) then
      (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
+   else fail!
+     "name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
 /-- auxiliary function for `apply_under_n_pis` -/
 private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr → pexpr
@@ -2266,7 +2349,7 @@ do n ← ident,
    d ← parser.pexpr,
    d ← to_expr ``(%%d : option string),
    descr ← eval_expr (option string) d,
-   with_list ← types.with_ident_list <|> return [],
+   with_list ← (tk "with" *> many ident) <|> return [],
    mk_simp_attr n with_list,
    add_doc_string (name.append `simp_attr n) $ descr.get_or_else $ "simp set for " ++ to_string n
 
@@ -2291,7 +2374,7 @@ ns.mfirst (λ nm, do
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
 /-- A tactic to set either a basic attribute or a user attribute.
-  If the the user attribute has a parameter, the default value will be used.
+  If the user attribute has a parameter, the default value will be used.
   This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do
@@ -2305,8 +2388,10 @@ then do
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
     ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
-    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter without a default value.
-Solution: provide an `inhabited` instance.",
+    fail! ("Cannot set attribute @[{attr_name}].\n" ++
+      "The corresponding user attribute {user_attr_nm} " ++
+      "has a parameter without a default value.\n" ++
+      "Solution: provide an `inhabited` instance."),
   tac
 else fail msg
 

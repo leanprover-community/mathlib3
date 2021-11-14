@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.preadditive
 import group_theory.quotient_group
-import category_theory.limits.limits
 import category_theory.limits.concrete_category
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.concrete_category
@@ -258,8 +257,7 @@ begin
     -- add_comm
     { rw add_comm, },
     -- add_assoc
-    { rw add_assoc, },
-  }
+    { rw add_assoc, } }
 end
 
 /-- The group homomorphism from the colimit abelian group to the cone point of any other cocone. -/
@@ -301,10 +299,22 @@ open quotient_add_group
 The categorical cokernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical quotient.
 -/
-noncomputable def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
+noncomputable def cokernel_iso_quotient {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   cokernel f ≅ AddCommGroup.of (quotient (add_monoid_hom.range f)) :=
 { hom := cokernel.desc f (mk' _)
-    (by { ext, apply quotient.sound, fsplit, exact -x, simp, }),
-  inv := add_monoid_hom.of (quotient_add_group.lift _ (cokernel.π f) (by tidy)), }
+    (by { ext, apply quotient.sound, fsplit, exact -x,
+          simp only [add_zero, add_monoid_hom.map_neg], }),
+  inv := quotient_add_group.lift _ (cokernel.π f)
+    (by { intros x H_1, cases H_1, induction H_1_h,
+          simp only [cokernel.condition_apply, zero_apply]}),
+  -- obviously can take care of the next goals, but it is really slow
+  hom_inv_id' := begin
+    ext1, simp only [coequalizer_as_cokernel, category.comp_id, cokernel.π_desc_assoc], ext1, refl,
+  end,
+  inv_hom_id' := begin
+    ext x : 2,
+    simp only [colimit.ι_desc_apply, id_apply, lift_mk, mk'_apply,
+               cofork.of_π_ι_app, comp_apply, add_monoid_hom.comp_apply],
+  end, }
 
 end AddCommGroup

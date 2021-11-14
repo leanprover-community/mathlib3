@@ -216,22 +216,25 @@ end
 
 end pullback
 end pullback
+
 variable (C)
 
-/--
-The pushforward functor.
--/
+/-- The pushforward functor. -/
 def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
 { obj := pushforward_obj f,
   map := @pushforward_map _ _ X Y f }
 
-lemma id_pushforward {X : Top.{v}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
+lemma pushforward_id {X : Top.{v}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
 begin
   apply category_theory.functor.ext,
   { intros, ext U, have h := f.congr,
     erw h (opens.op_map_id_obj U), simpa },
   { intros, apply pushforward.id_eq },
 end
+
+lemma pushforward_comp {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  pushforward C (f ≫ g) = pushforward C f ⋙ pushforward C g := rfl
+
 variables [has_colimits C]
 
 /-- Pullback a presheaf on `Y` along a continuous map `f : X ⟶ Y`, obtaining a presheaf

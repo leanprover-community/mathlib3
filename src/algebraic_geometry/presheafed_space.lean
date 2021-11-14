@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
+import category_theory.over
 
 /-!
 # Presheafed spaces
@@ -81,6 +82,11 @@ lemma hext {X Y : PresheafedSpace C} (α β : hom X Y)
   α = β :=
 by { cases α, cases β, congr, exacts [w,h] }
 
+lemma congr_base {X Y : PresheafedSpace C} (α β : hom X Y) (h : α = β) : α.base = β.base := by rw h
+
+lemma congr_c {X Y : PresheafedSpace C} (α β : hom X Y) (h : α = β) :
+  α.c ≫ eq_to_hom (by rw h) = β.c := by { cases h, simp }
+
 .
 
 /-- The identity morphism of a `PresheafedSpace`. -/
@@ -115,7 +121,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   id_comp' := λ X Y f, by { ext1,
     { rw comp_c, erw eq_to_hom_map, simp, apply comp_id }, apply id_comp },
   comp_id' := λ X Y f, by { ext1,
-    { rw comp_c, erw congr_hom (presheaf.id_pushforward _) f.c,
+    { rw comp_c, erw congr_hom (presheaf.pushforward_id _) f.c,
       simp, erw eq_to_hom_trans_assoc, simp }, apply comp_id },
   assoc' := λ W X Y Z f g h, by { ext1,
     repeat {rw comp_c}, simpa, refl } }
@@ -218,6 +224,91 @@ def restrict_top_iso (X : PresheafedSpace C) :
     by { erw comp_c, rw X.of_restrict_top_c, simpa },
   inv_hom_id' := ext _ _ rfl $
     by { erw comp_c, rw X.of_restrict_top_c, simpa } }
+
+section
+open Top.presheaf
+
+/-- Given a topological space `X` and a presheafed space `Y` over it, we can push the
+    presheaf of `Y` forward to get a presheaf on `X`, and this is functorial in `Y`.
+    Could potentially be used to refactor the proof that `PresheafedSpace` `has_colimits`.
+    It's also functorial in `X`, i.e. a natural transformation between the two functors
+    from `Top` to `Cat`, but we do not prove this. -/
+def pushforward_over (X : Top.{v}) :
+  costructured_arrow (PresheafedSpace.forget C) X ⥤ (X.presheaf C)ᵒᵖ :=
+{ obj := λ f, op (f.hom _* f.left.presheaf),
+  /- `f.left` is `Y : PresheafedSpace C`, `f.hom : (Y : Top.{v}) ⟶ X -/
+  map := λ _ f₂ g, ((pushforward _ f₂.hom).map g.left.c ≫
+    eq_to_hom (by {rw ← costructured_arrow.w g, refl})).op,
+  map_id' := λ f, by { erw id_c, simpa },
+  map_comp' := λ _ _ _ _ g₂, by { rw functor.congr_hom (congr_arg
+    (pushforward C) (costructured_arrow.w g₂).symm), erw comp_c, simpa } }
+
+/-- Given a presheafed space `X` and a topological space `Y` under it, we can push the
+    presheaf of `X` forward to make `Y` a presheaf space, with a natural morphism
+    `X ⟶ Y`, and this is functorial in `Y`; it's also functorial in `X` but we do not
+    prove that. -/
+def pushforward_under (X : PresheafedSpace C) : under (X : Top.{v}) ⥤ under X :=
+{ obj := λ f, ⟨f.left, ⟨f.right, f.hom _* X.presheaf⟩, ⟨f.hom, 𝟙 _⟩⟩,
+  map := λ _ _ g, ⟨g.left, ⟨g.right, eq_to_hom (by { rwa ← under.w g, refl })⟩,
+    by { erw id_comp, ext1, erw [comp_c, comp_id], simpa }⟩,
+  map_id' := λ f, rfl,
+  map_comp' := by { intros, congr, simpa } }
+
+/-- Forgetful functor between the under categories. -/
+def forget_under (X : PresheafedSpace C) : under X ⥤ under (X : Top.{v}) :=
+{ obj := λ f, ⟨f.left, f.right, f.hom.base⟩,
+  map := λ _ _ g, ⟨g.left, g.right.base, by { dsimp, rw ← under.w g, erw id_comp }⟩ }
+
+def pushforward_forget_counit (X : PresheafedSpace C) :
+  X.forget_under ⋙ X.pushforward_under ⟶ 𝟭 (under X) :=
+{ app := λ f, ⟨eq_to_hom (by simp), ⟨𝟙 _, f.hom.c⟩,
+    by { erw id_comp, ext1, {refl}, {dsimp, erw comp_id, refl} }⟩,
+  naturality' := λ f₁ f₂ g, by { ext1, ext1, { erw [comp_c, comp_c],
+    dsimp, rw ← congr_c _ _ (under.w g), dunfold pushforward_under, simpa },
+    { dsimp, erw comp_id } } }
+
+def pushforward_forget_adjunction (X : PresheafedSpace C) :
+  pushforward_under X ⊣ forget_under X := adjunction.mk_of_unit_counit
+{ unit := eq_to_hom $ by { apply functor.hext, { intro f, cases f, refl },
+    { intros f₁ f₂ g, cases f₁, cases f₂, cases g, refl } },
+  /- or { app := λ f, ⟨eq_to_hom (by simp), 𝟙 _, rfl⟩ } -/
+  counit := pushforward_forget_counit X,
+  left_triangle' := by { ext1, ext1, simp, erw id_comp, refl },
+  right_triangle' := by { ext1, ext1, simp, erw id_comp, refl } }
+
+
+variables [limits.has_colimits C]
+
+/-
+def pullback_under (X : Top.{v}) :
+  structured_arrow X (PresheafedSpace.forget C) ⥤ (X.presheaf C)ᵒᵖ :=
+{ obj := λ f, op $ (pullback C f.hom).obj f.right.presheaf,
+  map := λ f₁ f₂ g, by { } ,
+}
+
+def pullback (X : PresheafedSpace C) : over (X : Top.{v}) ⥤ over X :=
+{ obj := λ f, ⟨⟨f.left, pullback_obj f.hom X.presheaf⟩, punit.star,
+    ⟨f.hom, (pushforward_pullback_adjunction C f.hom).unit.app X.presheaf⟩⟩,
+  /- `f.left` is `U`, `f.right` is `punit.star`, and `f.hom : U ⟶ (X : Top.{v})` -/
+  map := λ f f' g, ⟨⟨g.left, _⟩, by { }⟩}
+
+def pullback_under
+
+/-- The pullback of a presheafed space along a continuous map into the space. -/
+@[simps] noncomputable
+def pullback {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v})) : PresheafedSpace C :=
+{ carrier := U,
+  presheaf := pullback_obj f X.presheaf }
+
+/-- The map from the pullback of a presheafed space. -/
+noncomputable
+def of_pullback {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v})) : X.pullback f ⟶ X :=
+{ base := f,
+  c := (pushforward_pullback_adjunction C f).unit.app X.presheaf }
+
+-/
+
+end
 
 /--
 The global sections, notated Gamma.

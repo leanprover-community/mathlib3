@@ -226,4 +226,23 @@ begin
     refl }
 end
 
+lemma is_iso_to_plus_of_is_sheaf (hP : presheaf.is_sheaf J P) : is_iso (J.to_plus P) :=
+begin
+  rw presheaf.is_sheaf_iff_multiequalizer at hP,
+  resetI,
+  suffices : ∀ X, is_iso ((J.to_plus P).app X),
+  { resetI, apply nat_iso.is_iso_of_is_iso_app },
+  intros X, dsimp,
+  suffices : is_iso (colimit.ι (J.diagram P X.unop) (op ⊤)),
+  { resetI, apply is_iso.comp_is_iso },
+  suffices : ∀ (S T : (J.cover X.unop)ᵒᵖ) (f : S ⟶ T), is_iso ((J.diagram P X.unop).map f),
+  { resetI, apply is_iso_ι_of_is_initial (initial_op_of_terminal is_terminal_top) },
+  intros S T e,
+  have : S.unop.to_multiequalizer P ≫ (J.diagram P (X.unop)).map e =
+    T.unop.to_multiequalizer P, by { ext, dsimp, simpa },
+  have : (J.diagram P (X.unop)).map e = inv (S.unop.to_multiequalizer P) ≫
+    T.unop.to_multiequalizer P, by simp [← this],
+  rw this, apply_instance,
+end
+
 end category_theory.grothendieck_topology

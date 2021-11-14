@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import tactic.interval_cases
+import data.nat.interval
 import data.nat.modeq
+import tactic.interval_cases
 
 /-!
 # IMO 1964 Q1

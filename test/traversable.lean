@@ -1,5 +1,6 @@
 import control.traversable.derive
 import control.traversable.instances
+import control.bitraversable.basic
 
 universes u
 

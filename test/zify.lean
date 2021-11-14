@@ -1,3 +1,4 @@
+import data.int.cast
 import tactic.zify
 
 example (a b c x y z : ℕ) (h : ¬ x*y*z < 0) (h2 : (c : ℤ) < a + 3 * b) : a + 3*b > c :=

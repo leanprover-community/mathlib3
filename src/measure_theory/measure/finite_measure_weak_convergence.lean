@@ -186,16 +186,6 @@ begin
   exact ennreal.mul_lt_top ennreal.coe_lt_top.ne μ_fin.measure_univ_lt_top.ne,
 end
 
--- I think this might be occasionally useful (it is used below).
--- Where to place?
-lemma _root_.nnreal.le_add_nndist (a b : ℝ≥0) :
-  a ≤ b + nndist a b :=
-begin
-  suffices : (a : ℝ) ≤ (b : ℝ) + (dist a b),
-  { exact nnreal.coe_le_coe.mp this, },
-  linarith [le_of_abs_le (by refl : abs (a-b : ℝ) ≤ (dist a b))],
-end
-
 -- Only useful here or more generally?
 -- Where to place?
 lemma _root_.bounded_continuous_function.nnreal.to_ennreal_comp_measurable {α : Type*}

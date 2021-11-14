@@ -218,7 +218,7 @@ end
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
 lemma dist_le_range_sum_dist (f : ℕ → α) (n : ℕ) :
   dist (f 0) (f n) ≤ ∑ i in finset.range n, dist (f i) (f (i + 1)) :=
-nat.Ico_zero_eq_range n ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
+nat.Ico_zero_eq_range ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
 
 /-- A version of `dist_le_Ico_sum_dist` with each intermediate distance replaced
 with an upper estimate. -/
@@ -233,7 +233,7 @@ with an upper estimate. -/
 lemma dist_le_range_sum_of_dist_le {f : ℕ → α} (n : ℕ)
   {d : ℕ → ℝ} (hd : ∀ {k}, k < n → dist (f k) (f (k + 1)) ≤ d k) :
   dist (f 0) (f n) ≤ ∑ i in finset.range n, d i :=
-nat.Ico_zero_eq_range n ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
+nat.Ico_zero_eq_range ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
 
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _

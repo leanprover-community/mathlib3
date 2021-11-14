@@ -1361,15 +1361,15 @@ lemma eventually.ne_of_lt [preorder β] {l : filter α} {f g : α → β}
   (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ g x :=
 h.mono (λ x hx, hx.ne)
 
-lemma eventually.ne_top_of_lt [order_top β] {l : filter α} {f g : α → β}
+lemma eventually.ne_top_of_lt [partial_order β] [order_top β] {l : filter α} {f g : α → β}
   (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ ⊤ :=
 h.mono (λ x hx, hx.ne_top)
 
-lemma eventually.lt_top_of_ne [order_top β] {l : filter α} {f : α → β}
+lemma eventually.lt_top_of_ne [partial_order β] [order_top β] {l : filter α} {f : α → β}
   (h : ∀ᶠ x in l, f x ≠ ⊤) : ∀ᶠ x in l, f x < ⊤ :=
 h.mono (λ x hx, hx.lt_top)
 
-lemma eventually.lt_top_iff_ne_top [order_top β] {l : filter α} {f : α → β} :
+lemma eventually.lt_top_iff_ne_top [partial_order β] [order_top β] {l : filter α} {f : α → β} :
   (∀ᶠ x in l, f x < ⊤) ↔ ∀ᶠ x in l, f x ≠ ⊤ :=
 ⟨eventually.ne_of_lt, eventually.lt_top_of_ne⟩
 

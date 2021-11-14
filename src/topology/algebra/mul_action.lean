@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import topology.algebra.monoid
 import algebra.module.prod
 import topology.homeomorph
+import group_theory.group_action.basic
 
 /-!
 # Continuous monoid action
@@ -32,7 +33,7 @@ Besides homeomorphisms mentioned above, in this file we provide lemmas like `con
 or `filter.tendsto.smul` that provide dot-syntax access to `continuous_smul`.
 -/
 
-open_locale topological_space
+open_locale topological_space pointwise
 open filter
 
 /-- Class `has_continuous_smul M α` says that the scalar multiplication `(•) : M → α → α`
@@ -44,22 +45,36 @@ class has_continuous_smul (M α : Type*) [has_scalar M α]
 
 export has_continuous_smul (continuous_smul)
 
+/-- Class `has_continuous_vadd M α` says that the additive action `(+ᵥ) : M → α → α`
+is continuous in both arguments. We use the same class for all kinds of additive actions,
+including (semi)modules and algebras. -/
+class has_continuous_vadd (M α : Type*) [has_vadd M α]
+  [topological_space M] [topological_space α] : Prop :=
+(continuous_vadd : continuous (λp : M × α, p.1 +ᵥ p.2))
+
+export has_continuous_vadd (continuous_vadd)
+
+attribute [to_additive] has_continuous_smul
+
 variables {M α β : Type*} [topological_space M] [topological_space α]
 
 section has_scalar
 
 variables [has_scalar M α] [has_continuous_smul M α]
 
+@[to_additive]
 lemma filter.tendsto.smul {f : β → M} {g : β → α} {l : filter β} {c : M} {a : α}
   (hf : tendsto f l (𝓝 c)) (hg : tendsto g l (𝓝 a)) :
   tendsto (λ x, f x • g x) l (𝓝 $ c • a) :=
 (continuous_smul.tendsto _).comp (hf.prod_mk_nhds hg)
 
+@[to_additive]
 lemma filter.tendsto.const_smul {f : β → α} {l : filter β} {a : α} (hf : tendsto f l (𝓝 a))
   (c : M) :
   tendsto (λ x, c • f x) l (𝓝 (c • a)) :=
 tendsto_const_nhds.smul hf
 
+@[to_additive]
 lemma filter.tendsto.smul_const {f : β → M} {l : filter β} {c : M}
   (hf : tendsto f l (𝓝 c)) (a : α) :
   tendsto (λ x, (f x) • a) l (𝓝 (c • a)) :=
@@ -67,36 +82,43 @@ hf.smul tendsto_const_nhds
 
 variables [topological_space β] {f : β → M} {g : β → α} {b : β} {s : set β}
 
+@[to_additive]
 lemma continuous_within_at.smul (hf : continuous_within_at f s b)
   (hg : continuous_within_at g s b) :
   continuous_within_at (λ x, f x • g x) s b :=
 hf.smul hg
 
+@[to_additive]
 lemma continuous_within_at.const_smul (hg : continuous_within_at g s b) (c : M) :
   continuous_within_at (λ x, c • g x) s b :=
 hg.const_smul c
 
+@[to_additive]
 lemma continuous_at.smul (hf : continuous_at f b) (hg : continuous_at g b) :
   continuous_at (λ x, f x • g x) b :=
 hf.smul hg
 
+@[to_additive]
 lemma continuous_at.const_smul (hg : continuous_at g b) (c : M) :
   continuous_at (λ x, c • g x) b :=
 hg.const_smul c
 
+@[to_additive]
 lemma continuous_on.smul (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λ x, f x • g x) s :=
 λ x hx, (hf x hx).smul (hg x hx)
 
+@[to_additive]
 lemma continuous_on.const_smul (hg : continuous_on g s) (c : M) :
   continuous_on (λ x, c • g x) s :=
 λ x hx, (hg x hx).const_smul c
 
-@[continuity]
+@[continuity, to_additive]
 lemma continuous.smul (hf : continuous f) (hg : continuous g) :
   continuous (λ x, f x • g x) :=
 continuous_smul.comp (hf.prod_mk hg)
 
+@[to_additive]
 lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 continuous_smul.comp (continuous_const.prod_mk hg)
@@ -112,6 +134,15 @@ instance units.has_continuous_smul : has_continuous_smul (units M) α :=
     show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : units M × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
 
+@[to_additive]
+lemma smul_closure_subset (c : M) (s : set α) : c • closure s ⊆ closure (c • s) :=
+((set.maps_to_image _ _).closure $ continuous_id.const_smul c).image_subset
+
+@[to_additive]
+lemma smul_closure_orbit_subset (c : M) (x : α) :
+  c • closure (mul_action.orbit M x) ⊆ closure (mul_action.orbit M x) :=
+(smul_closure_subset c _).trans $ closure_mono $ mul_action.smul_orbit_subset _ _
+
 end monoid
 
 section group
@@ -119,6 +150,7 @@ section group
 variables {G : Type*} [topological_space G] [group G] [mul_action G α]
   [has_continuous_smul G α]
 
+@[to_additive]
 lemma tendsto_const_smul_iff {f : β → α} {l : filter β} {a : α} (c : G) :
   tendsto (λ x, c • f x) l (𝓝 $ c • a) ↔ tendsto f l (𝓝 a) :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul c⁻¹,
@@ -126,34 +158,56 @@ lemma tendsto_const_smul_iff {f : β → α} {l : filter β} {a : α} (c : G) :
 
 variables [topological_space β] {f : β → α} {b : β}  {s : set β}
 
+@[to_additive]
 lemma continuous_within_at_const_smul_iff (c : G) :
   continuous_within_at (λ x, c • f x) s b ↔ continuous_within_at f s b :=
 tendsto_const_smul_iff c
 
+@[to_additive]
 lemma continuous_on_const_smul_iff (c : G) :
   continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
 forall_congr $ λ b, forall_congr $ λ hb, continuous_within_at_const_smul_iff c
 
+@[to_additive]
 lemma continuous_at_const_smul_iff (c : G) :
   continuous_at (λ x, c • f x) b ↔ continuous_at f b :=
 tendsto_const_smul_iff c
 
+@[to_additive]
 lemma continuous_const_smul_iff (c : G) :
   continuous (λ x, c • f x) ↔ continuous f :=
 by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
 
-/-- Scalar multiplication by a unit of a monoid `M` acting on `α` is a homeomorphism from `α`
+/-- Scalar multiplication by an element of a group `G` acting on `α` is a homeomorphism from `α`
 to itself. -/
 protected def homeomorph.smul (c : G) : α ≃ₜ α :=
 { to_equiv := mul_action.to_perm_hom G α c,
   continuous_to_fun  := continuous_id.const_smul _,
   continuous_inv_fun := continuous_id.const_smul _ }
 
+/-- Affine-addition of an element of an additive group `G` acting on `α` is a homeomorphism
+from `α` to itself. -/
+protected def homeomorph.vadd {G : Type*} [topological_space G] [add_group G] [add_action G α]
+  [has_continuous_vadd G α] (c : G) : α ≃ₜ α :=
+{ to_equiv := add_action.to_perm_hom α G c,
+  continuous_to_fun  := continuous_id.const_vadd _,
+  continuous_inv_fun := continuous_id.const_vadd _ }
+
+attribute [to_additive] homeomorph.smul
+
+@[to_additive]
 lemma is_open_map_smul (c : G) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul c).is_open_map
 
+@[to_additive] lemma is_open.smul {s : set α} (hs : is_open s) (c : G) : is_open (c • s) :=
+is_open_map_smul c s hs
+
+@[to_additive]
 lemma is_closed_map_smul (c : G) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul c).is_closed_map
+
+@[to_additive] lemma is_closed.smul {s : set α} (hs : is_closed s) (c : G) : is_closed (c • s) :=
+is_closed_map_smul c s hs
 
 end group
 
@@ -248,17 +302,20 @@ let ⟨u, hu⟩ := hc in hu ▸ is_closed_map_smul u
 
 end is_unit
 
+@[to_additive]
 instance has_continuous_mul.has_continuous_smul {M : Type*} [monoid M]
   [topological_space M] [has_continuous_mul M] :
   has_continuous_smul M M :=
 ⟨continuous_mul⟩
 
+@[to_additive]
 instance [topological_space β] [has_scalar M α] [has_scalar M β] [has_continuous_smul M α]
   [has_continuous_smul M β] :
   has_continuous_smul M (α × β) :=
 ⟨(continuous_fst.smul (continuous_fst.comp continuous_snd)).prod_mk
   (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
 
+@[to_additive]
 instance {ι : Type*} {γ : ι → Type}
   [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=

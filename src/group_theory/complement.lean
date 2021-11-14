@@ -76,15 +76,71 @@ end
 @[to_additive] lemma is_complement'_comm : is_complement' H K ↔ is_complement' K H :=
 ⟨is_complement'.symm, is_complement'.symm⟩
 
-@[to_additive] lemma is_complement_top_singleton {g : G} :
-  is_complement (⊤ : set G) {g} :=
+@[to_additive] lemma is_complement_top_singleton {g : G} : is_complement (⊤ : set G) {g} :=
 ⟨λ ⟨x, _, rfl⟩ ⟨y, _, rfl⟩ h, prod.ext (subtype.ext (mul_right_cancel h)) rfl,
   λ x, ⟨⟨⟨x * g⁻¹, ⟨⟩⟩, g, rfl⟩, inv_mul_cancel_right x g⟩⟩
 
-@[to_additive] lemma is_complement_singleton_top {g : G} :
-  is_complement ({g} : set G) (⊤ : set G) :=
+@[to_additive] lemma is_complement_singleton_top {g : G} : is_complement ({g} : set G) ⊤ :=
 ⟨λ ⟨⟨_, rfl⟩, x⟩ ⟨⟨_, rfl⟩, y⟩ h, prod.ext rfl (subtype.ext (mul_left_cancel h)),
   λ x, ⟨⟨⟨g, rfl⟩, g⁻¹ * x, ⟨⟩⟩, mul_inv_cancel_left g x⟩⟩
+
+@[to_additive] lemma is_complement_singleton_left {g : G} : is_complement {g} S ↔ S = ⊤ :=
+begin
+  refine ⟨λ h, top_le_iff.mp (λ x hx, _), λ h, (congr_arg _ h).mpr is_complement_singleton_top⟩,
+  obtain ⟨⟨⟨z, rfl : z = g⟩, y, _⟩, hy⟩ := h.2 (g * x),
+  rwa ← mul_left_cancel hy,
+end
+
+@[to_additive] lemma is_complement_singleton_right {g : G} : is_complement S {g} ↔ S = ⊤ :=
+begin
+  refine ⟨λ h, top_le_iff.mp (λ x hx, _), λ h, (congr_arg _ h).mpr is_complement_top_singleton⟩,
+  obtain ⟨y, hy⟩ := h.2 (x * g),
+  conv_rhs at hy { rw ← (show y.2.1 = g, from y.2.2) },
+  rw ← mul_right_cancel hy,
+  exact y.1.2,
+end
+
+@[to_additive] lemma is_complement_top_left : is_complement ⊤ S ↔ ∃ g : G, S = {g} :=
+begin
+  refine ⟨λ h, set.exists_eq_singleton_iff_nonempty_unique_mem.mpr ⟨_, λ a b ha hb, _⟩, _⟩,
+  { obtain ⟨a, ha⟩ := h.2 1,
+    exact ⟨a.2.1, a.2.2⟩ },
+  { have : (⟨⟨_, mem_top a⁻¹⟩, ⟨a, ha⟩⟩ : (⊤ : set G) × S) = ⟨⟨_, mem_top b⁻¹⟩, ⟨b, hb⟩⟩ :=
+    h.1 ((inv_mul_self a).trans (inv_mul_self b).symm),
+    exact subtype.ext_iff.mp ((prod.ext_iff.mp this).2) },
+  { rintro ⟨g, rfl⟩,
+    exact is_complement_top_singleton },
+end
+
+@[to_additive] lemma is_complement_top_right : is_complement S ⊤ ↔ ∃ g : G, S = {g} :=
+begin
+  refine ⟨λ h, set.exists_eq_singleton_iff_nonempty_unique_mem.mpr ⟨_, λ a b ha hb, _⟩, _⟩,
+  { obtain ⟨a, ha⟩ := h.2 1,
+    exact ⟨a.1.1, a.1.2⟩ },
+  { have : (⟨⟨a, ha⟩, ⟨_, mem_top a⁻¹⟩⟩ : S × (⊤ : set G)) = ⟨⟨b, hb⟩, ⟨_, mem_top b⁻¹⟩⟩ :=
+    h.1 ((mul_inv_self a).trans (mul_inv_self b).symm),
+    exact subtype.ext_iff.mp ((prod.ext_iff.mp this).1) },
+  { rintro ⟨g, rfl⟩,
+    exact is_complement_singleton_top },
+end
+
+@[to_additive] lemma is_complement'_top_bot : is_complement' (⊤ : subgroup G) ⊥ :=
+is_complement_top_singleton
+
+@[to_additive] lemma is_complement'_bot_top : is_complement' (⊥ : subgroup G) ⊤ :=
+is_complement_singleton_top
+
+@[simp, to_additive] lemma is_complement'_bot_left : is_complement' ⊥ H ↔ H = ⊤ :=
+is_complement_singleton_left.trans coe_eq_univ
+
+@[simp, to_additive] lemma is_complement'_bot_right : is_complement' H ⊥ ↔ H = ⊤ :=
+is_complement_singleton_right.trans coe_eq_univ
+
+@[simp, to_additive] lemma is_complement'_top_left : is_complement' ⊤ H ↔ H = ⊥ :=
+is_complement_top_left.trans coe_eq_singleton
+
+@[simp, to_additive] lemma is_complement'_top_right : is_complement' H ⊤ ↔ H = ⊥ :=
+is_complement_top_right.trans coe_eq_singleton
 
 @[to_additive] lemma mem_left_transversals_iff_exists_unique_inv_mul_mem :
   S ∈ left_transversals T ↔ ∀ g : G, ∃! s : S, (s : G)⁻¹ * g ∈ T :=
@@ -154,13 +210,27 @@ mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
   rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
 
-lemma is_complement'.card_mul [fintype G] [fintype H] [fintype K] (h : is_complement' H K) :
-  fintype.card H * fintype.card K = fintype.card G :=
-(fintype.card_prod _ _).symm.trans (fintype.card_of_bijective h)
+lemma is_complement'.is_compl (h : is_complement' H K) : is_compl H K :=
+begin
+  refine ⟨λ g ⟨p, q⟩, let x : H × K := ⟨⟨g, p⟩, 1⟩, y : H × K := ⟨1, g, q⟩ in subtype.ext_iff.mp
+    (prod.ext_iff.mp (show x = y, from h.1 ((mul_one g).trans (one_mul g).symm))).1, λ g _, _⟩,
+  obtain ⟨⟨h, k⟩, rfl⟩ := h.2 g,
+  exact subgroup.mul_mem_sup h.2 k.2,
+end
+
+lemma is_complement'.sup_eq_top (h : subgroup.is_complement' H K) : H ⊔ K = ⊤ :=
+h.is_compl.sup_eq_top
 
 lemma is_complement'.disjoint (h : is_complement' H K) : disjoint H K :=
-λ g hg, let x : H × K := ⟨⟨g, hg.1⟩, 1⟩, y : H × K := ⟨1, ⟨g, hg.2⟩⟩ in subtype.ext_iff.mp
-  (prod.ext_iff.mp (h.1 (show x.1.1 * _ = y.1.1 * _, from (mul_one g).trans (one_mul g).symm))).1
+h.is_compl.disjoint
+
+lemma is_complement.card_mul [fintype G] [fintype S] [fintype T] (h : is_complement S T) :
+  fintype.card S * fintype.card T = fintype.card G :=
+(fintype.card_prod _ _).symm.trans (fintype.card_of_bijective h)
+
+lemma is_complement'.card_mul [fintype G] [fintype H] [fintype K] (h : is_complement' H K) :
+  fintype.card H * fintype.card K = fintype.card G :=
+h.card_mul
 
 lemma is_complement'_of_card_mul_and_disjoint [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G) (h2 : disjoint H K) :

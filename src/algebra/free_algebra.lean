@@ -162,8 +162,7 @@ instance : semiring (free_algebra R X) :=
 instance : inhabited (free_algebra R X) := ⟨0⟩
 
 instance : has_scalar R (free_algebra R X) :=
-{ smul := λ r a, quot.lift_on a (λ x, quot.mk _ $ ↑r * x) $
-  λ a b h, quot.sound (rel.mul_compat_right h) }
+{ smul := λ r, quot.map ((*) ↑r) (λ a b, rel.mul_compat_right) }
 
 instance : algebra R (free_algebra R X) :=
 { to_fun := λ r, quot.mk _ r,
@@ -334,6 +333,16 @@ lemma algebra_map_left_inverse :
   function.left_inverse algebra_map_inv (algebra_map R $ free_algebra R X) :=
 λ x, by simp [algebra_map_inv]
 
+@[simp] lemma algebra_map_inj (x y : R) :
+  algebra_map R (free_algebra R X) x = algebra_map R (free_algebra R X) y ↔ x = y :=
+algebra_map_left_inverse.injective.eq_iff
+
+@[simp] lemma algebra_map_eq_zero_iff (x : R) : algebra_map R (free_algebra R X) x = 0 ↔ x = 0 :=
+algebra_map_inj x 0
+
+@[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (free_algebra R X) x = 1 ↔ x = 1 :=
+algebra_map_inj x 1
+
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
 λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
@@ -342,6 +351,27 @@ lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebr
   have hfy1 : f (ι R y) = 1, from hoxy ▸ hfx1,
   have hfy0 : f (ι R y) = 0, from (lift_ι_apply _ _).trans $ if_neg hxy,
   one_ne_zero $ hfy1.symm.trans hfy0
+
+@[simp] lemma ι_inj [nontrivial R] (x y : X) : ι R x = ι R y ↔ x = y :=
+ι_injective.eq_iff
+
+@[simp] lemma ι_ne_algebra_map [nontrivial R] (x : X) (r : R) : ι R x ≠ algebra_map R _ r :=
+λ h,
+  let f0 : free_algebra R X →ₐ[R] R := lift R 0 in
+  let f1 : free_algebra R X →ₐ[R] R := lift R 1 in
+  have hf0 : f0 (ι R x) = 0, from lift_ι_apply _ _,
+  have hf1 : f1 (ι R x) = 1, from lift_ι_apply _ _,
+  begin
+    rw [h, f0.commutes, algebra.id.map_eq_self] at hf0,
+    rw [h, f1.commutes, algebra.id.map_eq_self] at hf1,
+    exact zero_ne_one (hf0.symm.trans hf1),
+  end
+
+@[simp] lemma ι_ne_zero [nontrivial R] (x : X) : ι R x ≠ 0 :=
+ι_ne_algebra_map x 0
+
+@[simp] lemma ι_ne_one [nontrivial R] (x : X) : ι R x ≠ 1 :=
+ι_ne_algebra_map x 1
 
 end
 

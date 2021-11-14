@@ -114,14 +114,18 @@ end
 
 section
 variables (R : Type u) [field R] {M : Type v} [add_comm_group M] [module R M]
-open_locale classical
-open linear_map
 
 /-- The trace of the identity endomorphism is the dimension of the vector space -/
-@[simp] theorem trace_one : trace R M 1 = finrank R M :=
-if H : ∃ (s : finset M), nonempty (basis s R M) then let ⟨s, ⟨b⟩⟩ := H in
-by { rw [trace_eq_matrix_trace R b, to_matrix_one, finrank_eq_card_finset_basis b], simp }
-else by { rw [trace, dif_neg H, finrank_eq_zero_of_not_exists_basis H], simp }
+@[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
+begin
+  classical,
+  by_cases H : ∃ (s : finset M), nonempty (basis s R M),
+  { obtain ⟨s, ⟨b⟩⟩ := H,
+    rw [trace_eq_matrix_trace R b, to_matrix_one, finrank_eq_card_finset_basis b],
+    simp, },
+  { suffices : (finrank R M : R) = 0, { simp [this, trace, H], },
+    simp [finrank_eq_zero_of_not_exists_basis H], },
+end
 
 end
 

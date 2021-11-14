@@ -49,7 +49,7 @@ def divisors_antidiagonal : finset (ℕ × ℕ) :=
 ((finset.Ico 1 (n + 1)).product (finset.Ico 1 (n + 1))).filter (λ x, x.fst * x.snd = n)
 
 /-- `prime_divisors n` is the `finset` of prime natural numbers that divide `n`. -/
-def prime_divisors (n:ℕ) := (divisors n).filter prime
+def prime_divisors := (divisors n).filter prime
 
 
 variable {n}
@@ -405,19 +405,24 @@ end
 
 
 
--- # Prime divisors
+/-- # Prime divisors -/
 
 lemma prime_divisors_mem {n p : ℕ} (hn : n ≠ 0) : p ∈ n.prime_divisors ↔ p ∣ n ∧ prime p :=
-by { unfold prime_divisors, rw [mem_filter, mem_divisors],
-    rw [and.congr_left_iff, and_iff_left_iff_imp], intros, exact hn }
+by { unfold prime_divisors, rw [mem_filter, mem_divisors, and_iff_left hn] }
+
+lemma prime_of_mem_prime_divisors {n p : ℕ} (h : p ∈ n.prime_divisors) : prime p :=
+by { rw [prime_divisors, mem_filter] at h, exact h.2 }
+
+lemma dvd_of_mem_prime_divisors {n p : ℕ} (h : p ∈ n.prime_divisors) : p ∣ n :=
+by { rw [prime_divisors, mem_filter] at h, exact dvd_of_mem_divisors h.1 }
 
 /-- 0 has no prime divisors -/
 lemma prime_divisors_zero : prime_divisors 0  = (∅ : finset ℕ) :=
-by { unfold prime_divisors divisors, simp }
+filter_empty _
 
 /-- 1 has no prime divisors -/
 lemma prime_divisors_one : prime_divisors 1 = (∅ : finset ℕ) :=
-by { apply filter_singleton prime }
+filter_singleton prime 1
 
 lemma prime_divisors_eq_to_finset_factors (n : ℕ) : n.prime_divisors = n.factors.to_finset :=
 begin
@@ -428,27 +433,21 @@ begin
 end
 
 /-- The sets of prime divisors of coprime `a` and `b` are disjoint -/
-lemma coprime_prime_divisors_disjoint {a b : ℕ} (h_ab_coprime : coprime a b) :
+lemma coprime_prime_divisors_disjoint {a b : ℕ} (hab : coprime a b) :
   disjoint a.prime_divisors b.prime_divisors :=
 begin
-  by_cases ha : a = 0, { rw ha at *, rw prime_divisors_zero, apply disjoint_empty_left },
-  by_cases hb : b = 0, { rw hb at *, rw prime_divisors_zero, apply disjoint_empty_right },
-
   rw disjoint_iff_ne,
-  intros x hx y hy,
-  rw (prime_divisors_mem ha) at hx,
-  rw (prime_divisors_mem hb) at hy,
-  cases hy with hy1 hy2,
-  by_contra H, rw H at hx,
-  suffices : y = 1, { rw this at hy2, exact not_prime_one hy2 },
-  exact eq_one_of_dvd_coprimes h_ab_coprime hx.1 hy1,
+  rintros x ha - hb rfl,
+  apply not_prime_one,
+  rw ←eq_one_of_dvd_coprimes hab (dvd_of_mem_prime_divisors ha) (dvd_of_mem_prime_divisors hb),
+  exact prime_of_mem_prime_divisors ha,
 end
 
 /-- If `a`,`b` are nonzero the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
 lemma prime_divisors_mul_of_ne_zero {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
 begin
-  have hab : a * b ≠ 0, { exact mul_ne_zero ha hb },
+  have hab : a * b ≠ 0 := mul_ne_zero ha hb,
   ext p,
   rw [mem_union, prime_divisors_mem hab, prime_divisors_mem ha, prime_divisors_mem hb,
       ←or_and_distrib_right, and.congr_left_iff],
@@ -461,10 +460,10 @@ lemma prime_divisors_mul_of_coprime {a b : ℕ} (h_ab_coprime : coprime a b) :
 begin
   by_cases ha : a = 0,
     { rw [ha, coprime_zero_left] at h_ab_coprime,
-      rw [ha, h_ab_coprime, zero_mul, prime_divisors_zero, prime_divisors_one], simp },
+      rw [ha, h_ab_coprime, zero_mul, prime_divisors_zero, prime_divisors_one, empty_union] },
   by_cases hb : b = 0,
     { rw [hb, coprime_zero_right] at h_ab_coprime,
-      rw [hb, h_ab_coprime, mul_zero, prime_divisors_zero, prime_divisors_one], simp },
+      rw [hb, h_ab_coprime, mul_zero, prime_divisors_zero, prime_divisors_one, empty_union] },
   have hab : a * b ≠ 0, { exact mul_ne_zero ha hb },
   apply prime_divisors_mul_of_ne_zero ha hb,
 end
@@ -472,20 +471,18 @@ end
 /-- The only prime divisor of positive prime power `p^k` is `p` itself -/
 lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp: prime p) : prime_divisors (p^k) = {p} :=
 begin
-  have h1 : (p^k) ≠ 0, { exact pow_ne_zero k (prime.ne_zero hp) },
+  have h1 : (p^k) ≠ 0 := pow_ne_zero k hp.ne_zero,
   ext q,
   rw [prime_divisors_mem h1, mem_singleton],
   split,
   { rintros ⟨hq1, hq2⟩,
     rw ←(prime_dvd_prime_iff_eq hq2 hp),
     exact prime.dvd_of_dvd_pow hq2 hq1 },
-  { intros h, rw h, use [dvd_pow_self p hk, hp] },
+  { rintros rfl, exact ⟨dvd_pow_self q hk, hp⟩ },
 end
 
 /-- The only prime divisor of prime `p` is `p` itself -/
-lemma prime_prime_divisor {p:ℕ} (hp: prime p) : prime_divisors p = {p} :=
-by { rw [←(pow_one p), (prime_pow_prime_divisor one_ne_zero hp), pow_one] }
-
-
+lemma prime_prime_divisor {p : ℕ} (hp : prime p) : prime_divisors p = {p} :=
+by { rw [←pow_one p, prime_pow_prime_divisor one_ne_zero hp, pow_one] }
 
 end nat

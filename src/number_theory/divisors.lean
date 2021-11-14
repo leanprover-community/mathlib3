@@ -407,8 +407,8 @@ end
 
 /-- # Prime divisors -/
 
-lemma prime_divisors_mem {n p : ℕ} (hn : n ≠ 0) : p ∈ n.prime_divisors ↔ p ∣ n ∧ prime p :=
-by { unfold prime_divisors, rw [mem_filter, mem_divisors, and_iff_left hn] }
+lemma mem_prime_divisors {n p : ℕ} (hn : n ≠ 0) : p ∈ n.prime_divisors ↔ p ∣ n ∧ prime p :=
+by rw [prime_divisors, mem_filter, mem_divisors, and_iff_left hn]
 
 lemma prime_of_mem_prime_divisors {n p : ℕ} (h : p ∈ n.prime_divisors) : prime p :=
 by { rw [prime_divisors, mem_filter] at h, exact h.2 }
@@ -429,7 +429,7 @@ begin
   by_cases hn : n = 0,
   { rw [hn, prime_divisors_zero], simp },
   { ext,
-    rw [prime_divisors_mem hn, list.mem_to_finset, mem_factors (pos_iff_ne_zero.mpr hn), and_comm] }
+    rw [mem_prime_divisors hn, list.mem_to_finset, mem_factors (pos_iff_ne_zero.mpr hn), and_comm] }
 end
 
 /-- The sets of prime divisors of coprime `a` and `b` are disjoint -/
@@ -449,7 +449,7 @@ lemma prime_divisors_mul_of_ne_zero {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
 begin
   have hab : a * b ≠ 0 := mul_ne_zero ha hb,
   ext p,
-  rw [mem_union, prime_divisors_mem hab, prime_divisors_mem ha, prime_divisors_mem hb,
+  rw [mem_union, mem_prime_divisors hab, mem_prime_divisors ha, mem_prime_divisors hb,
       ←or_and_distrib_right, and.congr_left_iff],
   exact prime.dvd_mul,
 end
@@ -473,7 +473,7 @@ lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp: prime p) : prime_d
 begin
   have h1 : (p^k) ≠ 0 := pow_ne_zero k hp.ne_zero,
   ext q,
-  rw [prime_divisors_mem h1, mem_singleton],
+  rw [mem_prime_divisors h1, mem_singleton],
   split,
   { rintros ⟨hq1, hq2⟩,
     rw ←(prime_dvd_prime_iff_eq hq2 hp),

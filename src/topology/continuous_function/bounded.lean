@@ -979,11 +979,19 @@ variables [topological_space α] [normed_lattice_add_comm_group' β]
 -- Can we infer this from https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114 ?
 instance : partial_order (α →ᵇ β) := partial_order.lift (λ f, f.to_fun) (by tidy)
 
-lemma inf_sub_inf_le (a b c d : β)  : ∥a⊓b-c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+lemma inf_sub_inf_le (a b c d : β)  : ∥a⊓b - c⊓d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
-  have e1: 2*∥a⊓b-c⊓d∥ ≤ ∥2•(a⊓b)-2•(c⊓d)∥ := begin rw ← smul_sub, apply normed_lattice_add_comm_group'.norm_smul end,
+  have e1: 2*∥a⊓b - c⊓d∥ ≤ ∥2•(a⊓b) - 2•(c⊓d)∥ := begin rw ← smul_sub, apply normed_lattice_add_comm_group'.norm_smul end,
   rw [← mul_le_mul_left zero_lt_two, mul_add],
   apply le_trans e1 (two_inf_sub_two_inf_le _ _ _ _),
+  exact real.nontrivial,
+end
+
+lemma sup_sub_sup_le (a b c d : β)  : ∥a⊔b - (c⊔d)∥ ≤ ∥a - c∥ + ∥b - d∥ :=
+begin
+  have e1: 2*∥a⊔b - (c⊔d)∥ ≤ ∥2•(a⊔b) - 2•(c⊔d)∥ := begin rw ← smul_sub,  apply normed_lattice_add_comm_group'.norm_smul end,
+  rw [← mul_le_mul_left zero_lt_two, mul_add],
+  apply le_trans e1 (two_sup_sub_two_sup_le _ _ _ _),
   exact real.nontrivial,
 end
 
@@ -1047,7 +1055,7 @@ instance : semilattice_sup (α →ᵇ β) := {
       intros,
       simp,
       rw normed_group.dist_eq,
-      apply le_trans (inf_sub_inf_le _ _ _ _) _,
+      apply le_trans (sup_sub_sup_le _ _ _ _) _,
       rw [← normed_group.dist_eq, ← normed_group.dist_eq],
       apply add_le_add (hf _ _) (hg _ _),
     end
@@ -1062,6 +1070,60 @@ instance : semilattice_sup (α →ᵇ β) := {
 
 instance  : lattice (α →ᵇ β) :=
 { .. bounded_continuous_function.semilattice_sup, .. bounded_continuous_function.semilattice_inf }
+
+lemma test2 (f : α →ᵇ β) (t : α) : f t ⊔ (-f) t = f t ⊔ -f t  :=
+begin
+  simp only [pi.neg_apply, coe_neg],
+end
+
+lemma sup_pointwise (f g : α →ᵇ β) (t : α) : (f⊔g) t = (f t)⊔(g t) := by finish
+
+lemma abs_pointwise (f : α →ᵇ β) (t : α) : |f t| = |f| t :=
+begin
+  unfold has_abs.abs,
+  rw sup_pointwise,
+  rw test2,
+end
+
+#check forall_le_or_exists_lt_sup
+
+instance : normed_lattice_add_comm_group (α →ᵇ β) := {
+  add_le_add_left := begin
+    intros f g h₁ h t,
+    simp,
+    apply h₁,
+  end,
+  solid :=
+  begin
+    intros f g h,
+    have i1: ∀ (t:α),|f(t)| ≤ |g(t)| := begin
+      intro,
+      rw abs_pointwise,
+      rw abs_pointwise,
+      apply h,
+    end,
+    have i2: ∀ (t:α),∥f(t)∥ ≤ ∥g(t)∥ := begin
+      intro,
+      apply solid,
+      apply i1,
+    end,
+    have i3: ∀ (t:α),∥f(t)∥ ≤ ∥g∥ := begin
+      rw norm_eq_supr_norm,
+      intro,
+      --unfold supr,
+      --apply le_supr,
+      --@forall_le_or_exists_lt_sup ∥g∥,
+      sorry,
+    end,
+    apply supr_le i3,
+    rw norm_eq_supr_norm,
+    sorry,
+
+  end,
+  ..lattice,
+}
+
+
 
 lemma inf_pointwise (f g : α →ᵇ β) (t : α) : (f⊓g) t = (f t)⊓(g t) := by finish
 
@@ -1085,37 +1147,11 @@ begin
   simp only [pi.neg_apply, coe_neg],
 end
 
-lemma test2 (f : α →ᵇ β) (t : α) : f t ⊔ (-f) t = f t ⊔ -f t  :=
-begin
-  simp only [pi.neg_apply, coe_neg],
-end
 
-lemma abs_pointwise (f : α →ᵇ β) (t : α) : |f t| = |f| t :=
-begin
-  unfold has_abs.abs,
-  sorry,
-end
 
-instance : normed_lattice_add_comm_group (α →ᵇ β) := {
-  add_le_add_left := begin
-    intros,
-    sorry,
-  end,
-  solid :=
-  begin
-    intros f g h,
-    have i1: ∀ (t:α),|f(t)| ≤ |g(t)| := begin
-      intro,
-      unfold has_abs.abs,
-      rw ← test2 f t,
-      rw ← sup_pointwise f (-f) t,
-      sorry,
-    end,
-    rw norm_eq_supr_norm,
-    sorry,
-  end,
-  ..lattice,
-}
+
+
+
 
 --λ f g h', continuous_map.le_def.mpr (begin intros, apply solid, end),
 

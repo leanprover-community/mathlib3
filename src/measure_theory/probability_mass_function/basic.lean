@@ -68,8 +68,11 @@ def pure (a : α) : pmf α := ⟨λ a', if a' = a then 1 else 0, has_sum_ite_eq 
 
 @[simp] lemma pure_apply (a a' : α) : pure a a' = (if a' = a then 1 else 0) := rfl
 
-lemma mem_support_pure_iff (a a' : α) : a' ∈ (pure a).support ↔ a' = a :=
+@[simp] lemma mem_support_pure_iff (a a' : α) : a' ∈ (pure a).support ↔ a' = a :=
 by simp
+
+@[simp] lemma support_pure (a : α) : (pure a).support = {a} :=
+set.ext (λ a', by simp)
 
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 
@@ -98,6 +101,14 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 
 @[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = ∑'a, p a * f a b :=
 rfl
+
+@[simp] lemma mem_support_bind (p : pmf α) (f : α → pmf β) (b : β) :
+  b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
+by simp [tsum_eq_zero_iff (bind.summable p f b), not_or_distrib]
+
+@[simp] lemma support_bind (p : pmf α) (f : α → pmf β) :
+  (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
+set.ext (λ b, mem_support_bind p f b)
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
   (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=

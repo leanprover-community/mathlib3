@@ -6,6 +6,8 @@ Authors: Arthur Paulino, Kyle Miller
 
 import combinatorics.simple_graph.subgraph
 import data.nat.lattice
+import data.setoid.partition
+import order.antichain
 
 /-!
 # Graph Coloring
@@ -28,6 +30,8 @@ a complete graph, whose vertices represent the colors.
 * `G.chromatic_number` is the minimal `n` such that `G` is
   `n`-colorable, or `0` if it cannot be colored with finitely many
   colors.
+
+* A *color class* is a set of vertices that share the same color.
 
 ## Todo:
 
@@ -75,12 +79,55 @@ but with a syntactically better proper coloring hypothesis.)
   G.coloring α := ⟨color, @valid⟩
 
 /--
-The color class of a given color. A color class is a set of vertices that share the same color.
+The color class of a given color.
 -/
 def coloring.color_class_of_color (c : α) : set V := {v : V | C v = c}
 
 /-- The color class of a given vertex. -/
 def coloring.color_class_of_vertex (v : V) : set V := C.color_class_of_color (C v)
+
+/-- The set containing all color classes. -/
+def coloring.color_classes : set (set V) := {(C.color_class_of_vertex v) | v : V}
+
+lemma coloring.vertex_in_its_color_class {v : V} :
+  v ∈ {v' : V | C v' = C v} := by exact rfl
+
+lemma coloring.color_classes_is_partition :
+  setoid.is_partition C.color_classes :=
+begin
+  rw setoid.is_partition,
+  simp only [exists_unique],
+  simp [coloring.color_classes, coloring.color_class_of_vertex,
+    coloring.color_class_of_color],
+  split,
+  { intro v,
+    rw [← set.not_nonempty_iff_eq_empty, not_not],
+    use v,
+    apply coloring.vertex_in_its_color_class, },
+  { intro v,
+    split,
+    { split,
+      { use v,
+        apply coloring.vertex_in_its_color_class, },
+      { intros w hcvw,
+        rw hcvw, }, }, },
+end
+
+lemma coloring.color_classes_is_independent :
+  ∀ (s ∈ C.color_classes), is_antichain G.adj s :=
+begin
+  simp only [is_antichain, set.pairwise],
+  simp [coloring.color_classes, coloring.color_class_of_vertex,
+    coloring.color_class_of_color],
+  intros v w hcvw z hczv h_neq_wz,
+  have hcwz : C w = C z, by exact (rfl.congr (eq.symm hczv)).mp hcvw,
+  by_contra,
+  have hwz : G.adj w z,
+  { by_contra, -- todo: improve this
+    contradiction, },
+  have hvalid := C.valid hwz,
+  contradiction,
+end
 
 -- TODO make this computable
 noncomputable

@@ -1,238 +1,362 @@
-import data.finset
-import data.nat.digits
-import data.matrix.notation
-import combinatorics.pigeonhole
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
 import .mathlib
 import analysis.asymptotics.asymptotics
-import analysis.inner_product_space.basic
 import analysis.inner_product_space.pi_L2
+import data.nat.digits
 
-section
-variables {α : Type*} [add_comm_monoid α] (s : set α)
+/-!
+# Salem-Spencer sets and the Roth number
 
-/-- A subset `s` of an additive commutative monoid has a 3AP if there are points `x,y,z` for which
-`x ≠ y` and `x + z = y + y`. In other words, there is a pair of elements in the set whose average
-is also in the set. A set which fails this condition is sometimes called a Salem-Spencer set, or
-non-averaging. -/
--- TODO: if your monoid is cancellative, this property is preserved by translation
-def has_three_ap := ∃ x y z ∈ s, x ≠ y ∧ x + z = y + y
+This file defines Salem-Spencer sets, the Roth number of a set and calculate small Roth numbers.
 
-lemma has_three_ap_mono {t₁ t₂ : set α} : t₁ ⊆ t₂ → has_three_ap t₁ → has_three_ap t₂ :=
-λ h ⟨x, y, z, hx, hy, hz, nxy, e⟩, ⟨x, y, z, h hx, h hy, h hz, nxy, e⟩
+A Salem-Spencer set is a set without arithmetic progressions of length `3`. Equivalently, the
+average of any two distinct elements is not in the set.
 
-lemma not_has_three_ap_iff :
-  ¬has_three_ap s ↔ ∀ x y z ∈ s, x + z = y + y → x = y :=
-by simp only [has_three_ap, not_exists, not_and, ne.def, not_imp_not]
+The Roth number of a finset is the size of its biggest Salem-Spencer subset. This is a more general
+definition than the one often found in mathematical litterature, where the `n`-th Roth number is
+the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 
-@[simp] lemma empty_has_no_three_ap : ¬has_three_ap (∅ : set α) :=
-by simp [not_has_three_ap_iff]
+## Main declarations
 
-instance {α : Type*} [decidable_eq α] [add_comm_monoid α] {s : finset α} :
-  decidable (has_three_ap (s : set α)) :=
-decidable_of_iff (∃ (x ∈ s) (y ∈ s) (z ∈ s), x ≠ y ∧ x + z = y + y) (by simp [has_three_ap])
+* `is_salem_spencer`: Predicate for a set to be Salem-Spencer.
+* `roth_number`: The Roth number of a finset.
+* `roth_number_nat`: The Roth number of a natural. This corresponds to
+  `roth_number (finset.range n)`.
+
+## Tags
+
+Salem-Spencer, Roth, arithmetic progression, average
+-/
+
+open finset nat
+
+variables {α β : Type*}
+
+section salem_spencer
+section add_monoid
+variables [add_monoid α] [add_monoid β] (s t : set α)
+
+/-- A Salem-Spencer, aka non averaging, set `s` in an additive monoid is a set such that the
+average of any two distinct elements is not in the set. -/
+def is_salem_spencer : Prop := ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a + b = 2 • c → a = b
+
+/-- Whether a given finset is Salem-Spencer is decidable. -/
+instance {α : Type*} [decidable_eq α] [add_monoid α] {s : finset α} :
+  decidable (is_salem_spencer (s : set α)) :=
+decidable_of_iff (∀ a ∈ s, ∀ b ∈ s, ∀ c ∈ s, a + b = 2 • c → a = b)
+  ⟨λ h a b c ha hb hc, h a ha b hb c hc, λ h a ha b hb c hc, h ha hb hc⟩
+
+variables {s t}
+
+lemma is_salem_spencer.mono (h : t ⊆ s) (hs : is_salem_spencer s) : is_salem_spencer t :=
+λ a b c ha hb hc, hs (h ha) (h hb) (h hc)
+
+@[simp] lemma is_salem_spencer_empty : is_salem_spencer (∅ : set α) := λ x _ _ hx, hx.elim
+
+lemma is_salem_spencer.prod {t : set β} (hs : is_salem_spencer s) (ht : is_salem_spencer t) :
+  is_salem_spencer (s.prod t) :=
+λ a b c ha hb hc h,
+  prod.ext (hs ha.1 hb.1 hc.1 (prod.ext_iff.1 h).1) (ht ha.2 hb.2 hc.2 (prod.ext_iff.1 h).2)
+
+lemma is_salem_spencer_pi {ι : Type*} {α : ι → Type*} [Π i, add_monoid (α i)] {s : Π i, set (α i)}
+  (hs : ∀ i, is_salem_spencer (s i)) :
+  is_salem_spencer ((set.univ : set ι).pi s) :=
+λ a b c ha hb hc h, funext $ λ i, hs i (ha i trivial) (hb i trivial) (hc i trivial) $ congr_fun h i
+
+end add_monoid
+
+section add_cancel_comm_monoid
+variables [add_cancel_comm_monoid α] {s t : set α} {a : α}
+
+lemma is_salem_spencer.add_left (hs : is_salem_spencer s) : is_salem_spencer ((+) a '' s) :=
+begin
+  rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
+  rw [add_add_add_comm, smul_add, two_nsmul] at h,
+  rw hs hb hc hd (add_left_cancel h),
 end
 
-open finset
+lemma is_salem_spencer.add_right (hs : is_salem_spencer s) : is_salem_spencer ((λ x, x + a) '' s) :=
+begin
+  rintro _ _ _ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩ h,
+  rw [add_add_add_comm, smul_add 2 _, two_nsmul a] at h,
+  rw hs hb hc hd (add_right_cancel h),
+end
+
+end add_cancel_comm_monoid
+end salem_spencer
+
+section roth_number
+section monoid
+variables [decidable_eq α] [add_monoid α] (s t : finset α)
+
+/-- The Roth number of a finset is the cardinality of its biggest Salem-Spencer subset. The usual
+Roth number corresponds to `roth_number (finset.range n)`, see `roth_number_nat`. -/
+def roth_number : finset α →ₘ ℕ :=
+⟨λ s, nat.fand_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ is_salem_spencer (t : set α)) s.card,
+begin
+  rintro t u htu,
+  refine nat.fand_greatest_mono (λ m, _) (card_le_of_subset htu),
+  rintro ⟨v, hvt, hv⟩,
+  exact ⟨v, hvt.trans htu, hv⟩,
+end⟩
+
+lemma roth_number_le : roth_number s ≤ s.card := by convert nat.fand_greatest_le s.card
+
+lemma roth_number_spec : ∃ t ⊆ s, t.card = roth_number s ∧ is_salem_spencer (t : set α) :=
+@nat.fand_greatest_spec (λ m, ∃ t ⊆ s, t.card = m ∧ is_salem_spencer (t : set α)) _ _ _
+  (nat.zero_le _) ⟨∅, empty_subset _, card_empty, is_salem_spencer_empty⟩
+
+variables {s t} {n : ℕ}
+
+lemma is_salem_spencer.le_roth_number (hs : is_salem_spencer (s : set α)) (h : s ⊆ t) :
+  s.card ≤ roth_number t :=
+begin
+  convert le_fand_greatest (card_le_of_subset h) _,
+  exact ⟨s, h, rfl, hs⟩,
+end
+
+lemma is_salem_spencer.roth_number_eq (hs : is_salem_spencer (s : set α)) :
+  roth_number s = s.card :=
+(roth_number_le _).antisymm $ hs.le_roth_number $ subset.refl _
+
+lemma roth_number_union_le (s t : finset α) : roth_number (s ∪ t) ≤ roth_number s + roth_number t :=
+let ⟨u, hsubs, hcard, hu⟩ := roth_number_spec (s ∪ t) in
+calc
+  roth_number (s ∪ t)
+      = u.card : hcard.symm
+  ... = (u ∩ s ∪ u ∩ t).card
+      : by rw [←finset.inter_distrib_left, (inter_eq_left_iff_subset _ _).2 hsubs]
+  ... ≤ (u ∩ s).card + (u ∩ t).card : card_union_le _ _
+  ... ≤ roth_number s + roth_number t
+      : add_le_add ((hu.mono $ inter_subset_left _ _).le_roth_number $ inter_subset_right _ _)
+          ((hu.mono $ inter_subset_left _ _).le_roth_number $ inter_subset_right _ _)
+
+lemma roth_number_lt_of_forall_not_salem_spencer
+  (h : ∀ t ∈ powerset_len n s, ¬is_salem_spencer ((t : finset α) : set α)) :
+  roth_number s < n :=
+begin
+  obtain ⟨t, hts, hcard, ht⟩ := roth_number_spec s,
+  rw [←hcard, ←not_le],
+  intro hn,
+  obtain ⟨u, hut, rfl⟩ := exists_smaller_set t n hn,
+  exact h _ (mem_powerset_len.2 ⟨hut.trans hts, rfl⟩) (ht.mono hut),
+end
+
+open_locale pointwise
+
+-- True?
+-- lemma roth_number_add_le (s t : finset α) :
+  -- roth_number (s + t) ≤ roth_number s * roth_number t :=
+
+end monoid
+
+section add_cancel_comm_monoid
+variables [decidable_eq α] [add_cancel_comm_monoid α] (s t : finset α) (a : α)
+
+lemma is_salem_spencer_iff_eq_right {s : set α} :
+  is_salem_spencer s ↔ ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a + b = 2 • c → a = c :=
+begin
+  refine forall_congr (λ a, forall_congr $ λ b, forall_congr $ λ c, forall_congr $
+    λ _, forall_congr $ λ _, forall_congr $ λ _,  forall_congr $ λ habc, ⟨_, _⟩),
+  { rintro rfl,
+    rw ←two_nsmul at habc,
+    sorry
+  },
+  { rintro rfl,
+    rw two_nsmul at habc,
+    exact (add_left_cancel habc).symm }
+end
+
+@[simp] lemma roth_number_map_add_left :
+  roth_number (s.map $ add_left_embedding a) = roth_number s :=
+begin
+  sorry
+end
+
+@[simp] lemma roth_number_map_add_right :
+  roth_number (s.map $ add_right_embedding a) = roth_number s :=
+begin
+  sorry
+end
+
+end add_cancel_comm_monoid
+end roth_number
+
+section roth_number_nat
+variables {s : finset ℕ} {k n : ℕ}
 
 /-- The Roth number of a natural `N` is the largest integer `m` for which there is a subset of
 `range N` of size `m` with no arithmetic progression of length 3.
 Trivially, `roth_number N ≤ N`, but Roth's theorem (proved in ...) shows that
 `roth_number N = o(N)` and the construction by Behrend `roth_behrend_bound` gives a lower bound
 of the form `N * exp(-C sqrt(log(N))) ≤ roth_number N`.
-A significant refinement of Roth's theorem by Bloom and Sisask(sp?) announced in 2020 gives
+A significant refinement of Roth's theorem by Bloom and Sisask announced in 2020 gives
 `roth_number N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
-def roth_number (N : ℕ) : ℕ :=
-nat.find_greatest (λ m, ∃ s ⊆ range N, s.card = m ∧ ¬ has_three_ap (s : set ℕ)) N
+def roth_number_nat : ℕ →ₘ ℕ := ⟨λ n, roth_number (range n), roth_number.mono.comp range_mono⟩
 
-lemma roth_number_spec (N : ℕ) :
-  ∃ A ⊆ range N, A.card = roth_number N ∧ ¬ has_three_ap (A : set ℕ) :=
-@nat.find_greatest_spec (λ m, ∃ s ⊆ range N, s.card = m ∧ ¬ has_three_ap (s : set ℕ)) _ N
-  ⟨0, nat.zero_le _, ∅, by simp⟩
+lemma roth_number_nat_def (n : ℕ) : roth_number_nat n = roth_number (range n) := rfl
 
-lemma roth_number_le (N : ℕ) : roth_number N ≤ N := nat.find_greatest_le
+lemma roth_number_nat_le (N : ℕ) : roth_number_nat N ≤ N :=
+(roth_number_le _).trans (card_range _).le
 
-lemma roth_number_monotone : monotone roth_number :=
-monotone_nat_of_le_succ $ λ n,
+/-- A verbose specialization of `is_salem_spencer.le_roth_number`. -/
+lemma is_salem_spencer.le_roth_number_nat (s : finset ℕ) (hs : is_salem_spencer (s : set ℕ))
+  (hsn : ∀ x ∈ s, x < n) (hsk : s.card = k) :
+  k ≤ roth_number_nat n :=
 begin
-  obtain ⟨A, hA₁, hA₂, hA₃⟩ := roth_number_spec n,
-  refine nat.le_find_greatest ((roth_number_le _).trans (nat.le_succ _)) ⟨A, _, hA₂, hA₃⟩,
-  exact hA₁.trans (by simp),
+  rw ←hsk,
+  exact hs.le_roth_number (λ x hx, mem_range.2 $ hsn x hx),
 end
-
-lemma le_roth_number_of_not_has_three_ap {N k : ℕ} (A : finset ℕ) (hA : A ⊆ range N)
-  (hA' : ¬ has_three_ap (A : set ℕ)) (hA'' : A.card = k) :
-  k ≤ roth_number N :=
-nat.le_find_greatest (by simpa [←hA''] using card_le_of_subset hA) ⟨A, hA, hA'', hA'⟩
 
 /-- The Roth number is a subadditive function. Note that by Fekete's lemma this shows that
 the limit `roth_number N / N` exists, but Roth's theorem gives the stronger result that this
-limit exists and is equal to `0`. -/
-lemma roth_number_subadditive (N M : ℕ) :
-  roth_number (N + M) ≤ roth_number N + roth_number M :=
+limit is actually `0`. -/
+lemma roth_number_nat_add_le (M N : ℕ) :
+  roth_number_nat (M + N) ≤ roth_number_nat M + roth_number_nat N :=
 begin
-  obtain ⟨A, hA, hA', hA''⟩ := roth_number_spec (N + M),
-  let A₁ := A ∩ range N,
-  let A₂ := (A \ range N).image (λ i, i - N),
-  have hA₂ : A₂ ⊆ range M,
-  { refine (image_subset_image (sdiff_subset_sdiff hA (subset.refl _))).trans _,
-    simp only [subset_iff, mem_image, and_imp, exists_prop, forall_exists_index, mem_sdiff,
-      mem_range, not_lt],
-    rintro x n hn hN rfl,
-    rwa tsub_lt_iff_left hN },
-  have hA₁A : (A₁ : set ℕ) ⊆ A,
-  { rw finset.coe_subset,
-    apply inter_subset_left },
-  have hA₁'' : ¬has_three_ap (A₁ : set ℕ) := λ i, hA'' (has_three_ap_mono hA₁A i),
-  have hA₂'' : ¬has_three_ap (A₂ : set ℕ),
-  { rw not_has_three_ap_iff at ⊢ hA'',
-    simp only [and_imp, forall_exists_index, set.mem_image, set.mem_diff, mem_range, mem_coe,
-      not_lt, coe_image, coe_sdiff],
-    rintro _ _ _ x hx hx₁ rfl y hy hy₁ rfl z hz hz₁ rfl h,
-    rw tsub_left_inj hx₁ hy₁,
-    rw [←nat.add_sub_assoc hz₁, ←nat.add_sub_assoc hy₁, ←nat.sub_add_comm hx₁,
-      ←nat.sub_add_comm hy₁, tsub_tsub, tsub_tsub,
-      tsub_left_inj (add_le_add hx₁ hz₁) (add_le_add hy₁ hy₁)] at h,
-    apply hA'' _ _ _ hx hy hz h },
-  have Asplit : A₁.card + A₂.card = A.card,
-  { rw [card_image_of_inj_on, add_comm, ←card_disjoint_union (disjoint_sdiff_inter _ _),
-      sdiff_union_inter],
-    simp only [set.inj_on, set.mem_diff, mem_coe, mem_sdiff, mem_range, not_lt, and_imp],
-    intros x₁ hx₁ hx₁' x₂ hx₂ hx₂' i,
-    rwa tsub_left_inj hx₁' hx₂' at i },
-  have : A₁.card ≤ _ :=
-    le_roth_number_of_not_has_three_ap _ (inter_subset_right A (range N)) hA₁'' rfl,
-  rw [←hA', ←Asplit],
-  exact add_le_add ‹_› (le_roth_number_of_not_has_three_ap _ hA₂ hA₂'' rfl),
+  simp_rw roth_number_nat_def,
+  rw [range_add_eq_union, ←roth_number_map_add_right (range N) M],
+  exact roth_number_union_le _ _,
 end
 
 open asymptotics filter
 
-lemma trivial_roth_bound' : is_O_with 1 (λ N, (roth_number N : ℝ)) (λ N, (N : ℝ)) at_top :=
-is_O_with.of_bound $
- by simpa only [one_mul, real.norm_coe_nat, nat.cast_le] using eventually_of_forall roth_number_le
+lemma trivial_roth_bound' : is_O_with 1 (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
+is_O_with.of_bound $ by simpa only [one_mul, real.norm_coe_nat, nat.cast_le]
+  using eventually_of_forall roth_number_nat_le
 
 /-- The Roth number has the trivial bound `roth_number N = O(N)`. -/
-lemma trivial_roth_bound : is_O (λ N, (roth_number N : ℝ)) (λ N, (N : ℝ)) at_top :=
+lemma trivial_roth_bound : is_O (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
 is_O_iff_is_O_with.2 ⟨1, trivial_roth_bound'⟩
 
-/-! Some lemmas and calculations of the Roth number for (very) small naturals. -/
+end roth_number_nat
+
+/-!
+### Explicit values
+
+Some lemmas and calculations of the Roth number for (very) small naturals.
+-/
+
 section explicit_values
 
-lemma roth_number_upper_bound {N M : ℕ}
-  (h : ∀ x ∈ powerset_len M (range N), has_three_ap ((x : finset ℕ) : set ℕ)) :
-  roth_number N < M :=
-begin
-  obtain ⟨A, hA₁, hA₂, hA₃⟩ := roth_number_spec N,
-  rw [←hA₂, ←not_le],
-  intro h₁,
-  obtain ⟨B, BA, rfl⟩ := exists_smaller_set A M h₁,
-  have : ¬has_three_ap (B : set ℕ) := λ i, hA₃ (has_three_ap_mono BA i),
-  apply hA₃ (has_three_ap_mono BA (h _ _)),
-  rw mem_powerset_len,
-  exact ⟨BA.trans hA₁, rfl⟩,
+-- lemma has_three_ap_iff {s : finset ℕ} :
+--   (∃ (x ∈ s) (y ∈ s), x < y ∧ y + (y - x) ∈ s) ↔ has_three_ap (s : set ℕ) :=
+-- begin
+--   simp only [has_three_ap, exists_prop, mem_coe, exists_and_distrib_left, ne.def],
+--   split,
+--   { rintro ⟨x, hx, y, xy, hy, hz⟩,
+--     refine ⟨x, y, xy.ne, _, hz, hy, hx, _⟩,
+--     rw [←nat.add_sub_assoc xy.le, ←nat.add_sub_assoc (le_add_right xy.le),
+--       nat.add_sub_cancel_left] },
+--   { rintro ⟨x, y, xy, z, hz, hy, hx, e⟩,
+--     cases lt_or_gt_of_ne xy,
+--     { refine ⟨x, hx, y, h, hy, _⟩,
+--       rwa [←nat.add_sub_assoc h.le, ←e, nat.add_sub_cancel_left] },
+--     { have zy : z < y,
+--       { rwa [←add_lt_add_iff_right y, ←e, add_comm, add_lt_add_iff_right] },
+--       refine ⟨z, hz, y, zy, hy, _⟩,
+--       rwa [←nat.add_sub_assoc zy.le, ←e, nat.add_sub_cancel] } }
+-- end
+
+/-- A simpler `decidable` instance for Salem-Spencer sets of naturals. We use it to prove small
+values of the Roth number by `rfl`/`dec_trivial`. -/
+def is_salem_spencer.decidable_nat {s : finset ℕ} : decidable (is_salem_spencer (s : set ℕ)) :=
+decidable_of_iff (∀ (a ∈ s) (b ∈ s), a < b → b + (b - a) ∉ s) begin
+  rw is_salem_spencer_iff_eq_right,
+  refine ⟨λ hs a b c ha hb hc habc, _, λ hs a ha b hb hab h, _⟩,
+  { by_contra h,
+    obtain hac | hac := lt_or_gt_of_ne h,
+    { refine hs _ ha _ hc hac _,
+      rwa [←add_tsub_assoc_of_le hac.le, ←two_nsmul, ←habc, add_tsub_cancel_left] },
+    { have hbc : b < c,
+      {
+        sorry
+      },
+      refine hs _ hb _ hc hbc _,
+      rwa [←add_tsub_assoc_of_le hbc.le, ←two_nsmul, ←habc, add_tsub_cancel_right] } },
+  { refine hab.ne (hs ha h hb _),
+    rw [←add_tsub_assoc_of_le hab.le, add_tsub_cancel_of_le (le_add_left hab.le), two_nsmul] }
 end
 
-lemma has_three_ap_iff {s : finset ℕ} :
-  (∃ (x ∈ s) (y ∈ s), x < y ∧ y + (y - x) ∈ s) ↔ has_three_ap (s : set ℕ) :=
-begin
-  simp only [has_three_ap, exists_prop, mem_coe, exists_and_distrib_left, ne.def],
-  split,
-  { rintro ⟨x, hx, y, xy, hy, hz⟩,
-    refine ⟨x, y, xy.ne, _, hz, hy, hx, _⟩,
-    rw [←nat.add_sub_assoc xy.le, ←nat.add_sub_assoc (le_add_right xy.le),
-      nat.add_sub_cancel_left] },
-  { rintro ⟨x, y, xy, z, hz, hy, hx, e⟩,
-    cases lt_or_gt_of_ne xy,
-    { refine ⟨x, hx, y, h, hy, _⟩,
-      rwa [←nat.add_sub_assoc h.le, ←e, nat.add_sub_cancel_left] },
-    { have zy : z < y,
-      { rwa [←add_lt_add_iff_right y, ←e, add_comm, add_lt_add_iff_right] },
-      refine ⟨z, hz, y, zy, hy, _⟩,
-      rwa [←nat.add_sub_assoc zy.le, ←e, nat.add_sub_cancel] } }
-end
+local attribute [instance] is_salem_spencer.decidable_nat
 
-def has_three_ap_nat_dec {s : finset ℕ} : decidable (has_three_ap (s : set ℕ)) :=
-decidable_of_iff _ has_three_ap_iff
-
-local attribute [instance] has_three_ap_nat_dec
-
-@[simp] lemma roth_number_zero : roth_number 0 = 0 := rfl
-@[simp] lemma roth_number_one : roth_number 1 = 1 := rfl
-@[simp] lemma roth_number_two : roth_number 2 = 2 := rfl
-@[simp] lemma roth_number_three : roth_number 3 = 2 := rfl
-@[simp] lemma roth_number_four : roth_number 4 = 3 := rfl
-@[simp] lemma roth_number_five : roth_number 5 = 4 := rfl
-@[simp] lemma roth_number_six : roth_number 6 = 4 := rfl
-@[simp] lemma roth_number_seven : roth_number 7 = 4 := rfl
-@[simp] lemma roth_number_eight : roth_number 8 = 4 := rfl
-@[simp] lemma roth_number_nine : roth_number 9 = 5 := rfl
-@[simp] lemma roth_number_ten : roth_number 10 = 5 := dec_trivial
-@[simp] lemma roth_number_eleven : roth_number 11 = 6 :=
+@[simp] lemma roth_number_nat_zero : roth_number_nat 0 = 0 := rfl
+@[simp] lemma roth_number_nat_one : roth_number_nat 1 = 1 := rfl
+@[simp] lemma roth_number_nat_two : roth_number_nat 2 = 2 := rfl
+@[simp] lemma roth_number_nat_three : roth_number_nat 3 = 2 := rfl
+@[simp] lemma roth_number_nat_four : roth_number_nat 4 = 3 := rfl
+@[simp] lemma roth_number_nat_five : roth_number_nat 5 = 4 := rfl
+@[simp] lemma roth_number_nat_six : roth_number_nat 6 = 4 := rfl
+@[simp] lemma roth_number_nat_seven : roth_number_nat 7 = 4 := rfl
+@[simp] lemma roth_number_nat_eight : roth_number_nat 8 = 4 := rfl
+@[simp] lemma roth_number_nat_nine : roth_number_nat 9 = 5 := rfl
+@[simp] lemma roth_number_nat_ten : roth_number_nat 10 = 5 := dec_trivial
+@[simp] lemma roth_number_nat_eleven : roth_number_nat 11 = 6 :=
 begin
   apply le_antisymm,
-  { simpa using roth_number_subadditive 3 8 },
-  { apply le_roth_number_of_not_has_three_ap {0,1,3,7,8,10},
-    { simp [subset_iff] },
-    { dec_trivial },
-    { simp }, },
+  { simpa using roth_number_nat_add_le 3 8 },
+  apply is_salem_spencer.le_roth_number_nat {0, 1, 3, 7, 8, 10},
+  { dec_trivial },
+  { simp },
+  { simp }
 end
 
-@[simp] lemma roth_number_twelve : roth_number 12 = 6 :=
+@[simp] lemma roth_number_twelve : roth_number_nat 12 = 6 :=
 begin
   apply le_antisymm,
   { rw ←nat.lt_succ_iff,
-    apply roth_number_upper_bound,
+    apply roth_number_lt_of_forall_not_salem_spencer,
     dec_trivial },
-  simpa using roth_number_monotone (show 11 ≤ 12, by norm_num),
+  simpa using roth_number_nat_mono (show 11 ≤ 12, by norm_num),
 end
 
-@[simp] lemma roth_number_thirteen : roth_number 13 = 7 :=
+@[simp] lemma roth_number_thirteen : roth_number_nat 13 = 7 :=
 begin
   apply le_antisymm,
-  { simpa using roth_number_subadditive 12 1 },
-  apply le_roth_number_of_not_has_three_ap {0,1,3,4,9,10,12},
-  { simp [subset_iff] },
+  { simpa using roth_number_nat_add_le 12 1 },
+  apply is_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12},
   { dec_trivial },
   { simp },
+  { simp }
 end
 
-@[simp] lemma roth_number_fourteen : roth_number 14 = 8 :=
+@[simp] lemma roth_number_fourteen : roth_number_nat 14 = 8 :=
 begin
   apply le_antisymm,
-  { simpa using roth_number_subadditive 12 2 },
-  apply le_roth_number_of_not_has_three_ap {0,1,3,4,9,10,12,13}, -- unique example
-  { simp [subset_iff] },
+  { simpa using roth_number_nat_add_le 12 2 },
+  apply is_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12, 13}, -- unique example
   { dec_trivial },
   { simp },
+  { simp }
 end
 
 lemma roth_number_dec_upper_bound {N M : ℕ}
-  (h₂ : roth_number N ≤ M)
-  (h : ∀ s ∈ (powerset_len M (range N)).filter (λ (s : finset ℕ), ¬has_three_ap (s : set ℕ)),
+  (h₂ : roth_number_nat N ≤ M)
+  (h : ∀ s ∈ (powerset_len M (range N)).filter (λ (s : finset ℕ), is_salem_spencer (s : set ℕ)),
           ∃ z ∈ s, N ≤ z + z ∧ z + z - N ∈ s) :
-  roth_number (N+1) ≤ M :=
+  roth_number_nat (N+1) ≤ M :=
 begin
   apply nat.le_of_lt_succ,
-  change roth_number (N+1) < M.succ,
-  apply roth_number_upper_bound,
+  change roth_number_nat (N+1) < M.succ,
+  apply roth_number_lt_of_forall_not_salem_spencer,
   simp only [range_succ, powerset_len_succ_insert not_mem_range_self, mem_union, mem_image,
     or_imp_distrib, forall_and_distrib, and_imp, coe_insert, forall_exists_index,
     forall_apply_eq_imp_iff₂],
-  split,
+  refine ⟨_, λ s hs hsN, _⟩,
   { simp only [mem_powerset_len, and_imp],
-    rintro x hx₁ hx₂,
-    by_contra,
     rw ←not_lt at h₂,
-    apply h₂ (le_roth_number_of_not_has_three_ap _ hx₁ h hx₂) },
-  intros s hs,
-  by_cases hs₁ : has_three_ap (s : set ℕ),
-  { apply has_three_ap_mono (set.subset_insert _ _) hs₁ },
+    exact λ x hx₁ hx₂ h, h₂ (h.le_roth_number_nat _ (λ x hx, mem_range.1 (hx₁ hx)) hx₂) },
   simp only [and_imp, exists_prop, mem_filter, exists_and_distrib_left] at h,
-  obtain ⟨x, hx₁, hx₂, hx₃⟩ := h s hs hs₁,
-  refine ⟨x + x - N, x, N, or.inr hx₃, or.inr hx₂, or.inl rfl, _, nat.sub_add_cancel hx₁⟩,
-  simp only [mem_powerset_len] at hs,
-  rw [ne.def, nat.sub_eq_iff_eq_add hx₁, add_right_inj],
-  apply (mem_range.1 (hs.1 hx₂)).ne,
+  obtain ⟨a, hNa, ha, haN⟩ := h s hs (hsN.mono $ set.subset_insert _ _),
+  rw [mem_powerset_len] at hs,
+  replace hs := hs.1 haN,
+  rw hsN (set.mem_insert_of_mem _ haN) (set.mem_insert _ _) (set.mem_insert_of_mem _ ha) _ at hs,
+  exact not_mem_range_self hs,
+  { rw [tsub_add_cancel_of_le hNa, two_nsmul] }
 end
 
 -- @[simp] lemma roth_number_fifteen : roth_number 15 = 8 :=
@@ -264,7 +388,7 @@ end
 -- begin
 --   apply le_antisymm,
 --   { rw ←nat.lt_succ_iff,
---     apply roth_number_upper_bound,
+--     apply roth_number_lt_of_forall_not_salem_spencer,
 
 --   },
 --   simpa using roth_number_monotone (show 14 ≤ 19, by norm_num)
@@ -297,30 +421,6 @@ begin
   apply hx.2
 end
 
-def from_digits {n : ℕ} (d : ℕ) (a : fin n → ℕ) : ℕ :=
-∑ i, a i * d^(i : ℕ)
-
-@[simp] lemma from_digits_zero (d : ℕ) (a : fin 0 → ℕ) : from_digits d a = 0 :=
-by simp [from_digits]
-
-lemma from_digits_succ {n d : ℕ} (a : fin (n+1) → ℕ) :
-  from_digits d a = a 0 + (∑ (x : fin n), a x.succ * d ^ (x : ℕ)) * d :=
-by simp [from_digits, fin.sum_univ_succ, pow_succ', ←mul_assoc, ←sum_mul]
-
-lemma from_digits_succ' {n d : ℕ} (a : fin (n+1) → ℕ) :
-  from_digits d a = a 0 + (from_digits d (a ∘ fin.succ)) * d :=
-from_digits_succ _
-
-lemma finset.sum_mod {α : Type*} (s : finset α) {m : ℕ} (f : α → ℕ) :
-  (∑ i in s, f i) % m = (∑ i in s, (f i % m)) % m :=
-begin
-  classical,
-  induction s using finset.induction with i s hi ih,
-  { simp },
-  rw [sum_insert hi, sum_insert hi, nat.add_mod, ih, nat.add_mod],
-  simp,
-end
-
 lemma sphere_to_nat_mod {n d : ℕ} (a : fin n.succ → ℕ) :
   from_digits d a % d = a 0 % d :=
 by rw [from_digits_succ, nat.add_mul_mod_self_right]
@@ -343,10 +443,6 @@ begin
   rw [from_digits_succ', from_digits_succ', h₁, h₂],
 end
 
-lemma weird_thing : ∀ {d : ℕ}, d ≤ 2 * d - 1
-| 0 := by simp
-| (n+1) := by simp [mul_add, two_mul]
-
 lemma sphere_to_nat_inj_on {n d : ℕ} :
   set.inj_on (from_digits d) {x : fin n → ℕ | ∀ i, x i < d} :=
 begin
@@ -358,28 +454,7 @@ begin
   have x := (sphere_to_nat_eq_iff hx₁ hx₂).1 h,
   refine fin.cases x.1 (function.funext_iff.1 (ih (λ _, _) (λ _, _) x.2)) i,
   { exact hx₁ _ },
-  { exact hx₂ _ },
-end
-
-lemma from_digits_monotone {n : ℕ} (d : ℕ) :
-  monotone (from_digits d : (fin n → ℕ) → ℕ) :=
-begin
-  intros x₁ x₂ h,
-  induction n with n ih,
-  { simp },
-  rw [from_digits_succ', from_digits_succ'],
-  exact add_le_add (h 0) (nat.mul_le_mul_right d (ih (λ i, h i.succ))),
-end
-
-lemma from_digits_two_add {n d : ℕ} {x y : fin n → ℕ}
-  (hx : ∀ i, x i < d) (hy : ∀ i, y i < d) :
-  from_digits (2 * d - 1) (x + y) = from_digits (2 * d - 1) x + from_digits (2 * d - 1) y :=
-begin
-  induction n with n ih,
-  { simp [from_digits_zero] },
-  simp only [from_digits_succ', pi.add_apply, add_add_add_comm, add_right_inj, ←add_mul,
-    ←@ih (x ∘ fin.succ) (y ∘ fin.succ) (λ _, hx _) (λ _, hy _)],
-  refl,
+  { exact hx₂ _ }
 end
 
 -- lemma sum_mul_sq_le_sq_mul_sq' {α : Type*} (s : finset α) (f g : α → ℝ)  :
@@ -423,34 +498,32 @@ begin
   apply hx.2
 end
 
-lemma not_has_three_ap_slice (n d : ℕ) {k : ℕ} :
-  ¬has_three_ap (sphere_slice n d k : set (fin n → ℕ)) :=
+lemma is_salem_spencer_sphere_slice (n d : ℕ) {k : ℕ} :
+  is_salem_spencer (sphere_slice n d k : set (fin n → ℕ)) :=
 begin
-  simp only [has_three_ap, not_exists, exists_prop, not_and, mem_coe, exists_and_distrib_left,
-    ne.def],
-  intros x y xy z hz hy hx i,
+  intros x z y hx hz hy hxyz,
   rcases nat.eq_zero_or_pos k with rfl | hk,
-  { apply xy,
-    rw mem_singleton.1 (sphere_slice_zero hx),
-    rw mem_singleton.1 (sphere_slice_zero hy) },
+  { rw [mem_singleton.1 (sphere_slice_zero hx), mem_singleton.1 (sphere_slice_zero hz)] },
   let x' : euclidean_space ℝ (fin n) := (coe ∘ x : fin n → ℝ),
   let y' : euclidean_space ℝ (fin n) := (coe ∘ y : fin n → ℝ),
   let z' : euclidean_space ℝ (fin n) := (coe ∘ z : fin n → ℝ),
+  rw two_nsmul at hxyz,
   have : x' + z' = y' + y',
-  { simpa [function.funext_iff, ←nat.cast_add] using i },
-  have nxy : x' ≠ y',
-  { simpa [function.funext_iff] using xy },
+  { simpa [function.funext_iff, ←nat.cast_add] using hxyz },
+  by_contra hxz,
   have nxz : x' ≠ z',
+  { simpa [function.funext_iff] using hxz },
+  have nxy : x' ≠ y',
   { intro t,
-    apply nxy,
-    rw [←t, ←two_smul ℝ x', ←two_smul ℝ y'] at this,
-    exact smul_right_injective _ (by norm_num) this },
+    apply nxz,
+    rw ←t at this,
+    exact add_right_injective _ this.symm },
   have yeq : (1 / 2 : ℝ) • (x' + z') = y',
   { rw [one_div, inv_smul_eq_iff₀ (show (2 : ℝ) ≠ 0, by norm_num)],
-    simp only [function.funext_iff, pi.add_apply] at i,
+    simp only [function.funext_iff, pi.add_apply] at hxyz,
     ext j,
     simp only [algebra.id.smul_eq_mul, pi.add_apply, pi.smul_apply, ←nat.cast_add, two_mul,
-      nat.cast_inj, i] },
+      nat.cast_inj, hxyz] },
   have xz : ∥x'∥ = ∥z'∥,
   { simp only [slice_norm hx, slice_norm hz] },
   have i₂ := @sphere_strictly_convex (euclidean_space ℝ (fin n)) _ x' z' xz _ nxz,
@@ -462,43 +535,34 @@ begin
   simp [hk.ne'],
 end
 
-lemma sum_bound {n d : ℕ} {x y : fin n → ℕ} (hx : ∀ i, x i < d) (hy : ∀ i, y i < d) :
-  ∀ i, (x + y) i < 2 * d - 1 :=
+lemma is_salem_spencer_image_slice {n d k : ℕ} :
+  is_salem_spencer ((finset.image (from_digits (2 * d - 1)) (sphere_slice n d k)) : set ℕ) :=
 begin
-  intro i,
-  rw [←nat.pred_eq_sub_one, nat.lt_pred_iff, nat.lt_iff_add_one_le, nat.succ_eq_add_one,
-    pi.add_apply, add_right_comm _ (y i), add_assoc, two_mul],
-  apply add_le_add (nat.succ_le_of_lt (hx i)) (nat.succ_le_of_lt (hy i))
-end
-
-lemma not_has_three_ap_image_slice {n d k : ℕ} :
-  ¬has_three_ap ((finset.image (from_digits (2 * d - 1)) (sphere_slice n d k)) : set ℕ) :=
-begin
-  rw not_has_three_ap_iff,
-  simp only [and_imp, forall_exists_index, set.mem_image, mem_coe, coe_image],
-  rintro _ _ _ x hx rfl y hy rfl z hz rfl,
+  rintro a b c ha hb hc,
+  rw [mem_coe, mem_image] at ha hb hc,
+  obtain ⟨x, hx, rfl⟩ := ha,
+  obtain ⟨y, hy, rfl⟩ := hc,
+  obtain ⟨z, hz, rfl⟩ := hb,
   have hx' : ∀ i, x i < d := bound_of_mem_sphere (mem_filter.1 hx).1,
   have hy' : ∀ i, y i < d := bound_of_mem_sphere (mem_filter.1 hy).1,
   have hz' : ∀ i, z i < d := bound_of_mem_sphere (mem_filter.1 hz).1,
-  rw [←from_digits_two_add hx' hz', ←from_digits_two_add hy' hy'],
+  rw [←from_digits_two_add hx' hz', two_nsmul, ←from_digits_two_add hy' hy'],
   rintro (t : from_digits (2 * d - 1) (x + z) = from_digits (2 * d - 1) (y + y)),
   rw sphere_to_nat_inj_on.eq_iff (λ i, (hx' i).trans_le weird_thing)
     (λ i, (hy' i).trans_le weird_thing),
   rw sphere_to_nat_inj_on.eq_iff (sum_bound hx' hz') (sum_bound hy' hy') at t,
   change x + z = y + y at t,
   change x = y,
-  have i := not_has_three_ap_slice n d,
-  simp only [not_has_three_ap_iff] at i,
+  have i := is_salem_spencer_sphere_slice n d,
+  simp only [is_salem_spencer_iff] at i,
   apply i _ _ _ hx hy hz t,
 end
 
-@[simp] lemma sphere_size {n d : ℕ} : (sphere n d).card = d ^ n :=
-by simp [sphere]
+@[simp] lemma sphere_size {n d : ℕ} : (sphere n d).card = d ^ n := by simp [sphere]
 
-lemma sum_squares_bound_of_le {n d : ℕ} :
-  ∀ (x : fin n → ℕ), x ∈ sphere n d → (∑ (i : fin n), (x i)^2 ≤ n * (d - 1)^2) :=
+lemma sum_squares_bound_of_le {n d : ℕ} (x : fin n → ℕ) (hx : x ∈ sphere n d) :
+  ∑ (i : fin n), (x i)^2 ≤ n * (d - 1)^2 :=
 begin
-  intros x hx,
   simp only [mem_sphere] at hx,
   have : ∀ i, x i^2 ≤ (d - 1)^2,
   { intro i,
@@ -515,36 +579,10 @@ lemma from_digits_le_of_mem_sphere {n d : ℕ} :
   ∀ x ∈ sphere n d, from_digits (2 * d - 1) x ≤ ∑ (i : fin n), (d - 1) * (2 * d - 1)^(i : ℕ) :=
 λ x hx, from_digits_monotone (2 * d - 1) (le_of_mem_sphere x hx)
 
-lemma sum_fin {β : Type*} [add_comm_monoid β] (n : ℕ) (f : ℕ → β) :
-  ∑ (i : fin n), f i = ∑ i in range n, f i :=
-(sum_subtype (range n) (by simp) f).symm
-
-lemma digits_sum_eq {n d : ℕ} :
-  ∑ (i : fin n), (d - 1) * (2 * d - 1)^(i : ℕ) = ((2 * d - 1)^n - 1) / 2 :=
-begin
-  apply (nat.div_eq_of_eq_mul_left zero_lt_two _).symm,
-  rcases nat.eq_zero_or_pos d with rfl | hd,
-  { simp only [mul_zero, nat.zero_sub, zero_mul, sum_const_zero, tsub_eq_zero_iff_le, zero_pow_eq],
-    split_ifs; simp },
-  have : ((2 * d - 2) + 1) = 2 * d - 1,
-  { rw ←tsub_tsub_assoc (nat.le_mul_of_pos_right hd) one_le_two },
-  rw [sum_fin n (λ i, (d - 1) * (2 * d - 1)^(i : ℕ)), ←mul_sum, mul_right_comm,
-    nat.mul_sub_right_distrib, mul_comm d, one_mul, ←this, ←geom_sum_def, ←geom_sum_mul_add,
-    nat.add_sub_cancel, mul_comm],
-end
-
-lemma digits_sum_le {n d : ℕ} (hd : 0 < d) :
-  ∑ (i : fin n), (d - 1) * (2 * d - 1)^(i : ℕ) < (2 * d - 1)^n :=
-begin
-  rw digits_sum_eq,
-  apply (nat.div_le_self _ _).trans_lt (nat.pred_lt (pow_pos (hd.trans_le weird_thing) _).ne'),
-end
-
 lemma behrend_bound_aux1 {n d k N : ℕ} (hd : 0 < d) (hN : (2 * d - 1)^n ≤ N):
-  (sphere_slice n d k).card ≤ roth_number N :=
+  (sphere_slice n d k).card ≤ roth_number_nat N :=
 begin
-  refine le_roth_number_of_not_has_three_ap _ _
-    not_has_three_ap_image_slice (card_image_of_inj_on _),
+  refine is_salem_spencer_image_slice.le_roth_number_nat _ _ (card_image_of_inj_on _),
   { simp only [subset_iff, mem_image, and_imp, forall_exists_index, mem_range,
       forall_apply_eq_imp_iff₂, sphere_slice, mem_filter],
     rintro _ x hx _ rfl,
@@ -563,7 +601,7 @@ begin
     rw [mem_range, nat.lt_succ_iff],
     apply sum_squares_bound_of_le _ hx },
   { simp },
-  { rw [card_range, nsmul_eq_mul, mul_div_assoc', nat.cast_add_one, mul_div_cancel_left],
+  { rw [card_range, _root_.nsmul_eq_mul, mul_div_assoc', nat.cast_add_one, mul_div_cancel_left],
     { simp },
     exact (nat.cast_add_one_pos _).ne' }
 end
@@ -588,7 +626,7 @@ end
 -- d ^ n / (n * d^2) ≤ (sphere_slice n d k).card
 
 lemma behrend_bound_aux2 {n d N : ℕ} (hd : 0 < d) (hn : 0 < n) (hN : (2 * d - 1)^n ≤ N):
-  (d ^ n / ↑(n * d^2) : ℝ) ≤ roth_number N :=
+  (d ^ n / ↑(n * d^2) : ℝ) ≤ roth_number_nat N :=
 begin
   obtain ⟨k, _⟩ := large_slice hn hd,
   apply h.trans,

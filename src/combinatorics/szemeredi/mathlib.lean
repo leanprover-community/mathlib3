@@ -16,6 +16,186 @@ open finset fintype function
 
 variables {α β ι ι' : Type*}
 
+namespace nat
+section find_greatest
+
+/-- `fand_greatest P b` is the largest `i ≤ bound` such that `P i` holds, or `0` if no such `i`
+exists -/
+protected def fand_greatest (P : ℕ → Prop) [decidable_pred P] : ℕ →ₘ ℕ :=
+⟨λ n, n.rec_on 0 (λ k find : ℕ, if P (k + 1) then k + 1 else find), begin
+  have : ∀ n : ℕ, n.rec_on 0 (λ k find : ℕ, if P (k + 1) then k + 1 else find) ≤ n,
+  { rintro n,
+    induction n with n hn,
+    { refl },
+    simp only [rec_add_one],
+    split_ifs,
+    { refl },
+    { exact hn.trans (le_succ _) } },
+  refine monotone_nat_of_le_succ (λ n, _),
+  simp only [rec_add_one],
+  split_ifs,
+  { exact (this n).trans (le_succ _) },
+  { refl }
+end⟩
+
+variables {P : ℕ → Prop} [decidable_pred P] {b m n : ℕ}
+
+@[simp] lemma fand_greatest_zero : nat.fand_greatest P 0 = 0 := rfl
+
+lemma fand_greatest_succ (n : ℕ) :
+  nat.fand_greatest P (n + 1) = if P (n + 1) then n + 1 else nat.fand_greatest P n := rfl
+
+@[simp] lemma fand_greatest_eq : ∀ {b}, P b → nat.fand_greatest P b = b
+| 0       h := rfl
+| (n + 1) h := by simp [nat.fand_greatest, h]
+
+@[simp] lemma fand_greatest_of_not {b} (h : ¬ P (b + 1)) :
+  nat.fand_greatest P (b + 1) = nat.fand_greatest P b :=
+by simp [nat.fand_greatest, h]
+
+lemma fand_greatest_mono_left {P Q : ℕ → Prop} [decidable_pred P] [decidable_pred Q]
+  (hPQ : P ≤ Q) :
+  nat.fand_greatest P ≤ nat.fand_greatest Q :=
+begin
+  intro n,
+  induction n with n hn,
+  { refl },
+  by_cases P (n + 1),
+  { rw [fand_greatest_eq h, fand_greatest_eq (hPQ _ h)] },
+  { rw fand_greatest_of_not h,
+    exact hn.trans ((nat.fand_greatest _).mono $ le_succ _) }
+end
+
+lemma fand_greatest_mono {P Q : ℕ → Prop} {a b : ℕ} [decidable_pred P] [decidable_pred Q]
+  (hPQ : P ≤ Q) (hab : a ≤ b) :
+  nat.fand_greatest P a ≤ nat.fand_greatest Q b :=
+((nat.fand_greatest _).mono hab).trans $ fand_greatest_mono_left hPQ _
+
+lemma fand_greatest_eq_iff :
+  nat.fand_greatest P b = m ↔ m ≤ b ∧ (m ≠ 0 → P m) ∧ (∀ ⦃n⦄, m < n → n ≤ b → ¬P n) :=
+begin
+  induction b with b ihb generalizing m,
+  { rw [eq_comm, iff.comm],
+    simp only [nonpos_iff_eq_zero, ne.def, and_iff_left_iff_imp, fand_greatest_zero],
+    rintro rfl,
+    exact ⟨λ h, (h rfl).elim, λ n hlt heq, (hlt.ne heq.symm).elim⟩ },
+  { by_cases hb : P (b + 1),
+    { rw [fand_greatest_eq hb], split,
+      { rintro rfl,
+        exact ⟨le_rfl, λ _, hb, λ n hlt hle, (hlt.not_le hle).elim⟩ },
+      { rintros ⟨hle, h0, hm⟩,
+        rcases decidable.eq_or_lt_of_le hle with rfl|hlt,
+        exacts [rfl, (hm hlt le_rfl hb).elim] } },
+    { rw [fand_greatest_of_not hb, ihb],
+      split,
+      { rintros ⟨hle, hP, hm⟩,
+        refine ⟨hle.trans b.le_succ, hP, λ n hlt hle, _⟩,
+        rcases decidable.eq_or_lt_of_le hle with rfl|hlt',
+        exacts [hb, hm hlt $ lt_succ_iff.1 hlt'] },
+      { rintros ⟨hle, hP, hm⟩,
+        refine ⟨lt_succ_iff.1 (hle.lt_of_ne _), hP, λ n hlt hle, hm hlt (hle.trans b.le_succ)⟩,
+        rintro rfl,
+        exact hb (hP b.succ_ne_zero) } } }
+end
+
+lemma fand_greatest_eq_zero_iff {b} : nat.fand_greatest P b = 0 ↔ ∀ ⦃n⦄, 0 < n → n ≤ b → ¬P n :=
+by simp [fand_greatest_eq_iff]
+
+lemma fand_greatest_spec (hmb : m ≤ b) (hm : P m) : P (nat.fand_greatest P b) :=
+begin
+  by_cases h : nat.fand_greatest P b = 0,
+  { cases m, { rwa h },
+    exact ((fand_greatest_eq_zero_iff.1 h) m.zero_lt_succ hmb hm).elim },
+  { exact (fand_greatest_eq_iff.1 rfl).2.1 h }
+end
+
+lemma fand_greatest_le (n : ℕ) : nat.fand_greatest P n ≤ n := (fand_greatest_eq_iff.1 rfl).1
+
+lemma le_fand_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.fand_greatest P b :=
+le_of_not_lt $ λ hlt, (fand_greatest_eq_iff.1 rfl).2.2 hlt hmb hm
+
+lemma fand_greatest_is_greatest {b k} (hk : nat.fand_greatest P b < k) (hkb : k ≤ b) :
+  ¬ P k :=
+(fand_greatest_eq_iff.1 rfl).2.2 hk hkb
+
+lemma fand_greatest_of_ne_zero {b m} (h : nat.fand_greatest P b = m) (h0 : m ≠ 0) : P m :=
+(fand_greatest_eq_iff.1 h).2.1 h0
+
+end find_greatest
+
+lemma weird_thing : ∀ {d : ℕ}, d ≤ 2 * d - 1
+| 0 := by simp
+| (n+1) := by simp [mul_add, two_mul]
+
+def from_digits {n : ℕ} (d : ℕ) (a : fin n → ℕ) : ℕ := ∑ i, a i * d^(i : ℕ)
+
+@[simp] lemma from_digits_zero (d : ℕ) (a : fin 0 → ℕ) : from_digits d a = 0 :=
+by simp [from_digits]
+
+lemma from_digits_succ {n d : ℕ} (a : fin (n+1) → ℕ) :
+  from_digits d a = a 0 + (∑ (x : fin n), a x.succ * d ^ (x : ℕ)) * d :=
+by simp [from_digits, fin.sum_univ_succ, pow_succ', ←mul_assoc, ←sum_mul]
+
+lemma from_digits_succ' {n d : ℕ} (a : fin (n+1) → ℕ) :
+  from_digits d a = a 0 + (from_digits d (a ∘ fin.succ)) * d :=
+from_digits_succ _
+
+lemma from_digits_monotone {n : ℕ} (d : ℕ) :
+  monotone (from_digits d : (fin n → ℕ) → ℕ) :=
+begin
+  intros x₁ x₂ h,
+  induction n with n ih,
+  { simp },
+  rw [from_digits_succ', from_digits_succ'],
+  exact add_le_add (h 0) (nat.mul_le_mul_right d (ih (λ i, h i.succ))),
+end
+
+lemma from_digits_two_add {n d : ℕ} {x y : fin n → ℕ}
+  (hx : ∀ i, x i < d) (hy : ∀ i, y i < d) :
+  from_digits (2 * d - 1) (x + y) = from_digits (2 * d - 1) x + from_digits (2 * d - 1) y :=
+begin
+  induction n with n ih,
+  { simp [from_digits_zero] },
+  simp only [from_digits_succ', pi.add_apply, add_add_add_comm, add_right_inj, ←add_mul,
+    ←@ih (x ∘ fin.succ) (y ∘ fin.succ) (λ _, hx _) (λ _, hy _)],
+  refl,
+end
+
+lemma sum_bound {n d : ℕ} {x y : fin n → ℕ} (hx : ∀ i, x i < d) (hy : ∀ i, y i < d) (i : fin n) :
+  (x + y) i < 2 * d - 1 :=
+begin
+  rw [←nat.pred_eq_sub_one, nat.lt_pred_iff, nat.lt_iff_add_one_le, nat.succ_eq_add_one,
+    pi.add_apply, add_right_comm _ (y i), add_assoc, two_mul],
+  apply add_le_add (nat.succ_le_of_lt (hx i)) (nat.succ_le_of_lt (hy i))
+end
+
+lemma sum_fin {β : Type*} [add_comm_monoid β] (n : ℕ) (f : ℕ → β) :
+  ∑ (i : fin n), f i = ∑ i in range n, f i :=
+(sum_subtype (range n) (by simp) f).symm
+
+lemma digits_sum_eq {n d : ℕ} :
+  ∑ (i : fin n), (d - 1) * (2 * d - 1)^(i : ℕ) = ((2 * d - 1)^n - 1) / 2 :=
+begin
+  apply (nat.div_eq_of_eq_mul_left zero_lt_two _).symm,
+  rcases nat.eq_zero_or_pos d with rfl | hd,
+  { simp only [mul_zero, nat.zero_sub, zero_mul, sum_const_zero, tsub_eq_zero_iff_le, zero_pow_eq],
+    split_ifs; simp },
+  have : ((2 * d - 2) + 1) = 2 * d - 1,
+  { rw ←tsub_tsub_assoc (nat.le_mul_of_pos_right hd) one_le_two },
+  rw [sum_fin n (λ i, (d - 1) * (2 * d - 1)^(i : ℕ)), ←mul_sum, mul_right_comm,
+    nat.mul_sub_right_distrib, mul_comm d, one_mul, ←this, ←geom_sum_def, ←geom_sum_mul_add,
+    nat.add_sub_cancel, mul_comm],
+end
+
+lemma digits_sum_le {n d : ℕ} (hd : 0 < d) :
+  ∑ (i : fin n), (d - 1) * (2 * d - 1)^(i : ℕ) < (2 * d - 1)^n :=
+begin
+  rw digits_sum_eq,
+  apply (nat.div_le_self _ _).trans_lt (nat.pred_lt (pow_pos (hd.trans_le weird_thing) _).ne'),
+end
+
+end nat
+
 section
 
 -- Should *replace* the existing lemma with a similar name.
@@ -76,6 +256,26 @@ lemma pairwise_disjoint.attach [semilattice_inf_bot α] {s : finset ι} {f : ι 
 end set
 
 namespace finset
+
+lemma range_add_eq_union (m n : ℕ) :
+  range (m + n) = range m ∪ (range n).map (add_right_embedding m) :=
+begin
+  ext,
+  simp_rw [mem_union, mem_map, exists_prop, add_right_embedding_apply, mem_range],
+  refine ⟨λ h, _, _⟩,
+  sorry,
+  sorry
+end
+
+lemma sum_mod (s : finset α) {m : ℕ} (f : α → ℕ) :
+  (∑ i in s, f i) % m = (∑ i in s, (f i % m)) % m :=
+begin
+  classical,
+  induction s using finset.induction with i s hi ih,
+  { simp },
+  rw [sum_insert hi, sum_insert hi, nat.add_mod, ih, nat.add_mod],
+  simp,
+end
 
 variables [decidable_eq α]
 

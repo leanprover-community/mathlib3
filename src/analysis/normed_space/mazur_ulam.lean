@@ -3,9 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.instances.real_vector_space
 import analysis.normed_space.affine_isometry
-import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Mazur-Ulam Theorem

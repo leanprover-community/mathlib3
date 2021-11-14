@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import field_theory.finite.basic
-import data.zmod.basic
 import data.nat.parity
+import field_theory.finite.basic
 
 /-!
 # Quadratic reciprocity.

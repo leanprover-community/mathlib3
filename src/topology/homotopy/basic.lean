@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
 
-import topology.unit_interval
-import topology.algebra.ordered.proj_Icc
-import topology.continuous_function.basic
 import topology.compact_open
+import topology.unit_interval
 
 /-!
 # Homotopy between functions

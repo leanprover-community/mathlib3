@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 
 import algebra.char_p.basic
-import ring_theory.subring
+import data.nat.choose
 
 /-!
 # Characteristic of subrings

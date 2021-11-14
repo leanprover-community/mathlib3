@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.subobject.well_powered
-import category_theory.types
 
 /-!
 # `Type u` is well-powered

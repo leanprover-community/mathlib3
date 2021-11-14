@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.finsupp_vector_space
-import ring_theory.principal_ideal_domain
+import linear_algebra.dimension
 import ring_theory.finiteness
 
 /-! # Free modules over PID

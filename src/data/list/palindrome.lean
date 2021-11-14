@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Wong
 -/
 
+import control.monad.basic
 import data.list.basic
 
 /-!

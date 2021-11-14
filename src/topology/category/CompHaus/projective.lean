@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import topology.category.CompHaus
-import topology.stone_cech
 import category_theory.preadditive.projective
+import topology.category.CompHaus
 
 /-!
 # CompHaus has enough projectives

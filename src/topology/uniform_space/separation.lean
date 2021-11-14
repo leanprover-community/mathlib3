@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot
 -/
 
+import topology.separation
 import topology.uniform_space.basic
-import tactic.apply_fun
-import data.set.pairwise
 
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.

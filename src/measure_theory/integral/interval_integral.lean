@@ -3,10 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
-import analysis.calculus.extend_deriv
-import analysis.calculus.fderiv_measurable
 import analysis.normed_space.dual
-import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
 import measure_theory.measure.lebesgue
 

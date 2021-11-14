@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
-import measure_theory.pi_system
 import data.fin.vec_notation
-import topology.algebra.infinite_sum
+import measure_theory.pi_system
 
 /-!
 # Outer Measures

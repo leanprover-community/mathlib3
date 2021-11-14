@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
 
 import algebra.group.defs
-import logic.function.basic
+import data.quot
 
 /-!
 # Basic lemmas about semigroups, monoids, and groups

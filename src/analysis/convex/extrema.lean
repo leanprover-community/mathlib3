@@ -5,8 +5,9 @@ Authors: Frédéric Dupuis
 -/
 import analysis.convex.function
 import topology.algebra.affine
+import topology.continuous_function.algebra
 import topology.local_extr
-import topology.instances.real
+import topology.metric_space.basic
 
 /-!
 # Minima and maxima of convex functions

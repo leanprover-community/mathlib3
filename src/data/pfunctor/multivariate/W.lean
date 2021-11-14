@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
+import data.pfunctor.univariate
 
 /-!
 # The W construction as a multivariate polynomial functor.

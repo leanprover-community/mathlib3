@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.basic
+import logic.relation
 
 /-!
 # A model of ZFC

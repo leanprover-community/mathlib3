@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.limits.functor_category
+import category_theory.products
 
 /-!
 # Limit properties relating to the (co)yoneda embedding.

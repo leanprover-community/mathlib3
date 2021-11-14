@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 
-import order.filter.bases
 import topology.algebra.module
 /-!
 # Group and ring filter bases

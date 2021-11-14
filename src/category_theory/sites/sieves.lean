@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, E. W. Ayers
 -/
 
-import category_theory.over
-import category_theory.limits.shapes.finite_limits
-import category_theory.yoneda
-import order.complete_lattice
-import data.set.lattice
+import category_theory.limits.shapes.pullbacks
+import tactic.apply
+import tactic.apply_fun
+import tactic.nth_rewrite
+import tactic.wlog
 
 /-!
 # Theory of sieves

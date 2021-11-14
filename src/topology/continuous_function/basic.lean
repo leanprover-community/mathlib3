@@ -5,8 +5,6 @@ Authors: Nicolò Cavalleri
 -/
 
 import data.set.Union_lift
-import topology.subset_properties
-import topology.tactic
 import topology.algebra.ordered.proj_Icc
 
 /-!

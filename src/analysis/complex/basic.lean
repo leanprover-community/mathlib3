@@ -3,8 +3,9 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.complex.module
+import algebra.order.module
 import data.complex.is_R_or_C
+import data.complex.module
 
 /-!
 # Normed space structure on `ℂ`.

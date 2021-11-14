@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.limits.shapes.products
+import data.fintype.card
 import set_theory.cardinal
 
 /-!

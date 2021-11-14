@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.box.basic
+import topology.instances.real
 
 /-!
 # Partitions of rectangular boxes in `ℝⁿ`

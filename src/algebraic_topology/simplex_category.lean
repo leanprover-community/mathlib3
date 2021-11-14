@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
-import order.category.NonemptyFinLinOrd
 import category_theory.skeletal
-import data.finset.sort
+import data.fintype.sort
+import order.category.NonemptyFinLinOrd
 import tactic.linarith
 
 /-! # The simplex category

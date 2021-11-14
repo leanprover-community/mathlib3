@@ -3,9 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
-import algebra.big_operators.order
 import data.mv_polynomial.monad
-import data.set.pairwise
 
 /-!
 # Degrees and variables of polynomials

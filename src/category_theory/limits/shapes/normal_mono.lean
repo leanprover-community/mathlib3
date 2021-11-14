@@ -3,8 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.shapes.regular_mono
+import category_theory.limits.preserves.basic
 import category_theory.limits.shapes.kernels
+import category_theory.limits.shapes.regular_mono
 
 /-!
 # Definitions and basic properties of normal monomorphisms and epimorphisms.

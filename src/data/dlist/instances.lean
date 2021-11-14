@@ -5,7 +5,7 @@ Authors: Simon Hudon
 -/
 import control.traversable.equiv
 import control.traversable.instances
-import data.dlist
+import control.traversable.lemmas
 
 /-!
 # Traversable instance for dlists

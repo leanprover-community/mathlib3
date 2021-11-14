@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.functor
+import control.traversable
+import control.traversable.derive
 
 /-!
 # Unbundled functors, as a typeclass decorating the object-level function.

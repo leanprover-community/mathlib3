@@ -5,7 +5,6 @@ Authors: Kexing Ying, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.big_operators.order
 import algebra.indicator_function
-import data.set.pairwise
 
 /-!
 # Finite products and sums over types and sets

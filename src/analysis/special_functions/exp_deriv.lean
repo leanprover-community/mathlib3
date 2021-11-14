@@ -5,7 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import analysis.calculus.inverse
 import analysis.complex.real_deriv
-import analysis.special_functions.exp
+import topology.metric_space.contracting
 
 /-!
 # Complex and real exponential

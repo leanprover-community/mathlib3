@@ -4,8 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import algebra.order.euclidean_absolute_value
-import analysis.special_functions.pow
 import combinatorics.pigeonhole
+import data.real.basic
+import tactic.group
+import tactic.interval_cases
+import tactic.reassoc_axiom
+import tactic.ring_exp
+import tactic.tfae
+import tactic.with_local_reducibility
 
 /-!
 # Admissible absolute values

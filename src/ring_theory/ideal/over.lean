@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import ring_theory.algebraic
 import ring_theory.localization
 
 /-!

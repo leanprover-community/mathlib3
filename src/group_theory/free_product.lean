@@ -5,7 +5,6 @@ Authors: David Wärn
 -/
 import algebra.free_monoid
 import group_theory.congruence
-import data.list.chain
 /-!
 # The free product of groups or monoids
 

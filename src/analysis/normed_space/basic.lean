@@ -5,12 +5,11 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
-import data.matrix.basic
-import topology.algebra.group_completion
-import topology.instances.ennreal
-import topology.metric_space.completion
-import topology.sequences
 import analysis.normed.group.infinite_sum
+import data.matrix.basic
+import data.matrix.dmatrix
+import topology.algebra.ordered.liminf_limsup
+import topology.instances.ennreal
 
 /-!
 # Normed spaces

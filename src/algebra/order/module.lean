@@ -6,7 +6,6 @@ Authors: Frédéric Dupuis, Yaël Dillies
 
 import algebra.module.pi
 import algebra.module.prod
-import algebra.order.field
 import algebra.order.pi
 import algebra.order.smul
 import algebra.pointwise

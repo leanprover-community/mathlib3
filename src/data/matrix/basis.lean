@@ -3,7 +3,6 @@ Copyright (c) 2020 Jalex Stark. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jalex Stark, Scott Morrison, Eric Wieser, Oliver Nash
 -/
-import data.matrix.basic
 import linear_algebra.matrix.trace
 
 /-!

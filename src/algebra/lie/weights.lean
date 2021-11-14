@@ -3,12 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.nilpotent
-import algebra.lie.tensor_product
-import algebra.lie.character
 import algebra.lie.cartan_subalgebra
-import linear_algebra.eigenspace
-import ring_theory.tensor_product
+import algebra.lie.character
+import algebra.lie.tensor_product
 
 /-!
 # Weights and roots of Lie modules and Lie algebras

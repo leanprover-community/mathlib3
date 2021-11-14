@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import data.W.cardinal
 import data.mv_polynomial.basic
+import data.polynomial.eval
 /-!
 # Cardinality of Polynomial Ring
 

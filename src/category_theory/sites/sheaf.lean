@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Bhavik Mehta
 -/
 
-import category_theory.sites.sheaf_of_types
-import category_theory.limits.yoneda
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.shapes.products
-import category_theory.concrete_category
+import category_theory.limits.yoneda
+import category_theory.sites.sheaf_of_types
 
 /-!
 # Sheaves taking values in a category

@@ -4,14 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.bilinear_form
-import linear_algebra.matrix.charpoly.coeff
-import linear_algebra.determinant
-import linear_algebra.vandermonde
-import linear_algebra.trace
+import data.mv_polynomial
 import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
-import ring_theory.power_basis
+import linear_algebra.bilinear_form
+import linear_algebra.determinant
+import linear_algebra.direct_sum.finsupp
+import linear_algebra.finsupp_vector_space
+import linear_algebra.free_module.pid
+import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.diagonal
+import linear_algebra.matrix.to_linear_equiv
+import linear_algebra.trace
+import linear_algebra.vandermonde
 
 /-!
 # Trace for (finite) ring extensions.

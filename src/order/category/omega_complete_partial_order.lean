@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import order.omega_complete_partial_order
-import order.category.Preorder
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.equalizers
+import algebra.punit_instances
+import category_theory.concrete_category.bundled_hom
 import category_theory.limits.constructions.limits_of_products_and_equalizers
+import data.pfun
+import order.omega_complete_partial_order
 
 /-!
 # Category of types with a omega complete partial order

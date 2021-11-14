@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import ring_theory.principal_ideal_domain
-import order.conditionally_complete_lattice
-import ring_theory.ideal.local_ring
-import ring_theory.multiplicity
-import ring_theory.valuation.basic
 import linear_algebra.adic_completion
+import ring_theory.ideal.local_ring
 
 /-!
 # Discrete valuation rings

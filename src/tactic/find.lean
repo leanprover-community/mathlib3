@@ -3,6 +3,8 @@ Copyright (c) 2017 Sebastian Ullrich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
+import data.bool
+import logic.function.basic
 import tactic.core
 
 open expr
@@ -66,7 +68,6 @@ The `find` command from `tactic.find` allows to find definitions lemmas using
 pattern matching on the type. For instance:
 
 ```lean
-import tactic.find
 
 run_cmd tactic.skip
 

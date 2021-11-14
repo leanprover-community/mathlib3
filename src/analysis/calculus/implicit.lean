@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.calculus.inverse
 import analysis.normed_space.complemented
+import topology.metric_space.contracting
 
 /-!
 # Implicit function theorem

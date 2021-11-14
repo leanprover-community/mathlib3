@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen
 -/
 
-import tactic.ring
+import data.int.range
 import tactic.abel
+import tactic.ring
 
 /-!
 # Boolean rings

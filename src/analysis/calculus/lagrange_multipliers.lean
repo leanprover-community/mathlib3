@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.calculus.inverse
 import linear_algebra.dual
+import topology.metric_space.contracting
 
 /-!
 # Lagrange multipliers

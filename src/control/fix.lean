@@ -5,8 +5,9 @@ Authors: Simon Hudon
 -/
 
 import data.nat.upto
-import data.stream.basic
-import data.pfun
+import data.part
+import data.stream.init
+import tactic.apply_fun
 
 /-!
 # Fixed point

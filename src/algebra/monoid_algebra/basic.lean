@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
 import algebra.big_operators.finsupp
-import linear_algebra.finsupp
 import algebra.non_unital_alg_hom
+import data.finsupp
+import linear_algebra.finsupp
 
 /-!
 # Monoid algebras

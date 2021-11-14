@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import topology.opens
-import category_theory.sites.grothendieck
-import category_theory.sites.pretopology
 import category_theory.limits.lattice
+import category_theory.sites.pretopology
+import topology.opens
 
 /-!
 # Grothendieck topology on a topological space

@@ -3,10 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
+import control.traversable
+import control.traversable.derive
 import data.set_like.basic
 import order.preorder_hom
-import order.galois_connection
-import tactic.monotonicity
 
 /-!
 # Closure operators between preorders

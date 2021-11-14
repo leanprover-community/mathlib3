@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Sean Leather
 -/
 import data.list.perm
 import data.list.range
-import data.sigma
 
 /-!
 # Utilities for lists of sigmas

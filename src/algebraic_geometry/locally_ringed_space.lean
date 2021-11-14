@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import algebra.module
 import algebraic_geometry.ringed_space
+import algebraic_geometry.stalks
 import data.equiv.transfer_instance
 
 /-!

@@ -3,9 +3,9 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import data.list.rotate
-import data.finset.sort
 import data.fintype.list
+import data.list.rotate
+import data.multiset.sort
 
 /-!
 # Cycles of a list

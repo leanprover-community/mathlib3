@@ -3,12 +3,9 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.invertible
-import algebra.lie.skew_adjoint
 import algebra.lie.abelian
-import linear_algebra.matrix.trace
-import linear_algebra.matrix.transvection
-import data.matrix.basis
+import algebra.lie.skew_adjoint
+import tactic.field_simp
 
 /-!
 # Classical Lie algebras

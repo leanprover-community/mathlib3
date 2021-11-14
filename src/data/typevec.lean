@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
 import data.fin.fin2
-import logic.function.basic
 import tactic.basic
 
 /-!

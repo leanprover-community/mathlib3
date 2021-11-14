@@ -5,10 +5,8 @@ Authors: Chris Hughes
 -/
 
 import algebra.group_power.identities
-import data.zmod.basic
-import field_theory.finite.basic
 import data.int.parity
-import data.fintype.card
+import field_theory.finite.basic
 
 /-!
 # Lagrange's four square theorem

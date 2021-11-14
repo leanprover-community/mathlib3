@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import topology.category.Profinite
-import topology.locally_constant.basic
 import topology.discrete_quotient
 
 /-!

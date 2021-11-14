@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
 
-import algebra.invertible
 import linear_algebra.bilinear_form
-import linear_algebra.matrix.determinant
-import linear_algebra.special_linear_group
 
 /-!
 # Quadratic forms

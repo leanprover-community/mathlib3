@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import data.fin.basic
-import data.list.sort
+import data.int.basic
+import data.list.chain
 import data.list.duplicate
+import data.list.sort
 
 /-!
 # Isomorphism between `fin (length l)` and `{x // x ∈ l}`

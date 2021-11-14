@@ -5,7 +5,6 @@ Authors: Zhouhang Zhou
 -/
 import algebra.char_p.invertible
 import order.filter.at_top_bot
-import tactic.linarith
 
 /-!
 # Quadratic discriminants and roots of a quadratic

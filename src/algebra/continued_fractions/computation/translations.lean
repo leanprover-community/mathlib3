@@ -5,6 +5,8 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.basic
 import algebra.continued_fractions.translations
+import algebra.order.archimedean
+import data.rat
 /-!
 # Basic Translation Lemmas Between Structures Defined for Computing Continued Fractions
 

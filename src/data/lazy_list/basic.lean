@@ -5,6 +5,7 @@ Authors: Simon Hudon
 -/
 import control.traversable.equiv
 import control.traversable.instances
+import control.traversable.lemmas
 import data.lazy_list
 
 /-!

@@ -5,7 +5,6 @@ Authors: Nicolò Cavalleri, Heather Macbeth
 -/
 
 import geometry.manifold.smooth_manifold_with_corners
-import analysis.normed_space.units
 
 /-!
 # Units of a normed algebra

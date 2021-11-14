@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Patrick Stevens
 -/
-import data.nat.choose.basic
-import tactic.linarith
-import algebra.big_operators.ring
 import algebra.big_operators.intervals
-import algebra.big_operators.order
 import algebra.big_operators.nat_antidiagonal
+import algebra.big_operators.order
+import algebra.big_operators.ring
 
 /-!
 # Sums of binomial coefficients

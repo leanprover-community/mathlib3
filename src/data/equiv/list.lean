@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.equiv.denumerable
 import data.finset.sort
+import data.sigma
 
 /-!
 # Equivalences involving `list`-like types

@@ -5,9 +5,10 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
 import data.fin.vec_notation
+import data.fintype.card
 import group_theory.abelianization
-import set_theory.cardinal
 import group_theory.general_commutator
+import set_theory.cardinal
 
 /-!
 # Solvable Groups

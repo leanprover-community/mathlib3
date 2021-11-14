@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek
 -/
 
+import data.bool
+import logic.function.basic
 import tactic.core
 
 /-!

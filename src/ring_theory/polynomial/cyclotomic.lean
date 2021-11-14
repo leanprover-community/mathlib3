@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import algebra.polynomial.big_operators
 import analysis.complex.roots_of_unity
+import analysis.special_functions.trigonometric.complex
 import data.polynomial.lifts
-import field_theory.separable
-import field_theory.splitting_field
 import number_theory.arithmetic_function
-import ring_theory.roots_of_unity
 
 /-!
 # Cyclotomic polynomials.

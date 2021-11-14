@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import data.option.defs
 import meta.expr
+import meta.rb_map
 
 /-!
 # Matching expressions with leading binders

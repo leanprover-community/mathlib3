@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.mv_polynomial.basic
+import data.polynomial.eval
 
 /-!
 ## Counit morphisms for multivariate polynomials

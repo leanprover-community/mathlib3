@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.set.lattice
-import order.directed
 /-!
 # Union lift
 This file defines `set.Union_lift` to glue together functions defined on each of a collection of

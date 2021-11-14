@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-import group_theory.solvable
 import field_theory.polynomial_galois_group
+import ring_theory.eisenstein_criterion
 import ring_theory.roots_of_unity
 
 /-!

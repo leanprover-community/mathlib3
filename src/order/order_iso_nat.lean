@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.equiv.denumerable
-import order.preorder_hom
 import data.nat.lattice
+import data.sigma
 
 /-!
 # Relation embeddings from the naturals

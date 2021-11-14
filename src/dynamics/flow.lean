@@ -5,7 +5,6 @@ Authors: Jean Lo
 -/
 
 import topology.algebra.group
-import logic.function.iterate
 
 /-!
 # Flows and invariant sets

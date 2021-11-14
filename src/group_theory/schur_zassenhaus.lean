@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 
 import group_theory.complement
+import group_theory.group_action
 import group_theory.index
 
 /-!

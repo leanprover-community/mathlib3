@@ -3,12 +3,9 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
-import category_theory.over
 import category_theory.adjunction.opposites
-import category_theory.limits.preserves.basic
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.creates
 import category_theory.limits.comma
+import category_theory.limits.shapes.pullbacks
 
 /-!
 # Limits and colimits in the over and under categories

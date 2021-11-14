@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import group_theory.finiteness
 import ring_theory.algebra_tower
-import ring_theory.ideal.quotient
-import ring_theory.noetherian
+import ring_theory.polynomial.tower
 
 /-!
 # Finiteness conditions in commutative algebra

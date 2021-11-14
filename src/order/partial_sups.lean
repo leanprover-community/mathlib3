@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.finset.lattice
-import data.set.pairwise
-import order.preorder_hom
 
 /-!
 # The monotone sequence of partial supremums of a sequence

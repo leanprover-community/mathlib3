@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.order.archimedean
-import algebra.order.sub
 import algebra.order.with_zero
-import order.lattice_intervals
+import data.rat
 import order.conditionally_complete_lattice
+import order.lattice_intervals
 
 /-!
 # The type of nonnegative elements

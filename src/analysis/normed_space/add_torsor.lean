@@ -5,7 +5,9 @@ Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import linear_algebra.affine_space.midpoint
+import topology.algebra.group_completion
 import topology.instances.real_vector_space
+import topology.metric_space.completion
 
 /-!
 # Torsors of additive normed group actions.

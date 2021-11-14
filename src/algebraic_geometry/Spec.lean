@@ -5,7 +5,6 @@ Authors: Scott Morrison, Justus Springer
 -/
 import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.structure_sheaf
-import data.equiv.transfer_instance
 
 /-!
 # $Spec$ as a functor to locally ringed spaces.

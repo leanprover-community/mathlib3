@@ -3,7 +3,6 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
-import ring_theory.ring_invo
 import algebra.module.linear_map
 import tactic.abel
 

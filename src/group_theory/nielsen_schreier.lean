@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.action
-import combinatorics.quiver
 import group_theory.is_free_group
 /-!
 # The Nielsen-Schreier theorem

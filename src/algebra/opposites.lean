@@ -3,11 +3,11 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.opposite
 import algebra.field
-import algebra.group.commute
-import group_theory.group_action.defs
 import data.equiv.mul_add
+import data.equiv.set
+import data.opposite
+import group_theory.group_action.defs
 
 /-!
 # Algebraic operations on `αᵒᵖ`

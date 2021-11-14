@@ -3,15 +3,9 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
-import algebra.big_operators.pi
-import algebra.module.pi
-import algebra.module.linear_map
-import algebra.big_operators.ring
-import algebra.star.pi
 import algebra.algebra.basic
-import data.equiv.ring
-import data.fintype.card
-import data.matrix.dmatrix
+import algebra.iterate_hom
+import algebra.star.pi
 
 /-!
 # Matrices
@@ -26,7 +20,6 @@ These have not yet been implemented.
 universes u u' v w
 
 open_locale big_operators
-open dmatrix
 
 /-- `matrix m n` is the type of matrices whose rows are indexed by `m`
 and whose columns are indexed by `n`. -/

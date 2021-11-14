@@ -5,8 +5,7 @@ Authors: Simon Hudon
 
 Automation to construct `traversable` instances
 -/
-import control.traversable.lemmas
-import data.list.basic
+import tactic.pi_instances
 
 namespace tactic.interactive
 

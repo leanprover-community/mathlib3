@@ -3,10 +3,8 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import data.finset.sort
 import data.fin.vec_notation
 import linear_algebra.affine_space.combination
-import linear_algebra.affine_space.affine_equiv
 import linear_algebra.basis
 
 /-!

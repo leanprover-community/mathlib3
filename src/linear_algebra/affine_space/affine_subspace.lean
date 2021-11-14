@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import linear_algebra.affine_space.affine_equiv
-import linear_algebra.tensor_product
-import data.set.intervals.unordered_interval
 
 /-!
 # Affine spaces

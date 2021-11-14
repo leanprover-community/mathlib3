@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.mv_polynomial.basic
+import data.polynomial.eval
 
 /-!
 # Renaming variables of polynomials

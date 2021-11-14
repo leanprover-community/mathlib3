@@ -6,7 +6,6 @@ Authors: Thomas Browning, Patrick Lutz
 
 import field_theory.adjoin
 import field_theory.is_alg_closed.basic
-import field_theory.separable
 
 /-!
 # Primitive Element Theorem

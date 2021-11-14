@@ -3,10 +3,9 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import order.lattice
-import data.list.sort
 import data.equiv.fin
 import data.equiv.functor
+import data.list.sort
 /-!
 # Jordan-Hölder Theorem
 

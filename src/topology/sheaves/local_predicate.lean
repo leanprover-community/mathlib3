@@ -3,9 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
+import topology.local_homeomorph
 import topology.sheaves.sheaf_of_functions
 import topology.sheaves.stalks
-import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
 # Functions satisfying a local predicate form a sheaf.

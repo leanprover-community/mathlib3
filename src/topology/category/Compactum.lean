@@ -5,10 +5,8 @@ Authors: Adam Topaz
 -/
 
 import category_theory.monad.types
-import category_theory.monad.limits
-import category_theory.equivalence
-import topology.category.CompHaus
 import data.set.constructions
+import topology.category.CompHaus
 
 /-!
 

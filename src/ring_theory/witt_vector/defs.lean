@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
+import data.fin.vec_notation
 import ring_theory.witt_vector.structure_polynomial
 
 /-!

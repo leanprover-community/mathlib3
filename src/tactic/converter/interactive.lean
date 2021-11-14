@@ -5,8 +5,10 @@ Authors: Lucas Allen, Keeley Hoek, Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
-import tactic.core
+import data.bool
+import logic.function.basic
 import tactic.converter.old_conv
+import tactic.core
 
 namespace old_conv
 meta def save_info (p : pos) : old_conv unit :=

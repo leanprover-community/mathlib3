@@ -3,9 +3,8 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import data.fintype.basic
 import algebra.big_operators.basic
-import data.equiv.fin
+import tactic.norm_num
 
 /-!
 # The Hales-Jewett theorem

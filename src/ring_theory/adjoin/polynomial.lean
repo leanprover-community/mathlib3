@@ -3,8 +3,11 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import data.mv_polynomial.rename
+import data.polynomial.algebra_map
 import ring_theory.adjoin.basic
-import ring_theory.polynomial.basic
+import tactic.group
+import tactic.interval_cases
 
 /-!
 # Adjoining elements to form subalgebras: relation to polynomials

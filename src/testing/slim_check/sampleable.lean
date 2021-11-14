@@ -3,11 +3,9 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import data.lazy_list.basic
-import data.tree
-import data.int.basic
 import control.bifunctor
 import control.ulift
+import data.lazy_list.basic
 import tactic.linarith
 import testing.slim_check.gen
 

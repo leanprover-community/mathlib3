@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 
-import ring_theory.polynomial.chebyshev
-import ring_theory.localization
-import data.zmod.basic
 import algebra.char_p.invertible
+import ring_theory.localization
+import ring_theory.polynomial.chebyshev
 
 
 /-!

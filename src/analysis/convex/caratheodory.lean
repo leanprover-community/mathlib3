@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import analysis.convex.combination
-import linear_algebra.affine_space.independent
 import tactic.field_simp
 
 /-!

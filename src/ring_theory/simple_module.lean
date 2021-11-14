@@ -5,7 +5,6 @@ Authors: Aaron Anderson
 -/
 
 import linear_algebra.basic
-import order.atoms
 
 /-!
 # Simple Modules

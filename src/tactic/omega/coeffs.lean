@@ -9,9 +9,10 @@ Non-constant terms of linear constraints are represented
 by storing their coefficients in integer lists.
 -/
 
+import data.int.range
 import data.list.func
-import tactic.ring
 import tactic.omega.misc
+import tactic.ring
 
 namespace omega
 namespace coeffs

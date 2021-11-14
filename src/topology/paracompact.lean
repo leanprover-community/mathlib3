@@ -3,9 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Yury Kudryashov
 -/
-import topology.subset_properties
 import topology.separation
-import data.option.basic
 
 /-!
 # Paracompact topological spaces

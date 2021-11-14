@@ -3,10 +3,8 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
-import data.fin.fin2
+import data.quot
 import data.typevec
-import logic.function.basic
-import tactic.basic
 
 /-!
 

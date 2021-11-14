@@ -3,7 +3,11 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import topology.metric_space.emetric_space
+import tactic.abel
+import tactic.field_simp
+import tactic.linarith
+import topology.separation
+import topology.uniform_space.basic
 
 /-!
 # `Gδ` sets

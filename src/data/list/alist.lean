@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sean Leather, Mario Carneiro
 -/
 import data.list.sigma
+import data.sigma
 
 /-!
 # Association Lists

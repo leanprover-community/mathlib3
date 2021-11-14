@@ -3,8 +3,9 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
-import analysis.inner_product_space.basic
+import algebra.direct_sum.module
 import analysis.convex.basic
+import analysis.inner_product_space.basic
 
 /-!
 # The orthogonal projection

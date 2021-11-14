@@ -7,7 +7,6 @@ Authors: Thomas Browning, Patrick Lutz
 import analysis.complex.polynomial
 import field_theory.galois
 import group_theory.perm.cycle_type
-import ring_theory.eisenstein_criterion
 
 /-!
 # Galois Groups of Polynomials

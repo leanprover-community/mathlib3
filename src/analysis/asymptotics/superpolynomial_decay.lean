@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import analysis.asymptotics.asymptotics
-import analysis.asymptotics.specific_asymptotics
+import analysis.normed_space.ordered
 import data.polynomial.eval
 
 /-!

@@ -3,7 +3,6 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.metric_space.basic
 import measure_theory.constructions.borel_space
 import measure_theory.covering.vitali_family
 

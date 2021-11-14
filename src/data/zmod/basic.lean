@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
+import algebra.algebra.tower
 import algebra.char_p.basic
+import data.nat.choose
 import ring_theory.ideal.operations
 import tactic.fin_cases
 

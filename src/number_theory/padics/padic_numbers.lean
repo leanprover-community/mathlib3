@@ -5,6 +5,8 @@ Authors: Robert Y. Lewis
 -/
 import analysis.normed_space.basic
 import number_theory.padics.padic_norm
+import topology.algebra.group_completion
+import topology.metric_space.completion
 
 /-!
 # p-adic numbers

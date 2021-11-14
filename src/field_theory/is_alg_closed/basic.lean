@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import field_theory.splitting_field
+import ring_theory.polynomial
 /-!
 # Algebraically Closed Field
 

@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.nat.interval
 import data.polynomial.derivative
-import tactic.linarith
 
 /-!
 # Theory of iterated derivative

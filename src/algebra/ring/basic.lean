@@ -5,8 +5,8 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland
 -/
 import algebra.divisibility
+import algebra.group_with_zero
 import algebra.regular.basic
-import data.set.basic
 
 /-!
 # Properties and homomorphisms of semirings and rings

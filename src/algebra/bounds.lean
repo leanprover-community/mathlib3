@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import order.conditionally_complete_lattice
-import algebra.pointwise
 
 /-!
 # Upper/lower bounds in ordered monoids and groups

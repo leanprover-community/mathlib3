@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
-import group_theory.index
 import group_theory.group_action.conj_act
+import group_theory.index
 import group_theory.perm.cycle_type
-import group_theory.quotient_group
 
 /-!
 # p-groups

@@ -3,10 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import number_theory.zsqrtd.basic
 import data.complex.basic
-import ring_theory.principal_ideal_domain
 import number_theory.quadratic_reciprocity
+import number_theory.zsqrtd.basic
 /-!
 # Gaussian integers
 

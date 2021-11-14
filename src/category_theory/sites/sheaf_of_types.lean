@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.sites.pretopology
 import category_theory.limits.shapes.types
-import category_theory.full_subcategory
+import category_theory.sites.pretopology
 
 /-!
 # Sheaves of types on a Grothendieck topology

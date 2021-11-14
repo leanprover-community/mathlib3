@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, E. W. Ayers
 -/
 
+import category_theory.limits.shapes.finite_limits
+import category_theory.limits.shapes.products
 import category_theory.sites.sieves
-import category_theory.limits.shapes.pullbacks
 import order.copy
 
 /-!

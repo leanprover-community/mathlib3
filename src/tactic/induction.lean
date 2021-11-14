@@ -5,7 +5,6 @@ Authors: Jannis Limperg
 -/
 
 import tactic.clear
-import tactic.dependencies
 import tactic.fresh_names
 import tactic.generalizes
 import tactic.has_variable_names

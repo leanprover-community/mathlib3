@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import set_theory.game
-import data.fintype.basic
 
 /-!
 # Short games

@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Frédéric Dupuis,
   Heather Macbeth
 -/
-import topology.algebra.ring
-import topology.algebra.mul_action
-import topology.uniform_space.uniform_embedding
-import algebra.algebra.basic
-import linear_algebra.projection
 import linear_algebra.pi
+import linear_algebra.projection
+import topology.algebra.mul_action
+import topology.algebra.ring
+import topology.uniform_space.uniform_embedding
 
 /-!
 # Theory of topological modules and continuous linear maps.

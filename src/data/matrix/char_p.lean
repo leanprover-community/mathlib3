@@ -3,8 +3,10 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.matrix.basic
 import algebra.char_p.basic
+import data.matrix.basic
+import data.matrix.dmatrix
+import data.nat.choose
 /-!
 # Matrices in prime characteristic
 -/

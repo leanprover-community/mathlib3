@@ -3,10 +3,8 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.metric_space.basic
-import set_theory.cardinal_ordinal
-import measure_theory.integral.lebesgue
 import measure_theory.covering.vitali_family
+import measure_theory.integral.lebesgue
 
 /-!
 # Besicovitch covering theorems

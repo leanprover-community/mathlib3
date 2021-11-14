@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Gabriel Ebner, Yury Kudryashov
 -/
 import data.nat.enat
+import data.pfun
 import order.conditionally_complete_lattice
 
 /-!

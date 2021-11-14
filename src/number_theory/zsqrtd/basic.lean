@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.associated
+import data.int.range
 import tactic.ring
 
 /-! # ℤ[√d]

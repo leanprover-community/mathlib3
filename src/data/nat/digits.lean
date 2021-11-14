@@ -3,8 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
+import data.fin.interval
+import data.int.interval
 import data.int.modeq
 import data.list.indexes
+import data.pnat.interval
 import tactic.interval_cases
 import tactic.linarith
 

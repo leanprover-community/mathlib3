@@ -372,6 +372,7 @@ begin
       smul_smul, h.mul_coe_inv, one_smul]
 end
 
+/-- One form of **Cramer's rule**. See `matrix.mul_vec_cramer` for a stronger form. -/
 @[simp] lemma det_smul_inv_vec_mul_eq_cramer_transpose
   (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
   A.det • A⁻¹.vec_mul b = cramer Aᵀ b :=

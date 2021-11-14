@@ -260,7 +260,7 @@ end
 
 /-- If we fix a background affine basis `p`, then for any other basis `q`, we can characterise
 the barycentric coordinates provided by `q` in terms of determinants relative to `p`. -/
-lemma det_smul_coords_eq_camer_coords (x : P) :
+lemma det_smul_coords_eq_cramer_coords (x : P) :
   (b.to_matrix b₂.points).det • b₂.coords x = (b.to_matrix b₂.points)ᵀ.cramer (b.coords x) :=
 begin
   have hu := b.is_unit_to_matrix b₂,

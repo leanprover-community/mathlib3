@@ -89,24 +89,28 @@ def coloring.color_class_of_vertex (v : V) : set V := C.color_class_of_color (C 
 /-- The set containing all color classes. -/
 def coloring.color_classes : set (set V) := {(C.color_class_of_vertex v) | v : V}
 
+lemma coloring.vertex_in_its_color_class {v : V} :
+  v ∈ {v' : V | C v' = C v} := by exact rfl
+
 lemma coloring.color_classes_is_partition :
   setoid.is_partition C.color_classes :=
 begin
   rw setoid.is_partition,
-  simp [exists_unique],
-  simp [coloring.color_classes, coloring.color_class_of_vertex, coloring.color_class_of_color],
+  simp only [exists_unique],
+  simp [coloring.color_classes, coloring.color_class_of_vertex,
+    coloring.color_class_of_color],
   split,
   { intro v,
-    sorry, },
+    rw [← set.not_nonempty_iff_eq_empty, not_not],
+    use v,
+    apply coloring.vertex_in_its_color_class, },
   { intro v,
     split,
     { split,
-      { --
-        use v,
-        sorry, },
-      { --
-        intros w hcvw,
-        sorry, }, }, },
+      { use v,
+        apply coloring.vertex_in_its_color_class, },
+      { intros w hcvw,
+        rw hcvw, }, }, },
 end
 
 lemma coloring.color_classes_is_independent :
@@ -118,8 +122,8 @@ begin
   intros v w hcvw z hczv h_neq_wz,
   have hcwz : C w = C z, by exact (rfl.congr (eq.symm hczv)).mp hcvw,
   by_contra,
-  have hwz : G.adj w z, -- improve this
-  { by_contra,
+  have hwz : G.adj w z,
+  { by_contra, -- todo: improve this
     contradiction, },
   have hvalid := C.valid hwz,
   contradiction,

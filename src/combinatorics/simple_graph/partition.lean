@@ -6,6 +6,36 @@ Authors: Arthur Paulino, Kyle Miller
 
 import combinatorics.simple_graph.coloring
 
+/-!
+# Graph partitions
+
+This module provides an interface for dealing with partitions on simple graphs. A partition of
+a graph `G`, with vertices `V`, is a set `P` of disjoint subsets of `V` such that:
+
+* The union of all elements of `P` resuls on `V`.
+
+* Each element of `P` doesn't contain a pair of vertices incident by the same edge;
+
+This module also explores the relationship between partitions and colorings. A partition can be
+created from a coloring by grouping vertices by their colors. Similarly, a coloring can be created
+from a partition by coloring every vertex in the same subset of `V` with the same color.
+
+## Main definitions
+
+* `partition` is a structure to represent a partition of a simple graph
+
+* `to_coloring` and `to_coloring'` are functions that create colorings from partitions
+
+* `from_coloring` is a function that creates a partition from a coloring
+
+## Todo
+
+* Define k-partite graphs
+
+* Prove that k-partite graphs are k-colorable and vice-versa
+
+-/
+
 universes u v
 
 namespace simple_graph
@@ -19,6 +49,7 @@ structure partition :=
 namespace partition
 variables {G} (P : G.partition)
 
+/-- Get the part `v` belongs to in the partition. -/
 def part_of_vertex (v : V) : set V :=
 classical.some (P.is_partition.2 v)
 
@@ -45,6 +76,7 @@ begin
   exact h1 w hw (G.ne_of_adj h) h,
 end
 
+/-- Creates a coloring using colors of type `set V`. -/
 def to_coloring : G.coloring (set V) :=
 coloring.mk P.part_of_vertex
 begin
@@ -52,6 +84,7 @@ begin
   exact P.part_of_vertex_ne_of_adj hvw,
 end
 
+/-- Creates a coloring using colors of type `P.parts`. -/
 def to_coloring' : G.coloring P.parts :=
 coloring.mk (λ v, ⟨P.part_of_vertex v, P.part_of_vertex_mem v⟩)
 begin
@@ -63,6 +96,7 @@ end
 lemma to_colorable [fintype P.parts] : G.colorable (fintype.card P.parts) :=
 coloring.to_colorable P.to_coloring'
 
+/-- Creates a partition from a coloring. -/
 def from_coloring {α : Type v} (C : G.coloring α) : G.partition :=
 begin
   let parts : set (set V) := C.color_classes,

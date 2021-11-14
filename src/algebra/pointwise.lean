@@ -337,6 +337,18 @@ begin
   exact ⟨g, λ i hi, hf hi $ hg hi, rfl⟩
 end
 
+@[to_additive]
+lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : ι → M) :
+  ∏ (i : ι) in s, ({I i} : set M) = {∏ (i : ι) in s, I i} :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simpa },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih],
+    simp }
+end
+
 /-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
 
 end big_operators
@@ -620,6 +632,14 @@ variables {α : Type*} {β : Type*}
 lemma zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
+
+lemma zero_smul_subset [has_zero α] [has_zero β] [smul_with_zero α β] (s : set β) :
+  (0 : α) • s ⊆ 0 :=
+image_subset_iff.2 $ λ x _, zero_smul α x
+
+lemma subsingleton_zero_smul_set [has_zero α] [has_zero β] [smul_with_zero α β] (s : set β) :
+  ((0 : α) • s).subsingleton :=
+subsingleton_singleton.mono (zero_smul_subset s)
 
 section group
 variables [group α] [mul_action α β]

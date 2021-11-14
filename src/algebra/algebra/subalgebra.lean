@@ -105,10 +105,10 @@ by simpa only [sub_eq_add_neg] using S.add_mem hx (S.neg_mem hy)
 theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n
 
-theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
+theorem zsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : ∀ (n : ℤ), n • x ∈ S
-| (n : ℕ) := by { rw [gsmul_coe_nat], exact S.nsmul_mem hx n }
-| -[1+ n] := by { rw [gsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
+| (n : ℕ) := by { rw [coe_nat_zsmul], exact S.nsmul_mem hx n }
+| -[1+ n] := by { rw [zsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
 S.to_subsemiring.coe_nat_mem n
@@ -907,18 +907,6 @@ instance no_zero_smul_divisors_top [no_zero_divisors A] (S : subalgebra R A) :
   have (c : A) = 0 ∨ x = 0,
   from eq_zero_or_eq_zero_of_mul_eq_zero h,
   this.imp_left (@subtype.ext_iff _ _ c 0).mpr⟩
-
-/-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
-then `T` is an `R`-subalgebra of `A`. -/
-def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  {i : algebra R A} (S : subalgebra R A)
-  (T : subalgebra S A) : subalgebra R A :=
-{ algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
-  .. T }
-
-@[simp] lemma mem_under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  {i : algebra R A} {S : subalgebra R A} {T : subalgebra S A} {x : A} :
-  x ∈ S.under T ↔ x ∈ T := iff.rfl
 
 end actions
 

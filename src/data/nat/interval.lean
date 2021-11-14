@@ -62,13 +62,11 @@ lemma Ico_eq_range' : Ico a b = (list.range' a (b - a)).to_finset := rfl
 lemma Ioc_eq_range' : Ioc a b = (list.range' (a + 1) (b - a)).to_finset := rfl
 lemma Ioo_eq_range' : Ioo a b = (list.range' (a + 1) (b - a - 1)).to_finset := rfl
 
-lemma Iio_eq_range : Iio = range :=
-by { ext b x, rw [mem_Iio, mem_range] }
+lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
-lemma Ico_zero_eq_range : Ico 0 a = range a :=
-by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
+@[simp] lemma Ico_zero_eq_range : Ico 0 = range := by rw [←bot_eq_zero, ←Iio_eq_Ico, Iio_eq_range]
 
-lemma _root_.finset.range_eq_Ico : range = Ico 0 := by { funext, exact (Ico_zero_eq_range n).symm }
+lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 
 @[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
 by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
@@ -82,28 +80,34 @@ by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, li
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
 by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
 
+@[simp] lemma card_Iic : (Iic b).card = b + 1 := by rw [Iic, card_Icc, bot_eq_zero, tsub_zero]
+@[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio, card_Ico, bot_eq_zero, tsub_zero]
+
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = b + 1 - a :=
-by rw [←card_Icc, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Icc]
 
 @[simp] lemma card_fintype_Ico : fintype.card (set.Ico a b) = b - a :=
-by rw [←card_Ico, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Ico]
 
 @[simp] lemma card_fintype_Ioc : fintype.card (set.Ioc a b) = b - a :=
-by rw [←card_Ioc, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Ioc]
 
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = b - a - 1 :=
-by rw [←card_Ioo, fintype.card_of_finset]
+by rw [fintype.card_of_finset, card_Ioo]
+
+@[simp] lemma card_fintype_Iic : fintype.card (set.Iic b) = b + 1 :=
+by rw [fintype.card_of_finset, card_Iic]
+
+@[simp] lemma card_fintype_Iio : fintype.card (set.Iio b) = b :=
+by rw [fintype.card_of_finset, card_Iio]
 
 -- TODO@Yaël: Generalize all the following lemmas to `succ_order`
 
-lemma Icc_succ_left : Icc a.succ b = Ioc a b :=
-by { ext x, rw [mem_Icc, mem_Ioc, succ_le_iff] }
+lemma Icc_succ_left : Icc a.succ b = Ioc a b := by { ext x, rw [mem_Icc, mem_Ioc, succ_le_iff] }
 
-lemma Ico_succ_right : Ico a b.succ = Icc a b :=
-by { ext x, rw [mem_Ico, mem_Icc, lt_succ_iff] }
+lemma Ico_succ_right : Ico a b.succ = Icc a b := by { ext x, rw [mem_Ico, mem_Icc, lt_succ_iff] }
 
-lemma Ico_succ_left : Ico a.succ b = Ioo a b :=
-by { ext x, rw [mem_Ico, mem_Ioo, succ_le_iff] }
+lemma Ico_succ_left : Ico a.succ b = Ioo a b := by { ext x, rw [mem_Ico, mem_Ioo, succ_le_iff] }
 
 lemma Icc_pred_right {b : ℕ} (h : 0 < b) : Icc a (b - 1) = Ico a b :=
 by { ext x, rw [mem_Icc, mem_Ico, lt_iff_le_pred h] }
@@ -111,8 +115,7 @@ by { ext x, rw [mem_Icc, mem_Ico, lt_iff_le_pred h] }
 lemma Ico_succ_succ : Ico a.succ b.succ = Ioc a b :=
 by { ext x, rw [mem_Ico, mem_Ioc, succ_le_iff, lt_succ_iff] }
 
-@[simp] lemma Ico_succ_singleton : Ico a (a + 1) = {a} :=
-by rw [Ico_succ_right, Icc_self]
+@[simp] lemma Ico_succ_singleton : Ico a (a + 1) = {a} := by rw [Ico_succ_right, Icc_self]
 
 @[simp] lemma Ico_pred_singleton {a : ℕ} (h : 0 < a) : Ico (a - 1) a = {a - 1} :=
 by rw [←Icc_pred_right _ h, Icc_self]
@@ -125,8 +128,7 @@ by rw [Ico_succ_right, ←Ico_insert_right h]
 lemma Ico_insert_succ_left (h : a < b) : insert a (Ico a.succ b) = Ico a b :=
 by rw [Ico_succ_left, ←Ioo_insert_left h]
 
-lemma image_sub_const_Ico (h : c ≤ a) :
-  (Ico a b).image (λ x, x - c) = Ico (a - c) (b - c) :=
+lemma image_sub_const_Ico (h : c ≤ a) : (Ico a b).image (λ x, x - c) = Ico (a - c) (b - c) :=
 begin
   ext x,
   rw mem_image,
@@ -164,8 +166,7 @@ begin
         tsub_le_iff_right.1 hb⟩ } }
 end
 
-lemma range_image_pred_top_sub (n : ℕ) :
-  (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
+lemma range_image_pred_top_sub (n : ℕ) : (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
 begin
   cases n,
   { rw [range_zero, image_empty] },

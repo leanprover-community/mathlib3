@@ -41,10 +41,10 @@ instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
 @[simp] lemma neg_f_apply (f : C ⟶ D) (i : ι) : (-f).f i = -(f.f i) := rfl
 @[simp] lemma sub_f_apply (f g : C ⟶ D) (i : ι) : (f - g).f i = f.f i - g.f i := rfl
 
-/- TODO(jmc/Scott): the instance below doesn't have the correct defeq for `nsmul` and `gsmul`.
+/- TODO(jmc/Scott): the instance below doesn't have the correct defeq for `nsmul` and `zsmul`.
 We should generalize `function.injective.add_comm_group` and friends.
 For the `R`-linear version, it will be very convenient to have
-a good definition of `nsmul` and `gsmul` that matches `smul`. -/
+a good definition of `nsmul` and `zsmul` that matches `smul`. -/
 
 instance : add_comm_group (C ⟶ D) :=
 function.injective.add_comm_group hom.f

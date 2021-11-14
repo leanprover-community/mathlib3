@@ -1096,46 +1096,6 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) := {
   ..bounded_continuous_function.lattice,
 }
 
-
-
---Continuous functions with values in the order dual also form a meet-semilattice
---instance upsidedown : semilattice_inf (α →ᵇ order_dual β) := infer_instance
-
--- The order dual of continuous functions with values in the order dual form a join-semilattice
---instance to_semilattice_sup' :
---  semilattice_sup (order_dual (α →ᵇ order_dual β)) := infer_instance
-
-
--- Continuous normed lattice group valued functions form a join-semilattice
-
---instance : semilattice_sup (α →ᵇ β) := begin apply bounded_continuous_function.to_semilattice_sup' end
-
-/-
-lemma inf_pointwise (f g : α →ᵇ β) (t : α) : (f⊓g) t = (f t)⊓(g t) := by finish
-
-lemma s1 (f g : α →ᵇ β) : f⊔g = (f : α →ᵇ order_dual β) ⊓ (g : α →ᵇ order_dual β) := by finish
-
-lemma d1 (α : Type) [lattice α] (a b : α) : (show order_dual α, from a) ⊔ b = (a : α) ⊔ b := rfl
-
-lemma s3 (α : Type) [lattice α] (a b : α) : (show order_dual α, from a) ⊓ b = ((a ⊔ b : α) : order_dual α) := rfl
-
-lemma sup_pointwise (f g : α →ᵇ β) (t : α) : (f⊔g) t = (f t)⊔(g t) :=
-begin
-  rw s1,
-  rw inf_pointwise,
-  --rw ← d1,
-  sorry,
-end
-
-
-lemma test (f : α →ᵇ β) (t : α) : (-f) t = - (f t) :=
-begin
-  simp only [pi.neg_apply, coe_neg],
-end
--/
-
---λ f g h', continuous_map.le_def.mpr (begin intros, apply solid, end),
-
 end normed_lattice_ordered_group
 
 end bounded_continuous_function

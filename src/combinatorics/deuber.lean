@@ -3,8 +3,9 @@ import group_theory.submonoid
 import combinatorics.pigeonhole
 import data.fintype.sort
 import data.finsupp
+import data.matrix.basic
 
-open_locale big_operators classical
+open_locale big_operators classical matrix
 noncomputable theory
 
 def order_emb_of_card_le {α β} [fintype α] [linear_order α] [fintype β] [linear_order β]
@@ -12,22 +13,8 @@ def order_emb_of_card_le {α β} [fintype α] [linear_order α] [fintype β] [li
 (mono_equiv_of_fin α rfl).symm.to_rel_embedding.trans
     ((fin.cast_le h).trans $ mono_equiv_of_fin β rfl)
 
-variables {α β M : Type*} [add_comm_monoid M] (i : α ↪ β) (v : α → M)
-
-def extend_by_zero (b : β) : M := if h : ∃ a, i a = b then v h.some else 0
-
-lemma extend_by_zero_apply (a : α) : extend_by_zero i v (i a) = v a :=
-begin
-  rw extend_by_zero,
-  split_ifs,
-  { congr, apply i.injective, exact h.some_spec, },
-  { exfalso, apply h, exact ⟨a, rfl⟩, }
-end
-
-lemma extend_by_zero_eq_zero (b : β) (h : ¬ ∃ a, i a = b) : extend_by_zero i v b = 0 :=
-by rw [extend_by_zero, dif_neg h]
-
-end
+def ends_at_with {α β} [has_zero β] [linear_order α] (f : α → β) (i : α) (x : β) : Prop :=
+  f i = x ∧ ∀ j, i < j → f j = 0
 
 variables {R : Type} [semiring R] (A : submonoid R)
 
@@ -39,178 +26,113 @@ structure MPC :=
 (p_finite : p.finite)
 (zero_mem : (0 : R) ∈ p)
 (C : A)
+(C_mem : (C : R) ∈ p)
 
 variable {A}
 
 attribute [instance] MPC.fintype MPC.linear_order
 
-instance : inhabited (MPC A) := ⟨mk_MPC (default _) (fin 0)⟩
+instance : inhabited (MPC A) :=
+⟨⟨fin 0, infer_instance, infer_instance, {0, 1}, set.finite.insert 0 (set.finite_pure 1),
+  set.mem_insert 0 {1}, 1, set.mem_insert_of_mem 0 rfl⟩⟩
 
-variables (mpc : MPC A)
+variables (S : MPC A)
 
 section
 
-variable (mpc' : MPC A)
+variable (T : MPC A)
 
 structure MPC.inclusion : Type :=
-(to_fun : mpc.m ↪o mpc'.m)
+(to_fun : S.m ↪o T.m)
+(mat : matrix S.m T.m R)
 (scale : R)
-(p_sub_scaling : ∀ r ∈ mpc.p, r * scale ∈ mpc'.p)
-(C_scale : (mpc.C : R) * scale = mpc'.C)
+(scale_C : (S.C : R) * scale = T.C)
+(ends : ∀ i, ends_at_with (mat i) (to_fun i) scale)
+(foo : T.m → option S.m)
+(disj : ∀ i j, foo j ≠ some i → mat i j = 0)
+(mem : ∀ i j (r ∈ S.p), r * mat i j ∈ T.p)
 
-end
+structure MPC.row (o : option S.m) :=
+(d : S.m → R)
+(d_mem : ∀ i, d i ∈ S.p)
+(good : ∀ i ∈ o, ends_at_with d i S.C)
 
-structure MPC.comb (i : with_top mpc.m) :=
-(to_fun : mpc.m → R)
-(mem_p : ∀ j, to_fun j ∈ mpc.p)
-(eq_C : ∀ j : mpc.m, i = some j → to_fun j = mpc.C)
-(eq_zero : ∀ j : mpc.m, i < j → to_fun j = 0)
+variables {S T}
 
-instance (i) : has_coe_to_fun (mpc.comb i) (λ _, mpc.m → R) :=
-{ coe := λ d, d.to_fun }
-
-def MPC.vec : Type := mpc.m → M
-
-section
-
-variables {M mpc} {mpc' : MPC A} (inc : mpc.inclusion mpc') (x : mpc.vec M) (x' : mpc'.vec M)
-
-def MPC.vec.fun (i) (d : mpc.comb i) : M := ∑ j, d j • x j
-def MPC.vec.row (i) : set M := set.range (x.fun i)
-def MPC.vec.set : set M := ⋃ i, x.row (some i)
-
-structure MPC.vec.inclusion : Type :=
-(to_fun : mpc.m ↪o mpc'.m)
-(row_sub : ∀ i, x.row i ⊆ x'.row (i.map to_fun))
-
-def MPC.inclusion.map_vec : mpc.vec M :=
-λ i, inc.scale • x' (inc.to_fun i)
-
-def MPC.inclusion.inc : (inc.map_vec x').inclusion x' :=
-{ to_fun := inc.to_fun,
-  row_sub :=
+def MPC.inclusion.comp {R : MPC A} (f : S.inclusion T) (g : T.inclusion R) : S.inclusion R :=
+{ to_fun := f.to_fun.trans g.to_fun,
+  mat := f.mat ⬝ g.mat,
+  scale := f.scale * g.scale,
+  scale_C := by rw [←mul_assoc, f.scale_C, g.scale_C],
+  ends :=
     begin
-      intros i m hm,
-      rw [MPC.vec.row, set.mem_range] at *,
-      obtain ⟨d, hm⟩ := hm,
-      refine ⟨⟨extend_by_zero inc.to_fun.to_embedding (λ i, d.to_fun i * inc.scale), _,_, _⟩, _⟩,
-      { intro j',
-        by_cases h : ∃ j, inc.to_fun.to_embedding j = j',
-        { rcases h with ⟨j, rfl⟩,
-          rw extend_by_zero_apply,
-          apply inclusion.p_sub_scaling,
-          apply d.mem_p, },
-        { rw extend_by_zero_eq_zero _ _ _ h, apply mpc'.zero_mem, } },
-      { cases i,
-        { rintros _ ⟨⟩, },
-        simp_rw [option.map_some', (option.some_injective _).eq_iff],
-        rintros _ ⟨⟩,
-        erw extend_by_zero_apply,
-        rw [d.eq_C _ rfl, inc.C_scale], },
-      { intro j',
-        by_cases h : ∃ j, inc.to_fun.to_embedding j = j',
-        { rcases h with ⟨j, rfl⟩,
-          rw extend_by_zero_apply,
-          intro ij,
-          rw d.eq_zero j,
-          { apply zero_mul, },
+      intro i,
 
-        }
-      }
+    end,
+  foo := _,
+  disj := _,
+  mem := _ }
+
+def MPC.inclusion.map_row (inc : S.inclusion T) (o : option S.m) (v : S.row o) :
+  T.row (o.map inc.to_fun) :=
+{ d := λ j, ∑ i : S.m, v.d i * inc.mat i j,
+  d_mem :=
+    begin
+      intro j,
+      set i := inc.foo j with hi,
+      clear_value i,
+      cases i,
+      { convert T.zero_mem,
+        apply finset.sum_eq_zero,
+        intros i junk,
+        rw [inc.disj, mul_zero],
+        rw ←hi, rintro ⟨⟩, },
+      { rw finset.sum_eq_single_of_mem i (finset.mem_univ i),
+        { apply inc.mem, apply v.d_mem, },
+        { intros i' junk ine,
+          rw [inc.disj, mul_zero],
+          rw ←hi, apply (option.some_injective _).ne, exact ine.symm, }, },
+    end,
+  good :=
+    begin
+      cases o with i,
+      { simp only [forall_false_left, implies_true_iff, option.map_none', option.not_mem_none], },
+      { simp only [option.map_some', option.mem_def, forall_eq'],
+        split,
+        { convert inc.scale_C,
+          dsimp only,
+          rw [finset.sum_eq_single_of_mem i (finset.mem_univ i), (v.good _ rfl).1, (inc.ends i).1],
+          { intros i' junk ine,
+            cases lt_or_gt_of_ne ine,
+            { rw [(inc.ends i').2, mul_zero], rw order_embedding.lt_iff_lt, assumption, },
+            { rw [(v.good _ rfl).2, zero_mul], assumption, }, } },
+        { intros j hj, apply finset.sum_eq_zero, intros i' junk, cases le_or_gt i' i,
+          { rw [(inc.ends i').2, mul_zero], refine lt_of_le_of_lt _ hj,
+            rw [order_embedding.le_iff_le], assumption, },
+          { rw [(v.good _ rfl).2, zero_mul], assumption, }, }, },
     end }
 
-end
+variables (S T) (κ : Type)
 
-theorem deuber (κ : Type) [fintype κ] :
-  ∃ mpc' : MPC A,
-    ∀ (x' : mpc'.vec M) (coloring : M → κ),
-      ∃ (x : mpc.vec M) (k : κ) (inc : x.inclusion x'), x.set ⊆ coloring ⁻¹' {k} :=
+def MPC.coloring : Type := Π i : S.m, S.row (some i) → κ
+
+variables {S T κ}
+
+def MPC.coloring.restrict (co : T.coloring κ) (inc : S.inclusion T) : S.coloring κ :=
+λ i v, co _ (inc.map_row _ v)
+
+def MPC.coloring.row_mono (co : S.coloring κ) (i : S.m) (k : κ) : Prop := ∀ v, co i v = k
+def MPC.coloring.mono (co : S.coloring κ) (k : κ) : Prop := ∀ i, co.row_mono i k
+
+theorem deuber [fintype κ] : ∃ T : MPC A, ∀ co : T.coloring κ,
+  ∃ (inc : S.inclusion T) (k : κ), (co.restrict inc).mono k :=
 begin
-  suffices : ∀ r : ℕ, ∃ mpc' : MPC A, ∀ (x' : mpc'.vec M) (coloring : M → κ),
-    ∃ (x : (mk_MPC mpc.to_PC (fin r)).vec M) (k : fin r → κ) (inc : x.inclusion x'),
-      ∀ i : fin r, x.row (some i) ⊆ coloring ⁻¹' {k i},
-  { let r := fintype.card κ * fintype.card mpc.m,
-    refine Exists.imp (λ mpc', forall_imp $ λ x', _) (this r),
-    refine forall_imp (λ coloring, _),
-    clear this,
-    rintros ⟨x₀, k₀, inc, h_col⟩,
-    haveI : nonempty κ := nonempty.map coloring infer_instance,
-    obtain ⟨k, hk : fintype.card mpc.m ≤ _⟩ := fintype.exists_le_card_fiber_of_mul_le_card k₀ _,
-    work_on_goal 1 { simp only [fintype.card_fin] },
-
+  suffices : ∀ r : ℕ, ∃ (R T : MPC A) (hcard : fintype.card R.m = r) (hp : R.p = S.p)
+    (hC : R.C = S.C), ∀ co : T.coloring κ, ∃ (inc : R.inclusion T) (k : R.m → κ),
+      ∀ i, (co.restrict inc).row_mono i (k i),
+  { specialize this (fintype.card κ * fintype.card S.m),
+    obtain ⟨R, T, hcard, hp, hC, hR⟩ := this,
+    refine ⟨T, forall_imp _ hR⟩,
+    rintros co ⟨inc, k, h⟩,
   }
 end
-
-/-
-theorem deuber (κ : Type) [fintype κ] :
-  ∃ mpc' : MPC A, ∀ x' (coloring : M → κ), ∃ x k,
-    mpc.set x ⊆ mpc'.set x' ∩ coloring ⁻¹' {k} :=
-begin
-  suffices : ∀ r : ℕ, ∃ mpc' : MPC A, ∀ x' (coloring : M → κ), ∃ x (k : fin r → κ),
-    { m := r, ..mpc}.set x ⊆ mpc'.set x' ∧
-      ∀ i, { m := r, ..mpc}.line x i ⊆ coloring ⁻¹' {k i},
-  { let m' := fintype.card κ * mpc.m,
-    refine Exists.imp (λ mpc', forall_imp $ λ x', _) (this m'),
-    refine forall_imp (λ coloring, _),
-    clear this,
-    rintros ⟨x₀, k₀, h_sub, h_col⟩,
-    haveI : nonempty κ := nonempty.map coloring infer_instance,
-    obtain ⟨k, hk : mpc.m ≤ _⟩ := fintype.exists_le_card_fiber_of_mul_le_card k₀ _,
-    work_on_goal 1 { simp only [fintype.card_fin], },
-    let fs := finset.univ.filter (λ x, k₀ x = k),
-    let bla : fin mpc.m ↪o _ := (fin.cast_le hk).trans (fs.order_emb_of_fin rfl),
-    refine ⟨x₀ ∘ bla, k, _⟩,
-    intros r hr,
-    rw [MPC.set, set.mem_Union] at hr,
-    rcases hr with ⟨i, d, hr⟩,
-    let mpc'' : MPC A := { m := m', ..mpc },
-    suffices : r ∈ mpc''.line x₀ (bla i),
-    { refine ⟨h_sub $ set.mem_Union.mpr ⟨_, this⟩, _⟩,
-      convert h_col _ this,
-      suffices fafa : bla i ∈ fs,
-      { rw finset.mem_filter at fafa, exact fafa.2.symm, },
-      apply fs.order_emb_of_fin_mem rfl, },
-    set d' : fin mpc''.m → mpc''.p :=
-      λ j, if h : j ∈ bla '' { j' | j' < i }
-      then d h.some
-      else ⟨0, mpc''.zero_mem⟩ with hd',
-    use d',
-    rw [←hr, MPC.fun, MPC.fun],
-    congr' 1,
-    have : ∑ j in finset.univ.filter (< i), (d j : R) • (x₀ ∘ bla) j =
-      ∑ j in finset.univ.filter (< i), (λ j', (d' j' : R) • x₀ j') (bla.to_embedding j),
-    { apply finset.sum_congr rfl, intros j hj, congr, rw hd', dsimp, split_ifs,
-      { congr, apply bla.injective, exact h.some_spec.2.symm, },
-      { exfalso, apply h, refine ⟨_, _, rfl⟩, rw finset.mem_filter at hj, exact hj.2 }, },
-    rw this, clear this,
-    rw ←finset.sum_map,
-    symmetry,
-    apply finset.sum_subset,
-    { intros j hj, simp only [true_and, finset.mem_univ, finset.mem_filter],
-      simp only [true_and, exists_prop, finset.mem_univ, finset.mem_map, finset.mem_filter] at hj,
-      rcases hj with ⟨j, hj, rfl⟩,
-      exact bla.lt_iff_lt.mpr hj, },
-    { intros j hj nmem,
-      rw hd',
-      dsimp only,
-      rw dif_neg,
-      { apply zero_smul },
-      rintros ⟨j, hj', rfl⟩,
-      apply nmem,
-      rw finset.mem_map,
-      refine ⟨j, _, rfl⟩,
-      rw finset.mem_filter,
-      refine ⟨finset.mem_univ _, hj'⟩, }, },
-  intro r,
-  induction r with r ih,
-  { use default _,
-    intros,
-    refine ⟨is_empty_elim, is_empty_elim, _, _⟩,
-    { rintros m ⟨_, ⟨i, _⟩, hi⟩, exact is_empty_elim i, },
-    exact is_empty_elim, },
-  obtain ⟨mpc', h'⟩ := ih,
-  obtain ⟨n, hn⟩ := combinatorics.extended_HJ_fin mpc.p κ (fin mpc'.m),
-  refine ⟨⟨n + 1, _, _, mpc.C * mpc'.C⟩, _⟩,
-
-end
--/

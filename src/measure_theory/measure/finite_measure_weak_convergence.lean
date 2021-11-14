@@ -103,8 +103,8 @@ instance : has_coe (finite_measure α) (measure_theory.measure α) := coe_subtyp
 instance is_finite_measure (μ : finite_measure α) :
   is_finite_measure (μ : measure α) := μ.prop
 
-instance : has_coe_to_fun (finite_measure α) :=
-⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
+instance : has_coe_to_fun (finite_measure α) (λ _, set α → ℝ≥0) :=
+⟨λ μ s, (μ s).to_nnreal⟩
 
 lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : finite_measure α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
@@ -151,7 +151,7 @@ by { funext, simp [← ennreal.coe_eq_coe], }
 
 @[simp, norm_cast] lemma coe_fn_smul (c : ℝ≥0) (μ : finite_measure α) :
   (⇑(c • μ) : set α → ℝ≥0) = c • (⇑μ : set α → ℝ≥0) :=
-by { funext, simp [← ennreal.coe_eq_coe], refl, }
+by { funext, simp [← ennreal.coe_eq_coe], }
 
 instance : add_comm_monoid (finite_measure α) :=
 finite_measure.coe_injective.add_comm_monoid
@@ -341,8 +341,8 @@ instance [inhabited α] : inhabited (probability_measure α) :=
 /-- A probability measure can be interpreted as a measure. -/
 instance : has_coe (probability_measure α) (measure_theory.measure α) := coe_subtype
 
-instance : has_coe_to_fun (probability_measure α) :=
-⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
+instance : has_coe_to_fun (probability_measure α) (λ _, set α → ℝ≥0) :=
+⟨λ μ s, (μ s).to_nnreal⟩
 
 instance (μ : probability_measure α) : is_probability_measure (μ : measure α) := μ.prop
 

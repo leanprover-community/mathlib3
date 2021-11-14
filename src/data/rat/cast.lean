@@ -37,6 +37,8 @@ variable [division_ring α]
 -- see Note [coercion into rings]
 @[priority 900] instance cast_coe : has_coe_t ℚ α := ⟨λ r, r.1 / r.2⟩
 
+theorem cast_def (r : ℚ) : (r : α) = r.num / r.denom := rfl
+
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
@@ -114,6 +116,20 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
     { simpa [division_def, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
+end
+
+@[simp] theorem cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+begin
+  cases n, { simp },
+  simp_rw [coe_nat_eq_mk, inv_def, mk, mk_nat, dif_neg n.succ_ne_zero, mk_pnat],
+  simp [cast_def]
+end
+
+@[simp] theorem cast_inv_int (n : ℤ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+begin
+  cases n,
+  { exact cast_inv_nat _ },
+  { simp only [int.cast_neg_succ_of_nat, ← nat.cast_succ, cast_neg, inv_neg, cast_inv_nat] }
 end
 
 @[norm_cast] theorem cast_inv_of_ne_zero : ∀ {n : ℚ},

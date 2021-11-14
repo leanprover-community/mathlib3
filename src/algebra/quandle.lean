@@ -172,16 +172,16 @@ The opposite rack, swapping the roles of `◃` and `◃⁻¹`.
 instance opposite_rack : rack Rᵒᵖ :=
 { act := λ x y, op (inv_act (unop x) (unop y)),
   self_distrib := λ (x y z : Rᵒᵖ), begin
-    op_induction x, op_induction y, op_induction z,
+    induction x using opposite.rec, induction y using opposite.rec, induction z using opposite.rec,
     simp only [unop_op, op_inj_iff],
     exact self_distrib_inv,
   end,
   inv_act := λ x y, op (shelf.act (unop x) (unop y)),
   left_inv := λ x y, begin
-    op_induction x, op_induction y, simp,
+    induction x using opposite.rec, induction y using opposite.rec, simp,
   end,
   right_inv := λ x y, begin
-    op_induction x, op_induction y, simp,
+    induction x using opposite.rec, induction y using opposite.rec, simp,
   end }
 
 @[simp] lemma op_act_op_eq {x y : R} : (op x) ◃ (op y) = op (x ◃⁻¹ y) := rfl
@@ -255,8 +255,7 @@ end rack
 namespace shelf_hom
 variables {S₁ : Type*} {S₂ : Type*} {S₃ : Type*} [shelf S₁] [shelf S₂] [shelf S₃]
 
-instance : has_coe_to_fun (S₁ →◃ S₂) :=
-⟨_, shelf_hom.to_fun⟩
+instance : has_coe_to_fun (S₁ →◃ S₂) (λ _, S₁ → S₂) := ⟨shelf_hom.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : S₁ →◃ S₂) : f.to_fun = f := rfl
 
@@ -298,7 +297,7 @@ lemma fix_inv {x : Q} : x ◃⁻¹ x = x :=
 by { rw ←left_cancel x, simp }
 
 instance opposite_quandle : quandle Qᵒᵖ :=
-{ fix := λ x, by { op_induction x, simp } }
+{ fix := λ x, by { induction x using opposite.rec, simp } }
 
 /--
 The conjugation quandle of a group.  Each element of the group acts by

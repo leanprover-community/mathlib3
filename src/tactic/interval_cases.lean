@@ -3,7 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fintype.intervals
+import data.fin.interval
+import data.int.interval
+import data.pnat.interval
 import tactic.fin_cases
 
 /-!
@@ -133,7 +135,7 @@ do nlb ← try_core $ gives_lower_bound n e,
 Attempt to find a lower bound for the variable `n`, by evaluating `bot_le n`.
 -/
 meta def initial_lower_bound (n : expr) : tactic expr :=
-do e ← to_expr ``(@bot_le _ _ %%n),
+do e ← to_expr ``(@bot_le _ _ _ %%n),
    t ← infer_type e,
    match t with
    | `(%%b ≤ %%n) := do return e
@@ -144,7 +146,7 @@ do e ← to_expr ``(@bot_le _ _ %%n),
 Attempt to find an upper bound for the variable `n`, by evaluating `le_top n`.
 -/
 meta def initial_upper_bound (n : expr) : tactic expr :=
-do e ← to_expr ``(@le_top _ _ %%n),
+do e ← to_expr ``(@le_top _ _ _ %%n),
    match e with
    | `(%%n ≤ %%b) := do
      tn ← infer_type n,

@@ -27,8 +27,7 @@ structure TopCommRing :=
 
 namespace TopCommRing
 
-instance : has_coe_to_sort TopCommRing :=
-{ S := Type u, coe := TopCommRing.α }
+instance : has_coe_to_sort TopCommRing (Type u) := ⟨TopCommRing.α⟩
 
 attribute [instance] is_comm_ring is_topological_space is_topological_ring
 

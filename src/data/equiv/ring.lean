@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import data.equiv.mul_add
 import algebra.field
 import algebra.opposites
+import algebra.big_operators.basic
 
 /-!
 # (Semi)ring equivs
@@ -35,6 +36,8 @@ multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not
 equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
 
+open_locale big_operators
+
 variables {R : Type*} {S : Type*} {S' : Type*}
 
 set_option old_structure_cmd true
@@ -60,7 +63,7 @@ section basic
 
 variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add S']
 
-instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
+instance : has_coe_to_fun (R ≃+* S) (λ _, R → S) := ⟨ring_equiv.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 
@@ -359,6 +362,56 @@ lemma of_hom_inv_symm_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_
 
 end semiring_hom
 
+section big_operators
+
+lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
+  f l.prod = (l.map f).prod := f.to_ring_hom.map_list_prod l
+
+lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
+  f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
+
+/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
+lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵒᵖ) (l : list R) :
+  opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
+f.to_ring_hom.unop_map_list_prod l
+
+lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
+  f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
+
+lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
+  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := f.to_ring_hom.map_multiset_sum s
+
+lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
+  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+g.to_ring_hom.map_prod f s
+
+lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
+g.to_ring_hom.map_sum f s
+
+end big_operators
+
+section division_ring
+
+variables {K K' : Type*} [division_ring K] [division_ring K']
+  (g : K ≃+* K') (x y : K)
+
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_ring_hom.map_inv x
+
+lemma map_div : g (x / y) = g x / g y := g.to_ring_hom.map_div x y
+
+end division_ring
+
+section group_power
+
+variables [semiring R] [semiring S]
+
+@[simp] lemma map_pow (f : R ≃+* S) (a) :
+  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
+f.to_ring_hom.map_pow a
+
+end group_power
+
 end ring_equiv
 
 namespace mul_equiv
@@ -374,42 +427,16 @@ namespace ring_equiv
 
 variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 
-@[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
-@[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
+@[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
+@[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
-/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
-  (hB : is_integral_domain B) (e : A ≃+* B) : is_integral_domain A :=
-{ mul_comm := λ x y, have e.symm (e x * e y) = e.symm (e y * e x), by rw hB.mul_comm, by simpa,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
+/-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
+protected lemma is_domain
+  {A : Type*} (B : Type*) [ring A] [ring B] [is_domain B]
+  (e : A ≃+* B) : is_domain A :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
     have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
-    (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
-      (λ hy, by simpa using congr_arg e.symm hy),
-  exists_pair_ne := ⟨e.symm 0, e.symm 1,
-    by { haveI : nontrivial B := hB.to_nontrivial, exact e.symm.injective.ne zero_ne_one }⟩ }
-
-/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
-protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain B]
-  (e : A ≃+* B) : integral_domain A :=
-{ .. (‹_› : ring A), .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
+    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this,
+  exists_pair_ne := ⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩ }
 
 end ring_equiv
-
-namespace equiv
-
-variables (K : Type*) [division_ring K]
-
-/-- In a division ring `K`, the unit group `units K`
-is equivalent to the subtype of nonzero elements. -/
--- TODO: this might already exist elsewhere for `group_with_zero`
--- deduplicate or generalize
-def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, a.ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
-
-variable {K}
-
-@[simp]
-lemma coe_units_equiv_ne_zero (a : units K) :
-  ((units_equiv_ne_zero K a) : K) = a := rfl
-
-end equiv

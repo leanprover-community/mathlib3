@@ -61,6 +61,8 @@ end⟩
 instance : exponential_ideal (𝟭 C) :=
 exponential_ideal.mk' _ (λ B A, ⟨_, ⟨iso.refl _⟩⟩)
 
+open cartesian_closed
+
 /-- The subcategory of subterminal objects is an exponential ideal. -/
 instance : exponential_ideal (subterminal_inclusion C) :=
 begin
@@ -111,6 +113,8 @@ lemma reflective_products [has_finite_products C] [reflective i] : has_finite_pr
 ⟨λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance, priority 10] reflective_products
+
+open cartesian_closed
 
 variables [has_finite_products C] [reflective i] [cartesian_closed C]
 

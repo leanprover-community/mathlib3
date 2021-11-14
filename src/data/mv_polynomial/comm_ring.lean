@@ -64,13 +64,6 @@ variables (σ a a')
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply _ _ _
 
-@[simp] lemma monomial_neg (m : σ →₀ ℕ) (a : R) : -(monomial m a) = monomial m (-a) :=
-single_neg.symm
-
-@[simp] lemma monomial_sub (m : σ →₀ ℕ) (a b : R) :
-  monomial m a - monomial m b = monomial m (a - b) :=
-single_sub.symm
-
 @[simp] lemma support_neg : (- p).support = p.support :=
 finsupp.support_neg
 

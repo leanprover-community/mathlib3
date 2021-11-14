@@ -11,12 +11,12 @@ import logic.embedding
 /-!
 # Definitions of group actions
 
-This file defines a hierarchy of group action type-classes:
+This file defines a hierarchy of group action type-classes on top of the previously defined
+notation classes `has_scalar` and its additive version `has_vadd`:
 
-* `has_scalar M α` and its additive version `has_vadd G P` are notation typeclasses for
-  `•` and `+ᵥ`, respectively;
 * `mul_action M α` and its additive version `add_action G P` are typeclasses used for
-  actions of multiplicative and additive monoids and groups;
+  actions of multiplicative and additive monoids and groups; they extend notation classes
+  `has_scalar` and `has_vadd` that are defined in `algebra.group.defs`;
 * `distrib_mul_action M A` is a typeclass for an action of a multiplicative monoid on
   an additive monoid such that `a • (b + c) = a • b + a • c` and `a • 0 = 0`.
 
@@ -45,16 +45,6 @@ group action
 variables {M N G A B α β γ : Type*}
 
 open function
-
-/-- Type class for the `+ᵥ` notation. -/
-class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
-
-/-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-@[to_additive has_vadd]
-class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
-
-infix ` +ᵥ `:65 := has_vadd.vadd
-infixr ` • `:73 := has_scalar.smul
 
 /-- Typeclass for faithful actions. -/
 class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
@@ -99,11 +89,6 @@ class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
 
 export mul_action (mul_smul) add_action (add_vadd) smul_comm_class (smul_comm)
   vadd_comm_class (vadd_comm)
-
-attribute [to_additive_reorder 1] has_pow
-attribute [to_additive_reorder 1 4] has_pow.pow
-attribute [to_additive has_scalar] has_pow
-attribute [to_additive has_scalar.smul] has_pow.pow
 
 /--
 Frequently, we find ourselves wanting to express a bilinear map `M →ₗ[R] N →ₗ[R] P` or an
@@ -155,8 +140,7 @@ variables [has_scalar M α]
 
 /-- Auxiliary definition for `has_scalar.comp`, `mul_action.comp_hom`,
 `distrib_mul_action.comp_hom`, `module.comp_hom`, etc. -/
-@[simp, to_additive
-/-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
+@[simp, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
 def comp.smul (g : N → M) (n : N) (a : α) : α :=
 g n • a
 
@@ -173,9 +157,15 @@ def comp (g : N → M) : has_scalar N α :=
 
 variables {α}
 
-/-- If an action forms a scalar tower then so does the action formed by `has_scalar.comp`. -/
+/-- Given a tower of scalar actions `M → α → β`, if we use `has_scalar.comp`
+to pull back both of `M`'s actions by a map `g : N → M`, then we obtain a new
+tower of scalar actions `N → α → β`.
+
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
+lemma comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
   (g : N → M) :
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
@@ -323,6 +313,24 @@ section compatible_scalar
   [is_scalar_tower M N α] (x : M) (y : α) :
   (x • (1 : N)) • y = x • y :=
 by rw [smul_assoc, one_smul]
+
+@[simp] lemma smul_one_mul {M N} [monoid N] [has_scalar M N] [is_scalar_tower M N N] (x : M)
+  (y : N) : (x • 1) * y = x • y :=
+smul_one_smul N x y
+
+@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
+  (x : M) (y : N) :
+  y * (x • 1) = x • y :=
+by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
+
+lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
+  (h : ∀ (x : M) (y : N), (x • (1 : N)) * y = x • y) :
+  is_scalar_tower M N N :=
+⟨λ x y z, by rw [← h, smul_eq_mul, mul_assoc, h, smul_eq_mul]⟩
+
+@[to_additive] lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_scalar M N]
+  (H : ∀ (x : M) (y : N), y * (x • (1 : N)) = x • y) : smul_comm_class M N N :=
+⟨λ x y z, by rw [← H x z, smul_eq_mul, ← H, smul_eq_mul, mul_assoc]⟩
 
 end compatible_scalar
 

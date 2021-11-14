@@ -54,7 +54,7 @@ variable (R : Type*)
 /-- An arithmetic function is a function from `ℕ` that maps 0 to 0. In the literature, they are
   often instead defined as functions from `ℕ+`. Multiplication on `arithmetic_functions` is by
   Dirichlet convolution. -/
-@[derive [has_coe_to_fun, has_zero, inhabited]]
+@[derive [has_zero, inhabited]]
 def arithmetic_function [has_zero R] := zero_hom ℕ R
 
 variable {R}
@@ -63,6 +63,8 @@ namespace arithmetic_function
 
 section has_zero
 variable [has_zero R]
+
+instance : has_coe_to_fun (arithmetic_function R) (λ _, ℕ → R) := zero_hom.has_coe_to_fun
 
 @[simp] lemma to_fun_eq (f : arithmetic_function R) : f.to_fun = f := rfl
 
@@ -206,14 +208,14 @@ begin
     rintros rfl h2 rfl rfl,
     exact ⟨⟨eq.trans H₁.2.1.symm H₂.2.1, rfl⟩, rfl, rfl⟩ },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩,
-  { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
-    rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
-    refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
-    rw mul_ne_zero_iff at *,
-    exact ⟨n0.1, j0.1⟩ },
-  { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
-      ne.def, mem_sigma, heq_iff_eq] at H ⊢,
-    rw H.2.1 } }
+    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+      rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
+      refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
+      rw mul_ne_zero_iff at *,
+      exact ⟨n0.1, j0.1⟩ },
+    { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
+        ne.def, mem_sigma, heq_iff_eq] at H ⊢,
+      rw H.2.1 } }
 end
 
 lemma one_smul' (b : arithmetic_function M) :
@@ -686,7 +688,7 @@ begin
   split; intro h,
   { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
     apply list.nodup_erase_dup },
-  { rw list.erase_dup_eq_self.2 h,
+  { rw h.erase_dup,
     refl }
 end
 
@@ -841,7 +843,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [gsmul_eq_mul],
+  rw [zsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/
@@ -870,7 +872,7 @@ begin
       prod_congr rfl _],
     intros x hx,
     rw [dif_pos (nat.pos_of_mem_divisors (nat.snd_mem_divisors_of_mem_antidiagonal hx)),
-      units.coe_hom_apply, units.coe_gpow₀, units.coe_mk0] }
+      units.coe_hom_apply, units.coe_zpow₀, units.coe_mk0] }
 end
 
 end special_functions

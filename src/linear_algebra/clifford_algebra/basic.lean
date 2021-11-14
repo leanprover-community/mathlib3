@@ -7,7 +7,7 @@ Authors: Eric Wieser, Utensil Song
 import algebra.ring_quot
 import linear_algebra.tensor_algebra
 import linear_algebra.exterior_algebra
-import linear_algebra.quadratic_form
+import linear_algebra.quadratic_form.basic
 
 /-!
 # Clifford Algebras

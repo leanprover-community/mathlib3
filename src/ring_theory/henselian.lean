@@ -58,7 +58,7 @@ https://gist.github.com/jcommelin/47d94e4af092641017a97f7f02bf9598
 
 noncomputable theory
 
-universe variables u v
+universes u v
 
 open_locale big_operators
 
@@ -219,7 +219,7 @@ instance is_adic_complete.henselian_ring
           mul_neg_eq_neg_mul_symm, finset.sum_singleton, finset.range_one, pow_zero],
         rw [mul_left_comm, ring.mul_inverse_cancel _ (hf'c n), mul_one, add_neg_self],
         exact ideal.zero_mem _ },
-      { refine submodule.sum_mem _ _, simp only [finset.Ico.mem],
+      { refine submodule.sum_mem _ _, simp only [finset.mem_Ico],
         rintro i ⟨h2i, hi⟩,
         have aux : n + 2 ≤ i * (n + 1), { transitivity 2 * (n + 1); nlinarith only [h2i], },
         refine ideal.mul_mem_left _ _ (ideal.pow_le_pow aux _),

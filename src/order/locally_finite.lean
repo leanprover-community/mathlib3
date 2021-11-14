@@ -529,7 +529,8 @@ instance : locally_finite_order (with_top α) :=
     | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_1, coe_eq_coe]
     end,
   finset_mem_Ico := λ a b x, match a, b, x with
-    |       ⊤,       b,       x := iff_of_false (not_mem_empty _)                                     (λ h, not_top_lt $ h.1.trans_lt h.2)
+    |       ⊤,       b,       x := iff_of_false (not_mem_empty _)
+                                     (λ h, not_top_lt $ h.1.trans_lt h.2)
     | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_3]
     | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_3, coe_eq_coe,
                                         coe_lt_top]
@@ -608,7 +609,8 @@ instance : locally_finite_order (with_bot α) :=
                                         coe_lt_coe]
   end,
   finset_mem_Ioc := λ a b x, match b, a, x with
-    |       ⊥,       b,       x := iff_of_false (not_mem_empty _)                                     (λ h, not_lt_bot $ h.1.trans_le h.2)
+    |       ⊥,       b,       x := iff_of_false (not_mem_empty _)
+                                     (λ h, not_lt_bot $ h.1.trans_le h.2)
     | (b : α),       ⊥,       ⊥ := by simp [with_bot.locally_finite_order._match_5]
     | (b : α),       ⊥, (x : α) := by simp [with_bot.locally_finite_order._match_5, coe_eq_coe,
                                         bot_lt_coe]

@@ -300,7 +300,7 @@ lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
 /--
 The functor sending a topological space `X` to its fundamental groupoid.
 -/
-def π₁ : Top ⥤ category_theory.Groupoid :=
+def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
 { obj := λ X, { α := fundamental_groupoid X },
   map := λ X Y f,
   { obj := f,

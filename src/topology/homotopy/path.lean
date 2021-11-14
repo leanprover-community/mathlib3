@@ -239,8 +239,8 @@ Given `F : homotopy p q`, and `f : C(X, Y)`, we can define a homotopy from `p.ma
 `q.map f.continuous`.
 -/
 @[simps]
-def map {p q : path x₀ x₁} (F : p.homotopy q) (f : C(X, Y)) : homotopy
-  (p.map f.continuous) (q.map f.continuous) :=
+def map {p q : path x₀ x₁} (F : p.homotopy q) (f : C(X, Y)) :
+  homotopy (p.map f.continuous) (q.map f.continuous) :=
 { to_fun := f ∘ F,
   to_fun_zero := by simp,
   to_fun_one := by simp,

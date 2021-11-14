@@ -474,39 +474,6 @@ def le_quot_map (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
     simp only [quotient.map'_mk', quotient.eq'],
     exact id } }
 
-variables {G G' : Type*} [group G] [group G']
-
-/--The map induced by a `mul_hom` on a quotient-/
-noncomputable def quot_map (H : subgroup G) (H' : subgroup G')
-(f : G →* G') :  quotient_group.quotient H →  quotient_group.quotient H' :=
-λ x, quotient_group.mk (f x.out')
-
-lemma quot_map_inj (H : subgroup G) (H' : subgroup G') (f : G →* G') (h : H.map f  = H') :
-  (function.injective f) →  function.injective (quot_map H H' f) :=
-begin
-  intro hf,
-  rw function.injective at *,
-  intros a b,
-  rw quot_map,
-  rw quotient_group.eq',
-  intro hab,
-  have ha :=  quotient.out_eq' a,
-  have hb :=  quotient.out_eq' b,
-  rw ← ha,
-  rw ← hb,
-  rw quotient_group.eq',
-  simp_rw ← h at hab,
-  have r1 : ∀ (a b : G), (f(a))⁻¹*f(b)=f(a⁻¹*b), by {
-    simp only [forall_const, monoid_hom.map_mul, eq_self_iff_true, monoid_hom.map_inv],},
-  cases hab with t,
-  have hab2 := hab_h.2,
-  have rab := r1 a.out' b.out',
-  rw rab at hab2,
-  have := hf hab2,
-  rw ← this,
-  exact hab_h.1,
-end
-
 end quotient_group
 
 /--

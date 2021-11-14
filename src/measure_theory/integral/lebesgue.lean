@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.mutually_singular
 import measure_theory.constructions.borel_space
 import algebra.indicator_function
 import algebra.support
@@ -262,6 +262,31 @@ lemma range_comp_subset_range [measurable_space β] (f : β →ₛ γ) {g : α �
   (f.comp g hgm).range ⊆ f.range :=
 finset.coe_subset.1 $ by simp only [coe_range, coe_comp, set.range_comp_subset_range]
 
+/-- Extend a `simple_func` along a measurable embedding: `f₁.extend g hg f₂` is the function
+`F : β →ₛ γ` such that `F ∘ g = f₁` and `F y = f₂ y` whenever `y ∉ range g`. -/
+def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) : β →ₛ γ :=
+{ to_fun := function.extend g f₁ f₂,
+  finite_range' := (f₁.finite_range.union $ f₂.finite_range.subset
+    (image_subset_range _ _)).subset (range_extend_subset _ _ _),
+  measurable_set_fiber' :=
+    begin
+      letI : measurable_space γ := ⊤, haveI : measurable_singleton_class γ := ⟨λ _, trivial⟩,
+      exact λ x, hg.measurable_extend f₁.measurable f₂.measurable (measurable_set_singleton _)
+    end }
+
+@[simp] lemma extend_apply [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) (x : α) : (f₁.extend g hg f₂) (g x) = f₁ x :=
+function.extend_apply hg.injective _ _ _
+
+@[simp] lemma extend_comp_eq' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) : (f₁.extend g hg f₂) ∘ g = f₁ :=
+funext $ λ x, extend_apply _ _ _ _
+
+@[simp] lemma extend_comp_eq [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) : (f₁.extend g hg f₂).comp g hg.measurable = f₁ :=
+coe_injective $ extend_comp_eq' _ _ _
+
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
 with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/
 def seq (f : α →ₛ (β → γ)) (g : α →ₛ β) : α →ₛ γ := f.bind (λf, g.map f)
@@ -382,11 +407,11 @@ instance [partial_order β] : partial_order (α →ₛ β) :=
 { le_antisymm := assume f g hfg hgf, ext $ assume a, le_antisymm (hfg a) (hgf a),
   .. simple_func.preorder }
 
-instance [order_bot β] : order_bot (α →ₛ β) :=
-{ bot := const α ⊥, bot_le := λf a, bot_le, .. simple_func.partial_order }
+instance [has_le β] [order_bot β] : order_bot (α →ₛ β) :=
+{ bot := const α ⊥, bot_le := λf a, bot_le }
 
-instance [order_top β] : order_top (α →ₛ β) :=
-{ top := const α ⊤, le_top := λf a, le_top, .. simple_func.partial_order }
+instance [has_le β] [order_top β] : order_top (α →ₛ β) :=
+{ top := const α ⊤, le_top := λf a, le_top }
 
 instance [semilattice_inf β] : semilattice_inf (α →ₛ β) :=
 { inf := (⊓),
@@ -787,32 +812,15 @@ lemma lintegral_congr {f g : α →ₛ ℝ≥0∞} (h : f =ᵐ[μ] g) :
 lintegral_eq_of_measure_preimage $ λ y, measure_congr $
   eventually.set_eq $ h.mono $ λ x hx, by simp [hx]
 
-lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ℝ≥0∞) (g : β →ₛ ℝ≥0∞)
+lemma lintegral_map' {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ℝ≥0∞) (g : β →ₛ ℝ≥0∞)
   (m' : α → β) (eq : ∀ a, f a = g (m' a)) (h : ∀s, measurable_set s → μ' s = μ (m' ⁻¹' s)) :
   f.lintegral μ = g.lintegral μ' :=
 lintegral_eq_of_measure_preimage $ λ y,
 by { simp only [preimage, eq], exact (h (g ⁻¹' {y}) (g.measurable_set_preimage _)).symm }
 
-/-- The `lintegral` of simple functions transforms appropriately under a measurable equivalence.
-(Compare `lintegral_map`, which applies to a broader class of transformations of the domain, but
-requires measurability of the function being integrated.) -/
-lemma lintegral_map_equiv {β} [measurable_space β] (g : β →ₛ ℝ≥0∞) (m' : α ≃ᵐ β) :
-  (g.comp m' m'.measurable).lintegral μ = g.lintegral (measure.map m' μ) :=
-begin
-  simp [simple_func.lintegral],
-  have : (g.comp m' m'.measurable).range = g.range,
-  { refine le_antisymm _ _,
-    { exact g.range_comp_subset_range m'.measurable },
-    convert (g.comp m' m'.measurable).range_comp_subset_range m'.symm.measurable,
-    apply simple_func.ext,
-    intros a,
-    exact congr_arg g (congr_fun m'.self_comp_symm.symm a) },
-  rw this,
-  congr' 1,
-  funext,
-  rw [m'.map_apply (g ⁻¹' {x})],
-  refl,
-end
+lemma lintegral_map {β} [measurable_space β] (g : β →ₛ ℝ≥0∞) {f : α → β} (hf : measurable f) :
+  g.lintegral (measure.map f μ) = (g.comp f hf).lintegral μ :=
+eq.symm $ lintegral_map' _ _ f (λ a, rfl) (λ s hs, measure.map_apply hf hs)
 
 end measure
 
@@ -1864,10 +1872,9 @@ lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
   simp only [lintegral_eq_supr_eapprox_lintegral, hf, hf.comp hg],
-  { congr, funext n, symmetry,
-    apply simple_func.lintegral_map,
-    { assume a, exact congr_fun (simple_func.eapprox_comp hf hg) a },
-    { assume s hs, exact map_apply hg hs } },
+  congr' with n : 1,
+  convert simple_func.lintegral_map _ hg,
+  ext1 x, simp only [eapprox_comp hf hg, coe_comp]
 end
 
 lemma lintegral_map' [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
@@ -1887,35 +1894,29 @@ lemma set_lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α �
   ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
 by rw [restrict_map hg hs, lintegral_map hf hg]
 
+/-- If `g : α → β` is a measurable embedding and `f : β → ℝ≥0∞` is any function (not necessarily
+measurable), then `∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ`. Compare with `lintegral_map` wich
+applies to any measurable `g : α → β` but requires that `f` is measurable as well. -/
+lemma _root_.measurable_embedding.lintegral_map [measurable_space β] {g : α → β}
+  (hg : measurable_embedding g) (f : β → ℝ≥0∞) :
+  ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
+begin
+  refine le_antisymm (bsupr_le $ λ f₀ hf₀, _) (bsupr_le $ λ f₀ hf₀, _),
+  { rw [simple_func.lintegral_map _ hg.measurable, lintegral],
+    have : (f₀.comp g hg.measurable : α → ℝ≥0∞) ≤ f ∘ g, from λ x, hf₀ (g x),
+    exact le_supr_of_le (comp f₀ g hg.measurable) (le_supr _ this) },
+  { rw [← f₀.extend_comp_eq hg (const _ 0), ← simple_func.lintegral_map,
+      ← simple_func.lintegral_eq_lintegral],
+    refine lintegral_mono_ae (hg.ae_map_iff.2 $ eventually_of_forall $ λ x, _),
+    exact (extend_apply _ _ _ _).trans_le (hf₀ _) }
+end
+
 /-- The `lintegral` transforms appropriately under a measurable equivalence `g : α ≃ᵐ β`.
 (Compare `lintegral_map`, which applies to a wider class of functions `g : α → β`, but requires
 measurability of the function being integrated.) -/
 lemma lintegral_map_equiv [measurable_space β] (f : β → ℝ≥0∞) (g : α ≃ᵐ β) :
   ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
-begin
-  refine le_antisymm _ _,
-  { refine supr_le_supr2 _,
-    intros f₀,
-    use f₀.comp g g.measurable,
-    refine supr_le_supr2 _,
-    intros hf₀,
-    use λ x, hf₀ (g x),
-    exact (lintegral_map_equiv f₀ g).symm.le },
-  { refine supr_le_supr2 _,
-    intros f₀,
-    use f₀.comp g.symm g.symm.measurable,
-    refine supr_le_supr2 _,
-    intros hf₀,
-    have : (λ a, (f₀.comp (g.symm) g.symm.measurable) a) ≤ λ (a : β), f a,
-    { convert λ x, hf₀ (g.symm x),
-      funext,
-      simp [congr_arg f (congr_fun g.self_comp_symm a)] },
-    use this,
-    convert (lintegral_map_equiv (f₀.comp g.symm g.symm.measurable) g).le,
-    apply simple_func.ext,
-    intros a,
-    convert congr_arg f₀ (congr_fun g.symm_comp_self a).symm using 1 }
-end
+g.measurable_embedding.lintegral_map f 
 
 section dirac_and_count
 variable [measurable_space α]
@@ -2078,19 +2079,11 @@ begin
   set S : set α := { x | f x < 0 } with hSdef,
   have hS : measurable_set S := measurable_set_lt hf measurable_const,
   refine ⟨S, hS, _, _⟩,
-  { rw [with_density_apply _ hS, hSdef],
-    have hf0 : ∀ᵐ x ∂μ, x ∈ S → ennreal.of_real (f x) = 0,
-    { refine ae_of_all _ (λ _ hx, _),
-      rw [ennreal.of_real_eq_zero.2 (le_of_lt hx)] },
-    rw set_lintegral_congr_fun hS hf0,
-    exact lintegral_zero },
-  { rw [with_density_apply _ hS.compl, hSdef],
-    have hf0 : ∀ᵐ x ∂μ, x ∈ Sᶜ → ennreal.of_real (-f x) = 0,
-    { refine ae_of_all _ (λ x hx, _),
-      rw ennreal.of_real_eq_zero.2,
-      rwa [neg_le, neg_zero, ← not_lt] },
-    rw set_lintegral_congr_fun hS.compl hf0,
-    exact lintegral_zero },
+  { rw [with_density_apply _ hS, lintegral_eq_zero_iff hf.ennreal_of_real, eventually_eq],
+    exact (ae_restrict_mem hS).mono (λ x hx, ennreal.of_real_eq_zero.2 (le_of_lt hx)) },
+  { rw [with_density_apply _ hS.compl, lintegral_eq_zero_iff hf.neg.ennreal_of_real, eventually_eq],
+    exact (ae_restrict_mem hS.compl).mono (λ x hx, ennreal.of_real_eq_zero.2
+      (not_lt.1 $ mt neg_pos.1 hx)) },
 end
 
 lemma restrict_with_density {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :

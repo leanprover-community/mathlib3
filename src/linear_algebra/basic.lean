@@ -62,6 +62,7 @@ open function
 open_locale big_operators pointwise
 
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} {R₄ : Type*}
+variables {S : Type*}
 variables {K : Type*} {K₂ : Type*}
 variables {M : Type*} {M' : Type*} {M₁ : Type*} {M₂ : Type*} {M₃ : Type*} {M₄ : Type*}
 variables {N : Type*} {N₂ : Type*}
@@ -219,7 +220,7 @@ add_monoid_hom.map_sum ((add_monoid_hom.eval b).comp to_add_monoid_hom') f _
 
 section smul_right
 
-variables {S : Type*} [semiring S] [module R S] [module S M] [is_scalar_tower R S M]
+variables [semiring S] [module R S] [module S M] [is_scalar_tower R S M]
 
 /-- When `f` is an `R`-linear map taking values in `S`, then `λb, f b • x` is an `R`-linear map. -/
 def smul_right (f : M₁ →ₗ[R] S) (x : M) : M₁ →ₗ[R] M :=
@@ -338,7 +339,7 @@ end add_comm_monoid
 
 section module
 
-variables {S : Type*} [semiring R] [semiring S]
+variables [semiring R] [semiring S]
   [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
   [module R M] [module R M₂] [module R M₃]
   [module S M₂] [module S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃]
@@ -777,6 +778,20 @@ ext $ λ x, ⟨by rintro ⟨⟨_, h₁⟩, h₂, rfl⟩; exact ⟨h₁, h₂⟩,
 lemma eq_zero_of_bot_submodule : ∀(b : (⊥ : submodule R M)), b = 0
 | ⟨b', hb⟩ := subtype.eq $ show b' = 0, from (mem_bot R).1 hb
 
+/-- The infimum of a family of invariant submodule of an endomorphism is also an invariant
+submodule. -/
+lemma _root_.linear_map.infi_invariant {σ : R →+* R} [ring_hom_surjective σ] {ι : Type*}
+  (f : M →ₛₗ[σ] M) {p : ι → submodule R M} (hf : ∀ i, ∀ v ∈ (p i), f v ∈ p i) :
+  ∀ v ∈ infi p, f v ∈ infi p :=
+begin
+  have : ∀ i, (p i).map f ≤ p i,
+  { rintros i - ⟨v, hv, rfl⟩,
+    exact hf i v hv },
+  suffices : (infi p).map f ≤ infi p,
+  { exact λ v hv, this ⟨v, hv, rfl⟩, },
+  exact le_infi (λ i, (submodule.map_mono (infi_le p i)).trans (this i)),
+end
+
 section
 variables (R)
 
@@ -800,8 +815,14 @@ span_le.2 $ subset.trans h subset_span
 lemma span_eq_of_le (h₁ : s ⊆ p) (h₂ : p ≤ span R s) : span R s = p :=
 le_antisymm (span_le.2 h₁) h₂
 
-@[simp] lemma span_eq : span R (p : set M) = p :=
+lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
+
+/-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/
+@[simp] lemma span_coe_eq_restrict_scalars
+  [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+  span S (p : set M) = p.restrict_scalars S :=
+span_eq (p.restrict_scalars S)
 
 lemma map_span [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (s : set M) :
   (span R s).map f = span R₂ (f '' s) :=
@@ -810,13 +831,14 @@ map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
 alias submodule.map_span ← linear_map.map_span
 
-lemma map_span_le {R M M₂ : Type*} [semiring R] [add_comm_monoid M]
-  [add_comm_monoid M₂] [module R M] [module R M₂] (f : M →ₗ[R] M₂)
-  (s : set M) (N : submodule R M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
+lemma map_span_le [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (s : set M)
+  (N : submodule R₂ M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
 begin
   rw [f.map_span, span_le, set.image_subset_iff],
   exact iff.rfl
 end
+
+alias submodule.map_span_le ← linear_map.map_span_le
 
 @[simp] lemma span_insert_zero : span R (insert (0 : M) s) = span R s :=
 begin
@@ -824,8 +846,6 @@ begin
   rw [span_le, set.insert_subset],
   exact ⟨by simp only [set_like.mem_coe, submodule.zero_mem], submodule.subset_span⟩,
 end
-
-alias submodule.map_span_le ← linear_map.map_span_le
 
 /- See also `span_preimage_eq` below. -/
 lemma span_preimage_le (f : M →ₛₗ[σ₁₂] M₂) (s : set M₂) :
@@ -1055,6 +1075,26 @@ span_eq_of_le _ (set.insert_subset.mpr ⟨h, subset_span⟩) (span_mono $ subset
 
 lemma span_span : span R (span R s : set M) = span R s := span_eq _
 
+variables (R S s)
+
+/-- If `R` is "smaller" ring than `S` then the span by `R` is smaller than the span by `S`. -/
+lemma span_le_restrict_scalars [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+  span R s ≤ (span S s).restrict_scalars R :=
+submodule.span_le.2 submodule.subset_span
+
+/-- A version of `submodule.span_le_restrict_scalars` with coercions. -/
+@[simp] lemma span_subset_span [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+  ↑(span R s) ⊆ (span S s : set M) :=
+span_le_restrict_scalars R S s
+
+/-- Taking the span by a large ring of the span by the small ring is the same as taking the span
+by just the large ring. -/
+lemma span_span_of_tower [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+  span S (span R s : set M) = span S s :=
+le_antisymm (span_le.2 $ span_subset_span R S s) (span_mono subset_span)
+
+variables {R S s}
+
 lemma span_eq_bot : span R (s : set M) = ⊥ ↔ ∀ x ∈ s, (x:M) = 0 :=
 eq_bot_iff.trans ⟨
   λ H x h, (mem_bot R).1 $ H $ subset_span h,
@@ -1067,8 +1107,7 @@ span_eq_bot.trans $ by simp
 
 @[simp] lemma span_image [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) :
   span R₂ (f '' s) = map f (span R s) :=
-span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
-span_le.2 $ image_subset_iff.1 subset_span
+(map_span f s).symm
 
 lemma apply_mem_span_image_of_mem_span
    [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
@@ -1083,7 +1122,7 @@ lemma not_mem_span_of_apply_not_mem_span_image
    [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) {x : M} {s : set M}
    (h : f x ∉ submodule.span R₂ (f '' s)) :
    x ∉ submodule.span R s :=
-not.imp h (apply_mem_span_image_of_mem_span f)
+h.imp (apply_mem_span_image_of_mem_span f)
 
 lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
@@ -1405,8 +1444,7 @@ end
 The decreasing sequence of submodules consisting of the ranges of the iterates of a linear map.
 -/
 @[simps]
-def iterate_range {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
-  ℕ →ₘ order_dual (submodule R M) :=
+def iterate_range (f : M →ₗ[R] M) : ℕ →ₘ order_dual (submodule R M) :=
 ⟨λ n, (f ^ n).range, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_range at h,
@@ -1547,8 +1585,7 @@ end
 The increasing sequence of submodules consisting of the kernels of the iterates of a linear map.
 -/
 @[simps]
-def iterate_ker {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
-  ℕ →ₘ submodule R M :=
+def iterate_ker (f : M →ₗ[R] M) : ℕ →ₘ submodule R M :=
 ⟨λ n, (f ^ n).ker, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_ker at h,
@@ -1738,39 +1775,32 @@ by rw [of_le, ker_cod_restrict, ker_subtype]
 lemma range_of_le (p q : submodule R M) (h : p ≤ q) : (of_le h).range = comap q.subtype p :=
 by rw [← map_top, of_le, linear_map.map_cod_restrict, map_top, range_subtype]
 
-end add_comm_monoid
-
-section ring
-
-variables [ring R] [ring R₂] [add_comm_group M] [add_comm_group M₂] [module R M] [module R₂ M₂]
-variables (p p' : submodule R M) (q : submodule R₂ M₂)
-variables {τ₁₂ : R →+* R₂}
-
-open linear_map
-
 lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
   disjoint p q ↔ comap p.subtype q = ⊥ :=
-by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype, disjoint]
+by rw [←(map_injective_of_injective (show injective p.subtype, from subtype.coe_injective)).eq_iff,
+       map_comap_subtype, map_bot, disjoint_iff]
 
 /-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
-def map_subtype.rel_iso :
-  submodule R p ≃o {p' : submodule R M // p' ≤ p} :=
+def map_subtype.rel_iso : submodule R p ≃o {p' : submodule R M // p' ≤ p} :=
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
   inv_fun   := λ q, comap p.subtype q,
-  left_inv  := λ p', comap_map_eq_self $ by simp,
+  left_inv  := λ p', comap_map_eq_of_injective subtype.coe_injective p',
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  map_rel_iff'      := λ p₁ p₂, map_le_map_iff' (ker_subtype p) }
+  map_rel_iff'      := λ p₁ p₂, subtype.coe_le_coe.symm.trans begin
+    dsimp,
+    rw [map_le_iff_le_comap,
+        comap_map_eq_of_injective (show injective p.subtype, from subtype.coe_injective) p₂],
+  end }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
-def map_subtype.order_embedding :
-  submodule R p ↪o submodule R M :=
+def map_subtype.order_embedding : submodule R p ↪o submodule R M :=
 (rel_iso.to_rel_embedding $ map_subtype.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
   map_subtype.order_embedding p p' = map p.subtype p' := rfl
 
-end ring
+end add_comm_monoid
 
 end submodule
 
@@ -2387,9 +2417,9 @@ end submodule
 
 namespace submodule
 
-variables [comm_ring R] [comm_ring R₂]
-variables [add_comm_group M] [add_comm_group M₂] [module R M] [module R₂ M₂]
-variables [add_comm_group N] [add_comm_group N₂] [module R N] [module R N₂]
+variables [comm_semiring R] [comm_semiring R₂]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R₂ M₂]
+variables [add_comm_monoid N] [add_comm_monoid N₂] [module R N] [module R N₂]
 variables {τ₁₂ : R →+* R₂} {τ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair τ₁₂ τ₂₁] [ring_hom_inv_pair τ₂₁ τ₁₂]
 variables (p : submodule R M) (q : submodule R₂ M₂)

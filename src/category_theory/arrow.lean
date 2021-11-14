@@ -109,6 +109,12 @@ instance is_iso_right [is_iso sq] : is_iso sq.right :=
 { out := ⟨(inv sq).right, by simp only [← comma.comp_right, is_iso.hom_inv_id, is_iso.inv_hom_id,
     arrow.id_right, eq_self_iff_true, and_self]⟩ }
 
+@[simp] lemma inv_left [is_iso sq] : (inv sq).left = inv sq.left :=
+is_iso.eq_inv_of_hom_inv_id $ by rw [← comma.comp_left, is_iso.hom_inv_id, id_left]
+
+@[simp] lemma inv_right [is_iso sq] : (inv sq).right = inv sq.right :=
+is_iso.eq_inv_of_hom_inv_id $ by rw [← comma.comp_right, is_iso.hom_inv_id, id_right]
+
 instance mono_left [mono sq] : mono sq.left :=
 { right_cancellation := λ Z φ ψ h, begin
     let aux : (Z ⟶ f.left) → (arrow.mk (𝟙 Z) ⟶ f) := λ φ, { left := φ, right := φ ≫ f.hom },

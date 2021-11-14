@@ -94,12 +94,16 @@ lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₛₗ[σ] M₂)
 to_equiv_injective.eq_iff
 
 lemma to_linear_map_injective :
-  function.injective (coe : (M ≃ₛₗ[σ] M₂) → (M →ₛₗ[σ] M₂)) :=
+  injective (coe : (M ≃ₛₗ[σ] M₂) → (M →ₛₗ[σ] M₂)) :=
 λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ linear_map.congr_fun H
 
 @[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₛₗ[σ] M₂} :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
+
+lemma coe_injective :
+  @injective (M ≃ₛₗ[σ] M₂) (M → M₂) coe_fn :=
+linear_map.coe_injective.comp to_linear_map_injective
 
 end
 
@@ -125,7 +129,7 @@ lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
 section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-to_equiv_injective (equiv.ext h)
+coe_injective $ funext h
 
 protected lemma congr_arg : Π {x x' : M}, x = x' → e x = e x'
 | _ _ rfl := rfl
@@ -233,11 +237,11 @@ omit σ'
 
 @[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
 
-@[simp] lemma trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
+@[simp] lemma self_trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.trans f.symm = linear_equiv.refl R M :=
 by { ext x, simp }
 
-@[simp] lemma symm_trans [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
+@[simp] lemma symm_trans_self [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.symm.trans f = linear_equiv.refl R M₂ :=
 by { ext x, simp }
 

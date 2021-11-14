@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import group_theory.subgroup.basic
 import group_theory.submonoid.pointwise
-import group_theory.quotient_group
 
 /-! # Pointwise instances on `subgroup` and `add_subgroup`s
 

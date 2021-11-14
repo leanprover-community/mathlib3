@@ -78,42 +78,17 @@ def commensurator' (H : subgroup G) : subgroup (conj_act G) :=
 such that `commensurable ( g H g⁻¹) H`   -/
 
 def commensurator (H : subgroup G) : subgroup G :=
-  (commensurator' H).map (conj_act.of_conj_act.to_monoid_hom)
+(commensurator' H).comap (conj_act.to_conj_act.to_monoid_hom)
 
-@[simp]
-lemma commensurator'_mem_iff (H : subgroup G) (g : conj_act G) :
+@[simp] lemma commensurator'_mem_iff (H : subgroup G) (g : conj_act G) :
   g ∈ (commensurator' H) ↔ commensurable (g • H) H := iff.rfl
 
-@[simp]
-lemma commensurator_mem_iff (H : subgroup G) (g : G) :
-  g ∈ (commensurator H) ↔ commensurable (conj_act.to_conj_act g • H) H :=
-begin
-rw commensurator,
-simp only [exists_prop, mul_equiv.coe_to_monoid_hom, commensurator'_mem_iff, subgroup.mem_map],
-split,
-intro h,
-obtain ⟨x, hx⟩ := h,
-rw ← hx.2,
-simp only [conj_act.to_conj_act_of_conj_act],
-apply hx.1,
-intro h,
-use conj_act.to_conj_act g,
-simp only [h, conj_act.of_conj_act_to_conj_act, eq_self_iff_true, and_self],
-end
+@[simp] lemma commensurator_mem_iff (H : subgroup G) (g : G) :
+  g ∈ (commensurator H) ↔ commensurable (conj_act.to_conj_act g • H) H := iff.rfl
 
-lemma commensurable_subgroups_have_eq_commensurator (H K : subgroup G) :
-  commensurable H K → commensurator H = commensurator K :=
-begin
-  intro hk,
-  ext,
-  simp only [commensurator_mem_iff],
-  have h1 := (commensurable_conj x).1 hk,
-  split,
-  intro h,
-  have h2 := trans h hk,
-  apply trans (symm h1) h2,
-  intro h,
-  apply trans (trans h1 h) (symm hk),
-end
+lemma commensurable.commensurator_eq {H K : subgroup G} (hk : commensurable H K) :
+  commensurator H = commensurator K :=
+subgroup.ext (λ x, let hx := (commensurable_conj x).1 hk in
+  ⟨λ h, hx.symm.trans (h.trans hk), λ h, hx.trans (h.trans hk.symm)⟩)
 
 end commensurable

@@ -980,11 +980,10 @@ lemma inf_subgroup_of (L : subgroup G) :
   (H ⊓ K).subgroup_of L = H.subgroup_of L ⊓ K.subgroup_of L :=
 comap_inf H K L.subtype
 
-
-@[simp] lemma subgroup_of_inf_left : (H ⊓ K).subgroup_of H = K.subgroup_of H :=
+@[simp] lemma inf_subgroup_of_left : (H ⊓ K).subgroup_of H = K.subgroup_of H :=
 by rw [inf_subgroup_of, subgroup_of_self, top_inf_eq]
 
-@[simp] lemma subgroup_of_inf_right : (H ⊓ K).subgroup_of K = H.subgroup_of K :=
+@[simp] lemma inf_subgroup_of_right : (H ⊓ K).subgroup_of K = H.subgroup_of K :=
 by rw [inf_subgroup_of, subgroup_of_self, inf_top_eq]
 
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/

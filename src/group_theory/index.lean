@@ -179,7 +179,7 @@ lemma inf_relindex_subgroup_of :
   ((H ⊓ K).subgroup_of L).relindex (K.subgroup_of L) = H.relindex (K ⊓ L) :=
 begin
   have h0: K ⊓ L ≤ L, by {simp only [inf_le_right],},
-  rw [← subgroup.subgroup_of_inf_right K L, ← inf_relindex_inf],
+  rw [← subgroup.inf_subgroup_of_right K L, ← inf_relindex_inf],
   apply subgroup.relindex_subgroup_of h0,
 end
 

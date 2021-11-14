@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.maps
 import order.filter.pi
+import data.fin.tuple
 
 /-!
 # Constructions of new topological spaces from old ones

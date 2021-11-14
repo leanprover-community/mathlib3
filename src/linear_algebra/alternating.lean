@@ -307,7 +307,7 @@ namespace linear_map
 
 variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
 
-/-- Composing a alternating map with a linear map gives again a alternating map. -/
+/-- Composing a alternating map with a linear map on the left gives again an alternating map. -/
 def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ alternating_map R M N₂ ι :=
 { to_fun := λ f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
@@ -324,6 +324,35 @@ lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M
 end linear_map
 
 namespace alternating_map
+
+variables {M₂ : Type*} [add_comm_monoid M₂] [module R M₂]
+
+/-- Composing a alternating map with the same linear map on each argument gives again an
+alternating map. -/
+def comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) : alternating_map R M₂ N ι :=
+{ map_eq_zero_of_eq' := λ v i j h hij, f.map_eq_zero_of_eq _ (linear_map.congr_arg h) hij,
+  .. (f : multilinear_map R (λ _ : ι, M) N).comp_linear_map (λ _, g) }
+
+lemma coe_comp_linear_map (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) :
+  ⇑(f.comp_linear_map g) = f ∘ ((∘) g) := rfl
+
+@[simp] lemma comp_linear_map_apply (f : alternating_map R M N ι) (g : M₂ →ₗ[R] M) (v : ι → M₂) :
+  f.comp_linear_map g v = f (λ i, g (v i)) := rfl
+
+@[simp] lemma zero_comp_linear_map (g : M₂ →ₗ[R] M) :
+  (0 : alternating_map R M N ι).comp_linear_map g = 0 :=
+by { ext, simp only [comp_linear_map_apply, zero_apply] }
+
+@[simp] lemma add_comp_linear_map (f₁ f₂ : alternating_map R M N ι) (g : M₂ →ₗ[R] M) :
+  (f₁ + f₂).comp_linear_map g = f₁.comp_linear_map g + f₂.comp_linear_map g :=
+by { ext, simp only [comp_linear_map_apply, add_apply] }
+
+@[simp] lemma comp_linear_map_zero [nonempty ι] (f : alternating_map R M N ι) :
+  f.comp_linear_map (0 : M₂ →ₗ[R] M) = 0 :=
+begin
+  ext,
+  simp_rw [comp_linear_map_apply, linear_map.zero_apply, ←pi.zero_def, map_zero, zero_apply],
+end
 
 variables (f f' : alternating_map R M N ι)
 variables (g g₂ : alternating_map R M N' ι)

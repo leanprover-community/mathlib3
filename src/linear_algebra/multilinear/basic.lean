@@ -7,6 +7,7 @@ import linear_algebra.basic
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
+import data.fin.tuple
 import data.fintype.card
 import data.fintype.sort
 
@@ -200,6 +201,15 @@ def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, 
     rw subsingleton.elim i i', simp only [function.eval, function.update_same], },
   map_smul' := λ m i r x, by {
     rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
+
+variables {M₂}
+
+/-- The constant map is multilinear when `ι` is empty. -/
+@[simps {fully_applied := ff}]
+def const_of_is_empty [is_empty ι] (m : M₂) : multilinear_map R M₁ M₂ :=
+{ to_fun := function.const _ m,
+  map_add' := λ m, is_empty_elim,
+  map_smul' := λ m, is_empty_elim }
 
 end
 

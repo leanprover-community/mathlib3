@@ -32,9 +32,8 @@ namespace double_coset
 def double_coset_rel (H K : subgroup G) : G → G → Prop :=
 λ x y, (∃ (a ∈ H) (b ∈ K), y = a * x * b)
 
-@[simp]
 lemma rel_iff (H K : subgroup G) (x y : G) :
-  double_coset_rel H K x y  ↔  (∃ (a ∈ H) (b ∈ K), y = a * x * b) := iff.rfl
+  double_coset_rel H K x y ↔ (∃ (a ∈ H) (b ∈ K), y = a * x * b) := iff.rfl
 
 lemma left_bot_eq_left_group_rel (H : subgroup G) :
   (double_coset_rel ⊥ H) = (quotient_group.left_rel H).rel :=
@@ -107,11 +106,11 @@ begin
   have hac := H.mul_mem hc ha,
   simp only [hac, true_and],
   use b*d,
-  have hdb :=  (K.mul_mem hb hd),
+  have hdb := (K.mul_mem hb hd),
   simp only [hdb, true_and, hyz, hxy, ← mul_assoc],
 end
 
-lemma rel_is_equiv  {H K : subgroup G} : equivalence (double_coset_rel H K) :=
+lemma rel_is_equiv {H K : subgroup G} : equivalence (double_coset_rel H K) :=
 ⟨rel_reflex, rel_symm, rel_trans⟩
 
 /--The setoid defined by the double_coset relation-/
@@ -126,9 +125,9 @@ def doset (s t : set α) (a : α) : set α := { b : α | ∃ x : (s × t), b = x
 
 @[simp]
 lemma doset_mem (s t : set α) (a b : α) :
-  b ∈ (doset s t a) ↔  ∃ x : (s × t), b = x.1 * a * x.2 :=iff.rfl
+  b ∈ (doset s t a) ↔ ∃ x : (s × t), b = x.1 * a * x.2 :=iff.rfl
 
-lemma sub_doset  (H K : subgroup G) (a b : G) (hb : b ∈ doset H.1 K a) :
+lemma sub_doset (H K : subgroup G) (a b : G) (hb : b ∈ doset H.1 K a) :
   (doset H.1 K b) ⊆ (doset H K a) :=
 begin
   intro x,
@@ -152,19 +151,19 @@ begin
   rcases h with ⟨x, ⟨hx, hxx⟩, hk, hhk⟩ ,
   use ( ⟨hk.1⁻¹ * hx.1, hx.2 * hk.2⁻¹⟩ : H × K),
   rw hxx at hhk,
-  simp only [subgroup.coe_inv, subgroup.coe_mul,  ← mul_assoc],
-  rw  ← mul_inv_eq_iff_eq_mul,
+  simp only [subgroup.coe_inv, subgroup.coe_mul, ← mul_assoc],
+  rw ← mul_inv_eq_iff_eq_mul,
   simp only [inv_inv],
   rw [mul_assoc, mul_assoc ] at *,
   simp only [hhk,inv_mul_cancel_left],
 end
 
-lemma disjoint_doset  (H K : subgroup G) (a b : G) (h: ¬ disjoint (doset H.1 K a) (doset H K b)) :
+lemma disjoint_doset (H K : subgroup G) (a b : G) (h: ¬ disjoint (doset H.1 K a) (doset H K b)) :
   doset H.1 K a = doset H K b :=
 begin
-  have hb :  b ∈ (doset H.1 K a), by {apply disjoint_sub _ _ _ _ h},
+  have hb : b ∈ (doset H.1 K a), by {apply disjoint_sub _ _ _ _ h},
   rw disjoint.comm at h,
-  have ha :  a ∈ (doset H.1 K b), by {apply disjoint_sub _ _ _ _ h},
+  have ha : a ∈ (doset H.1 K b), by {apply disjoint_sub _ _ _ _ h},
   rw set.subset.antisymm_iff,
   split,
   apply sub_doset H K b a ha,
@@ -175,7 +174,7 @@ end
 def quot_to_doset (H K : subgroup G) (q : quotient H K ) : set G := (doset H.1 K q.out')
 
 /--Map from `G` to `H \ G / K`-/
-abbreviation mk (H K : subgroup G) (a : G) : quotient H K  :=
+abbreviation mk (H K : subgroup G) (a : G) : quotient H K :=
 quotient.mk' a
 
 instance (H K : subgroup G) : inhabited (quotient H K) := ⟨(mk H K (1 : G) : quotient H K)⟩
@@ -186,10 +185,10 @@ by { rw quotient.eq', apply (rel_iff H K a b), }
 lemma out_eq' (H K : subgroup G) (q : quotient H K) : mk H K q.out' = q :=
 quotient.out_eq' q
 
-lemma mk_out'_eq_mul (H K : subgroup G)  (g : G) :
+lemma mk_out'_eq_mul (H K : subgroup G) (g : G) :
   ∃ (h k : G), (h ∈ H) ∧ (k ∈ K) ∧ (mk H K g : quotient H K).out' = h * g * k :=
 begin
-  have := eq  H K (mk H K g :  quotient H K).out' g,
+  have := eq H K (mk H K g : quotient H K).out' g,
   rw out_eq' at this,
   simp only [exists_prop] at this,
   have h: mk H K g = mk H K g, by {refl,},
@@ -205,7 +204,7 @@ begin
   have fl := r.2,
   simp_rw ← le at fl,
   simp_rw ← re at fl,
-  rw  fl,
+  rw fl,
   simp_rw ← mul_assoc,
   simp only [one_mul, mul_left_inv, mul_inv_cancel_right],
   exact congr_arg quotient.out' (congr_arg (mk H K) (eq.symm fl)),
@@ -226,7 +225,7 @@ begin
   apply this,
 end
 
-lemma disjoint_doset'  (H K : subgroup G) (a b : quotient H K) :
+lemma disjoint_doset' (H K : subgroup G) (a b : quotient H K) :
   a ≠ b → disjoint (doset H.1 K a.out') (doset H K b.out') :=
 begin
   simp only [ne.def],
@@ -248,7 +247,7 @@ begin
   rw quot_to_doset,
   simp only [exists_prop, doset_mem, subgroup.mem_carrier, set_like.mem_coe],
   have hy := mk_out'_eq_mul H K x,
-  rcases hy with  ⟨h, k, h3, h4, h5⟩,
+  rcases hy with ⟨h, k, h3, h4, h5⟩,
   use ⟨⟨h⁻¹, H.inv_mem h3⟩, ⟨ k⁻¹ , K.inv_mem h4⟩ ⟩,
   simp only [h5, subgroup.coe_mk],
   simp_rw ← mul_assoc,
@@ -303,7 +302,7 @@ begin
   apply congr_arg,
   have hab := left_bot_eq_left_group_rel H,
   ext,
-  simp_rw  ←  hab,
+  simp_rw ← hab,
   refl,
 end
 

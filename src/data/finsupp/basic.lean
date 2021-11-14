@@ -2696,6 +2696,10 @@ Some of these lemmas are used to develop the partial derivative on `mv_polynomia
 section nat_sub
 section canonically_ordered_monoid
 
+instance [canonically_ordered_add_monoid M] : order_bot (α →₀ M) :=
+{ bot := 0,
+  bot_le := by simp [finsupp.le_def] }
+
 variables [canonically_ordered_add_monoid M] [has_sub M] [has_ordered_sub M]
 
 /-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
@@ -2714,6 +2718,7 @@ instance : canonically_ordered_add_monoid (α →₀ M) :=
       { intro H, use g - f, ext x, symmetry, exact add_tsub_cancel_of_le (H x) },
       { rintro ⟨g, rfl⟩ x, exact self_le_add_right (f x) (g x) }
     end,
+ ..finsupp.order_bot,
  ..(by apply_instance : ordered_add_comm_monoid (α →₀ M)) }
 
 instance : has_ordered_sub (α →₀ M) :=

@@ -129,6 +129,16 @@ is_open.preimage S.proj_continuous trivial
 
 lemma fiber_clopen (A : set S) : is_clopen (S.proj ⁻¹' A) := ⟨fiber_open _ _, fiber_closed _ _⟩
 
+instance : partial_order (discrete_quotient X) :=
+{ le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
+  le_refl := λ a, by tauto,
+  le_trans := λ a b c h1 h2, by tauto,
+  le_antisymm := λ a b h1 h2, by { ext, tauto } }
+
+instance : order_top (discrete_quotient X) :=
+{ top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ⟩,
+  le_top := λ a, by tauto }
+
 instance : semilattice_inf (discrete_quotient X) :=
 { inf := λ A B,
   { rel := λ x y, A.rel x y ∧ B.rel x y,
@@ -137,11 +147,8 @@ instance : semilattice_inf (discrete_quotient X) :=
     clopen := λ x, is_clopen.inter (A.clopen _) (B.clopen _) },
   inf_le_left := λ a b, by tauto,
   inf_le_right := λ a b, by tauto,
-  le_inf := λ a b c h1 h2, by tauto }
-
-instance : order_top (discrete_quotient X) :=
-{ top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ⟩,
-  le_top := λ a, by tauto }
+  le_inf := λ a b c h1 h2, by tauto,
+  ..discrete_quotient.partial_order }
 
 instance : inhabited (discrete_quotient X) := ⟨⊤⟩
 

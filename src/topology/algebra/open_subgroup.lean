@@ -234,7 +234,8 @@ instance : semilattice_sup (open_subgroup G) :=
 
 @[to_additive]
 instance : lattice (open_subgroup G) :=
-{ ..open_subgroup.semilattice_sup_top, ..open_subgroup.semilattice_inf_top }
+{ ..open_subgroup.semilattice_sup, ..open_subgroup.semilattice_inf }
+
 
 end open_subgroup
 

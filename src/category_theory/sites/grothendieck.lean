@@ -222,11 +222,18 @@ variable {C}
 lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
 
 /-- See https://stacks.math.columbia.edu/tag/00Z6 -/
+instance : has_le (grothendieck_topology C) :=
+{ le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)) }
+
+lemma le_def {J₁ J₂ : grothendieck_topology C} :
+  J₁ ≤ J₂ ↔ (J₁ : Π (X : C), set (sieve X)) ≤ J₂ := iff.rfl
+
+/-- See https://stacks.math.columbia.edu/tag/00Z6 -/
 instance : partial_order (grothendieck_topology C) :=
-{ le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)),
-  le_refl := λ J₁, le_refl _,
-  le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
-  le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext (le_antisymm h₁₂ h₂₁) }
+{ le_refl := λ J₁, le_def.mpr (le_refl _),
+  le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
+  le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext (le_antisymm h₁₂ h₂₁),
+  ..grothendieck_topology.has_le }
 
 /-- See https://stacks.math.columbia.edu/tag/00Z7 -/
 instance : has_Inf (grothendieck_topology C) :=

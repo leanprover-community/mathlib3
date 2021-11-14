@@ -192,7 +192,7 @@ def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α)
 instance : has_le (topological_space α) :=
 { le          := λ t s, s.is_open ≤ t.is_open }
 
-lemma topological_space.le_def {α} {t s : topological_space α} :
+protected lemma topological_space.le_def {α} {t s : topological_space α} :
   t ≤ s ↔ s.is_open ≤ t.is_open := iff.rfl
 
 /-- The ordering on topologies on the type `α`.

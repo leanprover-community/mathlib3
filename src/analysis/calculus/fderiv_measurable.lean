@@ -3,9 +3,9 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-
 import analysis.calculus.deriv
-import measure_theory.borel_space
+import measure_theory.constructions.borel_space
+import tactic.ring_exp
 
 /-!
 # Derivative is measurable
@@ -13,7 +13,7 @@ import measure_theory.borel_space
 In this file we prove that the derivative of any function with complete codomain is a measurable
 function. Namely, we prove:
 
-* `is_measurable_set_of_differentiable_at`: the set `{x | differentiable_at 𝕜 f x}` is measurable;
+* `measurable_set_of_differentiable_at`: the set `{x | differentiable_at 𝕜 f x}` is measurable;
 * `measurable_fderiv`: the function `fderiv 𝕜 f` is measurable;
 * `measurable_fderiv_apply_const`: for a fixed vector `y`, the function `λ x, fderiv 𝕜 f x y`
   is measurable;
@@ -78,28 +78,11 @@ namespace continuous_linear_map
 variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
   [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
 
-instance : measurable_space (E →L[𝕜] F) := borel _
-
-instance : borel_space (E →L[𝕜] F) := ⟨rfl⟩
-
-lemma measurable_apply [measurable_space F] [borel_space F] (x : E) :
-  measurable (λ f : E →L[𝕜] F, f x) :=
-(apply 𝕜 F x).continuous.measurable
-
-lemma measurable_apply' [measurable_space E] [opens_measurable_space E]
-  [measurable_space F] [borel_space F] :
-  measurable (λ (x : E) (f : E →L[𝕜] F), f x) :=
-measurable_pi_lambda _ $ λ f, f.measurable
-
 lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
   [second_countable_topology E] [second_countable_topology (E →L[𝕜] F)]
   [measurable_space F] [borel_space F] :
   measurable (λ p : (E →L[𝕜] F) × E, p.1 p.2) :=
 is_bounded_bilinear_map_apply.continuous.measurable
-
-lemma measurable_coe [measurable_space F] [borel_space F] :
-  measurable (λ (f : E →L[𝕜] F) (x : E), f x) :=
-measurable_pi_lambda _ measurable_apply
 
 end continuous_linear_map
 
@@ -141,7 +124,7 @@ begin
 end
 
 lemma is_open_B {K : set (E →L[𝕜] F)} {r s ε : ℝ} : is_open (B f K r s ε) :=
-by simp [B, is_open_Union, is_open_inter, is_open_A]
+by simp [B, is_open_Union, is_open.inter, is_open_A]
 
 lemma A_mono (L : E →L[𝕜] F) (r : ℝ) {ε δ : ℝ} (h : ε ≤ δ) :
   A f L r ε ⊆ A f L r δ :=
@@ -291,7 +274,7 @@ begin
   is a Cauchy sequence. -/
   let L0 : ℕ → (E →L[𝕜] F) := λ e, L e (n e) (n e),
   have : cauchy_seq L0,
-  { rw cauchy_seq_iff',
+  { rw metric.cauchy_seq_iff',
     assume ε εpos,
     obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
       exists_pow_lt_of_lt_one (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),
@@ -350,10 +333,8 @@ begin
     { apply le_of_mem_A (hn e (n e) m (le_refl _) m_ge).2.2,
       { simp only [mem_closed_ball, dist_self],
         exact div_nonneg (le_of_lt P) (zero_le_two) },
-      { simp [dist_eq_norm],
-        convert h'k,
-        field_simp,
-        ring_exp } },
+      { simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball, pow_succ', mul_one_div]
+          using h'k } },
     have J2 : ∥f (x + y) - f x - L e (n e) m y∥ ≤ 4 * (1/2) ^ e * ∥y∥ := calc
       ∥f (x + y) - f x - L e (n e) m y∥ ≤ (1/2) ^ e * (1/2) ^ m :
         by simpa only [add_sub_cancel'] using J1
@@ -363,12 +344,10 @@ begin
     -- use the previous estimates to see that `f (x + y) - f x - f' y` is small.
     calc ∥f (x + y) - f x - f' y∥
         = ∥(f (x + y) - f x - L e (n e) m y) + (L e (n e) m - f') y∥ :
-      by { congr' 1, simp, abel }
-    ... ≤ ∥f (x + y) - f x - L e (n e) m y∥ + ∥(L e (n e) m - f') y∥ :
-      norm_add_le _ _
+      congr_arg _ (by simp)
     ... ≤ 4 * (1/2) ^ e * ∥y∥ + 12 * ∥c∥ * (1/2) ^ e * ∥y∥ :
-      add_le_add J2
-        (le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right (Lf' _ _ m_ge) (norm_nonneg _)))
+      norm_add_le_of_le J2
+        ((le_op_norm _ _).trans (mul_le_mul_of_nonneg_right (Lf' _ _ m_ge) (norm_nonneg _)))
     ... = (4 + 12 * ∥c∥) * ∥y∥ * (1/2) ^ e : by ring
     ... ≤ (4 + 12 * ∥c∥) * ∥y∥ * (ε / (4 + 12 * ∥c∥)) :
       mul_le_mul_of_nonneg_left he.le
@@ -392,21 +371,21 @@ variables (𝕜 f)
 
 /-- The set of differentiability points of a function, with derivative in a given complete set,
 is Borel-measurable. -/
-theorem is_measurable_set_of_differentiable_at_of_is_complete
+theorem measurable_set_of_differentiable_at_of_is_complete
   {K : set (E →L[𝕜] F)} (hK : is_complete K) :
-  is_measurable {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, is_open_B.is_measurable, is_measurable.Inter_Prop,
-         is_measurable.Inter, is_measurable.Union]
+  measurable_set {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
+by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter_Prop,
+         measurable_set.Inter, measurable_set.Union]
 
 variable [complete_space F]
 
 /-- The set of differentiability points of a function taking values in a complete space is
 Borel-measurable. -/
-theorem is_measurable_set_of_differentiable_at :
-  is_measurable {x | differentiable_at 𝕜 f x} :=
+theorem measurable_set_of_differentiable_at :
+  measurable_set {x | differentiable_at 𝕜 f x} :=
 begin
   have : is_complete (univ : set (E →L[𝕜] F)) := complete_univ,
-  convert is_measurable_set_of_differentiable_at_of_is_complete 𝕜 f this,
+  convert measurable_set_of_differentiable_at_of_is_complete 𝕜 f this,
   simp
 end
 
@@ -417,8 +396,8 @@ begin
     {x | (0 : E →L[𝕜] F) ∈ s} ∩ {x | ¬differentiable_at 𝕜 f x} :=
     set.ext (λ x, mem_preimage.trans fderiv_mem_iff),
   rw this,
-  exact (is_measurable_set_of_differentiable_at_of_is_complete _ _ hs.is_complete).union
-    ((is_measurable.const _).inter (is_measurable_set_of_differentiable_at _ _).compl)
+  exact (measurable_set_of_differentiable_at_of_is_complete _ _ hs.is_complete).union
+    ((measurable_set.const _).inter (measurable_set_of_differentiable_at _ _).compl)
 end
 
 lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :

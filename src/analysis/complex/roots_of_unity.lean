@@ -3,10 +3,8 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
+import analysis.special_functions.trigonometric.complex
 import ring_theory.roots_of_unity
-import analysis.special_functions.trigonometric
-import analysis.special_functions.pow
 
 /-!
 # Complex roots of unity
@@ -25,10 +23,10 @@ are exactly the complex numbers `e ^ (2 * real.pi * complex.I * (i / n))` for `i
 namespace complex
 
 open polynomial real
-open_locale nat
+open_locale nat real
 
 lemma is_primitive_root_exp_of_coprime (i n : ℕ) (h0 : n ≠ 0) (hi : i.coprime n) :
-  is_primitive_root (exp (2 * pi * I * (i / n))) n :=
+  is_primitive_root (exp (2 * π * I * (i / n))) n :=
 begin
   rw is_primitive_root.iff_def,
   simp only [← exp_nat_mul, exp_eq_one_iff],
@@ -45,12 +43,12 @@ begin
     exact hi.symm.dvd_of_dvd_mul_left this }
 end
 
-lemma is_primitive_root_exp (n : ℕ) (h0 : n ≠ 0) : is_primitive_root (exp (2 * pi * I / n)) n :=
+lemma is_primitive_root_exp (n : ℕ) (h0 : n ≠ 0) : is_primitive_root (exp (2 * π * I / n)) n :=
 by simpa only [nat.cast_one, one_div]
   using is_primitive_root_exp_of_coprime 1 n h0 n.coprime_one_left
 
 lemma is_primitive_root_iff (ζ : ℂ) (n : ℕ) (hn : n ≠ 0) :
-  is_primitive_root ζ n ↔ (∃ (i < (n : ℕ)) (hi : i.coprime n), exp (2 * pi * I * (i / n)) = ζ) :=
+  is_primitive_root ζ n ↔ (∃ (i < (n : ℕ)) (hi : i.coprime n), exp (2 * π * I * (i / n)) = ζ) :=
 begin
   have hn0 : (n : ℂ) ≠ 0 := by exact_mod_cast hn,
   split, swap,
@@ -67,13 +65,13 @@ end
 /-- The complex `n`-th roots of unity are exactly the
 complex numbers of the form `e ^ (2 * real.pi * complex.I * (i / n))` for some `i < n`. -/
 lemma mem_roots_of_unity (n : ℕ+) (x : units ℂ) :
-  x ∈ roots_of_unity n ℂ ↔ (∃ i < (n : ℕ), exp (2 * pi * I * (i / n)) = x) :=
+  x ∈ roots_of_unity n ℂ ↔ (∃ i < (n : ℕ), exp (2 * π * I * (i / n)) = x) :=
 begin
   rw [mem_roots_of_unity, units.ext_iff, units.coe_pow, units.coe_one],
   have hn0 : (n : ℂ) ≠ 0 := by exact_mod_cast (n.ne_zero),
   split,
   { intro h,
-    obtain ⟨i, hi, H⟩ : ∃ i < (n : ℕ), exp (2 * pi * I / n) ^ i = x,
+    obtain ⟨i, hi, H⟩ : ∃ i < (n : ℕ), exp (2 * π * I / n) ^ i = x,
     { simpa only using (is_primitive_root_exp n n.ne_zero).eq_pow_of_pow_eq_one h n.pos },
     refine ⟨i, hi, _⟩,
     rw [← H, ← exp_nat_mul],

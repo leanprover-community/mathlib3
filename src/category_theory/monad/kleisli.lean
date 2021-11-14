@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Wojciech Nawrocki. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Wojciech Nawrocki, Bhavik Mehta
+Authors: Wojciech Nawrocki, Bhavik Mehta
 -/
 
 import category_theory.adjunction
@@ -18,7 +18,7 @@ adjunction which gives rise to the monad `(T, η_ T, μ_ T)`.
 -/
 namespace category_theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u} [category.{v} C]
 
@@ -27,25 +27,29 @@ The objects for the Kleisli category of the functor (usually monad) `T : C ⥤ C
 thing as objects of the base category `C`.
 -/
 @[nolint unused_arguments]
-def kleisli (T : C ⥤ C) := C
+def kleisli (T : monad C) := C
 
 namespace kleisli
 
-instance (T : C ⥤ C) [inhabited C] : inhabited (kleisli T) := ⟨(default C : _)⟩
+variables (T : monad C)
 
-variables (T : C ⥤ C) [monad.{v} T]
+instance [inhabited C] (T : monad C) : inhabited (kleisli T) := ⟨(default _ : C)⟩
 
 /-- The Kleisli category on a monad `T`.
     cf Definition 5.2.9 in [Riehl][riehl2017]. -/
 instance kleisli.category : category (kleisli T) :=
-{ hom  := λ (X Y : C), X ⟶ T.obj Y,
-  id   := λ X, (η_ T).app X,
-  comp := λ X Y Z f g, f ≫ T.map g ≫ (μ_ T).app Z,
-  id_comp' := λ X Y f, by simp [← (η_ T).naturality_assoc f, monad.left_unit'],
+{ hom  := λ (X Y : C), X ⟶ (T : C ⥤ C).obj Y,
+  id   := λ X, T.η.app X,
+  comp := λ X Y Z f g, f ≫ (T : C ⥤ C).map g ≫ T.μ.app Z,
+  id_comp' := λ X Y f,
+  begin
+    rw [← T.η.naturality_assoc f, T.left_unit],
+    apply category.comp_id,
+  end,
   assoc'   := λ W X Y Z f g h,
   begin
-    simp only [T.map_comp, category.assoc, monad.assoc],
-    erw (μ_ T).naturality_assoc h,
+    simp only [functor.map_comp, category.assoc, monad.assoc],
+    erw T.μ.naturality_assoc,
   end }
 
 namespace adjunction
@@ -53,22 +57,20 @@ namespace adjunction
 /-- The left adjoint of the adjunction which induces the monad `(T, η_ T, μ_ T)`. -/
 @[simps] def to_kleisli : C ⥤ kleisli T :=
 { obj       := λ X, (X : kleisli T),
-  map       := λ X Y f, (f ≫ (η_ T).app Y : _),
-  map_comp' := λ X Y Z f g,
-  begin
-    unfold_projs,
-    simp [← (η_ T).naturality g],
-  end }
+  map       := λ X Y f, (f ≫ T.η.app Y : _),
+  map_comp' := λ X Y Z f g, by { unfold_projs, simp [← T.η.naturality g] } }
 
 /-- The right adjoint of the adjunction which induces the monad `(T, η_ T, μ_ T)`. -/
 @[simps] def from_kleisli : kleisli T ⥤ C :=
 { obj       := λ X, T.obj X,
-  map       := λ X Y f, T.map f ≫ (μ_ T).app Y,
-  map_id'   := λ X, monad.right_unit _,
+  map       := λ X Y f, T.map f ≫ T.μ.app Y,
+  map_id'   := λ X, T.right_unit _,
   map_comp' := λ X Y Z f g,
   begin
     unfold_projs,
-    simp [monad.assoc, ← (μ_ T).naturality_assoc g],
+    simp only [functor.map_comp, category.assoc],
+    erw [← T.μ.naturality_assoc g, T.assoc],
+    refl,
   end }
 
 /-- The Kleisli adjunction which gives rise to the monad `(T, η_ T, μ_ T)`.
@@ -80,7 +82,7 @@ adjunction.mk_of_hom_equiv
   begin
     unfold_projs,
     dsimp,
-    rw [category.assoc, ← (η_ T).naturality_assoc g, functor.id_map],
+    rw [category.assoc, ← T.η.naturality_assoc g, functor.id_map],
     dsimp,
     simp [monad.left_unit],
   end }

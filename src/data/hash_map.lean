@@ -3,11 +3,10 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.pnat.basic
-import data.list.range
 import data.array.lemmas
-import algebra.group
-import data.sigma.basic
+import data.list.join
+import data.list.range
+import data.pnat.basic
 
 /-!
 # Hash maps
@@ -258,7 +257,7 @@ section
     rcases append_of_modify u v1 v2 w hl hfl with ⟨u', w', e₁, e₂⟩,
     rw [← v.len, e₁],
     suffices : valid bkts' (u' ++ v2 ++ w').length,
-    { simpa [ge, add_comm, add_left_comm, nat.le_add_right, nat.add_sub_cancel_left] },
+    { simpa [ge, add_comm, add_left_comm, nat.le_add_right, add_tsub_cancel_left] },
     refine ⟨congr_arg _ e₂, λ i a, _, λ i, _⟩,
     { by_cases bidx = i,
       { subst i, rw [bkts', array.read_write, hfl],
@@ -547,7 +546,6 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
       lem bkts' _ u w hl hfl $ or.inl ⟨rfl, Hc⟩,
     simp [insert, @dif_neg (contains_aux a bkt) _ Hc],
     by_cases h : size' ≤ n,
-    -- TODO(Mario): Why does the by_cases assumption look different than the stated one?
     { simpa [show size' ≤ n, from h] using mi },
     { let n' : ℕ+ := ⟨n * 2, mul_pos n.2 dec_trivial⟩,
       let bkts'' : bucket_array α β n' := bkts'.foldl (mk_array _ []) (reinsert_aux hash_fn),

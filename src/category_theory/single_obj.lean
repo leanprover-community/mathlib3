@@ -10,8 +10,9 @@ import algebra.category.Mon.basic
 /-!
 # Single-object category
 
-Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering
-some definitions and lemmas (e.g., conjugacy etc.) from category theory to monoids and groups.
+Single object category with a given monoid of endomorphisms.
+It is defined to facilitate transfering some definitions and lemmas (e.g., conjugacy etc.)
+from category theory to monoids and groups.
 
 ## Main definitions
 
@@ -56,6 +57,11 @@ instance category [monoid α] : category (single_obj α) :=
   id_comp' := λ _ _, mul_one,
   assoc' := λ _ _ _ _ x y z, (mul_assoc z y x).symm }
 
+lemma id_as_one [monoid α] (x : single_obj α) : 𝟙 x = 1 := rfl
+
+lemma comp_as_mul [monoid α] {x y z : single_obj α} (f : x ⟶ y) (g : y ⟶ z) :
+  f ≫ g = g * f := rfl
+
 /--
 Groupoid structure on `single_obj α`.
 
@@ -65,6 +71,9 @@ instance groupoid [group α] : groupoid (single_obj α) :=
 { inv := λ _ _ x, x⁻¹,
   inv_comp' := λ _ _, mul_right_inv,
   comp_inv' := λ _ _, mul_left_inv }
+
+lemma inv_as_inv [group α] {x y : single_obj α} (f : x ⟶ y) : inv f = f⁻¹ :=
+by { ext, rw [comp_as_mul, inv_mul_self, id_as_one] }
 
 /-- The single object in `single_obj α`. -/
 protected def star : single_obj α := unit.star
@@ -104,6 +113,15 @@ lemma map_hom_comp {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α �
   {γ : Type w} [monoid γ] (g : β →* γ) :
   map_hom α γ (g.comp f) = map_hom α β f ⋙ map_hom β γ g :=
 rfl
+
+/-- Given a function `f : C → G` from a category to a group, we get a functor
+    `C ⥤ G` sending any morphism `x ⟶ y` to `f y * (f x)⁻¹`. -/
+@[simps] def difference_functor {C G} [category C] [group G] (f : C → G) : C ⥤ single_obj G :=
+{ obj := λ _, (),
+  map := λ x y _, f y * (f x)⁻¹,
+  map_id' := by { intro, rw [single_obj.id_as_one, mul_right_inv] },
+  map_comp' := by { intros, rw [single_obj.comp_as_mul, ←mul_assoc,
+    mul_left_inj, mul_assoc, inv_mul_self, mul_one] } }
 
 end single_obj
 

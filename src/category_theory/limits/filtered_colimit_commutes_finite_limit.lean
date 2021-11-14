@@ -91,7 +91,8 @@ begin
       g j⟩),
   obtain ⟨S, T, W⟩ := is_filtered.sup_exists O H,
 
-  have fH : ∀ j, (⟨kx, k j, kxO, kjO j, f j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
+  have fH :
+    ∀ j, (⟨kx, k j, kxO, kjO j, f j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inl
     begin
       simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
@@ -100,7 +101,8 @@ begin
       simp only [heq_iff_eq],
       exact ⟨rfl, rfl, rfl⟩,
     end)),
-  have gH : ∀ j, (⟨ky, k j, kyO, kjO j, g j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
+  have gH :
+    ∀ j, (⟨ky, k j, kyO, kjO j, g j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inr
     begin
       simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
@@ -203,12 +205,12 @@ begin
   -- picking some place to the right of all of
   -- the morphisms `gf f : k' ⟶ kh f` and `hf f : k' ⟶ kf f`.
   -- At this point we're relying on there being only finitely morphisms in `J`.
-  let O := finset.univ.bind (λ j, finset.univ.bind (λ j', finset.univ.image (@kf j j'))) ∪ {k'},
+  let O := finset.univ.bUnion (λ j, finset.univ.bUnion (λ j', finset.univ.image (@kf j j'))) ∪ {k'},
   have kfO : ∀ {j j'} (f : j ⟶ j'), kf f ∈ O := λ j j' f, finset.mem_union.mpr (or.inl (
   begin
-    rw [finset.mem_bind],
+    rw [finset.mem_bUnion],
     refine ⟨j, finset.mem_univ j, _⟩,
-    rw [finset.mem_bind],
+    rw [finset.mem_bUnion],
     refine ⟨j', finset.mem_univ j', _⟩,
     rw [finset.mem_image],
     refine ⟨f, finset.mem_univ _, _⟩,
@@ -216,7 +218,7 @@ begin
   end)),
   have k'O : k' ∈ O := finset.mem_union.mpr (or.inr (finset.mem_singleton.mpr rfl)),
   let H : finset (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
-    finset.univ.bind (λ j : J, finset.univ.bind (λ j' : J, finset.univ.bind (λ f : j ⟶ j',
+    finset.univ.bUnion (λ j : J, finset.univ.bUnion (λ j' : J, finset.univ.bUnion (λ f : j ⟶ j',
       {⟨k', kf f, k'O, kfO f, gf f⟩, ⟨k', kf f, k'O, kfO f, hf f⟩}))),
 
   obtain ⟨k'', i', s'⟩ := is_filtered.sup_exists O H,
@@ -230,18 +232,18 @@ begin
     swap 2,
     exact k'O,
     swap 2,
-    { rw [finset.mem_bind],
+    { rw [finset.mem_bUnion],
       refine ⟨j₁, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨j₂, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨f, finset.mem_univ _, _⟩,
       simp only [true_or, eq_self_iff_true, and_self, finset.mem_insert, heq_iff_eq], },
-    { rw [finset.mem_bind],
+    { rw [finset.mem_bUnion],
       refine ⟨j₃, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨j₄, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨f', finset.mem_univ _, _⟩,
       simp only [eq_self_iff_true, or_true, and_self, finset.mem_insert, finset.mem_singleton,
         heq_iff_eq], }
@@ -293,10 +295,28 @@ begin
     simp only [bifunctor.map_id_comp, types_comp_apply, bifunctor.map_id, types_id_apply], },
 end
 
-noncomputable
 instance colimit_limit_to_limit_colimit_is_iso :
   is_iso (colimit_limit_to_limit_colimit F) :=
-(is_iso_equiv_bijective _).symm
+(is_iso_iff_bijective _).mpr
   ⟨colimit_limit_to_limit_colimit_injective F, colimit_limit_to_limit_colimit_surjective F⟩
+
+instance colimit_limit_to_limit_colimit_cone_iso (F : J ⥤ K ⥤ Type v) :
+  is_iso (colimit_limit_to_limit_colimit_cone F) :=
+begin
+  haveI : is_iso (colimit_limit_to_limit_colimit_cone F).hom,
+  { dsimp only [colimit_limit_to_limit_colimit_cone], apply_instance },
+  apply cones.cone_iso_of_hom_iso,
+end
+
+noncomputable
+instance filtered_colim_preserves_finite_limit :
+  preserves_limits_of_shape J (colim : (K ⥤ Type v) ⥤ _) := ⟨λ F, ⟨λ c hc,
+begin
+  apply is_limit.of_iso_limit (limit.is_limit _),
+  symmetry,
+  transitivity (colim.map_cone (limit.cone F)),
+  exact functor.map_iso _ (hc.unique_up_to_iso (limit.is_limit F)),
+  exact as_iso (colimit_limit_to_limit_colimit_cone F),
+end ⟩⟩
 
 end category_theory.limits

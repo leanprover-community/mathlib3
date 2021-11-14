@@ -5,7 +5,6 @@ Authors: Chris Wong
 -/
 
 import data.list.basic
-open list
 
 /-!
 # Palindromes
@@ -25,6 +24,8 @@ principle. Also provided are conversions to and from other equivalent definition
 
 palindrome, reverse, induction
 -/
+
+open list
 
 variables {α : Type*}
 

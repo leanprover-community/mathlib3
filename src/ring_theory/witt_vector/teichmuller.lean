@@ -19,6 +19,11 @@ This file defines `witt_vector.teichmuller`, a monoid hom `R →* 𝕎 R`, which
 - `witt_vector.ghost_component_teichmuller`:
   the `n`-th ghost component of `witt_vector.teichmuller p r` is `r ^ p ^ n`.
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector
@@ -27,22 +32,19 @@ open mv_polynomial
 variables (p : ℕ) {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
-local attribute [semireducible] witt_vector
-
 /--
 The underlying function of the monoid hom `witt_vector.teichmuller`.
 The `0`-th coefficient of `teichmuller_fun p r` is `r`, and all others are `0`.
 -/
-def teichmuller_fun (r : R) : 𝕎 R
-| 0 := r
-| (n+1) := 0
+def teichmuller_fun (r : R) : 𝕎 R :=
+⟨p, λ n, if n = 0 then r else 0⟩
 
 /-!
 ## `teichmuller` is a monoid homomorphism
 
 On ghost components, it is clear that `teichmuller_fun` is a monoid homomorphism.
 But in general the ghost map is not injective.
-We follow the same strategy as for proving that the the ring operations on `𝕎 R`
+We follow the same strategy as for proving that the ring operations on `𝕎 R`
 satisfy the ring axioms.
 
 1. We first prove it for rings `R` where `p` is invertible,
@@ -57,12 +59,12 @@ private lemma ghost_component_teichmuller_fun (r : R) (n : ℕ) :
   ghost_component n (teichmuller_fun p r) = r ^ p ^ n :=
 begin
   rw [ghost_component_apply, aeval_witt_polynomial, finset.sum_eq_single 0,
-      pow_zero, one_mul, nat.sub_zero],
+      pow_zero, one_mul, tsub_zero],
   { refl },
   { intros i hi h0,
     convert mul_zero _, convert zero_pow _,
     { cases i, { contradiction }, { refl } },
-    { apply pow_pos, apply nat.prime.pos, assumption } },
+    { exact pow_pos hp.1.pos _ } },
   { rw finset.mem_range, intro h, exact (h (nat.succ_pos n)).elim }
 end
 

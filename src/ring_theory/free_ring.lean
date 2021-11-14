@@ -30,22 +30,17 @@ free ring
 universes u v
 
 /-- The free ring over a type `α`. -/
+@[derive [ring, inhabited]]
 def free_ring (α : Type u) : Type u :=
 free_abelian_group $ free_monoid α
 
 namespace free_ring
 
-variables (α : Type u)
-
-instance : ring (free_ring α) := free_abelian_group.ring _
-
-instance : inhabited (free_ring α) := ⟨0⟩
-
-variables {α}
+variables {α : Type u}
 
 /-- The canonical map from α to `free_ring α`. -/
 def of (x : α) : free_ring α :=
-free_abelian_group.of [x]
+free_abelian_group.of (free_monoid.of x)
 
 lemma of_injective : function.injective (of : α → free_ring α) :=
 free_abelian_group.of_injective.comp free_monoid.of_injective
@@ -68,37 +63,19 @@ section lift
 variables {R : Type v} [ring R] (f : α → R)
 
 /-- The ring homomorphism `free_ring α →+* R` induced from a map `α → R`. -/
-def lift : free_ring α →+* R :=
-{ map_one' := free_abelian_group.lift.of _ _,
-  map_mul' := λ x y,
-  begin
-    refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-    { intros L2,
-      conv_lhs { dsimp only [free_abelian_group.mul_def] },
-      simp only [free_abelian_group.lift.of, add_monoid_hom.to_fun_eq_coe],
-      refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
-      { intros L1, iterate 3 { rw free_abelian_group.lift.of },
-        show list.prod (list.map f (_ ++ _)) = _, rw [list.map_append, list.prod_append] },
-      { intros L1 ih, iterate 3 { rw free_abelian_group.lift.neg }, rw [ih, neg_mul_eq_neg_mul] },
-      { intros x1 x2 ih1 ih2, iterate 3 { rw free_abelian_group.lift.add }, rw [ih1, ih2, add_mul] } },
-    { intros L2 ih,
-      simp only [add_monoid_hom.to_fun_eq_coe] at ih ⊢,
-      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg, mul_neg_eq_neg_mul_symm, ih] },
-    { intros y1 y2 ih1 ih2,
-      simp only [add_monoid_hom.to_fun_eq_coe] at ih1 ih2 ⊢,
-      rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
-  end,
-  .. free_abelian_group.lift $ λ L, (list.map f L).prod }
+def lift : (α → R) ≃ (free_ring α →+* R) :=
+free_monoid.lift.trans free_abelian_group.lift_monoid
 
 @[simp] lemma lift_of (x : α) : lift f (of x) = f x :=
-(free_abelian_group.lift.of _ _).trans $ one_mul _
+congr_fun (lift.left_inv f) x
 
 @[simp] lemma lift_comp_of (f : free_ring α →+* R) : lift (f ∘ of) = f :=
-ring_hom.ext $ λ x, free_ring.induction_on x
-  (by rw [ring_hom.map_neg, ring_hom.map_one, f.map_neg, f.map_one])
-  (lift_of _)
-  (λ x y ihx ihy, by rw [ring_hom.map_add, f.map_add, ihx, ihy])
-  (λ x y ihx ihy, by rw [ring_hom.map_mul, f.map_mul, ihx, ihy])
+lift.right_inv f
+
+@[ext]
+lemma hom_ext ⦃f g : free_ring α →+* R⦄ (h : ∀ x, f (of x) = g (of x)) :
+  f = g :=
+lift.symm.injective (funext h)
 
 end lift
 

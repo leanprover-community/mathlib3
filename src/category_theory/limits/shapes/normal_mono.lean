@@ -11,9 +11,9 @@ import category_theory.limits.shapes.kernels
 
 A normal monomorphism is a morphism that is the kernel of some other morphism.
 
-We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`) 
-as well as the dual construction for normal epimorphisms. We show equivalences reflect normal 
-monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the pullback of a 
+We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`)
+as well as the dual construction for normal epimorphisms. We show equivalences reflect normal
+monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the pullback of a
 normal monomorphism is normal (`category_theory.normal_of_is_pullback_snd_of_normal`).
 -/
 
@@ -46,13 +46,13 @@ def equivalence_reflects_normal_mono {D : Type u₂} [category.{v₁} D] [has_ze
   (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_mono (F.map f)) :
   normal_mono f :=
 { Z := F.obj_preimage hf.Z,
-  g := full.preimage (hf.g ≫ (F.fun_obj_preimage_iso hf.Z).inv),
+  g := full.preimage (hf.g ≫ (F.obj_obj_preimage_iso hf.Z).inv),
   w := faithful.map_injective F $ by simp [reassoc_of hf.w],
   is_limit := reflects_limit.reflects $
     is_limit.of_cone_equiv (cones.postcompose_equivalence (comp_nat_iso F)) $
       is_limit.of_iso_limit
         (by exact is_limit.of_iso_limit
-          (is_kernel.of_comp_iso _ _ (F.fun_obj_preimage_iso hf.Z) (by simp) hf.is_limit)
+          (is_kernel.of_comp_iso _ _ (F.obj_obj_preimage_iso hf.Z) (by simp) hf.is_limit)
           (of_ι_congr (category.comp_id _).symm)) (iso_of_ι _).symm }
 
 end
@@ -125,13 +125,13 @@ def equivalence_reflects_normal_epi {D : Type u₂} [category.{v₁} D] [has_zer
   (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_epi (F.map f)) :
   normal_epi f :=
 { W := F.obj_preimage hf.W,
-  g := full.preimage ((F.fun_obj_preimage_iso hf.W).hom ≫ hf.g),
+  g := full.preimage ((F.obj_obj_preimage_iso hf.W).hom ≫ hf.g),
   w := faithful.map_injective F $ by simp [hf.w],
   is_colimit := reflects_colimit.reflects $
     is_colimit.of_cocone_equiv (cocones.precompose_equivalence (comp_nat_iso F).symm) $
       is_colimit.of_iso_colimit
         (by exact is_colimit.of_iso_colimit
-          (is_cokernel.of_iso_comp _ _ (F.fun_obj_preimage_iso hf.W).symm (by simp) hf.is_colimit)
+          (is_cokernel.of_iso_comp _ _ (F.obj_obj_preimage_iso hf.W).symm (by simp) hf.is_colimit)
             (of_π_congr (category.id_comp _).symm))
         (iso_of_π _).symm }
 
@@ -184,5 +184,46 @@ normal_epi k :=
 normal_of_is_pushout_snd_of_normal comm.symm (pushout_cocone.flip_is_colimit t)
 
 end
+
+open opposite
+variables [has_zero_morphisms C]
+
+/-- A normal mono becomes a normal epi in the opposite category. -/
+def normal_epi_of_normal_mono_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_mono f.unop) :
+  normal_epi f :=
+{ W := op m.Z,
+  g := m.g.op,
+  w := congr_arg quiver.hom.op m.w,
+  is_colimit := is_colimit.of_π _ _
+    (λ Z' g' w',
+      (kernel_fork.is_limit.lift' m.is_limit g'.unop (congr_arg quiver.hom.unop w')).1.op)
+    (λ Z' g' w',
+      congr_arg quiver.hom.op
+        (kernel_fork.is_limit.lift' m.is_limit g'.unop (congr_arg quiver.hom.unop w')).2)
+    begin
+      rintros Z' g' w' m' rfl,
+      apply quiver.hom.unop_inj,
+      apply m.is_limit.uniq (kernel_fork.of_ι (m'.unop ≫ f.unop) _) m'.unop,
+      rintro (⟨⟩|⟨⟩); simp,
+    end, }
+
+/-- A normal epi becomes a normal mono in the opposite category. -/
+def normal_mono_of_normal_epi_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_epi f.unop) :
+  normal_mono f :=
+{ Z := op m.W,
+  g := m.g.op,
+  w := congr_arg quiver.hom.op m.w,
+  is_limit := is_limit.of_ι _ _
+    (λ Z' g' w',
+      (cokernel_cofork.is_colimit.desc' m.is_colimit g'.unop (congr_arg quiver.hom.unop w')).1.op)
+    (λ Z' g' w',
+      congr_arg quiver.hom.op
+        (cokernel_cofork.is_colimit.desc' m.is_colimit g'.unop (congr_arg quiver.hom.unop w')).2)
+    begin
+      rintros Z' g' w' m' rfl,
+      apply quiver.hom.unop_inj,
+      apply m.is_colimit.uniq (cokernel_cofork.of_π (f.unop ≫ m'.unop) _) m'.unop,
+      rintro (⟨⟩|⟨⟩); simp,
+    end, }
 
 end category_theory

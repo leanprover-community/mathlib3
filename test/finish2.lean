@@ -2,10 +2,15 @@
 Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Nathaniel Thomas
-
-More examples to test automation, stolen shamelessly by Jeremy from Nathaniel's "tauto".
 -/
 import tactic.finish
+
+/-!
+# More examples to test `finish`
+
+Shamelessly stolen by Jeremy from Nathaniel's `tauto`.
+-/
+
 open nat
 
 section
@@ -71,9 +76,12 @@ example : ((a ↔ b) → (b ↔ c)) → ((b ↔ c) → (c ↔ a)) → ((c ↔ a)
 by finish [iff_def]
 -/
 
-example : ((¬a ∨ b) ∧ (¬b ∨ b) ∧ (¬a ∨ ¬b) ∧ (¬b ∨ ¬b) → false) → ¬((a → b) → b) → false := by finish
+example : ((¬a ∨ b) ∧ (¬b ∨ b) ∧ (¬a ∨ ¬b) ∧ (¬b ∨ ¬b) → false) → ¬((a → b) → b) → false :=
+by finish
 
-example : ¬((a → b) → b) → ((¬b ∨ ¬b) ∧ (¬b ∨ ¬a) ∧ (b ∨ ¬b) ∧ (b ∨ ¬a) → false) → false := by finish
+example : ¬((a → b) → b) → ((¬b ∨ ¬b) ∧ (¬b ∨ ¬a) ∧ (b ∨ ¬b) ∧ (b ∨ ¬a) → false) → false :=
+by finish
+
 example : (¬a ↔ b) → (¬b ↔ a) → (¬¬a ↔ a) := by finish
 
 example : (¬ a ↔ b) → (¬ (c ∨ e) ↔ d ∧ f) → (¬ (c ∨ a ∨ e) ↔ d ∧ b ∧ f) := by finish

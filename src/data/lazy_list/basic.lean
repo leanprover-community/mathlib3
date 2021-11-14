@@ -2,8 +2,6 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Traversable instance for lazy_lists.
 -/
 import control.traversable.equiv
 import control.traversable.instances
@@ -41,8 +39,6 @@ def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
   right_inv := by { intro, induction x, refl, simp! [*],
                     ext, cases x, refl },
   left_inv := by { intro, induction x, refl, simp! [*] } }
-
-instance {α : Type u} : inhabited (lazy_list α) := ⟨nil⟩
 
 instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
 | nil nil := is_true rfl
@@ -140,7 +136,8 @@ begin
   ext, congr,
 end
 
-lemma append_assoc {α} (xs ys zs : lazy_list α) : (xs.append ys).append zs = xs.append (ys.append zs) :=
+lemma append_assoc {α} (xs ys zs : lazy_list α) :
+  (xs.append ys).append zs = xs.append (ys.append zs) :=
 by induction xs; simp [append, *]
 
 lemma append_bind {α β} (xs : lazy_list α) (ys : thunk (lazy_list α)) (f : α → lazy_list β) :
@@ -184,7 +181,8 @@ instance mem.decidable {α} [decidable_eq α] (x : α) : Π xs : lazy_list α, d
 lemma mem_nil {α} (x : α) : x ∈ @lazy_list.nil α ↔ false := iff.rfl
 
 @[simp]
-lemma mem_cons {α} (x y : α) (ys : thunk (lazy_list α)) : x ∈ @lazy_list.cons α y ys ↔ x = y ∨ x ∈ ys () := iff.rfl
+lemma mem_cons {α} (x y : α) (ys : thunk (lazy_list α)) :
+  x ∈ @lazy_list.cons α y ys ↔ x = y ∨ x ∈ ys () := iff.rfl
 
 theorem forall_mem_cons {α} {p : α → Prop} {a : α} {l : thunk (lazy_list α)} :
   (∀ x ∈ @lazy_list.cons _ a l, p x) ↔ p a ∧ ∀ x ∈ l (), p x :=
@@ -196,9 +194,11 @@ by simp only [has_mem.mem, lazy_list.mem, or_imp_distrib, forall_and_distrib, fo
   `a : α` satisfying `p`, then `pmap f l h` is essentially the same as `map f l`
   but is defined only when all members of `l` satisfy `p`, using the proof
   to apply `f`. -/
-@[simp] def pmap {α β} {p : α → Prop} (f : Π a, p a → β) : Π l : lazy_list α, (∀ a ∈ l, p a) → lazy_list β
+@[simp] def pmap {α β} {p : α → Prop} (f : Π a, p a → β) :
+  Π l : lazy_list α, (∀ a ∈ l, p a) → lazy_list β
 | lazy_list.nil         H := lazy_list.nil
-| (lazy_list.cons x xs) H := lazy_list.cons (f x (forall_mem_cons.1 H).1) (pmap (xs ()) (forall_mem_cons.1 H).2)
+| (lazy_list.cons x xs) H := lazy_list.cons (f x (forall_mem_cons.1 H).1)
+                               (pmap (xs ()) (forall_mem_cons.1 H).2)
 
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new `lazy_list`
   with the same elements but in the type `{x // x ∈ l}`. -/

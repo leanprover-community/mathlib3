@@ -21,8 +21,7 @@ Currently we have one domain-specific tactic for topology: `continuity`.
 Automatically solve goals of the form `continuous f`.
 
 Mark lemmas with `@[continuity]` to add them to the set of lemmas
-used by `continuity`. Note: `to_additive` doesn't know yet how to
-copy the attribute to the additive version.
+used by `continuity`.
 -/
 
 /-- User attribute used to mark tactics used by `continuity`. -/
@@ -81,7 +80,8 @@ setup_tactic_parser
 Solve goals of the form `continuous f`. `continuity?` reports back the proof term it found.
 -/
 meta def continuity
-  (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) : tactic unit :=
+  (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :
+  tactic unit :=
 let md              := if bang.is_some then semireducible else reducible,
     continuity_core := tactic.tidy { tactics := continuity_tactics md, ..cfg },
     trace_fn        := if trace.is_some then show_term else id in

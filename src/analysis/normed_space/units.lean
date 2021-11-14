@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.specific_limits
-import analysis.asymptotics
 
 /-!
 # The group of units of a complete normed ring
@@ -36,54 +35,49 @@ namespace units
 
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
+@[simps coe]
 def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 { val := 1 - t,
-  inv := ∑' (n : ℕ), t ^ n,
+  inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
 
-@[simp] lemma one_sub_coe (t : R) (h : ∥t∥ < 1) : ↑(one_sub t h) = 1 - t := rfl
-
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
+@[simps coe]
 def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
-x * (units.one_sub (-(↑x⁻¹ * t))
-begin
-  nontriviality R using [zero_lt_one],
-  have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
-  calc ∥-(↑x⁻¹ * t)∥
-      = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }
-  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le x.inv _
-  ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
-  ... = 1                           : mul_inv_cancel (ne_of_gt hpos)
-end)
-
-@[simp] lemma add_coe (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
-  ((x.add t h) : R) = x + t := by { unfold units.add, simp [mul_add] }
+units.copy  -- to make `coe_add` true definitionally, for convenience
+  (x * (units.one_sub (-(↑x⁻¹ * t)) begin
+      nontriviality R using [zero_lt_one],
+      have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
+      calc ∥-(↑x⁻¹ * t)∥
+          = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
+      ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
+      ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
+      ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
+    end))
+  (x + t) (by simp [mul_add]) _ rfl
 
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
+@[simps coe]
 def unit_of_nearby (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
-x.add ((y : R) - x) h
-
-@[simp] lemma unit_of_nearby_coe (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
-  ↑(x.unit_of_nearby y h) = y := by { unfold units.unit_of_nearby, simp }
+units.copy (x.add (y - x : R) h) y (by simp) _ rfl
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
-lemma is_open : is_open {x : R | is_unit x} :=
+protected lemma is_open : is_open {x : R | is_unit x} :=
 begin
   nontriviality R,
   apply metric.is_open_iff.mpr,
-  rintros x' ⟨x, h⟩,
+  rintros x' ⟨x, rfl⟩,
   refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
-  rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
-  use x.unit_of_nearby y hy,
-  simp
+  rw [metric.mem_ball, dist_eq_norm] at hy,
+  exact (x.unit_of_nearby y hy).is_unit
 end
 
-lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets is_open (by { rw [set.mem_set_of_eq], exact is_unit_unit x })
+protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
+is_open.mem_nhds units.is_open x.is_unit
 
 end units
 
@@ -92,17 +86,14 @@ open_locale classical big_operators
 open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
-begin
-  rw ← inverse_unit (units.one_sub t h),
-  refl,
-end
+by rw [← inverse_unit (units.one_sub t h), units.coe_one_sub]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
 lemma inverse_add (x : units R) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ↑x⁻¹ * t) * ↑x⁻¹ :=
 begin
   nontriviality R,
-  rw [eventually_iff, mem_nhds_iff],
+  rw [eventually_iff, metric.mem_nhds_iff],
   have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
   use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
   intros t ht,
@@ -115,28 +106,28 @@ begin
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
   simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
-  simp only [units.add_coe] at hleft,
+  simp only [units.coe_add] at hleft,
   simp [hleft, hright, units.add]
 end
 
 lemma inverse_one_sub_nth_order (n : ℕ) :
   ∀ᶠ t in (𝓝 0), inverse ((1:R) - t) = (∑ i in range n, t ^ i) + (t ^ n) * inverse (1 - t) :=
 begin
-  simp only [eventually_iff, mem_nhds_iff],
+  simp only [eventually_iff, metric.mem_nhds_iff],
   use [1, by norm_num],
   intros t ht,
   simp only [mem_ball, dist_zero_right] at ht,
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
-  { simp only [units.one_sub_coe],
-    rw [← geom_series, geom_sum_mul_neg],
+  { simp only [units.coe_one_sub],
+    rw [← geom_sum, geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
-  { simp only [units.one_sub_coe],
-    rw [← add_mul, ← geom_series, geom_sum_mul_neg],
+  { simp only [units.coe_one_sub],
+    rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
     simp }
 end
 
@@ -163,7 +154,7 @@ end
 
 lemma inverse_one_sub_norm : is_O (λ t, inverse ((1:R) - t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  simp only [is_O, is_O_with, eventually_iff, mem_nhds_iff],
+  simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
   intros t ht,
   simp only [ball, dist_zero_right, set.mem_set_of_eq] at ht,
@@ -171,10 +162,10 @@ begin
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
   simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
-  change ∥(∑' (n : ℕ), t ^ n)∥ ≤ _,
+  change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
-  { rw ← inv_inv' (2:ℝ),
+  { rw ← inv_inv₀ (2:ℝ),
     refine inv_le_inv_of_le (by norm_num) _,
     have : (2:ℝ)⁻¹ + (2:ℝ)⁻¹ = 1 := by ring,
     linarith },
@@ -250,9 +241,8 @@ begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
   simp only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
-    one_ne_zero, pow_zero, add_mul],
-  abel,
-  simp
+    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul_eq_neg_mul_symm,
+    sub_add_eq_sub_sub_swap, sub_neg_eq_add],
 end
 
 /-- The function `inverse` is continuous at each unit of `R`. -/
@@ -271,3 +261,34 @@ begin
 end
 
 end normed_ring
+
+namespace units
+open opposite filter normed_ring
+
+/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+embedding in `R × R`) to `R` is an open map. -/
+lemma is_open_map_coe : is_open_map (coe : units R → R) :=
+begin
+  rw is_open_map_iff_nhds_le,
+  intros x s,
+  rw [mem_map, mem_nhds_induced],
+  rintros ⟨t, ht, hts⟩,
+  obtain ⟨u, hu, v, hv, huvt⟩ :
+    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
+  { simpa [embed_product, mem_nhds_prod_iff] using ht },
+  have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
+  { refine inter_mem (inter_mem hu _) (units.nhds x),
+    refine (continuous_op.continuous_at.comp (inverse_continuous_at x)).preimage_mem_nhds _,
+    simpa using hv },
+  refine mem_of_superset this _,
+  rintros _ ⟨⟨huy, hvy⟩, ⟨y, rfl⟩⟩,
+  have : embed_product R y ∈ u.prod v := ⟨huy, by simpa using hvy⟩,
+  simpa using hts (huvt this)
+end
+
+/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+embedding in `R × R`) to `R` is an open embedding. -/
+lemma open_embedding_coe : open_embedding (coe : units R → R) :=
+open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
+
+end units

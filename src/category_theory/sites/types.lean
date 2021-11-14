@@ -1,0 +1,161 @@
+/-
+Copyright (c) 2020 Kenny Lau. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kenny Lau
+-/
+
+import category_theory.sites.canonical
+
+/-!
+# Grothendieck Topology and Sheaves on the Category of Types
+
+In this file we define a Grothendieck topology on the category of types,
+and construct the canonical functor that sends a type to a sheaf over
+the category of types, and make this an equivalence of categories.
+
+Then we prove that the topology defined is the canonical topology.
+-/
+
+universe u
+
+namespace category_theory
+open_locale category_theory.Type
+
+/-- A Grothendieck topology associated to the category of all types.
+A sieve is a covering iff it is jointly surjective. -/
+def types_grothendieck_topology : grothendieck_topology (Type u) :=
+{ sieves := λ α S, ∀ x : α, S (λ _ : punit, x),
+  top_mem' := λ α x, trivial,
+  pullback_stable' := λ α β S f hs x, hs (f x),
+  transitive' := λ α S hs R hr x, hr (hs x) punit.star }
+
+/-- The discrete sieve on a type, which only includes arrows whose image is a subsingleton. -/
+@[simps] def discrete_sieve (α : Type u) : sieve α :=
+{ arrows := λ β f, ∃ x, ∀ y, f y = x,
+  downward_closed' := λ β γ f ⟨x, hx⟩ g, ⟨x, λ y, hx $ g y⟩ }
+
+lemma discrete_sieve_mem (α : Type u) : discrete_sieve α ∈ types_grothendieck_topology α :=
+λ x, ⟨x, λ y, rfl⟩
+
+/-- The discrete presieve on a type, which only includes arrows whose domain is a singleton. -/
+def discrete_presieve (α : Type u) : presieve α :=
+λ β f, ∃ x : β, ∀ y : β, y = x
+
+lemma generate_discrete_presieve_mem (α : Type u) :
+  sieve.generate (discrete_presieve α) ∈ types_grothendieck_topology α :=
+λ x, ⟨punit, id, λ _, x, ⟨punit.star, λ _, subsingleton.elim _ _⟩, rfl⟩
+
+open presieve
+
+theorem is_sheaf_yoneda' {α : Type u} : is_sheaf types_grothendieck_topology (yoneda.obj α) :=
+λ β S hs x hx, ⟨λ y, x _ (hs y) punit.star,
+λ γ f h, funext $ λ z,
+  have _ := congr_fun (hx (𝟙 _) (λ _, z) (hs $ f z) h rfl) punit.star,
+  by { convert this, exact rfl },
+λ f hf, funext $ λ y, by convert congr_fun (hf _ (hs y)) punit.star⟩
+
+/-- The yoneda functor that sends a type to a sheaf over the category of types -/
+@[simps] def yoneda' : Type u ⥤ SheafOfTypes types_grothendieck_topology :=
+{ obj := λ α, ⟨yoneda.obj α, is_sheaf_yoneda'⟩,
+  map := λ α β f, yoneda.map f }
+
+@[simp] lemma yoneda'_comp : yoneda'.{u} ⋙ induced_functor _ = yoneda := rfl
+
+open opposite
+
+/-- Given a presheaf `P` on the category of types, construct
+a map `P(α) → (α → P(*))` for all type `α`. -/
+def eval (P : (Type u)ᵒᵖ ⥤ Type u) (α : Type u) (s : P.obj (op α)) (x : α) : P.obj (op punit) :=
+P.map (↾λ _, x).op s
+
+/-- Given a sheaf `S` on the category of types, construct a map
+`(α → S(*)) → S(α)` that is inverse to `eval`. -/
+noncomputable def types_glue (S : (Type u)ᵒᵖ ⥤ Type u)
+  (hs : is_sheaf types_grothendieck_topology S)
+  (α : Type u) (f : α → S.obj (op punit)) : S.obj (op α) :=
+(hs.is_sheaf_for _ _ (generate_discrete_presieve_mem α)).amalgamate
+  (λ β g hg, S.map (↾λ x, punit.star).op $ f $ g $ classical.some hg)
+  (λ β γ δ g₁ g₂ f₁ f₂ hf₁ hf₂ h,
+    (hs.is_sheaf_for _ _ (generate_discrete_presieve_mem δ)).is_separated_for.ext $
+    λ ε g ⟨x, hx⟩, have f₁ (classical.some hf₁) = f₂ (classical.some hf₂),
+      from classical.some_spec hf₁ (g₁ $ g x) ▸ classical.some_spec hf₂ (g₂ $ g x) ▸ congr_fun h _,
+      by { simp_rw [← functor_to_types.map_comp_apply, this, ← op_comp], refl })
+
+lemma eval_types_glue {S hs α} (f) : eval.{u} S α (types_glue S hs α f) = f :=
+funext $ λ x, (is_sheaf_for.valid_glue _ _ _ $
+  by exact ⟨punit.star, λ _, subsingleton.elim _ _⟩).trans $
+by { convert functor_to_types.map_id_apply _ _, rw ← op_id, congr }
+
+lemma types_glue_eval {S hs α} (s) : types_glue.{u} S hs α (eval S α s) = s :=
+(hs.is_sheaf_for _ _ (generate_discrete_presieve_mem α)).is_separated_for.ext $ λ β f hf,
+(is_sheaf_for.valid_glue _ _ _ hf).trans $ (functor_to_types.map_comp_apply _ _ _ _).symm.trans $
+by { rw ← op_comp, congr' 2, exact funext (λ x, congr_arg f (classical.some_spec hf x).symm) }
+
+/-- Given a sheaf `S`, construct an equivalence `S(α) ≃ (α → S(*))`. -/
+@[simps] noncomputable def eval_equiv (S : (Type u)ᵒᵖ ⥤ Type u)
+  (hs : is_sheaf types_grothendieck_topology S)
+  (α : Type u) : S.obj (op α) ≃ (α → S.obj (op punit)) :=
+{ to_fun := eval S α,
+  inv_fun := types_glue S hs α,
+  left_inv := types_glue_eval,
+  right_inv := eval_types_glue }
+
+lemma eval_map (S : (Type u)ᵒᵖ ⥤ Type u) (α β) (f : β ⟶ α) (s x) :
+  eval S β (S.map f.op s) x = eval S α s (f x) :=
+by { simp_rw [eval, ← functor_to_types.map_comp_apply, ← op_comp], refl }
+
+/-- Given a sheaf `S`, construct an isomorphism `S ≅ [-, S(*)]`. -/
+@[simps] noncomputable def equiv_yoneda (S : (Type u)ᵒᵖ ⥤ Type u)
+  (hs : is_sheaf types_grothendieck_topology S) :
+  S ≅ yoneda.obj (S.obj (op punit)) :=
+nat_iso.of_components (λ α, equiv.to_iso $ eval_equiv S hs $ unop α) $ λ α β f,
+funext $ λ s, funext $ λ x, eval_map S (unop α) (unop β) f.unop _ _
+
+/-- Given a sheaf `S`, construct an isomorphism `S ≅ [-, S(*)]`. -/
+@[simps] noncomputable def equiv_yoneda'
+  (S : SheafOfTypes types_grothendieck_topology) :
+  S ≅ yoneda'.obj (S.1.obj (op punit)) :=
+{ hom := (equiv_yoneda S.1 S.2).hom,
+  inv := (equiv_yoneda S.1 S.2).inv,
+  hom_inv_id' := (equiv_yoneda S.1 S.2).hom_inv_id,
+  inv_hom_id' := (equiv_yoneda S.1 S.2).inv_hom_id }
+
+lemma eval_app (S₁ S₂ : SheafOfTypes.{u} types_grothendieck_topology)
+  (f : S₁ ⟶ S₂) (α : Type u) (s : S₁.1.obj (op α)) (x : α) :
+  eval S₂.1 α (f.app (op α) s) x = f.app (op punit) (eval S₁.1 α s x) :=
+(congr_fun (f.2 (↾λ _ : punit, x).op) s).symm
+
+/-- `yoneda'` induces an equivalence of category between `Type u` and
+`Sheaf types_grothendieck_topology`. -/
+@[simps] noncomputable def type_equiv :
+  Type u ≌ SheafOfTypes types_grothendieck_topology :=
+equivalence.mk
+  yoneda'
+  (induced_functor _ ⋙ (evaluation _ _).obj (op punit))
+  (nat_iso.of_components
+    (λ α, /- α ≅ punit ⟶ α -/
+      { hom := λ x _, x,
+        inv := λ f, f punit.star,
+        hom_inv_id' := funext $ λ x, rfl,
+        inv_hom_id' := funext $ λ f, funext $ λ y, punit.cases_on y rfl })
+    (λ α β f, rfl))
+  (iso.symm $ nat_iso.of_components
+    (λ S, equiv_yoneda' S)
+    (λ S₁ S₂ f, nat_trans.ext _ _ $ funext $ λ α, funext $ λ s, funext $ λ x,
+      eval_app S₁ S₂ f (unop α) s x))
+
+lemma subcanonical_types_grothendieck_topology :
+  sheaf.subcanonical types_grothendieck_topology.{u} :=
+sheaf.subcanonical.of_yoneda_is_sheaf _ (λ X, is_sheaf_yoneda')
+
+lemma types_grothendieck_topology_eq_canonical :
+  types_grothendieck_topology.{u} = sheaf.canonical_topology (Type u) :=
+le_antisymm subcanonical_types_grothendieck_topology $ Inf_le ⟨yoneda.obj (ulift bool), ⟨_, rfl⟩,
+grothendieck_topology.ext $ funext $ λ α, set.ext $ λ S,
+⟨λ hs x, classical.by_contradiction $ λ hsx,
+  have (λ _, ulift.up tt : (yoneda.obj (ulift bool)).obj (op punit)) = λ _, ulift.up ff :=
+    (hs punit (λ _, x)).is_separated_for.ext $ λ β f hf, funext $ λ y, hsx.elim $ S.2 hf $ λ _, y,
+  bool.no_confusion $ ulift.up.inj $ (congr_fun this punit.star : _),
+λ hs β f, is_sheaf_yoneda' _ $ λ y, hs _⟩⟩
+
+end category_theory

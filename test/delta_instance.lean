@@ -6,7 +6,9 @@ Authors: Robert Y. Lewis
 import data.set
 import algebra.category.Mon.basic
 
-@[derive has_coe_to_sort] def X : Type := set ℕ
+def X : Type := set ℕ
+
+instance : has_coe_to_sort X Type := set.has_coe_to_sort
 
 @[derive ring] def T := ℤ
 
@@ -17,6 +19,11 @@ instance : binclass ℤ ℤ := ⟨⟩
 @[derive [ring, binclass ℤ]] def U := ℤ
 
 @[derive λ α, binclass α ℤ] def V := ℤ
+
+-- test instance naming
+example := U.ring
+example := U.binclass
+example := V.binclass
 
 @[derive ring] def id_ring (α) [ring α] : Type := α
 

@@ -15,7 +15,7 @@ example {α} [linear_ordered_field α] (a b c : α) :
   a * (-c / b) * (-c / b) + -c + c = a * (c / b * (c / b)) := by ring
 example {α} [linear_ordered_field α] (a b c : α) :
   b ^ 2 - 4 * c * a = -(4 * c * a) + b ^ 2 := by ring
-example (x : ℚ) : x ^ (2 + 2) = x^4 := by ring
+example (x : ℚ) : x ^ (2 + 2) = x^4 := by ring_nf -- TODO: ring should work?
 example {α} [comm_ring α] (x : α) : x ^ 2 = x * x := by ring
 example {α} [linear_ordered_field α] (a b c : α) :
   b ^ 2 - 4 * c * a = -(4 * c * a) + b ^ 2 := by ring
@@ -31,15 +31,25 @@ example (a n s: ℕ) : a * (n - s) = (n - s) * a := by ring
 example (x y z : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0) :
   x / (y / z) + y ⁻¹ + 1 / (y * -x) = -1/ (x * y) + (x * z + 1) / y :=
 begin
-  field_simp [hx, hy, hz],
+  field_simp,
   ring
 end
 
 example (a b c d x y : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) :
   a + b / x - c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x - c) / x) :=
 begin
-  field_simp [hx, hy],
+  field_simp,
   ring
 end
 
 example : (876544 : ℤ) * -1 + (1000000 - 123456) = 0 := by ring
+
+example (x y : ℝ) (hx : x ≠ 0) (hy : y ≠ 0) :
+  2 * x ^ 3 * 2 / (24 * x) = x ^ 2 / 6 :=
+begin
+  field_simp,
+  ring
+end
+
+-- this proof style is not recommended practice
+example (A B : ℕ) (H : B * A = 2) : A * B = 2 := by {ring_nf, exact H}

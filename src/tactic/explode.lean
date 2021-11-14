@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Minchao Wu
+Authors: Mario Carneiro, Minchao Wu
 -/
 import tactic.core
 /-!
@@ -20,7 +20,7 @@ namespace explode
 inductive status : Type | reg | intro | lam | sintro
 
 /--
-A type to distinguish introduction or elimination rules represented as 
+A type to distinguish introduction or elimination rules represented as
 strings from theorems referred to by their names.
 -/
 meta inductive thm : Type
@@ -153,7 +153,7 @@ do const n _ ← resolve_name n | fail "cannot resolve name",
   t ← pp d.type,
   explode_expr v <* trace (to_fmt n ++ " : " ++ t) >>= trace
 
-open interactive lean lean.parser interaction_monad.result
+setup_tactic_parser
 
 /--
 `#explode decl_name` displays a proof term in a line-by-line format somewhat akin to a Fitch-style

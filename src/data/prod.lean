@@ -13,15 +13,21 @@ This file defines `prod.swap : α × β → β × α` and proves various simple 
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-@[simp] theorem prod.forall {p : α × β → Prop} : (∀ x, p x) ↔ (∀ a b, p (a, b)) :=
-⟨assume h a b, h (a, b), assume h ⟨a, b⟩, h a b⟩
-
-@[simp] theorem prod.exists {p : α × β → Prop} : (∃ x, p x) ↔ (∃ a b, p (a, b)) :=
-⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
-
 @[simp] lemma prod_map (f : α → γ) (g : β → δ) (p : α × β) : prod.map f g p = (f p.1, g p.2) := rfl
 
 namespace prod
+
+@[simp] theorem «forall» {p : α × β → Prop} : (∀ x, p x) ↔ (∀ a b, p (a, b)) :=
+⟨assume h a b, h (a, b), assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem «exists» {p : α × β → Prop} : (∃ x, p x) ↔ (∃ a b, p (a, b)) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
+
+theorem forall' {p : α → β → Prop} : (∀ x : α × β, p x.1 x.2) ↔ ∀ a b, p a b :=
+prod.forall
+
+theorem exists' {p : α → β → Prop} : (∃ x : α × β, p x.1 x.2) ↔ ∃ a b, p a b :=
+prod.exists
 
 @[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
 

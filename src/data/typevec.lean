@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Mario Carneiro, Simon Hudon
+Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
-import data.fin2
+import data.fin.fin2
 import logic.function.basic
 import tactic.basic
 
@@ -245,7 +245,8 @@ protected def cases_nil {β : typevec 0 → Sort*} (f : β fin2.elim0) :
 λ v, ♯ f
 
 /-- cases distinction for (n+1)-length type vector -/
-protected def cases_cons (n : ℕ) {β : typevec (n+1) → Sort*} (f : Π t (v : typevec n), β (v ::: t)) :
+protected def cases_cons (n : ℕ) {β : typevec (n+1) → Sort*}
+  (f : Π t (v : typevec n), β (v ::: t)) :
   Π v, β v :=
 λ v : typevec (n+1), ♯ f v.last v.drop
 
@@ -258,7 +259,8 @@ protected lemma cases_cons_append1 (n : ℕ) {β : typevec (n+1) → Sort*}
   typevec.cases_cons n f (v ::: α) = f α v := rfl
 
 /-- cases distinction for an arrow in the category of 0-length type vectors -/
-def typevec_cases_nil₃ {β : Π v v' : typevec 0, v ⟹ v' → Sort*} (f : β fin2.elim0 fin2.elim0 nil_fun) :
+def typevec_cases_nil₃ {β : Π v v' : typevec 0, v ⟹ v' → Sort*}
+  (f : β fin2.elim0 fin2.elim0 nil_fun) :
   Π v v' fs, β v v' fs :=
 λ v v' fs,
 begin
@@ -287,8 +289,8 @@ begin
 end
 
 /-- specialized cases distinction for an arrow in the category of (n+1)-length type vectors -/
-def typevec_cases_cons₂ (n : ℕ) (t t' : Type*) (v v' : typevec (n)) {β : (v ::: t) ⟹ (v' ::: t') → Sort*}
-  (F : Π (f : t → t') (fs : v ⟹ v'), β (fs ::: f)) :
+def typevec_cases_cons₂ (n : ℕ) (t t' : Type*) (v v' : typevec (n))
+  {β : (v ::: t) ⟹ (v' ::: t') → Sort*} (F : Π (f : t → t') (fs : v ⟹ v'), β (fs ::: f)) :
   Π fs, β fs :=
 begin
   intro fs,
@@ -300,7 +302,8 @@ lemma typevec_cases_nil₂_append_fun {β : fin2.elim0 ⟹ fin2.elim0 → Sort*}
   (f : β nil_fun) :
   typevec_cases_nil₂ f nil_fun = f := rfl
 
-lemma typevec_cases_cons₂_append_fun (n : ℕ) (t t' : Type*) (v v' : typevec (n)) {β : (v ::: t) ⟹ (v' ::: t') → Sort*}
+lemma typevec_cases_cons₂_append_fun (n : ℕ) (t t' : Type*)
+  (v v' : typevec (n)) {β : (v ::: t) ⟹ (v' ::: t') → Sort*}
   (F : Π (f : t → t') (fs : v ⟹ v'), β (fs ::: f)) (f fs) :
   typevec_cases_cons₂ n t t' v v' F (fs ::: f) = F f fs := rfl
 
@@ -311,7 +314,8 @@ def pred_last (α : typevec n) {β : Type*} (p : β → Prop) : Π ⦃i⦄, (α.
 | (fin2.fs i) := λ x, true
 | fin2.fz      := p
 
-/-- `rel_last α r x y` says that `p` the last elements of `x y : α.append1 β` are related by `r` and all the other elements are equal. -/
+/-- `rel_last α r x y` says that `p` the last elements of `x y : α.append1 β` are related by `r` and
+all the other elements are equal. -/
 def rel_last (α : typevec n) {β γ : Type*} (r : β → γ → Prop) :
   Π ⦃i⦄, (α.append1 β) i → (α.append1 γ) i → Prop
 | (fin2.fs i) := eq
@@ -345,7 +349,8 @@ def repeat_eq : Π {n} (α : typevec n), α ⊗ α ⟹ repeat _ Prop
 | 0 α := nil_fun
 | (succ n) α := repeat_eq (drop α) ::: uncurry eq
 
-lemma const_append1 {β γ} (x : γ) {n} (α : typevec n) : typevec.const x (α ::: β) = append_fun (typevec.const x α) (λ _, x) :=
+lemma const_append1 {β γ} (x : γ) {n} (α : typevec n) :
+  typevec.const x (α ::: β) = append_fun (typevec.const x α) (λ _, x) :=
 by ext i : 1; cases i; refl
 
 lemma eq_nil_fun {α β : typevec 0} (f : α ⟹ β) : f = nil_fun :=
@@ -358,7 +363,8 @@ lemma const_nil {β} (x : β) (α : typevec 0) : typevec.const x α = nil_fun :=
 by ext i : 1; cases i; refl
 
 @[typevec]
-lemma repeat_eq_append1 {β} {n} (α : typevec n) : repeat_eq (α ::: β) = split_fun (repeat_eq α) (uncurry eq) :=
+lemma repeat_eq_append1 {β} {n} (α : typevec n) :
+  repeat_eq (α ::: β) = split_fun (repeat_eq α) (uncurry eq) :=
 by induction n; refl
 
 @[typevec]
@@ -370,7 +376,8 @@ def pred_last' (α : typevec n) {β : Type*} (p : β → Prop) : α ::: β ⟹ r
 split_fun (typevec.const true α) p
 
 /-- predicate on the product of two type vectors to constrain only their last object -/
-def rel_last' (α : typevec n) {β : Type*} (p : β → β → Prop) : (α ::: β ⊗ α ::: β) ⟹ repeat (n+1) Prop :=
+def rel_last' (α : typevec n) {β : Type*} (p : β → β → Prop) :
+  (α ::: β ⊗ α ::: β) ⟹ repeat (n+1) Prop :=
 split_fun (repeat_eq α) (uncurry p)
 
 /-- given `F : typevec.{u} (n+1) → Type u`, `curry F : Type u → typevec.{u} → Type u`,
@@ -431,7 +438,8 @@ by induction i; simp [prod.snd, prod.mk, *] at *
 
 /-- `prod` is functorial -/
 protected def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) → (α' ⟹ β') → α ⊗ α' ⟹ β ⊗ β'
-| (succ n) α α' β β' x y (fin2.fs i) a := @prod.map _ (drop α) (drop α') (drop β) (drop β') (drop_fun x) (drop_fun y) _ a
+| (succ n) α α' β β' x y (fin2.fs i) a :=
+  @prod.map _ (drop α) (drop α') (drop β) (drop β') (drop_fun x) (drop_fun y) _ a
 | (succ n) α α' β β' x y fin2.fz a := (x _ a.1,y _ a.2)
 
 localized "infix ` ⊗' `:45 := typevec.prod.map" in mvfunctor
@@ -450,7 +458,8 @@ by ext i; induction i; [refl, apply i_ih]
 theorem snd_diag {α : typevec n} : typevec.prod.snd ⊚ (prod.diag : α ⟹ _) = id :=
 by ext i; induction i; [refl, apply i_ih]
 
-lemma repeat_eq_iff_eq {α : typevec n} {i x y} : of_repeat (repeat_eq α i (prod.mk _ x y)) ↔ x = y :=
+lemma repeat_eq_iff_eq {α : typevec n} {i x y} :
+  of_repeat (repeat_eq α i (prod.mk _ x y)) ↔ x = y :=
 by induction i; [refl, erw [repeat_eq,@i_ih (drop α) x y]]
 
 /-- given a predicate vector `p` over vector `α`, `subtype_ p` is the type of vectors
@@ -466,13 +475,15 @@ def subtype_val : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), subtyp
 
 /-- arrow that rearranges the type of `subtype_` to turn a subtype of vector into
 a vector of subtypes -/
-def to_subtype : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), (λ (i : fin2 n), { x // of_repeat $ p i x }) ⟹ subtype_ p
+def to_subtype : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop),
+  (λ (i : fin2 n), { x // of_repeat $ p i x }) ⟹ subtype_ p
 | (succ n) α p (fin2.fs i) x := to_subtype (drop_fun p) i x
 | (succ n) α p fin2.fz x := x
 
 /-- arrow that rearranges the type of `subtype_` to turn a vector of subtypes
 into a subtype of vector -/
-def of_subtype : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop), subtype_ p ⟹ (λ (i : fin2 n), { x // of_repeat $ p i x })
+def of_subtype : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop),
+  subtype_ p ⟹ (λ (i : fin2 n), { x // of_repeat $ p i x })
 | (succ n) α p (fin2.fs i) x := of_subtype _ i x
 | (succ n) α p fin2.fz x := x
 
@@ -494,7 +505,8 @@ def diag_sub  : Π {n} {α : typevec.{u} n}, α ⟹ subtype_ (repeat_eq α)
 | (succ n) α (fin2.fs i) x := @diag_sub _ (drop α) _ x
 | (succ n) α fin2.fz x := ⟨(x,x), rfl⟩
 
-lemma subtype_val_nil {α : typevec.{u} 0} (ps : α ⟹ repeat 0 Prop) : typevec.subtype_val ps = nil_fun :=
+lemma subtype_val_nil {α : typevec.{u} 0} (ps : α ⟹ repeat 0 Prop) :
+  typevec.subtype_val ps = nil_fun :=
 funext $ by rintro ⟨ ⟩; refl
 
 lemma diag_sub_val {n} {α : typevec.{u} n} :
@@ -610,7 +622,7 @@ by rw [← comp_assoc,to_subtype_of_subtype]; simp
 @[simp]
 lemma to_subtype'_of_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
   to_subtype' r ⊚ of_subtype' r = id :=
-by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; simp *
+by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; simp [subtype.eta, *]
 
 lemma subtype_val_to_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
   subtype_val r ⊚ to_subtype' r = λ i x, prod.mk i x.1.fst x.1.snd :=

@@ -8,12 +8,15 @@ import data.real.basic
 import data.set.basic
 import analysis.normed_space.basic
 
-/-- IMO 1972 B2
+/-!
+# IMO 1972 B2
 
 Problem: `f` and `g` are real-valued functions defined on the real line. For all `x` and `y`,
 `f(x + y) + f(x - y) = 2f(x)g(y)`. `f` is not identically zero and `|f(x)| ≤ 1` for all `x`.
 Prove that `|g(x)| ≤ 1` for all `x`.
+-/
 
+/--
 This proof begins by introducing the supremum of `f`, `k ≤ 1` as well as `k' = k / ∥g y∥`. We then
 suppose that the conclusion does not hold (`hneg`) and show that `k ≤ k'` (by
 `2 * (∥f x∥ * ∥g y∥) ≤ 2 * k` obtained from the main hypothesis `hf1`) and that `k' < k` (obtained
@@ -35,14 +38,9 @@ begin
 
   -- Show that `∥f x∥ ≤ k`.
   have hk₁ : ∀ x, ∥f x∥ ≤ k,
-  { have h : ∃ x, ∀ y ∈ S, y ≤ x,
-    { use 1,
-      intros _ hy,
-      rw set.mem_range at hy,
-      rcases hy with ⟨z, rfl⟩,
-      exact hf2 z, },
+  { have h : bdd_above S, from ⟨1, set.forall_range_iff.mpr hf2⟩,
     intro x,
-    exact real.le_Sup S h (set.mem_range_self x), },
+    exact le_cSup h (set.mem_range_self x), },
   -- Show that `2 * (∥f x∥ * ∥g y∥) ≤ 2 * k`.
   have hk₂ : ∀ x, 2 * (∥f x∥ * ∥g y∥) ≤ 2 * k,
   { intro x,
@@ -78,7 +76,7 @@ begin
       rw le_div_iff,
       { apply (mul_le_mul_left zero_lt_two).mp (hk₂ x) },
       { exact trans zero_lt_one hneg } },
-    apply real.Sup_le_ub _ h₁,
+    apply cSup_le h₁,
     rintros y' ⟨yy, rfl⟩,
     exact h₂ yy },
 
@@ -106,7 +104,7 @@ example (f g : ℝ → ℝ)
   ∥g(y)∥ ≤ 1 :=
 begin
   obtain ⟨x, hx⟩ := hf3,
-  set k := supr (λ x, ∥f x∥),
+  set k := ⨆ x, ∥f x∥,
   have h : ∀ x, ∥f x∥ ≤ k := le_csupr hf2,
   by_contradiction H, push_neg at H,
   have hgy : 0 < ∥g y∥,

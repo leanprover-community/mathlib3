@@ -1,13 +1,12 @@
 /-
 Copyright (c) 2019 Patrick Massot All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Patrick Massot, Simon Hudon
+Authors: Patrick Massot, Simon Hudon
 
 A tactic pushing negations into an expression
 -/
 
 import logic.basic
-import algebra.order
 
 open tactic expr
 
@@ -142,13 +141,16 @@ at every assumption and the goal using `push_neg at *` or at selected assumption
 using say `push_neg at h h' ⊢` as usual.
 -/
 meta def tactic.interactive.push_neg : parse location → tactic unit
-| (loc.ns loc_l) := loc_l.mmap'
-                      (λ l, match l with
-                            | some h := do push_neg_at_hyp h,
-                                            try `[simp only [push_neg.not_eq] at h { eta := ff }]
-                            | none   := do push_neg_at_goal,
-                                            try `[simp only [push_neg.not_eq] { eta := ff }]
-                            end)
+| (loc.ns loc_l) :=
+  loc_l.mmap'
+    (λ l, match l with
+          | some h := do push_neg_at_hyp h,
+                          try $ interactive.simp_core { eta := ff } failed tt
+                                 [simp_arg_type.expr ``(push_neg.not_eq)] []
+                                 (interactive.loc.ns [some h])
+          | none   := do push_neg_at_goal,
+                          try `[simp only [push_neg.not_eq] { eta := ff }]
+          end)
 | loc.wildcard := do
     push_neg_at_goal,
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,
@@ -177,11 +179,15 @@ Transforms the goal into its contrapositive.
 * `contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
 * `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 -/
-meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_with_opt? → tactic unit
-| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
+meta def tactic.interactive.contrapose (push : parse (tk "!" )?) :
+  parse name_with_opt? → tactic unit
+| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >>
+  intro (h'.get_or_else h) >> skip
 | none :=
-  do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
-  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail "contrapose only applies to nondependent arrows between props",
+  do `(%%P → %%Q) ← target | fail
+    "The goal is not an implication, and you didn't specify an assumption",
+  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail
+    "contrapose only applies to nondependent arrows between props",
   apply cp,
   when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))
 

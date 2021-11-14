@@ -26,13 +26,13 @@ meta def poke_data (dn : name) : tactic bool :=
 do e ← tactic.get_env,
    return (e.get dn).to_bool
 
-meta def run_once_under_name {α : Type} [reflected α] [has_reflect α] (t : tactic α) (cache_name : name) : tactic α :=
+meta def run_once_under_name {α : Type} [reflected α] [has_reflect α] (t : tactic α)
+  (cache_name : name) : tactic α :=
 do load_data cache_name <|>
    do {
      a ← t,
      save_data cache_name a,
-     return a
-   }
+     return a }
 
 -- We maintain two separate caches with different scopes:
 -- one local to `begin ... end` or `by` blocks, and another
@@ -190,7 +190,8 @@ meta def clear (ns : name) (s : cache_scope := block_local) : tactic unit :=
 s.clear ns
 
 /-- Gets the (optionally present) value-in-cache for `ns`. -/
-meta def get (ns : name) (α : Type) [reflected α] [has_reflect α] (s : cache_scope := block_local) : tactic (option α) :=
+meta def get (ns : name) (α : Type) [reflected α] [has_reflect α] (s : cache_scope := block_local) :
+  tactic (option α) :=
 do dn ← some <$> s.try_get_name ns <|> return none,
    match dn with
    | none := return none
@@ -216,7 +217,8 @@ open local_cache local_cache.internal
 
     If `α` is just `unit`, this means we just run `t` once each tactic
     block. -/
-meta def run_once {α : Type} [reflected α] [has_reflect α] (ns : name) (t : tactic α) (s : cache_scope := cache_scope.block_local) : tactic α :=
+meta def run_once {α : Type} [reflected α] [has_reflect α] (ns : name) (t : tactic α)
+  (s : cache_scope := cache_scope.block_local) : tactic α :=
 s.get_name ns >>= run_once_under_name t
 
 end tactic

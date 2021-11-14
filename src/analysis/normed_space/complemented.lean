@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
@@ -91,7 +91,7 @@ end
 def linear_proj_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
   (hq : is_closed (q : set E)) :
   E →L[𝕜] p :=
-(continuous_linear_map.fst 𝕜 p q).comp $ (prod_equiv_of_closed_compl p q h hp hq).symm
+(continuous_linear_map.fst 𝕜 p q) ∘L ↑(prod_equiv_of_closed_compl p q h hp hq).symm
 
 variables {p q}
 

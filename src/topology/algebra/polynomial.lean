@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis
 -/
 import data.polynomial.algebra_map
 import data.polynomial.div
@@ -34,9 +34,9 @@ open is_absolute_value filter
 
 namespace polynomial
 
-section topological_semiring
+section topological_ring
 
-variables {R S : Type*} [semiring R] [topological_space R] [topological_semiring R]
+variables {R S : Type*} [semiring R] [topological_space R] [topological_ring R]
   (p : polynomial R)
 
 @[continuity]
@@ -60,14 +60,13 @@ p.continuous.continuous_within_at
 protected lemma continuous_on {s} : continuous_on (λ x, p.eval x) s :=
 p.continuous.continuous_on
 
-end topological_semiring
+end topological_ring
 
 section topological_algebra
 
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  [topological_space A] [topological_semiring A]
+  [topological_space A] [topological_ring A]
   (p : polynomial R)
-
 
 @[continuity]
 protected lemma continuous_aeval : continuous (λ x : A, aeval x p) :=
@@ -92,10 +91,10 @@ begin
   revert hf, refine degree_pos_induction_on p hd _ _ _; clear hd p,
   { rintros c - hc,
     rw [leading_coeff_mul_X, leading_coeff_C] at hc,
-    simpa [abv_mul abv] using tendsto_at_top_mul_left' ((abv_pos abv).2 hc) hz },
+    simpa [abv_mul abv] using hz.const_mul_at_top ((abv_pos abv).2 hc) },
   { intros p hpd ihp hf,
     rw [leading_coeff_mul_X] at hf,
-    simpa [abv_mul abv] using tendsto_at_top_mul_at_top (ihp hf) hz },
+    simpa [abv_mul abv] using  (ihp hf).at_top_mul_at_top hz },
   { intros p a hd ihp hf,
     rw [add_comm, leading_coeff_add_of_degree_lt (degree_C_le.trans_lt hd)] at hf,
     refine tendsto_at_top_of_add_const_right (abv (-f a)) _,

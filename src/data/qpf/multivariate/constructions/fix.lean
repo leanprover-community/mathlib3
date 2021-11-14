@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.W
 import data.qpf.multivariate.basic
-universes u v
 
 /-!
 # The initial algebra of a multivariate qpf is again a qpf.
@@ -20,8 +19,8 @@ and take a fixed point again.
  * `fix.mk`     - constructor
  * `fix.dest    - destructor
  * `fix.rec`    - recursor: basis for defining functions by structural recursion on `fix F α`
- * `fix.drec`   - dependent recursor: generalization of `fix.rec` where the result type of the function
-                  is allowed to dependent on the `fix F α` value
+ * `fix.drec`   - dependent recursor: generalization of `fix.rec` where
+                  the result type of the function is allowed to depend on the `fix F α` value
  * `fix.rec_eq` - defining equation for `recursor`
  * `fix.ind`    - induction principle for `fix F α`
 
@@ -47,6 +46,8 @@ See [avigad-carneiro-hudon2019] for more details.
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
+
+universes u v
 
 namespace mvqpf
 open typevec
@@ -314,7 +315,8 @@ instance mvqpf_fix : mvqpf (fix F) :=
     end }
 
 /-- Dependent recursor for `fix F` -/
-def fix.drec {β : fix F α → Type u} (g : Π x : F (α ::: sigma β), β (fix.mk $ (id ::: sigma.fst) <$$> x)) (x : fix F α) : β x :=
+def fix.drec {β : fix F α → Type u}
+  (g : Π x : F (α ::: sigma β), β (fix.mk $ (id ::: sigma.fst) <$$> x)) (x : fix F α) : β x :=
 let y := @fix.rec _ F _ _ α (sigma β) (λ i, ⟨_,g i⟩) x in
 have x = y.1,
   by { symmetry, dsimp [y], apply fix.ind_rec _ id _ x, intros x' ih,

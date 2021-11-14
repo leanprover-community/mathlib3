@@ -2005,7 +2005,7 @@ lemma with_density_add {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measu
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 begin
   refine measure.ext (λ s hs, _),
-  rw [with_density_apply _ hs, measure.coe_add, pi.add_apply,
+  rw [with_density_apply _ hs, measure.add_apply,
       with_density_apply _ hs, with_density_apply _ hs, ← lintegral_add hf hg],
   refl,
 end

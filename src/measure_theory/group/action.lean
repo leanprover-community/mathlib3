@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import measure_theory.group.measurable_equiv
+import measure_theory.measure.regular
 import dynamics.ergodic.measure_preserving
+import dynamics.minimal
 
 /-!
 -/
 
-open_locale ennreal pointwise
+open_locale ennreal pointwise topological_space
 open measure_theory measure_theory.measure set function
 
 namespace measure_theory
@@ -61,48 +63,46 @@ lemma measure_preserving_smul (c : G) (μ : measure α . volume_tac) [smul_invar
   [smul_invariant_measure G α μ] (s : set α) : μ ((•) c ⁻¹' s) = μ s :=
 (measure_preserving_smul c μ).measure_preimage_emb (measurable_embedding_const_smul c) s
 
-@[simp, to_additive] lemma measure_smul (c : G) (μ : measure α . volume_tac)
+@[simp, to_additive] lemma measure_smul_set (c : G) (μ : measure α . volume_tac)
   [smul_invariant_measure G α μ] (s : set α) : μ (c • s) = μ s :=
 by rw [← preimage_smul_inv, measure_preimage_smul]
 
 variable (G)
 
-@[to_additive]
-lemma measure_pos_of_smul_invariant_of_dense_orbit_of_Lindelof_ne_zero [topological_space G]
+@[to_additive] lemma measure_is_open_pos_of_smul_invariant_of_compact_ne_zero [topological_space G]
   [topological_space α] {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
-  {K U : set α} (hd : ∀ x : α, dense (mul_action.orbit G x))
-  (hK : ∀ U : set (set α), (∀ t ∈ U, is_open t) → K ⊆ ⋃₀ U → ∃ V ⊆ U, countable V ∧ K ⊆ ⋃₀ V)
-  (hμK : μ K ≠ 0) (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
-begin
-  refine pos_iff_ne_zero.2 (λ hμU, hμK _),
-  have : ∀ x, ∃ g : G, g • x ∈ U,
-    from λ x, dense_range.exists_mem_open (hd x) hU hne,
-  choose g hgU,
-  rcases hK ((λ x, (•) (g x) ⁻¹' U) '' K)
-    (ball_image_iff.2 $ λ x hx, hU.preimage $ continuous_id.const_smul _)
-    (λ x hx, mem_sUnion.2 $ ⟨_, ⟨x, hx, rfl⟩, hgU x⟩)
-    with ⟨V, hVU, hVc, hKV⟩,
-  refine measure_mono_null hKV ((measure_sUnion_null_iff hVc).2 $ λ s hs, _),
-  rcases hVU hs with ⟨x, hx, rfl⟩,
-  rwa measure_preimage_smul
-end
+  [mul_action.is_minimal G α] {K U : set α} (hK : is_compact K) (hμK : μ K ≠ 0)
+  (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
+let ⟨t, ht⟩ := mul_action.exists_finite_cover_smul G hK hU hne
+in pos_iff_ne_zero.2 $ λ hμU, hμK $ measure_mono_null ht $
+  (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul_set
 
-@[to_additive]
-lemma measure_pos_of_smul_invariant_of_is_open [topological_space G] [topological_space α]
-  {K U : set α} {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
-  [mul_action.is_pretransitive G α] (hK : is_compact K) (hμK : μ K ≠ 0) (hU : is_open U)
-  (hne : U.nonempty) : 0 < μ U :=
-begin
-  refine measure_pos_of_smul_invariant_of_dense_orbit_of_Lindelof_ne_zero G
-    (λ x, (mul_action.surjective_smul G x).dense_range) (λ U hUo hKU, _) hμK hU hne,
-  rw sUnion_eq_Union at hKU,
-  rcases hK.elim_finite_subcover coe (subtype.forall.2 hUo) hKU with ⟨t, hKt⟩,
-  refine ⟨coe '' (t : set U), image_subset_iff.2 (λ x hx, x.2), t.countable_to_set.image _, _⟩,
-  rwa sUnion_image
-end
+@[to_additive] lemma measure_is_open_pos_of_smul_invariant_of_ne_zero [topological_space G]
+  [topological_space α] {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
+  [mul_action.is_minimal G α] [μ.regular] {U : set α} (hμ : μ ≠ 0)
+  (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
+let ⟨K, hK, hμK⟩ := regular.exists_compact_not_null.mpr hμ
+in measure_is_open_pos_of_smul_invariant_of_compact_ne_zero G hK hμK hU hne
 
-@[to_additive]
-lemma measure_lt_top_of_is_compact_of_smul_invariant [topological_space α]
-  {μ : measure α} [smul_invariant_measure G α μ] [
+@[to_additive] lemma measure_pos_iff_nonempty_of_smul_invariant [topological_space G]
+  [topological_space α] {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
+  [mul_action.is_minimal G α] [μ.regular] {U : set α} (hμ : μ ≠ 0)
+  (hU : is_open U) : 0 < μ U ↔ U.nonempty :=
+⟨λ h, nonempty_of_measure_ne_zero h.ne', measure_is_open_pos_of_smul_invariant_of_ne_zero G hμ hU⟩
+
+@[to_additive] lemma measure_eq_zero_iff_eq_empty_of_smul_invariant [topological_space G]
+  [topological_space α] {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
+  [mul_action.is_minimal G α] [μ.regular] {U : set α} (hμ : μ ≠ 0)
+  (hU : is_open U) : μ U = 0 ↔ U = ∅ :=
+by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
+  measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
+
+@[to_additive] lemma is_locally_finite_measure_of_smul_invariant [topological_space G]
+  [topological_space α] {μ : measure α} [smul_invariant_measure G α μ] [has_continuous_smul G α]
+  [mul_action.is_minimal G α] {U : set α} (hU : is_open U) (hne : U.nonempty) (hμU : μ U ≠ ∞) :
+  is_locally_finite_measure μ :=
+⟨λ x, let ⟨g, hg⟩ := mul_action.exists_smul_mem_open G x hU hne in
+  ⟨(•) g ⁻¹' U, (hU.preimage (continuous_id.const_smul _)).mem_nhds hg, ne.lt_top $
+    by rwa [measure_preimage_smul]⟩⟩
 
 end measure_theory

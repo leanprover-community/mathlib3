@@ -424,12 +424,12 @@ filter_empty _
 lemma prime_divisors_one : prime_divisors 1 = (∅ : finset ℕ) :=
 filter_singleton prime 1
 
-lemma prime_divisors_eq_to_finset_factors (n : ℕ) : n.prime_divisors = n.factors.to_finset :=
+lemma factor_of_prime_divisor {p n : ℕ} (hp : p ∈ n.prime_divisors) : p ∈ n.factors
+  :=
 begin
   by_cases hn : n = 0,
-  { rw [hn, prime_divisors_zero], simp },
-  { ext,
-    rw [mem_prime_divisors hn, list.mem_to_finset, mem_factors (pos_iff_ne_zero.mpr hn), and_comm] }
+    { rw [hn, prime_divisors_zero] at hp, exfalso, exact not_mem_empty p hp },
+    { rwa [mem_factors (pos_iff_ne_zero.mpr hn), ←and_comm, ←mem_prime_divisors hn] }
 end
 
 /-- The sets of prime divisors of coprime `a` and `b` are disjoint -/

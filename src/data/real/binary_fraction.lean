@@ -30,10 +30,11 @@ noncomputable instance : linear_order binary_fraction := pilex.linear_order nat.
 def tail_rel (x y : binary_fraction) :=
 ∃ k, (∀ i < k, x i = y i) ∧ x k = ff ∧ y k = tt ∧ (∀ i > k, x i = tt) ∧ (∀ i > k, y i = ff)
 
-lemma tail_rel.lt (h : tail_rel x y) : x < y :=
+namespace tail_rel
+protected lemma lt (h : tail_rel x y) : x < y :=
 h.imp $ λ K hK, ⟨hK.1, bool.lt_iff.2 ⟨hK.2.1, hK.2.2.1⟩⟩
 
-lemma tail_rel.comp_bnot_symm (h : tail_rel x y) : tail_rel (bnot ∘ y) (bnot ∘ x) :=
+lemma comp_bnot_symm (h : tail_rel x y) : tail_rel (bnot ∘ y) (bnot ∘ x) :=
 begin
   rcases h with ⟨K, hlt, hxk, hyk, hgtx, hgty⟩,
   refine ⟨K, λ i hi, (congr_arg bnot (hlt i hi)).symm, by simp [hyk], by simp [hxk],
@@ -41,8 +42,7 @@ begin
 end
 
 /-- The same fraction can not have a tail of `ff`s and a tail of `tt`s at the same time. -/
-lemma tail_rel.strong_asymm (h : tail_rel x y) (z : binary_fraction) :
-  ¬ tail_rel y z :=
+lemma strong_asymm (h : tail_rel x y) (z : binary_fraction) : ¬ tail_rel y z :=
 begin
   rcases h with ⟨k, -, -, -, -, hk⟩, rintro ⟨l, -, -, -, hl, -⟩,
   specialize hk (max k l + 1) ((le_max_left k l).trans_lt $ nat.lt_succ_self _),
@@ -50,7 +50,7 @@ begin
   exact ff_ne_tt (hk.symm.trans hl)
 end
 
-lemma tail_rel.right_le_of_left_lt (h₁ : tail_rel x y) (h₂ : x < z) : y ≤ z :=
+lemma right_le_of_left_lt (h₁ : tail_rel x y) (h₂ : x < z) : y ≤ z :=
 begin
   rcases h₁ with ⟨K, hlt, hxk, hyk, hxgt, hygt⟩,
   rcases h₂ with ⟨N, hltN, hN⟩,
@@ -63,14 +63,16 @@ begin
   { exact le_of_lt ⟨N, λ j hj, hlt j (hj.trans hNK) ▸ hltN _ hj, hlt N hNK ▸ hN⟩ }
 end
 
-lemma tail_rel.le_left_of_lt_right (h₁ : tail_rel y z) (h₂ : x < z) : x ≤ y :=
+lemma le_left_of_lt_right (h₁ : tail_rel y z) (h₂ : x < z) : x ≤ y :=
 le_of_not_lt $ λ h, (h₁.right_le_of_left_lt h).not_lt h₂
 
-lemma tail_rel.left_unique (h₁ : tail_rel x z) (h₂ : tail_rel y z) : x = y :=
+protected lemma left_unique (h₁ : tail_rel x z) (h₂ : tail_rel y z) : x = y :=
 le_antisymm (h₂.le_left_of_lt_right h₁.lt) (h₁.le_left_of_lt_right h₂.lt)
 
-lemma tail_rel.right_unique (h₁ : tail_rel x y) (h₂ : tail_rel x z) : y = z :=
+protected lemma right_unique (h₁ : tail_rel x y) (h₂ : tail_rel x z) : y = z :=
 le_antisymm (h₁.right_le_of_left_lt h₂.lt) (h₂.right_le_of_left_lt h₁.lt)
+
+end tail_rel
 
 instance : setoid binary_fraction :=
 { r := λ x y, x = y ∨ tail_rel x y ∨ tail_rel y x,

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.calculus
-import analysis.inner_product_space.pi_L2
 import geometry.manifold.algebra.lie_group
+import geometry.manifold.instances.real
 
 /-!
 # Manifold structure on the sphere

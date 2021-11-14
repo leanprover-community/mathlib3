@@ -415,7 +415,7 @@ by { unfold prime_divisors, rw [mem_filter, mem_divisors],
 lemma zero_no_prime_divisors : prime_divisors 0  = (∅:finset ℕ) :=
 by { unfold prime_divisors divisors, simp }
 
-lemma prime_divisors_eq_prime_factors (n:ℕ) : n.prime_divisors = n.factors.to_finset :=
+lemma prime_divisors_eq_to_finset_factors (n:ℕ) : n.prime_divisors = n.factors.to_finset :=
 begin
   by_cases hn : n = 0,
   { rw [hn, zero_no_prime_divisors], simp },

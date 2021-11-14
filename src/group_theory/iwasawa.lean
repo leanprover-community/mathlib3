@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2021 Antoine Chambert-Loir. All rights reserved.
+Released under Apache 2.0 license as des
+cribed in the file LICENSE.
+Authors: Antoine Chambert-Loir
+-/
+
 -- import group_theory.subgroup.basic
 import group_theory.subgroup.pointwise
 import group_theory.coset
@@ -178,18 +185,6 @@ lemma has_maximal_stabilizer : is_primitive G X →  ∀ (x : X), (stabilizer G 
 := λ h, h.has_maximal_stabilizers
 -/
 
-
-/- lemma neq_of_two {X : Type*} {a b: X} (hab : a ≠ b) (x : X) :
-  x ≠ a ∨ x ≠ b :=
-begin
-  by_cases h : x = a,
-  rw ← h at hab, exact or.intro_right (x ≠ a) hab,
-  apply or.intro_left _ _, simp, assumption,
-end
- -/
-
-#print exists_ne
-
 /-- A 2-transitive action is primitive -/
 /- Part of the proof establishes that stabilizers of n-transitive
 actions are (n-1)-transitive. Todo: rewrite using this. -/
@@ -199,26 +194,15 @@ theorem is_primitive_of_two_trans
   nontrivial X → is_primitive G X :=
 begin
     intros h2X hX,
-    -- obtain ⟨a, b, hab⟩ := hX2,
-
-    /-  exists_ne
-    have another_of : ∀ x : X, ∃ x' : X, x ≠ x',
-    { intro x,
-      by_cases h : x = a,
-      rw ← h at hab, existsi b, exact hab,
-      existsi a, exact h, }, -/
 
     have is_trans : is_transitive G X ,
     { apply is_transitive.mk,
       apply is_pretransitive.mk,
       { intros x y,
-
-        obtain ⟨x', hx'⟩ := @exists_ne _ hX x,
-        obtain ⟨y', hy'⟩ := @exists_ne _ hX y,
-
         /- on veut applique x sur y
           mais il faut un élément x' ≠ x à appliquer sur un élément y' ≠ y    -/
-
+        obtain ⟨x', hx'⟩ := @exists_ne _ hX x,
+        obtain ⟨y', hy'⟩ := @exists_ne _ hX y,
         obtain ⟨ g, h, h' ⟩ := h2X x x' y y' hx'.symm hy'.symm,
         existsi g, exact h, },
     {  exact @nontrivial.to_nonempty _ hX, },},

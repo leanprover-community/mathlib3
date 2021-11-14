@@ -26,15 +26,8 @@ files:
 * `affine_subspace`: a subset of an affine space closed w.r.t. affine combinations of points;
 * `affine_combination`: an affine combination of points;
 * `affine_independent`: affine independent set of points;
-* `barycentric_coord`: the barycentric coordinate of a point.
+* `affine_basis.coord`: the barycentric coordinate of a point.
 
-## TODO
-
-Some key definitions are not yet present.
-
-* Affine frames.  An affine frame might perhaps be represented as an `affine_equiv` to a `finsupp`
-  (in the general case) or function type (in the finite-dimensional case) that gives the
-  coordinates, with appropriate proofs of existence when `k` is a field.
  -/
 
 localized "notation `affine_space` := add_torsor" in affine

@@ -349,13 +349,10 @@ begin
   congr, exacts [lie_hom.coe_injective h.1, h.2]
 end
 
-@[ext] lemma ext (f g : L₁ ≃ₗ⁅R⁆ L₂) (h : (f : L₁ ≃ₗ[R] L₂) = g) : f = g :=
-coe_linear_equiv_injective h
-
 lemma coe_injective : @injective (L₁ ≃ₗ⁅R⁆ L₂) (L₁ → L₂) coe_fn :=
 linear_equiv.coe_injective.comp coe_linear_equiv_injective
 
-lemma ext' {f g : L₁ ≃ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g := coe_injective $ funext h
+@[ext] lemma ext {f g : L₁ ≃ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g := coe_injective $ funext h
 
 instance : has_one (L₁ ≃ₗ⁅R⁆ L₁) :=
 ⟨{ map_lie' := λ x y, rfl,
@@ -393,7 +390,7 @@ def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L�
   ..linear_equiv.trans e₁.to_linear_equiv e₂.to_linear_equiv }
 
 @[simp] lemma self_trans_symm (e : L₁ ≃ₗ⁅R⁆ L₂) : e.trans e.symm = refl :=
-ext' e.symm_apply_apply
+ext e.symm_apply_apply
 
 @[simp] lemma symm_trans_self (e : L₁ ≃ₗ⁅R⁆ L₂) : e.symm.trans e = refl :=
 e.symm.self_trans_symm

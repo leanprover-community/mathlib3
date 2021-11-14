@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
 import order.galois_connection
+import logic.relation
 
 /-!
 # Equivalence relations

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 
 Binder elimination
 -/
+import order.complete_lattice
 import tactic.pi_instances
 
 namespace old_conv

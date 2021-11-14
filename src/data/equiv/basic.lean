@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.option.basic
 import data.prod
+import data.quot
 import data.sigma.basic
 import data.subtype
 import data.sum

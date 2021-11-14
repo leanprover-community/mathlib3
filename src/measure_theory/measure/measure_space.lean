@@ -281,9 +281,12 @@ begin
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
   have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
-  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union (disjoint_disjointed _) this,
+  have hn : pairwise (disjoint on
+    λ (n : ℕ), disjointed (λ (n : ℕ), ⋃ (b : ι) (H : b ∈ encodable.decode₂ ι n), s b) n) :=
+    disjoint_disjointed _,
+  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union hn this,
     ennreal.tsum_eq_supr_nat],
-  simp only [← measure_bUnion_finset ((disjoint_disjointed _).set_pairwise _) (λ n _, this n)],
+  simp only [← measure_bUnion_finset (hn.set_pairwise _) (λ n _, this n)],
   refine supr_le (λ n, _),
   refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
   exact measure_mono (bUnion_mono (λ k hk, disjointed_subset _ _)),
@@ -359,8 +362,8 @@ begin
   suffices : μ (limsup at_top t) = 0,
   { have A : s ≤ t := λ n, subset_to_measurable μ (s n),
     -- TODO default args fail
-    exact measure_mono_null (limsup_le_limsup (eventually_of_forall A) is_cobounded_le_of_bot
-      is_bounded_le_of_top) this },
+    exact measure_mono_null (limsup_le_limsup (eventually_of_forall (pi.le_def.mp A))
+      is_cobounded_le_of_bot is_bounded_le_of_top) this },
   -- Next we unfold `limsup` for sets and replace equality with an inequality
   simp only [limsup_eq_infi_supr_of_nat', set.infi_eq_Inter, set.supr_eq_Union,
     ← nonpos_iff_eq_zero],

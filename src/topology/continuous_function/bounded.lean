@@ -974,6 +974,11 @@ class normed_lattice_add_comm_group' (α : Type*)
   extends normed_lattice_add_comm_group α :=
 (norm_smul: ∀ a : α, 2*∥a∥ ≤ ∥2•a∥)
 
+instance : normed_lattice_add_comm_group' ℝ := {
+  norm_smul := by finish,
+  ..real.normed_lattice_add_comm_group,
+}
+
 variables [topological_space α] [nonempty α] [normed_lattice_add_comm_group' β]
 
 -- Can we infer this from https://github.com/leanprover-community/mathlib/blob/f29b0b49badab1bcbe338cb79d102e36e79dce09/src/topology/continuous_function/basic.lean#L114 ?

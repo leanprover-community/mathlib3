@@ -97,14 +97,15 @@ begin
   linarith,
 end
 
-lemma exp_punit_eq_one : exponent punit = 1 :=
+@[simp, to_additive]
+lemma exp_punit_eq_one [subsingleton G] : exponent G = 1 :=
 begin
   apply le_antisymm,
   { apply exponent_min' _ _ nat.one_pos,
-    exact λ g, rfl },
+    simp },
   { apply nat.succ_le_of_lt,
     apply exponent_pos_of_exists _ 1 (nat.one_pos),
-    exact λ g, rfl },
+    simp },
 end
 
 @[to_additive add_order_dvd_exponent]

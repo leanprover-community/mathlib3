@@ -118,7 +118,7 @@ namespace lattice_ordered_comm_group
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
 the element `a ⊔ 1` is said to be the *positive component* of `a`, denoted `a⁺`.
 -/
-@[to_additive pos /-"
+@[to_additive /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
 "-/,
@@ -130,7 +130,7 @@ instance has_one_lattice_has_pos_part : has_pos_part (α)  := ⟨λa, a ⊔ 1⟩
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
 the element `(-a) ⊔ 1` is said to be the *negative component* of `a`, denoted `a⁻`.
 -/
-@[to_additive neg /-"
+@[to_additive /-"
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
 "-/,

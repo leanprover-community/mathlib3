@@ -108,25 +108,25 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
 
-lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf (set_of p)) :
-  Inf {m : ℕ | p (m + n)} + n = Inf (set_of p) :=
+lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
+  Inf {m | p (m + n)} + n = Inf {m | p m} :=
 begin
-  obtain h | ⟨m, hm⟩ := {m : ℕ | p (m + n)}.eq_empty_or_nonempty,
+  obtain h | ⟨m, hm⟩ := {m | p (m + n)}.eq_empty_or_nonempty,
   { rw [h, nat.Inf_empty, zero_add],
     obtain hnp | hnp := hn.eq_or_lt,
     { exact hnp },
-    suffices hp : p (Inf (set_of p) - n + n),
+    suffices hp : p (Inf {m | p m} - n + n),
     { exact (h.subset hp).elim },
     rw tsub_add_cancel_of_le hn,
     exact Inf_mem (nonempty_of_pos_Inf $ n.zero_le.trans_lt hnp) },
-  { have hp : ∃ n, n ∈ set_of p := ⟨_, hm⟩,
+  { have hp : ∃ n, n ∈ {m | p m} := ⟨_, hm⟩,
     rw [nat.Inf_def ⟨m, hm⟩, nat.Inf_def hp],
     rw [nat.Inf_def hp] at hn,
     exact find_add hn }
 end
 
-lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
-  Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
+lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m | p m}) :
+  Inf {m | p m} + n = Inf {m | p (m - n)} :=
 begin
   convert Inf_add _,
   { simp_rw add_tsub_cancel_right },

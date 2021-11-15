@@ -405,7 +405,7 @@ lemma sign_aux_eq_sign_aux2 {n : ℕ} : ∀ (l : list α) (f : perm α) (e : α 
   (h : ∀ x, f x ≠ x → x ∈ l), sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
 | []     f e h := have f = 1, from equiv.ext $
   λ y, not_not.1 (mt (h y) (list.not_mem_nil _)),
-by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
+by rw [this, one_def, equiv.trans_refl, equiv.symm_trans_self, ← one_def,
   sign_aux_one, sign_aux2]
 | (x::l) f e h := begin
   rw sign_aux2,

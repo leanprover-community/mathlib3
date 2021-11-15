@@ -122,9 +122,7 @@ begin
   intros v w hcvw z hczv h_neq_wz,
   have hcwz : C w = C z, by exact (rfl.congr (eq.symm hczv)).mp hcvw,
   by_contra,
-  have hwz : G.adj w z,
-  { by_contra, -- todo: improve this
-    contradiction, },
+  have hwz : G.adj w z, by { contrapose h, contradiction, },
   have hvalid := C.valid hwz,
   contradiction,
 end

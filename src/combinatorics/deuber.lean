@@ -13,10 +13,44 @@ def order_emb_of_card_le {α β} [fintype α] [linear_order α] [fintype β] [li
 (mono_equiv_of_fin α rfl).symm.to_rel_embedding.trans
     ((fin.cast_le h).trans $ mono_equiv_of_fin β rfl)
 
-def ends_at_with {α β} [has_zero β] [linear_order α] (f : α → β) (i : α) (x : β) : Prop :=
-  f i = x ∧ ∀ j, i < j → f j = 0
+def ends_at_with {α M} [has_zero M] [linear_order α] (f : α → M) (i : α) (x : M) : Prop :=
+  ∀ j, i ≤ j → f j = if i = j then x else 0
+
+lemma ends_at_with.lt {α M} [has_zero M] [linear_order α] {f : α → M} {i j : α} {x : M}
+  (h : ends_at_with f i x) (ij : i < j) : f j = 0 :=
+by rw [h _ (le_of_lt ij), if_neg (ne_of_lt ij)]
+
+lemma ends_at_with.self {α M} [has_zero M] [linear_order α] {f : α → M} {i : α} {x : M}
+  (h : ends_at_with f i x) : f i = x :=
+by rw [h _ (le_refl i), if_pos rfl]
+
+/-
+def starts_at_with {α M} [has_zero M] [linear_order α] (f : α → M) (i : α) (x : M) : Prop :=
+  ∀ j, j ≤ i → f j = if i = j then x else 0
+
+lemma starts_at_with.lt {α M} [has_zero M] [linear_order α] {f : α → M} {i j : α} {x : M}
+  (h : starts_at_with f i x) (ji : j < i) : f j = 0 :=
+by rw [h _ (le_of_lt ji), if_neg (ne_of_lt ji).symm]
+
+lemma starts_at_with.self {α M} [has_zero M] [linear_order α] {f : α → M} {i : α} {x : M}
+  (h : starts_at_with f i x) : f i = x :=
+by rw [h _ (le_refl i), if_pos rfl]
+-/
 
 variables {R : Type} [semiring R] (A : submonoid R)
+
+/-
+lemma end_scalar_start {α} [fintype α] [linear_order α] {f v : α → R} {i j : α} {x y : R}
+  (ij : i ≤ j) (fe : ends_at_with f i x) (vs : starts_at_with v j y) :
+    ∑ a, f a * v a = if i = j then x * y else 0 :=
+begin
+  rw finset.sum_eq_single_of_mem i (finset.mem_univ i),
+  { rw [fe.self, vs _ ij, mul_ite, mul_zero, @eq_comm _ i j], },
+  intros k junk ki,
+  cases lt_or_gt_of_ne ki with h,
+  { rw [vs.lt (lt_of_lt_of_le h ij), mul_zero], },
+  { rw [fe.lt h, zero_mul], },
+end-/
 
 structure MPC :=
 (m : Type)
@@ -59,6 +93,28 @@ structure MPC.row (o : option S.m) :=
 
 variables {S T}
 
+/-
+lemma MPC.inclusion.starts (inc : S.inclusion T) (i : S.m) :
+  starts_at_with (inc.matᵀ (inc.to_fun i)) i inc.scale :=
+begin
+  intros j ji,
+  rw [matrix.transpose_apply, inc.ends],
+  { congr' 1, ext, rw [order_embedding.eq_iff_eq, eq_comm], },
+  { rw [order_embedding.le_iff_le], exact ji, },
+end-/
+
+lemma MPC.inclusion.sum_eq (inc : S.inclusion T) {i : S.m} {j : T.m} {x : R}
+  (d : S.m → R) (ve : ends_at_with d i x) (ij : inc.to_fun i ≤ j) :
+  ∑ k : S.m, d k * inc.mat k j = if inc.to_fun i = j then d i * inc.scale else 0 :=
+begin
+  rw [finset.sum_eq_single_of_mem i (finset.mem_univ i), inc.ends _ _ ij, mul_ite, mul_zero],
+  intros k junk ki,
+  cases lt_or_gt_of_ne ki,
+  { rw [(inc.ends _).lt, mul_zero],
+    refine lt_of_lt_of_le _ ij, rw order_embedding.lt_iff_lt, assumption, },
+  { rw [ve.lt, zero_mul], assumption, },
+end
+
 def MPC.inclusion.comp {R : MPC A} (f : S.inclusion T) (g : T.inclusion R) : S.inclusion R :=
 { to_fun := f.to_fun.trans g.to_fun,
   mat := f.mat ⬝ g.mat,
@@ -66,8 +122,10 @@ def MPC.inclusion.comp {R : MPC A} (f : S.inclusion T) (g : T.inclusion R) : S.i
   scale_C := by rw [←mul_assoc, f.scale_C, g.scale_C],
   ends :=
     begin
-      intro i,
-
+      intros i j ij,
+      rw [matrix.mul_apply],
+      simp_rw ←matrix.transpose_apply g.mat,
+      rw [end_scalar_start _ (f.ends _) (g.starts _)],
     end,
   foo := _,
   disj := _,

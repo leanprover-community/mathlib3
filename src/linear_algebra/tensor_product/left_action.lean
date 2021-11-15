@@ -792,4 +792,29 @@ by { apply eq_sub_of_add_eq, rw [←add_tmul], simp }
 
 end tensor_product
 
+namespace linear_map
+
+variables {R' : Type*} [comm_semiring R']
+variables [module R' M] [module R'ᵒᵖ M] [is_symmetric_smul R' M]
+variables [module R' N] [module R' P] [module R' Q] [module R' S]
+variables [module R'ᵒᵖ N] [is_symmetric_smul R' N]
+variables [module R'ᵒᵖ P] [is_symmetric_smul R' P]
+variables [module R'ᵒᵖ Q] [is_symmetric_smul R' Q]
+variables [module R'ᵒᵖ S] [is_symmetric_smul R' S]
+
+@[simp] lemma ltensor_sub (f g : N →ₗ[R'] P) : (f - g).ltensor M = f.ltensor M - g.ltensor M :=
+by simp only [← coe_ltensor_hom, map_sub]
+
+@[simp] lemma rtensor_sub (f g : N →ₗ[R'] P) : (f - g).rtensor M = f.rtensor M - g.rtensor M :=
+by simp only [← coe_rtensor_hom, map_sub]
+
+@[simp] lemma ltensor_neg (f : N →ₗ[R'] P) : (-f).ltensor M = -(f.ltensor M) :=
+by simp only [← coe_ltensor_hom, map_neg]
+
+@[simp] lemma rtensor_neg (f : N →ₗ[R'] P) : (-f).rtensor M = -(f.rtensor M) :=
+by simp only [← coe_rtensor_hom, map_neg]
+
+
+end linear_map
+
 end ring

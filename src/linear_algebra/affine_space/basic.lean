@@ -29,11 +29,12 @@ files:
 * `affine_basis.coord`: the barycentric coordinate of a point.
 
 ## TODO
+
 Some key definitions are not yet present.
+
 * Affine frames.  An affine frame might perhaps be represented as an `affine_equiv` to a `finsupp`
   (in the general case) or function type (in the finite-dimensional case) that gives the
   coordinates, with appropriate proofs of existence when `k` is a field.
-
  -/
 
 localized "notation `affine_space` := add_torsor" in affine

@@ -98,7 +98,7 @@ begin
 end
 
 @[simp, to_additive]
-lemma exp_punit_eq_one [subsingleton G] : exponent G = 1 :=
+lemma exp_eq_one_of_subsingleton [subsingleton G] : exponent G = 1 :=
 begin
   apply le_antisymm,
   { apply exponent_min' _ _ nat.one_pos,

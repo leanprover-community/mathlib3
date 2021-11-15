@@ -169,10 +169,15 @@ begin
   { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
 end
 
-@[simp] lemma basis.isometry_euclidean_of_orthonormal_symm_apply
-  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) (w : euclidean_space 𝕜 ι) :
-  (v.isometry_euclidean_of_orthonormal hv).symm w = ∑ i, (w i) • v i :=
-v.equiv_fun_symm_apply w
+@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  (v.isometry_euclidean_of_orthonormal hv : E → euclidean_space 𝕜 ι) = v.equiv_fun :=
+rfl
+
+@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal_symm
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
+rfl
 
 end
 

@@ -24,7 +24,7 @@ Letting `T` be a self-adjoint operator on a finite-dimensional inner product spa
   `is_self_adjoint.diagonalization_apply_self_apply` states that, when `T` is transferred via this
   equivalence to an operator on the direct sum, it acts diagonally.
 * The definition `is_self_adjoint.eigenvector_basis` provides an orthonormal basis for `E`
-  consisting of eigenvectors of `T`, with `is_self_adjoint.eigenvalues` giving the correspoinding
+  consisting of eigenvectors of `T`, with `is_self_adjoint.eigenvalues` giving the corresponding
   list of eigenvalues, as real numbers.  The definition `is_self_adjoint.diagonalization_basis`
   gives the associated linear isometry equivalence from `E` to Euclidean space, and the theorem
   `is_self_adjoint.diagonalization_basis_apply_self_apply` states that, when `T` is transferred via
@@ -223,7 +223,7 @@ noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜
 (hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal_symm_apply
   (hT.eigenvector_basis_orthonormal hn) w
 
-/-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
+/-- *Diagonalization theorem*, *spectral theorem*; version 2: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the identification of `E` with
 Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
 lemma diagonalization_basis_apply_self_apply (v : E) (i : fin n) :

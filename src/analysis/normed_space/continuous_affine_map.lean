@@ -7,6 +7,7 @@ import topology.algebra.continuous_affine_map
 import analysis.normed_space.add_torsor
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
+import analysis.calculus.times_cont_diff
 
 /-!
 # Continuous affine maps between normed spaces.
@@ -137,6 +138,15 @@ lemma decomp (f : V →A[R] W) :
 begin
   rcases f with ⟨f, h⟩,
   rw [coe_mk_const_linear_eq_linear, coe_mk, f.decomp, pi.add_apply, linear_map.map_zero, zero_add],
+end
+
+lemma times_cont_diff {n : with_top ℕ} (f : V →A[𝕜] W) :
+  times_cont_diff 𝕜 n f :=
+begin
+  rw f.decomp,
+  apply f.cont_linear.times_cont_diff.add,
+  simp only,
+  exact times_cont_diff_const,
 end
 
 section normed_space_structure

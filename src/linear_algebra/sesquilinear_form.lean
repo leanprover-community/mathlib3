@@ -270,7 +270,7 @@ def is_refl (S : sesq_form R M I) : Prop := ∀ (x y : M), S x y = 0 → S y x =
 
 namespace is_refl
 
-variable (H : is_refl S)
+variable (H : S.is_refl)
 
 lemma eq_zero : ∀ {x y : M}, S x y = 0 → S y x = 0 := λ x y, H x y
 
@@ -283,7 +283,7 @@ def is_symm (S : sesq_form R M I) : Prop := ∀ (x y : M), (I (S x y)).unop = S 
 
 namespace is_symm
 
-variable (H : is_symm S)
+variable (H : S.is_symm)
 include H
 
 lemma sym (x y : M) : (I (S x y)).unop = S y x := H x y
@@ -299,7 +299,7 @@ def is_alt (S : sesq_form R M I) : Prop := ∀ (x : M), S x x = 0
 
 namespace is_alt
 
-variable (H : is_alt S)
+variable (H : S.is_alt)
 include H
 
 lemma self_eq_zero (x : M) : S x x = 0 := H x

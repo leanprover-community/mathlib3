@@ -252,35 +252,49 @@ namespace pullback
 
 variable {C}
 
-def id_iso (X : Top.{v}) : pullback C (𝟙 X) ≅ 𝟭 (X.presheaf C) := as_iso $
-  (transfer_nat_trans_self adjunction.id (pushforward_pullback_adjunction C (𝟙 X))).symm
-    (eq_to_iso (pushforward_id C)).inv
-/- This is also simple to define but the definition is harder to work with :
+def id_iso (X : Top.{v}) : 𝟭 (X.presheaf C) ≅ pullback C (𝟙 X) :=
+transfer_nat_trans_self_symm_iso
+  (pushforward_pullback_adjunction C (𝟙 X))
+  adjunction.id
+  (eq_to_iso (pushforward_id C))
+/- This is also simple to define but harder to work with
+   (lacking explicit formula in terms of unit and counit):
 adjunction.nat_iso_of_right_adjoint_nat_iso
   (pushforward_pullback_adjunction C (𝟙 X))
   adjunction.id $
   eq_to_iso (pushforward_id C) -/
 
-lemma id_iso_eq {X : Top.{v}} : (id_iso X).app = @id C _ _ X :=
+lemma id_iso_eq {X : Top.{v}} : (id_iso X).symm.app = @id C _ _ X :=
 begin
-  ext1 ℱ, ext1, rw ←iso.inv_eq_inv, apply nat_trans.ext, ext1 U,
-  induction U using opposite.rec, rw id_inv_app ℱ U,
-  --rw ← iso.app_inv, ext1,
-  unfold id_iso, dsimp, unfold inv, -- transfer_nat_trans_self, dsimp [-eq_to_iso.inv], rw is_iso.inv_comp,
-  /-
-  unfold pushforward_pullback_adjunction transfer_nat_trans, dsimp,
-  rw category.id_comp, erw (Lan.equiv _ _ _).left_inv,
-  -- transfer_nat_trans, dsimp, simp,
+  ext1 ℱ, ext1, rw ← iso.inv_eq_inv, apply nat_trans.ext,
+  ext1 U, induction U using opposite.rec, rw id_inv_app ℱ U, cases U,
+  dsimp [id_iso, transfer_nat_trans_self_symm_iso],
+  rw transfer_nat_trans_self_symm_app, dsimp [adjunction.id], simpa,
+end
 
-  simp,
-  simp,
-  ext1, ext1 U,
-  --ext1 ?,
-  ext1 ℱ, ext1,  ext1 U,
-  induction U using opposite.rec,rw id_inv_app ℱ U,
-  unfold id_iso, unfold adjunction.nat_iso_of_right_adjoint_nat_iso adjunction.left_adjoint_uniq,
-  simp, dsimp,
-  --rw iso.app_inv, ext1,-/
+def comp_iso {X Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  pullback C (f ≫ g) ≅ pullback C g ⋙ pullback C f :=
+transfer_nat_trans_self_symm_iso
+  (adjunction.comp _ _ (pushforward_pullback_adjunction C g) (pushforward_pullback_adjunction C f))
+  (pushforward_pullback_adjunction C (f ≫ g))
+  (eq_to_iso rfl)
+
+/-- https://stacks.math.columbia.edu/tag/003N, condition (b) -/
+/- with direction reversed for 1-morphisms (contravariant) -/
+/- define weak functors, and show adjunction transfer_nat_trans_self preserves weak functors! -/
+/- can anyone find a reference for this fact? where this is spelt out? -/
+/- six operations nlab page? -/
+/- not necessarily iso ! -/
+/- I originally only planned to verify the axioms of weak functor, -/
+/- but find that it's easier to introduce the structure of a lax functors, and show that
+   adjunction transfer preserves them. more general -/
+   /- obj : Π X : Top, Σ (D : Type v) (category D), map : obj ⥤ obj, map_id, map_comp ... -/
+   /- lax_functor_to_Cat -/
+   /- adjunction induce map from lax functor from C to lax functor from Cᵒᵖ -/
+lemma comp_id {X Y : Top.{v}} (f : X ⟶ Y) :
+  comp_iso (𝟙 X) f = iso_whisker_left (pullback C f) (id_iso X) :=
+begin
+
 end
 
 end pullback

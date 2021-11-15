@@ -286,7 +286,7 @@ namespace is_symm
 variable (H : S.is_symm)
 include H
 
-lemma sym (x y : M) : (I (S x y)).unop = S y x := H x y
+protected lemma eq (x y : M) : (I (S x y)).unop = S y x := H x y
 
 lemma is_refl : S.is_refl := λ x y H1, by { rw [←H], simp [H1], }
 

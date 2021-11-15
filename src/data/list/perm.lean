@@ -376,7 +376,7 @@ by rw [countp_eq_length_filter, countp_eq_length_filter];
 
 theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
-| ⟨l, p', s⟩ := p'.countp_eq p ▸ countp_le_of_sublist p s
+| ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
 
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=
@@ -1024,7 +1024,7 @@ begin
   by_cases h'' : n ≤ xs.length,
   { let n' := xs.length - n,
     have h₀ : n = xs.length - n',
-    { dsimp [n'], rwa nat.sub_sub_self, } ,
+    { dsimp [n'], rwa tsub_tsub_cancel_of_le, } ,
     have h₁ : n' ≤ xs.length,
     { apply tsub_le_self },
     have h₂ : xs.drop n = (xs.reverse.take n').reverse,
@@ -1036,7 +1036,7 @@ begin
     apply (reverse_perm _).trans; assumption, },
   { have : drop n xs = [],
     { apply eq_nil_of_length_eq_zero,
-      rw [length_drop, nat.sub_eq_zero_iff_le],
+      rw [length_drop, tsub_eq_zero_iff_le],
       apply le_of_not_ge h'' },
     simp [this, list.inter], }
 end

@@ -144,7 +144,7 @@ lemma log_le_log_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n 
 begin
   cases n, { simp },
   rw ← pow_le_iff_le_log hc (zero_lt_succ n),
-  exact calc
+  calc
     c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
                                             (le_of_lt $ zero_lt_one.trans hc) hb _
                  ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
@@ -223,8 +223,8 @@ begin
   have b_pos : 0 < b := zero_lt_two.trans_le hb,
   rw clog, split_ifs,
   { rw [succ_eq_add_one, add_le_add_iff_right, ←ih ((x + b - 1)/b) (add_pred_div_lt hb h.2),
-      nat.div_le_iff_le_mul_add_pred b_pos, ←pow_succ, nat.add_sub_assoc b_pos,
-      add_le_add_iff_right] },
+      nat.div_le_iff_le_mul_add_pred b_pos,
+      ← pow_succ, add_tsub_assoc_of_le (nat.succ_le_of_lt b_pos), add_le_add_iff_right] },
   { exact iff_of_true ((not_lt.1 (not_and.1 h hb)).trans $ succ_le_of_lt $ pow_pos b_pos _)
     (zero_le _) }
 end
@@ -257,7 +257,7 @@ lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b
 begin
   cases n, { simp },
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
-  exact calc
+  calc
     n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
        ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
 end

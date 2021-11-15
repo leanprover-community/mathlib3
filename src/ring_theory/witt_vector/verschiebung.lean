@@ -62,7 +62,7 @@ begin
       mul_zero, add_zero, finset.mul_sum, finset.sum_congr rfl],
   rintro i -,
   simp only [pow_succ, mul_assoc, verschiebung_fun_coeff, if_neg (nat.succ_ne_zero i),
-    nat.succ_sub_succ, nat.sub_zero]
+    nat.succ_sub_succ, tsub_zero]
 end
 
 omit hp
@@ -83,7 +83,7 @@ begin
   cases n,
   { simp only [verschiebung_poly, verschiebung_fun_coeff_zero, if_pos rfl, alg_hom.map_zero] },
   { rw [verschiebung_poly, verschiebung_fun_coeff_succ, if_neg (n.succ_ne_zero),
-        aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel] }
+        aeval_X, nat.succ_eq_add_one, add_tsub_cancel_right] }
 end
 
 variable (p)
@@ -158,7 +158,7 @@ begin
   split_ifs with hn,
   { simp only [hn, verschiebung_poly_zero, witt_polynomial_zero, bind₁_X_right] },
   { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
-    rw [nat.succ_eq_add_one, nat.add_sub_cancel, ring_hom.map_mul,
+    rw [nat.succ_eq_add_one, add_tsub_cancel_right, ring_hom.map_mul,
         ring_hom.map_nat_cast, hom_bind₁],
     calc  _
         = ghost_component (n + 1) (verschiebung $ mk p x) : _

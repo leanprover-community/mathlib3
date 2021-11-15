@@ -223,9 +223,9 @@ Bilinear and Quadratic Forms Over a Vector Space:
     unitary group:
     special orthogonal group:
     special unitary group:
-    self-adjoint endomorphism: 'bilin_form.is_self_adjoint'
+    self-adjoint endomorphism: 'is_self_adjoint'
     normal endomorphism:
-    diagonalization of a self-adjoint endomorphism:
+    diagonalization of a self-adjoint endomorphism: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
     diagonalization of normal endomorphisms:
     simultaneous diagonalization of two real quadratic forms, with one positive-definite:
     decomposition of an orthogonal transformation as a product of reflections:
@@ -465,7 +465,7 @@ Multivariable calculus:
     inverse function theorem: 'has_strict_deriv_at.to_local_inverse'
     implicit function theorem: 'implicit_function_data.implicit_function'
   Differential equations:
-    Cauchy-Lipschitz Theorem:
+    Cauchy-Lipschitz Theorem: 'exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous'
     maximal solutions:
     Grönwall lemma: 'norm_le_gronwall_bound_of_norm_deriv_right_le'
     exit theorem of a compact subspace:

@@ -336,8 +336,8 @@ begin
   ext ⟨j, x⟩ ⟨j', y⟩,
   split,
   { apply eqv_gen_quot_rel_of_rel },
-  { rw ← relation.eqv_gen_iff_of_equivalence (filtered_colimit.rel_equiv F),
-    exact relation.eqv_gen_mono (rel_of_quot_rel F) }
+  { rw ←(filtered_colimit.rel_equiv F).eqv_gen_iff,
+    exact eqv_gen.mono (rel_of_quot_rel F) }
 end
 
 lemma colimit_eq_iff_aux {i j : J} {xi : F.obj i} {xj : F.obj j} :

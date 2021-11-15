@@ -147,6 +147,32 @@ by rw [relindex, subgroup_of_bot_eq_top, index_top]
 @[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
 
+@[simp, to_additive card_mul_index]
+lemma card_mul_index : nat.card H * H.index = nat.card G :=
+by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
+
+@[to_additive] lemma index_map {G' : Type*} [group G'] (f : G →* G') :
+  (H.map f).index = (H ⊔ f.ker).index * f.range.index :=
+by rw [←comap_map_eq, index_comap, relindex_mul_index (H.map_le_range f)]
+
+@[to_additive] lemma index_map_dvd {G' : Type*} [group G'] {f : G →* G'}
+  (hf : function.surjective f) : (H.map f).index ∣ H.index :=
+begin
+  rw [index_map, f.range_top_of_surjective hf, index_top, mul_one],
+  exact index_dvd_of_le le_sup_left,
+end
+
+@[to_additive] lemma dvd_index_map {G' : Type*} [group G'] {f : G →* G'}
+  (hf : f.ker ≤ H) : H.index ∣ (H.map f).index :=
+begin
+  rw [index_map, sup_of_le_left hf],
+  apply dvd_mul_right,
+end
+
+@[to_additive] lemma index_map_eq {G' : Type*} [group G'] {f : G →* G'}
+  (hf1 : function.surjective f) (hf2 : f.ker ≤ H) : (H.map f).index = H.index :=
+nat.dvd_antisymm (H.index_map_dvd hf1) (H.dvd_index_map hf2)
+
 @[to_additive] lemma index_eq_card [fintype (quotient_group.quotient H)] :
   H.index = fintype.card (quotient_group.quotient H) :=
 nat.card_eq_fintype_card
@@ -160,5 +186,17 @@ begin
   classical,
   exact ⟨fintype.card H, H.index_mul_card.symm⟩,
 end
+
+variables {H}
+
+@[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
+⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
+  λ h, (congr_arg index h).trans index_top⟩
+
+lemma index_ne_zero_of_fintype [hH : fintype (quotient_group.quotient H)] : H.index ≠ 0 :=
+by { rw index_eq_card, exact fintype.card_ne_zero }
+
+lemma one_lt_index_of_ne_top [fintype (quotient_group.quotient H)] (hH : H ≠ ⊤) : 1 < H.index :=
+nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
 
 end subgroup

@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import algebra.order.euclidean_absolute_value
 import combinatorics.pigeonhole
+import data.fin.tuple
 import data.real.basic
 import tactic.group
 import tactic.interval_cases

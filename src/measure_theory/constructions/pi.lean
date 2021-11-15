@@ -366,21 +366,6 @@ lemma pi_closed_ball [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ}
   measure.pi μ (metric.closed_ball x r) = ∏ i, μ i (metric.closed_ball (x i) r) :=
 by rw [closed_ball_pi _ hr, pi_pi]
 
-lemma pi_unique_eq_map {β : Type*} {m : measurable_space β} (μ : measure β) (α : Type*) [unique α] :
-  measure.pi (λ a : α, μ) = map (measurable_equiv.fun_unique α β).symm μ :=
-begin
-  set e := measurable_equiv.fun_unique α β,
-  have : pi_premeasure (λ _ : α, μ.to_outer_measure) = map e.symm μ,
-  { ext1 s,
-    rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
-    congr' 1, exact e.to_equiv.image_eq_preimage s },
-  simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
-end
-
-lemma map_fun_unique {α β : Type*} [unique α] {m : measurable_space β} (μ : measure β) :
-  map (measurable_equiv.fun_unique α β) (measure.pi $ λ _, μ) = μ :=
-(measurable_equiv.fun_unique α β).map_apply_eq_iff_map_symm_apply_eq.2 (pi_unique_eq_map μ _).symm
-
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
 (finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in)).sigma_finite
 

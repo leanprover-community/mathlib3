@@ -17,8 +17,8 @@ def append' (a : fin na → α) (b : fin nb → α) : fin (na + nb) → α :=
 @fin.add_cases _ _ (λ _, α) a b
 
 /-- Repeat `a` `n` times. -/
-def repeat (a : fin na → α) (n : ℕ) : fin (n * na) → α :=
-a ∘ prod.snd ∘ fin_prod_fin_equiv.symm
+def repeat (a : fin na → α) (n : ℕ) : fin (n * na) → α
+| i := a ⟨i % na, nat.mod_lt _ $ pos_of_mul_pos_left ((nat.zero_le i).trans_lt i.is_lt) n.zero_le⟩
 
 @[simp] lemma append'_apply_left {α} {na nb} (a : fin na → α) (b : fin nb → α) (i : fin na) :
   append' a b (fin.cast_add _ i) = a i :=
@@ -93,8 +93,8 @@ begin
   apply funext,
   rw (fin.cast this.symm).surjective.forall,
   refine fin.add_cases (λ l, _) (λ r, _),
-  { simp[fin_prod_fin_equiv, repeat, nat.mod_eq_of_lt l.is_lt], },
-  { simp[fin_prod_fin_equiv, repeat] }
+  { simp[repeat, nat.mod_eq_of_lt l.is_lt], },
+  { simp[repeat] }
 end
 
 lemma sigma_eq_of_eq_comp_cast :

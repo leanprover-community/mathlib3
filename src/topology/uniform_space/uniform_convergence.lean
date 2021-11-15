@@ -66,10 +66,15 @@ We define uniform convergence and locally uniform convergence, on a set or in th
 respect to the filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
 `(f x, Fₙ x) ∈ u` for all `x ∈ s`. -/
 def tendsto_uniformly_on (F : ι → α → β) (f : α → β) (p : filter ι) (s : set α) :=
-  ∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x ∈ s, (f x, F n x) ∈ u
+∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x ∈ s, (f x, F n x) ∈ u
 
-lemma  tendsto_uniformly_on_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} {s : set α} :
-  tendsto_uniformly_on F f p s ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ 𝓟 s) (𝓤 β):=
+/--
+A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` w.r.t.
+filter `p` iff the function `(n, x) ↦ (f x, Fₙ x)` converges along `p ×ᶠ 𝓟 s` to the uniformity.
+In other words: one knows nothing about the behavior of `x` in this limit besides it being in `s`.
+-/
+lemma tendsto_uniformly_on_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} {s : set α} :
+  tendsto_uniformly_on F f p s ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ 𝓟 s) (𝓤 β) :=
 begin
   refine forall_congr (λ u, forall_congr $ λ u_in, _),
   simp [mem_map, filter.eventually, mem_prod_principal]
@@ -79,10 +84,15 @@ end
 filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
 `(f x, Fₙ x) ∈ u` for all `x`. -/
 def tendsto_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
-  ∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x, (f x, F n x) ∈ u
+∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x, (f x, F n x) ∈ u
 
-lemma  tendsto_uniformly_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} :
-  tendsto_uniformly F f p ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ ⊤) (𝓤 β):=
+/--
+A sequence of functions `Fₙ` converges uniformly to a limiting function `f` w.r.t.
+filter `p` iff the function `(n, x) ↦ (f x, Fₙ x)` converges along `p ×ᶠ ⊤` to the uniformity.
+In other words: one knows nothing about the behavior of `x` in this limit.
+-/
+lemma tendsto_uniformly_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} :
+  tendsto_uniformly F f p ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ ⊤) (𝓤 β) :=
 begin
   refine forall_congr (λ u, forall_congr $ λ u_in, _),
   simp [mem_map, filter.eventually, mem_prod_top]
@@ -118,7 +128,7 @@ begin
   exact λ x, hn _
 end
 
-/-- Uniform convergence to a constant function is equivalent to convergence in in `p ×ᶠ ⊤`. -/
+/-- Uniform convergence to a constant function is equivalent to convergence in `p ×ᶠ ⊤`. -/
 lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=
 let j : β → β × β := prod.mk c in
 calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)

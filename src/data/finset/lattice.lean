@@ -983,6 +983,14 @@ lemma infi_coe [has_Inf β] (f : α → β) (s : finset α) :
   (⨅ x ∈ (↑s : set α), f x) = ⨅ x ∈ s, f x :=
 rfl
 
+lemma supr_option_to_finset [has_Sup β] (o : option α) (f : α → β) :
+  (⨆ x ∈ o.to_finset, f x) = ⨆ x ∈ o, f x :=
+by simp
+
+lemma infi_option_to_finset [has_Inf β] (o : option α) (f : α → β) :
+  (⨅ x ∈ o.to_finset, f x) = ⨅ x ∈ o, f x :=
+@supr_option_to_finset _ (order_dual β) _ _ _
+
 variables [complete_lattice β]
 
 theorem supr_singleton (a : α) (s : α → β) : (⨆ x ∈ ({a} : finset α), s x) = s a :=
@@ -990,14 +998,6 @@ by simp
 
 theorem infi_singleton (a : α) (s : α → β) : (⨅ x ∈ ({a} : finset α), s x) = s a :=
 by simp
-
-lemma supr_option_to_finset (o : option α) (f : α → β) :
-  (⨆ x ∈ o.to_finset, f x) = ⨆ x ∈ o, f x :=
-by simp
-
-lemma infi_option_to_finset (o : option α) (f : α → β) :
-  (⨅ x ∈ o.to_finset, f x) = ⨅ x ∈ o, f x :=
-@supr_option_to_finset _ (order_dual β) _ _ _
 
 variables [decidable_eq α]
 

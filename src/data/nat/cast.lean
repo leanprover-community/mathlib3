@@ -82,7 +82,7 @@ by { split_ifs; refl, }
 
 end
 
-@[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
+@[simp, norm_cast] theorem cast_one [add_zero_class α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
 
 @[simp, norm_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm
@@ -125,6 +125,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
   ((n - m : ℕ) : α) = n - m :=
 eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
+#lint only generalisation_linter
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
@@ -155,7 +156,7 @@ nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
 (cast_commute n x).eq
 
-lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
+lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
 section
@@ -214,7 +215,7 @@ end
   |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 
-lemma coe_nat_dvd [comm_semiring α] {m n : ℕ} (h : m ∣ n) :
+lemma coe_nat_dvd [semiring α] {m n : ℕ} (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
 ring_hom.map_dvd (nat.cast_ring_hom α) h
 
@@ -254,13 +255,13 @@ end prod
 
 namespace add_monoid_hom
 
-variables {A B : Type*} [add_monoid A]
+variables {A B : Type*}
 
-@[ext] lemma ext_nat {f g : ℕ →+ A} (h : f 1 = g 1) : f = g :=
+@[ext] lemma ext_nat [add_zero_class A] {f g : ℕ →+ A} (h : f 1 = g 1) : f = g :=
 ext $ λ n, nat.rec_on n (f.map_zero.trans g.map_zero.symm) $ λ n ihn,
 by simp only [nat.succ_eq_add_one, *, map_add]
 
-variables [has_one A] [add_monoid B] [has_one B]
+variables [add_monoid A] [has_one A] [add_monoid B] [has_one B]
 
 lemma eq_nat_cast (f : ℕ →+ A) (h1 : f 1 = 1) :
   ∀ n : ℕ, f n = n :=
@@ -273,7 +274,7 @@ end add_monoid_hom
 
 namespace monoid_with_zero_hom
 
-variables {A : Type*} [monoid_with_zero A]
+variables {A : Type*} [mul_zero_one_class A]
 
 /-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
 @[ext] theorem ext_nat {f g : monoid_with_zero_hom ℕ A}

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
 import order.filter.bases
 import data.finset.preimage
+import generalisation_linter
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
@@ -612,13 +613,19 @@ by simpa only [neg_mul_neg] using this
 
 end ordered_ring
 
-section linear_ordered_add_comm_group
+section linear_order_has_neg
 
-variables [linear_ordered_add_comm_group α]
+variables [linear_order α] [has_neg α]
 
 /-- $\lim_{x\to+\infty}|x|=+\infty$ -/
 lemma tendsto_abs_at_top_at_top : tendsto (abs : α → α) at_top at_top :=
 tendsto_at_top_mono le_abs_self tendsto_id
+
+end linear_order_has_neg
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α]
 
 /-- $\lim_{x\to-\infty}|x|=+\infty$ -/
 lemma tendsto_abs_at_bot_at_top : tendsto (abs : α → α) at_bot at_top :=
@@ -872,7 +879,7 @@ lemma tendsto_finset_preimage_at_top_at_top {f : α → β} (hf : function.injec
 (finset.monotone_preimage hf).tendsto_at_top_finset $
   λ x, ⟨{f x}, finset.mem_preimage.2 $ finset.mem_singleton_self _⟩
 
-lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [semilattice_sup β₁] [semilattice_sup β₂] :
+lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [preorder β₁] [preorder β₂] :
   (at_top : filter β₁) ×ᶠ (at_top : filter β₂) = (at_top : filter (β₁ × β₂)) :=
 begin
   casesI (is_empty_or_nonempty β₁).symm,
@@ -883,16 +890,16 @@ begin
   { simp only [at_top.filter_eq_bot_of_is_empty, bot_prod] },
 end
 
-lemma prod_at_bot_at_bot_eq {β₁ β₂ : Type*} [semilattice_inf β₁] [semilattice_inf β₂] :
+lemma prod_at_bot_at_bot_eq {β₁ β₂ : Type*} [preorder β₁] [preorder β₂] :
   (at_bot : filter β₁) ×ᶠ (at_bot : filter β₂) = (at_bot : filter (β₁ × β₂)) :=
 @prod_at_top_at_top_eq (order_dual β₁) (order_dual β₂) _ _
 
-lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [semilattice_sup β₁] [semilattice_sup β₂]
+lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [preorder β₁] [preorder β₂]
   (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
   (map u₁ at_top) ×ᶠ (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
 by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
 
-lemma prod_map_at_bot_eq {α₁ α₂ β₁ β₂ : Type*} [semilattice_inf β₁] [semilattice_inf β₂]
+lemma prod_map_at_bot_eq {α₁ α₂ β₁ β₂ : Type*} [preorder β₁] [preorder β₂]
   (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
   (map u₁ at_bot) ×ᶠ (map u₂ at_bot) = map (prod.map u₁ u₂) at_bot :=
 @prod_map_at_top_eq _ _ (order_dual β₁) (order_dual β₂) _ _ _ _
@@ -901,28 +908,28 @@ lemma tendsto.subseq_mem {F : filter α} {V : ℕ → set α} (h : ∀ n, V n �
   (hu : tendsto u at_top F) : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, u (φ n) ∈ V n :=
 extraction_forall_of_eventually' (λ n, tendsto_at_top'.mp hu _ (h n) : ∀ n, ∃ N, ∀ k ≥ N, u k ∈ V n)
 
-lemma tendsto_at_bot_diagonal [semilattice_inf α] : tendsto (λ a : α, (a, a)) at_bot at_bot :=
+lemma tendsto_at_bot_diagonal [preorder α] : tendsto (λ a : α, (a, a)) at_bot at_bot :=
 by { rw ← prod_at_bot_at_bot_eq, exact tendsto_id.prod_mk tendsto_id }
 
-lemma tendsto_at_top_diagonal [semilattice_sup α] : tendsto (λ a : α, (a, a)) at_top at_top :=
+lemma tendsto_at_top_diagonal [preorder α] : tendsto (λ a : α, (a, a)) at_top at_top :=
 by { rw ← prod_at_top_at_top_eq, exact tendsto_id.prod_mk tendsto_id }
 
-lemma tendsto.prod_map_prod_at_bot [semilattice_inf γ] {F : filter α} {G : filter β}
+lemma tendsto.prod_map_prod_at_bot [preorder γ] {F : filter α} {G : filter β}
   {f : α → γ} {g : β → γ} (hf : tendsto f F at_bot) (hg : tendsto g G at_bot) :
   tendsto (prod.map f g) (F ×ᶠ G) at_bot :=
 by { rw ← prod_at_bot_at_bot_eq, exact hf.prod_map hg, }
 
-lemma tendsto.prod_map_prod_at_top [semilattice_sup γ] {F : filter α} {G : filter β}
+lemma tendsto.prod_map_prod_at_top [preorder γ] {F : filter α} {G : filter β}
   {f : α → γ} {g : β → γ} (hf : tendsto f F at_top) (hg : tendsto g G at_top) :
   tendsto (prod.map f g) (F ×ᶠ G) at_top :=
 by { rw ← prod_at_top_at_top_eq, exact hf.prod_map hg, }
 
-lemma tendsto.prod_at_bot [semilattice_inf α] [semilattice_inf γ]
+lemma tendsto.prod_at_bot [preorder α] [preorder γ]
   {f g : α → γ} (hf : tendsto f at_bot at_bot) (hg : tendsto g at_bot at_bot) :
   tendsto (prod.map f g) at_bot at_bot :=
 by { rw ← prod_at_bot_at_bot_eq, exact hf.prod_map_prod_at_bot hg, }
 
-lemma tendsto.prod_at_top [semilattice_sup α] [semilattice_sup γ]
+lemma tendsto.prod_at_top [preorder α] [preorder γ]
   {f g : α → γ} (hf : tendsto f at_top at_top) (hg : tendsto g at_top at_top) :
   tendsto (prod.map f g) at_top at_top :=
 by { rw ← prod_at_top_at_top_eq, exact hf.prod_map_prod_at_top hg, }
@@ -1271,7 +1278,7 @@ open filter finset
 
 section
 
-variables {R : Type*} [linear_ordered_semiring R]
+variables {R : Type*} [ordered_semiring R] [no_top_order R] [ne_bot (at_top : filter R)]
 
 lemma exists_lt_mul_self (a : R) : ∃ x ≥ 0, a < x * x :=
 let ⟨x, hxa, hx0⟩ :=((tendsto_mul_self_at_top.eventually (eventually_gt_at_top a)).and
@@ -1347,3 +1354,5 @@ filters `at_top.map (λ s, ∑ i in s, f (g i))` and `at_top.map (λ s, ∑ i in
 This lemma is used to prove the equality `∑' x, f (g x) = ∑' y, f y` under
 the same assumptions.-/
 add_decl_doc function.injective.map_at_top_finset_sum_eq
+
+#lint only generalisation_linter

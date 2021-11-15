@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.lattice
+import generalisation_linter
 
 /-!
 # Chains and Zorn's lemmas
@@ -386,7 +387,7 @@ theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
 @zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
   hc.symm ⟨y, yc⟩) _ hx
 
-lemma chain.total {α : Type u} [preorder α] {c : set α} (H : chain (≤) c) :
+lemma chain.total {α : Type u} [has_le α] [is_refl α (≤)] {c : set α} (H : chain (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
 λ x y, H.total_of_refl
 
@@ -408,3 +409,5 @@ lemma directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
   (λ hab, (h a ha b hb hab).elim
     (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
     (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))
+
+#lint only generalisation_linter

@@ -227,7 +227,6 @@ lemma to_matrix_mul_to_matrix :
   (b.to_matrix b₂.points) ⬝ (b₂.to_matrix b.points) = 1 :=
 begin
   ext l m,
-  unfold matrix.mul matrix.dot_product,
   change (b₂.to_matrix b.points).vec_mul (b.coords (b₂.points l)) m = _,
   rw [to_matrix_vec_mul_coords, coords_apply, ← to_matrix_apply, to_matrix_self],
 end

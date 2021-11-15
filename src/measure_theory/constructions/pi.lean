@@ -596,8 +596,7 @@ begin
   refine ⟨measurable_equiv.measurable _, (measure.prod_eq $ λ s t hs ht, _).symm⟩,
   rw [measurable_equiv.map_apply, measurable_equiv.pi_fin_two_apply, fin.preimage_apply_01_prod,
     measure.pi_pi, fin.prod_univ_two],
-  { refl },
-  { exact fin.forall_fin_two.2 ⟨hs, ht⟩ }
+  refl
 end
 
 lemma volume_preserving_pi_fin_two (α : fin 2 → Type u) [Π i, measure_space (α i)]

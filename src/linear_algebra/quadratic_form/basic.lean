@@ -498,7 +498,7 @@ variables (Q : quadratic_form R M) (S)
 @[simp] lemma associated_apply (x y : M) :
   associated_hom S Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
-lemma associated_is_sym : is_sym (associated_hom S Q) :=
+lemma associated_is_sym : (associated_hom S Q).is_symm :=
 λ x y, by simp only [associated_apply, add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R N] (f : N →ₗ[R] M) :
@@ -510,7 +510,7 @@ lemma associated_to_quadratic_form (B : bilin_form R M) (x y : M) :
   associated_hom S B.to_quadratic_form x y = ⅟2 * (B x y + B y x) :=
 by simp only [associated_apply, ← polar_to_quadratic_form, polar, to_quadratic_form_apply]
 
-lemma associated_left_inverse (h : is_sym B₁) :
+lemma associated_left_inverse (h : B₁.is_symm) :
   associated_hom S (B₁.to_quadratic_form) = B₁ :=
 bilin_form.ext $ λ x y,
 by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
@@ -547,7 +547,7 @@ associated_hom ℤ
 /-- Symmetric bilinear forms can be lifted to quadratic forms -/
 instance : can_lift (bilin_form R M) (quadratic_form R M) :=
 { coe := associated_hom ℕ,
-  cond := is_sym,
+  cond := bilin_form.is_symm,
   prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
 
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
@@ -769,7 +769,7 @@ lemma nondegenerate_of_anisotropic
 on a module `M` over a ring `R` with invertible `2`, i.e. there exists some
 `x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_ne_zero [htwo : invertible (2 : R)]
-  {B : bilin_form R M} (hB₁ : B ≠ 0) (hB₂ : sym_bilin_form.is_sym B) :
+  {B : bilin_form R M} (hB₁ : B ≠ 0) (hB₂ : B.is_symm) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
   lift B to quadratic_form R M using hB₂ with Q,
@@ -785,7 +785,7 @@ variable [finite_dimensional K V]
 /-- Given a symmetric bilinear form `B` on some vector space `V` over a field `K`
 in which `2` is invertible, there exists an orthogonal basis with respect to `B`. -/
 lemma exists_orthogonal_basis [hK : invertible (2 : K)]
-  {B : bilin_form K V} (hB₂ : sym_bilin_form.is_sym B) :
+  {B : bilin_form K V} (hB₂ : B.is_symm) :
   ∃ (v : basis (fin (finrank K V)) K V), B.is_Ortho v :=
 begin
   tactic.unfreeze_local_instances,
@@ -801,7 +801,7 @@ begin
   rw [← submodule.finrank_add_eq_of_is_compl (is_compl_span_singleton_orthogonal hx).symm,
       finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
   let B' := B.restrict (B.orthogonal $ K ∙ x),
-  obtain ⟨v', hv₁⟩ := ih (B.restrict_sym hB₂ _ : sym_bilin_form.is_sym B') (nat.succ.inj hd),
+  obtain ⟨v', hv₁⟩ := ih (B.restrict_sym hB₂ _ : B'.is_symm) (nat.succ.inj hd),
   -- concatenate `x` with the basis obtained by induction
   let b := basis.mk_fin_cons x v'
     (begin

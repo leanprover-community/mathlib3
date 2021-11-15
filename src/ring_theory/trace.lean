@@ -152,7 +152,7 @@ variables {S}
 -- This is a nicer lemma than the one produced by `@[simps] def trace_form`.
 @[simp] lemma trace_form_apply (x y : S) : trace_form R S x y = trace R S (x * y) := rfl
 
-lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
+lemma trace_form_is_sym : (trace_form R S).is_symm :=
 λ x y, congr_arg (trace R S) (mul_comm _ _)
 
 lemma trace_form_to_matrix [decidable_eq ι] (i j) :

@@ -101,7 +101,7 @@ variables {f : α → ℝ≥0} {s : finset α} (h : ∑ x in s, f x = 1) (h' : �
 @[simp] lemma of_finset_apply (a : α) : of_finset f s h h' a = f a := rfl
 
 @[simp] lemma mem_support_of_finset_iff (a : α) : a ∈ (of_finset f s h h').support ↔ a ∈ s ∧ f a ≠ 0 :=
-by simpa using mt (h' a)
+by simpa [mem_support_iff] using mt (h' a)
 
 @[simp] lemma support_of_finset : (of_finset f s h h').support = s ∩ (function.support f) :=
 set.ext (mem_support_of_finset_iff h h')
@@ -151,7 +151,7 @@ rfl
 
 @[simp]
 lemma mem_support_of_multiset_iff (a : α) : a ∈ (of_multiset s hs).support ↔ a ∈ s.to_finset :=
-by simp [hs]
+by simp [mem_support_iff, hs]
 
 @[simp]
 lemma support_of_multiset : (of_multiset s hs).support = s.to_finset :=
@@ -193,7 +193,7 @@ by simp [ha]
 
 @[simp]
 lemma mem_support_uniform_of_finset_iff (a : α) : a ∈ (uniform_of_finset s hs).support ↔ a ∈ s :=
-let ⟨x, hx⟩ := hs in by simp [finset.ne_empty_of_mem hx]
+let ⟨x, hx⟩ := hs in by simp [mem_support_iff, finset.ne_empty_of_mem hx]
 
 @[simp]
 lemma support_uniform_of_finset : (uniform_of_finset s hs).support = s :=
@@ -216,7 +216,7 @@ by simpa only [uniform_of_fintype, finset.mem_univ, if_true, uniform_of_finset_a
 
 @[simp]
 lemma mem_support_uniform_of_fintype_iff (a : α) : a ∈ (uniform_of_fintype α).support :=
-by simpa using fintype.card_ne_zero
+by simpa [mem_support_iff] using fintype.card_ne_zero
 
 variable (α)
 
@@ -243,7 +243,7 @@ lemma normalize_apply (a : α) : (normalize f hf0) a = f a * (∑' x, f x)⁻¹ 
 
 @[simp]
 lemma mem_support_normalize_iff (a : α) : a ∈ (normalize f hf0).support ↔ f a ≠ 0 :=
-by simp [hf0]
+by simp [mem_support_iff, hf0]
 
 @[simp]
 lemma support_normalize : (normalize f hf0).support = function.support f :=

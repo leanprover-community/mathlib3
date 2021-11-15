@@ -22,7 +22,7 @@ functor preserves these limits.
 Given a diagram `F : K ⥤ Sheaf J D` of sheaves, and a colimit cocone on the level of presheaves,
 we show that the cocone obtained by sheafifying the cocone point is a colimit cocone of sheaves.
 
-This allows us to show that `Shead J D` has colimits (of a certain shape) as soon as `D` does.
+This allows us to show that `Sheaf J D` has colimits (of a certain shape) as soon as `D` does.
 
 -/
 namespace category_theory.Sheaf

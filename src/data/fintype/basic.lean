@@ -661,12 +661,13 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
-/-- `fin` as a map from `ℕ` to `Type` is injective. -/
+/-- `fin` as a map from `ℕ` to `Type` is injective. Note that since this is a statement about
+equality of types, using it should be avoided if possible. -/
 lemma fin_injective : function.injective fin :=
 λ m n h,
   (fintype.card_fin m).symm.trans $ (fintype.card_congr $ equiv.cast h).trans (fintype.card_fin n)
 
-/-- A reversed version of `fin.cast_eq_cast` that is easier to rewwrite with. -/
+/-- A reversed version of `fin.cast_eq_cast` that is easier to rewrite with. -/
 theorem fin.cast_eq_cast' {n m : ℕ} (h : fin n = fin m) :
   cast h = ⇑(fin.cast $ fin_injective h) :=
 (fin.cast_eq_cast _).symm

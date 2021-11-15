@@ -1000,7 +1000,7 @@ end actions
 -- both ordered ring structures and submonoids available
 
 /-- The subgroup of positive units of a linear ordered commutative ring. -/
-def units.pos_subgroup (R : Type*) [linear_ordered_comm_ring R] [nontrivial R] :
+def units.pos_subgroup (R : Type*) [linear_ordered_semiring R] :
   subgroup (units R) :=
 { carrier := {x | (0 : R) < x},
   inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,

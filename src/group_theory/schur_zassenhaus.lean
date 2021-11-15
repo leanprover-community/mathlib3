@@ -189,14 +189,14 @@ variables {G : Type u} [group G] [fintype G] {N : subgroup G} [normal N]
 
 include h1 h2 h3
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 @[nolint unused_arguments] private lemma step0 : N ≠ ⊥ :=
 begin
   unfreezingI { rintro rfl },
   exact h3 ⊤ is_complement'_bot_top,
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step1 (K : subgroup G) (hK : K ⊔ N = ⊤) : K = ⊤ :=
 begin
   contrapose! h3,
@@ -220,7 +220,7 @@ begin
   exact ⟨H.map K.subtype, is_complement'_of_coprime h7 h8⟩,
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step2 (K : subgroup G) [K.normal] (hK : K ≤ N) : K = ⊥ ∨ K = N :=
 begin
   have : function.surjective (quotient_group.mk' K) := quotient.surjective_quotient_mk',
@@ -251,7 +251,7 @@ begin
     { exact h4.2 (le_antisymm hK hH) } },
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step3 (K : subgroup N) [(K.map N.subtype).normal] : K = ⊥ ∨ K = ⊤ :=
 begin
   have key := step2 h1 h2 h3 (K.map N.subtype) K.map_subtype_le,
@@ -261,18 +261,18 @@ begin
   rwa [inj.eq_iff, inj.eq_iff] at key,
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step4 : (fintype.card N).min_fac.prime :=
 (nat.min_fac_prime (N.one_lt_card_iff_ne_bot.mpr (step0 h1 h2 h3)).ne')
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step5 {P : sylow (fintype.card N).min_fac N} : P.1 ≠ ⊥ :=
 begin
   haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
   exact P.ne_bot_of_dvd_card (fintype.card N).min_fac_dvd,
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step6 : is_p_group (fintype.card N).min_fac N :=
 begin
   haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
@@ -283,7 +283,7 @@ begin
   exact (step3 h1 h2 h3 P.1).resolve_left (step5 h1 h2 h3),
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma step7 : is_commutative N :=
 begin
   haveI := N.bot_or_nontrivial.resolve_left (step0 h1 h2 h3),
@@ -292,7 +292,7 @@ begin
     (step6 h1 h2 h3).bot_lt_center.ne') (mem_top h) g⟩⟩,
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 lemma contradiction : false :=
 begin
   haveI := step7 h1 h2 h3,
@@ -303,7 +303,7 @@ end schur_zassenhaus_induction
 
 variables {n : ℕ} {G : Type u} [group G]
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma exists_right_complement'_of_coprime_aux' [fintype G] (hG : fintype.card G = n)
   {N : subgroup G} [N.normal] (hN : nat.coprime (fintype.card N) N.index) :
   ∃ H : subgroup G, is_complement' N H :=
@@ -318,7 +318,7 @@ end
 /-- **Schur-Zassenhaus** for normal subgroups:
   If `H : subgroup G` is normal, and has order coprime to its index, then there exists a
   subgroup `K` which is a (right) complement of `H`. -/
-theorem exists_right_complement'_of_coprime [fintype G]
+theorem exists_right_complement'_of_coprime_of_fintype [fintype G]
   {N : subgroup G} [N.normal] (hN : nat.coprime (fintype.card N) N.index) :
   ∃ H : subgroup G, is_complement' N H :=
 exists_right_complement'_of_coprime_aux' rfl hN
@@ -326,7 +326,7 @@ exists_right_complement'_of_coprime_aux' rfl hN
 /-- **Schur-Zassenhaus** for normal subgroups:
   If `H : subgroup G` is normal, and has order coprime to its index, then there exists a
   subgroup `K` which is a (right) complement of `H`. -/
-theorem exists_right_complement'_of_coprime'
+theorem exists_right_complement'_of_coprime
   {N : subgroup G} [N.normal] (hN : nat.coprime (nat.card N) N.index) :
   ∃ H : subgroup G, is_complement' N H :=
 begin
@@ -345,23 +345,23 @@ begin
   haveI := (cardinal.lt_omega_iff_fintype.mp
     (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hN3))).some,
   rw nat.card_eq_fintype_card at hN,
-  exact exists_right_complement'_of_coprime hN,
+  exact exists_right_complement'_of_coprime_of_fintype hN,
 end
 
 /-- **Schur-Zassenhaus** for normal subgroups:
   If `H : subgroup G` is normal, and has order coprime to its index, then there exists a
   subgroup `K` which is a (left) complement of `H`. -/
-theorem exists_left_complement'_of_coprime
+theorem exists_left_complement'_of_coprime_of_fintype
   [fintype G] {N : subgroup G} [N.normal] (hN : nat.coprime (fintype.card N) N.index) :
   ∃ H : subgroup G, is_complement' H N :=
-Exists.imp (λ _, is_complement'.symm) (exists_right_complement'_of_coprime hN)
+Exists.imp (λ _, is_complement'.symm) (exists_right_complement'_of_coprime_of_fintype hN)
 
 /-- **Schur-Zassenhaus** for normal subgroups:
   If `H : subgroup G` is normal, and has order coprime to its index, then there exists a
   subgroup `K` which is a (left) complement of `H`. -/
-theorem exists_left_complement'_of_coprime'
+theorem exists_left_complement'_of_coprime
   {N : subgroup G} [N.normal] (hN : nat.coprime (nat.card N) N.index) :
   ∃ H : subgroup G, is_complement' H N :=
-Exists.imp (λ _, is_complement'.symm) (exists_right_complement'_of_coprime' hN)
+Exists.imp (λ _, is_complement'.symm) (exists_right_complement'_of_coprime hN)
 
 end subgroup

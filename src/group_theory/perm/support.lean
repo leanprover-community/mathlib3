@@ -383,8 +383,8 @@ begin
   subst H,
   simp only [swap_self, support_refl, insert_singleton_self_eq] at h,
   have : x ∈ ∅,
-    { rw h,
-      exact mem_singleton.mpr rfl },
+  { rw h,
+    exact mem_singleton.mpr rfl },
   simpa
 end
 

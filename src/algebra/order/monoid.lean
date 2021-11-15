@@ -96,10 +96,16 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
-@[protect_proj, ancestor linear_ordered_add_comm_monoid order_top]
+@[protect_proj, ancestor linear_ordered_add_comm_monoid has_top]
 class linear_ordered_add_comm_monoid_with_top (α : Type*)
-  extends linear_ordered_add_comm_monoid α, order_top α :=
+  extends linear_ordered_add_comm_monoid α, has_top α :=
+(le_top : ∀ x : α, x ≤ ⊤)
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
+
+@[priority 100]    -- see Note [lower instance priority]
+instance linear_ordered_add_comm_monoid_with_top.to_order_top (α : Type u)
+  [h : linear_ordered_add_comm_monoid_with_top α] : order_top α :=
+{ ..h }
 
 section linear_ordered_add_comm_monoid_with_top
 variables [linear_ordered_add_comm_monoid_with_top α] {a b : α}
@@ -460,9 +466,15 @@ end with_bot
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other nontrivial `ordered_add_comm_group`s. -/
-@[protect_proj, ancestor ordered_add_comm_monoid order_bot]
-class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
+@[protect_proj, ancestor ordered_add_comm_monoid has_bot]
+class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, has_bot α :=
+(bot_le : ∀ x : α, ⊥ ≤ x)
 (le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
+
+@[priority 100]  -- see Note [lower instance priority]
+instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
+  [h : canonically_ordered_add_monoid α] : order_bot α :=
+{ ..h }
 
 /-- A canonically ordered monoid is an ordered commutative monoid
   in which the ordering coincides with the divisibility relation,
@@ -473,9 +485,15 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
   Dedekind domain satisfy this; collections of all things ≤ 1 seem to
   be more natural that collections of all things ≥ 1).
 -/
-@[protect_proj, ancestor ordered_comm_monoid order_bot, to_additive]
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, order_bot α :=
+@[protect_proj, ancestor ordered_comm_monoid has_bot, to_additive]
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, has_bot α :=
+(bot_le : ∀ x : α, ⊥ ≤ x)
 (le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)
+
+@[priority 100, to_additive]  -- see Note [lower instance priority]
+instance canonically_ordered_monoid.to_order_bot (α : Type u)
+  [h : canonically_ordered_monoid α] : order_bot α :=
+{ ..h }
 
 section canonically_ordered_monoid
 

@@ -602,6 +602,8 @@ instance : has_scalar S (M →ₗ[R] M₂) :=
 
 @[simp] lemma smul_apply (a : S) (f : M →ₗ[R] M₂) (x : M) : (a • f) x = a • f x := rfl
 
+lemma coe_smul (a : S) (f : M →ₗ[R] M₂) : ⇑(a • f) = a • f := rfl
+
 instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₗ[R] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
@@ -631,6 +633,9 @@ variables [semiring S] [module S M₂] [smul_comm_class R S M₂]
 instance : module S (M →ₗ[R] M₂) :=
 { add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+instance [no_zero_smul_divisors S M₂] : no_zero_smul_divisors S (M →ₗ[R] M₂) :=
+coe_injective.no_zero_smul_divisors _ rfl coe_smul
 
 end module
 
@@ -725,3 +730,47 @@ instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 end endomorphisms
 
 end linear_map
+
+/-! ### Actions as module endomorphisms -/
+
+namespace distrib_mul_action
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a linear map.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+@[simps]
+def to_linear_map (s : S) : M →ₗ[R] M :=
+{ to_fun := has_scalar.smul s,
+  map_add' := smul_add s,
+  map_smul' := λ a b, smul_comm _ _ _ }
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_End`. -/
+@[simps]
+def to_module_End : S →* module.End R M :=
+{ to_fun := to_linear_map R M,
+  map_one' := linear_map.ext $ one_smul _,
+  map_mul' := λ a b, linear_map.ext $ mul_smul _ _ }
+
+end distrib_mul_action
+
+namespace module
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+variables [semiring S] [module S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_module_End`. -/
+@[simps]
+def to_module_End : S →+* module.End R M :=
+{ to_fun := distrib_mul_action.to_linear_map R M,
+  map_zero' := linear_map.ext $ zero_smul _,
+  map_add' := λ f g, linear_map.ext $ add_smul _ _,
+  ..distrib_mul_action.to_module_End R M }
+
+end module

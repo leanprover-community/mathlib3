@@ -33,7 +33,7 @@ hs.elim hi hj (finset.not_disjoint_iff.2 ⟨a, hai, haj⟩)
 lemma pairwise_disjoint.image_finset_of_le [decidable_eq ι] [semilattice_inf_bot α]
   {s : finset ι} {f : ι → α} (hs : (s : set ι).pairwise_disjoint f) {g : ι → ι}
   (hf : ∀ a, f (g a) ≤ f a) :
-  (s.image g :set ι).pairwise_disjoint f :=
+  (s.image g : set ι).pairwise_disjoint f :=
 begin
   rw coe_image,
   exact hs.image_of_le hf,

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
-import data.finset.lattice
 import data.finset.pairwise
+import order.sup_indep
 
 /-!
 # Finite partitions
@@ -42,41 +42,42 @@ Link `finpartition` and `setoid.is_partition`.
 open finset function
 open_locale big_operators
 
-variables {ι ι' α : Type*}
+variables (ι : Type*) {ι' α : Type*} [fintype ι] [fintype ι']
 
 lemma set.univ_unique [unique α] : @set.univ α = {default α} :=
 begin
   ext,
-  simp only [set.mem_univ, set.mem_singleton_iff, eq_iff_true_of_subsingleton],
+  exact iff_of_true trivial (subsingleton.elim x (default α)),
 end
 
-/-- A finite partition of `a : α` is a pairwise disjoint finite set of elements whose supremum is
+/-- A finite partition of `a : α` is a sup-independent finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
-@[ext] structure finpartition (ι : Type*) [fintype ι] [distrib_lattice_bot α] (a : α) :=
+@[ext] structure finpartition [distrib_lattice_bot α] (a : α) :=
 (parts : ι → α)
-(disjoint : (set.univ : set ι).pairwise_disjoint parts)
+(sup_indep : univ.sup_indep parts)
 (sup_parts : univ.sup parts = a)
 (ne_bot : ∀ i, parts i ≠ ⊥)
 
+variables {ι}
 -- instance {ι : Type*} [fintype ι] [distrib_lattice_bot α] {a : α} :
 --   has_coe (finpartition ι a) (ι → α) :=
 -- { coe := λ F, F.parts }
 
-attribute [protected] finpartition.disjoint
+attribute [protected] finpartition.sup_indep
 
 namespace finpartition
 section distrib_lattice_bot
-variables [fintype ι] [fintype ι'] [distrib_lattice_bot α]
+variables [distrib_lattice_bot α]
 
 /-- A `finpartition` constructor which does not insist on `⊥` not being a part. -/
-@[simps] def of_erase' [decidable_eq α] {a : α} (parts : ι → α)
-  (disj : (set.univ : set ι).pairwise_disjoint parts) (sup_parts : univ.sup parts = a) :
+@[simps] def of_erase' [decidable_eq α] {a : α} (parts : ι → α) (disj : univ.sup_indep parts)
+  (sup_parts : univ.sup parts = a) :
   finpartition {i // parts i ≠ ⊥} a :=
 { parts := parts ∘ coe,
-  disjoint :=
+  sup_indep :=
   begin
     rintro i - j - ne',
-    apply disj _ (set.mem_univ _) _ (set.mem_univ _),
+    apply disj _ (mem_univ _),
     simpa [subtype.ext_iff] using ne',
   end,
   sup_parts := begin

@@ -43,7 +43,7 @@ open set function topological_space relation
 open_locale classical topological_space
 
 universes u v
-variables {α : Type u} {β : Type v} {ι : Sort*} [topological_space α] {s t : set α}
+variables {α : Type u} {β : Type v} [topological_space α] {s t : set α}
 
 section preconnected
 
@@ -156,9 +156,10 @@ end
 /-- Preconnectedness of the Union of a family of preconnected sets
 indexed by the vertices of a preconnected graph,
 where two vertices are joined when the corresponding sets intersect. -/
-theorem is_preconnected.Union_of_trans_gen {ι} {s : ι → set α} (H : ∀ i, is_preconnected (s i))
+theorem is_preconnected.Union_of_trans_gen {ι : Type*} {s : ι → set α}
+  (H : ∀ i, is_preconnected (s i))
   (K : ∀ i j, i ≠ j → trans_gen (λ i j : ι, (s i ∩ s j).nonempty) i j) :
-    is_preconnected (⋃ n, s n) :=
+  is_preconnected (⋃ n, s n) :=
 begin
   let R := λ i j : ι, (s i ∩ s j).nonempty,
   have P : ∀ (i j : ι), trans_gen R i j →

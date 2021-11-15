@@ -1913,7 +1913,7 @@ end
 measurability of the function being integrated.) -/
 lemma lintegral_map_equiv [measurable_space β] (f : β → ℝ≥0∞) (g : α ≃ᵐ β) :
   ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
-g.measurable_embedding.lintegral_map f 
+g.measurable_embedding.lintegral_map f
 
 section dirac_and_count
 variable [measurable_space α]
@@ -2304,7 +2304,7 @@ lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α}
   (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : ae_measurable f μ)
   (hf : ∀ s, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
-@lintegral_le_of_forall_fin_meas_le' _ _ _ _ le_rfl (by rwa trim_eq_self) C _ hf_meas hf
+@lintegral_le_of_forall_fin_meas_le' _ _ _ _ _ (by rwa trim_eq_self) C _ hf_meas hf
 
 /-- A sigma-finite measure is absolutely continuous with respect to some finite measure. -/
 lemma exists_absolutely_continuous_is_finite_measure

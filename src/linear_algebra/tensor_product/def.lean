@@ -65,7 +65,7 @@ The localized notations are `M ⊗ N` and `M ⊗[R] N`, accessed by `open_locale
 def tensor_product : Type* :=
 (add_con_gen (tensor_product.eqv R M N)).quotient
 
-variables {R}
+variables {R M N}
 
 localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
 localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
@@ -81,7 +81,7 @@ instance : add_comm_semigroup (M ⊗[R] N) :=
   .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
 
 instance : add_comm_monoid (M ⊗[R] N) :=
-{ .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
+{ .. tensor_product.add_comm_semigroup, .. tensor_product.add_zero_class}
 
 instance : inhabited (M ⊗[R] N) := ⟨0⟩
 
@@ -138,6 +138,8 @@ used.
 class compatible_smul [has_scalar R'ᵒᵖ M] [has_scalar R' N] :=
 (rsmul_tmul : ∀ (r : R') (m : M) (n : N), (m <• r) ⊗ₜ n = m ⊗ₜ[R] (r • n))
 
+variables {R R' M N}
+
 @[priority 100]
 instance compatible_smul.is_scalar_tower
   [has_scalar R' R] [has_scalar R'ᵒᵖ R] [is_symmetric_smul R' R]
@@ -159,7 +161,6 @@ lemma rsmul_tmul [has_scalar R'ᵒᵖ M] [has_scalar R' N] [compatible_smul R R'
   (r : R') (m : M) (n : N) : (m <• r) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 compatible_smul.rsmul_tmul _ _ _
 
-variables {R R' M N}
 /-- In the case of a symmetric action on `M`, we can move a `smul` vom the left to the
 right of the tensor product. -/
 lemma smul_tmul [has_scalar R' M] [has_scalar R'ᵒᵖ M] [is_symmetric_smul R' M]

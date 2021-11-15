@@ -708,3 +708,88 @@ by { have h := map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
 by { have h := map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
 
 end linear_map
+
+section ring
+
+variables {R : Type*} [semiring R]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
+
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+  [add_comm_group S]
+variables [module R M] [module Rᵒᵖ M] [is_symmetric_smul R M]
+variables [module R N] [module R P] [module R Q] [module R S]
+
+namespace tensor_product
+
+open_locale tensor_product
+open linear_map
+
+variables (R)
+
+/-- Auxiliary function to defining negation multiplication on tensor product. -/
+def neg.aux : free_add_monoid (M × N) →+ M ⊗[R] N :=
+free_add_monoid.lift $ λ p : M × N, (-p.1) ⊗ₜ p.2
+
+variables {R}
+
+theorem neg.aux_of (m : M) (n : N) :
+  neg.aux R (free_add_monoid.of (m, n)) = (-m) ⊗ₜ[R] n :=
+rfl
+
+instance : has_neg (M ⊗[R] N) :=
+{ neg := (add_con_gen (tensor_product.eqv R M N)).lift (neg.aux R) $ add_con.add_con_gen_le $
+    λ x y hxy, match x, y, hxy with
+    | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_zero, neg.aux_of, neg_zero, zero_tmul]
+    | _, _, (eqv.of_zero_right m)      := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_zero, neg.aux_of, tmul_zero]
+    | _, _, (eqv.of_add_left m₁ m₂ n)  := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_add, neg.aux_of, neg_add, add_tmul]
+    | _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_add, neg.aux_of, tmul_add]
+    | _, _, (eqv.of_smul s m n)        := (add_con.ker_rel _).2 $
+        by rw [neg.aux_of, neg.aux_of, ←smul_neg, rsmul_tmul]
+    | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_add, add_comm]
+    end }
+
+protected theorem add_left_neg (x : M ⊗[R] N) : -x + x = 0 :=
+tensor_product.induction_on x
+  (by { rw [add_zero], apply (@neg.aux R _ M N _ _ _ _ _ _).map_zero })
+  (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
+  (λ x y hx hy, by {
+    unfold has_neg.neg sub_neg_monoid.neg,
+    rw add_monoid_hom.map_add,
+    ac_change (-x + x) + (-y + y) = 0,
+    rw [hx, hy, add_zero], })
+
+instance : add_comm_group (M ⊗[R] N) :=
+{ neg := has_neg.neg,
+  sub := _,
+  sub_eq_add_neg := λ _ _, rfl,
+  add_left_neg := λ x, by exact tensor_product.add_left_neg x,
+  zsmul := λ n v, n • v,
+  zsmul_zero' := by simp [tensor_product.zero_smul],
+  zsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  zsmul_neg' := λ n x, begin
+    change (- n.succ : ℤ) • x = - (((n : ℤ) + 1) • x),
+    rw [← zero_add (-↑(n.succ) • x), ← tensor_product.add_left_neg (↑(n.succ) • x), add_assoc,
+      ← add_smul, ← sub_eq_add_neg, sub_self, zero_smul, add_zero],
+    refl,
+  end,
+  .. tensor_product.add_comm_monoid }
+
+lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
+
+lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) :=
+by { apply eq_neg_of_add_eq_zero, rw [←tmul_add], simp }
+
+lemma tmul_sub (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ - n₂) = (m ⊗ₜ[R] n₁) - (m ⊗ₜ[R] n₂) :=
+by { apply eq_sub_of_add_eq, rw [←tmul_add], simp }
+
+lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R] n) - (m₂ ⊗ₜ[R] n) :=
+by { apply eq_sub_of_add_eq, rw [←add_tmul], simp }
+
+end tensor_product
+
+end ring

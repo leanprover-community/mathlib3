@@ -1642,38 +1642,38 @@ variables [measurable_space β] [metric_space β] [borel_space β]
 
 open metric
 
-/-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable.
-The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
-don't need that case yet. -/
-lemma measurable_of_tendsto_nnreal' {ι ι'} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
-  [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
-  {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) : measurable g :=
+/-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable. -/
+lemma measurable_of_tendsto_nnreal' {ι} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
+  [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  measurable g :=
 begin
+  rcases u.exists_seq_tendsto with ⟨x, hx⟩,
   rw [tendsto_pi] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
-  have : ∀ x, liminf u (λ n, (f n x : ℝ≥0∞)) = (g x : ℝ≥0∞) :=
-  λ x, ((ennreal.continuous_coe.tendsto (g x)).comp (lim x)).liminf_eq,
-  simp_rw [← this],
-  show measurable (λ x, liminf u (λ n, (f n x : ℝ≥0∞))),
-  exact measurable_liminf' (λ i, (hf i).coe_nnreal_ennreal) hu hs,
+  have : ∀ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞)) = (g y : ℝ≥0∞) :=
+    λ y, ((ennreal.continuous_coe.tendsto (g y)).comp $ (lim y).comp hx).liminf_eq,
+  simp only [← this],
+  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
+  exact measurable_liminf (λ n, (hf (x n)).coe_nnreal_ennreal),
 end
 
 /-- A sequential limit of measurable `ℝ≥0` valued functions is measurable. -/
 lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ≥0}
   (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
-measurable_of_tendsto_nnreal' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
+measurable_of_tendsto_nnreal' at_top hf lim
 
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
 The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
 don't need that case yet. -/
-lemma measurable_of_tendsto_metric' {ι ι'} {f : ι → α → β} {g : α → β}
-  (u : filter ι) [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
-  {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
+lemma measurable_of_tendsto_metric' {ι} {f : ι → α → β} {g : α → β}
+  (u : filter ι) [ne_bot u] [is_countably_generated u]
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
   measurable g :=
 begin
   apply measurable_of_is_closed', intros s h1s h2s h3s,
   have : measurable (λ x, inf_nndist (g x) s),
-  { refine measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) _ hu hs, swap,
-    rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
+  { suffices : tendsto (λ i x, inf_nndist (f i x) s) u (𝓝 (λ x, inf_nndist (g x) s)),
+      from measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) this,
+    rw [tendsto_pi] at lim ⊢, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
   have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
   { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
@@ -1684,11 +1684,11 @@ end
 lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
   (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) :
   measurable g :=
-measurable_of_tendsto_metric' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
+measurable_of_tendsto_metric' at_top hf lim
 
 lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
-  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
+  (h_ae_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   ae_measurable g μ :=
 begin
   let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (𝓝 (g x)),

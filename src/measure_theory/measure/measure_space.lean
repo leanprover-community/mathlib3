@@ -1134,6 +1134,8 @@ variable [measurable_space α]
 def dirac (a : α) : measure α :=
 (outer_measure.dirac a).to_measure (by simp)
 
+instance : measure_space punit := ⟨dirac punit.star⟩
+
 lemma le_dirac_apply {a} : s.indicator 1 a ≤ dirac a s :=
 outer_measure.dirac_apply a s ▸ le_to_measure_apply _ _ _
 

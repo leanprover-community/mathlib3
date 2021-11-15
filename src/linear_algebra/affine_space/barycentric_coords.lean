@@ -265,4 +265,18 @@ end
 
 end comm_ring
 
+section division_ring
+
+variables [division_ring k] [module k V]
+include V
+
+lemma exists_affine_basis : ∃ (s : set P), nonempty (affine_basis ↥s k P) :=
+begin
+  obtain ⟨s, -, h_tot, h_ind⟩ := exists_affine_independent k V (set.univ : set P),
+  refine ⟨s, ⟨⟨(coe : s → P), h_ind, _⟩⟩⟩,
+  rw [subtype.range_coe, h_tot, affine_subspace.span_univ],
+end
+
+end division_ring
+
 end affine_basis

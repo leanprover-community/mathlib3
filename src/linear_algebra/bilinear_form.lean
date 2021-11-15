@@ -955,9 +955,9 @@ def is_refl (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = 0 → B y x = 
 
 end bilin_form
 
-namespace refl_bilin_form
+namespace bilin_form.is_refl
 
-open refl_bilin_form bilin_form
+open bilin_form.is_refl bilin_form
 
 variable (H : B.is_refl)
 
@@ -966,7 +966,7 @@ lemma eq_zero : ∀ {x y : M}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_sym {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
-end refl_bilin_form
+end bilin_form.is_refl
 
 namespace bilin_form
 
@@ -975,9 +975,9 @@ def is_symm (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
 
 end bilin_form
 
-namespace sym_bilin_form
+namespace bilin_form.is_symm
 
-open sym_bilin_form bilin_form
+open bilin_form.is_symm bilin_form
 
 variable (H : B.is_symm)
 
@@ -986,7 +986,7 @@ lemma sym (x y : M) : B x y = B y x := H x y
 lemma is_refl : B.is_refl := λ x y H1, H x y ▸ H1
 
 lemma ortho_sym {x y : M} :
-  is_ortho B x y ↔ is_ortho B y x := refl_bilin_form.ortho_sym (is_refl H)
+  is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_sym
 
 lemma is_sym_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
 begin
@@ -999,7 +999,7 @@ begin
     simp }
 end
 
-end sym_bilin_form
+end bilin_form.is_symm
 
 namespace bilin_form
 /-- The proposition that a bilinear form is alternating -/
@@ -1007,14 +1007,11 @@ def is_alt (B : bilin_form R M) : Prop := ∀ (x : M), B x x = 0
 
 end bilin_form
 
-namespace alt_bilin_form
+namespace bilin_form.is_alt
 
-open alt_bilin_form bilin_form
+open bilin_form.is_alt bilin_form
 
-variable (H : B.is_alt)
-variable (H₁ : B₁.is_alt)
-
-lemma self_eq_zero (x : M) : B x x = 0 := H x
+lemma self_eq_zero (H : B.is_alt) (x : M) : B x x = 0 := H x
 
 lemma neg (H : B₁.is_alt) (x y : M₁) :
   - B₁ x y = B₁ y x :=
@@ -1034,9 +1031,9 @@ begin
 end
 
 lemma ortho_sym (H : B₁.is_alt) {x y : M₁} :
-  is_ortho B₁ x y ↔ is_ortho B₁ y x := refl_bilin_form.ortho_sym (is_refl H)
+  is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_sym
 
-end alt_bilin_form
+end bilin_form.is_alt
 
 namespace bilin_form
 

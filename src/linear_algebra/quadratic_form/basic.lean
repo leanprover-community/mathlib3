@@ -462,7 +462,7 @@ end
 end bilin_form
 
 namespace quadratic_form
-open bilin_form sym_bilin_form
+open bilin_form bilin_form.is_symm
 
 section associated_hom
 variables (S) [comm_semiring S] [algebra S R]

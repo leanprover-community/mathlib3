@@ -286,6 +286,12 @@ instance _root_.has_mul.to_has_opposite_scalar [has_mul α] : has_scalar (opposi
 
 @[simp] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
 
+-- TODO: add an additive version once we have additive opposites
+/-- The right regular action of a group on itself is transitive. -/
+instance _root_.mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
+  mul_action.is_pretransitive Gᵒᵖ G :=
+⟨λ x y, ⟨op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩
+
 instance _root_.semigroup.opposite_smul_comm_class [semigroup α] :
   smul_comm_class (opposite α) α α :=
 { smul_comm := λ x y z, (mul_assoc _ _ _) }

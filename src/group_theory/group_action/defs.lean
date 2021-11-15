@@ -22,7 +22,8 @@ notation classes `has_scalar` and its additive version `has_vadd`:
 
 The hierarchy is extended further by `module`, defined elsewhere.
 
-Also provided are type-classes regarding the interaction of different group actions,
+Also provided are typeclasses for faithful and transitive actions, and typeclasses regarding the
+interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
 * `is_scalar_tower M N α` (no additive version).
@@ -45,6 +46,10 @@ group action
 variables {M N G A B α β γ : Type*}
 
 open function
+
+/-!
+### Faithful actions
+-/
 
 /-- Typeclass for faithful actions. -/
 class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
@@ -78,6 +83,47 @@ instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := �
 class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
+
+/-!
+### (Pre)transitive action
+
+`M` acts pretransitively on `α` if for any `x y` there is `g` such that `g • x = y` (or `g +ᵥ x = y`
+for an additive action). A transitive action should furthermore have `α` nonempty.
+
+In this section we define typeclasses `mul_action.is_pretransitive` and
+`add_action.is_pretransitive` and provide `mul_action.exists_smul_eq`/`add_action.exists_vadd_eq`,
+`mul_action.surjective_smul`/`add_action.surjective_vadd` as public interface to access this
+property. We do not provide typeclasses `*_action.is_transitive`; users should assume
+`[mul_action.is_pretransitive M α] [nonempty α]` instead. -/
+
+/-- `M` acts pretransitively on `α` if for any `x y` there is `g` such that `g +ᵥ x = y`.
+  A transitive action should furthermore have `α` nonempty. -/
+class add_action.is_pretransitive (M α : Type*) [has_vadd M α] : Prop :=
+(exists_vadd_eq : ∀ x y : α, ∃ g : M, g +ᵥ x = y)
+
+/-- `M` acts pretransitively on `α` if for any `x y` there is `g` such that `g • x = y`.
+  A transitive action should furthermore have `α` nonempty. -/
+@[to_additive] class mul_action.is_pretransitive (M α : Type*) [has_scalar M α] : Prop :=
+(exists_smul_eq : ∀ x y : α, ∃ g : M, g • x = y)
+
+namespace mul_action
+
+variables (M) {α} [has_scalar M α] [is_pretransitive M α]
+
+@[to_additive] lemma exists_smul_eq (x y : α) : ∃ m : M, m • x = y :=
+is_pretransitive.exists_smul_eq x y
+
+@[to_additive] lemma surjective_smul (x : α) : surjective (λ c : M, c • x) := exists_smul_eq M x
+
+/-- The regular action of a group on itself is transitive. -/
+@[to_additive] instance regular.is_pretransitive [group G] : is_pretransitive G G :=
+⟨λ x y, ⟨y * x⁻¹, inv_mul_cancel_right _ _⟩⟩
+
+end mul_action
+
+/-!
+### Scalar tower and commuting actions
+-/
 
 /-- A typeclass mixin saying that two additive actions on the same space commute. -/
 class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=

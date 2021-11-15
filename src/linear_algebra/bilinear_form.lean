@@ -959,7 +959,7 @@ variable (H : B.is_refl)
 
 lemma eq_zero : ∀ {x y : M}, B x y = 0 → B y x = 0 := λ x y, H x y
 
-lemma ortho_sym {x y : M} :
+lemma ortho_comm {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
 end is_refl
@@ -971,14 +971,16 @@ namespace is_symm
 
 variable (H : B.is_symm)
 
-lemma sym (x y : M) : B x y = B y x := H x y
+protected lemma eq (x y : M) : B x y = B y x := H x y
 
 lemma is_refl : B.is_refl := λ x y H1, H x y ▸ H1
 
-lemma ortho_sym {x y : M} :
-  is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_sym
+lemma ortho_comm {x y : M} :
+  is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
-lemma is_sym_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
+end is_symm
+
+lemma is_symm_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
 begin
   split,
   { intros h,
@@ -988,8 +990,6 @@ begin
     conv_lhs { rw ← h },
     simp }
 end
-
-end is_symm
 
 /-- The proposition that a bilinear form is alternating -/
 def is_alt (B : bilin_form R M) : Prop := ∀ (x : M), B x x = 0
@@ -1015,8 +1015,8 @@ begin
   rw [←neg H, h, neg_zero],
 end
 
-lemma ortho_sym (H : B₁.is_alt) {x y : M₁} :
-  is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_sym
+lemma ortho_comm (H : B₁.is_alt) {x y : M₁} :
+  is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_comm
 
 end is_alt
 

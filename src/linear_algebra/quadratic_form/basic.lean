@@ -462,7 +462,7 @@ end
 end bilin_form
 
 namespace quadratic_form
-open bilin_form bilin_form.is_symm
+open bilin_form
 
 section associated_hom
 variables (S) [comm_semiring S] [algebra S R]
@@ -513,7 +513,7 @@ by simp only [associated_apply, ← polar_to_quadratic_form, polar, to_quadratic
 lemma associated_left_inverse (h : B₁.is_symm) :
   associated_hom S (B₁.to_quadratic_form) = B₁ :=
 bilin_form.ext $ λ x y,
-by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
+by rw [associated_to_quadratic_form, is_symm.eq h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
 
 lemma to_quadratic_form_associated : (associated_hom S Q).to_quadratic_form = Q :=
 quadratic_form.ext $ λ x,

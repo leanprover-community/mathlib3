@@ -67,14 +67,14 @@ theorem span_gcd {α} [euclidean_domain α] (x y : α) :
   span ({gcd x y} : set α) = span ({x, y} : set α) :=
 begin
   letI := euclidean_domain.gcd_monoid α,
-  convert span_gcd x y,
+  exact span_gcd x y,
 end
 
 theorem gcd_is_unit_iff {α} [euclidean_domain α] {x y : α} :
   is_unit (gcd x y) ↔ is_coprime x y :=
 begin
   letI := euclidean_domain.gcd_monoid α,
-  convert gcd_is_unit_iff x y,
+  exact gcd_is_unit_iff x y,
 end
 
 -- this should be proved for UFDs surely?
@@ -83,7 +83,7 @@ theorem is_coprime_of_dvd {α} [euclidean_domain α] {x y : α}
   is_coprime x y :=
 begin
   letI := euclidean_domain.gcd_monoid α,
-  convert is_coprime_of_dvd x y z H,
+  exact is_coprime_of_dvd x y z H,
 end
 
 -- this should be proved for UFDs surely?
@@ -91,7 +91,7 @@ theorem dvd_or_coprime {α} [euclidean_domain α] (x y : α)
   (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
 begin
   letI := euclidean_domain.gcd_monoid α,
-  convert dvd_or_coprime x y h,
+  exact dvd_or_coprime x y h,
 end
 
 end euclidean_domain

@@ -149,6 +149,16 @@ calc (L₂ ⟶ L₁) ≃ _         : (iso.hom_congr L₂.left_unitor L₁.right_
            ... ≃ _         : transfer_nat_trans adj₁ adj₂
            ... ≃ (R₁ ⟶ R₂) : R₁.right_unitor.hom_congr R₂.left_unitor
 
+lemma transfer_nat_trans_self_app (f : L₂ ⟶ L₁) (X : D) :
+  (transfer_nat_trans_self adj₁ adj₂ f).app X =
+    adj₂.unit.app (R₁.obj X) ≫ R₂.map (f.app (R₁.obj X)) ≫ R₂.map (adj₁.counit.app X) :=
+by { dsimp [transfer_nat_trans_self, transfer_nat_trans], simp }
+
+lemma transfer_nat_trans_self_symm_app (f : R₁ ⟶ R₂) (X : C) :
+  ((transfer_nat_trans_self adj₁ adj₂).symm f).app X =
+    L₂.map (adj₁.unit.app X) ≫ L₂.map (f.app (L₁.obj X)) ≫ adj₂.counit.app (L₁.obj X) :=
+by { dsimp [transfer_nat_trans_self, transfer_nat_trans], simp }
+
 lemma transfer_nat_trans_self_counit (f : L₂ ⟶ L₁) (X) :
   L₂.map ((transfer_nat_trans_self adj₁ adj₂ f).app _) ≫ adj₂.counit.app X =
     f.app _ ≫ adj₁.counit.app X :=
@@ -211,20 +221,29 @@ by rw [transfer_nat_trans_self_symm_comp, gf, transfer_nat_trans_self_symm_id]
 If `f` is an isomorphism, then the transferred natural transformation is an isomorphism.
 The converse is given in `transfer_nat_trans_self_of_iso`.
 -/
-instance transfer_nat_trans_self_iso (f : L₂ ⟶ L₁) [is_iso f] :
+def transfer_nat_trans_self_iso (f : L₂ ≅ L₁) : R₁ ≅ R₂ :=
+{ hom := transfer_nat_trans_self adj₁ adj₂ f.hom,
+  inv := transfer_nat_trans_self adj₂ adj₁ f.inv,
+  hom_inv_id' := transfer_nat_trans_self_comm _ _ (by simp),
+  inv_hom_id' := transfer_nat_trans_self_comm _ _ (by simp) }
+
+instance transfer_nat_trans_self_is_iso (f : L₂ ⟶ L₁) [is_iso f] :
   is_iso (transfer_nat_trans_self adj₁ adj₂ f) :=
-⟨⟨transfer_nat_trans_self adj₂ adj₁ (inv f),
-  ⟨transfer_nat_trans_self_comm _ _ (by simp), transfer_nat_trans_self_comm _ _ (by simp)⟩⟩⟩
+is_iso.of_iso $ transfer_nat_trans_self_iso adj₁ adj₂ (as_iso f)
 
 /--
 If `f` is an isomorphism, then the un-transferred natural transformation is an isomorphism.
 The converse is given in `transfer_nat_trans_self_symm_of_iso`.
 -/
-instance transfer_nat_trans_self_symm_iso (f : R₁ ⟶ R₂) [is_iso f] :
+def transfer_nat_trans_self_symm_iso (f : R₁ ≅ R₂) : L₂ ≅ L₁ :=
+{ hom := (transfer_nat_trans_self adj₁ adj₂).symm f.hom,
+  inv := (transfer_nat_trans_self adj₂ adj₁).symm f.inv,
+  hom_inv_id' := transfer_nat_trans_self_symm_comm _ _ (by simp),
+  inv_hom_id' := transfer_nat_trans_self_symm_comm _ _ (by simp) }
+
+instance transfer_nat_trans_self_symm_is_iso (f : R₁ ⟶ R₂) [is_iso f] :
   is_iso ((transfer_nat_trans_self adj₁ adj₂).symm f) :=
-⟨⟨(transfer_nat_trans_self adj₂ adj₁).symm (inv f),
-  ⟨transfer_nat_trans_self_symm_comm _ _ (by simp),
-   transfer_nat_trans_self_symm_comm _ _ (by simp)⟩⟩⟩
+is_iso.of_iso $ transfer_nat_trans_self_symm_iso adj₁ adj₂ (as_iso f)
 
 /--
 If `f` is a natural transformation whose transferred natural transformation is an isomorphism,

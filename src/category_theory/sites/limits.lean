@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import category_theory.limits.creates
-import category_theory.sites.sheaf
+import category_theory.sites.sheafification
 
 /-!
 
@@ -19,7 +19,10 @@ functor preserves these limits.
 
 ## Colimits
 
-PROJECT: Prove the existence of colimits, using sheafification.
+Given a diagram `F : K ⥤ Sheaf J D` of sheaves, and a colimit cocone on the level of presheaves,
+we show that the cocone obtained by sheafifying the cocone point is a colimit cocone of sheaves.
+
+This allows us to show that `Shead J D` has colimits (of a certain shape) as soon as `D` does.
 
 -/
 namespace category_theory.Sheaf
@@ -156,5 +159,59 @@ instance [has_limits D] : has_limits (Sheaf J D) :=
 has_limits_of_has_limits_creates_limits (Sheaf_to_presheaf J D)
 
 end limits
+
+section colimits
+
+universes w v u
+variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
+variables {D : Type w} [category.{max v u} D]
+variables {K : Type (max v u)} [small_category K]
+-- Now we need a handful of instances to obtain sheafification...
+variables [concrete_category.{max v u} D]
+variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]
+variables [preserves_limits (forget D)]
+variables [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
+variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
+variables [reflects_isomorphisms (forget D)]
+
+/-- Construct a cocone by sheafifying a cocone point of a cocone `E` of presheaves
+over a functor which factors through sheaves.
+In `is_colimit_sheafify_cocone`, we show that this is a colimit cocone when `E` is a colimit. -/
+@[simps]
+def sheafify_cocone {F : K ⥤ Sheaf J D} (E : cocone (F ⋙ Sheaf_to_presheaf J D)) : cocone F :=
+{ X := ⟨J.sheafify E.X, grothendieck_topology.plus.is_sheaf_plus_plus _ _⟩,
+  ι :=
+  { app := λ k, by apply E.ι.app k ≫ J.to_sheafify E.X, -- annoying...
+    naturality' := λ i j f, by erw [category.comp_id, ← category.assoc, E.w f] } }
+
+/-- If `E` is a colimit cocone of presheaves, over a diagram factoring through sheaves,
+then `sheafify_cocone E` is a colimit cocone. -/
+@[simps]
+def is_colimit_sheafify_cocone {F : K ⥤ Sheaf J D} (E : cocone (F ⋙ Sheaf_to_presheaf J D))
+  (hE : is_colimit E) :
+  is_colimit (sheafify_cocone E) :=
+{ desc := λ S, J.sheafify_lift (hE.desc ((Sheaf_to_presheaf J D).map_cocone S)) S.X.2,
+  fac' := begin
+    intros S j,
+    dsimp [sheafify_cocone],
+    erw [category.assoc, J.to_sheafify_sheafify_lift, hE.fac],
+    refl,
+  end,
+  uniq' := begin
+    intros S m hm,
+    apply J.sheafify_lift_unique,
+    apply hE.uniq ((Sheaf_to_presheaf J D).map_cocone S),
+    intros j,
+    erw [← category.assoc, hm j],
+    refl,
+  end }
+
+instance [has_colimits_of_shape K D] : has_colimits_of_shape K (Sheaf J D) :=
+⟨λ F, has_colimit.mk ⟨sheafify_cocone (colimit.cocone _),
+  is_colimit_sheafify_cocone _ (colimit.is_colimit _)⟩⟩
+
+instance [has_colimits D] : has_colimits (Sheaf J D) := {}
+
+end colimits
 
 end category_theory.Sheaf

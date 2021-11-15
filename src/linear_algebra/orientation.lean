@@ -6,23 +6,26 @@ Authors: Joseph Myers
 import linear_algebra.determinant
 
 /-!
-# Orientations of modules
+# Orientations of modules and rays in modules
 
-This file defines orientation of modules.
+This file defines rays in modules and orientations of modules.
 
 ## Main definitions
 
-* `orientation` is a type class for a choice of orientation of a module.  An orientation may
-be associated with an alternating map or with a basis.
+* `module.ray` is a type for the equivalence class of nonzero vectors in a module with some
+common positive multiple.
+
+* `orientation` is a type synonym for `module.ray` for the case where the module is that of
+alternating maps from a module to its underlying ring.  An orientation may be associated with an
+alternating map or with a basis.
+
+* `module.oriented` is a type class for a choice of orientation of a module that is considered
+the positive orientation.
 
 ## Implementation notes
 
 `orientation` is defined for an arbitrary index type, but the main intended use case is when
 that index type is a `fintype` and there exists a basis of the same cardinality.
-
-Although `orientation` is a type class, many lemmas have an `orientation` as an explicit
-argument, in order to talk about how two orientations are related or to state results in
-contexts where a particular orientation is not being chosen as canonical.
 
 ## References
 
@@ -32,216 +35,227 @@ contexts where a particular orientation is not being chosen as canonical.
 
 noncomputable theory
 
-section ordered_comm_ring
+section ordered_comm_semiring
 
-variables {R : Type*} [ordered_comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
-variables {ι : Type*} [decidable_eq ι]
+variables (R : Type*) [ordered_comm_semiring R]
+variables {M : Type*} [add_comm_monoid M] [module R M]
+variables (ι : Type*) [decidable_eq ι]
 
-namespace alternating_map
+/-- Two vectors are in the same ray if some positive multiples of them are equal (in the typical
+case over a field, this means each is a positive multiple of the other).  Over a field, this
+is equivalent to `mul_action.orbit_rel`. -/
+def same_ray (v₁ v₂ : M) : Prop :=
+∃ (r₁ r₂ : R), 0 < r₁ ∧ 0 < r₂ ∧ r₁ • v₁ = r₂ • v₂
 
-/-- Two alternating maps have the same orientation if some positive multiples of them are
-equal (in the typical case over a field, this means each is a positive multiple of the other). -/
-def same_orientation (f g : alternating_map R M R ι) : Prop :=
-∃ (r₁ r₂ : R), 0 < r₁ ∧ 0 < r₂ ∧ r₁ • f = r₂ • g
+variables (M)
 
-variables (R M ι)
+/-- Nonzero vectors, as used to define rays. -/
+@[reducible] def ray_vector := {v : M // v ≠ 0}
 
-/-- `same_orientation` is symmetric. -/
-lemma symmetric_same_orientation :
-  symmetric (same_orientation : alternating_map R M R ι → alternating_map R M R ι → Prop) :=
-λ f g ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₂, r₁, hr₂, hr₁, h.symm⟩
+/-- `same_ray` is symmetric. -/
+lemma symmetric_same_ray : symmetric (same_ray R : M → M → Prop) :=
+λ _ _ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₂, r₁, hr₂, hr₁, h.symm⟩
 
-/-- `same_orientation` is transitive. -/
-lemma transitive_same_orientation :
-  transitive (same_orientation : alternating_map R M R ι → alternating_map R M R ι → Prop) :=
-λ f g h ⟨r₁, r₂, hr₁, hr₂, h₁⟩ ⟨r₃, r₄, hr₃, hr₄, h₂⟩,
+/-- `same_ray` is transitive. -/
+lemma transitive_same_ray :
+  transitive (same_ray R : M → M → Prop) :=
+λ _ _ _ ⟨r₁, r₂, hr₁, hr₂, h₁⟩ ⟨r₃, r₄, hr₃, hr₄, h₂⟩,
   ⟨r₃ * r₁, r₂ * r₄, mul_pos hr₃ hr₁, mul_pos hr₂ hr₄,
    by rw [mul_smul, mul_smul, h₁, ←h₂, smul_comm]⟩
 
-section nontrivial
-
 variables [nontrivial R]
 
-/-- `same_orientation` is reflexive. -/
-lemma reflexive_same_orientation :
-  reflexive (same_orientation : alternating_map R M R ι → alternating_map R M R ι → Prop) :=
-λ f, ⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩
+/-- `same_ray` is reflexive. -/
+lemma reflexive_same_ray :
+  reflexive (same_ray R : M → M → Prop) :=
+λ _, ⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩
 
-/-- `same_orientation` is an equivalence relation. -/
-lemma equivalence_same_orientation :
-  equivalence (same_orientation : alternating_map R M R ι → alternating_map R M R ι → Prop) :=
-⟨reflexive_same_orientation R M ι, symmetric_same_orientation R M ι,
- transitive_same_orientation R M ι⟩
+/-- `same_ray` is an equivalence relation. -/
+lemma equivalence_same_ray :
+  equivalence (same_ray R : M → M → Prop) :=
+⟨reflexive_same_ray R M, symmetric_same_ray R M, transitive_same_ray R M⟩
 
-variables {R M ι}
+variables {R M}
 
-/-- An alternating map has the same orientation as a positive multiple of itself. -/
-lemma same_orientation_pos_smul_right (f : alternating_map R M R ι) {r : R} (h : 0 < r) :
-  same_orientation f (r • f) :=
+/-- A vector is in the same ray as a positive multiple of itself. -/
+lemma same_ray_pos_smul_right (v : M) {r : R} (h : 0 < r) :
+  same_ray R v (r • v) :=
 ⟨r, 1, h, zero_lt_one, (one_smul _ _).symm⟩
 
-/-- A positive multiple of an alternating map has the same orientation as that map. -/
-lemma same_orientation_pos_smul_left (f : alternating_map R M R ι) {r : R} (h : 0 < r) :
-  same_orientation (r • f) f :=
+/-- A vector is in the same ray as a positive multiple of one it is in the same ray as. -/
+lemma same_ray.pos_smul_right {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
+  same_ray R v₁ (r • v₂) :=
+transitive_same_ray R M h (same_ray_pos_smul_right v₂ hr)
+
+/-- A positive multiple of a vector is in the same ray as that vector. -/
+lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) :
+  same_ray R (r • v) v :=
 ⟨1, r, zero_lt_one, h, one_smul _ _⟩
 
-end nontrivial
+/-- A positive multiple of a vector is in the same ray as one it is in the same ray as. -/
+lemma same_ray.pos_smul_left {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
+  same_ray R (r • v₁) v₂ :=
+transitive_same_ray R M (same_ray_pos_smul_left v₁ hr) h
 
-variables {R M ι}
+variables (R M)
 
-/-- If two alternating maps have the same orientation, so do their negations. -/
-@[simp] lemma same_orientation_neg_iff (f g : alternating_map R M R ι) :
-  same_orientation (-f) (-g) ↔ same_orientation f g :=
-⟨λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rwa [smul_neg, smul_neg, neg_inj] at h⟩,
- λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rwa [smul_neg, smul_neg, neg_inj]⟩⟩
+/-- The setoid of the `same_ray` relation for the subtype of nonzero vectors. -/
+def same_ray_setoid : setoid (ray_vector M) :=
+{ r := λ v₁ v₂, same_ray R (v₁ : M) v₂,
+  iseqv := equivalence.comap (equivalence_same_ray R M) _ }
 
-end alternating_map
+local attribute [instance] same_ray_setoid
 
-variables (R M ι)
+variables {R M}
 
-/-- Nonzero alternating maps, as used to define orientations. -/
-@[reducible] def orientation_map := {f : alternating_map R M R ι // f ≠ 0}
-
-instance : has_coe_to_fun (orientation_map R M ι) (λ _, (ι → M) → R) :=
-⟨λ x, ⇑(x : alternating_map R M R ι)⟩
-
-namespace orientation_map
-
-variables {R M ι}
-
-/-- Negating a nonzero alternating map. -/
-instance : has_neg (orientation_map R M ι) :=
-⟨λ ⟨f, hf⟩, ⟨-f, by rw neg_ne_zero; exact hf⟩⟩
-
-/-- Negating a nonzero alternating map commutes with coercion to `alternating_map`. -/
-@[simp, norm_cast] lemma coe_neg (f : orientation_map R M ι) :
-  ((-f : orientation_map R M ι) : alternating_map R M R ι) = -(f : alternating_map R M R ι) :=
-by cases f; refl
-
-/-- Negating a nonzero alternating map twice produces the original map. -/
-@[simp] protected lemma neg_neg (f : orientation_map R M ι) : -(-f) = f :=
-by rw [subtype.ext_iff, coe_neg, coe_neg, neg_neg]
-
-variables (R M ι)
-
-variables [nontrivial R]
-
-/-- The setoid of the `same_orientation` relation for the subtype of nonzero alternating maps. -/
-instance same_orientation_setoid : setoid (orientation_map R M ι) :=
-{ r := λ f g, (f : alternating_map R M R ι).same_orientation g,
-  iseqv := equivalence.comap (alternating_map.equivalence_same_orientation R M ι) _ }
-
-variables {R M ι}
-
-/-- Equivalence of nonzero alternating maps, in terms of same_orientation. -/
-lemma equiv_iff_same_orientation (f g : orientation_map R M ι) :
-  f ≈ g ↔ (f : alternating_map R M R ι).same_orientation g :=
+/-- Equivalence of nonzero vectors, in terms of same_ray. -/
+lemma equiv_iff_same_ray (v₁ v₂ : ray_vector M) :
+  v₁ ≈ v₂ ↔ same_ray R (v₁ : M) v₂ :=
 iff.rfl
 
-/-- If two nonzero alternating maps are equivalent, so are their negations. -/
-@[simp] lemma equiv_neg_iff (f g : orientation_map R M ι) : -f ≈ -g ↔ f ≈ g :=
-by rw [equiv_iff_same_orientation, equiv_iff_same_orientation, coe_neg, coe_neg,
-       alternating_map.same_orientation_neg_iff]
+variables (R M)
 
-end orientation_map
-
-variables [nontrivial R]
+/-- A ray (equivalence class of nonzero vectors with common positive multiples) in a module. -/
+@[nolint has_inhabited_instance]
+def module.ray := quotient (same_ray_setoid R M)
 
 /-- An orientation of a module, intended to be used when `ι` is a `fintype` with the same
 cardinality as a basis. -/
-@[ext] class orientation :=
-(alt_maps : quotient (orientation_map.same_orientation_setoid R M ι))
+abbreviation orientation := module.ray R (alternating_map R M R ι)
 
-variables {R M ι}
+/-- A type class fixing an orientation of a module. -/
+class module.oriented :=
+(positive_orientation : orientation R M ι)
 
-/-- Negating an orientation. -/
-instance : has_neg (orientation R M ι) :=
-⟨λ ⟨q⟩, ⟨quotient.lift (λ f, ⟦-f⟧) (λ f g h,
-  quotient.sound ((orientation_map.equiv_neg_iff f g).2 h)) q⟩⟩
+variables {M}
 
-namespace alternating_map
+/-- The ray given by a nonzero vector. -/
+protected def ray_of_ne_zero {v : M} (h : v ≠ 0) : module.ray R M :=
+⟦⟨v, h⟩⟧
 
-/-- The orientation given by a nonzero alternating map. -/
-protected def orientation (f : alternating_map R M R ι) (h : f ≠ 0) : orientation R M ι :=
-⟨⟦⟨f, h⟩⟧⟩
+/-- The rays given by two nonzero vectors are equal if and only if those vectors
+satisfy `same_ray`. -/
+lemma ray_eq_iff {v₁ v₂ : M} (hv₁ : v₁ ≠ 0) (hv₂ : v₂ ≠ 0) :
+  ray_of_ne_zero R hv₁ = ray_of_ne_zero R hv₂ ↔ same_ray R v₁ v₂ :=
+quotient.eq
 
-/-- The orientation given by the negation of a nonzero alternating map. -/
-lemma orientation_neg (f : alternating_map R M R ι) (h : f ≠ 0) :
-  (-f).orientation (by rw neg_ne_zero; exact h) = -f.orientation h :=
-rfl
+variables {R}
 
-/-- The orientations given by two nonzero alternating maps are equal if and only if those maps
-satisfy `same_orientation`. -/
-lemma orientation_eq_iff (f g : alternating_map R M R ι) (hf : f ≠ 0) (hg : g ≠ 0) :
-  f.orientation hf = g.orientation hg ↔ same_orientation f g :=
+/-- The ray given by a positive multiple of a nonzero vector. -/
+@[simp] lemma ray_pos_smul {v : M} (h : v ≠ 0) {r : R} (hr : 0 < r)
+  (hrv : r • v ≠ 0) : ray_of_ne_zero R hrv = ray_of_ne_zero R h :=
 begin
-  rw orientation.ext_iff,
-  exact quotient.eq
+  rw ray_eq_iff,
+  exact same_ray_pos_smul_left v hr
 end
 
-/-- The orientation given by a positive multiple of a nonzero alternating map. -/
-@[simp] lemma orientation_pos_smul (f : alternating_map R M R ι) (h : f ≠ 0) (r : R) (hr : 0 < r)
-  (hrf : r • f ≠ 0) : (r • f).orientation hrf = f.orientation h :=
+namespace module.ray
+
+/-- An arbitrary `ray_vector` giving a ray. -/
+def some_ray_vector (x : module.ray R M) : ray_vector M :=
+quotient.out x
+
+/-- The ray of `some_ray_vector`. -/
+@[simp] lemma some_ray_vector_ray (x : module.ray R M) :
+  (⟦x.some_ray_vector⟧ : module.ray R M) = x :=
 begin
-  rw orientation_eq_iff,
-  exact f.same_orientation_pos_smul_left hr
-end
-
-end alternating_map
-
-namespace orientation
-
-/-- An arbitrary `orientation_map` giving an orientation. -/
-def some_orientation_map (x : orientation R M ι) : orientation_map R M ι :=
-quotient.out x.alt_maps
-
-/-- The orientation of `some_orientation_map`. -/
-@[simp] lemma some_orientation_map_orientation (x : orientation R M ι) :
-  (⟨⟦x.some_orientation_map⟧⟩ : orientation R M ι) = x :=
-begin
-  rw some_orientation_map,
-  ext,
+  rw some_ray_vector,
   exact quotient.out_eq _
 end
 
-/-- An arbitrary nonzero alternating map giving an orientation. -/
-def some_alternating_map (x : orientation R M ι) : alternating_map R M R ι :=
-x.some_orientation_map
+/-- An arbitrary nonzero vector giving a ray. -/
+def some_vector (x : module.ray R M) : M :=
+x.some_ray_vector
 
-/-- `some_alternating_map` is nonzero. -/
-@[simp] lemma some_alternating_map_ne_zero (x : orientation R M ι) : x.some_alternating_map ≠ 0 :=
-x.some_orientation_map.property
+/-- `some_vector` is nonzero. -/
+@[simp] lemma some_vector_ne_zero (x : module.ray R M) : x.some_vector ≠ 0 :=
+x.some_ray_vector.property
 
-/-- The orientation of `some_alternating_map`. -/
-@[simp] lemma some_alternating_map_orientation (x : orientation R M ι) :
-  x.some_alternating_map.orientation x.some_alternating_map_ne_zero = x :=
+/-- The ray of `some_vector`. -/
+@[simp] lemma some_vector_ray (x : module.ray R M) : ray_of_ne_zero R x.some_vector_ne_zero = x :=
 begin
-  convert some_orientation_map_orientation x,
-  rw alternating_map.orientation,
+  convert some_ray_vector_ray x,
+  rw ray_of_ne_zero,
   congr,
   rw subtype.ext_iff,
   refl
 end
 
-/-- Negating an orientation twice produces the original orientation. -/
-@[simp] protected lemma neg_neg (x : orientation R M ι) : -(-x) = x :=
+end module.ray
+
+end ordered_comm_semiring
+
+section ordered_comm_ring
+
+local attribute [instance] same_ray_setoid
+
+variables (R : Type*) [ordered_comm_ring R]
+variables {M : Type*} [add_comm_group M] [module R M]
+
+/-- If two vectors are in the same ray, so are their negations. -/
+@[simp] lemma same_ray_neg_iff (v₁ v₂ : M) : same_ray R (-v₁) (-v₂) ↔ same_ray R v₁ v₂ :=
+⟨λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rwa [smul_neg, smul_neg, neg_inj] at h⟩,
+ λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rwa [smul_neg, smul_neg, neg_inj]⟩⟩
+
+namespace ray_vector
+
+variables {R}
+
+/-- Negating a nonzero vector. -/
+instance : has_neg (ray_vector M) :=
+⟨λ ⟨v, hv⟩, ⟨-v, by rw neg_ne_zero; exact hv⟩⟩
+
+/-- Negating a nonzero vector commutes with coercion to the underlying module. -/
+@[simp, norm_cast] lemma coe_neg (v : ray_vector M) :
+  ((-v : ray_vector M) : M) = -(v : M) :=
+by cases v; refl
+
+/-- Negating a nonzero vector twice produces the original vector. -/
+@[simp] protected lemma neg_neg (v : ray_vector M) : -(-v) = v :=
+by rw [subtype.ext_iff, coe_neg, coe_neg, neg_neg]
+
+variables (R) [nontrivial R]
+
+include R
+
+/-- If two nonzero vectors are equivalent, so are their negations. -/
+@[simp] lemma equiv_neg_iff (v₁ v₂ : ray_vector M) : -v₁ ≈ -v₂ ↔ v₁ ≈ v₂ :=
+by rw [equiv_iff_same_ray, equiv_iff_same_ray, coe_neg, coe_neg, same_ray_neg_iff]
+
+end ray_vector
+
+variables (R) [nontrivial R]
+
+/-- Negating a ray. -/
+instance : has_neg (module.ray R M) :=
+⟨quotient.map (λ v, -v) (λ v₁ v₂, (ray_vector.equiv_neg_iff R v₁ v₂).2)⟩
+
+/-- The ray given by the negation of a nonzero vector. -/
+lemma ray_neg (v : M) (h : v ≠ 0) :
+  ray_of_ne_zero R (show -v ≠ 0, by rw neg_ne_zero; exact h) = -(ray_of_ne_zero R h) :=
+rfl
+
+namespace module.ray
+
+variables {R}
+
+/-- Negating a ray twice produces the original ray. -/
+@[simp] protected lemma neg_neg (x : module.ray R M) : -(-x) = x :=
 begin
-  rw [←some_alternating_map_orientation x, ←alternating_map.orientation_neg,
-      ←alternating_map.orientation_neg],
+  rw [←some_vector_ray x, ←ray_neg, ←ray_neg],
   congr,
   exact neg_neg _
 end
 
-end orientation
+end module.ray
 
 namespace basis
 
-variables [fintype ι]
+variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 
 /-- The orientation given by a basis. -/
 protected def orientation (e : basis ι R M) : orientation R M ι :=
-e.det.orientation e.det_ne_zero
+ray_of_ne_zero R e.det_ne_zero
 
 end basis
 
@@ -253,12 +267,10 @@ variables {R : Type*} [linear_ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
 
-namespace alternating_map
-
-/-- A nonzero alternating map has the same orientation as a multiple of itself if and only if
-that multiple is positive. -/
-@[simp] lemma same_orientation_smul_right_iff (f : alternating_map R M R ι) (hf : f ≠ 0) (r : R) :
-  same_orientation f (r • f) ↔ 0 < r :=
+/-- A nonzero vector is in the same ray as a multiple of itself if and only if that multiple
+is positive. -/
+@[simp] lemma same_ray_smul_right_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
+  same_ray R v (r • v) ↔ 0 < r :=
 begin
   split,
   { rintros ⟨r₁, r₂, hr₁, hr₂, h⟩,
@@ -268,37 +280,35 @@ begin
     have hzzz := ne_of_gt (add_pos_of_pos_of_nonneg hr₁ (mul_nonneg hr₂.le hr)),
     simpa [ne_of_gt (add_pos_of_pos_of_nonneg hr₁ (mul_nonneg hr₂.le hr)),
            -mul_neg_eq_neg_mul_symm] using h },
-  { exact λ h, f.same_orientation_pos_smul_right h }
+  { exact λ h, same_ray_pos_smul_right v h }
 end
 
-/-- A multiple of a nonzero alternating map has the same orientation as that map if and only if
-that multiple is positive. -/
-@[simp] lemma same_orientation_smul_left_iff (f : alternating_map R M R ι) (hf : f ≠ 0) (r : R) :
-  same_orientation (r • f) f ↔ 0 < r :=
+/-- A multiple of a nonzero vector is in the same ray as that vector if and only if that multiple
+is positive. -/
+@[simp] lemma same_ray_smul_left_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0) (r : R) :
+  same_ray R (r • v) v ↔ 0 < r :=
 begin
-  rw (symmetric_same_orientation R M ι).iff,
-  exact f.same_orientation_smul_right_iff hf r
+  rw (symmetric_same_ray R M).iff,
+  exact same_ray_smul_right_iff hv r
 end
 
-/-- The negation of a nonzero alternating map has the same orientation as a multiple of that map
-if and only if that multiple is negative. -/
-@[simp] lemma same_orientation_neg_smul_right_iff (f : alternating_map R M R ι) (hf : f ≠ 0)
-  (r : R) : same_orientation (-f) (r • f) ↔ r < 0 :=
+/-- The negation of a nonzero vector is in the same ray as a multiple of that vector if and
+only if that multiple is negative. -/
+@[simp] lemma same_ray_neg_smul_right_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0)
+  (r : R) : same_ray R (-v) (r • v) ↔ r < 0 :=
 begin
-  rw [←same_orientation_neg_iff, neg_neg, ←neg_smul, f.same_orientation_smul_right_iff hf],
+  rw [←same_ray_neg_iff, neg_neg, ←neg_smul, same_ray_smul_right_iff hv (-r)],
   exact right.neg_pos_iff
 end
 
-/-- A multiple of a nonzero alternating map has the same orientation as the negation of that map
-if and only if that multiple is negative. -/
-@[simp] lemma same_orientation_neg_smul_left_iff (f : alternating_map R M R ι) (hf : f ≠ 0)
-  (r : R) : same_orientation (r • f) (-f) ↔ r < 0 :=
+/-- A multiple of a nonzero vector is in the same ray as the negation of that vector if and
+only if that multiple is negative. -/
+@[simp] lemma same_ray_neg_smul_left_iff [no_zero_smul_divisors R M] {v : M} (hv : v ≠ 0)
+  (r : R) : same_ray R (r • v) (-v) ↔ r < 0 :=
 begin
-  rw [←same_orientation_neg_iff, neg_neg, ←neg_smul, f.same_orientation_smul_left_iff hf],
+  rw [←same_ray_neg_iff, neg_neg, ←neg_smul, same_ray_smul_left_iff hv (-r)],
   exact left.neg_pos_iff
 end
-
-end alternating_map
 
 namespace basis
 
@@ -308,43 +318,41 @@ variables [fintype ι]
 with respect to the other is positive. -/
 lemma orientation_eq_iff_det_pos (e₁ e₂ : basis ι R M) :
   e₁.orientation = e₂.orientation ↔ 0 < e₁.det e₂ :=
-by rw [basis.orientation, basis.orientation, alternating_map.orientation_eq_iff,
+by rw [basis.orientation, basis.orientation, ray_eq_iff,
        e₁.det.eq_smul_basis_det e₂, alternating_map.smul_apply, basis.det_self, smul_eq_mul,
-       mul_one, e₂.det.same_orientation_smul_left_iff e₂.det_ne_zero]
+       mul_one, same_ray_smul_left_iff e₂.det_ne_zero (_ : R)]
 
 /-- Given a basis, any orientation equals the orientation given by that basis or its negation. -/
 lemma orientation_eq_or_eq_neg (e : basis ι R M) (x : orientation R M ι) :
   x = e.orientation ∨ x = -e.orientation :=
 begin
-  rw [basis.orientation, ←x.some_alternating_map_orientation, alternating_map.orientation_eq_iff,
-      ←alternating_map.orientation_neg, alternating_map.orientation_eq_iff,
-      x.some_alternating_map.eq_smul_basis_det e],
-  rcases lt_trichotomy (x.some_alternating_map e) 0 with h|h|h,
+  rw [basis.orientation, ←x.some_vector_ray, ray_eq_iff, ←ray_neg, ray_eq_iff,
+      x.some_vector.eq_smul_basis_det e],
+  rcases lt_trichotomy (x.some_vector e) 0 with h|h|h,
   { right,
-    exact (e.det.same_orientation_neg_smul_left_iff e.det_ne_zero _).2 h },
-  { have hz := x.some_alternating_map.eq_smul_basis_det e,
+    exact (same_ray_neg_smul_left_iff e.det_ne_zero (_ : R)).2 h },
+  { have hz := x.some_vector.eq_smul_basis_det e,
     rw h at hz,
     simpa using hz },
   { left,
-    exact (e.det.same_orientation_smul_left_iff e.det_ne_zero _).2 h }
+    exact (same_ray_smul_left_iff e.det_ne_zero (_ : R)).2 h }
 end
 
 end basis
 
-namespace orientation
+namespace module.ray
 
-/-- An orientation does not equal its own negation. -/
-lemma ne_neg_self (x : orientation R M ι) : x ≠ -x :=
+/-- A ray does not equal its own negation. -/
+lemma ne_neg_self [no_zero_smul_divisors R M] (x : module.ray R M) : x ≠ -x :=
 begin
   intro h,
-  rw [←some_alternating_map_orientation x, ←alternating_map.orientation_neg,
-      alternating_map.orientation_eq_iff] at h,
+  rw [←some_vector_ray x, ←ray_neg, ray_eq_iff] at h,
   rcases h with ⟨r₁, r₂, hr₁, hr₂, h⟩,
   rw [smul_neg, ←neg_smul, ←sub_eq_zero, ←sub_smul] at h,
   simpa [ne_of_gt (add_pos hr₁ hr₂)] using h
 end
 
-end orientation
+end module.ray
 
 end linear_ordered_comm_ring
 

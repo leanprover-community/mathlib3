@@ -186,6 +186,10 @@ hf ht
 lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
 λ s hs, @subsingleton.measurable_set α _ _ _
 
+@[nontriviality, measurability]
+lemma measurable_of_subsingleton_codomain [subsingleton β] (f : α → β) : measurable f :=
+λ s hs, subsingleton.set_cases measurable_set.empty measurable_set.univ s
+
 @[measurability]
 lemma measurable.piecewise {s : set α} {_ : decidable_pred (∈ s)} {f g : α → β}
   (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
@@ -214,11 +218,7 @@ hf.piecewise hs measurable_const
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
 lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
-begin
-  assume s hs,
-  convert measurable_set.empty,
-  exact eq_empty_of_is_empty _,
-end
+subsingleton.measurable
 
 lemma measurable_of_empty_codomain [is_empty β] (f : α → β) : measurable f :=
 by { haveI := function.is_empty f, exact measurable_of_empty f }
@@ -319,6 +319,52 @@ begin
 end
 
 end nat
+
+section quotient
+
+instance {α} {r : α → α → Prop} [m : measurable_space α] : measurable_space (quot r) :=
+m.map (quot.mk r)
+
+instance {α} {s : setoid α} [m : measurable_space α] : measurable_space (quotient s) :=
+m.map quotient.mk'
+
+@[to_additive]
+instance {G} [group G] [measurable_space G] (S : subgroup G) :
+  measurable_space (quotient_group.quotient S) :=
+quotient.measurable_space
+
+lemma measurable_set_quotient {s : setoid α} {t : set (quotient s)} :
+  measurable_set t ↔ measurable_set (quotient.mk' ⁻¹' t) :=
+iff.rfl
+
+lemma measurable_from_quotient {s : setoid α} {f : quotient s → β} :
+  measurable f ↔ measurable (f ∘ quotient.mk') :=
+iff.rfl
+
+@[measurability] lemma measurable_quotient_mk [s : setoid α] :
+  measurable (quotient.mk : α → quotient s) :=
+λ s, id
+
+@[measurability] lemma measurable_quotient_mk' {s : setoid α} :
+  measurable (quotient.mk' : α → quotient s) :=
+λ s, id
+
+@[measurability] lemma measurable_quot_mk {r : α → α → Prop} :
+  measurable (quot.mk r) :=
+λ s, id
+
+@[to_additive] lemma quotient_group.measurable_coe {G} [group G] [measurable_space G]
+  {S : subgroup G} : measurable (coe : G → quotient_group.quotient S) :=
+measurable_quotient_mk'
+
+attribute [measurability] quotient_group.measurable_coe quotient_add_group.measurable_coe
+
+@[to_additive] lemma quotient_group.measurable_from_quotient {G} [group G] [measurable_space G]
+  {S : subgroup G} {f : quotient_group.quotient S → α} :
+  measurable f ↔ measurable (f ∘ (coe : G → quotient_group.quotient S)) :=
+measurable_from_quotient
+
+end quotient
 
 section subtype
 

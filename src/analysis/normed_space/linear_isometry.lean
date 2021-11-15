@@ -305,8 +305,8 @@ omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 
 @[simp] lemma trans_refl : e.trans (refl R₂ E₂) = e := ext $ λ x, rfl
 @[simp] lemma refl_trans : (refl R E).trans e = e := ext $ λ x, rfl
-@[simp] lemma trans_symm : e.trans e.symm = refl R E := ext e.symm_apply_apply
-@[simp] lemma symm_trans : e.symm.trans e = refl R₂ E₂ := ext e.apply_symm_apply
+@[simp] lemma self_trans_symm : e.trans e.symm = refl R E := ext e.symm_apply_apply
+@[simp] lemma symm_trans_self : e.symm.trans e = refl R₂ E₂ := ext e.apply_symm_apply
 
 include σ₁₃ σ₂₁ σ₃₂ σ₃₁
 @[simp] lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
@@ -326,7 +326,7 @@ instance : group (E ≃ₗᵢ[R] E) :=
   one_mul := trans_refl,
   mul_one := refl_trans,
   mul_assoc := λ _ _ _, trans_assoc _ _ _,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 @[simp] lemma coe_one : ⇑(1 : E ≃ₗᵢ[R] E) = id := rfl
 @[simp] lemma coe_mul (e e' : E ≃ₗᵢ[R] E) : ⇑(e * e') = e ∘ e' := rfl

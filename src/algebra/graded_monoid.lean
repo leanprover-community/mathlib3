@@ -122,7 +122,7 @@ sigma.ext (zero_nsmul _) (heq_of_cast_eq _ rfl).symm
 
 /-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_zero'` when the default
 `graded_monoid.gmonoid.gnpow_rec` is used. -/
-meta def apply_gnpow_rec_zero_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_zero]
+meta def apply_gnpow_rec_zero_tac : tactic unit := `[apply graded_monoid.gmonoid.gnpow_rec_zero]
 
 @[simp] lemma gnpow_rec_succ (n : ℕ) (a : graded_monoid A) :
   (graded_monoid.mk _ $ gnpow_rec n.succ a.snd) = a * ⟨_, gnpow_rec n a.snd⟩ :=
@@ -130,7 +130,7 @@ sigma.ext (succ_nsmul _ _) (heq_of_cast_eq _ rfl).symm
 
 /-- Tactic used to autofill `graded_monoid.gmonoid.gnpow_succ'` when the default
 `graded_monoid.gmonoid.gnpow_rec` is used. -/
-meta def apply_gnpow_rec_succ_tac : tactic unit := `[apply direct_sum.gmonoid.gnpow_rec_succ]
+meta def apply_gnpow_rec_succ_tac : tactic unit := `[apply graded_monoid.gmonoid.gnpow_rec_succ]
 
 end gmonoid
 
@@ -204,13 +204,13 @@ end one
 section mul
 variables [add_monoid ι] [ghas_mul A]
 
-/-- `(•) : A 0 → A i → A i` is the value provided in `direct_sum.ghas_mul.mul`, composed with
+/-- `(•) : A 0 → A i → A i` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.
 -/
 instance grade_zero.has_scalar (i : ι) : has_scalar (A 0) (A i) :=
 { smul := λ x y, (zero_add i).rec (ghas_mul.mul x y) }
 
-/-- `(*) : A 0 → A 0 → A 0` is the value provided in `direct_sum.ghas_mul.mul`, composed with
+/-- `(*) : A 0 → A 0 → A 0` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + 0)` into `A 0`.
 -/
 instance grade_zero.has_mul : has_mul (A 0) :=

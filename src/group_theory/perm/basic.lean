@@ -26,7 +26,7 @@ instance perm_group : group (perm α) :=
   mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
@@ -74,13 +74,13 @@ equiv.refl_trans e
 
 @[simp] lemma refl_mul (e : perm α) : equiv.refl α * e = e := equiv.refl_trans e
 
-@[simp] lemma inv_trans (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans e
+@[simp] lemma inv_trans_self (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans_self e
 
-@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans e
+@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans_self e
 
-@[simp] lemma trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.trans_symm e
+@[simp] lemma self_trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.self_trans_symm e
 
-@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.trans_symm e
+@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.self_trans_symm e
 
 /-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
 

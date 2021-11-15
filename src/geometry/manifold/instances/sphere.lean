@@ -158,7 +158,7 @@ begin
     { refine (inv_mul_lt_iff' _).mpr _,
       { nlinarith },
       linarith },
-    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_sq, hw,
+    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_mul_norm, hw,
       hv] using hw' },
   { simpa using stereo_inv_fun_aux_mem hv w.2 }
 end
@@ -208,7 +208,7 @@ begin
   -- deduce the result
   convert congr_arg2 has_add.add (congr_arg (λ t, t • (y:E)) h₁) (congr_arg (λ t, t • v) h₂)
     using 1,
-  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_sq, hv, mul_smul,
+  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_mul_norm, hv, mul_smul,
       mul_pow, real.norm_eq_abs, sq_abs, norm_smul] },
   { simp [split, add_comm] }
 end
@@ -227,7 +227,7 @@ begin
     have h₂ : orthogonal_projection (ℝ ∙ v)ᗮ w = w :=
       orthogonal_projection_mem_subspace_eq_self w,
     have h₃ : inner_right v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
-    have h₄ : inner_right v v = (1:ℝ) := by simp [real_inner_self_eq_norm_sq, hv],
+    have h₄ : inner_right v v = (1:ℝ) := by simp [real_inner_self_eq_norm_mul_norm, hv],
     simp [h₁, h₂, h₃, h₄, continuous_linear_map.map_add, continuous_linear_map.map_smul,
       mul_smul] },
   { simp }

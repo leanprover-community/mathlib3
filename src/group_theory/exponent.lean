@@ -70,8 +70,8 @@ calc g ^ n = g ^ (n % exponent G + exponent G * (n / exponent G)) : by rw [nat.m
   ... = g ^ (n % exponent G) : by simp [pow_add, pow_mul, pow_exponent_eq_one]
 
 @[to_additive]
-lemma exponent_pos_of_exists (n : ℕ) (hpos : 0 < n)
-(hG : ∀ g : G, g ^ n = 1) : 0 < exponent G :=
+lemma exponent_pos_of_exists (n : ℕ) (hpos : 0 < n) (hG : ∀ g : G, g ^ n = 1) :
+  0 < exponent G :=
 begin
   have h : ∃ n, 0 < n ∧ ∀ g : G, g ^ n = 1 := ⟨n, hpos, hG⟩,
   rw [exponent, dif_pos],

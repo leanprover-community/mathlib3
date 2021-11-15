@@ -14,8 +14,7 @@ with respect to measure `μ` if
 
 * `s` is a measurable set;
 
-* the union of the sets `g • s` over all `g : G` is `set.univ`; in other words, the saturation of
-  `s` by the orbits of the action covers the whole space; ;
+* the union of the sets `g • s` over all `g : G` covers the whole space but a set of measure zero;
 
 * the sets `g • s`, are pairwise a.e. disjoint, i.e., `μ (g₁ • s ∩ g₂ • s) = 0` whenever `g₁ ≠ g₂`;
   we require this for `g₂ = 1` in the definition, then deduce it for any two `g₁ ≠ g₂`.
@@ -37,7 +36,7 @@ a.e. disjoint and cover the whole space. -/
 @[protect_proj] structure is_add_fundamental_domain (G : Type*) {α : Type*} [has_zero G]
   [has_vadd G α] [measurable_space α] (s : set α) (μ : measure α . volume_tac) : Prop :=
 (measurable_set : measurable_set s)
-(Union_vadd : (⋃ g : G, g +ᵥ s) = univ)
+(ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g +ᵥ x ∈ s)
 (ae_disjoint : ∀ g ≠ (0 : G), μ ((g +ᵥ s) ∩ s) = 0)
 
 /-- A measurable set `s` is a *fundamental domain* for an action of a group `G` on a measurable
@@ -47,7 +46,7 @@ cover the whole space. -/
 structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar G α]
   [measurable_space α] (s : set α) (μ : measure α . volume_tac) : Prop :=
 (measurable_set : measurable_set s)
-(Union_smul : (⋃ g : G, g • s) = univ)
+(ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
 (ae_disjoint : ∀ g ≠ (1 : G), μ ((g • s) ∩ s) = 0)
 
 namespace is_fundamental_domain
@@ -69,11 +68,17 @@ calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩
 ... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
 ... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
 
+@[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
+  (⋃ g : G, g • s) =ᵐ[μ] univ :=
+filter.eventually_eq_univ.2 $ h.ae_covers.mono $
+  λ x ⟨g, hg⟩, mem_Union.2 ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
+
 variables [encodable G]
 
 @[to_additive] lemma measure_eq_tsum' (h : is_fundamental_domain G s μ) (t : set α) :
   μ t = ∑' g : G, μ (t ∩ g • s) :=
-calc μ t = μ.restrict t (⋃ g : G, g • s) : by rw [h.Union_smul, restrict_apply_univ]
+calc μ t = μ.restrict t (⋃ g : G, g • s) :
+  by rw [measure_congr (ae_mono measure.restrict_le_self h.Union_smul_ae_eq), restrict_apply_univ]
 ... = ∑' g : G, μ.restrict t (g • s) :
   measure_Union_of_null_inter h.measurable_set_smul $ h.pairwise_ae_disjoint.mono $
     λ g₁ g₂ H, measure.restrict_le_self.absolutely_continuous H

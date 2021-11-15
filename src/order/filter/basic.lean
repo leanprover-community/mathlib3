@@ -888,6 +888,8 @@ notation `∀ᶠ` binders ` in ` f `, ` r:(scoped p, filter.eventually p f) := r
 lemma eventually_iff {f : filter α} {P : α → Prop} : (∀ᶠ x in f, P x) ↔ {x | P x} ∈ f :=
 iff.rfl
 
+@[simp] lemma eventually_mem_set {s : set α} {l : filter α} : (∀ᶠ x in l, x ∈ s) ↔ s ∈ l := iff.rfl
+
 protected lemma ext' {f₁ f₂ : filter α}
   (h : ∀ p : α → Prop, (∀ᶠ x in f₁, p x) ↔ (∀ᶠ x in f₂, p x)) :
   f₁ = f₂ :=
@@ -1187,6 +1189,9 @@ lemma eventually_eq_set {s t : set α} {l : filter α} :
 eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
 alias eventually_eq_set ↔ filter.eventually_eq.mem_iff filter.eventually.set_eq
+
+@[simp] lemma eventually_eq_univ {s : set α} {l : filter α} : s =ᶠ[l] univ ↔ s ∈ l :=
+by simp [eventually_eq_set]
 
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, eq_on f g s :=

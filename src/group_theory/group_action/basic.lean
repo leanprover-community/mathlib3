@@ -16,7 +16,7 @@ import data.fintype.card
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open_locale big_operators
+open_locale big_operators pointwise
 open function
 
 namespace mul_action
@@ -37,6 +37,25 @@ iff.rfl
 
 @[simp, to_additive] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
+
+@[to_additive] lemma maps_to_smul_orbit (a : α) (b : β) :
+  set.maps_to ((•) a) (orbit α b) (orbit α b) :=
+set.range_subset_iff.2 $ λ a', ⟨a * a', mul_smul _ _ _⟩
+
+@[to_additive] lemma smul_orbit_subset (a : α) (b : β) : a • orbit α b ⊆ orbit α b :=
+(maps_to_smul_orbit a b).image_subset
+
+@[to_additive] lemma orbit_smul_subset (a : α) (b : β) : orbit α (a • b) ⊆ orbit α b :=
+set.range_subset_iff.2 $ λ a', mul_smul a' a b ▸ mem_orbit _ _
+
+@[to_additive] instance {b : β} : mul_action α (orbit α b) :=
+{ smul := λ a, (maps_to_smul_orbit a b).restrict _ _ _,
+  one_smul := λ a, subtype.ext (one_smul α a),
+  mul_smul := λ a a' b', subtype.ext (mul_smul a a' b') }
+
+@[simp, to_additive] lemma orbit.coe_smul {b : β} {a : α} {b' : orbit α b} :
+  ↑(a • b') = a • (b' : β) :=
+rfl
 
 variables (α) (β)
 
@@ -78,33 +97,11 @@ def stabilizer.submonoid (b : β) : submonoid α :=
 @[simp, to_additive] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
   a ∈ stabilizer.submonoid α b ↔ a • b = b := iff.rfl
 
-variables (α β)
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g • x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_smul_eq : ∀ x y : β, ∃ g : α, g • x = y)
-
-variables {β}
-
-lemma exists_smul_eq [is_pretransitive α β] (x y : β) :
-  ∃ m : α, m • x = y := is_pretransitive.exists_smul_eq x y
+@[to_additive] lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
+  orbit α x = set.univ :=
+(surjective_smul α x).range_eq
 
 end mul_action
-
-namespace add_action
-variables (α β) [add_monoid α] [add_action α β]
-
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g +ᵥ x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_vadd_eq : ∀ x y : β, ∃ g : α, g +ᵥ x = y)
-
-variables {β}
-
-lemma exists_vadd_eq [is_pretransitive α β] (x y : β) :
-  ∃ m : α, m +ᵥ x = y := is_pretransitive.exists_vadd_eq x y
-
-end add_action
 
 namespace mul_action
 variable (α)
@@ -123,25 +120,25 @@ variables {α} {β}
 @[simp, to_additive] lemma mem_stabilizer_iff {b : β} {a : α} :
   a ∈ stabilizer α b ↔ a • b = b := iff.rfl
 
+@[simp, to_additive] lemma smul_orbit (a : α) (b : β) :
+  a • orbit α b = orbit α b :=
+(smul_orbit_subset a b).antisymm $
+  calc orbit α b = a • a⁻¹ • orbit α b : (smul_inv_smul _ _).symm
+             ... ⊆ a • orbit α b       : set.image_subset _ (smul_orbit_subset _ _)
+
+@[simp, to_additive] lemma orbit_smul (a : α) (b : β) : orbit α (a • b) = orbit α b :=
+(orbit_smul_subset a b).antisymm $
+  calc orbit α b = orbit α (a⁻¹ • a • b) : by rw inv_smul_smul
+             ... ⊆ orbit α (a • b)       : orbit_smul_subset _ _
+
+/-- The action of a group on an orbit is transitive. -/
+@[to_additive "The action of an additive group on an orbit is transitive."]
+instance (x : β) : is_pretransitive α (orbit α x) :=
+⟨by { rintro ⟨_, a, rfl⟩ ⟨_, b, rfl⟩, use b * a⁻¹, ext1, simp [mul_smul] }⟩
+
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
-⟨λ h, h ▸ mem_orbit_self _,
-λ ⟨x, (hx : x • b = a)⟩, set.ext (λ c, ⟨λ ⟨y, (hy : y • a = c)⟩, ⟨y * x,
-  show (y * x) • b = c, by rwa [mul_action.mul_smul, hx]⟩,
-  λ ⟨y, (hy : y • b = c)⟩, ⟨y * x⁻¹,
-    show (y * x⁻¹) • a = c, by
-      conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
-        mul_action.mul_smul, hx]}⟩⟩)⟩
-
-@[to_additive] instance {b : β} : mul_action α (orbit α b) :=
-{ smul := λ a b', ⟨a • b', orbit_eq_iff.mp (eq.trans (orbit_eq_iff.mpr (mem_orbit b' a))
-    (orbit_eq_iff.mpr b'.2))⟩,
-  one_smul := λ a, subtype.ext (one_smul α a),
-  mul_smul := λ a a' b', subtype.ext (mul_smul a a' b') }
-
-@[simp, to_additive] lemma orbit.coe_smul {b : β} {a : α} {b' : orbit α b} :
-  ↑(a • b') = a • (b' : β) :=
-rfl
+⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
 
 @[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
   [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
@@ -157,11 +154,11 @@ end
 
 variables (α) {β}
 
-@[simp, to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
-⟨g⁻¹, by simp⟩
+@[to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+by simp only [orbit_smul, mem_orbit_self]
 
-@[simp, to_additive] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
-⟨g * h⁻¹, by simp [mul_smul]⟩
+@[to_additive] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+by simp only [orbit_smul, mem_orbit]
 
 variables (α) (β)
 /-- The relation 'in the same orbit'. -/

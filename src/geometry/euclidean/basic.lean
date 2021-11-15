@@ -156,7 +156,7 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←real_inner_self_eq_norm_sq, div_self (λ h, hx (inner_self_eq_zero.1 h)),
+  rw [←real_inner_self_eq_norm_mul_norm, div_self (λ h, hx (inner_self_eq_zero.1 h)),
       real.arccos_one]
 end
 
@@ -213,8 +213,8 @@ begin
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
       real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      real_inner_self_eq_norm_sq,
-      real_inner_self_eq_norm_sq],
+      real_inner_self_eq_norm_mul_norm,
+      real_inner_self_eq_norm_mul_norm],
   by_cases h : (∥x∥ * ∥y∥) = 0,
   { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
         zero_sub],
@@ -572,7 +572,7 @@ lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → �
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
   rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
-      ←inner_self_eq_norm_sq, finset.affine_combination_vsub],
+      ←inner_self_eq_norm_mul_norm, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
   { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
   exact inner_weighted_vsub p h p h
@@ -605,7 +605,7 @@ lemma dist_smul_vadd_sq (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
     ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_sq, vadd_vsub_assoc,
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_mul_norm, vadd_vsub_assoc,
     real_inner_add_add_self, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
@@ -617,7 +617,7 @@ lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
 begin
   conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_sq,
                  ←sub_eq_zero, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
-                 ←real_inner_self_eq_norm_sq, sub_self] },
+                 ←real_inner_self_eq_norm_mul_norm, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
     (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),

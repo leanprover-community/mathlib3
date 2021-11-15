@@ -43,22 +43,22 @@ variables [decidable_eq n]
 
 See `matrix.to_linear_equiv` for the same map on arbitrary modules.
 -/
-noncomputable def to_linear_equiv' (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n → R) :=
-have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
-{ inv_fun   := P⁻¹.to_lin',
+def to_linear_equiv' (P : matrix n n R) (h : invertible P) : (n → R) ≃ₗ[R] (n → R) :=
+{ inv_fun   := (⅟P).to_lin',
   left_inv  := λ v,
-    show (P⁻¹.to_lin'.comp P.to_lin') v = v,
-    by rw [← matrix.to_lin'_mul, P.nonsing_inv_mul h', matrix.to_lin'_one, linear_map.id_apply],
+    show ((⅟P).to_lin'.comp P.to_lin') v = v,
+    by rw [← matrix.to_lin'_mul, P.inv_of_mul_self, matrix.to_lin'_one, linear_map.id_apply],
   right_inv := λ v,
-    show (P.to_lin'.comp P⁻¹.to_lin') v = v,
-    by rw [← matrix.to_lin'_mul, P.mul_nonsing_inv h', matrix.to_lin'_one, linear_map.id_apply],
+    show (P.to_lin'.comp (⅟P).to_lin') v = v,
+    by rw [← matrix.to_lin'_mul, P.mul_inv_of_self, matrix.to_lin'_one, linear_map.id_apply],
   ..P.to_lin' }
 
-@[simp] lemma to_linear_equiv'_apply (P : matrix n n R) (h : is_unit P) :
+@[simp] lemma to_linear_equiv'_apply (P : matrix n n R) (h : invertible P) :
   (↑(P.to_linear_equiv' h) : module.End R (n → R)) = P.to_lin' := rfl
 
-@[simp] lemma to_linear_equiv'_symm_apply (P : matrix n n R) (h : is_unit P) :
-  (↑(P.to_linear_equiv' h).symm : module.End R (n → R)) = P⁻¹.to_lin' := rfl
+@[simp] lemma to_linear_equiv'_symm_apply (P : matrix n n R) (h : invertible P) :
+  (↑(P.to_linear_equiv' h).symm : module.End R (n → R)) = P⁻¹.to_lin' :=
+show (⅟P).to_lin' = _, from congr_arg _ P.inv_of_eq_nonsing_inv
 
 end to_linear_equiv'
 

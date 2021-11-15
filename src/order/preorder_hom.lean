@@ -289,22 +289,20 @@ instance {β : Type*} [lattice β] : lattice (α →ₘ β) :=
   .. (_ : semilattice_inf (α →ₘ β)) }
 
 @[simps]
-instance {β : Type*} [order_bot β] : has_bot (α →ₘ β) :=
+instance {β : Type*} [preorder β] [order_bot β] : has_bot (α →ₘ β) :=
 { bot := const α ⊥ }
 
-instance {β : Type*} [order_bot β] : order_bot (α →ₘ β) :=
+instance {β : Type*} [preorder β] [order_bot β] : order_bot (α →ₘ β) :=
 { bot := ⊥,
-  bot_le := λ a x, bot_le,
-  .. (_ : partial_order (α →ₘ β)) }
+  bot_le := λ a x, bot_le }
 
 @[simps]
-instance {β : Type*} [order_top β] : has_top (α →ₘ β) :=
+instance {β : Type*} [preorder β] [order_top β] : has_top (α →ₘ β) :=
 { top := const α ⊤ }
 
-instance {β : Type*} [order_top β] : order_top (α →ₘ β) :=
+instance {β : Type*} [preorder β] [order_top β] : order_top (α →ₘ β) :=
 { top := ⊤,
-  le_top := λ a x, le_top,
-  .. (_ : partial_order (α →ₘ β)) }
+  le_top := λ a x, le_top }
 
 instance {β : Type*} [complete_lattice β] : has_Inf (α →ₘ β) :=
 { Inf := λ s, ⟨λ x, ⨅ f ∈ s, (f : _) x, λ x y h, binfi_le_binfi (λ f _, f.mono h)⟩ }
@@ -342,8 +340,8 @@ instance {β : Type*} [complete_lattice β] : complete_lattice (α →ₘ β) :=
   le_Inf := λ s f hf x, le_binfi (λ g hg, hf g hg x),
   Inf_le := λ s f hf x, infi_le_of_le f (infi_le _ hf),
   .. (_ : lattice (α →ₘ β)),
-  .. (_ : order_top (α →ₘ β)),
-  .. (_ : order_bot (α →ₘ β)) }
+  .. preorder_hom.order_top,
+  .. preorder_hom.order_bot }
 
 lemma iterate_sup_le_sup_iff {α : Type*} [semilattice_sup α] (f : α →ₘ α) :
   (∀ n₁ n₂ a₁ a₂, f^[n₁ + n₂] (a₁ ⊔ a₂) ≤ (f^[n₁] a₁) ⊔ (f^[n₂] a₂)) ↔

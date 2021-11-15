@@ -73,7 +73,7 @@ begin
                preserves_product.iso_hom, map_lift_pi_comparison, functor.map_comp,
                category.assoc],
     dsimp, simp, },
- { ext, simp, dsimp, simp, },
+  { ext, simp, dsimp, simp, },
 end
 
 local attribute [reducible] res

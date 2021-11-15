@@ -247,9 +247,9 @@ le_trans (depth_max' h) (upper_le _ _)
 
 lemma balanced {c n} {t : rbnode α} (h : is_red_black t c n) : depth max t ≤ 2 * depth min t + 1 :=
 begin
- have : 2 * depth min t + 1 ≥ 2 * n + 1,
- { apply succ_le_succ, apply nat.mul_le_mul_left, apply depth_min h},
- apply le_trans, apply depth_max h, apply this
+  have : 2 * depth min t + 1 ≥ 2 * n + 1,
+  { apply succ_le_succ, apply nat.mul_le_mul_left, apply depth_min h },
+  apply le_trans, apply depth_max h, apply this
 end
 
 end rbnode

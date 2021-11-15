@@ -451,7 +451,7 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }

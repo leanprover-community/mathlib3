@@ -437,6 +437,18 @@ begin
     exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
+lemma aeval_root_derivative_of_splits [algebra K L] {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (algebra_map K L)) {r : L} (hr : r ∈ (P.map (algebra_map K L)).roots) :
+  aeval r P.derivative =
+  (multiset.map (λ a, r - a) ((P.map (algebra_map K L)).roots.erase r)).prod :=
+begin
+  replace hmo := monic_map (algebra_map K L) hmo,
+  replace hP := (splits_id_iff_splits (algebra_map K L)).2 hP,
+  rw [aeval_def, ← eval_map, ← derivative_map],
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [eval_multiset_prod_X_sub_C_derivative hr]
+end
+
 end splits
 
 end polynomial
@@ -728,7 +740,7 @@ theorem splits_iff (f : polynomial K) [is_splitting_field K L f] :
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
     hxy ▸ set_like.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl K _ ▸
-  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
+  ring_equiv.self_trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits L f) }⟩
 
 theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f]

@@ -953,11 +953,7 @@ namespace bilin_form
 /-- The proposition that a bilinear form is reflexive -/
 def is_refl (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = 0 → B y x = 0
 
-end bilin_form
-
-namespace bilin_form.is_refl
-
-open bilin_form.is_refl bilin_form
+namespace is_refl
 
 variable (H : B.is_refl)
 
@@ -966,18 +962,12 @@ lemma eq_zero : ∀ {x y : M}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_sym {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
-end bilin_form.is_refl
-
-namespace bilin_form
+end is_refl
 
 /-- The proposition that a bilinear form is symmetric -/
 def is_symm (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
 
-end bilin_form
-
-namespace bilin_form.is_symm
-
-open bilin_form.is_symm bilin_form
+namespace is_symm
 
 variable (H : B.is_symm)
 
@@ -999,17 +989,12 @@ begin
     simp }
 end
 
-end bilin_form.is_symm
+end is_symm
 
-namespace bilin_form
 /-- The proposition that a bilinear form is alternating -/
 def is_alt (B : bilin_form R M) : Prop := ∀ (x : M), B x x = 0
 
-end bilin_form
-
-namespace bilin_form.is_alt
-
-open bilin_form.is_alt bilin_form
+namespace is_alt
 
 lemma self_eq_zero (H : B.is_alt) (x : M) : B x x = 0 := H x
 
@@ -1033,9 +1018,7 @@ end
 lemma ortho_sym (H : B₁.is_alt) {x y : M₁} :
   is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_sym
 
-end bilin_form.is_alt
-
-namespace bilin_form
+end is_alt
 
 section linear_adjoints
 

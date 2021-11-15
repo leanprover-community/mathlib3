@@ -97,39 +97,11 @@ def stabilizer.submonoid (b : β) : submonoid α :=
 @[simp, to_additive] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
   a ∈ stabilizer.submonoid α b ↔ a • b = b := iff.rfl
 
-variables (α β)
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g • x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_smul_eq : ∀ x y : β, ∃ g : α, g • x = y)
-
-variables {β}
-
-lemma exists_smul_eq [is_pretransitive α β] (x y : β) :
-  ∃ m : α, m • x = y := is_pretransitive.exists_smul_eq x y
-
-lemma surjective_smul [is_pretransitive α β] (x : β) :
-  surjective (λ c : α, c • x) :=
-exists_smul_eq α x
-
-lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
+@[to_additive] lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
 end mul_action
-
-namespace add_action
-variables (α β) [add_monoid α] [add_action α β]
-
-/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g +ᵥ x = y`.
-  A transitive action should furthermore have `β` nonempty. -/
-class is_pretransitive : Prop :=
-(exists_vadd_eq : ∀ x y : β, ∃ g : α, g +ᵥ x = y)
-
-attribute [to_additive] mul_action.is_pretransitive mul_action.exists_smul_eq
-  mul_action.surjective_smul mul_action.orbit_eq_univ
-
-end add_action
 
 namespace mul_action
 variable (α)
@@ -158,6 +130,11 @@ variables {α} {β}
 (orbit_smul_subset a b).antisymm $
   calc orbit α b = orbit α (a⁻¹ • a • b) : by rw inv_smul_smul
              ... ⊆ orbit α (a • b)       : orbit_smul_subset _ _
+
+/-- The action of a group on an orbit is transitive. -/
+@[to_additive "The action of an additive group on an orbit is transitive."]
+instance (x : β) : is_pretransitive α (orbit α x) :=
+⟨by { rintro ⟨_, a, rfl⟩ ⟨_, b, rfl⟩, use b * a⁻¹, ext1, simp [mul_smul] }⟩
 
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=

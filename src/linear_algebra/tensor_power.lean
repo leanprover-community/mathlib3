@@ -122,13 +122,14 @@ begin
   suffices : lhs = rhs,
   from linear_map.congr_fun (linear_map.congr_fun (linear_map.congr_fun this a) b) c,
   ext a b c,
+  -- clean up
   simp only [linear_map.comp_multilinear_map_apply, lhs_eq, rhs_eq, tprod_mul_tprod, e,
     reindex_tprod],
   congr' with j,
   rw fin.append'_assoc,
   refine congr_arg (fin.append' a (fin.append' b c)) (fin.ext _),
-  simp,
-  sorry,
+  rw [fin.coe_cast, equiv.cast_symm, equiv.cast_apply, ←fin.cast_eq_cast (add_assoc _ _ _).symm,
+    fin.coe_cast],
 end
 
 -- for now we just use the default for the `gnpow` field as it's easier.

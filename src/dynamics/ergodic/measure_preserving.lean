@@ -61,13 +61,14 @@ lemma restrict_preimage {f : α → β} (hf : measure_preserving f μa μb) {s :
   (hs : measurable_set s) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
 ⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.measurable hs]⟩
 
-lemma restrict_preimageₑ {f : α → β} (hf : measure_preserving f μa μb) (h₂ : measurable_embedding f)
-  (s : set β) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
+lemma restrict_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
+  (h₂ : measurable_embedding f) (s : set β) :
+  measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
 ⟨hf.measurable, by rw [← hf.map_eq, h₂.restrict_map]⟩
 
-lemma restrict_imageₑ {f : α → β} (hf : measure_preserving f μa μb) (h₂ : measurable_embedding f)
+lemma restrict_image_emb {f : α → β} (hf : measure_preserving f μa μb) (h₂ : measurable_embedding f)
   (s : set α) : measure_preserving f (μa.restrict s) (μb.restrict (f '' s)) :=
-by simpa only [preimage_image_eq _ h₂.injective] using hf.restrict_preimageₑ h₂ (f '' s)
+by simpa only [preimage_image_eq _ h₂.injective] using hf.restrict_preimage_emb h₂ (f '' s)
 
 protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preserving f μa μb) :
   quasi_measure_preserving f μa μb :=

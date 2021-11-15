@@ -312,17 +312,15 @@ lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
 by rw [fin_rotate_succ_apply, fin.coe_add_one i]
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
+@[simps]
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
-{ to_fun := λ x, ⟨x.2.1 + n * x.1.1,
+{ to_fun := λ x, ⟨x.2 + n * x.1,
     calc x.2.1 + n * x.1.1 + 1
         = x.1.1 * n + x.2.1 + 1 : by ac_refl
     ... ≤ x.1.1 * n + n : nat.add_le_add_left x.2.2 _
     ... = (x.1.1 + 1) * n : eq.symm $ nat.succ_mul _ _
     ... ≤ m * n : nat.mul_le_mul_right _ x.1.2⟩,
-  inv_fun := λ x,
-    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
-    (⟨x.1 / n, (nat.div_lt_iff_lt_mul _ _ H).2 x.2⟩,
-     ⟨x.1 % n, nat.mod_lt _ H⟩),
+  inv_fun := λ x, (x.div_nat, x.mod_nat),
   left_inv := λ ⟨x, y⟩,
     have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
     prod.ext

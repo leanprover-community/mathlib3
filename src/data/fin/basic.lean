@@ -63,6 +63,8 @@ This file expands on the development in the core library.
   `fin.last n`;
 * `fin.sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
 * `fin.clamp n m` : `min n m` as an element of `fin (m + 1)`;
+* `fin.div_nat i` : divides `i : fin (m * n)` by `n`;
+* `fin.mod_nat i` : takes the mod of `i : fin (m * n)` by `n`;
 
 ### Misc definitions
 
@@ -827,6 +829,22 @@ ext $ add_tsub_cancel_right i m
 by simp [← cast_add_nat]
 
 end pred
+
+section div_mod
+
+/-- Compute `i / n`, where `n` is a `nat` and inferred the type of `i`. -/
+def div_nat (i : fin (m * n)) : fin m :=
+⟨i / n, nat.div_lt_of_lt_mul $ mul_comm m n ▸ i.prop⟩
+
+@[simp] lemma coe_div_nat (i : fin (m * n)) : (i.div_nat : ℕ) = i / n := rfl
+
+/-- Compute `i % n`, where `n` is a `nat` and inferred the type of `i`. -/
+def mod_nat (i : fin (m * n)) : fin n :=
+⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_left ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
+
+@[simp] lemma coe_mod_nat (i : fin (m * n)) : (i.mod_nat : ℕ) = i % n := rfl
+
+end div_mod
 
 section rec
 

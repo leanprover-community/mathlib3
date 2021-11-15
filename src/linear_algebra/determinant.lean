@@ -401,7 +401,7 @@ lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
 
-@[simp] lemma pi.coe_basis_fun_det : ((pi.basis_fun R ι).det : matrix ι ι R → R) = matrix.det :=
+@[simp] lemma pi.basis_fun_det : (pi.basis_fun R ι).det = matrix.det_row_alternating :=
 begin
   ext M,
   rw [basis.det_apply, basis.coe_pi_basis_fun.to_matrix_eq_transpose, det_transpose],

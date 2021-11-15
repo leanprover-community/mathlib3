@@ -164,7 +164,7 @@ begin
     apply_instance },
 end
 
-/-- Do not use this lemma: It is made made obsolete by `exists_right_complement'_of_coprime` -/
+/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]
   (hH : nat.coprime (fintype.card H) H.index) :
   ∃ K : subgroup G, is_complement' H K :=

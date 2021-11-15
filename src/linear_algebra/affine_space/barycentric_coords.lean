@@ -36,10 +36,6 @@ barycentric coordinate of `q : P` is `1 - fᵢ (q -ᵥ p i)`.
 
  * Construct the affine equivalence between `P` and `{ f : ι →₀ k | f.sum = 1 }`.
 
- * Consider redefining an affine basis as an `affine_equiv` to a `finsupp` (in the general case) or
-   function type (in the finite-dimensional case) with appropriate proofs of existence when `k` is
-   a field.
-
 -/
 
 open_locale affine big_operators matrix

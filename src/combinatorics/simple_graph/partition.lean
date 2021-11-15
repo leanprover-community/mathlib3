@@ -41,6 +41,13 @@ universes u v
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
 
+/--
+A `partition` of a simple graph `G` is a structure constituted by
+* `parts`: a set of subsets of the vertices `V` of `G`
+* `is_partition`: a proof that `parts` is a proper partition of `V`
+* `independent`: a proof that each element of `parts` doesn't have a pair of vertices incident
+  by the same edge
+-/
 structure partition :=
 (parts : set (set V))
 (is_partition : setoid.is_partition parts)
@@ -106,6 +113,8 @@ begin
     { by apply coloring.color_classes_is_independent, },
   exact partition.mk parts is_partition independent,
 end
+
+instance : inhabited (partition G) := ⟨from_coloring G.self_coloring⟩
 
 end partition
 

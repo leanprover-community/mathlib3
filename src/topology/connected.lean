@@ -7,6 +7,7 @@ import topology.subset_properties
 import order.partial_sups
 import logic.relation
 import data.nat.relation
+import data.int.relation
 
 /-!
 # Connected subsets of topological spaces
@@ -147,7 +148,8 @@ end
 	  rintros u v hu hv Huv ⟨a, ⟨s, hsS, has⟩, hau⟩ ⟨b, ⟨t, htS, hbt⟩, hbv⟩,
 	  obtain ⟨r, hrS, hsr, htr⟩ : ∃ r ∈ S, s ⊆ r ∧ t ⊆ r := K s hsS t htS,
 	  have Hnuv : (r ∩ (u ∩ v)).nonempty,
-	  from H _ hrS u v hu hv ((subset_sUnion_of_mem hrS).trans Huv) ⟨a, hsr has, hau⟩ ⟨b, htr hbt, hbv⟩,
+	  from H _ hrS u v hu hv ((subset_sUnion_of_mem hrS).trans Huv)
+      ⟨a, hsr has, hau⟩ ⟨b, htr hbt, hbv⟩,
 	  have Kruv : r ∩ (u ∩ v) ⊆ ⋃₀ S ∩ (u ∩ v),
 	  from inter_subset_inter_left _ (subset_sUnion_of_mem hrS),
 	  exact Hnuv.mono Kruv
@@ -190,11 +192,11 @@ begin
     exact ⟨⋃ j ∈ t, s j, set.bUnion_subset_Union _ _, mem_bUnion hit hxi, mem_bUnion hjt hyj, ht⟩ }
 end
 
-/-- The Union of connected sets indexed by ℕ such that any two neighboring sets meet
+/-- The Union of connected sets indexed by `ℕ` such that any two neighboring sets meet
 is connected. -/
-theorem is_preconnected.Union_nat_of_chain { s : ℕ → set α }
-  (H : ∀ n: ℕ, is_preconnected (s n))
-  (K : ∀ n: ℕ, (s n ∩ s n.succ).nonempty) :
+theorem is_preconnected.Union_nat_of_chain {s : ℕ → set α}
+  (H : ∀ n : ℕ, is_preconnected (s n))
+  (K : ∀ n : ℕ, (s n ∩ s n.succ).nonempty) :
   is_preconnected (⋃ n, s n) :=
 is_preconnected.Union_of_trans_gen H $
   λ i j hij, trans_gen_nat_of_ne _ (λ i _, K i) (λ i _, by { rw inter_comm, exact K i }) hij

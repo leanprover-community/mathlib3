@@ -1306,75 +1306,91 @@ begin
 end
 
 lemma prime_power_of_dvd_prime_power {p q : ideal T} (hp : p.is_prime) (n : ℕ) :
-  q ∣ p^n ↔ ∃ (i : finset.Ico 0 (n+1)), q = p^(i : ℕ) :=
+  q ∣ p^n ↔ ∃ (i : ℕ), q = p^i ∧ 0 ≤ i ∧ i ≤ n :=
 sorry
 
-lemma pow_prime₁ {q : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i) :
-  (c ⟨1, sorry⟩).is_prime :=
+lemma pow_prime₁ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n) :
+  (c 0) = ⊤ := sorry
+
+lemma pow_prime₂ {q : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n) :
+  (c 1).is_prime :=
 begin
   apply is_maximal.is_prime,
   rw [is_maximal_def, is_coatom],
   split,
-  { exact ne_top_of_lt (h₁ ⟨0, sorry⟩ ⟨1, sorry⟩ sorry) },
+  { exact ne_top_of_lt (h₁ 0 1 zero_lt_one) },
   { intro b,
   by_cases h: b ∣ q,
   { intro hb,
-    have : ∃ (i : finset.Ico 0 (n+1)), b = c i,
-    sorry,
-    obtain ⟨i, hi⟩:= this,
-    sorry },
+    obtain ⟨i, hi⟩ := (h₂ b).1 h,
+    by_cases H : 1 ≤ i,
+    { exfalso,
+      by_cases H' : 1 = i,
+      { rw hi.left at hb,
+        rw ← H' at hb,
+        exact (ne_of_lt hb) rfl },
+      { rw ← ne.def at H',
+        have := h₁ 1 i (lt_of_le_of_ne H H'),
+        rw hi.left at hb,
+        exact (ne_of_lt this) (le_antisymm (le_of_lt this) (le_of_lt hb)) } },
+    rw ← lt_iff_not_ge' at H,
+    rw [hi.left, nat.lt_one_iff.mp H],
+    apply pow_prime₁ n c h₁ h₂,
+    exact q,
+    exact q },--don't know why Lean is asking me for the last two exact statements
   { intro hb,
     exfalso,
-    have : c ⟨1, sorry⟩ ∣ q,
-    sorry,
-    exact h (dvd_trans (dvd_iff_le.2 (le_of_lt hb)) this) } },
+    refine h (dvd_trans (dvd_iff_le.2 (le_of_lt hb)) ((h₂ (c 1)).2 _)),
+    use 1,
+    split,
+    refl,
+    exact ⟨zero_le 1, hn⟩ } },
 end
 
-lemma pow_prime₂ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i) :
-  (c ⟨0, sorry⟩) = ⊤ := sorry
-
-lemma pow_prime₃ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i)
+lemma pow_prime₃ {p q r : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n)
   (hp : p.is_prime) (hr : r ∣ q) (hr' : r ≠ ⊤) :
-  p ∈ normalized_factors r → p = c ⟨1, sorry⟩ :=
+  p ∈ normalized_factors r → p = c 1 :=
 begin
   intro hp',
   by_contra hcontra,
   obtain ⟨i, hi⟩:= (h₂ p).1 (dvd_trans (dvd_of_mem_normalized_factors hp') hr),
-  suffices : i ≥ ⟨1, sorry⟩,
-  { by_cases h : i = ⟨1, sorry⟩,
+  suffices : i ≥ 1,
+  { by_cases h : i = 1,
     { rw h at hi,
-      contradiction },
+      exact hcontra hi.left },
     { rw ← ne.def at h,
-      have temp := h₁ ⟨1, sorry⟩ i (lt_of_le_of_ne this h.symm),
+      have temp := h₁ 1 i (lt_of_le_of_ne this h.symm),
       rw gt_iff_lt at temp,
       rw ← dvd_not_unit_iff_lt at temp,
       sorry } }, --prove not_prime_of_prime_dvd_not_unit
   by_contra hcontra,
   rw ← lt_iff_not_ge at hcontra,
-  have : i = ⟨0, sorry⟩,
-    sorry,
-  rw this at hi,
+  rw (nat.lt_one_iff.mp hcontra) at hi,
   apply is_prime.ne_top hp,
-  rw hi,
-  refine pow_prime₂ n c h₁ h₂,
+  rw hi.left,
+  refine pow_prime₁ n c h₁ h₂,
   exact p,
   exact p,
 end
 
-lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i)
-  (m : finset (ideal T)) (hm : ∀ r, r ∈ m → r ∣ q) : m.card ≤  n :=
+lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n)
+  (m : finset (ideal T)) (hm : ∀ r, r ∈ m → r ∣ q) : m.card ≤  n + 1 :=
 begin
-  sorry
+  have sorry_1: ∀ (r : ideal T), r ∣ q ↔ r ∈ (finset.range (n+1)).image c,
+    sorry, -- shouldn't be very hard, this is just restating h₂
+  have sorry_2 : m ⊆ (finset.range (n+1)).image c,
+    sorry,
+  rw ← finset.card_range (n + 1),
+  exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
 end
 
-
-lemma pow_prime₅ {p q r : ideal T} (n : ℕ) (c : finset.Ico 0 (n+1) → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i)
-  (hr : r ∣ q) (hr' : r ≠ ⊤) : ∃ (i : finset.Ico 0 (n+1)), r = p^(i : ℕ) :=
+lemma pow_prime₅ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n)
+  (hr : r ∣ q) (hr' : r ≠ ⊤) : ∃ (i : ℕ), r = p^i ∧ 0 ≤ i ∧ i ≤ n :=
 begin
   have : ∃ (i : ℕ), normalized_factors r = multiset.repeat q i,
     sorry,
@@ -1387,16 +1403,16 @@ end
 
 lemma pow_prime {q : ideal T} (n : ℕ) :
 (∃ (p : ideal T), p.is_prime ∧ q = p^n) ↔
-  (∃ (c : finset.Ico 0 (n+1) → ideal T), (∀ i j, i < j → c i > c j) ∧
-    {r : ideal T | r ∣ q} = {r : ideal T | ∃ i, r = c i}) :=
+  (∃ (c : ℕ → ideal T), (∀ i j, i < j → c i > c j) ∧
+    ∀ (r : ideal T), r ∣ q ↔  ∃ (i : ℕ), r = c i ∧ 0 ≤ i ∧ i ≤ n) :=
 begin
   split,
   { intro H,
     obtain ⟨p, hp₁, hp₂⟩ := H,
     use λ i, p^(i : ℕ),
     split,
-    { sorry },
-    { ext y,
+    { sorry }, --this sorry shouldn't be too hard
+    { intro y,
       split,
       { intro hy,
         apply (prime_power_of_dvd_prime_power hp₁ n).1,
@@ -1405,9 +1421,9 @@ begin
       { intro hy,
         obtain ⟨i, hy'⟩ := hy,
         use p^(n - i : ℕ),
-        rw [hy', pow_mul_pow_sub],
+        rw [hy'.left, pow_mul_pow_sub],
         exact hp₂,
-        sorry } } },
+        exact hy'.right.right } } },
   sorry, --this part of the proof is a lot harder so I've separated it into a bunch of
          --sub-results as above
 end

@@ -220,8 +220,7 @@ noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜
 
 @[simp] lemma diagonalization_basis_symm_apply (w : euclidean_space 𝕜 (fin n)) :
   (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=
-(hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal_symm_apply
-  (hT.eigenvector_basis_orthonormal hn) w
+by simp [diagonalization_basis]
 
 /-- *Diagonalization theorem*, *spectral theorem*; version 2: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the identification of `E` with

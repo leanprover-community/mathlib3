@@ -121,7 +121,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   id_comp' := λ X Y f, by { ext1,
     { rw comp_c, erw eq_to_hom_map, simp, apply comp_id }, apply id_comp },
   comp_id' := λ X Y f, by { ext1,
-    { rw comp_c, erw congr_hom (presheaf.pushforward_id _) f.c,
+    { rw comp_c, erw congr_hom (presheaf.pushforward_id C) f.c,
       simp, erw eq_to_hom_trans_assoc, simp }, apply comp_id },
   assoc' := λ W X Y Z f g h, by { ext1,
     repeat {rw comp_c}, simpa, refl } }
@@ -275,7 +275,7 @@ def pushforward_forget_adjunction (X : PresheafedSpace C) :
   counit := pushforward_forget_counit X,
   left_triangle' := by { ext1, ext1, simp, erw id_comp, refl },
   right_triangle' := by { ext1, ext1, simp, erw id_comp, refl } }
-
+  /- squeeze_simp result is too long ... -/
 
 variables [limits.has_colimits C]
 

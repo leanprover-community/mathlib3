@@ -6,6 +6,7 @@ Authors: Scott Morrison, Mario Carneiro, Reid Barton, Andrew Yang
 import topology.category.Top.opens
 import category_theory.limits.kan_extension
 import category_theory.adjunction.opposites
+import category_theory.adjunction.mates
 
 /-!
 # Presheaves on a topological space
@@ -194,18 +195,18 @@ nat_iso.of_components
     ℱ.map_iso (eq_to_iso (by simp)))
   (λ U V i,
   begin
-      ext, simp[-eq_to_hom_map,-eq_to_iso_map],
-      erw category_theory.limits.colimit.pre_desc_assoc,
-      erw colimit.ι_desc_assoc,
-      erw colimit.ι_desc_assoc,
-      dsimp, simp only [←ℱ.map_comp], congr
+    ext, simp [-eq_to_hom_map, -eq_to_iso_map],
+    erw category_theory.limits.colimit.pre_desc_assoc,
+    erw colimit.ι_desc_assoc,
+    erw colimit.ι_desc_assoc,
+    dsimp, simp only [←ℱ.map_comp], congr
   end)
 
 lemma id_inv_app (U : opens Y) :
   (id ℱ).inv.app (op U) = colimit.ι (Lan.diagram (opens.map (𝟙 Y)).op ℱ (op U))
     (@costructured_arrow.mk _ _ _ _ _ (op U) _ (eq_to_hom (by simp))) :=
 begin
-  dsimp[id], simp[-eq_to_hom_map,-eq_to_iso_map],dsimp[colimit_of_diagram_terminal],
+  dsimp [id], simp [-eq_to_hom_map, -eq_to_iso_map], dsimp [colimit_of_diagram_terminal],
   delta Lan.diagram,
   refine eq.trans _ (category.id_comp _),
   rw ← ℱ.map_id,
@@ -246,6 +247,43 @@ def pullback {X Y : Top.{v}} (f : X ⟶ Y) : Y.presheaf C ⥤ X.presheaf C := La
 @[simps unit_app_app counit_app_app]
 def pushforward_pullback_adjunction {X Y : Top.{v}} (f : X ⟶ Y) :
   pullback C f ⊣ pushforward C f := Lan.adjunction _ _
+
+namespace pullback
+
+variable {C}
+
+def id_iso (X : Top.{v}) : pullback C (𝟙 X) ≅ 𝟭 (X.presheaf C) := as_iso $
+  (transfer_nat_trans_self adjunction.id (pushforward_pullback_adjunction C (𝟙 X))).symm
+    (eq_to_iso (pushforward_id C)).inv
+/- This is also simple to define but the definition is harder to work with :
+adjunction.nat_iso_of_right_adjoint_nat_iso
+  (pushforward_pullback_adjunction C (𝟙 X))
+  adjunction.id $
+  eq_to_iso (pushforward_id C) -/
+
+lemma id_iso_eq {X : Top.{v}} : (id_iso X).app = @id C _ _ X :=
+begin
+  ext1 ℱ, ext1, rw ←iso.inv_eq_inv, apply nat_trans.ext, ext1 U,
+  induction U using opposite.rec, rw id_inv_app ℱ U,
+  --rw ← iso.app_inv, ext1,
+  unfold id_iso, dsimp, unfold inv, -- transfer_nat_trans_self, dsimp [-eq_to_iso.inv], rw is_iso.inv_comp,
+  /-
+  unfold pushforward_pullback_adjunction transfer_nat_trans, dsimp,
+  rw category.id_comp, erw (Lan.equiv _ _ _).left_inv,
+  -- transfer_nat_trans, dsimp, simp,
+
+  simp,
+  simp,
+  ext1, ext1 U,
+  --ext1 ?,
+  ext1 ℱ, ext1,  ext1 U,
+  induction U using opposite.rec,rw id_inv_app ℱ U,
+  unfold id_iso, unfold adjunction.nat_iso_of_right_adjoint_nat_iso adjunction.left_adjoint_uniq,
+  simp, dsimp,
+  --rw iso.app_inv, ext1,-/
+end
+
+end pullback
 
 end presheaf
 end Top

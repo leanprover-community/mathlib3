@@ -482,31 +482,30 @@ end comm_group_with_zero
 
 section comm_semiring
 
-variables [comm_semiring R] [comm_semiring S] {f : R →+* S}
+variables [comm_semiring R] [comm_semiring S] {f : R →+* S} {ζ : R}
 
-lemma of_injective (hf : function.injective f) {x : R} {n : ℕ}
-  (hx : is_primitive_root x n) : is_primitive_root (f x) n :=
-{ pow_eq_one := by rw [←f.map_pow, hx.pow_eq_one, f.map_one],
+open function
+
+lemma of_injective (hf : injective f) (h : is_primitive_root ζ k) : is_primitive_root (f ζ) k :=
+{ pow_eq_one := by rw [←f.map_pow, h.pow_eq_one, f.map_one],
   dvd_of_pow_eq_one := begin
-    rw hx.eq_order_of,
+    rw h.eq_order_of,
     intros l hl,
     rw [←f.map_pow, ←f.map_one] at hl,
     exact order_of_dvd_of_pow_eq_one (hf hl)
   end }
 
-lemma of_injective' (hf : function.injective f) {x : R} {n : ℕ}
-  (hx : is_primitive_root (f x) n) : is_primitive_root x n :=
-{ pow_eq_one := by { apply_fun f, rw [f.map_pow, f.map_one, hx.pow_eq_one] },
+lemma of_injective' (hf : injective f) (h : is_primitive_root (f ζ) k) : is_primitive_root ζ k :=
+{ pow_eq_one := by { apply_fun f, rw [f.map_pow, f.map_one, h.pow_eq_one] },
   dvd_of_pow_eq_one := begin
-    rw hx.eq_order_of,
+    rw h.eq_order_of,
     intros l hl,
     apply_fun f at hl,
     rw [f.map_pow, f.map_one] at hl,
     exact order_of_dvd_of_pow_eq_one hl
   end }
 
-lemma injective_iff (hf : function.injective f) {x : R} {n : ℕ} :
-  is_primitive_root x n ↔ is_primitive_root (f x) n :=
+lemma iff_injective (hf : injective f) : is_primitive_root ζ k ↔ is_primitive_root (f ζ) k :=
 ⟨λ h, h.of_injective hf, λ h, h.of_injective' hf⟩
 
 end comm_semiring

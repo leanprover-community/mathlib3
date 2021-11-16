@@ -1824,12 +1824,12 @@ end
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
 lemma to_finset_union (L1 L2 : list α) :
-(L1 ∪ L2).to_finset = L1.to_finset ∪ L2.to_finset
-  := by {ext, simp}
+(L1 ∪ L2).to_finset = L1.to_finset ∪ L2.to_finset :=
+by {ext, simp}
 
 lemma to_finset_inter (L1 L2 : list α) :
-(L1 ∩ L2).to_finset = L1.to_finset ∩ L2.to_finset
-  := by {ext, simp}
+(L1 ∩ L2).to_finset = L1.to_finset ∩ L2.to_finset :=
+by {ext, simp}
 
 end list
 

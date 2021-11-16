@@ -76,7 +76,6 @@ rfl
 lemma support_pure : (pure a).support = {a} :=
 set.ext (λ a', by simp [mem_support_iff])
 
-@[simp]
 lemma mem_support_pure_iff: a' ∈ (pure a).support ↔ a' = a :=
 by simp
 
@@ -115,8 +114,7 @@ rfl
 lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
 set.ext (λ b, by simp [mem_support_iff, tsum_eq_zero_iff (bind.summable p f b), not_or_distrib])
 
-@[simp]
-lemma mem_support_bind (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
+lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
 by simp
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :

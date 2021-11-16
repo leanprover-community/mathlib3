@@ -1,25 +1,37 @@
 /-
-Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Floris van Doorn, Yury Kudryashov
 -/
 import order.symm_diff
 import tactic.monotonicity.basic
 
 /-!
+# Implication and equivalence as operations on a boolean algebra
+
+In this file we define `lattice.imp` (notation: `a ⇒ₒ b`) and `lattice.biimp` (notation: `a ⇔ₒ b`)
+to be the implication and equivalence as operations on a boolean algebra. More precisely, we put
+`a ⇒ₒ b = aᶜ ⊔ b` and `a ⇔ₒ b = (a ⇒ₒ b) ⊓ (b ⇒ₒ a)`. Equivalently, `a ⇒ₒ b = (a \ b)ᶜ` and
+`a ⇔ₒ b = (a Δ b)ᶜ`. For propositions these operations are equal to the usual implication and `iff`.
 -/
 
 variables {α β : Type*}
 
 namespace lattice
 
+/-- Implication as a binary operation on a boolean algebra. -/
 def imp [has_compl α] [has_sup α] (a b : α) : α := aᶜ ⊔ b
 
 infix ` ⇒ₒ `:65 := lattice.imp
 
+/-- Equivalence as a binary operation on a boolean algebra. -/
 def biimp [has_compl α] [has_sup α] [has_inf α] (a b : α) : α := (a ⇒ₒ b) ⊓ (b ⇒ₒ a)
 
 infix ` ⇔ₒ `:60 := lattice.biimp
+
+@[simp] lemma imp_eq_arrow (p q : Prop) : p ⇒ₒ q = (p → q) := propext imp_iff_not_or.symm
+
+@[simp] lemma biimp_eq_iff (p q : Prop) : p ⇔ₒ q = (p ↔ q) := by simp [biimp, ← iff_def]
 
 variables [boolean_algebra α] {a b c d : α}
 

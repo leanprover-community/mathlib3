@@ -709,7 +709,7 @@ by { have h := map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
 
 end linear_map
 
-section ring
+section add_comm_group
 
 variables {R : Type*} [semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
@@ -790,6 +790,31 @@ by { apply eq_sub_of_add_eq, rw [←tmul_add], simp }
 lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R] n) - (m₂ ⊗ₜ[R] n) :=
 by { apply eq_sub_of_add_eq, rw [←add_tmul], simp }
 
+open opposite
+/--
+While the tensor product will automatically inherit a ℤ-module structure from
+`add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
+we use a `ℤ-module` instance provided by `tensor_product.left_module`.
+When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
+`is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
+The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
+-/
+instance compatible_smul.int [module ℤ M] [module ℤᵒᵖ M] [is_symmetric_smul ℤ M]
+  [module ℤ N] [module ℤᵒᵖ N] [is_symmetric_smul ℤ N]:
+  compatible_smul R ℤ M N :=
+⟨λ r m n, int.induction_on r
+  (by simp)
+  (λ r ih, by rw [op_add, add_smul, add_tmul, ih, op_one, one_smul, ←tmul_add, add_self_zsmul])
+  (λ r ih, by rw [op_sub, sub_smul, sub_tmul, op_one, one_smul, ih, ←tmul_sub,
+                  sub_zsmul, one_zsmul, sub_eq_add_neg])⟩
+
+
+--TODO: decide how to deal with `has_scalar (units S)ᵒᵖ M`
+/-instance compatible_smul.unit {S} [monoid S] [distrib_mul_action Sᵒᵖ M] [distrib_mul_action S N]
+  [compatible_smul R S M N] :
+  compatible_smul R (units S) M N :=
+⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩-/
+
 end tensor_product
 
 namespace linear_map
@@ -814,7 +839,6 @@ by simp only [← coe_ltensor_hom, map_neg]
 @[simp] lemma rtensor_neg (f : N →ₗ[R'] P) : (-f).rtensor M = -(f.rtensor M) :=
 by simp only [← coe_rtensor_hom, map_neg]
 
-
 end linear_map
 
-end ring
+end add_comm_group

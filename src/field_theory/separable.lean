@@ -495,7 +495,7 @@ begin
   { cases N with N,
     { rw [nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff] at hn,
       rw [hn, separable_C, is_unit_iff_ne_zero, not_not] at h1,
-      have hf0 : f ≠ 0 := by unfreezingI { rintro rfl, exact not_irreducible_zero hf },
+      have hf0 : f ≠ 0 := hf.ne_zero,
       rw [h1, C_0] at hn, exact absurd hn hf0 },
     have hg1 : g.nat_degree * p = N.succ,
     { rwa [← nat_degree_expand, hgf] },
@@ -529,7 +529,7 @@ theorem unique_separable_of_irreducible {f : polynomial F} (hf : irreducible f) 
 begin
   revert g₁ g₂,
   wlog hn : n₁ ≤ n₂ := le_total n₁ n₂ using [n₁ n₂, n₂ n₁],
-  have hf0 : f ≠ 0 := by unfreezingI { rintro rfl, exact not_irreducible_zero hf },
+  have hf0 : f ≠ 0 := hf.ne_zero,
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
     rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp n₁)] at hgf₂, subst hgf₂,
     subst hgf₁,

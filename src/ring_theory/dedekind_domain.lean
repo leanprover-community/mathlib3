@@ -1305,8 +1305,8 @@ begin
   sorry
 end
 
-lemma prime_power_of_dvd_prime_power {p q : ideal T} (hp : p.is_prime) (n : ℕ) :
-  q ∣ p^n ↔ ∃ (i : ℕ), q = p^i ∧ 0 ≤ i ∧ i ≤ n :=
+lemma ideal.dvd_is_prime_pow {p q : ideal T} (hp : p.is_prime) {n : ℕ} :
+  q ∣ p^n ↔ ∃ i ≤ n, q = p^i :=
 sorry
 
 lemma pow_prime₁ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)

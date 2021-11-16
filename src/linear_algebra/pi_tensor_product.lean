@@ -424,6 +424,10 @@ begin
   congr,
 end
 
+@[simp] lemma reindex_reindex (e : ι ≃ ι₂) (e' : ι₂ ≃ ι₃) (x : ⨂[R] i, M) :
+  reindex R M e' (reindex R M e x) = reindex R M (e.trans e') x :=
+linear_equiv.congr_fun (reindex_trans e e' : _ = reindex R M (e.trans e')) x
+
 @[simp] lemma reindex_symm (e : ι ≃ ι₂) :
   (reindex R M e).symm = reindex R M e.symm := rfl
 

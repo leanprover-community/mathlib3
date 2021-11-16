@@ -46,7 +46,7 @@ open submodule
 
 universes u v w
 
-open linear_map matrix
+open linear_map matrix set function
 
 variables {R : Type*} [comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
@@ -258,9 +258,9 @@ begin
   { rcases H with ⟨s, ⟨b⟩⟩,
     rw [← det_to_matrix b f, ← det_to_matrix (b.map e), to_matrix_comp (b.map e) b (b.map e),
         to_matrix_comp (b.map e) b b, ← matrix.mul_assoc, matrix.det_conj],
-    { rw [← to_matrix_comp, linear_equiv.comp_coe, e.symm_trans,
+    { rw [← to_matrix_comp, linear_equiv.comp_coe, e.symm_trans_self,
           linear_equiv.refl_to_linear_map, to_matrix_id] },
-    { rw [← to_matrix_comp, linear_equiv.comp_coe, e.trans_symm,
+    { rw [← to_matrix_comp, linear_equiv.comp_coe, e.self_trans_symm,
           linear_equiv.refl_to_linear_map, to_matrix_id] } },
   { have H' : ¬ (∃ (t : finset N), nonempty (basis t A N)),
     { contrapose! H,
@@ -400,3 +400,19 @@ by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.r
 lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
   (b.map f).det v = b.det (f.symm ∘ v) :=
 by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }
+
+/-- If we fix a background basis `e`, then for any other basis `v`, we can characterise the
+coordinates provided by `v` in terms of determinants relative to `e`. -/
+lemma basis.det_smul_mk_coord_eq_det_update {v : ι → M}
+  (hli : linear_independent R v) (hsp : span R (range v) = ⊤) (i : ι) :
+  (e.det v) • (basis.mk hli hsp).coord i = e.det.to_multilinear_map.to_linear_map v i :=
+begin
+  apply (basis.mk hli hsp).ext,
+  intros k,
+  rcases eq_or_ne k i with rfl | hik;
+  simp only [algebra.id.smul_eq_mul, basis.coe_mk, linear_map.smul_apply, linear_map.coe_mk,
+    multilinear_map.to_linear_map_apply],
+  { rw [basis.mk_coord_apply_eq, mul_one, update_eq_self], congr, },
+  { rw [basis.mk_coord_apply_ne hik, mul_zero, eq_comm],
+    exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
+end

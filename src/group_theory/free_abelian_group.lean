@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import deprecated.group
+import deprecated.group -- someone who understands `seq` can remove this
 import group_theory.abelianization
 import group_theory.free_group
 

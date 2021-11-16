@@ -5,7 +5,7 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
 import data.mllist
-import tactic.converter.interactive
+import tactic.converter.interactive -- Required for us to emit more compact `conv` invocations
 import tactic.rewrite_search.types
 
 /-!

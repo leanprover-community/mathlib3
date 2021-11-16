@@ -26,6 +26,14 @@ def fix_brace_o(a, b):
     return a, b, True
 
 def fix_brace_c(a, b):
+    """Move any `}`s between the contents of line `a` and line `b` to the end of line `a`.
+    
+    :param a: A line of Lean code, ending with `\n'
+    :param b: A line of Lean code, ending with `\n'
+    
+    :returns: A tuple `(anew, bnew, merge)`, where `anew` and `bnew` are `a` and `b` with corrected brace positions,
+    and `merge` is a boolean indicating if the result is a single line, returned in `bnew` (and `anew` can be ignored).
+    """
     bstr = b.lstrip()
     if bstr == "":
         return a, b, False

@@ -60,8 +60,7 @@ def fix_braces(filename):
     # open files for reading and writing
     fi = Path(filename).open(mode="r", encoding="utf-8", newline='\n')
     fo = Path(filename + TMP_SUFFIX).open(mode="w", encoding="utf-8", newline='\n')
-    bo = ""
-    merge = False
+    merge = False  # indicates when `ao` got merged into `bo`, so we can ignore `ao`.
     # read the first line
     ai = fi.readline()
     bo = ai # if there is only one line, the last output line is the first line

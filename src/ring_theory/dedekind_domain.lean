@@ -1348,13 +1348,14 @@ begin
 end
 
 lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n)
-  (m : finset (ideal T)) (hm : ∀ r, r ∈ m → r ∣ q) : m.card ≤  n + 1 :=
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i)
+  (m : finset (ideal T)) (hm : ∀ r, r ∈ m → r ∣ q) : m.card ≤ n + 1 :=
 begin
   have sorry_1: ∀ (r : ideal T), r ∣ q ↔ r ∈ (finset.range (n+1)).image c,
-    sorry, -- shouldn't be very hard, this is just restating h₂
-  have sorry_2 : m ⊆ (finset.range (n+1)).image c,
-    sorry,
+  { simpa only [finset.mem_image, exists_prop, finset.mem_range, nat.lt_succ_iff, eq_comm]
+      using h₂ },
+  have sorry_2 : m ⊆ (finset.range (n+1)).image c :=
+     λ x hx, (sorry_1 x).mp (hm x hx),
   rw ← finset.card_range (n + 1),
   exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
 end

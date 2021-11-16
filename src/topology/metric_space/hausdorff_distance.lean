@@ -22,8 +22,7 @@ expressed in the setting of emetric spaces.
 This files introduces:
 * `inf_edist x s`, the infimum edistance of a point `x` to a set `s` in an emetric space
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
-* Versions of these notions on metric spaces, called respectively `inf_dist` and
-`Hausdorff_dist`,
+* Versions of these notions on metric spaces, called respectively `inf_dist` and `Hausdorff_dist`
 * `thickening δ s`, the open thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
@@ -765,7 +764,7 @@ continuous.is_open_preimage continuous_inf_edist _ is_open_Iio
 
 /-- The (open) thickening of the empty set is empty. -/
 @[simp] lemma thickening_empty (δ : ℝ) : thickening δ (∅ : set α) = ∅ :=
-by { unfold thickening, simp only [set_of_false, inf_edist_empty, not_top_lt], }
+by simp only [thickening, set_of_false, inf_edist_empty, not_top_lt]
 
 /-- The (open) thickening `thickening δ E` of a fixed subset `E` is an increasing function of the
 thickening radius `δ`. -/

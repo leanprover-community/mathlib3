@@ -114,7 +114,7 @@ instead of linearly increasing the work per `my_hom`-related declaration.
 -/
 
 -- This instance should have low priority, to ensure we follow the chain
--- `fun_like → to_fun → has_coe_to_fun`
+-- `fun_like → has_coe_to_fun`
 attribute [instance, priority 10] coe_fn_trans
 
 /-- The class `fun_like F α β` expresses that terms of type `F` have an

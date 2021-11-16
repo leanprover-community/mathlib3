@@ -457,6 +457,15 @@ lemma orthogonal_projection_inner_eq_zero (v : E) :
   ∀ w ∈ K, ⟪v - orthogonal_projection K v, w⟫ = 0 :=
 orthogonal_projection_fn_inner_eq_zero v
 
+/-- The difference of `v` from its orthogonal projection onto `K` is in `Kᗮ`.  -/
+@[simp] lemma sub_orthogonal_projection_mem_orthogonal (v : E) :
+  v - orthogonal_projection K v ∈ Kᗮ :=
+begin
+  intros w hw,
+  rw inner_eq_zero_sym,
+  exact orthogonal_projection_inner_eq_zero _ _ hw
+end
+
 /-- The orthogonal projection is the unique point in `K` with the
 orthogonality property. -/
 lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero
@@ -639,32 +648,27 @@ end reflection
 section orthogonal
 
 /-- If `K₁` is complete and contained in `K₂`, `K₁` and `K₁ᗮ ⊓ K₂` span `K₂`. -/
-lemma submodule.sup_orthogonal_inf_of_is_complete {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂)
-  (hc : is_complete (K₁ : set E)) : K₁ ⊔ (K₁ᗮ ⊓ K₂) = K₂ :=
+lemma submodule.sup_orthogonal_inf_of_complete_space {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂)
+  [complete_space K₁] : K₁ ⊔ (K₁ᗮ ⊓ K₂) = K₂ :=
 begin
   ext x,
   rw submodule.mem_sup,
-  rcases exists_norm_eq_infi_of_complete_subspace K₁ hc x with ⟨v, hv, hvm⟩,
-  rw norm_eq_infi_iff_inner_eq_zero K₁ hv at hvm,
+  let v : K₁ := orthogonal_projection K₁ x,
+  have hvm : x - v ∈ K₁ᗮ := sub_orthogonal_projection_mem_orthogonal x,
   split,
   { rintro ⟨y, hy, z, hz, rfl⟩,
     exact K₂.add_mem (h hy) hz.2 },
-  { exact λ hx, ⟨v, hv, x - v, ⟨(K₁.mem_orthogonal' _).2 hvm, K₂.sub_mem hx (h hv)⟩,
-                 add_sub_cancel'_right _ _⟩ }
+  { exact λ hx, ⟨v, v.prop, x - v, ⟨hvm, K₂.sub_mem hx (h v.prop)⟩, add_sub_cancel'_right _ _⟩ }
 end
 
 variables {K}
 
 /-- If `K` is complete, `K` and `Kᗮ` span the whole space. -/
-lemma submodule.sup_orthogonal_of_is_complete (h : is_complete (K : set E)) : K ⊔ Kᗮ = ⊤ :=
+lemma submodule.sup_orthogonal_of_complete_space [complete_space K] : K ⊔ Kᗮ = ⊤ :=
 begin
-  convert submodule.sup_orthogonal_inf_of_is_complete (le_top : K ≤ ⊤) h,
+  convert submodule.sup_orthogonal_inf_of_complete_space (le_top : K ≤ ⊤),
   simp
 end
-
-/-- If `K` is complete, `K` and `Kᗮ` span the whole space. Version using `complete_space`. -/
-lemma submodule.sup_orthogonal_of_complete_space [complete_space K] : K ⊔ Kᗮ = ⊤ :=
-submodule.sup_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›)
 
 variables (K)
 
@@ -707,15 +711,15 @@ end
 variables {K}
 
 /-- If `K` is complete, `K` and `Kᗮ` are complements of each other. -/
-lemma submodule.is_compl_orthogonal_of_is_complete (h : is_complete (K : set E)) : is_compl K Kᗮ :=
-⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
+lemma submodule.is_compl_orthogonal_of_complete [complete_space K] : is_compl K Kᗮ :=
+⟨K.orthogonal_disjoint, le_of_eq submodule.sup_orthogonal_of_complete_space.symm⟩
 
-@[simp] lemma submodule.orthogonal_eq_bot_iff (hK : is_complete (K : set E)) :
+@[simp] lemma submodule.orthogonal_eq_bot_iff [complete_space (K : set E)] :
   Kᗮ = ⊥ ↔ K = ⊤ :=
 begin
-  refine ⟨_, by { rintro rfl, exact submodule.top_orthogonal_eq_bot }⟩,
+  refine ⟨_, λ h, by rw [h, submodule.top_orthogonal_eq_bot] ⟩,
   intro h,
-  have : K ⊔ Kᗮ = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
+  have : K ⊔ Kᗮ = ⊤ := submodule.sup_orthogonal_of_complete_space,
   rwa [h, sup_comm, bot_sup_eq] at this,
 end
 
@@ -819,8 +823,7 @@ begin
   haveI := submodule.finite_dimensional_of_le h,
   have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
-      submodule.sup_orthogonal_inf_of_is_complete h
-        (submodule.complete_of_finite_dimensional _)] at hd,
+      submodule.sup_orthogonal_inf_of_complete_space h] at hd,
   rw add_zero at hd,
   exact hd.symm
 end
@@ -872,7 +875,7 @@ lemma orthogonal_family.submodule_is_internal_iff [decidable_eq ι] [finite_dime
   {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 V) :
   direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
 by simp only [direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top, hV.independent,
-  true_and, submodule.orthogonal_eq_bot_iff (supr V).complete_of_finite_dimensional]
+  true_and, submodule.orthogonal_eq_bot_iff]
 
 end orthogonal_family
 
@@ -986,7 +989,7 @@ lemma maximal_orthonormal_iff_basis_of_finite_dimensional
 begin
   rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
   have hv_compl : is_complete (span 𝕜 v : set E) := (span 𝕜 v).complete_of_finite_dimensional,
-  rw submodule.orthogonal_eq_bot_iff hv_compl,
+  rw submodule.orthogonal_eq_bot_iff,
   have hv_coe : range (coe : v → E) = v := by simp,
   split,
   { refine λ h, ⟨basis.mk hv.linear_independent _, basis.coe_mk _ _⟩,

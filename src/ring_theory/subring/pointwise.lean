@@ -16,10 +16,8 @@ This actions is available in the `pointwise` locale.
 
 ## Implementation notes
 
-Most of the lemmas in this file are direct copies of lemmas from `algebra/pointwise.lean`.
-While the statements of these lemmas are defeq, we repeat them here due to them not being
-syntactically equal. Before adding new lemmas here, consider if they would also apply to the action
-on `set`s.
+This file is almost identical to `ring_theory/subsemiring/pointwise.lean`. Where possible, try to
+keep them in sync.
 
 -/
 

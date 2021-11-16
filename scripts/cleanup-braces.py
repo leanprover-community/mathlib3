@@ -5,6 +5,14 @@ import re
 import sys, os
 
 def fix_brace_o(a, b):
+    """Move any `{`s between the contents of line `a` and line `b` to the start of line `b`.
+    
+    :param a: A line of Lean code, ending with `\n'
+    :param b: A line of Lean code, ending with `\n'
+    
+    :returns: A tuple `(anew, bnew, fix)`, where `anew` and `bnew` are `a` and `b` with corrected brace positions,
+    and `fix` is a boolean indicating whether there was a change, i.e. `fix = ((anew, bnew) != (a, b))`.
+    """
     astr = a.rstrip()
     if astr == "":
         return a, b, False

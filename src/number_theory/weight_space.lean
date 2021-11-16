@@ -932,15 +932,19 @@ begin
     { simp, }, },
 end
 
-lemma coe_add_eq_ite' {n : ℕ} (a b : zmod n) (h : ((a + b : zmod n) : ℤ) < n) :
+lemma coe_add_eq_ite' {n : ℕ} [fact (0 < n)] (a b : zmod n) (h : (a + b : ℤ) < n) :
   (((a + b) : zmod n) : ℤ) = (a : ℤ) + (b : ℤ) :=
 begin
-  sorry
+  rw zmod.coe_add_eq_ite,
+  rw if_neg, push_neg, assumption,
 end
 
-lemma coe_nat_int (n a : ℕ) (h : a < n) : ((a : zmod n) : ℤ) = (a : ℤ) :=
+lemma coe_nat_int (n a : ℕ) [fact (0 < n)] (h : a < n) : ((a : zmod n) : ℤ) = (a : ℤ) :=
 begin
-  sorry,
+  rw ←zmod.nat_cast_val,
+  rw zmod.val_cast_of_lt,
+  { simp only [int.nat_cast_eq_coe_nat], },
+  { assumption, },
 end
 
 lemma lt_mul_pow (m a b : ℕ) (h1 : 0 < b) (h2 : 1 < a) (h3 : 1 < m) : a < b * a^m :=
@@ -958,7 +962,54 @@ end
 
 example (m n : ℕ) (h : (m : ℤ) < n) : m < n := int.coe_nat_lt.mp h
 
+lemma fin_le_val (m n : ℕ) (y : fin m) (h : m ≤ n) : (y : zmod n).val = y :=
+begin
+  dsimp,
+  rw zmod.val_cast_of_lt _,
+  refine lt_of_lt_of_le _ h,
+  exact fin.is_lt y,
+end
+--example (m n : ℕ) (h : m < n) : (m : zmod n).val = m := zmod.val_cast_of_lt h
+
 --example : ¬ (1 = 2 ∧ 3 < 4) := by push_neg
+
+lemma mul_pow_lt_mul_pow_succ (m : ℕ) : d * p ^ m < d * p ^ m.succ :=
+begin
+  apply mul_lt_mul',
+  any_goals { simp, },
+  { apply nat.pow_lt_pow_succ, apply nat.prime.one_lt, apply fact.out, },
+  { apply fact.out, },
+end
+
+lemma pow_lt_mul_pow (m : ℕ) : p ^ m < d * p ^ m.succ :=
+begin
+  rw pow_succ, rw ←mul_assoc, apply lt_mul_of_one_lt_left,
+  { apply pow_pos, apply nat.prime.pos, apply fact.out, },
+  { apply one_lt_mul,
+    { apply (nat.succ_le_iff).2, apply fact.out, },
+    { apply nat.prime.one_lt, apply fact.out, }, },
+end
+
+lemma nat_cast_eq_coe_b (x : ℕ) : @nat.cast ℤ _ _ _ x = coe_b x :=
+begin
+  induction x with d hd,
+  { change 0 = @has_coe.coe ℕ ℤ _ 0,
+    change _ = int.of_nat 0, simp only [int.coe_nat_zero, int.of_nat_eq_coe], },
+  { show d.cast + 1 = @has_coe.coe ℕ ℤ _ d.succ,
+    change _ = int.of_nat d.succ, simp,
+    change _ = int.of_nat d at hd, simp [hd], },
+end
+
+lemma fin_coe_coe (m : ℕ) (y : fin p) : (y : zmod (d * p^m.succ)) = ((y : ℕ) : zmod (d * p^m.succ)) :=
+  coe_coe y
+
+lemma fin_mul_lt (y : fin p) (m : ℕ) : (y : ℕ) * (d * p ^ m) < d * p ^ m.succ :=
+begin
+  rw pow_succ', rw ←mul_assoc d _ _, rw mul_comm (y : ℕ) _,
+  apply mul_lt_mul', any_goals { linarith, },
+  { exact fin.is_lt y, },
+  { apply fact_iff.1, exact imp p d m, },
+end
 
 lemma sum_fract (m : ℕ) [fact(0 < m)] (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (lt_add_one m) x)),
   fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) =
@@ -992,7 +1043,10 @@ begin
       { congr, rw ←zmod.nat_cast_val,
         rw zmod.val_mul, rw nat.mod_eq_of_lt _,
         { rw nat.cast_mul, apply congr_arg2,
-          { sorry, },
+          { rw fin_le_val, simp, apply le_of_lt, apply lt_mul_pow,
+            { apply fact.out, },
+            { apply nat.prime.one_lt, apply fact.out, },
+            { apply nat.succ_lt_succ, apply fact.out, }, },
           { --rw nat.cast_mul,
             --rw ←zmod.nat_cast_val,
             rw zmod.val_mul, rw nat.mod_eq_of_lt _,
@@ -1002,16 +1056,38 @@ begin
                 apply fact.out,
                 apply nat.prime.one_lt, apply fact.out,
                 apply nat.succ_lt_succ, apply fact.out, },
-              sorry, },
-            { sorry, }, }, },
-        { rw pow_succ', rw ←mul_assoc, rw mul_comm ((y : zmod (d * p ^ m * p)).val) _,
-          apply mul_lt_mul,
-          sorry,
-          sorry,
-          sorry,
-          sorry, }, },
-      { convert (int.coe_nat_lt.mpr (sum_lt p d m x y)) using 1, rw ←coe_nat_int (d * p^m.succ) _,
-        congr, rw nat.cast_add, congr, simp, apply sum_lt, }, },
+              apply pow_lt_mul_pow, },
+            { rw ←nat.cast_pow, rw zmod.val_cast_of_lt _, rw zmod.val_cast_of_lt _,
+              { apply mul_pow_lt_mul_pow_succ, },
+              { apply pow_lt_mul_pow, },
+              { apply lt_mul_of_one_lt_right,
+                { apply fact.out, },
+                { apply nat.one_lt_pow,
+                  { apply nat.succ_pos, },
+                  { apply nat.prime.one_lt, apply fact.out, }, }, }, }, }, },
+        { rw ←nat.cast_pow, rw ←nat.cast_mul, rw zmod.val_cast_of_lt _, rw fin_le_val _ _ _ _,
+          { apply fin_mul_lt, },
+          { apply le_of_lt, apply lt_mul_pow,
+            { apply fact.out, },
+            { apply nat.prime.one_lt, apply fact.out, },
+            { apply nat.succ_lt_succ, apply fact.out, }, },
+          { apply mul_pow_lt_mul_pow_succ, }, }, },
+      { rw zmod.nat_cast_val, rw ←zmod.nat_cast_val, rw ←zmod.nat_cast_val (↑y * (_ * _)),
+        rw ←nat.cast_add,
+        { have := sum_lt p d m x y,
+          have f := (int.coe_nat_lt).2 this,
+          convert f using 1,
+          apply congr,
+          { ext y, simp, },
+          { apply congr_arg2,
+            { rw ←zmod.nat_cast_val, rw val_coe_eq_val _ _ _,
+              { apply imp p d m, },
+              { apply mul_pow_lt_mul_pow_succ, }, },
+            { rw ←nat.cast_pow, rw ←nat.cast_mul, rw fin_coe_coe, rw ←nat.cast_mul,
+              rw zmod.val_cast_of_lt,
+              apply fin_mul_lt, }, }, }, --convert sum_lt p d m x y using 1, },
+        { apply imp p d m.succ, }, },
+      { apply imp p d m.succ, }, },
 --    sorry, }, sorry, end #exit -- 2.7 seconds
     { rw finset.sum_add_distrib, rw finset.sum_const, rw finset.card_univ, rw fintype.card_fin _,
       norm_cast, rw ←finset.sum_mul, rw add_div, apply congr_arg2,

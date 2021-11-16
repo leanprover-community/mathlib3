@@ -57,8 +57,8 @@ end
 lemma separable_one : (1 : polynomial R).separable :=
 is_coprime_one_left
 
-@[nontriviality] lemma separable_of_subsingleton [subsingleton R] (f : polynomial R) : f.separable :=
-by simp [separable]
+@[nontriviality] lemma separable_of_subsingleton [subsingleton R] (f : polynomial R) :
+  f.separable := by simp [separable]
 
 lemma separable_X_add_C (a : R) : (X + C a).separable :=
 by { rw [separable_def, derivative_add, derivative_X, derivative_C, add_zero],
@@ -259,10 +259,7 @@ end
 theorem contract_expand {f : polynomial R} (hp : p ≠ 0) : contract p (expand R p f) = f :=
 begin
   ext,
-  rw [coeff_contract hp, coeff_expand hp.bot_lt],
-  split_ifs with h,
-  { rw nat.mul_div_cancel _ hp.bot_lt },
-  { simpa using h }
+  simp [coeff_contract hp, coeff_expand hp.bot_lt, nat.mul_div_cancel _ hp.bot_lt]
 end
 
 section char_p

@@ -6,7 +6,6 @@ Authors: Anne Baanen
 
 import ring_theory.norm
 import number_theory.class_number.admissible_absolute_value
-import linear_algebra.free_module.pid
 import ring_theory.class_group
 import analysis.special_functions.pow
 import linear_algebra.matrix.absolute_value

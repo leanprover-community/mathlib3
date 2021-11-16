@@ -49,12 +49,13 @@ Uniform limit, uniform convergence, tends uniformly to
  -/
 
 noncomputable theory
-open_locale topological_space classical uniformity
+open_locale topological_space classical uniformity filter
 
 open set filter
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α β γ ι : Type*} [uniform_space β]
+variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
 /-!
 ### Different notions of uniform convergence
@@ -62,20 +63,41 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 We define uniform convergence and locally uniform convergence, on a set or in the whole space.
 -/
 
-variables {ι : Type*} [uniform_space β]
-{F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
-
 /-- A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` with
 respect to the filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
 `(f x, Fₙ x) ∈ u` for all `x ∈ s`. -/
 def tendsto_uniformly_on (F : ι → α → β) (f : α → β) (p : filter ι) (s : set α) :=
-  ∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x ∈ s, (f x, F n x) ∈ u
+∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x ∈ s, (f x, F n x) ∈ u
+
+/--
+A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` w.r.t.
+filter `p` iff the function `(n, x) ↦ (f x, Fₙ x)` converges along `p ×ᶠ 𝓟 s` to the uniformity.
+In other words: one knows nothing about the behavior of `x` in this limit besides it being in `s`.
+-/
+lemma tendsto_uniformly_on_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} {s : set α} :
+  tendsto_uniformly_on F f p s ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ 𝓟 s) (𝓤 β) :=
+begin
+  refine forall_congr (λ u, forall_congr $ λ u_in, _),
+  simp [mem_map, filter.eventually, mem_prod_principal]
+end
 
 /-- A sequence of functions `Fₙ` converges uniformly to a limiting function `f` with respect to a
 filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
 `(f x, Fₙ x) ∈ u` for all `x`. -/
 def tendsto_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
-  ∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x, (f x, F n x) ∈ u
+∀ u ∈ 𝓤 β, ∀ᶠ n in p, ∀ x, (f x, F n x) ∈ u
+
+/--
+A sequence of functions `Fₙ` converges uniformly to a limiting function `f` w.r.t.
+filter `p` iff the function `(n, x) ↦ (f x, Fₙ x)` converges along `p ×ᶠ ⊤` to the uniformity.
+In other words: one knows nothing about the behavior of `x` in this limit.
+-/
+lemma tendsto_uniformly_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} :
+  tendsto_uniformly F f p ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ ⊤) (𝓤 β) :=
+begin
+  refine forall_congr (λ u, forall_congr $ λ u_in, _),
+  simp [mem_map, filter.eventually, mem_prod_top]
+end
 
 lemma tendsto_uniformly_on_univ :
   tendsto_uniformly_on F f p univ ↔ tendsto_uniformly F f p :=
@@ -106,6 +128,41 @@ begin
   apply (h u hu).mono (λ n hn, _),
   exact λ x, hn _
 end
+
+/-- Uniform convergence to a constant function is equivalent to convergence in `p ×ᶠ ⊤`. -/
+lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=
+let j : β → β × β := prod.mk c in
+calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
+    ↔ map ↿F (p ×ᶠ ⊤) ≤ (𝓝 c) : iff.rfl
+... ↔ map ↿F (p ×ᶠ ⊤) ≤ comap j (𝓤 β) : by rw nhds_eq_comap_uniformity
+... ↔ map j (map ↿F (p ×ᶠ ⊤)) ≤ 𝓤 β : map_le_iff_le_comap.symm
+... ↔ map (j ∘ ↿F) (p ×ᶠ ⊤) ≤ 𝓤 β : by rw map_map
+... ↔ ∀ V ∈ 𝓤 β, {x | (c, ↿F x) ∈ V} ∈ p ×ᶠ (⊤ : filter α) : iff.rfl
+... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [mem_prod_top]
+
+lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
+  {x : α} {U : set α} (hU : U ∈ 𝓝 x)
+  {F : α → β → γ} (hF : uniform_continuous_on ↿F (U.prod univ)) :
+  tendsto_uniformly F (F x) (𝓝 x) :=
+begin
+  let φ := (λ q : α × β, ((x, q.2), q)),
+  rw [tendsto_uniformly_iff_tendsto,
+      show (λ q : α × β, (F x q.2, F q.1 q.2)) = prod.map ↿F ↿F ∘ φ, by { ext ; simpa }],
+  apply hF.comp (tendsto_inf.mpr ⟨_, _⟩),
+  { rw [uniformity_prod, tendsto_inf, tendsto_comap_iff, tendsto_comap_iff,
+      show (λp : (α × β) × α × β, (p.1.1, p.2.1)) ∘ φ = (λa, (x, a)) ∘ prod.fst, by { ext, simp },
+      show (λp : (α × β) × α × β, (p.1.2, p.2.2)) ∘ φ = (λb, (b, b)) ∘ prod.snd, by { ext, simp }],
+    exact ⟨tendsto_left_nhds_uniformity.comp tendsto_fst,
+           (tendsto_diag_uniformity id ⊤).comp tendsto_top⟩ },
+  { rw tendsto_principal,
+    apply mem_of_superset (prod_mem_prod hU (mem_top.mpr rfl)) (λ q h, _),
+    simp [h.1, mem_of_mem_nhds hU] }
+end
+
+lemma uniform_continuous₂.tendsto_uniformly [uniform_space α] [uniform_space γ]
+  {f : α → β → γ} (h : uniform_continuous₂ f) {x : α} : tendsto_uniformly f (f x) (𝓝 x) :=
+uniform_continuous_on.tendsto_uniformly univ_mem $
+  by rwa [univ_prod_univ, uniform_continuous_on_univ]
 
 variable [topological_space α]
 

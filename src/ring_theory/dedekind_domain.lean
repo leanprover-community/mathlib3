@@ -1310,7 +1310,7 @@ lemma ideal.dvd_is_prime_pow {p q : ideal T} (hp : p.is_prime) {n : ℕ} :
 sorry
 
 lemma pow_prime₁ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n) :
+  (h₁ : strict_anti c) (h₂ : ∀ {r : ideal T}, r ∣ q ↔ ∃ i ≤ n, r = c i) :
   (c 0) = ⊤ := sorry
 
 lemma pow_prime₂ {q : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)

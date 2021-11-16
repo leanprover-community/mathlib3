@@ -220,38 +220,32 @@ begin
   exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
 end
 
+/-- If `sᵢ` is a countable family of measurable sets such that all pairwise intersections have
+measure `0`, then there exists a subordinate family `tᵢ ⊆ sᵢ` of measurable pairwise disjoint sets
+such that `tᵢ =ᵐ[μ] sᵢ`. -/
+lemma exists_subordinate_pairwise_disjoint [encodable ι] {s : ι → set α}
+  (h : ∀ i, measurable_set (s i)) (hd : pairwise (λ i j, μ (s i ∩ s j) = 0)) :
+  ∃ t : ι → set α, (∀ i, t i ⊆ s i) ∧ (∀ i, s i =ᵐ[μ] t i) ∧ (∀ i, measurable_set (t i)) ∧
+    pairwise (disjoint on t) :=
+begin
+  set t : ι → set α := λ i, s i \ ⋃ j ∈ ({i}ᶜ : set ι), s j,
+  refine ⟨t, λ i, diff_subset _ _, λ i, _, λ i, (h i).diff $
+    measurable_set.bUnion (countable_encodable _) $ λ j hj, h j, _⟩,
+  { refine eventually_le.antisymm _ (diff_subset _ _).eventually_le,
+    rw [ae_le_set, sdiff_sdiff_right_self, inf_eq_inter],
+    simp only [inter_Union, measure_bUnion_null_iff (countable_encodable _)],
+    exact λ j hj, hd _ _ (ne.symm hj) },
+  { rintros i j hne x ⟨⟨hsi, -⟩, -, Hj⟩,
+    exact Hj (mem_bUnion hne hsi) }
+end
+
 lemma measure_Union_of_null_inter [encodable ι] {f : ι → set α} (h : ∀ i, measurable_set (f i))
   (hn : pairwise ((λ S T, μ (S ∩ T) = 0) on f)) : μ (⋃ i, f i) = ∑' i, μ (f i) :=
 begin
-  have h_null : μ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd) = 0,
-  { rw measure_Union_null_iff,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { suffices : μ (f i ∩ f j) = 0,
-      { simpa [hij], },
-      apply hn i j hij, }, },
-  have h_pair : pairwise (disjoint on
-    (λ i, f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd))),
-  { intros i j hij x hx,
-    simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and,
-      inf_eq_inter, ne.def, mem_diff, prod.exists] at hx,
-    simp only [mem_empty_eq, bot_eq_empty],
-    rcases hx with ⟨⟨hx_left_left, hx_left_right⟩, hx_right_left, hx_right_right⟩,
-    exact hx_left_right _ _ hij hx_left_left hx_right_left, },
-  have h_meas :
-    ∀ i, measurable_set (f i \ (⋃ (ij : ι × ι) (hij : ij.fst ≠ ij.snd), f ij.fst ∩ f ij.snd)),
-  { intro w,
-    apply (h w).diff,
-    apply measurable_set.Union,
-    rintro ⟨i, j⟩,
-    by_cases hij : i = j,
-    { simp [hij], },
-    { simp [hij, measurable_set.inter (h i) (h j)], }, },
-  have : μ _ = _ := measure_Union h_pair h_meas,
-  rw ← Union_diff at this,
-  simp_rw measure_diff_null h_null at this,
-  exact this,
+  rcases exists_subordinate_pairwise_disjoint h hn with ⟨t, ht_sub, ht_eq, htm, htd⟩,
+  calc μ (⋃ i, f i) = μ (⋃ i, t i)  : measure_congr (eventually_eq.countable_Union ht_eq)
+                ... = ∑' i, μ (t i) : measure_Union htd htm
+                ... = ∑' i, μ (f i) : tsum_congr (λ i, measure_congr (ht_eq i).symm)
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
@@ -1473,74 +1467,6 @@ lemma compl_mem_cofinite : sᶜ ∈ μ.cofinite ↔ μ s < ∞ :=
 by rw [mem_cofinite, compl_compl]
 
 lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔ μ {x | ¬p x} < ∞ := iff.rfl
-
-/-! ### Mutually singular measures -/
-
-/-- Two measures `μ`, `ν` are said to be mutually singular if there exists a measurable set `s`
-such that `μ s = 0` and `ν sᶜ = 0`. -/
-def mutually_singular {m0 : measurable_space α} (μ ν : measure α) : Prop :=
-∃ (s : set α), measurable_set s ∧ μ s = 0 ∧ ν sᶜ = 0
-
-localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory
-
-namespace mutually_singular
-
-lemma mk {s t : set α} (hs : μ s = 0) (ht : ν t = 0) (hst : univ ⊆ s ∪ t) :
-  mutually_singular μ ν :=
-begin
-  use [to_measurable μ s, measurable_set_to_measurable _ _, (measure_to_measurable _).trans hs],
-  refine measure_mono_null (λ x hx, (hst trivial).resolve_left $ λ hxs, hx _) ht,
-  exact subset_to_measurable _ _ hxs
-end
-
-@[simp] lemma zero_right : μ ⊥ₘ 0 := ⟨∅, measurable_set.empty, measure_empty, rfl⟩
-
-@[symm] lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
-let ⟨i, hi, his, hit⟩ := h in ⟨iᶜ, hi.compl, hit, (compl_compl i).symm ▸ his⟩
-
-lemma comm : μ ⊥ₘ ν ↔ ν ⊥ₘ μ := ⟨λ h, h.symm, λ h, h.symm⟩
-
-@[simp] lemma zero_left : 0 ⊥ₘ μ := zero_right.symm
-
-lemma mono_ac (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≪ μ₁) (hν : ν₂ ≪ ν₁) : μ₂ ⊥ₘ ν₂ :=
-let ⟨s, hs, h₁, h₂⟩ := h in ⟨s, hs, hμ h₁, hν h₂⟩
-
-lemma mono (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≤ μ₁) (hν : ν₂ ≤ ν₁) : μ₂ ⊥ₘ ν₂ :=
-h.mono_ac hμ.absolutely_continuous hν.absolutely_continuous
-
-@[simp] lemma sum_left {ι : Type*} [encodable ι] {μ : ι → measure α} :
-  (sum μ) ⊥ₘ ν ↔ ∀ i, μ i ⊥ₘ ν :=
-begin
-  refine ⟨λ h i, h.mono (le_sum _ _) le_rfl, λ H, _⟩,
-  choose s hsm hsμ hsν using H,
-  refine ⟨⋂ i, s i, measurable_set.Inter hsm, _, _⟩,
-  { rw [sum_apply _ (measurable_set.Inter hsm), ennreal.tsum_eq_zero],
-    exact λ i, measure_mono_null (Inter_subset _ _) (hsμ i) },
-  { rwa [compl_Inter, measure_Union_null_iff], }
-end
-
-@[simp] lemma sum_right {ι : Type*} [encodable ι] {ν : ι → measure α} :
-  μ ⊥ₘ sum ν ↔ ∀ i, μ ⊥ₘ ν i :=
-comm.trans $ sum_left.trans $ forall_congr $ λ i, comm
-
-@[simp] lemma add_left_iff : μ₁ + μ₂ ⊥ₘ ν ↔ μ₁ ⊥ₘ ν ∧ μ₂ ⊥ₘ ν :=
-by rw [← sum_cond, sum_left, bool.forall_bool, cond, cond, and.comm]
-
-@[simp] lemma add_right_iff : μ ⊥ₘ ν₁ + ν₂ ↔ μ ⊥ₘ ν₁ ∧ μ ⊥ₘ ν₂ :=
-comm.trans $ add_left_iff.trans $ and_congr comm comm
-
-lemma add_left (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
-add_left_iff.2 ⟨h₁, h₂⟩
-
-lemma add_right (h₁ : μ ⊥ₘ ν₁) (h₂ : μ ⊥ₘ ν₂) : μ ⊥ₘ ν₁ + ν₂ :=
-add_right_iff.2 ⟨h₁, h₂⟩
-
-lemma smul (r : ℝ≥0∞) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=
-h.mono_ac (absolutely_continuous.rfl.smul r) absolutely_continuous.rfl
-
-lemma smul_nnreal (r : ℝ≥0) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ := h.smul r
-
-end mutually_singular
 
 end measure
 

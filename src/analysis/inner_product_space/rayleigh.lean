@@ -219,7 +219,9 @@ end
 end complete_space
 
 section finite_dimensional
-variables [finite_dimensional 𝕜 E] [nontrivial E] {T : E →ₗ[𝕜] E}
+variables [finite_dimensional 𝕜 E] [_i : nontrivial E] {T : E →ₗ[𝕜] E}
+
+include _i
 
 /-- The supremum of the Rayleigh quotient of a self-adjoint operator `T` on a nontrivial
 finite-dimensional vector space is an eigenvalue for that operator. -/
@@ -264,6 +266,14 @@ begin
     simpa [← norm_eq_zero, ne.def] },
   exact has_eigenvalue_of_has_eigenvector (hT'.has_eigenvector_of_is_min_on hx₀_ne this)
 end
+
+omit _i
+
+lemma subsingleton_of_no_eigenvalue_finite_dimensional
+  (hT : is_self_adjoint T) (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
+  subsingleton E :=
+(subsingleton_or_nontrivial E).resolve_right
+  (λ h, by exactI absurd (hT' _) hT.has_eigenvalue_supr_of_finite_dimensional)
 
 end finite_dimensional
 

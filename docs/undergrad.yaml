@@ -223,9 +223,9 @@ Bilinear and Quadratic Forms Over a Vector Space:
     unitary group:
     special orthogonal group:
     special unitary group:
-    self-adjoint endomorphism: 'bilin_form.is_self_adjoint'
+    self-adjoint endomorphism: 'is_self_adjoint'
     normal endomorphism:
-    diagonalization of a self-adjoint endomorphism:
+    diagonalization of a self-adjoint endomorphism: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
     diagonalization of normal endomorphisms:
     simultaneous diagonalization of two real quadratic forms, with one positive-definite:
     decomposition of an orthogonal transformation as a product of reflections:

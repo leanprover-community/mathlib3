@@ -1331,30 +1331,20 @@ begin
 end
 
 lemma pow_prime₃ {p q r : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n)
+  (h₁ : strict_anti c) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i)
   (hp : p.is_prime) (hr : r ∣ q) (hr' : r ≠ ⊤) :
   p ∈ normalized_factors r → p = c 1 :=
 begin
   intro hp',
-  by_contra hcontra,
-  obtain ⟨i, hi⟩:= (h₂ p).1 (dvd_trans (dvd_of_mem_normalized_factors hp') hr),
-  suffices : i ≥ 1,
-  { by_cases h : i = 1,
-    { rw h at hi,
-      exact hcontra hi.left },
-    { rw ← ne.def at h,
-      have temp := h₁ 1 i (lt_of_le_of_ne this h.symm),
-      rw gt_iff_lt at temp,
-      rw ← dvd_not_unit_iff_lt at temp,
-      sorry } }, --prove not_prime_of_prime_dvd_not_unit
-  by_contra hcontra,
-  rw ← lt_iff_not_ge at hcontra,
-  rw (nat.lt_one_iff.mp hcontra) at hi,
-  apply is_prime.ne_top hp,
-  rw hi.left,
-  refine pow_prime₁ n c h₁ h₂,
-  exact p, --don't know why Lean is asking me for the last two exact statements here too
-  exact p,
+  obtain ⟨i, hi, p_eq⟩ := (h₂ p).1 (dvd_trans (dvd_of_mem_normalized_factors hp') hr),
+  have : 1 ≤ i,
+  { rw [nat.succ_le_iff, pos_iff_ne_zero],
+    rintro rfl,
+    refine hp.ne_top (p_eq.trans (pow_prime₁ n c h₁ h₂)) },
+  rcases this.eq_or_lt with (rfl | h),
+  exact p_eq,
+  have temp := dvd_not_unit_iff_lt.mpr (h₁ h),
+  sorry, --prove not_prime_of_prime_dvd_not_unit
 end
 
 lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)

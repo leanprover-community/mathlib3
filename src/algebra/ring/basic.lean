@@ -356,6 +356,20 @@ variables {rα : non_assoc_semiring α} {rβ : non_assoc_semiring β}
 
 include rα rβ
 
+instance : add_monoid_hom_class (α →+* β) α β :=
+{ coe := ring_hom.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_add := ring_hom.map_add',
+  map_zero := ring_hom.map_zero' }
+
+instance : monoid_hom_class (α →+* β) α β :=
+{ coe := ring_hom.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_mul := ring_hom.map_mul',
+  map_one := ring_hom.map_one' }
+
+/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+-/
 instance : has_coe_to_fun (α →+* β) (λ _, α → β) := ⟨ring_hom.to_fun⟩
 
 initialize_simps_projections ring_hom (to_fun → apply)
@@ -420,16 +434,16 @@ theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (
 λ f g h, ext (λ x, monoid_hom.congr_fun h x)
 
 /-- Ring homomorphisms map zero to zero. -/
-@[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
+protected lemma map_zero (f : α →+* β) : f 0 = 0 := map_zero f
 
 /-- Ring homomorphisms map one to one. -/
-@[simp] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
+protected lemma map_one (f : α →+* β) : f 1 = 1 := map_one f
 
 /-- Ring homomorphisms preserve addition. -/
-@[simp] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
+protected lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := map_add f a b
 
 /-- Ring homomorphisms preserve multiplication. -/
-@[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
+protected lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := map_mul f a b
 
 /-- Ring homomorphisms preserve `bit0`. -/
 @[simp] lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
@@ -740,12 +754,12 @@ lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/
-@[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
-(f : α →+ β).map_neg x
+protected theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
+map_neg f x
 
 /-- Ring homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
+protected theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
+  f (x - y) = (f x) - (f y) := map_sub f x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
 theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :

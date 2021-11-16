@@ -207,6 +207,17 @@ begin
   simp with parity_simps
 end
 
+lemma even_mul_self_pred (n : ℕ) : even (n * (n - 1)) :=
+begin
+  cases n,
+  { exact even_zero },
+  { rw mul_comm,
+    apply even_mul_succ_self }
+end
+
+lemma even_of_prime_neq_two_sub_one {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
+odd.sub_odd (odd_iff.2 (or_iff_not_imp_left.1 (nat.prime.eq_two_or_odd hp) hodd)) $ odd_iff.2 rfl
+
 variables {R : Type*} [ring R]
 
 theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=

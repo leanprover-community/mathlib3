@@ -2382,7 +2382,7 @@ begin
   by simp [←h (pure b)],
   induction l; intro,
   { simp },
-  { simp only [mfoldl, foldl, ←l_ih] with monad_norm }
+  { simp only [mfoldl, foldl, ←l_ih] with functor_norm }
 end
 
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},

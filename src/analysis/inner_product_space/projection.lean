@@ -780,9 +780,13 @@ reflection_mem_subspace_orthogonal_precomplement_eq_neg (submodule.mem_span_sing
 lemma reflection_sub [complete_space F] (v w : F) (h : ∥v∥ = ∥w∥) :
   reflection (ℝ ∙ (v - w))ᗮ v = w :=
 begin
-  let R : F ≃ₗᵢ[ℝ] F := reflection (ℝ ∙ (v - w))ᗮ,
+  set R : F ≃ₗᵢ[ℝ] F := reflection (ℝ ∙ (v - w))ᗮ,
   suffices : R v + R v = w + w,
-  { sorry },
+  {
+    rw ←two_smul ℝ (R v) at this,
+    rw ←two_smul ℝ w at this,
+    exact (smul_right_injective F is_R_or_C.two_ne_zero) this,
+  },
   have h₁ : R (v - w) = -(v - w) := reflection_orthogonal_complement_singleton_eq_neg (v - w),
   have h₂ : R (v + w) = v + w,
   { apply reflection_mem_subspace_eq_self,
@@ -888,7 +892,7 @@ submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, 
 lemma foo [finite_dimensional 𝕜 E] {V W : submodule 𝕜 E}
   {v : E} (h₁ : W ≤ V) (h₂ : v ∈ V) (h₃ : v ∉ W) :
   finrank 𝕜 W < finrank 𝕜 V :=
-sorry
+submodule.finrank_lt_finrank_of_lt (set_like.lt_iff_le_and_exists.2 ⟨h₁, v, h₂, h₃⟩)
 
 /-- An element `φ` of the orthogonal group of `F` can be factored as a product of reflections, and
 specifically at most as many reflections as the dimension of the complement of the fixed subspace
@@ -991,7 +995,6 @@ lemma linear_isometry_equiv.reflections_generate [finite_dimensional ℝ F] :
 begin
   rw subgroup.eq_top_iff',
   intros φ,
-  -- where is the API on generating sets for subgroups?
 end
 
 end orthogonal

@@ -504,6 +504,16 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
+lemma card_eq_two {s : multiset α} : s.card = 2 ↔ ∃ x y, s = {x, y} :=
+⟨quot.induction_on s (λ l h, (list.length_eq_two.mp h).imp
+  (λ a, Exists.imp (λ b, congr_arg coe))), λ ⟨a, b, e⟩, e.symm ▸ rfl⟩
+
+lemma card_eq_three {s : multiset α} : s.card = 3 ↔ ∃ x y z, s = {x, y, z} :=
+⟨quot.induction_on s (λ l h, (list.length_eq_three.mp h).imp
+  (λ a, Exists.imp (λ b, Exists.imp (λ c, congr_arg coe)))), λ ⟨a, b, c, e⟩, e.symm ▸ rfl⟩
+
+/-! ### Induction principles -/
+
 /-- A strong induction principle for multisets:
 If you construct a value for a particular multiset given values for all strictly smaller multisets,
 you can construct a value for any multiset.

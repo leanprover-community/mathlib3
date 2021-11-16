@@ -42,7 +42,7 @@ measurable space, σ-algebra, measurable function
 -/
 
 open set encodable function equiv
-open_locale classical filter
+open_locale classical
 
 
 variables {α β γ δ δ' : Type*} {ι : Sort*} {s t u : set α}

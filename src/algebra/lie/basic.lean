@@ -46,6 +46,7 @@ lie bracket, jacobi identity, lie ring, lie algebra, lie module
 -/
 
 universes u v w w₁ w₂
+open function
 
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. -/
@@ -333,15 +334,28 @@ instance has_coe_to_linear_equiv : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ ≃�
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) (λ _, L₁ → L₂) := ⟨λ e, e.to_lie_hom.to_fun⟩
 
-@[simp, norm_cast] lemma coe_to_lie_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
+@[simp, norm_cast] lemma coe_to_lie_hom (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
 rfl
 
 @[simp, norm_cast] lemma coe_to_linear_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) :
   ((e : L₁ ≃ₗ[R] L₂) : L₁ → L₂) = e := rfl
 
+@[simp] lemma to_linear_equiv_mk (f : L₁ →ₗ⁅R⁆ L₂) (g h₁ h₂) :
+  (mk f g h₁ h₂ : L₁ ≃ₗ[R] L₂) = { inv_fun := g, left_inv := h₁, right_inv := h₂, .. f } := rfl
+
+lemma coe_linear_equiv_injective : injective (coe : (L₁ ≃ₗ⁅R⁆ L₂) → (L₁ ≃ₗ[R] L₂)) :=
+begin
+  intros f₁ f₂ h, cases f₁, cases f₂, dsimp at h, simp only at h,
+  congr, exacts [lie_hom.coe_injective h.1, h.2]
+end
+
+lemma coe_injective : @injective (L₁ ≃ₗ⁅R⁆ L₂) (L₁ → L₂) coe_fn :=
+linear_equiv.coe_injective.comp coe_linear_equiv_injective
+
+@[ext] lemma ext {f g : L₁ ≃ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g := coe_injective $ funext h
+
 instance : has_one (L₁ ≃ₗ⁅R⁆ L₁) :=
-⟨{ map_lie' := λ x y,
-    by { change ((1 : L₁→ₗ[R] L₁) ⁅x, y⁆) = ⁅(1 : L₁→ₗ[R] L₁) x, (1 : L₁→ₗ[R] L₁) y⁆, simp, },
+⟨{ map_lie' := λ x y, rfl,
   ..(1 : L₁ ≃ₗ[R] L₁)}⟩
 
 @[simp] lemma one_apply (x : L₁) : (1 : (L₁ ≃ₗ⁅R⁆ L₁)) x = x := rfl
@@ -361,7 +375,7 @@ def symm (e : L₁ ≃ₗ⁅R⁆ L₂) : L₂ ≃ₗ⁅R⁆ L₁ :=
   ..e.to_linear_equiv.symm }
 
 @[simp] lemma symm_symm (e : L₁ ≃ₗ⁅R⁆ L₂) : e.symm.symm = e :=
-by { rcases e with ⟨⟨⟨⟩⟩⟩, refl, }
+by { ext, refl }
 
 @[simp] lemma apply_symm_apply (e : L₁ ≃ₗ⁅R⁆ L₂) : ∀ x, e (e.symm x) = x :=
   e.to_linear_equiv.apply_symm_apply
@@ -375,19 +389,25 @@ def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L�
 { ..lie_hom.comp e₂.to_lie_hom e₁.to_lie_hom,
   ..linear_equiv.trans e₁.to_linear_equiv e₂.to_linear_equiv }
 
+@[simp] lemma self_trans_symm (e : L₁ ≃ₗ⁅R⁆ L₂) : e.trans e.symm = refl :=
+ext e.symm_apply_apply
+
+@[simp] lemma symm_trans_self (e : L₁ ≃ₗ⁅R⁆ L₂) : e.symm.trans e = refl :=
+e.symm.self_trans_symm
+
 @[simp] lemma trans_apply (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) (x : L₁) :
   (e₁.trans e₂) x = e₂ (e₁ x) := rfl
 
-@[simp] lemma symm_trans_apply (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) (x : L₃) :
-  (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) := rfl
+@[simp] lemma symm_trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
 
-lemma bijective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.bijective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+protected lemma bijective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.bijective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.bijective
 
-lemma injective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.injective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+protected lemma injective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.injective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.injective
 
-lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+protected lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.surjective
 
 end lie_equiv
@@ -638,8 +658,14 @@ by { ext, apply_fun e.symm using e.symm.injective, simp, }
 @[simp] lemma trans_apply (e₁ : M ≃ₗ⁅R,L⁆ N) (e₂ : N ≃ₗ⁅R,L⁆ P) (m : M) :
   (e₁.trans e₂) m = e₂ (e₁ m) := rfl
 
-@[simp] lemma symm_trans_apply (e₁ : M ≃ₗ⁅R,L⁆ N) (e₂ : N ≃ₗ⁅R,L⁆ P) (p : P) :
-  (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
+@[simp] lemma symm_trans (e₁ : M ≃ₗ⁅R,L⁆ N) (e₂ : N ≃ₗ⁅R,L⁆ P) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
+
+@[simp] lemma self_trans_symm (e : M ≃ₗ⁅R,L⁆ N) : e.trans e.symm = refl :=
+ext _ _ e.symm_apply_apply
+
+@[simp] lemma symm_trans_self (e : M ≃ₗ⁅R,L⁆ N) : e.symm.trans e = refl :=
+ext _ _ e.apply_symm_apply
 
 end lie_module_equiv
 

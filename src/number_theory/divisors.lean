@@ -91,7 +91,7 @@ begin
     apply nat.le_of_dvd (nat.succ_pos m) hdvd }
 end
 
-lemma nat.mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := by simpa
+lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := by simpa
 
 lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m :=
 begin

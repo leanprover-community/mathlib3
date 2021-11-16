@@ -229,7 +229,8 @@ begin
 end
 
 /-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` is an embedding. -/
-lemma embedding_weak_dual_to_Pi :
+lemma embedding_weak_dual_to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
   embedding (λ (x' : weak_dual 𝕜 E), weak_dual.to_Pi 𝕜 E x') :=
 { induced := eq_of_nhds_eq_nhds (congr_fun rfl),
   inj := begin
@@ -322,7 +323,7 @@ begin
   cases clos with g hg,
   simp only [mem_image, mem_inter_eq, mem_set_of_eq] at hg,
   rcases hg with ⟨tri, ⟨y', ⟨at_z_le, eq_g⟩⟩⟩,
-  have eq : y'.to_Pi z = y' z := rfl,
+  have eq : weak_dual.to_Pi 𝕜 E y' z = y' z := rfl,
   rw [← eq_g, eq] at tri,
   have key := norm_add_le_of_le tri.le at_z_le,
   rwa [sub_add_cancel, add_comm] at key,
@@ -438,10 +439,17 @@ end embedding_weak_dual_to_Pi
 normed space `E` over `𝕜` is compact subset of `weak_dual 𝕜 E` (assuming `[is_R_or_C 𝕜]`). -/
 theorem polar_nhd_weak_star_compact
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : is_compact (polar 𝕜 s) :=
+  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+  is_compact ((normed_space.dual.to_weak_dual) '' (polar 𝕜 s)) :=
 begin
   apply (embedding_weak_dual_to_Pi 𝕜 E).is_compact_iff_is_compact_image.mpr,
-  exact embedding_weak_dual_to_Pi.image_polar_nhd_compact s_nhd,
+  --have := (embedding_weak_dual_to_Pi 𝕜 E).is_compact_iff_is_compact_image.mpr,
+  --exact embedding_weak_dual_to_Pi.image_polar_nhd_compact s_nhd,
+  --have := embedding_weak_dual_to_Pi.image_polar_nhd_compact s_nhd,
+  dsimp,
+  --simp,
+  --exact this,
+  --tidy?,
 end
 
 /-- The Banach-Alaoglu theorem: the dual unit ball is compact in the weak-star topology. -/

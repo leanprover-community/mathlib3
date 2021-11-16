@@ -252,7 +252,7 @@ lemma periodic.int_mul_eq [ring α]
 lemma periodic.exists_mem_Ico₀ [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x) :
   ∃ y ∈ set.Ico 0 c, f x = f y :=
-let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
+let ⟨n, H, _⟩ := exists_unique_zsmul_near_of_pos' hc x in
 ⟨x - n • c, H, (h.sub_zsmul_eq n).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
@@ -260,7 +260,7 @@ let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
 lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ico a (a + c), f x = f y :=
-let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
+let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ico hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
@@ -268,13 +268,23 @@ let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
 lemma periodic.exists_mem_Ioc [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ioc a (a + c), f x = f y :=
-let ⟨n, H⟩ := exists_add_int_smul_mem_Ioc hc x a in
+let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ioc hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 lemma periodic_with_period_zero [add_zero_class α]
   (f : α → β) :
   periodic f 0 :=
 λ x, by rw add_zero
+
+lemma periodic.map_vadd_zmultiples [add_comm_group α] (hf : periodic f c)
+  (a : add_subgroup.zmultiples c) (x : α) :
+  f (a +ᵥ x) = f x :=
+by { rcases a with ⟨_, m, rfl⟩, simp [add_subgroup.vadd_def, add_comm _ x, hf.zsmul m x] }
+
+lemma periodic.map_vadd_multiples [add_comm_monoid α] (hf : periodic f c)
+  (a : add_submonoid.multiples c) (x : α) :
+  f (a +ᵥ x) = f x :=
+by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, hf.nsmul m x] }
 
 /-! ### Antiperiodicity -/
 

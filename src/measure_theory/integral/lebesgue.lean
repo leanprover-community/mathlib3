@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.mutually_singular
 import measure_theory.constructions.borel_space
 import algebra.indicator_function
 import algebra.support
@@ -408,11 +408,11 @@ instance [partial_order β] : partial_order (α →ₛ β) :=
 { le_antisymm := assume f g hfg hgf, ext $ assume a, le_antisymm (hfg a) (hgf a),
   .. simple_func.preorder }
 
-instance [order_bot β] : order_bot (α →ₛ β) :=
-{ bot := const α ⊥, bot_le := λf a, bot_le, .. simple_func.partial_order }
+instance [has_le β] [order_bot β] : order_bot (α →ₛ β) :=
+{ bot := const α ⊥, bot_le := λf a, bot_le }
 
-instance [order_top β] : order_top (α →ₛ β) :=
-{ top := const α ⊤, le_top := λf a, le_top, .. simple_func.partial_order }
+instance [has_le β] [order_top β] : order_top (α →ₛ β) :=
+{ top := const α ⊤, le_top := λf a, le_top }
 
 instance [semilattice_inf β] : semilattice_inf (α →ₛ β) :=
 { inf := (⊓),
@@ -1924,7 +1924,7 @@ lemma measure_preserving.lintegral_comp {mb : measurable_space β} {ν : measure
   ∫⁻ a, f (g a) ∂μ = ∫⁻ b, f b ∂ν :=
 by rw [← hg.map_eq, lintegral_map hf hg.measurable]
 
-lemma measure_preserving.lintegral_compₑ {mb : measurable_space β} {ν : measure β} {g : α → β}
+lemma measure_preserving.lintegral_comp_emb {mb : measurable_space β} {ν : measure β} {g : α → β}
   (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞) :
   ∫⁻ a, f (g a) ∂μ = ∫⁻ b, f b ∂ν :=
 by rw [← hg.map_eq, hge.lintegral_map]
@@ -1935,17 +1935,17 @@ lemma measure_preserving.set_lintegral_comp_preimage {mb : measurable_space β} 
   ∫⁻ a in g ⁻¹' s, f (g a) ∂μ = ∫⁻ b in s, f b ∂ν :=
 by rw [← hg.map_eq, set_lintegral_map hs hf hg.measurable]
 
-lemma measure_preserving.set_lintegral_comp_preimageₑ {mb : measurable_space β} {ν : measure β}
+lemma measure_preserving.set_lintegral_comp_preimage_emb {mb : measurable_space β} {ν : measure β}
   {g : α → β} (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞)
   (s : set β) :
   ∫⁻ a in g ⁻¹' s, f (g a) ∂μ = ∫⁻ b in s, f b ∂ν :=
 by rw [← hg.map_eq, hge.restrict_map, hge.lintegral_map]
 
-lemma measure_preserving.set_lintegral_compₑ {mb : measurable_space β} {ν : measure β}
+lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν : measure β}
   {g : α → β} (hg : measure_preserving g μ ν) (hge : measurable_embedding g) (f : β → ℝ≥0∞)
   (s : set α) :
   ∫⁻ a in s, f (g a) ∂μ = ∫⁻ b in g '' s, f b ∂ν :=
-by rw [← hg.set_lintegral_comp_preimageₑ hge, preimage_image_eq _ hge.injective]
+by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
 
 section dirac_and_count
 variable [measurable_space α]
@@ -2034,7 +2034,7 @@ lemma with_density_add {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measu
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 begin
   refine measure.ext (λ s hs, _),
-  rw [with_density_apply _ hs, measure.coe_add, pi.add_apply,
+  rw [with_density_apply _ hs, measure.add_apply,
       with_density_apply _ hs, with_density_apply _ hs, ← lintegral_add hf hg],
   refl,
 end

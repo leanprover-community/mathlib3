@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.maps
+import data.fin.tuple
 
 /-!
 # Constructions of new topological spaces from old ones

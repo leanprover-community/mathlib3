@@ -59,8 +59,7 @@ instance (x : X) : lattice (open_nhds x) :=
 
 instance (x : X) : order_top (open_nhds x) :=
 { top := ⟨⊤, trivial⟩,
-  le_top := λ U, @le_top _ _ U.1.1,
-  ..open_nhds.partial_order x }
+  le_top := λ _, le_top }
 
 instance open_nhds_category (x : X) : category.{u} (open_nhds x) :=
 by {unfold open_nhds, apply_instance}

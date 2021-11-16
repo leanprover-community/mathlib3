@@ -143,7 +143,7 @@ end
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
 lemma edist_le_range_sum_edist (f : ℕ → α) (n : ℕ) :
   edist (f 0) (f n) ≤ ∑ i in finset.range n, edist (f i) (f (i + 1)) :=
-nat.Ico_zero_eq_range n ▸ edist_le_Ico_sum_edist f (nat.zero_le n)
+nat.Ico_zero_eq_range ▸ edist_le_Ico_sum_edist f (nat.zero_le n)
 
 /-- A version of `edist_le_Ico_sum_edist` with each intermediate distance replaced
 with an upper estimate. -/
@@ -158,7 +158,7 @@ with an upper estimate. -/
 lemma edist_le_range_sum_of_edist_le {f : ℕ → α} (n : ℕ)
   {d : ℕ → ℝ≥0∞} (hd : ∀ {k}, k < n → edist (f k) (f (k + 1)) ≤ d k) :
   edist (f 0) (f n) ≤ ∑ i in finset.range n, d i :=
-nat.Ico_zero_eq_range n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
+nat.Ico_zero_eq_range ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_pseudoedist :
@@ -409,7 +409,7 @@ instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetri
     (le_trans (edist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
-    simp [pseudo_emetric_space.uniformity_edist, comap_infi],
+    simp only [pseudo_emetric_space.uniformity_edist, comap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
     simp [inf_principal, ext_iff, max_lt_iff]
@@ -483,7 +483,7 @@ def closed_ball (x : α) (ε : ℝ≥0∞) := {y | edist y x ≤ ε}
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
 
 @[simp] theorem closed_ball_top (x : α) : closed_ball x ∞ = univ :=
-eq_univ_of_forall $ λ y, @le_top _ _ (edist y x)
+eq_univ_of_forall $ λ y, le_top
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y hy, le_of_lt hy

@@ -44,7 +44,7 @@ measurable function, arithmetic operator
 
 universes u v
 
-open_locale big_operators
+open_locale big_operators pointwise
 open measure_theory
 
 /-!
@@ -338,6 +338,9 @@ measurable_inv.comp_ae_measurable hf
 
 attribute [measurability] measurable.neg ae_measurable.neg
 
+@[to_additive] lemma measurable_set.inv {s : set G} (hs : measurable_set s) : measurable_set s⁻¹ :=
+measurable_inv hs
+
 @[simp, to_additive] lemma measurable_inv_iff {G : Type*} [group G] [measurable_space G]
   [has_measurable_inv G] {f : α → G} : measurable (λ x, (f x)⁻¹) ↔ measurable f :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
@@ -433,6 +436,17 @@ instance has_measurable_smul₂_of_mul (M : Type*) [has_mul M] [measurable_space
   [has_measurable_mul₂ M] :
   has_measurable_smul₂ M M :=
 ⟨measurable_mul⟩
+
+@[to_additive] instance submonoid.has_measurable_smul {M α} [measurable_space M]
+  [measurable_space α] [monoid M] [mul_action M α] [has_measurable_smul M α] (s : submonoid M) :
+  has_measurable_smul s α :=
+⟨λ c, by simpa only using measurable_const_smul (c : M),
+  λ x, (measurable_smul_const x : measurable (λ c : M, c • x)).comp measurable_subtype_coe⟩
+
+@[to_additive] instance subgroup.has_measurable_smul {G α} [measurable_space G]
+  [measurable_space α] [group G] [mul_action G α] [has_measurable_smul G α] (s : subgroup G) :
+  has_measurable_smul s α :=
+s.to_submonoid.has_measurable_smul
 
 section smul
 

@@ -154,7 +154,6 @@ ext $ λ a, floor_eq_zero
 lemma preimage_floor_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (floor : α → ℕ) ⁻¹' {n} = Ico n (n + 1) :=
 ext $ λ a, floor_eq_iff' hn
 
-
 /-! #### Ceil -/
 
 lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.gc_ceil
@@ -184,6 +183,17 @@ begin
   { rw floor_lt ha, exact h.trans_le (le_ceil _) },
   { rwa [floor_of_nonpos ha.le, lt_ceil] }
 end
+
+lemma ceil_eq_iff (hn : n ≠ 0) : ⌈a⌉₊ = n ↔ ↑(n - 1) < a ∧ a ≤ n :=
+by rw [← ceil_le, ← not_le, ← ceil_le, not_le,
+  tsub_lt_iff_right (nat.add_one_le_iff.2 (pos_iff_ne_zero.2 hn)), nat.lt_add_one_iff,
+  le_antisymm_iff, and.comm]
+
+@[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
+ext $ λ x, ceil_eq_zero
+
+lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
+ext $ λ x, ceil_eq_iff hn
 
 end linear_ordered_semiring
 
@@ -457,6 +467,17 @@ begin
   rintro ⟨m, hms, hm0, hm1⟩,
   obtain rfl : ⌊x⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 hm0, sub_lt_iff_lt_add'.1 hm1⟩,
   exact hms
+end
+
+lemma image_fract (s : set α) : fract '' s = ⋃ m : ℤ, (λ x, x - m) '' s ∩ Ico 0 1 :=
+begin
+  ext x,
+  simp only [mem_image, mem_inter_eq, mem_Union], split,
+  { rintro ⟨y, hy, rfl⟩,
+    exact ⟨⌊y⌋, ⟨y, hy, rfl⟩, fract_nonneg y, fract_lt_one y⟩ },
+  { rintro ⟨m, ⟨y, hys, rfl⟩, h0, h1⟩,
+    obtain rfl : ⌊y⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 h0, sub_lt_iff_lt_add'.1 h1⟩,
+    exact ⟨y, hys, rfl⟩ }
 end
 
 /-! #### Ceil -/

@@ -471,7 +471,7 @@ lemma measure_preserving.integrable_comp [opens_measurable_space β] {ν : measu
   integrable (g ∘ f) μ ↔ integrable g ν :=
 by { rw ← hf.map_eq at hg ⊢, exact (integrable_map_measure hg hf.measurable).symm }
 
-lemma measure_preserving.integrable_compₑ {f : α → δ} {ν} (h₁ : measure_preserving f μ ν)
+lemma measure_preserving.integrable_comp_emb {f : α → δ} {ν} (h₁ : measure_preserving f μ ν)
   (h₂ : measurable_embedding f) {g : δ → β} :
   integrable (g ∘ f) μ ↔ integrable g ν :=
 h₁.map_eq ▸ iff.symm h₂.integrable_map_iff

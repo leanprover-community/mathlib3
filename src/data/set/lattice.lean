@@ -129,6 +129,10 @@ end galois_connection
 
 /-! ### Union and intersection over an indexed family of sets -/
 
+instance : order_top (set α) :=
+{ top := univ,
+  le_top := by simp }
+
 @[congr] theorem Union_congr_Prop {p q : Prop} {f₁ : p → set α} {f₂ : q → set α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Union f₁ = Union f₂ :=
 supr_congr_Prop pq f

@@ -1163,6 +1163,19 @@ lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i
   (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
 S.prod_mem $ λ i hi, h _ $ (f.mem_support_iff _).mp hi
 
+@[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) {f : Π i, β i → γ}
+  (hf : ∀ i, f i 0 = 1) :
+  v.prod f = ∏ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
+begin
+  suffices : ∏ i in v.support, f i (v i) = ∏ i, f i (v i),
+  { simp [dfinsupp.prod, this] },
+  apply finset.prod_subset v.support.subset_univ,
+  intros i hi' hi,
+  rw [mem_support_iff, not_not] at hi,
+  rw [hi, hf],
+end
+
 /--
 When summing over an `add_monoid_hom`, the decidability assumption is not needed, and the result is
 also an `add_monoid_hom`.

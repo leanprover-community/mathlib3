@@ -255,6 +255,15 @@ begin
     ... ≤ n * p : mul_le_mul_of_nonneg_left (show 1 ≤ p, from hp.bot_lt) (zero_le n)
 end
 
+theorem contract_expand {f : polynomial R} (hp : p ≠ 0) : contract p (expand R p f) = f :=
+begin
+  ext,
+  rw [coeff_contract hp, coeff_expand hp.bot_lt],
+  split_ifs with h,
+  { rw nat.mul_div_cancel _ hp.bot_lt },
+  { simpa using h }
+end
+
 section char_p
 
 variable [HF : char_p R p]

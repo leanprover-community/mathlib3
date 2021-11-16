@@ -498,7 +498,7 @@ variables (Q : quadratic_form R M) (S)
 @[simp] lemma associated_apply (x y : M) :
   associated_hom S Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
-lemma associated_is_sym : (associated_hom S Q).is_symm :=
+lemma associated_is_symm : (associated_hom S Q).is_symm :=
 λ x y, by simp only [associated_apply, add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R N] (f : N →ₗ[R] M) :
@@ -924,7 +924,7 @@ variables [finite_dimensional K V]
 
 lemma equivalent_weighted_sum_squares (Q : quadratic_form K V) :
   ∃ w : fin (finite_dimensional.finrank K V) → K, equivalent Q (weighted_sum_squares K w) :=
-let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_sym _ Q) in
+let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
   ⟨_, ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩
 
 lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
@@ -932,7 +932,7 @@ lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
   ∃ w : fin (finite_dimensional.finrank K V) → units K,
     equivalent Q (weighted_sum_squares K w) :=
 begin
-  obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_sym _ Q),
+  obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),
   have hv₂ := hv₁.not_is_ortho_basis_self_of_nondegenerate hQ,
   simp_rw [is_ortho, associated_eq_self_apply] at hv₂,
   exact ⟨λ i, units.mk0 _ (hv₂ i), ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩,

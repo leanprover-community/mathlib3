@@ -57,7 +57,7 @@ end
 lemma separable_one : (1 : polynomial R).separable :=
 is_coprime_one_left
 
-@[nontriviality] lemma separable_subsingleton [subsingleton R] (f : polynomial R) : f.separable :=
+@[nontriviality] lemma separable_of_subsingleton [subsingleton R] (f : polynomial R) : f.separable :=
 by simp [separable]
 
 lemma separable_X_add_C (a : R) : (X + C a).separable :=
@@ -239,6 +239,7 @@ begin
     ring },
   exact is_coprime.of_mul_right_left (is_coprime.of_mul_left_left this)
 end
+
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
 noncomputable def contract (p : ℕ) (f : polynomial R) : polynomial R :=
 ∑ n in range (f.nat_degree + 1), monomial n (f.coeff (n * p))
@@ -266,8 +267,7 @@ end
 
 section char_p
 
-variable [HF : char_p R p]
-include HF
+variable [char_p R p]
 
 theorem expand_contract [no_zero_divisors R] {f : polynomial R} (hf : f.derivative = 0)
   (hp : p ≠ 0) : expand R p (contract p f) = f :=

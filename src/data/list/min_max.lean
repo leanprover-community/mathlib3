@@ -273,7 +273,7 @@ theorem minimum_eq_coe_iff {m : α} {l : list α} :
 
 section fold
 
-variables {M : Type*} [canonically_linear_ordered_add_monoid M] [order_bot M]
+variables {M : Type*} [canonically_linear_ordered_add_monoid M]
 
 /-! Note: since there is no typeclass typeclass dual
 to `canonically_linear_ordered_add_monoid α` we cannot express these lemmas generally for

@@ -113,12 +113,12 @@ end pairwise
 variables [partial_order α] {a : α}
 
 @[simp]
-lemma is_coatom_dual_iff_is_atom [partial_order α] [order_bot α] :
+lemma is_coatom_dual_iff_is_atom [order_bot α] :
   is_coatom (order_dual.to_dual a) ↔ is_atom a :=
 iff.rfl
 
 @[simp]
-lemma is_atom_dual_iff_is_coatom [partial_order α] [order_top α] :
+lemma is_atom_dual_iff_is_coatom [order_top α] :
   is_atom (order_dual.to_dual a) ↔ is_coatom a :=
 iff.rfl
 
@@ -129,28 +129,28 @@ section atomic
 variables [partial_order α] (α)
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
-class is_atomic [partial_order α] [order_bot α] : Prop :=
+class is_atomic [order_bot α] : Prop :=
 (eq_bot_or_exists_atom_le : ∀ (b : α), b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b)
 
 /-- A lattice is coatomic iff every element other than `⊤` has a coatom above it. -/
-class is_coatomic [partial_order α] [order_top α] : Prop :=
+class is_coatomic [order_top α] : Prop :=
 (eq_top_or_exists_le_coatom : ∀ (b : α), b = ⊤ ∨ ∃ (a : α), is_coatom a ∧ b ≤ a)
 
 export is_atomic (eq_bot_or_exists_atom_le) is_coatomic (eq_top_or_exists_le_coatom)
 
 variable {α}
 
-@[simp] theorem is_coatomic_dual_iff_is_atomic [partial_order α] [order_bot α] :
+@[simp] theorem is_coatomic_dual_iff_is_atomic [order_bot α] :
   is_coatomic (order_dual α) ↔ is_atomic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩, λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩⟩
 
-@[simp] theorem is_atomic_dual_iff_is_coatomic [partial_order α] [order_top α] :
+@[simp] theorem is_atomic_dual_iff_is_coatomic [order_top α] :
   is_atomic (order_dual α) ↔ is_coatomic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩, λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩⟩
 
 namespace is_atomic
 
-variables [partial_order α] [order_bot α] [is_atomic α]
+variables [order_bot α] [is_atomic α]
 
 instance is_coatomic_dual : is_coatomic (order_dual α) :=
 is_coatomic_dual_iff_is_atomic.2 ‹is_atomic α›
@@ -163,7 +163,7 @@ end is_atomic
 
 namespace is_coatomic
 
-variables [partial_order α] [order_top α] [is_coatomic α]
+variables [order_top α] [is_coatomic α]
 
 instance is_coatomic : is_atomic (order_dual α) :=
 is_atomic_dual_iff_is_coatomic.2 ‹is_coatomic α›
@@ -174,13 +174,13 @@ instance {x : α} : is_coatomic (set.Ici x) :=
 
 end is_coatomic
 
-theorem is_atomic_iff_forall_is_atomic_Iic [partial_order α] [order_bot α] :
+theorem is_atomic_iff_forall_is_atomic_Iic [order_bot α] :
   is_atomic α ↔ ∀ (x : α), is_atomic (set.Iic x) :=
-⟨@is_atomic.set.Iic.is_atomic _ _ _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ _ _ (h x))
+⟨@is_atomic.set.Iic.is_atomic _ _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ _ (h x))
   (⊤ : set.Iic x)).imp subtype.mk_eq_mk.1 (exists_imp_exists' coe
   (λ ⟨a, ha⟩, and.imp_left (is_atom.of_is_atom_coe_Iic)))⟩⟩
 
-theorem is_coatomic_iff_forall_is_coatomic_Ici [partial_order α] [order_top α] :
+theorem is_coatomic_iff_forall_is_coatomic_Ici [order_top α] :
   is_coatomic α ↔ ∀ (x : α), is_coatomic (set.Ici x) :=
 is_atomic_dual_iff_is_coatomic.symm.trans $ is_atomic_iff_forall_is_atomic_Iic.trans $ forall_congr
   (λ x, is_coatomic_dual_iff_is_atomic.symm.trans iff.rfl)

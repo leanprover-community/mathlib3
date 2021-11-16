@@ -262,6 +262,9 @@ section comm_monoid
 
 variables {ζ : M} (h : is_primitive_root ζ k)
 
+@[nontriviality] lemma of_subsingleton [subsingleton M] (x : M) : is_primitive_root x 1 :=
+⟨subsingleton.elim _ _, λ _ _, one_dvd _⟩
+
 lemma pow_eq_one_iff_dvd (l : ℕ) : ζ ^ l = 1 ↔ k ∣ l :=
 ⟨h.dvd_of_pow_eq_one l,
 by { rintro ⟨i, rfl⟩, simp only [pow_mul, h.pow_eq_one, one_pow, pnat.mul_coe] }⟩
@@ -339,7 +342,43 @@ begin
   rw [← pow_mul', ← mul_assoc, ← hb, pow_mul, h.pow_eq_one, one_pow]
 end
 
+protected lemma order_of (ζ : M) : is_primitive_root ζ (order_of ζ) :=
+⟨pow_order_of_eq_one ζ, λ l, order_of_dvd_of_pow_eq_one⟩
+
+lemma unique {ζ : M} (hk : is_primitive_root ζ k) (hl : is_primitive_root ζ l) : k = l :=
+begin
+  wlog hkl : k ≤ l,
+  rcases hkl.eq_or_lt with rfl | hkl,
+  { refl },
+  rcases k.eq_zero_or_pos with rfl | hk',
+  { exact (zero_dvd_iff.mp $ hk.dvd_of_pow_eq_one l hl.pow_eq_one).symm },
+  exact absurd hk.pow_eq_one (hl.pow_ne_one_of_pos_of_lt hk' hkl)
+end
+
+lemma eq_order_of : k = order_of ζ := h.unique (is_primitive_root.order_of ζ)
+
+protected lemma iff (hk : 0 < k) :
+  is_primitive_root ζ k ↔ ζ ^ k = 1 ∧ ∀ l : ℕ, 0 < l → l < k → ζ ^ l ≠ 1 :=
+begin
+  refine ⟨λ h, ⟨h.pow_eq_one, λ l hl' hl, _⟩, λ ⟨hζ, hl⟩, is_primitive_root.mk_of_lt ζ hk hζ hl⟩,
+  rw h.eq_order_of at hl,
+  exact pow_ne_one_of_lt_order_of' hl'.ne' hl,
+end
+
+protected lemma not_iff : ¬ is_primitive_root ζ k ↔ order_of ζ ≠ k :=
+⟨λ h hk, h $ hk ▸ is_primitive_root.order_of ζ,
+ λ h hk, h.symm $ hk.unique $ is_primitive_root.order_of ζ⟩
+
 end comm_monoid
+
+section comm_monoid_with_zero
+
+variables {M₀ : Type*} [comm_monoid_with_zero M₀]
+
+lemma zero [nontrivial M₀] : is_primitive_root (0 : M₀) 0 :=
+⟨pow_zero 0, λ l hl, by simpa [zero_pow_eq, show ∀ p, ¬p → false ↔ p, from @not_not] using hl⟩
+
+end comm_monoid_with_zero
 
 section comm_group
 
@@ -440,6 +479,37 @@ begin
 end
 
 end comm_group_with_zero
+
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring S] {f : R →+* S}
+
+lemma of_injective (hf : function.injective f) {x : R} {n : ℕ}
+  (hx : is_primitive_root x n) : is_primitive_root (f x) n :=
+{ pow_eq_one := by rw [←f.map_pow, hx.pow_eq_one, f.map_one],
+  dvd_of_pow_eq_one := begin
+    rw hx.eq_order_of,
+    intros l hl,
+    rw [←f.map_pow, ←f.map_one] at hl,
+    exact order_of_dvd_of_pow_eq_one (hf hl)
+  end }
+
+lemma of_injective' (hf : function.injective f) {x : R} {n : ℕ}
+  (hx : is_primitive_root (f x) n) : is_primitive_root x n :=
+{ pow_eq_one := by { apply_fun f, rw [f.map_pow, f.map_one, hx.pow_eq_one] },
+  dvd_of_pow_eq_one := begin
+    rw hx.eq_order_of,
+    intros l hl,
+    apply_fun f at hl,
+    rw [f.map_pow, f.map_one] at hl,
+    exact order_of_dvd_of_pow_eq_one hl
+  end }
+
+lemma injective_iff (hf : function.injective f) {x : R} {n : ℕ} :
+  is_primitive_root x n ↔ is_primitive_root (f x) n :=
+⟨λ h, h.of_injective hf, λ h, h.of_injective' hf⟩
+
+end comm_semiring
 
 section is_domain
 

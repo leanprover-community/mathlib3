@@ -51,7 +51,7 @@ def fix_brace_pair(a, b):
     and `merge` is a boolean indicating if the result is a single line, returned in `bnew` (and `anew` can be ignored).
     """
     anew, bnew, fix = fix_brace_o(a, b)
-    if fix:
+    if fix:  # `a` ended with a `{` that got moved to `bnew`, so `fix_brace_c` doesn't have anything to do.
         return anew, bnew, False
     else:
         return fix_brace_c(anew, bnew)

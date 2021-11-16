@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Stuart Presnell
+Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
 import data.nat.interval
@@ -18,7 +18,6 @@ Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
  * `divisors n` is the `finset` of natural numbers that divide `n`.
  * `proper_divisors n` is the `finset` of natural numbers that divide `n`, other than `n`.
  * `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
- * `prime_divisors n` is the `finset` of prime natural numbers that divide `n`.
  * `perfect n` is true when `n` is positive and the sum of `proper_divisors n` is `n`.
 
 ## Implementation details
@@ -47,7 +46,6 @@ def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.
   As a special case, `divisors_antidiagonal 0 = ∅`. -/
 def divisors_antidiagonal : finset (ℕ × ℕ) :=
 ((finset.Ico 1 (n + 1)).product (finset.Ico 1 (n + 1))).filter (λ x, x.fst * x.snd = n)
-
 
 variable {n}
 

@@ -765,7 +765,7 @@ continuous.is_open_preimage continuous_inf_edist _ is_open_Iio
 
 /-- The (open) thickening of the empty set is empty. -/
 @[simp] lemma thickening_empty (δ : ℝ) : thickening δ (∅ : set α) = ∅ :=
-by { unfold thickening, simp only [set_of_false, inf_edist_empty, not_top_lt], }
+by simp only [thickening, set_of_false, inf_edist_empty, not_top_lt]
 
 /-- The (open) thickening `thickening δ E` of a fixed subset `E` is an increasing function of the
 thickening radius `δ`. -/

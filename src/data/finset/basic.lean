@@ -1823,6 +1823,19 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
+lemma repeat_to_finset_zero {a : α} : (repeat a 0).to_finset = (∅:finset α)
+  := by rw [list.repeat.equations._eqn_1 a, list.to_finset_nil]
+
+lemma repeat_to_finset_pos {a : α} {n : ℕ} (hn : 0 < n):
+  (list.repeat a n).to_finset = {a}
+  :=
+begin
+  ext x,
+  rw [list.mem_to_finset, finset.mem_singleton, list.mem_repeat, and_iff_right_iff_imp],
+  exact imp_intro (ne_of_gt hn),
+end
+
+
 end list
 
 namespace finset

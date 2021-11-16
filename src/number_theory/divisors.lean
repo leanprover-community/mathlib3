@@ -425,16 +425,11 @@ begin
 end
 
 /-- The only prime divisor of positive prime power `p^k` is `p` itself -/
-lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp: prime p) :
+lemma prime_pow_prime_divisor {p k : ℕ} (hk : 0 < k) (hp: prime p) :
   (p^k).factors.to_finset = {p}
   :=
 begin
-  ext q,
-  rw list.mem_to_finset,
-  rw [mem_factors (pos_iff_ne_zero.mpr (pow_ne_zero k (prime.ne_zero hp))), mem_singleton],
-  split,
-  { rintros ⟨hq1, hq2⟩, exact (prime_dvd_prime_iff_eq hq1 hp).mp (prime.dvd_of_dvd_pow hq1 hq2) },
-  { intros h, rw h, use [hp, dvd_pow_self p hk] },
+  rw hp.factors_pow, exact list.repeat_to_finset_pos hk,
 end
 
 lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (p : ℕ) :

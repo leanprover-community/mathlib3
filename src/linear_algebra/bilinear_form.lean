@@ -1357,7 +1357,7 @@ def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
   bilin_smul_right := λ _ _ _, smul_right _ _ _}
 
 /-- The restriction of a symmetric bilinear form on a submodule is also symmetric. -/
-lemma restrict_sym (B : bilin_form R M) (b : B.is_symm)
+lemma restrict_symm (B : bilin_form R M) (b : B.is_symm)
   (W : submodule R M) : (B.restrict W).is_symm :=
 λ x y, b x y
 

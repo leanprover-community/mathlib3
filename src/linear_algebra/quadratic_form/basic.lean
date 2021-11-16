@@ -802,7 +802,7 @@ begin
   rw [← submodule.finrank_add_eq_of_is_compl (is_compl_span_singleton_orthogonal hx).symm,
       finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
   let B' := B.restrict (B.orthogonal $ K ∙ x),
-  obtain ⟨v', hv₁⟩ := ih (B.restrict_sym hB₂ _ : B'.is_symm) (nat.succ.inj hd),
+  obtain ⟨v', hv₁⟩ := ih (B.restrict_symm hB₂ _ : B'.is_symm) (nat.succ.inj hd),
   -- concatenate `x` with the basis obtained by induction
   let b := basis.mk_fin_cons x v'
     (begin

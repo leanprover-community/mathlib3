@@ -221,7 +221,6 @@ def braces_check(lines, path):
     errors = []
     for line_nr, line in enumerate(lines, 1):
         lstr = line.strip()
-        # Check that `{` starting a subproof has the expected indentation.
         if len(lstr) == 0:
             continue
         if lstr[-1] == '{':

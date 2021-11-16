@@ -62,12 +62,10 @@ def fix_braces(filename):
     fo = Path(filename + TMP_SUFFIX).open(mode="w", encoding="utf-8", newline='\n')
     bo = ""
     merge = False
-    more_than_one_line = False
     # read the first line
     ai = fi.readline()
     bo = ai # if there is only one line, the last output line is the first line
     while (bi := fi.readline()):
-        more_than_one_line = True
         ao, bo, merge = fix_brace_pair(ai, bi)
         # prepare for next iteration
         ai = bo

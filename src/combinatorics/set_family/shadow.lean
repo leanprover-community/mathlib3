@@ -49,10 +49,10 @@ def shadow (𝒜 : finset (finset α)) : finset (finset α) := 𝒜.sup (λ s, s
 localized "notation `∂ `:90 := finset.shadow" in finset_family
 
 /-- The shadow of the empty set is empty. -/
-lemma shadow_empty : ∂ (∅ : finset (finset α)) = ∅ := rfl
+@[simp] lemma shadow_empty : ∂ (∅ : finset (finset α)) = ∅ := rfl
 
 /-- The shadow is monotone. -/
-lemma shadow_monotone : monotone (shadow : finset (finset α) → finset (finset α)) :=
+@[mono] lemma shadow_monotone : monotone (shadow : finset (finset α) → finset (finset α)) :=
 λ 𝒜 ℬ, sup_mono
 
 /-- `s` is in the shadow of `𝒜` iff there is an `t ∈ 𝒜` from which we can remove one element to
@@ -112,13 +112,12 @@ begin
     rw [hcardtu, hcardst],
     refl },
   { rintro ⟨t, ht, hst, hcard⟩,
-    obtain ⟨u, hsu, hut, hu⟩ := finset.exists_intermediate_set k _ hst,
+    obtain ⟨u, hsu, hut, hu⟩ := finset.exists_intermediate_set k
+      (by { rw [add_comm, hcard], exact le_succ _ }) hst,
     rw add_comm at hu,
     refine ⟨u, mem_shadow_iff_exists_mem_card_add_one.2 ⟨t, ht, hut, _⟩, hsu, hu⟩,
     rw [hcard, hu],
-    refl,
-    { rw [add_comm, hcard],
-      exact le_succ _ } }
+    refl }
 end
 
 end finset

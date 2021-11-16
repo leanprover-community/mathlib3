@@ -81,7 +81,7 @@ structure zero_hom (M : Type*) (N : Type*) [has_zero M] [has_zero N] :=
 You should extend this typeclass when you extend `zero_hom`.
 -/
 class zero_hom_class (F : Type*) (M N : out_param $ Type*)
-  [has_zero M] [has_zero N] extends fun_like F M N :=
+  [has_zero M] [has_zero N] extends fun_like F M (λ _, N) :=
 (map_zero : ∀ (f : F), f 0 = 0)
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
@@ -106,7 +106,7 @@ structure add_hom (M : Type*) (N : Type*) [has_add M] [has_add N] :=
 You should declare an instance of this typeclass when you extend `add_hom`.
 -/
 class add_hom_class (F : Type*) (M N : out_param $ Type*)
-  [has_add M] [has_add N] extends fun_like F M N :=
+  [has_add M] [has_add N] extends fun_like F M (λ _, N) :=
 (map_add : ∀ (f : F) (x y : M), f (x + y) = f x + f y)
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
@@ -169,7 +169,7 @@ You should extend this typeclass when you extend `one_hom`.
 @[to_additive]
 class one_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_one M] [has_one N]
-  extends fun_like F M N :=
+  extends fun_like F M (λ _, N) :=
 (map_one : ∀ (f : F), f 1 = 1)
 
 @[to_additive]
@@ -204,7 +204,7 @@ You should declare an instance of this typeclass when you extend `mul_hom`.
 -/
 @[to_additive]
 class mul_hom_class (F : Type*) (M N : out_param $ Type*)
-  [has_mul M] [has_mul N] extends fun_like F M N :=
+  [has_mul M] [has_mul N] extends fun_like F M (λ _, N) :=
 (map_mul : ∀ (f : F) (x y : M), f (x * y) = f x * f y)
 
 @[to_additive]

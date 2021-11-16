@@ -205,7 +205,7 @@ by simpa [← rpow_mul, ha, hb, hpq.ne_zero, hpq.symm.ne_zero, div_eq_inv_mul]
 
 /-- Young's inequality, a version for arbitrary real numbers. -/
 theorem young_inequality (a b : ℝ) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
- a * b ≤ |a|^p / p + |b|^q / q :=
+  a * b ≤ |a|^p / p + |b|^q / q :=
 calc a * b ≤ |a * b|                   : le_abs_self (a * b)
        ... = |a| * |b|                 : abs_mul a b
        ... ≤ |a|^p / p + |b|^q / q :

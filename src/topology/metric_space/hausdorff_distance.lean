@@ -22,8 +22,7 @@ expressed in the setting of emetric spaces.
 This files introduces:
 * `inf_edist x s`, the infimum edistance of a point `x` to a set `s` in an emetric space
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
-* Versions of these notions on metric spaces, called respectively `inf_dist` and
-`Hausdorff_dist`,
+* Versions of these notions on metric spaces, called respectively `inf_dist` and `Hausdorff_dist`
 * `thickening δ s`, the open thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory

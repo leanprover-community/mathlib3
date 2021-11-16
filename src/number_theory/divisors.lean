@@ -400,8 +400,7 @@ end
 
 /-- The factors of `n` are the prime divisors -/
 lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
-n.factors.to_finset = (divisors n).filter prime
-  :=
+n.factors.to_finset = (divisors n).filter prime :=
 begin
     by_cases hn : n = 0,
     { rw [hn, factors_zero, divisors_zero], simp },

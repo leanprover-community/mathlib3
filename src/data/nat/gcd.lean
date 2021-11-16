@@ -455,8 +455,7 @@ end
 
 /-- If `k:ℕ` divides coprime `a` and `b` then `k = 1` -/
 lemma eq_one_of_dvd_coprimes {a b k : ℕ} (h_ab_coprime : coprime a b)
-  (hka : k ∣ a) (hkb : k ∣ b) : k = 1
-  :=
+  (hka : k ∣ a) (hkb : k ∣ b) : k = 1  :=
 begin
   rw coprime_iff_gcd_eq_one at h_ab_coprime,
   have h1 := dvd_gcd hka hkb,

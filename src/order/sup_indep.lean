@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.lattice
+import data.finset.preimage
 import data.set.pairwise
 
 /-!
@@ -52,17 +53,49 @@ lemma sup_indep_singleton (i : ι) (f : ι → α) : ({i} : finset ι).sup_indep
   rw [mem_singleton.1 hji, mem_singleton.1 (hs hk)],
 end
 
+lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
+λ a ha b hb hab, sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab
+
 -- Once `finset.sup_indep` will have been generalized to non distributive lattices, can we state
 -- this lemma for nondistributive atomic lattices? This setting makes the `←` implication much
 -- harder.
 lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
-⟨λ hs a ha b hb hab,
-sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab,
-  λ hs t ht i hi hit,
-    disjoint_sup_right.2 $ λ j hj, hs _ hi _ (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
+⟨sup_indep.pairwise_disjoint, λ hs t ht i hi hit,
+  disjoint_sup_right.2 $ λ j hj, hs _ hi _ (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
 
 alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
   set.pairwise_disjoint.sup_indep
+
+/-- The RHS looks like the definition of `complete_lattice.independent`. -/
+lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
+  s.sup_indep f ↔ ∀ i ∈ s, disjoint (f i) ((s.erase i).sup f) :=
+⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
+  (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
+
+lemma sup_indep.image [decidable_eq ι] {s : finset ι'} {g : ι' → ι} (hs : s.sup_indep (f ∘ g)) :
+  (s.image g).sup_indep f :=
+begin
+  intros t ht i hi hit,
+  rw mem_image at hi,
+  obtain ⟨i, hi, rfl⟩ := hi,
+  haveI : decidable_eq ι' := classical.dec_eq _,
+  suffices hts : t ⊆ (s.erase i).image g,
+  { refine (sup_indep_iff_disjoint_erase.1 hs i hi).mono_right ((sup_mono hts).trans _),
+    rw sup_image },
+  rintro j hjt,
+  obtain ⟨j, hj, rfl⟩ := mem_image.1 (ht hjt),
+  exact mem_image_of_mem _ (mem_erase.2 ⟨ne_of_apply_ne g (ne_of_mem_of_not_mem hjt hit), hj⟩),
+end
+
+lemma sup_indep.map {s : finset ι'} {g : ι' ↪ ι} : (s.map g).sup_indep f ↔ s.sup_indep (f ∘ g) :=
+begin
+  classical,
+  refine ⟨λ hs t ht i hi hit, _, λ hs, _⟩,
+  { rw ←sup_map,
+    exact hs (map_subset_map.2 ht) ((mem_map' _).2 hi) (by rwa mem_map') },
+  { rw map_eq_image,
+    exact hs.image }
+end
 
 lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.val) :=
 begin
@@ -98,12 +131,6 @@ lemma sup_indep.bUnion [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι
   (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
   (s.bUnion g).sup_indep f :=
 by { rw ←sup_eq_bUnion, exact hs.sup hg }
-
-/-- The RHS looks like the definition of `complete_lattice.independent`. -/
-lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
-  s.sup_indep f ↔ ∀ i ∈ s, disjoint (f i) ((s.erase i).sup f) :=
-⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
-  (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
 
 end finset
 

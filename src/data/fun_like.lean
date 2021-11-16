@@ -25,7 +25,7 @@ namespace my_hom
 variables (A B : Type*) [my_class A] [my_class B]
 
 -- This instance is optional if you follow the "Hom class" design below:
-instance : fun_like (my_hom A B) A B :=
+instance : fun_like (my_hom A B) A (λ _, B) :=
 { coe := my_hom.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
 
 /-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
@@ -58,7 +58,7 @@ Continuing the example above:
 /-- `my_hom_class F A B` states that `F` is a type of `my_class.op`-preserving morphisms.
 You should extend this class when you extend `my_hom`. -/
 class my_hom_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class B]
-  extends fun_like F A B :=
+  extends fun_like F A (λ _, B) :=
 (map_op : ∀ (f : F) (x y : A), f (my_class.op x y) = my_class.op (f x) (f y))
 
 @[simp] lemma map_op {F A B : Type*} [my_class A] [my_class B] [my_hom_class F A B]
@@ -123,11 +123,15 @@ injective coercion to functions from `α` to `β`.
 This typeclass is used in the definition of the homomorphism typeclasses,
 such as `zero_hom_class`, `mul_hom_class`, `monoid_hom_class`, ....
 -/
-class fun_like (F : Sort*) (α β : out_param Sort*) :=
-(coe : F → (α → β))
+class fun_like (F : Sort*) (α : out_param Sort*) (β : out_param $ α → Sort*) :=
+(coe : F → Π a : α, β a)
 (coe_injective' : function.injective coe)
 
-variables (F α β : Sort*)
+section dependent
+
+/-! ### `fun_like F α β` where `β` depends on `a : α` -/
+
+variables (F α : Sort*) (β : α → Sort*)
 
 namespace fun_like
 
@@ -137,21 +141,19 @@ include i
 
 @[priority 100, -- Give this a priority between `coe_fn_trans` and the default priority
   nolint dangerous_instance] -- `α` and `β` are out_params, so this instance should not be dangerous
-instance : has_coe_to_fun F (λ _, α → β) := { coe := fun_like.coe }
+instance : has_coe_to_fun F (λ _, Π a : α, β a) := { coe := fun_like.coe }
 
--- Unfortunately, the elaborator is not smart enough that we can write this as
--- `function.injective (coe_fn : F → α → β)`
-theorem coe_injective ⦃f g : F⦄ (h : (f : α → β) = (g : α → β)) : f = g :=
-fun_like.coe_injective' h
+theorem coe_injective : function.injective (coe_fn : F → Π a : α, β a) :=
+fun_like.coe_injective'
 
 @[simp, norm_cast]
-theorem coe_fn_eq {f g : F} : (f : α → β) = (g : α → β) ↔ f = g :=
-⟨@@coe_injective i, λ h, by cases h; refl⟩
+theorem coe_fn_eq {f g : F} : (f : Π a : α, β a) = (g : Π a : α, β a) ↔ f = g :=
+⟨λ h, @coe_injective _ _ _ i _ _ h, λ h, by cases h; refl⟩
 
-theorem ext' {f g : F} (h : (f : α → β) = (g : α → β)) : f = g :=
+theorem ext' {f g : F} (h : (f : Π a : α, β a) = (g : Π a : α, β a)) : f = g :=
 coe_injective h
 
-theorem ext'_iff {f g : F} : f = g ↔ ((f : α → β) = (g : α → β)) :=
+theorem ext'_iff {f g : F} : f = g ↔ ((f : Π a : α, β a) = (g : Π a : α, β a)) :=
 coe_fn_eq.symm
 
 theorem ext (f g : F) (h : ∀ (x : α), f x = g x) : f = g :=
@@ -160,13 +162,29 @@ coe_injective (funext h)
 theorem ext_iff {f g : F} : f = g ↔ (∀ x, f x = g x) :=
 coe_fn_eq.symm.trans function.funext_iff
 
-protected lemma congr {f g : F} {x y : α} (h₁ : f = g) (h₂ : x = y) : f x = g y :=
-congr (congr_arg _ h₁) h₂
-
 protected lemma congr_fun {f g : F} (h₁ : f = g) (x : α) : f x = g x :=
 congr_fun (congr_arg _ h₁) x
+
+end fun_like
+
+end dependent
+
+section non_dependent
+
+/-! ### `fun_like F α (λ _, β)` where `β` does not depend on `a : α` -/
+
+variables {F α β : Sort*} [i : fun_like F α (λ _, β)]
+
+include i
+
+namespace fun_like
+
+protected lemma congr {f g : F} {x y : α} (h₁ : f = g) (h₂ : x = y) : f x = g y :=
+congr (congr_arg _ h₁) h₂
 
 protected lemma congr_arg (f : F) {x y : α} (h₂ : x = y) : f x = f y :=
 congr_arg _ h₂
 
 end fun_like
+
+end non_dependent

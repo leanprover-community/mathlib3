@@ -1823,12 +1823,10 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
-lemma to_finset_union (l l' : list α) :
-(l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
+@[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by {ext, simp}
 
-lemma to_finset_inter (l l' : list α) :
-(l ∩ l').to_finset = l.to_finset ∩ l'.to_finset :=
+@[simp] lemma to_finset_inter (l l' : list α) : (l ∩ l').to_finset = l.to_finset ∩ l'.to_finset :=
 by {ext, simp}
 
 end list

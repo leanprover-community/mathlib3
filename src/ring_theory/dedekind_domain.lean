@@ -1314,38 +1314,20 @@ lemma pow_prime₁ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
   (c 0) = ⊤ := sorry
 
 lemma pow_prime₂ {q : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n) :
+  (h₁ : strict_anti c) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i) :
   (c 1).is_prime :=
 begin
   apply is_maximal.is_prime,
   rw [is_maximal_def, is_coatom],
   split,
-  { exact ne_top_of_lt (h₁ 0 1 zero_lt_one) },
-  { intro b,
-    by_cases h: b ∣ q,
-    { intro hb,
-      obtain ⟨i, hi⟩ := (h₂ b).1 h,
-      by_cases H : 1 ≤ i,
-      { exfalso,
-        by_cases H' : 1 = i,
-        { rw [hi.left, ← H'] at hb,
-          exact (ne_of_lt hb) rfl },
-        { rw ← ne.def at H',
-          rw hi.left at hb,
-          exact (ne_of_lt (h₁ 1 i (lt_of_le_of_ne H H')))
-            (le_antisymm (le_of_lt (h₁ 1 i (lt_of_le_of_ne H H'))) (le_of_lt hb)) } },
-      rw ← lt_iff_not_ge' at H,
-      rw [hi.left, nat.lt_one_iff.mp H],
-      apply pow_prime₁ n c h₁ h₂,
-      exact q,
-      exact q },--don't know why Lean is asking me for the last two exact statements
-    { intro hb,
-      exfalso,
-      refine h (dvd_trans (dvd_iff_le.2 (le_of_lt hb)) ((h₂ (c 1)).2 _)),
-      use 1,
-      split,
-      refl,
-      exact ⟨zero_le 1, hn⟩ } },
+  { exact ne_top_of_lt (h₁ zero_lt_one) },
+
+  intros b hb,
+  have h : b ∣ q := (dvd_iff_le.2 hb.le).trans ((h₂ (c 1)).2 ⟨1, hn, rfl⟩),
+  obtain ⟨i, hi, rfl⟩ := (h₂ b).1 h,
+  have H : i < 1 := h₁.lt_iff_lt.mp hb,
+  rw nat.lt_one_iff.mp H,
+  exact pow_prime₁ n c h₁ h₂
 end
 
 lemma pow_prime₃ {p q r : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)

@@ -498,7 +498,7 @@ variables (Q : quadratic_form R M) (S)
 @[simp] lemma associated_apply (x y : M) :
   associated_hom S Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
-lemma associated_is_sym : (associated_hom S Q).is_symm :=
+lemma associated_is_symm : (associated_hom S Q).is_symm :=
 λ x y, by simp only [associated_apply, add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R N] (f : N →ₗ[R] M) :

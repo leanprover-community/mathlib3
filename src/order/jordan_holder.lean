@@ -420,19 +420,19 @@ end
 lemma append_cast_add_aux
   {s₁ s₂ : composition_series X}
   (i : fin s₁.length) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
+  matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
-by { cases i, simp [fin.append, *] }
+by { cases i, simp [matrix.vec_append_eq_ite, *] }
 
 lemma append_succ_cast_add_aux
   {s₁ s₂ : composition_series X}
   (i : fin s₁.length)
   (h : s₁ (fin.last _) = s₂ 0) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
+  matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.cast_add s₂.length i).succ = s₁ i.succ :=
 begin
   cases i with i hi,
-  simp only [fin.append, hi, fin.succ_mk, function.comp_app, fin.cast_succ_mk,
+  simp only [matrix.vec_append_eq_ite, hi, fin.succ_mk, function.comp_app, fin.cast_succ_mk,
     fin.coe_mk, fin.cast_add_mk],
   split_ifs,
   { refl },
@@ -446,23 +446,23 @@ end
 lemma append_nat_add_aux
   {s₁ s₂ : composition_series X}
   (i : fin s₂.length) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
+  matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
 begin
   cases i,
-  simp only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
+  simp only [matrix.vec_append_eq_ite, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
     add_tsub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
 end
 
 lemma append_succ_nat_add_aux
   {s₁ s₂ : composition_series X}
   (i : fin s₂.length) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
+  matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.nat_add s₁.length i).succ = s₂ i.succ :=
 begin
   cases i with i hi,
-  simp only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
+  simp only [matrix.vec_append_eq_ite, add_assoc, nat.not_lt_zero, fin.nat_add_mk,
+    add_lt_iff_neg_left, add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
 end
 
 /-- Append two composition series `s₁` and `s₂` such that
@@ -470,7 +470,7 @@ the least element of `s₁` is the maximum element of `s₂`. -/
 @[simps length] def append (s₁ s₂ : composition_series X)
   (h : s₁.top = s₂.bot) : composition_series X :=
 { length := s₁.length + s₂.length,
-  series := fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂,
+  series := matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂,
   step' := λ i, begin
     refine fin.add_cases  _ _ i,
     { intro i,
@@ -484,22 +484,22 @@ the least element of `s₁` is the maximum element of `s₂`. -/
 @[simp] lemma append_cast_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
-append_cast_add_aux i
+by { dsimp only [append, coe_fn_mk], exact append_cast_add_aux i, }
 
 @[simp] lemma append_succ_cast_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).succ = s₁ i.succ :=
-append_succ_cast_add_aux i h
+by { dsimp only [append, coe_fn_mk], exact append_succ_cast_add_aux i h }
 
 @[simp] lemma append_nat_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
-append_nat_add_aux i
+by { dsimp only [append, coe_fn_mk], exact append_nat_add_aux i }
 
 @[simp] lemma append_succ_nat_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).succ = s₂ i.succ :=
-append_succ_nat_add_aux i
+by { dsimp only [append, coe_fn_mk], exact append_succ_nat_add_aux i }
 
 /-- Add an element to the top of a `composition_series` -/
 @[simps length] def snoc (s : composition_series X) (x : X)

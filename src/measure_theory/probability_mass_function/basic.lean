@@ -49,6 +49,7 @@ lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := function.support p
 
+@[simp]
 lemma mem_support_iff (p : pmf α) (a : α) :
   a ∈ p.support ↔ p a ≠ 0 := iff.rfl
 

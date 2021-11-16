@@ -74,16 +74,14 @@ variables (q : pmf (α → β)) (p : pmf α) (b : β)
 @[simp]
 lemma seq_apply : (seq q p) b = ∑' (f : α → β) (a : α), if b = f a then q f * p a else 0 :=
 begin
-  simp [seq],
-  refine tsum_congr (λ f, _),
-  rw ← nnreal.tsum_mul_left (q f),
-  refine tsum_congr (λ a, _),
-  split_ifs; simp
+  simp only [seq, mul_boole, bind_apply, pure_apply],
+  refine tsum_congr (λ f, (nnreal.tsum_mul_left (q f) _).symm.trans (tsum_congr (λ a, _))),
+  simpa only [mul_zero] using mul_ite (b = f a) (q f) (p a) 0
 end
 
 @[simp]
 lemma support_seq : (seq q p).support = ⋃ f ∈ q.support, f '' p.support :=
-set.ext (λ b, by simp [seq, @eq_comm β b])
+set.ext (λ b, by simp [-mem_support_iff, seq, @eq_comm β b])
 
 lemma mem_support_seq_iff : b ∈ (seq q p).support ↔ ∃ (f ∈ q.support), b ∈ f '' p.support :=
 by simp

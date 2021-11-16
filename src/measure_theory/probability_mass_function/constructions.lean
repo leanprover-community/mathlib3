@@ -49,7 +49,6 @@ by simp [map]
 lemma support_map : (map f p).support = f '' p.support :=
 set.ext (λ b, by simp [map, @eq_comm β b])
 
-@[simp]
 lemma mem_support_map_iff : b ∈ (map f p).support ↔ ∃ a ∈ p.support, f a = b :=
 by simp
 
@@ -86,7 +85,6 @@ end
 lemma support_seq : (seq q p).support = ⋃ f ∈ q.support, f '' p.support :=
 set.ext (λ b, by simp [seq, @eq_comm β b])
 
-@[simp]
 lemma mem_support_seq_iff : b ∈ (seq q p).support ↔ ∃ (f ∈ q.support), b ∈ f '' p.support :=
 by simp
 
@@ -109,7 +107,6 @@ lemma of_finset_apply (a : α) : of_finset f s h h' a = f a := rfl
 lemma support_of_finset : (of_finset f s h h').support = s ∩ (function.support f) :=
 set.ext (λ a, by simpa [mem_support_iff] using mt (h' a))
 
-@[simp]
 lemma mem_support_of_finset_iff (a : α) : a ∈ (of_finset f s h h').support ↔ a ∈ s ∧ f a ≠ 0 :=
 by simp
 
@@ -134,7 +131,6 @@ rfl
 lemma support_of_fintype : (of_fintype f h).support = function.support f :=
 rfl
 
-@[simp]
 lemma mem_support_of_fintype_iff (a : α) : a ∈ (of_fintype f h).support ↔ f a ≠ 0 :=
 iff.rfl
 
@@ -166,7 +162,6 @@ rfl
 lemma support_of_multiset : (of_multiset s hs).support = s.to_finset :=
 set.ext (by simp [mem_support_iff, hs])
 
-@[simp]
 lemma mem_support_of_multiset_iff (a : α) : a ∈ (of_multiset s hs).support ↔ a ∈ s.to_finset :=
 by simp
 
@@ -208,7 +203,6 @@ by simp [ha]
 lemma support_uniform_of_finset : (uniform_of_finset s hs).support = s :=
 set.ext (let ⟨a, ha⟩ := hs in by simp [mem_support_iff, finset.ne_empty_of_mem ha])
 
-@[simp]
 lemma mem_support_uniform_of_finset_iff (a : α) : a ∈ (uniform_of_finset s hs).support ↔ a ∈ s :=
 by simp
 
@@ -235,8 +229,7 @@ set.ext (λ x, by simpa [mem_support_iff] using fintype.card_ne_zero)
 
 variable {α}
 
-@[simp]
-lemma mem_support_uniform_of_fintype_iff (a : α) : a ∈ (uniform_of_fintype α).support :=
+lemma mem_support_uniform_of_fintype (a : α) : a ∈ (uniform_of_fintype α).support :=
 by simp
 
 end uniform_of_fintype
@@ -260,7 +253,6 @@ lemma normalize_apply (a : α) : (normalize f hf0) a = f a * (∑' x, f x)⁻¹ 
 lemma support_normalize : (normalize f hf0).support = function.support f :=
 set.ext (by simp [mem_support_iff, hf0])
 
-@[simp]
 lemma mem_support_normalize_iff (a : α) : a ∈ (normalize f hf0).support ↔ f a ≠ 0 :=
 by simp
 
@@ -289,7 +281,6 @@ begin
   exact ⟨λ ha, ha.1, λ ha, ⟨ha, inv_ne_zero (nnreal.tsum_indicator_ne_zero p.2.summable h)⟩⟩
 end
 
-@[simp]
 lemma mem_support_filter_apply (a : α) : a ∈ (p.filter s h).support ↔ a ∈ s ∧ a ∈ p.support :=
 by simp
 
@@ -322,7 +313,6 @@ begin
   { simp only [mem_support_iff, bernoulli_apply, bool.cond_tt, set.mem_set_of_eq], }
 end
 
-@[simp]
 lemma mem_support_bernoulli_iff (b : bool) :
   b ∈ (bernoulli p h).support ↔ cond b (p ≠ 0) (p ≠ 1) :=
 by simp
@@ -359,11 +349,13 @@ end⟩
 
 variables {p : pmf α} (f : Π a ∈ p.support, pmf β)
 
-@[simp] lemma bind_on_support_apply (b : β) :
+@[simp]
+lemma bind_on_support_apply (b : β) :
   p.bind_on_support f b = ∑' a, p a * if h : p a = 0 then 0 else f a h b :=
 rfl
 
-@[simp] lemma support_bind_on_support :
+@[simp]
+lemma support_bind_on_support :
   (p.bind_on_support f).support = {b | ∃ (a : α) (h : a ∈ p.support), b ∈ (f a h).support} :=
 begin
   refine set.ext (λ b, _),
@@ -373,7 +365,7 @@ begin
     λ hb, let ⟨a, ha, ha'⟩ := hb in ⟨a, ⟨ha, by simpa [(mem_support_iff _ a).1 ha] using ha'⟩⟩⟩
 end
 
-@[simp] lemma mem_support_bind_on_support_iff (b : β) :
+lemma mem_support_bind_on_support_iff (b : β) :
   b ∈ (p.bind_on_support f).support ↔ ∃ (a : α) (h : a ∈ p.support), b ∈ (f a h).support :=
 by simp
 

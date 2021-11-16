@@ -489,8 +489,7 @@ Adding a `⊤` to a locally finite `order_top` keeps it locally finite.
 Adding a `⊥` to a locally finite `order_bot` keeps it locally finite.
 -/
 
-section order_top
-open with_top
+namespace with_top
 variables (α) [partial_order α] [order_top α] [locally_finite_order α]
 
 local attribute [pattern] coe
@@ -559,10 +558,29 @@ instance : locally_finite_order (with_top α) :=
                                         coe_lt_coe]
     end }
 
-end order_top
+variables (a b : α)
 
-section order_bot
-open with_bot
+@[simp] lemma Icc_coe_top :
+  Icc (a : with_top α) ⊤ = cons ⊤ ((Ici a).map embedding.coe_with_top)
+    (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx) := rfl
+
+@[simp] lemma Icc_coe_coe : Icc (a : with_top α) b = (Icc a b).map embedding.coe_with_top := rfl
+
+@[simp] lemma Ico_coe_top : Ico (a : with_top α) ⊤ = (Ici a).map embedding.coe_with_top := rfl
+@[simp] lemma Ico_coe_coe : Ico (a : with_top α) b = (Ico a b).map embedding.coe_with_top := rfl
+
+@[simp] lemma Ioc_coe_top :
+  Ioc (a : with_top α) ⊤ = cons ⊤ ((Ioi a).map embedding.coe_with_top)
+    (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_top hx) := rfl
+
+@[simp] lemma Ioc_coe_coe : Ioc (a : with_top α) b = (Ioc a b).map embedding.coe_with_top := rfl
+
+@[simp] lemma Ioo_coe_top : Ioo (a : with_top α) ⊤ = (Ioi a).map embedding.coe_with_top := rfl
+@[simp] lemma Ioo_coe_coe : Ioo (a : with_top α) b = (Ioo a b).map embedding.coe_with_top := rfl
+
+end with_top
+
+namespace with_bot
 variables (α) [partial_order α] [order_bot α] [locally_finite_order α]
 
 instance : locally_finite_order (with_bot α) :=
@@ -628,7 +646,27 @@ instance : locally_finite_order (with_bot α) :=
                                         coe_lt_coe]
   end }
 
-end order_bot
+variables (a b : α)
+
+@[simp] lemma Icc_bot_coe :
+  Icc (⊥ : with_bot α) b = cons (⊥ : with_bot α) ((Iic b).map embedding.coe_with_bot)
+    (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx) := rfl
+
+@[simp] lemma Icc_coe_coe : Icc (a : with_bot α) b = (Icc a b).map embedding.coe_with_bot := rfl
+
+@[simp] lemma Ico_bot_coe :
+  Ico (⊥ : with_bot α) b = cons (⊥ : with_bot α) ((Iio b).map embedding.coe_with_bot)
+    (λ h, let ⟨x, _, hx⟩ := mem_map.1 h in coe_ne_bot _ hx) := rfl
+
+@[simp] lemma Ico_coe_coe : Ico (a : with_bot α) b = (Ico a b).map embedding.coe_with_bot := rfl
+
+@[simp] lemma Ioc_bot_coe : Ioc (⊥ : with_bot α) b = (Iic b).map embedding.coe_with_bot := rfl
+@[simp] lemma Ioc_coe_coe : Ioc (a : with_bot α) b = (Ioc a b).map embedding.coe_with_bot := rfl
+
+@[simp] lemma Ioo_bot_coe : Ioo (⊥ : with_bot α) b = (Iio b).map embedding.coe_with_bot := rfl
+@[simp] lemma Ioo_coe_coe : Ioo (a : with_bot α) b = (Ioo a b).map embedding.coe_with_bot := rfl
+
+end with_bot
 
 /-! #### Subtype of a locally finite order -/
 

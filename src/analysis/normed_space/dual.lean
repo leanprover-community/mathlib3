@@ -260,11 +260,13 @@ end
 is possible to choose a real number `r` such that for any functional `x' ∈ polar 𝕜 s` in
 the polar of `s`, the value at `z` satisfies the norm bound `∥x' z∥ ≤ r`. Such an `r`
 is given by `bounds_fun _ z`. -/
-def bounds_fun (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
+def bounds_fun (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : E → ℝ :=
 classical.some (classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd))
 
-lemma bounds_fun_spec (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
+lemma bounds_fun_spec (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (x' : dual 𝕜 E) (z : E) :
   x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ bounds_fun 𝕜 s_nhd z :=
 classical.some_spec

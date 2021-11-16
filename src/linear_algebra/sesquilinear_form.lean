@@ -5,6 +5,7 @@ Authors: Andreas Swerdlow
 -/
 import ring_theory.ring_invo
 import algebra.module.linear_map
+import tactic.abel
 
 /-!
 # Sesquilinear form
@@ -50,8 +51,7 @@ section general_ring
 variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
 variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 
-instance : has_coe_to_fun (sesq_form R M I) :=
-⟨_, λ S, S.sesq⟩
+instance : has_coe_to_fun (sesq_form R M I) (λ _, M → M → R) := ⟨sesq⟩
 
 lemma add_left (x y z : M) : S (x + y) z = S x z + S y z := sesq_add_left S x y z
 
@@ -226,14 +226,14 @@ instance to_module : module R (sesq_form R M J) :=
 
 end comm_ring
 
-section domain
+section is_domain
 
-variables {R : Type*} [domain R]
+variables {R : Type*} [ring R] [is_domain R]
   {M : Type v} [add_comm_group M] [module R M]
   {K : R ≃+* Rᵒᵖ} {G : sesq_form R M K}
 
 theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
-(is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
+  (is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
 begin
   dunfold is_ortho,
   split; intro H,
@@ -245,7 +245,7 @@ begin
 end
 
 theorem ortho_smul_right {x y : M} {a : R} (ha : a ≠ 0) :
-(is_ortho G x y) ↔ (is_ortho G x (a • y)) :=
+  (is_ortho G x y) ↔ (is_ortho G x (a • y)) :=
 begin
   dunfold is_ortho,
   split; intro H,
@@ -260,13 +260,7 @@ begin
     { exact H }}
 end
 
-end domain
-
-end sesq_form
-
-namespace refl_sesq_form
-
-open refl_sesq_form sesq_form
+end is_domain
 
 variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
 variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
@@ -274,48 +268,38 @@ variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (S : sesq_form R M I) : Prop := ∀ (x y : M), S x y = 0 → S y x = 0
 
-variable (H : is_refl S)
+namespace is_refl
+
+variable (H : S.is_refl)
 
 lemma eq_zero : ∀ {x y : M}, S x y = 0 → S y x = 0 := λ x y, H x y
 
-lemma ortho_sym {x y : M} :
-is_ortho S x y ↔ is_ortho S y x := ⟨eq_zero H, eq_zero H⟩
+lemma ortho_comm {x y : M} : is_ortho S x y ↔ is_ortho S y x := ⟨eq_zero H, eq_zero H⟩
 
-end refl_sesq_form
-
-namespace sym_sesq_form
-
-open sym_sesq_form sesq_form
-
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+end is_refl
 
 /-- The proposition that a sesquilinear form is symmetric -/
-def is_sym (S : sesq_form R M I) : Prop := ∀ (x y : M), (I (S x y)).unop = S y x
+def is_symm (S : sesq_form R M I) : Prop := ∀ (x y : M), (I (S x y)).unop = S y x
 
-variable (H : is_sym S)
+namespace is_symm
+
+variable (H : S.is_symm)
 include H
 
-lemma sym (x y : M) : (I (S x y)).unop = S y x := H x y
+protected lemma eq (x y : M) : (I (S x y)).unop = S y x := H x y
 
-lemma is_refl : refl_sesq_form.is_refl S := λ x y H1, by { rw [←H], simp [H1], }
+lemma is_refl : S.is_refl := λ x y H1, by { rw [←H], simp [H1], }
 
-lemma ortho_sym {x y : M} :
-is_ortho S x y ↔ is_ortho S y x := refl_sesq_form.ortho_sym (is_refl H)
+lemma ortho_comm {x y : M} : is_ortho S x y ↔ is_ortho S y x := H.is_refl.ortho_comm
 
-end sym_sesq_form
-
-namespace alt_sesq_form
-
-open alt_sesq_form sesq_form
-
-variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M]
-variables {I : R ≃+* Rᵒᵖ} {S : sesq_form R M I}
+end is_symm
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (S : sesq_form R M I) : Prop := ∀ (x : M), S x x = 0
 
-variable (H : is_alt S)
+namespace is_alt
+
+variable (H : S.is_alt)
 include H
 
 lemma self_eq_zero (x : M) : S x x = 0 := H x
@@ -331,4 +315,14 @@ begin
   exact H1,
 end
 
-end alt_sesq_form
+lemma is_refl : S.is_refl :=
+begin
+  intros x y h,
+  rw [← neg H, h, neg_zero],
+end
+
+lemma ortho_comm {x y : M} : is_ortho S x y ↔ is_ortho S y x := H.is_refl.ortho_comm
+
+end is_alt
+
+end sesq_form

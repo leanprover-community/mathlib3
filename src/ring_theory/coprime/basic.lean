@@ -54,6 +54,10 @@ is_coprime_comm.trans is_coprime_zero_left
 lemma not_coprime_zero_zero [nontrivial R] : ¬ is_coprime (0 : R) 0 :=
 mt is_coprime_zero_right.mp not_is_unit_zero
 
+/-- If a 2-vector `p` satisfies `is_coprime (p 0) (p 1)`, then `p ≠ 0`. -/
+lemma is_coprime.ne_zero [nontrivial R] {p : fin 2 → R} (h : is_coprime (p 0) (p 1)) : p ≠ 0 :=
+by { rintro rfl, exact not_coprime_zero_zero h }
+
 theorem is_coprime_one_left : is_coprime 1 x :=
 ⟨1, 0, by rw [one_mul, zero_mul, add_zero]⟩
 
@@ -236,5 +240,15 @@ lemma neg_neg_iff (x y : R) : is_coprime (-x) (-y) ↔ is_coprime x y :=
 (neg_left_iff _ _).trans (neg_right_iff _ _)
 
 end comm_ring
+
+lemma sq_add_sq_ne_zero {R : Type*} [linear_ordered_comm_ring R] {a b : R} (h : is_coprime a b) :
+  a ^ 2 + b ^ 2 ≠ 0 :=
+begin
+  intros h',
+  obtain ⟨ha, hb⟩ := (add_eq_zero_iff' (sq_nonneg a) (sq_nonneg b)).mp h',
+  obtain rfl := pow_eq_zero ha,
+  obtain rfl := pow_eq_zero hb,
+  exact not_coprime_zero_zero h
+end
 
 end is_coprime

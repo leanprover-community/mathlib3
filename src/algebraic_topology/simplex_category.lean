@@ -30,7 +30,7 @@ We provide the following functions to work with these objects:
 
 -/
 
-universe variables u v
+universes u v
 
 open category_theory
 

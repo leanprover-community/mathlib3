@@ -97,7 +97,7 @@ instance : inhabited (flow τ α) :=
    map_add'  := λ _ _ _, rfl,
    map_zero' := λ _, rfl }⟩
 
-instance : has_coe_to_fun (flow τ α) := ⟨_, flow.to_fun⟩
+instance : has_coe_to_fun (flow τ α) (λ _, τ → α → α) := ⟨flow.to_fun⟩
 
 @[ext]
 lemma ext : ∀ {ϕ₁ ϕ₂ : flow τ α}, (∀ t x, ϕ₁ t x = ϕ₂ t x) → ϕ₁ = ϕ₂

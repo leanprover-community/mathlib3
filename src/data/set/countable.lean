@@ -175,11 +175,26 @@ lemma countable.union
 by rw union_eq_Union; exact
 countable_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 
+@[simp] lemma countable_union {s t : set α} : countable (s ∪ t) ↔ countable s ∧ countable t :=
+⟨λ h, ⟨h.mono (subset_union_left s t), h.mono (subset_union_right _ _)⟩, λ h, h.1.union h.2⟩
+
+@[simp] lemma countable_insert {s : set α} {a : α} : countable (insert a s) ↔ countable s :=
+by simp only [insert_eq, countable_union, countable_singleton, true_and]
+
 lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (insert a s) :=
-by { rw [set.insert_eq], exact (countable_singleton _).union h }
+countable_insert.2 h
 
 lemma finite.countable {s : set α} : finite s → countable s
 | ⟨h⟩ := trunc.nonempty (by exactI trunc_encodable_of_fintype s)
+
+lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
+hs.finite.countable
+
+lemma countable_is_top (α : Type*) [partial_order α] : countable {x : α | is_top x} :=
+(finite_is_top α).countable
+
+lemma countable_is_bot (α : Type*) [partial_order α] : countable {x : α | is_bot x} :=
+(finite_is_bot α).countable
 
 /-- The set of finite subsets of a countable set is countable. -/
 lemma countable_set_of_finite_subset {s : set α} : countable s →

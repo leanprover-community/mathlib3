@@ -195,8 +195,8 @@ open metric set
 /-- The (weak) dual `weak_dual 𝕜 E` of a normed space `E` consists of bounded linear
 functionals `E → 𝕜`. Such functionals can be interpreted as elements of the Cartesian
 product `Π (_ : E), 𝕜` via the function `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜`. -/
-def _root_.weak_dual.to_Pi {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [topological_space E] [add_comm_group E] [module 𝕜 E]
+def _root_.weak_dual.to_Pi (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E]
   (x' : weak_dual 𝕜 E) := ((λ z, (x' z)) : (Π (_ : E), 𝕜))
 
 /-- In the product of copies of a normed field, sets of the form `{g | ∥ f(i) - g(i) ∥ < ε}` for
@@ -230,7 +230,7 @@ end
 
 /-- The function `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` is an embedding. -/
 lemma embedding_weak_dual_to_Pi :
-  embedding (λ (x' : weak_dual 𝕜 E), x'.to_Pi) :=
+  embedding (λ (x' : weak_dual 𝕜 E), weak_dual.to_Pi 𝕜 E x') :=
 { induced := eq_of_nhds_eq_nhds (congr_fun rfl),
   inj := begin
     intros φ₁ φ₂ h,
@@ -243,7 +243,7 @@ namespace embedding_weak_dual_to_Pi
 /-- The image of the polar `polar s` of a neighborhood `s` of the origin under
 `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` is contained in a product of closed balls. -/
 lemma image_polar_nhd_subset {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  (@weak_dual.to_Pi 𝕜 _ E _ _ _) '' (polar 𝕜 s) ⊆
+  (weak_dual.to_Pi 𝕜 E) '' (polar 𝕜 s) ⊆
     (set.pi (univ : set E) (λ z, (closed_ball (0 : 𝕜) (polar.bounds_fun 𝕜 s_nhd z)))) :=
 begin
   intros f hf,
@@ -261,7 +261,7 @@ end
 `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` are linear. Here it is stated as the elements
 respecting linear combinations. -/
 lemma linear_of_mem_closure_range'
-  (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (@weak_dual.to_Pi 𝕜 _ E _ _ _)))
+  (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)))
   (c₁ c₂ : 𝕜) (z₁ z₂ : E) : f (c₁ • z₁ + c₂ • z₂) = c₁ • f(z₁) + c₂ • f(z₂) :=
 begin
   set φ : (Π (_ : E), 𝕜) → 𝕜 := (λ g, g (c₁ • z₁ + c₂ • z₂) - c₁ • g(z₁) - c₂ • g(z₂)) with hφ,
@@ -273,7 +273,7 @@ begin
     exact continuous.smul continuous_const (continuous_apply _), },
   have sin_closed : is_closed ({0} : set 𝕜) := t1_space.t1 0,
   have preim_cl : is_closed (φ⁻¹' ({0} : set 𝕜)) := is_closed.preimage φ_cont sin_closed,
-  suffices : range (@weak_dual.to_Pi 𝕜 _ E _ _ _) ⊆ φ⁻¹' ({0} : set 𝕜),
+  suffices : range (weak_dual.to_Pi 𝕜 E) ⊆ φ⁻¹' ({0} : set 𝕜),
   { have key := (is_closed.closure_subset_iff preim_cl).mpr this hf,
     exact sub_eq_iff_eq_add'.mp (sub_eq_zero.mp key), },
   intros g hg,
@@ -289,7 +289,7 @@ end
 /-- Elements of the closure of the range of the embedding
 `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` can be viewed as linear maps `E → 𝕜`. -/
 def linear_of_mem_closure_range
-  (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (@weak_dual.to_Pi 𝕜 _ E _ _ _))) :
+  (f : (Π (_ : E), 𝕜)) (hf : f ∈ closure (range (weak_dual.to_Pi 𝕜 E))) :
   E →ₗ[𝕜] 𝕜 :=
 { to_fun := f,
   map_add' := begin
@@ -311,7 +311,7 @@ lemma linear_of_mem_closure_range_apply
 a subset defined by a non-strict bound on the norm still satisfy the same bound. -/
 lemma norm_eval_le_of_mem_closure_norm_eval_le
   (z : E) (c : ℝ) (f : (Π (_ : E), 𝕜))
-  (hf : f ∈ closure ((@weak_dual.to_Pi 𝕜 _ E _ _ _) '' {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ c})) :
+  (hf : f ∈ closure ((weak_dual.to_Pi 𝕜 E) '' {x' : weak_dual 𝕜 E | ∥ x' z ∥ ≤ c})) :
   ∥ f z ∥ ≤ c :=
 begin
   suffices : ∀ (ε : ℝ), 0 < ε → ∥ f (z) ∥ ≤ c + ε,
@@ -333,12 +333,12 @@ a polar `polar s` of a neighborhood `s` of the origin are continuous (linear) fu
 lemma continuous_of_mem_closure_polar_nhd
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (φ : (Π (_ : E), 𝕜))
-  (hφ : φ ∈ closure ((@weak_dual.to_Pi 𝕜 _ E _ _ _) '' (polar 𝕜 s))) :
+  (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (polar 𝕜 s))) :
   @continuous E 𝕜 _ _ φ :=
 begin
   cases @polar.bounded_of_nbhd_zero 𝕜 _ E _ _ s s_nhd with c hc,
   have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (polar.zero_mem s)),
-  have hφ' : φ ∈ closure (range (@weak_dual.to_Pi 𝕜 _ E _ _ _)),
+  have hφ' : φ ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply mem_of_mem_of_subset hφ _,
     apply closure_mono,
     simp only [preimage_range, subset_univ, image_subset_iff], },
@@ -354,7 +354,7 @@ begin
   have sin_closed : is_closed (Icc (-c * ∥z∥) (c * ∥z∥) : set ℝ) := is_closed_Icc,
   have preim_cl := is_closed.preimage θ_cont sin_closed,
   suffices :
-    (@weak_dual.to_Pi 𝕜 _ E _ _ _) '' (polar 𝕜 s) ⊆ θ⁻¹' (Icc (-c * ∥z∥) (c * ∥z∥)),
+    (weak_dual.to_Pi 𝕜 E) '' (polar 𝕜 s) ⊆ θ⁻¹' (Icc (-c * ∥z∥) (c * ∥z∥)),
   { exact ((is_closed.closure_subset_iff preim_cl).mpr this hφ).right, },
   intros ψ hψ,
   rcases hψ with ⟨x', ⟨polar_x', ψ_x'⟩⟩,
@@ -373,18 +373,19 @@ neighborhood `s` of the origin is a closed set. -/
 lemma image_polar_nhd_closed
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_closed ((@weak_dual.to_Pi 𝕜 _ E _ _ _) '' (polar 𝕜 s)) :=
+  is_closed ((weak_dual.to_Pi 𝕜 E) '' (polar 𝕜 s)) :=
 begin
   apply is_closed_iff_cluster_pt.mpr,
   intros f hf,
   simp only [mem_image, mem_set_of_eq],
-  have f_in_closure : f ∈ closure ((@weak_dual.to_Pi 𝕜 _ E _ _ _) '' (polar 𝕜 s)),
+  have f_in_closure : f ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (polar 𝕜 s)),
   from mem_closure_iff_cluster_pt.mpr hf,
-  have f_in_closure₀ : f ∈ closure (range (@weak_dual.to_Pi 𝕜 _ E _ _ _)),
+  have f_in_closure₀ : f ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply closure_mono (image_subset_range _ _),
     exact mem_closure_iff_cluster_pt.mpr hf, },
   set f_lin := embedding_weak_dual_to_Pi.linear_of_mem_closure_range f f_in_closure₀ with h_f_lin,
-  have f_cont := embedding_weak_dual_to_Pi.continuous_of_mem_closure_polar_nhd s_nhd f f_in_closure,
+  have f_cont := embedding_weak_dual_to_Pi.continuous_of_mem_closure_polar_nhd
+    s_nhd f f_in_closure,
   set φ : weak_dual 𝕜 E :=
     { to_fun := f,
       map_add' := begin
@@ -424,7 +425,7 @@ a neighborhood `s` of the origin is compact. -/
 lemma image_polar_nhd_compact
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_compact ((@weak_dual.to_Pi 𝕜 _ E _ _ _) '' (polar 𝕜 s)) :=
+  is_compact ((weak_dual.to_Pi 𝕜 E) '' (polar 𝕜 s)) :=
 begin
   apply compact_of_is_closed_subset _ _ (embedding_weak_dual_to_Pi.image_polar_nhd_subset s_nhd),
   exact pi_ball_bounds_fun_cpt s_nhd,
@@ -439,7 +440,7 @@ theorem polar_nhd_weak_star_compact
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : is_compact (polar 𝕜 s) :=
 begin
-  apply (@embedding_weak_dual_to_Pi 𝕜 _ E _ _ ).is_compact_iff_is_compact_image.mpr,
+  apply (embedding_weak_dual_to_Pi 𝕜 E).is_compact_iff_is_compact_image.mpr,
   exact embedding_weak_dual_to_Pi.image_polar_nhd_compact s_nhd,
 end
 

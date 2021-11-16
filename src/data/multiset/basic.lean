@@ -411,10 +411,13 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
   let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
  λ ⟨u, e⟩, e.symm ▸ le_add_right _ _⟩
 
+instance : order_bot (multiset α) :=
+{ bot                   := 0,
+  bot_le                := multiset.zero_le }
+
 instance : canonically_ordered_add_monoid (multiset α) :=
 { le_iff_exists_add     := @le_iff_exists_add _,
-  bot                   := 0,
-  bot_le                := multiset.zero_le,
+  ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
@@ -501,6 +504,16 @@ pos_iff_ne_zero.trans $ not_congr card_eq_zero
 theorem card_pos_iff_exists_mem {s : multiset α} : 0 < card s ↔ ∃ a, a ∈ s :=
 quot.induction_on s $ λ l, length_pos_iff_exists_mem
 
+lemma card_eq_two {s : multiset α} : s.card = 2 ↔ ∃ x y, s = {x, y} :=
+⟨quot.induction_on s (λ l h, (list.length_eq_two.mp h).imp
+  (λ a, Exists.imp (λ b, congr_arg coe))), λ ⟨a, b, e⟩, e.symm ▸ rfl⟩
+
+lemma card_eq_three {s : multiset α} : s.card = 3 ↔ ∃ x y z, s = {x, y, z} :=
+⟨quot.induction_on s (λ l h, (list.length_eq_three.mp h).imp
+  (λ a, Exists.imp (λ b, Exists.imp (λ c, congr_arg coe)))), λ ⟨a, b, c, e⟩, e.symm ▸ rfl⟩
+
+/-! ### Induction principles -/
+
 /-- A strong induction principle for multisets:
 If you construct a value for a particular multiset given values for all strictly smaller multisets,
 you can construct a value for any multiset.
@@ -580,6 +593,9 @@ eq_repeat'.2
 theorem eq_repeat {a : α} {n} {s : multiset α} : s = repeat a n ↔ card s = n ∧ ∀ b ∈ s, b = a :=
 ⟨λ h, h.symm ▸ ⟨card_repeat _ _, λ b, eq_of_mem_repeat⟩,
  λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
+
+theorem repeat_injective (a : α) : function.injective (repeat a) :=
+λ m n h, by rw [← (eq_repeat.1 h).1, card_repeat]
 
 theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ {a} := repeat_subset_singleton
 
@@ -1078,8 +1094,7 @@ lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α] {m : multiset
 begin
   apply quotient.induction_on m,
   simp only [quot_mk_to_coe, coe_prod, mem_coe],
-  intros l hl₁ hl₂ x hx,
-  apply all_one_of_le_one_le_of_prod_eq_one hl₁ hl₂ _ hx,
+  exact λ l, all_one_of_le_one_le_of_prod_eq_one,
 end
 
 lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] {m : multiset α} :

@@ -79,7 +79,7 @@ else
     exact h.1),
   degree_sub_lt
   (by rw [hq.degree_mul, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
-      degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
+      degree_eq_nat_degree hq0, ← with_bot.coe_add, tsub_add_cancel_of_le hlt])
   h.2
   (by rw [leading_coeff_mul_monic hq, leading_coeff_mul_X_pow, leading_coeff_C])
 
@@ -265,13 +265,13 @@ begin
   haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg at hfg,
-    rw nat.sub_eq_zero_of_le (nat_degree_le_nat_degree $ le_of_lt hfg) },
+    rw tsub_eq_zero_iff_le.mpr (nat_degree_le_nat_degree $ le_of_lt hfg) },
   have hgf := hfg, rw div_by_monic_eq_zero_iff hg at hgf, push_neg at hgf,
   have := degree_add_div_by_monic hg hgf,
   have hf : f ≠ 0, { intro hf, apply hfg, rw [hf, zero_div_by_monic] },
   rw [degree_eq_nat_degree hf, degree_eq_nat_degree hg.ne_zero, degree_eq_nat_degree hfg,
       ← with_bot.coe_add, with_bot.coe_eq_coe] at this,
-  rw [← this, nat.add_sub_cancel_left]
+  rw [← this, add_tsub_cancel_left]
 end
 
 lemma div_mod_by_monic_unique {f g} (q r : polynomial R) (hg : monic g)

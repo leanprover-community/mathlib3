@@ -166,7 +166,7 @@ lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [fie
   {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
   ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
 begin
-  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian I f,
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) f,
   have nu : ¬ is_unit (aeval f p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
   rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p),
     ←multiset.prod_to_list, alg_hom.map_list_prod] at nu,
@@ -278,12 +278,12 @@ begin
   let O : subalgebra N L := algebra.adjoin N {(x : L)},
   let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
      (alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly N x).to_alg_hom),
-  have hNO : N ≤ N.under O,
+  have hNO : N ≤ O.restrict_scalars K,
   { intros z hz,
     show algebra_map N L ⟨z, hz⟩ ∈ O,
     exact O.algebra_map_mem _ },
   let O' : subfield_with_hom K L M hL :=
-  { carrier := N.under O,
+  { carrier := O.restrict_scalars K,
     emb := larger_emb.restrict_scalars K },
   have hO' : maximal_subfield_with_hom M hL ≤ O',
   { refine ⟨hNO, _⟩,

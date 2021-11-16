@@ -6,6 +6,7 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.matrix.basis
+import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.tensor_product
 
@@ -1014,6 +1015,15 @@ begin
     ring.add_zero, add_eq_zero_iff_neg_eq] at H1,
   exact H1,
 end
+
+lemma is_refl (H : is_alt B₁) : refl_bilin_form.is_refl B₁ :=
+begin
+  intros x y h,
+  rw [←neg H, h, neg_zero],
+end
+
+lemma ortho_sym (H : is_alt B₁) {x y : M₁} :
+  is_ortho B₁ x y ↔ is_ortho B₁ y x := refl_bilin_form.ortho_sym (is_refl H)
 
 end alt_bilin_form
 

@@ -19,16 +19,17 @@ a.k.a. the interval `[0, ∞)`. We also define the following operations and stru
   complete linear order with a bottom element, `conditionally_complete_linear_order_bot`;
 
 * `a + b` and `a * b` are the restrictions of addition and multiplication of real numbers to `ℝ≥0`;
-  these operations together with `0 = ⟨0, _⟩` and `1 = ⟨1, _⟩` turn `ℝ≥0` into a linear ordered
-  archimedean commutative semifield; we have no typeclass for this in `mathlib` yet, so we define
-  the following instances instead:
+  these operations together with `0 = ⟨0, _⟩` and `1 = ⟨1, _⟩` turn `ℝ≥0` into a conditionally
+  complete linear ordered archimedean commutative semifield; we have no typeclass for this in
+  `mathlib` yet, so we define the following instances instead:
 
   - `linear_ordered_semiring ℝ≥0`;
   - `ordered_comm_semiring ℝ≥0`;
   - `canonically_ordered_comm_semiring ℝ≥0`;
   - `linear_ordered_comm_group_with_zero ℝ≥0`;
-  - `canonically_linear_ordered_add_monoid ℝ≥0`
-  - `archimedean ℝ≥0`.
+  - `canonically_linear_ordered_add_monoid ℝ≥0`;
+  - `archimedean ℝ≥0`;
+  - `conditionally_complete_linear_order_bot ℝ≥0`.
 
   These instances are derived from corresponding instances about the type `{x : α // 0 ≤ x}` in an
   appropriate ordered field/ring/group/monoid `α`. See `algebra/order/nonneg`.
@@ -189,6 +190,9 @@ noncomputable example : comm_group_with_zero ℝ≥0 := by apply_instance
 @[simp, norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
+@[simp, norm_cast] lemma coe_zpow (r : ℝ≥0) (n : ℤ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
+by cases n; simp
+
 @[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
   ((l.sum : ℝ≥0) : ℝ) = (l.map coe).sum :=
 to_real_hom.map_list_sum l
@@ -288,10 +292,7 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s)
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
 noncomputable instance : conditionally_complete_linear_order_bot ℝ≥0 :=
-{ cSup_empty := (function.funext_iff.1
-    (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
-  .. (by apply_instance : order_bot ℝ≥0),
-  .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
+nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
 
 lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Sup_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
@@ -484,6 +485,26 @@ begin
   exact pow_nonneg (zero_le _) _,
 end
 
+lemma exists_mem_Ico_zpow
+  {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
+  ∃ n : ℤ, x ∈ set.Ico (y ^ n) (y ^ (n + 1)) :=
+begin
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, (y : ℝ) ^ n ≤ x ∧ (x : ℝ) < y ^ (n + 1) :=
+    exists_mem_Ico_zpow (bot_lt_iff_ne_bot.mpr hx) hy,
+  rw ← nnreal.coe_zpow at hn h'n,
+  exact ⟨n, hn, h'n⟩,
+end
+
+lemma exists_mem_Ioc_zpow
+  {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
+  ∃ n : ℤ, x ∈ set.Ioc (y ^ n) (y ^ (n + 1)) :=
+begin
+  obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, (y : ℝ) ^ n < x ∧ (x : ℝ) ≤ y ^ (n + 1) :=
+    exists_mem_Ioc_zpow (bot_lt_iff_ne_bot.mpr hx) hy,
+  rw ← nnreal.coe_zpow at hn h'n,
+  exact ⟨n, hn, h'n⟩,
+end
+
 end pow
 
 section sub
@@ -492,7 +513,7 @@ section sub
 
 In this section we provide a few lemmas about subtraction that do not fit well into any other
 typeclass. For lemmas about subtraction and addition see lemmas
-about `has_ordered_sub` in the file `algebra.order.sub`. See also `mul_sub'` and `sub_mul'`. -/
+about `has_ordered_sub` in the file `algebra.order.sub`. See also `mul_tsub` and `tsub_mul`. -/
 
 lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
@@ -501,7 +522,7 @@ lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 noncomputable example : has_ordered_sub ℝ≥0 := by apply_instance
 
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c :=
-by simp only [div_eq_mul_inv, sub_mul']
+by simp only [div_eq_mul_inv, tsub_mul]
 
 end sub
 
@@ -654,6 +675,19 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, ← real.to_nnreal_inv, ← real.to_nnrea
 lemma _root_.real.to_nnreal_div' {x y : ℝ} (hy : 0 ≤ y) :
   real.to_nnreal (x / y) = real.to_nnreal x / real.to_nnreal y :=
 by rw [div_eq_inv_mul, div_eq_inv_mul, real.to_nnreal_mul (inv_nonneg.2 hy), real.to_nnreal_inv]
+
+lemma inv_lt_one_iff {x : ℝ≥0} (hx : x ≠ 0) : x⁻¹ < 1 ↔ 1 < x :=
+by rwa [← one_div, div_lt_iff hx, one_mul]
+
+lemma inv_lt_one {x : ℝ≥0} (hx : 1 < x) : x⁻¹ < 1 :=
+(inv_lt_one_iff (zero_lt_one.trans hx).ne').2 hx
+
+lemma zpow_pos {x : ℝ≥0} (hx : x ≠ 0) (n : ℤ) : 0 < x ^ n :=
+begin
+  cases n,
+  { exact pow_pos hx.bot_lt _ },
+  { simp [pow_pos hx.bot_lt _] }
+end
 
 end inv
 

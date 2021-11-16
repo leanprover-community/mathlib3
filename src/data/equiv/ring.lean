@@ -370,6 +370,11 @@ lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
 lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
   f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
 
+/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
+lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵒᵖ) (l : list R) :
+  opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
+f.to_ring_hom.unop_map_list_prod l
+
 lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
   f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
 
@@ -422,8 +427,8 @@ namespace ring_equiv
 
 variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 
-@[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
-@[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
+@[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
+@[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
 /-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
 protected lemma is_domain

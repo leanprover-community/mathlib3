@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
 import linear_algebra.basic
+import data.equiv.fin
 
 /-!
 # Pi types of modules
@@ -302,7 +303,7 @@ Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings]. -/
 def pi_ring : ((ι → R) →ₗ[R] M) ≃ₗ[S] (ι → M) :=
 (linear_map.lsum R (λ i : ι, R) S).symm.trans
-  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R M S)
+  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R S M)
 
 variables {ι R M}
 
@@ -332,6 +333,29 @@ def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoi
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inl a) = f a := rfl
 @[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inr {α β} (f : α → M) (g : β → M) (b : β) :
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
+
+/-- If `ι` has a unique element, then `ι → M` is linearly equivalent to `M`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def fun_unique (ι R M : Type*) [unique ι] [semiring R] [add_comm_monoid M] [module R M] :
+  (ι → M) ≃ₗ[R] M :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. equiv.fun_unique ι M }
+
+variables (R M)
+
+/-- Linear equivalence between dependent functions `Π i : fin 2, M i` and `M 0 × M 1`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def pi_fin_two (M : fin 2 → Type v) [Π i, add_comm_monoid (M i)] [Π i, module R (M i)] :
+  (Π i, M i) ≃ₗ[R] M 0 × M 1 :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. pi_fin_two_equiv M }
+
+/-- Linear equivalence between vectors in `M² = fin 2 → M` and `M × M`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def fin_two_arrow : (fin 2 → M) ≃ₗ[R] M × M :=
+{ .. fin_two_arrow_equiv M, .. pi_fin_two R (λ _, M) }
 
 end linear_equiv
 

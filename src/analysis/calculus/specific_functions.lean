@@ -68,10 +68,10 @@ if x ≤ 0 then 0 else (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)
 /-- The `0`-th auxiliary function `f_aux 0` coincides with `exp_neg_inv_glue`, by definition. -/
 lemma f_aux_zero_eq : f_aux 0 = exp_neg_inv_glue :=
 begin
-   ext x,
-   by_cases h : x ≤ 0,
-   { simp [exp_neg_inv_glue, f_aux, h] },
-   { simp [h, exp_neg_inv_glue, f_aux, ne_of_gt (not_le.1 h), P_aux] }
+  ext x,
+  by_cases h : x ≤ 0,
+  { simp [exp_neg_inv_glue, f_aux, h] },
+  { simp [h, exp_neg_inv_glue, f_aux, ne_of_gt (not_le.1 h), P_aux] }
 end
 
 /-- For positive values, the derivative of the `n`-th auxiliary function `f_aux n`
@@ -83,7 +83,7 @@ lemma f_aux_deriv (n : ℕ) (x : ℝ) (hx : x ≠ 0) :
 begin
   have A : ∀k:ℕ, 2 * (k + 1) - 1 = 2 * k + 1,
   { assume k,
-    rw nat.sub_eq_iff_eq_add,
+    rw tsub_eq_iff_eq_add_of_le,
     { ring },
     { simpa [mul_add] using add_le_add (zero_le (2 * k)) one_le_two } },
   convert (((P_aux n).has_deriv_at x).mul

@@ -250,11 +250,11 @@ s.to_add_subgroup.sum_mem h
 
 lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
-lemma gsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
+  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+by simp only [← zsmul_one, zsmul_mem, one_mem]
 
 /-- A subring of a ring inherits a ring structure -/
 instance to_ring : ring s :=
@@ -937,7 +937,7 @@ end subring
 
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
-by { convert add_subgroup.gsmul_mem G h k, simp }
+by { convert add_subgroup.zsmul_mem G h k, simp }
 
 
 /-! ## Actions by `subring`s
@@ -999,12 +999,12 @@ end actions
 -- while this definition is not about subrings, this is the earliest we have
 -- both ordered ring structures and submonoids available
 
-/-- The subgroup of positive units of a linear ordered commutative ring. -/
-def units.pos_subgroup (R : Type*) [linear_ordered_comm_ring R] [nontrivial R] :
+/-- The subgroup of positive units of a linear ordered semiring. -/
+def units.pos_subgroup (R : Type*) [linear_ordered_semiring R] :
   subgroup (units R) :=
 { carrier := {x | (0 : R) < x},
   inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
   ..(pos_submonoid R).comap (units.coe_hom R)}
 
-@[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R]
+@[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_semiring R]
   (u : units R) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl

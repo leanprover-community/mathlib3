@@ -138,11 +138,11 @@ map_nsmul (right_comp _ _) _ _
 lemma comp_nsmul (n : ℕ) : f ≫ (n • g) = n • (f ≫ g) :=
 map_nsmul (left_comp _ _) _ _
 
-lemma gsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
-map_gsmul (right_comp _ _) _ _
+lemma zsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
+map_zsmul (right_comp _ _) _ _
 
-lemma comp_gsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
-map_gsmul (left_comp _ _) _ _
+lemma comp_zsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
+map_zsmul (left_comp _ _) _ _
 
 @[reassoc] lemma comp_sum {P Q R : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
   f ≫ ∑ j in s, g j = ∑ j in s, f ≫ g j :=

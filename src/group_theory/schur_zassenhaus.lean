@@ -187,7 +187,19 @@ variables {G : Type u} [group G] [fintype G] {N : subgroup G} [normal N]
     ∃ H' : subgroup G', is_complement' N' H')
   (h3 : ∀ H : subgroup G, ¬ is_complement' N H)
 
+-- We assume that `G` is a minimal counterexample to the `Schur-Zassenhaus` theorem.
 include h1 h2 h3
+
+/- We will arrive at a contradiction via the following steps:
+ * step 0: `N` (the normal Hall subgroup) is nontrivial.
+ * step 1: If `K` is a subgroup of `G` with `K ⊔ N = ⊤`, then `K = ⊤`.
+ * step 2: `N` is a minimal normal subgroup, phrased in terms of subgroups of `G`.
+ * step 3: `N` is a minimal normal subgroup, phrased in terms of subgroups of `N`.
+ * step 4: `p` (`min_fact (fintype.card N)`) is prime (follows from step0).
+ * step 5: `P` (a Sylow `p`-subgroup of `N`) is nontrivial.
+ * step 6: `N` is a `p`-group (applies step 1 to the normalizer of `P` in `G`).
+ * step 7: `N` is abelian (applies step 3 to the center of `N`).
+-/
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 @[nolint unused_arguments] private lemma step0 : N ≠ ⊥ :=
@@ -284,19 +296,12 @@ begin
 end
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
-private lemma step7 : is_commutative N :=
+lemma step7 : is_commutative N :=
 begin
   haveI := N.bot_or_nontrivial.resolve_left (step0 h1 h2 h3),
   haveI : fact ((fintype.card N).min_fac.prime) := ⟨step4 h1 h2 h3⟩,
   exact ⟨⟨λ g h, eq_top_iff.mp ((step3 h1 h2 h3 N.center).resolve_left
     (step6 h1 h2 h3).bot_lt_center.ne') (mem_top h) g⟩⟩,
-end
-
-/-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
-lemma contradiction : false :=
-begin
-  haveI := step7 h1 h2 h3,
-  exact not_exists_of_forall_not h3 (exists_right_complement'_of_coprime_aux h1),
 end
 
 end schur_zassenhaus_induction
@@ -311,8 +316,10 @@ begin
   unfreezingI { revert G },
   apply nat.strong_induction_on n,
   rintros n ih G _ _ rfl N _ hN,
-  exactI not_forall_not.mp
-    (schur_zassenhaus_induction.contradiction hN (λ G' _ _ hG', by { apply ih _ hG', refl })),
+  refine not_forall_not.mp (λ h3, _),
+  haveI := by exactI
+    schur_zassenhaus_induction.step7 hN (λ G' _ _ hG', by { apply ih _ hG', refl }) h3,
+  exact not_exists_of_forall_not h3 (exists_right_complement'_of_coprime_aux hN),
 end
 
 /-- **Schur-Zassenhaus** for normal subgroups:

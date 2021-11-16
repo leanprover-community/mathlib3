@@ -1914,7 +1914,7 @@ end
 measurability of the function being integrated.) -/
 lemma lintegral_map_equiv [measurable_space β] (f : β → ℝ≥0∞) (g : α ≃ᵐ β) :
   ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
-g.measurable_embedding.lintegral_map f
+g.measurable_embedding.lintegral_map f 
 
 section dirac_and_count
 variable [measurable_space α]

@@ -4,14 +4,6 @@ from pathlib import Path
 import re
 import sys, os
 
-DEBUG = True
-
-TMP_SUFFIX = ".brace_cleanup"
-
-def debug(s):
-    if DEBUG:
-        print(s)
-
 def fix_brace_o(a, b):
     astr = a.rstrip()
     if astr == "":

@@ -153,7 +153,7 @@ lemma eq_Inter (s : set E) :
 by { dunfold polar, ext, simp only [mem_bInter_iff, mem_set_of_eq], }
 
 lemma of_empty : polar 𝕜 (∅ : set E) = univ :=
-by { unfold polar, simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true], }
+by { simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true], }
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
 small scalar multiple of `x'` is in `polar 𝕜 s`. -/

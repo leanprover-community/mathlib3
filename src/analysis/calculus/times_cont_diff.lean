@@ -1633,7 +1633,8 @@ Warning: if you think you need this lemma, it is likely that you can simplify yo
 reformulating the lemma that you're applying next using the tips in
 Note [continuity lemma statement]
 -/
-lemma times_cont_diff_prod_assoc : times_cont_diff 𝕜 ⊤ $ equiv.prod_assoc E F G :=
+lemma times_cont_diff_prod_assoc {n : with_top ℕ} :
+  times_cont_diff 𝕜 n $ equiv.prod_assoc E F G :=
 (linear_isometry_equiv.prod_assoc 𝕜 E F G).times_cont_diff
 
 /--
@@ -1641,7 +1642,8 @@ The natural equivalence `E × (F × G) ≃ (E × F) × G` is smooth.
 
 Warning: see remarks attached to `times_cont_diff_prod_assoc`
 -/
-lemma times_cont_diff_prod_assoc_symm : times_cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).symm :=
+lemma times_cont_diff_prod_assoc_symm {n : with_top ℕ} :
+  times_cont_diff 𝕜 n $ (equiv.prod_assoc E F G).symm :=
 (linear_isometry_equiv.prod_assoc 𝕜 E F G).symm.times_cont_diff
 
 /--

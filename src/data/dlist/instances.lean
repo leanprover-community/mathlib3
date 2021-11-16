@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import control.traversable.equiv
-import control.traversable.instances
+import control.traversable.lemmas
 import data.dlist
+import control.traversable.instances
 
 /-!
 # Traversable instance for dlists

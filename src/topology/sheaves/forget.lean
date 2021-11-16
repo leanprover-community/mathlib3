@@ -3,9 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.sheaves.sheaf
+import tactic.equiv_rw
 import category_theory.limits.preserves.shapes.products
-import category_theory.limits.types
+import topology.sheaves.sheaf
 
 /-!
 # Checking the sheaf condition on the underlying presheaf of types.
@@ -202,7 +202,6 @@ As an example, we now have everything we need to check the sheaf condition
 for a presheaf of commutative rings, merely by checking the sheaf condition
 for the underlying sheaf of types.
 ```
-import algebra.category.CommRing.limits
 example (X : Top) (F : presheaf CommRing X) (h : presheaf.is_sheaf (F ⋙ (forget CommRing))) :
   F.is_sheaf :=
 (is_sheaf_iff_is_sheaf_comp (forget CommRing) F).mpr h

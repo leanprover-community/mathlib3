@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
+import analysis.normed_space.basic
+import topology.algebra.group_completion
 import analysis.normed_space.linear_isometry
+import topology.metric_space.completion
 
 /-!
 # Normed star rings and algebras

@@ -3,10 +3,11 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
+import algebra.iterate_hom
+import algebra.group_with_zero.power
 import algebra.char_p.basic
 import data.equiv.ring
-import algebra.group_with_zero.power
-import algebra.iterate_hom
+import data.nat.choose
 
 /-!
 # The perfect closure of a field

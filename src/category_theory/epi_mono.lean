@@ -6,6 +6,7 @@ Authors: Reid Barton, Scott Morrison
 import category_theory.adjunction.basic
 import category_theory.opposites
 import category_theory.groupoid
+import category_theory.types
 
 /-!
 # Facts about epimorphisms and monomorphisms.

@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import data.polynomial.coeff
+import tactic.interval_cases
+import tactic.group
 import data.nat.choose.basic
-import ring_theory.polynomial.basic
 
 /-!
 

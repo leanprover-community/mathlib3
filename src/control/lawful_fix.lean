@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import tactic.apply
 import control.fix
+import data.stream.basic
+import tactic.apply
 import order.omega_complete_partial_order
+import data.pfun
 
 /-!
 # Lawful fixed point operators

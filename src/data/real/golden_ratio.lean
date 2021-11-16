@@ -3,11 +3,14 @@ Copyright (c) 2020 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Alexey Soloyev, Junyan Xu
 -/
-import data.real.irrational
-import data.nat.fib
-import data.fin.vec_notation
-import tactic.ring_exp
+import data.stream.basic
+import algebra.polynomial.big_operators
 import algebra.linear_recurrence
+import tactic.ring_exp
+import data.real.irrational
+import data.polynomial.degree
+import data.fin.vec_notation
+import data.nat.fib
 
 /-!
 # The golden ratio and its conjugate

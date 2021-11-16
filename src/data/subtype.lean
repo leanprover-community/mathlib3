@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import tactic.ext
+import data.sum
 import tactic.lint
 import tactic.simps
+import tactic.ext
 
 /-!
 # Subtypes

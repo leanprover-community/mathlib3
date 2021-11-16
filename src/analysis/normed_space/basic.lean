@@ -3,13 +3,13 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
-import data.matrix.basic
-import topology.algebra.group_completion
-import topology.instances.ennreal
-import topology.metric_space.completion
 import topology.sequences
+import topology.algebra.ordered.liminf_limsup
+import topology.instances.ennreal
+import algebra.algebra.restrict_scalars
+import data.matrix.basic
+import data.matrix.dmatrix
 import analysis.normed.group.infinite_sum
 
 /-!

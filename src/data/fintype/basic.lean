@@ -3,17 +3,18 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.array.lemmas
-import data.finset.option
-import data.finset.pi
-import data.finset.powerset
-import data.finset.prod
-import data.list.nodup_equiv_fin
-import data.sym.basic
-import data.ulift
-import group_theory.perm.basic
+import algebra.group_power
 import order.well_founded
+import data.finset.pi
 import tactic.wlog
+import data.sym.basic
+import data.array.lemmas
+import data.finset.powerset
+import group_theory.perm.basic
+import data.ulift
+import data.finset.option
+import data.list.nodup_equiv_fin
+import data.finset.prod
 
 /-!
 # Finite types

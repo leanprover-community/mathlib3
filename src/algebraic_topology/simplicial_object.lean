@@ -3,11 +3,10 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
-import algebraic_topology.simplex_category
-import category_theory.category.ulift
-import category_theory.limits.functor_category
+import category_theory.products
 import category_theory.opposites
-import category_theory.adjunction.limits
+import algebraic_topology.simplex_category
+import category_theory.limits.functor_category
 import category_theory.arrow
 
 /-!

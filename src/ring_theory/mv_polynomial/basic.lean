@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import algebra.char_p.basic
 import linear_algebra.finsupp_vector_space
+import linear_algebra.direct_sum.finsupp
+import data.mv_polynomial
+import algebra.char_p.basic
 
 /-!
 # Multivariate polynomials over commutative rings

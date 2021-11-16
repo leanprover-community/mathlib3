@@ -3,8 +3,9 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.defs
 import logic.function.basic
+import algebra.group.defs
+import data.quot
 
 /-!
 # Lifting algebraic data classes along injective/surjective maps

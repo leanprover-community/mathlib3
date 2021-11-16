@@ -3,10 +3,12 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import data.pfun
-import order.preorder_hom
 import tactic.wlog
+import control.traversable
 import tactic.monotonicity
+import order.preorder_hom
+import control.traversable.derive
+import data.part
 
 /-!
 # Omega Complete Partial Orders

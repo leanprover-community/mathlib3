@@ -3,10 +3,13 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import geometry.manifold.instances.real
+import geometry.manifold.algebra.smooth_functions
 import topology.paracompact
-import topology.shrinking_lemma
-import geometry.manifold.bump_function
 import topology.partition_of_unity
+import topology.shrinking_lemma
+import geometry.manifold.diffeomorph
+import geometry.manifold.bump_function
 
 /-!
 # Smooth partition of unity

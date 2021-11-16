@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
-import algebra.gcd_monoid.basic
-import ring_theory.integral_domain
 import ring_theory.noetherian
+import algebra.gcd_monoid.basic
+import tactic.interval_cases
+import tactic.group
+import ring_theory.multiplicity
 
 /-!
 

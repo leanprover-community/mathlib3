@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
 import data.list.basic
+import control.monad.basic
 
 /-!
 # Double universal quantification on a list

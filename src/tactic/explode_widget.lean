@@ -3,8 +3,10 @@ Copyright (c) 2020 Minchao Wu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu
 -/
-import tactic.explode
 import tactic.interactive_expr
+import logic.function.basic
+import tactic.explode
+import data.bool
 
 /-!
 # `#explode_widget` command

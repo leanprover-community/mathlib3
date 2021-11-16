@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import ring_theory.polynomial.basic
+import data.polynomial.derivative
+import ring_theory.principal_ideal_domain
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
-import data.polynomial.derivative
 
 /-!
 # Hasse derivative of polynomials

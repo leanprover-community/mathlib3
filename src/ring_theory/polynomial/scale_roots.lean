@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Devon Tuma
 -/
 
-import ring_theory.polynomial.basic
 import ring_theory.non_zero_divisors
+import tactic.interval_cases
+import data.polynomial.algebra_map
+import tactic.group
 
 /-!
 # Scaling the roots of a polynomial

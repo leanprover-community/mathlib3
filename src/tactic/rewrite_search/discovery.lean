@@ -5,6 +5,7 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 import tactic.nth_rewrite
 import tactic.rewrite_search.types
+import data.mllist
 
 /-!
 # Generating a list of rewrites to use as steps in rewrite search.

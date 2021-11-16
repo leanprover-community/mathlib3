@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
-import linear_algebra.special_linear_group
-import analysis.complex.basic
 import group_theory.group_action.defs
+import analysis.complex.basic
+import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.special_linear_group
 
 /-!
 # The upper half plane and its automorphisms

@@ -3,11 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.iterate_hom
-import data.equiv.ring_aut
 import algebra.module.basic
 import linear_algebra.basic
 import tactic.abel
+import data.equiv.ring_aut
 
 /-!
 # Algebras over commutative semirings

@@ -3,11 +3,17 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
+import linear_algebra.determinant
+import linear_algebra.finsupp_vector_space
+import linear_algebra.free_module.pid
+import linear_algebra.direct_sum.finsupp
+import linear_algebra.matrix.diagonal
+import data.mv_polynomial
+import dynamics.ergodic.measure_preserving
 import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
+import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.matrix.transvection
-import dynamics.ergodic.measure_preserving
-import linear_algebra.determinant
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`

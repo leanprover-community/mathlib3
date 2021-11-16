@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
+import algebra.algebra.tower
+import tactic.fin_cases
 import algebra.char_p.basic
 import ring_theory.ideal.operations
-import tactic.fin_cases
+import data.nat.choose
 
 /-!
 # Integers mod `n`

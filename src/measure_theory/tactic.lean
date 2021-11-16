@@ -3,11 +3,16 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import tactic.auto_cases
-import tactic.tidy
-import tactic.with_local_reducibility
-import tactic.show_term
 import measure_theory.measure.measure_space_def
+import tactic.tfae
+import tactic.reassoc_axiom
+import tactic.with_local_reducibility
+import tactic.abel
+import tactic.field_simp
+import tactic.auto_cases
+import tactic.linarith
+import tactic.tidy
+import tactic.show_term
 /-!
 # Tactics for measure theory
 

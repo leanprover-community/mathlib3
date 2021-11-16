@@ -3,9 +3,15 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.order.euclidean_absolute_value
-import analysis.special_functions.pow
+import tactic.tfae
+import tactic.reassoc_axiom
+import tactic.with_local_reducibility
+import tactic.interval_cases
+import data.fin.tuple
+import tactic.group
+import data.real.basic
 import combinatorics.pigeonhole
+import algebra.order.euclidean_absolute_value
 
 /-!
 # Admissible absolute values

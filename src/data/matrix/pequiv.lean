@@ -3,8 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.matrix.basic
 import data.pequiv
+import data.matrix.basic
+import data.matrix.dmatrix
 
 /-!
 # partial equivalences for matrices

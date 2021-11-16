@@ -3,11 +3,12 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv
 import topology.algebra.ordered.extend_from
+import analysis.calculus.deriv
+import data.polynomial.field_division
+import topology.metric_space.cau_seq_filter
 import topology.algebra.polynomial
 import topology.local_extr
-import data.polynomial.field_division
 
 /-!
 # Local extrema of smooth functions

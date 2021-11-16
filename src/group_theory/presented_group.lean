@@ -5,6 +5,7 @@ Authors: Michael Howes
 -/
 import group_theory.free_group
 import group_theory.quotient_group
+import data.setoid.basic
 
 /-!
 # Defining a group given by generators and relations

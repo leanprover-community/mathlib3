@@ -6,7 +6,6 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 
 import algebra.order.group
 import algebra.group_with_zero
-import algebra.group_with_zero.power
 import tactic.abel
 
 /-!

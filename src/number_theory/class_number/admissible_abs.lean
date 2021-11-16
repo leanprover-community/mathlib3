@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import number_theory.class_number.admissible_absolute_value
+import analysis.special_functions.pow
 
 /-!
 # Admissible absolute value on the integers

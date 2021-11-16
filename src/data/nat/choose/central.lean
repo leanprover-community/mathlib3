@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens, Thomas Browning
 -/
 
+import tactic.linarith
 import data.nat.choose.basic
-import data.nat.choose.sum
 
 /-!
 # Central binomial coefficients

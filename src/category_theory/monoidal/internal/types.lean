@@ -3,9 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Mon.basic
+import category_theory.limits.shapes.finite_products
 import category_theory.monoidal.CommMon_
+import algebra.category.Mon.basic
 import category_theory.monoidal.types
+import category_theory.concrete_category.reflects_isomorphisms
 
 /-!
 # `Mon_ (Type u) ≌ Mon.{u}`

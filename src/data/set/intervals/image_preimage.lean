@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import data.set.intervals.basic
-import data.equiv.mul_add
+import algebra.module.basic
 import algebra.pointwise
+import data.equiv.mul_add
 
 /-!
 # (Pre)images of intervals

@@ -6,6 +6,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 
 import algebra.algebra.basic
 import algebra.category.CommRing.basic
+import algebra.algebra.tower
 import ring_theory.ideal.operations
 
 /-!

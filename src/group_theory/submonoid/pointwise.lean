@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import group_theory.submonoid.operations
+import algebra.module.basic
 import algebra.pointwise
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s

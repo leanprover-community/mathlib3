@@ -3,8 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fintype.basic
 import control.equiv_functor
+import data.fintype.basic
+import data.equiv.functor
+import category_theory.category.basic
 
 /-!
 # `equiv_functor` instances

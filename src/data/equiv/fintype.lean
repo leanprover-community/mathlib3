@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 
-import data.equiv.basic
+import group_theory.quotient_group
+import data.nat.parity
+import data.setoid.basic
 import data.set.finite
 import group_theory.perm.sign
+import data.equiv.basic
 
 /-! # Equivalence between fintypes
 

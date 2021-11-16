@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.equiv.basic
+import logic.relation
 import data.set.basic
 import data.sigma.basic
+import data.equiv.basic
 
 /-!
 # Injective functions

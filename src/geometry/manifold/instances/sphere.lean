@@ -6,6 +6,7 @@ Authors: Heather Macbeth
 import geometry.manifold.instances.real
 import analysis.complex.circle
 import analysis.inner_product_space.calculus
+import geometry.manifold.algebra.lie_group
 
 /-!
 # Manifold structure on the sphere

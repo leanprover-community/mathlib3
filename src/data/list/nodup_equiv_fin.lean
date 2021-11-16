@@ -3,9 +3,11 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.list.duplicate
+import data.int.basic
 import data.fin.basic
 import data.list.sort
-import data.list.duplicate
+import data.list.chain
 
 /-!
 # Equivalence between `fin (length l)` and elements of a list

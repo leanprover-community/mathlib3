@@ -3,12 +3,12 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.sheaves.presheaf
-import category_theory.limits.punit
+import tactic.elementwise
 import category_theory.limits.shapes.products
+import topology.sheaves.presheaf
 import category_theory.limits.shapes.equalizers
 import category_theory.full_subcategory
-import tactic.elementwise
+import category_theory.adjunction.opposites
 
 /-!
 # The sheaf condition in terms of an equalizer of products

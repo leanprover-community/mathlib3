@@ -6,6 +6,9 @@ Authors: Yury G. Kudryashov
 import ring_theory.power_series.basic
 import data.nat.parity
 import algebra.big_operators.nat_antidiagonal
+import data.mv_polynomial
+import ring_theory.algebra_tower
+import ring_theory.polynomial.tower
 
 /-!
 # Definition of well-known power series

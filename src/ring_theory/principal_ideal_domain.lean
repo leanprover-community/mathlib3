@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Morenikeji Neri
 -/
 import ring_theory.unique_factorization_domain
+import ring_theory.integral_domain
 
 /-!
 # Principal ideal rings and principal ideal domains

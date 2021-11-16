@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import data.finset.preimage
+import group_theory.group_action
 import algebra.indicator_function
 import algebra.group_action_hom
 

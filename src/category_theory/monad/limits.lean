@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.adjunction
-import category_theory.adjunction.limits
+import category_theory.adjunction
 import category_theory.limits.preserves.shapes.terminal
+import category_theory.adjunction.limits
 
 /-!
 # Limits and colimits in the category of algebras

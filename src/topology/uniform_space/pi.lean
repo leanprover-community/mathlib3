@@ -3,8 +3,9 @@ Copyright (c) 2019 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.uniform_space.cauchy
 import topology.uniform_space.separation
+import data.set.intervals
+import topology.uniform_space.cauchy
 
 /-!
 # Indexed product of uniform spaces

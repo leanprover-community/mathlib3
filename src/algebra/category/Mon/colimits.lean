@@ -3,9 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import category_theory.limits.concrete_category
 import algebra.category.Mon.basic
 import category_theory.limits.has_limits
-import category_theory.limits.concrete_category
+import category_theory.concrete_category.reflects_isomorphisms
 
 /-!
 # The category of monoids has all colimits.

@@ -3,8 +3,9 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
-import tactic.ring
 import data.pnat.prime
+import tactic.ring
+import data.int.range
 
 /-!
 # Euclidean algorithm for ℕ

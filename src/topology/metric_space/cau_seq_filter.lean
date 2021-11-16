@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Sébastien Gouëzel
 -/
 import analysis.normed_space.basic
+import topology.algebra.group_completion
+import topology.metric_space.completion
 
 /-!
 # Completeness in terms of `cauchy` filters vs `is_cau_seq` sequences

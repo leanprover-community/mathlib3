@@ -3,7 +3,13 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.smooth_manifold_with_corners
+import tactic.reassoc_axiom
+import tactic.abel
+import tactic.interval_cases
+import geometry.manifold.charted_space
+import tactic.field_simp
+import tactic.group
+import tactic.linarith
 
 /-!
 # Local properties invariant under a groupoid

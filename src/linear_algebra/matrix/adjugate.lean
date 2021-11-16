@@ -3,14 +3,14 @@ Copyright (c) 2019 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.associated
-import algebra.regular.basic
-import data.matrix.notation
-import linear_algebra.matrix.polynomial
-import linear_algebra.matrix.mv_polynomial
-import tactic.linarith
-import tactic.ring_exp
 import ring_theory.polynomial.basic
+import algebra.associated
+import linear_algebra.matrix.polynomial
+import ring_theory.principal_ideal_domain
+import tactic.ring_exp
+import algebra.regular.basic
+import tactic.linarith
+import linear_algebra.matrix.mv_polynomial
 
 /-!
 # Cramer's rule and adjugate matrices

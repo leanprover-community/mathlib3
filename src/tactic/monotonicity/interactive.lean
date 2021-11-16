@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import tactic.monotonicity.basic
-import control.traversable
+import control.traversable.lemmas
 import control.traversable.derive
 import data.dlist
 

@@ -6,6 +6,7 @@ Authors: Thomas Browning
 
 import group_theory.quotient_group
 import set_theory.fincard
+import data.setoid.basic
 
 /-!
 # Index of a Subgroup

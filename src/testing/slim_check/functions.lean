@@ -3,10 +3,11 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import data.list.sigma
-import testing.slim_check.sampleable
 import testing.slim_check.testable
+import data.sigma
 import tactic.pretty_cases
+import testing.slim_check.sampleable
+import data.list.sigma
 
 /-!
 ## `slim_check`: generators for functions

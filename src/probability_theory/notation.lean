@@ -4,7 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.function.conditional_expectation
-import measure_theory.decomposition.radon_nikodym
+import tactic.tfae
+import tactic.equiv_rw
+import tactic.with_local_reducibility
+import tactic.elementwise
+import tactic.abel
+import tactic.interval_cases
+import tactic.ring_exp
+import tactic.norm_swap
+import tactic.field_simp
+import tactic.group
+import tactic.linarith
 
 /-! # Notations for probability theory
 

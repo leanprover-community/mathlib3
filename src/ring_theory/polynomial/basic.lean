@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import data.mv_polynomial.equiv
+import ring_theory.unique_factorization_domain
 import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
-import data.mv_polynomial.equiv
-import ring_theory.principal_ideal_domain
+import ring_theory.integral_domain
 import ring_theory.polynomial.content
 
 /-!

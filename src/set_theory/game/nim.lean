@@ -3,9 +3,10 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson, Markus Himmel
 -/
+import control.equiv_functor.instances
 import data.nat.bitwise
-import set_theory.game.impartial
 import set_theory.ordinal_arithmetic
+import set_theory.game.impartial
 
 /-!
 # Nim and the Sprague-Grundy theorem

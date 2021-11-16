@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Jesse Michael Han
 -/
 import tactic.rcases
-import data.sum
 import logic.function.basic
 
 universes u₁ u₂

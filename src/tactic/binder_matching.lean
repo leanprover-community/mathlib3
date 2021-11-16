@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
+import meta.rb_map
 import data.option.defs
 import meta.expr
 

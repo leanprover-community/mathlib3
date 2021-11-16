@@ -3,8 +3,10 @@ Copyright (c) 2020 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
-import algebra.continued_fractions.computation.basic
+import algebra.order.archimedean
 import algebra.continued_fractions.translations
+import algebra.continued_fractions.computation.basic
+import data.rat
 /-!
 # Basic Translation Lemmas Between Structures Defined for Computing Continued Fractions
 

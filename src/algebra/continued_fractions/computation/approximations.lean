@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.correctness_terminating
-import data.nat.fib
+import data.stream.basic
 import tactic.solve_by_elim
+import data.nat.fib
 /-!
 # Approximations for Continued Fraction Computations (`generalized_continued_fraction.of`)
 

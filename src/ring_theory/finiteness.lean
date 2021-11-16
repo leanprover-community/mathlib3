@@ -5,9 +5,10 @@ Authors: Johan Commelin
 -/
 
 import group_theory.finiteness
-import ring_theory.algebra_tower
-import ring_theory.ideal.quotient
 import ring_theory.noetherian
+import ring_theory.algebra_tower
+import ring_theory.polynomial.tower
+import ring_theory.ideal.quotient
 
 /-!
 # Finiteness conditions in commutative algebra

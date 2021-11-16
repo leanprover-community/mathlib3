@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import linear_algebra.finsupp_vector_space
+import linear_algebra.direct_sum.finsupp
+import data.mv_polynomial
 
 /-!
 # Bases and dimensionality of tensor products of modules

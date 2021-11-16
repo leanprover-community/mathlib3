@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import category_theory.concrete_category
 import order.category.Preorder
 
 /-! # Category of partially ordered types -/

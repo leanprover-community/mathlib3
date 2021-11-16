@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
 import category_theory.limits.functor_category
+import category_theory.adjunction.opposites
 
 /-!
 # Presheaves in `C` have limits and colimits when `C` does.

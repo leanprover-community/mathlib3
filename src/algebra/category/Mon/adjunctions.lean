@@ -3,10 +3,12 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-import algebra.category.Mon.basic
-import algebra.category.Semigroup.basic
+import category_theory.concrete_category
 import algebra.group.with_one
 import algebra.free_monoid
+import algebra.category.Mon.basic
+import category_theory.concrete_category.reflects_isomorphisms
+import algebra.category.Semigroup.basic
 
 /-!
 # Adjunctions regarding the category of monoids

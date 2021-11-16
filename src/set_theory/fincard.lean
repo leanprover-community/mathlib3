@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import set_theory.cardinal
+import data.fintype.card
 
 /-!
 # Finite Cardinality Functions

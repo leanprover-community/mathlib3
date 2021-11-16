@@ -3,9 +3,9 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon
 -/
-import control.functor.multivariate
-import data.pfunctor.univariate
+import data.pfunctor.univariate.basic
 import data.sigma
+import control.functor.multivariate
 
 /-!
 # Multivariate polynomial functors.

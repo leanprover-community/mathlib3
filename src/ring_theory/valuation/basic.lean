@@ -6,8 +6,9 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 
 import algebra.group_power
 import algebra.order.with_zero
-import algebra.punit_instances
+import algebra.algebra.tower
 import ring_theory.ideal.operations
+import algebra.punit_instances
 
 /-!
 

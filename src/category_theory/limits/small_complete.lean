@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.limits.shapes.products
 import set_theory.cardinal
+import category_theory.limits.shapes.products
+import data.fintype.card
 
 /-!
 # Any small complete category is a preorder

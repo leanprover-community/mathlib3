@@ -3,11 +3,12 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
-import category_theory.limits.preserves.basic
+import control.equiv_functor.instances
+import tactic.elementwise
+import category_theory.limits.shapes.multiequalizer
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
-import category_theory.limits.shapes.multiequalizer
-import tactic.elementwise
+import category_theory.limits.preserves.basic
 
 /-!
 # Facts about (co)limits of functors into concrete categories

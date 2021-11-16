@@ -5,6 +5,7 @@ Authors: Johan Commelin, Reid Barton, Simon Hudon
 -/
 import data.list.tfae
 import tactic.scc
+import tactic.pi_instances
 
 /-!
 # The Following Are Equivalent (TFAE)

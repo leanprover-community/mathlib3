@@ -3,9 +3,10 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
+import linear_algebra
+import algebra.triv_sq_zero_ext
 import algebra.free_algebra
 import algebra.ring_quot
-import algebra.triv_sq_zero_ext
 
 /-!
 # Tensor Algebras

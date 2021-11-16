@@ -3,9 +3,10 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import analysis.special_functions.pow
 import field_theory.is_alg_closed.basic
+import topology.metric_space.cau_seq_filter
 import topology.algebra.polynomial
+import analysis.special_functions.pow
 
 /-!
 # The fundamental theorem of algebra

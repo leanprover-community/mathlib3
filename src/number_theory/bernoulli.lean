@@ -3,10 +3,10 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kevin Buzzard
 -/
-import data.rat
-import data.fintype.card
 import algebra.big_operators.nat_antidiagonal
 import ring_theory.power_series.well_known
+import tactic.field_simp
+import data.fintype.card
 
 /-!
 # Bernoulli numbers

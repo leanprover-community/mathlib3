@@ -3,11 +3,12 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
+import category_theory.monad.adjunction
+import category_theory.adjunction
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.reflexive
-import category_theory.adjunction
-import category_theory.monad.adjunction
 import category_theory.monad.coequalizer
+import category_theory.limits.preserves.shapes.equalizers
 
 /-!
 # Adjoint lifting

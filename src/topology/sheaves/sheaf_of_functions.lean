@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import topology.sheaves.presheaf_of_functions
-import topology.sheaves.sheaf_condition.unique_gluing
 import category_theory.limits.shapes.types
-import topology.local_homeomorph
+import algebra.category.CommRing.limits
+import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
 # Sheaf conditions for presheaves of (continuous) functions.

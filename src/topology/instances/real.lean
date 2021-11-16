@@ -3,12 +3,13 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.metric_space.basic
-import topology.algebra.uniform_group
-import topology.algebra.ring
 import ring_theory.subring
 import group_theory.archimedean
+import topology.metric_space.basic
 import algebra.periodic
+import algebra.module.opposites
+import topology.algebra.uniform_group
+import topology.algebra.ring
 
 /-!
 # Topological properties of ℝ

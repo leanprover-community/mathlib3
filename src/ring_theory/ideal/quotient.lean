@@ -3,8 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
-import linear_algebra.quotient
+import algebra.algebra.basic
 import ring_theory.ideal.basic
+import linear_algebra.quotient
+import algebra.iterate_hom
 /-!
 # Ideal quotients
 

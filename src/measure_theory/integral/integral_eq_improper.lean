@@ -3,6 +3,7 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
+import analysis.calculus.fderiv_measurable
 import measure_theory.integral.interval_integral
 import order.filter.at_top_bot
 

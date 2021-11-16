@@ -3,11 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import topology.sequences
+import topology.algebra.module
+import topology.metric_space.algebra
 import order.liminf_limsup
 import topology.algebra.uniform_group
-import topology.metric_space.algebra
 import topology.metric_space.isometry
-import topology.sequences
 
 /-!
 # Normed (semi)groups

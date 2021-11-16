@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
+import category_theory.monad.limits
 import category_theory.limits.shapes.reflexive
 import category_theory.limits.preserves.limits
-import category_theory.monad.limits
 import category_theory.monad.coequalizer
+import category_theory.limits.preserves.shapes.equalizers
 
 /-!
 # Monadicity theorems

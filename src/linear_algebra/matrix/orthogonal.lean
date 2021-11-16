@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lu-Ming Zhang
 -/
 import data.matrix.basic
+import data.matrix.dmatrix
 
 /-!
 # Orthogonal

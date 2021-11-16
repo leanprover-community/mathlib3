@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.invertible
-import algebra.lie.skew_adjoint
-import algebra.lie.abelian
-import linear_algebra.matrix.trace
-import linear_algebra.matrix.transvection
 import data.matrix.basis
+import algebra.lie.abelian
+import tactic.field_simp
+import linear_algebra.matrix.trace
+import algebra.lie.skew_adjoint
 
 /-!
 # Classical Lie algebras

@@ -3,9 +3,12 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.simp_result
+import tactic.wlog
+import tactic.apply_fun
+import tactic.nth_rewrite
 import tactic.clear
-import control.equiv_functor.instances
+import tactic.simp_result
+import tactic.apply
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.

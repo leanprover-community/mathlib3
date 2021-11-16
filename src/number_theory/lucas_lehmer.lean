@@ -3,12 +3,15 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison, Ainsley Pahljina
 -/
-import tactic.ring_exp
-import tactic.interval_cases
 import data.nat.parity
-import data.zmod.basic
+import data.int.interval
 import group_theory.order_of_element
+import tactic.interval_cases
+import tactic.ring_exp
+import data.fin.interval
+import data.pnat.interval
 import ring_theory.fintype
+import data.zmod.basic
 
 /-!
 # The Lucas-Lehmer test for Mersenne primes.

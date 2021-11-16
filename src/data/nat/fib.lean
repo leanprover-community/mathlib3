@@ -3,9 +3,10 @@ Copyright (c) 2019 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
-import data.stream.basic
 import data.nat.gcd
 import tactic.ring
+import data.stream.init
+import data.int.range
 
 /-!
 # The Fibonacci Sequence

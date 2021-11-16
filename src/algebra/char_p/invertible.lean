@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import algebra.invertible
 import algebra.field
 import algebra.char_p.basic
+import data.nat.choose
 
 /-!
 # Invertibility of elements given a characteristic

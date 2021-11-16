@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.closed.cartesian
-import category_theory.limits.preserves.shapes.binary_products
 import category_theory.adjunction.fully_faithful
+import category_theory.closed.cartesian
+import category_theory.adjunction
+import category_theory.limits.preserves.limits
+import category_theory.limits.preserves.shapes.terminal
+import category_theory.limits.preserves.shapes.binary_products
 
 /-!
 # Cartesian closed functors

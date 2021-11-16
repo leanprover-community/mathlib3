@@ -3,8 +3,9 @@ Copyright (c) 2020. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import tactic.ring
 import tactic.doc_commands
+import tactic.ring
+import data.int.range
 
 /-!
 # `group`

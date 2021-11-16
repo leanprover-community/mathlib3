@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_topology.simplicial_object
+import category_theory.category.ulift
 import category_theory.abelian.basic
-import category_theory.subobject
 import algebra.homology.homological_complex
+import category_theory.adjunction.limits
 
 /-!
 ## Moore complex

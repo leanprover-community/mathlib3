@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.num.lemmas
 import data.nat.prime
 import tactic.ring
+import data.int.range
 
 /-!
 # Primality for binary natural numbers

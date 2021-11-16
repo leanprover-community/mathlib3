@@ -3,9 +3,10 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.matrix.basic
 import linear_algebra.matrix.determinant
+import data.matrix.basic
 import linear_algebra.matrix.adjugate
+import data.matrix.notation
 
 /-!
 # Matrices associated with non-degenerate bilinear forms

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Ines Wright
 -/
 
-import group_theory.general_commutator
 import group_theory.quotient_group
+import group_theory.general_commutator
+import data.setoid.basic
 
 /-!
 

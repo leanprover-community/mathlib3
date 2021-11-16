@@ -1137,7 +1137,6 @@ by rw ← of_real_inj; simp [sinh_three_mul]
 
 open is_absolute_value
 
-/- TODO make this private and prove ∀ x -/
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
 calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
   le_lim (cau_seq.le_of_exists ⟨2,
@@ -1509,6 +1508,83 @@ calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
           (by { rw [sq, sq], exact mul_self_le_mul_self (le_of_lt cos_one_pos) cos_one_le })
           zero_le_two) _
   ... < 0 : by norm_num
+
+lemma exp_bound_one_minus_approx  {x : ℝ} (h1: 0 ≤ x) (h2 : x ≤ 1) :
+  ∑ (j : ℕ) in finset.range 3, x ^ j / (j.factorial)
+  + x ^ 3 * ((3 : ℕ) + 1) / ((3 : ℕ).factorial * (3 : ℕ))
+  ≤ ∑ j in (finset.range 3), x ^ j :=
+begin
+  repeat {rw finset.sum}, norm_num,
+  rw add_assoc, rw add_comm (x+1) (x^3*4/18), rw ← add_assoc,
+  rw add_le_add_iff_right, rw ← add_le_add_iff_left (-(x^2/2)),
+  rw ← add_assoc, rw comm_ring.add_left_neg (x^2/2), rw zero_add,
+  rw neg_add_eq_sub, rw sub_half, repeat{rw pow_succ},
+  rw pow_zero, rw mul_one,
+  have i1 : x * 4 / 18 ≤ 1 / 2, linarith,
+  have i2 : 0 ≤ x * 4 / 18, linarith,
+  let i3 := mul_le_mul h1 h1 (le_refl (0:ℝ)) h1, rw zero_mul at i3,
+  let t := mul_le_mul (le_refl (x * x)) i1 i2 i3, rw mul_one_div at t,
+  rw ← mul_assoc, rw ← mul_div_assoc at t, rw ← mul_assoc at t, exact t,
+end
+
+lemma exp_bound_truncating {x : ℝ} {n : ℕ} (h1: 0 ≤ x) (h2: x ≤ 1) : (0 < n) →
+  real.exp x ≤ ∑ (m : ℕ) in finset.range n, x ^ m / (m.factorial)
+  + x ^ n * ((n : ℝ) + 1) / (n.factorial * (n : ℝ) ) :=
+begin
+    intro hn0,
+    have h3 : |x| = x, simp, exact h1,
+    have h4 : |x| ≤ 1, rw abs_le, apply and.intro, linarith, linarith,
+    let h' := real.exp_bound h4 hn0, rw h3 at h',
+    let h'' := (abs_sub_le_iff.1 h').1,
+    let t := sub_le_iff_le_add'.1 h'',
+    simp at t, rw mul_div_assoc, exact t,
+end
+
+lemma exp_bound_one_minus {x: ℝ} (h1: 0 ≤ x) (h2 : x < 1) : real.exp x ≤ 1 / (1 - x) :=
+begin
+  have h : ∑ j in (finset.range 3), x^j ≤ 1/(1-x),
+    repeat {rw finset.sum}, norm_num,
+    have h1x : 0 < 1 - x, simp, exact h2,
+    apply (le_div_iff h1x).2, rw ← add_assoc, rw mul_sub_left_distrib,
+    rw mul_one, repeat {rw add_mul}, repeat {rw sub_add_eq_sub_sub},
+    rw ← pow_succ' x 2, norm_num,
+    have hx3 : 0 ≤ x ^ 3, norm_num, exact h1,
+    linarith,
+  let h03 : 0 < 3, linarith,
+  exact le_trans (exp_bound_truncating h1 (le_of_lt h2) h03)
+   (le_trans (exp_bound_one_minus_approx h1 (le_of_lt h2)) h),
+end
+
+lemma one_minus_le_exp_minus_of_pos {y : ℝ} (h : 0 ≤ y) : 1 - y ≤ real.exp (-y) :=
+begin
+  rw real.exp_neg,
+  have r1 : (1 - y) * (real.exp y) ≤ 1,
+    by_cases hy1 : y ≥ 1,
+      have h' : 1-y ≤ 0, linarith,
+      have h'' : (1-y) * real.exp y ≤ 0,
+        apply mul_nonpos_iff.2, right, apply and.intro, exact h', exact le_of_lt (real.exp_pos y),
+      linarith,
+    have hy0 : 0 < 1-y, linarith,
+    apply (le_div_iff' hy0).1, simp at hy1, exact exp_bound_one_minus h hy1,
+  rw inv_eq_one_div, apply (le_div_iff' (real.exp_pos y)).2, rw mul_comm, exact r1,
+end
+
+lemma add_one_le_exp_of_nonpos {x:ℝ} (h: x ≤ 0) : x + 1 ≤ real.exp x :=
+begin
+  rw add_comm,
+  have h1 : 0 ≤ -x, linarith,
+  let r := one_minus_le_exp_minus_of_pos h1,
+  simp at r,
+  exact r,
+end
+
+lemma add_one_le_exp (x:ℝ) : x + 1 ≤ real.exp x :=
+begin
+  by_cases h : 0 ≤ x,
+    exact real.add_one_le_exp_of_nonneg h,
+  simp at h,
+  exact add_one_le_exp_of_nonpos (le_of_lt h),
+end
 
 end real
 

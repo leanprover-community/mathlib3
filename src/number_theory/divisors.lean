@@ -48,9 +48,6 @@ def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.
 def divisors_antidiagonal : finset (ℕ × ℕ) :=
 ((finset.Ico 1 (n + 1)).product (finset.Ico 1 (n + 1))).filter (λ x, x.fst * x.snd = n)
 
-/-- `prime_divisors n` is the `finset` of prime natural numbers that divide `n`. -/
-def prime_divisors := (divisors n).filter prime
-
 
 variable {n}
 
@@ -407,82 +404,73 @@ end
 
 /-- # Prime divisors -/
 
-lemma mem_prime_divisors {n p : ℕ} (hn : n ≠ 0) : p ∈ n.prime_divisors ↔ p ∣ n ∧ prime p :=
-by rw [prime_divisors, mem_filter, mem_divisors, and_iff_left hn]
-
-lemma prime_of_mem_prime_divisors {n p : ℕ} (h : p ∈ n.prime_divisors) : prime p :=
-by { rw [prime_divisors, mem_filter] at h, exact h.2 }
-
-lemma dvd_of_mem_prime_divisors {n p : ℕ} (h : p ∈ n.prime_divisors) : p ∣ n :=
-by { rw [prime_divisors, mem_filter] at h, exact dvd_of_mem_divisors h.1 }
-
-/-- 0 has no prime divisors -/
-lemma prime_divisors_zero : prime_divisors 0  = (∅ : finset ℕ) :=
-filter_empty _
-
-/-- 1 has no prime divisors -/
-lemma prime_divisors_one : prime_divisors 1 = (∅ : finset ℕ) :=
-filter_singleton prime 1
-
-lemma factor_of_prime_divisor {p n : ℕ} (hp : p ∈ n.prime_divisors) : p ∈ n.factors
+lemma dvd_of_mem_factors {n p : ℕ} (h : p ∈ n.factors) : p ∣ n
   :=
 begin
   by_cases hn : n = 0,
-    { rw [hn, prime_divisors_zero] at hp, exfalso, exact not_mem_empty p hp },
-    { rwa [mem_factors (pos_iff_ne_zero.mpr hn), ←and_comm, ←mem_prime_divisors hn] }
+  { convert dvd_zero p },
+  { rwa ←mem_factors_iff_dvd (pos_iff_ne_zero.mpr hn) (prime_of_mem_factors h) }
 end
 
-/-- The sets of prime divisors of coprime `a` and `b` are disjoint -/
-lemma coprime_prime_divisors_disjoint {a b : ℕ} (hab : coprime a b) :
-  disjoint a.prime_divisors b.prime_divisors :=
+lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
+n.factors.to_finset = (divisors n).filter prime
+  :=
 begin
-  rw disjoint_iff_ne,
-  rintros x ha - hb rfl,
-  apply not_prime_one,
-  rw ←eq_one_of_dvd_coprimes hab (dvd_of_mem_prime_divisors ha) (dvd_of_mem_prime_divisors hb),
-  exact prime_of_mem_prime_divisors ha,
-end
-
-/-- If `a`,`b` are nonzero the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
-lemma prime_divisors_mul_of_ne_zero {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
-  (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
-begin
-  have hab : a * b ≠ 0 := mul_ne_zero ha hb,
-  ext p,
-  rw [mem_union, mem_prime_divisors hab, mem_prime_divisors ha, mem_prime_divisors hb,
-      ←or_and_distrib_right, and.congr_left_iff],
-  exact prime.dvd_mul,
-end
-
-/-- For coprime `a` and `b`, prime divisors of `(a * b)` are the union of those of `a` and `b` -/
-lemma prime_divisors_mul_of_coprime {a b : ℕ} (h_ab_coprime : coprime a b) :
-  (a * b).prime_divisors = a.prime_divisors ∪ b.prime_divisors :=
-begin
-  by_cases ha : a = 0,
-    { rw [ha, coprime_zero_left] at h_ab_coprime,
-      rw [ha, h_ab_coprime, zero_mul, prime_divisors_zero, prime_divisors_one, empty_union] },
-  by_cases hb : b = 0,
-    { rw [hb, coprime_zero_right] at h_ab_coprime,
-      rw [hb, h_ab_coprime, mul_zero, prime_divisors_zero, prime_divisors_one, empty_union] },
-  have hab : a * b ≠ 0, { exact mul_ne_zero ha hb },
-  apply prime_divisors_mul_of_ne_zero ha hb,
+    by_cases hn : n = 0,
+    { rw [hn, factors_zero, divisors_zero], simp },
+    { ext q,
+      rw [list.mem_to_finset, mem_filter, mem_divisors, mem_factors (pos_iff_ne_zero.mpr hn)],
+      rw [and_comm, and.congr_left_iff],
+      intros hq, simp only [iff_self_and, ne.def], exact imp_intro hn }
 end
 
 /-- The only prime divisor of positive prime power `p^k` is `p` itself -/
-lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp: prime p) : prime_divisors (p^k) = {p} :=
+lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp: prime p) :
+  (p^k).factors.to_finset = {p}
+  :=
 begin
-  have h1 : (p^k) ≠ 0 := pow_ne_zero k hp.ne_zero,
   ext q,
-  rw [mem_prime_divisors h1, mem_singleton],
+  rw list.mem_to_finset,
+  rw [mem_factors (pos_iff_ne_zero.mpr (pow_ne_zero k (prime.ne_zero hp))), mem_singleton],
   split,
-  { rintros ⟨hq1, hq2⟩,
-    rw ←(prime_dvd_prime_iff_eq hq2 hp),
-    exact prime.dvd_of_dvd_pow hq2 hq1 },
-  { rintros rfl, exact ⟨dvd_pow_self q hk, hp⟩ },
+  { rintros ⟨hq1, hq2⟩, exact (prime_dvd_prime_iff_eq hq1 hp).mp (prime.dvd_of_dvd_pow hq1 hq2) },
+  { intros h, rw h, use [hp, dvd_pow_self p hk] },
 end
 
-/-- The only prime divisor of prime `p` is `p` itself -/
-lemma prime_prime_divisor {p : ℕ} (hp : prime p) : prime_divisors p = {p} :=
-by { rw [←pow_one p, prime_pow_prime_divisor one_ne_zero hp, pow_one] }
+lemma factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) (p : ℕ) :
+  p ∈ (a * b).factors ↔ p ∈ a.factors ∨ p ∈ b.factors
+  :=
+begin
+  rw [mem_factors (mul_pos ha hb), mem_factors ha, mem_factors hb, ←and_or_distrib_left],
+  simp only [and.congr_right_iff], exact prime.dvd_mul,
+end
+
+/-- If `a`,`b` are positive the prime divisors of `(a * b)` are the union of those of `a` and `b` -/
+lemma prime_divisors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset
+  :=
+begin
+  ext p, rw mem_union, repeat {rw list.mem_to_finset}, exact factors_mul_of_pos ha hb p,
+end
+
+/-- The sets of factors of coprime `a` and `b` are disjoint -/
+lemma coprime_factors_disjoint {a b : ℕ} (hab: a.coprime b) : list.disjoint a.factors b.factors
+  :=
+begin
+  intros q hqa hqb,
+  apply not_prime_one,
+  rw ←(eq_one_of_dvd_coprimes hab (dvd_of_mem_factors hqa) (dvd_of_mem_factors hqb)),
+  exact prime_of_mem_factors hqa,
+end
+
+lemma factors_mul_of_coprime {a b : ℕ} (hab : coprime a b) (p:ℕ):
+  p ∈ (a * b).factors ↔ p ∈ a.factors ∪ b.factors
+  :=
+begin
+  by_cases ha : a = 0, { rw ha at *, simp at hab, rw hab, simp },
+  by_cases hb : b = 0, { rw hb at *, simp at hab, rw hab, simp },
+  rw factors_mul_of_pos (pos_iff_ne_zero.mpr ha) (pos_iff_ne_zero.mpr hb) p,
+  rw list.mem_union,
+end
 
 end nat

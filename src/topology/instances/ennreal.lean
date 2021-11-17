@@ -272,8 +272,8 @@ begin
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
-  cases b, {
-    simp [none_eq_top] at ha,
+  cases b,
+  { simp [none_eq_top] at ha,
     simp [*, nhds_swap (a : ℝ≥0∞) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
       mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],

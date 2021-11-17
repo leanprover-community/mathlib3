@@ -85,13 +85,13 @@ include G
 
 @[to_additive] lemma measure_is_open_pos_of_smul_invariant_of_compact_ne_zero (hK : is_compact K)
   (hμK : μ K ≠ 0) (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
-let ⟨t, ht⟩ := mul_action.exists_finite_cover_smul G hK hU hne
+let ⟨t, ht⟩ := hK.exists_finite_cover_smul G hU hne
 in pos_iff_ne_zero.2 $ λ hμU, hμK $ measure_mono_null ht $
   (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul_set
 
 @[to_additive] lemma is_locally_finite_measure_of_smul_invariant (hU : is_open U) (hne : U.nonempty)
   (hμU : μ U ≠ ∞) : is_locally_finite_measure μ :=
-⟨λ x, let ⟨g, hg⟩ := mul_action.exists_smul_mem_open G x hU hne in
+⟨λ x, let ⟨g, hg⟩ := hU.exists_smul_mem G x hne in
   ⟨(•) g ⁻¹' U, (hU.preimage (continuous_id.const_smul _)).mem_nhds hg, ne.lt_top $
     by rwa [measure_preimage_smul]⟩⟩
 

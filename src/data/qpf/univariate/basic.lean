@@ -478,8 +478,8 @@ def comp : qpf (functor.comp F₂ F₁) :=
     end,
   abs_repr := λ α,
     begin
-      abstract {
-      dsimp [functor.comp],
+      abstract
+    { dsimp [functor.comp],
       intro x,
       conv { to_rhs, rw ←abs_repr x},
       cases h : repr x with a f,
@@ -490,8 +490,8 @@ def comp : qpf (functor.comp F₂ F₁) :=
     end,
   abs_map := λ α β f,
     begin
-      abstract {
-      dsimp [functor.comp, pfunctor.comp],
+      abstract
+    { dsimp [functor.comp, pfunctor.comp],
       intro p,
       cases p with a g, dsimp,
       cases a with b h, dsimp,
@@ -508,8 +508,7 @@ def comp : qpf (functor.comp F₂ F₁) :=
       ext x,
       rw ←abs_map,
       reflexivity }
-    end
-}
+    end }
 
 end qpf
 

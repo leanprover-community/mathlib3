@@ -371,8 +371,8 @@ variables {M : Type*}
 /-- Constructs a `group` structure on a `monoid` consisting only of units. -/
 noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) : group M :=
 { inv := λ a, ↑((h a).unit)⁻¹,
-  mul_left_inv := λ a, by {
-    change ↑((h a).unit)⁻¹ * a = 1,
+  mul_left_inv := λ a, by
+  { change ↑((h a).unit)⁻¹ * a = 1,
     rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
 .. hM }
 
@@ -380,8 +380,8 @@ noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) 
 noncomputable def comm_group_of_is_unit [hM : comm_monoid M] (h : ∀ (a : M), is_unit a) :
   comm_group M :=
 { inv := λ a, ↑((h a).unit)⁻¹,
-  mul_left_inv := λ a, by {
-    change ↑((h a).unit)⁻¹ * a = 1,
+  mul_left_inv := λ a, by
+  { change ↑((h a).unit)⁻¹ * a = 1,
     rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
 .. hM }
 

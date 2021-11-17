@@ -29,8 +29,8 @@ finsupp.basis_single_one.map
 
 @[simp]
 lemma basis.tensor_product_apply (b : basis ι R M) (c : basis κ R N) (i : ι) (j : κ) :
-  (basis.tensor_product b c) (i, j) = b i ⊗ₜ c j :=
-by { dunfold basis.tensor_product, simp }
+  basis.tensor_product b c (i, j) = b i ⊗ₜ c j :=
+by simp [basis.tensor_product]
 
 lemma basis.tensor_product_apply' (b : basis ι R M) (c : basis κ R N) (i : ι × κ) :
   (basis.tensor_product b c) i = b i.1 ⊗ₜ c i.2 :=

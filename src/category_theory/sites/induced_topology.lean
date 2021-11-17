@@ -111,7 +111,7 @@ lemma cover_dense.locally_cover_dense [full G] (H : cover_dense K G) : locally_c
 begin
   intros X T,
   refine K.superset_covering _ (K.bind_covering T.property (λ Y f Hf, H.is_cover Y)),
-  rintros Y _ ⟨Z, _, f, hf, ⟨W, g, f', rfl⟩, rfl⟩,
+  rintros Y _ ⟨Z, _, f, hf, ⟨W, g, f', (rfl : _ = _)⟩, rfl⟩,
   use W, use G.preimage (f' ≫ f), use g,
   split,
   simpa using T.val.downward_closed hf f',
@@ -155,7 +155,7 @@ is complete.
 noncomputable
 def cover_dense.Sheaf_equiv [full G] [faithful G] (H : cover_dense K G) [has_limits A] :
   Sheaf H.induced_topology A ≌ Sheaf K A :=
-H.Sheaf_iso_of_cover_preserving_cover_lifting
+H.Sheaf_equiv_of_cover_preserving_cover_lifting
   H.locally_cover_dense.induced_topology_cover_preserving
   H.locally_cover_dense.induced_topology_cover_lifting
 

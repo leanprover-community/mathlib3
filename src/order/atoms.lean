@@ -457,9 +457,9 @@ end bool
 
 theorem is_simple_lattice_iff_is_atom_top [lattice α] [bounded_order α] :
   is_simple_lattice α ↔ is_atom (⊤ : α) :=
-⟨λ h, @is_atom_top _ _ _ h, λ h, {
-  exists_pair_ne := ⟨⊤, ⊥, h.1⟩,
-  eq_bot_or_eq_top := λ a, ((eq_or_lt_of_le le_top).imp_right (h.2 a)).symm }⟩
+⟨λ h, @is_atom_top _ _ _ h, λ h,
+  { exists_pair_ne := ⟨⊤, ⊥, h.1⟩,
+    eq_bot_or_eq_top := λ a, ((eq_or_lt_of_le le_top).imp_right (h.2 a)).symm }⟩
 
 theorem is_simple_lattice_iff_is_coatom_bot [lattice α] [bounded_order α] :
   is_simple_lattice α ↔ is_coatom (⊥ : α) :=

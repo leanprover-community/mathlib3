@@ -138,8 +138,8 @@ end
 protected lemma lt_def {p q : ℚ} : p < q ↔ p.num * q.denom < q.num * p.denom :=
 begin
   rw [lt_iff_le_and_ne, rat.le_def'],
-  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by {
-    split; intro h,
+  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by
+  { split; intro h,
     { exact lt_iff_le_and_ne.elim_right ⟨h.left, (this.elim_left h.right)⟩ },
     { have tmp := lt_iff_le_and_ne.elim_left h, exact ⟨tmp.left, this.elim_right tmp.right⟩ }},
   exact (not_iff_not.elim_right eq_iff_mul_eq_mul)

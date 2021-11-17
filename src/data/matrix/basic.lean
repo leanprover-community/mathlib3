@@ -26,7 +26,6 @@ These have not yet been implemented.
 universes u u' v w
 
 open_locale big_operators
-open dmatrix
 
 /-- `matrix m n` is the type of matrices whose rows are indexed by `m`
 and whose columns are indexed by `n`. -/

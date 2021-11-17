@@ -1674,12 +1674,12 @@ def lift_of_right_inverse
   (hf : function.right_inverse f_inv f) : {g : A →+* C // f.ker ≤ g.ker} ≃ (B →+* C) :=
 { to_fun := λ g, f.lift_of_right_inverse_aux f_inv hf g.1 g.2,
   inv_fun := λ φ, ⟨φ.comp f, λ x hx, (mem_ker _).mpr $ by simp [(mem_ker _).mp hx]⟩,
-  left_inv := λ g, by {
-    ext,
+  left_inv := λ g, by
+  { ext,
     simp only [comp_apply, lift_of_right_inverse_aux_comp_apply, subtype.coe_mk,
       subtype.val_eq_coe], },
-  right_inv := λ φ, by {
-    ext b,
+  right_inv := λ φ, by
+  { ext b,
     simp [lift_of_right_inverse_aux, hf b], } }
 
 /-- A non-computable version of `ring_hom.lift_of_right_inverse` for when no computable right

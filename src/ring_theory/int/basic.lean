@@ -160,8 +160,8 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_left   := assume a b, int.gcd_dvd_left _ _,
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
-  gcd_mul_lcm    := λ a b, by {
-    rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  gcd_mul_lcm    := λ a b, by
+  { rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
     exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
   lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}

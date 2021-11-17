@@ -16,7 +16,8 @@ the algebra isomorphism between `A` and `⨁ i, 𝒜 i` if `A` is graded by `�
 
 open_locale direct_sum big_operators
 
-section graded_ring
+section graded_algebra
+
 variables {ι R A : Type*}
 variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [ring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
@@ -35,7 +36,7 @@ class graded_algebra extends set_like.graded_monoid 𝒜 :=
 (left_inv : function.left_inverse decompose (direct_sum.submodule_coe 𝒜))
 (right_inv : function.right_inverse decompose (direct_sum.submodule_coe 𝒜))
 
-lemma graded_ring.is_internal [graded_algebra R A 𝒜] :
+lemma graded_ring.is_internal [graded_algebra 𝒜] :
   direct_sum.submodule_is_internal 𝒜 :=
 ⟨graded_algebra.left_inv.injective, graded_algebra.right_inv.surjective⟩
 
@@ -52,10 +53,10 @@ def graded_algebra.recompose : (⨁ i, 𝒜 i) ≃ₐ[R] A :=
   commutes' := alg_hom.commutes _ }
 
 @[simp] lemma graded_algebra.decompose_def :
-  graded_algebra.decompose = (graded_algebra.recompose R A 𝒜).symm := rfl
+  graded_algebra.decompose = (graded_algebra.recompose 𝒜).symm := rfl
 
 @[simp] lemma graded_algebra.recompose_of {i : ι} (x : 𝒜 i) :
-  graded_algebra.recompose R A 𝒜 (direct_sum.of _ i x) = x :=
+  graded_algebra.recompose 𝒜 (direct_sum.of _ i x) = x :=
 direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
-end graded_ring
+end graded_algebra

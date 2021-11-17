@@ -308,8 +308,8 @@ lemma head_induction_on
 begin
   induction h generalizing P,
   case single : a h { exact base h },
-  case tail : b c hab hbc h_ih {
-    apply h_ih,
+  case tail : b c hab hbc h_ih
+  { apply h_ih,
     show ∀ a, r a b → P a _, from λ a h, ih h (single hbc) (base hbc),
     show ∀ a a', r a a' → trans_gen r a' b → P a' _ → P a _, from λ a a' hab hbc, ih hab _ }
 end

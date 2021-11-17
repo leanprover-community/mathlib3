@@ -45,7 +45,7 @@ Linear algebra:
     change of basis: 'basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix'
     rank of a matrix: ''
     determinant: 'matrix.det'
-    invertibility: 'matrix.nonsing_inv'
+    invertibility: 'matrix.has_inv'
     elementary row operations: ''
     elementary column operations: ''
     Gaussian elimination: ''
@@ -186,7 +186,7 @@ Ring Theory:
     rupture fields: 'adjoin_root'
     splitting fields: 'polynomial.splitting_field'
     finite fields: 'field_theory/finite.html'
-    rational fraction fields with one indeterminate over a field:
+    rational fraction fields with one indeterminate over a field: 'ratfunc'
     $\R(X)$-partial fraction decomposition:
     $\C(X)$-partial fraction decomposition:
 
@@ -194,8 +194,8 @@ Ring Theory:
 Bilinear and Quadratic Forms Over a Vector Space:
   Bilinear forms:
     bilinear forms: 'bilin_form'
-    alternating bilinear forms: 'alt_bilin_form.is_alt'
-    symmetric bilinear forms: 'sym_bilin_form.is_sym'
+    alternating bilinear forms: 'bilin_form.is_alt'
+    symmetric bilinear forms: 'bilin_form.is_symm'
     nondegenerate forms: 'bilin_form.nondegenerate'
     matrix representation: 'bilin_form.to_matrix'
     change of coordinates: 'bilin_form.to_matrix_comp'
@@ -223,9 +223,9 @@ Bilinear and Quadratic Forms Over a Vector Space:
     unitary group:
     special orthogonal group:
     special unitary group:
-    self-adjoint endomorphism: 'bilin_form.is_self_adjoint'
+    self-adjoint endomorphism: 'is_self_adjoint'
     normal endomorphism:
-    diagonalization of a self-adjoint endomorphism:
+    diagonalization of a self-adjoint endomorphism: 'is_self_adjoint.diagonalization_basis_apply_self_apply'
     diagonalization of normal endomorphisms:
     simultaneous diagonalization of two real quadratic forms, with one positive-definite:
     decomposition of an orthogonal transformation as a product of reflections:
@@ -307,7 +307,7 @@ Single Variable Real Analysis:
     continuity: 'continuous'
     limits: 'filter.tendsto'
     intermediate value theorem: 'intermediate_value_Icc'
-    image of a segment: 'real.image_Icc'
+    image of a segment: 'continuous_on.image_Icc'
     continuity of monotone functions: 'order_iso.continuous'
     continuity of inverse functions: 'order_iso.to_homeomorph'
   Differentiability:
@@ -328,7 +328,7 @@ Single Variable Real Analysis:
     Taylor series expansions:
   Elementary functions (trigonometric, rational, $\exp$, $\log$, etc):
     polynomial functions: 'polynomial.eval'
-    rational functions:
+    rational functions: 'ratfunc.eval'
     logarithms: 'real.log'
     exponential: 'real.exp'
     power functions: 'real.rpow'
@@ -402,7 +402,7 @@ Topology:
     continuous functions: 'continuous'
     homeomorphisms: 'homeomorph'
     compactness in terms of open covers (Borel-Lebesgue): 'is_compact_iff_finite_subcover'
-    sequential compactness is equivalent to compactness (Bolzano-Weierstrass): 'metric.compact_iff_seq_compact'
+    sequential compactness is equivalent to compactness (Bolzano-Weierstrass): 'uniform_space.compact_iff_seq_compact'
     connectedness: 'connected_space'
     connected components: 'connected_component'
     path connectedness: 'is_path_connected'
@@ -465,7 +465,7 @@ Multivariable calculus:
     inverse function theorem: 'has_strict_deriv_at.to_local_inverse'
     implicit function theorem: 'implicit_function_data.implicit_function'
   Differential equations:
-    Cauchy-Lipschitz Theorem:
+    Cauchy-Lipschitz Theorem: 'exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous'
     maximal solutions:
     Grönwall lemma: 'norm_le_gronwall_bound_of_norm_deriv_right_le'
     exit theorem of a compact subspace:

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.sites.sheaf
-import category_theory.sites.cover_lifting
-import category_theory.adjunction.fully_faithful
 
 /-!
 # Dense subsites
@@ -15,31 +13,29 @@ that factors through images of the functor for each object in `D`.
 
 We will primarily consider cover-dense functors that are also full, since this notion is in general
 not well-behaved otherwise. Note that https://ncatlab.org/nlab/show/dense+sub-site indeed has a
-weaker notion of cover-dense that loosen this requirement, but it would not have all the properties
+weaker notion of cover-dense that loosens this requirement, but it would not have all the properties
 we would need, and some sheafification would be needed for here and there.
 
 ## Main results
 
-* `category_theory.cover_dense.sheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
+- `category_theory.cover_dense.presheaf_hom`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any presheaf `ℱ` and sheaf `ℱ'` on `D`, and a morphism `α : G ⋙ ℱ ⟶ G ⋙ ℱ'`,
-  we may glue them together to obtain a morphism of sheaves `ℱ ⟶ ℱ'`.
-* `category_theory.cover_dense.sheaf_iso`: If the `α` above is iso, then the result is also iso.
-* `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
+  we may glue them together to obtain a morphism of presheaves `ℱ ⟶ ℱ'`.
+- `category_theory.cover_dense.sheaf_iso`: If `ℱ` above is a sheaf and `α` is an iso,
+  then the result is also an iso.
+- `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, then `α` is an iso if
   `G ⋙ ℱ ⟶ G ⋙ ℱ'` is iso.
-- `category_theory.ccover_dense.Sheaf_equiv_of_cover_preserving_cover_lifting`:
-  If `G : (C, J) ⥤ (D, K)` is fully-faithful, cover-lifting, cover-preserving, and cover-dense,
-  then it will induce an equivalence of categories of sheaves.
 
 ## References
 
-* [Elephant]: *Sketches of an Elephant*, P. T. Johnstone: C2.2.
+* [Elephant]: *Sketches of an Elephant*, ℱ. T. Johnstone: C2.2.
 * https://ncatlab.org/nlab/show/dense+sub-site
 * https://ncatlab.org/nlab/show/comparison+lemma
 
 -/
 
-universes v u
+universes v
 
 namespace category_theory
 
@@ -52,22 +48,30 @@ An auxiliary structure that witnesses the fact that `f` factors through an image
 -/
 @[nolint has_inhabited_instance]
 structure presieve.cover_by_image_structure (G : C ⥤ D) {V U : D} (f : V ⟶ U) :=
-(obj : C) (lift : V ⟶ G.obj obj) (map : G.obj obj ⟶ U) (fac : lift ≫ map = f)
+(obj : C)
+(lift : V ⟶ G.obj obj)
+(map : G.obj obj ⟶ U)
+(fac' : lift ≫ map = f . obviously)
+
+restate_axiom presieve.cover_by_image_structure.fac'
 
 attribute [simp, reassoc] presieve.cover_by_image_structure.fac
 
 /--
-Given a functor `G`, the presieve of `U : D` such that each arrows factors through images of `G`.
+For a functor `G : C ⥤ D`, and an object `U : D`, `presieve.cover_by_image G U` is the presieve
+of `U` consisting of those arrows that factor through images of `G`.
 -/
 def presieve.cover_by_image (G : C ⥤ D) (U : D) : presieve U :=
 λ Y f, nonempty (presieve.cover_by_image_structure G f)
 
 /--
-Given a functor `G`, the sieve of `U : D` such that each arrow factors through images of `G`.
+For a functor `G : C ⥤ D`, and an object `U : D`, `sieve.cover_by_image G U` is the sieve of `U`
+consisting of those arrows that factor through images of `G`.
 -/
 def sieve.cover_by_image (G : C ⥤ D) (U : D) : sieve U :=
 ⟨presieve.cover_by_image G U,
-  λ X Y f ⟨⟨Z, f₁, f₂, eq⟩⟩ g, ⟨⟨Z, g ≫ f₁, f₂, by rw [category.assoc, ← eq] ⟩⟩⟩
+  λ X Y f ⟨⟨Z, f₁, f₂, (e : _ = _)⟩⟩ g,
+    ⟨⟨Z, g ≫ f₁, f₂, show (g ≫ f₁) ≫ f₂ = g ≫ f, by rw [category.assoc, ← e]⟩⟩⟩
 
 lemma presieve.in_cover_by_image (G : C ⥤ D) {X : D} {Y : C} (f : G.obj Y ⟶ X) :
   presieve.cover_by_image G X f := ⟨⟨Y, 𝟙 _, f, by simp⟩⟩
@@ -82,16 +86,32 @@ structure cover_dense (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (is_cover : ∀ (U : D), sieve.cover_by_image G U ∈ K U)
 
 open presieve opposite
-namespace cover_dense
-variables {A : Type*} [category A] {K} {G : C ⥤ D} (H : cover_dense K G)
 
+namespace cover_dense
+
+variable {K}
+
+variables {A : Type*} [category A] {G : C ⥤ D} (H : cover_dense K G)
+
+-- this is not marked with `@[ext]` because `H` can not be inferred from the type
 lemma ext (H : cover_dense K G) (ℱ : SheafOfTypes K) (X : D) {s t : ℱ.val.obj (op X)}
   (h : ∀ ⦃Y : C⦄ (f : G.obj Y ⟶ X), ℱ.val.map f.op s = ℱ.val.map f.op t) :
   s = t :=
 begin
   apply (ℱ.property (sieve.cover_by_image G X) (H.is_cover X)).is_separated_for.ext,
-  rintros Y _ ⟨Z, f₁, f₂, rfl⟩,
-  simp[h f₂]
+  rintros Y _ ⟨Z, f₁, f₂, ⟨rfl⟩⟩,
+  simp [h f₂]
+end
+
+lemma functor_pullback_pushforward_covering [full G] (H : cover_dense K G) {X : C}
+  (T : K (G.obj X)) : (T.val.functor_pullback G).functor_pushforward G ∈ K (G.obj X) :=
+begin
+  refine K.superset_covering _ (K.bind_covering T.property (λ Y f Hf, H.is_cover Y)),
+  rintros Y _ ⟨Z, _, f, hf, ⟨W, g, f', ⟨rfl⟩⟩, rfl⟩,
+  use W, use G.preimage (f' ≫ f), use g,
+  split,
+  { simpa using T.val.downward_closed hf f' },
+  { simp },
 end
 
 /--
@@ -114,7 +134,7 @@ iso_whisker_right α (coyoneda.obj (op X))
 lemma sheaf_eq_amalgamation (ℱ : Sheaf K A) {X : A} {U : D} {T : sieve U} (hT)
   (x : family_of_elements _ T) (hx) (t) (h : x.is_amalgamation t) :
   t = (ℱ.property X T hT).amalgamate x hx :=
-    (ℱ.property X T hT).is_separated_for x t _ h ((ℱ.property X T hT).is_amalgamation hx)
+(ℱ.property X T hT).is_separated_for x t _ h ((ℱ.property X T hT).is_amalgamation hx)
 
 
 include H
@@ -148,7 +168,7 @@ begin
   simp only [quiver.hom.unop_op, functor.comp_map, ← op_comp, ← category.assoc,
     functor.op_map, ← ℱ.map_comp, G.image_preimage],
   congr' 3,
-  simp[e]
+  simp [e]
 end
 
 /-- (Implementation). The morphism `ℱ(X) ⟶ ℱ'(X)` given by gluing the `pushforward_family`. -/
@@ -190,20 +210,8 @@ def app_iso {ℱ ℱ' : SheafOfTypes.{v} K} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ �
   ℱ.val.obj (op X) ≅ ℱ'.val.obj (op X) :=
 { hom := app_hom H i.hom X,
   inv := app_hom H i.inv X,
-  hom_inv_id' :=
-  begin
-    ext x,
-    apply H.ext,
-    intros Y f,
-    simp
-  end,
-  inv_hom_id' :=
-  begin
-    ext x,
-    apply H.ext,
-    intros Y f,
-    simp
-  end }
+  hom_inv_id' := by { ext x, apply H.ext, intros Y f, simp },
+  inv_hom_id' := by { ext x, apply H.ext, intros Y f, simp } }
 
 /--
 Given an natural transformation `G ⋙ ℱ ⟶ G ⋙ ℱ'` between presheaves of types, where `G` is full
@@ -225,7 +233,8 @@ Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of ty
 cover-dense, and `ℱ, ℱ'` are sheaves, we may obtain a natural isomorphism between presheaves.
 -/
 @[simps] noncomputable
-def presheaf_iso {ℱ ℱ' : SheafOfTypes.{v} K} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) : ℱ.val ≅ ℱ'.val :=
+def presheaf_iso {ℱ ℱ' : SheafOfTypes.{v} K} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
+  ℱ.val ≅ ℱ'.val :=
 nat_iso.of_components (λ X, app_iso H i (unop X)) (presheaf_hom H i.hom).naturality
 
 /--
@@ -250,27 +259,28 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   coyoneda ⋙ (whiskering_left Dᵒᵖ A Type*).obj ℱ'.val :=
 { app := λ X, presheaf_hom H (hom_over α (unop X)), naturality' := λ X Y f,
   begin
-  ext U x,
-  change app_hom H (hom_over α (unop Y)) (unop U) (f.unop ≫ x) =
-    f.unop ≫ app_hom H (hom_over α (unop X)) (unop U) x,
-  symmetry,
-  apply sheaf_eq_amalgamation,
-  apply H.is_cover,
-  intros Y' f' hf',
-  change unop X ⟶ ℱ.obj (op (unop _)) at x,
-  simp only [pushforward_family, functor.comp_map, coyoneda_obj_map, hom_over_app, category.assoc],
-  congr' 1,
-  conv_lhs { rw ← hf'.some.fac },
-  simp only [← category.assoc, op_comp, functor.map_comp],
-  congr' 1,
-  refine (app_hom_restrict H (hom_over α (unop X)) hf'.some.map.op x).trans _,
-  simp
+    ext U x,
+    change app_hom H (hom_over α (unop Y)) (unop U) (f.unop ≫ x) =
+      f.unop ≫ app_hom H (hom_over α (unop X)) (unop U) x,
+    symmetry,
+    apply sheaf_eq_amalgamation,
+    apply H.is_cover,
+    intros Y' f' hf',
+    change unop X ⟶ ℱ.obj (op (unop _)) at x,
+    simp only [pushforward_family, functor.comp_map,
+      coyoneda_obj_map, hom_over_app, category.assoc],
+    congr' 1,
+    conv_lhs { rw ← hf'.some.fac },
+    simp only [← category.assoc, op_comp, functor.map_comp],
+    congr' 1,
+    refine (app_hom_restrict H (hom_over α (unop X)) hf'.some.map.op x).trans _,
+    simp
   end }
 
 /--
 (Implementation). `sheaf_coyoneda_hom` but the order of the arguments of the functor are swapped.
 -/
-@[simps] noncomputable
+noncomputable
 def sheaf_yoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   ℱ ⋙ yoneda ⟶ ℱ'.val ⋙ yoneda :=
 begin
@@ -289,14 +299,12 @@ Given an natural transformation `G ⋙ ℱ ⟶ G ⋙ ℱ'` between presheaves of
 where `G` is full and cover-dense, and `ℱ'` is a sheaf, we may obtain a natural transformation
 between presheaves.
 -/
-@[simps] noncomputable
+noncomputable
 def sheaf_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   ℱ ⟶ ℱ'.val :=
-begin
-  have α' := sheaf_yoneda_hom H α,
-  exact { app := λ X, yoneda.preimage (α'.app X),
-          naturality' := λ X Y f, yoneda.map_injective (by simpa using α'.naturality f) }
-end
+let α' := sheaf_yoneda_hom H α in
+  { app := λ X, yoneda.preimage (α'.app X),
+    naturality' := λ X Y f, yoneda.map_injective (by simpa using α'.naturality f) }
 
 /--
 Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of arbitrary category,
@@ -313,12 +321,12 @@ begin
     use (sheaf_yoneda_hom H i.inv).app X,
     split;
       ext x : 2;
-      simp only [sheaf_hom_app, nat_trans.comp_app, nat_trans.id_app, functor.image_preimage],
+      simp only [sheaf_hom, nat_trans.comp_app, nat_trans.id_app, functor.image_preimage],
       exact ((presheaf_iso H (iso_over i (unop x))).app X).hom_inv_id,
       exact ((presheaf_iso H (iso_over i (unop x))).app X).inv_hom_id,
     apply_instance },
   haveI : is_iso (sheaf_hom H i.hom) := by apply nat_iso.is_iso_of_is_iso_app,
-apply as_iso (sheaf_hom H i.hom),
+  apply as_iso (sheaf_hom H i.hom),
 end
 
 /--
@@ -328,8 +336,10 @@ we may obtain a natural isomorphism between presheaves.
 -/
 @[simps] noncomputable
 def sheaf_iso {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) : ℱ ≅ ℱ' :=
-{ hom := (presheaf_iso H i).hom, inv := (presheaf_iso H i).inv,
-  hom_inv_id' := (presheaf_iso H i).hom_inv_id, inv_hom_id' := (presheaf_iso H i).inv_hom_id }
+{ hom := (presheaf_iso H i).hom,
+  inv := (presheaf_iso H i).inv,
+  hom_inv_id' := (presheaf_iso H i).hom_inv_id,
+  inv_hom_id' := (presheaf_iso H i).inv_hom_id }
 
 /--
 The constructed `sheaf_hom α` is equal to `α` when restricted onto `C`.
@@ -465,4 +475,6 @@ begin
     functor_unit_iso_comp' := λ ℱ, by convert α.left_triangle_components }
 end
 
-end category_theory.cover_dense
+end cover_dense
+
+end category_theory

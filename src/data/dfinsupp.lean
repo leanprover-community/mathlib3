@@ -57,8 +57,8 @@ namespace dfinsupp
 section basic
 variables [Π i, has_zero (β i)] [Π i, has_zero (β₁ i)] [Π i, has_zero (β₂ i)]
 
-instance : has_coe_to_fun (Π₀ i, β i) :=
-⟨λ _, Π i, β i, λ f, quotient.lift_on f pre.to_fun $ λ _ _, funext⟩
+instance : has_coe_to_fun (Π₀ i, β i) (λ _, Π i, β i) :=
+⟨λ f, quotient.lift_on f pre.to_fun $ λ _ _, funext⟩
 
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
@@ -217,12 +217,12 @@ instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
   .. dfinsupp.has_neg }
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ gsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  gsmul_neg' := λ n f, ext $ λ i, by
-    rw [neg_apply, map_range_apply, map_range_apply, gsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
+{ zsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  zsmul_neg' := λ n f, ext $ λ i, by
+    rw [neg_apply, map_range_apply, map_range_apply, zsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
       int.nat_cast_eq_coe_nat],
-  gsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  gsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
+  zsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  zsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
   ..@dfinsupp.add_comm_monoid _ β _,
   ..dfinsupp.add_group }
 
@@ -1047,14 +1047,8 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i =
 
 section prod_and_sum
 
--- [to_additive sum] for dfinsupp.prod doesn't work, the equation lemmas are not generated
-/-- `sum f g` is the sum of `g i (f i)` over the support of `f`. -/
-def sum [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [add_comm_monoid γ]
-  (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
-∑ i in f.support, g i (f i)
-
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/
-@[to_additive]
+@[to_additive "`sum f g` is the sum of `g i (f i)` over the support of `f`."]
 def prod [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
 ∏ i in f.support, g i (f i)
@@ -1168,6 +1162,19 @@ lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i
   [comm_monoid γ] (S : submonoid γ)
   (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
 S.prod_mem $ λ i hi, h _ $ (f.mem_support_iff _).mp hi
+
+@[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) {f : Π i, β i → γ}
+  (hf : ∀ i, f i 0 = 1) :
+  v.prod f = ∏ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
+begin
+  suffices : ∏ i in v.support, f i (v i) = ∏ i, f i (v i),
+  { simp [dfinsupp.prod, this] },
+  apply finset.prod_subset v.support.subset_univ,
+  intros i hi' hi,
+  rw [mem_support_iff, not_not] at hi,
+  rw [hi, hf],
+end
 
 /--
 When summing over an `add_monoid_hom`, the decidability assumption is not needed, and the result is

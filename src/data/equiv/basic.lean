@@ -86,8 +86,7 @@ namespace equiv
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
 
-instance : has_coe_to_fun (α ≃ β) :=
-⟨_, to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨to_fun⟩
 
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
@@ -99,7 +98,7 @@ theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
-@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : (e₁ : α → β) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
 @[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
@@ -274,9 +273,9 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem refl_trans (e : α ≃ β) : (equiv.refl α).trans e = e := by { cases e, refl }
 
-@[simp] theorem symm_trans (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
+@[simp] theorem symm_trans_self (e : α ≃ β) : e.symm.trans e = equiv.refl β := ext (by simp)
 
-@[simp] theorem trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
+@[simp] theorem self_trans_symm (e : α ≃ β) : e.trans e.symm = equiv.refl α := ext (by simp)
 
 lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
   (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=
@@ -520,9 +519,9 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
-@[simps] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := λ f, f (default α),
-  inv_fun := λ b a, b,
+@[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
+{ to_fun := eval (default α),
+  inv_fun := const α,
   left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
   right_inv := λ b, rfl }
 
@@ -1641,7 +1640,7 @@ theorem swap_comp_apply {a b x : α} (π : perm α) :
 by { cases π, refl }
 
 lemma swap_eq_update (i j : α) :
-  ⇑(equiv.swap i j) = update (update id j i) i j :=
+  (equiv.swap i j : α → α) = update (update id j i) i j :=
 funext $ λ x, by rw [update_apply _ i j, update_apply _ j i, equiv.swap_apply_def, id.def]
 
 lemma comp_swap_eq_update (i j : α) (f : α → β) :

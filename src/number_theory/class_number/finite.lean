@@ -7,8 +7,6 @@ Authors: Anne Baanen
 import linear_algebra.free_module.pid
 import linear_algebra.matrix.absolute_value
 import number_theory.class_number.admissible_absolute_value
-import number_theory.function_field
-import number_theory.number_field
 import ring_theory.class_group
 import ring_theory.norm
 
@@ -33,7 +31,8 @@ open_locale big_operators
 
 section euclidean_domain
 
-variables (R S K L : Type*) [euclidean_domain R] [integral_domain S] [field K] [field L]
+variables (R S K L : Type*) [euclidean_domain R] [comm_ring S] [is_domain S]
+variables [field K] [field L]
 variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L] [is_separable K L]
 variables [algRL : algebra R L] [is_scalar_tower R K L]

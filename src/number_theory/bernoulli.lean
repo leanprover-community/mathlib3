@@ -74,7 +74,7 @@ by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli'_spec (n : ℕ) :
   ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [sum_range_succ_comm, bernoulli'_def n, nat.sub_self],
+  rw [sum_range_succ_comm, bernoulli'_def n, tsub_self],
   conv in (n.choose (_ - _)) { rw choose_symm (mem_range.1 H).le },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
@@ -84,7 +84,7 @@ lemma bernoulli'_spec' (n : ℕ) :
 begin
   refine ((sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
   refine sum_congr rfl (λ x hx, _),
-  simp only [add_sub_cancel_of_le, mem_range_succ_iff.mp hx, cast_sub],
+  simp only [add_tsub_cancel_of_le, mem_range_succ_iff.mp hx, cast_sub],
 end
 
 /-! ### Examples -/
@@ -121,7 +121,7 @@ begin
   congr',
   have : ((n - k : ℕ) : ℚ) + 1 ≠ 0 := by apply_mod_cast succ_ne_zero,
   field_simp [← cast_sub (mem_range.1 hk).le, mul_comm],
-  rw_mod_cast [sub_add_eq_add_sub' (mem_range.1 hk).le, choose_mul_succ_eq],
+  rw_mod_cast [tsub_add_eq_add_tsub (mem_range.1 hk).le, choose_mul_succ_eq],
 end
 
 /-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/
@@ -286,7 +286,7 @@ begin
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ← mul_assoc, div_mul_eq_mul_div,
         mul_comm (↑n ^ (q - m + 1)), ← mul_assoc _ _ (↑n ^ (q - m + 1)), ← one_div, mul_one_div,
-        div_div_eq_div_mul, ← nat.sub_add_comm (le_of_lt_succ h), cast_dvd, cast_mul],
+        div_div_eq_div_mul, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_dvd, cast_mul],
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },
@@ -336,7 +336,7 @@ begin
   have h1 : ∀ r : ℚ, r * (p + 1 + 1) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
     λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],
   have h2 : f 1 + n ^ p.succ = 1 / 2 * n ^ p.succ,
-  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, nat.sub_zero, h1],
+  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, tsub_zero, h1],
     ring },
   have : ∑ i in range p, bernoulli (i + 2) * (p + 2).choose (i + 2) * n ^ (p - i) / ↑(p + 2)
        = ∑ i in range p, bernoulli' (i + 2) * (p + 2).choose (i + 2) * n ^ (p - i) / ↑(p + 2) :=

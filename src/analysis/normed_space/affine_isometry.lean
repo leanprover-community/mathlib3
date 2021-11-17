@@ -67,7 +67,7 @@ protected def linear_isometry : V →ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 omit V V₂
 
 @[simp] lemma coe_to_affine_map : ⇑f.to_affine_map = f := rfl
@@ -193,7 +193,7 @@ instance : monoid (P →ᵃⁱ[𝕜] P) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : P →ᵃⁱ[𝕜] P) : ⇑(f * g) = f ∘ g := rfl
 
 end affine_isometry
@@ -228,7 +228,7 @@ protected def linear_isometry_equiv : V ≃ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ∥e.linear x∥ = ∥x∥) :
   ⇑(mk e he) = e :=
@@ -356,8 +356,8 @@ omit V V₂ V₃
 
 @[simp] lemma trans_refl : e.trans (refl 𝕜 P₂) = e := ext $ λ x, rfl
 @[simp] lemma refl_trans : (refl 𝕜 P).trans e = e := ext $ λ x, rfl
-@[simp] lemma trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
-@[simp] lemma symm_trans : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
+@[simp] lemma self_trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
+@[simp] lemma symm_trans_self : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
 
 include V V₂ V₃
 @[simp] lemma coe_symm_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
@@ -378,7 +378,7 @@ instance : group (P ≃ᵃⁱ[𝕜] P) :=
   one_mul := trans_refl,
   mul_one := refl_trans,
   mul_assoc := λ _ _ _, trans_assoc _ _ _,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 @[simp] lemma coe_one : ⇑(1 : P ≃ᵃⁱ[𝕜] P) = id := rfl
 @[simp] lemma coe_mul (e e' : P ≃ᵃⁱ[𝕜] P) : ⇑(e * e') = e ∘ e' := rfl

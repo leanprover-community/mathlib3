@@ -45,7 +45,7 @@ the error term indeed gets smaller. As a corollary, we will be able to show that
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf int
+open generalized_continued_fraction (of) int
 
 variables {K : Type*} {v : K} {n : ℕ} [linear_ordered_field K] [floor_ring K]
 
@@ -129,10 +129,10 @@ fraction `generalized_continued_fraction.of`.
 
 /-- Shows that the integer parts of the continued fraction are at least one. -/
 lemma of_one_le_nth_part_denom {b : K}
-  (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
+  (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
   1 ≤ b :=
 begin
-  obtain ⟨gp_n,  nth_s_eq, ⟨-⟩⟩ : ∃ gp_n, (gcf.of v).s.nth n = some gp_n ∧ gp_n.b = b, from
+  obtain ⟨gp_n,  nth_s_eq, ⟨-⟩⟩ : ∃ gp_n, (of v).s.nth n = some gp_n ∧ gp_n.b = b, from
     exists_s_b_of_part_denom nth_part_denom_eq,
   obtain ⟨ifp_n, succ_nth_stream_eq, ifp_n_b_eq_gp_n_b⟩ :
     ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : K) = gp_n.b, from
@@ -145,15 +145,15 @@ end
 Shows that the partial numerators `aᵢ` of the continued fraction are equal to one and the partial
 denominators `bᵢ` correspond to integers.
 -/
-lemma of_part_num_eq_one_and_exists_int_part_denom_eq {gp : gcf.pair K}
-  (nth_s_eq : (gcf.of v).s.nth n = some gp) :
+lemma of_part_num_eq_one_and_exists_int_part_denom_eq {gp : generalized_continued_fraction.pair K}
+  (nth_s_eq : (of v).s.nth n = some gp) :
   gp.a = 1 ∧ ∃ (z : ℤ), gp.b = (z : K) :=
 begin
   obtain ⟨ifp, stream_succ_nth_eq, -⟩ :
     ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ _,
       from int_fract_pair.exists_succ_nth_stream_of_gcf_of_nth_eq_some nth_s_eq,
   have : gp = ⟨1, ifp.b⟩, by
-  { have : (gcf.of v).s.nth n = some ⟨1, ifp.b⟩, from
+  { have : (of v).s.nth n = some ⟨1, ifp.b⟩, from
       nth_of_eq_some_of_succ_nth_int_fract_pair_stream stream_succ_nth_eq,
     have : some gp = some ⟨1, ifp.b⟩, by rwa nth_s_eq at this,
     injection this },
@@ -161,10 +161,10 @@ begin
 end
 
 /-- Shows that the partial numerators `aᵢ` are equal to one. -/
-lemma of_part_num_eq_one {a : K} (nth_part_num_eq : (gcf.of v).partial_numerators.nth n = some a) :
+lemma of_part_num_eq_one {a : K} (nth_part_num_eq : (of v).partial_numerators.nth n = some a) :
   a = 1 :=
 begin
-  obtain ⟨gp, nth_s_eq, gp_a_eq_a_n⟩ : ∃ gp, (gcf.of v).s.nth n = some gp ∧ gp.a = a, from
+  obtain ⟨gp, nth_s_eq, gp_a_eq_a_n⟩ : ∃ gp, (of v).s.nth n = some gp ∧ gp.a = a, from
     exists_s_a_of_part_num nth_part_num_eq,
   have : gp.a = 1, from (of_part_num_eq_one_and_exists_int_part_denom_eq nth_s_eq).left,
   rwa gp_a_eq_a_n at this
@@ -172,10 +172,10 @@ end
 
 /-- Shows that the partial denominators `bᵢ` correspond to an integer. -/
 lemma exists_int_eq_of_part_denom {b : K}
-  (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
+  (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
   ∃ (z : ℤ), b = (z : K) :=
 begin
-  obtain ⟨gp, nth_s_eq, gp_b_eq_b_n⟩ : ∃ gp, (gcf.of v).s.nth n = some gp ∧ gp.b = b, from
+  obtain ⟨gp, nth_s_eq, gp_b_eq_b_n⟩ : ∃ gp, (of v).s.nth n = some gp ∧ gp.b = b, from
     exists_s_b_of_part_denom nth_part_denom_eq,
   have : ∃ (z : ℤ), gp.b = (z : K), from
     (of_part_num_eq_one_and_exists_int_part_denom_eq nth_s_eq).right,
@@ -191,8 +191,8 @@ denominators `Bₙ` are bounded from below by the fibonacci sequence `nat.fib`. 
 -- open `nat` as we will make use of fibonacci numbers.
 open nat
 
-lemma fib_le_of_continuants_aux_b : (n ≤ 1 ∨ ¬(gcf.of v).terminated_at (n - 2)) →
-  (fib n : K) ≤ ((gcf.of v).continuants_aux n).b :=
+lemma fib_le_of_continuants_aux_b : (n ≤ 1 ∨ ¬(of v).terminated_at (n - 2)) →
+  (fib n : K) ≤ ((of v).continuants_aux n).b :=
 nat.strong_induction_on n
 begin
   clear n,
@@ -200,7 +200,7 @@ begin
   rcases n with _|_|n,
   { simp [fib_succ_succ, continuants_aux] }, -- case n = 0
   { simp [fib_succ_succ, continuants_aux] }, -- case n = 1
-  { let g := gcf.of v,  -- case 2 ≤ n
+  { let g := of v,  -- case 2 ≤ n
     have : ¬(n + 2 ≤ 1), by linarith,
     have not_terminated_at_n : ¬g.terminated_at n, from or.resolve_left hyp this,
     obtain ⟨gp, s_ppred_nth_eq⟩ : ∃ gp, g.s.nth n = some gp, from
@@ -236,11 +236,11 @@ end
 
 /-- Shows that the `n`th denominator is greater than or equal to the `n + 1`th fibonacci number,
 that is `nat.fib (n + 1) ≤ Bₙ`. -/
-lemma succ_nth_fib_le_of_nth_denom (hyp: n = 0 ∨ ¬(gcf.of v).terminated_at (n - 1)) :
-  (fib (n + 1) : K) ≤ (gcf.of v).denominators n :=
+lemma succ_nth_fib_le_of_nth_denom (hyp: n = 0 ∨ ¬(of v).terminated_at (n - 1)) :
+  (fib (n + 1) : K) ≤ (of v).denominators n :=
 begin
   rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux],
-  have : (n + 1) ≤ 1 ∨ ¬(gcf.of v).terminated_at (n - 1), by
+  have : (n + 1) ≤ 1 ∨ ¬(of v).terminated_at (n - 1), by
   { cases n,
     case nat.zero : { exact (or.inl $ le_refl 1) },
     case nat.succ : { exact or.inr (or.resolve_left hyp n.succ_ne_zero) } },
@@ -249,9 +249,9 @@ end
 
 /-! As a simple consequence, we can now derive that all denominators are nonnegative. -/
 
-lemma zero_le_of_continuants_aux_b : 0 ≤ ((gcf.of v).continuants_aux n).b :=
+lemma zero_le_of_continuants_aux_b : 0 ≤ ((of v).continuants_aux n).b :=
 begin
-  let g := gcf.of v,
+  let g := of v,
   induction n with n IH,
   case nat.zero: { refl },
   case nat.succ:
@@ -262,20 +262,20 @@ begin
           continuants_aux_stable_step_of_terminated terminated,
         simp only [this, IH] } },
     { calc -- non-terminating case
-      (0 : K) ≤ fib (n + 1)                            : by exact_mod_cast (n + 1).fib.zero_le
-          ... ≤ ((gcf.of v).continuants_aux (n + 1)).b : fib_le_of_continuants_aux_b
-                                                           (or.inr not_terminated) } }
+      (0 : K) ≤ fib (n + 1)                        : by exact_mod_cast (n + 1).fib.zero_le
+          ... ≤ ((of v).continuants_aux (n + 1)).b : fib_le_of_continuants_aux_b
+                                                       (or.inr not_terminated) } }
 end
 
 /-- Shows that all denominators are nonnegative. -/
-lemma zero_le_of_denom : 0 ≤ (gcf.of v).denominators n :=
+lemma zero_le_of_denom : 0 ≤ (of v).denominators n :=
 by { rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux], exact zero_le_of_continuants_aux_b }
 
 lemma le_of_succ_succ_nth_continuants_aux_b {b : K}
-  (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
-  b * ((gcf.of v).continuants_aux $ n + 1).b ≤ ((gcf.of v).continuants_aux $ n + 2).b :=
+  (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
+  b * ((of v).continuants_aux $ n + 1).b ≤ ((of v).continuants_aux $ n + 2).b :=
 begin
-  set g := gcf.of v with g_eq,
+  set g := of v with g_eq,
   obtain ⟨gp_n, nth_s_eq, gpnb_eq_b⟩ : ∃ gp_n, g.s.nth n = some gp_n ∧ gp_n.b = b, from
     exists_s_b_of_part_denom nth_part_denom_eq,
   let conts := g.continuants_aux (n + 2),
@@ -284,7 +284,8 @@ begin
   -- use the recurrence of continuants_aux and the fact that gp_n.a = 1
   suffices : gp_n.b * pconts.b ≤ ppconts.b + gp_n.b * pconts.b, by
   { have : gp_n.a = 1, from of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
-    finish [gcf.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq] },
+    finish
+      [generalized_continued_fraction.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq] },
   have : 0 ≤ ppconts.b, from zero_le_of_continuants_aux_b,
   solve_by_elim [le_add_of_nonneg_of_le, le_refl]
 end
@@ -292,17 +293,17 @@ end
 /-- Shows that `bₙ * Bₙ ≤ Bₙ₊₁`, where `bₙ` is the `n`th partial denominator and `Bₙ₊₁` and `Bₙ` are
 the `n + 1`th and `n`th denominator of the continued fraction. -/
 theorem le_of_succ_nth_denom {b : K}
-  (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
-  b * (gcf.of v).denominators n ≤ (gcf.of v).denominators (n + 1) :=
+  (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
+  b * (of v).denominators n ≤ (of v).denominators (n + 1) :=
 begin
   rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux],
   exact (le_of_succ_succ_nth_continuants_aux_b nth_part_denom_eq)
 end
 
 /-- Shows that the sequence of denominators is monotone, that is `Bₙ ≤ Bₙ₊₁`. -/
-theorem of_denom_mono : (gcf.of v).denominators n ≤ (gcf.of v).denominators (n + 1) :=
+theorem of_denom_mono : (of v).denominators n ≤ (of v).denominators (n + 1) :=
 begin
-  let g := gcf.of v,
+  let g := of v,
   cases (decidable.em $ g.partial_denominators.terminated_at n) with terminated not_terminated,
   { have : g.partial_denominators.nth n = none, by rwa seq.terminated_at at terminated,
     have : g.terminated_at n, from
@@ -326,16 +327,16 @@ Next we prove the so-called *determinant formula* for `generalized_continued_fra
 `Aₙ * Bₙ₊₁ - Bₙ * Aₙ₊₁ = (-1)^(n + 1)`.
 -/
 
-lemma determinant_aux (hyp: n = 0 ∨ ¬(gcf.of v).terminated_at (n - 1)) :
-    ((gcf.of v).continuants_aux n).a * ((gcf.of v).continuants_aux (n + 1)).b
-    - ((gcf.of v).continuants_aux n).b * ((gcf.of v).continuants_aux (n + 1)).a
+lemma determinant_aux (hyp: n = 0 ∨ ¬(of v).terminated_at (n - 1)) :
+    ((of v).continuants_aux n).a * ((of v).continuants_aux (n + 1)).b
+    - ((of v).continuants_aux n).b * ((of v).continuants_aux (n + 1)).a
   = (-1)^n :=
 begin
   induction n with n IH,
   case nat.zero { simp [continuants_aux] },
   case nat.succ
   { -- set up some shorthand notation
-    let g := gcf.of v,
+    let g := of v,
     let conts := continuants_aux g (n + 2),
     set pred_conts := continuants_aux g (n + 1) with pred_conts_eq,
     set ppred_conts := continuants_aux g n with ppred_conts_eq,
@@ -367,9 +368,9 @@ begin
 end
 
 /-- The determinant formula `Aₙ * Bₙ₊₁ - Bₙ * Aₙ₊₁ = (-1)^(n + 1)` -/
-lemma determinant (not_terminated_at_n : ¬(gcf.of v).terminated_at n) :
-    (gcf.of v).numerators n * (gcf.of v).denominators (n + 1)
-    - (gcf.of v).denominators n * (gcf.of v).numerators (n + 1)
+lemma determinant (not_terminated_at_n : ¬(of v).terminated_at n) :
+    (of v).numerators n * (of v).denominators (n + 1)
+    - (of v).denominators n * (of v).numerators (n + 1)
   = (-1)^(n + 1) :=
 (determinant_aux $ or.inr $ not_terminated_at_n)
 
@@ -387,21 +388,23 @@ position, i.e. bounds for the term `|v - (generalized_continued_fraction.of v).c
 by simplifying the difference. -/
 lemma sub_convergents_eq {ifp : int_fract_pair K}
   (stream_nth_eq : int_fract_pair.stream v n = some ifp) :
-  let g := gcf.of v in
+  let g := of v in
   let B := (g.continuants_aux (n + 1)).b in
   let pB := (g.continuants_aux n).b in
   v - g.convergents n = if ifp.fr = 0 then 0 else (-1)^n / (B * (ifp.fr⁻¹ * B + pB)) :=
 begin
   -- set up some shorthand notation
-  let g := gcf.of v,
+  let g := of v,
   let conts := g.continuants_aux (n + 1),
   let pred_conts := g.continuants_aux n,
-  have g_finite_correctness : v = gcf.comp_exact_value pred_conts conts ifp.fr, from
+  have g_finite_correctness :
+    v = generalized_continued_fraction.comp_exact_value pred_conts conts ifp.fr, from
     comp_exact_value_correctness_of_stream_eq_some stream_nth_eq,
   cases decidable.em (ifp.fr = 0) with ifp_fr_eq_zero ifp_fr_ne_zero,
   { suffices : v - g.convergents n = 0, by simpa [ifp_fr_eq_zero],
     replace g_finite_correctness : v = g.convergents n, by
-      simpa [gcf.comp_exact_value, ifp_fr_eq_zero] using g_finite_correctness,
+      simpa [generalized_continued_fraction.comp_exact_value, ifp_fr_eq_zero]
+        using g_finite_correctness,
     exact (sub_eq_zero.elim_right g_finite_correctness) },
   { -- more shorthand notation
     let A := conts.a,
@@ -412,8 +415,8 @@ begin
     suffices : v - A / B = (-1)^n / (B * (ifp.fr⁻¹ * B + pB)), by simpa [ifp_fr_ne_zero],
     -- now we can unfold `g.comp_exact_value` to derive the following equality for `v`
     replace g_finite_correctness : v = (pA + ifp.fr⁻¹ * A) / (pB + ifp.fr⁻¹ * B), by
-      simpa [gcf.comp_exact_value, ifp_fr_ne_zero, next_continuants, next_numerator,
-          next_denominator, add_comm] using g_finite_correctness,
+      simpa [generalized_continued_fraction.comp_exact_value, ifp_fr_ne_zero, next_continuants,
+        next_numerator, next_denominator, add_comm] using g_finite_correctness,
     -- let's rewrite this equality for `v` in our goal
     suffices : (pA + ifp.fr⁻¹ * A) / (pB + ifp.fr⁻¹ * B) - A / B
              = (-1)^n / (B * (ifp.fr⁻¹ * B + pB)), by rwa g_finite_correctness,
@@ -474,12 +477,12 @@ begin
 end
 
 /-- Shows that `|v - Aₙ / Bₙ| ≤ 1 / (Bₙ * Bₙ₊₁)` -/
-theorem abs_sub_convergents_le (not_terminated_at_n : ¬(gcf.of v).terminated_at n) :
-    |v - (gcf.of v).convergents n|
-  ≤ 1 / (((gcf.of v).denominators n) * ((gcf.of v).denominators $ n + 1)) :=
+theorem abs_sub_convergents_le (not_terminated_at_n : ¬(of v).terminated_at n) :
+    |v - (of v).convergents n|
+  ≤ 1 / (((of v).denominators n) * ((of v).denominators $ n + 1)) :=
 begin
   -- shorthand notation
-  let g := gcf.of v,
+  let g := of v,
   let nextConts := g.continuants_aux (n + 2),
   set conts := continuants_aux g (n + 1) with conts_eq,
   set pred_conts := continuants_aux g n with pred_conts_eq,
@@ -570,11 +573,11 @@ Shows that `|v - Aₙ / Bₙ| ≤ 1 / (bₙ * Bₙ * Bₙ)`. This bound is worse
 `gcf.abs_sub_convergents_le`, but sometimes it is easier to apply and sufficient for one's use case.
  -/
 lemma abs_sub_convergents_le' {b : K}
-  (nth_part_denom_eq : (gcf.of v).partial_denominators.nth n = some b) :
-    |v - (gcf.of v).convergents n|
-  ≤ 1 / (b * ((gcf.of v).denominators n) * ((gcf.of v).denominators n)) :=
+  (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
+    |v - (of v).convergents n|
+  ≤ 1 / (b * ((of v).denominators n) * ((of v).denominators n)) :=
 begin
-  let g := gcf.of v,
+  let g := of v,
   let B := g.denominators n,
   let nB := g.denominators (n + 1),
   have not_terminated_at_n : ¬g.terminated_at n, by

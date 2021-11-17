@@ -60,9 +60,9 @@ bitvec.cong
     by_cases (i ≤ n),
     { have h₁ := nat.sub_le n i,
       rw [min_eq_right h],
-      rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
+      rw [min_eq_left h₁, ← add_tsub_assoc_of_le h, nat.add_comm, add_tsub_cancel_right] },
     { have h₁ := le_of_not_ge h,
-      rw [min_eq_left h₁, nat.sub_eq_zero_of_le h₁, nat.zero_min, nat.add_zero] }
+      rw [min_eq_left h₁, tsub_eq_zero_iff_le.mpr h₁, zero_min, nat.add_zero] }
   end $
   repeat fill (min n i) ++ₜ take (n-i) x
 

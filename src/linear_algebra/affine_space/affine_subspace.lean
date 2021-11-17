@@ -467,6 +467,15 @@ end
 
 end affine_subspace
 
+lemma affine_map.line_map_mem
+  {k V P : Type*} [ring k] [add_comm_group V] [module k V] [add_torsor V P]
+  {Q : affine_subspace k P} {p₀ p₁ : P} (c : k) (h₀ : p₀ ∈ Q) (h₁ : p₁ ∈ Q) :
+  affine_map.line_map p₀ p₁ c ∈ Q :=
+begin
+  rw affine_map.line_map_apply,
+  exact Q.smul_vsub_vadd_mem c h₁ h₀ h₀,
+end
+
 section affine_span
 
 variables (k : Type*) {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
@@ -615,7 +624,13 @@ protected def gi : galois_insertion (affine_span k) (coe : affine_subspace k P �
 @[simp] lemma span_univ : affine_span k (set.univ : set P) = ⊤ :=
 eq_top_iff.2 $ subset_span_points k _
 
-variables {P}
+variables {k V P}
+
+lemma _root_.affine_span_le {s : set P} {Q : affine_subspace k P} :
+  affine_span k s ≤ Q ↔ s ⊆ (Q : set P) :=
+(affine_subspace.gi k V P).gc _ _
+
+variables (k V) {P}
 
 /-- The affine span of a single point, coerced to a set, contains just
 that point. -/
@@ -1079,6 +1094,7 @@ end
 variables (k)
 
 /-- `affine_span` is monotone. -/
+@[mono]
 lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=
 span_points_subset_coe_of_subset_coe (set.subset.trans h (subset_affine_span k _))
 

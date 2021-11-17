@@ -60,6 +60,7 @@ begin
 end
 
 section inner_product_space
+open_locale complex_conjugate
 
 variables [measurable_space 𝕜] [borel_space 𝕜]
 
@@ -117,7 +118,7 @@ begin
 end
 
 private lemma smul_left' (f g : α →₂[μ] E) (r : 𝕜) :
-  inner (r • f) g = is_R_or_C.conj r * inner f g :=
+  inner (r • f) g = conj r * inner f g :=
 begin
   rw [inner_def, inner_def, ← smul_eq_mul, ← integral_smul],
   refine integral_congr_ae ((coe_fn_smul r f).mono (λ x hx, _)),
@@ -197,7 +198,7 @@ variables {α : Type*} [topological_space α] [measure_space α] [borel_space α
   [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
 variables (μ : measure α) [is_finite_measure μ]
 
-open_locale bounded_continuous_function
+open_locale bounded_continuous_function complex_conjugate
 
 local attribute [instance] fact_one_le_two_ennreal
 
@@ -207,7 +208,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 (α →₂[μ] 𝕜) _ x y
 inner product is the integral of their pointwise inner product. -/
 lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
   ⟪bounded_continuous_function.to_Lp 2 μ 𝕜 f, bounded_continuous_function.to_Lp 2 μ 𝕜 g⟫
-  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+  = ∫ x, conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,
@@ -224,7 +225,7 @@ variables [compact_space α]
 inner product is the integral of their pointwise inner product. -/
 lemma continuous_map.inner_to_Lp (f g : C(α, 𝕜)) :
   ⟪continuous_map.to_Lp 2 μ 𝕜 f, continuous_map.to_Lp 2 μ 𝕜 g⟫
-  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+  = ∫ x, conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,

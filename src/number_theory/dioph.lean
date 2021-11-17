@@ -117,7 +117,7 @@ namespace poly
 section
 parameter {α : Type u}
 
-instance : has_coe_to_fun (poly α) := ⟨_, λ f, f.1⟩
+instance : has_coe_to_fun (poly α) (λ _, (α → ℕ) → ℤ) := ⟨λ f, f.1⟩
 
 /-- The underlying function of a `poly` is a polynomial -/
 lemma isp (f : poly α) : is_poly f := f.2
@@ -178,15 +178,15 @@ instance : has_mul (poly α) := ⟨poly.mul⟩
 | ⟨f, pf⟩ ⟨g, pg⟩ x := rfl
 
 instance : comm_ring (poly α) := by refine_struct
-{ add   := (+),
-  zero  := (0 : poly α),
-  neg   := has_neg.neg,
-  mul   := (*),
+{ add   := ((+) : poly α → poly α → poly α),
+  zero  := 0,
+  neg   := (has_neg.neg : poly α → poly α),
+  mul   := ((*)),
   one   := 1,
-  sub   := has_sub.sub,
-  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨neg⟩ };
+  sub   := (has_sub.sub),
+  npow  := @npow_rec _ ⟨(1 : poly α)⟩ ⟨(*)⟩,
+  nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩,
+  zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨neg⟩ };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 
@@ -511,13 +511,13 @@ ext (D&1 D= D&0 D+ D&2 D∨ D&1 D≤ D&2 D∧ D&0 D= D.0) $ (vector_all_iff_fora
 show (y = x + z ∨ y ≤ z ∧ x = 0) ↔ y - z = x, from
 ⟨λo, begin
   rcases o with ae | ⟨yz, x0⟩,
-  { rw [ae, nat.add_sub_cancel] },
-  { rw [x0, nat.sub_eq_zero_of_le yz] }
+  { rw [ae, add_tsub_cancel_right] },
+  { rw [x0, tsub_eq_zero_iff_le.mpr yz] }
 end, λh, begin
   subst x,
   cases le_total y z with yz zy,
-  { exact or.inr ⟨yz, nat.sub_eq_zero_of_le yz⟩ },
-  { exact or.inl (nat.sub_add_cancel zy).symm },
+  { exact or.inr ⟨yz, tsub_eq_zero_iff_le.mpr yz⟩ },
+  { exact or.inl (tsub_add_cancel_of_le zy).symm },
 end⟩
 localized "infix ` D- `:80 := dioph.sub_dioph" in dioph
 

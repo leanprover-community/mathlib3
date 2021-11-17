@@ -23,7 +23,7 @@ namespace add_monoid_hom
 lemma map_real_smul (f : E →+ F) (hf : continuous f) (c : ℝ) (x : E) :
   f (c • x) = c • f x :=
 suffices (λ c : ℝ, f (c • x)) = λ c : ℝ, c • f x, from _root_.congr_fun this c,
-dense_embedding_of_rat.dense.equalizer
+rat.dense_embedding_coe_real.dense.equalizer
   (hf.comp $ continuous_id.smul continuous_const)
   (continuous_id.smul continuous_const)
   (funext $ λ r, f.map_rat_cast_smul ℝ ℝ r x)

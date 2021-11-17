@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
+Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen, ANtoine Labelle
 -/
 import linear_algebra.matrix.to_lin
 import linear_algebra.matrix.trace
-
+import linear_algebra.contraction
+import linear_algebra.tensor_product_basis
 
 /-!
 # Trace of a linear map
@@ -114,6 +115,28 @@ end
 
 section
 variables (R : Type u) [field R] {M : Type v} [add_comm_group M] [module R M]
+
+/-- The trace of a linear map correspond to the contraction pairing under the isomorphism
+ `M →ₗ M ≃ M* ⊗ M`-/
+lemma trace_eq_contract [finite_dimensional R M] :
+  (linear_map.trace R M) ∘ₗ ↑(dual_tensor_hom_equiv R M M) = contract_left R M :=
+begin
+  have b := fin_basis R M,
+  apply basis.ext (basis.tensor_product (b.dual_basis) b),
+  rintros ⟨i, j⟩,
+  simp [dual_tensor_hom_equiv_to_lin],
+  rw [trace_eq_matrix_trace R b, dual_tensor_hom_basis],
+  by_cases hij : i = j,
+  { rw [hij, matrix.std_basis_matrix.trace_same], simp },
+  rw matrix.std_basis_matrix.trace_zero j i (1:R) hij,
+  simp [finsupp.single_eq_pi_single, hij],
+end
+
+/-- The trace of a linear map correspond to the contraction pairing under the isomorphism
+ `M →ₗ M ≃ M* ⊗ M`-/
+lemma trace_eq_contract' [finite_dimensional R M] :
+  (linear_map.trace R M) = (contract_left R M) ∘ₗ ↑(dual_tensor_hom_equiv R M M).symm :=
+by { rw [←trace_eq_contract], ext f, simp }
 
 /-- The trace of the identity endomorphism is the dimension of the vector space -/
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=

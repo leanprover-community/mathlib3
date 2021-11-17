@@ -1,9 +1,12 @@
 /-
 Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Oliver Nash
+Authors: Oliver Nash, Antoine Labelle
 -/
 import linear_algebra.dual
+import linear_algebra.matrix.to_lin
+import linear_algebra.tensor_product_basis
+import linear_algebra.free_module.finite.rank
 
 /-!
 # Contractions
@@ -21,8 +24,14 @@ universes u v
 
 
 section contraction
+
 open tensor_product
+open linear_map
+open matrix
 open_locale tensor_product
+open_locale big_operators
+
+section
 
 variables (R : Type u) (M N : Type v)
 variables [comm_ring R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
@@ -50,5 +59,46 @@ variables {R M N}
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
   dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
 by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+
+/-- As a matrix, `dual_tensor_hom` evaluated on a basis element of `M* ⊗ N` is a matrix with a
+single one and zeros elsewhere -/
+theorem dual_tensor_hom_basis
+  {m : Type*} {n : Type*} [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+  (bM : basis m R M) (bN : basis n R N) (j : m) (i : n) :
+    to_matrix bM bN (dual_tensor_hom R M N (bM.coord j ⊗ₜ bN i)) = std_basis_matrix i j 1 :=
+begin
+  ext i' j',
+  by_cases hij : (i = i' ∧ j = j');
+  simp [linear_map.to_matrix_apply, finsupp.single_eq_pi_single, hij],
+  rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
+end
+
+end
+
+open finite_dimensional
+variables (R : Type u) (M N : Type v)
+variables [field R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
+variables [finite_dimensional R M]
+
+theorem dual_tensor_hom_surj : function.surjective (dual_tensor_hom R M N) :=
+begin
+  intro f,
+  have b := fin_basis R M,
+  use ∑ (i : fin (finrank R M)), (b.dual_basis i) ⊗ₜ f (b i),
+  ext m, simp,
+  nth_rewrite_rhs 0 ←basis.sum_repr b m, simp,
+end
+
+variables [finite_dimensional R N]
+
+theorem dual_tensor_hom_inj : function.injective (dual_tensor_hom R M N) :=
+  (injective_iff_surjective_of_finrank_eq_finrank (by simp)).2 (dual_tensor_hom_surj R M N)
+
+noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
+  linear_equiv.of_bijective (dual_tensor_hom R M N)
+    (dual_tensor_hom_inj R M N) (dual_tensor_hom_surj R M N)
+
+lemma dual_tensor_hom_equiv_to_lin (f : (module.dual R M) ⊗[R] N):
+  (dual_tensor_hom_equiv R M N) f = (dual_tensor_hom R M N) f := rfl
 
 end contraction

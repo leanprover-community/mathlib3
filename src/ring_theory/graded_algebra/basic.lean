@@ -39,7 +39,7 @@ lemma graded_ring.is_internal [graded_algebra R A 𝒜] :
   direct_sum.submodule_is_internal 𝒜 :=
 ⟨graded_algebra.left_inv.injective, graded_algebra.right_inv.surjective⟩
 
-variable [graded_algebra R A 𝒜]
+variable [graded_algebra 𝒜]
 
 /--If `R` is graded by `ι` with degree `i` component `A i`, then `(⨁ i, A i ≃+* R)`-/
 def graded_algebra.recompose : (⨁ i, 𝒜 i) ≃ₐ[R] A :=

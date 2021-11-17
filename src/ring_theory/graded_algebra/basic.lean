@@ -17,14 +17,18 @@ the algebra isomorphism between `A` and `⨁ i, 𝒜 i` if `A` is graded by `�
 open_locale direct_sum big_operators
 
 section graded_ring
-variables (R A : Type*) [comm_semiring R] [ring A] [algebra R A]
-  {ι : Type*} (𝒜 : ι → submodule R A)
-  [decidable_eq ι] [add_comm_monoid ι]
+variables {ι R A : Type*}
+variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [ring A] [algebra R A]
+variables (𝒜 : ι → submodule R A)
 
-/-- A graded `R`-algebra `A` is an `R`-algebra `A` such that `A` can be decomposed into a collection
-of `submodule R A` indexed by `ι` such that the connonical map `A → ⨁ i, 𝒜 i` is a bijective map
-respecting multiplication, i.e. product of an element of degree `i` and an element of degree `j`
+/-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection
+of `submodule R A`s indexed by `ι` such that the canonical map `A → ⨁ i, 𝒜 i` is bijective and
+respects multiplication, i.e. the product of an element of degree `i` and an element of degree `j`
 is an element of degree `i + j`.
+
+Note that the fact that `A` is internally-graded, `graded_algebra 𝒜`, implies an externally-graded
+algebra structure `direct_sum.galgebra R (λ i, ↥(𝒜 i))`, which in turn makes available an
+`algebra R (⨁ i, 𝒜 i)` instance.
 -/
 class graded_algebra extends set_like.graded_monoid 𝒜 :=
 (decompose : A → ⨁ i, 𝒜 i)

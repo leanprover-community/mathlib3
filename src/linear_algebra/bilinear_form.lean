@@ -1474,13 +1474,6 @@ begin
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 
-lemma congr_nondegenerate_iff {B : bilin_form R₂ M₂} (e : M₂ ≃ₗ[R₂] M₂'):
-  (congr e B).nondegenerate ↔ B.nondegenerate :=
-e.surjective.forall.trans $ forall_congr $ λ m, imp_congr
-  (e.surjective.forall.trans $ forall_congr $ λ m, by
-    rw [congr_apply, e.symm_apply_apply, e.symm_apply_apply])
-  (linear_equiv.map_eq_zero_iff _)
-
 section
 
 lemma to_lin_restrict_ker_eq_inf_orthogonal

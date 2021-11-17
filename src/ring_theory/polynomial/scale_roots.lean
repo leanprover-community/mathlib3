@@ -5,9 +5,7 @@ Authors: Anne Baanen, Devon Tuma
 -/
 
 import ring_theory.non_zero_divisors
-import tactic.interval_cases
 import data.polynomial.algebra_map
-import tactic.group
 
 /-!
 # Scaling the roots of a polynomial

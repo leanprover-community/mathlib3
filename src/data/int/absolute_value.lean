@@ -3,12 +3,9 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import tactic.tfae
 import algebra.module.basic
-import tactic.abel
 import group_theory.group_action.units
 import data.int.cast
-import tactic.linarith
 import algebra.order.absolute_value
 
 /-!

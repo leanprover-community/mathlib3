@@ -5,9 +5,7 @@ Authors: Kenny Lau
 -/
 import ring_theory.adjoin.basic
 import data.mv_polynomial.rename
-import tactic.interval_cases
 import data.polynomial.algebra_map
-import tactic.group
 
 /-!
 # Adjoining elements to form subalgebras: relation to polynomials

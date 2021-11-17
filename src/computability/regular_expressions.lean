@@ -3,11 +3,7 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import tactic.wlog
-import tactic.apply_fun
-import tactic.nth_rewrite
 import tactic.rcases
-import tactic.apply
 import computability.language
 
 /-!

@@ -3,9 +3,7 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
-import tactic.with_local_reducibility
 import linear_algebra.matrix.to_lin
-import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
 
 /-!

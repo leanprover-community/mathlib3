@@ -3,10 +3,10 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
-import category_theory.category.ulift
-import category_theory.limits.preserves.basic
-import category_theory.limits.types
 import topology.category.Top.basic
+import category_theory.limits.types
+import category_theory.limits.preserves.basic
+import category_theory.category.ulift
 
 /-!
 # The category of topological spaces has all limits and colimits

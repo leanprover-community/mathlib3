@@ -6,8 +6,6 @@ Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 
 import ring_theory.noetherian
 import algebra.gcd_monoid.basic
-import tactic.interval_cases
-import tactic.group
 import ring_theory.multiplicity
 
 /-!

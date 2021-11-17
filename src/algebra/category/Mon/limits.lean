@@ -8,7 +8,6 @@ import algebra.group.pi
 import category_theory.limits.creates
 import category_theory.limits.types
 import group_theory.submonoid.operations
-import tactic.linarith
 
 /-!
 # The category of (commutative) (additive) monoids has all limits

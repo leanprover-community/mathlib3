@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.functor_category
 import category_theory.limits.preserves.shapes.binary_products
-import tactic.equiv_rw
 
 /-!
 # Preservation of (co)limits in the functor category

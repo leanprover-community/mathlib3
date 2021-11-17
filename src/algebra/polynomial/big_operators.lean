@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
 import algebra.order.with_zero
-import tactic.interval_cases
-import tactic.linarith
 import data.polynomial.monic
 /-!
 # Lemmas for the interaction between polynomials and `∑` and `∏`.

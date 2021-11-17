@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 
-import group_theory.quotient_group
 import order.filter.pointwise
+import group_theory.quotient_group
 import topology.algebra.monoid
-import topology.compacts
 import topology.homeomorph
+import topology.compacts
 
 /-!
 # Theory of topological groups

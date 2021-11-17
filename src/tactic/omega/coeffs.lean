@@ -10,8 +10,8 @@ by storing their coefficients in integer lists.
 -/
 
 import data.list.func
-import tactic.omega.misc
 import tactic.ring
+import tactic.omega.misc
 
 namespace omega
 namespace coeffs

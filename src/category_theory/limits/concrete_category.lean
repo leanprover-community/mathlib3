@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
 import category_theory.limits.preserves.basic
-import category_theory.limits.shapes.multiequalizer
-import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.types
+import category_theory.limits.shapes.wide_pullbacks
+import category_theory.limits.shapes.multiequalizer
 import tactic.elementwise
 
 /-!

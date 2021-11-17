@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import linear_algebra.basic
-import tactic.abel
 
 /-!
 # Quotients by submodules

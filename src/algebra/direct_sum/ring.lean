@@ -3,9 +3,7 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import tactic.tfae
 import group_theory.subgroup.basic
-import tactic.abel
 import algebra.graded_monoid
 import algebra.direct_sum.basic
 

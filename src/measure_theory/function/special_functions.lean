@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import analysis.inner_product_space.basic
 import analysis.special_functions.pow
 import analysis.special_functions.trigonometric.arctan
+import analysis.inner_product_space.basic
 import measure_theory.constructions.borel_space
 
 /-!

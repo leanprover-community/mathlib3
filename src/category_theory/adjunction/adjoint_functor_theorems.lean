@@ -5,10 +5,10 @@ Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.basic
 import category_theory.adjunction.comma
-import category_theory.limits.comma
 import category_theory.limits.constructions.weakly_initial
-import category_theory.limits.creates
 import category_theory.limits.preserves.basic
+import category_theory.limits.creates
+import category_theory.limits.comma
 import category_theory.punit
 
 /-!

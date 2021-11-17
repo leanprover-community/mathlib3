@@ -5,7 +5,6 @@ Authors: Kevin Buzzard
 -/
 
 import tactic.interval_cases
-import data.nat.interval
 import data.nat.modeq
 
 /-!

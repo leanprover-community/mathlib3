@@ -9,10 +9,6 @@ import category_theory.limits.shapes.biproducts
 import category_theory.preadditive
 import category_theory.preadditive.additive_functor
 import data.matrix.dmatrix
-import tactic.abel
-import tactic.elementwise
-import tactic.linarith
-import tactic.tfae
 
 /-!
 # Matrices over a category.

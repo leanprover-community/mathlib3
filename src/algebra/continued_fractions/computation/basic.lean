@@ -6,7 +6,6 @@ Authors: Kevin Kappelmann
 import algebra.order.floor
 import algebra.continued_fractions.basic
 import algebra.order.field
-import tactic.field_simp
 /-!
 # Computable Continued Fractions
 

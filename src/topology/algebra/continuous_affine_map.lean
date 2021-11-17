@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.affine_map
-import topology.algebra.module
 import topology.continuous_function.basic
+import topology.algebra.module
 
 /-!
 # Continuous affine maps.

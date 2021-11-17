@@ -7,7 +7,6 @@ import tactic.tfae
 import order.atoms
 import order.order_iso_nat
 import order.zorn
-import data.list.tfae
 import data.finset.order
 
 /-!

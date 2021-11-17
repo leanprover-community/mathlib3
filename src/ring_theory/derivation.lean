@@ -5,8 +5,6 @@ Authors: Nicolò Cavalleri
 -/
 
 import ring_theory.adjoin.basic
-import tactic.interval_cases
-import tactic.group
 import algebra.lie.of_associative
 
 /-!

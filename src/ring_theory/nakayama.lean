@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import ring_theory.noetherian
-import tactic.elementwise
-import tactic.ring_exp
 import ring_theory.jacobson_ideal
 /-!
 # Nakayama's lemma

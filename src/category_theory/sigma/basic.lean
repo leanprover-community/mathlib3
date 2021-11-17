@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.whiskering
 import category_theory.fully_faithful
-import tactic.slice
 import category_theory.natural_isomorphism
 import data.sigma.basic
 

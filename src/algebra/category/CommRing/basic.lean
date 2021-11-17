@@ -7,7 +7,6 @@ import algebra.category.Group.basic
 import category_theory.concrete_category.reflects_isomorphisms
 import data.equiv.ring
 
-
 /-!
 # Category instances for semiring, ring, comm_semiring, and comm_ring.
 

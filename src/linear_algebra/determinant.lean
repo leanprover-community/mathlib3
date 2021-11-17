@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import linear_algebra.multilinear.basis
 import linear_algebra.matrix.reindex
-import tactic.elementwise
 import ring_theory.algebra_tower
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.basis

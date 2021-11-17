@@ -3,8 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
-import algebra.ring.basic
 import tactic.ring
+import algebra.ring.basic
 
 /-!
 # Coprime elements of a ring

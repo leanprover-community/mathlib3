@@ -3,8 +3,8 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.fin.vec_notation
 import data.matrix.basic
+import data.fin.vec_notation
 
 /-!
 # Matrix and vector notation

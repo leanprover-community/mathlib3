@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import tactic.tfae
 import data.int.modeq
 import algebra.iterate_hom
 import data.nat.choose.sum

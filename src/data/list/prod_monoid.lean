@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
 import data.list.big_operators
-import tactic.monotonicity.basic
 
 /-!
 # Products / sums of lists of terms of a monoid

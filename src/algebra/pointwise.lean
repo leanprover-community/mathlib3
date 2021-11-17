@@ -7,7 +7,6 @@ import group_theory.submonoid.basic
 import algebra.big_operators.basic
 import group_theory.group_action.group
 import data.set.finite
-import tactic.norm_num
 import algebra.smul_with_zero
 
 /-!

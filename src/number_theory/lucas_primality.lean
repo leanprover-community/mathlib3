@@ -4,14 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
 import data.fintype.basic
-import tactic.elementwise
 import group_theory.order_of_element
-import tactic.interval_cases
-import tactic.ring_exp
-import tactic.field_simp
 import tactic.zify
 import data.nat.totient
-import tactic.group
 import data.zmod.basic
 
 /-!

@@ -3,10 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import tactic.abel
-import tactic.field_simp
 import topology.uniform_space.basic
-import tactic.linarith
 import topology.separation
 
 /-!

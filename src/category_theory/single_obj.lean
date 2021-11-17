@@ -3,9 +3,9 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import algebra.category.Mon.basic
-import category_theory.category.Cat
 import category_theory.endomorphism
+import category_theory.category.Cat
+import algebra.category.Mon.basic
 
 /-!
 # Single-object category

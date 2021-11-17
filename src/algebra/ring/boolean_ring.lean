@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen
 -/
 
-import tactic.abel
 import tactic.ring
+import tactic.abel
 
 /-!
 # Boolean rings

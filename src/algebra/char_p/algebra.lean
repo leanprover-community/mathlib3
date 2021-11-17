@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jon Eugster, Eric Wieser
 -/
 import algebra.char_p.basic
-import algebra.free_algebra
 import ring_theory.localization
+import algebra.free_algebra
 
 
 /-!

@@ -5,8 +5,6 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.noetherian
-import tactic.interval_cases
-import tactic.group
 
 /-!
 # Flat modules

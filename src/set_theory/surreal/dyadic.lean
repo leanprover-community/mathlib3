@@ -6,10 +6,6 @@ Authors: Apurva Nakade
 import algebra.algebra.basic
 import group_theory.monoid_localization
 import set_theory.surreal.basic
-import tactic.elementwise
-import tactic.group
-import tactic.interval_cases
-import tactic.ring_exp
 
 /-!
 # Dyadic numbers

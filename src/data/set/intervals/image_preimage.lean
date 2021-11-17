@@ -3,9 +3,9 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
-import algebra.pointwise
-import data.equiv.mul_add
 import data.set.intervals.basic
+import data.equiv.mul_add
+import algebra.pointwise
 
 /-!
 # (Pre)images of intervals

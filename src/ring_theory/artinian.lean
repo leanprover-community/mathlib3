@@ -3,17 +3,17 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.algebra.basic
-import data.set_like.fintype
 import linear_algebra.basic
-import linear_algebra.linear_independent
-import linear_algebra.pi
 import linear_algebra.prod
-import ring_theory.jacobson_ideal
-import ring_theory.nakayama
-import ring_theory.nilpotent
-import ring_theory.noetherian
+import linear_algebra.pi
+import data.set_like.fintype
+import linear_algebra.linear_independent
 import tactic.linarith
+import algebra.algebra.basic
+import ring_theory.noetherian
+import ring_theory.jacobson_ideal
+import ring_theory.nilpotent
+import ring_theory.nakayama
 
 /-!
 # Artinian rings and modules

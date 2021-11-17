@@ -7,7 +7,6 @@ import algebra.invertible
 import data.matrix.basis
 import data.matrix.dmatrix
 import algebra.lie.abelian
-import tactic.field_simp
 import linear_algebra.matrix.trace
 import algebra.lie.skew_adjoint
 

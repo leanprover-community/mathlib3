@@ -3,10 +3,9 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import tactic.tfae
 import category_theory.abelian.basic
 import algebra.homology.exact
-import data.list.tfae
+import tactic.tfae
 
 /-!
 # Exact sequences in abelian categories

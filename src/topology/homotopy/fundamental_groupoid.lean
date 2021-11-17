@@ -5,7 +5,6 @@ Authors: Shing Tak Lam
 -/
 import category_theory.category.Groupoid
 import category_theory.groupoid
-import tactic.equiv_rw
 import topology.category.Top.basic
 import topology.homotopy.path
 

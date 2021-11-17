@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.fully_faithful
 import category_theory.epi_mono
-import tactic.norm_num
 
 /-!
 # Reflective functors

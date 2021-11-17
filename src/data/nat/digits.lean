@@ -5,7 +5,6 @@ Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
 import data.list.indexes
-import data.nat.interval
 import tactic.interval_cases
 import tactic.linarith
 

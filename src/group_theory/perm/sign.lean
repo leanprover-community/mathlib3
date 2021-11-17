@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import group_theory.perm.support
 import data.fintype.basic
-import tactic.abel
 import group_theory.order_of_element
 import tactic.norm_swap
 import data.finset.sort

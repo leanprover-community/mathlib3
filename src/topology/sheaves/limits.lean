@@ -3,8 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.functor_category
 import topology.sheaves.presheaf
+import category_theory.limits.functor_category
 
 /-!
 # Presheaves in `C` have limits and colimits when `C` does.

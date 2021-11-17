@@ -724,8 +724,10 @@ rfl  -- fails
 Until we resolve these diamonds, it's more convenient to only turn this instance on with
 `local attribute [instance]` in places where the benefit of having the instance outweighs the cost.
 
-In the meantime, the `splitting_field.algebra` instance below is safe since `K = ℕ` and `K = ℤ` are
-not possible.
+In the meantime, the `splitting_field.algebra` instance below is immune to these particular diamonds
+since `K = ℕ` and `K = ℤ` are not possible due to the `field K` assumption. Diamonds in
+`algebra ℚ (splitting_field f)` instances are still possible, but this is a problem throughout the
+library and not unique to this `algebra` instance.
 -/
 instance algebra' {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
 splitting_field_aux.algebra _ _ _

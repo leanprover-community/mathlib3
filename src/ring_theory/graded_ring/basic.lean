@@ -27,7 +27,8 @@ its homogeneous components.
 open_locale direct_sum big_operators
 
 section graded_ring
-variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
+variables (R A : Type*) [comm_semiring R] [ring A] [algebra R A]
+  {ι : Type*} (𝒜 : ι → submodule ℤ A)
   [decidable_eq ι] [add_comm_monoid ι]
 
 /-- A graded ring is a `ring R` such that `R` can be decomposed into a collection of
@@ -35,19 +36,20 @@ variables (R : Type*) [ring R] {ι : Type*} (A : ι → add_subgroup R)
   respecting multiplication, i.e. product of an element of degree `i` and an element of degree `j`
   is an element of degree `i + j`.
 -/
-class graded_ring extends set_like.graded_monoid A :=
-( decompose : R → ⨁ i, A i)
-( left_inv : function.left_inverse decompose (direct_sum.add_subgroup_coe A) )
-( right_inv : function.right_inverse decompose (direct_sum.add_subgroup_coe A) )
+class graded_ring extends set_like.graded_monoid 𝒜 :=
+( decompose : A → ⨁ i, 𝒜 i)
+( left_inv : function.left_inverse decompose (direct_sum.submodule_coe 𝒜) )
+( right_inv : function.right_inverse decompose (direct_sum.submodule_coe 𝒜) )
 
-lemma graded_ring.is_internal [graded_ring R A] : direct_sum.add_subgroup_is_internal A :=
+lemma graded_ring.is_internal [graded_ring A 𝒜] :
+  direct_sum.submodule_is_internal 𝒜 :=
 ⟨graded_ring.left_inv.injective, graded_ring.right_inv.surjective⟩
 
-variable [graded_ring R A]
+variable [graded_ring A 𝒜]
 
 /--If `R` is graded by `ι` with degree `i` component `A i`, then `(⨁ i, A i ≃+* R)`-/
-def graded_ring.recompose : (⨁ i, A i) ≃+* R :=
-{ to_fun := direct_sum.subgroup_coe_ring_hom A,
+def graded_ring.recompose : (⨁ i, 𝒜 i) ≃+* A :=
+{ to_fun := direct_sum.submodule_coe_alg_hom 𝒜,
   inv_fun := graded_ring.decompose,
   left_inv := graded_ring.left_inv,
   right_inv := graded_ring.right_inv,
@@ -55,9 +57,10 @@ def graded_ring.recompose : (⨁ i, A i) ≃+* R :=
   map_add' := ring_hom.map_add _, }
 
 @[simp] lemma graded_ring.decompose_def :
-  graded_ring.decompose = (graded_ring.recompose R A).symm := rfl
+  graded_ring.decompose = (graded_ring.recompose A 𝒜).symm := rfl
 
-@[simp] lemma graded_ring.recompose_of {i : ι} (x : A i) :
-  graded_ring.recompose R A (direct_sum.of _ i x) = x := direct_sum.subgroup_coe_ring_hom_of _ _ _
+@[simp] lemma graded_ring.recompose_of {i : ι} (x : 𝒜 i) :
+  graded_ring.recompose A 𝒜 (direct_sum.of _ i x) = x :=
+  direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
 end graded_ring

@@ -42,8 +42,8 @@ lemma graded_ring.is_internal [graded_algebra 𝒜] :
 
 variable [graded_algebra 𝒜]
 
-/-- If `A` is graded by `ι` with degree `i` component `𝒜 i`, then it is isomorphic as an algebra to a
-direct sum of components. -/
+/-- If `A` is graded by `ι` with degree `i` component `𝒜 i`, then it is isomorphic as 
+an algebra to a direct sum of components. -/
 def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
 { to_fun := direct_sum.submodule_coe_alg_hom 𝒜,
   inv_fun := graded_algebra.decompose',

@@ -791,8 +791,8 @@ open substructure
 /-- The substructure of elements `x : M` such that `f x = g x` -/
 def eq_locus (f g : M →[L] N) : substructure L M :=
 { carrier := {x : M | f x = g x},
-  fun_mem := λ n fn x hx, by {
-    have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
+  fun_mem := λ n fn x hx, by
+  { have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
     simp [h], } }
 
 /-- If two `L.hom`s are equal on a set, then they are equal on its substructure closure. -/

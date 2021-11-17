@@ -270,16 +270,16 @@ lemma to_quaternion_involute_reverse (c : clifford_algebra (Q c₁ c₂)) :
   to_quaternion (involute (reverse c)) = quaternion_algebra.conj (to_quaternion c) :=
 begin
   induction c using clifford_algebra.induction,
-  case h_grade0 : r {
-    simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
+  case h_grade0 : r
+  { simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
       quaternion_algebra.conj_coe], },
-  case h_grade1 : x {
-    rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
+  case h_grade1 : x
+  { rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
       quaternion_algebra.neg_mk, conj_mk, neg_zero], },
-  case h_mul : x₁ x₂ hx₁ hx₂ {
-    simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
-  case h_add : x₁ x₂ hx₁ hx₂ {
-    simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
+  case h_mul : x₁ x₂ hx₁ hx₂
+  { simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
+  case h_add : x₁ x₂ hx₁ hx₂
+  { simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
 end
 
 /-- Map a quaternion into the clifford algebra. -/
@@ -300,8 +300,8 @@ begin
   ext : 1,
   dsimp, -- before we end up with two goals and have to do this twice
   ext,
-  all_goals {
-    dsimp,
+  all_goals
+  { dsimp,
     rw to_quaternion_ι,
     dsimp,
     simp only [to_quaternion_ι, zero_smul, one_smul, zero_add, add_zero, ring_hom.map_zero], },

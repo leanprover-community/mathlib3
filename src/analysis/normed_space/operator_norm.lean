@@ -1153,8 +1153,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
         ((continuous_const.smul continuous_id).comp cont) },
     { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _ },
   end,
-  cont := cont
-}
+  cont := cont }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
 continuous_linear_map.coe_fn_injective $

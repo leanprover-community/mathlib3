@@ -33,8 +33,8 @@ lemma basis.tensor_product_apply (b : basis ι R M) (c : basis κ R N) (i : ι) 
 by simp [basis.tensor_product]
 
 lemma basis.tensor_product_apply' (b : basis ι R M) (c : basis κ R N) (i : ι × κ) :
-  (basis.tensor_product b c) i = b i.1 ⊗ₜ c i.2 :=
-by { dunfold basis.tensor_product, simp }
+  basis.tensor_product b c i = b i.1 ⊗ₜ c i.2 :=
+by simp [basis.tensor_product]
 
 end comm_ring
 

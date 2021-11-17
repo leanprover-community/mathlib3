@@ -21,10 +21,10 @@ variables (R A : Type*) [comm_semiring R] [ring A] [algebra R A]
   {ι : Type*} (𝒜 : ι → submodule R A)
   [decidable_eq ι] [add_comm_monoid ι]
 
-/-- A graded ring is a `ring R` such that `R` can be decomposed into a collection of
-  `add_subgroups R` indexed by `ι` such that the connonical map `R → ⨁ i, A i` is a bijective map
-  respecting multiplication, i.e. product of an element of degree `i` and an element of degree `j`
-  is an element of degree `i + j`.
+/-- A graded `R`-algebra `A` is an `R`-algebra `A` such that `A` can be decomposed into a collection
+of `submodule R A` indexed by `ι` such that the connonical map `A → ⨁ i, 𝒜 i` is a bijective map
+respecting multiplication, i.e. product of an element of degree `i` and an element of degree `j`
+is an element of degree `i + j`.
 -/
 class graded_algebra extends set_like.graded_monoid 𝒜 :=
 ( decompose : A → ⨁ i, 𝒜 i)

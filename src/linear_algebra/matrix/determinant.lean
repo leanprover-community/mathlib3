@@ -21,7 +21,7 @@ This file defines the determinant of a matrix, `matrix.det`, and its essential p
 ## Main definitions
 
  - `matrix.det`: the determinant of a square matrix, as a sum over permutations
- - `matrix.det_row_multilinear`: the determinant, as an `alternating_map` in the rows of the matrix
+ - `matrix.det_row_alternating`: the determinant, as an `alternating_map` in the rows of the matrix
 
 ## Main results
 
@@ -50,12 +50,12 @@ local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
 
 /-- `det` is an `alternating_map` in the rows of the matrix. -/
-def det_row_multilinear : alternating_map R (n → R) R n :=
+def det_row_alternating : alternating_map R (n → R) R n :=
 ((multilinear_map.mk_pi_algebra R n R).comp_linear_map (linear_map.proj)).alternatization
 
 /-- The determinant of a matrix given by the Leibniz formula. -/
 abbreviation det (M : matrix n n R) : R :=
-det_row_multilinear M
+det_row_alternating M
 
 lemma det_apply (M : matrix n n R) :
   M.det = ∑ σ : perm n, σ.sign • ∏ i, M (σ i) i :=
@@ -81,7 +81,7 @@ begin
 end
 
 @[simp] lemma det_zero (h : nonempty n) : det (0 : matrix n n R) = 0 :=
-(det_row_multilinear : alternating_map R (n → R) R n).map_zero
+(det_row_alternating : alternating_map R (n → R) R n).map_zero
 
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
@@ -206,7 +206,7 @@ end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans
+((det_row_alternating : alternating_map R (n → R) R n).map_perm M σ).trans
   (by simp [units.smul_def])
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
@@ -294,7 +294,7 @@ Prove that a matrix with a repeated column has determinant equal to zero.
 -/
 
 lemma det_eq_zero_of_row_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
-(det_row_multilinear : alternating_map R (n → R) R n).map_coord_zero i (funext h)
+(det_row_alternating : alternating_map R (n → R) R n).map_coord_zero i (funext h)
 
 lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
 by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
@@ -303,7 +303,7 @@ variables {M : matrix n n R} {i j : n}
 
 /-- If a matrix has a repeated row, the determinant will be zero. -/
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
-(det_row_multilinear : alternating_map R (n → R) R n).map_eq_zero_of_eq M hij i_ne_j
+(det_row_alternating : alternating_map R (n → R) R n).map_eq_zero_of_eq M hij i_ne_j
 
 /-- If a matrix has a repeated column, the determinant will be zero. -/
 theorem det_zero_of_column_eq (i_ne_j : i ≠ j) (hij : ∀ k, M k i = M k j) : M.det = 0 :=
@@ -313,7 +313,7 @@ end det_zero
 
 lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
   det (update_row M j $ u + v) = det (update_row M j u) + det (update_row M j v) :=
-(det_row_multilinear : alternating_map R (n → R) R n).map_add M j u v
+(det_row_alternating : alternating_map R (n → R) R n).map_add M j u v
 
 lemma det_update_column_add (M : matrix n n R) (j : n) (u v : n → R) :
   det (update_column M j $ u + v) = det (update_column M j u) + det (update_column M j v) :=
@@ -324,7 +324,7 @@ end
 
 lemma det_update_row_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_row M j $ s • u) = s * det (update_row M j u) :=
-(det_row_multilinear : alternating_map R (n → R) R n).map_smul M j s u
+(det_row_alternating : alternating_map R (n → R) R n).map_smul M j s u
 
 lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_column M j $ s • u) = s * det (update_column M j u) :=
@@ -513,7 +513,7 @@ begin
     rintros ⟨k, x⟩,
     simp only [prod_congr_left_apply] },
   { intros σ _,
-    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
+    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product_right],
     simp only [sign_prod_congr_left, units.coe_prod, int.cast_prod, block_diagonal_apply_eq,
       prod_congr_left_apply] },
   { intros σ σ' _ _ eq,

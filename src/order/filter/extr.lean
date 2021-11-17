@@ -540,3 +540,21 @@ lemma filter.eventually_eq.is_extr_filter_iff {α β : Type*} [preorder β] {f g
 ⟨λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm⟩
 
 end eventually
+
+/-! ### `is_max_on`/`is_min_on` imply `csupr`/`cinfi` -/
+
+section conditionally_complete_linear_order
+variables [conditionally_complete_linear_order α] {f : β → α} {s : set β} {x₀ : β}
+
+lemma is_max_on.supr_eq (hx₀ : x₀ ∈ s) (h : is_max_on f s x₀) :
+  (⨆ x : s, f x) = f x₀ :=
+begin
+  haveI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
+  exact csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ x, h x.prop) (λ w hw, ⟨⟨x₀, hx₀⟩, hw⟩),
+end
+
+lemma is_min_on.infi_eq (hx₀ : x₀ ∈ s) (h : is_min_on f s x₀) :
+  (⨅ x : s, f x) = f x₀ :=
+@is_max_on.supr_eq (order_dual α) β _ _ _ _ hx₀ h
+
+end conditionally_complete_linear_order

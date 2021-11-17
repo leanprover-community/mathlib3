@@ -167,9 +167,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use max X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨left_to_max _ _⟩, },
-    { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨left_to_max _ _⟩, },
+    { exact ⟨(w' (finset.mem_of_mem_insert_of_ne mY h)).some ≫ right_to_max _ _⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
@@ -540,9 +540,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use min X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨min_to_left _ _⟩, },
-    { exact ⟨min_to_right _ _ ≫ (w' (by finish)).some⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨min_to_left _ _⟩, },
+    { exact ⟨min_to_right _ _ ≫ (w' (finset.mem_of_mem_insert_of_ne mY h)).some⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))

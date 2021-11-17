@@ -81,6 +81,10 @@ set_smul_subset_iff
 lemma subset_pointwise_smul_iff {a : α} {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
 
+/-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
+@[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
+(mul_distrib_mul_action.to_mul_equiv G a).subgroup_equiv_map H
+
 end group
 
 section group_with_zero

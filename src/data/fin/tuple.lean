@@ -201,6 +201,22 @@ end
   append (fin.elim0 : _ → α) v = v ∘ fin.cast (zero_add _) :=
 append_left_nil _ _ rfl
 
+lemma append_assoc {p : ℕ} {α : Type*} (a : fin m → α) (b : fin n → α) (c : fin p → α) :
+  append (append a b) c = append a (append b c) ∘ fin.cast (add_assoc _ _ _) :=
+begin
+  ext i,
+  rw function.comp_apply,
+  apply fin.add_cases (λ l, _) (λ r, _) i,
+  { rw append_left,
+    apply fin.add_cases (λ ll, _) (λ lr, _) l,
+    { rw append_left,
+      simp [cast_add_cast_add] },
+    { rw append_right,
+      simp [cast_add_nat_add], }, },
+  { rw [append_right],
+    simp [←nat_add_nat_add] },
+end
+
 end append
 
 section repeat

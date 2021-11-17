@@ -506,7 +506,7 @@ lemma of_map_of_injective (hf : injective f) (h : is_primitive_root (f ζ) k) :
     exact order_of_dvd_of_pow_eq_one hl
   end }
 
-lemma iff_injective (hf : injective f) : is_primitive_root (f ζ) k ↔ is_primitive_root ζ k :=
+lemma map_iff_of_injective (hf : injective f) : is_primitive_root (f ζ) k ↔ is_primitive_root ζ k :=
 ⟨λ h, h.of_map_of_injective hf, λ h, h.map_of_injective hf⟩
 
 end comm_semiring

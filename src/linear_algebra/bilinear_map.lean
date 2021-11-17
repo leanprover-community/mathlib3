@@ -31,34 +31,36 @@ namespace linear_map
 section semiring
 
 variables {R : Type*} [semiring R] {S : Type*} [semiring S]
+variables {R₂ : Type*} [semiring R₂] {S₂ : Type*} [semiring S₂]
 variables {M : Type*} {N : Type*} {P : Type*}
 variables {M' : Type*} {N' : Type*} {P' : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
 variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P']
-variables [module R M] [module S N] [module R P] [module S P]
+variables [module R M] [module S N] [module R₂ P] [module S₂ P]
 variables [module R M'] [module S N'] [module R P'] [module S P']
-variables [smul_comm_class S R P] [smul_comm_class S R P']
+variables [smul_comm_class S₂ R₂ P] [smul_comm_class S R P']
+variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
 include R
 
 variables (R S)
 /-- Create a bilinear map from a function that is linear in each component.
 See `mk₂` for the special case where both arguments come from modules over the same ring. -/
-def mk₂' (f : M → N → P)
+def mk₂' (f : M → N → P')
   (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
   (H2 : ∀ (c:R) m n, f (c • m) n = c • f m n)
   (H3 : ∀ m n₁ n₂, f m (n₁ + n₂) = f m n₁ + f m n₂)
-  (H4 : ∀ (c:S) m n, f m (c • n) = c • f m n) : M →ₗ[R] N →ₗ[S] P :=
+  (H4 : ∀ (c:S) m n, f m (c • n) = c • f m n) : M →ₗ[R] N →ₗ[S] P' :=
 { to_fun := λ m, { to_fun := f m, map_add' := H3 m, map_smul' := λ c, H4 c m},
   map_add' := λ m₁ m₂, linear_map.ext $ H1 m₁ m₂,
   map_smul' := λ c m, linear_map.ext $ H2 c m }
 variables {R S}
 
 @[simp] theorem mk₂'_apply
-  (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
-  (mk₂' R S f H1 H2 H3 H4 : M →ₗ[R] N →ₗ[S] P) m n = f m n := rfl
+  (f : M → N → P') {H1 H2 H3 H4} (m : M) (n : N) :
+  (mk₂' R S f H1 H2 H3 H4 : M →ₗ[R] N →ₗ[S] P') m n = f m n := rfl
 
-theorem ext₂ {f g : M →ₗ[R] N →ₗ[S] P}
+theorem ext₂ {f g : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
   (H : ∀ m n, f m n = g m n) : f = g :=
 linear_map.ext (λ m, linear_map.ext $ λ n, H m n)
 
@@ -66,15 +68,17 @@ section
 
 local attribute [instance] smul_comm_class.symm
 
+set_option trace.class_instances true
 /-- Given a linear map from `M` to linear maps from `N` to `P`, i.e., a bilinear map from `M × N` to
 `P`, change the order of variables and get a linear map from `N` to linear maps from `M` to `P`. -/
-def flip (f : M →ₗ[R] N →ₗ[S] P) : N →ₗ[S] M →ₗ[R] P :=
+def flip (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) : N →ₛₗ[σ₁₂] M →ₛₗ[ρ₁₂] P :=
 mk₂' S R (λ n m, f m n)
   (λ n₁ n₂ m, (f m).map_add _ _)
   (λ c n m, (f m).map_smul _ _)
   (λ n m₁ m₂, by rw f.map_add; refl)
   (λ c n m, by rw f.map_smul; refl)
 
+set_option trace.class_instances false
 end
 
 @[simp] theorem flip_apply (f : M →ₗ[R] N →ₗ[S] P) (m : M) (n : N) : flip f n m = f m n := rfl

@@ -1069,3 +1069,18 @@ end
 end nat
 
 end cauchy_product
+
+section ring_hom_isometric
+
+variables {R₁ : Type*} {R₂ : Type*}
+
+class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_norm R₂]
+  (σ : R₁ →+* R₂) : Prop :=
+(is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)
+
+attribute [simp] ring_hom_isometric.is_iso
+
+instance ring_hom_isometric.ids [semi_normed_ring R₁] : ring_hom_isometric (ring_hom.id R₁) :=
+⟨λ x, rfl⟩
+
+end ring_hom_isometric

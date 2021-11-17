@@ -1716,7 +1716,7 @@ to_bilin_to_matrix b B₃ ▸ (matrix.nondegenerate_of_det_ne_zero h).to_bilin b
 
 lemma to_bilin'_nondegenerate_iff_to_bilin_nondegenerate {M : matrix ι ι R₃}
   (b : basis ι R₃ M₃) : (matrix.to_bilin' M).nondegenerate ↔ (matrix.to_bilin b M).nondegenerate :=
-(congr_nondegenerate_iff b.equiv_fun.symm).symm
+(nondegenerate_congr_iff b.equiv_fun.symm).symm
 
 lemma nondegenerate_iff_det_ne_zero (B : bilin_form A M₃)
   (b : basis ι A M₃) : B.nondegenerate ↔ ((bilin_form.to_matrix b) B).det ≠ 0 :=

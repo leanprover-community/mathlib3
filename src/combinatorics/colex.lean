@@ -109,8 +109,8 @@ begin
   rintro ⟨k, z, ka, _⟩,
   refine ⟨f k, λ x hx, _, _, k, ‹k ∈ B›, rfl⟩,
   { split,
-    any_goals {
-      rintro ⟨x', hx', rfl⟩,
+    any_goals
+    { rintro ⟨x', hx', rfl⟩,
       refine ⟨x', _, rfl⟩,
       rwa ← z _ <|> rwa z _,
       rwa strict_mono.lt_iff_lt h₁ at hx } },

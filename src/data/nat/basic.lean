@@ -1045,8 +1045,8 @@ end
 
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
-  conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+  conv_lhs
+  { rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
         add_mul_mod_self_right] }
 end

@@ -581,8 +581,7 @@ def reflection : E ≃ₗᵢ[𝕜] E :=
         linear_map.comp_apply, submodule.subtype_apply,
         continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe],
       dsimp [w, v],
-      abel,
-      },
+      abel, },
     { simp only [add_sub_cancel'_right, eq_self_iff_true], }
   end,
   ..reflection_linear_equiv K }

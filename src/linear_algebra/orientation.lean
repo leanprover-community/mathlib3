@@ -200,13 +200,10 @@ namespace ray_vector
 variables {R}
 
 /-- Negating a nonzero vector. -/
-instance : has_neg (ray_vector M) :=
-⟨λ ⟨v, hv⟩, ⟨-v, by rw neg_ne_zero; exact hv⟩⟩
+instance : has_neg (ray_vector M) := ⟨λ v, ⟨-v, neg_ne_zero.2 v.prop⟩⟩
 
 /-- Negating a nonzero vector commutes with coercion to the underlying module. -/
-@[simp, norm_cast] lemma coe_neg (v : ray_vector M) :
-  ((-v : ray_vector M) : M) = -(v : M) :=
-by cases v; refl
+@[simp, norm_cast] lemma coe_neg (v : ray_vector M) : ↑(-v) = -(v : M) := rfl
 
 /-- Negating a nonzero vector twice produces the original vector. -/
 @[simp] protected lemma neg_neg (v : ray_vector M) : -(-v) = v :=

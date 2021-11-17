@@ -63,15 +63,13 @@ lemma transitive_same_ray :
   ⟨r₃ * r₁, r₂ * r₄, mul_pos hr₃ hr₁, mul_pos hr₂ hr₄,
    by rw [mul_smul, mul_smul, h₁, ←h₂, smul_comm]⟩
 
-variables [nontrivial R]
-
 /-- `same_ray` is reflexive. -/
-lemma reflexive_same_ray :
+lemma reflexive_same_ray [nontrivial R] :
   reflexive (same_ray R : M → M → Prop) :=
 λ _, ⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩
 
 /-- `same_ray` is an equivalence relation. -/
-lemma equivalence_same_ray :
+lemma equivalence_same_ray [nontrivial R] :
   equivalence (same_ray R : M → M → Prop) :=
 ⟨reflexive_same_ray R M, symmetric_same_ray R M, transitive_same_ray R M⟩
 
@@ -105,12 +103,12 @@ def same_ray_setoid [nontrivial R] : setoid M :=
 def ray_vector.same_ray_setoid [nontrivial R] : setoid (ray_vector M) :=
 (same_ray_setoid R M).comap coe
 
-local attribute [instance] same_ray_setoid
+local attribute [instance] ray_vector.same_ray_setoid
 
 variables {R M}
 
 /-- Equivalence of nonzero vectors, in terms of same_ray. -/
-lemma equiv_iff_same_ray (v₁ v₂ : ray_vector M) :
+lemma equiv_iff_same_ray [nontrivial R] (v₁ v₂ : ray_vector M) :
   v₁ ≈ v₂ ↔ same_ray R (v₁ : M) v₂ :=
 iff.rfl
 
@@ -118,32 +116,32 @@ variables (R M)
 
 /-- A ray (equivalence class of nonzero vectors with common positive multiples) in a module. -/
 @[nolint has_inhabited_instance]
-def module.ray := quotient (same_ray_setoid R M)
+def module.ray [nontrivial R] := quotient (ray_vector.same_ray_setoid R M)
 
 /-- An orientation of a module, intended to be used when `ι` is a `fintype` with the same
 cardinality as a basis. -/
-abbreviation orientation := module.ray R (alternating_map R M R ι)
+abbreviation orientation [nontrivial R] := module.ray R (alternating_map R M R ι)
 
 /-- A type class fixing an orientation of a module. -/
-class module.oriented :=
+class module.oriented [nontrivial R] :=
 (positive_orientation : orientation R M ι)
 
 variables {M}
 
 /-- The ray given by a nonzero vector. -/
-protected def ray_of_ne_zero {v : M} (h : v ≠ 0) : module.ray R M :=
+protected def ray_of_ne_zero [nontrivial R] {v : M} (h : v ≠ 0) : module.ray R M :=
 ⟦⟨v, h⟩⟧
 
 /-- The rays given by two nonzero vectors are equal if and only if those vectors
 satisfy `same_ray`. -/
-lemma ray_eq_iff {v₁ v₂ : M} (hv₁ : v₁ ≠ 0) (hv₂ : v₂ ≠ 0) :
+lemma ray_eq_iff [nontrivial R] {v₁ v₂ : M} (hv₁ : v₁ ≠ 0) (hv₂ : v₂ ≠ 0) :
   ray_of_ne_zero R hv₁ = ray_of_ne_zero R hv₂ ↔ same_ray R v₁ v₂ :=
 quotient.eq
 
 variables {R}
 
 /-- The ray given by a positive multiple of a nonzero vector. -/
-@[simp] lemma ray_pos_smul {v : M} (h : v ≠ 0) {r : R} (hr : 0 < r)
+@[simp] lemma ray_pos_smul [nontrivial R] {v : M} (h : v ≠ 0) {r : R} (hr : 0 < r)
   (hrv : r • v ≠ 0) : ray_of_ne_zero R hrv = ray_of_ne_zero R h :=
 begin
   rw ray_eq_iff,
@@ -153,11 +151,11 @@ end
 namespace module.ray
 
 /-- An arbitrary `ray_vector` giving a ray. -/
-def some_ray_vector (x : module.ray R M) : ray_vector M :=
+def some_ray_vector [nontrivial R] (x : module.ray R M) : ray_vector M :=
 quotient.out x
 
 /-- The ray of `some_ray_vector`. -/
-@[simp] lemma some_ray_vector_ray (x : module.ray R M) :
+@[simp] lemma some_ray_vector_ray [nontrivial R] (x : module.ray R M) :
   (⟦x.some_ray_vector⟧ : module.ray R M) = x :=
 begin
   rw some_ray_vector,
@@ -165,15 +163,16 @@ begin
 end
 
 /-- An arbitrary nonzero vector giving a ray. -/
-def some_vector (x : module.ray R M) : M :=
+def some_vector [nontrivial R] (x : module.ray R M) : M :=
 x.some_ray_vector
 
 /-- `some_vector` is nonzero. -/
-@[simp] lemma some_vector_ne_zero (x : module.ray R M) : x.some_vector ≠ 0 :=
+@[simp] lemma some_vector_ne_zero [nontrivial R] (x : module.ray R M) : x.some_vector ≠ 0 :=
 x.some_ray_vector.property
 
 /-- The ray of `some_vector`. -/
-@[simp] lemma some_vector_ray (x : module.ray R M) : ray_of_ne_zero R x.some_vector_ne_zero = x :=
+@[simp] lemma some_vector_ray [nontrivial R] (x : module.ray R M) :
+  ray_of_ne_zero R x.some_vector_ne_zero = x :=
 begin
   convert some_ray_vector_ray x,
   rw ray_of_ne_zero,
@@ -188,7 +187,7 @@ end ordered_comm_semiring
 
 section ordered_comm_ring
 
-local attribute [instance] same_ray_setoid
+local attribute [instance] ray_vector.same_ray_setoid
 
 variables (R : Type*) [ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
@@ -212,24 +211,22 @@ instance : has_neg (ray_vector M) := ⟨λ v, ⟨-v, neg_ne_zero.2 v.prop⟩⟩
 @[simp] protected lemma neg_neg (v : ray_vector M) : -(-v) = v :=
 by rw [subtype.ext_iff, coe_neg, coe_neg, neg_neg]
 
-variables (R) [nontrivial R]
-
-include R
+variables (R)
 
 /-- If two nonzero vectors are equivalent, so are their negations. -/
-@[simp] lemma equiv_neg_iff (v₁ v₂ : ray_vector M) : -v₁ ≈ -v₂ ↔ v₁ ≈ v₂ :=
+@[simp] lemma equiv_neg_iff [nontrivial R] (v₁ v₂ : ray_vector M) : -v₁ ≈ -v₂ ↔ v₁ ≈ v₂ :=
 by rw [equiv_iff_same_ray, equiv_iff_same_ray, coe_neg, coe_neg, same_ray_neg_iff]
 
 end ray_vector
 
-variables (R) [nontrivial R]
+variables (R)
 
 /-- Negating a ray. -/
-instance : has_neg (module.ray R M) :=
+instance [nontrivial R] : has_neg (module.ray R M) :=
 ⟨quotient.map (λ v, -v) (λ v₁ v₂, (ray_vector.equiv_neg_iff R v₁ v₂).2)⟩
 
 /-- The ray given by the negation of a nonzero vector. -/
-lemma ray_neg (v : M) (h : v ≠ 0) :
+lemma ray_neg [nontrivial R] (v : M) (h : v ≠ 0) :
   ray_of_ne_zero R (show -v ≠ 0, by rw neg_ne_zero; exact h) = -(ray_of_ne_zero R h) :=
 rfl
 
@@ -238,7 +235,7 @@ namespace module.ray
 variables {R}
 
 /-- Negating a ray twice produces the original ray. -/
-@[simp] protected lemma neg_neg (x : module.ray R M) : -(-x) = x :=
+@[simp] protected lemma neg_neg [nontrivial R] (x : module.ray R M) : -(-x) = x :=
 begin
   rw [←some_vector_ray x, ←ray_neg, ←ray_neg],
   congr,
@@ -252,7 +249,7 @@ namespace basis
 variables {R} {ι : Type*} [fintype ι] [decidable_eq ι]
 
 /-- The orientation given by a basis. -/
-protected def orientation (e : basis ι R M) : orientation R M ι :=
+protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
 ray_of_ne_zero R e.det_ne_zero
 
 end basis

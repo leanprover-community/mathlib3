@@ -104,8 +104,8 @@ let ⟨b, hb⟩ := hg.2 y hy in
 lemma is_cycle.exists_pow_eq [fintype β] {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℕ, (f ^ i) x = y :=
 let ⟨n, hn⟩ := hf.exists_zpow_eq hx hy in
-by classical; exact ⟨(n % order_of f).to_nat, by {
-  have := n.mod_nonneg (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
+by classical; exact ⟨(n % order_of f).to_nat, by
+{ have := n.mod_nonneg (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
   rwa [← zpow_coe_nat, int.to_nat_of_nonneg this, ← zpow_eq_mod_order_of] }⟩
 
 lemma is_cycle.exists_pow_eq_one [fintype β] {f : perm β} (hf : is_cycle f) :

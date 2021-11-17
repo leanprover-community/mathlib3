@@ -589,6 +589,9 @@ def cast (eq : n = m) : fin n ≃o fin m :=
 
 @[simp] lemma symm_cast (h : n = m) : (cast h).symm = cast h.symm := rfl
 
+/-- While `fin.coe_order_iso_apply` is a more general case of this, we mark this `simp` anyway
+as it is eligible for `dsimp`. -/
+@[simp]
 lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 
 @[simp] lemma cast_mk (h : n = m) (i : ℕ) (hn : i < n) :
@@ -627,6 +630,28 @@ ext rfl
 @[simp] lemma cast_lt_cast_add (m : ℕ) (i : fin n) :
   cast_lt (cast_add m i) (cast_add_lt m i) = i :=
 ext rfl
+
+/-- For rewriting in the reverse direction, see `fin.cast_cast_add_left`. -/
+lemma cast_add_cast {n n' : ℕ} (m : ℕ) (i : fin n') (h : n' = n) :
+  cast_add m (fin.cast h i) = fin.cast (congr_arg _ h) (cast_add m i) :=
+ext rfl
+
+lemma cast_cast_add_left {n n' m : ℕ} (i : fin n') (h : n' + m = n + m) :
+  cast h (cast_add m i) = cast_add m (cast (add_right_cancel h) i) :=
+ext rfl
+
+@[simp] lemma cast_cast_add_right {n m m' : ℕ} (i : fin n) (h : n + m' = n + m) :
+  cast h (cast_add m' i) = cast_add m i :=
+ext rfl
+
+/-- The cast of the successor is the succesor of the cast. See `fin.succ_cast_eq` for rewriting in
+the reverse direction. -/
+@[simp] lemma cast_succ_eq {n' : ℕ} (i : fin n) (h : n.succ = n'.succ) :
+  cast h i.succ = (cast (nat.succ.inj h) i).succ :=
+ext $ by simp
+
+lemma succ_cast_eq {n' : ℕ} (i : fin n) (h : n = n') : (cast h i).succ = cast (by rw h) i.succ :=
+ext $ by simp
 
 /-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
@@ -726,6 +751,23 @@ lemma le_coe_add_nat (m : ℕ) (i : fin n) : m ≤ add_nat m i := nat.le_add_lef
 @[simp] lemma add_nat_mk (n i : ℕ) (hi : i < m) :
   add_nat n ⟨i, hi⟩ = ⟨i + n, add_lt_add_right hi n⟩ := rfl
 
+@[simp] lemma cast_add_nat_zero {n n' : ℕ} (i : fin n) (h : n + 0 = n') :
+  cast h (add_nat 0 i) = cast ((add_zero _).symm.trans h) i :=
+ext $ add_zero _
+
+/-- For rewriting in the reverse direction, see `fin.cast_add_nat_left`. -/
+lemma add_nat_cast {n n' m : ℕ} (i : fin n') (h : n' = n) :
+  add_nat m (cast h i) = cast (congr_arg _ h) (add_nat m i) :=
+ext rfl
+
+lemma cast_add_nat_left {n n' m : ℕ} (i : fin n') (h : n' + m = n + m) :
+  cast h (add_nat m i) = add_nat m (cast (add_right_cancel h) i) :=
+ext rfl
+
+@[simp] lemma cast_add_nat_right {n m m' : ℕ} (i : fin n) (h : n + m' = n + m) :
+  cast h (add_nat m' i) = add_nat m i :=
+ext $ (congr_arg ((+) (i : ℕ)) (add_left_cancel h) : _)
+
 /-- `nat_add n i` adds `n` to `i` "on the left". -/
 def nat_add (n) {m} : fin m ↪o fin (n + m) :=
 order_embedding.of_strict_mono (λ i, ⟨n + (i : ℕ), add_lt_add_left i.2 _⟩) $
@@ -740,6 +782,23 @@ lemma le_coe_nat_add (m : ℕ) (i : fin n) : m ≤ nat_add m i := nat.le_add_rig
 
 lemma nat_add_zero {n : ℕ} : fin.nat_add 0 = (fin.cast (zero_add n).symm).to_rel_embedding :=
 by { ext, apply zero_add }
+
+/-- For rewriting in the reverse direction, see `fin.cast_nat_add_right`. -/
+lemma nat_add_cast {n n' : ℕ} (m : ℕ) (i : fin n') (h : n' = n) :
+  nat_add m (cast h i) = cast (congr_arg _ h) (nat_add m i) :=
+ext rfl
+
+lemma cast_nat_add_right {n n' m : ℕ} (i : fin n') (h : m + n' = m + n) :
+  cast h (nat_add m i) = nat_add m (cast (add_left_cancel h) i) :=
+ext rfl
+
+@[simp] lemma cast_nat_add_left {n m m' : ℕ} (i : fin n) (h : m' + n = m + n) :
+  cast h (nat_add m' i) = nat_add m i :=
+ext $ (congr_arg (+ (i : ℕ)) (add_right_cancel h) : _)
+
+@[simp] lemma cast_nat_add_zero {n n' : ℕ} (i : fin n) (h : 0 + n = n') :
+  cast h (nat_add 0 i) = cast ((zero_add _).symm.trans h) i :=
+ext $ zero_add _
 
 @[simp] lemma cast_nat_add (n : ℕ) {m : ℕ} (i : fin m) :
   cast (add_comm _ _) (nat_add n i) = add_nat n i :=

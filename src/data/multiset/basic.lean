@@ -2204,8 +2204,8 @@ lemma rel.mono {r p : α → β → Prop} {s t} (hst : rel r s t) (h : ∀(a ∈
 begin
   induction hst,
   case rel.zero { exact rel.zero },
-  case rel.cons : a b s t hab hst ih {
-    apply rel.cons (h a (mem_cons_self _ _) b (mem_cons_self _ _) hab),
+  case rel.cons : a b s t hab hst ih
+  { apply rel.cons (h a (mem_cons_self _ _) b (mem_cons_self _ _) hab),
     exact ih (λ a' ha' b' hb' h', h a' (mem_cons_of_mem ha') b' (mem_cons_of_mem hb') h') }
 end
 

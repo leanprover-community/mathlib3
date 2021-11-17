@@ -554,12 +554,12 @@ variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorizatio
 
 /-- Noncomputably defines a `normalization_monoid` structure on a `unique_factorization_monoid`. -/
 protected def normalization_monoid : normalization_monoid α :=
-normalization_monoid_of_monoid_hom_right_inverse {
-  to_fun := λ a : associates α, if a = 0 then 0 else ((normalized_factors a).map
+normalization_monoid_of_monoid_hom_right_inverse
+{ to_fun := λ a : associates α, if a = 0 then 0 else ((normalized_factors a).map
     (classical.some mk_surjective.has_right_inverse : associates α → α)).prod,
   map_one' := by simp,
-  map_mul' := λ x y, by {
-    by_cases hx : x = 0, { simp [hx] },
+  map_mul' := λ x y, by
+  { by_cases hx : x = 0, { simp [hx] },
     by_cases hy : y = 0, { simp [hy] },
     simp [hx, hy] } } begin
   intro x,
@@ -1281,26 +1281,26 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
   [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
 { gcd := λa b, quot.out (associates.mk a ⊓ associates.mk b : associates α),
   lcm := λa b, quot.out (associates.mk a ⊔ associates.mk b : associates α),
-  gcd_dvd_left := λ a b, by {
-    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out, dvd_eq_le],
+  gcd_dvd_left := λ a b, by
+  { rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out, dvd_eq_le],
     exact inf_le_left },
-  gcd_dvd_right := λ a b, by {
-    rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out, dvd_eq_le],
+  gcd_dvd_right := λ a b, by
+  { rw [←mk_dvd_mk, (associates.mk a ⊓ associates.mk b).quot_out, dvd_eq_le],
     exact inf_le_right },
-  dvd_gcd := λ a b c hac hab, by {
-    rw [←mk_dvd_mk, (associates.mk c ⊓ associates.mk b).quot_out, dvd_eq_le,
+  dvd_gcd := λ a b c hac hab, by
+  { rw [←mk_dvd_mk, (associates.mk c ⊓ associates.mk b).quot_out, dvd_eq_le,
       le_inf_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff],
     exact ⟨hac, hab⟩ },
-  lcm_zero_left := λ a, by {
-    have : associates.mk (0 : α) = ⊤ := rfl,
+  lcm_zero_left := λ a, by
+  { have : associates.mk (0 : α) = ⊤ := rfl,
     rw [this, top_sup_eq, ←this, ←associated_zero_iff_eq_zero, ←mk_eq_mk_iff_associated,
       ←associated_iff_eq, associates.quot_out] },
-  lcm_zero_right := λ a, by {
-    have : associates.mk (0 : α) = ⊤ := rfl,
+  lcm_zero_right := λ a, by
+  { have : associates.mk (0 : α) = ⊤ := rfl,
     rw [this, sup_top_eq, ←this, ←associated_zero_iff_eq_zero, ←mk_eq_mk_iff_associated,
       ←associated_iff_eq, associates.quot_out] },
-  gcd_mul_lcm := λ a b, by {
-    rw [←mk_eq_mk_iff_associated, ←associates.mk_mul_mk, ←associated_iff_eq, associates.quot_out,
+  gcd_mul_lcm := λ a b, by
+  { rw [←mk_eq_mk_iff_associated, ←associates.mk_mul_mk, ←associated_iff_eq, associates.quot_out,
       associates.quot_out, mul_comm, sup_mul_inf, associates.mk_mul_mk] } }
 
 /-- `to_normalized_gcd_monoid` constructs a GCD monoid out of a normalization on a
@@ -1317,8 +1317,8 @@ noncomputable def unique_factorization_monoid.to_normalized_gcd_monoid
     by rw [dvd_out_iff, le_inf_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff]; exact ⟨hac, hab⟩,
   lcm_zero_left := assume a, show (⊤ ⊔ associates.mk a).out = 0, by simp,
   lcm_zero_right := assume a, show (associates.mk a ⊔ ⊤).out = 0, by simp,
-  gcd_mul_lcm := assume a b, by {
-    rw [← out_mul, mul_comm, sup_mul_inf, mk_mul_mk, out_mk],
+  gcd_mul_lcm := assume a b, by
+  { rw [← out_mul, mul_comm, sup_mul_inf, mk_mul_mk, out_mk],
     exact normalize_associated (a * b) },
   normalize_gcd := assume a b, by convert normalize_out _,
   normalize_lcm := assume a b, by convert normalize_out _,

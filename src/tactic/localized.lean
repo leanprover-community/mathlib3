@@ -21,8 +21,8 @@ The code is inspired by code from Gabriel Ebner from the
 open lean lean.parser interactive tactic native
 
 @[user_attribute]
-meta def localized_attr : user_attribute (rb_lmap name string) unit := {
-  name := "_localized",
+meta def localized_attr : user_attribute (rb_lmap name string) unit :=
+{ name := "_localized",
   descr := "(interal) attribute that flags localized commands",
   parser := failed,
   cache_cfg := ⟨λ ns, (do dcls ← ns.mmap (λ n, mk_const n >>= eval_expr (name × string)),

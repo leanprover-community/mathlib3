@@ -625,21 +625,21 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', multilinear_map.smul_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply, dom_coprod.summand],
   intro hσ,
-  with_cases {
-    cases hi : σ⁻¹ i;
+  with_cases
+  { cases hi : σ⁻¹ i;
       cases hj : σ⁻¹ j;
       rw perm.inv_eq_iff_eq at hi hj;
       substs hi hj, },
-  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j'] {
-    -- the term pairs with and cancels another term
+  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
+  { -- the term pairs with and cancels another term
     all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
     work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
-    all_goals {
-      rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
+    all_goals
+    { rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
-  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j'] {
-    -- the term does not pair but is zero
+  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
+  { -- the term does not pair but is zero
     all_goals { convert smul_zero _, },
     work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
     work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
@@ -752,8 +752,8 @@ begin
   apply σ.induction_on' (λ σ, _),
 
   -- unfold the quotient mess left by `finset.sum_partition`
-  conv in (_ = quotient.mk' _) {
-    change quotient.mk' _ = quotient.mk' _,
+  conv in (_ = quotient.mk' _)
+  { change quotient.mk' _ = quotient.mk' _,
     rw quotient.eq',
     rw [quotient_group.left_rel],
     dsimp only [setoid.r] },

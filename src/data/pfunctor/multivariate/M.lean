@@ -218,8 +218,8 @@ begin
   cases x with a₁ f₁,
   cases y with a₂ f₂,
   dsimp [Mp] at *,
-  have : a₁ = a₂, {
-    refine pfunctor.M.bisim
+  have : a₁ = a₂,
+  { refine pfunctor.M.bisim
       (λ a₁ a₂, ∃ x y, R x y ∧ x.1 = a₁ ∧ y.1 = a₂) _ _ _
       ⟨⟨a₁, f₁⟩, ⟨a₂, f₂⟩, r, rfl, rfl⟩,
     rintro _ _ ⟨⟨a₁, f₁⟩, ⟨a₂, f₂⟩, r, rfl, rfl⟩,
@@ -230,8 +230,8 @@ begin
     exact ⟨_, _, _, rfl, rfl, λ b, ⟨_, _, h' b, rfl, rfl⟩⟩ },
   subst this, congr' with i p,
   induction p with x a f h' i c x a f h' i c p IH generalizing f₁ f₂;
-  try {
-    rcases h _ _ r with ⟨a', f', f₁', f₂', e₁, e₂, h''⟩,
+  try
+  { rcases h _ _ r with ⟨a', f', f₁', f₂', e₁, e₂, h''⟩,
     rcases M.bisim_lemma P e₁ with ⟨g₁', e₁', rfl, rfl⟩,
     rcases M.bisim_lemma P e₂ with ⟨g₂', e₂', e₃, rfl⟩,
     cases h'.symm.trans e₁',

@@ -73,8 +73,8 @@ def cech_nerve : arrow C ⥤ simplicial_object C :=
   map_comp' := begin
     intros f g h F G,
     ext,
-    all_goals {
-      dsimp,
+    all_goals
+    { dsimp,
       simp only [category.assoc, limits.wide_pullback.lift_base,
         limits.wide_pullback.lift_π, limits.limit.lift_π_assoc],
       simpa only [← category.assoc] },
@@ -217,8 +217,8 @@ def cech_conerve : arrow C ⥤ cosimplicial_object C :=
   map_comp' := begin
     intros f g h F G,
     ext,
-    all_goals {
-      dsimp,
+    all_goals
+    { dsimp,
       simp only [category.assoc, limits.wide_pushout.head_desc_assoc,
         limits.wide_pushout.ι_desc_assoc, limits.colimit.ι_desc],
       simpa only [← category.assoc], },

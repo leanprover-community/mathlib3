@@ -178,8 +178,7 @@ add_tactic_doc
 { name := "measurability / measurability'",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.measurability, `tactic.interactive.measurability'],
-  tags := ["lemma application"]
-}
+  tags := ["lemma application"] }
 
 end interactive
 

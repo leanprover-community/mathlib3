@@ -407,8 +407,8 @@ exception that meta variables -/
 private meta def monotonicity.generalize' (h : name) (v : expr) (x : name) : tactic (expr × expr) :=
 do tgt ← target,
    t ← infer_type v,
-   tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize v x >> target),
+   tgt' ← do
+   { ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize v x >> target),
      to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1)) }
    <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
    t ← head_beta (tgt' v) >>= assert h,

@@ -344,8 +344,8 @@ namespace module
 @[simps]
 def comp_hom.to_linear_map {R S : Type*} [semiring R] [semiring S] (g : R →+* S) :
   (by haveI := comp_hom S g; exact (R →ₗ[R] S)) :=
-by exact {
-  to_fun := (g : R → S),
+by exact
+{ to_fun := (g : R → S),
   map_add' := g.map_add,
   map_smul' := g.map_mul }
 
@@ -570,12 +570,12 @@ instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
   sub := has_sub.sub,
   sub_eq_add_neg := λ f g, linear_map.ext $ λ m, sub_eq_add_neg _ _,
   add_left_neg := λ f, linear_map.ext $ λ m, add_left_neg _,
-  nsmul := λ n f, {
-    to_fun := λ x, n • (f x),
+  nsmul := λ n f,
+  { to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  zsmul := λ n f, {
-    to_fun := λ x, n • (f x),
+  zsmul := λ n f,
+  { to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
   zsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,

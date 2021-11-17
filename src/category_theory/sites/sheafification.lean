@@ -228,8 +228,8 @@ begin
     ext I,
     apply_fun (multiequalizer.ι (W.unop.index P) I) at hh,
     convert hh,
-    all_goals {
-      dsimp [diagram],
+    all_goals
+    { dsimp [diagram],
       simp only [← comp_apply, multiequalizer.lift_ι, category.comp_id, meq.equiv_symm_eq_apply],
       cases I, refl } },
   { rintros ⟨S,h1,h2,e⟩,
@@ -239,8 +239,8 @@ begin
     intros i,
     apply_fun (λ ee, ee i) at e,
     convert e,
-    all_goals {
-      dsimp [diagram],
+    all_goals
+    { dsimp [diagram],
       simp only [← comp_apply, multiequalizer.lift_ι, meq.equiv_symm_eq_apply],
       cases i, refl } },
 end
@@ -396,8 +396,8 @@ begin
   ext IV,
   dsimp only [meq.refine_apply, meq.pullback_apply, w],
   let IA : B.arrow := ⟨_, (IV.f ≫ II.f) ≫ I.f, _⟩,
-  swap, {
-    refine ⟨I.Y, _, _, I.hf, _, rfl⟩,
+  swap,
+  { refine ⟨I.Y, _, _, I.hf, _, rfl⟩,
     apply sieve.downward_closed,
     convert II.hf,
     cases I, refl },

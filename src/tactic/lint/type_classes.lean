@@ -419,8 +419,8 @@ meta def check_reducible_non_instances (d : declaration) : tactic (option string
   let cls := d.type.pi_codomain.get_app_fn.const_name,
   some constrs ← return $ env.structure_fields cls | return none,
   tt ← return $ constrs.mem `add || constrs.mem `mul | return none,
-  l ← d.value.list_constant.mfilter $ λ nm, do {
-    d ← env.get nm,
+  l ← d.value.list_constant.mfilter $ λ nm, do
+  { d ← env.get nm,
     ff ← is_instance nm | return ff,
     tt ← is_class d.type | return ff,
     tt ← return d.is_definition | return ff,

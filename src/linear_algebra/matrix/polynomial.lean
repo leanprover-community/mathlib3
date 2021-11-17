@@ -43,8 +43,8 @@ begin
                multiset.mem_map, exists_imp_distrib, finset.mem_univ_val],
   intro g,
   calc  nat_degree (sign g • ∏ (i : n), (X • A.map C + B.map C) (g i) i)
-      ≤ nat_degree (∏ (i : n), (X • A.map C + B.map C) (g i) i) : by {
-      cases int.units_eq_one_or (sign g) with sg sg,
+      ≤ nat_degree (∏ (i : n), (X • A.map C + B.map C) (g i) i) : by
+    { cases int.units_eq_one_or (sign g) with sg sg,
         { rw [sg, one_smul] },
         { rw [sg, units.neg_smul, one_smul, nat_degree_neg] } }
   ... ≤ ∑ (i : n), nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i) :

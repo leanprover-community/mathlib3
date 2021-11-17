@@ -102,8 +102,8 @@ begin
      by { dsimp [f],
           rw [← tsub_add_eq_tsub_tsub, nat.add_comm, tsub_self, pow_zero, mul_one] },
     have f_succ : ∀ i, i ∈ range n → f (n + 1) i = y * f n i :=
-      λ i hi, by {
-        dsimp [f],
+      λ i hi, by
+      { dsimp [f],
         have : commute y ((x + y) ^ i) :=
          (h.symm.add_right (commute.refl y)).pow_right i,
         rw [← mul_assoc, this.eq, mul_assoc, ← pow_succ y (n - 1 - i)],

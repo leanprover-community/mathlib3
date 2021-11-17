@@ -427,8 +427,8 @@ variables [module R M] [module R M₂] [module R M₃]
 The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
 -/
 def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
-{ to_fun := λ f, {
-    to_fun    := linear_map.smul_right f,
+{ to_fun := λ f,
+  { to_fun    := linear_map.smul_right f,
     map_add'  := λ m m', by { ext, apply smul_add, },
     map_smul' := λ c m, by { ext, apply smul_comm, } },
   map_add'  := λ f f', by { ext, apply add_smul, },
@@ -1934,8 +1934,8 @@ set_like.coe_injective $ by simp [e.image_eq_preimage]
 
 This is `linear_equiv.of_submodule'` but with `map` on the right instead of `comap` on the left. -/
 def of_submodule (p : submodule R M) : p ≃ₛₗ[σ₁₂] ↥(p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂) :=
-{ inv_fun   := λ y, ⟨(e.symm : M₂ →ₛₗ[σ₂₁] M) y, by {
-    rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
+{ inv_fun   := λ y, ⟨(e.symm : M₂ →ₛₗ[σ₂₁] M) y, by
+  { rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
     simp only [symm_apply_apply, submodule.coe_mk, coe_coe, hx], }⟩,
   left_inv  := λ x, by simp,
   right_inv := λ y, by { apply set_coe.ext, simp, },

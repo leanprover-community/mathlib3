@@ -198,7 +198,10 @@ lemma MPC.coloring.restrict_mono (co : T.coloring κ) (f : S.inclusion T) (i : S
 by { intro, apply h, }
 
 def MPC.inclusion.extend {S : PC A} {m : Type} [fintype m] [linear_order m]
-  (inc : (mk_MPC S m).inclusion T) (top : T.m) (lt_mtop : ∀ i, inc.to_fun i < top) :
+  (inc : (mk_MPC S m).inclusion T) (top : T.m) (lt_mtop : ∀ i, inc.to_fun i < top)
+  (blabla : T.m → option R) (blabla_none : ∀ i, inc.foo i = none ∨ blabla i = none)
+  (blabla_gt : ∀ i, top < i → blabla i = none) (blatop : blabla top = some inc.scale)
+  (blamem : ∀ (r ∈ S.p) (i : T.m) (x ∈ blabla i), r * x ∈ T.p) :
   (mk_MPC S (with_top m)).inclusion T :=
 { to_fun := order_embedding.of_strict_mono (λ o, option.elim o top inc.to_fun)
     begin
@@ -210,13 +213,36 @@ def MPC.inclusion.extend {S : PC A} {m : Type} [fintype m] [linear_order m]
       intro h,
       simpa only [option.elim, order_embedding.lt_iff_lt] using (with_top.coe_lt_coe.mp h),
     end,
-  mat := _,
-  scale := _,
-  scale_C := _,
-  ends := _,
-  foo := _,
-  disj := _,
-  mem := _ }
+  mat := λ i, option.elim i (λ j, (blabla j).elim 0 id) inc.mat,
+  scale := inc.scale,
+  scale_C := inc.scale_C,
+  ends :=
+    begin
+      intro i,
+      cases i with i,
+      { rw option.elim, intros j ij, split_ifs, { cases h, rw blatop, refl, },
+        rw [blabla_gt, option.elim], exact lt_of_le_of_ne ij h, },
+      { exact inc.ends i, },
+    end,
+  foo := λ j, (inc.foo j).elim (cond (blabla j).is_some (some none) none) (some ∘ some),
+  disj :=
+    begin
+      intros i j ne,
+      cases i,
+      { rw option.elim, cases blabla_none j,
+        { set o := blabla j, clear_value o, cases o, { refl, }, rw [h, option.elim] at ne,
+          exact (ne rfl).elim, },
+        rw h, refl, },
+      { rw option.elim, apply inc.disj, refine mt _ ne, intro h, rw h, refl, },
+    end,
+  mem :=
+    begin
+      intros i j r hr, cases i,
+      { rw option.elim, set o := blabla j with ho, clear_value o, cases o with x,
+        { rw [option.elim, mul_zero], exact T.zero_mem, },
+        { rw [option.elim, id.def], apply blamem _ hr, rw ←ho, exact option.mem_def.mpr rfl }, },
+      { rw option.elim, apply inc.mem, exact hr, },
+    end }
 
 theorem deuber (κ : Type) [fintype κ] : ∃ T : MPC A, ∀ co : T.coloring κ,
   ∃ (inc : S.inclusion T) (k : κ), (co.restrict inc).mono k :=
@@ -319,7 +345,20 @@ begin
       refine ⟨_, _, hr, _, rfl⟩,
       split_ifs, apply S.C_mem, apply S.zero_mem, },
     specialize h (co.restrict TV),
-    obtain ⟨incT, kT, hT⟩ := h,
+    obtain ⟨UT, kT, hT⟩ := h,
+    refine ⟨(UT.comp TV).extend ⊤ _ (λ o, option.elim o (some (UT.comp TV).scale)
+      (λ i, (l.idx_fun i).elim (λ r, some (r * S.C)) (λ _, none))) _ _ rfl _, _⟩,
+    { intro i, apply with_top.coe_lt_top, },
+    { intro i, cases i, { left, refl, },
+      { set o := l.idx_fun i with ho, clear_value o, cases o,
+        { left, change (_ >>= _) >>= _ = none,
+          rw [option.some_bind, ←ho, sum.elim], refl, },
+        { right, rw [option.elim, ←ho, sum.elim], }, }, },
+    { intros i h, exfalso, exact not_top_lt h, },
+    { intros r hr i x hx, cases i,
+      { cases hx, change r * (_ * _) ∈ _, rw ←mul_assoc, refine ⟨_, _, _, _, rfl⟩,
 
+      }
+    }
   }
 end

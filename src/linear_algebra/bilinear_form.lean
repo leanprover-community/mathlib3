@@ -1691,11 +1691,7 @@ theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
 
 lemma to_bilin.nondegenerate_iff_det_ne_zero' {M : matrix ι ι A} :
   (matrix.to_bilin' M).nondegenerate ↔ M.det ≠ 0 :=
-begin
-  refine ⟨λ h, _, λ h, bilin_form.nondegenerate_of_det_ne_zero' _ h⟩,
-  rw [← matrix.nondegenerate_iff_det_ne_zero],
-  exact matrix.nondegenerate_iff_to_bilin'.2 h,
-end
+by rw [←matrix.nondegenerate_iff_to_bilin', matrix.nondegenerate_iff_det_ne_zero]
 
 theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
   B₃.nondegenerate :=

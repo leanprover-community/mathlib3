@@ -280,7 +280,8 @@ lemma arg_eq_nhds_of_im_neg (hz : im z < 0) :
 lemma continuous_at_arg (h : 0 < x.re ∨ x.im ≠ 0) : continuous_at arg x :=
 begin
   have h₀ : abs x ≠ 0, { rw abs_ne_zero, rintro rfl, simpa using h },
-  rw [← lt_or_lt_iff_ne] at h, rcases h with (hx_re|hx_im|hx_im),
+  rw [← lt_or_lt_iff_ne] at h,
+  rcases h with (hx_re|hx_im|hx_im),
   exacts [(real.continuous_at_arcsin.comp (continuous_im.continuous_at.div
     continuous_abs.continuous_at h₀)).congr (arg_eq_nhds_of_re_pos hx_re).symm,
     (real.continuous_arccos.continuous_at.comp (continuous_re.continuous_at.div

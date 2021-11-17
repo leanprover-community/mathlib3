@@ -116,7 +116,7 @@ end
 satisfies the inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, for some `C` which can be chosen to be
 positive. -/
 theorem exists_bound_of_continuous (hf : continuous f) :
-  ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
+  ∃ C > 0, ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥ :=
 begin
   casesI is_empty_or_nonempty ι,
   { refine ⟨∥f 0∥ + 1, add_pos_of_nonneg_of_pos (norm_nonneg _) zero_lt_one, λ m, _⟩,
@@ -276,7 +276,7 @@ namespace continuous_multilinear_map
 
 variables (c : 𝕜) (f g : continuous_multilinear_map 𝕜 E G) (m : Πi, E i)
 
-theorem bound : ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
+theorem bound : ∃ C > 0, ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥ :=
 f.to_multilinear_map.exists_bound_of_continuous f.2
 
 open real

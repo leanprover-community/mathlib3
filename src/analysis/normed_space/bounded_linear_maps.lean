@@ -65,7 +65,7 @@ structure is_bounded_linear_map (𝕜 : Type*) [normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] (f : E → F)
   extends is_linear_map 𝕜 f : Prop :=
-(bound : ∃ M, 0 < M ∧ ∀ x : E, ∥f x∥ ≤ M * ∥x∥)
+(bound : ∃ M >0, ∀ x : E, ∥f x∥ ≤ M * ∥x∥)
 
 lemma is_linear_map.with_bound
   {f : E → F} (hf : is_linear_map 𝕜 f) (M : ℝ) (h : ∀ x : E, ∥f x∥ ≤ M * ∥x∥) :

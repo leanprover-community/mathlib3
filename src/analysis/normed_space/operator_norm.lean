@@ -153,7 +153,7 @@ continuity ensures boundedness on a ball of some radius `ε`. The nondiscretenes
 rescale any element into an element of norm in `[ε/C, ε]`, whose image has a controlled norm. The
 norm control for the original element follows by rescaling. -/
 lemma linear_map.bound_of_continuous (f : E →ₗ[𝕜] F) (hf : continuous f) :
-  ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
+  ∃ C > 0, ∀ x : E, ∥f x∥ ≤ C * ∥x∥ :=
 begin
   rcases normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
   simp only [sub_zero, f.map_zero] at hε,
@@ -170,7 +170,7 @@ end
 
 namespace continuous_linear_map
 
-theorem bound : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
+theorem bound : ∃ C > 0, ∀ x : E, ∥f x∥ ≤ C * ∥x∥ :=
 f.to_linear_map.bound_of_continuous f.2
 
 section

@@ -786,11 +786,7 @@ end
 
 lemma is_root.map {f : R →+* S} {x : R} {p : polynomial R} (h : is_root p x) :
   is_root (p.map f) (f x) :=
-begin
-  rw [is_root] at h,
-  apply_fun f at h,
-  rwa [←eval₂_hom, f.map_zero, ←eval_map] at h
-end
+by rw [is_root, eval_map, eval₂_hom, is_root.def.1 h, f.map_zero]
 
 lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
   (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=

@@ -1734,6 +1734,16 @@ lemma to_bilin'_nondegenerate_iff_to_bilin_nondegenerate {M : matrix ι ι A}
   (b : basis ι A M₃) : (matrix.to_bilin' M).nondegenerate ↔ (matrix.to_bilin b M).nondegenerate :=
 (congr_nondegenerate_iff b.equiv_fun.symm).symm
 
+lemma nondegenerate_iff_det_ne_zero (B : bilin_form A M₃)
+  (b : basis ι A M₃) : B.nondegenerate ↔ ((bilin_form.to_matrix b) B).det ≠ 0 :=
+begin
+  revert B,
+  rw (bilin_form.to_matrix b).symm.surjective.forall,
+  intro M,
+  rw [to_matrix_symm, to_matrix_to_bilin, ← to_bilin'_nondegenerate_iff_to_bilin_nondegenerate,
+    to_bilin'_nondegenerate_iff_det_ne_zero]
+end
+
 end det
 
 end bilin_form

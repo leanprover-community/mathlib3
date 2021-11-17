@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Bryan Gin-ge Chen
 -/
-import order.bounded_lattice
+import order.bounded_order
 /-!
 # (Generalized) Boolean algebras
 
@@ -587,7 +587,7 @@ class boolean_algebra.core (α : Type u) extends distrib_lattice α, has_compl �
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
 @[priority 100]  -- see Note [lower instance priority]
-instance boolean_algebra.core.to_bounded_lattice [h : boolean_algebra.core α] : bounded_lattice α :=
+instance boolean_algebra.core.to_bounded_order [h : boolean_algebra.core α] : bounded_order α :=
 { ..h }
 
 section boolean_algebra_core
@@ -758,7 +758,7 @@ boolean_algebra.of_core
   inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
   .. Prop.distrib_lattice,
-  .. Prop.bounded_lattice }
+  .. Prop.bounded_order }
 
 instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
   has_sdiff (Π i, α i) :=
@@ -791,5 +791,5 @@ instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_a
   top_le_sup_compl := λ _ _, boolean_algebra.top_le_sup_compl _,
   .. pi.has_sdiff,
   .. pi.has_compl,
-  .. pi.bounded_lattice,
+  .. pi.bounded_order,
   .. pi.distrib_lattice }

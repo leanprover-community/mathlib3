@@ -1278,7 +1278,7 @@ instance : distrib_lattice (subtype (measurable_set : set α → Prop)) :=
   le_sup_inf := λ x y z, show ((x ⊔ y) ⊓ (x ⊔ z) : set α) ≤ x ⊔ y ⊓ z, from le_sup_inf,
   .. measurable_set.subtype.partial_order }
 
-instance : bounded_lattice (subtype (measurable_set : set α → Prop)) :=
+instance : bounded_order (subtype (measurable_set : set α → Prop)) :=
 { top := ⊤,
   le_top := λ a, show (a : set α) ≤ ⊤, from le_top,
   bot := ⊥,
@@ -1292,7 +1292,7 @@ instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
   inf_compl_le_bot := λ a, boolean_algebra.inf_compl_le_bot (a : set α),
   top_le_sup_compl := λ a, boolean_algebra.top_le_sup_compl (a : set α),
   sdiff_eq := λ a b, subtype.eq $ sdiff_eq,
-  .. measurable_set.subtype.bounded_lattice,
+  .. measurable_set.subtype.bounded_order,
   .. measurable_set.subtype.distrib_lattice }
 
 end measurable_set

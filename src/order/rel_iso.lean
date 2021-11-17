@@ -819,9 +819,9 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 
-section bounded_lattice
+section bounded_order
 
-variables [lattice α] [lattice β] [bounded_lattice α] [bounded_lattice β] (f : α ≃o β)
+variables [lattice α] [lattice β] [bounded_order α] [bounded_order β] (f : α ≃o β)
 include f
 
 lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
@@ -847,5 +847,5 @@ theorem order_iso.is_complemented_iff :
   is_complemented α ↔ is_complemented β :=
 ⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
 
-end bounded_lattice
+end bounded_order
 end lattice_isos

@@ -361,7 +361,7 @@ instance [linear_order α] : lattice (finset.colex α) :=
 { ..(by apply_instance : semilattice_sup (finset.colex α)),
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 
-instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
+instance [linear_order α] [fintype α] : bounded_order (finset.colex α) :=
 { ..(by apply_instance : order_top (finset.colex α)),
   ..(by apply_instance : order_bot (finset.colex α)) }
 

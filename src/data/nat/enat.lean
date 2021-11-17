@@ -278,7 +278,7 @@ noncomputable instance : linear_order enat :=
   decidable_le := classical.dec_rel _,
   ..enat.partial_order }
 
-instance : bounded_lattice enat :=
+instance : bounded_order enat :=
 { ..enat.order_top,
   ..enat.order_bot }
 

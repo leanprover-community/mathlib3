@@ -7,7 +7,7 @@ import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order.monoid_lemmas
-import order.bounded_lattice
+import order.bounded_order
 import order.min_max
 import order.rel_iso
 

@@ -403,8 +403,8 @@ def lift_order_top [preorder α] [order_top α] (gi : galois_insertion l u) : or
   le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top) }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois insertion -/
-def lift_bounded_lattice [preorder α] [bounded_lattice α]
-  (gi : galois_insertion l u) : bounded_lattice β :=
+def lift_bounded_order [preorder α] [bounded_order α]
+  (gi : galois_insertion l u) : bounded_order β :=
 { .. gi.lift_order_top, .. gi.gc.lift_order_bot }
 
 /-- Lift all suprema and infima along a Galois insertion -/
@@ -416,7 +416,7 @@ def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : co
     (gi.is_glb_of_u_image $ is_glb_Inf _) (is_glb_Inf _),
   Inf_le := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).1 },
   le_Inf := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).2 },
-  .. gi.lift_bounded_lattice,
+  .. gi.lift_bounded_order,
   .. gi.lift_lattice }
 
 end lift
@@ -569,8 +569,8 @@ def lift_order_bot [preorder β] [order_bot β] (gi : galois_coinsertion l u) : 
   .. @order_dual.order_bot _ _ gi.dual.lift_order_top }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois coinsertion -/
-def lift_bounded_lattice [preorder β] [bounded_lattice β]
-  (gi : galois_coinsertion l u) : bounded_lattice α :=
+def lift_bounded_order [preorder β] [bounded_order β]
+  (gi : galois_coinsertion l u) : bounded_order α :=
 { .. gi.lift_order_bot, .. gi.gc.lift_order_top }
 
 /-- Lift all suprema and infima along a Galois coinsertion -/

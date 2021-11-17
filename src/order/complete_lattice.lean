@@ -170,7 +170,7 @@ class complete_lattice (α : Type*) extends
 (bot_le : ∀ x : α, ⊥ ≤ x)
 
 @[priority 100]  -- see Note [lower instance priority]
-instance complete_lattice.to_bounded_lattice [h : complete_lattice α] : bounded_lattice α :=
+instance complete_lattice.to_bounded_order [h : complete_lattice α] : bounded_order α :=
 { ..h }
 
 /-- Create a `complete_lattice` from a `partial_order` and `Inf` function
@@ -279,7 +279,7 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   Inf_le := @complete_lattice.le_Sup α _,
   le_Inf := @complete_lattice.Sup_le α _,
   .. order_dual.lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α,
-  .. order_dual.bounded_lattice α }
+  .. order_dual.bounded_order α }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
 { .. order_dual.complete_lattice α, .. order_dual.linear_order α }
@@ -1135,7 +1135,7 @@ instance Prop.complete_lattice : complete_lattice Prop :=
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
   le_Inf := assume s a h p b hb, h b hb p,
-  .. Prop.bounded_lattice,
+  .. Prop.bounded_order,
   .. Prop.distrib_lattice }
 
 @[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
@@ -1162,7 +1162,7 @@ instance pi.complete_lattice {α : Type*} {β : α → Type*} [∀ i, complete_l
   Inf_le := λ s f hf i, infi_le (λ f : s, (f : Π i, β i) i) ⟨f, hf⟩,
   Sup_le := λ s f hf i, supr_le $ λ g, hf g g.2 i,
   le_Inf := λ s f hf i, le_infi $ λ g, hf g g.2 i,
-  .. pi.bounded_lattice,
+  .. pi.bounded_order,
   .. pi.lattice }
 
 lemma Inf_apply {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)]
@@ -1222,7 +1222,7 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
     ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
       le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
   .. prod.lattice α β,
-  .. prod.bounded_lattice α β,
+  .. prod.bounded_order α β,
   .. prod.has_Sup α β,
   .. prod.has_Inf α β }
 

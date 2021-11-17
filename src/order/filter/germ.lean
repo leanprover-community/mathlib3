@@ -43,7 +43,7 @@ For each of the following structures we prove that if `β` has this structure, t
 * one-operation algebraic structures up to `comm_group`;
 * `mul_zero_class`, `distrib`, `semiring`, `comm_semiring`, `ring`, `comm_ring`;
 * `mul_action`, `distrib_mul_action`, `module`;
-* `preorder`, `partial_order`, and `lattice` structures up to `bounded_lattice`;
+* `preorder`, `partial_order`, and `lattice` structures up to `bounded_order`;
 * `ordered_cancel_comm_monoid` and `ordered_cancel_add_comm_monoid`.
 
 ## Tags
@@ -491,7 +491,7 @@ instance [semilattice_inf β] : semilattice_inf (germ l β) :=
 instance [lattice β] : lattice (germ l β) :=
 { .. germ.semilattice_sup, .. germ.semilattice_inf }
 
-instance [has_le β] [bounded_lattice β] : bounded_lattice (germ l β) :=
+instance [has_le β] [bounded_order β] : bounded_order (germ l β) :=
 { .. germ.order_bot, .. germ.order_top }
 
 @[to_additive]

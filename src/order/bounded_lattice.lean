@@ -20,7 +20,7 @@ instances for `Prop` and `fun`.
 
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
 * `order_<top/bot> α`: Order with a top/bottom element.
-* `bounded_lattice α`: Ordering with a top and bottom element.
+* `bounded_order α`: Ordering with a top and bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
@@ -33,7 +33,7 @@ instances for `Prop` and `fun`.
 * Distributive lattices with a bottom element. Notated by `[distrib_lattice α] [order_bot α]`
   It captures the properties of `disjoint` that are common to `generalized_boolean_algebra` and
   `distrib_lattice` when `order_bot`.
-* Bounded and distributive lattice. Notated by `[distrib_lattice α] [bounded_lattice α]`.
+* Bounded and distributive lattice. Notated by `[distrib_lattice α] [bounded_order α]`.
   Typical examples include `Prop` and `set α`.
 
 ## Implementation notes
@@ -259,14 +259,14 @@ end semilattice_inf_bot
 
 /-! ### Bounded lattice -/
 
--- TODO: rename `bounded_lattice` since it no longer requires `lattice`
+-- TODO: rename `bounded_order` since it no longer requires `lattice`
 /-- A bounded lattice describes an order `(≤)` with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
 @[ancestor order_top order_bot]
-class bounded_lattice (α : Type u) [has_le α] extends order_top α, order_bot α.
+class bounded_order (α : Type u) [has_le α] extends order_top α, order_bot α.
 
-lemma inf_eq_bot_iff_le_compl {α : Type u} [distrib_lattice α] [bounded_lattice α] {a b c : α}
+lemma inf_eq_bot_iff_le_compl {α : Type u} [distrib_lattice α] [bounded_order α] {a b c : α}
   (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
 ⟨λ h,
   calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
@@ -297,7 +297,7 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
     λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩ }
 
 /-- Propositions form a bounded order. -/
-instance Prop.bounded_lattice : bounded_lattice Prop :=
+instance Prop.bounded_order : bounded_order Prop :=
 { top          := true,
   le_top       := λ a Ha, true.intro,
   bot          := false,
@@ -347,15 +347,15 @@ instance [Π i, has_le (α' i)] [Π i, order_top (α' i)] : order_top (Π i, α'
 instance [Π i, has_le (α' i)] [Π i, order_bot (α' i)] : order_bot (Π i, α' i) :=
 { bot_le := λ _ _, bot_le, ..pi.has_bot }
 
-instance [Π i, has_le (α' i)] [Π i, bounded_lattice (α' i)] :
-  bounded_lattice (Π i, α' i) :=
+instance [Π i, has_le (α' i)] [Π i, bounded_order (α' i)] :
+  bounded_order (Π i, α' i) :=
 { ..pi.order_top, ..pi.order_bot }
 
 end pi
 
 section subsingleton
 
-variables [partial_order α] [bounded_lattice α]
+variables [partial_order α] [bounded_order α]
 
 lemma eq_bot_of_bot_eq_top (hα : (⊥ : α) = ⊤) (x : α) :
   x = (⊥ : α) :=
@@ -587,7 +587,7 @@ instance order_top [has_le α] [order_top α] : order_top (with_bot α) :=
 { top := some ⊤,
   le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩ }
 
-instance bounded_lattice [preorder α] [bounded_lattice α] : bounded_lattice (with_bot α) :=
+instance bounded_order [preorder α] [bounded_order α] : bounded_order (with_bot α) :=
 { ..with_bot.order_top, ..with_bot.order_bot }
 
 lemma well_founded_lt [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
@@ -833,7 +833,7 @@ instance order_bot [has_le α] [order_bot α] : order_bot (with_top α) :=
 { bot := some ⊥,
   bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩ }
 
-instance bounded_lattice [preorder α] [bounded_lattice α] : bounded_lattice (with_top α) :=
+instance bounded_order [preorder α] [bounded_order α] : bounded_order (with_top α) :=
 { ..with_top.order_top, ..with_top.order_bot }
 
 lemma well_founded_lt {α : Type*} [partial_order α] (h : well_founded ((<) : α → α → Prop)) :
@@ -911,7 +911,7 @@ instance [has_le α] [order_top α] : order_bot (order_dual α) :=
 { bot_le := @le_top α _ _,
   .. order_dual.has_bot α }
 
-instance [has_le α] [bounded_lattice α] : bounded_lattice (order_dual α) :=
+instance [has_le α] [bounded_order α] : bounded_order (order_dual α) :=
 { .. order_dual.order_top α, .. order_dual.order_bot α }
 
 end order_dual
@@ -930,7 +930,7 @@ instance [has_le α] [has_le β] [order_bot α] [order_bot β] : order_bot (α �
 { bot_le := λ a, ⟨bot_le, bot_le⟩,
   .. prod.has_bot α β }
 
-instance [has_le α] [has_le β] [bounded_lattice α] [bounded_lattice β] : bounded_lattice (α × β) :=
+instance [has_le α] [has_le β] [bounded_order α] [bounded_order β] : bounded_order (α × β) :=
 { .. prod.order_top α β, .. prod.order_bot α β }
 
 
@@ -989,9 +989,9 @@ lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (h
 
 end semilattice_inf_bot
 
-section bounded_lattice
+section bounded_order
 
-variables [lattice α] [bounded_lattice α] {a : α}
+variables [lattice α] [bounded_order α] {a : α}
 
 @[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
 @[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
@@ -1004,7 +1004,7 @@ begin
   rwa sup_eq_left at h,
 end
 
-end bounded_lattice
+end bounded_order
 
 section distrib_lattice_bot
 variables [distrib_lattice α] [order_bot α] {a b c : α}
@@ -1053,15 +1053,15 @@ end disjoint
 section is_compl
 
 /-- Two elements `x` and `y` are complements of each other if `x ⊔ y = ⊤` and `x ⊓ y = ⊥`. -/
-structure is_compl [lattice α] [bounded_lattice α] (x y : α) : Prop :=
+structure is_compl [lattice α] [bounded_order α] (x y : α) : Prop :=
 (inf_le_bot : x ⊓ y ≤ ⊥)
 (top_le_sup : ⊤ ≤ x ⊔ y)
 
 namespace is_compl
 
-section bounded_lattice
+section bounded_order
 
-variables [lattice α] [bounded_lattice α] {x y z : α}
+variables [lattice α] [bounded_order α] {x y z : α}
 
 protected lemma disjoint (h : is_compl x y) : disjoint x y := h.1
 
@@ -1079,9 +1079,9 @@ open order_dual (to_dual)
 
 lemma to_order_dual (h : is_compl x y) : is_compl (to_dual x) (to_dual y) := ⟨h.2, h.1⟩
 
-end bounded_lattice
+end bounded_order
 
-variables [distrib_lattice α] [bounded_lattice α] {a b x y z : α}
+variables [distrib_lattice α] [bounded_order α] {a b x y z : α}
 
 lemma inf_left_le_of_le_sup_right (h : is_compl x y) (hle : a ≤ b ⊔ y) : a ⊓ x ≤ b :=
 calc a ⊓ x ≤ (b ⊔ y) ⊓ x : inf_le_inf hle le_rfl
@@ -1142,14 +1142,14 @@ lemma inf_sup {x' y'} (h : is_compl x y) (h' : is_compl x' y') :
 
 end is_compl
 
-lemma is_compl_bot_top [lattice α] [bounded_lattice α] : is_compl (⊥ : α) ⊤ :=
+lemma is_compl_bot_top [lattice α] [bounded_order α] : is_compl (⊥ : α) ⊤ :=
 is_compl.of_eq bot_inf_eq sup_top_eq
 
-lemma is_compl_top_bot [lattice α] [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
+lemma is_compl_top_bot [lattice α] [bounded_order α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
 
 section
-variables [lattice α] [bounded_lattice α] {x : α}
+variables [lattice α] [bounded_order α] {x : α}
 
 lemma eq_top_of_is_compl_bot (h : is_compl x ⊥) : x = ⊤ :=
 sup_bot_eq.symm.trans h.sup_eq_top
@@ -1167,13 +1167,13 @@ end
 
 /-- A complemented bounded lattice is one where every element has a (not necessarily unique)
 complement. -/
-class is_complemented (α) [lattice α] [bounded_lattice α] : Prop :=
+class is_complemented (α) [lattice α] [bounded_order α] : Prop :=
 (exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
 
 export is_complemented (exists_is_compl)
 
 namespace is_complemented
-variables [lattice α] [bounded_lattice α] [is_complemented α]
+variables [lattice α] [bounded_order α] [is_complemented α]
 
 instance : is_complemented (order_dual α) :=
 ⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.to_order_dual⟩⟩
@@ -1184,7 +1184,7 @@ end is_compl
 
 section nontrivial
 
-variables [lattice α] [bounded_lattice α] [nontrivial α]
+variables [lattice α] [bounded_order α] [nontrivial α]
 
 lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
 λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
@@ -1195,9 +1195,9 @@ end nontrivial
 
 namespace bool
 
--- TODO: is this comment relevant now that `bounded_lattice` is factored out?
+-- TODO: is this comment relevant now that `bounded_order` is factored out?
 -- Could be generalised to `bounded_distrib_lattice` and `is_complemented`
-instance : bounded_lattice bool :=
+instance : bounded_order bool :=
 { top := tt,
   le_top := λ x, le_tt,
   bot := ff,

@@ -430,7 +430,7 @@ instance [semilattice_sup β] : semilattice_sup (α →ₛ β) :=
 instance [lattice β] : lattice (α →ₛ β) :=
 { .. simple_func.semilattice_sup,.. simple_func.semilattice_inf }
 
-instance [has_le β] [bounded_lattice β] : bounded_lattice (α →ₛ β) :=
+instance [has_le β] [bounded_order β] : bounded_order (α →ₛ β) :=
 { .. simple_func.order_bot, .. simple_func.order_top }
 
 lemma finset_sup_apply [semilattice_sup β] [order_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :

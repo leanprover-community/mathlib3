@@ -489,7 +489,7 @@ end semilattice_sup
 
 section lattice
 
-instance [has_initial C] [initial_mono_class C] {B : C} : bounded_lattice (subobject B) :=
+instance [has_initial C] [initial_mono_class C] {B : C} : bounded_order (subobject B) :=
 { ..subobject.order_top,
   ..subobject.order_bot }
 
@@ -663,7 +663,7 @@ variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts
 instance {B : C} : complete_lattice (subobject B) :=
 { ..subobject.semilattice_inf,
   ..subobject.semilattice_sup,
-  ..subobject.bounded_lattice,
+  ..subobject.bounded_order,
   ..subobject.complete_semilattice_Inf,
   ..subobject.complete_semilattice_Sup, }
 

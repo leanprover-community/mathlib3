@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import order.bounded_lattice
+import order.bounded_order
 import data.set.intervals.basic
 
 /-!
@@ -21,8 +21,8 @@ In the following, `*` can represent either `c`, `o`, or `i`.
   * `set.Ii*.semillatice_inf`
   * `set.I*c.order_top`
   * `set.I*c.semillatice_inf`
-  * `set.Iic.bounded_lattice`, within a `bounded_lattice`
-  * `set.Ici.bounded_lattice`, within a `bounded_lattice`
+  * `set.Iic.bounded_order`, within a `bounded_order`
+  * `set.Ici.bounded_order`, within a `bounded_order`
 
 -/
 
@@ -101,7 +101,7 @@ instance [preorder α] [order_bot α] : order_bot (Iic a) :=
 instance [partial_order α] [no_bot_order α] {a : α} : no_bot_order (Iic a) :=
 ⟨λ x, let ⟨y, hy⟩ := no_bot x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩
 
-instance [preorder α] [bounded_lattice α] : bounded_lattice (Iic a) :=
+instance [preorder α] [bounded_order α] : bounded_order (Iic a) :=
 { .. (Iic.order_top),
   .. (Iic.order_bot) }
 
@@ -136,7 +136,7 @@ instance [preorder α] [order_top α] : order_top (Ici a) :=
 instance [partial_order α] [no_top_order α] {a : α} : no_top_order (Ici a) :=
 ⟨λ x, let ⟨y, hy⟩ := no_top x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
 
-instance [preorder α] [bounded_lattice α] : bounded_lattice (Ici a) :=
+instance [preorder α] [bounded_order α] : bounded_order (Ici a) :=
 { .. (Ici.order_top),
   .. (Ici.order_bot) }
 
@@ -164,9 +164,9 @@ def order_top [preorder α] {a b : α} (h : a ≤ b) : order_top (Icc a b) :=
 { top := ⟨b, ⟨h, le_refl b⟩⟩,
   le_top := λ x, x.prop.2 }
 
-/-- `Icc a b` is a `bounded_lattice` whenever `a ≤ b`. -/
-def bounded_lattice [preorder α] {a b : α} (h : a ≤ b) :
-  bounded_lattice (Icc a b) :=
+/-- `Icc a b` is a `bounded_order` whenever `a ≤ b`. -/
+def bounded_order [preorder α] {a b : α} (h : a ≤ b) :
+  bounded_order (Icc a b) :=
 { .. (Icc.order_top h),
   .. (Icc.order_bot h) }
 

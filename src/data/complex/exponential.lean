@@ -1356,12 +1356,14 @@ lemma exp_bound' {x : ℝ} (h1 : 0 ≤ x) (h2 : x ≤ 1) {n : ℕ} (hn : 0 < n) 
   real.exp x ≤ ∑ (m : ℕ) in finset.range n, x ^ m / (m.factorial)
   + x ^ n * ((n : ℝ) + 1) / (n.factorial * (n : ℝ) ) :=
 begin
-  have h3 : |x| = x, simp, exact h1,
-  have h4 : |x| ≤ 1, rw abs_le, apply and.intro, linarith, linarith,
+  have h3 : |x| = x := by simpa,
+  have h4 : |x| ≤ 1,
+  { rw abs_le,
+    exact ⟨by linarith, h2⟩ },
   let h' := real.exp_bound h4 hn, rw h3 at h',
   let h'' := (abs_sub_le_iff.1 h').1,
   let t := sub_le_iff_le_add'.1 h'',
-  simp at t, rw mul_div_assoc, exact t,
+  simpa [mul_div_assoc] using t
 end
 
 /-- A finite initial segment of the exponential series, followed by an arbitrary tail.
@@ -1528,17 +1530,17 @@ lemma exp_bound_div_one_sub_of_interval_approx  {x : ℝ} (h1 : 0 ≤ x) (h2 : x
   + x ^ 3 * ((3 : ℕ) + 1) / ((3 : ℕ).factorial * (3 : ℕ))
   ≤ ∑ j in (finset.range 3), x ^ j :=
 begin
-  repeat {rw finset.sum}, norm_num,
-  rw add_assoc, rw add_comm (x + 1) (x ^ 3 * 4 / 18), rw ← add_assoc,
-  rw add_le_add_iff_right, rw ← add_le_add_iff_left (-(x^2/2)),
-  rw ← add_assoc, rw comm_ring.add_left_neg (x^2/2), rw zero_add,
-  rw neg_add_eq_sub, rw sub_half, repeat{rw pow_succ},
-  rw pow_zero, rw mul_one,
-  have i1 : x * 4 / 18 ≤ 1 / 2, linarith,
-  have i2 : 0 ≤ x * 4 / 18, linarith,
-  let i3 := mul_le_mul h1 h1 (le_refl (0 : ℝ)) h1, rw zero_mul at i3,
-  let t := mul_le_mul (le_refl (x * x)) i1 i2 i3, rw mul_one_div at t,
-  rw ← mul_assoc, rw ← mul_div_assoc at t, rw ← mul_assoc at t, exact t,
+  norm_num [finset.sum],
+  rw [add_assoc, add_comm (x + 1) (x ^ 3 * 4 / 18), ← add_assoc, add_le_add_iff_right,
+      ← add_le_add_iff_left (-(x^2/2)), ← add_assoc, comm_ring.add_left_neg (x^2/2), zero_add,
+      neg_add_eq_sub, sub_half, sq, pow_succ, sq],
+  have i1 : x * 4 / 18 ≤ 1 / 2 := by linarith,
+  have i2 : 0 ≤ x * 4 / 18 := by linarith,
+  let i3 := mul_le_mul h1 h1 (le_refl (0 : ℝ)) h1,
+  rw zero_mul at i3,
+  let t := mul_le_mul (le_refl (x * x)) i1 i2 i3,
+  rw ← mul_assoc,
+  rwa [mul_one_div, ← mul_div_assoc, ← mul_assoc] at t,
 end
 
 lemma exp_bound_div_one_sub_of_interval {x : ℝ} (h1 : 0 ≤ x) (h2 : x < 1) :
@@ -1575,17 +1577,14 @@ lemma add_one_le_exp_of_nonpos {x : ℝ} (h : x ≤ 0) : x + 1 ≤ real.exp x :=
 begin
   rw add_comm,
   have h1 : 0 ≤ -x, linarith,
-  let r := one_sub_le_exp_minus_of_pos h1,
-  simp at r,
-  exact r,
+  simpa using one_sub_le_exp_minus_of_pos h1
 end
 
 lemma add_one_le_exp (x : ℝ) : x + 1 ≤ real.exp x :=
 begin
-  by_cases h : 0 ≤ x,
-    exact real.add_one_le_exp_of_nonneg h,
-  simp at h,
-  exact add_one_le_exp_of_nonpos (le_of_lt h),
+  cases le_or_lt 0 x,
+  { exact real.add_one_le_exp_of_nonneg h },
+  exact add_one_le_exp_of_nonpos h.le,
 end
 
 end real

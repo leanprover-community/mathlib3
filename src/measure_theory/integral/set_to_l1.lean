@@ -510,6 +510,16 @@ linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T h_zero hT.1,
 
 variables {α E μ 𝕜}
 
+lemma norm_set_to_L1s_clm_le {T : set α → E →L[ℝ] F} {C : ℝ}
+  (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
+  ∥set_to_L1s_clm α E μ hT∥ ≤ C :=
+linear_map.mk_continuous_norm_le _ hC _
+
+lemma norm_set_to_L1s_clm_le' {T : set α → E →L[ℝ] F} {C : ℝ}
+  (hT : dominated_fin_meas_additive μ T C) :
+  ∥set_to_L1s_clm α E μ hT∥ ≤ max C 0 :=
+linear_map.mk_continuous_norm_le' _ _
+
 end set_to_L1s
 
 end simple_func
@@ -540,8 +550,7 @@ def set_to_L1 (hT : dominated_fin_meas_additive μ T C) : (α →₁[μ] E) →L
 (set_to_L1s_clm α E μ hT).extend
   (coe_to_Lp α E ℝ) (simple_func.dense_range one_ne_top) simple_func.uniform_inducing
 
-lemma set_to_L1_eq_set_to_L1s_clm {T : set α → E →L[ℝ] F} {C : ℝ}
-  (hT : dominated_fin_meas_additive μ T C) (f : α →₁ₛ[μ] E) :
+lemma set_to_L1_eq_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) (f : α →₁ₛ[μ] E) :
   set_to_L1 hT f = set_to_L1s_clm α E μ hT f :=
 uniformly_extend_of_ind simple_func.uniform_inducing (simple_func.dense_range one_ne_top)
   (set_to_L1s_clm α E μ hT).uniform_continuous _
@@ -566,6 +575,60 @@ begin
   rw [← Lp.simple_func.coe_indicator_const hs hμs x, set_to_L1_eq_set_to_L1s_clm],
   exact set_to_L1s_indicator_const hT hs hμs x,
 end
+
+lemma norm_set_to_L1_le_norm_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) :
+  ∥set_to_L1 hT∥ ≤ ∥set_to_L1s_clm α E μ hT∥ :=
+calc ∥set_to_L1 hT∥
+    ≤ (1 : ℝ≥0) * ∥set_to_L1s_clm α E μ hT∥ : begin
+      refine continuous_linear_map.op_norm_extend_le (set_to_L1s_clm α E μ hT) (coe_to_Lp α E ℝ)
+        (simple_func.dense_range one_ne_top) (λ x, le_of_eq _),
+      rw [nnreal.coe_one, one_mul],
+      refl,
+    end
+... = ∥set_to_L1s_clm α E μ hT∥ : by rw [nnreal.coe_one, one_mul]
+
+lemma norm_set_to_L1_le_mul_norm (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C)
+  (f : α →₁[μ] E) :
+  ∥set_to_L1 hT f∥ ≤ C * ∥f∥ :=
+calc ∥set_to_L1 hT f∥
+    ≤ ∥set_to_L1s_clm α E μ hT∥ * ∥f∥ :
+  continuous_linear_map.le_of_op_norm_le _ (norm_set_to_L1_le_norm_set_to_L1s_clm hT) _
+... ≤ C * ∥f∥ : mul_le_mul (norm_set_to_L1s_clm_le hT hC) le_rfl (norm_nonneg _) hC
+
+lemma norm_set_to_L1_le_mul_norm' (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E) :
+  ∥set_to_L1 hT f∥ ≤ max C 0 * ∥f∥ :=
+calc ∥set_to_L1 hT f∥
+    ≤ ∥set_to_L1s_clm α E μ hT∥ * ∥f∥ :
+  continuous_linear_map.le_of_op_norm_le _ (norm_set_to_L1_le_norm_set_to_L1s_clm hT) _
+... ≤ max C 0 * ∥f∥ :
+  mul_le_mul (norm_set_to_L1s_clm_le' hT) le_rfl (norm_nonneg _) (le_max_right _ _)
+
+lemma norm_set_to_L1_le (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
+  ∥set_to_L1 hT∥ ≤ C :=
+continuous_linear_map.op_norm_le_bound _ hC (norm_set_to_L1_le_mul_norm hT hC)
+
+lemma norm_set_to_L1_le' (hT : dominated_fin_meas_additive μ T C) :
+  ∥set_to_L1 hT∥ ≤ max C 0 :=
+continuous_linear_map.op_norm_le_bound _ (le_max_right _ _) (norm_set_to_L1_le_mul_norm' hT)
+
+lemma set_to_L1_lipschitz (hT : dominated_fin_meas_additive μ T C) :
+  lipschitz_with (real.to_nnreal C) (L1.set_to_L1 hT) :=
+begin
+  have h_lip : lipschitz_with (∥L1.set_to_L1 hT∥₊) (L1.set_to_L1 hT),
+    from continuous_linear_map.lipschitz _,
+  -- TODO: is there some lipschitz_with.mono lemma?
+  rw lipschitz_with_iff_norm_sub_le at *,
+  intros f g,
+  refine (h_lip f g).trans (mul_le_mul _ le_rfl (norm_nonneg _) (nnreal.coe_nonneg _)),
+  rw [real.coe_to_nnreal', coe_nnnorm],
+  exact norm_set_to_L1_le' hT,
+end
+
+/-- If `fs i → f` in `L1`, then `set_to_L1 hT (fs i) → set_to_L1 hT f`. -/
+lemma tendsto.set_to_L1 (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E)
+  {ι} (fs : ι → α →₁[μ] E) {l : filter ι} (hfs : tendsto fs l (𝓝 f)) :
+  tendsto (λ i, set_to_L1 hT (fs i)) l (𝓝 $ set_to_L1 hT f) :=
+((set_to_L1 hT).continuous.tendsto _).comp hfs
 
 end set_to_L1
 
@@ -653,6 +716,10 @@ begin
     rw [set_to_fun_undef hT hfi, set_to_fun_undef hT hgi] },
 end
 
+lemma set_to_fun_to_L1 (hT : dominated_fin_meas_additive μ T C) (hf : integrable f μ) :
+  set_to_fun hT (hf.to_L1 f) = set_to_fun hT f :=
+set_to_fun_congr_ae hT hf.coe_fn_to_L1
+
 lemma set_to_fun_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : set α}
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
   set_to_fun hT (s.indicator (λ _, x)) = T s x :=
@@ -661,6 +728,121 @@ begin
   rw L1.set_to_fun_eq_set_to_L1 hT,
   exact L1.set_to_L1_indicator_const_Lp hT hs hμs x,
 end
+
+@[continuity]
+lemma continuous_set_to_fun (hT : dominated_fin_meas_additive μ T C) :
+  continuous (λ (f : α →₁[μ] E), set_to_fun hT f) :=
+by { simp_rw L1.set_to_fun_eq_set_to_L1 hT, exact continuous_linear_map.continuous _, }
+
+lemma norm_set_to_fun_le_mul_norm (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E)
+  (hC : 0 ≤ C) :
+  ∥set_to_fun hT f∥ ≤ C * ∥f∥ :=
+by { rw L1.set_to_fun_eq_set_to_L1, exact L1.norm_set_to_L1_le_mul_norm hT hC f, }
+
+lemma norm_set_to_fun_le_mul_norm' (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E) :
+  ∥set_to_fun hT f∥ ≤ max C 0 * ∥f∥ :=
+by { rw L1.set_to_fun_eq_set_to_L1, exact L1.norm_set_to_L1_le_mul_norm' hT f, }
+
+lemma norm_set_to_fun_le (hT : dominated_fin_meas_additive μ T C) (hf : integrable f μ)
+  (hC : 0 ≤ C) :
+  ∥set_to_fun hT f∥ ≤ C * ∥hf.to_L1 f∥ :=
+by { rw set_to_fun_eq hT hf, exact L1.norm_set_to_L1_le_mul_norm hT hC _, }
+
+lemma norm_set_to_fun_le' (hT : dominated_fin_meas_additive μ T C) (hf : integrable f μ) :
+  ∥set_to_fun hT f∥ ≤ max C 0 * ∥hf.to_L1 f∥ :=
+by { rw set_to_fun_eq hT hf, exact L1.norm_set_to_L1_le_mul_norm' hT _, }
+
+/-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
+  everywhere convergence of a sequence of functions implies the convergence of their image by
+  `set_to_fun`.
+  We could weaken the condition `bound_integrable` to require `has_finite_integral bound μ` instead
+  (i.e. not requiring that `bound` is measurable), but in all applications proving integrability
+  is easier. -/
+theorem tendsto_set_to_fun_of_dominated_convergence (hT : dominated_fin_meas_additive μ T C)
+  {fs : ℕ → α → E} {f : α → E} (bound : α → ℝ) (fs_measurable : ∀ n, ae_measurable (fs n) μ)
+  (bound_integrable : integrable bound μ) (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥fs n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
+  tendsto (λ n, set_to_fun hT (fs n)) at_top (𝓝 $ set_to_fun hT f) :=
+begin
+  /- `f` is a.e.-measurable, since it is the a.e.-pointwise limit of a.e.-measurable functions. -/
+  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae fs_measurable h_lim,
+  /- all functions we consider are integrable -/
+  have fs_int : ∀ n, integrable (fs n) μ :=
+    λ n, bound_integrable.mono' (fs_measurable n) (h_bound _),
+  have f_int : integrable f μ :=
+  ⟨f_measurable, has_finite_integral_of_dominated_convergence
+    bound_integrable.has_finite_integral h_bound h_lim⟩,
+  /- it suffices to prove the result for the corresponding L1 functions -/
+  suffices : tendsto (λ n, L1.set_to_L1 hT ((fs_int n).to_L1 (fs n))) at_top
+    (𝓝 (L1.set_to_L1 hT (f_int.to_L1 f))),
+  { convert this,
+    { ext1 n, exact set_to_fun_eq hT (fs_int n), },
+    { exact set_to_fun_eq hT f_int, }, },
+  /- the convergence of set_to_L1 follows from the convergence of the L1 functions -/
+  refine L1.tendsto.set_to_L1 hT _ _ _,
+  /- up to some rewriting, what we need to prove is `h_lim` -/
+  rw tendsto_iff_norm_tendsto_zero,
+  have lintegral_norm_tendsto_zero :
+    tendsto (λn, ennreal.to_real $ ∫⁻ a, (ennreal.of_real ∥fs n a - f a∥) ∂μ) at_top (𝓝 0) :=
+  (tendsto_to_real zero_ne_top).comp
+    (tendsto_lintegral_norm_of_dominated_convergence
+      fs_measurable bound_integrable.has_finite_integral h_bound h_lim),
+  -- Use the sandwich theorem
+  refine squeeze_zero (λ n, norm_nonneg _) (λ n, le_of_eq _) lintegral_norm_tendsto_zero,
+  rw L1.norm_def,
+  congr' 1,
+  refine lintegral_congr_ae _,
+  rw ← integrable.to_L1_sub,
+  refine ((fs_int n).sub f_int).coe_fn_to_L1.mono (λ x hx, _),
+  dsimp only,
+  rw [hx, of_real_norm_eq_coe_nnnorm, pi.sub_apply],
+end
+
+/-- Lebesgue dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_set_to_fun_filter_of_dominated_convergence (hT : dominated_fin_meas_additive μ T C)
+  {ι} {l : _root_.filter ι} [l.is_countably_generated]
+  {fs : ι → α → E} {f : α → E} (bound : α → ℝ)
+  (hfs_meas : ∀ᶠ n in l, ae_measurable (fs n) μ)
+  (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, ∥fs n a∥ ≤ bound a)
+  (bound_integrable : integrable bound μ)
+  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, fs n a) l (𝓝 (f a))) :
+  tendsto (λ n, set_to_fun hT (fs n)) l (𝓝 $ set_to_fun hT f) :=
+begin
+  rw tendsto_iff_seq_tendsto,
+  intros x xl,
+  have hxl, { rw tendsto_at_top' at xl, exact xl },
+  have h := inter_mem hfs_meas h_bound,
+  replace h := hxl _ h,
+  rcases h with ⟨k, h⟩,
+  rw ← tendsto_add_at_top_iff_nat k,
+  refine tendsto_set_to_fun_of_dominated_convergence hT bound _ bound_integrable _ _,
+  { intro, refine (h _ _).1, apply self_le_add_left },
+  { intro, refine (h _ _).2, apply self_le_add_left },
+  { filter_upwards [h_lim],
+    assume a h_lim,
+    apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, fs n a),
+    { assumption },
+    rw tendsto_add_at_top_iff_nat,
+    assumption }
+end
+
+variables {X : Type*} [topological_space X] [first_countable_topology X]
+
+lemma continuous_at_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
+  {fs : X → α → E} {x₀ : X} {bound : α → ℝ} (hfs_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (fs x) μ)
+  (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥fs x a∥ ≤ bound a)
+  (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, fs x a) x₀) :
+  continuous_at (λ x, set_to_fun hT (fs x)) x₀ :=
+tendsto_set_to_fun_filter_of_dominated_convergence hT bound ‹_› ‹_› ‹_› ‹_›
+
+lemma continuous_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
+  {fs : X → α → E} {bound : α → ℝ}
+  (hfs_meas : ∀ x, ae_measurable (fs x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥fs x a∥ ≤ bound a)
+  (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous (λ x, fs x a)) :
+  continuous (λ x, set_to_fun hT (fs x)) :=
+continuous_iff_continuous_at.mpr (λ x₀, continuous_at_set_to_fun_of_dominated hT
+  (eventually_of_forall hfs_meas) (eventually_of_forall h_bound) ‹_› $ h_cont.mono $
+    λ _, continuous.continuous_at)
 
 end function
 

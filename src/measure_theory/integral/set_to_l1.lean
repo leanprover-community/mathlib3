@@ -625,7 +625,7 @@ begin
 end
 
 /-- If `fs i → f` in `L1`, then `set_to_L1 hT (fs i) → set_to_L1 hT f`. -/
-lemma tendsto.set_to_L1 (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E)
+lemma tendsto_set_to_L1 (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E)
   {ι} (fs : ι → α →₁[μ] E) {l : filter ι} (hfs : tendsto fs l (𝓝 f)) :
   tendsto (λ i, set_to_L1 hT (fs i)) l (𝓝 $ set_to_L1 hT f) :=
 ((set_to_L1 hT).continuous.tendsto _).comp hfs
@@ -779,7 +779,7 @@ begin
     { ext1 n, exact set_to_fun_eq hT (fs_int n), },
     { exact set_to_fun_eq hT f_int, }, },
   /- the convergence of set_to_L1 follows from the convergence of the L1 functions -/
-  refine L1.tendsto.set_to_L1 hT _ _ _,
+  refine L1.tendsto_set_to_L1 hT _ _ _,
   /- up to some rewriting, what we need to prove is `h_lim` -/
   rw tendsto_iff_norm_tendsto_zero,
   have lintegral_norm_tendsto_zero :
@@ -787,8 +787,8 @@ begin
   (tendsto_to_real zero_ne_top).comp
     (tendsto_lintegral_norm_of_dominated_convergence
       fs_measurable bound_integrable.has_finite_integral h_bound h_lim),
-  -- Use the sandwich theorem
-  refine squeeze_zero (λ n, norm_nonneg _) (λ n, le_of_eq _) lintegral_norm_tendsto_zero,
+  convert lintegral_norm_tendsto_zero,
+  ext1 n,
   rw L1.norm_def,
   congr' 1,
   refine lintegral_congr_ae _,

@@ -107,12 +107,13 @@ lemma compression_reduces_set [linear_order α] {U V : finset α}
   compress U V A ≠ A → (compress U V A).to_colex < A.to_colex :=
 begin
   rw compress,
-  split_ifs with h₁;
-    intro h₂,
-  { any_goals {exfalso, apply h₂, refl},
-    exact max' V hV },
-  refine ⟨_, not_mem_sdiff_of_mem_right (max'_mem _ _), h₁.2 (max'_mem _ _)⟩,
-  intros x hx,
+  -- split_ifs with h₁,
+  -- { intro h₂,
+  --   exact max' V hV },
+  -- { any_goals {exfalso, apply h₂, refl},
+  --   exact max' V hV },
+  -- refine ⟨_, not_mem_sdiff_of_mem_right (max'_mem _ _), h₁.2 (max'_mem _ _)⟩,
+  -- intros x hx,
   /-have : x ∉ V := λ z, not_le_of_lt hx (le_max' _ _ _ z),
   have : x ∉ U := λ z, not_le_of_lt hx (trans (le_max' _ _ _ z) (le_of_lt h)),
   simp [‹x ∉ U›, ‹x ∉ V›]-/
@@ -428,7 +429,9 @@ lemma shadow_of_everything_up_to (A : finset α) (hA : A.nonempty) :
   ∂ (everything_up_to A) = everything_up_to (erase A (min' A hA)) :=
 begin
   -- This is a pretty painful proof, with lots of cases.
-  ext B, simp [mem_shadow', mem_everything_up_to], split,
+  ext B,
+  simp [mem_shadow_iff_insert_mem, mem_everything_up_to],
+  split,
     -- First show that if B ∪ i ≤ A, then B ≤ A - min A
     rintro ⟨i, ih, p, t⟩,
     rw [card_insert_of_not_mem ih] at p,
@@ -539,10 +542,10 @@ begin
     have := shadow_monotone this,
     simp only [all_removals, shadow, subset_empty, sup_singleton, image_empty] at this,
     simp [shadow, this, is_init_seg_of_colex, all_sized],
-  cases eq_empty_or_nonempty 𝒜 with h₂ h₂,
-    rw h₂, rw shadow_empty, rw is_init_seg_of_colex, rw all_sized, simp,
-  replace h₁ := and.intro h₂ h₁, rw IS_iff_le_max at h₁,
-  rcases h₁ with ⟨B, _, rfl, rfl⟩,
+  obtain rfl | h𝒜 := 𝒜.eq_empty_or_nonempty,
+  { rw sup_empty, simp },
+  replace h₁ := and.intro h𝒜 h₁, rw IS_iff_le_max at h₁,
+  rcases h₁ with ⟨B, _, hB, rfl⟩,
   rw shadow_of_everything_up_to,
   { apply up_to_is_IS,
     rw card_erase_of_mem (min'_mem _ _),

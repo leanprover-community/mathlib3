@@ -59,7 +59,7 @@ This section develops the introductory theory of shadows, with some lemmas on
 iterated shadows as well.
 -/
 
-section shadow
+namespace finset
 variables [decidable_eq α]
 
 /-- Everything we get by removing one element from the set `A`, used to define the shadow. -/
@@ -82,16 +82,8 @@ begin
   apply q a ih
 end
 
-/-- The shadow of a set family `𝒜` is all sets we can get by removing one element
-from any set in `𝒜`, and the (`k` times) iterated shadow is all sets we can get
-by removing k elements from any set in `𝒜`. -/
-def shadow (𝒜 : finset (finset α)) : finset (finset α) := 𝒜.sup all_removals
-
 reserve prefix `∂`:90
 notation ∂𝒜 := shadow 𝒜
-
-/-- Shadow of the empty set is empty. -/
-lemma shadow_empty : shadow (∅ : finset (finset α)) = ∅ := rfl
 
 /-- Iterated shadow of the empty set is empty. -/
 lemma iter_shadow_empty (k : ℕ) : shadow^[k] (∅ : finset (finset α)) = ∅ :=
@@ -101,37 +93,12 @@ begin
   { rwa [iterate, shadow_empty] }
 end
 
-/-- The shadow is monotonic (though not strictly so). -/
-lemma shadow_monotone {𝒜 ℬ : finset (finset α)} (h : 𝒜 ⊆ ℬ) : ∂𝒜 ⊆ ∂ℬ :=
-le_iff_subset.1 $ sup_mono h
-
-/-- `B ∈ ∂𝒜` iff there is an `A ∈ 𝒜` from which we can remove something to get `B`.
--/
-lemma mem_shadow {𝒜 : finset (finset α)} (B : finset α) :
-  B ∈ shadow 𝒜 ↔ ∃ A ∈ 𝒜, ∃ i ∈ A, erase A i = B :=
-by simp only [shadow, all_removals, mem_sup, mem_image]
-
-/-- Alternatively, `B ∈ ∂𝒜` iff we can put something new into `B`, and land in `𝒜`. -/
-lemma mem_shadow' {𝒜 : finset (finset α)} {B : finset α} :
-  B ∈ shadow 𝒜 ↔ ∃ j ∉ B, insert j B ∈ 𝒜 :=
-begin
-  rw mem_shadow,
-  split,
-  { rintro ⟨A, HA, i, Hi, k⟩,
-    rw ← k,
-    refine ⟨i, not_mem_erase i A, _⟩,
-    rwa insert_erase Hi },
-  { rintro ⟨i, Hi, k⟩,
-    refine ⟨insert i B, k, i, mem_insert_self _ _, _⟩,
-    rw erase_insert Hi }
-end
-
 /-- Everything in the shadow is one smaller than things in the original. -/
 lemma shadow_sized {𝒜 : finset (finset α)} {r : ℕ} (a : all_sized 𝒜 r) :
   all_sized (∂𝒜) (r-1) :=
 begin
   intros A H,
-  simp_rw [shadow, mem_sup, all_removals, mem_image] at H,
+  simp_rw [shadow, mem_sup, mem_image] at H,
   rcases H with ⟨A, hA, i, hi, rfl⟩,
   rw [card_erase_of_mem hi, a _ hA],
   refl,
@@ -141,7 +108,7 @@ end
 lemma sub_iff_shadow_one {𝒜 : finset (finset α)} {B : finset α} :
   B ∈ ∂𝒜 ↔ ∃ A ∈ 𝒜, B ⊆ A ∧ (A \ B).card = 1 :=
 begin
-  rw mem_shadow',
+  rw mem_shadow_iff_insert_mem,
   split,
   { rintro ⟨i, ih, inA⟩,
     refine ⟨insert i B, inA, subset_insert _ _, _⟩,
@@ -207,7 +174,7 @@ begin
         rw a at th,
         exact hi.2 th },
       refine ⟨erase A i, _, ‹_›, _⟩,
-      { rw mem_shadow,
+      { rw mem_shadow_iff,
         refine ⟨A, hA, i, ‹_›, rfl⟩ },
       rw [card_sdiff ‹B ⊆ erase A i›,
         card_erase_of_mem ‹i ∈ A›, nat.pred_sub,
@@ -228,7 +195,9 @@ begin
   apply card_le_of_subset ‹B ⊆ A›
 end
 
-end shadow
+end finset
+
+open finset
 
 /-!
 ### Build up and proof of local LYM
@@ -300,7 +269,7 @@ lemma above_sub_below [fintype α] (𝒜 : finset (finset α)) :
   the_pairs 𝒜 ⊆ from_below 𝒜 :=
 begin
   rintro ⟨A,B⟩,
-  simp only [the_pairs, from_below, mem_sup, mem_all_removals, mem_shadow, true_and, and_imp,
+  simp only [the_pairs, from_below, mem_sup, mem_all_removals, mem_shadow_iff, true_and, and_imp,
     exists_prop, mem_sdiff, mem_image, prod.mk.inj_iff, mem_univ, exists_imp_distrib],
   rintro A Ah B i ih z rfl rfl,
   exact ⟨B, ⟨A, Ah, i, ih, z⟩, i, z ▸ not_mem_erase _ _,

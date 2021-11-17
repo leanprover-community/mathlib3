@@ -327,8 +327,8 @@ begin
   intros B HB,
   obtain ⟨k, k'⟩: B ∈ ∂𝒜' ∧ B ∉ ∂𝒜 := mem_sdiff.1 HB,
   -- This is gonna be useful a couple of times so let's name it.
-  have m: ∀ y ∉ B, insert y B ∉ 𝒜 := λ y H a, k' (mem_shadow'.2 ⟨y, H, a⟩),
-  rcases mem_shadow'.1 k with ⟨x, _, _⟩,
+  have m: ∀ y ∉ B, insert y B ∉ 𝒜 := λ y H a, k' (mem_shadow_iff_insert_mem.2 ⟨y, H, a⟩),
+  rcases mem_shadow_iff_insert_mem.1 k with ⟨x, _, _⟩,
   have q := compress_moved ‹insert x B ∈ 𝒜'› (m _ ‹x ∉ B›),
   have : disjoint V B := (disjoint_insert_right.1 q.2.1).2,
   have dVU : disjoint V U := disjoint_of_subset_right q.1 q.2.1,
@@ -371,14 +371,14 @@ begin
   have : x ∉ V := disjoint_right.1 q.2.1 (mem_insert_self _ _),
   split,
     -- (B ∪ V) \ U ∈ ∂𝒜 is pretty direct:
-  { rw mem_shadow',
+  { rw mem_shadow_iff_insert_mem,
     refine ⟨x, _, _⟩,
     { simp [mem_sdiff, mem_union], tauto! },
     convert q.2.2,
     rw [insert_eq, insert_eq, union_assoc, union_sdiff_distrib _ (B ∪ V),
         sdiff_eq_self_of_disjoint (disjoint_singleton_left.2 ‹x ∉ U›)] },
   -- For (B ∪ V) \ U ∉ ∂𝒜', we split up based on w ∈ U
-  rw mem_shadow',
+  rw mem_shadow_iff_insert_mem,
   rintro ⟨w, hwB, hw𝒜'⟩,
   by_cases (w ∈ U),
     -- If w ∈ U, we find z ∈ V, and contradict m again

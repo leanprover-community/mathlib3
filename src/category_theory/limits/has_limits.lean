@@ -58,7 +58,7 @@ open category_theory category_theory.category category_theory.functor opposite
 
 namespace category_theory.limits
 
--- declare the `v`'s first; see `category_theory.category` for an explanation
+-- morphism levels before object levels. See note [category_theory universes].
 universes v₁ u₁ v₂ u₂ v₃ u₃ v v' v'' u u' u''
 
 variables {J : Type u₁} [category.{v₁} J] {K : Type u₂} [category.{v₂} K]
@@ -92,10 +92,10 @@ class has_limits_of_shape : Prop :=
 (has_limit : Π F : J ⥤ C, has_limit F . tactic.apply_instance)
 
 /--
-`C` has all limits of size `v u` (`has_limits_of_size.{v u} C`)
-if it has limits of every shape `J : Type u` with `[category.{v} J]`.
+`C` has all limits of size `v₁ u₁` (`has_limits_of_size.{v₁ u₁} C`)
+if it has limits of every shape `J : Type u₁` with `[category.{v₁} J]`.
 -/
-class has_limits_of_size : Prop :=
+class has_limits_of_size (C : Type u) [category.{v} C] : Prop :=
 (has_limits_of_shape :
   Π (J : Type u₁) [𝒥 : category.{v₁} J], has_limits_of_shape J C . tactic.apply_instance)
 
@@ -525,10 +525,10 @@ class has_colimits_of_shape : Prop :=
 (has_colimit : Π F : J ⥤ C, has_colimit F . tactic.apply_instance)
 
 /--
-`C` has all colimits of size `v u` (`has_colimits_of_size.{v u} C`)
-if it has colimits of every shape `J : Type u` with `[category.{v} J]`.
+`C` has all colimits of size `v₁ u₁` (`has_colimits_of_size.{v₁ u₁} C`)
+if it has colimits of every shape `J : Type u₁` with `[category.{v₁} J]`.
 -/
-class has_colimits_of_size : Prop :=
+class has_colimits_of_size (C : Type u) [category.{v} C] : Prop :=
 (has_colimits_of_shape :
   Π (J : Type u₁) [𝒥 : category.{v₁} J], has_colimits_of_shape J C . tactic.apply_instance)
 

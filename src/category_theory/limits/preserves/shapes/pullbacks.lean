@@ -127,4 +127,18 @@ begin
   apply_instance
 end
 
+lemma preserves_pullback.iso_hom_fst :
+  (preserves_pullback.iso G f g).hom ≫ pullback.fst = G.map pullback.fst := by simp
+
+lemma preserves_pullback.iso_hom_snd :
+  (preserves_pullback.iso G f g).hom ≫ pullback.snd = G.map pullback.snd := by simp
+
+@[simp] lemma preserves_pullback.iso_inv_fst :
+  (preserves_pullback.iso G f g).inv ≫ G.map pullback.fst = pullback.fst :=
+by simp [iso.inv_comp_eq]
+
+@[simp] lemma preserves_pullback.iso_inv_snd :
+  (preserves_pullback.iso G f g).inv ≫ G.map pullback.snd = pullback.snd :=
+by simp [iso.inv_comp_eq]
+
 end category_theory.limits

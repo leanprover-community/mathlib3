@@ -193,8 +193,8 @@ by { ext i j, simp [trace_eq_sum_embeddings, embeddings_matrix, mul_apply] }
 lemma _root_.algebra.trace_matrix_eq_embeddings_matrix_reindex_mul_trans
   (e : ι ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
-by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex,
-  mul_transpose_eq_reindex_mul_reindex_transpose]
+by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
+  mul_transpose_eq_reindex_mul_reindex_transpose, ← equiv.coe_refl, equiv.refl_symm]
 
 lemma eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
   (e : ι ≃ (L →ₐ[K] E)) : algebra_map K E (discriminant K b) =

@@ -651,8 +651,8 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
 λ a ha, nat.rec (by rwa [zero_add, pow_one])
   (λ n ih, (congr_arg2 (∈) (pow_succ a (n + 1)).symm hS2).mp (set.mul_mem_mul ha ih)),
 { carrier := S,
-  one_mem' := by {
-    obtain ⟨a, ha⟩ := hS1,
+  one_mem' := by
+  { obtain ⟨a, ha⟩ := hS1,
     rw [←pow_order_of_eq_one a, ← tsub_add_cancel_of_le (succ_le_of_lt (order_of_pos a))],
     exact pow_mem a ha (order_of a - 1) },
   mul_mem' := λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb) }
@@ -661,8 +661,8 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
 def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
   (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
 { carrier := S,
-  inv_mem' := λ a ha, by {
-    rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
+  inv_mem' := λ a ha, by
+  { rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
     exact (submonoid_of_idempotent S hS1 hS2).pow_mem ha (order_of a - 1) },
   .. submonoid_of_idempotent S hS1 hS2 }
 

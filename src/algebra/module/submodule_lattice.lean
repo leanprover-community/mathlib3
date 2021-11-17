@@ -123,8 +123,8 @@ eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
   right_inv := by { intro x, refl, }, }
 
 instance : has_Inf (submodule R M) :=
-⟨λ S, {
-  carrier   := ⋂ s ∈ S, (s : set M),
+⟨λ S,
+{ carrier   := ⋂ s ∈ S, (s : set M),
   zero_mem' := by simp,
   add_mem'  := by simp [add_mem] {contextual := tt},
   smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
@@ -136,8 +136,8 @@ private lemma le_Inf' {S : set (submodule R M)} {p} : (∀q ∈ S, p ≤ q) → 
 set.subset_bInter
 
 instance : has_inf (submodule R M) :=
-⟨λ p q, {
-  carrier   := p ∩ q,
+⟨λ p q,
+{ carrier   := p ∩ q,
   zero_mem' := by simp,
   add_mem'  := by simp [add_mem] {contextual := tt},
   smul_mem' := by simp [smul_mem] {contextual := tt} }⟩

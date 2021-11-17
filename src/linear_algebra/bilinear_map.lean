@@ -60,6 +60,8 @@ def mk₂' (f : M → N → Pₗ)
 variables {R S}
 
 variables (ρ₁₂ σ₁₂)
+/-- Create a bilinear map from a function that is semilinear in each component.
+See `mk₂'` and `mk₂` for the linear case. -/
 def mk₂'ₛₗ (f : M → N → P)
   (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
   (H2 : ∀ (c:R) m n, f (c • m) n = (ρ₁₂ c) • f m n)

@@ -494,8 +494,8 @@ theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) 
   ∃ (n : ℕ) (g : polynomial F), g.separable ∧ expand F (p ^ n) g = f :=
 begin
   replace hp : p.prime := (char_p.char_is_prime_or_zero F p).resolve_right hp,
-  unfreezingI {
-    induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
+  unfreezingI
+  { induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
   rcases separable_or p hf with h | ⟨h1, g, hg, hgf⟩,
   { refine ⟨0, f, h, _⟩, rw [pow_zero, expand_one] },
   { cases N with N,

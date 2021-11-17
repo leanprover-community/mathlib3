@@ -784,9 +784,21 @@ begin
   exact ring_hom.map_zero f,
 end
 
-lemma is_root_map {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
-  (hf : function.injective f) : is_root p x ↔ is_root (p.map f) (f x) :=
-by simp only [is_root, eval_map, eval₂_hom, f.injective_iff'.mp hf]
+lemma is_root.map {f : R →+* S} {x : R} {p : polynomial R} (h : is_root p x) :
+  is_root (p.map f) (f x) :=
+begin
+  rw [is_root] at h,
+  apply_fun f at h,
+  rwa [←eval₂_hom, f.map_zero, ←eval_map] at h
+end
+
+lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=
+by rwa [is_root, eval_map, eval₂_hom, f.injective_iff'.mp hf] at h
+
+lemma is_root_map_iff {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (hf : function.injective f) : is_root (p.map f) (f x) ↔ is_root p x :=
+⟨λ h, h.of_map hf, λ h, h.map⟩
 
 end map
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.sites.sheaf
+import category_theory.sites.cover_lifting
+import category_theory.adjunction.fully_faithful
 
 /-!
 # Dense subsites
@@ -26,6 +28,9 @@ we would need, and some sheafification would be needed for here and there.
 - `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, then `α` is an iso if
   `G ⋙ ℱ ⟶ G ⋙ ℱ'` is iso.
+- `category_theory.cover_dense.Sheaf_equiv_of_cover_preserving_cover_lifting`:
+  If `G : (C, J) ⥤ (D, K)` is fully-faithful, cover-lifting, cover-preserving, and cover-dense,
+  then it will induce an equivalence of categories of sheaves valued in a complete category.
 
 ## References
 

@@ -243,7 +243,7 @@ begin
   simp [mod_nat, nat.mod_eq_of_lt i.is_lt],
 end
 
-@[simp] lemma repeat_succ {α : Type*} (a : fin n → α) (m : ℕ) :
+lemma repeat_succ {α : Type*} (a : fin n → α) (m : ℕ) :
   repeat m.succ a = append a (repeat m a) ∘ cast ((nat.succ_mul _ _).trans (add_comm _ _)) :=
 begin
   generalize_proofs h,

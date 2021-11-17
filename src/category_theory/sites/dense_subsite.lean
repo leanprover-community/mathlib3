@@ -27,7 +27,7 @@ we would need, and some sheafification would be needed for here and there.
 * `category_theory.cover_dense.iso_of_restrict_iso`: If `G : C ⥤ (D, K)` is full and cover-dense,
   then given any sheaves `ℱ, ℱ'` on `D`, and a morphism `α : ℱ ⟶ ℱ'`, then `α` is an iso if
   `G ⋙ ℱ ⟶ G ⋙ ℱ'` is iso.
-- `category_theory.ccover_dense.Sheaf_iso_of_cover_preserving_cover_lifting`:
+- `category_theory.ccover_dense.Sheaf_equiv_of_cover_preserving_cover_lifting`:
   If `G : (C, J) ⥤ (D, K)` is fully-faithful, cover-lifting, cover-preserving, and cover-dense,
   then it will induce an equivalence of categories of sheaves.
 
@@ -448,7 +448,7 @@ Given a functor between small sites that is cover-dense, cover-preserving, and c
 it induces an equivalence of category of sheaves valued in a complete category.
 -/
 noncomputable
-def Sheaf_iso_of_cover_preserving_cover_lifting : Sheaf J A ≌ Sheaf K A :=
+def Sheaf_equiv_of_cover_preserving_cover_lifting : Sheaf J A ≌ Sheaf K A :=
 begin
   symmetry,
   let α := sites.pullback_copullback_adjunction A Hp Hl Hd.compatible_preserving,

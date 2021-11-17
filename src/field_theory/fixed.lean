@@ -236,21 +236,18 @@ by { rw [← minpoly_eq_minpoly, minpoly,
 
 instance separable : is_separable (fixed_points.subfield G F) F :=
 ⟨λ x, is_integral G F x,
- λ x, by {
-  -- this was a plain rw when we were using unbundled subrings
+ λ x, by
+{ -- this was a plain rw when we were using unbundled subrings
   erw [← minpoly_eq_minpoly,
     ← polynomial.separable_map (fixed_points.subfield G F).subtype,
     minpoly, polynomial.map_to_subring _ ((subfield G F).to_subring) ],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
 lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
-begin
-  refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
-  rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
-    cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
-  exact cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max u v)}
+dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_finset, finset.coe_sort_coe,
+  cardinal.lift_nat_cast, cardinal.nat_cast_le]
+  using cardinal_lift_le_dim_of_linear_independent'
     (linear_independent_smul_of_linear_independent G F hs)
-end
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=
 is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.2 $

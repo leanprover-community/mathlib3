@@ -598,7 +598,7 @@ def lifts := Σ (L : intermediate_field F E), (L →ₐ[F] K)
 
 variables {F E K}
 
-noncomputable instance : order_bot (lifts F E K) :=
+instance : partial_order (lifts F E K) :=
 { le := λ x y, x.1 ≤ y.1 ∧ (∀ (s : x.1) (t : y.1), (s : E) = t → x.2 s = y.2 t),
   le_refl := λ x, ⟨le_refl x.1, λ s t hst, congr_arg x.2 (subtype.ext hst)⟩,
   le_trans := λ x y z hxy hyz, ⟨le_trans hxy.1 hyz.1, λ s u hsu, eq.trans
@@ -610,8 +610,10 @@ noncomputable instance : order_bot (lifts F E K) :=
     subst this,
     congr,
     exact alg_hom.ext (λ s, hxy2 s s rfl),
-  end,
-  bot := ⟨⊥, (algebra.of_id F K).comp (bot_equiv F E).to_alg_hom⟩,
+  end }
+
+noncomputable instance : order_bot (lifts F E K) :=
+{ bot := ⟨⊥, (algebra.of_id F K).comp (bot_equiv F E).to_alg_hom⟩,
   bot_le := λ x, ⟨bot_le, λ s t hst,
   begin
     cases intermediate_field.mem_bot.mp s.mem with u hu,
@@ -713,8 +715,8 @@ let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
 ⟨↑x.1⟮s⟯, (@alg_hom_equiv_sigma F x.1 (↑x.1⟮s⟯ : intermediate_field F E) K _ _ _ _ _ _ _
   (intermediate_field.algebra x.1⟮s⟯) (is_scalar_tower.of_algebra_map_eq (λ _, rfl))).inv_fun
   ⟨x.2, (@alg_hom_adjoin_integral_equiv x.1 _ E _ _ s K _ x.2.to_ring_hom.to_algebra
-  h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by {
-  simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero h3)), is_root, ←eval₂_eq_eval_map],
+  h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by
+{ simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero h3)), is_root, ←eval₂_eq_eval_map],
   exact map_root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)) }⟩⟩⟩
 
 lemma lifts.le_lifts_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)

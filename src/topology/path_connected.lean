@@ -307,6 +307,20 @@ def map (γ : path x y) {Y : Type*} [topological_space Y]
   (γ.map h : I → Y) = f ∘ γ :=
 by { ext t, refl }
 
+@[simp] lemma map_symm (γ : path x y) {Y : Type*} [topological_space Y]
+  {f : X → Y} (h : continuous f) :
+  (γ.map h).symm = γ.symm.map h := rfl
+
+@[simp] lemma map_trans (γ : path x y) (γ' : path y z) {Y : Type*} [topological_space Y]
+  {f : X → Y} (h : continuous f) : (γ.trans γ').map h = (γ.map h).trans (γ'.map h) :=
+by { ext t, rw [trans_apply, map_coe, comp_app, trans_apply], split_ifs; refl }
+
+@[simp] lemma map_id (γ : path x y) : γ.map continuous_id = γ := by { ext, refl }
+
+@[simp] lemma map_map (γ : path x y) {Y : Type*} [topological_space Y] {Z : Type*}
+  [topological_space Z] {f : X → Y} (hf : continuous f) {g : Y → Z} (hg : continuous g) :
+  (γ.map hf).map hg = γ.map (hg.comp hf) := by { ext, refl }
+
 /-- Casting a path from `x` to `y` to a path from `x'` to `y'` when `x' = x` and `y' = y` -/
 def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
 { to_fun := γ,

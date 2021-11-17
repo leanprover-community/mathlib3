@@ -156,8 +156,8 @@ See note [reducible non-instances]. -/
 def module.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [module R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
-  add_left_neg := λ a, show (-1 : R) • a + a = 0, by {
-    nth_rewrite 1 ← one_smul _ a,
+  add_left_neg := λ a, show (-1 : R) • a + a = 0, by
+  { nth_rewrite 1 ← one_smul _ a,
     rw [← add_smul, add_left_neg, zero_smul] },
   ..(infer_instance : add_comm_monoid M), }
 
@@ -477,6 +477,14 @@ class no_zero_smul_divisors (R M : Type*) [has_zero R] [has_zero M] [has_scalar 
 (eq_zero_or_eq_zero_of_smul_eq_zero : ∀ {c : R} {x : M}, c • x = 0 → c = 0 ∨ x = 0)
 
 export no_zero_smul_divisors (eq_zero_or_eq_zero_of_smul_eq_zero)
+
+/-- Pullback a `no_zero_smul_divisors` instance along an injective function. -/
+lemma function.injective.no_zero_smul_divisors {R M N : Type*} [has_zero R] [has_zero M]
+  [has_zero N] [has_scalar R M] [has_scalar R N] [no_zero_smul_divisors R N] (f : M → N)
+  (hf : function.injective f) (h0 : f 0 = 0) (hs : ∀ (c : R) (x : M), f (c • x) = c • f x) :
+  no_zero_smul_divisors R M :=
+⟨λ c m h,
+  or.imp_right (@hf _ _) $ h0.symm ▸ eq_zero_or_eq_zero_of_smul_eq_zero (by rw [←hs, h, h0])⟩
 
 section module
 

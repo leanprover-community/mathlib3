@@ -46,7 +46,7 @@ namespace finset
 `∏ x in s, f x` is the product of `f x`
 as `x` ranges over the elements of the finite set `s`.
 -/
-@[to_additive "`∑ x in s, f` is the sum of `f x` as `x` ranges over the elements
+@[to_additive "`∑ x in s, f x` is the sum of `f x` as `x` ranges over the elements
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
@@ -394,6 +394,17 @@ begin
   { intros _ _ H ih,
     simp only [prod_insert H, prod_mul_distrib, ih] }
 end
+
+@[to_additive]
+lemma prod_product_right {s : finset γ} {t : finset α} {f : γ×α → β} :
+  (∏ x in s.product t, f x) = ∏ y in t, ∏ x in s, f (x, y) :=
+by rw [prod_product, prod_comm]
+
+/-- An uncurried version of `finset.prod_product_right`. -/
+@[to_additive "An uncurried version of `finset.prod_product_right`"]
+lemma prod_product_right' {s : finset γ} {t : finset α} {f : γ → α → β} :
+  (∏ x in s.product t, f x.1 x.2) = ∏ y in t, ∏ x in s, f x y :=
+prod_product_right
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}

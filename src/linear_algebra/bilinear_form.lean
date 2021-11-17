@@ -8,8 +8,8 @@ import linear_algebra.dual
 import linear_algebra.matrix.basis
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
-import linear_algebra.tensor_product
 import linear_algebra.matrix.to_linear_equiv
+import linear_algebra.tensor_product
 
 /-!
 # Bilinear form

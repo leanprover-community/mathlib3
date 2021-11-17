@@ -32,9 +32,9 @@ algebra structure `direct_sum.galgebra R (λ i, ↥(𝒜 i))`, which in turn mak
 `algebra R (⨁ i, 𝒜 i)` instance.
 -/
 class graded_algebra extends set_like.graded_monoid 𝒜 :=
-(decompose : A → ⨁ i, 𝒜 i)
-(left_inv : function.left_inverse decompose (direct_sum.submodule_coe 𝒜))
-(right_inv : function.right_inverse decompose (direct_sum.submodule_coe 𝒜))
+(decompose' : A → ⨁ i, 𝒜 i)
+(left_inv : function.left_inverse decompose' (direct_sum.submodule_coe 𝒜))
+(right_inv : function.right_inverse decompose' (direct_sum.submodule_coe 𝒜))
 
 lemma graded_ring.is_internal [graded_algebra 𝒜] :
   direct_sum.submodule_is_internal 𝒜 :=
@@ -46,15 +46,17 @@ variable [graded_algebra 𝒜]
 is isomorphic to it as an algebra. -/
 def graded_algebra.recompose : (⨁ i, 𝒜 i) ≃ₐ[R] A :=
 { to_fun := direct_sum.submodule_coe_alg_hom 𝒜,
-  inv_fun := graded_algebra.decompose,
+  inv_fun := graded_algebra.decompose',
   left_inv := graded_algebra.left_inv,
   right_inv := graded_algebra.right_inv,
   map_mul' := alg_hom.map_mul _,
   map_add' := alg_hom.map_add _,
   commutes' := alg_hom.commutes _ }
 
-@[simp] lemma graded_algebra.decompose_def :
-  graded_algebra.decompose = (graded_algebra.recompose 𝒜).symm := rfl
+def graded_algebra.decompose : A ≃ₐ[R] (⨁ i, 𝒜 i) := (graded_algebra.recompose 𝒜).symm
+
+@[simp] lemma graded_algebra.decompose'_def :
+  graded_algebra.decompose' = (graded_algebra.decompose 𝒜) := rfl
 
 @[simp] lemma graded_algebra.recompose_of {i : ι} (x : 𝒜 i) :
   graded_algebra.recompose 𝒜 (direct_sum.of _ i x) = x :=

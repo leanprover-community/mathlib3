@@ -5,6 +5,8 @@ Authors: Shing Tak Lam
 -/
 import topology.homotopy.path
 import category_theory.groupoid
+import category_theory.category.Groupoid
+import topology.category.Top
 
 /-!
 # Fundamental groupoid of a space
@@ -258,6 +260,8 @@ put a `category_theory.groupoid` structure on it.
 -/
 def fundamental_groupoid (X : Type u) := X
 
+namespace fundamental_groupoid
+
 instance {X : Type u} [h : inhabited X] : inhabited (fundamental_groupoid X) := h
 
 local attribute [reducible] fundamental_groupoid
@@ -266,11 +270,8 @@ local attribute [instance] path.homotopic.setoid
 instance : category_theory.groupoid (fundamental_groupoid X) :=
 { hom := λ x y, path.homotopic.quotient x y,
   id := λ x, ⟦path.refl x⟧,
-  comp := λ x y z p q, quotient.lift₂ (λ (l₁ : path x y) (l₂ : path y z), ⟦l₁.trans l₂⟧) begin
-    rintros a₁ a₂ b₁ b₂ ⟨h₁⟩ ⟨h₂⟩,
-    rw quotient.eq,
-    exact ⟨h₁.hcomp h₂⟩,
-  end p q,
+  comp := λ x y z, quotient.map₂ path.trans
+    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq),
   id_comp' := λ x y f, quotient.induction_on f
     (λ a, show ⟦(path.refl x).trans a⟧ = ⟦a⟧,
           from quotient.sound ⟨path.homotopy.refl_trans a⟩ ),
@@ -291,3 +292,39 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
   comp_inv' := λ x y f, quotient.induction_on f
     (λ a, show ⟦a.trans a.symm⟧ = ⟦path.refl x⟧,
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
+
+lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
+  p ≫ q = quotient.map₂ path.trans
+    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq) p q := rfl
+
+/--
+The functor sending a topological space `X` to its fundamental groupoid.
+-/
+def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
+{ obj := λ X, { α := fundamental_groupoid X },
+  map := λ X Y f,
+  { obj := f,
+    map := λ x y, quotient.map
+      (λ (q : path x y), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f),
+    map_id' := λ X, rfl,
+    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b, by simp [comp_eq] },
+  map_id' := begin
+    intro X,
+    change _ = (⟨_, _, _, _⟩ : fundamental_groupoid X ⥤ fundamental_groupoid X),
+    congr',
+    ext x y p,
+    refine quotient.induction_on p (λ q, _),
+    rw [quotient.map_mk],
+    conv_rhs { rw [←q.map_id] },
+    refl,
+  end,
+  map_comp' := begin
+    intros X Y Z f g,
+    congr',
+    ext x y p,
+    refine quotient.induction_on p (λ q, _),
+    simp only [quotient.map_mk, path.map_map, quotient.eq],
+    refl,
+  end }
+
+end fundamental_groupoid

@@ -40,7 +40,7 @@ we would need, and some sheafification would be needed for here and there.
 
 -/
 
-universes v
+universes v u
 
 namespace category_theory
 
@@ -480,6 +480,4 @@ begin
     functor_unit_iso_comp' := λ ℱ, by convert α.left_triangle_components }
 end
 
-end cover_dense
-
-end category_theory
+end category_theory.cover_dense

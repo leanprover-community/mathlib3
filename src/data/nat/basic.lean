@@ -74,8 +74,6 @@ instance : linear_ordered_comm_monoid_with_zero ℕ :=
 instance : ordered_comm_semiring ℕ := { .. nat.comm_semiring, .. nat.linear_ordered_semiring }
 
 /-! Extra instances to short-circuit type class resolution -/
-instance : preorder nat           := by apply_instance
-instance : partial_order nat      := by apply_instance
 instance : add_comm_monoid nat    := by apply_instance
 instance : add_monoid nat         := by apply_instance
 instance : monoid nat             := by apply_instance
@@ -104,16 +102,6 @@ instance : canonically_ordered_comm_semiring ℕ :=
 instance : canonically_linear_ordered_add_monoid ℕ :=
 { .. (infer_instance : canonically_ordered_add_monoid ℕ),
   .. nat.linear_order }
-
--- TODO: why are these not helping below with the linter in fails_quickly at `nat.subtype.order_bot`?
-instance nat.subtype.has_le (s : set ℕ) : has_le s :=
-by apply_instance
-
-instance nat.subtype.preorder (s : set ℕ) : preorder s :=
-by apply_instance
-
-instance nat.has_mem : has_mem ℕ (set ℕ) :=
-by apply_instance
 
 instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
   order_bot s :=

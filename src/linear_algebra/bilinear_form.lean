@@ -1483,6 +1483,13 @@ begin
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 
+lemma congr_nondegenerate_iff {B : bilin_form R₂ M₂} (e : M₂ ≃ₗ[R₂] M₂'):
+  (congr e B).nondegenerate ↔ B.nondegenerate :=
+e.surjective.forall.trans $ forall_congr $ λ m, imp_congr
+  (e.surjective.forall.trans $ forall_congr $ λ m, by
+    rw [congr_apply, e.symm_apply_apply, e.symm_apply_apply])
+  (linear_equiv.map_eq_zero_iff _)
+
 section
 
 lemma to_lin_restrict_ker_eq_inf_orthogonal
@@ -1723,19 +1730,9 @@ theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B�
   B₃.nondegenerate :=
 to_bilin_to_matrix b B₃ ▸ (matrix.nondegenerate_of_det_ne_zero h).to_bilin b
 
-lemma nondegenerate_iff_det_ne_zero (B : bilin_form A M₃)
-  (b : basis ι A M₃) : B.nondegenerate ↔ ((bilin_form.to_matrix b) B).det ≠ 0 :=
-begin
-  refine ⟨λ h, to_bilin.nondegenerate_iff_det_ne_zero'.1 (λ v hv, _),
-    λ h, bilin_form.nondegenerate_of_det_ne_zero _ _ h⟩,
-  rw [← linear_equiv.map_eq_zero_iff b.equiv_fun.symm],
-  refine h (b.equiv_fun.symm v) (λ m, _),
-  replace hv := hv (b.equiv_fun m),
-  simp_rw [matrix.to_bilin'_apply, basis.equiv_fun_apply, bilin_form.to_matrix_apply] at hv,
-  rw [← basis.sum_equiv_fun b m],
-  rw [finset.sum_comm] at hv,
-  simp [mul_comm, hv]
-end
+lemma to_bilin'_nondegenerate_iff_to_bilin_nondegenerate {M : matrix ι ι A}
+  (b : basis ι A M₃) : (matrix.to_bilin' M).nondegenerate ↔ (matrix.to_bilin b M).nondegenerate :=
+(congr_nondegenerate_iff b.equiv_fun.symm).symm
 
 end det
 

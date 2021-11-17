@@ -3,10 +3,9 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
-import data.nat.cast
-import data.int.basic
-import logic.embedding
 import data.fin.basic
+import data.nat.cast
+import logic.embedding
 
 /-!
 # Combinatorial (pre-)games.

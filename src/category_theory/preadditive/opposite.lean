@@ -3,10 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
-import data.equiv.transfer_instance
-import category_theory.preadditive.additive_functor
-import algebra.module
 import category_theory.preadditive
+import category_theory.preadditive.additive_functor
+import data.equiv.transfer_instance
 
 /-!
 # If `C` is preadditive, `Cᵒᵖ` has a natural preadditive structure.

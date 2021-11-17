@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 
-import measure_theory.measure.measure_space_def
+import algebra.indicator_function
+import data.equiv.fin
 import data.tprod
+import group_theory.coset
+import measure_theory.measurable_space_def
 import measure_theory.tactic
+import order.filter.lift
 
 /-!
 # Measurable spaces and measurable functions

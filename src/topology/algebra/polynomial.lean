@@ -6,8 +6,6 @@ Authors: Robert Y. Lewis
 import analysis.normed_space.basic
 import data.polynomial.algebra_map
 import data.polynomial.inductions
-import topology.algebra.group_completion
-import topology.metric_space.completion
 
 /-!
 # Polynomials and limits

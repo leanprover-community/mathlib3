@@ -3,11 +3,10 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import topology.path_connected
 import analysis.convex.jensen
-import topology.algebra.affine
-import topology.continuous_function.algebra
 import analysis.normed_space.finite_dimension
+import topology.algebra.affine
+import topology.path_connected
 
 /-!
 # Topological and metric properties of convex sets

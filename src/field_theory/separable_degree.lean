@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
 import algebra.algebra.basic
-import field_theory.tower
 import algebra.char_p.exp_char
 import field_theory.separable
 

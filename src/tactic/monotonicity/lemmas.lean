@@ -3,11 +3,11 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.monotonicity.basic
-import order.directed
-import data.nat.basic
 import algebra.order.ring
+import data.nat.basic
 import data.set.lattice
+import order.directed
+import tactic.monotonicity.basic
 
 variables {α : Type*}
 

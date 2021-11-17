@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 
-import group_theory.perm.support
-import data.finset.sort
 import data.list.rotate
+import group_theory.perm.support
 
 /-!
 # Permutations from a list

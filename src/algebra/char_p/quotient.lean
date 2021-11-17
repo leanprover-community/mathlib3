@@ -6,7 +6,6 @@ Authors: Kenny Lau, Eric Wieser
 
 import algebra.char_p.basic
 import ring_theory.ideal.quotient
-import data.nat.choose
 
 /-!
 # Characteristic of quotients rings

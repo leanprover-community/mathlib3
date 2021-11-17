@@ -3,10 +3,9 @@ Copyright (c) 2021 Jon Eugster. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jon Eugster, Eric Wieser
 -/
-import linear_algebra
 import algebra.char_p.basic
-import ring_theory.localization
 import algebra.free_algebra
+import ring_theory.localization
 
 
 /-!

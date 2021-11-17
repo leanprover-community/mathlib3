@@ -3,11 +3,10 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import algebra.ring.basic
-import algebra.group.units_hom
 import algebra.group.type_tags
+import algebra.group.units_hom
+import algebra.ring.basic
 import data.equiv.mul_add
-import data.equiv.set
 
 /-!
 # Unbundled monoid and group homomorphisms

@@ -6,7 +6,6 @@ Authors: Bryan Gin-ge Chen
 
 import tactic.abel
 import tactic.ring
-import data.int.range
 
 /-!
 # Boolean rings

@@ -3,11 +3,12 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
+import analysis.normed_space.dual
+import data.set.intervals.disjoint
 import measure_theory.measure.lebesgue
 import analysis.calculus.extend_deriv
 import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
-import analysis.normed_space.dual
 
 /-!
 # Integral over an interval

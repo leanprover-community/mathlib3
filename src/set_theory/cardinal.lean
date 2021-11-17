@@ -3,10 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import set_theory.schroeder_bernstein
 import data.nat.enat
-import data.pfun
 import data.set.countable
+import set_theory.schroeder_bernstein
 
 /-!
 # Cardinal Numbers

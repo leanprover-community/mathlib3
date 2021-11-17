@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio, Eric Wieser
 -/
 
+import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.tensor_product
-import data.matrix.basic
-import data.matrix.dmatrix
 
 /-!
 # Kronecker product of matrices

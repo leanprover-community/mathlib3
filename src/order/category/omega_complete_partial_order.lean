@@ -5,11 +5,10 @@ Authors: Simon Hudon
 -/
 
 import category_theory.limits.constructions.limits_of_products_and_equalizers
-import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
-import order.omega_complete_partial_order
+import category_theory.limits.shapes.products
 import order.category.Preorder
-import data.pfun
+import order.omega_complete_partial_order
 
 /-!
 # Category of types with a omega complete partial order

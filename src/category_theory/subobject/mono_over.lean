@@ -3,13 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.limits.shapes.images
 import category_theory.adjunction.reflective
 import category_theory.currying
-import category_theory.limits.preserves.limits
-import category_theory.limits.preserves.shapes.terminal
 import category_theory.limits.over
-import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.shapes.images
 
 /-!
 # Monomorphisms over a fixed object

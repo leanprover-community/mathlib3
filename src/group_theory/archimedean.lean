@@ -5,7 +5,6 @@ Authors: Heather Macbeth, Patrick Massot
 -/
 import algebra.order.archimedean
 import group_theory.subgroup.basic
-import data.rat
 
 /-!
 # Archimedean groups

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Simon Hudon, Scott Morrison
 -/
 import tactic.equiv_rw
-import control.equiv_functor.instances
 
 /-!
 ## The `transport` tactic

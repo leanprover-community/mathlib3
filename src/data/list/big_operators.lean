@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel
 -/
 import data.list.basic
-import control.monad.basic
 
 /-!
 # Sums and products from lists

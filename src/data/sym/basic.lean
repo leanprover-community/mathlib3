@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 
+import data.multiset.basic
 import data.vector.basic
 import tactic.apply_fun
-import data.multiset.basic
 
 /-!
 # Symmetric powers

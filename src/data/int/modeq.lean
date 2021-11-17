@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import data.nat.modeq
 import tactic.ring
-import data.int.range
 
 /-!
 

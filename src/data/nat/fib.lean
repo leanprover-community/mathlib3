@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import data.nat.gcd
-import tactic.ring
 import data.stream.init
-import data.int.range
+import tactic.ring
 
 /-!
 # The Fibonacci Sequence

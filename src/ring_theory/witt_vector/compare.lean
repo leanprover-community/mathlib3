@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import control.equiv_functor.instances
 import number_theory.padics.ring_homs
 import ring_theory.witt_vector.identities
 import ring_theory.witt_vector.truncated

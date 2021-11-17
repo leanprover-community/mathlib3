@@ -4,15 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
 import algebra.algebra.basic
-import group_theory.submonoid
-import tactic.elementwise
-import algebra.iterate_hom
-import set_theory.game
-import set_theory.surreal.basic
 import group_theory.monoid_localization
+import set_theory.surreal.basic
+import tactic.elementwise
+import tactic.group
 import tactic.interval_cases
 import tactic.ring_exp
-import tactic.group
 
 /-!
 # Dyadic numbers

@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 import analysis.convex.function
-import topology.metric_space.basic
 import topology.algebra.affine
 import topology.local_extr
-import topology.continuous_function.algebra
+import topology.metric_space.basic
 
 /-!
 # Minima and maxima of convex functions

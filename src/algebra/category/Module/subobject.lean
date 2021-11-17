@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import algebra.category.Module.epi_mono
-import algebra.category.Module.adjunctions
 import category_theory.subobject.well_powered
 
 /-!

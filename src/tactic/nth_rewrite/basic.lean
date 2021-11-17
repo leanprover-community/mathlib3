@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Keeley Hoek, Scott Morrison
 -/
 import meta.expr_lens
-import meta.rb_map
-import meta.expr
 
 namespace tactic
 open expr

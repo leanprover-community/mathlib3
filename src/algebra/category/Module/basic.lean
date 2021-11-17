@@ -3,12 +3,10 @@ Copyright (c) 2019 Robert A. Spencer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
-import category_theory.concrete_category
+import algebra.category.Group.basic
+import category_theory.limits.shapes.kernels
 import category_theory.linear
 import linear_algebra.basic
-import category_theory.limits.shapes.kernels
-import algebra.iterate_hom
-import algebra.category.Group.basic
 
 /-!
 # The category of `R`-modules

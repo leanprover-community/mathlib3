@@ -5,7 +5,6 @@ Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
 import analysis.special_functions.pow
 import data.real.sign
-import linear_algebra.special_linear_group
 import linear_algebra.quadratic_form.basic
 
 /-!

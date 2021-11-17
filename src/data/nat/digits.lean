@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
-import data.int.interval
-import tactic.interval_cases
-import data.fin.interval
-import data.pnat.interval
 import data.list.indexes
+import data.nat.interval
+import tactic.interval_cases
 import tactic.linarith
 
 /-!

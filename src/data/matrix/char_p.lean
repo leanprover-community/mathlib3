@@ -5,8 +5,6 @@ Authors: Aaron Anderson
 -/
 import algebra.char_p.basic
 import data.matrix.basic
-import data.matrix.dmatrix
-import data.nat.choose
 /-!
 # Matrices in prime characteristic
 -/

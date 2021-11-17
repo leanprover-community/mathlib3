@@ -3,14 +3,13 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
-import data.finsupp
-import linear_algebra.finsupp
 import algebra.big_operators.finprod
-import linear_algebra.projection
 import algebra.big_operators.finsupp
-import linear_algebra.linear_independent
 import data.fintype.card
+import linear_algebra.finsupp
+import linear_algebra.linear_independent
 import linear_algebra.linear_pmap
+import linear_algebra.projection
 
 /-!
 

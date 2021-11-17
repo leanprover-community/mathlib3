@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 
 import algebra.algebra.basic
-import algebra.order.pi
-import algebra.iterate_hom
 import algebra.order.smul
 
 /-!

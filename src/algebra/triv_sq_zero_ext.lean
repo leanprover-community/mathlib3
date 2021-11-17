@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 
 import algebra.algebra.basic
-import algebra.iterate_hom
 
 /-!
 # Trivial Square-Zero Extension

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.algebra.basic
-import topology.locally_constant.basic
-import algebra.iterate_hom
 import tactic.field_simp
+import topology.locally_constant.basic
 
 /-!
 # Algebraic structure on locally constant functions

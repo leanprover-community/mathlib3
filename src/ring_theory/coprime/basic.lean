@@ -5,7 +5,6 @@ Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
 import algebra.ring.basic
 import tactic.ring
-import data.int.range
 
 /-!
 # Coprime elements of a ring

@@ -5,10 +5,8 @@ Authors: Simon Hudon
 -/
 
 import control.fix
-import data.stream.basic
-import tactic.apply
 import order.omega_complete_partial_order
-import data.pfun
+import tactic.apply
 
 /-!
 # Lawful fixed point operators

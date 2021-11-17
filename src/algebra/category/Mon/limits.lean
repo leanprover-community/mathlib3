@@ -3,13 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.creates
-import algebra.group.pi
-import group_theory.submonoid.operations
-import control.equiv_functor.instances
-import category_theory.limits.types
 import algebra.category.Mon.basic
-import category_theory.concrete_category.reflects_isomorphisms
+import algebra.group.pi
+import category_theory.limits.creates
+import category_theory.limits.types
+import group_theory.submonoid.operations
 import tactic.linarith
 
 /-!

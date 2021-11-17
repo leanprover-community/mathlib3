@@ -3,7 +3,6 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import analysis.calculus.fderiv_measurable
 import analysis.special_functions.trigonometric.arctan_deriv
 import measure_theory.integral.interval_integral
 

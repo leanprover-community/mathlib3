@@ -4,13 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.monad.algebra
-import category_theory.adjunction
 import category_theory.limits.shapes.reflexive
-import category_theory.limits.preserves.limits
-import category_theory.limits.preserves.shapes.terminal
-import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.shapes.split_coequalizer
+import category_theory.monad.algebra
 
 /-!
 # Special coequalizers associated to a monad

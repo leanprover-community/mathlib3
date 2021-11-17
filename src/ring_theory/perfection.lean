@@ -4,16 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.char_p.quotient
-import ring_theory.subring
-import algebra.ring.pi
-import field_theory.perfect_closure
-import algebra.char_p.subring
-import analysis.special_functions.pow
-import ring_theory.localization
 import algebra.char_p.pi
+import algebra.char_p.quotient
+import algebra.char_p.subring
+import algebra.ring.pi
+import analysis.special_functions.pow
+import field_theory.perfect_closure
+import ring_theory.localization
+import ring_theory.subring
 import ring_theory.valuation.integers
-import algebra.ring_quot
 
 /-!
 # Ring Perfection and Tilt

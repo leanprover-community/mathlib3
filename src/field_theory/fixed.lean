@@ -8,7 +8,6 @@ import algebra.polynomial.group_ring_action
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
-import ring_theory.polynomial
 
 /-!
 # Fixed field under a group action.

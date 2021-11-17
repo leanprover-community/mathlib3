@@ -5,7 +5,6 @@ Authors: Riccardo Brasca
 -/
 
 import linear_algebra.finsupp_vector_space
-import data.mv_polynomial
 import linear_algebra.free_module.basic
 
 /-!

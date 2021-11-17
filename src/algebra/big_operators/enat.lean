@@ -5,7 +5,6 @@ Authors: Floris van Doorn
 -/
 import algebra.big_operators.basic
 import data.nat.enat
-import data.pfun
 
 /-!
 # Big operators in `enat`

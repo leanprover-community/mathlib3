@@ -5,12 +5,11 @@ Authors: Sébastien Gouëzel
 -/
 import algebra.algebra.basic
 import algebra.big_operators.order
-import linear_algebra.basic
-import algebra.iterate_hom
 import algebra.big_operators.ring
 import data.fin.tuple
 import data.fintype.card
 import data.fintype.sort
+import linear_algebra.basic
 
 /-!
 # Multilinear maps

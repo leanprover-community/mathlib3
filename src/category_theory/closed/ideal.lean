@@ -3,14 +3,13 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.monad.limits
-import category_theory.subobject.basic
 import category_theory.adjunction.fully_faithful
-import category_theory.subterminal
-import category_theory.closed.cartesian
 import category_theory.adjunction.reflective
+import category_theory.closed.cartesian
 import category_theory.limits.constructions.finite_products_of_binary_products
 import category_theory.limits.preserves.shapes.binary_products
+import category_theory.monad.limits
+import category_theory.subterminal
 
 /-!
 # Exponential ideals

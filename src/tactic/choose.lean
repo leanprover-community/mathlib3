@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Floris van Doorn, Mario Carneiro
 -/
 
 import logic.function.basic
-import data.bool
 import tactic.core
 
 /-!

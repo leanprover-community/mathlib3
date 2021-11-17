@@ -3,9 +3,8 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-import algebra.module.basic
-import category_theory.concrete_category.bundled_hom
 import algebra.pempty_instances
+import category_theory.concrete_category.bundled_hom
 import category_theory.reflects_isomorphisms
 
 /-!

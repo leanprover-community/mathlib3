@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.algebra.basic
-import algebra.order.nonneg
-import algebra.iterate_hom
-import algebra.indicator_function
 import algebra.big_operators.ring
+import algebra.indicator_function
+import algebra.order.nonneg
 import data.real.basic
 
 /-!

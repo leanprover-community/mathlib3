@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen, Kevin Lacker
 -/
 import tactic.ring
-import data.int.range
 /-!
 # Identities
 

@@ -4,18 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import algebra.algebra.basic
-import ring_theory.noetherian
 import data.set_like.fintype
-import linear_algebra.prod
-import ring_theory.jacobson
 import linear_algebra.basic
-import data.mv_polynomial
-import ring_theory.nakayama
 import linear_algebra.linear_independent
-import ring_theory.nilpotent
-import tactic.linarith
 import linear_algebra.pi
+import linear_algebra.prod
 import ring_theory.jacobson_ideal
+import ring_theory.nakayama
+import ring_theory.nilpotent
+import ring_theory.noetherian
+import tactic.linarith
 
 /-!
 # Artinian rings and modules

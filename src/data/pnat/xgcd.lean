@@ -5,7 +5,6 @@ Authors: Neil Strickland
 -/
 import data.pnat.prime
 import tactic.ring
-import data.int.range
 
 /-!
 # Euclidean algorithm for ℕ

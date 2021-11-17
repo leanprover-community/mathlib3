@@ -5,7 +5,6 @@ Authors: Chris Wong
 -/
 
 import data.list.basic
-import control.monad.basic
 
 /-!
 # Palindromes

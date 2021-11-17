@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
+import control.traversable.instances
+import data.set.finite
 import order.copy
 import tactic.monotonicity
-import data.set.finite
 
 /-!
 # Theory of filters on sets

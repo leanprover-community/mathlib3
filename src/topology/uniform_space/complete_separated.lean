@@ -3,10 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.uniform_space.separation
-import data.set.intervals
 import topology.dense_embedding
 import topology.uniform_space.cauchy
+import topology.uniform_space.separation
 
 /-!
 # Theory of complete separated uniform spaces.

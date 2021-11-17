@@ -3,9 +3,8 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import order.filter.basic
-import order.zorn
 import data.pfun
+import order.filter.basic
 
 /-!
 # `tendsto` for relations and partial functions

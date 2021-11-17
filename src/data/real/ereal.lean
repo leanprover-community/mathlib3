@@ -3,9 +3,8 @@ Copyright (c) 2019 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
-import data.real.ennreal
 import data.real.basic
-import data.set.intervals
+import data.real.ennreal
 
 /-!
 # The extended reals [-∞, ∞].

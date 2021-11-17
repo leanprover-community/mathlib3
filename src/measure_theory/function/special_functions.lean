@@ -5,9 +5,8 @@ Authors: Yury Kudryashov
 -/
 
 import analysis.inner_product_space.basic
-import analysis.special_functions.trigonometric.arctan
-import analysis.special_functions.trigonometric.complex_deriv
 import analysis.special_functions.pow
+import analysis.special_functions.trigonometric.arctan
 import measure_theory.constructions.borel_space
 
 /-!

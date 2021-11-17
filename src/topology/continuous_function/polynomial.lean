@@ -3,13 +3,10 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.continuous_function.compact
-import control.equiv_functor.instances
-import topology.metric_space.cau_seq_filter
 import topology.algebra.polynomial
-import topology.unit_interval
-import data.polynomial.div
 import topology.continuous_function.algebra
+import topology.continuous_function.compact
+import topology.unit_interval
 
 /-!
 # Constructions relating polynomial functions and continuous functions.

@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 import algebra.group.defs
 import logic.nontrivial
-import data.pi
 
 /-!
 # Typeclasses for groups with an adjoined zero element

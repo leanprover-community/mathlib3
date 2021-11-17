@@ -5,7 +5,6 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.group
-import algebra.group_with_zero
 import tactic.abel
 
 /-!

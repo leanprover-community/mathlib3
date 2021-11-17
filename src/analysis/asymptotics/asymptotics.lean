@@ -5,8 +5,6 @@ Authors: Jeremy Avigad, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import topology.local_homeomorph
-import topology.algebra.group_completion
-import topology.metric_space.completion
 
 /-!
 # Asymptotics

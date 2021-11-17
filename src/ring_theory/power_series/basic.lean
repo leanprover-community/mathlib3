@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
 import algebra.big_operators.nat_antidiagonal
-import tactic.interval_cases
-import linear_algebra.std_basis
-import data.polynomial.eval
-import tactic.group
 import data.mv_polynomial.basic
-import tactic.linarith
+import data.polynomial.coeff
+import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
+import tactic.group
+import tactic.interval_cases
+import tactic.linarith
 
 /-!
 # Formal power series

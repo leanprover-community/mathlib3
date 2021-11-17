@@ -3,10 +3,9 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
+import algebra.category.Mon.basic
 import category_theory.limits.concrete_category
 import category_theory.limits.preserves.filtered
-import algebra.category.Mon.basic
-import category_theory.concrete_category.reflects_isomorphisms
 
 /-!
 # The forgetful functor from (commutative) (additive) monoids preserves filtered colimits.

@@ -5,7 +5,6 @@ Authors: Zhouhang Zhou
 -/
 import algebra.pointwise
 import order.filter.basic
-import order.zorn
 /-!
 # Pointwise operations on filters.
 

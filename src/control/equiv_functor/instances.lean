@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import control.equiv_functor
 import data.fintype.basic
-import data.equiv.functor
-import category_theory.category.basic
 
 /-!
 # `equiv_functor` instances

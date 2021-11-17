@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.bases
 import topology.uniform_space.basic
-import topology.separation
 /-!
 # Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
 -/

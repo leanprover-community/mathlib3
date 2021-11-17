@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.measure.measure_space_def
-import tactic.tfae
-import tactic.reassoc_axiom
-import tactic.with_local_reducibility
 import tactic.abel
-import tactic.field_simp
 import tactic.auto_cases
+import tactic.field_simp
 import tactic.linarith
-import tactic.tidy
+import tactic.reassoc_axiom
 import tactic.show_term
+import tactic.tfae
+import tactic.tidy
+import tactic.with_local_reducibility
 /-!
 # Tactics for measure theory
 

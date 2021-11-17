@@ -3,13 +3,16 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.elementwise
 import algebra.big_operators.basic
-import category_theory.preadditive.additive_functor
+import algebra.big_operators.pi
 import category_theory.limits.shapes.biproducts
-import data.matrix.basic
-import data.matrix.dmatrix
 import category_theory.preadditive
+import category_theory.preadditive.additive_functor
+import data.matrix.dmatrix
+import tactic.abel
+import tactic.elementwise
+import tactic.linarith
+import tactic.tfae
 
 /-!
 # Matrices over a category.

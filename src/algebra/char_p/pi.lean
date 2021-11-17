@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 
 import algebra.char_p.basic
-import data.nat.choose
+import algebra.ring.pi
 
 /-!
 # Characteristic of semirings of functions

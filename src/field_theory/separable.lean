@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import field_theory.minpoly
-import field_theory.splitting_field
 import algebra.polynomial.big_operators
 import algebra.squarefree
-import ring_theory.polynomial
+import field_theory.minpoly
+import field_theory.splitting_field
 
 /-!
 

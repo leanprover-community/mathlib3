@@ -3,10 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Sébastien Gouëzel, Patrick Massot
 -/
-import topology.uniform_space.separation
-import data.set.intervals
 import topology.dense_embedding
 import topology.uniform_space.cauchy
+import topology.uniform_space.separation
 
 /-!
 # Uniform embeddings of uniform spaces.

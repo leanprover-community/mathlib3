@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kevin Buzzard
 -/
 import algebra.big_operators.nat_antidiagonal
+import algebra.geom_sum
+import data.fintype.card
 import ring_theory.power_series.well_known
 import tactic.field_simp
-import data.fintype.card
 
 /-!
 # Bernoulli numbers

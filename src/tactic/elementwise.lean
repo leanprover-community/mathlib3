@@ -3,11 +3,11 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.reassoc_axiom
+import category_theory.concrete_category.basic
 import tactic.fresh_names
 import tactic.monotonicity
+import tactic.reassoc_axiom
 import tactic.slice
-import category_theory.concrete_category.basic
 
 /-!
 # Tools to reformulate category-theoretic lemmas in concrete categories

@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import order.filter.partial
 import data.real.ennreal
-import order.liminf_limsup
-import data.set.intervals
 import order.filter.countable_Inter
+import order.liminf_limsup
 
 /-!
 # Order properties of extended non-negative reals

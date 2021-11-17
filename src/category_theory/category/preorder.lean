@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 
-import category_theory.concrete_category
 import category_theory.category.Cat
 import order.category.Preorder
 

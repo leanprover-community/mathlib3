@@ -3,12 +3,10 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
-import linear_algebra.finsupp_vector_space
-import data.mv_polynomial
-import algebra.module.projective
 import algebra.category.Module.epi_mono
-import algebra.category.Module.adjunctions
+import algebra.module.projective
 import category_theory.preadditive.projective
+import linear_algebra.finsupp_vector_space
 
 /-!
 # The category of `R`-modules has enough projectives.

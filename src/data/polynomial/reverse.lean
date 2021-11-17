@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.degree.trailing_degree
-import data.polynomial.eval
 import data.polynomial.erase_lead
-import data.polynomial.inductions
+import data.polynomial.eval
 
 /-!
 # Reverse of a univariate polynomial

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
-import group_theory.group_action.defs
 import analysis.complex.basic
-import linear_algebra.matrix.nonsingular_inverse
+import group_theory.group_action.defs
 import linear_algebra.special_linear_group
 
 /-!

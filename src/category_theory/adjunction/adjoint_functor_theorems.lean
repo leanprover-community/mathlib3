@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.basic
-import category_theory.limits.creates
-import category_theory.over
-import category_theory.limits.constructions.weakly_initial
-import category_theory.limits.comma
-import category_theory.punit
-import category_theory.limits.preserves.basic
 import category_theory.adjunction.comma
+import category_theory.limits.comma
+import category_theory.limits.constructions.weakly_initial
+import category_theory.limits.creates
+import category_theory.limits.preserves.basic
+import category_theory.punit
 
 /-!
 # Adjoint functor theorem

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import data.matrix.basic
-import data.matrix.dmatrix
 
 /-!
 # Block Matrices

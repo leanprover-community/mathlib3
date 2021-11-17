@@ -6,9 +6,8 @@ Authors: Scott Morrison
 import algebra.algebra.basic
 import algebra.algebra.subalgebra
 import algebra.category.CommRing.basic
-import linear_algebra
-import algebra.free_algebra
 import algebra.category.Module.basic
+import algebra.free_algebra
 
 /-!
 # Category instance for algebras over a commutative ring

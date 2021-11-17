@@ -5,7 +5,6 @@ Authors: Patrick Massot
 -/
 import tactic.doc_commands
 import tactic.ring
-import data.int.range
 
 /-!
 # `group`

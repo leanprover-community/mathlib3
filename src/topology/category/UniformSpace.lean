@@ -3,11 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Patrick Massot, Scott Morrison
 -/
-import topology.opens
 import category_theory.adjunction.reflective
+import category_theory.concrete_category.unbundled_hom
 import category_theory.monad.limits
-import category_theory.limits.preserves.limits
-import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.has_limits
 import topology.category.Top.basic
 import topology.uniform_space.completion
 

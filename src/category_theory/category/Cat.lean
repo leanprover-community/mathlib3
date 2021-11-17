@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import category_theory.concrete_category.bundled
 import category_theory.discrete_category
 import category_theory.eq_to_hom
+import category_theory.types
 
 /-!
 # Category of categories

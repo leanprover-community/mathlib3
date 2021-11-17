@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.affine_isometry
-import linear_algebra.affine_space.affine_subspace
-import topology.metric_space.baire
 import analysis.normed_space.operator_norm
+import topology.metric_space.baire
 
 /-!
 # Banach open mapping theorem

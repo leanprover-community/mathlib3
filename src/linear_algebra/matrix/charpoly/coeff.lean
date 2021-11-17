@@ -4,16 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
 
-import ring_theory.power_basis
-import data.matrix.char_p
-import ring_theory.polynomial.basic
-import linear_algebra.matrix.reindex
 import algebra.polynomial.big_operators
-import linear_algebra.matrix.charpoly.basic
-import linear_algebra.matrix.nonsingular_inverse
-import group_theory.perm.cycles
+import data.matrix.char_p
 import field_theory.finite.basic
+import group_theory.perm.cycles
+import linear_algebra.matrix.charpoly.basic
 import linear_algebra.matrix.trace
+import linear_algebra.matrix.to_lin
+import ring_theory.polynomial.basic
+import ring_theory.power_basis
 
 /-!
 # Characteristic polynomials

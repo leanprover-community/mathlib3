@@ -3,10 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.string.basic
-import data.multiset.basic
 import data.list.sort
-import data.list.chain
+import data.multiset.basic
+import data.string.basic
 
 /-!
 # Construct a sorted list from a multiset.

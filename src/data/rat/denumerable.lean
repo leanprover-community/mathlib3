@@ -6,7 +6,6 @@ Authors: Chris Hughes
 import set_theory.cardinal
 import tactic.abel
 import tactic.field_simp
-import data.fintype.card
 import tactic.linarith
 
 /-!

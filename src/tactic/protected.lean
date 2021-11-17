@@ -3,8 +3,6 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import logic.function.basic
-import data.bool
 import tactic.core
 /-!
 ## `protected` and `protect_proj` user attributes

@@ -3,11 +3,10 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Adam Topaz
 -/
-import topology.opens
-import tactic.equiv_rw
-import topology.instances.nnreal
 import algebraic_topology.simplex_category
+import tactic.equiv_rw
 import topology.category.Top.basic
+import topology.instances.nnreal
 
 /-!
 # Topological simplices

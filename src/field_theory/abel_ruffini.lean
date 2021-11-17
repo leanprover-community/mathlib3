@@ -5,7 +5,6 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.polynomial_galois_group
-import ring_theory.eisenstein_criterion
 import group_theory.solvable
 import ring_theory.roots_of_unity
 

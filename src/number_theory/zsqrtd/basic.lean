@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import algebra.associated
 import tactic.ring
-import data.int.range
 
 /-! # ℤ[√d]
 

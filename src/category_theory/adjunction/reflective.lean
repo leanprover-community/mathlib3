@@ -3,9 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.epi_mono
-import category_theory.limits.is_limit
 import category_theory.adjunction.fully_faithful
+import category_theory.epi_mono
 import tactic.norm_num
 
 /-!
@@ -23,7 +22,7 @@ noncomputable theory
 
 namespace category_theory
 
-open category adjunction limits
+open category adjunction
 
 variables {C : Type u₁} {D : Type u₂} {E : Type u₃}
 variables [category.{v₁} C] [category.{v₂} D] [category.{v₃} E]

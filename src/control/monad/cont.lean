@@ -9,7 +9,6 @@ Haskell's `Cont`, `ContT` and `MonadCont`:
 -/
 import control.monad.basic
 import control.monad.writer
-import algebra.group.basic
 
 universes u v w u₀ u₁ v₀ v₁
 

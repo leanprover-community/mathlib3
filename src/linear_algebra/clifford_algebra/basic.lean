@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Utensil Song
 -/
 
-import linear_algebra.exterior_algebra
-import linear_algebra.tensor_algebra
-import linear_algebra.special_linear_group
-import linear_algebra.quadratic_form.basic
 import algebra.ring_quot
+import linear_algebra.exterior_algebra
+import linear_algebra.quadratic_form.basic
+import linear_algebra.tensor_algebra
 
 /-!
 # Clifford Algebras

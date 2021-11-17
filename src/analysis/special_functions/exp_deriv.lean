@@ -3,10 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.special_functions.exp
-import analysis.complex.real_deriv
-import topology.metric_space.contracting
 import analysis.calculus.inverse
+import analysis.complex.real_deriv
+import analysis.special_functions.exp
 
 /-!
 # Complex and real exponential

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.converter.interactive -- Required for us to emit more compact `conv` invocations
+import tactic.converter.interactive
 import tactic.rewrite_search.types
-import data.mllist
 
 /-!
 # Tools to extract valid Lean code from a path found by rewrite search.

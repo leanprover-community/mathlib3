@@ -6,12 +6,9 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 import algebraic_topology.simplicial_object
 import algebraic_topology.topological_simplex
 import category_theory.limits.presheaf
-import category_theory.yoneda
-import category_theory.adjunction
 import category_theory.limits.types
-import category_theory.limits.preserves.shapes.terminal
-import topology.category.Top
-import category_theory.limits.preserves.shapes.binary_products
+import category_theory.yoneda
+import topology.category.Top.limits
 
 /-!
 A simplicial set is just a simplicial object in `Type`,

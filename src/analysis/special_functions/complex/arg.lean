@@ -68,7 +68,7 @@ end
   (abs x * (cos (arg x) + sin (arg x) * I) : ℂ) = x :=
 by rw [← exp_mul_I, abs_mul_exp_arg_mul_I]
 
-lemma arg_mul_cos_add_mul_I {r : ℝ} (hr : 0 < r) {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :
+lemma arg_mul_cos_add_sin_mul_I {r : ℝ} (hr : 0 < r) {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :
   arg (r * (cos θ + sin θ * I)) = θ :=
 begin
   have hπ := real.pi_pos,
@@ -92,9 +92,9 @@ begin
         [linarith, linarith, exact hsin, exact hcos.not_le] } }
 end
 
-lemma arg_cos_add_mul_I {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :
+lemma arg_cos_add_sin_mul_I {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :
   arg (cos θ + sin θ * I) = θ :=
-by rw [← one_mul (_ + _), ← of_real_one, arg_mul_cos_add_mul_I zero_lt_one hθ]
+by rw [← one_mul (_ + _), ← of_real_one, arg_mul_cos_add_sin_mul_I zero_lt_one hθ]
 
 @[simp] lemma arg_zero : arg 0 = 0 := by simp [arg, le_refl]
 
@@ -113,11 +113,11 @@ begin
   rw [← abs_mul_cos_add_sin_mul_I z, ← cos_add_int_mul_two_pi _ N,
     ← sin_add_int_mul_two_pi _ N],
   simp only [← of_real_one, ← of_real_bit0, ← of_real_mul, ← of_real_add, ← of_real_int_cast],
-  rwa [arg_mul_cos_add_mul_I (abs_pos.2 hz) hN]
+  rwa [arg_mul_cos_add_sin_mul_I (abs_pos.2 hz) hN]
 end
 
 @[simp] lemma range_arg : range arg = Ioc (-π) π :=
-(range_subset_iff.2 arg_mem_Ioc).antisymm (λ x hx, ⟨_, arg_cos_add_mul_I hx⟩)
+(range_subset_iff.2 arg_mem_Ioc).antisymm (λ x hx, ⟨_, arg_cos_add_sin_mul_I hx⟩)
 
 lemma arg_le_pi (x : ℂ) : arg x ≤ π :=
 (arg_mem_Ioc x).2
@@ -141,7 +141,7 @@ lemma arg_real_mul (x : ℂ) {r : ℝ} (hr : 0 < r) : arg (r * x) = arg x :=
 begin
   rcases eq_or_ne x 0 with (rfl|hx), { rw mul_zero },
   conv_lhs { rw [← abs_mul_cos_add_sin_mul_I x, ← mul_assoc, ← of_real_mul,
-    arg_mul_cos_add_mul_I (mul_pos hr (abs_pos.2 hx)) x.arg_mem_Ioc] }
+    arg_mul_cos_add_sin_mul_I (mul_pos hr (abs_pos.2 hx)) x.arg_mem_Ioc] }
 end
 
 lemma arg_eq_arg_iff {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :

@@ -149,11 +149,11 @@ variables (A : Type u) [category.{v} A]
 /--
 Cover-dense functors induces an equivalence of categories of sheaves.
 
-This is known as the comparison lemma. It requires that the sites are small and the target category
+This is known as the comparison lemma. It requires that the sites are small and the value category
 is complete.
 -/
 noncomputable
-def cover_dense.Sheaf_iso [full G] [faithful G] (H : cover_dense K G) [has_limits A] :
+def cover_dense.Sheaf_equiv [full G] [faithful G] (H : cover_dense K G) [has_limits A] :
   Sheaf H.induced_topology A ≌ Sheaf K A :=
 H.Sheaf_iso_of_cover_preserving_cover_lifting
   H.locally_cover_dense.induced_topology_cover_preserving

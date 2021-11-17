@@ -66,6 +66,7 @@ The `find` command from `tactic.find` allows to find definitions lemmas using
 pattern matching on the type. For instance:
 
 ```lean
+import tactic.find
 
 run_cmd tactic.skip
 

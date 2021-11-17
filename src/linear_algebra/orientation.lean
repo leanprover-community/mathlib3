@@ -97,10 +97,13 @@ transitive_same_ray R M (same_ray_pos_smul_left v₁ hr) h
 
 variables (R M)
 
+/-- The setoid of the `same_ray` relation for elements of a module. -/
+def same_ray_setoid [nontrivial R] : setoid M :=
+{ r := λ v₁ v₂, same_ray R v₁ v₂, iseqv := equivalence_same_ray R M }
+
 /-- The setoid of the `same_ray` relation for the subtype of nonzero vectors. -/
-def same_ray_setoid : setoid (ray_vector M) :=
-{ r := λ v₁ v₂, same_ray R (v₁ : M) v₂,
-  iseqv := equivalence.comap (equivalence_same_ray R M) _ }
+def ray_vector.same_ray_setoid [nontrivial R] : setoid (ray_vector M) :=
+(same_ray_setoid R M).comap coe
 
 local attribute [instance] same_ray_setoid
 

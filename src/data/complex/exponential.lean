@@ -1137,6 +1137,7 @@ by rw ← of_real_inj; simp [sinh_three_mul]
 
 open is_absolute_value
 
+/-- Please use `add_one_le_exp`. This is an intermediate step in the proof of `add_one_le_exp` which may become private later. -/
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
 calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
   le_lim (cau_seq.le_of_exists ⟨2,

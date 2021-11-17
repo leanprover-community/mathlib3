@@ -10,7 +10,7 @@ import order.order_dual
 import tactic.pi_instances
 
 /-!
-# ⊤ and ⊥, bounded lattices and variants
+# ⊤ and ⊥, bounded orders and variants
 
 This file defines top and bottom elements (greatest and least elements) of a type, the bounded
 variants of different kinds of lattices, sets up the typeclass hierarchy between them and provides
@@ -24,7 +24,7 @@ instances for `Prop` and `fun`.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
-* `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
+* `is_compl x y`: In a bounded order, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
 * `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
 
@@ -260,7 +260,7 @@ end semilattice_inf_bot
 /-! ### Bounded lattice -/
 
 -- TODO: rename `bounded_order` since it no longer requires `lattice`
-/-- A bounded lattice describes an order `(≤)` with a top and bottom element,
+/-- A bounded order describes an order `(≤)` with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
 @[ancestor order_top order_bot]
@@ -1165,7 +1165,7 @@ eq_top_of_bot_is_compl h.to_order_dual
 
 end
 
-/-- A complemented bounded lattice is one where every element has a (not necessarily unique)
+/-- A complemented bounded order is one where every element has a (not necessarily unique)
 complement. -/
 class is_complemented (α) [lattice α] [bounded_order α] : Prop :=
 (exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)

@@ -1002,13 +1002,13 @@ noncomputable instance with_bot.conditionally_complete_lattice
   ..with_bot.has_Sup,
   ..with_bot.has_Inf }
 
-/-- Adding a bottom and a top to a conditionally complete lattice gives a bounded lattice-/
+/-- Adding a bottom and a top to a conditionally complete lattice gives a bounded order-/
 instance with_top.with_bot.bounded_order {α : Type*}
   [conditionally_complete_lattice α] : bounded_order (with_top (with_bot α)) :=
 { ..with_top.order_bot,
   ..with_top.order_top }
 
-/-- Adding a bottom and a top to a conditionally complete lattice gives a bounded lattice-/
+/-- Adding a bottom and a top to a conditionally complete lattice gives a bounded order-/
 noncomputable instance with_top.with_bot.lattice {α : Type*}
   [conditionally_complete_lattice α] : lattice (with_top (with_bot α)) :=
 { ..conditionally_complete_lattice.to_lattice _ }

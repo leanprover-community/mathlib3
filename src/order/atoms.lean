@@ -11,7 +11,7 @@ import data.fintype.basic
 /-!
 # Atoms, Coatoms, and Simple Lattices
 
-This module defines atoms, which are minimal non-`⊥` elements in bounded lattices, simple lattices,
+This module defines atoms, which are minimal non-`⊥` elements in bounded orders, simple lattices,
 which are lattices with only two elements, and related ideas.
 
 ## Main definitions
@@ -27,7 +27,7 @@ which are lattices with only two elements, and related ideas.
   * `is_coatomistic` indicates that every element is the `Inf` of a set of coatoms.
 
 ### Simple Lattices
-  * `is_simple_lattice` indicates that a bounded lattice has only two elements, `⊥` and `⊤`.
+  * `is_simple_lattice` indicates that a bounded order has only two elements, `⊥` and `⊤`.
   * `is_simple_lattice.bounded_order`
   * `is_simple_lattice.distrib_lattice`
   * Given an instance of `is_simple_lattice`, we provide the following definitions. These are not
@@ -42,7 +42,7 @@ which are lattices with only two elements, and related ideas.
   * `is_simple_lattice_iff_is_atom_top` and `is_simple_lattice_iff_is_coatom_bot` express the
   connection between atoms, coatoms, and simple lattices
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
-  bounded lattice, a complement of an atom is a coatom and vice versa.
+  bounded order, a complement of an atom is a coatom and vice versa.
   * ``is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
 
 -/

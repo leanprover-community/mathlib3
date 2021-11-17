@@ -17,7 +17,7 @@ universe u
 
 variables {α : Type u}
 
-/-- A function to create a provable equal copy of a bounded lattice
+/-- A function to create a provable equal copy of a bounded order
 with possibly different definitional equalities. -/
 def bounded_order.copy [has_le α] (c : bounded_order α)
   (top : α) (eq_top : top = @bounded_order.top α _ c)

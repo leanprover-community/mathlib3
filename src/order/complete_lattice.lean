@@ -15,7 +15,7 @@ import data.nat.basic
 * `Sup` and `Inf` are the supremum and the infimum of a set;
 * `supr (f : ι → α)` and `infi (f : ι → α)` are indexed supremum and infimum of a function,
   defined as `Sup` and `Inf` of the range of this function;
-* `class complete_lattice`: a bounded lattice such that `Sup s` is always the least upper boundary
+* `class complete_lattice`: a bounded order such that `Sup s` is always the least upper boundary
   of `s` and `Inf s` is always the greatest lower boundary of `s`;
 * `class complete_linear_order`: a linear ordered complete lattice.
 
@@ -161,7 +161,7 @@ is_glb_singleton.Inf_eq
 
 end
 
-/-- A complete lattice is a bounded lattice which
+/-- A complete lattice is a bounded order which
   has suprema and infima for every subset. -/
 @[protect_proj, ancestor lattice complete_semilattice_Sup complete_semilattice_Inf has_top has_bot]
 class complete_lattice (α : Type*) extends

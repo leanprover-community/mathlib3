@@ -215,7 +215,7 @@ begin
     apply even_mul_succ_self }
 end
 
-lemma even_of_prime_ne_two_sub_one {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
+lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
 odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 
 variables {R : Type*} [ring R]

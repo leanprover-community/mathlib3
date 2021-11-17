@@ -20,15 +20,11 @@ minimise the shadow.
 ## Main declarations
 
 * `uv.compress`: `compress u v a` is `a` compressed along `u` and `v`.
-* `uv.compress_motion`: `compress_motion u v s` is the part of `s` that can move along the
-  compression. Precisely, it's the compression of the elements of `s` whose compression is not
-  already in `s`.
-* `uv.compress_remains`: `compress_remains u v s` is the part of `s` that can't move along the
-  compression. Precisely, it's the element whose compression is already in `s`.
 * `uv.compression`: `compression u v s` is the compression of the set family `s` along `u` and `v`.
-  It is the union of `compress_motion u v s` and `compress_remains u v s`. This way of splitting
-  into what moves and what does not ensures the compression doesn't squash the set family, which is
-  proved by `uv.card_compress`.
+  It is the compressions of the elements of `s` whose compression is not already in `s` along with
+  the element whose compression is already in `s`. This way of splitting into what moves and what
+  does not ensures the compression doesn't squash the set family, which is proved by
+  `uv.card_compress`.
 
 ## Notation
 
@@ -70,16 +66,10 @@ variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _)]
 put `U` in. We'll only really use this when `|U| = |V|` and `U ∩ V = ∅`. -/
 def compress (u v a : α) : α := if disjoint u a ∧ v ≤ a then (a ⊔ u) \ v else a
 
-/-- Part of the compressed family, where we move the sets whose compression is not there. -/
-def compress_motion (u v : α) (s : finset α) :=
-(s.filter (λ a, compress u v a ∉ s)).image (λ a, compress u v a)
-
-/-- Part of the compressed family, where we keep sets whose compression is already present. -/
-def compress_remains (u v : α) (s : finset α) := s.filter (λ a, compress u v a ∈ s)
-
 /-- To UV-compress a set family, we compress each of its elements, except that we don't want to
 reduce the cardinality, so we keep all elements whose compression is already present. -/
-def compression (u v : α) (s : finset α) := compress_motion u v s ∪ compress_remains u v s
+def compression (u v : α) (s : finset α) :=
+s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
 
 localized "notation `𝓒 ` := uv.compression" in finset_family
 
@@ -90,23 +80,11 @@ lemma compress_of_disjoint_of_le (hua : disjoint u a) (hva : v ≤ a) :
   compress u v a = (a ⊔ u) \ v :=
 if_pos ⟨hua, hva⟩
 
-@[simp]
-lemma mem_compress_motion : a ∈ compress_motion u v s ↔ a ∉ s ∧ ∃ b ∈ s, compress u v b = a :=
-begin
-  simp_rw [compress_motion, mem_image, exists_prop, mem_filter],
-  split; rintro ⟨p, q, r⟩,
-  { exact ⟨r ▸ q.2, p, ⟨q.1, r⟩⟩ },
-  { exact ⟨q, ⟨r.1, r.2.symm ▸ p⟩, r.2⟩ }
-end
-
-@[simp]
-lemma mem_compress_remains : a ∈ compress_remains u v s ↔ a ∈ s ∧ compress u v a ∈ s := mem_filter
-
 /-- `a` is in the UV-compressed family iff it's in the original and its compression is in the
 original, or it's not in the original but it's the compression of something in the original. -/
 lemma mem_compression :
   a ∈ 𝓒 u v s ↔ a ∈ s ∧ compress u v a ∈ s ∨ a ∉ s ∧ ∃ b ∈ s, compress u v b = a :=
-by rw [compression, mem_union, mem_compress_remains, mem_compress_motion, or_comm]
+by simp_rw [compression, mem_union, mem_filter, mem_image, and_comm (a ∉ s)]
 
 @[simp] lemma compress_self (u a : α) : compress u u a = a :=
 begin
@@ -116,26 +94,24 @@ begin
   { refl }
 end
 
-@[simp] lemma compress_motion_self (u : α) (s : finset α) : compress_motion u u s = ∅ :=
-begin
-  refine eq_empty_of_forall_not_mem (λ s hs, _),
-  rw mem_compress_motion at hs,
-  obtain ⟨t, ht, rfl⟩ := hs.2,
-  rw compress_self at hs,
-  exact hs.1 ht,
-end
-
-@[simp] lemma compress_remains_self (u : α) : compress_remains u u s = s :=
-by { ext s, rw [mem_compress_remains, compress_self, and_self] }
-
 @[simp] lemma compression_self (u : α) (s : finset α) : 𝓒 u u s = s :=
-by rw [compression, compress_motion_self, compress_remains_self, empty_union]
+begin
+  unfold compression,
+  convert union_empty s,
+  { ext a,
+    rw [mem_filter, compress_self, and_self] },
+  { refine eq_empty_of_forall_not_mem (λ a ha, _),
+    simp_rw [mem_filter, mem_image, compress_self] at ha,
+    obtain ⟨⟨b, hb, rfl⟩, hb'⟩ := ha,
+    exact hb' hb }
+end
 
 /-- Any family is compressed along two identical elements. -/
 lemma is_compressed_self (u : α) (s : finset α) : is_compressed u u s := compression_self u s
 
-lemma compress_disjoint (u v : α) : disjoint (compress_motion u v s) (compress_remains u v s) :=
-disjoint_left.2 $ λ a ha₁ ha₂, (mem_compress_motion.1 ha₁).1 (mem_compress_remains.1 ha₂).1
+lemma compress_disjoint (u v : α) :
+  disjoint (s.filter (λ a, compress u v a ∈ s)) ((s.image $ compress u v).filter (λ a, a ∉ s)) :=
+disjoint_left.2 $ λ a ha₁ ha₂, (mem_filter.1 ha₂).2 (mem_filter.1 ha₁).1
 
 /-- Compressing an element is idempotent. -/
 @[simp] lemma compress_idem (u v a : α) : compress u v (compress u v a) = compress u v a :=
@@ -161,34 +137,35 @@ begin
   { exact or.inr ⟨h, a, ha, rfl⟩ }
 end
 
+-- This is a special case of `compress_mem_compression` once we have `compression_idem`.
+lemma compress_mem_compression_of_mem_compression (ha : a ∈ 𝓒 u v s) : compress u v a ∈ 𝓒 u v s :=
+begin
+  rw mem_compression at ⊢ ha,
+  simp only [compress_idem, exists_prop],
+  obtain ⟨_, ha⟩ | ⟨_, b, hb, rfl⟩ := ha,
+  { exact or.inl ⟨ha, ha⟩ },
+  { exact or.inr ⟨by rwa compress_idem, b, hb, (compress_idem _ _ _).symm⟩ }
+end
+
 /-- Compressing a family is idempotent. -/
 @[simp] lemma compression_idem (u v : α) (s : finset α) : 𝓒 u v (𝓒 u v s) = 𝓒 u v s :=
 begin
-  have : ∀ a ∈ 𝓒 u v s, compress u v a ∈ 𝓒 u v s,
-  { intros a ha,
-    rw mem_compression at ⊢ ha,
-    simp only [compress_idem, exists_prop],
-    obtain ⟨_, ha⟩ | ⟨_, b, hb, rfl⟩ := ha,
-    { exact or.inl ⟨ha, ha⟩ },
-    { exact or.inr ⟨by rwa compress_idem, b, hb, (compress_idem _ _ _).symm⟩ } },
-  have : filter (λ a, compress u v a ∉ 𝓒 u v s) (𝓒 u v s) = ∅,
-    rw ←filter_false (𝓒 u v s), apply filter_congr, simpa,
-  rw [compression, compress_motion, this, image_empty, union_comm,
-      compress_remains, ←this],
+  have h : filter (λ a, compress u v a ∉ 𝓒 u v s) (𝓒 u v s) = ∅ :=
+    filter_false_of_mem (λ a ha h, h $ compress_mem_compression_of_mem_compression ha),
+  rw [compression, image_filter, h, image_empty, ←h],
   exact filter_union_filter_neg_eq _ (compression u v s),
 end
 
 /-- Compressing a family doesn't change its size. -/
 lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
 begin
-  rw [compression, card_disjoint_union (compress_disjoint _ _), compress_motion,
-    card_image_of_inj_on, ←card_disjoint_union, union_comm, compress_remains,
-    filter_union_filter_neg_eq],
-  { rw [disjoint.comm, disjoint_iff_inter_eq_empty],
+  rw [compression, card_disjoint_union (compress_disjoint _ _), image_filter, card_image_of_inj_on,
+    ←card_disjoint_union, filter_union_filter_neg_eq],
+  { rw disjoint_iff_inter_eq_empty,
     exact filter_inter_filter_neg_eq _ _ },
   intros a ha b hb hab,
   dsimp at hab,
-  rw [mem_coe, mem_filter] at ha hb,
+  rw [mem_coe, mem_filter, function.comp_app] at ha hb,
   rw compress at ha hab,
   split_ifs at ha hab with has,
   { rw compress at hb hab,

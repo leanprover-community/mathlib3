@@ -27,9 +27,9 @@ respecting multiplication, i.e. product of an element of degree `i` and an eleme
 is an element of degree `i + j`.
 -/
 class graded_algebra extends set_like.graded_monoid 𝒜 :=
-( decompose : A → ⨁ i, 𝒜 i)
-( left_inv : function.left_inverse decompose (direct_sum.submodule_coe 𝒜) )
-( right_inv : function.right_inverse decompose (direct_sum.submodule_coe 𝒜) )
+(decompose : A → ⨁ i, 𝒜 i)
+(left_inv : function.left_inverse decompose (direct_sum.submodule_coe 𝒜))
+(right_inv : function.right_inverse decompose (direct_sum.submodule_coe 𝒜))
 
 lemma graded_ring.is_internal [graded_algebra R A 𝒜] :
   direct_sum.submodule_is_internal 𝒜 :=
@@ -52,6 +52,6 @@ def graded_algebra.recompose : (⨁ i, 𝒜 i) ≃ₐ[R] A :=
 
 @[simp] lemma graded_algebra.recompose_of {i : ι} (x : 𝒜 i) :
   graded_algebra.recompose R A 𝒜 (direct_sum.of _ i x) = x :=
-  direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
+direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
 end graded_ring

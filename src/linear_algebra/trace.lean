@@ -118,7 +118,7 @@ variables (R : Type u) [field R] {M : Type v} [add_comm_group M] [module R M]
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `M →ₗ M ≃ M* ⊗ M`-/
-lemma trace_eq_contract [finite_dimensional R M] :
+@[simp] lemma trace_eq_contract [finite_dimensional R M] :
   (linear_map.trace R M) ∘ₗ ↑(dual_tensor_hom_equiv R M M) = contract_left R M :=
 begin
   have b := fin_basis R M,

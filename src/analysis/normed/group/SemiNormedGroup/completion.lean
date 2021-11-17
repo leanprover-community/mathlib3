@@ -84,8 +84,7 @@ instance : preadditive SemiNormedGroup.{u} :=
     simp only [normed_group_hom.add_apply, category_theory.comp_apply, normed_group_hom.map_add] } }
 
 instance : functor.additive Completion :=
-{ map_zero' := Completion.map_zero,
-  map_add' := λ X Y, (Completion.map_hom _ _).map_add }
+{ map_add' := λ X Y, (Completion.map_hom _ _).map_add }
 
 /-- Given a normed group hom `f : V → W` with `W` complete, this provides a lift of `f` to
 the completion of `V`. The lemmas `lift_unique` and `lift_comp_incl` provide the api for the

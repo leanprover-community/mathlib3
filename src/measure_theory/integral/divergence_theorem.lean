@@ -163,7 +163,7 @@ have hIcc' : Icc (eL a) (eL b) = eL.symm ⁻¹' (Icc a b),
 calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : by simp only [hDF]
 ... = ∫ x in Icc (eL a) (eL b), ∑ i, f' i (eL.symm x) (eL.symm $ e i) :
   begin
-    rw [← he_vol.set_integral_preimageₑ he_emb],
+    rw [← he_vol.set_integral_preimage_emb he_emb],
     simp only [hIcc, eL.symm_apply_apply]
   end
 ... = ∑ i : fin (n + 1), ((∫ x in Icc (eL a ∘ i.succ_above) (eL b ∘ i.succ_above),
@@ -273,7 +273,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
   begin
     have : ∀ (a b : ℝ¹) (f : ℝ¹ → E), ∫ x in Icc a b, f x = ∫ x in Icc (a 0) (b 0), f (λ _, x),
     { intros a b f,
-      convert ((volume_preserving_fun_unique (fin 1) ℝ).symm.set_integral_preimageₑ
+      convert ((volume_preserving_fun_unique (fin 1) ℝ).symm.set_integral_preimage_emb
         (measurable_equiv.measurable_embedding _) _ _).symm,
       exact ((order_iso.fun_unique (fin 1) ℝ).symm.preimage_Icc a b).symm },
     simp only [fin.sum_univ_two, this],
@@ -306,7 +306,7 @@ begin
       by simp only [interval_integral.integral_of_le, h₁, h₂,
         set_integral_congr_set_ae Ioc_ae_eq_Icc]
     ... = ∫ x in (Icc a₁ b₁).prod (Icc a₂ b₂), f' x (1, 0) + g' x (0, 1) :
-      (set_integral_prod _ measurable_set_Icc measurable_set_Icc Hi).symm
+      (set_integral_prod _ Hi).symm
     ... = (∫ x in a₁..b₁, g (x, b₂)) - (∫ x in a₁..b₁, g (x, a₂)) +
             (∫ y in a₂..b₂, f (b₁, y)) - ∫ y in a₂..b₂, f (a₁, y) :
       begin

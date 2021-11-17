@@ -763,23 +763,25 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
-protected def order_iso.dual [preorder α] [preorder β] (f : α ≃o β) :
+protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :
   order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 section lattice_isos
 
-lemma order_iso.map_bot' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+lemma order_iso.map_bot' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
   (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
 by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, f.map_rel_iff], apply hx }
 
-lemma order_iso.map_bot [order_bot α] [order_bot β] (f : α ≃o β) : f ⊥ = ⊥ :=
+lemma order_iso.map_bot [has_le α] [partial_order β] [order_bot α] [order_bot β] (f : α ≃o β) :
+  f ⊥ = ⊥ :=
 f.map_bot' (λ _, bot_le) (λ _, bot_le)
 
-lemma order_iso.map_top' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+lemma order_iso.map_top' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
   (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
 f.dual.map_bot' hx hy
 
-lemma order_iso.map_top [order_top α] [order_top β] (f : α ≃o β) : f ⊤ = ⊤ :=
+lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top β] (f : α ≃o β) :
+  f ⊤ = ⊤ :=
 f.dual.map_bot
 
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]

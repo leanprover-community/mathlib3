@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import topology.algebra.monoid
 import algebra.module.prod
 import topology.homeomorph
+import group_theory.group_action.basic
 
 /-!
 # Continuous monoid action
@@ -32,7 +33,7 @@ Besides homeomorphisms mentioned above, in this file we provide lemmas like `con
 or `filter.tendsto.smul` that provide dot-syntax access to `continuous_smul`.
 -/
 
-open_locale topological_space
+open_locale topological_space pointwise
 open filter
 
 /-- Class `has_continuous_smul M α` says that the scalar multiplication `(•) : M → α → α`
@@ -133,6 +134,15 @@ instance units.has_continuous_smul : has_continuous_smul (units M) α :=
     show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : units M × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
 
+@[to_additive]
+lemma smul_closure_subset (c : M) (s : set α) : c • closure s ⊆ closure (c • s) :=
+((set.maps_to_image _ _).closure $ continuous_id.const_smul c).image_subset
+
+@[to_additive]
+lemma smul_closure_orbit_subset (c : M) (x : α) :
+  c • closure (mul_action.orbit M x) ⊆ closure (mul_action.orbit M x) :=
+(smul_closure_subset c _).trans $ closure_mono $ mul_action.smul_orbit_subset _ _
+
 end monoid
 
 section group
@@ -189,9 +199,15 @@ attribute [to_additive] homeomorph.smul
 lemma is_open_map_smul (c : G) : is_open_map (λ x : α, c • x) :=
 (homeomorph.smul c).is_open_map
 
+@[to_additive] lemma is_open.smul {s : set α} (hs : is_open s) (c : G) : is_open (c • s) :=
+is_open_map_smul c s hs
+
 @[to_additive]
 lemma is_closed_map_smul (c : G) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul c).is_closed_map
+
+@[to_additive] lemma is_closed.smul {s : set α} (hs : is_closed s) (c : G) : is_closed (c • s) :=
+is_closed_map_smul c s hs
 
 end group
 

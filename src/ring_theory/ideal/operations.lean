@@ -7,6 +7,7 @@ import algebra.algebra.operations
 import algebra.algebra.tower
 import data.equiv.ring
 import data.nat.choose.sum
+import ring_theory.coprime.lemmas
 import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors
 /-!
@@ -310,6 +311,32 @@ lemma span_singleton_mul_eq_span_singleton_mul {x y : R} (I J : ideal R) :
     ((∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ) ∧
      (∀ zJ ∈ J, ∃ zI ∈ I, x * zI = y * zJ)) :=
 by simp only [le_antisymm_iff, span_singleton_mul_le_span_singleton_mul, eq_comm]
+
+lemma prod_span {ι : Type*} (s : finset ι) (I : ι → set R) :
+  (∏ i in s, ideal.span (I i)) = ideal.span (∏ i in s, I i) :=
+submodule.prod_span s I
+
+lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
+  (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
+submodule.prod_span_singleton s I
+
+lemma finset_inf_span_singleton {ι : Type*} (s : finset ι) (I : ι → R)
+  (hI : set.pairwise ↑s (is_coprime on I)) :
+  (s.inf $ λ i, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
+begin
+  ext x,
+  simp only [submodule.mem_finset_inf, ideal.mem_span_singleton],
+  exact ⟨finset.prod_dvd_of_coprime hI,
+    λ h i hi, (finset.dvd_prod_of_mem _ hi).trans h⟩
+end
+
+lemma infi_span_singleton {ι : Type*} [fintype ι] (I : ι → R)
+  (hI : ∀ i j (hij : i ≠ j), is_coprime (I i) (I j)):
+  (⨅ i, ideal.span ({I i} : set R)) = ideal.span {∏ i, I i} :=
+begin
+  rw [← finset.inf_univ_eq_infi, finset_inf_span_singleton],
+  rwa [finset.coe_univ, set.pairwise_univ]
+end
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
@@ -1329,7 +1356,7 @@ begin
     rw [ring_hom.mem_ker, ← hy, ideal.quotient.lift_mk, ← ring_hom.mem_ker] at hx,
     rw [← hy, mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective],
     exact ⟨y, hx, rfl⟩ },
- { intro hx,
+  { intro hx,
     rw mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective at hx,
     obtain ⟨y, hy⟩ := hx,
     rw [ring_hom.mem_ker, ← hy.right, ideal.quotient.lift_mk, ← (ring_hom.mem_ker f)],

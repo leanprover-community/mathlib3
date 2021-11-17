@@ -769,8 +769,8 @@ lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a :
   tendsto f (pure a) (𝓝 (f a)) :=
 (tendsto_pure_pure f a).mono_right (pure_le_nhds _)
 
-lemma order_top.tendsto_at_top_nhds {α : Type*} [order_top α] [topological_space β] (f : α → β) :
-  tendsto f at_top (𝓝 $ f ⊤) :=
+lemma order_top.tendsto_at_top_nhds {α : Type*} [partial_order α] [order_top α]
+  [topological_space β] (f : α → β) : tendsto f at_top (𝓝 $ f ⊤) :=
 (tendsto_at_top_pure f).mono_right (pure_le_nhds _)
 
 @[simp] instance nhds_ne_bot {a : α} : ne_bot (𝓝 a) :=

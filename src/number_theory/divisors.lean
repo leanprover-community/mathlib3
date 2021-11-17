@@ -91,6 +91,8 @@ begin
     apply nat.le_of_dvd (nat.succ_pos m) hdvd }
 end
 
+lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_divisors.2 ⟨dvd_rfl, h⟩
+
 lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m :=
 begin
   cases m,

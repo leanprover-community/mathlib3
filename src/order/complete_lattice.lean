@@ -299,16 +299,16 @@ theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 @Sup_inter_le (order_dual α) _ _ _
 
 @[simp] theorem Sup_empty : Sup ∅ = (⊥ : α) :=
-(@is_lub_empty α _).Sup_eq
+(@is_lub_empty α _ _).Sup_eq
 
 @[simp] theorem Inf_empty : Inf ∅ = (⊤ : α) :=
-(@is_glb_empty α _).Inf_eq
+(@is_glb_empty α _ _).Inf_eq
 
 @[simp] theorem Sup_univ : Sup univ = (⊤ : α) :=
-(@is_lub_univ α _).Sup_eq
+(@is_lub_univ α _ _).Sup_eq
 
 @[simp] theorem Inf_univ : Inf univ = (⊥ : α) :=
-(@is_glb_univ α _).Inf_eq
+(@is_glb_univ α _ _).Inf_eq
 
 -- TODO(Jeremy): get this automatically
 @[simp] theorem Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=
@@ -1060,6 +1060,26 @@ by simp [supr_option]
 /-- A version of `infi_option` useful for rewriting right-to-left. -/
 lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
 @supr_option_elim (order_dual α) _ _ _ _
+
+/-- When taking the supremum of `f : ι → α`, the elements of `ι` on which `f` gives `⊥` can be
+dropped, without changing the result. -/
+lemma supr_ne_bot_subtype (f : ι → α) : (⨆ i : {i // f i ≠ ⊥}, f i) = ⨆ i, f i :=
+begin
+  by_cases htriv : ∀ i, f i = ⊥,
+  { simp only [htriv, supr_bot] },
+  refine le_antisymm (supr_comp_le f _) (supr_le_supr2 _),
+  intros i,
+  by_cases hi : f i = ⊥,
+  { rw hi,
+    obtain ⟨i₀, hi₀⟩ := not_forall.mp htriv,
+    exact ⟨⟨i₀, hi₀⟩, bot_le⟩ },
+  { exact ⟨⟨i, hi⟩, rfl.le⟩ },
+end
+
+/-- When taking the infimum of `f : ι → α`, the elements of `ι` on which `f` gives `⊤` can be
+dropped, without changing the result. -/
+lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = ⨅ i, f i :=
+@supr_ne_bot_subtype (order_dual α) ι _ f
 
 /-!
 ### `supr` and `infi` under `ℕ`

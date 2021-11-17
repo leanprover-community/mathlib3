@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro
 -/
 
-import linear_algebra.tensor_product.def
+import linear_algebra.tensor_product.left_action
 import algebra.direct_sum.module
 
 /-!
@@ -28,6 +28,10 @@ variables [decidable_eq ι₁] [decidable_eq ι₂]
 variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
 variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
+variables [Π i₁, module Rᵒᵖ (M₁ i₁)] [Π i₂, module Rᵒᵖ (M₂ i₂)]
+variables [Π i₁, is_symmetric_smul R (M₁ i₁)]
+variables [Π i₂, is_symmetric_smul R (M₂ i₂)]
+variables [Π i₁, smul_comm_class Rᵒᵖ R (M₁ i₁)]
 
 /-- The linear equivalence `(⨁ i₁, M₁ i₁) ⊗ (⨁ i₂, M₂ i₂) ≃ (⨁ i₁, ⨁ i₂, M₁ i₁ ⊗ M₂ i₂)`, i.e.
 "tensor product distributes over direct sum". -/
@@ -47,7 +51,7 @@ end
 @[simp] theorem direct_sum_lof_tmul_lof (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂) (m₂ : M₂ i₂) :
   direct_sum R ι₁ ι₂ M₁ M₂ (direct_sum.lof R ι₁ M₁ i₁ m₁ ⊗ₜ direct_sum.lof R ι₂ M₂ i₂ m₂) =
   direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂) (m₁ ⊗ₜ m₂) :=
-by simp [direct_sum]
+by { simp [direct_sum],  }
 
 end tensor_product
 

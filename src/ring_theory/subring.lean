@@ -999,7 +999,7 @@ end actions
 -- while this definition is not about subrings, this is the earliest we have
 -- both ordered ring structures and submonoids available
 
-/-- The subgroup of positive units of a linear ordered commutative ring. -/
+/-- The subgroup of positive units of a linear ordered semiring. -/
 def units.pos_subgroup (R : Type*) [linear_ordered_semiring R] :
   subgroup (units R) :=
 { carrier := {x | (0 : R) < x},

@@ -816,6 +816,11 @@ exists_congr (λ a, exists₃_congr (h a))
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
 
+/-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
+than `forall_swap`. -/
+lemma imp_forall_iff {α : Type*} {p : Prop} {q : α → Prop} : (p → ∀ x, q x) ↔ (∀ x, p → q x) :=
+forall_swap
+
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 

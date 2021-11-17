@@ -260,8 +260,8 @@ have hf1 : finite (p : ℤ) (n₁ * d₂),
   from finite_int_prime_iff.2 (mul_ne_zero hn₁ hd₂),
 have hf2 : finite (p : ℤ) (n₂ * d₁),
   from finite_int_prime_iff.2 (mul_ne_zero hn₂ hd₁),
-  by conv {
-    to_lhs,
+  by conv
+  { to_lhs,
     rw [padic_val_rat.defn p (rat.mk_ne_zero_of_ne_zero hn₁ hd₁) rfl,
       padic_val_rat.defn p (rat.mk_ne_zero_of_ne_zero hn₂ hd₂) rfl,
       sub_le_iff_le_add',

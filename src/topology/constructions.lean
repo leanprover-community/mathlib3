@@ -311,8 +311,8 @@ begin
   have key1 : f ∘ (prod.fst : α × γ → α) = (prod.fst : β × δ → β) ∘ fxg, from rfl,
   have key2 : g ∘ (prod.snd : α × γ → γ) = (prod.snd : β × δ → δ) ∘ fxg, from rfl,
   unfold prod.topological_space,
-  conv_lhs {
-    rw [induced_compose, induced_compose, key1, key2],
+  conv_lhs
+  { rw [induced_compose, induced_compose, key1, key2],
     congr, rw ← induced_compose, skip, rw ← induced_compose, },
   rw induced_inf
 end

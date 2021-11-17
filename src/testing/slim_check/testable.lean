@@ -67,8 +67,7 @@ for ease of testing as:
 
 ```lean
 /- ... -/
-  shrink := λ ⟨x,y,h⟩, (λ ⟨x,y⟩, { x := x, y := x + y, h := /- proof -/}) <$> shrink (x, y - x)
-}
+  shrink := λ ⟨x,y,h⟩, (λ ⟨x,y⟩, { x := x, y := x + y, h := /- proof -/}) <$> shrink (x, y - x) }
 ```
 
 Again, we take advantage of the fact that other types have useful

@@ -19,7 +19,6 @@ TODO: generalise this to n-angles in n-angulated categories as in https://arxiv.
 noncomputable theory
 
 open category_theory
-open category_theory.preadditive
 open category_theory.limits
 
 universes v v₀ v₁ v₂ u u₀ u₁ u₂

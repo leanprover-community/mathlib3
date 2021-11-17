@@ -959,8 +959,8 @@ static.decorate_errors
 lemma any_char : ¬ static any_char :=
 begin
   have : any_char "s".to_char_buffer 0 = done 1 's',
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [any_char_eq_done, this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [any_char_eq_done, this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -986,8 +986,8 @@ instance eps : static eps := static.pure
 lemma ch (c : char) : ¬ static (ch c) :=
 begin
   have : ch c [c].to_buffer 0 = done 1 (),
-    { have : 0 < [c].to_buffer.size := dec_trivial,
-      simp [ch_eq_done, this] },
+  { have : 0 < [c].to_buffer.size := dec_trivial,
+    simp [ch_eq_done, this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -1007,7 +1007,7 @@ begin
   cases cs with hd tl,
   { simp [one_of, static.decorate_errors] },
   { have : one_of (hd :: tl) (hd :: tl).to_buffer 0 = done 1 hd,
-      { simp [one_of_eq_done] },
+    { simp [one_of_eq_done] },
     simpa using not_of_ne this zero_ne_one }
 end
 
@@ -1019,7 +1019,7 @@ begin
   cases cs with hd tl,
   { simp [one_of', static.bind], },
   { have : one_of' (hd :: tl) (hd :: tl).to_buffer 0 = done 1 (),
-      { simp [one_of'_eq_done] },
+    { simp [one_of'_eq_done] },
     simpa using not_of_ne this zero_ne_one }
 end
 
@@ -1096,16 +1096,16 @@ lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.static
 lemma digit : ¬ digit.static :=
 begin
   have : digit "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [this] },
   exact not_of_ne this zero_ne_one
 end
 
 lemma nat : ¬ nat.static :=
 begin
   have : nat "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -1245,10 +1245,10 @@ begin
   rw [str, decorate_error_iff],
   cases hs : s.to_list,
   { have : s = "",
-      { cases s, rw [string.to_list] at hs, simpa [hs] },
+    { cases s, rw [string.to_list] at hs, simpa [hs] },
     simp [pure, this] },
   { have : s ≠ "",
-      { intro H, simpa [H] using hs },
+    { intro H, simpa [H] using hs },
     simp only [this, iff_true, ne.def, not_false_iff],
     apply_instance }
 end

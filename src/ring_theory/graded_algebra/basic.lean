@@ -43,8 +43,9 @@ def graded_algebra.recompose : (⨁ i, 𝒜 i) ≃ₐ[R] A :=
   inv_fun := graded_algebra.decompose,
   left_inv := graded_algebra.left_inv,
   right_inv := graded_algebra.right_inv,
-  map_mul' := ring_hom.map_mul _,
-  map_add' := ring_hom.map_add _, }
+  map_mul' := alg_hom.map_mul _,
+  map_add' := alg_hom.map_add _,
+  commutes' := alg_hom.commutes _ }
 
 @[simp] lemma graded_algebra.decompose_def :
   graded_algebra.decompose = (graded_algebra.recompose R A 𝒜).symm := rfl

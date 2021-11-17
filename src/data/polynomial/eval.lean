@@ -345,6 +345,8 @@ instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
 
+lemma is_root.eq_zero (h : is_root p x) : eval x p = 0 := h
+
 lemma coeff_zero_eq_eval_zero (p : polynomial R) :
   coeff p 0 = p.eval 0 :=
 calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
@@ -786,11 +788,11 @@ end
 
 lemma is_root.map {f : R →+* S} {x : R} {p : polynomial R} (h : is_root p x) :
   is_root (p.map f) (f x) :=
-by rw [is_root, eval_map, eval₂_hom, is_root.def.1 h, f.map_zero]
+by rw [is_root, eval_map, eval₂_hom, h.eq_zero, f.map_zero]
 
 lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
   (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=
-by rwa [is_root, eval_map, eval₂_hom, f.injective_iff'.mp hf] at h
+by rwa [is_root, ←f.injective_iff'.mp hf, ←eval₂_hom, ←eval_map]
 
 lemma is_root_map_iff {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
   (hf : function.injective f) : is_root (p.map f) (f x) ↔ is_root p x :=

@@ -52,7 +52,14 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar
 namespace is_fundamental_domain
 
 variables {G α : Type*} [group G] [mul_action G α] [measurable_space G]
-  [measurable_space α] [has_measurable_smul G α] {s t : set α} {μ : measure α}
+  [measurable_space α] {s t : set α} {μ : measure α}
+
+@[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
+  (⋃ g : G, g • s) =ᵐ[μ] univ :=
+filter.eventually_eq_univ.2 $ h.ae_covers.mono $
+  λ x ⟨g, hg⟩, mem_Union.2 ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
+
+variables [has_measurable_smul G α]
 
 @[to_additive]
 lemma measurable_set_smul (h : is_fundamental_domain G s μ) (g : G) : measurable_set (g • s) :=
@@ -67,11 +74,6 @@ calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩
   by rw [smul_set_inter, ← mul_smul, mul_inv_cancel_left]
 ... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
 ... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
-
-@[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
-  (⋃ g : G, g • s) =ᵐ[μ] univ :=
-filter.eventually_eq_univ.2 $ h.ae_covers.mono $
-  λ x ⟨g, hg⟩, mem_Union.2 ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
 
 variables [encodable G]
 

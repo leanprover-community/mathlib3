@@ -1683,12 +1683,7 @@ theorem _root_.matrix.nondegenerate.to_bilin' {M : matrix ι ι R₃} (h : M.non
 
 lemma _root_.matrix.nondegenerate_iff_to_bilin' {M : matrix ι ι R₃} :
   M.nondegenerate ↔ (matrix.to_bilin' M).nondegenerate :=
-begin
-  refine ⟨λ h, matrix.nondegenerate.to_bilin' h, λ h, λ v hv, _⟩,
-  replace h := h v,
-  simp_rw [matrix.to_bilin'_apply'] at h,
-  exact h hv
-end
+⟨matrix.nondegenerate.to_bilin', λ h v hv, h v $ λ w, (M.to_bilin'_apply' _ _).trans $ hv w⟩
 
 theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
   (to_bilin' M).nondegenerate :=

@@ -1823,6 +1823,12 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
+@[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
+by {ext, simp}
+
+@[simp] lemma to_finset_inter (l l' : list α) : (l ∩ l').to_finset = l.to_finset ∩ l'.to_finset :=
+by {ext, simp}
+
 end list
 
 namespace finset
@@ -2426,6 +2432,31 @@ iff.intro
     ⟨a, s.erase a, s.not_mem_erase a, insert_erase has,
       by simp only [eq, card_erase_of_mem has, pred_succ]⟩)
   (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
+
+lemma card_eq_two [decidable_eq α] {s : finset α} : s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp_rw [card_eq_one],
+    rintro ⟨a, _, hab, rfl, b, rfl⟩,
+    exact ⟨a, b, not_mem_singleton.1 hab, rfl⟩ },
+  { rintro ⟨x, y, hxy, rfl⟩,
+    simp only [hxy, card_insert_of_not_mem, not_false_iff, mem_singleton, card_singleton] }
+end
+
+lemma card_eq_three [decidable_eq α] {s : finset α} :
+  s.card = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x, y, z} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp_rw [card_eq_two],
+    rintro ⟨a, _, abc, rfl, b, c, bc, rfl⟩,
+    rw [mem_insert, mem_singleton, not_or_distrib] at abc,
+    exact ⟨a, b, c, abc.1, abc.2, bc, rfl⟩ },
+  { rintro ⟨x, y, z, xy, xz, yz, rfl⟩,
+    simp only [xy, xz, yz, mem_insert, card_insert_of_not_mem, not_false_iff, mem_singleton,
+      or_self, card_singleton] }
+end
 
 theorem card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   card (s.filter p) ≤ card s :=

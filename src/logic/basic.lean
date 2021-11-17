@@ -816,6 +816,11 @@ exists_congr (λ a, exists₃_congr (h a))
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
 
+/-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
+than `forall_swap`. -/
+lemma imp_forall_iff {α : Type*} {p : Prop} {q : α → Prop} : (p → ∀ x, q x) ↔ (∀ x, p → q x) :=
+forall_swap
+
 theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x y :=
 ⟨λ ⟨x, y, h⟩, ⟨y, x, h⟩, λ ⟨y, x, h⟩, ⟨x, y, h⟩⟩
 
@@ -1145,25 +1150,18 @@ theorem cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
 assume a, cases_on a h1 h2
 
 /- use shortened names to avoid conflict when classical namespace is open. -/
-noncomputable lemma dec (p : Prop) : decidable p := -- see Note [classical lemma]
+/-- Any prop `p` is decidable classically. A shorthand for `classical.prop_decidable`. -/
+noncomputable def dec (p : Prop) : decidable p :=
 by apply_instance
-noncomputable lemma dec_pred (p : α → Prop) : decidable_pred p := -- see Note [classical lemma]
+/-- Any predicate `p` is decidable classically. -/
+noncomputable def dec_pred (p : α → Prop) : decidable_pred p :=
 by apply_instance
-noncomputable lemma dec_rel (p : α → α → Prop) : decidable_rel p := -- see Note [classical lemma]
+/-- Any relation `p` is decidable classically. -/
+noncomputable def dec_rel (p : α → α → Prop) : decidable_rel p :=
 by apply_instance
-noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
+/-- Any type `α` has decidable equality classically. -/
+noncomputable def dec_eq (α : Sort*) : decidable_eq α :=
 by apply_instance
-
-/--
-We make decidability results that depends on `classical.choice` noncomputable lemmas.
-* We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
-  for them, and fail because it depends on `classical.choice`.
-* We make them lemmas, and not definitions, because otherwise later definitions will raise
-  \"failed to generate bytecode\" errors when writing something like
-  `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/stream/113488-general/topic/noncomputable.20theorem.html>
--/
-library_note "classical lemma"
 
 /-- Construct a function from a default value `H0`, and a function to use if there exists a value
 satisfying the predicate. -/

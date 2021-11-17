@@ -78,9 +78,8 @@ lemma equivalence_same_ray :
 variables {R M}
 
 /-- A vector is in the same ray as a positive multiple of itself. -/
-lemma same_ray_pos_smul_right (v : M) {r : R} (h : 0 < r) :
-  same_ray R v (r • v) :=
-⟨r, 1, h, zero_lt_one, (one_smul _ _).symm⟩
+lemma same_ray_pos_smul_right (v : M) {r : R} (h : 0 < r) : same_ray R v (r • v) :=
+⟨r, 1, h, let f := nontrivial_of_lt _ _ h in by exactI zero_lt_one, (one_smul _ _).symm⟩
 
 /-- A vector is in the same ray as a positive multiple of one it is in the same ray as. -/
 lemma same_ray.pos_smul_right {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :
@@ -88,9 +87,8 @@ lemma same_ray.pos_smul_right {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂)
 transitive_same_ray R M h (same_ray_pos_smul_right v₂ hr)
 
 /-- A positive multiple of a vector is in the same ray as that vector. -/
-lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) :
-  same_ray R (r • v) v :=
-⟨1, r, zero_lt_one, h, one_smul _ _⟩
+lemma same_ray_pos_smul_left (v : M) {r : R} (h : 0 < r) : same_ray R (r • v) v :=
+⟨1, r, let f := nontrivial_of_lt _ _ h in by exactI zero_lt_one, h, one_smul _ _⟩
 
 /-- A positive multiple of a vector is in the same ray as one it is in the same ray as. -/
 lemma same_ray.pos_smul_left {v₁ v₂ : M} {r : R} (h : same_ray R v₁ v₂) (hr : 0 < r) :

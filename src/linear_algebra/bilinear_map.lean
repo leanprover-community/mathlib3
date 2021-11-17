@@ -40,7 +40,7 @@ variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
 variables [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
 variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P']
 variables [module R M] [module S N] [module R₂ P] [module S₂ P]
-variables [module R M] [module S N] [module R Pₗ] [module S Pₗ]
+variables [module R Pₗ] [module S Pₗ]
 variables [module R M'] [module S N'] [module R₂ P'] [module S₂ P']
 variables [smul_comm_class S₂ R₂ P] [smul_comm_class S R Pₗ] [smul_comm_class S₂ R₂ P']
 variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}

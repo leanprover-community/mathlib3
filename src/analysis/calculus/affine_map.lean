@@ -33,19 +33,23 @@ begin
   exact times_cont_diff_const,
 end
 
-/-- The evaluation map on the space of continuous affine maps is smooth. -/
-lemma times_cont_diff_apply {n : with_top ℕ} :
-  times_cont_diff 𝕜 n (λ p, p.1 p.2 : (V →A[𝕜] W) × V → W) :=
+/-- Note that in the case `X = (V →A[𝕜] W) × V`, `f = prod.fst`, `g = prod.snd` this is the
+statement that evaluation map on the space of continuous affine maps is smooth.
+See Note [continuity lemma statement] for why we parameterise by `X`. -/
+lemma times_cont_diff_apply {X : Type*} [normed_group X] [normed_space 𝕜 X] {n : with_top ℕ}
+  {f : X → (V →A[𝕜] W)} {g : X → V} (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
+  times_cont_diff 𝕜 n (λ x, (f x) (g x)) :=
 begin
   let f₁ : W × W → W := function.uncurry (+),
   let f₂ : W × ((V →L[𝕜] W) × V) → W × W := λ p, (p.1, p.2.1 p.2.2),
   let f₃ : (W × (V →L[𝕜] W)) × V → W × ((V →L[𝕜] W) × V) := equiv.prod_assoc W (V →L[𝕜] W) V,
   let f₄ : (V →A[𝕜] W) × V → (W × (V →L[𝕜] W)) × V :=
     prod.map (continuous_affine_map.to_const_prod_continuous_linear_map 𝕜 V W) id,
-  have hf₀ : (λ (p : (V →A[𝕜] W) × V), p.1 p.2) = f₁ ∘ f₂ ∘ f₃ ∘ f₄,
-  { ext ⟨f, x⟩,
-    rw f.decomp,
-    simp only [f₁, f₂, f₃, f₄, add_comm (f 0), function.uncurry_apply_pair, function.comp_app,
+  let f₅ : X → (V →A[𝕜] W) × V := λ x, (f x, g x),
+  have hf₀ : (λ x, (f x) (g x)) = f₁ ∘ f₂ ∘ f₃ ∘ f₄ ∘ f₅,
+  { ext x,
+    rw (f x).decomp,
+    simp only [f₁, f₂, f₃, f₄, f₅, add_comm (f x 0), function.uncurry_apply_pair, function.comp_app,
       to_const_prod_continuous_linear_map_fst, to_const_prod_continuous_linear_map_snd, id.def,
       prod.map_mk, equiv.prod_assoc_apply, pi.add_apply], },
   have hf₁ : times_cont_diff 𝕜 n f₁ := times_cont_diff_add,
@@ -54,8 +58,9 @@ begin
   have hf₃ : times_cont_diff 𝕜 n f₃ := times_cont_diff_prod_assoc,
   have hf₄ : times_cont_diff 𝕜 n f₄ := times_cont_diff.prod_map
     (to_const_prod_continuous_linear_map 𝕜 V W).times_cont_diff times_cont_diff_id,
+  have hf₅ : times_cont_diff 𝕜 n f₅ := times_cont_diff.prod hf hg,
   rw hf₀,
-  exact hf₁.comp (hf₂.comp (hf₃.comp hf₄)),
+  exact hf₁.comp (hf₂.comp (hf₃.comp (hf₄.comp hf₅))),
 end
 
 end continuous_affine_map

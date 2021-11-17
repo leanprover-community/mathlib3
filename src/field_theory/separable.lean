@@ -509,7 +509,7 @@ separable_X_pow_sub_C_unit (units.mk0 a ha) (is_unit.mk0 n hn)
 
 -- this can possibly be strengthened to making `separable_X_pow_sub_C_unit` a
 -- bi-implication, but it is nontrivial!
-/-- In a field `F`, `X ^ n - ↑n` is separable iff `↑n ≠ 0`. -/
+/-- In a field `F`, `X ^ n - 1` is separable iff `↑n ≠ 0`. -/
 lemma X_pow_sub_one_separable_iff {n : ℕ} :
   (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
 begin

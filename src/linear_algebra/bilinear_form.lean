@@ -948,39 +948,39 @@ end to_matrix
 
 end matrix
 
-namespace refl_bilin_form
-
-open refl_bilin_form bilin_form
+namespace bilin_form
 
 /-- The proposition that a bilinear form is reflexive -/
 def is_refl (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = 0 → B y x = 0
 
-variable (H : is_refl B)
+namespace is_refl
+
+variable (H : B.is_refl)
 
 lemma eq_zero : ∀ {x y : M}, B x y = 0 → B y x = 0 := λ x y, H x y
 
-lemma ortho_sym {x y : M} :
+lemma ortho_comm {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
-end refl_bilin_form
-
-namespace sym_bilin_form
-
-open sym_bilin_form bilin_form
+end is_refl
 
 /-- The proposition that a bilinear form is symmetric -/
-def is_sym (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
+def is_symm (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
 
-variable (H : is_sym B)
+namespace is_symm
 
-lemma sym (x y : M) : B x y = B y x := H x y
+variable (H : B.is_symm)
 
-lemma is_refl : refl_bilin_form.is_refl B := λ x y H1, H x y ▸ H1
+protected lemma eq (x y : M) : B x y = B y x := H x y
 
-lemma ortho_sym {x y : M} :
-  is_ortho B x y ↔ is_ortho B y x := refl_bilin_form.ortho_sym (is_refl H)
+lemma is_refl : B.is_refl := λ x y H1, H x y ▸ H1
 
-lemma is_sym_iff_flip' [algebra R₂ R] : is_sym B ↔ flip_hom R₂ B = B :=
+lemma ortho_comm {x y : M} :
+  is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
+
+end is_symm
+
+lemma is_symm_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
 begin
   split,
   { intros h,
@@ -991,21 +991,14 @@ begin
     simp }
 end
 
-end sym_bilin_form
-
-namespace alt_bilin_form
-
-open alt_bilin_form bilin_form
-
 /-- The proposition that a bilinear form is alternating -/
 def is_alt (B : bilin_form R M) : Prop := ∀ (x : M), B x x = 0
 
-variable (H : is_alt B)
-include H
+namespace is_alt
 
-lemma self_eq_zero (x : M) : B x x = 0 := H x
+lemma self_eq_zero (H : B.is_alt) (x : M) : B x x = 0 := H x
 
-lemma neg (H : is_alt B₁) (x y : M₁) :
+lemma neg (H : B₁.is_alt) (x y : M₁) :
   - B₁ x y = B₁ y x :=
 begin
   have H1 : B₁ (x + y) (x + y) = 0,
@@ -1016,9 +1009,16 @@ begin
   exact H1,
 end
 
-end alt_bilin_form
+lemma is_refl (H : B₁.is_alt) : B₁.is_refl :=
+begin
+  intros x y h,
+  rw [←neg H, h, neg_zero],
+end
 
-namespace bilin_form
+lemma ortho_comm (H : B₁.is_alt) {x y : M₁} :
+  is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_comm
+
+end is_alt
 
 section linear_adjoints
 
@@ -1295,7 +1295,7 @@ variables {N L : submodule R M}
 lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
 λ _ hn l hl, hn l (h hl)
 
-lemma le_orthogonal_orthogonal (b : refl_bilin_form.is_refl B) :
+lemma le_orthogonal_orthogonal (b : B.is_refl) :
   N ≤ B.orthogonal (B.orthogonal N) :=
 λ n hn m hm, b _ _ (hm n hn)
 
@@ -1357,8 +1357,8 @@ def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
   bilin_smul_right := λ _ _ _, smul_right _ _ _}
 
 /-- The restriction of a symmetric bilinear form on a submodule is also symmetric. -/
-lemma restrict_sym (B : bilin_form R M) (b : sym_bilin_form.is_sym B)
-  (W : submodule R M) : sym_bilin_form.is_sym $ B.restrict W :=
+lemma restrict_symm (B : bilin_form R M) (b : B.is_symm)
+  (W : submodule R M) : (B.restrict W).is_symm :=
 λ x y, b x y
 
 /-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
@@ -1400,7 +1400,7 @@ lemma nondegenerate.ker_eq_bot {B : bilin_form R₂ M₂} (h : B.nondegenerate) 
 /-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  (B : bilin_form R₁ M₁) (b : sym_bilin_form.is_sym B)
+  (B : bilin_form R₁ M₁) (b : B.is_symm)
   {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
   (B.restrict W).nondegenerate :=
 begin
@@ -1453,7 +1453,7 @@ end
 section
 
 lemma to_lin_restrict_ker_eq_inf_orthogonal
-  (B : bilin_form K V) (W : subspace K V) (b : sym_bilin_form.is_sym B) :
+  (B : bilin_form K V) (W : subspace K V) (b : B.is_symm) :
   (B.to_lin.dom_restrict W).ker.map W.subtype = (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   ext x, split; intro hx,
@@ -1490,7 +1490,7 @@ variable [finite_dimensional K V]
 open finite_dimensional
 
 lemma finrank_add_finrank_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : sym_bilin_form.is_sym B) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
   finrank K W + finrank K (B.orthogonal W) =
   finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
@@ -1507,7 +1507,7 @@ end
 bilinear form if that bilinear form restricted on to the subspace is nondegenerate. -/
 lemma restrict_nondegenerate_of_is_compl_orthogonal
   {B : bilin_form K V} {W : subspace K V}
-  (b₁ : sym_bilin_form.is_sym B) (b₂ : (B.restrict W).nondegenerate) :
+  (b₁ : B.is_symm) (b₂ : (B.restrict W).nondegenerate) :
   is_compl W (B.orthogonal W) :=
 begin
   have : W ⊓ B.orthogonal W = ⊥,
@@ -1531,7 +1531,7 @@ end
 /-- A subspace is complement to its orthogonal complement with respect to some bilinear form
 if and only if that bilinear form restricted on to the subspace is nondegenerate. -/
 theorem restrict_nondegenerate_iff_is_compl_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : sym_bilin_form.is_sym B) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
   (B.restrict W).nondegenerate ↔ is_compl W (B.orthogonal W) :=
 ⟨λ b₂, restrict_nondegenerate_of_is_compl_orthogonal b₁ b₂,
  λ h, B.nondegenerate_restrict_of_disjoint_orthogonal b₁ h.1⟩
@@ -1570,7 +1570,7 @@ by rw [dual_basis, basis.map_apply, basis.coe_dual_basis, ← to_dual_def hB,
        finsupp.single_apply]
 
 lemma apply_dual_basis_right (B : bilin_form K V) (hB : B.nondegenerate)
-  (sym : sym_bilin_form.is_sym B) (b : basis ι K V)
+  (sym : B.is_symm) (b : basis ι K V)
   (i j) : B (b i) (B.dual_basis hB b j) = if i = j then 1 else 0 :=
 by rw [sym, apply_dual_basis_left]
 
@@ -1586,7 +1586,7 @@ on the whole space. -/
 /-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
-  (b₁ : nondegenerate B) (b₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
+  (b₁ : B.nondegenerate) (b₂ : B.is_symm) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (b₁ m.1 (λ n, _)),

@@ -236,6 +236,12 @@ end
 @[simp] lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
 length_injective_iff.mpr $ by apply_instance
 
+lemma length_eq_two {l : list α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
+⟨match l with [a, b], _ := ⟨a, b, rfl⟩ end, λ ⟨a, b, e⟩, e.symm ▸ rfl⟩
+
+lemma length_eq_three {l : list α} : l.length = 3 ↔ ∃ a b c, l = [a, b, c] :=
+⟨match l with [a, b, c], _ := ⟨a, b, c, rfl⟩ end, λ ⟨a, b, c, e⟩, e.symm ▸ rfl⟩
+
 /-! ### set-theoretic notation of lists -/
 
 lemma empty_eq : (∅ : list α) = [] := by refl
@@ -2376,7 +2382,7 @@ begin
   by simp [←h (pure b)],
   induction l; intro,
   { simp },
-  { simp only [mfoldl, foldl, ←l_ih] with monad_norm }
+  { simp only [mfoldl, foldl, ←l_ih] with functor_norm }
 end
 
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},

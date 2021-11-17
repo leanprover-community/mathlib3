@@ -424,6 +424,10 @@ begin
   congr,
 end
 
+@[simp] lemma reindex_reindex (e : ι ≃ ι₂) (e' : ι₂ ≃ ι₃) (x : ⨂[R] i, M) :
+  reindex R M e' (reindex R M e x) = reindex R M (e.trans e') x :=
+linear_equiv.congr_fun (reindex_trans e e' : _ = reindex R M (e.trans e')) x
+
 @[simp] lemma reindex_symm (e : ι ≃ ι₂) :
   (reindex R M e).symm = reindex R M e.symm := rfl
 
@@ -440,7 +444,7 @@ variables (ι)
 /-- The tensor product over an empty index type `ι` is isomorphic to the base ring. -/
 @[simps symm_apply]
 def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
-{ to_fun := lift ⟨λ (_ : ι → M), (1 : R), λ v, is_empty_elim, λ v, is_empty_elim⟩,
+{ to_fun := lift (const_of_is_empty R 1),
   inv_fun := λ r, r • tprod R (@is_empty_elim _ _ _),
   left_inv := λ x, by
   { apply x.induction_on,
@@ -450,7 +454,7 @@ def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
     { simp only,
       intros x y hx hy,
       simp [add_smul, hx, hy] }},
-  right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, multilinear_map.coe_mk,
+  right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, const_of_is_empty_apply,
     linear_map.map_smul, pi_tensor_product.lift.tprod],
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }

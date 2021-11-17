@@ -295,15 +295,44 @@ begin
   case refl_trans_gen.tail : d b hab hdb IH { exact tail (IH hdb) hbc }
 end
 
+lemma head (hab : r a b) (hbc : trans_gen r b c) : trans_gen r a c :=
+head' hab hbc.to_refl
+
+@[elab_as_eliminator]
+lemma head_induction_on
+  {P : ∀ (a:α), trans_gen r a b → Prop}
+  {a : α} (h : trans_gen r a b)
+  (base : ∀ {a} (h : r a b), P a (single h))
+  (ih : ∀ {a c} (h' : r a c) (h : trans_gen r c b), P c h → P a (h.head h')) :
+  P a h :=
+begin
+  induction h generalizing P,
+  case single : a h { exact base h },
+  case tail : b c hab hbc h_ih {
+    apply h_ih,
+    show ∀ a, r a b → P a _, from λ a h, ih h (single hbc) (base hbc),
+    show ∀ a a', r a a' → trans_gen r a' b → P a' _ → P a _, from λ a a' hab hbc, ih hab _ }
+end
+
+@[elab_as_eliminator]
+lemma trans_induction_on
+  {P : ∀ {a b : α}, trans_gen r a b → Prop}
+  {a b : α} (h : trans_gen r a b)
+  (base : ∀ {a b} (h : r a b), P (single h))
+  (ih : ∀ {a b c} (h₁ : trans_gen r a b) (h₂ : trans_gen r b c), P h₁ → P h₂ → P (h₁.trans h₂)) :
+  P h :=
+begin
+  induction h,
+  case single : a h { exact base h },
+  case tail : b c hab hbc h_ih { exact ih hab (single hbc) h_ih (base hbc) }
+end
+
 @[trans] lemma trans_right (hab : refl_trans_gen r a b) (hbc : trans_gen r b c) : trans_gen r a c :=
 begin
   induction hbc,
   case trans_gen.single : c hbc { exact tail' hab hbc },
   case trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
-
-lemma head (hab : r a b) (hbc : trans_gen r b c) : trans_gen r a c :=
-head' hab hbc.to_refl
 
 lemma tail'_iff : trans_gen r a c ↔ ∃ b, refl_trans_gen r a b ∧ r b c :=
 begin

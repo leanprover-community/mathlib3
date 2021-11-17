@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
-import analysis.special_functions.pow
+import analysis.special_functions.pow_deriv
 
 /-!
 # Collection of convex functions

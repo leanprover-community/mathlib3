@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import data.buffer.parser
 import tactic.doc_commands
 
-open lean.parser tactic interactive parser
+open lean.parser tactic interactive
 
 /--
 `restate_axiom` takes a structure field, and makes a new, definitionally simplified copy of it.

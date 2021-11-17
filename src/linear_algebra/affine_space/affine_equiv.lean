@@ -211,10 +211,10 @@ ext $ λ _, rfl
 @[simp] lemma refl_trans (e : P₁ ≃ᵃ[k] P₂) : (refl k P₁).trans e = e :=
 ext $ λ _, rfl
 
-@[simp] lemma trans_symm (e : P₁ ≃ᵃ[k] P₂) : e.trans e.symm = refl k P₁ :=
+@[simp] lemma self_trans_symm (e : P₁ ≃ᵃ[k] P₂) : e.trans e.symm = refl k P₁ :=
 ext e.symm_apply_apply
 
-@[simp] lemma symm_trans (e : P₁ ≃ᵃ[k] P₂) : e.symm.trans e = refl k P₂ :=
+@[simp] lemma symm_trans_self (e : P₁ ≃ᵃ[k] P₂) : e.symm.trans e = refl k P₂ :=
 ext e.apply_symm_apply
 
 @[simp] lemma apply_line_map (e : P₁ ≃ᵃ[k] P₂) (a b : P₁) (c : k) :
@@ -230,7 +230,7 @@ instance : group (P₁ ≃ᵃ[k] P₁) :=
   mul_assoc := λ e₁ e₂ e₃, trans_assoc _ _ _,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 lemma one_def : (1 : P₁ ≃ᵃ[k] P₁) = refl k P₁ := rfl
 

@@ -7,6 +7,7 @@ import linear_algebra.basic
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
+import data.fin.tuple
 import data.fintype.card
 import data.fintype.sort
 
@@ -167,7 +168,7 @@ end
 
 /-- If `f` is a multilinear map, then `f.to_linear_map m i` is the linear map obtained by fixing all
 coordinates but `i` equal to those of `m`, and varying the `i`-th coordinate. -/
-def to_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
+@[simps] def to_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
 { to_fun    := λx, f (update m i x),
   map_add'  := λx y, by simp,
   map_smul' := λc x, by simp }
@@ -200,6 +201,15 @@ def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, 
     rw subsingleton.elim i i', simp only [function.eval, function.update_same], },
   map_smul' := λ m i r x, by {
     rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
+
+variables {M₂}
+
+/-- The constant map is multilinear when `ι` is empty. -/
+@[simps {fully_applied := ff}]
+def const_of_is_empty [is_empty ι] (m : M₂) : multilinear_map R M₁ M₂ :=
+{ to_fun := function.const _ m,
+  map_add' := λ m, is_empty_elim,
+  map_smul' := λ m, is_empty_elim }
 
 end
 
@@ -534,6 +544,12 @@ def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
   right_inv := λ m, by {ext, simp},
   map_add' := λ a b, by {ext, simp} }
 
+/-- The results of applying `dom_dom_congr` to two maps are equal if
+and only if those maps are. -/
+@[simp] lemma dom_dom_congr_eq_iff (σ : ι₁ ≃ ι₂) (f g : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  f.dom_dom_congr σ = g.dom_dom_congr σ ↔ f = g :=
+(dom_dom_congr_equiv σ : _ ≃+ multilinear_map R (λ i, M₂) M₃).apply_eq_iff_eq
+
 end
 
 end semiring
@@ -620,6 +636,9 @@ instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
 @[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
   (c • f) m = c • f m := rfl
 
+lemma coe_smul (c : R') (f : multilinear_map A M₁ M₂) : ⇑(c • f) = c • f :=
+rfl
+
 instance : distrib_mul_action R' (multilinear_map A M₁ M₂) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
@@ -639,6 +658,9 @@ addition and scalar multiplication. -/
 instance [module R' M₂] [smul_comm_class A R' M₂] : module R' (multilinear_map A M₁ M₂) :=
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+instance [no_zero_smul_divisors R' M₃] : no_zero_smul_divisors R' (multilinear_map A M₁ M₃) :=
+coe_injective.no_zero_smul_divisors _ rfl coe_smul
 
 variables (M₂ M₃ R' A)
 

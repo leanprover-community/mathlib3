@@ -452,7 +452,7 @@ cpkg.extend f
 
 variables [separated_space β]
 
-@[simp]lemma extension_coe (hf : uniform_continuous f) (a : α) :
+@[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) :
   (completion.extension f) a = f a :=
 cpkg.extend_coe hf a
 

@@ -42,7 +42,7 @@ measurable space, σ-algebra, measurable function
 -/
 
 open set encodable function equiv
-open_locale classical filter
+open_locale classical
 
 
 variables {α β γ δ δ' : Type*} {ι : Sort*} {s t u : set α}
@@ -251,6 +251,9 @@ lemma measurable_set.insert {s : set α} (hs : measurable_set s) (a : α) :
 ⟨λ h, if ha : a ∈ s then by rwa ← insert_eq_of_mem ha
   else insert_diff_self_of_not_mem ha ▸ h.diff (measurable_set_singleton _),
   λ h, h.insert a⟩
+
+lemma set.subsingleton.measurable_set {s : set α} (hs : s.subsingleton) : measurable_set s :=
+hs.induction_on measurable_set.empty measurable_set_singleton
 
 lemma set.finite.measurable_set {s : set α} (hs : finite s) : measurable_set s :=
 finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _

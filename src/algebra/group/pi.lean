@@ -39,7 +39,7 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_
 
 @[to_additive]
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^ n };
 tactic.pi_instance_derive_field
 
 @[simp]
@@ -52,24 +52,24 @@ end
 
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };
 tactic.pi_instance_derive_field
 
 @[to_additive]
 instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
   div_inv_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, zpow := λ z x i, zpow z (x i) }; tactic.pi_instance_derive_field
+  npow := monoid.npow, zpow := λ z x i, (x i) ^ z }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, zpow := zpow }; tactic.pi_instance_derive_field
+  npow := monoid.npow, zpow := div_inv_monoid.zpow }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := npow, zpow := zpow }; tactic.pi_instance_derive_field
+  npow := monoid.npow, zpow := div_inv_monoid.zpow }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
@@ -84,25 +84,25 @@ by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
 @[to_additive add_left_cancel_monoid]
 instance left_cancel_monoid [∀ i, left_cancel_monoid $ f i] :
   left_cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };
 tactic.pi_instance_derive_field
 
 @[to_additive add_right_cancel_monoid]
 instance right_cancel_monoid [∀ i, right_cancel_monoid $ f i] :
   right_cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow, .. };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow, .. };
 tactic.pi_instance_derive_field
 
 @[to_additive add_cancel_monoid]
 instance cancel_monoid [∀ i, cancel_monoid $ f i] :
   cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };
 tactic.pi_instance_derive_field
 
 @[to_additive add_cancel_comm_monoid]
 instance cancel_comm_monoid [∀ i, cancel_comm_monoid $ f i] :
   cancel_comm_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), npow := npow };
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };
 tactic.pi_instance_derive_field
 
 instance mul_zero_class [∀ i, mul_zero_class $ f i] :
@@ -117,25 +117,12 @@ by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), 
 instance monoid_with_zero [∀ i, monoid_with_zero $ f i] :
   monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
-  npow := npow }; tactic.pi_instance_derive_field
+  npow := monoid.npow }; tactic.pi_instance_derive_field
 
 instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
-  npow := npow }; tactic.pi_instance_derive_field
-
-section instance_lemmas
-open function
-
-variables {α β γ : Type*}
-
-@[simp, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
-
-@[simp, to_additive] lemma comp_one [has_one β] {f : β → γ} : f ∘ 1 = const α (f 1) := rfl
-
-@[simp, to_additive] lemma one_comp [has_one γ] {f : α → β} : (1 : β → γ) ∘ f = 1 := rfl
-
-end instance_lemmas
+  npow := monoid.npow }; tactic.pi_instance_derive_field
 
 end pi
 

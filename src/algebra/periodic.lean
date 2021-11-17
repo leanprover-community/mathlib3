@@ -188,7 +188,7 @@ lemma periodic.zsmul [add_group α]
   periodic f (n • c) :=
 begin
   cases n,
-  { simpa only [int.of_nat_eq_coe, zsmul_coe_nat] using h.nsmul n },
+  { simpa only [int.of_nat_eq_coe, coe_nat_zsmul] using h.nsmul n },
   { simpa only [zsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg },
 end
 
@@ -252,7 +252,7 @@ lemma periodic.int_mul_eq [ring α]
 lemma periodic.exists_mem_Ico₀ [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x) :
   ∃ y ∈ set.Ico 0 c, f x = f y :=
-let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
+let ⟨n, H, _⟩ := exists_unique_zsmul_near_of_pos' hc x in
 ⟨x - n • c, H, (h.sub_zsmul_eq n).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
@@ -260,7 +260,7 @@ let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
 lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ico a (a + c), f x = f y :=
-let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
+let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ico hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
@@ -268,7 +268,7 @@ let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
 lemma periodic.exists_mem_Ioc [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ioc a (a + c), f x = f y :=
-let ⟨n, H⟩ := exists_add_int_smul_mem_Ioc hc x a in
+let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ioc hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 lemma periodic_with_period_zero [add_zero_class α]

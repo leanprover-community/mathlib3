@@ -585,6 +585,17 @@ lemma ring_equiv_of_ring_equiv_mk' {j : R ≃+* P} (H : M.map j.to_monoid_hom = 
     mk' Q (j x) ⟨j y, show j y ∈ T, from H ▸ set.mem_image_of_mem j y.2⟩ :=
 map_mk' _ _ _
 
+lemma iso_comp {S T : CommRing}
+  [l : algebra R S] [h : is_localization M S] (f : S ≅ T) :
+  @is_localization _ _ M T _ (f.hom.comp l.to_ring_hom).to_algebra :=
+{ map_units := let hm := h.1 in
+    λ t, is_unit.map f.hom.to_monoid_hom (hm t),
+  surj := let hs := h.2 in λ t, let ⟨⟨r,s⟩,he⟩ := hs (f.inv t) in ⟨ ⟨r,s⟩,
+  by { convert congr_arg f.hom he, rw [ring_hom.map_mul,
+       ←category_theory.comp_apply, category_theory.iso.inv_hom_id], refl } ⟩,
+  eq_iff_exists := let he := h.3 in λ t t', by { rw ← he, split,
+    apply f.CommRing_iso_to_ring_equiv.injective, exact congr_arg f.hom } }
+
 end map
 
 section alg_equiv
@@ -2030,8 +2041,8 @@ noncomputable instance : field (fraction_ring A) :=
   sub := has_sub.sub,
   one := 1,
   zero := 0,
-  nsmul := nsmul,
-  zsmul := zsmul,
+  nsmul := add_monoid.nsmul,
+  zsmul := sub_neg_monoid.zsmul,
   npow := localization.npow _,
   .. localization.comm_ring,
   .. is_fraction_ring.to_field A }

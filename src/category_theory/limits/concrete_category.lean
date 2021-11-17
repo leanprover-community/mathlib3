@@ -6,6 +6,7 @@ Authors: Scott Morrison, Adam Topaz
 import category_theory.limits.preserves.basic
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
+import category_theory.limits.shapes.multiequalizer
 import tactic.elementwise
 
 /-!
@@ -81,6 +82,69 @@ end
 
 end wide_pullback
 
+section multiequalizer
+
+lemma concrete.multiequalizer_ext {I : multicospan_index C} [has_multiequalizer I]
+  [preserves_limit I.multicospan (forget C)] (x y : multiequalizer I)
+  (h : ∀ (t : I.L), multiequalizer.ι I t x = multiequalizer.ι I t y) : x = y :=
+begin
+  apply concrete.limit_ext,
+  rintros (a|b),
+  { apply h },
+  { rw [← limit.w I.multicospan (walking_multicospan.hom.fst b),
+      comp_apply, comp_apply, h] }
+end
+
+/-- An auxiliary equivalence to be used in `multiequalizer_equiv` below.-/
+def concrete.multiequalizer_equiv_aux (I : multicospan_index C) :
+  (I.multicospan ⋙ (forget C)).sections ≃
+  { x : Π (i : I.L), I.left i // ∀ (i : I.R), I.fst i (x _) = I.snd i (x _) } :=
+{ to_fun := λ x, ⟨λ i, x.1 (walking_multicospan.left _), λ i, begin
+    have a := x.2 (walking_multicospan.hom.fst i),
+    have b := x.2 (walking_multicospan.hom.snd i),
+    rw ← b at a,
+    exact a,
+  end⟩,
+  inv_fun := λ x,
+  { val := λ j,
+    match j with
+    | walking_multicospan.left a := x.1 _
+    | walking_multicospan.right b := I.fst b (x.1 _)
+    end,
+    property := begin
+      rintros (a|b) (a'|b') (f|f|f),
+      { change (I.multicospan.map (𝟙 _)) _ = _, simp },
+      { refl },
+      { dsimp, erw ← x.2 b', refl },
+      { change (I.multicospan.map (𝟙 _)) _ = _, simp },
+    end },
+  left_inv := begin
+    intros x, ext (a|b),
+    { refl },
+    { change _ = x.val _,
+      rw ← x.2 (walking_multicospan.hom.fst b),
+      refl }
+  end,
+  right_inv := by { intros x, ext i, refl } }
+
+/-- The equivalence between the noncomputable multiequalizer and
+and the concrete multiequalizer. -/
+noncomputable
+def concrete.multiequalizer_equiv (I : multicospan_index C) [has_multiequalizer I]
+  [preserves_limit I.multicospan (forget C)] : (multiequalizer I : C) ≃
+    { x : Π (i : I.L), I.left i // ∀ (i : I.R), I.fst i (x _) = I.snd i (x _) } :=
+let h1 := (limit.is_limit I.multicospan),
+    h2 := (is_limit_of_preserves (forget C) h1),
+    E := h2.cone_point_unique_up_to_iso (types.limit_cone_is_limit _) in
+equiv.trans E.to_equiv (concrete.multiequalizer_equiv_aux I)
+
+@[simp]
+lemma concrete.multiequalizer_equiv_apply (I : multicospan_index C) [has_multiequalizer I]
+  [preserves_limit I.multicospan (forget C)] (x : multiequalizer I) (i : I.L) :
+  ((concrete.multiequalizer_equiv I) x : Π (i : I.L), I.left i) i = multiequalizer.ι I i x := rfl
+
+end multiequalizer
+
 -- TODO: Add analogous lemmas about products and equalizers.
 
 end limits
@@ -126,6 +190,96 @@ end
 lemma concrete.colimit_exists_rep [has_colimit F] (x : colimit F) :
   ∃ (j : J) (y : F.obj j), colimit.ι F j y = x :=
 concrete.is_colimit_exists_rep F (colimit.is_colimit _) x
+
+lemma concrete.is_colimit_rep_eq_of_exists {D : cocone F} {i j : J} (hD : is_colimit D)
+  (x : F.obj i) (y : F.obj j) (h : ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y) :
+  D.ι.app i x = D.ι.app j y :=
+begin
+  let E := (forget C).map_cocone D,
+  let hE : is_colimit E := is_colimit_of_preserves _ hD,
+  let G := types.colimit_cocone (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let T : E ≅ G := hE.unique_up_to_iso hG,
+  let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
+  apply_fun TX.hom,
+  swap, { suffices : function.bijective TX.hom, by exact this.1,
+    rw ← is_iso_iff_bijective, apply is_iso.of_iso },
+  change (E.ι.app i ≫ TX.hom) x = (E.ι.app j ≫ TX.hom) y,
+  erw [T.hom.w, T.hom.w],
+  obtain ⟨k, f, g, h⟩ := h,
+  have : G.ι.app i x = (G.ι.app k (F.map f x) : G.X) := quot.sound ⟨f,rfl⟩,
+  rw [this, h],
+  symmetry,
+  exact quot.sound ⟨g,rfl⟩,
+end
+
+lemma concrete.colimit_rep_eq_of_exists [has_colimit F] {i j : J}
+  (x : F.obj i) (y : F.obj j) (h : ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y) :
+  colimit.ι F i x = colimit.ι F j y :=
+concrete.is_colimit_rep_eq_of_exists F (colimit.is_colimit _) x y h
+
+section filtered_colimits
+
+variable [is_filtered J]
+
+lemma concrete.is_colimit_exists_of_rep_eq {D : cocone F} {i j : J} (hD : is_colimit D)
+  (x : F.obj i) (y : F.obj j) (h : D.ι.app _ x = D.ι.app _ y) :
+  ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+begin
+  let E := (forget C).map_cocone D,
+  let hE : is_colimit E := is_colimit_of_preserves _ hD,
+  let G := types.colimit_cocone (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let T : E ≅ G := hE.unique_up_to_iso hG,
+  let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
+  apply_fun TX.hom at h,
+  change (E.ι.app i ≫ TX.hom) x = (E.ι.app j ≫ TX.hom) y at h,
+  erw [T.hom.w, T.hom.w] at h,
+  replace h := quot.exact _ h,
+  suffices : ∀ (a b : Σ j, F.obj j)
+    (h : eqv_gen (limits.types.quot.rel (F ⋙ forget C)) a b),
+    ∃ k (f : a.1 ⟶ k) (g : b.1 ⟶ k), F.map f a.2 = F.map g b.2,
+  { exact this ⟨i,x⟩ ⟨j,y⟩ h },
+  intros a b h,
+  induction h,
+  case eqv_gen.rel : x y hh {
+    obtain ⟨e,he⟩ := hh,
+    use [y.1, e, 𝟙 _],
+    simpa using he.symm },
+  case eqv_gen.refl : x { use [x.1, 𝟙 _, 𝟙 _, rfl] },
+  case eqv_gen.symm : x y _ hh {
+    obtain ⟨k, f, g, hh⟩ := hh,
+    use [k, g, f, hh.symm] },
+  case eqv_gen.trans : x y z _ _ hh1 hh2 {
+    obtain ⟨k1, f1, g1, h1⟩ := hh1,
+    obtain ⟨k2, f2, g2, h2⟩ := hh2,
+    let k0 : J := is_filtered.max k1 k2,
+    let e1 : k1 ⟶ k0 := is_filtered.left_to_max _ _,
+    let e2 : k2 ⟶ k0 := is_filtered.right_to_max _ _,
+    let k : J := is_filtered.coeq (g1 ≫ e1) (f2 ≫ e2),
+    let e : k0 ⟶ k := is_filtered.coeq_hom _ _,
+    use [k, f1 ≫ e1 ≫ e, g2 ≫ e2 ≫ e],
+    simp only [F.map_comp, comp_apply, h1, ← h2],
+    simp only [← comp_apply, ← F.map_comp],
+    rw is_filtered.coeq_condition },
+end
+
+theorem concrete.is_colimit_rep_eq_iff_exists {D : cocone F} {i j : J}
+  (hD : is_colimit D) (x : F.obj i) (y : F.obj j) :
+  D.ι.app i x = D.ι.app j y ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+⟨concrete.is_colimit_exists_of_rep_eq _ hD _ _, concrete.is_colimit_rep_eq_of_exists _ hD _ _⟩
+
+lemma concrete.colimit_exists_of_rep_eq [has_colimit F] {i j : J}
+  (x : F.obj i) (y : F.obj j) (h : colimit.ι F _ x = colimit.ι F _ y) :
+  ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+concrete.is_colimit_exists_of_rep_eq F (colimit.is_colimit _) x y h
+
+theorem concrete.colimit_rep_eq_iff_exists [has_colimit F] {i j : J}
+  (x : F.obj i) (y : F.obj j) :
+  colimit.ι F i x = colimit.ι F j y ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f x = F.map g y :=
+⟨concrete.colimit_exists_of_rep_eq _ _ _, concrete.colimit_rep_eq_of_exists _ _ _⟩
+
+end filtered_colimits
 
 section wide_pushout
 

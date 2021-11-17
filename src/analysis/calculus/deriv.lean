@@ -15,7 +15,7 @@ normed field and `F` is a normed space over this field. The derivative of
 such a function `f` at a point `x` is given by an element `f' : F`.
 
 The theory is developed analogously to the [Fréchet
-derivatives](./fderiv.lean). We first introduce predicates defined in terms
+derivatives](./fderiv.html). We first introduce predicates defined in terms
 of the corresponding predicates for Fréchet derivatives:
 
  - `has_deriv_at_filter f f' x L` states that the function `f` has the
@@ -210,8 +210,15 @@ lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
 by { unfold deriv_within, rw fderiv_within_zero_of_not_differentiable_within_at, simp, assumption }
 
+lemma differentiable_within_at_of_deriv_within_ne_zero (h : deriv_within f s x ≠ 0) :
+  differentiable_within_at 𝕜 f s x :=
+not_imp_comm.1 deriv_within_zero_of_not_differentiable_within_at h
+
 lemma deriv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) : deriv f x = 0 :=
 by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp, assumption }
+
+lemma differentiable_at_of_deriv_ne_zero (h : deriv f x ≠ 0) : differentiable_at 𝕜 f x :=
+not_imp_comm.1 deriv_zero_of_not_differentiable_at h
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=

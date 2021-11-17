@@ -97,7 +97,8 @@ begin
 end
 
 lemma l_nonneg : 0 ≤ h.l :=
-ge_of_tendsto' h.tendsto_lim (λ n, div_nonneg dist_nonneg (nat.cast_nonneg _))
+ge_of_tendsto' h.tendsto_lim
+  (λ n, div_nonneg dist_nonneg (nat.cast_nonneg _))
 
 lemma tendsto_sub_at_top {w : ℝ} (hw : w < h.l) :
   tendsto (λ (n : ℕ), h.u n - n * w) at_top at_top :=
@@ -119,14 +120,15 @@ lemma exists_dual_up_to_of_lt {w : ℝ} (hw : w < h.l) (N : ℕ) :
 begin
   obtain ⟨n, Nn, hn⟩ : ∃ n ≥ N, ∀ m ≤ n, h.u m - m * w ≤ h.u n - n * w :=
     exists_high_score _ (h.tendsto_sub_at_top hw) N,
-  obtain ⟨v, vnorm, hv⟩ : ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ v (-(f^[n] 0)) = ∥-(f^[n] 0)∥ :=
-    exists_dual_vector'' ℝ (-(f^[n] 0)),
+  obtain ⟨v, vnorm, hv⟩ :
+    ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ v (-(f^[n] 0)) = ∥-(f^[n] 0)∥ :=
+      exists_dual_vector'' ℝ (-(f^[n] 0)),
   refine ⟨v, vnorm, λ i hi, _⟩,
   have A : i ≤ n := hi.trans Nn,
   show v (f^[i] 0) ≤ -i * w, from calc
   v (f^[i] 0) = v (f^[i] 0 - (f^[n]) 0) - v (- (f^[n] 0)) :
-    by simp only [continuous_linear_map.map_neg, sub_add_cancel, continuous_linear_map.map_sub,
-                  sub_neg_eq_add] -- squeeze_simp
+    by simp only [continuous_linear_map.map_neg, sub_add_cancel,
+                  continuous_linear_map.map_sub, sub_neg_eq_add] -- squeeze_simp
   ... ≤ 1 * ∥(f^[i]) 0 - (f^[n]) 0∥ - ∥-(f^[n]) 0∥ :
     begin
       rw hv,
@@ -135,39 +137,44 @@ begin
       exact v.le_of_op_norm_le vnorm _,
     end
   ... = dist (f^[i] 0) (f^[i] (f^[n-i] 0)) - dist 0 (f^[n] 0) :
-    by rw [← function.iterate_add_apply, one_mul, dist_eq_norm, dist_eq_norm, zero_sub,
-           ← nat.add_sub_assoc A, nat.add_sub_cancel_left]
-  ... ≤ dist 0 (f^[n-i] 0) - dist 0 (f^[n] 0) : sub_le_sub (h.iterate i _ _) le_rfl
+    by rw [← function.iterate_add_apply, one_mul, dist_eq_norm, dist_eq_norm,
+           zero_sub, ← nat.add_sub_assoc A, nat.add_sub_cancel_left]
+  ... ≤ dist 0 (f^[n-i] 0) - dist 0 (f^[n] 0) :
+    sub_le_sub (h.iterate i _ _) le_rfl
   ... = h.u (n-i) - h.u n : by { simp only [dist_comm (0 : E)], refl, }
   ... ≤ - n * w + (n-i : ℕ) * w : by linarith [hn (n-i) (nat.sub_le n i)]
   ... = - i * w : by { rw [nat.cast_sub A], ring }
 end
 
--- NB : pourquo a-t-on juste `∥v∥ ≤ 1` ici, et pas `∥v∥ = 1`?
+-- NB : pourquoi a-t-on juste `∥v∥ ≤ 1` ici, et pas `∥v∥ = 1`?
 lemma exists_dual : ∃ (v : dual ℝ E), ∥v∥ ≤ 1 ∧ ∀ i, v (f^[i] 0) ≤ -i * h.l :=
 begin
   -- on part d'une suite `w_n` qui tend vers `h.l` par valeurs inférieures
-  obtain ⟨w, -, w_lt, w_lim⟩ : ∃ (w : ℕ → ℝ), strict_mono w ∧ (∀ (n : ℕ), w n < h.l)
-    ∧ tendsto w at_top (𝓝 h.l) := exists_seq_strict_mono_tendsto _,
-  -- pour chaque `n`, on peut choisir un élément du dual tel que `y (f^[i] 0) ≤ - i w_n`
-  -- pour tout `i ≤ n`, d'après le lemme précédent
+  obtain ⟨w, -, w_lt, w_lim⟩ : ∃ (w : ℕ → ℝ), strict_mono w
+    ∧ (∀ (n : ℕ), w n < h.l) ∧ tendsto w at_top (𝓝 h.l) :=
+      exists_seq_strict_mono_tendsto _,
+  -- pour chaque `n`, on peut choisir un élément du dual de norme au plus `1`
+  -- tel que `y (f^[i] 0) ≤ - i w_n` pour tout `i ≤ n`, d'après le lemme
+  -- précédent
   have : ∀ n, ∃ (y : dual ℝ E), ∥y∥ ≤ 1 ∧ ∀ i ≤ n, y (f^[i] 0) ≤ - i * w n :=
     λ n, h.exists_dual_up_to_of_lt (w_lt n) n,
   choose y hy using this, -- oui, c'estl'axiome du choix !
   -- on extrait une sous-suite `y_{φ n}`, qui converge vers une limite `v`.
-  obtain ⟨v, v_mem, φ, φ_mono, φlim⟩ : ∃ v ∈ closed_ball (0 : dual ℝ E) 1, ∃ (φ : ℕ → ℕ),
-    strict_mono φ ∧ tendsto (y ∘ φ) at_top (𝓝 v),
+  obtain ⟨v, v_mem, φ, φ_mono, φlim⟩ :
+    ∃ v ∈ closed_ball (0 : dual ℝ E) 1, ∃ (φ : ℕ → ℕ),
+      strict_mono φ ∧ tendsto (y ∘ φ) at_top (𝓝 v),
   { -- dual ℝ E est propre
     refine is_compact.tendsto_subseq (proper_space.is_compact_closed_ball _ _) _,
     assume n,
     simp [(hy n).1] },
   -- on va voir que cette limite convient.
   refine ⟨v, by simpa using v_mem, λ i, _⟩,
-  -- on a fixé `i`, il faut voir que `v (f^[i] 0) ≤ -i h.l`. Pour cela, on passe à la limite
+  -- on a fixé `i`, il faut voir que `v (f^[i] 0) ≤ -i h.l`.
+  -- Pour cela, on passe à la limite
   -- dans les inégalités sur les `y_n (f^[i] 0)`.
   have A : tendsto (λ n, ((y ∘ φ) n) (f^[i] 0)) at_top (𝓝 (v (f^[i] 0))) :=
-    ((is_bounded_bilinear_map_apply.is_bounded_linear_map_left (f^[i] 0)).continuous.tendsto _)
-      .comp φlim,
+    ((is_bounded_bilinear_map_apply.is_bounded_linear_map_left (f^[i] 0))
+      .continuous.tendsto _).comp φlim,
   have B : tendsto (λ n, -(i : ℝ) * w (φ n)) at_top (𝓝 (- i * h.l)) :=
     (tendsto_const_nhds.mul w_lim).comp φ_mono.tendsto_at_top,
   have C : ∀ᶠ n in at_top, ((y ∘ φ) n) (f^[i] 0) ≤ - i * w (φ n),
@@ -177,13 +184,14 @@ begin
   exact le_of_tendsto_of_tendsto A B C
 end
 
--- on convertit l'existence d'une bonne forme linéaire par celle d'un bon vecteur, car
--- on est sur un espace euclidien.
+-- on convertit l'existence d'une bonne forme linéaire en celle d'un bon
+-- vecteur, car on est sur un espace euclidien.
 lemma exists_asymp_vector :
   ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
 begin
-  obtain ⟨v', v'_norm, hv'⟩ : ∃ (v' : dual ℝ E), ∥v'∥ ≤ 1 ∧ ∀ i, v' (f^[i] 0) ≤ -i * h.l :=
-    h.exists_dual,
+  obtain ⟨v', v'_norm, hv'⟩ :
+    ∃ (v' : dual ℝ E), ∥v'∥ ≤ 1 ∧ ∀ i, v' (f^[i] 0) ≤ -i * h.l :=
+      h.exists_dual,
   -- (marcherait sur un espace complet, pas besoin de dimension finie ici).
   let v := (inner_product_space.to_dual ℝ E).symm (-v'),
   refine ⟨v, by simpa using v'_norm, λ i, _⟩,
@@ -196,8 +204,9 @@ translation vector. -/
 theorem exists_tendsto_div :
   ∃ (v : E), tendsto (λ (n : ℕ), (1 / (n : ℝ)) • (f^[n] 0)) at_top (𝓝 v) :=
 begin
-  obtain ⟨v₀, v₀_norm, h₀⟩ : ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
-    h.exists_asymp_vector,
+  obtain ⟨v₀, v₀_norm, h₀⟩ :
+    ∃ (v : E), ∥v∥ ≤ 1 ∧ ∀ (i : ℕ), (i : ℝ) * h.l ≤ ⟪v, (f^[i] 0)⟫ :=
+      h.exists_asymp_vector,
   let v := h.l • v₀,
   use v,
   have A : ∀ᶠ (n : ℕ) in at_top,
@@ -210,8 +219,10 @@ begin
     ... = (h.u n / n)^2 - 2 * h.l / n * ⟪v₀, (f^[n] 0)⟫ + h.l^2 * ∥v₀∥^2 :
        begin
         congr' 2,
-        { simp [norm_smul, real.norm_eq_abs, u, dist_zero_left, div_eq_inv_mul, mul_pow] },
-        { simp [real_inner_smul_left, real_inner_smul_right, div_eq_inv_mul, real_inner_comm],
+        { simp [norm_smul, real.norm_eq_abs, u, dist_zero_left,
+                div_eq_inv_mul, mul_pow] },
+        { simp [real_inner_smul_left, real_inner_smul_right, div_eq_inv_mul,
+                real_inner_comm],
           ring },
         { simp [norm_smul, real.norm_eq_abs, mul_pow] }
       end
@@ -241,8 +252,16 @@ end
 
 
 
-/-- Attention: si on ne fait pas attention à l'énoncé, on peut donner une preuve triviale
-d'un résultat stupide. -/
+
+
+
+
+
+
+
+
+/-- Attention: si on ne fait pas attention à l'énoncé, on peut donner une
+-- preuve triviale d'un résultat stupide. -/
 lemma wrong_exists_tendsto_div' :
   ∃ (v : E), tendsto (λ (n : ℕ), (1 / n) • (f^[n] 0)) at_top (𝓝 v) :=
 ⟨(0 : E), tendsto_const_nhds.congr' $

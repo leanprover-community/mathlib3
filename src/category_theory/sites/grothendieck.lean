@@ -390,14 +390,17 @@ lemma condition (S : J.cover X) : (S : sieve X) ∈ J X := S.2
 lemma ext (S T : J.cover X) (h : ∀ ⦃Y⦄ (f : Y ⟶ X), S f ↔ T f) : S = T :=
 subtype.ext $ sieve.ext h
 
-instance : semilattice_inf_top (J.cover X) :=
+instance : order_top (J.cover X) :=
+{ top := ⟨⊤, J.top_mem _⟩,
+  le_top := λ S Y f h, by tauto,
+  ..(infer_instance : preorder _) }
+
+instance : semilattice_inf (J.cover X) :=
 { inf := λ S T, ⟨S ⊓ T, J.intersection_covering S.condition T.condition⟩,
   le_antisymm := λ S T h1 h2, ext _ _ $ λ Y f, ⟨h1 _, h2 _⟩,
   inf_le_left := λ S T Y f hf, hf.1,
   inf_le_right := λ S T Y f hf, hf.2,
   le_inf := λ S T W h1 h2 Y f h, ⟨h1 _ h, h2 _ h⟩,
-  top := ⟨⊤, J.top_mem _⟩,
-  le_top := λ S Y f h, by tauto,
   ..(infer_instance : preorder _) }
 
 instance : inhabited (J.cover X) := ⟨⊤⟩

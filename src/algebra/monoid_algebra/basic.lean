@@ -1325,8 +1325,8 @@ variables (k G A)
 `monoid_algebra k G →ₐ[k] A`. -/
 def lift : (multiplicative G →* A) ≃ (add_monoid_algebra k G →ₐ[k] A) :=
 { inv_fun := λ f, (f : add_monoid_algebra k G →* A).comp (of k G),
-  to_fun := λ F, {
-    to_fun := lift_nc_alg_hom (algebra.of_id k A) F $ λ _ _, algebra.commutes _ _,
+  to_fun := λ F,
+  { to_fun := lift_nc_alg_hom (algebra.of_id k A) F $ λ _ _, algebra.commutes _ _,
     .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ F},
   .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ }
 

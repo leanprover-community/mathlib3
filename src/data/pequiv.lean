@@ -162,8 +162,8 @@ variables (s : set α) [decidable_pred (∈ s)]
 def of_set (s : set α) [decidable_pred (∈ s)] : α ≃. α :=
 { to_fun := λ a, if a ∈ s then some a else none,
   inv_fun := λ a, if a ∈ s then some a else none,
-  inv := λ a b, by {
-    split_ifs with hb ha ha,
+  inv := λ a b, by
+  { split_ifs with hb ha ha,
     { simp [eq_comm] },
     { simp [ne_of_mem_of_not_mem hb ha] },
     { simp [ne_of_mem_of_not_mem ha hb] },

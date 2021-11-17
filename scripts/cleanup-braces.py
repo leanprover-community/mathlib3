@@ -4,6 +4,8 @@ from pathlib import Path
 import re
 import sys, os
 
+TMP_SUFFIX = ".brace_cleanup"
+
 def fix_brace_o(a, b):
     """Move any `{`s between the contents of line `a` and line `b` to the start of line `b`.
     

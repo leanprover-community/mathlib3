@@ -255,8 +255,8 @@ If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm
 def ordered_add_comm_monoid [ordered_add_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
 begin
-  suffices, refine {
-    add_le_add_left := this,
+  suffices, refine
+  { add_le_add_left := this,
     ..with_zero.partial_order,
     ..with_zero.add_comm_monoid, .. },
   { intros a b h c ca h₂,
@@ -413,8 +413,8 @@ instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_c
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
 begin
-  suffices, refine {
-    add_le_add_left := this,
+  suffices, refine
+  { add_le_add_left := this,
     ..with_bot.partial_order,
     ..with_bot.add_comm_monoid, ..},
   { intros a b h c ca h₂,

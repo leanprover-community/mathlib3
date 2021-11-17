@@ -709,8 +709,7 @@ instance [preorder α] : preorder (with_top α) :=
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ c hc,
     let ⟨b, hb, bc⟩ := h₂ c hc, ⟨a, ha, ab⟩ := h₁ b hb in
-    ⟨a, ha, le_trans ab bc⟩,
- }
+    ⟨a, ha, le_trans ab bc⟩, }
 
 instance partial_order [partial_order α] : partial_order (with_top α) :=
 { le_antisymm := λ o₁ o₂ h₁ h₂, begin

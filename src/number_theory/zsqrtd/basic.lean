@@ -265,8 +265,8 @@ theorem sq_le_mul {d x y z w : ℕ} :
   (sq_le x 1 y d → sq_le w d z 1 → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le z 1 w d → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le w d z 1 → sq_le (x * w + y * z) d (x * z + d * y * w) 1) :=
-by refine ⟨_, _, _, _⟩; {
-  intros xy zw,
+by refine ⟨_, _, _, _⟩;
+{ intros xy zw,
   have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
                          (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
   refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
@@ -708,8 +708,8 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
     map_zero' := by simp,
     map_add' := λ a b, by { simp, ring, },
     map_one' := by simp,
-    map_mul' := λ a b, by {
-      have : (a.re + a.im * r : R) * (b.re + b.im * r) =
+    map_mul' := λ a b, by
+    { have : (a.re + a.im * r : R) * (b.re + b.im * r) =
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },

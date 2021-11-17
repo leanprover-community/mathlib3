@@ -320,6 +320,52 @@ end
 
 end nat
 
+section quotient
+
+instance {α} {r : α → α → Prop} [m : measurable_space α] : measurable_space (quot r) :=
+m.map (quot.mk r)
+
+instance {α} {s : setoid α} [m : measurable_space α] : measurable_space (quotient s) :=
+m.map quotient.mk'
+
+@[to_additive]
+instance {G} [group G] [measurable_space G] (S : subgroup G) :
+  measurable_space (quotient_group.quotient S) :=
+quotient.measurable_space
+
+lemma measurable_set_quotient {s : setoid α} {t : set (quotient s)} :
+  measurable_set t ↔ measurable_set (quotient.mk' ⁻¹' t) :=
+iff.rfl
+
+lemma measurable_from_quotient {s : setoid α} {f : quotient s → β} :
+  measurable f ↔ measurable (f ∘ quotient.mk') :=
+iff.rfl
+
+@[measurability] lemma measurable_quotient_mk [s : setoid α] :
+  measurable (quotient.mk : α → quotient s) :=
+λ s, id
+
+@[measurability] lemma measurable_quotient_mk' {s : setoid α} :
+  measurable (quotient.mk' : α → quotient s) :=
+λ s, id
+
+@[measurability] lemma measurable_quot_mk {r : α → α → Prop} :
+  measurable (quot.mk r) :=
+λ s, id
+
+@[to_additive] lemma quotient_group.measurable_coe {G} [group G] [measurable_space G]
+  {S : subgroup G} : measurable (coe : G → quotient_group.quotient S) :=
+measurable_quotient_mk'
+
+attribute [measurability] quotient_group.measurable_coe quotient_add_group.measurable_coe
+
+@[to_additive] lemma quotient_group.measurable_from_quotient {G} [group G] [measurable_space G]
+  {S : subgroup G} {f : quotient_group.quotient S → α} :
+  measurable f ↔ measurable (f ∘ (coe : G → quotient_group.quotient S)) :=
+measurable_from_quotient
+
+end quotient
+
 section subtype
 
 instance {α} {p : α → Prop} [m : measurable_space α] : measurable_space (subtype p) :=

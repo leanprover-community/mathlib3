@@ -746,6 +746,18 @@ begin
   { intros h hP, exact hP }
 end
 
+/-- A subset of `ℕ` containing `b : ℕ` and closed under `nat.succ` contains every `n ≥ b`. -/
+lemma set_induction_bounded {b : ℕ} {S : set ℕ} (hb : b ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S)
+  {n : ℕ} (hbn : b ≤ n) : n ∈ S :=
+@le_rec_on (λ n, n ∈ S) b n hbn h_ind hb
+
+/-- A subset of `ℕ` containing zero and closed under `nat.succ` contains all of `ℕ`. -/
+lemma set_induction {S : set ℕ} (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S) (n : ℕ) : n ∈ S :=
+set_induction_bounded hb h_ind (zero_le n)
+
+lemma set_eq_univ {S : set ℕ} : S = set.univ ↔ 0 ∈ S ∧ ∀ k : ℕ, k ∈ S → k + 1 ∈ S :=
+⟨by rintro rfl; simp, λ ⟨h0, hs⟩, set.eq_univ_of_forall (set_induction h0 hs)⟩
+
 /-! ### `div` -/
 
 attribute [simp] nat.div_self
@@ -1038,8 +1050,8 @@ end
 
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
-  conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+  conv_lhs
+  { rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
         add_mul_mod_self_right] }
 end
@@ -1219,9 +1231,25 @@ by simp [find_eq_iff]
 @[simp] lemma find_pos (h : ∃ n : ℕ, p n) : 0 < nat.find h ↔ ¬ p 0 :=
 by rw [pos_iff_ne_zero, ne, nat.find_eq_zero]
 
-theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+theorem find_mono (h : ∀ n, q n → p n) {hp : ∃ n, p n} {hq : ∃ n, q n} :
   nat.find hp ≤ nat.find hq :=
 nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_le {h : ∃ n, p n} (hn : p n) : nat.find h ≤ n :=
+(nat.find_le_iff _ _).2 ⟨n, le_rfl, hn⟩
+
+lemma find_add {hₘ : ∃ m, p (m + n)} {hₙ : ∃ n, p n} (hn : n ≤ nat.find hₙ) :
+  nat.find hₘ + n = nat.find hₙ :=
+begin
+  refine ((le_find_iff _ _).2 (λ m hm hpm, hm.not_le _)).antisymm _,
+  { have hnm : n ≤ m := hn.trans (find_le hpm),
+    refine add_le_of_le_tsub_right_of_le hnm (find_le _),
+    rwa tsub_add_cancel_of_le hnm },
+  { rw ←tsub_le_iff_right,
+    refine (le_find_iff _ _).2 (λ m hm hpm, hm.not_le _),
+    rw tsub_le_iff_right,
+    exact find_le hpm }
+end
 
 lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
   nat.find h₁ = nat.find h₂ + 1 :=

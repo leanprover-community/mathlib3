@@ -1689,7 +1689,7 @@ theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
   (to_bilin' M).nondegenerate :=
 (matrix.nondegenerate_of_det_ne_zero h).to_bilin'
 
-lemma to_bilin.nondegenerate_iff_det_ne_zero' {M : matrix ι ι A} :
+lemma to_bilin'_nondegenerate_iff_det_ne_zero {M : matrix ι ι A} :
   (matrix.to_bilin' M).nondegenerate ↔ M.det ≠ 0 :=
 by rw [←matrix.nondegenerate_iff_to_bilin', matrix.nondegenerate_iff_det_ne_zero]
 

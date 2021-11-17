@@ -49,9 +49,6 @@ def same_ray (v₁ v₂ : M) : Prop :=
 
 variables (M)
 
-/-- Nonzero vectors, as used to define rays. -/
-@[reducible] def ray_vector := {v : M // v ≠ 0}
-
 /-- `same_ray` is symmetric. -/
 lemma symmetric_same_ray : symmetric (same_ray R : M → M → Prop) :=
 λ _ _ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₂, r₁, hr₂, hr₁, h.symm⟩
@@ -98,6 +95,9 @@ variables (R M)
 /-- The setoid of the `same_ray` relation for elements of a module. -/
 def same_ray_setoid [nontrivial R] : setoid M :=
 { r := λ v₁ v₂, same_ray R v₁ v₂, iseqv := equivalence_same_ray R M }
+
+/-- Nonzero vectors, as used to define rays. -/
+@[reducible] def ray_vector := {v : M // v ≠ 0}
 
 /-- The setoid of the `same_ray` relation for the subtype of nonzero vectors. -/
 def ray_vector.same_ray_setoid [nontrivial R] : setoid (ray_vector M) :=

@@ -1533,13 +1533,13 @@ lemma exp_bound_div_one_sub_of_interval_approx  {x : ℝ} (h1 : 0 ≤ x) (h2 : x
 begin
   norm_num [finset.sum],
   rw [add_assoc, add_comm (x + 1) (x ^ 3 * 4 / 18), ← add_assoc, add_le_add_iff_right,
-      ← add_le_add_iff_left (-(x^2/2)), ← add_assoc, comm_ring.add_left_neg (x^2/2), zero_add,
-      neg_add_eq_sub, sub_half, sq, pow_succ, sq],
+      ← add_le_add_iff_left (-(x ^ 2 / 2)), ← add_assoc, comm_ring.add_left_neg (x ^ 2 / 2),
+      zero_add, neg_add_eq_sub, sub_half, sq, pow_succ, sq],
   have i1 : x * 4 / 18 ≤ 1 / 2 := by linarith,
   have i2 : 0 ≤ x * 4 / 18 := by linarith,
   have i3 := mul_le_mul h1 h1 le_rfl h1,
   rw zero_mul at i3,
-  have t := mul_le_mul (le_refl (x * x)) i1 i2 i3,
+  have t := mul_le_mul le_rfl i1 i2 i3,
   rw ← mul_assoc,
   rwa [mul_one_div, ← mul_div_assoc, ← mul_assoc] at t,
 end
@@ -1547,10 +1547,10 @@ end
 lemma exp_bound_div_one_sub_of_interval {x : ℝ} (h1 : 0 ≤ x) (h2 : x < 1) :
   real.exp x ≤ 1 / (1 - x) :=
 begin
-  have h : ∑ j in (finset.range 3), x^j ≤ 1/(1-x),
+  have h : ∑ j in (finset.range 3), x ^ j ≤ 1 / (1 - x),
   { norm_num [finset.sum],
     have h1x : 0 < 1 - x := by simpa,
-    apply (le_div_iff h1x).2,
+    rw le_div_iff h1x,
     norm_num [← add_assoc, mul_sub_left_distrib, mul_one, add_mul,
               sub_add_eq_sub_sub, pow_succ' x 2],
     have hx3 : 0 ≤ x ^ 3,
@@ -1567,15 +1567,15 @@ begin
   have r1 : (1 - y) * (real.exp y) ≤ 1,
   { cases le_or_lt (1 - y) 0,
     { have h'' : (1 - y) * y.exp ≤ 0,
-    { apply mul_nonpos_iff.2,
-      right,
-      exact ⟨h_1, y.exp_pos.le⟩ },
+      { rw mul_nonpos_iff,
+        right,
+        exact ⟨h_1, y.exp_pos.le⟩ },
     linarith },
     have hy1 : y < 1 := by linarith,
-    apply (le_div_iff' h_1).1,
+    rw  ← le_div_iff' h_1,
     exact exp_bound_div_one_sub_of_interval h hy1 },
   rw inv_eq_one_div,
-  apply (le_div_iff' (real.exp_pos y)).2,
+  rw le_div_iff' y.exp_pos,
   rwa mul_comm at r1,
 end
 

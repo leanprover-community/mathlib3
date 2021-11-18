@@ -32,10 +32,11 @@ p-adic, L-function, Bernoulli measure, ...
 
 --variables (A : Type*) [normed_comm_ring A] (p : ℕ) [fact p.prime] (d : ℕ) (hd : gcd d p = 1)
 
-structure system {X : Type*} [set X] :=
+/-structure system {X : Type*} [set X] :=
 ( h : ℕ → finset X )
-( projlim : X = Prop ) --inverse limit
+( projlim : X = Prop ) --inverse limit -/
 
+/-- Making `zmod` a discrete topological space. -/
 def zmod.topological_space (d : ℕ) : topological_space (zmod d) := ⊥
 
 local attribute [instance] zmod.topological_space
@@ -51,6 +52,14 @@ structure weight_space extends
   monoid_hom ((units (zmod d)) × (units ℤ_[p])) A,
   C((units (zmod d)) × (units ℤ_[p]), A)
 --generalize domain to a compact space?
+
+instance : inhabited (weight_space A p d) :=
+begin
+  constructor,
+  constructor,
+  swap, { rintros, refine (mul_one 1).symm, },
+  refl,
+end
 
 attribute [nolint doc_blame] weight_space.to_continuous_map
 attribute [nolint doc_blame] weight_space.to_monoid_hom
@@ -215,6 +224,7 @@ end
 
 variables (p)
 
+/-- Gives the clopen sets that act as a topological basis for `ℤ_[p`. -/
 def clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ) (a : zmod (p^n)),
   x = set.preimage (padic_int.to_zmod_pow n) {a} }
 
@@ -375,11 +385,14 @@ lemma is_clopen_singleton {α : Type*} [topological_space α] [discrete_topology
   is_clopen ({b} : set α) :=
  ⟨is_open_discrete _, is_closed_discrete _⟩
 
+/-- The clopen sets that form a topological basis for `zmod d × ℤ_[p]`. It is better than
+  `clopen_basis` because one need not use `classical.choice`. -/
 def clopen_from (n : ℕ) (a : zmod (d * (p^n))) : clopen_sets (zmod d × ℤ_[p]) :=
 ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
     is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩
 
+/-- The version of `clopen_basis` that also incorporates `d` coprime to `p`. -/
 @[reducible] def clopen_basis' :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
   x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
@@ -488,6 +501,7 @@ variables {c : ℕ}
 
 --def clopen_nat_equiv : clopen_basis' p d ≃ (ℕ → )
 
+/-- A Bernoulli measure, as defined by Washington. -/
 def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a.val : ℚ) / (d*p^n))
     - c * fract ( (((((c : zmod (d * p^(2 * n)))⁻¹ : zmod (d * p^n)) * a) : zmod (d * p^n)) : ℚ) / (d * p^n)) + (c - 1)/2
 
@@ -588,6 +602,8 @@ end
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
+
+/-- The set of Bernoulli measures. -/
 def bernoulli_measure (hc : gcd c p = 1) [has_coe ℚ R] :=
  {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
    ∀ (n : ℕ) (a : zmod (d * (p^n))), x (char_fn (zmod d × ℤ_[p]) ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
@@ -634,10 +650,10 @@ variables (R' M N : Type*) [ring R'] [add_comm_group M] [add_comm_group N]
 
 lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s := ⟨⟨x, h⟩⟩
 
-instance : is_absolute_value (norm : R → ℝ) :=
+/-instance : is_absolute_value (norm : R → ℝ) :=
 begin
   constructor, repeat {simp,}, refine norm_add_le, sorry,
-end
+end-/
 
 /-instance partial_order_R : partial_order R :=
 begin
@@ -646,25 +662,34 @@ begin
   repeat {simp,},
 end-/
 
+/-- A sequence has the `is_eventually_constant` predicate if all the elements of the sequence
+  are eventually the same. -/
 def is_eventually_constant {α : Type*} (a : ℕ → α) : Prop :=
  { n | ∀ m, n < m → a (nat.succ m) = a m }.nonempty
 
+/-- An eventually constant sequence is a sequence which has the `is_eventually_constant`
+  predicate. -/
 structure eventually_constant_seq {α : Type*} :=
 (to_seq : ℕ → α)
 (is_eventually_const : is_eventually_constant to_seq)
 
+/-- The smallest number `m` for the sequence `a` such that `a n = a (n + 1)` for all `n ≥ m`. -/
 noncomputable def sequence_limit_index' {α : Type*} (a : @eventually_constant_seq α) : ℕ :=
 Inf { n | ∀ m, n ≤ m → a.to_seq m.succ = a.to_seq m }
 
+/-- The smallest number `m` for the sequence `a` such that `a n = a m` for all `n ≥ m`. -/
 noncomputable def sequence_limit_index {α : Type*} (a : ℕ → α) : ℕ :=
 Inf { n | ∀ m, n ≤ m → a n = a m }
 
+/-- The limit of an `eventually_constant_seq`. -/
 noncomputable def sequence_limit {α : Type*} (a : @eventually_constant_seq α) :=
 a.to_seq (sequence_limit_index' a)
 
 lemma sequence_limit_eq {α : Type*} (a : @eventually_constant_seq α) (m : ℕ)
   (hm : sequence_limit_index' a ≤ m) : sequence_limit a = a.to_seq m := sorry
 
+/-- Given `a ∈ zmod (d * p^n)`, and `n < m`, the set of all `b ∈ zmod (d * p^m)` such that
+  `b = a mod (d * p^n)`. -/
 def equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) :=
  {b : zmod (d * p^m) | (b : zmod (d * p^n)) = a}
 -- change def to a + k*dp^m
@@ -676,6 +701,7 @@ lemma mem_equi_class (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) (b : zmod (d *
 
 instance (n m : ℕ) (h : n < m) (a : zmod (d * p^n)) : fintype (equi_class p d n m h a) := sorry
 
+/-
 /-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
 lemma sum_char_fn_dependent_Ec (m : ℕ) (a : zmod (p^m)) (b : zmod d) (hc : gcd c p = 1) :
   E_c p d hc m a = ∑ x in set.to_finset (equi_class p d m m.succ (lt_add_one m) a), E_c p d hc m.succ x :=
@@ -683,12 +709,13 @@ sorry
 
 lemma loc_const_const (f : locally_constant (zmod d × ℤ_[p]) R) (a : zmod d × ℤ_[p]) : ∃ N : ℕ, ∀ m ≥ N,
   ∀ y ∈ {b : zmod d × ℤ_[p] | (to_zmod_pow m) a.2 = (to_zmod_pow m) b.2}, f y = f a :=
-sorry
+sorry -/
 
 lemma remove_extras (x : zmod d × ℤ_[p]) (n : ℕ) :
   is_clopen {b : zmod d × ℤ_[p] | (to_zmod_pow n) x.snd = (to_zmod_pow n) b.snd ∧ x.fst = b.fst} :=
 sorry
 
+/-- TBD -/
 noncomputable def F : ℕ → discrete_quotient (zmod d × ℤ_[p]) := λ n,
   ⟨λ a b, to_zmod_pow n a.2 = to_zmod_pow n b.2 ∧ a.1  = b.1,
     ⟨ by tauto, by tauto, λ a b c hab hbc, begin simp at *, split, rw [hab.1, hbc.1], rw [hab.2, hbc.2], end⟩,
@@ -715,6 +742,7 @@ begin
   { apply pow_pos (nat.prime.pos _), assumption, },
 end
 
+/-- A variant of `zmod` which has type `finset _`. -/
 def zmod' (n : ℕ) (h : 0 < n) : finset (zmod n) :=
   @finset.univ _ (@zmod.fintype n (fact_iff.2 h))
 
@@ -758,10 +786,10 @@ begin
     apply pow_pos, apply nat.prime.pos, assumption, },
 end
 
-lemma coe_addd (m : ℕ) (b c : zmod (d * p^m.succ)) : (b + c : zmod (d * p^m)) = (b : zmod (d * p^m)) + (c : zmod (d * p^m)) :=
+/-lemma coe_addd (m : ℕ) (b c : zmod (d * p^m.succ)) : (b + c : zmod (d * p^m)) = (b : zmod (d * p^m)) + (c : zmod (d * p^m)) :=
 begin
   simp only [eq_self_iff_true],
-end
+end -/
 -- (fact_iff.2 ((pow_pos (nat.prime.pos (fact_iff.1 _inst_3))) m))
 lemma maybe_generalize (m : ℕ) : (coe : zmod (p^(m.succ)) → zmod (p^m)) ∘ (coe : zmod (p^m) → zmod (p^(m.succ))) = id :=
 begin
@@ -776,11 +804,12 @@ begin
   exact zmod.cast_nat_cast this x.val,
 end
 
-lemma val_coe_eq_val (n m : ℕ) (b : zmod n) [h1 : fact (0 < n)] [h2 : n < m] : (b.val : zmod m).val = b.val :=
+lemma val_coe_eq_val (n m : ℕ) (b : zmod n) [h1 : fact (0 < n)] [h2 : fact (n < m)] :
+  (b.val : zmod m).val = b.val :=
 begin
   have : b.val = (b : zmod m).val,
   { have h1 := zmod.val_lt b,
-    have h2 : b.val < m, { transitivity n, assumption, assumption, },
+    have h2 : b.val < m, { transitivity n, assumption, apply fact.out, },
     have := zmod.val_cast_of_lt h2, rw ←this, apply congr_arg, simp, },
   conv_rhs { rw this, },
   apply congr_arg, rw @zmod.nat_cast_val _ _ _ _ _, assumption,
@@ -811,6 +840,7 @@ begin
   { apply le_of_lt, apply fact_iff.1 (nat.prime.one_lt' p), },
 end
 
+/-- Giving an equivalence between `equi_class` and `fin p`. -/
 def equi_iso_fin (m : ℕ) (a : zmod (d * p^m)) : equi_class p d m m.succ (lt_add_one m) a ≃ fin p :=
 { to_fun := λ y, ⟨((y.val).val - a.val) / (d * p^m), begin
     apply nat.div_lt_of_lt_mul,
@@ -1090,7 +1120,7 @@ begin
           { apply congr_arg2,
             { rw ←zmod.nat_cast_val, rw val_coe_eq_val _ _ _,
               { apply imp p d m, },
-              { apply mul_pow_lt_mul_pow_succ, }, },
+              { apply fact_iff.2, apply mul_pow_lt_mul_pow_succ, }, },
             { rw ←nat.cast_pow, rw ←nat.cast_mul, rw fin_coe_coe, rw ←nat.cast_mul,
               rw zmod.val_cast_of_lt,
               apply fin_mul_lt, }, }, }, --convert sum_lt p d m x y using 1, },
@@ -1108,7 +1138,7 @@ begin
             rw zmod.nat_cast_val, rw ←zmod.nat_cast_val (x : zmod (d * p^m.succ)),
             apply congr_arg, rw ←zmod.nat_cast_val x, rw val_coe_eq_val _ _ _,
             { apply imp p d m, },
-            { rw mul_comm d (p^m), rw mul_comm d (p^m.succ), apply mul_lt_mul,
+            { rw mul_comm d (p^m), rw mul_comm d (p^m.succ), apply fact_iff.2, apply mul_lt_mul,
 --sorry, sorry, sorry, sorry }, }, }, sorry, }, sorry, }, }, sorry, end #exit -- 4.72
               any_goals { simp, },
 --sorry, sorry }, }, }, sorry, }, sorry, }, }, sorry, end #exit -- 5.3s
@@ -1379,6 +1409,7 @@ begin
   rw finset.subset_empty, rw h,
 end
 
+/-- An eventually constant sequence constructed from a locally constant function. -/
 noncomputable def g (hc : gcd c p = 1) (hc' : gcd c d = 1) [has_coe ℝ R] [has_coe ℚ R] (hd : 0 < d)
   (f : locally_constant (zmod d × ℤ_[p]) R) : @eventually_constant_seq R :=
 { to_seq := λ (n : ℕ),
@@ -1410,7 +1441,7 @@ def clopen_basis' :=
   x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
     is_clopen_prod (is_clopen_singleton (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩ }
--/
+
 example (U : clopen_basis' p d) : clopen_sets (zmod d × ℤ_[p]) := U
 
 
@@ -1430,7 +1461,7 @@ example (a b : R) (h : a + b = a) : b = 0 := add_right_eq_self.mp (congr_fun (co
 --lemma blahs : has_lift_t (clopen_basis' p d) (clopen_sets (zmod d × ℤ_[p])) :=
 
 --example (U : clopen_sets (zmod d × ℤ_[p])) (hU : U ∈ clopen_basis' p d) : clopen_basis' p d := ⟨U, hU⟩
-
+-/
 instance : semilattice_sup ℕ := infer_instance
 
 -- set_option pp.proofs true
@@ -1512,6 +1543,8 @@ begin
       sorry, }, -- is this true?
 end
 
+-- not used, delete?
+/-- Constructing a linear map, given that _. -/
 noncomputable
 def linear_map_from_span (η : S → N)
   (cond : ∀ (f : S →₀ R'), finsupp.total S M R' coe f = 0 → finsupp.total S N R' η f = 0) :
@@ -1528,16 +1561,16 @@ begin
   apply cond,
 end
 
+/-- Looking at the set of characteristic functions obtained from the clopen basis. -/
 abbreviation s : set (locally_constant (zmod d × ℤ_[p]) R) := set.image (char_fn (zmod d × ℤ_[p]))
   (⨆ n : ℕ, set.range (clopen_from p d n))
 
+/-- An equivalence between the clopen basis and the characteristic functions corresponding to it. -/
 def clopen_char_fn_equiv : clopen_basis' p d ≃ s p d R := sorry
-
-def equi_class' (n m : ℕ) (h : n < m) (a : zmod (p^n)) :=
- {b : zmod (p^m) | (b : zmod (p^n)) = a}
 
 instance general_version (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p d n m h a) := sorry
 
+/-
 --construct a map from `ℤ/dℤ × ℤ_p → clopen_basis' p d` ?
 /-- For m > n, χ_(b,a,n) = ∑_{j, b_j = a mod p^n} χ_(b,b_j,m) -/
 lemma sum_char_fn_dependent (m n : ℕ) (h : m > n) (a : zmod (p^n)) (b : zmod d) :
@@ -1546,8 +1579,9 @@ lemma sum_char_fn_dependent (m n : ℕ) (h : m > n) (a : zmod (p^n)) (b : zmod d
       (proj_lim_preimage_clopen p d n a) ⟩) = ∑ x in set.to_finset (equi_class p d n m h a),
   char_fn _ (⟨_,
     is_clopen_prod (is_clopen_singleton (b : zmod d)) (proj_lim_preimage_clopen p d n x) ⟩) :=
-sorry
+sorry -/
 
+/-
 /-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
 lemma sum_char_fn_dependent_Ec' (m n : ℕ) [fact (0 < n)] (h : m > n) (a : zmod (p^n)) (b : zmod d) (hc : gcd c p = 1) :
   E_c p d hc n a = ∑ x in set.to_finset (equi_class p d n m h a), E_c p d hc m x :=
@@ -1557,12 +1591,12 @@ lemma seems_useless (x : s p d R) : (x : locally_constant (zmod d × ℤ_[p]) R)
   char_fn (zmod d × ℤ_[p]) ((clopen_char_fn_equiv p d R).inv_fun x) :=
 begin
   sorry,
-end
+end -/
 
-lemma guess (n : ℕ) : zmod (d * (p^n)) ≃+* zmod d × zmod (p^n) :=
+/-lemma guess (n : ℕ) : zmod (d * (p^n)) ≃+* zmod d × zmod (p^n) :=
 begin
   sorry,
-end
+end-/
 
 lemma clopen_char_fn (U : clopen_basis' p d) : char_fn (zmod d × ℤ_[p]) U =
   @char_fn (zmod d × ℤ_[p]) _ _ _ _ R _ _ _ (⟨_,
@@ -1672,7 +1706,9 @@ instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) :
 instance so_many_times : totally_disconnected_space (units (zmod d) × units ℤ_[p]) := sorry
 
 variable [has_coe ℝ R]
-noncomputable lemma bernoulli_measure_of_measure (hc : gcd c p = 1) (hc' : gcd c d = 1) :
+
+/-- Constructs a measure from the Bernoulli measure `E_c`. -/
+noncomputable def bernoulli_measure_of_measure (hc : gcd c p = 1) (hc' : gcd c d = 1) :
   measures'' (units (zmod d) × units ℤ_[p]) R :=
 begin
   constructor, swap,
@@ -1692,10 +1728,13 @@ lemma cont_paLf : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
   * (w.to_fun a : R)) :=
 sorry
 
+/-- Constant used in `p_adic_L_function`. -/
 def f : R := sorry
 
 --h wont go in the system if you put it in [], is this independent of c? is it accurate to say that ω⁻¹ = ω^(p - 2)? I think so
-noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) (hc' : gcd c d = 1) :=
+/-- The `p_adic_L_function` defined in terms of the p-adic integral and the
+  Bernoulli measure `E_c`. -/
+noncomputable def p_adic_L_function (h : function.injective inj) (hc : gcd c p = 1) (hc' : gcd c d = 1) :=
  (f R) * (integral (units (zmod d) × units ℤ_[p]) R (bernoulli_measure_of_measure p d R hc hc')
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R) a) *
   (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩)

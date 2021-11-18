@@ -20,7 +20,7 @@ open multiset order_dual
 
 /-! ### sup -/
 section sup
--- can be defined with just `[has_bot α]` where some lemmas hold without requiring `[order_bot α]`
+-- TODO: define with just `[has_bot α]` where some lemmas hold without requiring `[order_bot α]`
 variables [semilattice_sup α] [order_bot α]
 
 /-- Supremum of a finite set: `sup {a, b, c} f = f a ⊔ f b ⊔ f c` -/
@@ -187,7 +187,7 @@ begin
 end
 
 -- If we acquire sublattices
--- the hypotheses should be reformulated as `s : subsemilattice_sup` with `order_bot`
+-- the hypotheses should be reformulated as `s : subsemilattice_sup_bot`
 lemma sup_mem
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :

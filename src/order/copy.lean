@@ -19,13 +19,14 @@ variables {α : Type u}
 
 /-- A function to create a provable equal copy of a bounded order
 with possibly different definitional equalities. -/
-def bounded_order.copy [has_le α] (c : bounded_order α)
+def bounded_order.copy {h : has_le α} {h' : has_le α} (c : @bounded_order α h')
   (top : α) (eq_top : top = @bounded_order.top α _ c)
-  (bot : α) (eq_bot : bot = @bounded_order.bot α _ c) :
-  bounded_order α :=
+  (bot : α) (eq_bot : bot = @bounded_order.bot α _ c)
+  (le_eq : ∀ (x y : α), ((@has_le.le α h) x y) ↔ x ≤ y) :
+  @bounded_order α h :=
 begin
   refine { top := top, bot := bot, .. },
-  all_goals { abstract { subst_vars, casesI c, assumption } }
+  all_goals { abstract { subst_vars, casesI c, simp_rw le_eq, assumption } }
 end
 
 /-- A function to create a provable equal copy of a lattice

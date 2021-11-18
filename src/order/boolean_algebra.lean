@@ -578,7 +578,13 @@ export has_compl (compl)
 postfix `ᶜ`:(max+1) := compl
 
 /-- This class contains the core axioms of a Boolean algebra. The `boolean_algebra` class extends
-both this class and `generalized_boolean_algebra`, see Note [forgetful inheritance]. -/
+both this class and `generalized_boolean_algebra`, see Note [forgetful inheritance].
+
+Since `bounded_order`, `order_bot`, and `order_top` are mixins that require `has_le`
+to be present at define-time, the `extends` mechanism does not work with them.
+Instead, we extend using the underlying `has_bot` and `has_top` data typeclasses, and replicate the
+order axioms of those classes here. A "forgetful" instance back to `bounded_order` is provided.
+-/
 class boolean_algebra.core (α : Type u) extends distrib_lattice α, has_compl α,
   has_top α, has_bot α :=
 (inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)

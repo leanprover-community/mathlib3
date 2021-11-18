@@ -16,10 +16,8 @@ In distributive lattices, this is equivalent to being pairwise disjoint.
 
 ## TODO
 
-As we don't have `lattice_bot`, we're forced to pick between `bounded_lattice` (which assumes `top`
-unnecessarily) and `distrib_lattice_bot` (which assumes distributivity unnecessarily). For now we
-pick `distrib_lattice_bot` for it to apply to `finset α`, although this use is redundant with
-`set.pairwise_disjoint`.
+Some results still require distributivity of lattices, in particular, the ones that rely on
+the `sup` of the underlying finset and `pairwise_disjoint`.
 
 `complete_lattice.independent` and `complete_lattice.set_independent` should live in this file.
 -/

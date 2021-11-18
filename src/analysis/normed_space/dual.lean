@@ -202,7 +202,7 @@ end
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
 there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the
 polar of `s`. -/
-lemma eval_bounded_of_nbhd_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+lemma eval_bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
   ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
@@ -229,10 +229,10 @@ end
 
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then there exists a
 function `r : E → ℝ` such that for all elements `x' ∈ polar 𝕜 s` one has `∥x' z∥ ≤ r(z)`. -/
-lemma finite_values_of_nbhd_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+lemma finite_values_of_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   ∃ (r : E → ℝ), ∀ (x' : dual 𝕜 E) (z : E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r z :=
 begin
-  cases classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd) with r hr,
+  cases classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd) with r hr,
   use r,
   intros x' z,
   exact hr z x',
@@ -240,7 +240,7 @@ end
 
 /-- Given a neighborhood `s` of the origin in a normed space `E` over `ℝ` or `ℂ`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
-lemma bounded_of_nbhd_zero {𝕜 : Type*} [is_R_or_C 𝕜]
+lemma bounded_of_nhds_zero {𝕜 : Type*} [is_R_or_C 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   ∃ (c : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' ∥ ≤ c :=
 begin
@@ -265,13 +265,13 @@ the polar of `s`, the value at `z` satisfies the norm bound `∥x' z∥ ≤ r`. 
 is given by `bounds_fun _ z`. -/
 def bounds_fun (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : E → ℝ :=
-classical.some (classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd))
+classical.some (classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd))
 
 lemma bounds_fun_spec (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (x' : dual 𝕜 E) (z : E) :
   x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ bounds_fun 𝕜 s_nhd z :=
 classical.some_spec
-  (classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd)) z x'
+  (classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd)) z x'
 
 end polar
 

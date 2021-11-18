@@ -80,13 +80,30 @@ variables (R : Type u) (M N : Type v)
 variables [field R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 variables [finite_dimensional R M]
 
+noncomputable def hom_dual_tensor {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
+  (M →ₗ[R] N) → (module.dual R M) ⊗[R] N :=
+  λ f, ∑ (i : ι), (b.dual_basis i) ⊗ₜ f (b i)
+
+@[simp]
+lemma dual_tensor_hom_hom_dual_tensor_apply
+  {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N):
+  (dual_tensor_hom R M N) ((hom_dual_tensor R M N b) f) = f :=
+begin
+  ext m, nth_rewrite_rhs 0 ←basis.sum_repr b m,
+  simp [hom_dual_tensor],
+end
+
+lemma dual_tensor_hom_hom_dual_tensor
+  {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N):
+  (dual_tensor_hom R M N) ∘ (hom_dual_tensor R M N b) = id :=
+by { ext f, simp }
+
 theorem dual_tensor_hom_surj : function.surjective (dual_tensor_hom R M N) :=
 begin
   intro f,
   have b := fin_basis R M,
-  use ∑ (i : fin (finrank R M)), (b.dual_basis i) ⊗ₜ f (b i),
-  ext m, simp,
-  nth_rewrite_rhs 0 ←basis.sum_repr b m, simp,
+  use hom_dual_tensor R M N b f,
+  exact dual_tensor_hom_hom_dual_tensor_apply R M N b f,
 end
 
 variables [finite_dimensional R N]
@@ -98,7 +115,24 @@ noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M
   linear_equiv.of_bijective (dual_tensor_hom R M N)
     (dual_tensor_hom_inj R M N) (dual_tensor_hom_surj R M N)
 
-lemma dual_tensor_hom_equiv_to_lin (f : (module.dual R M) ⊗[R] N):
+lemma coe_dual_tensor_hom_equiv :
+  (dual_tensor_hom_equiv R M N : (module.dual R M) ⊗[R] N → M →ₗ[R] N) = dual_tensor_hom R M N :=
+rfl
+
+@[simp] lemma coe_dual_tensor_hom_equiv_to_linear :
+  (dual_tensor_hom_equiv R M N : (module.dual R M) ⊗[R] N →ₗ[R] M →ₗ[R] N)
+  = dual_tensor_hom R M N := rfl
+
+@[simp] lemma dual_tensor_hom_equiv_apply (f : (module.dual R M) ⊗[R] N):
   (dual_tensor_hom_equiv R M N) f = (dual_tensor_hom R M N) f := rfl
+
+lemma dual_tensor_hom_equiv_symm
+  {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
+  ⇑(dual_tensor_hom_equiv R M N).symm = hom_dual_tensor R M N b :=
+begin
+  apply @function.left_inverse.eq_right_inverse _ _ (dual_tensor_hom_equiv R M N) _ _,
+  { apply equiv.left_inverse_symm },
+  simp [function.right_inverse, function.left_inverse],
+end
 
 end contraction

@@ -5,6 +5,7 @@ Authors: Floris van Doorn
 -/
 import measure_theory.integral.lebesgue
 import measure_theory.measure.regular
+import measure_theory.group.measurable_equiv
 
 /-!
 # Measures on Groups
@@ -105,15 +106,12 @@ measure.map inv μ
 variables [group G] [topological_space G] [topological_group G] [borel_space G]
 
 @[to_additive]
-lemma inv_apply (μ : measure G) {s : set G} (hs : measurable_set s) :
+lemma inv_apply (μ : measure G) (s : set G) :
   μ.inv s = μ s⁻¹ :=
-measure.map_apply measurable_inv hs
+(measurable_equiv.inv G).map_apply s
 
 @[simp, to_additive] protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
-begin
-  ext1 s hs, rw [μ.inv.inv_apply hs, μ.inv_apply, set.inv_inv],
-  exact measurable_inv hs
-end
+(measurable_equiv.inv G).map_symm_map
 
 variables {μ : measure G}
 
@@ -142,7 +140,7 @@ lemma is_mul_left_invariant.inv (h : is_mul_left_invariant μ) :
   is_mul_right_invariant μ.inv :=
 begin
   intros g A hA,
-  rw [μ.inv_apply (measurable_mul_const g hA), μ.inv_apply hA],
+  rw [μ.inv_apply, μ.inv_apply],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
   apply preimage_congr,
@@ -154,7 +152,7 @@ end
 lemma is_mul_right_invariant.inv (h : is_mul_right_invariant μ) : is_mul_left_invariant μ.inv :=
 begin
   intros g A hA,
-  rw [μ.inv_apply (measurable_const_mul g hA), μ.inv_apply hA],
+  rw [μ.inv_apply, μ.inv_apply],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
   apply preimage_congr,

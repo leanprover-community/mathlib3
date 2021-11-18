@@ -1616,11 +1616,11 @@ structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
-  add_left := λ x y z, by {
-    change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
+  add_left := λ x y z, by
+  { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
     simp [inner_add_left] },
-  smul_left := λ x y r, by {
-    change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
+  smul_left := λ x y r, by
+  { change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
     simp [inner_smul_left] },
   ..has_inner.is_R_or_C_to_real 𝕜 E,
   ..normed_space.restrict_scalars ℝ 𝕜 E }

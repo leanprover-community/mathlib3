@@ -590,8 +590,7 @@ def reflection : E ≃ₗᵢ[𝕜] E :=
         linear_map.comp_apply, submodule.subtype_apply,
         continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe],
       dsimp [w, v],
-      abel,
-      },
+      abel, },
     { simp only [add_sub_cancel'_right, eq_self_iff_true], }
   end,
   ..reflection_linear_equiv K }
@@ -716,7 +715,7 @@ end
 variables {K}
 
 /-- If `K` is complete, `K` and `Kᗮ` are complements of each other. -/
-lemma submodule.is_compl_orthogonal_of_complete [complete_space K] : is_compl K Kᗮ :=
+lemma submodule.is_compl_orthogonal_of_complete_space [complete_space K] : is_compl K Kᗮ :=
 ⟨K.orthogonal_disjoint, le_of_eq submodule.sup_orthogonal_of_complete_space.symm⟩
 
 @[simp] lemma submodule.orthogonal_eq_bot_iff [complete_space (K : set E)] :

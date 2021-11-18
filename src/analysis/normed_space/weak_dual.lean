@@ -154,9 +154,14 @@ lemma to_weak_dual_image_norm_eval_le_one (z : E) :
 to_weak_dual_image_eq _
 
 lemma to_weak_dual_image_closed_unit_ball :
-  (to_weak_dual '' {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1}) =
-    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} := to_weak_dual_image_eq _
-
+  (to_weak_dual '' metric.closed_ball (0 : dual 𝕜 E) 1) =
+    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
+begin
+  have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
+  { ext1 x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
+  rw eq,
+  exact to_weak_dual_image_eq _,
+end
 
 end normed_space.dual
 
@@ -347,8 +352,8 @@ lemma continuous_of_mem_closure_polar_nhd
   (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s)))) :
   @continuous E 𝕜 _ _ φ :=
 begin
-  cases @polar.bounded_of_nbhd_zero 𝕜 _ E _ _ s s_nhd with c hc,
-  have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (polar.zero_mem s)),
+  cases @polar.bounded_of_nhds_zero 𝕜 _ E _ _ s s_nhd with c hc,
+  have c_nn : 0 ≤ c := le_trans (norm_nonneg _) (hc 0 (polar.zero_mem 𝕜 s)),
   have hφ' : φ ∈ closure (range (weak_dual.to_Pi 𝕜 E)),
   { apply mem_of_mem_of_subset hφ _,
     apply closure_mono,

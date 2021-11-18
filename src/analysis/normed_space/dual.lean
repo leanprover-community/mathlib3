@@ -144,15 +144,18 @@ open_locale topological_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-@[simp] lemma zero_mem (s : set E) :
+@[simp] lemma zero_mem (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
   (0 : dual 𝕜 E) ∈ polar 𝕜 s :=
 λ _ _, by simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero]
 
-lemma eq_Inter (s : set E) :
+lemma eq_Inter (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
 by { dunfold polar, ext, simp only [mem_bInter_iff, mem_set_of_eq], }
 
-lemma of_empty : polar 𝕜 (∅ : set E) = univ :=
+lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
 by { unfold polar, simp only [forall_false_left, mem_empty_eq, forall_const, set_of_true], }
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
@@ -179,7 +182,7 @@ end
 /-- The `polar` of closed unit ball in a normed space `E` is the closed unit ball of the dual. -/
 lemma of_closed_unit_ball
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  polar 𝕜 (closed_ball (0 : E) 1) = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1 } :=
+  polar 𝕜 (closed_ball (0 : E) 1) = closed_ball (0 : dual 𝕜 E) 1 :=
 begin
   ext x',
   simp only [mem_closed_ball, mem_set_of_eq, dist_zero_right],

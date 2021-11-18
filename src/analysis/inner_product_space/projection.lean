@@ -893,7 +893,6 @@ lemma linear_isometry_equiv.reflections_generate_dim_aux [finite_dimensional ℝ
   (hn : finrank ℝ (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).kerᗮ ≤ n) :
   ∃ l : list F, l.length ≤ n ∧ φ = (l.map (λ v, reflection (ℝ ∙ v)ᗮ)).prod :=
 begin
-  tactic.unfreeze_local_instances,
   -- We prove this by strong induction on `n`, the dimension of the orthogonal complement of the
   -- fixed subspace of the endomorphism `φ`
   induction n with n IH generalizing φ,

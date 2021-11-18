@@ -187,6 +187,56 @@ begin
   exacts [(abs_nonneg z).trans h.le, norm_sq_nonneg z]
 end
 
+lemma exists_mul_exp_mul_I_le_iff {z : ℂ} {R : ℝ} (hlt : abs z < R) :
+  ∃ θ₀ ∈ Ioc (-π) π, ↑R * exp (↑θ₀ * I) < z ∧ ∀ θ ∈ Ioc (-π) π, ↑R * exp (↑θ * I) ≤ z → θ = θ₀ :=
+begin
+  generalize hw : (-real.sqrt (R ^ 2 - z.im ^ 2) + z.im * I : ℂ) = w,
+  generalize hθ₀ : arg w = θ₀,
+  refine ⟨θ₀, hθ₀ ▸ arg_mem_Ioc w, _, λ θ hθπ hθz, _⟩,
+  { suffices : abs w = R,
+    { convert (mem_Ioo_of_abs_lt hlt).1,
+      rw [hw, ← abs_mul_exp_arg_mul_I w, hθ₀, this] },
+    exact (abs_eq_and_im_eq_iff.2 ⟨z.abs_im_le_abs.trans hlt.le, or.inl hw.symm⟩).1 },
+  { have hR : 0 < R, from (abs_nonneg z).trans_lt hlt,
+    have habs : abs (R * exp (θ * I)) = R, by simp [_root_.abs_of_nonneg hR.le, abs_exp],
+    have : ↑R * exp (θ * I) = w := hw ▸ (abs_eq_and_im_eq_iff.1 ⟨habs, hθz.2⟩).2.resolve_right
+      (hθz.trans_lt (mem_Ioo_of_abs_lt hlt).2).ne,
+    apply_fun arg at this,
+    rwa [arg_real_mul _ hR, exp_mul_I, arg_cos_add_sin_mul_I hθπ, hθ₀] at this }
+end
+
+lemma integral_circle_zpow_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) {n : ℤ} (hn : n ≠ -1) :
+  ∫ θ : ℝ in 0..2 * π, ↑R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ n = 0 :=
+begin
+  have hR0 : 0 < R := (abs_nonneg w).trans_lt hw,
+  have h0 : ∀ θ : ℝ, ↑R * exp (θ * I) - w ≠ 0,
+  { refine λ θ, sub_ne_zero.2 (λ h₀, _),
+    simpa [h₀.symm, _root_.abs_of_nonneg hR0.le, abs_exp] using hw },
+  set f : ℝ → ℂ := λ θ, R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ n,
+  set F : ℝ → ℂ := λ θ, (R * exp (θ * I) - w) ^ (n + 1) / (n + 1),
+  have : ∀ θ, has_deriv_at F (f θ) θ,
+  { intro θ, simp only [F, div_eq_mul_inv],
+    convert (((has_deriv_at_zpow (n + 1) _
+      (or.inl $ h0 θ)).has_fderiv_at.restrict_scalars ℝ).comp_has_deriv_at θ
+      (((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul ↑R).sub_const w)).mul_const _,
+    have : (n + 1 : ℂ) ≠ 0, by exact_mod_cast mt eq_neg_iff_add_eq_zero.2 hn,
+    field_simp [f, this], ac_refl },
+  have hfc : continuous f,
+  { have : continuous (λ θ : ℝ, ↑R * exp (θ * I)) :=
+      continuous_const.mul (continuous_of_real.mul continuous_const).cexp,
+    exact (this.mul continuous_const).mul ((this.sub continuous_const).zpow _
+      (λ θ, or.inl (h0 θ))) },
+  calc ∫ θ in 0 .. 2 * π, f θ = F (2 * π) - F 0 :
+    interval_integral.integral_eq_sub_of_has_deriv_at (λ θ _, this θ) (hfc.interval_integrable _ _)
+  ... = 0 : by { simp only [F], simp }
+end
+
+lemma integral_circle_div_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) :
+  ∫ θ : ℝ in 0..2 * π, (↑R * exp (θ * I) * I / (R * exp (θ * I) - w)) = 2 • π • I :=
+begin
+  
+end
+
 lemma integral_circle_div_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) :
   ∫ θ : ℝ in 0..2 * π, (↑R * exp (θ * I) * I / (R * exp (θ * I) - w)) = 2 • π • I :=
 begin
@@ -198,45 +248,32 @@ begin
   set f : ℝ → ℂ := λ θ, R * exp (θ * I) * I / (R * exp (θ * I) - w),
   have hfπ : periodic f (2 * π),
   { intro x, simp only [f], simp [add_mul, of_real_add, exp_periodic _] },
+  have hd : ∀ θ : ℝ, has_deriv_at (λ θ : ℝ, ↑R * exp (θ * I)) (R * exp (θ * I) * I) θ,
+  { simpa [mul_assoc] using λ _, (of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul ↑R },
   have hfc : continuous f,
-  { apply continuous.div,
-    { -- continuity? says
-      exact (continuous_const.mul ((continuous_of_real.mul continuous_const).cexp)).mul
-        continuous_const },
-    { -- continuity? says
-      exact (continuous_const.mul ((continuous_of_real.mul continuous_const).cexp)).sub
-        continuous_const },
-    { intro θ, rw sub_ne_zero, rintro rfl, simpa [abs_exp, (le_abs_self R).not_lt] using hw } },
-  set w₀ : ℂ := -real.sqrt (R ^ 2 - w.im ^ 2) + w.im * I,
-  have hw₀_abs : abs w₀ = R,
-    from (abs_eq_and_im_eq_iff.2 ⟨(abs_im_le_abs _).trans hw.le, or.inl rfl⟩).1,
-  set θ₀ : ℝ := arg w₀,
-  have hw₀ : w₀ = R * exp (θ₀ * I),
-  { rw [← hw₀_abs], },
-  set F : ℝ → ℂ := λ θ, log (R • exp (θ * I) - w),
+  { have : continuous (λ θ : ℝ, ↑R * exp (θ * I)),
+      from continuous_iff_continuous_at.2 (λ θ, (hd θ).continuous_at),
+    refine (this.mul continuous_const).div (this.sub continuous_const) (λ hθ, _),
+    rw sub_ne_zero, rintro rfl, simpa [abs_exp, (le_abs_self R).not_lt] using hw },
+  obtain ⟨θ₀, hθ₀π, hlt, hθ₀⟩ := exists_mul_exp_mul_I_le_iff hw,
+  rw ← sub_lt_zero at hlt,
+  set F : ℝ → ℂ := λ θ, log (R * exp (θ * I) - w),
   have Hd : ∀ θ ∈ Ioo θ₀ (θ₀ + 2 * π), has_deriv_at F (f θ) θ,
   { rintro θ ⟨hθ₁, hθ₂⟩,
-    convert (((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_smul R).sub_const
-      w).clog_real _,
-    { simp [f, mul_assoc] },
-    { simp only [of_real_clm_apply, θ₀, ← sub_eq_iff_eq_add, real_smul],
-      refine not_le_zero_iff.1 (λ hle, _),
-      rw sub_nonpos at hle,
-      have : (R * exp (θ * I) : ℂ) = w₀,
-      { have : abs (R * exp (θ * I)) = R, by simp [hR0.le, abs_exp],
-        refine or.resolve_right (abs_eq_and_im_eq_iff.1 ⟨this, hle.2⟩).2 (λ (H : _ = _), _),
-        rw H at hle,
-        exact (mem_Ioo_of_abs_lt hw).2.not_le hle },
-      apply_fun arg at this, rw [exp_mul_I, arg_real_mul _ hR0] at this,
-      cases le_or_lt θ π with hθπ hθπ,
-      { rw arg_cos_add_sin_mul_I ((neg_pi_lt_arg _).trans hθ₁) hθπ at this,
-        exact hθ₁.ne' this },
-      { have : θ₀ ≤ π := arg_le_pi _,
-        have : arg (cos (θ - 2 * π : ℝ) + sin (θ - 2 * π : ℝ) * I) = arg w₀,
-        { push_cast, rwa [cos_sub_two_pi, sin_sub_two_pi] },
-        rw arg_cos_add_sin_mul_I at this; linarith } } },
+    refine ((hd θ).sub_const w).clog_real (not_le_zero_iff.1 (λ hle, _)),
+    rw sub_nonpos at hle,
+    cases le_or_lt θ π with hθπ hθπ,
+    { exact hθ₁.ne' (hθ₀ _ ⟨hθ₀π.1.trans hθ₁, hθπ⟩ hle) },
+    { refine (sub_lt_iff_lt_add.2 hθ₂).ne (hθ₀ _ _ _),
+      { cases hθ₀π, split; linarith },
+      { simpa [sub_mul, exp_periodic.sub_eq] } } },
+  replace hd := λ θ, (hd θ).sub_const w,
+  have hd₀ : im (R * exp (θ₀ * I) * I) < 0,
+  {  },
   have Hlim₁ : tendsto F (𝓝[Ioi θ₀] θ₀) (𝓝 $ real.log (abs $ R • exp (θ₀ * I) - w) - π * I),
-  { refine (tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero _ _).comp _,
+  { refine (tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero hlt.1 hlt.2).comp
+      (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+        (hd _).continuous_at.continuous_within_at _),
     
  },
   have Hlim₂ : tendsto F (𝓝[Iio (θ₀ + 2 * π)] (θ₀ + 2 * π))

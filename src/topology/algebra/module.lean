@@ -958,7 +958,7 @@ variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
   {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
   {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
   {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
-  [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
+  [module S M₃] [has_continuous_smul S M₃] [smul_comm_class R S M₃]
   [module S M₂] [has_continuous_smul S M₂] [smul_comm_class R S M₂]
   (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
 

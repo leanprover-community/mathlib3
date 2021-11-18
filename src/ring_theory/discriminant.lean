@@ -52,12 +52,11 @@ section matrix
 
 /-- Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we define
 `trace_matrix A ι b` as the matrix whose `(i j)`-th element is the trace of `b i * b j`. -/
-noncomputable
+@[simp] noncomputable
 def trace_matrix (b : ι → B) : matrix ι ι A
 | i j := trace_form A B (b i) (b j)
 
-@[simp] lemma trace_matrix_apply (b : ι → B) (i j : ι) :
-  trace_matrix A b i j = trace_form A B (b i) (b j) := rfl
+lemma trace_matrix_def (b : ι → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
 
 variable {A}
 
@@ -65,8 +64,8 @@ lemma trace_matrix_of_matrix_vec_mul [fintype ι] (b : ι → B) (P : matrix ι 
  trace_matrix A ((P.map (algebra_map A B)).vec_mul b) = Pᵀ ⬝ (trace_matrix A b) ⬝ P :=
 begin
   ext α β,
-  rw [trace_matrix_apply, vec_mul, dot_product, vec_mul, dot_product, trace_matrix, mul_apply,
-    bilin_form.sum_left, fintype.sum_congr _ _ (λ (i : ι), @bilin_form.sum_right _ _ _ _ _ _ _ _
+  rw [trace_matrix, vec_mul, dot_product, vec_mul, dot_product, mul_apply, bilin_form.sum_left,
+    fintype.sum_congr _ _ (λ (i : ι), @bilin_form.sum_right _ _ _ _ _ _ _ _
     (b i * P.map (algebra_map A B) i α) (λ (y : ι), b y * P.map (algebra_map A B) y β)), sum_comm],
   congr, ext x,
   rw [mul_apply, sum_mul],
@@ -92,7 +91,7 @@ lemma trace_matrix_of_basis [decidable_eq ι] [fintype ι] (b : basis ι A B) :
   trace_matrix A b = bilin_form.to_matrix b (trace_form A B) :=
 begin
   ext i j,
-  rw [trace_matrix_apply, trace_form_apply, trace_form_to_matrix]
+  rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
 end
 
 variable (A)
@@ -140,12 +139,12 @@ lemma zero_of_not_linear_independent [is_domain A] {b : ι → B} (hli : ¬linea
   discriminant A b = 0 :=
 begin
   classical,
-  obtain ⟨g, hg, i, hi⟩ := fintype.linear_independent_iff''.1 hli,
+  obtain ⟨g, hg, i, hi⟩ := fintype.linear_dependent_iff.1 hli,
   have : (trace_matrix A b).mul_vec g = 0,
   { ext i,
     have : ∀ j, (trace A B) (b i * b j) * g j = (trace A B) (((g j) • (b j)) * b i),
     { intro j, simp [mul_comm], },
-    simp only [mul_vec, dot_product, trace_matrix_apply, pi.zero_apply, trace_form_apply,
+    simp only [mul_vec, dot_product, trace_matrix, pi.zero_apply, trace_form_apply,
       λ j, this j, ← linear_map.map_sum, ← sum_mul, hg, zero_mul, linear_map.map_zero] },
   by_contra h,
   rw discriminant_def at h,
@@ -179,9 +178,9 @@ lemma not_zero_of_linear_independent [nonempty ι]
 begin
   classical,
   have := span_eq_top_of_linear_independent_of_card_eq_finrank hli hcard,
-  rw [discriminant_def, trace_matrix],
+  rw [discriminant_def, trace_matrix_def],
   simp_rw [← basis.mk_apply hli this],
-  rw [← trace_matrix, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
+  rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
   exact trace_form_nondegenerate _ _
 end
 

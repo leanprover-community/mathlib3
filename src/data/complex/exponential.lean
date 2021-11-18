@@ -1537,7 +1537,7 @@ begin
       neg_add_eq_sub, sub_half, sq, pow_succ, sq],
   have i1 : x * 4 / 18 ≤ 1 / 2 := by linarith,
   have i2 : 0 ≤ x * 4 / 18 := by linarith,
-  have i3 := mul_le_mul h1 h1 (le_refl (0 : ℝ)) h1,
+  have i3 := mul_le_mul h1 h1 le_rfl h1,
   rw zero_mul at i3,
   have t := mul_le_mul (le_refl (x * x)) i1 i2 i3,
   rw ← mul_assoc,
@@ -1552,26 +1552,24 @@ begin
     have h1x : 0 < 1 - x := by simpa,
     apply (le_div_iff h1x).2,
     norm_num [← add_assoc, mul_sub_left_distrib, mul_one, add_mul,
-      sub_add_eq_sub_sub, pow_succ' x 2],
+              sub_add_eq_sub_sub, pow_succ' x 2],
     have hx3 : 0 ≤ x ^ 3,
     { norm_num,
       exact h1 },
     linarith },
-  exact le_trans (exp_bound' h1 h2.le (by linarith))
-   (le_trans (exp_bound_div_one_sub_of_interval_approx h1 h2.le) h),
+  exact (exp_bound' h1 h2.le $ by linarith).trans
+        ((exp_bound_div_one_sub_of_interval_approx h1 h2.le).trans h),
 end
 
 lemma one_sub_le_exp_minus_of_pos {y : ℝ} (h : 0 ≤ y) : 1 - y ≤ real.exp (-y) :=
 begin
   rw real.exp_neg,
   have r1 : (1 - y) * (real.exp y) ≤ 1,
-  { cases le_or_lt (1-y) 0, {
-    have h'' : (1 - y) * real.exp y ≤ 0,
+  { cases le_or_lt (1 - y) 0,
+    { have h'' : (1 - y) * y.exp ≤ 0,
     { apply mul_nonpos_iff.2,
       right,
-      apply and.intro,
-      exact h_1,
-      exact (real.exp_pos y).le },
+      exact ⟨h_1, y.exp_pos.le⟩ },
     linarith },
     have hy1 : y < 1 := by linarith,
     apply (le_div_iff' h_1).1,

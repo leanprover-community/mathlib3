@@ -779,9 +779,13 @@ reflection_mem_subspace_orthogonal_precomplement_eq_neg (submodule.mem_span_sing
 lemma reflection_sub [complete_space F] (v w : F) (h : ∥v∥ = ∥w∥) :
   reflection (ℝ ∙ (v - w))ᗮ v = w :=
 begin
-  let R : F ≃ₗᵢ[ℝ] F := reflection (ℝ ∙ (v - w))ᗮ,
+  set R : F ≃ₗᵢ[ℝ] F := reflection (ℝ ∙ (v - w))ᗮ,
   suffices : R v + R v = w + w,
-  { sorry },
+  {
+    rw ←two_smul ℝ (R v) at this,
+    rw ←two_smul ℝ w at this,
+    exact (smul_right_injective F is_R_or_C.two_ne_zero) this,
+  },
   have h₁ : R (v - w) = -(v - w) := reflection_orthogonal_complement_singleton_eq_neg (v - w),
   have h₂ : R (v + w) = v + w,
   { apply reflection_mem_subspace_eq_self,
@@ -884,11 +888,6 @@ lemma finrank_orthogonal_span_singleton {n : ℕ} [_i : fact (finrank 𝕜 E = n
   finrank 𝕜 (𝕜 ∙ v)ᗮ = n :=
 submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, _i.elim, add_comm]
 
-lemma foo [finite_dimensional 𝕜 E] {V W : submodule 𝕜 E}
-  {v : E} (h₁ : W ≤ V) (h₂ : v ∈ V) (h₃ : v ∉ W) :
-  finrank 𝕜 W < finrank 𝕜 V :=
-sorry
-
 /-- An element `φ` of the orthogonal group of `F` can be factored as a product of reflections, and
 specifically at most as many reflections as the dimension of the complement of the fixed subspace
 of `φ`. -/
@@ -952,8 +951,8 @@ begin
     -- most `n`
     have : finrank ℝ Vᗮ ≤ n,
     { change finrank ℝ Wᗮ ≤ n + 1 at hn,
-      have : finrank ℝ W + 1 ≤ finrank ℝ V,
-      { exact foo H₂V H₁V hv' },
+      have : finrank ℝ W + 1 ≤ finrank ℝ V :=
+        submodule.finrank_lt_finrank_of_lt (set_like.lt_iff_le_and_exists.2 ⟨H₂V, v, H₁V, hv'⟩),
       have := @submodule.finrank_add_finrank_orthogonal _ _ _ _ _ V,
       have := @submodule.finrank_add_finrank_orthogonal _ _ _ _ _ W,
       linarith },
@@ -986,8 +985,16 @@ lemma linear_isometry_equiv.reflections_generate [finite_dimensional ℝ F] :
 begin
   rw subgroup.eq_top_iff',
   intros φ,
-  -- where is the API on generating sets for subgroups?
-  sorry
+  -- Couldn't find an API for this:
+  rcases linear_isometry_equiv.reflections_generate_dim φ with ⟨l, _, h2⟩,
+  rw h2,
+  apply subgroup.list_prod_mem (subgroup.closure _),
+  intros x hx,
+  apply subgroup.subset_closure,
+  rw set.mem_range,
+  rw list.mem_map at hx,
+  rcases hx with ⟨a, _, hax⟩,
+  exact ⟨a, hax⟩,
 end
 
 end orthogonal

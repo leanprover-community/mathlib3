@@ -733,8 +733,11 @@ lemma deriv_pi (h : ∀ i, differentiable_at 𝕜 (λ x, φ x i) x) :
 end pi
 
 section mul_vector
+
 /-! ### Derivative of the multiplication of a scalar function and a vector function -/
-variables {c : 𝕜 → 𝕜} {c' : 𝕜}
+
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : 𝕜 → 𝕜'} {c' : 𝕜'}
 
 theorem has_deriv_within_at.smul
   (hc : has_deriv_within_at c c' s x) (hf : has_deriv_within_at f f' s x) :

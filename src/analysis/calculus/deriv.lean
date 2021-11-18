@@ -1313,6 +1313,9 @@ begin
   exact hc.mul_const d
 end
 
+theorem has_deriv_at_mul_const (c : 𝕜) : has_deriv_at (λ x, x * c) c x :=
+by simpa only [one_mul] using (has_deriv_at_id' x).mul_const c
+
 theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : 𝔸) :
   has_strict_deriv_at (λ y, c y * d) (c' * d) x :=
 begin

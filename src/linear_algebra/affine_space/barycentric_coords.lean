@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.independent
+import linear_algebra.affine_space.finite_dimensional
 import linear_algebra.determinant
 
 /-!
@@ -265,10 +266,13 @@ end
 
 end comm_ring
 
-section division_ring
+section field
 
-variables [division_ring k] [module k V]
+-- TODO Relax `field` to `division_ring` (results are still true)
+variables [field k] [module k V]
 include V
+
+variables (k V P)
 
 lemma exists_affine_basis : ∃ (s : set P), nonempty (affine_basis ↥s k P) :=
 begin
@@ -277,6 +281,22 @@ begin
   rw [subtype.range_coe, h_tot, affine_subspace.span_univ],
 end
 
-end division_ring
+variables {k V P}
+
+lemma exists_affine_basis_of_finite_dimensional {ι : Type*} [fintype ι] [finite_dimensional k V]
+  (h : fintype.card ι = finite_dimensional.finrank k V + 1) :
+  nonempty (affine_basis ι k P) :=
+begin
+  obtain ⟨s, ⟨⟨incl, h_ind, h_tot⟩⟩⟩ := affine_basis.exists_affine_basis k V P,
+  haveI : fintype s := fintype_of_fin_dim_affine_independent k h_ind,
+  have hs : fintype.card ι = fintype.card s,
+  { rw h, exact (h_ind.affine_span_eq_top_iff_card_eq_finrank_add_one.mp h_tot).symm, },
+  rw ← affine_independent_equiv (fintype.equiv_of_card_eq hs) at h_ind,
+  refine ⟨⟨_, h_ind, _⟩⟩,
+  rw range_comp,
+  simp [h_tot],
+end
+
+end field
 
 end affine_basis

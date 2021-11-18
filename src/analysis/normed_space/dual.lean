@@ -227,17 +227,6 @@ begin
   simp only [inv_nonneg, norm_nonneg],
 end
 
-/-- If `s` is a neighborhood of the origin in a normed space `E`, then there exists a
-function `r : E → ℝ` such that for all elements `x' ∈ polar 𝕜 s` one has `∥x' z∥ ≤ r(z)`. -/
-lemma finite_values_of_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  ∃ (r : E → ℝ), ∀ (x' : dual 𝕜 E) (z : E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r z :=
-begin
-  cases classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd) with r hr,
-  use r,
-  intros x' z,
-  exact hr z x',
-end
-
 /-- Given a neighborhood `s` of the origin in a normed space `E` over `ℝ` or `ℂ`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
 lemma bounded_of_nhds_zero {𝕜 : Type*} [is_R_or_C 𝕜]

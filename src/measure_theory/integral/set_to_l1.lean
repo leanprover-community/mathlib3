@@ -17,8 +17,8 @@ indicators of measurable sets with finite measure, then to integrable functions,
 integrable simple functions.
 
 The main result is a continuous linear map `(α →₁[μ] E) →L[ℝ] F`. This extension process is used to
-define the Bochner integral in the `bochner` file. It will also be used to define the conditional
-expectation of an integrable function (TODO).
+define the Bochner integral in the `measure_theory.integral.bochner` file and the conditional
+expectation of an integrable function in `measure_theory.function.conditional_expectation`.
 
 ## Main Definitions
 
@@ -612,17 +612,8 @@ lemma norm_set_to_L1_le' (hT : dominated_fin_meas_additive μ T C) :
 continuous_linear_map.op_norm_le_bound _ (le_max_right _ _) (norm_set_to_L1_le_mul_norm' hT)
 
 lemma set_to_L1_lipschitz (hT : dominated_fin_meas_additive μ T C) :
-  lipschitz_with (real.to_nnreal C) (L1.set_to_L1 hT) :=
-begin
-  have h_lip : lipschitz_with (∥L1.set_to_L1 hT∥₊) (L1.set_to_L1 hT),
-    from continuous_linear_map.lipschitz _,
-  -- TODO: is there some lipschitz_with.mono lemma?
-  rw lipschitz_with_iff_norm_sub_le at *,
-  intros f g,
-  refine (h_lip f g).trans (mul_le_mul _ le_rfl (norm_nonneg _) (nnreal.coe_nonneg _)),
-  rw [real.coe_to_nnreal', coe_nnnorm],
-  exact norm_set_to_L1_le' hT,
-end
+  lipschitz_with (real.to_nnreal C) (set_to_L1 hT) :=
+(set_to_L1 hT).lipschitz.weaken (norm_set_to_L1_le' hT)
 
 /-- If `fs i → f` in `L1`, then `set_to_L1 hT (fs i) → set_to_L1 hT f`. -/
 lemma tendsto_set_to_L1 (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E)
@@ -810,18 +801,17 @@ lemma tendsto_set_to_fun_filter_of_dominated_convergence (hT : dominated_fin_mea
 begin
   rw tendsto_iff_seq_tendsto,
   intros x xl,
-  have hxl, { rw tendsto_at_top' at xl, exact xl },
-  have h := inter_mem hfs_meas h_bound,
-  replace h := hxl _ h,
-  rcases h with ⟨k, h⟩,
+  have hxl : ∀ s ∈ l, ∃ a, ∀ b ≥ a, x b ∈ s, by { rwa tendsto_at_top' at xl, },
+  have h : {x : ι | (λ n, ae_measurable (fs n) μ) x}
+      ∩ {x : ι | (λ n, ∀ᵐ a ∂μ, ∥fs n a∥ ≤ bound a) x} ∈ l,
+    from inter_mem hfs_meas h_bound,
+  obtain ⟨k, h⟩ := hxl _ h,
   rw ← tendsto_add_at_top_iff_nat k,
   refine tendsto_set_to_fun_of_dominated_convergence hT bound _ bound_integrable _ _,
-  { intro, refine (h _ _).1, apply self_le_add_left },
-  { intro, refine (h _ _).2, apply self_le_add_left },
+  { exact λ n, (h _ (self_le_add_left _ _)).1, },
+  { exact λ n, (h _ (self_le_add_left _ _)).2, },
   { filter_upwards [h_lim],
-    assume a h_lim,
-    apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, fs n a),
-    { assumption },
+    refine λ a h_lin, @tendsto.comp _ _ _ (λ n, x (n + k)) (λ n, fs n a) _ _ _ h_lin _,
     rw tendsto_add_at_top_iff_nat,
     assumption }
 end

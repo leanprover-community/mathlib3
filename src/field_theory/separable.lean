@@ -406,7 +406,9 @@ end comm_ring
 
 section is_domain
 
-theorem is_local_ring_hom_expand (R : Type u) [comm_ring R] [is_domain R] {p : ℕ} (hp : 0 < p) :
+variables (R : Type u) [comm_ring R] [is_domain R]
+
+theorem is_local_ring_hom_expand {p : ℕ} (hp : 0 < p) :
   is_local_ring_hom (↑(expand R p) : polynomial R →+* polynomial R) :=
 begin
   refine ⟨λ f hf1, _⟩, rw ← coe_fn_coe_base at hf1,
@@ -415,7 +417,7 @@ begin
   rw [hf2, is_unit_C] at hf1, rw expand_eq_C hp at hf2, rwa [hf2, is_unit_C]
 end
 
-variables {R : Type u} [comm_ring R] [is_domain R]
+variable {R}
 
 theorem of_irreducible_expand {p : ℕ} (hp : p ≠ 0) {f : polynomial R}
   (hf : irreducible (expand R p f)) : irreducible f :=

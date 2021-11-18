@@ -51,15 +51,15 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar
 
 namespace is_fundamental_domain
 
-variables {G α : Type*} [group G] [mul_action G α] [measurable_space G]
-  [measurable_space α] {s t : set α} {μ : measure α}
+variables {G α : Type*} [group G] [mul_action G α] [measurable_space α] {s t : set α}
+  {μ : measure α}
 
 @[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
   (⋃ g : G, g • s) =ᵐ[μ] univ :=
 filter.eventually_eq_univ.2 $ h.ae_covers.mono $
   λ x ⟨g, hg⟩, mem_Union.2 ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
 
-variables [has_measurable_smul G α]
+variables [measurable_space G] [has_measurable_smul G α]
 
 @[to_additive]
 lemma measurable_set_smul (h : is_fundamental_domain G s μ) (g : G) : measurable_set (g • s) :=

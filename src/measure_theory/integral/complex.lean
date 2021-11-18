@@ -1,6 +1,7 @@
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
-import measure_theory.integral.periodic
+import analysis.calculus.parametric_interval_integral
+--import measure_theory.integral.periodic
 
 /-!
 -/
@@ -229,6 +230,48 @@ begin
   calc ∫ θ in 0 .. 2 * π, f θ = F (2 * π) - F 0 :
     interval_integral.integral_eq_sub_of_has_deriv_at (λ θ _, this θ) (hfc.interval_integrable _ _)
   ... = 0 : by { simp only [F], simp }
+end
+
+/-
+
+lemma has_deriv_at_integral_of_dominated_loc_of_deriv_le {F : 𝕜 → α → E} {F' : 𝕜 → α → E} {x₀ : 𝕜}
+  {a b : α} {ε : ℝ} (ε_pos : 0 < ε)
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
+  (hF_int : interval_integrable (F x₀) μ a b)
+  (hF'_meas : ae_measurable (F' x₀) (μ.restrict (Ι a b)))
+  {bound : α → ℝ}
+  (h_bound : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, ∥F' x t∥ ≤ bound t)
+  (bound_integrable : interval_integrable bound μ a b)
+  (h_diff : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, has_deriv_at (λ x, F x t) (F' x t) x) :
+  (interval_integrable (F' x₀) μ a b) ∧
+    has_deriv_at (λ x, ∫ t in a..b, F x t ∂μ) (∫ t in a..b, F' x₀ t ∂μ) x₀ :=
+-/
+
+lemma has_deriv_at_integral_circle_div_sub_of_abs_lt {R : ℝ} {w₀ : ℂ} (hw : abs w₀ < R) :
+  has_deriv_at (λ w, ∫ θ : ℝ in 0..2 * π, (↑R * exp (θ * I) * I / (R * exp (θ * I) - w))) 0 w₀ :=
+begin
+  have hR : 0 < R := (abs_nonneg w₀).trans_lt hw,
+  simp only [div_eq_mul_inv, ← zpow_neg_one],
+  set F : ℂ → ℝ → ℂ := λ w θ, R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ (-1 : ℤ),
+  set F' : ℂ → ℝ → ℂ := λ w θ, R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ (-2 : ℤ),
+  set ε := (R - abs w₀) / 2,
+  have ε_pos : 0 < ε := half_pos (sub_pos.2 hw),
+  have habs : ∀ θ : ℝ, abs (R * exp (θ * I)) = R,
+  { intro θ, simp [_root_.abs_of_nonneg hR.le, abs_exp] },
+  have habs_lt : ∀ w ∈ ball w₀ ε, abs w < abs w₀ + ε,
+  { intros w hw,
+    rw [mem_ball, dist_eq] at hw,
+    calc abs w = abs (w₀ + (w - w₀)) : by rw add_sub_cancel'_right
+    ... ≤ abs w₀ + abs (w - w₀) : abs_add _ _
+    ... < abs w₀ + ε : add_lt_add_left hw _ },
+  have habs_denom : ∀ (w ∈ ball w₀ ε) (θ : ℝ), ε < abs (R * exp (θ * I) - w),
+  { intros w hw θ,
+    calc ε = abs (R * exp (θ * I)) - (abs w₀ + ε) : by field_simp [ε, habs, mul_two]
+       ... < abs (R * exp (θ * I)) - abs w        : sub_lt_sub_left (habs_lt w hw) _
+       ... ≤ abs (R * exp (θ * I) - w)            : norm_sub_norm_le (↑R * exp (θ * I)) w },
+  obtain ⟨C, hC⟩ : ∃ C : ℝ, ∀ (w ∈ ball w₀ ε) θ, ∥F' w θ∥ ≤ C,
+  { refine ⟨R * ε ^ (-2 : ℤ), λ w hw θ, _⟩,
+    simp only [F', norm_eq_abs, abs_mul, habs, abs_I, abs_zpow], }
 end
 
 lemma integral_circle_div_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) :

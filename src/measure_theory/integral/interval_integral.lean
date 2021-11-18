@@ -220,7 +220,7 @@ by cases le_total a b; simp [h, interval_integrable, interval_oc]
   it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. -/
 lemma interval_integrable.def {f : α → E} {a b : α} {μ : measure α}
   (h : interval_integrable f μ a b) :
-  integrable_on f (Ioc (min a b) (max a b)) μ :=
+  integrable_on f (Ι a b) μ :=
 interval_integrable_iff.mp h
 
 lemma interval_integrable_iff_integrable_Ioc_of_le
@@ -494,24 +494,25 @@ by cases le_total a b with hab hab;
       simpa [hab] using not_and_distrib.mp h
 
 lemma integral_non_ae_measurable
-  (hf : ¬ ae_measurable f (μ.restrict (Ioc (min a b) (max a b)))) :
+  (hf : ¬ ae_measurable f (μ.restrict (Ι a b))) :
   ∫ x in a..b, f x ∂μ = 0 :=
-by cases le_total a b; simpa [integral_of_le, integral_of_ge, h] using integral_non_ae_measurable hf
+by rw [interval_integral_eq_integral_oc, integral_non_ae_measurable hf, smul_zero]
+
 
 lemma integral_non_ae_measurable_of_le (h : a ≤ b)
   (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
   ∫ x in a..b, f x ∂μ = 0 :=
-integral_non_ae_measurable $ by simpa [h] using hf
+integral_non_ae_measurable $ by rwa [interval_oc_of_le h]
 
 lemma norm_integral_eq_norm_integral_Ioc :
-  ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x ∂μ∥ :=
+  ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ι a b, f x ∂μ∥ :=
 (integral_cases f a b).elim (congr_arg _) (λ h, (congr_arg _ h).trans (norm_neg _))
 
 lemma norm_integral_le_integral_norm_Ioc :
-  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in Ioc (min a b) (max a b), ∥f x∥ ∂μ :=
-calc ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x ∂μ∥ :
+  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in Ι a b, ∥f x∥ ∂μ :=
+calc ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ι a b, f x ∂μ∥ :
   norm_integral_eq_norm_integral_Ioc
-... ≤ ∫ x in Ioc (min a b) (max a b), ∥f x∥ ∂μ :
+... ≤ ∫ x in Ι a b, ∥f x∥ ∂μ :
   norm_integral_le_integral_norm f
 
 lemma norm_integral_le_abs_integral_norm : ∥∫ x in a..b, f x ∂μ∥ ≤ |∫ x in a..b, ∥f x∥ ∂μ| :=
@@ -521,7 +522,7 @@ begin
 end
 
 lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
-  (h : ∀ᵐ x, x ∈ Ioc (min a b) (max a b) → ∥f x∥ ≤ C) :
+  (h : ∀ᵐ x, x ∈ Ι a b → ∥f x∥ ≤ C) :
   ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
 begin
   rw [norm_integral_eq_norm_integral_Ioc],
@@ -531,7 +532,7 @@ begin
 end
 
 lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
-  (h : ∀ x ∈ Ioc (min a b) (max a b), ∥f x∥ ≤ C) :
+  (h : ∀ x ∈ Ι a b, ∥f x∥ ≤ C) :
   ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
 norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
@@ -1031,8 +1032,7 @@ begin
     rw continuous_on_congr this,
     intros x₀ hx₀,
     refine continuous_within_at_primitive (measure_singleton x₀) _,
-    rw interval_integrable_iff,
-    simp only [h, max_eq_right, min_eq_left],
+    simp only [interval_integrable_iff_integrable_Ioc_of_le, min_eq_left, max_eq_right, h],
     exact h_int.mono Ioc_subset_Icc_self le_rfl },
   { rw Icc_eq_empty h,
     exact continuous_on_empty _ },
@@ -1055,7 +1055,7 @@ begin
   intros b₀ hb₀,
   refine continuous_within_at_primitive (measure_singleton _) _,
   rw [min_eq_right ha.1, max_eq_right ha.2],
-  simpa [interval_integrable_iff] using h_int,
+  simpa [interval_integrable_iff, interval_oc] using h_int,
 end
 
 lemma continuous_on_primitive_interval {f : α → E} {a b : α} [has_no_atoms μ]

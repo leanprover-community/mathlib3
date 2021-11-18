@@ -111,6 +111,14 @@ begin
   exact hf.is_fixed_pt.iterate m
 end
 
+lemma commute.left_of_comp {g : α → α} (hco : commute f g) (hfg : is_periodic_pt (f ∘ g) n x)
+  (hg : is_periodic_pt g n x) : is_periodic_pt f n x :=
+begin
+  rw is_periodic_pt at *,
+  rw hco.comp_iterate at hfg,
+  exact is_fixed_pt.left_of_comp hfg hg
+end
+
 protected lemma mod (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
   is_periodic_pt f (m % n) x :=
 begin
@@ -300,6 +308,38 @@ begin
   refine is_fixed_pt.comp _ _;
   rw [← is_periodic_pt, is_periodic_pt_iff_minimal_period_dvd];
   exact nat.dvd_lcm_left _ _ <|> exact dvd_lcm_right _ _
+end
+
+lemma commute.minimal_period_of_comp_dvd_mul_of_coprime {g : α → α} (h : function.commute f g)
+  (hco : coprime (minimal_period f x) (minimal_period g x)) :
+  minimal_period (f ∘ g) x ∣ (minimal_period f x) * (minimal_period g x) :=
+begin
+  rw ←hco.lcm_eq_mul,
+  exact h.minimal_period_of_comp_dvd_lcm
+end
+
+lemma commute.minimal_period_of_comp_eq_mul_of_coprime {g : α → α} (h : function.commute f g)
+  (hco : coprime (minimal_period f x) (minimal_period g x)) :
+  minimal_period (f ∘ g) x = (minimal_period f x) * (minimal_period g x) :=
+begin
+  apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul_of_coprime hco),
+  apply coprime.mul_dvd_of_dvd_of_dvd hco,
+  { apply coprime.dvd_of_dvd_mul_left hco,
+    apply is_periodic_pt.minimal_period_dvd,
+    apply is_periodic_pt.commute.left_of_comp h,
+    { apply is_periodic_pt.const_mul,
+      exact is_periodic_pt_minimal_period _ _ },
+    { apply is_periodic_pt.mul_const,
+      exact is_periodic_pt_minimal_period _ _ } },
+  { rw h.comp_eq,
+    rw coprime_comm at hco,
+    apply coprime.dvd_of_dvd_mul_right hco,
+    apply is_periodic_pt.minimal_period_dvd,
+    apply is_periodic_pt.commute.left_of_comp h.symm,
+    { apply is_periodic_pt.mul_const,
+      exact is_periodic_pt_minimal_period _ _ },
+    { apply is_periodic_pt.const_mul,
+      exact is_periodic_pt_minimal_period _ _ } },
 end
 
 private lemma minimal_period_iterate_eq_div_gcd_aux (h : 0 < gcd (minimal_period f x) n) :

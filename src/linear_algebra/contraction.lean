@@ -48,6 +48,11 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
   let M' := module.dual R M in
   (uncurry R M' N (M →ₗ[R] N) : _ → M' ⊗ N →ₗ[R] M →ₗ[R] N) linear_map.smul_rightₗ
 
+/-- An explicit right inverse of `dual_tensor_hom` given a basis. -/
+noncomputable def hom_dual_tensor {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
+  (M →ₗ[R] N) → (module.dual R M) ⊗[R] N :=
+  λ f, ∑ (i : ι), (b.dual_basis i) ⊗ₜ f (b i)
+
 variables {R M N}
 
 @[simp] lemma contract_left_apply (f : module.dual R M) (m : M) :
@@ -73,17 +78,7 @@ begin
   rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
 end
 
-end
-
-open finite_dimensional
-variables (R : Type u) (M N : Type v)
-variables [field R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
-variables [finite_dimensional R M]
-
-noncomputable def hom_dual_tensor {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
-  (M →ₗ[R] N) → (module.dual R M) ⊗[R] N :=
-  λ f, ∑ (i : ι), (b.dual_basis i) ⊗ₜ f (b i)
-
+/-- `hom_dual_tensor` is right inverse to `dual_tensor_hom` -/
 @[simp]
 lemma dual_tensor_hom_hom_dual_tensor_apply
   {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N):
@@ -93,17 +88,25 @@ begin
   simp [hom_dual_tensor],
 end
 
+/-- `hom_dual_tensor` is right inverse to `dual_tensor_hom` -/
 lemma dual_tensor_hom_hom_dual_tensor
   {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N):
   (dual_tensor_hom R M N) ∘ (hom_dual_tensor R M N b) = id :=
 by { ext f, simp }
+
+end
+
+open finite_dimensional
+variables (R : Type u) (M N : Type v)
+variables [field R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
+variables [finite_dimensional R M]
 
 theorem dual_tensor_hom_surj : function.surjective (dual_tensor_hom R M N) :=
 begin
   intro f,
   have b := fin_basis R M,
   use hom_dual_tensor R M N b f,
-  exact dual_tensor_hom_hom_dual_tensor_apply R M N b f,
+  exact dual_tensor_hom_hom_dual_tensor_apply b f,
 end
 
 variables [finite_dimensional R N]
@@ -111,6 +114,7 @@ variables [finite_dimensional R N]
 theorem dual_tensor_hom_inj : function.injective (dual_tensor_hom R M N) :=
   (injective_iff_surjective_of_finrank_eq_finrank (by simp)).2 (dual_tensor_hom_surj R M N)
 
+/-- `dual_tensor_hom` is an equivalence -/
 noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
   linear_equiv.of_bijective (dual_tensor_hom R M N)
     (dual_tensor_hom_inj R M N) (dual_tensor_hom_surj R M N)
@@ -126,6 +130,7 @@ rfl
 @[simp] lemma dual_tensor_hom_equiv_apply (f : (module.dual R M) ⊗[R] N):
   (dual_tensor_hom_equiv R M N) f = (dual_tensor_hom R M N) f := rfl
 
+/-- `hom_dual_tensor` is equal to the inverse of `dual_tensor_hom`, no matter the basis used-/
 lemma dual_tensor_hom_equiv_symm
   {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
   ⇑(dual_tensor_hom_equiv R M N).symm = hom_dual_tensor R M N b :=

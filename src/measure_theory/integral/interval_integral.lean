@@ -213,8 +213,8 @@ integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
   only if it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. This is an equivalent
   defintion of `interval_integrable`. -/
 lemma interval_integrable_iff {f : α → E} {a b : α} {μ : measure α} :
-  interval_integrable f μ a b ↔ integrable_on f (Ioc (min a b) (max a b)) μ :=
-by cases le_total a b; simp [h, interval_integrable]
+  interval_integrable f μ a b ↔ integrable_on f (Ι a b) μ :=
+by cases le_total a b; simp [h, interval_integrable, interval_oc]
 
 /-- If a function is interval integrable with respect to a given measure `μ` on `interval a b` then
   it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. -/
@@ -226,7 +226,7 @@ interval_integrable_iff.mp h
 lemma interval_integrable_iff_integrable_Ioc_of_le
   {f : α → E} {a b : α} (hab : a ≤ b) {μ : measure α} :
   interval_integrable f μ a b ↔ integrable_on f (Ioc a b) μ :=
-by simp [interval_integrable_iff, hab]
+by rw [interval_integrable_iff, interval_oc_of_le hab]
 
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `interval a b`. -/
@@ -294,7 +294,7 @@ lemma mono_measure
 hf.mono rfl.subset h
 
 lemma mono_set_ae
-  (hf : interval_integrable f μ a b) (h : Ioc (min c d) (max c d) ≤ᵐ[μ] Ioc (min a b) (max a b)) :
+  (hf : interval_integrable f μ a b) (h : Ι c d ≤ᵐ[μ] Ι a b) :
   interval_integrable f μ c d :=
 interval_integrable_iff.mpr $ hf.def.mono_set_ae h
 
@@ -474,10 +474,17 @@ by simp only [interval_integral, neg_sub]
 lemma integral_of_ge (h : b ≤ a) : ∫ x in a..b, f x ∂μ = -∫ x in Ioc b a, f x ∂μ :=
 by simp only [integral_symm b, integral_of_le h]
 
+lemma interval_integral_eq_integral_oc (f : α → E) (a b : α) (μ : measure α) :
+  ∫ x in a..b, f x ∂μ = (if a ≤ b then 1 else -1 : ℝ) • ∫ x in Ι a b, f x ∂μ :=
+begin
+  split_ifs with h,
+  { simp only [integral_of_le h, interval_oc_of_le h, one_smul] },
+  { simp only [integral_of_ge (not_le.1 h).le, interval_oc_of_lt (not_le.1 h), neg_one_smul] }
+end
+
 lemma integral_cases (f : α → E) (a b) :
-  ∫ x in a..b, f x ∂μ ∈ ({∫ x in Ioc (min a b) (max a b), f x ∂μ,
-    -∫ x in Ioc (min a b) (max a b), f x ∂μ} : set E) :=
-(le_total a b).imp (λ h, by simp [h, integral_of_le]) (λ h, by simp [h, integral_of_ge])
+  ∫ x in a..b, f x ∂μ ∈ ({∫ x in Ι a b, f x ∂μ, -∫ x in Ι a b, f x ∂μ} : set E) :=
+by { rw interval_integral_eq_integral_oc, split_ifs; simp }
 
 lemma integral_undef (h : ¬ interval_integrable f μ a b) :
   ∫ x in a..b, f x ∂μ = 0 :=

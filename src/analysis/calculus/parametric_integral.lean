@@ -25,21 +25,30 @@ a derivative. The variations come from the assumptions and from the different wa
 derivative, especially Fréchet derivatives vs elementary derivative of function of one real
 variable.
 
-* `has_fderiv_at_of_dominated_loc_of_lip`: this version assumes
-    `F x` is ae-measurable for x near `x₀`, `F x₀` is integrable,
-    `λ x, F x a` has derivative `F' a : H →L[ℝ] E` at `x₀` which is ae-measurable,
-    `λ x, F x a` is locally Lipschitz near `x₀` for almost every `a`, with a Lipschitz bound which
-    is integrable with respect to `a`. A subtle point is that the "near x₀" in the last condition
-    has to be uniform in `a`. This is controlled by a positive number `ε`.
+* `has_fderiv_at_integral_of_dominated_loc_of_lip`: this version assumes that
+  - `F x` is ae-measurable for x near `x₀`,
+  - `F x₀` is integrable,
+  - `λ x, F x a` has derivative `F' a : H →L[ℝ] E` at `x₀` which is ae-measurable,
+  - `λ x, F x a` is locally Lipschitz near `x₀` for almost every `a`, with a Lipschitz bound which
+    is integrable with respect to `a`.
 
-* `has_fderiv_at_of_dominated_of_fderiv_le`: this version assume `λ x, F x a` has derivative
-    `F' x a` for `x` near `x₀` and `F' x` is bounded by an integrable function independent from
-    `x` near `x₀`.
+  A subtle point is that the "near x₀" in the last condition has to be uniform in `a`. This is
+  controlled by a positive number `ε`.
+
+* `has_fderiv_at_integral_of_dominated_of_fderiv_le`: this version assume `λ x, F x a` has
+   derivative `F' x a` for `x` near `x₀` and `F' x` is bounded by an integrable function independent
+   from `x` near `x₀`.
 
 
-`has_deriv_at_of_dominated_loc_of_lip` and `has_deriv_at_of_dominated_loc_of_deriv_le ` are versions
-of the above two results that assume `H = ℝ` or `H = ℂ` and use the high-school derivative `deriv`
-instead of Fréchet derivative `fderiv`.
+`has_deriv_at_integral_of_dominated_loc_of_lip` and
+`has_deriv_at_integral_of_dominated_loc_of_deriv_le` are versions of the above two results that
+assume `H = ℝ` or `H = ℂ` and use the high-school derivative `deriv` instead of Fréchet derivative
+`fderiv`.
+
+We also provide versions of these theorems for set integrals.
+
+## Tags
+integral, derivative
 -/
 
 noncomputable theory
@@ -54,11 +63,11 @@ variables {α : Type*} [measurable_space α] {μ : measure α}
           {H : Type*} [normed_group H] [normed_space ℝ H]
           [second_countable_topology $ H →L[ℝ] E]
 
-/-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming
-`F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball around `x₀` for ae `a` with
-integrable Lipschitz bound (with a ball radius independent of `a`), and `F x` is
-ae-measurable for `x` in the same ball. See `has_fderiv_at_of_dominated_loc_of_lip` for a
-slightly more general version. -/
+/-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming `F x₀` is
+integrable, `∥F x a - F x₀ a∥ ≤ bound a * ∥x - x₀∥` for `x` in a ball around `x₀` for ae `a` with
+integrable Lipschitz bound `bound` (with a ball radius independent of `a`), and `F x` is
+ae-measurable for `x` in the same ball. See `has_fderiv_at_integral_of_dominated_loc_of_lip` for a
+slightly less general but usually more useful version. -/
 lemma has_fderiv_at_integral_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (H →L[ℝ] E)}
   {x₀ : H} {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)

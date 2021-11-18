@@ -404,12 +404,10 @@ end
 lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
 n.factors.to_finset = (divisors n).filter prime :=
 begin
-    by_cases hn : n = 0,
-    { rw [hn, factors_zero, divisors_zero], simp },
-    { ext q,
-      rw [list.mem_to_finset, mem_filter, mem_divisors, mem_factors (pos_iff_ne_zero.mpr hn)],
-      rw [and_comm, and.congr_left_iff],
-      intros hq, simp only [iff_self_and, ne.def], exact imp_intro hn }
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  { ext q,
+    simpa [hn, hn.ne', mem_factors] using and_comm (prime q) (q ∣ n) }
 end
 
 end nat

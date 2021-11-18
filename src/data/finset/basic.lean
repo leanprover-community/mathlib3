@@ -1823,13 +1823,9 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
-lemma to_finset_repeat_of_pos {a : α} {n : ℕ} (hn : 0 < n):
+lemma to_finset_repeat_of_pos {a : α} {n : ℕ} (hn : n ≠ 0):
   (list.repeat a n).to_finset = {a} :=
-begin
-  ext x,
-  rw [list.mem_to_finset, finset.mem_singleton, list.mem_repeat, and_iff_right_iff_imp],
-  exact imp_intro (ne_of_gt hn),
-end
+by { ext x, simp [hn, list.mem_repeat] }
 
 @[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by {ext, simp}

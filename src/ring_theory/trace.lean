@@ -152,7 +152,7 @@ variables {S}
 -- This is a nicer lemma than the one produced by `@[simps] def trace_form`.
 @[simp] lemma trace_form_apply (x y : S) : trace_form R S x y = trace R S (x * y) := rfl
 
-lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
+lemma trace_form_is_symm : (trace_form R S).is_symm :=
 λ x y, congr_arg (trace R S) (mul_comm _ _)
 
 lemma trace_form_to_matrix [decidable_eq ι] (i j) :
@@ -243,9 +243,7 @@ lemma trace_eq_trace_adjoin [finite_dimensional K L] (x : L) :
 begin
   rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
   conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
-  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
-      smul_eq_mul, algebra.smul_def],
-  apply_instance
+  rw [trace_algebra_map, linear_map.map_smul_of_tower],
 end
 
 variables {K}
@@ -327,9 +325,9 @@ begin
 end
 
 lemma trace_eq_sum_embeddings [finite_dimensional K L] [is_separable K L]
-  {x : L} (hx : is_integral K x) :
-  algebra_map K E (algebra.trace K L x) = ∑ σ : L →ₐ[K] E, σ x :=
+  {x : L} : algebra_map K E (algebra.trace K L x) = ∑ σ : L →ₐ[K] E, σ x :=
 begin
+  have hx := is_separable.is_integral K x,
   rw [trace_eq_trace_adjoin K x, algebra.smul_def, ring_hom.map_mul, ← adjoin.power_basis_gen hx,
       trace_eq_sum_embeddings_gen E (adjoin.power_basis hx) (is_alg_closed.splits_codomain _),
       ← algebra.smul_def, algebra_map_smul],
@@ -366,8 +364,7 @@ begin
   { refine congr_arg det _, ext i j,
     rw [vandermonde_transpose_mul_vandermonde, ring_hom.map_matrix_apply, matrix.map_apply,
         bilin_form.to_matrix_apply, pb.basis_eq_pow, pb.basis_eq_pow, trace_form_apply,
-        ← pow_add, trace_eq_sum_embeddings (algebraic_closure L) (pb.is_integral_gen.pow _),
-        fintype.sum_equiv e],
+        ← pow_add, trace_eq_sum_embeddings (algebraic_closure L), fintype.sum_equiv e],
     intros σ,
     rw [e.symm_apply_apply, σ.map_pow] },
   { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],

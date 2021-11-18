@@ -72,6 +72,11 @@ lemma has_fderiv_within_at.inner (hf : has_fderiv_within_at f f' s x)
   has_fderiv_within_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') s x :=
 (is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp_has_fderiv_within_at x (hf.prod hg)
 
+lemma has_strict_fderiv_at.inner (hf : has_strict_fderiv_at f f' x)
+  (hg : has_strict_fderiv_at g g' x) :
+  has_strict_fderiv_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') x :=
+(is_bounded_bilinear_map_inner.has_strict_fderiv_at (f x, g x)).comp x (hf.prod hg)
+
 lemma has_fderiv_at.inner (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
   has_fderiv_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') x :=
 (is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp x (hf.prod hg)
@@ -115,7 +120,7 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
 
 lemma times_cont_diff_norm_sq : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
 begin
-  simp only [sq, ← inner_self_eq_norm_sq],
+  simp only [sq, ← inner_self_eq_norm_mul_norm],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).times_cont_diff.comp (times_cont_diff_id.inner times_cont_diff_id)
 end
 
@@ -175,6 +180,17 @@ lemma times_cont_diff.dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff 
   times_cont_diff ℝ n (λ y, dist (f y) (g y)) :=
 times_cont_diff_iff_times_cont_diff_at.2 $
   λ x, hf.times_cont_diff_at.dist hg.times_cont_diff_at (hne x)
+
+omit 𝕜
+lemma has_strict_fderiv_at_norm_sq (x : F) :
+  has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (inner_right x)) x :=
+begin
+  simp only [sq, ← inner_self_eq_norm_mul_norm],
+  convert (has_strict_fderiv_at_id x).inner (has_strict_fderiv_at_id x),
+  ext y,
+  simp [bit0, real_inner_comm],
+end
+include 𝕜
 
 lemma differentiable_at.norm_sq (hf : differentiable_at ℝ f x) :
   differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=

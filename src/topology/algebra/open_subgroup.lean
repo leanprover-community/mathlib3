@@ -6,6 +6,28 @@ Authors: Johan Commelin
 import order.filter.lift
 import topology.opens
 import topology.algebra.ring
+/-!
+# Open subgroups of a topological groups
+
+This files builds the lattice `open_subgroup G` of open subgroups in a topological group `G`,
+and its additive version `open_add_subgroup`.  This lattice has a top element, the subgroup of all
+elements, but no bottom element in general. The trivial subgroup which is the natural candidate
+bottom has no reason to be open (this happens only in discrete groups).
+
+Note that this notion is especially relevant in a non-archimedean context, for instance for
+`p`-adic groups.
+
+## Main declarations
+
+* `open_subgroup.is_closed`: An open subgroup is automatically closed.
+* `subgroup.is_open_mono`: A subgroup containing an open subgroup is open.
+                           There are also versions for additive groups, submodules and ideals.
+* `open_subgroup.comap`: Open subgroups can be pulled back by a continuous group morphism.
+
+## TODO
+* Prove that the identity component of a locally path connected group is an open subgroup.
+  Up to now this file is really geared towards non-archimedean algebra, not Lie groups.
+-/
 
 open topological_space
 open_locale topological_space
@@ -118,13 +140,17 @@ instance : partial_order (open_subgroup G) :=
   .. partial_order.lift (coe : open_subgroup G → set G) coe_injective }
 
 @[to_additive]
+instance : order_top (open_subgroup G) :=
+{ top := ⊤,
+  le_top := λ U, set.subset_univ _ }
+
+@[to_additive]
 instance : semilattice_inf_top (open_subgroup G) :=
 { inf := λ U V, { is_open' := is_open.inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
   inf_le_left := λ U V, set.inter_subset_left _ _,
   inf_le_right := λ U V, set.inter_subset_right _ _,
   le_inf := λ U V W hV hW, set.subset_inter hV hW,
-  top := ⊤,
-  le_top := λ U, set.subset_univ _,
+  ..open_subgroup.order_top,
   ..open_subgroup.partial_order }
 
 @[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
@@ -206,6 +232,10 @@ instance : semilattice_sup_top (open_subgroup G) :=
   le_sup_right := λ U V, coe_subgroup_le.1 le_sup_right,
   sup_le := λ U V W hU hV, coe_subgroup_le.1 (sup_le hU hV),
   ..open_subgroup.semilattice_inf_top }
+
+@[to_additive]
+instance : lattice (open_subgroup G) :=
+{ ..open_subgroup.semilattice_sup_top, ..open_subgroup.semilattice_inf_top }
 
 end open_subgroup
 

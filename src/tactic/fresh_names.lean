@@ -68,11 +68,10 @@ variation of `n`.
 -/
 meta def get_unused_name_reserved (ns : list name) (reserved : name_set) :
   tactic name :=
-(first $ ns.map $ λ n, do {
-  guard (¬ reserved.contains n),
+(first $ ns.map $ λ n, do
+{ guard (¬ reserved.contains n),
   fail_if_success (resolve_name n),
-  pure n
-})
+  pure n })
 <|>
 (do let fallback := match ns with | [] := `x | x :: _ := x end,
     get_unused_name_reserved_aux fallback reserved none)

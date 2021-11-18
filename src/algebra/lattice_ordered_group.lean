@@ -311,8 +311,7 @@ begin
     { rw ← inv_le_inv_iff at h,
       apply sup_le
       (le_trans h (lattice_ordered_comm_group.m_le_neg a))
-      (lattice_ordered_comm_group.m_neg_pos a), }
-  },
+      (lattice_ordered_comm_group.m_neg_pos a), } },
   { intro h,
     rw [← pos_div_neg' a, ← pos_div_neg' b ],
     apply div_le_div'' h.1 h.2, }
@@ -447,8 +446,8 @@ begin
     ((b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c))) * |a ⊓ c / (b ⊓ c)| : by rw sup_div_inf_eq_abs_div
   ... = (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * (((b ⊓ c) ⊔ (a ⊓ c)) / ((b ⊓ c) ⊓ (a ⊓ c))) :
     by rw sup_div_inf_eq_abs_div (b ⊓ c) (a ⊓ c)
-  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by {
-    rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
+  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by
+  { rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
     nth_rewrite 1 sup_comm,
     rw [sup_right_idem, sup_assoc, inf_assoc ],
     nth_rewrite 3 inf_comm,

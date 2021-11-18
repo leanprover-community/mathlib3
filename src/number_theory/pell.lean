@@ -480,8 +480,8 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
       {rw tsub_add_cancel_of_le, rw two_mul; exact (add_lt_add_left kn n), exact k2n } in
     have xle : xn (2 * n - k) ≤ xn n, from le_of_lt $ strict_mono_x k2nl,
     suffices xn k % xn n = xn n - xn (2 * n - k), by rw [this, int.coe_nat_sub xle],
-    by {
-      rw ← nat.mod_eq_of_lt (nat.sub_lt (x_pos a1 n) (x_pos a1 (2 * n - k))),
+    by
+    { rw ← nat.mod_eq_of_lt (nat.sub_lt (x_pos a1 n) (x_pos a1 (2 * n - k))),
       apply modeq.add_right_cancel' (xn a1 (2 * n - k)),
       rw [tsub_add_cancel_of_le xle],
       have t := xn_modeq_x2n_sub_lem a1 k2nl.le,
@@ -489,8 +489,8 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
       exact t.trans dvd_rfl.zero_modeq_nat },
   (lt_trichotomy j n).elim
   (λ (jn : j < n), eq_of_xn_modeq_lem1 ij (lt_of_le_of_ne jn jnn)) $ λ o, o.elim
-  (λ (jn : j = n), by {
-    cases jn,
+  (λ (jn : j = n), by
+  { cases jn,
     apply int.lt_of_coe_nat_lt_coe_nat,
     rw [lem2 (n+1) (nat.lt_succ_self _) j2n,
         show 2 * n - (n + 1) = n - 1, by rw[two_mul, tsub_add_eq_tsub_tsub, add_tsub_cancel_right]],
@@ -522,8 +522,8 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
       (λh, lt_trans (eq_of_xn_modeq_lem3 h (le_of_lt j2n) jn $ λ⟨a1, n1, i0, j2⟩,
         by rw [n1, j2] at j2n; exact absurd j2n dec_trivial) s)
       (λh, by rw h; exact s),
-    lem1 (ne_of_gt jn) $ int.lt_of_coe_nat_lt_coe_nat $ by {
-      rw [lem2 j jn (le_of_lt j2n), lem2 (j+1) (nat.le_succ_of_le jn) j2n],
+    lem1 (ne_of_gt jn) $ int.lt_of_coe_nat_lt_coe_nat $ by
+    { rw [lem2 j jn (le_of_lt j2n), lem2 (j+1) (nat.le_succ_of_le jn) j2n],
       refine sub_lt_sub_left (int.coe_nat_lt_coe_nat_of_lt $ strict_mono_x _ _) _,
       rw [nat.sub_succ],
       exact nat.pred_lt (ne_of_gt $ tsub_pos_of_lt j2n) })
@@ -531,8 +531,8 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
 theorem eq_of_xn_modeq_le {i j n} (npos : 0 < n) (ij : i ≤ j) (j2n : j ≤ 2 * n)
   (h : xn i ≡ xn j [MOD xn n]) (ntriv : ¬(a = 2 ∧ n = 1 ∧ i = 0 ∧ j = 2)) : i = j :=
 (lt_or_eq_of_le ij).resolve_left $ λij',
-if jn : j = n then by {
-  refine ne_of_gt _ h,
+if jn : j = n then by
+{ refine ne_of_gt _ h,
   rw [jn, nat.mod_self],
   have x0 : 0 < xn a1 0 % xn a1 n := by rw [nat.mod_eq_of_lt (strict_mono_x a1 npos)];
     exact dec_trivial,

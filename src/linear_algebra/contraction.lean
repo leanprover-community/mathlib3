@@ -49,9 +49,9 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
   (uncurry R M' N (M →ₗ[R] N) : _ → M' ⊗ N →ₗ[R] M →ₗ[R] N) linear_map.smul_rightₗ
 
 /-- An explicit right inverse of `dual_tensor_hom` given a basis. -/
-noncomputable def hom_dual_tensor {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
-  (M →ₗ[R] N) → (module.dual R M) ⊗[R] N :=
-  λ f, ∑ (i : ι), (b.dual_basis i) ⊗ₜ f (b i)
+noncomputable def hom_dual_tensor
+  {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N) :
+  (module.dual R M) ⊗[R] N := ∑ (i : ι), (b.dual_basis i) ⊗ₜ f (b i)
 
 variables {R M N}
 

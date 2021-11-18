@@ -61,6 +61,23 @@ def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C ≌ D :=
   unit_iso := eq_to_iso $ eq.symm γ.hom_inv_id,
   counit_iso := eq_to_iso γ.inv_hom_id }
 
+/-- `op` as a endofunctor of `Cat`. -/
+@[simps]
+def op : Cat ⥤ Cat :=
+{ obj := λ C, ⟨C.1ᵒᵖ⟩,
+  map := λ _ _, functor.op }
+
+/-- `op` is an involution up to iso. -/
+def id_iso_op_op : 𝟭 Cat ≅ op ⋙ op :=
+{ hom := { app := λ C, unop_unop C },
+  inv := { app := λ C, op_op C } }
+
+/-- `op` as an autoequivalence of `Cat`. -/
+def op_equivalence : Cat ≌ Cat :=
+{ functor := op, inverse := op,
+  unit_iso := id_iso_op_op,
+  counit_iso := id_iso_op_op.symm }
+
 end Cat
 
 /--

@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.adjunction.basic
 import category_theory.conj
 import category_theory.yoneda
+import category_theory.category.Cat
 
 /-!
 # Mate of natural transformations
@@ -151,12 +152,12 @@ calc (L₂ ⟶ L₁) ≃ _         : (iso.hom_congr L₂.left_unitor L₁.right_
 
 lemma transfer_nat_trans_self_app (f : L₂ ⟶ L₁) (X : D) :
   (transfer_nat_trans_self adj₁ adj₂ f).app X =
-    adj₂.unit.app (R₁.obj X) ≫ R₂.map (f.app (R₁.obj X)) ≫ R₂.map (adj₁.counit.app X) :=
+    adj₂.unit.app (R₁.obj X) ≫ R₂.map (f.app (R₁.obj X) ≫ adj₁.counit.app X) :=
 by { dsimp [transfer_nat_trans_self, transfer_nat_trans], simp }
 
 lemma transfer_nat_trans_self_symm_app (f : R₁ ⟶ R₂) (X : C) :
   ((transfer_nat_trans_self adj₁ adj₂).symm f).app X =
-    L₂.map (adj₁.unit.app X) ≫ L₂.map (f.app (L₁.obj X)) ≫ adj₂.counit.app (L₁.obj X) :=
+    L₂.map (adj₁.unit.app X ≫ f.app (L₁.obj X)) ≫ adj₂.counit.app (L₁.obj X) :=
 by { dsimp [transfer_nat_trans_self, transfer_nat_trans], simp }
 
 lemma transfer_nat_trans_self_counit (f : L₂ ⟶ L₁) (X) :
@@ -274,6 +275,102 @@ begin
   apply_instance,
 end
 
+variables {ι : Type*} {L : ι → (C ⥤ D)} {R : ι → (D ⥤ C)}
+{adj : ∀ i, L i ⊣ R i} {i j : ι} (h : i = j)
+include h
+
+lemma transfer_nat_trans_self_eq₁ {f : L₂ ⟶ L i} :
+  transfer_nat_trans_self (adj i) adj₂ f =
+  eq_to_hom (by rw h) ≫ transfer_nat_trans_self (adj j) adj₂ (f ≫ eq_to_hom (by rw h)) :=
+by { cases h, erw [id_comp, comp_id] }
+
+lemma transfer_nat_trans_self_eq₂ {f : L i ⟶ L₁} :
+  transfer_nat_trans_self adj₁ (adj i) f =
+  transfer_nat_trans_self adj₁ (adj j) (eq_to_hom (by rw h) ≫ f) ≫ eq_to_hom (by rw h) :=
+by { cases h, erw [id_comp, comp_id] }
+
 end self
+
+variable (C)
+/-- Definition follows https://stacks.math.columbia.edu/tag/003N, but replaces
+    natural isomophisms with transformations `map_id` and `map_comp`. Notice that
+    this is slightly different from the lax functor defined in
+    https://ncatlab.org/nlab/show/pseudofunctor, because the direction of `map_comp`
+    is different, so it seems ours definition is a mixture between lax and colax functors.
+    However when `map_id` and `map_comp` are isomorphisms, obviously all definitions agree.
+
+    It's harder to state for the general situation than for pushforward and pullback only,
+    because there the associativity and composition with id are defeq. -/
+structure lax_functor_to_Cat extends prefunctor C Cat :=
+(map_id : ∀ (X : C), 𝟭 (obj X) ⟶ map (𝟙 X))
+(map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) ⟶ map f ⋙ map g)
+(id_comp : ∀ {X Y : C} (f : X ⟶ Y), map_comp (𝟙 X) f =
+  eq_to_hom (by {rw id_comp, cases map f, refl}) ≫ whisker_right (map_id X) (map f) . obviously)
+(comp_id : ∀ {X Y : C} (f : X ⟶ Y), map_comp f (𝟙 Y) =
+  eq_to_hom (by {rw comp_id, cases map f, refl}) ≫ whisker_left (map f) (map_id Y) . obviously)
+(assoc : ∀ {X Y Z W : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W),
+  map_comp (f ≫ g) h ≫ whisker_right (map_comp f g) (map h) = eq_to_hom (by rw assoc) ≫
+  map_comp f (g ≫ h) ≫ whisker_left (map f) (map_comp g h) . obviously)
+
+instance : inhabited (lax_functor_to_Cat Cat) :=
+⟨{ obj := 𝟙 Cat,
+   map := λ _ _, id,
+   map_id := λ _, 𝟙 _,
+   map_comp := λ _ _ _ _ _, 𝟙 _ }⟩
+
+
+def transfer_lax_functor (L : lax_functor_to_Cat C)
+  (Rmap : ∀ {X Y : C} (f : X ⟶ Y), L.obj Y ⟶ L.obj X)
+  (adj : ∀ {X Y : C} (f : X ⟶ Y), L.map f ⊣ Rmap f) :
+  lax_functor_to_Cat Cᵒᵖ :=
+{ obj := λ X, Cat.op.obj (L.obj X.unop),
+  map := λ X Y f, functor.op (Rmap f.unop),
+  map_id := λ X, nat_trans.op $
+    transfer_nat_trans_self (adj (𝟙 X.unop)) adjunction.id (L.map_id X.unop),
+  map_comp := λ X Y Z f g, nat_trans.op $ transfer_nat_trans_self
+    (adjunction.comp _ _ (adj g.unop) (adj f.unop)) (adj (f ≫ g).unop) (L.map_comp g.unop f.unop),
+  id_comp := λ X Y f, by {
+    rw transfer_nat_trans_self_eq₂ _ (congr_arg quiver.hom.unop (id_comp f)),
+    ext, induction x using opposite.rec,
+    induction X using opposite.rec, induction Y using opposite.rec,
+    apply quiver.hom.unop_inj, dsimp, set f' := f.unop,
+    erw [transfer_nat_trans_self_app, L.comp_id],
+    rw [adjunction.comp, eq_to_hom_trans_assoc, nat_trans.comp_app, eq_to_hom_app], erw id_comp,
+    dsimp, rw id_comp,
+    let : (L.to_prefunctor.map f').obj ((Rmap f').obj ((Rmap (𝟙 X)).obj x)) =
+      (Rmap f' ⋙ L.map f').obj ((Rmap (𝟙 X)).obj x) := rfl, erw this,
+    --rw functor.map_comp, dsimp, erw ← nat_trans.naturality_assoc (adj f').unit,
+    --rw ← congr_arg (L.map_id X).app ((Rmap f').comp_obj (L.to_prefunctor.map f') ((Rmap (𝟙 X)).obj x)),
+    change _ ≫ (Rmap f').map ((L.map_id X).app ((Rmap f' ⋙ L.map f').obj ((Rmap (𝟙 X)).obj x)) ≫ _) ≫ _ = _,
+
+    have : (L.map_id X).app ((L.to_prefunctor.map f').obj ((Rmap f').obj ((Rmap (𝟙 X)).obj x)))
+      = (L.map_id X).app ((Rmap f' ⋙ L.map f').obj ((Rmap (𝟙 X)).obj x)) := rfl,
+      erw (Rmap f').comp_obj, rw this,
+    --erw ← (Rmap f').comp_obj (L.to_prefunctor.map f') ((Rmap (𝟙 X)).obj x),
+    --dsimp [-functor.comp_obj],-- rw id_comp,
+    --have := (Rmap f').comp_obj (L.to_prefunctor.map f') ((Rmap (𝟙 X)).obj x),
+    --rw ← this,
+    --have := (L.map_id X).naturality_assoc ((adj f').counit.app ((Rmap (𝟙 X)).obj x)) ((adj (𝟙 X)).counit.app x),
+    --rw ← this,
+    rw ← nat_trans.naturality_assoc,
+
+    --iterate 2 {erw transfer_nat_trans_self_app},
+    --erw L.comp_id, rw [adjunction.comp, adjunction.id],
+    --simp [transfer_nat_trans_self_app],
+    --, adjunction.comp, adjunction.id
+    --rw unop_id,
+    simp,
+     dsimp,
+
+    rw ← functor.map_comp,
+
+  rw comp_id, },
+  comp_id := ,
+  assoc := }
+
+
+namespace lax_functor
+
+end lax_functor
 
 end category_theory

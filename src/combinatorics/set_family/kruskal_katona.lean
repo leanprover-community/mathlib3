@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import combinatorics.colex
-import combinatorics.compressions.UV
+import combinatorics.set_family.basic
+import combinatorics.set_family.compression.uv
 
 /-!
 # Kruskal-Katona theorem
@@ -60,7 +61,8 @@ theorem EKR {𝒜 : finset (finset X)} {r : ℕ}
 kruskal-katona, kruskal, katona, shadow, initial segments, intersecting
 -/
 
-open finset fintype nat
+open finset fintype nat uv
+open_locale finset_family
 
 lemma eq_of_sdiff_eq_sdiff {α : Type*} [generalized_boolean_algebra α] {x y z : α} (hxz : x ≤ z)
   (hyz : y ≤ z) (h : z \ x = z \ y) :
@@ -129,19 +131,24 @@ def family_measure (𝒜 : finset (finset (fin n))) : ℕ :=
 can't any more" is a terminating process. -/
 lemma compression_reduces_family {U V : finset (fin n)}
   {hU : U.nonempty} {hV : V.nonempty} (h : max' U hU < max' V hV)
-  {𝒜 : finset (finset (fin n))} (a : compress_family U V 𝒜 ≠ 𝒜) :
-  family_measure (compress_family U V 𝒜) < family_measure 𝒜 :=
+  {𝒜 : finset (finset (fin n))} (a : 𝓒 U V 𝒜 ≠ 𝒜) :
+  family_measure (𝓒 U V 𝒜) < family_measure 𝒜 :=
 begin
-  rw [compress_family] at ⊢ a,
+  rw [compression] at ⊢ a,
   have q : ∀ Q ∈ filter (λ A, compress U V A ∉ 𝒜) 𝒜, compress U V Q ≠ Q,
     intros Q HQ, rw mem_filter at HQ, intro z, rw z at HQ, exact HQ.2 HQ.1,
   set CA₁ := filter (λ A, compress U V A ∈ 𝒜) 𝒜,
   have uA: CA₁ ∪ filter (λ A, compress U V A ∉ 𝒜) 𝒜 = 𝒜 :=
     filter_union_filter_neg_eq _ _,
   have ne₂ : finset.nonempty (filter (λ A, compress U V A ∉ 𝒜) 𝒜),
-    rw nonempty_iff_ne_empty, intro z,
-    rw [compress_motion, z, image_empty, empty_union] at a,
-    rw [z, union_empty] at uA, exact a uA,
+  { rw nonempty_iff_ne_empty,
+    refine λ z, a _,
+    rw [image_filter],
+    dsimp,
+    change _ ∪ image _ (𝒜.filter $ λ A, compress U V A ∉ 𝒜) = _,
+    rw [z, image_empty, empty_union],
+    rw [z, union_empty] at uA,
+    exact a uA },
   rw [family_measure, family_measure, sum_union (compress_disjoint U V)],
   conv_rhs {rw ← uA},
     rw [sum_union, add_comm, add_lt_add_iff_left, sum_image],
@@ -171,10 +178,10 @@ every smaller compression won't make a difference. -/
 lemma compression_improved [linear_order α] (U V : finset α)
   (𝒜 : finset (finset α)) (h₁ : useful_compression U V)
   (h₂ : ∀ ⦃U₁ V₁⦄, useful_compression U₁ V₁ ∧ U₁.card < U.card → is_compressed U₁ V₁ 𝒜) :
-  (∂ compress_family U V 𝒜).card ≤ (∂𝒜).card :=
+  (∂ (𝓒 U V 𝒜)).card ≤ (∂𝒜).card :=
 begin
   obtain ⟨hU, hV, UVd, same_size, max_lt⟩ := h₁,
-  apply compression_reduces_shadow _ same_size,
+  apply card_shadow_compression_le _ same_size,
   refine λ x Hx, ⟨min' V hV, min'_mem _ _, _⟩,
   obtain hU' | hU' := eq_or_lt_of_le (succ_le_iff.2 hU.card_pos),
   { rw ←hU' at same_size,
@@ -185,7 +192,7 @@ begin
     { rw [← finset.card_eq_zero, card_erase_of_mem (min'_mem _ _), ← same_size],
       refl },
     rw [‹erase U x = ∅›, ‹erase V (min' V hV) = ∅›],
-    exact is_compressed_self _ },
+    exact is_compressed_self _ _ },
   refine h₂ ⟨⟨_, _, _, _, _⟩, card_erase_lt_of_mem Hx⟩,
   { rwa [← finset.card_pos, card_erase_of_mem Hx, nat.lt_pred_iff] },
   { rwa [← finset.card_pos, card_erase_of_mem (min'_mem _ _), ← same_size, nat.lt_pred_iff] },
@@ -237,16 +244,16 @@ begin
   { rintro U₁ V₁ huseful hUcard,
     by_contra,
     exact hUcard.not_le (t ⟨U₁, V₁⟩ $ mem_filter.2 ⟨mem_univ _, huseful, h⟩) },
-  have p1 : (∂compress_family U V A).card ≤ (∂A).card,
+  have p1 : (∂𝓒 U V A).card ≤ (∂A).card,
   sorry,
   sorry
   --   compression_improved _ _ _ uvh.2.1 h₂,
   -- rcases uvh.2.1 with ⟨_, _, _, same_size, max_lt⟩,
   -- rw [measure, inv_image] at ih,
-  -- rcases ih (compress_family U V A) _ _ with ⟨B, q1, q2, q3, q4⟩,
+  -- rcases ih (𝓒 U V A) _ _ with ⟨B, q1, q2, q3, q4⟩,
   -- { exact ⟨B, trans q1 p1, trans (compressed_size _ _).symm q2, q3, q4⟩ },
   -- { apply compression_reduces_family max_lt uvh.2.2 },
-  -- { apply compress_family_sized same_size h }
+  -- { apply 𝓒_sized same_size h }
 end
 
 /-- If we're compressed by all useful compressions, then we're an initial segment. This is the other
@@ -267,7 +274,7 @@ begin
   have cB_eq_A : compress U V B = A,
   { rw compress,
     split_ifs,
-    rw [union_sdiff_self_eq_union, union_sdiff_distrib, sdiff_eq_self_of_disjoint disjoint_sdiff,
+    rw [sup_sdiff_self_right, union_sdiff_distrib, sdiff_eq_self_of_disjoint disjoint_sdiff,
       union_comm, union_eq_left_iff_subset],
     intro t,
     simp only [and_imp, not_and, mem_sdiff, not_not],
@@ -275,7 +282,7 @@ begin
   have cA_eq_B: compress V U A = B,
   { rw compress,
     split_ifs,
-    rw [union_sdiff_self_eq_union, union_sdiff_distrib, sdiff_eq_self_of_disjoint disjoint_sdiff,
+    rw [sup_sdiff_self_right, union_sdiff_distrib, sdiff_eq_self_of_disjoint disjoint_sdiff,
       union_comm, union_eq_left_iff_subset],
     intro t,
     simp only [and_imp, not_and, mem_sdiff, not_not],
@@ -314,7 +321,7 @@ begin
         eq_comm] at this },
   have Bcomp := h₂ V U this,
   rw is_compressed at Bcomp,
-  suffices : compress V U A ∈ compress_family V U ℬ,
+  suffices : compress V U A ∈ 𝓒 V U ℬ,
   { rw [Bcomp, cA_eq_B] at this, exact hB this },
   rw mem_compress,
   left,

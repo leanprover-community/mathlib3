@@ -118,12 +118,7 @@ disjoint_left.2 $ λ a ha₁ ha₂, (mem_filter.1 ha₂).2 (mem_filter.1 ha₁).
 begin
   unfold compress,
   split_ifs with h h',
-  { suffices : u = ⊥,
-    { rw [this, sup_bot_eq, sup_bot_eq, _root_.sdiff_idem] },
-    rw ←disjoint_self,
-    have : u \ v = u := (h.1.mono_right h.2).sdiff_eq_left,
-    nth_rewrite 1 ←this,
-    exact h'.1.mono_right (sdiff_le_sdiff_right le_sup_right) },
+  { rw [le_sdiff_iff.1 h'.2, sdiff_bot, sdiff_bot, sup_assoc, sup_idem] },
   { refl },
   { refl }
 end
@@ -172,9 +167,8 @@ begin
     split_ifs at hb hab with hbs,
     { have h : (a ⊔ u) \ v \ u ⊔ v = (b ⊔ u) \ v \ u ⊔ v,
       { rw hab },
-      rwa [sdiff_sdiff_comm, has.1.symm.sup_sdiff_cancel_right,
-          sdiff_sdiff_comm, hbs.1.symm.sup_sdiff_cancel_right,
-          sdiff_sup_cancel has.2, sdiff_sup_cancel hbs.2] at h },
+      rwa [sdiff_sdiff_comm, has.1.symm.sup_sdiff_cancel_right, sdiff_sdiff_comm,
+        hbs.1.symm.sup_sdiff_cancel_right, sdiff_sup_cancel has.2, sdiff_sup_cancel hbs.2] at h },
     { exact (hb.2 hb.1).elim } },
   { exact (ha.2 ha.1).elim }
 end
@@ -229,7 +223,7 @@ lemma card_compress (hUV : U.card = V.card) (A : finset α) : (compress U V A).c
 begin
   unfold compress,
   split_ifs,
-  { rw [card_sdiff (h.2.trans (le_sup_left)), sup_eq_union, card_disjoint_union h.1.symm, hUV,
+  { rw [card_sdiff (h.2.trans le_sup_left), sup_eq_union, card_disjoint_union h.1.symm, hUV,
     add_tsub_cancel_right] },
   { refl }
 end

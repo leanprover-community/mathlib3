@@ -581,7 +581,7 @@ lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α}
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
-  where for every pair `x ≠ y`, there are two open sets, with the intersection of clousures
+  where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
 (t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V ∧

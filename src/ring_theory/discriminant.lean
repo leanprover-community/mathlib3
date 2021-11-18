@@ -53,7 +53,8 @@ section matrix
 /-- Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we define
 `trace_matrix A ι b` as the matrix whose `(i j)`-th element is the trace of `b i * b j`. -/
 noncomputable
-def trace_matrix (b : ι → B) : matrix ι ι A := (λ i j, trace_form A B (b i) (b j))
+def trace_matrix (b : ι → B) : matrix ι ι A
+| i j := trace_form A B (b i) (b j)
 
 @[simp] lemma trace_matrix_apply (b : ι → B) (i j : ι) :
   trace_matrix A b i j = trace_form A B (b i) (b j) := rfl

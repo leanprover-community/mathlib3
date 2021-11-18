@@ -95,7 +95,7 @@ lemma irreducible_has_separable_contraction (q : ℕ) [hF : exp_char F q]
   (f : polynomial F) [irred : irreducible f] : has_separable_contraction q f :=
 begin
   casesI hF,
-  { exact ⟨f, irreducible.separable irred, ⟨0, by rw [pow_zero, expand_one]⟩⟩ },
+  { exact ⟨f, irred.separable, ⟨0, by rw [pow_zero, expand_one]⟩⟩ },
   { rcases exists_separable_of_irreducible q irred ‹q.prime›.ne_zero with ⟨n, g, hgs, hge⟩,
     exact ⟨g, hgs, n, hge⟩, }
 end

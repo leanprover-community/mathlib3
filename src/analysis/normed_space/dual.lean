@@ -144,15 +144,18 @@ open_locale topological_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-@[simp] lemma zero_mem (s : set E) :
+@[simp] lemma zero_mem (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
   (0 : dual 𝕜 E) ∈ polar 𝕜 s :=
 λ _ _, by simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero]
 
-lemma eq_Inter (s : set E) :
+lemma eq_Inter (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥ x' z ∥ ≤ 1 } :=
 by { dunfold polar, ext, simp only [mem_bInter_iff, mem_set_of_eq], }
 
-lemma of_empty : polar 𝕜 (∅ : set E) = univ :=
+lemma of_empty (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] : polar 𝕜 (∅ : set E) = univ :=
 by { simp only [polar, forall_false_left, mem_empty_eq, forall_const, set_of_true], }
 
 /-- If `x'` is a dual element such that the norms `∥x' z∥` are bounded for `z ∈ s`, then a
@@ -179,7 +182,7 @@ end
 /-- The `polar` of closed unit ball in a normed space `E` is the closed unit ball of the dual. -/
 lemma of_closed_unit_ball
   {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  polar 𝕜 (closed_ball (0 : E) 1) = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1 } :=
+  polar 𝕜 (closed_ball (0 : E) 1) = closed_ball (0 : dual 𝕜 E) 1 :=
 begin
   ext x',
   simp only [mem_closed_ball, mem_set_of_eq, dist_zero_right],
@@ -199,7 +202,7 @@ end
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then at any point `z : E`
 there exists a bound for the norms of the values `x' z` of the elements `x' ∈ polar 𝕜 s` of the
 polar of `s`. -/
-lemma eval_bounded_of_nbhd_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+lemma eval_bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (z : E) :
   ∃ (r : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r :=
@@ -226,10 +229,10 @@ end
 
 /-- If `s` is a neighborhood of the origin in a normed space `E`, then there exists a
 function `r : E → ℝ` such that for all elements `x' ∈ polar 𝕜 s` one has `∥x' z∥ ≤ r(z)`. -/
-lemma finite_values_of_nbhd_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+lemma finite_values_of_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   ∃ (r : E → ℝ), ∀ (x' : dual 𝕜 E) (z : E), x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ r z :=
 begin
-  cases classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd) with r hr,
+  cases classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd) with r hr,
   use r,
   intros x' z,
   exact hr z x',
@@ -237,7 +240,7 @@ end
 
 /-- Given a neighborhood `s` of the origin in a normed space `E` over `ℝ` or `ℂ`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
-lemma bounded_of_nbhd_zero {𝕜 : Type*} [is_R_or_C 𝕜]
+lemma bounded_of_nhds_zero {𝕜 : Type*} [is_R_or_C 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   ∃ (c : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' ∥ ≤ c :=
 begin
@@ -263,14 +266,14 @@ is given by `bounds_fun _ z`. -/
 def bounds_fun (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : E → ℝ :=
-classical.some (classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd))
+classical.some (classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd))
 
 lemma bounds_fun_spec (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (x' : dual 𝕜 E) (z : E) :
   x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ bounds_fun 𝕜 s_nhd z :=
 classical.some_spec
-  (classical.axiom_of_choice (eval_bounded_of_nbhd_zero 𝕜 s_nhd)) z x'
+  (classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd)) z x'
 
 end polar
 

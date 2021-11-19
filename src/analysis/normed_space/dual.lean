@@ -227,7 +227,7 @@ begin
   simp only [inv_nonneg, norm_nonneg],
 end
 
-/-- Given a neighborhood `s` of the origin in a normed space `E` over `ℝ` or `ℂ`, the dual norms
+/-- Given a neighborhood `s` of the origin in a normed space `E`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
 lemma bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
@@ -245,6 +245,8 @@ begin
   ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
 end
 
+/-- Given a neighborhood `s` of the origin in a normed space `E` obtain a constant which bounds
+the dual norms of all elements of the polar `polar 𝕜 s`. -/
 def bound_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : ℝ :=
 classical.some (bounded_of_nhds_zero 𝕜 s_nhd)

@@ -117,18 +117,7 @@ end
 -- TODO move to correct place
 lemma fintype.card_range_le {α β : Type*} (f : α → β) [fintype α] [fintype (set.range f)] :
   fintype.card (set.range f) ≤ fintype.card α :=
-begin
-  let g : set.range f → α := λ y, y.2.some,
-  have : function.injective g,
-  { rintros ⟨x, hx⟩ ⟨x', hx'⟩,
-    simp only [g],
-    have h := hx.some_spec,
-    have h' := hx'.some_spec,
-    intro he,
-    rw [he, h'] at h,
-    simp [h], },
-  exact fintype.card_le_of_injective _ this,
-end
+fintype.card_le_of_surjective (λ a, ⟨f a, by simp⟩) (λ ⟨_, a, ha⟩, ⟨a, by simpa using ha⟩)
 
 -- TODO move to correct place (and simplify/rename)
 lemma setoid.ker_classes.fintype_card {α β : Type*} [fintype β]

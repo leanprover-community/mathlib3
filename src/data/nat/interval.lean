@@ -169,7 +169,8 @@ end
 lemma Ico_succ_left_eq_erase_Ico : Ico a.succ b = erase (Ico a b) a :=
 begin
   ext x,
-  rw [Ico_succ_left, mem_erase, mem_Ico, mem_Ioo, ←and_assoc, ne_comm, and_comm (a ≠ x), lt_iff_le_and_ne],
+  rw [Ico_succ_left, mem_erase, mem_Ico, mem_Ioo, ←and_assoc, ne_comm, and_comm (a ≠ x),
+    lt_iff_le_and_ne],
 end
 
 lemma range_image_pred_top_sub (n : ℕ) : (finset.range n).image (λ j, n - 1 - j) = finset.range n :=

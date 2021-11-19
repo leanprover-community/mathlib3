@@ -7,6 +7,7 @@ import algebra.category.Mon.basic
 import algebra.category.Semigroup.basic
 import algebra.group.with_one
 import algebra.free_monoid
+import category_theory.concrete_category.representable
 
 /-!
 # Adjunctions regarding the category of monoids
@@ -70,3 +71,6 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := λ X Y G f g, by { ext1, refl } }
 
 instance : is_right_adjoint (forget Mon.{u}) := ⟨_, adj⟩
+
+instance : representably_concrete Mon.{u} :=
+{ out := corepresentable_of_right_adjoint _ _ }

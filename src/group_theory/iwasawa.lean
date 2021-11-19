@@ -186,24 +186,21 @@ lemma has_maximal_stabilizer : is_primitive G X →  ∀ (x : X), (stabilizer G 
 /-- A 2-transitive action is primitive -/
 /- Part of the proof establishes that stabilizers of n-transitive
 actions are (n-1)-transitive. Todo: rewrite using this. -/
-theorem is_primitive_of_two_trans
-  : (∀ (x₁ x₂ y₁ y₂ : X) (hx: x₁ ≠ x₂) (hy: y₁ ≠ y₂), ∃ g: G,
-  g • x₁  = y₁ ∧ g • x₂ = y₂ ) →
-  nontrivial X → is_primitive G X :=
+theorem is_primitive_of_two_trans  [hX: nontrivial X]
+   (h2X : ∀ (x₁ x₂ y₁ y₂ : X) (hx: x₁ ≠ x₂) (hy: y₁ ≠ y₂),
+  ∃ g: G, g • x₁  = y₁ ∧ g • x₂ = y₂ ) : is_primitive G X :=
 begin
-    intros h2X hX,
-
     have is_trans : is_transitive G X ,
     { apply is_transitive.mk,
       apply is_pretransitive.mk,
       { intros x y,
         /- on veut applique x sur y
           mais il faut un élément x' ≠ x à appliquer sur un élément y' ≠ y    -/
-        obtain ⟨x', hx'⟩ := @exists_ne _ hX x,
-        obtain ⟨y', hy'⟩ := @exists_ne _ hX y,
+        obtain ⟨x', hx'⟩ := exists_ne x,
+        obtain ⟨y', hy'⟩ := exists_ne y,
         obtain ⟨ g, h, h' ⟩ := h2X x x' y y' hx'.symm hy'.symm,
         existsi g, exact h, },
-    {  exact @nontrivial.to_nonempty _ hX, },},
+    {  apply nontrivial.to_nonempty, },},
 
     have has_max_stab : ∀ x:X, (stabilizer G x).is_maximal,
     { intro x,
@@ -211,7 +208,7 @@ begin
       split,
 
       { -- stabilizer G x ≠ ⊤ :
-        obtain ⟨ y, hy ⟩ := @exists_ne _ hX x,
+        obtain ⟨ y, hy ⟩ := exists_ne x,
         obtain ⟨ g, h, h' ⟩ := h2X x y y x hy.symm hy,
         have z : g ∉ stabilizer G x ,
 

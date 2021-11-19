@@ -84,7 +84,8 @@ variables (K)
 
 instance [number_field K] : char_zero (ring_of_integers K) := char_zero.of_algebra K
 
--- TODO: show `ring_of_integers K` is a Dedekind domain
+instance [number_field K] : is_dedekind_domain (ring_of_integers K) :=
+is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
 end ring_of_integers
 

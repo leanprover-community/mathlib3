@@ -3,11 +3,10 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import data.setoid.basic
-import algebra.group.pi
-import algebra.group.prod
-import data.equiv.mul_add
 import group_theory.submonoid.operations
+import data.equiv.mul_add
+import data.setoid.basic
+import algebra.group.prod
 
 /-!
 # Congruence relations

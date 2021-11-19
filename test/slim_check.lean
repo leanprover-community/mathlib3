@@ -1,4 +1,5 @@
 import tactic.slim_check
+import testing.slim_check.functions
 import .mk_slim_check_test
 
 example : true :=

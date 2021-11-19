@@ -6,6 +6,7 @@ Authors: Kenny Lau, Johan Commelin
 import group_theory.free_abelian_group
 import ring_theory.subring.basic
 
+
 /-!
 # Free rings
 

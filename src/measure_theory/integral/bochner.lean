@@ -1121,14 +1121,13 @@ calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ : norm_integral_le_integr
                ... ≤ ∫ x, g x ∂μ   :
   integral_mono_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hg h
 
-lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
+lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, integrable (f i) μ) :
   ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
 begin
-  refine finset.induction_on s _ _,
+  induction s using finset.induction_on with i s hi ihs,
   { simp only [integral_zero, finset.sum_empty] },
-  { assume i s his ih,
-    simp only [his, finset.sum_insert, not_false_iff],
-    rw [integral_add (hf _) (integrable_finset_sum s hf), ih] }
+  { rw [finset.forall_mem_insert] at hf,
+    simp only [finset.sum_insert hi, ← ihs hf.2, integral_add hf.1 (integrable_finset_sum s hf.2)] }
 end
 
 lemma simple_func.integral_eq_integral (f : α →ₛ E) (hfi : integrable f μ) :

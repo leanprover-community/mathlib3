@@ -1,13 +1,16 @@
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import analysis.calculus.parametric_interval_integral
+import analysis.analytic.basic
 --import measure_theory.integral.periodic
 
 /-!
 -/
 
 open topological_space set measure_theory interval_integral metric filter function
-open_locale interval real topological_space
+open_locale interval real nnreal ennreal topological_space big_operators
+
+noncomputable theory
 
 universes u v
 
@@ -116,7 +119,7 @@ begin
     exacts [λ z hz, (hc z hz).mono hsub, λ z hz, (hd z ⟨hsub hz.1, hz.2⟩).mono hsub] },
   rw this,
   have hmem : ∀ y : ℝ, ↑r * exp (y * I) ∈ closed_ball (0 : ℂ) r \ {0},
-  { intro x, simp [abs_exp, abs_of_nonneg hr0.le, hr0.ne', exp_ne_zero] },
+  { intro x, simp [abs_of_nonneg hr0.le, hr0.ne', exp_ne_zero] },
   have : ∫ (θ : ℝ) in 0..2 * π, y = (2 * π) • y := by simp,
   rw [← this, ← interval_integral.integral_sub],
   { have : ∀ x : ℝ, ∥f (r * exp (x * I)) - y∥ ≤ ε / (2 * π),
@@ -199,7 +202,7 @@ begin
       rw [hw, ← abs_mul_exp_arg_mul_I w, hθ₀, this] },
     exact (abs_eq_and_im_eq_iff.2 ⟨z.abs_im_le_abs.trans hlt.le, or.inl hw.symm⟩).1 },
   { have hR : 0 < R, from (abs_nonneg z).trans_lt hlt,
-    have habs : abs (R * exp (θ * I)) = R, by simp [_root_.abs_of_nonneg hR.le, abs_exp],
+    have habs : abs (R * exp (θ * I)) = R, by simp [_root_.abs_of_nonneg hR.le],
     have : ↑R * exp (θ * I) = w := hw ▸ (abs_eq_and_im_eq_iff.1 ⟨habs, hθz.2⟩).2.resolve_right
       (hθz.trans_lt (mem_Ioo_of_abs_lt hlt).2).ne,
     apply_fun arg at this,
@@ -212,7 +215,7 @@ begin
   have hR0 : 0 < R := (abs_nonneg w).trans_lt hw,
   have h0 : ∀ θ : ℝ, ↑R * exp (θ * I) - w ≠ 0,
   { refine λ θ, sub_ne_zero.2 (λ h₀, _),
-    simpa [h₀.symm, _root_.abs_of_nonneg hR0.le, abs_exp] using hw },
+    simpa [h₀.symm, _root_.abs_of_nonneg hR0.le] using hw },
   set f : ℝ → ℂ := λ θ, R * exp (θ * I) * I * (R * exp (θ * I) - w) ^ n,
   set F : ℝ → ℂ := λ θ, (R * exp (θ * I) - w) ^ (n + 1) / (n + 1),
   have : ∀ θ, has_deriv_at F (f θ) θ,
@@ -230,6 +233,70 @@ begin
   calc ∫ θ in 0 .. 2 * π, f θ = F (2 * π) - F 0 :
     interval_integral.integral_eq_sub_of_has_deriv_at (λ θ _, this θ) (hfc.interval_integrable _ _)
   ... = 0 : by { simp only [F], simp }
+end
+
+def cauchy_power_series (f : ℝ → E) (R : ℝ) :
+  formal_multilinear_series ℂ ℂ E :=
+λ n, continuous_multilinear_map.mk_pi_field ℂ _ $
+  ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I))⁻¹ ^ n • f θ
+
+lemma cauchy_power_series_apply (f : ℝ → E) (R : ℝ) (n : ℕ) (z : ℂ) :
+  cauchy_power_series f R n (λ _, z) =
+    ∫ θ : ℝ in 0..2*π, (z / (R * exp (θ * I))) ^ n • f θ :=
+by simp only [cauchy_power_series, continuous_multilinear_map.mk_pi_field_apply, fin.prod_const,
+  ← interval_integral.integral_smul, div_eq_mul_inv, mul_pow, smul_smul]
+
+lemma cauchy_power_series_partial_sum {f : ℝ → E} (hf : interval_integrable f volume 0 (2 * π))
+  {z : ℂ} {R : ℝ} (hz : abs z ≠ |R|) (n : ℕ) :
+  (cauchy_power_series f R).partial_sum n z =
+    ∫ θ : ℝ in 0..2*π,
+      (((z / (R * exp (θ * I))) ^ n - 1) / (z / (R * exp (θ * I)) - 1)) • f θ :=
+begin
+  simp only [formal_multilinear_series.partial_sum, cauchy_power_series_apply],
+  rw [← interval_integral.integral_finset_sum],
+  { have : ∀ θ : ℝ, z / (R * exp (θ * I)) ≠ 1,
+    { refine λ θ hθ, hz _, simp [eq_of_div_eq_one hθ] },
+    simp only [← finset.sum_smul, ← geom_sum_def, geom_sum_eq (this _)] },
+  { rintro n -,
+    rw interval_integrable_iff at hf ⊢,
+    refine (hf.norm.const_mul ((abs z / |R|) ^ n)).mono' _ _,
+    { exact ((((measurable_of_real.mul_const _).cexp.const_mul _).const_div _).pow_const
+        _).ae_measurable.smul hf.ae_measurable },
+    { simp [norm_smul] } }
+end
+
+lemma norm_cauchy_power_series_le (f : ℝ → E) (R : ℝ) (n : ℕ) :
+  ∥cauchy_power_series f R n∥ ≤ (∫ θ : ℝ in 0..2*π, ∥f θ∥) * (|R|⁻¹) ^ n :=
+begin
+  simp only [cauchy_power_series, continuous_multilinear_map.norm_mk_pi_field],
+  refine (interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le).trans_eq _,
+  conv_rhs { rw [mul_comm, ← interval_integral.integral_const_mul] },
+  simp only [norm_smul, abs_of_real, mul_one, abs_mul, abs_exp_mul_I, abs_inv, abs_pow, norm_eq_abs]
+end
+
+lemma le_radius_cauchy_power_series (f : ℝ → E) (R : ℝ≥0) :
+  ↑R ≤ (cauchy_power_series f R).radius :=
+begin
+  refine (cauchy_power_series f R).le_radius_of_bound (∫ θ : ℝ in 0..2*π, ∥f θ∥) (λ n, _),
+  refine (mul_le_mul_of_nonneg_right (norm_cauchy_power_series_le _ _ _)
+    (pow_nonneg R.coe_nonneg _)).trans _,
+  rw [_root_.abs_of_nonneg R.coe_nonneg],
+  cases eq_or_ne (R ^ n : ℝ) 0 with hR hR,
+  { rw [hR, mul_zero],
+    exact interval_integral.integral_nonneg real.two_pi_pos.le (λ _ _, norm_nonneg _) },
+  { rw [inv_pow₀, inv_mul_cancel_right₀ hR] }
+end
+
+lemma sum_cauchy_power_series_eq_integral {f : ℝ → E} {R : ℝ} {z : ℂ}
+  (hf : interval_integrable f volume 0 (2 * π)) (hR : abs z < R) :
+  (cauchy_power_series f R).sum z = ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I) - z)⁻¹ • f θ :=
+begin
+  have hR0 : 0 < R := (abs_nonneg z).trans_lt hR,
+  have hz_ball : z ∈ emetric.ball (0 : ℂ) (cauchy_power_series f R).radius,
+  { lift R to ℝ≥0 using hR0.le,
+    refine mem_emetric_ball_zero_iff.2 (lt_of_lt_of_le _ $ le_radius_cauchy_power_series f R),
+    rwa ennreal.coe_lt_coe },
+  have := ((cauchy_power_series f R).has_sum hz_ball).tendsto_sum_nat,
 end
 
 /-

@@ -787,6 +787,10 @@ lemma mk_pi_field_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
 to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 
+@[simp] lemma norm_mk_pi_field (z : G) : ∥continuous_multilinear_map.mk_pi_field 𝕜 ι z∥ = ∥z∥ :=
+(multilinear_map.mk_continuous_norm_le _ (norm_nonneg z) _).antisymm $
+  by simpa using (continuous_multilinear_map.mk_pi_field 𝕜 ι z).le_op_norm (λ _, 1)
+
 variables (𝕜 ι G)
 
 /-- Continuous multilinear maps on `𝕜^n` with values in `G` are in bijection with `G`, as such a

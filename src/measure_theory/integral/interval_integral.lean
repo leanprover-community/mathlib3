@@ -329,17 +329,8 @@ lemma mul_continuous_on {α : Type*} [conditionally_complete_linear_order α] [m
   (hf : interval_integrable f μ a b) (hg : continuous_on g (interval a b)) :
   interval_integrable (λ x, f x * g x) μ a b :=
 begin
-  rcases le_total a b with hab|hab,
-  { rw interval_integrable_iff_integrable_Ioc_of_le hab at hf ⊢,
-    apply hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval,
-    rw interval_of_le hab,
-    exact Ioc_subset_Icc_self },
-  { apply interval_integrable.symm,
-    rw interval_integrable_iff_integrable_Ioc_of_le hab,
-    have := (interval_integrable_iff_integrable_Ioc_of_le hab).1 hf.symm,
-    apply this.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval,
-    rw interval_of_ge hab,
-    exact Ioc_subset_Icc_self },
+  rw interval_integrable_iff at hf ⊢,
+  exact hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
 end
 
 lemma continuous_on_mul {α : Type*} [conditionally_complete_linear_order α] [measurable_space α]
@@ -498,7 +489,6 @@ lemma integral_non_ae_measurable
   ∫ x in a..b, f x ∂μ = 0 :=
 by rw [interval_integral_eq_integral_oc, integral_non_ae_measurable hf, smul_zero]
 
-
 lemma integral_non_ae_measurable_of_le (h : a ≤ b)
   (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
   ∫ x in a..b, f x ∂μ = 0 :=
@@ -521,6 +511,10 @@ begin
   exact le_trans (norm_integral_le_integral_norm _) (le_abs_self _)
 end
 
+lemma norm_integral_le_integral_norm (h : a ≤ b) :
+  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in a..b, ∥f x∥ ∂μ :=
+norm_integral_le_integral_norm_Ioc.trans_eq $ by rw [interval_oc_of_le h, integral_of_le h]
+
 lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
   (h : ∀ᵐ x, x ∈ Ι a b → ∥f x∥ ≤ C) :
   ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
@@ -538,7 +532,13 @@ norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
 @[simp] lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x + g x ∂μ = ∫ x in a..b, f x ∂μ + ∫ x in a..b, g x ∂μ :=
-by { simp only [interval_integral, integral_add hf.1 hg.1, integral_add hf.2 hg.2], abel }
+by simp only [interval_integral_eq_integral_oc, integral_add hf.def hg.def, smul_add]
+
+lemma integral_finset_sum {ι} {s : finset ι} {f : ι → α → E}
+  (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
+  ∫ x in a..b, ∑ i in s, f i x ∂μ = ∑ i in s, ∫ x in a..b, f i x ∂μ :=
+by simp only [interval_integral_eq_integral_oc, integral_finset_sum s (λ i hi, (h i hi).def),
+  finset.smul_sum]
 
 @[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
 by { simp only [interval_integral, integral_neg], abel }
@@ -551,6 +551,14 @@ by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _
   [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
   (r : 𝕜) (f : α → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
+
+@[simp] lemma integral_const_mul {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, r * f x ∂μ = r * ∫ x in a..b, f x ∂μ :=
+integral_smul r f
+
+@[simp] lemma integral_mul_const {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  (r : 𝕜) (f : α → 𝕜) : ∫ x in a..b, f x * r ∂μ = ∫ x in a..b, f x ∂μ * r :=
+by simpa only [mul_comm r] using integral_const_mul r f
 
 lemma integral_const' (c : E) :
   ∫ x in a..b, c ∂μ = ((μ $ Ioc a b).to_real - (μ $ Ioc b a).to_real) • c :=
@@ -1153,14 +1161,9 @@ lemma integral_nonneg [topological_space α] [opens_measurable_space α] [order_
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ (ae_restrict_iff' measurable_set_Icc).mpr $ ae_of_all μ hf
 
-lemma norm_integral_le_integral_norm :
-  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in a..b, ∥f x∥ ∂μ :=
-norm_integral_le_abs_integral_norm.trans_eq $
-  abs_of_nonneg $ integral_nonneg_of_forall hab $ λ x, norm_nonneg _
-
 lemma abs_integral_le_integral_abs :
   |∫ x in a..b, f x ∂μ| ≤ ∫ x in a..b, |f x| ∂μ :=
-norm_integral_le_integral_norm hab
+by simpa only [← real.norm_eq_abs] using norm_integral_le_integral_norm hab
 
 section mono
 

@@ -184,7 +184,7 @@ variables {R Pₗ}
   lcomp R Pₗ f g x = g (f x) := rfl
 
 variables (P σ₂₃)
-/-- Composing a semilinear map `M → N` and a linear map `N → P` to form a linear map `M → P`. -/
+/-- Composing a semilinear map `M → N` and a semilinear map `N → P` to form a semilinear map `M → P` is itself a linear map. -/
 def lcompₛₗ (f : M →ₛₗ[σ₁₂] N) : (N →ₛₗ[σ₂₃] P) →ₗ[R₃] M →ₛₗ[σ₁₃] P :=
 flip $ linear_map.comp (flip id) f
 variables {P σ₂₃}

@@ -144,14 +144,11 @@ begin
     rw set.finite.card_to_finset at h,
     apply P.to_colorable.of_le h, },
   { rintro ⟨C⟩,
-    use C.to_partition,
-    fsplit,
-    exact C.color_classes_finite_of_fintype,
-    convert_to _ ≤ fintype.card (fin n),
-    { rw fintype.card_fin },
+    refine ⟨C.to_partition, C.color_classes_finite_of_fintype, le_trans _ (fintype.card_fin n).le⟩,
+    generalize_proofs h,
     haveI : fintype C.color_classes := C.color_classes_finite_of_fintype.fintype,
-    rw @set.finite.card_to_finset _ _ _,
-    apply C.card_color_classes_le, },
+    rw h.card_to_finset,
+    exact C.card_color_classes_le },
 end
 
 end simple_graph

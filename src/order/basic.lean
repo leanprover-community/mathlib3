@@ -161,7 +161,7 @@ lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a := λ hba, 
 
 alias not_lt_of_le ← has_le.le.not_lt
 
-lemma ne_of_not_le [preorder α] (a b : α) (h : ¬ a ≤ b) : a ≠ b :=
+lemma ne_of_not_le [preorder α] {a b : α} (h : ¬ a ≤ b) : a ≠ b :=
 λ hab, h (le_of_eq hab)
 
 -- See Note [decidable namespace]

@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 import algebra.field
 import algebra.group.commute
-import group_theory.group_action.defs
 import data.equiv.mul_add
 
 /-!
@@ -299,83 +298,6 @@ instance [division_ring α] : division_ring αᵐᵒᵖ :=
 
 instance [field α] : field αᵐᵒᵖ :=
 { .. mul_opposite.division_ring α, .. mul_opposite.comm_ring α }
-
-instance (R : Type*) [monoid R] [mul_action R α] : mul_action R αᵐᵒᵖ :=
-{ one_smul := λ x, unop_injective $ one_smul R (unop x),
-  mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),
-  .. mul_opposite.has_scalar α R }
-
-instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
-  distrib_mul_action R αᵐᵒᵖ :=
-{ smul_add := λ r x₁ x₂, unop_injective $ smul_add r (unop x₁) (unop x₂),
-  smul_zero := λ r, unop_injective $ smul_zero r,
-  .. mul_opposite.mul_action α R }
-
-instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
-  mul_distrib_mul_action R αᵐᵒᵖ :=
-{ smul_mul := λ r x₁ x₂, unop_injective $ smul_mul' r (unop x₂) (unop x₁),
-  smul_one := λ r, unop_injective $ smul_one r,
-  .. mul_opposite.mul_action α R }
-
-instance {M N} [has_scalar M N] [has_scalar M α] [has_scalar N α] [is_scalar_tower M N α] :
-  is_scalar_tower M N αᵐᵒᵖ :=
-⟨λ x y z, unop_injective $ smul_assoc _ _ _⟩
-
-instance {M N} [has_scalar M α] [has_scalar N α] [smul_comm_class M N α] :
-  smul_comm_class M N αᵐᵒᵖ :=
-⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
-
-/-- Like `has_mul.to_has_scalar`, but multiplies on the right.
-
-See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/
-instance _root_.has_mul.to_has_opposite_scalar [has_mul α] : has_scalar αᵐᵒᵖ α :=
-{ smul := λ c x, x * c.unop }
-
-@[simp] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
-
--- TODO: add an additive version once we have additive opposites
-/-- The right regular action of a group on itself is transitive. -/
-instance _root_.mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
-  mul_action.is_pretransitive Gᵐᵒᵖ G :=
-⟨λ x y, ⟨op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩
-
-instance _root_.semigroup.opposite_smul_comm_class [semigroup α] :
-  smul_comm_class αᵐᵒᵖ α α :=
-{ smul_comm := λ x y z, (mul_assoc _ _ _) }
-
-instance _root_.semigroup.opposite_smul_comm_class' [semigroup α] :
-  smul_comm_class α αᵐᵒᵖ α :=
-{ smul_comm := λ x y z, (mul_assoc _ _ _).symm }
-
-/-- Like `monoid.to_mul_action`, but multiplies on the right. -/
-instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action αᵐᵒᵖ α :=
-{ smul := (•),
-  one_smul := mul_one,
-  mul_smul := λ x y r, (mul_assoc _ _ _).symm }
-
-instance _root_.is_scalar_tower.opposite_mid {M N} [monoid N] [has_scalar M N]
-  [smul_comm_class M N N] :
-  is_scalar_tower M Nᵐᵒᵖ N :=
-⟨λ x y z, mul_smul_comm _ _ _⟩
-
-instance _root_.smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
-  [is_scalar_tower M N N] :
-  smul_comm_class M Nᵐᵒᵖ N :=
-⟨λ x y z, by { induction y using mul_opposite.rec, simp [smul_mul_assoc] }⟩
-
--- The above instance does not create an unwanted diamond, the two paths to
--- `mul_action αᵐᵒᵖ αᵐᵒᵖ` are defeq.
-example [monoid α] : monoid.to_mul_action αᵐᵒᵖ = mul_opposite.mul_action α αᵐᵒᵖ := rfl
-
-/-- `monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
-instance _root_.left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
-  has_faithful_scalar αᵐᵒᵖ α :=
-⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
-
-/-- `monoid.to_opposite_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
-instance _root_.cancel_monoid_with_zero.to_has_faithful_opposite_scalar
-  [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar αᵐᵒᵖ α :=
-⟨λ x y h, unop_injective $ mul_left_cancel₀ one_ne_zero (h 1)⟩
 
 variable {α}
 

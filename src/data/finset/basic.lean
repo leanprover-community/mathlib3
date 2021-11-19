@@ -1074,6 +1074,12 @@ calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
+lemma erase_erase {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
+by simp
+
+lemma erase_erase_comm {a b : α} {s : finset α} : erase (erase s a) b = erase (erase s b) a :=
+by {ext x, simp only [mem_erase, ←and_assoc], rw and_comm (x ≠ a),}
+
 theorem subset_insert_iff {a : α} {s t : finset α} : s ⊆ insert a t ↔ erase s a ⊆ t :=
 by simp only [subset_iff, or_iff_not_imp_left, mem_erase, mem_insert, and_imp];
 exact forall_congr (λ x, forall_swap)

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 -/
 
+import data.fintype.basic
+import data.set
 import data.setoid.basic
-import data.set.pairwise
 
 /-!
 # Equivalence relations: partitions
@@ -51,6 +52,35 @@ def classes (r : setoid α) : set (set α) :=
 {s | ∃ y, s = {x | r.rel x y}}
 
 lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩
+
+/-- Given a function `f`, builds a function that consumes a `y` and returns the set of every `x`
+    whose image is `y`. -/
+def class_fn {β : Type*} (f : α → β) : β → set α := λ y, {x | f x = y}
+
+lemma ker_classes_subset_of_class_fn_codomain {β : Type*} (f : α → β) :
+  (setoid.ker f).classes ⊆ set.range (class_fn f) :=
+begin
+  rintro s ⟨x, rfl⟩,
+  simp only [set.mem_range],
+  exact ⟨f x, rfl⟩
+end
+
+lemma classes_fintype {α β : Type*} [fintype β] (f : α → β) :
+  nonempty (fintype (setoid.ker f).classes) :=
+begin
+  classical,
+  exact ⟨set.fintype_subset _ (setoid.ker_classes_subset_of_class_fn_codomain f)⟩,
+end
+
+lemma classes_fintype_card {α β : Type*} [fintype β]
+  (f : α → β) [fintype (setoid.ker f).classes] :
+  fintype.card (setoid.ker f).classes ≤ fintype.card β :=
+begin
+  classical,
+  transitivity fintype.card (set.range (setoid.class_fn f)),
+  apply set.card_le_of_subset (setoid.ker_classes_subset_of_class_fn_codomain f),
+  apply fintype.card_range_le,
+end
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/
 lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :

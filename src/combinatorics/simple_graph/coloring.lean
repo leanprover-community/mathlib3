@@ -100,50 +100,15 @@ setoid.is_partition_classes (setoid.ker C)
 lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_classes :=
 ⟨v, rfl⟩
 
--- TODO move to correct place (and simplify/rename)
-lemma setoid.ker.classes.fintype {α β : Type*} [fintype β] (f : α → β) :
-  nonempty (fintype (setoid.ker f).classes) :=
-begin
-  let g : β → set α := λ y, {x | f x = y},
-  have : (setoid.ker f).classes ⊆ set.range g,
-  { rintro s ⟨x, rfl⟩,
-    simp only [set.mem_range],
-    exact ⟨f x, rfl⟩, },
-  classical,
-  haveI h : fintype (set.range g) := set.fintype_range g,
-  exact ⟨set.fintype_subset _ this⟩,
-end
-
--- TODO move to correct place
-lemma fintype.card_range_le {α β : Type*} (f : α → β) [fintype α] [fintype (set.range f)] :
-  fintype.card (set.range f) ≤ fintype.card α :=
-fintype.card_le_of_surjective (λ a, ⟨f a, by simp⟩) (λ ⟨_, a, ha⟩, ⟨a, by simpa using ha⟩)
-
--- TODO move to correct place (and simplify/rename)
-lemma setoid.ker_classes.fintype_card {α β : Type*} [fintype β]
-  (f : α → β) [fintype (setoid.ker f).classes] :
-  fintype.card (setoid.ker f).classes ≤ fintype.card β :=
-begin
-  let g : β → set α := λ y, {x | f x = y},
-  have : (setoid.ker f).classes ⊆ set.range g,
-  { rintro s ⟨x, rfl⟩,
-    simp only [set.mem_range],
-    exact ⟨f x, rfl⟩, },
-  classical,
-  transitivity fintype.card (set.range g),
-  apply set.card_le_of_subset this, 
-  apply fintype.card_range_le,
-end
-
 lemma coloring.color_classes_finite_of_fintype [fintype α] : C.color_classes.finite :=
 begin
   rw set.finite_def,
-  apply setoid.ker.classes.fintype,
+  apply setoid.classes_fintype,
 end
 
 lemma coloring.card_color_classes_le [fintype α] [fintype C.color_classes] :
   fintype.card C.color_classes ≤ fintype.card α :=
-setoid.ker_classes.fintype_card C
+setoid.classes_fintype_card C
 
 lemma coloring.not_adj_of_mem_color_class {c : α} {v w : V}
   (hv : v ∈ C.color_class c) (hw : w ∈ C.color_class c) :
@@ -170,7 +135,7 @@ begin
   apply_instance,
 end
 
-variable (G)
+variables (G)
 
 /-- Whether a graph can be colored by at most `n` colors. -/
 def colorable (n : ℕ) : Prop := nonempty (G.coloring (fin n))

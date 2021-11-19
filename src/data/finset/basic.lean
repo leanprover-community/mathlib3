@@ -1505,6 +1505,9 @@ theorem filter_insert (a : α) (s : finset α) :
   filter p (insert a s) = if p a then insert a (filter p s) else filter p s :=
 by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 
+theorem filter_erase (a : α) (s : finset α) : filter p (erase s a) = erase (filter p s) a :=
+by { ext x, simp [and_assoc]}
+
 theorem filter_or [decidable_pred (λ a, p a ∨ q a)] (s : finset α) :
   s.filter (λ a, p a ∨ q a) = s.filter p ∪ s.filter q :=
 ext $ λ _, by simp only [mem_filter, mem_union, and_or_distrib_left]

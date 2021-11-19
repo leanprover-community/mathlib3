@@ -110,11 +110,32 @@ variables {X Y : Type*} [measure_space Y] [group_with_zero X] [mul_action X Y]
   [measurable_space X] [has_measurable_smul X Y]
 
 -- TODO is there a version of this for x = 0 as well
-lemma measurable_set_smul' {x : X} (hx : x ≠ 0) {S : set Y} (h : measurable_set S) :
+
+lemma measurable_set_smul₀ {x : X} (hx : x ≠ 0) {S : set Y} (h : measurable_set S) :
   measurable_set (x • S) :=
 begin
   rw [← inv_inv₀ x, ← preimage_smul₀ (inv_ne_zero hx)],
   exact has_measurable_smul.measurable_const_smul _ h,
+end
+end
+section
+variables {X Y : Type*} [measure_space Y] [group_with_zero X]
+  [measurable_space X]
+
+lemma measurable_set_smul₀_of_measurable_singleton_class [has_zero Y] [mul_action_with_zero X Y]
+  [measurable_singleton_class Y] [has_measurable_smul X Y]
+  {x : X} {S : set Y} (h : measurable_set S) :
+  measurable_set (x • S) :=
+begin
+  by_cases hx : x = 0,
+  { by_cases hS : S.nonempty,
+    { rw [hx, zero_smul_set hS],
+      exact measurable_set_singleton 0, },
+    { convert measurable_set.empty,
+      rw not_nonempty_iff_eq_empty at hS,
+      rw hS,
+      simp, }, },
+  { exact measurable_set_smul₀ hx h, },
 end
 
 end

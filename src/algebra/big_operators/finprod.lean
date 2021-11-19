@@ -477,16 +477,11 @@ g.to_monoid_hom.map_finprod_mem f hs
   (hs : s.finite) : ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
 ((mul_equiv.inv G).map_finprod_mem f hs).symm
 
-@[to_additive] lemma finprod_mem_mul_inv_distrib {M' : Type*} [comm_group M'] (f g : α → M')
-  (hs : s.finite) :
-  ∏ᶠ i ∈ s, (f i * (g i)⁻¹) = (∏ᶠ i ∈ s, f i) * (∏ᶠ i ∈ s, g i)⁻¹ :=
-by rw [finprod_mem_mul_distrib hs, finprod_mem_inv_distrib g hs]
-
 /-- Given a finite set `s`, the product of `f i / g i` over `i ∈ s` equals the product of `f i`
 over `i ∈ s` divided by the product of `g i` over `i ∈ s`. -/
 @[to_additive] lemma finprod_mem_div_distrib {M' : Type*} [comm_group M'] (f g : α → M')
   (hs : s.finite) : ∏ᶠ i ∈ s, f i / g i = (∏ᶠ i ∈ s, f i) / ∏ᶠ i ∈ s, g i :=
-by simp [div_eq_mul_inv, finprod_mem_mul_inv_distrib f g hs]
+by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib g hs]
 
 /-!
 ### `∏ᶠ x ∈ s, f x` and set operations

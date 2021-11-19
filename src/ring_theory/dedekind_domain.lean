@@ -1328,10 +1328,23 @@ begin
     exact hq.dvd.trans (pow_dvd_pow p hi) },
 end
 
-lemma pow_prime₁' {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M} (n : ℕ) (c : ℕ → M)
-  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j) )
-  (h₂ : ∀ {r : M}, r ∣ q ↔ ∃ i ≤ n,  associated r (c i)) : is_unit (c 0) :=
-sorry
+-- Can go to `algebra/associated.lean`, line 437.
+lemma associates.bot_eq_one {M : Type*} [monoid_with_zero M] :
+  (⊥ : associates M) = 1 := rfl
+
+-- To `algebra/associated.lean:690`.
+lemma associates.le_one_iff {M : Type*} [comm_cancel_monoid_with_zero M]
+  {p : associates M} : p ≤ 1 ↔ p = 1 :=
+by rw [← associates.bot_eq_one, le_bot_iff]
+
+lemma pow_prime₁' {M : Type*} [comm_cancel_monoid_with_zero M] {q : associates M} (n : ℕ) (c : ℕ → associates M)
+  (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c i) : is_unit (c 0) :=
+begin
+  obtain ⟨i, hi, hr⟩ := h₂.mp associates.one_le,
+  rw [associates.is_unit_iff_eq_one, ← associates.le_one_iff, hr],
+  exact h₁.monotone i.zero_le
+end
 
 lemma pow_prime₁ {q : ideal T} (n : ℕ) (c : ℕ → ideal T)
   (h₁ : strict_anti c) (h₂ : ∀ {r : ideal T}, r ∣ q ↔ ∃ i ≤ n, r = c i) :

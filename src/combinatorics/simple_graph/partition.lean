@@ -64,7 +64,7 @@ namespace partition
 variables {G} (P : G.partition)
 
 /-- Whether a partition `P` has at most `n` parts. -/
-def parts_card_le (h : P.parts.finite) (n : ℕ) : Prop := h.to_finset.card ≤ n
+def parts_card_le (n : ℕ) : Prop := ∃ (h : P.parts.finite), h.to_finset.card ≤ n
 
 /-- Get the part `v` belongs to in the partition. -/
 def part_of_vertex (v : V) : set V :=

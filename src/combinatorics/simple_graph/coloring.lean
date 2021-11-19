@@ -87,31 +87,15 @@ The color class of a given color.
 def coloring.color_class (c : α) : set V := {v : V | C v = c}
 
 /-- The set containing all color classes. -/
-def coloring.color_classes : set (set V) := {(C.color_class (C v)) | v : V}
+-- def coloring.color_classes : set (set V) := {(C.color_class (C v)) | v : V}
+def coloring.color_classes : set (set V) := (setoid.ker C).classes
 
 lemma coloring.mem_color_class (v : V) :
   v ∈ C.color_class (C v) := by exact rfl
 
 lemma coloring.color_classes_is_partition :
   setoid.is_partition C.color_classes :=
-begin
-  rw setoid.is_partition,
-  simp only [exists_unique],
-  simp [coloring.color_classes],
-  split,
-  { intro v,
-    rw [← set.not_nonempty_iff_eq_empty, not_not],
-    use v,
-    exact C.mem_color_class v, },
-  { intro v,
-    split,
-    { split,
-      { use v,
-        exact C.mem_color_class v, },
-      { intros w hcvw,
-        simp [coloring.color_class] at hcvw,
-        rw hcvw, }, }, },
-end
+by exact setoid.is_partition_classes (setoid.ker C)
 
 lemma coloring.non_adjacent_of_same_color_class
 {c : α} (v w : V) (h₁ : v ∈ C.color_class c) (h₂ : w ∈ C.color_class c) :
@@ -127,9 +111,8 @@ end
 lemma coloring.color_classes_is_independent :
   ∀ (s ∈ C.color_classes), is_antichain G.adj s :=
 begin
-  simp [coloring.color_classes],
-  intros _ w hcvw z hczv _,
-  apply C.non_adjacent_of_same_color_class z w hczv hcvw,
+  intros s hs v hv w hw hnvw,
+  sorry,
 end
 
 lemma coloring.color_class_is_independent (c : α) :

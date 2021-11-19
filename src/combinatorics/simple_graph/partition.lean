@@ -124,7 +124,7 @@ def coloring.to_partition {α : Type v} (C : G.coloring α) : G.partition :=
 begin
   let parts : set (set V) := C.color_classes,
   have is_partition : setoid.is_partition parts,
-    { by apply coloring.color_classes_is_partition, },
+    { by apply coloring.color_classes.is_partition, },
   have independent : ∀ (s ∈ parts), is_antichain G.adj s,
     { by apply coloring.color_classes_is_independent, },
   exact partition.mk parts is_partition independent,

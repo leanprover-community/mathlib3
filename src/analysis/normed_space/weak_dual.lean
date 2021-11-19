@@ -237,7 +237,7 @@ end
 
 lemma pi_ball_bounds_fun_cpt [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact (set.pi (univ : set E)
-    (λ z, (closed_ball (0 : 𝕜) (polar.bounds_fun 𝕜 s_nhd z)))) :=
+    (λ z, (closed_ball (0 : 𝕜) ((polar.bound_of_nhds_zero 𝕜 s_nhd) * ∥ z ∥)))) :=
 begin
   apply is_compact_univ_pi,
   exact λ z, proper_space.is_compact_closed_ball 0 _,
@@ -260,17 +260,16 @@ namespace embedding_weak_dual_to_Pi
 `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` is contained in a product of closed balls. -/
 lemma image_polar_nhd_subset {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   (weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s)) ⊆
-    (set.pi (univ : set E) (λ z, (closed_ball (0 : 𝕜) (polar.bounds_fun 𝕜 s_nhd z)))) :=
+    (set.pi (univ : set E) (λ z, (closed_ball (0 : 𝕜) ((polar.bound_of_nhds_zero 𝕜 s_nhd) * ∥ z ∥)))) :=
 begin
   intros f hf,
-  simp at hf,
+  simp only [mem_image, exists_exists_and_eq_and] at hf,
   rcases hf with ⟨x', hx', f_eq⟩,
   simp only [mem_closed_ball, dist_zero_right, mem_univ_pi],
   intros z,
-  have key := polar.bounds_fun_spec 𝕜 s_nhd x' z,
+  have key := polar.ptwise_bound_of_nhds_zero 𝕜 s_nhd hx' z,
   have eq : x' z = f z := congr_fun f_eq z,
-  rw eq at key,
-  exact key hx',
+  rwa eq at key,
 end
 
 /-- Elements of the closure of the range of the embedding
@@ -347,7 +346,6 @@ end
 /-- Elements of the closure of the image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of
 a polar `polar s` of a neighborhood `s` of the origin are continuous (linear) functions. -/
 lemma continuous_of_mem_closure_polar_nhd
-  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (φ : (Π (_ : E), 𝕜))
   (hφ : φ ∈ closure ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s)))) :
   @continuous E 𝕜 _ _ φ :=
@@ -391,7 +389,6 @@ end
 /-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of a polar `polar s` of a
 neighborhood `s` of the origin is a closed set. -/
 lemma image_polar_nhd_closed
-  {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_closed ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s))) :=
 begin
@@ -447,10 +444,8 @@ begin
 end
 
 /-- The image under `weak_dual.to_Pi : weak_dual 𝕜 E → Π (_ : E), 𝕜` of the polar `polar s` of
-a neighborhood `s` of the origin is compact. -/
-lemma image_polar_nhd_compact
-  (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+a neighborhood `s` of the origin is compact if the field `𝕜` is a proper topological space. -/
+lemma image_polar_nhd_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact ((weak_dual.to_Pi 𝕜 E) '' (dual.to_weak_dual '' (polar 𝕜 s))) :=
 begin
   apply compact_of_is_closed_subset _ _ (embedding_weak_dual_to_Pi.image_polar_nhd_subset s_nhd),
@@ -462,13 +457,11 @@ end embedding_weak_dual_to_Pi
 
 /-- The Banach-Alaoglu theorem: the polar `polar s` of a neighborhood `s` of the origin in a
 normed space `E` over `𝕜` is compact subset of `weak_dual 𝕜 E` (assuming `[is_R_or_C 𝕜]`). -/
-theorem polar_nhd_weak_star_compact
-  (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+theorem polar_nhd_weak_star_compact [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact ((dual.to_weak_dual) '' (polar 𝕜 s)) :=
 begin
   apply (embedding_weak_dual_to_Pi 𝕜 E).is_compact_iff_is_compact_image.mpr,
-  exact embedding_weak_dual_to_Pi.image_polar_nhd_compact 𝕜 s_nhd,
+  exact embedding_weak_dual_to_Pi.image_polar_nhd_compact s_nhd,
 end
 
 /-- The Banach-Alaoglu theorem: the dual unit ball is compact in the weak-star topology. -/
@@ -477,7 +470,7 @@ theorem unit_ball_weak_star_compact
   is_compact {x' : weak_dual 𝕜 E | (∥ x'.to_normed_dual ∥ ≤ 1)} :=
 begin
   rw [←dual.to_weak_dual_image_closed_unit_ball, ←polar.of_closed_unit_ball],
-  exact polar_nhd_weak_star_compact 𝕜 (closed_ball_mem_nhds (0 : E) (@zero_lt_one ℝ _ _)),
+  exact polar_nhd_weak_star_compact (closed_ball_mem_nhds (0 : E) (@zero_lt_one ℝ _ _)),
 end
 
 end embedding_to_Pi

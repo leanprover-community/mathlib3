@@ -245,21 +245,27 @@ begin
   ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
 end
 
-/-- Given a neighborhood `s` of the origin in a normed space `E`, for any `z : E` it
-is possible to choose a real number `r` such that for any functional `x' ∈ polar 𝕜 s` in
-the polar of `s`, the value at `z` satisfies the norm bound `∥x' z∥ ≤ r`. Such an `r`
-is given by `bounds_fun _ z`. -/
-def bounds_fun (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : E → ℝ :=
-classical.some (classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd))
+def bound_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) : ℝ :=
+classical.some (bounded_of_nhds_zero 𝕜 s_nhd)
 
-lemma bounds_fun_spec (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) (x' : dual 𝕜 E) (z : E) :
-  x' ∈ polar 𝕜 s → ∥ x' z ∥ ≤ bounds_fun 𝕜 s_nhd z :=
-classical.some_spec
-  (classical.axiom_of_choice (eval_bounded_of_nhds_zero 𝕜 s_nhd)) z x'
+lemma bound_of_nhds_zero_spec (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E))
+  {x' : dual 𝕜 E} (hx' : x' ∈ polar 𝕜 s) :
+  ∥ x' ∥ ≤ bound_of_nhds_zero 𝕜 s_nhd :=
+classical.some_spec (bounded_of_nhds_zero 𝕜 s_nhd) x' hx'
+
+lemma bound_of_nhds_zero_nonneg (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+  0 ≤ bound_of_nhds_zero 𝕜 s_nhd :=
+by { have := bound_of_nhds_zero_spec 𝕜 s_nhd (zero_mem 𝕜 s), rwa norm_zero at this, }
+
+lemma ptwise_bound_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E))
+  {x' : dual 𝕜 E} (hx' : x' ∈ polar 𝕜 s) (z : E) :
+  ∥ x' z ∥ ≤ (bound_of_nhds_zero 𝕜 s_nhd) * ∥ z ∥ :=
+(continuous_linear_map.le_op_norm x' z).trans (mul_le_mul (bound_of_nhds_zero_spec 𝕜 s_nhd hx')
+    (le_refl ∥z∥) (norm_nonneg z) (bound_of_nhds_zero_nonneg 𝕜 s_nhd))
 
 end polar
 

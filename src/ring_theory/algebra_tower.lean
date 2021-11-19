@@ -162,7 +162,7 @@ begin
   { have h1 : ∑ i in (s.image prod.fst).product (s.image prod.snd), g i • b i.1 • c i.2 = 0,
     { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
         show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
-    rw [finset.sum_product, finset.sum_comm] at h1,
+    rw finset.sum_product_right at h1,
     simp_rw [← smul_assoc, ← finset.sum_smul] at h1,
     exact hb _ _ (hc _ _ h1 k (finset.mem_image_of_mem _ hik)) i (finset.mem_image_of_mem _ hik) },
   exact hg _ hik

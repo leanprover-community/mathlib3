@@ -8,6 +8,7 @@ import data.finset.option
 import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
+import data.list.nodup_equiv_fin
 import data.sym.basic
 import data.ulift
 import group_theory.perm.basic
@@ -297,32 +298,26 @@ by have := and.intro univ.2 mem_univ_val;
 /-- `card α` is the number of elements in `α`, defined when `α` is a fintype. -/
 def card (α) [fintype α] : ℕ := (@univ α _).card
 
-/-- If `l` lists all the elements of `α` without duplicates, then `α ≃ fin (l.length)`. -/
-def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
-  {l : list α} (h : ∀ x : α, x ∈ l) (nd : l.nodup) : α ≃ fin (l.length) :=
-⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
- λ i, l.nth_le i.1 i.2,
- λ a, by simp,
- λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
-   (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩
+/-- There is (computably) an equivalence between `α` and `fin (card α)`.
 
-/-- There is (computably) a bijection between `α` and `fin (card α)`.
-
-Since it is not unique, and depends on which permutation
-of the universe list is used, the bijection is wrapped in `trunc` to
+Since it is not unique and depends on which permutation
+of the universe list is used, the equivalence is wrapped in `trunc` to
 preserve computability.
 
 See `fintype.equiv_fin` for the noncomputable version,
 and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq`
 for an equiv `α ≃ fin n` given `fintype.card α = n`.
+
+See `fintype.trunc_fin_bijection` for a version without `[decidable_eq α]`.
 -/
 def trunc_equiv_fin (α) [decidable_eq α] [fintype α] : trunc (α ≃ fin (card α)) :=
-by unfold card finset.card; exact
-quot.rec_on_subsingleton (@univ α _).1
-  (λ l (h : ∀ x : α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
-  mem_univ_val univ.2
+by { unfold card finset.card,
+     exact quot.rec_on_subsingleton (@univ α _).1
+       (λ l (h : ∀ x : α, x ∈ l) (nd : l.nodup),
+         trunc.mk (nd.nth_le_equiv_of_forall_mem_list _ h).symm)
+       mem_univ_val univ.2 }
 
-/-- There is a (noncomputable) bijection between `α` and `fin (card α)`.
+/-- There is (noncomputably) an equivalence between `α` and `fin (card α)`.
 
 See `fintype.trunc_equiv_fin` for the computable version,
 and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq`
@@ -330,6 +325,23 @@ for an equiv `α ≃ fin n` given `fintype.card α = n`.
 -/
 noncomputable def equiv_fin (α) [fintype α] : α ≃ fin (card α) :=
 by { letI := classical.dec_eq α, exact (trunc_equiv_fin α).out }
+
+/-- There is (computably) a bijection between `fin (card α)` and `α`.
+
+Since it is not unique and depends on which permutation
+of the universe list is used, the bijection is wrapped in `trunc` to
+preserve computability.
+
+See `fintype.trunc_equiv_fin` for a version that gives an equivalence
+given `[decidable_eq α]`.
+-/
+def trunc_fin_bijection (α) [fintype α] :
+  trunc {f : fin (card α) → α // bijective f} :=
+by { dunfold card finset.card,
+     exact quot.rec_on_subsingleton (@univ α _).1
+       (λ l (h : ∀ x : α, x ∈ l) (nd : l.nodup),
+         trunc.mk (nd.nth_le_bijection_of_forall_mem_list _ h))
+       mem_univ_val univ.2 }
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext_iff, h₁, h₂]⟩
@@ -660,6 +672,17 @@ list.length_fin_range n
 
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
+
+/-- `fin` as a map from `ℕ` to `Type` is injective. Note that since this is a statement about
+equality of types, using it should be avoided if possible. -/
+lemma fin_injective : function.injective fin :=
+λ m n h,
+  (fintype.card_fin m).symm.trans $ (fintype.card_congr $ equiv.cast h).trans (fintype.card_fin n)
+
+/-- A reversed version of `fin.cast_eq_cast` that is easier to rewrite with. -/
+theorem fin.cast_eq_cast' {n m : ℕ} (h : fin n = fin m) :
+  cast h = ⇑(fin.cast $ fin_injective h) :=
+(fin.cast_eq_cast _).symm
 
 /-- The cardinality of `fin (bit0 k)` is even, `fact` version.
 This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/

@@ -245,4 +245,49 @@ begin
   rw this, apply_instance,
 end
 
+/-- The natural isomorphism between `P` and `P⁺` when `P` is a sheaf. -/
+def iso_to_plus (hP : presheaf.is_sheaf J P) : P ≅ J.plus_obj P :=
+by letI := is_iso_to_plus_of_is_sheaf J P hP; exact as_iso (J.to_plus P)
+
+/-- Lift a morphism `P ⟶ Q` to `P⁺ ⟶ Q` when `Q` is a sheaf. -/
+def plus_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
+  J.plus_obj P ⟶ Q :=
+J.plus_map η ≫ (J.iso_to_plus Q hQ).inv
+
+lemma to_plus_plus_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
+  J.to_plus P ≫ J.plus_lift η hQ = η :=
+begin
+  dsimp [plus_lift],
+  rw ← category.assoc,
+  rw iso.comp_inv_eq,
+  dsimp only [iso_to_plus, as_iso],
+  change (J.to_plus_nat_trans D).app _ ≫ _ = _,
+  erw (J.to_plus_nat_trans D).naturality,
+  refl,
+end
+
+lemma plus_lift_unique {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
+  (γ : J.plus_obj P ⟶ Q) (hγ : J.to_plus P ≫ γ = η) : γ = J.plus_lift η hQ :=
+begin
+  dsimp only [plus_lift],
+  symmetry,
+  change (J.plus_functor D).map η ≫ _ = _,
+  rw [iso.comp_inv_eq, ← hγ, (J.plus_functor D).map_comp],
+  dsimp only [iso_to_plus, as_iso],
+  change _ = (𝟭 _).map γ ≫ (J.to_plus_nat_trans D).app _,
+  erw (J.to_plus_nat_trans D).naturality,
+  congr' 1,
+  dsimp only [plus_functor, to_plus_nat_trans],
+  rw [J.plus_map_to_plus P],
+end
+
+lemma plus_hom_ext {P Q : Cᵒᵖ ⥤ D} (η γ : J.plus_obj P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
+  (h : J.to_plus P ≫ η = J.to_plus P ≫ γ) : η = γ :=
+begin
+  have : γ = J.plus_lift (J.to_plus P ≫ γ) hQ,
+  { apply plus_lift_unique, refl },
+  rw this,
+  apply plus_lift_unique, exact h
+end
+
 end category_theory.grothendieck_topology

@@ -251,8 +251,6 @@ has been used. -/
   no_errors_found := "All declarations correctly marked as def/lemma.",
   errors_found := "INCORRECT DEF/LEMMA:" }
 
-attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
-
 /-!
 ## Linter that checks whether declarations are well-typed
 -/

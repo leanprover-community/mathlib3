@@ -257,6 +257,15 @@ end set
 
 namespace finset
 
+lemma coe_product (s : finset α) (t : finset β) :
+  (s.product t : set (α × β)) = (s : set α).prod t :=
+set.ext $ λ x, finset.mem_product
+
+lemma coe_pi {α : Type*} {δ : α → Type*} [decidable_eq α] [fintype α] (s : finset α)
+  (t : Π a, finset (δ a)) :
+  (fintype.pi_finset t : set (Π a, δ a)) = (set.univ : set α).pi (λ a, t a) :=
+set.ext $ λ x, by { rw set.mem_univ_pi, exact fintype.mem_pi_finset }
+
 lemma range_add_eq_union (m n : ℕ) :
   range (m + n) = range m ∪ (range n).map (add_right_embedding m) :=
 begin

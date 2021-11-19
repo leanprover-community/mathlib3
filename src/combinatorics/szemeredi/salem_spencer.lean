@@ -93,7 +93,7 @@ end salem_spencer
 
 section roth_number
 section monoid
-variables [decidable_eq α] [add_monoid α] (s t : finset α)
+variables [decidable_eq α] [add_monoid α] [decidable_eq β] [add_monoid β] (s t : finset α)
 
 /-- The Roth number of a finset is the cardinality of its biggest Salem-Spencer subset. The usual
 Roth number corresponds to `roth_number (finset.range n)`, see `roth_number_nat`. -/
@@ -136,6 +136,17 @@ calc
   ... ≤ roth_number s + roth_number t
       : add_le_add ((hu.mono $ inter_subset_left _ _).le_roth_number $ inter_subset_right _ _)
           ((hu.mono $ inter_subset_left _ _).le_roth_number $ inter_subset_right _ _)
+
+lemma le_roth_number_product (s : finset α) (t : finset β) :
+  roth_number s * roth_number t ≤ roth_number (s.product t) :=
+begin
+  obtain ⟨u, hus, hucard, hu⟩ := roth_number_spec s,
+  obtain ⟨v, hvt, hvcard, hv⟩ := roth_number_spec t,
+  rw [←hucard, ←hvcard, ←card_product],
+  refine is_salem_spencer.le_roth_number _ (product_subset_product hus hvt),
+  rw finset.coe_product,
+  exact hu.prod hv,
+end
 
 lemma roth_number_lt_of_forall_not_salem_spencer
   (h : ∀ t ∈ powerset_len n s, ¬is_salem_spencer ((t : finset α) : set α)) :

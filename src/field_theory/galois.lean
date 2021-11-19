@@ -92,8 +92,8 @@ lemma card_aut_eq_finrank [finite_dimensional F E] [is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = finrank F E :=
 begin
   cases field.exists_primitive_element F E with α hα,
-  let iso : F⟮α⟯ ≃ₐ[F] E := {
-    to_fun := λ e, e.val,
+  let iso : F⟮α⟯ ≃ₐ[F] E :=
+  { to_fun := λ e, e.val,
     inv_fun := λ e, ⟨e, by { rw hα, exact intermediate_field.mem_top }⟩,
     left_inv := λ _, by { ext, refl },
     right_inv := λ _, rfl,
@@ -333,7 +333,8 @@ lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
   fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
-  have h : is_integral K x := is_integral_of_is_scalar_tower x (is_integral_of_noetherian hFE x),
+  have h : is_integral K x := is_integral_of_is_scalar_tower x
+    (is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
   { apply minpoly.dvd,

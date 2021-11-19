@@ -217,12 +217,12 @@ instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
   .. dfinsupp.has_neg }
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ gsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  gsmul_neg' := λ n f, ext $ λ i, by
-    rw [neg_apply, map_range_apply, map_range_apply, gsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
+{ zsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
+  zsmul_neg' := λ n f, ext $ λ i, by
+    rw [neg_apply, map_range_apply, map_range_apply, zsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
       int.nat_cast_eq_coe_nat],
-  gsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  gsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
+  zsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
+  zsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
   ..@dfinsupp.add_comm_monoid _ β _,
   ..dfinsupp.add_group }
 
@@ -1162,6 +1162,19 @@ lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i
   [comm_monoid γ] (S : submonoid γ)
   (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
 S.prod_mem $ λ i hi, h _ $ (f.mem_support_iff _).mp hi
+
+@[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) {f : Π i, β i → γ}
+  (hf : ∀ i, f i 0 = 1) :
+  v.prod f = ∏ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
+begin
+  suffices : ∏ i in v.support, f i (v i) = ∏ i, f i (v i),
+  { simp [dfinsupp.prod, this] },
+  apply finset.prod_subset v.support.subset_univ,
+  intros i hi' hi,
+  rw [mem_support_iff, not_not] at hi,
+  rw [hi, hf],
+end
 
 /--
 When summing over an `add_monoid_hom`, the decidability assumption is not needed, and the result is

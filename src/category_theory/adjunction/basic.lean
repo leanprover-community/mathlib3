@@ -5,6 +5,32 @@ Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.equivalence
 
+/-!
+# Adjunctions between functors
+
+`F ⊣ G` represents the data of an adjunction between two functors
+`F : C ⥤ D` and `G : D ⥤ C`. `F` is the left adjoint and `G` is the right adjoint.
+
+We provide various useful constructors:
+* `mk_of_hom_equiv`
+* `mk_of_unit_counit`
+* `left_adjoint_of_equiv` / `right_adjoint_of equiv`
+  construct a left/right adjoint of a given functor given the action on objects and
+  the relevant equivalence of morphism spaces.
+* `adjunction_of_equiv_left` / `adjunction_of_equiv_right` witness that these constructions
+  give adjunctions.
+
+There are also typeclasses `is_left_adjoint` / `is_right_adjoint`, carrying data witnessing
+that a given functor is a left or right adjoint.
+Given `[is_left_adjoint F]`, a right adjoint of `F` can be constructed as `right_adjoint F`.
+
+`adjunction.comp` composes adjunctions.
+
+`to_equivalence` upgrades an adjunction to an equivalence,
+given witnesses that the unit and counit are pointwise isomorphisms.
+Conversely `equivalence.to_adjunction` recovers the underlying adjunction from an equivalence.
+-/
+
 namespace category_theory
 open category
 

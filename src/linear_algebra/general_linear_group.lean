@@ -3,12 +3,8 @@ Copyright (c) 2021 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import data.matrix.notation
-import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
-import linear_algebra.determinant
-import tactic.field_simp
 
 /-!
 # The General Linear group $GL(n, R)$
@@ -90,7 +86,7 @@ variables (A B : GL n R)
 lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
 begin
   letI := A.invertible,
-  exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
+  exact inv_of_eq_nonsing_inv (↑A : matrix n n R),
 end
 
 /-- An element of the matrix general linear group on `(n) [fintype n]` can be considered as an

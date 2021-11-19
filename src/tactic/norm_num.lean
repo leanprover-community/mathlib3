@@ -955,9 +955,9 @@ match match_sign b with
 end
 
 theorem sub_nat_pos (a b c : ℕ) (h : b + c = a) : a - b = c :=
-h ▸ nat.add_sub_cancel_left _ _
+h ▸ add_tsub_cancel_left _ _
 theorem sub_nat_neg (a b c : ℕ) (h : a + c = b) : a - b = 0 :=
-nat.sub_eq_zero_of_le $ h ▸ nat.le_add_right _ _
+tsub_eq_zero_iff_le.mpr $ h ▸ nat.le_add_right _ _
 
 /-- Given `a : nat`,`b : nat` natural numerals, returns `(c, ⊢ a - b = c)`. -/
 meta def prove_sub_nat (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
@@ -1329,8 +1329,8 @@ protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :
 { name      := `norm_num,
   descr     := "Add norm_num derivers",
   cache_cfg :=
-  { mk_cache := λ ns, do {
-      t ← ns.mfoldl
+  { mk_cache := λ ns, do
+    { t ← ns.mfoldl
         (λ (t : expr → tactic (expr × expr)) n, do
           t' ← eval_expr (expr → tactic (expr × expr)) (expr.const n []),
           pure (λ e, t' e <|> t e))

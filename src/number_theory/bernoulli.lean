@@ -3,10 +3,11 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kevin Buzzard
 -/
-import data.rat
-import data.fintype.card
 import algebra.big_operators.nat_antidiagonal
+import algebra.geom_sum
+import data.fintype.card
 import ring_theory.power_series.well_known
+import tactic.field_simp
 
 /-!
 # Bernoulli numbers
@@ -74,7 +75,7 @@ by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli'_spec (n : ℕ) :
   ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [sum_range_succ_comm, bernoulli'_def n, nat.sub_self],
+  rw [sum_range_succ_comm, bernoulli'_def n, tsub_self],
   conv in (n.choose (_ - _)) { rw choose_symm (mem_range.1 H).le },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
@@ -286,7 +287,7 @@ begin
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ← mul_assoc, div_mul_eq_mul_div,
         mul_comm (↑n ^ (q - m + 1)), ← mul_assoc _ _ (↑n ^ (q - m + 1)), ← one_div, mul_one_div,
-        div_div_eq_div_mul, ← nat.sub_add_comm (le_of_lt_succ h), cast_dvd, cast_mul],
+        div_div_eq_div_mul, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_dvd, cast_mul],
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },
@@ -336,7 +337,7 @@ begin
   have h1 : ∀ r : ℚ, r * (p + 1 + 1) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
     λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],
   have h2 : f 1 + n ^ p.succ = 1 / 2 * n ^ p.succ,
-  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, nat.sub_zero, h1],
+  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, tsub_zero, h1],
     ring },
   have : ∑ i in range p, bernoulli (i + 2) * (p + 2).choose (i + 2) * n ^ (p - i) / ↑(p + 2)
        = ∑ i in range p, bernoulli' (i + 2) * (p + 2).choose (i + 2) * n ^ (p - i) / ↑(p + 2) :=

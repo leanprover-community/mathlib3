@@ -187,7 +187,7 @@ lemma ideal_Inter_nonempty_iff :
 end preorder
 
 section order_bot
-variables [order_bot P] {I : ideal P}
+variables [preorder P] [order_bot P] {I : ideal P}
 
 /-- A specific witness of `I.nonempty` when `P` has a bottom element. -/
 @[simp] lemma bot_mem : ⊥ ∈ I :=
@@ -196,8 +196,7 @@ I.mem_of_le bot_le I.nonempty.some_mem
 /-- There is a bottom ideal when `P` has a bottom element. -/
 instance : order_bot (ideal P) :=
 { bot := principal ⊥,
-  bot_le := by simp,
-  .. ideal.partial_order }
+  bot_le := by simp }
 
 @[priority 100]
 instance order_bot.ideal_Inter_nonempty : ideal_Inter_nonempty P :=
@@ -207,13 +206,12 @@ end order_bot
 
 section order_top
 
-variables [order_top P]
+variables [preorder P] [order_top P]
 
 /-- There is a top ideal when `P` has a top element. -/
 instance : order_top (ideal P) :=
 { top := principal ⊤,
-  le_top := λ I x h, le_top,
-  .. ideal.partial_order }
+  le_top := λ I x h, le_top }
 
 @[simp] lemma coe_top : ((⊤ : ideal P) : set P) = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)

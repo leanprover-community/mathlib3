@@ -30,6 +30,7 @@ namespace linear_map
 
 section semiring
 
+-- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
 variables {R : Type*} [semiring R] {S : Type*} [semiring S]
 variables {R₂ : Type*} [semiring R₂] {S₂ : Type*} [semiring S₂]
 variables {M : Type*} {N : Type*} {P : Type*}

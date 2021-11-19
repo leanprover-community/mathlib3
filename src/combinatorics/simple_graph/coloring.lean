@@ -22,7 +22,8 @@ a complete graph, whose vertices represent the colors.
 
 * `G.coloring α` is the type of `α`-colorings of a simple graph `G`,
   with `α` being the set of available colors. The type is defined to
-  be homomorphisms from `G` into the complete graph on `α`.
+  be homomorphisms from `G` into the complete graph on `α`, and
+  colorings have a coercion to `V → α`.
 
 * `G.colorable n` is the proposition that `G` is `n`-colorable, which
   is whether there exists a coloring with at most *n* colors.
@@ -31,7 +32,9 @@ a complete graph, whose vertices represent the colors.
   `n`-colorable, or `0` if it cannot be colored with finitely many
   colors.
 
-* A *color class* is a set of vertices that share the same color.
+* `C.color_class α` is the set of vertices colored with `α` in the coloring `C`.
+
+* `C.color_classes` is the set containing all color classes.
 
 ## Todo:
 
@@ -81,50 +84,59 @@ but with a syntactically better proper coloring hypothesis.)
 /--
 The color class of a given color.
 -/
-def coloring.color_class_of_color (c : α) : set V := {v : V | C v = c}
-
-/-- The color class of a given vertex. -/
-def coloring.color_class_of_vertex (v : V) : set V := C.color_class_of_color (C v)
+def coloring.color_class (c : α) : set V := {v : V | C v = c}
 
 /-- The set containing all color classes. -/
-def coloring.color_classes : set (set V) := {(C.color_class_of_vertex v) | v : V}
+def coloring.color_classes : set (set V) := {(C.color_class (C v)) | v : V}
 
-lemma coloring.vertex_in_its_color_class {v : V} :
-  v ∈ {v' : V | C v' = C v} := by exact rfl
+lemma coloring.mem_color_class (v : V) :
+  v ∈ C.color_class (C v) := by exact rfl
 
 lemma coloring.color_classes_is_partition :
   setoid.is_partition C.color_classes :=
 begin
   rw setoid.is_partition,
   simp only [exists_unique],
-  simp [coloring.color_classes, coloring.color_class_of_vertex,
-    coloring.color_class_of_color],
+  simp [coloring.color_classes],
   split,
   { intro v,
     rw [← set.not_nonempty_iff_eq_empty, not_not],
     use v,
-    apply coloring.vertex_in_its_color_class, },
+    exact C.mem_color_class v, },
   { intro v,
     split,
     { split,
       { use v,
-        apply coloring.vertex_in_its_color_class, },
+        exact C.mem_color_class v, },
       { intros w hcvw,
+        simp [coloring.color_class] at hcvw,
         rw hcvw, }, }, },
+end
+
+lemma coloring.non_adjacent_of_same_color_class
+{c : α} (v w : V) (h₁ : v ∈ C.color_class c) (h₂ : w ∈ C.color_class c) :
+  G.adjᶜ w v :=
+begin
+  have hcwv : C w = C v, by exact (rfl.congr (eq.symm h₁)).mp h₂,
+  by_contra h,
+  have hwv : G.adj w v, by { contrapose h, contradiction, },
+  have hvalid := C.valid hwv,
+  contradiction,
 end
 
 lemma coloring.color_classes_is_independent :
   ∀ (s ∈ C.color_classes), is_antichain G.adj s :=
 begin
-  simp only [is_antichain, set.pairwise],
-  simp [coloring.color_classes, coloring.color_class_of_vertex,
-    coloring.color_class_of_color],
-  intros v w hcvw z hczv h_neq_wz,
-  have hcwz : C w = C z, by exact (rfl.congr (eq.symm hczv)).mp hcvw,
-  by_contra,
-  have hwz : G.adj w z, by { contrapose h, contradiction, },
-  have hvalid := C.valid hwz,
-  contradiction,
+  simp [coloring.color_classes],
+  intros _ w hcvw z hczv _,
+  apply C.non_adjacent_of_same_color_class z w hczv hcvw,
+end
+
+lemma coloring.color_class_is_independent (c : α) :
+  is_antichain G.adj (C.color_class c) :=
+begin
+  intros w hcvw z hczv _,
+  apply C.non_adjacent_of_same_color_class z w hczv hcvw,
 end
 
 -- TODO make this computable
@@ -137,7 +149,7 @@ begin
   apply_instance,
 end
 
-variables (G)
+variable (G)
 
 /-- Whether a graph can be colored by at most `n` colors. -/
 def colorable (n : ℕ) : Prop := nonempty (G.coloring (fin n))
@@ -241,6 +253,15 @@ lemma colorable_set_nonempty_of_colorable {n : ℕ} (hc : G.colorable n) :
 lemma chromatic_number_bdd_below : bdd_below {n : ℕ | G.colorable n} :=
 ⟨0, λ _ _, zero_le _⟩
 
+lemma chromatic_number_le_n_of_colorable {n : ℕ} (hc : G.colorable n) :
+  G.chromatic_number ≤ n :=
+begin
+  rw chromatic_number,
+  apply cInf_le chromatic_number_bdd_below,
+  fsplit,
+  exact classical.choice hc,
+end
+
 lemma chromatic_number_le [fintype α] (C : G.coloring α) :
   G.chromatic_number ≤ fintype.card α :=
 cInf_le chromatic_number_bdd_below C.to_colorable
@@ -318,15 +339,6 @@ lemma chromatic_number_lower_bound (G' : simple_graph V)
 begin
   apply chromatic_number_le_of_forall_imp hc,
   exact colorable_lower_bound h,
-end
-
-lemma chromatic_number_le_n_of_colorable {n : ℕ} (hc : G.colorable n) :
-  G.chromatic_number ≤ n :=
-begin
-  rw chromatic_number,
-  apply cInf_le chromatic_number_bdd_below,
-  fsplit,
-  exact classical.choice hc,
 end
 
 lemma chromatic_number_minimal [fintype α] (C : G.coloring α)

@@ -108,6 +108,13 @@ begin
   contradiction,
 end
 
+lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_classes :=
+begin
+  use v,
+  let aa := C.mem_color_class v,
+  sorry,
+end
+
 lemma coloring.color_classes_is_independent :
   ∀ (s ∈ C.color_classes), is_antichain G.adj s :=
 begin
@@ -115,10 +122,10 @@ begin
   sorry,
 end
 
-lemma coloring.color_class_is_independent (c : α) :
-  is_antichain G.adj (C.color_class c) :=
+lemma coloring.color_class_is_independent :
+  ∀ c, is_antichain G.adj (C.color_class c) :=
 begin
-  intros w hcvw z hczv _,
+  intros _ w hcvw z hczv _,
   apply C.non_adjacent_of_same_color_class z w hczv hcvw,
 end
 

@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland, Aaron Anderson
 -/
 
-import algebra.group_with_zero
+import algebra.group_with_zero.basic
 
 /-!
 # Divisibility

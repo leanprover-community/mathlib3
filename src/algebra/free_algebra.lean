@@ -5,7 +5,6 @@ Authors: Scott Morrison, Adam Topaz
 -/
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra.basic
-import linear_algebra
 
 /-!
 # Free Algebras

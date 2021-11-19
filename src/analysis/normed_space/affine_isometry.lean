@@ -5,7 +5,6 @@ Authors: Heather Macbeth
 -/
 import analysis.normed_space.add_torsor
 import analysis.normed_space.linear_isometry
-import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Affine isometries

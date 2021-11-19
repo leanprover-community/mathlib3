@@ -3,9 +3,10 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.polynomial.degree.card_pow_degree
-import field_theory.finite.basic
 import number_theory.class_number.admissible_absolute_value
+import analysis.special_functions.pow
+import ring_theory.ideal.local_ring
+import data.polynomial.degree.card_pow_degree
 
 /-!
 # Admissible absolute values on polynomials

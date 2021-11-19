@@ -113,7 +113,7 @@ variables {X Y : Type*} [measure_space Y] [group_with_zero X] [mul_action X Y]
 lemma measurable_set_smul' {x : X} (hx : x ≠ 0) {S : set Y} (h : measurable_set S) :
   measurable_set (x • S) :=
 begin
-  rw [← inv_inv' x, ← preimage_smul' (inv_ne_zero hx)],
+  rw [← inv_inv₀ x, ← preimage_smul₀ (inv_ne_zero hx)],
   exact has_measurable_smul.measurable_const_smul _ h,
 end
 
@@ -142,9 +142,7 @@ begin
   { rw pi_pi,
     { congr',
       ext i : 1,
-      rw h _ _ (hS i), },
-    { intro i,
-      exact measurable_set_preimage (measurable_const_add (v i)) (hS i), }, },
+      rw h _ _ (hS i), }, },
   { refl, },
   { exact measurable_const_add v, },
   { exact measurable_set.univ_pi_fintype hS, },
@@ -168,7 +166,6 @@ lemma volume_Icc [fintype ι] : volume (Icc 0 1 : set (ι → ℝ)) = 1 :=
 begin
   simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
   rw [volume_pi_pi, real.volume_Icc, sub_zero, ennreal.of_real_one, finset.prod_const_one],
-  exact (λ i, measurable_set_Icc),
 end
 
 lemma pi_haar_measure_eq_lebesgue_measure [fintype ι] : add_haar_measure (unit_cube ι) = volume :=
@@ -442,9 +439,9 @@ begin
   { erw pi_pi,
     dsimp,
     { conv in (r • _)
-      { rw ← inv_inv' r, },
+      { rw ← inv_inv₀ r, },
       conv in (volume (r⁻¹⁻¹ • _))
-      { rw ← preimage_smul' (inv_ne_zero (ne_of_gt hr)), },
+      { rw ← preimage_smul₀ (inv_ne_zero (ne_of_gt hr)), },
       simp only [algebra.id.smul_eq_mul],
       rw [fintype.card, ← finset.prod_const, ← finset.prod_mul_distrib],
       congr,
@@ -452,10 +449,7 @@ begin
       erw ← measure.map_apply (measurable_const_mul r⁻¹) (hS i),
       conv_rhs { rw [← real.smul_map_volume_mul_left (inv_ne_zero (ne_of_gt hr))], },
       congr,
-      rw [ennreal.of_real_inv_of_pos hr, abs_of_pos (inv_pos.mpr hr)], },
-    { intro i,
-      dsimp,
-      exact measurable_set_smul' (ne_of_gt hr) (hS i), }, },
+      rw [ennreal.of_real_inv_of_pos hr, abs_of_pos (inv_pos.mpr hr)], }, },
   { exact smul_right_injective (ι → ℝ) (ne_of_gt hr), },
   { intros S hS,
     rw [image_smul],
@@ -475,7 +469,7 @@ begin
   { convert measurable_const_smul (2 : ℝ) hS,
     ext x,
     simp only [one_div, set.mem_preimage],
-    exact mem_inv_smul_set_iff' two_ne_zero S x, },
+    exact mem_inv_smul_set_iff₀ two_ne_zero S x, },
   have : volume ((1/2 : ℝ) • S) * 2 ^ (card ι) = volume S,
   { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ (card ι) * volume S,
     { rw [this, mul_comm _ (volume S), mul_assoc, ← mul_pow, one_div,
@@ -488,9 +482,9 @@ begin
     { simp, },
     { exact smul_right_injective _ (by norm_num), },
     { intros S hS,
-      rw [image_smul, ← preimage_smul'],
+      rw [image_smul, ← preimage_smul₀],
       { apply measurable_set_preimage _ hS,
-        rw measurable_const_smul_iff',
+        rw measurable_const_smul_iff₀,
         exact measurable_id',
         exact two_ne_zero, },
       { exact two_ne_zero, }, }, },

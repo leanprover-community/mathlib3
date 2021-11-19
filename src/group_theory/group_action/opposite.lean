@@ -63,7 +63,7 @@ open mul_opposite
 
 /-- Like `has_mul.to_has_scalar`, but multiplies on the right.
 
-See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/
+See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action_with_zero`. -/
 instance has_mul.to_has_opposite_scalar [has_mul α] : has_scalar αᵐᵒᵖ α :=
 { smul := λ c x, x * c.unop }
 

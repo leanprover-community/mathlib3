@@ -518,6 +518,17 @@ begin
   exact λ h, not_mem_erase _ _ (mem_of_max h),
 end
 
+lemma degree_update_le (p : polynomial R) (n : ℕ) (a : R) :
+  degree (p.update n a) ≤ max (degree p) n :=
+begin
+  simp only [degree, coeff_update_apply, le_max_iff, finset.sup_le_iff, mem_support_iff],
+  intros b hb,
+  split_ifs at hb with h,
+  { subst b,
+    exact or.inr le_rfl },
+  { exact or.inl (le_degree_of_ne_zero hb) }
+end
+
 lemma degree_sum_le (s : finset ι) (f : ι → polynomial R) :
   degree (∑ i in s, f i) ≤ s.sup (λ b, degree (f b)) :=
 finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]) $

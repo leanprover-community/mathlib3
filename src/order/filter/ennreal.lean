@@ -37,7 +37,7 @@ begin
     exact (ne_of_lt hr_pos).symm, },
   cases (exists_inv_nat_lt hr_ne_zero) with i hi,
   rw inv_eq_one_div at hi,
-  exact le_trans (le_of_lt (hy i)) (add_le_add_left hi.le (f.limsup u)),
+  exact (hy i).le.trans (add_le_add_left hi.le (f.limsup u)),
 end
 
 lemma limsup_eq_zero_iff [countable_Inter_filter f] {u : α → ℝ≥0∞} :
@@ -63,7 +63,7 @@ begin
     ⟨λ x, by simp [←mul_assoc, inv_mul_cancel ha_zero ha_top],
     λ x, by simp [g, ←mul_assoc, mul_inv_cancel ha_zero ha_top]⟩⟩,
   have hg_mono : strict_mono g,
-    from strict_mono_of_monotone_of_injective
+    from monotone.strict_mono_of_injective
       (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
   let g_iso := strict_mono.order_iso_of_surjective g hg_mono hg_bij.2,
   refine (order_iso.limsup_apply g_iso _ _ _ _).symm,

@@ -122,7 +122,7 @@ lemma with_densityᵥ_smul' {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [norm
 with_densityᵥ_smul f r
 
 lemma measure.with_densityᵥ_absolutely_continuous (μ : measure α) (f : α → ℝ) :
-  μ.with_densityᵥ f ≪ μ.to_ennreal_vector_measure :=
+  μ.with_densityᵥ f ≪ᵥ μ.to_ennreal_vector_measure :=
 begin
   by_cases hf : integrable f μ,
   { refine vector_measure.absolutely_continuous.mk (λ i hi₁ hi₂, _),
@@ -186,6 +186,22 @@ begin
       integral_eq_lintegral_pos_part_sub_lintegral_neg_part hfi.integrable_on,
       vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       to_signed_measure_apply_measurable hi, with_density_apply _ hi, with_density_apply _ hi],
+end
+
+lemma integrable.with_densityᵥ_trim_eq_integral {m m0 : measurable_space α}
+  {μ : measure α} (hm : m ≤ m0) {f : α → ℝ} (hf : integrable f μ)
+  {i : set α} (hi : measurable_set[m] i) :
+  (μ.with_densityᵥ f).trim hm i = ∫ x in i, f x ∂μ :=
+by rw [vector_measure.trim_measurable_set_eq hm hi, with_densityᵥ_apply hf (hm _ hi)]
+
+lemma integrable.with_densityᵥ_trim_absolutely_continuous
+  {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) (hfi : integrable f μ) :
+  (μ.with_densityᵥ f).trim hm ≪ᵥ (μ.trim hm).to_ennreal_vector_measure :=
+begin
+  refine vector_measure.absolutely_continuous.mk (λ j hj₁ hj₂, _),
+  rw [measure.to_ennreal_vector_measure_apply_measurable hj₁, trim_measurable_set_eq hm hj₁] at hj₂,
+  rw [vector_measure.trim_measurable_set_eq hm hj₁, with_densityᵥ_apply hfi (hm _ hj₁)],
+  simp only [measure.restrict_eq_zero.mpr hj₂, integral_zero_measure]
 end
 
 end signed_measure

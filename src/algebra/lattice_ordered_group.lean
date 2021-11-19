@@ -123,11 +123,6 @@ calc a⊓b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
 ... = a⊓b * ((a * b) * (a ⊓ b)⁻¹) : by rw [inv_inf_eq_sup_inv, sup_comm]
 ... = a * b                       : by rw [mul_comm, inv_mul_cancel_right]
 
-/--
-Absolute value is a unary operator with properties similar to the absolute value of a real number.
--/
-local notation `|`a`|` := mabs a
-
 namespace lattice_ordered_comm_group
 
 -- Bourbaki A.VI.12 Definition 4
@@ -316,8 +311,7 @@ begin
     { rw ← inv_le_inv_iff at h,
       apply sup_le
       (le_trans h (lattice_ordered_comm_group.m_le_neg a))
-      (lattice_ordered_comm_group.m_neg_pos a), }
-  },
+      (lattice_ordered_comm_group.m_neg_pos a), } },
   { intro h,
     rw [← pos_div_neg' a, ← pos_div_neg' b ],
     apply div_le_div'' h.1 h.2, }
@@ -334,7 +328,7 @@ lemma pos_mul_neg [covariant_class α α (*) (≤)] (a : α) : |a| = a⁺ * a⁻
 begin
   rw le_antisymm_iff,
   split,
-  { unfold mabs,
+  { unfold has_abs.abs,
     rw sup_le_iff,
     split,
     { nth_rewrite 0 ← mul_one a,
@@ -452,8 +446,8 @@ begin
     ((b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c))) * |a ⊓ c / (b ⊓ c)| : by rw sup_div_inf_eq_abs_div
   ... = (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * (((b ⊓ c) ⊔ (a ⊓ c)) / ((b ⊓ c) ⊓ (a ⊓ c))) :
     by rw sup_div_inf_eq_abs_div (b ⊓ c) (a ⊓ c)
-  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by {
-    rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
+  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by
+  { rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
     nth_rewrite 1 sup_comm,
     rw [sup_right_idem, sup_assoc, inf_assoc ],
     nth_rewrite 3 inf_comm,
@@ -484,7 +478,7 @@ equal to its absolute value `|a|`.
 @[to_additive abs_pos_eq]
 lemma mabs_pos_eq [covariant_class α α (*) (≤)] (a : α) (h: 1 ≤ a) : |a| = a :=
 begin
-  unfold mabs,
+  unfold has_abs.abs,
   rw [sup_eq_mul_pos_div, div_eq_mul_inv, inv_inv, ← pow_two, inv_mul_eq_iff_eq_mul,
     ← pow_two, m_pos_pos_id ],
   rw pow_two,

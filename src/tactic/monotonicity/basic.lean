@@ -80,6 +80,9 @@ do guard (same_operator l r) <|>
 @[reducible]
 def mono_key := (with_bot name × with_bot name)
 
+meta instance mono_key.has_lt : has_lt mono_key :=
+{ lt := prod.lex (<) (<) }
+
 open nat
 
 meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key

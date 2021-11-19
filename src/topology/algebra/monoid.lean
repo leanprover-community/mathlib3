@@ -17,7 +17,7 @@ applications the underlying type is a monoid (multiplicative or additive), we do
 the definitions.
 -/
 
-universe variables u v
+universes u v
 open classical set filter topological_space
 open_locale classical topological_space big_operators pointwise
 
@@ -52,9 +52,6 @@ has_continuous_mul.continuous_mul
 lemma continuous.mul {f g : X → M} (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
 continuous_mul.comp (hf.prod_mk hg : _)
-
--- should `to_additive` be doing this?
-attribute [continuity] continuous.add
 
 @[to_additive]
 lemma continuous_mul_left (a : M) : continuous (λ b:M, a * b) :=
@@ -309,21 +306,21 @@ end has_continuous_mul
 
 section op
 
-open opposite
+open mul_opposite
 
 /-- Put the same topological space structure on the opposite monoid as on the original space. -/
-instance [_i : topological_space α] : topological_space αᵒᵖ :=
-topological_space.induced (unop : αᵒᵖ → α) _i
+instance [_i : topological_space α] : topological_space αᵐᵒᵖ :=
+topological_space.induced (unop : αᵐᵒᵖ → α) _i
 
 variables [topological_space α]
 
-lemma continuous_unop : continuous (unop : αᵒᵖ → α) := continuous_induced_dom
-lemma continuous_op : continuous (op : α → αᵒᵖ) := continuous_induced_rng continuous_id
+lemma continuous_unop : continuous (unop : αᵐᵒᵖ → α) := continuous_induced_dom
+lemma continuous_op : continuous (op : α → αᵐᵒᵖ) := continuous_induced_rng continuous_id
 
 variables [monoid α] [has_continuous_mul α]
 
-/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵒᵖ`. -/
-instance : has_continuous_mul αᵒᵖ :=
+/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵐᵒᵖ`. -/
+instance : has_continuous_mul αᵐᵒᵖ :=
 ⟨ let h₁ := @continuous_mul α _ _ _ in
   let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
   continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
@@ -332,7 +329,7 @@ end op
 
 namespace units
 
-open opposite
+open mul_opposite
 
 variables [topological_space α] [monoid α]
 
@@ -354,7 +351,7 @@ with respect to the induced topology, is continuous.
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
 instance : has_continuous_mul (units α) :=
-⟨ let h := @continuous_mul (α × αᵒᵖ) _ _ _ in
+⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
   continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 
 end units
@@ -381,20 +378,15 @@ lemma tendsto_finset_prod {f : ι → α → M} {x : filter α} {a : ι → M} (
   (∀ i ∈ s, tendsto (f i) x (𝓝 (a i))) → tendsto (λb, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
 tendsto_multiset_prod _
 
-@[to_additive, continuity]
+@[continuity, to_additive]
 lemma continuous_multiset_prod {f : ι → X → M} (s : multiset ι) :
   (∀i ∈ s, continuous (f i)) → continuous (λ a, (s.map (λ i, f i a)).prod) :=
 by { rcases s with ⟨l⟩, simpa using continuous_list_prod l }
-
-attribute [continuity] continuous_multiset_sum
 
 @[continuity, to_additive]
 lemma continuous_finset_prod {f : ι → X → M} (s : finset ι) :
   (∀ i ∈ s, continuous (f i)) → continuous (λa, ∏ i in s, f i a) :=
 continuous_multiset_prod _
-
--- should `to_additive` be doing this?
-attribute [continuity] continuous_finset_sum
 
 open function
 

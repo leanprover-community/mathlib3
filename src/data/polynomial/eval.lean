@@ -345,6 +345,8 @@ instance [decidable_eq R] : decidable (is_root p a) := by unfold is_root; apply_
 
 @[simp] lemma is_root.def : is_root p a ↔ p.eval a = 0 := iff.rfl
 
+lemma is_root.eq_zero (h : is_root p x) : eval x p = 0 := h
+
 lemma coeff_zero_eq_eval_zero (p : polynomial R) :
   coeff p 0 = p.eval 0 :=
 calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
@@ -748,12 +750,17 @@ lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
 begin
   classical,
   apply finset.induction_on s,
-    { simp only [finset.prod_empty, eval_one] },
-    { intros j s hj hpj,
-      have h0 : ∏ i in insert j s, eval x (p i) = (eval x (p j)) * ∏ i in s, eval x (p i),
-      { apply finset.prod_insert hj },
-      rw [h0, ← hpj, finset.prod_insert hj, eval_mul] },
+  { simp only [finset.prod_empty, eval_one] },
+  { intros j s hj hpj,
+    have h0 : ∏ i in insert j s, eval x (p i) = (eval x (p j)) * ∏ i in s, eval x (p i),
+    { apply finset.prod_insert hj },
+    rw [h0, ← hpj, finset.prod_insert hj, eval_mul] },
 end
+
+lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
+  (s : finset ι) (p : ι → polynomial R) (x : R) :
+  is_root (∏ j in s, p j) x ↔ ∃ i ∈ s, is_root (p i) x :=
+by simp only [is_root, eval_prod, finset.prod_eq_zero_iff]
 
 end eval
 
@@ -778,6 +785,18 @@ begin
   rw hx,
   exact ring_hom.map_zero f,
 end
+
+lemma is_root.map {f : R →+* S} {x : R} {p : polynomial R} (h : is_root p x) :
+  is_root (p.map f) (f x) :=
+by rw [is_root, eval_map, eval₂_hom, h.eq_zero, f.map_zero]
+
+lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=
+by rwa [is_root, ←f.injective_iff'.mp hf, ←eval₂_hom, ←eval_map]
+
+lemma is_root_map_iff {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : polynomial R}
+  (hf : function.injective f) : is_root (p.map f) (f x) ↔ is_root p x :=
+⟨λ h, h.of_map hf, λ h, h.map⟩
 
 end map
 

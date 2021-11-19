@@ -2,13 +2,11 @@
 Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
-
-Type of continuous maps and the compact-open topology on them.
 -/
-import topology.subset_properties
+import tactic.tidy
 import topology.continuous_function.basic
 import topology.homeomorph
-import tactic.tidy
+import topology.subset_properties
 
 /-!
 # The compact-open topology

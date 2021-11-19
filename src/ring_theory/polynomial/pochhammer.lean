@@ -84,8 +84,8 @@ begin
     simpa only [pochhammer_map, map_mul, map_add, map_X, map_nat_cast] using h, },
   induction n with n ih,
   { simp, },
-  { conv_lhs {
-    rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
+  { conv_lhs
+  { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
       nat_cast_comp, add_assoc, add_comm (1 : polynomial ℕ)], },
     refl, },
 end
@@ -117,7 +117,7 @@ lemma pochhammer_nat_eq_desc_factorial (a b : ℕ) :
 begin
   cases b,
   { rw [nat.desc_factorial_zero, pochhammer_zero, polynomial.eval_one] },
-  rw [nat.add_succ, nat.succ_sub_succ, nat.sub_zero],
+  rw [nat.add_succ, nat.succ_sub_succ, tsub_zero],
   cases a,
   { rw [pochhammer_ne_zero_eval_zero _ b.succ_ne_zero, zero_add,
     nat.desc_factorial_of_lt b.lt_succ_self] },

@@ -71,7 +71,7 @@ measures.
   on an extended metric space `X` (that is, it is additive on pairs of metric separated sets), then
   every Borel set is Caratheodory measurable (hence, `μ` defines an actual
   `measure_theory.measure`). See also `measure_theory.measure.mk_metric`.
-* `measure_theory.measure.hausdorff_measure_mono`: `μH[d] s` is a monotonically decreasing function
+* `measure_theory.measure.hausdorff_measure_mono`: `μH[d] s` is an antitone function
   of `d`.
 * `measure_theory.measure.hausdorff_measure_zero_or_top`: if `d₁ < d₂`, then for any `s`, either
   `μH[d₂] s = 0` or `μH[d₁] s = ∞`. Together with the previous lemma, this means that `μH[d] s` is
@@ -230,7 +230,7 @@ begin
   apply ennreal.le_of_add_le_add_right hyz.ne_top,
   refine le_trans _ (edist_triangle _ _ _),
   refine (add_le_add le_rfl hyz.le).trans (eq.trans_le _ hxz),
-  rw [ennreal.sub_add_cancel_of_le A.le]
+  rw [tsub_add_cancel_of_le A.le]
 end
 
 lemma le_caratheodory [measurable_space X] [borel_space X] (hm : is_metric μ) :
@@ -687,7 +687,7 @@ begin
     { refine le_hausdorff_measure _ _ ∞ ennreal.coe_lt_top (λ s h₁ h₂, _),
       rw [ennreal.rpow_nat_cast],
       exact real.volume_pi_le_diam_pow s },
-    rw [← volume_pi_pi (λ i, Ioo (a i : ℝ) (b i)) (λ i, measurable_set_Ioo)],
+    rw [← volume_pi_pi (λ i, Ioo (a i : ℝ) (b i))],
     exact measure.le_iff'.1 Hle _ },
   /- For the other inequality `μH s ≤ volume s`, we use a covering of `s` by sets of small diameter
   `1/n`, namely cubes with left-most point of the form `a i + f i / n` with `f i` ranging between
@@ -712,7 +712,7 @@ begin
     simp only [mem_Union, mem_Ioo, mem_univ_pi, coe_coe],
     let f : γ n := λ i, ⟨⌊(x i - a i) * n⌋₊,
     begin
-      apply nat_floor_lt_nat_ceil_of_lt_of_pos,
+      apply nat.floor_lt_ceil_of_lt_of_pos,
       { refine (mul_lt_mul_right npos).2 _,
         simp only [(hx i).right, sub_lt_sub_iff_right] },
       { refine mul_pos _ npos,
@@ -723,13 +723,13 @@ begin
       ≤ (a i : ℝ) + ((x i - a i) * n) / n :
           begin
             refine add_le_add le_rfl ((div_le_div_right npos).2 _),
-            exact nat_floor_le (mul_nonneg (sub_nonneg.2 (hx i).1.le) npos.le),
+            exact nat.floor_le (mul_nonneg (sub_nonneg.2 (hx i).1.le) npos.le),
           end
       ... = x i : by field_simp [npos.ne'] },
     { calc x i
       = (a i : ℝ) + ((x i - a i) * n) / n : by field_simp [npos.ne']
       ... ≤ (a i : ℝ) + (⌊(x i - a i) * n⌋₊ + 1) / n :
-        add_le_add le_rfl ((div_le_div_right npos).2 (lt_nat_floor_add_one _).le) } },
+        add_le_add le_rfl ((div_le_div_right npos).2 (nat.lt_floor_add_one _).le) } },
   calc μH[fintype.card ι] (set.pi univ (λ (i : ι), Ioo (a i : ℝ) (b i)))
     ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) :
       hausdorff_measure_le_liminf_sum _ (set.pi univ (λ i, Ioo (a i : ℝ) (b i)))

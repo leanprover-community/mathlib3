@@ -3,7 +3,7 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import logic.basic
+import logic.function.basic
 import tactic.protected
 /-!
 # Types that are empty
@@ -97,6 +97,21 @@ end is_empty
 
 @[simp] lemma not_is_empty_iff : ¬ is_empty α ↔ nonempty α :=
 not_iff_comm.mp not_nonempty_iff
+
+@[simp] lemma is_empty_pi {π : α → Sort*} : is_empty (Π a, π a) ↔ ∃ a, is_empty (π a) :=
+by simp only [← not_nonempty_iff, classical.nonempty_pi, not_forall]
+
+@[simp] lemma is_empty_prod {α β : Type*} : is_empty (α × β) ↔ is_empty α ∨ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_prod, not_and_distrib]
+
+@[simp] lemma is_empty_pprod : is_empty (pprod α β) ↔ is_empty α ∨ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_pprod, not_and_distrib]
+
+@[simp] lemma is_empty_sum {α β} : is_empty (α ⊕ β) ↔ is_empty α ∧ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
+
+@[simp] lemma is_empty_psum {α β} : is_empty (psum α β) ↔ is_empty α ∧ is_empty β :=
+by simp only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
 
 variables (α)
 

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import algebra.geom_sum
 import linear_algebra.smodeq
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient
 import ring_theory.jacobson_ideal
 
 /-!
@@ -223,7 +224,8 @@ begin
   have hf : ∀ m n, m ≤ n → f m ≡ f n [SMOD I ^ m • (⊤ : submodule R R)],
   { intros m n h,
     simp only [f, geom_sum_def, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
-    rw [← nat.add_sub_cancel' h, finset.sum_range_add, ← sub_sub, sub_self, zero_sub, neg_mem_iff],
+    rw [← add_tsub_cancel_of_le h, finset.sum_range_add, ← sub_sub, sub_self, zero_sub,
+      neg_mem_iff],
     apply submodule.sum_mem,
     intros n hn,
     rw [mul_pow, pow_add, mul_assoc],

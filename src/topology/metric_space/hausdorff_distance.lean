@@ -22,8 +22,8 @@ expressed in the setting of emetric spaces.
 This files introduces:
 * `inf_edist x s`, the infimum edistance of a point `x` to a set `s` in an emetric space
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
-* Versions of these notions on metric spaces, called respectively `inf_dist` and
-`Hausdorff_dist`.
+* Versions of these notions on metric spaces, called respectively `inf_dist` and `Hausdorff_dist`
+* `thickening δ s`, the open thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
 open_locale classical nnreal ennreal topological_space
@@ -114,6 +114,17 @@ lemma mem_iff_inf_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist
 begin
   convert ← mem_closure_iff_inf_edist_zero,
   exact h.closure_eq
+end
+
+lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ≥0∞} (h : r < inf_edist x s) :
+  disjoint (closed_ball x r) s :=
+begin
+  rw disjoint_left,
+  assume y hy h'y,
+  apply lt_irrefl (inf_edist x s),
+  calc inf_edist x s ≤ edist x y : inf_edist_le_edist_of_mem h'y
+  ... ≤ r : by rwa [mem_closed_ball, edist_comm] at hy
+  ... < inf_edist x s : h
 end
 
 /-- The infimum edistance is invariant under isometries -/
@@ -433,6 +444,17 @@ begin
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
 end
 
+lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
+  disjoint (closed_ball x r) s :=
+begin
+  rw disjoint_left,
+  assume y hy h'y,
+  apply lt_irrefl (inf_dist x s),
+  calc inf_dist x s ≤ dist x y : inf_dist_le_dist_of_mem h'y
+  ... ≤ r : by rwa [mem_closed_ball, dist_comm] at hy
+  ... < inf_dist x s : h
+end
+
 variable (s)
 
 /-- The minimal distance to a set is Lipschitz in point with constant 1 -/
@@ -460,11 +482,20 @@ lemma mem_closure_iff_inf_dist_zero (h : s.nonempty) : x ∈ closure s ↔ inf_d
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
-lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s.nonempty) :
+lemma _root_.is_closed.mem_iff_inf_dist_zero (h : is_closed s) (hs : s.nonempty) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,
   rwa h.closure_eq at this
+end
+
+/-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
+lemma _root_.is_closed.not_mem_iff_inf_dist_pos (h : is_closed s) (hs : s.nonempty) :
+  x ∉ s ↔ 0 < inf_dist x s :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  simp [h.mem_iff_inf_dist_zero hs, le_antisymm_iff, inf_dist_nonneg],
 end
 
 /-- The infimum distance is invariant under isometries -/
@@ -706,10 +737,79 @@ by simp [Hausdorff_edist_zero_iff_closure_eq_closure.symm, Hausdorff_dist,
          ennreal.to_real_eq_zero_iff, fin]
 
 /-- Two closed sets are at zero Hausdorff distance if and only if they coincide -/
-lemma Hausdorff_dist_zero_iff_eq_of_closed (hs : is_closed s) (ht : is_closed t)
+lemma _root_.is_closed.Hausdorff_dist_zero_iff_eq (hs : is_closed s) (ht : is_closed t)
   (fin : Hausdorff_edist s t ≠ ⊤) : Hausdorff_dist s t = 0 ↔ s = t :=
 by simp [(Hausdorff_edist_zero_iff_eq_of_closed hs ht).symm, Hausdorff_dist,
          ennreal.to_real_eq_zero_iff, fin]
 
 end --section
+
+section thickening
+
+variables {α : Type u} [pseudo_emetric_space α]
+
+open emetric
+
+/-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a pseudo emetric space consists
+of those points that are at distance less than `δ` from some point of `E`. -/
+def thickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E < ennreal.of_real δ}
+
+/-- The (open) thickening equals the preimage of an open interval under `inf_edist`. -/
+lemma thickening_eq_preimage_inf_edist (δ : ℝ) (E : set α) :
+  thickening δ E = (λ x, inf_edist x E) ⁻¹' (Iio (ennreal.of_real δ)) := rfl
+
+/-- The (open) thickening is an open set. -/
+lemma is_open_thickening {δ : ℝ} {E : set α} : is_open (thickening δ E) :=
+continuous.is_open_preimage continuous_inf_edist _ is_open_Iio
+
+/-- The (open) thickening of the empty set is empty. -/
+@[simp] lemma thickening_empty (δ : ℝ) : thickening δ (∅ : set α) = ∅ :=
+by simp only [thickening, set_of_false, inf_edist_empty, not_top_lt]
+
+/-- The (open) thickening `thickening δ E` of a fixed subset `E` is an increasing function of the
+thickening radius `δ`. -/
+lemma thickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
+  thickening δ₁ E ⊆ thickening δ₂ E :=
+preimage_mono (Iio_subset_Iio (ennreal.of_real_le_of_real hle))
+
+/-- The (open) thickening `thickening δ E` with a fixed thickening radius `δ` is
+an increasing function of the subset `E`. -/
+lemma thickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
+  thickening δ E₁ ⊆ thickening δ E₂ :=
+λ _ hx, lt_of_le_of_lt (inf_edist_le_inf_edist_of_subset h) hx
+
+variables {X : Type u} [metric_space X]
+
+/-- A point in a metric space belongs to the (open) `δ`-thickening of a subset `E` if and only if
+it is at distance less than `δ` from some point of `E`. -/
+lemma mem_thickening_iff {δ : ℝ} (E : set X) (x : X) :
+  x ∈ thickening δ E ↔ (∃ z ∈ E, dist x z < δ) :=
+begin
+  unfold thickening,
+  simp only [exists_prop, mem_set_of_eq],
+  split,
+  { intros h,
+    rcases (exists_edist_lt_of_inf_edist_lt h) with ⟨z, ⟨hzE, hxz⟩⟩,
+    refine ⟨z, hzE, _⟩,
+    rw dist_edist,
+    apply (@ennreal.of_real_lt_of_real_iff_of_nonneg
+        ((edist x z).to_real) δ (ennreal.to_real_nonneg)).mp,
+    rwa ennreal.of_real_to_real (edist_lt_top x z).ne, },
+  { intros h,
+    rcases h with ⟨z, ⟨hzE, hxz⟩⟩,
+    rw dist_edist at hxz,
+    apply lt_of_le_of_lt (@inf_edist_le_edist_of_mem _ _ x _ _ hzE) _,
+    have key := (@ennreal.of_real_lt_of_real_iff_of_nonneg
+        ((edist x z).to_real) δ (ennreal.to_real_nonneg)).mpr hxz,
+    rwa ennreal.of_real_to_real (edist_lt_top x z).ne at key, },
+end
+
+/-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a metric space equals the
+union of balls of radius `δ` centered at points of `E`. -/
+lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
+  thickening δ E = ⋃ x ∈ E, ball x δ :=
+by { ext x, rw mem_bUnion_iff, exact mem_thickening_iff E x, }
+
+end thickening --section
+
 end metric --namespace

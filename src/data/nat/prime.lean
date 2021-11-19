@@ -2,14 +2,12 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
-
 -/
-import data.nat.sqrt
-import data.nat.gcd
 import data.list.sort
-import algebra.group_power
-import tactic.wlog
+import data.nat.gcd
+import data.nat.sqrt
 import tactic.norm_num
+import tactic.wlog
 
 /-!
 # Prime numbers
@@ -145,7 +143,7 @@ section min_fac
 
 private lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :
   sqrt n - k < sqrt n + 2 - k :=
-(nat.sub_lt_sub_right_iff $ le_sqrt.2 $ le_of_not_gt h).2 $
+(tsub_lt_tsub_iff_right $ le_sqrt.2 $ le_of_not_gt h).2 $
 nat.lt_add_of_pos_right dec_trivial
 
 /-- If `n < k * k`, then `min_fac_aux n k = n`, if `k | n`, then `min_fac_aux n k = k`.
@@ -421,7 +419,7 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
 
 lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] :=
 begin
-  have : p = (p - 2) + 2 := (nat.sub_eq_iff_eq_add hp.1).mp rfl,
+  have : p = (p - 2) + 2 := (tsub_eq_iff_eq_add_of_le hp.1).mp rfl,
   rw [this, nat.factors],
   simp only [eq.symm this],
   have : nat.min_fac p = p := (nat.prime_def_min_fac.mp hp).2,
@@ -735,9 +733,10 @@ end nat
 
 /-! ### Primality prover -/
 
+open norm_num
+
 namespace tactic
 namespace norm_num
-open norm_num
 
 lemma is_prime_helper (n : ℕ)
   (h₁ : 1 < n) (h₂ : nat.min_fac n = n) : nat.prime n :=
@@ -755,10 +754,11 @@ pos_iff_ne_zero.2 $ λ e,
 by rw e at h; exact not_le_of_lt (nat.bit1_lt h.1) h.2
 
 lemma min_fac_ne_bit0 {n k : ℕ} : nat.min_fac (bit1 n) ≠ bit0 k :=
-by rw bit0_eq_two_mul; exact λ e, absurd
-  ((nat.dvd_add_iff_right (by simp [bit0_eq_two_mul n])).2
-    (dvd_trans ⟨_, e⟩ (nat.min_fac_dvd _)))
-  (by norm_num)
+begin
+  rw bit0_eq_two_mul,
+  refine (λ e, absurd ((nat.dvd_add_iff_right _).2
+    (dvd_trans ⟨_, e⟩ (nat.min_fac_dvd _))) _); simp
+end
 
 lemma min_fac_helper_0 (n : ℕ) (h : 0 < n) : min_fac_helper n 1 :=
 begin

@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.uniform_space.basic
 import topology.bases
-import data.set.intervals
+import topology.uniform_space.basic
 /-!
 # Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
 -/
@@ -75,6 +74,15 @@ lemma filter.tendsto.cauchy_map {l : filter β} [ne_bot l] {f : β → α} {a : 
   cauchy (map f l) :=
 cauchy_nhds.mono h
 
+lemma cauchy.prod [uniform_space β] {f : filter α} {g : filter β} (hf : cauchy f) (hg : cauchy g) :
+  cauchy (f ×ᶠ g) :=
+begin
+  refine ⟨hf.1.prod hg.1, _⟩,
+  simp only [uniformity_prod, le_inf_iff, ← map_le_iff_le_comap, ← prod_map_map_eq],
+  exact ⟨le_trans (prod_mono tendsto_fst tendsto_fst) hf.2,
+    le_trans (prod_mono tendsto_snd tendsto_snd) hg.2⟩
+end
+
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
 `sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`
 one can choose a set `t ∈ f` of diameter `s` such that it contains a point `y`
@@ -137,16 +145,20 @@ defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it 
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
 def cauchy_seq [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
-lemma cauchy_seq.mem_entourage {ι : Type*} [nonempty ι] [linear_order ι] {u : ι → α}
+lemma cauchy_seq.tendsto_uniformity [semilattice_sup β] {u : β → α} (h : cauchy_seq u) :
+  tendsto (prod.map u u) at_top (𝓤 α) :=
+by simpa only [tendsto, prod_map_map_eq', prod_at_top_at_top_eq] using h.right
+
+lemma cauchy_seq.nonempty [semilattice_sup β] {u : β → α} (hu : cauchy_seq u) : nonempty β :=
+@nonempty_of_ne_bot _ _ $ (map_ne_bot_iff _).1 hu.1
+
+lemma cauchy_seq.mem_entourage {β : Type*} [semilattice_sup β] {u : β → α}
   (h : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
   ∃ k₀, ∀ i j, k₀ ≤ i → k₀ ≤ j → (u i, u j) ∈ V :=
 begin
-  have := h.right hV,
-  obtain ⟨⟨i₀, j₀⟩, H⟩ : ∃ a, ∀ b : ι × ι, b ≥ a → prod.map u u b ∈ V,
-    by rwa [prod_map_at_top_eq, mem_map, mem_at_top_sets] at this,
-  refine ⟨max i₀ j₀, _⟩,
-  intros i j hi hj,
-  exact H (i, j) ⟨le_of_max_le_left  hi, le_of_max_le_right hj⟩,
+  haveI := h.nonempty,
+  have := h.tendsto_uniformity, rw ← prod_at_top_at_top_eq at this,
+  simpa [maps_to] using at_top_basis.prod_self.tendsto_left_iff.1 this V hV
 end
 
 lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → α} {x}
@@ -160,6 +172,11 @@ tendsto_const_nhds.cauchy_seq
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
 cauchy_map_iff'.trans $ by simp only [prod_at_top_at_top_eq, prod.map_def]
+
+lemma cauchy_seq.comp_tendsto {γ} [semilattice_sup β] [semilattice_sup γ] [nonempty γ]
+  {f : β → α} (hf : cauchy_seq f) {g : γ → β} (hg : tendsto g at_top at_top) :
+  cauchy_seq (f ∘ g) :=
+cauchy_seq_iff_tendsto.2 $ hf.tendsto_uniformity.comp (hg.prod_at_top hg)
 
 lemma cauchy_seq.subseq_subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
   {u : ℕ → α} (hu : cauchy_seq u)
@@ -178,6 +195,23 @@ lemma cauchy_seq_iff {u : ℕ → α} :
   cauchy_seq u ↔ ∀ V ∈ 𝓤 α, ∃ N, ∀ k ≥ N, ∀ l ≥ N, (u k, u l) ∈ V :=
 by simp [cauchy_seq_iff', filter.eventually_at_top_prod_self', prod_map]
 
+lemma cauchy_seq.prod_map {γ δ} [uniform_space β] [semilattice_sup γ] [semilattice_sup δ]
+  {u : γ → α} {v : δ → β}
+  (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (prod.map u v) :=
+by simpa only [cauchy_seq, prod_map_map_eq', prod_at_top_at_top_eq] using hu.prod hv
+
+lemma cauchy_seq.prod {γ} [uniform_space β] [semilattice_sup γ] {u : γ → α} {v : γ → β}
+  (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (λ x, (u x, v x)) :=
+begin
+  haveI := hu.nonempty,
+  exact (hu.prod hv).mono (tendsto.prod_mk le_rfl le_rfl)
+end
+
+lemma uniform_continuous.comp_cauchy_seq {γ} [uniform_space β] [semilattice_sup γ]
+  {f : α → β} (hf : uniform_continuous f) {u : γ → α} (hu : cauchy_seq u) :
+  cauchy_seq (f ∘ u) :=
+hu.map hf
+
 lemma cauchy_seq.subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
   {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, (u $ φ (n + 1), u $ φ n) ∈ V n :=
@@ -190,6 +224,16 @@ begin
   obtain ⟨φ : ℕ → ℕ, φ_extr : strict_mono φ, hφ : ∀ n, ∀ l ≥ φ n, (u l, u $ φ n) ∈ V n⟩ :=
     extraction_forall_of_eventually' this,
   exact ⟨φ, φ_extr, λ n, hφ _ _ (φ_extr $ lt_add_one n).le⟩,
+end
+
+lemma filter.tendsto.subseq_mem_entourage {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
+  {u : ℕ → α} {a : α} (hu : tendsto u at_top (𝓝 a)) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ (u (φ 0), a) ∈ V 0 ∧ ∀ n, (u $ φ (n + 1), u $ φ n) ∈ V (n + 1) :=
+begin
+  rcases mem_at_top_sets.1 (hu (ball_mem_nhds a (symm_le_uniformity $ hV 0))) with ⟨n, hn⟩,
+  rcases (hu.comp (tendsto_add_at_top_nat n)).cauchy_seq.subseq_mem (λ n, hV (n + 1))
+    with ⟨φ, φ_mono, hφV⟩,
+  exact ⟨λ k, φ k + n, φ_mono.add_const _, hn _ le_add_self, hφV⟩
 end
 
 /-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
@@ -250,15 +294,6 @@ begin
   rcases complete_space.complete hf with ⟨x, hx⟩,
   exact ⟨x, mem_univ x, hx⟩
 end
-
-lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
-  cauchy f → cauchy g → cauchy (f ×ᶠ g)
-| ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
-  let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
-  suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
-    by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap, (∘),
-        inf_assoc, inf_comm, inf_left_comm],
-  inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 
 instance complete_space.prod [uniform_space β] [complete_space α] [complete_space β] :
   complete_space (α × β) :=
@@ -486,7 +521,7 @@ def set_seq_aux (n : ℕ) : {s : set α // ∃ (_ : s ∈ f), s.prod s ⊆ U n }
 indefinite_description _ $ (cauchy_iff.1 hf).2 (U n) (U_mem n)
 
 /-- Given a Cauchy filter `f` and a sequence `U` of entourages, `set_seq` provides
-a sequence of monotonically decreasing sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
+an antitone sequence of sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
 def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
@@ -508,8 +543,8 @@ begin
   exact set_seq_mono hf U_mem hn hp.2
 end
 
-/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
-decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
+/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is an antitone
+sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
 of entourages. -/
 def seq (n : ℕ) : α := some $ hf.1.nonempty_of_mem (set_seq_mem hf U_mem n)
 
@@ -546,9 +581,7 @@ namespace uniform_space
 
 open sequentially_complete
 
-variables (H : is_countably_generated (𝓤 α))
-
-include H
+variables [is_countably_generated (𝓤 α)]
 
 /-- A uniform space is complete provided that (a) its uniformity filter has a countable basis;
 (b) any sequence satisfying a "controlled" version of the Cauchy condition converges. -/
@@ -556,7 +589,7 @@ theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α))
   (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
 begin
-  rcases H.exists_antitone_seq' with ⟨U', U'_mono, hU'⟩,
+  obtain ⟨U', U'_mono, hU'⟩ := (𝓤 α).exists_antitone_seq,
   have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
     from λ n, inter_mem (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
   refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $
@@ -571,12 +604,15 @@ complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H' : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-let ⟨U', U'_mono, hU'⟩ := H.exists_antitone_seq' in
-complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
+let ⟨U', U'_mono, hU'⟩ := (𝓤 α).exists_antitone_seq in
+complete_of_convergent_controlled_sequences U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
   (λ u hu, H' u $ cauchy_seq_of_controlled U' (λ s hs, hU'.1 hs) hu)
 
-protected lemma first_countable_topology : first_countable_topology α :=
-⟨λ a, by { rw nhds_eq_comap_uniformity, exact H.comap (prod.mk a) }⟩
+variable (α)
+
+@[priority 100]
+instance first_countable_topology : first_countable_topology α :=
+⟨λ a, by { rw nhds_eq_comap_uniformity, apply_instance }⟩
 
 /-- A separable uniform space with countably generated uniformity filter is second countable:
 one obtains a countable basis by taking the balls centered at points in a dense subset,
@@ -589,7 +625,7 @@ begin
   obtain ⟨t : ℕ → set (α × α),
     hto : ∀ (i : ℕ), t i ∈ (𝓤 α).sets ∧ is_open (t i) ∧ symmetric_rel (t i),
     h_basis : (𝓤 α).has_antitone_basis (λ _, true) t⟩ :=
-    H.exists_antitone_subbasis uniformity_has_basis_open_symmetric,
+    (@uniformity_has_basis_open_symmetric α _).exists_antitone_subbasis,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
   refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],

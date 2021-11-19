@@ -4,22 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import algebra.group_power
-import control.uliftable
 import control.monad.basic
-
-import data.bitvec.basic
-import data.list.basic
-import data.set.intervals.basic
+import data.int.basic
 import data.stream.basic
-import data.fin
-
-import tactic.cache
-import tactic.interactive
+import control.uliftable
 import tactic.norm_num
+import data.bitvec.basic
 
-import system.io
-import system.random
+
+
 
 /-!
 # Rand Monad and Random Class
@@ -247,7 +240,7 @@ instance nat_bounded_random : bounded_random ℕ :=
 { random_r := λ g inst x y hxy,
   do z ← @fin.random g inst (succ $ y - x) _,
      pure ⟨z.val + x, nat.le_add_left _ _,
-       by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }
+       by rw ← le_tsub_iff_right hxy; apply le_of_succ_le_succ z.is_lt⟩ }
 
 /-- This `bounded_random` interval generates integers between `x` and
 `y` by first generating a natural number between `0` and `y - x` and

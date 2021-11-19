@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.asymptotics.asymptotic_equivalent
-import linear_algebra.finite_dimensional
+import linear_algebra.matrix.to_lin
 
 /-!
 # Finite dimensional normed spaces over complete fields
@@ -120,6 +120,18 @@ begin
   rw this,
   refine continuous_finset_sum _ (λi hi, _),
   exact (continuous_apply i).smul continuous_const
+end
+
+/-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
+instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
+  [topological_space E] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
+  [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]
+  [has_continuous_smul 𝕜 F] [finite_dimensional 𝕜 F] :
+  finite_dimensional 𝕜 (E →L[𝕜] F) :=
+begin
+  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
+  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
+  exact module.finite.of_injective I continuous_linear_map.coe_injective
 end
 
 section complete_field
@@ -474,14 +486,14 @@ theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : 
   ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
 begin
   let F := submodule.span 𝕜 (s : set E),
-  haveI : finite_dimensional 𝕜 F,
-  { apply is_noetherian_span_of_finite _ (finset.finite_to_set s), apply_instance },
+  haveI : finite_dimensional 𝕜 F := module.finite_def.2
+    ((submodule.fg_top _).2 (submodule.fg_def.2 ⟨s, finset.finite_to_set _, rfl⟩)),
   have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
   have : ∃ x, x ∉ F,
   { contrapose! h,
     have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
     have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
-    exact is_noetherian_top_iff.1 this },
+    refine module.finite_def.2 ((submodule.fg_top _).1 (module.finite_def.1 this)) },
   obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
     riesz_lemma_of_norm_lt hc hR Fclosed this,
   have hx' : ∀ (y : E), y ∈ F → 1 ≤ ∥y - x∥,
@@ -550,6 +562,17 @@ end
 
 end riesz
 
+/-- An injective linear map with finite-dimensional domain is a closed embedding. -/
+lemma linear_equiv.closed_embedding_of_injective {f : E →ₗ[𝕜] F} (hf : f.ker = ⊥)
+  [finite_dimensional 𝕜 E] :
+  closed_embedding ⇑f :=
+let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
+{ closed_range := begin
+    haveI := f.finite_dimensional_range,
+    simpa [f.range_coe] using f.range.closed_of_finite_dimensional
+  end,
+  .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
+
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
   (f : E →L[𝕜] F) (hf : f.range = ⊤) :
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
@@ -557,16 +580,7 @@ let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf 
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
 lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
-begin
-  haveI : finite_dimensional 𝕜 (submodule.span 𝕜 {c}) :=
-    finite_dimensional.span_of_finite 𝕜 (finite_singleton c),
-  have m1 : closed_embedding (coe : submodule.span 𝕜 {c} → E) :=
-  (submodule.span 𝕜 {c}).closed_of_finite_dimensional.closed_embedding_subtype_coe,
-  have m2 : closed_embedding
-    (linear_equiv.to_span_nonzero_singleton 𝕜 E c hc : 𝕜 → submodule.span 𝕜 {c}) :=
-  (continuous_linear_equiv.to_span_nonzero_singleton 𝕜 c hc).to_homeomorph.closed_embedding,
-  exact m1.comp m2
-end
+linear_equiv.closed_embedding_of_injective (linear_equiv.ker_to_span_singleton 𝕜 E hc)
 
 /- `smul` is a closed map in the first argument. -/
 lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=

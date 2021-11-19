@@ -175,17 +175,17 @@ lemma is_local_extr.comp_mono (hf : is_local_extr f a) {g : β → γ} (hg : mon
 hf.comp_mono hg
 
 lemma is_local_min.comp_antitone (hf : is_local_min f a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_local_max (g ∘ f) a :=
 hf.comp_antitone hg
 
 lemma is_local_max.comp_antitone (hf : is_local_max f a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_local_min (g ∘ f) a :=
 hf.comp_antitone hg
 
 lemma is_local_extr.comp_antitone (hf : is_local_extr f a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_local_extr (g ∘ f) a :=
 hf.comp_antitone hg
 
@@ -202,17 +202,17 @@ lemma is_local_extr_on.comp_mono (hf : is_local_extr_on f s a) {g : β → γ} (
 hf.comp_mono hg
 
 lemma is_local_min_on.comp_antitone (hf : is_local_min_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_local_max_on (g ∘ f) s a :=
 hf.comp_antitone hg
 
 lemma is_local_max_on.comp_antitone (hf : is_local_max_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_local_min_on (g ∘ f) s a :=
 hf.comp_antitone hg
 
 lemma is_local_extr_on.comp_antitone (hf : is_local_extr_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+  (hg : antitone g) :
   is_local_extr_on (g ∘ f) s a :=
 hf.comp_antitone hg
 

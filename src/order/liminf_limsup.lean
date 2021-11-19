@@ -3,7 +3,6 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johannes Hölzl, Rémy Degenne
 -/
-import order.filter.partial
 import order.filter.at_top_bot
 
 /-!
@@ -148,6 +147,14 @@ lemma is_bounded.is_cobounded_flip [is_trans α r] [ne_bot f] :
   let ⟨x, rxa, rbx⟩ := (ha.and hb).exists in
   show r b a, from trans rbx rxa⟩
 
+lemma is_bounded.is_cobounded_ge [preorder α] [ne_bot f] (h : f.is_bounded (≤)) :
+  f.is_cobounded (≥) :=
+h.is_cobounded_flip
+
+lemma is_bounded.is_cobounded_le [preorder α] [ne_bot f] (h : f.is_bounded (≥)) :
+  f.is_cobounded (≤) :=
+h.is_cobounded_flip
+
 lemma is_cobounded_bot : is_cobounded r ⊥ ↔ (∃b, ∀x, r b x) :=
 by simp [is_cobounded]
 
@@ -163,16 +170,16 @@ lemma is_cobounded.mono (h : f ≤ g) : f.is_cobounded r → g.is_cobounded r
 
 end relation
 
-lemma is_cobounded_le_of_bot [order_bot α] {f : filter α} : f.is_cobounded (≤) :=
+lemma is_cobounded_le_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_cobounded (≤) :=
 ⟨⊥, assume a h, bot_le⟩
 
-lemma is_cobounded_ge_of_top [order_top α] {f : filter α} : f.is_cobounded (≥) :=
+lemma is_cobounded_ge_of_top [preorder α] [order_top α] {f : filter α} : f.is_cobounded (≥) :=
 ⟨⊤, assume a h, le_top⟩
 
-lemma is_bounded_le_of_top [order_top α] {f : filter α} : f.is_bounded (≤) :=
+lemma is_bounded_le_of_top [preorder α] [order_top α] {f : filter α} : f.is_bounded (≤) :=
 ⟨⊤, eventually_of_forall $ λ _, le_top⟩
 
-lemma is_bounded_ge_of_bot [order_bot α] {f : filter α} : f.is_bounded (≥) :=
+lemma is_bounded_ge_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_bounded (≥) :=
 ⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
 lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
@@ -321,6 +328,12 @@ lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter 
   (b : β) : liminf f (λ x, b) = b :=
 @limsup_const (order_dual β) α _ f _ b
 
+lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}
+  (h : f.is_bounded_under (≤) u . is_bounded_default)
+  (h' : f.is_bounded_under (≥) u . is_bounded_default) :
+  liminf f u ≤ limsup f u :=
+Liminf_le_Limsup h h'
+
 end conditionally_complete_lattice
 
 section complete_lattice
@@ -350,9 +363,6 @@ end
 /-- Same as limsup_const applied to `⊤` but without the `ne_bot f` assumption -/
 lemma liminf_const_top {f : filter β} : liminf f (λ x : β, (⊤ : α)) = (⊤ : α) :=
 @limsup_const_bot (order_dual α) β _ _
-
-lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}  : liminf f u ≤ limsup f u :=
-Liminf_le_Limsup is_bounded_le_of_top is_bounded_ge_of_bot
 
 theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
   f.Limsup = ⨅ i (hi : p i), Sup (s i) :=

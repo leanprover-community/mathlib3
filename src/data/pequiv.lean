@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.lattice
+import data.set.basic
 
 /-!
 
@@ -40,7 +40,8 @@ pequiv, partial equivalence
 universes u v w x
 
 /-- A `pequiv` is a partial equivalence, a representation of a bijection between a subset
-  of `α` and a subset of `β` -/
+  of `α` and a subset of `β`. See also `local_equiv` for a version that requires `to_fun` and
+`inv_fun` to be globally defined functions and has `source` and `target` sets as extra fields. -/
 structure pequiv (α : Type u) (β : Type v) :=
 (to_fun : α → option β)
 (inv_fun : β → option α)
@@ -52,7 +53,7 @@ namespace pequiv
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 open function option
 
-instance : has_coe_to_fun (α ≃. β) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (α ≃. β) (λ _, α → option β) := ⟨to_fun⟩
 
 @[simp] lemma coe_mk_apply (f₁ : α → option β) (f₂ : β → option α) (h) (x : α) :
   (pequiv.mk f₁ f₂ h : α → option β) x = f₁ x := rfl
@@ -77,11 +78,13 @@ by simp [*, funext_iff]
 lemma ext_iff {f g : α ≃. β} : f = g ↔ ∀ x, f x = g x :=
 ⟨congr_fun ∘ congr_arg _, ext⟩
 
+/-- The identity map as a partial equivalence. -/
 @[refl] protected def refl (α : Type*) : α ≃. α :=
 { to_fun := some,
   inv_fun := some,
   inv := λ _ _, eq_comm }
 
+/-- The inverse partial equivalence. -/
 @[symm] protected def symm (f : α ≃. β) : β ≃. α :=
 { to_fun := f.2,
   inv_fun := f.1,
@@ -91,7 +94,8 @@ lemma mem_iff_mem (f : α ≃. β) : ∀ {a : α} {b : β}, a ∈ f.symm b ↔ b
 
 lemma eq_some_iff (f : α ≃. β) : ∀ {a : α} {b : β}, f.symm b = some a ↔ f a = some b := f.3
 
-@[trans] protected def trans (f : α ≃. β) (g : β ≃. γ) : pequiv α γ :=
+/-- Composition of partial equivalences `f : α ≃. β` and `g : β ≃. γ`. -/
+@[trans] protected def trans (f : α ≃. β) (g : β ≃. γ) : α ≃. γ :=
 { to_fun := λ a, (f a).bind g,
   inv_fun := λ a, (g.symm a).bind f.symm,
   inv := λ a b, by simp [*, and.comm, eq_some_iff f, eq_some_iff g] at * }
@@ -158,8 +162,8 @@ variables (s : set α) [decidable_pred (∈ s)]
 def of_set (s : set α) [decidable_pred (∈ s)] : α ≃. α :=
 { to_fun := λ a, if a ∈ s then some a else none,
   inv_fun := λ a, if a ∈ s then some a else none,
-  inv := λ a b, by {
-    split_ifs with hb ha ha,
+  inv := λ a b, by
+  { split_ifs with hb ha ha,
     { simp [eq_comm] },
     { simp [ne_of_mem_of_not_mem hb ha] },
     { simp [ne_of_mem_of_not_mem ha hb] },
@@ -204,7 +208,7 @@ end of_set
 
 lemma symm_trans_rev (f : α ≃. β) (g : β ≃. γ) : (f.trans g).symm = g.symm.trans f.symm := rfl
 
-lemma trans_symm (f : α ≃. β) : f.trans f.symm = of_set {a | (f a).is_some} :=
+lemma self_trans_symm (f : α ≃. β) : f.trans f.symm = of_set {a | (f a).is_some} :=
 begin
   ext,
   dsimp [pequiv.trans],
@@ -216,17 +220,19 @@ begin
   { simp {contextual := tt} }
 end
 
-lemma symm_trans (f : α ≃. β) : f.symm.trans f = of_set {b | (f.symm b).is_some} :=
-symm_injective $ by simp [symm_trans_rev, trans_symm, -symm_symm]
+lemma symm_trans_self (f : α ≃. β) : f.symm.trans f = of_set {b | (f.symm b).is_some} :=
+symm_injective $ by simp [symm_trans_rev, self_trans_symm, -symm_symm]
 
 lemma trans_symm_eq_iff_forall_is_some {f : α ≃. β} :
   f.trans f.symm = pequiv.refl α ↔ ∀ a, is_some (f a) :=
-by rw [trans_symm, of_set_eq_refl, set.eq_univ_iff_forall]; refl
+by rw [self_trans_symm, of_set_eq_refl, set.eq_univ_iff_forall]; refl
 
 instance : has_bot (α ≃. β) :=
 ⟨{ to_fun := λ _, none,
    inv_fun := λ _, none,
    inv := by simp }⟩
+
+instance : inhabited (α ≃. β) := ⟨⊥⟩
 
 @[simp] lemma bot_apply (a : α) : (⊥ : α ≃. β) a = none := rfl
 
@@ -345,7 +351,8 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf_bot (α ≃. β) 
     simp [le_def],
     split_ifs; finish
   end,
-  ..pequiv.order_bot }
+  ..pequiv.order_bot,
+  ..pequiv.partial_order }
 
 end order
 

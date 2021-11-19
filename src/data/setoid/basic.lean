@@ -3,6 +3,7 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
+import logic.relation
 import order.galois_connection
 
 /-!
@@ -67,7 +68,7 @@ lemma comm' (s : setoid α) {x y} : s.rel x y ↔ s.rel y x :=
 
 /-- The kernel of a function is an equivalence relation. -/
 def ker (f : α → β) : setoid α :=
-⟨λ x y, f x = f y, ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h, h.trans⟩⟩
+⟨(=) on f, eq_equivalence.comap f⟩
 
 /-- The kernel of the quotient map induced by an equivalence relation r equals r. -/
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
@@ -137,6 +138,15 @@ instance complete_lattice : complete_lattice (setoid α) :=
   .. complete_lattice_of_Inf (setoid α) $ assume s,
     ⟨λ r hr x y h, h _ hr, λ r hr x y h r' hr', hr hr' h⟩ }
 
+@[simp]
+lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
+
+@[simp]
+lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
+
+lemma eq_top_iff {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
+by simp [eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply]
+
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
 theorem eqv_gen_eq (r : α → α → Prop) :
@@ -197,7 +207,7 @@ theorem eqv_gen_le {r : α → α → Prop} {s : setoid α} (h : ∀ x y, r x y 
   eqv_gen.setoid r ≤ s :=
 by rw eqv_gen_eq; exact Inf_le h
 
-/-- Equivalence closure of binary relations is monotonic. -/
+/-- Equivalence closure of binary relations is monotone. -/
 theorem eqv_gen_mono {r s : α → α → Prop} (h : ∀ x y, r x y → s x y) :
   eqv_gen.setoid r ≤ eqv_gen.setoid s :=
 eqv_gen_le $ λ _ _ hr, eqv_gen.rel _ _ $ h _ _ hr
@@ -216,7 +226,7 @@ open function
     of equivalence relations on α. -/
 theorem injective_iff_ker_bot (f : α → β) :
   injective f ↔ ker f = ⊥ :=
-(@eq_bot_iff (setoid α) _ (ker f)).symm
+(@eq_bot_iff (setoid α) _ _ (ker f)).symm
 
 /-- The elements related to x ∈ α by the kernel of f are those in the preimage of f(x) under f. -/
 lemma ker_iff_mem_preimage {f : α → β} {x y} : (ker f).rel x y ↔ x ∈ f ⁻¹' {f y} :=
@@ -308,7 +318,7 @@ by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 /-- Given a function `f : α → β`, an equivalence relation `r` on `β` induces an equivalence
     relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'. -/
 def comap (f : α → β) (r : setoid β) : setoid α :=
-⟨λ x y, r.rel (f x) (f y), ⟨λ _, r.refl' _, λ _ _ h, r.symm' h, λ _ _ _ h1, r.trans' h1⟩⟩
+⟨r.rel on f, r.iseqv.comap _⟩
 
 lemma comap_rel (f : α → β) (r : setoid β) (x y : α) : (comap f r).rel x y ↔ r.rel (f x) (f y) :=
 iff.rfl
@@ -360,3 +370,23 @@ def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
       λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end setoid
+
+@[simp]
+lemma quotient.subsingleton_iff  {s : setoid α} :
+  subsingleton (quotient s) ↔ s = ⊤ :=
+begin
+  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def,
+    pi.top_apply, forall_const],
+  refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ b, _),
+  exact quotient.eq',
+end
+
+lemma quot.subsingleton_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
+begin
+  simp only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, pi.top_apply, forall_const],
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
+  refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
+  rw quot.eq,
+  simp only [forall_const, le_Prop_eq],
+end

@@ -93,6 +93,9 @@ not_mem_Icc_of_gt $ max_lt_iff.mpr ⟨ha, hb⟩
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 Icc_subset_Icc (le_min h₁.1 h₂.1) (max_le h₁.2 h₂.2)
 
+lemma interval_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
+Icc_subset_Icc (le_min ha.1 hb.1) (max_le ha.2 hb.2)
+
 lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
 iff.intro (λh, ⟨h left_mem_interval, h right_mem_interval⟩) (λ h, interval_subset_interval h.1 h.2)
 
@@ -173,7 +176,7 @@ variables {a b c x y}
 
 /-- If `[x, y]` is a subinterval of `[a, b]`, then the distance between `x` and `y`
 is less than or equal to that of `a` and `b` -/
-lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : abs (y - x) ≤ abs (b - a) :=
+lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : |y - x| ≤ |b - a| :=
 begin
   rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
   rw [interval_subset_interval_iff_le] at h,
@@ -182,12 +185,12 @@ end
 
 /-- If `x ∈ [a, b]`, then the distance between `a` and `x` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : abs (x - a) ≤ abs (b - a) :=
+lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : |x - a| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_left h)
 
 /-- If `x ∈ [a, b]`, then the distance between `x` and `b` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : abs (b - x) ≤ abs (b - a) :=
+lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : |b - x| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
 end ordered_add_comm_group
@@ -208,7 +211,7 @@ by simp only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv']
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv₀]
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else

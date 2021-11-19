@@ -5,10 +5,9 @@ Authors: Kenny Lau
 -/
 
 import algebra.polynomial.big_operators
+import algebra.squarefree
 import field_theory.minpoly
 import field_theory.splitting_field
-import field_theory.tower
-import algebra.squarefree
 
 /-!
 
@@ -278,9 +277,9 @@ end
 
 end comm_ring
 
-section integral_domain
+section is_domain
 
-variables (R : Type u) [integral_domain R]
+variables (R : Type u) [comm_ring R] [is_domain R]
 
 theorem is_local_ring_hom_expand {p : ℕ} (hp : 0 < p) :
   is_local_ring_hom (↑(expand R p) : polynomial R →+* polynomial R) :=
@@ -291,7 +290,7 @@ begin
   rw [hf2, is_unit_C] at hf1, rw expand_eq_C hp at hf2, rwa [hf2, is_unit_C]
 end
 
-end integral_domain
+end is_domain
 
 section field
 
@@ -383,8 +382,8 @@ else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hf0 : f ≠ 0) :
   ∃ (n : ℕ) (g : polynomial F), g.separable ∧ expand F (p ^ n) g = f :=
 begin
-  unfreezingI {
-    induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
+  unfreezingI
+  { induction hn : f.nat_degree using nat.strong_induction_on with N ih generalizing f },
   rcases separable_or p hf with h | ⟨h1, g, hg, hgf⟩,
   { refine ⟨0, f, h, _⟩, rw [pow_zero, expand_one] },
   { cases N with N,
@@ -485,32 +484,41 @@ begin
   exact or.inl (multiplicity_le_one_of_separable hunit hsep)
 end
 
+/--If `is_unit n` in a nontrivial `comm_ring R`, then `X ^ n - u` is separable for any unit `u`. -/
+lemma separable_X_pow_sub_C_unit {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ}
+  (u : units R) (hn : is_unit (n : R)) : separable (X ^ n - C (u : R)) :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hpos,
+  { simpa using hn },
+  apply (separable_def' (X ^ n - C (u : R))).2,
+  obtain ⟨n', hn'⟩ := hn.exists_left_inv,
+  refine ⟨-C ↑u⁻¹, C ↑u⁻¹ * C n' * X, _⟩,
+  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
+  calc  - C ↑u⁻¹ * (X ^ n - C ↑u) + C ↑u⁻¹ * C n' * X * (↑n * X ^ (n - 1))
+      = C (↑u⁻¹ * ↑ u) - C ↑u⁻¹ * X^n + C ↑ u ⁻¹ * C (n' * ↑n) * (X * X ^ (n - 1)) :
+    by { simp only [C.map_mul, C_eq_nat_cast], ring }
+  ... = 1 : by simp only [units.inv_mul, hn', C.map_one, mul_one, ← pow_succ,
+              nat.sub_add_cancel (show 1 ≤ n, from hpos), sub_add_cancel]
+end
+
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
 lemma separable_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
   separable (X ^ n - C a) :=
+separable_X_pow_sub_C_unit (units.mk0 a ha) (is_unit.mk0 n hn)
+
+-- this can possibly be strengthened to making `separable_X_pow_sub_C_unit` a
+-- bi-implication, but it is nontrivial!
+/-- In a field `F`, `X ^ n - 1` is separable iff `↑n ≠ 0`. -/
+lemma X_pow_sub_one_separable_iff {n : ℕ} :
+  (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
 begin
-  cases nat.eq_zero_or_pos n with hzero hpos,
-  { exfalso,
-    rw hzero at hn,
-    exact hn (refl 0) },
-  apply (separable_def' (X ^ n - C a)).2,
-  use [-C (a⁻¹), (C ((a⁻¹) * (↑n)⁻¹) *  X)],
-  have mul_pow_sub : X * X ^ (n - 1) = X ^ n,
-  { nth_rewrite 0 [←pow_one X],
-    rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
-  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
-  have hcalc : C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) = C a⁻¹ * (X ^ n),
-  { calc C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n))
-       = C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_mul, C_eq_nat_cast]
-   ... = C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
-   ... = C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [← C_mul]
-   ... = C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
-   ... = C a⁻¹ * (X ^ n) : by rw [C_1, mul_one] },
-  calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
-      = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
-  ... = -C a⁻¹ * (X ^ n - C a) + C a⁻¹ * (X ^ n) : by rw [mul_pow_sub, hcalc]
-  ... = C a⁻¹ * C a : by ring
-  ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
+  refine ⟨_, λ h, separable_X_pow_sub_C_unit 1 (is_unit.mk0 ↑n h)⟩,
+  rw [separable_def', derivative_sub, derivative_X_pow, derivative_one, sub_zero],
+  -- Suppose `(n : F) = 0`, then the derivative is `0`, so `X ^ n - 1` is a unit, contradiction.
+  rintro (h : is_coprime _ _) hn',
+  rw [← C_eq_nat_cast, hn', C.map_zero, zero_mul, is_coprime_zero_right] at h,
+  have := not_is_unit_X_pow_sub_one F n,
+  contradiction
 end
 
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
@@ -595,25 +603,38 @@ begin
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
 
+section comm_ring
+
+variables (F K : Type*) [comm_ring F] [ring K] [algebra F K]
+
 -- TODO: refactor to allow transcendental extensions?
 -- See: https://en.wikipedia.org/wiki/Separable_extension#Separability_of_transcendental_extensions
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
-the minimal polynomial of every `x : K` is separable. -/
-class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+the minimal polynomial of every `x : K` is separable.
+
+We define this for general (commutative) rings and only assume `F` and `K` are fields if this
+is needed for a proof.
+-/
+class is_separable : Prop :=
 (is_integral' (x : K) : is_integral F x)
 (separable' (x : K) : (minpoly F x).separable)
 
-theorem is_separable.is_integral (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
+variables (F) {K}
+
+theorem is_separable.is_integral [is_separable F K] :
   ∀ x : K, is_integral F x := is_separable.is_integral'
 
-theorem is_separable.separable (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
+theorem is_separable.separable [is_separable F K] :
   ∀ x : K, (minpoly F x).separable := is_separable.separable'
 
-theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
-  ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
+variables {F K}
+
+theorem is_separable_iff : is_separable F K ↔ ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
 ⟨λ h x, ⟨@@is_separable.is_integral F _ _ _ h x, @@is_separable.separable F _ _ _ h x⟩,
  λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+
+end comm_ring
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩

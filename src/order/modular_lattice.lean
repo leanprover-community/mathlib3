@@ -5,7 +5,6 @@ Authors: Aaron Anderson
 -/
 import order.rel_iso
 import order.lattice_intervals
-import order.order_dual
 import order.galois_connection
 
 /-!
@@ -38,7 +37,7 @@ class is_modular_lattice α [lattice α] : Prop :=
 (sup_inf_le_assoc_of_le : ∀ {x : α} (y : α) {z : α}, x ≤ z → (x ⊔ y) ⊓ z ≤ x ⊔ (y ⊓ z))
 
 section is_modular_lattice
-variables [lattice α] [is_modular_lattice α ]
+variables [lattice α] [is_modular_lattice α]
 
 theorem sup_inf_assoc_of_le {x : α} (y : α) {z : α} (h : x ≤ z) :
   (x ⊔ y) ⊓ z = x ⊔ (y ⊓ z) :=

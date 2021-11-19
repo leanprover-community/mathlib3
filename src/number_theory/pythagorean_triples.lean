@@ -410,7 +410,7 @@ lemma is_primitive_classified_aux (hc : x.gcd y = 1) (hzpos : 0 < z)
 begin
   have hz : z ≠ 0, apply ne_of_gt hzpos,
   have h2 : y = m ^ 2 - n ^ 2 ∧ z = m ^ 2 + n ^ 2,
-    { apply rat.div_int_inj hzpos hm2n2 (h.coprime_of_coprime hc) H, rw [hw2], norm_cast },
+  { apply rat.div_int_inj hzpos hm2n2 (h.coprime_of_coprime hc) H, rw [hw2], norm_cast },
   use [m, n], apply and.intro _ (and.intro co pp), right,
   refine ⟨_, h2.left⟩,
   rw [← rat.coe_int_inj _ _, ← div_left_inj' ((mt (rat.coe_int_inj z 0).mp) hz), hv2, h2.right],

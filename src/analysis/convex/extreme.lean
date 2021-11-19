@@ -3,13 +3,12 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.basic
-import data.real.basic
+import analysis.convex.hull
 
 /-!
 # Extreme sets
 
-This file defines extreme sets and extreme points for sets in a real vector space.
+This file defines extreme sets and extreme points for sets in a module.
 
 An extreme set of `A` is a subset of `A` that is as far as it can get in any outward direction: If
 point `x` is in it and point `y ∈ A`, then the line passing through `x` and `y` leaves `A` at `x`.
@@ -47,7 +46,7 @@ open set
 variables (𝕜 : Type*) {E : Type*}
 
 section has_scalar
-variables [ordered_semiring 𝕜] [add_comm_group E] [has_scalar 𝕜 E]
+variables [ordered_semiring 𝕜] [add_comm_monoid E] [has_scalar 𝕜 E]
 
 /-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
 segments whose ends are in `B`. -/

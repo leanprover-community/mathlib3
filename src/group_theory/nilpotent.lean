@@ -219,7 +219,7 @@ begin
     { refine ⟨hn, λ x m hx g, _⟩,
       dsimp at hx,
       by_cases hm : n ≤ m,
-      { have hnm : n - m = 0 := nat.sub_eq_zero_of_le hm,
+      { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
         rw [hnm, h0, subgroup.mem_bot] at hx,
         subst hx,
         convert subgroup.one_mem _,
@@ -228,16 +228,16 @@ begin
         apply hH,
         convert hx,
         rw nat.sub_succ,
-        exact nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm) } },
+        exact nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm) } },
     { use n,
-      rwa nat.sub_self } },
+      rwa tsub_self } },
   { rintro ⟨H, ⟨h0, hH⟩, n, hn⟩,
     use (λ m, H (n - m)),
     split,
     { refine ⟨hn, λ x m hx g, _⟩,
       dsimp only at hx,
       by_cases hm : n ≤ m,
-      { have hnm : n - m = 0 := nat.sub_eq_zero_of_le hm,
+      { have hnm : n - m = 0 := tsub_eq_zero_iff_le.mpr hm,
         dsimp only,
         rw [hnm, h0],
         exact mem_top _ },
@@ -245,9 +245,9 @@ begin
         dsimp only,
         convert hH x _ hx g,
         rw nat.sub_succ,
-        exact (nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm)).symm } },
+        exact (nat.succ_pred_eq_of_pos (tsub_pos_of_lt hm)).symm } },
     { use n,
-      rwa nat.sub_self } },
+      rwa tsub_self } },
 end
 
 /-- The lower central series of a group `G` is a sequence `H n` of subgroups of `G`, defined
@@ -273,16 +273,14 @@ rfl
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
   induction n with d hd,
-  { simp [subgroup.top_normal] },
-  { haveI := hd,
-    exact general_commutator_normal (lower_central_series G d) ⊤ },
+  { exact (⊤ : subgroup G).normal_of_characteristic },
+  { exactI general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
-lemma lower_central_series_antitone {m n : ℕ} (h : n ≤ m) :
-  lower_central_series G m ≤ lower_central_series G n :=
+lemma lower_central_series_antitone :
+  antitone (lower_central_series G) :=
 begin
-  refine @monotone_nat_of_le_succ (order_dual (subgroup G)) _ _ _ _ _ h,
-  intros n x hx,
+  refine antitone_nat_of_succ_le (λ n x hx, _),
   simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
     at hx,
   refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)

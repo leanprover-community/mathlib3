@@ -36,9 +36,9 @@ a disjoint subcovering provided by the definition of Vitali families. Similarly 
 It follows that a set on which `ρ a / μ a` oscillates has measure `0`, and therefore that
 `ρ a / μ a` converges almost surely (`vitali_family.ae_tendsto_div`). Moreover, on a set where the
 limit is close to a constant `c`, one gets `ρ s ∼ c μ s`, using again a covering lemma as above.
-It follows that `ρ` is equal to `μ.with_density (v.lim_ratio x)`, where `v.lim_ratio x` is the
+It follows that `ρ` is equal to `μ.with_density (v.lim_ratio ρ x)`, where `v.lim_ratio ρ x` is the
 limit of `ρ a / μ a` at `x` (which is well defined almost everywhere). By uniqueness of the
-Radon-Nikodym derivative, one gets `v.lim_ratio x = ρ.rn_deriv μ x` almost everywhere, completing
+Radon-Nikodym derivative, one gets `v.lim_ratio ρ x = ρ.rn_deriv μ x` almost everywhere, completing
 the proof.
 
 There is a difficulty in this sketch: this argument works well when `v.lim_ratio` is measurable,
@@ -218,6 +218,8 @@ the ratio `ρ a / μ a` converges as `a` shrinks to `x` along a Vitali family fo
 theorem ae_tendsto_div :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 c) :=
 begin
+  -- To reduce to countably many properties, we will use a countable dense set `w` made of finite
+  -- numbers. We use the rationals as this is the simplest such set, although any other would do.
   let w : set ℝ≥0∞ := {x | ∃ a : ℚ, x = ennreal.of_real a},
   have w_count : countable w,
   { have : w = range (λ (a : ℚ), ennreal.of_real a),
@@ -368,8 +370,8 @@ begin
               ≤ ρ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) := calc
     (q : ℝ≥0∞) * μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n))
         = (q : ℝ≥0∞) * μ (to_measurable (ρ + μ) (u m) ∩ w n) : begin
-        conv_rhs { rw inter_comm }, rw inter_comm,
-        rw measure_to_measurable_add_inter_right (measurable_set_to_measurable _ _) J,
+        conv_rhs { rw inter_comm },
+        rw [inter_comm, measure_to_measurable_add_inter_right (measurable_set_to_measurable _ _) J]
       end
     ... ≤ ρ (to_measurable (ρ + μ) (u m) ∩ w n) : begin
         rw [← coe_nnreal_smul_apply],
@@ -384,7 +386,8 @@ begin
         exact ennreal.mul_le_of_le_div ha.le
       end
     ... = ρ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) : begin
-        rw inter_comm, conv_rhs { rw inter_comm },
+        conv_rhs { rw inter_comm },
+        rw inter_comm,
         exact (measure_to_measurable_add_inter_left (measurable_set_to_measurable _ _) J).symm,
       end,
   by_contra,

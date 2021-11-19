@@ -9,7 +9,9 @@ import linear_algebra.basic
 /-!
 # Basics on bilinear maps
 
-This file provides basics on bilinear maps.
+This file provides basics on bilinear maps. The most general form consider are maps that are
+semilinear in both arguments. They are of type `M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P`, where `M`, `N` and `P`
+are modules over `R`, `S` and `R₂` respectively, and `ρ₁₂ : R →+* R₂` and `σ₁₂ : S →+* S₂`.
 
 ## Main declarations
 
@@ -45,20 +47,6 @@ variables [module R Pₗ] [module S Pₗ]
 variables [module R M'] [module S N'] [module R₂ P'] [module S₂ P']
 variables [smul_comm_class S₂ R₂ P] [smul_comm_class S R Pₗ] [smul_comm_class S₂ R₂ P']
 variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
---include R
-
-variables (R S)
-/-- Create a bilinear map from a function that is linear in each component.
-See `mk₂` for the special case where both arguments come from modules over the same ring. -/
-def mk₂' (f : M → N → Pₗ)
-  (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
-  (H2 : ∀ (c:R) m n, f (c • m) n = c • f m n)
-  (H3 : ∀ m n₁ n₂, f m (n₁ + n₂) = f m n₁ + f m n₂)
-  (H4 : ∀ (c:S) m n, f m (c • n) = c • f m n) : M →ₗ[R] N →ₗ[S] Pₗ :=
-{ to_fun := λ m, { to_fun := f m, map_add' := H3 m, map_smul' := λ c, H4 c m},
-  map_add' := λ m₁ m₂, linear_map.ext $ H1 m₁ m₂,
-  map_smul' := λ c m, linear_map.ext $ H2 c m }
-variables {R S}
 
 variables (ρ₁₂ σ₁₂)
 /-- Create a bilinear map from a function that is semilinear in each component.
@@ -73,13 +61,24 @@ def mk₂'ₛₗ (f : M → N → P)
   map_smul' := λ c m, linear_map.ext $ H2 c m }
 variables {ρ₁₂ σ₁₂}
 
-@[simp] theorem mk₂'_apply
-  (f : M → N → Pₗ) {H1 H2 H3 H4} (m : M) (n : N) :
-  (mk₂' R S f H1 H2 H3 H4 : M →ₗ[R] N →ₗ[S] Pₗ) m n = f m n := rfl
-
 @[simp] theorem mk₂'ₛₗ_apply
   (f : M → N → P) {H1 H2 H3 H4} (m : M) (n : N) :
   (mk₂'ₛₗ ρ₁₂ σ₁₂ f H1 H2 H3 H4 : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) m n = f m n := rfl
+
+variables (R S)
+/-- Create a bilinear map from a function that is linear in each component.
+See `mk₂` for the special case where both arguments come from modules over the same ring. -/
+def mk₂' (f : M → N → Pₗ)
+  (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
+  (H2 : ∀ (c:R) m n, f (c • m) n = c • f m n)
+  (H3 : ∀ m n₁ n₂, f m (n₁ + n₂) = f m n₁ + f m n₂)
+  (H4 : ∀ (c:S) m n, f m (c • n) = c • f m n) : M →ₗ[R] N →ₗ[S] Pₗ :=
+mk₂'ₛₗ (ring_hom.id R) (ring_hom.id S) f H1 H2 H3 H4
+variables {R S}
+
+@[simp] theorem mk₂'_apply
+  (f : M → N → Pₗ) {H1 H2 H3 H4} (m : M) (n : N) :
+  (mk₂' R S f H1 H2 H3 H4 : M →ₗ[R] N →ₗ[S] Pₗ) m n = f m n := rfl
 
 theorem ext₂ {f g : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
   (H : ∀ m n, f m n = g m n) : f = g :=
@@ -185,7 +184,8 @@ variables {R Pₗ}
   lcomp R Pₗ f g x = g (f x) := rfl
 
 variables (P σ₂₃)
-/-- Composing a semilinear map `M → N` and a semilinear map `N → P` to form a semilinear map `M → P` is itself a linear map. -/
+/-- Composing a semilinear map `M → N` and a semilinear map `N → P` to form a semilinear map
+`M → P` is itself a linear map. -/
 def lcompₛₗ (f : M →ₛₗ[σ₁₂] N) : (N →ₛₗ[σ₂₃] P) →ₗ[R₃] M →ₛₗ[σ₁₃] P :=
 flip $ linear_map.comp (flip id) f
 variables {P σ₂₃}

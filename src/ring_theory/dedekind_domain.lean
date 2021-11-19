@@ -1462,10 +1462,19 @@ begin
   sorry, --prove not_prime_of_prime_dvd_not_unit
 end
 
-lemma pow_prime₄' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : M} (n m : ℕ)
-  (c : ℕ → M) (d : ℕ → M) (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
-  (h₂ : ∀ (r : M), r ∣ q ↔ ∃ i ≤ n, associated r (c i))
-  (h₃ : (c 1)^m ∣ q) : m ≤ n := sorry
+lemma pow_prime₄' {M : Type*} [comm_cancel_monoid_with_zero M]
+  {p q r : associates M} (n : ℕ) (c : ℕ → associates M)
+  (h₁ : strict_mono c) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i ≤ n, r = c i)
+  (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
+begin
+  have sorry_1: ∀ (r : associates M), r ≤ q ↔ r ∈ (finset.range (n+1)).image c,
+  { simpa only [finset.mem_image, exists_prop, finset.mem_range, nat.lt_succ_iff, eq_comm]
+      using h₂ },
+  have sorry_2 : m ⊆ (finset.range (n+1)).image c :=
+     λ x hx, (sorry_1 x).mp (hm x hx),
+  rw ← finset.card_range (n + 1),
+  exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
+end
 
 lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
   (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i)

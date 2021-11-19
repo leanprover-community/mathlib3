@@ -22,7 +22,7 @@ Standard proofs make use of the identity
 
 for `g = [[a, b], [c, d]]` in `SL(2)`, but this requires separate handling of whether `c = 0`.
 Instead, our proof makes use of the following perhaps novel identity (see
-`modular_group.smul_eq_acbd_add`):
+`modular_group.smul_eq_lc_row0_add`):
 
 `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
 
@@ -159,21 +159,21 @@ end
 /-- Given `coprime_pair` `p=(c,d)`, the matrix `[[a,b],[*,*]]` is sent to `a*c+b*d`.
   This is the linear map version of this operation.
 -/
-def acbd (p : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
+def lc_row0 (p : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 ((p 0:ℝ) • linear_map.proj 0 + (p 1:ℝ) • linear_map.proj 1 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).comp
   (linear_map.proj 0)
 
-@[simp] lemma acbd_apply (p : fin 2 → ℤ) (g : matrix (fin 2) (fin 2) ℝ) :
-  acbd p g = p 0 * g 0 0 + p 1 * g 0 1 :=
+@[simp] lemma lc_row0_apply (p : fin 2 → ℤ) (g : matrix (fin 2) (fin 2) ℝ) :
+  lc_row0 p g = p 0 * g 0 0 + p 1 * g 0 1 :=
 rfl
 
-lemma acbd_apply' (a b : ℝ) (c d : ℤ) (v : fin 2 → ℝ) :
-  acbd ![c, d] ![![a, b], v] = c * a + d * b :=
+lemma lc_row0_apply' (a b : ℝ) (c d : ℤ) (v : fin 2 → ℝ) :
+  lc_row0 ![c, d] ![![a, b], v] = c * a + d * b :=
 by simp
 
 /-- Linear map sending the matrix [a, b; c, d] to the matrix [ac₀ + bd₀, - ad₀ + bc₀; c, d], for
 some fixed `(c₀, d₀)`. -/
-@[simps] def acbd_extend {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+@[simps] def lc_row0_extend {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   (matrix (fin 2) (fin 2) ℝ) ≃ₗ[ℝ] matrix (fin 2) (fin 2) ℝ :=
 linear_equiv.Pi_congr_right
 ![begin
@@ -184,10 +184,10 @@ linear_equiv.Pi_congr_right
   end,
   (linear_equiv.refl _ _)]
 
-/-- The map `acbd` is proper, that is, preimages of cocompact sets are finite in
+/-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/
-theorem tendsto_acbd {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
-  tendsto (λ g : {g : SL(2, ℤ) // g 1 = cd}, acbd cd ↑(↑g : SL(2, ℝ))) cofinite (cocompact ℝ) :=
+theorem tendsto_lc_row0 {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+  tendsto (λ g : {g : SL(2, ℤ) // g 1 = cd}, lc_row0 cd ↑(↑g : SL(2, ℝ))) cofinite (cocompact ℝ) :=
 begin
   let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
@@ -209,8 +209,8 @@ begin
       refl } },
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
-  have hf₂ : closed_embedding (acbd_extend hcd) :=
-    (acbd_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
+  have hf₂ : closed_embedding (lc_row0_extend hcd) :=
+    (lc_row0_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,
@@ -230,9 +230,9 @@ end
   `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
 
   which does not need to be decomposed depending on whether `c = 0`. -/
-lemma smul_eq_acbd_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (z : ℍ) {g : SL(2,ℤ)}
+lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (z : ℍ) {g : SL(2,ℤ)}
   (hg : ↑ₘg 1 = p) :
-  ↑(g • z) = ((acbd p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
+  ↑(g • z) = ((lc_row0 p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
     + ((p 1 : ℂ) * z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1)) :=
 begin
   have nonZ1 : (p 0 : ℂ) ^ 2 + (p 1) ^ 2 ≠ 0 := by exact_mod_cast hp.sq_add_sq_ne_zero,
@@ -258,11 +258,11 @@ begin
     exact_mod_cast hp.sq_add_sq_ne_zero },
   let f := homeomorph.mul_right₀ _ this,
   let ff := homeomorph.add_right (((p 1:ℂ)* z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1))).re,
-  convert ((f.trans ff).closed_embedding.tendsto_cocompact).comp (tendsto_acbd hp),
+  convert ((f.trans ff).closed_embedding.tendsto_cocompact).comp (tendsto_lc_row0 hp),
   ext g,
-  change ((g : SL(2, ℤ)) • z).re = (acbd p ↑(↑g : SL(2, ℝ))) / (p 0 ^ 2 + p 1 ^ 2)
+  change ((g : SL(2, ℤ)) • z).re = (lc_row0 p ↑(↑g : SL(2, ℝ))) / (p 0 ^ 2 + p 1 ^ 2)
   + (((p 1:ℂ )* z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1))).re,
-  exact_mod_cast (congr_arg complex.re (smul_eq_acbd_add hp z g.2))
+  exact_mod_cast (congr_arg complex.re (smul_eq_lc_row0_add hp z g.2))
 end
 
 end tendsto_lemmas

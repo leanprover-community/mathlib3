@@ -32,7 +32,8 @@ a complete graph, whose vertices represent the colors.
   `n`-colorable, or `0` if it cannot be colored with finitely many
   colors.
 
-* `C.color_class α` is the set of vertices colored with `α` in the coloring `C`.
+* `C.color_class c` is the set of vertices colored by `c : α` in the
+  coloring `C : G.coloring α`.
 
 * `C.color_classes` is the set containing all color classes.
 
@@ -87,7 +88,6 @@ The color class of a given color.
 def coloring.color_class (c : α) : set V := {v : V | C v = c}
 
 /-- The set containing all color classes. -/
--- def coloring.color_classes : set (set V) := {(C.color_class (C v)) | v : V}
 def coloring.color_classes : set (set V) := (setoid.ker C).classes
 
 lemma coloring.mem_color_class (v : V) :
@@ -95,38 +95,80 @@ lemma coloring.mem_color_class (v : V) :
 
 lemma coloring.color_classes_is_partition :
   setoid.is_partition C.color_classes :=
-by exact setoid.is_partition_classes (setoid.ker C)
-
-lemma coloring.non_adjacent_of_same_color_class
-{c : α} (v w : V) (h₁ : v ∈ C.color_class c) (h₂ : w ∈ C.color_class c) :
-  G.adjᶜ w v :=
-begin
-  have hcwv : C w = C v, by exact (rfl.congr (eq.symm h₁)).mp h₂,
-  by_contra h,
-  have hwv : G.adj w v, by { contrapose h, contradiction, },
-  have hvalid := C.valid hwv,
-  contradiction,
-end
+setoid.is_partition_classes (setoid.ker C)
 
 lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_classes :=
+⟨v, rfl⟩
+
+-- TODO move to correct place (and simplify/rename)
+lemma setoid.ker.classes.fintype {α β : Type*} [fintype β] (f : α → β) :
+  nonempty (fintype (setoid.ker f).classes) :=
 begin
-  use v,
-  let aa := C.mem_color_class v,
-  sorry,
+  let g : β → set α := λ y, {x | f x = y},
+  have : (setoid.ker f).classes ⊆ set.range g,
+  { rintro s ⟨x, rfl⟩,
+    simp only [set.mem_range],
+    exact ⟨f x, rfl⟩, },
+  classical,
+  haveI h : fintype (set.range g) := set.fintype_range g,
+  exact ⟨set.fintype_subset _ this⟩,
 end
 
-lemma coloring.color_classes_is_independent :
-  ∀ (s ∈ C.color_classes), is_antichain G.adj s :=
+-- TODO move to correct place
+lemma fintype.card_range_le {α β : Type*} (f : α → β) [fintype α] [fintype (set.range f)] :
+  fintype.card (set.range f) ≤ fintype.card α :=
 begin
-  intros s hs v hv w hw hnvw,
-  sorry,
+  let g : set.range f → α := λ y, y.2.some,
+  have : function.injective g,
+  { rintros ⟨x, hx⟩ ⟨x', hx'⟩,
+    simp only [g],
+    have h := hx.some_spec,
+    have h' := hx'.some_spec,
+    intro he,
+    rw [he, h'] at h,
+    simp [h], },
+  exact fintype.card_le_of_injective _ this,
 end
 
-lemma coloring.color_class_is_independent :
-  ∀ c, is_antichain G.adj (C.color_class c) :=
+-- TODO move to correct place (and simplify/rename)
+lemma setoid.ker_classes.fintype_card {α β : Type*} [fintype β]
+  (f : α → β) [fintype (setoid.ker f).classes] :
+  fintype.card (setoid.ker f).classes ≤ fintype.card β :=
 begin
-  intros _ w hcvw z hczv _,
-  apply C.non_adjacent_of_same_color_class z w hczv hcvw,
+  let g : β → set α := λ y, {x | f x = y},
+  have : (setoid.ker f).classes ⊆ set.range g,
+  { rintro s ⟨x, rfl⟩,
+    simp only [set.mem_range],
+    exact ⟨f x, rfl⟩, },
+  classical,
+  transitivity fintype.card (set.range g),
+  apply set.card_le_of_subset this, 
+  apply fintype.card_range_le,
+end
+
+lemma coloring.color_classes_finite_of_fintype [fintype α] : C.color_classes.finite :=
+begin
+  rw set.finite_def,
+  apply setoid.ker.classes.fintype,
+end
+
+lemma coloring.card_color_classes_le [fintype α] [fintype C.color_classes] :
+  fintype.card C.color_classes ≤ fintype.card α :=
+setoid.ker_classes.fintype_card C
+
+lemma coloring.not_adj_of_mem_color_class {c : α} {v w : V}
+  (hv : v ∈ C.color_class c) (hw : w ∈ C.color_class c) :
+  ¬G.adj v w :=
+begin
+  intro h,
+  exact C.valid h (eq.trans hv (eq.symm hw)),
+end
+
+lemma coloring.color_classes_independent (c : α) :
+  is_antichain G.adj (C.color_class c) :=
+begin
+  intros v hv w hw h,
+  exact C.not_adj_of_mem_color_class hv hw,
 end
 
 -- TODO make this computable
@@ -341,9 +383,9 @@ begin
     rw not_le at hc,
     obtain ⟨n, cn, hc⟩ := exists_lt_of_cInf_lt
       (colorable_set_nonempty_of_colorable C.to_colorable) hc,
-    have C' := cn.some,
     rw ←fintype.card_fin n at hc,
     have f := (function.embedding.nonempty_of_card_le (le_of_lt hc)).some,
+    have C' := cn.some,
     specialize h (G.recolor_of_embedding f C'),
     change function.surjective (f ∘ C') at h,
     have h1 : function.surjective f := function.surjective.of_comp h,

@@ -25,18 +25,21 @@ graph colorings and back is the identity.
 
 ## Main definitions
 
-* `partition` is a structure to represent a partition of a simple graph
+* `simple_graph.partition` is a structure to represent a partition of a simple graph
 
-* `partition.to_coloring` and `partition.to_coloring'` are functions that create colorings from
-  partitions
+* `simple_graph.partition.parts_card_le` is whether a given partition is an `n`-partition.
+  (a partition with at most `n` parts).
 
-* `coloring.to_partition` is a function that creates a partition from a coloring
+* `simple_graph.partitionable n` is whether a given graph is `n`-partite
 
-## Todo
+* `simple_graph.partition.to_coloring` creates colorings from partitions
 
-* Define k-partite graphs
+* `simple_graph.coloring.to_partition` creates partitions from colorings
 
-* Prove that k-partite graphs are k-colorable and vice-versa
+## Main statements
+
+* `simple_graph.partitionable_iff_colorable` is that `n`-partitionability and
+  `n`-colorability are equivalent.
 
 -/
 
@@ -56,17 +59,20 @@ structure partition :=
 (is_partition : setoid.is_partition parts)
 (independent : ∀ (s ∈ parts), is_antichain G.adj s)
 
-/-- Whether a graph can be partitioned in at most `n` parts. -/
+/-- Whether a partition `P` has at most `n` parts. A graph with a partition
+satisfying this predicate called `n`-partite. (See `simple_graph.partitionable`.) -/
+def partition.parts_card_le {G : simple_graph V} (P : G.partition) (n : ℕ) : Prop :=
+∃ (h : P.parts.finite), h.to_finset.card ≤ n
+
+/-- Whether a graph is `n`-partite, which is whether its vertex set
+can be partitioned in at most `n` independent sets. -/
 def partitionable (n : ℕ) : Prop :=
-∃ (P : G.partition), nonempty (P.parts ↪ fin n)
+∃ (P : G.partition), P.parts_card_le n
 
 namespace partition
 variables {G} (P : G.partition)
 
-/-- Whether a partition `P` has at most `n` parts. -/
-def parts_card_le (n : ℕ) : Prop := ∃ (h : P.parts.finite), h.to_finset.card ≤ n
-
-/-- Get the part `v` belongs to in the partition. -/
+/-- The part in the partition that `v` belongs to -/
 def part_of_vertex (v : V) : set V :=
 classical.some (P.is_partition.2 v)
 
@@ -85,24 +91,16 @@ end
 lemma part_of_vertex_ne_of_adj {v w : V} (h : G.adj v w) :
   P.part_of_vertex v ≠ P.part_of_vertex w :=
 begin
-  have aa := P.is_partition.2,
   intro hn,
   have hw := P.mem_part_of_vertex w,
   rw ←hn at hw,
-  have h1 := P.independent _ (P.part_of_vertex_mem v) _ (P.mem_part_of_vertex v),
-  exact h1 w hw (G.ne_of_adj h) h,
+  have h' := P.independent _ (P.part_of_vertex_mem v) _ (P.mem_part_of_vertex v),
+  exact h' w hw (G.ne_of_adj h) h,
 end
 
-/-- Creates a coloring using colors of type `set V`. -/
-def to_coloring : G.coloring (set V) :=
-coloring.mk P.part_of_vertex
-begin
-  intros _ _ hvw,
-  exact P.part_of_vertex_ne_of_adj hvw,
-end
-
-/-- Creates a coloring using colors of type `P.parts`. -/
-def to_coloring' : G.coloring P.parts :=
+/-- Create a coloring using the parts themselves as the colors.
+Each vertex is colored by the part it's contained in. -/
+def to_coloring : G.coloring P.parts :=
 coloring.mk (λ v, ⟨P.part_of_vertex v, P.part_of_vertex_mem v⟩)
 begin
   intros _ _ hvw,
@@ -110,42 +108,50 @@ begin
   exact P.part_of_vertex_ne_of_adj hvw,
 end
 
-lemma to_colorable [fintype P.parts] : G.colorable (fintype.card P.parts) :=
-coloring.to_colorable P.to_coloring'
+/-- Like `simple_graph.partition.to_coloring` but uses `set V` as the coloring type. -/
+def to_coloring' : G.coloring (set V) :=
+coloring.mk P.part_of_vertex
+begin
+  intros _ _ hvw,
+  exact P.part_of_vertex_ne_of_adj hvw,
+end
 
-def from_coloring_to_embedding {α : Type v} (C : G.coloring α) : P.parts ↪ α := sorry
+lemma to_colorable [fintype P.parts] : G.colorable (fintype.card P.parts) :=
+P.to_coloring.to_colorable
 
 end partition
 
-namespace coloring
+variables {G}
 
 /-- Creates a partition from a coloring. -/
+@[simps]
 def coloring.to_partition {α : Type v} (C : G.coloring α) : G.partition :=
-begin
-  let parts : set (set V) := C.color_classes,
-  have is_partition : setoid.is_partition parts,
-    { by apply coloring.color_classes_is_partition, },
-  have independent : ∀ (s ∈ parts), is_antichain G.adj s,
-    { by apply coloring.color_classes_is_independent, },
-  exact partition.mk parts is_partition independent,
-end
+{ parts := C.color_classes,
+  is_partition := C.color_classes_is_partition,
+  independent := begin
+    rintros s ⟨c, rfl⟩,
+    apply C.color_classes_independent,
+  end }
 
-instance : inhabited (partition G) := ⟨coloring.to_partition G G.self_coloring⟩
+instance : inhabited (partition G) := ⟨G.self_coloring.to_partition⟩
 
 lemma partitionable_iff_colorable {n : ℕ} :
   G.partitionable n ↔ G.colorable n :=
 begin
   split,
-  { intro h,
-    cases h with P h,
-    obtain ⟨f⟩ := h,
-    have C := partition.to_coloring' P,
-    use G.recolor_of_embedding f C, },
+  { rintro ⟨P, hf, h⟩,
+    haveI : fintype P.parts := hf.fintype,
+    rw set.finite.card_to_finset at h,
+    apply P.to_colorable.of_le h, },
   { rintro ⟨C⟩,
-    have P := coloring.to_partition G C,
-    use [P, P.from_coloring_to_embedding C], },
+    use C.to_partition,
+    fsplit,
+    exact C.color_classes_finite_of_fintype,
+    convert_to _ ≤ fintype.card (fin n),
+    { rw fintype.card_fin },
+    haveI : fintype C.color_classes := C.color_classes_finite_of_fintype.fintype,
+    rw @set.finite.card_to_finset _ _ _,
+    apply C.card_color_classes_le, },
 end
-
-end coloring
 
 end simple_graph

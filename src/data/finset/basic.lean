@@ -1227,6 +1227,12 @@ by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 @[simp] lemma sdiff_singleton_not_mem_eq_self (s : finset α) {a : α} (ha : a ∉ s) : s \ {a} = s :=
 by simp only [sdiff_singleton_eq_erase, ha, erase_eq_of_not_mem, not_false_iff]
 
+lemma sdiff_erase {A : finset α} {x : α} (hx : x ∈ A) : A \ A.erase x = {x} :=
+begin
+  rw [← sdiff_singleton_eq_erase, sdiff_sdiff_right_self],
+  exact inf_eq_right.2 (singleton_subset_iff.2 hx),
+end
+
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
 sdiff_sdiff_right_self
 
@@ -1935,6 +1941,20 @@ end map
 lemma range_add_one' (n : ℕ) :
   range (n + 1) = insert 0 ((range n).map ⟨λi, i + 1, assume i j, nat.succ.inj⟩) :=
 by ext (⟨⟩ | ⟨n⟩); simp [nat.succ_eq_add_one, nat.zero_lt_succ n]
+
+lemma range_add_eq_union (m n : ℕ) :
+  range (m + n) = range m ∪ (range n).map (add_left_embedding m) :=
+begin
+  ext,
+  simp_rw [mem_union, mem_map, exists_prop, add_left_embedding_apply, mem_range],
+  refine ⟨λ h, _, _⟩,
+  { obtain ha | ha := le_or_lt m a,
+    { exact or.inr ⟨a - m, (tsub_lt_iff_left ha).2 h, add_tsub_cancel_of_le ha⟩ },
+    { exact or.inl ha } },
+  { rintro (ha | ⟨a, ha, rfl⟩),
+    { exact ha.trans_le (le_self_add) },
+    { exact add_lt_add_left ha _ } }
+end
 
 /-! ### image -/
 section image
@@ -2771,6 +2791,18 @@ ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]
 @[simp] lemma bUnion_singleton_eq_self [decidable_eq α] :
   s.bUnion (singleton : α → finset α) = s :=
 by { rw bUnion_singleton, exact image_id }
+
+lemma filter_bUnion (s : finset α) (f : α → finset β) (p : β → Prop) [decidable_pred p] :
+  (s.bUnion f).filter p = s.bUnion (λ a, (f a).filter p) :=
+begin
+  ext b,
+  simp only [mem_bUnion, exists_prop, mem_filter],
+  split,
+  { rintro ⟨⟨a, ha, hba⟩, hb⟩,
+    exact ⟨a, ha, hba, hb⟩ },
+  { rintro ⟨a, ha, hba, hb⟩,
+    exact ⟨⟨a, ha, hba⟩, hb⟩ }
+end
 
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :

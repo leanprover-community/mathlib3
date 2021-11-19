@@ -1186,7 +1186,7 @@ def pi_finset (t : Π a, finset (δ a)) : finset (Π a, δ a) :=
 (finset.univ.pi t).map ⟨λ f a, f a (mem_univ a), λ _ _, by simp [function.funext_iff]⟩
 
 @[simp] lemma mem_pi_finset {t : Π a, finset (δ a)} {f : Π a, δ a} :
-  f ∈ pi_finset t ↔ (∀ a, f a ∈ t a) :=
+  f ∈ pi_finset t ↔ ∀ a, f a ∈ t a :=
 begin
   split,
   { simp only [pi_finset, mem_map, and_imp, forall_prop_of_true, exists_prop, mem_univ,
@@ -1197,6 +1197,10 @@ begin
   { simp only [pi_finset, mem_map, forall_prop_of_true, exists_prop, mem_univ, mem_pi],
     exact λ hf, ⟨λ a ha, f a, hf, rfl⟩ }
 end
+
+lemma coe_pi_finset (s : finset α) (t : Π a, finset (δ a)) :
+  (fintype.pi_finset t : set (Π a, δ a)) = (set.univ : set α).pi (λ a, t a) :=
+set.ext $ λ x, by { rw set.mem_univ_pi, exact fintype.mem_pi_finset }
 
 lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
   pi_finset t₁ ⊆ pi_finset t₂ :=

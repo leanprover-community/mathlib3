@@ -1365,18 +1365,31 @@ begin
   obtain ⟨hp', x, hx, hx'⟩ := h,
   exact hp (or.resolve_right ((irreducible_iff.1 hcontra).right p x hx') hx),
 end
+lemma associates.is_atom_iff {M : Type*} [comm_cancel_monoid_with_zero M]
+  {p : associates M} : is_atom p ↔ irreducible p :=
+⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
+        λ a b h, (eq_bot_or_eq_of_le_atom hp ⟨_, h⟩).cases_on
+          (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
+          (λ ha, or.inr sorry)⟩,
+ λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one, associates.bot_eq_one] using hp.1,
+        λ b ⟨⟨a, hab⟩, hb⟩, (hp.is_unit_or_is_unit hab).cases_on
+          (λ hb, show b = ⊥, by rwa [associates.is_unit_iff_eq_one, ← associates.bot_eq_one] at hb)
+          (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; sorry⟩) hb)⟩⟩
 
-lemma pow_prime₂' {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M} (n : ℕ) (c : ℕ → M)
-  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
-  (h₂ : ∀ {r : M}, r ∣ q ↔ ∃ i ≤ n, associated r (c i)) : prime (c 1) :=
+lemma pow_prime₂' {M : Type*} [comm_cancel_monoid_with_zero M] {p q : associates M} (n : ℕ) (hn : 1 ≤ n)
+  (c : ℕ → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r}, r ∣ q ↔ ∃ i ≤ n, r = (c i)) : irreducible (c 1) :=
 begin
-  rw prime,
+  refine associates.is_atom_iff.mp _,
   split,
-  { sorry },
-  { split,
-    { exact not_unit_of_dvd_not_unit (h₁ 0 1 zero_lt_one) },
-    { sorry } }, --the last part of the proof seems quite painful in the
-                -- `comm_cancel_monoid_with_zero M` setting
+  { exact ne_bot_of_gt (h₁ zero_lt_one) },
+
+  intros b hb,
+  have h : b ∣ q := (hb.le).trans (h₂.2 ⟨1, hn, rfl⟩),
+  obtain ⟨i, hi, rfl⟩ := h₂.1 h,
+  have H : i < 1 := h₁.lt_iff_lt.mp hb,
+  rw [nat.lt_one_iff.mp H, associates.bot_eq_one, ← associates.is_unit_iff_eq_one],
+  exact pow_prime₁' n c h₁ @h₂
 end
 
 lemma pow_prime₂ {q : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)

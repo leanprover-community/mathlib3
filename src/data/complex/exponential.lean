@@ -1137,8 +1137,8 @@ by rw ← of_real_inj; simp [sinh_three_mul]
 
 open is_absolute_value
 
-/-- Please use `add_one_le_exp`. This is an intermediate step
-in the proof of `add_one_le_exp` which may become private later. -/
+/-- This is an intermediate result that is later replaced by `real.add_one_le_exp`; use that lemma
+instead. -/
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
 calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
   le_lim (cau_seq.le_of_exists ⟨2,
@@ -1353,8 +1353,7 @@ begin
 end
 
 lemma exp_bound' {x : ℝ} (h1 : 0 ≤ x) (h2 : x ≤ 1) {n : ℕ} (hn : 0 < n) :
-  real.exp x ≤ ∑ (m : ℕ) in finset.range n, x ^ m / (m.factorial)
-  + x ^ n * ((n : ℝ) + 1) / (n.factorial * (n : ℝ) ) :=
+  real.exp x ≤ ∑ m in finset.range n, x ^ m / m! + x ^ n * (n + 1) / (n! * n) :=
 begin
   have h3 : |x| = x := by simpa,
   have h4 : |x| ≤ 1,

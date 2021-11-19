@@ -43,10 +43,34 @@ begin
   refl,
 end
 
+@[continuity]
+lemma continuous (f : foo ι x₀) : continuous ⇑f := f.to_continuous_map.continuous
+
 lemma apply_of_exists_eq_zero_or_eq_one {f : foo ι x₀} (p : ι → I) (hx : ∃ i, p i = 0 ∨ p i = 1) :
   f p = x₀ := f.boundary _ hx
 
-example (f g : foo ι x₀) (i : ι) : foo ι x₀ :=
+def refl : foo ι x₀ :=
+{ to_fun := λ i, x₀,
+  boundary := λ p hp, rfl }
+
+def symm (f : foo ι x₀) (i : ι) : foo ι x₀ :=
+{ to_fun := λ t, f (λ j, if i = j then σ (t j) else t j),
+  continuous_to_fun := begin
+    apply f.continuous.comp,
+    rw continuous_pi_iff,
+    intro j,
+    split_ifs;
+    continuity
+  end,
+  boundary := begin
+    rintros p ⟨j, hj⟩,
+    dsimp only,
+    apply apply_of_exists_eq_zero_or_eq_one,
+    use j,
+    rcases hj with (hj | hj); rw hj; finish
+  end }
+
+def trans (f g : foo ι x₀) (i : ι) : foo ι x₀ :=
 { to_fun := λ t,
   if (t i : ℝ) ≤ 1/2 then
     f.extend (λ j, if i = j then 2 * t j else t j)
@@ -124,6 +148,25 @@ example (f g : foo ι x₀) (i : ι) : foo ι x₀ :=
         { rw [unit_interval.two_mul_sub_one_mem_iff, ←hik],
           exact ⟨le_of_not_le h, unit_interval.le_one _⟩, },
         { exact subtype.mem _ } } }
-  end }
+  end } .
+
+abbreviation homotopy (f g : foo ι x₀) :=
+continuous_map.homotopy_rel f.to_continuous_map g.to_continuous_map {p | ∃ i, p i = 0 ∨ p i = 1}
+
+namespace homotopy
+
+def refl (f : foo ι x₀) : homotopy f f :=
+{ to_fun := λ t, f t.2,
+  to_fun_zero := λ _, rfl,
+  to_fun_one := λ _, rfl,
+  prop' := λ t x hx, ⟨rfl, rfl⟩ }
+
+def symm {f g : foo ι x₀} (h : homotopy f g) : homotopy g f :=
+{ to_fun := λ t, h (σ t.1, t.2),
+  to_fun_zero := sorry,
+  to_fun_one := sorry,
+  prop' := sorry }
+
+end homotopy
 
 end foo

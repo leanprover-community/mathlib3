@@ -36,7 +36,7 @@ begin
   set F : (ℝ × ℝ) → E := f ∘ e,
   set F' : (ℝ × ℝ) → (ℝ × ℝ) →L[ℝ] E := λ p, (f' (e p)).comp (e : (ℝ × ℝ) →L[ℝ] ℂ),
   have hF' : ∀ p : ℝ × ℝ, (-(I • F' p)) (1, 0) + F' p (0, 1) = -(I • f' (e p) 1 - f' (e p) I),
-  { rintro ⟨x, y⟩, simp [F', he₁, he₂, ← sub_eq_neg_add] },
+  { rintro ⟨x, y⟩, simp [F', he₁, he₂, ← sub_eq_neg_add], },
   set R : set (ℝ × ℝ) := [z.re, w.re].prod [w.im, z.im],
   set t : set (ℝ × ℝ) := e ⁻¹' s,
   rw [interval_swap z.im] at Hc Hd Hi,
@@ -292,11 +292,17 @@ lemma sum_cauchy_power_series_eq_integral {f : ℝ → E} {R : ℝ} {z : ℂ}
   (cauchy_power_series f R).sum z = ∫ θ : ℝ in 0..2*π, (↑R * exp (θ * I) - z)⁻¹ • f θ :=
 begin
   have hR0 : 0 < R := (abs_nonneg z).trans_lt hR,
-  have hz_ball : z ∈ emetric.ball (0 : ℂ) (cauchy_power_series f R).radius,
-  { lift R to ℝ≥0 using hR0.le,
+  have hl : tendsto (λ n, (cauchy_power_series f R).partial_sum n z) at_top
+    (𝓝 $ (cauchy_power_series f R).sum z),
+  { refine ((cauchy_power_series f R).has_sum _).tendsto_sum_nat,
+    lift R to ℝ≥0 using hR0.le,
     refine mem_emetric_ball_zero_iff.2 (lt_of_lt_of_le _ $ le_radius_cauchy_power_series f R),
     rwa ennreal.coe_lt_coe },
-  have := ((cauchy_power_series f R).has_sum hz_ball).tendsto_sum_nat,
+  refine tendsto_nhds_unique hl _,
+  have hne : abs z ≠ |R|,
+  { rw ← _root_.abs_of_nonneg hR0.le at hR, exact hR.ne },
+  simp only [cauchy_power_series_partial_sum hf hne],
+
 end
 
 /-

@@ -5,7 +5,7 @@ cribed in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
-/-
+/-!
 # Iwasawa criterion and simplicity of some groups
 
 Reference : https://www.math.ens.fr/~vanhaecke/tdalg2019/Correction_Iwasawa.pdf

@@ -451,7 +451,7 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
@@ -649,12 +649,12 @@ See note [reducible non-instances]. -/
 { decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
   le_total := h,
   max := (⊔),
-  max_def := by {
-    funext x y, dunfold max_default,
+  max_def := by
+  { funext x y, dunfold max_default,
     split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
   min := (⊓),
-  min_def := by {
-    funext x y, dunfold min_default,
+  min_def := by
+  { funext x y, dunfold min_default,
     split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
   .. ‹lattice α› }
 

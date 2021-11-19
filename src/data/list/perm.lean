@@ -261,16 +261,16 @@ lemma perm_comp_forall₂ {l u v} (hlu : perm l u) (huv : forall₂ r u v) : (fo
 begin
   induction hlu generalizing v,
   case perm.nil { cases huv, exact ⟨[], forall₂.nil, perm.nil⟩ },
-  case perm.cons : a l u hlu ih {
-    cases huv with _ b _ v hab huv',
+  case perm.cons : a l u hlu ih
+  { cases huv with _ b _ v hab huv',
     rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
     exact ⟨b::l₂, forall₂.cons hab h₁₂, h₂₃.cons _⟩ },
-  case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
-    cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
+  case perm.swap : a₁ a₂ l₁ l₂ h₂₃
+  { cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
     cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
     exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩ },
-  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
-    rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
+  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂
+  { rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
     rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
     exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩ }
 end
@@ -376,7 +376,7 @@ by rw [countp_eq_length_filter, countp_eq_length_filter];
 
 theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
-| ⟨l, p', s⟩ := p'.countp_eq p ▸ countp_le_of_sublist p s
+| ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
 
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=
@@ -523,13 +523,13 @@ begin
   rcases s with ⟨l, p, s⟩,
   induction s generalizing l₁,
   case list.sublist.slnil { cases h₂ },
-  case list.sublist.cons : r₁ r₂ b s' ih {
-    simp at h₂,
+  case list.sublist.cons : r₁ r₂ b s' ih
+  { simp at h₂,
     cases h₂ with e m,
     { subst b, exact ⟨a::r₁, p.cons a, s'.cons2 _ _ _⟩ },
     { rcases ih m d₁ h₁ p with ⟨t, p', s'⟩, exact ⟨t, p', s'.cons _ _ _⟩ } },
-  case list.sublist.cons2 : r₁ r₂ b s' ih {
-    have bm : b ∈ l₁ := (p.subset $ mem_cons_self _ _),
+  case list.sublist.cons2 : r₁ r₂ b s' ih
+  { have bm : b ∈ l₁ := (p.subset $ mem_cons_self _ _),
     have am : a ∈ r₂ := h₂.resolve_left (λ e, h₁ $ e.symm ▸ bm),
     rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,

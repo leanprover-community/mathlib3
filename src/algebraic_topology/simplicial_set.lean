@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import algebraic_topology.simplicial_object
-import category_theory.yoneda
-import category_theory.limits.types
-import category_theory.limits.presheaf
 import algebraic_topology.topological_simplex
+import category_theory.limits.presheaf
+import category_theory.limits.types
+import category_theory.yoneda
+import topology.category.Top.limits
 
 /-!
 A simplicial set is just a simplicial object in `Type`,

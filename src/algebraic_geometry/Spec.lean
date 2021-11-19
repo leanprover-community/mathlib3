@@ -102,7 +102,7 @@ PresheafedSpace.ext _ _ (Spec.Top_map_id R) $ nat_trans.ext _ _ $ funext $ λ U,
 begin
   dsimp,
   erw [PresheafedSpace.id_c_app, comap_id], swap,
-    { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
+  { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
   simpa,
 end
 

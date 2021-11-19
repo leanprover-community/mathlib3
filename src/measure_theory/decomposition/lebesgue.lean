@@ -3,6 +3,7 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
+import measure_theory.measure.complex
 import measure_theory.decomposition.jordan
 import measure_theory.measure.with_density_vector_measure
 import measure_theory.function.ae_eq_of_integral
@@ -534,8 +535,8 @@ begin
   ext x,
   simp only [option.mem_def, ennreal.some_eq_coe],
   split; intro h; rw ← h, symmetry,
-  all_goals {
-    set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
+  all_goals
+  { set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
     set d := (f m.succ a ⊔ ⨆ (k : ℕ) (hk : k ≤ m), f k a) with hd,
     suffices : c ≤ d ∧ d ≤ c,
     { change c = d, -- removing this line breaks
@@ -1156,8 +1157,7 @@ begin
                  singular_part_smul] }
 end
 
-lemma singular_part_smul (s : signed_measure α) (μ : measure α)
-  (r : ℝ) :
+lemma singular_part_smul (s : signed_measure α) (μ : measure α) (r : ℝ) :
   (r • s).singular_part μ = r • s.singular_part μ :=
 begin
   by_cases hr : 0 ≤ r,
@@ -1261,5 +1261,65 @@ begin
 end
 
 end signed_measure
+
+namespace complex_measure
+
+/-- A complex measure is said to `have_lebesgue_decomposition` with respect to a positive measure
+if both its real and imaginary part `have_lebesgue_decomposition` with respect to that measure. -/
+class have_lebesgue_decomposition (c : complex_measure α) (μ : measure α) : Prop :=
+(re_part : c.re.have_lebesgue_decomposition μ)
+(im_part : c.im.have_lebesgue_decomposition μ)
+
+attribute [instance] have_lebesgue_decomposition.re_part
+attribute [instance] have_lebesgue_decomposition.im_part
+
+/-- The singular part between a complex measure `c` and a positive measure `μ` is the complex
+measure satisfying `c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c`. This property is given
+by `measure_theory.complex_measure.singular_part_add_with_density_rn_deriv_eq`. -/
+def singular_part (c : complex_measure α) (μ : measure α) : complex_measure α :=
+(c.re.singular_part μ).to_complex_measure (c.im.singular_part μ)
+
+/-- The Radon-Nikodym derivative between a complex measure and a positive measure. -/
+def rn_deriv (c : complex_measure α) (μ : measure α) : α → ℂ :=
+λ x, ⟨c.re.rn_deriv μ x, c.im.rn_deriv μ x⟩
+
+variable {c : complex_measure α}
+
+lemma integrable_rn_deriv (c : complex_measure α) (μ : measure α) :
+  integrable (c.rn_deriv μ) μ :=
+begin
+  rw [← mem_ℒp_one_iff_integrable, ← mem_ℒp_re_im_iff],
+  exact ⟨mem_ℒp_one_iff_integrable.2 (signed_measure.integrable_rn_deriv _ _),
+         mem_ℒp_one_iff_integrable.2 (signed_measure.integrable_rn_deriv _ _)⟩
+end
+
+theorem singular_part_add_with_density_rn_deriv_eq [c.have_lebesgue_decomposition μ] :
+  c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c :=
+begin
+  conv_rhs { rw [← c.to_complex_measure_to_signed_measure] },
+  ext i hi,
+  { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
+        complex.add_re, re_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
+        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
+    suffices : (c.singular_part μ i).re + ∫ x in i, (c.rn_deriv μ x).re ∂μ = (c i).re,
+    { simpa },
+    rw [← with_densityᵥ_apply _ hi],
+    { change (c.re.singular_part μ + μ.with_densityᵥ (c.re.rn_deriv μ)) i = _,
+      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ c.re _,
+      refl },
+    { exact (signed_measure.integrable_rn_deriv _ _) } },
+  { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
+        complex.add_im, im_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
+        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
+    suffices : (c.singular_part μ i).im + ∫ x in i, (c.rn_deriv μ x).im ∂μ = (c i).im,
+    { simpa },
+    rw [← with_densityᵥ_apply _ hi],
+    { change (c.im.singular_part μ + μ.with_densityᵥ (c.im.rn_deriv μ)) i = _,
+      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ c.im _,
+      refl },
+    { exact (signed_measure.integrable_rn_deriv _ _) } }
+end
+
+end complex_measure
 
 end measure_theory

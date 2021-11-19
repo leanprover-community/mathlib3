@@ -3,7 +3,7 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import algebra.module.opposites
+import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
 
@@ -101,7 +101,7 @@ h.const_inv_smul₀ a
 lemma periodic.mul_const [division_ring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a)) (c * a⁻¹) :=
-h.const_smul₀ $ opposite.op a
+h.const_smul₀ $ mul_opposite.op a
 
 lemma periodic.mul_const' [division_ring α]
   (h : periodic f c) (a : α) :
@@ -111,7 +111,7 @@ by simpa only [div_eq_mul_inv] using h.mul_const a
 lemma periodic.mul_const_inv [division_ring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a⁻¹)) (c * a) :=
-h.const_inv_smul₀ $ opposite.op a
+h.const_inv_smul₀ $ mul_opposite.op a
 
 lemma periodic.div_const [division_ring α]
   (h : periodic f c) (a : α) :
@@ -252,7 +252,7 @@ lemma periodic.int_mul_eq [ring α]
 lemma periodic.exists_mem_Ico₀ [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x) :
   ∃ y ∈ set.Ico 0 c, f x = f y :=
-let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
+let ⟨n, H, _⟩ := exists_unique_zsmul_near_of_pos' hc x in
 ⟨x - n • c, H, (h.sub_zsmul_eq n).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
@@ -260,7 +260,7 @@ let ⟨n, H⟩ := exists_int_smul_near_of_pos' hc x in
 lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ico a (a + c), f x = f y :=
-let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
+let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ico hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 /-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
@@ -268,7 +268,7 @@ let ⟨n, H⟩ := exists_add_int_smul_mem_Ico hc x a in
 lemma periodic.exists_mem_Ioc [linear_ordered_add_comm_group α] [archimedean α]
   (h : periodic f c) (hc : 0 < c) (x a) :
   ∃ y ∈ set.Ioc a (a + c), f x = f y :=
-let ⟨n, H⟩ := exists_add_int_smul_mem_Ioc hc x a in
+let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ioc hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
 lemma periodic_with_period_zero [add_zero_class α]
@@ -397,7 +397,7 @@ h.const_inv_smul₀ ha
 lemma antiperiodic.mul_const [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a)) (c * a⁻¹) :=
-h.const_smul₀ $ (opposite.op_ne_zero_iff a).mpr ha
+h.const_smul₀ $ (mul_opposite.op_ne_zero_iff a).mpr ha
 
 lemma antiperiodic.mul_const' [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
@@ -407,7 +407,7 @@ by simpa only [div_eq_mul_inv] using h.mul_const ha
 lemma antiperiodic.mul_const_inv [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a⁻¹)) (c * a) :=
-h.const_inv_smul₀ $ (opposite.op_ne_zero_iff a).mpr ha
+h.const_inv_smul₀ $ (mul_opposite.op_ne_zero_iff a).mpr ha
 
 lemma antiperiodic.div_inv [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :

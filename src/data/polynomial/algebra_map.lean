@@ -370,8 +370,8 @@ begin
   swap,
   { simp, },
   rw sum_range_succ',
-  conv_lhs {
-    congr, apply_congr, skip,
+  conv_lhs
+  { congr, apply_congr, skip,
     rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ], },
   simp [sum_range_sub', coeff_monomial],
 end

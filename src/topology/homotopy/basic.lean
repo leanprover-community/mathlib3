@@ -256,15 +256,15 @@ namespace homotopic
 lemma refl (f : C(X, Y)) : homotopic f f := ⟨homotopy.refl f⟩
 
 @[symm]
-lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic f g) : homotopic g f := ⟨h.some.symm⟩
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic f g) : homotopic g f := h.map homotopy.symm
 
 @[trans]
 lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic f g) (h₁ : homotopic g h) : homotopic f h :=
-⟨h₀.some.trans h₁.some⟩
+h₀.map2 homotopy.trans h₁
 
 lemma hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (h₀ : homotopic f₀ f₁) (h₁ : homotopic g₀ g₁) :
   homotopic (g₀.comp f₀) (g₁.comp f₁) :=
-⟨h₀.some.hcomp h₁.some⟩
+h₀.map2 homotopy.hcomp h₁
 
 lemma equivalence : equivalence (@homotopic X Y _ _) := ⟨refl, symm, trans⟩
 
@@ -527,12 +527,13 @@ variable {S : set X}
 lemma refl (f : C(X, Y)) : homotopic_rel f f S := ⟨homotopy_rel.refl f S⟩
 
 @[symm]
-lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S := ⟨h.some.symm⟩
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S :=
+  h.map homotopy_rel.symm
 
 @[trans]
 lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_rel f g S) (h₁ : homotopic_rel g h S) :
   homotopic_rel f h S :=
-⟨h₀.some.trans h₁.some⟩
+h₀.map2 homotopy_rel.trans h₁
 
 lemma equivalence : equivalence (λ f g : C(X, Y), homotopic_rel f g S) :=
 ⟨refl, symm, trans⟩

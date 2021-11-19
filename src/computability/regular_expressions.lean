@@ -3,8 +3,6 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import data.fintype.basic
-import data.finset.basic
 import tactic.rcases
 import computability.language
 
@@ -242,9 +240,8 @@ begin
           right,
           assumption } } } }
 end
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
-}
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩] }
 
 @[simp] lemma rmatch_iff_matches (P : regular_expression α) :
   ∀ x : list α, P.rmatch x ↔ x ∈ P.matches :=
@@ -257,20 +254,20 @@ begin
     try {rw plus_def},
     try {rw comp_def},
     rw matches },
-  case zero : {
-    rw zero_rmatch,
+  case zero :
+  { rw zero_rmatch,
     tauto },
-  case epsilon : {
-    rw one_rmatch_iff,
+  case epsilon :
+  { rw one_rmatch_iff,
     refl },
-  case char : {
-    rw char_rmatch_iff,
+  case char :
+  { rw char_rmatch_iff,
     refl },
-  case plus : _ _ ih₁ ih₂ {
-    rw [add_rmatch_iff, ih₁, ih₂],
+  case plus : _ _ ih₁ ih₂
+  { rw [add_rmatch_iff, ih₁, ih₂],
     refl },
-  case comp : P Q ih₁ ih₂ {
-    simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
+  case comp : P Q ih₁ ih₂
+  { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
       set.image_prod],
     split,
     { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
@@ -281,8 +278,8 @@ begin
       rw ←ih₁ at hmatch₁,
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
-  case star : _ ih {
-    rw [star_rmatch_iff, language.star_def_nonempty],
+  case star : _ ih
+  { rw [star_rmatch_iff, language.star_def_nonempty],
     split,
     all_goals
     { rintro ⟨ S, hx, hS ⟩,

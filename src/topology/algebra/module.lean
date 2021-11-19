@@ -910,22 +910,24 @@ end
 
 end ring
 
-section smul
+section smul_monoid
 
-variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+variables {R S : Type*} [semiring R] [monoid S] [topological_space S]
   {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
   {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
   {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
-  [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
+  [distrib_mul_action S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
-instance : has_scalar S (M →L[R] M₃) :=
-⟨λ c f, ⟨c • f, (continuous_const.smul f.2 : continuous (λ x, c • f x))⟩⟩
+instance : mul_action S (M →L[R] M₃) :=
+{ smul := λ c f, ⟨c • f, (continuous_const.smul f.2 : continuous (λ x, c • f x))⟩,
+  one_smul := λ f, ext $ λ x, one_smul _ _,
+  mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
 
 variables (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
 
 @[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
 
-variables [module S M₂] [has_continuous_smul S M₂] [smul_comm_class R S M₂]
+variables [distrib_mul_action S M₂] [has_continuous_smul S M₂] [smul_comm_class R S M₂]
 
 lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp, norm_cast] lemma coe_smul : (((c • f) : M →L[R] M₂) : M →ₗ[R] M₂) = c • f := rfl
@@ -933,6 +935,32 @@ lemma smul_apply : (c • f) x = c • (f x) := rfl
 
 @[simp] lemma comp_smul [linear_map.compatible_smul M₂ M₃ S R] : h.comp (c • f) = c • (h.comp f) :=
 by { ext x, exact h.map_smul_of_tower c (f x) }
+
+instance {T : Type*} [monoid T] [topological_space T] [distrib_mul_action T M₂]
+  [has_continuous_smul T M₂] [smul_comm_class R T M₂] [has_scalar S T]
+  [is_scalar_tower S T M₂] : is_scalar_tower S T (M →L[R] M₂) :=
+⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
+
+instance {T : Type*} [monoid T] [topological_space T] [distrib_mul_action T M₂]
+  [has_continuous_smul T M₂] [smul_comm_class R T M₂] [smul_comm_class S T M₂] :
+  smul_comm_class S T (M →L[R] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
+
+instance [has_continuous_add M₂] : distrib_mul_action S (M →L[R] M₂) :=
+{ smul_add := λ a f g, ext $ λ x, smul_add a (f x) (g x),
+  smul_zero := λ a, ext $ λ x, smul_zero _ }
+
+end smul_monoid
+
+section smul
+
+variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
+  [module S M₃] [has_continuous_smul S M₃] [smul_comm_class R S M₃]
+  [module S M₂] [has_continuous_smul S M₂] [smul_comm_class R S M₂]
+  (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
 
 /-- `continuous_linear_map.prod` as an `equiv`. -/
 @[simps apply] def prod_equiv : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ (M →L[R] M₂ × M₃) :=
@@ -952,12 +980,8 @@ prod_ext_iff.2 ⟨hl, hr⟩
 variables [has_continuous_add M₂]
 
 instance : module S (M →L[R] M₂) :=
-{ smul_zero := λ _, ext $ λ _, smul_zero _,
-  zero_smul := λ _, ext $ λ _, zero_smul _ _,
-  one_smul  := λ _, ext $ λ _, by exact one_smul _ _,
-  mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
-  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
-  smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
+{ zero_smul := λ _, ext $ λ _, zero_smul _ _,
+  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _, }
 
 variables (S) [has_continuous_add M₃]
 

@@ -49,54 +49,120 @@ def foo : setoid T := { r := λ x y, ∃ γ, φ γ x = y,
 def properly_discontinuous : Prop := ∀ (K L : set T), is_compact K → is_compact L →
   set.finite {γ : Γ | ((φ γ) '' K) ∩ L ≠ ∅ }
 
+lemma quotient_preimage_image_eq_union (U : set T) :
+(@quotient.mk _ (foo φ)) ⁻¹' ((@quotient.mk _ (foo φ)) '' U) = ⋃ γ : Γ, (φ γ) '' U :=
+begin
+  set f : T → quotient (foo φ) := @quotient.mk _ (foo φ),
+  ext,
+  split,
+  { rintros ⟨y , hy, hxy⟩,
+    obtain ⟨γ, rfl⟩ := @quotient.exact _ (foo φ) _ _  hxy,
+    rw set.mem_Union,
+    refine ⟨γ, y, ⟨hy, rfl⟩⟩, },
+  {
+    intros hx,
+-- ALEX HOMEWORK
+    sorry,
+  },
+end
+
+lemma is_open_map_quotient_mk : is_open_map (@quotient.mk _ (foo φ)) :=
+begin
+  intros U hU,
+  rw is_open_coinduced,
+  let f : T → quotient (foo φ) := @quotient.mk _ (foo φ),
+  rw quotient_preimage_image_eq_union φ U,
+  apply is_open_Union,
+  intros γ,
+  exact (φ γ).is_open_map U hU,
+end
+
 lemma is_t2_of_properly_discontinuous_of_t2 [t2_space T] [locally_compact_space T]
 (h : properly_discontinuous φ) : t2_space (quotient (foo φ)) :=
 { t2 := begin
   let f : T → quotient (foo φ) := @quotient.mk _ (foo φ),
   intros x y hxy,
-  obtain ⟨x₀, hx₀⟩ := @quotient.exists_rep _ (foo φ) x,
-  obtain ⟨y₀, hy₀⟩ := @quotient.exists_rep _ (foo φ) y,
+  obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ = x := @quotient.exists_rep _ (foo φ) x,
+  obtain ⟨y₀, hy₀⟩ : ∃ y₀, f y₀ = y := @quotient.exists_rep _ (foo φ) y,
+
   have hγx₀y₀ : ∀ γ : Γ, φ γ x₀ ≠ y₀,
-  {
+  { --- rewrite this as a calc proof
     intros γ,
-    sorry,
-    -- exact hxy,
-  },
-  have hx₀y₀ : x₀ ≠ y₀ := sorry,
+    contrapose! hxy,
+    have := congr_arg f hxy,
+    rw ← hy₀,
+    convert this,
+    rw ← hx₀,
+    apply quotient.sound _,
+    use γ, },
+  have hx₀y₀ : x₀ ≠ y₀ := by simpa using (hγx₀y₀ 1),
   obtain ⟨u₀, v₀, open_u₀, open_v₀, x₀_in_u₀, y₀_in_v₀, hu₀v₀⟩ := t2_separation hx₀y₀,
   obtain ⟨K₀, K₀_is_cpt, x₀_in_K₀, K₀_in_u₀⟩ := exists_compact_subset open_u₀ x₀_in_u₀,
   obtain ⟨L₀, L₀_is_cpt, y₀_in_L₀, L₀_in_v₀⟩ := exists_compact_subset open_v₀ y₀_in_v₀,
   let bad_Γ_set := {γ : Γ | ((φ γ) '' K₀) ∩ L₀ ≠ ∅ },
   have bad_Γ_finite : bad_Γ_set.finite := h K₀ L₀ K₀_is_cpt L₀_is_cpt,
-  choose uγ vγ is_open_uγ is_open_vγ γx₀_in_uγ y₀_in_vγ uγ_vγ_disjoin using
+  choose uγ vγ is_open_uγ is_open_vγ γx₀_in_uγ y₀_in_vγ uγ_vγ_disjoint using
     λ γ, t2_separation (hγx₀y₀ γ),
 
-
-
-  let cut_out_bits := ⋂ γ ∈ bad_Γ_set, ((φ γ) '' K₀)ᶜ,
-  have all_open : ∀ γ, γ ∈ bad_Γ_set → is_open ((φ γ) '' K₀)ᶜ :=
-    λ γ hγ, ( (K₀_is_cpt.image _).is_closed).is_open_compl,
-  have cut_out_bits_is_open : is_open cut_out_bits := is_open_bInter bad_Γ_finite all_open,
-  let V₀ := v₀ ∩ cut_out_bits,
-  have V₀_is_open : is_open V₀ := is_open.inter open_v₀ cut_out_bits_is_open,
+  let U₀₀ := ⋂ γ ∈ bad_Γ_set, ((φ γ) ⁻¹' (uγ γ)),
+  have all_open : ∀ γ, γ ∈ bad_Γ_set → is_open ((φ γ) ⁻¹' (uγ γ)) :=
+    λ γ hγ, is_open.preimage (φ γ).continuous (is_open_uγ γ),
+  have U₀₀_is_open : is_open U₀₀ := is_open_bInter bad_Γ_finite all_open,
+  let U₀ := U₀₀ ∩ (interior K₀),
+  have U₀_is_open : is_open U₀ := is_open.inter U₀₀_is_open is_open_interior,
+  let V₀₀ := ⋂ γ ∈ bad_Γ_set, (vγ γ),
+  have V₀₀_is_open : is_open V₀₀ := is_open_bInter bad_Γ_finite (λ γ _, is_open_vγ γ),
+  let V₀ := V₀₀ ∩ (interior L₀),
+  have V₀_is_open : is_open V₀ := is_open.inter V₀₀_is_open is_open_interior,
   let V := f '' V₀,
-  have f_is_open_map : is_open_map f := sorry,
- -- := is_open.is_open_map_subtype_coe U₀_is_open,
+  let U := f '' U₀,
+  have f_is_open_map : is_open_map f := is_open_map_quotient_mk _,
   have V_open : is_open V := f_is_open_map _ V₀_is_open,
-  let U := f '' (u₀),
-  have U_open : is_open U := f_is_open_map _ open_u₀,
-  have x_in_U : x ∈ U := ⟨x₀, x₀_in_u₀, by convert hx₀⟩,
-  have y_in_V : y ∈ V,
-  {
-    refine ⟨y₀, _, _⟩,
-    {
-      refine (set.mem_inter_iff y₀ _ _).mpr ⟨y₀_in_v₀, _⟩,
-      apply set.mem_bInter,
+  have U_open : is_open U := f_is_open_map _ U₀_is_open,
+  have x_in_U : x ∈ U,
+  { refine ⟨x₀, _, hx₀⟩,
+    rw set.mem_inter_iff,
+    split,
+    { apply set.mem_bInter,
       intros γ hγ,
+      exact γx₀_in_uγ γ, },
+    exact x₀_in_K₀, },
+  have y_in_V : y ∈ V,
+  { refine ⟨y₀, _, hy₀⟩,
+    rw set.mem_inter_iff,
+    split,
+    { apply set.mem_bInter,
+      intros γ hγ,
+      exact y₀_in_vγ γ, },
+    exact y₀_in_L₀, },
+  have UV_disjoint : U ∩ V = ∅,
+  { rw set.eq_empty_iff_forall_not_mem,
+    intros z,
+    rintros ⟨⟨x₁,x₁_in_U₀, f_x₁_z⟩, ⟨y₁,y₁_in_V₀, f_y₁_z⟩⟩,
+    obtain ⟨γ₁, hγ₁⟩ := @quotient.exact _ (foo φ) _ _  (f_x₁_z.trans f_y₁_z.symm),
+    by_cases hγ₁_bad : γ₁ ∈ bad_Γ_set,
+    {
+      have y₁_in_vγ₁ : y₁ ∈ vγ γ₁,
+      { have := set.Inter_subset _ γ₁ (y₁_in_V₀.1),
+        have := set.Inter_subset _ hγ₁_bad this,
+        exact this, },
+      have y₁_in_uγ₁ : y₁ ∈ uγ γ₁,
+      { rw ← hγ₁,
+        have := set.Inter_subset _ γ₁ (x₁_in_U₀.1),
+        have := set.Inter_subset _ hγ₁_bad this,
+        exact this, },
+      have : y₁ ∈ uγ γ₁ ∩ vγ γ₁ := ⟨y₁_in_uγ₁, y₁_in_vγ₁⟩,
+      rw (uγ_vγ_disjoint γ₁) at this,
+      exact this,
     },
-    sorry,
-    repeat {sorry},
-  },
-  refine ⟨U, V, U_open, V_open, _⟩,
-
+    { have y₁_in_L₀ : y₁ ∈ L₀ := interior_subset y₁_in_V₀.2,
+      have x₁_in_K₀ : x₁ ∈ K₀ := interior_subset x₁_in_U₀.2,
+      have y₁_in_γ₁K₀ : y₁ ∈ (φ γ₁) '' K₀,
+      { rw ← hγ₁,
+        exact ⟨x₁, ⟨x₁_in_K₀, rfl⟩⟩, },
+      have γ₁K₀L₀_disjoint : (φ γ₁) '' K₀ ∩ L₀ = ∅ := by simpa [bad_Γ_set] using hγ₁_bad,
+      have : y₁ ∈ (φ γ₁) '' K₀ ∩ L₀ := ⟨y₁_in_γ₁K₀, y₁_in_L₀⟩,
+      rw (γ₁K₀L₀_disjoint) at this,
+      exact this, }, },
+  exact ⟨U, V, U_open, V_open, x_in_U, y_in_V, UV_disjoint⟩,
 end}

@@ -126,8 +126,8 @@ lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
 f.to_add_monoid_hom.map_list_sum l
 
 /-- A morphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵒᵖ) (l : list β) :
-  opposite.unop (f l.prod) = (l.map (opposite.unop ∘ f)).reverse.prod :=
+lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵐᵒᵖ) (l : list β) :
+  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
 f.to_monoid_hom.unop_map_list_prod l
 
 lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
@@ -1216,16 +1216,16 @@ end
 
 section opposite
 
-open opposite
+open mul_opposite
 
 /-- Moving to the opposite additive commutative monoid commutes with summing. -/
 @[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
   op (∑ x in s, f x) = ∑ x in s, op (f x) :=
-(op_add_equiv : β ≃+ βᵒᵖ).map_sum _ _
+(op_add_equiv : β ≃+ βᵐᵒᵖ).map_sum _ _
 
-@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵐᵒᵖ) :
   unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
-(op_add_equiv : β ≃+ βᵒᵖ).symm.map_sum _ _
+(op_add_equiv : β ≃+ βᵐᵒᵖ).symm.map_sum _ _
 
 end opposite
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import category_theory.endomorphism
-import algebra.group_power
 
 /-!
 # Conjugate morphisms by isomorphisms

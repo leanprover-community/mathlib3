@@ -5,8 +5,6 @@ Authors: Neil Strickland
 -/
 import data.pnat.prime
 import data.multiset.sort
-import data.int.gcd
-import algebra.group
 
 /-!
 # Prime factors of nonzero naturals

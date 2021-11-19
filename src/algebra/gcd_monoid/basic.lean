@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Jens Wagemaker
 
 import algebra.associated
 import algebra.group_power.lemmas
-import data.nat.gcd
 
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`

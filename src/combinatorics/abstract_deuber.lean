@@ -2,20 +2,31 @@ import combinatorics.hales_jewett
 import data.fintype.sort
 import combinatorics.pigeonhole
 
+noncomputable theory
 open option function combinatorics
 
-instance with_top.fintype {α} [fintype α] : fintype (with_top α) := option.fintype
+def partial_inv_spec {α β} {f : α → β} {b : β} {a : α} (h : a ∈ partial_inv f b) : f a = b :=
+by { unfold partial_inv at h, split_ifs at h with h1; cases h, exact classical.some_spec h1 }
 
-def with_top.map {α β} [partial_order α] [partial_order β] (f : α →ₘ β) :
-  with_top α →ₘ with_top β :=
-{ to_fun := option.map f,
+def preorder_hom.succ {m n : ℕ} (f : fin m →ₘ fin n) : fin (m+1) →ₘ fin (n+1) :=
+{ to_fun := @fin.last_cases m (λ i, fin (n+1)) (fin.last n) (λ i, (f i).cast_succ),
   monotone' := begin
-    intros i j ij, cases i,
-    { cases top_le_iff.mp ij, exact le_refl _, },
-    cases j, { exact order_top.le_top _, },
-    simp only [option.map_some', with_top.some_le_some],
-    exact f.mono (with_top.some_le_some.mp ij),
+    refine fin.last_cases _ _,
+    { intros j ij, cases fin.eq_last_of_not_lt (not_lt_of_le ij), refl },
+    intros i, refine fin.last_cases _ _,
+    { intro junk, rw [fin.last_cases_last], apply fin.le_last },
+    intros j ij,
+    rw [fin.last_cases_cast_succ, fin.last_cases_cast_succ, order_embedding.le_iff_le],
+    apply f.mono, exact ij,
   end }
+
+@[simp] lemma preorder_hom.succ_apply_last {m n : ℕ} (f : fin m →ₘ fin n) :
+  f.succ (fin.last m) = fin.last n :=
+by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.last_cases_last] }
+
+@[simp] lemma preorder_hom.succ_apply_cast_succ {m n : ℕ} (f : fin m →ₘ fin n) (i : fin m) :
+  f.succ (i.cast_succ) = (f i).cast_succ :=
+by { unfold preorder_hom.succ, simp only [preorder_hom.coe_fun_mk, fin.last_cases_cast_succ] }
 
 def option.disjoint {α β} (a : option α) (b : option β) : Prop := a = none ∨ b = none
 
@@ -27,10 +38,6 @@ lemma option.mem_orelse {α} {a b : option α} {x : α} (h : x ∈ (a <|> b)) : 
 begin
   cases a, { right, simpa only [mem_def, none_orelse] using h }, { left, simpa only using h}
 end
-
-def order_iso_of_card_eq {α β} [fintype α] [fintype β] [linear_order α] [linear_order β]
-  (h : fintype.card α = fintype.card β) : α ≃o β :=
-(mono_equiv_of_fin α rfl).symm.trans $ (fin.cast h).trans $ mono_equiv_of_fin β rfl
 
 section bla
 
@@ -68,79 +75,76 @@ instance : monoid (P R) :=
     { intro hp, exact ⟨_, _, hp, P.one_mem _, mul_one _⟩, }
   end }
 
-variables {R} (m n k : Type) [linear_order m] [linear_order n] [linear_order k] (p q r : P R)
+variables (m n k : ℕ) (p q r : P R)
 
 structure inc : Type :=
-(emb : m →ₘ n)
-(mat : n → option (R × m))
-(coeffs : P R)
-(mat_emb : ∀ i, mat (emb i) = some (1, i))
-(le_emb : ∀ {j} (x ∈ mat j), j ≤ emb (prod.snd x))
-(mat_mem : ∀ j (x ∈ mat j), (prod.fst x) ∈ coeffs.set)
-(mul_coeffs_le : p * coeffs ≤ q)
+(emb : fin m →ₘ fin n)
+(mat : fin n → option (R × fin m))
+(le_emb : ∀ {j r i}, (r, i) ∈ mat j → j ≤ emb i)
 
-@[ext] structure vec : Type :=
-(to_fun : m → R)
-(mem : ∀ i, to_fun i ∈ p.set)
+variables {R m n}
 
+structure inc.small (f : inc R m n) : Prop :=
+(mat_mem : ∀ {j r i}, (r, i) ∈ f.mat j → r ∈ p.set)
+(mat_emb : ∀ i, f.mat (f.emb i) = some (1, i)) -- include this in 'small' in anticipation of `C`
+
+variables (m)
+def small_vec : set (fin m → R) := { v | ∀ i, v i ∈ p.set }
 variable {m}
-
-@[ext] structure row (i : m) extends vec m p :=
-(eq_one : to_fun i = 1)
-(le_of_ne_zero : ∀ {j}, to_fun j ≠ 0 → j ≤ i)
+def row (i : fin m) : set (fin m → R) := small_vec m p ∩ { v | v i = 1 ∧ ∀ j, v j ≠ 0 → j ≤ i }
 
 variables {m n k p q r}
 
-def inc.map_vec (f : inc m n p q) (v : vec m p) : vec n q :=
-{ to_fun := λ j, (f.mat j).elim 0 (λ x, v.to_fun x.snd * x.fst),
-  mem :=
-    begin
-      intro j,
-      set o := f.mat j with ho, clear_value o, cases o with x,
-      { exact q.zero_mem },
-      { apply f.mul_coeffs_le, refine set.mem_image2_of_mem (v.mem _) (f.mat_mem j _ _),
-        rw ←ho, exact rfl }
-    end }
+def inc.map_vec (f : inc R m n) (v : fin m → R) (j : fin n) : R :=
+(f.mat j).elim 0 (λ x, v x.snd * x.fst)
 
-def inc.map_row {i : m} (f : inc m n p q) (v : row p i) : row q (f.emb i) :=
-{ le_of_ne_zero :=
-  begin
-    intros j ne,
-    simp_rw [inc.map_vec] at ne,
-    set o := f.mat j with ho, clear_value o, cases o with x,
-    { exfalso, exact ne rfl },
-    { refine le_trans (f.le_emb _ _) (f.emb.monotone $ v.le_of_ne_zero $ left_ne_zero_of_mul ne),
-      rw ←ho, exact rfl, }
-  end,
-  eq_one := by simp_rw [inc.map_vec, f.mat_emb i, option.elim, v.eq_one, one_mul],
-  ..f.map_vec v.to_vec }
+lemma small_map {f : inc R m n} {v : fin m → R} (hf : f.small q) (hv : v ∈ small_vec m p) :
+  f.map_vec v ∈ small_vec n (p * q) :=
+begin
+  intro j,
+  rw inc.map_vec,
+  set o := f.mat j with ho, clear_value o, rcases o with _ | ⟨r, i⟩,
+  { apply P.zero_mem },
+  { exact set.mem_image2_of_mem (hv _) (hf.mat_mem ho.symm) },
+end
 
-def inc.comp (g : inc n k q r) (f : inc m n p q) : inc m k p r :=
+def inc.map_row {i : fin m} {f : inc R m n} {v : fin m → R} (hf : f.small q) (hv : v ∈ row p i) :
+  f.map_vec v ∈ row (p * q) (f.emb i) :=
+⟨small_map hf hv.1, by simp_rw [inc.map_vec, hf.mat_emb i, option.elim, hv.2.1, one_mul],
+λ j ne, begin
+  rw inc.map_vec at ne,
+  set o := f.mat j with ho, clear_value o, rcases o with _ | ⟨r, i⟩,
+  { exfalso, exact ne rfl },
+  { exact le_trans (f.le_emb ho.symm) (f.emb.monotone $ hv.2.2 _ $ left_ne_zero_of_mul ne) }
+end⟩
+
+@[simps] def inc.comp (g : inc R n k) (f : inc R m n) : inc R m k :=
 { emb := g.emb.comp f.emb,
   mat := λ c, g.mat c >>= λ y, (f.mat y.snd).map $ λ x, (x.fst * y.fst, x.snd),
-  coeffs := f.coeffs * g.coeffs,
-  mat_emb := λ i, by simp only [inc.mat_emb, mul_one, some_bind, map_some', preorder_hom.comp_coe],
-  le_emb := λ j x h, begin
-      simp only [mem_def, bind_eq_some, map_eq_some'] at h,
-      obtain ⟨y, hy, x, hx, rfl⟩ := h,
-      convert le_trans (g.le_emb y hy) (g.emb.monotone $ f.le_emb x hx),
-    end,
-  mat_mem := λ j x h, begin
-      simp only [mem_def, bind_eq_some, map_eq_some'] at h,
-      obtain ⟨y, hy, x, hx, rfl⟩ := h,
-      exact set.mem_image2_of_mem (f.mat_mem y.snd _ hx) (g.mat_mem j _ hy),
-    end,
-  mul_coeffs_le := begin
-      rintros _ ⟨x, _, hx, ⟨y, z, hy, hz, rfl⟩, rfl⟩,
-      rw ←mul_assoc, exact g.mul_coeffs_le (set.mem_image2_of_mem
-        (f.mul_coeffs_le $ set.mem_image2_of_mem hx hy) hz),
+  le_emb := λ j r i h, begin
+      simp only [mem_def, bind_eq_some, prod.mk.inj_iff, exists_eq_right_right, map_eq_some',
+        prod.exists] at h,
+      obtain ⟨r', i', hy, x, hx, rfl⟩ := h,
+      exact le_trans (g.le_emb hy) (g.emb.monotone $ f.le_emb hx),
     end }
 
-lemma inc.comp_map (f : inc m n p q) (g : inc n k q r) (v : vec m p) :
+lemma inc.small.comp {g : inc R n k} {f : inc R m n} (hg : g.small q) (hf : f.small p) :
+  (g.comp f).small (p * q) :=
+{ mat_mem := λ j r i h, begin
+      simp only [mem_def, bind_eq_some, map_eq_some', prod.mk.inj_iff, exists_eq_right_right,
+        inc.comp_mat, prod.exists] at h,
+      obtain ⟨r', i', hy, x, hx, rfl⟩ := h,
+      exact set.mem_image2_of_mem (hf.mat_mem hx) (hg.mat_mem hy),
+    end,
+  mat_emb := λ i, by simp only [hf.mat_emb, hg.mat_emb, mul_one, some_bind, map_some',
+    preorder_hom.comp_coe, inc.comp_emb, inc.comp_mat],
+}
+
+@[simp] lemma inc.comp_map (f : inc R m n) (g : inc R n k) (v : fin m → R) :
   (g.comp f).map_vec v = g.map_vec (f.map_vec v) :=
 begin
   ext j,
-  simp only [inc.map_vec, inc.comp],
+  simp only [inc.map_vec, inc.comp_mat],
   set o := g.mat j, clear_value o, cases o with x,
   { refl },
   simp only [option.elim, some_bind],
@@ -149,73 +153,102 @@ begin
   { simp only [option.elim, map_some', mul_assoc], }
 end
 
-variables (m p) (κ : Type)
+variables (m p n) (κ : Type) (R)
 
-def coloring : Type := ∀ i : m, row p i → κ
+def coloring : Type := (fin m → R) → κ
 
-variables {m p κ} (co : coloring n q κ)
+variables {R m n κ} (co : coloring R n κ)
 
-def coloring.restrict (f : inc m n p q) : coloring m p κ :=
-λ i v, co _ (f.map_row v)
+def coloring.restrict (f : inc R m n) : coloring R m κ := λ v, co (f.map_vec v)
+def coloring.mono_row (i : fin n) (k : κ) : Prop := ∀ v ∈ row p i, co v = k
+def coloring.mono (k : κ) : Prop := ∀ i, co.mono_row p i k
 
-def coloring.mono_row (k : κ) (i : n) : Prop := ∀ v, co i v = k
-def coloring.mono (k : κ) : Prop := ∀ i, co.mono_row k i
+lemma coloring.restrict_mono_row {k : κ} {i : fin m} {f : inc R m n} (hf : f.small q)
+  (h : co.mono_row (p * q) (f.emb i) k) : (co.restrict f).mono_row p i k :=
+λ v hv, h _ (inc.map_row hf hv)
 
-lemma coloring.restrict_mono_row {k : κ} {i : m} {f : inc m n p q}
-  (h : co.mono_row k (f.emb i)) : (co.restrict f).mono_row k i := λ v, h _
-
-def inc_of_le (h : p ≤ q) : inc m m p q :=
+@[simps] def inc_mul : inc R m m :=
 { emb := preorder_hom.id,
   mat := λ i, some (1, i),
-  coeffs := 1,
-  mat_emb := λ _, rfl,
-  le_emb := λ j x hx, by { rw [mem_def, (some_injective _).eq_iff] at hx, rw ←hx, refl, },
-  mat_mem := λ j x hx, by { rw [mem_def, (some_injective _).eq_iff] at hx, rw ←hx, apply P.one_mem },
-  mul_coeffs_le := by { rw mul_one, exact h } }
+  le_emb := λ j r i h, by { simp only [mem_def, prod.mk.inj_iff] at h, rw h.2, refl } }
 
-def inc.extend (f : inc m n p q) (v : n → option R) (mem : ∀ j (x ∈ v j), x ∈ f.coeffs.set)
-  (h : ∀ j, (v j).disjoint (f.mat j)) : inc (with_top m) (with_top n) p q :=
-{ emb := with_top.map f.emb,
-  mat := λ o, option.elim o (some (1, ⊤)) $
-    λ j, (v j).map (λ r, (r, ⊤)) <|> (f.mat j).map (λ p, (p.fst, some p.snd)),
-  coeffs := f.coeffs,
-  mat_emb := begin
-      intro o, cases o with i, { refl },
-      simp only [with_top.map, option.elim, map_some', preorder_hom.coe_fun_mk],
-      cases h (f.emb i) with h1 h2,
-      { simp only [h1, none_orelse, map_none', f.mat_emb, map_some'] },
-      { exfalso, rw f.mat_emb at h2, cases h2 }
-    end,
+lemma small_inc_mul : (inc_mul : inc R m m).small p :=
+{ mat_emb := λ _, rfl,
+  mat_mem := λ j r i h,
+    by { simp only [mem_def, inc_mul_mat, prod.mk.inj_iff] at h, rw ←h.1, apply P.one_mem } }
+
+@[simps] def inc_of_emb (mon : fin m ↪o fin n) : inc R m n :=
+{ emb := mon.to_preorder_hom,
+  mat := λ i, (partial_inv mon i).map (prod.mk 1),
+  le_emb := λ i r j h, by { simp only [mem_def, map_eq_some', prod.mk.inj_iff,
+    exists_eq_right_right] at h, rw ←partial_inv_spec h.1, refl } }
+
+lemma small_inc_of_emb (mon : fin m ↪o fin n) : (inc_of_emb mon).small p :=
+{ mat_emb := λ i, by simp only [partial_inv_left mon.injective,
+    order_embedding.to_preorder_hom_coe, map_some', inc_of_emb_mat, inc_of_emb_emb],
+  mat_mem := λ j r i h, by { simp only [mem_def, prod.mk.inj_iff, exists_eq_right_right,
+    map_eq_some', inc_of_emb_mat] at h, rw ←h.2, apply P.one_mem } }
+
+@[simps] def inc.extend (f : inc R m n) (v : fin n → option q.set) (h : ∀ j, (v j).disjoint (f.mat j)) :
+  inc R (m+1) (n+1) :=
+{ emb := f.emb.succ,
+  mat := @fin.last_cases n (λ _, option (R × fin (m+1))) (some (1, fin.last m))
+    (λ j, (v j).map (λ r, (↑r, fin.last m)) <|> (f.mat j).map (λ x, (x.fst, x.snd.cast_succ))),
   le_emb := begin
-      rintros j ⟨r, i⟩ h, cases i, { exact order_top.le_top _ },
-      cases j, { cases h },
+      refine fin.last_cases _ _,
+      { intros r i h, simp only [mem_def, prod.mk.inj_iff, fin.last_cases_last] at h, rw ←h.2,
+        simp only [preorder_hom.succ_apply_last] },
+      intros j r, refine fin.last_cases _ _,
+      { intro, rw [preorder_hom.succ_apply_last], apply fin.le_last },
+      intros i h,
+      simp only [mem_def, fin.last_cases_cast_succ] at h,
       cases option.mem_orelse h with h1 h1,
-      { rw [mem_def, map_eq_some'] at h1, rcases h1 with ⟨_, _, ⟨⟩⟩ },
+      { exfalso, rw [mem_def, map_eq_some'] at h1, rcases h1 with ⟨_, _, h1⟩,
+        rw prod.mk.inj_iff at h1, refine ne_of_lt _ h1.2.symm, apply fin.cast_succ_lt_last },
       { rw [mem_def, map_eq_some'] at h1, rcases h1 with ⟨⟨_, k⟩, ha, hb⟩,
-        apply with_top.coe_le_coe.mpr, cases hb, exact f.le_emb _ ha },
+        simp only [preorder_hom.succ_apply_cast_succ, order_embedding.le_iff_le],
+        simp only [prod.mk.inj_iff, order_embedding.eq_iff_eq] at hb, rcases hb with ⟨rfl, rfl⟩,
+        exact f.le_emb ha }
+    end }
+
+def small.extend {f : inc R m n} {v : fin n → option q.set} {h : ∀ j, (v j).disjoint (f.mat j)}
+  (hf : f.small q) : (f.extend v h).small q :=
+{ mat_emb := begin
+      refine fin.last_cases _ _,
+      { simp only [inc.extend_mat, inc.extend_emb, fin.last_cases_last,
+        preorder_hom.succ_apply_last] },
+      intro i,
+      simp only [inc.extend_mat, inc.extend_emb, fin.last_cases_cast_succ,
+        preorder_hom.succ_apply_cast_succ],
+      cases h (f.emb i) with h1 h2,
+      { simp only [h1, none_orelse, map_none', hf.mat_emb, map_some'] },
+      { rw hf.mat_emb at h2, cases h2 }
     end,
   mat_mem := begin
-      intros j x h,
-      cases j, { simp only [mem_def, option.elim] at h, rw ←h, apply P.one_mem, },
+      refine fin.last_cases _ _,
+      { intros r i h,
+        simp only [mem_def, fin.last_cases_last, inc.extend_mat, prod.mk.inj_iff] at h,
+        rw ←h.1, apply P.one_mem },
+      intros j r i h,
+      simp only [mem_def, fin.last_cases_cast_succ, inc.extend_mat] at h,
       cases option.mem_orelse h with h1 h1,
-      { rw [mem_def, map_eq_some'] at h1, rcases h1 with ⟨a, av, ha⟩, rw ←ha, exact mem _ _ av },
-      { rw [mem_def, map_eq_some'] at h1, rcases h1 with ⟨a, af, ha⟩, rw ←ha,
-        exact f.mat_mem _ _ af }
-    end,
-  mul_coeffs_le := f.mul_coeffs_le }
+      { simp only [mem_def, map_eq_some', mem_def, prod.mk.inj_iff, map_eq_some'] at h1,
+        rcases h1 with ⟨_, _, rfl, _⟩, apply subtype.mem },
+      { simp only [mem_def, prod.mk.inj_iff, map_eq_some', prod.exists] at h1,
+        rcases h1 with ⟨a, b, ha, rfl, _⟩, exact hf.mat_mem ha }
+    end }
 
 end bla
 
 section ugh
 
-parameters {R m n : Type} [monoid_with_zero R] [linear_order m] [linear_order n] [fintype n]
-  [fintype m]
-  {p : P R} (f : n → option m) (h : ∀ i, ∃ j, f j = some i)
+parameters {R : Type} {m n : ℕ} [monoid_with_zero R] {p : P R} (f : fin n → option (fin m))
+  (h : ∀ i, ∃ j, f j = some i)
 include h
 
-def m' : Type := m
+def m' : Type := fin m
 
-def g (i : m') : n :=
+def g (i : m') : fin n :=
 finset.max' (finset.univ.filter $ λ j, f j = some i)
 ((h i).imp $ λ j hj, finset.mem_filter.mpr ⟨finset.mem_univ _, hj⟩)
 
@@ -227,45 +260,43 @@ end
 
 lemma inj : injective g := λ i j ij, some_injective _ (by rw [←fg_eq_some, ←fg_eq_some, ij])
 
-
-instance : fintype m' := show fintype m, from infer_instance
+instance : fintype m' := fin.fintype m
 instance : linear_order m' := linear_order.lift g inj
 
-def g_mono : m' →ₘ n := { to_fun := g, monotone' := λ i j, id }
-def mm' : m ≃o m' := order_iso_of_card_eq rfl
+def g_mono : m' →ₘ fin n := { to_fun := g, monotone' := λ i j, id }
+def mm' : fin m ≃o m' := mono_equiv_of_fin m' (fintype.card_fin m)
 
-def inc_of_this : inc m n p p :=
+@[simps] def inc_of_this : inc R m n :=
 { emb := g_mono.comp (order_embedding.to_preorder_hom mm'.to_rel_embedding),
   mat := λ j, (f j).elim none $ λ i : m', some (1, mm'.symm i),
-  coeffs := 1,
-  mat_emb := λ i, by simp only [g_mono, order_embedding.to_preorder_hom_coe,
-    rel_iso.to_rel_embedding_eq_coe, rel_iso.coe_coe_fn, preorder_hom.coe_fun_mk,
-    preorder_hom.comp_coe, fg_eq_some (mm' i), option.elim, order_iso.symm_apply_apply],
-  le_emb := λ j x hx, finset.le_max' _ _ begin
+  le_emb := λ j r i hx, finset.le_max' _ _ begin
       simp only [order_embedding.to_preorder_hom_coe, true_and, rel_iso.to_rel_embedding_eq_coe,
         rel_iso.coe_coe_fn, finset.mem_univ, finset.mem_filter],
       set o := f j, clear_value o, cases o, { cases hx },
-      { simp only [mem_def, option.elim] at hx, simp only [←hx, mm'.apply_symm_apply], }
-    end,
-  mat_mem := begin
-    intros, set o := f j, clear_value o, cases o, { cases H },
-    { simp only [mem_def, option.elim] at H, cases H, apply P.one_mem, }
-  end,
-  mul_coeffs_le := by { rw mul_one, exact le_refl _, } }
+      simp only [mem_def, option.elim, prod.mk.inj_iff] at hx,
+      simp only [←hx, order_iso.apply_symm_apply],
+    end }
+
+lemma small_inc_of_this : inc_of_this.small p :=
+{ mat_emb := λ i, by simp only [g_mono, order_embedding.to_preorder_hom_coe,
+    rel_iso.to_rel_embedding_eq_coe, rel_iso.coe_coe_fn, preorder_hom.coe_fun_mk,
+    preorder_hom.comp_coe, fg_eq_some (mm' i), option.elim, order_iso.symm_apply_apply,
+    inc_of_this_emb, inc_of_this_mat],
+  mat_mem := λ j r i h, by { simp only [mem_def, inc_of_this_mat] at h,
+    set o := f j, clear_value o, cases o, { cases h_1 }, { cases h_1, apply P.one_mem } } }
 
 end ugh
 
-variables {R : Type} [monoid_with_zero R] (α β γ : Type) (p q : P R) (κ ι : Type)
-  [linear_order α] [fintype α]
-  [linear_order β] [fintype β]
-  [linear_order γ] [fintype γ]
-  [linear_order ι] [fintype ι]
+variables {R : Type} [monoid_with_zero R] (m n I : ℕ) (p q : P R) (κ : Type)
 
-def large_enough : Prop := ∀ co : coloring β q κ, ∃ (f : inc α β p q) (k : α → κ), ∀ i,
-  (co.restrict f).mono_row (k i) i
+def large_enough : Prop := ∀ co : coloring R n κ, ∃ (f : inc R m n) (k : fin m → κ), f.small q ∧
+  ∀ i, (co.restrict f).mono_row p i (k i)
 
-lemma claim (h1 : large_enough α β p q κ) (h2 : extended_HJ_works q.set κ ι β) :
-  large_enough (with_top α) (with_top ι) p (q * p) κ :=
+lemma claim (h1 : large_enough m n p q κ) (h2 : extended_HJ_works q.set κ (fin n) (fin I)) :
+  large_enough (m+1) (I+1) p (p * q) κ := λ co,
 begin
-  intro co,
+  specialize h2 (λ v, co $ fin.last_cases 1 (λ i, coe (v i))),
+  obtain ⟨l, klast, lk⟩ := h2,
+  set fo : fin I → option (fin n) := λ j, (l.idx_fun j).elim (λ _, none) some with hfo,
+  let nI : inc n I (p * 1) := (inc_of_this fo _).comp (inc_mul _),
 end

@@ -210,14 +210,14 @@ def interval_integrable (f : α → E) (μ : measure α) (a b : α) :=
 integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
 
 /-- A function is interval integrable with respect to a given measure `μ` on `interval a b` if and
-  only if it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. This is an equivalent
+  only if it is integrable on `interval_oc a b` with respect to `μ`. This is an equivalent
   defintion of `interval_integrable`. -/
 lemma interval_integrable_iff {f : α → E} {a b : α} {μ : measure α} :
   interval_integrable f μ a b ↔ integrable_on f (Ι a b) μ :=
 by cases le_total a b; simp [h, interval_integrable, interval_oc]
 
 /-- If a function is interval integrable with respect to a given measure `μ` on `interval a b` then
-  it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. -/
+  it is integrable on `interval_oc a b` with respect to `μ`. -/
 lemma interval_integrable.def {f : α → E} {a b : α} {μ : measure α}
   (h : interval_integrable f μ a b) :
   integrable_on f (Ι a b) μ :=

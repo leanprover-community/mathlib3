@@ -229,23 +229,20 @@ end
 
 /-- Given a neighborhood `s` of the origin in a normed space `E` over `ℝ` or `ℂ`, the dual norms
 of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
-lemma bounded_of_nhds_zero {𝕜 : Type*} [is_R_or_C 𝕜]
+lemma bounded_of_nhds_zero (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  ∃ (c : ℝ), ∀ (x' : dual 𝕜 E), x' ∈ polar 𝕜 s → ∥ x' ∥ ≤ c :=
+  ∃ (c : ℝ), ∀ x' ∈ polar 𝕜 s, ∥x'∥ ≤ c :=
 begin
-  rcases metric.mem_nhds_iff.mp s_nhd with ⟨r, ⟨r_pos, r_ball⟩⟩,
-  have half_r_pos : 0 < r / 2 := by linarith,
-  use 2 / r,
-  intros x' hx',
-  have key := continuous_linear_map.op_norm_bound_of_ball_bound half_r_pos 1 x',
-  simp only [one_div_div] at key,
-  apply key,
-  intros z hz,
-  have z_mem_ball : z ∈ ball (0 : E) r,
-  { simp only [mem_ball_zero_iff],
-    simp only [mem_closed_ball, dist_zero_right] at hz,
-    linarith, },
-  exact hx' z (r_ball z_mem_ball),
+  obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,
+  obtain ⟨r, r_pos, r_ball⟩ : ∃ (r : ℝ) (hr : 0 < r), ball 0 r ⊆ s :=
+    metric.mem_nhds_iff.1 s_nhd,
+  refine ⟨∥a∥ / r, λ x' hx', _⟩,
+  have I : 0 ≤ ∥a∥ / r := div_nonneg (norm_nonneg _) r_pos.le,
+  refine continuous_linear_map.op_norm_le_of_shell r_pos I ha (λ x hx h'x, _),
+  have x_mem : x ∈ ball (0 : E) r, by simpa only [mem_ball_zero_iff] using h'x,
+  calc ∥x' x∥ ≤ 1 : hx' x (r_ball x_mem)
+  ... = (∥a∥ / r) * (r / ∥a∥) : by field_simp [r_pos.ne', (zero_lt_one.trans ha).ne']
+  ... ≤ (∥a∥ / r) * ∥x∥ : mul_le_mul_of_nonneg_left hx I
 end
 
 /-- Given a neighborhood `s` of the origin in a normed space `E`, for any `z : E` it

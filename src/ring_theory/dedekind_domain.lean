@@ -1309,9 +1309,62 @@ lemma ideal.dvd_is_prime_pow {p q : ideal T} (hp : p.is_prime) {n : ℕ} :
   q ∣ p^n ↔ ∃ i ≤ n, q = p^i :=
 sorry
 
-lemma pow_prime₁ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
+lemma dvd_prime_pow {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M} (hp : prime p) (n : ℕ) :
+  q ∣ p^n ↔ ∃ i ≤ n, associated q (p ^ i) :=
+begin
+  induction n with n ih generalizing q,
+  { simp [← is_unit_iff_dvd_one, associated_one_iff_is_unit] },
+  split,
+  { intro h,
+    rw pow_succ at h,
+    rcases hp.left_dvd_or_dvd_right_of_dvd_mul h with (⟨q, rfl⟩ | hno),
+    { rw [mul_dvd_mul_iff_left hp.ne_zero, ih] at h,
+      rcases h with ⟨i, hi, hq⟩,
+      { refine ⟨i + 1, nat.succ_le_succ hi, (hq.mul_left p).trans _⟩,
+        rw pow_succ } },
+    { obtain ⟨i, hi, hq⟩ := ih.mp hno,
+      exact ⟨i, hi.trans n.le_succ, hq⟩ } },
+  { rintro ⟨i, hi, hq⟩,
+    exact hq.dvd.trans (pow_dvd_pow p hi) },
+end
+
+lemma pow_prime₁' {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M} (n : ℕ) (c : ℕ → M)
+  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j) )
+  (h₂ : ∀ {r : M}, r ∣ q ↔ ∃ i ≤ n,  associated r (c i)) : is_unit (c 0) :=
+sorry
+
+lemma pow_prime₁ {q : ideal T} (n : ℕ) (c : ℕ → ideal T)
   (h₁ : strict_anti c) (h₂ : ∀ {r : ideal T}, r ∣ q ↔ ∃ i ≤ n, r = c i) :
-  (c 0) = ⊤ := sorry
+  c 0 = ⊤ :=
+begin
+  obtain ⟨i, hi, hr⟩ := h₂.mp (one_dvd _),
+  rw [eq_top_iff, ← ideal.one_eq_top, hr],
+  exact h₁.antitone i.zero_le
+end
+
+lemma not_unit_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
+  (hp : dvd_not_unit p q): ¬ is_unit q := sorry
+
+lemma not_prime_of_not_unit_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
+  (hp : ¬is_unit p)(h : dvd_not_unit p q) : ¬ irreducible q :=
+begin
+  by_contra hcontra,
+  obtain ⟨hp', x, hx, hx'⟩ := h,
+  exact hp (or.resolve_right ((irreducible_iff.1 hcontra).right p x hx') hx),
+end
+
+lemma pow_prime₂' {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M} (n : ℕ) (c : ℕ → M)
+  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
+  (h₂ : ∀ {r : M}, r ∣ q ↔ ∃ i ≤ n, associated r (c i)) : prime (c 1) :=
+begin
+  rw prime,
+  split,
+  { sorry },
+  { split,
+    { exact not_unit_of_dvd_not_unit (h₁ 0 1 zero_lt_one) },
+    { sorry } }, --the last part of the proof seems quite painful in the
+                -- `comm_cancel_monoid_with_zero M` setting
+end
 
 lemma pow_prime₂ {q : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
   (h₁ : strict_anti c) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i) :
@@ -1328,6 +1381,55 @@ begin
   have H : i < 1 := h₁.lt_iff_lt.mp hb,
   rw nat.lt_one_iff.mp H,
   exact pow_prime₁ n c h₁ h₂
+end
+
+lemma is_unit_of_associated_is_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
+  (h : associated p q) (hp : is_unit p): is_unit q :=
+by { obtain ⟨a, rfl⟩:= h, exact is_unit.mul hp (units.is_unit a) }
+
+lemma not_associated_of_dvd_not_unit {M : Type*} [comm_cancel_monoid_with_zero M] {p q : M}
+  (h : dvd_not_unit p q) : ¬ associated p q :=
+begin
+  by_contra hcontra,
+  rw dvd_not_unit at h,
+  obtain ⟨hp, x, hx, hx'⟩ := h,
+  apply hx,
+  obtain ⟨a, rfl⟩ := hcontra,
+  rw mul_eq_mul_left_iff at hx',
+  rw ← or.resolve_right hx' hp,
+  exact units.is_unit a,
+end
+
+lemma dvd_not_unit_of_dvd_not_unit_associated {M : Type*} [comm_cancel_monoid_with_zero M]
+  {p q r : M} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
+  sorry
+
+lemma pow_prime₃' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : M} (n : ℕ) (hn : 1 ≤ n)
+  (c : ℕ → M)  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
+  (h₂ : ∀ (r : M), r ∣ q ↔ ∃ i ≤ n,  associated r (c i)) (hp : prime p) (hr : r ∣ q)
+  (hr' : ¬ is_unit r) (hp' : p ∣ r) : associated p (c 1) :=
+begin
+  obtain ⟨i, hi, p_eq⟩ := (h₂ p).1 (dvd_trans hp' hr),
+  have : 1 ≤ i,
+  { rw [nat.succ_le_iff, pos_iff_ne_zero],
+    rintro rfl,
+    apply prime.not_unit hp,
+    apply is_unit_of_associated_is_unit (associated.symm p_eq) (pow_prime₁' n c h₁ h₂),
+    sorry, --Lean gives me a weird goal here, should go once `is_unit_of_associated_is_unit` is put in
+          -- the right file ?
+  },
+  by_cases h : 1 = i,             --this part is very messy
+  { rw ← h at p_eq,
+    exact p_eq },
+  { exfalso,
+    have : ¬ prime p,
+    { by_contra hcontra,
+      replace hcontra := prime.irreducible hcontra,
+      -- this part is quite messy. A clean-ish way of doing it would be to show that
+      -- `i ≥ 1 → ¬ unit (c i)` using induction
+      sorry,
+    },
+    exact this hp },
 end
 
 lemma pow_prime₃ {p q r : ideal T} (n : ℕ) (hn : 1 ≤ n) (c : ℕ → ideal T)
@@ -1347,6 +1449,11 @@ begin
   sorry, --prove not_prime_of_prime_dvd_not_unit
 end
 
+lemma pow_prime₄' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : M} (n m : ℕ)
+  (c : ℕ → M) (d : ℕ → M) (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
+  (h₂ : ∀ (r : M), r ∣ q ↔ ∃ i ≤ n, associated r (c i))
+  (h₃ : (c 1)^m ∣ q) : m ≤ n := sorry
+
 lemma pow_prime₄ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
   (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i ≤ n, r = c i)
   (m : finset (ideal T)) (hm : ∀ r, r ∈ m → r ∣ q) : m.card ≤ n + 1 :=
@@ -1360,9 +1467,17 @@ begin
   exact le_trans (finset.card_le_of_subset sorry_2) (finset.card_image_le),
 end
 
+lemma pow_prime₅' {M : Type*} [comm_cancel_monoid_with_zero M] {q r : M} (n : ℕ) (c : ℕ → M)
+  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
+  (h₂ : ∀ {r : M}, r ∣ q ↔ ∃ i ≤ n, associated r (c i)) (hr : r ∣ q) :
+  ∃ (i ≤ n), associated ((c 1)^n) r :=
+begin
+  sorry,
+end
+
 lemma pow_prime₅ {p q r : ideal T} (n : ℕ) (c : ℕ → ideal T)
-  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ 0 ≤ i ∧ i ≤ n)
-  (hr : r ∣ q) (hr' : r ≠ ⊤) : ∃ (i : ℕ), r = p^i ∧ 0 ≤ i ∧ i ≤ n :=
+  (h₁ : ∀ i j, i < j → c i > c j) (h₂ : ∀ (r : ideal T), r ∣ q ↔ ∃ i, r = c i ∧ i ≤ n)
+  (hr : r ∣ q) (hr' : r ≠ ⊤) : ∃ (i : ℕ), r = p^i ∧ i ≤ n :=
 begin
   have : ∃ (i : ℕ), normalized_factors r = multiset.repeat q i,
     sorry,
@@ -1376,7 +1491,7 @@ end
 lemma pow_prime {q : ideal T} (n : ℕ) :
 (∃ (p : ideal T), p.is_prime ∧ q = p^n) ↔
   (∃ (c : ℕ → ideal T), (∀ i j, i < j → c i > c j) ∧
-    ∀ (r : ideal T), r ∣ q ↔  ∃ (i : ℕ), r = c i ∧ 0 ≤ i ∧ i ≤ n) :=
+    ∀ (r : ideal T), r ∣ q ↔  ∃ (i ≤ n), r = c i) :=
 begin
   split,
   { intro H,
@@ -1387,15 +1502,15 @@ begin
     { intro y,
       split,
       { intro hy,
-        apply (prime_power_of_dvd_prime_power hp₁ n).1,
+        apply (ideal.dvd_is_prime_pow hp₁).1,
         rw ← hp₂,
         exact hy },
       { intro hy,
-        obtain ⟨i, hy'⟩ := hy,
+        obtain ⟨i, hy', hy''⟩ := hy,
         use p^(n - i : ℕ),
-        rw [hy'.left, pow_mul_pow_sub],
+        rw [hy'', pow_mul_pow_sub],
         exact hp₂,
-        exact hy'.right.right } } },
+        exact hy' } } },
   sorry, --this part of the proof is a lot harder so I've separated it into a bunch of
          --sub-results as above
 end

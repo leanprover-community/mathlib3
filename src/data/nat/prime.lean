@@ -705,6 +705,29 @@ begin
     rwa eq_of_mem_repeat hq },
 end
 
+/-- For positive `a` and `b`, the prime factors of `a * b` are the union of those of `a` and `b` -/
+lemma perm_factors_mul_of_pos {a b : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  (a * b).factors ~ a.factors ++ b.factors :=
+begin
+  refine (factors_unique _ _).symm,
+  { rw [list.prod_append, prod_factors ha, prod_factors hb] },
+  { intros p hp,
+    rw list.mem_append at hp,
+    cases hp;
+    exact prime_of_mem_factors hp },
+end
+
+/-- For coprime `a` and `b`, the prime factors of `a * b` are the union of those of `a` and `b` -/
+lemma perm_factors_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factors ~ a.factors ++ b.factors :=
+begin
+  rcases a.eq_zero_or_pos with rfl | ha,
+  { simp [(coprime_zero_left _).mp hab] },
+  rcases b.eq_zero_or_pos with rfl | hb,
+  { simp [(coprime_zero_right _).mp hab] },
+  exact perm_factors_mul_of_pos ha hb,
+end
+
 end
 
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ}
@@ -1022,5 +1045,33 @@ begin
   { simp [(coprime_zero_right _).mp hab] },
   rw [factors_mul_of_pos ha hb p, list.mem_union]
 end
+
+/-- If `x` is a prime factor of `a` then `x` is also a prime factor of `a * b` for any `b > 0` -/
+lemma mem_factors_mul_left {x a b : ℕ} (hax : x ∈ a.factors) (hb : 0 < b) : x ∈ (a*b).factors :=
+begin
+  rcases a.eq_zero_or_pos with rfl | ha,
+  { rw nat.factors_zero at hax, exact absurd hax (list.not_mem_nil x) },
+  { rw mem_factors ha at hax,
+    exact (mem_factors (mul_pos ha hb)).mpr ⟨hax.1, dvd_mul_of_dvd_left hax.2 b⟩ }
+end
+
+/-- If `x` is a prime factor of `b` then `x` is also a prime factor of `a * b` for any `a > 0` -/
+lemma mem_factors_mul_right {x a b : ℕ} (hbx : x ∈ b.factors) (ha : 0 < a) : x ∈ (a*b).factors :=
+by { rw mul_comm, exact mem_factors_mul_left hbx ha }
+
+/-- If `x` is a prime factor of `a` then the power of `x` in `a` (i.e. the greatest `k` such that
+`x^k` divides `a`) is the same as the power of `x` in `a * b`, for any `b` coprime to `a`. -/
+lemma factor_count_eq_of_coprime_left {x a b : ℕ} (hab : coprime a b) (hxa : x ∈ a.factors) :
+  list.count x a.factors = list.count x (a * b).factors :=
+begin
+  rw [list.perm.count_eq (perm_factors_mul_of_coprime hab) x, list.count_append],
+  simpa only [list.count_eq_zero_of_not_mem (coprime_factors_disjoint hab hxa)],
+end
+
+/-- If `x` is a prime factor of `b` then the power of `x` in `b` (i.e. the greatest `k` such that
+`x^k` divides `b`) is the same as the power of `x` in `a * b`, for any `a` coprime to `b`. -/
+lemma factor_count_eq_of_coprime_right {x a b : ℕ} (hab : coprime a b) (hxb : x ∈ b.factors) :
+  list.count x b.factors = list.count x (a * b).factors :=
+by { rw mul_comm, exact factor_count_eq_of_coprime_left (coprime_comm.mp hab) hxb }
 
 end nat

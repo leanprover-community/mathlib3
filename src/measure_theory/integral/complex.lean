@@ -348,7 +348,7 @@ begin
 end
 
 lemma integral_circle_div_sub_of_abs_lt {R : ℝ} {w : ℂ} (hw : abs w < R) :
-  ∫ θ : ℝ in 0..2 * π, (↑R * exp (θ * I) * I / (R * exp (θ * I) - w)) = 2 • π • I :=
+  ∫ θ : ℝ in 0..2 * π, (R * exp (θ * I) * I / (R * exp (θ * I) - w) : ℂ) = 2 • π • I :=
 begin
   have hR0 : 0 < R := (abs_nonneg w).trans_lt hw,
   have hwimR : w.im / R ∈ Ioo (-1 : ℝ) 1,

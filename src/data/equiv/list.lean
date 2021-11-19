@@ -144,15 +144,19 @@ def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [
 def sorted_univ (α) [fintype α] [encodable α] : list α :=
 finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
 
-theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
+@[simp] theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
 (finset.mem_sort _).2 (finset.mem_univ _)
 
-theorem length_sorted_univ {α} [fintype α] [encodable α] :
+@[simp] theorem length_sorted_univ (α) [fintype α] [encodable α] :
   (sorted_univ α).length = fintype.card α :=
 finset.length_sort _
 
-theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=
+@[simp] theorem sorted_univ_nodup (α) [fintype α] [encodable α] : (sorted_univ α).nodup :=
 finset.sort_nodup _ _
+
+@[simp] theorem sorted_univ_to_finset (α) [fintype α] [encodable α] [decidable_eq α] :
+  (sorted_univ α).to_finset = finset.univ :=
+finset.sort_to_finset _ _
 
 /-- An encodable `fintype` is equivalent to the same size `fin`. -/
 def fintype_equiv_fin {α} [fintype α] [encodable α] :
@@ -160,8 +164,8 @@ def fintype_equiv_fin {α} [fintype α] [encodable α] :
 begin
   haveI : decidable_eq α := encodable.decidable_eq_of_encodable _,
   transitivity,
-  { exact fintype.equiv_fin_of_forall_mem_list mem_sorted_univ (@sorted_univ_nodup α _ _) },
-  exact equiv.cast (congr_arg _ (@length_sorted_univ α _ _))
+  { exact ((sorted_univ_nodup α).nth_le_equiv_of_forall_mem_list _ mem_sorted_univ).symm },
+  exact equiv.cast (congr_arg _ (length_sorted_univ α))
 end
 
 /-- If `α` and `β` are encodable and `α` is a fintype, then `α → β` is encodable as well. -/

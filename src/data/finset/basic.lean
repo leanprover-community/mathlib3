@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
+import data.int.basic
 import data.multiset.finset_ops
 import tactic.apply
 import tactic.monotonicity
@@ -958,12 +959,15 @@ instance : lattice (finset α) :=
 @[simp] theorem sup_eq_union : ((⊔) : finset α → finset α → finset α) = (∪) := rfl
 @[simp] theorem inf_eq_inter : ((⊓) : finset α → finset α → finset α) = (∩) := rfl
 
+instance {α : Type u} : order_bot (finset α) :=
+{ bot := ∅, bot_le := empty_subset }
+
 instance : semilattice_inf_bot (finset α) :=
-{ bot := ∅, bot_le := empty_subset, ..finset.lattice }
+{ ..finset.order_bot, ..finset.lattice }
 
-@[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl
+@[simp] lemma bot_eq_empty {α : Type u} : (⊥ : finset α) = ∅ := rfl
 
-instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
+instance : semilattice_sup_bot (finset α) :=
 { ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=
@@ -1820,6 +1824,12 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
+@[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
+by {ext, simp}
+
+@[simp] lemma to_finset_inter (l l' : list α) : (l ∩ l').to_finset = l.to_finset ∩ l'.to_finset :=
+by {ext, simp}
+
 end list
 
 namespace finset
@@ -2293,6 +2303,16 @@ theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
 rw [card_insert_of_not_mem h]]
 
+/-- If `a ∈ s` is known, see also `finset.card_insert_of_mem` and
+`finset.card_insert_of_not_mem`. -/
+theorem card_insert_eq_ite [decidable_eq α] {a : α} {s : finset α} :
+  card (insert a s) = if a ∈ s then card s else card s + 1 :=
+begin
+  by_cases h : a ∈ s,
+  { rw [card_insert_of_mem h, if_pos h] },
+  { rw [card_insert_of_not_mem h, if_neg h] },
+end
+
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
 
 lemma card_singleton_inter [decidable_eq α] {x : α} {s : finset α} : ({x} ∩ s).card ≤ 1 :=
@@ -2413,6 +2433,31 @@ iff.intro
     ⟨a, s.erase a, s.not_mem_erase a, insert_erase has,
       by simp only [eq, card_erase_of_mem has, pred_succ]⟩)
   (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
+
+lemma card_eq_two [decidable_eq α] {s : finset α} : s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp_rw [card_eq_one],
+    rintro ⟨a, _, hab, rfl, b, rfl⟩,
+    exact ⟨a, b, not_mem_singleton.1 hab, rfl⟩ },
+  { rintro ⟨x, y, hxy, rfl⟩,
+    simp only [hxy, card_insert_of_not_mem, not_false_iff, mem_singleton, card_singleton] }
+end
+
+lemma card_eq_three [decidable_eq α] {s : finset α} :
+  s.card = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x, y, z} :=
+begin
+  split,
+  { rw card_eq_succ,
+    simp_rw [card_eq_two],
+    rintro ⟨a, _, abc, rfl, b, c, bc, rfl⟩,
+    rw [mem_insert, mem_singleton, not_or_distrib] at abc,
+    exact ⟨a, b, c, abc.1, abc.2, bc, rfl⟩ },
+  { rintro ⟨x, y, z, xy, xz, yz, rfl⟩,
+    simp only [xy, xz, yz, mem_insert, card_insert_of_not_mem, not_false_iff, mem_singleton,
+      or_self, card_singleton] }
+end
 
 theorem card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   card (s.filter p) ≤ card s :=

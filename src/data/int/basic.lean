@@ -140,6 +140,14 @@ not_congr coe_nat_eq_zero
 
 @[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
+lemma le_coe_nat_sub (m n : ℕ) :
+  (m - n : ℤ) ≤ ↑(m - n : ℕ) :=
+begin
+  by_cases h: m ≥ n,
+  { exact le_of_eq (int.coe_nat_sub h).symm },
+  { simp [le_of_not_ge h] }
+end
+
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
 λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩
@@ -608,8 +616,8 @@ by rw [mul_comm, mul_mod_left]
 
 lemma mul_mod (a b n : ℤ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
-  conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+  conv_lhs
+  { rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
         add_mul_mod_self] }
 end
@@ -716,8 +724,8 @@ end
 @[norm_cast] theorem coe_nat_dvd {m n : ℕ} : (↑m : ℤ) ∣ ↑n ↔ m ∣ n :=
 ⟨λ ⟨a, ae⟩, m.eq_zero_or_pos.elim
   (λm0, by simp [m0] at ae; simp [ae, m0])
-  (λm0l, by {
-    cases eq_coe_of_zero_le (@nonneg_of_mul_nonneg_left ℤ _ m a
+  (λm0l, by
+  { cases eq_coe_of_zero_le (@nonneg_of_mul_nonneg_left ℤ _ m a
       (by simp [ae.symm]) (by simpa using m0l)) with k e,
     subst a, exact ⟨k, int.coe_nat_inj ae⟩ }),
  λ ⟨k, e⟩, dvd.intro k $ by rw [e, int.coe_nat_mul]⟩
@@ -1261,8 +1269,8 @@ private meta def bitwise_tac : tactic unit := `[
   funext m,
   funext n,
   cases m with m m; cases n with n n; try {refl},
-  all_goals {
-    apply congr_arg of_nat <|> apply congr_arg neg_succ_of_nat,
+  all_goals
+  { apply congr_arg of_nat <|> apply congr_arg neg_succ_of_nat,
     try {dsimp [nat.land, nat.ldiff, nat.lor]},
     try {rw [
       show nat.bitwise (λ a b, a && bnot b) n m =
@@ -1290,8 +1298,8 @@ begin
     induction h : f ff tt,
     induction h : f tt ff,
     induction h : f tt tt ],
-  all_goals {
-    unfold cond, rw nat.bitwise_bit,
+  all_goals
+  { unfold cond, rw nat.bitwise_bit,
     repeat { rw bit_coe_nat <|> rw bit_neg_succ <|> rw bnot_bnot } },
   all_goals { unfold bnot {fail_if_unchanged := ff}; rw h; refl }
 end

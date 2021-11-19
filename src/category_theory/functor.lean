@@ -5,6 +5,7 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 -/
 import tactic.reassoc_axiom
 import tactic.monotonicity
+import category_theory.category.basic
 
 /-!
 # Functors

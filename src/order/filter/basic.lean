@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
+import control.traversable.instances
 import data.set.finite
 import order.copy
-import order.zorn
 import tactic.monotonicity
 
 /-!
@@ -888,6 +888,8 @@ notation `∀ᶠ` binders ` in ` f `, ` r:(scoped p, filter.eventually p f) := r
 lemma eventually_iff {f : filter α} {P : α → Prop} : (∀ᶠ x in f, P x) ↔ {x | P x} ∈ f :=
 iff.rfl
 
+@[simp] lemma eventually_mem_set {s : set α} {l : filter α} : (∀ᶠ x in l, x ∈ s) ↔ s ∈ l := iff.rfl
+
 protected lemma ext' {f₁ f₂ : filter α}
   (h : ∀ p : α → Prop, (∀ᶠ x in f₁, p x) ↔ (∀ᶠ x in f₂, p x)) :
   f₁ = f₂ :=
@@ -1188,6 +1190,9 @@ eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
 alias eventually_eq_set ↔ filter.eventually_eq.mem_iff filter.eventually.set_eq
 
+@[simp] lemma eventually_eq_univ {s : set α} {l : filter α} : s =ᶠ[l] univ ↔ s ∈ l :=
+by simp [eventually_eq_set]
+
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, eq_on f g s :=
 h.exists_mem
@@ -1361,15 +1366,15 @@ lemma eventually.ne_of_lt [preorder β] {l : filter α} {f g : α → β}
   (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ g x :=
 h.mono (λ x hx, hx.ne)
 
-lemma eventually.ne_top_of_lt [order_top β] {l : filter α} {f g : α → β}
+lemma eventually.ne_top_of_lt [partial_order β] [order_top β] {l : filter α} {f g : α → β}
   (h : ∀ᶠ x in l, f x < g x) : ∀ᶠ x in l, f x ≠ ⊤ :=
 h.mono (λ x hx, hx.ne_top)
 
-lemma eventually.lt_top_of_ne [order_top β] {l : filter α} {f : α → β}
+lemma eventually.lt_top_of_ne [partial_order β] [order_top β] {l : filter α} {f : α → β}
   (h : ∀ᶠ x in l, f x ≠ ⊤) : ∀ᶠ x in l, f x < ⊤ :=
 h.mono (λ x hx, hx.lt_top)
 
-lemma eventually.lt_top_iff_ne_top [order_top β] {l : filter α} {f : α → β} :
+lemma eventually.lt_top_iff_ne_top [partial_order β] [order_top β] {l : filter α} {f : α → β} :
   (∀ᶠ x in l, f x < ⊤) ↔ ∀ᶠ x in l, f x ≠ ⊤ :=
 ⟨eventually.ne_of_lt, eventually.lt_top_of_ne⟩
 
@@ -2151,8 +2156,8 @@ begin
   { induction fs generalizing t,
     case nil { simp only [sequence, mem_pure, imp_self, forall₂_nil_left_iff,
       exists_eq_left, set.pure_def, singleton_subset_iff, traverse_nil] },
-    case cons : b fs ih t {
-      intro ht,
+    case cons : b fs ih t
+    { intro ht,
       rcases mem_seq_iff.1 ht with ⟨u, hu, v, hv, ht⟩,
       rcases mem_map_iff_exists_image.1 hu with ⟨w, hw, hwu⟩,
       rcases ih v hv with ⟨us, hus, hu⟩,
@@ -2442,6 +2447,27 @@ end
     (λ hs'e, absurd hs'e (nonempty_of_mem hs').ne_empty)
     (λ ht'e, absurd ht'e (nonempty_of_mem ht').ne_empty)),
   λ h, prod_mem_prod h.1 h.2⟩
+
+lemma mem_prod_principal {f : filter α} {s : set (α × β)} {t : set β}:
+  s ∈ f ×ᶠ 𝓟 t ↔ {a | ∀ b ∈ t, (a, b) ∈ s} ∈ f :=
+begin
+  rw [← @exists_mem_subset_iff _ f, mem_prod_iff],
+  apply exists_congr, intro u, apply exists_congr, intro u_in,
+  split,
+  { rintros ⟨v, v_in, hv⟩ a a_in b b_in,
+    exact hv (mk_mem_prod a_in $ v_in b_in) },
+  { intro h,
+    refine ⟨t, mem_principal_self t, _⟩,
+    rintros ⟨x, y⟩ ⟨hx, hy⟩,
+    exact h hx y hy }
+end
+
+lemma mem_prod_top {f : filter α} {s : set (α × β)} :
+  s ∈ f ×ᶠ (⊤ : filter β) ↔ {a | ∀ b, (a, b) ∈ s} ∈ f :=
+begin
+  rw [← principal_univ, mem_prod_principal],
+  simp only [mem_univ, forall_true_left]
+end
 
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=

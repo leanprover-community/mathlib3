@@ -89,8 +89,8 @@ theorem eq_or_mem_of_mem_cons {a b : α} {s : stream α} : a ∈ b::s → a = b 
 assume ⟨n, h⟩,
 begin
   cases n with n',
-   {left, exact h},
-   {right, rw [nth_succ, tail_cons] at h, exact ⟨n', h⟩}
+  { left, exact h },
+  { right, rw [nth_succ, tail_cons] at h, exact ⟨n', h⟩ }
 end
 
 theorem mem_of_nth_eq {n : nat} {s : stream α} {a : α} : a = nth n s → a ∈ s :=
@@ -187,11 +187,11 @@ theorem tail_iterate (f : α → α) (a : α) : tail (iterate f a) = iterate f (
 begin
   funext n,
   induction n with n' ih,
-    {refl},
-    {unfold tail iterate,
-     unfold tail iterate at ih,
-     rw add_one at ih, dsimp at ih,
-     rw add_one, dsimp, rw ih}
+  { refl },
+  { unfold tail iterate,
+    unfold tail iterate at ih,
+    rw add_one at ih, dsimp at ih,
+    rw add_one, dsimp, rw ih }
 end
 
 theorem iterate_eq (f : α → α) (a : α) : iterate f a = a :: iterate f (f a) :=
@@ -261,10 +261,10 @@ theorem map_iterate (f : α → α) (a : α) : iterate f (f a) = map f (iterate 
 begin
   funext n,
   induction n with n' ih,
-    {refl},
-    { unfold map iterate nth, dsimp,
-      unfold map iterate nth at ih, dsimp at ih,
-      rw ih }
+  { refl },
+  { unfold map iterate nth, dsimp,
+    unfold map iterate nth at ih, dsimp at ih,
+    rw ih }
 end
 
 section corec
@@ -303,8 +303,8 @@ begin unfold unfolds, rw [corec_eq] end
 theorem nth_unfolds_head_tail : ∀ (n : nat) (s : stream α), nth n (unfolds head tail s) = nth n s :=
 begin
   intro n, induction n with n' ih,
-   {intro s, refl},
-   {intro s, rw [nth_succ, nth_succ, unfolds_eq, tail_cons, ih]}
+  { intro s, refl },
+  { intro s, rw [nth_succ, nth_succ, unfolds_eq, tail_cons, ih] }
 end
 
 theorem unfolds_head_eq : ∀ (s : stream α), unfolds head tail s = s :=
@@ -479,8 +479,8 @@ theorem append_approx_drop :
 begin
   intro n,
   induction n with n' ih,
-   {intro s, refl},
-   {intro s, rw [approx_succ, drop_succ, cons_append_stream, ih (tail s), stream.eta]}
+  { intro s, refl },
+  { intro s, rw [approx_succ, drop_succ, cons_append_stream, ih (tail s), stream.eta] }
 end
 
 -- Take theorem reduces a proof of equality of infinite streams to an
@@ -541,8 +541,8 @@ by unfold tails; rw [corec_eq]; refl
 theorem nth_tails : ∀ (n : nat) (s : stream α), nth n (tails s) = drop n (tail s) :=
 begin
   intro n, induction n with n' ih,
-    {intros, refl},
-    {intro s, rw [nth_succ, drop_succ, tails_eq, tail_cons, ih]}
+  { intros, refl },
+  { intro s, rw [nth_succ, drop_succ, tails_eq, tail_cons, ih] }
 end
 
 theorem tails_eq_iterate (s : stream α) : tails s = iterate tail (tail s) := rfl
@@ -572,23 +572,23 @@ theorem cons_nth_inits_core : ∀ (a : α) (n : nat) (l : list α) (s : stream �
 begin
   intros a n,
   induction n with n' ih,
-   {intros, refl},
-   {intros l s, rw [nth_succ, inits_core_eq, tail_cons, ih, inits_core_eq (a::l) s], refl }
+  { intros, refl },
+  { intros l s, rw [nth_succ, inits_core_eq, tail_cons, ih, inits_core_eq (a::l) s], refl }
 end
 
 theorem nth_inits : ∀ (n : nat) (s : stream α), nth n (inits s) = approx (succ n) s  :=
 begin
   intro n, induction n with n' ih,
-    {intros, refl},
-    {intros, rw [nth_succ, approx_succ, ← ih, tail_inits, inits_tail, cons_nth_inits_core]}
+  { intros, refl },
+  { intros, rw [nth_succ, approx_succ, ← ih, tail_inits, inits_tail, cons_nth_inits_core] }
 end
 
 theorem inits_eq (s : stream α) : inits s = [head s] :: map (list.cons (head s)) (inits (tail s)) :=
 begin
   apply stream.ext, intro n,
   cases n,
-    {refl},
-    {rw [nth_inits, nth_succ, tail_cons, nth_map, nth_inits], refl}
+  { refl },
+  { rw [nth_inits, nth_succ, tail_cons, nth_map, nth_inits], refl }
 end
 
 theorem zip_inits_tails (s : stream α) : zip append_stream (inits s) (tails s) = const s :=

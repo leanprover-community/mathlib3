@@ -308,3 +308,41 @@ lemma coe_of (X : Type u) [add_comm_group X] [module R X] [module Rᵒᵖ X] [is
   (of R X : Type u) = X := rfl
 
 end SymmetricBiModule
+
+variables {R}
+
+/-- Reinterpreting a linear map in the category of symmetric `R`-modules. -/
+def SymmetricBiModule.as_hom
+  [add_comm_group X₁] [module R X₁] [module Rᵒᵖ X₁] [is_symmetric_smul R X₁]
+  [add_comm_group X₂] [module R X₂] [module Rᵒᵖ X₂] [is_symmetric_smul R X₂] :
+  (X₁ →ₗ[R] X₂) → (SymmetricBiModule.of R X₁ ⟶ SymmetricBiModule.of R X₂) := id
+
+localized "notation `↟` f : 1024 := Module.as_hom f" in Module
+
+/-- Reinterpreting a linear map in the category of `R`-modules. -/
+def SymmetricBiModule.as_hom_right
+  [add_comm_group X₁] [module R X₁] [module Rᵒᵖ X₁] [is_symmetric_smul R X₁]
+  {X₂ : SymmetricBiModule.{v} R} :
+  (X₁ →ₗ[R] X₂) → (SymmetricBiModule.of R X₁ ⟶ X₂) := id
+
+localized "notation `↾` f : 1024 := Module.as_hom_right f" in Module
+
+/-- Reinterpreting a linear map in the category of `R`-modules. -/
+def SymmetricBiModule.as_hom_left {X₁ : SymmetricBiModule.{v} R}
+  [add_comm_group X₂] [module R X₂] [module Rᵒᵖ X₂] [is_symmetric_smul R X₂] :
+  (X₁ →ₗ[R] X₂) → (X₁ ⟶ SymmetricBiModule.of R X₂) := id
+
+localized "notation `↿` f : 1024 := Module.as_hom_left f" in Module
+
+/-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
+@[simps]
+def linear_equiv.to_SymmetricBiModule_iso
+  {g₁ : add_comm_group X₁} {g₂ : add_comm_group X₂} {m₁ : module R X₁} {m₂ : module R X₂}
+  [module Rᵒᵖ X₁] [is_symmetric_smul R X₁]
+  [module Rᵒᵖ X₂] [is_symmetric_smul R X₂]
+  (e : X₁ ≃ₗ[R] X₂) :
+  SymmetricBiModule.of R X₁ ≅ SymmetricBiModule.of R X₂ :=
+{ hom := (e : X₁ →ₗ[R] X₂),
+  inv := (e.symm : X₂ →ₗ[R] X₁),
+  hom_inv_id' := begin ext, exact e.left_inv x, end,
+  inv_hom_id' := begin ext, exact e.right_inv x, end, }

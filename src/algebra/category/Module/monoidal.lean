@@ -5,7 +5,7 @@ Authors: Kevin Buzzard, Scott Morrison, Jakob von Raumer
 -/
 import category_theory.monoidal.braided
 import algebra.category.Module.basic
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product.left_action
 
 /-!
 # The symmetric monoidal category structure on R-modules
@@ -22,7 +22,7 @@ universes u
 
 open category_theory
 
-namespace Module
+namespace SymmetricBiModule
 
 variables {R : Type u} [comm_ring R]
 
@@ -35,23 +35,27 @@ open_locale tensor_product
 local attribute [ext] tensor_product.ext
 
 /-- (implementation) tensor product of R-modules -/
-def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
-/-- (implementation) tensor product of morphisms R-modules -/
-def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
+def tensor_obj (M N : SymmetricBiModule R) : SymmetricBiModule R :=
+SymmetricBiModule.of R (M ⊗[R] N)
+
+/-- (implementation) tensor product of morphisms of symmetric R-modules -/
+def tensor_hom {M N M' N' : SymmetricBiModule R} (f : M ⟶ N) (g : M' ⟶ N') :
   tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
-lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (↥M ⊗ ↥N)) :=
+lemma tensor_id (M N : SymmetricBiModule R) :
+  tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (SymmetricBiModule.of R (↥M ⊗ ↥N)) :=
 by tidy
 
-lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module R}
+lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : SymmetricBiModule R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
 by tidy
 
-/-- (implementation) the associator for R-modules -/
-def associator (M N K : Module R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
-linear_equiv.to_Module_iso (tensor_product.assoc R M N K)
+/-- (implementation) the associator for symmetric R-modules -/
+def associator (M N K : SymmetricBiModule R) :
+  tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
+linear_equiv.to_SymmetricBiModule_iso (by { apply tensor_product.assoc })
 
 section
 
@@ -66,9 +70,13 @@ private lemma associator_naturality_aux
   {X₁ X₂ X₃ : Type*}
   [add_comm_monoid X₁] [add_comm_monoid X₂] [add_comm_monoid X₃]
   [module R X₁] [module R X₂] [module R X₃]
+  [module Rᵒᵖ X₁] [module Rᵒᵖ X₂] [module Rᵒᵖ X₃]
+  [is_symmetric_smul R X₁] [is_symmetric_smul R X₂] [is_symmetric_smul R X₃]
   {Y₁ Y₂ Y₃ : Type*}
   [add_comm_monoid Y₁] [add_comm_monoid Y₂] [add_comm_monoid Y₃]
   [module R Y₁] [module R Y₂] [module R Y₃]
+  [module Rᵒᵖ Y₁] [module Rᵒᵖ Y₂] [module Rᵒᵖ Y₃]
+  [is_symmetric_smul R Y₁] [is_symmetric_smul R Y₂] [is_symmetric_smul R Y₃]
   (f₁ : X₁ →ₗ[R] Y₁) (f₂ : X₂ →ₗ[R] Y₂) (f₃ : X₃ →ₗ[R] Y₃) :
   (↑(assoc R Y₁ Y₂ Y₃) ∘ₗ (map (map f₁ f₂) f₃)) = ((map f₁ (map f₂ f₃)) ∘ₗ ↑(assoc R X₁ X₂ X₃)) :=
 begin
@@ -82,7 +90,9 @@ variables (R)
 private lemma pentagon_aux
   (W X Y Z : Type*)
   [add_comm_monoid W] [add_comm_monoid X] [add_comm_monoid Y] [add_comm_monoid Z]
-  [module R W] [module R X] [module R Y] [module R Z] :
+  [module R W] [module R X] [module R Y] [module R Z]
+  [module Rᵒᵖ W] [module Rᵒᵖ X] [module Rᵒᵖ Y] [module Rᵒᵖ Z]
+  [is_symmetric_smul R W] [is_symmetric_smul R X] [is_symmetric_smul R Y] [is_symmetric_smul R Z] :
   ((map (1 : W →ₗ[R] W) (assoc R X Y Z).to_linear_map).comp (assoc R W (X ⊗[R] Y) Z).to_linear_map)
     .comp (map ↑(assoc R W X Y) (1 : Z →ₗ[R] Z)) =
   (assoc R W X (Y ⊗[R] Z)).to_linear_map.comp (assoc R (W ⊗[R] X) Y Z).to_linear_map :=

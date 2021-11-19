@@ -26,6 +26,8 @@ group action
 -/
 open opposite
 
+universe u
+
 class is_symmetric_smul (R M : Type*) [has_scalar R M] [has_scalar Rᵒᵖ M] :=
 (op_smul_eq_smul : ∀ (r : R) (m : M), m <• r = r • m)
 
@@ -37,6 +39,9 @@ by { conv_rhs { rw[←op_unop r] }, rw [op_smul_eq_smul] }
 
 instance comm_semigroup.is_symmetric_smul {R} [comm_semigroup R] : is_symmetric_smul R R :=
 ⟨λ r m, mul_comm _ _⟩
+
+instance punit.is_symmetric_smul {R} [has_scalar R punit.{u+1}] [has_scalar Rᵒᵖ punit.{u+1}] :
+  is_symmetric_smul R punit.{u+1} := ⟨λ _ _, by simp⟩
 
 instance prod.is_symmetric_smul {R α β}
   [has_scalar R α] [has_scalar R β] [has_scalar Rᵒᵖ α] [has_scalar Rᵒᵖ β]

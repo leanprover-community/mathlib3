@@ -28,8 +28,8 @@ by `besicovitch.vitali_family` (for balls) or by `vitali.vitali_family` (for dou
 
 ## Sketch of proof
 
-Assume for simplicity that `ρ` is absolutely continuous with respect to `μ`, as the case of a
-singular measure is easier.
+Let `v` be a Vitali family for `μ`. Assume for simplicity that `ρ` is absolutely continuous with
+respect to `μ`, as the case of a singular measure is easier.
 
 It is easy to see that a set `s` on which `liminf ρ a / μ a < q` satisfies `ρ s ≤ q * μ s`, by using
 a disjoint subcovering provided by the definition of Vitali families. Similarly for the limsup.
@@ -41,12 +41,12 @@ limit of `ρ a / μ a` at `x` (which is well defined almost everywhere). By uniq
 Radon-Nikodym derivative, one gets `v.lim_ratio ρ x = ρ.rn_deriv μ x` almost everywhere, completing
 the proof.
 
-There is a difficulty in this sketch: this argument works well when `v.lim_ratio` is measurable,
+There is a difficulty in this sketch: this argument works well when `v.lim_ratio ρ` is measurable,
 but there is no guarantee that this is the case, especially if one doesn't make further assumptions
-on the Vitali family. We use an indirect argument to show that `v.lim_ratio` is always
+on the Vitali family. We use an indirect argument to show that `v.lim_ratio ρ` is always
 almost everywhere measurable, again based on the disjoint subcovering argument
 (see `vitali_family.exists_measurable_supersets_lim_ratio`), and then proceed as sketched above
-but replacing `v.lim_ratio` by a measurable version called `v.lim_ratio_meas`.
+but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas ρ`.
 
 ## References
 
@@ -291,8 +291,8 @@ begin
   -/
   let s := {x | ∃ c, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 c)},
   let o : ℕ → set α := spanning_sets (ρ + μ),
-  let u := λ n, (s ∩ {x | v.lim_ratio ρ x < p} ∩ o n),
-  let w := λ n, (s ∩ {x | (q : ℝ≥0∞) < v.lim_ratio ρ x} ∩ o n),
+  let u := λ n, s ∩ {x | v.lim_ratio ρ x < p} ∩ o n,
+  let w := λ n, s ∩ {x | (q : ℝ≥0∞) < v.lim_ratio ρ x} ∩ o n,
   -- the supersets are obtained by restricting to the set `s` where the limit is well defined, to
   -- a finite measure part `o n`, taking a measurable superset here, and then taking the union over
   -- `n`.

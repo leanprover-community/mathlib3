@@ -1356,9 +1356,7 @@ lemma exp_bound' {x : ℝ} (h1 : 0 ≤ x) (h2 : x ≤ 1) {n : ℕ} (hn : 0 < n) 
   real.exp x ≤ ∑ m in finset.range n, x ^ m / m! + x ^ n * (n + 1) / (n! * n) :=
 begin
   have h3 : |x| = x := by simpa,
-  have h4 : |x| ≤ 1,
-  { rw abs_le,
-    exact ⟨by linarith, h2⟩ },
+  have h4 : |x| ≤ 1 := by rwa h3,
   have h' := real.exp_bound h4 hn,
   rw h3 at h',
   have h'' := (abs_sub_le_iff.1 h').1,

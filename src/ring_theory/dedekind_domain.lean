@@ -1430,20 +1430,18 @@ lemma dvd_not_unit_of_dvd_not_unit_associated {M : Type*} [comm_cancel_monoid_wi
   {p q r : M} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
   sorry
 
-lemma pow_prime₃' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : M} (n : ℕ) (hn : 1 ≤ n)
-  (c : ℕ → M)  (h₁ : ∀ i j, i < j → dvd_not_unit (c i) (c j))
-  (h₂ : ∀ (r : M), r ∣ q ↔ ∃ i ≤ n,  associated r (c i)) (hp : prime p) (hr : r ∣ q)
-  (hr' : ¬ is_unit r) (hp' : p ∣ r) : associated p (c 1) :=
+lemma pow_prime₃' {M : Type*} [comm_cancel_monoid_with_zero M] {p q r : associates M} (n : ℕ) (hn : 1 ≤ n)
+  (c : ℕ → associates M)  (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i ≤ n, r = c i) (hp : prime p) (hr : r ∣ q)
+  (hr' : ¬ is_unit r) (hp' : p ∣ r) : p = c 1 :=
 begin
-  obtain ⟨i, hi, p_eq⟩ := (h₂ p).1 (dvd_trans hp' hr),
+  obtain ⟨i, hi, p_eq⟩ := h₂.1 (dvd_trans hp' hr),
   have : 1 ≤ i,
   { rw [nat.succ_le_iff, pos_iff_ne_zero],
     rintro rfl,
     apply prime.not_unit hp,
-    apply is_unit_of_associated_is_unit (associated.symm p_eq) (pow_prime₁' n c h₁ h₂),
-    sorry, --Lean gives me a weird goal here, should go once `is_unit_of_associated_is_unit` is put in
-          -- the right file ?
-  },
+    rw p_eq,
+    exact pow_prime₁' n c h₁ @h₂ },
   by_cases h : 1 = i,             --this part is very messy
   { rw ← h at p_eq,
     exact p_eq },

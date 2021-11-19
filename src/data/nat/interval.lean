@@ -166,6 +166,13 @@ begin
         tsub_le_iff_right.1 hb⟩ } }
 end
 
+lemma Ico_succ_left_eq_erase_Ico : Ico a.succ b = erase (Ico a b) a :=
+begin
+  rw Ico_succ_left,
+  ext x,
+  rw [mem_erase, mem_Ico, mem_Ioo, ←and_assoc, ne_comm, lt_iff_ne_and_le],
+end
+
 lemma range_image_pred_top_sub (n : ℕ) : (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
 begin
   cases n,

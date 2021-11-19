@@ -241,39 +241,6 @@ mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
 
 end pigeonhole
 
-section double_counting
-variables [decidable_eq α] {s : finset α} {B : finset (finset α)} {n : ℕ}
-
-/-- If every element belongs to at most `n` finsets, then the sum of their sizes is at most `n`
-times how many they are. -/
-lemma sum_card_inter_le (h : ∀ a ∈ s, (B.filter $ (∈) a).card ≤ n) :
-  ∑ t in B, (s ∩ t).card ≤ s.card * n :=
-begin
-  simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
-  rw [sum_comm, ←card_eq_sum_ones],
-  apply sum_le_of_forall_le,
-  simpa only [sum_boole, nat.cast_id],
-end
-
-/-- If every element belongs to at least `n` finsets, then the sum of their sizes is at least `n`
-times how many they are. -/
-lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
-  s.card * n ≤ ∑ t in B, (s ∩ t).card :=
-begin
-  simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
-  rw [sum_comm, ←card_eq_sum_ones],
-  apply le_sum_of_forall_le,
-  simpa only [sum_boole, nat.cast_id],
-end
-
-/-- If every element belongs to exactly `n` finsets, then the sum of their sizes is `n` times how
-many they are. -/
-lemma sum_card_inter (h : ∀ a ∈ s, (B.filter $ (∈) a).card = n) :
-  ∑ t in B, (s ∩ t).card = s.card * n :=
-(sum_card_inter_le $ λ a ha, (h a ha).le).antisymm (le_sum_card_inter $ λ a ha, (h a ha).ge)
-
-end double_counting
-
 section canonically_ordered_monoid
 
 variables [canonically_ordered_monoid M] {f : ι → M} {s t : finset ι}

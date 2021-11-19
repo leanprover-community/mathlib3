@@ -134,7 +134,7 @@ begin
       { have h_add_a : a.coprime (n_n + a), sorry,
         rw if_pos,
         { rw finset.card_insert_of_mem,
-          rw finset.erase_filter, },
+          rw finset.filter_erase, },
         { }, },
       -- rw Ico_succ_left,
       apply Ioo_insert_left,

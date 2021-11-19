@@ -161,6 +161,9 @@ lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a := λ hba, 
 
 alias not_lt_of_le ← has_le.le.not_lt
 
+lemma ne_of_not_le [preorder α] (a b : α) (h : ¬ a ≤ b) : a ≠ b :=
+λ heq, h (le_of_eq heq)
+
 -- See Note [decidable namespace]
 protected lemma decidable.le_iff_eq_or_lt [partial_order α] [@decidable_rel α (≤)]
   {a b : α} : a ≤ b ↔ a = b ∨ a < b := decidable.le_iff_lt_or_eq.trans or.comm
@@ -197,6 +200,19 @@ protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α
 
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
+
+lemma lt_iff_ne_and_le [partial_order α] (a b : α) : a < b ↔ (a ≠ b) ∧ a ≤ b :=
+begin
+  rw [and_comm, lt_iff_le_not_le],
+  apply and_congr_right,
+  intro h,
+  split,
+  { intro nle,
+    rw ne_comm,
+    exact ne_of_not_le b a nle},
+  { intros ne b_le_a,
+    exact ne (le_antisymm h b_le_a), },
+end
 
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h

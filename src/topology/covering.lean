@@ -1,6 +1,7 @@
 import topology.connected
 import topology.continuous_function.basic
-
+import topology.homotopy.fundamental_groupoid
+import category_theory.full_subcategory
 section for_mathlib
 
 /-lemma open_embedding_of_open_embedding_compose_injective {A B C : Type*}
@@ -50,6 +51,12 @@ begin
   rw [function.comp_apply, hκ3],
   apply hι3,
 end
+
+def singleton_subtype (x:X):= {y: X//y=x}
+def singleton_inclusion (x:X):(singleton_subtype x)→ X:=λ s,x
+
+--noncomputable def fundamental_group (x:X) := @category_theory.induced_category.category _
+--  X (category_theory.category.{u} X) (singleton_inclusion x),
 
 variables (E E' X)
 

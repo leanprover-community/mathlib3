@@ -50,8 +50,14 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
 
 /-- An explicit right inverse of `dual_tensor_hom` given a basis. -/
 noncomputable def hom_dual_tensor
-  {ι : Type} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N) :
-  (module.dual R M) ⊗[R] N := ∑ (i : ι), (b.dual_basis i) ⊗ₜ f (b i)
+  {ι : Type*} [fintype ι] [decidable_eq ι] (b : basis ι R M) :
+  (M →ₗ[R] N) →ₗ[R] (module.dual R M) ⊗[R] N :=
+∑ i, (tensor_product.mk R _ N (b.dual_basis i)) ∘ₗ linear_map.applyₗ (b i)
+
+noncomputable lemma hom_dual_tensor_apply
+  {ι : Type*} [fintype ι] [decidable_eq ι] (b : basis ι R M) (f : M →ₗ[R] N) :
+  hom_dual_tensor R M N b f = ∑ i, b.dual_basis i ⊗ₜ f (b i) :=
+linear_map.sum_apply _ _ _
 
 variables {R M N}
 

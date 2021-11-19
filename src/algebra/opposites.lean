@@ -3,14 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.field
 import algebra.group.commute
+import algebra.ring.basic
 import data.equiv.mul_add
 
 /-!
 # Multiplicative opposite and algebraic operations on it
 
-In this file we define `mul_oppposite α = αᵐᵒᵖ` to be the multiplicative opposite of `α`. It
+In this file we define `mul_opposite α = αᵐᵒᵖ` to be the multiplicative opposite of `α`. It
 inherits all additive algebraic structures on `α`, and reverses the order of multipliers in
 multiplicative structures, i.e., `op (x * y) = op x * op y`, where `mul_opposite.op` is the
 canonical map from `α` to `αᵐᵒᵖ`.
@@ -292,12 +292,6 @@ instance [group_with_zero α] : group_with_zero αᵐᵒᵖ :=
   inv_zero := unop_injective inv_zero,
   .. mul_opposite.monoid_with_zero α, .. mul_opposite.div_inv_monoid α,
   .. mul_opposite.nontrivial α }
-
-instance [division_ring α] : division_ring αᵐᵒᵖ :=
-{ .. mul_opposite.group_with_zero α, .. mul_opposite.ring α }
-
-instance [field α] : field αᵐᵒᵖ :=
-{ .. mul_opposite.division_ring α, .. mul_opposite.comm_ring α }
 
 variable {α}
 

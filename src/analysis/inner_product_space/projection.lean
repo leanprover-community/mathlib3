@@ -615,7 +615,7 @@ lemma reflection_involutive : function.involutive (reflection K) := reflection_r
 /-- Reflection is involutive. -/
 @[simp] lemma reflection_trans_reflection :
   (reflection K).trans (reflection K) = linear_isometry_equiv.refl 𝕜 E :=
-by ext; simp
+linear_isometry_equiv.ext $ reflection_involutive K
 
 variables {K}
 

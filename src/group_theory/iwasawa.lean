@@ -5,6 +5,16 @@ cribed in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
+-- import group_theory.subgroup.basic
+import group_theory.subgroup.pointwise
+import group_theory.coset
+import group_theory.quotient_group
+import group_theory.abelianization
+import group_theory.group_action.defs
+import group_theory.group_action.basic
+import group_theory.group_action.group
+import group_theory.group_action.conj_act
+
 /-!
 # Iwasawa criterion and simplicity of some groups
 
@@ -55,15 +65,7 @@ The alternate group A(n) is simple.
 
 -/
 
--- import group_theory.subgroup.basic
-import group_theory.subgroup.pointwise
-import group_theory.coset
-import group_theory.quotient_group
-import group_theory.abelianization
-import group_theory.group_action.defs
-import group_theory.group_action.basic
-import group_theory.group_action.group
-import group_theory.group_action.conj_act
+
 
 section Maximal_Subgroups
 variables {G : Type*} [group G]
